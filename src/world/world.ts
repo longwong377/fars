@@ -13,8 +13,16 @@ export interface WorldBuild {
   applySettings?(s: Settings): void;
   audio?: { unlock(): void };
 }
+import { buildTerrace } from '../arch/terrace';
+import { buildMeshes } from '../arch/meshes';
 export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Terrain): Promise<WorldBuild> {
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
-  void phys; void terrain;
-  return { root, summary: () => 'architecture: none (Phase 2)' };
+  void terrain;
+  const t0 = performance.now();
+  const { parts, manifest } = buildTerrace();
+  const arch = buildMeshes(parts, phys);
+  root.add(arch.group);
+  const ms = performance.now() - t0;
+  (root.userData as any).manifest = manifest;
+  return { root, summary: () => `architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms` };
 }

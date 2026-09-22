@@ -111,22 +111,61 @@ async function boot() {
     setWeather: (w: WeatherOverride) => { weather.override = w; },
     /** place the camera at grid (east, north) with eye height above ground (or absolute asl), true-north azimuth + pitch in degrees */
     view: (east: number, north: number, eyeAboveGround: number, azTrueDeg: number, pitchDeg: number) => {
-      const x = east, z = -north; freeCam = { x, y: terrain.heightAt(x, z) + eyeAboveGround, z, yaw: -((azTrueDeg - 341) * Math.PI) / 180, pitch: (pitchDeg * Math.PI) / 180 };
+      const x = east, z = -north; phys.updateTerrain(terrain, { x, y: 0, z }); phys.step(1e-4); const g = phys.castRayDown(x, z, 400) ?? terrain.heightAt(x, z); freeCam = { x, y: g + eyeAboveGround, z, yaw: -((azTrueDeg - 341) * Math.PI) / 180, pitch: (pitchDeg * Math.PI) / 180 };
     },
     viewLatLon: (lat: number, lon: number, eye: number, az: number, pitch: number) => { const [e, n] = latLonToGrid(lat, lon); api.view(e, n, eye, az, pitch); },
     walkMode: () => { freeCam = null; },
-    teleport: (east: number, north: number) => { const x = east, z = -north; phys.updateTerrain(terrain, { x, y: 0, z }); player.teleport(x, terrain.heightAt(x, z), z); },
+    teleport: (east: number, north: number) => { const x = east, z = -north; phys.updateTerrain(terrain, { x, y: 0, z }); phys.step(1e-4); player.teleport(x, phys.castRayDown(x, z, 400) ?? terrain.heightAt(x, z), z); },
     setInput: (i: Partial<{ forward: number; right: number; run: boolean; yawDeg: number; pitchDeg: number }>) => { botInput = { ...botInput, ...i }; },
-    playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, yaw: input.yaw, ground: terrain.heightAt(player.position.x, player.position.z) }),
+    playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, yaw: input.yaw, ground: phys.castRayDown(player.position.x, player.position.z, player.position.y + 0.5) ?? terrain.heightAt(player.position.x, player.position.z) }),
     stats: () => ({ backend, drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, terrain: tmesh.stats(), frameMs: lastFrameMs, heap: (performance as any).memory?.usedJSHeapSize ?? null }),
     renderOnce: async () => { await frame(0); },
     /** deterministic fixed-step simulation without rendering (walkthrough bots, soak); returns max frame sim time */
     simulate: (seconds: number, dt = 1 / 30) => { const steps = Math.round(seconds / dt); for (let i = 0; i < steps; i++) simStep(dt); },
+    /** walkthrough bot: steer toward grid (east, north) at walking pace; returns {reached, stuck, t, state} (fixed-step, deterministic) */
+    walkTo: (east: number, north: number, maxSeconds = 120, tol = 0.6, dt = 1 / 60) => {
+      let t = 0, lastProgress = 0, best = Infinity;
+      while (t < maxSeconds) {
+        const p = player.position, de = east - p.x, dn = north + p.z, d = Math.hypot(de, dn);
+        if (d < tol) return { reached: true, stuck: false, t, state: api.playerState() };
+        if (d < best - 0.05) { best = d; lastProgress = t; }
+        if (t - lastProgress > 4) return { reached: false, stuck: true, t, state: api.playerState() };
+        const azGrid = Math.atan2(de, dn); // from grid north, clockwise
+        botInput = { forward: 1, right: 0, run: false, yawDeg: (azGrid * 180) / Math.PI + 341, pitchDeg: 0 };
+        simStep(dt, false); t += dt;
+      }
+      botInput = { forward: 0, right: 0, run: false };
+      return { reached: false, stuck: false, t, state: api.playerState() };
+    },
     clockLabel: () => clock.label(), gridToLatLon, world,
     sky: () => ({ sunAlt: sky.state.sunAlt, moonAlt: sky.state.moonAlt, moonFraction: sky.state.moonFraction }),
     conditions: () => weather.conditions(clock.dayIndex, clock.localHour),
     errors: [] as string[],
+    /** §13.2 rendered plan overlay: renders the given building's parts (filtered by kind) top-down, orthographic,
+     *  0.25 m/px over grid x∈[-80,272], y∈[-250,250]; returns a row-major 0/1 mask (row 0 = north). */
+    planMask: async (building: string, kinds: string[] | null) => {
+      const { buildTerrace } = await import('./arch/terrace'); const { buildMeshes } = await import('./arch/meshes');
+      const parts: any[] = building === '__marker'
+        ? [{ type: 'box', building: 'm', kind: 'm', material: 'plaster', tier: 'C', src: 'RECON', c: [200, 200], size: [20, 20], y0: 0, y1: 1 }]
+        : buildTerrace().parts.filter(p => (building === '*' || p.building === building) && (!kinds || kinds.includes(p.kind)) && p.type !== 'column');
+      const tmp = new THREE.Scene(); const arch = buildMeshes(parts); tmp.add(arch.group);
+      const white = new THREE.MeshBasicNodeMaterial({ color: 0xffffff }); arch.group.traverse(o => { if ((o as any).isMesh) (o as THREE.Mesh).material = white; });
+      const W = 1408, H = 2000; const cam = new THREE.OrthographicCamera(-80, 272, 250, -250, 1, 2000); // W×4 bytes is a multiple of 256 (WebGPU row alignment)
+      cam.position.set(0, 500, 0); cam.up.set(0, 0, -1); cam.lookAt(0, 0, 0); // looking down, grid north up
+      const rt = new THREE.RenderTarget(W, H); const prevTM = renderer.toneMapping; renderer.toneMapping = THREE.NoToneMapping;
+      tmp.background = new THREE.Color(0x000000);
+      renderer.setRenderTarget(rt); renderer.render(tmp, cam); renderer.setRenderTarget(null); renderer.toneMapping = prevTM;
+      const px = await renderer.readRenderTargetPixelsAsync(rt, 0, 0, W, H) as Uint8Array;
+      const mask = new Uint8Array(W * H);
+      // readback row order differs between backends: calibrate once with a marker square at grid (200, 200) — i.e. NE, near the top
+      if (building !== '__marker' && planFlip === null) { const m = await api.planMask('__marker', null); let top = 0, n = 0; for (let i = 0; i < m.bits.length; i++) if (m.bits[i] === '1') { top += Math.floor(i / m.W); n++; } planFlip = (top / n) > m.H / 2; }
+      const flip = building === '__marker' ? false : !!planFlip;
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const sy = flip ? H - 1 - y : y; mask[y * W + x] = px[(sy * W + x) * 4] > 127 ? 1 : 0; }
+      rt.dispose(); arch.group.traverse(o => (o as any).geometry?.dispose?.());
+      return { W, H, x0: -80, y1: 250, res: 0.25, bits: Array.from(mask).join('') };
+    },
   };
+  let planFlip: boolean | null = null;
   (window as any).__parsa = api;
   addEventListener('error', e => api.errors.push(String(e.message)));
   let freeCam: null | { x: number; y: number; z: number; yaw: number; pitch: number } = null;

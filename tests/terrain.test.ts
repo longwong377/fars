@@ -14,8 +14,8 @@ describe('terrain spot checks (§5.2.4)', () => {
     expect(Math.abs(e - 297)).toBeLessThan(3); expect(Math.abs(n + 14)).toBeLessThan(3);
     const [la, lo] = gridToLatLon(e, n); expect(Math.abs(la - 29.935871634)).toBeLessThan(1e-7); expect(Math.abs(lo - 52.892457868)).toBeLessThan(1e-7);
   });
-  it('court (terrace top) at the Apadana = 1625.0 m asl (SITE_SPEC global.court_asl)', () => {
-    expect(Math.abs(T.aslAt(0, 0) - 1625.0)).toBeLessThan(0.1);
+  it('terrain under the Terrace platform stays below the court (1625.0 m asl) so only the platform geometry forms the walls', () => {
+    for (const [x, z] of [[0, 0], [100, 50], [150, 150], [-40, -120], [200, 180]]) expect(T.aslAt(x, z)).toBeLessThanOrEqual(1624.0 + 1e-3);
   });
   it('plain west of the W façade ≈ 1612–1614 m (DSM, subagent B: 1613.5 at 150 m W)', () => {
     const h = T.aslAt(-211, -122 * 0 - 0); expect(h).toBeGreaterThan(1611); expect(h).toBeLessThan(1615);

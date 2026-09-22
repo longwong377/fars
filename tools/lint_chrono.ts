@@ -36,5 +36,11 @@ for (const a of assets) {
   const text = [a.id, a.name, a.description, ...(a.tags ?? [])].filter(Boolean).join(' ');
   for (const t of terms) if (t.re.test(text) && !(a.exempt === 'calibration' || a.exempt === 'nowview')) errors.push(`asset ${a.id}: matches blocklist '${t.id}'`);
 }
+// generated architecture: every part's building must be a PRESENT chronology structure (fail-closed)
+const { buildTerrace } = await import('../src/arch/terrace');
+const { parts } = buildTerrace();
+const partBuildings = new Set(parts.map((p: any) => p.building));
+for (const b of partBuildings) { if (!present.has(b)) errors.push(`generated part building '${b}' not in chronology (fail-closed)`); else if (!present.get(b)) errors.push(`generated part building '${b}' is ABSENT in 467 BCE`); }
+for (const p of parts as any[]) for (const k of String(p.src).split(';')) if (!sources[k]) errors.push(`part ${p.building}/${p.kind}: unknown source key ${k}`);
 if (errors.length) { console.error('lint:chrono FAILED\n' + errors.map(e => ' - ' + e).join('\n')); process.exit(1); }
-console.log(`lint:chrono OK — ${chrono.structures.length} structures, ${assets.length} assets, ${terms.length} blocklist terms`);
+console.log(`lint:chrono OK — ${chrono.structures.length} structures, ${assets.length} registered assets, ${parts.length} generated parts in ${partBuildings.size} buildings, ${terms.length} blocklist terms`);

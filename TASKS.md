@@ -20,7 +20,7 @@
 - [x] Shell: title, click-to-start, pause, settings, controls help
 - [x] Save/load (world state + settings); seeded determinism
 - [x] Test harness: vitest + Playwright (SwiftShader), camera rig, benchmark mode
-## Phase 2 — Terrace greybox from SITE_SPEC via parametric generators; plan overlay + dimension tests
+## Phase 2 — [x] Terrace greybox from SITE_SPEC via parametric generators; plan overlay + dimension tests (passed with logged exceptions)
 ## Phase 3 — Vertical slice (plain → Grand Stairway → Gate of All Nations → Apadana), calibration scene, NPCs 50–100
 ## Phase 4 — Rest of Terrace at slice fidelity
 ## Phase 5 — Population + economy sim in workers, events, memory, persistence, soak test
