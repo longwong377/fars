@@ -6,7 +6,7 @@
 
 | Feature | Lat | Lon | Elev. (m asl) | Source | Tier | Note |
 |---|---|---|---|---|---|---|
-| Persepolis Terrace (reference point) | 29.9350 N (29°56′06″) | 52.8900 E (52°53′24″) | 1627 (DEM at the point) | Coordinates: Wikipedia/Wikidata via search extract ([Wikidata Q129072](https://www.wikidata.org/wiki/Q129072)); elevation: DEM | A (coords); B (elev) | |
+| Persepolis Terrace (reference point) | 29.9350 N (29°56′06″) | 52.8900 E (52°53′24″) | 1627 (DEM at the point) | Coordinates: Wikipedia/Wikidata via search extract ([Wikidata Q129072](https://www.wikidata.org/wiki/Q129072)); elevation: DEM | B (coords, search extract); B (elev) | |
 | Terrace footprint (29.931–29.938 N, 52.886–52.8925 E) | – | – | p10 1612, median 1616, p90 1628, max 1664 | DEM | B | The box includes plain edges; the p90 is roughly the terrace top |
 | Plain immediately W of the Terrace | 29.935 | 52.880–52.884 | 1612–1616 | DEM | B | |
 | Marvdasht plain, 52.84–52.885 E | – | – | min 1601, median 1610 | DEM | B | |
@@ -14,7 +14,7 @@
 | Published site elevation | – | – | "1,770 m" and "1,620 m" both appear in popular sources; "about 1,600 m" also appears | search extracts (travel sites) | C | **Conflict.** The DEM supports **about 1,610–1,630 m**. Reject 1,770 m |
 | Kuh-e Rahmat, ridge crest directly E of the Terrace | 29.9457 | 52.9133 | 2163 | DEM (max within about 2.3 km E) | B | A search extract giving "1,627 m" for Kuh-e Rahmat matches the *Terrace* DEM value and is probably mis-assigned. Reject it |
 | Kuh-e Rahmat massif, higher summits to the SE | ≤29.84 | ≈53.05 | >2585 (search box edge) | DEM | B | The true summit was not located; the box needs widening |
-| Naqsh-e Rustam | 29.9889 N (29°59′20″) | 52.8747 E (52°52′29″) | 1630 (DEM at the point; cliff foot) | Coordinates: [Wikipedia, Naqsh-e Rostam](https://en.wikipedia.org/wiki/Naqsh-e_Rostam) via search extract | A/B | **6.2 km** NNW of the Terrace (haversine). Popular "12–13 km" figures are road distances or errors |
+| Naqsh-e Rustam | 29.9889 N (29°59′20″) | 52.8747 E (52°52′29″) | 1630 (DEM at the point; cliff foot) | Coordinates: [Wikipedia, Naqsh-e Rostam](https://en.wikipedia.org/wiki/Naqsh-e_Rostam) via search extract | B | **6.2 km** NNW of the Terrace (haversine). Popular "12–13 km" figures are road distances or errors |
 | Tol-e Ajori gate (Bagh-e Firuzi) | ≈29.957 | ≈52.864 | – | Derived from "3.5 km NW of the Terrace" ([ScienceDirect](https://www.sciencedirect.com/science/article/abs/pii/S0169131717304994)) and "3 km NW" ([Tehran Times](https://www.tehrantimes.com/news/461555/Persepolis-once-awe-inspiring-gateway-opens-to-public-after)) | **C** | The mound is 30 × 40 m and 3 m above its surroundings. Get the true position from the mission's plans or satellite imagery |
 | Persepolis West / Bagh-e Firuzi zone | W and NW of the Terrace, between it and Tol-e Ajori | – | – | [AJA review: Persepolis West 2008–2009 report](https://ajaonline.org/book-review/3891/); Gondet et al. map ([ResearchGate fig.](https://www.researchgate.net/figure/Map-of-the-Persepolis-area-After-Gondet-Mohammadkhani-Askari-Chaverdi-2018-fig-8_fig4_361108776)) | B | The French geomagnetic survey (from 2003) covered 50 ha in 23 areas of the plain near the Terrace |
 | Shiraz synoptic station (WMO 40848) | 29.5614 (29°33′41″) | 52.6025 (52°36′09″) | **1488.0** | [WMO CLINO 1991–2020, Shiraz_40848.csv](https://github.com/wmo-im/WMO-climatological-normals-CLINO/blob/main/data/Region-2-WMO-Normals-9120/Iran/CSV/Shiraz_40848.csv) | A | 50 km SSW of the Terrace |
@@ -38,9 +38,9 @@ Sumner, "Achaemenid Settlement in the Persepolis Plain", *AJA* 90.1 (1986) ([JST
 
 | Finding | Value | Tier |
 |---|---|---|
-| Secure Achaemenid habitation sites | 39 | A (survey) |
+| Secure Achaemenid habitation sites | 39 | B (survey result, seen via search extract) |
 | Possible additional sites | 18 | B |
-| Other features | Bridges, weirs, canals, and parts of the Royal Road | A |
+| Other features | Bridges, weirs, canals, and parts of the Royal Road | B (via search extract) |
 | Aggregate settled area | about 675 ha | B |
 | Sedentary population | ≤ about 44,000 | B |
 | Settlement hierarchy | Five levels, organised in districts around Persepolis; matched to PF toponyms | B |

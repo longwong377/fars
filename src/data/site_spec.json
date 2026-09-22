@@ -2,7 +2,8 @@
  "_meta": {
   "year_bce": 467,
   "frame": "Persepolis grid: origin Apadana OSM centroid; +x grid east, +y grid north; grid north 341 deg true. Heights relative to COURT datum unless stated.",
-  "status": "Phase 0 spec. Primary sources blocked (BLOCKERS B6); every row awaits re-verification against Schmidt 1953."
+  "status": "Phase 0 spec. Primary sources blocked (BLOCKERS B6); every row awaits re-verification against Schmidt 1953.",
+  "tier_rule": "tier = evidence class, capped at B when only a search extract was seen; derived values no higher than inputs"
  },
  "global": {
   "origin_lat": {
@@ -52,25 +53,25 @@
   "state": "standing",
   "footprint": "terrace",
   "extent_ns": {
-   "v": 474,
+   "v": 473.4,
    "u": "m",
    "src": "OSM",
    "tier": "B",
-   "note": "OSM outline, grid frame; Iranica '300 x 455' (B) rectangle envelope; conflict logged"
+   "note": "OSM outline bounds in grid frame (-238.72..234.66); Iranica '300 x 455' envelope; conflict logged"
   },
   "extent_ew": {
-   "v": 318,
+   "v": 318.0,
    "u": "m",
    "src": "OSM",
    "tier": "B",
-   "note": ""
+   "note": "bounds -61.50..256.46"
   },
   "area": {
    "v": 120491,
    "u": "m2",
    "src": "OSM",
    "tier": "B",
-   "note": "Iranica/WP 125,000 m2"
+   "note": "area of the Pleiades/OSM outline in the grid frame (tools/osm_to_grid.py); Iranica/WP 125,000 m2"
   },
   "retaining_wall_height_w": {
    "v": 12.0,
@@ -99,6 +100,13 @@
    "src": "WP-COPY",
    "tier": "C",
    "note": ""
+  },
+  "stair_recess": {
+   "v": "terrace platform = OSM terrace polygon minus grand_stair footprint (the stair is recessed into the W wall)",
+   "u": "",
+   "src": "DERIVED",
+   "tier": "B",
+   "note": "OSM terrace outline follows the stair's outer edge"
   }
  },
  "grand_stair": {
@@ -123,7 +131,7 @@
    "u": "m",
    "src": "WP-COPY",
    "tier": "C",
-   "note": "OSM lane widths 6.4-8.5 m consistent"
+   "note": "OSM lanes 6.5 (W) and 8.4 (E) m incl. parapets; modelled flights 6.2 (W) / 6.9 (E) inside 0.3–0.75 m parapets"
   },
   "tread": {
    "v": 0.31,
@@ -189,6 +197,70 @@
    "src": "IR-PERS",
    "tier": "B",
    "note": ""
+  },
+  "lower_flight_y": {
+   "v": [
+    131.4,
+    150.9
+   ],
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "north half (mirrored about centre_y): 63 x 0.31 = 19.5 m run, ending at the outer landing"
+  },
+  "outer_landing": {
+   "v": {
+    "west_lane_y": [
+     150.9,
+     164.8
+    ],
+    "east_lane_y": [
+     150.9,
+     157.8
+    ],
+    "h": 6.81
+   },
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "L-shaped landing: lower flight arrives in W lane, turn 90 deg E across to E lane, turn 90 deg S (Iranica's two 90-deg turns); h = 63 x riser"
+  },
+  "upper_flight_y": {
+   "v": [
+    136.0,
+    150.9
+   ],
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "48 x 0.31 = 14.9 m run in E lane, rising toward centre"
+  },
+  "top_landing_y": {
+   "v": [
+    108.9,
+    136.0
+   ],
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "common upper landing in E lane at court level, open to the court on the E (Gate W door at y~124.6)"
+  },
+  "central_gap": {
+   "v": [
+    113.5,
+    131.4
+   ],
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "plain-level space between the two lower flights (W lane); retaining wall behind"
+  },
+  "parapet_height": {
+   "v": 1.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "stair parapets with stepped crenellations (motif attested on Apadana stairs, IR-PERS); height not obtained"
   }
  },
  "gate_nations": {
@@ -250,11 +322,11 @@
    "note": "ruin footprint incl. walls"
   },
   "wall_thickness": {
-   "v": 4.2,
+   "v": 4.63,
    "u": "m",
    "src": "DERIVED",
    "tier": "C",
-   "note": "(outer - hall)/2 averaged"
+   "note": "((33.1+34.9)/2 - 24.74)/2; OSM outer includes wall faces"
   },
   "door_height": {
    "v": 10.0,
@@ -314,6 +386,13 @@
    "src": "WP-EXT",
    "tier": "C",
    "note": ""
+  },
+  "platform_footprint": {
+   "v": "gate_nations",
+   "u": "key",
+   "src": "OSM",
+   "tier": "B",
+   "note": "plan overlay compares the built outer wall outline with this footprint"
   }
  },
  "apadana": {
@@ -336,12 +415,12 @@
   "hall_centre": {
    "v": [
     1.9,
-    4.4
+    -4.9
    ],
    "u": "m",
-   "src": "RECON",
+   "src": "DERIVED",
    "tier": "C",
-   "note": "x: platform midline; y: platform N edge - N portico - wall - half hall"
+   "note": "x: platform midline (-61.5..65.35); y: N platform edge 52.0 - portico_depth_n 21.3 - wall 5.32 - half hall 30.25; leaves 15.3 m for S storerooms"
   },
   "hall_columns": {
    "v": [
@@ -479,11 +558,25 @@
    "note": "step count not obtained; 30 steps for 3.0 m assumed"
   },
   "foundation_deposits": {
-   "v": "stone boxes at NE and SE corners, gold + silver plates DPh",
+   "v": "stone boxes under corners with gold + silver plates (DPh); Iranica/ISAC extracts disagree: 2 boxes (NE, SE) vs 4 corners",
    "u": "",
    "src": "ISAC-PA",
-   "tier": "A/B",
-   "note": ""
+   "tier": "B",
+   "note": "conflict Q-016"
+  },
+  "portico_depth_n": {
+   "v": 21.3,
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "2 rows at 1 and 2 bays from hall wall face (2 x 8.64) + 4.0 m to platform edge"
+  },
+  "platform_footprint": {
+   "v": "apadana",
+   "u": "key",
+   "src": "OSM",
+   "tier": "B",
+   "note": "platform incl. porticoes, towers; excludes N/E stair runs"
   }
  },
  "tachara": {
@@ -554,8 +647,8 @@
    "v": "monolithic door/window/niche frames, dark polished limestone",
    "u": "",
    "src": "WP-EXT",
-   "tier": "B",
-   "note": "brief seed fact"
+   "tier": "C",
+   "note": "brief §4.4 seed fact; only a WP extract seen"
   },
   "stairs": {
    "v": "S double stair with servant reliefs (NW stair is Artaxerxes III: absent)",
@@ -563,17 +656,24 @@
    "src": "IR-PERS",
    "tier": "B",
    "note": ""
+  },
+  "platform_footprint": {
+   "v": "tachara",
+   "u": "key",
+   "src": "OSM",
+   "tier": "B",
+   "note": "OSM 33.4 x 44.1 = platform incl. S stair; building 30 x 40 (IR) sits on it (conflict logged Q-017)"
   }
  },
  "hadish": {
   "state": "standing",
   "footprint": "hadish",
   "floor": {
-   "v": 5.5,
+   "v": 6.0,
    "u": "m",
    "src": "DERIVED",
    "tier": "C",
-   "note": "bedrock '18 m above the plain' (IR B) minus stair_total_rise; DSM S terrace 1628.5-1630.5"
+   "note": "'18 m above the plain' (IR-PERS) - stair_total_rise 12; DSM S terrace 1628.5-1630.5 suggests 3.5-5.5 (modern rubble/erosion); Q-018"
   },
   "overall": {
    "v": [
@@ -625,6 +725,13 @@
    "src": "IR-PERS",
    "tier": "B",
    "note": ""
+  },
+  "platform_footprint": {
+   "v": "hadish",
+   "u": "key",
+   "src": "OSM",
+   "tier": "B",
+   "note": "OSM 57.3 x 73.8 = platform incl. W/E stairs; building 40 x 55 (WP) on it (Q-017)"
   }
  },
  "hall100": {
@@ -854,17 +961,16 @@
   "list": {
    "v": [
     "palace_h",
-    "palace_g",
-    "palace_a3",
+    "palace_a3_osm",
     "unfinished_gate",
-    "tombs_rahmat",
-    "modern_roof",
+    "tomb_a2",
+    "modern_roof_a1bf0b",
     "museum_modern"
    ],
-   "u": "",
+   "u": "footprint keys",
    "src": "DERIVED",
    "tier": "B",
-   "note": "see CHRONOLOGY.md"
+   "note": "derived from src/data/chronology.json (present=false); garrison footprint also covers the later 32-column hall — garrison rebuilt as modest rooms only (C)"
   }
  }
 }

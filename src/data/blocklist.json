@@ -1,0 +1,254 @@
+{
+ "_meta": "generated from research/ANACHRONISM_BLOCKLIST.md; terms are matched (case-insensitive, whole-word) against asset ids, names, tags and descriptions of anything placed in the ancient world",
+ "entries": [
+  {
+   "id": "sasanian-relief",
+   "what": "Sasanian reliefs and inscriptions at Naqsh-e Rustam, Naqsh-e Rajab",
+   "reason": "3rd c. CE+",
+   "terms": [
+    "sasanian"
+   ]
+  },
+  {
+   "id": "sasanian-fire-temple",
+   "what": "Domed (chahar-taq) fire temples",
+   "reason": "Sasanian",
+   "terms": [
+    "chahar-taq",
+    "chahartaq",
+    "fire temple dome"
+   ]
+  },
+  {
+   "id": "band-e-amir",
+   "what": "Band-e Amir dam and later waterworks",
+   "reason": "10th c. CE",
+   "terms": [
+    "band-e amir",
+    "band_e_amir"
+   ]
+  },
+  {
+   "id": "modern-landscape",
+   "what": "modern roads, asphalt, power lines, tents, fields in rectangular modern layout, villages, plantations, eucalyptus/pine plantations",
+   "reason": "modern",
+   "terms": [
+    "asphalt",
+    "power line",
+    "powerline",
+    "eucalyptus",
+    "pine plantation",
+    "tarmac"
+   ]
+  },
+  {
+   "id": "ruin-graffiti",
+   "what": "traveller graffiti (e.g. 19th c. names on Gate of All Nations)",
+   "reason": "later life of ruin",
+   "terms": [
+    "graffiti"
+   ]
+  },
+  {
+   "id": "restoration",
+   "what": "concrete, steel, restoration capping, modern stair replacements, scaffolding of modern type, roofs over the tombs",
+   "reason": "modern",
+   "terms": [
+    "concrete",
+    "rebar",
+    "steel beam",
+    "restoration"
+   ]
+  },
+  {
+   "id": "1971",
+   "what": "1971 celebration tent city remnants",
+   "reason": "modern",
+   "terms": [
+    "1971",
+    "tent city"
+   ]
+  },
+  {
+   "id": "signage",
+   "what": "signage, fences, ticket gates, lamp posts",
+   "reason": "modern",
+   "terms": [
+    "signage",
+    "sign post",
+    "ticket",
+    "fence",
+    "lamp post"
+   ]
+  },
+  {
+   "id": "stirrups",
+   "what": "stirrups on any saddle/tack",
+   "reason": "not Achaemenid",
+   "terms": [
+    "stirrup"
+   ]
+  },
+  {
+   "id": "paper",
+   "what": "paper",
+   "reason": "later (China, Islamic world)",
+   "terms": [
+    "paper"
+   ]
+  },
+  {
+   "id": "coins-everyday",
+   "what": "everyday coin use in transactions",
+   "reason": "payment in kind / weighed silver; darics exist under Darius I \u2014 only as treasury/stored items, not market small change (verify, OPEN_QUESTIONS)",
+   "terms": [
+    "coin purse",
+    "market coin"
+   ]
+  },
+  {
+   "id": "islamic-dress",
+   "what": "chador, turban of Islamic type, Islamic-era garments",
+   "reason": "later",
+   "terms": [
+    "chador",
+    "turban"
+   ]
+  },
+  {
+   "id": "safavid",
+   "what": "Safavid motifs, tilework, iwans with muqarnas",
+   "reason": "later",
+   "terms": [
+    "safavid",
+    "muqarnas",
+    "iwan"
+   ]
+  },
+  {
+   "id": "onion-dome",
+   "what": "onion or any masonry dome",
+   "reason": "later",
+   "terms": [
+    "dome"
+   ]
+  },
+  {
+   "id": "pointed-arch",
+   "what": "pointed arches",
+   "reason": "later",
+   "terms": [
+    "pointed arch",
+    "ogive"
+   ]
+  },
+  {
+   "id": "hollywood-slaves",
+   "what": "bare-chested slave-soldiers",
+   "reason": "trope",
+   "terms": [
+    "bare-chested slave"
+   ]
+  },
+  {
+   "id": "harem-cliche",
+   "what": "harem clich\u00e9s (veiled dancers etc.)",
+   "reason": "trope",
+   "terms": [
+    "belly dancer",
+    "veiled dancer"
+   ]
+  },
+  {
+   "id": "gold-everything",
+   "what": "gilding outside attested zones",
+   "reason": "trope",
+   "terms": []
+  },
+  {
+   "id": "hoplite",
+   "what": "Greek hoplite gear on Persians (Corinthian helmet, hoplon on Persians)",
+   "reason": "trope",
+   "terms": [
+    "corinthian helmet",
+    "hoplon"
+   ]
+  },
+  {
+   "id": "later-womens-dress",
+   "what": "later-period women's dress",
+   "reason": "later",
+   "terms": []
+  },
+  {
+   "id": "music-cliche",
+   "what": "oud, duduk, santur, orchestral \"ancient Persia\", equal-temperament harmony",
+   "reason": "brief \u00a711",
+   "terms": [
+    "oud",
+    "duduk",
+    "santur",
+    "orchestra"
+   ]
+  },
+  {
+   "id": "new-world-crops",
+   "what": "maize, tomato, potato, chili, tobacco, sunflower, prickly pear",
+   "reason": "Columbian exchange",
+   "terms": [
+    "maize",
+    "tomato",
+    "potato",
+    "chili",
+    "tobacco",
+    "sunflower",
+    "prickly pear"
+   ]
+  },
+  {
+   "id": "later-crops",
+   "what": "rice as a staple crop in Marvdasht, sugar cane, citrus (orange/lemon), cotton fields",
+   "reason": "later introductions to Fars; rice presence to be checked (OPEN_QUESTIONS)",
+   "terms": [
+    "sugar cane",
+    "orange tree",
+    "lemon",
+    "cotton field"
+   ]
+  },
+  {
+   "id": "later-animals",
+   "what": "domestic cat as house pet (uncertain), turkey, water buffalo",
+   "reason": "verify",
+   "terms": [
+    "turkey",
+    "water buffalo"
+   ]
+  },
+  {
+   "id": "glass-windows",
+   "what": "glazed window panes",
+   "reason": "Roman+",
+   "terms": [
+    "window pane",
+    "glass pane"
+   ]
+  },
+  {
+   "id": "candles",
+   "what": "wax candles",
+   "reason": "lamps and torches instead; verify",
+   "terms": [
+    "candle"
+   ]
+  },
+  {
+   "id": "horseshoes",
+   "what": "nailed horseshoes",
+   "reason": "later",
+   "terms": [
+    "horseshoe"
+   ]
+  }
+ ]
+}

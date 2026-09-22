@@ -19,20 +19,21 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 ## terrace — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
 |---|---|---|---|---|---|
-| extent_ns | 474 | m | OSM | B | OSM outline, grid frame; Iranica '300 x 455' (B) rectangle envelope; conflict logged |
-| extent_ew | 318 | m | OSM | B |  |
-| area | 120491 | m2 | OSM | B | Iranica/WP 125,000 m2 |
+| extent_ns | 473.4 | m | OSM | B | OSM outline bounds in grid frame (-238.72..234.66); Iranica '300 x 455' envelope; conflict logged |
+| extent_ew | 318.0 | m | OSM | B | bounds -61.50..256.46 |
+| area | 120491 | m2 | OSM | B | area of the Pleiades/OSM outline in the grid frame (tools/osm_to_grid.py); Iranica/WP 125,000 m2 |
 | retaining_wall_height_w | 12.0 | m | IR-PERS | B | N and W walls 'some 12 m'; actual per-point height = court - terrain |
 | wall_material | "dressed grey limestone blocks, dry-laid, metal clamps" |  | IR-PERS | B |  |
 | parapet_height | 1.0 | m | RECON | C | no source reached; low crenellated parapet assumed on stepped four-tier crenellation motif attested on stairs |
 | fill | "earth and rock fill, partly bedrock" |  | WP-COPY | C |  |
+| stair_recess | "terrace platform = OSM terrace polygon minus grand_stair footprint (the stair is recessed into the W wall)" |  | DERIVED | B | OSM terrace outline follows the stair's outer edge |
 
 ## grand_stair — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
 |---|---|---|---|---|---|
 | steps_lower | 63 | steps | IR-PERS | B |  |
 | steps_upper | 48 | steps | IR-PERS | B |  |
-| flight_width | 6.9 | m | WP-COPY | C | OSM lane widths 6.4-8.5 m consistent |
+| flight_width | 6.9 | m | WP-COPY | C | OSM lanes 6.5 (W) and 8.4 (E) m incl. parapets; modelled flights 6.2 (W) / 6.9 (E) inside 0.3–0.75 m parapets |
 | tread | 0.31 | m | WP-COPY | C |  |
 | riser | 0.1081 | m | DERIVED | C | stair_total_rise/111; WP gives 0.10 m (111x0.10=11.1 m vs 12 m landing, conflict C-2) |
 | west_lane_x | [-47.1, -40.6] | m | OSM | B | lower flights (from plain) in the outer lane |
@@ -41,6 +42,12 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | centre_y | 122.45 | m | DERIVED | B | midpoint of y_extent |
 | layout | "lower flights start at centre and rise outward (N and S) to outer landings, reverse 180 deg (two 90 deg turns), upper flights rise back toward the centre to a common top landing facing the Gate" |  | IR-PERS | B | direction of lower flights: RECON C |
 | block_construction | "4-5 steps cut from single blocks, rectangular clamps" |  | IR-PERS | B |  |
+| lower_flight_y | [131.4, 150.9] | m | DERIVED | C | north half (mirrored about centre_y): 63 x 0.31 = 19.5 m run, ending at the outer landing |
+| outer_landing | {"west_lane_y": [150.9, 164.8], "east_lane_y": [150.9, 157.8], "h": 6.81} | m | DERIVED | C | L-shaped landing: lower flight arrives in W lane, turn 90 deg E across to E lane, turn 90 deg S (Iranica's two 90-deg turns); h = 63 x riser |
+| upper_flight_y | [136.0, 150.9] | m | DERIVED | C | 48 x 0.31 = 14.9 m run in E lane, rising toward centre |
+| top_landing_y | [108.9, 136.0] | m | DERIVED | C | common upper landing in E lane at court level, open to the court on the E (Gate W door at y~124.6) |
+| central_gap | [113.5, 131.4] | m | DERIVED | C | plain-level space between the two lower flights (W lane); retaining wall behind |
+| parapet_height | 1.0 | m | RECON | C | stair parapets with stepped crenellations (motif attested on Apadana stairs, IR-PERS); height not obtained |
 
 ## gate_nations — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -52,7 +59,7 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | column_height | 16.5 | m | IR-PERS | B | 'over 16.5 m' |
 | interaxial | 8.25 | m | DERIVED | C | hall_side/3, assuming wall-to-column = one bay |
 | outer_size | [33.1, 34.9] | m | OSM | B | ruin footprint incl. walls |
-| wall_thickness | 4.2 | m | DERIVED | C | (outer - hall)/2 averaged |
+| wall_thickness | 4.63 | m | DERIVED | C | ((33.1+34.9)/2 - 24.74)/2; OSM outer includes wall faces |
 | door_height | 10.0 | m | WP-EXT | C |  |
 | door_width | 3.8 | m | RECON | C | no source reached |
 | doors | ["W", "E", "S"] |  | IR-PERS | B | W entrance, E and S exits |
@@ -60,13 +67,14 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | guardians | {"W": "bulls", "E": "human-headed winged bulls"} |  | IR-PERS | B |  |
 | wall_finish | "mud brick with glazed tile facing (green, blue, orange; rosettes, palms)" |  | IR-PERS | B |  |
 | roof | "cedar beams" |  | WP-EXT | C |  |
+| platform_footprint | "gate_nations" | key | OSM | B | plan overlay compares the built outer wall outline with this footprint |
 
 ## apadana — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
 |---|---|---|---|---|---|
 | podium_height | 3.0 | m | IR-APAD | B | '3 m higher than the level of a spacious open court' |
 | hall_side | 60.5 | m | RECON | C | Iranica 'at least 58 m' and '60 x 60' (B); 60.5 widely quoted but unconfirmed |
-| hall_centre | [1.9, 4.4] | m | RECON | C | x: platform midline; y: platform N edge - N portico - wall - half hall |
+| hall_centre | [1.9, -4.9] | m | DERIVED | C | x: platform midline (-61.5..65.35); y: N platform edge 52.0 - portico_depth_n 21.3 - wall 5.32 - half hall 30.25; leaves 15.3 m for S storerooms |
 | hall_columns | [6, 6] | grid | IR-APAD | B |  |
 | interaxial | 8.64 | m | DERIVED | C | hall_side/7, wall-to-column = one bay |
 | column_height | 19.5 | m | IR-PERS | B | '19.50 m'; popular 24-25 m rejected (OPEN_QUESTIONS Q-001) |
@@ -83,7 +91,9 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | corner_towers | 4 |  | IR-PERS | B |  |
 | stairs | {"N": {"length": 81.67}, "E": {"length": 81.67}} | m | IR-PERS | B | each in 3 equal parts, double-reversed, four-stepped crenellations; E stair lies under a modern roof in OSM |
 | stair_riser | 0.1 | m | RECON | C | step count not obtained; 30 steps for 3.0 m assumed |
-| foundation_deposits | "stone boxes at NE and SE corners, gold + silver plates DPh" |  | ISAC-PA | A/B |  |
+| foundation_deposits | "stone boxes under corners with gold + silver plates (DPh); Iranica/ISAC extracts disagree: 2 boxes (NE, SE) vs 4 corners" |  | ISAC-PA | B | conflict Q-016 |
+| portico_depth_n | 21.3 | m | DERIVED | C | 2 rows at 1 and 2 bays from hall wall face (2 x 8.64) + 4.0 m to platform edge |
+| platform_footprint | "apadana" | key | OSM | B | platform incl. porticoes, towers; excludes N/E stair runs |
 
 ## tachara — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -95,19 +105,21 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | portico | [4, 2] | cols | IR-PERS | B | 8 columns, S side |
 | north_rooms | 2 | rooms of 4 columns | WP-EXT | C |  |
 | column_height | 8.0 | m | RECON | C | not obtained |
-| stone_frames | "monolithic door/window/niche frames, dark polished limestone" |  | WP-EXT | B | brief seed fact |
+| stone_frames | "monolithic door/window/niche frames, dark polished limestone" |  | WP-EXT | C | brief §4.4 seed fact; only a WP extract seen |
 | stairs | "S double stair with servant reliefs (NW stair is Artaxerxes III: absent)" |  | IR-PERS | B |  |
+| platform_footprint | "tachara" | key | OSM | B | OSM 33.4 x 44.1 = platform incl. S stair; building 30 x 40 (IR) sits on it (conflict logged Q-017) |
 
 ## hadish — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
 |---|---|---|---|---|---|
-| floor | 5.5 | m | DERIVED | C | bedrock '18 m above the plain' (IR B) minus stair_total_rise; DSM S terrace 1628.5-1630.5 |
+| floor | 6.0 | m | DERIVED | C | '18 m above the plain' (IR-PERS) - stair_total_rise 12; DSM S terrace 1628.5-1630.5 suggests 3.5-5.5 (modern rubble/erosion); Q-018 |
 | overall | [40, 55] | m | WP-EXT | C | 'twice Tachara'; OSM 57.3 x 73.8 incl. stairs |
 | hall_columns | [6, 6] | grid | IR-PERS | B |  |
 | portico | [6, 2] | cols | WP-EXT | C | 12 columns N |
 | column_height | 10.0 | m | RECON | C |  |
 | windows | 19 |  | IR-PERS | B |  |
 | niches | 4 |  | IR-PERS | B |  |
+| platform_footprint | "hadish" | key | OSM | B | OSM 57.3 x 73.8 = platform incl. W/E stairs; building 40 x 55 (WP) on it (Q-017) |
 
 ## hall100 — state in 467 BCE: **under_construction**
 | parameter | value | unit | source | tier | note |
@@ -162,7 +174,7 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 ## absent_in_467
 | parameter | value | unit | source | tier | note |
 |---|---|---|---|---|---|
-| list | ["palace_h", "palace_g", "palace_a3", "unfinished_gate", "tombs_rahmat", "modern_roof", "museum_modern"] |  | DERIVED | B | see CHRONOLOGY.md |
+| list | ["palace_h", "palace_a3_osm", "unfinished_gate", "tomb_a2", "modern_roof_a1bf0b", "museum_modern"] | footprint keys | DERIVED | B | derived from src/data/chronology.json (present=false); garrison footprint also covers the later 32-column hall — garrison rebuilt as modest rooms only (C) |
 
 ## Source keys
 | key | citation | access |
@@ -188,3 +200,8 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | SCHMIDT1953 | E. F. Schmidt, Persepolis I (OIP 68, 1953) https://isac.uchicago.edu/research/publications/oip/oip-68-persepolis-i-structures-reliefs-inscriptions | UNREACHABLE (B6) — cited only as the authority values must be re-checked against |
 | DERIVED | Derived in this project from other rows (formula in note)  | n/a |
 | RECON | Reconstruction judgement in this project (reason in note)  | n/a |
+| LIVIUS-NR | J. Lendering, Livius.org, Naqš-e Rustam pages (tombs; Elamite relief) https://www.livius.org/articles/place/naqs-e-rustam/ | search-extract only |
+| ALVAREZMON | J. Álvarez-Mon & Y. Wicks, 'Naqsh-e Rustam, Elamite relief' (Google Arts & Culture) https://artsandculture.google.com/asset/naqsh-e-rustam-elamite-relief/6QFTCP4TFlD8Yw | search-extract only: Elamite relief 7 x 2.5 m, overcarved by Bahram II (Sasanian) |
+| RESIDENCE2021 | 'The So-called Achaemenid Capitals and the Problem of Royal Court Residence', Iran 62/1 (2021) https://doi.org/10.1080/05786967.2021.1960881 | title/abstract via search extract only |
+| WP-PERS-SEASON | Wikipedia 'Persepolis' (current): Persepolis occupied seasonally, a royal spring/summer residence; mobile court https://en.wikipedia.org/wiki/Persepolis | search-extract only (tertiary) |
+| CHRON-C | research/_chronology_C.md (subagent C, rows from Iranica/Livius/ISAC extracts) research/_chronology_C.md | project file |

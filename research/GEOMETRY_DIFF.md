@@ -1,6 +1,10 @@
 # §13.1 Independent geometry: diff of extraction A vs extraction B
-Both subagents worked independently (neither read the other's file). Neither could read Schmidt (B6), so the
-diff is between two independent *extractions of secondary sources*, plus B's independent OSM/DEM measurements.
+Both subagents worked independently: neither read the other's file. **Caveat (Phase 0 review M-2):** neither could read Schmidt (B6), and both
+read search extracts of largely the *same* pages (Iranica, Wikipedia). Agreement therefore shows extraction consistency,
+**not** independent confirmation. Independent confirmation of the georeferenced layout comes from the Copernicus DSM
+edge check (`research/DEM_EDGE_CHECK.md`), the Wikidata Apadana coordinate (8.7 m from the OSM centroid) and the grid north
+agreeing between two separately traced outlines. The per-building footprints were extracted only once, from OSM; there is
+no second independent footprint source. That is logged as a gate exception.
 "Resolution" says what went into `src/data/site_spec.json`.
 
 | Parameter | A | B | Agree? | Resolution |
@@ -26,10 +30,14 @@ diff is between two independent *extractions of secondary sources*, plus B's ind
 | Hall of 100 Columns | 68.5 (Livius) / 70 | 68.50 (Iranica) / 70 popular | yes | 68.5 (B) |
 | H100 column height | ~14 (popular) | "nearly 14" (Iranica) | yes | 14 (B) |
 | Treasury phase 1 | 120 × 60 | 120 × 60 | yes | B; final outline from OSM |
-| Harem | 2×4 portico, 3×4 hall, 6 + 16 apartments | 2×4, 3×4 | yes | B |
+| Harem | 2×4 portico, 3×4 hall, 6 + 16 apartments | 2×4, 3×4 (apartments not given) | portico and hall: yes; apartments: only A | B |
 | E fortification | 10 m thick | curtain ~7 m high | complementary | B |
 | Tripylon builder | disputed | disputed | yes | under construction in 467 (C) |
 
-**Independent (non-Schmidt) check:** OSM/Overture footprints (traced from modern imagery) + Copernicus DSM + Sentinel-2.
+## Rows found by only one agent (not diffed)
+- A only: E fortification 10 m thick; Harem apartments 6 + 16; Hadish 19 windows and 4 niches; Treasury 99-column hall; H100 8 doorways.
+- B only: Apadana walls 5.32 m and stairs 81.67 m; Gate bench 52 cm; Army Street 92 × 9.7 m; Tachara platform 2.2–3.0 m; Tripylon platform 2.6 m; fortification curtain 7 m; all georeference rows.
+
+**Independent (non-Schmidt) check:** OSM/Overture footprints (traced from modern imagery) + Copernicus DSM edge check.
 The plan-overlay IoU test (§13.2) therefore runs against OSM footprints until Schmidt's plan is supplied. This is
 logged as an exception: it tests "built model vs modern ruin footprint", not "vs excavation plan".

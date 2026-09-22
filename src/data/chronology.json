@@ -1,0 +1,295 @@
+{
+ "_meta": {
+  "year_bce": 467,
+  "rule": "FAIL-CLOSED: any structure, footprint key or asset whose id is not listed here with present=true is absent and must not be generated (tools/lint_chrono.ts).",
+  "tiers": "tier = evidence class, capped at B when only a search extract was seen"
+ },
+ "structures": [
+  {
+   "id": "terrace",
+   "name": "Terrace platform and retaining walls",
+   "builder": "Darius I from c. 518",
+   "state": "standing",
+   "present": true,
+   "tier": "B",
+   "src": "IR-PERS;CHRON-C",
+   "basis": "DPd–g foundation texts on S face (inscriptions attested; seen via extract)",
+   "footprint": "terrace"
+  },
+  {
+   "id": "grand_stair",
+   "name": "Grand double stairway (NW)",
+   "builder": "disputed Darius/Xerxes",
+   "state": "standing",
+   "present": true,
+   "tier": "B",
+   "src": "IR-PERS;WP-COPY",
+   "basis": "exists by Xerxes' reign either way (clamp type of Xerxes, Iranica)",
+   "footprint": "grand_stair"
+  },
+  {
+   "id": "gate_nations",
+   "name": "Gate of All Nations",
+   "builder": "Xerxes",
+   "state": "standing, complete",
+   "present": true,
+   "tier": "B",
+   "src": "IR-PERS;CHRON-C",
+   "basis": "inscription XPa names it (via extract)",
+   "footprint": "gate_nations"
+  },
+  {
+   "id": "apadana",
+   "name": "Apadana, porticoes, N and E stairs",
+   "builder": "Darius I → Xerxes",
+   "state": "standing, complete",
+   "present": true,
+   "tier": "B",
+   "src": "IR-APAD;CHRON-C",
+   "basis": "foundation deposit 519–510; completed under Xerxes",
+   "footprint": "apadana"
+  },
+  {
+   "id": "tachara",
+   "name": "Tachara (Palace of Darius)",
+   "builder": "Darius I → Xerxes",
+   "state": "standing, complete",
+   "present": true,
+   "tier": "B",
+   "src": "LIVIUS;CHRON-C",
+   "basis": "XPc: Xerxes completed it (via extract)",
+   "footprint": "tachara"
+  },
+  {
+   "id": "hadish",
+   "name": "Hadish (Palace of Xerxes)",
+   "builder": "Xerxes",
+   "state": "standing",
+   "present": true,
+   "tier": "B",
+   "src": "IR-PERS;CHRON-C",
+   "basis": "named hadiš in Xerxes' inscription",
+   "footprint": "hadish"
+  },
+  {
+   "id": "harem",
+   "name": "'Harem of Xerxes'",
+   "builder": "Xerxes",
+   "state": "standing",
+   "present": true,
+   "tier": "B",
+   "src": "IR-PERS;CHRON-C",
+   "basis": "foundation tablet of Xerxes; built over W Treasury",
+   "footprint": "harem"
+  },
+  {
+   "id": "treasury",
+   "name": "Treasury (final phase)",
+   "builder": "Darius I, Xerxes",
+   "state": "standing, in use",
+   "present": true,
+   "tier": "B",
+   "src": "IR-PERS;IR-TREAS",
+   "basis": "Treasury tablets 492–458 being written",
+   "footprint": "treasury"
+  },
+  {
+   "id": "tripylon",
+   "name": "Tripylon / Central Palace",
+   "builder": "disputed; finished by Artaxerxes I",
+   "state": "under construction",
+   "present": true,
+   "tier": "C",
+   "src": "IR-PERS;LIVIUS",
+   "basis": "Iranica: Xerxes + Artaxerxes I; completion state in 467 is reconstruction",
+   "footprint": "tripylon"
+  },
+  {
+   "id": "hall100",
+   "name": "Hall of a Hundred Columns",
+   "builder": "Xerxes → Artaxerxes I",
+   "state": "under construction",
+   "present": true,
+   "tier": "C",
+   "src": "IR-PERS;ISAC-PA",
+   "basis": "begun by Xerxes, completed by Artaxerxes I (stone plate); progress in 467 reconstructed",
+   "footprint": "hall100"
+  },
+  {
+   "id": "fortification_e",
+   "name": "Mud-brick fortification wall, E side and mountain crest",
+   "builder": "Darius/Xerxes (builder not given)",
+   "state": "standing",
+   "present": true,
+   "tier": "B",
+   "src": "IR-FORT;ISAC-PA",
+   "basis": "Schmidt-derived captions; date assumed with the Terrace (C)",
+   "footprint": null
+  },
+  {
+   "id": "garrison",
+   "name": "Garrison quarters (E/SE foot of mountain)",
+   "builder": "not given",
+   "state": "standing (modest rooms)",
+   "present": true,
+   "tier": "C",
+   "src": "ISAC-PA",
+   "basis": "ISAC: modest structures near SE corner housing garrison; OSM footprint also covers a later 32-column hall, excluded",
+   "footprint": "garrison"
+  },
+  {
+   "id": "palace_h",
+   "name": "Palace H",
+   "builder": "Artaxerxes I (?)",
+   "state": "absent",
+   "present": false,
+   "tier": "B",
+   "src": "ISAC-PA;CHRON-C",
+   "basis": "after 465",
+   "footprint": "palace_h"
+  },
+  {
+   "id": "palace_g",
+   "name": "Palace G",
+   "builder": "post-Achaemenid over older building",
+   "state": "absent",
+   "present": false,
+   "tier": "B",
+   "src": "ISAC-PA;CHRON-C",
+   "basis": "standing remains post-Achaemenid",
+   "footprint": null
+  },
+  {
+   "id": "palace_a3",
+   "name": "Palace of Artaxerxes III / 32-column hall",
+   "builder": "Artaxerxes III",
+   "state": "absent",
+   "present": false,
+   "tier": "B",
+   "src": "LIVIUS;CHRON-C",
+   "basis": "358–338",
+   "footprint": "palace_a3_osm"
+  },
+  {
+   "id": "unfinished_gate",
+   "name": "Unfinished Gate and Army Road",
+   "builder": "late Achaemenid",
+   "state": "absent",
+   "present": false,
+   "tier": "B",
+   "src": "LIVIUS;IR-PERS",
+   "basis": "unfinished at the sack; builder probably Artaxerxes III",
+   "footprint": "unfinished_gate"
+  },
+  {
+   "id": "tombs_rahmat",
+   "name": "Kuh-e Rahmat tombs (Artaxerxes II/III, unfinished tomb)",
+   "builder": "4th c.",
+   "state": "absent (bare cliff)",
+   "present": false,
+   "tier": "B",
+   "src": "LIVIUS;CHRON-C",
+   "basis": "attributions 4th c.",
+   "footprint": "tomb_a2"
+  },
+  {
+   "id": "nr_darius",
+   "name": "Tomb of Darius I, Naqsh-e Rustam",
+   "builder": "Darius I",
+   "state": "standing, sealed",
+   "present": true,
+   "tier": "B",
+   "src": "LIVIUS-NR",
+   "basis": "DNa/DNb inscriptions",
+   "footprint": null
+  },
+  {
+   "id": "nr_later_tombs",
+   "name": "Naqsh-e Rustam tombs attributed to Xerxes, Artaxerxes I, Darius II",
+   "builder": "later kings",
+   "state": "absent (uncut cliff)",
+   "present": false,
+   "tier": "C",
+   "src": "LIVIUS-NR",
+   "basis": "attributions are uncertain (B); all three are royal tombs of kings dying after 467, so cutting before death is not evidenced — reconstruction",
+   "footprint": null
+  },
+  {
+   "id": "nr_elamite_relief",
+   "name": "Elamite rock relief, Naqsh-e Rustam (7 × 2.5 m)",
+   "builder": "Neo-Elamite",
+   "state": "standing (intact, pre-Sasanian)",
+   "present": true,
+   "tier": "B",
+   "src": "ALVAREZMON",
+   "basis": "later overcarved by Bahram II (Sasanian) — the Sasanian relief is blocklisted",
+   "footprint": null
+  },
+  {
+   "id": "nr_kaba",
+   "name": "Ka'ba-ye Zartosht tower, Naqsh-e Rustam",
+   "builder": "disputed (Darius I or earlier)",
+   "state": "standing",
+   "present": true,
+   "tier": "C",
+   "src": "LIVIUS-NR",
+   "basis": "date disputed; OPEN_QUESTIONS Q-006",
+   "footprint": null
+  },
+  {
+   "id": "nr_sasanian",
+   "name": "Sasanian reliefs at Naqsh-e Rustam",
+   "builder": "Sasanian",
+   "state": "absent",
+   "present": false,
+   "tier": "B",
+   "src": "ALVAREZMON",
+   "basis": "3rd c. CE+ (blocklist)",
+   "footprint": null
+  },
+  {
+   "id": "tol_ajori",
+   "name": "Tol-e Ajori glazed-brick gate",
+   "builder": "Cyrus/Cambyses c. 539–518",
+   "state": "standing, not a focus",
+   "present": true,
+   "tier": "C",
+   "src": "CHRON-C",
+   "basis": "state in 5th c. unknown (Q-004)",
+   "footprint": null
+  },
+  {
+   "id": "tachara_a3_stair",
+   "name": "Tachara W stair and inscription of Artaxerxes III",
+   "builder": "Artaxerxes III",
+   "state": "absent",
+   "present": false,
+   "tier": "B",
+   "src": "IR-PERS",
+   "basis": "A3Pa",
+   "footprint": null
+  },
+  {
+   "id": "modern",
+   "name": "Modern roofs, museum (Krefter 1930s rebuild), ticket office, 1971 tent city, plantations",
+   "builder": "modern",
+   "state": "absent",
+   "present": false,
+   "tier": "B",
+   "src": "OSM;IR-PERS",
+   "basis": "blocklist",
+   "footprint": "museum_modern"
+  },
+  {
+   "id": "modern_roof",
+   "name": "Modern protective roof over the Apadana E stair",
+   "builder": "modern",
+   "state": "absent",
+   "present": false,
+   "tier": "B",
+   "src": "OSM",
+   "basis": "blocklist (restoration)",
+   "footprint": "modern_roof_a1bf0b"
+  }
+ ]
+}

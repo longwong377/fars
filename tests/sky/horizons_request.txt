@@ -1,0 +1,8 @@
+JPL Horizons request for the §13.6 independent sun check (the Horizons host is blocked in the sandbox; BLOCKERS B2).
+Web UI: https://ssd.jpl.nasa.gov/horizons/app.html
+  Ephemeris type: Observer Table.  Target body: Sun [Sol] (10).
+  Observer location: Coordinates: E-Long 52.8894969, Lat 29.9351174, Altitude 1.625 km.
+  Time specification: calendar type JULIAN (Horizons uses the Julian calendar before 1582-Oct-15). Start 467 BC Apr 17 00:00 UT
+  (Horizons input: "BC 0467-Apr-17 00:00"), stop "BC 0466-Apr-06 00:00", step 5 d 5 h (so hours cycle).
+  Table settings: quantities 4 (apparent az/el), refraction model airless and refracted; output CSV.
+Save as data/horizons/sun.csv. The test tests/sky.horizons.test.ts then compares astronomy-engine to it at 0.1°.

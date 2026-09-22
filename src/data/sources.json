@@ -1,23 +1,132 @@
 {
- "IR-PERS": {"cite": "A. Sh. Shahbazi, 'Persepolis', Encyclopaedia Iranica online", "url": "https://www.iranicaonline.org/articles/persepolis/", "access": "search-extract only (host blocked, B6); page not verified"},
- "IR-APAD": {"cite": "'Apadāna', Encyclopaedia Iranica online", "url": "https://www.iranicaonline.org/articles/apadana/", "access": "search-extract only; page not verified"},
- "IR-FORT": {"cite": "'Fortifications', Encyclopaedia Iranica online", "url": "https://www.iranicaonline.org/articles/fortifications-/", "access": "search-extract only"},
- "IR-COL": {"cite": "'Columns' / 'Capitals', Encyclopaedia Iranica online", "url": "https://www.iranicaonline.org/articles/capitals/", "access": "search-extract only"},
- "IR-TREAS": {"cite": "'Persepolis Administrative Archives ii. Treasury Archive', Encyclopaedia Iranica", "url": "https://www.iranicaonline.org/articles/persepolis-admin-archive/", "access": "search-extract only"},
- "WP-COPY": {"cite": "Wikipedia 'Persepolis' (undated plain-text copy)", "url": "https://raw.githubusercontent.com/anassalamah/nlp-project/master/wikipedia%20pages/Persepolis.txt", "access": "read in full (tertiary)"},
- "WP-EXT": {"cite": "Wikipedia articles (Tachara, Hadish, Apadana, Gate of All Nations)", "url": "https://en.wikipedia.org/", "access": "search-extract only"},
- "ISAC-PA": {"cite": "ISAC Persepolis photographic archive pages (Schmidt expedition captions)", "url": "https://isac.uchicago.edu/collections/photographic-archives/persepolis/", "access": "search-extract only"},
- "LIVIUS": {"cite": "J. Lendering, Livius.org Persepolis pages", "url": "https://www.livius.org/articles/place/persepolis/", "access": "search-extract only"},
- "OSM": {"cite": "OpenStreetMap building footprints via Overture Maps release 2026-08-19.0 (theme=buildings)", "url": "s3://overturemaps-us-west-2/release/2026-08-19.0/", "access": "downloaded; processed by tools/osm_to_grid.py; ODbL"},
- "PLEIADES": {"cite": "Pleiades places 922695, 774842748, 658615446 (OSM-derived outlines), GitHub mirror ryanfb/pleiades-geojson", "url": "https://github.com/ryanfb/pleiades-geojson", "access": "downloaded; CC-BY"},
- "COP-DEM": {"cite": "Copernicus GLO-30 DSM tiles N29E052, N29E053, N30E052, N30E053 (DLR/Airbus, EU/ESA)", "url": "s3://copernicus-dem-30m/", "access": "downloaded"},
- "S2": {"cite": "Copernicus Sentinel-2 L2A S2A_39RXP_20240712 TCI", "url": "s3://sentinel-cogs/sentinel-s2-l2a-cogs/39/R/XP/2024/7/", "access": "downloaded"},
- "PD1956": {"cite": "R. A. Parker & W. H. Dubberstein, Babylonian Chronology 626 B.C.–A.D. 75 (1956), pp. 25–46; machine-readable transcription", "url": "https://github.com/seanredmond/parker_and_dubberstein", "access": "downloaded"},
- "WMO-CLINO": {"cite": "WMO Climatological Standard Normals 1991–2020, Shiraz 40848 (IRIMO submission)", "url": "https://github.com/wmo-im/WMO-climatological-normals-CLINO", "access": "downloaded"},
- "KING2022": {"cite": "R. King, 'Trips to the King, Taxation, and the New Year in the PFA', Iran 63/1 (2022)", "url": "https://doi.org/10.1080/05786967.2022.2101936", "access": "abstract only"},
- "BRISSET2019": {"cite": "Brisset et al. 2019, Lake Maharlou core, J. Paleolimnology", "url": "https://link.springer.com/article/10.1007/s10933-018-0048-6", "access": "abstract only"},
- "SUMNER1986": {"cite": "W. Sumner, 'Achaemenid Settlement in the Persepolis Plain', AJA 90.1 (1986)", "url": "https://doi.org/10.2307/505980", "access": "search-extract only"},
- "SCHMIDT1953": {"cite": "E. F. Schmidt, Persepolis I (OIP 68, 1953)", "url": "https://isac.uchicago.edu/research/publications/oip/oip-68-persepolis-i-structures-reliefs-inscriptions", "access": "UNREACHABLE (B6) — cited only as the authority values must be re-checked against"},
- "DERIVED": {"cite": "Derived in this project from other rows (formula in note)", "url": "", "access": "n/a"},
- "RECON": {"cite": "Reconstruction judgement in this project (reason in note)", "url": "", "access": "n/a"}
+ "IR-PERS": {
+  "cite": "A. Sh. Shahbazi, 'Persepolis', Encyclopaedia Iranica online",
+  "url": "https://www.iranicaonline.org/articles/persepolis/",
+  "access": "search-extract only (host blocked, B6); page not verified"
+ },
+ "IR-APAD": {
+  "cite": "'Apadāna', Encyclopaedia Iranica online",
+  "url": "https://www.iranicaonline.org/articles/apadana/",
+  "access": "search-extract only; page not verified"
+ },
+ "IR-FORT": {
+  "cite": "'Fortifications', Encyclopaedia Iranica online",
+  "url": "https://www.iranicaonline.org/articles/fortifications-/",
+  "access": "search-extract only"
+ },
+ "IR-COL": {
+  "cite": "'Columns' / 'Capitals', Encyclopaedia Iranica online",
+  "url": "https://www.iranicaonline.org/articles/capitals/",
+  "access": "search-extract only"
+ },
+ "IR-TREAS": {
+  "cite": "'Persepolis Administrative Archives ii. Treasury Archive', Encyclopaedia Iranica",
+  "url": "https://www.iranicaonline.org/articles/persepolis-admin-archive/",
+  "access": "search-extract only"
+ },
+ "WP-COPY": {
+  "cite": "Wikipedia 'Persepolis' (undated plain-text copy)",
+  "url": "https://raw.githubusercontent.com/anassalamah/nlp-project/master/wikipedia%20pages/Persepolis.txt",
+  "access": "read in full (tertiary)"
+ },
+ "WP-EXT": {
+  "cite": "Wikipedia articles (Tachara, Hadish, Apadana, Gate of All Nations)",
+  "url": "https://en.wikipedia.org/",
+  "access": "search-extract only"
+ },
+ "ISAC-PA": {
+  "cite": "ISAC Persepolis photographic archive pages (Schmidt expedition captions)",
+  "url": "https://isac.uchicago.edu/collections/photographic-archives/persepolis/",
+  "access": "search-extract only"
+ },
+ "LIVIUS": {
+  "cite": "J. Lendering, Livius.org Persepolis pages",
+  "url": "https://www.livius.org/articles/place/persepolis/",
+  "access": "search-extract only"
+ },
+ "OSM": {
+  "cite": "OpenStreetMap building footprints via Overture Maps release 2026-08-19.0 (theme=buildings)",
+  "url": "s3://overturemaps-us-west-2/release/2026-08-19.0/",
+  "access": "downloaded; processed by tools/osm_to_grid.py; ODbL"
+ },
+ "PLEIADES": {
+  "cite": "Pleiades places 922695, 774842748, 658615446 (OSM-derived outlines), GitHub mirror ryanfb/pleiades-geojson",
+  "url": "https://github.com/ryanfb/pleiades-geojson",
+  "access": "downloaded; CC-BY"
+ },
+ "COP-DEM": {
+  "cite": "Copernicus GLO-30 DSM tiles N29E052, N29E053, N30E052, N30E053 (DLR/Airbus, EU/ESA)",
+  "url": "s3://copernicus-dem-30m/",
+  "access": "downloaded"
+ },
+ "S2": {
+  "cite": "Copernicus Sentinel-2 L2A S2A_39RXP_20240712 TCI",
+  "url": "s3://sentinel-cogs/sentinel-s2-l2a-cogs/39/R/XP/2024/7/",
+  "access": "downloaded"
+ },
+ "PD1956": {
+  "cite": "R. A. Parker & W. H. Dubberstein, Babylonian Chronology 626 B.C.–A.D. 75 (1956), pp. 25–46; machine-readable transcription",
+  "url": "https://github.com/seanredmond/parker_and_dubberstein",
+  "access": "downloaded"
+ },
+ "WMO-CLINO": {
+  "cite": "WMO Climatological Standard Normals 1991–2020, Shiraz 40848 (IRIMO submission)",
+  "url": "https://github.com/wmo-im/WMO-climatological-normals-CLINO",
+  "access": "downloaded"
+ },
+ "KING2022": {
+  "cite": "R. King, 'Trips to the King, Taxation, and the New Year in the PFA', Iran 63/1 (2022)",
+  "url": "https://doi.org/10.1080/05786967.2022.2101936",
+  "access": "abstract only"
+ },
+ "BRISSET2019": {
+  "cite": "Brisset et al. 2019, Lake Maharlou core, J. Paleolimnology",
+  "url": "https://link.springer.com/article/10.1007/s10933-018-0048-6",
+  "access": "abstract only"
+ },
+ "SUMNER1986": {
+  "cite": "W. Sumner, 'Achaemenid Settlement in the Persepolis Plain', AJA 90.1 (1986)",
+  "url": "https://doi.org/10.2307/505980",
+  "access": "search-extract only"
+ },
+ "SCHMIDT1953": {
+  "cite": "E. F. Schmidt, Persepolis I (OIP 68, 1953)",
+  "url": "https://isac.uchicago.edu/research/publications/oip/oip-68-persepolis-i-structures-reliefs-inscriptions",
+  "access": "UNREACHABLE (B6) — cited only as the authority values must be re-checked against"
+ },
+ "DERIVED": {
+  "cite": "Derived in this project from other rows (formula in note)",
+  "url": "",
+  "access": "n/a"
+ },
+ "RECON": {
+  "cite": "Reconstruction judgement in this project (reason in note)",
+  "url": "",
+  "access": "n/a"
+ },
+ "LIVIUS-NR": {
+  "cite": "J. Lendering, Livius.org, Naqš-e Rustam pages (tombs; Elamite relief)",
+  "url": "https://www.livius.org/articles/place/naqs-e-rustam/",
+  "access": "search-extract only"
+ },
+ "ALVAREZMON": {
+  "cite": "J. Álvarez-Mon & Y. Wicks, 'Naqsh-e Rustam, Elamite relief' (Google Arts & Culture)",
+  "url": "https://artsandculture.google.com/asset/naqsh-e-rustam-elamite-relief/6QFTCP4TFlD8Yw",
+  "access": "search-extract only: Elamite relief 7 x 2.5 m, overcarved by Bahram II (Sasanian)"
+ },
+ "RESIDENCE2021": {
+  "cite": "'The So-called Achaemenid Capitals and the Problem of Royal Court Residence', Iran 62/1 (2021)",
+  "url": "https://doi.org/10.1080/05786967.2021.1960881",
+  "access": "title/abstract via search extract only"
+ },
+ "WP-PERS-SEASON": {
+  "cite": "Wikipedia 'Persepolis' (current): Persepolis occupied seasonally, a royal spring/summer residence; mobile court",
+  "url": "https://en.wikipedia.org/wiki/Persepolis",
+  "access": "search-extract only (tertiary)"
+ },
+ "CHRON-C": {
+  "cite": "research/_chronology_C.md (subagent C, rows from Iranica/Livius/ISAC extracts)",
+  "url": "research/_chronology_C.md",
+  "access": "project file"
+ }
 }

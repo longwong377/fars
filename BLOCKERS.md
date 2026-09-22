@@ -1,7 +1,7 @@
 # BLOCKERS
 | # | Blocked | Why / evidence | Fallback in use | What unblocks it |
 |---|---|---|---|---|
-| B1 | Direct download of ISAC/archive.org PDFs (Schmidt plan plates) | proxy 403 on isac.uchicago.edu, archive.org (preflight 2026-09-22) | Text extraction via web-fetch-to-text; plan geometry from published dimensions; independent check from Copernicus DEM + Sentinel-2 | user drops `data/sources/oip68.pdf` (NEEDS #1) |
+| B1 | Direct download of ISAC/archive.org PDFs (Schmidt plan plates) | proxy 403 on isac.uchicago.edu, archive.org (preflight 2026-09-22) | Text extraction via web-fetch-to-text; plan geometry from published dimensions; independent check from the Copernicus DSM (research/DEM_EDGE_CHECK.md). The Sentinel-2 scene is only downloaded (10 m is too coarse for building edges) and is not used as a check | user drops `data/sources/oip68.pdf` (NEEDS #1) |
 | B2 | JPL Horizons API | proxy 403 on ssd.jpl.nasa.gov | astronomy-engine (VSOP87/Meeus-class, validated by its authors vs Horizons to ~arcsec) as reference | NEEDS #5 |
 | B3 | NOAA GHCN/ISD station data | proxy 403 on ncei.noaa.gov | published monthly normals (sourced in LANDSCAPE.md climate table) | NEEDS #6 |
 | B4 | STAC search (earth-search) | proxy 403 | direct S3 listing of sentinel-cogs bucket works | — (resolved by workaround) |
@@ -9,3 +9,4 @@
 | B6 | **All primary scholarly hosts** (ISAC incl. isac-idb, archive.org incl. ia* mirrors, Iranica, Wikipedia/Wikimedia, JSTOR, Persée, HathiTrust, Google Books, academia.edu, ResearchGate, CORE, Zenodo, HAL, CDLI, Stony Brook) | proxy 403 for both curl and WebFetch (agent A, 2026-09-22; re-probed by me) | Values taken from web-search summaries of named pages, every row "page not verified" and capped at tier B (dimensions) / C. SITE_SPEC is built so each row can be upgraded by page reference when PDFs arrive. | NEEDS #1–#4 (PDFs into `data/sources/`) or a wider network policy |
 | B7 | Texture/asset libraries (Poly Haven, ambientCG, Sketchfab) | proxy 403 | procedural PBR materials authored in TSL, calibrated to measured colour values when sourced; tiered C and flagged | supply textures/scans into `data/textures/`, `data/scans/` |
 | B8 | Climate APIs (Meteostat, Open-Meteo, NASA POWER, NOAA) | proxy 403 | published normals via web-search summaries | NEEDS #6 |
+| B9 | Brief §0 'court in residence' vs §2 'king present only on dates the evidence supports' | No evidence for Xerxes at Persepolis in 467 (Q-005) | King absent by default; 'seasonal pattern' setting (C) gives court residence | A dated text placing Xerxes at Persepolis in yr 19 (Henkelman 2010; Treasury texts) |

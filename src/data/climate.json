@@ -1,0 +1,22 @@
+{
+ "_source": "WMO CLINO 1991-2020, Shiraz 40848, 1488 m (IRIMO); data/climate/Shiraz_40848.csv; research/_climate_C.md. Tier A for Shiraz.",
+ "_adjust": "DECISIONS D-004: Persepolis = Shiraz Tmean/Tmin -1.5 C, Tmax -1.0 C; precip x1.0; dust days x0.5 (pre-modern, C). Month index 0 = January (Julian months of the proleptic calendar; seasons are tied to the solar year, so the calendar drift of 2.5 millennia is irrelevant when months are taken by solar longitude — see src/weather/climate.ts).",
+ "tmax": [12.9,15.6,19.6,25.0,31.3,36.7,38.7,37.7,34.2,28.4,20.3,15.3],
+ "tmean":[6.1,8.7,12.4,17.5,23.6,28.6,30.8,29.5,25.5,19.6,12.3,7.8],
+ "tmin": [-0.2,1.9,4.9,9.3,14.0,17.8,20.6,19.4,15.1,10.0,4.6,1.1],
+ "precip_mm":[79.0,53.6,52.0,26.0,5.8,0.2,0.4,1.4,0.0,4.0,37.8,64.1],
+ "precip_days_1mm":[6.3,5.4,5.1,3.3,1.3,0.1,0.2,0.2,0.0,0.8,3.3,4.7],
+ "snow_depth_days":[1.1,0,0,0,0,0,0,0,0,0,0,0.2],
+ "snowfall_days":[1.4,0.8,1.2,1.0,0,0,0,0,0,0,0.7,0.8],
+ "frost_days":[18.2,9.6,1.9,0,0,0,0,0,0,0,2.4,12.2],
+ "rh":[59,52,46,41,28,20,21,23,25,32,49,58],
+ "wind_ms":[1.1,1.5,1.8,1.9,2.0,1.8,1.7,1.5,1.3,1.2,1.0,0.9],
+ "wind_dir_deg":[260,230,220,220,240,260,250,270,270,270,160,260],
+ "cloud_okta":[3,3,3,3,2,1,1,1,1,1,2,3],
+ "sunshine_h":[218,214,248,260,327,353,340,339,310,295,233,226],
+ "thunder_days":[0.7,0.8,1.5,1.8,1.1,0.2,0.2,0.5,0.2,0.8,0.8,0.8],
+ "dust_days":[1.0,2.5,6.7,8.6,11.7,8.6,10.6,5.5,2.8,2.0,1.1,0.6],
+ "mist_days":[8.7,6.2,5.8,3.5,0.6,0,0,0.1,0,0.7,5.9,9.3],
+ "adjust": {"tmean": -1.5, "tmin": -1.5, "tmax": -1.0, "precip_mult": 1.0, "dust_mult": 0.5},
+ "tier": {"base": "A", "adjust": "C"}
+}

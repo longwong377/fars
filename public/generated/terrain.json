@@ -1,0 +1,36 @@
+{
+ "frame": "Persepolis grid (x grid-east, y grid-north), origin Apadana centroid",
+ "court_asl": 1625.0,
+ "rings": {
+  "near": {
+   "half": 2048,
+   "cell": 4.0,
+   "n": 1025,
+   "asl_min": 1604.0,
+   "step": 0.01,
+   "file": "generated/terrain_near.u16",
+   "min": 1604.47412109375,
+   "max": 2037.9149169921875
+  },
+  "mid": {
+   "half": 8192,
+   "cell": 16.0,
+   "n": 1025,
+   "asl_min": 1586.0,
+   "step": 0.015,
+   "file": "generated/terrain_mid.u16",
+   "min": 1586.158203125,
+   "max": 2553.656982421875
+  },
+  "far": {
+   "half": 40960,
+   "cell": 80.0,
+   "n": 1025,
+   "asl_min": 1459.0,
+   "step": 0.028,
+   "file": "generated/terrain_far.u16",
+   "min": 1459.9847412109375,
+   "max": 3265.554443359375
+  }
+ }
+}

@@ -1,0 +1,4 @@
+{
+ "_meta": "World asset registry. Every mesh/material/sound/text placed in the ancient world is registered here with period, source keys and tier; lint:chrono checks it against src/data/chronology.json and src/data/blocklist.json.",
+ "assets": []
+}

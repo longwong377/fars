@@ -1,0 +1,564 @@
+{
+"source": "Parker & Dubberstein 1956 via seanredmond/parker_and_dubberstein",
+"tier": "A (Babylonian); B (Persian equivalence)",
+"months": [
+{
+"jdn": 1550131,
+"y": -468,
+"m": 1,
+"d": 11,
+"monthNo": 10,
+"name": "Tebetu",
+"days": 29
+},
+{
+"jdn": 1550161,
+"y": -468,
+"m": 2,
+"d": 10,
+"monthNo": 11,
+"name": "Shabatu",
+"days": 30
+},
+{
+"jdn": 1550190,
+"y": -468,
+"m": 3,
+"d": 10,
+"monthNo": 12,
+"name": "Addaru",
+"days": 29
+},
+{
+"jdn": 1550220,
+"y": -468,
+"m": 4,
+"d": 9,
+"monthNo": 1,
+"name": "Nisanu",
+"days": 30
+},
+{
+"jdn": 1550249,
+"y": -468,
+"m": 5,
+"d": 8,
+"monthNo": 2,
+"name": "Aiaru",
+"days": 29
+},
+{
+"jdn": 1550279,
+"y": -468,
+"m": 6,
+"d": 7,
+"monthNo": 3,
+"name": "Simanu",
+"days": 30
+},
+{
+"jdn": 1550308,
+"y": -468,
+"m": 7,
+"d": 6,
+"monthNo": 4,
+"name": "Duzu",
+"days": 29
+},
+{
+"jdn": 1550338,
+"y": -468,
+"m": 8,
+"d": 5,
+"monthNo": 5,
+"name": "Abu",
+"days": 30
+},
+{
+"jdn": 1550368,
+"y": -468,
+"m": 9,
+"d": 4,
+"monthNo": 6,
+"name": "Ululu",
+"days": 30
+},
+{
+"jdn": 1550397,
+"y": -468,
+"m": 10,
+"d": 3,
+"monthNo": 7,
+"name": "Tashritu",
+"days": 29
+},
+{
+"jdn": 1550427,
+"y": -468,
+"m": 11,
+"d": 2,
+"monthNo": 8,
+"name": "Arahsamnu",
+"days": 30
+},
+{
+"jdn": 1550456,
+"y": -468,
+"m": 12,
+"d": 1,
+"monthNo": 9,
+"name": "Kislimu",
+"days": 29
+},
+{
+"jdn": 1550486,
+"y": -468,
+"m": 12,
+"d": 31,
+"monthNo": 10,
+"name": "Tebetu",
+"days": 30
+},
+{
+"jdn": 1550515,
+"y": -467,
+"m": 1,
+"d": 29,
+"monthNo": 11,
+"name": "Shabatu",
+"days": 29
+},
+{
+"jdn": 1550545,
+"y": -467,
+"m": 2,
+"d": 28,
+"monthNo": 12,
+"name": "Addaru",
+"days": 30
+},
+{
+"jdn": 1550574,
+"y": -467,
+"m": 3,
+"d": 29,
+"monthNo": 1,
+"name": "Nisanu",
+"days": 29
+},
+{
+"jdn": 1550604,
+"y": -467,
+"m": 4,
+"d": 28,
+"monthNo": 2,
+"name": "Aiaru",
+"days": 30
+},
+{
+"jdn": 1550633,
+"y": -467,
+"m": 5,
+"d": 27,
+"monthNo": 3,
+"name": "Simanu",
+"days": 29
+},
+{
+"jdn": 1550663,
+"y": -467,
+"m": 6,
+"d": 26,
+"monthNo": 4,
+"name": "Duzu",
+"days": 30
+},
+{
+"jdn": 1550692,
+"y": -467,
+"m": 7,
+"d": 25,
+"monthNo": 5,
+"name": "Abu",
+"days": 29
+},
+{
+"jdn": 1550722,
+"y": -467,
+"m": 8,
+"d": 24,
+"monthNo": 6,
+"name": "Ululu",
+"days": 30
+},
+{
+"jdn": 1550752,
+"y": -467,
+"m": 9,
+"d": 23,
+"monthNo": 7,
+"name": "Tashritu",
+"days": 30
+},
+{
+"jdn": 1550781,
+"y": -467,
+"m": 10,
+"d": 22,
+"monthNo": 8,
+"name": "Arahsamnu",
+"days": 29
+},
+{
+"jdn": 1550810,
+"y": -467,
+"m": 11,
+"d": 20,
+"monthNo": 9,
+"name": "Kislimu",
+"days": 29
+},
+{
+"jdn": 1550840,
+"y": -467,
+"m": 12,
+"d": 20,
+"monthNo": 10,
+"name": "Tebetu",
+"days": 30
+},
+{
+"jdn": 1550869,
+"y": -466,
+"m": 1,
+"d": 18,
+"monthNo": 11,
+"name": "Shabatu",
+"days": 29
+},
+{
+"jdn": 1550899,
+"y": -466,
+"m": 2,
+"d": 17,
+"monthNo": 12,
+"name": "Addaru",
+"days": 30
+},
+{
+"jdn": 1550928,
+"y": -466,
+"m": 3,
+"d": 18,
+"monthNo": 13,
+"name": "Addaru\u2082",
+"days": 29
+},
+{
+"jdn": 1550958,
+"y": -466,
+"m": 4,
+"d": 17,
+"monthNo": 1,
+"name": "Nisanu",
+"days": 30
+},
+{
+"jdn": 1550987,
+"y": -466,
+"m": 5,
+"d": 16,
+"monthNo": 2,
+"name": "Aiaru",
+"days": 29
+},
+{
+"jdn": 1551017,
+"y": -466,
+"m": 6,
+"d": 15,
+"monthNo": 3,
+"name": "Simanu",
+"days": 30
+},
+{
+"jdn": 1551047,
+"y": -466,
+"m": 7,
+"d": 15,
+"monthNo": 4,
+"name": "Duzu",
+"days": 30
+},
+{
+"jdn": 1551076,
+"y": -466,
+"m": 8,
+"d": 13,
+"monthNo": 5,
+"name": "Abu",
+"days": 29
+},
+{
+"jdn": 1551106,
+"y": -466,
+"m": 9,
+"d": 12,
+"monthNo": 6,
+"name": "Ululu",
+"days": 30
+},
+{
+"jdn": 1551135,
+"y": -466,
+"m": 10,
+"d": 11,
+"monthNo": 7,
+"name": "Tashritu",
+"days": 29
+},
+{
+"jdn": 1551165,
+"y": -466,
+"m": 11,
+"d": 10,
+"monthNo": 8,
+"name": "Arahsamnu",
+"days": 30
+},
+{
+"jdn": 1551194,
+"y": -466,
+"m": 12,
+"d": 9,
+"monthNo": 9,
+"name": "Kislimu",
+"days": 29
+},
+{
+"jdn": 1551224,
+"y": -465,
+"m": 1,
+"d": 8,
+"monthNo": 10,
+"name": "Tebetu",
+"days": 30
+},
+{
+"jdn": 1551253,
+"y": -465,
+"m": 2,
+"d": 6,
+"monthNo": 11,
+"name": "Shabatu",
+"days": 29
+},
+{
+"jdn": 1551283,
+"y": -465,
+"m": 3,
+"d": 8,
+"monthNo": 12,
+"name": "Addaru",
+"days": 30
+},
+{
+"jdn": 1551312,
+"y": -465,
+"m": 4,
+"d": 6,
+"monthNo": 1,
+"name": "Nisanu",
+"days": 29
+},
+{
+"jdn": 1551342,
+"y": -465,
+"m": 5,
+"d": 6,
+"monthNo": 2,
+"name": "Aiaru",
+"days": 30
+},
+{
+"jdn": 1551371,
+"y": -465,
+"m": 6,
+"d": 4,
+"monthNo": 3,
+"name": "Simanu",
+"days": 29
+},
+{
+"jdn": 1551401,
+"y": -465,
+"m": 7,
+"d": 4,
+"monthNo": 4,
+"name": "Duzu",
+"days": 30
+},
+{
+"jdn": 1551431,
+"y": -465,
+"m": 8,
+"d": 3,
+"monthNo": 5,
+"name": "Abu",
+"days": 30
+},
+{
+"jdn": 1551460,
+"y": -465,
+"m": 9,
+"d": 1,
+"monthNo": 6,
+"name": "Ululu",
+"days": 29
+},
+{
+"jdn": 1551490,
+"y": -465,
+"m": 10,
+"d": 1,
+"monthNo": 7,
+"name": "Tashritu",
+"days": 30
+},
+{
+"jdn": 1551519,
+"y": -465,
+"m": 10,
+"d": 30,
+"monthNo": 8,
+"name": "Arahsamnu",
+"days": 29
+},
+{
+"jdn": 1551549,
+"y": -465,
+"m": 11,
+"d": 29,
+"monthNo": 9,
+"name": "Kislimu",
+"days": 30
+},
+{
+"jdn": 1551578,
+"y": -465,
+"m": 12,
+"d": 28,
+"monthNo": 10,
+"name": "Tebetu",
+"days": 29
+},
+{
+"jdn": 1551608,
+"y": -464,
+"m": 1,
+"d": 27,
+"monthNo": 11,
+"name": "Shabatu",
+"days": 30
+},
+{
+"jdn": 1551637,
+"y": -464,
+"m": 2,
+"d": 25,
+"monthNo": 12,
+"name": "Addaru",
+"days": 29
+},
+{
+"jdn": 1551666,
+"y": -464,
+"m": 3,
+"d": 25,
+"monthNo": 1,
+"name": "Nisanu",
+"days": 29
+},
+{
+"jdn": 1551696,
+"y": -464,
+"m": 4,
+"d": 24,
+"monthNo": 2,
+"name": "Aiaru",
+"days": 30
+},
+{
+"jdn": 1551726,
+"y": -464,
+"m": 5,
+"d": 24,
+"monthNo": 3,
+"name": "Simanu",
+"days": 30
+},
+{
+"jdn": 1551755,
+"y": -464,
+"m": 6,
+"d": 22,
+"monthNo": 4,
+"name": "Duzu",
+"days": 29
+},
+{
+"jdn": 1551785,
+"y": -464,
+"m": 7,
+"d": 22,
+"monthNo": 5,
+"name": "Abu",
+"days": 30
+},
+{
+"jdn": 1551814,
+"y": -464,
+"m": 8,
+"d": 20,
+"monthNo": 6,
+"name": "Ululu",
+"days": 29
+},
+{
+"jdn": 1551844,
+"y": -464,
+"m": 9,
+"d": 19,
+"monthNo": 7,
+"name": "Ululu\u2082",
+"days": 30
+},
+{
+"jdn": 1551874,
+"y": -464,
+"m": 10,
+"d": 19,
+"monthNo": 8,
+"name": "Tashritu",
+"days": 30
+},
+{
+"jdn": 1551903,
+"y": -464,
+"m": 11,
+"d": 17,
+"monthNo": 9,
+"name": "Arahsamnu",
+"days": 29
+},
+{
+"jdn": 1551933,
+"y": -464,
+"m": 12,
+"d": 17,
+"monthNo": 10,
+"name": "Kislimu",
+"days": 30
+}
+]
+}

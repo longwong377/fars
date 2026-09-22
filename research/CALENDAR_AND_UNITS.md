@@ -2,7 +2,7 @@
 ## Calendar
 - Lunisolar Babylonian reckoning; months begin at the evening of the first visible crescent (Parker & Dubberstein 1956; machine-readable
   copy `data/calendar/parker_and_dubberstein.tsv`, from github.com/seanredmond/parker_and_dubberstein). Tier A (Babylonian); B (Persian use).
-- Regnal year: Xerxes yr 19 = Nisannu 467 → Addaru 467/6 (P&D). Year −466 intercalary (Addaru₂ before Nisannu).
+- Regnal year: Xerxes yr 19 = Nisannu 467 → Addaru 467/6 (P&D). Year 19 has 12 months (354 days). The intercalary Addaru₂ (18 Mar 467) belongs to year 18.
 - Month names (Old Persian / Elamite / Babylonian). Only the first four OP names have been retrieved so far (see `_date_decision_C.md`); the rest to be filled in in Phase 5.
 
 | # | Babylonian | Day 1 (Jul., 467 BCE) | Days | Old Persian |
