@@ -29,6 +29,8 @@ export class SkySystem {
     this.sky.turbidity.value = 3; this.sky.rayleigh.value = 1.2; this.sky.mieCoefficient.value = 0.004; this.sky.mieDirectionalG.value = 0.8;
     this.sky.userData = { tier: 'B', src: 'RECON', note: 'Preetham analytic sky (three SkyMesh); cloud layer is SkyMesh procedural (C) until Phase 3 volumetrics' };
     this.sky.frustumCulled = false;
+    // SkyMesh pins its depth to 1.0, which is the NEAR plane under reversed-Z (WebGPU path) — draw it first, untested
+    const skyMat = this.sky.material as THREE.Material; skyMat.depthTest = false; skyMat.depthWrite = false; this.sky.renderOrder = -10;
     scene.add(this.sky);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(shadowMapSize, shadowMapSize);
@@ -38,22 +40,22 @@ export class SkySystem {
     scene.add(this.sun, this.sun.target, this.moonLight, this.moonLight.target, this.hemi);
     // moon: disc of 0.52° apparent diameter, shaded by the true sun direction (phase)
     const moonR = Math.tan((0.26 * Math.PI) / 180) * DOME * 0.9;
-    const mm = new THREE.MeshBasicNodeMaterial({ fog: false, depthWrite: false });
+    const mm = new THREE.MeshBasicNodeMaterial({ fog: false, depthWrite: false, depthTest: false });
     const lit = max(dot(normalWorld, this.uMoonSun), float(0));
     mm.colorNode = vec4(vec3(0.95, 0.93, 0.88).mul(lit.mul(1.2)).add(vec3(0.02, 0.025, 0.035)), 1);
     this.moon = new THREE.Mesh(new THREE.SphereGeometry(moonR, 32, 16), mm);
-    this.moon.frustumCulled = false; this.moon.renderOrder = -1;
+    this.moon.frustumCulled = false; this.moon.renderOrder = -8;
     scene.add(this.moon);
     // stars
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3), 3));
-    const pm = new THREE.PointsNodeMaterial({ transparent: true, depthWrite: false, fog: false, sizeAttenuation: false });
+    const pm = new THREE.PointsNodeMaterial({ transparent: true, depthWrite: false, depthTest: false, fog: false, sizeAttenuation: false });
     const bright = attribute('bright', 'float'), tint = attribute('tint', 'vec3');
     pm.colorNode = vec4(tint.mul(bright).mul(this.uNight), 1);
     pm.opacityNode = bright.mul(this.uNight);
     pm.sizeNode = float(1.0).add(bright.mul(1.5));
     this.stars = new THREE.Points(geo, pm);
-    this.stars.frustumCulled = false; this.stars.renderOrder = -2;
+    this.stars.frustumCulled = false; this.stars.renderOrder = -9;
     this.stars.userData = { tier: 'A', src: 'HYG41', note: 'HYG v4.1 positions + proper motion to 467 BCE, precessed (astronomy-engine)' };
     scene.add(this.stars);
   }

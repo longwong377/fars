@@ -35,7 +35,7 @@ export function generateYear(seed: number, startJdn: number, days: number): DayW
     const d = 0.35 * (pw > 0.02 ? 1 : 0);
     // p01 = pw(1-d), p11 = p01 + d  (stationary wet fraction = pw)
     const p01 = pw * (1 - d), p11 = p01 + d;
-    const wet = rng.next() < (wetPrev ? p11 : p01);
+    const wet: boolean = rng.next() < (wetPrev ? p11 : p01);
     const intensity = c.precipDays > 0 ? c.precipMm / c.precipDays : 0;
     const precipMm = wet ? 1 + Math.max(0, intensity - 1) * -Math.log(1 - rng.next() * 0.999) : 0; // ≥1 mm by definition
     anom = 0.65 * anom + 2.3 * Math.sqrt(1 - 0.65 * 0.65) * rng.normal();

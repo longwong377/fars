@@ -1,0 +1,22 @@
+:root { --bg: rgba(18,15,12,0.86); --fg: #eee3cf; --muted: #b8aa92; --accent: #c9a25e; --line: rgba(238,227,207,0.18); }
+html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font-family: Georgia, 'Times New Roman', serif; color: var(--fg); }
+#view { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+#shell { position: fixed; inset: 0; pointer-events: none; }
+.panel { pointer-events: auto; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(ellipse at center, rgba(0,0,0,0.45), rgba(0,0,0,0.85)); }
+.card { background: var(--bg); border: 1px solid var(--line); padding: 28px 34px; max-width: 760px; width: calc(100vw - 32px); max-height: calc(100vh - 48px); overflow: auto; box-sizing: border-box; }
+.title h1 { font-weight: normal; letter-spacing: 0.3em; font-size: 42px; margin: 0 0 6px; }
+.title .sub { color: var(--muted); margin-bottom: 22px; font-style: italic; }
+button { font: inherit; background: transparent; color: var(--fg); border: 1px solid var(--line); padding: 8px 16px; margin: 4px 6px 4px 0; cursor: pointer; }
+button:hover, button:focus-visible { border-color: var(--accent); outline: none; }
+.row { display: grid; grid-template-columns: 210px 1fr; gap: 10px; align-items: center; margin: 7px 0; font-size: 14px; }
+.row label { color: var(--muted); }
+select, input[type=range] { width: 100%; }
+select { background: #1c1813; color: var(--fg); border: 1px solid var(--line); padding: 4px; font: inherit; }
+h2 { font-weight: normal; letter-spacing: 0.12em; font-size: 18px; margin: 18px 0 6px; color: var(--accent); }
+.small { font-size: 12px; color: var(--muted); }
+#overlay { position: fixed; left: 8px; top: 8px; background: rgba(0,0,0,0.62); color: #d8f0d8; font: 12px/1.35 ui-monospace, Menlo, Consolas, monospace; padding: 8px 10px; white-space: pre; pointer-events: none; max-width: 48vw; }
+#overlay .tA { color: #8fe38f; } #overlay .tB { color: #f0d060; } #overlay .tC { color: #ff9a6a; }
+.cb #overlay .tA { color: #56b4e9; } .cb #overlay .tB { color: #e69f00; } .cb #overlay .tC { color: #cc79a7; }
+.crosshair { position: fixed; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1px; background: rgba(255,255,255,0.35); border-radius: 50%; pointer-events: none; }
+.subtitle { position: fixed; bottom: 7vh; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.55); padding: 4px 12px; pointer-events: none; }
+@media (max-width: 600px) { .row { grid-template-columns: 1fr; } .title h1 { font-size: 30px; } }

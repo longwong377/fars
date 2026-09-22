@@ -20,6 +20,8 @@ spec = json.load(open('src/data/site_spec.json'))
 COURT = spec['global']['court_asl']['v']
 fp = json.load(open('src/data/geo/footprints.json'))
 terr = Polygon(fp['terrace']['polygon'])
+stair = Polygon(fp['grand_stair']['polygon'])
+terr_platform = terr.difference(stair)  # the Grand Stair is recessed into the W wall: ground under it is the plain (SITE_SPEC terrace.stair_recess)
 # CRS: oblique transverse mercator is not needed; use tmerc then rotate grid by sampling rotated coordinates.
 tm = CRS.from_proj4(f"+proj=tmerc +lat_0={LAT0} +lon_0={LON0} +k=1 +x_0=0 +y_0=0 +ellps=WGS84")
 tifs = sorted(glob.glob('data/dem/Copernicus_DSM_COG_10_*_DEM.tif'))
@@ -67,7 +69,7 @@ for name, (half, cell) in rings.items():
         h = w * opened + (1 - w) * h
     # layer 3: terrace + foot
     if cell <= 16:
-        inside = shapely.contains_xy(terr, GX, GY)
+        inside = shapely.contains_xy(terr_platform, GX, GY)
         foot = shapely.contains_xy(terr.buffer(90), GX, GY) & ~inside
         # harmonic infill of the foot band west/north/south where ground is below court (east side is mountain: keep)
         mountain = (h > COURT + 2.0) & (GX > 100)  # E side: terrace abuts Kuh-e Rahmat, keep DSM
