@@ -502,9 +502,9 @@
   "inscription_placement": {
    "v": "XPa above each of the 4 colossi (one trilingual per colossus pair side; which version on which jamb C)",
    "u": "",
-   "src": "B",
-   "tier": "search extract; version-to-jamb assignment C",
-   "note": "ISAC-PA;LANG-R"
+   "src": "ISAC-PA;LANG-R",
+   "tier": "B",
+   "note": "search extract; version-to-jamb assignment C"
   },
   "r_inscription_panel": {
    "v": {
@@ -744,9 +744,9 @@
   "r_stair_layout": {
    "v": "3 equal parts along the façade; central part: two flights converging on a central landing; outer parts: flights rising toward the centre onto landings at podium height adjoining the portico",
    "u": "",
-   "src": "B",
-   "tier": "four flights (IR-PERS); exact arrangement C",
-   "note": "IR-PERS"
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "four flights per stair (IR-PERS, B); the exact arrangement of flights and landings is C"
   },
   "south_side": {
    "v": "storage- and guardrooms on the S side",

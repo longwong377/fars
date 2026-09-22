@@ -77,7 +77,7 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | r_roof_above_capital | 2.0 | m | RECON | C | beams + earth roof above the capitals |
 | r_roof_thickness | 1.2 | m | RECON | C | roof slab |
 | r_colossus | {"length": 5.0, "width": 1.6, "height": 5.5} | m | RECON | C | doorway colossi (bulls W, human-headed winged bulls E): height 5.5 from a weak popular source (C), length/width proportional; placed in the door reveals |
-| inscription_placement | "XPa above each of the 4 colossi (one trilingual per colossus pair side; which version on which jamb C)" |  | B | search extract; version-to-jamb assignment C | ISAC-PA;LANG-R |
+| inscription_placement | "XPa above each of the 4 colossi (one trilingual per colossus pair side; which version on which jamb C)" |  | ISAC-PA;LANG-R | B | search extract; version-to-jamb assignment C |
 | r_inscription_panel | {"width": 3.2, "height": 2.4, "above_colossus": 0.5, "glyph_height": 0.075, "line_gap": 0.035} | m | RECON | C | inscription panel above each colossus (C) |
 
 ## apadana — state in 467 BCE: **standing**
@@ -110,7 +110,7 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | r_storeroom_height | 8.0 | m | RECON | C | S storerooms |
 | r_stair_tread | 0.38 | m | RECON | C | Apadana stair tread (not obtained) |
 | r_stair_width | 7.0 | m | RECON | C | Apadana stair flight width / depth of the stair zone (not obtained) |
-| r_stair_layout | "3 equal parts along the façade; central part: two flights converging on a central landing; outer parts: flights rising toward the centre onto landings at podium height adjoining the portico" |  | B | four flights (IR-PERS); exact arrangement C | IR-PERS |
+| r_stair_layout | "3 equal parts along the façade; central part: two flights converging on a central landing; outer parts: flights rising toward the centre onto landings at podium height adjoining the portico" |  | IR-PERS | B | four flights per stair (IR-PERS, B); the exact arrangement of flights and landings is C |
 | south_side | "storage- and guardrooms on the S side" |  | IR-PERS | B | search extract |
 | relief_programme | {"E": {"right_wing": "nobles", "left_wing": "delegations", "centre": "audience"}, "N": {"right_wing": "delegations", "left_wing": "nobles", "centre": "audience"}} |  | IR-APAD;RELIEF-R | B | E façade: N wing nobles/guards/horses/chariots in 3 tiers, centre panel, S wing 23 delegations (search extract, B); N façade mirrors (which wing has the delegations NOT found, C). Centre = audience scene in 467 (Tilia 1972 via Iranica, B derived) |
 | r_facade_thickness | 0.6 | m | RECON | C | relief-bearing façade wall along the outer edge of each stair zone |
