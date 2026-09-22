@@ -14,6 +14,8 @@ export const SURFACES: Record<string, SurfaceDef> = {
   limestone_dark: { albedo: [0.12, 0.12, 0.125], roughness: 0.18, porosity: 0.1, noiseScale: 2, noiseAmp: 0.05, tier: 'B', note: 'polished dark limestone (door/window frames)' },
   mudbrick: { albedo: [0.62, 0.52, 0.40], roughness: 0.92, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.08, tier: 'C', note: 'mud plaster over mud brick' },
   plaster: { albedo: [0.78, 0.74, 0.66], roughness: 0.85, porosity: 0.7, noiseScale: 0.8, noiseAmp: 0.05, tier: 'C', note: 'lime/gypsum plaster' },
+  plaster_red: { albedo: [0.48, 0.14, 0.1], roughness: 0.35, porosity: 0.3, noiseScale: 0.9, noiseAmp: 0.04, tier: 'B', note: 'lime-plaster floor with two hematite-rich paint coats, deep red over white (Stein et al. 2016 via search extract, B); polish C' },
+  bronze: { albedo: [0.55, 0.38, 0.2], roughness: 0.35, porosity: 0.0, noiseScale: 3, noiseAmp: 0.08, metal: 1, tier: 'C', note: 'bronze fittings' },
   timber: { albedo: [0.32, 0.23, 0.15], roughness: 0.75, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, tier: 'C', note: 'cedar/timber beams' },
   glazed: { albedo: [0.12, 0.33, 0.48], roughness: 0.25, porosity: 0.05, noiseScale: 3, noiseAmp: 0.06, tier: 'C', note: 'glazed brick' },
   earth: { albedo: [0.47, 0.39, 0.29], roughness: 0.95, porosity: 0.9, noiseScale: 0.4, noiseAmp: 0.14, tier: 'C', note: 'beaten earth' },

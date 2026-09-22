@@ -18,6 +18,7 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | r_east_side_x | 200.0 | m | DERIVED | C | grid-east threshold separating the terrace's E (mountain/fortification) side from the W/N/S outline; E-side edges get no parapet (fortification instead) |
 | r_found_depth | 20.0 | m | DERIVED | C | platform/stair prisms extend this far below the court so no gap shows at the terrain (technical, not architectural) |
 | r_column_proportions | {"base_h_frac": 0.075, "base_h_max": 1.6, "base_w_over_shaft": 1.55, "default_shaft_over_h": 0.0833, "shaft_min": 0.6, "capital_frac_default": 0.18, "composite_split": [0.23, 0.33, 0.44], "bell_taper": 0.45, "torus": [1.02, 0.14], "shaft_top_ratio": 0.93, "square2_lower_scale": 1.25, "plain_base": [1.2, 1.3], "capital_boxes": {"bell_r": [1.5, 0.95], "volute": [1.25, 0.9], "protome": [3.4, 1.1], "plain": 1.4}} |  | RECON | C | greybox column proportions where a building's row is missing (C); composite capital split bell/volute/protome |
+| interior_floor | "plaster_red" | material | RELIEF-R | B | Persepolis floors: lime plaster with two hematite-rich coats, deep red over white on pink plaster (Stein et al. 2016, search extract) |
 
 ## terrace — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -79,6 +80,9 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | r_colossus | {"length": 5.0, "width": 1.6, "height": 5.5} | m | RECON | C | doorway colossi (bulls W, human-headed winged bulls E): height 5.5 from a weak popular source (C), length/width proportional; placed in the door reveals |
 | inscription_placement | "XPa above each of the 4 colossi (one trilingual per colossus pair side; which version on which jamb C)" |  | ISAC-PA;LANG-R | B | search extract; version-to-jamb assignment C |
 | r_inscription_panel | {"width": 3.2, "height": 2.4, "above_colossus": 0.5, "glyph_height": 0.075, "line_gap": 0.035} | m | RECON | C | inscription panel above each colossus (C) |
+| r_colossus_plinth | 1.2 | m | RECON | C | colossi stand on plinths projecting from the façade (reconstruction references, C) |
+| r_frieze | {"height": 0.9, "above_door": 0.4} | m | RECON | C | painted/glazed palmette frieze band above each doorway lintel (reconstruction references; glazed brick fragments at Persepolis B; placement C) |
+| r_door_leaves | {"thickness": 0.25, "boss_pitch": 0.45} | m | RECON | C | timber double doors with bronze bosses turning on pivot sockets (pivot sockets: WP extract C; leaves/bosses C) |
 
 ## apadana — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -120,6 +124,9 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | r_relief_depth | 0.045 | m | RECON | C | low-relief depth (C) |
 | r_audience_panel | {"width": 6.2, "height": 2.6} | m | RECON | C | audience panel size (C; the Treasury audience reliefs' dimensions were not obtained) |
 | r_crenellation | {"width": 0.9, "height": 0.9, "steps": 4} | m | RECON | C | four-stepped crenellations crowning the stair façades (motif B, IR-PERS; size C) |
+| r_parapet_height | 1.0 | m | RECON | C | stair parapet above the flights/landings (C); crenellations stand on it |
+| r_rosette | {"diameter": 0.07, "pitch": 0.11} | m | RECON | C | rosette border bands between registers and around panels (motif seen in reconstructions, references/INDEX.md; size C) |
+| r_cypress_band | {"height": 0.75, "pitch": 0.42} | m | RECON | C | cypress rows along the diagonal flight parapets (reconstruction references; C) |
 
 ## tachara — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |

@@ -121,10 +121,26 @@ export function buildTerrace(): BuildResult {
     const ord = order(b, { base: 'bell', capital: 'composite' });
     for (const p of grid(nx, ny, c[0], c[1], v(b, 'interaxial'))) parts.push(col(b, p, fl, ord, T_(b, 'column_height'), S_(b, 'column_height')));
     parts.push(box(b, 'roof', 'timber', T_(b, 'roof'), S_(b, 'roof'), c, [x1 - x0, y1 - y0], roofY, roofY + v(b, 'r_roof_thickness'), { note: 'cedar beams, earth roof' }));
+    const FL = v<string>('global', 'interior_floor') as Material, FLt = T_('global', 'interior_floor'), FLs = S_('global', 'interior_floor');
+    parts.push(box(b, 'floor_finish', FL, FLt, FLs, c, [hs, hs], fl, fl + 0.01, { solid: false, note: 'red hematite-painted lime plaster floor' }));
+    // frieze band above each doorway (on both wall faces) and bronze-studded timber door leaves (open, against the reveals)
+    const FR = v<any>(b, 'r_frieze'), DL = v<any>(b, 'r_door_leaves');
+    for (const side of doors.map(d => d.side as string)) {
+      const horiz = side === 'S' || side === 'N';
+      const faceOff = horiz ? hs / 2 + ty : hs / 2 + tx; const sgn = side === 'E' || side === 'N' ? 1 : -1;
+      for (const face of [-1, 1]) { const off = sgn * (faceOff + face * (horiz ? ty : tx)) ; const cc: Pt = horiz ? [c[0], c[1] + sgn * (hs / 2 + ty / 2) + face * (ty / 2 + 0.03)] : [c[0] + sgn * (hs / 2 + tx / 2) + face * (tx / 2 + 0.03), c[1]]; void off;
+        parts.push(box(b, 'frieze', 'glazed', 'C', S_(b, 'r_frieze'), cc, horiz ? [dw + 2 * FR.above_door, 0.06] : [0.06, dw + 2 * FR.above_door], fl + dh + FR.above_door, fl + dh + FR.above_door + FR.height, { solid: false })); }
+      for (const lr of [-1, 1]) { // two leaves, open 90°, standing against the inner reveals
+        const lc: Pt = horiz ? [c[0] + lr * (dw / 2 - DL.thickness / 2), c[1] + sgn * (hs / 2 + ty - dw / 4)] : [c[0] + sgn * (hs / 2 + tx - dw / 4), c[1] + lr * (dw / 2 - DL.thickness / 2)];
+        parts.push(box(b, 'door_leaf', 'timber', 'C', S_(b, 'r_door_leaves'), lc, horiz ? [DL.thickness, dw / 2] : [dw / 2, DL.thickness], fl, fl + dh, { solid: true, note: 'timber door leaf with bronze bosses (C)' }));
+      }
+    }
     // doorway colossi stand in the W and E door reveals, projecting outward from the wall faces (PLACEHOLDER blocks)
     const K = v<any>(b, 'r_colossus');
     for (const [side, sx, dir] of [['W', x0, -1], ['E', x1, 1]] as const) for (const dy of [-1, 1]) {
-      parts.push(box(b, 'colossus', 'limestone', 'C', 'RECON', [sx + dir * (K.length / 2 - tx), c[1] + dy * (dw / 2 + K.width / 2)], [K.length, K.width], fl, fl + K.height,
+      const pl = v(b, 'r_colossus_plinth'), pc: Pt = [sx + dir * (K.length / 2 - tx), c[1] + dy * (dw / 2 + K.width / 2)];
+      parts.push(box(b, 'plinth', 'limestone', 'C', S_(b, 'r_colossus_plinth'), pc, [K.length, K.width], fl, fl + pl, { solid: true }));
+      parts.push(box(b, 'colossus', 'limestone', 'C', 'RECON', pc, [K.length, K.width], fl + pl, fl + pl + K.height,
         { placeholder: true, solid: true, note: `${side === 'W' ? 'bull' : 'human-headed winged bull'} colossus (IR-PERS B for the type; block PLACEHOLDER)` }));
     }
     manifest.gate_nations = { hallInteriorX: hs, hallInteriorY: hs, columns: nx * ny, columnHeight: ord.height, wallTx: tx, wallTy: ty, doors: doors.length, doorHeight: dh };
@@ -140,6 +156,7 @@ export function buildTerrace(): BuildResult {
     const D = v<any>(b, 'r_door');
     parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'wall_thickness'), row(b, 'wall_height')) }, cx, cy, hs, hs, wt, pod, pod + v(b, 'wall_height'),
       (['N', 'W', 'E', 'S'] as const).map(side => ({ side, at: 0, width: D.width, height: D.height }))).map(w => ({ ...w, solid: true })));
+    parts.push(box(b, 'floor_finish', v<string>('global', 'interior_floor') as Material, T_('global', 'interior_floor'), S_('global', 'interior_floor'), [cx, cy], [hs, hs], pod, pod + 0.01, { solid: false }));
     const hallOrd = order(b, { base: 'square2', capital: 'bull' }), porOrd = order(b, { base: 'bell', capital: 'bull' });
     const [hnx, hny] = v<number[]>(b, 'hall_columns');
     const hallCols = grid(hnx, hny, cx, cy, ia);
@@ -185,11 +202,30 @@ export function buildTerrace(): BuildResult {
       return { out, edge };
     };
     const N = stairParts('N'), E = stairParts('E'); parts.push(...N.out, ...E.out);
-    // relief-bearing façade walls on the outer edge of each stair zone (reliefs are applied by decor.ts)
-    const ft = v(b, 'r_facade_thickness');
-    parts.push(box(b, 'facade', 'limestone', 'C', S_(b, 'r_facade_thickness'), [cx, N.edge + stW - ft / 2], [sl, ft], 0, pod, { solid: true }));
-    parts.push(box(b, 'facade', 'limestone', 'C', S_(b, 'r_facade_thickness'), [E.edge + stW - ft / 2, cy], [ft, sl], 0, pod, { solid: true }));
-    manifest.apadana = { hallColumns: hallCols.length, porticoColumns: porticoCols.length, columnHeight: hallOrd.height, interaxial: ia, hallInterior: hs, podium: pod, wallThickness: wt, stairLength: sl, nStairEdge: N.edge, eStairEdge: E.edge, stairWidth: stW, hallCentre: [cx, cy] as any };
+    // relief-bearing façade walls on the outer edge of each stair zone: the top follows the stair (flights slope in
+    // tread-sized steps, landings level) plus the parapet; reliefs and crenellations are applied by decor.ts
+    const ft = v(b, 'r_facade_thickness'), php = v(b, 'r_parapet_height');
+    const spans: { a0: number; a1: number; type: 'flight' | 'landing'; rise: 1 | -1 }[] = [];
+    const cl = third - 2 * run;
+    for (const sg of [-1, 1] as const) { // along coordinate a ∈ [−sl/2, sl/2]; flights rise toward the centre
+      spans.push({ a0: sg < 0 ? -sl / 2 : sl / 2 - run, a1: sg < 0 ? -sl / 2 + run : sl / 2, type: 'flight', rise: (-sg) as 1 | -1 });
+      spans.push({ a0: sg < 0 ? -sl / 2 + run : third / 2, a1: sg < 0 ? -third / 2 : sl / 2 - run, type: 'landing', rise: 1 });
+      spans.push({ a0: sg < 0 ? -third / 2 : cl / 2, a1: sg < 0 ? -cl / 2 : third / 2, type: 'flight', rise: (-sg) as 1 | -1 });
+    }
+    spans.push({ a0: -cl / 2, a1: cl / 2, type: 'landing', rise: 1 });
+    for (const [axis, edge] of [['N', N.edge], ['E', E.edge]] as const) {
+      const at = (a: number, w: number, y1: number) => axis === 'N'
+        ? box(b, 'facade', 'limestone', 'C', S_(b, 'r_facade_thickness'), [cx + a, edge + stW - ft / 2], [w, ft], 0, y1, { solid: true })
+        : box(b, 'facade', 'limestone', 'C', S_(b, 'r_facade_thickness'), [edge + stW - ft / 2, cy + a], [ft, w], 0, y1, { solid: true });
+      for (const s of spans) {
+        if (s.type === 'landing') { parts.push(at((s.a0 + s.a1) / 2, s.a1 - s.a0, pod + php)); continue; }
+        for (let i = 0; i < nSt; i++) { // step i counted from the bottom of the flight
+          const aa = s.rise > 0 ? s.a0 + (i + 0.5) * stTr : s.a1 - (i + 0.5) * stTr;
+          parts.push(at(aa, stTr, (i + 1) * sr + php));
+        }
+      }
+    }
+    manifest.apadana = { hallColumns: hallCols.length, porticoColumns: porticoCols.length, columnHeight: hallOrd.height, interaxial: ia, hallInterior: hs, podium: pod, wallThickness: wt, stairLength: sl, nStairEdge: N.edge, eStairEdge: E.edge, stairWidth: stW, hallCentre: [cx, cy] as any, stairSpans: spans as any, stairRiser: sr, stairTread: stTr, parapet: php };
   }
 
   // ---------------- Tachara ----------------

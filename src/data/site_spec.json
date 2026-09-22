@@ -106,6 +106,13 @@
    "src": "RECON",
    "tier": "C",
    "note": "greybox column proportions where a building's row is missing (C); composite capital split bell/volute/protome"
+  },
+  "interior_floor": {
+   "v": "plaster_red",
+   "u": "material",
+   "src": "RELIEF-R",
+   "tier": "B",
+   "note": "Persepolis floors: lime plaster with two hematite-rich coats, deep red over white on pink plaster (Stein et al. 2016, search extract)"
   }
  },
  "terrace": {
@@ -518,6 +525,33 @@
    "src": "RECON",
    "tier": "C",
    "note": "inscription panel above each colossus (C)"
+  },
+  "r_colossus_plinth": {
+   "v": 1.2,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "colossi stand on plinths projecting from the façade (reconstruction references, C)"
+  },
+  "r_frieze": {
+   "v": {
+    "height": 0.9,
+    "above_door": 0.4
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "painted/glazed palmette frieze band above each doorway lintel (reconstruction references; glazed brick fragments at Persepolis B; placement C)"
+  },
+  "r_door_leaves": {
+   "v": {
+    "thickness": 0.25,
+    "boss_pitch": 0.45
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "timber double doors with bronze bosses turning on pivot sockets (pivot sockets: WP extract C; leaves/bosses C)"
   }
  },
  "apadana": {
@@ -833,6 +867,33 @@
    "src": "RECON",
    "tier": "C",
    "note": "four-stepped crenellations crowning the stair façades (motif B, IR-PERS; size C)"
+  },
+  "r_parapet_height": {
+   "v": 1.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "stair parapet above the flights/landings (C); crenellations stand on it"
+  },
+  "r_rosette": {
+   "v": {
+    "diameter": 0.07,
+    "pitch": 0.11
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "rosette border bands between registers and around panels (motif seen in reconstructions, references/INDEX.md; size C)"
+  },
+  "r_cypress_band": {
+   "v": {
+    "height": 0.75,
+    "pitch": 0.42
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "cypress rows along the diagonal flight parapets (reconstruction references; C)"
   }
  },
  "tachara": {
