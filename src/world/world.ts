@@ -15,6 +15,7 @@ export interface WorldBuild {
 }
 import { buildTerrace } from '../arch/terrace';
 import { buildMeshes } from '../arch/meshes';
+import { buildReliefs, buildInscriptions, loadInscriptionFonts } from '../arch/decor';
 export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Terrain): Promise<WorldBuild> {
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
   void terrain;
@@ -22,6 +23,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const { parts, manifest } = buildTerrace();
   const arch = buildMeshes(parts, phys);
   root.add(arch.group);
+  await loadInscriptionFonts(async p => (await fetch('/' + p)).arrayBuffer());
+  const reliefs = buildReliefs(manifest); root.add(reliefs);
+  const insc = buildInscriptions(manifest, parts); root.add(insc);
   const ms = performance.now() - t0;
   (root.userData as any).manifest = manifest;
   return { root, summary: () => `architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms` };

@@ -185,7 +185,11 @@ export function buildTerrace(): BuildResult {
       return { out, edge };
     };
     const N = stairParts('N'), E = stairParts('E'); parts.push(...N.out, ...E.out);
-    manifest.apadana = { hallColumns: hallCols.length, porticoColumns: porticoCols.length, columnHeight: hallOrd.height, interaxial: ia, hallInterior: hs, podium: pod, wallThickness: wt, stairLength: sl, nStairEdge: N.edge, eStairEdge: E.edge };
+    // relief-bearing façade walls on the outer edge of each stair zone (reliefs are applied by decor.ts)
+    const ft = v(b, 'r_facade_thickness');
+    parts.push(box(b, 'facade', 'limestone', 'C', S_(b, 'r_facade_thickness'), [cx, N.edge + stW - ft / 2], [sl, ft], 0, pod, { solid: true }));
+    parts.push(box(b, 'facade', 'limestone', 'C', S_(b, 'r_facade_thickness'), [E.edge + stW - ft / 2, cy], [ft, sl], 0, pod, { solid: true }));
+    manifest.apadana = { hallColumns: hallCols.length, porticoColumns: porticoCols.length, columnHeight: hallOrd.height, interaxial: ia, hallInterior: hs, podium: pod, wallThickness: wt, stairLength: sl, nStairEdge: N.edge, eStairEdge: E.edge, stairWidth: stW, hallCentre: [cx, cy] as any };
   }
 
   // ---------------- Tachara ----------------

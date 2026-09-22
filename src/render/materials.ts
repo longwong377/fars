@@ -43,8 +43,10 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean } =
   const up = smoothstep(0.75, 0.95, n.y);
   const wet = WEATHER.wetness.mul(float(0.55).add(up.mul(0.45)));
   alb = alb.mul(float(1).sub(wet.mul(d.porosity * 0.5)));
-  const puddle = up.mul(WEATHER.puddles).mul(smoothstep(0.55, 0.7, mx_noise_float(p.mul(0.35)).mul(0.5).add(0.5)));
-  const snowMask = clamp(up.mul(WEATHER.snow.mul(1.6)).sub(mx_noise_float(p.mul(0.8)).mul(0.25)), 0, 1);
+  // puddles: only in the low spots of a broad noise field (≈15% of flat area at full puddle state), never a uniform sheen
+  const puddle = up.mul(WEATHER.puddles).mul(smoothstep(0.68, 0.74, mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5)));
+  // snow: zero when snow = 0 (noise only modulates coverage, never adds snow on its own)
+  const snowMask = clamp(up.mul(WEATHER.snow).mul(float(1.6).sub(mx_noise_float(p.mul(0.8)).add(1).mul(0.3))), 0, 1);
   m.colorNode = mix(alb, vec3(0.92, 0.93, 0.96), snowMask);
   m.roughnessNode = mix(mix(float(d.roughness), float(d.roughness * 0.45), wet), float(0.05), puddle).max(float(0.04)).mul(float(1).sub(snowMask.mul(0.1))).add(snowMask.mul(0.1));
   m.metalnessNode = float(d.metal ?? 0);

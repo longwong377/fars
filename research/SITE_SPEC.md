@@ -77,6 +77,8 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | r_roof_above_capital | 2.0 | m | RECON | C | beams + earth roof above the capitals |
 | r_roof_thickness | 1.2 | m | RECON | C | roof slab |
 | r_colossus | {"length": 5.0, "width": 1.6, "height": 5.5} | m | RECON | C | doorway colossi (bulls W, human-headed winged bulls E): height 5.5 from a weak popular source (C), length/width proportional; placed in the door reveals |
+| inscription_placement | "XPa above each of the 4 colossi (one trilingual per colossus pair side; which version on which jamb C)" |  | B | search extract; version-to-jamb assignment C | ISAC-PA;LANG-R |
+| r_inscription_panel | {"width": 3.2, "height": 2.4, "above_colossus": 0.5, "glyph_height": 0.075, "line_gap": 0.035} | m | RECON | C | inscription panel above each colossus (C) |
 
 ## apadana — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -110,6 +112,14 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | r_stair_width | 7.0 | m | RECON | C | Apadana stair flight width / depth of the stair zone (not obtained) |
 | r_stair_layout | "3 equal parts along the façade; central part: two flights converging on a central landing; outer parts: flights rising toward the centre onto landings at podium height adjoining the portico" |  | B | four flights (IR-PERS); exact arrangement C | IR-PERS |
 | south_side | "storage- and guardrooms on the S side" |  | IR-PERS | B | search extract |
+| relief_programme | {"E": {"right_wing": "nobles", "left_wing": "delegations", "centre": "audience"}, "N": {"right_wing": "delegations", "left_wing": "nobles", "centre": "audience"}} |  | IR-APAD;RELIEF-R | B | E façade: N wing nobles/guards/horses/chariots in 3 tiers, centre panel, S wing 23 delegations (search extract, B); N façade mirrors (which wing has the delegations NOT found, C). Centre = audience scene in 467 (Tilia 1972 via Iranica, B derived) |
+| r_facade_thickness | 0.6 | m | RECON | C | relief-bearing façade wall along the outer edge of each stair zone |
+| r_registers | {"count": 3, "bottom": 0.3, "height": 0.82, "gap": 0.06} | m | RECON | C | 3 registers (B); register height and figure height NOT found (C): figures ~0.78 m |
+| r_figure_spacing | 0.62 | m | RECON | C | spacing of walking figures in file (C) |
+| r_delegation_members | 4 |  | RECON | C | members per delegation incl. usher (counts per delegation NOT found; C) |
+| r_relief_depth | 0.045 | m | RECON | C | low-relief depth (C) |
+| r_audience_panel | {"width": 6.2, "height": 2.6} | m | RECON | C | audience panel size (C; the Treasury audience reliefs' dimensions were not obtained) |
+| r_crenellation | {"width": 0.9, "height": 0.9, "steps": 4} | m | RECON | C | four-stepped crenellations crowning the stair façades (motif B, IR-PERS; size C) |
 
 ## tachara — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -266,3 +276,13 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | RESIDENCE2021 | 'The So-called Achaemenid Capitals and the Problem of Royal Court Residence', Iran 62/1 (2021) https://doi.org/10.1080/05786967.2021.1960881 | title/abstract via search extract only |
 | WP-PERS-SEASON | Wikipedia 'Persepolis' (current): Persepolis occupied seasonally, a royal spring/summer residence; mobile court https://en.wikipedia.org/wiki/Persepolis | search-extract only (tertiary) |
 | CHRON-C | research/_chronology_C.md (subagent C, rows from Iranica/Livius/ISAC extracts) research/_chronology_C.md | project file |
+| RELIEF-R | research/RELIEFS_AND_COLOUR.md (subagent; search extracts of ISAC, Iranica, Lerner 2024, Stein 2016, Askari Chaverdi 2016) research/RELIEFS_AND_COLOUR.md | project file; underlying sources search-extract only |
+| LANG-R | research/LANGUAGES.md (subagent; Livius/Kent via GitHub mirrors; ARIo) research/LANGUAGES.md | project file |
+| ARIO | R. Schmitt 2009, Die altpersischen Inschriften der Achaimeniden (ARIo, ORACC), CC0; mirror SLAB-NLP/Akk data/jsonl/ario.jsonl https://github.com/SLAB-NLP/Akk | downloaded |
+| OSL | ORACC Sign List (oracc/osl, 00lib/osl.asl) https://github.com/oracc/osl | downloaded |
+| NOTO | Noto Sans Old Persian / Cuneiform / Imperial Aramaic (SIL OFL 1.1), notofonts.github.io https://github.com/notofonts/notofonts.github.io | downloaded |
+| PEOPLE-R | research/PEOPLE.md (subagent; search extracts) research/PEOPLE.md | project file |
+| MATCULT-R | research/MATERIAL_CULTURE.md (subagent; search extracts) research/MATERIAL_CULTURE.md | project file |
+| SOUND-R | research/SOUNDSCAPE.md (subagent; Perseus via GitHub; search extracts) research/SOUNDSCAPE.md | project file |
+| HYG41 | HYG star database v4.1 (astronexus), CC BY-SA 4.0 https://github.com/astronexus/HYG-Database | downloaded |
+| SRTM-TILES | AWS Terrain Tiles (Tilezen terrarium, SRTM-derived) s3://elevation-tiles-prod | downloaded (39 check points) |

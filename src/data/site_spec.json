@@ -498,6 +498,26 @@
    "src": "RECON",
    "tier": "C",
    "note": "doorway colossi (bulls W, human-headed winged bulls E): height 5.5 from a weak popular source (C), length/width proportional; placed in the door reveals"
+  },
+  "inscription_placement": {
+   "v": "XPa above each of the 4 colossi (one trilingual per colossus pair side; which version on which jamb C)",
+   "u": "",
+   "src": "B",
+   "tier": "search extract; version-to-jamb assignment C",
+   "note": "ISAC-PA;LANG-R"
+  },
+  "r_inscription_panel": {
+   "v": {
+    "width": 3.2,
+    "height": 2.4,
+    "above_colossus": 0.5,
+    "glyph_height": 0.075,
+    "line_gap": 0.035
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "inscription panel above each colossus (C)"
   }
  },
  "apadana": {
@@ -734,6 +754,85 @@
    "src": "IR-PERS",
    "tier": "B",
    "note": "search extract"
+  },
+  "relief_programme": {
+   "v": {
+    "E": {
+     "right_wing": "nobles",
+     "left_wing": "delegations",
+     "centre": "audience"
+    },
+    "N": {
+     "right_wing": "delegations",
+     "left_wing": "nobles",
+     "centre": "audience"
+    }
+   },
+   "u": "",
+   "src": "IR-APAD;RELIEF-R",
+   "tier": "B",
+   "note": "E façade: N wing nobles/guards/horses/chariots in 3 tiers, centre panel, S wing 23 delegations (search extract, B); N façade mirrors (which wing has the delegations NOT found, C). Centre = audience scene in 467 (Tilia 1972 via Iranica, B derived)"
+  },
+  "r_facade_thickness": {
+   "v": 0.6,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "relief-bearing façade wall along the outer edge of each stair zone"
+  },
+  "r_registers": {
+   "v": {
+    "count": 3,
+    "bottom": 0.3,
+    "height": 0.82,
+    "gap": 0.06
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "3 registers (B); register height and figure height NOT found (C): figures ~0.78 m"
+  },
+  "r_figure_spacing": {
+   "v": 0.62,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "spacing of walking figures in file (C)"
+  },
+  "r_delegation_members": {
+   "v": 4,
+   "u": "",
+   "src": "RECON",
+   "tier": "C",
+   "note": "members per delegation incl. usher (counts per delegation NOT found; C)"
+  },
+  "r_relief_depth": {
+   "v": 0.045,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "low-relief depth (C)"
+  },
+  "r_audience_panel": {
+   "v": {
+    "width": 6.2,
+    "height": 2.6
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "audience panel size (C; the Treasury audience reliefs' dimensions were not obtained)"
+  },
+  "r_crenellation": {
+   "v": {
+    "width": 0.9,
+    "height": 0.9,
+    "steps": 4
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "four-stepped crenellations crowning the stair façades (motif B, IR-PERS; size C)"
   }
  },
  "tachara": {

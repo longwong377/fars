@@ -128,5 +128,55 @@
   "cite": "research/_chronology_C.md (subagent C, rows from Iranica/Livius/ISAC extracts)",
   "url": "research/_chronology_C.md",
   "access": "project file"
+ },
+ "RELIEF-R": {
+  "cite": "research/RELIEFS_AND_COLOUR.md (subagent; search extracts of ISAC, Iranica, Lerner 2024, Stein 2016, Askari Chaverdi 2016)",
+  "url": "research/RELIEFS_AND_COLOUR.md",
+  "access": "project file; underlying sources search-extract only"
+ },
+ "LANG-R": {
+  "cite": "research/LANGUAGES.md (subagent; Livius/Kent via GitHub mirrors; ARIo)",
+  "url": "research/LANGUAGES.md",
+  "access": "project file"
+ },
+ "ARIO": {
+  "cite": "R. Schmitt 2009, Die altpersischen Inschriften der Achaimeniden (ARIo, ORACC), CC0; mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
+  "url": "https://github.com/SLAB-NLP/Akk",
+  "access": "downloaded"
+ },
+ "OSL": {
+  "cite": "ORACC Sign List (oracc/osl, 00lib/osl.asl)",
+  "url": "https://github.com/oracc/osl",
+  "access": "downloaded"
+ },
+ "NOTO": {
+  "cite": "Noto Sans Old Persian / Cuneiform / Imperial Aramaic (SIL OFL 1.1), notofonts.github.io",
+  "url": "https://github.com/notofonts/notofonts.github.io",
+  "access": "downloaded"
+ },
+ "PEOPLE-R": {
+  "cite": "research/PEOPLE.md (subagent; search extracts)",
+  "url": "research/PEOPLE.md",
+  "access": "project file"
+ },
+ "MATCULT-R": {
+  "cite": "research/MATERIAL_CULTURE.md (subagent; search extracts)",
+  "url": "research/MATERIAL_CULTURE.md",
+  "access": "project file"
+ },
+ "SOUND-R": {
+  "cite": "research/SOUNDSCAPE.md (subagent; Perseus via GitHub; search extracts)",
+  "url": "research/SOUNDSCAPE.md",
+  "access": "project file"
+ },
+ "HYG41": {
+  "cite": "HYG star database v4.1 (astronexus), CC BY-SA 4.0",
+  "url": "https://github.com/astronexus/HYG-Database",
+  "access": "downloaded"
+ },
+ "SRTM-TILES": {
+  "cite": "AWS Terrain Tiles (Tilezen terrarium, SRTM-derived)",
+  "url": "s3://elevation-tiles-prod",
+  "access": "downloaded (39 check points)"
  }
 }
