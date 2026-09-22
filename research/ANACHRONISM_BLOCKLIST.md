@@ -33,3 +33,4 @@ if any asset/tag/text in the world matches. Each asset carries `period`, `source
 | candles | wax candles | lamps and torches instead; verify | tier B |
 | horseshoes | nailed horseshoes | later | tier A |
 | spoked-cart-wheels? | **Allowed** — spoked wheels attested on reliefs (chariots) | — | reliefs |
+| later-inscriptions | Middle Persian (Sasanian) and Arabic/Persian Islamic-era inscriptions on the Terrace and at Naqsh-e Rustam | post-Achaemenid | Phase 0 re-review M-8 |

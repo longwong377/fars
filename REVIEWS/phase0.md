@@ -134,3 +134,89 @@ Checked at review time:
 
 ## To pass
 Close C-1 and C-2. M-1 to M-9 should be fixed or explicitly logged in OPEN_QUESTIONS or BLOCKERS before Phase 2 starts; M-3, M-4 and M-5 directly feed the Phase 2 generators.
+
+---
+
+## Re-review 1
+
+Reviewer: independent subagent (not the author of the fixes). Date: 2026-09-22. Audited commit 67c85cf against brief §2, §3, §4, §13.1 and the §14 Phase 0 gate.
+What I recomputed rather than read from the prose:
+- Walked all 114 `site_spec.json` rows: every row has v/u/src/tier and every src key exists in sources.json.
+- Checked every `chronology.json` src key and footprint mapping.
+- Ran `npx tsx tools/lint_chrono.ts`: OK, 26 structures, 62 terms, exit 0.
+- Regenerated SITE_SPEC.md and CHRONOLOGY.md from the JSON in a scratch copy: byte-identical.
+- Re-ran `tools/check_terrace_dem.py` in a scratch copy: output byte-identical to DEM_EDGE_CHECK.md. Its grid→tmerc rotation is the correct inverse of `osm_to_grid.py`.
+- Recomputed Apadana and Grand Stair closure from footprints.json.
+- Checked the calendar table against the P&D JDNs, and ran `src/core/calendar.ts` over the year.
+
+### Status of previous findings
+
+| # | Status | Evidence |
+|---|---|---|
+| C-1 | **RESOLVED (logged exception)** | D-003, CHRONOLOGY "King and court", Q-005 and BLOCKERS B9: the king is **absent by default**, which complies with §2. The start-date criterion ("evidence places the court") is still unmet. D-003 says so explicitly and argues that no 467 date is better evidenced. The unblock is Henkelman 2010 or the Treasury texts, which are unreachable (B6). Under the judgement rule this is an honest, logged exception, not a gate failure. The "seasonal pattern" court setting is opt-in, out-of-world and labelled C, which is acceptable. |
+| C-2 | **RESOLVED** | All 26 chronology rows carry `src` keys that resolve in sources.json, and `lint_chrono` enforces this. The garrison is sourced (ISAC-PA, C). Palace G is sourced. The Ka'ba is on LIVIUS-NR at C. Tol-e Ajori is on CHRON-C at C, which traces to `_chronology_C` row 19 with real URLs. The rule is fail-closed ("unlisted = absent") in `_meta` and in the MD. Residual (minor, R-1 below): `fortification_e` is tier B while its own basis says "date assumed with the Terrace (C)". |
+| M-1 | **RESOLVED** (residuals minor) | `foundation_deposits` is B with conflict Q-016. `stone_frames` is C. All CHRONOLOGY rows are B or C, and the archives are B. In LANDSCAPE, the Terrace and Naqsh-e Rustam coordinates and the Sumner counts are B. No site_spec row is tier A, so the SUMMARY claim is now true. Residuals: D-003 still says "XPa, tier A" and "(tier A/B)" while CHRONOLOGY caps those rows at B; `fortification_e` (R-1). |
+| M-2 | **RESOLVED (logged exception)** | GEOMETRY_DIFF now states that agreement is extraction consistency, not independent confirmation, and logs the single-source footprints as a gate exception. The Sentinel-2 claim is withdrawn (BLOCKERS B1: "not used as a check"). A real non-Schmidt check now exists and reproduces: DSM vs OSM edge, W side mean −3.2 m / RMS 7.1 m (n=10), S side mean −7.1 m / RMS 11.5 m (n=6). The N side is inconclusive and logged as Q-019. The Harem row is corrected, and a one-sided section was added. Residual (minor): the one-sided list still omits the Apadana capital "8 m", Tripylon "15.46 m" and the foundation-deposit conflict (which is in Q-016). |
+| M-3 | **RESOLVED** | `hall_centre` y = −4.9 with `portico_depth_n` 21.3 m (2 × 8.64 + 4.0). Recomputed: the hall's outer N face is at 30.67 and the footprint N edge at x = 1.9 is 52.19, a 21.5 m strip. The outer S face is at −40.47 against a S edge of −55.62, leaving 15.2 m for storerooms. It closes. |
+| M-4 | **RESOLVED** | Lower flight 63 × 0.31 = 19.5 m (131.4→150.9). Upper flight 48 × 0.31 = 14.9 m (150.9→136.0). The L-shaped outer landing and a 27.1 m top landing (108.9–136.0) are both stated. The central gap is 17.9 m. The landing height is 63 × 0.1081 = 6.81, and the total is 12.0. It is symmetric about 122.45. The terrace is modelled as the OSM polygon minus the stair footprint, which fixes the burying problem. All new rows are DERIVED at C. |
+| M-5 | **RESOLVED** | `absent_in_467.list` uses real footprint keys, and the lint cross-checks it against chronology.json (`palace_a3_osm`, `tomb_a2`, `modern_roof_a1bf0b`, `museum_modern`, `palace_h`, `unfinished_gate`). The garrison's 32-column hall is flagged (C) in both files. Palace G has no footprint and is absent. The palace_a3/G identity question does not change the 467 output, since both are absent. |
+| M-6 | **PARTIAL** | Q-017 logs Tachara and Hadish, with a governing rule: the overlay compares the built platform outline, including stairs, with the OSM footprint. Two items are still missing. The Treasury final outline (80 × 149 N–S vs phase 1 at 120 × 60 W–E) has no dimension row and no Q entry. The Hadish orientation conflict (extract says "laid out E–W", footprint long axis is N–S) is not logged. |
+| M-7 | **RESOLVED** for the files named in the review. **Regression, see N-2.** | `src/data/chronology.json`, `src/data/blocklist.json`, `tools/lint_chrono.ts` (runs, exit 0), `npm run lint:chrono`, `tests/sky/horizons_request.txt`, `REAL_HARDWARE_TODO.md` and `public/_headers` (COOP/COEP) all exist. The S2 claim is removed. |
+| M-8 | **PARTIAL** | Added: the NR later tombs (C, and the Xerxes tomb is no longer B), the Elamite relief, the Army Road (merged into `unfinished_gate`), the Tachara stair of Artaxerxes III, and the 32-column hall. A fail-closed default rule is in place. Still open: post-Achaemenid inscriptions on the Terrace (Middle Persian, Arabic and later graffiti in the Tachara) have no blocklist entry. `ruin-graffiti` covers only "graffiti"; there is no "inscription" or "Middle Persian" term. |
+| M-9 | **PARTIAL** | (a) is closed via C-1. (c) is closed: early Artaxerxes I years are considered and rejected with reasons. (e) is fixed in D-003 and CALENDAR_AND_UNITS: year 19 has 12 months, 354 days, and Addaru₂ belongs to year 18. (b) is addressed, but the argument does not discriminate: "yr 19 lies fully before the 465 crisis" applies equally to yr 20, which runs Apr 466 – Mar 465 and ends before Abu 465. 467 vs 466 is therefore an unargued coin-flip. That is harmless but should be stated as such. (d) is still open: nothing shows Baratkama is attested in yr 19. |
+| m1 | RESOLVED | `wall_thickness` 4.63, which matches the formula. |
+| m2 | RESOLVED | `hadish.floor` 6.0, which matches the formula; the DSM conflict is logged as Q-018. |
+| m3 | PARTIAL | `extent_ns` is 473.4 ✓. GEOMETRY_DIFF still quotes an OSM area of 120,629 m² against the spec's 120,491. |
+| m4 | OPEN | 0 of 114 spec rows have a `page` field. "Page not verified" is still recorded only at source level. |
+| m5 | OPEN | `museum_modern` (absent) still lies wholly inside `harem` (overlap 2,970 m²). Subtracting it would cut a hole in the Harem, and no rule says not to. The Apadana E stair still has no footprint, although its length is given. |
+| m6 | OPEN | D-002 still describes ENU +X east / UTM 39N. The spec, terrain (D-006) and tools all use the 19°-rotated tmerc grid. No transform is recorded in DECISIONS. |
+| m7 | OPEN | SOURCES.md still says "21 keyed sources"; sources.json now has 26 keys (23 excluding DERIVED, RECON and CHRON-C). There is still no justification for the ~30 extract pages against the ~25 cap. |
+| m8 | OPEN | TASKS.md still shows the blocklist, SOURCES, OPEN_QUESTIONS, SUMMARY and review as "[ ]", and every Phase 1 item as "[ ]" although terrain, sky and weather code was committed. |
+| m9 | PARTIAL | A calendar.ts comment notes that the day began at the previous sunset. CALENDAR_AND_UNITS says only "months begin at the evening", with no explicit "1 Nisannu began at sunset 16 Apr". |
+| m10 | OPEN | Q-008 is unchanged (low impact). |
+| m11 | OPEN | Q-013 still reads "rice is attested in PF? check". Rice is also not an enforceable blocklist term. |
+
+### New problems found in this re-review
+
+**N-1 (MAJOR): the month-length column in CALENDAR_AND_UNITS is wrong, and the calendar code inherits the error.**
+- The "Days" column copies the TSV `month_days` field. That field is not the length of the month on its row: the JDN differences are Nisannu 1550987 − 1550958 = **29** (the table says 30), Ayyaru **30** (says 29), and so on. Every month is shifted by one.
+- The table sums to **355** days, but the same file and D-003 say 354. The correct lengths from the JDNs are 29, 30, 30, 29, 30, 29, 30, 29, 30, 29, 30, 29, which sum to 354.
+- Running `src/core/calendar.ts` confirms the effect. `YEAR_END_JDN` = 1551312, which is **1 Nisanu of year 20**, so the simulated year is 355 days long. `babylonianDate()` returns **null** on 5 days of the year: JDN 1551016, 1551105, 1551164, 1551223 and 1551282, the 30th day of each 30-day month.
+- The previous review's "calendar passed" check compared the table with the same misread column.
+- **Fix:** derive month lengths from successive JDNs, in both the table and `calendar_467.json`. Add a unit test that the year is 354 days with no null dates.
+
+**N-2 (MAJOR, §3.7): new documents again describe things that do not exist.**
+- `tests/sky/horizons_request.txt` says "The test tests/sky.horizons.test.ts then compares…". That file does not exist.
+- REAL_HARDWARE_TODO says "run `npm run bench`… The run writes `bench-reports/<date>.json`" and "open `?bench=all`". But `npm run bench` points to the missing `tests/e2e/bench.spec.ts`, and no bench mode exists.
+- package.json scripts `lint:lang`, `lint:activities` and `soak` point to tools that do not exist, so `npm run lint:all` fails at the second step.
+- None of these blocks Phase 0, but they repeat the M-7 pattern. **Fix:** mark them TODO or future tense, or remove the scripts until they exist.
+
+**N-3 (minor): PROGRESS.md is stale and now contradicts D-003.**
+- It says "Court presence of the king in spring 467 is assumed (C)", but the default is now absent.
+- It says Phase 0 is "review running" and Phases 1–9 "not started", although Phase 1 code is committed.
+
+**N-4 (minor): E/W Apadana porticoes.**
+- The hall is centred in x, so the W and E porticoes get about 27.8 m and 27.0 m strips, against 21.5 m on the N. There is no `portico_depth` row for the E and W porticoes.
+- The Phase 2 generator will have to invent the E/W depth. Add a row, or state the depth as symmetric with the N portico and put the extra width in the towers.
+
+**N-5 (minor): Tol-e Ajori has no sources.json key of its own.**
+- Its only src is the project file CHRON-C. That traces to real URLs, but a direct key such as the ScienceDirect paper would keep the chronology row self-contained.
+
+**R-1 (minor, residual of C-2/M-1): `fortification_e` is tier B, but its basis states that the date is C.**
+- Set it to C, or cite a dating source.
+
+### Gate assessment
+- **"Every filled row sourced and tiered": true.** This holds for all 114 spec rows and 26 chronology rows, is machine-checked for the chronology, and the MD files regenerate identically from the JSON.
+- **"Independent geometry extraction diffed": true, with a logged exception.** The numeric A/B diff is done and honestly caveated. The Schmidt digitisation is impossible under B6. The non-Schmidt check (DSM edge, Wikidata point, grid north) is real and reproducible.
+- **King and start date:** these comply with §2's absence rule. The start-date criterion is a logged exception (B9, Q-005, D-003).
+- No open item makes the gate text false.
+
+### Must fix before Phase 1 gate / Phase 2 generators (non-blocking for Phase 0)
+- N-1: calendar month lengths.
+- N-2: phantom test, bench and lint scripts.
+- M-6 remainder: the Treasury outline and Hadish orientation.
+- M-8 remainder: post-Achaemenid inscriptions.
+- m5: museum inside the Harem.
+- m6: D-002 frame transform.
+
+VERDICT (re-review 1): PASS

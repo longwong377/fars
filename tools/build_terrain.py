@@ -29,11 +29,12 @@ srcs = [rasterio.open(t) for t in tifs]
 mosaic, mtrans = merge(srcs)
 mosaic = mosaic[0].astype(np.float32)
 src_crs = srcs[0].crs
-rings = {  # name: (half-size m, cell m)
-    'near': (2048, 4.0),
-    'mid': (8192, 16.0),
+rings = {  # name: (half-size m, cell m) — built coarse to fine so finer rings can blend their edges into the coarser one
     'far': (40960, 80.0),
+    'mid': (10240, 16.0),
+    'near': (2048, 4.0),
 }
+built = {}
 os.makedirs('public/generated', exist_ok=True)
 meta = {'frame': 'Persepolis grid (x grid-east, y grid-north), origin Apadana centroid', 'court_asl': COURT, 'rings': {}}
 c, s = np.cos(np.radians(ROT)), np.sin(np.radians(ROT))
@@ -61,6 +62,8 @@ for name, (half, cell) in rings.items():
         gyy, gxx = np.gradient(ndimage.gaussian_filter(h, sigma=max(1, 150 / cell)), cell)  # regional slope, so tree/building edges don't count as 'steep'
         slope = np.hypot(gxx, gyy)
         w = np.clip((0.06 - slope) / 0.03, 0, 1)  # full bare-earth where regional slope < 3% (alluvial plain), none > 6% (mountain kept)
+        hs = ndimage.gaussian_filter(h, sigma=max(1, 300 / cell))
+        w *= np.clip((1660.0 - hs) / 30.0, 0, 1)  # only on the valley floor: ridge crests have ~0 regional slope but must not be flattened
         h = w * opened + (1 - w) * h
     # layer 3: terrace + foot
     if cell <= 16:
@@ -80,6 +83,17 @@ for name, (half, cell) in rings.items():
             hh[band] = avg[band]
         h = hh
         h[inside] = COURT - 0.02
+    # seam blending (C0 continuity between rings): over the outer 12 cells, fade toward the next-coarser ring
+    coarser = {'mid': 'far', 'near': 'mid'}.get(name)
+    if coarser:
+        ch, chalf, ccell = built[coarser]
+        cn = ch.shape[0]
+        col = (GX + chalf) / ccell; row = (chalf - GY) / ccell
+        hc = ndimage.map_coordinates(ch, [row, col], order=1, mode='nearest')
+        dist_edge = np.minimum(np.minimum(GX + half, half - GX), np.minimum(GY + half, half - GY)) / cell
+        wb = np.clip((dist_edge - 1) / 11.0, 0, 1); wb = wb * wb * (3 - 2 * wb)
+        h = wb * h + (1 - wb) * hc
+    built[name] = (h.astype(np.float32), half, cell)
     lo = float(np.floor(h.min())); step = max(0.01, round((float(h.max()) - lo) / 65000 + 0.0005, 3))
     q = np.clip(np.round((h - lo) / step), 0, 65535).astype('<u2')
     q.tofile(f'public/generated/terrain_{name}.u16')

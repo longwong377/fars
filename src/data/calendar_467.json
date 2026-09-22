@@ -1,5 +1,5 @@
 {
-"source": "Parker & Dubberstein 1956 via seanredmond/parker_and_dubberstein",
+"source": "Parker & Dubberstein 1956 via seanredmond/parker_and_dubberstein; month length = JDN(next month) - JDN(this month) (the TSV month_days column is NOT used: it is offset by one row \u2014 Phase 0 re-review N-1)",
 "tier": "A (Babylonian); B (Persian equivalence)",
 "months": [
 {
@@ -9,7 +9,7 @@
 "d": 11,
 "monthNo": 10,
 "name": "Tebetu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1550161,
@@ -18,7 +18,7 @@
 "d": 10,
 "monthNo": 11,
 "name": "Shabatu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1550190,
@@ -27,7 +27,7 @@
 "d": 10,
 "monthNo": 12,
 "name": "Addaru",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1550220,
@@ -36,7 +36,7 @@
 "d": 9,
 "monthNo": 1,
 "name": "Nisanu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1550249,
@@ -45,7 +45,7 @@
 "d": 8,
 "monthNo": 2,
 "name": "Aiaru",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1550279,
@@ -54,7 +54,7 @@
 "d": 7,
 "monthNo": 3,
 "name": "Simanu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1550308,
@@ -63,7 +63,7 @@
 "d": 6,
 "monthNo": 4,
 "name": "Duzu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1550338,
@@ -81,7 +81,7 @@
 "d": 4,
 "monthNo": 6,
 "name": "Ululu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1550397,
@@ -90,7 +90,7 @@
 "d": 3,
 "monthNo": 7,
 "name": "Tashritu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1550427,
@@ -99,7 +99,7 @@
 "d": 2,
 "monthNo": 8,
 "name": "Arahsamnu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1550456,
@@ -108,7 +108,7 @@
 "d": 1,
 "monthNo": 9,
 "name": "Kislimu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1550486,
@@ -117,7 +117,7 @@
 "d": 31,
 "monthNo": 10,
 "name": "Tebetu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1550515,
@@ -126,7 +126,7 @@
 "d": 29,
 "monthNo": 11,
 "name": "Shabatu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1550545,
@@ -135,7 +135,7 @@
 "d": 28,
 "monthNo": 12,
 "name": "Addaru",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1550574,
@@ -144,7 +144,7 @@
 "d": 29,
 "monthNo": 1,
 "name": "Nisanu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1550604,
@@ -153,7 +153,7 @@
 "d": 28,
 "monthNo": 2,
 "name": "Aiaru",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1550633,
@@ -162,7 +162,7 @@
 "d": 27,
 "monthNo": 3,
 "name": "Simanu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1550663,
@@ -171,7 +171,7 @@
 "d": 26,
 "monthNo": 4,
 "name": "Duzu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1550692,
@@ -180,7 +180,7 @@
 "d": 25,
 "monthNo": 5,
 "name": "Abu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1550722,
@@ -198,7 +198,7 @@
 "d": 23,
 "monthNo": 7,
 "name": "Tashritu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1550781,
@@ -216,7 +216,7 @@
 "d": 20,
 "monthNo": 9,
 "name": "Kislimu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1550840,
@@ -225,7 +225,7 @@
 "d": 20,
 "monthNo": 10,
 "name": "Tebetu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1550869,
@@ -234,7 +234,7 @@
 "d": 18,
 "monthNo": 11,
 "name": "Shabatu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1550899,
@@ -243,7 +243,7 @@
 "d": 17,
 "monthNo": 12,
 "name": "Addaru",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1550928,
@@ -252,7 +252,7 @@
 "d": 18,
 "monthNo": 13,
 "name": "Addaru\u2082",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1550958,
@@ -261,7 +261,7 @@
 "d": 17,
 "monthNo": 1,
 "name": "Nisanu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1550987,
@@ -270,7 +270,7 @@
 "d": 16,
 "monthNo": 2,
 "name": "Aiaru",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1551017,
@@ -288,7 +288,7 @@
 "d": 15,
 "monthNo": 4,
 "name": "Duzu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1551076,
@@ -297,7 +297,7 @@
 "d": 13,
 "monthNo": 5,
 "name": "Abu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1551106,
@@ -306,7 +306,7 @@
 "d": 12,
 "monthNo": 6,
 "name": "Ululu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1551135,
@@ -315,7 +315,7 @@
 "d": 11,
 "monthNo": 7,
 "name": "Tashritu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1551165,
@@ -324,7 +324,7 @@
 "d": 10,
 "monthNo": 8,
 "name": "Arahsamnu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1551194,
@@ -333,7 +333,7 @@
 "d": 9,
 "monthNo": 9,
 "name": "Kislimu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1551224,
@@ -342,7 +342,7 @@
 "d": 8,
 "monthNo": 10,
 "name": "Tebetu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1551253,
@@ -351,7 +351,7 @@
 "d": 6,
 "monthNo": 11,
 "name": "Shabatu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1551283,
@@ -360,7 +360,7 @@
 "d": 8,
 "monthNo": 12,
 "name": "Addaru",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1551312,
@@ -369,7 +369,7 @@
 "d": 6,
 "monthNo": 1,
 "name": "Nisanu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1551342,
@@ -378,7 +378,7 @@
 "d": 6,
 "monthNo": 2,
 "name": "Aiaru",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1551371,
@@ -387,7 +387,7 @@
 "d": 4,
 "monthNo": 3,
 "name": "Simanu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1551401,
@@ -405,7 +405,7 @@
 "d": 3,
 "monthNo": 5,
 "name": "Abu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1551460,
@@ -414,7 +414,7 @@
 "d": 1,
 "monthNo": 6,
 "name": "Ululu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1551490,
@@ -423,7 +423,7 @@
 "d": 1,
 "monthNo": 7,
 "name": "Tashritu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1551519,
@@ -432,7 +432,7 @@
 "d": 30,
 "monthNo": 8,
 "name": "Arahsamnu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1551549,
@@ -441,7 +441,7 @@
 "d": 29,
 "monthNo": 9,
 "name": "Kislimu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1551578,
@@ -450,7 +450,7 @@
 "d": 28,
 "monthNo": 10,
 "name": "Tebetu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1551608,
@@ -459,7 +459,7 @@
 "d": 27,
 "monthNo": 11,
 "name": "Shabatu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1551637,
@@ -477,7 +477,7 @@
 "d": 25,
 "monthNo": 1,
 "name": "Nisanu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1551696,
@@ -495,7 +495,7 @@
 "d": 24,
 "monthNo": 3,
 "name": "Simanu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1551755,
@@ -504,7 +504,7 @@
 "d": 22,
 "monthNo": 4,
 "name": "Duzu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1551785,
@@ -513,7 +513,7 @@
 "d": 22,
 "monthNo": 5,
 "name": "Abu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1551814,
@@ -522,7 +522,7 @@
 "d": 20,
 "monthNo": 6,
 "name": "Ululu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1551844,
@@ -540,7 +540,7 @@
 "d": 19,
 "monthNo": 8,
 "name": "Tashritu",
-"days": 30
+"days": 29
 },
 {
 "jdn": 1551903,
@@ -549,7 +549,7 @@
 "d": 17,
 "monthNo": 9,
 "name": "Arahsamnu",
-"days": 29
+"days": 30
 },
 {
 "jdn": 1551933,
@@ -558,7 +558,7 @@
 "d": 17,
 "monthNo": 10,
 "name": "Kislimu",
-"days": 30
+"days": 29
 }
 ]
 }

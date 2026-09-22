@@ -3,11 +3,11 @@
 ## Phase 0 — Lean research bible + preflight
 - [x] Preflight: tools, disk, network probe (PREFLIGHT.md)
 - [x] NEEDS_FROM_ME.md in first hour
-- [~] Independent geometry extractions A and B (research subagents) → diff → SITE_SPEC.md
-- [~] Chronology + date decision → CHRONOLOGY.md, DECISIONS.md
-- [~] Terrain/landscape + climate sources → LANDSCAPE.md, CALENDAR_AND_UNITS.md (climate table)
-- [ ] ANACHRONISM_BLOCKLIST.md, SOURCES.md, OPEN_QUESTIONS.md, SUMMARY.md; stubs for the rest
-- [ ] Phase 0 independent review (subagent) → REVIEWS/phase0.md
+- [x] Independent geometry extractions A and B → diff → SITE_SPEC.md (+ DEM edge check)
+- [x] Chronology + date decision → CHRONOLOGY.md, DECISIONS.md
+- [x] Terrain/landscape + climate sources → LANDSCAPE.md, CALENDAR_AND_UNITS.md (climate table)
+- [x] ANACHRONISM_BLOCKLIST.md, SOURCES.md, OPEN_QUESTIONS.md, SUMMARY.md; stubs for the rest
+- [x] Phase 0 independent review → FAIL → fixes → re-review PASS (with logged exceptions)
 
 ## Phase 1 — Engine foundation
 - [ ] Vite + TS + Three.js WebGPURenderer (WebGL2 fallback) scaffold, dev overlay (tiers, memory HUD)

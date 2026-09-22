@@ -85,3 +85,12 @@ describe('sun (§13.6)', () => {
     expect(p.fraction).toBeLessThan(0.1);
   });
 });
+
+describe('calendar coverage (re-review N-1)', () => {
+  it('every day of regnal year 19 maps to a Babylonian date; year = 354 days, 12 months', () => {
+    expect(YEAR_END_JDN - START_JDN + 1).toBe(354);
+    const names = new Set<string>();
+    for (let j = START_JDN; j <= YEAR_END_JDN; j++) { const b = babylonianDate(j); expect(b).not.toBeNull(); names.add(b!.month.name); }
+    expect(names.size).toBe(12);
+  });
+});

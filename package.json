@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "PĀRSA — a living 1:1 reconstruction of Persepolis, 467 BCE",
+  "description": "P\u0100RSA \u2014 a living 1:1 reconstruction of Persepolis, 467 BCE",
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
@@ -13,11 +13,7 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "lint:chrono": "tsx tools/lint_chrono.ts",
-    "lint:lang": "tsx tools/lint_lang.ts",
-    "lint:activities": "tsx tools/lint_activities.ts",
-    "lint:all": "npm run lint:chrono && npm run lint:lang && npm run lint:activities",
-    "soak": "tsx tools/soak.ts",
-    "bench": "playwright test tests/e2e/bench.spec.ts --headed",
+    "lint:all": "npm run lint:chrono",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
