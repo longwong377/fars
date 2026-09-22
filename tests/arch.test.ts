@@ -120,7 +120,7 @@ import sources from '../src/data/sources.json';
 describe('SITE_SPEC integrity', () => {
   it('every row has v/u/src/tier, valid source keys and a tier in {A,B,C,A/B,B/C}', () => {
     for (const [b, rows] of Object.entries<any>(SPEC)) { if (b.startsWith('_')) continue;
-      for (const [k, r] of Object.entries<any>(rows)) {
+      for (const [k, r] of Object.entries<any>(rows)) { if (typeof r !== 'object') continue; // 'state'/'footprint' are plain keys
         expect(r, `${b}.${k}`).toHaveProperty('v'); expect(typeof r.u, `${b}.${k}.u`).toBe('string');
         expect(['A', 'B', 'C', 'A/B', 'B/C'], `${b}.${k}.tier=${r.tier}`).toContain(r.tier);
         for (const key of String(r.src).split(';')) expect(Object.keys(sources), `${b}.${k} src ${key}`).toContain(key);
