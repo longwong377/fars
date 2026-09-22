@@ -1,0 +1,81 @@
+{
+  "type": "FeatureCollection",
+  "title": "Tomb of Artaxerxes III",
+  "id": "658615446",
+  "bbox": [
+    52.8921648,
+    29.9356599,
+    52.8927535,
+    29.9360846
+  ],
+  "description": "The tomb is traditionally associated with the Persian king Artaxerxes III Ochus (358-338 BC).",
+  "connectsWith": [
+    "922695"
+  ],
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          52.892457868,
+          29.935871634
+        ]
+      },
+      "properties": {
+        "description": "representative point"
+      }
+    },
+    {
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            52.8921648,
+            29.9358329
+          ],
+          [
+            52.8923267,
+            29.9356599
+          ],
+          [
+            52.8924453,
+            29.9357433
+          ],
+          [
+            52.8924592,
+            29.9357284
+          ],
+          [
+            52.8927535,
+            29.9359353
+          ],
+          [
+            52.8926137,
+            29.9360846
+          ],
+          [
+            52.8923426,
+            29.9358941
+          ],
+          [
+            52.8923066,
+            29.9359325
+          ],
+          [
+            52.8921648,
+            29.9358329
+          ]
+        ]
+      },
+      "id": "location-of-tomb-of-artaxerxes-iii",
+      "type": "Feature",
+      "properties": {
+        "description": "The tomb traditionally associated with the Persian king Artaxerxes III Ochus (358-338 BC). Location based on OpenStreetMap",
+        "location_precision": "precise",
+        "title": "OSM location of Tomb of Artaxerxes III",
+        "link": "http://pleiades.stoa.org/places/658615446/location-of-tomb-of-artaxerxes-iii"
+      }
+    }
+  ]
+}

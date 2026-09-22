@@ -1,0 +1,77 @@
+{
+  "type": "FeatureCollection",
+  "title": "Apadana Palace",
+  "id": "774842748",
+  "bbox": [
+    52.8886938,
+    29.9344643,
+    52.8903252,
+    29.9357489
+  ],
+  "description": "A monumental hypostyle building at Persepolis dating to the sixth century B.C.",
+  "connectsWith": [
+    "922695"
+  ],
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          52.8894969374,
+          29.9351174422
+        ]
+      },
+      "properties": {
+        "description": "representative point"
+      }
+    },
+    {
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            52.8899491,
+            29.9357489
+          ],
+          [
+            52.8899856,
+            29.9356493
+          ],
+          [
+            52.8903252,
+            29.934833
+          ],
+          [
+            52.8890815,
+            29.9344643
+          ],
+          [
+            52.8886938,
+            29.9354462
+          ],
+          [
+            52.8888347,
+            29.935488
+          ],
+          [
+            52.8888592,
+            29.9354258
+          ],
+          [
+            52.8899491,
+            29.9357489
+          ]
+        ]
+      },
+      "id": "location-of-apadana-palace",
+      "type": "Feature",
+      "properties": {
+        "description": "A monumental hypostyle building at Persepolis. Location based on OpenStreetMap",
+        "location_precision": "precise",
+        "title": "OSM location of Apadana Palace",
+        "link": "http://pleiades.stoa.org/places/774842748/location-of-apadana-palace"
+      }
+    }
+  ]
+}

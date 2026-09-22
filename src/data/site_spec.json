@@ -1,0 +1,870 @@
+{
+ "_meta": {
+  "year_bce": 467,
+  "frame": "Persepolis grid: origin Apadana OSM centroid; +x grid east, +y grid north; grid north 341 deg true. Heights relative to COURT datum unless stated.",
+  "status": "Phase 0 spec. Primary sources blocked (BLOCKERS B6); every row awaits re-verification against Schmidt 1953."
+ },
+ "global": {
+  "origin_lat": {
+   "v": 29.9351174,
+   "u": "deg",
+   "src": "PLEIADES",
+   "tier": "B",
+   "note": "Apadana platform vertex-mean centroid; Wikipedia coord agrees within 9 m"
+  },
+  "origin_lon": {
+   "v": 52.8894969,
+   "u": "deg",
+   "src": "PLEIADES",
+   "tier": "B",
+   "note": ""
+  },
+  "grid_north_true": {
+   "v": 341.0,
+   "u": "deg",
+   "src": "DERIVED",
+   "tier": "B",
+   "note": "length-weighted W facade bearing 161.0/341.0 over 435 m; S edges 72.0 => orthogonal within 1 deg (subagent B)"
+  },
+  "plain_at_stair_asl": {
+   "v": 1613.0,
+   "u": "m",
+   "src": "COP-DEM",
+   "tier": "B",
+   "note": "DSM 150 m W of W facade 1613.5; modern surface. Ancient ground level unknown (OPEN_QUESTIONS Q-003)"
+  },
+  "stair_total_rise": {
+   "v": 12.0,
+   "u": "m",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "upper landing '12 m above the ground'"
+  },
+  "court_asl": {
+   "v": 1625.0,
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "B",
+   "note": "plain_at_stair_asl + stair_total_rise; DSM terrace 1625-1628 consistent"
+  }
+ },
+ "terrace": {
+  "state": "standing",
+  "footprint": "terrace",
+  "extent_ns": {
+   "v": 474,
+   "u": "m",
+   "src": "OSM",
+   "tier": "B",
+   "note": "OSM outline, grid frame; Iranica '300 x 455' (B) rectangle envelope; conflict logged"
+  },
+  "extent_ew": {
+   "v": 318,
+   "u": "m",
+   "src": "OSM",
+   "tier": "B",
+   "note": ""
+  },
+  "area": {
+   "v": 120491,
+   "u": "m2",
+   "src": "OSM",
+   "tier": "B",
+   "note": "Iranica/WP 125,000 m2"
+  },
+  "retaining_wall_height_w": {
+   "v": 12.0,
+   "u": "m",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "N and W walls 'some 12 m'; actual per-point height = court - terrain"
+  },
+  "wall_material": {
+   "v": "dressed grey limestone blocks, dry-laid, metal clamps",
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "parapet_height": {
+   "v": 1.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "no source reached; low crenellated parapet assumed on stepped four-tier crenellation motif attested on stairs"
+  },
+  "fill": {
+   "v": "earth and rock fill, partly bedrock",
+   "u": "",
+   "src": "WP-COPY",
+   "tier": "C",
+   "note": ""
+  }
+ },
+ "grand_stair": {
+  "state": "standing",
+  "footprint": "grand_stair",
+  "steps_lower": {
+   "v": 63,
+   "u": "steps",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "steps_upper": {
+   "v": 48,
+   "u": "steps",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "flight_width": {
+   "v": 6.9,
+   "u": "m",
+   "src": "WP-COPY",
+   "tier": "C",
+   "note": "OSM lane widths 6.4-8.5 m consistent"
+  },
+  "tread": {
+   "v": 0.31,
+   "u": "m",
+   "src": "WP-COPY",
+   "tier": "C",
+   "note": ""
+  },
+  "riser": {
+   "v": 0.1081,
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "stair_total_rise/111; WP gives 0.10 m (111x0.10=11.1 m vs 12 m landing, conflict C-2)"
+  },
+  "west_lane_x": {
+   "v": [
+    -47.1,
+    -40.6
+   ],
+   "u": "m",
+   "src": "OSM",
+   "tier": "B",
+   "note": "lower flights (from plain) in the outer lane"
+  },
+  "east_lane_x": {
+   "v": [
+    -40.6,
+    -32.2
+   ],
+   "u": "m",
+   "src": "OSM",
+   "tier": "B",
+   "note": "upper flights, terrace side"
+  },
+  "y_extent": {
+   "v": [
+    80.07,
+    164.83
+   ],
+   "u": "m",
+   "src": "OSM",
+   "tier": "B",
+   "note": "outer landings at the ends"
+  },
+  "centre_y": {
+   "v": 122.45,
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "B",
+   "note": "midpoint of y_extent"
+  },
+  "layout": {
+   "v": "lower flights start at centre and rise outward (N and S) to outer landings, reverse 180 deg (two 90 deg turns), upper flights rise back toward the centre to a common top landing facing the Gate",
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "direction of lower flights: RECON C"
+  },
+  "block_construction": {
+   "v": "4-5 steps cut from single blocks, rectangular clamps",
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  }
+ },
+ "gate_nations": {
+  "state": "standing",
+  "footprint": "gate_nations",
+  "floor": {
+   "v": 0.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "at court level at the top of the Grand Stair"
+  },
+  "hall_area": {
+   "v": 612,
+   "u": "m2",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "hall_side": {
+   "v": 24.74,
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "B",
+   "note": "sqrt(612)"
+  },
+  "columns": {
+   "v": [
+    2,
+    2
+   ],
+   "u": "grid",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "four columns"
+  },
+  "column_height": {
+   "v": 16.5,
+   "u": "m",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "'over 16.5 m'"
+  },
+  "interaxial": {
+   "v": 8.25,
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "hall_side/3, assuming wall-to-column = one bay"
+  },
+  "outer_size": {
+   "v": [
+    33.1,
+    34.9
+   ],
+   "u": "m",
+   "src": "OSM",
+   "tier": "B",
+   "note": "ruin footprint incl. walls"
+  },
+  "wall_thickness": {
+   "v": 4.2,
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "(outer - hall)/2 averaged"
+  },
+  "door_height": {
+   "v": 10.0,
+   "u": "m",
+   "src": "WP-EXT",
+   "tier": "C",
+   "note": ""
+  },
+  "door_width": {
+   "v": 3.8,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "no source reached"
+  },
+  "doors": {
+   "v": [
+    "W",
+    "E",
+    "S"
+   ],
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "W entrance, E and S exits"
+  },
+  "bench": {
+   "v": [
+    0.52,
+    0.52
+   ],
+   "u": "m",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "stone bench along the walls, h x w"
+  },
+  "guardians": {
+   "v": {
+    "W": "bulls",
+    "E": "human-headed winged bulls"
+   },
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "wall_finish": {
+   "v": "mud brick with glazed tile facing (green, blue, orange; rosettes, palms)",
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "roof": {
+   "v": "cedar beams",
+   "u": "",
+   "src": "WP-EXT",
+   "tier": "C",
+   "note": ""
+  }
+ },
+ "apadana": {
+  "state": "standing",
+  "footprint": "apadana",
+  "podium_height": {
+   "v": 3.0,
+   "u": "m",
+   "src": "IR-APAD",
+   "tier": "B",
+   "note": "'3 m higher than the level of a spacious open court'"
+  },
+  "hall_side": {
+   "v": 60.5,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "Iranica 'at least 58 m' and '60 x 60' (B); 60.5 widely quoted but unconfirmed"
+  },
+  "hall_centre": {
+   "v": [
+    1.9,
+    4.4
+   ],
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "x: platform midline; y: platform N edge - N portico - wall - half hall"
+  },
+  "hall_columns": {
+   "v": [
+    6,
+    6
+   ],
+   "u": "grid",
+   "src": "IR-APAD",
+   "tier": "B",
+   "note": ""
+  },
+  "interaxial": {
+   "v": 8.64,
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "hall_side/7, wall-to-column = one bay"
+  },
+  "column_height": {
+   "v": 19.5,
+   "u": "m",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "'19.50 m'; popular 24-25 m rejected (OPEN_QUESTIONS Q-001)"
+  },
+  "shaft_diameter_base": {
+   "v": 1.6,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "not obtained"
+  },
+  "flutes": {
+   "v": 48,
+   "u": "",
+   "src": "WP-EXT",
+   "tier": "C",
+   "note": "'large columns 40-48'"
+  },
+  "hall_base": {
+   "v": "square two-stepped plinth + torus",
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "portico_base": {
+   "v": "bell base",
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "capital": {
+   "v": "composite: bell/palm, volute block, double-bull protome",
+   "u": "",
+   "src": "IR-COL",
+   "tier": "B",
+   "note": "capital composite '8 m' quoted (unclear scope)"
+  },
+  "capital_height": {
+   "v": 7.8,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "close to '8 m' extract"
+  },
+  "porticoes": {
+   "v": {
+    "N": [
+     6,
+     2
+    ],
+    "W": [
+     2,
+     6
+    ],
+    "E": [
+     2,
+     6
+    ]
+   },
+   "u": "cols",
+   "src": "IR-APAD",
+   "tier": "B",
+   "note": "12 columns each"
+  },
+  "wall_thickness": {
+   "v": 5.32,
+   "u": "m",
+   "src": "IR-APAD",
+   "tier": "B",
+   "note": "'well over 5 m', one extract 5.32"
+  },
+  "wall_height": {
+   "v": 20.5,
+   "u": "m",
+   "src": "IR-APAD",
+   "tier": "B",
+   "note": "'over 20 m'"
+  },
+  "building_height": {
+   "v": 22.0,
+   "u": "m",
+   "src": "IR-APAD",
+   "tier": "B",
+   "note": "'nearly 22 m' (roof)"
+  },
+  "corner_towers": {
+   "v": 4,
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "stairs": {
+   "v": {
+    "N": {
+     "length": 81.67
+    },
+    "E": {
+     "length": 81.67
+    }
+   },
+   "u": "m",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "each in 3 equal parts, double-reversed, four-stepped crenellations; E stair lies under a modern roof in OSM"
+  },
+  "stair_riser": {
+   "v": 0.1,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "step count not obtained; 30 steps for 3.0 m assumed"
+  },
+  "foundation_deposits": {
+   "v": "stone boxes at NE and SE corners, gold + silver plates DPh",
+   "u": "",
+   "src": "ISAC-PA",
+   "tier": "A/B",
+   "note": ""
+  }
+ },
+ "tachara": {
+  "state": "standing",
+  "footprint": "tachara",
+  "floor": {
+   "v": 2.6,
+   "u": "m",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "2.20-3.00 above Apadana level (court)"
+  },
+  "overall": {
+   "v": [
+    30,
+    40
+   ],
+   "u": "m",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "40 x 30, long axis N-S; OSM 33.3 x 44.1"
+  },
+  "hall_columns": {
+   "v": [
+    3,
+    4
+   ],
+   "u": "grid",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "hall_size": {
+   "v": [
+    15.15,
+    15.42
+   ],
+   "u": "m",
+   "src": "WP-EXT",
+   "tier": "C",
+   "note": "suspect vs 3x4 grid (conflict C-7)"
+  },
+  "portico": {
+   "v": [
+    4,
+    2
+   ],
+   "u": "cols",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "8 columns, S side"
+  },
+  "north_rooms": {
+   "v": 2,
+   "u": "rooms of 4 columns",
+   "src": "WP-EXT",
+   "tier": "C",
+   "note": ""
+  },
+  "column_height": {
+   "v": 8.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "not obtained"
+  },
+  "stone_frames": {
+   "v": "monolithic door/window/niche frames, dark polished limestone",
+   "u": "",
+   "src": "WP-EXT",
+   "tier": "B",
+   "note": "brief seed fact"
+  },
+  "stairs": {
+   "v": "S double stair with servant reliefs (NW stair is Artaxerxes III: absent)",
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  }
+ },
+ "hadish": {
+  "state": "standing",
+  "footprint": "hadish",
+  "floor": {
+   "v": 5.5,
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "bedrock '18 m above the plain' (IR B) minus stair_total_rise; DSM S terrace 1628.5-1630.5"
+  },
+  "overall": {
+   "v": [
+    40,
+    55
+   ],
+   "u": "m",
+   "src": "WP-EXT",
+   "tier": "C",
+   "note": "'twice Tachara'; OSM 57.3 x 73.8 incl. stairs"
+  },
+  "hall_columns": {
+   "v": [
+    6,
+    6
+   ],
+   "u": "grid",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "portico": {
+   "v": [
+    6,
+    2
+   ],
+   "u": "cols",
+   "src": "WP-EXT",
+   "tier": "C",
+   "note": "12 columns N"
+  },
+  "column_height": {
+   "v": 10.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "windows": {
+   "v": 19,
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "niches": {
+   "v": 4,
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  }
+ },
+ "hall100": {
+  "state": "under_construction",
+  "footprint": "hall100",
+  "floor": {
+   "v": 0.5,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "hall_side": {
+   "v": 68.5,
+   "u": "m",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "popular 70 m"
+  },
+  "hall_columns": {
+   "v": [
+    10,
+    10
+   ],
+   "u": "grid",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "interaxial": {
+   "v": 6.23,
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "hall_side/11"
+  },
+  "column_height": {
+   "v": 14.0,
+   "u": "m",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "'nearly 14 m'"
+  },
+  "portico": {
+   "v": [
+    8,
+    2
+   ],
+   "u": "cols",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "16 columns; 2x8 inferred"
+  },
+  "doors": {
+   "v": 8,
+   "u": "",
+   "src": "ISAC-PA",
+   "tier": "B",
+   "note": ""
+  },
+  "construction_state": {
+   "v": "column bases set; ~30% of shafts raised; walls to 1/3 height; portico bulls blocked out",
+   "u": "",
+   "src": "RECON",
+   "tier": "C",
+   "note": "begun by Xerxes, finished by Artaxerxes I"
+  }
+ },
+ "tripylon": {
+  "state": "under_construction",
+  "footprint": "tripylon",
+  "floor": {
+   "v": 2.6,
+   "u": "m",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "2.60 above Apadana court"
+  },
+  "hall_columns": {
+   "v": [
+    2,
+    2
+   ],
+   "u": "grid",
+   "src": "RECON",
+   "tier": "C",
+   "note": "4 commonly stated"
+  },
+  "column_height": {
+   "v": 8.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  }
+ },
+ "treasury": {
+  "state": "standing",
+  "footprint": "treasury",
+  "floor": {
+   "v": 0.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "phase1": {
+   "v": [
+    120,
+    60
+   ],
+   "u": "m",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "W-E axis"
+  },
+  "hall99": {
+   "v": 99,
+   "u": "columns",
+   "src": "ISAC-PA",
+   "tier": "B",
+   "note": "wooden plastered and painted shafts on stone bases"
+  },
+  "column_height": {
+   "v": 6.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  }
+ },
+ "harem": {
+  "state": "standing",
+  "footprint": "harem",
+  "floor": {
+   "v": 1.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "portico": {
+   "v": [
+    4,
+    2
+   ],
+   "u": "cols",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "hall_columns": {
+   "v": [
+    3,
+    4
+   ],
+   "u": "grid",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": ""
+  },
+  "apartments": {
+   "v": 22,
+   "u": "",
+   "src": "ISAC-PA",
+   "tier": "B",
+   "note": "6 in main wing + 16 W wing, each 4-column hall"
+  },
+  "column_height": {
+   "v": 6.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  }
+ },
+ "garrison": {
+  "state": "standing",
+  "footprint": "garrison",
+  "floor": {
+   "v": 0.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "note": {
+   "v": "modest mud-brick rooms near E/SE foot of mountain; OSM label 'guardhouse & hall of 32 columns' (32-column hall absent in 467: RECON)",
+   "u": "",
+   "src": "ISAC-PA",
+   "tier": "B",
+   "note": ""
+  }
+ },
+ "fortification_e": {
+  "state": "standing",
+  "wall_thickness": {
+   "v": 10.0,
+   "u": "m",
+   "src": "ISAC-PA",
+   "tier": "B",
+   "note": "mud brick, E edge at mountain foot"
+  },
+  "curtain_height": {
+   "v": 7.0,
+   "u": "m",
+   "src": "IR-FORT",
+   "tier": "B",
+   "note": ""
+  },
+  "tower_extra_height": {
+   "v": 5.0,
+   "u": "m",
+   "src": "IR-FORT",
+   "tier": "B",
+   "note": "'standing 5 m high' ambiguous"
+  },
+  "tower_spacing": {
+   "v": 20.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  }
+ },
+ "absent_in_467": {
+  "list": {
+   "v": [
+    "palace_h",
+    "palace_g",
+    "palace_a3",
+    "unfinished_gate",
+    "tombs_rahmat",
+    "modern_roof",
+    "museum_modern"
+   ],
+   "u": "",
+   "src": "DERIVED",
+   "tier": "B",
+   "note": "see CHRONOLOGY.md"
+  }
+ }
+}

@@ -1,4 +1,4 @@
-# LANDSCAPE (terrain, rivers, settlement survey). Phase 0 content from subagent C; extended in Phases 1, 6, 7
+# Landscape: coordinates, elevations, rivers (subagent C)
 
 "DEM" means the local Copernicus GLO-30 DSM tiles in `data/dem/`, 1 arc-second, EPSG:4326, sampled with rasterio. They are a **surface** model: modern vegetation and structures are included, and the heights are modern ground.
 
@@ -52,9 +52,3 @@ Summary values come via search extract.
 - Wikipedia (Persepolis, Kuh-e Rahmat pages)
 - Iranica "Persepolis"
 - ScienceDirect remote-sensing paper on site boundaries
-
-## Climate
-See `_climate_C.md` (WMO CLINO 1991–2020 Shiraz 40848, tier A) and DECISIONS D-004 for the Persepolis adjustment.
-
-## Terrain layer corrections log
-(filled by the terrain pipeline, Phase 1)
