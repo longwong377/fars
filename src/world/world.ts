@@ -7,6 +7,7 @@ import type { Settings } from '../core/settings';
 export interface WorldBuild {
   root: THREE.Group;
   update?(dt: number, ctx: any): void;
+  simulate?(dt: number, clock: any): void;
   summary?(): string;
   saveState?(): unknown; loadState?(s: unknown): void;
   applySettings?(s: Settings): void;

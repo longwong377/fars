@@ -120,6 +120,8 @@ async function boot() {
     playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, yaw: input.yaw, ground: terrain.heightAt(player.position.x, player.position.z) }),
     stats: () => ({ backend, drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, terrain: tmesh.stats(), frameMs: lastFrameMs, heap: (performance as any).memory?.usedJSHeapSize ?? null }),
     renderOnce: async () => { await frame(0); },
+    /** deterministic fixed-step simulation without rendering (walkthrough bots, soak); returns max frame sim time */
+    simulate: (seconds: number, dt = 1 / 30) => { const steps = Math.round(seconds / dt); for (let i = 0; i < steps; i++) simStep(dt); },
     clockLabel: () => clock.label(), gridToLatLon, world,
     sky: () => ({ sunAlt: sky.state.sunAlt, moonAlt: sky.state.moonAlt, moonFraction: sky.state.moonFraction }),
     conditions: () => weather.conditions(clock.dayIndex, clock.localHour),
@@ -131,21 +133,24 @@ async function boot() {
   let botInput: { forward: number; right: number; run: boolean; yawDeg?: number; pitchDeg?: number } = { forward: 0, right: 0, run: false };
   let lastFrameMs = 0;
 
+  function simStep(dt: number, advanceClock = true) {
+    if (advanceClock) clock.advance(dt);
+    if (freeCam) return;
+    const ax = input.locked ? input.axes() : botInput;
+    if (botInput.yawDeg !== undefined) { input.yaw = -((botInput.yawDeg - 341) * Math.PI) / 180; input.pitch = ((botInput.pitchDeg ?? 0) * Math.PI) / 180; }
+    phys.updateTerrain(terrain, player.position);
+    player.update(dt, { ...ax, yaw: input.yaw, pitch: input.pitch });
+    phys.step(Math.max(1 / 240, dt));
+    world.simulate?.(dt, clock);
+  }
   let prev = performance.now();
   async function frame(dtOverride?: number) {
     const now = performance.now();
     const dt = dtOverride ?? Math.min(0.1, (now - prev) / 1000); prev = now;
     overlay.frame(dt);
     const playing = shell.mode === 'playing' || TEST || P.has('bench');
-    if (playing) clock.advance(dt);
+    if (playing) simStep(dt, !TEST);
     const cond = weather.conditions(clock.dayIndex, clock.localHour);
-    if (playing && !freeCam) {
-      const ax = input.locked ? input.axes() : botInput;
-      if (botInput.yawDeg !== undefined) { input.yaw = -((botInput.yawDeg - 341) * Math.PI) / 180; input.pitch = ((botInput.pitchDeg ?? 0) * Math.PI) / 180; }
-      phys.updateTerrain(terrain, player.position);
-      player.update(dt, { ...ax, yaw: input.yaw, pitch: input.pitch });
-      phys.step(Math.max(1 / 240, dt));
-    }
     if (freeCam) { camera.position.set(freeCam.x, freeCam.y, freeCam.z); camera.rotation.set(freeCam.pitch, freeCam.yaw, 0, 'YXZ'); body.visible = false; }
     else {
       const e = player.eye;
@@ -157,7 +162,6 @@ async function boot() {
     }
     sky.update(clock.jdUT, camera.position, cond.cloud, cond.haze);
     const fogCol = new THREE.Color().setRGB(0.62, 0.68, 0.74).multiplyScalar(0.12 + 0.88 * sky.state.daylight);
-    if ((window as any).__nofog) scene.fog = null;
     if (scene.fog) (scene.fog as THREE.FogExp2).color.copy(fogCol);
     if (scene.fog) (scene.fog as THREE.FogExp2).density = 0.000012 + 0.00012 * cond.haze * cond.haze + 0.004 * cond.mist * Math.max(0, 1 - (camera.position.y - terrain.heightAt(camera.position.x, camera.position.z)) / 40);
     renderer.toneMappingExposure = exposureFor(sky.state.sunAlt, cond.cloud);

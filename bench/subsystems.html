@@ -1,0 +1,24 @@
+<!doctype html><html><body style="margin:0"><canvas id="c" width="960" height="540"></canvas>
+<script type="module">
+// Phase 1 subsystem micro-benchmarks (brief §6: benchmark each technique before building on it). Relative numbers only
+// under SwiftShader; real-GPU numbers come from `?bench=` on hardware (REAL_HARDWARE_TODO.md).
+import * as THREE from 'three/webgpu';
+import { installWebGPUCompat } from '/src/render/compat.ts';
+installWebGPUCompat();
+const q = new URLSearchParams(location.search);
+const r = new THREE.WebGPURenderer({ canvas: document.getElementById('c'), forceWebGL: q.has('webgl') });
+await r.init();
+const results = { backend: r.backend.isWebGPUBackend ? 'WebGPU' : 'WebGL2' };
+const cam = new THREE.PerspectiveCamera(60, 16 / 9, 0.1, 5000); cam.position.set(0, 60, 220); cam.lookAt(0, 0, 0);
+const geo = new THREE.CylinderGeometry(0.8, 0.8, 19.5, 24, 1); // Apadana-scale column proxy
+const mat = new THREE.MeshStandardNodeMaterial({ color: 0xbbaa99 });
+async function time(scene, frames = 12) { r.render(scene, cam); await r.init(); const t0 = performance.now(); for (let i = 0; i < frames; i++) { r.render(scene, cam); await new Promise(res => requestAnimationFrame(res)); } return { ms: (performance.now() - t0) / frames, drawCalls: r.info.render.drawCalls, tris: r.info.render.triangles }; }
+const N = 2000;
+function layout(i) { return [((i % 50) - 25) * 8.6, 0, (Math.floor(i / 50) - 20) * 8.6]; }
+const light = () => { const l = new THREE.DirectionalLight(0xffffff, 3); l.position.set(100, 200, 50); return [l, new THREE.AmbientLight(0xffffff, 0.3)]; };
+{ const s = new THREE.Scene(); s.add(...light()); for (let i = 0; i < N; i++) { const m = new THREE.Mesh(geo, mat); m.position.set(...layout(i)); s.add(m); } results.individual = await time(s); }
+{ const s = new THREE.Scene(); s.add(...light()); const im = new THREE.InstancedMesh(geo, mat, N); const m4 = new THREE.Matrix4(); for (let i = 0; i < N; i++) { m4.makeTranslation(...layout(i)); im.setMatrixAt(i, m4); } s.add(im); results.instanced = await time(s); }
+{ const s = new THREE.Scene(); s.add(...light()); const { mergeGeometries } = await import('three/addons/utils/BufferGeometryUtils.js'); const gs = []; for (let i = 0; i < N; i++) { const g = geo.clone(); g.translate(...layout(i)); gs.push(g); } s.add(new THREE.Mesh(mergeGeometries(gs), mat)); results.merged = await time(s); }
+{ const s = new THREE.Scene(); const [l, a] = light(); l.castShadow = true; l.shadow.mapSize.set(2048, 2048); Object.assign(l.shadow.camera, { left: -250, right: 250, top: 250, bottom: -250 }); r.shadowMap.enabled = true; s.add(l, a); const im = new THREE.InstancedMesh(geo, mat, N); im.castShadow = im.receiveShadow = true; const m4 = new THREE.Matrix4(); for (let i = 0; i < N; i++) { m4.makeTranslation(...layout(i)); im.setMatrixAt(i, m4); } s.add(im); results.instancedShadow2k = await time(s); }
+window.__results = results; console.log(JSON.stringify(results));
+</script></body></html>

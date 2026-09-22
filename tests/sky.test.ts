@@ -94,3 +94,26 @@ describe('calendar coverage (re-review N-1)', () => {
     expect(names.size).toBe(12);
   });
 });
+
+import * as A from 'astronomy-engine';
+import { starAzAlt, timeFromJD, observer } from '../src/sky/ephemeris';
+describe('stars', () => {
+  it('star transform (J2000 → precessed horizon) matches astronomy-engine DefineStar/Horizon within 0.05° (pm = 0)', () => {
+    const jd = julianDateUT(-466, 4, 17, 18); // local ~21:30
+    let worst = 0;
+    for (const [ra, dec] of [[101.287, -16.716], [279.234, 38.784], [213.915, 19.182], [88.793, 7.407], [37.954, 89.264]]) {
+      A.DefineStar(A.Body.Star1, ra / 15, dec, 1000);
+      const t = timeFromJD(jd); const eq = A.Equator(A.Body.Star1, t, observer, true, false);
+      const h = A.Horizon(t, observer, eq.ra, eq.dec, undefined);
+      const m = starAzAlt(ra, dec, 0, 0, jd);
+      let dAz = Math.abs(m.azimuth - h.azimuth); if (dAz > 180) dAz = 360 - dAz;
+      worst = Math.max(worst, Math.hypot(m.altitude - h.altitude, dAz * Math.cos((h.altitude * Math.PI) / 180)));
+    }
+    expect(worst).toBeLessThan(0.05);
+  });
+  it('Polaris was NOT the pole star in 467 BCE (precession): altitude differs from latitude by > 10°', () => {
+    const jd = julianDateUT(-466, 4, 17, 18);
+    const p = starAzAlt(37.954, 89.264, 44.5, -11.9, jd);
+    expect(Math.abs(p.altitude - 29.935)).toBeGreaterThan(10);
+  });
+});

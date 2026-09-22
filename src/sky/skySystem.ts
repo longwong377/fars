@@ -5,7 +5,7 @@
 import * as THREE from 'three/webgpu';
 import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
 import { float, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color } from 'three/tsl';
-import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starVectorAtEpoch } from './ephemeris';
+import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt } from './ephemeris';
 
 export interface SkyState { sunDir: THREE.Vector3; sunAlt: number; moonDir: THREE.Vector3; moonAlt: number; moonFraction: number; daylight: number; nightFactor: number }
 
@@ -82,19 +82,13 @@ export class SkySystem {
   /** Recompute star directions for this epoch and sidereal time (cheap enough every ~10 s of game time). */
   private updateStars(jdUT: number) {
     if (!this.starData) return;
-    const m = j2000ToHorizonMatrix(jdUT); // rows: HOR x=north, y=west, z=zenith (astronomy-engine RotationMatrix rot[i][j])
+    const m = j2000ToHorizonMatrix(jdUT); // astronomy-engine HOR: x=north, y=west, z=zenith
     const pos = this.stars.geometry.getAttribute('position') as THREE.BufferAttribute;
     const arr = pos.array as Float32Array, R = DOME * 0.9;
     for (let i = 0; i < this.starCount; i++) {
       const d = this.starData, o = i * 6;
-      const v = starVectorAtEpoch(d[o], d[o + 1], d[o + 2], d[o + 3], jdUT);
-      // astronomy-engine RotateVector: out[i] = rot[0][i]*x + rot[1][i]*y + rot[2][i]*z
-      const hx = m[0] * v[0] + m[3] * v[1] + m[6] * v[2]; // north
-      const hy = m[1] * v[0] + m[4] * v[1] + m[7] * v[2]; // west
-      const hz = m[2] * v[0] + m[5] * v[1] + m[8] * v[2]; // zenith
-      const alt = Math.asin(Math.max(-1, Math.min(1, hz))) * 180 / Math.PI;
-      const az = (Math.atan2(-hy, hx) * 180) / Math.PI; // from north through east
-      const w = azAltToWorld(az, alt);
+      const h = starAzAlt(d[o], d[o + 1], d[o + 2], d[o + 3], jdUT, m);
+      const w = azAltToWorld(h.azimuth, h.altitude);
       arr[i * 3] = w[0] * R; arr[i * 3 + 1] = w[1] * R; arr[i * 3 + 2] = w[2] * R;
     }
     pos.needsUpdate = true;

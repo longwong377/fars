@@ -58,3 +58,11 @@ export function azAltToWorld(azimuthDeg: number, altitudeDeg: number): [number, 
   // grid east = +X, grid north = −Z, up = +Y
   return [ch * Math.sin(azGrid), Math.sin(alt), -ch * Math.cos(azGrid)];
 }
+
+/** Horizontal az/alt (deg, geometric — no refraction) of a J2000 star with proper motion at epoch jd. Shared by the
+ *  star renderer and its test. */
+export function starAzAlt(raDeg: number, decDeg: number, pmraMas: number, pmdecMas: number, jdUT: number, m = j2000ToHorizonMatrix(jdUT)) {
+  const v = starVectorAtEpoch(raDeg, decDeg, pmraMas, pmdecMas, jdUT);
+  const hx = m[0] * v[0] + m[3] * v[1] + m[6] * v[2], hy = m[1] * v[0] + m[4] * v[1] + m[7] * v[2], hz = m[2] * v[0] + m[5] * v[1] + m[8] * v[2];
+  return { azimuth: ((Math.atan2(-hy, hx) * 180) / Math.PI + 360) % 360, altitude: (Math.asin(Math.max(-1, Math.min(1, hz))) * 180) / Math.PI };
+}

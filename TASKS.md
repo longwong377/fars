@@ -10,16 +10,16 @@
 - [x] Phase 0 independent review → FAIL → fixes → re-review PASS (with logged exceptions)
 
 ## Phase 1 — Engine foundation
-- [ ] Vite + TS + Three.js WebGPURenderer (WebGL2 fallback) scaffold, dev overlay (tiers, memory HUD)
-- [ ] Subsystem benchmarks (renderer path, instancing, terrain) → DECISIONS.md + budgets in README
-- [ ] Terrain pipeline: Copernicus GLO-30 ingest → local ENU heightfield, multi-ring; Terrace foot layer
-- [ ] Terrain spot-check tests
-- [ ] Sky: sun/moon/stars for date (proleptic Julian, ΔT) via astronomy-engine; physically based atmosphere
-- [ ] Time + date control; seeded climate-driven weather generator; §13.6 tests (sun 0.1°, monthly ±1°C, precip days ±20%)
-- [ ] Player: first person, walk/run, step-up, falling, visible body (placeholder flagged)
-- [ ] Shell: title, click-to-start, pause, settings, controls help
-- [ ] Save/load (world state + settings); seeded determinism
-- [ ] Test harness: vitest + Playwright (SwiftShader), camera rig, benchmark mode
+- [x] Vite + TS + Three.js WebGPURenderer (WebGL2 fallback) scaffold, dev overlay (tiers, memory HUD)
+- [x] Subsystem benchmarks (renderer path, instancing, terrain) → DECISIONS.md + budgets in README
+- [x] Terrain pipeline: Copernicus GLO-30 ingest → local ENU heightfield, multi-ring; Terrace foot layer
+- [x] Terrain spot-check tests
+- [x] Sky: sun/moon/stars for date (proleptic Julian, ΔT) via astronomy-engine; physically based atmosphere
+- [x] Time + date control; seeded climate-driven weather generator; §13.6 tests (sun 0.1°, monthly ±1°C, precip days ±20%)
+- [x] Player: first person, walk/run, step-up, falling, visible body (placeholder flagged)
+- [x] Shell: title, click-to-start, pause, settings, controls help
+- [x] Save/load (world state + settings); seeded determinism
+- [x] Test harness: vitest + Playwright (SwiftShader), camera rig, benchmark mode
 ## Phase 2 — Terrace greybox from SITE_SPEC via parametric generators; plan overlay + dimension tests
 ## Phase 3 — Vertical slice (plain → Grand Stairway → Gate of All Nations → Apadana), calibration scene, NPCs 50–100
 ## Phase 4 — Rest of Terrace at slice fidelity
