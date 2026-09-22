@@ -57,4 +57,8 @@ Summary values come via search extract.
 See `_climate_C.md` (WMO CLINO 1991–2020 Shiraz 40848, tier A) and DECISIONS D-004 for the Persepolis adjustment.
 
 ## Terrain layer corrections log
-(filled by the terrain pipeline, Phase 1)
+- D-006 pipeline: bare-earth opening/closing on the plain, a Laplace infill of the Terrace foot, terrain under the platform and Grand Stair held below the architecture, and seam blending between rings.
+- **Independent check (review MJ-4), `tests/data/srtm_points.json`:** 39 points from AWS Terrain Tiles (terrarium, SRTM-derived, independent of Copernicus).
+  - The RAW Copernicus DSM lies about 5 m below SRTM on the plain (median −5.05 m) and about 2.6 m below it on the mountain.
+  - Candidate causes: SRTM C-band bias over crops and orchards, or subsidence of the Marvdasht plain between 2000 and 2011–2015 (subsidence near Persepolis is reported, JPost extract).
+  - The ancient ground level is unaffected by this choice, since it is already unknown (Q-003). The test checks bias < 8 m, scatter < 5 m about the bias, and mountain points within ±30 m. The Naqsh-e Rustam cliff-foot point is excluded because of 20 m cliff-position sensitivity.

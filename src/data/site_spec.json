@@ -47,6 +47,65 @@
    "src": "DERIVED",
    "tier": "B",
    "note": "plain_at_stair_asl + stair_total_rise; DSM terrace 1625-1628 consistent"
+  },
+  "r_east_side_x": {
+   "v": 200.0,
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "grid-east threshold separating the terrace's E (mountain/fortification) side from the W/N/S outline; E-side edges get no parapet (fortification instead)"
+  },
+  "r_found_depth": {
+   "v": 20.0,
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "platform/stair prisms extend this far below the court so no gap shows at the terrain (technical, not architectural)"
+  },
+  "r_column_proportions": {
+   "v": {
+    "base_h_frac": 0.075,
+    "base_h_max": 1.6,
+    "base_w_over_shaft": 1.55,
+    "default_shaft_over_h": 0.0833,
+    "shaft_min": 0.6,
+    "capital_frac_default": 0.18,
+    "composite_split": [
+     0.23,
+     0.33,
+     0.44
+    ],
+    "bell_taper": 0.45,
+    "torus": [
+     1.02,
+     0.14
+    ],
+    "shaft_top_ratio": 0.93,
+    "square2_lower_scale": 1.25,
+    "plain_base": [
+     1.2,
+     1.3
+    ],
+    "capital_boxes": {
+     "bell_r": [
+      1.5,
+      0.95
+     ],
+     "volute": [
+      1.25,
+      0.9
+     ],
+     "protome": [
+      3.4,
+      1.1
+     ],
+     "plain": 1.4
+    }
+   },
+   "u": "",
+   "src": "RECON",
+   "tier": "C",
+   "note": "greybox column proportions where a building's row is missing (C); composite capital split bell/volute/protome"
   }
  },
  "terrace": {
@@ -107,6 +166,13 @@
    "src": "DERIVED",
    "tier": "B",
    "note": "OSM terrace outline follows the stair's outer edge"
+  },
+  "r_parapet_thickness": {
+   "v": 0.6,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "parapet thickness; inset so its outer face is flush with the wall face"
   }
  },
  "grand_stair": {
@@ -261,6 +327,20 @@
    "src": "RECON",
    "tier": "C",
    "note": "stair parapets with stepped crenellations (motif attested on Apadana stairs, IR-PERS); height not obtained"
+  },
+  "r_flight_width_w": {
+   "v": 6.2,
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "W-lane flight width inside 0.15 m parapets (lane 6.5 m, OSM)"
+  },
+  "r_parapet_step_group": {
+   "v": 7,
+   "u": "steps",
+   "src": "RECON",
+   "tier": "C",
+   "note": "parapet modelled as stepped blocks each covering this many steps (greybox approximation of a sloped parapet)"
   }
  },
  "gate_nations": {
@@ -393,6 +473,31 @@
    "src": "OSM",
    "tier": "B",
    "note": "plan overlay compares the built outer wall outline with this footprint"
+  },
+  "r_roof_above_capital": {
+   "v": 2.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "beams + earth roof above the capitals"
+  },
+  "r_roof_thickness": {
+   "v": 1.2,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "roof slab"
+  },
+  "r_colossus": {
+   "v": {
+    "length": 5.0,
+    "width": 1.6,
+    "height": 5.5
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "doorway colossi (bulls W, human-headed winged bulls E): height 5.5 from a weak popular source (C), length/width proportional; placed in the door reveals"
   }
  },
  "apadana": {
@@ -577,6 +682,58 @@
    "src": "OSM",
    "tier": "B",
    "note": "platform incl. porticoes, towers; excludes N/E stair runs"
+  },
+  "r_door": {
+   "v": {
+    "width": 4.0,
+    "height": 10.0
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "hall doorways (not obtained)"
+  },
+  "r_tower_extra": {
+   "v": 2.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "corner towers rise this far above the roof (four-storey towers reported, B; height C)"
+  },
+  "r_storeroom_height": {
+   "v": 8.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "S storerooms"
+  },
+  "r_stair_tread": {
+   "v": 0.38,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "Apadana stair tread (not obtained)"
+  },
+  "r_stair_width": {
+   "v": 7.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "Apadana stair flight width / depth of the stair zone (not obtained)"
+  },
+  "r_stair_layout": {
+   "v": "3 equal parts along the façade; central part: two flights converging on a central landing; outer parts: flights rising toward the centre onto landings at podium height adjoining the portico",
+   "u": "",
+   "src": "B",
+   "tier": "four flights (IR-PERS); exact arrangement C",
+   "note": "IR-PERS"
+  },
+  "south_side": {
+   "v": "storage- and guardrooms on the S side",
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "search extract"
   }
  },
  "tachara": {
@@ -663,6 +820,75 @@
    "src": "OSM",
    "tier": "B",
    "note": "OSM 33.4 x 44.1 = platform incl. S stair; building 30 x 40 (IR) sits on it (conflict logged Q-017)"
+  },
+  "r_hall_offset_n": {
+   "v": 3.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "hall centre N of building centre (S portico in front)"
+  },
+  "r_wall": {
+   "v": 2.4,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "mud-brick wall thickness"
+  },
+  "r_wall_above_columns": {
+   "v": 1.5,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "wall top above column top (roof zone)"
+  },
+  "r_doors": {
+   "v": {
+    "S": {
+     "width": 2.4,
+     "height": 5.5
+    },
+    "N": {
+     "width": 1.8,
+     "height": 4.5
+    }
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "doorway sizes (monolithic stone frames; sizes not obtained)"
+  },
+  "r_shaft": {
+   "v": 0.9,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "shaft diameter"
+  },
+  "r_portico_gap": {
+   "v": 4.5,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "portico column row distance S of the hall wall"
+  },
+  "r_portico_row_spacing": {
+   "v": 4.2,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "portico row spacing"
+  },
+  "r_roof": {
+   "v": {
+    "extend_s": 12.0,
+    "offset_n": -2.0,
+    "thickness": 1.5
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "roof slab covering hall + portico"
   }
  },
  "hadish": {
@@ -732,6 +958,79 @@
    "src": "OSM",
    "tier": "B",
    "note": "OSM 57.3 x 73.8 = platform incl. W/E stairs; building 40 x 55 (WP) on it (Q-017)"
+  },
+  "r_interaxial": {
+   "v": 5.4,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "hall interaxial (not obtained; 36-column hall about 38 m square)"
+  },
+  "r_hall_offset_n": {
+   "v": 2.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "hall centre N of footprint centre"
+  },
+  "r_wall": {
+   "v": 2.8,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "wall thickness"
+  },
+  "r_wall_above_columns": {
+   "v": 1.8,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "roof zone"
+  },
+  "r_doors": {
+   "v": {
+    "N_offsets": [
+     -8.0,
+     8.0
+    ],
+    "width": 2.6,
+    "height": 6.0
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "N portico doorways (2, per WP extract) and S door to balcony; sizes C"
+  },
+  "r_shaft": {
+   "v": 0.9,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "shaft diameter"
+  },
+  "r_portico_gap": {
+   "v": 4.5,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "r_portico_row_spacing": {
+   "v": 4.6,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "r_roof": {
+   "v": {
+    "offset_n": 5.0,
+    "extend": 10.0
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "roof slab"
   }
  },
  "hall100": {
@@ -798,6 +1097,46 @@
    "src": "RECON",
    "tier": "C",
    "note": "begun by Xerxes, finished by Artaxerxes I"
+  },
+  "r_wall_top_above_columns": {
+   "v": 2.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "wall top above column top when finished; under construction walls stand at 1/3 of that"
+  },
+  "r_door_width": {
+   "v": 3.2,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "8 doorways, 2 per side"
+  },
+  "r_portico_gap": {
+   "v": 4.5,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "r_portico_row_spacing": {
+   "v": 5.5,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "r_construction_probs": {
+   "v": {
+    "raised": 0.3,
+    "partial": 0.25,
+    "partial_min": 0.35,
+    "partial_span": 0.3
+   },
+   "u": "",
+   "src": "RECON",
+   "tier": "C",
+   "note": "construction state distribution: 30% raised (construction_state), 25% partial shafts; rest bases only (C)"
   }
  },
  "tripylon": {
@@ -826,6 +1165,55 @@
    "src": "RECON",
    "tier": "C",
    "note": ""
+  },
+  "r_hall": {
+   "v": 12.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "central room interior (not obtained)"
+  },
+  "r_wall": {
+   "v": 2.2,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "r_wall_fraction_built": {
+   "v": 0.5,
+   "u": "",
+   "src": "RECON",
+   "tier": "C",
+   "note": "walls built to half height (under construction)"
+  },
+  "r_door_width": {
+   "v": 2.2,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "3 doorways N/E/S"
+  },
+  "r_shaft": {
+   "v": 0.8,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "r_interaxial": {
+   "v": 5.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "r_column_built": {
+   "v": 0.5,
+   "u": "",
+   "src": "RECON",
+   "tier": "C",
+   "note": "column shafts half raised"
   }
  },
  "treasury": {
@@ -857,6 +1245,54 @@
   },
   "column_height": {
    "v": 6.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "r_floor_raise": {
+   "v": 0.3,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "floor above court"
+  },
+  "r_wall": {
+   "v": {
+    "thickness": 2.5,
+    "height": 7.0
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "enclosure walls"
+  },
+  "r_shaft": {
+   "v": 0.55,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "plastered wooden shaft"
+  },
+  "r_hall99_grid": {
+   "v": [
+    9,
+    11
+   ],
+   "u": "cols",
+   "src": "RECON",
+   "tier": "C",
+   "note": "factorisation of 99 (hall99, ISAC-PA) into a grid: C"
+  },
+  "r_hall99_offset_n": {
+   "v": 20.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "hall position N of footprint centre"
+  },
+  "r_hall99_spacing": {
+   "v": 4.2,
    "u": "m",
    "src": "RECON",
    "tier": "C",
@@ -906,6 +1342,58 @@
    "src": "RECON",
    "tier": "C",
    "note": ""
+  },
+  "r_wall": {
+   "v": {
+    "thickness": 2.2,
+    "height": 7.0
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "r_main_wing_footprint": {
+   "v": "museum_modern",
+   "u": "key",
+   "src": "ISAC-PA",
+   "tier": "B",
+   "note": "the main wing lies under the modern museum (Krefter rebuild) footprint (ISAC-PA; B), so its position comes from that footprint; the modern building itself is absent"
+  },
+  "r_shaft": {
+   "v": 0.6,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "r_interaxial": {
+   "v": 4.5,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "r_hall_offset_n": {
+   "v": 8.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "r_portico_offset_s": {
+   "v": 14.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
+  },
+  "r_portico_row_spacing": {
+   "v": 4.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": ""
   }
  },
  "garrison": {
@@ -923,6 +1411,23 @@
    "u": "",
    "src": "ISAC-PA",
    "tier": "B",
+   "note": ""
+  },
+  "r_wall": {
+   "v": {
+    "thickness": 1.2,
+    "height": 4.0
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "modest mud-brick rooms"
+  },
+  "r_floor_raise": {
+   "v": 0.2,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
    "note": ""
   }
  },
@@ -955,6 +1460,16 @@
    "src": "RECON",
    "tier": "C",
    "note": ""
+  },
+  "r_tower": {
+   "v": {
+    "length": 7.0,
+    "extra_width": 2.0
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "tower plan (not obtained)"
   }
  },
  "absent_in_467": {

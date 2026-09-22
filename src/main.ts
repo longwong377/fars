@@ -18,6 +18,9 @@ import { DevOverlay } from './ui/overlay';
 import { buildWorld, WorldBuild } from './world/world';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
+import { Pipeline } from './render/pipeline';
+import { WEATHER } from './render/materials';
+import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
 installWebGPUCompat();
 
 const P = urlParams();
@@ -70,6 +73,12 @@ async function boot() {
   const clock = new WorldClock(+(P.get('day') ?? 0), +(P.get('hour') ?? 7.0));
   clock.scale = TEST ? 0 : settings.timeScale;
 
+  // cascaded shadows (high/ultra): 4 cascades to 600 m; lower qualities keep the single follow-the-player map
+  if (settings.quality === 'high' || settings.quality === 'ultra') {
+    const csm = new CSMShadowNode(sky.sun, { cascades: 4, maxFar: 600, mode: 'practical', lightMargin: 200 });
+    (sky.sun.shadow as any).shadowNode = csm; sky.sun.shadow.mapSize.set(Q.shadowMapSize / 2, Q.shadowMapSize / 2);
+  }
+  const pipeline = new Pipeline(renderer, scene, camera, settings.quality);
   shell.loading('Raising the Terrace…');
   const phys = await Physics.create();
   const world: WorldBuild = await buildWorld(scene, phys, terrain);
@@ -88,6 +97,10 @@ async function boot() {
   }
   function restore(s: ReturnType<typeof state> | null) {
     if (!s) return false;
+    if (s.seed !== SEED) { // the seed defines the whole world (weather, people): reload with the saved seed, then load
+      const q = new URLSearchParams(location.search); q.set('seed', String(s.seed)); q.set('loadsave', '1'); location.search = q.toString(); return false;
+    }
+    settings.timeScale = s.timeScale; clock.scale = TEST ? 0 : s.timeScale;
     clock.t = s.clockT; weather.override = s.weatherOverride as WeatherOverride; input.yaw = s.player.yaw; input.pitch = s.player.pitch;
     phys.updateTerrain(terrain, s.player); player.body.setTranslation(s.player, true); world.loadState?.(s.npc); return true;
   }
@@ -117,7 +130,7 @@ async function boot() {
     walkMode: () => { freeCam = null; },
     teleport: (east: number, north: number) => { const x = east, z = -north; phys.updateTerrain(terrain, { x, y: 0, z }); phys.step(1e-4); player.teleport(x, phys.castRayDown(x, z, 400) ?? terrain.heightAt(x, z), z); },
     setInput: (i: Partial<{ forward: number; right: number; run: boolean; yawDeg: number; pitchDeg: number }>) => { botInput = { ...botInput, ...i }; },
-    playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, yaw: input.yaw, ground: phys.castRayDown(player.position.x, player.position.z, player.position.y + 0.5) ?? terrain.heightAt(player.position.x, player.position.z) }),
+    playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, yaw: input.yaw, ground: phys.castRayDown(player.position.x, player.position.z, player.position.y + 0.5, player.collider) ?? terrain.heightAt(player.position.x, player.position.z) }),
     stats: () => ({ backend, drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, terrain: tmesh.stats(), frameMs: lastFrameMs, heap: (performance as any).memory?.usedJSHeapSize ?? null }),
     renderOnce: async () => { await frame(0); },
     /** deterministic fixed-step simulation without rendering (walkthrough bots, soak); returns max frame sim time */
@@ -141,10 +154,11 @@ async function boot() {
     sky: () => ({ sunAlt: sky.state.sunAlt, moonAlt: sky.state.moonAlt, moonFraction: sky.state.moonFraction }),
     conditions: () => weather.conditions(clock.dayIndex, clock.localHour),
     errors: [] as string[],
+    save: () => writeSave(state()), load: () => restore(readSave() as any), saveState: () => state(),
     /** §13.2 rendered plan overlay: renders the given building's parts (filtered by kind) top-down, orthographic,
      *  0.25 m/px over grid x∈[-80,272], y∈[-250,250]; returns a row-major 0/1 mask (row 0 = north). */
     planMask: async (building: string, kinds: string[] | null) => {
-      const { buildTerrace } = await import('./arch/terrace'); const { buildMeshes } = await import('./arch/meshes');
+      const { buildTerrace } = await import('./arch/terrace'); const { buildMeshes, useFlatMaterials } = await import('./arch/meshes'); useFlatMaterials(true);
       const parts: any[] = building === '__marker'
         ? [{ type: 'box', building: 'm', kind: 'm', material: 'plaster', tier: 'C', src: 'RECON', c: [200, 200], size: [20, 20], y0: 0, y1: 1 }]
         : buildTerrace().parts.filter(p => (building === '*' || p.building === building) && (!kinds || kinds.includes(p.kind)) && p.type !== 'column');
@@ -161,7 +175,7 @@ async function boot() {
       if (building !== '__marker' && planFlip === null) { const m = await api.planMask('__marker', null); let top = 0, n = 0; for (let i = 0; i < m.bits.length; i++) if (m.bits[i] === '1') { top += Math.floor(i / m.W); n++; } planFlip = (top / n) > m.H / 2; }
       const flip = building === '__marker' ? false : !!planFlip;
       for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const sy = flip ? H - 1 - y : y; mask[y * W + x] = px[(sy * W + x) * 4] > 127 ? 1 : 0; }
-      rt.dispose(); arch.group.traverse(o => (o as any).geometry?.dispose?.());
+      rt.dispose(); arch.group.traverse(o => (o as any).geometry?.dispose?.()); useFlatMaterials(false);
       return { W, H, x0: -80, y1: 250, res: 0.25, bits: Array.from(mask).join('') };
     },
   };
@@ -207,7 +221,9 @@ async function boot() {
     world.update?.(dt, { clock, cond, sky: sky.state, camera, player, settings });
     tmesh.update(camera.position);
     const t0 = performance.now();
-    renderer.render(scene, camera);
+    WEATHER.wetness.value = cond.wetness; WEATHER.snow.value = cond.snowCover; WEATHER.puddles.value = Math.max(0, cond.wetness - 0.4) / 0.6;
+    pipeline.flash.value = 0;
+    pipeline.render(scene, camera);
     lastFrameMs = performance.now() - t0;
     overlay.update(renderer, scene, camera, [
       `grid E ${camera.position.x.toFixed(1)} N ${(-camera.position.z).toFixed(1)} · ${(camera.position.y + terrain.meta.court_asl).toFixed(1)} m asl · ground ${(terrain.heightAt(camera.position.x, camera.position.z) + terrain.meta.court_asl).toFixed(1)}`,
@@ -217,6 +233,7 @@ async function boot() {
       `terrain chunks ${tmesh.stats().chunks}, ${(tmesh.stats().tris / 1e6).toFixed(2)} M tris · ${world.summary?.() ?? ''}`,
     ]);
   }
+  if (P.get('loadsave')) restore(readSave() as any);
   if (P.get('bench')) { api.ready = true; await runBench(P.get('bench')!, api, frame); return; }
   renderer.setAnimationLoop(() => { frame(); });
   api.ready = true;

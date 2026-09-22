@@ -15,6 +15,9 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | plain_at_stair_asl | 1613.0 | m | COP-DEM | B | DSM 150 m W of W facade 1613.5; modern surface. Ancient ground level unknown (OPEN_QUESTIONS Q-003) |
 | stair_total_rise | 12.0 | m | IR-PERS | B | upper landing '12 m above the ground' |
 | court_asl | 1625.0 | m | DERIVED | B | plain_at_stair_asl + stair_total_rise; DSM terrace 1625-1628 consistent |
+| r_east_side_x | 200.0 | m | DERIVED | C | grid-east threshold separating the terrace's E (mountain/fortification) side from the W/N/S outline; E-side edges get no parapet (fortification instead) |
+| r_found_depth | 20.0 | m | DERIVED | C | platform/stair prisms extend this far below the court so no gap shows at the terrain (technical, not architectural) |
+| r_column_proportions | {"base_h_frac": 0.075, "base_h_max": 1.6, "base_w_over_shaft": 1.55, "default_shaft_over_h": 0.0833, "shaft_min": 0.6, "capital_frac_default": 0.18, "composite_split": [0.23, 0.33, 0.44], "bell_taper": 0.45, "torus": [1.02, 0.14], "shaft_top_ratio": 0.93, "square2_lower_scale": 1.25, "plain_base": [1.2, 1.3], "capital_boxes": {"bell_r": [1.5, 0.95], "volute": [1.25, 0.9], "protome": [3.4, 1.1], "plain": 1.4}} |  | RECON | C | greybox column proportions where a building's row is missing (C); composite capital split bell/volute/protome |
 
 ## terrace — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -27,6 +30,7 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | parapet_height | 1.0 | m | RECON | C | no source reached; low crenellated parapet assumed on stepped four-tier crenellation motif attested on stairs |
 | fill | "earth and rock fill, partly bedrock" |  | WP-COPY | C |  |
 | stair_recess | "terrace platform = OSM terrace polygon minus grand_stair footprint (the stair is recessed into the W wall)" |  | DERIVED | B | OSM terrace outline follows the stair's outer edge |
+| r_parapet_thickness | 0.6 | m | RECON | C | parapet thickness; inset so its outer face is flush with the wall face |
 
 ## grand_stair — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -48,6 +52,8 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | top_landing_y | [108.9, 136.0] | m | DERIVED | C | common upper landing in E lane at court level, open to the court on the E (Gate W door at y~124.6) |
 | central_gap | [113.5, 131.4] | m | DERIVED | C | plain-level space between the two lower flights (W lane); retaining wall behind |
 | parapet_height | 1.0 | m | RECON | C | stair parapets with stepped crenellations (motif attested on Apadana stairs, IR-PERS); height not obtained |
+| r_flight_width_w | 6.2 | m | DERIVED | C | W-lane flight width inside 0.15 m parapets (lane 6.5 m, OSM) |
+| r_parapet_step_group | 7 | steps | RECON | C | parapet modelled as stepped blocks each covering this many steps (greybox approximation of a sloped parapet) |
 
 ## gate_nations — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -68,6 +74,9 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | wall_finish | "mud brick with glazed tile facing (green, blue, orange; rosettes, palms)" |  | IR-PERS | B |  |
 | roof | "cedar beams" |  | WP-EXT | C |  |
 | platform_footprint | "gate_nations" | key | OSM | B | plan overlay compares the built outer wall outline with this footprint |
+| r_roof_above_capital | 2.0 | m | RECON | C | beams + earth roof above the capitals |
+| r_roof_thickness | 1.2 | m | RECON | C | roof slab |
+| r_colossus | {"length": 5.0, "width": 1.6, "height": 5.5} | m | RECON | C | doorway colossi (bulls W, human-headed winged bulls E): height 5.5 from a weak popular source (C), length/width proportional; placed in the door reveals |
 
 ## apadana — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -94,6 +103,13 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | foundation_deposits | "stone boxes under corners with gold + silver plates (DPh); Iranica/ISAC extracts disagree: 2 boxes (NE, SE) vs 4 corners" |  | ISAC-PA | B | conflict Q-016 |
 | portico_depth_n | 21.3 | m | DERIVED | C | 2 rows at 1 and 2 bays from hall wall face (2 x 8.64) + 4.0 m to platform edge |
 | platform_footprint | "apadana" | key | OSM | B | platform incl. porticoes, towers; excludes N/E stair runs |
+| r_door | {"width": 4.0, "height": 10.0} | m | RECON | C | hall doorways (not obtained) |
+| r_tower_extra | 2.0 | m | RECON | C | corner towers rise this far above the roof (four-storey towers reported, B; height C) |
+| r_storeroom_height | 8.0 | m | RECON | C | S storerooms |
+| r_stair_tread | 0.38 | m | RECON | C | Apadana stair tread (not obtained) |
+| r_stair_width | 7.0 | m | RECON | C | Apadana stair flight width / depth of the stair zone (not obtained) |
+| r_stair_layout | "3 equal parts along the façade; central part: two flights converging on a central landing; outer parts: flights rising toward the centre onto landings at podium height adjoining the portico" |  | B | four flights (IR-PERS); exact arrangement C | IR-PERS |
+| south_side | "storage- and guardrooms on the S side" |  | IR-PERS | B | search extract |
 
 ## tachara — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -108,6 +124,14 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | stone_frames | "monolithic door/window/niche frames, dark polished limestone" |  | WP-EXT | C | brief §4.4 seed fact; only a WP extract seen |
 | stairs | "S double stair with servant reliefs (NW stair is Artaxerxes III: absent)" |  | IR-PERS | B |  |
 | platform_footprint | "tachara" | key | OSM | B | OSM 33.4 x 44.1 = platform incl. S stair; building 30 x 40 (IR) sits on it (conflict logged Q-017) |
+| r_hall_offset_n | 3.0 | m | RECON | C | hall centre N of building centre (S portico in front) |
+| r_wall | 2.4 | m | RECON | C | mud-brick wall thickness |
+| r_wall_above_columns | 1.5 | m | RECON | C | wall top above column top (roof zone) |
+| r_doors | {"S": {"width": 2.4, "height": 5.5}, "N": {"width": 1.8, "height": 4.5}} | m | RECON | C | doorway sizes (monolithic stone frames; sizes not obtained) |
+| r_shaft | 0.9 | m | RECON | C | shaft diameter |
+| r_portico_gap | 4.5 | m | RECON | C | portico column row distance S of the hall wall |
+| r_portico_row_spacing | 4.2 | m | RECON | C | portico row spacing |
+| r_roof | {"extend_s": 12.0, "offset_n": -2.0, "thickness": 1.5} | m | RECON | C | roof slab covering hall + portico |
 
 ## hadish — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -120,6 +144,15 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | windows | 19 |  | IR-PERS | B |  |
 | niches | 4 |  | IR-PERS | B |  |
 | platform_footprint | "hadish" | key | OSM | B | OSM 57.3 x 73.8 = platform incl. W/E stairs; building 40 x 55 (WP) on it (Q-017) |
+| r_interaxial | 5.4 | m | RECON | C | hall interaxial (not obtained; 36-column hall about 38 m square) |
+| r_hall_offset_n | 2.0 | m | RECON | C | hall centre N of footprint centre |
+| r_wall | 2.8 | m | RECON | C | wall thickness |
+| r_wall_above_columns | 1.8 | m | RECON | C | roof zone |
+| r_doors | {"N_offsets": [-8.0, 8.0], "width": 2.6, "height": 6.0} | m | RECON | C | N portico doorways (2, per WP extract) and S door to balcony; sizes C |
+| r_shaft | 0.9 | m | RECON | C | shaft diameter |
+| r_portico_gap | 4.5 | m | RECON | C |  |
+| r_portico_row_spacing | 4.6 | m | RECON | C |  |
+| r_roof | {"offset_n": 5.0, "extend": 10.0} | m | RECON | C | roof slab |
 
 ## hall100 — state in 467 BCE: **under_construction**
 | parameter | value | unit | source | tier | note |
@@ -132,6 +165,11 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | portico | [8, 2] | cols | IR-PERS | B | 16 columns; 2x8 inferred |
 | doors | 8 |  | ISAC-PA | B |  |
 | construction_state | "column bases set; ~30% of shafts raised; walls to 1/3 height; portico bulls blocked out" |  | RECON | C | begun by Xerxes, finished by Artaxerxes I |
+| r_wall_top_above_columns | 2.0 | m | RECON | C | wall top above column top when finished; under construction walls stand at 1/3 of that |
+| r_door_width | 3.2 | m | RECON | C | 8 doorways, 2 per side |
+| r_portico_gap | 4.5 | m | RECON | C |  |
+| r_portico_row_spacing | 5.5 | m | RECON | C |  |
+| r_construction_probs | {"raised": 0.3, "partial": 0.25, "partial_min": 0.35, "partial_span": 0.3} |  | RECON | C | construction state distribution: 30% raised (construction_state), 25% partial shafts; rest bases only (C) |
 
 ## tripylon — state in 467 BCE: **under_construction**
 | parameter | value | unit | source | tier | note |
@@ -139,6 +177,13 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | floor | 2.6 | m | IR-PERS | B | 2.60 above Apadana court |
 | hall_columns | [2, 2] | grid | RECON | C | 4 commonly stated |
 | column_height | 8.0 | m | RECON | C |  |
+| r_hall | 12.0 | m | RECON | C | central room interior (not obtained) |
+| r_wall | 2.2 | m | RECON | C |  |
+| r_wall_fraction_built | 0.5 |  | RECON | C | walls built to half height (under construction) |
+| r_door_width | 2.2 | m | RECON | C | 3 doorways N/E/S |
+| r_shaft | 0.8 | m | RECON | C |  |
+| r_interaxial | 5.0 | m | RECON | C |  |
+| r_column_built | 0.5 |  | RECON | C | column shafts half raised |
 
 ## treasury — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -147,6 +192,12 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | phase1 | [120, 60] | m | IR-PERS | B | W-E axis |
 | hall99 | 99 | columns | ISAC-PA | B | wooden plastered and painted shafts on stone bases |
 | column_height | 6.0 | m | RECON | C |  |
+| r_floor_raise | 0.3 | m | RECON | C | floor above court |
+| r_wall | {"thickness": 2.5, "height": 7.0} | m | RECON | C | enclosure walls |
+| r_shaft | 0.55 | m | RECON | C | plastered wooden shaft |
+| r_hall99_grid | [9, 11] | cols | RECON | C | factorisation of 99 (hall99, ISAC-PA) into a grid: C |
+| r_hall99_offset_n | 20.0 | m | RECON | C | hall position N of footprint centre |
+| r_hall99_spacing | 4.2 | m | RECON | C |  |
 
 ## harem — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -156,12 +207,21 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | hall_columns | [3, 4] | grid | IR-PERS | B |  |
 | apartments | 22 |  | ISAC-PA | B | 6 in main wing + 16 W wing, each 4-column hall |
 | column_height | 6.0 | m | RECON | C |  |
+| r_wall | {"thickness": 2.2, "height": 7.0} | m | RECON | C |  |
+| r_main_wing_footprint | "museum_modern" | key | ISAC-PA | B | the main wing lies under the modern museum (Krefter rebuild) footprint (ISAC-PA; B), so its position comes from that footprint; the modern building itself is absent |
+| r_shaft | 0.6 | m | RECON | C |  |
+| r_interaxial | 4.5 | m | RECON | C |  |
+| r_hall_offset_n | 8.0 | m | RECON | C |  |
+| r_portico_offset_s | 14.0 | m | RECON | C |  |
+| r_portico_row_spacing | 4.0 | m | RECON | C |  |
 
 ## garrison — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
 |---|---|---|---|---|---|
 | floor | 0.0 | m | RECON | C |  |
 | note | "modest mud-brick rooms near E/SE foot of mountain; OSM label 'guardhouse & hall of 32 columns' (32-column hall absent in 467: RECON)" |  | ISAC-PA | B |  |
+| r_wall | {"thickness": 1.2, "height": 4.0} | m | RECON | C | modest mud-brick rooms |
+| r_floor_raise | 0.2 | m | RECON | C |  |
 
 ## fortification_e — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -170,6 +230,7 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | curtain_height | 7.0 | m | IR-FORT | B |  |
 | tower_extra_height | 5.0 | m | IR-FORT | B | 'standing 5 m high' ambiguous |
 | tower_spacing | 20.0 | m | RECON | C |  |
+| r_tower | {"length": 7.0, "extra_width": 2.0} | m | RECON | C | tower plan (not obtained) |
 
 ## absent_in_467
 | parameter | value | unit | source | tier | note |

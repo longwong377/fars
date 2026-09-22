@@ -35,9 +35,9 @@ export class Physics {
     const q = { x: 0, y: Math.sin(rotY / 2), z: 0, w: Math.cos(rotY / 2) };
     return this.world.createCollider(RAPIER.ColliderDesc.cuboid(half.x, half.y, half.z).setTranslation(center.x, center.y, center.z).setRotation(q));
   }
-  castRayDown(x: number, z: number, fromY = 5000): number | null {
+  castRayDown(x: number, z: number, fromY = 5000, exclude?: RAPIER.Collider): number | null {
     const ray = new RAPIER.Ray({ x, y: fromY, z }, { x: 0, y: -1, z: 0 });
-    const hit = this.world.castRay(ray, 20000, true);
+    const hit = this.world.castRay(ray, 20000, true, undefined, undefined, exclude);
     return hit ? fromY - hit.timeOfImpact : null;
   }
   step(dt: number) { this.world.timestep = dt; this.world.step(); }

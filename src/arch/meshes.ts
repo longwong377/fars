@@ -3,25 +3,30 @@ import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Part, Prism, Box, Column, ColumnOrder, Material } from './parts';
 import type { Physics } from '../player/physics';
+import { SPEC } from './spec';
 
 /** Greybox materials (Phase 2): flat albedos from pigment/stone references are Phase 3; these are neutral and tagged C. */
 const ALBEDO: Record<Material, [number, number, number]> = {
   limestone: [0.62, 0.6, 0.56], limestone_dark: [0.2, 0.2, 0.21], mudbrick: [0.66, 0.56, 0.44], plaster: [0.8, 0.76, 0.68],
   timber: [0.36, 0.27, 0.19], glazed: [0.2, 0.4, 0.55], earth: [0.5, 0.42, 0.32], scaffold: [0.45, 0.35, 0.24], rubble: [0.55, 0.52, 0.48],
 };
+import { surfaceMaterial } from '../render/materials';
 const matCache = new Map<string, THREE.MeshStandardNodeMaterial>();
-export function material(m: Material) {
+/** flat greybox material (plan-overlay tests, tools); the world uses procedural surfaces (render/materials.ts) */
+export function flatMaterial(m: Material) {
   let x = matCache.get(m);
   if (!x) { const [r, g, b] = ALBEDO[m]; x = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(r, g, b, THREE.SRGBColorSpace), roughness: m === 'glazed' ? 0.35 : 0.9, metalness: 0 }); matCache.set(m, x); }
   return x;
 }
+export let material: (m: Material) => THREE.Material = m => surfaceMaterial(m);
+export function useFlatMaterials(flat: boolean) { material = flat ? flatMaterial : (m => surfaceMaterial(m)); }
 
 export function prismGeometry(p: Prism): THREE.BufferGeometry {
   const shape = new THREE.Shape(p.polygon.map(([x, y]) => new THREE.Vector2(x, y)));
   const g = new THREE.ExtrudeGeometry(shape, { depth: p.y1 - p.y0, bevelEnabled: false });
   g.rotateX(-Math.PI / 2); // (e, n, h) → (e, h, −n)
   g.translate(0, p.y0, 0);
-  return g.toNonIndexed();
+  return g.index ? g.toNonIndexed() : g;
 }
 export function boxGeometry(b: Box): THREE.BufferGeometry {
   const g = new THREE.BoxGeometry(b.size[0], b.y1 - b.y0, b.size[1]);
@@ -33,21 +38,24 @@ export function boxGeometry(b: Box): THREE.BufferGeometry {
 /** Column geometry in local space (base at y=0), greybox profile: base, torus, shaft (flute count as facets), capital blocks. */
 export function columnGeometry(o: ColumnOrder, built = 1): THREE.BufferGeometry {
   const gs: THREE.BufferGeometry[] = [];
+  const K = SPEC.global.r_column_proportions.v; // greybox proportions (C), SITE_SPEC global.r_column_proportions
   const r = o.shaftD / 2, shaftH = o.height - o.baseH - o.capitalH;
-  if (o.base === 'square2') { gs.push(new THREE.BoxGeometry(o.baseW * 1.25, o.baseH * 0.5, o.baseW * 1.25).translate(0, o.baseH * 0.25, 0), new THREE.BoxGeometry(o.baseW, o.baseH * 0.5, o.baseW).translate(0, o.baseH * 0.75, 0)); }
-  else if (o.base === 'bell') { const pts = [0, 0.15, 0.35, 0.6, 0.8, 1].map((t, i) => new THREE.Vector2(o.baseW / 2 * (1 - 0.45 * t * t) + (i === 0 ? 0 : 0), t * o.baseH)); pts.unshift(new THREE.Vector2(0, 0)); pts.push(new THREE.Vector2(0, o.baseH)); gs.push(new THREE.LatheGeometry(pts, 24)); }
-  else gs.push(new THREE.CylinderGeometry(r * 1.2, r * 1.3, o.baseH, 20).translate(0, o.baseH / 2, 0));
-  gs.push(new THREE.TorusGeometry(r * 1.02, r * 0.14, 8, 24).rotateX(Math.PI / 2).translate(0, o.baseH + r * 0.1, 0));
+  if (o.base === 'square2') { const s2 = K.square2_lower_scale; gs.push(new THREE.BoxGeometry(o.baseW * s2, o.baseH * 0.5, o.baseW * s2).translate(0, o.baseH * 0.25, 0), new THREE.BoxGeometry(o.baseW, o.baseH * 0.5, o.baseW).translate(0, o.baseH * 0.75, 0)); }
+  else if (o.base === 'bell') { const pts = [0, 0.15, 0.35, 0.6, 0.8, 1].map(t => new THREE.Vector2(o.baseW / 2 * (1 - K.bell_taper * t * t), t * o.baseH)); pts.unshift(new THREE.Vector2(0, 0)); pts.push(new THREE.Vector2(0, o.baseH)); gs.push(new THREE.LatheGeometry(pts, 24)); }
+  else gs.push(new THREE.CylinderGeometry(r * K.plain_base[0], r * K.plain_base[1], o.baseH, 20).translate(0, o.baseH / 2, 0));
+  gs.push(new THREE.TorusGeometry(r * K.torus[0], r * K.torus[1], 8, 24).rotateX(Math.PI / 2).translate(0, o.baseH + r * 0.1, 0));
   const sh = shaftH * built;
-  if (sh > 0.01) gs.push(new THREE.CylinderGeometry(r * 0.93, r, sh, Math.max(12, o.flutes), 1).translate(0, o.baseH + sh / 2, 0));
+  if (sh > 0.01) gs.push(new THREE.CylinderGeometry(r * K.shaft_top_ratio, r, sh, Math.max(12, o.flutes), 1).translate(0, o.baseH + sh / 2, 0));
   if (built >= 1 && o.capital !== 'none') {
     const y = o.baseH + shaftH;
-    if (o.capital === 'plain') gs.push(new THREE.BoxGeometry(o.shaftD * 1.4, o.capitalH, o.shaftD * 1.4).translate(0, y + o.capitalH / 2, 0));
+    const CB = K.capital_boxes;
+    if (o.capital === 'plain') gs.push(new THREE.BoxGeometry(o.shaftD * CB.plain, o.capitalH, o.shaftD * CB.plain).translate(0, y + o.capitalH / 2, 0));
     else {
-      const c1 = o.capitalH * 0.23, c2 = o.capitalH * 0.33, c3 = o.capitalH * 0.44;
-      gs.push(new THREE.CylinderGeometry(r * 1.5, r * 0.95, c1, 20).translate(0, y + c1 / 2, 0)); // bell/palm
-      gs.push(new THREE.BoxGeometry(o.shaftD * 1.25, c2, o.shaftD * 0.9).translate(0, y + c1 + c2 / 2, 0)); // volute block
-      gs.push(new THREE.BoxGeometry(o.shaftD * 3.4, c3, o.shaftD * 1.1).translate(0, y + c1 + c2 + c3 / 2, 0)); // double protome (greybox)
+      const [f1, f2, f3] = (SPEC.global.r_column_proportions.v.composite_split as number[]);
+      const c1 = o.capitalH * f1, c2 = o.capitalH * f2, c3 = o.capitalH * f3;
+      gs.push(new THREE.CylinderGeometry(r * CB.bell_r[0], r * CB.bell_r[1], c1, 20).translate(0, y + c1 / 2, 0)); // bell/palm
+      gs.push(new THREE.BoxGeometry(o.shaftD * CB.volute[0], c2, o.shaftD * CB.volute[1]).translate(0, y + c1 + c2 / 2, 0)); // volute block
+      gs.push(new THREE.BoxGeometry(o.shaftD * CB.protome[0], c3, o.shaftD * CB.protome[1]).translate(0, y + c1 + c2 + c3 / 2, 0)); // double protome (greybox)
     }
   }
   const nonIdx = gs.map(g => g.index ? g.toNonIndexed() : g);

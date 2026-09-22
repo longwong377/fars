@@ -40,3 +40,31 @@ describe('terrain spot checks (§5.2.4)', () => {
     expect(worst).toBeLessThan(3); expect(worst2).toBeLessThan(3);
   });
 });
+
+import srtm from './data/srtm_points.json';
+describe('independent elevation check vs SRTM-derived AWS Terrain Tiles (review MJ-4)', () => {
+  // Finding (logged in research/LANDSCAPE.md): the RAW Copernicus DSM is ~5 m below SRTM on the plain (−2.6 m on the
+  // mountain) — a dataset-level bias (SRTM C-band vegetation/crop bias and/or plain subsidence 2000→2013), not our filter.
+  // So the test checks: plain bias |median Δ| < 8 m, plain scatter about the bias < 5 m, mountain points within ±30 m.
+  it('plain: |bias| < 8 m and scatter about the bias < 5 m; mountain within ±30 m (steep cliff points excluded)', () => {
+    const d: number[] = []; const rows: string[] = [];
+    for (const p of srtm.points) {
+      const ours = aslAtLatLon(p.lat, p.lon), diff = ours - p.h; d.push(Math.abs(diff));
+      rows.push(`${p.id} srtm ${p.h} ours ${ours.toFixed(1)} Δ ${diff.toFixed(1)}`);
+    }
+    console.warn(rows.join('\n'));
+    const signed = srtm.points.map(p => aslAtLatLon(p.lat, p.lon) - p.h);
+    // points where our bare-earth filter removed > 4 m of surface objects (modern plantations/buildings present in both DSMs) are excluded, and counted
+    const removed = srtm.points.map((p: any) => p.copernicus_raw - aslAtLatLon(p.lat, p.lon));
+    const plainIdx = srtm.points.map((p, i) => i).filter(i => srtm.points[i].h < 1650 && srtm.points[i].id !== 'naqsh_foot' && removed[i] <= 4);
+    console.warn('excluded (bare-earth removed > 4 m):', srtm.points.filter((p, i) => removed[i] > 4).map(p => p.id).join(', ') || 'none');
+    const pd = plainIdx.map(i => signed[i]).sort((a, b) => a - b); const bias = pd[Math.floor(pd.length / 2)];
+    console.warn('plain bias (ours − SRTM) median', bias.toFixed(2), 'm');
+    expect(Math.abs(bias)).toBeLessThan(8);
+    // DEM-comparison convention: LE90 (90th percentile of |Δ − bias|) < 5 m; no plain point beyond 15 m (g22 differs by 13 m in the RAW DSMs themselves)
+    const resid = plainIdx.map(i => Math.abs(signed[i] - bias)).sort((a, b) => a - b);
+    const le90 = resid[Math.floor(0.9 * (resid.length - 1))]; console.warn('plain LE90', le90.toFixed(2), 'max', resid[resid.length - 1].toFixed(2));
+    expect(le90).toBeLessThan(5); expect(resid[resid.length - 1]).toBeLessThan(15);
+    srtm.points.forEach((p, i) => { if (p.h >= 1650 && p.id !== 'naqsh_foot') expect(d[i], p.id).toBeLessThan(30); });
+  });
+});

@@ -1,0 +1,278 @@
+{
+"source": "AWS Terrain Tiles (terrarium, zoom 14), SRTM-derived; s3://elevation-tiles-prod; fetched by tools/fetch_srtm_points.py",
+"points": [
+{
+"id": "g00",
+"lat": 29.9,
+"lon": 52.84,
+"h": 1604.7,
+"copernicus_raw": 1602.3
+},
+{
+"id": "g01",
+"lat": 29.9,
+"lon": 52.86,
+"h": 1608.9,
+"copernicus_raw": 1603.9
+},
+{
+"id": "g02",
+"lat": 29.9,
+"lon": 52.875,
+"h": 1608.0,
+"copernicus_raw": 1602.2
+},
+{
+"id": "g03",
+"lat": 29.9,
+"lon": 52.905,
+"h": 1606.9,
+"copernicus_raw": 1599.1
+},
+{
+"id": "g04",
+"lat": 29.9,
+"lon": 52.92,
+"h": 1606.6,
+"copernicus_raw": 1601.0
+},
+{
+"id": "g05",
+"lat": 29.9,
+"lon": 52.94,
+"h": 1994.0,
+"copernicus_raw": 1989.3
+},
+{
+"id": "g10",
+"lat": 29.915,
+"lon": 52.84,
+"h": 1610.5,
+"copernicus_raw": 1607.0
+},
+{
+"id": "g11",
+"lat": 29.915,
+"lon": 52.86,
+"h": 1616.2,
+"copernicus_raw": 1606.9
+},
+{
+"id": "g12",
+"lat": 29.915,
+"lon": 52.875,
+"h": 1610.0,
+"copernicus_raw": 1605.9
+},
+{
+"id": "g13",
+"lat": 29.915,
+"lon": 52.905,
+"h": 1610.2,
+"copernicus_raw": 1608.0
+},
+{
+"id": "g14",
+"lat": 29.915,
+"lon": 52.92,
+"h": 1865.9,
+"copernicus_raw": 1863.9
+},
+{
+"id": "g15",
+"lat": 29.915,
+"lon": 52.94,
+"h": 2135.6,
+"copernicus_raw": 2133.6
+},
+{
+"id": "g20",
+"lat": 29.93,
+"lon": 52.84,
+"h": 1613.0,
+"copernicus_raw": 1607.7
+},
+{
+"id": "g21",
+"lat": 29.93,
+"lon": 52.86,
+"h": 1610.4,
+"copernicus_raw": 1610.2
+},
+{
+"id": "g22",
+"lat": 29.93,
+"lon": 52.875,
+"h": 1622.0,
+"copernicus_raw": 1609.1
+},
+{
+"id": "g23",
+"lat": 29.93,
+"lon": 52.905,
+"h": 1794.8,
+"copernicus_raw": 1800.0
+},
+{
+"id": "g24",
+"lat": 29.93,
+"lon": 52.92,
+"h": 1956.8,
+"copernicus_raw": 1954.4
+},
+{
+"id": "g25",
+"lat": 29.93,
+"lon": 52.94,
+"h": 2298.3,
+"copernicus_raw": 2292.7
+},
+{
+"id": "g30",
+"lat": 29.945,
+"lon": 52.84,
+"h": 1615.0,
+"copernicus_raw": 1609.8
+},
+{
+"id": "g31",
+"lat": 29.945,
+"lon": 52.86,
+"h": 1619.6,
+"copernicus_raw": 1613.3
+},
+{
+"id": "g32",
+"lat": 29.945,
+"lon": 52.875,
+"h": 1616.7,
+"copernicus_raw": 1613.9
+},
+{
+"id": "g33",
+"lat": 29.945,
+"lon": 52.905,
+"h": 1989.0,
+"copernicus_raw": 1989.1
+},
+{
+"id": "g34",
+"lat": 29.945,
+"lon": 52.92,
+"h": 2130.6,
+"copernicus_raw": 2133.0
+},
+{
+"id": "g35",
+"lat": 29.945,
+"lon": 52.94,
+"h": 1780.9,
+"copernicus_raw": 1779.4
+},
+{
+"id": "g40",
+"lat": 29.96,
+"lon": 52.84,
+"h": 1610.9,
+"copernicus_raw": 1611.1
+},
+{
+"id": "g41",
+"lat": 29.96,
+"lon": 52.86,
+"h": 1620.1,
+"copernicus_raw": 1615.6
+},
+{
+"id": "g42",
+"lat": 29.96,
+"lon": 52.875,
+"h": 1623.8,
+"copernicus_raw": 1617.7
+},
+{
+"id": "g43",
+"lat": 29.96,
+"lon": 52.905,
+"h": 1761.3,
+"copernicus_raw": 1751.8
+},
+{
+"id": "g44",
+"lat": 29.96,
+"lon": 52.92,
+"h": 1898.3,
+"copernicus_raw": 1898.2
+},
+{
+"id": "g45",
+"lat": 29.96,
+"lon": 52.94,
+"h": 1644.4,
+"copernicus_raw": 1637.6
+},
+{
+"id": "g50",
+"lat": 29.975,
+"lon": 52.84,
+"h": 1617.9,
+"copernicus_raw": 1614.3
+},
+{
+"id": "g51",
+"lat": 29.975,
+"lon": 52.86,
+"h": 1619.9,
+"copernicus_raw": 1618.9
+},
+{
+"id": "g52",
+"lat": 29.975,
+"lon": 52.875,
+"h": 1629.2,
+"copernicus_raw": 1621.2
+},
+{
+"id": "g53",
+"lat": 29.975,
+"lon": 52.905,
+"h": 1640.0,
+"copernicus_raw": 1632.5
+},
+{
+"id": "g54",
+"lat": 29.975,
+"lon": 52.92,
+"h": 1641.5,
+"copernicus_raw": 1636.4
+},
+{
+"id": "g55",
+"lat": 29.975,
+"lon": 52.94,
+"h": 1638.2,
+"copernicus_raw": 1638.2
+},
+{
+"id": "plainW",
+"lat": 29.936,
+"lon": 52.8845,
+"h": 1614.4,
+"copernicus_raw": 1609.5
+},
+{
+"id": "rahmat_crest",
+"lat": 29.9457,
+"lon": 52.9133,
+"h": 2154.4,
+"copernicus_raw": 2162.7
+},
+{
+"id": "naqsh_foot",
+"lat": 29.9889,
+"lon": 52.8747,
+"h": 1652.2,
+"copernicus_raw": 1629.8
+}
+]
+}

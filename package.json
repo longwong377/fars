@@ -14,7 +14,8 @@
     "test:e2e": "playwright test",
     "lint:chrono": "tsx tools/lint_chrono.ts",
     "lint:all": "npm run lint:chrono",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "bench": "playwright test tests/e2e/bench.spec.ts --project=webgpu"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.20.0",

@@ -40,7 +40,7 @@ export function wallRing(b: Omit<Base, 'kind'>, cx: number, cy: number, w: numbe
       const c: Pt = d.horiz ? [d.c[0] + mid, d.c[1]] : [d.c[0], d.c[1] + mid];
       out.push({ ...b, type: 'box', kind: 'wall', c, size: d.horiz ? [bb - a, th] : [th, bb - a], y0: ya, y1: yb });
     };
-    for (const g of gaps) { seg(cur, g.a, y0, y1); if (y0 + g.h < y1 - 0.01) seg(g.a, g.b, y0 + g.h, y1); cur = g.b; } // lintel zone above the door (none if the opening reaches the wall top)
+    for (const g of gaps) { seg(cur, g.a, y0, y1); if (Number.isFinite(g.h) && y0 + g.h < y1 - 0.01) seg(g.a, g.b, y0 + g.h, y1); cur = g.b; } // lintel zone above the door (none if the opening reaches the wall top)
     seg(cur, d.len / 2, y0, y1);
   }
   return out;

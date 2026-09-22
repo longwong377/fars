@@ -97,3 +97,22 @@ describe('part sanity', () => {
     for (const p of parts) if (p.type !== 'column') { expect(p.y1).toBeGreaterThan(p.y0); expect(p.y1).toBeLessThan(40); }
   });
 });
+import { readFileSync } from 'node:fs';
+describe('review MJ-1/MJ-2 regressions', () => {
+  it('generator has no dimensional literals (only 0, 1, 2, 3, 0.5, 8, 9 as structural constants: halves, thirds, sample counts)', () => {
+    const src = readFileSync('src/arch/terrace.ts', 'utf8').split('\n').filter(l => !l.trim().startsWith('//')).join('\n').replace(/\/\/.*$/gm, '').replace(/'[^']*'|`[^`]*`/g, '');
+    const lits = [...src.matchAll(/(?<![\w.])(\d+\.?\d*(?:e-?\d+)?)(?![\w])/g)].map(m => m[1]).filter(n => !['0', '1', '2', '3', '0.5', '8', '9'].includes(n));
+    expect(lits).toEqual([]);
+  });
+  it('Apadana N and E stair landings adjoin the podium edge (no trench) and no step lies inside a landing', () => {
+    const ap = parts.filter(p => p.building === 'apadana') as any[];
+    const landings = ap.filter(p => p.kind === 'landing'), steps = ap.filter(p => p.kind === 'step');
+    expect(landings.length).toBe(6); expect(steps.length).toBe(4 * 2 * 30);
+    const nEdge = manifest.apadana.nStairEdge as number;
+    const nLand = landings.filter(l => l.c[1] > nEdge - 1); // N stair landings lie N of the podium edge
+    for (const l of nLand) expect(Math.abs((l.c[1] - l.size[1] / 2) - nEdge)).toBeLessThan(1e-6);
+    const inside = (s: any, l: any) => Math.abs(s.c[0] - l.c[0]) < (l.size[0] - s.size[0]) / 2 - 1e-6 && Math.abs(s.c[1] - l.c[1]) < (l.size[1] - s.size[1]) / 2 - 1e-6;
+    for (const s of steps) for (const l of landings) expect(inside(s, l)).toBe(false);
+    for (const l of landings) expect(l.y1).toBeCloseTo(v('apadana', 'podium_height'), 6);
+  });
+});

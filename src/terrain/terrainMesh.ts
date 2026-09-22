@@ -3,6 +3,7 @@
 // Coarser rings skip the chunks covered by the finer ring (the ring extents are chunk-aligned by construction).
 import * as THREE from 'three/webgpu';
 import { Ring, Terrain } from './heightfield';
+import { surfaceMaterial } from '../render/materials';
 
 const CHUNK = 128;
 interface Chunk { ring: Ring; r0: number; c0: number; cells: number; center: THREE.Vector3; radius: number; lods: Map<number, THREE.BufferGeometry>; mesh: THREE.Mesh; step: number }
@@ -22,7 +23,7 @@ export class TerrainMesh {
   private material: THREE.MeshStandardNodeMaterial;
   constructor(readonly terrain: Terrain, private lodBias = 1) {
     this.group.name = 'terrain';
-    this.material = new THREE.MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 });
+    this.material = surfaceMaterial('earth', { vertexColors: true });
     this.group.userData = { tier: 'B', src: 'COP-DEM', note: 'Copernicus GLO-30 bare-earth approximation (D-006); ground colour procedural C' };
     this.addRing(terrain.near, null);
     this.addRing(terrain.mid, terrain.near.half);

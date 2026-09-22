@@ -30,9 +30,13 @@ test('boot, approach view, walk bot, save/load, night sky, proxies', async ({ pa
   expect(st.x - x0).toBeGreaterThan(12.5); expect(st.x - x0).toBeLessThan(13.8); // 10 s at 1.35 m/s, grid east
   expect(Math.abs(st.feetY - st.ground)).toBeLessThan(0.3);
   expect(st.grounded).toBe(true);
-  // save / load round trip
-  const saved = await page.evaluate(() => { const w = (window as any).__parsa; w.setTime(40, 15.5); return w.clockLabel(); });
-  await page.evaluate(() => { (window as any).__parsaSave = JSON.stringify(localStorage); });
+  // save / load round trip: save at a known state, change everything, load, compare
+  const saved = await page.evaluate(() => { const w = (window as any).__parsa; w.setTime(40, 15.5); w.setWeather('rain'); w.teleport(-250, 100); w.simulate(0.5); const ok = w.save(); return { ok, s: w.saveState() }; });
+  expect(saved.ok).toBe(true);
+  await page.evaluate(() => { const w = (window as any).__parsa; w.setTime(200, 3); w.setWeather('clear'); w.teleport(-400, 0); w.simulate(0.5); });
+  const loaded = await page.evaluate(() => { const w = (window as any).__parsa; w.load(); return w.saveState(); });
+  expect(loaded.clockT).toBeCloseTo(saved.s.clockT, 6); expect(loaded.weatherOverride).toBe('rain');
+  expect(Math.hypot(loaded.player.x - saved.s.player.x, loaded.player.z - saved.s.player.z)).toBeLessThan(0.01);
   // night sky with stars: new moon-ish night
   await page.evaluate(() => { const w = (window as any).__parsa; w.setTime(0, 23.5); w.setWeather('clear'); w.view(0, 0, 1.6, 90, 35); });
   await page.waitForTimeout(1500);
@@ -40,6 +44,6 @@ test('boot, approach view, walk bot, save/load, night sky, proxies', async ({ pa
   const sky = await page.evaluate(() => (window as any).__parsa.sky());
   expect(sky.sunAlt).toBeLessThan(-18);
   proxies.night = await page.evaluate(() => (window as any).__parsa.stats());
-  writeFileSync(`shots/phase1-${info.project.name}.json`, JSON.stringify({ backend, proxies, walk: st, savedLabel: saved }, null, 1));
+  writeFileSync(`shots/phase1-${info.project.name}.json`, JSON.stringify({ backend, proxies, walk: st, saved: saved.s }, null, 1));
   expect(errors.filter(e => !/deprecated|PCFSoft/i.test(e))).toEqual([]);
 });
