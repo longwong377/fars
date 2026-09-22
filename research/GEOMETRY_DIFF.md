@@ -41,3 +41,12 @@ no second independent footprint source. That is logged as a gate exception.
 **Independent (non-Schmidt) check:** OSM/Overture footprints (traced from modern imagery) + Copernicus DSM edge check.
 The plan-overlay IoU test (§13.2) therefore runs against OSM footprints until Schmidt's plan is supplied. This is
 logged as an exception: it tests "built model vs modern ruin footprint", not "vs excavation plan".
+
+## Independent plan check (added after the user supplied reference plans)
+`research/PLAN_CHECK.md` (tools/plan_check.py) registers the colour-coded, Schmidt-derived plan `references/Persepolis Plan.webp` to the OSM footprints:
+- **Rotation:** −18.5°, vs our −19° grid rotation from OSM.
+- **Scale:** matches the plan's own scale bar within 1%.
+- **Centroids:** the Apadana, Throne Hall, Treasury, Tachara, Hadish and Gate agree to an inlier RMS of about 6 m (max 10 m).
+- **Excluded:** the Harem and Tripylon, whose regions are drawn to different extents in the two sources.
+
+This is the first check of the layout against a drawn plan, rather than against OSM itself. It is still not Schmidt's original, so the layout tier stays B.

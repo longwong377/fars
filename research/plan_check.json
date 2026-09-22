@@ -1,0 +1,47 @@
+{
+ "scale_px_per_m_fit": 2.114885107206742,
+ "scale_px_per_m_bar": 2.13,
+ "rotation_deg": -18.507121226342328,
+ "buildings": {
+  "apadana": {
+   "residual_m": 10.15491582515369,
+   "area_plan": 11740.904131473919,
+   "area_osm": 13687.5
+  },
+  "hall100": {
+   "residual_m": 2.62329665256583,
+   "area_plan": 6785.327712345316,
+   "area_osm": 5477.8
+  },
+  "treasury": {
+   "residual_m": 6.41270953890569,
+   "area_plan": 9651.580349080199,
+   "area_osm": 11967.8
+  },
+  "tachara": {
+   "residual_m": 0.28404835746801405,
+   "area_plan": 1034.0420003821243,
+   "area_osm": 1432.0
+  },
+  "tripylon": {
+   "residual_m": 31.53905781395125,
+   "area_plan": 30.182847578721468,
+   "area_osm": 865.3
+  },
+  "hadish": {
+   "residual_m": 2.4563896095594875,
+   "area_plan": 3297.3084154887715,
+   "area_osm": 4173.6
+  },
+  "harem": {
+   "residual_m": 57.207015911831526,
+   "area_plan": 4357.061730474992,
+   "area_osm": 6563.4
+  },
+  "gate_nations": {
+   "residual_m": 7.42663864367713,
+   "area_plan": 666.258413219185,
+   "area_osm": 1099.9
+  }
+ }
+}
