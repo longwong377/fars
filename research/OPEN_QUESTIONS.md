@@ -20,3 +20,5 @@
 | Q-017 | Stated building sizes vs OSM platform footprints (Tachara 30×40 vs 33.4×44.1; Hadish 40×55 vs 57.3×73.8) | the OSM footprints include platforms and stairs | the plan overlay compares the built platform outline (which includes stairs) with the OSM footprint; the building sits on it | C | Schmidt plan |
 | Q-018 | Hadish floor: formula gives +6.0 m; DSM gives +3.5–5.5 | Iranica "18 m above plain" (B); modern DSM | 6.0 | C | Schmidt sections |
 | Q-019 | N terrace edge not confirmed by DSM (one profile, off by 97 m; cause not investigated) | research/DEM_EDGE_CHECK.md | OSM outline | B | orthophoto / Schmidt |
+| Q-020 | Column shaft colour (pink-red in Getty's reconstruction, dark red at persepolis3D, cream elsewhere) | only reconstructions (references/INDEX.md); no pigment evidence for shafts found | stone/limestone unpainted shaft (C) until evidence; capitals painted per the capital research | C | Nagel 2010/2023 |
+| Q-021 | Double horse-protome capitals at Persepolis: which building? | one 3D model in references; research not done | not used | C | Schmidt 1953 |
