@@ -30,6 +30,7 @@ for (const v of [...VIEWS, ...EXTRA]) for (const town of v.ab ? [true, false] : 
     {
       await page.goto(`/?test&quality=${Q}&day=${v.day}&hour=${v.hour}&weather=${v.w}${town ? '' : '&notown'}`);
       await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 900_000 });
+      await page.evaluate(() => (window as any).__parsa?.renderer?.setAnimationLoop(null)); // frozen test world: no frames behind the screenshots
       const cam = await page.evaluate((spot: string) => {
         const P = (window as any).__parsa, S = P.world.settlement;
         if (spot === 'slope') return [250, -650, 1.6, 228, -4];

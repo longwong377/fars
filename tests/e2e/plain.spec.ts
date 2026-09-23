@@ -31,6 +31,7 @@ test('plain', async ({ page }, info) => {
   const out: Record<string, any> = {};
   await page.goto(`/?test&quality=${Q}&day=${run[0].day}&hour=${run[0].hour}&weather=clear`);
   await page.waitForFunction(() => (window as any).__parsa?.ready === true || (window as any).__parsa?.error, null, { timeout: 600_000 });
+  await page.evaluate(() => (window as any).__parsa?.renderer?.setAnimationLoop(null)); // frozen test world: no frames behind the screenshots
   const err = await page.evaluate(() => (window as any).__parsa.error); if (err) throw new Error(err);
   for (const s of run) {
     await page.evaluate(([d, h, w]) => { const p = (window as any).__parsa; p.setTime(d, h); p.setWeather(w); }, [s.day, s.hour, s.w] as [number, number, string]);
