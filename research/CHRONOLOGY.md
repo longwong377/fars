@@ -44,3 +44,53 @@ Generated from `src/data/chronology.json` by `tools/chrono_to_md.py`. The JSON i
 
 ## People filter
 - Named NPCs must be attested around Xerxes yrs 15–20 (Treasury tablets) or be long-tenured. Darius-era Fortification Archive individuals are allowed only as tier C, and only if their life plausibly spans to 467.
+
+## Settlement and plain (Phases 6–7)
+Generated from `src/data/settlement.json` and `src/data/plain.json` (research/SETTLEMENT.md, research/PLAIN.md). Tier = the lower of existence and position. `open` = not placed pending a decision.
+
+| id | Feature | Date | Present 467 | Tier | Sources | File |
+|---|---|---|---|---|---|---|
+| tol_ajori_gate | Tol-e Ajori gate (Bagh-e Firuzi) | c. 539-518 BCE (Cyrus/Cambyses), before the Terrace | yes | C | TOLAJORI2017; AJORI-BRICK2018; AJORI2013; DASHTESTAN2021 | settlement.json |
+| zone_bagh_e_firuzi | Bagh-e Firuzi palace-and-garden zone | Achaemenid (from c. 539) | yes | C | GONDET2009; DASHTESTAN2021; AJORI2013 | settlement.json |
+| zone_persepolis_west | Persepolis West (Sumner's Firuzi mounds; lower town) | Achaemenid and post-Achaemenid | yes | C | PW2017; GONDET2009; DASHTESTAN2021; SUMNER1986; PLEIADES-FARS | settlement.json |
+| pw_area_a | Persepolis West Area A (strong geomagnetic anomalies) | Achaemenid?/post-Achaemenid | yes | C | PW2017; OVERTURE-2026 | settlement.json |
+| pw_area_b_craft | Persepolis West Area B craft zone: kiln, bone pits, pigment workshop | possible Achaemenid | yes | B | PW2017; PW-PIGMENT2021 | settlement.json |
+| pw_area_c_garden | Persepolis West Area C: garden (ditch grid + fence wall) | Achaemenid? | yes | C | PW2017; DASHTESTAN2021 | settlement.json |
+| north_official_complex | ~1 ha building N of the "Frataraka" complex | Achaemenid | yes | C | GONDET2018 | settlement.json |
+| frataraka_complex | "Frataraka" complex (pedestal temple) | post-Achaemenid (3rd-2nd c. BCE?) | no | B | GONDET2018; DASHTESTAN2021 | settlement.json |
+| takht_e_rustam | Takht-e Rustam (unfinished stepped platform) | early Achaemenid (c. 530-522?) | yes | C | LIVIUS-TR; PLEIADES-FARS | settlement.json |
+| zone_dasht_e_gohar | Dasht-e Gohar palace-and-garden zone | Achaemenid | yes | C | GONDET2009; PLEIADES-FARS | settlement.json |
+| canal_kuh_e_rahmat | Kuh-e Rahmat canal (Pulvar to Persepolis) | Achaemenid (probable) | yes | C | MAYS2010; BOUCHARLAT2012; KURHYDRO2024 | settlement.json |
+| zone_lower_town_south | Lower town S/SW of the Terrace (Matezziš?) | Achaemenid | yes | C | DASHTESTAN2021; GONDET2009; PEOPLE-R | settlement.json |
+| road_naqsh_e_rustam | Road Terrace - Naqsh-e Rajab gap - Takht-e Rustam - Naqsh-e Rustam | Achaemenid (C) | yes | C | LIVIUS-TR | settlement.json |
+| road_pasargadae | Road Persepolis - Pulvar valley - Sivand - Tang-e Bulaghi - Pasargadae | Achaemenid (C) | yes | C | PLEIADES-FARS; BOUCHARLAT2012 | settlement.json |
+| road_royal_west | Royal road toward Susa (leaves the plain W/NW) | Achaemenid | yes | C | ROYALROAD-GIS; SUMNER1986 | settlement.json |
+| road_south_tirazzish | Road S across the plain to the Kur crossing near Tukrash? and on to Tirazziš (Shiraz) | Achaemenid (C) | yes | C | PLEIADES-FARS; SUMNER1986 | settlement.json |
+| waystation_kur_west | Way-station at the Kur crossing (royal road) | Achaemenid (C) | yes | C | ROYALROAD-GIS | settlement.json |
+| akhor_rostam_niches | Akhor Rostam rock-cut burial niches | Achaemenid? / Sasanian? | yes | C | IR-ARCH2; PLEIADES-FARS | settlement.json |
+| spring_cemetery | "Spring Cemetery" near Persepolis | late 4th c. BCE or later | no | B | IR-ARCH2 | settlement.json |
+| private_rock_tombs | Rock-cut tombs of private people near Persepolis (Herzfeld) | undated | open | C | IR-ARCH2 | settlement.json |
+| river_pulvar | Pulvar (Sivand; Araxes? of the Greeks) | natural | yes | C | PLEIADES-FARS; KOR-HSJ2023; WMO-CLINO | plain.json |
+| river_kur | Kur (Kor; Cyrus/Araxes?) | natural | yes | C | PLEIADES-FARS; KOR-HSJ2023; WMO-CLINO | plain.json |
+| dam_sang_e_dokhtar | Sang-i Dokhtar dam | Achaemenid | yes | B | PLEIADES-FARS; KURHYDRO2024; BOUCHARLAT2012 | plain.json |
+| bard_burideh | Bard-e Burideh (I settlement; II dam) | Achaemenid | yes | B | PLEIADES-FARS; KURHYDRO2024 | plain.json |
+| village_masumabad_west | Masumabad West | Achaemenid | yes | C | PLEIADES-FARS; SUMNER1986 | plain.json |
+| village_saidun | Saidun | Achaemenid | yes | C | PLEIADES-FARS; SUMNER1986 | plain.json |
+| village_tukrash | Tukrash? (Achaemenid buildings and embankments by the Kur, 20 km S) | Achaemenid | yes | C | PLEIADES-FARS; SUMNER1986 | plain.json |
+| village_rakkan | Mansurabad East / Rakkan? (Sumner site R) | Achaemenid | yes | C | PLEIADES-FARS; SUMNER1986 | plain.json |
+| quarry_sivand | Sivand quarry | Achaemenid | yes | B | PLEIADES-FARS | plain.json |
+| quarry_majdabad | Majdabad quarry | Achaemenid | yes | B | PLEIADES-FARS | plain.json |
+| qadamgah | Qadamgah (rock-cut site) | Achaemenid? | yes | B | PLEIADES-FARS | plain.json |
+| nr_darius_tomb | Tomb of Darius I, Naqsh-e Rustam | c. 500-486 BCE | yes | B | LIVIUS-NR; OVERTURE-2026 | plain.json |
+| nr_xerxes_tomb | Tomb attributed to Xerxes (ENE of Darius I) | c. 486-465 BCE? | open | C | LIVIUS-NR; WP-NR | plain.json |
+| nr_kaba | Ka'ba-ye Zardosht | Darius I or Xerxes I | yes | C | LIVIUS-NR; WP-NR; OVERTURE-2026 | plain.json |
+| nr_elamite_relief | Neo-Elamite rock relief (intact) | Neo-Elamite | yes | B | ALVAREZMON | plain.json |
+| istakhr | Istakhr | Sasanian-Islamic | no | B | ISTAKHR2018; PLEIADES-FARS; OVERTURE-2026 | plain.json |
+| naqsh_e_rajab | Naqsh-e Rajab (Sasanian reliefs) | Sasanian / later | no | B | PLEIADES-FARS | plain.json |
+| darre_ye_barre | Darre-ye Barre (temple, Roman/Late Antique) | Sasanian / later | no | B | PLEIADES-FARS | plain.json |
+| hajjiabad | Hajjiabad (temple, Roman) | Sasanian / later | no | B | PLEIADES-FARS | plain.json |
+| maqsudabad | Maqsudabad (temple, Roman/LA) | Sasanian / later | no | B | PLEIADES-FARS | plain.json |
+| kuh_i_ayyub | Kuh-i Ayyub (temple, Roman/LA) | Sasanian / later | no | B | PLEIADES-FARS | plain.json |
+| kuh_i_shahrak | Kuh-i Shahrak (temple, Roman/LA) | Sasanian / later | no | B | PLEIADES-FARS | plain.json |
+| mountain_kuh_e_rahmat | Kuh-e Rahmat | natural | yes | B | OVERTURE-2026; COP-DEM | plain.json |
+| mountain_kuh_e_hossein | Kuh-e Hossein (Husain Kuh), the Naqsh-e Rustam mountain | natural | yes | B | WP-NR; COP-DEM | plain.json |

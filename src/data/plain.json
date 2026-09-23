@@ -1,0 +1,4226 @@
+{
+ "_meta": {
+  "phase": "7 (plain and horizon)",
+  "year_bce": 467,
+  "frame": "Persepolis grid (x grid-east, y grid-north, metres), origin Apadana OSM centroid 29.9351174N 52.8894969E, grid north 341 deg true. xy from pyproj tmerc + rotate (tools/osm_to_grid.py convention; the local approximation in src/core/geo.ts differs by <2 m at 6 km and ~80 m at 40 km).",
+  "tiers": "tier = lowest of existence and position; every scholarly source was seen only as a web-search extract (BLOCKERS B6), so existence is capped at B; positions are C unless a dataset coordinate exists.",
+  "fields": "id, kind, name, tier, src (keys in sources.json), note, date_range, present_467 (true / false / null = not placed), xy or polygon or polyline (grid m), latlon, unc_m (1-sigma position uncertainty, m)",
+  "layout_warning": "River courses are modern (C for 467); flows, crop heights and field layout are reconstruction (C). Village points come from the Barrington Atlas (map-scale, accuracy up to 10 km).",
+  "density": {
+   "plain_population_max": 44000,
+   "plain_settled_area_ha": 675,
+   "persons_per_ha_derived": 65.2,
+   "town_and_palace_zone_pop_court_absent": [
+    3000,
+    6000
+   ],
+   "src": "SUMNER1986;PEOPLE-R",
+   "tier": "C (derived)"
+  },
+  "garden_planting": {
+   "trees": [
+    "plane (Platanus)",
+    "cypress",
+    "pomegranate (Punica)",
+    "olive (Olea)",
+    "fig",
+    "apple",
+    "pear",
+    "mulberry",
+    "grape vine"
+   ],
+   "src": "SAEIDI2021 via research/_climate_C.md (pollen: Olea, Punica, Platanus, cypress with Achaemenid arboriculture, B); IR-FOODAG (PF fruits, B)",
+   "layout": "rectilinear beds divided by stone-lined or earthen channels, by analogy with Pasargadae (B analogy, C here)"
+  },
+  "not_placed": [
+   "storehouses (PF stores exist; no excavated store outside the Terrace)",
+   "stables (horse rations in PF: title-only lead Potts 2023 \"Pain et vin\"; no stable excavated)",
+   "garrison outside the Terrace (none evidenced)",
+   "qanats (no archaeologically dated Achaemenid qanat; QANAT-WH2018) - wells and river canals only"
+  ],
+  "months": [
+   "Jan",
+   "Feb",
+   "Mar",
+   "Apr",
+   "May",
+   "Jun",
+   "Jul",
+   "Aug",
+   "Sep",
+   "Oct",
+   "Nov",
+   "Dec"
+  ]
+ },
+ "crops": {
+  "barley": {
+   "sow": [
+    "Nov"
+   ],
+   "harvest": [
+    "May",
+    "Jun"
+   ],
+   "height_m": {
+    "Jan": 0.1,
+    "Feb": 0.15,
+    "Mar": 0.3,
+    "Apr": 0.6,
+    "May": 0.85,
+    "Jun": 0.0,
+    "Jul": 0,
+    "Aug": 0,
+    "Sep": 0,
+    "Oct": 0,
+    "Nov": 0.02,
+    "Dec": 0.05
+   },
+   "tier": "B (calendar: IR-FOODAG winter barley sown Nov, harvested May-Jul); C (heights, NS)",
+   "note": "staple grain of the PF ration system (B); stubble grazed Jun-Oct"
+  },
+  "wheat": {
+   "sow": [
+    "Nov",
+    "Dec"
+   ],
+   "harvest": [
+    "Jun",
+    "Jul"
+   ],
+   "height_m": {
+    "Jan": 0.1,
+    "Feb": 0.15,
+    "Mar": 0.3,
+    "Apr": 0.6,
+    "May": 1.0,
+    "Jun": 1.1,
+    "Jul": 0.0,
+    "Aug": 0,
+    "Sep": 0,
+    "Oct": 0,
+    "Nov": 0.02,
+    "Dec": 0.05
+   },
+   "tier": "B (normal sowing 11 Nov-1 Dec in Fars: FARS-WHEAT); C (heights, NS: landraces 1.0-1.3 m)",
+   "note": "probably grown (IR-PET \"other grains ... probably wheat\", B)"
+  },
+  "emmer_spelt": {
+   "sow": [
+    "Nov"
+   ],
+   "harvest": [
+    "Jun",
+    "Jul"
+   ],
+   "height_m": {
+    "Jan": 0.1,
+    "Feb": 0.15,
+    "Mar": 0.3,
+    "Apr": 0.6,
+    "May": 1.0,
+    "Jun": 1.1,
+    "Jul": 0.0,
+    "Aug": 0,
+    "Sep": 0,
+    "Oct": 0,
+    "Nov": 0.02,
+    "Dec": 0.05
+   },
+   "tier": "C",
+   "note": "spelt/emmer \"less frequently sown\" in the empire (IR-FOODAG, B)"
+  },
+  "sesame": {
+   "sow": [
+    "May"
+   ],
+   "harvest": [
+    "Sep"
+   ],
+   "height_m": {
+    "Jan": 0,
+    "Feb": 0,
+    "Mar": 0,
+    "Apr": 0,
+    "May": 0.05,
+    "Jun": 0.4,
+    "Jul": 0.9,
+    "Aug": 1.2,
+    "Sep": 1.2,
+    "Oct": 0,
+    "Nov": 0,
+    "Dec": 0
+   },
+   "tier": "B (in PF: IR-FOODAG); C (calendar)",
+   "note": "summer crop needing irrigation; Herodotus 3.117 pairs summer irrigation with millet and sesame (HDT, B analogy)"
+  },
+  "vines": {
+   "leaf_out": "Apr",
+   "vintage": [
+    "Sep",
+    "Oct"
+   ],
+   "height_m": 1.5,
+   "tier": "B (wine in PF); C (calendar)",
+   "note": "wine of several kinds in PF (IR-PET, B)"
+  },
+  "fruit_trees": {
+   "species": [
+    "fig",
+    "apple",
+    "pear",
+    "mulberry",
+    "pomegranate"
+   ],
+   "blossom": [
+    "Mar",
+    "Apr"
+   ],
+   "fruit": [
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct"
+   ],
+   "tier": "B (species in PF: IR-FOODAG; pollen Punica/Olea: SAEIDI2021); C (calendar)"
+  },
+  "dates": {
+   "grown_on_plain": false,
+   "tier": "C",
+   "note": "dates are PF commodities (B) but the 1,600 m plain has 44 frost days/yr (WMO): dates arrive by pack train from the lowlands (C)"
+  },
+  "pistachio_almond": {
+   "wild": true,
+   "tier": "B (pollen: Djamali 2009 via _climate_C.md)",
+   "note": "Pistacia-Amygdalus scrub on slopes; nuts gathered Aug-Sep (C)"
+  },
+  "rice": {
+   "grown": false,
+   "tier": "C",
+   "note": "Q-013: not grown"
+  }
+ },
+ "features": [
+  {
+   "id": "river_pulvar",
+   "kind": "river",
+   "name": "Pulvar (Sivand; Araxes? of the Greeks)",
+   "tier": "C",
+   "src": "PLEIADES-FARS;KOR-HSJ2023;WMO-CLINO",
+   "note": "Course = modern OSM course (Pleiades 922701, FT) clipped to 42 km; Holocene course changes are known upstream (LANDSCAPE.md), so the 467 course is C. Today intermittent (dammed at Sivand, modern). Flow table is reconstruction (C): winter rain Nov-Apr (WMO Shiraz normals, A) plus Zagros snowmelt Mar-May; the Kur system \"is never completely dry because it is fed by the snowmelt of Zagros\" (KOR-HSJ2023, B). Wetter than today c. 500 BCE (Maharlou, B) so perennial in 467 (C).",
+   "date_range": "natural",
+   "present_467": true,
+   "polylines": [
+    [
+     [
+      37523,
+      18560
+     ],
+     [
+      37302,
+      18118
+     ],
+     [
+      37069,
+      17734
+     ],
+     [
+      36722,
+      17466
+     ],
+     [
+      36380,
+      17155
+     ],
+     [
+      36071,
+      16899
+     ],
+     [
+      35772,
+      16562
+     ],
+     [
+      35484,
+      16220
+     ],
+     [
+      35039,
+      16235
+     ],
+     [
+      34654,
+      16249
+     ],
+     [
+      34212,
+      16412
+     ],
+     [
+      33787,
+      16380
+     ],
+     [
+      33403,
+      16477
+     ],
+     [
+      33036,
+      16535
+     ],
+     [
+      32682,
+      16543
+     ],
+     [
+      32359,
+      16203
+     ],
+     [
+      32477,
+      15762
+     ],
+     [
+      32036,
+      15628
+     ],
+     [
+      31638,
+      15497
+     ],
+     [
+      31243,
+      15245
+     ],
+     [
+      30916,
+      14925
+     ],
+     [
+      30487,
+      14746
+     ],
+     [
+      30085,
+      14485
+     ],
+     [
+      29697,
+      14409
+     ],
+     [
+      29259,
+      14599
+     ],
+     [
+      28783,
+      14692
+     ],
+     [
+      28500,
+      15056
+     ],
+     [
+      28281,
+      15434
+     ],
+     [
+      27838,
+      15466
+     ],
+     [
+      27435,
+      15585
+     ],
+     [
+      26975,
+      15716
+     ],
+     [
+      26580,
+      15934
+     ],
+     [
+      26105,
+      15890
+     ],
+     [
+      25647,
+      15956
+     ],
+     [
+      25458,
+      15582
+     ],
+     [
+      24985,
+      15641
+     ]
+    ],
+    [
+     [
+      24430,
+      14803
+     ],
+     [
+      23996,
+      14616
+     ],
+     [
+      23634,
+      14788
+     ],
+     [
+      23375,
+      14466
+     ],
+     [
+      22996,
+      14252
+     ],
+     [
+      22607,
+      14002
+     ],
+     [
+      22402,
+      13697
+     ],
+     [
+      22155,
+      13331
+     ],
+     [
+      22310,
+      12966
+     ],
+     [
+      22485,
+      12578
+     ],
+     [
+      22522,
+      12323
+     ],
+     [
+      22431,
+      12058
+     ],
+     [
+      22485,
+      11630
+     ],
+     [
+      22051,
+      11759
+     ],
+     [
+      21589,
+      11819
+     ],
+     [
+      21146,
+      11657
+     ],
+     [
+      20763,
+      11680
+     ],
+     [
+      20389,
+      11599
+     ],
+     [
+      19935,
+      11506
+     ],
+     [
+      19493,
+      11527
+     ],
+     [
+      19055,
+      11608
+     ],
+     [
+      18663,
+      11372
+     ],
+     [
+      18558,
+      11525
+     ],
+     [
+      18131,
+      11588
+     ],
+     [
+      17841,
+      11910
+     ],
+     [
+      17505,
+      12104
+     ],
+     [
+      17261,
+      12372
+     ]
+    ],
+    [
+     [
+      17223,
+      12423
+     ],
+     [
+      17230,
+      12840
+     ],
+     [
+      17041,
+      13247
+     ],
+     [
+      16587,
+      13313
+     ],
+     [
+      16442,
+      13611
+     ],
+     [
+      16272,
+      14036
+     ],
+     [
+      15825,
+      14206
+     ],
+     [
+      15396,
+      14245
+     ],
+     [
+      14984,
+      14347
+     ],
+     [
+      14744,
+      14767
+     ],
+     [
+      14313,
+      14764
+     ],
+     [
+      14189,
+      15242
+     ],
+     [
+      13920,
+      15630
+     ],
+     [
+      13603,
+      16002
+     ],
+     [
+      13315,
+      16411
+     ],
+     [
+      13021,
+      16790
+     ],
+     [
+      12538,
+      16897
+     ],
+     [
+      12056,
+      16959
+     ],
+     [
+      11689,
+      17290
+     ],
+     [
+      11249,
+      17352
+     ],
+     [
+      10926,
+      17696
+     ],
+     [
+      10476,
+      17658
+     ],
+     [
+      10091,
+      17685
+     ],
+     [
+      9662,
+      17566
+     ],
+     [
+      9321,
+      17427
+     ],
+     [
+      9037,
+      17043
+     ],
+     [
+      8657,
+      16775
+     ],
+     [
+      8424,
+      16358
+     ],
+     [
+      8582,
+      15926
+     ],
+     [
+      8127,
+      15883
+     ],
+     [
+      7775,
+      15622
+     ],
+     [
+      7549,
+      15177
+     ],
+     [
+      7454,
+      14696
+     ],
+     [
+      7172,
+      14351
+     ],
+     [
+      6972,
+      13966
+     ],
+     [
+      6928,
+      13500
+     ],
+     [
+      6789,
+      13064
+     ],
+     [
+      6844,
+      12613
+     ],
+     [
+      7081,
+      12186
+     ],
+     [
+      7055,
+      11699
+     ],
+     [
+      7218,
+      11259
+     ],
+     [
+      7635,
+      11008
+     ]
+    ],
+    [
+     [
+      7550,
+      10697
+     ],
+     [
+      7834,
+      10323
+     ],
+     [
+      8281,
+      10139
+     ],
+     [
+      8499,
+      9767
+     ],
+     [
+      8900,
+      9499
+     ],
+     [
+      8933,
+      9006
+     ],
+     [
+      9245,
+      8651
+     ],
+     [
+      9416,
+      8197
+     ],
+     [
+      9450,
+      7757
+     ],
+     [
+      9845,
+      7450
+     ],
+     [
+      10131,
+      7057
+     ],
+     [
+      10333,
+      6600
+     ],
+     [
+      10506,
+      6153
+     ],
+     [
+      10385,
+      5677
+     ],
+     [
+      10660,
+      5260
+     ],
+     [
+      10934,
+      4842
+     ],
+     [
+      11034,
+      4395
+     ],
+     [
+      11261,
+      4041
+     ],
+     [
+      11270,
+      3543
+     ],
+     [
+      11300,
+      3045
+     ],
+     [
+      11251,
+      2550
+     ],
+     [
+      11255,
+      2074
+     ],
+     [
+      10828,
+      2027
+     ],
+     [
+      10443,
+      2336
+     ],
+     [
+      10161,
+      2049
+     ],
+     [
+      9766,
+      1971
+     ],
+     [
+      9550,
+      2084
+     ],
+     [
+      9235,
+      1927
+     ],
+     [
+      8756,
+      1977
+     ],
+     [
+      8347,
+      2020
+     ],
+     [
+      7968,
+      1937
+     ],
+     [
+      7554,
+      1714
+     ],
+     [
+      7239,
+      1909
+     ],
+     [
+      6795,
+      1989
+     ],
+     [
+      6336,
+      1886
+     ],
+     [
+      6067,
+      1909
+     ],
+     [
+      5683,
+      2168
+     ],
+     [
+      5488,
+      2516
+     ],
+     [
+      5155,
+      2760
+     ],
+     [
+      4821,
+      3065
+     ],
+     [
+      4446,
+      3351
+     ],
+     [
+      4346,
+      3800
+     ],
+     [
+      4077,
+      4210
+     ],
+     [
+      3678,
+      4508
+     ],
+     [
+      3223,
+      4686
+     ],
+     [
+      2745,
+      4611
+     ],
+     [
+      2578,
+      4206
+     ],
+     [
+      2483,
+      3808
+     ],
+     [
+      2029,
+      3920
+     ],
+     [
+      1760,
+      3766
+     ],
+     [
+      1391,
+      3806
+     ],
+     [
+      965,
+      3815
+     ],
+     [
+      559,
+      3770
+     ],
+     [
+      105,
+      3795
+     ],
+     [
+      -310,
+      3633
+     ],
+     [
+      -637,
+      3330
+     ],
+     [
+      -1022,
+      3229
+     ],
+     [
+      -1409,
+      3090
+     ],
+     [
+      -1653,
+      2921
+     ],
+     [
+      -2039,
+      2780
+     ],
+     [
+      -2532,
+      2727
+     ],
+     [
+      -2998,
+      2580
+     ],
+     [
+      -3404,
+      2413
+     ],
+     [
+      -3832,
+      2292
+     ],
+     [
+      -4210,
+      2441
+     ],
+     [
+      -4642,
+      2530
+     ],
+     [
+      -5052,
+      2787
+     ],
+     [
+      -5524,
+      2890
+     ],
+     [
+      -5958,
+      2738
+     ],
+     [
+      -6326,
+      2543
+     ],
+     [
+      -6746,
+      2429
+     ],
+     [
+      -7150,
+      2222
+     ],
+     [
+      -7450,
+      2337
+     ],
+     [
+      -7928,
+      2221
+     ],
+     [
+      -8362,
+      2347
+     ],
+     [
+      -8835,
+      2472
+     ],
+     [
+      -9175,
+      2341
+     ],
+     [
+      -9600,
+      2282
+     ],
+     [
+      -10072,
+      2146
+     ],
+     [
+      -10461,
+      1894
+     ],
+     [
+      -10669,
+      1512
+     ],
+     [
+      -10938,
+      1167
+     ],
+     [
+      -11336,
+      983
+     ],
+     [
+      -11581,
+      723
+     ],
+     [
+      -11295,
+      340
+     ],
+     [
+      -11591,
+      26
+     ],
+     [
+      -11761,
+      -282
+     ],
+     [
+      -11739,
+      -774
+     ],
+     [
+      -11715,
+      -1254
+     ],
+     [
+      -11609,
+      -1726
+     ],
+     [
+      -11759,
+      -2029
+     ],
+     [
+      -12201,
+      -2191
+     ],
+     [
+      -12640,
+      -2380
+     ],
+     [
+      -12738,
+      -2668
+     ],
+     [
+      -13072,
+      -2927
+     ],
+     [
+      -13436,
+      -3203
+     ],
+     [
+      -13717,
+      -3408
+     ],
+     [
+      -13608,
+      -3696
+     ],
+     [
+      -13411,
+      -4026
+     ],
+     [
+      -13631,
+      -4320
+     ],
+     [
+      -13414,
+      -4571
+     ],
+     [
+      -13442,
+      -4910
+     ],
+     [
+      -13637,
+      -4859
+     ]
+    ]
+   ],
+   "flow_by_month": [
+    {
+     "month": "Jan",
+     "flow_rel": 0.45,
+     "width_m": 11.6,
+     "depth_m": 0.7,
+     "state": "moderate"
+    },
+    {
+     "month": "Feb",
+     "flow_rel": 0.6,
+     "width_m": 13.3,
+     "depth_m": 0.84,
+     "state": "moderate"
+    },
+    {
+     "month": "Mar",
+     "flow_rel": 0.9,
+     "width_m": 16.8,
+     "depth_m": 1.11,
+     "state": "high, turbid"
+    },
+    {
+     "month": "Apr",
+     "flow_rel": 1.0,
+     "width_m": 18.0,
+     "depth_m": 1.2,
+     "state": "high, turbid"
+    },
+    {
+     "month": "May",
+     "flow_rel": 0.75,
+     "width_m": 15.1,
+     "depth_m": 0.97,
+     "state": "moderate"
+    },
+    {
+     "month": "Jun",
+     "flow_rel": 0.4,
+     "width_m": 11.0,
+     "depth_m": 0.66,
+     "state": "moderate"
+    },
+    {
+     "month": "Jul",
+     "flow_rel": 0.2,
+     "width_m": 8.6,
+     "depth_m": 0.48,
+     "state": "low, clear"
+    },
+    {
+     "month": "Aug",
+     "flow_rel": 0.12,
+     "width_m": 7.7,
+     "depth_m": 0.41,
+     "state": "very low, pools and riffles"
+    },
+    {
+     "month": "Sep",
+     "flow_rel": 0.1,
+     "width_m": 7.5,
+     "depth_m": 0.39,
+     "state": "very low, pools and riffles"
+    },
+    {
+     "month": "Oct",
+     "flow_rel": 0.12,
+     "width_m": 7.7,
+     "depth_m": 0.41,
+     "state": "very low, pools and riffles"
+    },
+    {
+     "month": "Nov",
+     "flow_rel": 0.25,
+     "width_m": 9.2,
+     "depth_m": 0.53,
+     "state": "low, clear"
+    },
+    {
+     "month": "Dec",
+     "flow_rel": 0.35,
+     "width_m": 10.4,
+     "depth_m": 0.61,
+     "state": "low, clear"
+    }
+   ],
+   "dry_season_flow": "perennial trickle (C)"
+  },
+  {
+   "id": "river_kur",
+   "kind": "river",
+   "name": "Kur (Kor; Cyrus/Araxes?)",
+   "tier": "C",
+   "src": "PLEIADES-FARS;KOR-HSJ2023;WMO-CLINO",
+   "note": "Modern OSM course (Pleiades 922672, FT) clipped to 42 km; nearest approach 13.7 km W of the Apadana. Basin ~9,700 km2, mean basin rain 344 mm (KOR-HSJ2023, B). Modern dams (Doroodzan, Mulla Sadra) and the 10th-c. CE weir are blocked. Flow table C.",
+   "date_range": "natural",
+   "present_467": true,
+   "polylines": [
+    [
+     [
+      -25267,
+      33137
+     ],
+     [
+      -24850,
+      33406
+     ],
+     [
+      -24471,
+      33512
+     ],
+     [
+      -24239,
+      33279
+     ],
+     [
+      -23868,
+      33516
+     ],
+     [
+      -23645,
+      33602
+     ],
+     [
+      -23741,
+      33925
+     ],
+     [
+      -23285,
+      33830
+     ],
+     [
+      -22807,
+      33934
+     ],
+     [
+      -22421,
+      34194
+     ],
+     [
+      -22011,
+      34428
+     ],
+     [
+      -21521,
+      34453
+     ],
+     [
+      -21119,
+      34346
+     ],
+     [
+      -20668,
+      34303
+     ],
+     [
+      -20216,
+      34147
+     ],
+     [
+      -19729,
+      34060
+     ],
+     [
+      -19282,
+      34163
+     ],
+     [
+      -19099,
+      33808
+     ],
+     [
+      -19398,
+      33486
+     ],
+     [
+      -19585,
+      33277
+     ],
+     [
+      -19376,
+      32855
+     ],
+     [
+      -19508,
+      32447
+     ],
+     [
+      -19356,
+      32045
+     ],
+     [
+      -19402,
+      31644
+     ],
+     [
+      -19437,
+      31181
+     ],
+     [
+      -18972,
+      31048
+     ],
+     [
+      -18517,
+      31178
+     ],
+     [
+      -18585,
+      30758
+     ],
+     [
+      -18191,
+      30500
+     ],
+     [
+      -18115,
+      30153
+     ],
+     [
+      -17729,
+      30019
+     ],
+     [
+      -17489,
+      30446
+     ],
+     [
+      -17169,
+      30379
+     ],
+     [
+      -16794,
+      30372
+     ],
+     [
+      -16735,
+      30020
+     ],
+     [
+      -16379,
+      29825
+     ],
+     [
+      -16017,
+      29997
+     ],
+     [
+      -15949,
+      29517
+     ],
+     [
+      -16076,
+      29048
+     ],
+     [
+      -15863,
+      28694
+     ],
+     [
+      -15925,
+      28215
+     ],
+     [
+      -15773,
+      27768
+     ],
+     [
+      -15488,
+      27389
+     ],
+     [
+      -15600,
+      26961
+     ],
+     [
+      -15186,
+      26743
+     ],
+     [
+      -15008,
+      26296
+     ],
+     [
+      -14659,
+      26020
+     ],
+     [
+      -14482,
+      25618
+     ],
+     [
+      -14498,
+      25365
+     ],
+     [
+      -14737,
+      25194
+     ],
+     [
+      -14277,
+      25208
+     ],
+     [
+      -14422,
+      24939
+     ],
+     [
+      -14269,
+      24609
+     ],
+     [
+      -13841,
+      24598
+     ],
+     [
+      -13735,
+      24176
+     ],
+     [
+      -13521,
+      23901
+     ],
+     [
+      -13994,
+      23958
+     ],
+     [
+      -14316,
+      23621
+     ],
+     [
+      -13958,
+      23359
+     ],
+     [
+      -13561,
+      23286
+     ],
+     [
+      -13524,
+      22856
+     ],
+     [
+      -13413,
+      22498
+     ],
+     [
+      -13771,
+      22170
+     ],
+     [
+      -13680,
+      21704
+     ],
+     [
+      -13684,
+      21278
+     ],
+     [
+      -13743,
+      20811
+     ],
+     [
+      -14035,
+      20408
+     ],
+     [
+      -13904,
+      19962
+     ],
+     [
+      -13785,
+      19486
+     ],
+     [
+      -13717,
+      19037
+     ],
+     [
+      -13704,
+      18651
+     ],
+     [
+      -13713,
+      18179
+     ],
+     [
+      -13426,
+      17817
+     ],
+     [
+      -13214,
+      17441
+     ],
+     [
+      -12853,
+      17105
+     ],
+     [
+      -12517,
+      16767
+     ],
+     [
+      -12702,
+      16415
+     ],
+     [
+      -12278,
+      16217
+     ],
+     [
+      -12216,
+      15742
+     ],
+     [
+      -11987,
+      15300
+     ],
+     [
+      -11632,
+      15512
+     ],
+     [
+      -11265,
+      15365
+     ],
+     [
+      -11620,
+      15059
+     ],
+     [
+      -12020,
+      14795
+     ],
+     [
+      -11788,
+      14389
+     ],
+     [
+      -11423,
+      14248
+     ],
+     [
+      -11280,
+      13819
+     ],
+     [
+      -11186,
+      13349
+     ],
+     [
+      -11300,
+      12871
+     ],
+     [
+      -11291,
+      12373
+     ],
+     [
+      -11170,
+      11888
+     ],
+     [
+      -11083,
+      11475
+     ],
+     [
+      -11348,
+      11106
+     ],
+     [
+      -11026,
+      10756
+     ],
+     [
+      -10819,
+      11157
+     ],
+     [
+      -10679,
+      11577
+     ],
+     [
+      -10442,
+      11190
+     ],
+     [
+      -10375,
+      10696
+     ],
+     [
+      -10413,
+      10209
+     ],
+     [
+      -10751,
+      9848
+     ],
+     [
+      -11224,
+      9746
+     ],
+     [
+      -11536,
+      10107
+     ],
+     [
+      -11843,
+      9984
+     ],
+     [
+      -11715,
+      9509
+     ],
+     [
+      -11340,
+      9190
+     ],
+     [
+      -10871,
+      9057
+     ],
+     [
+      -10745,
+      8645
+     ],
+     [
+      -11056,
+      8272
+     ],
+     [
+      -11519,
+      8124
+     ],
+     [
+      -11779,
+      8343
+     ],
+     [
+      -12116,
+      8368
+     ],
+     [
+      -12341,
+      7929
+     ],
+     [
+      -12228,
+      7526
+     ],
+     [
+      -12628,
+      7584
+     ],
+     [
+      -12565,
+      7198
+     ],
+     [
+      -12804,
+      6934
+     ],
+     [
+      -13285,
+      6891
+     ],
+     [
+      -13641,
+      6915
+     ],
+     [
+      -13520,
+      6456
+     ],
+     [
+      -13514,
+      6078
+     ],
+     [
+      -13797,
+      5673
+     ],
+     [
+      -14235,
+      5533
+     ],
+     [
+      -14616,
+      5503
+     ],
+     [
+      -14332,
+      5197
+     ],
+     [
+      -14522,
+      4835
+     ],
+     [
+      -14983,
+      4661
+     ],
+     [
+      -15441,
+      4504
+     ],
+     [
+      -15659,
+      4066
+     ],
+     [
+      -15667,
+      3576
+     ],
+     [
+      -16015,
+      3305
+     ],
+     [
+      -16403,
+      3528
+     ],
+     [
+      -16761,
+      3189
+     ],
+     [
+      -16524,
+      2925
+     ],
+     [
+      -16358,
+      2553
+     ],
+     [
+      -16071,
+      2223
+     ],
+     [
+      -15917,
+      1784
+     ],
+     [
+      -15488,
+      1551
+     ],
+     [
+      -15561,
+      1071
+     ],
+     [
+      -15945,
+      892
+     ],
+     [
+      -15604,
+      570
+     ],
+     [
+      -15130,
+      438
+     ],
+     [
+      -15041,
+      -13
+     ],
+     [
+      -14662,
+      -171
+     ],
+     [
+      -14624,
+      -622
+     ],
+     [
+      -14902,
+      -1008
+     ],
+     [
+      -14819,
+      -1450
+     ],
+     [
+      -14662,
+      -1877
+     ],
+     [
+      -14290,
+      -2118
+     ],
+     [
+      -14280,
+      -2600
+     ],
+     [
+      -14571,
+      -2876
+     ],
+     [
+      -14369,
+      -3304
+     ],
+     [
+      -14383,
+      -3801
+     ],
+     [
+      -14144,
+      -4059
+     ],
+     [
+      -13988,
+      -4337
+     ],
+     [
+      -14016,
+      -4825
+     ]
+    ],
+    [
+     [
+      -13977,
+      -4899
+     ],
+     [
+      -13714,
+      -5282
+     ],
+     [
+      -13277,
+      -5500
+     ],
+     [
+      -13019,
+      -5918
+     ],
+     [
+      -12696,
+      -6294
+     ],
+     [
+      -12697,
+      -6761
+     ],
+     [
+      -12581,
+      -7183
+     ],
+     [
+      -12320,
+      -7525
+     ],
+     [
+      -12358,
+      -7971
+     ],
+     [
+      -12263,
+      -8398
+     ],
+     [
+      -12307,
+      -8838
+     ],
+     [
+      -12272,
+      -9282
+     ],
+     [
+      -12322,
+      -9681
+     ],
+     [
+      -11881,
+      -9824
+     ],
+     [
+      -11784,
+      -10136
+     ],
+     [
+      -11628,
+      -10562
+     ],
+     [
+      -11568,
+      -11033
+     ],
+     [
+      -11887,
+      -11414
+     ],
+     [
+      -11984,
+      -11847
+     ],
+     [
+      -11536,
+      -12046
+     ],
+     [
+      -11413,
+      -12515
+     ],
+     [
+      -11014,
+      -12620
+     ],
+     [
+      -11002,
+      -13104
+     ],
+     [
+      -10801,
+      -13504
+     ],
+     [
+      -10327,
+      -13630
+     ],
+     [
+      -10092,
+      -14058
+     ],
+     [
+      -9884,
+      -14510
+     ],
+     [
+      -9801,
+      -15002
+     ],
+     [
+      -9707,
+      -15492
+     ],
+     [
+      -9674,
+      -15968
+     ],
+     [
+      -9811,
+      -16396
+     ],
+     [
+      -10139,
+      -16769
+     ],
+     [
+      -10230,
+      -17236
+     ],
+     [
+      -10302,
+      -17729
+     ],
+     [
+      -10297,
+      -18225
+     ],
+     [
+      -10004,
+      -18622
+     ],
+     [
+      -9712,
+      -19020
+     ],
+     [
+      -9567,
+      -19440
+     ],
+     [
+      -9468,
+      -19797
+     ],
+     [
+      -9306,
+      -20215
+     ],
+     [
+      -9746,
+      -20404
+     ],
+     [
+      -9914,
+      -20757
+     ],
+     [
+      -9516,
+      -21033
+     ],
+     [
+      -9056,
+      -21217
+     ],
+     [
+      -8608,
+      -21377
+     ],
+     [
+      -8140,
+      -21498
+     ],
+     [
+      -7821,
+      -21882
+     ],
+     [
+      -7651,
+      -22350
+     ],
+     [
+      -7469,
+      -22815
+     ],
+     [
+      -7363,
+      -23302
+     ],
+     [
+      -6976,
+      -23510
+     ],
+     [
+      -6483,
+      -23501
+     ],
+     [
+      -6190,
+      -23901
+     ],
+     [
+      -5767,
+      -24090
+     ],
+     [
+      -5525,
+      -24485
+     ],
+     [
+      -5448,
+      -24980
+     ],
+     [
+      -5458,
+      -25460
+     ],
+     [
+      -5637,
+      -25847
+     ],
+     [
+      -5386,
+      -26276
+     ],
+     [
+      -5258,
+      -26755
+     ],
+     [
+      -4995,
+      -27131
+     ],
+     [
+      -4574,
+      -27365
+     ],
+     [
+      -4261,
+      -27754
+     ],
+     [
+      -4175,
+      -28245
+     ],
+     [
+      -4131,
+      -28742
+     ],
+     [
+      -3863,
+      -29146
+     ],
+     [
+      -3792,
+      -29610
+     ],
+     [
+      -3859,
+      -30104
+     ],
+     [
+      -3656,
+      -30496
+     ],
+     [
+      -3256,
+      -30618
+     ],
+     [
+      -3246,
+      -31049
+     ],
+     [
+      -3096,
+      -31512
+     ],
+     [
+      -3147,
+      -31994
+     ],
+     [
+      -3145,
+      -32456
+     ],
+     [
+      -3482,
+      -32779
+     ],
+     [
+      -3438,
+      -33223
+     ],
+     [
+      -3098,
+      -33585
+     ],
+     [
+      -2699,
+      -33882
+     ],
+     [
+      -2265,
+      -33705
+     ],
+     [
+      -1861,
+      -33693
+     ],
+     [
+      -1686,
+      -34075
+     ],
+     [
+      -1222,
+      -33929
+     ],
+     [
+      -757,
+      -34044
+     ],
+     [
+      -317,
+      -34181
+     ],
+     [
+      163,
+      -34118
+     ],
+     [
+      505,
+      -34455
+     ],
+     [
+      856,
+      -34732
+     ],
+     [
+      1209,
+      -35081
+     ],
+     [
+      1601,
+      -35372
+     ],
+     [
+      2077,
+      -35520
+     ],
+     [
+      2546,
+      -35688
+     ],
+     [
+      3042,
+      -35744
+     ],
+     [
+      3537,
+      -35775
+     ],
+     [
+      4028,
+      -35859
+     ],
+     [
+      4476,
+      -35727
+     ],
+     [
+      4957,
+      -35814
+     ],
+     [
+      5392,
+      -35969
+     ],
+     [
+      5744,
+      -36307
+     ],
+     [
+      6197,
+      -36502
+     ],
+     [
+      6460,
+      -36892
+     ],
+     [
+      6801,
+      -37189
+     ],
+     [
+      7172,
+      -37505
+     ],
+     [
+      7648,
+      -37512
+     ],
+     [
+      7972,
+      -37872
+     ],
+     [
+      8188,
+      -38321
+     ],
+     [
+      8470,
+      -38734
+     ],
+     [
+      8841,
+      -39057
+     ],
+     [
+      9129,
+      -39462
+     ],
+     [
+      9427,
+      -39821
+     ],
+     [
+      9822,
+      -40119
+     ],
+     [
+      10211,
+      -40431
+     ]
+    ]
+   ],
+   "flow_by_month": [
+    {
+     "month": "Jan",
+     "flow_rel": 0.5,
+     "width_m": 23.6,
+     "depth_m": 1.12,
+     "state": "moderate"
+    },
+    {
+     "month": "Feb",
+     "flow_rel": 0.65,
+     "width_m": 27.0,
+     "depth_m": 1.33,
+     "state": "moderate"
+    },
+    {
+     "month": "Mar",
+     "flow_rel": 0.9,
+     "width_m": 32.7,
+     "depth_m": 1.67,
+     "state": "high, turbid"
+    },
+    {
+     "month": "Apr",
+     "flow_rel": 1.0,
+     "width_m": 35.0,
+     "depth_m": 1.8,
+     "state": "high, turbid"
+    },
+    {
+     "month": "May",
+     "flow_rel": 0.85,
+     "width_m": 31.6,
+     "depth_m": 1.6,
+     "state": "high, turbid"
+    },
+    {
+     "month": "Jun",
+     "flow_rel": 0.55,
+     "width_m": 24.8,
+     "depth_m": 1.19,
+     "state": "moderate"
+    },
+    {
+     "month": "Jul",
+     "flow_rel": 0.35,
+     "width_m": 20.2,
+     "depth_m": 0.92,
+     "state": "low, clear"
+    },
+    {
+     "month": "Aug",
+     "flow_rel": 0.25,
+     "width_m": 17.9,
+     "depth_m": 0.79,
+     "state": "low, clear"
+    },
+    {
+     "month": "Sep",
+     "flow_rel": 0.2,
+     "width_m": 16.8,
+     "depth_m": 0.72,
+     "state": "low, clear"
+    },
+    {
+     "month": "Oct",
+     "flow_rel": 0.22,
+     "width_m": 17.3,
+     "depth_m": 0.75,
+     "state": "low, clear"
+    },
+    {
+     "month": "Nov",
+     "flow_rel": 0.3,
+     "width_m": 19.1,
+     "depth_m": 0.85,
+     "state": "low, clear"
+    },
+    {
+     "month": "Dec",
+     "flow_rel": 0.4,
+     "width_m": 21.3,
+     "depth_m": 0.99,
+     "state": "moderate"
+    }
+   ]
+  },
+  {
+   "id": "confluence",
+   "kind": "river_node",
+   "name": "Pulvar-Kur confluence",
+   "tier": "C",
+   "src": "PLEIADES-FARS",
+   "note": "From the modern courses (C, +-1 km).",
+   "date_range": "natural",
+   "present_467": true,
+   "xy": [
+    -13500,
+    -4300
+   ],
+   "latlon": [
+    29.85874,
+    52.77188
+   ],
+   "unc_m": 1000
+  },
+  {
+   "id": "dam_sang_e_dokhtar",
+   "kind": "dam",
+   "name": "Sang-i Dokhtar dam",
+   "tier": "B",
+   "src": "PLEIADES-FARS;KURHYDRO2024;BOUCHARLAT2012",
+   "note": "Barrington \"dam\", Classical (550-330 BCE); refs Nicol 1970, Tilia 1978 88-90, Sumner 1986 (FT). Carved blocks with dovetail clamps (KURHYDRO2024, B). 51 km NW: outside the plain extent.",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "xy": [
+    -32695,
+    39181
+   ],
+   "latlon": [
+    30.1725,
+    52.43611
+   ],
+   "unc_m": 5000,
+   "in_extent": false
+  },
+  {
+   "id": "bard_burideh",
+   "kind": "dam_site",
+   "name": "Bard-e Burideh (I settlement; II dam)",
+   "tier": "B",
+   "src": "PLEIADES-FARS;KURHYDRO2024",
+   "note": "Bard Burideh 1: Barrington settlement, Classical (FT). Bard Burideh II: dam dated by carved blocks and dovetail clamps (KURHYDRO2024, B). 45 km NW: outside the extent.",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "xy": [
+    -27160,
+    35762
+   ],
+   "latlon": [
+    30.1598,
+    52.50205
+   ],
+   "unc_m": 5000,
+   "in_extent": false
+  },
+  {
+   "id": "irrigation_systems_sumner",
+   "kind": "canal_system",
+   "name": "Sumner's irrigation systems (2 probably, 1 possibly Achaemenid)",
+   "tier": "C",
+   "src": "SUMNER1986;BOUCHARLAT2012;SHOBAIRI2018",
+   "note": "Two irrigation systems \"probably of Achaemenid construction and a third that may also be\" (SUMNER1986 abstract, B); \"large earthen channel networks branch out from these rivers near the main Achaemenid sites\" (SHOBAIRI2018, SX, B). Positions not retrieved (Band-e Bas I/II, Rud-i Main aqueduct, Asiyab dam, Qondashloo canal are named but not located): the build uses a procedural rule - off-takes from the Pulvar and Kur every 2-4 km feeding canals 1-3 m wide along the contour (C).",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "procedural_rule": {
+    "offtake_spacing_km": [
+     2,
+     4
+    ],
+    "main_canal_width_m": [
+     1.5,
+     3
+    ],
+    "field_ditch_width_m": [
+     0.4,
+     0.8
+    ],
+    "tier": "C"
+   }
+  },
+  {
+   "id": "village_masumabad_west",
+   "kind": "village",
+   "name": "Masumabad West",
+   "tier": "C",
+   "src": "PLEIADES-FARS;SUMNER1986",
+   "note": "Barrington Atlas settlement, Classical (Achaemenid) period (FT). BA point; modern Masumabad village is 5 km N (Overture); accuracy 10 km. Population is a C estimate from Sumner's <=44,000 over 39 sites (mean ~1,100).",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "xy": [
+    -10222,
+    6663
+   ],
+   "latlon": [
+    29.96187,
+    52.76689
+   ],
+   "unc_m": 3000,
+   "pop_est": 600,
+   "pop_tier": "C"
+  },
+  {
+   "id": "village_saidun",
+   "kind": "village",
+   "name": "Saidun",
+   "tier": "C",
+   "src": "PLEIADES-FARS;SUMNER1986",
+   "note": "Barrington Atlas settlement, Classical (Achaemenid) period (FT). BA point, accuracy 10 km. Population is a C estimate from Sumner's <=44,000 over 39 sites (mean ~1,100).",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "xy": [
+    12848,
+    -286
+   ],
+   "latlon": [
+    29.97035,
+    53.01633
+   ],
+   "unc_m": 3000,
+   "pop_est": 600,
+   "pop_tier": "C"
+  },
+  {
+   "id": "village_tukrash",
+   "kind": "village",
+   "name": "Tukrash? (Achaemenid buildings and embankments by the Kur, 20 km S)",
+   "tier": "C",
+   "src": "PLEIADES-FARS;SUMNER1986",
+   "note": "Barrington Atlas settlement, Classical (Achaemenid) period (FT). Sumner 1986 9-10, 22-23 identifies it with the PF toponym Tukrash (RGTC Tikri(š)); the 10th-c. CE dam at this spot is blocked. Population is a C estimate from Sumner's <=44,000 over 39 sites (mean ~1,100).",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "xy": [
+    -10767,
+    -17046
+   ],
+   "latlon": [
+    29.75809,
+    52.84162
+   ],
+   "unc_m": 1500,
+   "pop_est": 1500,
+   "pop_tier": "C"
+  },
+  {
+   "id": "village_rakkan",
+   "kind": "village",
+   "name": "Mansurabad East / Rakkan? (Sumner site R)",
+   "tier": "C",
+   "src": "PLEIADES-FARS;SUMNER1986",
+   "note": "Barrington Atlas settlement, Classical (Achaemenid) period (FT). Sumner 1986 9-10, 23-26 (site R); BA accuracy 10 km. Population is a C estimate from Sumner's <=44,000 over 39 sites (mean ~1,100).",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "xy": [
+    -23137,
+    2608
+   ],
+   "latlon": [
+    29.8892,
+    52.65423
+   ],
+   "unc_m": 3000,
+   "pop_est": 1000,
+   "pop_tier": "C"
+  },
+  {
+   "id": "villages_unlocated",
+   "kind": "village_set",
+   "name": "Remaining Achaemenid habitation sites of Sumner's survey",
+   "tier": "C",
+   "src": "SUMNER1986;IR-ARCH2",
+   "note": "39 secure + 18 possible sites, 675 ha, <=44,000 people, a five-level hierarchy in districts around Persepolis; some districts emphasise field crops, others pastoralism (SUMNER1986, B). Iranica gives 100-150 Achaemenid settlements for the plain (IR-ARCH2, B; conflict Q-050). Coordinates not retrievable (Sumner full text blocked): placed procedurally on low mounds within 1.5 km of watercourses, >= 2 km apart (C).",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "procedural_rule": {
+    "count_secure": 39,
+    "count_possible": 18,
+    "located_here": 6,
+    "min_spacing_km": 2,
+    "max_dist_to_water_km": 1.5,
+    "pop_range": [
+     150,
+     3000
+    ],
+    "tier": "C"
+   }
+  },
+  {
+   "id": "quarry_sivand",
+   "kind": "quarry",
+   "name": "Sivand quarry",
+   "tier": "B",
+   "src": "PLEIADES-FARS",
+   "note": "Barrington quarry, Classical; ref Mostafavi 1978 11; accuracy 100 m (FT).",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "xy": [
+    8060,
+    14119
+   ],
+   "latlon": [
+    30.07921,
+    52.92087
+   ],
+   "unc_m": 100
+  },
+  {
+   "id": "quarry_majdabad",
+   "kind": "quarry",
+   "name": "Majdabad quarry",
+   "tier": "B",
+   "src": "PLEIADES-FARS",
+   "note": "Barrington quarry, Classical; refs Tilia 1978 88, Calmeyer 1990 (FT). Accuracy 10 km (C position). A plausible Terrace stone source (C).",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "xy": [
+    -20578,
+    -1261
+   ],
+   "latlon": [
+    29.86377,
+    52.69237
+   ],
+   "unc_m": 3000
+  },
+  {
+   "id": "qadamgah",
+   "kind": "sanctuary",
+   "name": "Qadamgah (rock-cut site)",
+   "tier": "B",
+   "src": "PLEIADES-FARS",
+   "note": "Barrington \"temple\", Classical; ref Kleiss 1993 (FT). 36 km SE.",
+   "date_range": "Achaemenid?",
+   "present_467": true,
+   "xy": [
+    13252,
+    -33474
+   ],
+   "latlon": [
+    29.6883,
+    53.13156
+   ],
+   "unc_m": 3000
+  },
+  {
+   "id": "nr_darius_tomb",
+   "kind": "royal_tomb",
+   "name": "Tomb of Darius I, Naqsh-e Rustam",
+   "tier": "B",
+   "src": "LIVIUS-NR;OVERTURE-2026",
+   "note": "Cut and in use in Darius' lifetime (Ctesias story, WP-NR, SX). Sealed.",
+   "date_range": "c. 500-486 BCE",
+   "present_467": true,
+   "xy": [
+    592,
+    6129
+   ],
+   "latlon": [
+    29.98913,
+    52.87462
+   ],
+   "unc_m": 20
+  },
+  {
+   "id": "nr_xerxes_tomb",
+   "kind": "royal_tomb",
+   "name": "Tomb attributed to Xerxes (ENE of Darius I)",
+   "tier": "C",
+   "src": "LIVIUS-NR;WP-NR",
+   "note": "Uninscribed; attribution by elimination (LIVIUS-NR, B). Kings prepared tombs in life (Darius: Ctesias via WP-NR, B), so Xerxes' tomb may be cut or being cut in 467 (C). chronology.json currently marks all later tombs absent: see Q-047.",
+   "date_range": "c. 486-465 BCE?",
+   "present_467": null,
+   "unc_m": 30
+  },
+  {
+   "id": "nr_kaba",
+   "kind": "tower",
+   "name": "Ka'ba-ye Zardosht",
+   "tier": "C",
+   "src": "LIVIUS-NR;WP-NR;OVERTURE-2026",
+   "note": "Dovetail clamps, black-on-white stone, doorway like the royal tombs: Darius I or Xerxes I (WP-NR, SX); Q-006.",
+   "date_range": "Darius I or Xerxes I",
+   "present_467": true,
+   "xy": [
+    543,
+    6017
+   ],
+   "latlon": [
+    29.98804,
+    52.87452
+   ],
+   "unc_m": 20
+  },
+  {
+   "id": "nr_elamite_relief",
+   "kind": "relief",
+   "name": "Neo-Elamite rock relief (intact)",
+   "tier": "B",
+   "src": "ALVAREZMON",
+   "note": "Later overcarved by Bahram II (blocked); in 467 the Elamite relief is whole.",
+   "date_range": "Neo-Elamite",
+   "present_467": true,
+   "xy": [
+    566,
+    6087
+   ],
+   "latlon": [
+    29.9887,
+    52.8745
+   ],
+   "unc_m": 50
+  },
+  {
+   "id": "istakhr",
+   "kind": "town",
+   "name": "Istakhr",
+   "tier": "B",
+   "src": "ISTAKHR2018;PLEIADES-FARS;OVERTURE-2026",
+   "note": "Barrington dates it Roman/Late Antique (Sasanian); the 2011-2016 Iranian-Italian mission found \"no evidence ... of the pre-Sasanian history of the site\" (SX, B). Herzfeld's \"Achaemenian\" phase at the mosque = reused material (C). ABSENT in 467 (walled town 1.4 x 0.7 km in OSM is later).",
+   "date_range": "Sasanian-Islamic",
+   "present_467": false,
+   "xy": [
+    3470,
+    4165
+   ],
+   "latlon": [
+    29.98083,
+    52.90944
+   ],
+   "unc_m": 200
+  },
+  {
+   "id": "naqsh_e_rajab",
+   "kind": "later_site",
+   "name": "Naqsh-e Rajab (Sasanian reliefs)",
+   "tier": "B",
+   "src": "PLEIADES-FARS",
+   "note": "Post-Achaemenid per Barrington/Pleiades periods (FT): ABSENT in 467 (blocklist later-sites).",
+   "date_range": "Sasanian / later",
+   "present_467": false,
+   "xy": [
+    908,
+    3365
+   ],
+   "latlon": [
+    29.96649,
+    52.88704
+   ],
+   "unc_m": 100
+  },
+  {
+   "id": "darre_ye_barre",
+   "kind": "later_site",
+   "name": "Darre-ye Barre (temple, Roman/Late Antique)",
+   "tier": "B",
+   "src": "PLEIADES-FARS",
+   "note": "Post-Achaemenid per Barrington/Pleiades periods (FT): ABSENT in 467 (blocklist later-sites).",
+   "date_range": "Sasanian / later",
+   "present_467": false,
+   "xy": [
+    3262,
+    1804
+   ],
+   "latlon": [
+    29.96008,
+    52.91536
+   ],
+   "unc_m": 3000
+  },
+  {
+   "id": "hajjiabad",
+   "kind": "later_site",
+   "name": "Hajjiabad (temple, Roman)",
+   "tier": "B",
+   "src": "PLEIADES-FARS",
+   "note": "Post-Achaemenid per Barrington/Pleiades periods (FT): ABSENT in 467 (blocklist later-sites).",
+   "date_range": "Sasanian / later",
+   "present_467": false,
+   "xy": [
+    4838,
+    3169
+   ],
+   "latlon": [
+    29.97635,
+    52.92621
+   ],
+   "unc_m": 3000
+  },
+  {
+   "id": "maqsudabad",
+   "kind": "later_site",
+   "name": "Maqsudabad (temple, Roman/LA)",
+   "tier": "B",
+   "src": "PLEIADES-FARS",
+   "note": "Post-Achaemenid per Barrington/Pleiades periods (FT): ABSENT in 467 (blocklist later-sites).",
+   "date_range": "Sasanian / later",
+   "present_467": false,
+   "xy": [
+    3737,
+    -16546
+   ],
+   "latlon": [
+    29.80493,
+    52.98177
+   ],
+   "unc_m": 3000
+  },
+  {
+   "id": "kuh_i_ayyub",
+   "kind": "later_site",
+   "name": "Kuh-i Ayyub (temple, Roman/LA)",
+   "tier": "B",
+   "src": "PLEIADES-FARS",
+   "note": "Post-Achaemenid per Barrington/Pleiades periods (FT): ABSENT in 467 (blocklist later-sites).",
+   "date_range": "Sasanian / later",
+   "present_467": false,
+   "xy": [
+    -18656,
+    11920
+   ],
+   "latlon": [
+    29.98181,
+    52.6665
+   ],
+   "unc_m": 3000
+  },
+  {
+   "id": "kuh_i_shahrak",
+   "kind": "later_site",
+   "name": "Kuh-i Shahrak (temple, Roman/LA)",
+   "tier": "B",
+   "src": "PLEIADES-FARS",
+   "note": "Post-Achaemenid per Barrington/Pleiades periods (FT): ABSENT in 467 (blocklist later-sites).",
+   "date_range": "Sasanian / later",
+   "present_467": false,
+   "xy": [
+    -24945,
+    33152
+   ],
+   "latlon": [
+    30.14414,
+    52.53267
+   ],
+   "unc_m": 3000
+  },
+  {
+   "id": "fields_irrigated_pulvar",
+   "kind": "field_zone",
+   "name": "Irrigated fields along the Pulvar",
+   "tier": "C",
+   "src": "SUMNER1986;SHOBAIRI2018;IR-FOODAG",
+   "note": "Band within 1.5 km of the modern Pulvar (C); mosaic barley 50 %, wheat/emmer 25 %, sesame 5 % (summer), fallow 20 % (C). Irregular small plots following canals, never the modern rectangular grid (blocklist modern-landscape).",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "polygon": [
+    [
+     -15000,
+     -5486
+    ],
+    [
+     -15131,
+     -2909
+    ],
+    [
+     -13230,
+     -1001
+    ],
+    [
+     -13247,
+     -75
+    ],
+    [
+     -12855,
+     1515
+    ],
+    [
+     -11398,
+     3066
+    ],
+    [
+     -10487,
+     3587
+    ],
+    [
+     -8917,
+     3970
+    ],
+    [
+     -7290,
+     3827
+    ],
+    [
+     -5615,
+     4387
+    ],
+    [
+     -3783,
+     3879
+    ],
+    [
+     -2349,
+     4264
+    ],
+    [
+     -288,
+     5242
+    ],
+    [
+     1417,
+     5306
+    ],
+    [
+     2075,
+     5953
+    ],
+    [
+     3148,
+     6184
+    ],
+    [
+     4224,
+     5905
+    ],
+    [
+     4975,
+     5412
+    ],
+    [
+     5787,
+     4210
+    ],
+    [
+     6636,
+     3480
+    ],
+    [
+     7547,
+     3376
+    ],
+    [
+     9730,
+     3656
+    ],
+    [
+     8989,
+     5128
+    ],
+    [
+     8824,
+     6304
+    ],
+    [
+     8129,
+     7046
+    ],
+    [
+     7471,
+     8675
+    ],
+    [
+     6639,
+     9416
+    ],
+    [
+     5868,
+     10605
+    ],
+    [
+     5289,
+     13043
+    ],
+    [
+     5581,
+     14526
+    ],
+    [
+     6506,
+     16422
+    ],
+    [
+     7588,
+     17828
+    ],
+    [
+     8755,
+     18816
+    ],
+    [
+     9856,
+     19167
+    ],
+    [
+     11100,
+     19186
+    ],
+    [
+     13760,
+     18095
+    ],
+    [
+     15413,
+     16108
+    ],
+    [
+     17324,
+     15106
+    ],
+    [
+     18250,
+     14134
+    ],
+    [
+     18698,
+     13139
+    ],
+    [
+     19818,
+     13013
+    ],
+    [
+     20663,
+     13175
+    ],
+    [
+     20834,
+     14042
+    ],
+    [
+     21672,
+     15175
+    ],
+    [
+     25152,
+     17372
+    ],
+    [
+     26739,
+     17425
+    ],
+    [
+     28677,
+     16881
+    ],
+    [
+     29712,
+     16029
+    ],
+    [
+     32253,
+     17980
+    ],
+    [
+     34845,
+     17777
+    ],
+    [
+     35931,
+     18751
+    ],
+    [
+     36434,
+     19591
+    ],
+    [
+     37049,
+     19983
+    ],
+    [
+     38059,
+     19961
+    ],
+    [
+     38893,
+     19172
+    ],
+    [
+     38970,
+     18164
+    ],
+    [
+     38351,
+     16956
+    ],
+    [
+     36162,
+     14882
+    ],
+    [
+     35433,
+     14721
+    ],
+    [
+     33692,
+     14885
+    ],
+    [
+     30778,
+     13155
+    ],
+    [
+     29836,
+     12915
+    ],
+    [
+     28202,
+     13309
+    ],
+    [
+     27396,
+     14033
+    ],
+    [
+     26331,
+     14364
+    ],
+    [
+     25156,
+     13490
+    ],
+    [
+     23910,
+     13045
+    ],
+    [
+     23883,
+     11086
+    ],
+    [
+     23337,
+     10396
+    ],
+    [
+     22647,
+     10139
+    ],
+    [
+     21754,
+     10282
+    ],
+    [
+     18569,
+     9875
+    ],
+    [
+     17488,
+     10233
+    ],
+    [
+     16152,
+     11362
+    ],
+    [
+     15188,
+     12761
+    ],
+    [
+     14338,
+     12993
+    ],
+    [
+     13229,
+     13727
+    ],
+    [
+     12170,
+     15432
+    ],
+    [
+     10257,
+     16170
+    ],
+    [
+     9722,
+     14951
+    ],
+    [
+     8938,
+     14471
+    ],
+    [
+     8344,
+     13002
+    ],
+    [
+     9079,
+     11408
+    ],
+    [
+     10235,
+     10183
+    ],
+    [
+     10874,
+     8541
+    ],
+    [
+     11705,
+     7206
+    ],
+    [
+     11993,
+     5963
+    ],
+    [
+     12697,
+     4476
+    ],
+    [
+     12749,
+     1940
+    ],
+    [
+     12218,
+     924
+    ],
+    [
+     11419,
+     583
+    ],
+    [
+     8462,
+     500
+    ],
+    [
+     7723,
+     224
+    ],
+    [
+     5788,
+     435
+    ],
+    [
+     4732,
+     1008
+    ],
+    [
+     3212,
+     2499
+    ],
+    [
+     431,
+     2275
+    ],
+    [
+     -1524,
+     1371
+    ],
+    [
+     -3698,
+     798
+    ],
+    [
+     -5488,
+     1290
+    ],
+    [
+     -7000,
+     730
+    ],
+    [
+     -9288,
+     811
+    ],
+    [
+     -10239,
+     -727
+    ],
+    [
+     -10265,
+     -2391
+    ],
+    [
+     -10757,
+     -3146
+    ],
+    [
+     -11915,
+     -3928
+    ],
+    [
+     -11999,
+     -5319
+    ],
+    [
+     -12461,
+     -6044
+    ],
+    [
+     -13390,
+     -6409
+    ],
+    [
+     -14421,
+     -6138
+    ],
+    [
+     -15000,
+     -5486
+    ]
+   ],
+   "crop_mix": {
+    "barley": 0.5,
+    "wheat": 0.15,
+    "emmer_spelt": 0.1,
+    "sesame": 0.05,
+    "fallow": 0.2
+   }
+  },
+  {
+   "id": "fields_irrigated_kur",
+   "kind": "field_zone",
+   "name": "Irrigated fields along the Kur",
+   "tier": "C",
+   "src": "SUMNER1986;SHOBAIRI2018;IR-FOODAG",
+   "note": "Band within 2 km of the modern Kur (C); same mix as the Pulvar band.",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "polygon": [
+    [
+     -26792,
+     34431
+    ],
+    [
+     -24491,
+     35779
+    ],
+    [
+     -23458,
+     35903
+    ],
+    [
+     -22299,
+     36407
+    ],
+    [
+     -18534,
+     36018
+    ],
+    [
+     -17726,
+     35419
+    ],
+    [
+     -17237,
+     34539
+    ],
+    [
+     -17100,
+     33740
+    ],
+    [
+     -17366,
+     32813
+    ],
+    [
+     -16915,
+     32375
+    ],
+    [
+     -14984,
+     31710
+    ],
+    [
+     -14205,
+     30843
+    ],
+    [
+     -13869,
+     28561
+    ],
+    [
+     -11550,
+     24242
+    ],
+    [
+     -11419,
+     22346
+    ],
+    [
+     -11877,
+     20099
+    ],
+    [
+     -11709,
+     18840
+    ],
+    [
+     -10557,
+     17236
+    ],
+    [
+     -9871,
+     16799
+    ],
+    [
+     -9430,
+     16161
+    ],
+    [
+     -9228,
+     12952
+    ],
+    [
+     -8637,
+     12052
+    ],
+    [
+     -8393,
+     10965
+    ],
+    [
+     -8443,
+     9862
+    ],
+    [
+     -9090,
+     7523
+    ],
+    [
+     -11680,
+     5282
+    ],
+    [
+     -13864,
+     2715
+    ],
+    [
+     -13491,
+     1582
+    ],
+    [
+     -12741,
+     387
+    ],
+    [
+     -12656,
+     -966
+    ],
+    [
+     -12304,
+     -1882
+    ],
+    [
+     -12359,
+     -3153
+    ],
+    [
+     -10787,
+     -5697
+    ],
+    [
+     -9579,
+     -11230
+    ],
+    [
+     -7949,
+     -14005
+    ],
+    [
+     -7688,
+     -16208
+    ],
+    [
+     -8246,
+     -17637
+    ],
+    [
+     -7390,
+     -19646
+    ],
+    [
+     -6743,
+     -20067
+    ],
+    [
+     -5786,
+     -21627
+    ],
+    [
+     -4447,
+     -22587
+    ],
+    [
+     -3725,
+     -23614
+    ],
+    [
+     -3473,
+     -25697
+    ],
+    [
+     -2400,
+     -27021
+    ],
+    [
+     -1829,
+     -29219
+    ],
+    [
+     -1302,
+     -30190
+    ],
+    [
+     -1119,
+     -31837
+    ],
+    [
+     1078,
+     -32340
+    ],
+    [
+     3001,
+     -33727
+    ],
+    [
+     4647,
+     -33734
+    ],
+    [
+     6063,
+     -34085
+    ],
+    [
+     7473,
+     -34962
+    ],
+    [
+     7960,
+     -35539
+    ],
+    [
+     8989,
+     -36028
+    ],
+    [
+     12118,
+     -39829
+    ],
+    [
+     12067,
+     -41176
+    ],
+    [
+     11641,
+     -41829
+    ],
+    [
+     10997,
+     -42270
+    ],
+    [
+     10037,
+     -42423
+    ],
+    [
+     9119,
+     -42106
+    ],
+    [
+     8046,
+     -41268
+    ],
+    [
+     6496,
+     -39385
+    ],
+    [
+     4435,
+     -37816
+    ],
+    [
+     1872,
+     -37571
+    ],
+    [
+     596,
+     -37101
+    ],
+    [
+     -558,
+     -36164
+    ],
+    [
+     -3153,
+     -35830
+    ],
+    [
+     -4429,
+     -35078
+    ],
+    [
+     -5357,
+     -33787
+    ],
+    [
+     -5472,
+     -32575
+    ],
+    [
+     -5202,
+     -31763
+    ],
+    [
+     -5785,
+     -30644
+    ],
+    [
+     -6136,
+     -28773
+    ],
+    [
+     -6991,
+     -27754
+    ],
+    [
+     -7525,
+     -26508
+    ],
+    [
+     -7588,
+     -25412
+    ],
+    [
+     -8900,
+     -24581
+    ],
+    [
+     -9469,
+     -23193
+    ],
+    [
+     -10656,
+     -22676
+    ],
+    [
+     -11705,
+     -21647
+    ],
+    [
+     -11912,
+     -20674
+    ],
+    [
+     -11653,
+     -19756
+    ],
+    [
+     -12117,
+     -19054
+    ],
+    [
+     -12297,
+     -18245
+    ],
+    [
+     -11789,
+     -15241
+    ],
+    [
+     -12389,
+     -14720
+    ],
+    [
+     -13850,
+     -12567
+    ],
+    [
+     -13839,
+     -10980
+    ],
+    [
+     -14293,
+     -10022
+    ],
+    [
+     -14285,
+     -8519
+    ],
+    [
+     -14676,
+     -7035
+    ],
+    [
+     -15240,
+     -6575
+    ],
+    [
+     -15905,
+     -5483
+    ],
+    [
+     -16314,
+     -4320
+    ],
+    [
+     -16900,
+     -950
+    ],
+    [
+     -17768,
+     69
+    ],
+    [
+     -17903,
+     1287
+    ],
+    [
+     -18758,
+     3077
+    ],
+    [
+     -18270,
+     4502
+    ],
+    [
+     -15614,
+     7234
+    ],
+    [
+     -15118,
+     8264
+    ],
+    [
+     -14042,
+     8995
+    ],
+    [
+     -13777,
+     9479
+    ],
+    [
+     -13743,
+     10609
+    ],
+    [
+     -13214,
+     11819
+    ],
+    [
+     -13289,
+     13068
+    ],
+    [
+     -13847,
+     13982
+    ],
+    [
+     -14043,
+     14932
+    ],
+    [
+     -15637,
+     17633
+    ],
+    [
+     -16035,
+     20445
+    ],
+    [
+     -15685,
+     21535
+    ],
+    [
+     -15767,
+     22247
+    ],
+    [
+     -16203,
+     22957
+    ],
+    [
+     -16733,
+     25290
+    ],
+    [
+     -17499,
+     26333
+    ],
+    [
+     -17914,
+     28030
+    ],
+    [
+     -19140,
+     28436
+    ],
+    [
+     -19886,
+     29229
+    ],
+    [
+     -20959,
+     29883
+    ],
+    [
+     -21390,
+     30749
+    ],
+    [
+     -21505,
+     32385
+    ],
+    [
+     -23879,
+     31312
+    ],
+    [
+     -25495,
+     31150
+    ],
+    [
+     -26561,
+     31612
+    ],
+    [
+     -27127,
+     32402
+    ],
+    [
+     -27222,
+     33559
+    ],
+    [
+     -26792,
+     34431
+    ]
+   ],
+   "crop_mix": {
+    "barley": 0.5,
+    "wheat": 0.15,
+    "emmer_spelt": 0.1,
+    "sesame": 0.05,
+    "fallow": 0.2
+   }
+  },
+  {
+   "id": "fields_rainfed",
+   "kind": "field_zone_rule",
+   "name": "Rain-fed cereals and fallow on the open plain",
+   "tier": "C",
+   "src": "SUMNER1986;WMO-CLINO",
+   "note": "Rule: plain below 1,660 m asl, regional slope < 3 %, outside the irrigated bands and settlement zones: barley 40 %, fallow/grazing 60 % (C). ~325 mm/yr rain (WMO, A) makes dry-farming marginal but possible.",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "rule": {
+    "max_asl_m": 1660,
+    "max_slope": 0.03,
+    "crop_mix": {
+     "barley": 0.4,
+     "fallow_grazing": 0.6
+    }
+   }
+  },
+  {
+   "id": "orchards_gardens",
+   "kind": "orchard_rule",
+   "name": "Orchards and vineyards",
+   "tier": "C",
+   "src": "IR-FOODAG;SAEIDI2021",
+   "note": "Rule: 300 m ring around each village and inside the palace-and-garden zones; walled with mud brick (C).",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "rule": {
+    "ring_m": 300
+   }
+  },
+  {
+   "id": "steppe",
+   "kind": "landcover_rule",
+   "name": "Uncultivated steppe (Artemisia, grasses, Amaranthaceae)",
+   "tier": "B",
+   "src": "SAEIDI2021",
+   "note": "Pollen shows Artemisia/grass/Amaranthaceae steppe (B). Rule: uncultivated plain and lower slopes 1,660-1,900 m (C). Green Feb-Apr, dry Jun-Oct.",
+   "date_range": "natural",
+   "present_467": true,
+   "rule": {
+    "asl_m": [
+     1660,
+     1900
+    ]
+   }
+  },
+  {
+   "id": "woodland",
+   "kind": "landcover_rule",
+   "name": "Open oak woodland (Quercus brantii) and pistachio-almond scrub on slopes",
+   "tier": "B",
+   "src": "SAEIDI2021",
+   "note": "Late-Holocene oak and Pistacia-Amygdalus pollen (Djamali 2009 via _climate_C.md, B). Rule: slopes > 6 % above 1,800 m, cover 10-30 % (C); thinned near the capital by fuel cutting (C).",
+   "date_range": "natural",
+   "present_467": true,
+   "rule": {
+    "min_asl_m": 1800,
+    "min_slope": 0.06,
+    "cover": [
+     0.1,
+     0.3
+    ]
+   }
+  },
+  {
+   "id": "horizon_check",
+   "kind": "horizon",
+   "name": "Horizon silhouette check (SRTM z10 to 120 km vs the 40.96 km far ring)",
+   "tier": "B",
+   "src": "SRTM-TILES;COP-DEM",
+   "note": "Computed in this phase from the Apadana court (eye 1,626.6 m asl, refraction k=0.13). In sectors 150-160, 230-250 and 270-290 deg true, ranges 55-66 km away (2,670-2,960 m) rise 0.1-0.4 deg above the in-ring horizon: the far ring (half-size 40.96 km) truncates the W/WSW and SSE skyline. The existing DEM tiles (N29-N30, E052-E053) cover these ranges; extending the far ring to ~70 km fixes it (tools/build_terrain.py; not changed here).",
+   "date_range": "natural",
+   "present_467": true,
+   "sectors": [
+    {
+     "sector": 0,
+     "in_ring_deg": 8.46,
+     "in_ring_km": 1.8,
+     "in_ring_h": 1887,
+     "beyond_deg": 2.01,
+     "beyond_km": 40.2,
+     "beyond_h": 3152,
+     "beyond_visible": false
+    },
+    {
+     "sector": 10,
+     "in_ring_deg": 9.25,
+     "in_ring_km": 1.5,
+     "in_ring_h": 1871,
+     "beyond_deg": 1.66,
+     "beyond_km": 41.8,
+     "beyond_h": 2954,
+     "beyond_visible": false
+    },
+    {
+     "sector": 20,
+     "in_ring_deg": 9.88,
+     "in_ring_km": 1.5,
+     "in_ring_h": 1888,
+     "beyond_deg": 1.07,
+     "beyond_km": 49.2,
+     "beyond_h": 2708,
+     "beyond_visible": false
+    },
+    {
+     "sector": 30,
+     "in_ring_deg": 10.31,
+     "in_ring_km": 1.8,
+     "in_ring_h": 1945,
+     "beyond_deg": 0.78,
+     "beyond_km": 82.0,
+     "beyond_h": 3208,
+     "beyond_visible": false
+    },
+    {
+     "sector": 40,
+     "in_ring_deg": 10.31,
+     "in_ring_km": 1.8,
+     "in_ring_h": 1945,
+     "beyond_deg": 0.79,
+     "beyond_km": 81.2,
+     "beyond_h": 3198,
+     "beyond_visible": false
+    },
+    {
+     "sector": 50,
+     "in_ring_deg": 11.35,
+     "in_ring_km": 2.5,
+     "in_ring_h": 2129,
+     "beyond_deg": 0.81,
+     "beyond_km": 79.0,
+     "beyond_h": 3163,
+     "beyond_visible": false
+    },
+    {
+     "sector": 60,
+     "in_ring_deg": 12.12,
+     "in_ring_km": 2.2,
+     "in_ring_h": 2110,
+     "beyond_deg": 0.76,
+     "beyond_km": 85.0,
+     "beyond_h": 3242,
+     "beyond_visible": false
+    },
+    {
+     "sector": 70,
+     "in_ring_deg": 10.33,
+     "in_ring_km": 2.2,
+     "in_ring_h": 2037,
+     "beyond_deg": 0.83,
+     "beyond_km": 40.2,
+     "beyond_h": 2320,
+     "beyond_visible": false
+    },
+    {
+     "sector": 80,
+     "in_ring_deg": 10.27,
+     "in_ring_km": 3.0,
+     "in_ring_h": 2171,
+     "beyond_deg": 0.99,
+     "beyond_km": 40.5,
+     "beyond_h": 2441,
+     "beyond_visible": false
+    },
+    {
+     "sector": 90,
+     "in_ring_deg": 10.21,
+     "in_ring_km": 1.5,
+     "in_ring_h": 1897,
+     "beyond_deg": 0.92,
+     "beyond_km": 73.2,
+     "beyond_h": 3165,
+     "beyond_visible": false
+    },
+    {
+     "sector": 100,
+     "in_ring_deg": 8.37,
+     "in_ring_km": 2.0,
+     "in_ring_h": 1921,
+     "beyond_deg": 0.63,
+     "beyond_km": 61.8,
+     "beyond_h": 2566,
+     "beyond_visible": false
+    },
+    {
+     "sector": 110,
+     "in_ring_deg": 6.77,
+     "in_ring_km": 1.2,
+     "in_ring_h": 1775,
+     "beyond_deg": 0.32,
+     "beyond_km": 52.5,
+     "beyond_h": 2111,
+     "beyond_visible": false
+    },
+    {
+     "sector": 120,
+     "in_ring_deg": 6.77,
+     "in_ring_km": 1.2,
+     "in_ring_h": 1775,
+     "beyond_deg": 0.3,
+     "beyond_km": 87.8,
+     "beyond_h": 2611,
+     "beyond_visible": false
+    },
+    {
+     "sector": 130,
+     "in_ring_deg": 6.22,
+     "in_ring_km": 1.2,
+     "in_ring_h": 1763,
+     "beyond_deg": 0.41,
+     "beyond_km": 87.5,
+     "beyond_h": 2777,
+     "beyond_visible": false
+    },
+    {
+     "sector": 140,
+     "in_ring_deg": 4.91,
+     "in_ring_km": 1.2,
+     "in_ring_h": 1734,
+     "beyond_deg": 0.44,
+     "beyond_km": 79.0,
+     "beyond_h": 2657,
+     "beyond_visible": false
+    },
+    {
+     "sector": 150,
+     "in_ring_deg": 0.43,
+     "in_ring_km": 1.2,
+     "in_ring_h": 1636,
+     "beyond_deg": 0.68,
+     "beyond_km": 66.5,
+     "beyond_h": 2715,
+     "beyond_visible": true
+    },
+    {
+     "sector": 160,
+     "in_ring_deg": 1.05,
+     "in_ring_km": 36.2,
+     "in_ring_h": 2380,
+     "beyond_deg": 0.62,
+     "beyond_km": 65.5,
+     "beyond_h": 2629,
+     "beyond_visible": false
+    },
+    {
+     "sector": 170,
+     "in_ring_deg": 0.91,
+     "in_ring_km": 35.2,
+     "in_ring_h": 2270,
+     "beyond_deg": 0.61,
+     "beyond_km": 58.8,
+     "beyond_h": 2492,
+     "beyond_visible": false
+    },
+    {
+     "sector": 180,
+     "in_ring_deg": 1.06,
+     "in_ring_km": 31.8,
+     "in_ring_h": 2282,
+     "beyond_deg": 0.6,
+     "beyond_km": 67.8,
+     "beyond_h": 2653,
+     "beyond_visible": false
+    },
+    {
+     "sector": 190,
+     "in_ring_deg": 1.28,
+     "in_ring_km": 25.8,
+     "in_ring_h": 2247,
+     "beyond_deg": 0.59,
+     "beyond_km": 66.5,
+     "beyond_h": 2617,
+     "beyond_visible": false
+    },
+    {
+     "sector": 200,
+     "in_ring_deg": 1.43,
+     "in_ring_km": 28.2,
+     "in_ring_h": 2385,
+     "beyond_deg": 0.66,
+     "beyond_km": 70.8,
+     "beyond_h": 2779,
+     "beyond_visible": false
+    },
+    {
+     "sector": 210,
+     "in_ring_deg": 1.2,
+     "in_ring_km": 38.0,
+     "in_ring_h": 2522,
+     "beyond_deg": 0.63,
+     "beyond_km": 70.5,
+     "beyond_h": 2737,
+     "beyond_visible": false
+    },
+    {
+     "sector": 220,
+     "in_ring_deg": 1.34,
+     "in_ring_km": 38.8,
+     "in_ring_h": 2635,
+     "beyond_deg": 0.63,
+     "beyond_km": 85.8,
+     "beyond_h": 3067,
+     "beyond_visible": false
+    },
+    {
+     "sector": 230,
+     "in_ring_deg": 0.75,
+     "in_ring_km": 34.0,
+     "in_ring_h": 2151,
+     "beyond_deg": 0.91,
+     "beyond_km": 54.8,
+     "beyond_h": 2697,
+     "beyond_visible": true
+    },
+    {
+     "sector": 240,
+     "in_ring_deg": 0.95,
+     "in_ring_km": 15.8,
+     "in_ring_h": 1904,
+     "beyond_deg": 1.04,
+     "beyond_km": 55.8,
+     "beyond_h": 2855,
+     "beyond_visible": true
+    },
+    {
+     "sector": 250,
+     "in_ring_deg": 1.43,
+     "in_ring_km": 18.2,
+     "in_ring_h": 2105,
+     "beyond_deg": 1.08,
+     "beyond_km": 58.5,
+     "beyond_h": 2959,
+     "beyond_visible": false
+    },
+    {
+     "sector": 260,
+     "in_ring_deg": 1.31,
+     "in_ring_km": 19.5,
+     "in_ring_h": 2100,
+     "beyond_deg": 0.67,
+     "beyond_km": 65.5,
+     "beyond_h": 2687,
+     "beyond_visible": false
+    },
+    {
+     "sector": 270,
+     "in_ring_deg": 0.36,
+     "in_ring_km": 22.2,
+     "in_ring_h": 1802,
+     "beyond_deg": 0.69,
+     "beyond_km": 63.5,
+     "beyond_h": 2668,
+     "beyond_visible": true
+    },
+    {
+     "sector": 280,
+     "in_ring_deg": 0.32,
+     "in_ring_km": 21.5,
+     "in_ring_h": 1780,
+     "beyond_deg": 0.69,
+     "beyond_km": 65.5,
+     "beyond_h": 2714,
+     "beyond_visible": true
+    },
+    {
+     "sector": 290,
+     "in_ring_deg": 1.75,
+     "in_ring_km": 24.2,
+     "in_ring_h": 2406,
+     "beyond_deg": 0.78,
+     "beyond_km": 96.8,
+     "beyond_h": 3580,
+     "beyond_visible": false
+    },
+    {
+     "sector": 300,
+     "in_ring_deg": 1.95,
+     "in_ring_km": 16.5,
+     "in_ring_h": 2208,
+     "beyond_deg": 1.11,
+     "beyond_km": 43.0,
+     "beyond_h": 2588,
+     "beyond_visible": false
+    },
+    {
+     "sector": 310,
+     "in_ring_deg": 1.9,
+     "in_ring_km": 27.5,
+     "in_ring_h": 2591,
+     "beyond_deg": 1.38,
+     "beyond_km": 51.0,
+     "beyond_h": 3034,
+     "beyond_visible": false
+    },
+    {
+     "sector": 320,
+     "in_ring_deg": 2.76,
+     "in_ring_km": 22.5,
+     "in_ring_h": 2744,
+     "beyond_deg": 1.57,
+     "beyond_km": 46.2,
+     "beyond_h": 3043,
+     "beyond_visible": false
+    },
+    {
+     "sector": 330,
+     "in_ring_deg": 2.69,
+     "in_ring_km": 23.2,
+     "in_ring_h": 2755,
+     "beyond_deg": 1.61,
+     "beyond_km": 41.5,
+     "beyond_h": 2914,
+     "beyond_visible": false
+    },
+    {
+     "sector": 340,
+     "in_ring_deg": 3.47,
+     "in_ring_km": 1.8,
+     "in_ring_h": 1733,
+     "beyond_deg": 1.47,
+     "beyond_km": 43.0,
+     "beyond_h": 2855,
+     "beyond_visible": false
+    },
+    {
+     "sector": 350,
+     "in_ring_deg": 4.77,
+     "in_ring_km": 1.2,
+     "in_ring_h": 1731,
+     "beyond_deg": 1.58,
+     "beyond_km": 46.5,
+     "beyond_h": 3060,
+     "beyond_visible": false
+    }
+   ]
+  },
+  {
+   "id": "mountain_kuh_e_rahmat",
+   "kind": "mountain",
+   "name": "Kuh-e Rahmat",
+   "tier": "B",
+   "src": "OVERTURE-2026;COP-DEM",
+   "note": "Named point 29.9097N 52.9633E (Overture/GeoNames); ridge behind the Terrace 2,216 m at 3.1 km E; massif high point 2,554 m at 11.2 km, 117 deg (DEM mid ring, bare-earth smoothed).",
+   "date_range": "natural",
+   "present_467": true,
+   "xy": [
+    7776,
+    -8096
+   ],
+   "latlon": [
+    29.88886,
+    52.9929
+   ],
+   "unc_m": 50,
+   "summit_asl": 2554
+  },
+  {
+   "id": "mountain_kuh_e_hossein",
+   "kind": "mountain",
+   "name": "Kuh-e Hossein (Husain Kuh), the Naqsh-e Rustam mountain",
+   "tier": "B",
+   "src": "WP-NR;COP-DEM",
+   "note": "Name via travel/encyclopedic extracts (tertiary, SX). High point 2,665 m at 10.9 km, 9 deg true (DEM mid ring); cliff top above the tombs ~2,110 m.",
+   "date_range": "natural",
+   "present_467": true,
+   "xy": [
+    5040,
+    9664
+   ],
+   "latlon": [
+    30.03235,
+    52.90628
+   ],
+   "unc_m": 50,
+   "summit_asl": 2665
+  }
+ ]
+}

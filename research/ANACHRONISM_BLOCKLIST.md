@@ -34,3 +34,12 @@ if any asset/tag/text in the world matches. Each asset carries `period`, `source
 | horseshoes | nailed horseshoes | later | tier A |
 | spoked-cart-wheels? | **Allowed** — spoked wheels attested on reliefs (chariots) | — | reliefs |
 | later-inscriptions | Middle Persian (Sasanian) and Arabic/Persian Islamic-era inscriptions on the Terrace and at Naqsh-e Rustam | post-Achaemenid | Phase 0 re-review M-8 |
+| frataraka | "Frataraka" pedestal-temple complex N of the Terrace | post-Achaemenid (Callieri; GONDET2018, SX) | Phase 6 research |
+| istakhr-town | Walled town of Istakhr, its mosque and fortress (Qal'a-ye Istakhr) | Sasanian–Islamic: "no evidence … of the pre-Sasanian history" (ISTAKHR2018, SX); Barrington: Roman/Late Antique (PLEIADES-FARS) | Phase 7 research |
+| later-sites-plain | Darre-ye Barre, Hajjiabad, Maqsudabad, Kuh-i Ayyub, Kuh-i Shahrak "temples"; Naqsh-i Bahram; Barm-i Dilak | Barrington/Pleiades Roman/Late Antique only (FT) | Phase 7 research |
+| spring-cemetery | "Spring Cemetery" slipper-coffin burials | late 4th c. BCE or later (IR-ARCH2, SX) | Phase 6 research |
+| later-tombs-nr | Naqsh-e Rustam tombs of Artaxerxes I and Darius II | kings reigning after 465 (the Xerxes tomb is open: Q-047) | Phase 7 research |
+| modern-dams | Doroodzan dam, Mulla Sadra dam, Sivand dam and reservoirs; modern canals and pumping | modern (KOR-HSJ2023) | Phase 7 research |
+| modern-plain | Marvdasht city, sugar factory, petrochemical complex, Shiraz–Isfahan highway and bridges, sugar-beet fields | modern (OVERTURE-2026) | Phase 7 research |
+| date-palms-plain | date palms growing on the Marvdasht plain | dates are imported from the lowlands; 44 frost days a year (C) | Phase 7 research |
+| qanat? | qanat shafts and galleries in the plain | not dated to the Achaemenid period (Q-052): **not placed**; unblock only with evidence | Phase 6 research |
