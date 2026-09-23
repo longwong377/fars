@@ -1,9 +1,16 @@
 // Phase 4 walkthrough routes (grid east, north): shared by the e2e bot and tools/dev/routecheck.ts
 export const ROUTES: Record<string, { start: [number, number]; targets: [number, number, string][]; levels: Record<string, number> }> = {
-  tachara: { start: [-2, -104], levels: { 'Tachara hall': 2.6, 'Tachara N room': 2.6 }, targets: [
-    [-21, -107, 'Tachara S court'], [-37.5, -100.1, 'W flight foot'], [-21, -100.3, 'central landing'], [-21.3, -94, 'portico'],
-    [-21.3, -89, 'S doorway'], [-18.8, -80, 'Tachara hall'], [-27.3, -71, 'N doorway (W)'], [-27, -64, 'Tachara N room'],
-    [-18.8, -80, 'back in the hall'], [-21.3, -94, 'portico again'], [-4.5, -100.1, 'down the E flight'], [-2, -106, 'S court E'] ] },
+  tachara: { start: [-2, -104], levels: { 'Tachara hall': 2.6, 'W room (W2)': 2.6, 'W room (W1)': 2.6, 'Tachara N room': 2.6, 'NE room': 2.6, 'E room (E2)': 2.6 }, targets: [
+    [-21, -107, 'Tachara S court'], [-37.5, -100.1, 'W flight foot'], [-21, -100.3, 'central landing'], [-21.5, -95.9, 'portico'],
+    [-21.5, -89.3, 'S doorway'], [-21.6, -82.7, 'Tachara hall'],
+    // the W rooms through the lance-bearer doorways (D-130), and W3 through its narrow opening from W2
+    [-30.25, -82.8, 'W doorway (S): lance-bearers'], [-33, -81, 'W room (W2)'], [-33.8, -86.9, 'W3, through the opening from W2'], [-33, -81, 'W2 again'],
+    [-27.9, -78.8, 'hall, W aisle'], [-30.25, -74.95, 'W doorway (N): lance-bearers'], [-33, -75, 'W room (W1)'],
+    // the two four-column N rooms, E1 behind the NE room, and E2 through the E doorway
+    [-24.9, -76, 'hall, N aisle'], [-24.9, -72.1, 'N doorway (W)'], [-27.95, -65.65, 'Tachara N room'], [-24.9, -76, 'back in the hall'],
+    [-18.25, -72.1, 'N doorway (E)'], [-15.25, -65.65, 'NE room'], [-10.4, -74.4, 'E1, through the NE room'], [-11.9, -70, 'NE room again'],
+    [-18.25, -76, 'hall again'], [-12.85, -82.7, 'E doorway'], [-10, -80.5, 'E room (E2)'], [-15.2, -82.7, 'hall, E aisle'],
+    [-21.5, -95.9, 'portico again'], [-4.5, -100.1, 'down the E flight'], [-2, -106, 'S court E'] ] },
   hadish: { start: [-12, -110], levels: { 'Hadish N court': 6.0, 'Hadish hall': 6.0 }, targets: [
     [-9, -123, 'W court'], [-6.2, -123, 'W stair entry (centre, side-on to the two lowest steps)'], [-3.8, -122.6, 'W stair: onto the N lower flight'], [-3.8, -116, 'W stair: N lower flight → landing'], [1.2, -122.5, 'W stair: N upper flight → top'],
     [20, -120, 'Hadish N court'], [22, -137.5, 'portico'], [16, -145, 'N doorway (W)'], [22, -159.5, 'Hadish hall'],

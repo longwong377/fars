@@ -88,8 +88,8 @@ function placeFires(fire: FireSystem, m: any, parts: any[]) {
   // porticoes; a cooking hearth in the Harem court; torches at the Treasury N doorway (guard post)
   for (const b of ['tachara', 'hadish', 'harem']) { const r = (m[b] as any)?.room as number[] | undefined; if (!r) continue; const [cx, cy, sx, sy, fl] = r;
     for (const s of [-1, 1]) for (const face of [-1, 1]) fire.add('torch', gw(cx + s * (sx / 2 - 0.4), cy + face * sy / 4, fl + 2.4), { ...C, note: `torch on the ${b} hall wall (C)` }); }
-  const th = (m.tachara as any)?.room as number[] | undefined; // portico braziers midway between the portico columns (bay = hall width / 3)
-  if (th) for (const s of [-1, 1]) fire.add('brazier', gw(th[0] + s * th[2] / 3, th[1] - th[3] / 2 - v('tachara', 'r_wall') - v('tachara', 'r_portico_gap'), th[4]), { ...C, note: 'brazier in the Tachara portico (C)' });
+  const th = (m.tachara as any)?.room as number[] | undefined, tb = (m.tachara as any)?.porticoBraziers as [number, number][] | undefined; // portico braziers between the column rows (terrace.ts, D-130)
+  if (th && tb) for (const [e, n] of tb) fire.add('brazier', gw(e, n, th[4]), { ...C, note: 'brazier in the Tachara portico (C)' });
   const hd = (m.hadish as any)?.room as number[] | undefined, NC = v<any>('hadish', 'north_court');
   if (hd) for (const s of [-1, 1]) fire.add('brazier', gw(hd[0] + s * hd[2] / 3, NC.y[0] + 2, hd[4]), { ...C, note: 'brazier in the Hadish N court, before the portico (C)' });
   const hm = (m.harem as any)?.room as number[] | undefined, HC = v<any>('harem', 'court');
