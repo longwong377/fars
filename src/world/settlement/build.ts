@@ -138,7 +138,7 @@ export class Settlement {
     for (const p of plots) {
       const [i0, j0, i1, j1] = p.rect; const pts: P2[] = [[i0, j0], [i1, j0], [i1, j1], [i0, j1], [(i0 + i1) / 2, (j0 + j1) / 2]].map(([i, j]) => s.grid(s.u0 + i, s.v0 + j));
       base[p.idx] = pts.reduce((a, q) => a + H(q[0], q[1]), 0) / pts.length;
-      local[p.idx] = (i1 - i0) * (j1 - j0) > 2500 ? 1 : 0; // big enclosures: walls follow the ground
+      local[p.idx] = (i1 - i0) * (j1 - j0) > 2500 && p.roofed === 0 ? 1 : 0; // big open enclosures: walls follow the ground (roofed plots keep one base, so walls and roofs agree)
       const row = ROWS[p.row];
       pdesc[p.idx] = cl.desc.length;
       cl.desc.push({ tier: row?.tier ?? 'C', src: row?.src ?? 'RECON', note: `${p.id}: ${kindLabel(p)}${p.capacity ? `, houses ${p.capacity}` : ''}, ${p.area} m² (${p.roofed} m² roofed). ${p.note || ''} ${row?.note ?? HOUSE_BASIS}`.replace(/\s+/g, ' ') });
