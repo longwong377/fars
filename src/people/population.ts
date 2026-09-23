@@ -997,6 +997,16 @@ class Planner {
     if (from === this.home && L1 && L0 && L1.where === 'road' && (sliver || L1.t1 >= this.t - 1e-6) && L0.place === to && L0.where !== 'road' && L0.act !== 'sleep') {
       if (L1.act === 'walk') { this.segs.length = j; L0.t1 = this.t; this.cur = to; this.curW = L0.where; return this.t; }
       const water = /water/.test(L1.why); this.add(this.t + 0.05, this.home, water ? 'carry_jar' : 'rest', water ? 'pouring the water into the house jar' : 'setting the load down at home', this.homeW); }
+    // a walk that arrives and goes straight on stops there a moment, 3 min (S10, r4: "a walk split in two", 18978 at 16:15):
+    // at home the load carried in is set down (the water poured into the house jar) or the jar or the load for the next leg
+    // taken up; elsewhere a moment at the place (C). Not from the Terrace or on a guard's way up to it (the rota's and the
+    // gangs' timings stand), nor on a road (a horse led along the road and back)
+    const La = this.segs[this.segs.length - 1];
+    if (La && this.segs.length > 1 && La.where === 'road' && La.t1 >= this.t - 1e-6 && wf !== 'terrace' && !(whereTo === 'terrace' && this.p.job === 'guard') && !from.startsWith('road:')) {
+      const atHome = from === this.home, loadIn = La.act !== 'walk' && La.act !== 'rest', water = loadIn && /water/.test(La.why);
+      const [a, w]: [ActivityId, string] = atHome && water ? ['carry_jar', 'pouring the water into the house jar'] : atHome && loadIn ? ['rest', 'setting the load down at home']
+        : atHome && to.startsWith('well:') ? ['rest', 'taking up the water jar at home'] : atHome && act !== 'walk' ? ['rest', 'taking up the load at home'] : atHome ? this.idle() : ['rest', 'stopping there a moment'];
+      this.add(this.t + 0.05, from, a, w, wf); }
     const h = this.P.walkH(from, to, this.d, wf, whereTo); this.add(this.t + h, `road:${whereTo === 'terrace' || wf === 'terrace' ? 'terrace' : whereTo}`, act, why, 'road');
     this.cur = to; this.curW = whereTo; return this.t;
   }
@@ -1018,7 +1028,7 @@ class Planner {
     // a band's people (S4): their mothers nurse on demand like any; their days need no water, fire or field passes
     if (this.p.job === 'herder') { if (this.p.sex === 'f' && this.p.age >= 14) this.nurse(segs); if (this.p.age >= 2) this.meals(segs); this.joinSlivers(segs); this.tidy(segs); this.carries(segs); return segs; }
     if (this.p.sex === 'f' && this.p.age >= 14) this.nurse(segs);
-    this.fieldBite(segs); this.water(segs); this.fire(segs);
+    this.fieldBite(segs); this.water(segs); this.homeStops(segs); this.fire(segs);
     if (this.p.age >= 2) this.meals(segs);
     this.joinSlivers(segs); this.tidy(segs); this.carries(segs);
     return segs;
@@ -1085,11 +1095,20 @@ class Planner {
       const a = s.t1 - cut; segs.splice(i, 2, { ...s, t1: a }, { t0: a, t1: a + walk, place: `road:${W}`, act: 'walk', why: 'to the well with the jar', where: 'road' },
         { t0: a + walk, t1: s.t1, place: w, act: 'draw_water', why: 'drawing the house’s water', where: W }, { ...nx, act: 'carry_jar_head', why: 'carrying water home' });
       i += 3; need--; }
-    // one trip straight after another: the water is poured into the house jar before she goes back (S10, r4: her walk home
-    // and back out made one walk from the well to the well for the child with her); the minutes come off the drawing
-    for (let i = 0; i + 2 < segs.length; i++) { const c = segs[i], wk = segs[i + 1], dw = segs[i + 2];
-      if (c.act !== 'carry_jar_head' || wk.act !== 'walk' || wk.where !== 'road' || Math.abs(wk.t0 - c.t1) > 1e-6 || dw.act !== 'draw_water' || dw.t1 - dw.t0 < 0.15 || dw.place !== w) continue;
-      const p = 0.05; segs.splice(i + 1, 0, { t0: c.t1, t1: c.t1 + p, place: this.home, act: 'carry_jar', why: 'pouring the water into the house jar', where: W }); wk.t0 += p; wk.t1 += p; dw.t0 += p; i += 2; }
+  }
+  /** no walk that arrives home and goes straight out again (S10, r4: "a walk split in two"; her walk home and back out to the
+   *  well made one walk from the well to the well for the child with her): water carried home is poured into the house jar,
+   *  and the jar is taken up before a trip to the well, 3 min at home; the minutes come off the drawing (C). The water pass
+   *  (D-140: a trip starts and ends with a spell at home when within 3 min of it) and the planner's own walks leave these */
+  private homeStops(segs: Seg[]) {
+    if ((this.hh.zone !== 'town' && this.hh.zone !== 'plain') || this.p.job === 'guard') return; const W = this.homeW, p = 0.05, pour = (t: number): Seg => ({ t0: t, t1: t + p, place: this.home, act: 'carry_jar', why: 'pouring the water into the house jar', where: W });
+    for (let i = 0; i + 1 < segs.length; i++) { const c = segs[i], nx = segs[i + 1], dw = segs[i - 1], d2 = segs[i + 2];
+      if (c.where !== 'road' || nx.where !== 'road' || Math.abs(nx.t0 - c.t1) > 1e-6) continue;
+      if (c.act === 'carry_jar_head' && /water/.test(c.why)) {
+        if (dw && dw.act === 'draw_water' && dw.t1 - dw.t0 >= 0.15 && Math.abs(dw.t1 - c.t0) < 1e-6) { dw.t1 -= p; c.t0 -= p; c.t1 -= p; segs.splice(i + 1, 0, pour(c.t1)); i++; continue; }
+        if (nx.act === 'walk' && d2?.act === 'draw_water' && d2.t1 - d2.t0 >= 0.15) { segs.splice(i + 1, 0, pour(c.t1)); nx.t0 += p; nx.t1 += p; d2.t0 += p; i++; continue; } }
+      if (nx.act === 'walk' && nx.why === 'to the well with the jar' && d2?.act === 'draw_water' && d2.t1 - d2.t0 >= 0.15) {
+        segs.splice(i + 1, 0, { t0: nx.t0, t1: nx.t0 + p, place: this.home, act: 'rest', why: 'taking up the water jar at home', where: W }); nx.t0 += p; nx.t1 += p; d2.t0 += p; i++; } }
   }
   /** the fire at dusk (§9.2; D-138): the woman who bakes (or the waterer) lights the hearth for the evening meal; in the
    *  cold it is banked for the night. A placeholder activity (cook: no performance yet) */
@@ -1659,14 +1678,29 @@ class Planner {
       b.t0 += wk; this.segs.splice(i, 0, road); i++; }
     // no walk out and straight back (S10, r4): where a walk leads from a place back to the same place (the one the child is
     // with leaves as the other one it goes to comes back), the child stays at the place with whichever of them is there
-    for (let i = 1; i + 1 < this.segs.length; i++) { const a = this.segs[i - 1], b = this.segs[i], c = this.segs[i + 1];
-      if (b.where !== 'road' || a.where === 'road' || a.place !== c.place || a.place === '-') continue;
-      const there = (x: number | undefined) => x !== undefined && x >= 0 && [b.t0 + 0.01, (b.t0 + b.t1) / 2, b.t1 - 0.01].every(h => segAt(planOf(x), h).place === a.place);
-      if (there(c.with)) { c.t0 = b.t0; this.segs.splice(i, 1); i--; } else if (there(a.with)) { a.t1 = b.t1; this.segs.splice(i, 1); i--; }
+    // (a run of walks too: home along the lane with the other children and out again with the mother)
+    // (a moment of seconds at a place between two walks, passing through, is part of the run: joinSlivers drops it later)
+    const inRun = (k: number) => this.segs[k].where === 'road' || (this.segs[k].t1 - this.segs[k].t0 < 0.02 && this.segs[k + 1]?.where === 'road');
+    for (let i = 1; i < this.segs.length; i++) { if (this.segs[i].where !== 'road' || this.segs[i - 1].where === 'road') continue;
+      let j = i; while (j < this.segs.length && inRun(j)) j++; if (j >= this.segs.length) break;
+      const a = this.segs[i - 1], c = this.segs[j], r0 = this.segs[i].t0, r1 = this.segs[j - 1].t1; if (a.place !== c.place || a.place === '-') continue;
+      const probe = [r0 + 0.01, (r0 + r1) / 2, r1 - 0.01]; for (let h = r0 + 0.05; h < r1 - 0.05; h += 0.05) probe.push(h);
+      const there = (x: number | undefined) => x !== undefined && x >= 0 && probe.every(h => segAt(planOf(x), h).place === a.place);
+      if (there(c.with)) { c.t0 = r0; this.segs.splice(i, j - i); }
+      // (an outing with the other children, no one of the house along: it stays with them until the one it goes to comes)
+      else if (there(a.with) || (a.place !== base && (a.with === undefined || a.with < 0) && a.act === 'play')) { a.t1 = r1; this.segs.splice(i, j - i); }
       else if (a.place === base) { // the one minding it leaves just as the mother comes in (or comes in just after she leaves):
         // it stays at home those minutes, with whoever of the house is there
         const o = mem.find(x => x !== this.pid && P.persons[x].age >= 7 && there(x)); const sl = a.act === 'sleep' && c.act === 'sleep';
-        Object.assign(b, { place: base, where: baseW, act: sl ? 'sleep' : 'play', why: sl ? 'asleep at home' : 'playing at home' }); if (o !== undefined) b.with = o; else delete b.with; } }
+        const piece: Seg = { t0: r0, t1: r1, place: base, where: baseW, act: sl ? 'sleep' : 'play', why: sl ? 'asleep at home' : 'playing at home' }; if (o !== undefined) piece.with = o;
+        this.segs.splice(i, j - i, piece); }
+      // one of the house goes as another comes, a few minutes apart, away from home (the mother leaves the lane or the well
+      // and the elder sister comes out to it): it waits there with the other children (C)
+      else if (r1 - r0 <= 0.3) { const who = c.with !== undefined && c.with >= 0 ? relOf(c.with) : null;
+        this.segs.splice(i, j - i, { t0: r0, t1: r1, place: a.place, where: a.where, act: 'play', why: `playing there with the other children${who ? ` until ${who} comes` : ''}` }); } }
+    // a moment of seconds at a place between two walks (two outings' spans meeting on the way home) is the walk's
+    for (let i = 1; i + 1 < this.segs.length; i++) { const x = this.segs[i]; if (x.where === 'road' || x.t1 - x.t0 >= 0.02 || this.segs[i - 1].where !== 'road' || this.segs[i + 1].where !== 'road') continue;
+      this.segs[i - 1].t1 = x.t1; this.segs.splice(i, 1); i--; }
     return illness();
   }
   // ---------------------------------------------------------------- jobs
@@ -1892,7 +1926,8 @@ class Planner {
       return out; };
     const follow = (ms: Seg[], camp: boolean, fe0?: number) => { const fe = fe0 ?? firstEat(ms); for (const s of spells(ms)) { const edge = s.place.startsWith('threshing') ? 'by the threshing floor' : s.place.startsWith('field') ? 'at the field edge' : 'under the trees'; let [a, why] = s.why === '(shade)' ? (age < 8 ? ['play', `playing in the shade ${edge}`] as [ActivityId, string] : ['rest', `resting in the shade ${edge}`] as [ActivityId, string]) : beside(s); let place = s.place; let w = m;
         let wh = s.where;
-        if (s.t1 <= fe && age < 10 && s.act !== 'eat' && (!camp || s.place === this.home)) { a = 'sleep'; why = 'asleep'; if (s.place !== this.home) { place = this.home; wh = this.homeW; w = -1; } }
+        // (to within float error: the mother's walk home that ends as the meal begins)
+        if (s.t1 <= fe + 1e-6 && age < 10 && s.act !== 'eat' && (!camp || s.place === this.home)) { a = 'sleep'; why = 'asleep'; if (s.place !== this.home) { place = this.home; wh = this.homeW; w = -1; } }
         else if (/ in the night/.test(s.why)) { a = 'sleep'; why = 'asleep'; }
         const prev = this.segs[this.segs.length - 1]; if (/nurs/.test(s.why) && prev?.act === 'sleep' && prev.place === place) { a = 'sleep'; why = prev.why; } // sleeps on while she feeds the baby
         // at the work camp the child stays by the querns among the other women while its mother goes down for flour, for

@@ -3,8 +3,8 @@
 //  S1 a farming man with no field task idled at home; S2 the grain-heap vigil ended at bedtime; S3 the leader's
 //  change-of-watch round walked other files' posts; S4 the herders' band was one template and not families; S5 infants
 //  stayed awake through their mothers' work; S6 the child driving the oxen did `field_work` with a hoe; S7 thin winter days
-//  for women at home; S10 planner artefacts (a walk home and straight back out, "an older brother or sister", a guard's meal
-//  in the forecourt, a round cut mid-leg); S12 the shadow tool (stratified pick, independent days, days 1-354); the eve of
+//  for women at home; S10 planner artefacts (a walk home and straight back out, a walk split in two, "an older brother or
+//  sister", a guard's meal in the forecourt, a round cut mid-leg); S12 the shadow tool (stratified pick, independent days, days 1-354); the eve of
 //  the year's night watch.
 import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -26,6 +26,12 @@ const daylightRest = (pid: number, d: number) => { const { rise, set } = P.cal.c
   for (const s of P.plan(pid, d) as Seg[]) if (s.act === 'rest' && s.where !== 'road') r += Math.max(0, Math.min(s.t1, set) - Math.max(s.t0, rise)); return r; };
 const ableFarmMen = (d: number, step = 1) => { const out: number[] = []; for (let pid = 0; pid < P.persons.length; pid += step) { const p = P.persons[pid];
   if (p.job !== 'farmer' || p.sex !== 'm' || p.age < 16 || p.age > 60 || !P.present(pid, d) || P.sick(pid, d) || P.mourning(pid, d) || P.households[P.home(pid, d)].zone !== 'plain') continue; out.push(pid); } return out; };
+
+/** the runs of road pieces in a plan, as [first, end) index pairs, with a place before and after (a walk, or walks in a row) */
+const roadRuns = (s: Seg[]) => { const out: [number, number][] = []; for (let i = 1; i < s.length; i++) { if (s[i].where !== 'road' || s[i - 1].where === 'road') continue;
+  let j = i; while (j < s.length && s[j].where === 'road') j++; if (j < s.length) out.push([i, j]); } return out; };
+/** a walk that leaves a place and comes straight back to it (no piece of it an hour-long errand on the road) */
+const backWalk = (s: Seg[], i: number, j: number) => s[i - 1].place === s[j].place && s.slice(i, j).every(x => x.t1 - x.t0 < 0.5);
 
 describe('S1: a farming man is not idle at home on a working day', () => {
   it('the fields fraction is applied to men and women separately (population.json field_fraction_by_sex, C)', () => {
@@ -127,6 +133,7 @@ describe('S5: an infant sleeps through much of the mother\'s work', () => {
 describe('S6, S7, S10: children at the floor, women in winter, planner artefacts', () => {
   it('a child at the threshing floor threshes and carries a stick or a fork, never a hoe (18978, day 104)', () => {
     const segs: Seg[] = P.plan(18978, 103); expect(segs.some(s => s.act === 'thresh' && s.place.startsWith('threshing:'))).toBe(true);
+    for (const [i, j] of roadRuns(segs)) expect(j - i, `18978 d103 a walk split in two at ${segs[i].t0.toFixed(2)} (S10)`).toBe(1);
     for (const s of segs) { expect(s.act === 'field_work' && s.place.startsWith('threshing:')).toBe(false); if (s.carry) expect(s.carry).not.toMatch(/hoe/); }
     for (let pid = 0; pid < P.persons.length; pid += 5) { const p = P.persons[pid]; if (p.age >= 14 || p.age < 5 || P.households[p.hh].zone !== 'plain') continue; for (const d of [80, 120]) { if (!P.present(pid, d)) continue;
       const s: Seg[] = P.plan(pid, d); for (let i = 0; i < s.length; i++) { if (s[i].place.startsWith('threshing:')) expect(s[i].act).not.toBe('field_work');
@@ -140,15 +147,15 @@ describe('S6, S7, S10: children at the floor, women in winter, planner artefacts
   }, 120_000);
   it('play leads from one place to the next: no walk leaves a place and comes straight back to it, and a little one\'s sister is "the elder sister"', () => {
     let kids = 0; for (let pid = 0; pid < P.persons.length; pid += 4) { const p = P.persons[pid]; if (p.age > 13 || p.age < 1) continue; for (const d of [60, 163, 242]) { if (!P.present(pid, d)) continue; kids++; const s: Seg[] = P.plan(pid, d);
-      for (let i = 1; i + 1 < s.length; i++) if (s[i].where === 'road') expect(s[i - 1].place === s[i + 1].place && s[i - 1].where !== 'road', `${pid} d${d} ${s[i].t0.toFixed(2)} ${s[i - 1].place}`).toBe(false);
+      for (const [i, j] of roadRuns(s)) expect(backWalk(s, i, j), `${pid} d${d} ${s[i].t0.toFixed(2)} ${s[i - 1].place}`).toBe(false);
       for (const x of s) expect(x.why).not.toMatch(/an older brother or sister/); } }
     expect(kids).toBeGreaterThan(3000);
   }, 180_000);
-  it('the grown-ups too: two spells in the lane run on, and between two trips to the well the water is poured at home', () => {
-    let n = 0; for (let pid = 1; pid < P.persons.length; pid += 9) { const p = P.persons[pid]; if (p.age < 14) continue; for (const d of [60, 163, 242]) { if (!P.present(pid, d)) continue; n++; const s: Seg[] = P.plan(pid, d);
-      for (let i = 1; i + 1 < s.length; i++) if (s[i].where === 'road') expect(s[i - 1].place === s[i + 1].place && s[i - 1].where !== 'road', `${pid} d${d} ${s[i].t0.toFixed(2)} ${s[i - 1].place}`).toBe(false);
+  it('the grown-ups too: no walk back to where it started, no walk that arrives and goes straight on (fewer than 1 in 200 person-days: a horse led along the road and back), and between two trips to the well the water is poured at home', () => {
+    let n = 0, split = 0; for (let pid = 1; pid < P.persons.length; pid += 9) { const p = P.persons[pid]; if (p.age < 14) continue; for (const d of [60, 163, 242]) { if (!P.present(pid, d)) continue; n++; const s: Seg[] = P.plan(pid, d);
+      for (const [i, j] of roadRuns(s)) { expect(backWalk(s, i, j), `${pid} d${d} ${s[i].t0.toFixed(2)} ${s[i - 1].place}`).toBe(false); if (j - i >= 2) split++; }
       for (let i = 1; i + 2 < s.length; i++) if (s[i].act === 'carry_jar_head' && s[i + 1].where === 'road' && s[i + 2].act === 'draw_water') expect(`${pid} d${d} ${s[i].t0.toFixed(2)}: carried home and straight back out`).toBe(''); } }
-    expect(n).toBeGreaterThan(5000);
+    expect(n).toBeGreaterThan(5000); expect(split / n).toBeLessThan(0.005);
   }, 180_000);
 });
 
