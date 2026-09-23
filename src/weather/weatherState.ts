@@ -65,4 +65,24 @@ export class WeatherSystem {
     const haze = Math.min(1, 0.15 + 0.5 * dust + 0.6 * mist + 0.25 * rain + d.rh / 400);
     return { tempC, cloud, rain, snowFall, windMs, windDirDeg: d.windDirDeg, rh: d.rh, haze, dust, mist, lightning, wetness, snowCover, day: d };
   }
+  /** the rain cell that brings (or brought) today's rain episode to the Terrace, as a moving object: before the episode it
+   *  stands upwind at (steering wind × time to onset), after it recedes downwind; the episode's own timing (above) is
+   *  the anchor. Steering wind = surface wind × 2.5, at least 5 m/s (C, as the cloud drift). Episodes up to 3 h away are
+   *  reported (a cell 3 h out at 5–15 m/s is 50–160 km off, beyond the far terrain). Null with a weather override
+   *  (no timeline) or on dry days. */
+  rainCell(dayIndex: number, hour: number): { distanceM: number; bearingTrueDeg: number; intensity: number; snow: boolean; radiusM: number } | null {
+    if (this.override !== 'auto') return null;
+    let best: { dh: number; i: number; before: boolean } | null = null;
+    for (const di of [-1, 0, 1]) {
+      const i = dayIndex + di, d = this.days[i]; if (!d || !d.wet) continue;
+      const [rs, re] = this.rainWindows[i], s = rs + di * 24, e = re + di * 24;
+      const dh = hour < s ? s - hour : hour > e ? hour - e : 0;
+      if (dh <= 3 && (!best || dh < best.dh)) best = { dh, i, before: hour < s };
+    }
+    if (!best) return null;
+    const d = this.days[best.i], c = this.conditions(best.i, 12);
+    const steer = Math.max(5, c.windMs * 2.5);
+    const intensity = Math.min(1, 0.25 + d.precipMm / 20);
+    return { distanceM: steer * best.dh * 3600, bearingTrueDeg: best.before ? d.windDirDeg : (d.windDirDeg + 180) % 360, intensity, snow: d.snow, radiusM: 2500 + Math.min(4000, d.precipMm * 250) };
+  }
 }

@@ -323,3 +323,18 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - Tops rise with the cell.
   - A per-pixel start jitter lets TRAA average away the banding.
   - Shapes and optics remain C.
+## D-048 Rain cells as moving objects: distant rain shafts (session 3; §1.1 "rain moving across the plain toward the columns")
+- **Timeline:** each wet day's rain episode at the Terrace (a start hour and duration from the weather generator) is the anchor. `WeatherSystem.rainCell(day, hour)` models the cell that brings it:
+  - before onset, it stands upwind at the steering wind × time to onset, and approaches at constant speed;
+  - during the episode it is overhead;
+  - after the episode it recedes downwind.
+  - Steering wind = 2.5 × the surface wind, at least 5 m/s. This is the same factor the cloud drift uses (C).
+  - The cell radius is 2.5–6.5 km with precipitation (C).
+  - Unit-tested: approach speed, bearing from the wind, overhead, recession, and nothing under a weather override (which has no timeline).
+- **Rendering (`src/world/rainShafts.ts`):**
+  - A cluster of 5 vertical open cylinders from the ground to the cloud base.
+  - Opacity is analytic with no raymarch: 1 − exp(−σ·chord), where the chord through a cylinder at a side point seen horizontally is 2R·|cos θ|. σ = 3·10⁻⁴ m⁻¹ (C), which gives a 6 km core about 0.85 opacity.
+  - Streaks drift down, the top fades into the cloud base, and scene fog supplies the aerial perspective. Snow cells are paler.
+  - Hidden when the player is inside the rain (local streaks and fog take over) or when the cell is beyond 70 km.
+- **Moment:** day 12's episode arrives at 06:01 from the WSW (245°), straight across the plain at the W façade. `tests/e2e/moments.spec.ts` `rain-approach` looks from the Apadana W portico at 05:40.
+- **Alternatives:** raymarched rain volumes (cost); billboards (they rotate visibly); rain only at the camera (the moment cannot exist).
