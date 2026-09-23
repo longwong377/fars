@@ -45,7 +45,7 @@ export function nearCrops(zm: ZoneMap, cropTex: THREE.DataTexture, day: any, win
   m.positionNode = instanceTransform(vec3(pg.x.mul(h.mul(0.6).add(0.4)), pg.y.mul(h), pg.z.mul(h.mul(0.6).add(0.4))), iscl, ipos).add(vec3(sway, 0, sway.mul(0.5)));
   m.normalNode = instanceNormal(mix(normalGeometry, vec3(0, 1, 0), 0.75).normalize(), iscl); // leaves lit like a canopy, not like flat cards
   const green = st.y, straw = st.z;
-  const gCol = mix(vec3(0.2, 0.3, 0.08), vec3(0.14, 0.23, 0.07), smoothstep(0.2, 0.8, hCrop)), sCol = mix(vec3(0.42, 0.36, 0.2), vec3(0.52, 0.41, 0.18), smoothstep(0.1, 0.4, hCrop));
+  const gCol = mix(vec3(0.12, 0.2, 0.05), vec3(0.085, 0.155, 0.045), smoothstep(0.2, 0.8, hCrop)), sCol = mix(vec3(0.4, 0.34, 0.19), vec3(0.5, 0.39, 0.16), smoothstep(0.1, 0.4, hCrop));
   const tipCol = mix(gCol, sCol, clamp(straw.div(green.add(straw).max(0.01)), 0, 1));
   const baseCol = tipCol.mul(0.7);
   m.colorNode = mix(baseCol, tipCol, tip).mul(mx_noise_float(vec3(a.z.mul(40), 0, 0)).mul(0.15).add(1));
