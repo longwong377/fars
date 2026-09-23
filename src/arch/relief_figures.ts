@@ -487,6 +487,24 @@ function incenseBurner(fr: Frame): Mass[] { // tall incense stand before the kin
   return [M([fr.poly([[-0.06, 0], [0.06, 0], [0.02, 0.05], [0.012, 0.4], [0.05, 0.45], [0.05, 0.5], [-0.05, 0.5], [-0.05, 0.45], [-0.012, 0.4], [-0.02, 0.05]]), fr.spoly([[-0.045, 0.5], [0.045, 0.5], [0.02, 0.6], [0, 0.63], [-0.02, 0.6]], 3)],
     { amp: 0.7, colour: P.gold, round: 0.012, groove: 0.08, detail: fr.det((x, y) => (y > 0.5 ? pleats(y, 0.02, 0.1) : flutes(x, 0.012, 0.1))) })];
 }
+/** the attendants' scale relative to the king in composite royal groups (SITE_SPEC global.r_jamb_relief.attendant_scale, C;
+ *  this module runs in workers and cannot read the spec, tests/reliefs.test.ts checks they agree) */
+export const ATTENDANT_SCALE = 0.78;
+function dais(fr: Frame): Mass[] { // the throne platform carried by the bearers (B): a moulded slab on lion feet (C); unit = length
+  const feet: SDF[] = []; for (const x of [-0.46, -0.16, 0.16, 0.46]) feet.push(fr.ell(x, 0.022, 0.028, 0.022));
+  return [M(feet, { amp: 0.55, colour: P.gold, round: 0.01, detail: fr.det(x => pleats(x, 0.01, 0.1)) }),
+    M([fr.poly([[-0.5, 0.035], [0.5, 0.035], [0.5, 0.095], [-0.5, 0.095]])], { amp: 0.7, lift: 0.04, colour: P.gold, round: 0.012, groove: 0.08, detail: fr.det((x, y) => (y > 0.075 ? 0.08 : y < 0.05 ? 0.04 : 0)) })];
+}
+/** suffix of a blocked-out (unfinished) variant of any kind: the outline cut back and the masses roughed out as planes,
+ *  no modelling detail, no incised lines, no paint; claw-chisel marks on the surfaces (the Unfinished Gate figures'
+ *  stage, RECOLLECTION, NOT SEEN: C) */
+export const ROUGH = '~rough';
+export const baseKind = (kind: string) => (kind.endsWith(ROUGH) ? kind.slice(0, -ROUGH.length) : kind);
+export function roughOut(d: FigureDef): FigureDef {
+  const claw = (x: number, y: number) => pleats(x * 0.7 + y * 0.7, 0.02, 0.05);
+  return { bounds: d.bounds, incisions: [], masses: d.masses.filter(m => !m.paintOnly).map(m => ({ ...m, colour: STONE, detail: claw, dome: 0, groove: 0, smooth: 0,
+    edge: Math.max(m.edge ?? 0.45, 0.8), round: Math.max(m.round ?? 0.02, 0.025), lift: (m.lift ?? 0) * 0.5, amp: m.amp * 0.85 })) };
+}
 function throne(fr: Frame): Mass[] { // throne and footstool (audience relief, B; lion-paw feet and form C)
   const leg = (x: number) => [fr.seg(x, 0.04, x, 0.36, 0.014), fr.ell(x + 0.01, 0.025, 0.025, 0.022)];
   return [M([...leg(-0.08), ...leg(0.08), fr.seg(-0.09, 0.36, 0.1, 0.36, 0.012), fr.seg(-0.09, 0.2, 0.09, 0.2, 0.006), fr.seg(-0.1, 0.36, -0.12, 0.72, 0.012), fr.seg(0.14, 0.02, 0.28, 0.02, 0.02), fr.seg(0.16, 0.0, 0.16, 0.04, 0.01), fr.seg(0.26, 0.0, 0.26, 0.04, 0.01)],
@@ -540,7 +558,10 @@ export const FIGURE_KINDS: Record<string, KindInfo> = {
   king_walking: K('B', 'WP-EXT;ISAC-PA;SI-ARCH', 'person', 0.62, 'king walking with attendants (door-jamb reliefs of the Tachara, Harem, Tripylon: B); staff C'),
   attendant: K('B', 'WP-EXT;ISAC-PA;SI-ARCH', 'person', 0.62, 'attendant with parasol, fly-whisk, towel or perfume flask (Tachara / Harem jambs: B); forms C'),
   lance_bearer: K('B', 'WP-EXT;ISAC-PA', 'person', 0.62, 'lance-bearer with a wicker shield (Tachara W rooms: B); shield form C'),
-  hero: K('B', 'SI-ARCH;ISAC-PA;BRIT-H100;IR-PERS', 'group', 0.95, 'royal hero stabbing a rampant lion or bull (Harem, Hall of 100 Columns, Tachara jambs: B; the griffin-like monster is not drawn); composition C'),
+  hero: K('B', 'SI-ARCH;ISAC-PA;BRIT-H100;IR-PERS', 'group', 0.95, 'royal hero stabbing a rampant beast (Harem, Hall of 100 Columns, Tachara jambs: B): seed % 3 = lion, bull, or the lion-headed winged monster ("griffin", B) drawn as a horned, winged lion (form C); composition C'),
+  king_attendants: K('B', 'ISAC-PA;FARROKH;SI-ARCH;WP-EXT', 'group', 0.85, 'the king walking, an attendant behind him holding a parasol over his head and (seed 0 / 1) a second with a fly-whisk / towel (Harem S, Hadish NW, Tachara, Tripylon doorways: B); crown, staff, scale of the attendants (hierarchic, r_jamb_relief.attendant_scale) and forms C'),
+  bearer: K('B', 'SI-ARCH;BRIT-H100;IR-PERS', 'person', 0.62, 'throne-bearer: a representative of a subject people lifting the throne platform above his head (Tripylon E jamb, Hall of 100 Columns S jambs: B); dress per people after DELEGATIONS (seed = delegation, C)'),
+  dais: K('B', 'SI-ARCH;BRIT-H100', 'ornament', 1.0, 'the throne platform carried by the bearers (B); mouldings, lion feet and paint C; unit = its length'),
   horse: K('B', 'RELIEF-R;MATCULT-R', 'animal', 0.95, SPECIES.horse.note),
   bull: K('B', 'RELIEF-R', 'animal', 0.95, SPECIES.bull.note),
   camel_bactrian: K('B', 'RELIEF-R;MATCULT-R', 'animal', 0.95, SPECIES.camel_bactrian.note),
@@ -563,8 +584,9 @@ const ARM_SPEAR: Pick<Human, 'near' | 'far'> = { near: { elbow: [0.035, 0.56], h
 const ARM_FLOWER: Pick<Human, 'near' | 'far'> = { near: { elbow: [0.035, 0.56], hand: [0.105, 0.61] }, far: { elbow: [-0.02, 0.56], hand: [0.03, 0.5] } };
 const ARM_CARRY: Pick<Human, 'near' | 'far'> = { near: { elbow: [0.04, 0.56], hand: [0.115, 0.57] }, far: { elbow: [0.035, 0.58], hand: [0.105, 0.6] } };
 
-/** The figure definition for a kind and seed (deterministic). */
+/** The figure definition for a kind and seed (deterministic); `kind~rough` = its blocked-out variant (roughOut). */
 export function figureDef(kind: string, seed: number): FigureDef {
+  if (kind.endsWith(ROUGH)) return roughOut(figureDef(baseKind(kind), seed));
   const rng = new Rng(seed + 1, 'relief-fig-' + kind), fr = new Frame();
   const g = rng.pick(GARMENTS), g2 = rng.pick(GARMENTS.filter(c => c !== g));
   const persianDress = (extra: Partial<Human>): Human => ({ dress: 'persian', head: 'fluted', beard: 'long', garment: g, garment2: g2, ...ARM_FLOWER, ...extra });
@@ -610,12 +632,44 @@ export function figureDef(kind: string, seed: number): FigureDef {
       const h = (seed % 2 ? medianDress : persianDress)({ beard: seed % 3 ? 'none' : 'short', head: seed % 2 ? 'cap' : 'band', near: pk === 'parasol' || pk === 'whisk' ? { elbow: [0.05, 0.62], hand: [0.1, 0.72] } : ARM_CARRY.near });
       return withProps(h, [[pk, 'near']], P.gold); }
     case 'lance_bearer': return withProps(persianDress({ ...ARM_SPEAR, head: 'band' }), [['wicker', 'near'], ['shield', 'far']]);
-    case 'hero': { // the royal hero grasps the rampant beast and stabs it in the belly (composition C)
-      const beast = SPECIES[(['lion', 'bull'] as const)[seed % 2]], lean = 1.15;
+    case 'hero': { // the royal hero grasps the rampant beast and stabs it in the belly (composition C); seed % 3: lion, bull,
+      // monster (a lion with bull's horns and a wing: the "lion-headed monster / griffin" of the Harem E door, form C)
+      const kindOf = (['lion', 'bull', 'monster'] as const)[seed % 3], monster = kindOf === 'monster';
+      const beast: Species = monster ? { ...SPECIES.lion, horns: 'bull', mane: undefined, note: 'monster' } : SPECIES[kindOf], lean = 1.15;
       const q = quadruped(standing(beast, lean, 1.0, 0.44, true, 0.95), beast, { lean, fore: 'reach', jawOpen: true, neckAng: 30, headAng: beast.feet === 'paw' ? -5 : -40 });
+      const extra: Mass[] = [];
+      if (monster) { const wf = new Frame(q.shoulder[0], q.shoulder[1], 0, 1, true); // wing raised from the shoulder, behind the hero
+        extra.push(M([wf.spoly([[-0.04, -0.02], [0.05, 0.05], [0.02, 0.2], [-0.1, 0.4], [-0.2, 0.46], [-0.19, 0.33], [-0.12, 0.15]], 4)],
+          { amp: 0.6, lift: 0.08, colour: STONE, round: 0.03, groove: 0.1, detail: wf.det((x, y) => feathers(x * 0.8 + y * 0.6, y * 0.8 - x * 0.6, 0.03, 0.04, 0.2)) })); }
       const b = human(fr, persianDress({ head: 'crown', garment: P.purple, garment2: P.egyptianBlue, near: { elbow: [0.07, 0.5], hand: [0.18, 0.47] }, far: { elbow: [0.07, 0.68], hand: [0.18, 0.76] } }), { front: prop(fr, 'dagger', 0.18, 0.47, P.white) });
-      return { masses: [...q.masses, ...b.masses], incisions: [...q.incisions, ...b.incisions] };
+      return { masses: [...q.masses, ...extra, ...b.masses], incisions: [...q.incisions, ...b.incisions] };
     }
+    case 'king_attendants': { // the king walking under a parasol held by an attendant behind him; seed 0: a fly-whisk bearer
+      // behind that, 1: a towel bearer, 2: none. Attendants at the hierarchic scale (C); back to front: second attendant,
+      // parasol bearer, parasol, king
+      const AS = ATTENDANT_SCALE, kf = new Frame(0, 0), pf = new Frame(-0.3, 0, 0, AS), sf = new Frame(-0.52, 0, 0, AS);
+      const out: Mass[] = [], incs: Incision[] = [];
+      const second = (['whisk', 'towel'] as Prop[])[seed % 3];
+      if (second) { const a = human(sf, persianDress({ head: 'band', beard: 'none', near: second === 'whisk' ? { elbow: [0.05, 0.62], hand: [0.1, 0.72] } : ARM_CARRY.near }), { front: prop(sf, second, second === 'whisk' ? 0.1 : ARM_CARRY.near.hand[0], second === 'whisk' ? 0.72 : ARM_CARRY.near.hand[1], P.gold) });
+        out.push(...a.masses); incs.push(...a.incisions); }
+      const pb = human(pf, persianDress({ head: 'band', beard: 'none', near: { elbow: [0.06, 0.62], hand: [0.11, 0.7] }, far: { elbow: [0.05, 0.66], hand: [0.105, 0.79] } }));
+      out.push(...pb.masses); incs.push(...pb.incisions);
+      // parasol: the pole from the bearer's hands, leaning forward over the king's head; a fluted canopy with a finial (C)
+      const [hx, hy] = pf.p(0.11, 0.66), top: [number, number] = [-0.06, 1.1];
+      out.push(M([fr.seg(hx, hy, top[0], top[1], 0.0065)], { amp: 0.8, lift: 0.12, colour: P.yellowOchre, round: 0.006 }));
+      out.push(M([fr.spoly([[top[0] - 0.24, top[1] - 0.005], [top[0] + 0.22, top[1] - 0.005], [top[0] + 0.14, top[1] + 0.045], [top[0], top[1] + 0.07], [top[0] - 0.16, top[1] + 0.045]], 3), fr.circ(top[0], top[1] + 0.08, 0.012)],
+        { amp: 0.72, lift: 0.08, colour: P.egyptianBlue, round: 0.014, groove: 0.08, detail: fr.det(x => flutes(x - top[0], 0.03, 0.12)) }));
+      const k = human(kf, persianDress({ head: 'crown', garment: P.purple, garment2: P.egyptianBlue, near: { elbow: [0.05, 0.56], hand: [0.13, 0.58] } }), { front: prop(kf, 'staff', 0.13, 0.58, P.gold), farArm: prop(kf, 'lotus', ARM_FLOWER.far!.hand[0], ARM_FLOWER.far!.hand[1], P.gold) });
+      out.push(...k.masses); incs.push(...k.incisions);
+      return { masses: out, incisions: incs };
+    }
+    case 'bearer': { // throne-bearer of a subject people, both hands above the head holding up the platform (B); dress C
+      const d = DELEGATIONS[seed % DELEGATIONS.length];
+      const h: Human = { dress: d.dress, head: d.head, beard: d.dress === 'wrap' ? 'none' : 'short', garment: g, garment2: g2, akinakes: d.dress === 'median', stride: 0.5,
+        near: { elbow: [0.085, 0.84], hand: [0.04, 1.0] }, far: { elbow: [-0.07, 0.84], hand: [-0.03, 1.0] } };
+      return withProps(h, []);
+    }
+    case 'dais': return { masses: dais(fr) };
     case 'lion_bull': { // the bull rears toward the high end with its head turned back; the lion leaps on its hindquarters
       const bull = SPECIES.bull, lion = SPECIES.lion;
       const qb = quadruped(standing(bull, 0.3, 1.15, 0.12, false, 0.95), bull, { lean: 0.3, fore: 'raised', turnHead: true });

@@ -21,8 +21,8 @@ export interface TranslationContext {
 const INSCRIPTION_INFO: Record<string, { title: string; where: string }> = {
   XPa: { title: 'XPa — Xerxes, Gate of All Nations', where: 'carved above the doorway colossi of the Gate (version per colossus: C)' },
   XPb: { title: 'XPb — Xerxes, Apadana', where: 'beside the audience panels of the Apadana stairs (placement C)' },
-  XPc: { title: 'XPc — Xerxes, Tachara', where: 'Tachara (S stair façade)' },
-  XPd: { title: 'XPd — Xerxes, Hadish', where: 'Hadish (W stair façade)' },
+  XPc: { title: 'XPc — Xerxes, Tachara', where: 'between the guards of the central façade of the Tachara S stair (placement C)' },
+  XPd: { title: 'XPd — Xerxes, Hadish', where: 'between the guards of the central façade of the Hadish W stair (placement C)' },
 };
 const LANG_NAME: Record<string, string> = { op: 'Old Persian', el: 'Elamite', arc: 'Aramaic', bab: 'Babylonian' };
 const GLOSS = new Map<string, { gloss: string; tier: string }>((opLexicon as any[]).map(e => [e.form, { gloss: e.gloss, tier: e.tier }]));

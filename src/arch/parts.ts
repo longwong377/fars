@@ -7,10 +7,22 @@ export interface Base { building: string; kind: string; material: Material; tier
 /** vertical prism: polygon extruded from y0 to y1 (heights relative to the court datum) */
 export interface Prism extends Base { type: 'prism'; polygon: Pt[]; y0: number; y1: number }
 /** oriented box, grid-aligned (rot = rotation about vertical, radians, counter-clockwise in grid) */
-export interface Box extends Base { type: 'box'; c: Pt; size: [number, number]; y0: number; y1: number; rot?: number; sculpt?: Sculpt }
+export interface Box extends Base { type: 'box'; c: Pt; size: [number, number]; y0: number; y1: number; rot?: number; sculpt?: Sculpt; door?: DoorLeafData }
 /** a box that is RENDERED as sculpture (the box stays the collider and plan footprint): doorway colossus model, the grid
  *  x direction its head faces (±1) and the grid y side (±1) its relief faces (the doorway passage) */
 export interface Sculpt { model: 'bull' | 'lamassu'; facing: 1 | -1; passage: 1 | -1 }
+/** door states (SITE_SPEC r_door_state): open / closed (operable), locked (barred), sealed (barred and sealed with clay),
+ *  scheduled_* (open in working hours, barred or sealed outside them: global.r_door_schedule) */
+export type DoorState = 'open' | 'closed' | 'locked' | 'sealed' | 'scheduled_locked' | 'scheduled_sealed';
+/** a door leaf (D-051). The part's box is the leaf in its walkable-grid pose (open unless the door is permanently barred
+ *  or sealed); the door system (doors.ts) renders it and moves its collider. Angles are grid azimuths (radians, CCW from
+ *  grid east) of the direction from the pivot to the free edge */
+export interface DoorLeafData { id: string; building: string; leaf: 0 | 1; pivot: Pt; len: number; thickness: number; y0: number; height: number;
+  closedAz: number; openAz: number; state: DoorState; navOpen: boolean; outside: Pt /* unit grid vector toward the approach side (sealing, bar) */;
+  through: Pt /* from the leaf line to the far end of the passage through the wall (grid vector) */ }
+/** a doorway of the built model: centre on the wall mid-plane at floor level, along-wall unit u, unit normal n toward the
+ *  side the leaves open to (the hall), clear width and height, wall depth, stone-frame projection (0 = no frame) */
+export interface Doorway { id: string; building: string; door: string; side: string; at: number; c: Pt; u: Pt; n: Pt; width: number; height: number; y0: number; depth: number; proj: number; jamb: number; framed: boolean }
 /** column: parametric profile, instanced when rendered */
 export interface Column extends Base { type: 'column'; c: Pt; y0: number; order: ColumnOrder; built: number /*0..1 fraction of shaft raised (construction)*/ }
 export interface ColumnOrder {
@@ -19,7 +31,7 @@ export interface ColumnOrder {
 }
 export type Part = Prism | Box | Column;
 export interface Manifest { [building: string]: Record<string, number | number[] | string> }
-export interface BuildResult { parts: Part[]; manifest: Manifest }
+export interface BuildResult { parts: Part[]; manifest: Manifest; doorways: Doorway[] }
 
 export const rect = (cx: number, cy: number, w: number, h: number): Pt[] => [[cx - w / 2, cy - h / 2], [cx + w / 2, cy - h / 2], [cx + w / 2, cy + h / 2], [cx - w / 2, cy + h / 2]];
 export function polyArea(p: Pt[]) { let a = 0; for (let i = 0; i < p.length; i++) { const [x1, y1] = p[i], [x2, y2] = p[(i + 1) % p.length]; a += x1 * y2 - x2 * y1; } return Math.abs(a) / 2; }

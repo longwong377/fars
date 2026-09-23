@@ -4,6 +4,8 @@ export interface SaveGame {
   v: 1; savedAt: string; seed: number; clockT: number; timeScale: number; weatherOverride: string;
   player: { x: number; y: number; z: number; yaw: number; pitch: number };
   npc?: unknown; memory?: unknown;
+  /** door states (D-051): swing target, barred, sealed, moved by the visitor */
+  doors?: unknown;
 }
 const KEY = 'parsa.save.v1';
 export function writeSave(s: SaveGame): boolean { try { localStorage.setItem(KEY, JSON.stringify(s)); return true; } catch { return false; } }

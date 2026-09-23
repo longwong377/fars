@@ -97,7 +97,9 @@ async function boot() {
   const player = new Player(phys, sx, terrain.heightAt(sx, sz) + 0.05, sz);
   const input = new Input(canvas, () => settings);
   input.yaw = SPAWN.yaw;
-  input.onInteract = () => { const r = world.address?.(camera); if (r) console.info('[translation layer]', JSON.stringify(r)); };
+  input.onInteract = () => { // E: the door faced within reach (D-051), else the nearest person in front
+    const d = world.doors?.use(camera); if (d) { console.info('[door]', JSON.stringify(d)); return; }
+    const r = world.address?.(camera); if (r) console.info('[translation layer]', JSON.stringify(r)); };
   const tl = new TranslationLayer(() => settings); input.onAction = a => tl.toggle(a);
   let lastSub: any = null, lastSubAt = -1e9; const inscGroup = world.root.getObjectByName('inscriptions') ?? null;
   const body = makePlayerBody(); scene.add(body);
@@ -106,7 +108,7 @@ async function boot() {
   function state() {
     const p = player.position;
     return { v: 1 as const, savedAt: new Date().toISOString(), seed: SEED, clockT: clock.t, timeScale: settings.timeScale, weatherOverride: weather.override,
-      player: { x: p.x, y: p.y, z: p.z, yaw: input.yaw, pitch: input.pitch }, npc: world.saveState?.() };
+      player: { x: p.x, y: p.y, z: p.z, yaw: input.yaw, pitch: input.pitch }, npc: world.saveState?.(), doors: world.doors?.save() };
   }
   function restore(s: ReturnType<typeof state> | null) {
     if (!s) return false;
@@ -115,7 +117,7 @@ async function boot() {
     }
     settings.timeScale = s.timeScale; clock.scale = TEST ? 0 : s.timeScale;
     clock.t = s.clockT; weather.override = s.weatherOverride as WeatherOverride; input.yaw = s.player.yaw; input.pitch = s.player.pitch;
-    phys.updateTerrain(terrain, s.player); player.body.setTranslation(s.player, true); world.loadState?.(s.npc);
+    phys.updateTerrain(terrain, s.player); player.body.setTranslation(s.player, true); world.loadState?.(s.npc); world.doors?.load((s as any).doors);
     // the world kept running while the visitor was away (§9.5): advance the clock by the real time elapsed × the time scale
     // and catch the simulation up (frozen test worlds excepted)
     const away = TEST ? 0 : Math.max(0, (Date.now() - Date.parse(s.savedAt)) / 1000) * s.timeScale;
@@ -166,6 +168,8 @@ async function boot() {
     navPath: (from: [number, number], to: [number, number]) => { const P = (world as any).people; if (!P) return null;
       const still = P.sim.agents.filter((a: any) => !a.offmap && !a.walking).map((a: any) => a.pos); return P.nav.findPathAvoiding(from, to, still, 0.9); },
     address: () => world.address?.(camera) ?? null,
+    /** doors (D-051): list, work the door faced (as E does), or set one by id */
+    doors: () => world.doors?.list() ?? [], useDoor: () => world.doors?.use(camera) ?? null, setDoor: (id: string, open: boolean) => world.doors?.toggle(id, open) ?? null,
     resetFalls: () => { player.maxFall = 0; },
     exposureInfo: () => ({ exposure: renderer.toneMappingExposure, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],

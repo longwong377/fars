@@ -6,7 +6,8 @@ import { v, present } from './spec';
 import { Rng } from '../core/rng';
 import { planFacade, planAudience, facadeItems, ReliefSet, ReliefItem, RosetteItem, Facade, StairGeom } from './reliefs';
 import { toCuneiform } from '../lang/oldPersian';
-import type { Manifest } from './parts';
+import type { Manifest, Doorway } from './parts';
+import { phase4Programmes, InscriptionPlacement } from './relief_programmes';
 import inscriptions from '../data/inscriptions.json';
 import { surfaceMaterial } from '../render/materials';
 
@@ -47,6 +48,15 @@ export function buildReliefs(m: Manifest): THREE.Group {
   ci.userData = { tier: 'C', src: 'IR-PERS;RECON', note: 'four-stepped crenellations (motif B, size C)' }; ci.name = 'crenellations'; ci.computeBoundingSphere(); g.add(ci);
   return g;
 }
+/** Phase 4 reliefs (D-049): the Tachara, Hadish and Tripylon stair façades and the door jambs of the Tachara, Hadish,
+ *  Tripylon, Hall of 100 Columns and Harem, one relief set per programme (each with its own far chunks, D-048). Returns the
+ *  group and the inscription panels the central façades carry (placed by buildInscriptions). */
+export function buildPhase4Reliefs(doorways: Doorway[]): { group: THREE.Group; inscriptions: InscriptionPlacement[] } {
+  const g = new THREE.Group(); g.name = 'phase4-reliefs'; const ins: InscriptionPlacement[] = [];
+  for (const p of phase4Programmes(doorways)) { if (p.items.length) g.add(new ReliefSet(p.items, [], p.name)); ins.push(...p.inscriptions); }
+  g.userData = { tier: 'C', src: 'RELIEF-R;SI-ARCH;ISAC-PA;IR-PERS', placeholder: true, note: 'Phase 4 relief programmes (D-049): motifs B/C per SITE_SPEC; carving procedural (NEEDS #10)' };
+  return { group: g, inscriptions: ins };
+}
 function crenellationGeometry(w: number, h: number, steps: number, depth: number) {
   const pts: number[][] = []; const sw = w / 2 / steps, sh = h / steps;
   pts.push([-w / 2, 0]); for (let i = 0; i < steps; i++) { pts.push([-w / 2 + i * sw, (i + 1) * sh]); pts.push([-w / 2 + (i + 1) * sw, (i + 1) * sh]); }
@@ -86,7 +96,7 @@ export function textPanelGeometry(fontKey: 'op' | 'cun', text: string, width: nu
 /** layer of the inscriptions' invisible pick rectangles (no camera renders it) */
 export const INSCRIPTION_PICK_LAYER = 5;
 const pickMat = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide, visible: false });
-export function buildInscriptions(m: Manifest, parts: any[]): THREE.Group {
+export function buildInscriptions(m: Manifest, parts: any[], extra: InscriptionPlacement[] = []): THREE.Group {
   const g = new THREE.Group(); g.name = 'inscriptions';
   const inscMat = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(0.22, 0.21, 0.2, THREE.SRGBColorSpace), roughness: 0.95 });
   const panelMeta = (id: string, ver: string) => ({ tier: ver === 'op' ? 'C' : 'B', src: 'ARIO;OSL;NOTO;LANG-R', note: `${id} (${ver === 'op' ? 'Old Persian, signs by Kent rules — C' : ver === 'el' ? 'Elamite, ATF→OSL signs' : 'Babylonian, ATF→OSL signs'}); text: ARIo (Schmitt 2009); placement C`, inscription: id, version: ver });
@@ -128,6 +138,13 @@ export function buildInscriptions(m: Manifest, parts: any[]): THREE.Group {
         place(geo, panelMeta('XPb', 'op'), o, f.along as any, f.normal as any, R.bottom + 2.45, 2.2);
       }
     }
+  }
+  // Phase 4 central façades (D-049): XPc on the Tachara S stair, XPd on the Hadish W stair (Old Persian; placement C)
+  const SR = v<any>('global', 'r_stair_relief');
+  for (const p of extra) {
+    const t = (inscriptions as any)[p.id]; if (!t) continue;
+    const { geo } = textPanelGeometry('op', toCuneiform(t.op_translit), p.width, SR.glyph, SR.line_gap);
+    place(geo, panelMeta(p.id, p.version), [p.origin[0] + p.normal[0] * 0.01, p.origin[1] + p.normal[1] * 0.01], p.along, p.normal, p.yTop, p.width);
   }
   return g;
 }

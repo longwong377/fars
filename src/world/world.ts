@@ -19,14 +19,17 @@ export interface WorldBuild {
   lastSubtitle?: Subtitle | null;
   /** wait until streamed detail (carved-relief LODs) for this camera is generated (tests, screenshots) */
   settle?(camera: THREE.Camera): Promise<void>;
+  /** working timber doors (D-051): E opens/closes the door faced; state saved with the world (main.ts, core/save.ts) */
+  doors?: DoorSystem;
 }
 import { buildTerrace } from '../arch/terrace';
 import { buildMeshes } from '../arch/meshes';
 import { loadSculpt } from '../arch/sculpt';
-import { buildReliefs, buildInscriptions, loadInscriptionFonts } from '../arch/decor';
+import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Reliefs } from '../arch/decor';
 import { updateReliefs, settleReliefs } from '../arch/reliefs';
 import { FireSystem } from './fire';
 import { buildTreasuryGoods } from './furnish';
+import { DoorSystem } from '../arch/doors';
 import { WeatherVfx } from './weatherVfx';
 import { AudioEngine } from '../audio/engine';
 import { Soundscape, registerRoom } from '../audio/soundscape';
@@ -84,13 +87,15 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
   void terrain;
   const t0 = performance.now();
-  const { parts, manifest } = buildTerrace();
+  const { parts, manifest, doorways } = buildTerrace();
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
-  const arch = buildMeshes(parts, phys);
+  const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   root.add(arch.group);
+  const doors = new DoorSystem(parts, phys); root.add(doors.group); // D-051
   await loadInscriptionFonts(async p => (await fetch('/' + p)).arrayBuffer());
   const reliefs = buildReliefs(manifest); root.add(reliefs);
-  const insc = buildInscriptions(manifest, parts); root.add(insc);
+  const p4 = buildPhase4Reliefs(doorways); root.add(p4.group); // stair and door-jamb reliefs of the other palaces (D-049)
+  const insc = buildInscriptions(manifest, parts, p4.inscriptions); root.add(insc);
   if ((manifest.treasury as any)?.benches) root.add(buildTreasuryGoods((manifest.treasury as any).benches, seed)); // stored goods (types B, placement C)
   const q = settings?.quality ?? 'high';
   const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q]); placeFires(fire, manifest, parts); fire.build(); root.add(fire.group);
@@ -129,6 +134,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     if (!simStarted) { sim.jumpTo(target); simStarted = true; }
     else { const ds = (target - sim.t) * 3600; if (ds < -1 || ds > 900) sim.jumpTo(target); else if (ds > 0) sim.step(ds); }
     if (playerAt) sim.player = [playerAt.x, -playerAt.z];
+    // doors (D-051): swing, schedules, people opening closed doors as they pass; before the next physics step
+    doors.player = playerAt; doors.people = sim.agents.filter(a => !a.offmap).map(a => a.pos as [number, number]); doors.update(dt, clock.localHour);
     // simulation LOD (D-017): at the Phase 3/4 population everyone on the Terrace walks real routes; the radius shrinks
     // when Phase 5 brings thousands. Re-checked every few seconds so anyone left abstract (no route yet) is promoted.
     if ((lodT += dt) > 3) { lodT = 0; sim.updateLod(sim.player ?? [0, 0], LOD_RADIUS); }
@@ -147,7 +154,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     speech.say(pick.line, voiceFor({ seed: best.seed, sex: best.sex, role: best.role }), { x: best.pos[0], y: best.y + 1.55, z: -best.pos[1] }, { speakerId: best.id });
     return { lineId: pick.line.id, lang: pick.line.lang, translit: pick.line.translit, gloss: pick.line.gloss, tier: pick.line.tier, speakerId: best.id, backend: 'formant' } as Subtitle;
   };
-  return { root, fire, wvfx, simulate, people: { sim, crowd, nav }, address, get lastSubtitle() { return lastSubtitle; },
+  return { root, fire, wvfx, simulate, people: { sim, crowd, nav }, address, doors, get lastSubtitle() { return lastSubtitle; },
     saveState: () => ({ people: sim.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } },
     /** persistence (brief §9.5): simulate the time the world ran while the visitor was away, everyone in the abstract LOD
      *  (same decisions, timed travel), capped at CATCHUP_MAX_DAYS (older time is placed by schedule); returns the
@@ -166,6 +173,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     update(dt: number, ctx: any) {
       time += dt;
       updateReliefs(ctx.camera.position, dt === 0 ? 50 : 4); // carved-relief LOD (D-019); dt 0 = a test render
+      doors.view(ctx.camera.position);
       { const pp = ctx.player.position; playerAt = new THREE.Vector3(pp.x, pp.y, pp.z); }
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time);
