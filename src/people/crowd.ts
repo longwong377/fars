@@ -36,7 +36,9 @@ const rad = (deg: number) => (deg * Math.PI) / 180;
 export const yawOf = (headingDeg: number) => Math.PI - rad(headingDeg);
 /** LOD distances (m): full detail, mid, far (nothing beyond: impostors not built) */
 export const LOD_DIST = [25, 90, 200, 600] as const;
-export const MAX_FULL = 64;
+/** full detail for at most the nearest MAX_FULL (brief: ≥ 50), mid detail for at most the next MAX_MID; beyond, the far
+ *  body even within 90 m. Measured: 300 people within 20 m at 64 + all-mid cost 3.55 M view triangles (D-028) */
+export const MAX_FULL = 50, MAX_MID = 160;
 export const ATTACH_R = 620, DETACH_R = 660;
 /** the most simulated people attached at once (the cap passed to sim.visibleAgents) */
 export const POOL_MAX = 400;
@@ -234,12 +236,12 @@ export class Crowd {
     const tp = performance.now(); let posed = 0; const drawn = [0, 0, 0, 0]; const has3 = this.humans.gpu.costumes.has('worker@3');
     for (let i = 0; i < list.length; i++) {
       const p = list[i], d = p.dist;
-      const lod = d < LOD_DIST[0] && drawn[0] < MAX_FULL ? 0 : d < LOD_DIST[1] ? 1 : d < LOD_DIST[2] || !has3 ? 2 : 3; drawn[lod]++;
+      const lod = d < LOD_DIST[0] && drawn[0] < MAX_FULL ? 0 : d < LOD_DIST[1] && drawn[1] < MAX_MID ? 1 : d < LOD_DIST[2] || !has3 ? 2 : 3; drawn[lod]++;
       const every = d < 30 ? 1 : d < 90 ? 2 : d < 200 ? 4 : 8;
       if (p.poseFrame < 0 || (this.frame + p.frameMod) % every === 0 || this.frame - p.poseFrame > every) { this.posePerson(p, time, d, playerPos, cam, lod); posed++; }
       else if (p.poseFrame === this.frame - 1) this.copyPrev(p); // no bone change this frame: previous = current
       const c = gpu.costumes.get(`${COSTUME_OF[p.look.dress]}@${lod}`)!;
-      gpu.push(c, p.slot, p.root[0], p.root[1], p.root[2], p.root[3], p.prevRoot[0], p.prevRoot[1], p.prevRoot[2], p.prevRoot[3], d < SHADOW_DIST);
+      gpu.push(c, p.slot, p.root[0], p.root[1], p.root[2], p.root[3], p.prevRoot[0], p.prevRoot[1], p.prevRoot[2], p.prevRoot[3], lod === 0 ? 1 : d < SHADOW_DIST ? 2 : 0);
       p.drawnFrame = this.frame;
       if (p.prop) this.placeProp(p);
     }

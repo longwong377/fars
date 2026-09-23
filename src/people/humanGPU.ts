@@ -1,9 +1,10 @@
 // GPU resources for the human crowd (D-025/D-026): the vertex-source texture (every body variant and fitted garment), the
 // skin palettes (current and previous frame), the per-person data rows, and one instanced mesh per costume and LOD.
 // All people of a costume and LOD are one draw call; the crowd fills the instance lists (slot, root, previous root)
-// each frame for the people it decided to show at that LOD. Shadows: the drawn meshes cast none. One shadow-only mesh
-// per costume (the far-body geometry, on SHADOW_LAYER, which only the sun's shadow cameras see) carries everyone the crowd
-// lets cast (within SHADOW_DIST, crowd.ts): one draw per costume per shadow cascade, whatever the LOD mix.
+// each frame for the people it decided to show at that LOD. Shadows: the drawn meshes cast none. Two shadow-only meshes
+// per costume (on SHADOW_LAYER, which only the sun's shadow cameras see) carry everyone the crowd lets cast (within
+// SHADOW_DIST, crowd.ts): the near caster (far-body geometry) for the full-detail people, the far caster (the farthest,
+// simplified geometry) for the rest. They are drawn only into the cascades that start within SHADOW_CASCADE_REACH.
 import * as THREE from 'three/webgpu';
 import type { HumanAssets } from './humanAssets';
 import type { OutfitBuild, CostumeLOD, Dress } from './outfits';
@@ -13,14 +14,26 @@ import { NBONES, PALETTE_STRIDE } from './humanRig';
 
 export const SOURCE_WIDTH = 2048;
 export interface CostumeMesh { dress: Dress; lod: number; mesh: THREE.Mesh; geo: THREE.InstancedBufferGeometry; inst: THREE.InstancedInterleavedBuffer; count: number; triangles: number; box: THREE.Box3;
-  /** the costume's shadow-only caster (far-body geometry) that also receives this mesh's instances */
-  shadow?: CostumeMesh }
+  /** the costume's shadow-only casters: near (far-body geometry) and far (the simplified farthest geometry) */
+  shadow?: CostumeMesh; shadowFar?: CostumeMesh }
+/** people cast shadows only into cascades whose near bound is within this distance (m) of the camera: casters stand
+ *  within 90 m (SHADOW_DIST) and their shadows fall within ~40 m of them. An instanced caster's bounds span the whole
+ *  crowd, so without this every caster was drawn whole into all four cascades (measured: 4 draws each) */
+export const SHADOW_CASCADE_REACH = 130;
+const LIGHTS: THREE.DirectionalLight[] = [];
+/** false when `shadowCam` is a CSM cascade camera whose slice starts beyond SHADOW_CASCADE_REACH */
+export function cascadeNeedsPeople(shadowCam: THREE.Camera) {
+  for (const L of LIGHTS) { const n: any = (L.shadow as any).shadowNode; if (!n?.lights?.length || !n.camera) continue;
+    const i = n.lights.findIndex((l: any) => l.shadow?.camera === shadowCam); if (i <= 0) continue;
+    return (n.breaks[i - 1] ?? 0) * Math.min(n.camera.far, n.maxFar) < SHADOW_CASCADE_REACH; }
+  return true;
+}
 /** layer of the shadow-only meshes: never drawn by the view camera, only by shadow cameras that enable it */
 export const SHADOW_LAYER = 7;
 /** let a light's shadow camera (and its cascades' cameras, if a CSM node is set) see the shadow-only people meshes.
  *  Call before the first render: CSMShadowNode clones the light's shadow camera (with its layers) when it initialises. */
 export function shadowsSeePeople(light: THREE.DirectionalLight) {
-  light.shadow.camera.layers.enable(0); light.shadow.camera.layers.enable(SHADOW_LAYER);
+  light.shadow.camera.layers.enable(0); light.shadow.camera.layers.enable(SHADOW_LAYER); if (!LIGHTS.includes(light)) LIGHTS.push(light);
   for (const l of ((light.shadow as any).shadowNode?.lights ?? []) as any[]) l.shadow?.camera?.layers.enable(SHADOW_LAYER);
 }
 /** floats per instance: slot, root (x, y, z, yaw), previous root */
@@ -34,7 +47,7 @@ function dataTex(data: Float32Array, w: number, h: number) {
 export class HumanGPU {
   readonly group = new THREE.Group();
   readonly costumes = new Map<string, CostumeMesh>();
-  /** per costume: the shadow-only caster */
+  /** per costume: the shadow-only casters (near, far) */
   readonly shadows: CostumeMesh[] = [];
   readonly material: HumanMaterial;
   /** every material sampling the palette textures (repointed when they grow) */
@@ -60,12 +73,15 @@ export class HumanGPU {
     const cast = opts.castShadow ?? true;
     for (const d of BUILT) {
       const list = O.costumes[d] ?? [];
-      // shadow maps do not need fingers and eyelids (a cascade texel is 1–12 cm): the far body (≈2.5k triangles) casts
-      // for everyone within 200 m, in one draw per costume and cascade
-      const geo = list.find(c => c.lod === 2) ?? list.find(c => c.lod === 1);
-      const sm = cast && geo ? this.makeMesh(geo, shadowMat, true) : null;
-      if (sm) { sm.mesh.name = `humans:${d}:shadow`; sm.mesh.layers.set(SHADOW_LAYER); sm.mesh.receiveShadow = false; this.shadows.push(sm); }
-      for (const C of list) { const cm = this.makeMesh(C, this.material, false); if (sm && C.lod <= 2) cm.shadow = sm; this.costumes.set(`${d}@${C.lod}`, cm); }
+      // shadow maps do not need fingers and eyelids (a cascade texel is 1–12 cm): the far body (≈2.5k triangles) casts for
+      // the full-detail people, the farthest body (≈0.5k) for the rest; one draw per caster and near cascade
+      const geo = list.find(c => c.lod === 2) ?? list.find(c => c.lod === 1), geoFar = list.find(c => c.lod === 3) ?? geo;
+      const caster = (C: CostumeLOD, name: string) => { const m = this.makeMesh(C, shadowMat, true); m.mesh.name = name; m.mesh.layers.set(SHADOW_LAYER); m.mesh.receiveShadow = false;
+        m.mesh.onBeforeShadow = (_r, _o, _c, shadowCam) => { if (!cascadeNeedsPeople(shadowCam)) m.geo.instanceCount = 0; }; // a draw of 0 instances is skipped
+        m.mesh.onAfterShadow = () => { m.geo.instanceCount = m.count; };
+        this.shadows.push(m); return m; };
+      const sm = cast && geo ? caster(geo, `humans:${d}:shadow`) : null, sf = cast && geoFar ? caster(geoFar, `humans:${d}:shadow-far`) : null;
+      for (const C of list) { const cm = this.makeMesh(C, this.material, false); if (sm) cm.shadow = sm; if (sf) cm.shadowFar = sf; this.costumes.set(`${d}@${C.lod}`, cm); }
     }
   }
   /** one instanced mesh for a costume LOD (plain Mesh + InstancedBufferGeometry: the material places every instance).
@@ -101,13 +117,14 @@ export class HumanGPU {
   /** start filling the instance lists for a frame */
   begin() { for (const c of this.all()) { c.count = 0; c.box.makeEmpty(); } }
   private *all() { yield* this.costumes.values(); yield* this.shadows; }
-  /** add an instance; `cast`: also to the costume's shadow caster */
-  push(c: CostumeMesh, slot: number, x: number, y: number, z: number, yaw: number, px: number, py: number, pz: number, pyaw: number, cast = true) {
+  /** add an instance; `cast`: also to the costume's near (1) or far (2) shadow caster, or none (0) */
+  push(c: CostumeMesh, slot: number, x: number, y: number, z: number, yaw: number, px: number, py: number, pz: number, pyaw: number, cast = 1) {
     if ((c.count + 1) * INST_STRIDE > c.inst.array.length) c.inst = this.instBuffer(c.geo, c.inst.count * 2, c.inst.array as Float32Array);
     const a = c.inst.array as Float32Array, o = c.count++ * INST_STRIDE;
     a[o] = slot; a[o + 1] = x; a[o + 2] = y; a[o + 3] = z; a[o + 4] = yaw; a[o + 5] = px; a[o + 6] = py; a[o + 7] = pz; a[o + 8] = pyaw;
     c.box.expandByPoint(_v.set(x, y, z));
-    if (c.shadow && cast) this.push(c.shadow, slot, x, y, z, yaw, px, py, pz, pyaw);
+    const sc = cast === 1 ? c.shadow : cast === 2 ? c.shadowFar : undefined;
+    if (sc) this.push(sc, slot, x, y, z, yaw, px, py, pz, pyaw, 0);
   }
   /** instance counts, bounds (frustum and shadow-cascade culling), uploads */
   end(uploadPrev: boolean) {

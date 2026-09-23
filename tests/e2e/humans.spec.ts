@@ -55,7 +55,8 @@ test('people draw cost (with and without people, shadow passes included)', async
   await page.evaluate(() => { const w = window as any, b = w.__parsa.renderer.backend;
     w.__dc = { total: 0, people: 0, view: 0, shadow: 0, byName: {} as Record<string, number> };
     const inPeople = (o: any) => { for (let x = o; x; x = x.parent) if (x.name === 'people') return true; return false; };
-    const d = b.draw.bind(b); b.draw = (ro: any, ...a: any[]) => { const c = w.__dc; c.total++;
+    const d = b.draw.bind(b); b.draw = (ro: any, ...a: any[]) => { if (ro.getDrawParameters?.() === null) return d(ro, ...a); // skipped by the backend (0 instances)
+      const c = w.__dc; c.total++;
       if (inPeople(ro.object)) { c.people++; if (ro.camera?.isPerspectiveCamera) c.view++; else c.shadow++; const n = `${ro.object.name}${ro.camera?.isPerspectiveCamera ? '' : ' (shadow)'}`; c.byName[n] = (c.byName[n] ?? 0) + 1; }
       return d(ro, ...a); }; });
   const frame = async (people: boolean, warm: boolean) => { // warm: one frame first (pipelines compile, shadows settle)

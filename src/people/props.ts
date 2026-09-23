@@ -26,11 +26,11 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
       const shaft = paint(new THREE.CylinderGeometry(0.014, 0.016, 2.1, 6).translate(0, 1.13, 0), [0.45, 0.33, 0.21], 0, 0.7);
       const socket = paint(new THREE.CylinderGeometry(0.017, 0.014, 0.08, 6).translate(0, 2.21, 0), [0.62, 0.45, 0.26], 1, 0.4);
       const blade = paint(new THREE.ConeGeometry(0.028, 0.26, 4).scale(1, 1, 0.35).translate(0, 2.38, 0), [0.62, 0.45, 0.26], 1, 0.35);
-      const butt = paint(new THREE.SphereGeometry(0.045, 10, 8).translate(0, 0.05, 0), [0.8, 0.8, 0.78], 1, 0.3);
+      const butt = paint(new THREE.SphereGeometry(0.045, 7, 5).translate(0, 0.05, 0), [0.8, 0.8, 0.78], 1, 0.3);
       const crown = paint(new THREE.CylinderGeometry(0.012, 0.022, 0.03, 6).translate(0, 0.1, 0), [0.8, 0.8, 0.78], 1, 0.3);
       return mergeGeometries([shaft, socket, blade, butt, crown])!;
     }
-    case 'sack': return paint(new THREE.SphereGeometry(0.22, 10, 7).scale(1, 0.75, 0.7), [0.62, 0.55, 0.42], 0, 0.95);
+    case 'sack': return paint(new THREE.SphereGeometry(0.22, 8, 5).scale(1, 0.75, 0.7), [0.62, 0.55, 0.42], 0, 0.95);
     case 'jar': return paint(new THREE.LatheGeometry([[0, 0], [0.1, 0.02], [0.16, 0.18], [0.12, 0.36], [0.06, 0.42], [0.07, 0.46]].map(([x, y]) => new THREE.Vector2(x, y)), 14), [0.66, 0.46, 0.3], 0, 0.85);
     case 'tablet': return paint(new THREE.BoxGeometry(0.06, 0.02, 0.05), [0.56, 0.48, 0.37], 0, 0.9);
     case 'mallet': return mergeGeometries([paint(new THREE.CylinderGeometry(0.015, 0.015, 0.3, 6).translate(0, -0.15, 0), [0.42, 0.31, 0.2], 0, 0.7), paint(new THREE.CylinderGeometry(0.05, 0.05, 0.12, 8).rotateZ(Math.PI / 2).translate(0, -0.3, 0), [0.4, 0.29, 0.18], 0, 0.7)])!;

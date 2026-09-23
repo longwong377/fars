@@ -9,8 +9,8 @@ import { RigSolver, PALETTE_STRIDE, RETARGET, PLANTED, skinPoint, type RigInput 
 import { ANIMS, POSE_BONES, pose } from '../src/people/anim';
 import { buildOutfits, DRESSES, BUILT, COSTUME_OF, COSTUMES, PIECES, pieceBit, unpackNormal, packNormal, type OutfitBuild } from '../src/people/outfits';
 import { lookFor, STATURE, TEXTILE } from '../src/people/looks';
-import { HumanGPU } from '../src/people/humanGPU';
-import { Crowd, ATTACH_R, DETACH_R } from '../src/people/crowd';
+import { HumanGPU, shadowsSeePeople, cascadeNeedsPeople, SHADOW_LAYER } from '../src/people/humanGPU';
+import { Crowd, ATTACH_R, DETACH_R, MAX_FULL } from '../src/people/crowd';
 import { ACTIVITIES } from '../src/people/activities';
 import { propGeometry } from '../src/people/props';
 
@@ -163,7 +163,7 @@ describe('crowd: pooling and the per-frame CPU budget (slice population + 300 ex
     ms.sort((a, b) => a - b); const med = ms[60], p95 = ms[114];
     const st = crowd.stats();
     console.log(`crowd CPU (node, 300 people in view, 2–60 m): median ${med.toFixed(2)} ms/frame, p95 ${p95.toFixed(2)} ms; posed per frame ${st.perf.posed}; people per LOD ${st.byLod.join('/')}; draws ${st.draws} (+${st.propDraws} props); triangles submitted ${(st.triangles / 1e6).toFixed(2)} M (main pass)`);
-    expect(st.people).toBe(300); expect(st.byLod[0]).toBeLessThanOrEqual(64);
+    expect(st.people).toBe(300); expect(st.byLod[0]).toBeLessThanOrEqual(MAX_FULL); expect(MAX_FULL).toBeGreaterThanOrEqual(50); // brief: ≥ 50 at full detail
     expect(med).toBeLessThan(6); // budget (C): ≤ 6 ms/frame median in node for 300 visible people
     // detach frees slots for reuse
     const before = crowd.persons.size; crowd.removeExtras(); expect(crowd.persons.size).toBe(before - 300);
@@ -224,6 +224,14 @@ describe('crowd: pooling and the per-frame CPU budget (slice population + 300 ex
     expect(crowd.stats().placeholderActs).toBe(1);
     const hits: THREE.Intersection[] = []; const rc = new THREE.Raycaster(new THREE.Vector3(0, 1.2, 0), new THREE.Vector3(1, 0, 0)); rc.intersectObject(crowd.group, true, hits);
     const h = hits.find(x => x.object.name === 'person:0')!; expect(h.object.userData.placeholder).toBe(true); expect(h.object.userData.note).toMatch(/PLACEHOLDER/);
+  });
+  it('people cast only into the shadow cascades that start within reach (CSM slices beyond are skipped)', () => {
+    const cams = [0, 1, 2, 3].map(() => new THREE.OrthographicCamera());
+    const light = new THREE.DirectionalLight(); (light.shadow as any).shadowNode = { lights: cams.map(c => ({ shadow: { camera: c } })), breaks: [0.125, 0.257, 0.43, 1], camera: { far: 20000 }, maxFar: 600 };
+    shadowsSeePeople(light);
+    expect(cams.map(c => cascadeNeedsPeople(c))).toEqual([true, true, false, false]); // slices start at 0, 75, 154, 258 m
+    expect(cascadeNeedsPeople(new THREE.OrthographicCamera())).toBe(true); // a plain shadow map (no cascades)
+    expect(light.shadow.camera.layers.isEnabled(SHADOW_LAYER)).toBe(true);
   });
   it('every activity prop exists', () => {
     for (const [id, p] of Object.entries(ACTIVITIES)) if (p.prop) expect(propGeometry(p.prop === 'jar_head' ? 'jar' : p.prop === 'bread' ? 'basket' : p.prop), id).not.toBeNull();
