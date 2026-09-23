@@ -45,7 +45,7 @@ export class TownHaze {
     for (const [site, list] of this.siteFires) { let lit = 0; for (const i of list) if (this.fire.fires[i].lit) lit++; this.lastFrac.set(site, list.length ? lit / list.length : 0); }
     // light on the smoke: the sky's horizon radiance across the view and the direct sun (its irradiance and colour)
     if (sky?.horizon) this.uSky.value.copy(sky.horizon);
-    if (sky?.sun) { this.uSun.value.copy(sky.sun.color).multiplyScalar(sky.sun.visible ? sky.sun.intensity : 0); this.uSunDir.value.copy(sky.state.sunDir); }
+    if (sky?.sun && sky.state) { this.uSun.value.copy(sky.sun.color).multiplyScalar(sky.sun.visible ? sky.sun.intensity : 0); this.uSunDir.value.copy(sky.state.sunDir); }
     // still evening air holds the smoke low (C): stronger after sunset, weaker with wind
     const evening = hour >= 12 && sunAlt < 5 ? 1.4 : 1.0, windK = 1 / (1 + windMs * 0.25);
     const wr = ((windDirDeg + 180 - 341) * Math.PI) / 180, wx = Math.sin(wr), wz = -Math.cos(wr);

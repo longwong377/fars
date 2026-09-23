@@ -284,7 +284,7 @@ async function boot() {
     const k = target > exposure ? 1 - Math.exp(-dt / 2.5) : 1 - Math.exp(-dt / 0.6); // dark adaptation is slower than light adaptation
     exposure = TEST ? target : exposure + (target - exposure) * k;
     renderer.toneMappingExposure = exposure;
-    world.update?.(dt, { clock, cond, sky: sky.state, camera, player, settings });
+    world.update?.(dt, { clock, cond, sky: sky.state, skyLight: sky, camera, player, settings }); // skyLight: horizon radiance and sun light (D-060)
     tmesh.update(camera.position);
     const t0 = performance.now(); if (opts.render !== false) renderer.info.reset();
     { const ss = seasonAt(clock.dayIndex); SEASON.green.value = ss.green; SEASON.dry.value = ss.dry; }

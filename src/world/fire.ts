@@ -37,7 +37,7 @@ export class FireSystem {
   // which glowed on a moonless night)
   private uSky = uniform(new THREE.Color(0.3, 0.3, 0.3)); private uSun = uniform(new THREE.Color(0, 0, 0)); private uSunDir = uniform(new THREE.Vector3(0, 1, 0));
   setSkyLight(sky: { horizon: THREE.Color; sun: THREE.DirectionalLight; state: { sunDir: THREE.Vector3 } } | null | undefined) {
-    if (!sky) return; this.uSky.value.copy(sky.horizon);
+    if (!sky?.horizon || !sky.sun) return; this.uSky.value.copy(sky.horizon);
     this.uSun.value.copy(sky.sun.color).multiplyScalar(sky.sun.visible ? sky.sun.intensity : 0); this.uSunDir.value.copy(sky.state.sunDir);
   }
   private smokeAlpha!: THREE.InstancedBufferAttribute;
