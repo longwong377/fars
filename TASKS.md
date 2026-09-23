@@ -43,7 +43,8 @@
 - [x] Simulation LOD (abstract/full) with non-teleporting promotion; load-time catch-up (persistence)
 - [x] Soak harness + gates (`npm run soak`); baseline measured: FAILS variety/events
 - [~] Events calendar, town life, rota/post rotation, days off, errands; memory of the player (agent, session 3); construction columns follow the sim (D-062)
-- [~] MakeHuman bodies in period dress, crowd pooling (D-090..D-093); impostors, rendering the population beyond the Terrace agents, rendered floors ≥ 300 / ≥ 50 still open
+- [~] MakeHuman bodies in period dress, crowd pooling (D-090..D-093); impostors, rendering the population beyond the Terrace agents, rendered floors ≥ 300 / ≥ 50 still open (crowd agent D-143 running)
+- [x] Every simulated activity has a performance (D-142, session 4): 36 IK work cycles, 32 tools, 32 work objects, 5 animal species; `lint:activity` (0 placeholders) in `lint:all`. Seen only in the lab until the population is drawn (D-143)
 - [~] Soak passes (all eight gates); shadow review FAILED rounds 1–3 (10, 3, 3 of 20 below 4); round-3 fixes merged (D-135 … D-139); round 4 with a new seed (not 7/11/23/37/53/71) next
 ## Cross-cutting (session 3)
 - [x] Player step-up (D-034); offline walkthrough bot `tools/dev/botcheck.ts`; test camera floor fix
@@ -64,4 +65,10 @@
 ## Phase 8 — Language, speech, music, translation layer, map, Now view, photo mode
 - [~] Translation layer: subtitles, inscriptions (transliteration + glosses; translations need NEEDS #14), map (M; Z: town and plain scales), chronicle (J; visitor log)
 - [x] Lexicons in five languages (Babylonian, Ionic Greek new), 73 lines, 372 voice clips (D-105..D-109); listening test open (H8)
+## Session 4 (in progress)
+- [x] Interiors adapt (D-141); shadow bias (D-146); dome cover (D-145); detail at 1 m (D-147); block tone (D-148)
+- [x] Probe leaks through thin walls (D-152); ground bounce in the hemisphere light (D-153); herb layer (D-154); probe tints above/below (D-158); frame meter (D-159)
+- [x] Camera rig: page reuse per world state, photographic lenses, reframed moments, WebGL2 forcing, no aiming dot
+- [~] Photoreal triage (REVIEWS/prelim_photoreal_triage.md): atmosphere agent (D-156: horizon shadows, aerial perspective, clouds, light in the air), surfaces agent (D-157: tone, ashlar, bevels, reflections, contact shading), carving agent (D-151), faces agent (D-155), plain agent (D-149), crowd agent (D-143), sim round-4 agent (D-150)
+- [ ] Full high-quality pass (scratchpad job list), §8.2 rubric, independent Phase 3–8 reviews, shadow review round 5, bench × 4
 ## Phase 9 — Polish, optimisation, FINAL_REPORT.md
