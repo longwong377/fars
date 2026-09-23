@@ -97,6 +97,9 @@ export function buildScribesRoom(room: number[], shelves: number[][], seed = 1):
   const baskets = new THREE.InstancedMesh(bgeo, mat([0.62, 0.52, 0.33], 0.9), R.baskets);
   for (let i = 0; i < R.baskets; i++) { const e = room[0] - room[2] / 2 + 1.4 + i * 0.55, nn = room[1] - room[3] / 2 + 0.3; baskets.setMatrixAt(i, m4.compose(new THREE.Vector3(e, fl, -nn), q.setFromAxisAngle(up, i), one)); }
   baskets.name = 'scribes:baskets'; baskets.castShadow = true; baskets.receiveShadow = true; baskets.computeBoundingSphere(); group.add(baskets);
+  // every piece takes and casts sun shadows (the board, the clay and its cloth did not receive them: under the roof they
+  // were lit by the full sun, and glowed white at the room's exposure; session 4)
+  group.traverse(o => { if ((o as THREE.Mesh).isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   group.traverse(o => { if ((o as THREE.Mesh).isMesh) o.userData = { tier: 'C', src: 'IR-TREAS;MATCULT-R', note: 'scribes\' room of the Treasury (PT find-spot "a northeastern room", B): tablets, drying board, clay, baskets (types B; forms, sizes, number and arrangement C)' }; });
   return group;
 }
