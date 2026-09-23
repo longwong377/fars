@@ -52,6 +52,9 @@ async function boot() {
     /** camera at (x, y, z) looking at (tx, ty, tz) */
     view: (x: number, y: number, z: number, tx: number, ty: number, tz: number) => { camera.position.set(x, y, z); camera.lookAt(tx, ty, tz); camera.updateMatrixWorld(); },
     setTime: (day: number, hour: number) => clock.set(day, hour),
+    /** frame lineup person i's face from `dist` m in front (and `side` m to their left) */
+    frameFace: (i: number, dist = 0.6, side = 0) => { const p = crowd.persons.get(`lab${i}`); if (!p) return null; const v = humans.A.variants[p.look.variant];
+      const ey = v.eyeY * p.look.scale, x = p.extra!.x, fz = 0.1 * p.look.scale; api.view(x + side, ey + 0.01, fz + dist, x, ey - 0.03, fz); p.extra!.look = [camera.position.x, camera.position.y, camera.position.z]; return { eyeY: +ey.toFixed(3) }; },
     render: async (frames = 1, dt = 1 / 30) => { for (let i = 0; i < frames; i++) await frame(dt); },
     stats: () => ({ drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, crowd: crowd.stats(), backend: (renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL2' }),
     crowd, humans, renderer, camera, scene,

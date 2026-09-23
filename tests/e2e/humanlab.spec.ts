@@ -16,9 +16,13 @@ const SHOTS: [string, string, number[], number[]][] = [
   ['face-worker', 'men', [1.2, 1.62, 0.95], [1.2, 1.55, 0]],
   ['face-woman', 'mixed', [-1.2, 1.5, 0.95], [-1.2, 1.44, 0]],
   ['face-child', 'mixed', [0.4, 1.1, 0.9], [0.4, 1.02, 0]],
-  ['macro-persian', 'men', [-1.2, 1.56, 0.5], [-1.2, 1.53, 0]],
-  ['macro-median', 'men', [0.4, 1.6, 0.5], [0.4, 1.57, 0]],
-  ['macro-woman', 'mixed', [-1.2, 1.46, 0.5], [-1.2, 1.43, 0]],
+  ['macro-persian', 'men', [0, 0.5, 0], [0, 0, 0]],
+  ['macro-guard', 'men', [1, 0.5, 0.12], [0, 0, 0]],
+  ['macro-median', 'men', [2, 0.5, 0], [0, 0, 0]],
+  ['macro-worker', 'men', [3, 0.5, -0.15], [0, 0, 0]],
+  ['macro-woman', 'mixed', [0, 0.5, 0], [0, 0, 0]],
+  ['macro-woman2', 'mixed', [1, 0.5, 0.1], [0, 0, 0]],
+  ['macro-child', 'mixed', [2, 0.45, 0], [0, 0, 0]],
   ['men-side', 'men', [3.2, 1.5, 0.6], [0, 1.0, 0]],
   ['men-back', 'men', [0.5, 1.6, -3.5], [0, 1.0, 0]],
 ];
@@ -33,8 +37,10 @@ test('human lab close-ups', async ({ page }, info) => {
   let lastLineup = '';
   for (const [n, lu, c, t] of SHOTS) {
     if (only && !only.includes(n)) continue;
-    await page.evaluate(([c, t]) => (window as any).__lab.view(c[0], c[1], c[2], t[0], t[1], t[2]), [c, t]);
-    if (lu !== lastLineup) { const r = await page.evaluate(s => (window as any).__lab.lineup(s), LINEUPS[lu]); console.log(lu, JSON.stringify(r)); lastLineup = lu; }
+    if (lu !== lastLineup) { await page.evaluate(() => (window as any).__lab.view(0, 1.5, 4, 0, 1.2, 0)); const r = await page.evaluate(s => (window as any).__lab.lineup(s), LINEUPS[lu]); console.log(lu, JSON.stringify(r)); lastLineup = lu; }
+    // macro shots: [person index, distance, side offset] framed on that person's eyes; others: camera and target
+    if (n.startsWith('macro-')) await page.evaluate(([c]) => (window as any).__lab.frameFace(c[0], c[1], c[2]), [c]);
+    else await page.evaluate(([c, t]) => (window as any).__lab.view(c[0], c[1], c[2], t[0], t[1], t[2]), [c, t]);
     await page.evaluate(() => (window as any).__lab.render(3));
     console.log(n, JSON.stringify(await page.evaluate(() => (window as any).__lab.stats())));
     await page.screenshot({ path: `shots/humanlab-${n}-${info.project.name}.png` });
