@@ -17,6 +17,10 @@
   - Every stair geometry is C inside B plan zones, and every court level is C.
   - **Not built:** the Hadish balcony stairs to the Harem, the Harem portico step, the Tachara's third small stair, windows and niches, furnishings (thrones, hangings, stored goods), and reliefs on the new stairs and door jambs (the relief agent's figures come first).
   - The Phase 4 walkthrough routes validate offline; the **e2e run is pending**.
+- **Phase 5 (started):** abstract simulation LOD, load-time catch-up and the soak harness exist (D-017). **The soak test FAILS** (near-copy days; 3 event kinds a week). There is no events calendar, town life, rota rotation or construction progress yet.
+- **Translation layer:** subtitles, inscription transliteration with lexicon glosses (no published translation: NEEDS #14), map and chronicle. The e2e check has not run.
+- **Volumetric clouds:** implemented (C shapes and optics) but **not yet seen in a render**.
+- **Bench:** the high-quality numbers from session 2 are invalid (draw calls accumulated across post passes; fixed, re-run needed).
 - **Surfaces (D-014):** walls are clay-painted mud plaster (B/C); floors are red plaster (B Tachara/Treasury, C elsewhere); the open courts are compacted fill (C, Q-027); the plain has a seasonal herb layer (C). All procedural, no photo calibration.
 
 ## Phase status
@@ -31,4 +35,7 @@
 - The overlay's real value is verifying the grid→world→render transform on both backends (10 structures rendered, 11 checked geometrically). |
 | 3 | Vertical slice: materials, reliefs, fire, weather VFX, audio, 65 people, speech/murmur, walkthrough bot (28 legs pass). Open: SSGI washout, rubric + independent review, bench, calibration (blocked) | **not passed** |
 | 4 | Rest of the Terrace (session 2): Phase 4 patch applied; stairs, doorways with stone frames, corrected Treasury/Harem outlines, floors, fires, acoustic rooms, guard posts; overlay + dimension tests pass (overlay vs trace + documented corrections); nav grid reaches every palace floor | **in progress**: walkthrough e2e, reliefs on the new stairs/jambs, windows/niches, furnishings, people beyond guards |
-| 5–9 | not started | — |
+| 5 | started: simulation LOD, catch-up persistence, soak harness (baseline fails) | — |
+| 6–7 | research agent (session 2): see HANDOFF | — |
+| 8 | translation layer built (e2e pending); speech/murmur from Phase 3 | — |
+| 9 | not started | — |

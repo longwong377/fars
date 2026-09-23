@@ -38,7 +38,13 @@
 - [ ] Reliefs on the Tachara/Hadish/Tripylon stairs and door jambs (after the relief agent); windows, niches, furnishings
 - [ ] Phase 4 independent review
 ## Phase 5 — Population + economy sim in workers, events, memory, persistence, soak test
+- [x] Simulation LOD (abstract/full) with non-teleporting promotion; load-time catch-up (persistence)
+- [x] Soak harness + gates (`npm run soak`); baseline measured: FAILS variety/events
+- [ ] Events calendar, town life, rota/post rotation, days off, errands; construction progress visible; memory of the player
+- [ ] Population scale-up (worker, crowd pooling, impostors); rendered floors ≥ 300 visible / ≥ 50 close
+- [ ] Soak passes; shadow review of 20 NPC days
 ## Phase 6 — Settlement
 ## Phase 7 — Plain and horizon
 ## Phase 8 — Language, speech, music, translation layer, map, Now view, photo mode
+- [~] Translation layer: subtitles, inscriptions (transliteration + glosses; translations need NEEDS #14), map (M), chronicle (J)
 ## Phase 9 — Polish, optimisation, FINAL_REPORT.md
