@@ -3,6 +3,7 @@ dist/
 data/dem/*.tif
 data/raw/
 public/generated/*.bin
+!public/generated/sculpt_*.bin
 public/generated/*.tmp
 test-results/
 playwright-report/

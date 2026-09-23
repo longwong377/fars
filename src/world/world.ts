@@ -20,6 +20,7 @@ export interface WorldBuild {
 }
 import { buildTerrace } from '../arch/terrace';
 import { buildMeshes } from '../arch/meshes';
+import { loadSculpt } from '../arch/sculpt';
 import { buildReliefs, buildInscriptions, loadInscriptionFonts } from '../arch/decor';
 import { FireSystem } from './fire';
 import { WeatherVfx } from './weatherVfx';
@@ -62,6 +63,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   void terrain;
   const t0 = performance.now();
   const { parts, manifest } = buildTerrace();
+  await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-014)
   const arch = buildMeshes(parts, phys);
   root.add(arch.group);
   await loadInscriptionFonts(async p => (await fetch('/' + p)).arrayBuffer());

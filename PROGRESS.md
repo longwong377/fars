@@ -9,6 +9,15 @@
 - **People (Phase 3, in progress):** bodies and animation are PLACEHOLDERS. They are procedural rigid-skinned rigs with hand-authored pose cycles, not photoreal humans, and faces are abstract. The Phase 3 slice has 65 people: 30 guards on three watches at 10 posts, a mason gang of 12 plus a foreman, 6 porters, 2 scribes, 2 bakers, 4 grinders, 3 children, 2 couriers and 3 officials. The town is off the map (Phase 6), so the edge of the plain stands in for home. There is no Recast navmesh yet (D-010).
 
 - **Speech (D-011) is a PLACEHOLDER formant synthesiser** (robotic; not yet rated for intelligibility). The lexicons are thin: Old Persian has no greeting, so Persians greet in Aramaic or by gesture. The murmur is built from lexicon sound patterns, and languages with no lexicon (Greek, Egyptian, Lydian, Babylonian) fall back to C-tier profiles.
+- **Columns and Gate colossi are procedural sculpture (D-014, tier C), not measured carving.** They are reconstructed from the type (recollection), not from drawings, scans or photographs. Licensed scans would replace them (NEEDS #10). Known weak points:
+  - The first renders (shots/sculpt-*.png) show three faults. The limestone wall material's ashlar joint lines are drawn across capitals, protomes and colossi, so the carving reads as brickwork; carved members need a joint-free surface (not done). The curls are plain bosses, not spirals, and read as "bubble wrap": on the lamassu they run unbroken from the beard down the chest.
+  - The protome's bull heads are generic, and the horns are too small (they read as ears).
+  - The volute scrolls are coarse (2.5 k triangles).
+  - The colossi's leg count and proportions are not verified.
+  - The protome axis is always grid E–W (the beam direction is unknown).
+  - The Gate's open door leaves stand against the reveals over the front of the colossus flanks (layout).
+  - The Gate wall ring still overlaps the jamb volume in the colliders; only the render cuts it out.
+  - Treasury columns render with one material (timber) for the stone base, the plastered shaft and the capital.
 - **Calibration scene (§8.1) not done:** no dated photo of the ruin is reachable (NEEDS #13). Stone and light values remain C estimates, and the Phase 3 gate can pass only with this logged exception.
 
 - **High-quality renders are washed out** (the SSGI composite lifts everything; diagnosis in HANDOFF.md). The Phase 3 moments are not yet judged at high quality.
