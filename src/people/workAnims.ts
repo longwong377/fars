@@ -13,7 +13,7 @@ import { trunk, gripIK, legIK, stance, kneeOf, hip, ANKLE_Y, NOM, HS, v3, app, t
 type V3 = [number, number, number];
 export const WORK_ANIMS = ['hoe', 'irrigate', 'reap', 'bind', 'winnow', 'drive', 'plough', 'herd', 'groom', 'fodder', 'shear', 'butcher',
   'hold', 'hold_sack', 'hold_lead', 'sweep', 'weave', 'spin', 'gather', 'pat', 'stir', 'mould', 'lay', 'haul', 'pass', 'polish', 'adze',
-  'pick', 'tread', 'stoke', 'mend', 'carve', 'bier_l', 'bier_r', 'wash', 'archery', 'cook'] as const;
+  'pick', 'tread', 'stoke', 'mend', 'bier_l', 'bier_r', 'wash', 'archery', 'cook'] as const;
 export type WorkAnim = typeof WORK_ANIMS[number];
 /** how each cycle meets the ground (humanRig: planted feet, or the body resting on the ground) and whether it moves the
  *  performer's root along a path of its own (the ploughman along the furrow, the thresher turning with his team) */
@@ -24,7 +24,7 @@ export const WORK_META: Record<WorkAnim, { ground: 'feet' | 'seat'; path?: boole
   sweep: { ground: 'feet' }, weave: { ground: 'seat', aside: true }, spin: { ground: 'feet' }, gather: { ground: 'feet' }, pat: { ground: 'feet', aside: true },
   stir: { ground: 'feet' }, mould: { ground: 'feet', aside: true }, lay: { ground: 'feet' }, haul: { ground: 'feet' }, pass: { ground: 'feet' },
   polish: { ground: 'seat', aside: true }, adze: { ground: 'feet' }, pick: { ground: 'feet' }, tread: { ground: 'feet' }, stoke: { ground: 'feet', aside: true },
-  mend: { ground: 'seat', aside: true }, carve: { ground: 'seat', aside: true }, bier_l: { ground: 'feet' }, bier_r: { ground: 'feet' },
+  mend: { ground: 'seat', aside: true }, bier_l: { ground: 'feet' }, bier_r: { ground: 'feet' },
   wash: { ground: 'seat', aside: true }, archery: { ground: 'feet', path: true }, cook: { ground: 'feet', aside: true },
 };
 
@@ -442,13 +442,6 @@ function mend(t: number, k: number): Pose {
   grip(p, T, 'r', [-0.02 - 0.22 * out, 0.44 + 0.12 * out, 0.32 - 0.02 * out], [-0.9, -0.6, -0.3], 0.5);
   look(p, T, [0.04, 0.38, 0.32]); p.grip = [0.8, 1]; return p;
 }
-/** carving bone (or wood) seated: short knife strokes toward the body on a small piece in the left hand */
-function carve(t: number, k: number): Pose {
-  const p = blank(), q = fr(t / 0.95 + k), s = q < 0.35 ? ramp(q, 0, 0.35) : 1 - ramp(q, 0.35, 1);
-  const T = sitBody(p, t, k, 0.4);
-  grip(p, T, 'l', [0.06, 0.42, 0.3], [0.9, -0.6, -0.3], -0.9); grip(p, T, 'r', [-0.02, 0.46 - 0.02 * s, 0.38 - 0.07 * s], [-0.9, -0.6, -0.3], 0.9);
-  look(p, T, [0.03, 0.4, 0.32]); p.grip = [0.9, 1]; return p;
-}
 /** a bearer of the dead: walking (slow, even), the bier's pole on the shoulder held by that hand (the bier itself is
  *  placed once for the bearers together: workObjects.ts). side 'r': the pole on the right shoulder */
 function bier(t: number, ph: number, k: number, side: 'l' | 'r'): Pose {
@@ -537,7 +530,6 @@ export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
     case 'tread': return tread(t, k);
     case 'stoke': return stoke(t, k);
     case 'mend': return mend(t, k);
-    case 'carve': return carve(t, k);
     case 'bier_l': return bier(t, ph, k, 'l');
     case 'bier_r': return bier(t, ph, k, 'r');
     case 'wash': return wash(t, k);

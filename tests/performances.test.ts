@@ -255,12 +255,12 @@ describe('crowd: performers with their things and animals (budgets)', () => {
     for (let f = 0; f < 20; f++) crowd.update(f / 30, cam.position, cam.position, cam);
     const ms: number[] = []; for (let f = 0; f < 90; f++) { crowd.update(1 + f / 30, cam.position, cam.position, cam); ms.push(crowd.perf.ms); }
     ms.sort((a, b) => a - b); const st = crowd.stats();
-    const propTris = PROP_CLASSES.reduce((s0, _, c) => s0 + (c === 0 ? 1 : 1) * 0, 0); void propTris;
     console.log(`performers: ${st.people} in view; CPU median ${ms[45].toFixed(2)} ms, p95 ${ms[85].toFixed(2)} ms; props ${st.props} in ${st.propDraws} draws; work objects ${st.things.instances} in ${st.things.draws} draws (${(st.things.triangles / 1e3).toFixed(0)} k tris) ${JSON.stringify(st.things.kinds)}; animals ${st.animals.instances} in ${st.animals.draws} draws (${(st.animals.triangles / 1e3).toFixed(0)} k tris) ${JSON.stringify(st.animals.species)}; people ${(st.triangles / 1e6).toFixed(2)} M tris in ${st.draws} draws`);
     expect(st.placeholderActs).toBe(0);
     expect(st.propDraws).toBeLessThanOrEqual(2); expect(st.props).toBeLessThanOrEqual(2 * CARRIED_MAX);
     expect(st.animals.draws).toBeLessThanOrEqual(SPECIES.length); expect(st.things.draws).toBeLessThanOrEqual(Object.keys(WORK_NOTES).length);
     expect(st.things.triangles + st.animals.triangles).toBeLessThan(1.2e6);
+    expect(st.animals.dropped, 'animals over the instance cap').toBe(0); expect(st.things.dropped, 'work objects over the instance cap').toBe(0);
     expect(ms[45]).toBeLessThan(10); // node, 300 performers in view (the crowd's people-only budget is 6 ms: humans_runtime)
   }, 180_000);
 });

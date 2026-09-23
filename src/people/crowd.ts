@@ -100,7 +100,7 @@ export class Crowd {
   private frame = 0; private sacks: THREE.InstancedMesh;
   /** carried props: one instanced mesh per prop class (props.ts PROP_CLASSES: small things, long tools), each over the
    *  class's union geometry; 'ik' picks the kind per instance, 'ip' is the kind's parameter (bow draw, spindle drop) */
-  private carried: { mesh: THREE.InstancedMesh; kind: THREE.InstancedBufferAttribute; param: THREE.InstancedBufferAttribute }[] = [];
+  private carried: { mesh: THREE.InstancedMesh; kind: THREE.InstancedBufferAttribute; param: THREE.InstancedBufferAttribute; axes: THREE.InstancedBufferAttribute[] }[] = [];
   /** the things at the place of work and the animals the work needs (D-142), placed from the performers every frame */
   readonly things: WorkObjects; readonly animals: Animals;
   private frustum = new THREE.Frustum(); private wide = new THREE.Frustum(); private pm = new THREE.Matrix4();
@@ -140,15 +140,19 @@ export class Crowd {
       const g = propUnionGeometry(c);
       const ik = new THREE.InstancedBufferAttribute(new Float32Array(CARRIED_MAX), 1); ik.setUsage(THREE.DynamicDrawUsage); g.setAttribute('ik', ik);
       const ip = new THREE.InstancedBufferAttribute(new Float32Array(CARRIED_MAX), 1); ip.setUsage(THREE.DynamicDrawUsage); g.setAttribute('ip', ip);
+      // the instance's axes (its matrix's rotation columns): three.js applies the instance matrix to positionLocal before
+      // the positionNode, so the per-vertex displacement (stated in the prop's own frame) is turned by these axes first
+      const ax = ['aRx', 'aRy', 'aRz'].map(n => { const a = new THREE.InstancedBufferAttribute(new Float32Array(CARRIED_MAX * 3), 3); a.setUsage(THREE.DynamicDrawUsage); g.setAttribute(n, a); return a; });
       const m = new THREE.MeshStandardNodeMaterial(); const mr = attribute('mr', 'vec2');
       m.colorNode = attribute('color', 'vec3'); m.metalnessNode = mr.x; m.roughnessNode = mr.y;
       // the instance's own kind only: other kinds' vertices collapse to a point (arithmetic mask, no select: D-012); the
       // instance parameter moves the vertices that carry a displacement (the bowstring's middle, the spindle on its yarn)
-      m.positionNode = positionLocal.add(attribute('sv', 'vec3').mul(attribute('ip', 'float'))).mul(float(1).sub(min(abs(attribute('pk', 'float').sub(attribute('ik', 'float'))), 1)));
+      const sv = attribute('sv', 'vec3').mul(attribute('ip', 'float'));
+      m.positionNode = positionLocal.add(attribute('aRx', 'vec3').mul(sv.x)).add(attribute('aRy', 'vec3').mul(sv.y)).add(attribute('aRz', 'vec3').mul(sv.z)).mul(float(1).sub(min(abs(attribute('pk', 'float').sub(attribute('ik', 'float'))), 1)));
       const im = new THREE.InstancedMesh(g, m, CARRIED_MAX); im.count = 0; im.visible = false; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false;
       im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.name = c === 0 ? 'props:carried' : 'props:tools'; im.raycast = () => {}; // all kinds are in every instance on the CPU side
       im.userData = { tier: 'C', src: 'RECON', note: 'carried: ' + kinds.map(k => `${k} (${PROP_NOTES[k].tier}): ${PROP_NOTES[k].note}`).join('; ') };
-      this.group.add(im); this.carried.push({ mesh: im, kind: ik, param: ip }); nearCascadesOnly(im);
+      this.group.add(im); this.carried.push({ mesh: im, kind: ik, param: ip, axes: ax }); nearCascadesOnly(im);
     });
   }
   /** blocks at the masons' places, querns, mats, the trough (C forms): static, merged into one mesh (one draw) */
@@ -307,7 +311,8 @@ export class Crowd {
     IK_Q.passes = 4; gpu.end(true); this.things.end(); this.animals.end();
     for (const c of this.carried) { const im = c.mesh; im.visible = im.count > 0; if (!im.count) continue;
       im.instanceMatrix.needsUpdate = true; im.instanceMatrix.clearUpdateRanges(); im.instanceMatrix.addUpdateRange(0, im.count * 16);
-      for (const at of [c.kind, c.param]) { at.needsUpdate = true; at.clearUpdateRanges(); at.addUpdateRange(0, im.count); } }
+      for (const at of [c.kind, c.param]) { at.needsUpdate = true; at.clearUpdateRanges(); at.addUpdateRange(0, im.count); }
+      for (const at of c.axes) { at.needsUpdate = true; at.clearUpdateRanges(); at.addUpdateRange(0, im.count * 3); } }
     this.perf.ms = performance.now() - t0; this.perf.poseMs = performance.now() - tp; this.perf.posed = posed; this.perf.drawn = drawn; this.perf.attached = this.persons.size;
   }
   private copyPrev(p: Person) { const o = p.slot * PALETTE_STRIDE; const g = this.humans.gpu; g.prevPalette.set(g.palette.subarray(o, o + PALETTE_STRIDE), o); }
@@ -386,6 +391,7 @@ export class Crowd {
     const sl = propSlot(kind === 'jar_head' ? 'jar' : kind); if (!sl) return; const c = this.carried[sl[0]], im = c.mesh;
     if (im.count >= CARRIED_MAX) return;
     _m.makeRotationY(p.root[3]).setPosition(p.root[0], p.root[1], p.root[2]).multiply(M);
+    const e = _m.elements, i = im.count; c.axes[0].setXYZ(i, e[0], e[1], e[2]); c.axes[1].setXYZ(i, e[4], e[5], e[6]); c.axes[2].setXYZ(i, e[8], e[9], e[10]);
     c.kind.array[im.count] = sl[1]; c.param.array[im.count] = param; im.setMatrixAt(im.count++, _m);
   }
   /** the performer's work objects and animals (activities.ts `work`, `animals`), placed from the simulation's spot (base)

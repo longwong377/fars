@@ -26,6 +26,12 @@ const P = (g: THREE.BufferGeometry, c: RGB, rough = 0.9, metal = 0) => paint(g, 
 const merge = (gs: THREE.BufferGeometry[]) => mergeGeometries(gs)!;
 /** a small deterministic jitter */
 const jit = (i: number, s = 1) => (Math.sin(i * 12.9898 + s * 78.233) * 43758.5453) % 1;
+/** a sheaf of cut barley along +Y from its butt: the stalks narrowing to the band, the ears flaring beyond it (C) */
+const EARS: RGB = [0.8, 0.68, 0.42];
+const sheafG = (len = 0.9, seg = 6) => merge([P(lathe([[0, 0], [0.075, 0.01], [0.07, 0.25 * len], [0.05, 0.45 * len], [0.06, 0.52 * len]], seg), STRAW),
+  P(lathe([[0.06, 0.52 * len], [0.11, 0.72 * len], [0.12, 0.86 * len], [0.07, 0.97 * len], [0, len]], seg), EARS)]);
+/** the same lying on the ground along +X, its butt at x = 0 */
+const sheafLying = (len = 0.9) => sheafG(len).rotateZ(-Math.PI / 2).scale(1, 0.75, 1).translate(0, 0.085, 0);
 
 export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string }> = {
   drum_sledge: { tier: 'C', note: 'a column drum of the Hall of a Hundred Columns on a wooden sledge, hauled with ropes (drums dressed on the Terrace: STONE, B; sledge C)' },
@@ -102,9 +108,11 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
     case 'basket_meat': return merge([P(new THREE.CylinderGeometry(0.2, 0.15, 0.18, 10, 1, true).translate(0, 0.09, 0), [0.6, 0.52, 0.32]), P(mound(0.17, 0.08, 7).translate(0, 0.1, 0), MEAT, 0.6)]);
     case 'threshing_floor': return merge([P(new THREE.CylinderGeometry(3.5, 3.55, 0.05, 28).translate(0, 0.025, 0), [0.66, 0.58, 0.4], 1), P(new THREE.CylinderGeometry(2.9, 3.3, 0.1, 22, 1, true).translate(0, 0.08, 0), STRAW, 1),
       P(new THREE.CylinderGeometry(2.9, 2.9, 0.02, 22).translate(0, 0.12, 0), STRAW_D, 1), P(rod([0, 0, 0], [0, 1.5, 0], 0.07, 0.06, 6), WOOD_D)]);
-    case 'stooks': { const g: THREE.BufferGeometry[] = []; for (let i = 0; i < 3; i++) g.push(P(new THREE.ConeGeometry(0.32, 0.9, 7).translate(i * 0.9, 0.45, 0.15 * jit(i)), STRAW), P(new THREE.CylinderGeometry(0.26, 0.3, 0.5, 7, 1, true).translate(i * 0.9, 0.25, 0.15 * jit(i)), STRAW_D)); return merge(g); }
-    case 'sheaves': { const g: THREE.BufferGeometry[] = []; for (let i = 0; i < 4; i++) g.push(P(rod([0, 0.07, 0], [0, 0.07, 0.75], 0.07, 0.1, 6, true).rotateY(1.2 + 0.4 * jit(i)).translate(0.35 * i - 0.4, 0, 0.3 * jit(i, 4)), STRAW)); return merge(g); }
-    case 'sheaf': return merge([P(rod([-0.4, 0.09, 0], [0.4, 0.09, 0], 0.09, 0.11, 7, true), STRAW), P(rod([-0.02, 0.09, 0], [0.02, 0.09, 0], 0.115, 0.115, 7), STRAW_D)]);
+    case 'stooks': { const g: THREE.BufferGeometry[] = []; // three stooks of five sheaves standing ears up, leaning together
+      for (let i = 0; i < 3; i++) for (let j = 0; j < 5; j++) g.push(sheafG(0.82 + 0.06 * jit(i * 5 + j, 2)).rotateX(-0.24).translate(0, 0, 0.17).rotateY((2 * Math.PI * j) / 5 + 0.3 * jit(i, 3)).translate(i * 0.9, 0, 0.15 * jit(i)));
+      return merge(g); }
+    case 'sheaves': { const g: THREE.BufferGeometry[] = []; for (let i = 0; i < 4; i++) g.push(sheafLying(0.82 + 0.08 * jit(i, 5)).rotateY(-Math.PI / 2 + 1.2 + 0.4 * jit(i)).translate(0.35 * i - 0.4, 0, 0.3 * jit(i, 4))); return merge(g); }
+    case 'sheaf': return merge([sheafLying(0.9).translate(-0.45, 0, 0), P(rod([-0.07, 0.085, 0], [-0.03, 0.085, 0], 0.06, 0.06, 7), STRAW_D)]); // the band being tied
     case 'grain_heap': return merge([P(new THREE.ConeGeometry(0.65, 0.45, 12).translate(0, 0.225, 0), [0.62, 0.5, 0.3], 1), P(mound(0.9, 0.08, 10, 0.5, 0.3), [0.74, 0.66, 0.46], 1)]);
     case 'spoil': return P(mound(0.55, 0.3, 9), EARTH);
     case 'basket_fruit': return merge([P(new THREE.CylinderGeometry(0.2, 0.15, 0.2, 10, 1, true).translate(0, 0.1, 0), [0.6, 0.52, 0.32]), P(mound(0.18, 0.1, 8).translate(0, 0.12, 0), [0.26, 0.12, 0.2], 0.5)]);
@@ -147,6 +155,8 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
 export class WorkObjects {
   readonly group = new THREE.Group();
   private meshes = new Map<WorkKind, { mesh: THREE.InstancedMesh; n: number; radius: number; box: THREE.Box3 }>();
+  /** objects not drawn this frame because their kind's instance cap was full (reported by stats: never silent) */
+  dropped = 0;
   constructor(private material: THREE.Material, private cap = 256) { this.group.name = 'work:objects-dynamic'; }
   private mesh(kind: WorkKind) {
     let m = this.meshes.get(kind); if (m) return m;
@@ -156,9 +166,9 @@ export class WorkObjects {
     mesh.frustumCulled = true; mesh.boundingSphere = new THREE.Sphere(); nearCascadesOnly(mesh);
     this.group.add(mesh); m = { mesh, n: 0, radius: g.boundingSphere!.radius, box: new THREE.Box3() }; this.meshes.set(kind, m); return m;
   }
-  begin() { for (const m of this.meshes.values()) { m.n = 0; m.box.makeEmpty(); } }
+  begin() { this.dropped = 0; for (const m of this.meshes.values()) { m.n = 0; m.box.makeEmpty(); } }
   push(kind: WorkKind, M: THREE.Matrix4) {
-    const m = this.mesh(kind); if (m.n >= this.cap) return;
+    const m = this.mesh(kind); if (m.n >= this.cap) { this.dropped++; return; }
     m.mesh.setMatrixAt(m.n++, M); m.box.expandByPoint(_p.setFromMatrixPosition(M));
   }
   end() {
@@ -169,7 +179,7 @@ export class WorkObjects {
   /** kinds drawn, instances and triangles (main pass) */
   stats() { let draws = 0, instances = 0, triangles = 0; const kinds: Record<string, number> = {};
     for (const [k, m] of this.meshes) if (m.n) { draws++; instances += m.n; const g = m.mesh.geometry; triangles += m.n * (g.index ? g.index.count : g.getAttribute('position').count) / 3; kinds[k] = m.n; }
-    return { draws, instances, triangles, kinds }; }
+    return { draws, instances, triangles, kinds, dropped: this.dropped }; }
 }
 const _p = new THREE.Vector3();
 void attribute;

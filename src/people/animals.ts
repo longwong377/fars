@@ -10,7 +10,7 @@
 // grazes about its herder and drifts from spot to spot, the yoked pair walks the furrow ahead of the ploughman, the
 // threshing animals circle the floor, a donkey or horse stands to be rubbed down, a sheep lies to be shorn.
 import * as THREE from 'three/webgpu';
-import { attribute, positionLocal, vec3, sin, cos, max, float, uniform } from 'three/tsl';
+import { attribute, positionLocal, positionGeometry, vec3, sin, cos, max, float, uniform } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { nearCascadesOnly } from './humanGPU';
 import type { AnimalSpec } from './activities';
@@ -165,13 +165,19 @@ export function animalsFor(spec: AnimalSpec, t: number, seed: number, path?: { s
 /** the animals: one instanced mesh per species, filled every frame by the crowd (begin / push / end) */
 export class Animals {
   readonly group = new THREE.Group();
-  private meshes = new Map<Species, { mesh: THREE.InstancedMesh; state: THREE.InstancedBufferAttribute; n: number; box: THREE.Box3 }>();
+  private meshes = new Map<Species, { mesh: THREE.InstancedMesh; state: THREE.InstancedBufferAttribute; rot: THREE.InstancedBufferAttribute[]; n: number; box: THREE.Box3 }>();
   private uTime = uniform(0);
-  constructor(private cap = 128) { this.group.name = 'animals:work'; }
+  /** animals not drawn this frame because their species' instance cap was full (reported by stats: never silent) */
+  dropped = 0;
+  constructor(private cap = 512) { this.group.name = 'animals:work'; }
   private mesh(sp: Species) {
     let m = this.meshes.get(sp); if (m) return m;
     const g = animalGeometry(sp), F = animalFrame(sp), drop = lieDrop(sp);
     const state = new THREE.InstancedBufferAttribute(new Float32Array(this.cap * 4), 4); state.setUsage(THREE.DynamicDrawUsage); g.setAttribute('aState', state);
+    // the instance's rotation (its matrix's axes): three.js applies the instance matrix to positionLocal BEFORE the
+    // material's positionNode, so the rig deforms the raw geometry position in the animal's own frame and adds the
+    // displacement turned by these axes (rotating legs about pivots in world space would throw them across the field)
+    const rot = ['aRx', 'aRy', 'aRz'].map(n => { const a = new THREE.InstancedBufferAttribute(new Float32Array(this.cap * 3), 3); a.setUsage(THREE.DynamicDrawUsage); g.setAttribute(n, a); return a; });
     const mat = new THREE.MeshStandardNodeMaterial({ roughness: 0.95 }); mat.vertexColors = true;
     const L = attribute('aLeg', 'vec4'), Pv = attribute('aPiv', 'vec4'), H = attribute('aHT', 'vec4'), S = attribute('aState', 'vec4');
     const rx = (p: any, a: any, cy: any, cz: any) => { const dy = p.y.sub(cy), dz = p.z.sub(cz), c = cos(a), s = sin(a); return vec3(p.x, cy.add(dy.mul(c)).sub(dz.mul(s)), cz.add(dy.mul(s)).add(dz.mul(c))); };
@@ -180,23 +186,25 @@ export class Animals {
     const fo = foldOf(sp);
     const a1 = L.y.mul(S.y.mul(RIG.swing).mul(sin(ph)).add(S.w.mul(fore.mul(fo[0] - fo[2]).add(fo[2]))));
     const a2 = L.z.mul(S.y.mul(RIG.knee).mul(max(sin(ph.sub(0.6)), 0)).add(S.w.mul(fore.mul(fo[1] - fo[3]).add(fo[3]))));
-    let p: any = rx(positionLocal, a2, Pv.z, Pv.w); p = rx(p, a1, Pv.x, Pv.y);
+    const P0 = positionGeometry; let p: any = rx(P0, a2, Pv.z, Pv.w); p = rx(p, a1, Pv.x, Pv.y);
     const ah = H.x.mul(S.z.mul(F.graze).add(S.y.mul(0.05).mul(sin(ph.mul(2)))).add(S.z.mul(0.04).mul(sin(this.uTime.mul(5.3)))));
     p = rx(p, ah, H.z, H.w);
     const at = H.y.mul(0.3).mul(sin(this.uTime.mul(1.1).add(S.x.mul(0.1)))), c = cos(at), s = sin(at), dz = p.z.sub(H.w);
     p = vec3(p.x.mul(c).add(dz.mul(s)), p.y, H.w.sub(p.x.mul(s)).add(dz.mul(c)));
     p = p.add(vec3(0, S.w.mul(-drop).add(S.y.mul(0.012).mul(sin(ph.mul(2)))), 0));
-    mat.positionNode = p as any;
+    const d = p.sub(P0);
+    mat.positionNode = positionLocal.add(attribute('aRx', 'vec3').mul(d.x)).add(attribute('aRy', 'vec3').mul(d.y)).add(attribute('aRz', 'vec3').mul(d.z)) as any;
     const mesh = new THREE.InstancedMesh(g, mat, this.cap); mesh.count = 0; mesh.visible = false; mesh.castShadow = mesh.receiveShadow = true; mesh.frustumCulled = true; mesh.boundingSphere = new THREE.Sphere();
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.name = `animals:${sp}`; mesh.userData = { tier: 'C', src: 'RECON', note: `${ANIMAL_BUILD[sp].note}; ${ANIMAL_BUILD[sp].tier}` }; mesh.raycast = () => {};
     mesh.setColorAt(0, new THREE.Color(1, 1, 1)); nearCascadesOnly(mesh);
-    this.group.add(mesh); m = { mesh, state, n: 0, box: new THREE.Box3() }; this.meshes.set(sp, m); return m;
+    this.group.add(mesh); m = { mesh, state, rot, n: 0, box: new THREE.Box3() }; this.meshes.set(sp, m); return m;
   }
-  begin(time: number) { this.uTime.value = time % 100000; for (const m of this.meshes.values()) { m.n = 0; m.box.makeEmpty(); } }
+  begin(time: number) { this.uTime.value = time % 100000; this.dropped = 0; for (const m of this.meshes.values()) { m.n = 0; m.box.makeEmpty(); } }
   /** an animal at a world transform with its state */
   push(a: AnimalInst, M: THREE.Matrix4) {
-    const m = this.mesh(a.sp); if (m.n >= this.cap) return; const i = m.n++;
+    const m = this.mesh(a.sp); if (m.n >= this.cap) { this.dropped++; return; } const i = m.n++;
     m.mesh.setMatrixAt(i, M); m.state.setXYZW(i, a.phase % (TWO_PI * 64), a.walk, a.graze, a.lie);
+    const e = M.elements; m.rot[0].setXYZ(i, e[0], e[1], e[2]); m.rot[1].setXYZ(i, e[4], e[5], e[6]); m.rot[2].setXYZ(i, e[8], e[9], e[10]);
     const c = ANIMAL_BUILD[a.sp].coat, k = Math.min(c.length - 1, Math.floor(a.coat * c.length)); _c.setRGB(c[k][0], c[k][1], c[k][2], THREE.SRGBColorSpace); m.mesh.setColorAt(i, _c);
     m.box.expandByPoint(_p.setFromMatrixPosition(M));
   }
@@ -204,11 +212,12 @@ export class Animals {
     for (const m of this.meshes.values()) { const im = m.mesh; im.count = m.n; im.visible = m.n > 0; if (!m.n) continue;
       im.instanceMatrix.needsUpdate = true; im.instanceMatrix.clearUpdateRanges(); im.instanceMatrix.addUpdateRange(0, m.n * 16);
       m.state.needsUpdate = true; m.state.clearUpdateRanges(); m.state.addUpdateRange(0, m.n * 4);
+      for (const r of m.rot) { r.needsUpdate = true; r.clearUpdateRanges(); r.addUpdateRange(0, m.n * 3); }
       if (im.instanceColor) { im.instanceColor.needsUpdate = true; im.instanceColor.clearUpdateRanges(); im.instanceColor.addUpdateRange(0, m.n * 3); }
       m.box.getBoundingSphere(im.boundingSphere!); im.boundingSphere!.radius += 1.5; }
   }
   stats() { let draws = 0, instances = 0, triangles = 0; const species: Record<string, number> = {};
     for (const [k, m] of this.meshes) if (m.n) { draws++; instances += m.n; triangles += m.n * m.mesh.geometry.getAttribute('position').count / 3; species[k] = m.n; }
-    return { draws, instances, triangles, species }; }
+    return { draws, instances, triangles, species, dropped: this.dropped }; }
 }
 const _p = new THREE.Vector3(), _c = new THREE.Color();

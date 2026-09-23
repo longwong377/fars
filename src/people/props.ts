@@ -249,7 +249,9 @@ export function placeProp(kind: string, R: RigView, po: Pose, s: number, time: n
       const L = gripPoint(R, 'l').multiplyScalar(s), Rr = gripPoint(R, 'r').multiplyScalar(s), d = L.clone().sub(Rr);
       // the bow: gripped by the left hand, its axis along the line to the drawing hand (the arrow's line), limbs upright;
       // the parameter is how far the string's middle is drawn back (m): the pose's draw (0..1) of the distance to that hand
-      if (P.rule === 'bow') { const full = Math.max(0, d.length() - 0.14); if (d.lengthSq() < 1e-6) d.set(1, 0, 0); frame(L, d, new V(0, 1, 0), out); if (param) param.v = (po.ip ?? 0) * full; return true; }
+      // (undrawn, the bow stays upright facing the target, the body's +X in the archery cycle, whatever the hands do)
+      if (P.rule === 'bow') { const w = Math.min(1, Math.max(0, po.ip ?? 0)), full = Math.max(0, d.length() - 0.14);
+        const z = new V(d.x + 0.15 * (1 - w), d.y * w, d.z); if (z.lengthSq() < 1e-6) z.set(1, 0, 0); frame(L, z, new V(0, 1, 0), out); if (param) param.v = w * full; return true; }
       frame(Rr, d.lengthSq() > 1e-6 ? d : new V(1, 0, 0), new V(0, 1, 0), out); return true;
     }
   }
