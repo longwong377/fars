@@ -27,7 +27,7 @@ export interface WorldBuild {
 import { buildTerrace } from '../arch/terrace';
 import { buildMeshes } from '../arch/meshes';
 import { loadSculpt } from '../arch/sculpt';
-import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Reliefs } from '../arch/decor';
+import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Reliefs, buildStairCrenellations } from '../arch/decor';
 import { updateReliefs, settleReliefs } from '../arch/reliefs';
 import { FireSystem } from './fire';
 import { buildTreasuryGoods } from './furnish';
@@ -111,6 +111,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   await loadInscriptionFonts(async p => (await fetch('/' + p)).arrayBuffer());
   const reliefs = buildReliefs(manifest); root.add(reliefs);
   const p4 = buildPhase4Reliefs(doorways); root.add(p4.group); // stair and door-jamb reliefs of the other palaces (D-049)
+  const cren = buildStairCrenellations(parts); if (cren) root.add(cren); // stair-parapet merlons (D-065)
   const insc = buildInscriptions(manifest, parts, p4.inscriptions); root.add(insc);
   if ((manifest.treasury as any)?.benches) root.add(buildTreasuryGoods((manifest.treasury as any).benches, seed)); // stored goods (types B, placement C)
   const q = settings?.quality ?? 'high';

@@ -6,7 +6,7 @@ import { v, present } from './spec';
 import { Rng } from '../core/rng';
 import { planFacade, planAudience, facadeItems, ReliefSet, ReliefItem, RosetteItem, Facade, StairGeom } from './reliefs';
 import { toCuneiform } from '../lang/oldPersian';
-import type { Manifest, Doorway } from './parts';
+import type { Manifest, Doorway, Part, Box } from './parts';
 import { phase4Programmes, InscriptionPlacement } from './relief_programmes';
 import inscriptions from '../data/inscriptions.json';
 import { surfaceMaterial } from '../render/materials';
@@ -56,6 +56,59 @@ export function buildPhase4Reliefs(doorways: Doorway[]): { group: THREE.Group; i
   for (const p of phase4Programmes(doorways)) { if (p.items.length) g.add(new ReliefSet(p.items, [], p.name)); ins.push(...p.inscriptions); }
   g.userData = { tier: 'C', src: 'RELIEF-R;SI-ARCH;ISAC-PA;IR-PERS', placeholder: true, note: 'Phase 4 relief programmes (D-049): motifs B/C per SITE_SPEC; carving procedural (NEEDS #10)' };
   return { group: g, inscriptions: ins };
+}
+/** one merlon of a stair parapet: centre (grid), base height, the run's axis (0 = grid east, 1 = grid north), depth */
+export interface Merlon { c: [number, number]; y: number; axis: 0 | 1; depth: number; building: string }
+/** four-stepped merlons along the stair parapets (global.r_stair_crenellation, D-065): the parapet blocks of each listed
+ *  building are chained into runs (same line, same thickness, touching end to end), and merlons are spaced along each run
+ *  at the pitch, centred, each standing on the lowest block under it */
+export function stairCrenellationPlan(parts: Part[]): Merlon[] {
+  const CR = v<any>('global', 'r_stair_crenellation'), out: Merlon[] = [];
+  const boxes = parts.filter((p): p is Box => p.type === 'box' && p.kind === 'parapet' && !p.rot && CR.buildings.includes(p.building));
+  const used = new Set<Box>(), r2 = (x: number) => Math.round(x * 50), runs: { ch: Box[]; axis: 0 | 1 }[] = [];
+  // chains of touching blocks along either axis first; a block in no chain then runs alone along its longer side
+  for (const pass of ['chain', 'lone'] as const) for (const axis of [0, 1] as const) {
+    const lat = 1 - axis, lines = new Map<string, Box[]>();
+    for (const b of boxes) { if (used.has(b)) continue; const k = `${b.building}|${r2(b.c[lat])}|${r2(b.size[lat])}`; (lines.get(k) ?? lines.set(k, []).get(k)!).push(b); }
+    for (const line of lines.values()) {
+      line.sort((a, b) => a.c[axis] - b.c[axis]);
+      const chains: Box[][] = [];
+      for (const b of line) { const ch = chains[chains.length - 1], last = ch?.[ch.length - 1]; if (last && Math.abs(last.c[axis] + last.size[axis] / 2 - (b.c[axis] - b.size[axis] / 2)) < 0.02) ch.push(b); else chains.push([b]); }
+      for (const ch of chains) {
+        if (pass === 'chain' ? ch.length < 2 : ch[0].size[axis] < ch[0].size[lat]) continue;
+        ch.forEach(b => used.add(b)); runs.push({ ch, axis });
+      }
+    }
+  }
+  for (const { ch, axis } of runs) {
+    const lat = 1 - axis;
+    const s0 = ch[0].c[axis] - ch[0].size[axis] / 2, s1 = ch[ch.length - 1].c[axis] + ch[ch.length - 1].size[axis] / 2, len = s1 - s0;
+    if (len < CR.width) continue;
+    const n = Math.floor((len - CR.width) / CR.pitch) + 1, a0 = s0 + (len - (n - 1) * CR.pitch) / 2;
+    for (let i = 0; i < n; i++) {
+      const a = a0 + i * CR.pitch, lo = a - CR.width / 2, hi = a + CR.width / 2;
+      const y = Math.min(...ch.filter(b => b.c[axis] + b.size[axis] / 2 > lo + 1e-3 && b.c[axis] - b.size[axis] / 2 < hi - 1e-3).map(b => b.y1));
+      const c: [number, number] = axis === 0 ? [a, ch[0].c[1]] : [ch[0].c[0], a];
+      out.push({ c, y, axis, depth: Math.min(ch[0].size[lat], CR.max_depth), building: ch[0].building });
+    }
+  }
+  return out;
+}
+/** the stair-parapet merlons as one instanced mesh (limestone, as the parapets) */
+export function buildStairCrenellations(parts: Part[]): THREE.InstancedMesh | null {
+  const CR = v<any>('global', 'r_stair_crenellation'), plan = stairCrenellationPlan(parts); if (!plan.length) return null;
+  const geo = crenellationGeometry(CR.width, CR.height, CR.steps, 1);
+  const mesh = new THREE.InstancedMesh(geo, surfaceMaterial('limestone'), plan.length), m = new THREE.Matrix4(), t = new THREE.Matrix4();
+  plan.forEach((q, i) => {
+    // X along the run, Y up, Z = X × Y across the parapet (right-handed, so the extrusion keeps its winding); the unit-deep
+    // extrusion is scaled to the merlon depth and centred on the parapet's mid-line
+    const X = q.axis === 0 ? gw(1, 0) : gw(0, 1), Z = new THREE.Vector3().crossVectors(X, up);
+    m.makeTranslation(q.c[0], q.y, -q.c[1]).multiply(t.makeBasis(X, up, Z)).multiply(t.makeScale(1, 1, q.depth)).multiply(t.makeTranslation(0, 0, -0.5));
+    mesh.setMatrixAt(i, m);
+  });
+  mesh.castShadow = true; mesh.receiveShadow = true; mesh.name = 'stair-crenellations'; mesh.computeBoundingSphere();
+  mesh.userData = { tier: 'C', src: 'IR-PERS;SI-ARCH;RECON', note: `four-stepped merlons on the stair parapets of ${CR.buildings.join(', ')} (motif B on the Apadana stairs; here by the Persepolis stair convention, size C; D-065)` };
+  return mesh;
 }
 function crenellationGeometry(w: number, h: number, steps: number, depth: number) {
   const pts: number[][] = []; const sw = w / 2 / steps, sh = h / steps;

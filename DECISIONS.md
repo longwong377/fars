@@ -1010,3 +1010,15 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - It uses a second measured curve: column cover against a fixed effective cover.
   - It divides by the mean of the drifted weather field over a 12 km disc around the camera (21 samples, recomputed after 500 m of movement).
   - Measured error of the cover over the observer's 12 km disc: worst 0.053, mean 0.018, across 30 observer/cover cases (tested ±0.08).
+
+## D-065 — Four-stepped crenellations on the stair parapets (session 3; Phase 4 item)
+- **Problem:** the Apadana stairs had their merlons (B), but the Grand Stair and the Phase 4 palace stairs ended in flat parapets. SITE_SPEC itself calls for merlons on them: the grand_stair.parapet_height note and the Tachara stair_s_reliefs "Persepolis stair convention".
+- **Decision:** new row `global.r_stair_crenellation` (tools/apply_crenellation_patch.py). The merlons are the Apadana's: 0.9 × 0.9 m, four steps, pitch 1.15 × width.
+  - Depth equals the parapet thickness, up to 0.45 m. The Grand Stair W lane parapets are 0.15 m thick, so their merlons are 0.15 m deep.
+  - Buildings: grand_stair, tachara, hadish, tripylon. The motif on each is C (by the convention). Sizes are C.
+  - `stairCrenellationPlan` (src/arch/decor.ts) chains each building's parapet blocks into runs (same line, same thickness, touching end to end). It centres merlons along each run at the pitch, and seats each merlon on the lowest block under it, so none floats over a lower step.
+  - 228 merlons in one instanced draw: Grand Stair 130, Hadish 44, Tripylon 40, Tachara 14. There is no collider: the parapets under them already block.
+- **Left out:**
+  - the terrace-edge parapet stays plain. terrace.parapet_height "assumes" crenellations, but no source was reached, and the motif is attested on stairs;
+  - the Hadish S balcony "behind four-stepped crenellations" (B) is not modelled.
+- **Tests:** `tests/crenellation.test.ts`. Every listed stair has merlons. Each merlon is on its parapet's mid-line, fully over blocks, based at the lowest block top under it, and no deeper than the parapet. Merlons on a run do not overlap.

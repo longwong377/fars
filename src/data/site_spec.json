@@ -318,6 +318,25 @@
    "src": "SI-ARCH;ISAC-PA;IR-PERS;RECON",
    "tier": "C",
    "note": "Phase 4 stair reliefs: parapet registers are r_stair_parapet.height tall on the outer face of each flight and follow the slope (C); central facades carry a register of central_register m on a ground line central_ground above the court (C) with the inscription panel (panel_width, glyph height, line gap as the XPb panel, C) between guards_per_side guards (C; Q-P4-08 for the Tripylon); throne-bearer scenes have bearer_rows rows of bearers (C)"
+  },
+  "r_stair_crenellation": {
+   "v": {
+    "width": 0.9,
+    "height": 0.9,
+    "steps": 4,
+    "pitch": 1.035,
+    "max_depth": 0.45,
+    "buildings": [
+     "grand_stair",
+     "tachara",
+     "hadish",
+     "tripylon"
+    ]
+   },
+   "u": "m",
+   "src": "IR-PERS;SI-ARCH;RECON",
+   "tier": "C",
+   "note": "four-stepped merlons crowning the stair parapets. Motif B on the Apadana stairs (IR-PERS, apadana.r_crenellation); on the Tachara S stair by analogy (tachara.stair_s_reliefs \"Persepolis stair convention\", C); on the Grand Stair per grand_stair.parapet_height (C); on the Hadish and Tripylon stairs by the same convention (C, NOT SEEN). Size as the Apadana merlon (0.9 x 0.9 m, C), pitch 1.15 x width as on the Apadana (C); depth = the parapet thickness up to max_depth (the Apadana merlon depth, C). Each merlon stands on the lowest parapet block under it (no merlon floats over a lower step; C). The terrace-edge parapet is left plain: terrace.parapet_height assumes crenellations but no source for them was reached (the motif is attested on stairs). The Hadish S balcony \"behind four-stepped crenellations\" (B) is not modelled (Q-P4 balcony geometry NOT SEEN)."
   }
  },
  "terrace": {
