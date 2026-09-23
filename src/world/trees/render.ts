@@ -3,21 +3,24 @@
 // Near (3-D): all species in one draw per level of detail and part (wood, leaves). The template geometry holds only slot
 // numbers; the vertex shader pulls each slot's branch segment or leaf card from float textures (one row per species
 // variant: kitdata.ts) and places it with the instance's position, scale and yaw. LOD0 = 64 segments (6 sides) + 320
-// cards; LOD1 = the first 16 segments (4 sides) + the first 80 cards at 1.6x (leaves) to 1.8x (bare twigs) size. Leaf cards show a leaf, blossom or
-// bare-twig spray from the leaf atlas (atlas.ts), chosen per card from the day's foliage state of the species' group
-// (seasonal.ts): leaves come out card by card and grow; blossom comes before the leaves; in winter every card is a
-// bare-twig spray near its branch, so the branch structure shows.
+// cards; LOD1 = the first 16 segments (4 sides) + the first 120 cards at 1.31x (leaves) to 1.47x (bare twigs) size. Leaf
+// cards show a leaf, blossom or bare-twig spray from the leaf atlas (atlas.ts: leaves in clumps on bare twigs), chosen per
+// card from the day's foliage state of the species' group (seasonal.ts): leaves come out card by card and grow; blossom
+// comes before the leaves; the species' share of the remaining cards shows bare-twig sprays near their branches, so a
+// winter crown shows its branching. A crown is lit as a volume (shade.ts): per texel, the normal of the crown's envelope
+// blended with the clump's, occlusion by depth into the crown, and light passed through the leaves toward the viewer.
 //
 // Far (impostors): one camera-facing quad per tree sampling the impostor atlas (impostor.ts), baked on the CPU from
 // the same model, cards, atlas and season rules, blended between the two nearest of 8 views, lit with the baked
 // normals. A quad collapses inside the near radius of the near set's centre (the trees drawn in 3-D there) and beyond
 // an outer radius. No runtime select(): masks are arithmetic (D-012).
 import * as THREE from 'three/webgpu';
-import { attribute, uniform, varying, textureLoad, texture, cameraPosition, cameraViewMatrix, positionGeometry, vec2, vec3, vec4, float, int, ivec2, mix, step, max, min, normalize, cross, dot, sign, cos, sin, floor, mod, atan, time, length, mx_noise_float, clamp, smoothstep } from 'three/tsl';
+import { attribute, uniform, varying, textureLoad, texture, cameraPosition, cameraViewMatrix, positionGeometry, vec2, vec3, vec4, float, int, ivec2, mix, step, max, min, normalize, cross, dot, sign, cos, sin, floor, mod, atan, time, length, mx_noise_float, clamp, smoothstep, exp, fract } from 'three/tsl';
 import { allModels, K1, LOD1_LEAF, LOD1_TWIG, M0, M1, K0, SIDES0, SIDES1, VARIANTS, rowOf, TRIS, type TreeModel } from './model';
 import { COLS, ROWS, TILT, type Atlas } from './atlas';
 import { calibrateAndDrawAtlas, packCards, packSegments, packSpecies, SEG_TEX, CARD_TEX } from './kitdata';
 import { ImpostorBaker, NV, groupStates, barkLinear, type GroupState } from './impostor';
+import { SHADE } from './shade';
 import { SPECIES, speciesIndex, speciesTag, groupIndex } from './species';
 import { TREE_GROUPS, foliageTable } from '../plain/seasonal';
 
@@ -51,7 +54,27 @@ export function instanceNodes() {
 }
 /** tree-local -> world: scale, yaw (the same convention as the old plain trees: x' = x c + z s, z' = z c - x s), translate */
 function toWorld(l: any, iscl: any, ipos: any) { const c = cos(iscl.z), s = sin(iscl.z), x = l.x.mul(iscl.x), z = l.z.mul(iscl.x); return vec3(x.mul(c).add(z.mul(s)), l.y.mul(iscl.y), z.mul(c).sub(x.mul(s))).add(ipos); }
-function normalToView(n: any, iscl: any) { const c = cos(iscl.z), s = sin(iscl.z); return normalize(cameraViewMatrix.mul(vec4(n.x.mul(c).add(n.z.mul(s)), n.y, n.z.mul(c).sub(n.x.mul(s)), 0)).xyz); }
+/** a tree-local direction turned into the world by the instance's yaw */
+function dirToWorld(n: any, iscl: any) { const c = cos(iscl.z), s = sin(iscl.z); return vec3(n.x.mul(c).add(n.z.mul(s)), n.y, n.z.mul(c).sub(n.x.mul(s))); }
+function normalToView(n: any, iscl: any) { return normalize(cameraViewMatrix.mul(vec4(dirToWorld(n, iscl), 0)).xyz); }
+/** each tree's own colour (C): a hue between yellower and bluer green and a value, from its instance phase (the same on
+ *  the near trees and the impostors, so a tree keeps its colour across the hand-over) */
+function treeHue(itree: any, iscl: any) { const h = fract(sin(itree.z.mul(12.9898).add(4.1)).mul(43758.5453)).mul(2).sub(1);
+  return vec3(h.mul(0.07).add(1), h.mul(0.015).add(1), h.mul(-0.1).add(1)).mul(iscl.w); }
+// shade.ts in TSL: the crown ellipsoid (species record 3: centre height, horizontal radius, radii above and below)
+function crownRy(p: any, cr: any) { return mix(cr.w, cr.z, step(cr.x, p.y)); }
+function crownNormalN(p: any, cr: any) { const ry = crownRy(p, cr), rx2 = cr.y.mul(cr.y); return normalize(vec3(p.x.div(rx2), p.y.sub(cr.x).div(ry.mul(ry)), p.z.div(rx2)).add(vec3(0, 1e-6, 0))); }
+function crownAON(p: any, cr: any, CB: any, H: any, aoIn: number) {
+  const ry = crownRy(p, cr), q = length(vec3(p.x.div(cr.y), p.y.sub(cr.x).div(ry), p.z.div(cr.y)));
+  const hy = clamp(p.y.sub(CB).div(max(H.sub(CB), 0.1)), 0, 1);
+  return smoothstep(SHADE.aoQ0, SHADE.aoQ1, q).mul(1 - aoIn).add(aoIn).mul(hy.mul(1 - SHADE.aoLow).add(SHADE.aoLow));
+}
+/** light passed through the leaves toward the viewer (shade.ts transmission), as radiance: albedo / pi x sun irradiance x
+ *  the transmission factor of a texel whose world normal is nW, in the tint of transmitted light */
+function transmissionN(alb: any, nW: any, kappa: any, sunDir: any, sunIrr: any) {
+  const back = max(dot(nW, sunDir).negate(), 0), t = back.mul(exp(back.mul(kappa).negate())).mul(SHADE.trans / Math.PI);
+  return alb.mul(vec3(...SHADE.transTint)).mul(sunIrr).mul(t);
+}
 
 export interface KitOptions { impostorPx: number }
 /** impostor tile size (px) by quality: at the near radius a tile texel is about a screen pixel at 960x540 (test) and
@@ -69,6 +92,12 @@ export class TreeKit {
    *  leaf edges speckled at test quality); 0 under temporal AA (medium and above), which averages them */
   readonly atlasBias: any = uniform(0);
   readonly baker: ImpostorBaker; readonly impCol: THREE.DataTexture; readonly impNrm: THREE.DataTexture;
+  /** the sun as the leaves' transmission sees it (world direction toward the sun, irradiance = colour x intensity);
+   *  synced from the scene's shadow-casting sun before each tree draw (syncSun) */
+  readonly sunDir: any = uniform(new THREE.Vector3(0, 1, 0)); readonly sunIrr: any = uniform(new THREE.Color(0, 0, 0));
+  /** copy the registered sun (registerShadowLight) into the transmission uniforms; no sun registered: no transmission */
+  syncSun() { const L = SHADOW_LIGHTS[0]; if (!L) return;
+    this.sunDir.value.copy(L.position).sub(L.target.position).normalize(); (this.sunIrr.value as THREE.Color).copy(L.color).multiplyScalar(L.visible ? L.intensity : 0); }
   private baked: (GroupState | null)[] = [];
   readonly buildMs: number; bakeMs = 0; bakes = 0;
   private mats = new Map<string, THREE.MeshStandardNodeMaterial>();
@@ -152,7 +181,9 @@ export class TreeKit {
     m.positionNode = toWorld(local.add(this.sway(local, sp1.w, itree.z)), iscl, ipos);
     m.normalNode = normalToView(n, iscl);
     const barkLin = sp1.xyz; // packed linear (kitdata.packSpecies)
-    m.colorNode = vec4(barkLin.mul(mx_noise_float(local.mul(vec3(6, 1.5, 6)).add(itree.z)).mul(0.12).add(1)).mul(iscl.w), 1); // vec4: the shadow pass reads colorNode.a
+    // limbs and twigs inside the crown are darker (shade.ts crownAO, as the leaves and the impostor bake)
+    const sp2 = this.rec(this.spTex, 2, row), sp3 = this.rec(this.spTex, 3, row), vAo = varying(crownAON(local, sp3, sp2.w, sp1.w, SHADE.woodAoIn));
+    m.colorNode = vec4(barkLin.mul(mx_noise_float(local.mul(vec3(6, 1.5, 6)).add(itree.z)).mul(0.12).add(1)).mul(treeHue(itree, iscl)).mul(vAo), 1); // vec4: the shadow pass reads colorNode.a
     m.roughnessNode = float(0.9);
     this.mats.set(key, m); return m;
   }
@@ -160,11 +191,15 @@ export class TreeKit {
     const key = `leaf${lod}`; if (this.mats.has(key)) return this.mats.get(key)!;
     const { ipos, iscl, itree } = instanceNodes(), P = positionGeometry, row = itree.x, slot = P.z.add(0.5).floor(), b = slot.mul(CARD_TEX);
     const c0 = this.rec(this.cardTex, b, row), c1 = this.rec(this.cardTex, b.add(1), row), c2 = this.rec(this.cardTex, b.add(2), row), c3 = this.rec(this.cardTex, b.add(3), row), c4 = this.rec(this.cardTex, b.add(4), row);
-    const sp0 = this.rec(this.spTex, 0, row), sp1 = this.rec(this.spTex, 1, row);
-    const leaf = this.foliage.leaf(sp0.x), bl = this.foliage.blossom(sp0.x), L = leaf.w, B = bl.w;
-    // model.ts cardState, arithmetically: blossom first, then leaves in ht order, the rest bare twigs
+    const sp0 = this.rec(this.spTex, 0, row), sp1 = this.rec(this.spTex, 1, row), sp2 = this.rec(this.spTex, 2, row), sp3 = this.rec(this.spTex, 3, row), sp4 = this.rec(this.spTex, 4, row), sp5 = this.rec(this.spTex, 5, row);
+    const leaf = this.foliage.leaf(sp0.x), bl = this.foliage.blossom(sp0.x), B = bl.w;
+    // this variant's leaf amount (model.ts variantLeaf): the variants of a species leaf out a little apart
+    const L = clamp(leaf.w.add(sp4.z.mul(0.45).mul(leaf.w).mul(float(1).sub(leaf.w))), 0, 1);
+    // model.ts cardState, arithmetically: blossom first, then leaves in ht order, of the rest the species' twig share
+    // (in hv order) as bare twig sprays, the others not drawn
     const isB = step(c2.w.add(1e-5), B.mul(0.8)), isL = float(1).sub(isB).mul(step(c1.w.add(1e-5), L.mul(1.08))), isT = float(1).sub(isB).sub(isL);
-    const grow = isL.mul(L.mul(0.55).add(0.45)).add(isB.mul(0.8)).add(isT.mul(0.8));
+    const showT = step(c4.x.add(1e-5), lod ? min(sp4.y.add(float(1).sub(sp4.y).mul(float(1).sub(L)).mul(0.25)), 1) : sp4.y); // model.ts lod1Twigs at LOD1
+    const grow = isL.mul(L.mul(0.55).add(0.45)).add(isB.mul(0.8)).add(isT.mul(showT).mul(0.8));
     const place = isL.mul(L.mul(0.45).add(0.55)).add(isB.mul(0.8));
     const size = c0.w.mul(grow).mul(lod ? isT.mul(float(1).sub(L)).mul(LOD1_TWIG - LOD1_LEAF).add(LOD1_LEAF) : 1); // model.ts lod1Size
     const centre = mix(c1.xyz, c0.xyz, place);
@@ -178,28 +213,43 @@ export class TreeKit {
       const k = float(0.4).mul(float(1).sub(smoothstep(this.lod0R.mul(0.5), this.lod0R, d)));
       side = normalize(mix(side, r.mul(sign(dot(side, r)).add(0.001)), k)); up = normalize(mix(up, u.mul(sign(dot(up, u)).add(0.001)), k));
     }
-    const local = centre.add(side.mul(P.x.mul(size).mul(0.5))).add(up.mul(P.y.mul(size).mul(0.5)));
+    const asp = sp5.x.sqrt(), upLen = size.mul(asp); // the species' card shape (model.ts cardHalf): tall sprays for cypress, poplar, willow
+    const local = centre.add(side.mul(P.x.mul(size).mul(0.5).div(asp))).add(up.mul(P.y.mul(upLen).mul(0.5)));
     // leaf flutter: a few cm along the card normal (C)
-    const flutter = c4.xyz.mul(sin(time.mul(3.1).add(slot.mul(1.7)).add(itree.z)).mul(this.wind).mul(0.006).mul(size));
+    const flutter = normalize(cross(c3.xyz, c2.xyz)).mul(sin(time.mul(3.1).add(slot.mul(1.7)).add(itree.z)).mul(this.wind).mul(0.006).mul(size));
     const m = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide });
     m.positionNode = toWorld(local.add(flutter).add(this.sway(local, sp1.w, itree.z)), iscl, ipos);
     const tile = isL.mul(sp0.y).add(isB.mul(max(sp0.w, 0))).add(isT.mul(sp0.z));
-    const vTile = varying(tile), vUV = varying(vec2(P.x.mul(0.5).add(0.5), P.y.mul(0.5).add(0.5)));
-    const vTint = varying(c3.w.mul(iscl.w)), vAo = varying(c4.w), vLeaf = varying(leaf.xyz), vBl = varying(bl.xyz), vBark = varying(sp1.xyz);
+    // shade.ts leafShade, per fragment: the texel's tree-local position, its card's centre, outward axis and size, the
+    // crown ellipsoid and the species' crown base and height. Varyings are packed into vec4s: WebGPU allows 16
+    // inter-stage locations and three uses some of them
+    // LOD0 hands over to LOD1 at the LOD0 radius: over its outer half the clump weight and the leaf tilt fade to LOD1's
+    // (as the camera-facing turn does), so the switch does not change the crown's shading
+    const kFar: any = lod === 0 ? smoothstep(this.lod0R.mul(0.55), this.lod0R, length(cameraPosition.sub(toWorld(centre, iscl, ipos)))) : float(1);
+    const clumpEff = sp5.y.mul(lod === 0 ? mix(float(SHADE.clumpW), float(SHADE.clumpW1), kFar) : float(SHADE.clumpW1));
+    const vPS: any = varying(vec4(local, upLen)), vCC: any = varying(vec4(centre, clumpEff)), vUT: any = varying(vec4(up, tile)), vST: any = varying(vec4(side, float(1).sub(kFar)));
+    const vCr: any = varying(sp3), vM: any = varying(vec4(P.x.mul(0.5).add(0.5), P.y.mul(0.5).add(0.5), sp2.w, sp1.w)), vHK: any = varying(vec4(treeHue(itree, iscl).mul(c3.w), sp4.x));
+    const vLeaf = varying(leaf.xyz), vBl = varying(bl.xyz), vBark = varying(vec4(sp1.xyz, sp5.y)), vCH = vBark.wwww; // bark colour + the species' clump weight
+    const vP = vPS.xyz, vSize = vPS.w, vC = vCC.xyz, vClump = vCC.w, vU = vUT.xyz, vTile = vUT.w, vS = vST.xyz, vNear = vST.w, vUV = vM.xy, vCBH = vM.zw, vHue = vHK.xyz, vKappa = vHK.w;
     const ti = floor(vTile.add(0.5)), uvA = vec2(mod(ti, COLS).add(vUV.x).div(COLS), floor(ti.div(COLS)).add(vUV.y).div(ROWS));
     const tx = texture(this.atlasTex, uvA).bias(this.atlasBias);
-    // LOD0: each drawn leaf has its own tilt (atlas.ts), so a card close up shades as many leaves facing their own ways,
-    // not as one flat disc. LOD1 and the impostors (which bake LOD1) use the card normal alone: lighting is not linear in
-    // the normal, so the tilt brightened LOD1 by 3-6/255 while the impostor's filtered normals averaged it away (tree lab
-    // runs 2 and 3, at R3)
-    const vN: any = varying(c4.xyz);
-    if (lod === 0) { const tl = texture(this.tiltTex, uvA).bias(this.atlasBias).xy.mul(2).sub(1), vS: any = varying(side), vU: any = varying(up);
-      m.normalNode = normalToView(normalize(vN.add(vS.mul(tl.x.mul(TILT))).add(vU.mul(tl.y.mul(TILT)))), iscl); }
-    else m.normalNode = normalToView(vN, iscl);
+    const cc = vC.sub(vU.mul(vSize.mul(SHADE.clumpBack * 0.5))), dcl = vP.sub(cc), dlen = max(length(dcl), 1e-3);
+    const aoC = float(1).sub(vCH.x.mul(1 - (lod ? SHADE.aoClump1 : SHADE.aoClump))); // the clump's occlusion gradient, x the species' clump weight
+    let nL: any = crownNormalN(vP, vCr).mul(SHADE.crownW).add(dcl.div(dlen).mul(vClump)); // vClump: the species' weight x LOD0's, fading to LOD1's
+    const along = clamp(dot(dcl, vU).div(max(vSize.mul(0.5 * (1 + SHADE.clumpBack)), 1e-3)), 0, 1);
+    const vAo = crownAON(vP, vCr, vCBH.x, vCBH.y, SHADE.aoIn).mul(along.mul(float(1).sub(aoC)).add(aoC));
+    // LOD0: each drawn leaf has its own tilt (atlas.ts), so a card close up shades as many leaves facing their own ways.
+    // LOD1 and the impostors (which bake LOD1) do without: lighting is not linear in the normal, so the tilt brightened
+    // LOD1 by 3-6/255 while the impostor's filtered normals averaged it away (tree lab runs 2 and 3, at R3)
+    if (lod === 0) { const tl = texture(this.tiltTex, uvA).bias(this.atlasBias).xy.mul(2).sub(1).mul(vNear); nL = normalize(nL).add(vS.mul(tl.x.mul(TILT))).add(vU.mul(tl.y.mul(TILT))); }
+    nL = normalize(nL);
+    m.normalNode = normalToView(nL, iscl);
     // impostor.ts leafAlbedo, the same formula
     const shade = tx.r.mul(0.6).add(0.55), petal = tx.g, bk = tx.b, lm = max(float(1).sub(petal).sub(bk), 0);
-    const alb = vLeaf.mul(shade).mul(lm).add(vBl.mul(tx.r.mul(0.15).add(0.85)).mul(petal)).add(vBark.mul(shade).mul(bk)).mul(vTint).mul(vAo);
+    const alb = vLeaf.mul(shade).mul(lm).add(vBl.mul(tx.r.mul(0.15).add(0.85)).mul(petal)).add(vBark.xyz.mul(shade).mul(bk)).mul(vAo).mul(vHue); // vHue: the tree's hue x the card's tint
     m.colorNode = vec4(alb, tx.a);
+    // leaves pass light toward the viewer from the side away from the sun (shade.ts; bark and petals too, a simplification)
+    m.emissiveNode = transmissionN(alb, dirToWorld(nL, iscl), vKappa, this.sunDir, this.sunIrr);
     // a plain alpha test: alpha-to-coverage drew an ordered screen-door dither under MSAA (test quality, tree lab)
     m.alphaTest = 0.5;
     // the shadow pass has no alpha test of its own; it reads a coarse mip (32 px tiles, coverage kept), so the shadow map
@@ -220,14 +270,16 @@ export class TreeKit {
     // the view in the tree's frame: toCam rotated back by the yaw (inverse of toWorld)
     const c = cos(iscl.z), s = sin(iscl.z), lx = dir.x.mul(c).sub(dir.y.mul(s)), lz = dir.x.mul(s).add(dir.y.mul(c));
     const f = atan(lx, lz).div(Math.PI * 2).add(1).mul(NV); // 0..2NV, wrapped below
-    const vF = varying(mod(f, NV)), vUV = varying(vec2(P.x.mul(0.5).add(0.5), P.y)), vRow = varying(row), vRight = varying(right), vDir = varying(vec3(dir.x, 0, dir.y)), vTint = varying(iscl.w);
+    const vF = varying(mod(f, NV)), vUV = varying(vec2(P.x.mul(0.5).add(0.5), P.y)), vRow = varying(row), vRight = varying(right), vDir = varying(vec3(dir.x, 0, dir.y)), vHue = varying(treeHue(itree, iscl)), vKappa = varying(this.rec(this.spTex, 4, row).x);
     const i0 = floor(vF), t = vF.sub(i0), i1 = mod(i0.add(1), NV), R = this.models.length;
     const uv0 = vec2(i0.add(vUV.x).div(NV), floor(vRow.add(0.5)).add(vUV.y).div(R)), uv1 = vec2(i1.add(vUV.x).div(NV), floor(vRow.add(0.5)).add(vUV.y).div(R));
     const a0 = texture(this.impCol, uv0), a1 = texture(this.impCol, uv1), n0 = texture(this.impNrm, uv0), n1 = texture(this.impNrm, uv1);
     const nV = normalize(mix(n0.xyz, n1.xyz, t).mul(2).sub(1).add(vec3(0, 0, 1e-4)));
-    const nW = vRight.mul(nV.x).add(vec3(0, 1, 0).mul(nV.y)).add(vDir.mul(nV.z));
+    const nW = normalize(vRight.mul(nV.x).add(vec3(0, 1, 0).mul(nV.y)).add(vDir.mul(nV.z)));
     m.normalNode = normalize(cameraViewMatrix.mul(vec4(nW, 0)).xyz);
-    m.colorNode = vec4(mix(a0.xyz, a1.xyz, t).mul(vTint), mix(a0.w, a1.w, t));
+    const col = mix(a0.xyz, a1.xyz, t).mul(vHue);
+    m.colorNode = vec4(col, mix(a0.w, a1.w, t));
+    m.emissiveNode = transmissionN(col, nW, vKappa, this.sunDir, this.sunIrr); // as the near leaves (the baked normals are the same)
     m.alphaTest = 0.5; m.roughnessNode = float(0.8);
     return m;
   }
@@ -238,7 +290,10 @@ export class TreeKit {
     const a0 = texture(this.impCol, uv0), a1 = texture(this.impCol, uv1), n0 = texture(this.impNrm, uv0), n1 = texture(this.impNrm, uv1);
     return { col: mix(a0.xyz, a1.xyz, t), a: mix(a0.w, a1.w, t), n: normalize(mix(n0.xyz, n1.xyz, t).mul(2).sub(1).add(vec3(0, 0, 1e-4))) };
   }
-  /** species texture record: (group, leaf tile, twig tile, blossom tile), (bark, H), (T, y0, W, CB) */
+  /** light passed through the leaves (shade.ts) for a texel of albedo `alb` with world normal nW (TSL; other tree layers) */
+  transmission(alb: any, nW: any, kappa: any) { return transmissionN(alb, nW, kappa, this.sunDir, this.sunIrr); }
+  /** species texture record (kitdata.packSpecies): (group, leaf tile, twig tile, blossom tile), (bark, H), (T, y0, W, CB),
+   *  (crown ellipsoid), (kappa, twig share, variant spread, -) */
   spRec(k: number, row: any) { return this.rec(this.spTex, k, row); }
 }
 
@@ -329,7 +384,7 @@ export class NearTreeSet {
     this.wood = new THREE.Mesh(this.inst.geometry(woodTemplate(lod ? M1 : M0, lod ? SIDES1 : SIDES0)), kit.woodMaterial());
     this.leaves = new THREE.Mesh(this.inst.geometry(cardTemplate(lod ? K1 : K0)), kit.leafMaterial(lod));
     this.wood.name = `${name}-wood-lod${lod}`; this.leaves.name = `${name}-leaves-lod${lod}`;
-    for (const m of [this.wood, this.leaves]) { m.castShadow = castShadow; m.receiveShadow = true; m.frustumCulled = false; pickable(m, () => this.inst.recs, kit.models, name); if (castShadow) nearCascadesOnly(m); }
+    for (const m of [this.wood, this.leaves]) { m.castShadow = castShadow; m.receiveShadow = true; m.frustumCulled = false; pickable(m, () => this.inst.recs, kit.models, name); if (castShadow) nearCascadesOnly(m); m.onBeforeRender = () => kit.syncSun(); }
   }
   set(recs: TreeInst[]) { const n = this.inst.apply(recs); (this.wood.geometry as THREE.InstancedBufferGeometry).instanceCount = n; (this.leaves.geometry as THREE.InstancedBufferGeometry).instanceCount = n; return n; }
   count() { return (this.wood.geometry as THREE.InstancedBufferGeometry).instanceCount; }
@@ -341,7 +396,7 @@ export class ImpostorSet {
   constructor(kit: TreeKit, cap: number, cut: { c: any; r: any }, outer: number | any, name: string) {
     this.inst = new Instances(cap);
     this.mesh = new THREE.Mesh(this.inst.geometry(quadTemplate()), kit.impostorMaterial(cut, outer));
-    this.mesh.name = name; this.mesh.frustumCulled = false; this.mesh.castShadow = false; this.mesh.receiveShadow = true;
+    this.mesh.name = name; this.mesh.frustumCulled = false; this.mesh.castShadow = false; this.mesh.receiveShadow = true; this.mesh.onBeforeRender = () => kit.syncSun();
     pickable(this.mesh, () => this.inst.recs, kit.models, name);
   }
   set(recs: TreeInst[]) { const n = this.inst.apply(recs); (this.mesh.geometry as THREE.InstancedBufferGeometry).instanceCount = n; return n; }

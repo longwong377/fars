@@ -178,17 +178,19 @@ export function orchardRows(kit: TreeKit, plots: RowPlot[], terrain: Terrain, mi
     const smp = kit.impostorSample(row, f, uvT);
     const real = step(0, col).mul(step(col, A.w.sub(1))); // columns beyond the row's ends hold no tree
     const a = smp.a.mul(step(0, uvT.x)).mul(step(uvT.x, 1)).mul(step(0, uvT.y)).mul(step(uvT.y, 1)).mul(real);
-    return { col: smp.col, n: smp.n, a };
+    return { col: smp.col, n: smp.n, a, kappa: kit.spRec(4, row).x };
   };
   const s0 = column(col0), s1 = column(col0.add(side));
   const pick = step(s0.a, s1.a); // the neighbour's crown is in front where it covers more
   const nearCut = step(nearR, length(positionWorld.xz.sub(cameraPosition.xz))); // per fragment: never within the near radius
-  m.colorNode = vec4(s0.col.mul(float(1).sub(pick)).add(s1.col.mul(pick)), max(s0.a, s1.a).mul(nearCut));
+  const colR = s0.col.mul(float(1).sub(pick)).add(s1.col.mul(pick));
+  m.colorNode = vec4(colR, max(s0.a, s1.a).mul(nearCut));
   const n = normalize(s0.n.mul(float(1).sub(pick)).add(s1.n.mul(pick)));
   const right = vec3(dir.y, 0, dir.x.negate()), nW = right.mul(n.x).add(vec3(0, 1, 0).mul(n.y)).add(vec3(dir.x, 0, dir.y).mul(n.z));
   m.normalNode = normalize(cameraViewMatrix.mul(vec4(nW, 0)).xyz);
+  m.emissiveNode = kit.transmission(colR, normalize(nW), s0.kappa); // leaves pass light as on the near trees (shade.ts)
   m.alphaTest = 0.5; m.roughnessNode = float(0.8);
-  const mesh = new THREE.Mesh(g, m); mesh.name = 'plain-orchards-far'; mesh.frustumCulled = false; mesh.userData = { ...TREE_TAG(), rows };
+  const mesh = new THREE.Mesh(g, m); mesh.name = 'plain-orchards-far'; mesh.frustumCulled = false; mesh.userData = { ...TREE_TAG(), rows }; mesh.onBeforeRender = () => kit.syncSun();
   return mesh;
 }
 export const TREE_TAG = () => tag(feature('orchards_gardens'), 'trees of the plain: riparian (river_*.riparian), canal lines, orchards (orchards_gardens), woodland (woodland rule); species presence B, form C (src/data/trees.json), placement C; far trees are impostors baked from the same models');

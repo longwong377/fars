@@ -13,7 +13,7 @@ import { SPECIES, refForm, type Species } from './species';
 
 export type V3 = [number, number, number];
 export const M0 = 64, M1 = 16; // branch segments: LOD0, LOD1
-export const K0 = 320, K1 = 80; // leaf-cluster cards: LOD0, LOD1
+export const K0 = 320, K1 = 120; // leaf-cluster cards: LOD0, LOD1 (LOD1 was 80: its cards, 1.6x the LOD0 size, read as single big leaves at 50-100 m)
 export const SIDES0 = 6, SIDES1 = 4; // sides of a branch tube
 export const VARIANTS = 3;
 /** nominal opaque share of a leaf-cluster tile (the card size is set so that cards x size^2 x fill = layers x crown surface) */
@@ -25,6 +25,13 @@ export const LOD1_LEAF = Math.sqrt(K0 / K1) * 0.8, LOD1_TWIG = Math.sqrt(K0 / K1
 /** LOD1 size factor of a card in its state (cardState isT) and the group's leaf amount: while leaves come out, the twig
  *  sprays left between them shrink toward the leaf factor (in LOD0 the leaves hide most of them) */
 export const lod1Size = (isT: number, leaf: number) => LOD1_LEAF + (LOD1_TWIG - LOD1_LEAF) * isT * (1 - leaf);
+/** LOD1's share of bare-twig cards: up to a quarter more of the hidden ones show, standing in for the fine branches LOD1
+ *  does not draw (its first 16 of 64 segments; a stout-twigged bare fig kept only 0.7 of LOD0's silhouette without them),
+ *  fewer as the leaves come out and hide those branches in LOD0 too */
+export const lod1Twigs = (twigs: number, leaf = 0) => Math.min(1, twigs + (1 - twigs) * 0.25 * (1 - leaf));
+/** half extents of a card of edge `size` (the area of a size x size square) along its side and up axes, for the species'
+ *  card aspect (trees.json card.aspect: tall sprays, C) */
+export const cardHalf = (size: number, aspect: number) => { const k = Math.sqrt(aspect); return { side: size * 0.5 / k, up: size * 0.5 * k }; };
 
 export interface Seg { a: V3; b: V3; ra: number; rb: number; level: number; u: V3 }
 export interface Card {
@@ -32,7 +39,9 @@ export interface Card {
   /** card plane axes (unit): up = from the twig outward, side = across */ up: V3; side: V3;
   /** lighting normal (crown-radial blended with the card plane) */ n: V3;
   /** edge length in full leaf (m) */ size: number;
-  /** leaf-out threshold, blossom threshold, colour tint, ambient occlusion (inside and low in the crown darker) */ ht: number; hb: number; tint: number; ao: number;
+  /** leaf-out threshold, blossom threshold, colour tint, ambient occlusion (inside and low in the crown darker; the
+   *  shaders now take it per texel from shade.ts, this per-card value is kept for reference) */ ht: number; hb: number; tint: number; ao: number;
+  /** bare-twig threshold: a card without leaf or blossom shows its twig spray when hv < the species' twig_cards */ hv: number;
 }
 export interface TreeModel {
   species: Species; si: number; variant: number;
@@ -192,7 +201,17 @@ export function buildModel(si: number, variant: number): TreeModel {
   const yTop = H - size * 0.3; // a card reaches ~0.35 of its size beyond its centre: the crown top stays at H
   const cand: { p: V3; rn: number }[] = [];
   const Rmax = W / 2 * 1.3, ycS = CB + (H - CB) * s.envelope.widest;
-  for (let tries = 0; cand.length < K0 * 3 && tries < K0 * 200; tries++) {
+  // sub-crowns (C): foliage masses at the ends of the secondary branches, pushed out to 3/4 of the envelope. Cards are
+  // kept with a probability that falls off between them (floor SUB_FLOOR), so the crown is several lumpy masses with
+  // hollows between, and its outline is lobed, not the smooth ball ("lollipop") of an evenly filled envelope. Narrow
+  // excurrent crowns (poplar, cypress, pear) keep weaker masses along their leader.
+  const subLevel = s.habit === 'excurrent' ? 1 : 2, subs: V3[] = [];
+  for (const t of tips) if (t.level === subLevel) { const a = Math.atan2(t.p[0], t.p[2]), er = env(Math.min(H * 0.97, Math.max(CB * 1.02, t.p[1])), a), r = Math.hypot(t.p[0], t.p[2]);
+    const k = er > 0 && r > 1e-3 ? Math.max(r, er * 0.75) / r : 1; subs.push([t.p[0] * k, Math.min(H * 0.92, Math.max(CB + (H - CB) * 0.18, t.p[1])), t.p[2] * k]); }
+  const irregular = s.id === 'oak' || s.id === 'olive' || s.id === 'willow' || s.id === 'fig';
+  const SUB_FLOOR = s.habit === 'excurrent' ? 0.5 : irregular ? 0.17 : 0.2, sig = Math.max(0.6, (s.habit === 'excurrent' ? 0.45 : 0.36) * Math.min(W / 2, (H - CB) / 2));
+  const subField = (p: V3) => { if (!subs.length) return 1; let m = 0; for (const q of subs) { const d2 = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2; m = Math.max(m, Math.exp(-d2 / (2 * sig * sig))); } return SUB_FLOOR + (1 - SUB_FLOOR) * m; };
+  for (let tries = 0; cand.length < K0 * 3 && tries < K0 * 400; tries++) {
     // volume-uniform: a height, then a point in that ring's disc, kept with probability (disc area / max area)
     const y = rng.range(CB, yTop), a = rng.range(0, Math.PI * 2), er = env(y, a);
     if (er <= 0.05 || rng.next() > (er / Rmax) ** 2) continue;
@@ -204,6 +223,7 @@ export function buildModel(si: number, variant: number): TreeModel {
     const hy = Math.max(y > ycS ? H - ycS : ycS - CB, 0.1);
     const rn = Math.max(rr / erIn, (Math.abs(y - ycS) / hy) * 0.9);
     if (rn < shellInner) continue;
+    if (rng.next() > subField(p)) continue;
     cand.push({ p, rn });
   }
   // farthest-point order: every prefix is evenly spread (LOD1 = the first K1)
@@ -223,7 +243,7 @@ export function buildModel(si: number, variant: number): TreeModel {
   const strat = () => { const out: number[] = []; for (const [a, b] of [[0, Math.min(K1, pick.length)], [Math.min(K1, pick.length), pick.length]]) {
     const part = Array.from({ length: b - a }, (_, i) => (i + rng.next()) / Math.max(1, b - a));
     for (let i = part.length - 1; i > 0; i--) { const j = rng.int(0, i); [part[i], part[j]] = [part[j], part[i]]; } out.push(...part); } return out; };
-  const hts = strat(), hbs = strat();
+  const hts = strat(), hbs = strat(), hvs = strat();
   pick.forEach((ci, k) => {
     const t = cand[ci].p;
     // nearest point on the outer skeleton
@@ -236,18 +256,21 @@ export function buildModel(si: number, variant: number): TreeModel {
     const rn = cand[ci].rn;
     // hanging shoots (willow, tamarisk, vine): the outer sprays turn down (C)
     if (droop > 0.2) up = norm(lerp(up, [0, -1, 0], Math.min(0.9, droop * rn * 1.1)));
+    // upright sprays (cypress, poplar): the card's axis turns toward the vertical (trees.json card.up, C)
+    if (s.card.up > 0) up = norm(lerp(up, [0, 1, 0], s.card.up));
     let nPlane = sub(radial, mul(up, dot(radial, up))); if (len(nPlane) < 0.1) nPlane = perp(up); nPlane = norm(rot(norm(nPlane), up, rng.range(-1.0, 1.0)));
     const side = norm(cross(up, nPlane));
     const n = norm(add(mul(radial, 0.72), mul(nPlane, 0.28)));
     const hy = (c[1] - CB) / Math.max(0.1, H - CB);
     const ao = (0.5 + 0.5 * Math.min(1, Math.max(0, (rn - shellInner) / (1 - shellInner) * 0.6 + 0.4))) * (0.78 + 0.22 * hy);
     const w = lerp(best, c, 0.45); // winter: the bare-twig spray sits closer to its branch
-    cards.push({ c, w, up, side, n, size: size * rng.range(0.85, 1.15), ht: hts[k], hb: hbs[k], tint: rng.range(0.88, 1.12), ao });
+    // per-card tint +-5 % (was +-12 %: with the crown lit as one volume, a card's own tint only needs to break up repeats)
+    cards.push({ c, w, up, side, n, size: size * rng.range(0.85, 1.15), ht: hts[k], hb: hbs[k], tint: 1 + (rng.range(0.88, 1.12) - 1) * 0.42, ao, hv: hvs[k] });
   });
   const usedCards = cards.length;
-  while (cards.length < K0) cards.push({ c: [0, 0, 0], w: [0, 0, 0], up: [0, 1, 0], side: [1, 0, 0], n: [0, 1, 0], size: 0, ht: 2, hb: 2, tint: 1, ao: 1 });
+  while (cards.length < K0) cards.push({ c: [0, 0, 0], w: [0, 0, 0], up: [0, 1, 0], side: [1, 0, 0], n: [0, 1, 0], size: 0, ht: 2, hb: 2, tint: 1, ao: 1, hv: 2 });
   // impostor tile: a square around the actual extent (cards reach beyond the envelope by half a card)
-  let xm = 0, ym = H; for (const cd of cards.slice(0, usedCards)) { const e = cd.size * 0.72; xm = Math.max(xm, Math.hypot(cd.c[0], cd.c[2]) + e); ym = Math.max(ym, cd.c[1] + e); }
+  let xm = 0, ym = H; for (const cd of cards.slice(0, usedCards)) { const e = cd.size * 0.72 * Math.sqrt(s.card.aspect); xm = Math.max(xm, Math.hypot(cd.c[0], cd.c[2]) + e); ym = Math.max(ym, cd.c[1] + e); }
   for (const q of segs.slice(0, usedSegs)) { xm = Math.max(xm, Math.hypot(q.b[0], q.b[2]) + q.rb); ym = Math.max(ym, q.b[1] + q.rb); }
   const y0 = -0.02 * H, T = Math.max(2 * xm, ym - y0) * 1.02;
   return { species: s, si, variant, H, W, CB, segs, cards, used: { segs: usedSegs, cards: usedCards }, T, y0, env };
@@ -264,15 +287,24 @@ export const rowOf = (si: number, variant: number) => si * VARIANTS + (variant %
 /** triangles per tree at each level of detail */
 export const TRIS = { lod0: M0 * SIDES0 * 2 + K0 * 2, lod1: M1 * SIDES1 * 2 + K1 * 2, impostor: 2 };
 
+/** the three variants of a species leaf out (and colour and shed) a little apart, so the trees of one species are not
+ *  all at one stage in spring and autumn: variant v's leaf amount is the group's, moved by VARIANT_SPREAD[v] x 0.45 x
+ *  L(1 - L) (at most +-0.11, in the middle of the change; C). Shared by the shader (render.ts) and the baker. */
+export const VARIANT_SPREAD = [-1, 0, 1] as const;
+export const variantLeaf = (L: number, variant: number) => Math.min(1, Math.max(0, L + VARIANT_SPREAD[variant % VARIANTS] * 0.45 * L * (1 - L)));
+
 /** card state in the season (shared by the shader in render.ts and the impostor baker): which tile the card shows
- *  (leaf, blossom or bare twigs), how big it is and where it sits. leaf = the group's leaf amount (0..1), blossom = its
- *  blossom amount. Blossom takes up to 80 % of the cards at the peak; leaves come out card by card in `ht` order and
- *  grow from 45 % to full size; the rest are bare twig sprays at 80 % size near their branch. */
-export function cardState(cd: Card, leaf: number, blossom: number) {
+ *  (leaf, blossom or bare twigs), how big it is and where it sits. leaf = the tree's leaf amount (0..1: the group's,
+ *  variantLeaf), blossom = its blossom amount, twigs = the species' twig_cards. Blossom takes up to 80 % of the cards at
+ *  the peak; leaves come out card by card in `ht` order and grow from 45 % to full size; of the rest, the share `twigs`
+ *  (in `hv` order) are bare twig sprays at 80 % size near their branch, the others are not drawn (a stout-twigged fig
+ *  shows its branch skeleton, not a thicket of sprays). */
+export function cardState(cd: Card, leaf: number, blossom: number, twigs = 1) {
   const isB = cd.hb < blossom * 0.8 ? 1 : 0;
   const isL = (1 - isB) * (cd.ht < leaf * 1.08 ? 1 : 0);
   const isT = (1 - isB) * (1 - isL);
-  const grow = isL * (0.45 + 0.55 * leaf) + isB * 0.8 + isT * 0.8;
+  const showT = cd.hv < twigs ? 1 : 0;
+  const grow = isL * (0.45 + 0.55 * leaf) + isB * 0.8 + isT * 0.8 * showT;
   const place = isL * (0.55 + 0.45 * leaf) + isB * 0.8;
   return { isB, isL, isT, size: cd.size * grow, pos: lerp(cd.w, cd.c, place) };
 }

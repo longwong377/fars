@@ -103,7 +103,10 @@ export function cropState(row: CropRow, doy: number): CropState {
     }
     case 'fallow': { const hb = herb(d); return { height: 0.12 * hb.green, green: hb.green * 0.45, straw: hb.dry * 0.4, tilled: 0 }; } // grazed weedy fallow: soil shows between the weeds (C)
     case 'orchard_floor': { const hb = herb(d); return { height: 0.15, green: Math.max(0.35, hb.green) * 0.8, straw: hb.dry * 0.2, tilled: 0 }; } // watered ground under trees (C)
-    case 'vineyard': { const leaf = window(d, 110, 300, 18); return { height: 1.5 * (0.35 + 0.65 * leaf), green: 0.55 * leaf, straw: 0.25 * window(d, 300, 335, 8), tilled: window(d, 60, 90, 6) * 0.6 }; } // leaf-out Apr, vintage Sep-Oct (crops.vines, C)
+    // head-trained vine stocks (about half a metre of old wood) all year; budburst in April (crops.vines leaf_out Apr),
+    // shoots and leaves through May and June to ~1.5 m, vintage Sep-Oct, leaves down in November (C). The canopy used to
+    // start rising on day 92 (a window edge): on 17 April the rows stood 1.1 m tall and a third green (D-149)
+    case 'vineyard': { const leaf = smooth(100, 155, d) * (1 - smooth(300, 330, d)); return { height: 0.5 + leaf, green: 0.6 * leaf, straw: 0.25 * window(d, 300, 335, 8), tilled: window(d, 60, 90, 6) * 0.6 }; }
     case 'steppe': { const hb = herb(d); return { height: 0.2 * hb.green + 0.1 * hb.dry, green: hb.green, straw: hb.dry, tilled: 0 }; }
   }
 }
@@ -116,6 +119,35 @@ export function cropTable(): Uint8Array {
 }
 /** per-plot phenology offset (days): sowing and harvest spread over about three weeks between plots (C) */
 export const PLOT_OFFSET_DAYS = 12;
+
+// ---------------------------------------------------------------- the river margins (riparian.ts, rivers.ts banks)
+/** State of the ground vegetation by the water on a day of year (C: recalled botany, BOTANY-GEN; the species' presence is
+ *  in plain.json river_*.riparian `margins`). Common reed (Phragmites): last year's culms stand pale and dry through the
+ *  winter and spring and go down as the new growth overtops them in early summer; new shoots from late March, about half a
+ *  metre by mid-April, 2-3 m by July, plumes from August, brown from October. Rushes and sedges at the wet edge stay green
+ *  but for their tips in the dry summer. Bank grasses on the moist upper bank green from the winter rains, flower in
+ *  May, and dry about a month after the steppe (from July). */
+export interface MarginState {
+  /** new reed shoots (m) and their green share (0..1: brown in autumn) */ reedNew: number; reedGreen: number;
+  /** last year's culms still standing (0..1) and their height (m); plume stage (0..1) of the current year's culms */ reedOld: number; reedOldH: number; plume: number;
+  /** rushes: height (m), green share */ rushH: number; rushGreen: number;
+  /** bank grass: height (m), green share (the rest straw) */ grassH: number; grassGreen: number;
+}
+export function marginState(doy: number): MarginState {
+  const d = ((doy % YEAR) + YEAR) % YEAR;
+  const s = (a: number, b: number) => smooth(a, b, d);
+  // new reed culms: emerge ~day 80, 0.5 m by ~day 102, 1.3 m by mid-May, 2.4 m by early July, 2.7 m from August
+  const reedNew = d < 80 || d > 345 ? 0 : 2.7 * (0.19 * s(80, 104) + 0.3 * s(104, 140) + 0.4 * s(140, 185) + 0.11 * s(185, 215));
+  const reedGreen = 1 - s(275, 320); // brown from October, dry by mid-November (they stand as next year's old culms)
+  // the dry culms go down as the new ones overtop them; about a third of the beds are cut in winter for mats, roofs and
+  // fodder (reed roofs: settlement surfaces; C), so at most 0.7 stand
+  const reedOld = 0.7 * (d > 345 || d < 80 ? 1 : 1 - 0.85 * s(120, 200));
+  const plume = s(215, 245);
+  const rushGreen = 1 - 0.35 * s(180, 215) * (1 - s(275, 310));
+  const grassGreen = Math.max(0.12, 1 - 0.85 * s(160, 200) * (1 - s(300, 345)));
+  const grassH = 0.12 + 0.33 * s(40, 125) * (1 - 0.4 * s(200, 290));
+  return { reedNew, reedGreen, reedOld, reedOldH: 2.5, plume, rushH: 0.55 + 0.35 * s(70, 150), rushGreen, grassH, grassGreen };
+}
 
 // ---------------------------------------------------------------- trees
 /** foliage groups: one phenology per group (species -> group in src/data/trees.json) */
@@ -131,28 +163,52 @@ const AUTUMN: Record<TreeGroup, number[]> = {
   plane: [0.48, 0.36, 0.14], willow: [0.55, 0.50, 0.18], poplar: [0.60, 0.52, 0.14], tamarisk: [0.40, 0.36, 0.25], pome: [0.50, 0.36, 0.14],
   fig: [0.55, 0.50, 0.18], pomegranate: [0.60, 0.50, 0.12], mulberry: [0.55, 0.50, 0.15], vine: [0.50, 0.22, 0.10], oak: [0.42, 0.30, 0.15],
   almond: [0.50, 0.30, 0.14], pistachio: [0.55, 0.22, 0.12], evergreen_dark: [0.10, 0.16, 0.08], evergreen_grey: [0.27, 0.30, 0.21] };
-/** [leaf-out start, full leaf, colour start, leaf fall end] (doy), C; evergreens hold their leaves */
+/** [leaf-out start, full leaf, colour start, leaf fall end] (doy, Gregorian: day 0 of the world = doy 102), C; evergreens
+ *  hold their leaves. Checked for mid-April at ~1,610 m in Fars (D-149; recalled botany is C and says so):
+ *  - pomegranate: in Shiraz (Eram garden, ~1,540 m) red young leaves in mid-March, red-green in late March, green leaves
+ *    by the last days of March with the flower buds still closed (PUNICA-SHIRAZ, search extract: B for that garden
+ *    today); here ~5 days later for the height: out from doy 78, full by 118. It was 100-125: bare on 17 April, wrong;
+ *  - fig: bud break in April in the rain-fed orchards of Estahban, Fars, ~1,750 m (FIG-ESTAHBAN, search extract, B);
+ *    here from doy 92, so on day 0 a fig carries only its first small leaves (was 100: all but bare);
+ *  - plane: foliation lasts about 1.5 months from mid-April in a Platanus orientalis stand (PLATANUS-LAI, search extract,
+ *    B, a Turkish stand); on the warmer Marvdasht plain from doy 86 to 124, so on day 0 the planes are in young leaf,
+ *    not full leaf (was 82-108);
+ *  - mulberry: leaves by April, silkworm rearing from late April (IR-SERICULTURE, search extract, B): unchanged;
+ *  - willow, poplar, tamarisk, apple/pear, vine, oak, almond, pistachio: recalled (BOTANY-GEN, C), unchanged. */
 const PHENO: Record<TreeGroup, [number, number, number, number] | null> = {
-  plane: [82, 108, 300, 340], willow: [75, 100, 305, 340], poplar: [80, 105, 290, 330], tamarisk: [90, 115, 295, 335], pome: [95, 120, 290, 330],
-  fig: [100, 128, 290, 325], pomegranate: [100, 125, 295, 330], mulberry: [95, 118, 295, 330], vine: [105, 135, 285, 325], oak: [95, 125, 285, 330],
+  plane: [86, 124, 300, 340], willow: [75, 100, 305, 340], poplar: [80, 105, 290, 330], tamarisk: [90, 115, 295, 335], pome: [95, 120, 290, 330],
+  fig: [92, 130, 290, 325], pomegranate: [78, 118, 295, 330], mulberry: [95, 118, 295, 330], vine: [105, 135, 285, 325], oak: [95, 125, 285, 330],
   almond: [70, 100, 250, 300], pistachio: [90, 115, 280, 320], evergreen_dark: null, evergreen_grey: null };
-/** blossom window [start, end, edge] (doy) and colour (C): apple and pear Mar-Apr (crops.fruit_trees), wild almond Feb-Mar, pomegranate May-Jun */
-const BLOSSOM: Partial<Record<TreeGroup, { w: [number, number, number]; c: [number, number, number] }>> = {
-  pome: { w: [75, 108, 8], c: [0.93, 0.9, 0.88] }, almond: { w: [45, 72, 7], c: [0.92, 0.82, 0.84] }, pomegranate: { w: [130, 175, 10], c: [0.72, 0.1, 0.05] } };
+/** young leaves that are not a lighter green (C on B): the pomegranate's unfold red and turn green over about two weeks
+ *  (PUNICA-SHIRAZ); others get lighter, yellower young leaves (the `spring` tint in foliage()) */
+const YOUNG_RED: Partial<Record<TreeGroup, [number, number, number]>> = { pomegranate: [0.36, 0.13, 0.07] };
+/** blossom window [start, end, edge] (doy), colour and peak share (C): apple and pear Mar-Apr (crops.fruit_trees), wild
+ *  almond Feb-Mar, pomegranate May-Jun; a pomegranate's scarlet flowers stand scattered among the leaves (peak 0.45:
+ *  at 1 the whole shrub read as a red ball, D-149) */
+const BLOSSOM: Partial<Record<TreeGroup, { w: [number, number, number]; c: [number, number, number]; p?: number }>> = {
+  pome: { w: [75, 108, 8], c: [0.93, 0.9, 0.88] }, almond: { w: [45, 72, 7], c: [0.92, 0.82, 0.84] }, pomegranate: { w: [130, 175, 10], c: [0.72, 0.1, 0.05], p: 0.45 } };
+/** Leaf albedo scale (D-149, C): SUMMER, AUTUMN and YOUNG_RED were chosen by eye in session 3, and in the session-4
+ *  renders at high the crowns came out brighter than the sunlit bank sward beside them (Pulvar bank, 10:00: foliage
+ *  median Y 0.083, top decile 0.19, sward 0.069), where a tree crown in a photograph reads darker than sunlit grass. A
+ *  green leaf reflects about 0.1 at 550 nm and 0.05 in the red and blue (generic leaf optics, recalled: C); the tables
+ *  were about 2.5x that. x0.6 keeps their hues and brings the sunlit outer leaves to the upper end of that range (the
+ *  shaders' occlusion and the shadow map do the rest). Blossom and bark are unchanged. */
+export const LEAF_K = 0.6;
 /** Leaf amount, colour and blossom of each group on a day (C phenology; species B from pollen/PF where stated in trees.json). */
 export function foliage(g: TreeGroup, doy: number): Foliage {
   const d = ((doy % YEAR) + YEAR) % YEAR;
   const P = PHENO[g], B = BLOSSOM[g];
-  const bl = B ? window(d, B.w[0], B.w[1], B.w[2]) : 0;
+  const bl = B ? window(d, B.w[0], B.w[1], B.w[2]) * (B.p ?? 1) : 0;
   const blossomColour: [number, number, number] = B ? B.c : [0.93, 0.9, 0.88];
-  if (!P) return { leaf: 1, colour: [...SUMMER[g]] as [number, number, number], blossom: bl, blossomColour };
+  if (!P) return { leaf: 1, colour: SUMMER[g].map(v => v * LEAF_K) as [number, number, number], blossom: bl, blossomColour };
   const [a, b, c, e] = P;
   const leaf = smooth(a, b, d) * (1 - smooth(c + (e - c) * 0.5, e, d));
   const autumn = smooth(c, c + (e - c) * 0.6, d);
   const spring = 1 - smooth(a, b + 20, d); // young leaves are lighter
   let colour = lerp3(SUMMER[g], AUTUMN[g], autumn);
   colour = lerp3(colour, [colour[0] * 1.25, colour[1] * 1.3, colour[2] * 1.1], spring * leaf);
-  return { leaf, colour, blossom: bl, blossomColour };
+  const red = YOUNG_RED[g]; if (red) colour = lerp3(colour, red, 1 - smooth(a + 6, a + 26, d)); // red when they unfold, green two to three weeks later
+  return { leaf, colour: colour.map(v => v * LEAF_K) as [number, number, number], blossom: bl, blossomColour };
 }
 /** tree-group state table: TREE_GROUPS.length × 2 texels RGBA (leaf colour + amount; blossom colour + amount) */
 export function foliageTable(doy: number): Float32Array {

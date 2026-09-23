@@ -11,6 +11,8 @@ export interface Species {
   height_m: [number, number]; crown_width_ratio: [number, number]; crown_base_ratio: [number, number]; dbh_ratio: number; stems: [number, number];
   habit: 'excurrent' | 'decurrent'; envelope: Envelope; limbs: [number, number]; limb_angle_deg: number; droop: number;
   leaf: { tile: string; size_cm: number; layers: number }; twig_tile: string; blossom_tile: string | null; bark: [number, number, number];
+  /** share of the cards that show a bare-twig spray when they carry no leaf or blossom (C) */ twig_cards: number;
+  /** leaf-cluster card shape (C): height/width at the same area, turn of its axis to the vertical, clump shading weight */ card: { aspect: number; up: number; clump: number };
 }
 export const TREES: { _meta: any; species: Species[] } = treesJson as any;
 export const SPECIES: Species[] = TREES.species;
