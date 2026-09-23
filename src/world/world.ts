@@ -14,6 +14,9 @@ export interface WorldBuild {
   audio?: { unlock(): void };
   fire?: FireSystem; wvfx?: WeatherVfx; flash?(): number;
   people?: { sim: PeopleSim; crowd: Crowd; nav: NavGrid };
+  /** address the nearest person in front of the camera (§9.4); returns what was said (out-of-world subtitle) or null */
+  address?(camera: THREE.Camera): Subtitle | { gesture: string } | null;
+  lastSubtitle?: Subtitle | null;
 }
 import { buildTerrace } from '../arch/terrace';
 import { buildMeshes } from '../arch/meshes';
@@ -28,6 +31,10 @@ import { v } from '../arch/spec';
 import { NavGrid } from '../people/navgrid';
 import { PeopleSim, Env } from '../people/sim';
 import { Crowd } from '../people/crowd';
+import { ACTIVITIES } from '../people/activities';
+import { Speech, Subtitle } from '../audio/speech';
+import { Murmur, Talker } from '../audio/murmur';
+import { pickLine, voiceFor } from '../people/speech_lines';
 import type { WeatherSystem } from '../weather/weatherState';
 const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
 /** Fire placements for the vertical slice (all C: fires/lamps are attested in general, positions are reconstruction). */
@@ -77,6 +84,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   let time = 0; let lastFlash = 0;
   const audio = new AudioEngine(); const sound = new Soundscape(audio);
   crowd.onHit = (kind, pos) => sound.strike(kind, pos);
+  // speech + crowd murmur (D-011): murmur from everyone whose activity sounds as talk; lines only from the lexicons
+  const speech = new Speech(audio); const murmur = new Murmur(audio, { maxVoices: 10, radius: 40 });
+  let lastSubtitle: Subtitle | null = null; speech.onSubtitle = (s: Subtitle) => { lastSubtitle = s; };
   let playerAt: THREE.Vector3 | null = null;
   wvfx.onThunder = (delay, strength) => sound.thunder(delay, strength);
   // which acoustic space is the listener in (grid footprint tests; C)
@@ -97,7 +107,20 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     if (playerAt) sim.player = [playerAt.x, -playerAt.z];
     syncBodies(); void dt;
   };
-  return { root, fire, wvfx, simulate, people: { sim, crowd, nav },
+  const address = (camera: THREE.Camera) => {
+    const cp = camera.position, fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+    let best: any = null, bd = 3.5;
+    for (const ag of sim.agents) { if (ag.offmap || ag.task?.act === 'sleep') continue; const d = Math.hypot(ag.pos[0] - cp.x, -ag.pos[1] - cp.z); if (d > bd) continue;
+      const dir = new THREE.Vector3(ag.pos[0] - cp.x, 0, -ag.pos[1] - cp.z).normalize(); if (dir.dot(new THREE.Vector3(fwd.x, 0, fwd.z).normalize()) < 0.5) continue; best = ag; bd = d; }
+    if (!best) return null;
+    best.metPlayer++; best.heading = Math.atan2(cp.x - best.pos[0], -cp.z - best.pos[1]) * 180 / Math.PI; // turns to the stranger
+    const day = Math.floor(sim.t / 24);
+    const pick = pickLine({ langs: best.langs, intent: best.metPlayer > 1 ? 'reply' : 'greet', role: best.role, seed: best.seed + day });
+    if (!pick) return { gesture: 'nods (no attested line in their language)' };
+    speech.say(pick.line, voiceFor({ seed: best.seed, sex: best.sex, role: best.role }), { x: best.pos[0], y: best.y + 1.55, z: -best.pos[1] }, { speakerId: best.id });
+    return { lineId: pick.line.id, lang: pick.line.lang, translit: pick.line.translit, gloss: pick.line.gloss, tier: pick.line.tier, speakerId: best.id, backend: 'formant' } as Subtitle;
+  };
+  return { root, fire, wvfx, simulate, people: { sim, crowd, nav }, address, get lastSubtitle() { return lastSubtitle; },
     saveState: () => ({ people: sim.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } },
     audio: { unlock: () => { audio.unlock(); if (settings) audio.setVolumes(settings.volume); }, state: () => ({ ctx: audio.ctx?.state ?? 'none', space: audio.currentSpace, sampleRate: audio.ctx?.sampleRate }) } as any,
     applySettings: (s: Settings) => audio.setVolumes(s.volume),
@@ -113,6 +136,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         const jdn = ctx.clock.jdn, b = babylonianDate(jdn); void b;
         const month = ctx.cond.day.climMonth; const hour = ctx.clock.localHour;
         const p = ctx.player.position, feet = ctx.player.feetY;
+        const talkers: Talker[] = sim.agents.filter(ag => !ag.offmap && !ag.walking && ag.task && ACTIVITIES[ag.task.act]?.sound === 'murmur')
+          .map(ag => ({ id: ag.id, pos: { x: ag.pos[0], y: ag.y + 1.55, z: -ag.pos[1] }, lang: ag.langs[0] ?? 'unknown', sex: ag.sex, child: ag.role === 'child', seed: ag.seed, group: ag.task!.place }));
+        murmur.update(dt, talkers, cam.position); speech.update();
         sound.update(dt, { hour, month, windMs: ctx.cond.windMs, rain: ctx.cond.rain, insideSpace: spaceAt(cam.position.x, cam.position.y, cam.position.z),
           nearColumns: spaceAt(cam.position.x, cam.position.y, cam.position.z) !== 'open', stepPhase: ctx.player.bobPhase, running: false,
           surface: surfaceAt(feet, terrain.heightAt(p.x, p.z)), fires: fire.fires, listener: cam.position,

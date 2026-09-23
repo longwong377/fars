@@ -43,3 +43,18 @@ test('people move with world time; the player cannot walk through them', async (
   console.log(`player stopped ${d.toFixed(2)} m from the guard`);
   expect(r.reached).toBe(false); expect(d).toBeGreaterThan(0.35);
 });
+
+test('speech: addressing a guard gives a lexicon line (or a gesture); murmur voices exist where people talk', async ({ page }, info) => {
+  test.skip(info.project.name !== 'webgpu', 'WebGPU only');
+  const errs: string[] = []; page.on('pageerror', e => errs.push(String(e)));
+  await page.goto(`/?test&quality=test&day=25&hour=10`);
+  await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 300_000 });
+  await page.evaluate(() => { const w = (window as any).__parsa; w.audioUnlock(); w.walkMode(); w.teleport(-21.5, 120.4); });
+  // face the W-door guard (grid east of us)
+  const r = await page.evaluate(() => { const w = (window as any).__parsa; w.walkTo(-20.3, 120.4, 2, 0.3); return w.address(); });
+  console.log('address →', JSON.stringify(r));
+  expect(r).toBeTruthy();
+  expect(r.lineId ?? r.gesture).toBeTruthy();
+  if (r.lineId) { expect(r.gloss).toBeTruthy(); expect(r.tier).toMatch(/[ABC]/); }
+  expect(errs).toEqual([]);
+});

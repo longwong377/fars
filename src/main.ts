@@ -87,6 +87,7 @@ async function boot() {
   const player = new Player(phys, sx, terrain.heightAt(sx, sz) + 0.05, sz);
   const input = new Input(canvas, () => settings);
   input.yaw = SPAWN.yaw;
+  input.onInteract = () => { const r = world.address?.(camera); if (r) console.info('[translation layer]', JSON.stringify(r)); };
   const body = makePlayerBody(); scene.add(body);
 
   let lastSave: string | null = null;
@@ -140,6 +141,7 @@ async function boot() {
     /** walkable-grid path for bots, avoiding people who are standing still (grid coords) */
     navPath: (from: [number, number], to: [number, number]) => { const P = (world as any).people; if (!P) return null;
       const still = P.sim.agents.filter((a: any) => !a.offmap && !a.walking).map((a: any) => a.pos); return P.nav.findPathAvoiding(from, to, still, 0.9); },
+    address: () => world.address?.(camera) ?? null,
     popins: [] as { what: string; d: number; t: number }[],
     /** people: summary rows (out-of-world; for tests and the dev overlay) */
     people: () => { const P = (world as any).people; if (!P) return null; return { t: P.sim.t, stock: P.sim.stock, events: P.sim.events.slice(-20),
