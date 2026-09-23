@@ -10,8 +10,8 @@
 // `attach()`/`detach()` are public so a future dynamic roster can drive the pool itself (autoPool = false).
 //
 // LOD per frame: full detail (the 30k-triangle close-up body with fingers, eyes, mouth, lashes) within LOD_DIST[0]
-// for up to MAX_FULL people, nearest first; the mid body to LOD_DIST[1]; the far body to LOD_DIST[2]; the far body
-// simplified to a fifth (meshoptimizer) to LOD_DIST[3] (when the simplifier ran; otherwise the far body); impostors beyond
+// for up to MAX_FULL people, nearest first; the mid body to LOD_DIST[1]; the far body to LOD_DIST[2] (and for those
+// within it beyond the caps); the far body simplified to a fifth (meshoptimizer) to LOD_DIST[3] (when the simplifier ran; otherwise the far body); impostors beyond
 // it and beyond the pool (one instanced draw, impostors.ts). Each costume × LOD is one instanced draw (humanGPU.ts). Poses are refreshed every frame near the
 // camera and less often further away; root motion is per frame for everyone (instanced root attribute).
 // Face: blinks, the jaw while speaking or eating, eyes and head turned to a nearby stranger.
@@ -39,8 +39,10 @@ const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
 const rad = (deg: number) => (deg * Math.PI) / 180;
 /** world yaw for a grid heading (deg clockwise from grid north); the rig faces +Z in bind pose */
 export const yawOf = (headingDeg: number) => Math.PI - rad(headingDeg);
-/** LOD distances (m): full detail, mid, far, farthest (impostors beyond, D-143) */
-export const LOD_DIST = [25, 90, 200, 600] as const;
+/** LOD distances (m): full detail, mid, far, farthest (impostors beyond, D-143). The farthest body (0.5k triangles, a fifth
+ *  of the far body) from 90 m, where a person is under 15 px tall at 1080p: with the whole population drawn, the far body
+ *  (2.5k) to 200 m cost 1.1 M triangles in a hillside view of the Terrace (444 people at 90-200 m), 0.2 M this way (D-143) */
+export const LOD_DIST = [25, 90, 90, 600] as const;
 /** impostors are drawn to this distance (m): the Terrace, the town and the nearer villages from anywhere on them */
 export const IMP_R = 5000;
 /** an attached person is kept until their rank by distance passes POOL_MAX + POOL_HYST (no attach/detach flicker) */

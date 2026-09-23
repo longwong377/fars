@@ -19,7 +19,7 @@ import { placeVillages, villageCompounds } from '../src/world/plain/villages';
 import { loadTerrain, loadRiversFile } from './plainLib';
 import { decodeHumanAssets, meshoptSimplify, type HumanAssets } from '../src/people/humanAssets';
 import { buildOutfits, unpackNormal, type OutfitBuild } from '../src/people/outfits';
-import { bakeImpostors, farLod, typicalMask, IMP, IMP_DRESSES, FRAMES, ROWS, rowOf, frameOf, packRGB, unpackRGB, FIXED, CrowdImpostors, type ImpostorAtlas } from '../src/people/impostors';
+import { bakeImpostors, farLod, typicalMask, slotOf, IMP, IMP_DRESSES, FRAMES, ROWS, rowOf, frameOf, packRGB, unpackRGB, FIXED, CrowdImpostors, type ImpostorAtlas } from '../src/people/impostors';
 import { RigSolver, PALETTE_STRIDE, PLANTED } from '../src/people/humanRig';
 import { pose } from '../src/people/anim';
 import { lookFor } from '../src/people/looks';
@@ -34,7 +34,9 @@ let A: HumanAssets, O: OutfitBuild, atlas: ImpostorAtlas;
 const W = new WeatherSystem(1);
 /** the measured lines (vitest keeps console output of passing tests to itself): bench-reports/popview-tests.json */
 const NOTES: Record<string, string> = {};
-const note = (k: string, v: string) => { NOTES[k] = v; mkdirSync('bench-reports', { recursive: true }); writeFileSync('bench-reports/popview-tests.json', JSON.stringify(NOTES, null, 1)); console.log(v); };
+/** merged into the file (a run of some of the tests keeps the others' last lines) */
+const note = (k: string, v: string) => { const f = 'bench-reports/popview-tests.json'; let old: Record<string, string> = {}; try { old = JSON.parse(readFileSync(f, 'utf8')); } catch { /* first run */ }
+  NOTES[k] = v; mkdirSync('bench-reports', { recursive: true }); writeFileSync(f, JSON.stringify({ ...old, ...NOTES }, null, 1)); console.log(v); };
 const env = (t: number): Env => { const d = Math.floor(t / 24), c = W.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
 beforeAll(async () => {
   nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
@@ -154,12 +156,16 @@ describe('impostors (D-143): the far body baked, matched at the switch', () => {
       const cov = new Uint8Array(HR * HR), P: number[] = [], mask = typicalMask(dress), keep = (i: number) => (mask >> L.hmat[i * 4 + 2]) & 1;
       for (let i = 0; i < L.tid.length; i++) { const t = (v.index * O.NV + L.tid[i]) * 4, b = [O.source[t], O.source[t + 1], O.source[t + 2]]; const o = [0, 0, 0];
         for (let k = 0; k < 4; k++) { const w = L.skinWeight[i * 4 + k] / 255; if (!w) continue; const q = L.skinIndex[i * 4 + k] * 12; for (let rr = 0; rr < 3; rr++) o[rr] += w * (pal[q + rr * 4] * b[0] + pal[q + rr * 4 + 1] * b[1] + pal[q + rr * 4 + 2] * b[2] + pal[q + rr * 4 + 3]); }
-        P.push(o[0], o[1]); }
+        P.push(o[0], o[1], o[2]); }
+      // with a depth test, so each pixel keeps the colour slot of the nearest triangle (the slot of its first vertex, as baked)
+      const zb = new Float32Array(HR * HR).fill(-1e9), sb = new Int8Array(HR * HR).fill(-1);
       const sx = (x: number) => (x / IMP.width + 0.5) * HR, sy = (y: number) => ((y - IMP.y0) / IMP.height) * HR;
-      for (let t = 0; t < L.index.length; t += 3) { const [a, b, c] = [L.index[t], L.index[t + 1], L.index[t + 2]]; if (!keep(a) || !keep(b) || !keep(c)) continue; const ax = sx(P[a * 2]), ay = sy(P[a * 2 + 1]), bx = sx(P[b * 2]), by = sy(P[b * 2 + 1]), cx = sx(P[c * 2]), cy = sy(P[c * 2 + 1]);
-        const d = (bx - ax) * (cy - ay) - (cx - ax) * (by - ay); if (Math.abs(d) < 1e-9) continue;
+      for (let t = 0; t < L.index.length; t += 3) { const [a, b, c] = [L.index[t], L.index[t + 1], L.index[t + 2]]; if (!keep(a) || !keep(b) || !keep(c)) continue; const ax = sx(P[a * 3]), ay = sy(P[a * 3 + 1]), bx = sx(P[b * 3]), by = sy(P[b * 3 + 1]), cx = sx(P[c * 3]), cy = sy(P[c * 3 + 1]);
+        const d = (bx - ax) * (cy - ay) - (cx - ax) * (by - ay); if (Math.abs(d) < 1e-9) continue; const sl = slotOf(L.hmat[a * 4], L.hmat[a * 4 + 1]);
         for (let j = Math.max(0, Math.floor(Math.min(ay, by, cy))); j <= Math.min(HR - 1, Math.ceil(Math.max(ay, by, cy))); j++) for (let i = Math.max(0, Math.floor(Math.min(ax, bx, cx))); i <= Math.min(HR - 1, Math.ceil(Math.max(ax, bx, cx))); i++) {
-          const qx = i + 0.5, qy = j + 0.5, w1 = ((qx - ax) * (cy - ay) - (cx - ax) * (qy - ay)) / d, w2 = ((bx - ax) * (qy - ay) - (qx - ax) * (by - ay)) / d; if (w1 >= 0 && w2 >= 0 && w1 + w2 <= 1) cov[j * HR + i] = 1; } }
+          const qx = i + 0.5, qy = j + 0.5, w1 = ((qx - ax) * (cy - ay) - (cx - ax) * (qy - ay)) / d, w2 = ((bx - ax) * (qy - ay) - (qx - ax) * (by - ay)) / d; if (!(w1 >= 0 && w2 >= 0 && w1 + w2 <= 1)) continue;
+          const q = j * HR + i, z = (1 - w1 - w2) * P[a * 3 + 2] + w1 * P[b * 3 + 2] + w2 * P[c * 3 + 2]; cov[q] = 1; if (z > zb[q]) { zb[q] = z; sb[q] = sl; } } }
+      const refShare = [0, 0, 0, 0, 0, 0, 0]; let nCov = 0; for (let q = 0; q < HR * HR; q++) if (sb[q] >= 0) { refShare[sb[q]]++; nCov++; } for (let k = 0; k < 7; k++) refShare[k] /= nCov || 1;
       let area = 0, top = -1, x0 = HR, x1 = -1; for (let j = 0; j < HR; j++) for (let i = 0; i < HR; i++) if (cov[j * HR + i]) { area++; top = Math.max(top, j); x0 = Math.min(x0, i); x1 = Math.max(x1, i); }
       const ref = { area: area / (HR * HR), top: (top + 1) / HR * IMP.height + IMP.y0, width: (x1 - x0 + 1) / HR * IMP.width };
       // the atlas cell (level 0, view 0)
@@ -168,12 +174,14 @@ describe('impostors (D-143): the far body baked, matched at the switch', () => {
         const w = [a0.data[o], a0.data[o + 1], a0.data[o + 2], atlas.B[0].data[o], atlas.B[0].data[o + 1], atlas.B[0].data[o + 2], atlas.B[0].data[o + 3]]; const s = w.reduce((x, y) => x + y, 0) || 1; w.forEach((x, k) => share[k] += x / s); }
       const imp = { area: aa / (C * C), top: (at + 1) / C * IMP.height + IMP.y0, width: (ax1 - ax0 + 1) / C * IMP.width };
       const texel = IMP.height / C;
-      rows.push(`${dress}/${fid}: height ${ref.top.toFixed(3)} vs ${imp.top.toFixed(3)} m, width ${ref.width.toFixed(2)} vs ${imp.width.toFixed(2)} m, area ${ref.area.toFixed(3)} vs ${imp.area.toFixed(3)}`);
+      const impShare = share.map(x => x / (aa || 1)), worstShare = Math.max(...impShare.map((x, k) => Math.abs(x - refShare[k])));
+      rows.push(`${dress}/${fid}: height ${ref.top.toFixed(3)} vs ${imp.top.toFixed(3)} m, width ${ref.width.toFixed(2)} vs ${imp.width.toFixed(2)} m, area ${ref.area.toFixed(3)} vs ${imp.area.toFixed(3)}; colour slot shares (main, second, trim, skin, hair, leather, fixed) ${refShare.map(x => x.toFixed(2)).join('/')} vs ${impShare.map(x => x.toFixed(2)).join('/')} (worst ${worstShare.toFixed(3)})`);
       expect(Math.abs(ref.top - imp.top), `${dress}/${fid} height`).toBeLessThanOrEqual(texel * 1.01);
       expect(Math.abs(ref.width - imp.width), `${dress}/${fid} width`).toBeLessThanOrEqual(IMP.width / C * 1.01);
       expect(Math.abs(imp.area / ref.area - 1), `${dress}/${fid} area`).toBeLessThan(0.08);
-      // colour: the slot shares of the covered texels against the far body's projected triangle areas by slot
+      // colour: the slot shares of the covered texels against the far body's visible pixels by slot (at 4× the resolution)
       expect(share.reduce((x, y) => x + y, 0) / aa).toBeCloseTo(1, 1);
+      expect(worstShare, `${dress}/${fid} colour slot shares`).toBeLessThan(0.06);
     }
     note('m06', rows.join('\n'));
   }, 120_000);

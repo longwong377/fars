@@ -56,7 +56,7 @@ export interface ImpostorAtlas { W: number; H: number; A: Level[]; B: Level[]; N
 type Level = { data: Uint8Array; width: number; height: number };
 
 /** a person's colour slot for a costume vertex: 0 main, 1 second, 2 trim, 3 skin, 4 hair, 5 leather/felt, 6 fixed */
-function slotOf(cls: number, col: number): number {
+export function slotOf(cls: number, col: number): number {
   if (cls === MAT.skin) return 3; if (cls === MAT.hair || cls === MAT.lash) return 4;
   if (cls === MAT.eye || cls === MAT.teeth || cls === MAT.mouth || cls === MAT.metal || cls === MAT.wood || cls === MAT.wicker) return 6;
   switch (col) { case 1: return 3; case 2: return 0; case 3: return 1; case 4: return 2; case 5: return 4; case 6: case 8: return 5; default: return 6; }
