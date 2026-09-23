@@ -54,7 +54,19 @@
     - Every layout is C: the house type is the Babylonian courtyard analogue (Q-082).
     - **People are not connected to the houses:** the sim still sends them to an off-map "town" point, and there is no NPC walkable grid for the town.
     - The Akhor Rostam niches are not built (Q-085).
-- **Phase 7 (plain):** an agent is building it. The out-of-world map shows the Terrace only.
+- **Phase 7 (plain; merged in session 3, D-037 to D-040):**
+  - Built: the Pulvar and Kur carved into the terrain, 37 canals, field plots with a crop calendar, orchards and woodland, 33 villages, tracks, quarries, Naqsh-e Rustam (tombs, Ka'ba, cliff carve). It adds +8 to +21 draw calls and 0.7–0.9 M triangles in the three budget views.
+  - **Not seen on screen:** the last three visual fixes (smooth tree crowns, colliders around the test camera, the rugged cliff and crest). The river bank close view and the May, August and January field views have never been judged with a correct camera.
+  - Weak:
+    - the dawn vista from the Grand Stair reads as a mottled brown-green plain; no trees, villages or rivers can be made out at 960×540;
+    - from the Apadana looking north almost none of the plain shows;
+    - grey dome shapes at the bases of orchard trees in village P22 (cause not found);
+    - the east end of the Naqsh-e Rustam cliff is probably still a sheer slab;
+    - the edge of the near-crop radius is visible (18 m test, 30 m high);
+    - dark specks on the ground, probably the earth material's stone chips.
+  - Placeholders (flagged in F3): the Naqsh-e Rustam and Neo-Elamite relief figures are schematic silhouettes; the DNa/DNb panels are dressed but textless (the text is not in `inscriptions.json`).
+  - Every placement is C (Q-076 to Q-080); the rivers follow their modern courses. Qadamgah and the 18 "possible" sites are not built.
+  - The out-of-world map still shows the Terrace only.
 - **King absent by default (D-003):** no evidence places Xerxes at Persepolis in 467. The court appears only in the C-tier "seasonal pattern" setting.
 - **No primary sources reachable (B6):** SITE_SPEC is tier B/C, nothing is A, and the plan overlay compares against OSM, not Schmidt.
 - **Sky and bench:**
@@ -82,6 +94,6 @@
 | 4 | Rest of the Terrace: stairs, doors, frames, corrected outlines, floors, fires, acoustics, guard posts; overlay + dimension tests; walkthrough e2e passes all six areas (session 3) | **In progress:** reliefs on the new stairs and jambs, windows and niches, furnishings, people beyond guards, Phase 4 review |
 | 5 | Two-tier simulation of 46,590 people: events calendar, town life, rota, construction state, memory, persistence; soak PASSES (session 3); birds and jackals visible (D-054) | **Not passed:** activity coverage (25 placeholders), rendered floors, unrendered Terrace workforce, construction geometry, shadow review pending |
 | 6 | Settlement built (session 3): quarters, houses (1,456 homes / 7,830 people), workshops, gardens, Tol-e Ajori, roads; lints pass, layout sourced and tiered (C) | **Gate items met on paper (lints pass; layout sourced and tiered)**; smoke moment and people-to-houses link open |
-| 7 | Research done; horizon fixed (D-035); session 3 agent building | — |
+| 7 | Plain built (session 3): rivers, canals, fields, crop calendar, orchards, villages, quarries, Naqsh-e Rustam; horizon fixed (D-035); +8–21 draws | **Not passed:** last fixes unrendered, dawn vista weak, relief figures and DNa/DNb schematic or textless, review not run |
 | 8 | Translation layer built and e2e-verified; speech and murmur from Phase 3 (placeholders) | — |
 | 9 | Not started | — |
