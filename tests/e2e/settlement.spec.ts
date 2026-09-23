@@ -5,21 +5,25 @@ import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 // budget is measured (target: ≤ 150 draw calls and ≤ 2 M triangles added). Views that need a spot inside the town ask
 // the generated plan for it (a lane vertex, a workshop yard), so they follow the layout.
 type V = { n: string; day: number; hour: number; w: string; q?: string; ab?: boolean; frames?: number; spot: string };
+// shared render queue rules (lead, session 3): ≤ 4 page loads per run, runs under 15 min, quality=test while iterating.
+// The default set is 4 loads; the EXTRA views run only when named in ONLY=… (e.g. ONLY=slope-s-dusk,workshop-area-b).
 const VIEWS: V[] = [
   { n: 'terrace-w-dusk', day: 0, hour: 18.75, w: 'clear', ab: true, spot: 'terrace' },
+  { n: 'lane-q_s1', day: 25, hour: 10.5, w: 'clear', spot: 'lane:q_s1' },
+  { n: 'tol-ajori-50m', day: 25, hour: 9, w: 'clear', spot: 'ajori' },
+];
+const EXTRA: V[] = [
   { n: 'terrace-w-day', day: 25, hour: 10, w: 'clear', ab: true, spot: 'terrace' },
   // from the slope of Kuh-e Rahmat S of the Terrace (+42 m), over the lower town at dusk: smoke as the hearths are lit
   { n: 'slope-s-dusk', day: 0, hour: 18.75, w: 'clear', ab: true, spot: 'slope' },
-  { n: 'lane-q_s1', day: 25, hour: 10.5, w: 'clear', spot: 'lane:q_s1' },
   { n: 'lane-q_w1-dusk', day: 0, hour: 18.9, w: 'clear', spot: 'lane:q_w1' },
   { n: 'workshop-area-b', day: 25, hour: 9.5, w: 'clear', spot: 'areab' },
-  { n: 'tol-ajori-50m', day: 25, hour: 9, w: 'clear', spot: 'ajori' },
 ];
 const Q = process.env.Q ?? 'test';
 const only = process.env.ONLY?.split(',');
 // one test per view (and per A/B variant): each page load compiles every shader under SwiftShader
-for (const v of VIEWS) for (const town of v.ab ? [true, false] : [true]) {
-  if (only && !only.includes(v.n)) continue;
+for (const v of [...VIEWS, ...EXTRA]) for (const town of v.ab ? [true, false] : [true]) {
+  if (only ? !only.includes(v.n) : !VIEWS.includes(v)) continue;
   test(`settlement ${v.n}${town ? '' : ' notown'}`, async ({ page }, info) => {
     const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
     mkdirSync('shots', { recursive: true }); const f = 'shots/settlement-stats.json';
