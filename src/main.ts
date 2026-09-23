@@ -72,7 +72,7 @@ async function boot() {
   shell.loading('Loading the plain and the mountain…');
   const terrain = await Terrain.load('/');
   const tmesh = new TerrainMesh(terrain, Q.terrainLodBias); scene.add(tmesh.group);
-  const sky = new SkySystem(scene, Q.shadowMapSize); await sky.loadStars('/');
+  const sky = new SkySystem(scene, Q.shadowMapSize, settings.quality); await sky.loadStars('/');
   const weather = new WeatherSystem(SEED);
   if (P.get('weather')) weather.override = P.get('weather') as WeatherOverride;
   const clock = new WorldClock(+(P.get('day') ?? 0), +(P.get('hour') ?? 7.0));
@@ -251,7 +251,7 @@ async function boot() {
       // keep the camera ahead of the torso when looking down
       body.position.x += Math.sin(input.yaw) * 0.12; body.position.z += Math.cos(input.yaw) * 0.12;
     }
-    sky.update(clock.jdUT, camera.position, cond.cloud, cond.haze);
+    sky.update(clock.jdUT, camera.position, cond.cloud, cond.haze, { ms: cond.windMs, fromDeg: cond.windDirDeg, tSeconds: (clock.t % 7) * 86400 });
     if (P.get('hemi')) sky.hemi.intensity *= +P.get('hemi')!; if (P.has('noshadow')) sky.sun.castShadow = false;
     const fogCol = new THREE.Color().setRGB(0.62 + 0.1 * (1 - sky.state.daylight), 0.66, 0.74 - 0.08 * (1 - sky.state.daylight)).multiplyScalar(0.03 + 0.97 * sky.twilight); // fog follows skylight (horizon glow at dawn/dusk)
     if (scene.fog) (scene.fog as THREE.FogExp2).color.copy(fogCol);

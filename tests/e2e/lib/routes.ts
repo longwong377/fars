@@ -5,7 +5,7 @@ export const ROUTES: Record<string, { start: [number, number]; targets: [number,
     [-21.3, -89, 'S doorway'], [-18.8, -80, 'Tachara hall'], [-27.3, -71, 'N doorway (W)'], [-27, -64, 'Tachara N room'],
     [-18.8, -80, 'back in the hall'], [-21.3, -94, 'portico again'], [-4.5, -100.1, 'down the E flight'], [-2, -106, 'S court E'] ] },
   hadish: { start: [-12, -110], levels: { 'Hadish N court': 6.0, 'Hadish hall': 6.0 }, targets: [
-    [-9, -123, 'W court'], [-3.8, -116, 'W stair: N lower flight → landing'], [1.2, -122.5, 'W stair: N upper flight → top'],
+    [-9, -123, 'W court'], [-6.2, -123, 'W stair entry (centre, side-on to the two lowest steps)'], [-3.8, -122.6, 'W stair: onto the N lower flight'], [-3.8, -116, 'W stair: N lower flight → landing'], [1.2, -122.5, 'W stair: N upper flight → top'],
     [20, -120, 'Hadish N court'], [22, -137.5, 'portico'], [16, -145, 'N doorway (W)'], [22, -159.5, 'Hadish hall'],
     [22, -174, 'S doorway'], [22, -178.5, 'S balcony'], [22, -159.5, 'hall again'], [36.5, -159.5, 'E doorway'], [44, -150, 'E apartment side'],
     [45, -120.5, 'E stair top'], [52.8, -114.2, 'E stair: upper flight down → N landing'], [57.5, -121, 'E stair: lower flight down'], [63, -121, 'E court'] ] },

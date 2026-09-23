@@ -6,6 +6,7 @@ import * as THREE from 'three/webgpu';
 import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
 import { float, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color } from 'three/tsl';
 import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt } from './ephemeris';
+import { VolumetricClouds } from './clouds';
 
 export interface SkyState { sunDir: THREE.Vector3; sunAlt: number; moonDir: THREE.Vector3; moonAlt: number; moonFraction: number; daylight: number; nightFactor: number }
 
@@ -25,7 +26,8 @@ export class SkySystem {
   twilight = 1;
   state: SkyState = { sunDir: new THREE.Vector3(0, 1, 0), sunAlt: 45, moonDir: new THREE.Vector3(0, -1, 0), moonAlt: -10, moonFraction: 0, daylight: 1, nightFactor: 0 };
 
-  constructor(readonly scene: THREE.Scene, shadowMapSize: number) {
+  readonly clouds: VolumetricClouds;
+  constructor(readonly scene: THREE.Scene, shadowMapSize: number, quality = 'high') {
     this.sky.scale.setScalar(DOME * 0.95);
     this.sky.turbidity.value = 3; this.sky.rayleigh.value = 1.2; this.sky.mieCoefficient.value = 0.004; this.sky.mieDirectionalG.value = 0.8;
     this.sky.userData = { tier: 'B', src: 'RECON', note: 'Preetham analytic sky (three SkyMesh); cloud layer is SkyMesh procedural (C) until Phase 3 volumetrics' };
@@ -58,6 +60,7 @@ export class SkySystem {
     this.stars.frustumCulled = false; this.stars.renderOrder = -9;
     this.stars.userData = { tier: 'A', src: 'HYG41', note: 'HYG v4.1 positions + proper motion to 467 BCE, precessed (astronomy-engine)' };
     scene.add(this.stars);
+    this.clouds = new VolumetricClouds(DOME * 0.85, quality); scene.add(this.clouds.mesh);
   }
 
   async loadStars(base = '') {
@@ -94,7 +97,7 @@ export class SkySystem {
     pos.needsUpdate = true;
   }
 
-  update(jdUT: number, camPos: THREE.Vector3, cloudCover: number, haze: number) {
+  update(jdUT: number, camPos: THREE.Vector3, cloudCover: number, haze: number, wind?: { ms: number; fromDeg: number; tSeconds: number }) {
     const s = sunHorizon(jdUT), mo = moonHorizon(jdUT), ph = moonPhase(jdUT);
     const sd = azAltToWorld(s.azimuth, s.altitude), md = azAltToWorld(mo.azimuth, mo.altitude);
     this.state.sunDir.set(sd[0], sd[1], sd[2]); this.state.sunAlt = s.altitude;
@@ -104,7 +107,8 @@ export class SkySystem {
     this.state.daylight = day; this.state.nightFactor = night;
     this.sky.sunPosition.value.copy(this.state.sunDir).multiplyScalar(DOME);
     this.sky.turbidity.value = 2.2 + 6 * haze; this.sky.mieCoefficient.value = 0.003 + 0.02 * haze;
-    (this.sky as any).cloudCoverage && ((this.sky as any).cloudCoverage.value = Math.max(0.05, cloudCover));
+    // the 2D cloud layer of SkyMesh stands in only where the volumetric layer is off (test quality)
+    (this.sky as any).cloudCoverage && ((this.sky as any).cloudCoverage.value = this.clouds.mesh.visible ? 0 : Math.max(0.05, cloudCover));
     this.sky.position.copy(camPos); this.stars.position.copy(camPos); this.moon.position.copy(camPos).addScaledVector(this.state.moonDir, DOME * 0.9);
     this.uMoonSun.value.copy(this.state.sunDir);
     this.uNight.value = night * (1 - 0.85 * cloudCover);
@@ -123,6 +127,12 @@ export class SkySystem {
     const twilight = smoothstepJS(-14, 4, s.altitude); this.twilight = twilight; // skylight is substantial through civil twilight
     this.hemi.intensity = 0.03 + 0.95 * twilight * (1 - 0.3 * cloudCover) + 0.04 * ph.fraction * night;
     this.hemi.color.setRGB(0.55 + 0.2 * day, 0.62 + 0.18 * day, 0.8 + 0.1 * day);
+    // volumetric clouds: cover, light, wind drift (the wind blows FROM windDir: clouds move the opposite way)
+    const C = this.clouds; C.mesh.position.copy(camPos); C.coverage.value = cloudCover; C.sunDir.value.copy(this.state.sunDir);
+    C.sunColor.value.copy(this.sun.color).multiplyScalar(this.sun.visible ? this.sun.intensity / 3.2 : 0).add(new THREE.Color(0.55, 0.6, 0.75).multiplyScalar(this.moonLight.intensity * 0.5));
+    C.ambient.value.copy(this.hemi.color).multiplyScalar(this.hemi.intensity * 0.55);
+    C.haze.value.setRGB(0.62 + 0.1 * (1 - day), 0.66, 0.74 - 0.08 * (1 - day)).multiplyScalar(0.05 + 0.95 * twilight);
+    if (wind) { const a = ((wind.fromDeg + 180) * Math.PI) / 180; C.wind.value.set(Math.sin(a) * wind.ms * 2.5, -Math.cos(a) * wind.ms * 2.5); C.time.value = wind.tSeconds; } // winds aloft ~2.5 × surface (C)
     if (Math.abs(jdUT - this.lastStarJD) > 10 / 86400) { this.updateStars(jdUT); this.lastStarJD = jdUT; }
   }
 }

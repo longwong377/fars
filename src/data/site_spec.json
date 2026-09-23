@@ -186,12 +186,12 @@
    "v": {
     "thickness": 0.3,
     "height": 0.9,
-    "open_steps": 5
+    "open_steps": 3
    },
    "u": "m",
    "src": "RECON",
    "tier": "C",
-   "note": "outer parapet of the Phase-4 palace stairs: 0.3 m (patch flight notes), height as the Apadana stair parapet order of magnitude; the first open_steps steps at each flight foot are left open so the flight can be entered from the side (C)"
+   "note": "outer parapet of the Phase-4 palace stairs: 0.3 m (patch flight notes), height as the Apadana stair parapet order of magnitude; the first open_steps steps at each flight foot are left open so the flight can be entered from the side: 3 steps (≤ 0.36 m, below the 0.4 m step-up); with 5 the side of the higher steps blocked the walkthrough bot (C)"
   },
   "r_floor_finish": {
    "v": 0.01,

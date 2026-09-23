@@ -8,7 +8,7 @@ test('quality comparison', async ({ page }, info) => {
   const V = (process.env.V ?? '-20,72,1.6,161,2').split(',').map(Number);
   for (const q of (process.env.QS ?? 'test,medium,high').split(',')) {
     const [qq, extra] = q.split('+');
-    await page.goto(`/?test&quality=${qq}&day=${process.env.DAY ?? 60}&hour=${process.env.HOUR ?? 18.3}&weather=clear${extra ? '&' + extra : ''}`);
+    await page.goto(`/?test&quality=${qq}&day=${process.env.DAY ?? 60}&hour=${process.env.HOUR ?? 18.3}&weather=${process.env.WEATHER ?? "clear"}${extra ? '&' + extra : ''}`);
     await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 900_000 });
     await page.evaluate(v => (window as any).__parsa.view(...v), V);
     for (let i = 0; i < 6; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
