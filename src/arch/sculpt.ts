@@ -10,7 +10,7 @@
 import * as THREE from 'three/webgpu';
 import S from '../data/sculpture.json';
 import { SPEC } from './spec';
-import type { ColumnOrder, Box } from './parts';
+import type { ColumnOrder, Box, Material } from './parts';
 import { NormMesh, RawMesh, creaseNormals, mergeNorm, transformNorm, marchingCubes, simplify, smoothstep } from './sdf';
 import { protomeSDF, voluteSDF, colossusSDF, ColossusModel } from './sculpt_models';
 
@@ -309,6 +309,23 @@ export function columnMesh(o: ColumnOrder, built = 1, lod: Lod = 0): NormMesh {
   }
   return m;
 }
+/** surface of each member of an order (sculpture.json shaft.members: the Treasury's stone base, plastered timber shaft and
+ *  timber capital; every other order is one material throughout) */
+export function memberMaterials(o: ColumnOrder): { base: Material; shaft: Material; capital: Material } {
+  const M = srow<Record<string, { base: Material; shaft: Material; capital: Material }>>('shaft', 'members')[o.material];
+  return M ?? { base: o.material, shaft: o.material, capital: o.material };
+}
+/** the column split by surface: one mesh per distinct member material (a single entry for one-material orders, identical to
+ *  columnMesh). Same caching and geometry as columnMesh. */
+export function columnMeshesByMaterial(o: ColumnOrder, built = 1, lod: Lod = 0): { material: Material; mesh: NormMesh }[] {
+  const M = memberMaterials(o);
+  if (M.base === M.shaft && M.shaft === M.capital) return [{ material: M.base, mesh: columnMesh(o, built, lod) }];
+  const ok = JSON.stringify(o), by = new Map<Material, NormMesh[]>(), add = (mat: Material, m: NormMesh | null) => { if (m) { if (!by.has(mat)) by.set(mat, []); by.get(mat)!.push(m); } };
+  add(M.base, cached(`base|${ok}|${lod}`, () => baseMesh(o, lod)));
+  add(M.shaft, shaftMesh(o, built, lod));
+  if (built >= 1) add(M.capital, cached(`cap|${ok}|${lod}`, () => capitalMesh(o, lod)));
+  return [...by].map(([material, ms]) => ({ material, mesh: mergeNorm(ms) }));
+}
 export function toGeometry(m: NormMesh): THREE.BufferGeometry {
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(m.pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(m.nrm, 3));
@@ -333,11 +350,13 @@ export function colossusFrontProjections(parts: (Box | { type: string })[]): num
   for (const p of parts as Box[]) {
     if (p.type !== 'box' || !p.sculpt) continue;
     const f = p.sculpt.facing, front = p.c[0] + (f * p.size[0]) / 2;
-    let face = p.c[0] - (f * p.size[0]) / 2; // the wall face furthest toward the front among overlapping walls
+    // the wall face furthest toward the front among the walls whose plan overlaps the jamb (the wall ring is cut around the
+    // colossus, D-032, so the wall that defines the face is the piece standing on top of it: plan overlap, any height)
+    let face = p.c[0] - (f * p.size[0]) / 2;
     for (const w of parts as Box[]) {
       if (w.type !== 'box' || w.kind !== 'wall' || w.building !== p.building || (w.rot ?? 0) !== 0) continue;
       const wx0 = w.c[0] - w.size[0] / 2, wx1 = w.c[0] + w.size[0] / 2, wy0 = w.c[1] - w.size[1] / 2, wy1 = w.c[1] + w.size[1] / 2;
-      if (wy1 <= p.c[1] - p.size[1] / 2 || wy0 >= p.c[1] + p.size[1] / 2 || w.y1 <= p.y0 || w.y0 >= p.y1) continue;
+      if (wy1 <= p.c[1] - p.size[1] / 2 || wy0 >= p.c[1] + p.size[1] / 2) continue;
       if (wx1 <= p.c[0] - p.size[0] / 2 || wx0 >= p.c[0] + p.size[0] / 2) continue;
       face = f > 0 ? Math.max(face, wx1) : Math.min(face, wx0);
     }

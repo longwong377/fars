@@ -4,7 +4,7 @@
 // with the IAU model inside Rotation_EQJ_HOR.
 import * as THREE from 'three/webgpu';
 import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
-import { float, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color } from 'three/tsl';
+import { float, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color, Fn, positionWorld, cameraPosition, normalize, atan, asin, abs, exp, clamp, sqrt, mx_fractal_noise_float, int } from 'three/tsl';
 import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt } from './ephemeris';
 import { VolumetricClouds } from './clouds';
 
@@ -27,7 +27,42 @@ export class SkySystem {
   state: SkyState = { sunDir: new THREE.Vector3(0, 1, 0), sunAlt: 45, moonDir: new THREE.Vector3(0, -1, 0), moonAlt: -10, moonFraction: 0, daylight: 1, nightFactor: 0 };
 
   readonly clouds: VolumetricClouds;
+  /** Milky Way + airglow layer (night only; additive, between the sky and the stars) */
+  readonly milkyWay: THREE.Mesh;
+  private uGal = uniform(new THREE.Matrix3()); // world direction → galactic (l, b) unit vector, per epoch and sidereal time
+  private uMW = uniform(0); // night × moon × cloud visibility of faint diffuse light
   constructor(readonly scene: THREE.Scene, shadowMapSize: number, quality = 'high') {
+    // Milky Way (C structure, A position): galactic coordinates from the fixed J2000→galactic rotation (IAU 1958 / Hipparcos
+    // matrix) after the epoch's precession and Earth rotation (the same astronomy-engine matrix as the stars). Brightness:
+    // a disk thinning with galactic latitude and brightening toward the centre in Sagittarius, a central bulge, the Great
+    // Rift (Cygnus → Sagittarius) and the Coalsack as absorbing lanes, and fixed-seed mottling. Airglow: a faint green-grey
+    // emission layer ~90 km up, brighter toward the horizon (van Rhijn factor). Both are perceptual values (C), faded by
+    // extinction near the horizon.
+    const mwMat = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, transparent: false, blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false, fog: false });
+    const G = this.uGal, V = this.uMW;
+    mwMat.colorNode = Fn(() => {
+      const d = normalize(positionWorld.sub(cameraPosition));
+      const g = G.mul(d); const l = atan(g.y, g.x), b = asin(clamp(g.z, -1, 1)); // radians; l = 0 toward the galactic centre
+      const ld = l.mul(180 / Math.PI), bd = b.mul(180 / Math.PI);
+      const alongC = exp(ld.div(62).pow(2).negate()); // brighter toward the centre
+      const width = float(7).add(alongC.mul(6)); // the band thickens toward Sagittarius (deg)
+      const disk = exp(abs(bd.add(0.5)).div(width).negate()).mul(float(0.35).add(alongC.mul(0.65)));
+      const bulge = exp(ld.div(14).pow(2).add(bd.add(3).div(10).pow(2)).negate()).mul(0.9);
+      const rift = float(1).sub(exp(bd.sub(1.5).div(2.4).pow(2).negate()).mul(smoothstep(-20, -8, ld).mul(float(1).sub(smoothstep(55, 75, ld)))).mul(0.7)); // Great Rift
+      const coal = float(1).sub(exp(ld.add(59).div(3).pow(2).add(bd.add(1).div(2.5).pow(2)).negate()).mul(0.8)); // Coalsack (l ≈ 301°)
+      const mottle = mx_fractal_noise_float(g.mul(9), int(4), float(2.1), float(0.55)).mul(0.45).add(0.8);
+      const mw = disk.add(bulge).mul(rift).mul(coal).mul(mottle).mul(0.032);
+      const alt = max(d.y, 0.0);
+      const ext = exp(float(0.25).negate().div(alt.add(0.035))); // extinction by air mass (C)
+      const vanRhijn = float(1).div(sqrt(float(1).sub(float(0.972).mul(float(1).sub(alt.mul(alt)))))); // (R/(R+90 km))² = 0.972
+      const airglow = vec3(0.0035, 0.0048, 0.0036).mul(vanRhijn).mul(smoothstep(-0.02, 0.03, d.y));
+      const warm = mix(vec3(0.85, 0.88, 1.0), vec3(1.0, 0.93, 0.8), alongC);
+      return vec4(warm.mul(mw).mul(ext).add(airglow).mul(V), 1);
+    })();
+    this.milkyWay = new THREE.Mesh(new THREE.SphereGeometry(DOME * 0.92, 64, 32), mwMat);
+    this.milkyWay.frustumCulled = false; this.milkyWay.renderOrder = -9.5;
+    this.milkyWay.userData = { tier: 'C', src: 'RECON', note: 'Milky Way position A (galactic frame, precessed); brightness structure and airglow C (procedural, perceptual)' };
+    scene.add(this.milkyWay);
     this.sky.scale.setScalar(DOME * 0.95);
     this.sky.turbidity.value = 3; this.sky.rayleigh.value = 1.2; this.sky.mieCoefficient.value = 0.004; this.sky.mieDirectionalG.value = 0.8;
     this.sky.userData = { tier: 'B', src: 'RECON', note: 'Preetham analytic sky (three SkyMesh); cloud layer is SkyMesh procedural (C) until Phase 3 volumetrics' };
@@ -82,6 +117,9 @@ export class SkySystem {
     this.lastStarJD = -1;
   }
 
+  /** world direction → galactic unit vector: galactic = M_gal · H(jd)ᵀ · Gᵀ · world, where H takes J2000 to the horizon
+   *  frame (x north, y west, z zenith; precession, nutation, Earth rotation) and G the horizon frame to world axes */
+  private updateGalactic(jdUT: number) { this.uGal.value.copy(worldToGalactic(jdUT)); }
   /** Recompute star directions for this epoch and sidereal time (cheap enough every ~10 s of game time). */
   private updateStars(jdUT: number) {
     if (!this.starData) return;
@@ -112,6 +150,10 @@ export class SkySystem {
     this.sky.position.copy(camPos); this.stars.position.copy(camPos); this.moon.position.copy(camPos).addScaledVector(this.state.moonDir, DOME * 0.9);
     this.uMoonSun.value.copy(this.state.sunDir);
     this.uNight.value = night * (1 - 0.85 * cloudCover);
+    // faint diffuse light (Milky Way, airglow): only in full darkness, washed out by moonlight, hidden by cloud (C)
+    const moonUp = smoothstepJS(-2, 8, mo.altitude);
+    this.uMW.value = night * Math.pow(1 - cloudCover, 1.5) * (1 - 0.92 * moonUp * Math.min(1, ph.fraction * 1.6));
+    this.milkyWay.position.copy(camPos); this.milkyWay.visible = this.uMW.value > 0.002;
     // sun light: intensity scaled for atmosphere path length (air mass) and cloud; warm near the horizon
     const alt = Math.max(0, s.altitude);
     const airmass = 1 / (Math.sin((alt * Math.PI) / 180) + 0.50572 * Math.pow(alt + 6.07995, -1.6364));
@@ -133,10 +175,21 @@ export class SkySystem {
     C.ambient.value.copy(this.hemi.color).multiplyScalar(this.hemi.intensity * 0.55);
     C.haze.value.setRGB(0.62 + 0.1 * (1 - day), 0.66, 0.74 - 0.08 * (1 - day)).multiplyScalar(0.05 + 0.95 * twilight);
     if (wind) { const a = ((wind.fromDeg + 180) * Math.PI) / 180; C.wind.value.set(Math.sin(a) * wind.ms * 2.5, -Math.cos(a) * wind.ms * 2.5); C.time.value = wind.tSeconds; } // winds aloft ~2.5 × surface (C)
-    if (Math.abs(jdUT - this.lastStarJD) > 10 / 86400) { this.updateStars(jdUT); this.lastStarJD = jdUT; }
+    if (Math.abs(jdUT - this.lastStarJD) > 10 / 86400) { this.updateStars(jdUT); this.updateGalactic(jdUT); this.lastStarJD = jdUT; }
   }
 }
 
+/** world direction → galactic unit vector at an epoch: M_gal · H(jd)ᵀ · Gᵀ, where H takes J2000 to the horizon frame
+ *  (x north, y west, z zenith; precession, nutation, Earth rotation) and G the horizon frame to world axes (azAltToWorld) */
+export function worldToGalactic(jdUT: number): THREE.Matrix3 {
+  const m = j2000ToHorizonMatrix(jdUT); // hor = R·j with R[i][j] = m[j*3+i]
+  const R = new THREE.Matrix3().set(m[0], m[3], m[6], m[1], m[4], m[7], m[2], m[5], m[8]);
+  const th = (341 * Math.PI) / 180, st = Math.sin(th), ct = Math.cos(th);
+  const G = new THREE.Matrix3().set(-st, -ct, 0, 0, 0, 1, -ct, st, 0);
+  // J2000 equatorial → galactic (Hipparcos / IAU rotation matrix)
+  const Mgal = new THREE.Matrix3().set(-0.0548755604, -0.8734370902, -0.4838350155, 0.4941094279, -0.44482963, 0.7469822445, -0.867666149, -0.1980763734, 0.4559837762);
+  return Mgal.multiply(R.transpose()).multiply(G.transpose());
+}
 function smoothstepJS(a: number, b: number, x: number) { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
 function kelvinToRGB(T: number): [number, number, number] {
   const t = T / 100; let r: number, g: number, b: number;

@@ -1,0 +1,104 @@
+// Carved-stone surfaces and relief paint (D-029..D-031): the polychromy rows, the pigment albedos derived from them, the
+// paint coverage and wear the relief meshes carry, the hairline (not sunk) masonry joints, the joint-free carved stone used
+// by columns, colossi and reliefs, and the dark grey (not black) door-frame limestone. Measurements, not screenshots.
+import { describe, it, expect } from 'vitest';
+import PC from '../src/data/polychromy.json';
+import sources from '../src/data/sources.json';
+import { labToLinear, linearToSrgb, srgbToLinear, luminance, munsellY } from '../src/core/colour';
+import { SURFACES, paintedStoneMaterial, surfaceMaterial } from '../src/render/materials';
+import { PIGMENT } from '../src/arch/relief_figures';
+import { STONE_SRGB } from '../src/arch/relief_field';
+import { reliefLodMesh, lodGeometry } from '../src/arch/reliefs';
+import { buildTerrace } from '../src/arch/terrace';
+import { buildMeshes } from '../src/arch/meshes';
+
+const lin = (c: number[]) => c.map(srgbToLinear) as [number, number, number];
+
+describe('colour conversions', () => {
+  it('CIELAB → linear sRGB reproduces the D65 white, a mid grey and the sRGB transfer function round trip', () => {
+    const w = labToLinear(100, 0, 0); for (const c of w) expect(c).toBeCloseTo(1, 3);
+    const g = labToLinear(50, 0, 0); for (const c of g) expect(c).toBeCloseTo(0.1842, 3); // Y(L* = 50) = 18.42 %
+    for (const v of [0, 0.002, 0.2, 0.5, 1]) expect(srgbToLinear(linearToSrgb(v))).toBeCloseTo(v, 6);
+  });
+  it('Munsell neutral value → luminous reflectance (ASTM D1535): N3 6.4 %, N5 19.3 %, N9.5 about 89 %', () => {
+    expect(munsellY(3)).toBeCloseTo(0.0639, 3); expect(munsellY(5)).toBeCloseTo(0.1927, 3); expect(munsellY(9.5)).toBeGreaterThan(0.85);
+  });
+});
+
+describe('polychromy.json', () => {
+  it('every row has v/u/src/tier/note with known source keys; colour values are tier C', () => {
+    for (const [g, rows] of Object.entries<any>(PC)) { if (g.startsWith('_')) continue;
+      for (const [k, r] of Object.entries<any>(rows)) {
+        for (const f of ['v', 'u', 'src', 'tier', 'note']) expect(r, `${g}.${k}.${f}`).toHaveProperty(f);
+        expect(r.tier, `${g}.${k}`).toBe('C'); expect(r.note.length).toBeGreaterThan(20);
+        for (const s of String(r.src).split(';')) expect(Object.keys(sources), `${g}.${k} src ${s}`).toContain(s);
+      } }
+  });
+  it('the relief palette is the Lab rows converted, not display colours: plausible linear albedos for matte pigment films', () => {
+    const P = (PC as any).pigment, Y = (k: string) => luminance(labToLinear(P[k].v[0], P[k].v[1], P[k].v[2]));
+    expect(lin(PIGMENT.egyptianBlue)[2]).toBeCloseTo(labToLinear(50, -3, -34)[2], 2);
+    expect(Y('egyptian_blue')).toBeGreaterThan(0.12); expect(Y('egyptian_blue')).toBeLessThan(0.3);   // a light mid blue, not navy
+    expect(Y('dark_blue')).toBeGreaterThan(0.03); expect(Y('dark_blue')).toBeLessThan(0.1);            // dark, but not black
+    expect(Y('black')).toBeGreaterThan(0.02);                                                          // a matte black film is ~3 %
+    expect(Y('white')).toBeLessThan(0.9);                                                              // calcite white, not 100 %
+    for (const k of Object.keys(P)) { const c = labToLinear(P[k].v[0], P[k].v[1], P[k].v[2]); for (const x of c) { expect(x, k).toBeGreaterThanOrEqual(0); expect(x, k).toBeLessThanOrEqual(0.9); } }
+    // chroma stays mineral: no channel above 0.9 and the saturated reds keep some green/blue
+    expect(lin(PIGMENT.cinnabar)[1]).toBeGreaterThan(0.03);
+  });
+  it('the unpainted relief stone is the carved limestone of the materials', () => {
+    expect(STONE_SRGB).toEqual(SURFACES.limestone_carved.albedo); expect(PIGMENT.stone).toEqual(STONE_SRGB);
+  });
+});
+
+describe('relief paint coverage (D-030)', () => {
+  it('faces, animals and the background carry no paint; garments are painted, and worn along the raised arrises', () => {
+    const horse = reliefLodMesh('horse', 0, 257, 1), lb = reliefLodMesh('lion_bull', 0, 257, 1);
+    const paintedFrac = (m: typeof horse) => { let p = 0; for (let i = 0; i < m.verts; i++) if (m.paint[i] > 0) p++; return p / m.verts; };
+    expect(paintedFrac(lb)).toBe(0); expect(paintedFrac(horse)).toBeLessThan(0.05); // the horse carries only its painted harness
+    for (const [k, s] of [['persian', 0], ['guard', 0], ['delegate', 10], ['king', 0]] as [string, number][]) {
+      const m = reliefLodMesh(k, s, 513, 0); let n = 0, sum = 0, worn = 0;
+      for (let i = 0; i < m.verts; i++) if (m.paint[i] > 0) { n++; sum += m.paint[i]; if (m.paint[i] < 0.7) worn++; }
+      expect(n / m.verts, `${k} painted share`).toBeGreaterThan(0.5);
+      expect(sum / n, `${k} mean coverage`).toBeGreaterThan(0.8); expect(sum / n).toBeLessThan(0.99); // not full-coverage flat colour
+      expect(worn / n, `${k} worn arris vertices`).toBeGreaterThan(0.02);
+      for (let i = 0; i < m.verts; i++) { expect(m.paint[i]).toBeGreaterThanOrEqual(0); expect(m.paint[i]).toBeLessThanOrEqual(1); }
+    }
+  });
+  it('the geometry carries the coverage attribute next to the pigment colour', () => {
+    const g = lodGeometry(reliefLodMesh('persian', 0, 65, 3), true);
+    expect(g.getAttribute('paint').itemSize).toBe(1); expect(g.getAttribute('paint').count).toBe(g.getAttribute('position').count);
+  });
+  it('the relief material is the painted carved stone (no joints), not the ashlar limestone', () => {
+    const m = paintedStoneMaterial(); expect(m.userData.note).toMatch(/joint-free/); expect(m).not.toBe(surfaceMaterial('limestone'));
+  });
+});
+
+describe('masonry joints and carved stone (D-029)', () => {
+  it('ashlar joints are hairlines (≤ 1 mm, anti-aliased), never a sunk groove; carved stone has none', () => {
+    for (const k of ['limestone', 'terrace']) { const J = SURFACES[k].joints!; expect(J.width, k).toBeLessThanOrEqual(0.001); expect(J.dark).toBeLessThan(1); }
+    expect(SURFACES.limestone_carved.joints).toBeUndefined();
+  });
+  it('columns and colossi are drawn in the joint-free carved stone; the Treasury columns have a stone base, plastered shaft and timber capital', () => {
+    const { parts } = buildTerrace();
+    const g = buildMeshes(parts.filter(p => p.building === 'apadana' || p.building === 'gate_nations' || p.building === 'treasury'));
+    const cols = g.group.children.filter(o => /:columns/.test(o.name)) as any[];
+    const surf = (o: any) => (o.levels ? o.levels[0] : o.children[0]).material.userData.note as string;
+    for (const o of cols.filter(o => !o.name.startsWith('treasury'))) expect(surf(o), o.name).toBe(SURFACES.limestone_carved.note);
+    for (const o of g.group.children.filter(o => o.name.includes(':colossus'))) expect(surf(o), o.name).toBe(SURFACES.limestone_carved.note);
+    const tr = cols.filter(o => o.name.startsWith('treasury')).map(o => o.name).sort();
+    expect(tr).toEqual(['treasury:columns:limestone', 'treasury:columns:plaster', 'treasury:columns:timber']);
+    const byName = (n: string) => cols.find(o => o.name === n);
+    expect(surf(byName('treasury:columns:limestone'))).toBe(SURFACES.limestone_carved.note);
+    expect(surf(byName('treasury:columns:plaster'))).toBe(SURFACES.plaster.note);
+    expect(surf(byName('treasury:columns:timber'))).toBe(SURFACES.timber.note);
+    expect(byName('treasury:columns:plaster').userData.placeholder).toBe(true); // the attested paint is not drawn yet
+  });
+});
+
+describe('dark door-frame limestone (D-031)', () => {
+  it('polished dark grey (Munsell N3, 6.4 %), not black', () => {
+    const Y = luminance(lin(SURFACES.limestone_dark.albedo));
+    expect(Y).toBeCloseTo(munsellY(3), 3); expect(Y).toBeGreaterThan(0.05);
+    expect(Y).toBeLessThan(luminance(lin(SURFACES.limestone.albedo)) / 2); // still clearly darker than the grey limestone
+  });
+});

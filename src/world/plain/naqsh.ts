@@ -20,7 +20,7 @@ import type { Physics } from '../../player/physics';
 
 SURFACES.nr_rock = { albedo: [0.5, 0.47, 0.42], roughness: 0.9, porosity: 0.3, noiseScale: 0.35, noiseAmp: 0.16, bump: { amp: 0.05, freq: 0.6 }, tier: 'C', note: 'Naqsh-e Rustam cliff: grey limestone, weathered (albedo C)' };
 SURFACES.nr_dressed = { albedo: [0.55, 0.52, 0.47], roughness: 0.75, porosity: 0.3, noiseScale: 1.1, noiseAmp: 0.07, bump: { amp: 0.002, freq: 4 }, tier: 'C', note: 'dressed limestone of the rock-cut façades (albedo C)' };
-SURFACES.kaba_white = { albedo: [0.7, 0.68, 0.62], roughness: 0.6, porosity: 0.3, noiseScale: 1.2, noiseAmp: 0.06, joints: { course: 0.95, block: 1.9, width: 0.01 }, bump: { amp: 0.0015, freq: 5 }, tier: 'B/C', note: "Ka'ba-ye Zardosht: white limestone with dovetail-clamped blocks (B, search extract); tone C" };
+SURFACES.kaba_white = { albedo: [0.7, 0.68, 0.62], roughness: 0.6, porosity: 0.3, noiseScale: 1.2, noiseAmp: 0.06, joints: { course: 0.95, block: 1.9, width: 0.001, dark: 0.5 }, bump: { amp: 0.0015, freq: 5 }, tier: 'B/C', note: "Ka'ba-ye Zardosht: white limestone with dovetail-clamped blocks (B, search extract); tone C" };
 
 const NR = () => PLAIN.naqsh_e_rustam;
 interface Face { fy: number; groundAsl: number; court: number }

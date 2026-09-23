@@ -2,7 +2,7 @@
 // DERIVED rows, or `r_*` reconstruction rows (tier C, with a note each) — no literals (brief §3.1, §7; review MJ-1).
 // Positions come from the georeferenced OSM footprints. Output: parts + a manifest of measured features.
 import { row, v, tierOf, srcOf, present, footprint } from './spec';
-import { Part, Pt, Box, Prism, Column, ColumnOrder, Manifest, wallRing, grid, BuildResult, Material, doorFrames, frameTop, FrameDims } from './parts';
+import { Part, Pt, Box, Prism, Column, ColumnOrder, Manifest, wallRing, grid, BuildResult, Material, doorFrames, frameTop, FrameDims, cutWall } from './parts';
 import { order } from './orders';
 import { Rng } from '../core/rng';
 import { polyDifference, polyUnion, polyIntersection, rectPoly, single } from './poly';
@@ -163,36 +163,44 @@ export function buildTerrace(): BuildResult {
     const roofY = fl + H + v(b, 'r_roof_above_capital');
     parts.push(box(b, 'floor', 'limestone', T_(b, 'floor'), S_(b, 'floor'), c, [x1 - x0, y1 - y0], FOUND, fl, { solid: true }));
     const doors = (v<string[]>(b, 'doors')).map(side => ({ side: side as any, at: 0, width: dw, height: dh }));
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: s }, c[0], c[1], hs, hs, 0, fl, roofY, doors, tx, ty).map(w => ({ ...w, solid: true })));
+    // doorway colossi stand in the W and E door reveals, projecting outward from the wall faces; the box is the collider
+    // and plan footprint, rendered as a colossus carved from the jamb (sculpt.ts, D-018): head facing out of the
+    // doorway, relief toward the passage. The mud-brick wall ring is cut around each colossus and its plinth (D-032), so
+    // parts, colliders and render never overlap
+    const K = v<any>(b, 'r_colossus'), G = v<Record<string, string>>(b, 'guardians'), jambs: Box[] = [];
+    for (const [side, sx, dir] of [['W', x0, -1], ['E', x1, 1]] as const) for (const dy of [-1, 1] as const) {
+      const pl = v(b, 'r_colossus_plinth'), pc: Pt = [sx + dir * (K.length / 2 - tx), c[1] + dy * (dw / 2 + K.width / 2)];
+      jambs.push(box(b, 'plinth', 'limestone', 'C', S_(b, 'r_colossus_plinth'), pc, [K.length, K.width], fl, fl + pl, { solid: true }));
+      jambs.push(box(b, 'colossus', 'limestone', 'C', srcOf(row(b, 'guardians'), row(b, 'r_colossus')), pc, [K.length, K.width], fl + pl, fl + pl + K.height,
+        { solid: true, sculpt: { model: /human-headed/.test(G[side]) ? 'lamassu' : 'bull', facing: dir, passage: dy === 1 ? -1 : 1 },
+          note: `${G[side]} colossus (IR-PERS, B) carved from the jamb: procedural sculpture, form C (D-018)` }));
+    }
+    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: s }, c[0], c[1], hs, hs, 0, fl, roofY, doors, tx, ty).flatMap(w => cutWall(w, jambs) ?? [w]).map(w => ({ ...w, solid: true })));
     const [nx, ny] = v<number[]>(b, 'columns');
     const ord = order(b, { base: 'bell', capital: 'composite' });
     for (const p of grid(nx, ny, c[0], c[1], v(b, 'interaxial'))) parts.push(col(b, p, fl, ord, T_(b, 'column_height'), S_(b, 'column_height')));
     parts.push(box(b, 'roof', 'timber', T_(b, 'roof'), S_(b, 'roof'), c, [x1 - x0, y1 - y0], roofY, roofY + v(b, 'r_roof_thickness'), { note: 'cedar beams, earth roof' }));
     const FL = v<string>('global', 'interior_floor') as Material, FLt = T_('global', 'interior_floor'), FLs = S_('global', 'interior_floor');
     parts.push(box(b, 'floor_finish', FL, FLt, FLs, c, [hs, hs], fl, fl + v('global', 'r_floor_finish'), { solid: false, note: 'red hematite-painted lime plaster floor' }));
-    // frieze band above each doorway (on both wall faces) and bronze-studded timber door leaves (open, against the reveals)
+    // frieze band above each doorway (on both wall faces) and bronze-studded timber door leaves
     const FR = v<any>(b, 'r_frieze'), DL = v<any>(b, 'r_door_leaves');
     for (const side of doors.map(d => d.side as string)) {
       const horiz = side === 'S' || side === 'N';
       const faceOff = horiz ? hs / 2 + ty : hs / 2 + tx; const sgn = side === 'E' || side === 'N' ? 1 : -1;
       for (const face of [-1, 1]) { const off = sgn * (faceOff + face * (horiz ? ty : tx)) ; const cc: Pt = horiz ? [c[0], c[1] + sgn * (hs / 2 + ty / 2) + face * (ty / 2 + FR.offset)] : [c[0] + sgn * (hs / 2 + tx / 2) + face * (tx / 2 + FR.offset), c[1]]; void off;
         parts.push(box(b, 'frieze', 'glazed', 'C', S_(b, 'r_frieze'), cc, horiz ? [dw + 2 * FR.above_door, FR.thickness] : [FR.thickness, dw + 2 * FR.above_door], fl + dh + FR.above_door, fl + dh + FR.above_door + FR.height, { solid: false })); }
-      for (const lr of [-1, 1]) { // two leaves, open 90°, standing against the inner reveals
-        const lc: Pt = horiz ? [c[0] + lr * (dw / 2 - DL.thickness / 2), c[1] + sgn * (hs / 2 + ty - dw / 2 / 2)] : [c[0] + sgn * (hs / 2 + tx - dw / 2 / 2), c[1] + lr * (dw / 2 - DL.thickness / 2)];
-        parts.push(box(b, 'door_leaf', 'timber', 'C', S_(b, 'r_door_leaves'), lc, horiz ? [DL.thickness, dw / 2] : [dw / 2, DL.thickness], fl, fl + dh, { solid: true, note: 'timber door leaf with bronze bosses (C)' }));
+      for (const lr of [-1, 1]) { // two leaves open 90°. hang 'inner' (D-032): pivots at the inner (hall-side) end of the
+        // passage, the leaves open into the hall and stand against the inner wall face beside the opening, because the colossi
+        // fill the W and E passages from face to face and leaves against the reveals would cover their carved flanks.
+        // 'reveal': pivots at the outer face, leaves standing against the reveals (the pre-D-032 layout)
+        const inner = DL.hang === 'inner', off = (3 * dw) / 2 / 2, t2 = DL.thickness / 2;
+        const lc: Pt = inner ? (horiz ? [c[0] + lr * off, c[1] + sgn * (hs / 2 - t2)] : [c[0] + sgn * (hs / 2 - t2), c[1] + lr * off])
+          : (horiz ? [c[0] + lr * (dw / 2 - t2), c[1] + sgn * (hs / 2 + ty - dw / 2 / 2)] : [c[0] + sgn * (hs / 2 + tx - dw / 2 / 2), c[1] + lr * (dw / 2 - t2)]);
+        const along = inner === horiz; // the leaf's length runs along grid x
+        parts.push(box(b, 'door_leaf', 'timber', 'C', S_(b, 'r_door_leaves'), lc, along ? [dw / 2, DL.thickness] : [DL.thickness, dw / 2], fl, fl + dh, { solid: true, note: `timber door leaf with bronze bosses, pivot at the ${DL.hang} end of the passage, open (C, D-032)` }));
       }
     }
-    // doorway colossi stand in the W and E door reveals, projecting outward from the wall faces; the box is the collider
-    // and plan footprint, rendered as a colossus carved from the jamb (sculpt.ts, D-018): head facing out of the
-    // doorway, relief toward the passage
-    const K = v<any>(b, 'r_colossus'), G = v<Record<string, string>>(b, 'guardians');
-    for (const [side, sx, dir] of [['W', x0, -1], ['E', x1, 1]] as const) for (const dy of [-1, 1] as const) {
-      const pl = v(b, 'r_colossus_plinth'), pc: Pt = [sx + dir * (K.length / 2 - tx), c[1] + dy * (dw / 2 + K.width / 2)];
-      parts.push(box(b, 'plinth', 'limestone', 'C', S_(b, 'r_colossus_plinth'), pc, [K.length, K.width], fl, fl + pl, { solid: true }));
-      parts.push(box(b, 'colossus', 'limestone', 'C', srcOf(row(b, 'guardians'), row(b, 'r_colossus')), pc, [K.length, K.width], fl + pl, fl + pl + K.height,
-        { solid: true, sculpt: { model: /human-headed/.test(G[side]) ? 'lamassu' : 'bull', facing: dir, passage: dy === 1 ? -1 : 1 },
-          note: `${G[side]} colossus (IR-PERS, B) carved from the jamb: procedural sculpture, form C (D-018)` }));
-    }
+    parts.push(...jambs);
     manifest.gate_nations = { room: [c[0], c[1], hs, hs, fl, roofY - fl], hallInteriorX: hs, hallInteriorY: hs, columns: nx * ny, columnHeight: ord.height, wallTx: tx, wallTy: ty, doors: doors.length, doorHeight: dh };
   }
 
