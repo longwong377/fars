@@ -31,7 +31,10 @@ export class VolumetricClouds {
   readonly mesh: THREE.Mesh;
   readonly coverage = uniform(0.3);
   readonly sunDir = uniform(new THREE.Vector3(0, 1, 0));
-  readonly sunColor = uniform(new THREE.Color(1, 1, 1));   // sun radiance scale (× light intensity)
+  /** sunlight at the cloud base and at the top (× light intensity): at low sun they differ, since the sun sets later
+   *  for the higher cloud and its light is reddened by a different path (D-116) */
+  readonly sunColor = uniform(new THREE.Color(1, 1, 1));
+  readonly sunColorTop = uniform(new THREE.Color(1, 1, 1));
   readonly ambient = uniform(new THREE.Color(0.5, 0.6, 0.8)); // skylight on the clouds
   readonly haze = uniform(new THREE.Color(0.7, 0.75, 0.8));   // horizon haze colour
   readonly time = uniform(0);
@@ -48,7 +51,7 @@ export class VolumetricClouds {
     // geometry and laid the cloud deck over walls and mountains above the horizon.) Custom blending keeps the alpha, which
     // a non-transparent NormalBlending material would force to 1.
     const m = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, transparent: false, blending: THREE.CustomBlending, blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendEquation: THREE.AddEquation, depthTest: false, depthWrite: false, fog: false });
-    const cov = this.coverage, sd = this.sunDir, sc = this.sunColor, amb = this.ambient, hz = this.haze, tm = this.time, wd = this.wind, cell = this.cell;
+    const cov = this.coverage, sd = this.sunDir, sc = this.sunColor, scTop = this.sunColorTop, amb = this.ambient, hz = this.haze, tm = this.time, wd = this.wind, cell = this.cell;
     const atlas = N > 0 ? noiseAtlas() : null;
     /** trilinear sample of the tileable volume at uvw (any real numbers; period 1): bilinear inside two adjacent slice
      *  tiles of the atlas, then a linear blend between them */
@@ -101,7 +104,8 @@ export class VolumetricClouds {
             Loop({ start: int(0), end: int(NL), type: 'int', condition: '<', name: 'lj' } as any, ({ lj }: any) => { od.addAssign(density(p.add(sd.mul(float(lj).add(0.5).mul(180))))); });
             const lightT = exp(od.mul(-180)), powder = float(1).sub(exp(d.mul(-2 * 180)));
             const hFrac = clamp(p.y.sub(CLOUD_BASE).div(CLOUD_TOP - CLOUD_BASE), 0, 1);
-            const lum = sc.mul(lightT.mul(phase).mul(powder.mul(0.8).add(0.2)).mul(6)).add(amb.mul(hFrac.mul(0.6).add(0.4)).mul(0.9));
+            const sunH = mix(sc, scTop as any, hFrac);
+            const lum = sunH.mul(lightT.mul(phase).mul(powder.mul(0.8).add(0.2)).mul(6)).add(amb.mul(hFrac.mul(0.6).add(0.4)).mul(0.9));
             const a = exp(d.mul(dt).negate());
             col.addAssign(T.mul(lum).mul(a.oneMinus()));
             T.mulAssign(a);

@@ -1236,3 +1236,140 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - The hall is dim. Its only daylight comes through the S doorway and windows, and this tree has no interior-light probes (the other agent's work).
   - Not seen in a render: the N rooms, the E rooms, the portico doorways from inside, and the rooms at quality high.
 - `tests/e2e/phase4.spec.ts` p4-tachara-jamb-king moves to the plan's S doorway (0.95 m from the W reveal), unrendered.
+
+## D-115 — Light levels from published clear-sky illuminance (USNO Circular 171); noon unchanged (twilight agent, session 3)
+- **Measured problem:** the skylight followed a C ramp, smoothstep(−14°, 4°): 79 % of noon at sunrise and 37 % at −6°. Measured clear-sky diffuse illuminance at sunrise is about 1/30 of noon's, and at the end of civil twilight about 1/5,000. The exposure (2.3 / E) then normalised the dawn into a bright, flat, overcast-looking day.
+- **Decision:** the sun (direct beam), the sky (diffuse) and the moon follow USNO Circular 171 (Janiczek & DeYoung 1987, a fit to Brown 1952; `src/sky/illuminance.ts`). The circular is blocked; its formulas are read in full in the `skylight` R package's verbatim transcription (SKYLIGHT-R).
+  - E_sun = 133 775 lx · exp(−k M) · sin h; E_sky = 133 775 lx · 0.0289 · exp(−0.042 M) · (1 + (h + 90°) sin h / 57.3°); M is the spherical-shell air mass (X = 753.66). The moon: USNO's phase law × the same terms. Night floor 0.0005 lx (USNO's starlight constant).
+  - Renderer units: at the zenith sun the lights keep their session-3 values (sun 3.2 · exp(−k), skylight 0.98); every other altitude keeps the USNO ratio. k = 0.21 (USNO clear) at the weather's clear-day haze 0.25, rising with haze as the old law did: k = 0.21 (1 + haze) / 1.25.
+  - The cloud factors are the session-3 ones (sun × (1 − 0.75 c), sky × (1 − 0.3 c), moon × (1 − 0.8 c); C).
+  - The sun's colour is the spectral transmittance of the D-116 atmosphere: the zenith sun comes out (1, 0.95, 0.85), session 3 had (1, 0.92, 0.84). The direct beam fades while the disc crosses the horizon (±0.5°, C).
+- **Numbers (clear, haze 0.25):** skylight ÷ skylight at a 70° noon = 1/18 at 0°, 1/200 at −3°, 1/4,500 at −6°, 1/116,000 at −9°. The session-3 ramp gave 0.79 and 0.37 at 0° and −6°. The direct sun at the zenith is 2.59 (session 3: 2.55).
+- **Changes by day (data, not tuning):** the skylight now falls with the sun's altitude as USNO's does: 0.87 of the zenith value at a spring noon (70°), 0.58 at 40° (the rain moment's sun), 0.54 at the winter-solstice noon (36.6°). USNO's diffuse slope is steeper than the IES clear-sky model's (Q-160); both are within a factor of 2 of each other.
+- **Tests (`tests/illuminance.test.ts`):**
+  - against values that are not USNO's: 400–750 lx at sunrise; 3.4 lx at −6° (the "twilight envelope" 3.2 lx); a night floor ≤ 0.002 lx; the 129 klx measured clear-sky maximum in Iran; a full moon of 0.05–1 lx;
+  - the brief's ratios, 1/30 at sunrise and 1/5,000 at −6°, within 2×;
+  - the direct beam against a Kasten–Young Beer–Lambert law within 2×;
+  - the renderer's lights against the USNO ratios at +0.2°, −2.9°, −4.8° and −7° within 2×, and noon against the session-3 values.
+- **Tiers:** the curves B (published, measured elsewhere, standard clear atmosphere). The cloud factors and the skylight's share at noon C (about 2× USNO's, kept: "noon stays as it is").
+
+## D-116 — Twilight dome: a spectral spherical-atmosphere model below +10°, blended with Preetham and calibrated as D-060
+- **Measured problem:** the Preetham dome has no Earth's shadow and no Belt of Venus on the antisolar side, and gives a magenta band at dusk (`settlement-terrace-w-dusk-high`, 18:45, sun −5°). The dawn moment looks W over the plain, away from the sunrise.
+- **Decision:** `src/sky/atmosphere.ts` integrates single scattering through a spherical atmosphere and adds Hillaire's (2020) isotropic multiple-scattering term Ψ_ms(h, μ_s) = L₂ / (1 − f_ms).
+  - Bruneton's (2017) constants, read in full: Rayleigh 1.24062e-6 λ⁻⁴, H 8 km; ozone 300 DU in a tent profile 10–40 km with the Bremen cross-sections; Mie H 1.2 km, albedo 0.9, Cornette–Shanks g 0.8; his transmittance parametrisation.
+  - Ground: the plain at 1600 m asl, albedo 0.2 (C).
+  - Aerosol optical depth above the observer: the USNO extinction k minus Rayleigh and ozone (0.093 at the clear-day haze), Ångström 0.8 (C).
+  - **Spectral:** 8 bins of 40 nm (400–720 nm) → CIE 1931 → linear sRGB, white-balanced to the sun above the atmosphere (Bruneton's convention; it reproduces the session-3 noon sun colour). With three discrete wavelengths ozone removes only the 550 nm channel, which reads magenta.
+  - **Sky-view table:** 32 × 32 (elevation mapped as √(e / 90°), azimuth from the sun 0–180°).
+    - It is recomputed when the sun moves 0.05° (12–25 ms on the CPU) and clamped at −12°: below that the single-scattering sky has no structure left and the night dome takes over.
+    - It is uploaded as a half-float texture, normalised by its own irradiance.
+    - The transmittance (96 × 32) and multiple-scattering (48 × 12) tables are built once per aerosol step of 0.01 (~0.3 s) and kept. A haze change rebuilds them only while the sun is below 15°.
+  - **Dome:** kP · Preetham (with its disc) + kT · table + the physical sun disc. The table's weight is w = 1 − smoothstep(+2°, +10°). Each part is scaled so that its horizontal irradiance equals the skylight's (D-060), then mixed. At night both give way to the Preetham dome at scale 1 (the D-047 night sky, unchanged).
+  - **Consistency:** the CPU mirror (`horizon.ts` `domeRadiance`, `skyCalibration(…, twilight)`) samples the same table with the same bilinear texel convention. The fog colour, the far cloud haze, the rain shafts and the river reflection therefore converge to the dome as before. In twilight the skylight's colour is the table's irradiance colour; by day and at night it keeps the session-3 colours (luminance kept at 0.796).
+- **Geometry (model output, antisolar vertical, clear, haze 0.25):**
+
+  | sun | dark segment (minimum) | shadow top (midpoint rise) | arch maximum | arch / shadow |
+  |---|---|---|---|---|
+  | +2° | horizon | 3.5° | 8° | 2.4 |
+  | 0° | horizon | 4.5° | 10° | 2.4 |
+  | −1° | 1.5° | 6° | 12° | 2.2 |
+  | −2° | 3.5° | 8° | 16° | 1.8 |
+  | −3° | 6° | 11° | 21° | 1.5 |
+  | −4° | 9.5° | 15° | 24° | 1.3 |
+  | −5° | – | – | – | 1.0 (gone) |
+
+  Toward the sun at 3° elevation the sky is 3.5–21× the antisolar sky at the same height, peach to orange (R ≥ G ≥ B). At haze 0.6 the arch is weaker (1.5 at −2°).
+- **Checked against documented observations (`tests/horizon.test.ts`):**
+  - a darker band on the antisolar horizon under a brighter, warmer arch for the sun from −1° to −4° (arch ÷ shadow > 1.3, fading by −4°);
+  - the shadow rises as the sun sinks (6°, 8°, 11°, 15°);
+  - the arch lies within 5–25° while it is seen ("roughly 10–20° above the horizon", WP-TWILIGHT-SX; "the rapid rising of the Belt of Venus", RICHTSMEIER17);
+  - the dark segment and the sky above the arch are within 0.02 in CIE xy (LEE15-BOV: "colour differences … small or nil");
+  - the glow toward the sun is brighter (> 2×) and warmer than the antisolar sky, and not magenta;
+  - the calibrated blend carries the skylight irradiance within 1 % at +6°, +1°, −3° and −8°;
+  - the fog toward the afterglow is warmer than away from it.
+- **Weak / unverified:**
+  - The heights are model output, not measurements. Lee's measured heights and chromaticities (full text blocked) would test them (Q-161).
+  - The arch comes out lilac-white rather than the photographed pink. The model's arch light is Rayleigh-scattered from 10–30 km, where the sunlight is only mildly reddened. A deeper aerosol layer (2.5 km scale height) made it bluer, not pinker (tested, not adopted). C.
+  - Toward the sun at −4° to −6°, the lowest degree turns lavender: near-field multiple scattering on long, low lines of sight. The band at 2–4° is peach/orange, as observed.
+  - Multiple scattering is Hillaire's isotropic approximation, and it dominates deep twilight (below −8°).
+  - Below +10°, at test quality (where the volumetric clouds are off), the table replaces SkyMesh's 2-D cloud layer.
+- **Tiers:** method and constants B; the aerosol amount and profile, the ground albedo and the blend range C; the colours C (a model, not measured at Pārsa).
+
+## D-117 — Exposure: the eye's key and adaptation limit; the camera law unchanged, the rest as a sky gain
+- **Problem:** exposure = 2.3 / E (clamped 0.35–6) normalised every scene to the same brightness. With D-115's physical light levels, a dawn at 1/150 of the noon illuminance would either look like noon or, clamped at 6, be black.
+- **Decision (`src/sky/exposure.ts`; main.ts calls `exposureTarget`, the sky calls `skyGain`):**
+  - **Displayed brightness** of the grey ground (`displayedGrey`) = D(F · La) · F_noon / F:
+    - La = 0.18 E / π, an 18 % grey under the outdoor illuminance (the reflected-metering convention).
+    - F: the frame's brightness in grey-card units for a centre-weighted reflected meter that gives the sky a fifth of the weight (C; the principle of ISO 2720 meters): F = 0.8 + 0.2 · E_sky / (0.18 E). F is 0.94 at the zenith sun (the sky darker than the sunlit ground) and 1.9 in twilight (the sky ~5.6× the ground), so at twilight the camera exposes for the sky, as a photographer does.
+    - D(La) = key(La) / key(La_noon) · min(1, La / La_abs), with the key taken at the frame's adapting luminance F · La, as Krawczyk et al. take it at the scene's average.
+    - key = 1.03 − 2 / (2 + log10(La + 1)) (Krawczyk, Myszkowski & Seidel 2005, SX): 0.69 in daylight, 0.03 at night.
+    - La_abs = 10^−3.94 cd/m² (≈ 0.002 lx): the rods' absolute-threshold plateau in Ferwerda et al.'s (1996) TVI (read in full in Banterle's HDR Toolbox). Below it the eye cannot adapt further.
+    - Displayed grey ÷ noon: 0.95 at 30°, 0.71 at 10°, 0.52 at 5°, 0.37 at sunrise, 0.25 at −3°, 0.063 at −6°, 0.023 at −9° and −12°; by moonlight 0.040 (half) to 0.049 (full); 0.010 on a moonless night.
+    - A first version without F (the illuminance-metered key alone: 0.70 at sunrise, 0.41 at −3°) left the twilight sky ~5× the ground and displayed pale and washed out in the CPU panoramas. A sky weight of 0.35 made the end of civil twilight darker than a half-moon night and −6.7° black, so it was not kept.
+  - **Camera:** the session-3 law X = clamp(2.3 / E_eye, 0.35, 6) is unchanged, because fires, lamps and the night dome were tuned against it (perceptual values).
+  - **Sky gain:** the part of the adaptation beyond that range is a gain G ≥ 1 on every light that comes from the sun, the sky or the moon (a pre-exposure): G = max(1, (2.3 / 6) · displayedGrey / E_sky-lights).
+    - The ratios between those lights stay physical at every moment, and a grey lit by them is displayed at 2.3 · displayedGrey.
+    - G = 1 whenever the camera law alone gives a brighter display (a clear sky with the sun above ~5°; X reaches its limit of 6 below ~12°). Every daylit and golden-hour scene is therefore normalised exactly as before, and the meter's sky weight acts only in twilight and at night.
+- **Why not Ferwerda's full display model:** its rod term is scaled by the scotopic threshold at the display's level. That is a visibility match, not a brightness model: a full-moon scene comes out at ~70 % of daylight, and the output is non-monotonic through the mesopic range (checked numerically, not adopted).
+- **Night:** darker than in session 3 where only the sky lights it. A grey is displayed at 4–5 % of daylight by moonlight (session 3: ~17 %) and 1 % on a moonless night (session 3: ~7 %). Fires, lamps and the night sky are unchanged. The rod image is not desaturated, since a scalar exposure cannot do that; the moonlight's perceptual blue stands in (C).
+- **Tests (`tests/exposure.test.ts`):**
+  - the TVI pieces are continuous; the key's end values; D is monotone; the camera law is unchanged within its range;
+  - the displayed grey falls monotonically as the sun goes from 30° to −12°; the end of civil twilight is not below a half-moon night;
+  - on the SkySystem's own lights, the displayed grey relative to noon is 1 at noon, < 0.85 at sunrise, < 0.55 at dawn (−2.9°), < 0.15 at the end of civil twilight, < 0.03 on a moonless night;
+  - a moonlit night is more than 2× a moonless one, and above 0.02.
+- **Weak:**
+  - The meter is a model of a frame (20 % sky weight, the sky's mean radiance), not a measurement of the rendered frame. Looking up at the sky or down at the ground does not change the exposure (Q-162).
+  - Nautical twilight (−9°, 0.12 lx) displays its ground darker than a half-moon night (0.023 vs 0.040): the key has saturated at both, and the meter exposes for the bright western sky at −9°. The sky itself is far brighter at −9°.
+  - There is no chromatic adaptation: twilight is rendered as a daylight-balanced camera would record it, strongly blue.
+- **Tiers:** the published functions B; their use as a scalar exposure, the 18 % adapting grey and the camera range C.
+- **Addendum: fire light (measured in the first dawn render).**
+  - At 05:24 the lit braziers at the stair top set the exposure to 1.89 instead of 6. The sky-lit plain came out at luma 14, and the Gate of All Nations was lit as at night.
+  - Cause: the fires' light values are perceptual, tuned at night. A lamp's point light is 0.08 · 40 = 3.2 renderer candela; an oil lamp gives about a candle, ~1 cd (C). So fire light is pre-exposed by ~63,000 against the skylight's scale, which is about the moonlit-night sky gain (8 × 10⁴ under a half moon). At dawn (gain 26 with the final meter) the brazier was ~2400× too strong for the ~70 lx of skylight.
+  - Decision: the fires' cast light (the point lights in fire.ts) and their share in the eye's adaptation estimate are scaled by min(1, G / 63,000). That is 1 at night (unchanged), 4 × 10⁻⁴ at dawn (−2.9°), 1.6 × 10⁻³ at −5°, 0.27 at −11.3° and ~10⁻⁵ by day, which also removes the session-3 pools of firelight around daytime kilns in full sun. The flames themselves (emissive) and the fire-lit smoke keep their values: a flame is far brighter than its surroundings at every one of these levels.
+  - Tested (`tests/exposure.test.ts`): scale 1 on moonlit and moonless nights, < 0.01 at dawn, < 10⁻⁴ at noon.
+  - **Fire-share cap.** With the scale alone, the torch-lit Gate at 19:15 (−11.3°, scale 0.27) rendered at luma 34 against 76: the camera cap of 6 stopped the eye adapting to the weaker fire light.
+    - Where fire light dominates the adaptation, the cap now rises with the fire's share, to at most 6 / scale: cap = 6 · max(1, min(1 / scale, E_fire / E_sky)).
+    - At night (scale 1) the law is exactly the session-3 one. At dawn beside a brazier the sky dominates and the cap stays 6. In the torch-lit Gate at dusk the exposure is 20.5 and the view renders as in session 3 (luma 76.1).
+    - Side effect: while X exceeds 6, perceptual night values seen in the same view (stars, moon disc, the night dome) are brighter than tuned. Not seen in the renders.
+
+
+## D-118 — The dawn moment before sunrise; twilight renders measured (twilight agent, session 3)
+- **Slot:** "dawn from the top of the Grand Stairway, looking over the plain" moves from 05:51 (sun +2.5°, already risen) to 05:24 on day 0 (17 April 467 BCE; the sun 2.9° below the horizon, sunrise ~05:35). There the Earth's shadow and the arch stand over the W plain, and there are no sun shadows yet.
+  - The old slot is kept as `dawn-sunrise`, for comparison.
+  - `dawn-glow-e` looks E (79°, pitch 6°) from the same spot at 05:24, toward the glow over Kuh-e Rahmat.
+- **Renders (quality high, WebGPU / SwiftShader, 960 × 540; luma = Rec. 709 on sRGB values; `tools/dev/lum_bands.mjs`):**
+  | view (sun) | exposure | frame mean | sky | ground | session 3 (same view) |
+  |---|---|---|---|---|---|
+  | dawn-stair-top, 05:24 (−2.9°), 1st render: braziers at night strength | 1.89 | 68.7 | 101–104 | plain 14; terrace 65, warm (brazier) | – |
+  | dawn-stair-top, 05:24 (−2.9°), final | 6 | 81.6 | 131–134, grey-blue cloud deck in the Earth's shadow | plain 30; terrace 45, blue (b/r 1.9) | at 05:51: sky 121, plain 45, terrace 78 warm |
+  | the same view at test quality (no cloud layer) | 6 | 84.4 | 2–4° up (97,125,157) R/B 0.62 → 10–15° up (127,142,167) R/B 0.76 → higher (117,137,164): the dark segment under the arch | – | – |
+  | dawn-glow-e, 05:24 (−2.9°) | 6 | 51.4 | above the portico (112,132,160) | floor (41,48,57); brazier flame bright, no night-strength pool | – |
+  | dawn-sunrise, 05:51 (+2.5°) | 6 | 107.4 | 168, clouds lit warm from the low sun | plain 46; terrace 62, blue shade | 89 (exposure 1.27, set by the braziers): sky 121, plain 45, terrace 78 |
+  | settlement terrace-w-dusk, 18:45 (−5.0°), before the metering change | – | – | 127, warm glow toward the sun, no magenta band | plain 19; terrace 22, blue | sky 164 (pink-grey, magenta band), plain 67, terrace 74 |
+  | terrace-w-dusk view at test quality (no cloud layer), final code, 18:45 (−5.0°) | 6 (gain 98) | 64.0 | toward the sun, W low (163,153,154) warm; W 10° up (156,172,188); S low (80,108,141); overhead (76,105,141): glow → deep blue, no magenta | plain (7,14,14); terrace (18,29,43) | – |
+  | gate-dusk, 19:15 (−11.3°), with the fire-share cap | 20.5 | 76.1 | – | torch-lit interior as at night | 76.0 |
+  | night-terrace, 22:30 (moon 46 %, 27° up) | 6 | 25.0 | 40 | 22; fire-lit columns p90 60 | 37.9: sky 55, ground 37, columns p90 66 |
+  | stair-climb, 08:30 (+41.9°): daytime check | 1.17 | 48.5 | left sky 66 | stairs in shade 23 | 59.1: sky 77, stairs 33 |
+  | rain-approach, 11:06 (+40.7°, cover 0.76): daytime check | 2.30 | 69.7 | near the horizon (124,143,151) | floor in shade 50; sunlit plain 92 | 81.0: (139,158,166); floor 63; plain 90 |
+  | reliefs-raking, 18:18 (+6.6°): daytime check | 6 | 83.5 | – | relief band 97, warmer (b/r 0.65); sky-lit floor 82 | 92.8: relief band 97 (b/r 0.79); floor 105 |
+- **Findings from the renders, fixed in this session:**
+  - first dawn render: the lit braziers at the stair top set the exposure to 1.89 (plain luma 14), which led to the fire-light addendum of D-117;
+  - CPU panoramas: the twilight sky was displayed pale, which led to the centre-weighted meter of D-117;
+  - gate-dusk with the fire scale alone: luma 34 against 76, which led to the fire-share cap of D-117.
+- **Judgement of the dawn (the lead's criteria):** dim and cool: yes (ground 30–45, blue, exposure 6). No sun shadows before sunrise: yes. A glow in the E: the E view looks at the Gate and Kuh-e Rahmat, and the low glow is behind them; the sky above is lighter toward the sun. The Earth's shadow over the W plain: visible only without the cloud deck (the test-quality row); at high quality the "clear" day's deck covers it (below).
+- **Dusk is dark on the ground:** at −5° the plain is nearly black (luma ~12) under a readable sky. This is the photographic rendition (the meter exposes for the sky); the eye sees more at 8.5 lx (Q-162).
+- **Daytime changes (D-115's skylight slope; not a tuning):** with the sun at 40–42° the shade is 20–30 % darker and the low sky ~10 % darker; sunlit surfaces are unchanged. At 6.6° the sunlit reliefs keep their brightness but are warmer, and the sky-lit floor is darker (82 vs 105).
+- **Other artefacts seen:** a pale rectangle around the brazier flame in the E view. The flame and smoke sprites fade to zero at their edges, so this is probably the post pipeline's temporal AA reprojecting the billboard's quad; the fire-lit surroundings hid it before. Not investigated (pipeline.ts is out of this agent's scope).
+- **Not fixed (reported):**
+  - On "clear" days (weather cover 0.05) the volumetric layer still draws a broken deck across the low sky of these views. The cover inversion gives ~8 % cloudy columns over the observer (D-064), but lines of sight near the horizon cross many columns. The session-3 dawn render shows the same deck, so D-064 owns it. In twilight the deck is in the Earth's shadow and reads grey-blue, which makes the dawn look overcast.
+
+## D-119 — Clouds at low sun: sunlight at the cloud's own height, reddened by its path
+- **Problem:** at dawn and dusk the cloud layer was lit grey-white: it took the ground's sun colour, which was zero once the sun set for the ground. Real low-sun cloud is lit warm from below. The sun still reaches a cloud 1.5–3.6 km above the observer for about 1.3–2° below the ground's horizon.
+- **Decision:** the cloud shader takes two sun colours, at the base (1.5 km above the observer) and the top (3.6 km), interpolated by height in the slab.
+  - Each is the spectral transmittance of the D-116 atmosphere from that height toward the sun: zero below that height's own horizon (softened over the solar disc), and reddened by the grazing path.
+  - Both carry the sky gain and the session-3 cloud factor.
+  - The light march already goes toward the sun when it is below the horizon, so the deck is lit from below.
+- **Numbers (clear, haze 0.25):** the geometric dips are 1.25° (base) and 1.93° (top) over the 1600 m plain; with the disc the base is lit to −1.4° and the top to −2.1°. The grazing path runs through the dense, aerosol-laden lower air, so the base gets only 7 × 10⁻⁴ of the zenith-sun light at −0.5° (deep red) and ~3 × 10⁻⁶ at −1°. The top gets 9 × 10⁻³ at −1°: after sunset the glow is carried by the upper deck, and the low base greys at once, as low cumulus does. At noon the deck's sunlight is ~1.1–1.2× the ground's (less air above it), where session 3 used the ground's.
+- **Tests (`tests/twilight.test.ts`):** the base is still lit, and red, at −1.0° and dark at −1.6°; the top is lit at −1.6° and dark at −2.3°, and at −1° is > 100× the base; at noon the base is 1–1.25× the ground; the SkySystem hands the shader a red top colour and no base colour at −1.4°, with the ground's sun off.
+- **Unchanged:** the cover calibration (D-064: the coverage uniform and the local weather factor) and the rain-cell uniform. The ambient term is the skylight, which carries the gain.
+- **Tier:** the geometry A (a spherical Earth), the colour B (a model), the cloud optics C as before.

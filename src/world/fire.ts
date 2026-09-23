@@ -25,7 +25,7 @@ export const SMOKE_RANGE = 300;
 const FIRE_RGB = new THREE.Color().setRGB(1.0, 0.52, 0.18);
 
 /** the sky and sun as the smoke sees them: SkySystem (horizon radiance, hemisphere light, sun) */
-export interface SmokeSky { horizon: THREE.Color; hemi?: THREE.HemisphereLight; sun: THREE.DirectionalLight; state: { sunDir: THREE.Vector3 } }
+export interface SmokeSky { horizon: THREE.Color; hemi?: THREE.HemisphereLight; sun: THREE.DirectionalLight; state: { sunDir: THREE.Vector3 }; fireScale?: number }
 /** ground albedo under the smoke for the light it reflects up into it (C) */
 const SMOKE_GROUND_ALBEDO = 0.25;
 /** radiance the skylight gives an optically thin smoke by single scattering, before the albedo (D-070): the isotropic
@@ -51,9 +51,11 @@ export class FireSystem {
   private uSky = uniform(new THREE.Color(0.3, 0.3, 0.3)); private uSun = uniform(new THREE.Color(0, 0, 0)); private uSunDir = uniform(new THREE.Vector3(0, 1, 0));
   setSkyLight(sky: SmokeSky | null | undefined) {
     if (!sky?.horizon || !sky.sun) return; smokeSkyRadiance(sky, this.uSky.value);
+    this.lightScale = sky.fireScale ?? 1; // cast light pre-exposed for night: scaled with the sky's gain in twilight and day (D-117)
     this.uSun.value.copy(sky.sun.color).multiplyScalar(sky.sun.visible ? sky.sun.intensity : 0); this.uSunDir.value.copy(sky.state.sunDir);
   }
   private smokeAlpha!: THREE.InstancedBufferAttribute;
+  private lightScale = 1;
   private rng = new Rng(1, 'fire');
   private uLit = uniform(1);
   constructor(maxLights: number) {
@@ -141,7 +143,7 @@ export class FireSystem {
       const s = SPEC[x.f.kind]; l.visible = true;
       l.position.copy(x.f.pos).y += s.flameH * 0.5;
       const flick = 0.8 + 0.2 * (Math.sin(t * 11 + x.f.seed) * 0.5 + Math.sin(t * 17.3 + x.f.seed * 3) * 0.5);
-      l.intensity = s.power * 40 * flick; l.distance = s.range * 2.2;
+      l.intensity = s.power * 40 * flick * this.lightScale; l.distance = s.range * 2.2;
     });
     // smoke
     const wr = ((windDirDeg + 180 - 341) * Math.PI) / 180; // wind blows FROM windDir; grid frame
@@ -164,7 +166,7 @@ export class FireSystem {
     this.smoke.count = k; this.smoke.instanceMatrix.needsUpdate = true; this.smokeAlpha.needsUpdate = true; this.smokeGlow.needsUpdate = true;
   }
   /** illuminance-like contribution of lit fires near a point (for eye adaptation) */
-  localIlluminance(p: THREE.Vector3) { let e = 0; for (const f of this.fires) { if (!f.lit) continue; const d2 = f.pos.distanceToSquared(p) + 1; e += SPEC[f.kind].power * 4 / d2; } return e; }
+  localIlluminance(p: THREE.Vector3) { let e = 0; for (const f of this.fires) { if (!f.lit) continue; const d2 = f.pos.distanceToSquared(p) + 1; e += SPEC[f.kind].power * 4 / d2; } return e * this.lightScale; }
   stats() { return { fires: this.fires.length, lit: this.fires.filter(f => f.lit).length, smoke: this.smokeP.length }; }
 }
 

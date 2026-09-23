@@ -1,13 +1,20 @@
-// Sky, sun, moon and stars for the date and place (brief §5.3). Positions from astronomy-engine (ephemeris.ts);
-// sky radiance: Preetham analytic model (three SkyMesh, tier B for daylight colour; twilight/night handled by our
-// own darkening and star field, tier C). Stars: HYG v4.1 (CC BY-SA), proper motion applied to 467 BCE, precessed
+// Sky, sun, moon and stars for the date and place (brief §5.3). Positions from astronomy-engine (ephemeris.ts).
+// Sky radiance: the Preetham analytic model by day (three SkyMesh, B), and below ~+10° a physically based spherical
+// atmosphere (atmosphere.ts: Earth's shadow, Belt of Venus, twilight glow; D-116), both calibrated against the skylight
+// (D-060). Light levels: USNO Circular 171 illuminance ratios for the sun, the sky and the moon (illuminance.ts, D-115),
+// with the eye's adaptation beyond the camera's range applied as a sky gain (exposure.ts, D-117). Night sky, airglow
+// and Milky Way: perceptual values (C, D-047). Stars: HYG v4.1 (CC BY-SA), proper motion applied to 467 BCE, precessed
 // with the IAU model inside Rotation_EQJ_HOR.
 import * as THREE from 'three/webgpu';
 import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
-import { float, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color, Fn, positionWorld, cameraPosition, normalize, atan, asin, abs, exp, clamp, sqrt, mx_fractal_noise_float, int } from 'three/tsl';
+import { float, vec2, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color, Fn, positionWorld, cameraPosition, normalize, atan, asin, acos, abs, exp, clamp, sqrt, length, texture, mx_fractal_noise_float, int } from 'three/tsl';
 import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt } from './ephemeris';
 import { VolumetricClouds } from './clouds';
-import { skyCalibration } from './horizon';
+import { skyCalibration, twilightWeight, TW_HI } from './horizon';
+import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, type SkyView, type SkyViewJob } from './atmosphere';
+import { sunNormalLux, skyLux, moonLux, elongationFromFraction, extinctionK, NIGHT_LUX, REN_PER_LUX_SUN, REN_PER_LUX_SKY } from './illuminance';
+import { skyGain, fireLightScale } from './exposure';
+import { CLOUD_BASE, CLOUD_TOP } from './clouds';
 import { localCoverageUniform, localWeatherFactor } from './cloudCover';
 import coverTable from '../data/cloud_cover_table.json';
 
@@ -29,7 +36,27 @@ export class SkySystem {
   twilight = 1;
   /** radiance of the sky just above the horizon across the view, after calibration: the fog colour (D-060) */
   readonly horizon = new THREE.Color(0.6, 0.63, 0.68);
-  private uSkyScale = uniform(1);
+  // dome (D-060, D-116): kP · Preetham + kT · twilight table + disc weight · physical sun disc
+  private uKP = uniform(1); private uKT = uniform(0); private uDW = uniform(0);
+  private uDisc = uniform(new THREE.Color(0, 0, 0)); private uSunH = uniform(new THREE.Vector2(1, 0)); private uSunDir3 = uniform(new THREE.Vector3(0, 1, 0));
+  /** the twilight sky-view table as a texture (RGBA half float, radiance / its irradiance luminance) */
+  private lutTex: THREE.DataTexture;
+  private atmos = new Map<number, Atmosphere>(); private atmo: Atmosphere | null = null;
+  private view: SkyView | null = null; private viewAlt = NaN; private viewTau = NaN;
+  private viewJob: { job: SkyViewJob; tau: number } | null = null;
+  /** install a finished sky-view table: keep it for the CPU mirror, upload it normalised by its irradiance (half float) */
+  private setView(v: SkyView, tau: number) {
+    this.view = v; this.viewAlt = v.sunAltDeg; this.viewTau = tau;
+    const src = v.data, dst = this.lutTex.image.data as Uint16Array, inv = 1 / Math.max(v.irradianceY, 1e-30);
+    for (let i = 0; i < src.length; i++) dst[i] = THREE.DataUtils.toHalfFloat((i & 3) === 3 ? 1 : Math.min(60000, src[i] * inv));
+    this.lutTex.needsUpdate = true;
+  }
+  /** the eye's adaptation beyond the camera's range, applied to the sky's lights (D-117) */
+  gain = 1;
+  /** illuminance on the ground in lux (sun + sky + moon + night sky), clear-sky model with the cloud factors (D-115) */
+  lux = 0;
+  /** scale on the fires’ cast light (1 at night; ~4e-4 at dawn, −2.9°): their values are pre-exposed for night (exposure.ts) */
+  fireScale = 1;
   private coverAt: [number, number] | null = null; private coverFactor = 1;
   state: SkyState = { sunDir: new THREE.Vector3(0, 1, 0), sunAlt: 45, moonDir: new THREE.Vector3(0, -1, 0), moonAlt: -10, moonFraction: 0, daylight: 1, nightFactor: 0 };
 
@@ -76,11 +103,24 @@ export class SkySystem {
     scene.add(this.milkyWay);
     this.sky.scale.setScalar(DOME * 0.95);
     this.sky.turbidity.value = 3; this.sky.rayleigh.value = 1.2; this.sky.mieCoefficient.value = 0.004; this.sky.mieDirectionalG.value = 0.8;
-    this.sky.userData = { tier: 'B', src: 'RECON', note: 'Preetham analytic sky (three SkyMesh); cloud layer is SkyMesh procedural (C) until Phase 3 volumetrics' };
+    this.sky.userData = { tier: 'B', src: 'RECON', note: 'Preetham analytic sky by day (three SkyMesh); below +10° a spectral spherical-atmosphere model (Bruneton 2017 constants, Hillaire 2020 multiple scattering: Earth\'s shadow, antitwilight arch, glow; aerosol amount C); both calibrated to the USNO-C171 skylight (D-060, D-115, D-116)' };
     this.sky.frustumCulled = false;
     // SkyMesh pins its depth to 1.0, which is the NEAR plane under reversed-Z (WebGPU path) — draw it first, untested
     const skyMat = this.sky.material as THREE.Material; skyMat.depthTest = false; skyMat.depthWrite = false; this.sky.renderOrder = -10;
-    { const cn = (skyMat as any).colorNode; (skyMat as any).colorNode = vec4(cn.xyz.mul(this.uSkyScale), 1); } // dome calibrated against the skylight (D-060)
+    // dome calibrated against the skylight (D-060): kP · Preetham (with its sun disc) + kT · the physical twilight table
+    // (D-116; looked up by elevation, √(e / 90°), and azimuth from the sun) + the physical sun disc at low sun
+    this.lutTex = new THREE.DataTexture(new Uint16Array(32 * 32 * 4), 32, 32, THREE.RGBAFormat, THREE.HalfFloatType);
+    this.lutTex.minFilter = this.lutTex.magFilter = THREE.LinearFilter; this.lutTex.wrapS = this.lutTex.wrapT = THREE.ClampToEdgeWrapping;
+    this.lutTex.generateMipmaps = false; this.lutTex.flipY = false; this.lutTex.needsUpdate = true;
+    { const cn = (skyMat as any).colorNode;
+      const d = normalize(positionWorld.sub(cameraPosition));
+      const e = asin(clamp(d.y, 0, 1)), v = sqrt(e.div(Math.PI / 2));
+      const hl = vec2(d.x, d.z), hn = hl.div(max(length(hl), 1e-5));
+      const u = acos(clamp(dot(hn, this.uSunH), -1, 1)).div(Math.PI);
+      const T = texture(this.lutTex, vec2(u, v)).rgb;
+      const ca = Math.cos(SUN_ANGULAR_RADIUS), cb = Math.cos(SUN_ANGULAR_RADIUS * 1.3);
+      const disc = smoothstep(cb, ca, dot(d, this.uSunDir3));
+      (skyMat as any).colorNode = vec4(cn.xyz.mul(this.uKP).add(T.mul(this.uKT)).add((this.uDisc as any).mul(disc.mul(this.uDW))), 1); }
     scene.add(this.sky);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(shadowMapSize, shadowMapSize);
@@ -166,30 +206,76 @@ export class SkySystem {
     const moonUp = smoothstepJS(-2, 8, mo.altitude);
     this.uMW.value = night * Math.pow(1 - cloudCover, 1.5) * (1 - 0.92 * moonUp * Math.min(1, ph.fraction * 1.6));
     this.milkyWay.position.copy(camPos); this.milkyWay.visible = this.uMW.value > 0.002;
-    // sun light: intensity scaled for atmosphere path length (air mass) and cloud; warm near the horizon
-    const alt = Math.max(0, s.altitude);
-    const airmass = 1 / (Math.sin((alt * Math.PI) / 180) + 0.50572 * Math.pow(alt + 6.07995, -1.6364));
-    const trans = Math.exp(-0.18 * (1 + haze) * airmass);
-    this.sun.intensity = 3.2 * trans * (1 - 0.75 * cloudCover) * smoothstepJS(-1, 3, s.altitude);
-    this.sun.color.setRGB(1, 0.62 + 0.38 * trans, 0.38 + 0.62 * Math.pow(trans, 1.4));
+    // ---- light levels (D-115, D-117) -----------------------------------------------------------------------------------
+    // USNO Circular 171 clear-sky illuminance for the sun (direct beam), the sky and the moon, with the session-3 cloud
+    // factors (C) and a night-sky floor (starlight and airglow, 0.0005 lx). Renderer units keep the session-3 values for
+    // the zenith sun (sun 3.2 · exp(−k), skylight 0.98) and the USNO ratios to them everywhere else; the eye's adaptation
+    // beyond the camera's range multiplies all of them (the sky gain, exposure.ts).
+    const k = extinctionK(haze), alt = s.altitude, sinA = Math.max(0, Math.sin((alt * Math.PI) / 180)), sinM = Math.max(0, Math.sin((mo.altitude * Math.PI) / 180));
+    const sunN = sunNormalLux(alt, k) * smoothstepJS(-0.5, 0.5, alt) * (1 - 0.75 * cloudCover); // the disc crosses the horizon over ~0.5° (C)
+    const ml = moonLux(elongationFromFraction(ph.fraction), mo.altitude);
+    const moonN = ml.normal * (1 - 0.8 * cloudCover);
+    const skyL = (skyLux(alt) + ml.sky + NIGHT_LUX) * (1 - 0.3 * cloudCover);
+    this.lux = sunN * sinA + skyL + moonN * sinM;
+    const sunI = sunN * REN_PER_LUX_SUN, hemiI = skyL * REN_PER_LUX_SKY, moonI = moonN * REN_PER_LUX_SUN;
+    this.gain = skyGain(sunI * sinA + hemiI * 0.8 + moonI * 0.3, this.lux, skyL); // the exposure estimate's weights (main.ts)
+    const G = this.gain; this.fireScale = fireLightScale(G);
+    // ---- the physical atmosphere (D-116): sun colour, cloud light at the cloud's height, twilight dome ----------------------
+    // aerosol depth in steps of 0.01, each model built once (~0.3 s) and kept; with the sun above 15° only the sun's colour
+    // uses it, so a haze change waits until the sun is low (no rebuild hitches through a dusty day)
+    const tau = Math.round(aerosolTauFor(k) / 0.01) * 0.01;
+    if (!this.atmo || (Math.abs(this.atmo.aerosolTau - tau) > 1e-6 && (alt < 15 || this.atmos.has(tau)))) {
+      let a = this.atmos.get(tau); if (!a) { a = new Atmosphere(tau); this.atmos.set(tau, a); if (this.atmos.size > 12) this.atmos.delete(this.atmos.keys().next().value!); }
+      this.atmo = a;
+    }
+    const A = this.atmo, sc = A.sunColorAt(OBSERVER_ALT, alt), scM = Math.max(sc[0], sc[1], sc[2]);
+    if (scM > 1e-6) this.sun.color.setRGB(Math.max(0, sc[0]) / scM, Math.max(0, sc[1]) / scM, Math.max(0, sc[2]) / scM); // reddened by the air mass (spectral transmittance)
+    this.sun.intensity = G * sunI;
     this.sun.position.copy(camPos).addScaledVector(this.state.sunDir, 800);
     this.sun.target.position.copy(camPos);
-    this.sun.visible = s.altitude > -2;
-    // moonlight ~ 1/400000 of sun in reality; exposure adaptation lifts it — here a perceptual value (C)
-    this.moonLight.intensity = 0.12 * ph.fraction * smoothstepJS(-2, 10, mo.altitude) * night * (1 - 0.8 * cloudCover);
+    this.sun.visible = alt > -1;
+    this.moonLight.intensity = G * moonI; // colour: a perceptual blue (Purkinje shift, C)
     this.moonLight.position.copy(camPos).addScaledVector(this.state.moonDir, 800); this.moonLight.target.position.copy(camPos);
-    const twilight = smoothstepJS(-14, 4, s.altitude); this.twilight = twilight; // skylight is substantial through civil twilight
-    this.hemi.intensity = 0.03 + 0.95 * twilight * (1 - 0.3 * cloudCover) + 0.04 * ph.fraction * night;
-    this.hemi.color.setRGB(0.55 + 0.2 * day, 0.62 + 0.18 * day, 0.8 + 0.1 * day);
-    // volumetric clouds: cover, light, wind drift (the wind blows FROM windDir: clouds move the opposite way)
-    const C = this.clouds; C.mesh.position.copy(camPos);  C.sunDir.value.copy(this.state.sunDir);
-    C.sunColor.value.copy(this.sun.color).multiplyScalar(this.sun.visible ? this.sun.intensity / 3.2 : 0).add(new THREE.Color(0.55, 0.6, 0.75).multiplyScalar(this.moonLight.intensity * 0.5));
+    this.twilight = smoothstepJS(-14, 4, alt);
+    this.hemi.intensity = G * hemiI;
+    // twilight dome table, clamped to −12° (below, the single-scattering sky has no structure left and the night dome takes
+    // over): built at once on the first frame or after a jump in time (12–25 ms); while the sun moves, rebuilt after every
+    // 0.05° four rows per frame (~2–3 ms) in a back buffer and swapped when complete
+    const w = twilightWeight(alt), vAlt = Math.max(-12, Math.min(TW_HI, alt));
+    if (w > 0) {
+      const stale = !this.view || this.viewTau !== tau || Math.abs(vAlt - this.viewAlt) > 1;
+      if (stale) { this.viewJob = null; this.setView(A.skyView(vAlt), tau); }
+      else if (this.viewJob) { if (A.stepSkyView(this.viewJob.job, 4)) { this.setView(this.viewJob.job.view, this.viewJob.tau); this.viewJob = null; } }
+      else if (Math.abs(vAlt - this.viewAlt) > 0.05) this.viewJob = { job: A.beginSkyView(vAlt), tau };
+    }
+    // skylight colour: the session-3 day colour by day, the physical sky's irradiance colour in twilight, the session-3
+    // night blue at night; its luminance is kept at the day colour's 0.796 so hemi.intensity · 0.8 stays the illuminance
+    { const dayC = [0.75, 0.8, 0.9], nightC = [0.55, 0.62, 0.8], twC = this.view && w > 0 ? this.view.irradiance.map(x => x / Math.max(this.view!.irradianceY, 1e-30)) : dayC;
+      const Yc = (c: number[]) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+      const nd = dayC.map(x => x / Yc(dayC)), nn = nightC.map(x => x / Yc(nightC)), nt = twC.map(x => x / Yc(twC));
+      const c = [0, 1, 2].map(i => ((1 - w) * nd[i] + w * nt[i]) * (1 - night) + nn[i] * night);
+      const y = Yc(c); this.hemi.color.setRGB((0.796 * c[0]) / y, (0.796 * c[1]) / y, (0.796 * c[2]) / y); }
+    // volumetric clouds: cover, light, wind drift (the wind blows FROM windDir: clouds move the opposite way). Sunlight at
+    // the cloud base and top: the spherical atmosphere's transmittance from those heights, so low sun lights the deck from
+    // below, reddened, until the sun sets for the cloud (~1.3–2° below the ground's horizon at 1.5–3.6 km).
+    const C = this.clouds; C.mesh.position.copy(camPos); C.sunDir.value.copy(this.state.sunDir);
+    const moonC = new THREE.Color(0.55, 0.6, 0.75).multiplyScalar(this.moonLight.intensity * 0.5), cf = G * (1 - 0.75 * cloudCover);
+    { const b = A.sunColorAt(OBSERVER_ALT + CLOUD_BASE, alt), t = A.sunColorAt(OBSERVER_ALT + CLOUD_TOP, alt);
+      const p0 = (x: number) => Math.max(0, x) * cf;
+      C.sunColor.value.setRGB(p0(b[0]), p0(b[1]), p0(b[2])).add(moonC); C.sunColorTop.value.setRGB(p0(t[0]), p0(t[1]), p0(t[2])).add(moonC); }
     C.ambient.value.copy(this.hemi.color).multiplyScalar(this.hemi.intensity * 0.55);
-    // dome calibration and the horizon radiance (D-060): fog, far cloud haze and rain shafts converge to it
+    // dome calibration and the horizon radiance (D-060, D-116): fog, far cloud haze and rain shafts converge to it
     { const sk = this.sky, P = { turbidity: sk.turbidity.value as number, rayleigh: sk.rayleigh.value as number, mieCoefficient: sk.mieCoefficient.value as number, mieDirectionalG: sk.mieDirectionalG.value as number };
       const hc = this.hemi.color, hemiE = this.hemi.intensity * (0.2126 * hc.r + 0.7152 * hc.g + 0.0722 * hc.b);
-      const cal = skyCalibration([this.state.sunDir.x, this.state.sunDir.y, this.state.sunDir.z], P, hemiE, night, view?.x ?? 1, view?.z ?? 0);
-      this.uSkyScale.value = cal.scale; this.horizon.setRGB(cal.horizon[0], cal.horizon[1], cal.horizon[2]); }
+      const tw = this.view && w > 0 ? { view: this.view, w } : null;
+      const cal = skyCalibration([this.state.sunDir.x, this.state.sunDir.y, this.state.sunDir.z], P, hemiE, night, view?.x ?? 1, view?.z ?? 0, tw);
+      this.uKP.value = cal.kP; this.uKT.value = tw ? cal.kT * this.view!.irradianceY : 0;
+      this.horizon.setRGB(cal.horizon[0], cal.horizon[1], cal.horizon[2]);
+      // the physical sun disc (with the table): the sun's radiance, E / Ω, capped below the half-float range
+      const disc = Math.min(30000, this.sun.visible ? this.sun.intensity / (Math.PI * SUN_ANGULAR_RADIUS * SUN_ANGULAR_RADIUS) : 0);
+      this.uDisc.value.copy(this.sun.color).multiplyScalar(disc); this.uDW.value = tw ? w * (1 - night) : 0;
+      const hs = Math.hypot(this.state.sunDir.x, this.state.sunDir.z) || 1; this.uSunH.value.set(this.state.sunDir.x / hs, this.state.sunDir.z / hs);
+      this.uSunDir3.value.copy(this.state.sunDir); }
     C.haze.value.copy(this.horizon);
     if (wind) { const a = ((wind.fromDeg + 180) * Math.PI) / 180; C.wind.value.set(Math.sin(a) * wind.ms * 2.5, -Math.cos(a) * wind.ms * 2.5); C.time.value = wind.tSeconds; } // winds aloft ~2.5 × surface (C)
     // cover over THIS observer (D-064): the weather field scales the cover by 0.6–1.4 across its tile, so the uniform is

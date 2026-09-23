@@ -139,3 +139,27 @@ Also used, with existing keys: ARIO (DB, DSf, DNa, DNb, DNe labels, XPa–XPh, D
 400–406 with Hallock's translations), EWB (sense base `js/data/senses.js`: German/English glosses with volume:page), WP-CAL,
 IR-PET, IR-FOODAG, LIVIUS, RECON. Downloaded but not used: the PROIEL Herodotus treebank (CC BY-NC-SA). Searched without result: the
 CDLI dump for Achaemenid-period Babylonian archival texts (none with ATF in the unblocked dump).
+
+## Twilight light, sky and exposure (twilight agent, session 3): 11 keys added to `src/data/sources.json`
+Scope: `src/sky/illuminance.ts`, `src/sky/atmosphere.ts`, `src/sky/exposure.ts` (D-115 … D-119). Raw GitHub was the only
+reachable host; DTIC, Optica, Wikipedia, ResearchGate, arXiv, nature.com, the MPI and Ferwerda pages, atoptics and
+scialert were refused by the egress proxy (2026-09-23). Tiers of use: **B** = a published model or measurement applied
+to Pārsa (another site, a standard atmosphere); **C** = our choice.
+
+| key | what | access | used for | tier of use |
+|---|---|---|---|---|
+| USNO-C171 | Janiczek & DeYoung 1987, USNO Circular 171 (fit to Brown 1952): clear-sky sun, sky and moon illuminance vs altitude, −18° … 90° | FT via SKYLIGHT-R (the circular itself blocked) | sun, skylight and moon intensities (ratios to the zenith sun) | B |
+| SKYLIGHT-R | Hufkens, `skylight` R package: verbatim transcription of USNO-C171 (`atmos`, `refr`, moon routines) | FT | the formulas | – |
+| BRUNETON17 | Bruneton 2017 precomputed atmospheric scattering (demo constants, CIE CMFs, ASTM G-173, ozone cross-sections, transmittance parametrisation) | FT (code) | the twilight dome's atmosphere and colour conversion | B |
+| HILLAIRE20 | Hillaire 2020 sky/atmosphere rendering (multiple-scattering LUT) | FT (code) | multiple scattering in the twilight dome | B |
+| FERWERDA96 | Ferwerda et al. 1996, visual adaptation (cone and rod TVI) | FT via BANTERLE-HDRT (paper blocked) | the rods' absolute-threshold plateau (limit of adaptation) | B data, C use |
+| BANTERLE-HDRT | Banterle's HDR Toolbox (Ferwerda TMO, TVI, Walraven–Valeton k) | FT | the TVI formulas | – |
+| KRAWCZYK05 | Krawczyk, Myszkowski & Seidel 2005, key value vs adapting luminance | SX | displayed brightness vs adaptation | B formula, C use |
+| LEE15-BOV | Lee 2015, Belt of Venus hyperspectral measurements and model | SX (abstract) | test: dark segment ≈ colour of the sky above the arch; vivid for modest aerosol | B (qualitative) |
+| RICHTSMEIER17 | Antitwilight I and II (Applied Optics 2017) | SX (abstracts) | "rapid rising of the Belt of Venus"; dark segment origin | B (qualitative) |
+| WP-TWILIGHT-SX | Wikipedia Belt of Venus / Earth's shadow / Lux table; visualexpert "twilight envelope" | SX (tertiary) | belt ~10–20° high, shadow over ~180° and rising; 400 lx at sunrise, 3.4 lx at −6°, 0.002 lx airglow night, full moon 0.05–0.3 lx | C (tertiary) |
+| IRAN-ILLUM-SX | Iranian clear-sky illuminance study (2009): 129 klx maximum | SX | test: the zenith-sun total | B |
+
+Not reached (would upgrade the tiers): Lee 2015 full text (measured heights and chromaticities of the dark segment and
+the arch vs solar depression); Rozenberg 1966 *Twilight*; Brown 1952; Spitschan et al. 2016 (measured outdoor
+illuminance vs solar elevation); CIE 191:2010 (mesopic photometry); ISO 2720 (meter calibration).
