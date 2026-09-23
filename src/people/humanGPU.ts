@@ -86,6 +86,7 @@ export class HumanGPU {
     g.instanceCount = 0; g.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1);
     const mesh = new THREE.Mesh(g, material); mesh.name = `humans:${C.dress}:lod${C.lod}`; mesh.castShadow = castShadow; mesh.receiveShadow = true; mesh.visible = false; mesh.matrixAutoUpdate = false;
     mesh.userData = { tier: 'C', src: 'RECON', note: `people (${C.dress}, LOD ${C.lod})` };
+    mesh.raycast = () => {}; // the geometry is in bind pose at the origin (placed on the GPU): picking goes through the crowd's proxy
     this.group.add(mesh);
     return { dress: C.dress, lod: C.lod, mesh, geo: g, inst, count: 0, triangles: C.triangles, box: new THREE.Box3() };
   }

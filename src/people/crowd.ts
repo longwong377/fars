@@ -1,7 +1,8 @@
 // Crowd renderer (D-025, D-028): renders the simulation's people with the MakeHuman-derived bodies in period dress.
 //
-// Pooling: people are attached to the renderer when they come within ATTACH_R of the camera and are on the map, and
-// detached beyond DETACH_R or when they leave for the town. Attaching gives a person a palette slot and writes their
+// Pooling: the pool is fed by the simulation's `visibleAgents(centre, ATTACH_R, POOL_MAX)` (the detailed agents on the
+// Terrace, nearest first, capped; D-024): people are attached when they come into that set and detached beyond DETACH_R
+// or when they leave for the town. Attaching gives a person a palette slot and writes their
 // look (looks.ts; deterministic from their seed, so a person looks the same every time). The simulation's roster can
 // therefore grow to thousands (Phase 5) without one rig per agent: cost scales with the people near the camera.
 // `attach()`/`detach()` are public so a future dynamic roster can drive the pool itself (autoPool = false).
@@ -37,6 +38,8 @@ export const yawOf = (headingDeg: number) => Math.PI - rad(headingDeg);
 export const LOD_DIST = [25, 90, 200, 600] as const;
 export const MAX_FULL = 64;
 export const ATTACH_R = 620, DETACH_R = 660;
+/** the most simulated people attached at once (the cap passed to sim.visibleAgents) */
+export const POOL_MAX = 400;
 /** people cast shadows within this distance (m) only. An instanced caster is drawn whole in every cascade its bounds
  *  touch, so each caster costs its triangles × cascades; at 90 m a person's shadow is a few pixels (D-028) */
 export const SHADOW_DIST = LOD_DIST[1];
@@ -52,6 +55,11 @@ export interface Person {
   mask: number;
   /** gaze target in character space (the rig's space: the root is applied per instance on the GPU) */
   lookC: [number, number, number];
+  /** the activity performed now, and whether it is a PLACEHOLDER (abstract-only activities have no performance; if one
+   *  ever reaches a rendered person the dev overlay says so instead of showing a made-up loop) */
+  act: string; actPlaceholder: boolean;
+  /** when the greeting nod started (−1: not greeted on this approach) */
+  nodAt: number;
   /** extras (lineups, tests): fixed animation and place */
   extra?: { anim: AnimId; x: number; y: number; z: number; yaw: number; look?: [number, number, number] | null };
 }
@@ -84,7 +92,8 @@ export class Crowd {
     const sk = new THREE.InstancedMesh(propGeometry('sack')!, this.propMaterial(), 600); sk.castShadow = true; sk.receiveShadow = true; sk.count = 0; sk.visible = false; sk.frustumCulled = false;
     sk.name = 'goods:sacks'; sk.userData = { tier: 'C', src: 'RECON', note: 'sacks counted by the simulation (stocks)' }; this.group.add(sk); this.sacks = sk;
     // ray hits on people (dev overlay, pick): a proxy mesh whose raycast tests each shown person's standing capsule
-    this.hitProxy = new THREE.Mesh(); this.hitProxy.name = 'people:hit'; this.hitProxy.visible = false; // never drawn; raycasters still call it (this.hitProxy as any).raycast = (rc: THREE.Raycaster, out: THREE.Intersection[]) => this.raycast(rc, out);
+    this.hitProxy = new THREE.Mesh(); this.hitProxy.name = 'people:hit'; this.hitProxy.visible = false; // never drawn; raycasters still call it
+    (this.hitProxy as any).raycast = (rc: THREE.Raycaster, out: THREE.Intersection[]) => this.raycast(rc, out); // (was inside the comment: picking people found nothing)
     this.group.add(this.hitProxy);
   }
   // ------------------------------------------------------------------------------------------------ props
@@ -103,7 +112,7 @@ export class Crowd {
     // the instance's own kind only: other kinds' vertices collapse to a point (arithmetic mask, no select: D-012)
     m.positionNode = positionLocal.mul(float(1).sub(min(abs(attribute('pk', 'float').sub(attribute('ik', 'float'))), 1)));
     const im = new THREE.InstancedMesh(g, m, CARRIED_MAX); im.count = 0; im.visible = false; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false;
-    im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.name = 'props:carried';
+    im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.name = 'props:carried'; im.raycast = () => {}; // all kinds are in every instance on the CPU side
     im.userData = { tier: 'C', src: 'RECON', note: 'carried: ' + PROP_KINDS.map(k => `${k} (${PROP_NOTES[k].tier}): ${PROP_NOTES[k].note}`).join('; ') };
     this.group.add(im); this.carried = im; this.carriedKind = ik;
   }
@@ -154,7 +163,7 @@ export class Crowd {
     const face: FaceState = { jaw: 0, blink: 0, look: null, eyeYaw: 0, eyePitch: 0 };
     const p: Person = { key, agent, look, slot, face, rig: { joints: v.joints, pose: { rot: {}, hips: [0, 0, 0] }, face, grip: [0, 0], x: 0, y: 0, z: 0, yaw: 0, scale: 1 },
       root: [0, 0, 0, 0], prevRoot: [0, 0, 0, 0], shown: false, drawnFrame: -10, poseFrame: -10, frameMod: seed % 8, lastHit: false,
-      blinkAt: (seed % 997) / 997 * 4, speakUntil: -1, prop: null, propM: new THREE.Matrix4(), anim: 'idle', t0: (seed % 100), dist: 0, mask: look.mask, lookC: [0, 0, 0] };
+      blinkAt: (seed % 997) / 997 * 4, speakUntil: -1, prop: null, propM: new THREE.Matrix4(), anim: 'idle', t0: (seed % 100), dist: 0, mask: look.mask, lookC: [0, 0, 0], act: '', actPlaceholder: false, nodAt: -1 };
     this.persons.set(key, p); if (agent) this.byAgent.set(agent.id, p); return p;
   }
   /** attached people by agent id (no string keys in the per-frame pool scan) */
@@ -178,16 +187,19 @@ export class Crowd {
   private now = 0;
   /** agents that were off the map (in the town) at the last update: coming on the map within 50 m in view is a pop-in
    *  (§13.8), as in the Phase 3 crowd; attaching or changing LOD at a distance is not */
-  private wasOff = new Map<number, boolean>();
+  private visPrev = new Set<number>(); private visNow = new Set<number>(); private poolPrimed = false;
+  /** the pool, fed by the simulation's visible set: attach newcomers, detach the pooled who left (offmap, or beyond
+   *  DETACH_R). A newcomer within 50 m in view is a pop-in (it came on the map there: ATTACH_R ≫ 50 m) */
   private autoPoolStep(cam: THREE.Vector3, camera?: THREE.Camera) {
-    for (const a of this.sim!.agents) {
-      const has = this.byAgent.has(a.id);
-      const prevOff = this.wasOff.get(a.id); this.wasOff.set(a.id, a.offmap);
-      if (a.offmap) { if (has) this.detach(a); continue; }
-      if (prevOff === true && camera) { const d = Math.hypot(a.pos[0] - cam.x, a.y + 1 - cam.y, -a.pos[1] - cam.z); if (d < 50 && this.frustum.containsPoint(_v.set(a.pos[0], a.y + 1, -a.pos[1]))) this.onPopIn?.(`person ${a.id} (${a.role})`, d); }
-      const dx = a.pos[0] - cam.x, dz = -a.pos[1] - cam.z, d2 = dx * dx + dz * dz;
-      if (!has && d2 < ATTACH_R * ATTACH_R) this.attach(a); else if (has && d2 > DETACH_R * DETACH_R) this.detach(a);
+    const vis = this.sim!.visibleAgents([cam.x, -cam.z], ATTACH_R, POOL_MAX), now = this.visNow; now.clear();
+    for (const a of vis) {
+      now.add(a.id); if (!this.byAgent.has(a.id)) this.attach(a);
+      if (this.poolPrimed && camera && !this.visPrev.has(a.id)) { const d = Math.hypot(a.pos[0] - cam.x, a.y + 1 - cam.y, -a.pos[1] - cam.z);
+        if (d < 50 && this.frustum.containsPoint(_v.set(a.pos[0], a.y + 1, -a.pos[1]))) this.onPopIn?.(`person ${a.id} (${a.role})`, d); }
     }
+    for (const p of this.persons.values()) { const a = p.agent; if (!a || now.has(a.id)) continue;
+      const dx = a.pos[0] - cam.x, dz = -a.pos[1] - cam.z; if (a.offmap || dx * dx + dz * dz > DETACH_R * DETACH_R) this.detach(a); }
+    this.visNow = this.visPrev; this.visPrev = now; this.poolPrimed = true;
   }
   // ------------------------------------------------------------------------------------------------ per frame
   update(time: number, cam: THREE.Vector3, playerPos: THREE.Vector3 | null, camera?: THREE.Camera) {
@@ -243,6 +255,7 @@ export class Crowd {
     let po: Pose; let propKind: string | null = null; let anim: AnimId;
     if (a) {
       const perf = this.sim!.performance(a); const P = ACTIVITIES[perf.act]; anim = P.anim;
+      p.act = perf.act; p.actPlaceholder = !!P.placeholder;
       po = pose(anim, time + a.seed % 100, a.gait, (a.seed % 1000) / 159);
       const want = P.prop ?? (a.carry === 'sack' ? 'sack' : a.carry === 'jar_head' ? 'jar_head' : a.carry === 'basket' ? 'basket' : undefined);
       propKind = want ? (want === 'bread' ? 'basket' : want) : null;
@@ -253,15 +266,20 @@ export class Crowd {
     // coats, weapons on the back and hats are laid aside while seated or asleep (they would pass through the ground; C)
     const mask = SEATED.has(anim) ? p.look.mask & ~this.asideBits(p.look.dress, anim) : p.look.mask;
     if (mask !== p.mask) { p.mask = mask; this.humans.gpu.person[p.slot * PERSON_TEXELS * 4 + 1] = mask; this.humans.gpu.markPersonDirty(); }
-    // glance: a stranger within 7 m turns heads (clamped), and eyes look at them (people notice a stranger)
+    // glance: the player within 7 m turns heads (clamped) and eyes. How much follows the simulation's memory of the
+    // player (sim.greeting: none → a stranger's glance; nod / recognise → the head turns fully and nods once, within 4 m)
     const f = p.face; f.look = null; f.eyeYaw = 0; f.eyePitch = 0; f.jaw = 0;
     const lookAt = p.extra?.look ?? null;
     if (lookAt) f.look = this.toChar(p, lookAt);
     else if (playerPos && d < 7 && anim !== 'sleep') {
       const dx = cam.x - p.root[0], dz = cam.z - p.root[2]; const cy = Math.cos(p.root[3]), sy = Math.sin(p.root[3]);
       const lx = cy * dx - sy * dz, lz = sy * dx + cy * dz; const yaw = Math.atan2(lx, lz);
-      if (Math.abs(yaw) < 1.9) { const h = po.rot.head ?? [0, 0, 0]; po.rot.head = [h[0], Math.max(-1, Math.min(1, yaw)) * (a && a.metPlayer > 1 ? 1 : 0.8), h[2]]; f.look = this.toChar(p, [cam.x, cam.y, cam.z]); }
+      const greet = a ? (this.sim?.greeting?.(a.id) ?? 'none') : 'none';
+      if (Math.abs(yaw) < 1.9) { const h = po.rot.head ?? [0, 0, 0]; let pitch = h[0];
+        if (greet !== 'none' && d < 4) { if (p.nodAt < 0) p.nodAt = time; const tn = time - p.nodAt; if (tn < 0.8) pitch += 0.18 * Math.sin((Math.PI * tn) / 0.8); } // a nod (C)
+        po.rot.head = [pitch, Math.max(-1, Math.min(1, yaw)) * (greet === 'none' ? 0.8 : 1), h[2]]; f.look = this.toChar(p, [cam.x, cam.y, cam.z]); }
     }
+    if (d > 6) p.nodAt = -1;
     if (lod < 2) { // face detail only where it can be seen
       // blinks every 2–6 s (150 ms), saccades
       const bt = time - p.blinkAt; if (bt > 0.15) { const r = ((p.slot * 7919 + Math.floor(time * 3)) % 97) / 97; p.blinkAt = time + 2 + 4 * r; }
@@ -336,13 +354,16 @@ export class Crowd {
       if (best < rc.far && best > rc.near) {
         const proxy = new THREE.Mesh(); proxy.name = `person:${p.agent ? p.agent.id : p.key}`;
         const who = p.agent ? `${p.agent.name ?? 'unnamed'} (${p.agent.role}, ${p.agent.origin})` : `extra ${p.key}`;
-        proxy.userData = { tier: 'C', src: 'RECON', placeholder: false, note: `${who}; ${p.look.dress} dress; ${p.look.note}` };
+        const act = p.act ? `; doing ${p.act}${p.actPlaceholder ? ' — PLACEHOLDER: no performance for this activity (abstract-only), a standing pose is shown' : ''}` : '';
+        proxy.userData = { tier: 'C', src: 'RECON', placeholder: p.actPlaceholder, note: `${who}; ${p.look.dress} dress${act}; ${p.look.note}` };
         out.push({ distance: best, point: ray.at(best, new THREE.Vector3()), object: proxy } as THREE.Intersection);
       }
     }
   }
   /** draw calls and triangles the crowd submits this frame (main pass; shadow passes repeat some of them) */
-  stats() { const s = this.humans.gpu.stats(); const propDraws = this.carried.count ? 1 : 0; return { ...s, propDraws, props: this.carried.count, perf: { ...this.perf } }; }
+  stats() { const s = this.humans.gpu.stats(); const propDraws = this.carried.count ? 1 : 0;
+    let placeholderActs = 0; for (const p of this.persons.values()) if (p.actPlaceholder && p.drawnFrame === this.frame) placeholderActs++;
+    return { ...s, propDraws, props: this.carried.count, placeholderActs, perf: { ...this.perf } }; }
   /** evidence notes for the pieces a person wears (tests, overlay) */
   static pieceNotes(look: PersonLook) { return look.pieces.map(id => ({ ...PIECES[id], id })); }
 }

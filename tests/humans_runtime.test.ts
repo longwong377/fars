@@ -174,7 +174,9 @@ describe('crowd: pooling and the per-frame CPU budget (slice population + 300 ex
     const dresses = ['guard', 'median', 'worker', 'woman'] as const;
     const agents = Array.from({ length: 60 }, (_, i) => ({ id: i, sex: i % 4 === 3 ? 'f' : 'm', role: ['guard', 'scribe', 'mason', 'grinder'][i % 4], dress: dresses[i % 4], origin: 'Persian', seed: 900 + i,
       pos: [i * 30, 0] as [number, number], y: 0, heading: 90, offmap: false, carry: null, gait: 0, metPlayer: 0, slot: [0, 0] }));
-    const sim: any = { agents, stock: { depot: 0, store: 0 }, nav: { heightAt: () => 0 }, performance: () => ({ act: 'walk' }) };
+    const sim: any = { agents, stock: { depot: 0, store: 0 }, nav: { heightAt: () => 0 }, performance: () => ({ act: 'walk' }),
+      // as PeopleSim.visibleAgents (D-024): on the map, within the radius, nearest first, capped
+      visibleAgents: (c: [number, number], r: number, max = Infinity) => agents.filter(a => !a.offmap && Math.hypot(a.pos[0] - c[0], a.pos[1] - c[1]) <= r).sort((x, y) => Math.hypot(x.pos[0] - c[0], x.pos[1] - c[1]) - Math.hypot(y.pos[0] - c[0], y.pos[1] - c[1])).slice(0, max) };
     const crowd = new Crowd(sim, 1, humans); const pops: string[] = []; crowd.onPopIn = w => pops.push(w);
     const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0); cam.lookAt(100, 1.6, 0); cam.updateMatrixWorld();
     agents[1].offmap = true; crowd.update(0, cam.position, null, cam);
@@ -209,6 +211,19 @@ describe('crowd: pooling and the per-frame CPU budget (slice population + 300 ex
         expect(ang, `yaw ${yaw}, eye ${b}`).toBeLessThan(4); // within the plant offset's few cm at 0.7 m
       }
     }
+  });
+  it('an abstract-only (placeholder) activity reaching a rendered person is flagged, not faked', () => {
+    const img = () => new THREE.DataTexture(new Uint8Array(4), 1, 1);
+    const humans = { A, O, gpu: new HumanGPU(A, O, { skin: img(), eye: img() }, { capacity: 16 }), ms: { load: 0, outfits: 0, gpu: 0, worker: false } };
+    const agents = [0, 1].map(i => ({ id: i, sex: 'm', role: 'mason', dress: 'worker', origin: 'Persian', seed: 50 + i, pos: [4 + i, 0] as [number, number], y: 0, heading: 270, offmap: false, carry: null, gait: 0, metPlayer: 0, slot: [0, 0], walking: false }));
+    const ph = Object.entries(ACTIVITIES).find(([, p]) => p.placeholder)![0];
+    const sim: any = { agents, stock: { depot: 0, store: 0 }, nav: { heightAt: () => 0 }, performance: (a: any) => ({ act: a.id === 0 ? ph : 'dress_stone', moving: false }),
+      visibleAgents: () => agents, greeting: () => 'none' };
+    const crowd = new Crowd(sim, 1, humans); const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0); cam.lookAt(10, 1.2, 0); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+    crowd.update(0, cam.position, null, cam);
+    expect(crowd.stats().placeholderActs).toBe(1);
+    const hits: THREE.Intersection[] = []; const rc = new THREE.Raycaster(new THREE.Vector3(0, 1.2, 0), new THREE.Vector3(1, 0, 0)); rc.intersectObject(crowd.group, true, hits);
+    const h = hits.find(x => x.object.name === 'person:0')!; expect(h.object.userData.placeholder).toBe(true); expect(h.object.userData.note).toMatch(/PLACEHOLDER/);
   });
   it('every activity prop exists', () => {
     for (const [id, p] of Object.entries(ACTIVITIES)) if (p.prop) expect(propGeometry(p.prop === 'jar_head' ? 'jar' : p.prop === 'bread' ? 'basket' : p.prop), id).not.toBeNull();
