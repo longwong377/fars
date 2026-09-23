@@ -7,28 +7,34 @@
   - On screen they are still the placeholder procedural rigs with abstract faces.
   - D-020 built MakeHuman CC0 bodies, but the runtime does not use them yet. A session 3 agent is integrating them.
 - **Speech (D-011):** a placeholder formant synthesiser, not yet rated for intelligibility. The lexicons are thin.
-- **Carving:**
-  - The sculpted columns and colossi (D-018) and the carved reliefs (D-019) are procedural reconstructions (C), not measured carving.
-  - The reliefs render under WebGPU (session 3). Known faults, being fixed by a session 3 agent:
-    - the paint reads as a toy (flat, saturated, full coverage);
-    - sunk ashlar joints cross the figures;
-    - WebGL2 is unverified.
-  - The sculpture's known faults:
-    - joints drawn across the carving;
-    - "bubble-wrap" curls;
-    - small bull horns;
-    - Gate door leaves hide the colossi and the XPa panels;
-    - the wall ring overlaps the jambs in the colliders;
-    - the Apadana N door frame reads black;
-    - the Treasury columns use one material.
+- **Carving (improved in session 3 by the stone agent, D-029 to D-032; still C):**
+  - The sculpted columns and colossi (D-018) and the carved reliefs (D-019) are procedural reconstructions of the type, not measured carving (licensed scans: NEEDS #10).
+  - Now fixed:
+    - joints are 0.8 mm hairlines on a joint-free carved surface;
+    - reliefs use mineral pigments as a matte film with wear, though every value is C (Q-074);
+    - curls are spiral locks and the horns are longer;
+    - the Gate door leaves hang at the inner end and the wall is cut in the parts;
+    - the dark door frames are Munsell N3, not black;
+    - Treasury members have their own materials;
+    - the reliefs are verified on WebGL2.
+  - Still weak:
+    - the running-bond block layout is uniform (the polygonal retaining walls are not modelled, Q-071);
+    - capital curls come out as noisy pits, and the lower LOD shows no curls;
+    - volutes are faceted;
+    - the lamassu face is rudimentary;
+    - the relief colour fields still dominate at register distance;
+    - no garment patterns are painted;
+    - "gold" is drawn as a yellow paint film;
+    - Treasury shafts are bare plaster (the colours are unknown), flagged as a placeholder;
+    - the door-leaf position is inferred (Q-073).
 - **Phase 5:** the soak test FAILS (baseline: near-copy days, 3 event kinds a week). A session 3 agent is building the events calendar, town life, rotas, construction progress, player memory and population scale.
 - **Phases 6 and 7:** the settlement and plain are not built yet (session 3 agents started). The out-of-world map shows the Terrace only.
 - **King absent by default (D-003):** no evidence places Xerxes at Persepolis in 467. The court appears only in the C-tier "seasonal pattern" setting.
 - **No primary sources reachable (B6):** SITE_SPEC is tier B/C, nothing is A, and the plan overlay compares against OSM, not Schmidt.
 - **Sky and bench:**
   - The night sky has no Milky Way or airglow.
-  - The volumetric clouds had not been seen in a render when this was written; the render was queued.
-  - The session 2 high-quality bench numbers are invalid; a re-run was queued.
+  - The volumetric clouds are now seen: drawn behind all geometry (D-046). They read as soft, blurry stratocumulus smears, not crisp cumulus. A texture-based rework was in progress (not yet verified).
+  - Bench numbers from session 2, and the first session 3 run, are **void**. Frames rendered outside the animation loop never advanced the node frame, so the scene pass was skipped: 1 draw call and sub-millisecond "frames". Fixed (D-047); a re-run is needed.
 - **Walkable grid:** it differs from the flat-earth terrain by ≤ 3 cm at its W edge (D-035) and is rebuilt at the next nav rebuild.
 
 ## Fixed / verified in session 3 (2026-09-23)
