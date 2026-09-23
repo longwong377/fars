@@ -123,7 +123,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     if (day !== lastDay) { lastDay = day; const doy = doyOf(day);
       ground.setDay(doy); foliage.setDay(doy); flow = { pulvar: riverState('river_pulvar', day), kur: riverState('river_kur', day) }; }
     if (hemi) skyC.copy(hemi.color).multiplyScalar(hemi.intensity);
-    if (scene.fog) horC.copy((scene.fog as THREE.FogExp2).color).multiplyScalar(Math.max(0.05, hemi ? hemi.intensity : 1) * 1.15);
+    if (scene.fog) horC.copy((scene.fog as THREE.FogExp2).color); // the fog colour is the calibrated horizon radiance (D-060)
     rv.update(flow!, { sky: skyC, horizon: horC });
     wind.value = ctx.cond?.windMs ?? 2;
     const cam: THREE.Vector3 = ctx.camera.position;

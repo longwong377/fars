@@ -252,6 +252,7 @@ async function boot() {
   }
   let prev = performance.now();
   let inAnimationLoop = false; // set while three's animation loop (which advances the node frame) calls frame()
+  const viewDir = new THREE.Vector3();
   async function frame(dtOverride?: number, opts: { sim?: boolean; render?: boolean } = {}) {
     const now = performance.now();
     const dt = dtOverride ?? Math.min(0.1, (now - prev) / 1000); prev = now;
@@ -268,10 +269,9 @@ async function boot() {
       // keep the camera ahead of the torso when looking down
       body.position.x += Math.sin(input.yaw) * 0.12; body.position.z += Math.cos(input.yaw) * 0.12;
     }
-    sky.update(clock.jdUT, camera.position, cond.cloud, cond.haze, { ms: cond.windMs, fromDeg: cond.windDirDeg, tSeconds: (clock.t % 7) * 86400 });
+    sky.update(clock.jdUT, camera.position, cond.cloud, cond.haze, { ms: cond.windMs, fromDeg: cond.windDirDeg, tSeconds: (clock.t % 7) * 86400 }, viewDir.set(0, 0, -1).applyEuler(camera.rotation));
     if (P.get('hemi')) sky.hemi.intensity *= +P.get('hemi')!; if (P.has('noshadow')) sky.sun.castShadow = false;
-    const fogCol = new THREE.Color().setRGB(0.62 + 0.1 * (1 - sky.state.daylight), 0.66, 0.74 - 0.08 * (1 - sky.state.daylight)).multiplyScalar(0.03 + 0.97 * sky.twilight); // fog follows skylight (horizon glow at dawn/dusk)
-    if (scene.fog) (scene.fog as THREE.FogExp2).color.copy(fogCol);
+    if (scene.fog) (scene.fog as THREE.FogExp2).color.copy(sky.horizon); // the distance converges to the sky at the horizon (D-060)
     if (scene.fog) (scene.fog as THREE.FogExp2).density = 0.000012 + 0.00012 * cond.haze * cond.haze + 0.004 * cond.mist * Math.max(0, 1 - (camera.position.y - terrain.heightAt(camera.position.x, camera.position.z)) / 40);
     // eye adaptation (C): exposure follows an estimate of the illuminance at the eye — sun + skylight scaled by the visible
     // sky fraction (upward rays against the architecture, every 0.25 s) + moon + nearby fires — with asymmetric time constants

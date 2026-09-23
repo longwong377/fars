@@ -14,7 +14,7 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'rain-columns', day: 2, hour: 14, w: 'rain', v: [-20, 70, 1.6, 161, 4] },
   // §1.1 "rain moving across the plain toward the columns": day 12's rain episode reaches the Terrace at 06:01 from the
   // WSW (245°); at 05:40 its cell is ~6 km out over the plain (WeatherSystem.rainCell); seen from the Apadana W portico
-  { n: 'rain-approach', day: 12, hour: 5.67, w: 'auto', v: [-38, -5, 1.6, 245, 3] },
+  { n: 'rain-approach', day: 241, hour: 13.4, w: 'auto', v: [-38, -5, 1.6, 300, 3] }, // cell 23 km NW over the plain, 1.3 h before the episode (D-060)
   { n: 'apadana-enter', day: 25, hour: 11, w: 'clear', v: [1.9, 36, 1.6, 161, 2] },
   { n: 'reliefs-raking', day: 60, hour: 18.3, w: 'clear', v: [-20, 72, 1.6, 161, 2] },
   { n: 'scribe-at-work', day: 25, hour: 10, w: 'clear', v: [196, -81.8, 1.7, 206, -14] },
