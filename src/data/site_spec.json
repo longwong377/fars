@@ -199,6 +199,19 @@
    "src": "RECON",
    "tier": "C",
    "note": "render-only thickness of the plaster floor coat drawn over hall floors (the attested coat is ~2 cm white + ≤1.5 mm red; flooring-plaster study 2022, search extract); not collidable"
+  },
+  "r_door_frame": {
+   "v": {
+    "jamb": 0.6,
+    "projection": 0.08,
+    "lintel": 0.8,
+    "cornice_height": 0.35,
+    "cornice_projection": 0.12
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "stone door frames: jambs lining the opening, lintel and a projecting cornice block (the cavetto \"Egyptian\" cornice of Persepolis doorways: NOT SEEN, verify). Frames of polished stone are reported for the Tachara (tachara.stone_frames, WP-EXT, C); elsewhere C. In unfinished buildings the frames stand complete above the low walls: stone elements were set before the mud brick (C). Sizes C"
   }
  },
  "terrace": {
@@ -2464,6 +2477,13 @@
    "src": "RECON",
    "tier": "C",
    "note": "small S stair: from the S court edge (s_portico_court) down S to the area E of the Hadish (0); dimensions as the N flights (C, NOT SEEN, verify)"
+  },
+  "r_door_height": {
+   "v": 6.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "doorway height about 2.2 x width (tripylon.doors note; C)"
   }
  },
  "treasury": {

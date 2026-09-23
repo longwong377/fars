@@ -48,3 +48,23 @@ export function wallRing(b: Omit<Base, 'kind'>, cx: number, cy: number, w: numbe
 export function grid(nx: number, ny: number, cx: number, cy: number, sx: number, sy = sx): Pt[] {
   const out: Pt[] = []; for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) out.push([cx + (i - (nx - 1) / 2) * sx, cy + (j - (ny - 1) / 2) * sy]); return out;
 }
+/** stone door frames for the doorways of a wall ring (same side geometry as wallRing): two jambs lining the opening, a
+ *  lintel and a projecting cornice block. `height` is the clear door height (for an opening that runs to the top of an
+ *  unfinished wall, pass the frame height). The wall gap should reach `frameTop(h, F)` so the brick resumes above it. */
+export interface FrameDims { jamb: number; projection: number; lintel: number; cornice_height: number; cornice_projection: number }
+export const frameTop = (h: number, F: FrameDims) => h + F.lintel + F.cornice_height;
+export function doorFrames(b: Omit<Base, 'kind'>, cx: number, cy: number, w: number, h: number, t: number, y0: number,
+  doors: { side: 'N' | 'S' | 'E' | 'W'; at: number; width: number; height: number }[], F: FrameDims, tx = t, ty = t): Box[] {
+  const out: Box[] = [];
+  for (const d of doors) {
+    const horiz = d.side === 'N' || d.side === 'S', th = horiz ? ty : tx;
+    const wc: Pt = { N: [cx, cy + h / 2 + ty / 2], S: [cx, cy - h / 2 - ty / 2], E: [cx + w / 2 + tx / 2, cy], W: [cx - w / 2 - tx / 2, cy] }[d.side] as Pt;
+    const at = (along: number): Pt => horiz ? [wc[0] + along, wc[1]] : [wc[0], wc[1] + along];
+    const sz = (along: number, across: number): [number, number] => horiz ? [along, across] : [across, along];
+    const deep = th + 2 * F.projection;
+    for (const s of [-1, 1]) out.push({ ...b, type: 'box', kind: 'door_frame', c: at(d.at + s * (d.width / 2 + F.jamb / 2)), size: sz(F.jamb, deep), y0, y1: y0 + d.height, solid: true });
+    out.push({ ...b, type: 'box', kind: 'door_frame', c: at(d.at), size: sz(d.width + 2 * F.jamb, deep), y0: y0 + d.height, y1: y0 + d.height + F.lintel, solid: true });
+    out.push({ ...b, type: 'box', kind: 'door_frame', c: at(d.at), size: sz(d.width + 2 * (F.jamb + F.cornice_projection), deep + 2 * F.cornice_projection), y0: y0 + d.height + F.lintel, y1: frameTop(y0 + d.height, F), solid: true });
+  }
+  return out;
+}

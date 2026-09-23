@@ -24,7 +24,7 @@ import { buildReliefs, buildInscriptions, loadInscriptionFonts } from '../arch/d
 import { FireSystem } from './fire';
 import { WeatherVfx } from './weatherVfx';
 import { AudioEngine } from '../audio/engine';
-import { Soundscape } from '../audio/soundscape';
+import { Soundscape, registerRoom } from '../audio/soundscape';
 import { babylonianDate } from '../core/calendar';
 import { QUALITY } from '../core/settings';
 import { v } from '../arch/spec';
@@ -56,6 +56,18 @@ function placeFires(fire: FireSystem, m: any, parts: any[]) {
   if (gar) { const xs = gar.polygon.map((q: any) => q[0]), ys = gar.polygon.map((q: any) => q[1]); const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
     for (const y of [Math.min(...ys) + 30, (Math.min(...ys) + Math.max(...ys)) / 2, Math.max(...ys) - 30]) fire.add('hearth', gw(cx, y, 0.25), { ...C, note: 'garrison hearth (C)' }); }
   if (m.hall100) { fire.add('hearth', gw(125, 16, 0), { ...C, note: 'masons’ work-camp hearth, Hall of 100 Columns site (C)' }); fire.add('oven', gw(130, 18, 0), { ...C, note: 'bread oven for the work gang (C)' }); }
+  // Phase 4 palaces (all C): torches beside the main doorway inside each roofed hall; braziers at the Tachara and Hadish
+  // porticoes; a cooking hearth in the Harem court; torches at the Treasury N doorway (guard post)
+  for (const b of ['tachara', 'hadish', 'harem']) { const r = (m[b] as any)?.room as number[] | undefined; if (!r) continue; const [cx, cy, sx, sy, fl] = r;
+    for (const s of [-1, 1]) for (const face of [-1, 1]) fire.add('torch', gw(cx + s * (sx / 2 - 0.4), cy + face * sy / 4, fl + 2.4), { ...C, note: `torch on the ${b} hall wall (C)` }); }
+  const th = (m.tachara as any)?.room as number[] | undefined; // portico braziers midway between the portico columns (bay = hall width / 3)
+  if (th) for (const s of [-1, 1]) fire.add('brazier', gw(th[0] + s * th[2] / 3, th[1] - th[3] / 2 - v('tachara', 'r_wall') - v('tachara', 'r_portico_gap'), th[4]), { ...C, note: 'brazier in the Tachara portico (C)' });
+  const hd = (m.hadish as any)?.room as number[] | undefined, NC = v<any>('hadish', 'north_court');
+  if (hd) for (const s of [-1, 1]) fire.add('brazier', gw(hd[0] + s * hd[2] / 3, NC.y[0] + 2, hd[4]), { ...C, note: 'brazier in the Hadish N court, before the portico (C)' });
+  const hm = (m.harem as any)?.room as number[] | undefined, HC = v<any>('harem', 'court');
+  if (hm) fire.add('hearth', gw(HC.x[0] + 3, (HC.y[0] + HC.y[1]) / 2, hm[4]), { ...C, note: 'cooking hearth in the Harem court (C)' });
+  const TN = (v<any[]>('treasury', 'doors')).find((d: any) => d.id === 'N');
+  if (m.treasury && TN) for (const s of [-1, 1]) fire.add('torch', gw(TN.at[0] + s * (TN.width / 2 + 0.6), TN.at[1] + 0.3, 2.4), { ...C, note: 'torch at the Treasury N doorway, street side (C)' });
 }
 export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Terrain, settings?: Settings, weather?: WeatherSystem, seed = 1): Promise<WorldBuild> {
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
@@ -89,13 +101,11 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   let lastSubtitle: Subtitle | null = null; speech.onSubtitle = (s: Subtitle) => { lastSubtitle = s; };
   let playerAt: THREE.Vector3 | null = null;
   wvfx.onThunder = (delay, strength) => sound.thunder(delay, strength);
-  // which acoustic space is the listener in (grid footprint tests; C)
-  const a = manifest.apadana as any;
+  // which acoustic space is the listener in: the roofed halls' measured boxes from the generator (manifest `room`)
+  const rooms = Object.entries(manifest).filter(([, m]) => Array.isArray((m as any).room)).map(([id, m]) => { const [cx, cy, sx, sy, fl, h] = (m as any).room as number[]; registerRoom(id, sx, sy, h); return { id, cx, cy, sx, sy, fl, h }; });
   const spaceAt = (x: number, y: number, z: number) => {
     const e = x, n = -z;
-    if (a && Math.abs(e - a.hallCentre[0]) < a.hallInterior / 2 && Math.abs(n - a.hallCentre[1]) < a.hallInterior / 2 && y > a.podium - 0.5) return 'apadana';
-    const g = parts.find((p: any) => p.building === 'gate_nations' && p.kind === 'floor') as any;
-    if (g && Math.abs(e - g.c[0]) < 12.4 && Math.abs(n - g.c[1]) < 12.4) return 'gate';
+    for (const r of rooms) if (Math.abs(e - r.cx) < r.sx / 2 && Math.abs(n - r.cy) < r.sy / 2 && y > r.fl - 0.5 && y < r.fl + r.h) return r.id;
     return 'open';
   };
   const surfaceAt = (y: number, groundY: number) => (y > -1 ? 'stone' : Math.abs(y - groundY) < 0.3 ? 'earth' : 'stone') as 'stone' | 'earth';

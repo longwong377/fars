@@ -13,5 +13,5 @@ test('audio engine runs: context running, reverb space switches between open air
   }
   const st = await page.evaluate(() => (window as any).__parsa.audioState());
   console.log(JSON.stringify({ st, spaces }));
-  expect(st.ctx).toBe('running'); expect(spaces).toEqual(['open', 'gate', 'apadana']); expect(errs).toEqual([]);
+  expect(st.ctx).toBe('running'); expect(spaces).toEqual(['open', 'gate_nations', 'apadana']); expect(errs).toEqual([]);
 });

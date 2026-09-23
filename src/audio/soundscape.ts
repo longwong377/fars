@@ -8,11 +8,15 @@ import { Rng } from '../core/rng';
 
 export const SPACES: Record<string, Space> = {
   open: { id: 'open', volume: 2e6, surface: 1e6, alpha: 0.9 },
-  // Apadana hall: 60.5 m square × ~19.5 m; plaster walls, lime-plaster floor, timber ceiling; hangings/furnishings assumed (ᾱ 0.14, C)
-  apadana: { id: 'apadana', volume: 60.5 * 60.5 * 19.5, surface: 2 * 60.5 * 60.5 + 4 * 60.5 * 19.5, alpha: 0.14 },
-  gate: { id: 'gate', volume: 24.74 * 24.74 * 17, surface: 2 * 24.74 * 24.74 + 4 * 24.74 * 17, alpha: 0.1 },
   portico: { id: 'portico', volume: 60 * 18 * 19, surface: 60 * 18 * 2 + 60 * 19, alpha: 0.5 },
 };
+/** mean absorption per roofed hall (C): plaster walls, lime-plaster floor, timber ceiling; halls in use are assumed to
+ *  carry hangings/furnishings (0.14), the Gate is bare (0.1) */
+export const ROOM_ALPHA: Record<string, number> = { apadana: 0.14, gate_nations: 0.1, tachara: 0.14, hadish: 0.14, harem: 0.18 };
+/** register a roofed room's acoustic space from its measured box (the generator's manifest `room` entries) */
+export function registerRoom(id: string, sx: number, sy: number, h: number) {
+  SPACES[id] = { id, volume: sx * sy * h, surface: 2 * sx * sy + 2 * (sx + sy) * h, alpha: ROOM_ALPHA[id] ?? 0.14 };
+}
 
 type Bird = { id: string; months: number[]; hours: [number, number][]; call: (e: AudioEngine, out: AudioNode, t: number, r: Rng) => void; rate: number; tier: string };
 const chirp = (e: AudioEngine, out: AudioNode, t: number, f0: number, f1: number, dur: number, gain: number) => {
@@ -92,7 +96,7 @@ export class Soundscape {
     const e = this.e; if (!e.ctx || e.ctx.state !== 'running') return; if (!this.started) this.start();
     const c = e.ctx, t = c.currentTime;
     const sp = SPACES[ctx.insideSpace] ?? SPACES.open; e.setSpace(sp, ctx.insideSpace === 'open' ? 0.05 : 0.35);
-    const inside = ctx.insideSpace === 'apadana' || ctx.insideSpace === 'gate';
+    const inside = ctx.insideSpace !== 'open' && ctx.insideSpace !== 'portico';
     this.windGain!.gain.setTargetAtTime(Math.min(0.5, 0.03 + ctx.windMs * 0.04) * (inside ? 0.25 : 1), t, 0.5);
     this.windFilter!.frequency.setTargetAtTime(250 + ctx.windMs * 120, t, 0.5);
     this.whistleGain!.gain.setTargetAtTime(ctx.nearColumns ? Math.min(0.08, Math.max(0, ctx.windMs - 3) * 0.015) : 0, t, 0.8);

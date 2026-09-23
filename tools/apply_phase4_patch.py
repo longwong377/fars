@@ -38,6 +38,8 @@ if 'thickness' not in fr['note']: fr['note'] += '; band thickness 0.06 and offse
 gd = spec['garrison']['r_doors']
 if gd['v'][0]['at'] == [183.27, 22.5]:
     gd['v'][0]['at'] = [183.27, 32.0]; gd['note'] += '; W door moved from y 22.5 to 32 in Phase 4: the Hall of 100 Columns portico and its E anta tower (REF-PLAN) now occupy y 8.3..27 there (C)'
+spec['global']['r_door_frame'] = R({'jamb': 0.6, 'projection': 0.08, 'lintel': 0.8, 'cornice_height': 0.35, 'cornice_projection': 0.12}, 'm', 'stone door frames: jambs lining the opening, lintel and a projecting cornice block (the cavetto "Egyptian" cornice of Persepolis doorways: NOT SEEN, verify). Frames of polished stone are reported for the Tachara (tachara.stone_frames, WP-EXT, C); elsewhere C. In unfinished buildings the frames stand complete above the low walls: stone elements were set before the mud brick (C). Sizes C')
+spec['tripylon']['r_door_height'] = R(6.0, 'm', 'doorway height about 2.2 x width (tripylon.doors note; C)')
 spec['harem']['r_door_height'] = R(4.0, 'm', 'main hall doorway height, about 2/3 of the 6 m columns (C, NOT SEEN, verify)')
 spec['harem']['r_entrance_width'] = R(2.4, 'm', 'width of the enclosure entrances (r_entrances), as the hall N door (C)')
 if 'SUPERSEDED' not in spec['treasury']['r_doors']['note']: spec['treasury']['r_doors']['note'] += ' [SUPERSEDED in Phase 4 by doors (REF-PLAN): this point lies in the street N of the Treasury]'

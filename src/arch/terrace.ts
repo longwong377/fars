@@ -2,7 +2,7 @@
 // DERIVED rows, or `r_*` reconstruction rows (tier C, with a note each) — no literals (brief §3.1, §7; review MJ-1).
 // Positions come from the georeferenced OSM footprints. Output: parts + a manifest of measured features.
 import { row, v, tierOf, srcOf, present, footprint } from './spec';
-import { Part, Pt, Box, Prism, Column, Manifest, wallRing, grid, BuildResult, Material } from './parts';
+import { Part, Pt, Box, Prism, Column, Manifest, wallRing, grid, BuildResult, Material, doorFrames, frameTop, FrameDims } from './parts';
 import { order } from './orders';
 import { Rng } from '../core/rng';
 import { polyDifference, polyUnion, polyIntersection, rectPoly, single } from './poly';
@@ -52,6 +52,15 @@ function flightAlong(b: string, t: Tier, s: string, start: Pt, u: Pt, steps: num
   const out: Box[] = []; const rot = Math.atan2(u[1], u[0]);
   for (let i = 0; i < steps; i++) { const a = (i + 0.5) * tread; out.push({ ...box(b, 'step', 'limestone', t, s, [start[0] + u[0] * a, start[1] + u[1] * a], [tread, width], base, y0 + (i + 1) * riser, { solid: true }), rot }); }
   return out;
+}
+type Door = { side: 'N' | 'S' | 'E' | 'W'; at: number; width: number; height: number };
+/** stone-framed doorways (global.r_door_frame): the frame parts, and the wall gaps widened up to the frame top so the brick
+ *  resumes above the cornice; an opening that runs to the top of an unfinished wall gets a frame of `frameHeight` */
+function framed(b: string, cx: number, cy: number, w: number, h: number, th: number, y0: number, doors: Door[], frameHeight: number, tx = th, ty = th) {
+  const F = v<FrameDims>('global', 'r_door_frame');
+  const fd = doors.map(d => ({ ...d, height: Number.isFinite(d.height) ? d.height : frameHeight }));
+  const frames = doorFrames({ building: b, material: 'limestone_dark', tier: T_('global', 'r_door_frame'), src: S_('global', 'r_door_frame') }, cx, cy, w, h, th, y0, fd, F, tx, ty);
+  return { wallDoors: doors.map(d => (Number.isFinite(d.height) ? { ...d, height: frameTop(d.height, F) } : d)), frames };
 }
 /** red lime-plaster floor finish over a hall interior (global.interior_floor; attested for the Tachara and Treasury, B;
  *  extended to the other halls, C) */
@@ -181,7 +190,7 @@ export function buildTerrace(): BuildResult {
       parts.push(box(b, 'colossus', 'limestone', 'C', 'RECON', pc, [K.length, K.width], fl + pl, fl + pl + K.height,
         { placeholder: true, solid: true, note: `${side === 'W' ? 'bull' : 'human-headed winged bull'} colossus (IR-PERS B for the type; block PLACEHOLDER)` }));
     }
-    manifest.gate_nations = { hallInteriorX: hs, hallInteriorY: hs, columns: nx * ny, columnHeight: ord.height, wallTx: tx, wallTy: ty, doors: doors.length, doorHeight: dh };
+    manifest.gate_nations = { room: [c[0], c[1], hs, hs, fl, roofY - fl], hallInteriorX: hs, hallInteriorY: hs, columns: nx * ny, columnHeight: ord.height, wallTx: tx, wallTy: ty, doors: doors.length, doorHeight: dh };
   }
 
   // ---------------- Apadana ----------------
@@ -192,8 +201,8 @@ export function buildTerrace(): BuildResult {
     const s = srcOf(row(b, 'podium_height'), row(b, 'hall_side'));
     parts.push(prism(b, 'platform', 'limestone', 'B', srcOf(row(b, 'platform_footprint'), row(b, 'podium_height')), poly, FOUND, pod, { solid: true }));
     const D = v<any>(b, 'r_door');
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'wall_thickness'), row(b, 'wall_height')) }, cx, cy, hs, hs, wt, pod, pod + v(b, 'wall_height'),
-      (['N', 'W', 'E', 'S'] as const).map(side => ({ side, at: 0, width: D.width, height: D.height }))).map(w => ({ ...w, solid: true })));
+    const AD = framed(b, cx, cy, hs, hs, wt, pod, (['N', 'W', 'E', 'S'] as const).map(side => ({ side, at: 0, width: D.width, height: D.height })), D.height);
+    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'wall_thickness'), row(b, 'wall_height')) }, cx, cy, hs, hs, wt, pod, pod + v(b, 'wall_height'), AD.wallDoors).map(w => ({ ...w, solid: true })), ...AD.frames);
     parts.push(box(b, 'floor_finish', v<string>('global', 'interior_floor') as Material, T_('global', 'interior_floor'), S_('global', 'interior_floor'), [cx, cy], [hs, hs], pod, pod + v('global', 'r_floor_finish'), { solid: false }));
     const hallOrd = order(b, { base: 'square2', capital: 'bull' }), porOrd = order(b, { base: 'bell', capital: 'bull' });
     const [hnx, hny] = v<number[]>(b, 'hall_columns');
@@ -263,7 +272,7 @@ export function buildTerrace(): BuildResult {
         }
       }
     }
-    manifest.apadana = { hallColumns: hallCols.length, porticoColumns: porticoCols.length, columnHeight: hallOrd.height, interaxial: ia, hallInterior: hs, podium: pod, wallThickness: wt, stairLength: sl, nStairEdge: N.edge, eStairEdge: E.edge, stairWidth: stW, hallCentre: [cx, cy] as any, stairSpans: spans as any, stairRiser: sr, stairTread: stTr, parapet: php };
+    manifest.apadana = { room: [cx, cy, hs, hs, pod, H], hallColumns: hallCols.length, porticoColumns: porticoCols.length, columnHeight: hallOrd.height, interaxial: ia, hallInterior: hs, podium: pod, wallThickness: wt, stairLength: sl, nStairEdge: N.edge, eStairEdge: E.edge, stairWidth: stW, hallCentre: [cx, cy] as any, stairSpans: spans as any, stairRiser: sr, stairTread: stTr, parapet: php };
   }
 
   // ---------------- Tachara ----------------
@@ -279,8 +288,8 @@ export function buildTerrace(): BuildResult {
     const hc: Pt = [bc[0], v(b, 'r_hall_centre_y')]; const wt = v(b, 'r_wall');
     const ord = order(b, { base: 'square2', capital: 'bull' });
     const DR = v<any[]>(b, 'doors'); const dS = DR.find(d => d.id === 'S_main'), dN = DR.find(d => d.id === 'N_pair');
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'doors'), row(b, 'r_hall_centre_y')) }, hc[0], hc[1], hx, hy, wt, fl, fl + ord.height + v(b, 'r_wall_above_columns'),
-      [{ side: 'S', at: dS.at[0] - hc[0], width: dS.width, height: dS.height }, ...dN.offsets_x.map((o: number) => ({ side: 'N' as const, at: o, width: dN.width, height: dN.height }))]).map(w => ({ ...w, solid: true })));
+    const TD = framed(b, hc[0], hc[1], hx, hy, wt, fl, [{ side: 'S', at: dS.at[0] - hc[0], width: dS.width, height: dS.height }, ...dN.offsets_x.map((o: number) => ({ side: 'N' as const, at: o, width: dN.width, height: dN.height }))], dS.height);
+    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'doors'), row(b, 'r_hall_centre_y')) }, hc[0], hc[1], hx, hy, wt, fl, fl + ord.height + v(b, 'r_wall_above_columns'), TD.wallDoors).map(w => ({ ...w, solid: true })), ...TD.frames);
     const cols = grid(ncx, ncy, hc[0], hc[1], hx / ncx, hy / ncy);
     for (const p of cols) parts.push(col(b, p, fl, ord, 'C', srcOf(row(b, 'hall_columns'), row(b, 'hall_size'))));
     parts.push(floorFinish(b, hc, hx, hy, fl, true));
@@ -299,7 +308,7 @@ export function buildTerrace(): BuildResult {
         parts.push(...flightParapet(b, SPt, SPs, F, sideOf(F, [F.foot[0], Z.y_facade - 1]), SP.thickness, SP.height, 0, FOUND)); // outer (S) side
       }
     }
-    manifest.tachara = { hallColumns: cols.length, porticoColumns: pcols.length, floor: fl, stairSteps, hallCentreY: hc[1] };
+    manifest.tachara = { room: [hc[0], hc[1], hx, hy, fl, ord.height], hallColumns: cols.length, porticoColumns: pcols.length, floor: fl, stairSteps, hallCentreY: hc[1] };
   }
 
   // ---------------- Hadish ----------------
@@ -317,7 +326,8 @@ export function buildTerrace(): BuildResult {
     const DR = v<any[]>(b, 'doors'), ds = srcOf(row(b, 'doors'), row(b, 'hall'));
     const doors = DR.flatMap((d: any) => d.offsets_x_from_22 ? d.offsets_x_from_22.map((o: number) => ({ side: 'N' as const, at: o, width: d.width, height: d.height })) // offsets from the hall axis (x 22 = hall centre)
       : [{ side: d.id as 'S' | 'E' | 'W', at: d.id === 'S' ? d.at[0] - hc[0] : d.at[1] - hc[1], width: d.width, height: d.height }]);
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: ds }, hc[0], hc[1], hsx, hsy, wt, fl, fl + ord.height + v(b, 'r_wall_above_columns'), doors).map(w => ({ ...w, solid: true })));
+    const HD = framed(b, hc[0], hc[1], hsx, hsy, wt, fl, doors, doors[0].height);
+    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: ds }, hc[0], hc[1], hsx, hsy, wt, fl, fl + ord.height + v(b, 'r_wall_above_columns'), HD.wallDoors).map(w => ({ ...w, solid: true })), ...HD.frames);
     const cols = grid(hnx, hny, hc[0], hc[1], ia);
     for (const p of cols) parts.push(col(b, p, fl, ord, T_(b, 'hall'), srcOf(row(b, 'hall_columns'), row(b, 'hall'))));
     parts.push(floorFinish(b, hc, hsx, hsy, fl, false));
@@ -354,7 +364,7 @@ export function buildTerrace(): BuildResult {
         parts.push(...flightParapet(b, SPt, SPs, q, side, gap, SP.height, 0, FOUND)); // lane divider, flush with the upper flight
       }
     }
-    manifest.hadish = { hallColumns: cols.length, porticoColumns: pcols.length, floor: fl, hallInterior: hsx, stairSteps };
+    manifest.hadish = { room: [hc[0], hc[1], hsx, hsy, fl, ord.height], hallColumns: cols.length, porticoColumns: pcols.length, floor: fl, hallInterior: hsx, stairSteps };
     void y0; void y1;
   }
 
@@ -371,7 +381,8 @@ export function buildTerrace(): BuildResult {
     // a third of their height, below the door heads, so the openings run to the wall top.
     const DR = v<any[]>(b, 'doors');
     const doors = DR.map((d: any) => { const side = d.wall as 'N' | 'S' | 'E' | 'W'; return { side, at: side === 'N' || side === 'S' ? d.at[0] - c[0] : d.at[1] - c[1], width: d.width, height: Infinity }; });
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'doors'), row(b, 'construction_state')) }, c[0], c[1], hs, hs, 0, fl, fl + wallH, doors, tx, ty).map(w => ({ ...w, solid: true, note: 'under construction: walls at ~1/3 height' })));
+    const CD = framed(b, c[0], c[1], hs, hs, 0, fl, doors, v(b, 'r_door_height'), tx, ty); // frames set before the brick (C)
+    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'doors'), row(b, 'construction_state')) }, c[0], c[1], hs, hs, 0, fl, fl + wallH, CD.wallDoors, tx, ty).map(w => ({ ...w, solid: true, note: 'under construction: walls at ~1/3 height' })), ...CD.frames);
     let raised = 0; const [nx, ny] = v<number[]>(b, 'hall_columns'); const pts = grid(nx, ny, c[0], c[1], ia);
     for (const p of pts) { const u = rng.next(); const built = u < CP.raised ? 1 : u < CP.raised + CP.partial ? CP.partial_min + CP.partial_span * rng.next() : 0; if (built === 1) raised++; parts.push(col(b, p, fl, ord, 'C', srcOf(row(b, 'construction_state'), row(b, 'interaxial')), built)); }
     // N portico: floor between the antae towers out to the portico front (y ~27, REF-PLAN), a low step band down to the
@@ -409,7 +420,8 @@ export function buildTerrace(): BuildResult {
     const H = v<any>(b, 'hall'), c = H.centre as Pt, hall = H.side; const ord = order(b, { base: 'bell', capital: 'bull' });
     const DR = v<any[]>(b, 'doors');
     const doors = DR.map((d: any) => ({ side: d.id as 'N' | 'E' | 'S', at: d.id === 'E' ? d.at[1] - c[1] : d.at[0] - c[0], width: d.width, height: Infinity }));
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'hall'), row(b, 'doors')) }, c[0], c[1], hall, hall, v(b, 'r_wall'), fl, fl + ord.height * v(b, 'r_wall_fraction_built'), doors).map(w => ({ ...w, solid: true, note: 'under construction' })));
+    const PD = framed(b, c[0], c[1], hall, hall, v(b, 'r_wall'), fl, doors, v(b, 'r_door_height'));
+    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'hall'), row(b, 'doors')) }, c[0], c[1], hall, hall, v(b, 'r_wall'), fl, fl + ord.height * v(b, 'r_wall_fraction_built'), PD.wallDoors).map(w => ({ ...w, solid: true, note: 'under construction' })), ...PD.frames);
     const [nx, ny] = v<number[]>(b, 'hall_columns'); const built = v(b, 'r_column_built');
     for (const p of grid(nx, ny, c[0], c[1], v(b, 'r_interaxial'))) parts.push(col(b, p, fl, ord, 'C', 'RECON', built));
     parts.push(floorFinish(b, c, hall, hall, fl, false));
@@ -488,7 +500,8 @@ export function buildTerrace(): BuildResult {
     const ord = order(b, { base: 'bell', capital: 'bull' }); const ia = v(b, 'r_interaxial');
     const DR = v<any[]>(b, 'doors');
     const doors = DR.map((d: any) => ({ side: d.id as 'N' | 'S' | 'E' | 'W', at: d.id === 'N' || d.id === 'S' ? d.at[0] - hc[0] : d.at[1] - hc[1], width: d.width, height: v(b, 'r_door_height') }));
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'hall'), row(b, 'doors')) }, hc[0], hc[1], hx, hy, v(b, 'r_hall_wall'), fl, fl + W.height, doors).map(w => ({ ...w, solid: true })));
+    const RD = framed(b, hc[0], hc[1], hx, hy, v(b, 'r_hall_wall'), fl, doors, v(b, 'r_door_height'));
+    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'hall'), row(b, 'doors')) }, hc[0], hc[1], hx, hy, v(b, 'r_hall_wall'), fl, fl + W.height, RD.wallDoors).map(w => ({ ...w, solid: true })), ...RD.frames);
     const [hnx, hny] = v<number[]>(b, 'hall_columns'), [pnx] = v<number[]>(b, 'portico');
     const hall = grid(hnx, hny, hc[0], hc[1], ia); for (const p of hall) parts.push(col(b, p, fl, ord, T_(b, 'hall'), srcOf(row(b, 'hall_columns'), row(b, 'hall'))));
     parts.push(floorFinish(b, hc, hx, hy, fl, false));
@@ -497,7 +510,7 @@ export function buildTerrace(): BuildResult {
     for (const p of por) parts.push(col(b, p, fl, ord, 'C', srcOf(row(b, 'portico'), row(b, 'portico_layout'))));
     const hw = v(b, 'r_hall_wall');
     parts.push(box(b, 'roof', 'timber', 'C', 'RECON', [hc[0], (hc[1] - hy / 2 - hw + PL.front_y) / 2], [hx + 2 * hw, PL.front_y - (hc[1] - hy / 2 - hw)], fl + ord.height, fl + ord.height + hw / 2, { note: 'roof over the main hall and portico (C)' }));
-    manifest.harem = { hallColumns: hall.length, porticoColumns: por.length, northEdge: Math.max(...poly.map(q => q[1])) };
+    manifest.harem = { room: [hc[0], hc[1], hx, hy, fl, ord.height], hallColumns: hall.length, porticoColumns: por.length, northEdge: Math.max(...poly.map(q => q[1])) };
   }
   if (present('garrison')) { const W = v<any>('garrison', 'r_wall'); perimeter('garrison', fpRing('garrison'), v('garrison', 'floor') + v('garrison', 'r_floor_raise'), W.thickness, W.height, 'garrison quarters (C)', v<any>('garrison', 'r_doors')); }
 
