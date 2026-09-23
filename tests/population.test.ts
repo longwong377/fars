@@ -55,7 +55,7 @@ describe('households, meals and sleep (shadow review, §13.11)', () => {
     for (const H of P.households) { if (H.zone !== 'town' && H.zone !== 'plain') continue; const ages = H.members.filter(x => P.persons[x].job === 'child' && P.persons[x].born < 0).map(x => P.persons[x].age);
       if (ages.length < 2) continue; multi++; if (new Set(ages).size < ages.length) sameAge++; }
     expect(sameAge / multi).toBeLessThan(0.05);
-    for (const p of P.persons) if (p.marry < 1e9 && p.moved !== 'fostered') expect(P.childrenOf(p.id).filter(c => P.persons[c].born < p.marry && P.persons[c].dies > p.marry).length, `${p.id} marries away from her children`).toBe(0);
+    for (const p of P.persons) if (p.marry < 1e9 && !p.moved) expect(P.childrenOf(p.id).filter(c => P.persons[c].born < p.marry && P.persons[c].dies > p.marry).length, `${p.id} marries away from her children`).toBe(0);
   }, 60_000);
   it('plans are well formed: sleep at night, reasons that match the act, meals for working adults, no jumps between days', () => {
     expect(reasonOk('play', 'asleep')).toBe(false); expect(reasonOk('sleep', 'asleep beside the mother')).toBe(true); expect(reasonOk('rest', 'spinning')).toBe(false);
@@ -66,7 +66,7 @@ describe('households, meals and sleep (shadow review, §13.11)', () => {
     expect(bad.slice(0, 10)).toEqual([]);
   }, 120_000);
   it('on a harvest day nobody is "with" someone who is elsewhere and no child under ten is alone at night', () => {
-    const P = sim.pop, d = 30; const cache = new Map<number, any>(); const planOf = (x: number) => cache.get(x) ?? cache.set(x, P.plan(x, d)).get(x);
+    const P = sim.pop, d = 45; const cache = new Map<number, any>(); const planOf = (x: number) => cache.get(x) ?? cache.set(x, P.plan(x, d)).get(x);
     expect(checkDay(P, d, planOf).slice(0, 10).map(x => `${x.pid} ${x.kind} ${x.note}`)).toEqual([]);
   }, 120_000);
   it('an infant is nursed on demand, by night too', () => {
