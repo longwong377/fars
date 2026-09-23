@@ -85,12 +85,14 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   // lazy colliders near the player: village boxes, river corridor trimeshes, tree trunks
   const villageColl = new Map<string, any[]>(), riverColl = new Map<number, any>();
   let trunkColl: any[] = [], lastTrunk = new THREE.Vector3(1e9, 0, 1e9);
-  const syncColliders = (p: { x: number; y: number; z: number }) => {
+  /** colliders exist around the player and around the camera (a free test camera places itself on what it can hit) */
+  const syncColliders = (p: { x: number; y: number; z: number }, c: { x: number; y: number; z: number }) => {
     if (!phys) return;
-    for (const v of villages) { const d = Math.hypot(v.x - p.x, v.y + p.z) - v.r, has = villageColl.has(v.id);
+    const dist = (x: number, z: number) => Math.min(Math.hypot(x - p.x, z - p.z), Math.hypot(x - c.x, z - c.z));
+    for (const v of villages) { const d = dist(v.x, -v.y) - v.r, has = villageColl.has(v.id);
       if (d < 500 && !has) villageColl.set(v.id, (vb.boxes.get(v.id) ?? []).filter((b: Box) => !b.door).map((b: Box) => phys.addBox(new THREE.Vector3(b.cx, b.cy, b.cz), new THREE.Vector3(b.hx, b.hy, b.hz), b.rot)));
       else if (d > 800 && has) { for (const c of villageColl.get(v.id)!) phys.world.removeCollider(c, false); villageColl.delete(v.id); } }
-    rv.segments.forEach((s, i) => { const d = Math.hypot(s.cx - p.x, s.cy + p.z), has = riverColl.has(i);
+    rv.segments.forEach((s, i) => { const d = dist(s.cx, -s.cy), has = riverColl.has(i);
       if (d < 600 && !has) riverColl.set(i, phys.addTrimesh(s.pos, s.idx, { tier: 'C', what: 'river corridor' }));
       else if (d > 900 && has) { phys.world.removeCollider(riverColl.get(i), false); riverColl.delete(i); } });
   };
@@ -132,7 +134,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const c of vb.cells) c.mesh.castShadow = c.centres.some(([x, z]) => Math.hypot(x - cam.x, z - cam.z) < 900);
     const nrNear = Math.hypot(600 - cam.x, -6124 - cam.z) < 1200; nr.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = nrNear; });
     const qNear = qb.sites.some(s => Math.hypot(s.x - cam.x, -s.y - cam.z) < 900); qb.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = qNear; });
-    const pp = ctx.player?.position ?? cam; syncColliders(pp); syncTrunks(pp);
+    const pp = ctx.player?.position ?? cam; syncColliders(pp, cam); syncTrunks(pp);
     void dt;
   };
   const stats = () => ({ canals: canals.length, villages: villages.length, compounds: vb.compounds, villageTris: vb.tris, riverTris: rv.stats().tris, lineTrees: lineTrees.length, orchardPlots: plots.length,

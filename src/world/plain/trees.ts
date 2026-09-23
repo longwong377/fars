@@ -136,13 +136,19 @@ function woodGeometry(): THREE.BufferGeometry {
   return mergeGeometries(parts)!;
 }
 function crownGeometry(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = []; const rng = new Rng(7, 'crown');
+  const parts: THREE.BufferGeometry[] = [];
   const blobs = [[0, 0.7, 0, 0.62], [0.26, 0.6, 0.12, 0.46], [-0.2, 0.64, -0.2, 0.47]];
-  for (const [x, y, z, r] of blobs) {
+  for (const [bi, [x, y, z, r]] of blobs.entries()) {
     const g = new THREE.IcosahedronGeometry(1, 1); g.deleteAttribute('uv');
-    const p = g.getAttribute('position') as THREE.BufferAttribute; const c = new Float32Array(p.count * 3);
-    for (let i = 0; i < p.count; i++) { const k = 0.82 + 0.3 * rng.next(); p.setXYZ(i, x + p.getX(i) * r * k, y + p.getY(i) * r * k * 0.8, z + p.getZ(i) * r * k); c.set([x, y, z], i * 3); }
-    g.setAttribute('blob', new THREE.BufferAttribute(c, 3)); g.computeVertexNormals(); parts.push(g);
+    const p = g.getAttribute('position') as THREE.BufferAttribute, nrm = g.getAttribute('normal') as THREE.BufferAttribute; const c = new Float32Array(p.count * 3);
+    for (let i = 0; i < p.count; i++) {
+      const dx = p.getX(i), dy = p.getY(i), dz = p.getZ(i);
+      // lumpy but closed: the radius is a smooth function of direction (shared corners move together; the geometry is non-indexed)
+      const k = 0.9 + 0.1 * Math.sin(3.1 * dx + 1.7 * dz + bi) + 0.06 * Math.sin(5.3 * dy - 2.2 * dx + 2 * bi);
+      p.setXYZ(i, x + dx * r * k, y + dy * r * k * 0.8, z + dz * r * k); c.set([x, y, z], i * 3);
+      nrm.setXYZ(i, dx, dy, dz); // soft, rounded shading (radial normals) instead of facets
+    }
+    g.setAttribute('blob', new THREE.BufferAttribute(c, 3)); parts.push(g);
   }
   return mergeGeometries(parts)!;
 }

@@ -33,6 +33,9 @@ test('plain', async ({ page }, info) => {
     await page.waitForFunction(() => (window as any).__parsa?.ready === true || (window as any).__parsa?.error, null, { timeout: 900_000 });
     const err = await page.evaluate(() => (window as any).__parsa.error); if (err) throw new Error(err);
     await page.evaluate(v => (window as any).__parsa.view(...v), s.v);
+    // one frame lets the plain build its lazy colliders around the camera (river corridor, village, trees); view again so
+    // the eye stands on what is drawn (the heightfield alone is carved lower under the river corridor)
+    await page.evaluate(() => (window as any).__parsa.renderOnce()); await page.evaluate(v => (window as any).__parsa.view(...v), s.v);
     for (let i = 0; i < (Q === 'test' ? 6 : 3); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
     const png = await page.screenshot({ path: `shots/plain-${s.n}-${Q}-${info.project.name}.png` });
     const withPlain = await page.evaluate(() => { const p = (window as any).__parsa; const st = p.stats(); return { drawCalls: st.drawCalls, triangles: st.triangles, terrainTris: st.terrain.tris, backend: st.backend, plain: p.world.plain?.stats() }; });
