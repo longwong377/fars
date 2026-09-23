@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three/webgpu';
-import { logTviCones, logTviRods, keyValue, adaptationBrightness, adaptingLuminance, skyGain, exposureTarget, KEY, X_MAX, LA_ABSOLUTE, FIRE_GAIN, displayedGrey } from '../src/sky/exposure';
+import { logTviCones, logTviRods, keyValue, adaptationBrightness, adaptingLuminance, skyGain, exposureTarget, interiorExposureTarget, adaptExposure, KEY, X_MAX, LA_ABSOLUTE, FIRE_GAIN, displayedGrey } from '../src/sky/exposure';
 import { skyLux, sunHorizontalLux, NIGHT_LUX } from '../src/sky/illuminance';
 import { SkySystem } from '../src/sky/skySystem';
 import { WorldClock } from '../src/core/clock';
@@ -85,5 +85,41 @@ describe('dawn, dusk and night do not look like noon (exposure on the SkySystem 
     const moonless = shown(1, 3.5), moonlit = shown(5, 22.5); // day 5 22:30: a 46 % moon 27° up
     expect(moonlit.b).toBeGreaterThan(2 * moonless.b);
     expect(moonlit.b).toBeGreaterThan(0.02);
+  });
+});
+
+// D-141: inside the light-probe volumes the eye adapts to the interior's own light (the halls were black: B10, Q-153)
+describe('interior adaptation (probe volumes)', () => {
+  const sky = new SkySystem(new THREE.Scene(), 256, 'test');
+  const at = (day: number, hour: number) => {
+    sky.update(new WorldClock(day, hour).jdUT, new THREE.Vector3(), 0.05, 0.25, { ms: 2, fromDeg: 270, tSeconds: 0 }, new THREE.Vector3(1, 0, 0));
+    const sinA = Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180));
+    return { sunE: sky.sun.visible ? sky.sun.intensity * sinA : 0, skyE: sky.hemi.intensity * 0.8, moonE: sky.moonLight.intensity * 0.3, lux: sky.lux, skyLux: sky.skyLux };
+  };
+  /** displayed grey inside, relative to KEY: exposure × the interior's light at the eye (v × outdoor) */
+  const inside = (L: ReturnType<typeof at>, v: number, fireE = 0) => { const X = interiorExposureTarget(L.sunE, L.skyE, L.moonE, fireE, v, L.lux, L.skyLux); return { X, b: (X * (v * (L.sunE + L.skyE + L.moonE) + fireE)) / KEY }; };
+  it('open ground (v = 1) is exposed as outdoors', () => {
+    const L = at(0, 12.5); expect(inside(L, 1).X).toBeCloseTo(exposureTarget(L.sunE, L.skyE, 1, L.moonE, 0), 4);
+  });
+  it('a hall at 1 % of the noon light is dim but readable; at 0.01 % dimmer still; never brighter than outdoors', () => {
+    const L = at(25, 12);
+    const h1 = inside(L, 0.01), h01 = inside(L, 0.001), h001 = inside(L, 0.0001);
+    expect(h1.b).toBeGreaterThan(0.6); expect(h1.b).toBeLessThan(0.85);
+    expect(h01.b).toBeLessThan(h1.b); expect(h001.b).toBeLessThan(h01.b);
+    expect(h001.b).toBeGreaterThan(0.05); // ~12 lx: very dim, not black
+    for (const r of [h1, h01, h001]) expect(r.b).toBeLessThanOrEqual(1 + 1e-9);
+    expect(h1.X).toBeGreaterThan(X_MAX); // beyond the session-3 cap that kept the halls black
+  });
+  it('at night a hall without fire stays black (no adaptation below the absolute threshold); a torch-lit hall is exposed as before', () => {
+    const L = at(1, 3.5), out = inside(L, 1), hall = inside(L, 0.01);
+    expect(hall.b).toBeLessThan(out.b * 0.02);
+    const torch = inside(L, 0.01, 0.3); expect(torch.X).toBeLessThanOrEqual(X_MAX + 1e-9);
+    // exactly the session-3 law for the same torch-lit view (the fire dominates, the cap holds)
+    expect(torch.X).toBeCloseTo(exposureTarget(L.sunE, L.skyE, 0.01, L.moonE, 0.3, 1), 2);
+  });
+  it('adaptation runs in stops: dark adaptation slower than light adaptation', () => {
+    const up = adaptExposure(0.6, 60, 1), down = adaptExposure(60, 0.6, 1);
+    expect(Math.log(up / 0.6)).toBeLessThan(Math.log(60 / down)); // after 1 s the eye has closed further than it has opened
+    expect(adaptExposure(0.6, 60, 60)).toBeCloseTo(60, 1);
   });
 });

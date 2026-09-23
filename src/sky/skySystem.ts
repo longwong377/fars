@@ -55,6 +55,8 @@ export class SkySystem {
   gain = 1;
   /** illuminance on the ground in lux (sun + sky + moon + night sky), clear-sky model with the cloud factors (D-115) */
   lux = 0;
+  /** its diffuse part in lux (sky, moonlit sky, night sky), for the interior adaptation (D-141) */
+  skyLux = 0;
   /** scale on the fires’ cast light (1 at night; ~4e-4 at dawn, −2.9°): their values are pre-exposed for night (exposure.ts) */
   fireScale = 1;
   private coverAt: [number, number] | null = null; private coverFactor = 1;
@@ -216,7 +218,7 @@ export class SkySystem {
     const ml = moonLux(elongationFromFraction(ph.fraction), mo.altitude);
     const moonN = ml.normal * (1 - 0.8 * cloudCover);
     const skyL = (skyLux(alt) + ml.sky + NIGHT_LUX) * (1 - 0.3 * cloudCover);
-    this.lux = sunN * sinA + skyL + moonN * sinM;
+    this.lux = sunN * sinA + skyL + moonN * sinM; this.skyLux = skyL;
     const sunI = sunN * REN_PER_LUX_SUN, hemiI = skyL * REN_PER_LUX_SKY, moonI = moonN * REN_PER_LUX_SUN;
     this.gain = skyGain(sunI * sinA + hemiI * 0.8 + moonI * 0.3, this.lux, skyL); // the exposure estimate's weights (main.ts)
     const G = this.gain; this.fireScale = fireLightScale(G);

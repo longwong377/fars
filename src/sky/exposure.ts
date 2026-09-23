@@ -93,6 +93,38 @@ export function exposureTarget(sunE: number, skyE: number, skyVis: number, moonE
   return Math.min(cap, Math.max(X_MIN, KEY / E));
 }
 
+/** Interior adaptation (session 4, D-141; brief §1.1 "the moment the Apadana's columns close overhead and the light
+ *  drops", §8 "the hypostyle halls are dim, lit from doors, windows and porticoes"). The session-3 law weighted the sky by
+ *  0.15 + 0.85 · visibility and capped the camera at X_MAX, so no interior could be exposed more than ~7× the outdoor
+ *  value, while the light probes put the roofed halls at 0.005–1 % of open ground: they rendered black (B10, Q-153).
+ *  Here the eye adapts to the interior's own light, with the same adaptation model as outdoors: a grey inside is shown at
+ *  KEY · displayedGrey(v · lux) (Krawczyk's key at the interior's adapting luminance, and below the rods' absolute
+ *  threshold in proportion to the light). With `Xout` the exposure the same sky gives outdoors (session-3 law, vis 1, no
+ *  fire) that is
+ *      X_sky = Xout · [displayedGrey(v · lux) / displayedGrey(lux)] / v
+ *  so a hall at 1 % of the noon light is shown at ~0.74 of the daylight grey (dim, readable), at 0.01 % at ~0.2, and at
+ *  night, below the absolute threshold, exactly v times the outdoor grey (black without fire). Fires add to what the eye
+ *  adapts to: X = min(X_sky, KEY / (v · E_sky + fireE)). `v` is the probes' eye illuminance relative to open, sunlit ground
+ *  (runtime.ts, D-113), which already counts the light through the openings and its bounces. Tier C (the model and its
+ *  use are C; the key and threshold data are B, as above). */
+export function interiorExposureTarget(sunE: number, skyE: number, moonE: number, fireE: number, v: number, lux: number, skyLux: number): number {
+  const Xout = Math.min(X_MAX, Math.max(X_MIN, KEY / (sunE + skyE + moonE + 0.004)));
+  const vv = Math.min(1, Math.max(v, 1e-7));
+  const A = displayedGrey(vv * lux, vv * skyLux) / Math.max(displayedGrey(lux, skyLux), 1e-12);
+  const Xsky = (Xout * A) / vv;
+  // the eye opens no further than the interior's sky light allows (Xsky), and a fire's light closes it as the session-3
+  // law does: KEY over the light actually at the eye (at night Xsky ≈ X_MAX, so a torch-lit hall is exposed as before)
+  return Math.max(X_MIN, Math.min(Xsky, KEY / (vv * (sunE + skyE + moonE) + fireE + 0.004)));
+}
+/** Eye adaptation over time (C): the exposure moves in log space (stops), faster toward less light (light adaptation,
+ *  τ 0.6 s) than toward more (dark adaptation, τ 3 s: stepping from the sun into a hall, the light drops and the eye
+ *  opens over several seconds). */
+export function adaptExposure(current: number, target: number, dt: number): number {
+  if (!(current > 0)) return target;
+  const tau = target > current ? 3 : 0.6, k = 1 - Math.exp(-dt / tau);
+  return Math.exp(Math.log(current) + (Math.log(target) - Math.log(current)) * k);
+}
+
 /** The gain at which the fires' session-3 light values are physical (D-117 addendum): a lamp's point light is 0.08 · 40 =
  *  3.2 renderer candela (fire.ts), and an oil lamp gives about a candle, ~1 cd (C; the candela's historical definition,
  *  B), so fire light is pre-exposed by 3.2 renderer units per lux, against REN_PER_LUX_SKY · 0.796 = 5.1e-5 for the

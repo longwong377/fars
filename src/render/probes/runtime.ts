@@ -79,12 +79,20 @@ export function updateProbeLights(hemi: THREE.HemisphereLight | undefined, sun: 
  *  probe volumes (and blended across their fading edges) it returns `fallback()` (the upward raycasts), or 1. */
 export function probeSkyVisibility(p: { x: number; y: number; z: number }, fallback?: () => number): number {
   const other = () => (fallback ? fallback() : 1);
-  if (!FIELD) return other();
-  const S = Math.max(current.S, 1e-4), U = current.U, r = fieldVisibility(FIELD, p.x, p.y, p.z, S, U, RHO_OPEN);
+  const r = probeEyeVisibility(p);
   if (r.w <= 0) return other();
+  return r.w * r.eye + (r.w < 0.999 ? (1 - r.w) * other() : 0);
+}
+/** the probes' own answer, unblended: `eye` = the eye illuminance relative to open, sunlit ground (as above) and `w` = the
+ *  probe field's weight at p (0 outside the volumes, 1 inside, fading across their edges). The interior exposure uses
+ *  `eye` where w > 0 (D-141). */
+export function probeEyeVisibility(p: { x: number; y: number; z: number }): { eye: number; w: number } {
+  if (!FIELD) return { eye: 1, w: 0 };
+  const S = Math.max(current.S, 1e-4), U = current.U, r = fieldVisibility(FIELD, p.x, p.y, p.z, S, U, RHO_OPEN);
+  if (r.w <= 0) return { eye: 1, w: 0 };
   const d = current.sun, sunlit = U > 0 && !(OCC?.occluded(p.x, p.y, p.z, d.x, d.y, d.z, 0.05, 2000) ?? false) ? 1 : 0;
   const A = openAmbientMean(S, U, RHO_OPEN), eye = (r.vis * A + U * sunlit) / (A + U);
-  return r.w * eye + (r.w < 0.999 ? (1 - r.w) * other() : 0);
+  return { eye, w: r.w };
 }
 
 /** reversed smoothstep edges are undefined in WGSL/GLSL: a (near-)empty ramp becomes a step */

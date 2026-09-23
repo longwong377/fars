@@ -9,7 +9,7 @@ import { latLonToGrid, gridToLatLon } from './core/geo';
 import { Terrain, curvatureDrop } from './terrain/heightfield';
 import { TerrainMesh } from './terrain/terrainMesh';
 import { SkySystem } from './sky/skySystem';
-import { exposureTarget } from './sky/exposure';
+import { exposureTarget, interiorExposureTarget, adaptExposure, X_MAX } from './sky/exposure';
 import { twilightWeight } from './sky/horizon';
 import { WeatherSystem, WeatherOverride } from './weather/weatherState';
 import { Physics } from './player/physics';
@@ -25,7 +25,7 @@ import { reliefStats } from './arch/reliefs';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
 import { Pipeline } from './render/pipeline';
-import { probeSkyVisibility } from './render/probes/runtime';
+import { probeEyeVisibility } from './render/probes/runtime';
 import { WEATHER, SEASON } from './render/materials';
 import { seasonAt } from './world/season';
 import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
@@ -275,7 +275,7 @@ async function boot() {
     phys.step(Math.max(1 / 240, dt));
     world.simulate?.(dt, clock);
   }
-  let exposure = 1, adaptT = 0, skyVis = -1;
+  let exposure = 1, adaptT = 0, skyVis = -1, rayVis = 1, probeVis = { eye: 1, w: 0 };
   const upRay = new THREE.Raycaster(); const archGroup = world.root.getObjectByName('architecture');
   function skyVisibility() {
     if (!archGroup) return 1; let open = 0; const dirs = [[0, 1, 0], [0.5, 0.85, 0], [-0.5, 0.85, 0], [0, 0.85, 0.5], [0, 0.85, -0.5], [0.35, 0.6, 0.35], [-0.35, 0.6, -0.35], [0.35, 0.6, -0.35], [-0.35, 0.6, 0.35]];
@@ -309,13 +309,18 @@ async function boot() {
     // eye adaptation (C): exposure follows an estimate of the illuminance at the eye — sun + skylight scaled by the visible
     // sky fraction (upward rays against the architecture, every 0.25 s) + moon + nearby fires — with asymmetric time constants
     adaptT += dt;
-    if (adaptT > 0.25 || skyVis < 0 || TEST) { adaptT = 0; skyVis = probeSkyVisibility(camera.position, skyVisibility); } // light probes in the roofed halls (D-113), upward rays elsewhere; every frame in frozen test renders (dt = 0 never reached 0.25 s, so moments kept the first frame's value)
+    // light probes in the roofed halls (D-113), upward rays elsewhere; every frame in frozen test renders (dt = 0 never
+    // reached 0.25 s, so moments kept the first frame's value)
+    if (adaptT > 0.25 || skyVis < 0 || TEST) { adaptT = 0; probeVis = probeEyeVisibility(camera.position); rayVis = probeVis.w < 0.999 ? skyVisibility() : 1; skyVis = probeVis.w * probeVis.eye + (1 - probeVis.w) * rayVis; }
     const sunE = sky.sun.visible ? sky.sun.intensity * Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)) : 0;
     const fireE = world.fire ? world.fire.localIlluminance(camera.position) : 0;
-    const target = exposureTarget(sunE, sky.hemi.intensity * 0.8, skyVis, sky.moonLight.intensity * 0.3, fireE, sky.fireScale); // the sky's lights carry the eye's gain beyond this range (D-117)
-    const k = target > exposure ? 1 - Math.exp(-dt / 2.5) : 1 - Math.exp(-dt / 0.6); // dark adaptation is slower than light adaptation
-    exposure = TEST ? target : exposure + (target - exposure) * k;
+    // outdoors (and beside walls, from the upward rays): the session-3 law; the sky's lights carry the eye's gain beyond its range (D-117)
+    const outside = exposureTarget(sunE, sky.hemi.intensity * 0.8, rayVis, sky.moonLight.intensity * 0.3, fireE, sky.fireScale);
+    // inside a probe volume the eye adapts to the interior's own light (D-141); blended in stops across the volume's edge
+    const target = probeVis.w > 0 ? Math.exp(probeVis.w * Math.log(interiorExposureTarget(sunE, sky.hemi.intensity * 0.8, sky.moonLight.intensity * 0.3, fireE, probeVis.eye, sky.lux, sky.skyLux)) + (1 - probeVis.w) * Math.log(outside)) : outside;
+    exposure = TEST ? target : adaptExposure(exposure, target, dt); // dark adaptation is slower than light adaptation
     renderer.toneMappingExposure = exposure;
+    pipeline.setExposure(exposure / X_MAX); // bloom threshold in display terms once the exposure leaves the outdoor range
     world.update?.(dt, { clock, cond, sky: sky.state, skyLight: sky, camera, player, settings }); // skyLight: horizon radiance and sun light (D-060)
     tmesh.update(camera.position);
     const t0 = performance.now(); if (opts.render !== false) renderer.info.reset();

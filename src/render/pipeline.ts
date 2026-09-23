@@ -27,6 +27,8 @@ import type { Quality } from '../core/settings';
 import { installProbeLight, updateProbeLights, probeAmbient, probeSun } from './probes/runtime';
 
 export const GI_SCALE = Math.PI / 2;
+/** bloom threshold (scene radiance, before exposure) at the outdoor exposures; scaled for interior exposures (D-141) */
+export const BLOOM_THRESHOLD = 0.9;
 
 export class Pipeline {
   rp: THREE.RenderPipeline | null = null;
@@ -36,6 +38,7 @@ export class Pipeline {
   private camWorld: any;
   private sun: THREE.DirectionalLight | undefined;
   private built = false;
+  private bloomNode: unknown = null;
   constructor(private renderer: THREE.WebGPURenderer, private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, readonly quality: Quality, private hemi?: THREE.HemisphereLight) {
     installProbeLight(renderer); // before any material is built
     // the sun: the shadow-casting directional light (SkySystem.sun)
@@ -88,10 +91,15 @@ export class Pipeline {
       composite = vec4(chosen, col.a);
     }
     let out: any = traa(composite, dep, vel, camera);
-    const b = bloom(out, 0.12, 0.35, 0.9);
+    const b = bloom(out, 0.12, 0.35, BLOOM_THRESHOLD); this.bloomNode = b;
     out = out.add(b).add(this.flash);
     this.rp = new THREE.RenderPipeline(renderer, out);
   }
+  /** The bloom threshold applies to the scene before exposure. Interior exposures (D-141) run up to hundreds of times the
+   *  outdoor range, so a fixed threshold would flood a hall's view with glare from every sunlit doorway. `rel` = exposure /
+   *  X_MAX: at or below 1 (every outdoor and night state) the threshold is the session-3 value; above it, the threshold
+   *  scales down with the exposure so it stays the same in display terms. */
+  setExposure(rel: number) { const t = (this.bloomNode as any)?.threshold; if (t && 'value' in t) t.value = BLOOM_THRESHOLD / Math.max(1, rel); }
   render(scene: THREE.Scene, camera: THREE.Camera) {
     if (this.hemi) { // hemisphere-light uniforms follow the light (colour × intensity, as HemisphereLightNode does)
       this.hemiSky.value.copy(this.hemi.color).multiplyScalar(this.hemi.intensity);
