@@ -5,13 +5,18 @@
 // The drawing itself (proportions, poses, fold and curl patterns) is reconstruction (C): procedural low relief, pending
 // licensed scans or photogrammetry of the reliefs (NEEDS #10).
 import { Rng } from '../core/rng';
-import { SDF, Mass, Incision, FigureDef, C3, Box, ellipse, circle, poly, spoly, strokeR, capsules, catmull, seg, diff } from './relief_field';
+import { SDF, Mass, Incision, FigureDef, C3, Box, ellipse, circle, poly, spoly, strokeR, capsules, catmull, seg, diff, STONE_SRGB } from './relief_field';
+import PC from '../data/polychromy.json';
+import { labToSrgb } from '../core/colour';
 
-// attested pigments (RELIEFS_AND_COLOUR §3a) as sRGB display colours (exact tones C). 'stone' = the dressed limestone of the
-// walls (src/render/materials.ts SURFACES.limestone): unpainted where no paint evidence exists (faces, animals, background).
+// attested pigments (RELIEFS_AND_COLOUR §3a, B) with their colour as a matte film (CIELAB rows of src/data/polychromy.json, C),
+// held here as sRGB so the palette keys stay readable (extractLod converts back to linear light). 'stone' = the unpainted
+// carved limestone (src/render/materials.ts SURFACES.limestone_carved): unpainted where no paint evidence exists (faces,
+// animals, background); the relief material shows the stone wherever a vertex carries no paint (relief_field PAINT).
+const PG = (PC as any).pigment, lab = (k: string): C3 => labToSrgb(PG[k].v[0], PG[k].v[1], PG[k].v[2]);
 export const PIGMENT: Record<string, C3> = {
-  stone: [0.44, 0.43, 0.4], egyptianBlue: [0.13, 0.28, 0.62], darkBlue: [0.07, 0.1, 0.25], cinnabar: [0.72, 0.13, 0.08], redOchre: [0.55, 0.2, 0.12],
-  malachite: [0.18, 0.5, 0.33], yellowOchre: [0.78, 0.6, 0.25], white: [0.9, 0.88, 0.83], black: [0.05, 0.05, 0.05], purple: [0.35, 0.12, 0.32], gold: [0.83, 0.66, 0.3],
+  stone: STONE_SRGB, egyptianBlue: lab('egyptian_blue'), darkBlue: lab('dark_blue'), cinnabar: lab('cinnabar'), redOchre: lab('red_ochre'),
+  malachite: lab('malachite'), yellowOchre: lab('yellow_ochre'), white: lab('white'), black: lab('black'), purple: lab('purple'), gold: lab('gilt'),
 };
 const P = PIGMENT, STONE = P.stone, HAIR = P.darkBlue;
 const GARMENTS: C3[] = [P.cinnabar, P.egyptianBlue, P.malachite, P.yellowOchre, P.purple, P.redOchre];

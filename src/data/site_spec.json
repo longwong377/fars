@@ -647,12 +647,13 @@
   "r_door_leaves": {
    "v": {
     "thickness": 0.25,
-    "boss_pitch": 0.45
+    "boss_pitch": 0.45,
+    "hang": "inner"
    },
    "u": "m",
    "src": "RECON",
    "tier": "C",
-   "note": "timber double doors with bronze bosses turning on pivot sockets (pivot sockets: WP extract C; leaves/bosses C)"
+   "note": "timber double doors with bronze bosses turning on pivot sockets (pivot sockets: WP extract C; leaves/bosses C). hang = inner (D-032, C): the pivots sit at the inner (hall-side) end of each passage and the leaves open into the hall, standing against the inner wall face beside the opening. Reason: the W and E colossi (r_colossus, 5.0 m) fill the passage from the outer to the inner wall face (wall 4.15 m + 0.85 m projection), so a leaf opened against the reveal would stand over the carved flank; pivot-socket positions were not read (RECOLLECTION: sockets on the hall side, Q-073). The S doorway follows the same rule"
   }
  },
  "apadana": {
