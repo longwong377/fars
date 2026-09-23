@@ -171,9 +171,12 @@ export function nearTrees(max: number, foliage: FoliageState, wind: any, castSha
   const amount = clamp(leaf.w.mul(0.85).add(bl.w.mul(0.7)).add(0.001), 0, 1);
   // crown: blobs shrink toward their centres as leaves fall (bare in winter), sway a little in the wind
   const blob = attribute('blob', 'vec3'), pg = positionGeometry;
-  const shrunk = blob.add(pg.sub(blob).mul(amount.mul(0.85).add(0.15).mul(step(0.02, amount))));
+  // leaves fill the crown envelope as they come out (C): the envelope keeps its size, and the leaf amount sets how much of
+  // it is solid (an alpha-tested leaf-clump mask), so a crown in early leaf is thin and the branches show through. Shrinking
+  // each blob toward its centre (before) turned a half-leafed tree into balls on sticks (session 3 dusk render)
+  const shrunk = blob.add(pg.sub(blob).mul(step(0.02, amount)));
   const sway: any = sin(time.mul(1.3).add(sd.mul(0.001))).mul(wind).mul(0.012).mul(pg.y).mul(iscl.y);
-  const cm = new THREE.MeshStandardNodeMaterial();
+  const cm = new THREE.MeshStandardNodeMaterial(); cm.alphaTest = 0.5;
   cm.positionNode = instanceTransform(shrunk, iscl, ipos).add(vec3(sway, 0, sway.mul(0.6)));
   // leaf clumps (C): the radial normal is broken up by noise at the scale of leaf clusters, so a crown shades as many
   // small masses rather than one smooth ball (the near crowns read as snowballs and grey domes, session 3 renders)
@@ -184,6 +187,8 @@ export function nearTrees(max: number, foliage: FoliageState, wind: any, castSha
   // self-shadowing of the leaf mass (C): the underside and inside of a crown get far less skylight than its top
   const selfShade = smoothstep(-0.9, 0.7, normalGeometry.y).mul(0.55).add(0.45);
   cm.colorNode = mix(leaf.xyz, bl.xyz, bmix).mul(tint).mul(selfShade);
+  const leafMask = mx_noise_float(pg.mul(5.1).add(sd.mul(0.00002))).mul(0.5).add(0.5); // ~0..1, clumps at leaf-cluster scale
+  cm.opacityNode = step(leafMask, amount.mul(1.15).add(0.02));
   cm.roughnessNode = float(0.8);
   const crown = new THREE.Mesh(crownG, cm); crown.name = castShadow ? 'plain-trees-crown' : 'plain-trees-crown-far'; crown.castShadow = castShadow; crown.receiveShadow = true; crown.frustumCulled = false;
   const wm = new THREE.MeshStandardNodeMaterial(); wm.positionNode = instanceTransform(positionGeometry, iscl, ipos); wm.normalNode = instanceNormal(normalGeometry, iscl);
