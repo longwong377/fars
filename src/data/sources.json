@@ -494,6 +494,41 @@
   "url": "https://www.sciencedirect.com/science/article/abs/pii/S1125786524000651",
   "access": "search-extract only: riparian woodland dominants Platanus orientalis, Populus, Salix alba; shrubs Tamarix ramosissima, Salix acmophylla"
  },
+ "PASARGADAE-CHANNELS": {
+  "cite": "Stronach's excavation of the Pasargadae royal garden (1961-63), as summarised in \"Pasargadae: seeking the origins of a garden palace\" (The Past / Current World Archaeology) and Encyclopaedia Iranica \"Pasargadae\"",
+  "url": "https://the-past.com/feature/pasargadae-seeking-the-origins-of-a-garden-palace/",
+  "access": "search extract only: \"a system of limestone channels, 25 cm wide and punctuated with a deep square basin every 13 or 14 m ... The channels probably sat flush with the ground surface\"; stone water channels and basins defining two adjoining rectangles (Iranica)"
+ },
+ "PUNICA-SHIRAZ": {
+  "cite": "\"Buds and leaves in pomegranate (Punica granatum L.): phenology in relation to structure and development\", Flora (2015); cv. Rabbab-e-Neyriz, 50-year-old trees, Eram Botanical Garden, Shiraz University",
+  "url": "https://www.sciencedirect.com/science/article/abs/pii/S0367253015000420",
+  "access": "search extract only: red leaves in mid-March, red-greenish leaves with unopened flower buds in late March, green leaves in the last days of March, bell- and vase-shaped flower buds in early April"
+ },
+ "FIG-ESTAHBAN": {
+  "cite": "\"Enzymatic activity and physico-chemical changes of terminal bud in rain-fed fig (Ficus carica L. 'Sabz') during dormant season\", Horticultural Plant Journal 8(2) (2022) 195-204; Estahban, Fars",
+  "url": "https://www.sciopen.com/article/10.1016/j.hpj.2021.03.010",
+  "access": "search extract only: dormant season November to April; bud break in April"
+ },
+ "PLATANUS-LAI": {
+  "cite": "\"Complete intra-annual cycle of leaf area index in a Platanus orientalis L. stand\", Plant Biosystems 150(6) (2016)",
+  "url": "https://www.tandfonline.com/doi/full/10.1080/11263504.2015.1054446",
+  "access": "search extract only: foliation lasts about 1.5 months from mid-April to May (a stand in Turkey)"
+ },
+ "IR-SERICULTURE": {
+  "cite": "BACSA (Black, Caspian Seas and Central Asia Silk Association), \"Iran\"",
+  "url": "https://www.bacsa-silk.org/en/iran/",
+  "access": "search extract only: silkworm eggs are bought in Ordibehesht (late April), when the mulberry leaves are out"
+ },
+ "MAHARLOU-SPARGANIUM": {
+  "cite": "Djamali et al., \"Vegetation history of the SE section of the Zagros Mountains during the last five millennia; a pollen record from the Maharlou Lake, Fars Province, Iran\", Veg. Hist. Archaeobot. 18 (2009)",
+  "url": "https://link.springer.com/article/10.1007/s00334-008-0178-2",
+  "access": "search extract only: \"a slight increase in Sparganium-type pollen during LPAZ B may also reflect ... higher lake levels\" (emergent marsh plants, bur-reed/reed-mace type, in the basin)"
+ },
+ "IR-WETLAND-REEDS": {
+  "cite": "Reed and tamarisk stands of Iranian wetlands and river margins (search summaries of wetland descriptions; Phragmites australis, Typha, Tamarix)",
+  "url": "",
+  "access": "search extract only: \"Phragmites reeds are a significant vegetation type covering much of certain Iranian wetland areas\"; \"dense stands of reeds and tamarisk in Iranian wetlands\" (generic, not the Pulvar)"
+ },
  "KJV-BIBLE": {
   "cite": "The Holy Bible, King James Version (1611; public domain), JSON edition thiagobodruk/bible: Nehemiah 2:1-10; Ezra 5:6-17, 6:1-2; Esther 2:19-21, 3:12-15, 4:2, 4:11",
   "url": "https://raw.githubusercontent.com/thiagobodruk/bible/master/json/en_kjv.json",

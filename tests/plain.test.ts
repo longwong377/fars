@@ -9,7 +9,7 @@ import { riverState, cropState, foliage, doyOf, MID_MONTH, MONTHS, CROP_ROWS, cr
 import { plotAt, landUseAt, pcg, unit, checkMixes, IRR_STEPS, RAINFED_BARLEY, VINE_SHARE, buildZones, zoneAt } from '../src/world/plain/fields';
 import { buildCanals } from '../src/world/plain/canals';
 import { placeVillages, villageCompounds, compoundBoxes } from '../src/world/plain/villages';
-import { buildPlain, PlainBuild } from '../src/world/plain';
+import { buildPlain, PlainBuild, PLAIN_QUALITY } from '../src/world/plain';
 import { carvableTranslit } from '../src/world/plain/naqsh';
 import { buildMapLayers, builtPlainOf } from '../src/ui/mapLayers';
 import { loadInscriptionFonts } from '../src/arch/decor';
@@ -98,7 +98,7 @@ describe('fields and crops by date (plain.json crops; seasonal.ts)', () => {
   });
   it('deciduous trees are bare in January and in leaf in June; fruit trees blossom in late March', () => {
     for (const g of ['plane', 'pome', 'oak', 'willow', 'poplar', 'fig', 'almond'] as const) { expect(foliage(g, 15).leaf).toBeLessThan(0.05); expect(foliage(g, 166).leaf).toBeGreaterThan(0.95); }
-    expect(foliage('pome', 90).blossom).toBeGreaterThan(0.9); expect(foliage('fig', 90).blossom).toBe(0); expect(foliage('pomegranate', 150).blossom).toBeGreaterThan(0.9);
+    expect(foliage('pome', 90).blossom).toBeGreaterThan(0.9); expect(foliage('fig', 90).blossom).toBe(0); expect(foliage('pomegranate', 150).blossom).toBeGreaterThan(0.4); // peak share 0.45 (D-149)
     for (const g of ['evergreen_dark', 'evergreen_grey'] as const) for (const d of [15, 105, 200, 330]) expect(foliage(g, d).leaf).toBe(1);
   });
 });
@@ -276,10 +276,10 @@ describe('the plain as built (headless): budgets, tiers, chronology', () => {
     expect(kb.max.y - kb.min.y - 0.6).toBeCloseTo(PLAIN.naqsh_e_rustam.kaba.height_with_base_m, 2);
   });
   it('orchard row impostors never stand within the 3-D radius (the grey domes at village P22, D-121), and the tree layers hand over exactly', () => {
-    // high quality (this describe): r3 250 m, mid ring 900 m. The row mesh as built: a row collapses when its plot centre
-    // lies within the mid radius of the mid-ring centre (per vertex), and fragments within r3 of the camera are cut.
+    // high quality (this describe): PLAIN_QUALITY.high's r3 and mid ring. The row mesh as built: a row collapses when
+    // its plot centre lies within the mid radius of the mid-ring centre (per vertex), and fragments within r3 of the camera are cut.
     const rows = P.group.getObjectByName('plain-orchards-far') as THREE.Mesh, g = rows.geometry;
-    const pos = g.getAttribute('position'), B = g.getAttribute('rowB'), Q = { r3: 250, rMid: 900 };
+    const pos = g.getAttribute('position'), B = g.getAttribute('rowB'), Q = PLAIN_QUALITY.high;
     const cams: [number, number][] = [[-973, -3287], [-2505, -2700], [-5205, -1611], [-36.4, -122.45]]; // P22, Pulvar bank, field, Grand Stair
     for (const [cx, cz] of cams) {
       // the mid centre lags the camera by at most (rMid - r3) / 4 (index.ts rebuilds it then)

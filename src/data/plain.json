@@ -1150,6 +1150,18 @@
     "note": "Trapezoid fitted by least squares to this river's flow_by_month width/depth rows (width = bed + 2 x slope x depth; max residual 0.09 m). Bank height = April depth 1.2 m + 0.4 m freeboard (C). Bed level along the course: bare-earth floodplain sampled on the centreline, smoothed (sigma 200 m), forced non-increasing downstream (isotonic fit), minus the bank height; the heightfield is carved under the channel (tools/build_terrain.py; public/generated/rivers.json)."
    },
    "riparian": {
+    "margins": {
+     "species": [
+      "common reed (Phragmites australis): beds on the channel slopes between the low summer water and the spring flood line",
+      "rushes and sedges (Juncus, Carex): the wet edge",
+      "bank grasses and herbs: the upper bank, the bank top and the corridor"
+     ],
+     "tier": "C",
+     "src": "IR-WETLAND-REEDS;MAHARLOU-SPARGANIUM;IR-RIPARIAN;BOTANY-GEN",
+     "note": "Reed beds and rushes at the river margins by analogy with Iranian wetlands and plateau rivers today (search extracts, B for those) and Sparganium/Typha-type pollen in the Maharlou basin (B); their presence on the Pulvar and the Kur in 467, the beds' extent (about half the bank, in patches 25-90 m long), a third cut in winter for mats, roofs and fodder, heights and the seasonal cycle are C (recalled botany; seasonal.ts marginState). Canals: rushes at the wet edge, grass on the spoil banks (C).",
+     "bed_share": 0.5,
+     "winter_cut_share": 0.3
+    },
     "species": [
      "plane (Platanus orientalis)",
      "white willow (Salix alba)",
@@ -2339,6 +2351,18 @@
     "note": "As the Pulvar: trapezoid fitted to the Kur flow_by_month rows (max residual 0.10 m); bank height = April depth 1.8 m + 0.4 m (C)."
    },
    "riparian": {
+    "margins": {
+     "species": [
+      "common reed (Phragmites australis): beds on the channel slopes between the low summer water and the spring flood line",
+      "rushes and sedges (Juncus, Carex): the wet edge",
+      "bank grasses and herbs: the upper bank, the bank top and the corridor"
+     ],
+     "tier": "C",
+     "src": "IR-WETLAND-REEDS;MAHARLOU-SPARGANIUM;IR-RIPARIAN;BOTANY-GEN",
+     "note": "Reed beds and rushes at the river margins by analogy with Iranian wetlands and plateau rivers today (search extracts, B for those) and Sparganium/Typha-type pollen in the Maharlou basin (B); their presence on the Pulvar and the Kur in 467, the beds' extent (about half the bank, in patches 25-90 m long), a third cut in winter for mats, roofs and fodder, heights and the seasonal cycle are C (recalled botany; seasonal.ts marginState). Canals: rushes at the wet edge, grass on the spoil banks (C).",
+     "bed_share": 0.5,
+     "winter_cut_share": 0.3
+    },
     "species": [
      "plane (Platanus orientalis)",
      "white willow (Salix alba)",

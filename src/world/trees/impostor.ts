@@ -7,9 +7,10 @@
 // coverage; normal texel: the
 // lighting normal in the view's frame (x right, y up, z toward the viewer), encoded 0..1. Re-baked per model row when
 // its foliage group's state changes (render.ts). Pure JS (unit-tested: tests/trees.test.ts).
-import { cardState, M0, M1, K0, K1, lod1Size, type TreeModel, type V3 } from './model';
+import { cardState, variantLeaf, cardHalf, M0, M1, K0, K1, lod1Size, lod1Twigs, type TreeModel, type V3 } from './model';
 import { tileIndex, TILE, COLS, ROWS, TILT, mipChain, type Atlas } from './atlas';
 import { TREE_GROUPS } from '../plain/seasonal';
+import { crownOf, leafShadeTo, crownAO, SHADE } from './shade';
 
 export const NV = 8;
 export interface GroupState { leaf: [number, number, number, number]; blossom: [number, number, number, number] }
@@ -45,11 +46,13 @@ export class ImpostorBaker {
   bakeRow(r: number, st: GroupState) {
     const m = this.models[r], N = this.px, W = this.width, s = m.species;
     const leafT = tileIndex(s.leaf.tile), twigT = tileIndex(s.twig_tile), blT = s.blossom_tile ? tileIndex(s.blossom_tile) : leafT;
-    const bark = barkLinear(m), lc = st.leaf, bc = st.blossom, AL = this.atlas.levels, nL = AL.length;
+    const bark = barkLinear(m), lc = st.leaf, bc = st.blossom, AL = this.atlas.levels, nL = AL.length, cr = crownOf(m);
     const z = new Float32Array(N * N);
     const kc = this.lod ? K1 : K0, km = this.lod ? M1 : M0;
-    const states = m.cards.slice(0, Math.min(kc, m.used.cards)).map(cd => ({ cd, cs: cardState(cd, lc[3], bc[3]) })).filter(q => q.cs.size > 0);
+    const leaf = variantLeaf(lc[3], m.variant); // this variant's leaf amount (model.ts)
+    const states = m.cards.slice(0, Math.min(kc, m.used.cards)).map(cd => ({ cd, cs: cardState(cd, leaf, bc[3], this.lod ? lod1Twigs(s.twig_cards, leaf) : s.twig_cards) })).filter(q => q.cs.size > 0);
     const col = this.colS, nrm = this.nrmS; col.fill(0); nrm.fill(0);
+    const SH = new Float64Array(4), clumpS = s.card.clump; // shade.ts leafShadeTo's output (normal, occlusion)
     for (let v = 0; v < NV; v++) {
       const al = (v / NV) * Math.PI * 2, rx = Math.cos(al), rz = -Math.sin(al), dx = Math.sin(al), dz = Math.cos(al); // right, toward the viewer
       const ox = v * N, oy = 0; z.fill(-1e9);
@@ -63,15 +66,17 @@ export class ImpostorBaker {
       // leaf-cluster cards in today's state, nearest first
       const order = states.map(q => ({ q, d: q.cs.pos[0] * dx + q.cs.pos[2] * dz })).sort((a, b) => b.d - a.d);
       for (const { q } of order) {
-        const cd = q.cd, cs = q.cs, tile = cs.isL ? leafT : cs.isB ? blT : twigT, h = (cs.size * (this.lod ? lod1Size(cs.isT, lc[3]) : 1)) / 2;
+        const cd = q.cd, cs = q.cs, tile = cs.isL ? leafT : cs.isB ? blT : twigT, h = (cs.size * (this.lod ? lod1Size(cs.isT, leaf) : 1)) / 2;
         const cx = sx(cs.pos[0] * rx + cs.pos[2] * rz), cy = sy(cs.pos[1]), cz = cs.pos[0] * dx + cs.pos[2] * dz;
-        const Sx = (cd.side[0] * rx + cd.side[2] * rz) * h * k, Sy = cd.side[1] * h * k, Ux = (cd.up[0] * rx + cd.up[2] * rz) * h * k, Uy = cd.up[1] * h * k;
-        const Sz = (cd.side[0] * dx + cd.side[2] * dz) * h, Uz = (cd.up[0] * dx + cd.up[2] * dz) * h;
+        const hh = cardHalf(2 * h, s.card.aspect), hs = hh.side, hu = hh.up; // the species' card shape (tall sprays)
+        const Sx = (cd.side[0] * rx + cd.side[2] * rz) * hs * k, Sy = cd.side[1] * hs * k, Ux = (cd.up[0] * rx + cd.up[2] * rz) * hu * k, Uy = cd.up[1] * hu * k;
+        const Sz = (cd.side[0] * dx + cd.side[2] * dz) * hs, Uz = (cd.up[0] * dx + cd.up[2] * dz) * hu;
         const det = Sx * Uy - Sy * Ux; if (Math.abs(det) < 1e-3) continue; // edge-on
         const ext = Math.abs(Sx) + Math.abs(Ux), eyt = Math.abs(Sy) + Math.abs(Uy);
         const lvl = Math.min(nL - 1, Math.max(0, Math.floor(Math.log2(TILE / Math.max(1, 2 * h * k))))), L = AL[lvl], ts = TILE >> lvl, d = L.data, lw = L.width, td = this.atlas.tilt[lvl].data;
         const tx0 = (tile % COLS) * ts, ty0 = Math.floor(tile / COLS) * ts;
-        const tint = cd.tint * cd.ao, Sv = cd.side, Uv = cd.up, Nv = cd.n;
+        const tint = cd.tint, Sv = cd.side, Uv = cd.up, P0 = cs.pos, size = 2 * hu, kb = SHADE.clumpBack * size * 0.5;
+        const ccx = P0[0] - Uv[0] * kb, ccy = P0[1] - Uv[1] * kb, ccz = P0[2] - Uv[2] * kb; // the clump's centre (shade.ts)
         for (let j = Math.max(0, Math.floor(cy - eyt)); j <= Math.min(N - 1, Math.ceil(cy + eyt)); j++)
           for (let i = Math.max(0, Math.floor(cx - ext)); i <= Math.min(N - 1, Math.ceil(cx + ext)); i++) {
             const qx = i + 0.5 - cx, qy = j + 0.5 - cy, a = (qx * Uy - qy * Ux) / det, b = (Sx * qy - Sy * qx) / det; // corner coords -1..1
@@ -81,24 +86,29 @@ export class ImpostorBaker {
             if (d[o + 3] < 128) continue;
             // impostor.ts leafAlbedo, inlined
             const tr = d[o] / 255, petal = d[o + 1] / 255, bk = d[o + 2] / 255, shade = 0.55 + 0.6 * tr, lm = Math.max(0, 1 - petal - bk), ps = (0.85 + 0.15 * tr) * petal;
+            // the crown's and the clump's normal and occlusion at this texel (shade.ts; render.ts leaf shader)
+            const as = a * hs, bu = b * hu;
+            leafShadeTo(SH, cr, P0[0] + Sv[0] * as + Uv[0] * bu, P0[1] + Sv[1] * as + Uv[1] * bu, P0[2] + Sv[2] * as + Uv[2] * bu, ccx, ccy, ccz, Uv[0], Uv[1], Uv[2], size, this.lod, clumpS);
+            const tao = tint * SH[3];
             // the leaf's tilt turns the lighting normal (render.ts leaf shader)
             const tk = this.lod ? 0 : TILT, tx = (td[o] / 255 * 2 - 1) * tk, ty = (td[o + 1] / 255 * 2 - 1) * tk; // LOD0 only (render.ts)
-            let nx = Nv[0] + Sv[0] * tx + Uv[0] * ty, ny = Nv[1] + Sv[1] * tx + Uv[1] * ty, nz = Nv[2] + Sv[2] * tx + Uv[2] * ty; const nl = Math.hypot(nx, ny, nz) || 1; nx /= nl; ny /= nl; nz /= nl;
-            put(i, j, depth, (lc[0] * shade * lm + bc[0] * ps + bark[0] * shade * bk) * tint, (lc[1] * shade * lm + bc[1] * ps + bark[1] * shade * bk) * tint, (lc[2] * shade * lm + bc[2] * ps + bark[2] * shade * bk) * tint, nx * rx + nz * rz, ny, nx * dx + nz * dz);
+            let nx = SH[0] + Sv[0] * tx + Uv[0] * ty, ny = SH[1] + Sv[1] * tx + Uv[1] * ty, nz = SH[2] + Sv[2] * tx + Uv[2] * ty; const nl = Math.hypot(nx, ny, nz) || 1; nx /= nl; ny /= nl; nz /= nl;
+            put(i, j, depth, (lc[0] * shade * lm + bc[0] * ps + bark[0] * shade * bk) * tao, (lc[1] * shade * lm + bc[1] * ps + bark[1] * shade * bk) * tao, (lc[2] * shade * lm + bc[2] * ps + bark[2] * shade * bk) * tao, nx * rx + nz * rz, ny, nx * dx + nz * dz);
           }
       }
-      // branches: the projected tube (normal across it, bulging toward the viewer)
+      // branches: the projected tube (normal across it, bulging toward the viewer), darker inside the crown
       for (let si = 0; si < Math.min(km, m.used.segs); si++) {
         const g = m.segs[si]; if (g.ra <= 0) continue;
         const ax = sx(g.a[0] * rx + g.a[2] * rz), ay = sy(g.a[1]), bx = sx(g.b[0] * rx + g.b[2] * rz), by = sy(g.b[1]);
         const az = g.a[0] * dx + g.a[2] * dz, bz = g.b[0] * dx + g.b[2] * dz, ra = g.ra * k, rb = g.rb * k;
         const ex = bx - ax, ey = by - ay, l2 = ex * ex + ey * ey || 1e-9, l = Math.sqrt(l2), px2 = -ey / l, py2 = ex / l, m2 = Math.max(ra, rb) + 1;
+        const ao0 = crownAO(cr, g.a, SHADE.woodAoIn), ao1 = crownAO(cr, g.b, SHADE.woodAoIn);
         for (let j = Math.max(0, Math.floor(Math.min(ay, by) - m2)); j <= Math.min(N - 1, Math.ceil(Math.max(ay, by) + m2)); j++)
           for (let i = Math.max(0, Math.floor(Math.min(ax, bx) - m2)); i <= Math.min(N - 1, Math.ceil(Math.max(ax, bx) + m2)); i++) {
             const cx = i + 0.5 - ax, cy = j + 0.5 - ay, t = Math.max(0, Math.min(1, (cx * ex + cy * ey) / l2)), rr = ra + (rb - ra) * t;
             const across = cx * px2 + cy * py2; if (Math.abs(across) >= rr || Math.hypot(cx - ex * t, cy - ey * t) >= rr) continue;
-            const sN = across / rr, cN = Math.sqrt(Math.max(0, 1 - sN * sN));
-            put(i, j, az + (bz - az) * t + (cN * rr) / k, bark[0], bark[1], bark[2], px2 * sN, py2 * sN, cN);
+            const sN = across / rr, cN = Math.sqrt(Math.max(0, 1 - sN * sN)), ao = ao0 + (ao1 - ao0) * t;
+            put(i, j, az + (bz - az) * t + (cN * rr) / k, bark[0] * ao, bark[1] * ao, bark[2] * ao, px2 * sN, py2 * sN, cN);
           }
       }
     }

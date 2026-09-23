@@ -185,7 +185,7 @@ export class Settlement {
     // fittings
     for (const f of s.fittings) {
       if (f.kind === 'tree' || f.kind === 'channel' || f.kind === 'ditch' || f.kind === 'midden' || f.kind === 'pen_dung' || f.kind === 'pit') {
-        if (f.kind === 'channel') { const dd = cl.desc.length; cl.desc.push({ tier: 'C', src: ROWS[plots[f.plot]?.row]?.src ?? 'RECON', note: f.note ?? 'stone-lined channel (C)' }); this.kerbs(s, f, stone(), H, dd); }
+        // channels: their dressed stone blocks and basins are built with the water (water.ts channelStones, D-149)
         continue; }
       const g = s.grid(f.u, f.v), y = H(g[0], g[1]), th = s.frame.theta + f.rot;
       const d = cl.desc.length; cl.desc.push({ tier: 'C', src: f.plot >= 0 ? (ROWS[plots[f.plot].row]?.src ?? 'RECON') : 'RECON', note: f.note ?? `${f.kind} (C)` });

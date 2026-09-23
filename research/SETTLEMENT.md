@@ -67,6 +67,7 @@ Population, with the court absent: 3,000–6,000 in the town and palace zones (P
 |---|---|---|---|
 | Estates and gardens appear in the tablets as *partetaš*; the tablets record workers hired to tend royal gardens | Iranica "Garden v" (search summary); PF literature | SX | B |
 | Pasargadae: an excavated garden with quadrangular beds divided by flowing channels | same | SX | B (analogy) |
+| Pasargadae watercourses: "limestone channels, 25 cm wide and punctuated with a deep square basin every 13 or 14 m ... The channels probably sat flush with the ground surface" (Stronach's excavation, 1961-63) | PASARGADAE-CHANNELS | SX | B (analogy). Built (D-149): dressed blocks ~1 m long with 2 cm joints (C), 13 cm lips (C), a basin 0.7 m square every 13.5 m (size C); the lip stands 7 cm proud of the ground because the heightfield cannot be cut (C) |
 | Persepolis area: garden complexes at Bagh-e Firuzi and Dasht-e Gohar; Persepolis West Area C | GONDET2009; PW2017 | SX | B |
 | Planting: plane, cypress, pomegranate, olive (Maharlou pollen, Achaemenid arboriculture), with fig, apple, pear and mulberry (PF fruits) | SAEIDI2021; IR-FOODAG | SX | B species / C mix |
 | Game in the paradises (brief §5.5): no Persepolis-specific evidence retrieved | – | – | C |

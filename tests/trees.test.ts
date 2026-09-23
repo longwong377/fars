@@ -6,7 +6,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 import { SPECIES, refForm, speciesIndex } from '../src/world/trees/species';
-import { allModels, cardState, rowOf, VARIANTS, M0, M1, K0, K1, SIDES0, SIDES1, TRIS, type TreeModel } from '../src/world/trees/model';
+import { allModels, cardState, variantLeaf, rowOf, VARIANTS, M0, M1, K0, K1, SIDES0, SIDES1, TRIS, type TreeModel } from '../src/world/trees/model';
 import { TILE_NAMES, tileIndex, type Atlas } from '../src/world/trees/atlas';
 import { calibrateAndDrawAtlas } from '../src/world/trees/kitdata';
 import { ImpostorBaker, groupStates, NV, srgbToLinear } from '../src/world/trees/impostor';
@@ -87,11 +87,26 @@ describe('seasons (seasonal.ts foliage -> model.ts cardState)', () => {
   });
   it('apple and pear blossom before full leaf (late March), wild almond in February, pomegranate in May-June; figs never', () => {
     expect(share('apple', 92).B).toBeGreaterThan(0.6); expect(share('pear', 92).B).toBeGreaterThan(0.6);
-    expect(share('almond', 58).B).toBeGreaterThan(0.6); expect(share('pomegranate', 150).B).toBeGreaterThan(0.6);
+    expect(share('almond', 58).B).toBeGreaterThan(0.6); expect(share('pomegranate', 150).B).toBeGreaterThan(0.3); // scattered flowers among the leaves (peak 0.45, D-149)
     for (const d of [60, 92, 150]) expect(share('fig', d).B).toBe(0);
     expect(share('plane', 200).L).toBe(1);
     // leaf-out is gradual: half-way through, some cards are leaves and some still twigs
-    const mid = share('plane', 95); expect(mid.L).toBeGreaterThan(0.2); expect(mid.T).toBeGreaterThan(0.2);
+    const mid = share('plane', 105); expect(mid.L).toBeGreaterThan(0.2); expect(mid.T).toBeGreaterThan(0.2); // the plane leafs out from doy 86 to 124 (D-149)
+  });
+  it('mid-April at ~1,610 m (day 0, doy 102; D-149): pomegranates in young leaf, figs with their first leaves, planes in young leaf, apple and pear in blossom', () => {
+    const d0 = 102;
+    expect(foliage('pomegranate', d0).leaf).toBeGreaterThan(0.5); // green leaves by the end of March in Shiraz (PUNICA-SHIRAZ)
+    expect(foliage('pomegranate', 80).colour[0]).toBeGreaterThan(foliage('pomegranate', 80).colour[1]); // red as they unfold
+    expect(foliage('pomegranate', 150).colour[1]).toBeGreaterThan(foliage('pomegranate', 150).colour[0]); // green by May
+    const fig = foliage('fig', d0).leaf; expect(fig).toBeGreaterThan(0.05); expect(fig).toBeLessThan(0.35); // bud break in April (FIG-ESTAHBAN)
+    const plane = foliage('plane', d0).leaf; expect(plane).toBeGreaterThan(0.2); expect(plane).toBeLessThan(0.7); // foliation over ~1.5 months from mid-April (PLATANUS-LAI)
+    expect(foliage('pome', d0).blossom).toBeGreaterThan(0.9);
+    // the three variants of a species are not all at one stage while their leaves come out, and agree in full leaf
+    const m0 = models[rowOf(speciesIndex('plane'), 0)], L = foliage('plane', d0).leaf;
+    expect(variantLeaf(L, 2) - variantLeaf(L, 0)).toBeGreaterThan(0.1); expect(variantLeaf(1, 0)).toBe(1); void m0;
+    // a bare fig shows few twig sprays (twig_cards 0.22): its branch skeleton, not a thicket
+    const figM = models[rowOf(speciesIndex('fig'), 0)]; let shown = 0; for (const c of figM.cards) if (cardState(c, 0, 0, figM.species.twig_cards).size > 0) shown++;
+    expect(shown / K0).toBeLessThan(0.3);
   });
 });
 
@@ -120,13 +135,13 @@ describe('levels of detail and impostors agree (silhouette area, colour)', () =>
 });
 
 describe('triangles per level of detail (render.ts templates)', () => {
-  it('LOD0 = 64 segments x 6 sides x 2 + 320 cards x 2; LOD1 = 16 x 4 x 2 + 80 x 2; impostor 2', () => {
+  it('LOD0 = 64 segments x 6 sides x 2 + 320 cards x 2; LOD1 = 16 x 4 x 2 + 120 x 2; impostor 2', () => {
     const kit = TreeKit.get({ impostorPx: 64 });
     const tri = (m: THREE.Mesh) => (m.geometry.index!.count / 3);
     const n0 = new NearTreeSet(kit, 0, 4, true, 't'), n1 = new NearTreeSet(kit, 1, 4, false, 't');
     expect(tri(n0.wood) + tri(n0.leaves)).toBe(TRIS.lod0); expect(tri(n1.wood) + tri(n1.leaves)).toBe(TRIS.lod1);
     expect(TRIS.lod0).toBe(M0 * SIDES0 * 2 + K0 * 2); expect(TRIS.lod1).toBe(M1 * SIDES1 * 2 + K1 * 2);
-    expect(TRIS.lod0).toBe(1408); expect(TRIS.lod1).toBe(288);
+    expect(TRIS.lod0).toBe(1408); expect(TRIS.lod1).toBe(368); // LOD1 was 80 cards (288): its 1.6x cards read as single big leaves at 50-100 m (D-149)
     const imp = new ImpostorSet(kit, 4, { c: { xz: null }, r: 0 } as any, 1000, 't'); expect(tri(imp.mesh)).toBe(TRIS.impostor);
     // instance counts follow the records; the dev overlay (F3) picks a tree and names its species and tiers
     n0.set([treeInst('plane', 0, 0, 0, 19, 15, 7, 'test'), treeInst('fig', 30, 0, 0, 5, 6, 9, 'test')]); expect(n0.count()).toBe(2); expect(n0.tris()).toBe(2 * TRIS.lod0);

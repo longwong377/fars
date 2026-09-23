@@ -2,7 +2,7 @@
  "_meta": {
   "what": "Tree and shrub species of the plain and the town gardens (Phase 7 / Phase 6 planting), and the proportions the tree generator (src/world/trees/model.ts) builds them to.",
   "tiers": "presence: the species' presence in the Marvdasht plain or the gardens in 467 BCE, with its own tier and source (pollen, PF commodities, riparian analogy). form: height, crown width / height, crown base / height (lowest foliage), trunk diameter at breast height / height, number of stems, crown shape and branching habit. Every form value is C: general dendrology recalled by the builder (source key BOTANY-GEN), not read in a flora this session; it describes mature, open-grown trees of the species as they grow today.",
-  "fields": "height_m [min, max] (m); crown_width_ratio [min, max] = crown diameter / height; crown_base_ratio [min, max] = height of the lowest foliage / height; dbh_ratio = trunk diameter at 1.3 m / height (each stem of a multi-stem tree: the ratio x 0.6); stems [min, max] from the ground; habit: excurrent (a central leader to the top) or decurrent (the trunk divides into limbs at the crown base); envelope: widest (height fraction of the crown's widest ring), top / bottom (superellipse exponents of the upper and lower crown); limb_angle_deg (primary limbs from the vertical); droop (0 upswept .. 1 hanging outer shoots); leaf: tile (leaf-cluster texture), size_cm (leaf blade length), layers (leaf-card layers over the crown surface: density of the canopy); bark: albedo (sRGB-encoded, C); blossom tile (null: no showy blossom).",
+  "fields": "height_m [min, max] (m); crown_width_ratio [min, max] = crown diameter / height; crown_base_ratio [min, max] = height of the lowest foliage / height; dbh_ratio = trunk diameter at 1.3 m / height (each stem of a multi-stem tree: the ratio x 0.6); stems [min, max] from the ground; habit: excurrent (a central leader to the top) or decurrent (the trunk divides into limbs at the crown base); envelope: widest (height fraction of the crown's widest ring), top / bottom (superellipse exponents of the upper and lower crown); limb_angle_deg (primary limbs from the vertical); droop (0 upswept .. 1 hanging outer shoots); leaf: tile (leaf-cluster texture), size_cm (leaf blade length), layers (leaf-card layers over the crown surface: density of the canopy); bark: albedo (sRGB-encoded, C); blossom tile (null: no showy blossom); twig_cards: share of the leaf-cluster cards that show a bare-twig spray when they carry no leaf or blossom (the rest of a bare crown is the branch skeleton): fine-twigged species high, stout-twigged ones low (a fig or a vine has few, stout twigs), C; card: the leaf-cluster cards' shape: aspect (height / width at the same area: the tall upright sprays of cypress and poplar, the long hanging shoots of willow), up (how far the card's axis turns to the vertical) and clump (weight of the clump in the lighting normal; a dense evergreen column is lit as one column), C.",
   "src_note": "BOTANY-GEN is recollection (tier C). Presence sources: IR-RIPARIAN (modern riparian community of the Zayandeh-Rud, analogy B), SAEIDI2021 (Maharlou pollen: Platanus, Olea, Punica, cypress with Achaemenid arboriculture; Quercus and Pistacia-Amygdalus on the slopes, B), IR-FOODAG (PF fruits: figs, apples, pears, mulberries, pistachios; wine, B)."
  },
  "species": [
@@ -12,7 +12,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [14, 24], "crown_width_ratio": [0.7, 0.9], "crown_base_ratio": [0.22, 0.32], "dbh_ratio": 0.045, "stems": [1, 1],
    "habit": "decurrent", "envelope": { "shape": "dome", "widest": 0.38, "top": 2.2, "bottom": 1.7 }, "limbs": [4, 5], "limb_angle_deg": 42, "droop": 0.15,
-   "leaf": { "tile": "palmate_plane", "size_cm": 16, "layers": 2.4 }, "twig_tile": "twig_fine", "blossom_tile": null,
+   "leaf": { "tile": "palmate_plane", "size_cm": 16, "layers": 2.4 }, "twig_tile": "twig_fine", "twig_cards": 0.6, "card": { "aspect": 1, "up": 0, "clump": 1 }, "blossom_tile": null,
    "bark": [0.47, 0.45, 0.36],
    "note": "a broad spreading dome on a short, thick bole; limbs spread wide from 3-6 m; bark flakes in grey, cream and olive patches; deeply 5-lobed leaves 10-20 cm"
   },
@@ -22,7 +22,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [7, 14], "crown_width_ratio": [0.6, 0.8], "crown_base_ratio": [0.18, 0.28], "dbh_ratio": 0.05, "stems": [1, 2],
    "habit": "decurrent", "envelope": { "shape": "rounded", "widest": 0.45, "top": 2.0, "bottom": 2.0 }, "limbs": [4, 6], "limb_angle_deg": 30, "droop": 0.65,
-   "leaf": { "tile": "lanceolate_willow", "size_cm": 9, "layers": 1.9 }, "twig_tile": "twig_hanging", "blossom_tile": null,
+   "leaf": { "tile": "lanceolate_willow", "size_cm": 9, "layers": 1.9 }, "twig_tile": "twig_hanging", "twig_cards": 0.8, "card": { "aspect": 1.6, "up": 0.0, "clump": 0.8 }, "blossom_tile": null,
    "bark": [0.30, 0.27, 0.22],
    "note": "rounded, rather open crown on a short, often leaning or forked trunk; limbs upswept, the outer shoots hang; narrow leaves silvery beneath, so the crown reads grey-green"
   },
@@ -32,7 +32,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [13, 21], "crown_width_ratio": [0.26, 0.36], "crown_base_ratio": [0.12, 0.2], "dbh_ratio": 0.03, "stems": [1, 1],
    "habit": "excurrent", "envelope": { "shape": "column", "widest": 0.4, "top": 2.6, "bottom": 2.2 }, "limbs": [14, 18], "limb_angle_deg": 22, "droop": 0.0,
-   "leaf": { "tile": "deltoid_poplar", "size_cm": 7, "layers": 2.0 }, "twig_tile": "twig_upright", "blossom_tile": null,
+   "leaf": { "tile": "deltoid_poplar", "size_cm": 7, "layers": 2.0 }, "twig_tile": "twig_upright", "twig_cards": 0.6, "card": { "aspect": 1.5, "up": 0.45, "clump": 0.6 }, "blossom_tile": null,
    "bark": [0.52, 0.51, 0.46],
    "note": "a straight leader to the top with short, steeply ascending branches: a narrow oval crown (C: the planted narrow form, Q-170); triangular leaves on flat stalks"
   },
@@ -42,7 +42,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [2.5, 5], "crown_width_ratio": [0.9, 1.2], "crown_base_ratio": [0.08, 0.15], "dbh_ratio": 0.018, "stems": [4, 8],
    "habit": "decurrent", "envelope": { "shape": "vase", "widest": 0.62, "top": 1.8, "bottom": 1.5 }, "limbs": [2, 3], "limb_angle_deg": 22, "droop": 0.35,
-   "leaf": { "tile": "spray_tamarisk", "size_cm": 5, "layers": 1.6 }, "twig_tile": "twig_tamarisk", "blossom_tile": null,
+   "leaf": { "tile": "spray_tamarisk", "size_cm": 5, "layers": 1.6 }, "twig_tile": "twig_tamarisk", "twig_cards": 0.55, "card": { "aspect": 1.3, "up": 0.0, "clump": 0.8 }, "blossom_tile": null,
    "bark": [0.36, 0.22, 0.16],
    "note": "a multi-stemmed shrub of slender reddish stems fanning from the ground; feathery, drooping sprays of tiny scale leaves, blue-grey green"
   },
@@ -52,7 +52,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [6, 9], "crown_width_ratio": [0.85, 1.05], "crown_base_ratio": [0.25, 0.32], "dbh_ratio": 0.05, "stems": [1, 1],
    "habit": "decurrent", "envelope": { "shape": "dome", "widest": 0.42, "top": 2.2, "bottom": 2.0 }, "limbs": [3, 5], "limb_angle_deg": 45, "droop": 0.2,
-   "leaf": { "tile": "cordate_mulberry", "size_cm": 13, "layers": 2.4 }, "twig_tile": "twig_fine", "blossom_tile": null,
+   "leaf": { "tile": "cordate_mulberry", "size_cm": 13, "layers": 2.4 }, "twig_tile": "twig_fine", "twig_cards": 0.45, "card": { "aspect": 1, "up": 0, "clump": 1 }, "blossom_tile": null,
    "bark": [0.36, 0.29, 0.21],
    "note": "a dense rounded dome about as wide as tall on a short, rough-barked trunk; heart-shaped leaves"
   },
@@ -62,7 +62,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [3.5, 6], "crown_width_ratio": [1.05, 1.35], "crown_base_ratio": [0.1, 0.2], "dbh_ratio": 0.04, "stems": [2, 4],
    "habit": "decurrent", "envelope": { "shape": "dome", "widest": 0.45, "top": 1.9, "bottom": 1.6 }, "limbs": [2, 3], "limb_angle_deg": 50, "droop": 0.1,
-   "leaf": { "tile": "palmate_fig", "size_cm": 20, "layers": 1.9 }, "twig_tile": "twig_stout", "blossom_tile": null,
+   "leaf": { "tile": "palmate_fig", "size_cm": 20, "layers": 1.9 }, "twig_tile": "twig_stout", "twig_cards": 0.22, "card": { "aspect": 1, "up": 0, "clump": 1 }, "blossom_tile": null,
    "bark": [0.52, 0.51, 0.47],
    "note": "low and spreading, wider than tall, several smooth pale-grey stems; thick stubby twigs; large 3-5-lobed leaves in a coarse, rather open canopy; no showy flowers"
   },
@@ -72,7 +72,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [4, 7], "crown_width_ratio": [0.9, 1.1], "crown_base_ratio": [0.22, 0.3], "dbh_ratio": 0.035, "stems": [1, 1],
    "habit": "decurrent", "envelope": { "shape": "rounded", "widest": 0.45, "top": 2.0, "bottom": 1.9 }, "limbs": [3, 4], "limb_angle_deg": 48, "droop": 0.2,
-   "leaf": { "tile": "ovate_pome", "size_cm": 7, "layers": 2.0 }, "twig_tile": "twig_fine", "blossom_tile": "blossom_small",
+   "leaf": { "tile": "ovate_pome", "size_cm": 7, "layers": 2.0 }, "twig_tile": "twig_fine", "twig_cards": 0.55, "card": { "aspect": 1, "up": 0, "clump": 1 }, "blossom_tile": "blossom_small",
    "bark": [0.34, 0.30, 0.25],
    "note": "a rounded, open crown on a short trunk; ovate leaves; white-pink blossom on the spurs in April"
   },
@@ -82,7 +82,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [5, 8], "crown_width_ratio": [0.55, 0.72], "crown_base_ratio": [0.2, 0.28], "dbh_ratio": 0.033, "stems": [1, 1],
    "habit": "excurrent", "envelope": { "shape": "ovoid", "widest": 0.38, "top": 1.7, "bottom": 2.0 }, "limbs": [8, 11], "limb_angle_deg": 35, "droop": 0.05,
-   "leaf": { "tile": "ovate_pome", "size_cm": 6, "layers": 2.0 }, "twig_tile": "twig_upright", "blossom_tile": "blossom_small",
+   "leaf": { "tile": "ovate_pome", "size_cm": 6, "layers": 2.0 }, "twig_tile": "twig_upright", "twig_cards": 0.5, "card": { "aspect": 1, "up": 0, "clump": 1 }, "blossom_tile": "blossom_small",
    "bark": [0.28, 0.25, 0.22],
    "note": "upright, narrower than apple, a leader with ascending branches (an oval to broad-pyramidal crown); dark, finely checked bark; white blossom in late March and April"
   },
@@ -92,7 +92,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [3, 5], "crown_width_ratio": [0.9, 1.15], "crown_base_ratio": [0.08, 0.16], "dbh_ratio": 0.02, "stems": [3, 6],
    "habit": "decurrent", "envelope": { "shape": "vase", "widest": 0.58, "top": 2.0, "bottom": 1.6 }, "limbs": [2, 3], "limb_angle_deg": 25, "droop": 0.3,
-   "leaf": { "tile": "narrow_pomegranate", "size_cm": 5, "layers": 1.9 }, "twig_tile": "twig_fine", "blossom_tile": "blossom_pomegranate",
+   "leaf": { "tile": "narrow_pomegranate", "size_cm": 5, "layers": 1.9 }, "twig_tile": "twig_fine", "twig_cards": 0.8, "card": { "aspect": 1, "up": 0, "clump": 1 }, "blossom_tile": "blossom_pomegranate",
    "bark": [0.33, 0.29, 0.24],
    "note": "a many-stemmed shrubby small tree, fine twiggy and dense; small narrow glossy leaves; scarlet flowers from May"
   },
@@ -102,7 +102,7 @@
    "tier": "C", "src": "BOTANY-GEN;SAEIDI2021",
    "height_m": [4, 8], "crown_width_ratio": [1.0, 1.3], "crown_base_ratio": [0.18, 0.3], "dbh_ratio": 0.045, "stems": [1, 3],
    "habit": "decurrent", "envelope": { "shape": "dome", "widest": 0.4, "top": 1.8, "bottom": 1.7 }, "limbs": [3, 5], "limb_angle_deg": 52, "droop": 0.1,
-   "leaf": { "tile": "oblong_oak", "size_cm": 9, "layers": 1.6 }, "twig_tile": "twig_fine", "blossom_tile": null,
+   "leaf": { "tile": "oblong_oak", "size_cm": 9, "layers": 1.6 }, "twig_tile": "twig_fine", "twig_cards": 0.55, "card": { "aspect": 1, "up": 0, "clump": 1 }, "blossom_tile": null,
    "bark": [0.29, 0.26, 0.22],
    "note": "a short tree, often several stems from an old cut stool, with an open, irregular crown wider than tall (woodland rule: crowns 5-9 m, 4-8 m tall); oblong toothed leaves, grey-green and felted"
   },
@@ -112,7 +112,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [2, 4], "crown_width_ratio": [0.8, 1.0], "crown_base_ratio": [0.08, 0.14], "dbh_ratio": 0.02, "stems": [3, 6],
    "habit": "decurrent", "envelope": { "shape": "vase", "widest": 0.6, "top": 1.8, "bottom": 1.6 }, "limbs": [2, 3], "limb_angle_deg": 18, "droop": 0.05,
-   "leaf": { "tile": "narrow_almond", "size_cm": 3, "layers": 0.9 }, "twig_tile": "twig_broom", "blossom_tile": "blossom_small",
+   "leaf": { "tile": "narrow_almond", "size_cm": 3, "layers": 0.9 }, "twig_tile": "twig_broom", "twig_cards": 0.9, "card": { "aspect": 1, "up": 0, "clump": 1 }, "blossom_tile": "blossom_small",
    "bark": [0.40, 0.40, 0.34],
    "note": "a broom-like shrub of many erect, green switch stems with few small leaves; pale pink blossom in February and March"
   },
@@ -122,7 +122,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [3.5, 7], "crown_width_ratio": [0.95, 1.2], "crown_base_ratio": [0.2, 0.28], "dbh_ratio": 0.05, "stems": [1, 2],
    "habit": "decurrent", "envelope": { "shape": "dome", "widest": 0.45, "top": 2.2, "bottom": 1.8 }, "limbs": [3, 5], "limb_angle_deg": 50, "droop": 0.15,
-   "leaf": { "tile": "pinnate_pistachio", "size_cm": 15, "layers": 2.0 }, "twig_tile": "twig_fine", "blossom_tile": null,
+   "leaf": { "tile": "pinnate_pistachio", "size_cm": 15, "layers": 2.0 }, "twig_tile": "twig_fine", "twig_cards": 0.35, "card": { "aspect": 1, "up": 0, "clump": 1 }, "blossom_tile": null,
    "bark": [0.31, 0.28, 0.24],
    "note": "a stout short trunk under a dense, rounded crown; pinnate leaves; reddish in autumn"
   },
@@ -132,7 +132,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [9, 15], "crown_width_ratio": [0.16, 0.24], "crown_base_ratio": [0.02, 0.05], "dbh_ratio": 0.03, "stems": [1, 1],
    "habit": "excurrent", "envelope": { "shape": "cone", "widest": 0.28, "top": 1.3, "bottom": 2.0 }, "limbs": [16, 18], "limb_angle_deg": 14, "droop": 0.0,
-   "leaf": { "tile": "spray_cypress", "size_cm": 10, "layers": 3.2 }, "twig_tile": "spray_cypress", "blossom_tile": null,
+   "leaf": { "tile": "spray_cypress", "size_cm": 10, "layers": 3.2 }, "twig_tile": "spray_cypress", "twig_cards": 1, "card": { "aspect": 2.3, "up": 0.8, "clump": 0 }, "blossom_tile": null,
    "bark": [0.33, 0.25, 0.2],
    "note": "the narrow upright form planted in gardens (C: the wild form of Iran is broader, Q-171); dense dark scale-leaf foliage to the ground, evergreen"
   },
@@ -142,7 +142,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [4, 6.5], "crown_width_ratio": [0.95, 1.2], "crown_base_ratio": [0.25, 0.35], "dbh_ratio": 0.06, "stems": [1, 2],
    "habit": "decurrent", "envelope": { "shape": "rounded", "widest": 0.45, "top": 2.0, "bottom": 1.7 }, "limbs": [3, 4], "limb_angle_deg": 45, "droop": 0.25,
-   "leaf": { "tile": "narrow_olive", "size_cm": 6, "layers": 1.8 }, "twig_tile": "twig_fine", "blossom_tile": null,
+   "leaf": { "tile": "narrow_olive", "size_cm": 6, "layers": 1.8 }, "twig_tile": "twig_fine", "twig_cards": 1, "card": { "aspect": 1, "up": 0, "clump": 1 }, "blossom_tile": null,
    "bark": [0.40, 0.38, 0.33],
    "note": "a broad, irregular crown on a short, gnarled grey trunk; narrow leaves grey-green above, silvery below; evergreen"
   },
@@ -152,7 +152,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [1.2, 1.8], "crown_width_ratio": [1.0, 1.3], "crown_base_ratio": [0.3, 0.42], "dbh_ratio": 0.05, "stems": [1, 1],
    "habit": "decurrent", "envelope": { "shape": "rounded", "widest": 0.5, "top": 1.7, "bottom": 1.5 }, "limbs": [4, 5], "limb_angle_deg": 55, "droop": 0.45,
-   "leaf": { "tile": "palmate_vine", "size_cm": 14, "layers": 1.8 }, "twig_tile": "twig_stout", "blossom_tile": null,
+   "leaf": { "tile": "palmate_vine", "size_cm": 14, "layers": 1.8 }, "twig_tile": "twig_stout", "twig_cards": 0.3, "card": { "aspect": 1, "up": 0, "clump": 1 }, "blossom_tile": null,
    "bark": [0.34, 0.26, 0.19],
    "note": "a low vine on its own short trunk (head-trained, C), canes spreading and bending; lobed leaves"
   }

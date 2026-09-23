@@ -9,7 +9,7 @@ import { Pipeline } from '../render/pipeline';
 import { QUALITY, type Quality } from '../core/settings';
 import { installWebGPUCompat } from '../render/compat';
 import { surfaceMaterial } from '../render/materials';
-import { TreeKit, NearTreeSet, ImpostorSet, treeInst, speciesSize, impostorPx, type TreeInst } from '../world/trees/render';
+import { TreeKit, NearTreeSet, ImpostorSet, treeInst, speciesSize, impostorPx, registerShadowLight, type TreeInst } from '../world/trees/render';
 import { doyOf } from '../world/plain/seasonal';
 installWebGPUCompat();
 
@@ -26,6 +26,7 @@ async function boot() {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(+(P.get('fov') ?? 70), innerWidth / innerHeight, 0.05, 20000);
   const sky = new SkySystem(scene, QUALITY[quality].shadowMapSize, quality); await sky.loadStars('/');
+  registerShadowLight(scene); // the leaves' transmission follows this sun (render.ts syncSun)
   const clock = new WorldClock(+(P.get('day') ?? 80), +(P.get('hour') ?? 10));
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000).rotateX(-Math.PI / 2), surfaceMaterial('earth')); ground.receiveShadow = true; scene.add(ground);
   const t0 = performance.now();

@@ -151,6 +151,20 @@ function nodes(tw: Twig[], step: number, rng: Rng) {
 }
 /** keep the spray round: leaves outside an ellipse around the tile centre are dropped (ragged edge by chance) */
 const inOval = (x: number, y: number, rng: Rng) => { const q = ovalQ(x, y); return q < 0.8 || (q < 1.1 && rng.chance(1 - (q - 0.8) / 0.3)); };
+/** Leaf clumps of a tile (C): 4-5 ragged rounded clumps spread over the spray (one over the main shoot's tip, the others
+ *  to the sides and lower down), each of radius about `r` (tile units). Leaves grow only inside a clump (a few strays
+ *  outside), so a card reads as a few clumps of leaves on bare twigs with sky between them, and its outline at the
+ *  coarse mips is lobed, not the solid disc of a spray filled to its outline (the "cabbage" crowns of session 3). */
+function clumpMask(rng: Rng, r: number, stray = 0.03) {
+  const base: [number, number][] = [[0.5, 0.77], [0.21, 0.56], [0.79, 0.56], [0.35, 0.33], [0.65, 0.31]];
+  const n = rng.chance(0.5) ? 5 : 4, cs: { x: number; y: number; r: number; p1: number; p2: number }[] = [];
+  for (let k = 0; k < n; k++) { const [bx, by] = base[k === 3 && n === 4 ? 3 + (rng.chance(0.5) ? 1 : 0) : k];
+    cs.push({ x: bx + rng.range(-0.05, 0.05), y: by + rng.range(-0.05, 0.05), r: r * rng.range(0.8, 1.18), p1: rng.range(0, 6.28), p2: rng.range(0, 6.28) }); }
+  return (x: number, y: number) => {
+    for (const c of cs) { const dx = x - c.x, dy = y - c.y, a = Math.atan2(dy, dx); if (Math.hypot(dx, dy) < c.r * (1 + 0.22 * Math.sin(3 * a + c.p1) + 0.12 * Math.sin(7 * a + c.p2))) return true; }
+    return rng.chance(stray);
+  };
+}
 
 function drawTile(name: TileName, leafFrac: number, c: Canvas) {
   const rng = new Rng(hashString(name), 'leaf-atlas');
@@ -160,9 +174,12 @@ function drawTile(name: TileName, leafFrac: number, c: Canvas) {
   const sh = () => rng.range(0.62, 1.0);
   const twigs = (tw: Twig[], shade = 0.7) => { for (const t of tw) c.line(t.x0, t.y0, t.x1, t.y1, t.w, t.w * 0.8, 2, shade * rng.range(0.85, 1.1)); };
   const shuffle = <T,>(a: T[]) => { for (let i = a.length - 1; i > 0; i--) { const j = rng.int(0, i); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const leafy = (tw: Twig[], hw: (s: number) => number, step: number, angle: number, sizeVar = 0.25) => {
+  // leaves grow in clumps (clumpMask): radius at least ~1.4 leaf lengths, so a clump of big leaves still holds several
+  const clump = clumpMask(rng, Math.max(0.135, 1.25 * L));
+  const leafy = (tw: Twig[], hw: (s: number) => number, step: number, angle: number, sizeVar = 0.25, mask: ((x: number, y: number) => boolean) | null = clump) => {
     for (const n of shuffle(nodes(tw, step, rng))) { const a = n.ang + n.side * angle * rng.range(0.7, 1.2), l = L * rng.range(1 - sizeVar, 1 + sizeVar);
-      if (!inOval(n.x + Math.sin(a) * l * 0.5, n.y + Math.cos(a) * l * 0.5, rng)) continue; c.leaf(n.x, n.y, a, l, hw, sh()); }
+      const mx = n.x + Math.sin(a) * l * 0.5, my = n.y + Math.cos(a) * l * 0.5;
+      if (!inOval(mx, my, rng) || (mask && !mask(mx, my))) continue; c.leaf(n.x, n.y, a, l, hw, sh()); }
   };
   const std = (spread = 0.8, w = 0.011, extra: Partial<{ curve: number; side: number }> = {}) => spray(rng, { spread, levels: lv, w, node, ...extra });
   switch (name) {
@@ -171,7 +188,7 @@ function drawTile(name: TileName, leafFrac: number, c: Canvas) {
       const lobes = name === 'palmate_plane' ? [0, 0.72, -0.72, 1.45, -1.45] : name === 'palmate_fig' ? [0, 0.85, -0.85, 1.55, -1.55] : [0, 0.8, -0.8, 1.5, -1.5];
       const width = name === 'palmate_plane' ? 0.2 : name === 'palmate_fig' ? 0.33 : 0.36, base = name === 'palmate_plane' ? 0.32 : name === 'palmate_fig' ? 0.42 : 0.62;
       for (const n of shuffle(nodes(tw, L * 0.5, rng))) { const a = n.ang + n.side * rng.range(0.5, 1.1), l = L * rng.range(0.8, 1.15), px = n.x + Math.sin(a) * l * 0.25, py = n.y + Math.cos(a) * l * 0.25;
-        if (!inOval(px + Math.sin(a) * l * 0.4, py + Math.cos(a) * l * 0.4, rng)) continue;
+        if (!inOval(px + Math.sin(a) * l * 0.4, py + Math.cos(a) * l * 0.4, rng) || !clump(px + Math.sin(a) * l * 0.4, py + Math.cos(a) * l * 0.4)) continue;
         c.line(n.x, n.y, px, py, 0.004, 0.004, 2, 0.8); c.palmate(px, py, a + rng.range(-0.3, 0.3), l * 0.62, lobes, width, base, sh()); }
       break; }
     case 'lanceolate_willow': { const tw = std(0.4, 0.008, { curve: 0.15 }); twigs(tw, 0.75); leafy(tw, HW.lanceolate, L * 0.22, 0.45, 0.2); break; }
@@ -180,12 +197,12 @@ function drawTile(name: TileName, leafFrac: number, c: Canvas) {
     case 'ovate_pome': { const tw = std(0.75, 0.01); twigs(tw); leafy(tw, HW.ovate, L * 0.36, 0.85); break; }
     case 'narrow_pomegranate': { const tw = std(0.7, 0.008); twigs(tw); leafy(tw, HW.narrowWide, L * 0.25, 0.7); break; }
     case 'narrow_olive': { const tw = std(0.7, 0.009); twigs(tw); leafy(tw, HW.narrow, L * 0.24, 0.55); break; }
-    case 'narrow_almond': { const tw = spray(rng, { spread: 0.32, levels: 2, w: 0.01, node: 0.07, side: 0.85 }); twigs(tw, 0.8); leafy(tw, HW.narrow, L * 0.45, 0.5); break; }
+    case 'narrow_almond': { const tw = spray(rng, { spread: 0.32, levels: 2, w: 0.01, node: 0.07, side: 0.85 }); twigs(tw, 0.8); leafy(tw, HW.narrow, L * 0.45, 0.5, 0.25, null); break; }
     case 'oblong_oak': { const tw = std(0.8); twigs(tw); leafy(tw, HW.oak, L * 0.38, 0.8); break; }
     case 'pinnate_pistachio': {
       const tw = std(0.8, 0.012); twigs(tw);
       for (const n of shuffle(nodes(tw, L * 0.42, rng))) { const a = n.ang + n.side * rng.range(0.6, 1.0), l = L * rng.range(0.85, 1.15), ex = n.x + Math.sin(a) * l, ey = n.y + Math.cos(a) * l;
-        if (!inOval((n.x + ex) / 2, (n.y + ey) / 2, rng)) continue;
+        if (!inOval((n.x + ex) / 2, (n.y + ey) / 2, rng)) continue; // compound leaves along open shoots: no clumps (a pinnate leaf is a clump of leaflets)
         c.line(n.x, n.y, ex, ey, 0.004, 0.003, 0, 0.7); const sh0 = sh();
         for (let k = 1; k <= 4; k++) { const px = n.x + (ex - n.x) * k / 4.6, py = n.y + (ey - n.y) * k / 4.6;
           for (const sg of [-1, 1]) c.leaf(px, py, a + sg * 0.95, l * 0.3, HW.leaflet, sh0 * rng.range(0.92, 1.05)); }
@@ -194,10 +211,16 @@ function drawTile(name: TileName, leafFrac: number, c: Canvas) {
     case 'spray_cypress': case 'spray_tamarisk': case 'twig_tamarisk': {
       const cyp = name === 'spray_cypress', bare = name === 'twig_tamarisk';
       const tw = spray(rng, { spread: cyp ? 0.75 : 0.55, levels: 3, w: cyp ? 0.012 : 0.006, node: cyp ? 0.05 : 0.06, curve: cyp ? 0 : 0.2 });
-      for (const t of tw) { const w = (cyp ? 0.026 : 0.012) * (t.level ? 0.9 : 1.1) * (bare ? 0.5 : 1);
-        if (!inOval((t.x0 + t.x1) / 2, (t.y0 + t.y1) / 2, rng)) continue;
-        c.line(t.x0, t.y0, t.x1, t.y1, w, w * 0.7, bare ? 2 : 0, sh());
-        if (!bare) for (const n of nodes([t], cyp ? 0.016 : 0.024, rng)) { const a = n.ang + n.side * 0.7, l = cyp ? 0.028 : 0.036; c.line(n.x, n.y, n.x + Math.sin(a) * l, n.y + Math.cos(a) * l, w * 0.75, w * 0.45, 0, sh()); } }
+      // the scale-leaf sprays grow in clumps too (cypress: big, dense clumps with many strays between; C)
+      const m2 = bare ? null : clumpMask(rng, cyp ? 0.2 : 0.21, cyp ? 0.22 : 0.12);
+      for (const t of tw) { const w = (cyp ? 0.026 : 0.012) * (t.level ? 0.9 : 1.1) * (bare ? 0.5 : 1), mx = (t.x0 + t.x1) / 2, my = (t.y0 + t.y1) / 2;
+        if (!inOval(mx, my, rng)) continue;
+        const inC = !m2 || m2(mx, my); if (!inC && t.level > 0) continue; // outside the clumps only the main shoot, bare
+        // a leafless tamarisk is a haze of fine twigs with the sky through it: over half the finest twigs left out, or its
+        // cards turn into solid red-brown patches at the coarse mips (the April far-bank shrubs read as heaps, D-149)
+        if (bare && t.level >= 2 && rng.chance(0.55)) continue;
+        c.line(t.x0, t.y0, t.x1, t.y1, inC ? w : w * 0.5, inC ? w * 0.7 : w * 0.35, bare || !inC ? 2 : 0, sh());
+        if (!bare && inC) for (const n of nodes([t], cyp ? 0.016 : 0.024, rng)) { const a = n.ang + n.side * 0.7, l = cyp ? 0.028 : 0.036; c.line(n.x, n.y, n.x + Math.sin(a) * l, n.y + Math.cos(a) * l, w * 0.75, w * 0.45, 0, sh()); } }
       break; }
     case 'blossom_small': case 'blossom_pomegranate': {
       const pom = name === 'blossom_pomegranate';
