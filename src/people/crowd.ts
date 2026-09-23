@@ -1,10 +1,11 @@
 // Crowd renderer (D-090, D-093): renders the simulation's people with the MakeHuman-derived bodies in period dress.
 //
-// Pooling: the pool is fed by the simulation's `visibleAgents(centre, ATTACH_R, POOL_MAX)` (the detailed agents on the
-// Terrace, nearest first, capped; D-024) and, with a population view (popview.ts, D-143), by everyone of the population
-// who is out of doors near the camera (and the detailed agents off the Terrace, where the view places them): the nearest
-// POOL_MAX of all of them are attached (with a margin before anyone is dropped), the rest within IMP_R are drawn as
-// impostors (impostors.ts), in the same place, colours and activity. Attaching gives a person a palette slot and writes
+// Pooling: without a population view the pool is fed by the simulation's `visibleAgents(centre, ATTACH_R, POOL_MAX)` (the
+// detailed agents on the Terrace, nearest first, capped; D-024). With one (popview.ts, D-143) the candidates are every
+// detailed agent on the map and everyone of the population out of doors within IMP_R (and the detailed agents off the
+// Terrace, where the view places them): the nearest POOL_MAX are attached (people out of view ranked OUT_OF_VIEW farther;
+// a margin before anyone is dropped), the rest are drawn as impostors (impostors.ts), in the same place, colours and
+// activity. Attaching gives a person a palette slot and writes
 // their look (looks.ts; deterministic from their seed, so a person looks the same every time). Cost scales with the
 // people near the camera, not with the population.
 // `attach()`/`detach()` are public so a future dynamic roster can drive the pool itself (autoPool = false).
@@ -331,12 +332,12 @@ export class Crowd {
     for (let i = 0; i < list.length; i++) {
       const p = list[i], d = p.dist;
       if (!p.agent && p.vp && p.vp.moving) p.gaitPh += (p.vp.speed || 1.2) * dtP / 0.72 * Math.PI;
-      const lod = d < LOD_DIST[0] && drawn[0] < MAX_FULL ? 0 : d < LOD_DIST[1] && drawn[1] < MAX_MID ? 1 : d < LOD_DIST[2] || !has3 ? 2 : 3; drawn[lod]++;
+      const K = this.caps, lod = d < LOD_DIST[0] && drawn[0] < K.full ? 0 : d < LOD_DIST[1] && drawn[1] < K.mid ? 1 : d < K.far || !has3 ? 2 : 3; drawn[lod]++;
       const every = d < 30 ? 1 : d < 90 ? 2 : d < 200 ? 4 : 8;
       if (p.poseFrame < 0 || (this.frame + p.frameMod) % every === 0 || this.frame - p.poseFrame > every) { this.posePerson(p, time, d, playerPos, cam, lod); posed++; }
       else if (p.poseFrame === this.frame - 1) this.copyPrev(p); // no bone change this frame: previous = current
       const c = gpu.costumes.get(`${COSTUME_OF[p.look.dress]}@${lod}`)!;
-      gpu.push(c, p.slot, p.root[0], p.root[1], p.root[2], p.root[3], p.prevRoot[0], p.prevRoot[1], p.prevRoot[2], p.prevRoot[3], lod === 0 ? 1 : d < SHADOW_DIST ? 2 : 0);
+      gpu.push(c, p.slot, p.root[0], p.root[1], p.root[2], p.root[3], p.prevRoot[0], p.prevRoot[1], p.prevRoot[2], p.prevRoot[3], lod === 0 ? 1 : d < K.shadow ? 2 : 0);
       p.drawnFrame = this.frame; p.lod = lod; if (this.drawnKeys) this.drawnKeys.add(p.agent ? -1 - p.agent.id : p.pid);
       if (p.prop) this.placeProp(p);
     }
@@ -370,6 +371,9 @@ export class Crowd {
     if (this.impLooks.size > 60_000) this.impLooks.clear(); if (this.impPhase.size > 60_000) this.impPhase.clear();
   }
   private impPhase = new Map<number, number>();
+  /** the LOD caps in force: full-detail and mid-detail counts, the far body's reach and the shadow casters' (m). The
+   *  constants by default; tests vary them to measure the triangle budget (D-143). The brief's floor: full ≥ 50 */
+  caps = { full: MAX_FULL as number, mid: MAX_MID as number, far: LOD_DIST[2] as number, shadow: SHADOW_DIST as number };
   /** tests: when set, filled each frame with everyone drawn (population id; a detailed agent as -1 - agent id) */
   drawnKeys: Set<number> | null = null;
   /** the camera of the last update (crowdprobe.ts counts the people visible from it) */
