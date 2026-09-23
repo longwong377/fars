@@ -110,7 +110,10 @@ export class MeshLOD extends THREE.Object3D {
 }
 
 export interface BuiltArch { group: THREE.Group; triangles: number; colliders: number }
-export function buildMeshes(parts: Part[], phys?: Physics): BuiltArch {
+/** opts.dynamicDoors: door leaves (parts with `door`, D-051) get no static collider, because the world's door system
+ *  (doors.ts) gives each a kinematic one that follows its swing. Without it (walkable-grid build, offline bots) a leaf is a
+ *  static collider in its walkable-grid pose. Leaves are never drawn here: the door system draws them. */
+export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?: boolean } = {}): BuiltArch {
   const group = new THREE.Group(); group.name = 'architecture';
   const byKey = new Map<string, { geos: THREE.BufferGeometry[]; parts: Part[] }>();
   const cols = new Map<string, { order: ColumnOrder; built: number; parts: Column[] }>();
@@ -125,11 +128,13 @@ export function buildMeshes(parts: Part[], phys?: Physics): BuiltArch {
     }
     const g = p.type === 'prism' ? prismGeometry(p) : boxGeometry(p);
     for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
-    if (phys && p.solid !== false && p.kind !== 'roof') {
+    const leaf = p.type === 'box' && !!p.door;
+    if (phys && p.solid !== false && p.kind !== 'roof' && !(leaf && opts.dynamicDoors)) {
       const pos = g.getAttribute('position').array as Float32Array; const idx = new Uint32Array(pos.length / 3); for (let i = 0; i < idx.length; i++) idx[i] = i;
       phys.addTrimesh(new Float32Array(pos), idx, { building: p.building, kind: p.kind }); colliders++;
     }
     if (p.type === 'box' && p.sculpt) continue; // rendered as sculpture below; the box is the collider only
+    if (leaf) continue; // drawn (and moved) by the door system
     const rg = g; // walls around sculpted jambs are already cut in the parts (terrace.ts: parts.cutWall)
     const key = `${p.building}|${p.material}|${p.tier}|${p.placeholder ? 1 : 0}`;
     if (!byKey.has(key)) byKey.set(key, { geos: [], parts: [] }); byKey.get(key)!.geos.push(rg); byKey.get(key)!.parts.push(p);

@@ -1,8 +1,9 @@
 // Parametric Terrace generator. Every dimension comes from SITE_SPEC (src/data/site_spec.json): attested/inferred rows,
 // DERIVED rows, or `r_*` reconstruction rows (tier C, with a note each) — no literals (brief §3.1, §7; review MJ-1).
 // Positions come from the georeferenced OSM footprints. Output: parts + a manifest of measured features.
-import { row, v, tierOf, srcOf, present, footprint } from './spec';
-import { Part, Pt, Box, Prism, Column, ColumnOrder, Manifest, wallRing, grid, BuildResult, Material, doorFrames, frameTop, FrameDims, cutWall } from './parts';
+import { row, v, tierOf, srcOf, present, footprint, SPEC } from './spec';
+import { Part, Pt, Box, Prism, Column, ColumnOrder, Manifest, wallRing, grid, BuildResult, Material, doorFrames, frameTop, FrameDims, cutWall, Doorway, DoorState } from './parts';
+import { ringSide, ringDoorway, openingParts, leafParts } from './openings';
 import { order } from './orders';
 import { Rng } from '../core/rng';
 import { polyDifference, polyUnion, polyIntersection, rectPoly, single } from './poly';
@@ -53,14 +54,53 @@ function flightAlong(b: string, t: Tier, s: string, start: Pt, u: Pt, steps: num
   for (let i = 0; i < steps; i++) { const a = (i + 0.5) * tread; out.push({ ...box(b, 'step', 'limestone', t, s, [start[0] + u[0] * a, start[1] + u[1] * a], [tread, width], base, y0 + (i + 1) * riser, { solid: true }), rot }); }
   return out;
 }
-type Door = { side: 'N' | 'S' | 'E' | 'W'; at: number; width: number; height: number };
-/** stone-framed doorways (global.r_door_frame): the frame parts, and the wall gaps widened up to the frame top so the brick
- *  resumes above the cornice; an opening that runs to the top of an unfinished wall gets a frame of `frameHeight` */
+type Door = { side: 'N' | 'S' | 'E' | 'W'; at: number; width: number; height: number; id?: string };
+// stone-framed doorways (global.r_door_frame): the frame parts, the doorway descriptors (door leaves, jamb reliefs), and
+ //  the wall gaps: as wide as the frame (the jambs replace the brick, so no jamb face is coplanar with a wall end, D-050)
+ //  and up to the frame top so the brick resumes above the cornice; an opening that runs to the top of an unfinished wall
+ //  gets a frame of `frameHeight`
 function framed(b: string, cx: number, cy: number, w: number, h: number, th: number, y0: number, doors: Door[], frameHeight: number, tx = th, ty = th) {
   const F = v<FrameDims>('global', 'r_door_frame');
   const fd = doors.map(d => ({ ...d, height: Number.isFinite(d.height) ? d.height : frameHeight }));
   const frames = doorFrames({ building: b, material: 'limestone_dark', tier: T_('global', 'r_door_frame'), src: S_('global', 'r_door_frame') }, cx, cy, w, h, th, y0, fd, F, tx, ty);
-  return { wallDoors: doors.map(d => (Number.isFinite(d.height) ? { ...d, height: frameTop(d.height, F) } : d)), frames };
+  const doorways = fd.map(d => ringDoorway(b, d.id ?? d.side, d.side, ringSide(d.side, cx, cy, w, h, tx, ty), d.at, d.width, d.height, y0, F));
+  return { wallDoors: doors.map(d => ({ ...d, width: d.width + 2 * F.jamb, height: Number.isFinite(d.height) ? frameTop(d.height, F) : d.height })), frames, doorways, doors: fd };
+}
+// windows and blind niches of a hall's wall ring (global.r_window, r_niche; per-building r_windows / r_niches, D-050):
+ //  width a fraction of the main door, head level with the door head of that wall (the main door's where the wall has
+ //  none); the walls are cut where the frames stand. Returns the cut walls, the frame parts, and per side the along-wall
+ //  extents a door leaf lying against the wall must keep clear of (other frames and the corners)
+function openings(b: string, cx: number, cy: number, w: number, h: number, tx: number, ty: number, y0: number, walls: Box[], doors: Door[], main: { width: number; height: number }) {
+  const F = v<FrameDims>('global', 'r_door_frame'), WI = v<any>('global', 'r_window'), NI = v<any>('global', 'r_niche');
+  const has = (k: string) => SPEC[b]?.[k]?.v !== undefined;
+  const W: Record<string, number[]> = has('r_windows') ? v(b, 'r_windows') : {}, N: Record<string, number[]> = has('r_niches') ? v(b, 'r_niches') : {};
+  const meta = (k: string) => ({ building: b, material: 'limestone_dark' as Material, tier: T_(b, k), src: srcOf(row(b, k), row('global', k === 'r_windows' ? 'r_window' : 'r_niche'), row('global', 'r_door_frame')) });
+  const frames: Box[] = [], cutters: Box[] = [], clear: Box[] = [], blocked: Record<string, [number, number][]> = {};
+  const sides = ['N', 'S', 'E', 'W'] as const;
+  for (const side of sides) {
+    const S = ringSide(side, cx, cy, w, h, tx, ty), onSide = doors.filter(d => d.side === side);
+    blocked[side] = [[S.half, Infinity], [-Infinity, -S.half], ...onSide.map(d => [d.at - d.width / 2 - F.jamb, d.at + d.width / 2 + F.jamb] as [number, number])];
+    const head = onSide.length ? Math.max(...onSide.map(d => d.height)) : main.height, ow = main.width * WI.width_of_door;
+    const O = { width: ow, sill: WI.sill, head, sillBlock: WI.sill_block, nicheDepth: NI.depth };
+    for (const [list, through, key] of [[W[side] ?? [], true, 'r_windows'], [N[side] ?? [], false, 'r_niches']] as const) for (const at of list) {
+      const o = openingParts(meta(key), S, at, y0, O, F, through); frames.push(...o.frames); cutters.push(o.cutter); clear.push(o.clear);
+      blocked[side].push([at - ow / 2 - F.jamb, at + ow / 2 + F.jamb]);
+    }
+  }
+  return { walls: walls.flatMap(q => cutWall(q, cutters) ?? [q]), frames, clear, blocked, windows: sides.reduce((s, k) => s + (W[k]?.length ?? 0), 0), niches: sides.reduce((s, k) => s + (N[k]?.length ?? 0), 0) };
+}
+// timber door leaves (global.r_door_leaf, D-051) on the doorways listed in the building's r_door_state row
+function hang(b: string, doorways: Doorway[], blocked: Record<string, [number, number][]>, thickness = v<any>('global', 'r_door_leaf').thickness, flip: string[] = []): Box[] {
+  const ST = v<Record<string, DoorState>>(b, 'r_door_state'), DL = v<any>('global', 'r_door_leaf'), out: Box[] = [];
+  for (const d0 of doorways) {
+    const state = ST[d0.door]; if (!state) continue;
+    // a doorway whose leaves swing to the outer face (flip) has its n reversed: the approach side is then the n side
+    const out1 = flip.includes(d0.door), d: Doorway = out1 ? { ...d0, n: [-d0.n[0], -d0.n[1]] } : d0;
+    const rel = (blocked[d0.side] ?? []).map(([a0, a1]) => [a0 - d0.at, a1 - d0.at] as [number, number]).filter(([a0, a1]) => !(a0 < 0 && a1 > 0)); // not its own frame
+    out.push(...leafParts(d, state, { thickness, gap: DL.gap }, rel, { tier: tierOf(row(b, 'r_door_state'), row('global', 'r_door_leaf')), src: srcOf(row(b, 'r_door_state'), row('global', 'r_door_leaf')), material: 'timber' },
+      out1 ? [d.n[0], d.n[1]] : [-d.n[0], -d.n[1]]));
+  }
+  return out;
 }
 /** red lime-plaster floor finish over a hall interior (global.interior_floor; attested for the Tachara and Treasury, B;
  *  extended to the other halls, C) */
@@ -82,7 +122,7 @@ function edgeAt(poly: Pt[], axis: 'x' | 'y', value: number, pick: 'max' | 'min')
 function ringSign(p: Pt[]) { let a = 0; for (let i = 0; i < p.length; i++) { const [x1, y1] = p[i], [x2, y2] = p[(i + 1) % p.length]; a += x1 * y2 - x2 * y1; } return a > 0 ? 1 : -1; }
 
 export function buildTerrace(): BuildResult {
-  const parts: Part[] = []; const manifest: Manifest = {};
+  const parts: Part[] = []; const manifest: Manifest = {}; const doorways: Doorway[] = [];
   const FOUND = -v('global', 'r_found_depth');
   const EAST = v('global', 'r_east_side_x');
   const RISER = row('grand_stair', 'riser'), TREAD = row('grand_stair', 'tread');
@@ -189,17 +229,13 @@ export function buildTerrace(): BuildResult {
       const faceOff = horiz ? hs / 2 + ty : hs / 2 + tx; const sgn = side === 'E' || side === 'N' ? 1 : -1;
       for (const face of [-1, 1]) { const off = sgn * (faceOff + face * (horiz ? ty : tx)) ; const cc: Pt = horiz ? [c[0], c[1] + sgn * (hs / 2 + ty / 2) + face * (ty / 2 + FR.offset)] : [c[0] + sgn * (hs / 2 + tx / 2) + face * (tx / 2 + FR.offset), c[1]]; void off;
         parts.push(box(b, 'frieze', 'glazed', 'C', S_(b, 'r_frieze'), cc, horiz ? [dw + 2 * FR.above_door, FR.thickness] : [FR.thickness, dw + 2 * FR.above_door], fl + dh + FR.above_door, fl + dh + FR.above_door + FR.height, { solid: false })); }
-      for (const lr of [-1, 1]) { // two leaves open 90°. hang 'inner' (D-032): pivots at the inner (hall-side) end of the
-        // passage, the leaves open into the hall and stand against the inner wall face beside the opening, because the colossi
-        // fill the W and E passages from face to face and leaves against the reveals would cover their carved flanks.
-        // 'reveal': pivots at the outer face, leaves standing against the reveals (the pre-D-032 layout)
-        const inner = DL.hang === 'inner', off = (3 * dw) / 2 / 2, t2 = DL.thickness / 2;
-        const lc: Pt = inner ? (horiz ? [c[0] + lr * off, c[1] + sgn * (hs / 2 - t2)] : [c[0] + sgn * (hs / 2 - t2), c[1] + lr * off])
-          : (horiz ? [c[0] + lr * (dw / 2 - t2), c[1] + sgn * (hs / 2 + ty - dw / 2 / 2)] : [c[0] + sgn * (hs / 2 + tx - dw / 2 / 2), c[1] + lr * (dw / 2 - t2)]);
-        const along = inner === horiz; // the leaf's length runs along grid x
-        parts.push(box(b, 'door_leaf', 'timber', 'C', S_(b, 'r_door_leaves'), lc, along ? [dw / 2, DL.thickness] : [DL.thickness, dw / 2], fl, fl + dh, { solid: true, note: `timber door leaf with bronze bosses, pivot at the ${DL.hang} end of the passage, open (C, D-032)` }));
-      }
     }
+    // timber door leaves with bronze bosses (r_door_leaves, D-032 → D-051): pivots at the inner (hall-side) end of each
+    // passage, the leaves open into the hall and lie against the inner wall face beside the opening, because the colossi
+    // fill the W and E passages from face to face and leaves against the reveals would cover their carved flanks
+    const gd = doors.map(d => ringDoorway(b, d.side, d.side, ringSide(d.side, c[0], c[1], hs, hs, tx, ty), d.at, dw, dh, fl, null));
+    doorways.push(...gd);
+    parts.push(...hang(b, gd, Object.fromEntries(gd.map(d => [d.side, [[hs / 2, Infinity], [-Infinity, -hs / 2]] as [number, number][]])), DL.thickness));
     parts.push(...jambs);
     manifest.gate_nations = { room: [c[0], c[1], hs, hs, fl, roofY - fl], hallInteriorX: hs, hallInteriorY: hs, columns: nx * ny, columnHeight: ord.height, wallTx: tx, wallTy: ty, doors: doors.length, doorHeight: dh };
   }
@@ -213,7 +249,8 @@ export function buildTerrace(): BuildResult {
     parts.push(prism(b, 'platform', 'limestone', 'B', srcOf(row(b, 'platform_footprint'), row(b, 'podium_height')), poly, FOUND, pod, { solid: true }));
     const D = v<any>(b, 'r_door');
     const AD = framed(b, cx, cy, hs, hs, wt, pod, (['N', 'W', 'E', 'S'] as const).map(side => ({ side, at: 0, width: D.width, height: D.height })), D.height);
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'wall_thickness'), row(b, 'wall_height')) }, cx, cy, hs, hs, wt, pod, pod + v(b, 'wall_height'), AD.wallDoors).map(w => ({ ...w, solid: true })), ...AD.frames);
+    const AO = openings(b, cx, cy, hs, hs, wt, wt, pod, wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'wall_thickness'), row(b, 'wall_height')) }, cx, cy, hs, hs, wt, pod, pod + v(b, 'wall_height'), AD.wallDoors), AD.doors, D);
+    parts.push(...AO.walls.map(w => ({ ...w, solid: true })), ...AD.frames, ...hang(b, AD.doorways, AO.blocked)); doorways.push(...AD.doorways);
     parts.push(box(b, 'floor_finish', v<string>('global', 'interior_floor') as Material, T_('global', 'interior_floor'), S_('global', 'interior_floor'), [cx, cy], [hs, hs], pod, pod + v('global', 'r_floor_finish'), { solid: false }));
     // capitals: composite in the hall (row `capital`), per portico from `portico_capitals` (W: double bulls on the shaft)
     const PC = v<Record<string, ColumnOrder['capital']>>(b, 'portico_capitals');
@@ -301,8 +338,10 @@ export function buildTerrace(): BuildResult {
     const hc: Pt = [bc[0], v(b, 'r_hall_centre_y')]; const wt = v(b, 'r_wall');
     const ord = order(b, { base: 'square2', capital: 'bull' });
     const DR = v<any[]>(b, 'doors'); const dS = DR.find(d => d.id === 'S_main'), dN = DR.find(d => d.id === 'N_pair');
-    const TD = framed(b, hc[0], hc[1], hx, hy, wt, fl, [{ side: 'S', at: dS.at[0] - hc[0], width: dS.width, height: dS.height }, ...dN.offsets_x.map((o: number) => ({ side: 'N' as const, at: o, width: dN.width, height: dN.height }))], dS.height);
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'doors'), row(b, 'r_hall_centre_y')) }, hc[0], hc[1], hx, hy, wt, fl, fl + ord.height + v(b, 'r_wall_above_columns'), TD.wallDoors).map(w => ({ ...w, solid: true })), ...TD.frames);
+    const TD = framed(b, hc[0], hc[1], hx, hy, wt, fl, [{ id: 'S_main', side: 'S', at: dS.at[0] - hc[0], width: dS.width, height: dS.height }, ...dN.offsets_x.map((o: number) => ({ id: o < 0 ? 'N_W' : 'N_E', side: 'N' as const, at: o, width: dN.width, height: dN.height }))], dS.height);
+    // windows either side of the main doorway and blind niches toward the side rooms (D-050), then the door leaves (D-051)
+    const TO = openings(b, hc[0], hc[1], hx, hy, wt, wt, fl, wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'doors'), row(b, 'r_hall_centre_y')) }, hc[0], hc[1], hx, hy, wt, fl, fl + ord.height + v(b, 'r_wall_above_columns'), TD.wallDoors), TD.doors, dS);
+    parts.push(...TO.walls.map(w => ({ ...w, solid: true })), ...TD.frames, ...TO.frames, ...hang(b, TD.doorways, TO.blocked)); doorways.push(...TD.doorways);
     const cols = grid(ncx, ncy, hc[0], hc[1], hx / ncx, hy / ncy);
     for (const p of cols) parts.push(col(b, p, fl, ord, 'C', srcOf(row(b, 'hall_columns'), row(b, 'hall_size'))));
     parts.push(floorFinish(b, hc, hx, hy, fl, true));
@@ -321,7 +360,7 @@ export function buildTerrace(): BuildResult {
         parts.push(...flightParapet(b, SPt, SPs, F, sideOf(F, [F.foot[0], Z.y_facade - 1]), SP.thickness, SP.height, 0, FOUND)); // outer (S) side
       }
     }
-    manifest.tachara = { room: [hc[0], hc[1], hx, hy, fl, ord.height], hallColumns: cols.length, porticoColumns: pcols.length, floor: fl, stairSteps, hallCentreY: hc[1] };
+    manifest.tachara = { room: [hc[0], hc[1], hx, hy, fl, ord.height], hallColumns: cols.length, porticoColumns: pcols.length, floor: fl, stairSteps, hallCentreY: hc[1], windows: TO.windows, niches: TO.niches };
   }
 
   // ---------------- Hadish ----------------
@@ -337,10 +376,12 @@ export function buildTerrace(): BuildResult {
     const [hnx, hny] = v<number[]>(b, 'hall_columns'), [pnx] = v<number[]>(b, 'portico'), wt = v(b, 'r_hall_wall');
     const ord = order(b, { base: 'plain', capital: 'bull' });
     const DR = v<any[]>(b, 'doors'), ds = srcOf(row(b, 'doors'), row(b, 'hall'));
-    const doors = DR.flatMap((d: any) => d.offsets_x_from_22 ? d.offsets_x_from_22.map((o: number) => ({ side: 'N' as const, at: o, width: d.width, height: d.height })) // offsets from the hall axis (x 22 = hall centre)
-      : [{ side: d.id as 'S' | 'E' | 'W', at: d.id === 'S' ? d.at[0] - hc[0] : d.at[1] - hc[1], width: d.width, height: d.height }]);
+    const doors: Door[] = DR.flatMap((d: any) => d.offsets_x_from_22 ? d.offsets_x_from_22.map((o: number) => ({ id: o < 0 ? 'N_W' : 'N_E', side: 'N' as const, at: o, width: d.width, height: d.height })) // offsets from the hall axis (x 22 = hall centre)
+      : [{ id: d.id, side: d.id as 'S' | 'E' | 'W', at: d.id === 'S' ? d.at[0] - hc[0] : d.at[1] - hc[1], width: d.width, height: d.height }]);
     const HD = framed(b, hc[0], hc[1], hsx, hsy, wt, fl, doors, doors[0].height);
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: ds }, hc[0], hc[1], hsx, hsy, wt, fl, fl + ord.height + v(b, 'r_wall_above_columns'), HD.wallDoors).map(w => ({ ...w, solid: true })), ...HD.frames);
+    // 9 of the 19 windows (those in the hall walls) and the 4 niches (D-050), then the door leaves (D-051)
+    const HO = openings(b, hc[0], hc[1], hsx, hsy, wt, wt, fl, wallRing({ building: b, material: 'mudbrick', tier: 'C', src: ds }, hc[0], hc[1], hsx, hsy, wt, fl, fl + ord.height + v(b, 'r_wall_above_columns'), HD.wallDoors), HD.doors, doors[0]);
+    parts.push(...HO.walls.map(w => ({ ...w, solid: true })), ...HD.frames, ...HO.frames, ...hang(b, HD.doorways, HO.blocked)); doorways.push(...HD.doorways);
     const cols = grid(hnx, hny, hc[0], hc[1], ia);
     for (const p of cols) parts.push(col(b, p, fl, ord, T_(b, 'hall'), srcOf(row(b, 'hall_columns'), row(b, 'hall'))));
     parts.push(floorFinish(b, hc, hsx, hsy, fl, false));
@@ -377,7 +418,7 @@ export function buildTerrace(): BuildResult {
         parts.push(...flightParapet(b, SPt, SPs, q, side, gap, SP.height, 0, FOUND)); // lane divider, flush with the upper flight
       }
     }
-    manifest.hadish = { room: [hc[0], hc[1], hsx, hsy, fl, ord.height], hallColumns: cols.length, porticoColumns: pcols.length, floor: fl, hallInterior: hsx, stairSteps };
+    manifest.hadish = { room: [hc[0], hc[1], hsx, hsy, fl, ord.height], hallColumns: cols.length, porticoColumns: pcols.length, floor: fl, hallInterior: hsx, stairSteps, windows: HO.windows, niches: HO.niches };
     void y0; void y1;
   }
 
@@ -393,9 +434,10 @@ export function buildTerrace(): BuildResult {
     // eight doorways, two per wall on the aisles ±12.5 m from the centre (REF-PLAN / REF-SCHMIDT; Phase 4). Walls stand at
     // a third of their height, below the door heads, so the openings run to the wall top.
     const DR = v<any[]>(b, 'doors');
-    const doors = DR.map((d: any) => { const side = d.wall as 'N' | 'S' | 'E' | 'W'; return { side, at: side === 'N' || side === 'S' ? d.at[0] - c[0] : d.at[1] - c[1], width: d.width, height: Infinity }; });
+    const doors = DR.map((d: any) => { const side = d.wall as 'N' | 'S' | 'E' | 'W'; return { id: d.id, side, at: side === 'N' || side === 'S' ? d.at[0] - c[0] : d.at[1] - c[1], width: d.width, height: Infinity }; });
     const CD = framed(b, c[0], c[1], hs, hs, 0, fl, doors, v(b, 'r_door_height'), tx, ty); // frames set before the brick (C)
     parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'doors'), row(b, 'construction_state')) }, c[0], c[1], hs, hs, 0, fl, fl + wallH, CD.wallDoors, tx, ty).map(w => ({ ...w, solid: true, note: 'under construction: walls at ~1/3 height' })), ...CD.frames);
+    doorways.push(...CD.doorways); // no leaves hung yet (r_door_state); jamb reliefs blocked out (relief_state_467)
     let raised = 0; const [nx, ny] = v<number[]>(b, 'hall_columns'); const pts = grid(nx, ny, c[0], c[1], ia);
     for (const p of pts) { const u = rng.next(); const built = u < CP.raised ? 1 : u < CP.raised + CP.partial ? CP.partial_min + CP.partial_span * rng.next() : 0; if (built === 1) raised++; parts.push(col(b, p, fl, ord, 'C', srcOf(row(b, 'construction_state'), row(b, 'interaxial')), built)); }
     // N portico: floor between the antae towers out to the portico front (y ~27, REF-PLAN), a low step band down to the
@@ -432,9 +474,10 @@ export function buildTerrace(): BuildResult {
     parts.push(prism(b, 'platform', 'limestone', 'B', srcOf(row(b, 'floor'), row(b, 'stair_n_zone'), row(b, 's_portico_court'), row(b, 'r_e_corridor')), plat, FOUND, fl, { solid: true }));
     const H = v<any>(b, 'hall'), c = H.centre as Pt, hall = H.side; const ord = order(b, { base: 'bell', capital: 'bull' });
     const DR = v<any[]>(b, 'doors');
-    const doors = DR.map((d: any) => ({ side: d.id as 'N' | 'E' | 'S', at: d.id === 'E' ? d.at[1] - c[1] : d.at[0] - c[0], width: d.width, height: Infinity }));
+    const doors = DR.map((d: any) => ({ id: d.id, side: d.id as 'N' | 'E' | 'S', at: d.id === 'E' ? d.at[1] - c[1] : d.at[0] - c[0], width: d.width, height: Infinity }));
     const PD = framed(b, c[0], c[1], hall, hall, v(b, 'r_wall'), fl, doors, v(b, 'r_door_height'));
     parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'hall'), row(b, 'doors')) }, c[0], c[1], hall, hall, v(b, 'r_wall'), fl, fl + ord.height * v(b, 'r_wall_fraction_built'), PD.wallDoors).map(w => ({ ...w, solid: true, note: 'under construction' })), ...PD.frames);
+    doorways.push(...PD.doorways); // no leaves hung yet (r_door_state)
     const [nx, ny] = v<number[]>(b, 'hall_columns'); const built = v(b, 'r_column_built');
     for (const p of grid(nx, ny, c[0], c[1], v(b, 'r_interaxial'))) parts.push(col(b, p, fl, ord, 'C', 'RECON', built));
     parts.push(floorFinish(b, c, hall, hall, fl, false));
@@ -463,18 +506,23 @@ export function buildTerrace(): BuildResult {
   // ---------------- Treasury, Harem, Garrison (perimeter walls + key halls; C interiors) ----------------
   /** enclosure walls along an outline; `doors` (grid point + width) cut gaps in the nearest wall run; `steps` puts a short
    *  flight outside each gap, down from the raised floor to the court */
-  const perimeter = (b: string, poly: Pt[], fl: number, wallT: number, wallH: number, note: string, doors: { at: Pt; width: number }[] = [], steps?: { n: number; tread: number; t: Tier; s: string }, floor: Material = 'court_fill') => {
-    const sg = ringSign(poly);
+  const perimeter = (b: string, poly: Pt[], fl: number, wallT: number, wallH: number, note: string, doors: { at: Pt; width: number; id?: string; height?: number }[] = [], steps?: { n: number; tread: number; t: Tier; s: string }, floor: Material = 'court_fill') => {
+    const sg = ringSign(poly), gapways: Doorway[] = [];
     parts.push(prism(b, 'floor', floor, 'B', 'OSM', poly, FOUND, fl, { solid: true }));
     for (let i = 0; i < poly.length; i++) {
       const a = poly[i], c2 = poly[(i + 1) % poly.length], len = Math.hypot(c2[0] - a[0], c2[1] - a[1]); if (len < wallT / 2) continue;
       const ux = (c2[0] - a[0]) / len, uy = (c2[1] - a[1]) / len, nx = -uy, ny = ux;
       // wall runs along this edge between door gaps (parameter s along the edge)
-      const gaps = doors.map(d => ({ s: (d.at[0] - a[0]) * ux + (d.at[1] - a[1]) * uy, off: Math.abs((d.at[0] - a[0]) * nx + (d.at[1] - a[1]) * ny), w: d.width }))
+      const gaps = doors.map(d => ({ s: (d.at[0] - a[0]) * ux + (d.at[1] - a[1]) * uy, off: Math.abs((d.at[0] - a[0]) * nx + (d.at[1] - a[1]) * ny), w: d.width, id: d.id, h: d.height }))
         .filter(g => g.off < wallT * 2 && g.s > 0 && g.s < len).sort((p, q) => p.s - q.s);
       const runs: [number, number][] = []; let s0 = 0;
       for (const g of gaps) { runs.push([s0, g.s - g.w / 2]); s0 = g.s + g.w / 2; }
       runs.push([s0, len]);
+      // doorway descriptors (door leaves, D-051): centre on the wall mid-plane, n pointing inward (the enclosure side)
+      for (const g of gaps) {
+        gapways.push({ id: `${b}:${g.id ?? gapways.length}`, building: b, door: g.id ?? String(gapways.length), side: 'perimeter', at: 0, c: [a[0] + ux * g.s + sg * nx * wallT / 2, a[1] + uy * g.s + sg * ny * wallT / 2], u: [ux, uy], n: [sg * nx, sg * ny], width: g.w, height: g.h ?? wallH, y0: fl, depth: wallT, proj: 0, jamb: 0, framed: false });
+        if (g.h !== undefined && g.h < wallH) parts.push({ ...box(b, 'wall', 'mudbrick', 'C', 'RECON', [a[0] + ux * g.s + sg * nx * wallT / 2, a[1] + uy * g.s + sg * ny * wallT / 2], [g.w, wallT], fl + g.h, fl + wallH, { solid: true, note: note + '; over the doorway' }), rot: Math.atan2(uy, ux) });
+      }
       for (const [r0, r1] of runs) { if (r1 - r0 < wallT / 2) continue; const m = (r0 + r1) / 2;
         parts.push({ ...box(b, 'wall', 'mudbrick', 'C', 'RECON', [a[0] + ux * m + sg * nx * wallT / 2, a[1] + uy * m + sg * ny * wallT / 2], [r1 - r0, wallT], fl, fl + wallH, { solid: true, note }), rot: Math.atan2(uy, ux) }); }
       if (steps && fl > 0) for (const g of gaps) { // outward = −(inward normal)
@@ -482,6 +530,7 @@ export function buildTerrace(): BuildResult {
         parts.push(...flightAlong(b, steps.t, steps.s, ex, [-ox, -oy], steps.n, fl / steps.n, steps.tread, g.w, 0, FOUND));
       }
     }
+    return gapways;
   };
   const fpRing = (k: string) => footprint(k).polygon.slice(0, -1) as Pt[];
   if (present('treasury')) {
@@ -491,7 +540,7 @@ export function buildTerrace(): BuildResult {
     const poly = single(polyIntersection(fpRing(b), rectPoly([bx0 - 1, bx1 + 1], [by0 - 1, v(b, 'r_north_wall_y')])), 'treasury outline');
     const DR = v<any[]>(b, 'doors');
     // floors: lime plaster with a red hematite coat, attested for the Treasury (flooring-plaster study; global.interior_floor, B)
-    perimeter(b, poly, fl, W.thickness, W.height, 'Treasury enclosure (C thickness/height); N and E doorways (REF-PLAN, C)', DR, undefined, v<string>('global', 'interior_floor') as Material);
+    const TW = perimeter(b, poly, fl, W.thickness, W.height, 'Treasury enclosure (C thickness/height); N and E doorways (REF-PLAN, C)', DR.map((d: any) => ({ ...d, height: v(b, 'r_door_height') })), undefined, v<string>('global', 'interior_floor') as Material);
     const [x0, y0, x1, y1] = footprint(b).bounds;
     const ord = order(b, { base: 'square2', capital: 'plain', material: 'timber' });
     const [gx, gy] = v<number[]>(b, 'r_hall99_grid');
@@ -503,6 +552,10 @@ export function buildTerrace(): BuildResult {
     const hcx = (x0 + x1) / 2, hcy = (y0 + y1) / 2 + v(b, 'r_hall99_offset_n'), hsx = (gx + 1) * sp, hsy = (gy + 1) * sp;
     const hdoor: Door = { side: 'N', at: 0, width: HW.door_width, height: HW.door_height };
     parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: S_(b, 'r_hall99_walls') }, hcx, hcy, hsx, hsy, HW.thickness, fl, fl + ord.height + HW.roof, [hdoor]).map(w => ({ ...w, solid: true })));
+    // door leaves (D-051): the enclosure doors open inward; the store door of the hall swings out (the benches line its
+    // inner wall face) and is sealed outside working hours (r_door_state; sealing global.r_door_sealing)
+    const HS = ringSide('N', hcx, hcy, hsx, hsy, HW.thickness, HW.thickness), hd = ringDoorway(b, 'hall99', 'N', HS, 0, HW.door_width, HW.door_height, fl, null);
+    doorways.push(...TW, hd); parts.push(...hang(b, TW, {}), ...hang(b, [hd], { N: [[HS.half + HW.thickness, Infinity], [-Infinity, -HS.half - HW.thickness]] }, undefined, ['hall99']));
     parts.push(box(b, 'roof', 'timber', 'C', S_(b, 'r_hall99_walls'), [hcx, hcy], [hsx + 2 * HW.thickness, hsy + 2 * HW.thickness], fl + ord.height, fl + ord.height + HW.roof, { note: 'timber roof of the Hall of 99 Columns (C)' }));
     const benches: number[][] = []; // [cx, cy, sx, sy, top]
     const addBench = (c: Pt, size: [number, number]) => { parts.push(box(b, 'bench', 'mudbrick', 'C', S_(b, 'r_benches'), c, size, fl, fl + BN.height, { solid: true })); benches.push([c[0], c[1], size[0], size[1], fl + BN.height]); };
@@ -525,9 +578,10 @@ export function buildTerrace(): BuildResult {
     const hx = HL.interior_x[1] - HL.interior_x[0], hy = HL.interior_y[1] - HL.interior_y[0];
     const ord = order(b, { base: 'bell', capital: 'bull' }); const ia = v(b, 'r_interaxial');
     const DR = v<any[]>(b, 'doors');
-    const doors = DR.map((d: any) => ({ side: d.id as 'N' | 'S' | 'E' | 'W', at: d.id === 'N' || d.id === 'S' ? d.at[0] - hc[0] : d.at[1] - hc[1], width: d.width, height: v(b, 'r_door_height') }));
+    const doors = DR.map((d: any) => ({ id: d.id, side: d.id as 'N' | 'S' | 'E' | 'W', at: d.id === 'N' || d.id === 'S' ? d.at[0] - hc[0] : d.at[1] - hc[1], width: d.width, height: v(b, 'r_door_height') }));
     const RD = framed(b, hc[0], hc[1], hx, hy, v(b, 'r_hall_wall'), fl, doors, v(b, 'r_door_height'));
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'hall'), row(b, 'doors')) }, hc[0], hc[1], hx, hy, v(b, 'r_hall_wall'), fl, fl + W.height, RD.wallDoors).map(w => ({ ...w, solid: true })), ...RD.frames);
+    const RO = openings(b, hc[0], hc[1], hx, hy, v(b, 'r_hall_wall'), v(b, 'r_hall_wall'), fl, wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'hall'), row(b, 'doors')) }, hc[0], hc[1], hx, hy, v(b, 'r_hall_wall'), fl, fl + W.height, RD.wallDoors), RD.doors, doors[0]);
+    parts.push(...RO.walls.map(w => ({ ...w, solid: true })), ...RD.frames, ...hang(b, RD.doorways, RO.blocked)); doorways.push(...RD.doorways);
     const [hnx, hny] = v<number[]>(b, 'hall_columns'), [pnx] = v<number[]>(b, 'portico');
     const hall = grid(hnx, hny, hc[0], hc[1], ia); for (const p of hall) parts.push(col(b, p, fl, ord, T_(b, 'hall'), srcOf(row(b, 'hall_columns'), row(b, 'hall'))));
     parts.push(floorFinish(b, hc, hx, hy, fl, false));
@@ -557,5 +611,5 @@ export function buildTerrace(): BuildResult {
     }
     manifest.fortification_e = { towers, thickness: t, height: h };
   }
-  return { parts, manifest };
+  return { parts, manifest, doorways };
 }

@@ -2,7 +2,9 @@
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three/webgpu';
 import { buildTerrace } from '../src/arch/terrace';
-import { buildReliefs, apadanaFacades } from '../src/arch/decor';
+import { buildReliefs, apadanaFacades, buildPhase4Reliefs } from '../src/arch/decor';
+import { phase4Programmes } from '../src/arch/relief_programmes';
+import { ATTENDANT_SCALE, ROUGH, baseKind } from '../src/arch/relief_figures';
 import { RELIEF_KINDS, FIGURE_KINDS, DELEGATIONS, ReliefSet, RELIEF_LODS, reliefLodMesh, lodGeometry, lodGrid, updateReliefs, buildRegister, planFacade, planAudience, genStats, RELIEF_META } from '../src/arch/reliefs';
 import { kindBounds, figureDef } from '../src/arch/relief_figures';
 import { rasterize } from '../src/arch/relief_field';
@@ -148,5 +150,67 @@ describe('generic register API', () => {
   });
   it('unknown kinds are rejected', () => {
     expect(() => buildRegister({ start: [0, 0, 0], dir: [1, 0, 0], length: 2, height: 1, facing: 1, figures: [{ kind: 'not_a_kind' }] })).toThrow();
+  });
+});
+
+// ---------------- Phase 4 programmes (D-049) and the far representation (D-048) ----------------
+describe('Phase 4 relief programmes (D-049)', () => {
+  const { doorways } = buildTerrace();
+  const progs = phase4Programmes(doorways), byName = (n: string) => progs.find(p => p.name === n)!;
+  const count = (p: { items: any[] }, k: string) => p.items.filter(i => i.kind === k).length;
+  it('the attested motifs are carved where the research puts them', () => {
+    const ts = byName('relief:tachara-stair'); expect(count(ts, 'servant')).toBeGreaterThanOrEqual(20); expect(count(ts, 'guard')).toBe(8); expect(count(ts, 'lion_bull')).toBe(2);
+    expect(ts.inscriptions.map(i => i.id)).toEqual(['XPc']);
+    const hs = byName('relief:hadish-stairs'); expect(count(hs, 'servant')).toBeGreaterThanOrEqual(20); expect(count(hs, 'guard')).toBeGreaterThanOrEqual(12); expect(hs.inscriptions.map(i => i.id)).toEqual(['XPd']);
+    const tr = byName('relief:tripylon-stair'); expect(count(tr, 'persian') + count(tr, 'mede')).toBeGreaterThanOrEqual(20);
+    for (const [k, n] of [['winged_disc', 1], ['sphinx', 2], ['palm', 2]] as const) expect(count(tr, k), k).toBe(n);
+    expect(tr.items.filter(i => i.kind === 'lion_bull').every(i => (i.meta as any).tier === 'C')).toBe(true); // corners NOT SEEN
+    const at = (b: string, door: string) => byName(`relief:${b}-jambs`).items.filter(i => String((i.meta as any).where).startsWith(`${b}:${door} `));
+    expect(at('tachara', 'S_main').map(i => i.kind)).toEqual(['king_attendants', 'king_attendants']);
+    expect(at('tachara', 'N_W').map(i => [i.kind, i.seed])).toEqual([['hero', 0], ['hero', 2]]); // lion / monster
+    expect(at('harem', 'E').every(i => i.kind === 'hero' && i.seed === 2)).toBe(true); expect(at('harem', 'W').every(i => i.kind === 'hero' && i.seed === 0)).toBe(true);
+    expect(at('hadish', 'S')).toEqual([]); // no programme found: left plain
+    const te = at('tripylon', 'E'); expect(te.filter(i => i.kind === 'bearer').length).toBeGreaterThanOrEqual(12); expect(te.filter(i => i.kind === 'dais').length).toBe(2); expect(te.filter(i => i.kind === 'king').length).toBe(2);
+    const h100 = byName('relief:hall100-jambs'); expect(h100.items.length).toBeGreaterThan(40); expect(h100.items.every(i => i.kind.endsWith(ROUGH))).toBe(true); // blocked out in 467
+    for (const p of progs) for (const i of p.items) { expect(['A', 'B', 'C']).toContain((i.meta as any).tier); expect(String((i.meta as any).programme).length).toBeGreaterThan(2); }
+    expect(ATTENDANT_SCALE).toBe(v<any>('global', 'r_jamb_relief').attendant_scale);
+  });
+  it('jamb figures stand on the reveal of their doorway, within its depth and height, walking into the hall', () => {
+    for (const p of progs.filter(q => q.name.endsWith('-jambs'))) for (const it of p.items) {
+      const id = String((it.meta as any).where).split(' ')[0], d = doorways.find(q => q.id === id)!;
+      const e = it.o.x, n = -it.o.z, along = (e - d.c[0]) * d.u[0] + (n - d.c[1]) * d.u[1], across = (e - d.c[0]) * d.n[0] + (n - d.c[1]) * d.n[1];
+      expect(Math.abs(Math.abs(along) - d.width / 2), `${id} ${it.kind} on a reveal`).toBeLessThan(1e-6);
+      const zg = [it.Z.x, -it.Z.z], xg = [it.X.x, -it.X.z];
+      expect(zg[0] * -Math.sign(along) * d.u[0] + zg[1] * -Math.sign(along) * d.u[1], 'faces the opening').toBeCloseTo(1, 6);
+      const b = kindBounds(baseKind(it.kind), it.seed), sx = it.mirror ? -1 : 1, xn = xg[0] * d.n[0] + xg[1] * d.n[1];
+      const half = d.depth / 2 + d.proj + 1e-6;
+      for (const x of [b[0], b[2]]) expect(Math.abs(across + sx * x * it.S * xn), `${id} ${it.kind} within the jamb depth`).toBeLessThanOrEqual(half);
+      expect(it.o.y + b[1] * it.S, `${id} ${it.kind} above the floor`).toBeGreaterThanOrEqual(d.y0 - 1e-6);
+      expect(it.o.y + b[3] * it.S, `${id} ${it.kind} below the lintel`).toBeLessThanOrEqual(d.y0 + d.height + 1e-6);
+      expect(sx * xn, `${id} ${it.kind} walks into the hall`).toBeGreaterThan(0);
+    }
+  });
+  it('relief depths stay within r_relief_carving; blocked-out figures carry no paint', () => {
+    for (const p of progs) for (const it of p.items) { const peak = it.D * reliefLodMesh(it.kind, it.seed, 65, 3).maxH; expect(peak).toBeLessThanOrEqual(CV.depth_max + 1e-9); expect(peak).toBeGreaterThanOrEqual(CV.depth_min * 0.8); }
+    for (const k of ['king~rough', 'bearer~rough', 'hero~rough']) { const m = reliefLodMesh(k, 1, 129, 2); expect(Math.max(...m.paint), k).toBe(0); expect(m.tris).toBeGreaterThan(50); }
+  });
+  it(`all relief sets: ≤ ${TRI_BUDGET / 1e6} M relief triangles in front of every Phase 4 jamb and stair face; a far set collapses to one draw`, () => {
+    const p4 = buildPhase4Reliefs(doorways).group, sets = [set, ...p4.children.filter(c => c instanceof ReliefSet) as ReliefSet[]];
+    let worst = 0, where = '';
+    const probe = (e: number, n: number, y: number, what: string) => { updateReliefs(new THREE.Vector3(e, y, -n), 1e9); const t = sets.reduce((s, q) => s + q.stats.tris, 0); if (t > worst) { worst = t; where = what; } };
+    for (const d of doorways.filter(q => q.framed)) for (const off of [0, 1.2]) for (const s of [-1, 1]) probe(d.c[0] + d.u[0] * s * (d.width / 2 - 0.4) - d.n[0] * off, d.c[1] + d.u[1] * s * (d.width / 2 - 0.4) - d.n[1] * off, d.y0 + 1.6, `${d.id} jamb ${s} off ${off}`);
+    for (const p of progs.filter(q => q.name.endsWith('stair'))) for (const it of p.items.filter((_, i) => i % 3 === 0)) for (const off of [1.2, 4]) probe(it.o.x + it.Z.x * off, -(it.o.z + it.Z.z * off), it.o.y + 1.2, `${p.name} off ${off}`);
+    console.warn(`all relief sets: worst ${worst} triangles at ${where}`);
+    expect(worst).toBeLessThanOrEqual(TRI_BUDGET);
+    // from the Grand Stair foot every set is far: one merged mesh per set, no figure in any batch, no shadow proxy
+    updateReliefs(new THREE.Vector3(-60, 1.6, -122), 1e9);
+    let draws = 0, chunks = 0; for (const s of sets) { draws += s.stats.draws; chunks += s.stats.chunks; expect(s.stats.byLod.reduce((a, b) => a + b, 0), s.name).toBe(0); expect(s.stats.proxies).toBe(0); expect(s.stats.farDraws, s.name).toBe(1); }
+    console.warn(`from the Grand Stair foot: ${draws} relief draws for ${sets.reduce((q, s) => q + s.items.length, 0)} figures in ${chunks} chunks`);
+    expect(draws).toBeLessThanOrEqual(3 * sets.length); // the set mesh and at most the two rosette meshes
+    // before the Tachara S stair: its near chunk is in the batch with a shadow proxy; the Apadana stays merged
+    updateReliefs(new THREE.Vector3(-21, 1.6, 103), 1e9);
+    const ts = sets.find(s => s.name === 'relief:tachara-stair')!; expect(ts.stats.byLod.reduce((a, b) => a + b, 0)).toBeGreaterThan(0); expect(ts.stats.proxies).toBeGreaterThan(0);
+    expect(set.stats.farChunks).toBe(set.stats.chunks); expect(set.stats.farDraws).toBe(1);
+    expect(ts.stats.farDraws).toBe(ts.stats.farChunks); expect(ts.stats.farChunks).toBeLessThan(ts.stats.chunks); // partly near: one draw per far chunk
   });
 });
