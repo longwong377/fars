@@ -893,7 +893,7 @@ class Planner {
     this.joinSlivers(segs); this.tidy(segs); this.carries(segs);
     return segs;
   }
-  /** the post-passes cut spells by arithmetic, and a cut can leave a remainder of a second or less (a float residue: 0.36 s
+  /** the post-passes cut spells by arithmetic, and a cut can leave a remainder of a second or less (a float residue: 0.32 s
    *  "at home" between two well trips, 14:59:59.6 at a window's edge). Such a sliver is no part of anyone's day, and the
    *  plans that follow this one (a child with its mother, D-140) drop pieces under 1e-4 h and walk straight through it. A
    *  piece shorter than 3.6 s goes to its neighbour at the same place, else to the walk beside it, else to the one before;
@@ -929,7 +929,7 @@ class Planner {
         if (j === i) continue; let a = Math.max(segs[i].t0, lo); const b = Math.min(segs[j].t1, hi); if (b - a < trip + 0.05) { i = j; continue; }
         // no slivers (D-140): she does not sit down at home for a moment before she goes, and when what is left of a spell
         // after the trip is a matter of seconds or a minute or two, the trip ends with it (the water poured into the house's
-        // jar). Was: a spell exactly one trip long left 0.36 s "at home" between two trips, and her children walked through it
+        // jar). Was: a spell exactly one trip long left 0.32 s "at home" between two trips, and her children walked through it
         const ka = segs.findIndex((s, k) => k >= i && k <= j && s.t0 <= a && s.t1 > a); if (ka >= 0 && a - segs[ka].t0 < 0.05) a = segs[ka].t0;
         let e = a + trip; const ke = segs.findIndex((s, k) => k >= i && k < j && s.t0 < e && s.t1 > e); if (ke >= 0 && segs[ke].t1 - e < 0.05) e = segs[ke].t1;
         if (rain && rain[0] < e && rain[1] > a) { i = j; continue; }

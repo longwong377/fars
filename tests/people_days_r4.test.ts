@@ -1,6 +1,6 @@
 // The soak after the round-3 merge (D-139) failed two gates; D-140 fixes their causes. These tests reproduce both
 // failures on the round-3 code (commit be6db72) and hold the fixes:
-//  - plansWellFormed ("apart", day 123): a well trip left a 0.36-second "at home" sliver in a mother's plan between two
+//  - plansWellFormed ("apart", day 123): a well trip left a 0.32-second "at home" sliver in a mother's plan between two
 //    trips; her children's plans, which drop pieces under 1e-4 h, walked straight through it;
 //  - populationVariety (41397, a girl of three present seven days): small children were kept in all day on a storm or a
 //    dust day, and a visit to a kinswoman's house was cut to the one plan segment she was in at its middle.
@@ -33,7 +33,7 @@ describe('plans well formed: nobody is "with" someone who is elsewhere (D-140)',
   it('the children of household 9660 on day 123 are where their mother is (the soak failure after round 3)', () => {
     const d = 123, h = P.home(42000, d); const mem: number[] = P.membersOn(h, d); expect(mem).toContain(42002); expect(mem).toContain(42003);
     for (const x of mem) expect(apart(x, d)).toBeNull();
-    // the mother's two well trips in a row now run on from one to the next, with no 0.36-second sliver at home between them
+    // the mother's two well trips in a row now run on from one to the next, with no 0.32-second sliver at home between them
     const ms: Seg[] = P.plan(42000, d); for (const s of ms) expect(s.t1 - s.t0, `${s.t0.toFixed(4)} ${s.act} ${s.why}`).toBeGreaterThanOrEqual(0.001);
   });
   it('no plan holds a sliver (every piece but the day\'s first and last lasts 3.6 s or more, a walk that is the only way between two places excepted) and no time is NaN', () => {
