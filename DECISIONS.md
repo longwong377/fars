@@ -1133,3 +1133,13 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
     - the rooms with ≥ 1.1 m doorways are walkable.
   - Updated: `arch.test.ts` (the hall N wall line is now 4 runs with 3 lintel zones), `doors.test.ts` (27 doors, was 22). The literal lint now covers `plan_walls.ts`.
 - **Renders:** see D-134.
+
+## D-134 — Tachara renders after the rebuild (session 3)
+- **Two views** (`tests/e2e/moments.spec.ts`, quality test, SwiftShader WebGPU, day 25 15:30, clear; one queued run of 13.9 min):
+  - `tachara-s-stair`, from the S court: the four front portico columns and the plan's portico side walls, each with a framed doorway and a niche; the main doorway and the S-wall window frames behind; one roof over the whole building. Mean luma 68.8, nothing clipped.
+  - `tachara-lance-bearers` (new), from the hall's W aisle looking SW at the W2 doorway: the lance-bearer with lance and wicker shield stands on the doorway's S reveal between the two open leaves. The S window shows the portico capitals beyond. Mean luma 43.9.
+- **Judged:**
+  - The geometry reads as the plan: frames, leaves, windows, red floor, square column bases.
+  - The hall is dim. Its only daylight comes through the S doorway and windows, and this tree has no interior-light probes (the other agent's work).
+  - Not seen in a render: the N rooms, the E rooms, the portico doorways from inside, and the rooms at quality high.
+- `tests/e2e/phase4.spec.ts` p4-tachara-jamb-king moves to the plan's S doorway (0.95 m from the W reveal), unrendered.
