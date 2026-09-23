@@ -323,7 +323,28 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - Tops rise with the cell.
   - A per-pixel start jitter lets TRAA average away the banding.
   - Shapes and optics remain C.
-## D-049 Phase 4 relief programmes: the other palaces' stairs and door jambs (session 3, phase-4b agent)
+## D-048 Relief far representation, shadow proxies and the finest relief grid (session 3, phase-4b agent)
+- **Problem (the lead's measurement at quality high, Grand Stair foot):** ~3,200 GPU draws per frame against a budget of 3,000. Most came from the relief BatchedMesh: WebGPU issues one draw per figure instance per pass, so the 534 Apadana figures cost 500+ draws in the view pass and again in each shadow cascade, even 60 m away at L3.
+- **Far chunks** (`reliefs.ts`, `RELIEF_CHUNK` 12 m):
+  - A relief set's figures are grouped by position into chunks. When a chunk's bounds are beyond `RELIEF_FAR` (the L2 range, 14 m, with the 1.12 hysteresis), it is drawn as ONE merged mesh of its figures at L3 (the same geometry the figures would show there), and its figures leave the batch.
+  - Near chunks keep per-figure LOD.
+  - A hidden batch instance is parked on its L3 geometry, because `BatchedMesh.deleteGeometry` also deletes the instances that still reference a geometry. The first version lost instances this way (caught by tests/reliefs.test.ts).
+- **Shadows:**
+  - The batch and the far meshes cast none. Low relief loses little: the sun's shadow normal bias (5 cm) already erases a 4.5 cm relief's self-shadow.
+  - Within `RELIEF_SHADOW_RANGE` (8 m) a chunk casts through a proxy: its merged L3 mesh with a material that writes neither colour nor depth in the view passes, drawn two-sided into the shadow maps, and not raycastable.
+  - So a relief set costs one draw per chunk per cascade near the camera, and nothing in the shadow passes elsewhere.
+- **Finest grid:** the L0 cap is 1025² (was 513²), for the Phase 4 jamb figures (D-049). Figures under 0.82 m, which is every Apadana register figure, are unchanged.
+- **Measured (node, tests/reliefs.test.ts):**
+  - Apadana worst case unchanged: 0.76 M triangles.
+  - All nine relief sets (889 figures), probed in front of every framed jamb and along every Phase 4 stair face: worst 0.95 M ≤ 1.5 M (at the Hall of 100 Columns N1 jamb).
+  - From the Grand Stair foot: 52 relief draws for the 889 figures (52 chunks, no figure in any batch, no shadow proxy). Before, the 534 Apadana figures alone were one draw each per pass.
+- **Measured (e2e, quality high):** see the table below (before = the tree at merge 465c4e7; after = this work, which also adds 355 figures and the doors).
+- **Alternatives rejected:**
+  - One merged mesh per whole set: cannot be partly near.
+  - A second BatchedMesh with chunks as instances: the same draw count as meshes on WebGPU.
+  - Batch shadows within a range: hundreds of draws per cascade.
+  - A shadow-only layer: the CSM cascade cameras copy the view camera's layers.
+
 - **Where from:** the SITE_SPEC relief rows (research/PHASE4_ACCESS.md: search extracts of SI-ARCH captions, ISAC-PA, FARROKH/Iranica, BRIT-H100; all capped at B). New programme rows: `door_jamb_reliefs` (Tachara, Hadish, Tripylon, Hall 100, Harem) and `relief_state_467` (Tripylon, Hall 100); sizes in `global.r_stair_relief` and `global.r_jamb_relief` (C). Planner: `src/arch/relief_programmes.ts`; one ReliefSet per programme (`decor.buildPhase4Reliefs`). 355 figures in 8 sets.
 - **Attested motifs placed** (motif B; composition, count and size C):
   - Tachara S stair: servants climbing the flight parapets with kids, wineskins, covered dishes and bowls, in alternating Persian and Median dress (24). Persian guards flank XPc on the central landing (4 + 4, count C), with the XPc panel (Old Persian; placement C). A lion attacking a bull sits in the triangle under each flight ("corner angles"; position C).
@@ -368,6 +389,7 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 ## D-051 Working timber doors with metal fittings; barred and sealed doors (session 3, phase-4b agent)
 - **Which doorways (22 doors, 44 leaves):** every stone-framed doorway of the finished palaces (Apadana 4, Tachara 3, Hadish 5, Harem 4), the Gate of All Nations (3; the D-032 leaves), and the Treasury (the N and E enclosure doors and the Hall of 99 Columns store).
   - None in the unfinished Tripylon and Hall of 100 Columns: joinery is fitted last (C).
+  - None on the unframed gaps of the Harem and garrison enclosures (entrances C, no door evidence).
   - Palace doors exist here as C, by analogy with the Gate's pivot sockets (Q-088).
 - **Leaves** (`global.r_door_leaf`, C):
   - 0.12 m timber (the Gate keeps 0.25 m). Each leaf turns on a post at the opening edge, just in front of the frame.
@@ -406,3 +428,4 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 ## D-052 Walkable grid, routes and verification after the Phase 4b architecture (session 3, phase-4b agent)
 - **Walkable grid rebuilt** (`npx tsx tools/build_nav.ts`): 1,417,114 walkable cells (43 fewer). The lost cells are at the two 90° leaves of the Tachara N doors, the Apadana leaves along the inner wall faces, and the passage of the sealed Treasury E door. Windows, niches and the wider frame gaps changed no cell.
 - **Offline bots:** all six Phase 4 areas pass (`tools/dev/botcheck.ts`: 77 targets, max fall 0). The Phase 3 slice route passes with the door leaves in place: 28 targets, from the plain through the Gate and the Apadana hall doors and back.
+  - The slice targets now live in `tests/e2e/lib/routes.ts` (`SLICE`, shared with walkthrough.spec.ts), so `npx tsx tools/dev/botcheck.ts slice` checks that route offline in seconds.

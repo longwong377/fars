@@ -27,3 +27,14 @@ export const ROUTES: Record<string, { start: [number, number]; targets: [number,
     [114.75, -142.5, 'Harem hall'], [105.5, -142.5, 'W doorway'], [114.75, -142.5, 'hall again'], [114, -118, 'court again'],
     [101, -114, 'W entrance'], [94, -114, 'outside W'] ] },
 };
+
+// the Phase 3 slice route (plain → Grand Stair → Gate → Apadana hall → back): tests/e2e/walkthrough.spec.ts, and offline with
+// `npx tsx tools/dev/botcheck.ts slice` (D-052)
+export const SLICE: { start: [number, number]; targets: [number, number, string][]; levels: Record<string, number> } = { start: [-175, 122.45], levels: {}, targets: [
+  [-60, 122.5, 'stair foot court'], [-43.9, 153, 'N lower flight → outer landing'], [-36.4, 150, 'N upper flight'], [-36.4, 124.6, 'top landing'],
+  [-20, 124.6, 'Gate W door'], [0.1, 124.6, 'inside the Gate'], [18, 124.6, 'Gate E door'], [0.1, 124.6, 'back inside'], [0.1, 100, 'Gate S door'],
+  [0, 80, 'forecourt'], [-24, 55.5, 'Apadana N stair, W wing'], [-15.4, 45, 'N portico'], [1.9, 20, 'hall N door'], [1.9, -4.9, 'hall centre'],
+  [26, -4.9, 'hall E door'], [40, -4.9, 'E portico'], [1.9, -4.9, 'back to the centre'], [-26, -4.9, 'hall W door'], [-40, -4.9, 'W portico'],
+  [1.9, 40, 'N portico again'], [30, 55.5, 'Apadana N stair, E wing'], [48, 62, 'court E of the stair'], [-30, 100, 'court W'],
+  [-36.4, 112, 'S head'], [-36.4, 96, 'S upper flight'], [-43.9, 92, 'S outer landing'], [-43.9, 116, 'S lower flight'], [-80, 122.5, 'plain'],
+] };

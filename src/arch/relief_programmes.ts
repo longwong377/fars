@@ -33,6 +33,12 @@ const figW = (kind: string, S: number) => FIGURE_KINDS[baseKind(kind)].w * S;
 /** a figure's drawn extent behind (x0 < 0) and in front of (x1) its origin, in figure units (facing +x) */
 const extent = (kind: string, seed: number) => { const b = kindBounds(baseKind(kind), seed); return [b[0], b[2]] as const; };
 const carving = () => v<any>('apadana', 'r_relief_carving');
+/** the outline's extreme x at a given y (the traced wall face a relief stands on) */
+function edgeX(poly: [number, number][], y: number, pick: 'min' | 'max') {
+  const xs: number[] = [];
+  for (let i = 0; i < poly.length; i++) { const a = poly[i], b = poly[(i + 1) % poly.length]; if ((a[1] - y) * (b[1] - y) <= 0 && a[1] !== b[1]) xs.push(a[0] + ((b[0] - a[0]) * (y - a[1])) / (b[1] - a[1])); }
+  return pick === 'min' ? Math.min(...xs) : Math.max(...xs);
+}
 const depth = () => v<number>('apadana', 'r_relief_depth');
 
 // ---------------- stairs ----------------
@@ -52,11 +58,11 @@ function climbingFile(out: ReliefItem[], F: ReturnType<typeof flightFace>, a0: n
   for (let a = a0 + sp / 2, i = 0; a < F.run - sp / 2; a += sp, i++) { const [k, s] = kinds(i); out.push(fig(k, s, add(F.foot, F.d, a), F.z0 + a * F.slope, F.n, S, depth(), facing, meta)); }
 }
 /** the lion attacking a bull in the triangle under a flight's slope (the Apadana planner's fit, C) */
-function lionBull(out: ReliefItem[], F: ReturnType<typeof flightFace>, meta: Tagged) {
+function lionBull(out: ReliefItem[], F: ReturnType<typeof flightFace>, meta: Tagged, rough = '') {
   const R = v<any>('apadana', 'r_registers'), CV = carving(), S0 = R.height * CV.figure_fill, dc = F.run * 0.6, top = dc * F.slope;
   const k = Math.min((top - R.bottom) / (S0 * 1.05), (F.run * 0.55) / (figW('lion_bull', S0) * 1.1));
   if (k <= 0) return;
-  out.push(fig('lion_bull', 0, add(F.foot, F.d, dc), F.z0 + R.bottom, F.n, S0 * k, depth() * CV.panel_depth_factor, (dot(F.d, rightOf(F.n)) > 0 ? 1 : -1) as 1 | -1, meta));
+  out.push(fig('lion_bull' + rough, 0, add(F.foot, F.d, dc), F.z0 + R.bottom, F.n, S0 * k, depth() * CV.panel_depth_factor, (dot(F.d, rightOf(F.n)) > 0 ? 1 : -1) as 1 | -1, meta));
 }
 /** figures facing a centre from both sides (antithetic files) on a face: count per side, first figure `gap` from the centre */
 function antithetic(out: ReliefItem[], centre: Pt, n: Pt, y: number, kinds: (side: number, i: number) => [string, number], count: number, S: number, gap: number, meta: Tagged, slope = 0, step = 0) {
@@ -77,7 +83,7 @@ function tacharaStair(): ProgrammeSet | null {
     if (!isFlight(F0)) { // central landing: guards flanking XPc (B); count and size C
       const L = F0 as any, c: Pt = [(L.x[0] + L.x[1]) / 2, L.y[0]], n: Pt = [0, -1], S = SR.central_register * carving().figure_fill;
       antithetic(out, c, n, SR.central_ground, (_s, i) => ['guard', i], SR.guards_per_side, S, SR.panel_width / 2, { programme: 'Persian guards flanking XPc', tier: 'B', where: 'Tachara S stair central façade' });
-      ins.push({ id: 'XPc', version: 'op', origin: c, along: rightOf(n), normal: n, yTop: SR.central_ground + SR.central_register, width: SR.panel_width });
+      ins.push({ id: 'XPc', version: 'op', origin: c, along: rightOf(n), normal: n, yTop: L.z - SR.central_ground, width: SR.panel_width }); // hung from the landing top
       continue;
     }
     const F = flightFace(F0, [0, Z.y_facade - F0.foot[1]]);
@@ -109,8 +115,10 @@ function hadishStairs(): ProgrammeSet | null {
     // the outer (N and S) faces of the end landings where they stand clear of the platform ('South Facade of South Wing', B)
     const tagW: Tagged = { programme: 'Persian guards on the wings', tier: 'B', where: `Hadish ${side} stair wings (placement C)` };
     if (side === 'W') for (const [edge, dir] of [[Z.y[1], 1], [Z.y[0], -1]] as const) { // the face runs away from the zone
-      const n = outer, w = figW('guard', S), count = SR.guards_per_side;
-      for (let i = 0; i < count; i++) { const a = w * (i + 0.5); out.push(fig('guard', i + 8, [Z.x[0], edge + dir * a], SR.central_ground, n, S, depth(), (dot([0, -dir], rightOf(n)) > 0 ? 1 : -1) as 1 | -1, tagW)); }
+      // on the platform's traced W edge (the platform is the outline minus the stair zones, terrace.ts)
+      const n = outer, w = figW('guard', S), count = SR.guards_per_side, poly = footprint('hadish').polygon;
+      for (let i = 0; i < count; i++) { const a = w * (i + 0.5), y = edge + dir * a;
+        out.push(fig('guard', i + 8, [edgeX(poly, y, 'min'), y], SR.central_ground, n, S, depth(), (dot([0, -dir], rightOf(n)) > 0 ? 1 : -1) as 1 | -1, tagW)); }
     } else { // the part of each end face that stands clear of the platform (the zone projects beyond the traced E edge)
       const clear0 = Math.max(Z.x[0], footprint('hadish').bounds[2]);
       for (const [yEdge, ny] of [[Z.y[1], 1], [Z.y[0], -1]] as const) {
@@ -132,7 +140,7 @@ function tripylonStair(): ProgrammeSet | null {
       // central panel (B): below, two groups of guards flanking a blank field (4 per group, Q-P4-08); above, the winged disc
       // between two seated sphinxes with palms behind them (sizes and spacing C)
       const L = F0 as any, c: Pt = [(L.x[0] + L.x[1]) / 2, L.y[1]], n: Pt = [0, 1], S = SR.central_register * CV.figure_fill;
-      antithetic(out, c, n, SR.central_ground, (_s, i) => [i % 2 ? 'mede_guard' : 'guard', i + 20], SR.guards_per_side, S, SR.panel_width / 2, { programme: 'guards flanking a blank field', tier: 'B', where: 'Tripylon N stair central panel (count Q-P4-08)' });
+      antithetic(out, c, n, SR.central_ground, (_s, i) => [(i % 2 ? 'mede_guard' : 'guard') + rough, i + 20], SR.guards_per_side, S, SR.panel_width / 2, { programme: 'guards flanking a blank field', tier: 'B', where: 'Tripylon N stair central panel (count Q-P4-08)' });
       const top = L.z - SR.central_ground - SR.central_register, yU = SR.central_ground + SR.central_register, Sd = top * CV.figure_fill, Dp = depth() * CV.panel_depth_factor;
       const tagP: Tagged = { programme: 'winged disc between seated sphinxes with palms', tier: 'B', where: 'Tripylon N stair central panel' };
       out.push(fig('winged_disc' + rough, 0, c, yU - Sd * 0.35, n, Sd * 1.3, Dp, 1, tagP));
@@ -144,7 +152,7 @@ function tripylonStair(): ProgrammeSet | null {
     if (F0.id === 'upper_terrace') continue;
     const F = flightFace(F0, [0, NZ.y[1] - F0.foot[1]]);
     climbingFile(out, F, 0, i => [(i % 2 ? 'mede' : 'persian') + rough, i], { programme: 'Persian and Median nobles ascending', tier: 'B', where: 'Tripylon N stair flight façades' });
-    lionBull(out, F, { programme: 'lion attacking a bull (corners NOT SEEN; analogue: Apadana, Tachara)', tier: 'C', where: 'Tripylon N stair corners' });
+    lionBull(out, F, { programme: 'lion attacking a bull (corners NOT SEEN; analogue: Apadana, Tachara)', tier: 'C', where: 'Tripylon N stair corners' }, rough);
   }
   return { name: 'relief:tripylon-stair', building: 'tripylon', items: out, inscriptions: [] };
 }

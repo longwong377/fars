@@ -4,14 +4,8 @@ import { test, expect } from '@playwright/test';
 // S half → plain). The route between targets comes from the walkable grid (avoiding people standing still); the player
 // walks it with the normal controller at walking pace, people live around it. Fails on page errors, falls > 0.6 m,
 // stuck legs (after 2 re-plans) and people popping in within 50 m in view.
-const TARGETS: [number, number, string][] = [
-  [-60, 122.5, 'stair foot court'], [-43.9, 153, 'N lower flight → outer landing'], [-36.4, 150, 'N upper flight'], [-36.4, 124.6, 'top landing'],
-  [-20, 124.6, 'Gate W door'], [0.1, 124.6, 'inside the Gate'], [18, 124.6, 'Gate E door'], [0.1, 124.6, 'back inside'], [0.1, 100, 'Gate S door'],
-  [0, 80, 'forecourt'], [-24, 55.5, 'Apadana N stair, W wing'], [-15.4, 45, 'N portico'], [1.9, 20, 'hall N door'], [1.9, -4.9, 'hall centre'],
-  [26, -4.9, 'hall E door'], [40, -4.9, 'E portico'], [1.9, -4.9, 'back to the centre'], [-26, -4.9, 'hall W door'], [-40, -4.9, 'W portico'],
-  [1.9, 40, 'N portico again'], [30, 55.5, 'Apadana N stair, E wing'], [48, 62, 'court E of the stair'], [-30, 100, 'court W'],
-  [-36.4, 112, 'S head'], [-36.4, 96, 'S upper flight'], [-43.9, 92, 'S outer landing'], [-43.9, 116, 'S lower flight'], [-80, 122.5, 'plain'],
-];
+import { SLICE } from './lib/routes';
+const TARGETS = SLICE.targets;
 test('walkthrough bot: the whole Phase 3 slice on foot', async ({ page }, info) => {
   test.skip(info.project.name !== 'webgpu', 'physics/nav are backend-independent');
   test.setTimeout(1_800_000);
