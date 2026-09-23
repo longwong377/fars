@@ -143,6 +143,7 @@ async function boot() {
       const still = P.sim.agents.filter((a: any) => !a.offmap && !a.walking).map((a: any) => a.pos); return P.nav.findPathAvoiding(from, to, still, 0.9); },
     address: () => world.address?.(camera) ?? null,
     resetFalls: () => { player.maxFall = 0; },
+    exposureInfo: () => ({ exposure: renderer.toneMappingExposure, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],
     /** people: summary rows (out-of-world; for tests and the dev overlay) */
     people: () => { const P = (world as any).people; if (!P) return null; return { t: P.sim.t, stock: P.sim.stock, events: P.sim.events.slice(-20),
