@@ -7,6 +7,8 @@ import { PeopleSim, PLACES, Env } from '../src/people/sim';
 import { ACTIVITIES } from '../src/people/activities';
 import { ANIMS, pose } from '../src/people/anim';
 import { propGeometry } from '../src/people/body';
+import { PROPS } from '../src/people/props';
+import { activityLint } from '../src/people/activityLint';
 import { COSTUMES, DRESSES } from '../src/people/outfits';
 import { WeatherSystem } from '../src/weather/weatherState';
 import { buildTerrace } from '../src/arch/terrace';
@@ -117,7 +119,9 @@ describe('a simulated day (dry day, court absent)', () => {
 describe('activity lint (brief §9.5: every activity is performed)', () => {
   it('every activity the simulation emits has a non-placeholder performance with an existing pose and prop', () => {
     for (const id of PeopleSim.EMITS) { const p = ACTIVITIES[id]; expect(p, id).toBeDefined(); expect(p.placeholder ?? false, id).toBe(false); expect(ANIMS).toContain(p.anim); }
-    for (const [id, p] of Object.entries(ACTIVITIES)) { expect(ANIMS, id).toContain(p.anim); if (p.prop) expect(propGeometry(p.prop === 'jar_head' ? 'jar' : p.prop === 'bread' ? 'basket' : p.prop), `${id} prop`).not.toBeNull(); }
+    for (const [id, p] of Object.entries(ACTIVITIES)) { expect(ANIMS, id).toContain(p.anim);
+      for (const v of [p, ...(p.variants ?? [])]) { if (v.anim) expect(ANIMS, id).toContain(v.anim); for (const k of [v.prop, v.prop2]) if (k) expect(PROPS[k] && propGeometry(PROPS[k].geom), `${id} prop ${k}`).toBeTruthy(); } }
+    expect(activityLint(ACTIVITIES)).toEqual([]); // D-142: no placeholder, every pose, prop, work object, animal and sound exists
   });
   it('every pose is distinct from idle for working activities and returns finite rotations', () => {
     const idle = JSON.stringify(pose('idle', 1, 0, 0).rot);

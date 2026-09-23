@@ -44,6 +44,48 @@ export const BIRDS: Bird[] = [
     call: (e, o, t, r) => { chirp(e, o, t + r.next() * 0.1, 4500, 4500, 0.05, 0.004); } },
 ];
 
+/** every one-shot kind `strike` plays (the activity lint checks each performance's sound against this list; 'murmur',
+ *  'footsteps' and 'fire' are the soundscape's continuous layers) */
+export const STRIKE_KINDS = ['chisel', 'quern', 'dice', 'hoe', 'sickle', 'loom', 'trowel', 'adze', 'mould', 'wash', 'broom', 'bow', 'bleat', 'water'] as const;
+export const LAYER_SOUNDS = ['murmur', 'footsteps', 'fire'] as const;
+/** a short noise burst through a filter (work sounds) */
+function burst(e: AudioEngine, out: AudioNode, t: number, dur: number, colour: 'white' | 'pink' | 'brown', type: BiquadFilterType, f0: number, f1: number, q: number, gain: number) {
+  const c = e.ctx!, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = e.noiseBuffer(dur + 0.02, colour);
+  f.type = type; f.frequency.setValueAtTime(f0, t); f.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur); f.Q.value = q;
+  g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(gain, t + Math.min(0.01, dur * 0.2)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  s.connect(f); f.connect(g); g.connect(out); s.start(t); s.stop(t + dur + 0.02);
+}
+/** a decaying tone (thuds, taps, the bowstring) */
+function tone(e: AudioEngine, out: AudioNode, t: number, dur: number, type: OscillatorType, f0: number, f1: number, gain: number) {
+  const c = e.ctx!, o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
+  g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + 0.02);
+}
+/** the work sounds of the activity performances (D-142; all procedural, C). Returns false for other kinds */
+export function workStrike(e: AudioEngine, kind: string, pos: { x: number; y: number; z: number }, rng: Rng): boolean {
+  const c = e.ctx; if (!c) return false; const t = c.currentTime, j = rng.next();
+  const at = (h: number, ref: number, max: number) => { const p = e.panner(pos.x, pos.y + h, pos.z, ref, max); p.connect(e.ch.effects); return p; };
+  switch (kind) {
+    case 'hoe': { const p = at(0.1, 3, 120); burst(e, p, t, 0.12, 'brown', 'lowpass', 420, 200, 0.7, 0.07); tone(e, p, t, 0.08, 'sine', 95 + 20 * j, 60, 0.05); return true; } // blade into soil
+    case 'sickle': { const p = at(0.4, 2, 50); burst(e, p, t, 0.16, 'white', 'bandpass', 3200, 1600, 1.2, 0.02); return true; } // cutting stalks
+    case 'loom': { const p = at(0.2, 2, 60); tone(e, p, t, 0.07, 'triangle', 170 + 30 * j, 110, 0.05); tone(e, p, t, 0.012, 'square', 900, 700, 0.01); return true; } // the sword beater's thump
+    case 'trowel': { const p = at(0.2, 2, 60); tone(e, p, t, 0.03, 'triangle', 1400 + 400 * j, 1200, 0.03); burst(e, p, t + 0.01, 0.07, 'white', 'bandpass', 2600, 2200, 2, 0.01); return true; }
+    case 'adze': { const p = at(0.5, 3, 150); burst(e, p, t, 0.05, 'white', 'bandpass', 950, 700, 1.5, 0.05); tone(e, p, t, 0.07, 'triangle', 330 + 60 * j, 240, 0.05); return true; } // iron biting timber
+    case 'mould': { const p = at(0.2, 2, 60); burst(e, p, t, 0.1, 'brown', 'lowpass', 750, 300, 0.8, 0.06); tone(e, p, t, 0.05, 'sine', 125, 80, 0.03); return true; } // wet mud slapped in
+    case 'wash': { const p = at(0.2, 2, 80); burst(e, p, t, 0.08, 'white', 'lowpass', 1800, 900, 0.8, 0.05); burst(e, p, t + 0.02, 0.3, 'white', 'highpass', 1500, 2500, 0.7, 0.015); return true; } // wet cloth on stone, a splash
+    case 'broom': { const p = at(0.1, 2, 40); burst(e, p, t, 0.25, 'pink', 'bandpass', 2600, 1800, 0.7, 0.015); return true; }
+    case 'bow': { const p = at(1.5, 3, 120); burst(e, p, t, 0.02, 'white', 'highpass', 2000, 2000, 0.7, 0.02); tone(e, p, t, 0.25, 'sine', 190 + 30 * j, 150, 0.04); return true; } // the string released
+    case 'water': { const p = at(0.3, 2, 60); burst(e, p, t, 0.25, 'white', 'highpass', 1200, 2400, 0.7, 0.03); return true; }
+    case 'bleat': { // a sheep's or goat's bleat: a buzzy tone with vibrato through a vocal formant (C)
+      const p = at(0.6, 4, 250), o = c.createOscillator(), v = c.createOscillator(), vg = c.createGain(), f = c.createBiquadFilter(), g = c.createGain(), f0 = 330 + 190 * j, d = 0.45 + 0.35 * rng.next();
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f0 * 0.9, t + d);
+      v.frequency.value = 6 + 2 * j; vg.gain.value = f0 * 0.06; v.connect(vg); vg.connect(o.frequency);
+      f.type = 'bandpass'; f.frequency.value = 950; f.Q.value = 2.2;
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.025, t + 0.05); g.gain.setValueAtTime(0.022, t + d * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(f); f.connect(g); g.connect(p); o.start(t); v.start(t); o.stop(t + d + 0.02); v.stop(t + d + 0.02); return true; }
+  }
+  return false;
+}
+
 export class Soundscape {
   private windSrc?: AudioBufferSourceNode; private windGain?: GainNode; private windFilter?: BiquadFilterNode; private whistle?: BiquadFilterNode; private whistleGain?: GainNode;
   private rainSrc?: AudioBufferSourceNode; private rainGain?: GainNode; private birdBus?: GainNode;
@@ -68,9 +110,13 @@ export class Soundscape {
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(Math.min(1, 0.6 * strength + 0.2), t + 0.08); g.gain.exponentialRampToValueAtTime(0.001, t + 5.5);
     s.connect(f); f.connect(g); g.connect(e.ch.effects); s.start(t); s.stop(t + 6);
   }
-  /** a one-shot from a person's work at a world position (driven by the animation, so what you hear is what is done) */
+  /** a one-shot from a person's work at a world position (driven by the animation, so what you hear is what is done).
+   *  Kinds: STRIKE_KINDS (the work sounds of D-142 are procedural designs, C: a hoe's thud in soil, a sickle's swish, the
+   *  weaving sword's thump, a trowel's tap, an adze biting wood, wet mud slapped into the mould, wet cloth beaten on
+   *  stone, a twig broom, a bowstring, a sheep's or goat's bleat, a splash) */
   strike(kind: string, pos: { x: number; y: number; z: number }) {
     const e = this.e, c = e.ctx; if (!c) return; const t = c.currentTime;
+    if (workStrike(e, kind, pos, this.rng)) return;
     if (kind === 'chisel') { // iron/bronze chisel on limestone (C)
       const p = e.panner(pos.x, pos.y + 1, pos.z, 3, 300), o = c.createOscillator(), g = c.createGain(); o.type = 'triangle'; o.frequency.value = 2200 + this.rng.next() * 900;
       g.gain.setValueAtTime(0.05, t); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.06); o.connect(g); g.connect(p); p.connect(e.ch.effects); o.start(t); o.stop(t + 0.08);

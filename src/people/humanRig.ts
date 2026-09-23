@@ -7,6 +7,7 @@
 // Float32Array palette at a slot offset; and the bones' world positions/rotations for props held in the hands.
 import { HBONES, HB, HPARENT, FINGERS, type HBone } from './humanFormat';
 import type { Pose, PoseBone } from './anim';
+import { WORK_META, type WorkAnim } from './workAnims';
 
 export const NBONES = HBONES.length;
 export const PARENT = Int8Array.from(HBONES.map(b => (HPARENT[b] ? HB[HPARENT[b]!] : -1)));
@@ -50,8 +51,10 @@ const SEAT_POINTS: [number, number, number, number][] = [
   [HB.thigh_l, HB.calf_l, 0.09, 0.075], [HB.calf_l, HB.foot_l, 0.055, 0.05], [HB.thigh_r, HB.calf_r, 0.09, 0.075], [HB.calf_r, HB.foot_r, 0.055, 0.05],
   [HB.upperarm_l, HB.lowerarm_l, 0.05, 0.045], [HB.lowerarm_l, HB.hand_l, 0.04, 0.035], [HB.upperarm_r, HB.lowerarm_r, 0.05, 0.045], [HB.lowerarm_r, HB.hand_r, 0.04, 0.035],
 ];
-/** activities whose feet carry the body (their poses are planted) */
-export const PLANTED = new Set(['idle', 'inspect', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'talk', 'chisel', 'draw_water']);
+/** activities whose feet carry the body (their poses are planted): the Phase 3 cycles and every work cycle that stands,
+ *  stoops, squats or walks (workAnims.ts WORK_META ground 'feet'; the seated and kneeling ones rest on the ground) */
+export const PLANTED = new Set(['idle', 'inspect', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'talk', 'chisel', 'draw_water',
+  ...(Object.keys(WORK_META) as WorkAnim[]).filter(k => WORK_META[k].ground === 'feet')]);
 /** relaxed resting curl per finger joint (rad) and a full grip (C: hand-set to look natural) */
 const REST = [0.18, 0.22, 0.14], GRIP = [1.25, 1.45, 0.9], THUMB_REST = [0.08, 0.12, 0.1], THUMB_GRIP = [0.35, 0.55, 0.5];
 /** lids: upper lid travel to close (rad), lower lid; eye rotation limits */

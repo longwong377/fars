@@ -1745,3 +1745,62 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Now (C, method):** the bake sums each bounce ray's colour weighted by max(0, dy) (what an up-facing surface receives) and by max(0, −dy) (down-facing) separately; the probe carries a tint from above (slots 8–9) and from below (16–17, `PROBE_STRIDE` 18, a fifth atlas band), and the lookup blends them by the normal: tint(n) = mix(below, above, (1 + n_y)/2). The second bounce colours a hit by the tint its own facing receives. Probes re-baked (with the red plaster albedo retuned into the hematite range, sRGB 0.56/0.23/0.20, R/G 6.3: materials.ts).
 - **Measured (tints relative to luminance 1, red / blue, at 1 m above the floor):** Apadana hall from above 1.44 / 0.67, from below 2.89 / 0.38; Hadish 1.33 / 0.64 vs 2.63 / 0.44; scribes' room 1.83 / 0.40 vs 2.78 / 0.35 (its timber ceiling and mud-plaster walls, lit by the floor, are warm). Synthetic room: a red floor raises the tint from below 2× more than the tint from above (tests/probes.test.ts).
 - **Not done:** per-channel L1 (the direction within each hemisphere); the runtime refuses probe data of another stride (code and data out of step, e.g. mid-rebuild) and falls back to the skylight.
+
+
+## D-142 — Every activity performed: work cycles, tools, work objects, animals and sounds for the 28 abstract-only activities (session 4, performances agent)
+- **Problem:** 28 activities the simulation schedules for the abstract population had no performance. They were flagged `placeholder` / `abstractOnly`, and a rendered person doing one stood idle: haul, mould_brick, lay_brick, polish_metal, work_wood, weave, spin, gather, brew, tend_animals, herd, shear, slaughter, offer, clean, garden_work, field_work, irrigate, plough, reap, thresh, dig_canal, pick_fruit, craft, carry_bier, wash, train, cook.
+- **Pose kit (`src/people/poseKit.ts`):** cycles are authored from hand and foot targets, not joint angles.
+  - The trunk FK is the rig's own retarget (the spine channel split 50/50, the hips offset scaled by pelvis height). The reference skeleton is body m03, within 1.2 mm of the asset.
+  - Analytic two-bone IK: arms (wrist to target, elbow pole, forearm twist) and legs (ankle to target, knee pole, flat foot).
+  - `gripIK` iterates on the palm point until the palm is on the target (< 0.5 mm, 4 passes). The crowd runs 4 / 2 / 1 passes by distance.
+  - The grip evaluates the palm from the arm solver's own frames, and channel names and bind vectors are precomputed per side. This about halved the kit's cost with the same math.
+  - Measured on the real rig (`tests/performances.test.ts`): palms within 5 mm, the kit's FK within 3 mm of the rig's.
+- **36 work cycles (`src/people/workAnims.ts`)** in the 17-channel pose system, retargeted as before:
+  - Fields: hoe, irrigate, reap, bind, winnow, drive, plough. Animals: herd, groom, fodder, shear, butcher, hold_lead.
+  - Household and crafts: hold, hold_sack, sweep, weave, spin, gather, pat, stir, mould, lay, haul, pass, polish, adze, pick, tread, stoke, mend, wash, cook. The bier: bier_l and bier_r. Training: archery.
+  - Standing cycles are planted: every foot point within ±2 cm of the ground, no skate over 4 cm, on bodies m03, f02 and m08. Seated and kneeling cycles (shear, butcher, weave, polish, mend, wash) rest on the ground within ±3 cm on m03, f02 and c01.
+  - Every target is reachable: grip errors within 3.5 cm and leg errors within 0.6 cm over all cycles (tests/performances.test.ts).
+  - Path cycles move the root: the ploughman walks a 16 m furrow at 0.62 m/s and turns at the headland; the thresher turns at the centre of the floor once in 26 s; the archer stands side-on to the shot.
+  - Tempo and form are C. They are hand-authored, not motion capture (the anim.ts caveat stands).
+- **Carried props (`src/people/props.ts`):** 32 kinds in two instanced unions (21 small things, 11 long tools). Each instance carries its kind index and one parameter (bow draw in metres, spindle drop), as before: arithmetic mask, no `select()`.
+  - Each kind has a grip rule: one hand, two hands along the handle, between the hands, on the palm, at the hip, placed by the cycle, the bow's grip and string.
+  - Each kind has a tier and note (PROP_NOTES). B: spindle, bowl (a phiale), bow and arrow (composite recurved, as the reliefs and the Susa bricks), brick mould. The rest are C.
+  - Measured through the crowd: 1,108 placements, over every activity, variant and sampled phase. One-hand tools within 2 cm of the palm. Two-hand tools through both palms (the rear hand within 3 cm of the handle line). The drawn bowstring within 3 cm of the drawing hand. The brick mould's handles within 8 cm of both hands.
+- **Work objects (`src/people/workObjects.ts`):** 32 kinds, one instanced mesh per kind. They are placed at the sim's spot (the performer's base), or follow the performer (the ard). A shared object is drawn once per place (the threshing floor, the drum on its sledge) or per group (the bier at its bearers' centroid). Tiers: butchery, hides and pigment slab B; the rest C.
+- **Animals (`src/people/animals.ts`):** sheep, goat, ox, donkey, horse, as procedural quadrupeds (form C).
+  - The rig runs in the vertex shader from per-vertex part weights and pivots, with a CPU mirror for tests. It animates the walk (lateral gait, knee flex), the graze (neck pitched until the muzzle reaches the ground), the tail swing and the lie (legs folded from each build, the belly on the ground).
+  - One instanced mesh per species, 512 instances each. Overflow is counted, never silent.
+  - Placement is closed form: a flock (12 with the herder) drifts about him, grazing and walking under 0.9 m/s within 14.5 m. The yoked pair walks ahead of the ploughman. Two oxen circle the threshing floor. An animal stands beside its groom with fodder under its muzzle. A sheep lies on its side for the shears. Two animals are tethered by the butcher. A sheep is on a lead beside a magus.
+  - Species tiers: sheep and goat A (PF 58-60), donkey and horse B (POTTS2023), ox C. Cattle are not in population.json (Q-193).
+  - **GPU fix found by the first browser render:** three.js applies the instance matrix to `positionLocal` before a material's `positionNode`. Rotating legs about local pivots in that space threw legs and heads across the field. The rig now deforms the raw `positionGeometry` in the animal's own frame and adds the displacement turned by the instance's axes (per-instance attributes). The carried props' displacement (the bowstring) is handled the same way.
+  - **Vertex buffers (found by the second browser render):** WebGPU allows 8 vertex buffers per pipeline. With one buffer per attribute, the carried props (11) and the animals (10 in the shadow pass) failed pipeline creation. Colour, rig and displacement attributes now share one interleaved buffer, and the per-instance data another, under the same attribute names: props use 5 buffers, animals 6. A unit test bounds every crowd instanced mesh at 8.
+- **Evidence choices:**
+  - **Loom:** a horizontal ground loom (C; Q-190), not the warp-weighted loom, because no loom weights are recorded for Fars in the research files. The settlement's loom fitting is drawn as an upright frame although its note says ground loom (Q-191, not this agent's file).
+  - **Shearing:** a knife on a sheep laid on its side (C). Shears are not in the project's sources for Achaemenid Fars (Q-192).
+  - **offer:** only the attested visible part. The magi stand at the offering place holding the commodities issued for the lan (HENK2008, B): a jar (wine or beer), a sack (grain) in 25 %, a sheep on a lead in 15 %. They stand still. No liturgy, gesture, raising, libation or fire is performed: the rite is not attested (HDT 1.132 is a Greek claim), and Zoroastrianism is a living religion. The notes say so.
+  - **slaughter:** no killing and no blood. Two animals are tethered, the butcher cuts at the table, and hides and a basket of meat lie by it (B: the animals and meat issues of the PF texts; the work C).
+  - **train:** archery only (B; HDT 1.136 names riding, archery and truthfulness, a claim). Riding is not performed: there is no mounted rig (Q-195).
+  - **carry_bier:** four bearers, the pole on the outer shoulder. Exposure is never shown (E-71).
+  - **Sounds:** procedural one-shots in `src/audio/soundscape.ts` (C), fired by the cycle's own strike frames, within 60 m: hoe in soil, sickle, the weaving sword's thump, trowel, adze, wet mud into the mould, wet cloth on stone, twig broom, bowstring, a bleat from a flock now and then, a splash. The kiln and the hearth use the fire layer, the bier the footsteps layer. Quiet work is silent: spinning, gathering, stirring, grooming, shearing, butchering, holding, picking, mending. There are no animal bells (not attested; Q-194).
+- **Activity lint (`src/people/activityLint.ts`)** is run by `npm test` (performances, population, people). It fails on:
+  - any placeholder or abstract-only flag, or a PLACEHOLDER note;
+  - a cycle that does not exist;
+  - a prop without geometry;
+  - a work object or species that does not exist;
+  - a sound the soundscape does not play;
+  - a bad tier or an empty note, on every activity and variant.
+  `ABSTRACT_PLACEHOLDERS` is now empty. Tests prove the lint fails when a placeholder, an unknown prop or an unknown animal is added back. The crowd's placeholder flagging is proved on a synthetic activity.
+- **Variants** are chosen from the plan's reason (regex over the sim's reason strings, surveyed from a year of plans) or by a seeded share. 30 reason strings resolve to the intended variant in the tests.
+- **Measured budgets:**
+  - **Node** (tests/performances.test.ts), 300 performers of every activity in view:
+    - props: 306 in 2 draws (unions of 986 and 410 triangles per instance);
+    - work objects: 287 in 27 draws, 39 k triangles;
+    - animals: 222 in 4 draws, 154 k triangles;
+    - people: 2.63 M triangles in 6 draws;
+    - crowd CPU median 6.8 ms (p95 12.4 ms) with IK, measured at load 7 on the 4 shared cores after the kit speed-up (8.6 ms before it). The test's gate is < 10 ms; it failed only in full-suite runs under load 8-10 and passed when re-run alone.
+    Work objects, props and animals cast only into the near shadow cascades. Worst case: (2 + 32 + 5) draws × 3 passes.
+  - **Browser** (humanlab, WebGPU, quality test; tests/e2e/perf.spec.ts): 8-15 draw calls and 21 k-270 k triangles per station view, with no placeholder act.
+- **Not done / weak:** see REVIEWS/agent_performances.md.
+  - The crowd renders only the Terrace's detailed agents, and none of these 28 activities happens on the Terrace. The performances appear in the world only when the abstract population is rendered (the next agent's crowd rework). Until then they are seen in the human lab and the node previews.
+  - Work objects and animals sit at the performer's base height; there is no ground query per object (Q-199).
+  - A picker reaches into the air where no tree stands at the spot.
