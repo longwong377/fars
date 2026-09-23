@@ -53,6 +53,18 @@ async function boot() {
       return { key: p.key, variant: p.look.variantId, stature: +p.look.stature.toFixed(3), pieces: p.look.pieces }; }); },
     /** camera at (x, y, z) looking at (tx, ty, tz) */
     view: (x: number, y: number, z: number, tx: number, ty: number, tz: number) => { camera.position.set(x, y, z); camera.lookAt(tx, ty, tz); camera.updateMatrixWorld(); },
+    /** activity performances (D-142): stations { act, why?, dress, sex, role, seed?, x, z, yaw?, variant?, n? }, each its
+     *  performer(s) with tools, work objects and animals as the crowd draws them in the world. The bier has four bearers
+     *  (the left pair on the left shoulder), the drum haul a rope team of n in file */
+    stations: (specs: any[]) => { crowd.removeExtras(); const out: any[] = [];
+      specs.forEach((sp, i) => { const bier = sp.act === 'carry_bier', n = sp.n ?? (bier ? 4 : 1), yaw = sp.yaw ?? 0, c = Math.cos(yaw), s = Math.sin(yaw);
+        for (let j = 0; j < n; j++) { const lx = bier ? (j % 2 ? -0.46 : 0.46) : 0, lz = bier ? (j < 2 ? 1 : -1) : -j * 1.1;
+          const p = crowd.addExtra(`st${i}_${j}`, { id: -100 - i * 8 - j, sex: sp.sex, role: sp.role, dress: sp.dress, seed: (sp.seed ?? 300 + i * 37) + j * 11, x: sp.x + c * lx + s * lz, y: 0, z: sp.z - s * lx + c * lz, yaw,
+            look: null, act: sp.act, why: sp.why ?? '', group: `st${i}`, variant: bier ? (lx < 0 ? 0 : -1) : sp.variant } as any);
+          out.push({ key: p.key, act: sp.act }); } });
+      return out; },
+    /** the crowd's clock (s): poses every performance at that moment of its cycle */
+    at: (t: number) => { time = t; },
     setTime: (day: number, hour: number) => clock.set(day, hour),
     /** frame lineup person i's face from `dist` m in front (and `side` m to their left) */
     frameFace: (i: number, dist = 0.6, side = 0) => { const p = crowd.persons.get(`lab${i}`); if (!p) return null; const v = humans.A.variants[p.look.variant];
