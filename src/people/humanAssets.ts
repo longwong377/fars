@@ -53,10 +53,34 @@ export function decodeHumanAssets(meta: HumanAssetsMeta, bin: ArrayBuffer): Huma
     for (let i = 0; i < NO; i++) { const p = orig[i]; pos[i * 3] = q[p * 3] * s; pos[i * 3 + 1] = q[p * 3 + 1] * s; pos[i * 3 + 2] = q[p * 3 + 2] * s; }
     const nrm = smoothNormals(pos, orig, NP, lods);
     const joints = new Float32Array(HBONES.length * 3); vm.joints.forEach((j, b) => joints.set(j, b * 3));
+    eyeNormals(pos, nrm, part, uv, joints);
     const eyeY = (joints[HB.eye_l * 3 + 1] + joints[HB.eye_r * 3 + 1]) / 2;
     return { meta: vm, index, pos, nrm, joints, height: vm.height, eyeY };
   });
   return { meta, NO, NP, orig, uv, skinIndex, skinWeight, part, ao, beard, scalp, lods, variants, byId: Object.fromEntries(variants.map(v => [v.meta.id, v])) };
+}
+
+/** Eye shading normals (D-155): MakeHuman's eyeball mesh has a recessed iris and a transparent outer layer (dropped,
+ *  outfits.isCornea), so its smoothed normals were uneven and a highlight on it could not read as a wet cornea. The
+ *  normals are replaced by analytic ones: the eyeball's sphere about the eye joint, and in front of the iris the cornea,
+ *  a sphere of radius EYE_CORNEA_R about the eye's axis (human cornea ~7.8 mm, B: standard anatomy), blended over the
+ *  limbus. The normals are skinned by the eye bones, so the highlight follows the gaze. */
+export const EYE_CORNEA_R = 0.0078, EYE_LIMBUS: [number, number] = [0.0054, 0.0064];
+export function eyeNormals(pos: Float32Array, nrm: Float32Array, part: Uint8Array, uv: Float32Array, joints: Float32Array) {
+  const n = part.length;
+  for (let i = 0; i < n; i++) {
+    if (part[i] !== PART.eye || (uv[i * 2] > 0.85 && uv[i * 2 + 1] < 0.16)) continue;
+    const b = pos[i * 3] > 0 ? HB.eye_l : HB.eye_r;
+    const dx = pos[i * 3] - joints[b * 3], dy = pos[i * 3 + 1] - joints[b * 3 + 1], dz = pos[i * 3 + 2] - joints[b * 3 + 2];
+    const l = Math.hypot(dx, dy, dz) || 1; let nx = dx / l, ny = dy / l, nz = dz / l;
+    const r = Math.hypot(dx, dy);
+    if (dz > 0 && r < EYE_LIMBUS[1]) { // cornea
+      const c = Math.sqrt(Math.max(1e-10, EYE_CORNEA_R * EYE_CORNEA_R - r * r)), lc = Math.hypot(dx, dy, c);
+      const t = Math.min(1, Math.max(0, (r - EYE_LIMBUS[0]) / (EYE_LIMBUS[1] - EYE_LIMBUS[0]))), k = t * t * (3 - 2 * t);
+      nx = dx / lc * (1 - k) + nx * k; ny = dy / lc * (1 - k) + ny * k; nz = c / lc * (1 - k) + nz * k; const m = Math.hypot(nx, ny, nz) || 1; nx /= m; ny /= m; nz /= m;
+    }
+    nrm[i * 3] = nx; nrm[i * 3 + 1] = ny; nrm[i * 3 + 2] = nz;
+  }
 }
 
 /** area-weighted vertex normals, accumulated per position vertex (seams share a normal); vertices only used by the

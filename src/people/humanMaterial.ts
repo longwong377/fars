@@ -1,26 +1,39 @@
-// The human material (D-091): one TSL node material for every body, garment, hair and worn object, so the whole crowd
-// renders in a few instanced draws.
+// The human material (D-091, D-155): one TSL node material for every body, garment, hair and worn object, so the whole
+// crowd renders in a few instanced draws.
 //
 // Vertex stage (GPU skinning from textures; no per-person uniforms):
-//   iSlot (instanced)  → person texel row: variant, piece mask, pattern, grime; colours
+//   iSlot (instanced)  → person texel row: variant, piece mask, look flags (LOOK_BITS), grime; colours
 //   iRoot, iRootPrev   → the person's feet position and yaw this frame and last frame (instanced; root motion every
 //                        frame while the bone palette of distant people is refreshed less often)
 //   tid                → bind position + packed normal of this vertex in this person's body variant (source texture)
 //   skinIndex/Weight   → 4 × 3 texels of the person's skin palette (rows of 3×4 matrices, character space)
 //   hmat               → material class, colour slot (texel of the person row), optional-piece bit, class parameter
-//   hext               → cavity AO, drape slack (wide sleeves sag when the arm is raised), beard region (stubble), shell edge
+//   hext               → cavity AO, drape slack or a body extra, beard region (stubble), shell edge or a body extra
+//                        (body extras by class: humanFormat EYE_UNIT / SKIN_CURV_MAX)
 // Hidden optional pieces collapse to a point (zero-area triangles). Previous-frame skinning feeds the velocity buffer
 // (TRAA) when the pipeline asks for it.
-// Fragment stage: arithmetic class masks (no runtime select(): D-012) pick albedo, roughness, metalness and a procedural
-// height field (curls, fabric folds, wicker) for the shading normal. Skin: the baked albedo (skin.png) rescaled to the
-// person's tone, eyebrows from its alpha, stubble from the beard region, and a wrap-lighting approximation of subsurface
-// scattering in a custom lighting model.
+// Fragment stage: arithmetic class masks (no runtime select(): D-012). Three shared noise evaluations serve every class
+// (each class scales the noise input), so the cost does not grow with the number of classes.
+//   skin  — the baked albedo (skin.png, left half) rescaled to the person's tone; the detail half (crease height, oil,
+//           age lines, translucency); a band-limited pore octave; two specular lobes (broad sheen + sharp oily lobe,
+//           F0 0.028); diffusion approximated by a per-channel wrap that widens with the surface curvature (red light
+//           reaches past the terminator), and thin-part transmission (ears, nostrils, lids).
+//   eye   — procedural iris (fibres, collarette, limbal ring, pupil) and sclera in the eye's planar coordinates;
+//           analytic eyeball/cornea normals (humanAssets); a wet specular and a sky catchlight; the upper lid's shadow.
+//   lash  — the MakeHuman lash strips cut into tapering clumps (alpha test), not a painted band.
+//   hair  — natural curls, the court dressing in rows of snail curls (reliefs; C for real hair), straight strands;
+//           frayed edges and a scalloped silhouette (alpha test); two shifted Kajiya–Kay lobes along the strands.
+//   cloth — wool or linen: a band-limited weave micro-normal, drape folds, mottling, a sheen lobe; motifs; grime.
+//   felt, leather, metal, wood, wicker.
 import * as THREE from 'three/webgpu';
-import {
+import * as TSL from 'three/tsl';
+const {
   Fn, attribute, texture, uv, vec2, vec3, vec4, float, int, ivec2, mix, step, abs, max, min, floor, clamp, dot, normalize, exp2, smoothstep, sin, cos,
-  varyingProperty, normalLocal, positionPrevious, positionView, normalView, sign, mx_noise_float, color, diffuseColor, mod, pow, fract, length,
-} from 'three/tsl';
-import { MAT } from './humanFormat';
+  varyingProperty, normalLocal, positionPrevious, positionView, normalView, normalViewGeometry, positionViewDirection, sign, mx_noise_float, diffuseColor,
+  diffuseContribution, specularColor, specularColorBlended, specularF90, metalness, roughness, mod, fract, length, sqrt, atan, exp, pow, cross,
+  cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert,
+} = TSL as any; // TSL's typings do not follow mixed float/vec3 arithmetic; the graph is checked when it builds
+import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS } from './humanFormat';
 
 /** height field → shading normal (view space; surface gradient from screen-space derivatives, Mikkelsen 2010) */
 function bumped(h: any) {
@@ -31,6 +44,7 @@ function bumped(h: any) {
 }
 /** 1 when the (rounded) class id equals k, else 0 (arithmetic, no branches) */
 const is = (m: any, k: number) => float(1).sub(step(0.5, abs(m.sub(k))));
+const TAU = Math.PI * 2;
 
 export interface HumanTextures {
   /** RGBA32F: xyz bind position, w packed normal; row-major over variant × NV vertices */
@@ -39,35 +53,100 @@ export interface HumanTextures {
   bones: THREE.DataTexture; prevBones: THREE.DataTexture;
   /** RGBA32F: one row per slot, 8 texels (see PERSON_TEXELS) */
   person: THREE.DataTexture;
+  /** skin.png: a 2:1 atlas, left half albedo (RGB) + brows (A), right half detail (SKIN_DETAIL); eye.png is no longer
+   *  sampled (the eye is procedural, D-155) */
   skin: THREE.Texture; eye: THREE.Texture;
 }
-/** person texel layout: 0 [variant, piece mask, pattern, grime], 1 [skin tone, stubble], 2 main, 3 second, 4 trim, 5 hair,
- *  6 leather, 7 [grime brightness, scale, 0, flags], 8 felt/headgear, 9 reserved */
+/** person texel layout: 0 [variant, piece mask, look flags (LOOK_BITS), grime], 1 [skin tone, stubble], 2 main, 3 second,
+ *  4 trim, 5 hair, 6 leather, 7 [grime brightness, scale, 0, flags], 8 felt/headgear, 9 reserved.
+ *  stubble (1.w): 0 none, 0..1 shaven stubble, 2 = bearded (the skin under the beard reads as roots) */
 export const PERSON_TEXELS = 10;
 /** reference skin tone the baked albedo was authored for (sRGB; tools/humans/skin.ts REF_TONE) */
 export const REF_TONE: [number, number, number] = [0.72, 0.53, 0.42];
-/** drape: a wide sleeve's free edge drops this far (m) when the forearm is horizontal (C) */
+/** drape: a slack cloth vertex drops this far (m) when its main bone is horizontal (wide sleeves, seated skirts; C) */
 export const SAG_MAX = 0.1;
 /** person flags (texel 7 w): 1 = hide the head (the player's own body, seen from inside it) */
 export const FLAG_HIDE_HEAD = 1;
 
+type RGB = [number, number, number];
+/** Skin (C unless noted). f0: n ≈ 1.4 (B: the value used by Donner & Jensen 2006 and d'Eon & Luebke 2007). Two GGX lobes:
+ *  a broad sheen and a sharp oily lobe whose share follows the oil map (T-zone, lips). The diffusion approximation: the
+ *  wrap per channel is base + curvature × scatter length (red scatters furthest: d'Eon & Luebke's sum-of-Gaussians
+ *  widths are ~1–3 mm for red, well under 1 mm for blue), capped; flat skin keeps a small base wrap. */
+export const SKIN = {
+  f0: 0.028, roughSheen: 0.6, roughOil: 0.34, oilLobe: [0.1, 0.34] as [number, number],
+  scatter: [0.0028, 0.0011, 0.0006] as RGB, wrapBase: [0.1, 0.035, 0.018] as RGB, wrapMax: 0.55,
+  /** full-scale heights (m) of the detail map's crease and age channels; the age channel scales with the age decade */
+  crease: 0.00045, age: 0.0004,
+  /** thin-part transmission: tint (light through ~2–5 mm of tissue is red) and strength (C) */
+  transTint: [1, 0.3, 0.14] as RGB, trans: 0.4,
+  /** band-limited pore octaves (cycles/m, amplitude m): faded where a period spans fewer than ~3 px (as D-147) */
+  pores: [[1100, 0.000025], [340, 0.00005]] as [number, number][],
+};
+/** Eyes (C unless noted): radii in m (iris diameter ~11.5–12 mm, B: standard anatomy; daylight pupil 3 mm, C), sclera
+ *  albedo (linear: a white tissue that reflects most visible light, slightly warm; the MakeHuman texture's sclera was
+ *  sRGB 0.66 and the old shader dimmed it to 0.3 linear, which read grey), iris colours (linear albedo; dark brown
+ *  irises reflect only a few per cent) */
+export const EYE = { irisR: 0.0059, pupilR: 0.0015, sclera: [0.64, 0.6, 0.55] as RGB, caruncle: [0.6, 0.36, 0.34] as RGB, lidShadow: 0.45, f0: 0.025 };
+export const IRIS: RGB[] = [[0.04, 0.02, 0.009], [0.062, 0.032, 0.013], [0.095, 0.05, 0.02], [0.13, 0.072, 0.03], [0.14, 0.1, 0.045], [0.11, 0.115, 0.06], [0.11, 0.13, 0.105], [0.1, 0.14, 0.18]];
+/** lash strips (MakeHuman helper UVs span u 0.704–0.762 along both lids): clumps along the lid, tapering to the tip */
+export const LASH = { u0: 0.704, u1: 0.762, clumps: 72 };
+/** hair: the court dressing's curl rows (m; the relief convention, C for real hair); curl bump heights (m) */
+export const HAIR = { row: 0.008, bump: 0.0011, bumpStraight: 0.0008, kk: [0.04, 0.025] as [number, number] };
+
 class HumanLightingModel extends THREE.PhysicalLightingModel {
-  constructor(private skinMask: any, private scatter: any) { super(); }
-  direct(inputs: any, builder: any) {
-    super.direct(inputs, builder);
-    // wrap lighting for skin (SSS approximation, C): diffuse from saturate((N·L + w)/(1 + w)) instead of saturate(N·L),
-    // tinted toward red where light wraps past the terminator (light scattered under the skin exits reddened)
-    const { lightDirection, lightColor, reflectedLight } = inputs;
-    const ndl = normalView.dot(lightDirection);
-    const wrap = 0.35;
-    const wrapped = ndl.add(wrap).div(1 + wrap).clamp(0, 1), lambert = ndl.clamp(0, 1);
-    const extra = wrapped.sub(lambert).max(0);
-    reflectedLight.directDiffuse.addAssign(lightColor.mul(extra).mul(this.skinMask).mul(diffuseColor.rgb).mul(this.scatter).mul(1 / Math.PI));
+  constructor(private S: Record<string, any>) { super(); }
+  direct(inputs: any) {
+    const S = this.S; const { lightDirection: L, lightColor, reflectedLight } = inputs;
+    const N = normalView, V = positionViewDirection;
+    const ndl = N.dot(L), dotNL = ndl.clamp();
+    const H = L.add(V).normalize(), dotVH = V.dot(H).clamp(), dotNH = N.dot(H).clamp(), dotNV = N.dot(V).clamp();
+    const F = F_Schlick({ f0: specularColor, f90: specularF90, dotVH });
+    // diffuse: wrapped per channel (w = 0 is Lambert); the skin's wrap widens with curvature, red furthest (SSS, C)
+    const w = S.wrap; const prof = ndl.add(w).div(w.add(1)).clamp().pow(w.add(1));
+    const diffuse = lightColor.mul(prof).mul(BRDF_Lambert({ diffuseColor: diffuseContribution })).mul(F.oneMinus());
+    // thin parts lit from behind (ears, nostril wings, lids): red transmission
+    const back = ndl.negate().add(0.25).div(1.25).clamp();
+    const trans = lightColor.mul(diffuseContribution).mul(S.trans).mul(back.mul(back)).mul(1 / Math.PI);
+    // specular: GGX with the material roughness, blended with a sharper second lobe (skin oil)
+    const specA = BRDF_GGX({ lightDirection: L, f0: specularColorBlended, f90: 1, roughness });
+    const specB = BRDF_GGX({ lightDirection: L, f0: specularColorBlended, f90: 1, roughness: S.roughB });
+    let spec: any = mix(specA, specB, S.lobeB);
+    // hair: two shifted Kajiya–Kay lobes along the strand tangent (world down on the surface, swirled by the curls)
+    const down = cameraViewMatrix.mul(vec4(0, -1, 0, 0)).xyz;
+    const t0 = down.sub(N.mul(N.dot(down))).add(cameraViewMatrix.mul(vec4(0.001, 0, 0, 0)).xyz).normalize(), b0 = N.cross(t0);
+    const T = t0.add(b0.mul(S.hairTilt)).normalize();
+    const kk = (shift: number, e: number) => { const ts = T.add(N.mul(shift)).normalize(), th = ts.dot(H); return smoothstep(-1, 0, th).mul(pow(float(1).sub(th.mul(th)).clamp(0, 1).sqrt(), e)); };
+    const kkSpec = vec3(kk(-0.08, 80).mul(HAIR.kk[0])).add(diffuseColor.rgb.mul(6).clamp(0, 1).mul(kk(0.1, 14).mul(HAIR.kk[1])));
+    spec = mix(spec, kkSpec, S.kHair);
+    // cloth and felt: a sheen lobe (Charlie distribution, Neubelt visibility)
+    const invA = float(1).div(S.sheenRough), sin2 = float(1).sub(dotNH.mul(dotNH)).max(0.0078125);
+    const Dc = invA.add(2).mul(pow(sin2, invA.mul(0.5))).div(TAU);
+    const Vn = float(1).div(dotNL.add(dotNV).sub(dotNL.mul(dotNV)).max(0.001).mul(4)).clamp(0, 1);
+    const sheen = S.sheenCol.mul(Dc).mul(Vn);
+    const irr = lightColor.mul(dotNL);
+    reflectedLight.directDiffuse.addAssign(diffuse.add(trans));
+    reflectedLight.directSpecular.addAssign(irr.mul(spec).mul(S.specOcc).mul((this as any).multiScatteringCompensation ?? 1).add(irr.mul(sheen)));
+  }
+  indirect(builder: any) {
+    this.indirectDiffuse(builder); this.indirectSpecular(builder);
+    // The scenes have no environment map, so nothing reflected the sky. Approximate the sky's reflection from the
+    // irradiance at this normal (its mean radiance, irradiance/π), brighter for reflections pointing up (C): skin gets
+    // its sheen in shade, eyes their catchlight, metal its colour.
+    const S = this.S; const { irradiance, reflectedLight } = builder.context;
+    const N = normalView, V = positionViewDirection, dotNV = N.dot(V).clamp();
+    const up = cameraViewMatrix.mul(vec4(0, 1, 0, 0)).xyz, R = V.negate().reflect(N);
+    const skyW = mix(0.55, 1.4, smoothstep(-0.15, 0.35, R.dot(up)));
+    const f5 = float(1).sub(dotNV), f = f5.mul(f5).mul(f5).mul(f5).mul(f5), r = S.roughEnv;
+    const env = specularColorBlended.add(max(float(1).sub(r), specularColorBlended).sub(specularColorBlended).mul(f)).mul(float(1).sub(r.mul(r).mul(0.6)));
+    const sheenInd = S.sheenCol.mul(f5.mul(f5).mul(f5).mul(0.6).add(0.12));
+    reflectedLight.indirectSpecular.addAssign(irradiance.mul(1 / Math.PI).mul(skyW).mul(env.mul(S.envMask).add(sheenInd)));
+    this.ambientOcclusion(builder);
   }
 }
 
 export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
-  private skinMask: any; private scatter: any;
+  private S: Record<string, any> = {}; private f0Node: any;
   constructor(T: HumanTextures, opts: { shadowOnly?: boolean } = {}) {
     super();
     this.name = 'human';
@@ -100,17 +179,19 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
         return acc; });
       return r;
     };
-    const vColor = varyingProperty('vec3', 'vHumanColor'), vHair = varyingProperty('vec3', 'vHumanCol2'), vMat = varyingProperty('vec4', 'vHumanMat'), vBind = varyingProperty('vec3', 'vHumanBind'), vAux = varyingProperty('vec4', 'vHumanAux'), vEdge = varyingProperty('float', 'vHumanEdge');
+    const vColor = varyingProperty('vec3', 'vHumanColor'), vHair = varyingProperty('vec3', 'vHumanCol2'), vMat = varyingProperty('vec4', 'vHumanMat'), vBind = varyingProperty('vec3', 'vHumanBind'), vAux = varyingProperty('vec4', 'vHumanAux'), vExt = varyingProperty('vec4', 'vHumanExt');
     this.positionNode = Fn((builder: any) => {
       const s = src.toVar(), bind = s.xyz, nB = decodeN(s.w);
       const R = skinned(boneTex);
       const p = toWorld(vec3(dot(R[0], vec4(bind, 1)), dot(R[1], vec4(bind, 1)), dot(R[2], vec4(bind, 1))), root).toVar();
       const n = rotN(normalize(vec3(dot(R[0].xyz, nB), dot(R[1].xyz, nB), dot(R[2].xyz, nB))), root);
-      // drape sag: slack × SAG_MAX × horizontality of the vertex's main bone (its −Y axis in world is −column 1)
+      // drape sag (cloth only: body vertices use the slack byte for other data): slack × SAG_MAX × horizontality of the
+      // vertex's main bone (its −Y axis in world is −column 1)
       const b0 = int(si.x).mul(3);
       const col1 = vec3(boneTex.load(ivec2(b0, int(slot))).y, boneTex.load(ivec2(b0.add(1), int(slot))).y, boneTex.load(ivec2(b0.add(2), int(slot))).y);
       const horiz = float(1).sub(abs(normalize(col1).y));
-      const sag = hext.y.mul(SAG_MAX).mul(horiz).mul(scale);
+      const clothV = step(0.5, hmat.x).mul(step(hmat.x, 3.5));
+      const sag = hext.y.mul(SAG_MAX).mul(horiz).mul(scale).mul(clothV);
       p.y.subAssign(sag);
       // optional pieces: bit b of the person's mask (bit 0 = always worn); hidden pieces collapse to one point
       const bit = hmat.z, mask = person0.y;
@@ -130,80 +211,175 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       const colSlot = hmat.y;
       vColor.assign(perTex.load(ivec2(int(max(colSlot, 1)), int(slot))).rgb.mul(step(0.5, colSlot)));
       // second colour: the trim colour on cloth (pattern motifs), the hair colour elsewhere (brows, stubble, lashes)
-      const clothV = step(0.5, hmat.x).mul(step(hmat.x, 3.5));
-      vHair.assign(mix(row(5).rgb, row(4).rgb, clothV));
+      const clothC = step(0.5, hmat.x).mul(step(hmat.x, 3.5));
+      vHair.assign(mix(row(5).rgb, row(4).rgb, clothC));
       vMat.assign(vec4(hmat.x, hmat.w, person0.z, person0.w));
       vBind.assign(bind);
-      vAux.assign(vec4(hext.x, hext.z, row(1).w, row(7).x)); vEdge.assign(hext.w);
+      vAux.assign(vec4(hext.x, hext.z, row(1).w, row(7).x)); vExt.assign(vec4(hext.y, hext.w, 0, 0));
       return p;
     })();
 
     // ---- fragment
-    const m = vMat.x, prm = vMat.y;
+    const m = vMat.x, prm = vMat.y, pat = vMat.z, e1 = vExt.x, e2 = vExt.y;
+    const bits = (k: keyof typeof LOOK_BITS) => { const [lo, n] = LOOK_BITS[k]; return mod(floor(pat.div(2 ** lo)), 2 ** n); };
     const kSkin = is(m, MAT.skin), kEye = is(m, MAT.eye), kHair = is(m, MAT.hair), kTeeth = is(m, MAT.teeth), kMouth = is(m, MAT.mouth);
     const kLeather = is(m, MAT.leather), kFelt = is(m, MAT.felt), kMetal = is(m, MAT.metal), kLash = is(m, MAT.lash), kWood = is(m, MAT.wood), kWicker = is(m, MAT.wicker);
     const kCloth = is(m, MAT.cloth_main).add(is(m, MAT.cloth_second)).add(is(m, MAT.cloth_trim));
-    const P = vBind;
-    // skin: baked albedo × tone / reference tone (linear), brows (alpha) and stubble toward the hair colour
-    const skinT = texture(T.skin, uv());
+    const P = vBind, U = uv();
+    const fw = max(length(P.fwidth()), 1e-6); // metres per pixel on the surface (about)
+    /** 1 where a period of `f` cycles/m spans more than ~8 px, 0 under ~3 px (band-limited detail, as D-147) */
+    const band = (f: any) => float(1).sub(smoothstep(0.12, 0.35, fw.mul(f)));
+    const hairStyle = bits('hairStyle'), kCourt = is(hairStyle, 1), kStraight = is(hairStyle, 2);
+    const isBeard = step(1.5, prm).mul(kHair), isMass = is(prm, 3).mul(kHair);
+    const age01 = clamp(bits('age').sub(2).div(4), 0, 1); // 20s → 0 … 60s → 1
+
+    // eye: planar coordinates from the eye's centre (bind frame, m) → iris polar coordinates
+    const ex = e1.sub(0.5).mul(2 * EYE_UNIT), ey = e2.sub(0.5).mul(2 * EYE_UNIT);
+    const er = length(vec2(ex, ey)), et = er.div(EYE.irisR), eang = atan(ey, ex);
+    const irisCoord = vec3(cos(eang).mul(6), sin(eang).mul(6), et.mul(3.2));
+
+    // ---- shared noise: three evaluations, each class scales the input (a fragment has one class)
+    const fr = (skin: any, hair: any, cloth: any, felt: any, leather: any, other: any) =>
+      vec3(skin).mul(kSkin).add(vec3(hair).mul(kHair.add(kLash))).add(vec3(cloth).mul(kCloth)).add(vec3(felt).mul(kFelt)).add(vec3(leather).mul(kLeather))
+        .add(vec3(other).mul(float(1).sub(kSkin).sub(kHair).sub(kLash).sub(kCloth).sub(kFelt).sub(kLeather).max(0)));
+    const hairF1 = mix(vec3(900, 300, 900), vec3(700, 40, 700), kStraight), hairF2 = mix(mix(vec3(260, 170, 260), vec3(190, 110, 190), isBeard), vec3(120, 15, 120), kStraight);
+    const n1 = mx_noise_float(mix(P.mul(fr(SKIN.pores[0][0], hairF1, 160, 900, 200, 60)), irisCoord, kEye));
+    const n2 = mx_noise_float(mix(P.mul(fr(SKIN.pores[1][0], hairF2, vec3(14, 5, 14), 250, 60, 40)), vec3(ex, ey, P.x).mul(900), kEye));
+    const n3 = mx_noise_float(P.mul(fr(30, 40, 9, 40, 20, 40)));
+    const u1 = n1.mul(0.5).add(0.5), u2 = n2.mul(0.5).add(0.5), u3 = n3.mul(0.5).add(0.5);
+
+    // ---- skin: baked albedo (atlas left half) and detail (right half: crease height, oil, age lines, translucency)
+    const uvA = U.mul(vec2(0.5, 1)), sA = texture(T.skin, uvA), sD = texture(T.skin, uvA.add(vec2(0.5, 0)));
     const refLin = new THREE.Color().setRGB(...REF_TONE, THREE.SRGBColorSpace);
     const tone = vColor.div(vec3(refLin.r, refLin.g, refLin.b));
-    const stubble = vAux.z; // per person 0 (shaven/none) … 1 (short stubble), × beard region (vAux.y)
-    let skinAlb: any = skinT.rgb.mul(tone);
-    skinAlb = mix(skinAlb, vHair.mul(0.9), skinT.a.mul(0.85));
-    skinAlb = mix(skinAlb, skinAlb.mul(vHair.mul(2.2).add(0.35).min(1)), vAux.y.mul(stubble).mul(0.55));
-    // eyes: MakeHuman iris/sclera texture; the sclera toned down (a pure white sclera reads as uncanny, C)
-    const eyeT = texture(T.eye, uv()).rgb; const sclera = smoothstep(0.55, 0.75, eyeT.r.add(eyeT.g).add(eyeT.b).div(3));
-    // the MakeHuman brown iris is a saturated red-brown: pulled toward a darker, less red brown (C)
-    const irisL = dot(eyeT, vec3(0.3, 0.55, 0.15)), iris = mix(eyeT, vec3(irisL.mul(0.95), irisL.mul(0.72), irisL.mul(0.5)), 0.55);
-    const eyeAlb = mix(iris, eyeT.mul(vec3(0.82, 0.78, 0.74)), sclera);
-    // hair: clumps of curls and strands (height field in bind space; ridged noise reads as curled locks, elongated
-    // vertically on beards; relief beards are carved in rows of curls, B; the rendering is C)
-    const hs = mix(vec3(260, 170, 260), vec3(190, 110, 190), step(1.5, prm)); // beard and bun (prm ≥ 1.5 beard) vs scalp
-    const ridge = float(1).sub(abs(mx_noise_float(P.mul(hs)))), fine = mx_noise_float(P.mul(vec3(900, 300, 900))).mul(0.5).add(0.5);
-    const curls = ridge.mul(ridge).mul(0.75).add(fine.mul(0.25));
-    const hairAlb = vColor.mul(curls.mul(0.6).add(0.55));
-    // cloth: dyed wool/linen, gentle mottling; patterned robes (pattern 1: rosettes/stars in the trim colour, after the Susa guard robes, B)
-    const mott = mx_noise_float(P.mul(9)).mul(0.05).add(mx_noise_float(P.mul(160)).mul(0.035));
-    const pat = vMat.z;
-    const cell = fract(vec2(P.x.add(P.z.mul(0.7)), P.y).mul(22)).sub(0.5), rose = float(1).sub(smoothstep(0.18, 0.26, length(cell))).mul(step(0.5, pat)).mul(is(m, MAT.cloth_main));
+    const stub = vAux.z, roots = step(1.5, stub), stubV = min(stub, 1).mul(float(1).sub(roots));
+    let skinAlb: any = sA.rgb.mul(tone);
+    skinAlb = mix(skinAlb, vHair.mul(0.9), sA.a.mul(0.85)); // brows
+    skinAlb = mix(skinAlb, skinAlb.mul(vHair.mul(2.2).add(0.35).min(1)), vAux.y.mul(stubV).mul(0.55)); // shaven stubble
+    skinAlb = mix(skinAlb, vHair.mul(0.6), vAux.y.mul(roots).mul(0.75)); // under a beard: roots
+    skinAlb = mix(skinAlb, vHair.mul(0.55), e1.mul(kSkin).mul(bits('wearsHair')).mul(0.9)); // scalp under worn hair
+    const oil = sD.g, transl = sD.a;
+    const poreH = n1.mul(SKIN.pores[0][1]).mul(band(SKIN.pores[0][0])).add(n2.mul(SKIN.pores[1][1]).mul(band(SKIN.pores[1][0])));
+    const skinH = sD.r.sub(0.5).mul(2 * SKIN.crease).add(sD.b.sub(0.5).mul(2 * SKIN.age).mul(age01)).add(poreH);
+
+    // ---- eye
+    const irisI = bits('iris'); let irisBase: any = vec3(0);
+    IRIS.forEach((c, k) => { irisBase = irisBase.add(vec3(...c).mul(is(irisI, k))); });
+    const collar = exp(et.sub(0.42).div(0.08).mul(et.sub(0.42).div(0.08)).negate());
+    let iris: any = irisBase.mul(u1.mul(0.55).add(0.7)).mul(collar.mul(0.4).add(1));
+    iris = iris.mul(float(1).sub(smoothstep(0.78, 0.98, et).mul(0.5))); // limbal ring
+    const pr = EYE.pupilR / EYE.irisR;
+    iris = mix(iris, vec3(0.005), float(1).sub(smoothstep(pr - 0.04, pr + 0.04, et)));
+    const irisM = float(1).sub(smoothstep(0.97, 1.04, et));
+    const nasal = smoothstep(0.009, 0.0135, ex.mul(sign(P.x)).negate()); // toward the nose (left eye x > 0)
+    const veins = smoothstep(0.62, 0.9, u2).mul(smoothstep(0.007, 0.012, abs(ex))).mul(0.35);
+    let sclera: any = mix(vec3(...EYE.sclera), vec3(...EYE.sclera).mul(vec3(1, 0.62, 0.58)), veins);
+    sclera = mix(sclera, vec3(...EYE.caruncle), nasal.mul(0.8));
+    const lidSh = float(1).sub(smoothstep(-0.0015, 0.0018, ey).mul(EYE.lidShadow)); // the upper lid's shadow on the eyeball
+    const eyeAlb = mix(sclera, iris, irisM).mul(lidSh);
+
+    // ---- hair: natural curls, court rows of snail curls, straight strands
+    const ridge = float(1).sub(abs(n2));
+    const natural = ridge.mul(ridge).mul(0.75).add(u1.mul(0.25));
+    const arc = atan(P.x, P.z.sub(0.02)).mul(0.085); // arc length (m) around the head
+    const hx = mix(arc, P.x, isBeard), rowC = P.y.div(HAIR.row), ri = floor(rowC);
+    // cells in rows (alternate rows offset half a cell), each curl jittered in place, size and turn by a per-cell hash, and
+    // blended with the natural curls so no two read alike (literal snail shells read as carving, not hair)
+    const cellX = hx.div(HAIR.row).add(mod(ri, 2).mul(0.5)), ci = floor(cellX);
+    const hsh = (a: number, b: number, c: number) => fract(sin(ri.mul(a).add(ci.mul(b))).mul(c));
+    const h1 = hsh(12.9898, 78.233, 43758.5453), h2 = hsh(39.3468, 11.135, 24634.6345);
+    const cu = fract(cellX).sub(0.5).add(h1.sub(0.5).mul(0.3)), cv = fract(rowC).sub(0.5).add(h2.sub(0.5).mul(0.3));
+    const rr = length(vec2(cu, cv)).mul(h1.mul(0.3).add(1.7)), th = atan(cv, cu).add(h2.mul(TAU));
+    const tuft = clamp(float(1).sub(rr.mul(rr)), 0, 1).mul(sin(th.add(rr.mul(8))).mul(0.25).add(0.75));
+    let court: any = mix(natural, tuft.mul(u1.mul(0.4).add(0.6)), 0.6);
+    // the long beard's hanging mass: wavy vertical locks between the curls at the chin and a row of curled ends
+    const locks = sin(P.x.add(sin(P.y.mul(160)).mul(0.003)).mul(TAU / 0.0075)).mul(0.5).add(0.5);
+    const lockZone = isMass.mul(smoothstep(0.2, 0.3, U.y)).mul(float(1).sub(smoothstep(0.86, 0.94, U.y)));
+    court = mix(court, locks.mul(0.85).add(u1.mul(0.15)), lockZone);
+    const straight = u1.mul(0.6).add(u2.mul(0.4));
+    const curls = mix(mix(natural, court, kCourt), straight, kStraight);
+    const hairAlb = vColor.mul(curls.mul(0.75).add(0.42)).mul(u3.mul(0.2).add(0.9));
+    const hairH = curls.mul(mix(HAIR.bump, HAIR.bumpStraight, kStraight)).mul(band(mix(200, 120, kCourt)));
+    const lashAlb = vHair.mul(0.45);
+
+    // ---- cloth: dyed wool or linen; weave, folds, mottling, motifs
+    const isLinen = is(m, MAT.cloth_main).mul(mod(bits('linen'), 2)).add(is(m, MAT.cloth_second).mul(mod(floor(bits('linen').div(2)), 2))).add(is(m, MAT.cloth_trim).mul(floor(bits('linen').div(4))));
+    const pat0 = mod(bits('motif'), 2);
+    const cell = fract(vec2(P.x.add(P.z.mul(0.7)), P.y).mul(22)).sub(0.5), rose = float(1).sub(smoothstep(0.18, 0.26, length(cell))).mul(pat0).mul(is(m, MAT.cloth_main));
     const trimCol = vHair; // motif colour = the person's trim colour (C)
-    const grime = vMat.w, grimeCol = vec3(vAux.w, vAux.w, vAux.w).mul(vec3(1, 0.97, 0.9)); // dust/flour toward the hem and hands
-    const grimeMask = grime.mul(float(1).sub(smoothstep(0.1, 0.9, P.y))) // (reversed smoothstep edges are undefined in WGSL).mul(kCloth.add(kSkin.mul(0.5)));
-    let clothAlb: any = vColor.mul(float(1).add(mott));
+    let clothAlb: any = vColor.mul(float(1).add(n3.mul(0.05)).add(n1.mul(0.035)));
     clothAlb = mix(clothAlb, trimCol, rose);
-    const leatherAlb = vColor.mul(float(1).add(mx_noise_float(P.mul(60)).mul(0.08)));
-    const feltAlb = vColor.mul(float(1).add(mx_noise_float(P.mul(40)).mul(0.07)));
+    const nb = normalize(cross(P.dFdx(), P.dFdy()).add(vec3(0, 1e-9, 0))), ax = abs(nb.x), az = abs(nb.z);
+    const sH = P.x.mul(az).add(P.z.mul(ax)).div(ax.add(az).add(1e-4)); // horizontal coordinate on the garment
+    const fq = mix(700, 1500, isLinen); // threads per metre: coarse wool, fine linen (C)
+    const weaveH = sin(P.y.mul(fq).mul(TAU)).mul(sin(sH.mul(fq).mul(TAU))).mul(mix(0.00012, 0.00006, isLinen)).mul(band(fq));
+    const clothH = n2.mul(0.003).add(n1.mul(0.0004)).add(weaveH);
+
+    // ---- felt, leather, metal, wood, wicker
+    const feltAlb = vColor.mul(float(1).add(n3.mul(0.1)).add(n1.mul(0.05)));
+    const seam = exp(P.x.div(0.0022).mul(P.x.div(0.0022)).negate()).mul(0.00045).mul(is(prm, 0)); // the soft cap's centre seam (C)
+    const feltH = n1.mul(0.00008).mul(band(900)).add(n2.mul(0.00015).mul(band(250))).add(seam);
+    const leatherAlb = vColor.mul(float(1).add(n2.mul(0.08)));
+    const leatherH = n1.mul(0.0002).mul(band(200));
     const metalAlb = mix(mix(vec3(0.62, 0.43, 0.24), vec3(0.8, 0.8, 0.78), is(prm, 1)), vec3(0.9, 0.7, 0.32), is(prm, 2)).mul(float(1).sub(is(prm, 3).mul(0.5)));
-    const woodAlb = vec3(0.36, 0.25, 0.15).mul(float(1).add(sin(P.y.mul(900).add(mx_noise_float(P.mul(40)).mul(3))).mul(0.06)));
+    const woodAlb = vec3(0.36, 0.25, 0.15).mul(float(1).add(sin(P.y.mul(900).add(n3.mul(3))).mul(0.06)));
     const wickerAlb = vec3(0.6, 0.5, 0.3).mul(float(0.85).add(abs(sin(P.x.mul(300))).mul(0.15)));
-    let alb: any = skinAlb.mul(kSkin).add(eyeAlb.mul(kEye)).add(hairAlb.mul(kHair)).add(vec3(0.72, 0.68, 0.58).mul(kTeeth)).add(vec3(0.32, 0.1, 0.09).mul(kMouth))
-      .add(leatherAlb.mul(kLeather)).add(feltAlb.mul(kFelt)).add(metalAlb.mul(kMetal)).add(vHair.mul(0.5).mul(kLash)).add(woodAlb.mul(kWood)).add(wickerAlb.mul(kWicker)).add(clothAlb.mul(kCloth));
+
+    let alb: any = skinAlb.mul(kSkin).add(eyeAlb.mul(kEye)).add(hairAlb.mul(kHair)).add(vec3(0.7, 0.66, 0.58).mul(kTeeth)).add(vec3(0.32, 0.1, 0.09).mul(kMouth))
+      .add(leatherAlb.mul(kLeather)).add(feltAlb.mul(kFelt)).add(metalAlb.mul(kMetal)).add(lashAlb.mul(kLash)).add(woodAlb.mul(kWood)).add(wickerAlb.mul(kWicker)).add(clothAlb.mul(kCloth));
+    // grime by work (C): dust toward the hem and the feet, patchy; court dress stays clean (grime ≈ 0)
+    const grime = vMat.w, grimeCol = vec3(vAux.w, vAux.w, vAux.w).mul(vec3(1, 0.97, 0.9));
+    const low = float(1).sub(smoothstep(0.1, 0.9, P.y)), feet = float(1).sub(smoothstep(0.02, 0.14, P.y));
+    const grimeMask = grime.mul(low).mul(kCloth.add(kSkin.mul(feet.mul(0.65).add(0.35))).add(kLeather.mul(0.8)).add(kFelt.mul(0.3))).mul(u3.mul(0.6).add(0.7));
     alb = mix(alb, grimeCol, grimeMask.mul(0.35));
     this.colorNode = alb;
-    // roughness: skin 0.52 (oilier on the nose), eyes wet, hair 0.55, cloth 0.9, leather 0.62, felt 0.95, metal 0.32
-    const noseOil = float(0); // (no per-region map yet; C)
-    this.roughnessNode = kSkin.mul(float(0.52).sub(noseOil)).add(kEye.mul(0.06)).add(kHair.mul(0.55)).add(kTeeth.mul(0.25)).add(kMouth.mul(0.3)).add(kLeather.mul(0.62))
-      .add(kFelt.mul(0.95)).add(kMetal.mul(0.32)).add(kLash.mul(0.6)).add(kWood.mul(0.55)).add(kWicker.mul(0.85)).add(kCloth.mul(0.9));
+    // roughness: skin broad lobe (the oily lobe is separate), eyes wet, cloth by fibre, dust makes things matte
+    this.roughnessNode = kSkin.mul(float(SKIN.roughSheen).sub(oil.mul(0.08))).add(kEye.mul(mix(0.1, 0.035, irisM))).add(kHair.mul(0.5)).add(kTeeth.mul(0.25)).add(kMouth.mul(0.3))
+      .add(kLeather.mul(0.55)).add(kFelt.mul(0.95)).add(kMetal.mul(0.32)).add(kLash.mul(0.6)).add(kWood.mul(0.55)).add(kWicker.mul(0.85)).add(kCloth.mul(mix(0.92, 0.8, isLinen))).add(grimeMask.mul(0.2)).min(1);
     this.metalnessNode = kMetal;
-    // cavity occlusion (indirect light only)
-    // (weaker on the eyeball: the bake's ray-cast cavity inside the socket greyed the whites of the eyes in the close-ups)
-    this.aoNode = mix(float(1), vAux.x, float(0.85).sub(kEye.mul(0.45)));
-    // shading normal: curls on hair, folds and weave on cloth, grain on leather, flutes are geometry
-    const foldH = mx_noise_float(P.mul(vec3(14, 5, 14))).mul(0.003).add(mx_noise_float(P.mul(70)).mul(0.0004));
-    const pores = mx_noise_float(P.mul(1900)).mul(0.00003).add(mx_noise_float(P.mul(260)).mul(0.00008)); // skin micro-relief (C)
-    const h = curls.mul(0.0016).mul(kHair).add(pores.mul(kSkin)).add(foldH.mul(kCloth)).add(mx_noise_float(P.mul(200)).mul(0.0002).mul(kLeather.add(kFelt)));
+    // specular F0 (dielectrics): skin 0.028, cornea 0.025, hair cuticle 0.046, others 0.04 (setupSpecular)
+    this.f0Node = float(0.04).sub(kSkin.mul(0.04 - SKIN.f0)).sub(kEye.mul(0.04 - EYE.f0)).add(kHair.mul(0.006));
+    // cavity occlusion (indirect light), weaker on the eyeball (the socket's ray-cast cavity greyed the whites); curl valleys
+    this.aoNode = mix(float(1), vAux.x, float(0.85).sub(kEye.mul(0.45))).mul(mix(float(1), curls.mul(0.45).add(0.55), kHair));
+    // shading normal: curls on hair, creases and pores on skin, folds and weave on cloth, fibres on felt, grain on leather
+    const h = hairH.mul(kHair).add(skinH.mul(kSkin)).add(clothH.mul(kCloth)).add(feltH.mul(kFelt)).add(leatherH.mul(kLeather));
     this.normalNode = bumped(h);
-    this.skinMask = kSkin; this.scatter = vec3(1.0, 0.45, 0.3);
-    // frayed hair and beard edges: near a shell's cut line (vEdge → 0) fragments are cut away by the curl noise (alpha test;
-    // shadows follow). Only hair; everything else keeps its edge.
-    this.maskNode = float(1).sub(kHair.mul(step(vEdge.mul(1.15), ridge.mul(0.55).add(fine.mul(0.35))))).greaterThan(0.5);
+    // lighting-model inputs
+    const curv = e2.mul(SKIN_CURV_MAX);
+    const skinWrap = vec3(...SKIN.scatter).mul(curv).min(SKIN.wrapMax).add(vec3(...SKIN.wrapBase));
+    this.S = {
+      wrap: skinWrap.mul(kSkin).add(vec3(kHair.mul(0.25).add(kFelt.mul(0.1)).add(kCloth.mul(0.05)))),
+      trans: vec3(...SKIN.transTint).mul(transl.mul(kSkin).mul(SKIN.trans)),
+      roughB: float(SKIN.roughOil), lobeB: kSkin.mul(mix(SKIN.oilLobe[0], SKIN.oilLobe[1], oil)),
+      kHair, hairTilt: curls.sub(0.5).mul(1.6),
+      sheenCol: mix(vec3(1), clothAlb.mul(2).min(1), 0.5).mul(kCloth.mul(mix(0.22, 0.14, isLinen)).add(kFelt.mul(0.25))),
+      sheenRough: kCloth.mul(mix(0.55, 0.35, isLinen)).add(kFelt.mul(0.7)).add(float(1).sub(kCloth).sub(kFelt).mul(0.5)),
+      specOcc: mix(float(1), vAux.x, kSkin.mul(0.5)).mul(mix(float(1), curls.mul(0.6).add(0.4), kHair)),
+      roughEnv: kSkin.mul(0.45).add(kEye.mul(0.04)).add(kHair.mul(0.5)).add(kTeeth.mul(0.3)).add(kMouth.mul(0.3)).add(kLeather.mul(0.55)).add(kMetal.mul(0.32)).add(kWood.mul(0.6)).add(kWicker.mul(0.8)).add(kCloth.add(kFelt).add(kLash).mul(0.9)),
+      envMask: kSkin.add(kEye.mul(1.2)).add(kHair.mul(0.2)).add(kTeeth.mul(0.6)).add(kMouth.mul(0.4)).add(kLeather.mul(0.6)).add(kMetal).add(kWood.mul(0.3)).add(kWicker.mul(0.2)),
+    };
+    // alpha test (shadows follow): hair frays at a shell's cut line (vEdge → 0; sparse beards fray wider) and its outline
+    // is scalloped by the curls where the surface turns away; lashes are cut into tapering clumps
+    const silh = float(1).sub(abs(dot(normalViewGeometry, positionViewDirection)));
+    const edgeK = float(1).add(bits('beard').mul(0.6).mul(isBeard));
+    const edgeCut = step(e2.mul(1.15).div(edgeK), curls.mul(0.55).add(u1.mul(0.35)));
+    const silCut = step(curls.add(0.3), silh.sub(0.45).mul(2.8));
+    // (lower strip, e2 = 1: fewer, finer clumps)
+    const along = U.x.sub(LASH.u0).div(LASH.u1 - LASH.u0), tl = e1;
+    const clumpC = abs(fract(along.mul(mix(LASH.clumps, LASH.clumps * 0.6, e2)).add(n1.mul(0.35))).sub(0.5)).mul(2);
+    const lashW = float(1).sub(tl).mul(float(1).sub(tl).sqrt()).mul(0.8).add(0.1).mul(mix(1, 0.7, e2));
+    const lashCut = max(step(lashW, clumpC), step(0.9, tl));
+    this.maskNode = float(1).sub(kHair.mul(max(edgeCut, silCut))).sub(kLash.mul(lashCut)).greaterThan(0.5);
     // shadow-only copies (the player's head; the cheaper shadow casters of full-detail people): no colour, no depth, and
     // a constant fragment so the main pass only pays for vertices; the shadow pass uses this positionNode
     if (opts.shadowOnly) { this.colorWrite = false; this.depthWrite = false; this.fragmentNode = vec4(0, 0, 0, 1); }
-    void clamp; void min; void pow; void color; void cos;
+    void clamp; void sqrt; void diffuseColor; void metalness; void roughness;
   }
-  setupLightingModel() { return new HumanLightingModel(this.skinMask, this.scatter) as any; }
+  setupSpecular() {
+    const f0 = vec3(this.f0Node);
+    specularColor.assign(f0); specularColorBlended.assign(mix(f0, diffuseColor.rgb, metalness)); specularF90.assign(1.0);
+  }
+  setupLightingModel() { return new HumanLightingModel(this.S) as any; }
   private texNodes: any[] = [];
   /** point every texture node that samples `old` at `t` (the crowd grows its palette textures) */
   retexture(old: THREE.Texture, t: THREE.Texture) { for (const n of this.texNodes) if (n.value === old) n.value = t; }

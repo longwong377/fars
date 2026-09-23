@@ -97,7 +97,7 @@ describe('skin texture (re-baked, D-090)', () => {
       let w = 0; for (let k = 0; k < 4; k++) if (A.skinIndex[i * 4 + k] === HB.jaw) w = A.skinWeight[i * 4 + k] / 255; if (w < 0.3) upLow = Math.min(upLow, v.pos[i * 3 + 1]); else if (w > 0.5) loHigh = Math.max(loHigh, v.pos[i * 3 + 1]); }
     const mouth = (upLow + loHigh) / 2;
     const redness = (y: number) => { let best = -1, dBest = 9; for (let i = 0; i < A.NO; i++) { if (A.part[i] !== PART.head || Math.abs(v.pos[i * 3]) > 0.004 || v.pos[i * 3 + 2] < 0.13) continue; const d = Math.abs(v.pos[i * 3 + 1] - y); if (d < dBest) { dBest = d; best = i; } }
-      const x = Math.min(img.width - 1, Math.floor(A.uv[best * 2] * img.width)), yy = Math.min(img.height - 1, Math.floor((1 - A.uv[best * 2 + 1]) * img.height)), k = (yy * img.width + x) * 4; return img.data[k] / Math.max(1, img.data[k + 1]); };
+      const hw = img.width / 2, x = Math.min(hw - 1, Math.floor(A.uv[best * 2] * hw)), yy = Math.min(img.height - 1, Math.floor((1 - A.uv[best * 2 + 1]) * img.height)), k = (yy * img.width + x) * 4; return img.data[k] / Math.max(1, img.data[k + 1]); }; // the albedo half of the 2:1 atlas (D-155)
     const lipUp = redness(mouth + 0.004), lipLo = redness(mouth - 0.005), chin = redness(mouth - 0.028), cheek = redness(mouth + 0.03);
     expect(lipUp).toBeGreaterThan(chin * 1.08); expect(lipLo).toBeGreaterThan(chin * 1.08); expect(lipUp).toBeGreaterThan(cheek * 1.05);
   });
