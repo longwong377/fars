@@ -29,6 +29,7 @@ import { buildReliefs, buildInscriptions, loadInscriptionFonts } from '../arch/d
 import { updateReliefs, settleReliefs } from '../arch/reliefs';
 import { FireSystem } from './fire';
 import { buildTreasuryGoods } from './furnish';
+import { buildPlain } from './plain';
 import { WeatherVfx } from './weatherVfx';
 import { RainShafts } from './rainShafts';
 import { Birds, Jackals } from './wildlife';
@@ -106,6 +107,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group);
   const shafts = new RainShafts(terrain); root.add(shafts.group); // distant rain cells approaching on the wind
   void QUALITY;
+  // Phase 7: the Marvdasht plain (src/world/plain; plain.json): rivers, canals, fields, orchards, villages, Naqsh-e Rustam
+  const plain = await buildPlain(scene, terrain, phys, { quality: q, seed }); root.add(plain.group);
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
   const nav = await NavGrid.load(async p => (await fetch('/' + p)).arrayBuffer());
   // visible birds (§5.5): swallows over the courts in season, raptors over the slope, sparrows on the court floors
@@ -170,7 +173,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     { const vo = voiceFor({ seed: best.seed, sex: best.sex, role: best.role }); speech.say(pick.line, vo, { x: best.pos[0], y: best.y + 1.55, z: -best.pos[1] }, { speakerId: best.id, voiceKey: voiceKeyFor(vo) }); }
     return { lineId: pick.line.id, lang: pick.line.lang, translit: pick.line.translit, gloss: pick.line.gloss, tier: pick.line.tier, speakerId: best.id, backend: 'formant' } as Subtitle;
   };
-  return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav }, address, get lastSubtitle() { return lastSubtitle; },
+  return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav }, address, plain, get lastSubtitle() { return lastSubtitle; },
     saveState: () => ({ people: sim.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } },
     /** persistence (brief §9.5): simulate the time the world ran while the visitor was away, everyone in the abstract LOD
      *  (same decisions, timed travel), capped at CATCHUP_MAX_DAYS (older time is placed by schedule); returns the
@@ -193,6 +196,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
       settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, cond: ctx.cond, player: ctx.player });
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time, ctx.clock.localHour);
+      plain.update(dt, ctx);
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
       { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
@@ -214,5 +218,5 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       }
     },
     flash: () => lastFlash,
-    summary: () => `people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''}` } as WorldBuild;
+    summary: () => `people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''} · ${plain.summary()}` } as WorldBuild;
 }
