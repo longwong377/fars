@@ -83,7 +83,7 @@ test('moments', async ({ page }, info) => {
     // §8.3 luminance (display-referred sRGB luma): whole frame; appended to shots/moments-lum.json
     const lum = await lumStats(page, png); const exp = await page.evaluate(() => (window as any).__parsa.exposureInfo());
     mkdirSync('shots', { recursive: true }); const f = 'shots/moments-lum.json'; const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {};
-    all[`${s.n}|${process.env.Q ?? 'test'}|${proj}`] = { lum, exposure: +exp.exposure.toFixed(3), sunAlt: +exp.sunAlt.toFixed(1), fov: fov ?? 'game' }; writeFileSync(f, JSON.stringify(all, null, 1));
+    all[`${s.n}|${process.env.Q ?? 'test'}|${proj}`] = { lum, exposure: +exp.exposure.toFixed(3), meterEV: +(exp.meterEV ?? 0).toFixed(2), sunAlt: +exp.sunAlt.toFixed(1), fov: fov ?? 'game' }; writeFileSync(f, JSON.stringify(all, null, 1));
     console.log(s.n, JSON.stringify(lum), 'backend', await page.evaluate(() => (window as any).__parsa.backend));
   }
   console.log(errs.slice(0, 5).join('\n'));
