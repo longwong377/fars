@@ -25,6 +25,7 @@ import { traa } from 'three/addons/tsl/display/TRAANode.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import type { Quality } from '../core/settings';
 import { installProbeLight, updateProbeLights, probeAmbient, probeSun } from './probes/runtime';
+import { addAirLight } from './airlight';
 
 export const GI_SCALE = Math.PI / 2;
 /** bloom threshold (scene radiance, before exposure) at the outdoor exposures; scaled for interior exposures (D-141) */
@@ -97,6 +98,7 @@ export class Pipeline {
         : V.includes('probe') ? vec3(w, aoNear, aoFull) : V.includes('plain') ? col.rgb.mul(aoFull).add(dif.rgb.mul(bounce)) : lit;
       composite = vec4(chosen, col.a);
     }
+    composite = addAirLight(composite, dep, camera, this.sun); // D-156 (item 15): sunlit dust in the halls' air, before TRAA — src/render/airlight.ts
     let out: any = traa(composite, dep, vel, camera);
     const bin = vec4(min(out.rgb, vec3(float(BLOOM_SAT).div(this.expAbs.max(1e-6)))), float(1)); // sensor-like saturation (display terms)
     const b = bloom(bin, BLOOM_STRENGTH, BLOOM_RADIUS, BLOOM_THRESHOLD); this.bloomNode = b;

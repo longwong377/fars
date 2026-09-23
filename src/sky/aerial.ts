@@ -92,6 +92,10 @@ export function pathWeight(tau: number): number {
 /** the true height (m asl) of a world point: apparent y above the court + the rings' curvature drop (heightfield.ts) */
 export const trueHeight = (x: number, y: number, z: number, courtAsl: number) => y + courtAsl + ((x * x + z * z) * (1 - REFRACTION_K)) / (2 * EARTH_R);
 
+/** the terrain horizon's sun visibility at the eye, published each frame by the SkySystem for the hall air-light pass
+ *  (render/airlight.ts) */
+export const EYE_SKY = { sunVisibility: 1 };
+
 /** The air: uniforms shared by the scene's fog node, the clouds and the rain shafts, and the in-scatter table. */
 export class Air {
   readonly betaR = uniform(new THREE.Vector3()); readonly betaM = uniform(new THREE.Vector3());
