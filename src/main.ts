@@ -195,8 +195,9 @@ async function boot() {
     errors: [] as string[],
     audioUnlock: () => world.audio?.unlock(), audioState: () => (world.audio as any)?.state?.(),
     /** debug: what is under NDC (x, y)? */
-    pick: (x: number, y: number) => { const rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(x, y), camera); rc.far = 20000;
-      const h = rc.intersectObjects(scene.children, true).filter(i => (i.object as any).isMesh && i.object.visible)[0];
+    pick: (x: number, y: number, group?: string) => { const rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(x, y), camera); rc.far = 20000;
+      const g = group ? scene.getObjectByName(group) : null; if (group && !g) return { error: `no object named ${group}` };
+      const h = (g ? rc.intersectObject(g, true) : rc.intersectObjects(scene.children, true)).filter(i => (i.object as any).isMesh && i.object.visible)[0];
       return h ? { name: h.object.name || h.object.parent?.name, parent: h.object.parent?.name, d: h.distance, p: [h.point.x, h.point.y, h.point.z], mat: (h.object as any).material?.type } : null; },
     save: () => writeSave(state()), load: () => restore(readSave() as any), saveState: () => state(),
     /** §13.2 rendered plan overlay: renders the given building's parts (filtered by kind) top-down, orthographic,

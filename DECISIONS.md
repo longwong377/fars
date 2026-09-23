@@ -208,3 +208,11 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - A separate horizon silhouette mesh or impostor ring beyond 41 km: cheaper, but a second terrain representation to keep consistent.
   - Leaving curvature out: a systematic 0.1–0.3° error on every distant range.
 - The walkable grid (built from the physics terrain) differs from the flat build by ≤ 3 cm at its W edge, 620 m out. It will be rebuilt at the next nav rebuild.
+## D-036 Translation layer: inscriptions picked by panel, not by sign (session 3)
+- The translation e2e (never run in session 2) failed for three reasons:
+  1. Its camera sat on the Gate roof (D-034).
+  2. The layer throttles picking by the frame timestamp, and test renders pass 0, so it never picked. The layer now uses wall time when a frame has no timestamp.
+  3. The carved mesh is only the signs, so a ray through a panel often passes between wedges.
+- **Fix for 3:** each panel now has an invisible rectangle over its bounding box plus 5 cm, on a layer no camera renders (`INSCRIPTION_PICK_LAYER`). The translation layer raycasts only that layer. A reader looking at the panel now gets the text wherever the view centre falls on it.
+- **Still wrong (found here, not fixed):** the Gate's open door leaves stand 0.24 m in front of the XPa panels and hide them up to 7.7 m. This is the known door-leaf layout fault, now with the sculpture agent (D-018 follow-up). The layer shows the text through the leaf because its raycast ignores occluders; that is acceptable only for an out-of-world layer.
+- The e2e passes: XPa transliteration with glosses, map (M), chronicle (J).

@@ -7,9 +7,9 @@ test('translation layer: inscription, map, chronicle', async ({ page }, info) =>
   await page.goto('/?test&quality=test&day=25&hour=10&tl');
   await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 600_000 });
   // the XPa panel above a W-doorway colossus of the Gate: stand in the doorway and look up at the reveal
-  const names: string[] = await page.evaluate(() => { const r: string[] = []; (window as any).__parsa.world.root.getObjectByName('inscriptions').traverse((o: any) => { if (o.name) r.push(o.name); }); return r; });
+  const names: string[] = await page.evaluate(() => { const r: string[] = []; (window as any).__parsa.world.root.getObjectByName('inscriptions').traverse((o: any) => { if (o.name && !o.name.endsWith(':pick')) r.push(o.name); }); return r; });
   expect(names.some(n => n.startsWith('inscription:XPa'))).toBe(true);
-  const target = await page.evaluate(() => { const g = (window as any).__parsa.world.root.getObjectByName('inscriptions'); let m: any = null; g.traverse((o: any) => { if (!m && o.name?.startsWith('inscription:XPa')) m = o; });
+  const target = await page.evaluate(() => { const g = (window as any).__parsa.world.root.getObjectByName('inscriptions'); let m: any = null; g.traverse((o: any) => { if (!m && o.name?.startsWith('inscription:XPa') && !o.name.endsWith(':pick')) m = o; });
     m.geometry.computeBoundingBox(); const c = m.geometry.boundingBox.getCenter(new (m.position.constructor)()).applyMatrix4(m.matrixWorld); return { x: c.x, y: c.y, z: c.z }; });
   // camera 6 m from the panel along its normal, looking at it
   // camera on the doorway axis below the panel, looking across and up at it (the doorway is only a few metres wide)
