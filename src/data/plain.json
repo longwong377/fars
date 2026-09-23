@@ -2481,7 +2481,7 @@
    "name": "Remaining Achaemenid habitation sites of Sumner's survey",
    "tier": "C",
    "src": "SUMNER1986;IR-ARCH2",
-   "note": "39 secure + 18 possible sites, 675 ha, <=44,000 people, a five-level hierarchy in districts around Persepolis; some districts emphasise field crops, others pastoralism (SUMNER1986, B). Iranica gives 100-150 Achaemenid settlements for the plain (IR-ARCH2, B; conflict Q-033). Coordinates not retrievable (Sumner full text blocked): placed procedurally on low mounds within 1.5 km of watercourses, >= 2 km apart (C).",
+   "note": "39 secure + 18 possible sites, 675 ha, <=44,000 people, a five-level hierarchy in districts around Persepolis; some districts emphasise field crops, others pastoralism (SUMNER1986, B). Iranica gives 100-150 Achaemenid settlements for the plain (IR-ARCH2, B; conflict Q-050). Coordinates not retrievable (Sumner full text blocked): placed procedurally on low mounds within 1.5 km of watercourses, >= 2 km apart (C).",
    "date_range": "Achaemenid",
    "present_467": true,
    "procedural_rule": {
@@ -2579,7 +2579,7 @@
    "name": "Tomb attributed to Xerxes (ENE of Darius I)",
    "tier": "C",
    "src": "LIVIUS-NR;WP-NR",
-   "note": "Uninscribed; attribution by elimination (LIVIUS-NR, B). Kings prepared tombs in life (Darius: Ctesias via WP-NR, B), so Xerxes' tomb may be cut or being cut in 467 (C). chronology.json currently marks all later tombs absent: see Q-030.",
+   "note": "Uninscribed; attribution by elimination (LIVIUS-NR, B). Kings prepared tombs in life (Darius: Ctesias via WP-NR, B), so Xerxes' tomb may be cut or being cut in 467 (C). chronology.json currently marks all later tombs absent: see Q-047.",
    "date_range": "c. 486-465 BCE?",
    "present_467": null,
    "unc_m": 30

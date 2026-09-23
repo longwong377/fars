@@ -46,7 +46,7 @@
    "name": "Tol-e Ajori gate (Bagh-e Firuzi)",
    "tier": "C",
    "src": "TOLAJORI2017;AJORI-BRICK2018;AJORI2013;DASHTESTAN2021",
-   "note": "Mud brick with baked and glazed brick facing; plan modelled on the inner section of Babylon's Ishtar Gate but larger; two entrance corridors (TOLAJORI2017, SX, B). Size 39.07 m NW-SE x 29.05 m NE-SW (B). Height ~12 m and \"30-40 m wide\" are press figures (C). Glazed relief bricks copy the Babylonian panels (bulls, dragons) \"down to the smallest detail\" (B). Position: \"3.5 km NW\" (AJORI-BRICK2018), \"3 km\" (press), \"almost 3.5 km W/NW, S side of the Pulvar\" (DASHTESTAN2021): placed 3.3 km at 295 deg true, S of the modern Pulvar (C, +-700 m). State in 467 unknown: the 2014 report traces it \"from construction to destruction\" but the date of destruction was not retrieved (Q-004, Q-034). Working value: standing, old and unrepaired (C).",
+   "note": "Mud brick with baked and glazed brick facing; plan modelled on the inner section of Babylon's Ishtar Gate but larger; two entrance corridors (TOLAJORI2017, SX, B). Size 39.07 m NW-SE x 29.05 m NE-SW (B). Height ~12 m and \"30-40 m wide\" are press figures (C). Glazed relief bricks copy the Babylonian panels (bulls, dragons) \"down to the smallest detail\" (B). Position: \"3.5 km NW\" (AJORI-BRICK2018), \"3 km\" (press), \"almost 3.5 km W/NW, S side of the Pulvar\" (DASHTESTAN2021): placed 3.3 km at 295 deg true, S of the modern Pulvar (C, +-700 m). State in 467 unknown: the 2014 report traces it \"from construction to destruction\" but the date of destruction was not retrieved (Q-004, Q-051). Working value: standing, old and unrepaired (C).",
    "date_range": "c. 539-518 BCE (Cyrus/Cambyses), before the Terrace",
    "present_467": true,
    "xy": [
@@ -279,7 +279,7 @@
    "name": "Takht-e Rustam (unfinished stepped platform)",
    "tier": "C",
    "src": "LIVIUS-TR;PLEIADES-FARS",
-   "note": "Local stone, about 12.5 x 12.5 m, base for a higher structure; resembles the lower tiers of Cyrus' tomb; suggested tomb of Cambyses (LIVIUS-TR, SX: B for size, C for attribution). \"Two kilometers south of Naqsh-e Rustam\", on the road from Naqsh-e Rustam to Naqsh-e Rajab: placed 2 km from Naqsh-e Rustam toward Naqsh-e Rajab (C, +-400 m). CONFLICT: the Barrington/DARMC point for \"Dasht-i Gohar/Takht-i Rustam\" lies 0.8 km S of the Terrace (accuracy 10 km, map-scale) (Q-031).",
+   "note": "Local stone, about 12.5 x 12.5 m, base for a higher structure; resembles the lower tiers of Cyrus' tomb; suggested tomb of Cambyses (LIVIUS-TR, SX: B for size, C for attribution). \"Two kilometers south of Naqsh-e Rustam\", on the road from Naqsh-e Rustam to Naqsh-e Rajab: placed 2 km from Naqsh-e Rustam toward Naqsh-e Rajab (C, +-400 m). CONFLICT: the Barrington/DARMC point for \"Dasht-i Gohar/Takht-i Rustam\" lies 0.8 km S of the Terrace (accuracy 10 km, map-scale) (Q-048).",
    "date_range": "early Achaemenid (c. 530-522?)",
    "present_467": true,
    "xy": [
@@ -853,7 +853,7 @@
    "name": "Akhor Rostam rock-cut burial niches",
    "tier": "C",
    "src": "IR-ARCH2;PLEIADES-FARS",
-   "note": "Vanden Berghe dated the niches to the Achaemenid period (IR-ARCH2, SX); Barrington/Pleiades list the cemetery as Roman/Late Antique (FT). Conflict (Q-032): present_467 uncertain, modelled as present (C). BA point accuracy 10 km (C).",
+   "note": "Vanden Berghe dated the niches to the Achaemenid period (IR-ARCH2, SX); Barrington/Pleiades list the cemetery as Roman/Late Antique (FT). Conflict (Q-049): present_467 uncertain, modelled as present (C). BA point accuracy 10 km (C).",
    "date_range": "Achaemenid? / Sasanian?",
    "present_467": true,
    "xy": [

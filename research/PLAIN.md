@@ -30,7 +30,7 @@ Machine-readable file: `src/data/plain.json`, with the same frame and fields as 
 | Named Achaemenid hydraulic traces: Sang-e Dokhtar, Bard-e Burideh II, Rud-i Main aqueduct, Band-e Bas I/II, Asiyab dam, Qondashloo canal | names only; Band-e Dokhtar and Bard Burideh are dated by carved blocks and dovetail clamps | KURHYDRO2024; BOUCHARLAT2012 | SX | B | yes |
 | Sang-i Dokhtar dam | 30.1725, 52.43611 (51 km NW, **outside the extent**), Classical | PLEIADES-FARS | FT | B | yes |
 | Band-e Amir weir (10th c. CE), Doroodzan and Mulla Sadra dams, Sivand dam | – | brief §12; KOR-HSJ2023 | – | – | **no (blocklist)** |
-| Qanats | no dated Achaemenid qanat | QANAT-WH2018 | SX | – | **not placed** (Q-035) |
+| Qanats | no dated Achaemenid qanat | QANAT-WH2018 | SX | – | **not placed** (Q-052) |
 
 ## 3. Fields and crops (JSON `crops`)
 | Crop | Evidence for Fars / PF | Calendar | Height (m) | Source | Access | Tier |
@@ -69,7 +69,7 @@ The Barrington "Classical" period is 550–330 BCE, so a Classical site is Achae
 | qadamgah | Qadamgah | 29.68830, 53.13156 | 13252, −33474 | 3000 | "temple" / Classical | Kleiss 1993 | yes | – |
 | villages_unlocated | the other ~33 secure + 18 possible sites | procedural | – | – | – | SUMNER1986 | yes | 150–3,000 each; total ≤ 44,000 |
 
-Conflict: Iranica (IR-ARCH2) gives "100–150 Achaemenid settlements within the Persepolis plain", against Sumner's 39 secure + 18 possible (Q-033).
+Conflict: Iranica (IR-ARCH2) gives "100–150 Achaemenid settlements within the Persepolis plain", against Sumner's 39 secure + 18 possible (Q-050).
 
 **Absent in 467** (Barrington Roman/Late Antique = Sasanian or later; FT):
 - Istakhr (the Istakhr mission found "no evidence … of the pre-Sasanian history", SX);
@@ -81,7 +81,7 @@ Conflict: Iranica (IR-ARCH2) gives "100–150 Achaemenid settlements within the 
 | Feature | State | Source | Access | Tier |
 |---|---|---|---|---|
 | Tomb of Darius I (DNa/DNb), 29.98913, 52.87462 | standing, sealed; cut and in use in Darius' lifetime (Ctesias story, via WP-NR) | LIVIUS-NR; WP-NR; OVERTURE-2026 | SX / FT | B |
-| Tomb attributed to Xerxes (ENE of Darius') | uninscribed; attributed by elimination. Kings prepared their tombs in life, so it **may be cut or being cut in 467** | LIVIUS-NR; WP-NR | SX | C (Q-030; chronology.json currently says absent) |
+| Tomb attributed to Xerxes (ENE of Darius') | uninscribed; attributed by elimination. Kings prepared their tombs in life, so it **may be cut or being cut in 467** | LIVIUS-NR; WP-NR | SX | C (Q-047; chronology.json currently says absent) |
 | Tombs of Artaxerxes I (WSW) and Darius II (westernmost) | absent: those kings reign after 465 | LIVIUS-NR | SX | B |
 | Ka'ba-ye Zardosht, 29.98804, 52.87452 | standing. Dovetail clamps and black-on-white stone point to Darius I or Xerxes I; the Pasargadae twin is a few decades older | WP-NR | SX | C (Q-006) |
 | Neo-Elamite relief | intact (the Bahram II overcarving is blocked) | ALVAREZMON | SX | B |
@@ -94,7 +94,7 @@ Conflict: Iranica (IR-ARCH2) gives "100–150 Achaemenid settlements within the 
 - **Near horizon (E):** Kuh-e Rahmat. The ridge behind the Terrace is 2,216 m at 3.1 km E. The massif high point is 2,554 m at 11.2 km, bearing 117°. From 0° to 140° true it fills the view at 5–12° elevation.
 - **Far horizon:** 0.3–2.8° elevation to the S, W and N, formed by ranges 16–40 km away (2,100–2,750 m).
 - **Truncation.** In the sectors 150–160°, 230–250° and 270–290° true, ranges 55–66 km away (2,670–2,960 m) stand 0.1–0.4° above the in-ring horizon, so they are **missing from the current skyline**. The WNW gap over the Kur valley (in-ring horizon only 0.32–0.36°) is the most visible.
-- **Fix.** Extend the far ring to about 70 km (`tools/build_terrain.py`); tiles N29–N30 and E052–E053 already cover it. This is not changed here, as it is outside this agent's remit (Q-036).
+- **Fix.** Extend the far ring to about 70 km (`tools/build_terrain.py`); tiles N29–N30 and E052–E053 already cover it. This is not changed here, as it is outside this agent's remit (Q-053).
 
 ## 7. Vegetation and wildlife
 - **Vegetation:** see §3 zones. Pollen evidence is in `_climate_C.md`: *Quercus brantii* woodland and *Pistacia–Amygdalus* scrub on the slopes; *Artemisia*/grass steppe; Achaemenid arboriculture (*Olea*, *Punica*, *Platanus*, cypress). Tier B.
