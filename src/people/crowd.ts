@@ -296,7 +296,7 @@ export class Crowd {
     } else f.blink = anim === 'sleep' ? 1 : 0;
     // hands: grip what they hold
     p.rig.grip = propKind === 'spear' || propKind === 'mallet' || propKind === 'jar' ? [0.15, 1] : propKind === 'basket' ? [0.8, 0.8] : propKind === 'tablet' ? [0.6, 0.3] : propKind === 'sack' ? [0.1, 0.7] : anim === 'guard' || anim === 'guard_walk' ? [0.5, 1] : [0, 0];
-    p.rig.pose = po; p.rig.plant = PLANTED.has(anim);
+    p.rig.pose = po; p.rig.plant = PLANTED.has(anim); p.rig.seat = SEATED.has(anim);
     const o = p.slot * PALETTE_STRIDE;
     g.prevPalette.set(g.palette.subarray(o, o + PALETTE_STRIDE), o);
     this.rigS.setPose(p.rig); this.rigS.solve(p.rig, g.palette, o);

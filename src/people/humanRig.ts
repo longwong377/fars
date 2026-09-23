@@ -39,7 +39,17 @@ export interface RigInput {
   /** keep the lowest heel/ball/toe point on the ground (standing and walking poses: the cycles were authored on another
    *  rig, so its leg lengths do not match exactly; the pelvis is moved up or down by the difference) */
   plant?: boolean;
+  /** seated, kneeling or lying: the lowest point of the flesh (buttocks, thighs, knees, shins, feet, back, head) is put on
+   *  the ground (the hip offsets of those cycles were authored for another rig: people sat 0.2–0.3 m in the air) */
+  seat?: boolean;
 }
+/** flesh radius (m) below bone heads, for the seated contact: [bone, child or -1 (a point at the joint only), radius at
+ *  the joint, radius at the middle of the bone] (C: reference-body proportions) */
+const SEAT_POINTS: [number, number, number, number][] = [
+  [HB.pelvis, -1, 0.1, 0], [HB.spine_01, HB.spine_02, 0.11, 0.11], [HB.spine_02, HB.spine_03, 0.11, 0.11], [HB.spine_03, HB.neck_01, 0.1, 0.1], [HB.head, -1, 0.09, 0],
+  [HB.thigh_l, HB.calf_l, 0.09, 0.075], [HB.calf_l, HB.foot_l, 0.055, 0.05], [HB.thigh_r, HB.calf_r, 0.09, 0.075], [HB.calf_r, HB.foot_r, 0.055, 0.05],
+  [HB.upperarm_l, HB.lowerarm_l, 0.05, 0.045], [HB.lowerarm_l, HB.hand_l, 0.04, 0.035], [HB.upperarm_r, HB.lowerarm_r, 0.05, 0.045], [HB.lowerarm_r, HB.hand_r, 0.04, 0.035],
+];
 /** activities whose feet carry the body (their poses are planted) */
 export const PLANTED = new Set(['idle', 'inspect', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'talk', 'chisel', 'draw_water']);
 /** relaxed resting curl per finger joint (rad) and a full grip (C: hand-set to look natural) */
@@ -120,7 +130,7 @@ export class RigSolver {
       WT[b * 3 + 1] = WT[p * 3 + 1] + a10 * dx + a11 * dy + a12 * dz;
       WT[b * 3 + 2] = WT[p * 3 + 2] + a20 * dx + a21 * dy + a22 * dz;
     }
-    if (inp.plant) { const d = -this.footLow(J); for (let b = 0; b < NBONES; b++) WT[b * 3 + 1] += d; }
+    if (inp.seat || inp.plant) { const d = -(inp.seat ? Math.min(this.footLow(J), this.seatLow()) : this.footLow(J)); for (let b = 0; b < NBONES; b++) WT[b * 3 + 1] += d; }
     const cy = Math.cos(inp.yaw), sy = Math.sin(inp.yaw), s = inp.scale, X = inp.x, Y = inp.y, Z = inp.z;
     for (let b = 0; b < NBONES; b++) {
       // skin matrix: root · (R_b (v − j_b) + t_b);  root = translate(x,y,z) · rotY(yaw) · scale; rotY rows [cy 0 sy], [0 1 0], [-sy 0 cy]
@@ -140,6 +150,12 @@ export class RigSolver {
       const pts: [number, number, number, number][] = [[foot, 0, -h, -0.045], [ball, 0, 0, 0], [ball, 0, 0.004, 0.055]];
       for (const [b, x, y, z] of pts) low = Math.min(low, WT[b * 3 + 1] + WR[b * 9 + 3] * x + WR[b * 9 + 4] * y + WR[b * 9 + 5] * z);
     }
+    return low;
+  }
+  /** lowest flesh point of the trunk and limbs (character space, after FK) */
+  private seatLow() {
+    const WT = this.wt; let low = Infinity;
+    for (const [b, c, r0, r1] of SEAT_POINTS) { low = Math.min(low, WT[b * 3 + 1] - r0); if (c >= 0) low = Math.min(low, (WT[b * 3 + 1] + WT[c * 3 + 1]) / 2 - r1); }
     return low;
   }
   /** world position of a bone head (after solve) */

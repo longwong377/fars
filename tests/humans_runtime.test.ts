@@ -63,6 +63,14 @@ describe('rig retarget (59 bones)', () => {
       }
     }
   });
+  it('seated, kneeling and lying poses rest on the ground (the lowest body point within 3 cm of it)', () => {
+    const v = A.byId.m08, rig = new RigSolver(A.meta.curlAxes), pal = new Float32Array(PALETTE_STRIDE); const o = [0, 0, 0];
+    for (const an of ['sit', 'write', 'eat', 'dice', 'sleep', 'grind', 'knead', 'bake'] as const) for (const t of [0.4, 2.1]) {
+      const inp = input(v, pose(an, t, t * 5, 0.2)); inp.seat = true; rig.setPose(inp); rig.solve(inp, pal, 0);
+      let minY = 9; for (let i = 0; i < A.NO; i += 3) { if (A.part[i] >= PART.eye) continue; skinPoint(pal, 0, A.skinIndex.subarray(i * 4, i * 4 + 4), Array.from(A.skinWeight.subarray(i * 4, i * 4 + 4), x => x / 255), v.pos.subarray(i * 3, i * 3 + 3), o); minY = Math.min(minY, o[1]); }
+      expect(minY, `${an} lowest body point`).toBeGreaterThan(-0.03); expect(minY, `${an} lowest body point`).toBeLessThan(0.03);
+    }
+  });
   it('face: the jaw opens the mouth, a blink closes the upper lid, eyes turn toward a target', () => {
     const v = A.byId.m03, rig = new RigSolver(A.meta.curlAxes), pal = new Float32Array(PALETTE_STRIDE);
     const chin = (() => { for (let i = 0; i < A.NO; i++) if (A.orig[i] === A.meta.landmarks.chin) return i; return 0; })();
