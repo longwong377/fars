@@ -241,14 +241,19 @@ export class PeopleSim {
       case 'patrol': { // a round of the posts (S3): each plan block is a round of its own, its order drawn from where he starts
         const leader = this.pop.persons[a.pid]?.rank === 1; const key = `${Math.floor(this.t / 24)}:${seg.t0.toFixed(4)}`;
         if (a.roundKey !== key || !a.round) { a.roundKey = key; a.round = this.roundFor(a, leader, rng); }
+        const backToHearth = () => { const nx = segAt(this.planOf(a, Math.floor(this.t / 24)), Math.min(23.999, seg.t1 + 1e-3)).place; const hp = PLACES[nx]?.kind === 'hearth' ? nx : 'garrison_hearth_m'; a.post = undefined; a.round = [];
+          return this.task('rest', hp, this.here(a, hp, 2.6, rng), end, 'back from the round, within call of the posts'); };
         if (!a.round.length) { // the round is done: the leader goes back to the hearth; a patrol man starts another round
-          if (leader) { const nx = segAt(this.planOf(a, Math.floor(this.t / 24)), Math.min(23.999, seg.t1 + 1e-3)).place; const hp = PLACES[nx]?.kind === 'hearth' ? nx : 'garrison_hearth_m'; a.post = undefined;
-            return this.task('rest', hp, this.here(a, hp, 2.6, rng), end, 'back from the round, within call of the posts'); }
+          if (leader) return backToHearth();
           a.round = this.roundFor(a, false, rng); }
-        const nxt = a.round.shift()!;
+        const nxt = a.round[0];
         const manned = this.agents.some(o => o !== a && o.post === nxt && o.task?.act === 'stand_guard'); const spot = this.nav.snap(PLACES[nxt].at[0] + 1.5, PLACES[nxt].at[1] - 1.5, 3) ?? PLACES[nxt].at;
         const walk = Math.hypot(spot[0] - a.pos[0], spot[1] - a.pos[1]) * ABSTRACT_DETOUR / a.speed * H_PER_S; // the stop counts from the arrival
-        a.post = undefined; return this.task('patrol', nxt, spot, Math.min(end, this.t + walk + (manned ? (leader ? rng.range(0.03, 0.08) : rng.range(0.02, 0.05)) : rng.range(0.005, 0.02))), why);
+        const stop = manned ? (leader ? rng.range(0.03, 0.08) : rng.range(0.02, 0.05)) : rng.range(0.005, 0.02);
+        // a leader does not set off for a post he cannot reach before his round's time is up: he goes back to the hearth
+        // instead (S10, r4: a leg cut off half-way and turned back)
+        if (leader && this.t + walk + Math.min(stop, 0.03) > end) return backToHearth();
+        a.round.shift(); a.post = undefined; return this.task('patrol', nxt, spot, Math.min(end, this.t + walk + stop), why);
       }
       case 'carry_sack': {
         if (a.role === 'porter') break;
@@ -326,11 +331,18 @@ export class PeopleSim {
     return this.task(act, pl, stay ?? this.here(a, pl, jitter, rng), act === 'eat' || act === 'write_tablet' || act === 'talk' ? chunk(0.3, 1.2) : end, why);
   }
   /** the posts of a round, nearest first from where he stands, choosing now and then the second nearest (so no two rounds
-   *  run the same way); a leader of ten visits the posts his own file holds, a patrol man every post that is held (C) */
+   *  run the same way); a leader of ten visits the posts his own file holds on the watch, a patrol man every post of the
+   *  watch, both from the rota (S3, r4: the posts were those where a man already stood, so at the change of watch, with the
+   *  men still on their way, a leader's round fell back to all sixteen), and not the post he is standing at (C) */
   private roundFor(a: Agent, leader: boolean, rng: Rng): string[] {
-    const file = this.pop.persons[a.pid]?.file ?? -1;
-    let posts = GUARD_POSTS.filter(p => this.agents.some(o => o !== a && o.post === p && o.task?.act === 'stand_guard' && (!leader || this.pop.persons[o.pid]?.file === file)));
+    const P = this.pop, file = P.persons[a.pid]?.file ?? -1, day = Math.floor(this.t / 24), hour = this.t - day * 24;
+    const me = P.rota(day).get(a.pid), prev = P.rota(day - 1).get(a.pid);
+    const [rd, w] = hour < 6 && prev?.watch === 2 ? [day - 1, 2] : me ? [day, me.watch] : [-1, -1]; // after midnight a night watch is yesterday's
+    const onWatch = rd >= 0 ? [...P.rota(rd).entries()].filter(([pid, x]) => x.watch === w && !!x.post && (!leader || P.persons[pid]?.file === file)).map(([, x]) => x.post as string) : [];
+    let posts = GUARD_POSTS.filter(p => onWatch.includes(p));
+    if (!posts.length) posts = GUARD_POSTS.filter(p => this.agents.some(o => o !== a && o.post === p && o.task?.act === 'stand_guard' && (!leader || P.persons[o.pid]?.file === file)));
     if (!posts.length) posts = [...GUARD_POSTS];
+    const away = posts.filter(p => Math.hypot(PLACES[p].at[0] - a.pos[0], PLACES[p].at[1] - a.pos[1]) >= 3); if (away.length) posts = away; // (S10: "patrol → post_x" while standing at post_x)
     const out: string[] = []; let at = a.pos; const left = [...posts]; const dd = (p: string) => Math.hypot(PLACES[p].at[0] - at[0], PLACES[p].at[1] - at[1]);
     while (left.length) { left.sort((x, y) => dd(x) - dd(y)); const nx = left.splice(left.length > 1 && rng.chance(0.35) ? 1 : 0, 1)[0]; out.push(nx); at = PLACES[nx].at; }
     return out;
