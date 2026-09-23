@@ -5,7 +5,7 @@
 //   L_air = E_sun · p_HG(θ; g) · σ_s · ∫ V_sun(s) ds
 // σ_s = 2·10⁻⁴ m⁻¹ (C; the brief's 1–5·10⁻⁴ for halls), g = 0.7 (C; mineral dust scatters forward: its asymmetry at 550 nm
 // is ~0.7), E_sun the sun's light with the terrain horizon at the eye (D-156). It acts only while the eye is inside a
-// light-probe volume (the roofed buildings: the probe field's weight at the eye, D-113); outdoors the aerial perspective
+// light-probe volume (the roofed buildings: the probe volumes' weight at the eye, D-113); outdoors the aerial perspective
 // (sky.air, the scene's fog node) is the air, and this pass renders nothing. Composed before TRAA (pipeline.ts, one line),
 // which averages the march's per-pixel jitter. Tier C (a single-scattering model with chosen dust; no hearth or workshop
 // smoke yet).
@@ -14,7 +14,8 @@
 import * as THREE from 'three/webgpu';
 import { TempNode, NodeUpdateType, RenderTarget, QuadMesh, NodeMaterial, RendererUtils } from 'three/webgpu';
 import { Fn, uv, vec2, vec4, float, uniform, texture, passTexture, getViewPosition, Loop, int, max, min, dot, length, step, pow, interleavedGradientNoise, screenCoordinate, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp } from 'three/tsl';
-import { probeEyeVisibility } from './probes/runtime';
+import { probeField } from './probes/runtime';
+import { volumeAt, volumeWeight } from './probes/field';
 import { EYE_SKY } from '../sky/aerial';
 
 /** dust scattering in the halls (1/m) and its asymmetry (C) */
@@ -23,9 +24,12 @@ export const HALL_DUST_SIGMA = 2e-4, HALL_DUST_G = 0.7;
 export const AIR_LIGHT_RANGE = 48, AIR_LIGHT_STEPS = 16;
 
 const _quad = /*@__PURE__*/ new (QuadMesh as any)() as THREE.QuadMesh;
-const _size = /*@__PURE__*/ new THREE.Vector2();
+const _size = /*@__PURE__*/ new THREE.Vector2(), _eye = /*@__PURE__*/ new THREE.Vector3();
 let _state: any;
 
+/** the probe field's weight at the eye (0 outside the roofed volumes, 1 well inside): the volume test alone, no rays, so
+ *  it is cheap enough for every frame (probeEyeVisibility adds a ray toward the sun) */
+function hallWeight(p: THREE.Vector3): number { const F = probeField(), v = F ? volumeAt(F, p.x, p.y, p.z) : null; return v ? volumeWeight(v, p.x, p.y, p.z) : 0; }
 /** Henyey–Greenstein phase (1/sr) */
 export const hgPhase = (c: number, g: number) => (1 - g * g) / (4 * Math.PI * Math.pow(1 + g * g - 2 * g * c, 1.5));
 /** CPU mirror (tests): radiance scattered toward the eye by a sunlit stretch of `lit` metres of hall air */
@@ -55,7 +59,7 @@ class AirLightNode extends TempNode {
   updateBefore(frame: any): undefined {
     const { renderer } = frame, cam = this.camera;
     const size = renderer.getDrawingBufferSize(_size); this.rt.setSize(Math.max(1, Math.round(size.width / 2)), Math.max(1, Math.round(size.height / 2)));
-    const casc = this.cascades(), w = probeEyeVisibility(cam.position).w, sunOn = this.sun.visible && this.sun.intensity > 0;
+    const casc = this.cascades(), w = hallWeight(_eye.setFromMatrixPosition(cam.matrixWorld)), sunOn = this.sun.visible && this.sun.intensity > 0;
     _state = RendererUtils.resetRendererState(renderer, _state);
     renderer.setRenderTarget(this.rt);
     if (!casc || w <= 0.001 || !sunOn) { // outdoors, at night or before the shadow maps exist: nothing in the air
