@@ -69,7 +69,7 @@ export class VolumetricClouds {
       const weather = sample3(vec3(pw.x.mul(1 / WEATHER_TILE), 0.37, pw.z.mul(1 / WEATHER_TILE))).r;
       // over the rain cell (world position, not the wind-drifted noise frame): more cover and taller towers
       const dcell = vec2(p.x.add(cameraPosition.x).sub(cell.x), p.z.add(cameraPosition.z).sub(cell.y)).length();
-      const boost = smoothstep(cell.z.mul(1.6), cell.z.mul(0.5), dcell).mul(cell.w);
+      const boost = float(1).sub(smoothstep(cell.z.mul(0.5), cell.z.mul(1.6), dcell)).mul(cell.w); // edges ascending: a reversed smoothstep is undefined in GLSL/SPIR-V (NaN on SwiftShader)
       const top = float(0.35).add(lo.mul(0.6)).add(boost.mul(0.35)); // taller towers where the base field is strong
       const shape = smoothstep(0.0, 0.06, h).mul(float(1).sub(smoothstep(top.mul(0.7), top, h)));
       const c = clamp(cov.mul(weather.mul(0.8).add(0.6)).add(boost.mul(0.6)), 0, 1);
