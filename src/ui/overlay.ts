@@ -15,7 +15,8 @@ export class DevOverlay {
     let tierLine = 'looking at: (nothing within 400 m)';
     if (hits[0]) {
       let o: THREE.Object3D | null = hits[0].object; while (o && !o.userData?.tier) o = o.parent;
-      const u = o?.userData ?? {};
+      // merged meshes (the settlement) describe the face that was hit: its plot or object, tier and basis
+      const u = typeof o?.userData?.describe === 'function' ? { ...o.userData, ...(o.userData.describe(hits[0]) ?? {}) } : (o?.userData ?? {});
       tierLine = `looking at: ${o?.name || hits[0].object.name || '?'} @ ${hits[0].distance.toFixed(1)} m\n  tier <span class="t${u.tier?.[0] ?? 'C'}">${u.tier ?? '??'}</span> src ${u.src ?? '??'}${u.placeholder ? '  [PLACEHOLDER]' : ''}\n  ${u.note ?? ''}`;
     }
     const backend = (renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL2';
