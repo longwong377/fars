@@ -64,6 +64,8 @@ export interface Agent {
   lod?: 'full' | 'abstract'; travel?: { from: P2; to: P2; t0: number; t1: number } | null;
   /** the hidden legs still to go in the town (see Task.legs) */
   legs?: P2[];
+  /** the posts still to visit on the current round, and the plan block it belongs to (S3) */
+  round?: string[]; roundKey?: string;
 }
 /** straight-line → walked-route factor for abstract travel (C: the Terrace's stairs and doorways add detours) */
 export const ABSTRACT_DETOUR = 1.3;
@@ -212,7 +214,7 @@ export class PeopleSim {
     const day = Math.floor(this.t / 24);
     a.sick = seg.act === 'lie_ill';
     // a guard whose watch has ended keeps the post until the relief arrives (at most ~36 minutes)
-    if (a.role === 'guard' && a.task?.act === 'stand_guard' && a.post && GUARD_POSTS.includes(a.post) && !a.relieved && a.watchEnd !== undefined && this.t < a.watchEnd + 0.6 && !(seg.act === 'stand_guard' && seg.place === a.post))
+    if (a.role === 'guard' && a.task?.act === 'stand_guard' && a.post && GUARD_POSTS.includes(a.post) && !a.relieved && a.watchEnd !== undefined && this.t < a.watchEnd + 0.6 && seg.place !== a.post)
       return this.task('stand_guard', a.post, PLACES[a.post].at, Math.min(a.watchEnd + 0.6, this.t + 0.1), 'waiting to be relieved', PLACES[a.post].heading);
     if (seg.where !== 'terrace' || !(seg.place in PLACES || seg.place === 'terrace_round')) {
       const T: Task = { act: seg.act, place: seg.place, spot: PLACES.town.at, heading: null, until: end, why: seg.why, off: true };
@@ -236,11 +238,17 @@ export class PeopleSim {
         const P = PLACES[pl]; if (a.post !== pl || a.task?.act !== 'stand_guard' || a.watchEnd !== end) { a.relieved = false; } a.post = pl; a.watchEnd = end;
         return this.task('stand_guard', pl, P.at, end, why, P.heading);
       }
-      case 'patrol': { // walking the rounds between the posts: the next post along the round, then the next
-        const posts = GUARD_POSTS; const cur = posts.findIndex(p => this.nearP(a, p, 3)); const nxt = posts[(cur < 0 ? Math.floor(rng.next() * posts.length) : cur + 1) % posts.length];
+      case 'patrol': { // a round of the posts (S3): each plan block is a round of its own, its order drawn from where he starts
+        const leader = this.pop.persons[a.pid]?.rank === 1; const key = `${Math.floor(this.t / 24)}:${seg.t0.toFixed(4)}`;
+        if (a.roundKey !== key || !a.round) { a.roundKey = key; a.round = this.roundFor(a, leader, rng); }
+        if (!a.round.length) { // the round is done: the leader goes back to the hearth; a patrol man starts another round
+          if (leader) { const nx = segAt(this.planOf(a, Math.floor(this.t / 24)), Math.min(23.999, seg.t1 + 1e-3)).place; const hp = PLACES[nx]?.kind === 'hearth' ? nx : 'garrison_hearth_m'; a.post = undefined;
+            return this.task('rest', hp, this.here(a, hp, 2.6, rng), end, 'back from the round, within call of the posts'); }
+          a.round = this.roundFor(a, false, rng); }
+        const nxt = a.round.shift()!;
         const manned = this.agents.some(o => o !== a && o.post === nxt && o.task?.act === 'stand_guard'); const spot = this.nav.snap(PLACES[nxt].at[0] + 1.5, PLACES[nxt].at[1] - 1.5, 3) ?? PLACES[nxt].at;
         const walk = Math.hypot(spot[0] - a.pos[0], spot[1] - a.pos[1]) * ABSTRACT_DETOUR / a.speed * H_PER_S; // the stop counts from the arrival
-        a.post = undefined; return this.task('patrol', nxt, spot, Math.min(end, this.t + walk + (manned ? rng.range(0.02, 0.05) : rng.range(0.005, 0.02))), why);
+        a.post = undefined; return this.task('patrol', nxt, spot, Math.min(end, this.t + walk + (manned ? (leader ? rng.range(0.03, 0.08) : rng.range(0.02, 0.05)) : rng.range(0.005, 0.02))), why);
       }
       case 'carry_sack': {
         if (a.role === 'porter') break;
@@ -316,6 +324,16 @@ export class PeopleSim {
     const sit = (x: ActivityId) => x === 'eat' || x === 'talk' || x === 'gamble' || x === 'rest';
     const stay = a.task && !a.walking && !a.task.off && a.task.place === pl && (a.task.act === act || (sit(a.task.act) && sit(act))) ? a.task.spot : null;
     return this.task(act, pl, stay ?? this.here(a, pl, jitter, rng), act === 'eat' || act === 'write_tablet' || act === 'talk' ? chunk(0.3, 1.2) : end, why);
+  }
+  /** the posts of a round, nearest first from where he stands, choosing now and then the second nearest (so no two rounds
+   *  run the same way); a leader of ten visits the posts his own file holds, a patrol man every post that is held (C) */
+  private roundFor(a: Agent, leader: boolean, rng: Rng): string[] {
+    const file = this.pop.persons[a.pid]?.file ?? -1;
+    let posts = GUARD_POSTS.filter(p => this.agents.some(o => o !== a && o.post === p && o.task?.act === 'stand_guard' && (!leader || this.pop.persons[o.pid]?.file === file)));
+    if (!posts.length) posts = [...GUARD_POSTS];
+    const out: string[] = []; let at = a.pos; const left = [...posts]; const dd = (p: string) => Math.hypot(PLACES[p].at[0] - at[0], PLACES[p].at[1] - at[1]);
+    while (left.length) { left.sort((x, y) => dd(x) - dd(y)); const nx = left.splice(left.length > 1 && rng.chance(0.35) ? 1 : 0, 1)[0]; out.push(nx); at = PLACES[nx].at; }
+    return out;
   }
   private nearP(a: Agent, pl: string, r: number) { const p = PLACES[pl]?.at; return !!p && Math.hypot(a.pos[0] - p[0], a.pos[1] - p[1]) < r; }
 

@@ -10,6 +10,7 @@ import { PeopleSim, Env } from '../src/people/sim';
 import { WeatherSystem } from '../src/weather/weatherState';
 import { Rng } from '../src/core/rng';
 import { ACTIVITIES } from '../src/people/activities';
+import { presentDay } from './shadow_pick';
 /** the placeholder flag (D-024): an activity simulated but with no performance */
 const ph = (a: string) => ((ACTIVITIES as any)[a]?.placeholder ? ' [PLACEHOLDER: not performed]' : '');
 
@@ -31,7 +32,8 @@ out.push(`# Shadow days (§13.11): 20 people, one full day each (seed ${seed}); 
   const sim = new PeopleSim(seed, nav, env);
   for (const a of sim.agents) a.lod = 'abstract';
   const chosen = new Set<number>(); while (chosen.size < 6) chosen.add(pick.int(0, sim.agents.length - 1));
-  const days = [...chosen].map(() => pick.int(1, 350));
+  // a day on which the agent's person is alive and here (S1: the dead and the absent are re-drawn)
+  const P00 = (sim as any).pop; const days = [...chosen].map(id => { const pid = P00.persons.findIndex((q: any) => q.agent === sim.agents[id].id); return pid < 0 ? pick.int(1, 350) : presentDay(P00, pid, () => pick.int(1, 350)); });
   for (const [k, id] of [...chosen].entries()) {
     const d = days[k]; sim.jumpTo(d * 24); const a = sim.agents[id];
     // the agent's household is its population person's home on that day (not the agent's own index)
@@ -53,10 +55,10 @@ out.push(`# Shadow days (§13.11): 20 people, one full day each (seed ${seed}); 
   const P = (sim as any).pop; const ids: number[] = [];
   while (ids.length < 14) { const i = pick.int(0, P.persons.length - 1), p = P.persons[i]; if (p.agent >= 0) continue; ids.push(i); }
   for (const pid of ids) {
-    const p = P.persons[pid]; let d = pick.int(1, 350); for (let k = 0; k < 400 && !P.present(pid, d); k++) d = pick.int(1, 350);
-    if (!P.present(pid, d)) continue;
+    const p = P.persons[pid]; const d = presentDay(P, pid, () => pick.int(1, 350));
+    if (d < 0) continue;
     const H = P.households[P.home(pid, d)];
-    out.push('', `## Person ${pid}: ${p.nm ?? '(name from the attested pool)'} — ${p.job}${p.sub ? ` (${p.sub})` : ''}, ${p.sex === 'm' ? 'male' : 'female'}, age ${ageStr(P, pid, d)}, ${p.origin}, zone ${p.zone}`);
+    out.push('', `## Person ${pid}: ${P.nameOf(pid) ?? '(unnamed)'} — ${p.job}${p.sub ? ` (${p.sub})` : ''}, ${p.sex === 'm' ? 'male' : 'female'}, age ${ageStr(P, pid, d)}, ${p.origin}, zone ${p.zone}`);
     out.push(`day ${d + 1} of the regnal year · ${weatherLine(d)} · household ${H.id} (${H.zone}, ${P.membersOn(H.id, d).length} people: ${P.membersOn(H.id, d).map((x: number) => `${x} ${P.persons[x].job} ${P.persons[x].sex}${ageStr(P, x, d)}`).join(', ')})${P.sick(pid, d) ? ' · SICK today' : ''}`);
     for (const s of P.plan(pid, d)) out.push(`${hm(s.t0)}–${hm(s.t1)}  ${s.act}${ph(s.act)} @ ${s.place} (${s.where}) — ${s.why}${s.with !== undefined ? ` [with ${s.with}]` : ''}${s.carry ? ` [carrying ${s.carry}]` : ''}${s.ev ? ` {${s.ev}}` : ''}`);
   }
