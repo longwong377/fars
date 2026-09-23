@@ -102,6 +102,16 @@
     - guards recognise him on a later day.
   - All rules are C: no text describes anyone being stopped at Persepolis.
   - The guard does not step into the path: the stop is a boundary at the post. Errand steps 0 and 6 are implicit, and the town part has not been walked in the browser.
+- **Moments rendered at high quality in session 3 (after the sky and cloud calibration):**
+  - Too dark or wrong:
+    - interiors are near black: the Apadana entered from the portico, the Hadish hall;
+    - dawn reads as midday (the twilight light curve is C);
+    - the scribe's place is an open court, not a room (Treasury architecture);
+    - dusk smoke is not visible from the slope (plumes added since, not yet rendered);
+    - the stair-climb view is dark;
+    - trees are crude.
+  - Reasonable: night on the Terrace, the Gate at dusk, the Tachara S stair.
+  - Agents are working on interior light (irradiance probes) and twilight (light curves, exposure, the Earth's shadow). The §8.2 rubric follows their merges.
 - **King absent by default (D-003):** no evidence places Xerxes at Persepolis in 467. The court appears only in the C-tier "seasonal pattern" setting.
 - **No primary sources reachable (B6):** SITE_SPEC is tier B/C, nothing is A, and the plan overlay compares against OSM, not Schmidt.
 - **Sky, clouds and rain (D-060, D-064; rendered and measured in session 3):**

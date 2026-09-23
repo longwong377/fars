@@ -16,7 +16,7 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // WSW (245°); at 05:40 its cell is ~6 km out over the plain (WeatherSystem.rainCell); seen from the Apadana W portico
   { n: 'rain-approach', day: 299, hour: 11.1, w: 'auto', v: [-38, -5, 1.6, 232, 3] }, // a heavy cell (14 mm) 15 km SW over the plain, seen out of the Apadana W portico, 50 min before it arrives (D-060, D-064)
   { n: 'apadana-enter', day: 25, hour: 11, w: 'clear', v: [1.9, 36, 1.6, 161, 2] },
-  { n: 'reliefs-raking', day: 60, hour: 18.3, w: 'clear', v: [-20, 72, 1.6, 161, 2] },
+  { n: 'reliefs-raking', day: 60, hour: 18.3, w: 'clear', v: [-30, 63.5, 1.6, 83, -3] }, // 4.5 m off the Apadana N stair façade, looking E along it: the low NW sun grazes the procession (session 3)
   { n: 'scribe-at-work', day: 25, hour: 10, w: 'clear', v: [196, -81.8, 1.7, 206, -14] },
   { n: 'stair-climb', day: 25, hour: 8.5, w: 'clear', v: [-43.9, 128, 1.6, 341, 12] },
   { n: 'snow-terrace', day: 280, hour: 10, w: 'snow', v: [-20, 70, 1.6, 161, 4] },
