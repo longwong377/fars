@@ -19,7 +19,8 @@ export const ROUTES: Record<string, { start: [number, number]; targets: [number,
     [110.5, -16.5, 'W doorway'], [107, -16.5, 'W threshold down'], [110.5, -16.5, 'W threshold up'], [140, -29, 'hall again'],
     [158.9, -64.5, 'S doorway'], [158.9, -70, 'street'], [186, -41.5, 'outside the E doorway'], [175, -35, 'inside via E doorway'] ] },
   treasury: { start: [170, -71], levels: { 'Treasury inside': 0.3 }, targets: [
-    [206.6, -74, 'street at the Treasury N door'], [206.6, -82, 'N doorway'], [190, -120, 'Treasury inside'], [150, -150, 'Treasury SW'],
+    [206.6, -74, 'street at the Treasury N door'], [206.6, -82, 'N doorway'], [199.7, -82.8, 'N-range vestibule'], [184.5, -88.5, 'court S of the N range'],
+    [187.8, -82.6, "scribes' room (D-067)"], [184.5, -88.5, "out of the scribes' room"], [190, -120, 'Treasury inside'], [150, -150, 'Treasury SW'],
     [206.6, -82, 'back to the N doorway'], [201.8, -70, 'street'], [201.8, -60, 'garrison S door'], [200, -20, 'garrison court'],
     [183.3, 32, 'garrison W door'], [175, 33, 'court N of Hall 100'] ] },
   harem: { start: [109.5, -68], levels: { 'Harem court': 1.0, 'Harem hall': 1.0 }, targets: [

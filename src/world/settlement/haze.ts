@@ -10,6 +10,8 @@ import type { FireSystem, FireKind } from '../fire';
 import { Rng } from '../../core/rng';
 
 interface Puff { site: string; base: THREE.Vector3; size: number; h: number; ph: number }
+/** debug (?smokedbg): the haze puffs drawn solid blue and the plumes solid red, to see where they are */
+const SMOKE_DBG = typeof location !== 'undefined' && new URLSearchParams(location.search).has('smokedbg');
 export class TownHaze {
   readonly group = new THREE.Group();
   private mesh: THREE.InstancedMesh; private alpha: THREE.InstancedBufferAttribute; private puffs: Puff[] = [];
@@ -40,6 +42,7 @@ export class TownHaze {
     const cosT = dot(normalize(positionWorld.sub(cameraPosition)), this.uSunDir);
     const hg = float((1 - G * G) / (4 * Math.PI)).div(pow(float(1 + G * G).sub(cosT.mul(2 * G)), 1.5));
     m.colorNode = (this.uSky as any).add((this.uSun as any).mul(hg)).mul(OMEGA); m.opacityNode = soft.mul(nz).mul(attribute('aAlpha', 'float'));
+    if (SMOKE_DBG) { m.colorNode = vec3(0, 0, 1); m.opacityNode = soft.mul(0.8); } // debug: haze puffs solid blue
     this.mesh = new THREE.InstancedMesh(g, m, N); this.mesh.frustumCulled = false; this.mesh.renderOrder = 3; this.mesh.name = 'settlement:haze';
     this.mesh.userData = { tier: 'C', src: 'RECON', note: 'town smoke haze: opacity follows the lit share of the quarter\'s hearths, ovens and kilns (fire schedules, C); density, height and colour C' };
     this.group.add(this.mesh);
@@ -70,6 +73,7 @@ export class TownHaze {
     const cosT = dot(normalize(positionWorld.sub(cameraPosition)), this.uSunDir), hg = float((1 - G * G) / (4 * Math.PI)).div(pow(float(1 + G * G).sub(cosT.mul(2 * G)), 1.5));
     m.colorNode = (this.uSky as any).add((this.uSun as any).mul(hg)).mul(OMEGA);
     m.opacityNode = across.mul(along).mul(turb).mul(pa);
+    if (SMOKE_DBG) { m.colorNode = vec3(1, 0, 0); m.opacityNode = across.mul(along); } // debug: plumes solid red
     const mesh = new THREE.Mesh(g, m); mesh.frustumCulled = false; mesh.renderOrder = 3; mesh.name = 'settlement:smoke-plumes';
     mesh.userData = { tier: 'C', src: 'RECON', note: `rising smoke of the town's lit hearths, ovens and kilns (${n} sources; fire schedules C; plume height, width and opacity C)` };
     this.plumes = mesh; this.group.add(mesh);

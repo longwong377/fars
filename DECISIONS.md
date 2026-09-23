@@ -1035,3 +1035,25 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Signs are flat (drawn 3 mm proud), not bevelled incisions.** The panels stand 4.6–5.8 m above the floor. There a pixel is about 5 mm (1080p, 60° field), so the 2.5 mm bevel is under half a pixel. The bevelled panels cost 162 k triangles per reveal (647 k in all).
 - The translation layer names the panel (XPe, placement C). Glosses come from the project lexicon; there is no published translation (NEEDS #14).
 - **Tests:** `tests/xpe.test.ts` checks the edition text, 4 panels per version, each above the figures and under the reveal top, on the reveal plane within the passage, and flat (under 20 k triangles).
+
+## D-067 — The Treasury N range and the scribes' room; doorways in the walkable grid (session 3)
+- **Problem:** the §1.1 moment "a scribe's room, mid-work" rendered as an open court. The Treasury had only its enclosure and the Hall of 99 Columns.
+- **Evidence:**
+  - The PT tablets were found in "a northeastern room of the Treasury" (IR-TREAS, SX, B).
+  - REF-PLAN, resampled into the grid with the Phase 4 transform (`tools/apply_treasury_rooms_patch.py` header), shows a range of rooms along the inside of the N wall. Positions are ±0.5 m at ~2.1 px/m (B):
+    - four rooms, each 4.2 m deep, between the enclosure's inner face (y −80.5) and an inner wall (−84.7 to −86.4);
+    - full-depth cross walls at x 144–146, 159–161, 176–178 and 192–194;
+    - one doorway from the S into each room, 1.1–1.3 m wide;
+    - the E room is the vestibule of the N door, with a doorway at the N end of its E wall.
+- **Decision:**
+  - Rows `treasury.n_range` (B) and `r_n_range_height` (C: 4.5 m clear, 0.5 m timber-and-earth roof, 2.6 m doorways under lintels).
+  - `scribes_room` (C): the NE room, x 178.1–192.0, beside the vestibule. The desk sits 1.2 m from the S doorway for its daylight.
+  - `r_scribes_room` (C): a mud-brick bench along the N and W walls with filed tablets in two rows, a drying board of fresh tablets, a lump of clay under a damp cloth, and three reed baskets. Types B; forms, sizes and number C (`src/world/furnish.ts` `buildScribesRoom`).
+  - `treasury_desk` (people_places) moved into the room. The visitor zone `treasury_desk` is now the room's rectangle; the old 8 m circle reached 2.8 m into the street. The scribe-at-work moment looks from the room's NE corner toward the desk.
+  - Not modelled: the hypostyle hall S of the range, the E corridor, and a rectangle drawn in the vestibule (NOT SEEN at the plan's resolution).
+- **Walkable grid:** the one-cell erosion sealed any doorway narrower than about 1.3 m, depending on how the 0.5 m grid fell, so the scribes' room could not be reached. `tools/build_nav.ts` now keeps a cell in a narrow passage (unwalkable within two cells on both opposite sides) if its centre is at least 0.3 m (body radius + 5 cm) from the obstacles, tested by rays.
+  - First try: relaxing the erosion along every wall let routes climb the Hall 100 S doorway steps from the side, where the capsule caught on the 0.5 m step (botcheck). Limited to narrow passages, the grid is the old one plus 48 cells: 1,416,157 walkable.
+  - The grid was rebuilt for the current parts (this also covers the "rebuild the walkable grid after the merges" item).
+  - Offline bots: all six areas pass (77 legs, including new legs into the scribes' room and out), and the slice passes (28 legs).
+- **Tests:** `tests/treasury_rooms.test.ts` covers the wall and doorway solids, cross walls, roof, the desk and zone, the route street → N door → vestibule → court → room doorway → desk, and the furnishing.
+- **Open:** the room is lit only through its 1.1 m doorway; the interior-light agent's probes must cover it when merged. Which room held the archive is C (Q-124: Schmidt's room numbers NOT SEEN).

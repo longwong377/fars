@@ -38,12 +38,14 @@ const BUILDING_ZONES = ['grand_stair', 'gate_nations', 'apadana', 'tachara', 'ha
 /** the ~12 m street between the Hall of 100 Columns and the Treasury: from the Treasury's N wall (site_spec, B) to the
  *  hall's S wall, across the Treasury's width; the OSM Treasury footprint includes it, so it is tested first */
 const TREASURY_STREET = (() => { const y0 = v<number>('treasury', 'r_north_wall_y'), b = FOOTPRINTS.treasury?.bounds; return b ? { x0: b[0], x1: b[2], y0, y1: y0 + 12 } : null; })();
-const TREASURY_DESK = { at: place('treasury_desk'), r: 8 }; // the scribes' room (C: a radius around the place)
+/** the scribes' room (D-067): the N-range room named by treasury.scribes_room, wall face to wall face (site_spec, REF-PLAN B;
+ *  which room C). Before the room was built this was an 8 m circle round the desk, which reached into the street */
+const TREASURY_DESK = (() => { const NR = v<any>('treasury', 'n_range'), [x0, x1] = NR.rooms[v<any>('treasury', 'scribes_room').room]; return { x0, x1, y0: NR.inner_wall[1], y1: NR.inner_face_n }; })();
 const PF_BASTION = ((A.zones as any[]).find(z => z.id === 'pf_archive_findspot')?.ref_vertices ?? []) as P2[];
 
 export function terraceZoneAt(e: number, n: number): string | null {
   const T = FOOTPRINTS.terrace; const onTerrace = T && pointInPolygon(e, n, T.polygon);
-  if (Math.hypot(e - TREASURY_DESK.at[0], n - TREASURY_DESK.at[1]) < TREASURY_DESK.r) return 'treasury_desk';
+  if (e >= TREASURY_DESK.x0 && e <= TREASURY_DESK.x1 && n >= TREASURY_DESK.y0 && n <= TREASURY_DESK.y1) return 'treasury_desk';
   if (TREASURY_STREET && e >= TREASURY_STREET.x0 && e <= TREASURY_STREET.x1 && n >= TREASURY_STREET.y0 && n <= TREASURY_STREET.y1) return 'treasury_street';
   // the Gate is a square hall: its zone is its bounding rectangle (the traced polygon is skewed by ~0.5 m, which left a
   // sliver of 'courts' between the landing and the W door)

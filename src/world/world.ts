@@ -30,7 +30,7 @@ import { loadSculpt } from '../arch/sculpt';
 import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Reliefs, buildStairCrenellations } from '../arch/decor';
 import { updateReliefs, settleReliefs } from '../arch/reliefs';
 import { FireSystem } from './fire';
-import { buildTreasuryGoods } from './furnish';
+import { buildTreasuryGoods, buildScribesRoom } from './furnish';
 import { buildPlain } from './plain';
 import { ConstructionView } from './construction';
 import { Visitor } from './visitor/controller';
@@ -114,6 +114,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const cren = buildStairCrenellations(parts); if (cren) root.add(cren); // stair-parapet merlons (D-065)
   const insc = buildInscriptions(manifest, parts, p4.inscriptions); root.add(insc);
   if ((manifest.treasury as any)?.benches) root.add(buildTreasuryGoods((manifest.treasury as any).benches, seed)); // stored goods (types B, placement C)
+  if ((manifest.treasury as any)?.scribesRoom) root.add(buildScribesRoom((manifest.treasury as any).scribesRoom, (manifest.treasury as any).scribesShelves, seed)); // the scribes' room (D-067)
   const q = settings?.quality ?? 'high';
   const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q]); placeFires(fire, manifest, parts);
   // Phase 6 settlement: its hearths, ovens and kilns join the fire system before it builds (?notown leaves it out, for A/B budgets)

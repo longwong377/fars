@@ -563,7 +563,32 @@ export function buildTerrace(): BuildResult {
     addBench([hcx, hcy - hsy / 2 + BN.depth / 2], [runX, BN.depth]); // S wall
     for (const s of [-1, 1]) addBench([hcx + s * (hsx / 2 - BN.depth / 2), hcy], [BN.depth, runY]); // W and E walls
     for (const s of [-1, 1]) addBench([hcx + s * (HW.door_width / 2 + BN.gap + (hsx / 2 - BN.gap - BN.depth - HW.door_width / 2 - BN.gap) / 2), hcy + hsy / 2 - BN.depth / 2], [hsx / 2 - BN.gap - BN.depth - HW.door_width / 2 - BN.gap, BN.depth]); // N wall, either side of the door
-    manifest.treasury = { room: [hcx, hcy, hsx, hsy, fl, ord.height], hall99Columns: pts.length, columnHeight: ord.height, northWallY: Math.max(...poly.map(q => q[1])), doors: DR.length, benches: benches as any };
+    // the N range (D-067, REF-PLAN): four rooms along the inside of the N wall under a flat roof, each entered from the S
+    // through the inner wall; the E room is the vestibule of the N door, the NE room beside it the scribes' room
+    const NR = v<any>(b, 'n_range'), NH = v<any>(b, 'r_n_range_height'), nt = T_(b, 'n_range'), ns = srcOf(row(b, 'n_range'), row(b, 'r_n_range_height'));
+    const top = fl + NH.clear, [iwS, iwN] = NR.inner_wall as number[], nIn = NR.inner_face_n as number, iwc = (iwS + iwN) / 2, iwt = iwN - iwS;
+    const wallBox = (c: Pt, size: [number, number], y0: number, y1: number, note: string) => parts.push(box(b, 'wall', 'mudbrick', nt, ns, c, size, y0, y1, { solid: true, note }));
+    let xa = NR.x[0];
+    for (const [d0, d1] of NR.hall_doors as [number, number][]) {
+      wallBox([(xa + d0) / 2, iwc], [d0 - xa, iwt], fl, top, 'N range inner wall (REF-PLAN)');
+      wallBox([(d0 + d1) / 2, iwc], [d1 - d0, iwt], fl + NH.door_height, top, 'wall over an N-range doorway (lintel, C)');
+      xa = d1;
+    }
+    wallBox([(xa + NR.x[1]) / 2, iwc], [NR.x[1] - xa, iwt], fl, top, 'N range inner wall (REF-PLAN)');
+    for (const [c0, c1] of NR.cross_walls as [number, number][]) wallBox([(c0 + c1) / 2, (iwN + nIn) / 2], [c1 - c0, nIn - iwN], fl, top, 'N range cross wall (REF-PLAN)');
+    const EW = NR.e_wall, ewc = (EW.x[0] + EW.x[1]) / 2, ewt = EW.x[1] - EW.x[0];
+    wallBox([ewc, (iwN + EW.door_y[0]) / 2], [ewt, EW.door_y[0] - iwN], fl, top, 'vestibule E wall (REF-PLAN)');
+    wallBox([ewc, (EW.door_y[1] + nIn) / 2], [ewt, nIn - EW.door_y[1]], fl, top, 'vestibule E wall (REF-PLAN)');
+    wallBox([ewc, (EW.door_y[0] + EW.door_y[1]) / 2], [ewt, EW.door_y[1] - EW.door_y[0]], fl + NH.door_height, top, 'wall over the vestibule E doorway (C)');
+    parts.push(box(b, 'roof', 'timber', 'C', S_(b, 'r_n_range_height'), [(NR.x[0] + NR.x[1]) / 2, (iwS + nIn) / 2], [NR.x[1] - NR.x[0], nIn - iwS], top, top + NH.roof, { note: 'flat timber-and-earth roof over the N range (C)' }));
+    // the scribes' room: a mud-brick bench along its N and W walls (C) for the filed tablets
+    const SR = v<any>(b, 'scribes_room'), RB = v<any>(b, 'r_scribes_room').bench, [rx0, rx1] = (NR.rooms as number[][])[SR.room];
+    const rs = S_(b, 'r_scribes_room'), shelves: number[][] = [];
+    const bench = (c: Pt, size: [number, number]) => { parts.push(box(b, 'bench', 'mudbrick', 'C', rs, c, size, fl, fl + RB.height, { solid: true, note: 'scribes\' room bench for filed tablets (C)' })); shelves.push([c[0], c[1], size[0], size[1], fl + RB.height]); };
+    bench([(rx0 + RB.depth + RB.gap + rx1 - RB.gap) / 2, nIn - RB.depth / 2], [rx1 - RB.gap - (rx0 + RB.depth + RB.gap), RB.depth]); // N wall
+    bench([rx0 + RB.depth / 2, (iwN + RB.gap + nIn) / 2], [RB.depth, nIn - iwN - RB.gap], ); // W wall, from the N wall to the gap by the S wall
+    manifest.treasury = { room: [hcx, hcy, hsx, hsy, fl, ord.height], hall99Columns: pts.length, columnHeight: ord.height, northWallY: Math.max(...poly.map(q => q[1])), doors: DR.length, benches: benches as any,
+      scribesRoom: [(rx0 + rx1) / 2, (iwN + nIn) / 2, rx1 - rx0, nIn - iwN, fl, NH.clear] as any, scribesShelves: shelves as any };
   }
   if (present('harem')) {
     const b = 'harem', fl = v(b, 'floor'), W = v<any>(b, 'r_wall');
