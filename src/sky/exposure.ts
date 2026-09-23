@@ -82,11 +82,15 @@ export function skyGain(renE: number, lux: number, skyLux = 0.18 * lux * (METER_
   return Math.max(1, target / Math.max(renE, 1e-12));
 }
 
-/** Camera exposure target (the session-3 law, unchanged): the illuminance at the eye from the sky's lights (which carry
- *  G) weighted by the visible sky, plus the moon and nearby fires. */
-export function exposureTarget(sunE: number, skyE: number, skyVis: number, moonE: number, fireE: number): number {
-  const E = (sunE + skyE) * (0.15 + 0.85 * skyVis) + moonE + fireE + 0.004;
-  return Math.min(X_MAX, Math.max(X_MIN, KEY / E));
+/** Camera exposure target (the session-3 law): the illuminance at the eye from the sky's lights (which carry G) weighted
+ *  by the visible sky, plus the moon and nearby fires (`fireE`, already scaled by `fireScale`). Where the fires' light
+ *  dominates it, the eye adapts to the fire as it does at night: the cap X_MAX, which keeps sky-lit twilight and interiors
+ *  dim, is raised by the fire's share of the light, at most by 1 / fireScale (so at night, scale 1, the law is exactly the
+ *  session-3 one, and a torch-lit hall at dusk is shown as at night). */
+export function exposureTarget(sunE: number, skyE: number, skyVis: number, moonE: number, fireE: number, fireScale = 1): number {
+  const Es = (sunE + skyE) * (0.15 + 0.85 * skyVis) + moonE + 0.004, E = Es + fireE;
+  const cap = X_MAX * Math.max(1, Math.min(1 / Math.max(fireScale, 1e-9), fireE / Es));
+  return Math.min(cap, Math.max(X_MIN, KEY / E));
 }
 
 /** The gain at which the fires' session-3 light values are physical (D-117 addendum): a lamp's point light is 0.08 · 40 =

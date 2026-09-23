@@ -43,6 +43,15 @@ describe('visual adaptation functions', () => {
     expect(skyGain(3.3, 123800)).toBe(1);
     expect(skyGain(0.02, 757)).toBeGreaterThan(1);
   });
+  it('fire-lit views: at night (fire scale 1) the session-3 cap; at dusk the eye follows a dominant fire, not a minor one', () => {
+    // night, far from a brazier: the cap holds exactly as before
+    expect(exposureTarget(0, 0.004, 1, 0, 0.1, 1)).toBe(X_MAX);
+    // nautical twilight inside a torch-lit gate (fire scale 0.5, fire light ×0.5): shown as at night
+    const night = exposureTarget(0, 0.02, 0.1, 0, 0.45, 1), dusk = exposureTarget(0, 0.02, 0.1, 0, 0.45 * 0.5, 0.5);
+    expect(dusk * 0.45 * 0.5).toBeCloseTo(night * 0.45, 1);
+    // dawn beside a brazier (fire scale 1e-3): the sky's light dominates, the cap stays at X_MAX
+    expect(exposureTarget(0, 0.09, 1, 0, 1.2e-3, 1e-3)).toBe(X_MAX);
+  });
 });
 
 describe('dawn, dusk and night do not look like noon (exposure on the SkySystem lights)', () => {

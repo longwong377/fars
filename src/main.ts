@@ -311,7 +311,7 @@ async function boot() {
     if (adaptT > 0.25 || skyVis < 0) { adaptT = 0; skyVis = skyVisibility(); }
     const sunE = sky.sun.visible ? sky.sun.intensity * Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)) : 0;
     const fireE = world.fire ? world.fire.localIlluminance(camera.position) : 0;
-    const target = exposureTarget(sunE, sky.hemi.intensity * 0.8, skyVis, sky.moonLight.intensity * 0.3, fireE); // the sky's lights carry the eye's gain beyond this range (D-117)
+    const target = exposureTarget(sunE, sky.hemi.intensity * 0.8, skyVis, sky.moonLight.intensity * 0.3, fireE, sky.fireScale); // the sky's lights carry the eye's gain beyond this range (D-117)
     const k = target > exposure ? 1 - Math.exp(-dt / 2.5) : 1 - Math.exp(-dt / 0.6); // dark adaptation is slower than light adaptation
     exposure = TEST ? target : exposure + (target - exposure) * k;
     renderer.toneMappingExposure = exposure;
