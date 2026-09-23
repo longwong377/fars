@@ -6,9 +6,9 @@ import PC from '../src/data/polychromy.json';
 import sources from '../src/data/sources.json';
 import { labToLinear, linearToSrgb, srgbToLinear, luminance, munsellY } from '../src/core/colour';
 import { SURFACES, paintedStoneMaterial, surfaceMaterial } from '../src/render/materials';
-import { PIGMENT } from '../src/arch/relief_figures';
-import { STONE_SRGB } from '../src/arch/relief_field';
-import { reliefLodMesh, lodGeometry } from '../src/arch/reliefs';
+import { PIGMENT, figureDef } from '../src/arch/relief_figures';
+import { STONE_SRGB, GILT_SRGB, rasterize, rtinErrors, extractLod } from '../src/arch/relief_field';
+import { reliefLodMesh, lodGeometry, RELIEF_LODS } from '../src/arch/reliefs';
 import { buildTerrace } from '../src/arch/terrace';
 import { buildMeshes } from '../src/arch/meshes';
 
@@ -64,12 +64,46 @@ describe('relief paint coverage (D-030)', () => {
       for (let i = 0; i < m.verts; i++) { expect(m.paint[i]).toBeGreaterThanOrEqual(0); expect(m.paint[i]).toBeLessThanOrEqual(1); }
     }
   });
-  it('the geometry carries the coverage attribute next to the pigment colour', () => {
+  it('the geometry carries the coverage and gilding attributes next to the pigment colour', () => {
     const g = lodGeometry(reliefLodMesh('persian', 0, 65, 3), true);
     expect(g.getAttribute('paint').itemSize).toBe(1); expect(g.getAttribute('paint').count).toBe(g.getAttribute('position').count);
+    expect(g.getAttribute('gilt').itemSize).toBe(1); expect(g.getAttribute('gilt').count).toBe(g.getAttribute('position').count);
   });
   it('the relief material is the painted carved stone (no joints), not the ashlar limestone', () => {
     const m = paintedStoneMaterial(); expect(m.userData.note).toMatch(/joint-free/); expect(m).not.toBe(surfaceMaterial('limestone'));
+  });
+});
+
+describe('gilding, the royal robe and paint edges (D-151)', () => {
+  it('gilded masses carry gilt = 1 (the king\'s crown), everything else 0; the relief material draws the leaf as gold metal', () => {
+    const k = reliefLodMesh('king', 0, 513, 0), gl = srgbToLinear(GILT_SRGB[0]);
+    let n = 0; for (let i = 0; i < k.verts; i++) { expect(k.gilt[i] === 0 || k.gilt[i] === 1).toBe(true); if (k.gilt[i]) { n++; expect(k.col[i * 3]).toBeCloseTo(gl, 5); } }
+    expect(n / k.verts, 'gilded share of the seated king (crown, sceptre, lotus)').toBeGreaterThan(0.01); expect(n / k.verts).toBeLessThan(0.2);
+    const horse = reliefLodMesh('horse', 0, 257, 1); expect(Array.from(horse.gilt).some(x => x > 0), 'no gilding on an unpainted animal').toBe(false);
+    const G = (PC as any).paint.gold.v; // the F0 of gold: red > green > blue, all within (0, 1]
+    expect(G.f0[0]).toBeGreaterThan(G.f0[1]); expect(G.f0[1]).toBeGreaterThan(G.f0[2]); for (const c of G.f0) { expect(c).toBeGreaterThan(0); expect(c).toBeLessThanOrEqual(1); }
+    expect(G.roughness).toBeGreaterThan(0.2); expect(G.roughness).toBeLessThan(0.6); // burnished leaf on carved stone, not a mirror
+    const m = paintedStoneMaterial() as any; expect(m.metalnessNode).toBeTruthy(); expect(m.userData.note).toMatch(/gold leaf/);
+  });
+  it('the kings wear the royal robe: a patterned field and a blue strip with red lions at the hem (Iranica citing Tilia, B); a noble\'s robe is plain', () => {
+    const f = rasterize(figureDef('king_walking', 0), 513), noble = rasterize(figureDef('persian', 0), 513);
+    // share of the carved cells in a band of the robe (x within the robe, clear of the staff held in front) painted c
+    const share = (F: typeof f, c: number[], y0: number, y1: number) => { let n = 0, t = 0; const k = F.palette.findIndex(p => p[0] === c[0] && p[1] === c[1] && p[2] === c[2]);
+      for (let j = 0; j < F.n; j++) { const y = F.y0 + j * F.cell; if (y < y0 || y > y1) continue;
+        for (let i = 0; i < F.n; i++) { const x = F.x0 + i * F.cell, g = j * F.n + i; if (x < -0.1 || x > 0.08 || F.h[g] <= 0) continue; t++; if (F.col[g] === k) n++; } }
+      return n / Math.max(1, t); };
+    expect(share(f, PIGMENT.cinnabar, 0.03, 0.08), 'red lions in the hem strip').toBeGreaterThan(0.03);
+    expect(share(f, PIGMENT.egyptianBlue, 0.03, 0.08), 'the blue hem strip').toBeGreaterThan(0.2);
+    expect(share(f, PIGMENT.yellowOchre, 0.15, 0.45), 'concentric circles on the field').toBeGreaterThan(0.01);
+    expect(share(f, PIGMENT.white, 0.15, 0.45), 'lotus blossoms on the field').toBeGreaterThan(0.005);
+    expect(share(noble, PIGMENT.yellowOchre, 0.15, 0.45) + share(noble, PIGMENT.white, 0.15, 0.45), 'no pattern on a noble\'s robe').toBeLessThan(0.002);
+  });
+  it('paint edges are refined at the finest LOD only: the colour-edge error lies between the L0 and L1 error bounds', () => {
+    // the errors as the renderer and the workers compute them (default colour-edge error) against none for paint edges:
+    // L0 (the arm's-length band) refines the painted pattern's edges, L1 and beyond do not spend triangles on paint
+    const f = rasterize(figureDef('king_walking', 0), 513), e = rtinErrors(f), none = rtinErrors(f, 0);
+    expect(extractLod(f, e, RELIEF_LODS[0].err, 1).tris, 'L0 follows the paint edges').toBeGreaterThan(extractLod(f, none, RELIEF_LODS[0].err, 1).tris * 1.1);
+    expect(extractLod(f, e, RELIEF_LODS[1].err, 1).tris, 'L1 ignores them').toBe(extractLod(f, none, RELIEF_LODS[1].err, 1).tris);
   });
 });
 
