@@ -161,5 +161,19 @@ describe('light probes: the baked Terrace field', () => {
   it('open-field reference: up = sky, down = sunlit ground', () => {
     expect(openField(1, S, U, RHO)).toBe(S); expect(openField(-1, S, U, RHO)).toBeCloseTo((S + U) * RHO, 9);
   });
+  it('the eye reads the probes inside the volumes and its own estimate outside (probeSkyVisibility, D-113)', async () => {
+    const THREE = await import('three/webgpu');
+    const R = await import('../src/render/probes/runtime');
+    R.setProbeField(F); R.setProbeOccluders(parts);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x6b5a45, 0.97); hemi.color.setRGB(0.75, 0.8, 0.9);
+    const sun = new THREE.DirectionalLight(0xffffff, 2.44); sun.position.set(0.3, 0.95, 0.1).multiplyScalar(800); sun.target.position.set(0, 0, 0);
+    R.updateProbeLights(hemi, sun);
+    const eye = (e: number, n: number, h: number) => R.probeSkyVisibility({ x: e, y: h, z: -n }, () => 0.77);
+    expect(eye(-20, 75, 1.6)).toBe(0.77); // outside every volume: the caller's own estimate
+    const portico = eye(1.9, 36, fl + 1.6), hall = eye(cx + inner / 2, cy + inner / 2, fl + 1.6);
+    expect(portico).toBeGreaterThan(0.005); expect(portico).toBeLessThan(0.1); // shade under the portico roof: a few % of sunlit ground
+    expect(hall).toBeLessThan(portico / 5); expect(hall).toBeGreaterThan(0);
+    R.setProbeField(null); R.setProbeOccluders(null);
+  });
   void yearSunSamples; void TraceScene;
 });
