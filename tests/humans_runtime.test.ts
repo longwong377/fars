@@ -1,4 +1,4 @@
-// Human runtime (D-025…D-028): loader, rig retarget, fitted costumes, looks, crowd pooling and the per-frame CPU budget.
+// Human runtime (D-090…D-093): loader, rig retarget, fitted costumes, looks, crowd pooling and the per-frame CPU budget.
 // Measured, not eyeballed (screenshots: tests/e2e/humanlab.spec.ts, tests/e2e/humans.spec.ts).
 import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -88,7 +88,7 @@ describe('rig retarget (59 bones)', () => {
   });
 });
 
-describe('skin texture (re-baked, D-025)', () => {
+describe('skin texture (re-baked, D-090)', () => {
   it('paints the lips at the lips’ parting (head/jaw weight split), not on the chin', async () => {
     const { decodePNG } = await import('../tools/humans/png');
     const img = decodePNG(readFileSync('public/generated/humans/skin.png')); const v = A.byId.m03;

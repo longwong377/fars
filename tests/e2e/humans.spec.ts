@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-// People's bodies in the world (D-025…D-028), at quality=test: a lineup of every dress
+// People's bodies in the world (D-090…D-093), at quality=test: a lineup of every dress
 // on the plain west of the Grand Stair and two faces from 1 m in daylight, and a 300-person load (4 views: the shared
 // queue's limit). Screenshots → shots/humans-*.png. Env: Q (quality), ONLY (shot names; ONLY=all adds the other views).
 // The draw-call / triangle cost with and without people is tests/e2e/humans_cost.spec.ts (quality=high).

@@ -76,7 +76,7 @@ async function boot() {
   const terrain = await Terrain.load('/');
   const tmesh = new TerrainMesh(terrain, Q.terrainLodBias); scene.add(tmesh.group);
   const sky = new SkySystem(scene, Q.shadowMapSize, settings.quality); await sky.loadStars('/');
-  shadowsSeePeople(sky.sun); // the people's shadow-only casters live on their own layer (D-028)
+  shadowsSeePeople(sky.sun); // the people's shadow-only casters live on their own layer (D-093)
   const weather = new WeatherSystem(SEED);
   if (P.get('weather')) weather.override = P.get('weather') as WeatherOverride;
   const clock = new WorldClock(+(P.get('day') ?? 0), +(P.get('hour') ?? 7.0));

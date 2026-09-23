@@ -1,4 +1,4 @@
-// What each person looks like (D-027): body variant and stature, skin and hair, garment colours, which optional pieces
+// What each person looks like (D-092): body variant and stature, skin and hair, garment colours, which optional pieces
 // they wear (headgear, beard, weapons), grime from their work. Deterministic from the person's seed, so a person looks
 // the same every time they are attached to the crowd pool. Every choice carries its tier; the dev overlay (F3) prints
 // the summary. Nothing here is a claim about the looks of any people of the empire: body variants and skin tones are

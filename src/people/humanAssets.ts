@@ -1,4 +1,4 @@
-// Runtime loader for the MakeHuman-derived human assets (D-020, D-025). Reads public/generated/humans/humans.{json,bin}
+// Runtime loader for the MakeHuman-derived human assets (D-020, D-090). Reads public/generated/humans/humans.{json,bin}
 // (written by tools/build_humans.ts) and expands them into per-variant render-vertex arrays: bind positions, smooth
 // normals (accumulated per position vertex, so UV seams share one normal) and bind joints. Works in the browser (fetch)
 // and in node (tests read the files directly). Textures (skin/hair/eye PNGs) are loaded by the renderer, not here.

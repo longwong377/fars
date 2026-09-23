@@ -1,4 +1,4 @@
-// GPU resources for the human crowd (D-025/D-026): the vertex-source texture (every body variant and fitted garment), the
+// GPU resources for the human crowd (D-090/D-091): the vertex-source texture (every body variant and fitted garment), the
 // skin palettes (current and previous frame), the per-person data rows, and one instanced mesh per costume and LOD.
 // All people of a costume and LOD are one draw call; the crowd fills the instance lists (slot, root, previous root)
 // each frame for the people it decided to show at that LOD. Shadows: the drawn meshes cast none. Two shadow-only meshes

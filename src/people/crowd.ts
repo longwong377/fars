@@ -1,4 +1,4 @@
-// Crowd renderer (D-025, D-028): renders the simulation's people with the MakeHuman-derived bodies in period dress.
+// Crowd renderer (D-090, D-093): renders the simulation's people with the MakeHuman-derived bodies in period dress.
 //
 // Pooling: the pool is fed by the simulation's `visibleAgents(centre, ATTACH_R, POOL_MAX)` (the detailed agents on the
 // Terrace, nearest first, capped; D-024): people are attached when they come into that set and detached beyond DETACH_R
@@ -39,13 +39,13 @@ export const yawOf = (headingDeg: number) => Math.PI - rad(headingDeg);
 export const LOD_DIST = [25, 90, 200, 600] as const;
 /** full detail for at most the nearest MAX_FULL (brief: ≥ 50), mid detail for at most the next MAX_MID; beyond, the far
  *  body even within 90 m. Measured at high quality, 300 people within 20 m: 64 + all-mid cost 3.55 M view triangles
- *  (15.7 M frame); 50 + 160 cost 2.88 M (12.33 M frame, budget 12 M); hence 50 + 100 (D-028) */
+ *  (15.7 M frame); 50 + 160 cost 2.88 M (12.33 M frame, budget 12 M); hence 50 + 100 (D-093) */
 export const MAX_FULL = 50, MAX_MID = 100;
 export const ATTACH_R = 620, DETACH_R = 660;
 /** the most simulated people attached at once (the cap passed to sim.visibleAgents) */
 export const POOL_MAX = 400;
 /** people cast shadows within this distance (m) only. An instanced caster is drawn whole in every cascade its bounds
- *  touch, so each caster costs its triangles × cascades; at 90 m a person's shadow is a few pixels (D-028) */
+ *  touch, so each caster costs its triangles × cascades; at 90 m a person's shadow is a few pixels (D-093) */
 export const SHADOW_DIST = LOD_DIST[1];
 /** carried props drawn per frame (one instanced mesh) */
 export const CARRIED_MAX = 256;

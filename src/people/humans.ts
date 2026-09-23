@@ -1,4 +1,4 @@
-// Loads the human system for the renderer (D-025): MakeHuman-derived bodies (humans.json/.bin), the fitted costumes
+// Loads the human system for the renderer (D-090): MakeHuman-derived bodies (humans.json/.bin), the fitted costumes
 // (outfits.ts, built at load for every body variant in a Web Worker, so the main thread keeps building the world),
 // the textures and the GPU resources (humanGPU.ts).
 import * as THREE from 'three/webgpu';

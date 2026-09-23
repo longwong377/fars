@@ -1,4 +1,4 @@
-// Garments, hair, beards, headgear and worn equipment fitted to the MakeHuman bodies (D-025). Everything follows the
+// Garments, hair, beards, headgear and worn equipment fitted to the MakeHuman bodies (D-090). Everything follows the
 // skeleton (no cloth simulation): each piece is skinned with the body's own weights or with weights blended along
 // its length, so it deforms with the pose.
 //

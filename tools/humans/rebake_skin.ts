@@ -1,5 +1,5 @@
 // Re-bake skin.png and hair.png from the committed humans.bin/json (no MakeHuman download needed), with the current
-// tools/humans/skin.ts. Used after the mouth-line fix (D-025): the first bake found the mentolabial sulcus instead of
+// tools/humans/skin.ts. Used after the mouth-line fix (D-090): the first bake found the mentolabial sulcus instead of
 // the lips' parting and painted the lower lip on the chin. Finger-tip bone tails (nails) are not stored in humans.json;
 // they are extrapolated from the last two finger joints.
 // Run: npx tsx tools/humans/rebake_skin.ts

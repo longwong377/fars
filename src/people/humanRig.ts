@@ -1,4 +1,4 @@
-// CPU forward kinematics for the 59-bone human skeleton (D-020, D-025). The activity pose cycles of anim.ts are written
+// CPU forward kinematics for the 59-bone human skeleton (D-020, D-090). The activity pose cycles of anim.ts are written
 // for a 17-channel rig (hips, spine, chest, neck, head, arms, legs); RETARGET maps each channel onto the MakeHuman bones.
 // Both skeletons have identity bone orientation in the bind pose (+Z forward, +X the body's left, Y up), so an Euler
 // rotation means the same thing on either. Hands (finger curl about the per-bone curl axes of the asset) and the face

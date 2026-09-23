@@ -1,4 +1,4 @@
-// The player's visible body (brief §6: visible, in period dress, with a shadow; D-025). The same MakeHuman-derived body
+// The player's visible body (brief §6: visible, in period dress, with a shadow; D-090). The same MakeHuman-derived body
 // and costume system as everyone else: a man in Median riding dress of undyed wool (tunic, trousers, boots, soft cap;
 // C: the visitor's dress is not evidenced, the riding costume is the common dress of the period, B). The camera sits
 // inside the head, so the visible copy collapses the head (person flag) and a second, shadow-only copy (mid body, on

@@ -88,7 +88,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
   void terrain;
   const t0 = performance.now();
-  // people's bodies (D-025): loading and costume fitting (a worker) run while the architecture is built
+  // people's bodies (D-090): loading and costume fitting (a worker) run while the architecture is built
   const q0 = settings?.quality ?? 'high';
   const humansP = loadHumans({ velocity: q0 !== 'test' && q0 !== 'low' });
   const { parts, manifest } = buildTerrace();
@@ -116,7 +116,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // 'Court calendar = seasonal pattern' is on (D-003)
   const sim = new PeopleSim(seed, nav, env, { court: settings?.courtCalendar === 'seasonal' }); let simStarted = false;
   sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
-  // people's bodies (D-025): MakeHuman-derived variants in period dress, instanced per costume and LOD, pooled (D-028)
+  // people's bodies (D-090): MakeHuman-derived variants in period dress, instanced per costume and LOD, pooled (D-093)
   const humans = await humansP;
   const crowd = new Crowd(sim, seed, humans); root.add(crowd.group);
   // people are solid to the player: a kinematic capsule each (brief §6: player collision with crowds)

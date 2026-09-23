@@ -3,7 +3,7 @@
 // Conventions (bind pose: arms and legs hang down −Y, the body faces +Z): rotation.x < 0 swings a limb forward;
 // a knee bends with shin.x > 0; an elbow bends with fore.x < 0; left arm abducts with +z, right arm with −z.
 // PLACEHOLDER quality: hand-authored cycles, not motion capture (brief §9.3 asks for photoreal; logged in PROGRESS).
-// The cycles drive 17 pose channels; src/people/humanRig.ts retargets them onto the 59-bone MakeHuman skeleton (D-025).
+// The cycles drive 17 pose channels; src/people/humanRig.ts retargets them onto the 59-bone MakeHuman skeleton (D-090).
 
 /** pose channels (the Phase 3 rig's bones); RETARGET in humanRig.ts maps each onto the 59-bone skeleton */
 export const POSE_BONES = ['hips', 'spine', 'chest', 'neck', 'head', 'l_upper', 'l_fore', 'l_hand', 'r_upper', 'r_fore', 'r_hand', 'l_thigh', 'l_shin', 'l_foot', 'r_thigh', 'r_shin', 'r_foot'] as const;
