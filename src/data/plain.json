@@ -1139,7 +1139,8 @@
      "state": "low, clear"
     }
    ],
-   "dry_season_flow": "perennial trickle (C)"
+   "dry_season_flow": "perennial trickle (C)",
+   "chrono": "river_pulvar"
   },
   {
    "id": "river_kur",
@@ -2305,7 +2306,8 @@
      "depth_m": 0.99,
      "state": "moderate"
     }
-   ]
+   ],
+   "chrono": "river_kur"
   },
   {
    "id": "confluence",
@@ -2324,7 +2326,8 @@
     29.85874,
     52.77188
    ],
-   "unc_m": 1000
+   "unc_m": 1000,
+   "chrono": "confluence"
   },
   {
    "id": "dam_sang_e_dokhtar",
@@ -2344,7 +2347,8 @@
     52.43611
    ],
    "unc_m": 5000,
-   "in_extent": false
+   "in_extent": false,
+   "chrono": "dam_sang_e_dokhtar"
   },
   {
    "id": "bard_burideh",
@@ -2364,7 +2368,8 @@
     52.50205
    ],
    "unc_m": 5000,
-   "in_extent": false
+   "in_extent": false,
+   "chrono": "bard_burideh"
   },
   {
    "id": "irrigation_systems_sumner",
@@ -2389,7 +2394,8 @@
      0.8
     ],
     "tier": "C"
-   }
+   },
+   "chrono": "irrigation_systems_sumner"
   },
   {
    "id": "village_masumabad_west",
@@ -2410,7 +2416,8 @@
    ],
    "unc_m": 3000,
    "pop_est": 600,
-   "pop_tier": "C"
+   "pop_tier": "C",
+   "chrono": "village_masumabad_west"
   },
   {
    "id": "village_saidun",
@@ -2431,7 +2438,8 @@
    ],
    "unc_m": 3000,
    "pop_est": 600,
-   "pop_tier": "C"
+   "pop_tier": "C",
+   "chrono": "village_saidun"
   },
   {
    "id": "village_tukrash",
@@ -2439,7 +2447,7 @@
    "name": "Tukrash? (Achaemenid buildings and embankments by the Kur, 20 km S)",
    "tier": "C",
    "src": "PLEIADES-FARS;SUMNER1986",
-   "note": "Barrington Atlas settlement, Classical (Achaemenid) period (FT). Sumner 1986 9-10, 22-23 identifies it with the PF toponym Tukrash (RGTC Tikri(š)); the 10th-c. CE dam at this spot is blocked. Population is a C estimate from Sumner's <=44,000 over 39 sites (mean ~1,100).",
+   "note": "Barrington Atlas settlement, Classical (Achaemenid) period (FT). Sumner 1986 9-10, 22-23 identifies it with the PF toponym Tukrash (RGTC Tikri(\u0161)); the 10th-c. CE dam at this spot is blocked. Population is a C estimate from Sumner's <=44,000 over 39 sites (mean ~1,100).",
    "date_range": "Achaemenid",
    "present_467": true,
    "xy": [
@@ -2452,7 +2460,8 @@
    ],
    "unc_m": 1500,
    "pop_est": 1500,
-   "pop_tier": "C"
+   "pop_tier": "C",
+   "chrono": "village_tukrash"
   },
   {
    "id": "village_rakkan",
@@ -2473,7 +2482,8 @@
    ],
    "unc_m": 3000,
    "pop_est": 1000,
-   "pop_tier": "C"
+   "pop_tier": "C",
+   "chrono": "village_rakkan"
   },
   {
    "id": "villages_unlocated",
@@ -2495,7 +2505,8 @@
      3000
     ],
     "tier": "C"
-   }
+   },
+   "chrono": "villages_unlocated"
   },
   {
    "id": "quarry_sivand",
@@ -2514,7 +2525,8 @@
     30.07921,
     52.92087
    ],
-   "unc_m": 100
+   "unc_m": 100,
+   "chrono": "quarry_sivand"
   },
   {
    "id": "quarry_majdabad",
@@ -2533,7 +2545,8 @@
     29.86377,
     52.69237
    ],
-   "unc_m": 3000
+   "unc_m": 3000,
+   "chrono": "quarry_majdabad"
   },
   {
    "id": "qadamgah",
@@ -2552,7 +2565,8 @@
     29.6883,
     53.13156
    ],
-   "unc_m": 3000
+   "unc_m": 3000,
+   "chrono": "qadamgah"
   },
   {
    "id": "nr_darius_tomb",
@@ -2571,7 +2585,8 @@
     29.98913,
     52.87462
    ],
-   "unc_m": 20
+   "unc_m": 20,
+   "chrono": "nr_darius"
   },
   {
    "id": "nr_xerxes_tomb",
@@ -2581,8 +2596,9 @@
    "src": "LIVIUS-NR;WP-NR",
    "note": "Uninscribed; attribution by elimination (LIVIUS-NR, B). Kings prepared tombs in life (Darius: Ctesias via WP-NR, B), so Xerxes' tomb may be cut or being cut in 467 (C). chronology.json currently marks all later tombs absent: see Q-047.",
    "date_range": "c. 486-465 BCE?",
-   "present_467": null,
-   "unc_m": 30
+   "present_467": true,
+   "unc_m": 30,
+   "chrono": "nr_xerxes_tomb"
   },
   {
    "id": "nr_kaba",
@@ -2601,7 +2617,8 @@
     29.98804,
     52.87452
    ],
-   "unc_m": 20
+   "unc_m": 20,
+   "chrono": "nr_kaba"
   },
   {
    "id": "nr_elamite_relief",
@@ -2620,7 +2637,8 @@
     29.9887,
     52.8745
    ],
-   "unc_m": 50
+   "unc_m": 50,
+   "chrono": "nr_elamite_relief"
   },
   {
    "id": "istakhr",
@@ -2639,7 +2657,8 @@
     29.98083,
     52.90944
    ],
-   "unc_m": 200
+   "unc_m": 200,
+   "chrono": "istakhr"
   },
   {
    "id": "naqsh_e_rajab",
@@ -2658,7 +2677,8 @@
     29.96649,
     52.88704
    ],
-   "unc_m": 100
+   "unc_m": 100,
+   "chrono": "naqsh_e_rajab"
   },
   {
    "id": "darre_ye_barre",
@@ -2677,7 +2697,8 @@
     29.96008,
     52.91536
    ],
-   "unc_m": 3000
+   "unc_m": 3000,
+   "chrono": "darre_ye_barre"
   },
   {
    "id": "hajjiabad",
@@ -2696,7 +2717,8 @@
     29.97635,
     52.92621
    ],
-   "unc_m": 3000
+   "unc_m": 3000,
+   "chrono": "hajjiabad"
   },
   {
    "id": "maqsudabad",
@@ -2715,7 +2737,8 @@
     29.80493,
     52.98177
    ],
-   "unc_m": 3000
+   "unc_m": 3000,
+   "chrono": "maqsudabad"
   },
   {
    "id": "kuh_i_ayyub",
@@ -2734,7 +2757,8 @@
     29.98181,
     52.6665
    ],
-   "unc_m": 3000
+   "unc_m": 3000,
+   "chrono": "kuh_i_ayyub"
   },
   {
    "id": "kuh_i_shahrak",
@@ -2753,7 +2777,8 @@
     30.14414,
     52.53267
    ],
-   "unc_m": 3000
+   "unc_m": 3000,
+   "chrono": "kuh_i_shahrak"
   },
   {
    "id": "fields_irrigated_pulvar",
@@ -3216,7 +3241,8 @@
     "emmer_spelt": 0.1,
     "sesame": 0.05,
     "fallow": 0.2
-   }
+   },
+   "chrono": "fields_irrigated_pulvar"
   },
   {
    "id": "fields_irrigated_kur",
@@ -3743,7 +3769,8 @@
     "emmer_spelt": 0.1,
     "sesame": 0.05,
     "fallow": 0.2
-   }
+   },
+   "chrono": "fields_irrigated_kur"
   },
   {
    "id": "fields_rainfed",
@@ -3761,7 +3788,8 @@
      "barley": 0.4,
      "fallow_grazing": 0.6
     }
-   }
+   },
+   "chrono": "fields_rainfed"
   },
   {
    "id": "orchards_gardens",
@@ -3774,7 +3802,8 @@
    "present_467": true,
    "rule": {
     "ring_m": 300
-   }
+   },
+   "chrono": "orchards_gardens"
   },
   {
    "id": "steppe",
@@ -3790,7 +3819,8 @@
      1660,
      1900
     ]
-   }
+   },
+   "chrono": "steppe"
   },
   {
    "id": "woodland",
@@ -3808,7 +3838,8 @@
      0.1,
      0.3
     ]
-   }
+   },
+   "chrono": "woodland"
   },
   {
    "id": "horizon_check",
@@ -4180,7 +4211,8 @@
      "beyond_h": 3060,
      "beyond_visible": false
     }
-   ]
+   ],
+   "chrono": "horizon_check"
   },
   {
    "id": "mountain_kuh_e_rahmat",
@@ -4200,7 +4232,8 @@
     52.9929
    ],
    "unc_m": 50,
-   "summit_asl": 2554
+   "summit_asl": 2554,
+   "chrono": "mountain_kuh_e_rahmat"
   },
   {
    "id": "mountain_kuh_e_hossein",
@@ -4220,7 +4253,8 @@
     52.90628
    ],
    "unc_m": 50,
-   "summit_asl": 2665
+   "summit_asl": 2665,
+   "chrono": "mountain_kuh_e_hossein"
   }
  ]
 }
