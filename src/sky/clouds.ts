@@ -9,6 +9,7 @@
 import * as THREE from 'three/webgpu';
 import { Fn, uniform, positionWorld, cameraPosition, normalize, vec3, vec4, float, Loop, int, max, min, exp, mix, smoothstep, dot, pow, clamp, If, Break, texture, screenCoordinate, fract, floor, mod, sin, vec2 } from 'three/tsl';
 import { cloudNoiseVolume, cloudNoiseAtlas } from './cloudNoise';
+import type { Air } from './aerial';
 
 /** tileable noise volume shared by all cloud layers, flattened into a 2-D atlas (built once, ~0.5 s; only at qualities
  *  that draw clouds) */
@@ -36,22 +37,21 @@ export class VolumetricClouds {
   readonly sunColor = uniform(new THREE.Color(1, 1, 1));
   readonly sunColorTop = uniform(new THREE.Color(1, 1, 1));
   readonly ambient = uniform(new THREE.Color(0.5, 0.6, 0.8)); // skylight on the clouds
-  readonly haze = uniform(new THREE.Color(0.7, 0.75, 0.8));   // horizon haze colour
   readonly time = uniform(0);
   readonly wind = uniform(new THREE.Vector2(3, 0));          // m/s, world x/z
   /** the approaching rain cell (world x, world z, radius m, strength 0..1; strength 0 = none): the cloud above it is
    *  thicker and taller, so the curtain hangs from a darker base (the light march does the darkening). C (session 3). */
   readonly cell = uniform(new THREE.Vector4(0, 0, 1, 0));
-  /** the scene fog density (FogExp2, 1/m): distant cloud fades into the horizon haze through the same air as the terrain */
-  readonly fogDensity = uniform(0.000025);
-  constructor(radius: number, quality: string) {
+  /** `air`: the medium between the eye and the cloud (aerial.ts, D-156): the terrain's aerial perspective, so distant cloud
+   *  sinks into the same haze as the ranges below it (D-064: one air) */
+  constructor(radius: number, quality: string, readonly air: Air) {
     const [N, NL] = STEPS[quality] ?? STEPS.high;
     // drawn like the sky, stars and moon: in the opaque pass by render order (−7, after them), no depth test or write, so
     // every piece of geometry drawn later covers it. (As a transparent material with depthTest off it was drawn AFTER the
     // geometry and laid the cloud deck over walls and mountains above the horizon.) Custom blending keeps the alpha, which
     // a non-transparent NormalBlending material would force to 1.
     const m = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, transparent: false, blending: THREE.CustomBlending, blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendEquation: THREE.AddEquation, depthTest: false, depthWrite: false, fog: false });
-    const cov = this.coverage, sd = this.sunDir, sc = this.sunColor, scTop = this.sunColorTop, amb = this.ambient, hz = this.haze, tm = this.time, wd = this.wind, cell = this.cell;
+    const cov = this.coverage, sd = this.sunDir, sc = this.sunColor, scTop = this.sunColorTop, amb = this.ambient, tm = this.time, wd = this.wind, cell = this.cell;
     const atlas = N > 0 ? noiseAtlas() : null;
     /** trilinear sample of the tileable volume at uvw (any real numbers; period 1): bilinear inside two adjacent slice
      *  tiles of the atlas, then a linear blend between them */
@@ -112,9 +112,13 @@ export class VolumetricClouds {
           });
           If(T.lessThan(0.02), () => { Break(); });
         });
-        // aerial perspective: distant cloud fades into the horizon haze
-        const td = t0.mul(this.fogDensity), fade = exp(td.mul(td).negate()); // the scene fog's own law and density (FogExp2): the same air as the terrain (D-064)
-        out.assign(vec4(mix(hz, col.div(max(float(1).sub(T), 0.001)), fade), float(1).sub(T).mul(fade)));
+        // aerial perspective (D-156; D-064: one air): the air between the eye and the cloud base attenuates the cloud's light
+        // (T_air per channel) and adds its own in-scatter in front of it (J (1 − T_air), J in the ray's direction from the
+        // sun); the dome behind already carries the in-scatter of the whole ray, so with alpha = the cloud's opacity α:
+        //   out = α (J (1 − T_air) + T_air · L_cloud / α) + (1 − α) · dome
+        const tAir = exp(air.opticalDepthNode(cameraPosition, cameraPosition.add(dir.mul(t0))).negate());
+        const alpha = float(1).sub(T);
+        out.assign(vec4(air.jNode(dir).mul(vec3(1).sub(tAir)).add(tAir.mul(col.div(max(alpha, 0.001)))), alpha));
       });
       return out;
     })();

@@ -17,6 +17,10 @@ import { skyGain, fireLightScale } from './exposure';
 import { CLOUD_BASE, CLOUD_TOP } from './clouds';
 import { localCoverageUniform, localWeatherFactor } from './cloudCover';
 import coverTable from '../data/cloud_cover_table.json';
+import { HorizonMap, HORIZON_LAYOUT, loadHorizonMap } from '../terrain/horizonMap';
+import { horizonAtlasTexture, horizonVisibility, type HorizonAtlases } from '../terrain/horizonShadow';
+import { Air, AIR_ALBEDO } from './aerial';
+import { domeRadiance } from './horizon';
 
 export interface SkyState { sunDir: THREE.Vector3; sunAlt: number; moonDir: THREE.Vector3; moonAlt: number; moonFraction: number; daylight: number; nightFactor: number }
 
@@ -72,6 +76,21 @@ export class SkySystem {
   readonly milkyWay: THREE.Mesh;
   private uGal = uniform(new THREE.Matrix3()); // world direction → galactic (l, b) unit vector, per epoch and sidereal time
   private uMW = uniform(0); // night × moon × cloud visibility of faint diffuse light
+  // ---- terrain horizon (D-156): the sun and the moon set behind the ranges ---------------------------------------------
+  /** the baked skyline map (null until loaded, or when absent: then nothing is shadowed by distant terrain) */
+  horizonMap: HorizonMap | null = null;
+  /** per-body RGBA16F atlases for the current azimuth (horizonShadow.ts) and the azimuth each was baked for */
+  private hzSun = horizonAtlasTexture(HORIZON_LAYOUT.levels, 'lines'); private hzRef = horizonAtlasTexture(HORIZON_LAYOUT.levels, 'ref');
+  private hzMoon = horizonAtlasTexture(HORIZON_LAYOUT.levels, 'chord');
+  private hzSunAz = NaN; private hzMoonAz = NaN;
+  private uSunAlt = uniform(45); private uMoonAlt = uniform(-10);
+  private uSunDirW = uniform(new THREE.Vector3(0, 1, 0)); private uMoonDirW = uniform(new THREE.Vector3(0, -1, 0));
+  /** the terrain horizon's visibility of the sun's disc at the eye (0..1; 1 without a map); the eye's adaptation and the
+   *  ground bounce use it here; main.ts's exposure and the probes' eye test can read it (sunVisibilityAt for any point) */
+  eyeSunVisibility = 1;
+  private sunAz = 0; private moonAz = 0;
+  /** the air: aerial perspective (scene.fogNode), the clouds' fade and the in-scatter table (aerial.ts, D-156) */
+  readonly air = new Air();
   constructor(readonly scene: THREE.Scene, shadowMapSize: number, quality = 'high') {
     // Milky Way (C structure, A position): galactic coordinates from the fixed J2000→galactic rotation (IAU 1958 / Hipparcos
     // matrix) after the epoch's precession and Earth rotation (the same astronomy-engine matrix as the stars). Brightness:
@@ -139,6 +158,17 @@ export class SkySystem {
     // ?sbias=0, D-146). -0.00003 is 6 cm in the nearest cascade (24 cm in the farthest); acne is held by the normal bias.
     this.sun.shadow.bias = -0.00003; this.sun.shadow.normalBias = 0.06;
     scene.add(this.sun, this.sun.target, this.moonLight, this.moonLight.target, this.hemi);
+    // terrain horizon (D-156): the sun's and the moon's light at a shaded point is the light's colour × intensity × the
+    // fraction of the disc above the terrain's skyline there (horizonShadow.ts). As the light's colorNode it reaches every
+    // lit material at every quality, with or without the cascaded shadow maps (which it multiplies).
+    const sunA: HorizonAtlases = { levels: HORIZON_LAYOUT.levels, tex: this.hzSun, kind: 'lines', ref: this.hzRef };
+    const moonA: HorizonAtlases = { levels: HORIZON_LAYOUT.levels, tex: this.hzMoon, kind: 'chord' };
+    const sunC = new THREE.Color(), moonC = new THREE.Color();
+    (this.sun as any).colorNode = uniform(sunC).onRenderUpdate(() => sunC.copy(this.sun.color).multiplyScalar(this.sun.intensity)).mul(horizonVisibility(sunA, this.uSunAlt, this.uSunDirW));
+    (this.moonLight as any).colorNode = uniform(moonC).onRenderUpdate(() => moonC.copy(this.moonLight.color).multiplyScalar(this.moonLight.intensity)).mul(horizonVisibility(moonA, this.uMoonAlt, this.uMoonDirW));
+    // aerial perspective (D-156): three r186 uses scene.fogNode ahead of scene.fog (main.ts keeps its FogExp2 for the colour
+    // that the rain shafts and the rivers read); the air's sun weighting reads the coarse horizon levels
+    (scene as any).fogNode = this.air.fogNode(p => horizonVisibility(sunA, this.uSunAlt, this.uSunDirW, p, [1, 2]));
     // moon: disc of 0.52° apparent diameter, shaded by the true sun direction (phase)
     const moonR = Math.tan((0.26 * Math.PI) / 180) * DOME * 0.9;
     const mm = new THREE.MeshBasicNodeMaterial({ fog: false, depthWrite: false, depthTest: false });
@@ -158,10 +188,28 @@ export class SkySystem {
     this.stars.frustumCulled = false; this.stars.renderOrder = -9;
     this.stars.userData = { tier: 'A', src: 'HYG41', note: 'HYG v4.1 positions + proper motion to 467 BCE, precessed (astronomy-engine)' };
     scene.add(this.stars);
-    this.clouds = new VolumetricClouds(DOME * 0.85, quality); scene.add(this.clouds.mesh);
+    this.clouds = new VolumetricClouds(DOME * 0.85, quality, this.air); scene.add(this.clouds.mesh);
   }
 
+  /** install the terrain horizon map (D-156): the reference-height atlas once; the per-body atlases on the next update */
+  setHorizonMap(m: HorizonMap | null) {
+    const same = !!m && m.levels.length === HORIZON_LAYOUT.levels.length && m.levels.every((L, i) => { const D = HORIZON_LAYOUT.levels[i]; return L.n === D.n && L.half === D.half && L.flat === !!D.flat && L.cx === (D.cx ?? 0) && L.cz === (D.cz ?? 0); });
+    if (m && !same) console.warn('[horizon] the baked map\'s levels differ from HORIZON_LAYOUT (re-run tools/build_horizon.ts): not used');
+    this.horizonMap = same ? m : null; this.hzSunAz = this.hzMoonAz = NaN;
+    if (this.horizonMap) { this.horizonMap.refAtlas(this.hzRef.image.data as Uint16Array); this.hzRef.needsUpdate = true; }
+  }
+  /** the terrain horizon's visibility of the sun's disc at a world point (1 without a map) */
+  sunVisibilityAt(x: number, y: number, z: number): number {
+    return this.horizonMap ? this.horizonMap.visibility(x, y, z, this.state.sunAlt, this.sunAz, this.state.sunDir) : 1;
+  }
+
+  /** the stars (HYG) and, alongside, the terrain horizon map (D-156) */
   async loadStars(base = '') {
+    const hz = loadHorizonMap(base || '/').then(m => this.setHorizonMap(m));
+    await this.loadStarData(base);
+    await hz;
+  }
+  private async loadStarData(base: string) {
     const meta = await (await fetch(`${base}generated/stars.json`)).json();
     this.starData = new Float32Array(await (await fetch(`${base}generated/stars_hyg41_m65.f32`)).arrayBuffer());
     this.starCount = meta.count;
@@ -203,6 +251,18 @@ export class SkySystem {
     const sd = azAltToWorld(s.azimuth, s.altitude), md = azAltToWorld(mo.azimuth, mo.altitude);
     this.state.sunDir.set(sd[0], sd[1], sd[2]); this.state.sunAlt = s.altitude;
     this.state.moonDir.set(md[0], md[1], md[2]); this.state.moonAlt = mo.altitude; this.state.moonFraction = ph.fraction;
+    // terrain horizon (D-156): re-bake the sun's atlas after 0.1° of azimuth (the moon's after 0.2°, while it is up); the
+    // eye's own visibility of the sun and the moon (the adaptation and the ground bounce below)
+    this.sunAz = s.azimuth; this.moonAz = mo.azimuth;
+    this.uSunAlt.value = s.altitude; this.uSunDirW.value.copy(this.state.sunDir); this.uMoonAlt.value = mo.altitude; this.uMoonDirW.value.copy(this.state.moonDir);
+    let eyeMoon = 1;
+    { const H = this.horizonMap, dAz = (a: number, b: number) => Math.abs(((a - b + 540) % 360) - 180);
+      if (H) {
+        if (!(dAz(s.azimuth, this.hzSunAz) < 0.1)) { H.bakeAtlas(s.azimuth, this.hzSun.image.data as Uint16Array, true); this.hzSun.needsUpdate = true; this.hzSunAz = s.azimuth; }
+        if (mo.altitude > -2 && !(dAz(mo.azimuth, this.hzMoonAz) < 0.2)) { H.bakeAtlas(mo.azimuth, this.hzMoon.image.data as Uint16Array); this.hzMoon.needsUpdate = true; this.hzMoonAz = mo.azimuth; }
+        this.eyeSunVisibility = H.visibility(camPos.x, camPos.y, camPos.z, s.altitude, s.azimuth, this.state.sunDir);
+        eyeMoon = H.visibility(camPos.x, camPos.y, camPos.z, mo.altitude, mo.azimuth, this.state.moonDir, true);
+      } else this.eyeSunVisibility = 1; }
     const day = smoothstepJS(-6, 6, s.altitude); // civil twilight to full day
     const night = 1 - smoothstepJS(-18, -4, s.altitude); // astronomical darkness → 1
     this.state.daylight = day; this.state.nightFactor = night;
@@ -227,15 +287,19 @@ export class SkySystem {
     const ml = moonLux(elongationFromFraction(ph.fraction), mo.altitude);
     const moonN = ml.normal * (1 - 0.8 * cloudCover);
     const skyL = (skyLux(alt) + ml.sky + NIGHT_LUX) * (1 - 0.3 * cloudCover);
-    this.lux = sunN * sinA + skyL + moonN * sinM; this.skyLux = skyL;
+    // at the eye: the direct sun and moon only where the terrain's skyline lets them through (D-156: in Kuh-e Rahmat's dawn
+    // shadow the eye adapts to the skylight)
+    const vS = this.eyeSunVisibility, vM = eyeMoon;
+    this.lux = sunN * sinA * vS + skyL + moonN * sinM * vM; this.skyLux = skyL;
     const sunI = sunN * REN_PER_LUX_SUN, hemiI = skyL * REN_PER_LUX_SKY, moonI = moonN * REN_PER_LUX_SUN;
-    this.gain = skyGain(sunI * sinA + hemiI * 0.8 + moonI * 0.3, this.lux, skyL); // the exposure estimate's weights (main.ts)
+    this.gain = skyGain(sunI * sinA * vS + hemiI * 0.8 + moonI * 0.3 * vM, this.lux, skyL); // the exposure estimate's weights (main.ts)
     const G = this.gain; this.fireScale = fireLightScale(G);
     // ---- the physical atmosphere (D-116): sun colour, cloud light at the cloud's height, twilight dome ----------------------
     // aerosol depth in steps of 0.01, each model built once (~0.3 s) and kept; with the sun above 15° only the sun's colour
     // uses it, so a haze change waits until the sun is low (no rebuild hitches through a dusty day)
     const tau = Math.round(aerosolTauFor(k) / 0.01) * 0.01;
-    if (!this.atmo || (Math.abs(this.atmo.aerosolTau - tau) > 1e-6 && (alt < 15 || this.atmos.has(tau)))) {
+    // (by day the sky itself is the table since D-156: a haze change of 0.03 or more also rebuilds by day, a 0.3 s step)
+    if (!this.atmo || (Math.abs(this.atmo.aerosolTau - tau) > 1e-6 && (alt < 15 || this.atmos.has(tau) || Math.abs(this.atmo.aerosolTau - tau) >= 0.03))) {
       let a = this.atmos.get(tau); if (!a) { a = new Atmosphere(tau); this.atmos.set(tau, a); if (this.atmos.size > 12) this.atmos.delete(this.atmos.keys().next().value!); }
       this.atmo = a;
     }
@@ -270,8 +334,9 @@ export class SkySystem {
     // albedo × (direct sun and moon on the horizontal + the skylight), in the sky term's units: a shaded wall on a clear
     // day gets about as much from the sunlit ground as from the sky (it was a fixed dark brown, 0.13 of the sky term,
     // so shade outdoors ran ~1.4× too dark and undersides ~4× too dark; the probes, inside, already bake this bounce)
+    // (the ground around the eye is sunlit only where the terrain horizon lets the sun through: D-156)
     { const I = Math.max(this.hemi.intensity, 1e-12), hc = this.hemi.color, sc = this.sun.color, mc = this.moonLight.color;
-      const sunH = (this.sun.visible ? this.sun.intensity : 0) * sinA * GROUND_SUNLIT, moonH = this.moonLight.intensity * sinM * GROUND_SUNLIT;
+      const sunH = (this.sun.visible ? this.sun.intensity : 0) * sinA * GROUND_SUNLIT * vS, moonH = this.moonLight.intensity * sinM * GROUND_SUNLIT * vM;
       this.hemi.groundColor.setRGB(GROUND_RHO[0] * (hc.r + (sc.r * sunH + mc.r * moonH) / I), GROUND_RHO[1] * (hc.g + (sc.g * sunH + mc.g * moonH) / I), GROUND_RHO[2] * (hc.b + (sc.b * sunH + mc.b * moonH) / I)); }
     // volumetric clouds: cover, light, wind drift (the wind blows FROM windDir: clouds move the opposite way). Sunlight at
     // the cloud base and top: the spherical atmosphere's transmittance from those heights, so low sun lights the deck from
@@ -293,8 +358,14 @@ export class SkySystem {
       const disc = Math.min(30000, this.sun.visible ? this.sun.intensity / (Math.PI * SUN_ANGULAR_RADIUS * SUN_ANGULAR_RADIUS) : 0);
       this.uDisc.value.copy(this.sun.color).multiplyScalar(disc); this.uDW.value = tw ? w * (1 - night) : 0;
       const hs = Math.hypot(this.state.sunDir.x, this.state.sunDir.z) || 1; this.uSunH.value.set(this.state.sunDir.x / hs, this.state.sunDir.z / hs);
-      this.uSunDir3.value.copy(this.state.sunDir); }
-    C.haze.value.copy(this.horizon);
+      this.uSunDir3.value.copy(this.state.sunDir);
+      // the air's in-scatter (D-156): J(φ) = the calibrated dome 1.5° up at azimuth φ from the sun; its ambient part is the
+      // air's albedo × the mean radiance of the sky above and the sunlit ground below (the hemisphere light, D-153)
+      const hI = this.hemi.intensity, gc = this.hemi.groundColor, sv: [number, number, number] = [this.state.sunDir.x, this.state.sunDir.y, this.state.sunDir.z];
+      const amb: [number, number, number] = [0, 1, 2].map(i => (AIR_ALBEDO * 0.5 * hI * ([hc.r, hc.g, hc.b][i] + [gc.r, gc.g, gc.b][i])) / Math.PI) as [number, number, number];
+      const twv = tw?.view ?? null;
+      this.air.setInscatter(d => domeRadiance(d, sv, P, cal.kP, cal.kT, twv), sv, amb);
+      this.air.vEye.value = this.eyeSunVisibility; this.air.sunUp.value = this.sun.visible ? smoothstepJS(-0.5, 0.5, alt) : 0; }
     if (wind) { const a = ((wind.fromDeg + 180) * Math.PI) / 180; C.wind.value.set(Math.sin(a) * wind.ms * 2.5, -Math.cos(a) * wind.ms * 2.5); C.time.value = wind.tSeconds; } // winds aloft ~2.5 × surface (C)
     // cover over THIS observer (D-064): the weather field scales the cover by 0.6–1.4 across its tile, so the uniform is
     // solved for the drifted field around the camera (recomputed when the observer or the field has moved > 500 m)

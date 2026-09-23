@@ -63,13 +63,13 @@ const XYZ_TO_SRGB = [3.2406, -1.5372, -0.4986, -0.9689, 1.8758, 0.0415, 0.0557, 
 
 /** number of spectral bins (40 nm, 400–720 nm) */
 export const NL = 8;
-const LAM = Array.from({ length: NL }, (_, i) => 420 + 40 * i); // bin centres (nm)
+export const LAM = Array.from({ length: NL }, (_, i) => 420 + 40 * i); // bin centres (nm)
 const RAY = LAM.map(l => 1.24062e-6 * Math.pow(l / 1000, -4));
 const OZ = LAM.map((_, i) => { let s = 0; for (let k = 0; k < 4; k++) s += O3_XS[Math.min(O3_XS.length - 1, i * 4 + k)]; return (s / 4) * O3_MAX_DENSITY; });
 /** bin → linear sRGB weights: radiance factor per unit solar irradiance → RGB, white-balanced so that the sun above the
  *  atmosphere (all bins at 1) is (1, 1, 1), as Bruneton's demo does (a ~5800 K balance, close to a camera's daylight
  *  setting). The zenith sun at the ground then comes out (1, 0.92, 0.82): the session-3 noon colour (1, 0.92, 0.84). */
-const BIN_RGB: number[] = (() => {
+export const BIN_RGB: number[] = (() => {
   const xyz = new Array(NL * 3).fill(0);
   for (let i = 0; i < NL; i++) for (let k = 0; k < 8; k++) { // 5 nm samples in the 40 nm bin
     const l = 400 + 40 * i + 5 * k, c = (l - 400) / 5, s = SOLAR[Math.min(SOLAR.length - 1, Math.floor((l - 400) / 10))];

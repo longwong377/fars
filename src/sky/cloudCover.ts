@@ -6,6 +6,7 @@
 // runtime, so the weather's cloud fraction becomes the fraction of sky the layer actually covers (as vertical columns;
 // the observed sky cover includes cloud sides seen near the horizon and is somewhat larger, C).
 import { cloudNoiseVolume } from './cloudNoise';
+import { airOptics, opticalDepth, type AirOptics } from './aerial';
 
 export const CLOUD = { base: 1500, top: 3600, baseTile: 7000, weatherTile: 46000, detailTile: 1400, n: 64 } as const;
 const smooth = (a: number, b: number, x: number) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -53,10 +54,16 @@ export function columnCover(cov: number, grid = 64, steps = 32, fixedC?: number)
 /** Fraction of the sky DOME an observer sees covered (session 4, D-145), for a fixed effective cover c: rays uniform in
  *  solid angle above the shader's horizon cut (dir.y > 0.015), marched as the shader marches them (t0 = base / dir.y,
  *  t1 = min(top / dir.y, t0 + 22 km), `steps` samples) from `obs` observer positions spread over one weather tile; a ray is
- *  covered when its opacity, faded by the scene fog's law (FogExp2, density `fog`), exceeds one half. This is how cloud
+ *  covered when its opacity, times the transmittance of the air between the eye and the cloud base (the aerial perspective,
+ *  aerial.ts, D-156: the shader weighs the cloud's own light by it), exceeds one half. This is how cloud
  *  cover is observed (the fraction of the celestial dome, in oktas): near the horizon the sides of many clouds overlap,
  *  so the dome cover is far larger than the vertical-column cover for the same layer. */
-export function domeCover(c: number, obs = 12, dirs = 24, steps = 32, fog = 0.00002): number {
+/** the clear-day air (the weather's clear-day haze 0.25) the calibration is measured through */
+export const CLEAR_AIR = airOptics({ haze: 0.25 });
+/** transmittance (550 nm) of the air from an eye on the Terrace (1,626.6 m asl) to the cloud base along a ray of
+ *  elevation sine `sy` (the shader's fade, D-156) */
+export const airToBase = (sy: number, air: AirOptics = CLEAR_AIR) => { const z0 = 1626.6; return Math.exp(-opticalDepth(air, z0, z0 + CLOUD.base, CLOUD.base / sy)[1]); };
+export function domeCover(c: number, obs = 12, dirs = 24, steps = 32, air: AirOptics = CLEAR_AIR): number {
   let covered = 0, n = 0; const s0 = 0.015;
   for (let o = 0; o < obs; o++) {
     const ox = ((o * 0.618034) % 1) * CLOUD.weatherTile, oz = ((o * 0.414214 + 0.3) % 1) * CLOUD.weatherTile;
@@ -65,21 +72,21 @@ export function domeCover(c: number, obs = 12, dirs = 24, steps = 32, fog = 0.00
       const dx = ch * Math.cos(az), dz = ch * Math.sin(az);
       const t0 = CLOUD.base / sy, t1 = Math.min(CLOUD.top / sy, t0 + 22000), dt = (t1 - t0) / steps;
       let tau = 0; for (let k = 0; k < steps && tau <= 6; k++) { const t = t0 + (k + 0.5) * dt; tau += density(ox + dx * t, CLOUD.base + (sy * t - CLOUD.base), oz + dz * t, 0, c) * dt; }
-      const td = t0 * fog, fade = Math.exp(-td * td); n++;
+      const fade = airToBase(sy, air); n++;
       if ((1 - Math.exp(-tau)) * fade > 0.5) covered++;
     }
   }
   return covered / n;
 }
 /** dome cover seen by ONE observer at world (x, z) for the shader's coverage uniform `u` (the weather field varying) */
-export function domeCoverAt(u: number, x: number, z: number, dirs = 20, steps = 24, fog = 0.00002): number {
+export function domeCoverAt(u: number, x: number, z: number, dirs = 20, steps = 24, air: AirOptics = CLEAR_AIR): number {
   let covered = 0, n = 0; const s0 = 0.015;
   for (let i = 0; i < dirs; i++) for (let j = 0; j < dirs; j++) {
     const sy = s0 + (1 - s0) * ((i + 0.5) / dirs), ch = Math.sqrt(1 - sy * sy), az = ((j + 0.5 + (i % 2) * 0.5) / dirs) * 2 * Math.PI;
     const dx = ch * Math.cos(az), dz = ch * Math.sin(az);
     const t0 = CLOUD.base / sy, t1 = Math.min(CLOUD.top / sy, t0 + 22000), dt = (t1 - t0) / steps;
     let tau = 0; for (let k = 0; k < steps && tau <= 6; k++) { const t = t0 + (k + 0.5) * dt; tau += density(x + dx * t, sy * t, z + dz * t, u) * dt; }
-    const td = t0 * fog; n++; if ((1 - Math.exp(-tau)) * Math.exp(-td * td) > 0.5) covered++;
+    n++; if ((1 - Math.exp(-tau)) * airToBase(sy, air) > 0.5) covered++;
   }
   return covered / n;
 }

@@ -73,7 +73,7 @@ async function boot() {
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0xb9c3cc, 0.00002);
+  scene.fog = new THREE.FogExp2(0xb9c3cc, 0.00002); // not drawn: the SkySystem sets scene.fogNode (aerial perspective, D-156); kept for its colour (the horizon radiance), read by the rain shafts and the rivers
   const camera = new THREE.PerspectiveCamera(settings.fov, innerWidth / innerHeight, 0.05, 110000); // far ring corners lie 101 km out
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight, false); });
 
@@ -312,8 +312,7 @@ async function boot() {
     if (P.get('hemi')) sky.hemi.intensity *= +P.get('hemi')!; if (P.has('noshadow')) sky.sun.castShadow = false;
     if (P.has('nosun')) sky.sun.intensity = 0; if (P.get('sbias')) sky.sun.shadow.bias = +P.get('sbias')!; // debug (diagnostic renders)
     if (scene.fog) (scene.fog as THREE.FogExp2).color.copy(sky.horizon); // the distance converges to the sky at the horizon (D-060)
-    if (scene.fog) (scene.fog as THREE.FogExp2).density = 0.000012 + 0.00012 * cond.haze * cond.haze + 0.004 * cond.mist * Math.max(0, 1 - (camera.position.y - terrain.heightAt(camera.position.x, camera.position.z)) / 40);
-    if (scene.fog) sky.clouds.fogDensity.value = (scene.fog as THREE.FogExp2).density; // clouds fade through the same air (D-064)
+    sky.air.setWeather({ haze: cond.haze, dust: cond.dust, mist: cond.mist, rain: cond.rain, snow: cond.snowFall }); // the air from the weather: terrain, clouds and ranges fade through it (D-156, D-064)
     // eye adaptation (C): exposure follows an estimate of the illuminance at the eye — sun + skylight scaled by the visible
     // sky fraction (upward rays against the architecture, every 0.25 s) + moon + nearby fires — with asymmetric time constants
     adaptT += dt;

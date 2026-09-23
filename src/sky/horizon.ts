@@ -82,11 +82,15 @@ export function skyIrradianceY(sun: V3, p: SkyParams): number {
 /** The twilight part of the dome (D-116): a physical sky-view table for the current sun (atmosphere.ts) and its weight
  *  against the Preetham dome (1 at and below the blend's lower end, 0 by day). */
 export interface TwilightSky { view: SkyView; w: number }
-/** weight of the physical twilight sky against the Preetham dome for a sun at apparent altitude h (deg): the physical
- *  model below +2° (where Preetham has no Earth's shadow and wrong colours), Preetham above +10° (as calibrated in D-060),
- *  a smoothstep between (C) */
-export function twilightWeight(hDeg: number): number { const t = Math.min(1, Math.max(0, (hDeg - TW_LO) / (TW_HI - TW_LO))); return 1 - t * t * (3 - 2 * t); }
-export const TW_LO = 2, TW_HI = 10;
+/** weight of the physical sky (the sky-view table) against the Preetham dome for a sun at apparent altitude h (deg).
+ *  D-116 used the physical model below +2° and Preetham above +10°. Since D-156 the physical sky serves at every
+ *  altitude: calibrated to the same skylight irradiance (D-060), it matches the CIE standard clear sky (ISO 15469 type 12)
+ *  away from the sun within ~20–30 % where Preetham is ~2× too dark and oversaturated (0.9 vs 0.65), and Preetham's
+ *  aureole near a low sun is 4–15× too strong (tools/dev/sky_compare.ts). The Preetham dome stays for the night sky
+ *  (the night factor blends it in at scale 1, D-047). */
+export function twilightWeight(_hDeg: number): number { return 1; }
+/** the sky-view table is built up to this sun altitude (deg): all of them */
+export const TW_LO = 2, TW_HI = 90;
 
 /** Calibration of the dome against the scene's skylight (session 3, D-060; twilight part D-116). The hemisphere light
  *  stands for the sky's irradiance on a horizontal surface (three: diffuse radiance = albedo · I · colour / π), so the
