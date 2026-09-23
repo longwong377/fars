@@ -1,1 +1,1 @@
-bevels: 5438 of 26616 edges of 2222 bevelable boxes are free arrises; arch triangles 27492 → 44734 (+17242); buildMeshes 1402 ms
+bevels: 5438 of 26616 edges of 2222 bevelable boxes are free arrises; arch triangles 27492 → 44734 (+17242); buildMeshes 1299 ms

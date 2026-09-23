@@ -65,10 +65,10 @@
 ## Phase 8 — Language, speech, music, translation layer, map, Now view, photo mode
 - [~] Translation layer: subtitles, inscriptions (transliteration + glosses; translations need NEEDS #14), map (M; Z: town and plain scales), chronicle (J; visitor log)
 - [x] Lexicons in five languages (Babylonian, Ionic Greek new), 73 lines, 372 voice clips (D-105..D-109); listening test open (H8)
-## Session 4 (in progress)
+## Session 4 (ended; HANDOFF.md)
 - [x] Interiors adapt (D-141); shadow bias (D-146); dome cover (D-145); detail at 1 m (D-147); block tone (D-148)
 - [x] Probe leaks through thin walls (D-152); ground bounce in the hemisphere light (D-153); herb layer (D-154); probe tints above/below (D-158); frame meter (D-159)
 - [x] Camera rig: page reuse per world state, photographic lenses, reframed moments, WebGL2 forcing, no aiming dot
-- [~] Photoreal triage (REVIEWS/prelim_photoreal_triage.md): atmosphere agent (D-156: horizon shadows, aerial perspective, clouds, light in the air), surfaces agent (D-157: tone, ashlar, bevels, reflections, contact shading), carving agent (D-151), faces agent (D-155), plain agent (D-149), crowd agent (D-143), sim round-4 agent (D-150)
-- [ ] Full high-quality pass (scratchpad job list), §8.2 rubric, independent Phase 3–8 reviews, shadow review round 5, bench × 4
+- [~] Photoreal triage (REVIEWS/prelim_photoreal_triage.md): merged D-149 plain, D-150 sim, D-151 carving, D-155 faces, D-156 atmosphere, D-157 surfaces — all unrendered at high; crowd D-143 NOT merged (handoff/branches/crowd_D143.bundle)
+- [ ] Smoke render (new shaders), crowd bundle merge, soak on the final sim, full high-quality pass (handoff/render_jobs/), §8.2 rubric, independent Phase 3–8 reviews (handoff/review_briefs.md), shadow review round 5 (input generated), bench × 4
 ## Phase 9 — Polish, optimisation, FINAL_REPORT.md
