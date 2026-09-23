@@ -1,31 +1,45 @@
-// Post-processing per quality (brief §8): GI + AO (SSGI, visibility bitmask), temporal AA (TRAA), bloom, AgX tone mapping.
+// Post-processing per quality (brief §8): GI + AO (SSGI, visibility bitmask), screen-space reflections (SSR), temporal AA
+// (TRAA), bloom, AgX tone mapping.
 //
 // Skylight and light probes (D-110 … D-112). Every lit material receives the hemisphere light (the analytic skylight)
 // through ProbeHemisphereLightNode: inside the light-probe volumes of the roofed buildings its irradiance is the light the
 // openings let in (sky, sunlit courts, bounces; src/render/probes), outside them the plain hemisphere light, unchanged.
-// That holds at every quality, since it is in the materials.
+// That holds at every quality, since it is in the materials. The smoother surfaces also reflect the sky environment
+// (envmap.ts, D-157): captured here when the light changes, with a specular occlusion from the same probe field.
 //
-// GI composite (high/ultra; D-012). The scene pass already contains direct light plus that skylight. SSGI returns an AO
-// term and one bounce of screen-space diffuse light from nearby surfaces. They are combined so that each term is counted
-// once:
-//   out = scene − (1 − AO) · skylightDiffuse + albedo · bounce · (1 − w)
+// GI composite (high/ultra; D-012, D-157). The scene pass already contains direct light plus that skylight. SSGI returns an
+// AO term and one bounce of screen-space diffuse light from nearby surfaces. They are combined so that each term is
+// counted once:
+//   out = scene − (1 − AO) · skylightDiffuse + albedo · bounce
 // where skylightDiffuse = albedo · E_sky(p, n) / π is recomputed here from the same uniforms and the same probe lookup
 // (p from the depth buffer), so the AO only occludes the skylight (never the sun, whose occlusion is the shadow map), and
 // sky pixels are excluded from the SSGI as occluders and as light sources (patched node, src/render/ssgi.ts). w is the
-// probe field's weight: inside the volumes the probes already carry the large-scale occlusion and the bounce, so AO is the
-// SSGI's short-range contact AO (green channel) and the screen-space bounce is left out; outside them (w = 0) the
-// composite is exactly the one before the probes.
+// probe field's weight: inside the volumes the probes already carry the large-scale occlusion, so AO is the SSGI's
+// short-range contact AO (green channel); outside them the stronger of the full-radius and the contact AO.
+// D-157 (lead's item 6): the SSGI is fed the DIRECT light only (the scene minus skylightDiffuse), so its bounce is the
+// bounce of the sun (and fires) as they fall NOW, and it is added inside the probe volumes too: a sunlit patch on a
+// hall's floor lights the walls and the ceiling around it. The probes keep the skylight's bounces (their S channel);
+// their U channel is the sun's bounce averaged over the year, which overlaps the screen-space bounce (C; measured in
+// D-157). Outside the volumes the skylight's own screen-space bounce is dropped (the hemisphere light's ground term,
+// D-153, carries the dominant outdoor bounce).
 // giIntensity: with uniform sectors weighted by the receiver cosine, a surface fully enclosed by radiance L accumulates
 // 2L/π per slice, while a Lambert surface under that enclosure reflects albedo·L; so the scale is π/2 (C, derivation only).
+//
+// SSR (high/ultra, D-157): three's SSRNode on the scene colour for surfaces smoother than roughness 0.5 (the red floors,
+// the polished frames, bronze, wet stone), mirror rays blurred by roughness, weighted by the split-sum specular
+// reflectance of each pixel; where a ray hits, it replaces the sky environment the material reflected (outside the probe
+// volumes; inside them that environment is occluded anyway).
 import * as THREE from 'three/webgpu';
-import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2 } from 'three/tsl';
+import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2, metalness, roughness, Fn, dot, normalize, luminance, smoothstep, pmremTexture, EnvironmentBRDF, reflect } from 'three/tsl';
 import { ssgi } from './ssgi';
 import { ssgi as ssgiOrig } from 'three/addons/tsl/display/SSGINode.js';
+import { ssr } from 'three/addons/tsl/display/SSRNode.js';
 import { traa } from 'three/addons/tsl/display/TRAANode.js';
 import { meterNode } from './meter';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import type { Quality } from '../core/settings';
 import { installProbeLight, updateProbeLights, probeAmbient, probeSun } from './probes/runtime';
+import { SkyEnvCapture, skyEnv } from './envmap';
 
 export const GI_SCALE = Math.PI / 2;
 /** bloom threshold (scene radiance, before exposure) at the outdoor exposures; scaled for interior exposures (D-141) */
@@ -35,6 +49,12 @@ export const BLOOM_THRESHOLD = 0.9, BLOOM_STRENGTH = 0.12;
 export const BLOOM_SAT = 16;
 /** the bloom radius (the weight of its broad mips) outdoors; it falls to 0 (the narrow mips) at interior exposures */
 export const BLOOM_RADIUS = 0.35;
+/** SSGI (D-157): thickness of a depth sample (m; it grows with the view distance beyond 8 m, ssgi.ts), and the contact AO's
+ *  radius (m) with its own samples per side and slice (3 of 4 within 0.5 m) */
+export const SSGI_THICKNESS = 0.25, SSGI_CONTACT_RADIUS = 1.2, SSGI_CONTACT_STEPS = 4;
+/** SSR (D-157): surfaces below this roughness reflect (fading out over the last 0.1), rays reach 30 m from the reflecting
+ *  plane, depth samples 0.3 m thick */
+export const SSR_MAX_ROUGHNESS = 0.5, SSR_MAX_DISTANCE = 30, SSR_THICKNESS = 0.3;
 
 export class Pipeline {
   rp: THREE.RenderPipeline | null = null;
@@ -50,10 +70,26 @@ export class Pipeline {
   private meterZero = uniform(0);
   /** the absolute exposure (renderer.toneMappingExposure), for the glare's saturation cap */
   private expAbs = uniform(1);
+  /** the sky environment's capture (D-157; null when the scene has no SkyMesh) */
+  private env: SkyEnvCapture | null = null;
+  /** A/B switches for measurements (window.__parsaSurf; 1 = on): SSR, the direct-only SSGI input with its bounce inside
+   *  the probe volumes (0 = the session-4 composite: full scene into the SSGI, bounce × (1 − w)), the contact AO outdoors */
+  readonly ab = { ssr: uniform(1), giDirect: uniform(1), contact: uniform(1) };
   constructor(private renderer: THREE.WebGPURenderer, private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, readonly quality: Quality, private hemi?: THREE.HemisphereLight) {
     installProbeLight(renderer); // before any material is built
-    // the sun: the shadow-casting directional light (SkySystem.sun)
-    scene.traverse(o => { if (!this.sun && (o as any).isDirectionalLight && o.castShadow) this.sun = o as THREE.DirectionalLight; });
+    // the sun: the shadow-casting directional light (SkySystem.sun); the sky dome (SkySystem.sky) for the environment
+    let skyMesh: any = null;
+    scene.traverse(o => { if (!this.sun && (o as any).isDirectionalLight && o.castShadow) this.sun = o as THREE.DirectionalLight; if (!skyMesh && (o as any).isSkyMesh) skyMesh = o; });
+    if (skyMesh) this.env = new SkyEnvCapture(renderer, skyMesh);
+    // specular occlusion of the sky environment (D-157): the probe field's sky visibility along the reflected ray (the
+    // L1 sky irradiance for the reflection direction, looked up 0.9 m out along it, against the open sky's (1 + r_y)/2);
+    // 1 outside the volumes. Built into each material when its shader is built (the probes have loaded by then)
+    skyEnv.occlusion = (p: any, _n: any, r: any) => {
+      const open = r.y.mul(0.5).add(0.5).max(0.05);
+      const P = probeAmbient(p, r, vec3(1, 1, 1), vec3(0, 0, 0), vec3(open, open, open));
+      return clamp(luminance(P.E).div(open), 0, 1);
+    };
+    (globalThis as any).__parsaSurf = { ...((globalThis as any).__parsaSurf ?? {}), ...this.ab, env: skyEnv.intensity, envCaptures: () => skyEnv.captures };
   }
   /** the post graph is built at the first render, after the world (and its light probes) has loaded: the composite reads
    *  the probe volumes as constants */
@@ -64,23 +100,21 @@ export class Pipeline {
     // no MSAA in the scene pass: TRAA is the anti-aliasing here, and it copies the depth into a single-sample history
     // texture (a 4-sample source failed WebGPU validation on every frame before session 2)
     const scenePass = pass(scene, camera, { samples: 0 } as any);
-    scenePass.setMRT(mrt({ output, diffuseColor, normal: packNormalToRGB(normalView), velocity }));
+    // MRT: metalness rides in the diffuse colour's alpha and roughness in the normal's (SSR, D-157); materials without a
+    // PBR model (sky, stars, clouds) write 0 and 1, decided when each material's shader is built
+    const pbr = (node: any, other: number) => Fn(([], builder: any) => (builder.material?.isMeshStandardNodeMaterial ? node : float(other)))();
+    scenePass.setMRT(mrt({ output, diffuseColor: vec4(diffuseColor.rgb, pbr(metalness, 0)), normal: vec4(packNormalToRGB(normalView), pbr(roughness, 1)), velocity }));
     const col = scenePass.getTextureNode('output'), dep = scenePass.getTextureNode('depth'), nrmTex = scenePass.getTextureNode('normal');
     const vel = scenePass.getTextureNode('velocity'), dif = scenePass.getTextureNode('diffuseColor');
-    const nrm = sample((uv: any) => unpackRGBToNormal(nrmTex.sample(uv)));
+    const nrm = sample((uv: any) => unpackRGBToNormal(nrmTex.sample(uv).rgb));
     let composite: any;
     if (quality === 'medium') {
       composite = col; // TRAA only: GTAO's shader module fails to compile under SwiftShader (logged D-009); medium keeps AA without AO
     } else {
-      const V = new URLSearchParams(location.search).get('post') ?? ''; // debug: orig = unpatched three node; scene | ao | aonear | gi | probe | plain = debug views
-      const node = (V.includes('orig') ? ssgiOrig(col, dep, nrm, camera) : ssgi(col, dep, nrm, camera)) as any;
-      node.sliceCount.value = quality === 'ultra' ? 3 : 2; node.stepCount.value = quality === 'ultra' ? 16 : 8;
-      node.giIntensity.value = GI_SCALE;
-      const aoTex = node.getAONode(), aoFull = aoTex.r, aoNear = V.includes('orig') ? aoTex.r : aoTex.g, bounce = node.getGINode().rgb;
-      // sky pixels come out of the SSGI pass with AO 1 and GI 0 (patched node), so the composite leaves them unchanged
+      const V = new URLSearchParams(location.search).get('post') ?? ''; // debug: orig = unpatched three node; scene | ao | aonear | gi | probe | plain | direct | ssr | env = debug views
       // world-space normal from the view-space normal (camera rotation), for the hemisphere-light weight
       this.camWorld = uniform(camera.matrixWorld);
-      const nW = this.camWorld.mul(vec4(unpackRGBToNormal(nrmTex.rgb), 0)).xyz.normalize();
+      const nV = unpackRGBToNormal(nrmTex.rgb), nW = this.camWorld.mul(vec4(nV, 0)).xyz.normalize();
       const hemiIrr = mix(this.hemiGround, this.hemiSky, nW.y.mul(0.5).add(0.5));
       // world position from the depth buffer (as the SSGI node reconstructs it); the depth is kept off the clear value so
       // a sky pixel yields a far but finite point (its AO is 1 and GI 0, so its skylight term drops out)
@@ -91,14 +125,47 @@ export class Pipeline {
       const pView = getViewPosition(uv(), d, uniform(camera.projectionMatrixInverse));
       const pWorld = this.camWorld.mul(vec4(pView, 1)).xyz;
       const P = probeAmbient(pWorld, nW, this.hemiSky, probeSun, hemiIrr);
-      const w = P.w, ao = mix(aoFull, aoNear, w);
-      const sky = dif.rgb.mul(P.E).mul(1 / Math.PI);
-      const lit = max(col.rgb.sub(sky.mul(float(1).sub(ao))).add(dif.rgb.mul(bounce).mul(float(1).sub(w))), vec3(0));
-      // debug views are chosen when the pipeline is built (?post=scene|ao|aonear|gi|probe|plain; probe = (w, AO near, AO full)
-      // as RGB): a runtime select() on these
-      // texture nodes inside the TRAA input made the first-frame node build run away and crash the page (session-2 bisect)
+      const w = P.w, sky = dif.rgb.mul(P.E).mul(1 / Math.PI);
+      // the SSGI's input: the direct light only (D-157; ab.giDirect = 0: the whole scene, as in session 4)
+      const colDirect = max(col.rgb.sub(sky.mul(this.ab.giDirect)), vec3(0));
+      const node = (V.includes('orig') ? ssgiOrig(col, dep, nrm, camera) : ssgi(vec4(colDirect, 1), dep, nrm, camera)) as any;
+      node.sliceCount.value = quality === 'ultra' ? 3 : 2; node.stepCount.value = quality === 'ultra' ? 16 : 8;
+      node.giIntensity.value = GI_SCALE;
+      if (!V.includes('orig')) {
+        node.thickness.value = SSGI_THICKNESS; node.useLinearThickness.value = true;
+        node.aoNearRadius.value = SSGI_CONTACT_RADIUS; node.nearSteps.value = SSGI_CONTACT_STEPS;
+      }
+      const aoTex = node.getAONode(), aoFull = aoTex.r, aoNear = V.includes('orig') ? aoTex.r : aoTex.g, bounce = node.getGINode().rgb;
+      // sky pixels come out of the SSGI pass with AO 1 and GI 0 (patched node), so the composite leaves them unchanged
+      const ao = mix(mix(aoFull, min(aoFull, aoNear), this.ab.contact), aoNear, w);
+      const bounceW = mix(float(1).sub(w), float(1), this.ab.giDirect);
+      const lit = max(col.rgb.sub(sky.mul(float(1).sub(ao))).add(dif.rgb.mul(bounce).mul(bounceW)), vec3(0));
+      // ---- SSR (D-157) ----------------------------------------------------------------------------------------------
+      const vV = normalize(pView.negate()), dotNV = clamp(dot(nV, vV), 0, 1);
+      const rough = nrmTex.a, metal = dif.a, F0 = mix(vec3(0.04, 0.04, 0.04), dif.rgb, metal);
+      const spec: any = EnvironmentBRDF({ dotNV, specularColor: F0, specularF90: float(1), roughness: rough }), specY = luminance(spec).max(1e-4);
+      const notSky = (renderer as any).reversedDepthBuffer && (renderer.backend as any).isWebGPUBackend ? smoothstep(0, 1e-9, dep.r) : float(1).sub(smoothstep(1 - 1e-7, 1, dep.r));
+      const gate = float(1).sub(smoothstep(SSR_MAX_ROUGHNESS - 0.1, SSR_MAX_ROUGHNESS, rough)).mul(notSky);
+      // SSRNode (mirror mode) weights a hit by `metalnessNode` × its own Fresnel term sin²θ = 1 − (n·v)², which the
+      // split-sum reflectance already contains: divided out
+      const fres = float(1).sub(dotNV.mul(dotNV)).max(0.05);
+      const S: any = ssr(col, dep, nrm, { metalnessNode: specY.div(fres).mul(gate).mul(this.ab.ssr), roughnessNode: rough, camera } as any);
+      S.maxDistance.value = SSR_MAX_DISTANCE; S.thickness.value = SSR_THICKNESS; S.quality.value = quality === 'ultra' ? 0.5 : 0.3;
+      S.resolutionScale = quality === 'ultra' ? 1 : 0.5; // half resolution at high: the reflections of these surfaces are blurred anyway
+      // the sky environment the material reflected (outside the halls: inside, its probe occlusion is ~0), removed where a
+      // ray hits, by the node's own falloff (1 − plane distance / max distance)²; alpha = the hit's distance along the ray
+      const Rw = this.camWorld.mul(vec4(reflect(vV.negate(), nV), 0)).xyz;
+      const envSpec = spec.mul((pmremTexture as any)(skyEnv.target.texture, Rw, rough)).mul(float(1).sub(w)).mul(skyEnv.intensity);
+      const hit = clamp(S.a.mul(50), 0, 1), fall = float(1).sub(clamp(S.a.mul(dotNV).div(SSR_MAX_DISTANCE), 0, 1));
+      const ssrAdd = S.rgb.mul(spec.div(specY)).sub(envSpec.mul(hit).mul(fall.mul(fall))).mul(gate).mul(this.ab.ssr);
+      const litR = max(lit.add(ssrAdd), vec3(0));
+      // [reserved: the air-light pass (another agent) joins here]
+      // debug views are chosen when the pipeline is built (?post=scene|ao|aonear|gi|probe|plain|direct|ssr|env; probe =
+      // (w, AO near, AO full) as RGB): a runtime select() on these texture nodes inside the TRAA input made the first-frame
+      // node build run away and crash the page (session-2 bisect)
       const chosen = V.includes('scene') ? col.rgb : V.includes('aonear') ? vec3(aoNear) : V.includes('ao') ? vec3(ao) : V.includes('gi') ? bounce
-        : V.includes('probe') ? vec3(w, aoNear, aoFull) : V.includes('plain') ? col.rgb.mul(aoFull).add(dif.rgb.mul(bounce)) : lit;
+        : V.includes('probe') ? vec3(w, aoNear, aoFull) : V.includes('plain') ? col.rgb.mul(aoFull).add(dif.rgb.mul(bounce)) : V.includes('direct') ? colDirect
+        : V.includes('ssr') ? S.rgb.mul(spec.div(specY)) : V.includes('env') ? envSpec : litR;
       composite = vec4(chosen, col.a);
     }
     let out: any = traa(composite, dep, vel, camera);
@@ -131,6 +198,7 @@ export class Pipeline {
       this.hemiGround.value.copy(this.hemi.groundColor).multiplyScalar(this.hemi.intensity);
     }
     updateProbeLights(this.hemi, this.sun);
+    this.env?.update(this.hemi); // the sky environment, re-captured when the sun or the light has changed (D-157)
     if (!this.built) this.build();
     if (this.rp) this.rp.render(); else this.renderer.render(scene, camera);
   }

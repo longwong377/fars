@@ -6,6 +6,11 @@
 // (3) a second, short-range AO (D-112): the same horizon samples, counting only occluders within `aoNearRadius` (world
 // metres) of the pixel, written to the AO texture's green channel. Inside the light-probe volumes the probes carry the
 // large-scale occlusion of the skylight, so the composite uses this contact AO there instead of the full-radius one.
+// (4) D-157 contact shading: dedicated contact samples (nearSteps per side, spread over aoNearRadius in world space, dense
+// near the pixel) feed the contact AO, so a plinth, a column base or a wall foot darkens the floor within ~0.5 m (the
+// main samples are spread over a third of the screen: 1–2 of them fell inside 0.5 m); (5) the linear thickness grows
+// with the view distance beyond `thicknessRef` metres (three's divides by the far plane, 110 km here: it vanished), so a
+// thin door leaf 0.25 m thick no longer shades the wall a metre behind it (the halo in hadish-hall).
 import { RenderTarget, Vector2, TempNode, QuadMesh, NodeMaterial, RendererUtils, MathUtils, RGBFormat, RGFormat, UnsignedInt101111Type, UnsignedByteType } from 'three/webgpu';
 import { clamp, normalize, reference, Fn, NodeUpdateType, uniform, vec4, passTexture, uv, logarithmicDepthToViewZ, viewZToPerspectiveDepth, getViewPosition, screenCoordinate, float, sub, fract, dot, vec2, rand, vec3, Loop, mul, PI, cos, sin, uint, cross, acos, sign, pow, luminance, If, max, abs, Break, sqrt, HALF_PI, div, ceil, shiftRight, convertToTexture, bool, getNormalFromDepth, countOneBits, interleavedGradientNoise, property, outputStruct, context, Continue } from 'three/tsl';
 
@@ -140,6 +145,20 @@ class SSGINode extends TempNode {
 		 * @type {UniformNode<float>}
 		 */
 		this.aoNearRadius = uniform( 1.2, 'float' );
+
+		/**
+		 * PĀRSA (D-157): contact samples per side and slice, within aoNearRadius (0 = none, the session-4 behaviour).
+		 *
+		 * @type {UniformNode<uint>}
+		 */
+		this.nearSteps = uniform( 4, 'uint' );
+
+		/**
+		 * PĀRSA (D-157): with useLinearThickness, the thickness grows as max(1, viewDistance / thicknessRef).
+		 *
+		 * @type {UniformNode<float>}
+		 */
+		this.thicknessRef = uniform( 8, 'float' );
 
 		/**
 		 * Effective sampling radius in world space. AO and GI can only have influence within that radius.
@@ -525,7 +544,7 @@ class SSGINode extends TempNode {
 
 				const sampleViewPosition = getViewPosition( sampleUV, sampleDepth( sampleUV ), this._cameraProjectionMatrixInverse ).toConst();
 				const pixelToSample = sampleViewPosition.sub( viewPosition ).normalize().toConst();
-				const linearThicknessMultiplier = this.useLinearThickness.select( sampleViewPosition.z.negate().div( this._cameraFar ).clamp().mul( 100 ), float( 1 ) );
+				const linearThicknessMultiplier = this.useLinearThickness.select( max( sampleViewPosition.z.negate().div( this.thicknessRef ), float( 1 ) ), float( 1 ) ); // PĀRSA: see (5)
 				const pixelToSampleBackface = normalize( sampleViewPosition.sub( linearThicknessMultiplier.mul( viewDir ).mul( THICKNESS ) ).sub( viewPosition ) );
 
 				let frontBackHorizon = vec2( dot( pixelToSample, viewDir ), dot( pixelToSampleBackface, viewDir ) );
@@ -587,6 +606,56 @@ class SSGINode extends TempNode {
 
 		} );
 
+		// PĀRSA (D-157): contact samples. The same horizon test as horizonSampling (occlusion bits only: no GI, no global
+		// bitfield), with nearSteps samples spread over aoNearRadius (world space, projected; quadratic spacing, so most of
+		// them fall within a third of the radius), OR-ed into the contact AO's bitfield
+		const nearSampling = Fn( ( [ directionIsRight, stepNear, viewPosition, slideDirTexelSize, initialRayStep, uvNode, viewDir, n ] ) => {
+
+			const NEAR_STEPS = this.nearSteps.toConst();
+			const THICKNESS = this.thickness.toConst();
+			const uvDirection = directionIsRight.select( vec2( 1, - 1 ), vec2( - 1, 1 ) );
+			const samplingDirection = directionIsRight.select( 1, - 1 );
+
+			Loop( { start: uint( 0 ), end: NEAR_STEPS, type: 'uint', condition: '<' }, ( { i } ) => {
+
+				const t = float( i ).add( initialRayStep.fract() ).add( 0.5 ).div( float( NEAR_STEPS ) ).toConst();
+				const uvOffset = slideDirTexelSize.mul( max( t.mul( t ).mul( stepNear ), float( i ).add( 1 ) ) ).toConst();
+				const sampleUV = uvNode.add( uvOffset.mul( uvDirection ) ).toConst();
+
+				If( sampleUV.x.lessThanEqual( 0 ).or( sampleUV.y.lessThanEqual( 0 ) ).or( sampleUV.x.greaterThanEqual( 1 ) ).or( sampleUV.y.greaterThanEqual( 1 ) ), () => {
+
+					Break();
+
+				} );
+
+				const rawSampleDepth = this.depthNode.sample( sampleUV ).r.toConst();
+
+				If( isSkyDepth( rawSampleDepth ), () => {
+
+					Continue();
+
+				} );
+
+				const sampleViewPosition = getViewPosition( sampleUV, sampleDepth( sampleUV ), this._cameraProjectionMatrixInverse ).toConst();
+				const pixelToSample = sampleViewPosition.sub( viewPosition ).normalize().toConst();
+				const linearThicknessMultiplier = this.useLinearThickness.select( max( sampleViewPosition.z.negate().div( this.thicknessRef ), float( 1 ) ), float( 1 ) );
+				const pixelToSampleBackface = normalize( sampleViewPosition.sub( linearThicknessMultiplier.mul( viewDir ).mul( THICKNESS ) ).sub( viewPosition ) );
+
+				let frontBackHorizon = vec2( dot( pixelToSample, viewDir ), dot( pixelToSampleBackface, viewDir ) );
+				frontBackHorizon = GTAOFastAcos( clamp( frontBackHorizon, - 1, 1 ) );
+				frontBackHorizon = clamp( div( mul( samplingDirection, frontBackHorizon.negate() ).sub( n.sub( HALF_PI ) ), PI ) );
+				frontBackHorizon = directionIsRight.select( frontBackHorizon.yx, frontBackHorizon.xy );
+
+				const startHorizonInt = uint( frontBackHorizon.mul( float( MAX_RAY ) ) ).toConst();
+				const angleHorizonInt = uint( ceil( frontBackHorizon.y.sub( frontBackHorizon.x ).mul( float( MAX_RAY ) ) ) ).toConst();
+				const angleHorizonBitfield = angleHorizonInt.greaterThan( uint( 0 ) ).select( uint( shiftRight( uint( 0xFFFFFFFF ), uint( 32 ).sub( MAX_RAY ).add( MAX_RAY.sub( angleHorizonInt ) ) ) ), uint( 0 ) ).toConst();
+				const nearBits = sampleViewPosition.sub( viewPosition ).length().lessThan( this.aoNearRadius ).select( angleHorizonBitfield.shiftLeft( startHorizonInt ), uint( 0 ) );
+				nearOccludedBitfield.assign( nearOccludedBitfield.bitOr( nearBits ) );
+
+			} );
+
+		} );
+
 		const aoField = property( 'vec2' );
 		const giField = property( 'vec3' );
 
@@ -639,6 +708,7 @@ class SSGINode extends TempNode {
 
 			stepRadius.divAssign( float( STEP_COUNT ).add( 1 ) );
 			const radiusVS = max( 1, float( STEP_COUNT.sub( 1 ) ) ).mul( stepRadius ).toConst();
+			const stepNear = this.aoNearRadius.mul( this._halfProjScale ).mul( 2 ).div( viewPosition.z.negate().max( 1e-3 ) ).toConst(); // PĀRSA: aoNearRadius projected (px)
 
 			//
 
@@ -661,6 +731,8 @@ class SSGINode extends TempNode {
 
 				color.addAssign( horizonSampling( bool( true ), stepRadius, radiusVS, viewPosition, slideDirTexelSize, initialRayStep, uvNode, viewDir, viewNormal, n ) );
 				color.addAssign( horizonSampling( bool( false ), stepRadius, radiusVS, viewPosition, slideDirTexelSize, initialRayStep, uvNode, viewDir, viewNormal, n ) );
+				nearSampling( bool( true ), stepNear, viewPosition, slideDirTexelSize, initialRayStep, uvNode, viewDir, n ); // PĀRSA (D-157)
+				nearSampling( bool( false ), stepNear, viewPosition, slideDirTexelSize, initialRayStep, uvNode, viewDir, n );
 
 				ao.addAssign( float( countOneBits( globalOccludedBitfield ) ).div( float( MAX_RAY ) ) );
 				aoNear.addAssign( float( countOneBits( nearOccludedBitfield ) ).div( float( MAX_RAY ) ) );
