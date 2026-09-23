@@ -9,7 +9,7 @@ export interface WorldBuild {
   update?(dt: number, ctx: any): void;
   simulate?(dt: number, clock: any): void;
   summary?(): string;
-  saveState?(): unknown; loadState?(s: unknown): void;
+  saveState?(): unknown; loadState?(s: unknown): void; catchUp?(toHours: number): { hours: number; ms: number };
   applySettings?(s: Settings): void;
   audio?: { unlock(): void };
   fire?: FireSystem; wvfx?: WeatherVfx; flash?(): number;
@@ -39,6 +39,10 @@ import { pickLine, voiceFor } from '../people/speech_lines';
 import type { WeatherSystem } from '../weather/weatherState';
 import placesJson from '../data/people_places.json';
 const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
+/** longest absence simulated step by step on load (C: a month runs in about a second at the Phase 3 population) */
+export const CATCHUP_MAX_DAYS = 30;
+/** full-detail simulation radius around the player (m); effectively everyone at the current population (C) */
+export const LOD_RADIUS = 1e9;
 /** Fire placements for the vertical slice (all C: fires/lamps are attested in general, positions are reconstruction). */
 function placeFires(fire: FireSystem, m: any, parts: any[]) {
   const C = { tier: 'C', src: 'RECON', note: 'fire placement reconstructed (C)' };
@@ -114,12 +118,16 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   };
   const surfaceAt = (y: number, groundY: number) => (y > -1 ? 'stone' : Math.abs(y - groundY) < 0.3 ? 'earth' : 'stone') as 'stone' | 'earth';
   const syncBodies = () => sim.agents.forEach((a, i) => bodies[i].setNextKinematicTranslation(a.offmap ? { x: 0, y: -1000, z: 0 } : { x: a.pos[0], y: a.y, z: -a.pos[1] }));
+  let lodT = 0;
   const simulate = (dt: number, clock: any) => {
     const target = clock.t * 24;
     if (!simStarted) { sim.jumpTo(target); simStarted = true; }
     else { const ds = (target - sim.t) * 3600; if (ds < -1 || ds > 900) sim.jumpTo(target); else if (ds > 0) sim.step(ds); }
     if (playerAt) sim.player = [playerAt.x, -playerAt.z];
-    syncBodies(); void dt;
+    // simulation LOD (D-017): at the Phase 3/4 population everyone on the Terrace walks real routes; the radius shrinks
+    // when Phase 5 brings thousands. Re-checked every few seconds so anyone left abstract (no route yet) is promoted.
+    if ((lodT += dt) > 3) { lodT = 0; sim.updateLod(sim.player ?? [0, 0], LOD_RADIUS); }
+    syncBodies();
   };
   const address = (camera: THREE.Camera) => {
     const cp = camera.position, fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
@@ -136,6 +144,17 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   };
   return { root, fire, wvfx, simulate, people: { sim, crowd, nav }, address, get lastSubtitle() { return lastSubtitle; },
     saveState: () => ({ people: sim.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } },
+    /** persistence (brief §9.5): simulate the time the world ran while the visitor was away, everyone in the abstract LOD
+     *  (same decisions, timed travel), capped at CATCHUP_MAX_DAYS (older time is placed by schedule); returns the
+     *  simulated hours and the wall-clock cost */
+    catchUp: (toHours: number) => {
+      const t0 = performance.now(), from = sim.t, MAX = CATCHUP_MAX_DAYS * 24;
+      if (toHours - from > MAX) sim.jumpTo(toHours - MAX);
+      for (const a of sim.agents) a.lod = 'abstract';
+      while (sim.t < toHours - 1e-6) sim.step(Math.min(60, (toHours - sim.t) * 3600));
+      sim.updateLod([0, 0], 1e9); syncBodies(); // back to full detail (re-routes anyone mid-journey)
+      return { hours: toHours - from, ms: performance.now() - t0 };
+    },
     audio: { unlock: () => { audio.unlock(); if (settings) audio.setVolumes(settings.volume); }, state: () => ({ ctx: audio.ctx?.state ?? 'none', space: audio.currentSpace, sampleRate: audio.ctx?.sampleRate }) } as any,
     applySettings: (s: Settings) => audio.setVolumes(s.volume),
     update(dt: number, ctx: any) {

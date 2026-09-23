@@ -269,9 +269,16 @@ export class PeopleSim {
       const near = !!centre && !a.offmap && Math.hypot(a.pos[0] - centre[0], a.pos[1] - centre[1]) < radius;
       const want = near ? 'full' : 'abstract';
       if ((a.lod ?? 'full') === want) continue;
+      if (want === 'full' && a.travel && a.task) {
+        // the straight-line position may lie inside a building: step to the nearest walkable cell (a small move) and
+        // route from there; with no route, stay abstract until arrival rather than jump
+        const s = this.nav.snap(a.pos[0], a.pos[1], 6); if (!s) continue;
+        const saved = a.pos; a.pos = s; const path = this.routeTo(a, a.task.spot);
+        if (!path) { a.pos = saved; continue; }
+        a.travel = null; a.path = path; a.pathI = 1; a.walking = true;
+      }
       a.lod = want;
-      if (want === 'full' && a.travel && a.task) { a.travel = null; a.path = this.routeTo(a, a.task.spot); a.pathI = 1; a.walking = !!a.path; if (!a.path) { a.pos = [...a.task.spot] as P2; a.walking = false; } }
-      else if (want === 'abstract' && a.path && a.task) { const rem = a.path.slice(a.pathI); let d = 0, p = a.pos; for (const q of rem) { d += Math.hypot(q[0] - p[0], q[1] - p[1]); p = q; }
+      if (want === 'abstract' && a.path && a.task) { const rem = a.path.slice(a.pathI); let d = 0, p = a.pos; for (const q of rem) { d += Math.hypot(q[0] - p[0], q[1] - p[1]); p = q; }
         a.path = null; a.travel = { from: [...a.pos] as P2, to: [...a.task.spot] as P2, t0: this.t, t1: this.t + d / a.speed * H_PER_S }; a.walking = true; }
     }
   }

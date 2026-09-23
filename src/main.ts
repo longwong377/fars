@@ -113,7 +113,12 @@ async function boot() {
     }
     settings.timeScale = s.timeScale; clock.scale = TEST ? 0 : s.timeScale;
     clock.t = s.clockT; weather.override = s.weatherOverride as WeatherOverride; input.yaw = s.player.yaw; input.pitch = s.player.pitch;
-    phys.updateTerrain(terrain, s.player); player.body.setTranslation(s.player, true); world.loadState?.(s.npc); return true;
+    phys.updateTerrain(terrain, s.player); player.body.setTranslation(s.player, true); world.loadState?.(s.npc);
+    // the world kept running while the visitor was away (§9.5): advance the clock by the real time elapsed × the time scale
+    // and catch the simulation up (frozen test worlds excepted)
+    const away = TEST ? 0 : Math.max(0, (Date.now() - Date.parse(s.savedAt)) / 1000) * s.timeScale;
+    if (away > 1) { clock.t += away / 86400; const r = world.catchUp?.(clock.t * 24); if (r) console.info(`[persistence] caught up ${r.hours.toFixed(2)} h of world time in ${r.ms.toFixed(0)} ms`); }
+    return true;
   }
 
   Object.assign(hooksImpl, {
