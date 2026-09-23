@@ -107,7 +107,9 @@ function layer(d: SurfaceDef, base: any): Layer {
     const chip = float(1).sub(smoothstep(d.chips.cover * 0.9, d.chips.cover * 1.6, w)).mul(smoothstep(0.4, 0.8, n.y)); // (reversed smoothstep edges are undefined in WGSL)
     alb = mix(alb, color(new THREE.Color().setRGB(...d.chips.albedo, THREE.SRGBColorSpace)).mul(float(1).add(mott)), chip);
     rough = mix(rough, float(0.7), chip);
-    if (height) height = height.add(chip.mul(d.chips.size * 0.25));
+    // raised by about the chip's own radius (≈ cover × size in cell units; a pebble's proportions). It was size × 0.25:
+    // 8.7 cm over a 2.5 cm chip on the earth, near-vertical bump normals, so every light chip rendered as a dark ring (session 3)
+    if (height) height = height.add(chip.mul(d.chips.size * d.chips.cover * 0.6));
   }
   if (d.herbs) { // seasonal herb layer in patches (C): green in spring, straw in summer, sparse in winter
     const patch = smoothstep(-0.1, 0.45, mx_noise_float(p.xz.mul(0.35)).add(mx_noise_float(p.xz.mul(2.2)).mul(0.35)));
