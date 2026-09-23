@@ -453,5 +453,20 @@
   "cite": "Tertiary web pages via search extracts: Wikipedia \"Ka'ba-ye Zartosht\", \"Tomb of Darius the Great\" (Ctesias on Darius' tomb in his lifetime), surfiran/CAIS \"Naqsh-e Rostam\" (Husain Kuh)",
   "url": "https://en.wikipedia.org/wiki/Ka%27ba-ye_Zartosht",
   "access": "search-extract only (tertiary; cap C unless confirmed)"
+ },
+ "ROTH1987": {
+  "cite": "M. T. Roth, \"Age at Marriage and the Household: A Study of Neo-Babylonian and Neo-Assyrian Forms\", Comparative Studies in Society and History 29/4 (1987) 715-747; M. T. Roth, Babylonian Marriage Agreements, 7th-3rd Centuries B.C. (AOAT 222, 1989)",
+  "url": "https://www.semanticscholar.org/paper/2ff0bd4996656769d1bc59be6c74377060462159",
+  "access": "search-extract only (2026-09-23): women first married at about 14-20, men at about 26-32; the bride moved to her husband's household with her dowry"
+ },
+ "KONNER1980": {
+  "cite": "M. Konner and C. Worthman, \"Nursing Frequency, Gonadal Function, and Birth Spacing Among !Kung Hunter-Gatherers\", Science 207 (1980) 788-791",
+  "url": "https://www.science.org/doi/10.1126/science.7352291",
+  "access": "search-extract only (2026-09-23): on-demand nursing in brief bouts about 13 minutes apart, day and night; frequent nursing lengthens birth intervals (an ethnographic analogy, not ancient evidence)"
+ },
+ "HDT-1.133": {
+  "cite": "Herodotus 1.133 (the Persian birthday meal; 'they eat little solid food but abundance of dessert ... served in courses')",
+  "url": "https://www.worldhistory.org/article/149/herodotus-on-the-customs-of-the-persians/",
+  "access": "search-extract of a translation (2026-09-23); a Greek claim"
  }
 }

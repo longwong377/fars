@@ -5,6 +5,7 @@ import { readFileSync } from 'node:fs';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, Env, PLACES } from '../src/people/sim';
 import { segAt, GUARD_POSTS } from '../src/people/population';
+import { checkPlan, checkDay, reasonOk } from '../src/people/planCheck';
 import { EventCalendar, STORE_BOUNDS } from '../src/people/calendar';
 import { Construction, hall100Layout } from '../src/people/construction';
 import { PlayerMemory } from '../src/people/memory';
@@ -46,10 +47,40 @@ describe('population (D-021)', () => {
   }, 60_000);
 });
 
+describe('households, meals and sleep (shadow review, §13.11)', () => {
+  it('every child knows its mother; same-age siblings are rare (twins); marriage never takes a mother from her children', () => {
+    const P = sim.pop; let kids = 0, noMother = 0, multi = 0, sameAge = 0;
+    for (const p of P.persons) if (p.job === 'child' && (p.zone === 'town' || p.zone === 'plain') && p.born < 0) { kids++; if (p.mother < 0) noMother++; }
+    expect(kids).toBeGreaterThan(5000); expect(noMother).toBe(0);
+    for (const H of P.households) { if (H.zone !== 'town' && H.zone !== 'plain') continue; const ages = H.members.filter(x => P.persons[x].job === 'child' && P.persons[x].born < 0).map(x => P.persons[x].age);
+      if (ages.length < 2) continue; multi++; if (new Set(ages).size < ages.length) sameAge++; }
+    expect(sameAge / multi).toBeLessThan(0.05);
+    for (const p of P.persons) if (p.marry < 1e9 && p.moved !== 'fostered') expect(P.childrenOf(p.id).filter(c => P.persons[c].born < p.marry && P.persons[c].dies > p.marry).length, `${p.id} marries away from her children`).toBe(0);
+  }, 60_000);
+  it('plans are well formed: sleep at night, reasons that match the act, meals for working adults, no jumps between days', () => {
+    expect(reasonOk('play', 'asleep')).toBe(false); expect(reasonOk('sleep', 'asleep beside the mother')).toBe(true); expect(reasonOk('rest', 'spinning')).toBe(false);
+    const P = sim.pop; const bad: string[] = [];
+    for (let pid = 0; pid < P.persons.length; pid += 53) for (const d of [4, 101, 200, 333]) { if (!P.present(pid, d)) continue;
+      const prev = P.present(pid, d - 1) ? P.plan(pid, d - 1) : null;
+      for (const x of checkPlan(P, pid, d, P.plan(pid, d), prev ? prev[prev.length - 1].place : null)) bad.push(`${pid} ${P.persons[pid].job} d${d}: ${x.kind} ${x.note}`); }
+    expect(bad.slice(0, 10)).toEqual([]);
+  }, 120_000);
+  it('on a harvest day nobody is "with" someone who is elsewhere and no child under ten is alone at night', () => {
+    const P = sim.pop, d = 30; const cache = new Map<number, any>(); const planOf = (x: number) => cache.get(x) ?? cache.set(x, P.plan(x, d)).get(x);
+    expect(checkDay(P, d, planOf).slice(0, 10).map(x => `${x.pid} ${x.kind} ${x.note}`)).toEqual([]);
+  }, 120_000);
+  it('an infant is nursed on demand, by night too', () => {
+    const P = sim.pop; let n = 0;
+    for (const p of P.persons) { if (p.age !== 0 || p.born >= 0 || p.zone === 'transient') continue; const d = 40; const m = p.mother; if (!P.present(p.id, d) || P.sick(p.id, d) || m < 0 || !P.present(m, d) || P.sick(m, d) || P.home(m, d) !== P.home(p.id, d)) continue;
+      const feeds = P.plan(p.id, d).filter(s => s.act === 'eat'); expect(feeds.length, `${p.id}`).toBeGreaterThanOrEqual(6); expect(feeds.some(s => s.t0 < 5 || s.t0 > 21), `${p.id} fed at night`).toBe(true); if (++n >= 40) break; }
+    expect(n).toBeGreaterThan(10);
+  }, 60_000);
+});
+
 describe('activities', () => {
   it('every emitted activity is performable; the abstract-only placeholders are listed and flagged, never emitted', () => {
     for (const id of PeopleSim.EMITS) expect(ACTIVITIES[id].placeholder ?? false, id).toBe(false);
-    expect([...ABSTRACT_PLACEHOLDERS].sort()).toEqual(['brew', 'carry_bier', 'clean', 'craft', 'dig_canal', 'field_work', 'garden_work', 'haul', 'herd', 'irrigate', 'lay_brick', 'mould_brick', 'offer', 'pick_fruit', 'plough', 'polish_metal', 'reap', 'shear', 'slaughter', 'tend_animals', 'thresh', 'train', 'wash', 'weave', 'work_wood']);
+    expect([...ABSTRACT_PLACEHOLDERS].sort()).toEqual(['brew', 'carry_bier', 'clean', 'craft', 'dig_canal', 'field_work', 'garden_work', 'gather', 'haul', 'herd', 'irrigate', 'lay_brick', 'mould_brick', 'offer', 'pick_fruit', 'plough', 'polish_metal', 'reap', 'shear', 'slaughter', 'spin', 'tend_animals', 'thresh', 'train', 'wash', 'weave', 'work_wood']);
     for (const id of ABSTRACT_PLACEHOLDERS) { expect(ACTIVITIES[id].placeholder).toBe(true); expect(ACTIVITIES[id].note).toMatch(/PLACEHOLDER/); expect(PeopleSim.EMITS).not.toContain(id); }
   });
   it('the generated Hall of 100 Columns places are on walkable ground', () => {

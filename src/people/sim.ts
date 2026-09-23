@@ -265,9 +265,9 @@ export class PeopleSim {
       }
       case 'child': {
         if (pl !== 'querns' && pl !== 'stair_foot') break;
-        const mom = this.agents[a.ties[0]]; const c = mom && mom.task && !mom.offmap ? mom.pos : PLACES[pl].at;
+        const mom = this.agents[a.ties[0]]; const near = !!mom && !!mom.task && !mom.offmap && mom.task.place === pl; const c = near ? mom.pos : PLACES[pl].at;
         const s = this.nav.snap(c[0] + rng.range(-6, 6), c[1] + rng.range(-6, 6), 4) ?? c;
-        return this.task(act === 'eat' ? 'eat' : act === 'play' ? 'play' : 'rest', mom?.task?.place && !mom.offmap ? mom.task.place : pl, s, chunk(0.15, 0.4), why);
+        return this.task(act === 'eat' ? 'eat' : act === 'play' ? 'play' : 'rest', pl, s, chunk(0.15, 0.4), why);
       }
       case 'official': {
         if (act !== 'inspect' && act !== 'talk') break;
@@ -277,7 +277,10 @@ export class PeopleSim {
     }
     // the plan's act at the plan's place (meals, rest, talk and knucklebones at the hearths, writing at the desk, …)
     const jitter = PLACES[pl]?.kind === 'hearth' ? 2.6 : PLACES[pl]?.kind === 'post' ? 0 : 2;
-    return this.task(act, pl, this.here(a, pl, jitter, rng), act === 'eat' || act === 'write_tablet' || act === 'talk' ? chunk(0.3, 1.2) : end, why);
+    // the same act at the same place goes on where the person already is (a meal is one sitting, not a walk between bites)
+    const sit = (x: ActivityId) => x === 'eat' || x === 'talk' || x === 'gamble' || x === 'rest';
+    const stay = a.task && !a.walking && !a.task.off && a.task.place === pl && (a.task.act === act || (sit(a.task.act) && sit(act))) ? a.task.spot : null;
+    return this.task(act, pl, stay ?? this.here(a, pl, jitter, rng), act === 'eat' || act === 'write_tablet' || act === 'talk' ? chunk(0.3, 1.2) : end, why);
   }
   private nearP(a: Agent, pl: string, r: number) { const p = PLACES[pl]?.at; return !!p && Math.hypot(a.pos[0] - p[0], a.pos[1] - p[1]) < r; }
 
