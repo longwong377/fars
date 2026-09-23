@@ -128,15 +128,19 @@ async function boot() {
     },
     viewLatLon: (lat: number, lon: number, eye: number, az: number, pitch: number) => { const [e, n] = latLonToGrid(lat, lon); api.view(e, n, eye, az, pitch); },
     walkMode: () => { freeCam = null; },
-    teleport: (east: number, north: number) => { const x = east, z = -north; phys.updateTerrain(terrain, { x, y: 0, z }); phys.step(1e-4); player.teleport(x, phys.castRayDown(x, z, 400) ?? terrain.heightAt(x, z), z); },
+    teleport: (east: number, north: number) => { const x = east, z = -north; phys.updateTerrain(terrain, { x, y: 0, z }); phys.step(1e-4); player.teleport(x, phys.castRayDown(x, z, 400) ?? terrain.heightAt(x, z), z); player.maxFall = 0; player.fallStartY = null; },
     setInput: (i: Partial<{ forward: number; right: number; run: boolean; yawDeg: number; pitchDeg: number }>) => { botInput = { ...botInput, ...i }; },
-    playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, yaw: input.yaw, ground: phys.castRayDown(player.position.x, player.position.z, player.position.y + 0.5, player.collider) ?? terrain.heightAt(player.position.x, player.position.z) }),
+    playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, maxFall: player.maxFall, yaw: input.yaw, ground: phys.castRayDown(player.position.x, player.position.z, player.position.y + 0.5, player.collider) ?? terrain.heightAt(player.position.x, player.position.z) }),
     stats: () => ({ backend, drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, terrain: tmesh.stats(), frameMs: lastFrameMs, heap: (performance as any).memory?.usedJSHeapSize ?? null }),
     renderOnce: async () => { await frame(0); },
     /** deterministic fixed-step simulation without rendering (walkthrough bots, soak); returns max frame sim time */
     simulate: (seconds: number, dt = 1 / 30) => { const steps = Math.round(seconds / dt); for (let i = 0; i < steps; i++) simStep(dt); },
     /** advance world time (and everything simulated) by game seconds in fixed steps, regardless of clock.scale (tests) */
     advanceWorld: (seconds: number, dt = 1) => { const steps = Math.round(seconds / dt); for (let i = 0; i < steps; i++) { clock.t += dt / 86400; simStep(dt, false); } },
+    /** walkable-grid path for bots, avoiding people who are standing still (grid coords) */
+    navPath: (from: [number, number], to: [number, number]) => { const P = (world as any).people; if (!P) return null;
+      const still = P.sim.agents.filter((a: any) => !a.offmap && !a.walking).map((a: any) => a.pos); return P.nav.findPathAvoiding(from, to, still, 0.9); },
+    popins: [] as { what: string; d: number; t: number }[],
     /** people: summary rows (out-of-world; for tests and the dev overlay) */
     people: () => { const P = (world as any).people; if (!P) return null; return { t: P.sim.t, stock: P.sim.stock, events: P.sim.events.slice(-20),
       agents: P.sim.agents.map((a: any) => ({ id: a.id, name: a.name, role: a.role, origin: a.origin, act: P.sim.performance(a).act, walking: a.walking, offmap: a.offmap, e: +a.pos[0].toFixed(2), n: +a.pos[1].toFixed(2), y: +a.y.toFixed(2), why: a.task?.why, met: a.metPlayer })) }; },
@@ -151,6 +155,8 @@ async function boot() {
         const azGrid = Math.atan2(de, dn); // from grid north, clockwise
         botInput = { forward: 1, right: 0, run: false, yawDeg: (azGrid * 180) / Math.PI + 341, pitchDeg: 0 };
         simStep(dt, false); t += dt;
+        // pop-in probe (§13.8): update view-dependent state (people, terrain LOD) as a real frame would, without rendering
+        if ((probeT += dt) >= 0.25) { probeT = 0; camera.updateMatrixWorld(); frame(0, { sim: false, render: false }); }
       }
       botInput = { forward: 0, right: 0, run: false };
       return { reached: false, stuck: false, t, state: api.playerState() };
@@ -191,10 +197,11 @@ async function boot() {
   };
   let planFlip: boolean | null = null;
   (window as any).__parsa = api;
+  { const P = (world as any).people; if (P) P.crowd.onPopIn = (what: string, d: number) => api.popins.push({ what, d: +d.toFixed(1), t: clock.t }); }
   addEventListener('error', e => api.errors.push(String(e.message)));
   let freeCam: null | { x: number; y: number; z: number; yaw: number; pitch: number } = null;
   let botInput: { forward: number; right: number; run: boolean; yawDeg?: number; pitchDeg?: number } = { forward: 0, right: 0, run: false };
-  let lastFrameMs = 0;
+  let lastFrameMs = 0; let probeT = 0;
 
   function simStep(dt: number, advanceClock = true) {
     if (advanceClock) clock.advance(dt);
@@ -214,12 +221,12 @@ async function boot() {
     return open / dirs.length;
   }
   let prev = performance.now();
-  async function frame(dtOverride?: number) {
+  async function frame(dtOverride?: number, opts: { sim?: boolean; render?: boolean } = {}) {
     const now = performance.now();
     const dt = dtOverride ?? Math.min(0.1, (now - prev) / 1000); prev = now;
     overlay.frame(dt);
     const playing = shell.mode === 'playing' || TEST || P.has('bench');
-    if (playing) simStep(dt, !TEST);
+    if (playing && opts.sim !== false) simStep(dt, !TEST);
     const cond = weather.conditions(clock.dayIndex, clock.localHour);
     if (freeCam) { camera.position.set(freeCam.x, freeCam.y, freeCam.z); camera.rotation.set(freeCam.pitch, freeCam.yaw, 0, 'YXZ'); body.visible = false; }
     else {
@@ -251,6 +258,7 @@ async function boot() {
     const t0 = performance.now();
     WEATHER.wetness.value = cond.wetness; WEATHER.snow.value = cond.snowCover; WEATHER.puddles.value = Math.max(0, cond.wetness - 0.4) / 0.6;
     pipeline.flash.value = world.flash?.() ?? 0;
+    if (opts.render === false) return;
     pipeline.render(scene, camera);
     lastFrameMs = performance.now() - t0;
     overlay.update(renderer, scene, camera, [

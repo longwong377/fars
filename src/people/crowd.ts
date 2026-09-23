@@ -79,16 +79,22 @@ export class Crowd {
   }
   private lastStock = { depot: -1, store: -1 };
   /** per-frame: place and pose everyone; `cam` for LOD and glances */
-  update(time: number, cam: THREE.Vector3, playerPos: THREE.Vector3 | null) {
+  /** pop-in log: a person appearing within 50 m in view (§13.8 fails the walkthrough on these) */
+  onPopIn?: (what: string, d: number) => void;
+  private frustum = new THREE.Frustum(); private pm = new THREE.Matrix4();
+  update(time: number, cam: THREE.Vector3, playerPos: THREE.Vector3 | null, camera?: THREE.Camera) {
+    if (camera) { this.pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); this.frustum.setFromProjectionMatrix(this.pm); }
     this.frame++;
     const S = this.sim.stock;
     if (S.depot !== this.lastStock.depot) { this.pileLayout(this.sackPiles.depot, [PLACES.stair_foot.at[0] - 3, PLACES.stair_foot.at[1] - 2.5], S.depot); this.lastStock.depot = S.depot; }
     if (S.store !== this.lastStock.store) { this.pileLayout(this.sackPiles.store, [PLACES.treasury_store.at[0] - 4, PLACES.treasury_store.at[1] - 3], S.store); this.lastStock.store = S.store; }
     for (const r of this.rigs) {
       const a = r.a;
+      const was = r.root.visible;
       r.root.visible = !a.offmap; if (a.offmap) continue;
       const p = gw(a.pos[0], a.pos[1], a.y); r.root.position.copy(p); r.root.rotation.y = yawOf(a.heading);
       const d = p.distanceTo(cam);
+      if (!was && camera && d < 50 && this.frustum.containsPoint(p.clone().setY(p.y + 1))) this.onPopIn?.(`person ${a.id} (${a.role})`, d);
       const every = d < 40 ? 1 : d < 120 ? 2 : d < 300 ? 4 : 8;
       if ((this.frame + r.frame) % every !== 0) continue;
       const perf = this.sim.performance(a); const P = ACTIVITIES[perf.act];

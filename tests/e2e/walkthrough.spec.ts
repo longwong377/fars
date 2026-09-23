@@ -1,0 +1,47 @@
+import { test, expect } from '@playwright/test';
+// §13.8 walkthrough bot for the Phase 3 slice: every walkable area on the route (plain → Grand Stair N half → top landing →
+// Gate of All Nations W, E and S doors → forecourt → Apadana N stair → portico → hall → W and E doors → back → Grand Stair
+// S half → plain). The route between targets comes from the walkable grid (avoiding people standing still); the player
+// walks it with the normal controller at walking pace, people live around it. Fails on page errors, falls > 0.6 m,
+// stuck legs (after 2 re-plans) and people popping in within 50 m in view.
+const TARGETS: [number, number, string][] = [
+  [-60, 122.5, 'stair foot court'], [-43.9, 153, 'N lower flight → outer landing'], [-36.4, 150, 'N upper flight'], [-36.4, 124.6, 'top landing'],
+  [-20, 124.6, 'Gate W door'], [0.1, 124.6, 'inside the Gate'], [18, 124.6, 'Gate E door'], [0.1, 124.6, 'back inside'], [0.1, 100, 'Gate S door'],
+  [0, 80, 'forecourt'], [-24, 55.5, 'Apadana N stair, W wing'], [-15.4, 45, 'N portico'], [1.9, 20, 'hall N door'], [1.9, -4.9, 'hall centre'],
+  [26, -4.9, 'hall E door'], [40, -4.9, 'E portico'], [1.9, -4.9, 'back to the centre'], [-26, -4.9, 'hall W door'], [-40, -4.9, 'W portico'],
+  [1.9, 40, 'N portico again'], [30, 55.5, 'Apadana N stair, E wing'], [48, 62, 'court E of the stair'], [-30, 100, 'court W'],
+  [-36.4, 112, 'S head'], [-36.4, 96, 'S upper flight'], [-43.9, 92, 'S outer landing'], [-43.9, 116, 'S lower flight'], [-80, 122.5, 'plain'],
+];
+test('walkthrough bot: the whole Phase 3 slice on foot', async ({ page }, info) => {
+  test.skip(info.project.name !== 'webgpu', 'physics/nav are backend-independent');
+  test.setTimeout(1_800_000);
+  const errs: string[] = []; page.on('pageerror', e => errs.push(String(e)));
+  await page.goto(`/?test&quality=test&day=25&hour=${process.env.HOUR ?? 9.5}`);
+  await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 300_000 });
+  await page.evaluate(() => { const w = (window as any).__parsa; w.walkMode(); w.teleport(-175, 122.45); });
+  const legs: any[] = []; let pos: [number, number] = [-175, 122.45]; let totalT = 0;
+  for (const [e, n, what] of TARGETS) {
+    let ok = false, tries = 0, last: any = null;
+    while (!ok && tries < 3) {
+      tries++;
+      const path: [number, number][] | null = await page.evaluate(([a, b]) => (window as any).__parsa.navPath(a, b), [pos, [e, n]]);
+      expect(path, `no walkable route to ${what}`).not.toBeNull();
+      ok = true;
+      for (const [we, wn] of path!.slice(1)) {
+        last = await page.evaluate(([we, wn]) => (window as any).__parsa.walkTo(we, wn, 240, 0.5, 1 / 30), [we, wn]);
+        totalT += last.t; pos = [last.state.x, -last.state.z];
+        if (!last.reached) { ok = false; break; }
+      }
+    }
+    legs.push({ what, ok, tries, e: +pos[0].toFixed(1), n: +pos[1].toFixed(1), y: +last.state.feetY.toFixed(2), maxFall: +last.state.maxFall.toFixed(2) });
+    if (!ok) break;
+  }
+  const popins = await page.evaluate(() => (window as any).__parsa.popins);
+  console.log(JSON.stringify(legs)); console.log(`walked ${(totalT / 60).toFixed(1)} min of game time; pop-ins ${JSON.stringify(popins)}; errors ${errs.length}`);
+  for (const l of legs) expect(l.ok, `leg: ${l.what}`).toBe(true);
+  expect(legs.length).toBe(TARGETS.length);
+  expect(legs[legs.length - 1].maxFall).toBeLessThan(0.6);
+  expect(legs.find(l => l.what === 'hall centre')!.y).toBeCloseTo(3, 1);
+  expect(popins).toEqual([]);
+  expect(errs).toEqual([]);
+});

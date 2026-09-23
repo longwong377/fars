@@ -11,7 +11,7 @@ export interface PlayerInput { forward: number; right: number; run: boolean; yaw
 
 export class Player {
   body: RAPIER.RigidBody; collider: RAPIER.Collider; controller: RAPIER.KinematicCharacterController;
-  vy = 0; grounded = false; yaw = 0; pitch = 0; bobPhase = 0; distanceWalked = 0; fallStartY: number | null = null; lastFall = 0;
+  vy = 0; grounded = false; yaw = 0; pitch = 0; bobPhase = 0; distanceWalked = 0; fallStartY: number | null = null; lastFall = 0; maxFall = 0;
   constructor(private phys: Physics, x: number, y: number, z: number) {
     const R = phys.R;
     this.body = phys.world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(x, y + CAPSULE_HALF + CAPSULE_R, z));
@@ -42,7 +42,7 @@ export class Player {
     const wasGrounded = this.grounded;
     this.grounded = this.controller.computedGrounded();
     if (!this.grounded && wasGrounded) this.fallStartY = p.y;
-    if (this.grounded && !wasGrounded && this.fallStartY !== null) { this.lastFall = this.fallStartY - p.y; this.fallStartY = null; }
+    if (this.grounded && !wasGrounded && this.fallStartY !== null) { this.lastFall = this.fallStartY - p.y; this.maxFall = Math.max(this.maxFall, this.lastFall); this.fallStartY = null; }
     const horiz = Math.hypot(m.x, m.z); this.distanceWalked += horiz;
     if (this.grounded) this.bobPhase += horiz * (Math.PI / 0.75); // one step ≈ 0.75 m
   }

@@ -104,7 +104,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     update(dt: number, ctx: any) {
       time += dt;
       { const pp = ctx.player.position; playerAt = new THREE.Vector3(pp.x, pp.y, pp.z); }
-      crowd.update(time, ctx.camera.position, playerAt);
+      crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time);
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
       if (audio.ctx) {

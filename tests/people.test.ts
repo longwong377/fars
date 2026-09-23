@@ -12,7 +12,7 @@ import { buildTerrace } from '../src/arch/terrace';
 import { Rng } from '../src/core/rng';
 
 const navMeta = JSON.parse(readFileSync('public/generated/nav.json', 'utf8'));
-const loadNav = () => new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)));
+const loadNav = () => new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
 const W = new WeatherSystem(1);
 const env = (t: number): Env => { const d = Math.floor(t / 24), c = W.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC }; };
 const dryDay = W.days.findIndex((d, i) => i > 20 && !d.wet && !W.days[i + 1].wet);
@@ -40,7 +40,7 @@ describe('walkable grid', () => {
   it('the route from the plain climbs the Grand Stair and enters the Apadana through its N stair (not through walls)', () => {
     const path = nav.findPath(PLACES.town.at, PLACES.apadana_hall.at)!;
     let len = 0; for (let i = 1; i < path.length; i++) len += Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1]);
-    expect(len).toBeGreaterThan(250); expect(len).toBeLessThan(400);
+    expect(len).toBeGreaterThan(700); expect(len).toBeLessThan(900);
     // passes over the stair lanes (x ≈ −44 or −36) and ends on the podium (+3 m)
     expect(path.some(p => p[0] > -48 && p[0] < -32 && p[1] > 90 && p[1] < 160)).toBe(true);
     expect(nav.heightAt(PLACES.apadana_hall.at[0], PLACES.apadana_hall.at[1])).toBeCloseTo(3, 1);

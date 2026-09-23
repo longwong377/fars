@@ -3,9 +3,9 @@
 // Grid coordinates: i along grid east, j along grid north; cell centres at e0 + (i+½)·cell, n0 + (j+½)·cell.
 
 export const NAV = {
-  e0: -140, n0: -245, cell: 0.5, w: 804, h: 860, // covers the plain W of the Grand Stair and the whole Terrace
+  e0: -620, n0: -245, cell: 0.5, w: 1764, h: 860, // covers 480 m of the plain W of the Grand Stair (the approach) and the whole Terrace
   maxStep: 0.42, knee: 0.6, head: 1.6, blocked: -32768,
-  seeds: [[-120, 122.5], [0.1, 100]] as [number, number][],
+  seeds: [[-120, 122.5], [-600, 122.5], [0.1, 100]] as [number, number][],
 };
 export type P2 = [number, number];
 
@@ -14,13 +14,29 @@ export class NavGrid {
   private g: Float32Array; private cost: Float32Array; private from: Int32Array; private stamp: Uint32Array; private closed: Uint32Array; private run = 0;
   /** extra blocked cells (fires, props) layered over the static grid */
   private dyn: Uint8Array;
-  constructor(readonly hcm: Int16Array) {
-    const n = this.w * this.h; this.g = new Float32Array(n); this.cost = new Float32Array(n); this.from = new Int32Array(n); this.stamp = new Uint32Array(n); this.closed = new Uint32Array(n); this.dyn = new Uint8Array(n);
+  /** temporary obstacles for one search (e.g. people standing in the way of a bot) */
+  private tmp: Uint8Array; private tmpList: number[] = [];
+  constructor(readonly hcm: Int16Array, readonly edges: Uint8Array = new Uint8Array(hcm.length).fill(3)) {
+    const n = this.w * this.h; this.g = new Float32Array(n); this.cost = new Float32Array(n); this.from = new Int32Array(n); this.stamp = new Uint32Array(n); this.closed = new Uint32Array(n); this.dyn = new Uint8Array(n); this.tmp = new Uint8Array(n);
   }
-  static async load(fetchBin: (p: string) => Promise<ArrayBuffer>) { return new NavGrid(new Int16Array(await fetchBin('generated/nav.i16'))); }
+  static async load(fetchBin: (p: string) => Promise<ArrayBuffer>) { return new NavGrid(new Int16Array(await fetchBin('generated/nav.i16')), new Uint8Array(await fetchBin('generated/nav_edges.u8'))); }
+  /** legal 4-neighbour move (cells adjacent; walkability, step height and thin walls all checked) */
+  move(i: number, j: number, i2: number, j2: number): boolean {
+    if (!this.okIJ(i, j) || !this.okIJ(i2, j2)) return false;
+    if (i2 === i + 1 && j2 === j) return (this.edges[j * this.w + i] & 1) !== 0;
+    if (i2 === i - 1 && j2 === j) return (this.edges[j * this.w + i2] & 1) !== 0;
+    if (j2 === j + 1 && i2 === i) return (this.edges[j * this.w + i] & 2) !== 0;
+    if (j2 === j - 1 && i2 === i) return (this.edges[j2 * this.w + i] & 2) !== 0;
+    return false;
+  }
+  /** legal 8-neighbour move: diagonals need both orthogonal detours legal (no corner cutting) */
+  move8(i: number, j: number, i2: number, j2: number): boolean {
+    if (i2 === i || j2 === j) return this.move(i, j, i2, j2);
+    return this.move(i, j, i2, j) && this.move(i2, j, i2, j2) && this.move(i, j, i, j2) && this.move(i, j2, i2, j2);
+  }
   ij(e: number, n: number): [number, number] { return [Math.floor((e - NAV.e0) / this.cell), Math.floor((n - NAV.n0) / this.cell)]; }
   centre(i: number, j: number): P2 { return [NAV.e0 + (i + 0.5) * this.cell, NAV.n0 + (j + 0.5) * this.cell]; }
-  okIJ(i: number, j: number) { if (i < 0 || j < 0 || i >= this.w || j >= this.h) return false; const k = j * this.w + i; return this.hcm[k] !== NAV.blocked && !this.dyn[k]; }
+  okIJ(i: number, j: number) { if (i < 0 || j < 0 || i >= this.w || j >= this.h) return false; const k = j * this.w + i; return this.hcm[k] !== NAV.blocked && !this.dyn[k] && !this.tmp[k]; }
   walkable(e: number, n: number) { const [i, j] = this.ij(e, n); return this.okIJ(i, j); }
   /** block a disc (e.g. a brazier) */
   blockDisc(e: number, n: number, r: number) { const [i0, j0] = this.ij(e - r, n - r), [i1, j1] = this.ij(e + r, n + r);
@@ -44,18 +60,25 @@ export class NavGrid {
     }
     return best;
   }
-  /** straight walk possible? every cell along the segment walkable, no step higher than maxStep between samples */
+  /** straight walk possible? every grid cell the segment crosses is walkable and each cell-to-cell move is a legal A*
+   *  move (height change ≤ maxStep between the raw cell heights; diagonal moves need a legal orthogonal detour) */
   lineClear(a: P2, b: P2): boolean {
-    const L = Math.hypot(b[0] - a[0], b[1] - a[1]), steps = Math.max(1, Math.ceil(L / (this.cell * 0.5)));
-    let prev = this.heightAt(a[0], a[1]);
-    for (let s = 1; s <= steps; s++) { const t = s / steps, e = a[0] + (b[0] - a[0]) * t, n = a[1] + (b[1] - a[1]) * t;
-      // body clearance: the cell and its side neighbours across the direction of travel
-      if (!this.walkable(e, n)) return false;
-      const hh = this.heightAt(e, n); if (!(Math.abs(hh - prev) <= NAV.maxStep)) return false; prev = hh; }
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]), steps = Math.max(1, Math.ceil(L / (this.cell * 0.25)));
+    let [pi, pj] = this.ij(a[0], a[1]); if (!this.okIJ(pi, pj)) return false;
+    for (let s = 1; s <= steps; s++) { const t = s / steps; const [i, j] = this.ij(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t);
+      if (i === pi && j === pj) continue;
+      if (Math.abs(i - pi) > 1 || Math.abs(j - pj) > 1 || !this.move8(pi, pj, i, j)) return false;
+      pi = i; pj = j; }
     return true;
   }
+  /** find a path while treating discs around `avoid` points as blocked (not persisted) */
+  findPathAvoiding(a: P2, b: P2, avoid: P2[], r: number): P2[] | null {
+    for (const [e, n] of avoid) { const [i0, j0] = this.ij(e - r, n - r), [i1, j1] = this.ij(e + r, n + r);
+      for (let j = Math.max(0, j0); j <= Math.min(this.h - 1, j1); j++) for (let i = Math.max(0, i0); i <= Math.min(this.w - 1, i1); i++) { const [x, y] = this.centre(i, j); if (Math.hypot(x - e, y - n) <= r) { const k = j * this.w + i; if (!this.tmp[k]) { this.tmp[k] = 1; this.tmpList.push(k); } } } }
+    try { return this.findPath(a, b); } finally { for (const k of this.tmpList) this.tmp[k] = 0; this.tmpList = []; }
+  }
   /** A* (8-connected, octile) from a to b; returns a string-pulled polyline, or null. `maxExpand` bounds the work. */
-  findPath(a: P2, b: P2, maxExpand = 400_000): P2[] | null {
+  findPath(a: P2, b: P2, maxExpand = 1_500_000): P2[] | null {
     const sa = this.snap(a[0], a[1]), sb = this.snap(b[0], b[1]); if (!sa || !sb) return null;
     const [si, sj] = this.ij(sa[0], sa[1]), [ti, tj] = this.ij(sb[0], sb[1]); const W = this.w;
     const run = ++this.run; const start = sj * W + si, goal = tj * W + ti;
@@ -68,10 +91,9 @@ export class NavGrid {
       if (++expanded > maxExpand) break;
       const i = k % W, j = (k / W) | 0, hk = this.hcm[k];
       for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
-        if (!di && !dj) continue; const ii = i + di, jj = j + dj; if (!this.okIJ(ii, jj)) continue;
-        if (di && dj && (!this.okIJ(i + di, j) || !this.okIJ(i, j + dj))) continue; // no corner cutting
+        if (!di && !dj) continue; const ii = i + di, jj = j + dj; if (!this.move8(i, j, ii, jj)) continue;
         const kk = jj * W + ii; if (this.closed[kk] === run) continue;
-        const dh = Math.abs(this.hcm[kk] - hk) / 100; if (dh > NAV.maxStep) continue;
+        const dh = Math.abs(this.hcm[kk] - hk) / 100;
         const ng = this.g[k] + (di && dj ? Math.SQRT2 : 1) + dh * 2; // mild climb penalty
         if (this.stamp[kk] !== run || ng < this.g[kk]) { this.stamp[kk] = run; this.g[kk] = ng; this.from[kk] = k; heap.push(kk, ng + hfun(ii, jj)); }
       }
