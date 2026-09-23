@@ -28,12 +28,16 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'harem-portico', day: 25, hour: 10, w: 'clear', v: [114, -114, 1.6, 161, 4] },
 ];
 test('moments', async ({ page }, info) => {
+  test.setTimeout(840_000); // under the 15-min watchdog; each view reloads the world for its date (≤ 3 views per run)
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
   const only = process.env.ONLY?.split(',');
   for (const s of SHOTS) {
     if (only && !only.includes(s.n)) continue;
     await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=${s.day}&hour=${s.hour}&weather=${s.w}`);
     await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 600_000 });
+    // the world is frozen in test mode: stop the animation loop, so the screenshot does not wait behind its frames under
+    // SwiftShader (minutes each; the Phase 4 render helper found this, tests/e2e/lib/p4views.ts)
+    await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
     await page.evaluate(v => (window as any).__parsa.view(...v), s.v);
     for (let i = 0; i < (s.frames ?? 8); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
     const png = await page.screenshot({ path: `shots/moment-${s.n}-${info.project.name}.png` });

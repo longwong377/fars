@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { dataItems, buildMapLayers, BuiltTown, BuiltPlain } from '../src/ui/mapLayers';
 import settlement from '../src/data/settlement.json';
 import plain from '../src/data/plain.json';
+import { buildTownPlan } from '../src/world/settlement/plan';
 
 // the out-of-world map (translation layer) draws what the world builds, tiered, and nothing absent in 467
 describe('map layers', () => {
@@ -32,5 +33,12 @@ describe('map layers', () => {
     expect(L.filter(i => i.id === 'road_pasargadae').length).toBe(1);
     expect(L.filter(i => i.style === 'village').map(i => i.id)).toEqual(['v1']);
     const plot = L.find(i => i.id === 'q1:house')!; expect(plot.pts).toEqual([[995, 1995], [999, 1995], [999, 1998], [995, 1998]]);
+  });
+  it('the real town plan draws (every plot a finite rectangle; roads and water as built)', () => {
+    const L = buildMapLayers({ town: buildTownPlan() as any });
+    const plotsDrawn = L.filter(i => i.id.includes(':') && i.kind === 'area');
+    expect(plotsDrawn.length).toBeGreaterThan(1000);
+    for (const it of plotsDrawn) for (const [e, n] of it.pts) expect(Number.isFinite(e) && Number.isFinite(n)).toBe(true);
+    expect(L.some(i => i.style === 'road' && i.id.startsWith('road_'))).toBe(true);
   });
 });

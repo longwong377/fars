@@ -6,6 +6,7 @@ test('translation layer: inscription, map, chronicle', async ({ page }, info) =>
   test.setTimeout(900_000);
   await page.goto('/?test&quality=test&day=25&hour=10&tl');
   await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 600_000 });
+  await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null)); // frozen test world: frames only on demand (renderOnce)
   // the XPa panel above a W-doorway colossus of the Gate: stand in the doorway and look up at the reveal
   const names: string[] = await page.evaluate(() => { const r: string[] = []; (window as any).__parsa.world.root.getObjectByName('inscriptions').traverse((o: any) => { if (o.name && !o.name.endsWith(':pick')) r.push(o.name); }); return r; });
   expect(names.some(n => n.startsWith('inscription:XPa'))).toBe(true);

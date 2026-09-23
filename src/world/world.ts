@@ -34,7 +34,7 @@ import { buildTreasuryGoods } from './furnish';
 import { buildPlain } from './plain';
 import { ConstructionView } from './construction';
 import { present } from '../arch/spec';
-import { buildMapLayers, MapItem } from '../ui/mapLayers';
+import { buildMapLayers, builtPlainOf, MapItem } from '../ui/mapLayers';
 import { DoorSystem } from '../arch/doors';
 import { WeatherVfx } from './weatherVfx';
 import { RainShafts } from './rainShafts';
@@ -196,7 +196,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   let mapItems: MapItem[] | null = null; // out-of-world map layers (translation layer), built on first use
   return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav, humans }, address, plain, doors, get lastSubtitle() { return lastSubtitle; },
     building,
-    mapLayers: () => (mapItems ??= buildMapLayers({ town: settlement?.plan as any, plain: plain.data as any })),
+    mapLayers: () => (mapItems ??= buildMapLayers({ town: settlement?.plan as any, plain: builtPlainOf(plain.data as any) })),
     saveState: () => ({ people: sim.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } },
     /** persistence (brief §9.5): simulate the time the world ran while the visitor was away, everyone in the abstract LOD
      *  (same decisions, timed travel), capped at CATCHUP_MAX_DAYS (older time is placed by schedule); returns the
