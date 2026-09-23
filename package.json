@@ -16,7 +16,8 @@
     "lint:lang": "vitest run tests/language.test.ts",
     "lint:all": "npm run lint:chrono && npm run lint:lang",
     "typecheck": "tsc --noEmit",
-    "bench": "playwright test tests/e2e/bench.spec.ts --project=webgpu"
+    "bench": "playwright test tests/e2e/bench.spec.ts --project=webgpu",
+    "soak": "tsx tools/soak.ts"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.20.0",

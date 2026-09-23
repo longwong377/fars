@@ -25,7 +25,12 @@ export interface Agent {
   pos: P2; y: number; heading: number; task: Task | null; path: P2[] | null; pathI: number; walking: boolean;
   carry: null | 'sack' | 'jar' | 'jar_head' | 'basket'; hunger: number; fatigue: number; sick: boolean;
   day: number; decisions: number; metPlayer: number; lastMetDay: number; gait: number; offmap: boolean; relieved: boolean;
+  /** simulation LOD (brief §9.2 continuity, §9.5): 'full' walks nav-grid paths; 'abstract' (far from the player, and the
+   *  headless soak) makes the same decisions but travels as a timed straight-line move (distance × detour / speed) */
+  lod?: 'full' | 'abstract'; travel?: { from: P2; to: P2; t0: number; t1: number } | null;
 }
+/** straight-line → walked-route factor for abstract travel (C: the Terrace's stairs and doorways add detours) */
+export const ABSTRACT_DETOUR = 1.3;
 export interface SimEvent { t: number; kind: string; text: string; place: string }
 
 const H_PER_S = 1 / 3600;
@@ -242,8 +247,11 @@ export class PeopleSim {
     a.offmap = task.act === 'offmap';
     if (a.offmap && !instant && !wasOff && Math.hypot(a.pos[0] - task.spot[0], a.pos[1] - task.spot[1]) > 1) { a.offmap = false; } // walk out to the town edge first
     if (wasOff && !a.offmap) a.pos = [...PLACES.town.at] as P2; // leaving the town: enter at the plain edge
+    a.travel = null;
+    const dist = Math.hypot(a.pos[0] - task.spot[0], a.pos[1] - task.spot[1]);
     if (instant) { a.pos = [...task.spot] as P2; a.path = null; a.walking = false; if (task.act === 'offmap') a.offmap = true; this.ground(a); }
-    else if (Math.hypot(a.pos[0] - task.spot[0], a.pos[1] - task.spot[1]) > 0.4) { a.path = this.routeTo(a, task.spot); a.pathI = 1; a.walking = !!a.path; if (!a.path) a.pos = [...task.spot] as P2; }
+    else if (dist > 0.4 && a.lod === 'abstract') { a.path = null; a.walking = true; a.travel = { from: [...a.pos] as P2, to: [...task.spot] as P2, t0: this.t, t1: this.t + dist * ABSTRACT_DETOUR / (a.speed * (a.carry ? 0.8 : 1)) * H_PER_S }; }
+    else if (dist > 0.4) { a.path = this.routeTo(a, task.spot); a.pathI = 1; a.walking = !!a.path; if (!a.path) a.pos = [...task.spot] as P2; }
     else { a.path = null; a.walking = false; }
   }
 
@@ -253,6 +261,19 @@ export class PeopleSim {
     this.t += dt * H_PER_S;
     this.events$();
     for (const a of this.agents) this.stepAgent(a, dt);
+  }
+  /** simulation LOD: people within `radius` m of `centre` (the player) walk real routes; the rest travel abstractly.
+   *  Promotion mid-journey re-routes from the current position, so nobody jumps; demotion keeps the remaining time. */
+  updateLod(centre: P2 | null, radius: number) {
+    for (const a of this.agents) {
+      const near = !!centre && !a.offmap && Math.hypot(a.pos[0] - centre[0], a.pos[1] - centre[1]) < radius;
+      const want = near ? 'full' : 'abstract';
+      if ((a.lod ?? 'full') === want) continue;
+      a.lod = want;
+      if (want === 'full' && a.travel && a.task) { a.travel = null; a.path = this.routeTo(a, a.task.spot); a.pathI = 1; a.walking = !!a.path; if (!a.path) { a.pos = [...a.task.spot] as P2; a.walking = false; } }
+      else if (want === 'abstract' && a.path && a.task) { const rem = a.path.slice(a.pathI); let d = 0, p = a.pos; for (const q of rem) { d += Math.hypot(q[0] - p[0], q[1] - p[1]); p = q; }
+        a.path = null; a.travel = { from: [...a.pos] as P2, to: [...a.task.spot] as P2, t0: this.t, t1: this.t + d / a.speed * H_PER_S }; a.walking = true; }
+    }
   }
   /** jump to a new time: everyone is placed where their schedule puts them (continuity after time skips, loads) */
   jumpTo(tHours: number) {
@@ -277,6 +298,12 @@ export class PeopleSim {
     if (!a.task) this.begin(a, this.decide(a), true);
     let budget = dt;
     for (let guard = 0; guard < 8 && budget > 0; guard++) {
+      if (a.walking && a.travel) { // abstract travel: timed straight-line move
+        const tr = a.travel;
+        if (this.t >= tr.t1) { a.pos = [...tr.to] as P2; a.travel = null; a.walking = false; budget = Math.min(budget, (this.t - tr.t1) * 3600); if (a.task?.act === 'offmap') a.offmap = true; this.arrive(a); continue; }
+        const f = (this.t - tr.t0) / Math.max(1e-9, tr.t1 - tr.t0); a.pos = [tr.from[0] + (tr.to[0] - tr.from[0]) * f, tr.from[1] + (tr.to[1] - tr.from[1]) * f];
+        a.heading = Math.atan2(tr.to[0] - tr.from[0], tr.to[1] - tr.from[1]) * 180 / Math.PI; a.gait += a.speed * dt / 0.72 * Math.PI; budget = 0; break;
+      }
       if (a.walking && a.path) {
         const sp = a.speed * (a.carry ? 0.8 : 1);
         while (budget > 0 && a.pathI < a.path.length) {
@@ -323,11 +350,11 @@ export class PeopleSim {
   /** every activity the decision code can emit (for the activity lint) */
   static readonly EMITS: ActivityId[] = ['walk', 'carry_sack', 'carry_jar_head', 'stand_guard', 'patrol', 'dress_stone', 'grind', 'knead', 'bake', 'draw_water', 'write_tablet', 'eat', 'sleep', 'talk', 'rest', 'gamble', 'inspect', 'shelter', 'play', 'offmap'];
 
-  save() { return { t: this.t, stock: { ...this.stock }, lastCaravanDay: this.lastCaravanDay, agents: this.agents.map(a => ({ id: a.id, pos: a.pos, task: a.task, carry: a.carry, hunger: a.hunger, fatigue: a.fatigue, sick: a.sick, day: a.day, decisions: a.decisions, metPlayer: a.metPlayer, lastMetDay: a.lastMetDay, offmap: a.offmap, relieved: a.relieved, heading: a.heading })) }; }
+  save() { return { t: this.t, stock: { ...this.stock }, lastCaravanDay: this.lastCaravanDay, agents: this.agents.map(a => ({ id: a.id, pos: a.pos, task: a.task, carry: a.carry, hunger: a.hunger, fatigue: a.fatigue, sick: a.sick, day: a.day, decisions: a.decisions, metPlayer: a.metPlayer, lastMetDay: a.lastMetDay, offmap: a.offmap, relieved: a.relieved, heading: a.heading, lod: a.lod, travel: a.travel })) }; }
   load(s: any) {
     if (!s?.agents) return; this.t = s.t; this.stock = { ...s.stock }; this.lastCaravanDay = s.lastCaravanDay;
     for (const x of s.agents) { const a = this.agents[x.id]; if (!a) continue; Object.assign(a, { pos: x.pos, task: x.task, carry: x.carry, hunger: x.hunger, fatigue: x.fatigue, sick: x.sick, day: x.day, decisions: x.decisions, metPlayer: x.metPlayer, lastMetDay: x.lastMetDay, offmap: x.offmap, relieved: x.relieved, heading: x.heading });
-      a.path = null; a.walking = false; this.ground(a); if (a.task && Math.hypot(a.pos[0] - a.task.spot[0], a.pos[1] - a.task.spot[1]) > 0.4) this.begin(a, a.task, false); }
+      a.lod = x.lod ?? a.lod; a.path = null; a.walking = false; a.travel = null; this.ground(a); if (a.task && Math.hypot(a.pos[0] - a.task.spot[0], a.pos[1] - a.task.spot[1]) > 0.4) this.begin(a, a.task, false); }
   }
   static activityOk(id: string) { return id in ACTIVITIES; }
 }
