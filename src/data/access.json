@@ -1,0 +1,2078 @@
+{
+ "_meta": {
+  "title": "Visitor mode (brief 1, 9.1, 9.5): access rules, guard posts, the stop, the halmi and the errand, 467 BCE",
+  "built": "2026-09-23 (research agent; research/ACCESS.md explains every row)",
+  "status": "DATA ONLY: no runtime reads this file yet. The lead implements visitor mode from it. Every Terrace rule, post kind, wait and step is reconstruction (C) unless its row says otherwise; no text describes anyone being stopped at Persepolis.",
+  "frame": "grid metres (x = grid east, y = grid north), as site_spec.json, footprints.json, people_places.json, settlement.json, town.json and town_plots.json. NO NEW GEOMETRY: every `at` is copied from the file and field named in `at_from`; zones are named by existing ids (ref = file: id); three derived zones (terrace_courts, treasury_street, pf_archive_findspot) are defined only by reference to existing geometry.",
+  "tiers": "A attested / B inferred (search extracts capped at B; Greek and biblical claims about other palaces at most B) / C reconstructed",
+  "src_keys": "every key resolves in src/data/sources.json",
+  "weak": [
+   "No text describes a guard check at Persepolis: every Terrace post kind and the stop procedure are C, built from B practice elsewhere (HDT, XEN-CYR, Ezra).",
+   "Guards in the tablets are not confirmed (PEOPLE §4 GAP); PF lance-bearers were labour inspectors and escorts (HENK2002, SX).",
+   "The halmi evidence is Darius-era (509-493) plus the later Arshama authorisation; nobody is known to have issued halmis in 467 (Q-120).",
+   "All waits and processing times are C (Q-125).",
+   "The town has no rendered road station; stables-0001 is proposed as the post station and the visitor's lodging (D-104, C).",
+   "Arshama's no-rations-for-extra-days clause conflicts with the simulation's 1-5 day station stays (Q-128)."
+  ]
+ },
+ "rule_levels": {
+  "open": "walk in freely; people may look; nobody asks",
+  "business": "only with the halmi shown and a stated business that belongs to this place (the errand step that is current names it); otherwise turned back",
+  "escort": "only with a guard or official walking beside the visitor (given at a check post when the business lies beyond); alone he is turned back",
+  "closed": "no entry in visitor mode and no escort offered, except where an errand step names an explicit exception",
+  "observer_mode": "nothing is barred (brief 1); these rules apply only with PLAYER_MODE = visitor",
+  "tier": "C",
+  "src": "RECON"
+ },
+ "hours": {
+  "terrace_open": {
+   "from": "sunrise + 0.5 h",
+   "to": "sunset - 0.5 h",
+   "tier": "C",
+   "src": "RECON;XEN-CYR",
+   "note": "aligned with lives.json work_day (sunrise+0.4 to sunset-0.6); outside these hours the Terrace is closed to the visitor (XEN-CYR 4.5.14 sentinels refuse admission before daylight; 7.5.25-27 palace gates locked at night with a guard before them: B claims, Babylon/camp)"
+  },
+  "town": {
+   "rule": "lanes open day and night",
+   "tier": "C",
+   "src": "RECON",
+   "note": "no curfew attested; nothing invented"
+  }
+ },
+ "halmi": {
+  "word": {
+   "elamite": "halmi (hal-mi)",
+   "tier": "A",
+   "src": "CDLI-PF",
+   "note": "PF 15: 'hal-mi {hal}ir-tup-pi-ia-na' = '(in accordance with) a sealed document of Irtuppiya' (Hallock, FT; Darius-era). The lexicon still marks halmi NOT SEEN (Q-127)"
+  },
+  "senses": {
+   "v": [
+    "seal",
+    "seal impression",
+    "sealed document",
+    "letter order",
+    "travel authorisation"
+   ],
+   "tier": "B",
+   "src": "HALMI-SX;IR-ADMIN"
+  },
+  "synonym": {
+   "v": "miyatukkas (OIr. *viyatika-, travel pass), used more or less interchangeably",
+   "tier": "B",
+   "src": "SEALDOC2018"
+  },
+  "issuers_attested": [
+   {
+    "issuer": "the king",
+    "example": "NN 0859: Maudadda carried a sealed document from the King, went to Barrikana (Arachosia), month 12",
+    "tier": "B",
+    "src": "MDPI-ARACH2025"
+   },
+   {
+    "issuer": "the head of the Parsa administration (Parnakka)",
+    "example": "Assasturrana the battle-axe bearer ... went to the king; carried a sealed document of Parnaka",
+    "tier": "B",
+    "src": "RATION-30"
+   },
+   {
+    "issuer": "his deputy (Zissawis)",
+    "example": "Kaudama carries a halmi from Zisramas (= Zissawis); journey from Persepolis, month Anamaka, yr 22",
+    "tier": "B",
+    "src": "HUNARA2024"
+   },
+   {
+    "issuer": "the king or officials of satrapal level",
+    "example": "sealed documents stating the scale on which travellers were entitled to be fed",
+    "tier": "B",
+    "src": "IR-PET;IR-ADMIN"
+   },
+   {
+    "issuer": "the satrap at Susa",
+    "example": "travel away from Susa under the halmi of Bakabana",
+    "tier": "B",
+    "src": "HALMI-SX"
+   },
+   {
+    "issuer": "the satrap at Sardis",
+    "example": "Lycian maratas whose travel Artaphernes (Irdapirna) authorised",
+    "tier": "B",
+    "src": "HYLAND2022;HALMI-SX"
+   },
+   {
+    "issuer": "a satrap (later; Egypt)",
+    "example": "Arshama's authorisation for his steward Nakhthor: 'the only surviving example of a halmi'",
+    "tier": "B",
+    "src": "ARSHAMA-TA"
+   }
+  ],
+  "issuer_pattern": {
+   "v": "the issuer belongs to the place of departure (Susa -> Susa satrap; Parsa -> Parnakka/Zissawis; Sardis -> Artaphernes), or the king for journeys to/from the court",
+   "tier": "B",
+   "src": "HALMI-SX;HUNARA2024;HYLAND2022",
+   "note": "inferred from Darius-era examples; the 467 office holders are unknown (Q-120)"
+  },
+  "content": [
+   {
+    "item": "bearer, party, destination",
+    "tier": "B",
+    "src": "RATION-30;MDPI-ARACH2025"
+   },
+   {
+    "item": "ration scale per day",
+    "tier": "B",
+    "src": "IR-PET"
+   },
+   {
+    "item": "officials along the route by name; provisions given by each in turn, stage by stage",
+    "tier": "B",
+    "src": "ARSHAMA-TA",
+    "note": "A for the Arshama document, B as a model"
+   },
+   {
+    "item": "no rations for extra days: 'If he should be more than one day in a place, then for these days do not give them any rations'",
+    "tier": "B",
+    "src": "ARSHAMA-TA",
+    "note": "conflict with the sim (Q-128)"
+   },
+   {
+    "item": "the bearer's business; validity; return journey",
+    "tier": "GAP",
+    "src": "RECON"
+   }
+  ],
+  "form": {
+   "v": "leather, folded and tied, sealed with a clay bulla whose seal image suppliers had learned to recognise",
+   "tier": "B",
+   "src": "HALMI-SX;ARSHAMA-TA",
+   "note": "the Elamite Q texts record the halmi and are not it; whether any halmi was clay is unknown (Q-122)"
+  },
+  "carried_and_shown": {
+   "v": "carried by the traveller ('he carried a sealed document of X'); shown to the supplier at each ration point; the receipt tablet sealed by supplier and recipient went to Persepolis for accounting",
+   "tier": "B",
+   "src": "IR-PET;IR-ADMIN;RATION-30"
+  },
+  "entitles": [
+   {
+    "v": "travel rations at road stations a day apart: 1-1.5 qa flour and about 1 qa wine or beer per person per day",
+    "tier": "B",
+    "src": "HYLAND2022;IR-PET;PEOPLE-R"
+   },
+   {
+    "v": "fodder for the animals",
+    "tier": "B",
+    "src": "ARSHAMA-TA"
+   },
+   {
+    "v": "a guide (barrisdama) for select individuals and large groups",
+    "tier": "B",
+    "src": "POTTS2024"
+   },
+   {
+    "v": "relay horses for express messengers",
+    "tier": "B",
+    "src": "HDT"
+   },
+   {
+    "v": "as a 'letter order': an issue of goods from a store to a named receiver (PF 15)",
+    "tier": "A",
+    "src": "CDLI-PF",
+    "note": "Darius-era"
+   },
+   {
+    "v": "NOT attested: that a halmi opened any door on the Terrace",
+    "tier": "GAP",
+    "src": "RECON"
+   }
+  ],
+  "checks_attested": {
+   "v": "the supplier's check at the ration point (the Q-text formula records whose halmi it was)",
+   "tier": "B",
+   "src": "IR-PET;IR-ADMIN"
+  },
+  "checks_not_attested": {
+   "v": "any check at the Gate, the stairs, the Treasury door or the town: C, by analogy with palace gates and road guards elsewhere (HDT 1.123, 3.72, 3.77, 3.118, 3.140, 5.35, 5.52, 7.239; XEN-CYR 4.5.14, 7.5.25-27; Ezra 5:9-10)",
+   "tier": "C",
+   "src": "HDT;XEN-CYR;KJV-BIBLE;RECON"
+  }
+ },
+ "visitor": {
+  "identity": {
+   "v": "a messenger (Elam. hutlak, PF 45) of an unnamed official, travelling alone on foot, no guide",
+   "tier": "C",
+   "src": "CDLI-PF;RECON",
+   "note": "D-101"
+  },
+  "halmi": {
+   "issuer": "the satrap at Susa (office only; the 467 holder is unknown)",
+   "route": "Susa -> Parsa (the royal road, 23 stages, ~552 km per one summary)",
+   "scale": {
+    "flour_qa_per_day": 1.5,
+    "wine_or_beer_qa_per_day": 1.0
+   },
+   "form": "folded leather, tied, clay bulla; never opened in the world; no text rendered (brief 10: published texts only)",
+   "tier": "C",
+   "src": "HALMI-SX;ROYALROAD-GIS;HYLAND2022;RECON",
+   "note": "D-101; B pattern (issuer at the point of departure), C instance"
+  },
+  "letter": {
+   "v": "a sealed letter for the treasurer at Parsa (content unknown to the visitor and never shown): Aramaic on leather with a bulla",
+   "tier": "C",
+   "src": "ARSHAMA-TA;IR-TREAS;PT-WAGE;RECON",
+   "note": "PT letters are orders from officials addressed to the treasurer (B); the medium follows the inter-provincial letters (B); the instance is C"
+  }
+ },
+ "guards_evidence": [
+  {
+   "v": "guards in the Persepolis tablets: no PF or PT guard text retrieved (the brief says the tablets attest them)",
+   "tier": "GAP",
+   "src": "PEOPLE-R"
+  },
+  {
+   "v": "PF lance-bearers served primarily as labour inspectors and escorts of groups, not as military personnel",
+   "tier": "B",
+   "src": "HENK2002"
+  },
+  {
+   "v": "guards in Persian and Median dress on the stair facades (Apadana, Tachara XPc, Hadish XPd, Tripylon): a motif, not a list of posts",
+   "tier": "B",
+   "src": "RELIEF-R;ISAC-PA"
+  },
+  {
+   "v": "the palace guard of spearmen stands 'about the palace day and night, whenever he was in residence; but whenever he went away anywhere, they went along'",
+   "tier": "B",
+   "src": "XEN-CYR",
+   "note": "claim (Cyropaedia 7.5.68); supports the smaller garrison with the king absent (D-003)"
+  },
+  {
+   "v": "the Terrace garrison of the build: 100 men in 10 files, three watches (D-023)",
+   "tier": "C",
+   "src": "HDT;RECON",
+   "note": "Q-043, Q-060"
+  },
+  {
+   "v": "the 'garrison quarters' near the SE corner: 'quarters for members of the garrison and perhaps for artisans' vs 'function unknown ... name conventional'",
+   "tier": "B/C",
+   "src": "ISAC-PA;LIVIUS",
+   "note": "conflict; working value garrison (C)"
+  }
+ ],
+ "zones": [
+  {
+   "id": "plain_approach",
+   "kind": "terrace_approach",
+   "ref": "people_places: town -> stair_foot",
+   "rule": "open",
+   "night": "open",
+   "court_resident": "open",
+   "checked_at": [],
+   "tier": "C",
+   "src": "RECON",
+   "note": "the plain W of the Grand Stair, from the rendered town edge to the stair foot"
+  },
+  {
+   "id": "stair_foot",
+   "kind": "terrace_approach",
+   "ref": "people_places: stair_foot",
+   "rule": "open",
+   "night": "open",
+   "court_resident": "open",
+   "checked_at": [],
+   "tier": "C",
+   "src": "RECON",
+   "note": "the depot at the stair foot where caravans unload (people_places)"
+  },
+  {
+   "id": "grand_stair",
+   "kind": "terrace",
+   "ref": "footprints: grand_stair; site_spec: grand_stair",
+   "rule": "open",
+   "night": "closed",
+   "court_resident": "open",
+   "checked_at": [
+    "post_stair_n",
+    "post_stair_s"
+   ],
+   "tier": "C",
+   "src": "ISAC-PA;LIVIUS;RECON",
+   "note": "the only ascent in 467 (ISAC-PA single entrance, LIVIUS S approach blocked by Xerxes: B). The climb is free by day (porters use it all day); the stair-head guards watch and turn people back at night"
+  },
+  {
+   "id": "gate_nations",
+   "kind": "terrace",
+   "ref": "footprints: gate_nations; site_spec: gate_nations; people_places: gate_hall",
+   "rule": "business",
+   "night": "closed",
+   "court_resident": "business",
+   "checked_at": [
+    "post_gate_w1",
+    "post_gate_w2"
+   ],
+   "tier": "C",
+   "src": "ISAC-PA;IR-PERS;HDT;RECON",
+   "note": "'all visitors had to pass through this, the only entrance to the terrace' (ISAC-PA, SX, B). The stop is at the W door; the visitor waits on the stone bench (IR-PERS/ISAC-PA, B) for an escort (C; HDT 3.140 waiting at the king's antechamber, B claim)",
+   "errand_use": "check and wait (steps 3, 7)"
+  },
+  {
+   "id": "terrace_courts",
+   "kind": "terrace",
+   "ref": "footprints: terrace (open ground inside the outline, outside every building footprint): the forecourt (people_places forecourt), the court E of the Apadana, the Hall 100 forecourt incl. the unfinished_gate site (absent in 467), the Tripylon N court",
+   "rule": "escort",
+   "night": "closed",
+   "court_resident": "escort",
+   "checked_at": [
+    "post_gate_s1",
+    "post_gate_s2"
+   ],
+   "tier": "C",
+   "src": "RECON;HDT",
+   "note": "a stranger is not left to walk the royal Terrace alone (C). Recognised on a later day with the same errand open, the rule relaxes to business (recognised_rule)",
+   "recognised_rule": "business",
+   "derived_zone": true
+  },
+  {
+   "id": "treasury_street",
+   "kind": "terrace",
+   "ref": "site_spec: treasury.r_north_wall_y (note: '~12 m street between the Hall of 100 Columns and the Treasury'); site_spec: treasury.doors N; people_places: post_treas_1..4",
+   "rule": "business",
+   "night": "closed",
+   "court_resident": "business",
+   "checked_at": [
+    "post_treas_1",
+    "post_treas_2",
+    "post_treas_3",
+    "post_treas_4"
+   ],
+   "tier": "C",
+   "src": "REF-PLAN;RECON",
+   "note": "where the letter is handed in and the visitor waits for word (C)",
+   "derived_zone": true,
+   "errand_use": "hand-over and wait (steps 5, 7)"
+  },
+  {
+   "id": "apadana",
+   "kind": "terrace",
+   "ref": "footprints: apadana; site_spec: apadana (hall, porticoes, N and E stairs); people_places: apadana_hall",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [
+    "post_apa_w",
+    "post_apa_e"
+   ],
+   "tier": "C",
+   "src": "RECON;HDT",
+   "note": "D-003: king absent, the Apadana is closed. With the court resident: audience only by summons through doorkeeper and messenger (HDT 1.99, 3.118, 3.140, B), not part of the errand"
+  },
+  {
+   "id": "tachara",
+   "kind": "terrace",
+   "ref": "footprints: tachara; site_spec: tachara (S court, S stair)",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [
+    "post_tachara_1",
+    "post_tachara_2"
+   ],
+   "tier": "C",
+   "src": "RECON;XEN-CYR;PEOPLE-R",
+   "note": "palace with the king away: caretakers only (PEOPLE §P5.6). The palace guard goes with the king (XEN-CYR 7.5.68, B claim)"
+  },
+  {
+   "id": "hadish",
+   "kind": "terrace",
+   "ref": "footprints: hadish; site_spec: hadish (N court, W and E stairs, balcony stairs)",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [
+    "post_hadish_1",
+    "post_hadish_2"
+   ],
+   "tier": "C",
+   "src": "RECON;XEN-CYR;PEOPLE-R",
+   "note": "as tachara"
+  },
+  {
+   "id": "harem",
+   "kind": "terrace",
+   "ref": "footprints: harem; site_spec: harem (court, r_entrances)",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [
+    "post_harem_1",
+    "post_harem_2",
+    "proposed_harem_n_passage"
+   ],
+   "tier": "C",
+   "src": "RECON;PEOPLE-R",
+   "note": "as tachara ('Harem' is a modern label; function debated)"
+  },
+  {
+   "id": "tripylon",
+   "kind": "terrace",
+   "ref": "footprints: tripylon; site_spec: tripylon (N stair, S stair, narrow E stair)",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [
+    "proposed_tripylon_e_stair"
+   ],
+   "tier": "C",
+   "src": "RECON",
+   "note": "under construction in 467 and set between the palaces"
+  },
+  {
+   "id": "hall100",
+   "kind": "terrace",
+   "ref": "footprints: hall100; site_spec: hall100; people_places: worksite, worksite_capital, work_hearth, oven, querns",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [],
+   "tier": "C",
+   "src": "RECON",
+   "note": "the royal building site and its camp; seen from terrace_courts in passing"
+  },
+  {
+   "id": "treasury",
+   "kind": "terrace",
+   "ref": "footprints: treasury; site_spec: treasury (doors N, E); people_places: treasury_store",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [
+    "post_treas_1",
+    "post_treas_2",
+    "proposed_treasury_e_door"
+   ],
+   "tier": "C",
+   "src": "IRANTOUR-TREAS;LIVIUS-TREAS;ISAC-PA;ISAC-FINDS;IR-TREAS",
+   "note": "one controlled entrance with guardrooms (tertiary, C; Q-P4-12, Q-124); weapons and sealed stores inside (B). The visitor stays at the N door"
+  },
+  {
+   "id": "treasury_desk",
+   "kind": "terrace",
+   "ref": "people_places: treasury_desk (the scribes' room; the PT find-spot area)",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [
+    "post_treas_1",
+    "post_treas_2"
+   ],
+   "tier": "C",
+   "src": "IR-TREAS;RECON",
+   "note": "PT tablets found in 'a northeastern room of the Treasury' (B). Default: the letter goes in, the visitor waits outside. Errand variant B (the lead chooses): escorted here for the hand-over",
+   "errand_exception": {
+    "variant": "B",
+    "rule": "escort",
+    "steps": [
+     5
+    ]
+   }
+  },
+  {
+   "id": "garrison",
+   "kind": "terrace",
+   "ref": "footprints: garrison; site_spec: garrison; people_places: garrison_sleep, garrison_hearth_s, garrison_hearth_m, garrison_hearth_n, water",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [
+    "proposed_garrison_w_door",
+    "proposed_garrison_s_door"
+   ],
+   "tier": "C",
+   "src": "ISAC-PA;LIVIUS;RECON",
+   "note": "'quarters for members of the garrison and perhaps for artisans' (ISAC-PA, B) vs 'function unknown ... name conventional' (LIVIUS): working value garrison (C)"
+  },
+  {
+   "id": "fortification_e",
+   "kind": "terrace",
+   "ref": "site_spec: fortification_e",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [],
+   "tier": "C",
+   "src": "IR-FORT;RECON",
+   "note": "the E wall and its towers"
+  },
+  {
+   "id": "pf_archive_findspot",
+   "kind": "terrace",
+   "ref": "footprints: terrace polygon vertices 31-36 (the NE corner of the outline)",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [],
+   "tier": "C",
+   "src": "PFA-ISAC;RECON",
+   "note": "the PF tablets lay 'in two small spaces of a bastion in the casemate fortification wall' at the NE corner, entrance 'bricked up in antiquity' (SX, B; date of bricking unknown). In 467: a dead store of a Darius-era archive, not an office (D-104)",
+   "derived_zone": true,
+   "ref_vertices": [
+    [
+     241.9,
+     117.6
+    ],
+    [
+     256.5,
+     155.8
+    ],
+    [
+     238.4,
+     162.4
+    ],
+    [
+     233.0,
+     148.9
+    ],
+    [
+     216.8,
+     153.6
+    ],
+    [
+     219.4,
+     166.3
+    ]
+   ],
+   "at_from": "src/data/geo/footprints.json terrace.polygon[31:37]"
+  },
+  {
+   "id": "palace_h",
+   "kind": "terrace",
+   "ref": "footprints: palace_h (absent in 467)",
+   "rule": "none",
+   "night": "none",
+   "court_resident": "none",
+   "checked_at": [],
+   "tier": "B",
+   "src": "DERIVED",
+   "note": "not built in 467 (chronology.json); no rule"
+  },
+  {
+   "id": "unfinished_gate",
+   "kind": "terrace",
+   "ref": "footprints: unfinished_gate (absent in 467)",
+   "rule": "none",
+   "night": "none",
+   "court_resident": "none",
+   "checked_at": [],
+   "tier": "B",
+   "src": "DERIVED",
+   "note": "not built in 467; its site is part of terrace_courts (Hall 100 forecourt)"
+  },
+  {
+   "id": "roads",
+   "kind": "town",
+   "ref": "settlement: road_royal_west, road_pasargadae, road_naqsh_e_rustam, road_south_tirazzish; town_elements: road_spur_ajori",
+   "rule": "open",
+   "night": "open",
+   "court_resident": "open",
+   "checked_at": [],
+   "tier": "C",
+   "src": "HDT;RECON",
+   "note": "open on foot. Roads were watched ('the roads were guarded', 'way-wardens': HDT 1.123, 5.35, 7.239, B claims), but no road guard is modelled in the plain"
+  },
+  {
+   "id": "town_lanes",
+   "kind": "town",
+   "ref": "settlement town_elements: town_lanes (the quarters of town_plots)",
+   "rule": "open",
+   "night": "open",
+   "court_resident": "open",
+   "checked_at": [],
+   "tier": "C",
+   "src": "RECON",
+   "note": "no curfew attested"
+  },
+  {
+   "id": "town_houses",
+   "kind": "town",
+   "ref": "settlement town_elements: town_houses (town_plots kind house, house_large)",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [],
+   "tier": "C",
+   "src": "BAKER2014;RECON",
+   "note": "private courtyard houses; enter only if invited (invitation not modelled)"
+  },
+  {
+   "id": "town_workshops",
+   "kind": "town",
+   "ref": "settlement town_elements: town_workshops (town_plots kind workshop)",
+   "rule": "business",
+   "night": "closed",
+   "court_resident": "business",
+   "checked_at": [],
+   "tier": "C",
+   "src": "RECON",
+   "note": "the visitor may watch from the door; entering needs business"
+  },
+  {
+   "id": "town_yards_pens",
+   "kind": "town",
+   "ref": "settlement town_elements: town_yards, town_pens",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [],
+   "tier": "C",
+   "src": "RECON",
+   "note": "private"
+  },
+  {
+   "id": "town_wells",
+   "kind": "town",
+   "ref": "settlement town_elements: town_wells",
+   "rule": "open",
+   "night": "open",
+   "court_resident": "open",
+   "checked_at": [],
+   "tier": "C",
+   "src": "QANAT-WH2018;RECON",
+   "note": "wells in squares and courts"
+  },
+  {
+   "id": "town_stores",
+   "kind": "town",
+   "ref": "settlement town_elements: town_stores; town_plots: stores-0001 (site stores)",
+   "rule": "business",
+   "night": "closed",
+   "court_resident": "business",
+   "checked_at": [
+    "town_post_stores"
+   ],
+   "tier": "C",
+   "src": "CDLI-PF;IR-PET;RECON",
+   "note": "rations against the halmi (B practice); the place is C (D-043)",
+   "errand_use": "rations (steps 1, 6, 9)"
+  },
+  {
+   "id": "town_stables",
+   "kind": "town",
+   "ref": "settlement town_elements: town_stables; town_plots: stables-0001 (site stables)",
+   "rule": "business",
+   "night": "business",
+   "court_resident": "business",
+   "checked_at": [
+    "town_post_stables"
+   ],
+   "tier": "C",
+   "src": "POTTS2023;HDT;RECON",
+   "note": "state stable by the royal road; proposed as the post station and the visitor's lodging (D-104, C)",
+   "errand_use": "lodging (step 6)"
+  },
+  {
+   "id": "official_court",
+   "kind": "town",
+   "ref": "settlement: north_official_complex; town_elements: official_court; town_plots: official-0001; town.json facility official_bldg",
+   "rule": "business",
+   "night": "closed",
+   "court_resident": "business",
+   "checked_at": [
+    "town_post_official"
+   ],
+   "tier": "C",
+   "src": "GONDET2018;RECON",
+   "note": "an ~1 ha building with 'an official function' (B existence); used as the office that issues halmis for journeys starting from Parsa (C, D-104, Q-126)",
+   "errand_use": "return halmi (step 8)"
+  },
+  {
+   "id": "area_b_yard",
+   "kind": "town",
+   "ref": "settlement: pw_area_b_craft; town_elements: area_b_yard (town_plots pw_area_b-yard)",
+   "rule": "business",
+   "night": "closed",
+   "court_resident": "business",
+   "checked_at": [],
+   "tier": "C",
+   "src": "PW2017;RECON",
+   "note": "a state craft yard (kiln, pigments)"
+  },
+  {
+   "id": "town_open_ground",
+   "kind": "town",
+   "ref": "settlement: zone_persepolis_west, zone_lower_town_south, pw_area_a (outside plots)",
+   "rule": "open",
+   "night": "open",
+   "court_resident": "open",
+   "checked_at": [],
+   "tier": "C",
+   "src": "RECON",
+   "note": "the open ground between the quarters"
+  },
+  {
+   "id": "walled_gardens",
+   "kind": "town",
+   "ref": "settlement: pw_area_c_garden; town_elements: area_c_ditch_garden, town_gardens_orchards (town_plots sites orchard_1..orchard_8, area_c_garden)",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [],
+   "tier": "C",
+   "src": "PW2017;RECON",
+   "note": "walled gardens and orchards"
+  },
+  {
+   "id": "paradise_bagh_e_firuzi",
+   "kind": "town",
+   "ref": "settlement: tol_ajori_gate; town_elements: paradise_bagh_e_firuzi (town_plots site paradise)",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [
+    "town_post_ajori_gate"
+   ],
+   "tier": "C",
+   "src": "GONDET2009;TOLAJORI2017;RECON",
+   "note": "the walled garden behind the Tol-e Ajori gate (D-042); royal or elite (B zone)"
+  },
+  {
+   "id": "estates_bagh_e_firuzi",
+   "kind": "town",
+   "ref": "town_elements: estates_bagh_e_firuzi (town_plots estate_1-0001 .. estate_4-0001)",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [
+    "town_post_estate_1",
+    "town_post_estate_2",
+    "town_post_estate_3",
+    "town_post_estate_4"
+   ],
+   "tier": "C",
+   "src": "GONDET2009;RECON",
+   "note": "elite households"
+  },
+  {
+   "id": "garden_zones_outside",
+   "kind": "town",
+   "ref": "settlement: zone_bagh_e_firuzi, zone_dasht_e_gohar (outside the walls)",
+   "rule": "open",
+   "night": "open",
+   "court_resident": "open",
+   "checked_at": [],
+   "tier": "C",
+   "src": "GONDET2009;RECON",
+   "note": ""
+  },
+  {
+   "id": "dasht_e_gohar_walled",
+   "kind": "town",
+   "ref": "town_elements: garden_dasht_e_gohar, hall_dasht_e_gohar",
+   "rule": "closed",
+   "night": "closed",
+   "court_resident": "closed",
+   "checked_at": [],
+   "tier": "C",
+   "src": "GONDET2009;RECON",
+   "note": "walled garden and columned hall"
+  },
+  {
+   "id": "takht_e_rustam",
+   "kind": "town",
+   "ref": "settlement: takht_e_rustam; town_elements: takht_steps",
+   "rule": "open",
+   "night": "open",
+   "court_resident": "open",
+   "checked_at": [],
+   "tier": "C",
+   "src": "LIVIUS-TR;RECON",
+   "note": "an unfinished platform"
+  },
+  {
+   "id": "canal",
+   "kind": "town",
+   "ref": "settlement: canal_kuh_e_rahmat",
+   "rule": "open",
+   "night": "open",
+   "court_resident": "open",
+   "checked_at": [],
+   "tier": "C",
+   "src": "RECON",
+   "note": ""
+  },
+  {
+   "id": "waystation",
+   "kind": "plain",
+   "ref": "settlement: waystation_kur_west; town_elements: waystation_plan; town_plots: waystation-0001",
+   "rule": "business",
+   "night": "business",
+   "court_resident": "business",
+   "checked_at": [
+    "town_post_waystation"
+   ],
+   "tier": "C",
+   "src": "ROYALROAD-GIS;HYLAND2022;IR-PET;RECON",
+   "note": "halmi -> rations and lodging (B practice, C place)",
+   "errand_use": "prologue (step 0)"
+  },
+  {
+   "id": "plain_open",
+   "kind": "plain",
+   "ref": "plain.json villages, fields, orchards",
+   "rule": "open",
+   "night": "open",
+   "court_resident": "open",
+   "checked_at": [],
+   "tier": "C",
+   "src": "RECON",
+   "note": ""
+  },
+  {
+   "id": "naqsh_e_rustam",
+   "kind": "plain",
+   "ref": "plain.json: nr_darius_tomb, nr_xerxes_tomb, nr_kaba",
+   "rule": "open",
+   "night": "open",
+   "court_resident": "open",
+   "checked_at": [],
+   "tier": "C",
+   "src": "ALEX-HIST;RECON",
+   "note": "open to the cliff foot; the tomb chambers and the Ka'ba door are closed (closed_parts). Magi guarded Cyrus' tomb from a small house by the way up, with rations from the king (Arrian 6.29, B claim, Pasargadae); whether the NR tombs had guardians in 467 is unknown, so none is placed",
+   "closed_parts": [
+    "nr_darius_tomb chamber",
+    "nr_xerxes_tomb chamber",
+    "nr_kaba door"
+   ]
+  },
+  {
+   "id": "frataraka_complex",
+   "kind": "town",
+   "ref": "settlement: frataraka_complex (absent in 467)",
+   "rule": "none",
+   "night": "none",
+   "court_resident": "none",
+   "checked_at": [],
+   "tier": "B",
+   "src": "GONDET2018",
+   "note": "post-Achaemenid; not present"
+  }
+ ],
+ "guard_posts": [
+  {
+   "id": "post_stair_n",
+   "at": [
+    -39.3,
+    134.3
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "watch",
+   "guards_zone": "grand_stair",
+   "placed": true,
+   "tier": "C",
+   "src": "RECON",
+   "note": "watch by day, bar at night. In sim.ts CHECK_POSTS today: proposed to watch, so the visitor is stopped once (at the Gate), not three times",
+   "night_kind": "bar"
+  },
+  {
+   "id": "post_stair_s",
+   "at": [
+    -39.3,
+    110.7
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "watch",
+   "guards_zone": "grand_stair",
+   "placed": true,
+   "tier": "C",
+   "src": "RECON",
+   "note": "as post_stair_n",
+   "night_kind": "bar"
+  },
+  {
+   "id": "post_gate_w1",
+   "at": [
+    -18.8,
+    120.4
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "check",
+   "guards_zone": "gate_nations",
+   "placed": true,
+   "tier": "C",
+   "src": "ISAC-PA;HDT;RECON",
+   "note": "THE check: halmi, bulla, business; the visitor waits on the bench for an escort"
+  },
+  {
+   "id": "post_gate_w2",
+   "at": [
+    -18.8,
+    128.8
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "check",
+   "guards_zone": "gate_nations",
+   "placed": true,
+   "tier": "C",
+   "src": "ISAC-PA;HDT;RECON",
+   "note": "as post_gate_w1"
+  },
+  {
+   "id": "post_gate_s1",
+   "at": [
+    -3.4,
+    103.4
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "check",
+   "guards_zone": "terrace_courts",
+   "placed": true,
+   "tier": "C",
+   "src": "RECON",
+   "note": "inner door to the courts: only escorted (or recognised, same errand) visitors pass"
+  },
+  {
+   "id": "post_gate_s2",
+   "at": [
+    3.6,
+    103.4
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "check",
+   "guards_zone": "terrace_courts",
+   "placed": true,
+   "tier": "C",
+   "src": "RECON",
+   "note": "as post_gate_s1"
+  },
+  {
+   "id": "post_apa_w",
+   "at": [
+    -42,
+    60.5
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "bar",
+   "guards_zone": "apadana",
+   "placed": true,
+   "tier": "C",
+   "src": "RECON",
+   "note": "Apadana N stair"
+  },
+  {
+   "id": "post_apa_e",
+   "at": [
+    45.8,
+    60.5
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "bar",
+   "guards_zone": "apadana",
+   "placed": true,
+   "tier": "C",
+   "src": "RECON",
+   "note": "Apadana N stair"
+  },
+  {
+   "id": "post_treas_1",
+   "at": [
+    204.4,
+    -76.4
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "check",
+   "guards_zone": "treasury_street",
+   "placed": true,
+   "tier": "C",
+   "src": "IRANTOUR-TREAS;RECON",
+   "note": "the letter is handed over here"
+  },
+  {
+   "id": "post_treas_2",
+   "at": [
+    208.8,
+    -76.4
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "check",
+   "guards_zone": "treasury_street",
+   "placed": true,
+   "tier": "C",
+   "src": "IRANTOUR-TREAS;RECON",
+   "note": "as post_treas_1"
+  },
+  {
+   "id": "post_treas_3",
+   "at": [
+    202.2,
+    -76.4
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "check",
+   "guards_zone": "treasury_street",
+   "placed": true,
+   "tier": "C",
+   "src": "EVENTS-R;RECON",
+   "note": "manned while E-81 runs (a courier's letter or silver weighed out, D-023): the visitor's letter is such a letter",
+   "when": "E-81"
+  },
+  {
+   "id": "post_treas_4",
+   "at": [
+    211.0,
+    -76.4
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "check",
+   "guards_zone": "treasury_street",
+   "placed": true,
+   "tier": "C",
+   "src": "EVENTS-R;RECON",
+   "note": "as post_treas_3",
+   "when": "E-81"
+  },
+  {
+   "id": "post_tachara_1",
+   "at": [
+    -25.0,
+    -100.4
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "bar",
+   "guards_zone": "tachara",
+   "placed": true,
+   "tier": "C",
+   "src": "RECON",
+   "note": ""
+  },
+  {
+   "id": "post_tachara_2",
+   "at": [
+    -17.6,
+    -100.4
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "bar",
+   "guards_zone": "tachara",
+   "placed": true,
+   "tier": "C",
+   "src": "RECON",
+   "note": ""
+  },
+  {
+   "id": "post_hadish_1",
+   "at": [
+    5.0,
+    -120.0
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "bar",
+   "guards_zone": "hadish",
+   "placed": true,
+   "tier": "C",
+   "src": "RECON",
+   "note": ""
+  },
+  {
+   "id": "post_hadish_2",
+   "at": [
+    5.0,
+    -126.0
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "bar",
+   "guards_zone": "hadish",
+   "placed": true,
+   "tier": "C",
+   "src": "RECON",
+   "note": ""
+  },
+  {
+   "id": "post_harem_1",
+   "at": [
+    107.3,
+    -77.0
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "bar",
+   "guards_zone": "harem",
+   "placed": true,
+   "tier": "C",
+   "src": "RECON",
+   "note": ""
+  },
+  {
+   "id": "post_harem_2",
+   "at": [
+    111.7,
+    -77.0
+   ],
+   "at_from": "src/data/people_places.json",
+   "kind": "bar",
+   "guards_zone": "harem",
+   "placed": true,
+   "tier": "C",
+   "src": "RECON",
+   "note": ""
+  },
+  {
+   "id": "proposed_garrison_w_door",
+   "at": [
+    183.27,
+    32.0
+   ],
+   "at_from": "src/data/site_spec.json garrison.r_doors[0]",
+   "kind": "bar",
+   "guards_zone": "garrison",
+   "placed": false,
+   "tier": "C",
+   "src": "RECON",
+   "note": "opens on the court N of the Hall of 100 Columns"
+  },
+  {
+   "id": "proposed_garrison_s_door",
+   "at": [
+    201.8,
+    -66.3
+   ],
+   "at_from": "src/data/site_spec.json garrison.r_doors[1]",
+   "kind": "bar",
+   "guards_zone": "garrison",
+   "placed": false,
+   "tier": "C",
+   "src": "RECON",
+   "note": "opens on the Treasury street"
+  },
+  {
+   "id": "proposed_treasury_e_door",
+   "at": [
+    217.5,
+    -134.5
+   ],
+   "at_from": "src/data/site_spec.json treasury.doors (id E)",
+   "kind": "bar",
+   "guards_zone": "treasury",
+   "placed": false,
+   "tier": "C",
+   "src": "REF-PLAN;RECON",
+   "note": "the mountain-side door"
+  },
+  {
+   "id": "proposed_harem_n_passage",
+   "at": [
+    109.5,
+    -73.0
+   ],
+   "at_from": "src/data/site_spec.json harem.r_entrances (id N_passage)",
+   "kind": "bar",
+   "guards_zone": "harem",
+   "placed": false,
+   "tier": "C",
+   "src": "REF-PLAN;RECON",
+   "note": "off the Treasury street"
+  },
+  {
+   "id": "proposed_tripylon_e_stair",
+   "at": [
+    101.0,
+    -58.0
+   ],
+   "at_from": "src/data/site_spec.json tripylon.stair_e_narrow.foot",
+   "kind": "bar",
+   "guards_zone": "tripylon",
+   "placed": false,
+   "tier": "C",
+   "src": "REF-PLAN;RECON",
+   "note": "off the Treasury street"
+  },
+  {
+   "id": "proposed_gate_e_door",
+   "at": null,
+   "at_from": "src/data/site_spec.json gate_nations.doors (\"E\"): no coordinate in the data; the lead places it at the built E doorway",
+   "kind": "bar",
+   "guards_zone": "terrace_courts",
+   "placed": false,
+   "tier": "C",
+   "src": "RECON",
+   "note": "court absent: the E door (avenue to the Hall 100 forecourt) is barred to the visitor; court resident: check",
+   "court_resident_kind": "check"
+  },
+  {
+   "id": "town_post_stores",
+   "at": [
+    -234.2,
+    -537.8
+   ],
+   "at_from": "src/data/town_plots.json stores-0001.door",
+   "kind": "check",
+   "guards_zone": "town_stores",
+   "placed": false,
+   "tier": "C",
+   "src": "CDLI-PF;RECON",
+   "note": "the storekeeper (supplier, kurmin/ullira) or his watchman: the halmi check that IS attested in practice (B)",
+   "keeper": "storekeeper"
+  },
+  {
+   "id": "town_post_stables",
+   "at": [
+    -1459.1,
+    374.4
+   ],
+   "at_from": "src/data/town_plots.json stables-0001.door",
+   "kind": "check",
+   "guards_zone": "town_stables",
+   "placed": false,
+   "tier": "C",
+   "src": "RECON",
+   "note": "a groom",
+   "keeper": "groom"
+  },
+  {
+   "id": "town_post_official",
+   "at": [
+    -51.5,
+    599.5
+   ],
+   "at_from": "src/data/town_plots.json official-0001.door",
+   "kind": "check",
+   "guards_zone": "official_court",
+   "placed": false,
+   "tier": "C",
+   "src": "HDT;RECON",
+   "note": "a doorkeeper (HDT 3.140 doorkeeper who carries word in: B claim, Susa)",
+   "keeper": "doorkeeper"
+  },
+  {
+   "id": "town_post_waystation",
+   "at": [
+    -10996.1,
+    494.5
+   ],
+   "at_from": "src/data/town_plots.json waystation-0001.door",
+   "kind": "check",
+   "guards_zone": "waystation",
+   "placed": false,
+   "tier": "C",
+   "src": "IR-PET;RECON",
+   "note": "the station keeper (supplier)",
+   "keeper": "station keeper"
+  },
+  {
+   "id": "town_post_ajori_gate",
+   "at": [
+    -2381,
+    2290
+   ],
+   "at_from": "src/data/settlement.json tol_ajori_gate.xy",
+   "kind": "bar",
+   "guards_zone": "paradise_bagh_e_firuzi",
+   "placed": false,
+   "tier": "C",
+   "src": "RECON",
+   "note": "a gate-keeper of the walled garden",
+   "keeper": "gate-keeper"
+  },
+  {
+   "id": "town_post_estate_1",
+   "at": [
+    -2076.1,
+    1676.3
+   ],
+   "at_from": "src/data/town_plots.json estate_1-0001.door",
+   "kind": "bar",
+   "guards_zone": "estates_bagh_e_firuzi",
+   "placed": false,
+   "tier": "C",
+   "src": "RECON",
+   "note": "the household's doorkeeper",
+   "keeper": "household"
+  },
+  {
+   "id": "town_post_estate_2",
+   "at": [
+    -2739.5,
+    1817.8
+   ],
+   "at_from": "src/data/town_plots.json estate_2-0001.door",
+   "kind": "bar",
+   "guards_zone": "estates_bagh_e_firuzi",
+   "placed": false,
+   "tier": "C",
+   "src": "RECON",
+   "note": "the household's doorkeeper",
+   "keeper": "household"
+  },
+  {
+   "id": "town_post_estate_3",
+   "at": [
+    -2968.1,
+    2202.4
+   ],
+   "at_from": "src/data/town_plots.json estate_3-0001.door",
+   "kind": "bar",
+   "guards_zone": "estates_bagh_e_firuzi",
+   "placed": false,
+   "tier": "C",
+   "src": "RECON",
+   "note": "the household's doorkeeper",
+   "keeper": "household"
+  },
+  {
+   "id": "town_post_estate_4",
+   "at": [
+    -1950.3,
+    2351.9
+   ],
+   "at_from": "src/data/town_plots.json estate_4-0001.door",
+   "kind": "bar",
+   "guards_zone": "estates_bagh_e_firuzi",
+   "placed": false,
+   "tier": "C",
+   "src": "RECON",
+   "note": "the household's doorkeeper",
+   "keeper": "household"
+  }
+ ],
+ "post_kinds": {
+  "check": "stop and ask (halmi, business)",
+  "watch": "look; stop only if the zone behind is closed to the visitor",
+  "bar": "stand in the way of a closed zone; no question",
+  "tier": "C",
+  "src": "RECON"
+ },
+ "stop_procedure": [
+  {
+   "n": 1,
+   "act": "a guard is always at the post",
+   "basis": "'a guard before the gates, for one is always posted there' (XEN-CYR 7.5.25); 'guards are stationed all around' (HDT 3.72.1)",
+   "tier": "B",
+   "src": "XEN-CYR;HDT",
+   "build": "the paired posts, manned by the rota (D-023)"
+  },
+  {
+   "n": 2,
+   "act": "notice and face",
+   "basis": "-",
+   "tier": "C",
+   "src": "RECON",
+   "build": "at 8-15 m the nearer guard turns to face the visitor"
+  },
+  {
+   "n": 3,
+   "act": "step into the way; open hand raised; spear upright, butt to the ground, never levelled",
+   "basis": "relief guards stand with the spear upright (B stance); the rest C",
+   "tier": "C",
+   "src": "RECON",
+   "build": "half a pace into the way"
+  },
+  {
+   "n": 4,
+   "act": "ask",
+   "basis": "court messengers 'asked the seven why they had come' (HDT 3.77.2); 'Who commanded you ...? We asked their names also' (Ezra 5:9-10)",
+   "tier": "C",
+   "src": "HDT;KJV-BIBLE;RECON",
+   "build": "line el.ask_document.halmi ('halmi?', rising)"
+  },
+  {
+   "n": 5,
+   "act": "look at the bulla, not read the leather",
+   "basis": "the bulla's seal image 'suppliers and other officials ... had learned to recognise' (HALMI-SX, B); a royal letter is read by a scribe (HDT 3.128.3, B)",
+   "tier": "C",
+   "src": "HALMI-SX;HDT;RECON",
+   "build": "the guard looks; no reading"
+  },
+  {
+   "n": 6,
+   "act": "the business",
+   "basis": "-",
+   "tier": "C",
+   "src": "RECON",
+   "build": "the visitor shows the letter's bulla; optional composed line arc:ʾgrh + arc:gdbr ('letter ... treasurer')"
+  },
+  {
+   "n": 7,
+   "act": "word goes in; the stranger waits",
+   "basis": "Syloson 'sat in the king's antechamber ... the doorkeeper brought word ... [and] brought Syloson in' (HDT 3.140.1-3)",
+   "tier": "C",
+   "src": "HDT;RECON",
+   "build": "Gate: the visitor sits on the bench in gate_hall while one guard fetches an escort (patrol pair or an off-watch man, D-023), 0.2-0.7 h. Treasury: the letter is carried in, the visitor waits in treasury_street"
+  },
+  {
+   "n": 8,
+   "act": "refusal",
+   "basis": "'the gatekeeper and the messenger forbade him' (HDT 3.118.2)",
+   "tier": "C",
+   "src": "HDT;RECON",
+   "build": "a flat hand and a gesture back toward the stair or out of the street; no words beyond the lexicon; no threat"
+  },
+  {
+   "n": 9,
+   "act": "if he walks on",
+   "basis": "-",
+   "tier": "C",
+   "src": "RECON",
+   "build": "the two men of the post close the way with their bodies; the patrol pair comes; they walk him to the zone edge (the stair head; the Gate for the courts). NO blows, NO weapons, NO arrest, NO punishment shown (brief 9.1 no combat; 12 not sensational)"
+  },
+  {
+   "n": 10,
+   "act": "remember",
+   "basis": "the guards at Susa knew the leading Persians by sight (HDT 3.77.1, B)",
+   "tier": "C",
+   "src": "HDT;RECON",
+   "build": "log a 'stopped' encounter (lives.json familiarity 0.5, half-life 6 days); outcome admitted / turned_back feeds the recognition rules"
+  }
+ ],
+ "not_used": [
+  {
+   "v": "Intaphernes cutting off the gatekeepers' ears and noses (HDT 3.118)",
+   "why": "sensational; the guard is the victim, not the actor",
+   "src": "HDT"
+  },
+  {
+   "v": "death for entering the inner court uncalled (Esther 4:11)",
+   "why": "late literary; sensational; the king is absent",
+   "src": "KJV-BIBLE"
+  },
+  {
+   "v": "the triple wall of the citadel (Diodorus 17.71)",
+   "why": "not matched by the excavated Terrace",
+   "src": "ALEX-HIST"
+  }
+ ],
+ "recognition": [
+  {
+   "if": "familiarity >= recognise AND last stop at this post = admitted AND the same errand is open",
+   "then": "nod; no question; terrace_courts relaxes from escort to business (the visitor may walk alone to the place of business)",
+   "tier": "C",
+   "src": "HDT;RECON",
+   "note": "HDT 3.77.1: known men passed unquestioned (B)"
+  },
+  {
+   "if": "familiarity >= recognise AND last stop at this post = turned_back",
+   "then": "steps into the way at once, no question, gestures back",
+   "tier": "C",
+   "src": "RECON"
+  },
+  {
+   "if": "nod <= familiarity < recognise",
+   "then": "the full check, with a glance of recognition",
+   "tier": "C",
+   "src": "RECON"
+  },
+  {
+   "if": "the errand is closed",
+   "then": "the full check again; the old business no longer counts",
+   "tier": "C",
+   "src": "RECON"
+  },
+  {
+   "check": "a guard who stopped the visitor yesterday: 0.5 x 2^(-1/6) = 0.45 >= recognise 0.25; fades after about six days",
+   "tier": "C",
+   "src": "RECON"
+  }
+ ],
+ "errand": {
+  "id": "letter_for_the_treasurer",
+  "title": "A sealed letter for the treasurer at Parsa",
+  "why": "the Treasury archive is the one archive live in 467 (dated PT texts peak in Xerxes yrs 19-20, B); its letters are orders from officials addressed to the treasurer (B); messengers carry officials' orders (PF 45, A Darius-era); halmis for journeys from Parsa are issued by the Parsa administration (B); rations against the sealed document (B). Each link B; the chain C",
+  "tier": "C",
+  "src": "IR-TREAS;PT-WAGE;CDLI-PF;HUNARA2024;IR-PET",
+  "timing": {
+   "answer": "letter handed in before midday -> answer the next morning from sunrise + 1 h; after midday -> the morning after next",
+   "silver_day": "+1 day if E-05 (silver weighed out) runs at the Treasury that day",
+   "terrace_hours": "sunrise + 0.5 h to sunset - 0.5 h",
+   "tier": "C",
+   "src": "RECON",
+   "note": "no evidence for any processing time (Q-125); these rules only make the waiting visible and the next day different"
+  },
+  "archives": {
+   "treasury_archive": {
+    "place": "treasury_desk",
+    "at": [
+     192,
+     -84
+    ],
+    "at_from": "src/data/people_places.json",
+    "v": "the scribes' room: the PT tablets were found in 'a northeastern room of the Treasury' (IR-TREAS, SX, B); the desk position is C",
+    "tier": "C",
+    "src": "IR-TREAS"
+   },
+   "fortification_archive": {
+    "place": "pf_archive_findspot",
+    "v": "closed; a Darius-era archive stored in the NE bastion; not a place of business in 467 (C, D-104)",
+    "tier": "C",
+    "src": "PFA-ISAC;RECON"
+   },
+   "halmi_office_467": {
+    "place": "official-0001",
+    "v": "unknown in 467; official-0001 is the working value (C, Q-126)",
+    "tier": "C",
+    "src": "GONDET2018;RECON"
+   }
+  },
+  "steps": [
+   {
+    "n": 0,
+    "optional": true,
+    "place": "waystation-0001",
+    "at": [
+     -10996.1,
+     494.5
+    ],
+    "at_from": "src/data/town_plots.json waystation-0001.door",
+    "zone": "waystation",
+    "action": "show the halmi; draw the day's ration; the keeper's scribe writes a receipt that the keeper and the visitor seal",
+    "who": [
+     "station keeper (supplier)",
+     "scribe"
+    ],
+    "wait_h": [
+     0.5,
+     1.0
+    ],
+    "receive": "the day's ration (1.5 qa flour, 1 qa wine or beer)",
+    "tier": "C",
+    "src": "IR-PET;HYLAND2022;RECON",
+    "note": "B practice, C place (the first station out of Persepolis is unidentified)"
+   },
+   {
+    "n": 1,
+    "place": "stores-0001",
+    "at": [
+     -234.2,
+     -537.8
+    ],
+    "at_from": "src/data/town_plots.json stores-0001.door",
+    "zone": "town_stores",
+    "action": "on arrival in the town: show the halmi, draw the day's ration; a receipt is sealed",
+    "who": [
+     "storekeeper (kurmin / ullira)",
+     "scribe"
+    ],
+    "wait_h": [
+     0.3,
+     1.0
+    ],
+    "receive": "the day's ration",
+    "tier": "C",
+    "src": "IR-PET;CDLI-PF;RECON",
+    "note": "B practice / C place"
+   },
+   {
+    "n": 2,
+    "place": "stair_foot",
+    "at": [
+     -52,
+     118.5
+    ],
+    "at_from": "src/data/people_places.json",
+    "zone": "grand_stair",
+    "then": [
+     "grand_stair",
+     "post_stair_n|post_stair_s"
+    ],
+    "action": "the climb (open); the stair-head guards watch",
+    "who": [
+     "guards (watch)"
+    ],
+    "wait_h": [
+     0,
+     0
+    ],
+    "tier": "C",
+    "src": "RECON"
+   },
+   {
+    "n": 3,
+    "place": "post_gate_w1|post_gate_w2",
+    "at": [
+     -18.8,
+     120.4
+    ],
+    "at_from": "src/data/people_places.json post_gate_w1",
+    "zone": "gate_nations",
+    "wait_place": "gate_hall",
+    "wait_at": [
+     0.1,
+     124.6
+    ],
+    "wait_at_from": "src/data/people_places.json gate_hall",
+    "action": "the stop (stop_procedure): 'halmi?'; the bulla; the letter's bulla and 'ʾgrh ... gdbr'; a guard goes for an escort; the visitor waits on the bench",
+    "who": [
+     "gate guards"
+    ],
+    "wait_h": [
+     0.2,
+     0.7
+    ],
+    "tier": "C",
+    "src": "ISAC-PA;HDT;RECON"
+   },
+   {
+    "n": 4,
+    "place": "gate_hall",
+    "at": [
+     0.1,
+     124.6
+    ],
+    "at_from": "src/data/people_places.json",
+    "zone": "terrace_courts",
+    "route": [
+     "gate_hall",
+     "post_gate_s1|post_gate_s2",
+     "forecourt",
+     "(nav-grid route; no waypoints invented)",
+     "treasury_street"
+    ],
+    "action": "walk with the escort; doors of closed zones are passed, not entered",
+    "who": [
+     "one guard (escort)"
+    ],
+    "wait_h": [
+     0,
+     0
+    ],
+    "tier": "C",
+    "src": "RECON"
+   },
+   {
+    "n": 5,
+    "place": "post_treas_1|post_treas_2",
+    "at": [
+     204.4,
+     -76.4
+    ],
+    "at_from": "src/data/people_places.json post_treas_1",
+    "zone": "treasury_street",
+    "inside": "treasury_desk",
+    "inside_at": [
+     192,
+     -84
+    ],
+    "inside_at_from": "src/data/people_places.json treasury_desk",
+    "action": "hand over the letter; a Treasury man takes it to the scribes (treasury_desk); E-81 doubles the door; the visitor waits in the street until word comes back ('tomorrow', by gesture and arc:ywm + arc:ḥd); the escort walks him back to the Gate",
+    "who": [
+     "door guards",
+     "Treasury staff (kurtas kapnuskip)",
+     "Treasury scribe"
+    ],
+    "wait_h": [
+     0.5,
+     1.5
+    ],
+    "tier": "C",
+    "src": "IR-TREAS;PT-WAGE;EVENTS-R;RECON",
+    "note": "PT letters are addressed to the treasurer and kept in the Treasury (B). Variant B: escorted to treasury_desk for the hand-over (treasury_desk errand_exception)"
+   },
+   {
+    "n": 6,
+    "place": "stables-0001",
+    "at": [
+     -1459.1,
+     374.4
+    ],
+    "at_from": "src/data/town_plots.json stables-0001.door",
+    "zone": "town_stables",
+    "also": "stores-0001 (the waiting day's keep)",
+    "action": "the night in town; his keep while he waits on business is issued by the storekeeper against the halmi (C; Arshama gives no rations for extra days: Q-128)",
+    "who": [
+     "groom",
+     "storekeeper"
+    ],
+    "wait_h": "overnight",
+    "tier": "C",
+    "src": "ARSHAMA-TA;RECON",
+    "note": "D-104: stables-0001 as post station and lodging (C)"
+   },
+   {
+    "n": 7,
+    "place": "post_treas_1|post_treas_2",
+    "at": [
+     208.8,
+     -76.4
+    ],
+    "at_from": "src/data/people_places.json post_treas_2",
+    "zone": "treasury_street",
+    "via": [
+     "post_gate_w1|post_gate_w2 (recognised: nod)",
+     "treasury_street"
+    ],
+    "action": "next morning: recognised at the Gate (recognition rules), he goes on alone (or escorted if not recognised); at the door he receives the Treasury's sealed answer to the sender",
+    "who": [
+     "gate guards",
+     "door guards",
+     "Treasury scribe"
+    ],
+    "wait_h": [
+     0.3,
+     1.0
+    ],
+    "receive": "a sealed answer (clay tablet sealed on its squared left edge, the PT form, B; or leather with a bulla)",
+    "tier": "C",
+    "src": "IR-TREAS;RECON"
+   },
+   {
+    "n": 8,
+    "place": "official-0001",
+    "at": [
+     -51.5,
+     599.5
+    ],
+    "at_from": "src/data/town_plots.json official-0001.door",
+    "zone": "official_court",
+    "action": "ask for a halmi for the return journey (journeys from Parsa carry a halmi of the Parsa administration: B pattern); show the Susa halmi and the Treasury's answer; the doorkeeper takes them in; wait",
+    "who": [
+     "doorkeeper",
+     "scribe",
+     "the official (the office of Parnakka's successor; unnamed in 467)"
+    ],
+    "wait_h": "same day if before midday, otherwise next morning",
+    "receive": "a new halmi (folded leather, bulla) for the road out of Parsa",
+    "tier": "C",
+    "src": "HUNARA2024;HALMI-SX;GONDET2018;RECON"
+   },
+   {
+    "n": 9,
+    "place": "stores-0001",
+    "at": [
+     -234.2,
+     -537.8
+    ],
+    "at_from": "src/data/town_plots.json stores-0001.door",
+    "zone": "town_stores",
+    "action": "draw the first day's ration for the road",
+    "who": [
+     "storekeeper"
+    ],
+    "wait_h": [
+     0.3,
+     1.0
+    ],
+    "tier": "C",
+    "src": "IR-PET;RECON"
+   },
+   {
+    "n": 10,
+    "place": "terrace_edge|waystation-0001",
+    "at": [
+     -600,
+     122.5
+    ],
+    "at_from": "src/data/town.json facilities terrace_edge",
+    "zone": "roads",
+    "route": [
+     "road_royal_west"
+    ],
+    "action": "leave by the royal road W; the errand closes",
+    "who": [],
+    "wait_h": [
+     0,
+     0
+    ],
+    "tier": "C",
+    "src": "RECON"
+   }
+  ]
+ },
+ "lexicon": {
+  "available": [
+   {
+    "id": "el:halmi",
+    "use": "the guard's question (line el.ask_document.halmi exists)",
+    "lexicon_tier": "C",
+    "evidence_now": "A: PF 15 hal-mi, Hallock \"sealed document\" (CDLI-PF, FT)",
+    "src": "CDLI-PF"
+   },
+   {
+    "id": "el:dušda",
+    "use": "(he) received: the storekeeper's or scribe's word at a ration issue",
+    "lexicon_tier": "C",
+    "evidence_now": "A: du-iš-da in 26 of the 67 CDLI-PF texts (e.g. PF 2, 8, 16), Hallock \"received\"",
+    "src": "CDLI-PF"
+   },
+   {
+    "id": "arc:šlm",
+    "use": "greeting",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:mrʾ",
+    "use": "lord (address)",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:ʾgrh",
+    "use": "letter",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:gdbr",
+    "use": "treasurer",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:gnz",
+    "use": "treasury",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:ḥtm",
+    "use": "to seal",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:ʿzqh",
+    "use": "signet ring",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:spr",
+    "use": "scribe",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:ktb",
+    "use": "to write",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:ywm",
+    "use": "day",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:ḥd",
+    "use": "one",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:lḥm",
+    "use": "bread",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:ḥmr",
+    "use": "wine",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:mlk",
+    "use": "king",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:ʾḥšdrpn",
+    "use": "satrap",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "arc:trʿ",
+    "use": "gate",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "el:sunki",
+    "use": "king",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "el:ullira",
+    "use": "supplier",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "el:QA",
+    "use": "measure",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "el:marriš",
+    "use": "liquid measure",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "el:Parsa",
+    "use": "Parsa",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "el:pirradaziš",
+    "use": "express messenger",
+    "lexicon_tier": "B"
+   },
+   {
+    "id": "op:Pārsa",
+    "use": "Parsa",
+    "lexicon_tier": "A"
+   },
+   {
+    "id": "op:duvarθi-",
+    "use": "gateway",
+    "lexicon_tier": "A"
+   },
+   {
+    "id": "op:dipi-",
+    "use": "written document",
+    "lexicon_tier": "B"
+   }
+  ],
+  "missing": [
+   {
+    "form": "hutlak (hu-ut-lak)",
+    "lang": "el",
+    "gloss": "messenger",
+    "evidence": "PF 45: '{hal}ir-tup!-pi-ia-na hu-ut-lak' = '(He is) a messenger of Irtuppiya' (Hallock)",
+    "tier": "A",
+    "src": "CDLI-PF"
+   },
+   {
+    "form": "kurmin (kur-min)",
+    "lang": "el",
+    "gloss": "allocation; \"supplied by\" (Hallock)",
+    "evidence": "47 of the 67 CDLI-PF texts",
+    "tier": "A",
+    "src": "CDLI-PF"
+   },
+   {
+    "form": "-na genitive with a name (Irtuppiya-na)",
+    "lang": "el",
+    "gloss": "\"of X\" (halmi X-na)",
+    "evidence": "PF 15, PF 45",
+    "tier": "A",
+    "src": "CDLI-PF",
+    "note": "the lexicon has no inflected forms; sunkina \"of the king\" is NOT SEEN"
+   },
+   {
+    "form": "miyatukkaš",
+    "lang": "el",
+    "gloss": "travel authorisation (OIr. *viyātika-)",
+    "evidence": "SEALDOC2018",
+    "tier": "B",
+    "src": "SEALDOC2018"
+   },
+   {
+    "form": "barrišdama",
+    "lang": "el",
+    "gloss": "guide, escort of travellers",
+    "evidence": "POTTS2024 abstract",
+    "tier": "B",
+    "src": "POTTS2024"
+   },
+   {
+    "form": "kapnuškira / kapnuškir",
+    "lang": "el",
+    "gloss": "treasurer",
+    "evidence": "IR-TREAS",
+    "tier": "B",
+    "src": "IR-TREAS"
+   },
+   {
+    "form": "ptp",
+    "lang": "arc",
+    "gloss": "rations",
+    "evidence": "PF 0999 Aramaic epigraph 'ptp ʾšprtʾ' (rations for female weavers)",
+    "tier": "B",
+    "src": "AZZONI2019"
+   },
+   {
+    "form": "gal",
+    "lang": "el",
+    "gloss": "ration",
+    "evidence": "NOT SEEN",
+    "tier": "C",
+    "src": "RECON"
+   },
+   {
+    "form": "come / go / wait / tomorrow / yes / no / stop",
+    "lang": "op, el, arc",
+    "gloss": "-",
+    "evidence": "no entry in any lexicon (Q-022, Q-023, Q-024)",
+    "tier": "GAP",
+    "src": "RECON",
+    "note": "gesture only"
+   }
+  ],
+  "candidate_lines": [
+   {
+    "words": [
+     "el:halmi"
+    ],
+    "intent": "ask_document",
+    "exists": "el.ask_document.halmi",
+    "phraseTier": "C"
+   },
+   {
+    "words": [
+     "arc:ʾgrh",
+     "arc:gdbr"
+    ],
+    "intent": "state_business",
+    "gloss": "letter ... treasurer",
+    "phraseTier": "C",
+    "note": "composed; spoken while showing the bulla; word order not attested"
+   },
+   {
+    "words": [
+     "arc:ywm",
+     "arc:ḥd"
+    ],
+    "intent": "come_back",
+    "gloss": "one day",
+    "phraseTier": "C",
+    "note": "composed; with a gesture to come back"
+   },
+   {
+    "words": [
+     "arc:šlm",
+     "arc:mrʾ"
+    ],
+    "intent": "greet",
+    "exists": "arc.greet.slm_mra",
+    "phraseTier": "C"
+   }
+  ],
+  "tier": "C",
+  "src": "RECON",
+  "note": "no Elamite sentence is composed; single words only (research/ACCESS.md §5.3)"
+ },
+ "sources_used": [
+  "ALEX-HIST",
+  "ARSHAMA-TA",
+  "AZZONI2019",
+  "BAKER2014",
+  "CDLI-PF",
+  "DERIVED",
+  "EVENTS-R",
+  "GONDET2009",
+  "GONDET2018",
+  "HALMI-SX",
+  "HDT",
+  "HENK2002",
+  "HUNARA2024",
+  "HYLAND2022",
+  "IR-ADMIN",
+  "IR-FORT",
+  "IR-PERS",
+  "IR-PET",
+  "IR-TREAS",
+  "IRANTOUR-TREAS",
+  "ISAC-FINDS",
+  "ISAC-PA",
+  "KJV-BIBLE",
+  "LIVIUS",
+  "LIVIUS-TR",
+  "LIVIUS-TREAS",
+  "MDPI-ARACH2025",
+  "PEOPLE-R",
+  "PFA-ISAC",
+  "POTTS2023",
+  "POTTS2024",
+  "PT-WAGE",
+  "PW2017",
+  "QANAT-WH2018",
+  "RATION-30",
+  "RECON",
+  "REF-PLAN",
+  "RELIEF-R",
+  "ROYALROAD-GIS",
+  "SEALDOC2018",
+  "TOLAJORI2017",
+  "XEN-CYR"
+ ]
+}

@@ -544,3 +544,133 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - Sign forms C.
   - Panel position, size and line layout C (the real OP columns run to more lines than the C-sized panels hold at this glyph size).
   - Elamite and Babylonian versions not carved (not in the mirror): still a placeholder, flagged in the mesh note.
+
+## D-100 — Visitor mode: access rules on the Terrace and in the town (research agent, session 3; `src/data/access.json`, research/ACCESS.md)
+- **Four rule levels per zone,** read only with PLAYER_MODE = visitor. Observer mode still bars nothing.
+  - **open:** free.
+  - **business:** the halmi is shown and a stated business belongs to this place.
+  - **escort:** only with a guard or official beside the visitor.
+  - **closed:** no entry, and no escort offered.
+- **Terrace, court absent (D-003):**
+  - Grand Stair: **open** by day; the stair heads watch.
+  - **The Gate of All Nations W door is the one check** (business). The visitor waits on the Gate's bench for an escort.
+  - The courts beyond the Gate: **escort** (business once recognised on the same errand, D-103).
+  - The street N of the Treasury: **business**. The letter is handed over there, at the N door posts.
+  - **Closed:** the Apadana, the Tachara, the Hadish, the Harem, the Tripylon, the Hall of 100 Columns site and camp,
+    the Treasury interior, the garrison quarters, the E fortification and the PF find-spot.
+  - **Night:** the whole Terrace is closed to the visitor. He is turned back at the stair heads.
+  - **Court resident:** the Apadana and the palaces stay closed except by summons; the Gate stays the check.
+- **Town:**
+  - Open: lanes, wells, roads and open ground.
+  - Closed: houses (unless invited), yards and pens, walled gardens and orchards, the Bagh-e Firuzi paradise and
+    estates, and the Dasht-e Gohar walled garden and hall.
+  - Business: workshops (the visitor may watch from the door), the storehouse, the stable, the official building, the
+    Area B craft yard and the way-station.
+- **Posts:** the 18 existing people_places posts get a kind:
+  - **check:** gate_w1/w2, gate_s1/s2 and treas_1–4;
+  - **watch:** stair_n/s, which bar at night;
+  - **bar:** apa, tachara, hadish and harem.
+
+  Proposed posts, all unplaced and all on existing door coordinates: the garrison W and S doors, the Treasury E door,
+  the Harem N passage, the Tripylon narrow E stair foot and the Gate E door. The keepers of the town places are not
+  soldiers.
+- **Why:**
+  - "All visitors had to pass through [the Gate], the only entrance to the terrace" (ISAC-PA, SX, B).
+  - The S approach was blocked by Xerxes (LIVIUS, SX).
+  - The palace guard goes with the king (XEN-CYR 7.5.68, a claim).
+  - Everything else is by analogy with gate and road practice at other palaces (HDT, XEN-CYR, Ezra; B claims).
+- **Tier:** C for every rule and post kind. No text describes anyone being checked at Persepolis (Q-121, Q-123, Q-129).
+- **Alternatives rejected:**
+  - Checks at the stair heads *and* the Gate: the visitor would be stopped three times on one climb, and nothing
+    supports a double check.
+  - The courts open to anyone once through the Gate: a stranger would roam the royal Terrace alone with the court away.
+- **Note for the lead:** `sim.ts` CHECK_POSTS currently includes the stair heads. access.json proposes they watch.
+
+## D-101 — The visitor's documents: a halmi of the satrap at Susa and a sealed letter for the treasurer (research agent, session 3)
+- **The halmi:**
+  - Issued by "the satrap at Susa", named by office only: no 467 holder is known (Q-120). It follows the Darius-era
+    pattern that the issuer belongs to the place the journey starts from (HALMI-SX, HUNARA2024, HYLAND2022; B pattern).
+  - Route Susa → Pārsa.
+  - Scale: 1.5 qa flour and 1 qa wine or beer a day (HYLAND2022, B).
+  - The visitor travels alone, on foot, with no guide. He is a messenger (Elam. *hutlak*, PF 45, A Darius-era).
+- **Form:** folded leather, tied, with a clay bulla (HALMI-SX, ARSHAMA-TA; B form, C instance). **It is never opened in
+  the world, and no text is rendered on it.** The only surviving halmi (Aršāma's) names other people and is later, and
+  brief §10 allows only published texts.
+- **The letter:** a sealed letter for the treasurer at Pārsa, in Aramaic on leather with a bulla. Its content is unknown
+  to the visitor and never shown. Treasury letters are orders from officials addressed to the treasurer (PT-WAGE,
+  IR-PET; B); the instance is C.
+- **What the documents do:** they entitle the visitor to rations at the storehouse and the way-station (B practice). They
+  give him a reason to be let through the Gate and escorted to the Treasury door (C). They open nothing else.
+- **Alternatives:**
+  - A halmi "of the king": attested (NN 0859), but it implies travel to or from the court, and the court is away.
+  - A named Darius-era issuer: rejected, because it would place a Darius-era person in 467 (§9.1).
+
+## D-102 — The errand "a sealed letter for the treasurer at Pārsa" (research agent, session 3)
+- **Steps** (access.json `errand.steps`; every place id and coordinate is from existing data):
+  - 0 (optional) way-station on the royal road: rations;
+  - 1 storehouse `stores-0001`: rations;
+  - 2 the stair;
+  - 3 the stop at the Gate W door, then the wait on the bench;
+  - 4 escorted to the Treasury street;
+  - 5 hand-over at the N door posts; the letter goes to the scribes (`treasury_desk`); word comes back: tomorrow;
+  - 6 the night at `stables-0001` (D-104);
+  - 7 next morning: recognised at the Gate, he receives the Treasury's sealed answer at the door;
+  - 8 `official-0001`: a halmi for the return journey;
+  - 9 the storehouse: the first day's ration;
+  - 10 out by the royal road.
+- **Timing (C):**
+  - Letter handed in before midday: answer the next morning from sunrise + 1 h. After midday: the morning after next.
+  - One day more if silver is weighed out that day (E-05).
+  - The return halmi: the same day if asked before midday, otherwise next morning.
+  - The Terrace is open to the visitor from sunrise + 0.5 h to sunset − 0.5 h.
+- **Why this errand:**
+  - The Treasury archive is the one archive that is live in 467: its dated texts peak in Xerxes years 19–20
+    (IR-TREAS, B).
+  - Its letters are addressed to the treasurer, and the tablets were kept in a NE room of the Treasury (B).
+  - Journeys that start from Pārsa carry a halmi of the Pārsa administration (HUNARA2024, B).
+  - Each link is B, and the chain, the places and the waits are C.
+- **The Fortification archive is not a destination:** Darius-era, stored in the NE bastion, bricked up (PFA-ISAC; D-104).
+- **Variant B** (the lead chooses): the visitor is escorted into the scribes' room for the hand-over instead of
+  waiting outside.
+- **Words:** only lexicon ids.
+  - The guard: `el:halmi` (the existing line).
+  - The visitor: `arc:ʾgrh` + `arc:gdbr` ("letter … treasurer").
+  - The scribe: `arc:ywm` + `arc:ḥd` ("one day").
+
+  The phrases are composed, C. There is no Elamite sentence, and everything else is gesture (Q-127).
+
+## D-103 — The stop: gesture first, no combat, no punishment; recognition (research agent, session 3)
+- **The sequence** (access.json `stop_procedure`):
+  - The guard faces the visitor, steps half a pace into the way and raises an open hand.
+  - The spear stays upright, butt to the ground, as the relief guards stand. It is **never levelled**.
+  - He asks "halmi?" (`el.ask_document.halmi`) and looks at the bulla. He does not read the leather.
+  - The business is shown by the letter's bulla.
+  - He sends for an escort, or makes a flat-hand gesture back.
+- **If the visitor walks on:** the two men of the post close the way with their bodies, the patrol pair comes, and
+  they walk him to the zone's edge. **No blows, no weapons used, no arrest, no punishment shown** (brief §9.1 and §12).
+- **Recognition,** from lives.json `familiarity` (stopped 0.5, recognise ≥ 0.25, half-life 6 days):
+  - Last stop admitted and the same errand still open: a nod, no question, and the courts relax from escort to
+    business.
+  - Last stop turned back: he bars the way at once.
+  - The errand closed: the full check again.
+- **Basis:**
+  - B practice, all claims: HDT 3.77 (known men pass unquestioned; the court messengers ask why they have come), 3.118,
+    3.128 and 3.140 (the doorkeeper carries word in); XEN-CYR 7.5.25; Ezra 5:9–10.
+  - C for the build.
+- **Not used:** HDT 3.118's mutilation of the gatekeepers; Esther 4:11's death penalty; Diodorus' triple wall.
+
+## D-104 — Places of the errand in the town; the PF find-spot is not an office (research agent, session 3)
+- **The office that issues the return halmi:** `official-0001`, the ~1 ha building N of the Terrace with "an official
+  function" (GONDET2018, B existence). Its use as this office is C (Q-126).
+- **Rations:** the storehouse `stores-0001` (D-043), where the storekeeper checks the halmi. This is the only halmi check
+  that is attested in practice (B). The place is C.
+- **Lodging:** `stables-0001`, the state stable by the royal road, serves as the post station (relay horses: HDT 8.98, B
+  claim). The reason: the town's `station` in town.json (−1800, 600) is abstract and not rendered, and the rendered
+  Kur way-station is 11.0 km from the stair foot, 2.2–2.5 h each way on foot at 1.2–1.4 m/s (lives.json
+  walk_ms), which is not playable daily. Tier C. **It does
+  not move the simulation's abstract `station`.**
+- **The PF archive find-spot** (NE bastion; terrace outline vertices 31–36) is **closed**. Its tablets are Darius-era;
+  its entrance was bricked up in antiquity at an unknown date (PFA-ISAC, SX). In 467 it is a dead store, not an office
+  (C).
+- **Conflict logged, not resolved:** Aršāma's "no rations for extra days" against the simulation's multi-day station
+  rations (Q-128). The visitor's waiting day's keep comes from the storekeeper against the halmi (C).
