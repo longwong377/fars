@@ -1,106 +1,67 @@
-# HANDOFF — state at the end of session 2 (2026-09-23)
+# HANDOFF — state during session 3 (2026-09-23)
 
-Read `CLAUDE.md` first (the resume procedure), then this file, then `PROGRESS.md`, `TASKS.md`, `DECISIONS.md` (D-012 … D-020 are new) and `BLOCKERS.md`.
-**Branch:** `claude/amazing-fermi-40ds7j`. Session 1 used `claude/new-session-lfjkbn`; this branch contains all of it. Push to whatever branch the new session designates, and never force-push.
+Read `CLAUDE.md` first (the resume procedure), then this file, then `PROGRESS.md` (problems first), `TASKS.md`,
+`DECISIONS.md` (session 3: D-033 … D-062) and `BLOCKERS.md`.
+**Branch:** `claude/amazing-fermi-40ds7j` (sessions 2 and 3). Never force-push.
 
 ## What is broken, unverified or placeholder (read first)
-1. **The visuals are still far from photoreal.** The rubric review (§8.2) and the independent Phase 3 review (§13.9) have **not** run.
-   - Merged at the end of the session, all tier C and not yet render-checked together: sculpted columns and colossi (with known look faults), carved reliefs (never seen in a browser) and the human asset pipeline.
-   - People on screen are still the placeholder rigs. See "Agent results at handoff" below.
-2. **The §1.1 moments have not been re-rendered at high quality** since the fixes. `tests/e2e/moments.spec.ts` now has 5 Phase 4 views and logs luminance to `shots/moments-lum.json`. Render them after the agent work is in.
-3. **Bench numbers:** the high-quality bench run this session is **invalid**. `renderer.info` accumulated across post-processing passes; this is fixed in the last commit (`info.autoReset = false`, reset once per frame). **Re-run `QUALITY=high npm run bench`.**
-   - The earlier per-frame numbers are also suspect: a 2,753 draw-call peak on the approach at high quality, near the ≤ 3,000 budget.
-4. **The soak test fails** (baseline, D-017): near-copy days (couriers 1.0, scribes 0.84, masons 0.70…), and only 3 event kinds a week. This is expected and is the Phase 5 work list.
-5. **Hadish walkthrough leg:** fixed (the stair side opening is now 3 steps), but **the e2e rerun has not completed**. The other five Phase 4 areas pass the walkthrough bot, with no falls, pop-ins or errors.
-6. **Not yet verified in a render:** the volumetric clouds, the new surfaces (clay-painted walls, court fill, seasonal plain, relief normals), the door frames and the Treasury goods.
-   - Only the Apadana view was rendered after the surfaces change. There, the Apadana N doorway frame reads as a black block: check the `limestone_dark` albedo.
-7. **Translation layer:** built; its e2e check (`tests/e2e/translation.spec.ts`) has **not run**. Inscription translations are not shown, because no published translation is reachable (NEEDS #14). Only the ARIo transliteration and the lexicon's word glosses (about 25 % of words) appear.
-8. **Calibration scene (§8.1):** still blocked (NEEDS #13).
+1. **No gate after Phase 2 has passed.** The §8.2 rubric review and the independent Phase 3–7 reviews have not run. The §1.1 moments have not been rendered at high quality since the session 2 and 3 fixes. The rubric has no reference photographs: every photo host is blocked by the egress policy (B6, rechecked in session 3), so the reviewer can only judge from its knowledge of real photographs. That is a logged exception, not a pass.
+2. **Changed but not yet seen in a render** (session 3):
+   - the sky calibration and the fog/haze/smoke lighting (D-060);
+   - the rain-approach moment's new slot (day 241, 13:24);
+   - the Hall of 100 Columns construction view and building site (D-062);
+   - the DNa/DNb carving (D-061);
+   - the map's town and plain scales;
+   - the plain agent's last three fixes (D-037 … D-040).
+   One sky check was rendered (`shots/dbgq-high.png`: deep-blue sky, cumulus with structure, far terrain between the plain and the horizon sky in brightness). A runtime crash from D-060 (the smoke read `ctx.sky`, which is `sky.state`, not the SkySystem) was found by the e2e and fixed: the world now receives `ctx.skyLight`.
+3. **People on screen** are still the placeholder rigs until the humans agent merges (D-020 runtime).
+4. **Phase 5:**
+   - activity coverage fails (25 placeholder activities);
+   - about 550 Terrace workers are unrendered;
+   - rendered floors are unmet;
+   - the §13.11 shadow review FAILED; the sim agent is fixing it and a fresh reviewer must re-run it.
+5. **Bench:** all earlier numbers are void (frames outside the animation loop skipped the scene pass, fixed in D-047). Re-run `QUALITY=high npm run bench`.
+6. **Calibration scene (§8.1):** blocked (NEEDS #13).
 
-## Done this session (all committed and pushed)
-- **SSGI washout fixed (D-012).**
-  - Root cause: r186's SSGI node outputs AO and GI as separate textures (`getAONode` / `getGINode`), and the old composite added albedo-red × AO everywhere.
-  - New composite: `scene − (1 − AO) · skylightDiffuse + albedo · bounce`. The sky is excluded from the SSGI through a patched copy of the node (`src/render/ssgi.ts`), and the GI scale is π/2 (C).
-  - Also fixed: a WebGPU validation error (MSAA depth copied into TRAA's history), and a high-quality boot hang caused by any runtime `select()` in the TRAA-input composite.
-  - Measured: high mean luminance 93.3 vs medium 99.6 (it was 161).
-- **Phase 4 geometry (D-013, D-015, D-016):**
-  - the research patch is applied (`tools/apply_phase4_patch.py`, idempotent; re-run it from a clean spec);
-  - Tachara S stair, Hadish W and E double-reversed stairs, Tripylon N, S and narrow E stairs, Hall of 100 Columns doors, portico, step band and thresholds;
-  - Treasury N wall moved to y −78 (the street reopens), and the Hall of 99 Columns has walls, a roof, benches and 854 instanced attested goods;
-  - Harem main wing extended N to y −73, with a hall, doors and entrance steps;
-  - stone door frames; fires; per-hall acoustic rooms; guard posts at the Tachara, Hadish and Harem.
-- **Tests and tools:** the plan overlay compares against the trace plus documented corrections; there are new dimension tests. The nav grid uses 4-neighbour erosion. The literal lint's broken string tokeniser is fixed; it had hidden literals since Phase 2, which are now in the spec.
-- **Surfaces (D-014):** clay-painted mud plaster (B/C); red plaster hall floors; court fill (C, Q-027); a seasonal herb layer on the plain (`src/world/season.ts`); procedural relief normals on every surface.
-- **Translation layer** (`src/ui/translation.ts`): subtitles; inscription transliteration with glosses; map on M; chronicle on J. `?tl` forces it on.
-- **Phase 5 start (D-017):**
-  - abstract simulation LOD (`PeopleSim.updateLod`); promotion never teleports;
-  - `npm run soak` (`tools/soak.ts`) with justified gates;
-  - load-time catch-up of elapsed world time (`world.catchUp`, capped at 30 days).
-- **Volumetric clouds** (`src/sky/clouds.ts`): a raymarched cumulus slab with cover and wind from the weather. Not yet seen in a render.
-- **Tools:**
-  - `tools/e2e_snapshot.sh`: runs e2e against a frozen copy, so edits can't hot-reload a long run;
-  - `tools/dev/queue_e2e.sh`: serialises runs;
-  - `tools/dev/{navcheck,routecheck,pathcheck,profile}.ts`: offline nav and physics probes;
-  - `tests/e2e/dbg_boot.spec.ts` with `&trace`: boot-stage markers;
-  - `tests/e2e/dbg_quality.spec.ts`: `QS=high,high+post=scene|ao|gi`, `WEATHER=`, `V=`.
+## Background agents at the time of writing (worktrees under `.claude/worktrees/`)
+They may not survive a restart. Each works on a `worktree-agent-<id>` branch; merge what is committed there.
+- **Phase 4 (a48ca…):** reliefs on the new stairs and jambs, windows, doors, merging far relief sets (draw budget). Uses D-070 … D-079.
+- **Humans (a7359…):** runtime loader, dress, crowd pool on `sim.visibleAgents`. Uses D-090 … D-099.
+- **Sim (a7468…):** shadow-review fixes; households linked to `src/data/town_plots.json`. Uses D-080 … D-089.
+- **Access research (abc85…):** `research/ACCESS.md` and `src/data/access.json` for visitor mode, docs only. Uses Q-120 … Q-129 and D-100 … D-104.
 
-## Agent results at handoff (all merged into this branch; 134 tests pass, tsc clean, lint:chrono OK)
-- **Sculpted columns and Gate colossi (D-018), merged:**
-  - lathe bases, true fluted shafts (48 flutes on the Apadana), composite and double-bull capitals, and SDF colossi, precomputed by `npm run sculpt` into `public/generated/sculpt_*.bin` (1.4 MB), with per-instance LODs;
-  - new row `apadana.portico_capitals` (hall and N/E porticoes composite, W portico bulls);
-  - **known look faults, not fixed:**
-    - the limestone material draws ashlar joints across the carving (a joint-free "carved" material is needed);
-    - the curls read as bubble wrap and the protome horns are too small (sheep-like);
-    - the Gate door leaves hide the colossi, and the wall ring overlaps the jamb volume in the parts/colliders.
-  - Everything is tier C.
-- **Carved low-relief figures (D-019), merged, but NOT YET SEEN IN A BROWSER:** RTIN heightfield meshes, 30 figure kinds, BatchedMesh with a Web Worker pool, and the `buildRegister` API.
-  - **Run `npx playwright test -c playwright.relief.config.ts --project=webgpu` first.** If BatchedMesh or the workers fail under WebGPU or WebGL2 there is no fallback, and the reliefs will be missing.
-  - Only 15 of the 23 delegations fit the modelled landings (15.8 m vs about 27 m).
-- **Humans from MakeHuman CC0 (D-020), merged as a pipeline only:**
-  - `tools/build_humans.ts` produces 23 body variants, a 59-bone rig and 3 LODs (3 MB in `public/generated/humans/`).
-  - **The game still uses the old placeholder rigs.** To do: the runtime loader, the fitted period dress, hair and beards, headgear, the skin material (use arithmetic masks, not `select()`, per D-012), retargeting the activity poses, crowd and player integration, and the CPU budget test.
-- **Phase 5 research, merged:**
-  - `research/EVENTS.md`, `src/data/population.json`, `src/data/events_calendar.json` (56 events, 20 cause-effect rules);
-  - a P5 section in PEOPLE.md; Q-030–Q-046.
-  - Headlines: Terrace by day about 575 (winter 425) and at night about 125; town 6,300–7,000; plain about 36,000.
-  - Almost every rhythm is C: only 67 PF texts were read in full.
-  - It proposes a soak floor of **8** event kinds a week (the harness currently uses 6; decide and log).
-- **Phase 6/7 research, merged:**
-  - `research/SETTLEMENT.md`, `research/PLAIN.md`, `src/data/settlement.json` (20 features), `src/data/plain.json` (34 features, a crop calendar, river flows); Q-047–Q-055 (renumbered).
-  - **Actions it left for us:**
-    - add its structure ids to `src/data/chronology.json` before any geometry uses them;
-    - sync `src/data/blocklist.json` with the 9 new rows in `research/ANACHRONISM_BLOCKLIST.md`;
-    - decide Q-047 (Xerxes' tomb at Naqsh-e Rustam, possibly cut by 467).
-  - **Measured skyline gap:** the far terrain ring stops at 40.96 km, so mountains 55–66 km away (0.1–0.4° high at 150–160°, 230–250° and 270–290° true) are missing. Widen the ring to about 70 km in `tools/build_terrain.py`.
-  - `src/core/geo.ts` drifts about 80 m at 40 km from the pyproj frame; use `tools/osm_to_grid.py` for far features.
+After each merge:
+- renumber any colliding D- or Q- ids;
+- run `npx tsc --noEmit`, `npx vitest run`, `npm run lint:all` and `npx tsx tools/dev/botcheck.ts`;
+- rebuild the walkable grid (`npx tsx tools/build_nav.ts`) if the architecture changed; `tests/people.test.ts` checks the parts hash;
+- update PROGRESS.md and push.
 
 ## Next steps, in order
-1. **Render-check the merged agent work** (reliefs first: no fallback). Then fix the known faults:
-   - a joint-free carved-stone material for capitals and colossi;
-   - the relief view;
-   - the Gate door leaves.
-   Re-run `npx tsc --noEmit`, `npx vitest run` and `npx tsx tools/build_nav.ts` after any change to the architecture or people.
-   Finish the human runtime integration (D-020 to-do list).
-2. Re-run the pending checks:
-   - `AREA=hadish` walkthrough;
-   - `tests/e2e/translation.spec.ts`;
-   - a clouds render (`QS=high WEATHER=overcast DAY=25 HOUR=10 V=-20,72,1.6,251,22`);
-   - `QUALITY=high npm run bench`.
-   Use `tools/dev/queue_e2e.sh <snapshotDir> <spec> --project=webgpu`. SwiftShader is slow: one run at a time.
-3. Phase 5 from the research (`src/data/population.json` and `events_calendar.json`, if merged):
-   - town life at the abstract level (households, homes, the well, visits);
-   - rota and post rotation, days off, errands;
-   - the events calendar (rations, deliveries, couriers, offerings as attested);
-   - construction progress that visibly changes the Hall of 100 Columns columns;
-   - memory of the player; the population scale-up (`LOD_RADIUS` in world.ts);
-   - crowd pooling for dynamic rosters (`crowd.ts` builds one rig per agent at start).
-   Iterate until `npm run soak` passes.
-4. Render all moments at `Q=high` and run the rubric plus the independent Phase 3 and Phase 4 reviews as fresh subagents (log them in `REVIEWS/`). Then record the Phase 3 and Phase 4 gates honestly in PROGRESS.md.
-5. Then Phase 6 and 7 from the research agent's `research/SETTLEMENT.md` / `PLAIN.md`, if merged.
+1. Judge the queued sky-calibration render (`scratchpad/e2e_skycal2.log`: rain-approach, stair-climb, reliefs-raking at test quality, plus the translation e2e with the map scales). Measure pixels with `node tools/dev/px.mjs <png> x,y,label …`. Then render rain-approach at high quality.
+2. Merge the agents as they hand back (above).
+3. Implement visitor mode from `src/data/access.json`: guards stop you, the *halmi* check, the errand, guards' memory of you.
+4. Render all moments at high quality (≤ 4 views per run), the dusk-smoke views (`tests/e2e/settlement.spec.ts` `ONLY=slope-s-dusk,terrace-w-dusk`), the plain views and the construction site. Then run the rubric and the independent reviews as fresh subagents (`REVIEWS/`), and record the gates honestly.
+5. Run the bench, then Phase 8 (language and speech depth; translations need NEEDS #14) and Phase 9.
 
-## Gotchas learned this session
-- **Never `pkill -f <pattern>`** where the pattern appears in your own command line: it kills your own shell (exit 144). Use `tools/dev/kill_e2e.sh`, or PIDs.
-- **Don't pipe a long Playwright run through `head`:** closing the pipe stalls the run.
-- **TSL:** a runtime `select()` in a node graph that TRAA renders to a texture hung the node build. Choose variants when building the pipeline instead.
-- **The walkable grid** must be rebuilt after any architecture change (`tests/people.test.ts` checks the parts hash). Validate routes offline with `tools/dev/routecheck.ts` before a slow e2e run.
-- **`tools/apply_phase4_patch.py`** re-applies spec rows from the research patch plus the session-2 fixes. It is idempotent on the committed spec.
+## Tools
+- **Render queue:** `tools/dev/queue_e2e.sh <snapshotDir> <spec…> --project=webgpu` runs one Playwright job at a time against a frozen copy of the tree. The copy is taken when the job starts, not when it is queued.
+  - Give every job its own snapshot dir and `E2E_PORT`.
+  - `ONLY=` picks moment views, `Q=` the quality (test while iterating; high only for the final check).
+  - The watchdog `tools/dev/e2e_watchdog.sh` kills any run older than 15 min.
+- `tools/dev/botcheck.ts`: the offline walkthrough bot (seconds, all 77 legs).
+- `tools/dev/px.mjs`: pixel measurements from a PNG (Playwright's bundled pngjs).
+- `tests/e2e/dbg_quality.spec.ts` (`QS=`, `V=`, `DAY=`, `HOUR=`, `WEATHER=`), `dbg_stats.spec.ts` / `dbg_draws.spec.ts` (draw calls per object).
+- `npm run terrain` regenerates the terrain from `data/dem/` (byte-identical after the Phase 7 merge).
+
+## Gotchas (sessions 2–3)
+- **`pkill -f <pattern>`:** never use it with a pattern that appears in your own command line; it kills your own shell (exit 144). Use PIDs.
+- **Long Playwright runs:** don't pipe them through `head`; closing the pipe stalls the run.
+- **TSL:**
+  - never a runtime `select()` in a graph that TRAA renders (D-012);
+  - `pow()` of a negative base is NaN on the GPU, so write x·x;
+  - r186 binds a `Data3DTexture` through a 2-D view (validation error, black frame), so use a 2-D atlas (`src/sky/cloudNoise.ts`);
+  - colour uniforms type-check only against floats, so cast to `any` to add vec3 nodes.
+- **Frames outside three's animation loop** must advance `renderer._nodes.nodeFrame`, or the scene pass is skipped (`main.ts`, D-047).
+- **`world.update` ctx:** `ctx.sky` is `sky.state` (sun and moon data); the SkySystem, with its horizon radiance and sun light, is `ctx.skyLight`.
+- **Heavy unit tests** time out when renders share the 4 cores. Measure before calling anything a flake. The walkable-grid test now uses one flood fill (4 s).
+- **Load contention:** SwiftShader renders take 4–15 min each; queue at most what you will look at.
