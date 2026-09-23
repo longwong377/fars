@@ -23,8 +23,18 @@ test('light probes', async ({ page }, info) => {
     await page.evaluate(v => (window as any).__parsa.view(...v), s.v);
     for (let i = 0; i < +(process.env.FRAMES ?? 8); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
     const png = await page.screenshot({ path: `shots/probes-${s.n}-${info.project.name}${process.env.SUFFIX ?? ''}.png` });
-    const st = await page.evaluate(() => { const P = (window as any).__parsa, s = P.stats?.() ?? {}; return { backend: P.backend, drawCalls: s.drawCalls, triangles: s.triangles, exposure: P.exposureInfo?.(), summary: String(P.world?.summary?.() ?? '').split(' · ')[0] }; });
+    const st = await page.evaluate(() => { const P = (window as any).__parsa, s = P.stats?.() ?? {}; return { backend: P.backend, drawCalls: s.drawCalls, triangles: s.triangles, textures: s.textures, frameMs: s.frameMs, exposure: P.exposureInfo?.(), summary: String(P.world?.summary?.() ?? '').split(' · ')[0] }; });
     console.log(s.n, JSON.stringify(st), 'lum', JSON.stringify(await lumStats(page, png)));
+    if (process.env.ADAPT) { // what-if (test only, not the game's adaptation): the exposure the eye formula would reach without its
+      // 15 % floor, E = (sun + 0.8·sky)·max(skyVis, 0.002), capped at ADAPT; the frame's own exposure write is ignored
+      const x = await page.evaluate(cap => { const P = (window as any).__parsa, e = P.exposureInfo(), r = P.renderer;
+        const E = (e.sunI * Math.max(0, Math.sin(e.sunAlt * Math.PI / 180)) + e.hemiI * 0.8) * Math.max(e.skyVis, 0.002) + 0.004;
+        const x = Math.min(+cap, Math.max(0.35, 2.3 / E)); Object.defineProperty(r, 'toneMappingExposure', { get: () => x, set: () => {}, configurable: true }); return x; }, process.env.ADAPT);
+      for (let i = 0; i < 2; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
+      const png2 = await page.screenshot({ path: `shots/probes-${s.n}-${info.project.name}${process.env.SUFFIX ?? ''}-adapted.png` });
+      console.log(s.n, 'what-if adapted exposure', x.toFixed(2), 'lum', JSON.stringify(await lumStats(page, png2)));
+      await page.evaluate(() => { delete (window as any).__parsa.renderer.toneMappingExposure; (window as any).__parsa.renderer.toneMappingExposure = 1; });
+    }
   }
   console.log(errs.slice(0, 8).join('\n'));
 });

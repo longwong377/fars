@@ -80,10 +80,11 @@ export class Pipeline {
       const w = P.w, ao = mix(aoFull, aoNear, w);
       const sky = dif.rgb.mul(P.E).mul(1 / Math.PI);
       const lit = max(col.rgb.sub(sky.mul(float(1).sub(ao))).add(dif.rgb.mul(bounce).mul(float(1).sub(w))), vec3(0));
-      // debug views are chosen when the pipeline is built (?post=scene|ao|aonear|gi|probe|plain): a runtime select() on these
+      // debug views are chosen when the pipeline is built (?post=scene|ao|aonear|gi|probe|plain; probe = (w, AO near, AO full)
+      // as RGB): a runtime select() on these
       // texture nodes inside the TRAA input made the first-frame node build run away and crash the page (session-2 bisect)
       const chosen = V.includes('scene') ? col.rgb : V.includes('aonear') ? vec3(aoNear) : V.includes('ao') ? vec3(ao) : V.includes('gi') ? bounce
-        : V.includes('probe') ? vec3(w, P.E.x.div(max(hemiIrr.x, 1e-4)).mul(w).min(1), 0) : V.includes('plain') ? col.rgb.mul(aoFull).add(dif.rgb.mul(bounce)) : lit;
+        : V.includes('probe') ? vec3(w, aoNear, aoFull) : V.includes('plain') ? col.rgb.mul(aoFull).add(dif.rgb.mul(bounce)) : lit;
       composite = vec4(chosen, col.a);
     }
     let out: any = traa(composite, dep, vel, camera);

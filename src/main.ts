@@ -307,7 +307,7 @@ async function boot() {
     // eye adaptation (C): exposure follows an estimate of the illuminance at the eye — sun + skylight scaled by the visible
     // sky fraction (upward rays against the architecture, every 0.25 s) + moon + nearby fires — with asymmetric time constants
     adaptT += dt;
-    if (adaptT > 0.25 || skyVis < 0) { adaptT = 0; skyVis = probeSkyVisibility(camera.position, skyVisibility); } // light probes in the roofed halls (D-113), upward rays elsewhere
+    if (adaptT > 0.25 || skyVis < 0 || TEST) { adaptT = 0; skyVis = probeSkyVisibility(camera.position, skyVisibility); } // light probes in the roofed halls (D-113), upward rays elsewhere; every frame in frozen test renders (dt = 0 never reached 0.25 s, so moments kept the first frame's value)
     const sunE = sky.sun.visible ? sky.sun.intensity * Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)) : 0;
     const fireE = world.fire ? world.fire.localIlluminance(camera.position) : 0;
     const E = (sunE + sky.hemi.intensity * 0.8) * (0.15 + 0.85 * skyVis) + sky.moonLight.intensity * 0.3 + fireE + 0.004;

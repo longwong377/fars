@@ -1006,3 +1006,70 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
     - the shaft tint is now 0.35 of the horizon radiance (C).
   - Measured at 24 km: the band just above the horizon toward the cell is 17 % darker than the same heights to the W (133 vs 161 sRGB). A real but subtle curtain.
   - The moment moved to 11:06, with the cell 15 km out, 50 min before it arrives. The camera must stay beyond the shaft mesh's radius, two core radii (12.7 km).
+
+## D-110 — Light probes for the roofed buildings, baked from the parts (session 3, interior-lighting agent)
+- **Measured problem:** at high quality the roofed halls rendered near black (`shots/moment-apadana-enter-webgpu.png`, `moment-hadish-hall-webgpu.png`: Apadana ceiling sRGB 1, columns 24). The skylight (hemisphere light) reached every surface unoccluded and was then removed by the SSGI AO (D-012). Inside a hall the SSGI sees columns and roof everywhere, so the skylight went almost entirely. Light entering through doorways, porticoes and windows that are off-screen was never counted. The SSGI radius was in screen space (`useScreenSpaceSampling`, radius 12 = 37 % of the screen width), so this "AO" was large-scale occlusion.
+- **Decision:** each building with roof parts gets a regular grid of probes, baked by ray casting against the architecture's own parts (`src/render/probes/`, `tools/build_probes.ts`). The volumes are the Gate of All Nations, Apadana, Tachara, Hadish, Treasury (Hall of 99 Columns) and Harem.
+  - **Grid:** 2 m horizontally. Layers run from 0.25 m above the room floor (manifest `room`) to 0.25 m below the roof's underside, about 2.4 m apart. The grid extends 6 m beyond the roof footprint. In total 50,730 probes, 12,203 of them inside solids.
+  - **Tracer:** analytic primitives in a BVH (`trace.ts`): boxes (rotated about the vertical), prisms and columns. A column is its base block, a cylinder of the lower shaft diameter and its capital's box (SITE_SPEC `capital_boxes`). Roofs are traced (they have no colliders, so Rapier could not see them). The bake takes 3–5 min on 4 worker processes.
+  - **Storage:** 12 values per probe (`field.ts`):
+    - L1 irradiance per unit sky irradiance S and per unit horizontal direct sun U;
+    - a bounce tint and the bounce fraction;
+    - validity.
+  - **Files:** `public/generated/probes.f16` (1.2 MB of half floats) and `probes.json` (volumes, options, parts hash). `tests/probes.test.ts` fails when the parts change without a rebake, as the nav grid's test does, and the world warns at load.
+- **Tier C:** every constant, the model (D-111) and the approximations (columns simplified; reliefs, furniture and people are not occluders; door leaves are in their walkable-grid pose).
+- **Alternatives rejected:**
+  - Runtime Rapier raycasts: the roofs have no colliders, and the cost is too high.
+  - A longer or shorter SSGI radius alone: screen space cannot see an off-screen doorway.
+  - A `Data3DTexture`: r186 binds it through a 2-D view on WebGPU.
+  - One global grid over the Terrace: about 3× the memory at 3 m spacing, which leaks through 1.4 m walls.
+  - Runtime DDGI: a per-frame ray budget that WebGL2 and SwiftShader cannot carry.
+
+## D-111 — The probe bake's light model (session 3)
+- **Directions:** fixed Fibonacci directions shared by every probe, so the error is spatially coherent and neighbours do not speckle. There are 4096 occlusion rays for the sky seen directly and 1024 closest-hit rays for the bounces. The first bake used 256 rays: a doorway 30 m away got 0–4 rays, and the hall interior speckled from probe to probe.
+- **What each ray sees:**
+  - **Sky:** a ray that escapes upward sees a uniform radiance S/π, the hemisphere light's own sky. In the open this gives exactly S (1 + n_y)/2, since L1 is exact for a hemisphere.
+  - **Plain:** a ray that escapes downward, off the Terrace edge, sees open sunlit ground of the earth albedo.
+  - **Surface:** a ray that hits a part sees ρ/π · (S·Ŝ + U·σ + second bounce):
+    - Ŝ comes from the pass-0 field inside a volume, and from 2 cosine rays outdoors;
+    - σ is the direct sun per unit horizontal sun irradiance, from 2 shadow rays importance-sampled from the sun's positions over the simulated year (every 15 days, every half hour, above 3°, weighted by clear-sky horizontal irradiance);
+    - the second bounce is ρ times the pass-1 bounce field at the hit, inside the volumes only.
+- **Colour:** the tint is the albedo-weighted colour of the bounced light, with a sun/sky ratio of 3 (C).
+- **Known limits (C):**
+  - The sun's bounce is its yearly mean, so the lit patch under a doorway does not move through the day in the bounce. The shadow map draws the direct patch correctly.
+  - The mountains are not occluders, and neither does the hemisphere light treat them as occluders.
+  - Outdoor hits get only one bounce.
+  - Cloud does not reshape the sky.
+- **Probes on faces:** a probe lying exactly on a wall face (walls sit on grid lines) first saw through the wall, because a box was only "entered" after `tmin`. A synthetic closed room read 0.35 % instead of 0. The fix: a ray that starts inside or on a solid is blocked, and a probe within 2 cm of a solid is invalid. Tested.
+- **Sky shape tried and rejected (approach C):** I used the year-averaged calibrated dome (`horizon.ts` `skyRadiance`, normalised to the same horizontal irradiance) in place of the uniform sky.
+  - The dome is strongly horizon-bright toward grid E and W (the sun's paths: 3.8–4.5× the mean at 0–20°) but only 1.36× toward grid N.
+  - Through the Apadana N doorway it changes the hall's light by 0.78–0.91×.
+  - On open court beside a building it raises the probe's sky by 27 %, which would no longer agree with the hemisphere light outside the volumes.
+  - Kept uniform.
+
+## D-112 — Probes in shading: the skylight through the hemisphere light, contact-only AO inside the volumes (session 3)
+- **Materials, every quality:**
+  - `ProbeHemisphereLightNode` replaces three's `HemisphereLightNode` for every `HemisphereLight` (`renderer.library.lightNodes`, set in the Pipeline constructor). Nothing in src/sky or src/people changes, and people, trees and props inside a hall get the probe light too.
+  - Its irradiance is `mix(E_hemisphere, E_probe, w)` with `E_probe = S·mix(1, tint, fb)·max(0, a_S + b_S·n) + U·tint·max(0, a_U + b_U·n)`. U = sun colour × intensity × sin(altitude) is set each frame (`probeSun`).
+  - **Weight w:** 1 over the roofed footprint plus 2 m; smooth to 0 at the grid edge 6 m out. It fades out below the floor (floor − 1 … floor − 0.05 m) and through the roof slab (underside to top, so the roof's top face is outdoors). It is multiplied by a validity ramp.
+  - **Outside every volume** the light is exactly the hemisphere light, as before.
+- **Lookup:**
+  - The point is offset 0.9 m along the normal (C), so a wall face reads the probes on its own side.
+  - Trilinear interpolation is weighted by validity, via premultiplied values and hardware bilinear filtering, so probes inside walls drop out.
+  - Volume selection uses arithmetic masks only, with no runtime `select()` (D-012).
+- **Texture:** one RGBA16F 2-D atlas of 879 × 237 texels. Each volume's layers are tiles, and there are three bands (S channel, U channel, tint and validity), so the probes add one texture binding next to CSM's four shadow maps. GPU memory is 1.67 MB. The shader makes 6 bilinear fetches plus about 20 ALU ops per volume per fragment. **No draw calls are added.**
+- **Composite (high/ultra; replaces D-012's):**
+  - `out = scene − (1 − AO)·albedo·E_sky(p, n)/π + albedo·bounce·(1 − w)`, with p reconstructed from the depth buffer and E_sky the same probe lookup.
+  - AO is `mix(AO_full, AO_near, w)`. AO_near is a new green channel of the patched SSGI (`ssgi.ts`): the same horizon samples, counting only occluders within 1.2 m (C) of the pixel. Inside the volumes the probes carry the large-scale occlusion, so the skylight is not occluded twice.
+  - Inside the volumes the screen-space bounce is also dropped, since the probes carry the bounce.
+  - With w = 0 the composite is identical to the old one, so nothing outside the volumes changes.
+  - Debug views: `?post=aonear`, `?post=probe`.
+- **Pipeline build:** the post graph is now built at the first render, after `buildWorld` has loaded the probes, because the composite reads the volumes as constants.
+
+## D-113 — The eye adaptation reads the probes (session 3)
+- `probeSkyVisibility(worldPos, fallback)` (`src/render/probes/runtime.ts`) replaces the upward raycasts inside the probe volumes. `main.ts` changes in one line plus its import; the exposure formula itself is untouched (another agent owns it). Outside the volumes, and blended across their fading edges, it returns the old raycasts.
+- **Semantics:** the old `skyVis` scales the whole outdoor illuminance (sun + 0.8 × sky). So the probe value is the illuminance at the eye relative to open sunlit ground:
+  - formula: `(ambient_ratio·A_open + U·sunlit) / (A_open + U)`;
+  - ambient_ratio is the probe's ambient irradiance (sky and bounces, averaged over up and the four horizontal directions) relative to open ground, and A_open is that open-field ambient;
+  - `sunlit` is one ray toward the sun against the same parts, built once in the browser (about 50 ms).
+- A first version returned the ambient ratio alone. Under the Apadana N portico that is 0.098 against an eye illuminance of 0.023, so it would have lowered the exposure there by 0.64× compared with the old estimate.
