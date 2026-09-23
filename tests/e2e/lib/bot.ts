@@ -12,8 +12,11 @@ export async function walkRoute(page: Page, start: [number, number], targets: [n
       const path: [number, number][] | null = await page.evaluate(([a, b]) => (window as any).__parsa.navPath(a, b), [pos, [e, n]]);
       expect(path, `no walkable route to ${what}`).not.toBeNull();
       ok = true;
-      for (const [we, wn] of path!.slice(1)) {
-        last = await page.evaluate(([we, wn]) => (window as any).__parsa.walkTo(we, wn, 240, 0.5, 1 / 30), [we, wn]);
+      // intermediate waypoints are cell centres of a path planned with 0.35 m wall clearance: reach them within 0.2 m, or
+      // the next straight leg starts beside the planned line and can clip a corner (Hadish W stair head, 1.8 m opening)
+      for (const [k, [we, wn]] of path!.slice(1).entries()) {
+        const tol = k === path!.length - 2 ? 0.5 : 0.2;
+        last = await page.evaluate(([we, wn, tol]) => (window as any).__parsa.walkTo(we, wn, 240, tol, 1 / 30), [we, wn, tol]);
         totalT += last.t; pos = [last.state.x, -last.state.z];
         if (!last.reached) { ok = false; break; }
       }

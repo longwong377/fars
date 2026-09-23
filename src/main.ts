@@ -136,17 +136,24 @@ async function boot() {
   input.onOverlayToggle = () => overlay.toggle();
 
   // test / tooling API (out-of-world)
+  /** floor under grid (east, north) for test cameras and teleports: where the walkable grid knows the floor, cast down from
+   *  just above it (a cast from high up would land on a roof, lintel or colossus top: every part is a collider) */
+  const groundAt = (east: number, north: number) => {
+    const x = east, z = -north; phys.updateTerrain(terrain, { x, y: 0, z }); phys.step(1e-4);
+    const nh = (world as any).people?.nav?.heightAt(east, north);
+    return (Number.isFinite(nh) ? phys.castRayDown(x, z, nh + 1.2) : null) ?? phys.castRayDown(x, z, 400) ?? terrain.heightAt(x, z);
+  };
   const api = {
     ready: false, backend,
     setTime: (day: number, hour: number) => clock.set(day, hour),
     setWeather: (w: WeatherOverride) => { weather.override = w; },
     /** place the camera at grid (east, north) with eye height above ground (or absolute asl), true-north azimuth + pitch in degrees */
     view: (east: number, north: number, eyeAboveGround: number, azTrueDeg: number, pitchDeg: number) => {
-      const x = east, z = -north; phys.updateTerrain(terrain, { x, y: 0, z }); phys.step(1e-4); const g = phys.castRayDown(x, z, 400) ?? terrain.heightAt(x, z); freeCam = { x, y: g + eyeAboveGround, z, yaw: -((azTrueDeg - 341) * Math.PI) / 180, pitch: (pitchDeg * Math.PI) / 180 };
+      const x = east, z = -north; const g = groundAt(east, north); freeCam = { x, y: g + eyeAboveGround, z, yaw: -((azTrueDeg - 341) * Math.PI) / 180, pitch: (pitchDeg * Math.PI) / 180 };
     },
     viewLatLon: (lat: number, lon: number, eye: number, az: number, pitch: number) => { const [e, n] = latLonToGrid(lat, lon); api.view(e, n, eye, az, pitch); },
     walkMode: () => { freeCam = null; },
-    teleport: (east: number, north: number) => { const x = east, z = -north; phys.updateTerrain(terrain, { x, y: 0, z }); phys.step(1e-4); player.teleport(x, phys.castRayDown(x, z, 400) ?? terrain.heightAt(x, z), z); player.maxFall = 0; player.fallStartY = null; },
+    teleport: (east: number, north: number) => { const x = east, z = -north; player.teleport(x, groundAt(east, north), z); player.maxFall = 0; player.fallStartY = null; },
     setInput: (i: Partial<{ forward: number; right: number; run: boolean; yawDeg: number; pitchDeg: number }>) => { botInput = { ...botInput, ...i }; },
     playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, maxFall: player.maxFall, yaw: input.yaw, ground: phys.castRayDown(player.position.x, player.position.z, player.position.y + 0.5, player.collider) ?? terrain.heightAt(player.position.x, player.position.z) }),
     stats: () => ({ reliefs: reliefStats(), backend, drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, terrain: tmesh.stats(), frameMs: lastFrameMs, heap: (performance as any).memory?.usedJSHeapSize ?? null }),
