@@ -30,6 +30,7 @@ import { updateReliefs, settleReliefs } from '../arch/reliefs';
 import { FireSystem } from './fire';
 import { buildTreasuryGoods } from './furnish';
 import { buildPlain } from './plain';
+import { buildMapLayers, MapItem } from '../ui/mapLayers';
 import { WeatherVfx } from './weatherVfx';
 import { RainShafts } from './rainShafts';
 import { Birds, Jackals } from './wildlife';
@@ -173,7 +174,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     { const vo = voiceFor({ seed: best.seed, sex: best.sex, role: best.role }); speech.say(pick.line, vo, { x: best.pos[0], y: best.y + 1.55, z: -best.pos[1] }, { speakerId: best.id, voiceKey: voiceKeyFor(vo) }); }
     return { lineId: pick.line.id, lang: pick.line.lang, translit: pick.line.translit, gloss: pick.line.gloss, tier: pick.line.tier, speakerId: best.id, backend: 'formant' } as Subtitle;
   };
+  let mapItems: MapItem[] | null = null; // out-of-world map layers (translation layer), built on first use
   return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav }, address, plain, get lastSubtitle() { return lastSubtitle; },
+    mapLayers: () => (mapItems ??= buildMapLayers({ town: settlement?.plan as any, plain: plain.data as any })),
     saveState: () => ({ people: sim.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } },
     /** persistence (brief §9.5): simulate the time the world ran while the visitor was away, everyone in the abstract LOD
      *  (same decisions, timed travel), capped at CATCHUP_MAX_DAYS (older time is placed by schedule); returns the
