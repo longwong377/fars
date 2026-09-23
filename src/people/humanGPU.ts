@@ -28,6 +28,14 @@ export function cascadeNeedsPeople(shadowCam: THREE.Camera) {
     return (n.breaks[i - 1] ?? 0) * Math.min(n.camera.far, n.maxFar) < SHADOW_CASCADE_REACH; }
   return true;
 }
+/** the same cascade limit for the people's things (carried props, sack piles, work objects): an instanced mesh draws 0
+ *  instances, a plain mesh an empty draw range, in the cascades beyond reach (both are draws the backend drops) */
+export function nearCascadesOnly(m: THREE.Mesh) {
+  let saved = 0;
+  m.onBeforeShadow = (_r, _o, _c, shadowCam) => { if (cascadeNeedsPeople(shadowCam)) { saved = -1; return; }
+    if ((m as THREE.InstancedMesh).isInstancedMesh) { saved = (m as THREE.InstancedMesh).count; (m as THREE.InstancedMesh).count = 0; } else { saved = m.geometry.drawRange.start; m.geometry.drawRange.start = 1e9; } };
+  m.onAfterShadow = () => { if (saved < 0) return; if ((m as THREE.InstancedMesh).isInstancedMesh) (m as THREE.InstancedMesh).count = saved; else m.geometry.drawRange.start = saved; saved = -1; };
+}
 /** layer of the shadow-only meshes: never drawn by the view camera, only by shadow cameras that enable it */
 export const SHADOW_LAYER = 7;
 /** let a light's shadow camera (and its cascades' cameras, if a CSM node is set) see the shadow-only people meshes.

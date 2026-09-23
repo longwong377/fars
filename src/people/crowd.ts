@@ -24,6 +24,7 @@ import { RigSolver, PALETTE_STRIDE, PLANTED, type RigInput, type FaceState } fro
 import { lookFor, type PersonLook, type LookInput } from './looks';
 import { HB } from './humanFormat';
 import { PERSON_TEXELS, FLAG_HIDE_HEAD } from './humanMaterial';
+import { nearCascadesOnly } from './humanGPU';
 import { propGeometry, propUnionGeometry, paintedBox, PROP_KINDS, PROP_NOTES } from './props';
 import { PIECES, pieceBit, COSTUME_OF, type Dress } from './outfits';
 /** poses in which people sit, kneel or lie (coats and back-carried weapons are laid aside) */
@@ -37,8 +38,9 @@ export const yawOf = (headingDeg: number) => Math.PI - rad(headingDeg);
 /** LOD distances (m): full detail, mid, far (nothing beyond: impostors not built) */
 export const LOD_DIST = [25, 90, 200, 600] as const;
 /** full detail for at most the nearest MAX_FULL (brief: ≥ 50), mid detail for at most the next MAX_MID; beyond, the far
- *  body even within 90 m. Measured: 300 people within 20 m at 64 + all-mid cost 3.55 M view triangles (D-028) */
-export const MAX_FULL = 50, MAX_MID = 160;
+ *  body even within 90 m. Measured at high quality, 300 people within 20 m: 64 + all-mid cost 3.55 M view triangles
+ *  (15.7 M frame); 50 + 160 cost 2.88 M (12.33 M frame, budget 12 M); hence 50 + 100 (D-028) */
+export const MAX_FULL = 50, MAX_MID = 100;
 export const ATTACH_R = 620, DETACH_R = 660;
 /** the most simulated people attached at once (the cap passed to sim.visibleAgents) */
 export const POOL_MAX = 400;
@@ -92,7 +94,7 @@ export class Crowd {
     if (sim) this.buildWorkObjects(); else this.autoPool = false;
     // both sack piles (depot, store) are one instanced mesh: one draw
     const sk = new THREE.InstancedMesh(propGeometry('sack')!, this.propMaterial(), 600); sk.castShadow = true; sk.receiveShadow = true; sk.count = 0; sk.visible = false; sk.frustumCulled = false;
-    sk.name = 'goods:sacks'; sk.userData = { tier: 'C', src: 'RECON', note: 'sacks counted by the simulation (stocks)' }; this.group.add(sk); this.sacks = sk;
+    sk.name = 'goods:sacks'; sk.userData = { tier: 'C', src: 'RECON', note: 'sacks counted by the simulation (stocks)' }; this.group.add(sk); this.sacks = sk; nearCascadesOnly(sk);
     // ray hits on people (dev overlay, pick): a proxy mesh whose raycast tests each shown person's standing capsule
     this.hitProxy = new THREE.Mesh(); this.hitProxy.name = 'people:hit'; this.hitProxy.visible = false; // never drawn; raycasters still call it
     (this.hitProxy as any).raycast = (rc: THREE.Raycaster, out: THREE.Intersection[]) => this.raycast(rc, out); // (was inside the comment: picking people found nothing)
@@ -116,7 +118,7 @@ export class Crowd {
     const im = new THREE.InstancedMesh(g, m, CARRIED_MAX); im.count = 0; im.visible = false; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false;
     im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.name = 'props:carried'; im.raycast = () => {}; // all kinds are in every instance on the CPU side
     im.userData = { tier: 'C', src: 'RECON', note: 'carried: ' + PROP_KINDS.map(k => `${k} (${PROP_NOTES[k].tier}): ${PROP_NOTES[k].note}`).join('; ') };
-    this.group.add(im); this.carried = im; this.carriedKind = ik;
+    this.group.add(im); this.carried = im; this.carriedKind = ik; nearCascadesOnly(im);
   }
   /** blocks at the masons' places, querns, mats, the trough (C forms): static, merged into one mesh (one draw) */
   private buildWorkObjects() {
@@ -134,7 +136,7 @@ export class Crowd {
     if (!parts.length) return;
     const mesh = new THREE.Mesh(mergeGeometries(parts)!, this.propMaterial()); mesh.castShadow = mesh.receiveShadow = true; mesh.name = 'work:objects';
     mesh.userData = { tier: 'C', src: 'RECON', note: 'work objects: limestone blocks being dressed (C); saddle querns (period type B, placement C); reed sleeping mats (C); kneading trough (C)' };
-    this.group.add(mesh);
+    this.group.add(mesh); nearCascadesOnly(mesh);
   }
   /** lay out `count` sacks of a pile from instance `from` (at most `max`); returns how many were placed */
   private pileLayout(from: number, max: number, centre: [number, number], count: number) {
