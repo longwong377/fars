@@ -321,7 +321,8 @@ async function boot() {
     // light probes in the roofed halls (D-113), upward rays elsewhere; every frame in frozen test renders (dt = 0 never
     // reached 0.25 s, so moments kept the first frame's value)
     if (adaptT > 0.25 || skyVis < 0 || TEST) { adaptT = 0; probeVis = probeEyeVisibility(camera.position); rayVis = probeVis.w < 0.999 ? skyVisibility() : 1; skyVis = probeVis.w * probeVis.eye + (1 - probeVis.w) * rayVis; }
-    const sunE = sky.sun.visible ? sky.sun.intensity * Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)) : 0;
+    // the sun the eye has: above the terrain's horizon at the camera (D-156: Kuh-e Rahmat shades the Terrace at sunrise)
+    const sunE = sky.sun.visible ? sky.sun.intensity * Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)) * sky.eyeSunVisibility : 0;
     const fireE = world.fire ? world.fire.localIlluminance(camera.position) : 0;
     // outdoors (and beside walls, from the upward rays): the session-3 law; the sky's lights carry the eye's gain beyond its range (D-117)
     const outside = exposureTarget(sunE, sky.hemi.intensity * 0.8, rayVis, sky.moonLight.intensity * 0.3, fireE, sky.fireScale);

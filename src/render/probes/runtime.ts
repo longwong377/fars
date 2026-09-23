@@ -18,6 +18,7 @@ import { SURFACES } from '../materials';
 import { srgbToLinear, lum, sceneFromParts, TraceScene } from './trace';
 import type { Part } from '../../arch/parts';
 import { SPEC } from '../../arch/spec';
+import { EYE_SKY } from '../../sky/aerial';
 
 let FIELD: ProbeField | null = null;
 /** atlas bands: S channel, U channel, tint above + validity, reach, tint below (field.ts atlasData) */
@@ -68,7 +69,7 @@ export const probeTextureBytes = () => (ATLAS ? ATLAS.width * ATLAS.height * BAN
 export function updateProbeLights(hemi: THREE.HemisphereLight | undefined, sun: THREE.DirectionalLight | undefined) {
   if (sun) {
     current.sun.subVectors(sun.position, sun.target.position).normalize();
-    const s = Math.max(0, current.sun.y) * (sun.visible ? sun.intensity : 0);
+    const s = Math.max(0, current.sun.y) * (sun.visible ? sun.intensity : 0) * EYE_SKY.sunVisibility; // the terrain's horizon (D-156)
     probeSun.value.copy(sun.color).multiplyScalar(s);
   } else probeSun.value.setRGB(0, 0, 0);
   const U = probeSun.value; current.U = lum(U.r, U.g, U.b);
@@ -94,7 +95,7 @@ export function probeEyeVisibility(p: { x: number; y: number; z: number }): { ey
   if (!FIELD) return { eye: 1, w: 0 };
   const S = Math.max(current.S, 1e-4), U = current.U, r = fieldVisibility(FIELD, p.x, p.y, p.z, S, U, RHO_OPEN);
   if (r.w <= 0) return { eye: 1, w: 0 };
-  const d = current.sun, sunlit = U > 0 && !(OCC?.occluded(p.x, p.y, p.z, d.x, d.y, d.z, 0.05, 2000) ?? false) ? 1 : 0;
+  const d = current.sun, sunlit = U > 0 && !(OCC?.occluded(p.x, p.y, p.z, d.x, d.y, d.z, 0.05, 2000) ?? false) ? EYE_SKY.sunVisibilityAt(p.x, p.y, p.z) : 0;
   const A = openAmbientMean(S, U, RHO_OPEN), eye = (r.vis * A + U * sunlit) / (A + U);
   return { eye, w: r.w };
 }
