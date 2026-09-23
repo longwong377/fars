@@ -139,9 +139,9 @@ Verified against `UnicodeData.txt` (unicode-org/icu, GitHub raw).
 |---|---|---|---|---|---|
 | `old_persian.json` | 116 | ARIo DB, DSf, DNa, DNb, XPa, XPh (A); glosses from the Livius translations, else DB context (B) | OP signs by Kent's rules (C) | 12 | eSpeak `fa` base |
 | `elamite.json` | 78 | Hallock PF texts with his translations via CDLI (A); EWB senses; ARIo Elamite versions (B) | cuneiform from ATF via OSL (B) | 12 | eSpeak `fa` base |
-| `aramaic.json` | 99 | Aramaic of Ezra (OSHB, verse refs) + Strong's (B); Elephantine/Arshama formulas (SX, B); Daniel-only forms marked | Imperial Aramaic letters (B) | 21 | eSpeak `ar` base |
+| `aramaic.json` | 99 | Aramaic of Ezra (OSHB, verse refs) + Strong's (B); Elephantine/Arshama formulas (SX, B); Daniel-only forms marked | Imperial Aramaic letters (B) | 22 | eSpeak `ar` base |
 | `babylonian.json` | 71 | Babylonian versions of the royal inscriptions and the Cyrus Cylinder in ARIo (A); NB royal inscriptions (RIBo) and an LB letter (CAMS) for everyday words, mostly logograms (B) | cuneiform from ATF via OSL (B) | 11 | formant synthesiser (no eSpeak voice) |
-| `greek.json` | 82 | Herodotus, Greek text (A); Od. 1.123 for χαῖρε (B); LSJ gloss check | Ionic capitals, no accents or breathings (B/C) | 17 | eSpeak `grc` |
+| `greek.json` | 82 | Herodotus, Greek text (A); Od. 1.123 for χαῖρε (B); LSJ gloss check | Ionic capitals, no accents or breathings (B/C) | 16 | eSpeak `grc` |
 
 Pronunciation (IPA) is reconstructed for every entry (C). Every line's usage in a spoken situation is C. Every entry cites
 source keys (`src`), and the language lint fails an entry without them. Findings that corrected earlier entries:
