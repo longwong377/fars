@@ -565,3 +565,65 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - It rebuilds when the yard counts or the working columns change.
   - Scaffold form, stacking and layout are C: no evidence of the method was retrieved (D-022).
 - **Addendum (same session): smoke follows the same light.** The town haze sheets (settlement/haze.ts) were a hand-set grey scaled by a daylight ramp. The fire smoke puffs (fire.ts) were a constant unlit grey, which glowed on a moonless night. Both now use single scattering: ω · (the calibrated horizon radiance across the view + the sun's irradiance × a Henyey–Greenstein phase, g 0.6). The puffs add their fire's glow as they leave the flame (power × 0.6 × e^(−1.5·age), orange). ω 0.9, g and the glow are C.
+
+## D-105 Babylonian (Late Babylonian Akkadian) lexicon (Phase 8; session 3, language agent)
+- **Why:** Babylonian scribes and masons are in the population and had no words; the brief (§10) asks for their language "as attested". `research/LEXICON/babylonian.json`, 71 entries, language id `bab`.
+- **Where the forms come from, in order of weight:**
+  - the Babylonian versions of the Achaemenid royal inscriptions in the ARIo corpus (XPa, XPb, XPc, XPd, XPf, XPh, DZc, the Darius Susa texts, the throne-bearer labels; the chancery's Late Babylonian) — syllabic spellings tier A, glosses by alignment with the Old Persian text and the Livius translations;
+  - the Cyrus Cylinder (539 BCE, in ARIo) — agurru "baked brick", lā "not", ūmišam "daily";
+  - Neo-Babylonian royal inscriptions (ORACC RIBo, 6th c., via the SLAB-NLP/Akk mirror) and one Late Babylonian letter (ORACC CAMS) for everyday words that the royal texts lack (beer, wine, oil, bread, sheep, water, day, month, year, barley, dates, shekel, rations) — mostly logograms, so the Akkadian reading is tier B;
+  - the Late Babylonian letter greeting (šulmu [u balāṭu] … qabû) as a search extract (Hackl & Jursa).
+  - Not found in anything read: a spoken greeting, "yes", numbers above išten "one", dullu "work" (gap Q-134).
+- **Script:** `transliteration` holds the ATF; `script` is generated sign by sign through the ORACC Sign List by the new `tools/build_lexicon_scripts.py` (the same conversion as `tools/build_inscriptions.py`, which is now importable). Tier B.
+- **IPA (C):** normalised written forms; š as [ʃ], emphatics as pharyngealised (sˤ, tˤ), ḫ as [x]; case vowels kept although Late Babylonian speech may have dropped them (Q-134).
+- **Stress (C):** new synthesiser rule `last-heavy` (last non-final heavy syllable, else the first — the usual modern reconstruction for Akkadian). A geminate now makes the syllable before it heavy (i.qab.bi) in `syllabify`; before, a geminate was one long onset and the syllable before stayed light.
+- **Lines:** 11 (greet, reply, farewell, two pious formulas from XPa/XPc, remark, refuse, count "one", ration, offer). The sim lists Aramaic first for its Babylonians (sim.ts, not changed here), so they greet in Aramaic and fall back to Babylonian where Aramaic has no line (e.g. the pious formulas). That matches the brief's caution that spoken Aramaic had largely overtaken Akkadian (Q-134).
+- **Voice:** eSpeak-NG 1.51 has no Akkadian voice, so Babylonian lines are not pre-rendered. They are voiced by the formant synthesiser at runtime (D-011, D-107).
+- **Murmur:** Babylonian talkers now use a profile counted from this lexicon (no longer the Aramaic fallback).
+
+## D-106 Ionic Greek lexicon (Phase 8; session 3, language agent)
+- **Why:** the Yauna (Ionian) stone-cutters (DSf "the stone-cutters who wrought the stone, those were Ionians and Sardians") are in the population. `research/LEXICON/greek.json`, 82 entries, language id `grc`.
+- **Forms:** Herodotus (mid-5th-c. Ionic prose) in Godley's Greek text (Perseus canonical-greekLit, read in full), with book.chapter.section and counts. One greeting, χαῖρε ξεῖνε "greetings, stranger", is Homeric (Od. 1.123): Herodotus has no χαῖρε. Glosses were compared with LSJ (Perseus TEI). Tier A for Herodotean forms; B for χαῖρε.
+- **Form field:** a plain romanisation (khaire, xeine, ēmerē; no h, see below), because the lint scans romanised forms and IPA for modern words. The edition spelling is kept in `greek`.
+- **Script:** capitals without accents or breathings (ΧΑΙΡΕ), generated from the edition form. That is how Greek was written in 467 (no lower case, accents or breathings until much later). It is the Ionic alphabet with Η = ē and Ω = ō, and no h sign because East Ionic had lost [h] (psilosis; search extract). Letter set B; the orthography of any single word in 467 C (Q-137). The lint gains a period script `greekIonic` (capitals U+0391–U+03A9 only). Lower case, accents and Greek Extended are rejected as modern (`greekModern` now covers U+1F00–1FFF too).
+- **IPA (C), 5th-c. East Ionic:** no /h/; φ θ χ = pʰ tʰ kʰ; ζ = zd; η = ɛː; ω = ɔː; υ = y; spurious ει = eː and ου = oː. The edition's accent is marked ˈ and realised by the synthesiser as prominence (the ancient accent was pitch; C). The synthesiser gains y, ɔ and the aspiration modifier ʰ, which gives a longer voiceless release.
+- **Lines:** 17 (greetings incl. Od. 1.123 verbatim, reply "οὐκ οἶδα" Hdt 4.195.2, farewell "ἴθι χαίρων" Hdt 1.121.1, "ὦ Ζεῦ", yes/no, work calls, counting, rations, bread, "Ionians").
+- **Voice:** eSpeak-NG's own Ancient Greek voice `grc` (D-107). **Murmur:** own profile (no longer the Aramaic fallback).
+
+## D-107 Voices regenerated: Greek through eSpeak `grc`, Babylonian formant-only, lower Opus bitrate (Phase 8; session 3, language agent)
+- **Checked which voices exist:** eSpeak-NG 1.51 lists `grc` (Ancient Greek) and `el`, `ar`, `he`, `fa`, `am`, `mt`. It has no Akkadian, Elamite, Old Persian or Aramaic voice. The earlier languages already use a base voice for prosody only (D-055).
+- **Greek:** base voice `grc`. Two measured problems, two fixes:
+  - eSpeak's aspirated-stop mnemonics (k#, p#, t#) drop a stress mark placed before them, which moved the accent (`['p#eRe]]` came out as pʰerˈe). Aspiration is therefore sent as stop + h (C).
+  - Plain `ai` was split into two syllables, so the Greek diphthongs are sent as eSpeak diphthong phonemes (aI, oI, eU, aU).
+  - The IPA round trip passes for all 62 rendered lines with the per-base approximations listed in the manifest.
+- **Babylonian:** no eSpeak voice, so, per the brief's swappable-backend design, its 11 lines are **formant-only**. The manifest declares `formant_only: {bab: reason}` and lists the lines; the RecordingBackend falls through to the formant synthesiser (D-011). The alternative was the Arabic base, as Aramaic uses. It was rejected: it would put Arabic prosody on a language whose stress rule we now set ourselves (D-105), and the formant voice applies that rule directly.
+- **Bundle:** 372 clips (62 lines × 6 voice classes), **1,543 KB** of Opus (du 2.3 MB on disk blocks), up from 84 clips / 527 KB. libsndfile Opus compression level 0.92 was chosen by measurement:
+  - unset (D-055) ≈ 36–39 kb/s; 0.9 ≈ 33; 0.92 ≈ 28–29; 0.95 ≈ 22 kb/s.
+  - 0.95 would take the shortest clips below the test's 1.5 KB plausibility floor, and that gate is not lowered.
+  - The D-055 bitrate stays available (`COMPRESSION = None`).
+- `build_speech.py` removes clips of lines that no longer exist. The test now requires no orphan clips and exactly the declared formant-only languages.
+- **Honesty:** nobody has listened (brief §10 acceptance still open); the stop+h aspiration and the formant Babylonian are the weakest voices (Q-138).
+
+## D-108 Old Persian, Elamite and Aramaic lexicons extended; every entry keyed to sources (Phase 8; session 3, language agent)
+- **Old Persian 52 → 116.** Forms come from ARIo: DB, DSf (the Susa building charter: stone, brick, baked brick, rubble, timber, silver, stone-cutters, goldsmiths, village, mountain, "here"), DNa/DNb (horseman, bowman, spearman, spear, friend, "not", "don't"), XPh (you, happy, there), XPa ("one", "much"). Glosses come from the Livius translations (read in full via the GitHub scrape) where a translated passage exists. Otherwise, for DB (whose Livius pages were not scraped), they come from context, marked B. The sign spelling is generated by the project's Kent-rule speller from a Kent-style form, and the script from the sign spelling (C, as before).
+  - **Correction (primary wins, Q-130):** "water" IS attested (DB "aniya apiyā āhyatā apišim parābara"); the '(water)' absence entry now says so and points to `api-`.
+  - A.uramazdāha (gen.) added, so the formula vašnā A.uramazdāha can be spoken (part of gap Q-022 closed).
+- **Elamite 35 → 78.** Forms come from the 67 Hallock PF texts in the CDLI dump, with Hallock's translations (primary, tier A): kurmin, kutka, kuzza, beul "year", hutlak "messenger", gal "rations", akkayaše "his companion", kapnuški "treasury", tumara, kanti "storehouse", kantira, sheep and goat words, month names, Shiraz, Susa, Pasargadae, Anshan and Barsa (Persepolis). Glosses are cross-checked in the EWB sense base (German/English, vol:page).
+  - **Upgrades:** halmi and dušda were C, "NOT SEEN"; they are read in PF 15 and PF 2, so they are A (Q-131). Turmar = month 2 (PF 406) and Miyakannaš = month 12 (PF 402) were C (Q-132).
+  - **Conflict logged:** Hallock and EWB disagree on kumaš, kupšu and hidu (Q-133).
+- **Aramaic 44 → 99.** Forms come from the Aramaic documents of Ezra, the Achaemenid letters and decrees, via the Open Scriptures Hebrew Bible with morphology (verse refs), glossed from Strong's. Words added: stone, great stones, courses of masonry, timber, walls, foundations, build, work, cease, "leave it!", "go!", "take!", give, expenses, cubits, talents, kor, bath, numbers to a hundred, bulls, rams, lambs, colleague, governor, decree, word, "now", "diligently" (ʾsprnʾ, a Persian loanword of the chancery), "not", "there is", "good". Two greeting formulas come from Elephantine and Arshama extracts (šlm ʿlyk, ʿl ʾḥy). Daniel-only forms are marked (Q-136).
+- **Source keys:** every entry of the five lexicons now carries `src` (keys into `src/data/sources.json`); 20 keys were added (research/SOURCES.md, Phase 8 table). A new lint test fails any entry without a tier or with an unknown key (fail-closed).
+- **Tools:** `tools/build_lexicon_scripts.py [--check]` fills or checks the native-script fields of all five lexicons (OP from sign spelling, El/Bab ATF through OSL, Aramaic consonants to Imperial Aramaic, Greek capitals); `tools/build_inscriptions.py` is importable (output unchanged, verified).
+
+## D-109 Scripted lines, intents and the lint for five languages (Phase 8; session 3, language agent)
+- **Lines 14 → 73:** Old Persian 12, Elamite 12, Aramaic 21, Babylonian 11, Greek 17. They are built only from lexicon ids (the lint checks this). Old Persian lines are ≤ 3 words. Each line keeps the phrase tier (A = verbatim word sequence in a published text; B = excerpt; C = composed) and a usage tier (always C: no text shows these words spoken in these situations).
+- **Intents:** `affirm`, `refuse`, `ration` added to greet/reply/farewell/pious/remark/call_workers/count/offer/identify/ask_document. The world (world.ts, not changed) still asks only for greet and reply; the others are ready for guards, ration issues and work calls.
+- **Language map:** `SPEECH_LANGS` gains Babylonian → bab and Greek → grc. `pickLine` still tries the speaker's languages in order (code-switching). Egyptians and Lydians still answer with gesture (gap Q-025).
+- **What stays thin:** there is still no attested greeting in Old Persian or Elamite. Persians greet in Aramaic when the sim gives them Aramaic; Elamite-only speakers (porters, the women's group, children) greet with a gesture. "Yes" is "true" (OP), "certainly" (Aramaic, Daniel) or "yes" (Greek, Hdt 1.159). LEXICON_GAPS lists each omission with its open question.
+- **Lint (tests/language.test.ts):**
+  - per-language script blocks are typed over every LangId, so a new language fails to compile until it is classed;
+  - Greek scripts must be capitals only;
+  - source keys are checked;
+  - crowd murmur is scanned for all five languages;
+  - the only new homograph exemption is grc:ouk → "ok", tied to its entry.
+  - romanisedWords folds ḫ, ʰ and ɔ, and IPA y is read as u.

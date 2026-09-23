@@ -1,0 +1,1244 @@
+[
+ {
+  "form": "ilu",
+  "transliteration": "DINGIR",
+  "script": "𒀭",
+  "gloss": "god ('DINGIR GAL-u₂ Aḫuramazdaʾ' a great god is Ahuramazda)",
+  "pos": "noun",
+  "ipa": "ilu",
+  "attested": "XPa 1 (ARIo Q007209); XPb, XPd",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading ilu (B)."
+ },
+ {
+  "form": "rabû",
+  "transliteration": "ra-bu-u₂",
+  "script": "𒊏𒁍𒌑",
+  "gloss": "great ('DINGIR ra-bu-u₂' a great god)",
+  "pos": "adj.",
+  "ipa": "rabuː",
+  "attested": "XPc 1 (ARIo Q007211)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "XPa writes GAL-u₂."
+ },
+ {
+  "form": "Aḫuramazdaʾ",
+  "transliteration": "{d}a-hu-ru-ma-az-da-ʾ",
+  "script": "𒀭𒀀𒄷𒊒𒈠𒊍𒁕𒀪",
+  "gloss": "Ahuramazda",
+  "pos": "divine name",
+  "ipa": "axuramazdaʔ",
+  "attested": "XPa (ARIo Q007209), passim",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "qaqqaru",
+  "transliteration": "qaq-qa-ru",
+  "script": "𒆕𒋡𒊒",
+  "gloss": "earth, ground",
+  "pos": "noun",
+  "ipa": "qaqqaru",
+  "attested": "XPa (ARIo Q007209): \"ša qaqqaru agâ iddinnu\" (who created this earth)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "šamê",
+  "transliteration": "AN-e",
+  "script": "𒀭𒂊",
+  "gloss": "heaven, sky (gen. of šamû)",
+  "pos": "noun",
+  "ipa": "ʃameː",
+  "attested": "XPa (ARIo Q007209): \"ša AN-e annûtu iddinnu\"",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logographic spelling; reading B."
+ },
+ {
+  "form": "amēlūtu",
+  "transliteration": "a-me-lu-u₂-tu₂",
+  "script": "𒀀𒈨𒇻𒌑𒌓",
+  "gloss": "mankind, people",
+  "pos": "noun",
+  "ipa": "ameːluːtu",
+  "attested": "XPa (ARIo Q007209)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "dunqu",
+  "transliteration": "du-un-qu",
+  "script": "𒁺𒌦𒄣",
+  "gloss": "good fortune, well-being (= dumqu; 'who gave happiness to the people')",
+  "pos": "noun",
+  "ipa": "dunqu",
+  "attested": "XPc (ARIo Q007211): \"ša du-un-qu a-na UN.MEŠ id-din-nu\"; XPa dum-qi₂",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Renders OP šiyāti-."
+ },
+ {
+  "form": "šarri",
+  "transliteration": "ša-ar-ri",
+  "script": "𒊭𒅈𒊑",
+  "gloss": "king (LB form; also LUGAL)",
+  "pos": "noun",
+  "ipa": "ʃarri",
+  "attested": "ARIo Q007282 (Artaxerxes): \"i-qa₂-bi ar-tak-šat-su ša-ar-ri GAL-u₂\" (Artaxerxes the great king says)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "LB spelling without distinct case ending; Xerxes' texts write LUGAL."
+ },
+ {
+  "form": "išten",
+  "transliteration": "iš-ten",
+  "script": "𒅖𒋼",
+  "gloss": "one ('išten ina šarrāni mādūtu' one king of many)",
+  "pos": "numeral",
+  "ipa": "iʃteːn",
+  "attested": "XPa (ARIo Q007209): \"iš-ten ina LUGAL.MEŠ ma-du-u₂-tu\"",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "The only number written out in the texts read; others are numerals."
+ },
+ {
+  "form": "mādūtu",
+  "transliteration": "ma-du-u₂-tu",
+  "script": "𒈠𒁺𒌑𒌅",
+  "gloss": "many",
+  "pos": "adj. pl.",
+  "ipa": "maːduːtu",
+  "attested": "XPa (ARIo Q007209)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "anāku",
+  "transliteration": "a-na-ku",
+  "script": "𒀀𒈾𒆪",
+  "gloss": "I",
+  "pos": "pron. 1sg.",
+  "ipa": "anaːku",
+  "attested": "XPa (ARIo Q007209): \"a-na-ku {m}hi-ši-ʾ-ar-ši LUGAL\" (I am Xerxes the king)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "bābu",
+  "transliteration": "KA₂",
+  "script": "𒆍",
+  "gloss": "gate ('KA₂ agâ' this gate — the Gate of All Nations)",
+  "pos": "noun",
+  "ipa": "baːbu",
+  "attested": "XPa (ARIo Q007209)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "ṣilli",
+  "transliteration": "ṣi-il-li",
+  "script": "𒍢𒅋𒇷",
+  "gloss": "protection, shade ('ina ṣilli ša Aḫuramazdaʾ' under the protection of Ahuramazda)",
+  "pos": "noun gen.",
+  "ipa": "sˤilli",
+  "attested": "XPc (ARIo Q007211); XPa writes GIŠ.MI",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Renders OP vašnā \"by the favour\"."
+ },
+ {
+  "form": "bīt",
+  "transliteration": "bi-it",
+  "script": "𒁉𒀉",
+  "gloss": "house, palace ('bīt agâ' this palace)",
+  "pos": "noun",
+  "ipa": "biːt",
+  "attested": "XPc (ARIo Q007211): \"bi-it a-ga-a {m}da-a-ri-ia-a-muš LUGAL … i-te-pu-us₂-su\"",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "abūa",
+  "transliteration": "AD-u₂-a",
+  "script": "𒀜𒌑𒀀",
+  "gloss": "my father",
+  "pos": "noun + suff.",
+  "ipa": "abuːa",
+  "attested": "XPa (ARIo Q007209): \"ša AD-u₂-a i-pu-uš-šu\" (what my father built)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram AD with phonetic complement; reading B."
+ },
+ {
+  "form": "māru",
+  "transliteration": "DUMU",
+  "script": "𒌉",
+  "gloss": "son",
+  "pos": "noun",
+  "ipa": "maːru",
+  "attested": "XPa (ARIo Q007209): \"DUMU ša {m}da-a-ri-ia-a-muš\" (son of Darius)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "iqabbi",
+  "transliteration": "i-qab-bi",
+  "script": "𒄿𒃮𒁉",
+  "gloss": "(he) says",
+  "pos": "verb",
+  "ipa": "iqabbi",
+  "attested": "XPa (ARIo Q007209): \"{m}hi-ši-ʾ-ar-ši LUGAL i-qab-bi\" (Xerxes the king says)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ēteppuš",
+  "transliteration": "e-te-pu-uš",
+  "script": "𒂊𒋼𒁍𒍑",
+  "gloss": "I made, I built",
+  "pos": "verb",
+  "ipa": "eːteppuʃ",
+  "attested": "XPa (ARIo Q007209): \"KA₂ a-ga-a … a-na-ku e-te-pu-uš\" (this gate I built)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "babbanû",
+  "transliteration": "bab-ba-nu-u₂",
+  "script": "𒉽𒁀𒉡𒌑",
+  "gloss": "good, fine, beautiful ('mādiš babbanû ēteppuš' I did very well)",
+  "pos": "adj.",
+  "ipa": "babbanuː",
+  "attested": "XPa (ARIo Q007209) bab-ba-nu-u₂-tu; XPf (ARIo Q007214) \"ma-di-iš bab-ba-nu-u₂ i-te-pu-uš\"",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "A characteristically Late Babylonian word; renders OP naiba-."
+ },
+ {
+  "form": "gabbi",
+  "transliteration": "gab-bi",
+  "script": "𒃮𒁉",
+  "gloss": "all",
+  "pos": "adj./pron.",
+  "ipa": "ɡabbi",
+  "attested": "XPa, XPc (ARIo Q007209, Q007211)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "liṣṣur",
+  "transliteration": "li-iṣ-ṣur",
+  "script": "𒇷𒄑𒀫",
+  "gloss": "may (he) protect",
+  "pos": "verb precative",
+  "ipa": "lisˤsˤur",
+  "attested": "XPa (ARIo Q007209): \"{d}a-hu-ru-ma-az-da-ʾ li-iṣ-ṣur\" (may Ahuramazda protect)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "itti",
+  "transliteration": "it-ti",
+  "script": "𒀉𒋾",
+  "gloss": "with ('itti ilāni' with the gods)",
+  "pos": "prep.",
+  "ipa": "itti",
+  "attested": "XPb, XPc (ARIo Q007210, Q007211)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ilāni",
+  "transliteration": "DINGIR.MEŠ",
+  "script": "𒀭𒎌",
+  "gloss": "gods",
+  "pos": "noun pl.",
+  "ipa": "ilaːni",
+  "attested": "XPb (ARIo Q007210)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "aganna",
+  "transliteration": "a-gan-na",
+  "script": "𒀀𒃶𒈾",
+  "gloss": "here ('ša anāku aganna ēpuššu' what I built here)",
+  "pos": "adv.",
+  "ipa": "aɡanna",
+  "attested": "XPd (ARIo Q007212)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Renders OP idā."
+ },
+ {
+  "form": "agâ",
+  "transliteration": "a-ga-a",
+  "script": "𒀀𒂵𒀀",
+  "gloss": "this",
+  "pos": "demonstr.",
+  "ipa": "aɡaː",
+  "attested": "XPa (ARIo Q007209)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "mātu",
+  "transliteration": "ma-a-tum",
+  "script": "𒈠𒀀𒌈",
+  "gloss": "land, country",
+  "pos": "noun",
+  "ipa": "maːtu",
+  "attested": "ARIo Q007163 (Darius, Babylonian): \"u ma-a-tum ša a-ha-na-a-a\"",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Spelled with archaising -m; IPA without it (C)."
+ },
+ {
+  "form": "Parsa",
+  "transliteration": "KUR par-sa",
+  "script": "𒆳 𒌓𒊓",
+  "gloss": "Persia; Pārsa, Persepolis ('ina KUR parsa agâ' in this Pārsa)",
+  "pos": "place name",
+  "ipa": "parsa",
+  "attested": "XPa (ARIo Q007209)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "Parsāya",
+  "transliteration": "{LU₂}par-sa-a-a",
+  "script": "𒇽𒌓𒊓𒀀𒀀",
+  "gloss": "Persian ('anāku Parsāya' I am a Persian)",
+  "pos": "gentilic",
+  "ipa": "parsaːja",
+  "attested": "DZc Babylonian (ARIo Q007197): \"a-na-ku {m}par-sa-a-a\" (I am a Persian)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "lišānu",
+  "transliteration": "li-ša₂-nu",
+  "script": "𒇷𒃻𒉡",
+  "gloss": "tongue, language ('ša naphar lišānī' [king] of all languages)",
+  "pos": "noun",
+  "ipa": "liʃaːnu",
+  "attested": "XPa (ARIo Q007209)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "nišū",
+  "transliteration": "UN.MEŠ",
+  "script": "𒌦𒎌",
+  "gloss": "people",
+  "pos": "noun pl.",
+  "ipa": "niʃuː",
+  "attested": "XPc (ARIo Q007211)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "ina",
+  "transliteration": "ina",
+  "script": "𒀸",
+  "gloss": "in, by, from",
+  "pos": "prep.",
+  "ipa": "ina",
+  "attested": "XPa (ARIo Q007209) passim",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ana",
+  "transliteration": "a-na",
+  "script": "𒀀𒈾",
+  "gloss": "to, for",
+  "pos": "prep.",
+  "ipa": "ana",
+  "attested": "XPa (ARIo Q007209) passim",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "u",
+  "transliteration": "u",
+  "script": "𒌋",
+  "gloss": "and",
+  "pos": "conj.",
+  "ipa": "u",
+  "attested": "XPa (ARIo Q007209) passim",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ša",
+  "transliteration": "ša₂",
+  "script": "𒃻",
+  "gloss": "of; who, which",
+  "pos": "rel./det. pron.",
+  "ipa": "ʃa",
+  "attested": "XPa (ARIo Q007209) passim",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "lā",
+  "transliteration": "la",
+  "script": "𒆷",
+  "gloss": "not",
+  "pos": "negation",
+  "ipa": "laː",
+  "attested": "Cyrus Cylinder (ARIo Q006653, 539 BCE): \"la pa-lih\" (not revering)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "As a bare spoken \"no\" a reconstruction (usage C)."
+ },
+ {
+  "form": "šulmu",
+  "transliteration": "šu-lum",
+  "script": "𒋗𒈝",
+  "gloss": "well-being, safety; the greeting of letters (šulmu u balāṭu 'well-being and life')",
+  "pos": "noun",
+  "ipa": "ʃulmu",
+  "attested": "RIBo Nabonidus (ORACC Q005444): \"šu-lum u TIN\" (well-being and life), \"ina šu-lum ir-ru-bu-nu\" (they entered in safety); LB letters open with šulmu (search extract)",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO",
+   "HACKL-JURSA"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Letter greetings in LB: \"šulmu [u balāṭu] … qabû\" (Hackl & Jursa, extract). Spoken use as a greeting is C."
+ },
+ {
+  "form": "balāṭu",
+  "transliteration": "TIN",
+  "script": "𒁷",
+  "gloss": "life ('šulum u balāṭ' well-being and life)",
+  "pos": "noun",
+  "ipa": "balaːtˤu",
+  "attested": "RIBo Nabonidus (ORACC Q005444); XPf (ARIo Q007214) ba-al-ṭu-u₂ \"(they) were alive\"",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO",
+   "ARIO",
+   "HACKL-JURSA"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "bēlīya",
+  "transliteration": "be-li₂-ia",
+  "script": "𒁁𒉌𒅀",
+  "gloss": "my lord (address; 'ana bēlīya' to my lord)",
+  "pos": "noun + suff.",
+  "ipa": "beːliːja",
+  "attested": "RIBo (ORACC Q005365): \"{d}AMAR.UTU be-li₂-ia\" (Marduk my lord); LB letter addresses (search extract)",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO",
+   "HACKL-JURSA"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "aḫu",
+  "transliteration": "ŠEŠ",
+  "script": "𒋀",
+  "gloss": "brother ('aḫūšu' his brother)",
+  "pos": "noun",
+  "ipa": "axu",
+  "attested": "HBTIN (Late Babylonian Uruk legal, ORACC P342359): \"ŠEŠ-šu₂\"",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "HBTIN"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; later (Hellenistic) LB text; reading B."
+ },
+ {
+  "form": "ammatu",
+  "transliteration": "am-ma-ti",
+  "script": "𒄠𒈠𒋾",
+  "gloss": "cubit ('20 ina ammati' 20 cubits)",
+  "pos": "noun",
+  "ipa": "ammatu",
+  "attested": "ARIo Q007188 (Darius, Susa building text, Babylonian)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "kaspu",
+  "transliteration": "KU₃.BABBAR",
+  "script": "𒆬𒌓",
+  "gloss": "silver",
+  "pos": "noun",
+  "ipa": "kaspu",
+  "attested": "ARIo Q007188; Q007257",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "ḫurāṣu",
+  "transliteration": "KU₃.GI",
+  "script": "𒆬𒄀",
+  "gloss": "gold",
+  "pos": "noun",
+  "ipa": "xuraːsˤu",
+  "attested": "ARIo Q007188",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "abnu",
+  "transliteration": "NA₄",
+  "script": "𒎎",
+  "gloss": "stone",
+  "pos": "noun",
+  "ipa": "abnu",
+  "attested": "ARIo Q007188 (\"NA₄ ga-la-la\", a building stone; cf. Aramaic ʾbn gll)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram / determinative; reading B."
+ },
+ {
+  "form": "erēnu",
+  "transliteration": "{GIŠ}ERIN",
+  "script": "𒄑𒂞",
+  "gloss": "cedar",
+  "pos": "noun",
+  "ipa": "ereːnu",
+  "attested": "ARIo Q007188",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "gušūrū",
+  "transliteration": "{GIŠ}UR₃.MEŠ",
+  "script": "𒄑𒃡𒎌",
+  "gloss": "roof beams",
+  "pos": "noun pl.",
+  "ipa": "ɡuʃuːruː",
+  "attested": "ARIo Q007188",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "agurru",
+  "transliteration": "a-gur-ru",
+  "script": "𒀀𒄥𒊒",
+  "gloss": "baked brick",
+  "pos": "noun",
+  "ipa": "aɡurru",
+  "attested": "Cyrus Cylinder (ARIo Q006653): \"ka-a-ri a-gur-ru\"",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Loaned into Old Persian as agurā- (DSf)."
+ },
+ {
+  "form": "libittu",
+  "transliteration": "SIG₄",
+  "script": "𒋞",
+  "gloss": "(mud) brick",
+  "pos": "noun",
+  "ipa": "libittu",
+  "attested": "RIBo (ORACC Q005365, Nabonidus): \"SIG₄.SIG₄\"; Cyrus Cylinder SIG₄.AL.UR₃.RA (baked brick)",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "sīsû",
+  "transliteration": "ANŠE.KUR.RA.MEŠ",
+  "script": "𒀲𒆳𒊏𒎌",
+  "gloss": "horses ('ša sīsî u nišī damqūti' of good horses and good people)",
+  "pos": "noun pl.",
+  "ipa": "siːsuː",
+  "attested": "DZc Babylonian (ARIo Q007197)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "nāru",
+  "transliteration": "ID₂",
+  "script": "𒀀𒇉",
+  "gloss": "river, canal",
+  "pos": "noun",
+  "ipa": "naːru",
+  "attested": "DZc Babylonian (ARIo Q007197): the Nile canal",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "ṭēmu",
+  "transliteration": "ṭe₃-e-me",
+  "script": "𒉈𒂊𒈨",
+  "gloss": "order, instruction ('ṭēme altakan' I gave the order)",
+  "pos": "noun",
+  "ipa": "tˤeːmu",
+  "attested": "DZc Babylonian (ARIo Q007197): \"a-na-ku ṭe₃-e-me al-ta-kan\"",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ultu",
+  "transliteration": "ul-tu",
+  "script": "𒌌𒌅",
+  "gloss": "from, since",
+  "pos": "prep.",
+  "ipa": "ultu",
+  "attested": "ARIo Q007188: \"ul-tu ru-u₂-qu\" (from afar)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "rūqu",
+  "transliteration": "ru-u₂-qu",
+  "script": "𒊒𒌑𒄣",
+  "gloss": "far, distant",
+  "pos": "adj.",
+  "ipa": "ruːqu",
+  "attested": "ARIo Q007188",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "Bābili",
+  "transliteration": "KA₂.DINGIR.RA{KI}",
+  "script": "𒆍𒀭𒊏𒆠",
+  "gloss": "Babylon",
+  "pos": "place name",
+  "ipa": "baːbili",
+  "attested": "ARIo Q007188",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logographic spelling; reading B."
+ },
+ {
+  "form": "Elamtu",
+  "transliteration": "ELAM.MA{KI}",
+  "script": "𒉏𒈠𒆠",
+  "gloss": "Elam",
+  "pos": "place name",
+  "ipa": "elamtu",
+  "attested": "ARIo Q007188",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logographic spelling; reading B."
+ },
+ {
+  "form": "Madāya",
+  "transliteration": "{KUR}ma-da-a-a",
+  "script": "𒆳𒈠𒁕𒀀𒀀",
+  "gloss": "Media",
+  "pos": "place name",
+  "ipa": "madaːja",
+  "attested": "ARIo Q007188",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "Miṣir",
+  "transliteration": "mi-ṣir{KI}",
+  "script": "𒈪𒈲𒆠",
+  "gloss": "Egypt",
+  "pos": "place name",
+  "ipa": "misˤir",
+  "attested": "ARIo Q007188; XPh (Q007216) {KUR}mi-ṣir",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "Sapardu",
+  "transliteration": "sa-pa-ar-da{KI}",
+  "script": "𒊓𒉺𒅈𒁕𒆠",
+  "gloss": "Sardis, Lydia",
+  "pos": "place name",
+  "ipa": "saparda",
+  "attested": "ARIo Q007188; XPh (Q007216) {KUR}sa-pa-ar-da",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "Yamanāya",
+  "transliteration": "{LU₂}ia-ma-na-a-a",
+  "script": "𒇽𒅀𒈠𒈾𒀀𒀀",
+  "gloss": "Ionian (gentilic; 'Yamanāya agâ' this is the Ionian)",
+  "pos": "gentilic",
+  "ipa": "jamanaːja",
+  "attested": "Throne-bearer labels, Babylonian (ARIo Q007280); XPh (Q007216) {KUR}ia-a-man-na (Ionia)",
+  "source": "form: ORACC ARIo (Schmitt 2009, CC0) Babylonian version, via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and the Livius translation",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "šikaru",
+  "transliteration": "KAŠ",
+  "script": "𒁉",
+  "gloss": "beer",
+  "pos": "noun",
+  "ipa": "ʃikaru",
+  "attested": "RIBo (ORACC Q005425): \"i-na KAŠ GEŠTIN I₃.GIŠ LAL₃\" (with beer, wine, oil, honey — a foundation rite)",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B. Neo-Babylonian royal text (6th c.)."
+ },
+ {
+  "form": "karānu",
+  "transliteration": "GEŠTIN",
+  "script": "𒃾",
+  "gloss": "wine",
+  "pos": "noun",
+  "ipa": "karaːnu",
+  "attested": "RIBo (ORACC Q005425, Q005365)",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "šamnu",
+  "transliteration": "I₃.GIŠ",
+  "script": "𒉌𒄑",
+  "gloss": "oil",
+  "pos": "noun",
+  "ipa": "ʃamnu",
+  "attested": "RIBo (ORACC Q005425, Q005365)",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "akalu",
+  "transliteration": "NINDA",
+  "script": "𒃻",
+  "gloss": "bread, food",
+  "pos": "noun",
+  "ipa": "akalu",
+  "attested": "RIBo (ORACC Q005471): \"NINDA.HI.A\"",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "immeru",
+  "transliteration": "UDU.NITA₂",
+  "script": "𒇻𒀴",
+  "gloss": "sheep",
+  "pos": "noun",
+  "ipa": "immeru",
+  "attested": "RIBo (ORACC Q005471): \"UDU.NITA₂.MEŠ ma-ru-tu₂\" (fattened sheep)",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "mû",
+  "transliteration": "A.MEŠ",
+  "script": "𒀀𒎌",
+  "gloss": "water",
+  "pos": "noun pl.",
+  "ipa": "muː",
+  "attested": "RIBo (ORACC Q005424, Q005444): \"A.MEŠ ŠEG₃\" (rain water)",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "ūmu",
+  "transliteration": "UD",
+  "script": "𒌓",
+  "gloss": "day ('ūmišam' daily, Cyrus Cylinder)",
+  "pos": "noun",
+  "ipa": "uːmu",
+  "attested": "RIBo (ORACC Q005366) \"UD.MEŠ ru-qu-te\" (distant days); Cyrus Cylinder (ARIo Q006653) \"u₄-mi-ša-am\" (daily)",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO",
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "arḫu",
+  "transliteration": "ITI",
+  "script": "𒌗",
+  "gloss": "month",
+  "pos": "noun",
+  "ipa": "arxu",
+  "attested": "RIBo (ORACC Q005413): \"i-na ITI ša-al-ma\" (in a favourable month)",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "šattu",
+  "transliteration": "MU.AN.NA",
+  "script": "𒈬𒀭𒈾",
+  "gloss": "year",
+  "pos": "noun",
+  "ipa": "ʃattu",
+  "attested": "RIBo (ORACC Q005413): \"7 ME MU.AN.NA.MEŠ\" (700 years)",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "uṭṭatu",
+  "transliteration": "ŠE.BAR",
+  "script": "𒊺𒁇",
+  "gloss": "barley, grain",
+  "pos": "noun",
+  "ipa": "utˤtˤatu",
+  "attested": "RIBo (ORACC P472682, a price record): \"1 GUR … ŠE.BAR a-na 1 GIN₂ KU₃.BABBAR\" (1 kor of barley for 1 shekel of silver)",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; LB reading uṭṭatu (B)."
+ },
+ {
+  "form": "suluppū",
+  "transliteration": "ZU₂.LUM",
+  "script": "𒅗𒈝",
+  "gloss": "dates",
+  "pos": "noun pl.",
+  "ipa": "suluppuː",
+  "attested": "RIBo (ORACC P472682): \"ZU₂.LUM a-na 1 GIN₂ KU₃.BABBAR\"",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "šiqlu",
+  "transliteration": "GIN₂",
+  "script": "𒂆",
+  "gloss": "shekel (of silver)",
+  "pos": "noun",
+  "ipa": "ʃiqlu",
+  "attested": "RIBo (ORACC P472682)",
+  "source": "form: ORACC RIBo (Royal Inscriptions of Babylonia online) via GitHub SLAB-NLP/Akk ribo.jsonl (text only); reading/gloss: standard Akkadian (CAD/CDA not seen)",
+  "src": [
+   "RIBO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B."
+ },
+ {
+  "form": "kurummatu",
+  "transliteration": "KURUM₆",
+  "script": "𒉻",
+  "gloss": "food allocation, ration",
+  "pos": "noun",
+  "ipa": "kurummatu",
+  "attested": "LB letter, Uruk (ORACC CAMS P348888): \"… iqbi umma KURUM₆.HI.A …\" (he said: the rations …)",
+  "source": "form: ORACC CAMS via GitHub SLAB-NLP/Akk cams.jsonl; reading standard",
+  "src": [
+   "CAMS-ORACC"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Logogram; reading B. Late Babylonian archival usage."
+ }
+]

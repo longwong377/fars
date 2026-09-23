@@ -25,11 +25,13 @@ export interface PhoneDef {
 
 const V = (F1: number, F2: number, F3: number, dur: number): PhoneDef => ({ manner: 'vowel', place: 'vocalic', voiced: true, F: [F1, F2, F3], dur, tier: 'C' });
 
-/** Every base symbol the synthesiser knows. Modifiers (ː ˤ ̩ ͡ ˈ ˌ) are handled by the tokenizer. */
+/** Every base symbol the synthesiser knows. Modifiers (ː ˤ ̩ ͡ ˈ ˌ ʰ) are handled by the tokenizer. */
 export const PHONES: Record<string, PhoneDef> = {
   // vowels
   a: V(730, 1250, 2500, 85), e: V(420, 1950, 2550, 85), i: V(290, 2250, 2950, 80), o: V(460, 850, 2450, 85), u: V(320, 850, 2300, 80),
   'ɛ': V(560, 1800, 2500, 85), 'ə': V(500, 1450, 2500, 50),
+  // Greek (5th-c. Ionic, research/LEXICON/greek.json): front rounded y (lip rounding lowers F2/F3 against i), open-mid ɔ
+  y: V(290, 1850, 2250, 80), 'ɔ': V(570, 880, 2450, 85),
   // stops (closure duration; burst centre by place)
   p: { manner: 'stop', place: 'labial', voiced: false, F: [300, 900, 2300], burst: { f: 900, bw: 1600, amp: 0.45 }, dur: 60, tier: 'C' },
   b: { manner: 'stop', place: 'labial', voiced: true, F: [250, 900, 2300], burst: { f: 900, bw: 1600, amp: 0.3 }, dur: 50, tier: 'C' },
@@ -52,6 +54,7 @@ export const PHONES: Record<string, PhoneDef> = {
   'ʕ': { manner: 'fricative', place: 'pharyngeal', voiced: true, F: [750, 1100, 2500], dur: 70, tier: 'C' },
   // affricate (closure + frication)
   't͡ʃ': { manner: 'affricate', place: 'postalveolar', voiced: false, F: [300, 2000, 2700], burst: { f: 3200, bw: 2000, amp: 0.5 }, fric: { f: 3000, bw: 1400, amp: 0.5 }, dur: 50, tier: 'C' },
+  'd͡ʒ': { manner: 'affricate', place: 'postalveolar', voiced: true, F: [250, 2000, 2700], burst: { f: 3200, bw: 2000, amp: 0.35 }, fric: { f: 3000, bw: 1400, amp: 0.3 }, dur: 45, tier: 'C' },
   // nasals
   m: { manner: 'nasal', place: 'labial', voiced: true, F: [260, 1000, 2300], dur: 65, tier: 'C' },
   n: { manner: 'nasal', place: 'alveolar', voiced: true, F: [260, 1600, 2600], dur: 60, tier: 'C' },
@@ -70,10 +73,12 @@ export interface Phone {
   word: number;
   /** second element of a falling diphthong (OP ai, au): a non-syllabic glide */
   glide?: boolean;
+  /** aspirated stop (ʰ; Greek φ θ χ = pʰ tʰ kʰ): a longer voiceless release before the next sound */
+  aspirated?: boolean;
 }
 
-const MODIFIERS = new Set(['ː', 'ˤ', '̩', '͡', 'ˈ', 'ˌ']);
-const ALIASES: Record<string, string> = { g: 'ɡ', 'ʧ': 't͡ʃ', 'ɹ': 'r', 'ɾ': 'r', 'ɑ': 'a', 'ä': 'a' };
+const MODIFIERS = new Set(['ː', 'ˤ', '̩', '͡', 'ˈ', 'ˌ', 'ʰ']);
+const ALIASES: Record<string, string> = { g: 'ɡ', 'ʧ': 't͡ʃ', 'ʤ': 'd͡ʒ', 'ɹ': 'r', 'ɾ': 'r', 'ɑ': 'a', 'ä': 'a' };
 
 export class IpaError extends Error { constructor(msg: string, readonly symbol: string) { super(msg); } }
 
@@ -100,12 +105,13 @@ export function tokenizeIpa(ipa: string): Phone[] {
     const p: Phone = { sym: ch, def, long: false, syllabic: def.manner === 'vowel', pharyngealised: false, stressMark: stress, word };
     stress = 0;
     // trailing modifiers
-    while (i + 1 < s.length && (s[i + 1] === 'ː' || s[i + 1] === 'ˤ' || s[i + 1] === '̩')) {
+    while (i + 1 < s.length && (s[i + 1] === 'ː' || s[i + 1] === 'ˤ' || s[i + 1] === '̩' || s[i + 1] === 'ʰ')) {
       const m = s[++i];
-      if (m === 'ː') p.long = true; else if (m === 'ˤ') p.pharyngealised = true; else p.syllabic = true;
+      if (m === 'ː') p.long = true; else if (m === 'ˤ') p.pharyngealised = true; else if (m === 'ʰ') p.aspirated = true; else p.syllabic = true;
     }
+    if (p.aspirated && (def.manner !== 'stop' || def.voiced)) throw new IpaError(`aspiration ʰ on a non-(voiceless stop) ${JSON.stringify(ch)} in "${ipa}"`, 'ʰ');
     const prev = out[out.length - 1];
-    if (prev && prev.word === word && prev.sym === p.sym && p.def.manner !== 'vowel' && !prev.long) { prev.long = true; continue; } // geminate
+    if (prev && prev.word === word && prev.sym === p.sym && p.def.manner !== 'vowel' && !prev.long && !prev.aspirated) { prev.long = true; prev.aspirated = p.aspirated; continue; } // geminate
     out.push(p);
   }
   // falling diphthongs: a/e/o + short i/u not followed by a vowel in the same word (OP ai, au; C)
@@ -139,6 +145,8 @@ export function syllabify(word: Phone[]): Syllable[] {
     syl.push({ onset: between.slice(between.length - onsetN), nucleus: word[i], coda: [], heavy: false });
   }
   syl[syl.length - 1].coda = word.slice(nuc[nuc.length - 1] + 1);
-  for (const s of syl) s.heavy = s.nucleus.long || s.coda.length > 0;
+  // a geminate is one long phone here (tokenizeIpa), kept whole as the next onset; its first half closes the syllable
+  // before it, so that syllable counts as heavy (Akkadian i.qab.bi, Elamite at.ta.ta)
+  syl.forEach((s, k) => { const nx = syl[k + 1]?.onset[0]; s.heavy = s.nucleus.long || s.coda.length > 0 || !!(nx && nx.long && nx.def.manner !== 'vowel'); });
   return syl;
 }

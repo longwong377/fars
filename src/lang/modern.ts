@@ -54,10 +54,12 @@ export const MODERN_WORDS: ReadonlySet<string> = new Set(
 const FOLD_SH: Record<string, string> = {
   'š': 'sh', 'ʃ': 'sh', 'θ': 'th', 'ç': 'ch', 'ŋ': 'ng', 'ɡ': 'g', 'ə': 'e', 'ɛ': 'e', 'ħ': 'h', 'ḥ': 'h', 'x': 'kh',
   'ṭ': 't', 'ṣ': 's', 'ś': 's', 'ṛ': 'r', 'ā': 'a', 'ī': 'i', 'ū': 'u', 'ē': 'e', 'ō': 'o', 'â': 'a', 'î': 'i', 'û': 'u',
+  // Babylonian and Greek transliteration/IPA: ḫ (x), aspiration ʰ (φ θ χ = pʰ tʰ kʰ, 'ph th kh'), open ɔ
+  'ḫ': 'kh', 'ʰ': 'h', 'ɔ': 'o',
 };
-const FOLD_PLAIN: Record<string, string> = { ...FOLD_SH, 'š': 's', 'ʃ': 's', 'θ': 't', 'ç': 'c', 'x': 'x' };
-/** IPA-only letters: IPA j is English "y", w stays w */
-const IPA_EXTRA: Record<string, string> = { j: 'y' };
+const FOLD_PLAIN: Record<string, string> = { ...FOLD_SH, 'š': 's', 'ʃ': 's', 'θ': 't', 'ç': 'c', 'x': 'x', 'ḫ': 'h', 'ʰ': '' };
+/** IPA-only letters: IPA j is English "y", IPA y (front rounded, Greek υ) is heard nearest to "u"; w stays w */
+const IPA_EXTRA: Record<string, string> = { j: 'y', y: 'u' };
 
 /**
  * Romanise a string (IPA or transliteration) to plain lowercase ASCII words. Returns the distinct words across the
@@ -92,6 +94,9 @@ export const PERIOD_SCRIPTS: Record<string, [number, number][]> = {
   oldPersian: [[0x103a0, 0x103df]],
   cuneiform: [[0x12000, 0x123ff], [0x12400, 0x1247f], [0x12480, 0x1254f]],
   imperialAramaic: [[0x10840, 0x1085f]],
+  /** 5th-c. Ionic alphabet as written then: capitals only (Α–Ω, including Η for ē and Ω for ō), no lower case, accents
+   *  or breathings (those are later, Hellenistic/Byzantine). Everything else in the Greek block stays modern (below). */
+  greekIonic: [[0x391, 0x3a1], [0x3a3, 0x3a9]],
 };
 
 /** Modern scripts that must never appear in-world (Arabic covers modern Persian). */
@@ -100,7 +105,7 @@ export const MODERN_SCRIPTS: Record<string, [number, number][]> = {
   arabicPersian: [[0x600, 0x6ff], [0x750, 0x77f], [0x8a0, 0x8ff], [0xfb50, 0xfdff], [0xfe70, 0xfeff]],
   hebrew: [[0x590, 0x5ff]],
   cyrillic: [[0x400, 0x4ff]],
-  greekModern: [[0x370, 0x3ff]],
+  greekModern: [[0x370, 0x3ff], [0x1f00, 0x1fff]], // lower case, accents, polytonic (Greek Extended); capitals only via greekIonic
   cjk: [[0x3040, 0x30ff], [0x4e00, 0x9fff], [0xac00, 0xd7af]],
   indic: [[0x900, 0x0dff]],
   digits: [[0x30, 0x39]],

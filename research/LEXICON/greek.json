@@ -1,0 +1,1640 @@
+[
+ {
+  "form": "khaire",
+  "greek": "χαῖρε",
+  "lemma": "χαίρω",
+  "script": "ΧΑΙΡΕ",
+  "gloss": "hail! greetings! (lit. 'rejoice!'; also farewell)",
+  "pos": "verb impv. 2sg.",
+  "ipa": "ˈkʰaire",
+  "attested": "Hom. Od. 1.123 \"χαῖρε, ξεῖνε\" (greetings, stranger); Hdt only χαίρειν (4.112.1)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI); Homer, Odyssey (Perseus tlg0012.tlg002.perseus-grc2)",
+  "src": [
+   "HOM-OD",
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Not in Herodotus; the common Greek greeting, attested in Ionic epic. Its use by Ionian workers in 467 is inferred (usage C)."
+ },
+ {
+  "form": "xeine",
+  "greek": "ξεῖνε",
+  "lemma": "ξένος",
+  "script": "ΞΕΙΝΕ",
+  "gloss": "stranger! guest-friend! (voc., Ionic ξεῖνος)",
+  "pos": "noun voc.",
+  "ipa": "ˈkseːne",
+  "attested": "Hdt 1.30.2 \"ξεῖνε Ἀθηναῖε\" (Croesus to Solon); 1.32.1, 1.45.2 (17×); Od. 1.123",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ō",
+  "greek": "ὦ",
+  "lemma": "ὦ",
+  "script": "Ω",
+  "gloss": "O! (particle of address)",
+  "pos": "interj.",
+  "ipa": "ɔː",
+  "attested": "Hdt 1.27.3 \"ὦ βασιλεῦ\"; passim",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "basileu",
+  "greek": "βασιλεῦ",
+  "lemma": "βασιλεύς",
+  "script": "ΒΑΣΙΛΕΥ",
+  "gloss": "king! (voc.)",
+  "pos": "noun voc.",
+  "ipa": "basiˈleu",
+  "attested": "Hdt 1.27.3, 1.30.3 (73×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "basileus",
+  "greek": "βασιλεύς",
+  "lemma": "βασιλεύς",
+  "script": "ΒΑΣΙΛΕΥΣ",
+  "gloss": "king; without article: the Great King of Persia",
+  "pos": "noun",
+  "ipa": "basiˈleus",
+  "attested": "Hdt 1.136.1 \"δῶρα ἐκπέμπει βασιλεὺς\" (the King sends gifts)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "despota",
+  "greek": "δέσποτα",
+  "lemma": "δεσπότης",
+  "script": "ΔΕΣΠΟΤΑ",
+  "gloss": "master! lord! (voc.)",
+  "pos": "noun voc.",
+  "ipa": "ˈdespota",
+  "attested": "Hdt 1.90.2 \"ὦ δέσποτα\"; 5.105.2 \"δέσποτα, μέμνεο τῶν Ἀθηναίων\" (22×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "How Herodotus has servants address a Persian king."
+ },
+ {
+  "form": "despotēs",
+  "greek": "δεσπότης",
+  "lemma": "δεσπότης",
+  "script": "ΔΕΣΠΟΤΗΣ",
+  "gloss": "master, lord",
+  "pos": "noun",
+  "ipa": "desˈpotɛːs",
+  "attested": "Hdt 3.14.9 \"δεσπότης σε Καμβύσης … εἰρωτᾷ\"",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "nai",
+  "greek": "ναί",
+  "lemma": "ναί",
+  "script": "ΝΑΙ",
+  "gloss": "yes, truly",
+  "pos": "particle",
+  "ipa": "ˈnai",
+  "attested": "Hdt 1.159.4 \"ναὶ κελεύω\" (yes, I command it)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "The only ναί in Herodotus: a spoken answer."
+ },
+ {
+  "form": "ou",
+  "greek": "οὐ",
+  "lemma": "οὐ",
+  "script": "ΟΥ",
+  "gloss": "not; no",
+  "pos": "negation",
+  "ipa": "ˈoː",
+  "attested": "Hdt passim (751×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "As a bare \"no!\" the accented οὔ; usage C."
+ },
+ {
+  "form": "ouk",
+  "greek": "οὐκ",
+  "lemma": "οὐ",
+  "script": "ΟΥΚ",
+  "gloss": "not (before a vowel)",
+  "pos": "negation",
+  "ipa": "oːk",
+  "attested": "Hdt 4.195.2 \"οὐκ οἶδα\" (I do not know); passim (705×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "oida",
+  "greek": "οἶδα",
+  "lemma": "οἶδα",
+  "script": "ΟΙΔΑ",
+  "gloss": "I know",
+  "pos": "verb 1sg. pf.",
+  "ipa": "ˈoida",
+  "attested": "Hdt 1.5.3, 1.20.1; 4.195.2 \"οὐκ οἶδα\"",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "age",
+  "greek": "ἄγε",
+  "lemma": "ἄγω",
+  "script": "ΑΓΕ",
+  "gloss": "come! come now! (hortatory impv.)",
+  "pos": "verb impv.",
+  "ipa": "ˈaɡe",
+  "attested": "Hdt 7.103.1 \"ἄγε εἰπέ μοι\" (come, tell me)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ithi",
+  "greek": "ἴθι",
+  "lemma": "εἶμι",
+  "script": "ΙΘΙ",
+  "gloss": "go! (impv.)",
+  "pos": "verb impv.",
+  "ipa": "ˈitʰi",
+  "attested": "Hdt 1.121.1 \"ἴθι χαίρων ἐς Πέρσας\" (go in joy to the Persians); 3.72.1, 7.12.2",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "khairōn",
+  "greek": "χαίρων",
+  "lemma": "χαίρω",
+  "script": "ΧΑΙΡΩΝ",
+  "gloss": "rejoicing; 'ἴθι χαίρων' go and fare well",
+  "pos": "verb ptcp.",
+  "ipa": "ˈkʰairɔːn",
+  "attested": "Hdt 1.121.1",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "phere",
+  "greek": "φέρε",
+  "lemma": "φέρω",
+  "script": "ΦΕΡΕ",
+  "gloss": "come! (hortatory; lit. 'bring!')",
+  "pos": "verb impv.",
+  "ipa": "ˈpʰere",
+  "attested": "Hdt 1.11.4 \"φέρε ἀκούσω\" (come, let me hear), 1.97.3",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "dos",
+  "greek": "δός",
+  "lemma": "δίδωμι",
+  "script": "ΔΟΣ",
+  "gloss": "give! (aor. impv.)",
+  "pos": "verb impv.",
+  "ipa": "ˈdos",
+  "attested": "Hdt 3.140.5 \"μοι δὸς τὴν πατρίδα Σάμον\" (give me my fatherland Samos)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "moi",
+  "greek": "μοι",
+  "lemma": "ἐγώ",
+  "script": "ΜΟΙ",
+  "gloss": "to me, for me (dat.)",
+  "pos": "pron. dat.",
+  "ipa": "moi",
+  "attested": "Hdt 3.140.5 \"μοι δὸς\"; 7.103.1 \"εἰπέ μοι\"",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Enclitic."
+ },
+ {
+  "form": "tharsee",
+  "greek": "θάρσεε",
+  "lemma": "θαρσέω",
+  "script": "ΘΑΡΣΕΕ",
+  "gloss": "take heart! don't be afraid! (Ionic uncontracted impv.)",
+  "pos": "verb impv.",
+  "ipa": "ˈtʰarsee",
+  "attested": "Hdt 1.9.1 \"θάρσεε Γύγη\" (take heart, Gyges); 1.120.3, 3.85.2, 9.76.3",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "siga",
+  "greek": "σίγα",
+  "lemma": "σιγάω",
+  "script": "ΣΙΓΑ",
+  "gloss": "silence! hush!",
+  "pos": "adv./impv.",
+  "ipa": "ˈsiɡaː",
+  "attested": "Hdt 8.65.4 \"σίγα τε καὶ μηδενὶ ἄλλῳ τὸν λόγον τοῦτον εἴπῃς\"",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "eu",
+  "greek": "εὖ",
+  "lemma": "εὖ",
+  "script": "ΕΥ",
+  "gloss": "well, good",
+  "pos": "adv.",
+  "ipa": "ˈeu",
+  "attested": "Hdt 1.24.7, 1.30.4 (125×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "kalōs",
+  "greek": "καλῶς",
+  "lemma": "καλός",
+  "script": "ΚΑΛΩΣ",
+  "gloss": "well, finely",
+  "pos": "adv.",
+  "ipa": "kaˈlɔːs",
+  "attested": "Hdt 1.32.5, 1.59.6",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "agathos",
+  "greek": "ἀγαθός",
+  "lemma": "ἀγαθός",
+  "script": "ΑΓΑΘΟΣ",
+  "gloss": "good, brave",
+  "pos": "adj.",
+  "ipa": "aɡaˈtʰos",
+  "attested": "Hdt 1.87.2 \"ἀνὴρ ἀγαθός\"",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "kakon",
+  "greek": "κακόν",
+  "lemma": "κακός",
+  "script": "ΚΑΚΟΝ",
+  "gloss": "bad; harm, trouble",
+  "pos": "adj. n.",
+  "ipa": "kaˈkon",
+  "attested": "Hdt 1.9.1, 1.36.1",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "artos",
+  "greek": "ἄρτος",
+  "lemma": "ἄρτος",
+  "script": "ΑΡΤΟΣ",
+  "gloss": "bread, a loaf",
+  "pos": "noun",
+  "ipa": "ˈartos",
+  "attested": "Hdt 8.137.3 \"ὀπτῴη ὁ ἄρτος\"; ἄρτους 2.77.4, 2.92.2",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "sitos",
+  "greek": "σῖτος",
+  "lemma": "σῖτος",
+  "script": "ΣΙΤΟΣ",
+  "gloss": "grain, food",
+  "pos": "noun",
+  "ipa": "ˈsiːtos",
+  "attested": "Hdt 1.21.2, 1.193.1",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "sitia",
+  "greek": "σιτία",
+  "lemma": "σιτίον",
+  "script": "ΣΙΤΙΑ",
+  "gloss": "provisions, food supplies",
+  "pos": "noun pl.",
+  "ipa": "siˈtia",
+  "attested": "Hdt 1.94.4, 1.190.2 (21×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "The nearest Herodotean word for rations issued."
+ },
+ {
+  "form": "alphita",
+  "greek": "ἄλφιτα",
+  "lemma": "ἄλφιτον",
+  "script": "ΑΛΦΙΤΑ",
+  "gloss": "barley-meal, barley groats",
+  "pos": "noun pl.",
+  "ipa": "ˈalpʰita",
+  "attested": "Hdt 7.119.2 \"ἄλευρά τε καὶ ἄλφιτα ἐποίευν\" (they made wheat flour and barley-meal)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "oinos",
+  "greek": "οἶνος",
+  "lemma": "οἶνος",
+  "script": "ΟΙΝΟΣ",
+  "gloss": "wine",
+  "pos": "noun",
+  "ipa": "ˈoinos",
+  "attested": "Hdt 1.213.1, 2.37.4; οἶνον 1.193.4",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "udōr",
+  "greek": "ὕδωρ",
+  "lemma": "ὕδωρ",
+  "script": "ΥΔΩΡ",
+  "gloss": "water",
+  "pos": "noun",
+  "ipa": "ˈydɔːr",
+  "attested": "Hdt 1.51.4, 1.185.4 (70×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Psilotic: no initial h in East Ionic."
+ },
+ {
+  "form": "elaion",
+  "greek": "ἔλαιον",
+  "lemma": "ἔλαιον",
+  "script": "ΕΛΑΙΟΝ",
+  "gloss": "olive oil",
+  "pos": "noun",
+  "ipa": "ˈelaion",
+  "attested": "Hdt 2.40.3, 6.119.2",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "krea",
+  "greek": "κρέα",
+  "lemma": "κρέας",
+  "script": "ΚΡΕΑ",
+  "gloss": "meat (pl.)",
+  "pos": "noun pl.",
+  "ipa": "ˈkrea",
+  "attested": "Hdt 1.119.6, 1.132.2",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ois",
+  "greek": "ὄις",
+  "lemma": "ὄις",
+  "script": "ΟΙΣ",
+  "gloss": "sheep",
+  "pos": "noun",
+  "ipa": "ˈois",
+  "attested": "Hdt 2.42.2 \"ὄις θύουσι\"",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Ionic/poetic form (Attic οἶς)."
+ },
+ {
+  "form": "misthos",
+  "greek": "μισθός",
+  "lemma": "μισθός",
+  "script": "ΜΙΣΘΟΣ",
+  "gloss": "wage, pay",
+  "pos": "noun",
+  "ipa": "misˈtʰos",
+  "attested": "Hdt 6.23.5; μισθόν 3.15.4",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ergon",
+  "greek": "ἔργον",
+  "lemma": "ἔργον",
+  "script": "ΕΡΓΟΝ",
+  "gloss": "work, deed; pl. ἔργα works, buildings",
+  "pos": "noun",
+  "ipa": "ˈerɡon",
+  "attested": "Hdt 1.1.0 (ἔργα μεγάλα), 1.15.1 (57×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "lithos",
+  "greek": "λίθος",
+  "lemma": "λίθος",
+  "script": "ΛΙΘΟΣ",
+  "gloss": "stone",
+  "pos": "noun",
+  "ipa": "ˈlitʰos",
+  "attested": "Hdt 1.164.3, 2.96.4; λίθοι 1.186.2 (stones for the Babylon bridge)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "plinthoi",
+  "greek": "πλίνθοι",
+  "lemma": "πλίνθος",
+  "script": "ΠΛΙΝΘΟΙ",
+  "gloss": "bricks",
+  "pos": "noun pl.",
+  "ipa": "ˈplintʰoi",
+  "attested": "Hdt 8.71.2 \"λίθοι καὶ πλίνθοι καὶ ξύλα\"; πλίνθους 1.179.1 (the baked bricks of Babylon)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "xula",
+  "greek": "ξύλα",
+  "lemma": "ξύλον",
+  "script": "ΞΥΛΑ",
+  "gloss": "timber, logs",
+  "pos": "noun pl.",
+  "ipa": "ˈksyla",
+  "attested": "Hdt 1.186.3, 8.71.2",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "teikhos",
+  "greek": "τεῖχος",
+  "lemma": "τεῖχος",
+  "script": "ΤΕΙΧΟΣ",
+  "gloss": "wall (of a town)",
+  "pos": "noun",
+  "ipa": "ˈteːkʰos",
+  "attested": "Hdt 1.26.2, 1.80.6 (77×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "pulai",
+  "greek": "πύλαι",
+  "lemma": "πύλη",
+  "script": "ΠΥΛΑΙ",
+  "gloss": "gates",
+  "pos": "noun pl.",
+  "ipa": "ˈpylai",
+  "attested": "Hdt 1.179.3 (the hundred gates of Babylon)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "thurē",
+  "greek": "θύρη",
+  "lemma": "θύρα",
+  "script": "ΘΥΡΗ",
+  "gloss": "door (Ionic); pl. 'the King's doors' = the court",
+  "pos": "noun",
+  "ipa": "ˈtʰyrɛː",
+  "attested": "Hdt 2.96.4; 3.117.5 \"κατὰ τὰς θύρας τοῦ βασιλέος\" (at the King's doors)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "odos",
+  "greek": "ὁδός",
+  "lemma": "ὁδός",
+  "script": "ΟΔΟΣ",
+  "gloss": "road, way, journey",
+  "pos": "noun",
+  "ipa": "oˈdos",
+  "attested": "Hdt 1.104.1, 2.7.1",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Psilotic."
+ },
+ {
+  "form": "pur",
+  "greek": "πῦρ",
+  "lemma": "πῦρ",
+  "script": "ΠΥΡ",
+  "gloss": "fire",
+  "pos": "noun",
+  "ipa": "ˈpyːr",
+  "attested": "Hdt 1.86.6, 1.87.1 (23×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ēmerē",
+  "greek": "ἡμέρη",
+  "lemma": "ἡμέρα",
+  "script": "ΗΜΕΡΗ",
+  "gloss": "day (Ionic)",
+  "pos": "noun",
+  "ipa": "ɛːˈmerɛː",
+  "attested": "Hdt 1.1.3, 1.11.1 (64×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Psilotic; Ionic -η for Attic -α."
+ },
+ {
+  "form": "nux",
+  "greek": "νύξ",
+  "lemma": "νύξ",
+  "script": "ΝΥΞ",
+  "gloss": "night",
+  "pos": "noun",
+  "ipa": "ˈnyks",
+  "attested": "Hdt 1.103.2, 2.62.2",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "meis",
+  "greek": "μείς",
+  "lemma": "μήν",
+  "script": "ΜΕΙΣ",
+  "gloss": "month (Ionic μείς)",
+  "pos": "noun",
+  "ipa": "ˈmeːs",
+  "attested": "Hdt 2.82.1 \"μείς τε καὶ ἡμέρη\"",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "etos",
+  "greek": "ἔτος",
+  "lemma": "ἔτος",
+  "script": "ΕΤΟΣ",
+  "gloss": "year",
+  "pos": "noun",
+  "ipa": "ˈetos",
+  "attested": "Hdt 1.136.1, 2.4.1",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ēlios",
+  "greek": "ἥλιος",
+  "lemma": "ἥλιος",
+  "script": "ΗΛΙΟΣ",
+  "gloss": "sun",
+  "pos": "noun",
+  "ipa": "ˈɛːlios",
+  "attested": "Hdt 2.24.1, 2.25.1",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Psilotic."
+ },
+ {
+  "form": "eis",
+  "greek": "εἷς",
+  "lemma": "εἷς",
+  "script": "ΕΙΣ",
+  "gloss": "one",
+  "pos": "numeral",
+  "ipa": "ˈeːs",
+  "attested": "Hdt 1.38.2 \"εἷς γάρ μοι μοῦνος\"",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Psilotic."
+ },
+ {
+  "form": "duo",
+  "greek": "δύο",
+  "lemma": "δύο",
+  "script": "ΔΥΟ",
+  "gloss": "two",
+  "pos": "numeral",
+  "ipa": "ˈdyo",
+  "attested": "Hdt 1.7.4 (148×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "treis",
+  "greek": "τρεῖς",
+  "lemma": "τρεῖς",
+  "script": "ΤΡΕΙΣ",
+  "gloss": "three",
+  "pos": "numeral",
+  "ipa": "ˈtreːs",
+  "attested": "Hdt 1.60.4",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "tesseres",
+  "greek": "τέσσερες",
+  "lemma": "τέσσαρες",
+  "script": "ΤΕΣΣΕΡΕΣ",
+  "gloss": "four (Ionic τέσσερες)",
+  "pos": "numeral",
+  "ipa": "ˈtesseres",
+  "attested": "Hdt 1.142.4 \"χαρακτῆρες γλώσσης τέσσερες\"",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "pente",
+  "greek": "πέντε",
+  "lemma": "πέντε",
+  "script": "ΠΕΝΤΕ",
+  "gloss": "five",
+  "pos": "numeral",
+  "ipa": "ˈpente",
+  "attested": "Hdt 1.7.4",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "deka",
+  "greek": "δέκα",
+  "lemma": "δέκα",
+  "script": "ΔΕΚΑ",
+  "gloss": "ten",
+  "pos": "numeral",
+  "ipa": "ˈdeka",
+  "attested": "Hdt 1.29.1",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ekaton",
+  "greek": "ἑκατόν",
+  "lemma": "ἑκατόν",
+  "script": "ΕΚΑΤΟΝ",
+  "gloss": "a hundred",
+  "pos": "numeral",
+  "ipa": "ekaˈton",
+  "attested": "Hdt 1.50.2",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Psilotic."
+ },
+ {
+  "form": "patēr",
+  "greek": "πατήρ",
+  "lemma": "πατήρ",
+  "script": "ΠΑΤΗΡ",
+  "gloss": "father",
+  "pos": "noun",
+  "ipa": "paˈtɛːr",
+  "attested": "Hdt 2.73.2",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "mētēr",
+  "greek": "μήτηρ",
+  "lemma": "μήτηρ",
+  "script": "ΜΗΤΗΡ",
+  "gloss": "mother",
+  "pos": "noun",
+  "ipa": "ˈmɛːtɛːr",
+  "attested": "Hdt 1.31.2",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "adelpheos",
+  "greek": "ἀδελφεός",
+  "lemma": "ἀδελφός",
+  "script": "ΑΔΕΛΦΕΟΣ",
+  "gloss": "brother (Ionic)",
+  "pos": "noun",
+  "ipa": "adelpʰeˈos",
+  "attested": "Hdt 1.92.3",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "pais",
+  "greek": "παῖς",
+  "lemma": "παῖς",
+  "script": "ΠΑΙΣ",
+  "gloss": "child, boy, son; servant",
+  "pos": "noun",
+  "ipa": "ˈpais",
+  "attested": "Hdt 1.6.1 (90×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "pai",
+  "greek": "παῖ",
+  "lemma": "παῖς",
+  "script": "ΠΑΙ",
+  "gloss": "child! boy! (voc.)",
+  "pos": "noun voc.",
+  "ipa": "ˈpai",
+  "attested": "Hdt 1.38.1 \"ὦ παῖ\"",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "gunē",
+  "greek": "γυνή",
+  "lemma": "γυνή",
+  "script": "ΓΥΝΗ",
+  "gloss": "woman, wife",
+  "pos": "noun",
+  "ipa": "ɡyˈnɛː",
+  "attested": "Hdt 1.8.3 (46×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "gunai",
+  "greek": "γύναι",
+  "lemma": "γυνή",
+  "script": "ΓΥΝΑΙ",
+  "gloss": "woman! wife! (voc.)",
+  "pos": "noun voc.",
+  "ipa": "ˈɡynai",
+  "attested": "Hdt 1.111.2 \"ὦ γύναι\"",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "anēr",
+  "greek": "ἀνήρ",
+  "lemma": "ἀνήρ",
+  "script": "ΑΝΗΡ",
+  "gloss": "man, husband",
+  "pos": "noun",
+  "ipa": "aˈnɛːr",
+  "attested": "Hdt 1.29.1 (128×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "thugatēr",
+  "greek": "θυγάτηρ",
+  "lemma": "θυγάτηρ",
+  "script": "ΘΥΓΑΤΗΡ",
+  "gloss": "daughter",
+  "pos": "noun",
+  "ipa": "tʰyˈɡatɛːr",
+  "attested": "Hdt 1.91.6",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "doruphoroi",
+  "greek": "δορυφόροι",
+  "lemma": "δορυφόρος",
+  "script": "ΔΟΡΥΦΟΡΟΙ",
+  "gloss": "spear-bearers, bodyguards",
+  "pos": "noun pl.",
+  "ipa": "doryˈpʰoroi",
+  "attested": "Hdt 1.59.5; δορυφόρους 1.98.2 (the Median king's guards)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "grammatistēs",
+  "greek": "γραμματιστής",
+  "lemma": "γραμματιστής",
+  "script": "ΓΡΑΜΜΑΤΙΣΤΗΣ",
+  "gloss": "scribe, secretary ('the royal scribe' 3.128)",
+  "pos": "noun",
+  "ipa": "ɡrammatisˈtɛːs",
+  "attested": "Hdt 2.28.1; γραμματιστῇ τῷ βασιληίῳ 3.128.3",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "angelos",
+  "greek": "ἄγγελος",
+  "lemma": "ἄγγελος",
+  "script": "ΑΓΓΕΛΟΣ",
+  "gloss": "messenger",
+  "pos": "noun",
+  "ipa": "ˈaŋɡelos",
+  "attested": "Hdt 1.79.2",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "angarēion",
+  "greek": "ἀγγαρήιον",
+  "lemma": "ἀγγαρήιον",
+  "script": "ΑΓΓΑΡΗΙΟΝ",
+  "gloss": "the Persian relay post ('this riding-post the Persians call angareion')",
+  "pos": "noun",
+  "ipa": "aŋɡaˈrɛːion",
+  "attested": "Hdt 8.98.2",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "A Persian institution named in Greek; fits the road-station couriers."
+ },
+ {
+  "form": "Iōnes",
+  "greek": "Ἴωνες",
+  "lemma": "Ἴων",
+  "script": "ΙΩΝΕΣ",
+  "gloss": "Ionians",
+  "pos": "ethnic pl.",
+  "ipa": "ˈiɔːnes",
+  "attested": "Hdt 1.28.1 (69×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "Persai",
+  "greek": "Πέρσαι",
+  "lemma": "Πέρσης",
+  "script": "ΠΕΡΣΑΙ",
+  "gloss": "Persians",
+  "pos": "ethnic pl.",
+  "ipa": "ˈpersai",
+  "attested": "Hdt 1.2.1 (167×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "Mēdoi",
+  "greek": "Μῆδοι",
+  "lemma": "Μῆδος",
+  "script": "ΜΗΔΟΙ",
+  "gloss": "Medes",
+  "pos": "ethnic pl.",
+  "ipa": "ˈmɛːdoi",
+  "attested": "Hdt 1.74.1",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "Babulōnioi",
+  "greek": "Βαβυλώνιοι",
+  "lemma": "Βαβυλώνιος",
+  "script": "ΒΑΒΥΛΩΝΙΟΙ",
+  "gloss": "Babylonians",
+  "pos": "ethnic pl.",
+  "ipa": "babyˈlɔːnioi",
+  "attested": "Hdt 1.186.3",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "Aiguptioi",
+  "greek": "Αἰγύπτιοι",
+  "lemma": "Αἰγύπτιος",
+  "script": "ΑΙΓΥΠΤΙΟΙ",
+  "gloss": "Egyptians",
+  "pos": "ethnic pl.",
+  "ipa": "aiˈɡyptioi",
+  "attested": "Hdt 1.153.4 (109×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "Sousa",
+  "greek": "Σοῦσα",
+  "lemma": "Σοῦσα",
+  "script": "ΣΟΥΣΑ",
+  "gloss": "Susa",
+  "pos": "place name",
+  "ipa": "ˈsoːsa",
+  "attested": "Hdt 1.188.1",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "Sardies",
+  "greek": "Σάρδιες",
+  "lemma": "Σάρδεις",
+  "script": "ΣΑΡΔΙΕΣ",
+  "gloss": "Sardis (Ionic)",
+  "pos": "place name",
+  "ipa": "ˈsardies",
+  "attested": "Hdt 1.84.1",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "egō",
+  "greek": "ἐγώ",
+  "lemma": "ἐγώ",
+  "script": "ΕΓΩ",
+  "gloss": "I",
+  "pos": "pron.",
+  "ipa": "eˈɡɔː",
+  "attested": "Hdt 1.5.3 (236×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "su",
+  "greek": "σύ",
+  "lemma": "σύ",
+  "script": "ΣΥ",
+  "gloss": "you (sg.)",
+  "pos": "pron.",
+  "ipa": "ˈsy",
+  "attested": "Hdt 1.27.4 (140×)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "poiēsō",
+  "greek": "ποιήσω",
+  "lemma": "ποιέω",
+  "script": "ΠΟΙΗΣΩ",
+  "gloss": "I will do (it)",
+  "pos": "verb fut. 1sg.",
+  "ipa": "poiˈɛːsɔː",
+  "attested": "Hdt 1.116.2 \"ἐγὼ ταῦτα ποιήσω\" (I will do this)",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "tauta",
+  "greek": "ταῦτα",
+  "lemma": "οὗτος",
+  "script": "ΤΑΥΤΑ",
+  "gloss": "these things, this",
+  "pos": "demonstr. n. pl.",
+  "ipa": "ˈtauta",
+  "attested": "Hdt 1.116.2; passim",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "nun",
+  "greek": "νῦν",
+  "lemma": "νῦν",
+  "script": "ΝΥΝ",
+  "gloss": "now",
+  "pos": "adv.",
+  "ipa": "ˈnyːn",
+  "attested": "Hdt 1.1.1, 1.121.1",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "enthade",
+  "greek": "ἐνθάδε",
+  "lemma": "ἐνθάδε",
+  "script": "ΕΝΘΑΔΕ",
+  "gloss": "here",
+  "pos": "adv.",
+  "ipa": "enˈtʰade",
+  "attested": "Hdt 1.124.3, 3.145.3",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "Zeu",
+  "greek": "Ζεῦ",
+  "lemma": "Ζεύς",
+  "script": "ΖΕΥ",
+  "gloss": "Zeus! (voc.; 'ὦ Ζεῦ')",
+  "pos": "divine name voc.",
+  "ipa": "ˈzdeu",
+  "attested": "Hdt 5.105.2 \"ὦ Ζεῦ\", 7.56.2",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "ζ = [zd] (C)."
+ },
+ {
+  "form": "theoi",
+  "greek": "θεοί",
+  "lemma": "θεός",
+  "script": "ΘΕΟΙ",
+  "gloss": "gods",
+  "pos": "noun pl.",
+  "ipa": "tʰeˈoi",
+  "attested": "Hdt 1.27.3, 1.89.1",
+  "source": "form: Herodotus, Histories (ed. A. D. Godley; Perseus canonical-greekLit tlg0016.tlg001.perseus-grc2, CC BY-SA); gloss: LSJ (Perseus TEI)",
+  "src": [
+   "HDT-GRC",
+   "LSJ",
+   "IONIC-SX"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ }
+]

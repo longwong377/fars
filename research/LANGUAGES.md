@@ -132,3 +132,19 @@ Verified against `UnicodeData.txt` (unicode-org/icu, GitHub raw).
 4. Kent 1953 lexicon/grammar, OCR lines quoted in `sfmqrb/rishe` `data/verification/` (search hits only). **Seen.**
 5. Web-search extracts: Iranica "Persepolis Elamite tablets", "Persepolis administrative archives", "Elam v."; Livius "Persepolis Fortification Tablets"; Wikipedia "Imperial Aramaic", "Gate of All Nations"; Stolper & Tavernier, ARTA 2007.001; USC WSRP. **Extracts only.**
 6. UnicodeData.txt (unicode-org/icu). **Read.**
+
+## 6. Lexicons and scripted speech (Phase 8, session 3; D-105 … D-109)
+
+| Lexicon | Entries | Main sources (tier of forms) | Script field | Lines | Voice |
+|---|---|---|---|---|---|
+| `old_persian.json` | 116 | ARIo DB, DSf, DNa, DNb, XPa, XPh (A); glosses from the Livius translations, else DB context (B) | OP signs by Kent's rules (C) | 12 | eSpeak `fa` base |
+| `elamite.json` | 78 | Hallock PF texts with his translations via CDLI (A); EWB senses; ARIo Elamite versions (B) | cuneiform from ATF via OSL (B) | 12 | eSpeak `fa` base |
+| `aramaic.json` | 99 | Aramaic of Ezra (OSHB, verse refs) + Strong's (B); Elephantine/Arshama formulas (SX, B); Daniel-only forms marked | Imperial Aramaic letters (B) | 21 | eSpeak `ar` base |
+| `babylonian.json` | 71 | Babylonian versions of the royal inscriptions and the Cyrus Cylinder in ARIo (A); NB royal inscriptions (RIBo) and an LB letter (CAMS) for everyday words, mostly logograms (B) | cuneiform from ATF via OSL (B) | 11 | formant synthesiser (no eSpeak voice) |
+| `greek.json` | 82 | Herodotus, Greek text (A); Od. 1.123 for χαῖρε (B); LSJ gloss check | Ionic capitals, no accents or breathings (B/C) | 17 | eSpeak `grc` |
+
+Pronunciation (IPA) is reconstructed for every entry (C). Every line's usage in a spoken situation is C. Every entry cites
+source keys (`src`), and the language lint fails an entry without them. Findings that corrected earlier entries:
+- Old Persian "water" is attested (DB apiyā; Q-130).
+- Elamite halmi and dušda are read in Hallock PF 15 and PF 2 (Q-131).
+- The Elamite months Turmar (2) and Miyakannaš (12) are fixed by PF 406 and PF 402 (Q-132).

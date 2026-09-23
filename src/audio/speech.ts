@@ -35,11 +35,13 @@ export interface VoiceParams {
 export type Intonation = 'fall' | 'rise' | 'level';
 
 /** Stress placement per language. None is attested; all are working rules (tier C), logged in OPEN_QUESTIONS. */
-export type StressRule = 'penult-weight' | 'initial' | 'final';
+export type StressRule = 'penult-weight' | 'initial' | 'final' | 'last-heavy';
 export const STRESS_RULES: Record<LangId, { rule: StressRule; tier: 'C'; note: string }> = {
   op: { rule: 'penult-weight', tier: 'C', note: 'Old Persian accent is not recoverable from the script; a weight-sensitive penult/antepenult rule is a neutral default' },
   el: { rule: 'initial', tier: 'C', note: 'Achaemenid Elamite accent unknown; word-initial stress assumed' },
   arc: { rule: 'final', tier: 'C', note: 'mostly final stress as in the Tiberian tradition of Biblical Aramaic (a much later vocalisation) — applied to 5th-c. Imperial Aramaic by assumption' },
+  bab: { rule: 'last-heavy', tier: 'C', note: 'Akkadian stress is not written; the usual modern reconstruction (last non-final heavy syllable, else the first) is assumed for Late Babylonian' },
+  grc: { rule: 'penult-weight', tier: 'C', note: 'Greek lexicon IPA marks the edition accent (ˈ, a pitch accent, rendered as prominence); unmarked words (crowd murmur) fall back to a weight-sensitive penult rule' },
 };
 
 export function voiceBase(v: VoiceParams): { f0: number; formantScale: number; breath: number } {
@@ -69,6 +71,7 @@ function stressIndex(n: number, sylls: ReturnType<typeof syllabify>, rule: Stres
   if (n <= 1) return 0;
   if (rule === 'initial') return 0;
   if (rule === 'final') return n - 1;
+  if (rule === 'last-heavy') { for (let k = n - 2; k >= 0; k--) if (sylls[k].heavy) return k; return 0; }
   if (sylls[n - 2].heavy || n === 2) return n - 2;
   return n - 3;
 }
@@ -127,8 +130,9 @@ export function planUtterance(ipa: string, voice: VoiceParams, opts: { lang?: La
         phases.push({ dur: clos, av: d.voiced ? 0.2 : 0, ah: 0, af: 0, F: locus, B1: 120, ff: 3000, fbw: 1000, nasal: 0, trill: 0, creak: d.place === 'glottal' });
         if (d.burst) phases.push({ dur: 0.008, av: d.voiced ? 0.3 : 0, ah: 0, af: d.burst.amp, F: locus, B1: 120, ff: d.burst.f, fbw: d.burst.bw, nasal: 0, trill: 0, burst: true });
         if (d.manner === 'affricate' && d.fric) phases.push({ dur: 0.075 / rate, av: 0, ah: 0, af: d.fric.amp, F: colour(0.5), B1: 120, ff: d.fric.f, fbw: d.fric.bw, nasal: 0, trill: 0 });
-        else if (!d.voiced && d.place !== 'glottal' && next && next.def.voiced) {
-          const asp = (p.word !== prev?.word || stressed.has(next) ? 0.035 : 0.02) / rate;
+        else if (!d.voiced && d.place !== 'glottal' && (p.aspirated || (next && next.def.voiced))) {
+          // aspirated stops (Greek pʰ tʰ kʰ) get a long voiceless release, plain voiceless stops a short one (C)
+          const asp = (p.aspirated ? 0.07 : p.word !== prev?.word || (next && stressed.has(next)) ? 0.035 : 0.02) / rate;
           phases.push({ dur: asp, av: 0, ah: 0.35, af: 0, F: colour(0.2), B1: 150, ff: 3000, fbw: 1000, nasal: 0, trill: 0 });
         }
         break;

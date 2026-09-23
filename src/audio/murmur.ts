@@ -6,8 +6,9 @@
 // research/LEXICON/<lang>.json is tokenized and syllabified, and the observed word-initial onsets, medial onsets, nuclei
 // (with length), medial and final codas, and syllables-per-word are counted. Pseudo-words are sampled from those counts,
 // so Old Persian murmur has xš-, dr-, fr-, θ and long ā; Elamite geminates and -š; Aramaic ʔ, ħ, ʕ, schwa and emphatics.
-// The distributions are only as good as the (small) lexicons: tier C. Languages without a lexicon (Babylonian, Greek,
-// Egyptian, Lydian, "unknown") use the Aramaic profile — the lingua franca — and are flagged `fallback` (tier C).
+// The distributions are only as good as the (small) lexicons: tier C. Babylonian and Greek have their own lexicons (D-105,
+// D-106); languages without one (Egyptian, Lydian, "unknown") use the Aramaic profile — the lingua franca — and are flagged
+// `fallback` (tier C).
 //
 // Nothing intelligible: pseudo-words are not lexicon words, any pseudo-word whose romanisation is a common modern word
 // (English, modern Persian, Arabic, Hebrew, European — src/lang/modern.ts) is rejected and resampled, and each voice is
@@ -15,7 +16,7 @@
 import type { AudioEngine } from './engine';
 import { FormantBackend, Vec3, VoiceParams, Intonation, clipToBuffer } from './speech';
 import { tokenizeIpa, syllabify, Phone } from './phonemes';
-import { LEXICON, LangId, isSpeakable } from '../lang/lexicon';
+import { LEXICON, LangId, LANG_IDS, isSpeakable } from '../lang/lexicon';
 import { findModernWords } from '../lang/modern';
 import { Rng } from '../core/rng';
 
@@ -29,10 +30,10 @@ export interface LangProfile {
   rate: number;
 }
 
-const ps = (p: Phone) => p.sym + (p.pharyngealised ? 'ˤ' : '') + (p.long ? 'ː' : '');
+const ps = (p: Phone) => p.sym + (p.pharyngealised ? 'ˤ' : '') + (p.aspirated ? 'ʰ' : '') + (p.long ? 'ː' : '');
 const bump = (m: Counts, k: string) => m.set(k, (m.get(k) ?? 0) + 1);
 
-const RATE: Record<LangId, number> = { op: 1.0, el: 1.05, arc: 1.1 };
+const RATE: Record<LangId, number> = { op: 1.0, el: 1.05, arc: 1.1, bab: 1.05, grc: 1.05 };
 
 export function buildProfile(lang: LangId): LangProfile {
   const pr: LangProfile = { lang, tier: 'C', source: `research/LEXICON (${lang}) phonotactics, counted`, initialOnsets: new Map(), medialOnsets: new Map(), nuclei: new Map(),
@@ -94,13 +95,13 @@ export const MURMUR_LANGS: Record<string, { lang: LangId; fallback: boolean; tie
   Elamite: { lang: 'el', fallback: false, tier: 'C', note: 'Elamite lexicon phonotactics' },
   Aramaic: { lang: 'arc', fallback: false, tier: 'C', note: 'Aramaic lexicon phonotactics' },
   'West Semitic': { lang: 'arc', fallback: true, tier: 'C', note: 'West Semitic speakers voiced with the Aramaic inventory' },
-  Babylonian: { lang: 'arc', fallback: true, tier: 'C', note: 'no Akkadian lexicon; Aramaic rhythm (spoken Aramaic widespread in Babylonia — unverified here)' },
-  Greek: { lang: 'arc', fallback: true, tier: 'C', note: 'no Greek lexicon yet; Aramaic rhythm stands in' },
+  Babylonian: { lang: 'bab', fallback: false, tier: 'C', note: 'Late Babylonian lexicon phonotactics (babylonian.json)' },
+  Greek: { lang: 'grc', fallback: false, tier: 'C', note: 'Ionic Greek lexicon phonotactics (greek.json)' },
   Egyptian: { lang: 'arc', fallback: true, tier: 'C', note: 'no Egyptian lexicon yet; Aramaic rhythm stands in' },
   Lydian: { lang: 'arc', fallback: true, tier: 'C', note: 'no Lydian lexicon; Aramaic rhythm stands in' },
 };
 export function murmurLangFor(label: string): { lang: LangId; fallback: boolean; tier: 'B' | 'C'; note: string } {
-  if (label === 'op' || label === 'el' || label === 'arc') return { lang: label, fallback: false, tier: 'C', note: 'lexicon phonotactics' };
+  if ((LANG_IDS as readonly string[]).includes(label)) return { lang: label as LangId, fallback: false, tier: 'C', note: 'lexicon phonotactics' };
   return MURMUR_LANGS[label] ?? { lang: 'arc', fallback: true, tier: 'C', note: `no lexicon for "${label}"; Aramaic rhythm stands in` };
 }
 

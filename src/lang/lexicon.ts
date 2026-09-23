@@ -1,13 +1,18 @@
 // Lexicon access (brief §10): research/LEXICON/<language>.json is the only source of words that may be spoken or written
 // in the world. Entries carry no ids in the research files, so an entry's id is `<lang>:<form>` with the form verbatim
-// (e.g. `op:xšāyaθiya`, `el:nap`, `arc:šlm`). Ids are stable as long as the research file keeps the form spelling.
+// (e.g. `op:xšāyaθiya`, `el:nap`, `arc:šlm`, `bab:šulmu`, `grc:khaire`). Ids are stable as long as the research file keeps
+// the form spelling.
 import opJson from '../../research/LEXICON/old_persian.json';
 import elJson from '../../research/LEXICON/elamite.json';
 import arcJson from '../../research/LEXICON/aramaic.json';
+import babJson from '../../research/LEXICON/babylonian.json';
+import grcJson from '../../research/LEXICON/greek.json';
 
-/** Languages with a lexicon (speech lines + murmur profiles are built from these only). */
-export type LangId = 'op' | 'el' | 'arc';
-export const LANG_NAMES: Record<LangId, string> = { op: 'Old Persian', el: 'Elamite', arc: 'Aramaic' };
+/** Languages with a lexicon (speech lines + murmur profiles are built from these only). bab = Late Babylonian Akkadian,
+ *  grc = 5th-c. Ionic Greek (romanised forms; the Greek-alphabet spelling is the `script` field). */
+export type LangId = 'op' | 'el' | 'arc' | 'bab' | 'grc';
+export const LANG_IDS: readonly LangId[] = ['op', 'el', 'arc', 'bab', 'grc'];
+export const LANG_NAMES: Record<LangId, string> = { op: 'Old Persian', el: 'Elamite', arc: 'Aramaic', bab: 'Babylonian', grc: 'Greek (Ionic)' };
 
 export interface LexEntry {
   id: string; lang: LangId; form: string; gloss: string; pos: string;
@@ -16,6 +21,9 @@ export interface LexEntry {
   /** IPA usable by the synthesiser (first alternative, notes stripped), or null when the entry has none */
   ipa: string | null;
   script: string | null; source: string; tier: string; tierIpa: string; tierScript: string;
+  /** keys into src/data/sources.json (out-of-world: dev overlay, translation layer) */
+  src: string[];
+  note: string;
 }
 
 /**
@@ -34,6 +42,7 @@ function load(lang: LangId, rows: any[]): LexEntry[] {
   return rows.map(r => ({
     id: `${lang}:${r.form}`, lang, form: r.form, gloss: r.gloss, pos: r.pos, ipaRaw: r.ipa ?? null, ipa: cleanIpa(r.ipa),
     script: r.script ?? null, source: r.source, tier: String(r.tier), tierIpa: String(r.tier_ipa), tierScript: String(r.tier_script),
+    src: Array.isArray(r.src) ? r.src.map(String) : [], note: r.note ?? '',
   }));
 }
 
@@ -41,6 +50,8 @@ export const LEXICON: Record<LangId, LexEntry[]> = {
   op: load('op', opJson as any[]),
   el: load('el', elJson as any[]),
   arc: load('arc', arcJson as any[]),
+  bab: load('bab', babJson as any[]),
+  grc: load('grc', grcJson as any[]),
 };
 
 const BY_ID = new Map<string, LexEntry>();

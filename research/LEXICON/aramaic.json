@@ -10,7 +10,12 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); Elephantine letter formula 'šlm + PN' and 'may the gods seek after your welfare' (search extract: ResearchGate 'Hi Aḥuṭab: Aramaic Letter Ostraca from Elephantine'; Bodleian Arshama Letters vol. 3)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS",
+   "ELEPH-OST",
+   "ARSHAMA-BOD"
+  ]
  },
  {
   "form": "šʾl",
@@ -23,7 +28,12 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); Elephantine letter formula 'šlm + PN' and 'may the gods seek after your welfare' (search extract: ResearchGate 'Hi Aḥuṭab: Aramaic Letter Ostraca from Elephantine'; Bodleian Arshama Letters vol. 3)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS",
+   "ELEPH-OST",
+   "ARSHAMA-BOD"
+  ]
  },
  {
   "form": "mrʾ",
@@ -36,7 +46,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "brk",
@@ -49,7 +62,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "mlk",
@@ -62,7 +78,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "lḥm",
@@ -75,7 +94,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "byt",
@@ -88,7 +110,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ʾlh",
@@ -101,7 +126,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ʾnš",
@@ -114,7 +142,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "br",
@@ -127,7 +158,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ywm",
@@ -140,7 +174,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "yrḥ",
@@ -153,7 +190,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "šnh",
@@ -166,7 +206,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ḥmr",
@@ -179,7 +222,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ksp",
@@ -192,7 +238,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "dhb",
@@ -205,7 +254,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "qryh",
@@ -218,7 +270,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "trʿ",
@@ -231,7 +286,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ʾgrh",
@@ -244,7 +302,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "dt",
@@ -257,7 +318,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "spr",
@@ -270,7 +334,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ktb",
@@ -283,7 +350,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ḥtm",
@@ -296,7 +366,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ʿzqh",
@@ -309,7 +382,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ʾḥšdrpn",
@@ -322,7 +398,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "mdynh",
@@ -335,7 +414,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ʿbd",
@@ -348,7 +430,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "gnz",
@@ -361,7 +446,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "gdbr",
@@ -374,7 +462,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ḥnṭh",
@@ -387,7 +478,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "mšḥ",
@@ -400,7 +494,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "mlḥ",
@@ -413,7 +510,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "nhr",
@@ -426,7 +526,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "šmyn",
@@ -439,7 +542,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ʾrʿ",
@@ -452,7 +558,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ʾkl",
@@ -465,7 +574,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "šty",
@@ -478,7 +590,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ḥd",
@@ -491,7 +606,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "trn",
@@ -504,7 +622,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "tlt",
@@ -517,7 +638,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ṣpr",
@@ -530,7 +654,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "ʾryh",
@@ -543,7 +670,10 @@
   "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "STRONGS"
+  ]
  },
  {
   "form": "myn",
@@ -556,7 +686,10 @@
   "source": "RECON (not seen)",
   "tier": "C",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "RECON"
+  ]
  },
  {
   "form": "śʿryn",
@@ -569,6 +702,1054 @@
   "source": "RECON (not seen)",
   "tier": "C",
   "tier_ipa": "C",
-  "tier_script": "B"
+  "tier_script": "B",
+  "src": [
+   "RECON"
+  ]
+ },
+ {
+  "form": "šlmʾ",
+  "vocalized": "šᵉlāmāʾ",
+  "script": "𐡔𐡋𐡌𐡀",
+  "gloss": "the peace, well-being (emph.); 'šlmʾ klʾ' all peace (letter greeting to Darius)",
+  "pos": "noun emph.",
+  "ipa": "ʃəlaːmaː",
+  "strongs": "H8001",
+  "attested": "Ezra 5:7 \"lᵉḏāryāweš malkāʾ šᵉlāmāʾ kōllāʾ\" (to Darius the king, all peace)",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Opening of the governor Tattenai's letter to Darius; the formula is written, its spoken use is C."
+ },
+ {
+  "form": "klʾ",
+  "vocalized": "kōllāʾ",
+  "script": "𐡊𐡋𐡀",
+  "gloss": "all (of it), everything (emph.)",
+  "pos": "noun emph.",
+  "ipa": "kullaː",
+  "strongs": "H3606",
+  "attested": "Ezra 5:7 (šlmʾ klʾ); kl passim in Ezra",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "gmyr",
+  "vocalized": "gᵉmîr",
+  "script": "𐡂𐡌𐡉𐡓",
+  "gloss": "complete, perfect (letter opening 'to Ezra … perfect [peace]')",
+  "pos": "adj. (ptcp.)",
+  "ipa": "ɡəmiːr",
+  "strongs": "H1585",
+  "attested": "Ezra 7:12 (Artaxerxes' letter: \"… sāp̄ar dāṯāʾ … gᵉmîr ûḵᵉʿeneṯ\")",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ʿlyk",
+  "vocalized": "ʿălêk (?)",
+  "script": "𐡏𐡋𐡉𐡊",
+  "gloss": "upon you (sg.) ('šlm ʿlyk' peace be upon you)",
+  "pos": "prep. + suff.",
+  "ipa": "ʕalajk",
+  "strongs": "-",
+  "attested": "Elephantine ostracon: \"ʿl ʾḥy mtrdt šlm ʿlyk\" (to my brother Mithradates … peace be upon you) (search extract)",
+  "source": "Elephantine / Arshama letter formulas (search extracts: Encyclopaedia Iranica 'Correspondence i. In pre-Islamic Persia'; Bodleian Arshama Letters vol. 3)",
+  "src": [
+   "IR-CORR",
+   "ELEPH-OST"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Consonantal form from the extract; vocalisation reconstructed (C)."
+ },
+ {
+  "form": "ʾḥy",
+  "vocalized": "ʾaḥî (?)",
+  "script": "𐡀𐡇𐡉",
+  "gloss": "my brother (letter address, also between colleagues)",
+  "pos": "noun + suff. 1sg.",
+  "ipa": "ʔaħiː",
+  "strongs": "-",
+  "attested": "Elephantine ostracon: \"ʿl ʾḥy mtrdt\" (to my brother Mithradates) (search extract)",
+  "source": "Elephantine / Arshama letter formulas (search extracts: Encyclopaedia Iranica 'Correspondence i. In pre-Islamic Persia'; Bodleian Arshama Letters vol. 3)",
+  "src": [
+   "IR-CORR",
+   "ELEPH-OST"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ʾḥ",
+  "vocalized": "ʾaḥ",
+  "script": "𐡀𐡇",
+  "gloss": "brother (ʾeḥāḵ 'your brothers', Ezra 7:18)",
+  "pos": "noun",
+  "ipa": "ʔaħ",
+  "strongs": "H252",
+  "attested": "Ezra 7:18",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ʾb",
+  "vocalized": "ʾaḇ",
+  "script": "𐡀𐡁",
+  "gloss": "father (ʾăḇāhāṯanāʾ 'our fathers', Ezra 5:12)",
+  "pos": "noun",
+  "ipa": "ʔab",
+  "strongs": "H2",
+  "attested": "Ezra 4:15, 5:12; Dan 5:11-13",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "gbr",
+  "vocalized": "gᵉḇar",
+  "script": "𐡂𐡁𐡓",
+  "gloss": "man (pl. emph. guḇrayyāʾ 'the men', Ezra 5:4)",
+  "pos": "noun",
+  "ipa": "ɡəbar",
+  "strongs": "H1400",
+  "attested": "Ezra 5:4, 5:10, 6:8",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ʿbdyk",
+  "vocalized": "ʿaḇdāyāḵ",
+  "script": "𐡏𐡁𐡃𐡉𐡊",
+  "gloss": "your servants (letter self-designation to the king)",
+  "pos": "noun pl. + suff.",
+  "ipa": "ʕabdaːjak",
+  "strongs": "H5649",
+  "attested": "Ezra 4:11 (\"to Artaxerxes the king: your servants, the men of Beyond the River\")",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Polite self-reference of officials writing to the king."
+ },
+ {
+  "form": "pḥh",
+  "vocalized": "peḥāh",
+  "script": "𐡐𐡇𐡄",
+  "gloss": "governor (paḥaṯ ʿăḇar-nahărāʾ 'governor of Beyond the River', Ezra 5:3)",
+  "pos": "noun",
+  "ipa": "peħaː",
+  "strongs": "H6347",
+  "attested": "Ezra 5:3, 5:6, 5:14, 6:6-13",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "knt",
+  "vocalized": "kᵉnāṯ",
+  "script": "𐡊𐡍𐡕",
+  "gloss": "colleague, associate (kᵉnāwāṯhôn 'their colleagues', Ezra 4:9)",
+  "pos": "noun",
+  "ipa": "kənaːt",
+  "strongs": "H3675",
+  "attested": "Ezra 4:9, 4:17, 5:3, 5:6, 6:6",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ṭʿm",
+  "vocalized": "ṭᵉʿēm",
+  "script": "𐡈𐡏𐡌",
+  "gloss": "order, decree; report ('bʿl ṭʿm' chancellor, Ezra 4:8; 'śym ṭʿm' a decree was issued)",
+  "pos": "noun",
+  "ipa": "tˤəʕeːm",
+  "strongs": "H2942",
+  "attested": "Ezra 4:8-6:14 (19×)",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ptgm",
+  "vocalized": "piṯgām",
+  "script": "𐡐𐡕𐡂𐡌",
+  "gloss": "word, message, answer (Persian loanword)",
+  "pos": "noun",
+  "ipa": "pitɡaːm",
+  "strongs": "H6600",
+  "attested": "Ezra 4:17, 5:7, 5:11, 6:11",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Old Persian *patigāma-."
+ },
+ {
+  "form": "kʿn",
+  "vocalized": "kᵉʿan",
+  "script": "𐡊𐡏𐡍",
+  "gloss": "now ('ûḵᵉʿan' and now, Ezra 5:17)",
+  "pos": "adv.",
+  "ipa": "kəʕan",
+  "strongs": "H3705",
+  "attested": "Ezra 4:13, 4:14, 4:21, 5:16, 5:17, 6:6",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Also the letter transition wkʿnt / wkʿt (Ezra 4:10-17, 7:12)."
+ },
+ {
+  "form": "ʾsprnʾ",
+  "vocalized": "ʾosparnāʾ",
+  "script": "𐡀𐡎𐡐𐡓𐡍𐡀",
+  "gloss": "diligently, exactly, with all speed (Persian loanword of the chancery)",
+  "pos": "adv.",
+  "ipa": "ʔosparnaː",
+  "strongs": "H629",
+  "attested": "Ezra 5:8 (\"wa-ʿăḇîḏᵉṯāʾ ḏāḵ ʾosparnāʾ miṯʿaḇdāʾ\" this work is being done diligently); 6:8, 6:12, 6:13, 7:17, 7:21, 7:26",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Old Persian *usprnā \"completely\"; as a foreman's urging it is a reconstruction (usage C)."
+ },
+ {
+  "form": "ʿbydh",
+  "vocalized": "ʿăḇîḏāh",
+  "script": "𐡏𐡁𐡉𐡃𐡄",
+  "gloss": "work, labour, service ('ʿăḇîḏaṯ bêṯ ʾĕlāhāʾ' the work on the house of God)",
+  "pos": "noun",
+  "ipa": "ʕabiːdaː",
+  "strongs": "H5673",
+  "attested": "Ezra 4:24, 5:8, 6:7, 6:18",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ʿbydtʾ",
+  "vocalized": "ʿăḇîḏᵉṯāʾ",
+  "script": "𐡏𐡁𐡉𐡃𐡕𐡀",
+  "gloss": "the work (emph.)",
+  "pos": "noun emph.",
+  "ipa": "ʕabiːdətaː",
+  "strongs": "H5673",
+  "attested": "Ezra 5:8",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "bṭl",
+  "vocalized": "bᵉṭēl",
+  "script": "𐡁𐡈𐡋",
+  "gloss": "to cease, stop ('bᵉṭēlaṯ ʿăḇîḏaṯ' the work ceased, Ezra 4:24)",
+  "pos": "verb",
+  "ipa": "bətˤeːl",
+  "strongs": "H989",
+  "attested": "Ezra 4:21, 4:23, 4:24, 5:5, 6:8",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "šbqw",
+  "vocalized": "šᵉḇuqû",
+  "script": "𐡔𐡁𐡒𐡅",
+  "gloss": "leave (it) alone! let (it) be! (2 pl. impv.)",
+  "pos": "verb impv.",
+  "ipa": "ʃəbuquː",
+  "strongs": "H7662",
+  "attested": "Ezra 6:7 (\"šᵉḇuqû laʿăḇîḏaṯ bêṯ ʾĕlāhāʾ\" let the work on this house of God alone)",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ʾzl",
+  "vocalized": "ʾēzel",
+  "script": "𐡀𐡆𐡋",
+  "gloss": "go! (2 sg. impv.)",
+  "pos": "verb impv.",
+  "ipa": "ʔeːzel",
+  "strongs": "H236",
+  "attested": "Ezra 5:15 (\"ʾēzel ʾăḥeṯ himmô\" go, deposit them); ʾzlw Ezra 4:23",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "śʾ",
+  "vocalized": "śēʾ",
+  "script": "𐡔𐡀",
+  "gloss": "take! carry! (2 sg. impv. of nśʾ)",
+  "pos": "verb impv.",
+  "ipa": "seːʔ",
+  "strongs": "H5376",
+  "attested": "Ezra 5:15 (\"ʾēl māʾnayyāʾ śēʾ\" take these vessels)",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "yhb",
+  "vocalized": "yᵉhaḇ",
+  "script": "𐡉𐡄𐡁",
+  "gloss": "to give; to be paid ('miṯyᵉhēḇ' is paid, of tribute and expenses)",
+  "pos": "verb",
+  "ipa": "jəhab",
+  "strongs": "H3052",
+  "attested": "Ezra 4:20, 5:12, 5:14, 5:16, 6:4, 6:8, 6:9, 7:19",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "bnʾ",
+  "vocalized": "bᵉnāʾ",
+  "script": "𐡁𐡍𐡀",
+  "gloss": "to build ('lᵉmiḇnēʾ' to build, Ezra 5:2)",
+  "pos": "verb",
+  "ipa": "bənaː",
+  "strongs": "H1124",
+  "attested": "Ezra 4:12-5:17",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ʾbn",
+  "vocalized": "ʾeḇen",
+  "script": "𐡀𐡁𐡍",
+  "gloss": "stone ('ʾeḇen gᵉlāl' great stones, Ezra 5:8)",
+  "pos": "noun",
+  "ipa": "ʔeben",
+  "strongs": "H69",
+  "attested": "Ezra 5:8, 6:4",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "gll",
+  "vocalized": "gᵉlāl",
+  "script": "𐡂𐡋𐡋",
+  "gloss": "great / dressed (stone) ('ʾbn gll')",
+  "pos": "noun",
+  "ipa": "ɡəlaːl",
+  "strongs": "H1560",
+  "attested": "Ezra 5:8, 6:4",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Cf. Babylonian NA₄ galala (DSaa, ARIo)."
+ },
+ {
+  "form": "ndbk",
+  "vocalized": "niḏbāḵ",
+  "script": "𐡍𐡃𐡁𐡊",
+  "gloss": "course, layer (of masonry) ('three courses of great stones and a course of timber', Ezra 6:4)",
+  "pos": "noun",
+  "ipa": "nidbaːk",
+  "strongs": "H5073",
+  "attested": "Ezra 6:4",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ʾʿ",
+  "vocalized": "ʾāʿ",
+  "script": "𐡀𐡏",
+  "gloss": "wood, timber (laid in the walls, Ezra 5:8)",
+  "pos": "noun",
+  "ipa": "ʔaːʕ",
+  "strongs": "H636",
+  "attested": "Ezra 5:8, 6:4, 6:11",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "šwr",
+  "vocalized": "šûr",
+  "script": "𐡔𐡅𐡓",
+  "gloss": "wall (šûrayyāʾ 'the walls', Ezra 4:12)",
+  "pos": "noun",
+  "ipa": "ʃuːr",
+  "strongs": "H7792",
+  "attested": "Ezra 4:12, 4:13, 4:16",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ʾšyʾ",
+  "vocalized": "ʾuššayyāʾ",
+  "script": "𐡀𐡔𐡉𐡀",
+  "gloss": "the foundations",
+  "pos": "noun pl. emph.",
+  "ipa": "ʔuʃʃajjaː",
+  "strongs": "H787",
+  "attested": "Ezra 4:12, 5:16, 6:3",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "npqtʾ",
+  "vocalized": "nip̄qᵉṯāʾ",
+  "script": "𐡍𐡐𐡒𐡕𐡀",
+  "gloss": "the expenses, the cost paid out ('let the expenses be given from the king's house', Ezra 6:4)",
+  "pos": "noun emph.",
+  "ipa": "nipqətaː",
+  "strongs": "H5313",
+  "attested": "Ezra 6:4, 6:8",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Closest attested word for an issued allowance; \"ration\" as such is Elamite gal."
+ },
+ {
+  "form": "ʾmyn",
+  "vocalized": "ʾammîn",
+  "script": "𐡀𐡌𐡉𐡍",
+  "gloss": "cubits ('ʾammîn šittîn' sixty cubits, Ezra 6:3)",
+  "pos": "noun pl.",
+  "ipa": "ʔammiːn",
+  "strongs": "H521",
+  "attested": "Ezra 6:3",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "kkryn",
+  "vocalized": "kakkᵉrîn",
+  "script": "𐡊𐡊𐡓𐡉𐡍",
+  "gloss": "talents (of silver)",
+  "pos": "noun pl.",
+  "ipa": "kakkəriːn",
+  "strongs": "H3604",
+  "attested": "Ezra 7:22 (up to a hundred talents of silver)",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "kryn",
+  "vocalized": "kōrîn",
+  "script": "𐡊𐡓𐡉𐡍",
+  "gloss": "kor-measures (of wheat)",
+  "pos": "noun pl.",
+  "ipa": "koːriːn",
+  "strongs": "H3734",
+  "attested": "Ezra 7:22 (a hundred kor of wheat)",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "btyn",
+  "vocalized": "baṯṯîn",
+  "script": "𐡁𐡕𐡉𐡍",
+  "gloss": "bath-measures (of wine, oil)",
+  "pos": "noun pl.",
+  "ipa": "battiːn",
+  "strongs": "H1325",
+  "attested": "Ezra 7:22 (a hundred baths of wine, a hundred baths of oil)",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "mʾh",
+  "vocalized": "mᵉʾāh",
+  "script": "𐡌𐡀𐡄",
+  "gloss": "hundred",
+  "pos": "numeral",
+  "ipa": "məʔaː",
+  "strongs": "H3969",
+  "attested": "Ezra 6:17, 7:22",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ʾrbʿ",
+  "vocalized": "ʾarbaʿ",
+  "script": "𐡀𐡓𐡁𐡏",
+  "gloss": "four",
+  "pos": "numeral",
+  "ipa": "ʔarbaʕ",
+  "strongs": "H703",
+  "attested": "Ezra 6:17 (ʾarbaʿ mᵉʾāh four hundred)",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "št",
+  "vocalized": "šēṯ",
+  "script": "𐡔𐡕",
+  "gloss": "six ('šᵉnaṯ-šēṯ' the sixth year, Ezra 6:15)",
+  "pos": "numeral",
+  "ipa": "ʃeːt",
+  "strongs": "H8353",
+  "attested": "Ezra 6:15",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "šbʿh",
+  "vocalized": "šiḇʿāh",
+  "script": "𐡔𐡁𐡏𐡄",
+  "gloss": "seven (constr. šiḇʿaṯ 'the seven [counsellors]', Ezra 7:14)",
+  "pos": "numeral",
+  "ipa": "ʃibʕaː",
+  "strongs": "H7655",
+  "attested": "Ezra 7:14 (šbʿt); absolute Dan 3:19, 4:20",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Absolute form from Daniel (later)."
+ },
+ {
+  "form": "ʿśr",
+  "vocalized": "ʿăśar",
+  "script": "𐡏𐡔𐡓",
+  "gloss": "ten ('tᵉrê-ʿăśar' twelve, Ezra 6:17)",
+  "pos": "numeral",
+  "ipa": "ʕasar",
+  "strongs": "H6236",
+  "attested": "Ezra 6:17",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "štyn",
+  "vocalized": "šittîn",
+  "script": "𐡔𐡕𐡉𐡍",
+  "gloss": "sixty",
+  "pos": "numeral",
+  "ipa": "ʃittiːn",
+  "strongs": "H8361",
+  "attested": "Ezra 6:3",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "twryn",
+  "vocalized": "tôrîn",
+  "script": "𐡕𐡅𐡓𐡉𐡍",
+  "gloss": "bulls, oxen",
+  "pos": "noun pl.",
+  "ipa": "toːriːn",
+  "strongs": "H8450",
+  "attested": "Ezra 6:9, 6:17, 7:17",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "dkryn",
+  "vocalized": "diḵrîn",
+  "script": "𐡃𐡊𐡓𐡉𐡍",
+  "gloss": "rams",
+  "pos": "noun pl.",
+  "ipa": "dikriːn",
+  "strongs": "H1798",
+  "attested": "Ezra 6:9, 6:17, 7:17",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ʾmryn",
+  "vocalized": "ʾimmᵉrîn",
+  "script": "𐡀𐡌𐡓𐡉𐡍",
+  "gloss": "lambs",
+  "pos": "noun pl.",
+  "ipa": "ʔimməriːn",
+  "strongs": "H563",
+  "attested": "Ezra 6:9, 6:17, 7:17",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ḥnṭyn",
+  "vocalized": "ḥinṭîn",
+  "script": "𐡇𐡍𐡈𐡉𐡍",
+  "gloss": "wheat (pl.) — the attested Ezra form of ḥnṭh",
+  "pos": "noun pl.",
+  "ipa": "ħintˤiːn",
+  "strongs": "H2591",
+  "attested": "Ezra 6:9, 7:22 (\"wḥnṭyn mlḥ ḥmr wmšḥ\" and wheat, salt, wine and oil)",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ṭb",
+  "vocalized": "ṭāḇ",
+  "script": "𐡈𐡁",
+  "gloss": "good ('if it seems good to the king', Ezra 5:17)",
+  "pos": "adj.",
+  "ipa": "tˤaːb",
+  "strongs": "H2869",
+  "attested": "Ezra 5:17; Dan 2:32",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "rb",
+  "vocalized": "raḇ",
+  "script": "𐡓𐡁",
+  "gloss": "great; chief ('bayit … rabbāʾ' the great house, Ezra 5:8)",
+  "pos": "adj.",
+  "ipa": "rab",
+  "strongs": "H7229",
+  "attested": "Ezra 4:10, 5:8, 5:11",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "lʾ",
+  "vocalized": "lāʾ",
+  "script": "𐡋𐡀",
+  "gloss": "not, no",
+  "pos": "negation",
+  "ipa": "laː",
+  "strongs": "H3809",
+  "attested": "Ezra 4:13, 4:14, 4:16, 4:21, 5:5, 5:16, 6:8, 6:9, 7:25, 7:26",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Bare \"no\" as a spoken answer is a reconstruction (usage C)."
+ },
+ {
+  "form": "ʾyty",
+  "vocalized": "ʾîṯay",
+  "script": "𐡀𐡉𐡕𐡉",
+  "gloss": "there is, there are (particle of existence)",
+  "pos": "particle",
+  "ipa": "ʔiːtaj",
+  "strongs": "H383",
+  "attested": "Ezra 4:16, 5:17; Dan 2:10-30",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "yṣybʾ",
+  "vocalized": "yaṣṣîḇāʾ",
+  "script": "𐡉𐡑𐡉𐡁𐡀",
+  "gloss": "certain, true; 'certainly (so)!' (Dan 3:24 'yaṣṣîḇāʾ malkāʾ' true, O king)",
+  "pos": "adj. emph.",
+  "ipa": "jasˤsˤiːbaː",
+  "strongs": "H3330",
+  "attested": "Dan 3:24, 6:13 (Daniel only, later than Ezra)",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Used as \"yes\" only in Daniel's court narrative (Hellenistic final form)."
+ },
+ {
+  "form": "nwrʾ",
+  "vocalized": "nûrāʾ",
+  "script": "𐡍𐡅𐡓𐡀",
+  "gloss": "the fire",
+  "pos": "noun emph.",
+  "ipa": "nuːraː",
+  "strongs": "H5135",
+  "attested": "Dan 3:17-27 (Daniel only)",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": "Not attested in Ezra."
+ },
+ {
+  "form": "Prs",
+  "vocalized": "Pāras",
+  "script": "𐡐𐡓𐡎",
+  "gloss": "Persia",
+  "pos": "place name",
+  "ipa": "paːras",
+  "strongs": "H6540",
+  "attested": "Ezra 4:24, 6:14",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "Bbl",
+  "vocalized": "Bāḇel",
+  "script": "𐡁𐡁𐡋",
+  "gloss": "Babylon",
+  "pos": "place name",
+  "ipa": "baːbel",
+  "strongs": "H895",
+  "attested": "Ezra 5:12, 5:14, 5:17, 6:1, 6:5, 7:16",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "ʿlmyʾ",
+  "vocalized": "ʿēlᵉmāyēʾ",
+  "script": "𐡏𐡋𐡌𐡉𐡀",
+  "gloss": "the Elamites",
+  "pos": "gentilic pl. emph.",
+  "ipa": "ʕeːləmaːjeː",
+  "strongs": "H5962",
+  "attested": "Ezra 4:9",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "bblyʾ",
+  "vocalized": "bāḇᵉlāyēʾ",
+  "script": "𐡁𐡁𐡋𐡉𐡀",
+  "gloss": "the Babylonians",
+  "pos": "gentilic pl. emph.",
+  "ipa": "baːbəlaːjeː",
+  "strongs": "H896",
+  "attested": "Ezra 4:9",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
+ },
+ {
+  "form": "šwšnkyʾ",
+  "vocalized": "šûšanḵāyēʾ",
+  "script": "𐡔𐡅𐡔𐡍𐡊𐡉𐡀",
+  "gloss": "the Susians, men of Susa",
+  "pos": "gentilic pl. emph.",
+  "ipa": "ʃuːʃankaːjeː",
+  "strongs": "H7801",
+  "attested": "Ezra 4:9",
+  "source": "form: Open Scriptures Hebrew Bible (WLC + morphology, openscriptures/morphhb, CC BY 4.0), Aramaic words of Ezra; gloss: Strong's Concise Dictionary (1894), JSON ed. openscriptures/strongs (CC-BY-SA)",
+  "src": [
+   "OSHB",
+   "STRONGS"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "note": ""
  }
 ]

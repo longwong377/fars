@@ -74,3 +74,36 @@ Access key: SX = search extract (the host is blocked, B6); FT = downloaded or re
 Also used, with existing keys: SUMNER1986, LIVIUS-NR, ALVAREZMON, WMO-CLINO, COP-DEM, SRTM-TILES (the AWS terrarium z10 tiles, fetched again for the horizon check), PEOPLE-R.
 
 Seen as titles only (not keyed): D. T. Potts 2023, "Pain et vin: equine rations of bread and wine" (*Cheiron*), a lead for stables; "The fruits of Pārsa", *Paleopersepolis* (2021), pp. 133–67, a lead for orchards.
+
+## Phase 8 (language agent, session 3): lexicons for five languages — 20 keys added to `src/data/sources.json`
+Access key: SX = search extract (host blocked, B6); FT = downloaded or read in full. Only GitHub (raw and media) was
+reachable for files; livius.org, iranicaonline, archive.org, lrc.la.utexas.edu, cal.huc.edu, oracc.museum.upenn.edu,
+wiktionary and theswissbay were refused by the egress proxy (2026-09-23).
+
+| key | cite (short) | access | used for |
+|---|---|---|---|
+| LIVIUS-AI | Livius, Achaemenid Royal Inscriptions pages (scrape on GitHub, Electronic-Old-Persian-Library) | FT | OP glosses (DSf, DNa, DNb, XPh, DZc, XPa) |
+| EIEOL-OI | UT Austin EIEOL, Old Iranian Online | SX (earlier FT via a GitHub copy) | key for existing OP gloss sources |
+| KENT-OCR | Kent 1953 lexicon lines, OCR quoted in sfmqrb/rishe | SX | key for existing OP gloss sources |
+| OP-SX | ResearchGate on *bandaka*; EIEOL base-form dictionary (dargam, jīvā-) | SX | OP bandaka, dargam, jīvā |
+| STRONGS | Strong's Concise Dictionary (1894), openscriptures/strongs JSON | FT | Aramaic glosses |
+| OSHB | Open Scriptures Hebrew Bible (WLC + morphology), Ezra and Daniel | FT | Aramaic forms with verse refs |
+| IR-CORR | Iranica, "Correspondence i. In pre-Islamic Persia" | SX | Aramaic letter formulas šlm ʿlyk, ʿl ʾḥy |
+| ARSHAMA-BOD | Tuplin & Ma, Arshama Letters vol. 3 (Bodleian) | SX | letter formulas (existing entries) |
+| ELEPH-OST | "Hi Aḥuṭab: Aramaic Letter Ostraca from Elephantine" | SX | letter formulas |
+| HDT-GRC | Herodotus, Greek text (Godley; Perseus perseus-grc2) | FT | Greek forms (book.chapter.section) |
+| HOM-OD | Homer, Odyssey, Greek text (Perseus) | FT | χαῖρε, ξεῖνε (Od. 1.123) |
+| LSJ | Liddell–Scott–Jones, Perseus TEI | FT | Greek gloss check |
+| IONIC-SX | Britannica "Ionic alphabet"; Wikipedia "Ionic Greek", "Eta" | SX (tertiary) | psilosis; Ionic letter set |
+| RIBO | ORACC RIBo (NB royal inscriptions) via SLAB-NLP/Akk | FT (text only) | Babylonian everyday words (logograms, B) |
+| CAMS-ORACC | ORACC CAMS via SLAB-NLP/Akk | FT (text only) | kurummatu (LB letter P348888) |
+| HBTIN | ORACC HBTIN via SLAB-NLP/Akk | FT (text only) | aḫu "brother" (LB, Hellenistic) |
+| HACKL-JURSA | Hackl & Jursa on Late Babylonian letters; AOAT 414/1 | SX | the LB greeting formula šulmu [u balāṭu] |
+| PF-LETTER-SX | Hallock's rendering of the PF letter formula (via Henkelman / Iranica search results) | SX | Elamite tiriš / nanri |
+| IR-ELAM | Iranica, "Elam v. Elamite language" | SX | key for existing Elamite sources |
+| MESSENGER-SX | "The Achaemenid Messenger Service and the Ionian Revolt" (ResearchGate) | SX | key for existing Elamite sources |
+
+Also used, with existing keys: ARIO (DB, DSf, DNa, DNb, DNe labels, XPa–XPh, DZc, the Cyrus Cylinder), CDLI-PF (Hallock PF 1–60,
+400–406 with Hallock's translations), EWB (sense base `js/data/senses.js`: German/English glosses with volume:page), WP-CAL,
+IR-PET, IR-FOODAG, LIVIUS, RECON. Downloaded but not used: the PROIEL Herodotus treebank (CC BY-NC-SA). Searched without result: the
+CDLI dump for Achaemenid-period Babylonian archival texts (none with ATF in the unblocked dump).

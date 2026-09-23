@@ -15,7 +15,37 @@
    "ˤ": "",
    "ç": "x",
    "ɛ": "e"
-  }
+  },
+  "approximations_by_base": {
+   "grc": {
+    "ʰ": "h",
+    "ɪ": "i",
+    "ʊ": "u"
+   }
+  },
+  "base_voices": {
+   "op": "fa",
+   "el": "fa",
+   "arc": "ar",
+   "grc": "grc"
+  },
+  "opus_compression_level": 0.92,
+  "formant_only": {
+   "bab": "no eSpeak-NG voice for Akkadian; voiced at runtime by the formant synthesiser (src/audio/speech.ts, D-011; D-107)"
+  },
+  "formant_only_lines": [
+   "bab.count.isten",
+   "bab.farewell.lissur",
+   "bab.greet.sulmu",
+   "bab.greet.sulmu_beliya",
+   "bab.offer.akalu",
+   "bab.pious.ilu_rabu",
+   "bab.pious.ina_silli",
+   "bab.ration.kurummatu",
+   "bab.refuse.la",
+   "bab.remark.babbanu",
+   "bab.reply.sulmu"
+  ]
  },
  "clips": {
   "op.pious.baga_vazrka|m1": {
@@ -122,6 +152,330 @@
   },
   "op.remark.parsa_uvaspa|c1": {
    "url": "voices/op.remark.parsa_uvaspa.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "op.pious.vasna_auramazdaha|m1": {
+   "url": "voices/op.pious.vasna_auramazdaha.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "op.pious.vasna_auramazdaha|m2": {
+   "url": "voices/op.pious.vasna_auramazdaha.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "op.pious.vasna_auramazdaha|m3": {
+   "url": "voices/op.pious.vasna_auramazdaha.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "op.pious.vasna_auramazdaha|f1": {
+   "url": "voices/op.pious.vasna_auramazdaha.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "op.pious.vasna_auramazdaha|f2": {
+   "url": "voices/op.pious.vasna_auramazdaha.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "op.pious.vasna_auramazdaha|c1": {
+   "url": "voices/op.pious.vasna_auramazdaha.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "op.farewell.dargam_jiva|m1": {
+   "url": "voices/op.farewell.dargam_jiva.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "op.farewell.dargam_jiva|m2": {
+   "url": "voices/op.farewell.dargam_jiva.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "op.farewell.dargam_jiva|m3": {
+   "url": "voices/op.farewell.dargam_jiva.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "op.farewell.dargam_jiva|f1": {
+   "url": "voices/op.farewell.dargam_jiva.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "op.farewell.dargam_jiva|f2": {
+   "url": "voices/op.farewell.dargam_jiva.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "op.farewell.dargam_jiva|c1": {
+   "url": "voices/op.farewell.dargam_jiva.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "op.affirm.hasiyam|m1": {
+   "url": "voices/op.affirm.hasiyam.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "op.affirm.hasiyam|m2": {
+   "url": "voices/op.affirm.hasiyam.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "op.affirm.hasiyam|m3": {
+   "url": "voices/op.affirm.hasiyam.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "op.affirm.hasiyam|f1": {
+   "url": "voices/op.affirm.hasiyam.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "op.affirm.hasiyam|f2": {
+   "url": "voices/op.affirm.hasiyam.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "op.affirm.hasiyam|c1": {
+   "url": "voices/op.affirm.hasiyam.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "op.refuse.nai|m1": {
+   "url": "voices/op.refuse.nai.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "op.refuse.nai|m2": {
+   "url": "voices/op.refuse.nai.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "op.refuse.nai|m3": {
+   "url": "voices/op.refuse.nai.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "op.refuse.nai|f1": {
+   "url": "voices/op.refuse.nai.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "op.refuse.nai|f2": {
+   "url": "voices/op.refuse.nai.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "op.refuse.nai|c1": {
+   "url": "voices/op.refuse.nai.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "op.refuse.ma|m1": {
+   "url": "voices/op.refuse.ma.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "op.refuse.ma|m2": {
+   "url": "voices/op.refuse.ma.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "op.refuse.ma|m3": {
+   "url": "voices/op.refuse.ma.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "op.refuse.ma|f1": {
+   "url": "voices/op.refuse.ma.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "op.refuse.ma|f2": {
+   "url": "voices/op.refuse.ma.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "op.refuse.ma|c1": {
+   "url": "voices/op.refuse.ma.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "op.call_workers.paraita|m1": {
+   "url": "voices/op.call_workers.paraita.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "op.call_workers.paraita|m2": {
+   "url": "voices/op.call_workers.paraita.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "op.call_workers.paraita|m3": {
+   "url": "voices/op.call_workers.paraita.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "op.call_workers.paraita|f1": {
+   "url": "voices/op.call_workers.paraita.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "op.call_workers.paraita|f2": {
+   "url": "voices/op.call_workers.paraita.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "op.call_workers.paraita|c1": {
+   "url": "voices/op.call_workers.paraita.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "op.identify.adam_rstika|m1": {
+   "url": "voices/op.identify.adam_rstika.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "op.identify.adam_rstika|m2": {
+   "url": "voices/op.identify.adam_rstika.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "op.identify.adam_rstika|m3": {
+   "url": "voices/op.identify.adam_rstika.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "op.identify.adam_rstika|f1": {
+   "url": "voices/op.identify.adam_rstika.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "op.identify.adam_rstika|f2": {
+   "url": "voices/op.identify.adam_rstika.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "op.identify.adam_rstika|c1": {
+   "url": "voices/op.identify.adam_rstika.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "op.remark.vasai_naibam|m1": {
+   "url": "voices/op.remark.vasai_naibam.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "op.remark.vasai_naibam|m2": {
+   "url": "voices/op.remark.vasai_naibam.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "op.remark.vasai_naibam|m3": {
+   "url": "voices/op.remark.vasai_naibam.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "op.remark.vasai_naibam|f1": {
+   "url": "voices/op.remark.vasai_naibam.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "op.remark.vasai_naibam|f2": {
+   "url": "voices/op.remark.vasai_naibam.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "op.remark.vasai_naibam|c1": {
+   "url": "voices/op.remark.vasai_naibam.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "op.count.aiva|m1": {
+   "url": "voices/op.count.aiva.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "op.count.aiva|m2": {
+   "url": "voices/op.count.aiva.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "op.count.aiva|m3": {
+   "url": "voices/op.count.aiva.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "op.count.aiva|f1": {
+   "url": "voices/op.count.aiva.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "op.count.aiva|f2": {
+   "url": "voices/op.count.aiva.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "op.count.aiva|c1": {
+   "url": "voices/op.count.aiva.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child"
@@ -266,6 +620,294 @@
   },
   "el.call_workers.kurtas|c1": {
    "url": "voices/el.call_workers.kurtas.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "el.ration.gal|m1": {
+   "url": "voices/el.ration.gal.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "el.ration.gal|m2": {
+   "url": "voices/el.ration.gal.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "el.ration.gal|m3": {
+   "url": "voices/el.ration.gal.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "el.ration.gal|f1": {
+   "url": "voices/el.ration.gal.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "el.ration.gal|f2": {
+   "url": "voices/el.ration.gal.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "el.ration.gal|c1": {
+   "url": "voices/el.ration.gal.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "el.ration.kurtas_gal|m1": {
+   "url": "voices/el.ration.kurtas_gal.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "el.ration.kurtas_gal|m2": {
+   "url": "voices/el.ration.kurtas_gal.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "el.ration.kurtas_gal|m3": {
+   "url": "voices/el.ration.kurtas_gal.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "el.ration.kurtas_gal|f1": {
+   "url": "voices/el.ration.kurtas_gal.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "el.ration.kurtas_gal|f2": {
+   "url": "voices/el.ration.kurtas_gal.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "el.ration.kurtas_gal|c1": {
+   "url": "voices/el.ration.kurtas_gal.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "el.remark.dusda|m1": {
+   "url": "voices/el.remark.dusda.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "el.remark.dusda|m2": {
+   "url": "voices/el.remark.dusda.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "el.remark.dusda|m3": {
+   "url": "voices/el.remark.dusda.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "el.remark.dusda|f1": {
+   "url": "voices/el.remark.dusda.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "el.remark.dusda|f2": {
+   "url": "voices/el.remark.dusda.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "el.remark.dusda|c1": {
+   "url": "voices/el.remark.dusda.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "el.identify.hutlak|m1": {
+   "url": "voices/el.identify.hutlak.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "el.identify.hutlak|m2": {
+   "url": "voices/el.identify.hutlak.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "el.identify.hutlak|m3": {
+   "url": "voices/el.identify.hutlak.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "el.identify.hutlak|f1": {
+   "url": "voices/el.identify.hutlak.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "el.identify.hutlak|f2": {
+   "url": "voices/el.identify.hutlak.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "el.identify.hutlak|c1": {
+   "url": "voices/el.identify.hutlak.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "el.identify.ullira|m1": {
+   "url": "voices/el.identify.ullira.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "el.identify.ullira|m2": {
+   "url": "voices/el.identify.ullira.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "el.identify.ullira|m3": {
+   "url": "voices/el.identify.ullira.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "el.identify.ullira|f1": {
+   "url": "voices/el.identify.ullira.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "el.identify.ullira|f2": {
+   "url": "voices/el.identify.ullira.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "el.identify.ullira|c1": {
+   "url": "voices/el.identify.ullira.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "el.refuse.inni|m1": {
+   "url": "voices/el.refuse.inni.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "el.refuse.inni|m2": {
+   "url": "voices/el.refuse.inni.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "el.refuse.inni|m3": {
+   "url": "voices/el.refuse.inni.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "el.refuse.inni|f1": {
+   "url": "voices/el.refuse.inni.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "el.refuse.inni|f2": {
+   "url": "voices/el.refuse.inni.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "el.refuse.inni|c1": {
+   "url": "voices/el.refuse.inni.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "el.refuse.anu|m1": {
+   "url": "voices/el.refuse.anu.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "el.refuse.anu|m2": {
+   "url": "voices/el.refuse.anu.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "el.refuse.anu|m3": {
+   "url": "voices/el.refuse.anu.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "el.refuse.anu|f1": {
+   "url": "voices/el.refuse.anu.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "el.refuse.anu|f2": {
+   "url": "voices/el.refuse.anu.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "el.refuse.anu|c1": {
+   "url": "voices/el.refuse.anu.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "el.count.kir|m1": {
+   "url": "voices/el.count.kir.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "el.count.kir|m2": {
+   "url": "voices/el.count.kir.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "el.count.kir|m3": {
+   "url": "voices/el.count.kir.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "el.count.kir|f1": {
+   "url": "voices/el.count.kir.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "el.count.kir|f2": {
+   "url": "voices/el.count.kir.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "el.count.kir|c1": {
+   "url": "voices/el.count.kir.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child"
@@ -518,6 +1160,1122 @@
   },
   "arc.identify.igra|c1": {
    "url": "voices/arc.identify.igra.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.greet.slm_lyk|m1": {
+   "url": "voices/arc.greet.slm_lyk.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.greet.slm_lyk|m2": {
+   "url": "voices/arc.greet.slm_lyk.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.greet.slm_lyk|m3": {
+   "url": "voices/arc.greet.slm_lyk.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.greet.slm_lyk|f1": {
+   "url": "voices/arc.greet.slm_lyk.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.greet.slm_lyk|f2": {
+   "url": "voices/arc.greet.slm_lyk.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.greet.slm_lyk|c1": {
+   "url": "voices/arc.greet.slm_lyk.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.greet.slm_ahy|m1": {
+   "url": "voices/arc.greet.slm_ahy.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.greet.slm_ahy|m2": {
+   "url": "voices/arc.greet.slm_ahy.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.greet.slm_ahy|m3": {
+   "url": "voices/arc.greet.slm_ahy.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.greet.slm_ahy|f1": {
+   "url": "voices/arc.greet.slm_ahy.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.greet.slm_ahy|f2": {
+   "url": "voices/arc.greet.slm_ahy.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.greet.slm_ahy|c1": {
+   "url": "voices/arc.greet.slm_ahy.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.greet.slma_kla|m1": {
+   "url": "voices/arc.greet.slma_kla.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.greet.slma_kla|m2": {
+   "url": "voices/arc.greet.slma_kla.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.greet.slma_kla|m3": {
+   "url": "voices/arc.greet.slma_kla.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.greet.slma_kla|f1": {
+   "url": "voices/arc.greet.slma_kla.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.greet.slma_kla|f2": {
+   "url": "voices/arc.greet.slma_kla.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.greet.slma_kla|c1": {
+   "url": "voices/arc.greet.slma_kla.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.reply.slm_lyk|m1": {
+   "url": "voices/arc.reply.slm_lyk.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.reply.slm_lyk|m2": {
+   "url": "voices/arc.reply.slm_lyk.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.reply.slm_lyk|m3": {
+   "url": "voices/arc.reply.slm_lyk.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.reply.slm_lyk|f1": {
+   "url": "voices/arc.reply.slm_lyk.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.reply.slm_lyk|f2": {
+   "url": "voices/arc.reply.slm_lyk.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.reply.slm_lyk|c1": {
+   "url": "voices/arc.reply.slm_lyk.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.farewell.slm|m1": {
+   "url": "voices/arc.farewell.slm.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.farewell.slm|m2": {
+   "url": "voices/arc.farewell.slm.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.farewell.slm|m3": {
+   "url": "voices/arc.farewell.slm.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.farewell.slm|f1": {
+   "url": "voices/arc.farewell.slm.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.farewell.slm|f2": {
+   "url": "voices/arc.farewell.slm.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.farewell.slm|c1": {
+   "url": "voices/arc.farewell.slm.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.affirm.yssyba|m1": {
+   "url": "voices/arc.affirm.yssyba.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.affirm.yssyba|m2": {
+   "url": "voices/arc.affirm.yssyba.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.affirm.yssyba|m3": {
+   "url": "voices/arc.affirm.yssyba.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.affirm.yssyba|f1": {
+   "url": "voices/arc.affirm.yssyba.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.affirm.yssyba|f2": {
+   "url": "voices/arc.affirm.yssyba.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.affirm.yssyba|c1": {
+   "url": "voices/arc.affirm.yssyba.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.affirm.tb|m1": {
+   "url": "voices/arc.affirm.tb.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.affirm.tb|m2": {
+   "url": "voices/arc.affirm.tb.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.affirm.tb|m3": {
+   "url": "voices/arc.affirm.tb.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.affirm.tb|f1": {
+   "url": "voices/arc.affirm.tb.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.affirm.tb|f2": {
+   "url": "voices/arc.affirm.tb.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.affirm.tb|c1": {
+   "url": "voices/arc.affirm.tb.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.refuse.la|m1": {
+   "url": "voices/arc.refuse.la.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.refuse.la|m2": {
+   "url": "voices/arc.refuse.la.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.refuse.la|m3": {
+   "url": "voices/arc.refuse.la.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.refuse.la|f1": {
+   "url": "voices/arc.refuse.la.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.refuse.la|f2": {
+   "url": "voices/arc.refuse.la.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.refuse.la|c1": {
+   "url": "voices/arc.refuse.la.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.call_workers.osparna|m1": {
+   "url": "voices/arc.call_workers.osparna.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.call_workers.osparna|m2": {
+   "url": "voices/arc.call_workers.osparna.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.call_workers.osparna|m3": {
+   "url": "voices/arc.call_workers.osparna.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.call_workers.osparna|f1": {
+   "url": "voices/arc.call_workers.osparna.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.call_workers.osparna|f2": {
+   "url": "voices/arc.call_workers.osparna.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.call_workers.osparna|c1": {
+   "url": "voices/arc.call_workers.osparna.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.call_workers.sbqw|m1": {
+   "url": "voices/arc.call_workers.sbqw.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.call_workers.sbqw|m2": {
+   "url": "voices/arc.call_workers.sbqw.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.call_workers.sbqw|m3": {
+   "url": "voices/arc.call_workers.sbqw.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.call_workers.sbqw|f1": {
+   "url": "voices/arc.call_workers.sbqw.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.call_workers.sbqw|f2": {
+   "url": "voices/arc.call_workers.sbqw.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.call_workers.sbqw|c1": {
+   "url": "voices/arc.call_workers.sbqw.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.call_workers.azl|m1": {
+   "url": "voices/arc.call_workers.azl.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.call_workers.azl|m2": {
+   "url": "voices/arc.call_workers.azl.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.call_workers.azl|m3": {
+   "url": "voices/arc.call_workers.azl.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.call_workers.azl|f1": {
+   "url": "voices/arc.call_workers.azl.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.call_workers.azl|f2": {
+   "url": "voices/arc.call_workers.azl.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.call_workers.azl|c1": {
+   "url": "voices/arc.call_workers.azl.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.count.hd_trn_tlt_arb|m1": {
+   "url": "voices/arc.count.hd_trn_tlt_arb.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.count.hd_trn_tlt_arb|m2": {
+   "url": "voices/arc.count.hd_trn_tlt_arb.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.count.hd_trn_tlt_arb|m3": {
+   "url": "voices/arc.count.hd_trn_tlt_arb.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.count.hd_trn_tlt_arb|f1": {
+   "url": "voices/arc.count.hd_trn_tlt_arb.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.count.hd_trn_tlt_arb|f2": {
+   "url": "voices/arc.count.hd_trn_tlt_arb.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.count.hd_trn_tlt_arb|c1": {
+   "url": "voices/arc.count.hd_trn_tlt_arb.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.ration.wheat_salt_wine_oil|m1": {
+   "url": "voices/arc.ration.wheat_salt_wine_oil.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.ration.wheat_salt_wine_oil|m2": {
+   "url": "voices/arc.ration.wheat_salt_wine_oil.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.ration.wheat_salt_wine_oil|m3": {
+   "url": "voices/arc.ration.wheat_salt_wine_oil.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.ration.wheat_salt_wine_oil|f1": {
+   "url": "voices/arc.ration.wheat_salt_wine_oil.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.ration.wheat_salt_wine_oil|f2": {
+   "url": "voices/arc.ration.wheat_salt_wine_oil.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.ration.wheat_salt_wine_oil|c1": {
+   "url": "voices/arc.ration.wheat_salt_wine_oil.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.ration.npqta|m1": {
+   "url": "voices/arc.ration.npqta.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.ration.npqta|m2": {
+   "url": "voices/arc.ration.npqta.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.ration.npqta|m3": {
+   "url": "voices/arc.ration.npqta.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.ration.npqta|f1": {
+   "url": "voices/arc.ration.npqta.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.ration.npqta|f2": {
+   "url": "voices/arc.ration.npqta.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.ration.npqta|c1": {
+   "url": "voices/arc.ration.npqta.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "arc.ask_document.igra|m1": {
+   "url": "voices/arc.ask_document.igra.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "arc.ask_document.igra|m2": {
+   "url": "voices/arc.ask_document.igra.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "arc.ask_document.igra|m3": {
+   "url": "voices/arc.ask_document.igra.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "arc.ask_document.igra|f1": {
+   "url": "voices/arc.ask_document.igra.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "arc.ask_document.igra|f2": {
+   "url": "voices/arc.ask_document.igra.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "arc.ask_document.igra|c1": {
+   "url": "voices/arc.ask_document.igra.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.greet.khaire_xeine|m1": {
+   "url": "voices/grc.greet.khaire_xeine.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.greet.khaire_xeine|m2": {
+   "url": "voices/grc.greet.khaire_xeine.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.greet.khaire_xeine|m3": {
+   "url": "voices/grc.greet.khaire_xeine.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.greet.khaire_xeine|f1": {
+   "url": "voices/grc.greet.khaire_xeine.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.greet.khaire_xeine|f2": {
+   "url": "voices/grc.greet.khaire_xeine.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.greet.khaire_xeine|c1": {
+   "url": "voices/grc.greet.khaire_xeine.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.greet.khaire|m1": {
+   "url": "voices/grc.greet.khaire.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.greet.khaire|m2": {
+   "url": "voices/grc.greet.khaire.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.greet.khaire|m3": {
+   "url": "voices/grc.greet.khaire.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.greet.khaire|f1": {
+   "url": "voices/grc.greet.khaire.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.greet.khaire|f2": {
+   "url": "voices/grc.greet.khaire.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.greet.khaire|c1": {
+   "url": "voices/grc.greet.khaire.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.reply.khaire|m1": {
+   "url": "voices/grc.reply.khaire.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.reply.khaire|m2": {
+   "url": "voices/grc.reply.khaire.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.reply.khaire|m3": {
+   "url": "voices/grc.reply.khaire.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.reply.khaire|f1": {
+   "url": "voices/grc.reply.khaire.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.reply.khaire|f2": {
+   "url": "voices/grc.reply.khaire.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.reply.khaire|c1": {
+   "url": "voices/grc.reply.khaire.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.reply.ouk_oida|m1": {
+   "url": "voices/grc.reply.ouk_oida.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.reply.ouk_oida|m2": {
+   "url": "voices/grc.reply.ouk_oida.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.reply.ouk_oida|m3": {
+   "url": "voices/grc.reply.ouk_oida.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.reply.ouk_oida|f1": {
+   "url": "voices/grc.reply.ouk_oida.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.reply.ouk_oida|f2": {
+   "url": "voices/grc.reply.ouk_oida.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.reply.ouk_oida|c1": {
+   "url": "voices/grc.reply.ouk_oida.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.reply.tharsee|m1": {
+   "url": "voices/grc.reply.tharsee.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.reply.tharsee|m2": {
+   "url": "voices/grc.reply.tharsee.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.reply.tharsee|m3": {
+   "url": "voices/grc.reply.tharsee.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.reply.tharsee|f1": {
+   "url": "voices/grc.reply.tharsee.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.reply.tharsee|f2": {
+   "url": "voices/grc.reply.tharsee.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.reply.tharsee|c1": {
+   "url": "voices/grc.reply.tharsee.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.affirm.nai|m1": {
+   "url": "voices/grc.affirm.nai.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.affirm.nai|m2": {
+   "url": "voices/grc.affirm.nai.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.affirm.nai|m3": {
+   "url": "voices/grc.affirm.nai.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.affirm.nai|f1": {
+   "url": "voices/grc.affirm.nai.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.affirm.nai|f2": {
+   "url": "voices/grc.affirm.nai.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.affirm.nai|c1": {
+   "url": "voices/grc.affirm.nai.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.farewell.ithi_khairon|m1": {
+   "url": "voices/grc.farewell.ithi_khairon.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.farewell.ithi_khairon|m2": {
+   "url": "voices/grc.farewell.ithi_khairon.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.farewell.ithi_khairon|m3": {
+   "url": "voices/grc.farewell.ithi_khairon.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.farewell.ithi_khairon|f1": {
+   "url": "voices/grc.farewell.ithi_khairon.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.farewell.ithi_khairon|f2": {
+   "url": "voices/grc.farewell.ithi_khairon.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.farewell.ithi_khairon|c1": {
+   "url": "voices/grc.farewell.ithi_khairon.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.pious.o_zeu|m1": {
+   "url": "voices/grc.pious.o_zeu.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.pious.o_zeu|m2": {
+   "url": "voices/grc.pious.o_zeu.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.pious.o_zeu|m3": {
+   "url": "voices/grc.pious.o_zeu.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.pious.o_zeu|f1": {
+   "url": "voices/grc.pious.o_zeu.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.pious.o_zeu|f2": {
+   "url": "voices/grc.pious.o_zeu.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.pious.o_zeu|c1": {
+   "url": "voices/grc.pious.o_zeu.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.refuse.ou|m1": {
+   "url": "voices/grc.refuse.ou.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.refuse.ou|m2": {
+   "url": "voices/grc.refuse.ou.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.refuse.ou|m3": {
+   "url": "voices/grc.refuse.ou.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.refuse.ou|f1": {
+   "url": "voices/grc.refuse.ou.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.refuse.ou|f2": {
+   "url": "voices/grc.refuse.ou.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.refuse.ou|c1": {
+   "url": "voices/grc.refuse.ou.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.call_workers.age|m1": {
+   "url": "voices/grc.call_workers.age.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.call_workers.age|m2": {
+   "url": "voices/grc.call_workers.age.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.call_workers.age|m3": {
+   "url": "voices/grc.call_workers.age.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.call_workers.age|f1": {
+   "url": "voices/grc.call_workers.age.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.call_workers.age|f2": {
+   "url": "voices/grc.call_workers.age.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.call_workers.age|c1": {
+   "url": "voices/grc.call_workers.age.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.call_workers.phere|m1": {
+   "url": "voices/grc.call_workers.phere.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.call_workers.phere|m2": {
+   "url": "voices/grc.call_workers.phere.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.call_workers.phere|m3": {
+   "url": "voices/grc.call_workers.phere.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.call_workers.phere|f1": {
+   "url": "voices/grc.call_workers.phere.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.call_workers.phere|f2": {
+   "url": "voices/grc.call_workers.phere.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.call_workers.phere|c1": {
+   "url": "voices/grc.call_workers.phere.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.count.eis_duo_treis|m1": {
+   "url": "voices/grc.count.eis_duo_treis.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.count.eis_duo_treis|m2": {
+   "url": "voices/grc.count.eis_duo_treis.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.count.eis_duo_treis|m3": {
+   "url": "voices/grc.count.eis_duo_treis.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.count.eis_duo_treis|f1": {
+   "url": "voices/grc.count.eis_duo_treis.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.count.eis_duo_treis|f2": {
+   "url": "voices/grc.count.eis_duo_treis.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.count.eis_duo_treis|c1": {
+   "url": "voices/grc.count.eis_duo_treis.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.remark.kalos|m1": {
+   "url": "voices/grc.remark.kalos.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.remark.kalos|m2": {
+   "url": "voices/grc.remark.kalos.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.remark.kalos|m3": {
+   "url": "voices/grc.remark.kalos.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.remark.kalos|f1": {
+   "url": "voices/grc.remark.kalos.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.remark.kalos|f2": {
+   "url": "voices/grc.remark.kalos.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.remark.kalos|c1": {
+   "url": "voices/grc.remark.kalos.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.ration.dos_moi_sitia|m1": {
+   "url": "voices/grc.ration.dos_moi_sitia.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.ration.dos_moi_sitia|m2": {
+   "url": "voices/grc.ration.dos_moi_sitia.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.ration.dos_moi_sitia|m3": {
+   "url": "voices/grc.ration.dos_moi_sitia.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.ration.dos_moi_sitia|f1": {
+   "url": "voices/grc.ration.dos_moi_sitia.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.ration.dos_moi_sitia|f2": {
+   "url": "voices/grc.ration.dos_moi_sitia.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.ration.dos_moi_sitia|c1": {
+   "url": "voices/grc.ration.dos_moi_sitia.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.offer.artos|m1": {
+   "url": "voices/grc.offer.artos.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.offer.artos|m2": {
+   "url": "voices/grc.offer.artos.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.offer.artos|m3": {
+   "url": "voices/grc.offer.artos.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.offer.artos|f1": {
+   "url": "voices/grc.offer.artos.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.offer.artos|f2": {
+   "url": "voices/grc.offer.artos.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.offer.artos|c1": {
+   "url": "voices/grc.offer.artos.c1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "child"
+  },
+  "grc.identify.iones|m1": {
+   "url": "voices/grc.identify.iones.m1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, low"
+  },
+  "grc.identify.iones|m2": {
+   "url": "voices/grc.identify.iones.m2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "man, mid"
+  },
+  "grc.identify.iones|m3": {
+   "url": "voices/grc.identify.iones.m3.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "old man"
+  },
+  "grc.identify.iones|f1": {
+   "url": "voices/grc.identify.iones.f1.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "woman"
+  },
+  "grc.identify.iones|f2": {
+   "url": "voices/grc.identify.iones.f2.ogg",
+   "tier": "C",
+   "backend": "espeak-ng",
+   "voice": "older woman"
+  },
+  "grc.identify.iones|c1": {
+   "url": "voices/grc.identify.iones.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child"
