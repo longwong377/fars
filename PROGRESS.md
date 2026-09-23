@@ -1,6 +1,18 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Interior light (light probes, D-110 … D-114; interior-lighting agent, session 3):**
+  - The roofed halls are lit by baked probes: sky through the openings plus one and two bounces of sun and sky. Every lit material gets this through the hemisphere light, at every quality. Outside the six volumes (Gate, Apadana, Tachara, Hadish, Treasury hall, Harem) nothing changes.
+  - **The halls now render near black at the eye-adaptation formula's exposure** (Apadana columns 0, Hadish columns 0; before: 24–27, from an unoccluded skylight at an outdoor exposure). The probes put the Apadana hall at 0.005–1 % of open ground, since the model has four 4 × 10 m doorways and no windows (Q-150). The formula never exposes more than 1/0.15 of the outdoor value (Q-153, B10).
+  - A what-if exposure of 60 makes the Hadish readable (columns 16–33). From the N portico the Apadana columns stay at 3–4 even at 29.5. **The brief's target (luma ≥ 25) is not met.**
+  - Frozen test renders (moments) used to keep the first frame's exposure (the spawn, outdoors). They now re-evaluate it each frame, so every interior moment renders differently from earlier shots.
+  - Not covered: town houses (no volumes); the Tripylon, Hall of 100 Columns and garrison have no roofs as built. The sun's bounce is its yearly mean (C). There is one bounce outdoors and two inside.
+  - A shadow-map leak was fixed on the way: roofs now cast from their top faces (D-114).
+  - **Unverified:**
+    - WebGL2 (never rendered with the probes);
+    - the post-merge interiors: Tachara rooms, the Treasury N range and scribes' room (volume `treasury:1`);
+    - the full unit suite after the merge (the probe tests pass; the full suite passed before the merge);
+    - the roof tops' self-shadowing after the roof fix.
 - **Photorealism is not established.** The §8.2 rubric review and the independent Phase 3 and Phase 4 reviews have not run. The §1.1 moments have not been re-rendered at high quality since the session 2 fixes.
 - **Calibration scene (§8.1):** blocked (NEEDS #13). Stone and light values are C estimates.
 - **People (merged in session 3, D-090 to D-093):**

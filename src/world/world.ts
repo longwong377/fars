@@ -26,6 +26,7 @@ export interface WorldBuild {
 }
 import { buildTerrace } from '../arch/terrace';
 import { buildMeshes } from '../arch/meshes';
+import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/runtime';
 import { loadSculpt } from '../arch/sculpt';
 import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Reliefs, buildStairCrenellations, buildFoundationDeposits } from '../arch/decor';
 import { updateReliefs, settleReliefs } from '../arch/reliefs';
@@ -103,11 +104,17 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // people's bodies (D-090): loading and costume fitting (a worker) run while the architecture is built
   const q0 = settings?.quality ?? 'high';
   const humansP = loadHumans({ velocity: q0 !== 'test' && q0 !== 'low' });
+  const probesP = loadProbes('/'); // baked light probes of the roofed halls (D-110): must be in before the first frame builds the shaders
   const { parts, manifest, doorways } = buildTerrace();
+  setProbeOccluders(parts); // the eye adaptation's direct-sun test inside the probe volumes (D-113)
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   root.add(arch.group);
   const doors = new DoorSystem(parts, phys); root.add(doors.group); // D-051
+  { // stale probes still light the halls, but say so (the unit test tests/probes.test.ts fails on the same condition)
+    const pf = await probesP, h = pf?.partsHash;
+    if (pf && h) try { const d = new Uint8Array(await crypto.subtle.digest('SHA-1', new TextEncoder().encode(JSON.stringify(parts)))); const now = [...d].map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 16);
+      if (now !== h) console.warn(`[probes] baked for parts ${h}, the architecture is ${now}: rerun npx tsx tools/build_probes.ts`); } catch { /* no SubtleCrypto (insecure context) */ } }
   await loadInscriptionFonts(async p => (await fetch('/' + p)).arrayBuffer());
   const reliefs = buildReliefs(manifest); root.add(reliefs);
   const p4 = buildPhase4Reliefs(doorways); root.add(p4.group); // stair and door-jamb reliefs of the other palaces (D-049)
@@ -281,5 +288,5 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       }
     },
     flash: () => lastFlash,
-    summary: () => `people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest, ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''} · ${plain.summary()}` } as WorldBuild;
+    summary: () => `${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest, ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''} · ${plain.summary()}` } as WorldBuild;
 }

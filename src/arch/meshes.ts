@@ -31,6 +31,15 @@ export function useFlatMaterials(flat: boolean) {
   material = flat ? flatMaterial : (m => surfaceMaterial(m)); carvedMaterial = flat ? flatMaterial : (m => surfaceMaterial(CARVED[m] ?? m));
 }
 
+/** a roof casts its shadow from its top faces (D-114). three renders a FrontSide material's back faces into the shadow map,
+ *  which for a roof slab is its underside: capital tops and wall heads that touch the ceiling then lie within the depth
+ *  bias of the stored occluder and received direct sun inside the halls (seen once the halls were lit by the probes). */
+const roofMats = new WeakMap<THREE.Material, THREE.Material>();
+function roofMaterial(m: THREE.Material): THREE.Material {
+  let r = roofMats.get(m);
+  if (!r) { r = m.clone(); r.shadowSide = THREE.FrontSide; r.userData = { ...m.userData }; roofMats.set(m, r); }
+  return r;
+}
 export function prismGeometry(p: Prism): THREE.BufferGeometry {
   const shape = new THREE.Shape(p.polygon.map(([x, y]) => new THREE.Vector2(x, y)));
   const g = new THREE.ExtrudeGeometry(shape, { depth: p.y1 - p.y0, bevelEnabled: false });
@@ -143,7 +152,8 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   for (const [key, { geos, parts: ps }] of byKey) {
     const [building, mat, tier, ph] = key.split('|');
     const g = mergeGeometries(geos)!; tris += g.getAttribute('position').count / 3;
-    const m = new THREE.Mesh(g, material(mat as Material)); m.castShadow = m.receiveShadow = true; m.name = `${building}:${mat}`;
+    const roof = ps.every(p => p.kind === 'roof');
+    const m = new THREE.Mesh(g, roof ? roofMaterial(material(mat as Material)) : material(mat as Material)); m.castShadow = m.receiveShadow = true; m.name = `${building}:${mat}`;
     m.userData = { tier, src: [...new Set(ps.map(p => p.src))].join(';'), placeholder: ph === '1', note: `greybox (Phase 2): ${[...new Set(ps.map(p => p.kind))].join(', ')}`, building };
     group.add(m);
   }
