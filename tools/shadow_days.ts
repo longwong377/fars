@@ -86,12 +86,13 @@ export function detailedDay(seed: number, id: number, d: number): { head: string
   let last = ''; const log: string[] = [];
   for (let t = d * 24; t < d * 24 + 24 - 1e-9; t += 1 / 60) {
     while (sim.t < t - 1e-9) sim.step(Math.min(60, (t - sim.t) * 3600));
-    // "→ place" on the way there, "@ place" once there; what is performed (the renderer's act; a guard walking to his own
-    // post is shown in the guard's walk with his arms, written "walk"), the physical load or what the plan says is carried;
-    // "[off the Terrace: not drawn]" when the person is in the town or the plain (hidden, doing what the plan says)
-    const tk = a.task, perf = sim.performance(a).act, act = a.walking && perf === 'patrol' && tk?.act === 'stand_guard' ? 'walk' : perf;
+    // "→ place" on the way there, "@ place" once there; what is performed (the renderer's act, as it is: a guard walking to
+    // his own post performs `patrol`, the armed guard's walk, and is marked so: S10 of round 4 read it as a round), the
+    // physical load or what the plan says is carried; "[off the Terrace: not drawn]" when the person is in the town or the
+    // plain (hidden, doing what the plan says)
+    const tk = a.task, act = sim.performance(a).act, toPost = a.walking && act === 'patrol' && tk?.act === 'stand_guard';
     const held = a.carry ? LOAD[a.carry] ?? a.carry : tk?.holds;
-    const s = `${act}${ph(act)} ${a.walking ? '→' : '@'} ${tk?.place ?? '-'} — ${tk?.why ?? ''}${held ? ` [carrying ${held}]` : ''}${a.sick ? ' [sick]' : ''}${a.offmap ? ' [off the Terrace: not drawn]' : ''}`;
+    const s = `${act}${ph(act)}${toPost ? ' (the armed walk to his own post, not a round)' : ''} ${a.walking ? '→' : '@'} ${tk?.place ?? '-'} — ${tk?.why ?? ''}${held ? ` [carrying ${held}]` : ''}${a.sick ? ' [sick]' : ''}${a.offmap ? ' [off the Terrace: not drawn]' : ''}`;
     if (s !== last) { log.push(`${hm(t - d * 24)}  ${s}`); last = s; }
   }
   return { head, log };
