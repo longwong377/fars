@@ -10,9 +10,14 @@ import { plotAt, landUseAt, pcg, unit, checkMixes, IRR_STEPS, RAINFED_BARLEY, VI
 import { buildCanals } from '../src/world/plain/canals';
 import { placeVillages, villageCompounds, compoundBoxes } from '../src/world/plain/villages';
 import { buildPlain, PlainBuild } from '../src/world/plain';
+import { carvableTranslit } from '../src/world/plain/naqsh';
+import { loadInscriptionFonts } from '../src/arch/decor';
 import { curvatureDrop } from '../src/terrain/heightfield';
 
 const T = loadTerrain(), R = loadRiversFile();
+
+// the DNa/DNb carving needs the inscription fonts wherever the plain is built
+beforeAll(async () => { await loadInscriptionFonts(async p => { const b = readFileSync('public/' + p); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer; }); });
 
 describe('rivers (plain.json flow_by_month, channel; tools/build_terrain.py layer 4)', () => {
   it('the fitted trapezoid reproduces every monthly width within 0.15 m', () => {
@@ -205,7 +210,19 @@ describe('walking the plain (terrain heightfield + lazy plain colliders)', () =>
 
 describe('the plain as built (headless): budgets, tiers, chronology', () => {
   let P: PlainBuild; const scene = new THREE.Scene();
-  beforeAll(async () => { P = await buildPlain(scene, T, null, { quality: 'high', seed: 1, fetchJson: async p => JSON.parse(readFileSync('public/' + p, 'utf8')) }); }, 120_000);
+  beforeAll(async () => {
+    P = await buildPlain(scene, T, null, { quality: 'high', seed: 1, fetchJson: async p => JSON.parse(readFileSync('public/' + p, 'utf8')) });
+  }, 120_000);
+  it('the tomb of Darius carries DNa and DNb in Old Persian from the edition, without the modern lacunae', () => {
+    const tm = P.group.getObjectByName('nr-inscriptions-carved') as THREE.Mesh; expect(tm).toBeTruthy();
+    const note = String(tm.userData.note); console.log(note);
+    for (const id of ['DNa', 'DNb']) {
+      const m = note.match(new RegExp(`${id}: (\\d+) signs, glyph ([\\d.]+) cm, (\\d+) lines`)); expect(m, id).toBeTruthy();
+      expect(+m![1], id).toBeGreaterThan(600); expect(+m![2], id).toBeGreaterThan(1.5); expect(+m![2], id).toBeLessThan(8);
+      expect(carvableTranslit(id).split(' ').some(w => w === 'x' || w.includes('-')), id).toBe(false);
+      expect(P.group.getObjectByName(`inscription:${id}:op:pick`), id).toBeTruthy();
+    }
+  });
   it('draw calls and triangles of everything the plain adds stay inside the Phase 7 budget (<= 150 calls, <= 2 M triangles before culling)', () => {
     let calls = 0, tris = 0; const rows: string[] = [];
     P.group.traverse(o => { const m = o as THREE.Mesh; if (!m.isMesh) return; calls++;

@@ -100,7 +100,7 @@ async function boot() {
   input.yaw = SPAWN.yaw;
   input.onInteract = () => { const r = world.address?.(camera); if (r) console.info('[translation layer]', JSON.stringify(r)); };
   const tl = new TranslationLayer(() => settings); input.onAction = a => tl.toggle(a);
-  let lastSub: any = null, lastSubAt = -1e9; const inscGroup = world.root.getObjectByName('inscriptions') ?? null;
+  let lastSub: any = null, lastSubAt = -1e9; const inscGroup = [world.root.getObjectByName('inscriptions') ?? null, world.root.getObjectByName('nr-inscriptions') ?? null];
   const body = makePlayerBody(); scene.add(body);
 
   let lastSave: string | null = null;

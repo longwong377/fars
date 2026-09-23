@@ -60,7 +60,9 @@ export async function loadInscriptionFonts(fetcher: (path: string) => Promise<Ar
   for (const [k, f] of [['op', 'NotoSansOldPersian-Regular.ttf'], ['cun', 'NotoSansCuneiform-Regular.ttf']]) fonts[k] = opentype.parse(await fetcher(`fonts/${f}`));
 }
 /** Build carved-text geometry: glyphs as shallow bevelled extrusions (incised look), laid out in lines filling a panel. */
-export function textPanelGeometry(fontKey: 'op' | 'cun', text: string, width: number, glyphH: number, lineGap: number): { geo: THREE.BufferGeometry; lines: number; height: number } {
+/** `flat`: the sign faces only (no extrusion or bevel, curves at 1 segment): ~1/10 of the triangles, for text seen from
+ *  metres away (the Naqsh-e Rustam panels, 15–25 m up), where an incision reads as a dark stroke */
+export function textPanelGeometry(fontKey: 'op' | 'cun', text: string, width: number, glyphH: number, lineGap: number, flat = false): { geo: THREE.BufferGeometry; lines: number; height: number } {
   const font = fonts[fontKey]; if (!font) throw new Error('inscription fonts not loaded');
   const unitsPerEm = font.unitsPerEm, scale = glyphH / unitsPerEm * 1.25;
   const shapes: THREE.Shape[] = []; let x = 0, y = 0, lines = 1;
@@ -78,7 +80,7 @@ export function textPanelGeometry(fontKey: 'op' | 'cun', text: string, width: nu
     }
     x += adv;
   }
-  const geo = new THREE.ExtrudeGeometry(shapes, { depth: 0.004, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.0025, bevelSegments: 1, curveSegments: 3 });
+  const geo = flat ? new THREE.ShapeGeometry(shapes, 1).translate(0, 0, 0.003) : new THREE.ExtrudeGeometry(shapes, { depth: 0.004, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.0025, bevelSegments: 1, curveSegments: 3 });
   geo.deleteAttribute('uv');
   return { geo, lines, height: lines * (glyphH + lineGap) };
 }

@@ -4,8 +4,10 @@
 // "fire altars" are absent (chronology, blocklist). Every dimension is plain.json `naqsh_e_rustam` (tiers there): façade
 // 22.93 m, foot 15 m above the ancient ground, median register 14 x 7.60 m, upper arm 8.50 m (B, search extracts); arm
 // width, recess, column and door sizes and the figures' drawing are reconstruction (C). The relief figures are schematic
-// silhouettes (PLACEHOLDER carving, flagged in the dev overlay); the DNa/DNb panels are dressed but not inscribed
-// (PLACEHOLDER: the published text is not in inscriptions.json).
+// silhouettes (PLACEHOLDER carving, flagged in the dev overlay). The DNa and DNb panels carry the Old Persian text of the
+// standard edition (ARIo Q007152 / Q007153, Schmitt 2009, CC0; session 3), carved like the Terrace inscriptions (glyph
+// outlines, sign forms by Kent's rules, C); modern lacunae ("x") are left out; the Elamite and Babylonian versions are
+// not carved (not in the corpus mirror).
 //
 // Frame: the cliff face is the line grid y = cliff.face_y (world z = -face_y), along grid x; "depth" d > 0 goes into the
 // rock (grid north). The ground at the face is the ancient foot level exported by tools/build_terrain.py (the heightfield
@@ -17,6 +19,22 @@ import { curvatureDrop } from '../../terrain/heightfield';
 import { SURFACES, surfaceMaterial } from '../../render/materials';
 import { PLAIN, feature, tag } from './data';
 import type { Physics } from '../../player/physics';
+import { textPanelGeometry, INSCRIPTION_PICK_LAYER } from '../../arch/decor';
+import { toCuneiform } from '../../lang/oldPersian';
+import inscriptions from '../../data/inscriptions.json';
+
+/** Old Persian of an inscription for carving: the edition's transliteration without its modern lacunae (tokens "x" and
+ *  damaged sign groups written with hyphens); in 467 those words were there, but are not known */
+export function carvableTranslit(id: string): string {
+  return String((inscriptions as any)[id].op_translit).split(/\s+/).filter(w => w && w !== 'x' && !w.includes('-')).join(' ');
+}
+/** carve `text` (cuneiform) into a w × h area: the glyph height is fitted so the whole text fills the area */
+function fitText(text: string, w: number, h: number) {
+  let g = Math.sqrt((w * h) / ([...text].length * 1.6)), best = textPanelGeometry('op', text, w, g, g * 0.45, true);
+  for (let k = 0; k < 4 && Math.abs(best.height - h) > 0.04 * h; k++) { best.geo.dispose(); g *= Math.sqrt(h / best.height) * 0.99; best = textPanelGeometry('op', text, w, g, g * 0.45, true); }
+  while (best.height > h) { best.geo.dispose(); g *= 0.97; best = textPanelGeometry('op', text, w, g, g * 0.45, true); }
+  return { ...best, glyphH: g };
+}
 
 SURFACES.nr_rock = { albedo: [0.5, 0.47, 0.42], roughness: 0.9, porosity: 0.3, noiseScale: 0.35, noiseAmp: 0.16, bump: { amp: 0.05, freq: 0.6 }, tier: 'C', note: 'Naqsh-e Rustam cliff: grey limestone, weathered (albedo C)' };
 SURFACES.nr_dressed = { albedo: [0.55, 0.52, 0.47], roughness: 0.75, porosity: 0.3, noiseScale: 1.1, noiseAmp: 0.07, bump: { amp: 0.002, freq: 4 }, tier: 'C', note: 'dressed limestone of the rock-cut façades (albedo C)' };
@@ -58,7 +76,10 @@ function onFace(f: Face, g: THREE.BufferGeometry, x0: number, h0: number, d0: nu
 const box = (w: number, h: number, d: number) => { const g = new THREE.BoxGeometry(w, h, d).toNonIndexed(); g.deleteAttribute('uv'); g.translate(0, h / 2, d / 2); return g; }; // base at y 0, back at z 0
 
 // ---------------------------------------------------------------- one tomb façade
-function tombFacade(f: Face, cx: number, inscribed: boolean): { stone: THREE.BufferGeometry[]; figures: THREE.BufferGeometry[]; panels: THREE.BufferGeometry[]; front: THREE.BufferGeometry } {
+/** a text area on a dressed panel: left edge x0, top yTop (face coordinates), size w × h, panel front at depth d */
+interface TextArea { id: 'DNa' | 'DNb'; x0: number; yTop: number; w: number; h: number; d: number }
+function tombFacade(f: Face, cx: number, inscribed: boolean): { stone: THREE.BufferGeometry[]; figures: THREE.BufferGeometry[]; panels: THREE.BufferGeometry[]; front: THREE.BufferGeometry; texts: TextArea[] } {
+  const texts: TextArea[] = [];
   const F = NR().facade, stone: THREE.BufferGeometry[] = [], figures: THREE.BufferGeometry[] = [], panels: THREE.BufferGeometry[] = [];
   const h0 = F.foot_above_ground_m, hL = F.lower_arm_h_m, hM = F.median_register_h_m, hU = F.upper_arm_h_m, aw = F.arm_w_m / 2, mw = F.median_register_w_m / 2, R = F.recess_m;
   const hMid = h0 + hL, hTop = hMid + hM, hEnd = hTop + hU;
@@ -98,8 +119,9 @@ function tombFacade(f: Face, cx: number, inscribed: boolean): { stone: THREE.Buf
   for (const s of [-1, 1]) stone.push(onFace(f, box(0.35, dh + 0.35, 0.25), cx + s * (dw / 2 + 0.175) - 0.175, hMid + 0.2, R)); // jambs
   stone.push(onFace(f, box(dw + 1.2, 0.5, 0.35), cx - dw / 2 - 0.6, hMid + 0.2 + dh + 0.35, R)); // lintel with a cornice band
   stone.push(onFace(f, box(dw, dh, 0.08), cx - dw / 2, hMid + 0.2, R + 0.05 - 0.08)); // the sealing slab, set back in the frame
-  if (inscribed) { // DNb between the columns (left of the door): dressed panel, text not carved (PLACEHOLDER)
+  if (inscribed) { // DNb between the columns (left of the door): dressed panel, Old Persian text inset 0.1 m
     panels.push(onFace(f, box(2.4, 2.8, 0.02), cx - 3.95 - 1.2 + 0.05, hMid + 1.2, R));
+    texts.push({ id: 'DNb', x0: cx - 5.1 - 1.1, yTop: hMid + 1.2 + 2.7, w: 2.2, h: 2.6, d: R - 0.02 });
   }
   // --- upper register: two tiers of 14 throne-bearers under the dais, the king on a three-stepped podium before the fire altar,
   // the winged figure and the moon above; attendants in three tiers on the side panels (programme B, drawing C)
@@ -121,8 +143,11 @@ function tombFacade(f: Face, cx: number, inscribed: boolean): { stone: THREE.Buf
   const moon = new THREE.Shape(); moon.absarc(0, 0, 0.36, 0, Math.PI * 2, false); const hole = new THREE.Path(); hole.absarc(0.12, 0.05, 0.3, 0, Math.PI * 2, true); moon.holes.push(hole);
   figures.push(onFace(f, extrude(moon, 0.08), cx + 3.6, top + 3.25, R));
   for (const s of [-1, 1]) for (let t = 0; t < 3; t++) figures.push(onFace(f, extrude(figureShape('guard'), 0.1), cx + s * 4.75 - 0.15, u0 + 0.35 + t * 2.6, R, 1.8, 1.8, 1));
-  if (inscribed) panels.push(onFace(f, box(1.6, 2.2, 0.02), cx - 4.9 + 0.1, top + 0.9, R)); // DNa panel behind the king (PLACEHOLDER: not inscribed here)
-  return { stone, figures, panels, front: frontG };
+  if (inscribed) { // DNa panel behind the king, Old Persian text inset 0.1 m
+    panels.push(onFace(f, box(1.6, 2.2, 0.02), cx - 4.9 + 0.1, top + 0.9, R));
+    texts.push({ id: 'DNa', x0: cx - 4.8 - 0.7, yTop: top + 0.9 + 2.1, w: 1.4, h: 2.0, d: R - 0.02 });
+  }
+  return { stone, figures, panels, front: frontG, texts };
 }
 
 // ---------------------------------------------------------------- the cliff
@@ -222,7 +247,7 @@ function kaba(f: Face, terrain: Terrain, court: number, ancAsl: number): { white
 }
 
 // ---------------------------------------------------------------- build
-export interface NaqshBuild { group: THREE.Group; colliders(phys: Physics): void; tris: number }
+export interface NaqshBuild { group: THREE.Group; colliders(phys: Physics): void; tris: number; /** the DNa/DNb carving and pick rectangles */ texts: THREE.Group }
 export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild {
   const cl = NR().cliff, fy = cl.face_y as number, [xa, xb] = cl.x_range as [number, number], H = cl.height_m as number;
   const f: Face = { fy, groundAsl: ancientFootAsl, court: terrain.meta.court_asl };
@@ -238,6 +263,9 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   const rock = surfaceMaterial('nr_rock'), dressed = surfaceMaterial('nr_dressed');
   rock.side = THREE.DoubleSide; // the cliff's top and end returns are seen from both sides
   const facades = tombs.map(t => ({ t, fc: tombFacade(f, t.x, t.inscribed) }));
+  const texts = new THREE.Group(); texts.name = 'nr-inscriptions'; const carved: THREE.BufferGeometry[] = [], textInfo: string[] = [];
+  const inscMat = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(0.22, 0.21, 0.2, THREE.SRGBColorSpace), roughness: 0.95 }); // as the Terrace inscriptions (decor.ts)
+  const pickMat = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide, visible: false });
   const cliff = new THREE.Mesh(mergeGeometries([cliffGeometry(f, holes, xa, xb, H), cliffTop(f, terrain, xa, xb, H, holes), endCaps(f, xa, xb, H, holes), ...facades.map(q => q.fc.front)].map(g => g.index ? g.toNonIndexed() : g))!, rock);
   cliff.name = 'nr-cliff'; cliff.castShadow = cliff.receiveShadow = true;
   cliff.userData = { tier: 'C', src: cl.src, note: `cliff ${H} m high (B, SX); face line and rock surface reconstructed (C)`, placeholder: false };
@@ -250,8 +278,24 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
     const fig = new THREE.Mesh(mergeGeometries(fc.figures)!, dressed); fig.name = t.id + '-reliefs'; fig.castShadow = fig.receiveShadow = true;
     fig.userData = { tier: 'C', src: 'NR-ACHAEMENICA;WP-NR', note: 'upper register: 28 throne-bearers in two tiers, the king on a three-stepped podium before the fire altar, the winged figure and the moon (programme B); figures are schematic silhouettes (C)', placeholder: true };
     group.add(st, fig); tris += (st.geometry.getAttribute('position').count + fig.geometry.getAttribute('position').count) / 3;
-    if (fc.panels.length) { const pm = new THREE.Mesh(mergeGeometries(fc.panels)!, dressed); pm.name = t.id + '-inscription-panels'; pm.userData = { tier: 'A', src: 'LIVIUS-NR', note: 'DNa/DNb inscription panels: dressed, text NOT carved (the published text is not in inscriptions.json)', placeholder: true }; group.add(pm); }
+    if (fc.panels.length) { const pm = new THREE.Mesh(mergeGeometries(fc.panels)!, dressed); pm.name = t.id + '-inscription-panels'; pm.userData = { tier: 'C', src: 'LIVIUS-NR', note: 'DNa/DNb inscription panels: dressed fields (position and size C)', placeholder: false }; group.add(pm); }
+    // the carved Old Persian text of DNa and DNb (one mesh), with pick rectangles for the translation layer
+    for (const a of fc.texts) {
+      const cun = toCuneiform(carvableTranslit(a.id)), fit = fitText(cun, a.w, a.h);
+      // text geometry: x 0…w along the face, first baseline at y 0 (glyphs rise ~glyphH above it), z out of the panel
+      carved.push(onFace(f, fit.geo, a.x0, a.yTop - fit.glyphH * 1.1, a.d));
+      const quad = box(a.w + 0.1, a.h + 0.1, 0.001); onFace(f, quad, a.x0 + a.w / 2, a.yTop - a.h - 0.05, a.d - 0.01);
+      const pick = new THREE.Mesh(quad, pickMat); pick.layers.set(INSCRIPTION_PICK_LAYER); pick.name = `inscription:${a.id}:op:pick`;
+      pick.userData = { tier: 'C', inscription: a.id, version: 'op', pickFar: 80 }; texts.add(pick);
+      textInfo.push(`${a.id}: ${[...cun].length} signs, glyph ${(fit.glyphH * 100).toFixed(1)} cm, ${fit.lines} lines`);
+    }
   }
+  if (carved.length) {
+    const tm = new THREE.Mesh(mergeGeometries(carved.map(g => g.index ? g.toNonIndexed() : g))!, inscMat); tm.name = 'nr-inscriptions-carved'; tm.receiveShadow = true;
+    tm.userData = { tier: 'C', src: 'ARIO;NOTO;LIVIUS-NR', note: `DNa, DNb Old Persian (text A: ARIo Q007152/Q007153, CC0; sign forms by Kent's rules C; layout in the panel C; modern lacunae left out; Elamite and Babylonian versions not carved) — ${textInfo.join('; ')}` };
+    texts.add(tm); tris += tm.geometry.getAttribute('position').count / 3;
+  }
+  group.add(texts);
   // Neo-Elamite relief: a panel at the nearest point of the face to its xy, schematic figures (PLACEHOLDER carving)
   const ER = NR().elamite_relief, ex = feature('nr_elamite_relief').xy[0] as number;
   const rel: THREE.BufferGeometry[] = [onFace(f, box(ER.w_m + 0.3, ER.h_m + 0.3, 0.05), ex - ER.w_m / 2 - 0.15, ER.base_above_ground_m - 0.15, 0.12)];
@@ -265,7 +309,7 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   kw.name = 'nr-kaba'; kd.name = 'nr-kaba-dark'; kw.castShadow = kw.receiveShadow = kd.receiveShadow = true;
   kw.userData = kd.userData = tag(feature('nr_kaba'), `Ka'ba-ye Zardosht: 12 m tower on a triple-stepped base (14.12 m), base side 7.30 m, 30-step stair, door 1.7 x 0.87 m (C, WP-NR search extract); window layout and stair orientation C; date disputed (Q-006)`);
   group.add(kw, kd); tris += (kb.white.getAttribute('position').count + kb.dark.getAttribute('position').count) / 3;
-  return { group, tris,
+  return { group, tris, texts,
     colliders(phys: Physics) {
       const g = cliff.geometry, p = g.getAttribute('position') as THREE.BufferAttribute, idx = new Uint32Array(p.count); for (let i = 0; i < p.count; i++) idx[i] = i;
       phys.addTrimesh(new Float32Array(p.array as ArrayLike<number>), idx, { tier: 'C', what: 'naqsh-e-rustam cliff' });

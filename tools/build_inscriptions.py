@@ -47,7 +47,7 @@ def atf_to_cun(atf):
         out.append(''.join(signs))
     return ' '.join(out), missing
 texts = {json.loads(l)['id_text']: json.loads(l)['raw_text'] for l in open('data/corpus/ario.jsonl', encoding='utf8')}
-IDS = {'XPa': 'Q007209', 'XPb': 'Q007210', 'XPc': 'Q007211', 'XPd': 'Q007212'}
+IDS = {'XPa': 'Q007209', 'XPb': 'Q007210', 'XPc': 'Q007211', 'XPd': 'Q007212', 'DNa': 'Q007152', 'DNb': 'Q007153'}  # DNa/DNb: Darius I's tomb, Naqsh-e Rustam (identified by content: DNa 'Ariyaciça', 'gāθum', 'patikarā'; DNb 'ima frašam ... upari Dārayava.um')
 res = {}
 for sig, q in IDS.items():
     raw = texts[q]

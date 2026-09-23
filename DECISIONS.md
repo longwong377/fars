@@ -524,3 +524,23 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - The top fades over the upper 60 %. The streaks are softer.
   - The tint is 0.7 of the calibrated horizon (C: a curtain shaded under the deck reads darker than the horizon behind it).
   - The moment moves to day 241, 13:24, looking 300°: the cell is 23 km NW over the plain, 1.3 h before the episode, cloud 0.78. The old pre-dawn slot (day 12, 05:40) was under full overcast with the far ranges hidden.
+
+## D-061 — DNa and DNb carved at Naqsh-e Rustam from the edition text (session 3)
+- **Before:** the Phase 7 panels on Darius I's tomb were dressed but blank (D-039 placeholder), because the text was believed missing.
+- **Found:** it is in the project's own CC0 ARIo mirror (`data/corpus/ario.jsonl`, Schmitt 2009), identified by content:
+  - Q007152 = DNa ("Ariyaciça", the throne-bearers passage "patikarā … gāθum");
+  - Q007153 = DNb ("haya adadā ima frašam … upari Dārayava.um").
+  - The neighbouring Q007172 is DSf, not DNa.
+  - These ARIo entries carry the Old Persian versions only.
+- **Built:**
+  - `tools/build_inscriptions.py` adds both; XPa–XPd come out byte-identical.
+  - The Old Persian is carved on the two panels with the Terrace pipeline (glyph outlines, sign forms by Kent's rules, C), fitted to fill each panel: DNa 1,358 signs, 3.2 cm glyphs, 43 lines; DNb 1,585 signs, 4.2 cm, 42 lines.
+  - Modern lacunae (ARIo "x" and hyphenated damaged groups) are left out. In 467 those words were intact, but they are unknown to us, so no signs are invented for them.
+  - The glyphs are flat faces (`textPanelGeometry(…, flat = true)`). Extruded, bevelled glyphs cost 2.6 M triangles; flat faces cost 98 k. From 15–25 m below, an incision reads as a dark stroke.
+  - The carving is drawn only within 600 m of the cliff.
+  - Pick rectangles let the translation layer read both texts from up to 80 m (the Terrace panels: 15 m).
+- **Tiers:**
+  - Text A (standard edition).
+  - Sign forms C.
+  - Panel position, size and line layout C (the real OP columns run to more lines than the C-sized panels hold at this glyph size).
+  - Elamite and Babylonian versions not carved (not in the mirror): still a placeholder, flagged in the mesh note.

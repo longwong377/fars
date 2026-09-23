@@ -64,11 +64,12 @@
     - the east end of the Naqsh-e Rustam cliff is probably still a sheer slab;
     - the edge of the near-crop radius is visible (18 m test, 30 m high);
     - dark specks on the ground, probably the earth material's stone chips.
-  - Placeholders (flagged in F3): the Naqsh-e Rustam and Neo-Elamite relief figures are schematic silhouettes; the DNa/DNb panels are dressed but textless (the text is not in `inscriptions.json`).
+  - Placeholders (flagged in F3): the Naqsh-e Rustam and Neo-Elamite relief figures are schematic silhouettes. DNa and DNb now carry their Old Persian text from the CC0 edition (D-061; not yet seen in a render); their Elamite and Babylonian versions are not carved.
   - Every placement is C (Q-076 to Q-080); the rivers follow their modern courses. Qadamgah and the 18 "possible" sites are not built.
-  - The out-of-world map still shows the Terrace only.
+  - The out-of-world map now has town and plain scales (Z), drawn from what the world builds (not yet seen in a render).
 - **King absent by default (D-003):** no evidence places Xerxes at Persepolis in 467. The court appears only in the C-tier "seasonal pattern" setting.
 - **No primary sources reachable (B6):** SITE_SPEC is tier B/C, nothing is A, and the plan overlay compares against OSM, not Schmidt.
+- **Sky calibration (D-060, not yet seen in a render):** the sky dome is scaled to the skylight's irradiance, and the fog, far cloud haze and rain shafts converge to the calibrated horizon. This changes the look of every distant view and every daytime sky. The twilight and overcast values rest on the C hemisphere light.
 - **Sky and bench:**
   - The Milky Way and airglow are implemented (D-047: position A, structure C) but not yet seen in a render.
   - The volumetric clouds are now seen: drawn behind all geometry (D-046). They read as soft, blurry stratocumulus smears, not crisp cumulus. A texture-based rework was in progress (not yet verified).

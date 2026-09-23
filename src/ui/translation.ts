@@ -14,7 +14,7 @@ import { INSCRIPTION_PICK_LAYER } from '../arch/decor';
 export interface SubtitleLike { lang: string; translit: string; gloss: string; tier: string; speakerId?: number }
 export interface ChronicleEvent { t: number; kind: string; text: string; place: string }
 export interface TranslationContext {
-  camera: THREE.Camera; inscriptions: THREE.Object3D | null; subtitle: SubtitleLike | null; subtitleAt: number; now: number;
+  camera: THREE.Camera; inscriptions: THREE.Object3D | (THREE.Object3D | null)[] | null; subtitle: SubtitleLike | null; subtitleAt: number; now: number;
   player: { e: number; n: number; yawDeg: number }; events: ChronicleEvent[]; timeLabel: (tHours: number) => string; places: Record<string, { at: [number, number] }>;
   /** the built world's map layers (settlement, plain), computed once by the world */
   mapLayers?: () => MapItem[];
@@ -24,6 +24,8 @@ const INSCRIPTION_INFO: Record<string, { title: string; where: string }> = {
   XPa: { title: 'XPa — Xerxes, Gate of All Nations', where: 'carved above the doorway colossi of the Gate (version per colossus: C)' },
   XPb: { title: 'XPb — Xerxes, Apadana', where: 'beside the audience panels of the Apadana stairs (placement C)' },
   XPc: { title: 'XPc — Xerxes, Tachara', where: 'Tachara (S stair façade)' },
+  DNa: { title: 'DNa — Darius I, his tomb at Naqsh-e Rustam', where: 'upper register, behind the king (panel position C; Old Persian version only)' },
+  DNb: { title: 'DNb — Darius I, his tomb at Naqsh-e Rustam', where: 'façade, between the columns left of the door (panel position C; Old Persian version only; modern lacunae shown as x)' },
   XPd: { title: 'XPd — Xerxes, Hadish', where: 'Hadish (W stair façade)' },
 };
 const LANG_NAME: Record<string, string> = { op: 'Old Persian', el: 'Elamite', arc: 'Aramaic', bab: 'Babylonian' };
@@ -62,8 +64,10 @@ export class TranslationLayer {
     if (show && sb) this.sub.replaceChildren(el('div', 'tl-orig', sb.translit), el('div', 'tl-gloss', `“${sb.gloss}”`), el('div', 'tl-meta', `${LANG_NAME[sb.lang] ?? sb.lang} · tier ${sb.tier}`));
     // inscriptions under the crosshair
     if (ctx.now - this.lastPick > 0.25 && ctx.inscriptions) {
-      this.lastPick = ctx.now; this.ray.setFromCamera(new THREE.Vector2(0, 0), ctx.camera); this.ray.far = 15;
-      const hit = this.ray.intersectObject(ctx.inscriptions, true)[0];
+      this.lastPick = ctx.now; this.ray.setFromCamera(new THREE.Vector2(0, 0), ctx.camera); this.ray.far = 80;
+      const groups = (Array.isArray(ctx.inscriptions) ? ctx.inscriptions : [ctx.inscriptions]).filter((g): g is THREE.Object3D => !!g);
+      // within reading distance: 15 m on the Terrace; panels that stand high on a cliff (Naqsh-e Rustam) set their own
+      const hit = this.ray.intersectObjects(groups, true).find(h => h.distance <= (h.object.userData.pickFar ?? 15));
       this.picked = hit ? (hit.object.name.split(':')[1] ?? null) : null;
     }
     this.insc.hidden = !this.picked;
