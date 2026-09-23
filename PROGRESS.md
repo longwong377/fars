@@ -55,13 +55,11 @@
     - Construction geometry hook: done (D-062). The hall's columns follow the simulated drums, fluting and capitals (tested, not yet seen in a render); walls, reliefs, the yard and ramps stay at day 0.
     - **Rendered floors (≥ 300 visible, ≥ 50 close) are not met:** the crowd still builds one placeholder rig per detailed agent (135).
     - Newborns under one year (3,104) are reported, not gated (178 would fail in their first days). This is a scope decision in D-021, to be judged by the independent review.
-    - **The §13.11 shadow review FAILED:** 10 of 20 people scored below 4 (REVIEWS/shadow_phase5.md). The causes are systemic:
-      - heavy workers eat once;
-      - plain children who follow their mother never sleep;
-      - infants are nursed only at the mother's meals;
-      - marriage takes mothers from young children;
-      - households are not synchronised and schedules run like clockwork.
-      The population agent is fixing them. A fresh independent reviewer will re-run the review.
+    - **The §13.11 shadow review FAILED in round 1:** 10 of 20 people scored below 4 (REVIEWS/shadow_phase5.md).
+      - The sim agent fixed the systemic causes and merged them (D-080, D-081): shared household days with three meals, children who sleep, infants nursed on demand, marriage that never takes a mother, births from each mother's history, and all 2,058 town households on real plots.
+      - Soak passes all eight gates on the agent's run.
+      - A fresh independent reviewer is scoring round 2 on a sample the builder never saw (REVIEWS/shadow_days_input_seed1_pick23.txt).
+    - Still open: 27 placeholder activities; construction runs above E-61 (8 shafts a year vs ~5); marriages run below E-73; the town.json shares disagree with the built houses' capacity (D-081); mean frame time at 60× time went from 4.7 ms to 8.1 ms.
     - Every day-plan weight is C. The grain deliveries in the read texts cannot feed the ration groups (Q-056). Workers other than guards have no regular rest days (Q-057).
 - **Phase 4b (merged in session 3, D-048 to D-052):**
   - Draw calls at quality high fell from 3,361 / 3,225 / 3,120 to 1,120 / 991 / 1,018 (Grand Stair foot, Apadana N court, Tachara S court): far relief chunks are merged into one coarse mesh.
