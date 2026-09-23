@@ -32,10 +32,19 @@ describe('walkable grid', () => {
     for (const k of ['e0', 'n0', 'cell', 'w', 'h'] as const) expect(navMeta[k]).toBe(NAV[k]);
   });
   it('every place is on walkable ground (or within 2 m of it) and reachable from the town', () => {
+    // one flood fill from the town instead of an A* per place (that timed out under load): 4-neighbour connectivity equals
+    // the pathfinder's 8-neighbour connectivity, since a diagonal step needs both orthogonal detours to be legal (move8)
+    const W = nav.w, seen = new Uint8Array(W * nav.h), t = nav.snap(PLACES.town.at[0], PLACES.town.at[1], 2)!; expect(t).not.toBeNull();
+    const [ti, tj] = nav.ij(t[0], t[1]); const q = new Int32Array(W * nav.h); let head = 0, tail = 0; q[tail++] = tj * W + ti; seen[tj * W + ti] = 1;
+    while (head < tail) { const k = q[head++], i = k % W, j = (k / W) | 0;
+      for (const [ii, jj] of [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]]) { const kk = jj * W + ii; if (ii >= 0 && jj >= 0 && ii < W && jj < nav.h && !seen[kk] && nav.move(i, j, ii, jj)) { seen[kk] = 1; q[tail++] = kk; } } }
     for (const p of Object.values(PLACES)) {
       const s = nav.snap(p.at[0], p.at[1], 2); expect(s, p.id).not.toBeNull();
-      if (p.id !== 'town') expect(nav.findPath(PLACES.town.at, s!), `route town → ${p.id}`).not.toBeNull();
+      const [i, j] = nav.ij(s![0], s![1]); expect(seen[j * W + i], `route town → ${p.id}`).toBe(1);
     }
+    // and the pathfinder itself reaches the farthest place within its expansion budget
+    const far = Object.values(PLACES).reduce((a, b) => (Math.hypot(b.at[0] - t[0], b.at[1] - t[1]) > Math.hypot(a.at[0] - t[0], a.at[1] - t[1]) ? b : a));
+    expect(nav.findPath(PLACES.town.at, far.at), `route town → ${far.id}`).not.toBeNull();
   });
   it('the route from the plain climbs the Grand Stair and enters the Apadana through its N stair (not through walls)', () => {
     const path = nav.findPath(PLACES.town.at, PLACES.apadana_hall.at)!;
