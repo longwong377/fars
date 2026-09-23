@@ -14,7 +14,8 @@
       "trigger": "fires when the named event or state change occurs",
       "once": "fires once at month/day",
       "state": "a continuous state keyed by month, not a discrete event",
-      "never": "documented but not scheduled (kept so that the gap is visible)"
+      "never": "documented but not scheduled (kept so that the gap is visible)",
+      "mass_balance": "deliveries sized so the stores meet the modelled outlays over the year (E-06b; DECISIONS D-021, Q-056)"
     },
     "effects_grammar": "pseudo-code for the simulation engineer, not executable: store.X -= qty; agent.need += x; group.flag = v; spawn(template); schedule(E-xx)",
     "stores": ["grain", "tarmu", "flour", "beer", "wine", "figs", "sesame", "sheep", "hides", "silver_shekels", "poultry"],
@@ -98,6 +99,18 @@
       "effects": ["store.grain += qty", "tablet sealed (E-15)"],
       "default": true, "tier": "C", "src": "CDLI-PF",
       "note": "quantities A (PF 2-8, 26, 30-33); seasonality C: only PF 6 (months 4-6) and PF 7 (month 8) are dated to the month"
+    },
+    {
+      "id": "E-06b", "kind": "delivery", "name": "grain (with a little tarmu) brought in to the ration storehouse from the harvest, sized to the outlays",
+      "months": "all", "rule": { "type": "mass_balance", "shape": "E-06 mean_by_month", "mean_consignment_BAR": 1500, "consignment_spread": [0.6, 1.4], "tarmu_share": 0.03, "initial_stock_months": 4.5,
+        "sized_to": "12 months of the ration groups' demand + the work-camp bread + transferred groups (E-23), times the year's harvest factor (0.9-1.1), less the expected E-06 deliveries" },
+      "participants": [{ "role": "receiver (storekeeper)", "count": 1 }, { "role": "delivery men with pack donkeys (C)", "count": [2, 8] }],
+      "place_kind": "storehouse (town)",
+      "goods": [{ "item": "grain", "qty": "see rule", "unit": "BAR" }, { "item": "tarmu", "qty": "3 % of the consignment", "unit": "BAR" }],
+      "preconditions": ["not a storm day"],
+      "effects": ["store.grain += 0.97 qty; store.tarmu += 0.03 qty", "tablet sealed (E-15)"],
+      "default": true, "tier": "C", "src": "CDLI-PF;RECON",
+      "note": "balance row (DECISIONS D-021): the read E-06 consignments (6-3000 BAR, median 100-400) at the E-06 rate (~57 a year, i.e. roughly 6,000-23,000 BAR) cannot feed the ~2,700 people in ration groups (~7,400 BAR a month, ~89,000 a year), so the ration store is also filled in the E-06 seasonal shape, sized to the outlays. The PF record receipts and outlays of the same suppliers, not the balance (Q-056). Shown in the world as ordinary E-06 deliveries."
     },
     {
       "id": "E-07", "kind": "milling", "name": "grain to the mill (nupištaš), flour back to the stores",

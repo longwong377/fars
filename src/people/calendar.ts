@@ -209,6 +209,10 @@ export class EventCalendar {
     for (const x of this.inst('E-07', d)) { ctx.milling.push(x.hour); ops.push({ t: x.hour, f: () => { // reorder rule (C): send grain to the mill only when flour runs below ~6 weeks of use
       const target = 1800; if (S.flour >= target) return; const q = Math.max(300, Math.min(1200, (target - S.flour) / 0.9)); if (S.grain < q) return; S.grain -= q; S.flour += q * 0.9;
       E(x.hour, 'E-07', `${q.toFixed(0)} BAR of grain taken to the mill; flour back to the stores`, 'mill', q); } }); }
+    // reorder trigger (C): when the flour is down to about two weeks of the work camp's use and no milling is due today,
+    // the storekeeper sends grain to the mill that morning (without it the camp's bread would silently stop)
+    if (!ctx.milling.length && S.flour < 500) { ctx.milling.push(8); ops.push({ t: 8, f: () => { const q = Math.max(300, Math.min(1200, (1800 - S.flour) / 0.9)); if (S.grain < q) return; S.grain -= q; S.flour += q * 0.9;
+      E(8, 'E-07', `flour running low: ${q.toFixed(0)} BAR of grain sent to the mill; flour back to the stores`, 'mill', q); } }); }
     for (const x of this.inst('E-08', d)) { ctx.brewing.push(x.hour); ops.push({ t: x.hour, f: () => { const q = Math.max(50, Math.min(700, 400 - S.beer)); if (S.beer > 400 || S.tarmu < q) return; S.tarmu -= q; S.beer += q; E(x.hour, 'E-08', `beer brewed from ${q.toFixed(0)} BAR of tarmu`, 'brewery', q); } }); }
     for (const x of this.inst('E-12', d)) { ctx.slaughter.push(x.hour); ops.push({ t: x.hour, f: () => { const n = 6 + Math.floor(u01(seed, salt('E-12n'), d, x.k) * 12); if (S.sheep < n + 100) return; S.sheep -= n; S.hides += n;
       E(x.hour, 'E-12', `${n} head of small cattle slaughtered at the stockyard; the hides go to the treasury`, 'stockyard', n); } }); }

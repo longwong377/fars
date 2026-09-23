@@ -51,6 +51,8 @@ export interface Agent {
   day: number; decisions: number; metPlayer: number; lastMetDay: number; gait: number; offmap: boolean; relieved: boolean;
   /** end of the current watch (a guard stays at the post until relieved) */
   watchEnd?: number;
+  /** waiting for a route search (over the step's search budget): stays where it is and asks again next step */
+  waitRoute?: boolean;
   /** simulation LOD (brief §9.2 continuity, §9.5): 'full' walks nav-grid paths; 'abstract' (far from the player, and the
    *  headless soak) makes the same decisions but travels as a timed straight-line move (distance × detour / speed) */
   lod?: 'full' | 'abstract'; travel?: { from: P2; to: P2; t0: number; t1: number } | null;
@@ -87,6 +89,10 @@ export class PeopleSim {
   /** memory of the player (brief §9.5) */
   readonly memory = new PlayerMemory();
   private pathCache = new Map<string, P2[] | null>();
+  /** the most new route searches in one step. A long route on the 0.5 m grid costs 20-200 ms, and a watch change or a
+   *  crowd of arrivals asks for many at once; over the budget an agent waits where it is and asks again next step.
+   *  Default: no limit (tests, soak); the world sets 1 for its render frames (D-024). */
+  routeSearchesPerStep = Infinity; private searches = 0;
   private lastCaravanDay = -1;
   private planCache = new Map<number, { day: number; segs: Seg[] }>();
   private evT = -1;
@@ -276,19 +282,20 @@ export class PeopleSim {
   private nearP(a: Agent, pl: string, r: number) { const p = PLACES[pl]?.at; return !!p && Math.hypot(a.pos[0] - p[0], a.pos[1] - p[1]) < r; }
 
   // ------------------------------------------------------------------ movement
-  private routeTo(a: Agent, to: P2): P2[] | null {
+  /** a route from the agent to `to`, null if there is none, undefined if the step's search budget is spent */
+  private routeTo(a: Agent, to: P2): P2[] | null | undefined {
     if (this.nav.lineClear(a.pos, to)) return [a.pos, to];
     // cache by grid cell pairs (5 m buckets) so repeated place-to-place trips reuse the search
     const q = (p: P2) => `${Math.round(p[0] / 5)},${Math.round(p[1] / 5)}`; const key = q(a.pos) + '>' + q(to);
     let mid = this.pathCache.get(key);
-    if (mid === undefined) { mid = this.nav.findPath(a.pos, to); this.pathCache.set(key, mid); }
+    if (mid === undefined) { if (this.searches >= this.routeSearchesPerStep) return undefined; this.searches++; mid = this.nav.findPath(a.pos, to); this.pathCache.set(key, mid); }
     if (!mid) return null;
     const p = mid.slice(); p[0] = a.pos; p[p.length - 1] = to;
-    if (p.length > 1 && !this.nav.lineClear(p[0], p[1])) { const f = this.nav.findPath(a.pos, to); return f; }
+    if (p.length > 1 && !this.nav.lineClear(p[0], p[1])) { if (this.searches >= this.routeSearchesPerStep) return undefined; this.searches++; return this.nav.findPath(a.pos, to); }
     return p;
   }
   private begin(a: Agent, task: Task, instant: boolean) {
-    a.task = task;
+    a.task = task; a.waitRoute = false;
     const wasOff = a.offmap;
     a.offmap = !!task.off;
     if (a.offmap && !instant && !wasOff && Math.hypot(a.pos[0] - task.spot[0], a.pos[1] - task.spot[1]) > 1) { a.offmap = false; } // walk out to the town edge first
@@ -297,7 +304,7 @@ export class PeopleSim {
     const dist = Math.hypot(a.pos[0] - task.spot[0], a.pos[1] - task.spot[1]);
     if (instant) { a.pos = [...task.spot] as P2; a.path = null; a.walking = false; if (task.off) a.offmap = true; this.ground(a); }
     else if (dist > 0.4 && a.lod === 'abstract') { a.path = null; a.walking = true; a.travel = { from: [...a.pos] as P2, to: [...task.spot] as P2, t0: this.t, t1: this.t + dist * ABSTRACT_DETOUR / (a.speed * (a.carry ? 0.8 : 1)) * H_PER_S }; }
-    else if (dist > 0.4) { a.path = this.routeTo(a, task.spot); a.pathI = 1; a.walking = !!a.path; if (!a.path) a.pos = [...task.spot] as P2; }
+    else if (dist > 0.4) { const r = this.routeTo(a, task.spot); if (r === undefined) { a.path = null; a.walking = false; a.waitRoute = true; } else { a.path = r; a.pathI = 1; a.walking = !!a.path; if (!a.path) a.pos = [...task.spot] as P2; } }
     else { a.path = null; a.walking = false; }
     if (!task.off && !a.walking && task.act !== 'stand_guard') this.socialise(a);
   }
@@ -305,7 +312,7 @@ export class PeopleSim {
   /** advance by dt game seconds */
   step(dt: number) {
     if (dt <= 0) return;
-    this.t += dt * H_PER_S;
+    this.t += dt * H_PER_S; this.searches = 0;
     this.events$();
     for (const a of this.agents) this.stepAgent(a, dt);
   }
@@ -320,7 +327,7 @@ export class PeopleSim {
         // the straight-line position may lie inside a building: step to the nearest walkable cell (a small move) and
         // route from there; with no route, stay abstract until arrival rather than jump
         const s = this.nav.snap(a.pos[0], a.pos[1], 6); if (!s) continue;
-        const saved = a.pos; a.pos = s; const path = this.routeTo(a, a.task.spot);
+        const saved = a.pos; a.pos = s; const path = this.routeTo(a, a.task.spot); // undefined: over the search budget, try again later
         if (!path) { a.pos = saved; continue; }
         a.travel = null; a.path = path; a.pathI = 1; a.walking = true;
       }
@@ -356,6 +363,8 @@ export class PeopleSim {
   private stepAgent(a: Agent, dt: number) {
     const hrs = dt * H_PER_S; a.hunger = Math.min(1, a.hunger + hrs / 6); a.fatigue = Math.min(1, a.fatigue + hrs / 16);
     if (!a.task) this.begin(a, this.decide(a), true);
+    if (a.waitRoute && a.task) { const r = this.routeTo(a, a.task.spot); if (r === undefined) { this.ground(a); return; }
+      a.waitRoute = false; a.path = r; a.pathI = 1; a.walking = !!r; if (!r) a.pos = [...a.task.spot] as P2; }
     let budget = dt;
     for (let guard = 0; guard < 8 && budget > 0; guard++) {
       if (a.walking && a.travel) { // abstract travel: timed straight-line move

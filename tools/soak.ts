@@ -170,13 +170,14 @@ export function runSoak(days = 354, dt = 60, seed = 1, log = (s: string) => cons
 
 /** step() cost with the full population at 60 fps and the real-time clock, over a stretch that crosses midnight */
 export function frameCost(seed: number, nav: NavGrid, env: (t: number) => Env, court = false) {
-  const sim = new PeopleSim(seed, nav, env, { court }); sim.jumpTo(24 * 40 + 23.9); sim.updateLod([0, 0], 1e9);
-  const times: number[] = []; for (let i = 0; i < 60 * 30; i++) { const a = performance.now(); sim.step(1 / 60); times.push(performance.now() - a); } // 30 s of real time across midnight
+  const sim = new PeopleSim(seed, nav, env, { court }); sim.routeSearchesPerStep = 1; // as the world runs it (D-024)
+  sim.jumpTo(24 * 41 - 10 / 3600); sim.updateLod([0, 0], 1e9);
+  const times: number[] = []; let rollMs = 0; for (let i = 0; i < 60 * 30; i++) { const a = performance.now(); const d0 = Math.floor(sim.t / 24); sim.step(1 / 60); const dt = performance.now() - a; times.push(dt); if (Math.floor(sim.t / 24) !== d0) rollMs = dt; } // 30 s of real time, 10 s before midnight to 20 s after
   const sorted = [...times].sort((a, b) => a - b); const mean = times.reduce((a, b) => a + b, 0) / times.length;
   // accelerated clock (x60, e.g. a time-lapse): one game minute per frame
   const fast: number[] = []; for (let i = 0; i < 600; i++) { const a = performance.now(); sim.step(60); fast.push(performance.now() - a); } const fs = [...fast].sort((a, b) => a - b);
   const r = (x: number) => +x.toFixed(3);
-  return { realtime: { frames: times.length, meanMs: r(mean), p99Ms: r(sorted[Math.floor(sorted.length * 0.99)]), maxMs: r(sorted[sorted.length - 1]) },
+  return { realtime: { frames: times.length, meanMs: r(mean), p99Ms: r(sorted[Math.floor(sorted.length * 0.99)]), maxMs: r(sorted[sorted.length - 1]), midnightFrameMs: r(rollMs) },
     x60: { frames: fast.length, meanMs: r(fast.reduce((a, b) => a + b, 0) / fast.length), p99Ms: r(fs[Math.floor(fs.length * 0.99)]), maxMs: r(fs[fs.length - 1]) }, note: 'detailed agents at full LOD; the day rollover (calendar day for ~46,000 people) falls inside the real-time run' };
 }
 
