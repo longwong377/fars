@@ -210,7 +210,8 @@ export function buildModel(si: number, variant: number): TreeModel {
     const k = er > 0 && r > 1e-3 ? Math.max(r, er * 0.75) / r : 1; subs.push([t.p[0] * k, Math.min(H * 0.92, Math.max(CB + (H - CB) * 0.18, t.p[1])), t.p[2] * k]); }
   const irregular = s.id === 'oak' || s.id === 'olive' || s.id === 'willow' || s.id === 'fig';
   const SUB_FLOOR = s.habit === 'excurrent' ? 0.5 : irregular ? 0.17 : 0.2, sig = Math.max(0.6, (s.habit === 'excurrent' ? 0.45 : 0.36) * Math.min(W / 2, (H - CB) / 2));
-  const subField = (p: V3) => { if (!subs.length) return 1; let m = 0; for (const q of subs) { const d2 = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2; m = Math.max(m, Math.exp(-d2 / (2 * sig * sig))); } return SUB_FLOOR + (1 - SUB_FLOOR) * m; };
+  // the nearest mass decides (max of the Gaussians = the Gaussian of the least distance: one exp per candidate)
+  const subField = (p: V3) => { if (!subs.length) return 1; let d2m = Infinity; for (const q of subs) { const dx = p[0] - q[0], dy = p[1] - q[1], dz = p[2] - q[2], d2 = dx * dx + dy * dy + dz * dz; if (d2 < d2m) d2m = d2; } return SUB_FLOOR + (1 - SUB_FLOOR) * Math.exp(-d2m / (2 * sig * sig)); };
   for (let tries = 0; cand.length < K0 * 3 && tries < K0 * 400; tries++) {
     // volume-uniform: a height, then a point in that ring's disc, kept with probability (disc area / max area)
     const y = rng.range(CB, yTop), a = rng.range(0, Math.PI * 2), er = env(y, a);
