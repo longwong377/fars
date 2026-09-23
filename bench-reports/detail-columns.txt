@@ -1,0 +1,9 @@
+gate_nations (bell/composite, D 1.37445 m): max ring chord error 1.20 mm = 1.23 px at 1 m
+apadana (square2/composite, D 1.6 m): max ring chord error 1.40 mm = 1.44 px at 1 m
+apadana (bell/composite, D 1.6 m): max ring chord error 1.40 mm = 1.44 px at 1 m
+apadana (bell/bull, D 1.6 m): max ring chord error 1.40 mm = 1.44 px at 1 m
+tachara (square2/bull, D 0.9 m): max ring chord error 0.79 mm = 0.81 px at 1 m
+hadish (plain/bull, D 0.9 m): max ring chord error 0.92 mm = 0.95 px at 1 m
+hall100 (bell/bull, D 1.1662 m): max ring chord error 1.02 mm = 1.05 px at 1 m
+tripylon (bell/bull, D 0.8 m): max ring chord error 0.70 mm = 0.72 px at 1 m
+harem (bell/bull, D 0.6 m): max ring chord error 0.52 mm = 0.54 px at 1 m

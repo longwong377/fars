@@ -7,7 +7,8 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // Earth's shadow and the antitwilight arch over the W plain, no sun shadows; the old slot (05:51, sun +2.5°) and a view
   // E into the glow over Kuh-e Rahmat are kept for comparison
   { n: 'dawn-stair-top', day: 0, hour: 5.40, w: 'clear', v: [-39.6, 122.45, 1.6, 251, -4] }, // 1 m from the W edge of the top landing (x −40.6), so the frame shows the descent and the plain, not 4 m of pavement (session 4)
-  { n: 'dawn-sunrise', day: 0, hour: 5.85, w: 'clear', v: [-39.6, 122.45, 1.6, 251, -4] },
+  { n: 'dawn-sunrise', day: 0, hour: 5.85, w: 'clear', v: [-40.2, 122.45, 1.6, 251, -12] }, // at the landing's W parapet, pitched down so its merlons stand in the foreground (session 4: at −4° the frame held only the plain)
+  { n: 'dawn-sunrise-nw', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 134.8, 1.6, 311, -8] }, // from the N end of the top landing: the N upper flight descending on the right, the plain to the NW
   { n: 'dawn-glow-e', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 122.45, 1.6, 79, 6] },
   { n: 'gate-dusk', day: 0, hour: 19.25, w: 'clear', v: [0.1, 118, 1.6, 341, 4] },
   { n: 'night-terrace', day: 5, hour: 22.5, w: 'clear', v: [0, 92, 1.6, 161, 6] },
@@ -38,16 +39,23 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'harem-portico', day: 25, hour: 10, w: 'clear', v: [114, -114, 1.6, 161, 4] },
 ];
 test('moments', async ({ page }, info) => {
-  test.setTimeout(840_000); // under the 15-min watchdog; each view reloads the world for its date (≤ 3 views per run)
+  test.setTimeout(1_380_000); // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run)
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
   const only = process.env.ONLY?.split(',');
+  // one page load per world state: views that share day, hour and weather reuse the loaded world (a page load is
+  // ~3–5 min at high under SwiftShader; the state is frozen, so only the camera moves between them)
+  let loaded = '';
   for (const s of SHOTS) {
     if (only && !only.includes(s.n)) continue;
-    await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=${s.day}&hour=${s.hour}&weather=${s.w}`);
-    await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 600_000 });
-    // the world is frozen in test mode: stop the animation loop, so the screenshot does not wait behind its frames under
-    // SwiftShader (minutes each; the Phase 4 render helper found this, tests/e2e/lib/p4views.ts)
-    await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
+    const state = `${s.day}|${s.hour}|${s.w}`;
+    if (state !== loaded) {
+      await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=${s.day}&hour=${s.hour}&weather=${s.w}`);
+      await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 600_000 });
+      // the world is frozen in test mode: stop the animation loop, so the screenshot does not wait behind its frames under
+      // SwiftShader (minutes each; the Phase 4 render helper found this, tests/e2e/lib/p4views.ts)
+      await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
+      loaded = state;
+    }
     await page.evaluate(v => (window as any).__parsa.view(...v), s.v);
     for (let i = 0; i < (s.frames ?? 8); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
     const png = await page.screenshot({ path: `shots/moment-${s.n}-${info.project.name}.png` });
