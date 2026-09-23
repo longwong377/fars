@@ -12,7 +12,7 @@ import { lookFor, STATURE, TEXTILE } from '../src/people/looks';
 import { HumanGPU, shadowsSeePeople, cascadeNeedsPeople, SHADOW_LAYER } from '../src/people/humanGPU';
 import { Crowd, ATTACH_R, DETACH_R, MAX_FULL } from '../src/people/crowd';
 import { ACTIVITIES } from '../src/people/activities';
-import { propGeometry } from '../src/people/props';
+import { propGeometry, PROPS } from '../src/people/props';
 
 let A: HumanAssets, O: OutfitBuild;
 beforeAll(async () => {
@@ -224,7 +224,9 @@ describe('crowd: pooling and the per-frame CPU budget (slice population + 300 ex
     const img = () => new THREE.DataTexture(new Uint8Array(4), 1, 1);
     const humans = { A, O, gpu: new HumanGPU(A, O, { skin: img(), eye: img() }, { capacity: 16 }), ms: { load: 0, outfits: 0, gpu: 0, worker: false } };
     const agents = [0, 1].map(i => ({ id: i, sex: 'm', role: 'mason', dress: 'worker', origin: 'Persian', seed: 50 + i, pos: [4 + i, 0] as [number, number], y: 0, heading: 270, offmap: false, carry: null, gait: 0, metPlayer: 0, slot: [0, 0], walking: false }));
-    const ph = Object.entries(ACTIVITIES).find(([, p]) => p.placeholder)![0];
+    // no activity is a placeholder any more (D-142): the flagging is proved on a synthetic one added for this test
+    const ph = '__test_placeholder'; (ACTIVITIES as any)[ph] = { anim: 'idle', prop: null, sound: null, placeholder: true, abstractOnly: true, tier: 'C', note: 'PLACEHOLDER: a synthetic abstract-only activity (test)' };
+    try {
     const sim: any = { agents, stock: { depot: 0, store: 0 }, nav: { heightAt: () => 0 }, performance: (a: any) => ({ act: a.id === 0 ? ph : 'dress_stone', moving: false }),
       visibleAgents: () => agents, greeting: () => 'none' };
     const crowd = new Crowd(sim, 1, humans); const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0); cam.lookAt(10, 1.2, 0); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
@@ -232,6 +234,7 @@ describe('crowd: pooling and the per-frame CPU budget (slice population + 300 ex
     expect(crowd.stats().placeholderActs).toBe(1);
     const hits: THREE.Intersection[] = []; const rc = new THREE.Raycaster(new THREE.Vector3(0, 1.2, 0), new THREE.Vector3(1, 0, 0)); rc.intersectObject(crowd.group, true, hits);
     const h = hits.find(x => x.object.name === 'person:0')!; expect(h.object.userData.placeholder).toBe(true); expect(h.object.userData.note).toMatch(/PLACEHOLDER/);
+    } finally { delete (ACTIVITIES as any)[ph]; }
   });
   it('people cast only into the shadow cascades that start within reach (CSM slices beyond are skipped)', () => {
     const cams = [0, 1, 2, 3].map(() => new THREE.OrthographicCamera());
@@ -242,7 +245,7 @@ describe('crowd: pooling and the per-frame CPU budget (slice population + 300 ex
     expect(light.shadow.camera.layers.isEnabled(SHADOW_LAYER)).toBe(true);
   });
   it('every activity prop exists', () => {
-    for (const [id, p] of Object.entries(ACTIVITIES)) if (p.prop) expect(propGeometry(p.prop === 'jar_head' ? 'jar' : p.prop === 'bread' ? 'basket' : p.prop), id).not.toBeNull();
+    for (const [id, p] of Object.entries(ACTIVITIES)) for (const v of [p, ...(p.variants ?? [])]) for (const k of [v.prop, v.prop2]) if (k) expect(PROPS[k] && propGeometry(PROPS[k].geom), `${id} ${k}`).toBeTruthy();
   });
 });
 void MAT;
