@@ -50,9 +50,12 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
   const old = bl.z.mul(isReed); // reeds: even blades are last year's culms
   const tuftR = isReed.mul(0.32).add(isRush.mul(0.1)).add(isGrass.mul(0.22));
   const standing = step(rnd(1), U.reedOld); // last year's culms go down as the new ones overtop them
-  const hBlade = isReed.mul(mix(U.reedNew, U.reedOldH.mul(standing), old)).add(isRush.mul(U.rushH)).add(isGrass.mul(U.grassH)).mul(rnd(2).mul(0.4).add(0.65)).mul(scale);
+  // last year's culms: about a third broken over the winter (0.35-0.6 of their height), the rest uneven; a grass tuft's
+  // dead blades (one in twelve) are short
+  const broken = mix(float(1), rnd(9).mul(0.25).add(0.35), step(rnd(10), 0.33)), deadG = step(rnd(7), 0.08);
+  const hBlade = isReed.mul(mix(U.reedNew, U.reedOldH.mul(standing).mul(broken), old)).add(isRush.mul(U.rushH)).add(isGrass.mul(U.grassH).mul(mix(float(1), float(0.55), deadG))).mul(rnd(2).mul(0.5).add(0.6)).mul(scale);
   const wBlade = isReed.mul(0.03).add(isRush.mul(0.012)).add(isGrass.mul(0.018)).mul(scale);
-  const lean = isReed.mul(0.07).add(isRush.mul(0.12)).add(isGrass.mul(0.42)).mul(rnd(3).mul(0.9).add(0.45));
+  const lean = isReed.mul(mix(float(0.07), float(0.2), old)).add(isRush.mul(0.12)).add(isGrass.mul(0.42)).mul(rnd(3).mul(0.9).add(0.45));
   // nothing pops in: tufts grow from nothing toward their radius (bank grass is placed only within Q.grass)
   const fadeR = mix(float(R), float(Q.grass), isGrass), d = length(ipos.xz.sub(cameraPosition.xz)), fade = float(1).sub(smoothstep(fadeR.mul(0.72), fadeR, d));
   // blades narrower than a pixel alias into speckle (the reed beds at 30-70 m, the grass past ~7 m): once a blade spans
@@ -73,12 +76,12 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
   // colour: straw culms with dark plumes; green new shoots browning in autumn; rushes dark green with brown tips; grass
   // green to straw; each blade a little different, tips lighter
   const lin = (r: number, g: number, b: number) => vec3(...(new THREE.Color().setRGB(r, g, b, THREE.SRGBColorSpace).toArray() as [number, number, number]));
-  const straw = lin(0.63, 0.57, 0.43), plumeC = lin(0.33, 0.27, 0.25), green = lin(0.27, 0.39, 0.12), brown = lin(0.46, 0.37, 0.24);
+  const straw = lin(0.56, 0.51, 0.42), plumeC = lin(0.33, 0.27, 0.25), green = lin(0.27, 0.39, 0.12), brown = lin(0.46, 0.37, 0.24);
   const newC = mix(brown, green, U.reedGreen), top = smoothstep(0.84, 0.95, P.y);
   const reedC = mix(mix(newC, mix(newC, plumeC, U.plume), top), mix(straw, plumeC, top.mul(0.8)), old);
   const rushC = mix(lin(0.17, 0.28, 0.1), lin(0.45, 0.38, 0.22), smoothstep(0.7, 1, P.y).mul(float(1).sub(U.rushGreen)));
   // bank grass: green to straw with the season; about a sixth of the blades are last year's, dry, all year (C)
-  const grassC = mix(lin(0.6, 0.53, 0.34), mix(lin(0.25, 0.37, 0.12), lin(0.33, 0.42, 0.13), rnd(8)), U.grassGreen.mul(step(0.16, rnd(7))));
+  const grassC = mix(lin(0.52, 0.47, 0.33), mix(lin(0.25, 0.37, 0.12), lin(0.33, 0.42, 0.13), rnd(8)), U.grassGreen.mul(float(1).sub(deadG)));
   const col = reedC.mul(isReed).add(rushC.mul(isRush)).add(grassC.mul(isGrass));
   m.colorNode = col.mul(rnd(5).mul(0.24).add(0.88)).mul(P.y.mul(0.35).add(0.72));
   m.roughnessNode = float(0.8);
@@ -101,6 +104,9 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
     return [q.hy[0], 0, 0];
   };
   let n = 0, last = new THREE.Vector3(1e9, 0, 1e9);
+  /** smooth value noise along the bank (cells of c m): reed beds begin and end over a few metres, not at a cell edge */
+  const vn = (s: number, c: number, k: number, salt: number) => { const x = s / c, i = Math.floor(x), f = x - i, w = f * f * (3 - 2 * f);
+    return unit(hash2(cellU(i), k, salt)) * (1 - w) + unit(hash2(cellU(i + 1), k, salt)) * w; };
   const put = (x: number, y: number, z: number, k: number, h: number) => {
     if (n >= cap) return; posA.setXYZ(n, x, y, z); varA.setXYZW(n, k, unit(h), 0.8 + 0.4 * unit(hash2(h, 7, 3)), unit(hash2(h, 9, 5)) * 6.283); n++; };
   const update = (cam: THREE.Vector3) => {
@@ -119,18 +125,18 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
         if (Math.hypot(sx - cx, sy - cy) > R + 30) continue;
         const nx = q0.nx + (q1.nx - q0.nx) * f, ny = q0.ny + (q1.ny - q0.ny) * f;
         // reed beds along the margins: patches ~25-90 m long, about half the bank (C); fords and grazed banks between
-        const bedA = unit(hash2(cellU(s / 60), ri * 2 + 1, 211)) * 0.65 + unit(hash2(cellU(s / 17), ri * 2 + 1, 212)) * 0.35;
-        const bedB = unit(hash2(cellU(s / 60), ri * 2 + 2, 211)) * 0.65 + unit(hash2(cellU(s / 17), ri * 2 + 2, 212)) * 0.35;
+        const bedA = vn(s, 60, ri * 2 + 1, 211) * 0.65 + vn(s, 17, ri * 2 + 1, 212) * 0.35;
+        const bedB = vn(s, 60, ri * 2 + 2, 211) * 0.65 + vn(s, 17, ri * 2 + 2, 212) * 0.35;
         const maxU = Math.abs(q0.off[12]);
         for (let u = -maxU; u <= maxU; u += 0.45) {
           const x = sx + nx * u, y = sy + ny * u, dc = Math.hypot(x - cx, y - cy); if (dc > R) continue;
           const h = hash2(cellU(x / 0.3), cellU(y / 0.3), 213 + ri), r1 = unit(h);
           if (dc >= 22 && unit(hash2(h, 5, 6)) > 0.573) continue;
           const p0 = prof(q0, u), p1 = prof(q1, u), hy = p0[0] + (p1[0] - p0[0]) * f, hrel = p0[1] + (p1[1] - p0[1]) * f, t = p0[2] + (p1[2] - p0[2]) * f;
-          const inBed = (u < 0 ? bedA : bedB) > 0.52;
+          const bed = u < 0 ? bedA : bedB, inBed = r1 < 0.8 * Math.min(1, Math.max(0, (bed - 0.47) / 0.1)); // a bed thins out over a few metres at its ends
           const jx = (unit(hash2(h, 1, 2)) - 0.5) * 0.5, jy = (unit(hash2(h, 3, 4)) - 0.5) * 0.5;
           if (hrel > 0.18 && hrel < aprilD - 0.05 && t === 0) { // the channel slope between the low summer water and the spring flood level
-            if (inBed && r1 < 0.8) put(x + jx, hy, -(y + jy), KIND.reed, h);
+            if (inBed) put(x + jx, hy, -(y + jy), KIND.reed, h);
             else if (r1 < 0.12) put(x + jx, hy, -(y + jy), KIND.rush, h);
           } else if (hrel >= aprilD - 0.05 && t < 0.75 && dc < Q.grass) { // the upper bank, the bank top and the apron: grass, rushes near the flood line
             const nearFlood = hrel < aprilD + 0.35;

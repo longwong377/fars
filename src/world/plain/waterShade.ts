@@ -48,19 +48,23 @@ export function waterBody(d: any, turbid: any, bed: any = lin(0.26, 0.22, 0.16))
 }
 /** Fresnel sky reflection (emissive radiance) for the world normal nW; `dull` (0..1) takes some off where the surface
  *  is broken (riffles). `bank` (optional): the reflected ray's elevation (sin) below which it meets the far bank and its
- *  reeds rather than the sky, and the fraction of the sky above that the riparian trees stand in: at grazing angles a
- *  river mirrors its far bank dark, not a pale band of sky (C) */
-export function skyReflection(nW: any, dull: any = float(0), bank: { sin: any; trees: any; treeSin: any } | null = null) {
+ *  reeds rather than the sky; `trees` (0..1) whether riparian trees stand on the far bank where the ray meets it, and
+ *  `treeSin` the elevation of their tops; `blur` the spread of the reflected elevation from ripples finer than a pixel.
+ *  At grazing angles a river mirrors its far bank, not a pale band of sky (C) */
+export function skyReflection(nW: any, dull: any = float(0), bank: { sin: any; trees: any; treeSin: any; blur?: any } | null = null) {
   const V = normalize(cameraPosition.sub(positionWorld)), cosT = clamp(dot(nW, V), 0, 1), m = float(1).sub(cosT);
   const F = float(0.02).add(m.mul(m).mul(m).mul(m).mul(m).mul(0.98));
   const R = V.negate().reflect(nW);
   let rad: any = mix(WATER_SKY.horizon, WATER_SKY.sky, smoothstep(0.0, 0.5, R.y)).mul(1 / Math.PI);
   if (bank) {
-    // the bank, reeds and trees: lit earth and foliage at about a third of the horizon's radiance, greener (C)
-    const bankRad = (WATER_SKY.horizon as any).mul(vec3(0.26, 0.3, 0.22)).mul(1 / Math.PI);
-    const onBank = float(1).sub(smoothstep(bank.sin.mul(0.8), bank.sin.mul(1.2).add(0.004), R.y));
-    const onTrees = float(1).sub(smoothstep(bank.treeSin.mul(0.7), bank.treeSin.mul(1.3).add(0.004), R.y)).mul(bank.trees);
-    rad = mix(rad, bankRad, max(onBank, onTrees));
+    // what the far bank sends back, in its own colours: a sunlit sward and reeds at about a third of the clear horizon's
+    // luminance (a meadow of albedo ~0.1 in full sun against the horizon sky; C), the crowns of the trees darker
+    const Lh = dot(WATER_SKY.horizon as any, vec3(0.2126, 0.7152, 0.0722));
+    const bankRad = vec3(0.28, 0.36, 0.16).mul(Lh).mul(1 / Math.PI), treeRad = vec3(0.1, 0.14, 0.06).mul(Lh).mul(1 / Math.PI);
+    const bl = bank.blur ?? float(0);
+    const onBank = float(1).sub(smoothstep(bank.sin.mul(0.8).sub(bl), bank.sin.mul(1.2).add(0.004).add(bl), R.y));
+    const onTrees = float(1).sub(smoothstep(bank.treeSin.mul(0.7).sub(bl), bank.treeSin.mul(1.3).add(0.004).add(bl), R.y)).mul(bank.trees);
+    rad = mix(mix(rad, treeRad, onTrees), bankRad, onBank); // the bank stands in front of the trees
   }
   return rad.mul(F).mul(float(1).sub(dull.mul(0.5)));
 }

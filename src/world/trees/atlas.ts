@@ -216,6 +216,9 @@ function drawTile(name: TileName, leafFrac: number, c: Canvas) {
       for (const t of tw) { const w = (cyp ? 0.026 : 0.012) * (t.level ? 0.9 : 1.1) * (bare ? 0.5 : 1), mx = (t.x0 + t.x1) / 2, my = (t.y0 + t.y1) / 2;
         if (!inOval(mx, my, rng)) continue;
         const inC = !m2 || m2(mx, my); if (!inC && t.level > 0) continue; // outside the clumps only the main shoot, bare
+        // a leafless tamarisk is a haze of fine twigs with the sky through it: over half the finest twigs left out, or its
+        // cards turn into solid red-brown patches at the coarse mips (the April far-bank shrubs read as heaps, D-149)
+        if (bare && t.level >= 2 && rng.chance(0.55)) continue;
         c.line(t.x0, t.y0, t.x1, t.y1, inC ? w : w * 0.5, inC ? w * 0.7 : w * 0.35, bare || !inC ? 2 : 0, sh());
         if (!bare && inC) for (const n of nodes([t], cyp ? 0.016 : 0.024, rng)) { const a = n.ang + n.side * 0.7, l = cyp ? 0.028 : 0.036; c.line(n.x, n.y, n.x + Math.sin(a) * l, n.y + Math.cos(a) * l, w * 0.75, w * 0.45, 0, sh()); } }
       break; }

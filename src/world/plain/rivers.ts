@@ -195,7 +195,11 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
   const rl = dot(Rh, vec2(ac.x, ac.y)), toEdge = mix(halfW.sub(across), halfW.add(across), step(rl, 0)).div(max(abs(rl), 0.05));
   const bankUp = mix(mix(float(1.6), float(2.2), riR).sub(depth).max(0.1).add(1.5), float(0.75), isCanal); // the far bank top over the water (channel bank 1.6 / 2.2 m), plus its low growth
   const dh = max(toEdge, 0.3), sinB = bankUp.div(length(vec2(dh, bankUp))), sinT = float(12).div(length(vec2(dh.add(15), 12)));
-  wm.emissiveNode = skyReflection(nW, riffle, { sin: sinB, trees: mix(float(0.5), float(0.3), isCanal), treeSin: sinT });
+  // the trees along the far bank where the reflected ray meets it: in clumps over about half its length (canals less),
+  // by a noise of the position along the bank (they are not the line trees themselves: C)
+  const sHit = sAlong.add(dot(Rh, vec2(fl.y, fl.z)).mul(toEdge)), side = step(rl, 0);
+  const trees = smoothstep(-0.2, 0.4, mx_noise_float(vec3(sHit.div(16), side.mul(5.3).add(riW.mul(11.7)), 0.5))).mul(mix(float(0.85), float(0.5), isCanal));
+  wm.emissiveNode = skyReflection(nW, riffle, { sin: sinB, trees, treeSin: sinT, blur: rip.lost.mul(1.1) }); // blur: ~2x the RMS of the slope lost below the pixel (lost adds amplitudes linearly)
   wm.roughnessNode = waterRoughness(rip.lost, riffle); wm.metalnessNode = float(0);
   const water = new THREE.Mesh(wg, wm); water.name = 'river-water'; water.frustumCulled = false; water.receiveShadow = true;
   water.userData = tag(pul, 'river water: level and width from flow_by_month for the date (C); turbid Mar-May, clear in summer (C)');
