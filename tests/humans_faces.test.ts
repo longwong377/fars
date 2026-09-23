@@ -204,6 +204,23 @@ describe('garments and hair geometry (D-155)', () => {
     for (let i = 0; i < g0.n; i++) { if (g0.edge[i] > 5) continue; k++; let d = 9; for (let j = 0; j < A.NO; j++) { if (A.part[j] !== PART.head) continue; d = Math.min(d, Math.hypot(v.pos[j * 3] - P[i][0], v.pos[j * 3 + 1] - P[i][1], v.pos[j * 3 + 2] - P[i][2])); } edgeOff = Math.min(edgeOff, d); if (k > 40) break; }
     expect(k).toBeGreaterThan(10); expect(edgeOff).toBeGreaterThan(0.0025);
   });
+  it('the headcloth has clean cut lines: no holes between arm and chest, no zigzag along its hanging edges', () => {
+    const v = A.byId.f02, P = piecePos('headcloth@0', v), I = O.geos!['headcloth@0'].index, cnt = new Map<string, number>();
+    for (let t = 0; t < I.length; t += 3) for (let e = 0; e < 3; e++) { const a = I[t + e], c = I[t + ((e + 1) % 3)], k = a < c ? `${a}:${c}` : `${c}:${a}`; cnt.set(k, (cnt.get(k) ?? 0) + 1); }
+    const adj = new Map<number, number[]>();
+    for (const [k, n] of cnt) if (n === 1) { const [a, c] = k.split(':').map(Number); for (const [x, y] of [[a, c], [c, a]]) { if (!adj.has(x)) adj.set(x, []); adj.get(x)!.push(y); } }
+    const seen = new Set<number>(), loops: number[][] = [];
+    for (const s0 of adj.keys()) { if (seen.has(s0)) continue; const loop = [s0]; seen.add(s0); let prev = -1, cur = s0;
+      for (;;) { const nx = adj.get(cur)!.find(q => q !== prev && !seen.has(q)); if (nx === undefined) break; loop.push(nx); seen.add(nx); prev = cur; cur = nx; }
+      loops.push(loop); }
+    // the face opening, the front opening at the neck and the outer edge (the baseline had two more: holes under the arms)
+    expect(loops.length).toBe(3);
+    const dev: number[] = [], neckY = v.joints[HB.neck_01 * 3 + 1];
+    for (const l of loops) for (let i = 0; i < l.length; i++) { const a = P[l[(i + l.length - 1) % l.length]], c = P[l[(i + 1) % l.length]], p = P[l[i]]; if (p[1] > neckY) continue;
+      dev.push(Math.hypot(p[0] - (a[0] + c[0]) / 2, p[1] - (a[1] + c[1]) / 2, p[2] - (a[2] + c[2]) / 2)); }
+    dev.sort((x, y) => x - y);
+    expect(dev[Math.floor(dev.length * 0.9)], 'p90 of the cut line\'s zigzag below the neck (m; baseline 0.021)').toBeLessThan(0.005); // measured 0.0018
+  });
   it('body curvature is measured (nose and ears bend more than the forehead)', () => {
     const v = vRef(), E = bodyExtras({ A, ref: v, J: (b: string) => [v.joints[(HB as any)[b] * 3], v.joints[(HB as any)[b] * 3 + 1], v.joints[(HB as any)[b] * 3 + 2]] } as any);
     let nose = 0; for (let i = 0; i < A.NO; i++) if (A.orig[i] === A.meta.landmarks.nose_tip) nose = i;

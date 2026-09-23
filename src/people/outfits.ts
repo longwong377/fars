@@ -80,14 +80,17 @@ const ARMS = [P.uarm_l, P.farm_l, P.uarm_r, P.farm_r], LEGS = [P.thigh_l, P.calf
 interface ShellOpts {
   tris: Uint16Array; d: Region; ramp: number; thick: (p: V3, i: number) => number; smooth?: number; minOff?: number;
   mat: number; col: number; prm?: number; slack?: (p: V3, i: number) => number;
-  /** offset at the cut line (m): the garment's edge stands this far off the skin */
-  edge?: number;
+  /** offset at the cut line (m, or per reference position): the garment's edge stands this far off the skin */
+  edge?: number | ((p: V3) => number);
+  /** also smooth the cut line (along itself) and the ramp: the edge follows the body's coarse triangles and normals, which
+   *  can zigzag it where the surface bends (D-155: the headcloth's hanging edges) */
+  smoothEdge?: boolean;
 }
 /** Shell over the region d > 0 of the body triangles: triangles are clipped exactly at the iso-line d = 0 (new vertices on
  *  the crossing edges), so the garment edge is a clean contour; the offset rises from `edge` at the cut to `thick` over
  *  `ramp` metres. Vertices are welded by position vertex, so UV seams do not split the shell. */
 function shellGeo(A: HumanAssets, ref: HumanVariant, key: string, o: ShellOpts): Geo {
-  const edgeOff = o.edge ?? 0.0015;
+  const edge = o.edge ?? 0.0015, edgeAt = typeof edge === 'function' ? edge : () => edge;
   // shell vertex = lerp(body render vertex a, b, s); original vertices have b = a, s = 0
   const va: number[] = [], vb: number[] = [], vs: number[] = [], vd: number[] = []; const keyOf = new Map<string, number>();
   const vert = (a: number, b: number, s: number) => {
@@ -112,7 +115,7 @@ function shellGeo(A: HumanAssets, ref: HumanVariant, key: string, o: ShellOpts):
   const nb: number[][] = Array.from({ length: n }, () => []);
   for (let t = 0; t < index.length; t += 3) for (let e = 0; e < 3; e++) { const a = index[t + e], b = index[t + (e + 1) % 3]; if (!nb[a].includes(b)) nb[a].push(b); if (!nb[b].includes(a)) nb[b].push(a); }
   const refP = (k: number): V3 => { const a = va[k], b = vb[k], t = vs[k]; return [lerp(ref.pos[a * 3], ref.pos[b * 3], t), lerp(ref.pos[a * 3 + 1], ref.pos[b * 3 + 1], t), lerp(ref.pos[a * 3 + 2], ref.pos[b * 3 + 2], t)]; };
-  const off = Float32Array.from({ length: n }, (_, k) => { const th = o.thick(refP(k), va[k]); return edgeOff + (th - edgeOff) * sstep(0, o.ramp, vd[k]); });
+  const off = Float32Array.from({ length: n }, (_, k) => { const p = refP(k), th = o.thick(p, va[k]), e = edgeAt(p); return e + (th - e) * sstep(0, o.ramp, vd[k]); });
   const deep = Uint8Array.from(vd, d => (d >= o.ramp ? 1 : 0));
   const g = newGeo(key, n, index, (c: Ctx) => {
     const out = new Float32Array(n * 3), base = new Float32Array(n * 3), N = new Float32Array(n * 3); const Pv = c.v.pos, Nv = c.v.nrm;
@@ -122,7 +125,7 @@ function shellGeo(A: HumanAssets, ref: HumanVariant, key: string, o: ShellOpts):
     const it = o.smooth ?? 0, minOff = o.minOff ?? 0.003;
     for (let s = 0; s < it; s++) {
       const prev = out.slice();
-      for (let k = 0; k < n; k++) { if (!deep[k]) continue; const L = nb[k]; if (!L.length) continue;
+      for (let k = 0; k < n; k++) { if (!deep[k] && !o.smoothEdge) continue; const L = vs[k] > 0 ? nb[k].filter(q => vs[q] > 0) : nb[k]; if (!L.length) continue;
         let x = 0, y = 0, z = 0; for (const q of L) { x += prev[q * 3]; y += prev[q * 3 + 1]; z += prev[q * 3 + 2]; }
         x /= L.length; y /= L.length; z /= L.length;
         out[k * 3] += 0.5 * (x - out[k * 3]); out[k * 3 + 1] += 0.5 * (y - out[k * 3 + 1]); out[k * 3 + 2] += 0.5 * (z - out[k * 3 + 2]);
@@ -603,17 +606,25 @@ function headcloth(L: Lib, key: string, lod: number) {
   const { A, ref, J } = L; const eyeY = ref.eyeY, h = J('head');
   // continuous distances (clean cut lines): the face oval stays open, and the front below the neck is open as a mantle
   // is (the first version cut a level line across the chest, which dipped around the breasts into a blotchy bib)
-  const neckY = J('neck_01')[1], s3 = J('spine_03')[1];
-  const d = regionOf(A, ref, [P.head, P.neck, P.chest, P.uarm_l, P.uarm_r], p => {
+  const neckY = J('neck_01')[1], s3 = J('spine_03')[1], armY = J('upperarm_l')[1] - 0.04;
+  // D-155: below the armpit the arm and the side of the chest are separate surfaces and a shell cannot bridge the gap
+  // between them: its rim there read as torn teeth. Over the arms the cloth now ends a little below the shoulder; the
+  // ends hang down the front of the chest and a panel down the back (|x| < 12 cm). (The belly is in the region so the
+  // cut follows the distance, not the chest part's jagged lower boundary.)
+  const d = regionOf(A, ref, [P.head, P.neck, P.chest, P.belly, P.uarm_l, P.uarm_r], p => {
     const face = Math.max(Math.hypot(p[0] / 0.066, (p[1] - (eyeY - 0.035)) / 0.078) - 1, h[2] + 0.02 - p[2]) * 0.05;
     const open = Math.max(Math.abs(p[0]) - 0.085, p[1] - (neckY - 0.01), 0.02 - p[2]);
     const top = p[1] - (s3 + 0.02 - 0.07 * sstep(0.05, -0.1, p[2])); // to mid-chest at the sides, lower at the back
-    return Math.min(face, open, top, 0.2 - Math.abs(p[0])); });
+    const side = Math.max(0.12 - Math.abs(p[0]), p[1] - armY);
+    return Math.min(face, open, top, side, 0.2 - Math.abs(p[0])); });
   // over the dress (below the neck) it lies 2.4 cm out, and smoothing may not pull it closer than 2.2 cm: the dress is
   // 1 cm out plus its own smoothing, and a closer cloth z-fought with it; over the head 1.4–2 cm (no hair is worn under it)
   // D-155: it hugged the skull like a cap; the cloth now stands off the crown and falls away from the back of the head
   // (a draped cloth, not a fitted one; C), and is relaxed more
+  // D-155: the mantle's hanging edge stands off the dress (tucked to 1.5 mm like a sleeve's cuff, its coarse cut line
+  // read as drips); the face opening still lies against the cheeks
   return shellGeo(A, ref, key, { tris: A.lods[TESS[lod].tris], d, ramp: 0.012, smooth: lod === 0 ? 14 : 8, minOff: 0.022,
+    edge: p => 0.003 + 0.015 * sstep(neckY + 0.01, neckY - 0.03, p[1]), smoothEdge: true,
     thick: p => (p[1] < neckY ? 0.024 : 0.018 + 0.01 * sstep(eyeY, eyeY + 0.1, p[1]) + 0.014 * sstep(0.02, -0.07, p[2] - h[2])), mat: MAT.cloth_second, col: COL.second, prm: 4 });
 }
 /** torque: a ring around the base of the neck, fitted to the neck's support radius (per θ) plus 7 mm */

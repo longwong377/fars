@@ -351,7 +351,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const zone = bits('grimeZone'), zHands = is(zone, 1).add(is(zone, 2)), zFront = is(zone, 2), zLoad = is(zone, 3);
     const arms = smoothstep(0.15, 0.2, abs(P.x)).mul(float(1).sub(smoothstep(1.02, 1.12, P.y)));
     const front = smoothstep(0.02, 0.08, P.z).mul(smoothstep(0.72, 0.8, P.y)).mul(float(1).sub(smoothstep(1.2, 1.3, P.y))).mul(float(1).sub(smoothstep(0.14, 0.18, abs(P.x))));
-    const load = smoothstep(1.28, 1.36, P.y).mul(smoothstep(0.06, 0.1, abs(P.x)).max(smoothstep(0.0, -0.05, P.z)));
+    const load = smoothstep(1.28, 1.36, P.y).mul(smoothstep(0.06, 0.1, abs(P.x)).max(float(1).sub(smoothstep(-0.05, 0.0, P.z))));
     const where = low.max(arms.mul(zHands)).max(front.mul(zFront)).max(load.mul(zLoad).mul(0.8));
     const grimeMask = grime.mul(where).mul(kCloth.add(kSkin.mul(feet.mul(0.65).add(0.35).max(arms.mul(zHands)))).add(kLeather.mul(0.8)).add(kFelt.mul(0.3))).mul(u3.mul(0.6).add(0.7));
     alb = mix(alb, grimeCol, grimeMask.mul(0.35));
@@ -396,7 +396,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     // (lower strip, e2 = 1: fewer, finer clumps)
     const along = U.x.sub(LASH.u0).div(LASH.u1 - LASH.u0), tl = e1;
     const clumpC = abs(fract(along.mul(mix(LASH.clumps, LASH.clumps * 0.6, e2)).add(n1.mul(0.35))).sub(0.5)).mul(2);
-    const lashW = float(1).sub(tl).mul(float(1).sub(tl).sqrt()).mul(0.8).add(0.1).mul(mix(1, 0.7, e2));
+    const lashW = float(1).sub(tl).mul(float(1).sub(tl).max(0).sqrt()).mul(0.8).add(0.1).mul(mix(1, 0.7, e2));
     const lashCut = max(step(lashW, clumpC), step(0.9, tl));
     this.maskNode = float(1).sub(kHair.mul(max(edgeCut, silCut))).sub(kLash.mul(lashCut)).greaterThan(0.5);
     // shadow-only copies (the player's head; the cheaper shadow casters of full-detail people): no colour, no depth, and

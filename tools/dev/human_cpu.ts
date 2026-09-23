@@ -163,7 +163,7 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const zone = bits(pat, 'grimeZone'), zHands = is(zone, 1) + is(zone, 2), zFront = is(zone, 2), zLoad = is(zone, 3);
   const arms = sstep(0.15, 0.2, Math.abs(P[0])) * (1 - sstep(1.02, 1.12, P[1]));
   const front = sstep(0.02, 0.08, P[2]) * sstep(0.72, 0.8, P[1]) * (1 - sstep(1.2, 1.3, P[1])) * (1 - sstep(0.14, 0.18, Math.abs(P[0])));
-  const load = sstep(1.28, 1.36, P[1]) * Math.max(sstep(0.06, 0.1, Math.abs(P[0])), sstep(0.0, -0.05, P[2]));
+  const load = sstep(1.28, 1.36, P[1]) * Math.max(sstep(0.06, 0.1, Math.abs(P[0])), 1 - sstep(-0.05, 0.0, P[2]));
   const where = Math.max(low, arms * zHands, front * zFront, load * zLoad * 0.8);
   const grimeMask = grime * where * (kCloth + kSkin * Math.max(feet * 0.65 + 0.35, arms * zHands) + kLeather * 0.8 + kFelt * 0.3) * (u3 * 0.6 + 0.7);
   alb = mix3(alb, grimeCol, grimeMask * 0.35);
