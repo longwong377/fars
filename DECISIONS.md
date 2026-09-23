@@ -999,3 +999,10 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - the inverse draws 0.2 / 0.5 / 0.76 / 0.95 within 0.05.
 - **Tier:** the measurement is of our own shader. Mapping the weather's cover (observed sky fraction) onto vertical columns is C: the observed cover also counts cloud sides near the horizon.
 - **Rain cell:** the cell's boost (+0.6) still makes the cloud above the cell solid.
+- **Addendum (same session, rain moment measured):**
+  - The first renders showed no curtain. The red debug switch (`?shaftdbg`) proved the shafts are drawn at every quality level; the curtain lacked contrast.
+  - Two causes were fixed:
+    - distant cloud faded to the haze with a 26 km e-fold, while the terrain's fog left 71 % at 24 km. The clouds now fade by the scene fog's own law and density (the same air);
+    - the shaft tint is now 0.35 of the horizon radiance (C).
+  - Measured at 24 km: the band just above the horizon toward the cell is 17 % darker than the same heights to the W (133 vs 161 sRGB). A real but subtle curtain.
+  - The moment moved to 11:06, with the cell 15 km out, 50 min before it arrives. The camera must stay beyond the shaft mesh's radius, two core radii (12.7 km).
