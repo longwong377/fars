@@ -288,7 +288,7 @@ for (let i = 0; i < NP; i++) { const l = Math.hypot(refN[i * 3], refN[i * 3 + 1]
 const ao = cavityAO(ref.pos, refN, [...triBody, ...triEye], outOrig, NP); // lashes and mouth helpers are not occluders
 log(`cavity occlusion: mean ${(ao.reduce((a, b) => a + b, 0) / NP).toFixed(3)}, min ${Math.min(...ao).toFixed(3)}`);
 mkdirSync(OUT, { recursive: true });
-const baked = bakeSkin({ W: 1024, H: 1024, pos: ref.pos, orig: outOrig, uv: outUV, tris: triBody, part, joints: ref.joints, tails: ref.tails, landmarks, bone: HB, ao });
+const baked = bakeSkin({ W: 1024, H: 1024, pos: ref.pos, orig: outOrig, uv: outUV, tris: triBody, part, joints: ref.joints, tails: ref.tails, landmarks, bone: HB, ao, skinIndex: skinIdx, skinWeight: skinW });
 writeFileSync(`${OUT}/skin.png`, encodePNG(1024, 1024, baked.skin, 4));
 writeFileSync(`${OUT}/hair.png`, encodePNG(512, 512, baked.hair, 4));
 const masks = vertexMasks(baked.frame, ref.pos, refN, part, NP);

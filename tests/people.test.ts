@@ -6,10 +6,10 @@ import { NavGrid, NAV } from '../src/people/navgrid';
 import { PeopleSim, PLACES, Env } from '../src/people/sim';
 import { ACTIVITIES } from '../src/people/activities';
 import { ANIMS, pose } from '../src/people/anim';
-import { propGeometry, bodyGeometry, randomAppearance, BONES } from '../src/people/body';
+import { propGeometry } from '../src/people/body';
+import { COSTUMES, DRESSES } from '../src/people/outfits';
 import { WeatherSystem } from '../src/weather/weatherState';
 import { buildTerrace } from '../src/arch/terrace';
-import { Rng } from '../src/core/rng';
 
 const navMeta = JSON.parse(readFileSync('public/generated/nav.json', 'utf8'));
 const loadNav = () => new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
@@ -123,11 +123,8 @@ describe('activity lint (brief §9.5: every activity is performed)', () => {
     const idle = JSON.stringify(pose('idle', 1, 0, 0).rot);
     for (const a of ANIMS) { const p = pose(a, 1.3, 0.7, 0.2); for (const v of Object.values(p.rot)) for (const x of v!) expect(Number.isFinite(x)).toBe(true); if (a !== 'idle' && a !== 'inspect') expect(JSON.stringify(p.rot)).not.toBe(idle); }
   });
-  it('bodies build for every dress with skin attributes on every vertex', () => {
-    for (const d of ['persian', 'median', 'worker', 'woman', 'child', 'guard'] as const) {
-      const g = bodyGeometry(randomAppearance(d, new Rng(1, d))); const n = g.getAttribute('position').count;
-      expect(g.getAttribute('skinIndex').count).toBe(n); expect(g.getAttribute('color').count).toBe(n);
-      const si = g.getAttribute('skinIndex').array; for (let i = 0; i < n * 4; i += 4) expect(si[i]).toBeLessThan(BONES.length);
-    }
+  it('every dress the roster uses has a costume (bodies and fitting: tests/humans_runtime.test.ts)', () => {
+    const sim = new PeopleSim(1, nav, env);
+    for (const a of sim.agents) { expect(DRESSES, `${a.role} ${a.dress}`).toContain(a.dress); expect(COSTUMES[a.dress].always.length).toBeGreaterThan(0); }
   });
 });
