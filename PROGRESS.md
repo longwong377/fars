@@ -48,3 +48,6 @@
 | 6–7 | research agent (session 2): see HANDOFF | — |
 | 8 | translation layer built (e2e pending); speech/murmur from Phase 3 | — |
 | 9 | not started | — |
+| 3 | Vertical slice: materials, reliefs (carved low-relief heightfield figures with per-figure LOD since D-019: PLACEHOLDER, procedural C pending licensed scans NEEDS #10; browser render of the new relief path NOT yet verified by screenshot), fire, weather VFX, audio, 65 people, speech/murmur, walkthrough bot (28 legs pass). Open: SSGI washout, rubric + independent review, bench, calibration (blocked) | **not passed** |
+| 4 | research ready (research/PHASE4_ACCESS.md, patch not applied) | — |
+| 5–9 | not started | — |

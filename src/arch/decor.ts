@@ -4,7 +4,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import opentype from 'opentype.js';
 import { v, present } from './spec';
 import { Rng } from '../core/rng';
-import { figurePieces, figureGeometry, planFacade, Facade, PIGMENT, StairGeom } from './reliefs';
+import { planFacade, planAudience, facadeItems, ReliefSet, ReliefItem, RosetteItem, Facade, StairGeom } from './reliefs';
 import { toCuneiform } from '../lang/oldPersian';
 import type { Manifest } from './parts';
 import inscriptions from '../data/inscriptions.json';
@@ -18,9 +18,6 @@ function facadeMatrix(f: Facade, along: number, y: number, scale: number) {
   return new THREE.Matrix4().makeBasis(X.clone().multiplyScalar(scale), up.clone().multiplyScalar(scale), Z.clone().multiplyScalar(scale)).setPosition(o);
 }
 
-let reliefMat: THREE.MeshStandardNodeMaterial | null = null;
-function paintMaterial() { if (!reliefMat) { reliefMat = surfaceMaterial('limestone', { vertexColors: true }); } return reliefMat; }
-
 export function apadanaFacades(m: Manifest): Facade[] {
   const a = m.apadana as any; if (!a) return [];
   const [cx, cy] = a.hallCentre as number[], stW = a.stairWidth as number, L = a.stairLength as number, pod = a.podium as number;
@@ -31,46 +28,16 @@ export function apadanaFacades(m: Manifest): Facade[] {
   ];
 }
 
+/** Apadana N and E stair reliefs: the façade programme (planFacade, planAudience) as carved low-relief figures with per-figure
+ *  LOD (reliefs.ts, D-019), plus the four-stepped crenellations. */
 export function buildReliefs(m: Manifest): THREE.Group {
   const g = new THREE.Group(); g.name = 'apadana-reliefs';
-  const meta = { tier: 'C', src: 'RELIEF-R;IR-APAD', placeholder: true, note: 'procedural relief silhouettes (PLACEHOLDER pending licensed scans, NEEDS #10); layout B/C; hair/beard dark blue B; other colours C' };
-  g.userData = meta;
-  const geoCache = new Map<string, THREE.BufferGeometry>();
-  const geo = (kind: string, variant: number, mirror: boolean) => {
-    const k = `${kind}|${variant}|${mirror}`; let x = geoCache.get(k);
-    if (!x) { x = figureGeometry(figurePieces(kind, new Rng(variant + 1, 'fig-' + kind)), mirror); geoCache.set(k, x); } return x;
-  };
-  const inst = new Map<string, THREE.Matrix4[]>();
-  const push = (key: string, mtx: THREE.Matrix4) => { if (!inst.has(key)) inst.set(key, []); inst.get(key)!.push(mtx); };
   const a = m.apadana as any;
   const sg: StairGeom = { spans: a.stairSpans, riser: a.stairRiser, tread: a.stairTread, parapet: a.parapet, podium: a.podium };
-  const rosMats: THREE.Matrix4[] = [];
-  for (const f of apadanaFacades(m)) {
-    const plan = planFacade(f, sg);
-    for (const p of plan.figures) push(`${p.kind}|${p.variant}|${p.facing < 0}`, facadeMatrix(f, p.along, p.y, p.scale));
-    for (const r of plan.rosettes) rosMats.push(facadeMatrix(f, r.a, r.y, 1));
-    // audience panel at the centre (Tilia 1972 via Iranica: still in place in 467): king enthroned, crown prince behind, official before
-    const AP = v<any>('apadana', 'r_audience_panel'); const R = v<any>('apadana', 'r_registers');
-    const k = AP.height / 0.8 * 0.95;
-    push(`king|0|false`, facadeMatrix(f, -0.6, R.bottom, k));
-    push(`persian|1|false`, facadeMatrix(f, -1.9, R.bottom, k * 0.95)); // crown prince behind the throne
-    push(`usher|2|true`, facadeMatrix(f, 1.35, R.bottom, k * 0.9)); // official before the king
-    for (const s of [-1, 1]) for (let i = 0; i < 2; i++) push(`guard|${i}|${s > 0}`, facadeMatrix(f, s * (AP.width / 2 + 0.5 + i * 0.7), R.bottom, 1.35));
-    // rosette frame around the audience panel
-    for (let x = -AP.width / 2; x <= AP.width / 2; x += v<any>('apadana', 'r_rosette').pitch) { rosMats.push(facadeMatrix(f, x, R.bottom - 0.08, 1), facadeMatrix(f, x, R.bottom + AP.height, 1)); }
-  }
-  { // rosette bands: small painted discs in relief
-    const RS = v<any>('apadana', 'r_rosette'); const rg = new THREE.CylinderGeometry(RS.diameter / 2, RS.diameter / 2, 0.02, 10).rotateX(Math.PI / 2).translate(0, 0, 0.01); rg.deleteAttribute('uv');
-    const n = rg.getAttribute('position').count; const col = new Float32Array(n * 3); const c = new THREE.Color().setRGB(PIGMENT.egyptianBlue[0], PIGMENT.egyptianBlue[1], PIGMENT.egyptianBlue[2], THREE.SRGBColorSpace);
-    for (let i = 0; i < n; i++) col.set([c.r, c.g, c.b], i * 3); rg.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    const ri = new THREE.InstancedMesh(rg, paintMaterial(), rosMats.length); rosMats.forEach((mm, i) => ri.setMatrixAt(i, mm)); ri.userData = meta; ri.name = 'relief:rosettes'; ri.computeBoundingSphere(); g.add(ri);
-  }
-  for (const [key, mats] of inst) {
-    const [kind, variant, mirror] = key.split('|');
-    const im = new THREE.InstancedMesh(geo(kind, +variant, mirror === 'true'), paintMaterial(), mats.length);
-    mats.forEach((mm, i) => im.setMatrixAt(i, mm)); im.castShadow = true; im.receiveShadow = true; im.userData = meta; im.name = `relief:${kind}`;
-    im.computeBoundingSphere(); g.add(im);
-  }
+  const items: ReliefItem[] = [], rosettes: RosetteItem[] = [];
+  for (const f of apadanaFacades(m)) for (const plan of [planFacade(f, sg), planAudience()]) { const r = facadeItems(f, plan); items.push(...r.items); rosettes.push(...r.rosettes); }
+  const set = new ReliefSet(items, rosettes, 'relief:apadana'); g.add(set);
+  g.userData = { ...set.userData };
   // four-stepped crenellations along the façade tops
   const C = v<any>('apadana', 'r_crenellation'); const cren = crenellationGeometry(C.width, C.height, C.steps, 0.45);
   const crenMats: THREE.Matrix4[] = [];
@@ -155,4 +122,4 @@ export function buildInscriptions(m: Manifest, parts: any[]): THREE.Group {
   }
   return g;
 }
-void mergeGeometries; void PIGMENT;
+void mergeGeometries;

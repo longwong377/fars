@@ -125,6 +125,7 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | r_figure_spacing | 0.62 | m | RECON | C | spacing of walking figures in file (C) |
 | r_delegation_members | 4 |  | RECON | C | members per delegation incl. usher (counts per delegation NOT found; C) |
 | r_relief_depth | 0.045 | m | RECON | C | low-relief depth (C) |
+| r_relief_carving | {"depth_min": 0.03, "depth_max": 0.08, "figure_fill": 0.95, "panel_depth_factor": 1.5, "embed": 0.001} | m | RECON | C | carved low relief (D-015): peak projection of any relief within depth_min..depth_max (the brief's ~3-8 cm low relief; NOT SEEN in a publication, verify on Schmidt 1953 plates / squeezes); register figures peak at r_relief_depth, large panels (audience, spandrel combats) at r_relief_depth x panel_depth_factor; a standing figure incl. headgear fills figure_fill of the register height; the relief base is set embed into the wall face |
 | r_audience_panel | {"width": 6.2, "height": 2.6} | m | RECON | C | audience panel size (C; the Treasury audience reliefs' dimensions were not obtained) |
 | r_crenellation | {"width": 0.9, "height": 0.9, "steps": 4} | m | RECON | C | four-stepped crenellations crowning the stair façades (motif B, IR-PERS; size C) |
 | r_parapet_height | 1.0 | m | RECON | C | stair parapet above the flights/landings (C); crenellations stand on it |
