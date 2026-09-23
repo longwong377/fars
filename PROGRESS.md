@@ -63,6 +63,7 @@
         - N2: households whose mother dies are not reorganised.
         - Also: the harvest timing conflicts with PLAIN.md; fixed-duration templates; abstract travel times ignore distance; very little is carried.
         - Round-2 fixes merged (D-082 to D-087): children's work by age and sex, bereaved households, sourced harvest windows, carried things.
+      - The soak, re-run on the merged tree (with the Treasury desk moved into the scribes' room), passes all eight gates: 15.45 M person-days with no plan issue; frame cost 0.065 ms mean in real time, 7.4 ms mean and 160 ms p99 at 60× (the day rollover).
       - **Round 3 FAILED** (REVIEWS/shadow_phase5_r3.md, pick seed 53): 3 of 20 below 4.
         - One is a sampling-tool fault: a man drawn 12 days after his death.
         - The other two are real: a leader of ten walking the same 16 posts in the same order for 8 hours, and a toddler reappearing asleep at home with no fetch.
