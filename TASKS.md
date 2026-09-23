@@ -22,7 +22,7 @@
 - [x] Test harness: vitest + Playwright (SwiftShader), camera rig, benchmark mode
 ## Phase 2 — [x] Terrace greybox from SITE_SPEC via parametric generators; plan overlay + dimension tests (passed with logged exceptions)
 ## Phase 3 — Vertical slice (plain → Grand Stairway → Gate of All Nations → Apadana), calibration scene, NPCs 50–100
-- [~] Materials (procedural TSL, wetness/snow, relief normals), post (SSGI fixed D-012, TRAA/bloom), CSM, eye adaptation — C values, uncalibrated
+- [~] Materials (procedural TSL, wetness/snow, relief normals), post (SSGI fixed D-012, TRAA/bloom), CSM, eye adaptation — C values, uncalibrated; light probes for interiors (D-110 … D-114) and twilight/exposure (D-115 … D-119) merged; interiors black until adaptation follows indoor light (Q-153)
 - [~] Sculpted columns/colossi, carved reliefs, MakeHuman CC0 humans (background agents, session 2)
 - [ ] Calibration scene — BLOCKED: no dated photograph reachable (NEEDS #13, B6/B7)
 - [x] Reliefs (placeholder silhouettes on the reference layout), inscriptions carved from published texts
@@ -44,7 +44,7 @@
 - [x] Soak harness + gates (`npm run soak`); baseline measured: FAILS variety/events
 - [~] Events calendar, town life, rota/post rotation, days off, errands; memory of the player (agent, session 3); construction columns follow the sim (D-062)
 - [~] MakeHuman bodies in period dress, crowd pooling (D-090..D-093); impostors, rendering the population beyond the Terrace agents, rendered floors ≥ 300 / ≥ 50 still open
-- [~] Soak passes (all eight gates, D-080/D-081); shadow review round 1 FAILED, fixes merged, round 2 (unseen sample) running
+- [~] Soak passes (all eight gates); shadow review FAILED rounds 1–3 (10, 3, 3 of 20 below 4); round-3 fixes merged (D-135 … D-139); round 4 with a new seed (not 7/11/23/37/53/71) next
 ## Cross-cutting (session 3)
 - [x] Player step-up (D-034); offline walkthrough bot `tools/dev/botcheck.ts`; test camera floor fix
 - [x] Translation layer e2e (D-036)
@@ -60,7 +60,7 @@
 ## Phase 7 — Plain and horizon
 - [x] Research (PLAIN.md, plain.json); horizon: far ring ±71.7 km + curvature, skyline matches SRTM (D-035)
 - [x] Rivers, canals, fields by season, villages, orchards, Naqsh-e Rustam merged (D-037..D-040); DNa/DNb carved (D-061)
-- [~] Plain look: dark specks fixed; grey domes = impostor per-vertex fade (cause found); trees rework (agent, D-120…); dawn vista, schematic NR reliefs open
+- [~] Plain look: dark specks fixed; grey domes fixed (D-121); species trees merged (D-120 … D-123, unrendered at high); NR tomb reliefs carved (D-069), NR cliff look open; dawn vista to re-judge after twilight (D-115 … D-119)
 ## Phase 8 — Language, speech, music, translation layer, map, Now view, photo mode
 - [~] Translation layer: subtitles, inscriptions (transliteration + glosses; translations need NEEDS #14), map (M; Z: town and plain scales), chronicle (J; visitor log)
 - [x] Lexicons in five languages (Babylonian, Ionic Greek new), 73 lines, 372 voice clips (D-105..D-109); listening test open (H8)

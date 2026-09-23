@@ -1,6 +1,14 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **State at the end of session 3 (evening). Every agent branch is merged; HANDOFF.md lists the next steps in order.**
+  - Interiors now render near black until eye adaptation follows the probe illuminance indoors (below; Q-153). This is the first job of session 4.
+  - Merged in the last hour and **not rendered at high quality**:
+    - the trees (D-120 … D-123; P22 grey domes fixed, per a test-quality render);
+    - the Tachara rebuild (D-130 … D-134; N and E rooms unrendered);
+    - the sim round-3 fixes (D-135 … D-139; soak result below, shadow review round 4 not run).
+  - Naqsh-e Rustam at 200 m (test quality, after D-069): the tomb reliefs are specks of colour on dark façades, and the cliff reads as a low mound with dark horizontal bands, not a 64 m rock face. It needs work.
+  - The renders still to run are in `handoff/render_jobs/` (mountain-dusk, reliefs-raking, bench × 4); run them with `tools/dev/render_runner.sh`.
 - **Interior light (light probes, D-110 … D-114; interior-lighting agent, session 3):**
   - The roofed halls are lit by baked probes: sky through the openings plus one and two bounces of sun and sky. Every lit material gets this through the hemisphere light, at every quality. Outside the six volumes (Gate, Apadana, Tachara, Hadish, Treasury hall, Harem) nothing changes.
   - **The halls now render near black at the eye-adaptation formula's exposure** (Apadana columns 0, Hadish columns 0; before: 24–27, from an unoccluded skylight at an outdoor exposure). The probes put the Apadana hall at 0.005–1 % of open ground, since the model has four 4 × 10 m doorways and no windows (Q-150). The formula never exposes more than 1/0.15 of the outdoor value (Q-153, B10).
