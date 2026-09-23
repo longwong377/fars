@@ -711,7 +711,8 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - Each column now has a Gaussian density profile. The mesh has twice the core radius, and the optical depth is σ·R·√π·exp(−4 sin²θ), so the edges fade out instead of a hard rim.
   - The top fades over the upper 60 %. The streaks are softer.
   - The tint is 0.7 of the calibrated horizon (C: a curtain shaded under the deck reads darker than the horizon behind it).
-  - The moment moves to day 241, 13:24, looking 300°: the cell is 23 km NW over the plain, 1.3 h before the episode, cloud 0.78. The old pre-dawn slot (day 12, 05:40) was under full overcast with the far ranges hidden.
+  - The moment first moved to day 241, 13:24, looking 300°. In the render, the cell (placement checked in node: 308–317° true, 20–28 km) stood behind the Apadana's big column and the hall wall. It now uses day 299, 10:36, looking 232° out of the Apadana W portico: a heavy cell (14 mm, radius 6 km) 24 km SW over the plain, 1.3 h before it arrives, cloud 0.76, the sun in the SE. The old pre-dawn slot (day 12, 05:40) was under full overcast with the far ranges hidden.
+  - The shaft tint became 0.5 of the horizon (C). The cloud layer thickens and rises over the cell (`clouds.ts` `cell`: cover +0.6, towers +0.35 of the slab, within 0.5–1.6 cell radii, C), so the curtain hangs from a deeper, darker cloud. The light march does the darkening; nothing is painted.
 
 ## D-061 — DNa and DNb carved at Naqsh-e Rustam from the edition text (session 3)
 - **Before:** the Phase 7 panels on Darius I's tomb were dressed but blank (D-039 placeholder), because the text was believed missing.
