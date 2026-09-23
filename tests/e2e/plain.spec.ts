@@ -7,7 +7,7 @@ import { lumStats } from './lib/lum';
 // ONLY=name,name (at most 4 views per run: the shared render queue's watchdog kills runs older than 15 min)  Q=test|high
 // Default (no ONLY): the three `budget` views. One page load per run; each view sets day/hour through __parsa.setTime.
 const VIEWS: { n: string; day: number; hour: number; w: string; v: [number, number, number, number, number]; budget?: boolean }[] = [
-  { n: 'stair-dawn-plain', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -2], budget: true },
+  { n: 'stair-dawn-plain', day: 0, hour: 5.85, w: 'clear', v: [-39.6, 122.45, 1.6, 251, -4], budget: true },
   { n: 'stair-noon-plain', day: 0, hour: 11, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -3] },
   { n: 'aerial-fields-diagnostic', day: 30, hour: 10, w: 'clear', v: [-3800, 1200, 150, 251, -14] }, // NOT a walkable view: 150 m up, to judge the field patchwork, canals and villages
   { n: 'apadana-north-nr', day: 0, hour: 9, w: 'clear', v: [1.9, 40, 1.6, 341, 1], budget: true },

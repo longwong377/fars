@@ -29,6 +29,9 @@ export interface SurfaceDef {
   streaks?: { amp: number; freq: number };
   /** herb layer that follows SEASON (ground surfaces only) */
   herbs?: number;
+  /** ashlar only: each block (the joint pattern's course × block cells) gets its own tone, ±this fraction of the albedo:
+   *  quarried stone varies from block to block (D-148, C) */
+  blockTone?: number;
   /** fine grain at millimetre–centimetre scale (tool marks, grit, trowel texture): height amplitude (m), frequency (1/m)
    *  and albedo variation, faded out where one period spans fewer than ~3–7 pixels, so surfaces keep detail at arm's
    *  length (brief §8.3 "detail at 1 m") and never shimmer far away (D-147, C) */
@@ -43,7 +46,7 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // Persepolis grey limestone, freshly dressed (C until colour research lands): mid-grey, slightly warm. Ashlar dry-laid
   // without mortar (SITE_SPEC terrace.wall_material, B: 'dry-laid'; Grand Stair 'dry-jointed', B) and, by the Achaemenid
   // practice of anathyrosis (recollection, C; Q-071), fitted to hairline joints: 0.8 mm (C), not a sunk mortar groove
-  limestone: { albedo: [0.44, 0.43, 0.40], roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'dressed grey limestone, dry-laid ashlar with hairline joints (B dry-laid; joint width C, Q-071); albedo C pending calibration photo (NEEDS #13)' },
+  limestone: { albedo: [0.44, 0.43, 0.40], roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.08, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'dressed grey limestone, dry-laid ashlar with hairline joints (B dry-laid; joint width C, Q-071); albedo C pending calibration photo (NEEDS #13)' },
   // carved members (column bases, shafts and capitals, colossi, relief figures): the same stone with no masonry joints drawn
   // (the block layout of carved members is unknown; a joint may cross a carving only as a hairline) and a finer, rubbed
   // finish (D-029, C)
@@ -65,7 +68,7 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // the open courts of the Terrace: no source found for their surface (OPEN_QUESTIONS Q-027). Compacted fill with
   // limestone dressing chips over the levelled platform (C)
   court_fill: { albedo: [0.50, 0.46, 0.39], roughness: 0.9, porosity: 0.7, noiseScale: 0.5, noiseAmp: 0.1, bump: { amp: 0.004, freq: 2.5 }, chips: { cover: 0.12, size: 0.06, albedo: [0.64, 0.62, 0.57] }, micro: { amp: 0.0007, freq: 55, alb: 0.06 }, tier: 'C', note: 'Terrace open court: compacted fill with limestone chips (surface unknown, Q-027: C)' },
-  terrace: { albedo: [0.44, 0.43, 0.40], roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, bump: { amp: 0.0015, freq: 6 }, top: 'court_fill', micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'Terrace platform: dressed limestone retaining walls, dry-laid with hairline joints (Q-071); open court surface C (Q-027)' },
+  terrace: { albedo: [0.44, 0.43, 0.40], roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.08, bump: { amp: 0.0015, freq: 6 }, top: 'court_fill', micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'Terrace platform: dressed limestone retaining walls, dry-laid with hairline joints (Q-071); open court surface C (Q-027)' },
   scaffold: { albedo: [0.45, 0.35, 0.24], roughness: 0.85, porosity: 0.5, noiseScale: 3, noiseAmp: 0.1, tier: 'C', note: 'timber scaffold poles' },
   rubble: { albedo: [0.5, 0.48, 0.44], roughness: 0.9, porosity: 0.5, noiseScale: 2, noiseAmp: 0.2, bump: { amp: 0.01, freq: 3 }, micro: { amp: 0.0015, freq: 32, alb: 0.06 }, tier: 'C', note: 'stone chips' },
 };
@@ -112,6 +115,11 @@ function layer(d: SurfaceDef, base: any): Layer {
     const s = p.x.add(p.z), head = hairline(s.add(step(0.5, fract(p.y.div(J.course * 2))).mul(J.block / 2)), J.block, J.width);
     const line = max(bed, head).mul(vert);
     alb = alb.mul(float(1).sub(line.mul(J.dark)));
+    if (d.blockTone) { // per-block tone from the cell indices of the same joint pattern (hash of course × block)
+      const ci = p.y.div(J.course).floor(), bi = s.add(step(0.5, fract(p.y.div(J.course * 2))).mul(J.block / 2)).div(J.block).floor();
+      const hsh = fract(ci.mul(127.1).add(bi.mul(311.7)).sin().mul(43758.5453)).mul(2).sub(1);
+      alb = alb.mul(float(1).add(hsh.mul(d.blockTone)));
+    }
     rough = mix(rough, float(1), line);
   }
   if (d.chips) { // scattered stones/chips: cells of a Worley field below a threshold, raised and lighter

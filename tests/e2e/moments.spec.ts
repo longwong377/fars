@@ -6,8 +6,8 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // dawn before sunrise (D-118): day 0 (17 Apr 467 BCE) 05:24, the sun 2.9° below the horizon (sunrise ~05:35): the
   // Earth's shadow and the antitwilight arch over the W plain, no sun shadows; the old slot (05:51, sun +2.5°) and a view
   // E into the glow over Kuh-e Rahmat are kept for comparison
-  { n: 'dawn-stair-top', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -2] },
-  { n: 'dawn-sunrise', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -2] },
+  { n: 'dawn-stair-top', day: 0, hour: 5.40, w: 'clear', v: [-39.6, 122.45, 1.6, 251, -4] }, // 1 m from the W edge of the top landing (x −40.6), so the frame shows the descent and the plain, not 4 m of pavement (session 4)
+  { n: 'dawn-sunrise', day: 0, hour: 5.85, w: 'clear', v: [-39.6, 122.45, 1.6, 251, -4] },
   { n: 'dawn-glow-e', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 122.45, 1.6, 79, 6] },
   { n: 'gate-dusk', day: 0, hour: 19.25, w: 'clear', v: [0.1, 118, 1.6, 341, 4] },
   { n: 'night-terrace', day: 5, hour: 22.5, w: 'clear', v: [0, 92, 1.6, 161, 6] },

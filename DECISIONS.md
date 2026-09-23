@@ -1717,3 +1717,7 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - The builder 44754 (present 19 days) has sat at 0.094 (16 near-copy pairs of 171) since round 2. His working days are the labour gang's (the ramp, dawn to 15:30: E-60) and are alike. One more near-copy pair would fail the gate.
   - The adults and the children of 5-13 still use the day flags: on a wet or dusty day they keep in the whole day.
   - A toddler still goes with its mother to the well in the dust.
+
+## D-148 Ashlar blocks vary in tone; the dawn moment stands at the landing's edge (session 4)
+- **Block tone (C):** real quarried ashlar varies from block to block. `SurfaceDef.blockTone` gives each cell of the joint pattern (course × block, the same cells that draw the hairline joints) its own tone, ±8 % on `limestone` and `terrace` (a hash of the cell indices; arithmetic, no `select()`). Seen in the stair-climb render (session 4): the flights and walls read as single flat planes in shade.
+- **Dawn camera:** the §1.1 dawn moment (`dawn-stair-top`, `dawn-sunrise`, and the plain budget view `stair-dawn-plain`) stood 4.2 m back from the W edge of the Grand Stair's top landing (x −40.6; there is no parapet on the axis), so the bottom quarter of the frame was flat landing pavement. It now stands 1 m from the edge (x −39.6), pitched −4°, so the frame shows the descent, the lower flights and the plain with the Terrace's long dawn shadow. The date, hour and weather are unchanged.
