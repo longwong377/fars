@@ -163,11 +163,13 @@ export class HorizonMap {
     }
     return out;
   }
-  /** the static reference-height atlas for the lines (R channel: the world's apparent y of each texel's R) */
-  refAtlas(out: Uint16Array): Uint16Array {
+  /** the static reference heights for the lines (the world's apparent y of each texel's R), into channel `offset` of an
+   *  atlas with `stride` channels: a single-channel atlas, or the chord atlas's B channel (the same value bakeAtlas writes
+   *  there), which the sun's lines read so a lit material binds one texture fewer */
+  refAtlas(out: Uint16Array, stride = 1, offset = 0): Uint16Array {
     const [W] = this.atlasSize; let u0 = 0;
     for (const L of this.levels) {
-      for (let r = 0; r < L.n; r++) { const z = L.cz - L.half + (r + 0.5) * L.cell; for (let c = 0; c < L.n; c++) { const x = L.cx - L.half + (c + 0.5) * L.cell; out[r * W + u0 + c] = toHalf(L.ref[r * L.n + c] - this.meta.court_asl - curvatureDropOrigin(x, z)); } }
+      for (let r = 0; r < L.n; r++) { const z = L.cz - L.half + (r + 0.5) * L.cell; for (let c = 0; c < L.n; c++) { const x = L.cx - L.half + (c + 0.5) * L.cell; out[(r * W + u0 + c) * stride + offset] = toHalf(L.ref[r * L.n + c] - this.meta.court_asl - curvatureDropOrigin(x, z)); } }
       u0 += L.n;
     }
     return out;

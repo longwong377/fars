@@ -107,9 +107,13 @@ describe('terrain horizon map (D-156)', () => {
   });
 
   it('bakes the per-frame GPU atlases: the shader formula on bilinear texel parameters reproduces the CPU model', () => {
-    // emulate horizonShadow.ts on the baked half-float atlases (sun: lines + reference atlas; moon: chord)
-    const [W, H] = MAP.atlasSize, lines = MAP.bakeAtlas(86.2, new Uint16Array(W * H * 4), true), chord = MAP.bakeAtlas(86.2, new Uint16Array(W * H * 4));
-    const ref = MAP.refAtlas(new Uint16Array(W * H));
+    // emulate horizonShadow.ts on the baked half-float atlases (sun: lines, its reference heights read from the moon's
+    // chord atlas's B channel, as the sky system binds them; moon: chord)
+    const [W, H] = MAP.atlasSize, lines = MAP.bakeAtlas(86.2, new Uint16Array(W * H * 4), true), chord = MAP.bakeAtlas(123.4, new Uint16Array(W * H * 4));
+    const refOnly = MAP.refAtlas(new Uint16Array(W * H * 4), 4, 2);
+    for (let i = 2; i < refOnly.length; i += 4) if (refOnly[i] !== chord[i]) throw new Error(`reference height ${i >> 2}: refAtlas ${refOnly[i]} vs chord bake ${chord[i]}`);
+    MAP.bakeAtlas(86.2, chord);
+    const ref = chord;
     const bil = (buf: Uint16Array, ch: number, stride: number, l: number, x: number, z: number) => {
       const L = MAP.levels[l], u0 = MAP.levels.slice(0, l).reduce((s, q) => s + q.n, 0);
       const gx = Math.min(L.n - 0.5, Math.max(0.5, (x - L.cx + L.half) / L.cell)) - 0.5, gz = Math.min(L.n - 0.5, Math.max(0.5, (z - L.cz + L.half) / L.cell)) - 0.5;
@@ -121,7 +125,7 @@ describe('terrain horizon map (D-156)', () => {
     for (let i = 0; i < 400; i++) {
       const l = i % 3, L = MAP.levels[l], s = L.half * 0.9, x = L.cx + ((i * 0.618034) % 1) * 2 * s - s, z = L.cz + ((i * 0.414214 + 0.3) % 1) * 2 * s - s;
       const yg = T.heightAt(x, z) + [1, 5, 15, 30][i % 4], asl = yg + tmeta.court_asl + curvatureDropOrigin(x, z);
-      const yr = yg - bil(ref, 0, 1, l, x, z);
+      const yr = yg - bil(ref, 2, 4, l, x, z);
       const eL = L.flat ? bil(lines, 0, 4, l, x, z) : Math.max(bil(lines, 0, 4, l, x, z) - bil(lines, 1, 4, l, x, z) * yr, bil(lines, 2, 4, l, x, z) - bil(lines, 3, 4, l, x, z) * (yr - 50));
       const eC = bil(chord, 0, 4, l, x, z) + bil(chord, 1, 4, l, x, z) * (yg - bil(chord, 2, 4, l, x, z));
       const cpuL = MAP.levelElevation(l, x, z, asl, 86.2), cpuC = MAP.levelElevation(l, x, z, asl, 86.2, true);

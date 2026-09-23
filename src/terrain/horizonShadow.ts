@@ -1,7 +1,8 @@
 // The terrain horizon as a shadow term in shading (D-156; horizonMap.ts holds the data). Per frame the sky system bakes,
 // for the sun's and the moon's current azimuth, small RGBA16F atlases (the three levels side by side):
-//  • the sun: the two-line skyline model (e0, k1, e50, k2) per texel, with a static atlas of the texels' reference heights
-//    (R channel, the world's apparent y): e(y') = max(e0 − k1·y', e50 − k2·(y' − 50)), y' = y − R;
+//  • the sun: the two-line skyline model (e0, k1, e50, k2) per texel, with the texels' reference heights (the world's
+//    apparent y; the sky system keeps them in the moon atlas's B channel): e(y') = max(e0 − k1·y', e50 − k2·(y' − 50)),
+//    y' = y − R;
 //  • the moon: the chord (e0, slope, reference y, 1): e(y) = e0 + slope·(y − R).
 // These nodes return the fraction of the body's disc above the skyline at a world position: one or two bilinear fetches
 // per level, the levels blended across their edges (arithmetic masks only: no select(), D-012), the body's altitude
@@ -27,7 +28,10 @@ export function horizonAtlasTexture(levels: HorizonLevelMeta[], kind: 'lines' | 
   return t;
 }
 
-export interface HorizonAtlases { levels: HorizonLevelMeta[]; tex: THREE.DataTexture; kind: 'lines' | 'chord'; ref?: THREE.DataTexture }
+/** `ref` (lines only): the atlas holding the texels' reference heights, in channel `refChannel` (default 'r': a 'ref'
+ *  atlas; the sky system passes the moon's chord atlas, channel 'b', so every lit material binds 3 textures for the air
+ *  and the horizon, not 4: WebGPU's default limit is 16 sampled textures per stage, D-156) */
+export interface HorizonAtlases { levels: HorizonLevelMeta[]; tex: THREE.DataTexture; kind: 'lines' | 'chord'; ref?: THREE.DataTexture; refChannel?: 'r' | 'b' }
 /** TSL: visibility (0..1) of a body's disc at world position `p` (default: the fragment's). `altDeg`: the body's apparent
  *  altitude (deg) at the grid origin; `dir`: its unit world direction (the local tilt uses its horizontal part).
  *  `use`: the level indices sampled (default all; the air samples only the coarse ones: its weighting is smooth). */
@@ -44,7 +48,7 @@ export function horizonVisibility(A: HorizonAtlases, altDeg: any, dir: any, p: a
       const uv = vec2(gx.add(u0).div(W), gz.div(H)), s = texture(A.tex, uv);
       if (A.kind === 'chord') e.push(s.r.add(s.g.mul(y.sub(s.b))));
       else if (L.flat) e.push(s.r);
-      else { const yr = y.sub(texture(A.ref!, uv).r); e.push(max(s.r.sub(s.g.mul(yr)), s.b.sub(s.a.mul(yr.sub(50))))); }
+      else { const R = texture(A.ref!, uv), yr = y.sub(A.refChannel === 'b' ? R.b : R.r); e.push(max(s.r.sub(s.g.mul(yr)), s.b.sub(s.a.mul(yr.sub(50))))); }
     }
     // level weights: the finest level up to 10 cells from its edge, blended to the next over 8 cells (horizonMap.levelAt)
     let out: any = e[e.length - 1];

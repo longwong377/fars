@@ -79,8 +79,9 @@ export class SkySystem {
   // ---- terrain horizon (D-156): the sun and the moon set behind the ranges ---------------------------------------------
   /** the baked skyline map (null until loaded, or when absent: then nothing is shadowed by distant terrain) */
   horizonMap: HorizonMap | null = null;
-  /** per-body RGBA16F atlases for the current azimuth (horizonShadow.ts) and the azimuth each was baked for */
-  private hzSun = horizonAtlasTexture(HORIZON_LAYOUT.levels, 'lines'); private hzRef = horizonAtlasTexture(HORIZON_LAYOUT.levels, 'ref');
+  /** per-body RGBA16F atlases for the current azimuth (horizonShadow.ts) and the azimuth each was baked for; the moon's
+   *  chord atlas also carries the texels' reference heights (B) that the sun's lines read */
+  private hzSun = horizonAtlasTexture(HORIZON_LAYOUT.levels, 'lines');
   private hzMoon = horizonAtlasTexture(HORIZON_LAYOUT.levels, 'chord');
   private hzSunAz = NaN; private hzMoonAz = NaN;
   private uSunAlt = uniform(45); private uMoonAlt = uniform(-10);
@@ -161,7 +162,7 @@ export class SkySystem {
     // terrain horizon (D-156): the sun's and the moon's light at a shaded point is the light's colour × intensity × the
     // fraction of the disc above the terrain's skyline there (horizonShadow.ts). As the light's colorNode it reaches every
     // lit material at every quality, with or without the cascaded shadow maps (which it multiplies).
-    const sunA: HorizonAtlases = { levels: HORIZON_LAYOUT.levels, tex: this.hzSun, kind: 'lines', ref: this.hzRef };
+    const sunA: HorizonAtlases = { levels: HORIZON_LAYOUT.levels, tex: this.hzSun, kind: 'lines', ref: this.hzMoon, refChannel: 'b' };
     const moonA: HorizonAtlases = { levels: HORIZON_LAYOUT.levels, tex: this.hzMoon, kind: 'chord' };
     const sunC = new THREE.Color(), moonC = new THREE.Color();
     (this.sun as any).colorNode = uniform(sunC).onRenderUpdate(() => sunC.copy(this.sun.color).multiplyScalar(this.sun.intensity)).mul(horizonVisibility(sunA, this.uSunAlt, this.uSunDirW));
@@ -192,12 +193,13 @@ export class SkySystem {
     EYE_SKY.sunVisibilityAt = (x, y, z) => this.sunVisibilityAt(x, y, z);
   }
 
-  /** install the terrain horizon map (D-156): the reference-height atlas once; the per-body atlases on the next update */
+  /** install the terrain horizon map (D-156): the reference heights once (the moon atlas's B channel, which its bakes
+   *  rewrite with the same values); the per-body atlases on the next update */
   setHorizonMap(m: HorizonMap | null) {
     const same = !!m && m.levels.length === HORIZON_LAYOUT.levels.length && m.levels.every((L, i) => { const D = HORIZON_LAYOUT.levels[i]; return L.n === D.n && L.half === D.half && L.flat === !!D.flat && L.cx === (D.cx ?? 0) && L.cz === (D.cz ?? 0); });
     if (m && !same) console.warn('[horizon] the baked map\'s levels differ from HORIZON_LAYOUT (re-run tools/build_horizon.ts): not used');
     this.horizonMap = same ? m : null; this.hzSunAz = this.hzMoonAz = NaN;
-    if (this.horizonMap) { this.horizonMap.refAtlas(this.hzRef.image.data as Uint16Array); this.hzRef.needsUpdate = true; }
+    if (this.horizonMap) { this.horizonMap.refAtlas(this.hzMoon.image.data as Uint16Array, 4, 2); this.hzMoon.needsUpdate = true; }
   }
   /** the terrain horizon's visibility of the sun's disc at a world point (1 without a map) */
   sunVisibilityAt(x: number, y: number, z: number): number {
