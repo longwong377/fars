@@ -9,6 +9,15 @@
 - **People (Phase 3, in progress):** bodies and animation are PLACEHOLDERS. They are procedural rigid-skinned rigs with hand-authored pose cycles, not photoreal humans, and faces are abstract. The Phase 3 slice has 65 people: 30 guards on three watches at 10 posts, a mason gang of 12 plus a foreman, 6 porters, 2 scribes, 2 bakers, 4 grinders, 3 children, 2 couriers and 3 officials. The town is off the map (Phase 6), so the edge of the plain stands in for home. There is no Recast navmesh yet (D-010).
 
 - **Speech (D-011) is a PLACEHOLDER formant synthesiser** (robotic; not yet rated for intelligibility). The lexicons are thin: Old Persian has no greeting, so Persians greet in Aramaic or by gesture. The murmur is built from lexicon sound patterns, and languages with no lexicon (Greek, Egyptian, Lydian, Babylonian) fall back to C-tier profiles.
+- **Columns and Gate colossi are procedural sculpture (D-018, tier C), not measured carving.** They are reconstructed from the type (recollection), not from drawings, scans or photographs. Licensed scans would replace them (NEEDS #10). Known weak points:
+  - The first renders (shots/sculpt-*.png) show three faults. The limestone wall material's ashlar joint lines are drawn across capitals, protomes and colossi, so the carving reads as brickwork; carved members need a joint-free surface (not done). The curls are plain bosses, not spirals, and read as "bubble wrap": on the lamassu they run unbroken from the beard down the chest.
+  - The protome's bull heads are generic, and the horns are too small (they read as ears).
+  - The volute scrolls are coarse (2.5 k triangles).
+  - The colossi's leg count and proportions are not verified.
+  - The protome axis is always grid E–W (the beam direction is unknown).
+  - The Gate's open door leaves stand against the reveals over the front of the colossus flanks (layout).
+  - The Gate wall ring still overlaps the jamb volume in the colliders; only the render cuts it out.
+  - Treasury columns render with one material (timber) for the stone base, the plastered shaft and the capital.
 - **Calibration scene (§8.1) not done:** no dated photo of the ruin is reachable (NEEDS #13). Stone and light values remain C estimates, and the Phase 3 gate can pass only with this logged exception.
 
 - **High quality (session 2):** the washout is fixed (D-012: r186 SSGI outputs AO and GI separately; the old composite added albedo-red × AO everywhere). A boot hang on the new composite is fixed too (D-012 addendum). The moments are **not yet re-judged at high quality**, and the GI scale (π/2) is a derivation, not a calibration.
@@ -21,7 +30,7 @@
 - **Translation layer:** subtitles, inscription transliteration with lexicon glosses (no published translation: NEEDS #14), map and chronicle. The e2e check has not run.
 - **Volumetric clouds:** implemented (C shapes and optics) but **not yet seen in a render**.
 - **Bench:** the high-quality numbers from session 2 are invalid (draw calls accumulated across post passes; fixed, re-run needed).
-- **Surfaces (D-014):** walls are clay-painted mud plaster (B/C); floors are red plaster (B Tachara/Treasury, C elsewhere); the open courts are compacted fill (C, Q-027); the plain has a seasonal herb layer (C). All procedural, no photo calibration.
+- **Surfaces (D-018):** walls are clay-painted mud plaster (B/C); floors are red plaster (B Tachara/Treasury, C elsewhere); the open courts are compacted fill (C, Q-027); the plain has a seasonal herb layer (C). All procedural, no photo calibration.
 
 ## Phase status
 | Phase | Status | Gate |

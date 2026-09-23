@@ -748,6 +748,17 @@
    "tier": "C",
    "note": "close to '8 m' extract"
   },
+  "portico_capitals": {
+   "v": {
+    "N": "composite",
+    "E": "composite",
+    "W": "bull"
+   },
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "search extract attributed to Iranica 'Persepolis' (research/_extract_A.md, page not verified): N (and E) portico columns of the same composition as the Gate of All Lands columns (bell base, composite capital); W portico double-bull capitals set directly on the fluted shaft. E assignment and protome animal per portico need OIP 68"
+  },
   "porticoes": {
    "v": {
     "N": [

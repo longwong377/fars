@@ -12,4 +12,5 @@
 | Player body | procedural placeholder | project | — | C (placeholder) |
 | All sounds (wind, rain, thunder, birds, jackals, crickets, fire, chisels, footsteps) | procedural Web Audio synthesis (src/audio) | project (no recordings) | — | species B/C (research/SOUNDSCAPE.md); sound design C |
 | Reverb impulse responses | generated from room dimensions (Sabine RT60) | project | — | C |
+| Sculpted column orders and Gate colossi (src/arch/sculpt.ts, sculpt_models.ts, sdf.ts; src/data/sculpture.json; public/generated/sculpt_*.bin) | procedural: lathes with relief + SDF models → marching cubes → quadric simplification (D-018); marching-cubes tables from three/addons MarchingCubes | project; tables MIT | three.js authors (tables) | C (procedural sculpture from the type, not measured; licensed scans would replace it, NEEDS #10) |
 | SSGI node, patched (src/render/ssgi.ts) | three.js r186 examples/jsm/tsl/display/SSGINode.js; sky samples skipped, reversed-Z sky test (D-012) | MIT | three.js authors | — |

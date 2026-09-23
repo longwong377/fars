@@ -2,7 +2,7 @@
 // DERIVED rows, or `r_*` reconstruction rows (tier C, with a note each) — no literals (brief §3.1, §7; review MJ-1).
 // Positions come from the georeferenced OSM footprints. Output: parts + a manifest of measured features.
 import { row, v, tierOf, srcOf, present, footprint } from './spec';
-import { Part, Pt, Box, Prism, Column, Manifest, wallRing, grid, BuildResult, Material, doorFrames, frameTop, FrameDims } from './parts';
+import { Part, Pt, Box, Prism, Column, ColumnOrder, Manifest, wallRing, grid, BuildResult, Material, doorFrames, frameTop, FrameDims } from './parts';
 import { order } from './orders';
 import { Rng } from '../core/rng';
 import { polyDifference, polyUnion, polyIntersection, rectPoly, single } from './poly';
@@ -182,13 +182,16 @@ export function buildTerrace(): BuildResult {
         parts.push(box(b, 'door_leaf', 'timber', 'C', S_(b, 'r_door_leaves'), lc, horiz ? [DL.thickness, dw / 2] : [dw / 2, DL.thickness], fl, fl + dh, { solid: true, note: 'timber door leaf with bronze bosses (C)' }));
       }
     }
-    // doorway colossi stand in the W and E door reveals, projecting outward from the wall faces (PLACEHOLDER blocks)
-    const K = v<any>(b, 'r_colossus');
-    for (const [side, sx, dir] of [['W', x0, -1], ['E', x1, 1]] as const) for (const dy of [-1, 1]) {
+    // doorway colossi stand in the W and E door reveals, projecting outward from the wall faces; the box is the collider
+    // and plan footprint, rendered as a colossus carved from the jamb (sculpt.ts, D-018): head facing out of the
+    // doorway, relief toward the passage
+    const K = v<any>(b, 'r_colossus'), G = v<Record<string, string>>(b, 'guardians');
+    for (const [side, sx, dir] of [['W', x0, -1], ['E', x1, 1]] as const) for (const dy of [-1, 1] as const) {
       const pl = v(b, 'r_colossus_plinth'), pc: Pt = [sx + dir * (K.length / 2 - tx), c[1] + dy * (dw / 2 + K.width / 2)];
       parts.push(box(b, 'plinth', 'limestone', 'C', S_(b, 'r_colossus_plinth'), pc, [K.length, K.width], fl, fl + pl, { solid: true }));
-      parts.push(box(b, 'colossus', 'limestone', 'C', 'RECON', pc, [K.length, K.width], fl + pl, fl + pl + K.height,
-        { placeholder: true, solid: true, note: `${side === 'W' ? 'bull' : 'human-headed winged bull'} colossus (IR-PERS B for the type; block PLACEHOLDER)` }));
+      parts.push(box(b, 'colossus', 'limestone', 'C', srcOf(row(b, 'guardians'), row(b, 'r_colossus')), pc, [K.length, K.width], fl + pl, fl + pl + K.height,
+        { solid: true, sculpt: { model: /human-headed/.test(G[side]) ? 'lamassu' : 'bull', facing: dir, passage: dy === 1 ? -1 : 1 },
+          note: `${G[side]} colossus (IR-PERS, B) carved from the jamb: procedural sculpture, form C (D-018)` }));
     }
     manifest.gate_nations = { room: [c[0], c[1], hs, hs, fl, roofY - fl], hallInteriorX: hs, hallInteriorY: hs, columns: nx * ny, columnHeight: ord.height, wallTx: tx, wallTy: ty, doors: doors.length, doorHeight: dh };
   }
@@ -204,16 +207,18 @@ export function buildTerrace(): BuildResult {
     const AD = framed(b, cx, cy, hs, hs, wt, pod, (['N', 'W', 'E', 'S'] as const).map(side => ({ side, at: 0, width: D.width, height: D.height })), D.height);
     parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'wall_thickness'), row(b, 'wall_height')) }, cx, cy, hs, hs, wt, pod, pod + v(b, 'wall_height'), AD.wallDoors).map(w => ({ ...w, solid: true })), ...AD.frames);
     parts.push(box(b, 'floor_finish', v<string>('global', 'interior_floor') as Material, T_('global', 'interior_floor'), S_('global', 'interior_floor'), [cx, cy], [hs, hs], pod, pod + v('global', 'r_floor_finish'), { solid: false }));
-    const hallOrd = order(b, { base: 'square2', capital: 'bull' }), porOrd = order(b, { base: 'bell', capital: 'bull' });
+    // capitals: composite in the hall (row `capital`), per portico from `portico_capitals` (W: double bulls on the shaft)
+    const PC = v<Record<string, ColumnOrder['capital']>>(b, 'portico_capitals');
+    const hallOrd = order(b, { base: 'square2', capital: 'composite' }), porOrd = (side: string) => order(b, { base: 'bell', capital: PC[side] });
     const [hnx, hny] = v<number[]>(b, 'hall_columns');
     const hallCols = grid(hnx, hny, cx, cy, ia);
     for (const p of hallCols) parts.push(col(b, p, pod, hallOrd, tierOf(row(b, 'column_height'), row(b, 'interaxial')), s));
     const wo = hs / 2 + wt;
-    const por = v<Record<string, [number, number]>>(b, 'porticoes'); const porticoCols: Pt[] = [];
+    const por = v<Record<string, [number, number]>>(b, 'porticoes'); const porticoCols: Pt[] = [], porticoSide: string[] = [];
     // N portico: [cols along x, rows]; W/E: [rows, cols along y]; rows at 1, 2, … bays out from the hall wall face
-    for (let i = 0; i < por.N[0]; i++) for (let k = 1; k <= por.N[1]; k++) porticoCols.push([cx + (i - (por.N[0] - 1) / 2) * ia, cy + wo + k * ia]);
-    for (const [side, sgn] of [['W', -1], ['E', 1]] as const) for (let i = 0; i < por[side][1]; i++) for (let k = 1; k <= por[side][0]; k++) porticoCols.push([cx + sgn * (wo + k * ia), cy + (i - (por[side][1] - 1) / 2) * ia]);
-    for (const p of porticoCols) parts.push(col(b, p, pod, porOrd, tierOf(row(b, 'column_height'), row(b, 'porticoes')), s));
+    for (let i = 0; i < por.N[0]; i++) for (let k = 1; k <= por.N[1]; k++) { porticoCols.push([cx + (i - (por.N[0] - 1) / 2) * ia, cy + wo + k * ia]); porticoSide.push('N'); }
+    for (const [side, sgn] of [['W', -1], ['E', 1]] as const) for (let i = 0; i < por[side][1]; i++) for (let k = 1; k <= por[side][0]; k++) { porticoCols.push([cx + sgn * (wo + k * ia), cy + (i - (por[side][1] - 1) / 2) * ia]); porticoSide.push(side); }
+    porticoCols.forEach((p, i) => parts.push(col(b, p, pod, porOrd(porticoSide[i]), tierOf(row(b, 'column_height'), row(b, 'porticoes'), row(b, 'portico_capitals')), s)));
     const [px0, py0, px1] = f.bounds; const nEdge = cy + wo + pdN;
     const tE = v(b, 'r_tower_extra');
     const towers: [number, number, number, number][] = [[px0, cy + wo, cx - wo, nEdge], [cx + wo, cy + wo, px1, nEdge], [px0, py0, cx - wo, cy - wo], [cx + wo, py0, px1, cy - wo]];
