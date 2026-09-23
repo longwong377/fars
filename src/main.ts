@@ -100,7 +100,7 @@ async function boot() {
   input.onInteract = () => { const r = world.address?.(camera); if (r) console.info('[translation layer]', JSON.stringify(r)); };
   const tl = new TranslationLayer(() => settings); input.onAction = a => tl.toggle(a);
   let lastSub: any = null, lastSubAt = -1e9; const inscGroup = world.root.getObjectByName('inscriptions') ?? null;
-  const body = makePlayerBody(); scene.add(body);
+  const body = makePlayerBody((world as any).people?.crowd); scene.add(body);
 
   let lastSave: string | null = null;
   function state() {
@@ -166,6 +166,16 @@ async function boot() {
     navPath: (from: [number, number], to: [number, number]) => { const P = (world as any).people; if (!P) return null;
       const still = P.sim.agents.filter((a: any) => !a.offmap && !a.walking).map((a: any) => a.pos); return P.nav.findPathAvoiding(from, to, still, 0.9); },
     address: () => world.address?.(camera) ?? null,
+    /** people rendering: crowd stats (draws, triangles, people per LOD, CPU ms of posing) */
+    humans: () => { const P = (world as any).people; return P ? { ...P.crowd.stats(), load: P.humans.ms, NV: P.humans.O.NV, sourceMB: +(P.humans.O.source.byteLength / 1e6).toFixed(1), capacity: P.humans.gpu.capacity } : null; },
+    /** test lineup: extra people (not simulated) standing at grid (east, north) spaced along grid east, facing a heading
+     *  (deg from grid north); each spec: { dress, sex, role, seed, anim?, age? }; returns their looks */
+    humanLineup: (east: number, north: number, headingDeg: number, specs: any[], spacing = 0.9, lookAtCamera = true) => {
+      const P = (world as any).people; if (!P) return null; P.crowd.removeExtras();
+      return specs.map((sp, i) => { const e = east + i * spacing, n = north; const x = e, z = -n; const y = groundAt(e, n);
+        const p = P.crowd.addExtra(`lineup${i}`, { id: -100 - i, x, y, z, yaw: Math.PI - (headingDeg * Math.PI) / 180, look: lookAtCamera ? (freeCam ? [freeCam.x, freeCam.y, freeCam.z] : [camera.position.x, camera.position.y, camera.position.z]) : null, ...sp });
+        return { key: p.key, variant: p.look.variantId, stature: +p.look.stature.toFixed(3), pieces: p.look.pieces, note: p.look.note }; }); },
+    clearLineup: () => (world as any).people?.crowd.removeExtras(),
     resetFalls: () => { player.maxFall = 0; },
     exposureInfo: () => ({ exposure: renderer.toneMappingExposure, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],
@@ -261,7 +271,7 @@ async function boot() {
       const e = player.eye;
       const bob = settings.headBob && player.grounded ? Math.sin(player.bobPhase * 2) * 0.025 : 0;
       camera.position.set(e.x, e.y + bob, e.z); camera.rotation.set(input.pitch, input.yaw, 0, 'YXZ');
-      body.visible = true; body.position.set(e.x, player.feetY, e.z); body.rotation.y = input.yaw; animateBody(body, player.bobPhase, 1.35);
+      body.visible = true; body.position.set(e.x, player.feetY, e.z); body.rotation.y = input.yaw; animateBody(body, player.bobPhase, 1.35, dt);
       // keep the camera ahead of the torso when looking down
       body.position.x += Math.sin(input.yaw) * 0.12; body.position.z += Math.cos(input.yaw) * 0.12;
     }

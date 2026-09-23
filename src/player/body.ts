@@ -1,30 +1,58 @@
-// The player's visible body (brief §6: visible, in period dress, with a shadow). PLACEHOLDER (Phase 1): a simple
-// figure in undyed wool tunic and trousers colours (riding-dress silhouette, C). Replaced by a rigged, dressed
-// character in Phase 3/5. Flagged in the dev overlay.
+// The player's visible body (brief §6: visible, in period dress, with a shadow; D-025). The same MakeHuman-derived body
+// and costume system as everyone else: a man in Median riding dress of undyed wool (tunic, trousers, boots, soft cap;
+// C: the visitor's dress is not evidenced, the riding costume is the common dress of the period, B). The camera sits
+// inside the head, so the visible copy collapses the head (person flag) and a second, shadow-only copy (no colour,
+// no depth) keeps the head's shadow. Walk and idle cycles from anim.ts.
 import * as THREE from 'three/webgpu';
-export function makePlayerBody(): THREE.Group {
+import type { Crowd } from '../people/crowd';
+import { HumanMaterial, FLAG_HIDE_HEAD } from '../people/humanMaterial';
+import { RigSolver, PALETTE_STRIDE, type RigInput } from '../people/humanRig';
+import { lookFor } from '../people/looks';
+import { pose } from '../people/anim';
+import { EYE_HEIGHT } from './player';
+import { COSTUMES, pieceBit } from '../people/outfits';
+
+interface PlayerRig { crowd: Crowd; rig: RigSolver; input: RigInput; slots: [number, number]; lastPhase: number; moving: number; t: number; meshes: THREE.Mesh[] }
+/** the player's body; position (feet) and rotation.y (view yaw) are set by the caller each frame */
+export function makePlayerBody(crowd?: Crowd): THREE.Group {
   const g = new THREE.Group(); g.name = 'player-body';
-  g.userData = { tier: 'C', src: 'RECON', placeholder: true, note: 'placeholder body: proportions only; dress per MATERIAL_CULTURE in Phase 3' };
-  const wool = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(0.55, 0.47, 0.36, THREE.SRGBColorSpace), roughness: 0.95 });
-  const trouser = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(0.36, 0.3, 0.24, THREE.SRGBColorSpace), roughness: 0.95 });
-  const skin = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(0.55, 0.4, 0.3, THREE.SRGBColorSpace), roughness: 0.7 });
-  const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.24, 0.72, 12), wool); torso.position.y = 1.12;
-  const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.3, 0.3, 12), wool); skirt.position.y = 0.72;
-  const legL = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.065, 0.8, 8).translate(0, -0.4, 0), trouser); legL.position.set(-0.1, 0.8, 0); // pivot at hip
-  const legR = legL.clone(); legR.position.x = 0.1;
-  const armL = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.05, 0.62, 8).translate(0, -0.31, 0), wool); armL.position.set(-0.27, 1.46, 0.02); // pivot at shoulder armL.rotation.z = 0.08;
-  const armR = armL.clone(); armR.position.x = 0.27; armR.rotation.z = -0.08;
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.11, 12, 10), skin); head.position.y = 1.6;
-  g.add(torso, skirt, legL, legR, armL, armR, head);
-  g.traverse(o => { if ((o as THREE.Mesh).isMesh) { o.castShadow = true; o.receiveShadow = true; } });
-  head.visible = false; // camera sits inside the head; the head still casts a shadow via a shadow-only copy
-  const headShadow = head.clone(); headShadow.visible = true; (headShadow.material as THREE.Material) = skin.clone(); (headShadow.material as THREE.Material).colorWrite = false; (headShadow.material as THREE.Material).depthWrite = false;
-  g.add(headShadow);
-  (g as any).legs = [legL, legR]; (g as any).arms = [armL, armR];
+  g.userData = { tier: 'C', src: 'RECON', placeholder: false, note: 'the visitor: MakeHuman body (C) in Median riding dress of undyed wool (dress B, colours C); head hidden from the camera, shadow kept' };
+  if (!crowd) return g;
+  const H = crowd.humans, gpu = H.gpu;
+  const look = lookFor(H.A, { id: -1, sex: 'm', role: 'visitor', dress: 'median', seed: 467, age: 'adult' }, crowd.seed);
+  // the visitor's dress: undyed wool and brown, soft cap, no weapons, short beard (C)
+  let mask = 1; for (const id of ['hair', 'bun', 'beard_short', 'cap_soft']) mask |= 1 << pieceBit('median', id);
+  const v = H.A.byId.m03 ?? H.A.variants[look.variant];
+  Object.assign(look, { variant: v.index, variantId: v.meta.id, scale: EYE_HEIGHT / v.eyeY, mask, stubble: 0 });
+  look.col.main = [0.46, 0.4, 0.31]; look.col.second = [0.19, 0.13, 0.08]; look.col.trim = [0.19, 0.13, 0.08];
+  look.pieces = [...COSTUMES.median.always, 'hair', 'bun', 'beard_short', 'cap_soft'];
+  const slots: [number, number] = [crowd.allocSlot(), crowd.allocSlot()];
+  crowd.writePerson(slots[0], look, FLAG_HIDE_HEAD); crowd.writePerson(slots[1], look, 0);
+  const C = H.O.costumes.median[0];
+  const shadowMat = new HumanMaterial(gpu.textures, { shadowOnly: true });
+  const vis = gpu.makeMesh(C, gpu.material, false, 1), shadow = gpu.makeMesh(C, shadowMat, true, 1);
+  gpu.group.remove(vis.mesh); gpu.group.remove(shadow.mesh); // owned by the player body, not the crowd
+  for (const [cm, slot] of [[vis, slots[0]], [shadow, slots[1]]] as const) {
+    gpu.setInstance(cm, 0, slot, [0, 0, 0, Math.PI], [0, 0, 0, Math.PI]);
+    cm.geo.instanceCount = 1; cm.geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0.9, 0), 1.3); cm.mesh.visible = true; cm.mesh.matrixAutoUpdate = true;
+    cm.mesh.userData = g.userData; g.add(cm.mesh);
+  }
+  vis.mesh.receiveShadow = true; shadow.mesh.receiveShadow = false;
+  const rig = new RigSolver(H.A.meta.curlAxes);
+  const input: RigInput = { joints: v.joints, pose: { rot: {}, hips: [0, 0, 0] }, face: { jaw: 0, blink: 0, look: null, eyeYaw: 0, eyePitch: 0 }, grip: [0, 0], x: 0, y: 0, z: 0, yaw: 0, scale: 1, plant: true };
+  (g as any).playerRig = { crowd, rig, input, slots, lastPhase: NaN, moving: 0, t: 0, meshes: [vis.mesh, shadow.mesh] } as PlayerRig;
   return g;
 }
-export function animateBody(g: THREE.Group, phase: number, speed: number) {
-  const [l, r] = (g as any).legs as THREE.Mesh[], [al, ar] = (g as any).arms as THREE.Mesh[];
-  const a = Math.min(1, speed / 1.35) * 0.45 * Math.sin(phase);
-  l.rotation.x = a; r.rotation.x = -a; al.rotation.x = -a * 0.7; ar.rotation.x = a * 0.7;
+/** pose the body: walk while the step phase advances, idle otherwise (blended over ~0.3 s) */
+export function animateBody(g: THREE.Group, phase: number, speed: number, dt = 1 / 60) {
+  const P = (g as any).playerRig as PlayerRig | undefined; if (!P) return;
+  const moved = Number.isFinite(P.lastPhase) && Math.abs(phase - P.lastPhase) > 1e-4; P.lastPhase = phase;
+  P.moving += ((moved ? 1 : 0) - P.moving) * Math.min(1, dt / 0.3); P.t += dt;
+  const walk = pose('walk', P.t, phase, 0.4), idle = pose('idle', P.t, phase, 0.4), k = P.moving * Math.min(1, speed / 1.35);
+  const rot: any = {}; for (const b of new Set([...Object.keys(walk.rot), ...Object.keys(idle.rot)])) { const a = (idle.rot as any)[b] ?? [0, 0, 0], w = (walk.rot as any)[b] ?? [0, 0, 0]; rot[b] = [a[0] + (w[0] - a[0]) * k, a[1] + (w[1] - a[1]) * k, a[2] + (w[2] - a[2]) * k]; }
+  P.input.pose = { rot, hips: [idle.hips[0] + (walk.hips[0] - idle.hips[0]) * k, idle.hips[1] + (walk.hips[1] - idle.hips[1]) * k, idle.hips[2] + (walk.hips[2] - idle.hips[2]) * k] };
+  const gpu = P.crowd.humans.gpu;
+  for (const s of P.slots) { const o = s * PALETTE_STRIDE; gpu.prevPalette.set(gpu.palette.subarray(o, o + PALETTE_STRIDE), o); }
+  P.rig.setPose(P.input); P.rig.solve(P.input, gpu.palette, P.slots[0] * PALETTE_STRIDE);
+  gpu.palette.copyWithin(P.slots[1] * PALETTE_STRIDE, P.slots[0] * PALETTE_STRIDE, P.slots[0] * PALETTE_STRIDE + PALETTE_STRIDE);
 }

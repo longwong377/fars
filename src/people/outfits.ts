@@ -1,0 +1,774 @@
+// Garments, hair, beards, headgear and worn equipment fitted to the MakeHuman bodies (D-025). Everything follows the
+// skeleton (no cloth simulation): each piece is skinned with the body's own weights or with weights blended along
+// its length, so it deforms with the pose.
+//
+// Three kinds of piece:
+//  * shell  — a copy of the body surface over a region, pushed out along the normal ("coverage + inflation"). The offset
+//             ramps through zero at the region's edge, so the edge sinks into the skin and the visible hem is the clean
+//             intersection line. Loose garments are relaxed (Laplacian smoothing, kept outside the body), which bridges
+//             small hollows the way cloth does. Shells take the body's skin weights.
+//  * tube   — rings swept along an axis (skirts, wide sleeves, belts, hats, the beard mass, the bun, weapons). A ring's
+//             radius comes from the body's support function in its plane (so it encloses the limbs) plus ease, flare and
+//             pleats. Tubes are lined (an inner layer with reversed winding), so they are seen from inside too.
+//  * body   — the body's own triangles; those deep under an always-worn piece are dropped (no poke-through, fewer
+//             triangles).
+// Topology, weights and region membership are decided once on the reference body (same topology for all variants);
+// positions are generated per variant (23), so each body wears its own fitted copy.
+// Every piece carries an evidence tier and source key for the dev overlay (F3). Colours are per person (crowd.ts).
+import type { HumanAssets, HumanVariant } from './humanAssets';
+import { HB, PART, MAT, type HBone } from './humanFormat';
+
+export type Dress = 'persian' | 'guard' | 'median' | 'worker' | 'woman' | 'child';
+export const DRESSES: Dress[] = ['persian', 'guard', 'median', 'worker', 'woman', 'child'];
+/** colour slots of the per-person data (texel index in the person texture); 0 = fixed by material class/param */
+export const COL = { fixed: 0, skin: 1, main: 2, second: 3, trim: 4, hair: 5, leather: 6, felt: 8 } as const;
+export type ColSlot = typeof COL[keyof typeof COL];
+/** fixed-colour parameter (hmat.w) for metal and other fixed classes */
+export const METAL = { bronze: 0, silver: 1, gold: 2, iron: 3 } as const;
+
+type V3 = [number, number, number];
+const sub = (a: V3, b: V3): V3 => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const add = (a: V3, b: V3): V3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const scl = (a: V3, s: number): V3 => [a[0] * s, a[1] * s, a[2] * s];
+const dot = (a: V3, b: V3) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross = (a: V3, b: V3): V3 => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const len = (a: V3) => Math.hypot(a[0], a[1], a[2]);
+const nrm = (a: V3): V3 => { const l = len(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+const clamp = (x: number, a = 0, b = 1) => Math.max(a, Math.min(b, x));
+const sstep = (e0: number, e1: number, x: number) => { const t = clamp((x - e0) / (e1 - e0)); return t * t * (3 - 2 * t); };
+
+// ------------------------------------------------------------------------------------------------ piece geometry
+export interface Geo {
+  key: string; n: number; index: number[];
+  si: Uint8Array; sw: Uint8Array; uv: Float32Array;
+  /** material class (MAT), colour slot (COL), class parameter, sleeve/drape slack 0..255 (the shader sags it), cavity AO 0..255 */
+  mat: Uint8Array; col: Uint8Array; prm: Uint8Array; slack: Uint8Array; ao: Uint8Array;
+  /** bind positions for one variant (n × 3) */
+  place(c: Ctx): Float32Array;
+}
+export interface Ctx { A: HumanAssets; v: HumanVariant; J(b: HBone): V3; /** positions of pieces already placed for this variant */ placed: Map<string, Float32Array>; }
+
+function newGeo(key: string, n: number, index: number[], place: (c: Ctx) => Float32Array): Geo {
+  return { key, n, index, si: new Uint8Array(n * 4), sw: new Uint8Array(n * 4), uv: new Float32Array(n * 2), mat: new Uint8Array(n), col: new Uint8Array(n), prm: new Uint8Array(n), slack: new Uint8Array(n), ao: new Uint8Array(n).fill(255), place };
+}
+/** pack up to 4 (bone, weight) pairs as bytes summing to 255 */
+function setW(g: Geo, i: number, list: [number, number][]) {
+  const e = list.filter(([, w]) => w > 1e-4).sort((a, b) => b[1] - a[1]).slice(0, 4); const s = e.reduce((a, [, w]) => a + w, 0) || 1;
+  const q = e.map(([, w]) => Math.round((w / s) * 255)); if (q.length) q[0] += 255 - q.reduce((a, b) => a + b, 0);
+  for (let k = 0; k < 4; k++) { g.si[i * 4 + k] = e[k]?.[0] ?? 0; g.sw[i * 4 + k] = q[k] ?? 0; }
+}
+function setMat(g: Geo, mat: number, col: number, prm = 0) { g.mat.fill(mat); g.col.fill(col); g.prm.fill(prm); }
+
+// ------------------------------------------------------------------------------------------------ regions
+/** signed distance-like region value per render vertex on the reference body (m; > 0 inside) */
+export type Region = Float32Array;
+function regionOf(A: HumanAssets, ref: HumanVariant, parts: number[] | null, f: (p: V3, i: number) => number): Region {
+  const d = new Float32Array(A.NO).fill(-1); const ps = parts ? new Set(parts) : null;
+  for (let i = 0; i < A.NO; i++) { if (A.part[i] >= PART.eye) continue; if (ps && !ps.has(A.part[i])) continue; d[i] = f([ref.pos[i * 3], ref.pos[i * 3 + 1], ref.pos[i * 3 + 2]], i); }
+  return d;
+}
+/** distance along bone a→b (0 at a, 1 at b) of point p and the bone axis */
+const along = (J: (b: HBone) => V3, a: HBone, b: HBone, p: V3) => { const u = sub(J(b), J(a)), L = len(u); return dot(sub(p, J(a)), u) / (L * L); };
+const boneLen = (J: (b: HBone) => V3, a: HBone, b: HBone) => len(sub(J(b), J(a)));
+const P = PART;
+const ARMS = [P.uarm_l, P.farm_l, P.uarm_r, P.farm_r], LEGS = [P.thigh_l, P.calf_l, P.thigh_r, P.calf_r], TORSO = [P.chest, P.belly, P.pelvis];
+
+// ------------------------------------------------------------------------------------------------ shells
+interface ShellOpts {
+  tris: Uint16Array; d: Region; ramp: number; thick: (p: V3, i: number) => number; smooth?: number; minOff?: number;
+  mat: number; col: number; prm?: number; slack?: (p: V3, i: number) => number;
+  /** offset at the cut line (m): the garment's edge stands this far off the skin */
+  edge?: number;
+}
+/** Shell over the region d > 0 of the body triangles: triangles are clipped exactly at the iso-line d = 0 (new vertices on
+ *  the crossing edges), so the garment edge is a clean contour; the offset rises from `edge` at the cut to `thick` over
+ *  `ramp` metres. Vertices are welded by position vertex, so UV seams do not split the shell. */
+function shellGeo(A: HumanAssets, ref: HumanVariant, key: string, o: ShellOpts): Geo {
+  const edgeOff = o.edge ?? 0.0015;
+  // shell vertex = lerp(body render vertex a, b, s); original vertices have b = a, s = 0
+  const va: number[] = [], vb: number[] = [], vs: number[] = [], vd: number[] = []; const keyOf = new Map<string, number>();
+  const vert = (a: number, b: number, s: number) => {
+    if (s <= 0 || a === b) { const k = `${A.orig[a]}`; let i = keyOf.get(k); if (i === undefined) { i = va.length; keyOf.set(k, i); va.push(a); vb.push(a); vs.push(0); vd.push(o.d[a]); } return i; }
+    if (s >= 1) return vert(b, b, 0);
+    const pa = A.orig[a], pb = A.orig[b]; const k = pa < pb ? `${pa}:${pb}` : `${pb}:${pa}`; let i = keyOf.get(k);
+    if (i === undefined) { i = va.length; keyOf.set(k, i); va.push(a); vb.push(b); vs.push(s); vd.push(0); } return i;
+  };
+  const index: number[] = [];
+  for (let t = 0; t < o.tris.length; t += 3) {
+    const T = [o.tris[t], o.tris[t + 1], o.tris[t + 2]];
+    if (A.part[T[0]] >= PART.eye || A.part[T[1]] >= PART.eye || A.part[T[2]] >= PART.eye) continue;
+    const D = T.map(i => o.d[i]); if (D[0] <= 0 && D[1] <= 0 && D[2] <= 0) continue;
+    if (D[0] > 0 && D[1] > 0 && D[2] > 0) { index.push(vert(T[0], T[0], 0), vert(T[1], T[1], 0), vert(T[2], T[2], 0)); continue; }
+    const poly: number[] = []; // clip against d ≥ 0 (Sutherland–Hodgman on one plane)
+    for (let e = 0; e < 3; e++) { const a = T[e], b = T[(e + 1) % 3], da = D[e], db = D[(e + 1) % 3];
+      if (da > 0) poly.push(vert(a, a, 0));
+      if ((da > 0) !== (db > 0)) poly.push(vert(a, b, da / (da - db))); }
+    for (let k = 1; k + 1 < poly.length; k++) index.push(poly[0], poly[k], poly[k + 1]);
+  }
+  const n = va.length;
+  const nb: number[][] = Array.from({ length: n }, () => []);
+  for (let t = 0; t < index.length; t += 3) for (let e = 0; e < 3; e++) { const a = index[t + e], b = index[t + (e + 1) % 3]; if (!nb[a].includes(b)) nb[a].push(b); if (!nb[b].includes(a)) nb[b].push(a); }
+  const refP = (k: number): V3 => { const a = va[k], b = vb[k], t = vs[k]; return [lerp(ref.pos[a * 3], ref.pos[b * 3], t), lerp(ref.pos[a * 3 + 1], ref.pos[b * 3 + 1], t), lerp(ref.pos[a * 3 + 2], ref.pos[b * 3 + 2], t)]; };
+  const off = Float32Array.from({ length: n }, (_, k) => { const th = o.thick(refP(k), va[k]); return edgeOff + (th - edgeOff) * sstep(0, o.ramp, vd[k]); });
+  const deep = Uint8Array.from(vd, d => (d >= o.ramp ? 1 : 0));
+  const g = newGeo(key, n, index, (c: Ctx) => {
+    const out = new Float32Array(n * 3), base = new Float32Array(n * 3), N = new Float32Array(n * 3); const Pv = c.v.pos, Nv = c.v.nrm;
+    for (let k = 0; k < n; k++) { const a = va[k], b = vb[k], t = vs[k]; let nx = lerp(Nv[a * 3], Nv[b * 3], t), ny = lerp(Nv[a * 3 + 1], Nv[b * 3 + 1], t), nz = lerp(Nv[a * 3 + 2], Nv[b * 3 + 2], t); const l = Math.hypot(nx, ny, nz) || 1; nx /= l; ny /= l; nz /= l;
+      N[k * 3] = nx; N[k * 3 + 1] = ny; N[k * 3 + 2] = nz;
+      for (let e = 0; e < 3; e++) { base[k * 3 + e] = lerp(Pv[a * 3 + e], Pv[b * 3 + e], t); out[k * 3 + e] = base[k * 3 + e] + N[k * 3 + e] * off[k]; } }
+    const it = o.smooth ?? 0, minOff = o.minOff ?? 0.003;
+    for (let s = 0; s < it; s++) {
+      const prev = out.slice();
+      for (let k = 0; k < n; k++) { if (!deep[k]) continue; const L = nb[k]; if (!L.length) continue;
+        let x = 0, y = 0, z = 0; for (const q of L) { x += prev[q * 3]; y += prev[q * 3 + 1]; z += prev[q * 3 + 2]; }
+        x /= L.length; y /= L.length; z /= L.length;
+        out[k * 3] += 0.5 * (x - out[k * 3]); out[k * 3 + 1] += 0.5 * (y - out[k * 3 + 1]); out[k * 3 + 2] += 0.5 * (z - out[k * 3 + 2]);
+        const e = (out[k * 3] - base[k * 3]) * N[k * 3] + (out[k * 3 + 1] - base[k * 3 + 1]) * N[k * 3 + 1] + (out[k * 3 + 2] - base[k * 3 + 2]) * N[k * 3 + 2];
+        const m = Math.min(minOff, off[k]); if (e < m) for (let q = 0; q < 3; q++) out[k * 3 + q] += (m - e) * N[k * 3 + q]; }
+    }
+    return out;
+  });
+  for (let k = 0; k < n; k++) {
+    const a = va[k], b = vb[k], t = vs[k];
+    if (t === 0) { for (let q = 0; q < 4; q++) { g.si[k * 4 + q] = A.skinIndex[a * 4 + q]; g.sw[k * 4 + q] = A.skinWeight[a * 4 + q]; } }
+    else { const m = new Map<number, number>(); for (const [v, w] of [[a, 1 - t], [b, t]] as [number, number][]) for (let q = 0; q < 4; q++) { const bi = A.skinIndex[v * 4 + q], wt = A.skinWeight[v * 4 + q] / 255; if (wt) m.set(bi, (m.get(bi) ?? 0) + wt * w); }
+      setW(g, k, [...m.entries()]); }
+    g.uv[k * 2] = lerp(A.uv[a * 2], A.uv[b * 2], t); g.uv[k * 2 + 1] = lerp(A.uv[a * 2 + 1], A.uv[b * 2 + 1], t);
+    g.ao[k] = Math.round(255 * (0.55 + 0.45 * lerp(A.ao[a], A.ao[b], t)));
+    if (o.slack) g.slack[k] = Math.round(255 * clamp(o.slack(refP(k), a)));
+  }
+  setMat(g, o.mat, o.col, o.prm ?? 0);
+  return g;
+}
+
+// ------------------------------------------------------------------------------------------------ tubes
+export interface Frame { o: V3; u: V3; v: V3; w: V3 }
+interface TubeOpts {
+  segs: number; rings: number;
+  /** ring frame at t ∈ [0, 1] (o centre, u = θ 0 direction, v = θ 90°, w = axis) for a variant */
+  frame: (c: Ctx, t: number) => Frame;
+  /** radius at (t, θ); `sup(θ)` = support radius of the selected body parts in this ring's plane (0 if none) */
+  radius: (c: Ctx, t: number, th: number, sup: (th: number) => number) => number;
+  /** body parts whose support function the radius may use, and the slab half-thickness (m) */
+  support?: { parts: number[]; slab: number; running?: 'max' };
+  weights: (t: number, th: number) => [number, number][];
+  mat: number; col: number; prm?: number; slack?: (t: number, th: number) => number;
+  /** lining thickness (m): adds an inner layer with reversed winding and closes the rim at t = 1 (and t = 0 if closeTop) */
+  lining?: number; closeTop?: boolean;
+  /** cap the ends with a pole vertex (closed volumes: hats' tops, beard, bun, quiver) */
+  capStart?: boolean; capEnd?: boolean;
+  /** ring parameter spacing (default uniform) */
+  tOf?: (k: number, rings: number) => number;
+}
+function tubeGeo(A: HumanAssets, key: string, o: TubeOpts): Geo {
+  const S = o.segs, R = o.rings, lined = (o.lining ?? 0) > 0;
+  const layers = lined ? 2 : 1, nRing = S * (R + 1), poles = (o.capStart ? 1 : 0) + (o.capEnd ? 1 : 0);
+  const n = nRing * layers + poles;
+  const idx: number[] = [];
+  const vid = (layer: number, k: number, j: number) => layer * nRing + k * S + ((j % S) + S) % S;
+  for (let layer = 0; layer < layers; layer++) for (let k = 0; k < R; k++) for (let j = 0; j < S; j++) {
+    const a = vid(layer, k, j), b = vid(layer, k, j + 1), c = vid(layer, k + 1, j), d = vid(layer, k + 1, j + 1);
+    // outer faces outward: (a, c, b) with θ increasing counter-clockwise about +w, t along +w (checked by the tests' normal-direction test)
+    if (layer === 0) idx.push(a, b, c, b, d, c); else idx.push(a, c, b, b, c, d);
+  }
+  if (lined) { for (let j = 0; j < S; j++) { const a = vid(0, R, j), b = vid(0, R, j + 1), c = vid(1, R, j), d = vid(1, R, j + 1); idx.push(a, b, c, b, d, c); }
+    if (o.closeTop) for (let j = 0; j < S; j++) { const a = vid(0, 0, j), b = vid(0, 0, j + 1), c = vid(1, 0, j), d = vid(1, 0, j + 1); idx.push(a, c, b, b, c, d); } }
+  let pole = nRing * layers;
+  const pS = o.capStart ? pole++ : -1, pE = o.capEnd ? pole++ : -1;
+  if (pS >= 0) for (let j = 0; j < S; j++) idx.push(pS, vid(0, 0, j + 1), vid(0, 0, j));
+  if (pE >= 0) for (let j = 0; j < S; j++) idx.push(pE, vid(0, R, j), vid(0, R, j + 1));
+  const tOf = o.tOf ?? ((k: number, r: number) => k / r);
+  const place = (c: Ctx) => {
+    const out = new Float32Array(n * 3);
+    const partSet = o.support ? new Set(o.support.parts) : null;
+    let run: number[] | null = null;
+    for (let k = 0; k <= R; k++) {
+      const t = tOf(k, R), F = o.frame(c, t);
+      let supArr: number[] | null = null;
+      if (partSet) { // support radii in 64 bins of θ from body verts in the slab
+        const B = 64; supArr = new Array(B).fill(0); const V = c.v.pos, slab = o.support!.slab;
+        const horiz = Math.abs(F.w[1]) > 0.999; let list: ArrayLike<number> = partVerts(c.A, o.support!.parts), lo = 0, hi = list.length;
+        if (horiz) { const sy = sortedByY(c.v, c.A, o.support!.parts); list = sy.idx; lo = lowerBound(sy.y, F.o[1] - slab); hi = lowerBound(sy.y, F.o[1] + slab + 1e-9); }
+        for (let q = lo; q < hi; q++) { const i = list[q]; const dx = V[i * 3] - F.o[0], dy = V[i * 3 + 1] - F.o[1], dz = V[i * 3 + 2] - F.o[2];
+          if (Math.abs(dx * F.w[0] + dy * F.w[1] + dz * F.w[2]) > slab) continue; const x = dx * F.u[0] + dy * F.u[1] + dz * F.u[2], y = dx * F.v[0] + dy * F.v[1] + dz * F.v[2];
+          for (let b = 0; b < B; b++) { const h = x * COS64[b] + y * SIN64[b]; if (h > supArr[b]) supArr[b] = h; } }
+        // smooth over θ (circular), then the running max down the tube (garments hang; they do not tuck back in)
+        const sm = supArr.map((_, b) => (supArr![(b + B - 1) % B] + 2 * supArr![b] + supArr![(b + 1) % B]) / 4); supArr = sm;
+        if (o.support!.running === 'max') { if (run) supArr = supArr.map((x, b) => Math.max(x, run![b])); run = supArr; }
+      }
+      const sup = (th: number) => { if (!supArr) return 0; const B = supArr.length; const f = (((th / (2 * Math.PI)) % 1) + 1) % 1 * B, b0 = Math.floor(f) % B, b1 = (b0 + 1) % B, a = f - Math.floor(f); return supArr[b0] * (1 - a) + supArr[b1] * a; };
+      for (let j = 0; j < S; j++) {
+        const th = (j / S) * 2 * Math.PI, r = o.radius(c, t, th, sup), dir = add(scl(F.u, Math.cos(th)), scl(F.v, Math.sin(th)));
+        const p = add(F.o, scl(dir, r)); out.set(p, vid(0, k, j) * 3);
+        if (lined) out.set(add(F.o, scl(dir, Math.max(0.0005, r - o.lining!))), vid(1, k, j) * 3);
+      }
+    }
+    if (pS >= 0) { const F = o.frame(c, tOf(0, R)); out.set(add(F.o, scl(F.w, -0.0)), pS * 3); }
+    if (pE >= 0) { const F = o.frame(c, tOf(R, R)); out.set(F.o, pE * 3); }
+    return out;
+  };
+  const g = newGeo(key, n, idx, place);
+  for (let layer = 0; layer < layers; layer++) for (let k = 0; k <= R; k++) for (let j = 0; j < S; j++) {
+    const i = vid(layer, k, j), t = tOf(k, R), th = (j / S) * 2 * Math.PI; setW(g, i, o.weights(t, th)); g.uv[i * 2] = j / S; g.uv[i * 2 + 1] = t;
+    if (o.slack) g.slack[i] = Math.round(255 * clamp(o.slack(t, th))); if (layer === 1) g.ao[i] = 150; }
+  if (pS >= 0) { setW(g, pS, o.weights(tOf(0, R), 0)); g.uv.set([0.5, 0], pS * 2); }
+  if (pE >= 0) { setW(g, pE, o.weights(tOf(R, R), 0)); g.uv.set([0.5, 1], pE * 2); }
+  setMat(g, o.mat, o.col, o.prm ?? 0);
+  return g;
+}
+/** frame along a straight segment a→b with θ = 0 toward `ref` (made perpendicular) */
+function segFrame(a: V3, b: V3, t: number, ref: V3): Frame {
+  const w = nrm(sub(b, a)); let u = sub(ref, scl(w, dot(ref, w))); if (len(u) < 1e-6) u = Math.abs(w[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0]; u = nrm(u);
+  return { o: add(a, scl(sub(b, a), t)), u, v: cross(w, u), w };
+}
+/** horizontal ring for tubes that run downward: θ 0 = front (+Z), θ 90° = the body's right (−X); u × v = w = −Y */
+const vertFrame = (o: V3): Frame => ({ o, u: [0, 0, 1], v: [-1, 0, 0], w: [0, -1, 0] });
+const COS64 = Array.from({ length: 64 }, (_, b) => Math.cos((b / 64) * 2 * Math.PI)), SIN64 = Array.from({ length: 64 }, (_, b) => Math.sin((b / 64) * 2 * Math.PI));
+/** part vertices of a variant sorted by height (cached), for slab queries of horizontal rings */
+const SY = new WeakMap<HumanVariant, Map<string, { idx: Int32Array; y: Float32Array }>>();
+function sortedByY(v: HumanVariant, A: HumanAssets, parts: number[]) {
+  let m = SY.get(v); if (!m) SY.set(v, m = new Map()); const k = parts.join(','); let r = m.get(k);
+  if (!r) { const idx = Array.from(partVerts(A, parts)).sort((a, b) => v.pos[a * 3 + 1] - v.pos[b * 3 + 1]); r = { idx: Int32Array.from(idx), y: Float32Array.from(idx, i => v.pos[i * 3 + 1]) }; m.set(k, r); }
+  return r;
+}
+function lowerBound(a: Float32Array, x: number) { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] < x) lo = m + 1; else hi = m; } return lo; }
+/** render vertices of the given parts (cached per asset set) */
+const PV = new WeakMap<HumanAssets, Map<string, Int32Array>>();
+function partVerts(A: HumanAssets, parts: number[]): Int32Array {
+  let m = PV.get(A); if (!m) PV.set(A, m = new Map()); const k = parts.join(','); let r = m.get(k);
+  if (!r) { const set = new Set(parts), out: number[] = []; for (let i = 0; i < A.NO; i++) if (set.has(A.part[i])) out.push(i); r = Int32Array.from(out); m.set(k, r); }
+  return r;
+}
+
+// ------------------------------------------------------------------------------------------------ piece library
+export interface PieceMeta { id: string; label: string; tier: 'A' | 'B' | 'C'; src: string; note: string }
+/** evidence per piece (overlay text; sources are keys of src/data/sources.json or MATERIAL_CULTURE rows) */
+export const PIECES: Record<string, PieceMeta> = {
+  robe_upper: { id: 'robe_upper', label: 'Persian court robe (body and shoulders)', tier: 'B', src: 'IR-CAND', note: 'single wide piece girt at the waist (MATERIAL_CULTURE: Persian court robe)' },
+  robe_skirt: { id: 'robe_skirt', label: 'robe skirt with pleats', tier: 'B', src: 'IR-CAND', note: 'falls below the belt in tiers of pleats to the ankle; pleat layout and hem line C' },
+  robe_sleeves: { id: 'robe_sleeves', label: 'wide robe sleeves', tier: 'B', src: 'IR-CAND', note: 'wide sleeves in folds; hanging drape follows the skeleton (no cloth simulation), C' },
+  tunic_upper: { id: 'tunic_upper', label: 'sleeved tunic (sarapis)', tier: 'B', src: 'IR-CAND', note: 'Median riding costume: sleeved tunic, tight sleeves to the wrist' },
+  tunic_skirt: { id: 'tunic_skirt', label: 'tunic skirt to the knee', tier: 'B', src: 'IR-CLOTH', note: 'knee-length, belted' },
+  trousers: { id: 'trousers', label: 'trousers (anaxyrides)', tier: 'B', src: 'IR-CAND', note: 'close-fitting trousers of the riding costume' },
+  work_upper: { id: 'work_upper', label: 'short-sleeved working tunic', tier: 'C', src: 'RECON', note: 'MATERIAL_CULTURE workers’ dress: knee-length belted tunic, no ornaments (NOT SEEN; reconstruction)' },
+  work_skirt: { id: 'work_skirt', label: 'working tunic skirt to the knee', tier: 'C', src: 'RECON', note: 'workers’ dress (reconstruction)' },
+  work_trousers: { id: 'work_trousers', label: 'working trousers', tier: 'C', src: 'RECON', note: 'workers: trousers or bare legs (reconstruction)' },
+  dress_upper: { id: 'dress_upper', label: 'woman’s long-sleeved dress', tier: 'C', src: 'IR-WOMEN', note: 'elite women: many-folded dress belted at the front (B); workers reconstructed as the ordinary long tunic (C)' },
+  dress_skirt: { id: 'dress_skirt', label: 'dress skirt to the ankle, gathered', tier: 'C', src: 'IR-WOMEN', note: 'folds and length reconstructed (C)' },
+  headcloth: { id: 'headcloth', label: 'headcloth / mantle over head and shoulders', tier: 'C', src: 'IR-WOMEN', note: 'women workers: tunic with a mantle or headcloth (MATERIAL_CULTURE, reconstruction C); not a chador (blocklisted)' },
+  child_upper: { id: 'child_upper', label: 'child’s short tunic', tier: 'C', src: 'RECON', note: 'no imagery; smaller tunic (MATERIAL_CULTURE, C)' },
+  child_skirt: { id: 'child_skirt', label: 'child’s tunic skirt', tier: 'C', src: 'RECON', note: 'reconstruction' },
+  belt: { id: 'belt', label: 'cloth belt', tier: 'B', src: 'IR-CAND', note: 'the robe and the tunic are girt at the waist' },
+  shoes: { id: 'shoes', label: 'low leather shoes', tier: 'B', src: 'IR-CLOTH', note: 'simple flat-soled shoes, probably leather; strap detail C' },
+  boots: { id: 'boots', label: 'laced ankle boots', tier: 'C', src: 'RECON', note: 'Median riding dress: ankle boots (NOT SEEN, C)' },
+  hair: { id: 'hair', label: 'scalp hair, curled', tier: 'B', src: 'RELIEF-R', note: 'curled hair as carved on the reliefs; colour natural dark (the reliefs paint it dark blue, a convention), C' },
+  hair_bob: { id: 'hair_bob', label: 'bobbed hair', tier: 'B', src: 'IR-WOMEN', note: 'elite Persian woman statuette from Egypt: bobbed hair (B); for workers C' },
+  bun: { id: 'bun', label: 'hair bunched at the nape', tier: 'B', src: 'RELIEF-R', note: 'Persian and Median men on the reliefs wear the hair gathered in a mass at the back of the neck; size C' },
+  beard_long: { id: 'beard_long', label: 'long curled beard, squared', tier: 'B', src: 'RELIEF-R', note: 'long beard with rows of curls on the reliefs; length and curl rendering C' },
+  beard_short: { id: 'beard_short', label: 'short beard', tier: 'C', src: 'RECON', note: 'workers and foreigners: short beard (reconstruction)' },
+  hat_fluted: { id: 'hat_fluted', label: 'fluted felt hat', tier: 'B', src: 'IR-CLOTH', note: 'tall fluted headgear of Persian-dress nobles and guards; height, flute count, material C' },
+  fillet: { id: 'fillet', label: 'twisted cloth fillet', tier: 'C', src: 'SUSA-ARCH', note: 'headband of the Susa glazed-brick archers (Darius I); worn here by some Persian-dress guards (C)' },
+  cap_soft: { id: 'cap_soft', label: 'soft felt cap with neck flap and lappets', tier: 'C', src: 'RECON', note: 'Median dress: rounded felt cap covering the ears and nape (MATERIAL_CULTURE, NOT SEEN: verify from a plate)' },
+  headband: { id: 'headband', label: 'headband', tier: 'C', src: 'RECON', note: 'workers (reconstruction)' },
+  torque: { id: 'torque', label: 'torque (neck ring)', tier: 'C', src: 'RECON', note: 'neck ring worn by nobles and some guards (MATERIAL_CULTURE, NOT SEEN); gold, plain (terminals not modelled)' },
+  bow: { id: 'bow', label: 'composite bow over the left shoulder', tier: 'B', src: 'SUSA-ARCH', note: 'bow carried over the shoulder by the Susa archers; shape C' },
+  quiver: { id: 'quiver', label: 'quiver on the back', tier: 'B', src: 'SUSA-ARCH', note: 'large quiver on the back (glazed-brick archers); form and lid C' },
+  akinaka: { id: 'akinaka', label: 'short sword (akinakes) at the right thigh', tier: 'B', src: 'ISAC-FINDS', note: 'scabbard hung at the right thigh with a lobed top and a chape (scabbard tips in the Treasury); proportions C' },
+  gorytos: { id: 'gorytos', label: 'bow case (gorytos) at the left hip', tier: 'C', src: 'RECON', note: 'Median guards on the reliefs (MATERIAL_CULTURE: NOT SEEN, C)' },
+  body: { id: 'body', label: 'MakeHuman body (variant)', tier: 'C', src: 'RECON', note: 'MakeHuman CC0 base mesh with macro/face morphs; skin albedo procedural (D-020)' },
+};
+
+// costume composition: pieces per dress; `opt` = optional per person (a bit in the person's piece mask)
+export interface CostumeDef { dress: Dress; always: string[]; opt: string[] }
+export const COSTUMES: Record<Dress, CostumeDef> = {
+  persian: { dress: 'persian', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque'] },
+  guard: { dress: 'guard', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'quiver', 'bow'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque'] },
+  median: { dress: 'median', always: ['tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos'] },
+  worker: { dress: 'worker', always: ['work_upper', 'work_skirt', 'belt'], opt: ['hair', 'beard_long', 'beard_short', 'work_trousers', 'shoes', 'headband', 'cap_soft'] },
+  woman: { dress: 'woman', always: ['dress_upper', 'dress_skirt', 'belt'], opt: ['hair', 'hair_bob', 'headcloth', 'shoes'] },
+  child: { dress: 'child', always: ['child_upper', 'child_skirt'], opt: ['hair', 'shoes'] },
+};
+/** bit of an optional piece in a costume's mask (bit 0 = always present) */
+export const pieceBit = (dress: Dress, id: string) => { const i = COSTUMES[dress].opt.indexOf(id); return i < 0 ? 0 : i + 1; };
+
+// ------------------------------------------------------------------------------------------------ piece builders
+const W = (b: HBone, w = 1): [number, number] => [HB[b], w];
+interface Lib { A: HumanAssets; ref: HumanVariant; J: (b: HBone) => V3 }
+/** per-LOD tessellation */
+const TESS = [{ tris: 1, seg: 40, ring: 18, hs: 48 }, { tris: 2, seg: 14, ring: 7, hs: 14 }, { tris: 2, seg: 8, ring: 4, hs: 8 }];
+
+/** robe/tunic/dress upper shells: torso from the neckline to the hips, arms to a cut (fraction of the arm) */
+function upperShell(L: Lib, key: string, lod: number, o: { armCut: number; hipDrop: number; neckDrop: number; thick: number; armThick: number; smooth: number; mat?: number; col?: number }) {
+  const { A, ref, J } = L;
+  const neckY = J('neck_01')[1] - 0.012, shoulderL = boneLen(J, 'upperarm_l', 'lowerarm_l'), foreL = boneLen(J, 'lowerarm_l', 'hand_l');
+  const hipY = J('thigh_l')[1] - o.hipDrop;
+  const d = regionOf(A, ref, [P.neck, ...TORSO, ...ARMS, P.thigh_l, P.thigh_r], (p) => {
+    // neckline: a plane lower at the front (round neck)
+    const neck = neckY - o.neckDrop * sstep(0.0, 0.1, p[2]) - p[1];
+    const hip = p[1] - hipY;
+    let arm = 1;
+    for (const s of ['l', 'r'] as const) { if (Math.sign(p[0]) !== (s === 'l' ? 1 : -1) || Math.abs(p[0]) < 0.13) continue;
+      const tu = along(J, `upperarm_${s}`, `lowerarm_${s}`, p), tf = along(J, `lowerarm_${s}`, `hand_${s}`, p);
+      const ta = tu <= 1 ? tu * shoulderL : shoulderL + tf * foreL; // distance down the arm from the shoulder joint
+      arm = o.armCut * (shoulderL + foreL) - ta; }
+    return Math.min(neck, hip, arm);
+  });
+  return shellGeo(A, ref, key, { tris: A.lods[TESS[lod].tris], d, ramp: 0.018, smooth: o.smooth, minOff: 0.004,
+    thick: p => (Math.abs(p[0]) > 0.16 && p[1] < J('upperarm_l')[1] - 0.03 ? o.armThick : o.thick), mat: o.mat ?? MAT.cloth_main, col: o.col ?? COL.main });
+}
+/** skirt from the waist to a hem height (fraction: 0 = ground … at the knee etc.), pleats */
+function skirtTube(L: Lib, key: string, lod: number, o: { top: number; hem: (c: Ctx, th: number) => number; ease: number; flare: number; pleats: number; pleatAmp: number; frontPleat?: number; col?: number }) {
+  const T = TESS[lod], rings = Math.max(3, Math.round(T.ring * 0.9));
+  const kneeT = 0.55;
+  return tubeGeo(L.A, key, { segs: T.seg, rings, lining: 0.004,
+    frame: (c, t) => { const top = c.J('spine_01')[1] + o.top, hemMid = o.hem(c, Math.PI / 2); const y = lerp(top, hemMid, t); const zc = lerp(c.J('pelvis')[2] + 0.02, c.J('calf_l')[2] - 0.01, t); return vertFrame([0, y, zc]); },
+    support: { parts: [P.pelvis, P.belly, ...LEGS], slab: 0.03, running: 'max' },
+    radius: (c, t, th, sup) => {
+      const base = sup(th) + o.ease + o.flare * sstep(0.1, 1, t);
+      // pleats: fine ripples on the sides (fabric drawn up to the belt), a box-pleat cascade at the front (C)
+      const side = sstep(0.25, 0.8, Math.abs(Math.sin(th))), front = o.frontPleat ? Math.exp(-((Math.atan2(Math.sin(th), Math.cos(th))) ** 2) / 0.05) : 0;
+      const rip = o.pleatAmp * sstep(0.05, 0.35, t) * (side * Math.sin(th * o.pleats) + front * (o.frontPleat ?? 0) * Math.cos(th * o.pleats * 1.5));
+      // the hem: rings are placed on a straight axis; the hem line (front higher) is applied by dropping the last ring
+      return base + rip;
+    },
+    tOf: (k, r) => k / r,
+    weights: (t, th) => { const s = 0.5 - 0.5 * Math.tanh(Math.sin(th) * 4); // left share (θ 90° = the body's right, −X)
+      const pel = 1 - sstep(0.0, 0.35, t), leg = 1 - pel, calf = sstep(kneeT - 0.1, kneeT + 0.25, t) * 0.6;
+      return [W('pelvis', pel + 0.15 * leg), W('thigh_l', leg * s * (1 - calf)), W('thigh_r', leg * (1 - s) * (1 - calf)), W('calf_l', leg * s * calf), W('calf_r', leg * (1 - s) * calf)]; },
+    mat: MAT.cloth_main, col: o.col ?? COL.main, prm: o.pleats > 20 ? 1 : 0,
+  });
+}
+/** apply a per-θ hem height to a skirt tube's last ring (the frame places rings on a straight axis) */
+function withHem(g: Geo, segs: number, rings: number, lined: boolean, hem: (c: Ctx, th: number) => number): Geo {
+  const place = g.place; const nRing = segs * (rings + 1);
+  g.place = (c: Ctx) => { const out = place(c); for (let layer = 0; layer < (lined ? 2 : 1); layer++) for (let k = 1; k <= rings; k++) { const f = k / rings; for (let j = 0; j < segs; j++) { const i = layer * nRing + k * segs + j; const th = (j / segs) * 2 * Math.PI; const y0 = out[(layer * nRing + j) * 3 + 1];
+      const yEnd = hem(c, th), yMidEnd = hem(c, Math.PI / 2); const yLin = lerp(y0, yMidEnd, f); out[i * 3 + 1] = yLin + (yEnd - yMidEnd) * f * f; } } return out; };
+  return g;
+}
+/** wide hanging sleeves (Persian robe): shoulder → wrist, flaring, heavier on the back of the arm (it hangs when raised) */
+function robeSleeves(L: Lib, key: string, lod: number) {
+  const T = TESS[lod], segs = Math.max(8, Math.round(T.seg * 0.6)), rings = Math.max(3, Math.round(T.ring * 0.6));
+  const one = (s: 'l' | 'r') => {
+    const up = `upperarm_${s}` as HBone, lo = `lowerarm_${s}` as HBone, ha = `hand_${s}` as HBone; const partU = s === 'l' ? P.uarm_l : P.uarm_r, partF = s === 'l' ? P.farm_l : P.farm_r;
+    const split = 0.5; // t of the elbow
+    return tubeGeo(L.A, `${key}_${s}`, { segs, rings, lining: 0.003,
+      frame: (c, t) => { const a = c.J(up), e = c.J(lo), h = add(c.J(ha), scl(nrm(sub(c.J(ha), c.J(lo))), -0.03));
+        return t < split ? segFrame(add(a, [s === 'l' ? -0.01 : 0.01, 0.01, 0]), e, t / split, [0, 0, 1]) : segFrame(e, h, (t - split) / (1 - split), [0, 0, 1]); },
+      support: { parts: [partU, partF], slab: 0.02 },
+      radius: (c, t, th, sup) => { const back = 0.5 - 0.5 * Math.cos(th); // θ π = back of the arm
+        return sup(th) + 0.006 + 0.022 * sstep(0.0, 0.35, t) + (0.02 + 0.075 * back) * sstep(0.3, 1.0, t); },
+      weights: t => { const k = sstep(split - 0.12, split + 0.12, t); return [W(up, 1 - k), W(lo, k)]; },
+      slack: (t, th) => sstep(0.35, 1, t) * (0.25 + 0.75 * (0.5 - 0.5 * Math.cos(th))),
+      mat: MAT.cloth_main, col: COL.main, prm: 1 });
+  };
+  return merge(`${key}`, [one('l'), one('r')]);
+}
+/** merge several geos into one (index offsets) */
+function merge(key: string, gs: Geo[]): Geo {
+  const n = gs.reduce((a, g) => a + g.n, 0); const idx: number[] = []; let off = 0;
+  for (const g of gs) { for (const i of g.index) idx.push(i + off); off += g.n; }
+  const out = newGeo(key, n, idx, (c: Ctx) => { const o = new Float32Array(n * 3); let k = 0; for (const g of gs) { o.set(g.place(c), k * 3); k += g.n; } return o; });
+  off = 0; for (const g of gs) { out.si.set(g.si, off * 4); out.sw.set(g.sw, off * 4); out.uv.set(g.uv, off * 2); out.mat.set(g.mat, off); out.col.set(g.col, off); out.prm.set(g.prm, off); out.slack.set(g.slack, off); out.ao.set(g.ao, off); off += g.n; }
+  return out;
+}
+/** band around the body at a height, fitted over whatever is placed there already (belts) */
+function beltTube(L: Lib, key: string, lod: number, over: string[], o: { dy: number; h: number; col: number; mat: number }) {
+  const T = TESS[lod], segs = Math.max(8, Math.round(T.seg * 0.8));
+  const cache = { v: null as HumanVariant | null, r: [] as number[] };
+  /** support function (64 θ bins) of the garments already placed under the belt, in the belt's ring plane */
+  const overSupport = (c: Ctx) => { if (cache.v === c.v) return cache.r; const F = vertFrame([0, c.J('spine_01')[1] + o.dy, c.J('pelvis')[2] + 0.02]); const r = new Array(64).fill(0);
+    for (const k of over) { const pp = c.placed.get(k); if (!pp) continue; for (let i = 0; i < pp.length; i += 3) { const dx = pp[i] - F.o[0], dy = pp[i + 1] - F.o[1], dz = pp[i + 2] - F.o[2]; if (Math.abs(dy) > o.h * 0.8) continue;
+      const x = dx * F.u[0] + dz * F.u[2], y = dx * F.v[0] + dz * F.v[2]; for (let b = 0; b < 64; b++) { const h = x * COS64[b] + y * SIN64[b]; if (h > r[b]) r[b] = h; } } }
+    cache.v = c.v; cache.r = r; return r; };
+  return tubeGeo(L.A, key, { segs, rings: 2, lining: 0.004, closeTop: true,
+    frame: (c, t) => vertFrame([0, c.J('spine_01')[1] + o.dy + o.h / 2 - t * o.h, c.J('pelvis')[2] + 0.02]),
+    support: { parts: [P.belly, P.pelvis, P.chest], slab: 0.03 },
+    radius: (c, t, th, sup) => Math.max(sup(th) + 0.019, rimAt(overSupport(c), th) + 0.005), // over the upper shell (≤ 1.3 cm) and the skirt top
+    weights: () => [W('spine_01', 0.6), W('pelvis', 0.4)], mat: o.mat, col: o.col });
+}
+/** feet: shoes (low) or boots (to above the ankle) */
+function footShell(L: Lib, key: string, lod: number, top: number) {
+  const { A, ref, J } = L;
+  const d = regionOf(A, ref, [P.foot_l, P.foot_r, P.calf_l, P.calf_r], p => J('foot_l')[1] + top - p[1]);
+  return shellGeo(A, ref, key, { tris: A.lods[TESS[lod].tris], d, ramp: 0.012, thick: p => (p[1] < 0.012 ? 0.006 : 0.0045), smooth: 1, minOff: 0.003, mat: MAT.leather, col: COL.leather });
+}
+/** legs: trousers from the hips to above the ankle */
+function trouserShell(L: Lib, key: string, lod: number, col: number) {
+  const { A, ref, J } = L;
+  const d = regionOf(A, ref, [P.pelvis, ...LEGS, P.foot_l, P.foot_r], p => Math.min(J('spine_01')[1] - 0.03 - p[1], p[1] - (J('foot_l')[1] + 0.07)));
+  return shellGeo(A, ref, key, { tris: A.lods[TESS[lod].tris], d, ramp: 0.015, thick: () => 0.007, smooth: 2, minOff: 0.004, mat: MAT.cloth_second, col });
+}
+/** scalp hair: shell over the scalp mask; thicker on the crown and at the back */
+function hairShell(L: Lib, key: string, lod: number, bob: boolean) {
+  const { A, ref, J } = L; const eyeY = ref.eyeY, jaw = J('jaw');
+  const d = regionOf(A, ref, [P.head, P.neck], (p, i) => {
+    const m = (A.scalp[i] - 0.45) * 0.05; if (!bob) return m;
+    // bob: the hair falls to the jaw line behind the front edge of the ears
+    const bobD = p[2] < J('head')[2] + 0.035 ? Math.min(p[1] - (jaw[1] - 0.02), 0.02) : -1;
+    return Math.max(m, bobD); });
+  return shellGeo(A, ref, key, { tris: A.lods[lod === 0 ? 0 : TESS[lod].tris], d, ramp: 0.008, smooth: lod === 0 ? 5 : 3, minOff: 0.004,
+    thick: p => 0.006 + 0.008 * sstep(eyeY + 0.02, eyeY + 0.1, p[1]) + (bob ? 0.01 : 0.004) * sstep(0.05, -0.04, p[2] - J('head')[2]), mat: MAT.hair, col: COL.hair, prm: 0 });
+}
+/** hair gathered at the nape: an ellipsoid over the back of the neck (Persian and Median men) */
+function bunGeo(L: Lib, key: string, lod: number) {
+  const T = TESS[lod], segs = Math.max(8, Math.round(T.seg * 0.6)), rings = Math.max(4, Math.round(T.ring * 0.6));
+  const centre = (c: Ctx): V3 => { const h = c.J('head'), n = c.J('neck_01'); // back of the neck below the skull
+    const y = lerp(n[1], h[1], 0.35); let zb = 1; for (let i = 0; i < c.A.NO; i++) { const pt = c.A.part[i]; if (pt !== P.head && pt !== P.neck) continue; if (Math.abs(c.v.pos[i * 3 + 1] - y) > 0.012 || Math.abs(c.v.pos[i * 3]) > 0.03) continue; zb = Math.min(zb, c.v.pos[i * 3 + 2]); }
+    return [0, y + 0.005, zb + 0.012]; };
+  const R: V3 = [0.068, 0.05, 0.036];
+  return tubeGeo(L.A, key, { segs, rings, capStart: true, capEnd: true,
+    frame: (c, t) => { const o = centre(c); return { o: [o[0], o[1] + R[1] * Math.cos(Math.PI * t), o[2]], u: [0, 0, -1], v: [1, 0, 0], w: [0, -1, 0] }; },
+    radius: (c, t, th) => { const s = Math.sin(Math.PI * t); const a = R[2] * s * (Math.cos(th) > 0 ? 1 : 0.35), b = R[0] * s; return (a * b) / Math.hypot(b * Math.cos(th), a * Math.sin(th)) + 1e-4; },
+    weights: t => [W('head', 1 - 0.5 * t), W('neck_01', 0.5 * t)], mat: MAT.hair, col: COL.hair, prm: 1 });
+}
+/** face measurements on the reference body: mouth line (the most recessed midline point between nose and chin), lip plane,
+ *  head half-width at eye height; render indices of the chin and nose-tip landmarks */
+function faceGeom(L: Lib) {
+  const { A, ref } = L; const rvOf = (pid: number) => { for (let i = 0; i < A.NO; i++) if (A.orig[i] === pid) return i; return 0; };
+  const chinI = rvOf(A.meta.landmarks.chin), noseI = rvOf(A.meta.landmarks.nose_tip);
+  const cy = ref.pos[chinI * 3 + 1], ny = ref.pos[noseI * 3 + 1], nz = ref.pos[noseI * 3 + 2];
+  let mouthY = (cy + ny) / 2, best = 1e9;
+  for (let i = 0; i < A.NO; i++) { if (A.part[i] !== P.head) continue; const x = ref.pos[i * 3], y = ref.pos[i * 3 + 1], z = ref.pos[i * 3 + 2];
+    if (Math.abs(x) > 0.0025 || y < cy + 0.3 * (ny - cy) || y > ny - 0.3 * (ny - cy) || z < nz - 0.045) continue; if (z < best) { best = z; mouthY = y; } }
+  let halfW = 0; for (let i = 0; i < A.NO; i++) if (A.part[i] === P.head && Math.abs(ref.pos[i * 3 + 1] - ref.eyeY) < 0.015) halfW = Math.max(halfW, Math.abs(ref.pos[i * 3]));
+  return { chinI, noseI, mouthY, lipZ: best, halfW };
+}
+/** full-beard region 0..1 per render vertex (cheeks below the cheekbone line, moustache under the nose, chin, jaw and
+ *  under-chin; the lips stay bare). The D-020 baked mask bounded the beard by the jaw JOINT's height (near the ear), which
+ *  left the chin bare, so the region is rebuilt here from the face measurements (C: the shape of the carved beards). */
+const BEARD_CACHE = new WeakMap<HumanAssets, Float32Array>();
+export function beardMask(L: Lib): Float32Array {
+  const { A, ref, J } = L; const hit = BEARD_CACHE.get(A); if (hit) return hit;
+  const F = faceGeom(L); const out = new Float32Array(A.NO);
+  const noseY = ref.pos[F.noseI * 3 + 1], eyeY = ref.eyeY;
+  for (let i = 0; i < A.NO; i++) { const pt = A.part[i]; if (pt !== P.head && pt !== P.neck) continue; const x = ref.pos[i * 3], y = ref.pos[i * 3 + 1], z = ref.pos[i * 3 + 2], ax = Math.abs(x);
+    const cheekLine = lerp(noseY - 0.016, eyeY - 0.03, sstep(0.018, 0.05, ax)); // under the nose in the middle, the cheekbone line at the sides
+    const dy = y - F.mouthY, lips = (Math.hypot(x / 0.026, dy / (dy > 0 ? 0.0105 : 0.0125)) - 1) * 0.012; // outside the lips > 0
+    const d = Math.min(cheekLine - y, z - (J('jaw')[2] - 0.012), y - (J('neck_01')[1] - 0.005), F.halfW - 0.004 - ax, lips);
+    out[i] = sstep(-0.003, 0.005, d); }
+  BEARD_CACHE.set(A, out); return out;
+}
+/** beard: a shell over the beard region plus (long) a squared mass hanging from the chin to the upper chest */
+function beardGeo(L: Lib, key: string, lod: number, long: boolean) {
+  const { A, ref } = L; const bm = beardMask(L);
+  const d = regionOf(A, ref, [P.head, P.neck], (p, i) => (bm[i] - 0.4) * 0.05);
+  const shell = shellGeo(A, ref, `${key}_shell`, { tris: A.lods[lod === 0 ? 0 : TESS[lod].tris], d, ramp: 0.006, smooth: lod === 0 ? 4 : 2, minOff: 0.003,
+    thick: p => (long ? 0.01 : 0.005) + (long ? 0.012 : 0.002) * sstep(ref.eyeY - 0.06, ref.eyeY - 0.12, p[1]), mat: MAT.hair, col: COL.hair, prm: 2 });
+  if (!long) return shell;
+  const T = TESS[lod], segs = Math.max(8, Math.round(T.seg * 0.6)), rings = Math.max(3, Math.round(T.ring * 0.5));
+  const { chinI, noseI } = faceGeom(L);
+  const LEN = 0.12; // below the chin (C: the carved beards reach the upper chest)
+  const mass = tubeGeo(A, `${key}_mass`, { segs, rings, capEnd: true,
+    frame: (c, t) => { const ch: V3 = [c.v.pos[chinI * 3], c.v.pos[chinI * 3 + 1], c.v.pos[chinI * 3 + 2]], no: V3 = [0, c.v.pos[noseI * 3 + 1], c.v.pos[noseI * 3 + 2]];
+      const top: V3 = [0, lerp(ch[1], no[1], 0.3), ch[2] - 0.03];
+      const by = ch[1] - LEN, chest = frontZ(c, by); // the bottom hangs clear of the chest (robe ~1.5 cm)
+      const bot: V3 = [0, by, Math.max(ch[2] - 0.01, chest + 0.015 + 0.03)];
+      const w = nrm(sub(bot, top)), u = nrm(cross([-1, 0, 0], w)); // u × v = w with v = −X
+      return { o: add(top, scl(sub(bot, top), t)), u, v: [-1, 0, 0], w }; },
+    radius: (c, t, th) => { // rounded rectangle: half-width 5 cm → 4.2 cm at the bottom, half-depth 2.8 cm (front) / 3.5 cm (back, over the neck)
+      const hw = lerp(0.052, 0.042, t), hd = Math.cos(th) > 0 ? lerp(0.032, 0.026, t) : 0.036, ct = Math.cos(th), st = Math.sin(th), p = 6;
+      const r = 1 / Math.pow(Math.pow(Math.abs(ct) / hd, p) + Math.pow(Math.abs(st) / hw, p), 1 / p);
+      const lumpy = 1 + 0.07 * Math.sin(th * 5 + t * 7.3) * Math.sin(t * 13.1 + th * 3) + 0.04 * Math.sin(th * 11 + t * 21); // locks, not a block (C)
+      return r * lumpy * (t > 0.85 ? 1 - 0.5 * sstep(0.85, 1, t) ** 2 : 1); },
+    weights: t => [W('jaw', 0.7 - 0.3 * t), W('head', 0.3 + 0.1 * t), W('neck_01', 0.2 * t)], mat: MAT.hair, col: COL.hair, prm: 2 });
+  return merge(key, [shell, mass]);
+}
+/** a hat as a lathe around the head's vertical axis from a rim ring fitted to the head (support function) */
+/** rim plane around the head at eye height + dy, lower at the back by `tilt` (rad): u front, v the body's left, w = u × v up */
+function headRingFrame(c: Ctx, dy: number, tilt: number): Frame {
+  const h = c.J('head'), y = c.v.eyeY + dy;
+  const u: V3 = [0, Math.sin(tilt), Math.cos(tilt)], v: V3 = [1, 0, 0];
+  return { o: [0, y, h[2] + 0.055], u, v, w: cross(u, v) };
+}
+/** support radius of the head in a rim plane, per θ bin (cached per variant) */
+function headRim(c: Ctx, F: Frame, slab: number, cache: { v: HumanVariant | null; r: number[] }) {
+  if (cache.v === c.v) return cache.r; const B = 64, r = new Array(B).fill(0.05);
+  for (const i of partVerts(c.A, [P.head])) { const d = sub([c.v.pos[i * 3], c.v.pos[i * 3 + 1], c.v.pos[i * 3 + 2]], F.o); if (Math.abs(dot(d, F.w)) > slab) continue; const x = dot(d, F.u), y = dot(d, F.v);
+    for (let b = 0; b < B; b++) { const th = (b / B) * 2 * Math.PI, h = x * Math.cos(th) + y * Math.sin(th); if (h > r[b]) r[b] = h; } }
+  cache.v = c.v; cache.r = r; return r;
+}
+const rimAt = (r: number[], th: number) => { const B = r.length, f = ((((th / (2 * Math.PI)) % 1) + 1) % 1) * B, b0 = Math.floor(f) % B, a = f - Math.floor(f); return r[b0] * (1 - a) + r[(b0 + 1) % B] * a; };
+/** fitted fluted hat: rim radius from the head at the rim plane + 5 mm, flaring 8 % to the top, fluted */
+function flutedHatFitted(L: Lib, key: string, lod: number) {
+  const T = TESS[lod], segs = T.hs, rings = Math.max(2, Math.round(T.ring * 0.35)), flutes = 18, H = 0.14;
+  const cache = { v: null as HumanVariant | null, r: [] as number[] };
+  return tubeGeo(L.A, key, { segs, rings, lining: 0.004, capEnd: true,
+    frame: (c, t) => { const F = headRingFrame(c, 0.045, 0.12); return { ...F, o: add(F.o, scl(F.w, -0.012 + (H + 0.012) * t)) }; },
+    radius: (c, t, th) => { const r = headRim(c, headRingFrame(c, 0.045, 0.12), 0.008, cache);
+      const fl = 0.006 * Math.abs(Math.sin(th * flutes / 2)) * (t > 0.08 ? 1 : 0); // flutes (vertical grooves)
+      return rimAt(r, th) + 0.006 + 0.012 * t - fl; },
+    weights: () => [W('head', 1)], mat: MAT.felt, col: COL.felt, prm: 1 });
+}
+/** torus-like band around the head (fillet, headband) */
+function headBand(L: Lib, key: string, lod: number, o: { dy: number; w: number; t: number; twisted: boolean; col: number }) {
+  const T = TESS[lod], segs = Math.max(8, T.hs);
+  const cache = { v: null as HumanVariant | null, r: [] as number[] };
+  return tubeGeo(L.A, key, { segs, rings: 2, lining: 0.003, closeTop: true,
+    frame: (c, t) => { const F = headRingFrame(c, o.dy, 0.15); return { ...F, o: add(F.o, scl(F.w, (t - 0.5) * o.w)) }; },
+    radius: (c, t, th) => { const r = headRim(c, headRingFrame(c, o.dy, 0.15), 0.01, cache); return rimAt(r, th) + 0.006 + (o.twisted ? 0.003 * Math.sin(th * 30 + t * 3) : 0) + o.t * Math.sin(Math.PI * t); },
+    weights: () => [W('head', 1)], mat: MAT.cloth_trim, col: o.col, prm: o.twisted ? 3 : 0 });
+}
+/** soft felt cap: shell over the cranium, ears and nape, domed on top (Median dress, C) */
+function softCap(L: Lib, key: string, lod: number) {
+  const { A, ref, J } = L; const eyeY = ref.eyeY, h = J('head'), jaw = J('jaw');
+  const d = regionOf(A, ref, [P.head, P.neck], p => {
+    const front = p[1] - (eyeY + 0.028 - 0.012 * sstep(0.03, 0.06, Math.abs(p[0]))); // over the brow
+    const sideLap = Math.abs(p[0]) > 0.052 && p[2] < h[2] + 0.075 ? p[1] - (jaw[1] - 0.035) : -1; // lappets over the ears to the jaw
+    const nape = p[2] < h[2] + 0.02 ? p[1] - (J('neck_01')[1] + 0.01) : -1; // flap down the back of the neck
+    return Math.max(front, Math.min(sideLap, 0.03), Math.min(nape, 0.03)); });
+  return shellGeo(A, ref, key, { tris: A.lods[TESS[lod].tris], d, ramp: 0.01, smooth: 4, minOff: 0.01,
+    thick: p => 0.016 + 0.03 * sstep(eyeY + 0.06, eyeY + 0.12, p[1]), mat: MAT.felt, col: COL.felt, prm: 0 });
+}
+/** headcloth: over the head, down the back of the neck and the shoulders, relaxed so it drapes (women, C) */
+function headcloth(L: Lib, key: string, lod: number) {
+  const { A, ref, J } = L; const eyeY = ref.eyeY, h = J('head');
+  const d = regionOf(A, ref, [P.head, P.neck, P.chest, P.uarm_l, P.uarm_r], p => {
+    const faceOpen = p[2] > h[2] + 0.04 && Math.abs(p[0]) < 0.062 && p[1] < eyeY + 0.035 ? -1 : 1; // the face stays open
+    const top = p[1] - (J('spine_03')[1] + 0.12 - 0.1 * sstep(0.05, -0.1, p[2])); // falls lower at the back
+    const arm = Math.abs(p[0]) > 0.2 ? -1 : 1;
+    return Math.min(faceOpen * 0.03, top, arm * 0.03); });
+  return shellGeo(A, ref, key, { tris: A.lods[TESS[lod].tris], d, ramp: 0.012, smooth: 8, minOff: 0.01,
+    thick: p => 0.014 + 0.006 * sstep(eyeY, eyeY + 0.1, p[1]), mat: MAT.cloth_second, col: COL.second, prm: 0 });
+}
+/** torque: a ring around the base of the neck, fitted to the neck's support radius (per θ) plus 7 mm */
+function torqueGeo(L: Lib, key: string, lod: number) {
+  const T = TESS[lod], segs = Math.max(8, T.hs), tubeSeg = lod === 0 ? 8 : 4;
+  const cache = { v: null as HumanVariant | null, r: [] as number[] };
+  const ring = (c: Ctx) => { const n = c.J('neck_01'); return vertFrame([0, n[1] - 0.012, n[2] + 0.01]); };
+  const sup = (c: Ctx) => { if (cache.v === c.v) return cache.r; const F = ring(c), r = new Array(64).fill(0.05);
+    for (const i of partVerts(c.A, [P.neck, P.chest])) { const d = sub([c.v.pos[i * 3], c.v.pos[i * 3 + 1], c.v.pos[i * 3 + 2]], F.o); if (Math.abs(d[1]) > 0.01) continue; const x = dot(d, F.u), y = dot(d, F.v); for (let b = 0; b < 64; b++) { const h = x * COS64[b] + y * SIN64[b]; if (h > r[b]) r[b] = h; } }
+    cache.v = c.v; cache.r = r; return r; };
+  const at = (c: Ctx, t: number): V3 => { const F = ring(c), th = t * 2 * Math.PI, r = rimAt(sup(c), th) + 0.007; return add(F.o, add(scl(F.u, r * Math.cos(th)), scl(F.v, r * Math.sin(th)))); };
+  return tubeGeo(L.A, key, { segs: tubeSeg, rings: segs,
+    frame: (c, t) => { const o = at(c, t), w = nrm(sub(at(c, t + 0.01), at(c, t - 0.01))), u: V3 = [0, 1, 0]; return { o, u: nrm(sub(u, scl(w, dot(u, w)))), v: nrm(cross(w, u)), w }; },
+    radius: () => 0.0045, weights: () => [W('neck_01', 0.5), W('spine_03', 0.5)], mat: MAT.metal, col: COL.fixed, prm: METAL.gold });
+}
+/** quiver on the back: a long, slightly tapering case, top over the left shoulder (C placement) */
+function quiverGeo(L: Lib, key: string, lod: number) {
+  const T = TESS[lod], segs = Math.max(6, Math.round(T.seg * 0.4)), rings = Math.max(2, Math.round(T.ring * 0.4));
+  const ends = (c: Ctx): [V3, V3] => { const s3 = c.J('spine_03'), p = c.J('pelvis'); const back = backZ(c, s3[1]) - 0.055;
+    return [[0.12, s3[1] + 0.26, back], [-0.1, p[1] - 0.06, backZ(c, p[1] + 0.1) - 0.07]]; };
+  return tubeGeo(L.A, key, { segs, rings, capStart: true, capEnd: true,
+    frame: (c, t) => { const [a, b] = ends(c); return segFrame(a, b, t, [0, 0, -1]); },
+    radius: (c, t) => lerp(0.058, 0.048, t) * (t < 0.12 ? 1.12 : 1), weights: t => [W('spine_03', 1 - 0.6 * t), W('spine_02', 0.6 * t)], mat: MAT.leather, col: COL.leather, prm: 1 });
+}
+/** back surface z of the torso at a height (for items carried on the back) */
+/** front surface z of the torso at a height, near the midline */
+function frontZ(c: Ctx, y: number) { const sy = sortedByY(c.v, c.A, [P.chest, P.neck, P.belly]); let z = -1; for (let q = lowerBound(sy.y, y - 0.02), e = lowerBound(sy.y, y + 0.02); q < e; q++) { const i = sy.idx[q]; if (Math.abs(c.v.pos[i * 3]) > 0.06) continue; z = Math.max(z, c.v.pos[i * 3 + 2]); } return z > -1 ? z : c.J('spine_03')[2] + 0.12; }
+const BZ = new WeakMap<HumanVariant, Map<number, number>>();
+function backZ(c: Ctx, y: number) {
+  let m = BZ.get(c.v); if (!m) BZ.set(c.v, m = new Map()); const key = Math.round(y * 1000); const hit = m.get(key); if (hit !== undefined) return hit;
+  const sy = sortedByY(c.v, c.A, TORSO); let z = 1; for (let q = lowerBound(sy.y, y - 0.03), e = lowerBound(sy.y, y + 0.03); q < e; q++) { const i = sy.idx[q]; if (Math.abs(c.v.pos[i * 3]) > 0.08) continue; z = Math.min(z, c.v.pos[i * 3 + 2]); }
+  const r = z < 1 ? z : c.J('spine_03')[2] - 0.1; m.set(key, r); return r;
+}
+/** composite bow slung over the left shoulder, lying diagonally across the back (C) */
+function bowGeo(L: Lib, key: string, lod: number) {
+  const T = TESS[lod], rings = Math.max(6, T.ring * 2), segs = lod === 0 ? 6 : 4;
+  const path = (c: Ctx, t: number): V3 => { const s3 = c.J('spine_03'); const a: V3 = [0.2, s3[1] + 0.3, backZ(c, s3[1]) - 0.1], b: V3 = [-0.16, s3[1] - 0.45, backZ(c, s3[1] - 0.3) - 0.1];
+    const m = add(a, scl(sub(b, a), t)); const recurve = 0.05 * Math.sin(Math.PI * t) - 0.025 * Math.sin(2 * Math.PI * t) * 0; return add(m, [0, 0, -recurve]); };
+  return tubeGeo(L.A, key, { segs, rings, capStart: true, capEnd: true,
+    frame: (c, t) => { const p = path(c, t), q = path(c, Math.min(1, t + 0.02)), r = path(c, Math.max(0, t - 0.02)); const w = nrm(sub(q, r)); return { o: p, u: nrm(cross(w, [1, 0, 0])), v: nrm(cross(w, cross(w, [1, 0, 0]))), w }; },
+    radius: (c, t, th) => { const tip = 1 - 0.55 * Math.abs(2 * t - 1) ** 3; const a = 0.009 * tip, b = 0.015 * tip; return (a * b) / Math.hypot(b * Math.cos(th), a * Math.sin(th)); },
+    weights: () => [W('spine_03', 1)], mat: MAT.wood, col: COL.fixed, prm: 1 });
+}
+/** akinakes in its scabbard at the right thigh: lobed top, straight scabbard, chape (C proportions) */
+function akinakaGeo(L: Lib, key: string, lod: number) {
+  const T = TESS[lod], segs = lod === 0 ? 10 : 5, rings = Math.max(3, T.ring);
+  const ends = (c: Ctx): [V3, V3] => { const t = c.J('thigh_r'), k = c.J('calf_r'); const x = t[0] - 0.13; return [[x, t[1] + 0.06, t[2] + 0.05], [x - 0.01, lerp(t[1], k[1], 0.62), k[2] + 0.07]]; };
+  return tubeGeo(L.A, key, { segs, rings, capStart: true, capEnd: true,
+    frame: (c, t) => { const [a, b] = ends(c); return segFrame(a, b, t, [0, 0, 1]); },
+    radius: (c, t, th) => { const hilt = t < 0.18, lobe = t > 0.2 && t < 0.3; const wdt = hilt ? (t < 0.04 ? 0.03 : 0.013) : lobe ? 0.045 : lerp(0.024, 0.012, (t - 0.3) / 0.7) * (t > 0.94 ? 1.4 : 1);
+      const dep = hilt ? 0.013 : 0.009; return (wdt * dep) / Math.hypot(dep * Math.cos(th), wdt * Math.sin(th)); },
+    weights: t => [W('thigh_r', 0.35 + 0.5 * t), W('pelvis', 0.65 - 0.5 * t)], mat: MAT.leather, col: COL.leather, prm: 2 });
+}
+/** gorytos (combined bow case) at the left hip (C) */
+function gorytosGeo(L: Lib, key: string, lod: number) {
+  const T = TESS[lod], segs = lod === 0 ? 10 : 5, rings = Math.max(3, T.ring);
+  const ends = (c: Ctx): [V3, V3] => { const t = c.J('thigh_l'); return [[t[0] + 0.1, t[1] + 0.12, t[2] - 0.11], [t[0] + 0.1, t[1] - 0.4, t[2] - 0.2]]; }; // behind the left hip, clear of the arm
+  return tubeGeo(L.A, key, { segs, rings, capStart: true, capEnd: true,
+    frame: (c, t) => { const [a, b] = ends(c); return segFrame(a, b, t, [1, 0, 0]); },
+    radius: (c, t, th) => { const wdt = lerp(0.1, 0.045, t ** 1.4), dep = 0.03; return (wdt * dep) / Math.hypot(wdt * Math.cos(th), dep * Math.sin(th)); },
+    weights: t => [W('pelvis', 1 - 0.4 * t), W('thigh_l', 0.4 * t)], mat: MAT.leather, col: COL.leather, prm: 3 });
+}
+
+// ------------------------------------------------------------------------------------------------ piece factory
+function buildPiece(L: Lib, id: string, lod: number): Geo {
+  const J = L.J;
+  switch (id) {
+    case 'robe_upper': return upperShell(L, `${id}@${lod}`, lod, { armCut: 0.28, hipDrop: 0.1, neckDrop: 0.035, thick: 0.013, armThick: 0.012, smooth: 3 });
+    case 'robe_skirt': { const T = TESS[lod], rings = Math.max(3, Math.round(T.ring * 0.9));
+      const hem = (c: Ctx, th: number) => 0.035 + 0.035 * Math.max(0, Math.cos(th)) ** 2; // front of the hem higher, shoes show (C)
+      return withHem(skirtTube(L, `${id}@${lod}`, lod, { top: -0.02, hem, ease: 0.012, flare: 0.05, pleats: 26, pleatAmp: 0.009, frontPleat: 1 }), T.seg, rings, true, hem); }
+    case 'robe_sleeves': return robeSleeves(L, `${id}@${lod}`, lod);
+    case 'tunic_upper': return upperShell(L, `${id}@${lod}`, lod, { armCut: 0.97, hipDrop: 0.08, neckDrop: 0.03, thick: 0.009, armThick: 0.006, smooth: 2 });
+    case 'tunic_skirt': case 'work_skirt': case 'child_skirt': { const T = TESS[lod], rings = Math.max(3, Math.round(T.ring * 0.9));
+      const hem = (c: Ctx) => c.J('calf_l')[1] + (id === 'tunic_skirt' ? 0.0 : 0.04);
+      return withHem(skirtTube(L, `${id}@${lod}`, lod, { top: -0.02, hem, ease: 0.01, flare: 0.035, pleats: 14, pleatAmp: 0.004 }), T.seg, rings, true, hem); }
+    case 'trousers': return trouserShell(L, `${id}@${lod}`, lod, COL.second);
+    case 'work_trousers': return trouserShell(L, `${id}@${lod}`, lod, COL.second);
+    case 'work_upper': case 'child_upper': return upperShell(L, `${id}@${lod}`, lod, { armCut: 0.22, hipDrop: 0.08, neckDrop: 0.03, thick: 0.009, armThick: 0.007, smooth: 2 });
+    case 'dress_upper': return upperShell(L, `${id}@${lod}`, lod, { armCut: 0.96, hipDrop: 0.1, neckDrop: 0.025, thick: 0.01, armThick: 0.008, smooth: 3 });
+    case 'dress_skirt': { const T = TESS[lod], rings = Math.max(3, Math.round(T.ring * 0.9)); const hem = () => 0.03;
+      return withHem(skirtTube(L, `${id}@${lod}`, lod, { top: -0.02, hem, ease: 0.014, flare: 0.06, pleats: 22, pleatAmp: 0.006 }), T.seg, rings, true, hem); }
+    case 'headcloth': return headcloth(L, `${id}@${lod}`, lod);
+    case 'belt': { const over = ['robe_skirt', 'tunic_skirt', 'work_skirt', 'dress_skirt', 'child_skirt'].map(k => geoKey(k, lod)); // skirts only: the upper shells include the sleeves
+      return beltTube(L, `${id}@${lod}`, lod, over, { dy: -0.005, h: 0.045, col: COL.trim, mat: MAT.cloth_trim }); }
+    case 'shoes': return footShell(L, `${id}@${lod}`, lod, 0.035);
+    case 'boots': return footShell(L, `${id}@${lod}`, lod, 0.11);
+    case 'hair': return hairShell(L, `${id}@${lod}`, lod, false);
+    case 'hair_bob': return hairShell(L, `${id}@${lod}`, lod, true);
+    case 'bun': return bunGeo(L, `${id}@${lod}`, lod);
+    case 'beard_long': return beardGeo(L, `${id}@${lod}`, lod, true);
+    case 'beard_short': return beardGeo(L, `${id}@${lod}`, lod, false);
+    case 'hat_fluted': return flutedHatFitted(L, `${id}@${lod}`, lod);
+    case 'fillet': return headBand(L, `${id}@${lod}`, lod, { dy: 0.04, w: 0.022, t: 0.006, twisted: true, col: COL.trim });
+    case 'headband': return headBand(L, `${id}@${lod}`, lod, { dy: 0.045, w: 0.03, t: 0.003, twisted: false, col: COL.second });
+    case 'cap_soft': return softCap(L, `${id}@${lod}`, lod);
+    case 'torque': return torqueGeo(L, `${id}@${lod}`, lod);
+    case 'quiver': return quiverGeo(L, `${id}@${lod}`, lod);
+    case 'bow': return bowGeo(L, `${id}@${lod}`, lod);
+    case 'akinaka': return akinakaGeo(L, `${id}@${lod}`, lod);
+    case 'gorytos': return gorytosGeo(L, `${id}@${lod}`, lod);
+  }
+  void J;
+  throw new Error('unknown piece ' + id);
+}
+
+// ------------------------------------------------------------------------------------------------ body coverage (drop)
+/** body render vertices that stay hidden under an always-worn piece of this costume (deep inside, margin ≥ 3 cm) */
+function coverage(L: Lib, dress: Dress): Uint8Array {
+  const { A, ref, J } = L; const cov = new Uint8Array(A.NO); const always = new Set(COSTUMES[dress].always);
+  const armT = (p: V3, s: 'l' | 'r') => { const tu = along(J, `upperarm_${s}`, `lowerarm_${s}`, p); if (tu <= 1) return tu * 0.5; return 0.5 + 0.5 * along(J, `lowerarm_${s}`, `hand_${s}`, p); };
+  for (let i = 0; i < A.NO; i++) {
+    const pt = A.part[i]; if (pt >= PART.eye) continue; const p: V3 = [ref.pos[i * 3], ref.pos[i * 3 + 1], ref.pos[i * 3 + 2]];
+    const neckY = J('neck_01')[1] - 0.05, waist = J('spine_01')[1], knee = J('calf_l')[1], ankle = J('foot_l')[1];
+    const torso = TORSO.includes(pt as any) || (pt === P.neck && p[1] < neckY);
+    const arm = ARMS.includes(pt as any), side = p[0] > 0 ? 'l' : 'r';
+    const leg = LEGS.includes(pt as any) || pt === P.pelvis, foot = pt === P.foot_l || pt === P.foot_r;
+    let c = false;
+    if (always.has('robe_upper') && torso && p[1] > J('thigh_l')[1] - 0.05) c = true;
+    if (always.has('robe_sleeves') && arm && armT(p, side) < 0.86) c = true;
+    if (always.has('robe_skirt') && leg && p[1] < waist - 0.02 && p[1] > ankle + 0.12) c = true;
+    if ((always.has('tunic_upper') || always.has('dress_upper')) && (torso && p[1] > J('thigh_l')[1] - 0.04 || arm && armT(p, side) < 0.88)) c = true;
+    if (always.has('work_upper') || always.has('child_upper')) { if (torso && p[1] > J('thigh_l')[1] - 0.04) c = true; if (arm && armT(p, side) < 0.08) c = true; }
+    if ((always.has('tunic_skirt') || always.has('work_skirt') || always.has('child_skirt')) && (pt === P.pelvis || LEGS.includes(pt as any) && pt !== P.calf_l && pt !== P.calf_r) && p[1] < waist - 0.02 && p[1] > knee + 0.1) c = true;
+    if (always.has('dress_skirt') && leg && p[1] < waist - 0.02 && p[1] > ankle + 0.1) c = true;
+    if (always.has('trousers') && leg && p[1] < waist - 0.06 && p[1] > ankle + 0.1) c = true;
+    if ((always.has('shoes') && foot && p[1] < ankle + 0.005) || (always.has('boots') && (foot || LEGS.includes(pt as any)) && p[1] < ankle + 0.08)) c = true;
+    cov[i] = c ? 1 : 0;
+  }
+  return cov;
+}
+
+// ------------------------------------------------------------------------------------------------ assembly
+export interface CostumeLOD {
+  dress: Dress; lod: number;
+  /** vertex attributes (tid = index into the vertex source; hmat = class, colour slot, piece bit, param; hext = ao, slack, 0, 0) */
+  tid: Float32Array; skinIndex: Uint8Array; skinWeight: Uint8Array; uv: Float32Array; hmat: Uint8Array; hext: Uint8Array;
+  /** reference-variant bind position and normal (the geometry's position/normal attributes; bounds and raycasts) */
+  refPos: Float32Array; refNrm: Float32Array;
+  index: Uint32Array; triangles: number; bodyTriangles: number;
+  /** triangle ranges per piece (for tests and budgets) */
+  pieceTris: Record<string, number>;
+}
+export interface OutfitBuild {
+  /** vertex source: body render vertices first, then every distinct piece geometry */
+  NV: number; pieceBase: Record<string, number>;
+  /** piece geometries with their fitting code (node/tests only: not sent back from the worker) */
+  geos?: Record<string, Geo>;
+  /** per variant × NV: xyz bind position, w = packed normal (oct 12+12 bits as an exact integer) */
+  source: Float32Array;
+  costumes: Record<Dress, CostumeLOD[]>;
+  ms: number;
+}
+/** MakeHuman's high-poly eye has a second, transparent cornea layer mapped to the small disc in the corner of the eye
+ *  texture (u > 0.85, v < 0.16); drawn opaque it hides the iris behind a pale blue shell, so it is left out */
+export const isCornea = (A: HumanAssets, i: number) => A.part[i] === PART.eye && A.uv[i * 2] > 0.85 && A.uv[i * 2 + 1] < 0.16;
+/** octahedral normal packing into one float holding an exact 24-bit integer (decoded in the shader with floor/mod) */
+export function packNormal(x: number, y: number, z: number) {
+  const s = Math.abs(x) + Math.abs(y) + Math.abs(z) || 1; let u = x / s, v = y / s;
+  if (z < 0) { const ou = u; u = (1 - Math.abs(v)) * Math.sign(ou || 1); v = (1 - Math.abs(ou)) * Math.sign(v || 1); }
+  const qu = Math.round((u * 0.5 + 0.5) * 4095), qv = Math.round((v * 0.5 + 0.5) * 4095); return qu * 4096 + qv;
+}
+export function unpackNormal(w: number): V3 {
+  const qu = Math.floor(w / 4096), qv = w - qu * 4096; let u = (qu / 4095) * 2 - 1, v = (qv / 4095) * 2 - 1; const z = 1 - Math.abs(u) - Math.abs(v);
+  if (z < 0) { const ou = u; u = (1 - Math.abs(v)) * Math.sign(ou || 1); v = (1 - Math.abs(ou)) * Math.sign(v || 1); }
+  return nrm([u, v, z]);
+}
+function geoNormals(pos: Float32Array, index: number[], n: number) {
+  const acc = new Float64Array(n * 3);
+  for (let t = 0; t < index.length; t += 3) { const a = index[t] * 3, b = index[t + 1] * 3, c = index[t + 2] * 3;
+    const ux = pos[b] - pos[a], uy = pos[b + 1] - pos[a + 1], uz = pos[b + 2] - pos[a + 2], vx = pos[c] - pos[a], vy = pos[c + 1] - pos[a + 1], vz = pos[c + 2] - pos[a + 2];
+    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx; for (const q of [a, b, c]) { acc[q] += nx; acc[q + 1] += ny; acc[q + 2] += nz; } }
+  const out = new Float32Array(n * 3); for (let i = 0; i < n; i++) { const l = Math.hypot(acc[i * 3], acc[i * 3 + 1], acc[i * 3 + 2]) || 1; out[i * 3] = acc[i * 3] / l; out[i * 3 + 1] = acc[i * 3 + 1] / l; out[i * 3 + 2] = acc[i * 3 + 2] / l; }
+  return out;
+}
+/** shells use the body's mid-LOD triangles for both the mid and the far costume: one geometry serves both */
+const SHELLS = new Set(['robe_upper', 'tunic_upper', 'work_upper', 'child_upper', 'dress_upper', 'trousers', 'work_trousers', 'shoes', 'boots', 'hair', 'hair_bob', 'beard_short', 'cap_soft', 'headcloth']);
+const geoLod = (id: string, lod: number) => (SHELLS.has(id) && lod === 2 ? 1 : lod);
+const geoKey = (id: string, lod: number) => `${id}@${geoLod(id, lod)}`;
+/** placement order: pieces a belt is fitted over come first */
+const ORDER = (id: string) => (id === 'belt' ? 2 : id.includes('upper') || id.includes('skirt') ? 0 : 1);
+
+export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: number[]; variants?: string[]; profile?: Record<string, number> } = {}): OutfitBuild {
+  const t0 = performance.now();
+  const ref = A.byId.m03 ?? A.variants[0];
+  const J = (b: HBone): V3 => [ref.joints[HB[b] * 3], ref.joints[HB[b] * 3 + 1], ref.joints[HB[b] * 3 + 2]];
+  const L: Lib = { A, ref, J };
+  const dresses = opts.dresses ?? DRESSES, lods = opts.lods ?? [0, 1, 2];
+  // distinct piece geometries (LOD1 and LOD2 shells share a tessellation → same key)
+  const geos: Record<string, Geo> = {};
+  const need: { id: string; lod: number }[] = [];
+  for (const d of dresses) for (const l of lods) for (const id of [...COSTUMES[d].always, ...COSTUMES[d].opt]) need.push({ id, lod: l });
+  for (const { id, lod } of need) { const k = geoKey(id, lod); if (!geos[k]) geos[k] = buildPiece(L, id, geoLod(id, lod)); }
+  if (opts.profile) opts.profile.$construct = performance.now() - t0;
+  // vertex source layout
+  const pieceBase: Record<string, number> = {}; let NV = A.NO;
+  for (const k of Object.keys(geos).sort((a, b) => ORDER(a.split('@')[0]) - ORDER(b.split('@')[0]))) { pieceBase[k] = NV; NV += geos[k].n; }
+  const variants = opts.variants ? A.variants.filter(v => opts.variants!.includes(v.meta.id)) : A.variants;
+  const source = new Float32Array(A.variants.length * NV * 4);
+  const keys = Object.keys(pieceBase);
+  for (const v of variants) {
+    const base = v.index * NV * 4;
+    for (let i = 0; i < A.NO; i++) { source[base + i * 4] = v.pos[i * 3]; source[base + i * 4 + 1] = v.pos[i * 3 + 1]; source[base + i * 4 + 2] = v.pos[i * 3 + 2]; source[base + i * 4 + 3] = packNormal(v.nrm[i * 3], v.nrm[i * 3 + 1], v.nrm[i * 3 + 2]); }
+    const c: Ctx = { A, v, J: (b: HBone) => [v.joints[HB[b] * 3], v.joints[HB[b] * 3 + 1], v.joints[HB[b] * 3 + 2]], placed: new Map() };
+    for (const k of keys) { const g = geos[k]; const t1 = opts.profile ? performance.now() : 0; const pos = g.place(c); if (opts.profile) opts.profile[k] = (opts.profile[k] ?? 0) + performance.now() - t1; c.placed.set(k, pos); const nr = geoNormals(pos, g.index, g.n); const o = base + pieceBase[k] * 4;
+      for (let i = 0; i < g.n; i++) { source[o + i * 4] = pos[i * 3]; source[o + i * 4 + 1] = pos[i * 3 + 1]; source[o + i * 4 + 2] = pos[i * 3 + 2]; source[o + i * 4 + 3] = packNormal(nr[i * 3], nr[i * 3 + 1], nr[i * 3 + 2]); } }
+  }
+  if (opts.profile) opts.profile.$source = performance.now() - t0;
+  // costumes: body triangles (minus covered) + pieces
+  const costumes = {} as Record<Dress, CostumeLOD[]>;
+  const refBase = ref.index * NV * 4; const beardV = beardMask(L);
+  for (const d of dresses) {
+    const cov = coverage(L, d); costumes[d] = [];
+    for (const lod of lods) {
+      const tris = A.lods[lod]; const bodyIdx: number[] = [];
+      for (let t = 0; t < tris.length; t += 3) { const a = tris[t], b = tris[t + 1], cc = tris[t + 2]; if (cov[a] && cov[b] && cov[cc]) continue;
+        if (isCornea(A, a) && isCornea(A, b) && isCornea(A, cc)) continue; // the transparent cornea layer of the high-poly eye (no blending here)
+        bodyIdx.push(a, b, cc); }
+      const vmap = new Map<number, number>(); const verts: { tid: number; kind: 'body' | 'piece'; g?: Geo; i: number; bit: number }[] = [];
+      const index: number[] = []; const pieceTris: Record<string, number> = { body: bodyIdx.length / 3 };
+      for (const i of bodyIdx) { let k = vmap.get(i); if (k === undefined) { k = verts.length; vmap.set(i, k); verts.push({ tid: i, kind: 'body', i, bit: 0 }); } index.push(k); }
+      for (const id of [...COSTUMES[d].always, ...COSTUMES[d].opt]) { const key = geoKey(id, lod), g = geos[key]; const bit = pieceBit(d, id), off = verts.length;
+        for (let i = 0; i < g.n; i++) verts.push({ tid: pieceBase[key] + i, kind: 'piece', g, i, bit });
+        for (const i of g.index) index.push(off + i); pieceTris[id] = g.index.length / 3; }
+      const n = verts.length;
+      const out: CostumeLOD = { dress: d, lod, tid: new Float32Array(n), skinIndex: new Uint8Array(n * 4), skinWeight: new Uint8Array(n * 4), uv: new Float32Array(n * 2), hmat: new Uint8Array(n * 4), hext: new Uint8Array(n * 4),
+        refPos: new Float32Array(n * 3), refNrm: new Float32Array(n * 3), index: Uint32Array.from(index), triangles: index.length / 3, bodyTriangles: bodyIdx.length / 3, pieceTris };
+      for (let k = 0; k < n; k++) { const q = verts[k];
+        out.tid[k] = q.tid;
+        const s = refBase + q.tid * 4; out.refPos[k * 3] = source[s]; out.refPos[k * 3 + 1] = source[s + 1]; out.refPos[k * 3 + 2] = source[s + 2]; const nn = unpackNormal(source[s + 3]); out.refNrm[k * 3] = nn[0]; out.refNrm[k * 3 + 1] = nn[1]; out.refNrm[k * 3 + 2] = nn[2];
+        if (q.kind === 'body') { const i = q.i; for (let j = 0; j < 4; j++) { out.skinIndex[k * 4 + j] = A.skinIndex[i * 4 + j]; out.skinWeight[k * 4 + j] = A.skinWeight[i * 4 + j]; }
+          out.uv[k * 2] = A.uv[i * 2]; out.uv[k * 2 + 1] = A.uv[i * 2 + 1];
+          const pt = A.part[i]; const mat = pt === PART.eye ? MAT.eye : pt === PART.teeth ? MAT.teeth : pt === PART.tongue ? MAT.mouth : pt === PART.lash ? MAT.lash : MAT.skin;
+          out.hmat[k * 4] = mat; out.hmat[k * 4 + 1] = mat === MAT.lash ? COL.hair : mat === MAT.skin ? COL.skin : COL.fixed; out.hext[k * 4] = Math.round(255 * A.ao[i]); out.hext[k * 4 + 2] = Math.round(255 * beardV[i]); }
+        else { const g = q.g!, i = q.i; for (let j = 0; j < 4; j++) { out.skinIndex[k * 4 + j] = g.si[i * 4 + j]; out.skinWeight[k * 4 + j] = g.sw[i * 4 + j]; } out.uv[k * 2] = g.uv[i * 2]; out.uv[k * 2 + 1] = g.uv[i * 2 + 1];
+          out.hmat[k * 4] = g.mat[i]; out.hmat[k * 4 + 1] = g.col[i]; out.hmat[k * 4 + 2] = q.bit; out.hmat[k * 4 + 3] = g.prm[i]; out.hext[k * 4] = g.ao[i]; out.hext[k * 4 + 1] = g.slack[i]; }
+      }
+      costumes[d].push(out);
+    }
+  }
+  if (opts.profile) opts.profile.$assemble = performance.now() - t0;
+  return { NV, pieceBase, geos, source, costumes, ms: performance.now() - t0 };
+}
