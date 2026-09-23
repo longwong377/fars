@@ -40,10 +40,19 @@ if gd['v'][0]['at'] == [183.27, 22.5]:
     gd['v'][0]['at'] = [183.27, 32.0]; gd['note'] += '; W door moved from y 22.5 to 32 in Phase 4: the Hall of 100 Columns portico and its E anta tower (REF-PLAN) now occupy y 8.3..27 there (C)'
 spec['global']['r_door_frame'] = R({'jamb': 0.6, 'projection': 0.08, 'lintel': 0.8, 'cornice_height': 0.35, 'cornice_projection': 0.12}, 'm', 'stone door frames: jambs lining the opening, lintel and a projecting cornice block (the cavetto "Egyptian" cornice of Persepolis doorways: NOT SEEN, verify). Frames of polished stone are reported for the Tachara (tachara.stone_frames, WP-EXT, C); elsewhere C. In unfinished buildings the frames stand complete above the low walls: stone elements were set before the mud brick (C). Sizes C')
 spec['tripylon']['r_door_height'] = R(6.0, 'm', 'doorway height about 2.2 x width (tripylon.doors note; C)')
+spec['treasury']['r_hall99_walls'] = R({'thickness': 2.0, 'door_width': 3.0, 'door_height': 4.5, 'roof': 0.6}, 'm', 'walls, N doorway and timber roof of the Hall of 99 Columns (a roofed hall: hall99, ISAC-PA B; wall line one bay outside the column grid, door on the axis facing the N entrance, sizes C)')
+spec['treasury']['r_benches'] = R({'height': 0.5, 'depth': 0.8, 'gap': 1.0}, 'm', 'mud-brick benches along the inner walls of the hall carrying stored goods (arrangement C); gap = free wall length left at each corner and beside the door')
+spec['treasury']['stored_goods'] = R([
+  {'item': 'alabaster_vessel', 'share': 0.4, 'note': 'Egyptian calcite (alabaster) bowls and bottles, some inscribed (ISAC-FINDS, B)'},
+  {'item': 'blue_vessel', 'share': 0.1, 'note': 'vessels of Egyptian-blue compound (ISAC-FINDS, B)'},
+  {'item': 'chert_set', 'share': 0.2, 'note': 'green-chert mortars, pestles and plates with Aramaic ink texts (ISAC-FINDS, B)'},
+  {'item': 'arrow_bundle', 'share': 0.2, 'note': 'bundles of bronze-tipped arrows; arrowheads and scabbard tips by the hundred among the finds (ISAC-FINDS, B; bundling C)'},
+  {'item': 'sealed_jar', 'share': 0.1, 'note': 'jars sealed with clay labels (sealed labels on stored goods: C, verify in Schmidt Persepolis II)'}], '', 'what the Treasury held (types B, search extracts of ISAC Contents of the Treasury); quantities and placement C', 'ISAC-FINDS', 'B')
 spec['harem']['r_door_height'] = R(4.0, 'm', 'main hall doorway height, about 2/3 of the 6 m columns (C, NOT SEEN, verify)')
 spec['harem']['r_entrance_width'] = R(2.4, 'm', 'width of the enclosure entrances (r_entrances), as the hall N door (C)')
 if 'SUPERSEDED' not in spec['treasury']['r_doors']['note']: spec['treasury']['r_doors']['note'] += ' [SUPERSEDED in Phase 4 by doors (REF-PLAN): this point lies in the street N of the Treasury]'
 for k, s in patch['_sources_new'].items(): sources[k] = s
+sources.setdefault('ISAC-FINDS', {'cite': "ISAC Photographic Archives, 'Miscellaneous finds' / 'Contents of the Treasury' (Schmidt, Persepolis II)", 'url': 'https://isac.uchicago.edu/collections/photographic-archives/persepolis/miscellaneous-finds', 'access': 'search-extract only; page not verified (MATERIAL_CULTURE.md)'})
 spec_p.write_text(json.dumps(spec, indent=1, ensure_ascii=False) + '\n')
 src_p.write_text(json.dumps(sources, indent=1, ensure_ascii=False) + '\n')
 print('applied; rows now:', {b: len(spec[b]) for b in ('tachara', 'hadish', 'tripylon', 'hall100', 'harem', 'treasury')})

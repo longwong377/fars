@@ -12,7 +12,7 @@ export const SPACES: Record<string, Space> = {
 };
 /** mean absorption per roofed hall (C): plaster walls, lime-plaster floor, timber ceiling; halls in use are assumed to
  *  carry hangings/furnishings (0.14), the Gate is bare (0.1) */
-export const ROOM_ALPHA: Record<string, number> = { apadana: 0.14, gate_nations: 0.1, tachara: 0.14, hadish: 0.14, harem: 0.18 };
+export const ROOM_ALPHA: Record<string, number> = { apadana: 0.14, gate_nations: 0.1, tachara: 0.14, hadish: 0.14, harem: 0.18, treasury: 0.16 };
 /** register a roofed room's acoustic space from its measured box (the generator's manifest `room` entries) */
 export function registerRoom(id: string, sx: number, sy: number, h: number) {
   SPACES[id] = { id, volume: sx * sy * h, surface: 2 * sx * sy + 2 * (sx + sy) * h, alpha: ROOM_ALPHA[id] ?? 0.14 };

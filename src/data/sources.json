@@ -218,5 +218,10 @@
   "cite": "irantour.tours, 'Persepolis The Treasury' (paraphrase of Schmidt's Treasury phases)",
   "url": "https://www.irantour.tours/iran-cities/shiraz/shiraz-historical-sites/persepolis-the-treasury.html/",
   "access": "search-extract only; tertiary; verify against Schmidt 1939/1953"
+ },
+ "ISAC-FINDS": {
+  "cite": "ISAC Photographic Archives, 'Miscellaneous finds' / 'Contents of the Treasury' (Schmidt, Persepolis II)",
+  "url": "https://isac.uchicago.edu/collections/photographic-archives/persepolis/miscellaneous-finds",
+  "access": "search-extract only; page not verified (MATERIAL_CULTURE.md)"
  }
 }

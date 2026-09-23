@@ -22,6 +22,7 @@ import { buildTerrace } from '../arch/terrace';
 import { buildMeshes } from '../arch/meshes';
 import { buildReliefs, buildInscriptions, loadInscriptionFonts } from '../arch/decor';
 import { FireSystem } from './fire';
+import { buildTreasuryGoods } from './furnish';
 import { WeatherVfx } from './weatherVfx';
 import { AudioEngine } from '../audio/engine';
 import { Soundscape, registerRoom } from '../audio/soundscape';
@@ -81,6 +82,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   await loadInscriptionFonts(async p => (await fetch('/' + p)).arrayBuffer());
   const reliefs = buildReliefs(manifest); root.add(reliefs);
   const insc = buildInscriptions(manifest, parts); root.add(insc);
+  if ((manifest.treasury as any)?.benches) root.add(buildTreasuryGoods((manifest.treasury as any).benches, seed)); // stored goods (types B, placement C)
   const q = settings?.quality ?? 'high';
   const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q]); placeFires(fire, manifest, parts); fire.build(); root.add(fire.group);
   const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group);

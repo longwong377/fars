@@ -484,7 +484,20 @@ export function buildTerrace(): BuildResult {
     const [gx, gy] = v<number[]>(b, 'r_hall99_grid');
     const pts = grid(gx, gy, (x0 + x1) / 2, (y0 + y1) / 2 + v(b, 'r_hall99_offset_n'), v(b, 'r_hall99_spacing'));
     for (const p of pts) parts.push(col(b, p, fl, ord, 'C', S_(b, 'hall99')));
-    manifest.treasury = { hall99Columns: pts.length, columnHeight: ord.height, northWallY: Math.max(...poly.map(q => q[1])), doors: DR.length };
+    // the Hall of 99 Columns: walls one bay outside the column grid, a N doorway toward the entrance, a timber roof, and
+    // mud-brick benches along the inner walls for the stored goods (all C; the hall and its contents' types are B)
+    const HW = v<any>(b, 'r_hall99_walls'), BN = v<any>(b, 'r_benches'), sp = v(b, 'r_hall99_spacing');
+    const hcx = (x0 + x1) / 2, hcy = (y0 + y1) / 2 + v(b, 'r_hall99_offset_n'), hsx = (gx + 1) * sp, hsy = (gy + 1) * sp;
+    const hdoor: Door = { side: 'N', at: 0, width: HW.door_width, height: HW.door_height };
+    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: S_(b, 'r_hall99_walls') }, hcx, hcy, hsx, hsy, HW.thickness, fl, fl + ord.height + HW.roof, [hdoor]).map(w => ({ ...w, solid: true })));
+    parts.push(box(b, 'roof', 'timber', 'C', S_(b, 'r_hall99_walls'), [hcx, hcy], [hsx + 2 * HW.thickness, hsy + 2 * HW.thickness], fl + ord.height, fl + ord.height + HW.roof, { note: 'timber roof of the Hall of 99 Columns (C)' }));
+    const benches: number[][] = []; // [cx, cy, sx, sy, top]
+    const addBench = (c: Pt, size: [number, number]) => { parts.push(box(b, 'bench', 'mudbrick', 'C', S_(b, 'r_benches'), c, size, fl, fl + BN.height, { solid: true })); benches.push([c[0], c[1], size[0], size[1], fl + BN.height]); };
+    const runX = hsx - 2 * BN.gap - 2 * BN.depth, runY = hsy - 2 * BN.gap;
+    addBench([hcx, hcy - hsy / 2 + BN.depth / 2], [runX, BN.depth]); // S wall
+    for (const s of [-1, 1]) addBench([hcx + s * (hsx / 2 - BN.depth / 2), hcy], [BN.depth, runY]); // W and E walls
+    for (const s of [-1, 1]) addBench([hcx + s * (HW.door_width / 2 + BN.gap + (hsx / 2 - BN.gap - BN.depth - HW.door_width / 2 - BN.gap) / 2), hcy + hsy / 2 - BN.depth / 2], [hsx / 2 - BN.gap - BN.depth - HW.door_width / 2 - BN.gap, BN.depth]); // N wall, either side of the door
+    manifest.treasury = { room: [hcx, hcy, hsx, hsy, fl, ord.height], hall99Columns: pts.length, columnHeight: ord.height, northWallY: Math.max(...poly.map(q => q[1])), doors: DR.length, benches: benches as any };
   }
   if (present('harem')) {
     const b = 'harem', fl = v(b, 'floor'), W = v<any>(b, 'r_wall');

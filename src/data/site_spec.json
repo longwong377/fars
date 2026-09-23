@@ -2626,6 +2626,62 @@
    "src": "REF-PLAN;RECON",
    "tier": "C",
    "note": "only 2 m gaps in REF-PLAN's buttressed outer wall (x 205.8..207.5 in the N wall; y -133.8..-135.2 in the E wall); REF-SCHMIDT shows no gaps at its scale. Replaces the r_doors NE point [201.8,-66.3] which lies on the OSM edge, i.e. in the street"
+  },
+  "r_hall99_walls": {
+   "v": {
+    "thickness": 2.0,
+    "door_width": 3.0,
+    "door_height": 4.5,
+    "roof": 0.6
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "walls, N doorway and timber roof of the Hall of 99 Columns (a roofed hall: hall99, ISAC-PA B; wall line one bay outside the column grid, door on the axis facing the N entrance, sizes C)"
+  },
+  "r_benches": {
+   "v": {
+    "height": 0.5,
+    "depth": 0.8,
+    "gap": 1.0
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "mud-brick benches along the inner walls of the hall carrying stored goods (arrangement C); gap = free wall length left at each corner and beside the door"
+  },
+  "stored_goods": {
+   "v": [
+    {
+     "item": "alabaster_vessel",
+     "share": 0.4,
+     "note": "Egyptian calcite (alabaster) bowls and bottles, some inscribed (ISAC-FINDS, B)"
+    },
+    {
+     "item": "blue_vessel",
+     "share": 0.1,
+     "note": "vessels of Egyptian-blue compound (ISAC-FINDS, B)"
+    },
+    {
+     "item": "chert_set",
+     "share": 0.2,
+     "note": "green-chert mortars, pestles and plates with Aramaic ink texts (ISAC-FINDS, B)"
+    },
+    {
+     "item": "arrow_bundle",
+     "share": 0.2,
+     "note": "bundles of bronze-tipped arrows; arrowheads and scabbard tips by the hundred among the finds (ISAC-FINDS, B; bundling C)"
+    },
+    {
+     "item": "sealed_jar",
+     "share": 0.1,
+     "note": "jars sealed with clay labels (sealed labels on stored goods: C, verify in Schmidt Persepolis II)"
+    }
+   ],
+   "u": "",
+   "src": "ISAC-FINDS",
+   "tier": "B",
+   "note": "what the Treasury held (types B, search extracts of ISAC Contents of the Treasury); quantities and placement C"
   }
  },
  "harem": {
