@@ -92,9 +92,23 @@
   - Placeholders (flagged in F3): the Naqsh-e Rustam and Neo-Elamite relief figures are schematic silhouettes. DNa and DNb now carry their Old Persian text from the CC0 edition (D-061; not yet seen in a render); their Elamite and Babylonian versions are not carved.
   - Every placement is C (Q-076 to Q-080); the rivers follow their modern courses. Qadamgah and the 18 "possible" sites are not built.
   - The out-of-world map now has town and plain scales (Z), drawn from what the world builds (not yet seen in a render).
+- **Visitor mode (D-063; the e2e passes in the browser):**
+  - Tested:
+    - the Gate guard stops the visitor and asks for the halmi (Elamite *halmi*);
+    - E shows it and he is admitted;
+    - the courts beyond need an escort, who comes after a 4-min wait;
+    - the palaces stay closed;
+    - the sealed-letter errand is answered the next morning;
+    - guards recognise him on a later day.
+  - All rules are C: no text describes anyone being stopped at Persepolis.
+  - The guard does not step into the path: the stop is a boundary at the post. Errand steps 0 and 6 are implicit, and the town part has not been walked in the browser.
 - **King absent by default (D-003):** no evidence places Xerxes at Persepolis in 467. The court appears only in the C-tier "seasonal pattern" setting.
 - **No primary sources reachable (B6):** SITE_SPEC is tier B/C, nothing is A, and the plan overlay compares against OSM, not Schmidt.
-- **Sky calibration (D-060, not yet seen in a render):** the sky dome is scaled to the skylight's irradiance, and the fog, far cloud haze and rain shafts converge to the calibrated horizon. This changes the look of every distant view and every daytime sky. The twilight and overcast values rest on the C hemisphere light.
+- **Sky, clouds and rain (D-060, D-064; rendered and measured in session 3):**
+  - Sky: the dome is scaled to the skylight's irradiance, and the fog, far cloud haze, smoke and rain shafts converge to the calibrated horizon. The daytime sky is a deeper blue, and distant terrain now sits between the plain and the horizon sky in brightness.
+  - Clouds: the cover was measured to be a cliff (a weather cover of 0.76 drew a solid deck; 0.3 or less drew nothing). It is now calibrated by inverting the measured curve, and distant cloud fades through the scene's own fog.
+  - Rain: the curtain toward the cell measures 17 % darker than the sky beside it at 24 km. It is subtle, and the moment was moved closer (15 km).
+  - The twilight and overcast values rest on the C hemisphere light.
 - **Sky and bench:**
   - The Milky Way and airglow are implemented (D-047: position A, structure C) but not yet seen in a render.
   - The volumetric clouds are now seen: drawn behind all geometry (D-046). They read as soft, blurry stratocumulus smears, not crisp cumulus. A texture-based rework was in progress (not yet verified).
