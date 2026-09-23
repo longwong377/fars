@@ -22,7 +22,8 @@
 - [x] Test harness: vitest + Playwright (SwiftShader), camera rig, benchmark mode
 ## Phase 2 — [x] Terrace greybox from SITE_SPEC via parametric generators; plan overlay + dimension tests (passed with logged exceptions)
 ## Phase 3 — Vertical slice (plain → Grand Stairway → Gate of All Nations → Apadana), calibration scene, NPCs 50–100
-- [~] Materials (procedural TSL, wetness/snow), post (SSGI/TRAA/bloom), CSM, eye adaptation — C values, uncalibrated
+- [~] Materials (procedural TSL, wetness/snow, relief normals), post (SSGI fixed D-012, TRAA/bloom), CSM, eye adaptation — C values, uncalibrated
+- [~] Sculpted columns/colossi, carved reliefs, MakeHuman CC0 humans (background agents, session 2)
 - [ ] Calibration scene — BLOCKED: no dated photograph reachable (NEEDS #13, B6/B7)
 - [x] Reliefs (placeholder silhouettes on the reference layout), inscriptions carved from published texts
 - [x] Fire and smoke, weather VFX, lightning; spatial audio + soundscape
@@ -31,6 +32,11 @@
 - [x] Walkthrough bot over the whole slice (28 legs, pop-in probe, falls, stuck)
 - [~] §1.1 moments on the route in the camera rig; rubric review; independent review; performance proxy
 ## Phase 4 — Rest of Terrace at slice fidelity
+- [x] Apply the access patch; stairs, doors, frames, corrected outlines (D-013, D-015); overlay + dimension tests
+- [x] Nav grid over the whole Terrace; walkthrough routes validated offline
+- [ ] Walkthrough e2e over all six areas; camera-rig views of the new areas at high quality
+- [ ] Reliefs on the Tachara/Hadish/Tripylon stairs and door jambs (after the relief agent); windows, niches, furnishings
+- [ ] Phase 4 independent review
 ## Phase 5 — Population + economy sim in workers, events, memory, persistence, soak test
 ## Phase 6 — Settlement
 ## Phase 7 — Plain and horizon

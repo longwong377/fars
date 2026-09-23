@@ -1,4 +1,6 @@
 import { test } from '@playwright/test';
+import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
+import { lumStats } from './lib/lum';
 // Camera-rig prototypes for §1.1 moments (fixed views; world state frozen via ?test&day&hour&weather).
 const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, number, number, number, number]; frames?: number }[] = [
   { n: 'dawn-stair-top', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -2] },
@@ -9,9 +11,15 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'rain-columns', day: 2, hour: 14, w: 'rain', v: [-20, 70, 1.6, 161, 4] },
   { n: 'apadana-enter', day: 25, hour: 11, w: 'clear', v: [1.9, 36, 1.6, 161, 2] },
   { n: 'reliefs-raking', day: 60, hour: 18.3, w: 'clear', v: [-20, 72, 1.6, 161, 2] },
-  { n: 'scribe-at-work', day: 25, hour: 10, w: 'clear', v: [196, -80.5, 1.7, 206, -14] },
+  { n: 'scribe-at-work', day: 25, hour: 10, w: 'clear', v: [196, -81.8, 1.7, 206, -14] },
   { n: 'stair-climb', day: 25, hour: 8.5, w: 'clear', v: [-43.9, 128, 1.6, 341, 12] },
   { n: 'snow-terrace', day: 280, hour: 10, w: 'snow', v: [-20, 70, 1.6, 161, 4] },
+  // Phase 4: the rest of the Terrace
+  { n: 'tachara-s-stair', day: 25, hour: 15.5, w: 'clear', v: [-21, -112, 1.6, 341, 6] },
+  { n: 'hadish-hall', day: 25, hour: 11, w: 'clear', v: [22, -150, 1.6, 161, 2] },
+  { n: 'hall100-site', day: 25, hour: 9.5, w: 'clear', v: [146, 45, 1.6, 161, 4] },
+  { n: 'tripylon-n-stair', day: 25, hour: 16, w: 'clear', v: [82, -38, 1.6, 161, 6] },
+  { n: 'harem-portico', day: 25, hour: 10, w: 'clear', v: [114, -114, 1.6, 161, 4] },
 ];
 test('moments', async ({ page }, info) => {
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
@@ -22,7 +30,12 @@ test('moments', async ({ page }, info) => {
     await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 600_000 });
     await page.evaluate(v => (window as any).__parsa.view(...v), s.v);
     for (let i = 0; i < (s.frames ?? 8); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
-    await page.screenshot({ path: `shots/moment-${s.n}-${info.project.name}.png` });
+    const png = await page.screenshot({ path: `shots/moment-${s.n}-${info.project.name}.png` });
+    // §8.3 luminance (display-referred sRGB luma): whole frame; appended to shots/moments-lum.json
+    const lum = await lumStats(page, png); const exp = await page.evaluate(() => (window as any).__parsa.exposureInfo());
+    mkdirSync('shots', { recursive: true }); const f = 'shots/moments-lum.json'; const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {};
+    all[`${s.n}|${process.env.Q ?? 'test'}|${info.project.name}`] = { lum, exposure: +exp.exposure.toFixed(3), sunAlt: +exp.sunAlt.toFixed(1) }; writeFileSync(f, JSON.stringify(all, null, 1));
+    console.log(s.n, JSON.stringify(lum));
   }
   console.log(errs.slice(0, 5).join('\n'));
 });

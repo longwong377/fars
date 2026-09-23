@@ -11,7 +11,13 @@
 - **Speech (D-011) is a PLACEHOLDER formant synthesiser** (robotic; not yet rated for intelligibility). The lexicons are thin: Old Persian has no greeting, so Persians greet in Aramaic or by gesture. The murmur is built from lexicon sound patterns, and languages with no lexicon (Greek, Egyptian, Lydian, Babylonian) fall back to C-tier profiles.
 - **Calibration scene (§8.1) not done:** no dated photo of the ruin is reachable (NEEDS #13). Stone and light values remain C estimates, and the Phase 3 gate can pass only with this logged exception.
 
-- **High-quality renders are washed out** (the SSGI composite lifts everything; diagnosis in HANDOFF.md). The Phase 3 moments are not yet judged at high quality.
+- **High quality (session 2):** the washout is fixed (D-012: r186 SSGI outputs AO and GI separately; the old composite added albedo-red × AO everywhere). A boot hang on the new composite is fixed too (D-012 addendum). The moments are **not yet re-judged at high quality**, and the GI scale (π/2) is a derivation, not a calibration.
+- **Phase 4 (session 2, in progress):**
+  - Stairs, doors, corrected outlines and frames are built for the Tachara, Hadish, Tripylon, Hall of 100 Columns, Treasury and Harem (D-013, D-015).
+  - Every stair geometry is C inside B plan zones, and every court level is C.
+  - **Not built:** the Hadish balcony stairs to the Harem, the Harem portico step, the Tachara's third small stair, windows and niches, furnishings (thrones, hangings, stored goods), and reliefs on the new stairs and door jambs (the relief agent's figures come first).
+  - The Phase 4 walkthrough routes validate offline; the **e2e run is pending**.
+- **Surfaces (D-014):** walls are clay-painted mud plaster (B/C); floors are red plaster (B Tachara/Treasury, C elsewhere); the open courts are compacted fill (C, Q-027); the plain has a seasonal herb layer (C). All procedural, no photo calibration.
 
 ## Phase status
 | Phase | Status | Gate |
@@ -24,5 +30,5 @@
 - Only the Grand Stair (0.962) is partly independent, because its flights come from spec rows.
 - The overlay's real value is verifying the grid→world→render transform on both backends (10 structures rendered, 11 checked geometrically). |
 | 3 | Vertical slice: materials, reliefs, fire, weather VFX, audio, 65 people, speech/murmur, walkthrough bot (28 legs pass). Open: SSGI washout, rubric + independent review, bench, calibration (blocked) | **not passed** |
-| 4 | research ready (research/PHASE4_ACCESS.md, patch not applied) | — |
+| 4 | Rest of the Terrace (session 2): Phase 4 patch applied; stairs, doorways with stone frames, corrected Treasury/Harem outlines, floors, fires, acoustic rooms, guard posts; overlay + dimension tests pass (overlay vs trace + documented corrections); nav grid reaches every palace floor | **in progress**: walkthrough e2e, reliefs on the new stairs/jambs, windows/niches, furnishings, people beyond guards |
 | 5–9 | not started | — |
