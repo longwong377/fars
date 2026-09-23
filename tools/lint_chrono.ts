@@ -49,6 +49,44 @@ for (const [file, zone] of [['src/data/settlement.json', 'settlement'], ['src/da
       for (const t of terms) if (t.re.test(text) && !f.blocklist_ok?.[t.id]) errors.push(`${zone} feature ${f.id}: present in 467 but matches blocklist '${t.id}' (exempt only with a blocklist_ok reason)`); }
   }
 }
+// Phase 6 build: the reconstruction rows of settlement.json (town_elements) and everything the town generator places.
+// Fail-closed: every generated plot, fitting, prop, tree, water piece, road and midden names a row (a town_elements row
+// or a settlement feature) and a PRESENT settlement feature; rows carry valid tiers and source keys; no row's id, name or
+// kind matches the blocklist; nothing is generated on the site of an ABSENT feature (the Frataraka complex).
+{
+  const S = J('src/data/settlement.json');
+  const feats = new Map<string, any>((S.features as any[]).map(f => [f.id, f]));
+  const rows = new Map<string, any>();
+  for (const r of (S.town_elements ?? []) as any[]) {
+    if (rows.has(r.id)) errors.push(`town row ${r.id}: duplicate id`); rows.set(r.id, r);
+    if (!['A', 'B', 'C'].includes(r.tier)) errors.push(`town row ${r.id}: bad tier ${r.tier}`);
+    for (const k of String(r.src ?? '').split(';')) if (!k || !sources[k]) errors.push(`town row ${r.id}: unknown source key '${k}'`);
+    for (const f of r.in_feature ?? []) { const F = feats.get(f); if (!F) errors.push(`town row ${r.id}: in_feature ${f} is not a settlement feature`); else if (!F.present_467) errors.push(`town row ${r.id}: in_feature ${f} is ABSENT in 467`); }
+    if (!(r.in_feature ?? []).length) errors.push(`town row ${r.id}: no in_feature (fail-closed)`);
+    const text = [r.id.replace(/_/g, ' '), r.name, r.kind].join(' ');
+    for (const t of terms) if (t.re.test(text) && !r.blocklist_ok?.[t.id]) errors.push(`town row ${r.id}: matches blocklist '${t.id}'`);
+  }
+  const { buildTownPlan } = await import('../src/world/settlement/plan');
+  const plan = buildTownPlan();
+  const okRow = (row: string, where: string) => { if (!rows.has(row) && !(feats.get(row)?.present_467)) errors.push(`${where}: row '${row}' is neither a town_elements row nor a present settlement feature (fail-closed)`); };
+  const okFeat = (f: string, where: string) => { const F = feats.get(f); if (!F) errors.push(`${where}: feature '${f}' not in settlement.json (fail-closed)`); else if (!F.present_467) errors.push(`${where}: feature '${f}' is ABSENT in 467`); };
+  let n = 0;
+  for (const s of plan.sites) { okFeat(s.meta.feature, `site ${s.id}`);
+    for (const p of s.plots) { okRow(p.row, `plot ${p.id}`); okFeat(p.feature, `plot ${p.id}`); n++;
+      const rf = rows.get(p.row); if (rf && !(rf.in_feature ?? []).includes(p.feature)) errors.push(`plot ${p.id}: row ${p.row} does not cover feature ${p.feature}`);
+      for (const t of terms) if (t.re.test(`${p.kind} ${p.craft ?? ''}`)) errors.push(`plot ${p.id}: kind/craft matches blocklist '${t.id}'`); } }
+  for (const p of plan.props) { okRow(p.row, `prop ${p.note.slice(0, 30)}`); okFeat(p.feature, 'prop'); n++; }
+  for (const t of plan.trees) { okRow(t.row, 'tree'); okFeat(t.feature, 'tree'); n++; }
+  for (const w of plan.water) { okRow(w.row, `water ${w.kind}`); okFeat(w.feature, `water ${w.kind}`); n++; }
+  for (const r of plan.roads) { okRow(r.row, `road ${r.id}`); okFeat(r.feature, `road ${r.id}`); n++; }
+  for (const m of plan.middens) { okRow(m.row, 'midden'); okFeat(m.feature, 'midden'); n++; }
+  // absent features keep their ground empty
+  for (const f of (S.features as any[]).filter(f => f.present_467 === false && f.xy)) {
+    for (const s of plan.sites) for (const p of s.plots) { const [i0, j0, i1, j1] = p.rect; const c = s.grid((s.cu(i0) + s.cu(i1 - 1)) / 2, (s.cv(j0) + s.cv(j1 - 1)) / 2);
+      if (Math.hypot(c[0] - f.xy[0], c[1] - f.xy[1]) < 80) errors.push(`plot ${p.id} stands on the site of ${f.id}, ABSENT in 467`); }
+  }
+  console.log(`lint:chrono settlement build: ${rows.size} town rows, ${n} generated items checked`);
+}
 // generated architecture: every part's building must be a PRESENT chronology structure (fail-closed)
 const { buildTerrace } = await import('../src/arch/terrace');
 const { parts } = buildTerrace();

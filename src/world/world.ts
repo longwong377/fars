@@ -19,6 +19,8 @@ export interface WorldBuild {
   lastSubtitle?: Subtitle | null;
   /** wait until streamed detail (carved-relief LODs) for this camera is generated (tests, screenshots) */
   settle?(camera: THREE.Camera): Promise<void>;
+  /** Phase 6: the lower town, gardens, Tol-e Ajori, roads (null with ?notown) */
+  settlement?: Settlement | null;
 }
 import { buildTerrace } from '../arch/terrace';
 import { buildMeshes } from '../arch/meshes';
@@ -31,6 +33,7 @@ import { WeatherVfx } from './weatherVfx';
 import { RainShafts } from './rainShafts';
 import { Birds, Jackals } from './wildlife';
 import { azAltToWorld } from '../sky/ephemeris';
+import { Settlement } from './settlement/build';
 import { AudioEngine } from '../audio/engine';
 import { Soundscape, registerRoom } from '../audio/soundscape';
 import { babylonianDate } from '../core/calendar';
@@ -85,7 +88,6 @@ function placeFires(fire: FireSystem, m: any, parts: any[]) {
 }
 export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Terrain, settings?: Settings, weather?: WeatherSystem, seed = 1): Promise<WorldBuild> {
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
-  void terrain;
   const t0 = performance.now();
   const { parts, manifest } = buildTerrace();
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
@@ -96,7 +98,11 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const insc = buildInscriptions(manifest, parts); root.add(insc);
   if ((manifest.treasury as any)?.benches) root.add(buildTreasuryGoods((manifest.treasury as any).benches, seed)); // stored goods (types B, placement C)
   const q = settings?.quality ?? 'high';
-  const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q]); placeFires(fire, manifest, parts); fire.build(); root.add(fire.group);
+  const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q]); placeFires(fire, manifest, parts);
+  // Phase 6 settlement: its hearths, ovens and kilns join the fire system before it builds (?notown leaves it out, for A/B budgets)
+  const noTown = typeof location !== 'undefined' && new URLSearchParams(location.search).has('notown');
+  const settlement = noTown ? null : new Settlement(phys, terrain, fire, q); if (settlement) root.add(settlement.group);
+  fire.build(); root.add(fire.group);
   const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group);
   const shafts = new RainShafts(terrain); root.add(shafts.group); // distant rain cells approaching on the wind
   void QUALITY;
@@ -164,7 +170,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     { const vo = voiceFor({ seed: best.seed, sex: best.sex, role: best.role }); speech.say(pick.line, vo, { x: best.pos[0], y: best.y + 1.55, z: -best.pos[1] }, { speakerId: best.id, voiceKey: voiceKeyFor(vo) }); }
     return { lineId: pick.line.id, lang: pick.line.lang, translit: pick.line.translit, gloss: pick.line.gloss, tier: pick.line.tier, speakerId: best.id, backend: 'formant' } as Subtitle;
   };
-  return { root, fire, wvfx, simulate, people: { sim, crowd, nav }, address, get lastSubtitle() { return lastSubtitle; },
+  return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav }, address, get lastSubtitle() { return lastSubtitle; },
     saveState: () => ({ people: sim.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } },
     /** persistence (brief §9.5): simulate the time the world ran while the visitor was away, everyone in the abstract LOD
      *  (same decisions, timed travel), capped at CATCHUP_MAX_DAYS (older time is placed by schedule); returns the
@@ -185,7 +191,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       updateReliefs(ctx.camera.position, dt === 0 ? 50 : 4); // carved-relief LOD (D-019); dt 0 = a test render
       { const pp = ctx.player.position; playerAt = new THREE.Vector3(pp.x, pp.y, pp.z); }
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
-      fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time);
+      settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, cond: ctx.cond, player: ctx.player });
+      fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time, ctx.clock.localHour);
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
       { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
@@ -207,5 +214,5 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       }
     },
     flash: () => lastFlash,
-    summary: () => `people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}` } as WorldBuild;
+    summary: () => `people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''}` } as WorldBuild;
 }
