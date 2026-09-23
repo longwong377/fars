@@ -1,0 +1,1270 @@
+{
+ "_meta": {
+  "status": "PROPOSAL ONLY - not applied to src/data/site_spec.json. Written by the Phase 4 access research pass (research/PHASE4_ACCESS.md).",
+  "frame": "Persepolis grid (x grid east, y grid north, m; origin Apadana OSM centroid; grid north 341 deg true). Heights: m above the Apadana court datum (0).",
+  "measurement": "Plan positions read from references/Persepolis Plan.webp through the tools/plan_check.py similarity (s=0.47284 m/px, rot -18.51 deg, t=(-37.664,300.563); grid = s*R*[px,-py]+t). Readout +/-0.5-1 m (1 px = 0.47 m); registration +/-1-2 m near Tachara/Hadish/Tripylon/Hall100 (outline checks vs OSM), +/-3-4 m for Harem/Treasury. Cross-check: references/palace-of-darius-i-and-xerxes.webp, 2-anchor affine x=0.5348*py-66.2, y=0.5569*px-262.6 (Schmidt scale bar 185 px/100 m; anisotropy 4%; Tachara check off 6 m in x) - topology and building-relative offsets only.",
+  "tier_rule": "A attested / B inferred (search-extract-only facts and plan-derived layout capped at B) / C reconstructed; model recollection without a source is C and says NOT SEEN, verify",
+  "flight_convention": "each flight: foot [x,y] at level z0, head [x,y] at level z1; width = clear width; steps = number of risers; riser = (z1-z0)/steps; tread and flight width are C unless stated",
+  "row_convention": "one row per value so each carries its own tier; *_zone rows are plan-measured envelopes, *_flights rows are the proposed buildable geometry inside them"
+ },
+ "_sources_new": {
+  "REF-PLAN": {
+   "cite": "references/Persepolis Plan.webp (user-supplied colour plan, redrawn from Schmidt; provenance uncertain) registered to the grid by tools/plan_check.py",
+   "url": "references/Persepolis Plan.webp",
+   "access": "measured in this project (research/PHASE4_ACCESS.md); ~2.1 px/m; not redistributed"
+  },
+  "REF-SCHMIDT": {
+   "cite": "references/palace-of-darius-i-and-xerxes.webp (black-and-white Schmidt-style Terrace plan, legend A-P, 100 m bar)",
+   "url": "references/palace-of-darius-i-and-xerxes.webp",
+   "access": "measured in this project; ~1.85 px/m; cross-check only"
+  },
+  "SI-ARCH": {
+   "cite": "Smithsonian NMAA Archives: Ernst Herzfeld Papers (FSA.A.06) and Myron Bement Smith Collection (FSA.A.04), Persepolis photograph captions (excavation-era titles), incl. DPLA mirrors",
+   "url": "https://www.si.edu/object/archives/components/sova-fsa-a-06-ref27137",
+   "access": "search-extract only (titles); si.edu and dp.la blocked"
+  },
+  "FARROKH": {
+   "cite": "K. Farrokh, pages 'The Palace of Xerxes (the Hadis)' and 'The Tachara (Winter Palace) of Persepolis' (reproduce Encyclopaedia Iranica 'Persepolis' text)",
+   "url": "https://www.kavehfarrokh.com/ancient-prehistory-651-a-d/achaemenids/the-palace-of-xerxes-the-hadis/",
+   "access": "search-extract only; host blocked"
+  },
+  "COMMONS-TRIP": {
+   "cite": "Wikimedia Commons, Category 'Staircase - Persepolis - Tripylon - 5th century BC - National museum of Iran - Inventory number 2012' (description)",
+   "url": "https://commons.wikimedia.org/wiki/Category:Staircase_-_Persepolis_-_Tripylon_-_5th_century_BC_-_National_museum_of_Iran_-_Inventory_number_2012",
+   "access": "search-extract only (tertiary)"
+  },
+  "BRIT-H100": {
+   "cite": "Encyclopaedia Britannica, 'Hall of the Hundred Columns'",
+   "url": "https://www.britannica.com/place/Hall-of-the-Hundred-Columns",
+   "access": "search-extract only (tertiary)"
+  },
+  "SG-H100": {
+   "cite": "StudyGuides.com, 'Hall of One Hundred Columns' ('two meters below the Apadana platform')",
+   "url": "https://studyguides.com/",
+   "access": "search-extract only; weak tertiary - C at most"
+  },
+  "IRANTOUR-TREAS": {
+   "cite": "irantour.tours, 'Persepolis The Treasury' (paraphrase of Schmidt's Treasury phases)",
+   "url": "https://www.irantour.tours/iran-cities/shiraz/shiraz-historical-sites/persepolis-the-treasury.html/",
+   "access": "search-extract only; tertiary; verify against Schmidt 1939/1953"
+  }
+ },
+ "tachara": {
+  "floor": {
+   "v": 2.6,
+   "u": "m",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "unchanged: 2.20-3.00 above the Apadana court (search extract)"
+  },
+  "r_south_court_level": {
+   "v": 0.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "court S of the Tachara, reached by its S stair (FARROKH/WP-EXT: 'connected to the south court by a double reversed stairway'); its level is not known - datum assumed"
+  },
+  "stair_s_present_467": {
+   "v": true,
+   "u": "",
+   "src": "SI-ARCH;ISAC-PA",
+   "tier": "B",
+   "note": "S stairway carries Xerxes' XPc on its central facade (caption 'Central Facade of Southern Stairway: Persian Guards Flanking Xerxes Inscription, XPcb'), so it stands in 467"
+  },
+  "stair_w_present_467": {
+   "v": false,
+   "u": "",
+   "src": "WP-EXT;ISAC-PA",
+   "tier": "B",
+   "note": "W (NW) stairway + new W doorway added by Artaxerxes III (A3Pa 'This stone staircase was made by me'): ABSENT in 467. Plan shows it as a band at x -38.5..-37.5, y -68..-82 (REF-PLAN) - do not build"
+  },
+  "stair_s_zone": {
+   "v": {
+    "x": [
+     -36.5,
+     -5.5
+    ],
+    "y_facade": -101.0,
+    "y_building_front": -99.2
+   },
+   "u": "m",
+   "src": "REF-PLAN",
+   "tier": "B",
+   "note": "plan hatch band along the whole S front (x -36.5..-5.5 +/-1.5; band y -100.5..-101.5). The plan draws stairs schematically (~1 m bands), so the depth is not measured. OSM S edge -100.4..-100.9 = outer edge of the stair: the stair lies INSIDE the OSM tachara polygon"
+  },
+  "stair_s_layout": {
+   "v": "two flights parallel to the S facade, rising from the W and E ends toward a central landing at floor level that opens N onto the portico; projecting central facade panel",
+   "u": "",
+   "src": "ISAC-PA;SI-ARCH;FARROKH",
+   "tier": "C",
+   "note": "'Western flight of the Southern stairway' (ISAC caption) implies a W and an E flight (B); 'double reversed' (FARROKH/WP extract) would imply 4 flights - conflict logged (Q-P4-02). Direction of rise (toward the centre) by analogy with the Apadana central part (C)"
+  },
+  "stair_s_flights": {
+   "v": [
+    {
+     "id": "W",
+     "foot": [
+      -36.0,
+      -100.1
+     ],
+     "head": [
+      -28.2,
+      -100.1
+     ],
+     "z0": 0.0,
+     "z1": 2.6,
+     "width": 1.5,
+     "steps": 26,
+     "riser": 0.1,
+     "tread": 0.3
+    },
+    {
+     "id": "E",
+     "foot": [
+      -6.0,
+      -100.1
+     ],
+     "head": [
+      -13.8,
+      -100.1
+     ],
+     "z0": 0.0,
+     "z1": 2.6,
+     "width": 1.5,
+     "steps": 26,
+     "riser": 0.1,
+     "tread": 0.3
+    },
+    {
+     "id": "central_landing",
+     "x": [
+      -28.2,
+      -13.8
+     ],
+     "y": [
+      -101.5,
+      -99.2
+     ],
+     "z": 2.6
+    }
+   ],
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "geometry reconstructed inside the plan zone; flight clear width 1.5 m, 0.3 m outer parapet; riser/tread C (Grand Stair analogues are C too)"
+  },
+  "stair_s_reliefs": {
+   "v": {
+    "central_facade": "Persian guards flanking Xerxes inscription XPc (trilingual); lion-attacking-bull in the corner angles",
+    "flight_parapets": "files of servants climbing with animals (kids), wineskins, covered dishes/food; dress alternates Persian/Median",
+    "crenellation": "four-stepped (Persepolis stair convention)"
+   },
+   "u": "",
+   "src": "SI-ARCH;ISAC-PA;WP-EXT;FARROKH",
+   "tier": "B",
+   "note": "search extracts of captions and Iranica text; crenellation by analogy (C)"
+  },
+  "doors": {
+   "v": [
+    {
+     "id": "S_main",
+     "wall": "hall S wall (portico to hall)",
+     "at": [
+      -21.3,
+      -88.0
+     ],
+     "width": 2.4,
+     "height": 5.5
+    },
+    {
+     "id": "N_pair",
+     "wall": "hall N wall to the two 4-column N rooms",
+     "offsets_x": [
+      -6.0,
+      6.0
+     ],
+     "y": -72.0,
+     "width": 1.8,
+     "height": 4.5
+    }
+   ],
+   "u": "m",
+   "src": "RECON;WP-EXT",
+   "tier": "C",
+   "note": "existence B (main doorway with king relief, monolithic frames; rooms N/W/E, WP-EXT/ISAC-PA extracts); positions C on the building axis x=-21.3 (OSM centre); sizes = existing r_doors (C). Door jambs: king with attendants (main), lance-bearers with wicker shields (W rooms), attendants with towel and perfume flask (chambers), royal hero vs lion/monster (B, extracts; which jamb C)"
+  },
+  "r_three_small_stairways": {
+   "v": "ISAC says 'three small stairways descended' from the Tachara; only the S stair (and A3's later W stair) are identified - the third is unidentified",
+   "u": "",
+   "src": "ISAC-PA",
+   "tier": "C",
+   "note": "Q-P4-03"
+  }
+ },
+ "hadish": {
+  "floor": {
+   "v": 6.0,
+   "u": "m",
+   "src": "DERIVED",
+   "tier": "C",
+   "note": "unchanged: 18 m above the plain (IR-PERS/FARROKH, B) - 12 m. Stair zones measured below fit a 4-flight stair only for a total rise <= ~6 m with tread <= 0.26 m; a 4.5-5.5 m rise (DSM, Q-018) fits more comfortably (Q-P4-05)"
+  },
+  "r_courts_level": {
+   "v": {
+    "west_court": 0.0,
+    "east_court": 0.0,
+    "north_court_on_platform": 6.0
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "W and E courtyards (FARROKH: the stairs 'ascended the Hadis from the western and eastern courtyards') at datum; the N courtyard lies on the platform between the stairs and the portico (REF-PLAN/REF-SCHMIDT open area x -3..40, y -109..-134)"
+  },
+  "north_court": {
+   "v": {
+    "x": [
+     -3.0,
+     40.0
+    ],
+    "y": [
+     -134.0,
+     -109.0
+    ]
+   },
+   "u": "m",
+   "src": "REF-PLAN;REF-SCHMIDT",
+   "tier": "B",
+   "note": "open area N of the 12-column portico inside the platform outline in both plans (Schmidt ~23 x 30 m); the 'north courtyard of the Hadish' of the extracts"
+  },
+  "stair_w_zone": {
+   "v": {
+    "x": [
+     -5.8,
+     2.5
+    ],
+    "y": [
+     -131.0,
+     -115.0
+    ],
+    "centre_y": -123.0
+   },
+   "u": "m",
+   "src": "REF-PLAN",
+   "tier": "B",
+   "note": "strip along the W edge of the N courtyard bounded by walls at x~-3 and x~2.5 (REF-PLAN, +/-2); recessed inside the OSM W edge (-5.8), like the Grand Stair in the terrace"
+  },
+  "stair_e_zone": {
+   "v": {
+    "x": [
+     50.0,
+     59.5
+    ],
+    "y": [
+     -128.5,
+     -112.5
+    ],
+    "centre_y": -120.5
+   },
+   "u": "m",
+   "src": "REF-PLAN",
+   "tier": "B",
+   "note": "hatched projection E of the NE 4-column room (hatch x 55..59.5, wing walls y -112..-114 and -126..-128; +/-2); projects ~8 m beyond the OSM E edge (51.3)"
+  },
+  "stairs_layout": {
+   "v": "both W and E: double-reversed (Grand-Stair type, 4 flights): outer lane lower flights rise from the centre outward to end landings, reverse, inner-lane upper flights rise back to a central top landing that opens onto the N courtyard",
+   "u": "",
+   "src": "FARROKH;SI-ARCH",
+   "tier": "C",
+   "note": "'double reversed' and W/E courtyards: B (Iranica via extract). 'Central facade' of the W stair and N/S 'wings' of the E stair (SI-ARCH captions, B) fit this type. Lane split and flight geometry C"
+  },
+  "stair_w_flights": {
+   "v": [
+    {
+     "id": "W_lower_N",
+     "foot": [
+      -3.8,
+      -123.0
+     ],
+     "head": [
+      -3.8,
+      -116.5
+     ],
+     "z0": 0.0,
+     "z1": 3.0,
+     "width": 3.4,
+     "steps": 25,
+     "riser": 0.12,
+     "tread": 0.26
+    },
+    {
+     "id": "W_lower_S",
+     "foot": [
+      -3.8,
+      -123.0
+     ],
+     "head": [
+      -3.8,
+      -129.5
+     ],
+     "z0": 0.0,
+     "z1": 3.0,
+     "width": 3.4,
+     "steps": 25,
+     "riser": 0.12,
+     "tread": 0.26
+    },
+    {
+     "id": "W_landing_N",
+     "x": [
+      -5.8,
+      2.5
+     ],
+     "y": [
+      -116.5,
+      -115.0
+     ],
+     "z": 3.0
+    },
+    {
+     "id": "W_landing_S",
+     "x": [
+      -5.8,
+      2.5
+     ],
+     "y": [
+      -131.0,
+      -129.5
+     ],
+     "z": 3.0
+    },
+    {
+     "id": "W_upper_N",
+     "foot": [
+      0.35,
+      -116.5
+     ],
+     "head": [
+      0.35,
+      -123.0
+     ],
+     "z0": 3.0,
+     "z1": 6.0,
+     "width": 3.7,
+     "steps": 25,
+     "riser": 0.12,
+     "tread": 0.26
+    },
+    {
+     "id": "W_upper_S",
+     "foot": [
+      0.35,
+      -129.5
+     ],
+     "head": [
+      0.35,
+      -123.0
+     ],
+     "z0": 3.0,
+     "z1": 6.0,
+     "width": 3.7,
+     "steps": 25,
+     "riser": 0.12,
+     "tread": 0.26
+    },
+    {
+     "id": "W_top_exit",
+     "x": [
+      2.5,
+      4.5
+     ],
+     "y": [
+      -124.5,
+      -121.5
+     ],
+     "z": 6.0,
+     "note": "opening E onto the N courtyard"
+    }
+   ],
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "total rise 6.0 (floor C); 4 x 25 risers of 0.12, tread 0.26, lanes 4.0 / 4.3 m incl. 0.3 m parapets. Lower flights meet at the centre with no gap (zone too short for one) - if the true rise is ~5 m use 21 risers of 0.12 and tread 0.30"
+  },
+  "stair_e_flights": {
+   "v": [
+    {
+     "id": "E_lower_N",
+     "foot": [
+      57.5,
+      -120.5
+     ],
+     "head": [
+      57.5,
+      -114.0
+     ],
+     "z0": 0.0,
+     "z1": 3.0,
+     "width": 3.4,
+     "steps": 25,
+     "riser": 0.12,
+     "tread": 0.26
+    },
+    {
+     "id": "E_lower_S",
+     "foot": [
+      57.5,
+      -120.5
+     ],
+     "head": [
+      57.5,
+      -127.0
+     ],
+     "z0": 0.0,
+     "z1": 3.0,
+     "width": 3.4,
+     "steps": 25,
+     "riser": 0.12,
+     "tread": 0.26
+    },
+    {
+     "id": "E_landing_N",
+     "x": [
+      50.0,
+      59.5
+     ],
+     "y": [
+      -114.0,
+      -112.5
+     ],
+     "z": 3.0
+    },
+    {
+     "id": "E_landing_S",
+     "x": [
+      50.0,
+      59.5
+     ],
+     "y": [
+      -128.5,
+      -127.0
+     ],
+     "z": 3.0
+    },
+    {
+     "id": "E_upper_N",
+     "foot": [
+      52.75,
+      -114.0
+     ],
+     "head": [
+      52.75,
+      -120.5
+     ],
+     "z0": 3.0,
+     "z1": 6.0,
+     "width": 4.9,
+     "steps": 25,
+     "riser": 0.12,
+     "tread": 0.26
+    },
+    {
+     "id": "E_upper_S",
+     "foot": [
+      52.75,
+      -127.0
+     ],
+     "head": [
+      52.75,
+      -120.5
+     ],
+     "z0": 3.0,
+     "z1": 6.0,
+     "width": 4.9,
+     "steps": 25,
+     "riser": 0.12,
+     "tread": 0.26
+    },
+    {
+     "id": "E_top_exit",
+     "x": [
+      42.0,
+      50.0
+     ],
+     "y": [
+      -122.0,
+      -119.0
+     ],
+     "z": 6.0,
+     "note": "passage W past the NE 4-column room to the N courtyard (C)"
+    }
+   ],
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "mirror of the W stair shifted to the E zone (centre y -120.5); outer lane x 55.5..59.5 (hatch), inner lane 50.0..55.5"
+  },
+  "stair_w_reliefs": {
+   "v": {
+    "central_facade": "Persian guards flanking Xerxes inscription XPd (OP/El/Ak)",
+    "flights": "servants carrying animals (ibex/kids) and food containers, as on the Tachara",
+    "wings": "Persian guards"
+   },
+   "u": "",
+   "src": "SI-ARCH;FARROKH;ISAC-PA",
+   "tier": "B",
+   "note": "captions 'Central Facade of Western Stairway ... XPdb' and 'sculptures similar to that of the Tachara' (extracts)"
+  },
+  "stair_e_reliefs": {
+   "v": {
+    "wing_outer_faces": "Persian guards ('South Facade of South Wing')",
+    "flights": "servants with animals and vessels (C, by the Iranica 'similar to the Tachara')"
+   },
+   "u": "",
+   "src": "SI-ARCH;FARROKH",
+   "tier": "B",
+   "note": "flight reliefs C"
+  },
+  "stairs_balcony": {
+   "v": [
+    {
+     "id": "SW",
+     "near": [
+      -5.0,
+      -176.0
+     ]
+    },
+    {
+     "id": "SE",
+     "near": [
+      49.0,
+      -176.0
+     ]
+    }
+   ],
+   "u": "m",
+   "src": "FARROKH;RECON",
+   "tier": "C",
+   "note": "existence B: 'two unadorned staircases on either side of the balcony (the eastern one restored in 1978) led down to the Harem'. Positions only (ends of the S balcony band y -174.5..-177, REF-PLAN); direction S/down to the Harem W wing; geometry and lower level NOT SEEN, verify"
+  },
+  "hall": {
+   "v": {
+    "interior_x": [
+     8.5,
+     35.5
+    ],
+    "interior_y": [
+     -173.0,
+     -146.0
+    ],
+    "centre": [
+     22.0,
+     -159.5
+    ],
+    "interaxial": 3.9
+   },
+   "u": "m",
+   "src": "REF-PLAN;REF-SCHMIDT",
+   "tier": "B",
+   "note": "6x6 hall measured ~27 m square (REF-PLAN) / ~25 m (REF-SCHMIDT); column pitch 3.8-4.0 m in both. CONFLICTS with r_interaxial 5.4 (C) => 38 m hall. Q-P4-06"
+  },
+  "portico": {
+   "v": {
+    "rows_y": [
+     -136.5,
+     -140.5
+    ],
+    "x": [
+     12.0,
+     32.0
+    ]
+   },
+   "u": "m",
+   "src": "REF-PLAN;REF-SCHMIDT",
+   "tier": "B",
+   "note": "12 columns (2x6) between the hall and the N courtyard (both plans; Schmidt y ~ -137)"
+  },
+  "doors": {
+   "v": [
+    {
+     "id": "N_pair",
+     "wall": "hall N wall (portico to hall)",
+     "offsets_x_from_22": [
+      -6.0,
+      6.0
+     ],
+     "y": -146.0,
+     "width": 2.6,
+     "height": 6.0
+    },
+    {
+     "id": "S",
+     "wall": "hall S wall to the balcony",
+     "at": [
+      22.0,
+      -173.0
+     ],
+     "width": 2.6,
+     "height": 6.0
+    },
+    {
+     "id": "E",
+     "wall": "hall E wall to the E apartment",
+     "at": [
+      35.5,
+      -159.5
+     ],
+     "width": 2.6,
+     "height": 6.0
+    },
+    {
+     "id": "W",
+     "wall": "hall W wall to the W apartment",
+     "at": [
+      8.5,
+      -159.5
+     ],
+     "width": 2.6,
+     "height": 6.0
+    }
+   ],
+   "u": "m",
+   "src": "FARROKH;SI-ARCH;RECON",
+   "tier": "C",
+   "note": "count and walls B (Iranica via FARROKH: 'a doorway to a long balcony on the south ... another pair to a twelve-columned portico on the north, and two more to flanking apartments'). Positions C: on hall axes, N pair on bay axes; sizes = existing r_doors (C). Jambs: king with parasol- and towel-bearers (NW doorway labelled 'Darius the king', B); XPe above king and attendants on the E doorway (B, SI-ARCH); W doorway XPe (B, 'two large Xerxes inscriptions on the eastern and western doorways')"
+  }
+ },
+ "tripylon": {
+  "floor": {
+   "v": 2.6,
+   "u": "m",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "unchanged"
+  },
+  "hall": {
+   "v": {
+    "interior_x": [
+     74.2,
+     89.5
+    ],
+    "interior_y": [
+     -80.8,
+     -64.5
+    ],
+    "side": 15.46,
+    "centre": [
+     81.9,
+     -72.7
+    ]
+   },
+   "u": "m",
+   "src": "REF-PLAN;IR-PERS",
+   "tier": "B",
+   "note": "hall 15.46 m square (Iranica extract, B) = plan interior 15.3 x 16.3 m (REF-PLAN). Replaces r_hall 12.0 (C). 4 columns at ~5 m pitch (plan) = r_interaxial 5.0"
+  },
+  "stair_n_zone": {
+   "v": {
+    "x": [
+     67.0,
+     97.0
+    ],
+    "y": [
+     -55.0,
+     -47.0
+    ]
+   },
+   "u": "m",
+   "src": "REF-PLAN;OSM",
+   "tier": "B",
+   "note": "light-green band N of the N portico (portico columns at y -56.5, x 79/84); OSM modern shelter a1bf0b covers x 65..103, y -61..-43 (the stair is under the shelter today). +/-1.5"
+  },
+  "stair_n_layout": {
+   "v": "two corresponding flights parallel to the N facade rising from the W and E ends to a projecting central landing, then a terrace in front of the 2-column N portico",
+   "u": "",
+   "src": "IR-PERS",
+   "tier": "B",
+   "note": "'ascended from the court by a sculptured stairway with two corresponding flights, which gives access to a portico'; 'front wall of the projecting central landing of the north stairway' (extracts). Flight direction C"
+  },
+  "stair_n_flights": {
+   "v": [
+    {
+     "id": "W",
+     "foot": [
+      67.5,
+      -49.5
+     ],
+     "head": [
+      75.3,
+      -49.5
+     ],
+     "z0": 0.0,
+     "z1": 2.6,
+     "width": 2.4,
+     "steps": 26,
+     "riser": 0.1,
+     "tread": 0.3
+    },
+    {
+     "id": "E",
+     "foot": [
+      96.5,
+      -49.5
+     ],
+     "head": [
+      88.7,
+      -49.5
+     ],
+     "z0": 0.0,
+     "z1": 2.6,
+     "width": 2.4,
+     "steps": 26,
+     "riser": 0.1,
+     "tread": 0.3
+    },
+    {
+     "id": "central_landing",
+     "x": [
+      75.3,
+      88.7
+     ],
+     "y": [
+      -51.0,
+      -47.0
+     ],
+     "z": 2.6
+    },
+    {
+     "id": "upper_terrace",
+     "x": [
+      67.0,
+      97.0
+     ],
+     "y": [
+      -55.0,
+      -51.0
+     ],
+     "z": 2.6
+    }
+   ],
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "flights in the strip y -48..-51 (plan lines at -48 and -51); central landing projects ~1 m (C)"
+  },
+  "stair_n_reliefs": {
+   "v": {
+    "central_panel": "winged disc flanked by two seated sphinxes (with palm trees); below, two antithetic groups of Persian/Median guards flanking a blank field (4 per group per one extract; 9 'Persian' soldiers flanking an OP inscription of Xerxes per another - Q-P4-08)",
+    "flight_facades": "Persian and Median nobles ascending",
+    "inner_faces": "servants/'clergy' bringing animals and food (per the Tehran stair description - which stair is uncertain)",
+    "corners": "lion attacking bull - NOT SEEN, verify"
+   },
+   "u": "",
+   "src": "IR-PERS;SI-ARCH;COMMONS-TRIP",
+   "tier": "B",
+   "note": "extracts; corner lion-bull C"
+  },
+  "stair_s": {
+   "v": {
+    "near": [
+     82.0,
+     -102.5
+    ],
+    "direction": "descending S from the Tripylon S courtyard toward the area E of the Hadish"
+   },
+   "u": "m",
+   "src": "IR-PERS;COMMONS-TRIP;RECON",
+   "tier": "C",
+   "note": "existence B: 'a small courtyard of the Tripylon was connected by a small stairway to the area east of the Hadish'; COMMONS-TRIP calls the Tehran stair 'the main staircase from the southern side' (conflict Q-P4-07). Position C (on axis at the S end of the courtyard); geometry NOT SEEN, verify"
+  },
+  "stair_e_narrow": {
+   "v": {
+    "x": [
+     99.5,
+     102.5
+    ],
+    "foot": [
+     101.0,
+     -58.0
+    ],
+    "head": [
+     101.0,
+     -71.0
+    ],
+    "z0": 0.5,
+    "z1": 2.6,
+    "steps": 20,
+    "riser": 0.105,
+    "tread": 0.35
+   },
+   "u": "m",
+   "src": "REF-PLAN;IR-PERS;RECON",
+   "tier": "C",
+   "note": "existence B ('eastern entrance through a corridor ... linked by a narrow staircase to the Harem and to the Hundred Column Hall', extract). Zone B: grey hatch in the 5 m passage between the Tripylon E wall (x 98.5) and Hall100 W wall (x 103), y -58..-71 (REF-PLAN +/-1.5). Direction and levels C"
+  },
+  "doors": {
+   "v": [
+    {
+     "id": "N",
+     "wall": "hall N wall (portico to hall)",
+     "at": [
+      82.0,
+      -63.3
+     ],
+     "width": 2.8
+    },
+    {
+     "id": "E",
+     "wall": "hall E wall to the E corridor",
+     "at": [
+      89.5,
+      -72.2
+     ],
+     "width": 2.7
+    },
+    {
+     "id": "S",
+     "wall": "hall S wall to the S portico",
+     "at": [
+      82.0,
+      -81.8
+     ],
+     "width": 2.8
+    }
+   ],
+   "u": "m",
+   "src": "REF-PLAN;SI-ARCH",
+   "tier": "B",
+   "note": "three doorways N/E/S, no W door (name 'Tripylon'; plan gaps in the hall walls, +/-1.5 m, width +/-0.7). Heights not found (C, use ~2.2 x width). Jambs: E - king (Darius I) with crown prince (Xerxes) on a throne carried by representatives of the nations (SI-ARCH, B); S - king and attendants (SI-ARCH, B); N - king with attendants (generic extract, which jamb C)"
+  },
+  "s_portico_court": {
+   "v": {
+    "portico_columns_y": -89.5,
+    "court": {
+     "x": [
+      70.0,
+      95.0
+     ],
+     "y": [
+      -102.0,
+      -90.0
+     ]
+    }
+   },
+   "u": "m",
+   "src": "REF-PLAN;IR-PERS",
+   "tier": "B",
+   "note": "'the southern doorway opens into another portico and through this into a small courtyard' (extract); plan +/-2"
+  }
+ },
+ "hall100": {
+  "floor_alt": {
+   "v": 1.0,
+   "u": "m",
+   "src": "SG-H100;IR-APAD",
+   "tier": "C",
+   "note": "weak alternative to the current 0.5 (C): 'two meters below the Apadana platform' (SG-H100, tertiary) with podium 3.0 (IR-APAD). Q-P4-09"
+  },
+  "stairs": {
+   "v": "none attested: the N portico opens on the forecourt; no stair found in either plan",
+   "u": "",
+   "src": "REF-PLAN;REF-SCHMIDT;BRIT-H100",
+   "tier": "B",
+   "note": "plans show no hatch around the hall"
+  },
+  "r_portico_step": {
+   "v": {
+    "x": [
+     117.0,
+     176.0
+    ],
+    "y_edge": 27.0,
+    "steps": 3,
+    "riser": "floor/3"
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "low step band along the portico front so the raised floor is walkable (NOT SEEN, verify); portico N edge ~y 27 (REF-PLAN, towers at x 105..115 and 175..185)"
+  },
+  "doors": {
+   "v": [
+    {
+     "id": "N1",
+     "wall": "N",
+     "at": [
+      133.9,
+      6.0
+     ],
+     "width": 3.3
+    },
+    {
+     "id": "N2",
+     "wall": "N",
+     "at": [
+      158.9,
+      6.0
+     ],
+     "width": 3.3
+    },
+    {
+     "id": "S1",
+     "wall": "S",
+     "at": [
+      133.9,
+      -64.0
+     ],
+     "width": 3.3
+    },
+    {
+     "id": "S2",
+     "wall": "S",
+     "at": [
+      158.9,
+      -64.0
+     ],
+     "width": 3.3
+    },
+    {
+     "id": "W1",
+     "wall": "W",
+     "at": [
+      111.0,
+      -16.5
+     ],
+     "width": 2.5
+    },
+    {
+     "id": "W2",
+     "wall": "W",
+     "at": [
+      111.0,
+      -41.5
+     ],
+     "width": 2.5
+    },
+    {
+     "id": "E1",
+     "wall": "E",
+     "at": [
+      182.0,
+      -16.5
+     ],
+     "width": 2.5
+    },
+    {
+     "id": "E2",
+     "wall": "E",
+     "at": [
+      182.0,
+      -41.5
+     ],
+     "width": 2.5
+    }
+   ],
+   "u": "m",
+   "src": "REF-PLAN;REF-SCHMIDT;ISAC-PA",
+   "tier": "B",
+   "note": "8 doorways (ISAC-PA), 2 per wall, symmetric at +/-12.5 m from the hall centre (REF-PLAN pairs centred 146.2/147.1 in x, spacing 25.3; REF-SCHMIDT +/-12.0-12.2 m; i.e. on the aisle between the 2nd and 3rd column from the centre). Placed about the OSM centre (146.4,-29.0); REF-PLAN's own W/E pairs sit 1.4-2.3 m further S. +/-1.5 m; widths +/-0.7 (N/S gaps 3.5-3.8 in REF-PLAN, ~3 in REF-SCHMIDT; E/W 'smaller', 2.2). Heights not found (C)"
+  },
+  "door_reliefs": {
+   "v": {
+    "N": "throne/audience scene: king enthroned (5 registers of guards below - NOT SEEN, verify)",
+    "S": "king enthroned, throne borne by representatives of the subject nations",
+    "E": "royal hero in combat with lion/bull/monster",
+    "W": "royal hero in combat with lion/bull/monster"
+   },
+   "u": "",
+   "src": "BRIT-H100;IR-PERS",
+   "tier": "B",
+   "note": "extracts; register count C"
+  },
+  "r_door_height": {
+   "v": 8.5,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "NOT SEEN, verify: ~0.6 x column height (14 m), the ratio of the Gate of All Nations door (10 m, C) to its columns"
+  }
+ },
+ "harem": {
+  "floor": {
+   "v": 1.0,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "unchanged; no source. Lower than the Hadish (balcony stairs lead 'down to the Harem', B)"
+  },
+  "r_main_wing_extent": {
+   "v": {
+    "x": [
+     98.0,
+     134.0
+    ],
+    "y": [
+     -207.0,
+     -73.0
+    ]
+   },
+   "u": "m",
+   "src": "REF-PLAN;REF-SCHMIDT",
+   "tier": "B",
+   "note": "main wing in both plans runs N of the museum_modern footprint (y -126.5..-210) to ~y -73 (REF-PLAN; Schmidt ~-95): the court N of the portico and the N rooms are missing from the current model. +/-3"
+  },
+  "court": {
+   "v": {
+    "x": [
+     101.0,
+     127.0
+    ],
+    "y": [
+     -125.0,
+     -112.0
+    ]
+   },
+   "u": "m",
+   "src": "REF-PLAN;ISAC-PA",
+   "tier": "B",
+   "note": "'portico facing a spacious courtyard on the north' (ISAC extract); open area in REF-PLAN (+/-3; REF-SCHMIDT puts it ~8 m further N, Q-P4-10)"
+  },
+  "portico": {
+   "v": {
+    "front_y": -125.0,
+    "x": [
+     105.0,
+     121.5
+    ],
+    "rows": 2,
+    "cols": 4
+   },
+   "u": "m",
+   "src": "REF-PLAN;IR-PERS",
+   "tier": "B",
+   "note": "8 columns 2x4 (B); front opening between antae x 105..121.5 (REF-PLAN); ~ OSM museum N edge -126.5"
+  },
+  "hall": {
+   "v": {
+    "interior_x": [
+     106.5,
+     123.0
+    ],
+    "interior_y": [
+     -150.5,
+     -134.5
+    ]
+   },
+   "u": "m",
+   "src": "REF-PLAN",
+   "tier": "B",
+   "note": "12 columns (3x4, B); ~16.5 m square (+/-3)"
+  },
+  "doors": {
+   "v": [
+    {
+     "id": "N",
+     "wall": "hall N wall (portico to hall)",
+     "at": [
+      114.8,
+      -134.5
+     ],
+     "width": 2.4,
+     "jambs": "NOT SEEN, verify (probably king with attendants)"
+    },
+    {
+     "id": "S",
+     "wall": "hall S wall to the apartments",
+     "at": [
+      113.0,
+      -150.5
+     ],
+     "width": 2.0,
+     "jambs": "Xerxes entering, followed by a fly-whisk bearer and a parasol bearer"
+    },
+    {
+     "id": "E",
+     "wall": "hall E wall",
+     "at": [
+      123.0,
+      -142.5
+     ],
+     "width": 2.0,
+     "jambs": "royal hero stabbing a lion-headed monster / rampant griffin"
+    },
+    {
+     "id": "W",
+     "wall": "hall W wall",
+     "at": [
+      106.5,
+      -142.5
+     ],
+     "width": 2.0,
+     "jambs": "royal hero fighting a lion"
+    }
+   ],
+   "u": "m",
+   "src": "ISAC-PA;SI-ARCH;REF-PLAN",
+   "tier": "B",
+   "note": "4 doorways and their reliefs B (extracts, SI-ARCH title 'Eastern Wall of Main Hall, North Jamb ... Royal Hero Stabbing a Rampant Griffin'). Positions from REF-PLAN wall gaps/axes +/-2.5; widths C"
+  },
+  "r_portico_step": {
+   "v": {
+    "x": [
+     105.0,
+     121.5
+    ],
+    "y_edge": -125.0,
+    "steps": 3
+   },
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "portico front step band from the court (level difference NOT SEEN, verify)"
+  },
+  "r_entrances": {
+   "v": [
+    {
+     "id": "N_passage",
+     "at": [
+      109.5,
+      -73.0
+     ],
+     "note": "gap in the N wall at the Hall100 SW corner, reached from the passage of the Tripylon narrow stair"
+    },
+    {
+     "id": "W_corridor",
+     "at": [
+      99.7,
+      -114.0
+     ],
+     "note": "opening from the N-S corridor inside the W wall into the court"
+    }
+   ],
+   "u": "m",
+   "src": "REF-PLAN;IR-PERS",
+   "tier": "C",
+   "note": "plan gaps (weak, +/-3); connection Tripylon-Harem-Hall100 by a narrow stair is B (extract)"
+  }
+ },
+ "treasury": {
+  "r_north_wall_y": {
+   "v": -78.0,
+   "u": "m",
+   "src": "REF-PLAN;REF-SCHMIDT",
+   "tier": "B",
+   "note": "N outer wall at y -79.5 (REF-PLAN) / -77 (REF-SCHMIDT); OSM treasury N edge -66.1 includes the ~12 m street between the Hall of 100 Columns (S wall -64/-66) and the Treasury. Other edges: W 140.5 (OSM 140.1), E 217.5 (OSM 220.4), S -212.5 (OSM -215.4). Q-P4-11"
+  },
+  "entrances_history": {
+   "v": {
+    "phase1": "single entrance on the W side, opening on a line of small guardrooms",
+    "phase2": "second entrance added in the N wall",
+    "phase3_xerxes": "W part demolished for the Harem; building extended"
+   },
+   "u": "",
+   "src": "IRANTOUR-TREAS",
+   "tier": "C",
+   "note": "tertiary paraphrase of Schmidt 1939 (verify); implies the N entrance is the working one in 467 (C)"
+  },
+  "doors": {
+   "v": [
+    {
+     "id": "N",
+     "wall": "N outer wall, onto the Hall100-Treasury street",
+     "at": [
+      206.6,
+      -78.0
+     ],
+     "width": 2.4
+    },
+    {
+     "id": "E",
+     "wall": "E outer wall",
+     "at": [
+      217.5,
+      -134.5
+     ],
+     "width": 2.0
+    }
+   ],
+   "u": "m",
+   "src": "REF-PLAN;RECON",
+   "tier": "C",
+   "note": "only 2 m gaps in REF-PLAN's buttressed outer wall (x 205.8..207.5 in the N wall; y -133.8..-135.2 in the E wall); REF-SCHMIDT shows no gaps at its scale. Replaces the r_doors NE point [201.8,-66.3] which lies on the OSM edge, i.e. in the street"
+  }
+ },
+ "unfinished_gate": {
+  "present_467": {
+   "v": false,
+   "u": "",
+   "src": "CHRON-C;LIVIUS;IR-PERS",
+   "tier": "B",
+   "note": "chronology.json present=false (late Achaemenid, probably Artaxerxes III): no stairs or doors to model"
+  }
+ },
+ "access_graph": {
+  "v": [
+   [
+    "court0",
+    "tachara_s_court",
+    "C: via the Palace G court / passage at the Tachara SE corner (x -6..-3, y -100..-108) - NOT SEEN, verify"
+   ],
+   [
+    "tachara_s_court",
+    "tachara",
+    "stair_s (B existence)"
+   ],
+   [
+    "tachara_s_court",
+    "hadish",
+    "stair_w (B existence)"
+   ],
+   [
+    "hadish_e_court",
+    "hadish",
+    "stair_e (B existence)"
+   ],
+   [
+    "tripylon_s_court",
+    "hadish_e_court",
+    "Tripylon stair_s (B existence, C position)"
+   ],
+   [
+    "court0",
+    "tripylon",
+    "stair_n (B)"
+   ],
+   [
+    "tripylon",
+    "e_passage",
+    "stair_e_narrow (B existence)"
+   ],
+   [
+    "e_passage",
+    "hall100_w_court",
+    "open passage N (REF-PLAN)"
+   ],
+   [
+    "e_passage",
+    "harem",
+    "N_passage gap (C)"
+   ],
+   [
+    "hall100_forecourt",
+    "hall100",
+    "portico step band (C) + N doors"
+   ],
+   [
+    "hall100_treasury_street",
+    "treasury",
+    "N door (C)"
+   ],
+   [
+    "hadish",
+    "harem_w_wing",
+    "balcony stairs SW/SE (B existence, C geometry)"
+   ]
+  ],
+  "u": "",
+  "src": "RECON",
+  "tier": "C",
+  "note": "proposed minimum walkable graph for Phase 4; court levels C"
+ }
+}
