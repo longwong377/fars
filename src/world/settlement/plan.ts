@@ -373,6 +373,17 @@ function orchards(): Site[] {
   });
 }
 
+/** where a site's lanes open onto the plain: the centres of runs of lane cells that touch open ground outside the town
+ *  (grid metres). A future town walkable grid joins the Terrace approach through these. */
+export function siteExits(s: Site): [number, number][] {
+  const out: [number, number][] = [], seen = new Uint8Array(s.W * s.H);
+  const isExit = (k: number) => { if (s.cell[k] !== LANE && s.cell[k] !== -4) return false; const i = k % s.W, j = (k / s.W) | 0;
+    return [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([di, dj]) => !s.inb(i + di, j + dj) || s.cell[s.k(i + di, j + dj)] === OUT); };
+  for (let k0 = 0; k0 < s.cell.length; k0++) { if (seen[k0] || !isExit(k0)) continue; const comp = [k0]; seen[k0] = 1;
+    for (let h = 0; h < comp.length; h++) { const k = comp[h], i = k % s.W, j = (k / s.W) | 0; for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const ii = i + di, jj = j + dj; if (!s.inb(ii, jj)) continue; const kk = s.k(ii, jj); if (!seen[kk] && isExit(kk)) { seen[kk] = 1; comp.push(kk); } } }
+    if (comp.length < 2) continue; const m = comp[Math.floor(comp.length / 2)]; const g = s.cellGrid(m); out.push([Math.round(g[0] * 10) / 10, Math.round(g[1] * 10) / 10]); }
+  return out;
+}
 /** every plot as a house-plot row for the population simulation */
 export interface TownPlotRow { id: string; site: string; zone: string; pop_zone: 'town' | 'plain'; kind: string; craft?: string; c: [number, number]; door: [number, number] | null; door_in: [number, number] | null; area_m2: number; roofed_m2: number; capacity: number; tier: 'C'; row: string }
 export function plotRows(plan = buildTownPlan()): TownPlotRow[] {
