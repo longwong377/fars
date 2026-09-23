@@ -34,7 +34,7 @@
   - The Phase 5 gate is still NOT passed:
     - **Activity coverage FAILS the brief's rule:** 25 simulated activities have no visible performance. They are marked placeholder/abstractOnly and are used only off-Terrace (haul, weave, brew, herd, field work, plough, reap …).
     - **About 550 people on the Terrace by day are simulated but not rendered**, counted as a PLACEHOLDER in the F3 overlay.
-    - **Construction state has no geometry hook:** the Hall of 100 Columns is drawn at its day-0 state.
+    - Construction geometry hook: done (D-062). The hall's columns follow the simulated drums, fluting and capitals (tested, not yet seen in a render); walls, reliefs, the yard and ramps stay at day 0.
     - **Rendered floors (≥ 300 visible, ≥ 50 close) are not met:** the crowd still builds one placeholder rig per detailed agent (135).
     - Newborns under one year (3,104) are reported, not gated (178 would fail in their first days). This is a scope decision in D-021, to be judged by the independent review.
     - **The §13.11 shadow review FAILED:** 10 of 20 people scored below 4 (REVIEWS/shadow_phase5.md). The causes are systemic:

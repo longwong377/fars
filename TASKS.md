@@ -41,7 +41,7 @@
 ## Phase 5 — Population + economy sim in workers, events, memory, persistence, soak test
 - [x] Simulation LOD (abstract/full) with non-teleporting promotion; load-time catch-up (persistence)
 - [x] Soak harness + gates (`npm run soak`); baseline measured: FAILS variety/events
-- [~] Events calendar, town life, rota/post rotation, days off, errands; construction progress visible; memory of the player (agent, session 3)
+- [~] Events calendar, town life, rota/post rotation, days off, errands; memory of the player (agent, session 3); construction columns follow the sim (D-062)
 - [ ] Population scale-up (worker, crowd pooling, impostors); rendered floors ≥ 300 visible / ≥ 50 close
 - [ ] Soak passes; shadow review of 20 NPC days
 ## Cross-cutting (session 3)
