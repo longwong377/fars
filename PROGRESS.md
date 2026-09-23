@@ -58,7 +58,11 @@
     - **The §13.11 shadow review FAILED in round 1:** 10 of 20 people scored below 4 (REVIEWS/shadow_phase5.md).
       - The sim agent fixed the systemic causes and merged them (D-080, D-081): shared household days with three meals, children who sleep, infants nursed on demand, marriage that never takes a mother, births from each mother's history, and all 2,058 town households on real plots.
       - Soak passes all eight gates on the agent's run.
-      - A fresh independent reviewer is scoring round 2 on a sample the builder never saw (REVIEWS/shadow_days_input_seed1_pick23.txt).
+      - **Round 2 FAILED** (REVIEWS/shadow_phase5_r2.md, a sample the builder never saw): 3 of 20 people scored below 4 (a 2 and two 3s), against 10 in round 1.
+        - N1: older children, especially girls of 9–13, play most of the day and do little of their age's work.
+        - N2: households whose mother dies are not reorganised.
+        - Also: the harvest timing conflicts with PLAIN.md; fixed-duration templates; abstract travel times ignore distance; very little is carried.
+        - The sim agent is fixing these; round 3 needs another unseen sample.
     - Still open: 27 placeholder activities; construction runs above E-61 (8 shafts a year vs ~5); marriages run below E-73; the town.json shares disagree with the built houses' capacity (D-081); mean frame time at 60× time went from 4.7 ms to 8.1 ms.
     - Every day-plan weight is C. The grain deliveries in the read texts cannot feed the ration groups (Q-056). Workers other than guards have no regular rest days (Q-057).
 - **Phase 4b (merged in session 3, D-048 to D-052):**
