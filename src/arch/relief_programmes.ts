@@ -8,7 +8,7 @@ import * as THREE from 'three/webgpu';
 import { v, present, footprint } from './spec';
 import type { Doorway, Pt } from './parts';
 import type { ReliefItem } from './reliefs';
-import { FIGURE_KINDS, ROUGH, baseKind, kindBounds } from './relief_figures';
+import { FIGURE_KINDS, ROUGH, RAIL_T, baseKind, kindBounds } from './relief_figures';
 
 /** grid → world: point at height y, or direction */
 const W = (p: Pt, y = 0) => new THREE.Vector3(p[0], y, -p[1]);
@@ -194,15 +194,18 @@ function jamb(out: ReliefItem[], d: Doorway, face: ReturnType<typeof jambFaces>[
     const kingS = Math.min(JR.figure_of_door * H, len / (kx1 - kx0 + (px1 - px0) * AS)), rows = P.programme === 'throne_bearers' ? SR.bearer_rows : P.registers;
     const bearers = P.programme === 'throne_bearers', under = bearers ? len * kindBounds('dais', 0)[3] : JR.register_gap; // platform or gap under the king
     const kTop = Math.max(kindBounds('king', 0)[3], kindBounds('crown_prince', 1)[3] * AS);
-    const rowH = Math.min((H - JR.ground - JR.margin - under - kingS * kTop) / rows, (kingS * AS) / CV.figure_fill), rowS = rowH * CV.figure_fill;
-    const base = y + rows * rowH;
-    if (bearers) out.push(fig(k('dais'), 0, at(len / 2), base, face.n, len, D, facing, meta));
+    // bearer tiers: each lower tier holds up a ledge (rail, C) on which the tier above stands; the top tier holds the platform
+    const railT = bearers ? RAIL_T * len : 0, pitch = (row: number) => row * (rowH + railT);
+    const rowH = Math.min((H - JR.ground - JR.margin - under - kingS * kTop - (rows - 1) * railT) / rows, (kingS * AS) / CV.figure_fill), rowS = rowH * (bearers ? 1 : CV.figure_fill); // bearers' palms (y = 1) meet the ledge
+    const base = y + pitch(rows) - railT;
+    if (bearers) { out.push(fig(k('dais'), 0, at(len / 2), base, face.n, len, D, facing, meta));
+      for (let row = 0; row < rows - 1; row++) out.push(fig(k('rail'), 0, at(len / 2), y + pitch(row) + rowH, face.n, len, D, facing, meta)); }
     const yK = base + under;
     out.push(fig(k('king'), 0, at(kx1 * kingS), yK, face.n, kingS, D, facing, meta));
     out.push(fig(k('crown_prince'), 1, at((kx1 - kx0) * kingS + px1 * kingS * AS), yK, face.n, kingS * AS, D, facing, meta));
     for (let row = 0; row < rows; row++) {
       const kind = bearers ? 'bearer' : row % 2 ? 'mede_guard' : 'guard', w = figW(kind, rowS), count = Math.max(1, Math.floor(len / w));
-      for (let i = 0; i < count; i++) out.push(fig(k(kind), bearers ? (row * count + i + jambIndex * 11) % 23 : row * count + i, at(w * (i + 0.5) + (len - count * w) / 2), y + row * rowH, face.n, rowS, D, facing, meta));
+      for (let i = 0; i < count; i++) out.push(fig(k(kind), bearers ? (row * count + i + jambIndex * 11) % 23 : row * count + i, at(w * (i + 0.5) + (len - count * w) / 2), y + pitch(row), face.n, rowS, D, facing, meta));
     }
   }
   void building;

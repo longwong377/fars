@@ -495,6 +495,11 @@ function dais(fr: Frame): Mass[] { // the throne platform carried by the bearers
   return [M(feet, { amp: 0.55, colour: P.gold, round: 0.01, detail: fr.det(x => pleats(x, 0.01, 0.1)) }),
     M([fr.poly([[-0.5, 0.035], [0.5, 0.035], [0.5, 0.095], [-0.5, 0.095]])], { amp: 0.7, lift: 0.04, colour: P.gold, round: 0.012, groove: 0.08, detail: fr.det((x, y) => (y > 0.075 ? 0.08 : y < 0.05 ? 0.04 : 0)) })];
 }
+/** thickness of the ledge between tiers of throne-bearers, as a fraction of its length (C) */
+export const RAIL_T = 0.025;
+function rail(fr: Frame): Mass[] { // the ledge a tier of throne-bearers holds up and the tier above stands on (C); unit = length
+  return [M([fr.poly([[-0.5, 0], [0.5, 0], [0.5, RAIL_T], [-0.5, RAIL_T]])], { amp: 0.7, colour: STONE, round: 0.006, detail: fr.det((x, y) => (y > RAIL_T * 0.7 ? 0.06 : 0)) })];
+}
 /** suffix of a blocked-out (unfinished) variant of any kind: the outline cut back and the masses roughed out as planes,
  *  no modelling detail, no incised lines, no paint; claw-chisel marks on the surfaces (the Unfinished Gate figures'
  *  stage, RECOLLECTION, NOT SEEN: C) */
@@ -562,6 +567,7 @@ export const FIGURE_KINDS: Record<string, KindInfo> = {
   king_attendants: K('B', 'ISAC-PA;FARROKH;SI-ARCH;WP-EXT', 'group', 0.85, 'the king walking, an attendant behind him holding a parasol over his head and (seed 0 / 1) a second with a fly-whisk / towel (Harem S, Hadish NW, Tachara, Tripylon doorways: B); crown, staff, scale of the attendants (hierarchic, r_jamb_relief.attendant_scale) and forms C'),
   bearer: K('B', 'SI-ARCH;BRIT-H100;IR-PERS', 'person', 0.62, 'throne-bearer: a representative of a subject people lifting the throne platform above his head (Tripylon E jamb, Hall of 100 Columns S jambs: B); dress per people after DELEGATIONS (seed = delegation, C)'),
   dais: K('B', 'SI-ARCH;BRIT-H100', 'ornament', 1.0, 'the throne platform carried by the bearers (B); mouldings, lion feet and paint C; unit = its length'),
+  rail: K('C', 'SI-ARCH;BRIT-H100;RECON', 'ornament', 1.0, 'the ledge each lower tier of throne-bearers holds up and the tier above stands on: the tiers are attested (B), the ledge between them is RECOLLECTION, NOT SEEN (C); plain, unpainted; unit = its length'),
   horse: K('B', 'RELIEF-R;MATCULT-R', 'animal', 0.95, SPECIES.horse.note),
   bull: K('B', 'RELIEF-R', 'animal', 0.95, SPECIES.bull.note),
   camel_bactrian: K('B', 'RELIEF-R;MATCULT-R', 'animal', 0.95, SPECIES.camel_bactrian.note),
@@ -670,6 +676,7 @@ export function figureDef(kind: string, seed: number): FigureDef {
       return withProps(h, []);
     }
     case 'dais': return { masses: dais(fr) };
+    case 'rail': return { masses: rail(fr) };
     case 'lion_bull': { // the bull rears toward the high end with its head turned back; the lion leaps on its hindquarters
       const bull = SPECIES.bull, lion = SPECIES.lion;
       const qb = quadruped(standing(bull, 0.3, 1.15, 0.12, false, 0.95), bull, { lean: 0.3, fore: 'raised', turnHead: true });
