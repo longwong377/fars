@@ -31,6 +31,9 @@ import { FireSystem } from './fire';
 import { buildTreasuryGoods } from './furnish';
 import { DoorSystem } from '../arch/doors';
 import { WeatherVfx } from './weatherVfx';
+import { RainShafts } from './rainShafts';
+import { Birds, Jackals } from './wildlife';
+import { azAltToWorld } from '../sky/ephemeris';
 import { AudioEngine } from '../audio/engine';
 import { Soundscape, registerRoom } from '../audio/soundscape';
 import { babylonianDate } from '../core/calendar';
@@ -40,9 +43,9 @@ import { NavGrid } from '../people/navgrid';
 import { PeopleSim, Env } from '../people/sim';
 import { Crowd } from '../people/crowd';
 import { ACTIVITIES } from '../people/activities';
-import { Speech, Subtitle } from '../audio/speech';
+import { Speech, Subtitle, RecordingBackend, FormantBackend } from '../audio/speech';
 import { Murmur, Talker } from '../audio/murmur';
-import { pickLine, voiceFor } from '../people/speech_lines';
+import { pickLine, voiceFor, voiceKeyFor } from '../people/speech_lines';
 import type { WeatherSystem } from '../weather/weatherState';
 import placesJson from '../data/people_places.json';
 const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
@@ -100,12 +103,20 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const q = settings?.quality ?? 'high';
   const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q]); placeFires(fire, manifest, parts); fire.build(); root.add(fire.group);
   const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group);
+  const shafts = new RainShafts(terrain); root.add(shafts.group); // distant rain cells approaching on the wind
   void QUALITY;
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
   const nav = await NavGrid.load(async p => (await fetch('/' + p)).arrayBuffer());
+  // visible birds (§5.5): swallows over the courts in season, raptors over the slope, sparrows on the court floors
+  const birds = new Birds(seed, nav, terrain, ([[0, 90], [-20, 124], [60, -10], [-20, -110], [150, 40], [200, -70], [100, -110], [20, -125]] as [number, number][]).map(p => nav.snap(p[0], p[1], 8) ?? p));
+  root.add(birds.group);
+  const jackals = new Jackals(seed, terrain); root.add(jackals.mesh); // on the plain edge from dusk to dawn
   for (const f of fire.fires) nav.blockDisc(f.pos.x, -f.pos.z, f.kind === 'torch' ? 0 : 0.8);
-  const env = (t: number): Env => { if (!weather) return { rain: 0, lightning: false, windMs: 2, tempC: 18 }; const d = Math.floor(t / 24), c = weather.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC }; };
-  const sim = new PeopleSim(seed, nav, env); let simStarted = false;
+  const env = (t: number): Env => { if (!weather) return { rain: 0, lightning: false, windMs: 2, tempC: 18 }; const d = Math.floor(t / 24), c = weather.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
+  // Phase 5 (D-021): the whole population and the year's calendar; the court is absent unless the out-of-world setting
+  // 'Court calendar = seasonal pattern' is on (D-003)
+  const sim = new PeopleSim(seed, nav, env, { court: settings?.courtCalendar === 'seasonal' }); let simStarted = false;
+  sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
   const crowd = new Crowd(sim, seed); root.add(crowd.group);
   // people are solid to the player: a kinematic capsule each (brief §6: player collision with crowds)
   const R = phys.R; const bodies = sim.agents.map(() => { const b = phys.world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(0, -1000, 0)); phys.world.createCollider(R.ColliderDesc.capsule(0.55, 0.25).setTranslation(0, 0.8, 0), b); return b; });
@@ -115,7 +126,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const audio = new AudioEngine(); const sound = new Soundscape(audio);
   crowd.onHit = (kind, pos) => sound.strike(kind, pos);
   // speech + crowd murmur (D-011): murmur from everyone whose activity sounds as talk; lines only from the lexicons
-  const speech = new Speech(audio); const murmur = new Murmur(audio, { maxVoices: 10, radius: 40 });
+  // voices: eSpeak-NG clips pre-rendered from the lexicon IPA (tools/build_speech.py) first, the formant synthesiser for anything missing
+  const voiceManifest = await fetch('/voices/manifest.json').then(r => (r.ok ? r.json() : { clips: {} })).catch(() => ({ clips: {} }));
+  const speech = new Speech(audio, [new RecordingBackend(Object.fromEntries(Object.entries(voiceManifest.clips as Record<string, { url: string; tier: string }>).map(([k, v]) => [k, { url: v.url, tier: v.tier }]))), new FormantBackend()]); const murmur = new Murmur(audio, { maxVoices: 10, radius: 40 });
   let lastSubtitle: Subtitle | null = null; speech.onSubtitle = (s: Subtitle) => { lastSubtitle = s; };
   let playerAt: THREE.Vector3 | null = null;
   wvfx.onThunder = (delay, strength) => sound.thunder(delay, strength);
@@ -129,6 +142,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const surfaceAt = (y: number, groundY: number) => (y > -1 ? 'stone' : Math.abs(y - groundY) < 0.3 ? 'earth' : 'stone') as 'stone' | 'earth';
   const syncBodies = () => sim.agents.forEach((a, i) => bodies[i].setNextKinematicTranslation(a.offmap ? { x: 0, y: -1000, z: 0 } : { x: a.pos[0], y: a.y, z: -a.pos[1] }));
   let lodT = 0;
+  // dev overlay: the abstract population, and the Terrace workforce it simulates but nobody renders yet (D-024), recounted
+  // every ten game minutes
+  let popAt = -1, popTxt = '';
+  const popLine = () => { if (Math.abs(sim.t - popAt) > 1 / 6) { popAt = sim.t; const n = sim.abstractOnTerrace().total; popTxt = `population ${sim.pop.persons.length} simulated (abstract) · ${n} more on the Terrace NOT RENDERED [PLACEHOLDER: D-024]`; } return popTxt; };
   const simulate = (dt: number, clock: any) => {
     const target = clock.t * 24;
     if (!simStarted) { sim.jumpTo(target); simStarted = true; }
@@ -147,11 +164,11 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     for (const ag of sim.agents) { if (ag.offmap || ag.task?.act === 'sleep') continue; const d = Math.hypot(ag.pos[0] - cp.x, -ag.pos[1] - cp.z); if (d > bd) continue;
       const dir = new THREE.Vector3(ag.pos[0] - cp.x, 0, -ag.pos[1] - cp.z).normalize(); if (dir.dot(new THREE.Vector3(fwd.x, 0, fwd.z).normalize()) < 0.5) continue; best = ag; bd = d; }
     if (!best) return null;
-    best.metPlayer++; best.heading = Math.atan2(cp.x - best.pos[0], -cp.z - best.pos[1]) * 180 / Math.PI; // turns to the stranger
+    best.metPlayer++; sim.noteAddressed(best.id); best.heading = Math.atan2(cp.x - best.pos[0], -cp.z - best.pos[1]) * 180 / Math.PI; // turns to the stranger; remembered (§9.5)
     const day = Math.floor(sim.t / 24);
     const pick = pickLine({ langs: best.langs, intent: best.metPlayer > 1 ? 'reply' : 'greet', role: best.role, seed: best.seed + day });
     if (!pick) return { gesture: 'nods (no attested line in their language)' };
-    speech.say(pick.line, voiceFor({ seed: best.seed, sex: best.sex, role: best.role }), { x: best.pos[0], y: best.y + 1.55, z: -best.pos[1] }, { speakerId: best.id });
+    { const vo = voiceFor({ seed: best.seed, sex: best.sex, role: best.role }); speech.say(pick.line, vo, { x: best.pos[0], y: best.y + 1.55, z: -best.pos[1] }, { speakerId: best.id, voiceKey: voiceKeyFor(vo) }); }
     return { lineId: pick.line.id, lang: pick.line.lang, translit: pick.line.translit, gloss: pick.line.gloss, tier: pick.line.tier, speakerId: best.id, backend: 'formant' } as Subtitle;
   };
   return { root, fire, wvfx, simulate, people: { sim, crowd, nav }, address, doors, get lastSubtitle() { return lastSubtitle; },
@@ -178,6 +195,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time);
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
+      { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
+        birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
+        jackals.update(ctx.clock.dayIndex, ctx.clock.localHour, time); }
+      shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)));
       if (audio.ctx) {
         const cam = ctx.camera, fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);
         audio.setListener(cam.position, fwd);
@@ -194,5 +215,5 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       }
     },
     flash: () => lastFlash,
-    summary: () => `people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}` } as WorldBuild;
+    summary: () => `people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}` } as WorldBuild;
 }

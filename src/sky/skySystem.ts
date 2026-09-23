@@ -44,18 +44,22 @@ export class SkySystem {
       const d = normalize(positionWorld.sub(cameraPosition));
       const g = G.mul(d); const l = atan(g.y, g.x), b = asin(clamp(g.z, -1, 1)); // radians; l = 0 toward the galactic centre
       const ld = l.mul(180 / Math.PI), bd = b.mul(180 / Math.PI);
-      const alongC = exp(ld.div(62).pow(2).negate()); // brighter toward the centre
+      // squares as x·x: pow() of a negative base is undefined on the GPU (NaN), and TRAA spread those NaNs over the frame
+      const sq = (x: any) => x.mul(x);
+      const alongC = exp(sq(ld.div(62)).negate()); // brighter toward the centre
       const width = float(7).add(alongC.mul(6)); // the band thickens toward Sagittarius (deg)
       const disk = exp(abs(bd.add(0.5)).div(width).negate()).mul(float(0.35).add(alongC.mul(0.65)));
-      const bulge = exp(ld.div(14).pow(2).add(bd.add(3).div(10).pow(2)).negate()).mul(0.9);
-      const rift = float(1).sub(exp(bd.sub(1.5).div(2.4).pow(2).negate()).mul(smoothstep(-20, -8, ld).mul(float(1).sub(smoothstep(55, 75, ld)))).mul(0.7)); // Great Rift
-      const coal = float(1).sub(exp(ld.add(59).div(3).pow(2).add(bd.add(1).div(2.5).pow(2)).negate()).mul(0.8)); // Coalsack (l ≈ 301°)
+      const bulge = exp(sq(ld.div(14)).add(sq(bd.add(3).div(10))).negate()).mul(0.9);
+      const rift = float(1).sub(exp(sq(bd.sub(1.5).div(2.4)).negate()).mul(smoothstep(-20, -8, ld).mul(float(1).sub(smoothstep(55, 75, ld)))).mul(0.7)); // Great Rift
+      const coal = float(1).sub(exp(sq(ld.add(59).div(3)).add(sq(bd.add(1).div(2.5))).negate()).mul(0.8)); // Coalsack (l ≈ 301°)
       const mottle = mx_fractal_noise_float(g.mul(9), int(4), float(2.1), float(0.55)).mul(0.45).add(0.8);
-      const mw = disk.add(bulge).mul(rift).mul(coal).mul(mottle).mul(0.032);
+      // perceptual scale (C), set so that at the fully dark-adapted exposure (≈5.7) the zenith sky reads ≈ sRGB 12, the
+      // horizon airglow ≈ 35 and the Milky Way core ≈ 60
+      const mw = disk.add(bulge).mul(rift).mul(coal).mul(mottle).mul(0.005);
       const alt = max(d.y, 0.0);
       const ext = exp(float(0.25).negate().div(alt.add(0.035))); // extinction by air mass (C)
       const vanRhijn = float(1).div(sqrt(float(1).sub(float(0.972).mul(float(1).sub(alt.mul(alt)))))); // (R/(R+90 km))² = 0.972
-      const airglow = vec3(0.0035, 0.0048, 0.0036).mul(vanRhijn).mul(smoothstep(-0.02, 0.03, d.y));
+      const airglow = vec3(0.0005, 0.00068, 0.00051).mul(vanRhijn).mul(smoothstep(-0.02, 0.03, d.y));
       const warm = mix(vec3(0.85, 0.88, 1.0), vec3(1.0, 0.93, 0.8), alongC);
       return vec4(warm.mul(mw).mul(ext).add(airglow).mul(V), 1);
     })();

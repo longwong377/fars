@@ -54,3 +54,19 @@ export function cloudNoiseVolume(size = 64, seed = 7): Uint8Array {
   }
   return out;
 }
+
+/** the volume flattened into a 2-D atlas: slice z at tile (z % 8, floor(z / 8)); each 64² tile carries a 1-texel border
+ *  copied from the opposite edge (wrap), so bilinear filtering inside a tile tiles seamlessly. Returns the RGBA8 pixels
+ *  of a (8·(size+2))² texture. (A 3-D texture was bound through a 2-D view by the r186 WebGPU backend: validation error,
+ *  black frame. The atlas works on WebGPU and WebGL2 alike.) */
+export function cloudNoiseAtlas(vol: Uint8Array, size = 64, tilesPerRow = 8): { data: Uint8Array; width: number; tile: number } {
+  const T = size + 2, W = T * tilesPerRow, out = new Uint8Array(W * W * 4);
+  for (let z = 0; z < size; z++) {
+    const ox = (z % tilesPerRow) * T, oy = Math.floor(z / tilesPerRow) * T;
+    for (let y = -1; y <= size; y++) for (let x = -1; x <= size; x++) {
+      const sx = (x + size) % size, sy = (y + size) % size, si = ((z * size + sy) * size + sx) * 4, di = ((oy + y + 1) * W + (ox + x + 1)) * 4;
+      out[di] = vol[si]; out[di + 1] = vol[si + 1]; out[di + 2] = vol[si + 2]; out[di + 3] = vol[si + 3];
+    }
+  }
+  return { data: out, width: W, tile: T };
+}

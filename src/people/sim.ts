@@ -1,46 +1,71 @@
-// People simulation for the vertical slice (Phase 3; scales up in Phase 5 inside a worker, so this module has no
-// renderer dependencies). Everyone has a name (attested only, or honestly unnamed), origin, languages, household, ties,
-// a ration entitlement, a job with a daily schedule, and needs (hunger, fatigue). Decisions are made when a task ends,
-// from the hour, sunrise/sunset, weather, stock levels and needs; every decision draws from a random stream keyed by
-// (world seed, person, day, decision number), so the outcome does not depend on frame rate or step size.
-// Goods are counted: porters move real sacks from the depot at the stair foot to the Treasury store.
+// People simulation (Phase 3 slice, Phase 5 population; no renderer dependencies, so it can move into a worker).
+// Two tiers (DECISIONS D-021):
+//  - the POPULATION (population.ts): everyone who lived on the Terrace, in the town and in the plain (~44,000, court
+//    absent), with homes, households, ration groups, work gangs and a day plan per person that is a pure function of
+//    (seed, person, day) and the calendar (calendar.ts: rations, deliveries, couriers, offerings, weather, the harvest
+//    round, construction, births, deaths, sickness, disputes);
+//  - the DETAILED AGENTS below: the Terrace slice (the garrison of 100, a squad of stonecutters, porters, scribes, the
+//    work-camp women and children, messengers, officials). Each is a person of the population and follows the same day
+//    plan; on the Terrace the plan block is filled with fine-grained decisions that walk the real grid. Off the Terrace
+//    (at home in the town, on the road, in the plain) they are hidden but still where the plan says, doing what it says.
+// Every decision draws from a random stream keyed by (world seed, person, day, decision number), so outcomes do not
+// depend on frame rate or step size. Goods are counted: porters move real sacks from the depot at the stair foot to the
+// Treasury store; the calendar keeps the town's stores.
 import placesData from '../data/people_places.json';
 import namesData from '../data/names.json';
+import livesData from '../data/lives.json';
 import { Rng } from '../core/rng';
 import type { NavGrid, P2 } from './navgrid';
 import { ACTIVITIES, ActivityId } from './activities';
 import type { Dress } from './body';
+import { EventCalendar, sunTimes as sunT } from './calendar';
+import { Population, Seg, segAt, GUARD_POSTS, SliceSeat, TERRACE_ABSTRACT } from './population';
+import { hall100Layout, colPlace } from './construction';
+import { PlayerMemory, Encounter } from './memory';
 
 export type Role = 'guard' | 'mason' | 'foreman' | 'porter' | 'scribe' | 'baker' | 'grinder' | 'child' | 'courier' | 'official';
-export interface Place { id: string; kind: string; at: P2; heading?: number; span?: [P2, P2]; tier: string; note: string }
-export const PLACES: Record<string, Place> = Object.fromEntries((placesData as any).places.map((p: Place) => [p.id, p]));
+export interface Place { id: string; kind: string; at: P2; heading?: number; span?: [P2, P2]; tier: string; note: string; /** a column's centre (generated work places) */ c?: P2 }
+/** work spots on the Hall of a Hundred Columns, generated from the spec (D-022): beside each hall column (fluting after
+ *  erection) and just inside each doorway (the doorway reliefs); all C, all checked walkable by tests/people.test.ts */
+const H100 = hall100Layout();
+const GENERATED: Place[] = [
+  ...H100.hall.map((c, i) => ({ id: colPlace(i), kind: 'work', at: [c[0] + 1.6, c[1]] as P2, c, heading: 270, tier: 'C', note: `beside column ${i + 1} of the Hall of a Hundred Columns (fluting after erection, C)` })),
+  ...H100.doors.map((d: any) => { const inx = Math.sign(H100.centre[0] - d.at[0]), iny = Math.sign(H100.centre[1] - d.at[1]); const ns = d.wall === 'N' || d.wall === 'S';
+    const at: P2 = ns ? [d.at[0] - 2.2, d.at[1] + iny * 2.2] : [d.at[0] + inx * 2.2, d.at[1] - 2.2];
+    return { id: `h100_door_${d.id}`, kind: 'work', at, heading: ns ? (iny < 0 ? 180 : 0) : (inx > 0 ? 90 : 270), tier: 'C', note: `inside doorway ${d.id} of the Hall of a Hundred Columns, where its reliefs are carved (door reliefs BRIT-H100 B; progress C)` }; }),
+];
+export const PLACES: Record<string, Place> = Object.fromEntries([...(placesData as any).places as Place[], ...GENERATED].map((p: Place) => [p.id, p]));
 
-export interface Env { rain: number; lightning: boolean; windMs: number; tempC: number }
-export interface Task { act: ActivityId; place: string; spot: P2; heading: number | null; until: number /* sim hours */; why: string }
+export interface Env { rain: number; lightning: boolean; windMs: number; tempC: number; dust?: number }
+/** `off`: the task is off the rendered Terrace (in the town, on the road, in the plain): the person is hidden */
+export interface Task { act: ActivityId; place: string; spot: P2; heading: number | null; until: number /* sim hours */; why: string; off?: boolean }
 export interface Agent {
   id: number; name: string | null; nameNote: string; nameTier: string; sex: 'm' | 'f'; origin: string; langs: string[];
   role: Role; dress: Dress; household: number; ties: number[]; ration: { qaPerMonth: number; tier: string };
   post?: string; shift?: number; home: string; slot: P2; speed: number; seed: number;
+  /** this person in the population (population.ts) */
+  pid: number;
   // dynamic state
   pos: P2; y: number; heading: number; task: Task | null; path: P2[] | null; pathI: number; walking: boolean;
   carry: null | 'sack' | 'jar' | 'jar_head' | 'basket'; hunger: number; fatigue: number; sick: boolean;
   day: number; decisions: number; metPlayer: number; lastMetDay: number; gait: number; offmap: boolean; relieved: boolean;
+  /** end of the current watch (a guard stays at the post until relieved) */
+  watchEnd?: number;
+  /** waiting for a route search (over the step's search budget): stays where it is and asks again next step */
+  waitRoute?: boolean;
   /** simulation LOD (brief §9.2 continuity, §9.5): 'full' walks nav-grid paths; 'abstract' (far from the player, and the
    *  headless soak) makes the same decisions but travels as a timed straight-line move (distance × detour / speed) */
   lod?: 'full' | 'abstract'; travel?: { from: P2; to: P2; t0: number; t1: number } | null;
 }
 /** straight-line → walked-route factor for abstract travel (C: the Terrace's stairs and doorways add detours) */
 export const ABSTRACT_DETOUR = 1.3;
-export interface SimEvent { t: number; kind: string; text: string; place: string }
+export interface SimEvent { t: number; kind: string; text: string; place: string; id?: string; tier?: string }
+export interface SimOpts { /** the out-of-world setting 'Court calendar = seasonal pattern' (D-003); default false (court ABSENT) */ court?: boolean }
 
 const H_PER_S = 1 / 3600;
-const LAT = 29.935 * Math.PI / 180;
-/** sunrise/sunset in local solar hours for a day of the regnal year (day 0 = 17 Apr Julian ≈ 12 Apr Gregorian-equiv.; C, ±5 min) */
-export function sunTimes(day: number): { rise: number; set: number } {
-  const doy = 102 + day; const dec = -23.44 * Math.PI / 180 * Math.cos(2 * Math.PI * (doy + 10) / 365);
-  const h = Math.acos(Math.max(-1, Math.min(1, -Math.tan(LAT) * Math.tan(dec)))) * 12 / Math.PI;
-  return { rise: 12 - h, set: 12 + h };
-}
+/** sunrise/sunset in local solar hours for a day of the regnal year (see calendar.ts) */
+export const sunTimes = sunT;
+const FAM = (livesData as any).familiarity;
 
 /** name pools from names.json (attested only; brief §9.1). Origins with no attested names give `null` (honestly unnamed). */
 const NAMES = (namesData as any).names.filter((n: any) => !n.notable && !n.reading_uncertain) as { name: string; sex: string; origin_guess: string; tier: string; texts: string[] }[];
@@ -49,11 +74,8 @@ function pickName(rng: Rng, sex: 'm' | 'f', origins: string[], used: Set<string>
   if (!pool.length) return null;
   const n = rng.pick(pool); used.add(n.name); return { name: n.name, tier: n.tier.startsWith('A') ? 'A' : 'B', note: n.texts?.length ? `attested ${n.texts.slice(0, 2).join(', ')}` : 'attested in the Achaemenid Elamite name lexicon (EWB)' };
 }
-
-/** roster for the slice, court absent (PEOPLE.md: Terrace 300–600 by day; this slice holds the part on the route) */
-const GUARD_POSTS = ['post_stair_n', 'post_stair_s', 'post_gate_w1', 'post_gate_w2', 'post_gate_s1', 'post_gate_s2', 'post_apa_w', 'post_apa_e', 'post_treas_1', 'post_treas_2',
-  'post_tachara_1', 'post_tachara_2', 'post_hadish_1', 'post_hadish_2', 'post_harem_1', 'post_harem_2'];
-const SHIFT_START = [6, 14, 22]; // three watches (C)
+/** posts where a stranger is stopped and questioned (the gates and stair heads; the Treasury door) */
+const CHECK_POSTS = new Set(['post_stair_n', 'post_stair_s', 'post_gate_w1', 'post_gate_w2', 'post_gate_s1', 'post_gate_s2', 'post_treas_1', 'post_treas_2']);
 
 export class PeopleSim {
   readonly agents: Agent[] = [];
@@ -61,31 +83,48 @@ export class PeopleSim {
   stock = { depot: 30, store: 120 };
   t = 0; // sim hours since the start of the regnal year (clock.t × 24)
   player: P2 | null = null;
+  /** everyone (the abstract tier) and the year's calendar, stores and construction */
+  readonly pop: Population;
+  readonly cal: EventCalendar;
+  /** memory of the player (brief §9.5) */
+  readonly memory = new PlayerMemory();
   private pathCache = new Map<string, P2[] | null>();
+  /** the most new route searches in one step. A long route on the 0.5 m grid costs 20-200 ms, and a watch change or a
+   *  crowd of arrivals asks for many at once; over the budget an agent waits where it is and asks again next step.
+   *  Default: no limit (tests, soak); the world sets 1 for its render frames (D-024). */
+  routeSearchesPerStep = Infinity; private searches = 0;
   private lastCaravanDay = -1;
-  constructor(readonly seed: number, readonly nav: NavGrid, readonly env: (tHours: number) => Env) { this.makeRoster(); }
+  private planCache = new Map<number, { day: number; segs: Seg[] }>();
+  private evT = -1;
+  private near = new Map<number, number>(); // agent → hours the player has stood near while it works (watching)
+  constructor(readonly seed: number, readonly nav: NavGrid, readonly env: (tHours: number) => Env, readonly opts: SimOpts = {}) {
+    const seats = this.makeRoster();
+    this.pop = new Population(seed, { court: !!opts.court, slice: seats });
+    this.cal = new EventCalendar(seed, this.pop, env, !!opts.court); this.pop.attach(this.cal);
+    for (const a of this.agents) { const pid = this.pop.bySeat.get(a.id); if (pid === undefined) throw new Error(`agent ${a.id} has no person`); a.pid = pid; }
+  }
+  /** the Hall of a Hundred Columns as simulation state (columns, walls, reliefs; D-022) */
+  get construction() { return this.cal.construction; }
 
-  // ------------------------------------------------------------------ roster
-  private makeRoster() {
-    const rng = new Rng(this.seed, 'people-roster'); const used = new Set<string>();
+  // ------------------------------------------------------------------ roster (the Terrace slice)
+  private makeRoster(): SliceSeat[] {
+    const rng = new Rng(this.seed, 'people-roster'); const used = new Set<string>(); const seats: SliceSeat[] = [];
     let hh = 0;
     const add = (role: Role, sex: 'm' | 'f', origin: string, nameOrigins: string[], dress: Dress, langs: string[], home: string, qa: number, qaTier: string, extra: Partial<Agent> = {}) => {
       const id = this.agents.length; const nm = nameOrigins.length ? pickName(rng, sex, nameOrigins, used) : null;
       const a: Agent = { id, name: nm?.name ?? null, nameTier: nm?.tier ?? '-', nameNote: nm?.note ?? `unnamed ${origin} ${role} (no attested ${origin} names in the pool; the tablets often list such workers by group)`,
-        sex, origin, langs, role, dress, household: extra.household ?? hh++, ties: [], ration: { qaPerMonth: qa, tier: qaTier }, home, slot: [0, 0], seed: rng.int(0, 1e9),
+        sex, origin, langs, role, dress, household: extra.household ?? hh++, ties: [], ration: { qaPerMonth: qa, tier: qaTier }, home, slot: [0, 0], seed: rng.int(0, 1e9), pid: -1,
         speed: (role === 'child' ? 1.1 : 1.3) * rng.range(0.9, 1.1), pos: [...PLACES[home].at] as P2, y: 0, heading: 0, task: null, path: null, pathI: 0, walking: false, carry: null,
         hunger: rng.range(0, 0.3), fatigue: rng.range(0, 0.3), sick: false, day: -1, decisions: 0, metPlayer: 0, lastMetDay: -1, gait: rng.range(0, 6.28), offmap: home === 'town', relieved: false, ...extra };
-      this.agents.push(a); return a;
+      this.agents.push(a); seats.push({ agent: id, role, sex, origin, name: a.name }); return a;
     };
-    // guards: 16 posts × 3 watches (Phase 4: + Tachara, Hadish, Harem); Persian and Median dress alternate as on the reliefs (B); garrison quarters (C)
-    const watches: Agent[][] = [[], [], []];
-    GUARD_POSTS.forEach((post, pi) => { for (let s = 0; s < 3; s++) {
-      const persian = (pi + s) % 2 === 0;
-      const g = add('guard', 'm', persian ? 'Persian' : 'Median', ['Iranian'], persian ? 'guard' : 'median', ['Old Persian', 'Aramaic'], 'garrison_sleep', 30, 'C', { post, shift: s });
-      watches[s].push(g);
-    } });
-    for (const w of watches) for (const g of w) g.ties = w.filter(o => o !== g).map(o => o.id);
-    // masons: a gang of 12 under a foreman; stonecutters are attested as Syrians, Ionians, Egyptians (PEOPLE §2, B)
+    // the garrison: 100 men in ten files of ten (population.json garrison_company, w 100; HDT decimal units B claim; C).
+    // Posts are not fixed: a five-day rota rotates watches and posts (lives.json guard_rota; D-023). Persian and Median
+    // dress alternate as on the reliefs (B); garrison quarters (C).
+    for (let i = 0; i < 100; i++) { const persian = i % 2 === 0;
+      add('guard', 'm', persian ? 'Persian' : 'Median', ['Iranian'], persian ? 'guard' : 'median', ['Old Persian', 'Aramaic'], 'garrison_sleep', 30, 'C'); }
+    const guards = this.agents.slice(); for (const g of guards) g.ties = guards.filter(o => o !== g && Math.floor(o.id / 10) === Math.floor(g.id / 10)).map(o => o.id);
+    // masons: a squad of 12 under a foreman in the stone gang; stonecutters are attested as Syrians, Ionians, Egyptians (PEOPLE §2, B)
     const gang: Agent[] = [];
     const fore = add('foreman', 'm', 'Elamite', ['Elamite', 'Iranian'], 'median', ['Elamite', 'Aramaic'], 'town', 50, 'C'); gang.push(fore);
     const gangOrigins: [string, string[], string[]][] = [['Ionian', [], ['Greek', 'Aramaic']], ['Ionian', [], ['Greek', 'Aramaic']], ['Ionian', [], ['Greek', 'Aramaic']], ['Egyptian', ['Egyptian'], ['Egyptian', 'Aramaic']], ['Egyptian', [], ['Egyptian', 'Aramaic']],
@@ -99,12 +138,12 @@ export class PeopleSim {
     // scribes (Elamite chancellery; Aramaic secretaries: LANGUAGES B)
     const scr = [add('scribe', 'm', 'Elamite', ['Elamite', 'Iranian'], 'median', ['Elamite', 'Aramaic'], 'town', 40, 'C'), add('scribe', 'm', 'Babylonian', ['Babylonian', 'West Semitic'], 'median', ['Aramaic', 'Babylonian'], 'town', 40, 'C')];
     scr[0].ties = [scr[1].id]; scr[1].ties = [scr[0].id];
-    // women's work group (grinding, water) with their children; bakers (women's rations incl. maternity: B)
+    // the work-camp women's group (grinding, baking, water) with their children (women's rations incl. maternity: B)
     const women: Agent[] = [];
     for (let i = 0; i < 6; i++) { const w = add(i < 2 ? 'baker' : 'grinder', 'f', i % 2 ? 'Elamite' : 'Persian', i % 2 ? ['Elamite', 'Iranian', 'unknown'] : ['Iranian'], 'woman', i % 2 ? ['Elamite'] : ['Old Persian', 'Elamite'], 'town', 25, 'C'); women.push(w); }
     for (const w of women) w.ties = women.filter(o => o !== w).map(o => o.id);
-    for (let i = 0; i < 3; i++) { const mother = women[2 + i]; const c = add('child', i === 1 ? 'f' : 'm', mother.origin, [mother.origin === 'Persian' ? 'Iranian' : 'Elamite'], 'child', mother.langs, 'town', 10, 'C', { household: mother.household }); c.ties = [mother.id]; mother.ties.push(c.id); }
-    // couriers and officials
+    for (let i = 0; i < 3; i++) { const mother = women[2 + i]; const c = add('child', i === 1 ? 'f' : 'm', mother.origin, [mother.origin === 'Persian' ? 'Iranian' : 'Elamite'], 'child', mother.langs, 'town', 10, 'C', { household: mother.household }); c.ties = [mother.id]; mother.ties.push(c.id); seats[seats.length - 1].mother = mother.id; }
+    // messengers of the road station and officials
     const cour = [0, 1].map(() => add('courier', 'm', 'Persian', ['Iranian'], 'median', ['Old Persian', 'Aramaic'], 'town', 45, 'C')); cour[0].ties = [cour[1].id]; cour[1].ties = [cour[0].id];
     const offs: Agent[] = []; for (let i = 0; i < 3; i++) offs.push(add('official', 'm', 'Persian', ['Iranian'], 'persian', ['Old Persian', 'Elamite', 'Aramaic'], 'town', 60, 'C'));
     for (const o of offs) o.ties = offs.filter(x => x !== o).map(x => x.id);
@@ -112,153 +151,168 @@ export class PeopleSim {
     const spot = (pl: string, i: number, n: number): P2 => { const P = PLACES[pl]; if (!P.span) return P.at; const [[x0, y0], [x1, y1]] = P.span;
       const cols = Math.ceil(Math.sqrt(n * (x1 - x0) / Math.max(1, y1 - y0))), rows = Math.ceil(n / cols); const c = i % cols, r = Math.floor(i / cols);
       return this.nav.snap(x0 + (c + 0.5) * (x1 - x0) / cols, y0 + (r + 0.5) * (y1 - y0) / rows, 4) ?? P.at; };
-    const guards = this.agents.filter(a => a.role === 'guard'); guards.forEach((g, i) => (g.slot = spot('garrison_sleep', i, guards.length)));
+    guards.forEach((g, i) => (g.slot = spot('garrison_sleep', i, guards.length)));
     const masons = this.agents.filter(a => a.role === 'mason'); masons.forEach((m, i) => (m.slot = spot('worksite', i, masons.length)));
     const grinders = this.agents.filter(a => a.role === 'grinder' || a.role === 'baker'); grinders.forEach((g, i) => (g.slot = spot('querns', i, grinders.length)));
     for (const a of this.agents) { if (a.slot[0] === 0 && a.slot[1] === 0) a.slot = PLACES[a.home].at; a.pos = [...a.slot] as P2; }
+    return seats;
   }
 
   // ------------------------------------------------------------------ helpers
   private here(a: Agent, pl: string, jitter = 0, rng?: Rng): P2 {
-    const P = PLACES[pl]; let [e, n] = P.at;
+    const P = PLACES[pl]; if (!P) return a.pos; let [e, n] = P.at;
     if (P.span && rng) { const [[x0, y0], [x1, y1]] = P.span; e = rng.range(x0, x1); n = rng.range(y0, y1); }
     else if (jitter && rng) { const ang = rng.range(0, 2 * Math.PI), r = rng.range(0.8, jitter); e += Math.cos(ang) * r; n += Math.sin(ang) * r; }
     return this.nav.snap(e, n, 5) ?? P.at;
   }
   private task(act: ActivityId, place: string, spot: P2, until: number, why: string, heading?: number): Task {
-    const P = PLACES[place]; const face = P.kind === 'hearth' || P.kind === 'oven' ? Math.atan2(P.at[0] - spot[0], P.at[1] - spot[1]) * 180 / Math.PI : null;
-    return { act, place, spot, heading: heading ?? P.heading ?? face, until, why };
+    const P = PLACES[place]; const face = P && (P.kind === 'hearth' || P.kind === 'oven') ? Math.atan2(P.at[0] - spot[0], P.at[1] - spot[1]) * 180 / Math.PI : null;
+    return { act, place, spot, heading: heading ?? P?.heading ?? face, until, why };
   }
-  private log(kind: string, text: string, place: string) { this.events.push({ t: this.t, kind, text, place }); if (this.events.length > 500) this.events.shift(); }
+  private log(kind: string, text: string, place: string, id?: string, t = this.t, tier?: string) { this.events.push({ t, kind, text, place, id, tier }); if (this.events.length > 2000) this.events.shift(); }
+  /** the person's plan for a day (cached per agent) */
+  planOf(a: Agent, day: number): Seg[] {
+    const c = this.planCache.get(a.id); if (c && c.day === day) return c.segs;
+    const segs = this.pop.plan(a.pid, day); this.planCache.set(a.id, { day, segs }); return segs;
+  }
 
   // ------------------------------------------------------------------ decisions
-  /** choose the next task for an agent at sim time t (hours) */
+  /** choose the next task for an agent at sim time t (hours): the plan block in force, filled in on the Terrace */
   decide(a: Agent): Task {
     const day = Math.floor(this.t / 24), hour = this.t - day * 24;
-    if (a.day !== day) { a.day = day; a.decisions = 0; const r0 = new Rng(this.seed, `sick:${a.id}:${day}`); a.sick = r0.chance(0.015); }
+    if (a.day !== day) { a.day = day; a.decisions = 0; }
     const rng = new Rng(this.seed, `d:${a.id}:${day}:${a.decisions++}`);
-    const env = this.env(this.t), sun = sunTimes(day);
-    const T = (h: number) => day * 24 + h; // absolute hours for today at local hour h
-    const storm = env.lightning || env.rain > 0.7, wet = env.rain > 0.25;
-    const workStart = sun.rise + 0.4 + rng.range(-0.25, 0.25), workEnd = sun.set - 0.6 + rng.range(-0.25, 0.25);
-    const goHome = (why: string) => this.task('offmap', 'town', PLACES.town.at, a.home === 'town' ? T(24 + workStart - 1.2) : this.t + 1, why);
-    const meal = (pl: string) => this.task('eat', pl, this.here(a, pl, 2.2, rng), this.t + rng.range(0.5, 0.9), 'meal');
-
-    if (a.role === 'guard') {
-      const S = SHIFT_START[a.shift!], rel = ((hour - S) % 24 + 24) % 24;
-      const post = PLACES[a.post!];
-      if (rel < 8) { a.relieved = false; return this.task('stand_guard', a.post!, post.at, T(hour - rel + 8), 'on watch', post.heading); }
-      if (rel < 8.6 && !a.relieved) return this.task('stand_guard', a.post!, post.at, this.t + 0.1, 'waiting to be relieved', post.heading);
-      const hearth = ['garrison_hearth_s', 'garrison_hearth_m', 'garrison_hearth_n'][a.shift!];
-      if (rel < 9.6 && a.hunger > 0.3) { a.hunger = 0; return meal(hearth); }
-      if (rel < 12.5) { const r = rng.next();
-        if (r < 0.4) return this.task('gamble', hearth, this.here(a, hearth, 2.5, rng), this.t + rng.range(0.4, 1.2), 'off watch');
-        if (r < 0.75) return this.task('talk', hearth, this.here(a, hearth, 3, rng), this.t + rng.range(0.3, 0.8), 'off watch');
-        if (r < 0.85 && !wet && hour > 7 && hour < 19) return this.task('talk', 'forecourt', this.here(a, 'forecourt', 0, rng), this.t + rng.range(0.3, 0.7), 'errand in the court');
-        return this.task('rest', hearth, this.here(a, hearth, 3, rng), this.t + rng.range(0.3, 1), 'off watch'); }
-      if (rel < 22.8) { a.fatigue = 0; return this.task('sleep', 'garrison_sleep', a.slot, T(hour - rel + 22.8), 'asleep'); }
-      if (rel < 23.4) { if (a.hunger > 0.5) { a.hunger = 0; return this.task('eat', hearth, this.here(a, hearth, 2.2, rng), T(hour - rel + 23.4), 'breakfast before the watch'); }
-        return this.task('talk', hearth, this.here(a, hearth, 3, rng), T(hour - rel + 23.4), 'readying for the watch'); }
-      a.relieved = false; return this.task('stand_guard', a.post!, post.at, T(hour - rel + 32), 'going on watch', post.heading);
+    const seg = segAt(this.planOf(a, day), hour);
+    const end = Math.max(day * 24 + seg.t1, this.t + 1 / 120);
+    a.sick = seg.act === 'lie_ill';
+    // a guard whose watch has ended keeps the post until the relief arrives (at most ~36 minutes)
+    if (a.role === 'guard' && a.task?.act === 'stand_guard' && a.post && GUARD_POSTS.includes(a.post) && !a.relieved && a.watchEnd !== undefined && this.t < a.watchEnd + 0.6 && !(seg.act === 'stand_guard' && seg.place === a.post))
+      return this.task('stand_guard', a.post, PLACES[a.post].at, Math.min(a.watchEnd + 0.6, this.t + 0.1), 'waiting to be relieved', PLACES[a.post].heading);
+    if (seg.where !== 'terrace' || !(seg.place in PLACES || seg.place === 'terrace_round')) return { act: seg.act, place: seg.place, spot: PLACES.town.at, heading: null, until: end, why: seg.why, off: true };
+    return this.onTerrace(a, seg, end, rng);
+  }
+  /** fine-grained behaviour on the Terrace inside one plan block (the block's place and act are the plan's) */
+  private onTerrace(a: Agent, seg: Seg, end: number, rng: Rng): Task {
+    const pl = seg.place, act = seg.act, why = seg.why; const chunk = (lo: number, hi: number) => Math.min(end, this.t + rng.range(lo, hi));
+    // carried goods are set down when the next task is not carrying
+    if (a.role !== 'porter' && a.carry && !((a.carry === 'jar_head' && act === 'carry_jar_head') || (a.carry === 'basket' && act === 'carry_bread') || (a.carry === 'sack' && act === 'carry_sack'))) a.carry = null;
+    switch (act) {
+      case 'sleep': return this.task('sleep', pl, a.role === 'guard' && pl === 'garrison_sleep' ? a.slot : this.here(a, pl, 2, rng), end, why);
+      case 'lie_ill': return this.task('lie_ill', pl, a.role === 'guard' ? a.slot : this.here(a, pl, 2, rng), end, why);
+      case 'stand_guard': {
+        const P = PLACES[pl]; if (a.post !== pl || a.task?.act !== 'stand_guard' || a.watchEnd !== end) { a.relieved = false; } a.post = pl; a.watchEnd = end;
+        return this.task('stand_guard', pl, P.at, end, why, P.heading);
+      }
+      case 'patrol': { // walking the rounds between the posts: the next post along the round, then the next
+        const posts = GUARD_POSTS; const cur = posts.findIndex(p => this.nearP(a, p, 3)); const nxt = posts[(cur < 0 ? Math.floor(rng.next() * posts.length) : cur + 1) % posts.length];
+        a.post = undefined; return this.task('patrol', nxt, this.nav.snap(PLACES[nxt].at[0] + 1.5, PLACES[nxt].at[1] - 1.5, 3) ?? PLACES[nxt].at, Math.min(end, this.t + 0.02), why);
+      }
+      case 'carry_sack': {
+        if (a.role === 'porter') break;
+        if (a.role === 'guard') { // a man of an off-duty file carrying the garrison's ration sacks up from the depot
+          if (a.carry === 'sack') return this.task('carry_sack', 'garrison_hearth_m', this.here(a, 'garrison_hearth_m', 3, rng), Math.min(end, this.t + 0.01), why);
+          if (this.nearP(a, pl, 6)) { a.carry = 'sack'; return this.task('carry_sack', 'garrison_hearth_m', this.here(a, 'garrison_hearth_m', 3, rng), Math.min(end, this.t + 0.01), why); }
+          return this.task('rest', pl, this.here(a, pl, 3, rng), Math.min(end, this.t + 0.01), 'going down for the next sack');
+        }
+        // a camp woman carrying a sack of flour from the depot up to the querns (the plan's place is where it goes)
+        if (a.carry === 'sack') { if (this.nearP(a, pl, 3)) { a.carry = null; return this.task('rest', pl, this.here(a, pl, 2, rng), end, 'set the sack down'); } return this.task('carry_sack', pl, this.here(a, pl, 2, rng), this.t + 0.01, why); }
+        if (this.nearP(a, 'stair_foot', 6)) { a.carry = 'sack'; return this.task('carry_sack', pl, this.here(a, pl, 2, rng), this.t + 0.01, why); }
+        return this.task('rest', 'stair_foot', this.here(a, 'stair_foot', 3, rng), this.t + 0.01, 'going down to the depot for flour');
+      }
+      case 'carry_bread': { // fetch the basket at the oven, carry it to the plan's place, set it down there
+        if (a.carry === 'basket') { if (this.nearP(a, pl, 3)) { a.carry = null; return this.task('talk', pl, this.here(a, pl, 2, rng), end, 'handing out the bread'); } return this.task('carry_bread', pl, this.here(a, pl, 2, rng), this.t + 0.01, why); }
+        if (pl === 'oven' || this.nearP(a, 'oven', 3)) { if (this.nearP(a, 'oven', 3)) a.carry = 'basket'; return this.task(a.carry ? 'carry_bread' : 'rest', 'oven', this.here(a, 'oven', 1.5, rng), a.carry ? end : this.t + 0.01, why); }
+        return this.task('rest', 'oven', this.here(a, 'oven', 1.5, rng), this.t + 0.01, 'fetching the bread basket');
+      }
+      case 'queue': return this.task('queue', pl, this.here(a, pl, 4, rng), end, why);
+      case 'walk': return this.task('rest', pl, this.here(a, pl, 2, rng), Math.min(end, this.t + 0.02), why);
+      case 'shelter': return this.task('shelter', pl, this.here(a, pl, 0, rng), end, why);
+      default: break;
     }
-
-    // day workers who live in the town
-    const dayOff = a.sick || (a.role === 'courier' && !new Rng(this.seed, `courier:${a.id}:${day}`).chance(0.6)) || (a.role === 'official' && !new Rng(this.seed, `off:${a.id}:${day}`).chance(0.8));
-    const earlyRoles = a.role === 'baker';
-    const start = earlyRoles ? sun.rise - 0.6 : a.role === 'courier' ? 8 + new Rng(this.seed, `cour-h:${a.id}:${day}`).range(0, 6) : a.role === 'official' ? 8.5 : a.role === 'scribe' ? sun.rise + 1.3 : workStart;
-    const end = a.role === 'courier' ? start + 1.5 : a.role === 'official' ? 15 : a.role === 'scribe' ? 15.5 : earlyRoles || a.role === 'grinder' || a.role === 'child' ? 14.5 : workEnd;
-    if (dayOff || hour < start - 0.1 || hour >= end || (storm && a.role !== 'scribe')) {
-      if (hour >= end || dayOff || storm) return this.task('offmap', 'town', PLACES.town.at, hour < start - 0.1 && !dayOff ? T(start) : T(24 + 0.5), storm ? 'storm: work stopped' : a.sick ? 'sick at home' : 'at home in the town');
-      return this.task('offmap', 'town', PLACES.town.at, T(start), 'at home in the town');
-    }
-    if (wet && ['mason', 'foreman', 'porter', 'grinder', 'child', 'official'].includes(a.role)) return this.task('shelter', 'gate_hall', this.here(a, 'gate_hall', 0, rng), this.t + 0.25, 'sheltering from rain');
-    const lunch = hour >= 12 && hour < 13 && a.hunger > 0.35;
     switch (a.role) {
       case 'mason': {
-        if (lunch) { a.hunger = 0; return meal('work_hearth'); }
-        if (rng.chance(0.06)) return this.task('talk', 'worksite', this.here(a, 'worksite', 0, rng), this.t + rng.range(0.1, 0.25), 'a word with the gang');
-        return this.task('dress_stone', 'worksite', a.slot, Math.min(T(end), this.t + rng.range(0.6, 1.4)), 'dressing a block', 0);
+        if (act !== 'dress_stone') break;
+        if (rng.chance(0.06)) return this.task('talk', pl, this.here(a, pl, 2, rng), chunk(0.1, 0.25), 'a word with the gang');
+        if (pl === 'worksite') return this.task('dress_stone', 'worksite', a.slot, chunk(0.6, 1.4), why, 0);
+        const P = PLACES[pl]; const c = P.c ?? P.at; const ang = (a.id * 2.399) % (2 * Math.PI); const r = P.c ? 1.6 : 1.4;
+        const s = this.nav.snap(c[0] + Math.cos(ang) * r, c[1] + Math.sin(ang) * r, 1.5) ?? P.at;
+        return this.task('dress_stone', pl, s, chunk(0.6, 1.4), why, P.c ? Math.atan2(c[0] - s[0], c[1] - s[1]) * 180 / Math.PI : P.heading);
       }
       case 'foreman': {
-        if (lunch) { a.hunger = 0; return meal('work_hearth'); }
-        const m = this.agents.filter(x => x.role === 'mason'); const tgt = rng.pick(m);
-        return this.task(rng.chance(0.5) ? 'inspect' : 'talk', 'worksite', this.nav.snap(tgt.slot[0] + 1.2, tgt.slot[1] - 1.0, 3) ?? tgt.slot, this.t + rng.range(0.1, 0.35), 'overseeing the gang');
+        if (act !== 'inspect' && act !== 'dress_stone') break;
+        const m = this.agents.filter(x => x.role === 'mason' && !x.offmap && x.task?.act === 'dress_stone'); const tgt = m.length ? rng.pick(m) : null;
+        if (!tgt) return this.task('inspect', pl, this.here(a, pl, 2, rng), chunk(0.1, 0.35), why);
+        return this.task(rng.chance(0.5) ? 'inspect' : 'talk', tgt.task!.place, this.nav.snap(tgt.pos[0] + 1.2, tgt.pos[1] - 1.0, 3) ?? tgt.pos, chunk(0.1, 0.35), 'overseeing the squad');
       }
       case 'porter': {
-        if (lunch) { a.hunger = 0; return meal('work_hearth'); }
-        if (a.carry === 'sack') { return this.task('rest', 'treasury_store', this.here(a, 'treasury_store', 3, rng), this.t + 0.03, 'set the sack down'); }
-        if (this.stock.depot > 0 && this.near(a, 'stair_foot', 6)) { this.stock.depot--; a.carry = 'sack'; return this.task('carry_sack', 'treasury_store', this.here(a, 'treasury_store', 3, rng), this.t + 0.02, 'carrying a sack to the Treasury store'); }
+        if (!(pl === 'stair_foot' && act === 'rest')) break;
+        if (a.carry === 'sack') return this.task('rest', 'treasury_store', this.here(a, 'treasury_store', 3, rng), this.t + 0.03, 'set the sack down');
+        if (this.stock.depot > 0 && this.nearP(a, 'stair_foot', 6)) { this.stock.depot--; a.carry = 'sack'; return this.task('carry_sack', 'treasury_store', this.here(a, 'treasury_store', 3, rng), this.t + 0.02, 'carrying a sack to the Treasury store'); }
         if (this.stock.depot > 0) return this.task('rest', 'stair_foot', this.here(a, 'stair_foot', 3, rng), this.t + 0.02, 'going for the next load');
-        return this.task(rng.chance(0.5) ? 'rest' : 'talk', 'stair_foot', this.here(a, 'stair_foot', 3.5, rng), this.t + rng.range(0.2, 0.5), 'waiting for a caravan');
+        return this.task(rng.chance(0.5) ? 'rest' : 'talk', 'stair_foot', this.here(a, 'stair_foot', 3.5, rng), chunk(0.2, 0.5), 'waiting for a caravan');
       }
-      case 'scribe': {
-        if (lunch) { a.hunger = 0; return meal('treasury_desk'); }
-        return this.task('write_tablet', 'treasury_desk', this.here(a, 'treasury_desk', 1.8, rng), this.t + rng.range(0.5, 1.2), 'recording issues and payments');
-      }
-      case 'baker': {
-        if (hour < start + 1) return this.task('knead', 'oven', this.nav.snap(PLACES.oven.at[0] - 1.5 - a.id % 2, PLACES.oven.at[1] - 1.2, 2) ?? PLACES.oven.at, T(start + 1), 'kneading dough', 45);
-        if (hour < start + 3.5) return this.task('bake', 'oven', this.nav.snap(PLACES.oven.at[0] + (a.id % 2 ? 1 : -1), PLACES.oven.at[1] - 1.0, 2) ?? PLACES.oven.at, T(start + 3.5), 'baking bread', 0);
-        if (lunch) { a.hunger = 0; return meal('work_hearth'); }
-        return this.task('grind', 'querns', a.slot, this.t + rng.range(0.5, 1), 'grinding flour for tomorrow', 90);
-      }
-      case 'grinder': {
-        if (lunch) { a.hunger = 0; return meal('work_hearth'); }
-        if (a.carry === 'jar_head') {
-          if (!this.near(a, 'work_hearth', 3.5)) return this.task('carry_jar_head', 'work_hearth', this.here(a, 'work_hearth', 2, rng), this.t + 0.01, 'carrying water to the work camp');
-          a.carry = null; this.log('water', 'water brought to the work camp', 'work_hearth'); return this.task('rest', 'work_hearth', this.here(a, 'work_hearth', 2, rng), this.t + 0.05, 'set the water jar down'); }
-        if (rng.chance(0.18) && !wet) return this.task('draw_water', 'water', this.here(a, 'water', 1.5, rng), this.t + 0.1, 'fetching water');
-        return this.task('grind', 'querns', a.slot, this.t + rng.range(0.4, 0.9), 'grinding grain', 90);
+      case 'baker': case 'grinder': {
+        if (act === 'knead') return this.task('knead', 'oven', this.nav.snap(PLACES.oven.at[0] - 1.5 - a.id % 2, PLACES.oven.at[1] - 1.2, 2) ?? PLACES.oven.at, end, why, 45);
+        if (act === 'bake') return this.task('bake', 'oven', this.nav.snap(PLACES.oven.at[0] + (a.id % 2 ? 1 : -1), PLACES.oven.at[1] - 1.0, 2) ?? PLACES.oven.at, end, why, 0);
+        if (act === 'grind') return this.task('grind', 'querns', a.slot, chunk(0.4, 0.9), why, 90);
+        if (act === 'draw_water') return this.task('draw_water', 'water', this.here(a, 'water', 1.5, rng), end, why);
+        if (act === 'carry_jar_head') {
+          if (a.carry !== 'jar_head') return this.task('rest', 'work_hearth', this.here(a, 'work_hearth', 2, rng), end, 'at the work camp');
+          if (!this.nearP(a, 'work_hearth', 3.5)) return this.task('carry_jar_head', 'work_hearth', this.here(a, 'work_hearth', 2, rng), this.t + 0.01, why);
+          a.carry = null; this.log('water', 'water brought to the work camp', 'work_hearth'); return this.task('rest', 'work_hearth', this.here(a, 'work_hearth', 2, rng), end, 'set the water jar down');
+        }
+        break;
       }
       case 'child': {
-        const mom = this.agents[a.ties[0]]; const c = mom.task && !mom.offmap ? mom.pos : PLACES.querns.at;
+        if (pl !== 'querns' && pl !== 'stair_foot') break;
+        const mom = this.agents[a.ties[0]]; const c = mom && mom.task && !mom.offmap ? mom.pos : PLACES[pl].at;
         const s = this.nav.snap(c[0] + rng.range(-6, 6), c[1] + rng.range(-6, 6), 4) ?? c;
-        if (lunch) { a.hunger = 0; return meal('work_hearth'); }
-        return this.task(rng.chance(0.6) ? 'play' : 'rest', mom.task?.place ?? 'querns', s, this.t + rng.range(0.15, 0.4), 'near mother');
-      }
-      case 'courier': {
-        if (this.near(a, 'treasury_desk', 4)) return goHome('message delivered');
-        return this.task('talk', 'treasury_desk', this.here(a, 'treasury_desk', 2.5, rng), this.t + rng.range(0.15, 0.3), 'delivering a sealed document');
+        return this.task(act === 'eat' ? 'eat' : act === 'play' ? 'play' : 'rest', mom?.task?.place && !mom.offmap ? mom.task.place : pl, s, chunk(0.15, 0.4), why);
       }
       case 'official': {
-        const stops = ['forecourt', 'apadana_hall', 'worksite', 'treasury_desk', 'gate_hall'];
-        const pl = rng.pick(stops); const ties = a.ties.map(i => this.agents[i]).filter(o => o.task?.place === pl && !o.offmap);
-        return this.task(ties.length ? 'talk' : 'inspect', pl, ties.length ? (this.nav.snap(ties[0].pos[0] + 1.3, ties[0].pos[1], 2) ?? PLACES[pl].at) : this.here(a, pl, 0, rng), this.t + rng.range(0.3, 0.8), `visiting the ${pl.replace('_', ' ')}`);
+        if (act !== 'inspect' && act !== 'talk') break;
+        const ties = a.ties.map(i => this.agents[i]).filter(o => o.task?.place === pl && !o.offmap);
+        return this.task(ties.length ? 'talk' : act, pl, ties.length ? (this.nav.snap(ties[0].pos[0] + 1.3, ties[0].pos[1], 2) ?? PLACES[pl].at) : this.here(a, pl, 2.5, rng), chunk(0.3, 0.8), why);
       }
     }
-    return this.task('rest', a.home, a.slot, this.t + 0.5, 'idle');
+    // the plan's act at the plan's place (meals, rest, talk and knucklebones at the hearths, writing at the desk, …)
+    const jitter = PLACES[pl]?.kind === 'hearth' ? 2.6 : PLACES[pl]?.kind === 'post' ? 0 : 2;
+    return this.task(act, pl, this.here(a, pl, jitter, rng), act === 'eat' || act === 'write_tablet' || act === 'talk' ? chunk(0.3, 1.2) : end, why);
   }
-  private near(a: Agent, pl: string, r: number) { const p = PLACES[pl].at; return Math.hypot(a.pos[0] - p[0], a.pos[1] - p[1]) < r; }
+  private nearP(a: Agent, pl: string, r: number) { const p = PLACES[pl]?.at; return !!p && Math.hypot(a.pos[0] - p[0], a.pos[1] - p[1]) < r; }
 
   // ------------------------------------------------------------------ movement
-  private routeTo(a: Agent, to: P2): P2[] | null {
+  /** a route from the agent to `to`, null if there is none, undefined if the step's search budget is spent */
+  private routeTo(a: Agent, to: P2): P2[] | null | undefined {
     if (this.nav.lineClear(a.pos, to)) return [a.pos, to];
     // cache by grid cell pairs (5 m buckets) so repeated place-to-place trips reuse the search
     const q = (p: P2) => `${Math.round(p[0] / 5)},${Math.round(p[1] / 5)}`; const key = q(a.pos) + '>' + q(to);
     let mid = this.pathCache.get(key);
-    if (mid === undefined) { mid = this.nav.findPath(a.pos, to); this.pathCache.set(key, mid); }
+    if (mid === undefined) { if (this.searches >= this.routeSearchesPerStep) return undefined; this.searches++; mid = this.nav.findPath(a.pos, to); this.pathCache.set(key, mid); }
     if (!mid) return null;
     const p = mid.slice(); p[0] = a.pos; p[p.length - 1] = to;
-    if (p.length > 1 && !this.nav.lineClear(p[0], p[1])) { const f = this.nav.findPath(a.pos, to); return f; }
+    if (p.length > 1 && !this.nav.lineClear(p[0], p[1])) { if (this.searches >= this.routeSearchesPerStep) return undefined; this.searches++; return this.nav.findPath(a.pos, to); }
     return p;
   }
   private begin(a: Agent, task: Task, instant: boolean) {
-    a.task = task;
+    a.task = task; a.waitRoute = false;
     const wasOff = a.offmap;
-    a.offmap = task.act === 'offmap';
+    a.offmap = !!task.off;
     if (a.offmap && !instant && !wasOff && Math.hypot(a.pos[0] - task.spot[0], a.pos[1] - task.spot[1]) > 1) { a.offmap = false; } // walk out to the town edge first
     if (wasOff && !a.offmap) a.pos = [...PLACES.town.at] as P2; // leaving the town: enter at the plain edge
     a.travel = null;
     const dist = Math.hypot(a.pos[0] - task.spot[0], a.pos[1] - task.spot[1]);
-    if (instant) { a.pos = [...task.spot] as P2; a.path = null; a.walking = false; if (task.act === 'offmap') a.offmap = true; this.ground(a); }
+    if (instant) { a.pos = [...task.spot] as P2; a.path = null; a.walking = false; if (task.off) a.offmap = true; this.ground(a); }
     else if (dist > 0.4 && a.lod === 'abstract') { a.path = null; a.walking = true; a.travel = { from: [...a.pos] as P2, to: [...task.spot] as P2, t0: this.t, t1: this.t + dist * ABSTRACT_DETOUR / (a.speed * (a.carry ? 0.8 : 1)) * H_PER_S }; }
-    else if (dist > 0.4) { a.path = this.routeTo(a, task.spot); a.pathI = 1; a.walking = !!a.path; if (!a.path) a.pos = [...task.spot] as P2; }
+    else if (dist > 0.4) { const r = this.routeTo(a, task.spot); if (r === undefined) { a.path = null; a.walking = false; a.waitRoute = true; } else { a.path = r; a.pathI = 1; a.walking = !!a.path; if (!a.path) a.pos = [...task.spot] as P2; } }
     else { a.path = null; a.walking = false; }
+    if (!task.off && !a.walking && task.act !== 'stand_guard') this.socialise(a);
   }
 
   /** advance by dt game seconds */
   step(dt: number) {
     if (dt <= 0) return;
-    this.t += dt * H_PER_S;
+    this.t += dt * H_PER_S; this.searches = 0;
     this.events$();
     for (const a of this.agents) this.stepAgent(a, dt);
   }
@@ -273,7 +327,7 @@ export class PeopleSim {
         // the straight-line position may lie inside a building: step to the nearest walkable cell (a small move) and
         // route from there; with no route, stay abstract until arrival rather than jump
         const s = this.nav.snap(a.pos[0], a.pos[1], 6); if (!s) continue;
-        const saved = a.pos; a.pos = s; const path = this.routeTo(a, a.task.spot);
+        const saved = a.pos; a.pos = s; const path = this.routeTo(a, a.task.spot); // undefined: over the search budget, try again later
         if (!path) { a.pos = saved; continue; }
         a.travel = null; a.path = path; a.pathI = 1; a.walking = true;
       }
@@ -282,17 +336,23 @@ export class PeopleSim {
         a.path = null; a.travel = { from: [...a.pos] as P2, to: [...a.task.spot] as P2, t0: this.t, t1: this.t + d / a.speed * H_PER_S }; a.walking = true; }
     }
   }
-  /** jump to a new time: everyone is placed where their schedule puts them (continuity after time skips, loads) */
+  /** jump to a new time: everyone is placed where their plan puts them (continuity after time skips, loads) */
   jumpTo(tHours: number) {
-    this.t = tHours; this.events$();
+    this.t = tHours; this.evT = tHours < this.evT ? tHours - 24 : Math.max(this.evT, tHours - 24); this.events$();
     for (const a of this.agents) { a.carry = null; a.relieved = true; this.begin(a, this.decide(a), true); }
-    // porters and guards resolved: nobody half-way along a path
   }
   private events$() {
     const day = Math.floor(this.t / 24), hour = this.t - day * 24;
-    // caravans (C): 1–2 a day unload sacks at the stair foot around mid-morning
+    const C = this.cal.ctx(day);
+    // the calendar's events (rations, deliveries, couriers, offerings, construction, life …) enter the chronicle as time passes
+    if (this.evT < 0) this.evT = this.t - 1e-9;
+    if (this.t > this.evT) { for (const e of this.cal.eventsBetween(this.evT, this.t)) this.log(e.kind, e.text, e.place, e.id, e.t, e.tier); this.evT = this.t; }
+    // goods for the Treasury carried up from the stair foot (C): 1–2 loads a day around mid-morning; weather holds them up
     if (day !== this.lastCaravanDay && hour >= 9) {
-      this.lastCaravanDay = day; const r = new Rng(this.seed, `caravan:${day}`); const n = r.int(1, 2); let sacks = 0;
+      const bad = (h: number) => (C.wx.stormH && h >= C.wx.stormH[0] && h <= C.wx.stormH[1]) || (C.wx.rain && h >= C.wx.rain[0] && h <= C.wx.rain[1]);
+      if (bad(hour) && hour < 15) return;
+      this.lastCaravanDay = day; if (bad(hour)) { this.log('weather_effect', 'no caravan reached the stair foot today: the road was stopped by the weather', 'stair_foot', 'W-01'); return; }
+      const r = new Rng(this.seed, `caravan:${day}`); const n = r.int(1, 2); let sacks = 0;
       for (let i = 0; i < n; i++) sacks += r.int(20, 40);
       this.stock.depot += sacks; this.log('caravan', `${n === 1 ? 'a caravan' : 'two caravans'} unloaded ${sacks} sacks at the stair foot`, 'stair_foot');
       // the Treasury store is drawn down as goods go to inner storerooms and issues (C), keeping stock bounded
@@ -303,11 +363,13 @@ export class PeopleSim {
   private stepAgent(a: Agent, dt: number) {
     const hrs = dt * H_PER_S; a.hunger = Math.min(1, a.hunger + hrs / 6); a.fatigue = Math.min(1, a.fatigue + hrs / 16);
     if (!a.task) this.begin(a, this.decide(a), true);
+    if (a.waitRoute && a.task) { const r = this.routeTo(a, a.task.spot); if (r === undefined) { this.ground(a); return; }
+      a.waitRoute = false; a.path = r; a.pathI = 1; a.walking = !!r; if (!r) a.pos = [...a.task.spot] as P2; }
     let budget = dt;
     for (let guard = 0; guard < 8 && budget > 0; guard++) {
       if (a.walking && a.travel) { // abstract travel: timed straight-line move
         const tr = a.travel;
-        if (this.t >= tr.t1) { a.pos = [...tr.to] as P2; a.travel = null; a.walking = false; budget = Math.min(budget, (this.t - tr.t1) * 3600); if (a.task?.act === 'offmap') a.offmap = true; this.arrive(a); continue; }
+        if (this.t >= tr.t1) { a.pos = [...tr.to] as P2; a.travel = null; a.walking = false; budget = Math.min(budget, (this.t - tr.t1) * 3600); if (a.task?.off) a.offmap = true; this.arrive(a); continue; }
         const f = (this.t - tr.t0) / Math.max(1e-9, tr.t1 - tr.t0); a.pos = [tr.from[0] + (tr.to[0] - tr.from[0]) * f, tr.from[1] + (tr.to[1] - tr.from[1]) * f];
         a.heading = Math.atan2(tr.to[0] - tr.from[0], tr.to[1] - tr.from[1]) * 180 / Math.PI; a.gait += a.speed * dt / 0.72 * Math.PI; budget = 0; break;
       }
@@ -321,7 +383,7 @@ export class PeopleSim {
           if (d > 1e-3) a.heading = Math.atan2(de, dn) * 180 / Math.PI;
           a.gait += step / 0.72 * Math.PI; // one stride ≈ 1.44 m
         }
-        if (a.pathI >= a.path.length) { a.walking = false; a.path = null; if (a.task?.act === 'offmap') a.offmap = true; this.arrive(a); }
+        if (a.pathI >= a.path.length) { a.walking = false; a.path = null; if (a.task?.off) a.offmap = true; this.arrive(a); }
         continue;
       }
       // performing: wait until the task ends
@@ -332,36 +394,84 @@ export class PeopleSim {
     }
     this.ground(a);
     if (!a.walking && a.task && a.task.heading !== null && Number.isFinite(a.task.heading)) a.heading = a.task.heading;
-    // memory of the player (brief §9.5): a meeting = the player within 3 m; counted once a day
-    if (this.player && !a.offmap && Math.hypot(this.player[0] - a.pos[0], this.player[1] - a.pos[1]) < 3 && a.lastMetDay !== Math.floor(this.t / 24)) { a.metPlayer++; a.lastMetDay = Math.floor(this.t / 24); }
+    if (this.player && !a.offmap) this.notice(a, dt);
   }
   private ground(a: Agent) { const y = a.offmap ? 0 : this.nav.heightAt(a.pos[0], a.pos[1]); a.y = Number.isFinite(y) ? y : a.y; }
   private arrive(a: Agent) {
     // a relieving guard releases the one on the post
     if (a.role === 'guard' && a.task?.act === 'stand_guard') for (const o of this.agents) if (o !== a && o.post === a.post && o.task?.act === 'stand_guard') { o.relieved = true; }
+    if (!a.task?.off) this.socialise(a);
   }
   private finish(a: Agent) {
     const act = a.task?.act;
-    if (a.role === 'porter' && a.carry === 'sack' && this.near(a, 'treasury_store', 6)) { a.carry = null; this.stock.store++; }
-    if (act === 'draw_water') a.carry = 'jar_head';
+    if (a.role === 'porter' && a.carry === 'sack' && this.nearP(a, 'treasury_store', 6)) { a.carry = null; this.stock.store++; }
+    if (a.role === 'guard' && a.carry === 'sack' && this.nearP(a, 'garrison_hearth_m', 6)) a.carry = null;
+    if (act === 'draw_water' && !a.task?.off) a.carry = 'jar_head';
   }
+  /** relationships between the detailed people change with what they do together: eating, talking and knucklebones at
+   *  the same hearth warm them a little (lives.json affinity; the change counts from the next day) */
+  private socialise(a: Agent) {
+    const act = a.task?.act; if (act !== 'talk' && act !== 'gamble' && act !== 'eat') return;
+    const day = Math.floor(this.t / 24); let n = 0;
+    for (const o of this.agents) { if (o === a || o.offmap || o.walking || o.task?.place !== a.task!.place || (o.task.act !== 'talk' && o.task.act !== 'gamble' && o.task.act !== 'eat')) continue;
+      if (Math.hypot(o.pos[0] - a.pos[0], o.pos[1] - a.pos[1]) > 6) continue; this.pop.relate(a.pid, o.pid, day, (livesData as any).affinity.shared_meal); if (++n >= 3) break; }
+  }
+  /** memory of the player: meetings, being stopped at a gate, being watched at work (lives.json familiarity) */
+  private notice(a: Agent, dt: number) {
+    const p = this.player!; const d = Math.hypot(p[0] - a.pos[0], p[1] - a.pos[1]); const day = Math.floor(this.t / 24);
+    if (d < 3 && a.lastMetDay !== day) { a.metPlayer++; a.lastMetDay = day;
+      const kind: Encounter = a.task?.act === 'stand_guard' && a.post && CHECK_POSTS.has(a.post) ? 'stopped' : 'met'; this.memory.note(a.id, kind, this.t); }
+    const working = !a.walking && a.task && ACTIVITIES[a.task.act] && !['sleep', 'rest', 'walk', 'lie_ill', 'offmap'].includes(a.task.act);
+    if (d < 6 && working) { const h = (this.near.get(a.id) ?? 0) + dt * H_PER_S; this.near.set(a.id, h); if (h >= FAM.watch_hours && h - dt * H_PER_S < FAM.watch_hours) this.memory.note(a.id, 'watched', this.t); }
+    else if (this.near.has(a.id)) this.near.delete(a.id);
+  }
+  /** the player addressed this person (world.address): remembered */
+  noteAddressed(id: number) { this.memory.note(id, 'addressed', this.t); }
+  /** how this person greets the player now: 'none' | 'nod' | 'recognise' (for the renderer's head turn and for speech) */
+  greeting(id: number) { return this.memory.greeting(id, this.t); }
+  /** familiarity with the player, 0..1 (decays with a half-life of days) */
+  familiarity(id: number) { return this.memory.level(id, this.t); }
+  /** affinity between two detailed people, -1..1 (base by tie; disputes sour it, shared meals and talk warm it) */
+  relationship(a: number, b: number) { return this.pop.affinity(this.agents[a].pid, this.agents[b].pid, Math.floor(this.t / 24)); }
 
   /** what the renderer should show for an agent right now */
   performance(a: Agent): { act: ActivityId; moving: boolean } {
     if (a.walking) {
-      const act: ActivityId = a.carry === 'sack' ? 'carry_sack' : a.carry === 'jar_head' ? 'carry_jar_head' : a.role === 'guard' && a.task?.act === 'stand_guard' ? 'patrol' : 'walk';
+      const act: ActivityId = a.carry === 'sack' ? 'carry_sack' : a.carry === 'jar_head' ? 'carry_jar_head' : a.carry === 'basket' ? 'carry_bread' : a.role === 'guard' && (a.task?.act === 'stand_guard' || a.task?.act === 'patrol') ? 'patrol' : 'walk';
       return { act, moving: true };
     }
     return { act: a.task?.act ?? 'rest', moving: false };
   }
-  /** every activity the decision code can emit (for the activity lint) */
-  static readonly EMITS: ActivityId[] = ['walk', 'carry_sack', 'carry_jar_head', 'stand_guard', 'patrol', 'dress_stone', 'grind', 'knead', 'bake', 'draw_water', 'write_tablet', 'eat', 'sleep', 'talk', 'rest', 'gamble', 'inspect', 'shelter', 'play', 'offmap'];
+  /** every activity a detailed agent can perform in the rendered world (for the activity lint); off the Terrace an agent
+   *  is hidden and takes the population's activity, which may be an abstract-only placeholder (activities.ts) */
+  static readonly EMITS: ActivityId[] = ['walk', 'carry_sack', 'carry_jar_head', 'carry_bread', 'stand_guard', 'patrol', 'dress_stone', 'grind', 'knead', 'bake', 'draw_water', 'write_tablet', 'eat', 'sleep', 'talk', 'rest', 'gamble', 'inspect', 'shelter', 'play', 'queue', 'lie_ill', 'offmap'];
+  /** a bounded set of the detailed people for the renderer: on the Terrace (not off-map), within `radius` of `centre`,
+   *  nearest first, at most `max` (crowd pooling will draw these; D-024) */
+  visibleAgents(centre: P2, radius: number, max = Infinity): Agent[] {
+    const out: [number, Agent][] = []; for (const a of this.agents) { if (a.offmap) continue; const d = Math.hypot(a.pos[0] - centre[0], a.pos[1] - centre[1]); if (d <= radius) out.push([d, a]); }
+    return out.sort((x, y) => x[0] - y[0]).slice(0, max).map(x => x[1]);
+  }
+  /** people of the population on the Terrace now who have no detailed agent (not rendered yet; D-024), by place */
+  abstractOnTerrace(): { total: number; byPlace: Record<string, number>; byAct: Record<string, number> } {
+    const day = Math.floor(this.t / 24), h = this.t - day * 24; const byPlace: Record<string, number> = {}, byAct: Record<string, number> = {}; let total = 0;
+    for (const p of this.pop.persons) { if (p.agent >= 0 || !(p.zone === 'terrace' || p.work === 'treasury_inside' || p.work === 'treasury_store' || p.job === 'builder' || p.job === 'camp' || p.job === 'porter' || p.job === 'caretaker' || p.job === 'official' || p.job === 'scribe' || p.job === 'messenger' || p.job === 'shepherd')) continue;
+      if (!this.pop.present(p.id, day)) continue; const s = segAt(this.pop.plan(p.id, day), h); if (s.where !== 'terrace') continue;
+      total++; byPlace[s.place] = (byPlace[s.place] ?? 0) + 1; byAct[s.act] = (byAct[s.act] ?? 0) + 1; }
+    return { total, byPlace, byAct };
+  }
+  /** the Terrace places only the abstract tier uses (no detailed spot yet) */
+  static readonly ABSTRACT_TERRACE_PLACES = TERRACE_ABSTRACT;
 
-  save() { return { t: this.t, stock: { ...this.stock }, lastCaravanDay: this.lastCaravanDay, agents: this.agents.map(a => ({ id: a.id, pos: a.pos, task: a.task, carry: a.carry, hunger: a.hunger, fatigue: a.fatigue, sick: a.sick, day: a.day, decisions: a.decisions, metPlayer: a.metPlayer, lastMetDay: a.lastMetDay, offmap: a.offmap, relieved: a.relieved, heading: a.heading, lod: a.lod, travel: a.travel })) }; }
+  save() {
+    return { t: this.t, stock: { ...this.stock }, lastCaravanDay: this.lastCaravanDay, memory: this.memory.snapshot(), relations: this.pop.relationsSnapshot(),
+      agents: this.agents.map(a => ({ id: a.id, pos: a.pos, task: a.task, carry: a.carry, hunger: a.hunger, fatigue: a.fatigue, sick: a.sick, day: a.day, decisions: a.decisions, metPlayer: a.metPlayer, lastMetDay: a.lastMetDay, offmap: a.offmap, relieved: a.relieved, heading: a.heading, lod: a.lod, travel: a.travel, post: a.post, watchEnd: a.watchEnd })) };
+  }
   load(s: any) {
     if (!s?.agents) return; this.t = s.t; this.stock = { ...s.stock }; this.lastCaravanDay = s.lastCaravanDay;
-    for (const x of s.agents) { const a = this.agents[x.id]; if (!a) continue; Object.assign(a, { pos: x.pos, task: x.task, carry: x.carry, hunger: x.hunger, fatigue: x.fatigue, sick: x.sick, day: x.day, decisions: x.decisions, metPlayer: x.metPlayer, lastMetDay: x.lastMetDay, offmap: x.offmap, relieved: x.relieved, heading: x.heading });
-      a.lod = x.lod ?? a.lod; a.path = null; a.walking = false; a.travel = null; this.ground(a); if (a.task && Math.hypot(a.pos[0] - a.task.spot[0], a.pos[1] - a.task.spot[1]) > 0.4) this.begin(a, a.task, false); }
+    this.cal.ctx(Math.floor(s.t / 24)); // the calendar is deterministic: recompute to the saved day, then restore what the detailed people changed
+    if (s.relations) this.pop.relationsRestore(s.relations); this.memory.restore(s.memory); this.evT = s.t; this.planCache.clear();
+    for (const x of s.agents) { const a = this.agents[x.id]; if (!a) continue; Object.assign(a, { pos: x.pos, task: x.task, carry: x.carry, hunger: x.hunger, fatigue: x.fatigue, sick: x.sick, day: x.day, decisions: x.decisions, metPlayer: x.metPlayer, lastMetDay: x.lastMetDay, offmap: x.offmap, relieved: x.relieved, heading: x.heading, post: x.post, watchEnd: x.watchEnd });
+      a.lod = x.lod ?? a.lod; a.path = null; a.walking = false; a.travel = null; this.ground(a); if (a.task && !a.task.off && Math.hypot(a.pos[0] - a.task.spot[0], a.pos[1] - a.task.spot[1]) > 0.4) this.begin(a, a.task, false); }
   }
   static activityOk(id: string) { return id in ACTIVITIES; }
 }

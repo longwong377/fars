@@ -6,9 +6,15 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'dawn-stair-top', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -2] },
   { n: 'gate-dusk', day: 0, hour: 19.25, w: 'clear', v: [0.1, 118, 1.6, 341, 4] },
   { n: 'night-terrace', day: 5, hour: 22.5, w: 'clear', v: [0, 92, 1.6, 161, 6] },
+  // moonless pre-dawn (day 1 = 18 Apr 467 BCE, the moon a thin crescent set in the evening): the Milky Way from Cygnus to
+  // Sagittarius over the SE, seen from the Grand Stair top (D-047)
+  { n: 'night-milkyway', day: 1, hour: 3.5, w: 'clear', v: [-36, 125, 1.6, 125, 28] },
   { n: 'brazier-close', day: 0, hour: 21.5, w: 'clear', v: [-36.4, 132, 1.6, 161, -8] },
   { n: 'apadana-hall-torch', day: 0, hour: 21, w: 'clear', v: [-8, 0, 4.6, 161, 6] },
   { n: 'rain-columns', day: 2, hour: 14, w: 'rain', v: [-20, 70, 1.6, 161, 4] },
+  // §1.1 "rain moving across the plain toward the columns": day 12's rain episode reaches the Terrace at 06:01 from the
+  // WSW (245°); at 05:40 its cell is ~6 km out over the plain (WeatherSystem.rainCell); seen from the Apadana W portico
+  { n: 'rain-approach', day: 12, hour: 5.67, w: 'auto', v: [-38, -5, 1.6, 245, 3] },
   { n: 'apadana-enter', day: 25, hour: 11, w: 'clear', v: [1.9, 36, 1.6, 161, 2] },
   { n: 'reliefs-raking', day: 60, hour: 18.3, w: 'clear', v: [-20, 72, 1.6, 161, 2] },
   { n: 'scribe-at-work', day: 25, hour: 10, w: 'clear', v: [196, -81.8, 1.7, 206, -14] },

@@ -151,3 +151,12 @@ export function voiceFor(p: { seed: number; sex: 'm' | 'f'; role?: string; age?:
   const age = p.age ?? (p.role === 'child' ? 6 + r.int(0, 5) : 20 + r.int(0, 35));
   return { sex: p.sex, age, pitch: 0.9 + r.next() * 0.2, rate: 0.92 + r.next() * 0.16, breath: r.next() * 0.05, seed: hashString(`voice:${p.seed}`) };
 }
+
+/** the pre-rendered voice class for a speaker (tools/build_speech.py: m1 man low, m2 man mid, m3 old man, f1 woman,
+ *  f2 older woman, c1 child); deterministic from the voice parameters (C) */
+export function voiceKeyFor(v: VoiceParams): 'm1' | 'm2' | 'm3' | 'f1' | 'f2' | 'c1' {
+  if (v.age < 14) return 'c1';
+  if (v.sex === 'f') return v.age >= 45 ? 'f2' : 'f1';
+  if (v.age >= 50) return 'm3';
+  return v.pitch < 1.0 ? 'm1' : 'm2';
+}
