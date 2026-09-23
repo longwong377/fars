@@ -1,0 +1,619 @@
+# Shadow days (§13.11): 20 people, one full day each (seed 1); court absent (D-003). Times are local solar hours.
+
+## Detailed agent #39: Bagina — guard, man 41, Median (name B: attested in the Achaemenid Elamite name lexicon (EWB)); speaks Old Persian, Aramaic
+day 188 of the regnal year · weather: 11–31 °C, cloud 26 %, dry, wind 1 m/s · household 39 (q_pw_n, home h:39, 6 people)
+00:00  sleep @ garrison_sleep — asleep in the garrison quarters
+05:00  walk @ garrison_hearth_s — breakfast before the watch
+05:01  eat @ garrison_hearth_s — breakfast before the watch
+05:36  talk @ garrison_hearth_s — readying for the watch
+06:00  patrol @ post_harem_1 — on watch
+06:02  stand_guard @ post_harem_1 — on watch
+11:39  stand_guard @ post_harem_1 — waiting to be relieved
+11:53  walk @ garrison_hearth_s — bread and water at the hearth, relieved at the post
+11:55  eat @ garrison_hearth_s — bread and water at the hearth, relieved at the post
+12:09  patrol @ post_harem_1 — on watch
+12:11  stand_guard @ post_harem_1 — on watch
+14:00  stand_guard @ post_harem_1 — waiting to be relieved
+14:07  walk @ garrison_hearth_s — a meal after the watch
+14:09  eat @ garrison_hearth_s — a meal after the watch
+14:36  talk @ garrison_hearth_s — off watch at the hearth
+15:17  rest @ garrison_hearth_s — resting
+16:25  gamble @ garrison_hearth_s — knucklebones at the hearth
+17:58  talk @ garrison_hearth_s — off watch at the hearth
+18:55  gamble @ garrison_hearth_s — knucklebones at the hearth
+19:43  rest @ garrison_hearth_s — resting
+19:48  eat @ garrison_hearth_s — evening meal
+20:24  walk @ garrison_sleep — asleep
+20:25  sleep @ garrison_sleep — asleep
+
+## Detailed agent #54: Antarma — guard, man 38, Persian (name B: attested in the Achaemenid Elamite name lexicon (EWB)); speaks Old Persian, Aramaic
+day 253 of the regnal year · weather: -3–11 °C, cloud 11 %, dry, wind 1 m/s · household 54 (garrison, home garrison_sleep, 1 people)
+00:00  sleep @ garrison_sleep — asleep in the garrison quarters
+07:15  walk @ garrison_hearth_n — breakfast
+07:16  eat @ garrison_hearth_n — breakfast
+07:51  talk @ garrison_hearth_n — off watch at the hearth
+08:32  walk @ forecourt — an errand across the court
+08:36  talk @ forecourt — an errand across the court
+09:08  walk @ garrison_hearth_n — resting
+09:12  rest @ garrison_hearth_n — resting
+11:39  walk @ forecourt — an errand across the court
+11:43  talk @ forecourt — an errand across the court
+12:15  walk @ garrison_hearth_n — off watch at the hearth
+12:19  talk @ garrison_hearth_n — off watch at the hearth
+13:10  eat @ garrison_hearth_n — bread and water
+13:31  talk @ garrison_hearth_n — off watch at the hearth
+13:41  rest @ garrison_hearth_n — resting
+14:58  walk @ forecourt — an errand across the court
+15:02  talk @ forecourt — an errand across the court
+15:34  walk @ garrison_hearth_n — resting
+15:38  rest @ garrison_hearth_n — resting
+16:49  gamble @ garrison_hearth_n — knucklebones at the hearth
+17:50  rest @ garrison_hearth_n — resting
+18:30  eat @ garrison_hearth_n — a meal before the night watch
+19:06  walk @ garrison_sleep — a short sleep before the night watch
+19:07  sleep @ garrison_sleep — a short sleep before the night watch
+21:36  walk @ garrison_hearth_n — readying for the night watch
+21:37  talk @ garrison_hearth_n — readying for the night watch
+22:00  patrol @ post_stair_n — on watch
+22:05  stand_guard @ post_stair_n — on watch
+23:00  stand_guard @ post_stair_n — waiting to be relieved
+23:07  walk @ garrison_hearth_n — bread and water at the hearth, relieved at the post
+23:12  eat @ garrison_hearth_n — bread and water at the hearth, relieved at the post
+23:30  patrol @ post_stair_n — on watch
+23:35  stand_guard @ post_stair_n — on watch
+
+## Detailed agent #47: Barsara — guard, man 31, Median (name B: attested in the Achaemenid Elamite name lexicon (EWB)); speaks Old Persian, Aramaic
+day 238 of the regnal year · weather: -5–8 °C, cloud 33 %, dry, wind 1 m/s · household 47 (q_pw_n, home h:47, 5 people)
+00:00  sleep @ garrison_sleep — asleep in the garrison quarters
+07:25  walk @ garrison_hearth_m — breakfast
+07:26  eat @ garrison_hearth_m — breakfast
+08:01  talk @ garrison_hearth_m — off watch at the hearth
+08:19  walk @ road:town — down to the town
+08:43  talk @ h:47 — with his wife and children in the town
+10:05  talk @ h:47 — with his family
+12:17  eat @ h:47 — a meal with his family before going back up
+12:53  walk @ road:terrace — back up to the garrison
+13:12  walk @ garrison_hearth_m — readying for the watch
+13:26  talk @ garrison_hearth_m — readying for the watch
+14:00  patrol @ post_apa_w — on watch
+14:05  stand_guard @ post_apa_w — on watch
+19:39  stand_guard @ post_apa_w — waiting to be relieved
+19:53  walk @ garrison_hearth_m — bread and water at the hearth, relieved at the post
+19:58  eat @ garrison_hearth_m — bread and water at the hearth, relieved at the post
+20:09  patrol @ post_apa_w — on watch
+20:14  stand_guard @ post_apa_w — on watch
+22:00  stand_guard @ post_apa_w — waiting to be relieved
+22:07  walk @ garrison_hearth_m — a meal after the watch
+22:12  eat @ garrison_hearth_m — a meal after the watch
+22:36  walk @ garrison_sleep — asleep
+22:37  sleep @ garrison_sleep — asleep
+
+## Detailed agent #104: Muzraaya — mason, man 24, Egyptian (name B: attested in the Achaemenid Elamite name lexicon (EWB)); speaks Egyptian, Aramaic
+day 14 of the regnal year · weather: 10–27 °C, cloud 41 %, dry, wind 1 m/s · household 105 (q_lt_e, home h:105, 3 people)
+00:00  sleep @ h:105 — asleep
+05:11  rest @ h:105 — at home
+05:16  eat @ h:105 — bread and water before leaving (the household eats later)
+05:23  walk @ road:terrace — going to the building site
+05:50  walk @ h100_door_N1 — carving the doorway reliefs
+06:03  dress_stone @ h100_door_N1 — carving the doorway reliefs
+08:40  walk @ h100_door_N1 — a word with the gang
+08:41  talk @ h100_door_N1 — a word with the gang
+08:49  walk @ h100_door_N1 — carving the doorway reliefs
+08:50  dress_stone @ h100_door_N1 — carving the doorway reliefs
+12:00  walk @ work_hearth — the midday meal: the camp’s bread and water
+12:01  eat @ work_hearth — the midday meal: the camp’s bread and water
+12:35  walk @ h100_door_N1 — a word with the gang
+12:36  talk @ h100_door_N1 — a word with the gang
+12:44  walk @ h100_door_N1 — a word with the gang
+12:45  talk @ h100_door_N1 — a word with the gang
+12:57  walk @ h100_door_N1 — carving the doorway reliefs
+12:58  dress_stone @ h100_door_N1 — carving the doorway reliefs
+15:30  walk @ road:terrace — going home
+15:59  craft [PLACEHOLDER: not performed] @ h:105 — mending tools and baskets
+17:46  eat @ h:105 — the evening meal with the household
+18:10  rest @ h:105 — with the household
+21:02  sleep @ h:105 — asleep
+
+## Detailed agent #129: Aššamanda — child, boy 6, Persian (name B: attested in the Achaemenid Elamite name lexicon (EWB)); speaks Old Persian, Elamite
+day 182 of the regnal year · weather: 10–29 °C, cloud 0 %, dry, wind 1 m/s · household 305 (q_pw_n, home h:305, 3 people)
+00:00  sleep @ h:305 — asleep
+06:08  eat @ h:305 — eating with the mother
+06:20  walk @ road:terrace — walking with the mother
+06:38  walk @ querns — playing near the mother while she grinds
+06:39  play @ querns — playing near the mother while she grinds
+06:51  walk @ querns — playing near the mother while she grinds
+07:07  walk @ querns — playing by the querns with the other camp children while the mother fetches and carries
+07:08  play @ querns — playing by the querns with the other camp children while the mother fetches and carries
+07:23  walk @ querns — playing by the querns with the other camp children while the mother fetches and carries
+07:24  play @ querns — playing by the querns with the other camp children while the mother fetches and carries
+07:37  walk @ querns — playing by the querns with the other camp children while the mother fetches and carries
+07:38  play @ querns — playing by the querns with the other camp children while the mother fetches and carries
+07:55  walk @ querns — playing by the querns with the other camp children while the mother fetches and carries
+07:56  play @ querns — playing by the querns with the other camp children while the mother fetches and carries
+08:10  walk @ querns — playing by the querns with the other camp children while the mother fetches and carries
+08:11  play @ querns — playing by the querns with the other camp children while the mother fetches and carries
+08:28  walk @ querns — playing by the querns with the other camp children while the mother fetches and carries
+08:29  play @ querns — playing by the querns with the other camp children while the mother fetches and carries
+08:38  walk @ querns — playing by the querns with the other camp children while the mother fetches and carries
+08:39  play @ querns — playing by the querns with the other camp children while the mother fetches and carries
+08:50  walk @ querns — playing near the mother while she grinds
+08:51  play @ querns — playing near the mother while she grinds
+09:00  walk @ querns — playing near the mother while she grinds
+09:01  play @ querns — playing near the mother while she grinds
+09:11  walk @ querns — playing near the mother while she grinds
+09:12  play @ querns — playing near the mother while she grinds
+09:34  walk @ querns — playing near the mother while she grinds
+09:35  play @ querns — playing near the mother while she grinds
+09:46  walk @ querns — playing near the mother while she grinds
+09:47  play @ querns — playing near the mother while she grinds
+10:01  walk @ querns — playing near the mother while she grinds
+10:02  play @ querns — playing near the mother while she grinds
+10:12  walk @ querns — playing near the mother while she grinds
+10:13  play @ querns — playing near the mother while she grinds
+10:25  walk @ querns — playing near the mother while she grinds
+10:26  play @ querns — playing near the mother while she grinds
+10:37  walk @ querns — playing near the mother while she grinds
+10:38  play @ querns — playing near the mother while she grinds
+10:49  walk @ querns — playing near the mother while she grinds
+10:50  play @ querns — playing near the mother while she grinds
+11:05  walk @ querns — playing near the mother while she grinds
+11:06  play @ querns — playing near the mother while she grinds
+11:16  walk @ querns — playing near the mother while she grinds
+11:17  play @ querns — playing near the mother while she grinds
+11:32  walk @ querns — playing near the mother while she grinds
+11:33  play @ querns — playing near the mother while she grinds
+11:51  walk @ querns — playing near the mother while she grinds
+11:52  play @ querns — playing near the mother while she grinds
+12:00  walk @ work_hearth — eating with the mother
+12:01  eat @ work_hearth — eating with the mother
+12:29  walk @ querns — playing near the mother while she grinds
+12:30  play @ querns — playing near the mother while she grinds
+12:46  walk @ querns — playing near the mother while she grinds
+12:47  play @ querns — playing near the mother while she grinds
+12:56  walk @ querns — playing near the mother while she grinds
+12:57  play @ querns — playing near the mother while she grinds
+13:11  walk @ querns — playing near the mother while she grinds
+13:12  play @ querns — playing near the mother while she grinds
+13:30  walk @ querns — playing near the mother while she grinds
+13:31  play @ querns — playing near the mother while she grinds
+13:41  walk @ querns — playing near the mother while she grinds
+13:42  play @ querns — playing near the mother while she grinds
+14:00  walk @ querns — playing near the mother while she grinds
+14:01  play @ querns — playing near the mother while she grinds
+14:24  walk @ querns — playing near the mother while she grinds
+14:25  play @ querns — playing near the mother while she grinds
+14:30  walk @ road:terrace — walking with the mother
+14:58  play @ h:305 — playing near the mother while she grinds
+15:10  play @ h:305 — playing near the mother
+16:01  play @ h:305 — playing near the oven
+16:52  play @ h:305 — playing near the mother
+17:13  eat @ h:305 — eating with the mother
+17:40  play @ h:305 — playing near the mother
+19:12  sleep @ h:305 — asleep
+
+## Detailed agent #68: Abbatema — guard, man 42, Persian (name B: attested in the Achaemenid Elamite name lexicon (EWB)); speaks Old Persian, Aramaic
+day 241 of the regnal year · weather: -1–10 °C, cloud 73 %, rain 5.0 mm, wind 1 m/s · household 68 (q_pw_s, home h:68, 5 people)
+00:00  sleep @ garrison_sleep — asleep in the garrison quarters
+07:26  walk @ garrison_hearth_s — breakfast
+07:28  eat @ garrison_hearth_s — breakfast
+08:02  talk @ garrison_hearth_s — off watch at the hearth
+09:07  gamble @ garrison_hearth_s — knucklebones at the hearth
+11:22  rest @ garrison_hearth_s — resting
+12:00  talk @ garrison_hearth_s — off watch at the hearth
+13:12  eat @ garrison_hearth_s — a meal before the watch
+13:48  talk @ garrison_hearth_s — readying for the watch
+14:00  patrol @ post_gate_w1 — on patrol between the posts
+14:05  patrol @ post_gate_w2 — on patrol between the posts
+14:07  patrol @ post_gate_s1 — on patrol between the posts
+14:09  patrol @ post_gate_s2 — on patrol between the posts
+14:11  patrol @ post_apa_w — on patrol between the posts
+14:13  patrol @ post_apa_e — on patrol between the posts
+14:15  patrol @ post_treas_1 — on patrol between the posts
+14:19  patrol @ post_treas_2 — on patrol between the posts
+14:21  patrol @ post_tachara_1 — on patrol between the posts
+14:26  patrol @ post_tachara_2 — on patrol between the posts
+14:28  patrol @ post_hadish_1 — on patrol between the posts
+14:30  patrol @ post_hadish_2 — on patrol between the posts
+14:32  patrol @ post_harem_1 — on patrol between the posts
+14:35  patrol @ post_harem_2 — on patrol between the posts
+14:37  patrol @ post_stair_n — on patrol between the posts
+14:42  patrol @ post_stair_s — on patrol between the posts
+14:44  patrol @ post_gate_w1 — on patrol between the posts
+14:46  patrol @ post_gate_w2 — on patrol between the posts
+14:48  patrol @ post_gate_s1 — on patrol between the posts
+14:50  patrol @ post_gate_s2 — on patrol between the posts
+14:52  patrol @ post_apa_w — on patrol between the posts
+14:54  patrol @ post_apa_e — on patrol between the posts
+14:56  patrol @ post_treas_1 — on patrol between the posts
+15:00  patrol @ post_stair_n — standing in at the post while its man eats
+15:06  stand_guard @ post_stair_n — standing in at the post while its man eats
+15:30  stand_guard @ post_stair_n — waiting to be relieved
+15:37  patrol @ post_stair_s — on patrol between the posts
+15:39  patrol @ post_gate_w1 — on patrol between the posts
+15:41  patrol @ post_gate_w2 — on patrol between the posts
+15:42  patrol @ post_stair_s — standing in at the post while its man eats
+15:43  stand_guard @ post_stair_s — standing in at the post while its man eats
+16:12  stand_guard @ post_stair_s — waiting to be relieved
+16:19  patrol @ post_gate_w1 — on patrol between the posts
+16:21  patrol @ post_gate_w2 — on patrol between the posts
+16:23  patrol @ post_gate_s1 — on patrol between the posts
+16:24  patrol @ post_gate_w1 — standing in at the post while its man eats
+16:25  stand_guard @ post_gate_w1 — standing in at the post while its man eats
+16:54  stand_guard @ post_gate_w1 — waiting to be relieved
+17:01  patrol @ post_gate_w2 — on patrol between the posts
+17:03  patrol @ post_gate_s1 — on patrol between the posts
+17:05  patrol @ post_gate_s2 — on patrol between the posts
+17:06  patrol @ post_gate_w2 — standing in at the post while its man eats
+17:07  stand_guard @ post_gate_w2 — standing in at the post while its man eats
+17:36  stand_guard @ post_gate_w2 — waiting to be relieved
+17:43  patrol @ post_gate_s1 — on patrol between the posts
+17:45  patrol @ post_gate_s2 — on patrol between the posts
+17:47  patrol @ post_apa_w — on patrol between the posts
+17:49  patrol @ post_apa_e — on patrol between the posts
+17:51  walk @ garrison_hearth_s — bread and water at the hearth between rounds
+17:55  eat @ garrison_hearth_s — bread and water at the hearth between rounds
+18:12  patrol @ post_stair_n — on patrol between the posts
+  … 28 more changes …
+21:20  patrol @ post_stair_n — on patrol between the posts
+21:25  patrol @ post_stair_s — on patrol between the posts
+21:27  patrol @ post_gate_w1 — on patrol between the posts
+21:29  patrol @ post_gate_w2 — on patrol between the posts
+21:31  patrol @ post_gate_s1 — on patrol between the posts
+21:33  patrol @ post_gate_s2 — on patrol between the posts
+21:35  patrol @ post_apa_w — on patrol between the posts
+21:37  patrol @ post_apa_e — on patrol between the posts
+21:39  patrol @ post_treas_1 — on patrol between the posts
+21:43  patrol @ post_treas_2 — on patrol between the posts
+21:45  patrol @ post_tachara_1 — on patrol between the posts
+21:50  patrol @ post_tachara_2 — on patrol between the posts
+21:52  patrol @ post_hadish_1 — on patrol between the posts
+21:54  patrol @ post_hadish_2 — on patrol between the posts
+21:56  patrol @ post_harem_1 — on patrol between the posts
+21:59  patrol @ post_harem_2 — on patrol between the posts
+22:00  walk @ garrison_hearth_s — a meal after the watch
+22:02  eat @ garrison_hearth_s — a meal after the watch
+22:36  walk @ garrison_sleep — asleep
+22:38  sleep @ garrison_sleep — asleep
+
+## Person 38421: (name from the attested pool) — farmer, male, age 24, Persian, zone plain
+day 102 of the regnal year · weather: 19–38 °C, cloud 14 %, dry, wind 1 m/s · household 8555 (plain, 8 people: 38419 farmer m54, 38420 homemaker f44, 38421 farmer m24, 38422 homemaker f18, 38423 farmer m12, 38424 child m10, 38425 child m6, 38426 child f4)
+00:00–04:46  sleep @ h:8555 (plain) — asleep
+04:46–04:49  rest @ h:8555 (plain) — at home
+04:49–05:16  eat @ h:8555 (plain) — breakfast with the household: the new bread
+05:16–05:28  rest @ h:8555 (plain) — at home
+05:28–05:31  walk @ road:plain (road) — to the fields
+05:31–10:30  thresh [PLACEHOLDER: not performed] @ threshing:v_35 (plain) — threshing and winnowing on the village floor (E-43)
+10:30–10:33  walk @ road:plain (road) — walking
+10:33–10:39  rest @ h:8555 (plain) — at home
+10:39–11:15  eat @ h:8555 (plain) — the midday meal with the household, back from the field
+11:15–12:52  sleep @ h:8555 (plain) — sleeping through the heat of the day
+12:52–14:21  rest @ h:8555 (plain) — at home
+14:21–16:20  tend_animals [PLACEHOLDER: not performed] @ h:8555 (plain) — seeing to the household’s animals
+16:20–17:15  talk @ h:8555 (plain) — with the household
+17:15–17:37  tend_animals [PLACEHOLDER: not performed] @ h:8555 (plain) — seeing to the household’s animals
+17:37–17:58  rest @ h:8555 (plain) — at home
+17:58–18:34  eat @ h:8555 (plain) — the evening meal with the household
+18:34–21:19  rest @ h:8555 (plain) — with the household
+21:19–24:00  sleep @ h:8555 (plain) — asleep
+
+## Person 4932: (name from the attested pool) — child, male, age 0, Persian, zone town
+day 305 of the regnal year · weather: -2–11 °C, cloud 39 %, dry, wind 2 m/s · household 1586 (town, 5 people: 4928 gardener m24, 4929 homemaker f27, 4930 child f8, 4931 child m4, 4932 child m0)
+00:00–01:06  sleep @ h:1586 (town) — asleep beside the mother [with 4929]
+01:06–01:19  eat @ h:1586 (town) — nursed by the mother [with 4929]
+01:19–05:37  sleep @ h:1586 (town) — asleep beside the mother [with 4929]
+05:37–06:04  rest @ h:1586 (town) — lying on a mat beside the mother while she works [with 4929]
+06:04–06:20  eat @ h:1586 (town) — nursed by the mother [with 4929]
+06:20–07:01  rest @ h:1586 (town) — lying on a mat beside the mother while she works [with 4929]
+07:01–07:09  sleep @ h:1586 (town) — asleep on a mat beside the mother while she works [with 4929]
+07:09–07:35  sleep @ h:1586 (town) — asleep in the mother’s lap [with 4929]
+07:35–07:58  sleep @ h:1586 (town) — asleep in the mother’s lap at the meal [with 4929]
+07:58–08:00  sleep @ h:1586 (town) — asleep in the mother’s lap [with 4929]
+08:00–08:03  sleep @ road:town (road) — asleep, carried on the mother’s back [with 4929]
+08:03–08:17  sleep @ h:211 (town) — asleep in the mother’s lap [with 4929]
+08:17–08:34  eat @ h:211 (town) — nursed by the mother [with 4929]
+08:34–09:53  rest @ h:211 (town) — in the mother’s lap [with 4929]
+09:53–10:00  rest @ road:town (road) — carried on the mother’s back [with 4929]
+10:00–10:28  rest @ lane:q_lt_e (town) — in the mother’s lap [with 4929]
+10:28–10:42  eat @ lane:q_lt_e (town) — nursed by the mother [with 4929]
+10:42–10:46  rest @ road:town (road) — carried on the mother’s back [with 4929]
+10:46–11:52  rest @ h:1586 (town) — in the mother’s lap [with 4929]
+11:52–11:54  rest @ h:1586 (town) — in the mother’s lap at the meal [with 4929]
+11:54–12:24  sleep @ h:1586 (town) — asleep in the mother’s lap at the meal [with 4929]
+12:24–12:28  sleep @ h:1586 (town) — asleep on a mat beside the mother while she works [with 4929]
+12:28–12:38  eat @ h:1586 (town) — nursed by the mother [with 4929]
+12:38–14:05  sleep @ h:1586 (town) — asleep on a mat beside the mother while she works [with 4929]
+14:05–15:04  rest @ h:1586 (town) — lying on a mat beside the mother while she works [with 4929]
+15:04–15:19  eat @ h:1586 (town) — nursed by the mother [with 4929]
+15:19–15:48  rest @ h:1586 (town) — lying on a mat beside the mother while she works [with 4929]
+15:48–15:54  rest @ h:1586 (town) — in the mother’s lap [with 4929]
+15:54–16:17  sleep @ h:1586 (town) — asleep in the mother’s lap [with 4929]
+16:17–16:54  sleep @ h:1586 (town) — asleep in the mother’s lap at the meal [with 4929]
+16:54–16:58  sleep @ road:town (road) — asleep, carried on the mother’s back [with 4929]
+16:58–17:12  eat @ well:q_lt_e (town) — nursed by the mother [with 4929]
+17:12–17:16  rest @ road:town (road) — carried on the mother’s back [with 4929]
+17:16–18:38  rest @ h:1586 (town) — in the mother’s lap [with 4929]
+18:38–21:18  sleep @ h:1586 (town) — asleep beside the mother [with 4929]
+21:18–21:31  eat @ h:1586 (town) — nursed by the mother [with 4929]
+21:31–24:00  sleep @ h:1586 (town) — asleep beside the mother [with 4929]
+
+## Person 14304: (name from the attested pool) — child, male, age 2, Persian, zone plain
+day 285 of the regnal year · weather: 0–12 °C, cloud 95 %, rain 1.7 mm, wind 2 m/s · household 3503 (plain, 9 people: 14297 farmer m36, 14298 homemaker f40, 14299 farmer m21, 14300 farmer m18, 14301 farmer f12, 14302 child f9, 14303 child f6, 14304 child m2, 45698 child f0)
+00:00–06:54  sleep @ h:3503 (plain) — asleep [with 14298]
+06:54–07:18  play @ h:3503 (plain) — playing at home near the mother [with 14298]
+07:18–07:40  eat @ h:3503 (plain) — a meal with the household [with 14298]
+07:40–08:59  play @ h:3503 (plain) — playing indoors out of the rain [with 14298]
+08:59–11:57  play @ h:3503 (plain) — playing at home near the mother [with 14298]
+11:57–12:34  eat @ h:3503 (plain) — a meal with the household [with 14298]
+12:34–12:37  play @ h:3503 (plain) — playing at home near the mother [with 14298]
+12:37–14:37  sleep @ h:3503 (plain) — a midday sleep [with 14298]
+14:37–16:09  play @ h:3503 (plain) — playing at home near the mother [with 14298]
+16:09–16:53  eat @ h:3503 (plain) — a meal with the household [with 14298]
+16:53–17:17  play @ h:3503 (plain) — playing at home near the mother [with 14298]
+17:17–24:00  sleep @ h:3503 (plain) — asleep [with 14298]
+
+## Person 26429: (name from the attested pool) — child, female, age 1, Persian, zone plain
+day 346 of the regnal year · weather: 8–24 °C, cloud 12 %, dry, wind 1 m/s, dust · household 6034 (plain, 4 people: 26426 farmer m25, 26427 homemaker f33, 26428 child f4, 26429 child f1)
+00:00–06:15  sleep @ h:6034 (plain) — asleep [with 26427]
+06:15–06:29  play @ h:6034 (plain) — playing at home near the mother [with 26427]
+06:29–06:46  eat @ h:6034 (plain) — a meal with the household [with 26427]
+06:46–07:43  play @ h:6034 (plain) — playing at home near the mother [with 26427]
+07:43–07:46  rest @ road:plain (road) — carried by the mother [with 26427]
+07:46–08:58  play @ h:6046 (plain) — playing near the mother [with 26427]
+08:58–09:01  rest @ road:plain (road) — carried by the mother [with 26427]
+09:01–09:24  play @ h:6034 (plain) — playing at home near the mother [with 26427]
+09:24–09:35  eat @ h:6034 (plain) — nursed by the mother [with 26427]
+09:35–11:24  play @ h:6034 (plain) — playing at home near the mother [with 26427]
+11:24–11:35  eat @ h:6034 (plain) — nursed by the mother [with 26427]
+11:35–11:46  play @ h:6034 (plain) — playing at home near the mother [with 26427]
+11:46–12:18  eat @ h:6034 (plain) — a meal with the household [with 26427]
+12:18–12:21  play @ h:6034 (plain) — playing at home near the mother [with 26427]
+12:21–14:33  sleep @ h:6034 (plain) — a midday sleep [with 26427]
+14:33–14:40  play @ h:6034 (plain) — playing at home near the mother [with 26427]
+14:40–14:43  rest @ road:plain (road) — carried by the mother [with 26427]
+14:43–15:04  play @ well:v_22 (plain) — playing near the mother [with 26427]
+15:04–15:07  rest @ road:plain (road) — carried by the mother [with 26427]
+15:07–16:48  play @ h:6034 (plain) — playing at home near the mother [with 26427]
+16:48–17:00  eat @ h:6034 (plain) — nursed by the mother [with 26427]
+17:00–17:05  play @ h:6034 (plain) — playing at home near the mother [with 26427]
+17:05–17:33  eat @ h:6034 (plain) — a meal with the household [with 26427]
+17:33–17:57  play @ h:6034 (plain) — playing at home near the mother [with 26427]
+17:57–24:00  sleep @ h:6034 (plain) — asleep [with 26427]
+
+## Person 39724: (name from the attested pool) — child, female, age 1, Persian, zone plain
+day 149 of the regnal year · weather: 18–38 °C, cloud 16 %, dry, wind 1 m/s · household 8833 (plain, 5 people: 39720 farmer m26, 39721 homemaker f32, 39722 child m8, 39723 child f5, 39724 child f1)
+00:00–05:56  sleep @ h:8833 (plain) — asleep [with 39721]
+05:56–06:17  play @ h:8833 (plain) — playing at home near the mother [with 39721]
+06:17–06:35  eat @ h:8833 (plain) — a meal with the household [with 39721]
+06:35–09:11  play @ h:8833 (plain) — playing at home near the mother [with 39721]
+09:11–09:14  rest @ road:plain (road) — carried by the mother [with 39721]
+09:14–10:26  play @ lane:v_35 (plain) — playing near the mother [with 39721]
+10:26–10:29  rest @ road:plain (road) — carried by the mother [with 39721]
+10:29–12:05  play @ h:8833 (plain) — playing at home near the mother [with 39721]
+12:05–12:38  eat @ h:8833 (plain) — a meal with the household [with 39721]
+12:38–12:41  play @ h:8833 (plain) — playing at home near the mother [with 39721]
+12:41–14:53  sleep @ h:8833 (plain) — a midday sleep [with 39721]
+14:53–15:03  play @ h:8833 (plain) — playing at home near the mother [with 39721]
+15:03–15:20  eat @ h:8833 (plain) — nursed by the mother [with 39721]
+15:20–16:00  play @ h:8833 (plain) — playing at home near the mother [with 39721]
+16:00–17:17  play @ h:8770 (plain) — playing at a neighbour’s house with their children [with 39434]
+17:17–17:36  play @ h:8833 (plain) — playing at home near the mother [with 39721]
+17:36–18:06  eat @ h:8833 (plain) — a meal with the household [with 39721]
+18:06–18:09  rest @ road:plain (road) — carried by the mother [with 39721]
+18:09–18:30  play @ lane:v_35 (plain) — playing near the mother [with 39721]
+18:30–19:10  sleep @ h:8833 (plain) — asleep at home [with 39720]
+19:10–24:00  sleep @ h:8833 (plain) — asleep [with 39721]
+
+## Person 42750: (name from the attested pool) — farmer, male, age 21, Persian, zone plain
+day 210 of the regnal year · weather: 4–21 °C, cloud 8 %, dry, wind 3 m/s · household 9465 (plain, 2 people: 42750 farmer m21, 42751 homemaker f20)
+00:00–06:27  sleep @ h:9465 (plain) — asleep
+06:27–06:56  rest @ h:9465 (plain) — at home
+06:56–07:16  eat @ h:9465 (plain) — breakfast with the household: the new bread
+07:16–07:19  rest @ h:9465 (plain) — at home
+07:19–07:25  walk @ road:plain (road) — to the fields
+07:25–12:03  plough [PLACEHOLDER: not performed] @ field:9465:2 (plain) — ploughing and sowing barley and wheat (E-40)
+12:03–12:35  eat @ field:9465:2 (plain) — the midday meal
+12:35–16:00  plough [PLACEHOLDER: not performed] @ field:9465:2 (plain) — ploughing and sowing barley and wheat (E-40)
+16:00–16:06  walk @ road:plain (road) — walking
+16:06–16:41  rest @ h:9465 (plain) — at home
+16:41–17:05  eat @ h:9465 (plain) — the evening meal with the household
+17:05–17:08  walk @ road:plain (road) — visiting
+17:08–18:57  talk @ h:8388 (plain) — visiting Daddaukurda
+18:57–19:00  walk @ road:plain (road) — going home
+19:00–20:04  rest @ h:9465 (plain) — with the household
+20:04–24:00  sleep @ h:9465 (plain) — asleep
+
+## Person 33866: (name from the attested pool) — homemaker, female, age 40, Persian, zone plain
+day 311 of the regnal year · weather: 1–15 °C, cloud 45 %, dry, wind 1 m/s · household 7605 (plain, 6 people: 33865 farmer m49, 33866 homemaker f40, 33867 homemaker f16, 33868 child m5, 33869 child f3, 33870 child f0)
+00:00–02:01  sleep @ h:7605 (plain) — asleep
+02:01–02:17  rest @ h:7605 (plain) — nursing the baby in the night
+02:17–06:12  sleep @ h:7605 (plain) — asleep
+06:12–06:39  grind @ h:7605 (plain) — grinding the household’s flour at the quern
+06:39–06:54  rest @ h:7605 (plain) — stopping to nurse the baby
+06:54–07:00  rest @ h:7605 (plain) — at home
+07:00–07:18  eat @ h:7605 (plain) — breakfast with the household
+07:18–08:13  talk @ h:7605 (plain) — with the household
+08:13–08:26  rest @ h:7605 (plain) — nursing the baby
+08:26–08:34  rest @ h:7605 (plain) — at home, minding the children
+08:34–08:37  walk @ road:plain (road) — walking
+08:37–09:37  spin [PLACEHOLDER: not performed] @ lane:v_33 (plain) — spinning with the women outside the door
+09:37–09:40  walk @ road:plain (road) — walking
+09:40–10:16  grind @ h:7605 (plain) — grinding the household’s flour
+10:16–10:31  rest @ h:7605 (plain) — stopping to nurse the baby
+10:31–11:01  grind @ h:7605 (plain) — grinding the household’s flour
+11:01–11:56  rest @ h:7605 (plain) — minding the children
+11:56–12:14  rest @ h:7605 (plain) — nursing the baby
+12:14–12:47  eat @ h:7605 (plain) — the midday meal with the household
+12:47–14:31  spin [PLACEHOLDER: not performed] @ h:7605 (plain) — spinning
+14:31–14:44  rest @ h:7605 (plain) — stopping to nurse the baby
+14:44–15:13  spin [PLACEHOLDER: not performed] @ h:7605 (plain) — spinning
+15:13–15:47  rest @ h:7605 (plain) — at home, minding the children
+15:47–16:05  grind @ h:7605 (plain) — grinding for tomorrow’s bread
+16:05–16:29  talk @ h:7605 (plain) — with the household
+16:29–16:43  rest @ h:7605 (plain) — at home
+16:43–17:22  eat @ h:7605 (plain) — the evening meal with the household
+17:22–17:35  rest @ h:7605 (plain) — nursing the baby
+17:35–18:30  talk @ h:7605 (plain) — with the household
+18:30–18:41  rest @ h:7605 (plain) — nursing the baby
+18:41–20:12  talk @ h:7605 (plain) — with the household
+20:12–22:48  sleep @ h:7605 (plain) — asleep
+22:48–23:01  rest @ h:7605 (plain) — nursing the baby in the night
+23:01–24:00  sleep @ h:7605 (plain) — asleep
+
+## Person 27249: (name from the attested pool) — farmer, male, age 19, Persian, zone plain
+day 197 of the regnal year · weather: 7–26 °C, cloud 0 %, dry, wind 2 m/s · household 6210 (plain, 7 people: 27246 farmer m38, 27247 homemaker f43, 27248 farmer m23, 27249 farmer m19, 27250 child f9, 27251 child m6, 46207 child m0)
+00:00–05:59  sleep @ h:6210 (plain) — asleep
+05:59–06:17  rest @ h:6210 (plain) — at home
+06:17–06:42  eat @ h:6210 (plain) — breakfast with the household: the new bread
+06:42–06:54  rest @ h:6210 (plain) — at home
+06:54–06:57  walk @ road:plain (road) — to the fields
+06:57–12:01  pick_fruit [PLACEHOLDER: not performed] @ vineyard:v_23 (plain) — the vintage: picking grapes (E-45)
+12:01–12:32  eat @ vineyard:v_23 (plain) — the midday meal
+12:32–13:00  pick_fruit [PLACEHOLDER: not performed] @ vineyard:v_23 (plain) — the vintage: picking grapes (E-45)
+13:00–13:03  walk @ road:plain (road) — walking
+13:03–14:36  tend_animals [PLACEHOLDER: not performed] @ h:6210 (plain) — seeing to the household’s animals
+14:36–16:48  rest @ h:6210 (plain) — at home
+16:48–17:20  eat @ h:6210 (plain) — the evening meal with the household
+17:20–17:23  walk @ road:plain (road) — visiting
+17:23–18:25  talk @ h:6310 (plain) — visiting Barsauka
+18:25–18:28  walk @ road:plain (road) — going home
+18:28–19:34  talk @ h:6210 (plain) — with the household
+19:34–24:00  sleep @ h:6210 (plain) — asleep
+
+## Person 41538: (name from the attested pool) — farmer, male, age 18, Persian, zone plain
+day 10 of the regnal year · weather: 11–27 °C, cloud 39 %, dry, wind 2 m/s · household 9208 (plain, 7 people: 41536 farmer m51, 41537 homemaker f36, 41538 farmer m18, 41539 child m11, 41540 child f7, 41541 child m3, 41542 child f0)
+00:00–04:46  sleep @ h:9208 (plain) — asleep
+04:46–04:49  rest @ h:9208 (plain) — at home
+04:49–05:09  eat @ h:9208 (plain) — breakfast with the household
+05:09–05:19  rest @ h:9208 (plain) — at home
+05:19–05:24  walk @ road:plain (road) — to the fields
+05:24–11:48  reap [PLACEHOLDER: not performed] @ field:9208:0 (plain) — the barley harvest (E-41)
+11:48–12:22  eat @ field:9208:0 (plain) — the midday meal in the shade by the field: bread and water brought out
+12:22–14:03  rest @ field:9208:0 (plain) — resting in the shade by the field through the heat
+14:03–14:08  walk @ road:plain (road) — walking
+14:08–15:03  tend_animals [PLACEHOLDER: not performed] @ h:9208 (plain) — seeing to the household’s animals
+15:03–16:14  rest @ h:9208 (plain) — resting through the heat
+16:14–16:17  walk @ road:plain (road) — walking
+16:17–17:29  carry_sack @ threshing:v_35 (plain) — carrying sheaves to the threshing floor with the household (E-43)
+17:29–17:32  walk @ road:plain (road) — walking
+17:32–18:29  rest @ h:9208 (plain) — at home
+18:29–19:01  eat @ h:9208 (plain) — the evening meal with the household
+19:01–19:04  walk @ road:plain (road) — walking
+19:04–19:36  exchange @ lane:v_35 (plain) — exchanging goods in kind with neighbours
+19:36–19:39  walk @ road:plain (road) — walking
+19:39–21:08  rest @ h:9208 (plain) — with the household
+21:08–24:00  sleep @ h:9208 (plain) — asleep
+
+## Person 23329: (name from the attested pool) — elder, female, age 72, Persian, zone plain
+day 259 of the regnal year · weather: -2–12 °C, cloud 42 %, dry, wind 1 m/s · household 5382 (plain, 5 people: 23325 farmer m47, 23326 homemaker f44, 23327 farmer m12, 23328 child m9, 23329 elder f72)
+00:00–06:39  sleep @ h:5382 (plain) — asleep
+06:39–07:09  rest @ h:5382 (plain) — at home
+07:09–07:33  eat @ h:5382 (plain) — breakfast with the household: the new bread
+07:33–07:58  rest @ h:5382 (plain) — at home
+07:58–09:55  spin [PLACEHOLDER: not performed] @ h:5382 (plain) — light work: spinning
+09:55–09:58  walk @ road:plain (road) — walking
+09:58–11:36  talk @ lane:v_16 (plain) — sitting and talking in the lane
+11:36–11:39  walk @ road:plain (road) — walking
+11:39–11:57  rest @ h:5382 (plain) — at home
+11:57–12:30  eat @ h:5382 (plain) — the midday meal with the household
+12:30–13:40  sleep @ h:5382 (plain) — an afternoon sleep
+13:40–14:44  spin [PLACEHOLDER: not performed] @ h:5382 (plain) — light work: spinning
+14:44–14:48  walk @ road:plain (road) — walking
+14:48–15:51  talk @ lane:v_16 (plain) — sitting and talking in the lane
+15:51–15:54  walk @ road:plain (road) — walking
+15:54–16:00  rest @ h:5382 (plain) — at home
+16:00–16:39  eat @ h:5382 (plain) — the evening meal with the household
+16:39–16:42  walk @ road:plain (road) — walking
+16:42–17:09  exchange @ lane:v_16 (plain) — exchanging goods in kind with neighbours
+17:09–17:12  walk @ road:plain (road) — walking
+17:12–19:35  rest @ h:5382 (plain) — with the household
+19:35–24:00  sleep @ h:5382 (plain) — asleep
+
+## Person 40672: (name from the attested pool) — homemaker, female, age 40, Persian, zone plain
+day 174 of the regnal year · weather: 12–32 °C, cloud 0 %, dry, wind 1 m/s · household 9034 (plain, 6 people: 40671 farmer m32, 40672 homemaker f40, 40673 farmer f12, 40674 child m9, 40675 child m5, 40676 child f1)
+00:00–05:09  sleep @ h:9034 (plain) — asleep
+05:09–05:42  grind @ h:9034 (plain) — grinding the household’s flour at the quern
+05:42–06:03  rest @ h:9034 (plain) — at home
+06:03–06:22  eat @ h:9034 (plain) — breakfast with the household
+06:22–06:34  rest @ h:9034 (plain) — at home
+06:34–06:37  walk @ road:plain (road) — to the fields
+06:37–08:16  pick_fruit [PLACEHOLDER: not performed] @ orchard:v_35 (plain) — picking figs and fruit (E-46)
+08:16–08:30  rest @ orchard:v_35 (plain) — stopping to nurse the baby
+08:30–11:02  pick_fruit [PLACEHOLDER: not performed] @ orchard:v_35 (plain) — picking figs and fruit (E-46)
+11:02–11:05  walk @ road:plain (road) — walking
+11:05–11:11  rest @ h:9034 (plain) — stopping to nurse the baby
+11:11–11:45  eat @ h:9034 (plain) — the midday meal with the household, back from the field
+11:45–13:35  sleep @ h:9034 (plain) — sleeping through the heat of the day
+13:35–13:38  walk @ road:plain (road) — walking
+13:38–15:13  spin [PLACEHOLDER: not performed] @ lane:v_35 (plain) — spinning with the women outside the door
+15:13–15:16  walk @ road:plain (road) — walking
+15:16–15:24  rest @ h:9034 (plain) — resting through the heat
+15:24–15:37  rest @ h:9034 (plain) — nursing the baby
+15:37–16:26  grind @ h:9034 (plain) — grinding the household’s flour
+16:26–16:47  grind @ h:9034 (plain) — grinding for tomorrow’s bread
+16:47–16:49  rest @ h:9034 (plain) — at home, minding the children
+16:49–16:54  rest @ h:9034 (plain) — at home
+16:54–17:05  rest @ h:9034 (plain) — nursing the baby
+17:05–17:37  eat @ h:9034 (plain) — the evening meal with the household
+17:37–20:03  rest @ h:9034 (plain) — with the household
+20:03–24:00  sleep @ h:9034 (plain) — asleep
+
+## Person 3330: (name from the attested pool) — child, male, age 1, Persian, zone town
+day 323 of the regnal year · weather: -2–11 °C, cloud 31 %, dry, wind 8 m/s · household 1210 (town, 3 people: 3328 weaver f34, 3329 child m5, 3330 child m1)
+00:00–06:50  sleep @ h:1210 (town) — asleep [with 3328]
+06:50–06:57  rest @ road:town (road) — carried by the mother [with 3328]
+06:57–07:34  play @ ws_textile (town) — playing near the mother [with 3328]
+07:34–07:48  eat @ ws_textile (town) — nursed by the mother [with 3328]
+07:48–09:39  play @ ws_textile (town) — playing near the mother [with 3328]
+09:39–10:27  sleep @ ws_textile (town) — a morning sleep near the mother [with 3328]
+10:27–11:47  play @ ws_textile (town) — playing near the mother [with 3328]
+11:47–12:00  eat @ ws_textile (town) — nursed by the mother [with 3328]
+12:00–12:34  eat @ ws_textile (town) — eating with the mother [with 3328]
+12:34–12:41  sleep @ ws_textile (town) — a midday sleep near the mother [with 3328]
+12:41–12:48  rest @ road:town (road) — carried by the mother [with 3328]
+12:48–14:43  sleep @ h:1210 (town) — a midday sleep [with 3328]
+14:43–16:37  play @ h:1210 (town) — playing at home near the mother [with 3328]
+16:37–17:12  eat @ h:1210 (town) — a meal with the household [with 3328]
+17:12–17:36  play @ h:1210 (town) — playing at home near the mother [with 3328]
+17:36–24:00  sleep @ h:1210 (town) — asleep [with 3328]
+
+## Person 42992: (name from the attested pool) — child, female, age 2, Persian, zone plain
+day 39 of the regnal year · weather: 11–28 °C, cloud 16 %, dry, wind 4 m/s · household 9519 (plain, 5 people: 42988 farmer m36, 42989 homemaker f28, 42990 child m8, 42991 child f5, 42992 child f2)
+00:00–04:03  sleep @ h:9519 (plain) — asleep [with 42989]
+04:03–04:29  play @ h:9519 (plain) — playing at home near the mother [with 42989]
+04:29–04:47  eat @ h:9519 (plain) — a meal with the household [with 42989]
+04:47–04:55  play @ h:9519 (plain) — playing at home near the mother [with 42989]
+04:55–05:02  walk @ road:plain (road) — walking with the mother [with 42989]
+05:02–08:33  play @ field:8532:0 (plain) — playing near the mother [with 42989]
+08:33–08:54  eat @ field:8532:0 (plain) — eating with the mother [with 42989]
+08:54–12:11  play @ field:8532:0 (plain) — playing near the mother [with 42989]
+12:11–12:19  walk @ road:plain (road) — walking with the mother [with 42989]
+12:19–12:52  eat @ h:9519 (plain) — a meal with the household [with 42989]
+12:52–12:56  play @ h:9519 (plain) — playing at home near the mother [with 42989]
+12:56–14:56  sleep @ h:9519 (plain) — a midday sleep [with 42989]
+14:56–16:36  play @ h:9519 (plain) — playing at home near the mother [with 42989]
+16:36–17:18  play @ h:7935 (plain) — playing at a neighbour’s house with their children [with 35459]
+17:18–17:25  play @ h:9519 (plain) — playing at home near the mother [with 42989]
+17:25–17:28  walk @ road:plain (road) — walking with the mother [with 42989]
+17:28–17:49  play @ well:v_35 (plain) — playing near the mother [with 42989]
+17:49–17:52  walk @ road:plain (road) — walking with the mother [with 42989]
+17:52–18:15  play @ h:9519 (plain) — playing at home near the mother [with 42989]
+18:15–18:45  eat @ h:9519 (plain) — a meal with the household [with 42989]
+18:45–19:09  play @ h:9519 (plain) — playing at home near the mother [with 42989]
+19:09–24:00  sleep @ h:9519 (plain) — asleep [with 42989]
+
+## Person 31879: (name from the attested pool) — farmer, male, age 19, Persian, zone plain
+day 329 of the regnal year · weather: 0–15 °C, cloud 97 %, rain 4.0 mm, wind 3 m/s · household 7175 (plain, 2 people: 31879 farmer m19, 31880 homemaker f17)
+00:00–05:27  sleep @ h:7175 (plain) — asleep
+05:27–06:44  rest @ h:7175 (plain) — at home
+06:44–06:59  eat @ h:7175 (plain) — breakfast with the household
+06:59–09:41  tend_animals [PLACEHOLDER: not performed] @ h:7175 (plain) — seeing to the household’s animals
+09:41–11:17  talk @ h:7175 (plain) — with the household
+11:17–12:03  tend_animals [PLACEHOLDER: not performed] @ h:7175 (plain) — seeing to the household’s animals
+12:03–12:33  eat @ h:7175 (plain) — the midday meal with the household
+12:33–14:06  talk @ h:7175 (plain) — with the household
+14:06–15:04  craft [PLACEHOLDER: not performed] @ h:7175 (plain) — mending tools and baskets
+15:04–16:45  talk @ h:7175 (plain) — with the household
+16:45–17:06  rest @ h:7175 (plain) — at home
+17:06–17:31  eat @ h:7175 (plain) — the evening meal with the household
+17:31–19:12  rest @ h:7175 (plain) — with the household
+19:12–24:00  sleep @ h:7175 (plain) — asleep
