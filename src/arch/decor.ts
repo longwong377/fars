@@ -6,7 +6,7 @@ import { v, present } from './spec';
 import { Rng } from '../core/rng';
 import { planFacade, planAudience, facadeItems, ReliefSet, ReliefItem, RosetteItem, Facade, StairGeom } from './reliefs';
 import { toCuneiform } from '../lang/oldPersian';
-import type { Manifest, Doorway } from './parts';
+import type { Manifest, Doorway, Part, Box } from './parts';
 import { phase4Programmes, InscriptionPlacement } from './relief_programmes';
 import inscriptions from '../data/inscriptions.json';
 import { surfaceMaterial } from '../render/materials';
@@ -57,6 +57,59 @@ export function buildPhase4Reliefs(doorways: Doorway[]): { group: THREE.Group; i
   g.userData = { tier: 'C', src: 'RELIEF-R;SI-ARCH;ISAC-PA;IR-PERS', placeholder: true, note: 'Phase 4 relief programmes (D-049): motifs B/C per SITE_SPEC; carving procedural (NEEDS #10)' };
   return { group: g, inscriptions: ins };
 }
+/** one merlon of a stair parapet: centre (grid), base height, the run's axis (0 = grid east, 1 = grid north), depth */
+export interface Merlon { c: [number, number]; y: number; axis: 0 | 1; depth: number; building: string }
+/** four-stepped merlons along the stair parapets (global.r_stair_crenellation, D-065): the parapet blocks of each listed
+ *  building are chained into runs (same line, same thickness, touching end to end), and merlons are spaced along each run
+ *  at the pitch, centred, each standing on the lowest block under it */
+export function stairCrenellationPlan(parts: Part[]): Merlon[] {
+  const CR = v<any>('global', 'r_stair_crenellation'), out: Merlon[] = [];
+  const boxes = parts.filter((p): p is Box => p.type === 'box' && p.kind === 'parapet' && !p.rot && CR.buildings.includes(p.building));
+  const used = new Set<Box>(), r2 = (x: number) => Math.round(x * 50), runs: { ch: Box[]; axis: 0 | 1 }[] = [];
+  // chains of touching blocks along either axis first; a block in no chain then runs alone along its longer side
+  for (const pass of ['chain', 'lone'] as const) for (const axis of [0, 1] as const) {
+    const lat = 1 - axis, lines = new Map<string, Box[]>();
+    for (const b of boxes) { if (used.has(b)) continue; const k = `${b.building}|${r2(b.c[lat])}|${r2(b.size[lat])}`; (lines.get(k) ?? lines.set(k, []).get(k)!).push(b); }
+    for (const line of lines.values()) {
+      line.sort((a, b) => a.c[axis] - b.c[axis]);
+      const chains: Box[][] = [];
+      for (const b of line) { const ch = chains[chains.length - 1], last = ch?.[ch.length - 1]; if (last && Math.abs(last.c[axis] + last.size[axis] / 2 - (b.c[axis] - b.size[axis] / 2)) < 0.02) ch.push(b); else chains.push([b]); }
+      for (const ch of chains) {
+        if (pass === 'chain' ? ch.length < 2 : ch[0].size[axis] < ch[0].size[lat]) continue;
+        ch.forEach(b => used.add(b)); runs.push({ ch, axis });
+      }
+    }
+  }
+  for (const { ch, axis } of runs) {
+    const lat = 1 - axis;
+    const s0 = ch[0].c[axis] - ch[0].size[axis] / 2, s1 = ch[ch.length - 1].c[axis] + ch[ch.length - 1].size[axis] / 2, len = s1 - s0;
+    if (len < CR.width) continue;
+    const n = Math.floor((len - CR.width) / CR.pitch) + 1, a0 = s0 + (len - (n - 1) * CR.pitch) / 2;
+    for (let i = 0; i < n; i++) {
+      const a = a0 + i * CR.pitch, lo = a - CR.width / 2, hi = a + CR.width / 2;
+      const y = Math.min(...ch.filter(b => b.c[axis] + b.size[axis] / 2 > lo + 1e-3 && b.c[axis] - b.size[axis] / 2 < hi - 1e-3).map(b => b.y1));
+      const c: [number, number] = axis === 0 ? [a, ch[0].c[1]] : [ch[0].c[0], a];
+      out.push({ c, y, axis, depth: Math.min(ch[0].size[lat], CR.max_depth), building: ch[0].building });
+    }
+  }
+  return out;
+}
+/** the stair-parapet merlons as one instanced mesh (limestone, as the parapets) */
+export function buildStairCrenellations(parts: Part[]): THREE.InstancedMesh | null {
+  const CR = v<any>('global', 'r_stair_crenellation'), plan = stairCrenellationPlan(parts); if (!plan.length) return null;
+  const geo = crenellationGeometry(CR.width, CR.height, CR.steps, 1);
+  const mesh = new THREE.InstancedMesh(geo, surfaceMaterial('limestone'), plan.length), m = new THREE.Matrix4(), t = new THREE.Matrix4();
+  plan.forEach((q, i) => {
+    // X along the run, Y up, Z = X × Y across the parapet (right-handed, so the extrusion keeps its winding); the unit-deep
+    // extrusion is scaled to the merlon depth and centred on the parapet's mid-line
+    const X = q.axis === 0 ? gw(1, 0) : gw(0, 1), Z = new THREE.Vector3().crossVectors(X, up);
+    m.makeTranslation(q.c[0], q.y, -q.c[1]).multiply(t.makeBasis(X, up, Z)).multiply(t.makeScale(1, 1, q.depth)).multiply(t.makeTranslation(0, 0, -0.5));
+    mesh.setMatrixAt(i, m);
+  });
+  mesh.castShadow = true; mesh.receiveShadow = true; mesh.name = 'stair-crenellations'; mesh.computeBoundingSphere();
+  mesh.userData = { tier: 'C', src: 'IR-PERS;SI-ARCH;RECON', note: `four-stepped merlons on the stair parapets of ${CR.buildings.join(', ')} (motif B on the Apadana stairs; here by the Persepolis stair convention, size C; D-065)` };
+  return mesh;
+}
 function crenellationGeometry(w: number, h: number, steps: number, depth: number) {
   const pts: number[][] = []; const sw = w / 2 / steps, sh = h / steps;
   pts.push([-w / 2, 0]); for (let i = 0; i < steps; i++) { pts.push([-w / 2 + i * sw, (i + 1) * sh]); pts.push([-w / 2 + (i + 1) * sw, (i + 1) * sh]); }
@@ -98,6 +151,40 @@ export function textPanelGeometry(fontKey: 'op' | 'cun', text: string, width: nu
 /** layer of the inscriptions' invisible pick rectangles (no camera renders it) */
 export const INSCRIPTION_PICK_LAYER = 5;
 const pickMat = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide, visible: false });
+/** the Apadana foundation deposits (D-068, apadana.r_foundation_deposits): a limestone box with a lid under the outer corner
+ *  of the hall wall at each listed corner, holding a gold and a silver plate inscribed with DPh. Sealed since the foundation:
+ *  no camera can see them from the walkable world; the plates carry the text as data (the translation layer shows it), not
+ *  as carved glyphs, and a pick rectangle over the corner's footing lets the translation layer name them */
+export function buildFoundationDeposits(m: Manifest): THREE.Group {
+  const g = new THREE.Group(); g.name = 'apadana-foundation-deposits';
+  const a = m.apadana as any; if (!a) return g;
+  const F = v<any>('apadana', 'r_foundation_deposits'), [cx, cy, hs] = a.room as number[], wt = a.wallThickness as number, floor = a.podium as number;
+  const [bx, bz, bh] = F.box_outer as number[], t = F.box_wall as number, top = floor - F.top_below_floor, y0 = top - bh;
+  const meta = { tier: 'C', src: 'ISAC-PA;LIVIUS-AI;ARIO', note: 'Apadana foundation deposit: stone box with a gold and a silver plate inscribed DPh (existence and contents B; corners Q-016; sizes and depth C)' };
+  const stone = surfaceMaterial('limestone');
+  const metal = (rgb: [number, number, number], metalness: number) => new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...rgb, THREE.SRGBColorSpace), roughness: 0.35, metalness });
+  const mats: Record<string, THREE.Material> = { gold: metal([0.83, 0.66, 0.26], 0.6), silver: metal([0.78, 0.78, 0.76], 0.6) };
+  const slab = (w: number, h: number, d: number, x: number, y: number, z: number) => new THREE.BoxGeometry(w, h, d).translate(x, y, z);
+  const boxGeo = mergeGeometries([slab(bx, t, bz, 0, t / 2, 0), slab(t, bh - F.lid - t, bz, -(bx - t) / 2, t + (bh - F.lid - t) / 2, 0), slab(t, bh - F.lid - t, bz, (bx - t) / 2, t + (bh - F.lid - t) / 2, 0),
+    slab(bx - 2 * t, bh - F.lid - t, t, 0, t + (bh - F.lid - t) / 2, -(bz - t) / 2), slab(bx - 2 * t, bh - F.lid - t, t, 0, t + (bh - F.lid - t) / 2, (bz - t) / 2), slab(bx, F.lid, bz, 0, bh - F.lid / 2, 0)].map(q => { q.deleteAttribute('uv'); return q; }))!;
+  for (const corner of F.corners as string[]) {
+    const sx = corner.includes('E') ? 1 : -1, sy = corner.includes('N') ? 1 : -1, off = hs / 2 + wt / 2;
+    const e = cx + sx * off, n = cy + sy * off;
+    const box = new THREE.Mesh(boxGeo, stone); box.position.set(e, y0, -n); box.name = `foundation-box:${corner}`; box.userData = meta; g.add(box);
+    let y = y0 + t; // plates lie flat on the floor of the box, silver under gold (order C)
+    for (const P of [...(F.plates as any[])].reverse()) {
+      const [pw, pd, pt] = P.size as number[]; const plate = new THREE.Mesh(new THREE.BoxGeometry(pw, pt, pd), mats[P.metal]);
+      plate.position.set(e, y + pt / 2, -n); y += pt; plate.name = `foundation-plate:${corner}:${P.metal}`;
+      plate.userData = { ...meta, inscription: F.inscription, note: `${P.metal} plate inscribed with DPh in Old Persian, Elamite and Babylonian (text: ARIo Q007164, A; the signs are data, not carved geometry: sealed out of sight)` };
+      g.add(plate);
+    }
+    // the pick rectangle: horizontal at floor level over the corner's footing, reaching 1 m beyond the wall's outer faces
+    const size = wt + 2, quad = new THREE.Mesh(new THREE.PlaneGeometry(size, size).rotateX(-Math.PI / 2), pickMat);
+    quad.position.set(e + sx * 1, floor + 0.02, -(n + sy * 1)); quad.layers.set(INSCRIPTION_PICK_LAYER); quad.name = `inscription:${F.inscription}:deposit:${corner}:pick`;
+    quad.userData = { ...meta, inscription: F.inscription, version: 'op', pickFar: 8 }; g.add(quad);
+  }
+  return g;
+}
 export function buildInscriptions(m: Manifest, parts: any[], extra: InscriptionPlacement[] = []): THREE.Group {
   const g = new THREE.Group(); g.name = 'inscriptions';
   const inscMat = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(0.22, 0.21, 0.2, THREE.SRGBColorSpace), roughness: 0.95 });
@@ -141,12 +228,18 @@ export function buildInscriptions(m: Manifest, parts: any[], extra: InscriptionP
       }
     }
   }
-  // Phase 4 central façades (D-049): XPc on the Tachara S stair, XPd on the Hadish W stair (Old Persian; placement C)
+  // Phase 4 central façades (D-049): XPc on the Tachara S stair, XPd on the Hadish W stair (Old Persian; placement C),
   const SR = v<any>('global', 'r_stair_relief');
+  // and the door-jamb inscriptions (D-066: XPe on the Hadish E and W doorways, the three versions stacked)
   for (const p of extra) {
     const t = (inscriptions as any)[p.id]; if (!t) continue;
-    const { geo } = textPanelGeometry('op', toCuneiform(t.op_translit), p.width, SR.glyph, SR.line_gap);
-    place(geo, panelMeta(p.id, p.version), [p.origin[0] + p.normal[0] * 0.01, p.origin[1] + p.normal[1] * 0.01], p.along, p.normal, p.yTop, p.width);
+    let y = p.yTop;
+    for (const ver of p.versions ?? [p.version]) {
+      const text = ver === 'op' ? toCuneiform(t.op_translit) : ver === 'el' ? t.el_cuneiform : t.bab_cuneiform; if (!text) continue;
+      const glyph = p.glyph ?? SR.glyph, { geo, height } = textPanelGeometry(ver === 'op' ? 'op' : 'cun', text, p.width, glyph, p.lineGap ?? SR.line_gap, !!p.flat);
+      place(geo, panelMeta(p.id, ver), [p.origin[0] + p.normal[0] * 0.01, p.origin[1] + p.normal[1] * 0.01], p.along, p.normal, y, p.width);
+      y -= height + (p.gap ?? 0);
+    }
   }
   return g;
 }

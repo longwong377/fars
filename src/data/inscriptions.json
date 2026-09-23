@@ -64,6 +64,38 @@
    "version_split": "C (heuristic split of the ARIo running text)"
   }
  },
+ "XPe": {
+  "ario": "Q007213",
+  "op_translit": "Xšayaṛšā xšāyaθiya vazṛka xšāyaθiya xšāyaθiyānām Dārayavahau̯š xšāyaθiyahyā puça Haxāmanišiya",
+  "el_atf": "{DIŠ}ik-še-ir-ša₂ {DIŠ}EŠŠANA ir-ša₂-ir ra {DIŠ}EŠŠANA {DIŠ}EŠŠANA-ip-in-na {DIŠ}da ri-ia-ma-u-iš {DIŠ}EŠŠANA {DIŠ}ša₂-ak ri {DIŠ}ha-ak-ka₄-man-nu-ši-ia",
+  "el_cuneiform": "𒁹𒅅𒊺𒅕𒃻 𒁹𒁹𒁹𒁹𒎙 𒅕𒃻𒅕 𒊏 𒁹𒁹𒁹𒁹𒎙 𒁹𒁹𒁹𒁹𒎙𒅁𒅔𒈾 𒁹𒁕 𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒁹𒃻𒀝 𒊑 𒁹𒄩𒀝𒋡𒎙𒉡𒅆𒅀",
+  "el_unmapped": [],
+  "bab_atf": "{m}hi-ši-ʾ-ar-ši LUGAL GAL-u₂ LUGAL LUGAL.MEŠ A {m}da-a-ri-ia-a-muš LUGAL {m}a-ha-ma-an-niš-ši-ʾ",
+  "bab_cuneiform": "𒁹𒄭𒅆𒀪𒅈𒅆 𒈗 𒃲𒌑 𒈗 𒈗𒎌 𒀀 𒁹𒁕𒀀𒊑𒅀𒀀𒈲 𒈗 𒁹𒀀𒄩𒈠𒀭𒎙𒅆𒀪",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "C (Kent orthographic rules)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)"
+  }
+ },
+ "DPh": {
+  "ario": "Q007164",
+  "op_translit": "Dārayava.uš xšāyaθiya vazṛka xšāyaθiya xšāyaθiyānām xšāyaθiya dahyūnām Vištāspahyā puça Haxāmanišiya θāti Dārayava.uš xšāyaθiya ima xšaçam taya adam dārayāmi hacā Sakai̯biš tayai̯ para Sugdam amata yātā ā Kūšā hacā Hindau̯ amata yātā ā Spardā tayamai̯ A.uramazdā frābara haya maθišta bagānām mām A.uramazdā pātu utāmai̯ viθam",
+  "el_atf": "{DIŠ}da-ri-ia-ma-u-iš {DIŠ}EŠŠANA ir-ša₂-ra {DIŠ}EŠŠANA {DIŠ}EŠŠANA-ip-na {DIŠ}EŠŠANA {DIŠ}da a-u₂-iš-pe₃-na {DIŠ}mi-iš-ta₂-as₂-pa₂ {DIŠ}ša₂-ak-ri {DIŠ}ha-ka₄-man-nu-iš-ši ia {DIŠ}da-ri-ia-ma-u-iš {DIŠ}EŠŠANA na-an-ri {DIŠ}EŠŠANA-um-me ap-pa {DIŠ}u₂ mar-ri-ra {DIŠ}sa₁₅-ak-ka₄-pe₃ ik-ki-mar {DIŠ}ak-ka₄-pe₃ {AŠ}šu-ig-da mi-ut-tu₃ ma ku-iš {AŠ}ku-ša₂-a-ia {AŠ}hi-in-du-iš-mar ku-iš {AŠ}is₂-par₂-da ap-pa {d}u-ra-mas-da {DIŠ}u₂ du-nu-iš-ta₂ ak-ka₄ ir-ša₂-ra {d}na-ap-pan-na {DIŠ}u₂ {d}u-ra-mas-da un nu-iš-ki₂-iš-ni ku-ut-ta₂ {AŠ}ul-hi.MEŠ-mi",
+  "el_cuneiform": "𒁹𒁕𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒅕𒃻𒊏 𒁹𒁹𒁹𒁹𒎙 𒁹𒁹𒁹𒁹𒎙𒅁𒈾 𒁹𒁹𒁹𒁹𒎙 𒁹𒁕 𒀀𒌑𒅖𒁁𒈾 𒁹𒈪𒅖𒁕𒀾𒁀 𒁹𒃻𒀝𒊑 𒁹𒄩𒋡𒎙𒉡𒅖𒅆 𒅀 𒁹𒁕𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒈾𒀭𒊑 𒁹𒁹𒁹𒁹𒎙𒌝𒈨 𒀊𒉺 𒁹𒌑 𒈥𒊑𒊏 𒁹𒃻𒀝𒋡𒁁 𒅅𒆠𒈥 𒁹𒀝𒋡𒁁 𒀸𒋗𒅅𒁕 𒈪𒌓𒁺 𒈠 𒆪𒅖 𒀸𒆪𒃻𒀀𒅀 𒀸𒄭𒅔𒁺𒅖𒈥 𒆪𒅖 𒀸𒅖𒁇𒁕 𒀊𒉺 𒀭𒌋𒊏𒈦𒁕 𒁹𒌑 𒁺𒉡𒅖𒁕 𒀝𒋡 𒅕𒃻𒊏 𒀭𒈾𒀊𒉼𒈾 𒁹𒌑 𒀭𒌋𒊏𒈦𒁕 𒌦 𒉡𒅖𒄀𒅖𒉌 𒆪𒌓𒁕 𒀸𒌌𒄭𒎌𒈪",
+  "el_unmapped": [],
+  "bab_atf": "{m}da-a-ri-ia-muš LUGAL GAL-u₂ LUGAL LUGAL.MEŠ LUGAL KUR.KUR.MEŠ A {m}uš-ta-as-pa {m}a-ha-ma-niš-ši-ʾ {m}da-a-ri-ia muš LUGAL i-qab-bi LUGAL-u₂-tu a-ga-a-ta ša₂ ana-ku ku-ul la-ka ul-tu {KUR}gi-mir-ri ša₂ ni-bir-tum {KUR}su-ug-du a-di-i {KUR}ku-u₂-šu ul-tu {KUR}in-du-u₂ a-di-i {KUR}sa-par-da ša₂ {d}a-hu-ur-ma-az-da-ʾ id-di-nu ša₂ ra-bu-u₂ al-la DINGIR.MEŠ {d}a-hu-ur-ma-az-da-ʾ ana-ku li-iṣ-ṣur-an-ni it-ti DINGIR.MEŠ u a-na E₂-ia",
+  "bab_cuneiform": "𒁹𒁕𒀀𒊑𒅀𒈲 𒈗 𒃲𒌑 𒈗 𒈗𒎌 𒈗 𒆳𒆳𒎌 𒀀 𒁹𒍑𒋫𒊍𒉺 𒁹𒀀𒄩𒈠𒎙𒅆𒀪 𒁹𒁕𒀀𒊑𒅀 𒈲 𒈗 𒄿𒃮𒁉 𒈗𒌑𒌅 𒀀𒂵𒀀𒋫 𒃻 𒁹𒆪 𒆪𒌌 𒆷𒅗 𒌌𒌅 𒆳𒄀𒂇𒊑 𒃻 𒉌𒄵𒌈 𒆳𒋢𒊌𒁺 𒀀𒁲𒄿 𒆳𒆪𒌑𒋗 𒌌𒌅 𒆳𒅔𒁺𒌑 𒀀𒁲𒄿 𒆳𒊓𒌓𒁕 𒃻 𒀭𒀀𒄷𒌨𒈠𒊍𒁕𒀪 𒀉𒁲𒉡 𒃻 𒊏𒁍𒌑 𒀠𒆷 𒀭𒎌 𒀭𒀀𒄷𒌨𒈠𒊍𒁕𒀪 𒁹𒆪 𒇷𒄑𒀫𒀭𒉌 𒀉𒋾 𒀭𒎌 𒌋 𒀀𒈾 𒂍𒅀",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "C (Kent orthographic rules)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)"
+  }
+ },
  "DNa": {
   "ario": "Q007152",
   "op_translit": "baga vazṛka A.uramazdā haya imām būmim adā haya avam asmānam adā haya martiyam adā haya šiyātim adā martiyahyā haya Dārayava.um xšāyaθiyam akunau̯š ai̯vam parūnām xšāyaθiyam ai̯vam parūnām framātāram adam Dārayava.uš xšāyaθiya vazṛka xšāyaθiya xšāyaθiyānām xšāyaθiya dahyunām vispazanānām xšāyaθiya ahyāyā būmiyā vazṛkāyā dūrai̯ api Vištāspahyā puça Haxāmanišiya Pārsa Pārsahyā puça Ariya Ariyaciça θāti Dārayava.uš xšāyaθiya vašnā A.uramazdāhā imā dahyāva tayā adam agṛbāyam apataram hacā Pārsā adamšām patiyaxšayai̯ manā bājim abaraha tayašām hacāma aθanhya ava akunava dātam taya manā avadiš adāraya Māda Ūja Parθava Harai̯va Bāxtriš Suguda Uvārazmiš Zranka Hara.uvatiš Θataguš Gandāra Hinduš Sakā Hau̯mavargā Sakā tigraxau̯dā Bābiruš Aθurā Arbāya Mudrāya Armina Katpatuka Sparda Yau̯na Sakā tayai̯ paradraya Skudra Yau̯nā takabarā Putāyā Kūšiyā Maciyā Kṛkā θāti Dārayava.uš xšāyaθiya A.uramazdā yaθā avai̯na imām būmim yau̯dantī̆m pasāvadim manā frābara mām xšāyaθiyam akunau̯š adam xšāyaθiya ami vašnā A.uramazdāhā adamšim gāθavā niyašādayam tayašām adam aθanham ava akunava yaθā mām kāma āha yadipati maniyāhai̯ ciyākaram avā dahyāva tayā Dārayava.uš xšāyaθiya adāraya patikarā dīdi tayai̯ gāθum baranti adā xšnāsāhi adatai̯ azdā bavāti Pārsahyā martiyahyā dūrai̯ ṛštiš parāgmatā adatai̯ azdā bavāti Pārsa martiya dūrai̯ hacā Pārsā parataram patiyajatā θāti Dārayava.uš xšāyaθiya ai̯ta taya kṛtam ava visam vašnā A.uramazdāhā akunavam A.uramazdāmai̯ upastām abara yātā kṛtam akunavam mām A.uramazdā pātu hacā gastā utāmai̯ viθam utā imām dahyāu̯m ai̯ta adam A.uramazdām jadiyāmi ai̯tamai̯ A.uramazdā dadātu martiyā hayā A.uramazdāhā framānā hau̯tai̯ gastā mā θadaya paθī̆m tayām rāstām mā avarada mā stabava",

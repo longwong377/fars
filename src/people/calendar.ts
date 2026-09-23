@@ -34,18 +34,21 @@ export function sunTimes(day: number): { rise: number; set: number } {
 }
 
 // ------------------------------------------------------------------ weather of a day, as the people feel it
-export interface EnvLike { rain: number; lightning: boolean; tempC: number; dust?: number }
-export interface DayWx { wet: boolean; rain: [number, number] | null; rainH: number; storm: boolean; stormH: [number, number] | null; dust: boolean; frost: boolean; hot: boolean; tmax: number; tmin: number }
+export interface EnvLike { rain: number; lightning: boolean; tempC: number; dust?: number; windMs?: number }
+export interface DayWx { wet: boolean; rain: [number, number] | null; rainH: number; storm: boolean; stormH: [number, number] | null; dust: boolean; frost: boolean; hot: boolean; tmax: number; tmin: number;
+  /** mean wind (m/s) of the morning (07-11) and of the afternoon (14-18): winnowing needs a wind (E-43) */
+  windAM: number; windPM: number }
 /** sampled from the hourly weather: rain > 0.25 = people shelter (the Phase 3 rule); lightning or rain > 0.7 = storm */
 export function dayWx(env: (t: number) => EnvLike, day: number): DayWx {
-  let r0 = -1, r1 = -1, s0 = -1, s1 = -1, rainH = 0, tmax = -99, tmin = 99, dust = 0;
+  let r0 = -1, r1 = -1, s0 = -1, s1 = -1, rainH = 0, tmax = -99, tmin = 99, dust = 0, wa = 0, na = 0, wp = 0, np = 0;
   for (let q = 0; q < 96; q++) {
     const h = q * 0.25 + 0.125, e = env(day * 24 + h);
     if (e.rain > 0.25) { if (r0 < 0) r0 = h - 0.125; r1 = h + 0.125; rainH += 0.25; }
     if (e.lightning || e.rain > 0.7) { if (s0 < 0) s0 = h - 0.125; s1 = h + 0.125; }
     tmax = Math.max(tmax, e.tempC); tmin = Math.min(tmin, e.tempC); dust = Math.max(dust, e.dust ?? 0);
+    if (h >= 7 && h < 11) { wa += e.windMs ?? 0; na++; } else if (h >= 14 && h < 18) { wp += e.windMs ?? 0; np++; }
   }
-  return { wet: rainH >= 0.5, rain: r0 >= 0 ? [r0, r1] : null, rainH, storm: s0 >= 0, stormH: s0 >= 0 ? [s0, s1] : null, dust: dust > 0.5, frost: tmin < 0, hot: tmax > 33, tmax, tmin };
+  return { wet: rainH >= 0.5, rain: r0 >= 0 ? [r0, r1] : null, rainH, storm: s0 >= 0, stormH: s0 >= 0 ? [s0, s1] : null, dust: dust > 0.5, frost: tmin < 0, hot: tmax > 33, tmax, tmin, windAM: na ? wa / na : 0, windPM: np ? wp / np : 0 };
 }
 
 // ------------------------------------------------------------------ pure schedules (also used to create transients)
@@ -167,7 +170,7 @@ export class EventCalendar {
     if (this.firstRainDay < 0 && month >= 7 && wx.wet) this.firstRainDay = d;
     const ctx: DayCtx = { day: d, month, dom, season, wx, sun, court, events: [], issue: new Map(), special: new Map(), wine: new Map(), maternity: new Map(), payments: [], deliveries: [], couriers: [],
       slaughter: [], milling: [], brewing: [], offerings: [], agri: new Set(), river: ROW['E-51'].rule.by_month[String(month)], winter: [9, 10, 11].includes(month), brick: [2, 3, 4, 5].includes(month) && !wx.wet,
-      heatRest: [3, 4, 5].includes(month) && wx.hot, firstRain: this.firstRainDay >= 0 && this.firstRainDay <= d, doubled: [], disputes: new Map(), short: new Map(), build: this.construction.stoneTasks(), counts: {} };
+      heatRest: wx.hot, /* the midday rest follows the day's heat (E-64: Tmax > 33 °C), in whatever month it comes (D-086) */ firstRain: this.firstRainDay >= 0 && this.firstRainDay <= d, doubled: [], disputes: new Map(), short: new Map(), build: this.construction.stoneTasks(), counts: {} };
     const ops: { t: number; f: () => void }[] = [];
     const E = (hour: number, id: string, text: string, place: string, n?: number) => { const row = ROW[id]; ctx.events.push({ t: d * 24 + hour, id, kind: row?.kind ?? id, text, place, tier: row?.tier ?? 'C', n }); };
     const monthDraw = (sa: string, g: number, lo: number, hi: number) => M.start + lo - 1 + Math.floor(u01(seed, salt(sa), g, month) * (hi - lo + 1));
@@ -238,6 +241,7 @@ export class EventCalendar {
       if (id === 'E-40' && !ctx.firstRain && !(month === 8 && dom > 15) && month !== 9) continue; // CE-20: sowing waits for the first autumn rains (irrigated land is sown by mid-Arahsamnu regardless, C)
       if ((id === 'E-40' || id === 'E-44') && wx.wet) continue;
       if (id === 'E-50' && !(dom >= 5 && dom <= 25)) continue;
+      if (row.day_window && (d < row.day_window[0] || d > row.day_window[1])) continue; // the harvest windows (Q-140)
       ctx.agri.add(id); E(row.rule.hours?.[0] ?? 7, id, row.name, 'plain');
     }
     if ([12, 1, 2].includes(month) && !wx.wet) { const n = pop.shearingToday(d); if (n) { ctx.agri.add('E-47'); E(8, 'E-47', `${n} flocks shorn in the folds`, 'plain', n); } }

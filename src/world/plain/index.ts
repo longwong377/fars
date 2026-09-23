@@ -50,7 +50,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const zones = buildZones({ terrain, rivers: rivers.rivers.map(r => ({ x: r.x, y: r.y, halfCorridor: r.carveRadius.mid + 24 })), villages: villages.map(v => ({ x: v.x, y: v.y, r: v.r })) });
   const tGen = performance.now() - t0;
   // terrain: the plain's field / crop / woodland layer on the existing chunks (no new draw calls)
-  const ground = new PlainGround(zones);
+  const ground = new PlainGround(zones); ground.treeR.value = Q.r3; // the painted canopy gives way to the 3-D trees
   const terrainGroup = scene.getObjectByName('terrain');
   terrainGroup?.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).material = ground.material; });
   if (terrainGroup) terrainGroup.userData.note = `${terrainGroup.userData.note}; fields, crops, orchard floors and woodland canopy from plain.json zones (C)`;

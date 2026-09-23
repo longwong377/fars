@@ -48,7 +48,7 @@ def atf_to_cun(atf):
     return ' '.join(out), missing
 def main():
     texts = {json.loads(l)['id_text']: json.loads(l)['raw_text'] for l in open('data/corpus/ario.jsonl', encoding='utf8')}
-    IDS = {'XPa': 'Q007209', 'XPb': 'Q007210', 'XPc': 'Q007211', 'XPd': 'Q007212', 'DNa': 'Q007152', 'DNb': 'Q007153'}  # DNa/DNb: Darius I's tomb, Naqsh-e Rustam (identified by content: DNa 'Ariyaciça', 'gāθum', 'patikarā'; DNb 'ima frašam ... upari Dārayava.um')
+    IDS = {'XPa': 'Q007209', 'XPb': 'Q007210', 'XPc': 'Q007211', 'XPd': 'Q007212', 'XPe': 'Q007213', 'DPh': 'Q007164', 'DNa': 'Q007152', 'DNb': 'Q007153'}  # DNa/DNb: Darius I's tomb, Naqsh-e Rustam (identified by content: DNa 'Ariyaciça', 'gāθum', 'patikarā'; DNb 'ima frašam ... upari Dārayava.um')
     res = {}
     for sig, q in IDS.items():
         raw = texts[q]
@@ -57,7 +57,11 @@ def main():
         op = raw[:m.start()].strip() if m else raw
         rest = raw[m.start():] if m else ''
         # Babylonian versions of Xerxes texts open with 'DINGIR GAL₂' / '{d}u₂-ra-ma-az-da' patterns; split at the first occurrence of ' DINGIR ' or 'AN GAL'
-        b = re.search(r'\bDINGIR\b|\bAN GAL\b|\bil-lu\b', rest)
+        # texts that do not open with a god line start their Babylonian with the king's name under the Babylonian person determinative {m}
+        # (Elamite writes {DIŠ}): XPe (Xerxes' titulary) and DPh (the Apadana foundation plates, ARIo Q007164; Q007148 is DH,
+        # the same wording from Hamadan). The fallback is per text so the other entries stay byte-identical.
+        SPLIT = {'XPe': r'\{m\}hi-ši-ʾ-ar-ši', 'DPh': r'\{m\}'}
+        b = re.search(SPLIT[sig], rest) if sig in SPLIT else re.search(r'\bDINGIR\b|\bAN GAL\b|\bil-lu\b', rest)
         el, bab = (rest[:b.start()].strip(), rest[b.start():].strip()) if b else (rest.strip(), '')
         elc, elm = atf_to_cun(el); bac, bam = atf_to_cun(bab)
         res[sig] = {'ario': q, 'op_translit': op, 'el_atf': el, 'el_cuneiform': elc, 'el_unmapped': sorted(set(elm)), 'bab_atf': bab, 'bab_cuneiform': bac, 'bab_unmapped': sorted(set(bam)),

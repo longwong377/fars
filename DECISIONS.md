@@ -968,6 +968,57 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Where the data disagree:** `town.json`'s quarter shares (C) put ~3,400 people in Persepolis West and ~440 around the official building, where the built settlement has 3,058 and 60 places. The households that do not fit live in the nearest sites of other zones (q_n1 and the lower town), and their quarter follows the house: lanes, wells, the women at the well and the quarter's position (now the mean of its houses' doors) are those of where they live. Logged, not resolved: the settlement's capacities are the physical fact now; the shares are C.
 - **The detailed people:** going home, a person walks the nav grid to the town edge on the approach (as before), then goes on hidden, at walking pace, to the lane exit of the house's quarter and to the street door, and back out the same way in the morning (`Task.legs`), instead of waiting at the single 'town' point. The town's people are still not drawn (D-024): their positions are right for a renderer that will draw them.
 - **Cost:** building the population takes ~0.45 s (was ~0.3 s).
+## D-082 Children do the work of their age and sex, and come home by dusk (Phase 5 shadow review round 2, N1)
+- **Why:** round 2 (`REVIEWS/shadow_phase5_r2.md`) failed on the older children: four of five girls of 9-13 woke at 05:51-05:54 in every season, ran an empty "errand", played in the lane until 55-82 min after sunset, and a 13-year-old "farmer" girl in the sowing month had 10 h of play and 38 min of grinding.
+- **The child's own day (`Planner.child`; `lives.json` children.work; Q-143; C):**
+  - **Hours of work by age and sex:** girls about 0.8 / 3.0 / 4.5 / 6.0 h a day at 5-6 / 7-9 / 10-11 / 12-13, boys 0.6 / 2.5 / 4.0 / 5.5, 80 % in winter; each child's day draws its own share (±20 %). Village time-use studies find children's work rising with age to near-adult days in the early teens (NWP1978, an ethnographic analogy; its tables NOT SEEN).
+  - **The work:** minding the little ones, water (two jars at most), dung and brushwood (outside the village or the town), grinding beside the mother (girls from 10; from 12 their share of the household's grinding with the women), spinning, shaping dung cakes, scaring birds off the ripening crop before the harvest, and real errands (bread taken to a kinswoman, a measure of barley exchanged in the lane for oil, each once a day), not a walk that stands in the lane. Chores are capped at what the house needs.
+  - **Roles of the house (`HDay.minder / fieldHelper / bringer`):** the eldest girl of 7-13 (else a boy of 8 or more) minds the children under five while the mother is out, and the toddlers are left with her; a son of ten or more goes out with the men to the ploughing, the field or the canal (70 % of such days); the youngest other child of 7-13 carries the midday bread and water out to the men and eats with them. Boys of the plain (60 %) and a few girls of 7-11 (15 %) take the household's animals out with bread and curds (split morning and evening on hot days).
+  - **The harvest:** from nine a child goes out with the household (gleaning and carrying the sheaves; from twelve binding; on the floor driving the animals and turning the straw), in spells with rests in the shade; children of 6-8 who go with the mother carry water along the rows or drive the animals, in spells; the rest play at the field edge.
+  - **Waking:** a girl who grinds with the women rises with them; the others shortly before the morning meal, whose hour is set by the sun and the day's work (so it moves with the season), less each child's own habit (0.2-0.8 h) and the day (0-0.3 h). Children under nine who go with their mother still sleep on at home until the meal.
+  - **Evening:** play out after supper only in the warm half of the year (tmin 6 °C or more) and only until dusk (sunset + 0.15 h: "called in at dusk"); bedtime 0.7-1.6 h after sunset under ten, 1.0-2.3 h at 10-13 (was the adults' rule). Play comes in spells of 0.7-1.8 h (lane, a friend's house, the water's edge, home), not the same place twice running.
+  - **A girl of 12-13 whose job is "farmer"** keeps the women's day of her house (the quern, the bread) unless the whole household is out.
+- **Measured (seed 1; 1 in 7 children of 7-13; days 21, 61, 111, 184, 251, 306):** girls 9-13 work 4.3-6.4 h and play 1.9-5.2 h a day (the reviewed case had 38 min of work and 10 h of play); boys 9-13 of the plain 3.9-6.8 h of work, of the town 2.7-3.9 h; children of 7-8 1.7-3.7 h. The median waking hour of the plain's girls 9-13 moves from 04:09 (day 61) to 06:22 (day 251); on one day the 5-95 % spread is 0.6-1.5 h (was 3 min).
+- **Toddlers (with it):** from two a child's outings are in the lane with the neighbours' children (the older ones watching the small), with the walk there and back, and only while the one minding it is at home and not at a meal (the toddlers' 1,100 same-day jumps between houses per 24,000 person-days are gone); from three outings are more frequent (`outing_from_3`); on a wet day the outings keep to the dry hours; the eldest sister takes the little ones along to the lane and the well; a child of one rides on the back of the one minding it while she grinds, kneads, bakes or washes; the midday sleep is shorter after a morning sleep. This closes D-080's "a toddler's lane is taken as adjacent to its door".
+- **Not done:** town boys' work is still mostly the household's (no apprenticeship at the father's bench); play is not yet shared between named children of the lane.
+
+## D-083 The bereaved household: a wet nurse, a woman to keep the house, and the right words (N2)
+- **Why:** in household 5407 three months after the mother died no woman had come, nobody ground or baked, the father minded the infant, and the texts called him "the mother".
+- **Rule (`Population.bereaved`; Q-142; C):** when a mother of children under 14 dies,
+  - her nursing child (under two) goes the next day to a wet nurse: a woman of 16-42 of the kin (within an hour's walk) or of the quarter who is nursing her own; it lives in her house, and she nurses both ("nursing her baby and the motherless child she wet-nurses"). Wet-nursing of others' children is a legal institution in Old Babylonian Mesopotamia (Laws of Hammurabi §194, CH-194: A for Old Babylonia, an analogy here);
+  - if no woman of 14 or more is left in the house, the grandmother of the house keeps it (up to 70); else a kinswoman with no child of her own, whose own household keeps another woman, moves in 2-5 days later (`moved: 'kin'`); else the eldest daughter of nine or more keeps it. The keeper leads the grinding and bakes (`HDay.women[0]`), and her day is a woman's day whatever her job.
+  - the texts of a small child name whoever is with it: the mother, the wet nurse, the father, the grandfather, the elder brother or sister, the grandmother, the kinswoman keeping the house, the woman minding it; only a mother or a wet nurse nurses; a motherless child with no wet nurse is fed goat's milk and softened bread; twins are named only for twins (a `twin` link from birth).
+- **Also:** moves that are not marriages (fosterage, a wet-nursed child, a kinswoman keeper) no longer get a wedding day; the eldest sister minds a toddler while the mother works; a toddler of one nursed by a wet nurse is fed at her feeds; a child of one plays on the doorstep, the one minding it inside (from two, in the lane: D-082).
+- **Measured (seed 1):** 124 mothers die in the year leaving children under 14; 43 nursing children go to a wet nurse; 71 houses left with no woman are kept (44 by a kinswoman who moves in, 17 by the grandmother, 10 by the eldest daughter); in the rest another woman of the house was already there. This closes D-080's "the woman who feeds a motherless infant does not show it in her own plan". Tests: `tests/people_days.test.ts` (the nurse nurses, the keeper grinds, no man is called "the mother", twins).
+
+## D-084 The harvest windows follow the evidence (N3)
+- **Conflict (Q-140):** E-41 barley was "months 1-3" (from 17 Apr Julian, ≈12 Apr in the seasons), E-43 threshing "months 3-5", while E-41's gloss said mid-May - June and the plain's crop model cut the barley by mid-June; the sim reaped on day 15 (≈26 Apr).
+- **Decision, by the dated evidence:** PF 6 delivers grain in months 4-6 (A for the delivery months), and OP month 5 is the "harvest month" (WP-CAL); the sourced crop calendar (IR-FOODAG: barley harvested May-June; FARS-CROP: wheat late May - July, a modern analogue) and plain.json agree. The rows now carry a `day_window` inside their months: **E-41 barley days 33-66 (15 May - 17 Jun seasonal), E-42 wheat days 50-95 (1 Jun - 16 Jul), E-43 threshing and winnowing days 43-141 (25 May - 31 Aug)**. The harvest draft from the town (E-41/E-42) follows.
+- **Field work by the season (`Population.fieldWhy`):** a man's field day is clearing the stubble and manuring before the ploughing, breaking clods and mending the banks while the ploughing and sowing go on (no weeding at the E-40 peak), the banks and channels in winter, hoeing and weeding the growing crop in spring, the summer crop's furrows after the harvest (C). The son out with the men does the same.
+
+## D-085 Variety from causes: the dough, the field day, the guards (N4)
+- Kneading and baking take longer the more there are to feed and vary with the woman and the day's fire (about 0.25-0.55 h and 0.5-1.0 h for five to eight eaters); the time between the bread and the meal varies (`household_bread`, C).
+- A field day's breakfast comes 0.2-0.6 h before the household goes out, and each household has its own lag to its plots (0-0.45 h: the walk, its habits); the plough and field days end at their own hour.
+- Guards: each man rises by his own habit (the trait: up to 0.45 h early, and 0-0.2 h by the day); breakfast and meals last 0.4-0.75 h; a file eats its evening meal together at an hour set by the sunset (sunset - 0.35 to + 0.15 h); bedtime by the trait; the patrol's pace on the day moves all the reliefs of a watch together (the same for the man relieved and the man relieving). The forecourt "errand" is "talking with men of another file in the court".
+- The patrol (N5): the log showed each leg's destination at its start, so a 260 m leg read as 2 min. Measured: every leg takes its distance at walking pace (e.g. 259 m in 4.0 min, 1.4 m/s over the walked route); each stop now counts from the arrival (a word with the man on the post: 1.2-3 min; an empty post: 0.3-1.2 min). The shadow tool now writes "→ place" on the way and "@ place" on arrival.
+- A house of men with no woman in it (the gangs' lodgings) fetches its own water, washes its clothes at the water and sits out in the lane with the men of the lane; a man who lodges alone spends many evenings there (C).
+- The leader of a stone squad marks out and checks the work with cord and straightedge in the morning and dresses the finest part of the drum himself in the afternoon (was "overseeing" all day).
+- Measured: kneading takes more than six different lengths (minutes) across a sample of bakers; most guards' rising hour differs on each of four days of the year (tested).
+
+## D-086 Weather: the wind for winnowing, the heat by temperature (N6)
+- **Wind (`DayWx.windAM / windPM`, the weather's hourly wind, means of 07-11 and 14-18):** winnowing only when the wind is 1.8 m/s or more (`lives.json` winnowing, Q-141, C); on still mornings the floor is threshed by the animals and the straw turned; the afternoon's session winnows if the afternoon wind is up.
+- **Heat (E-64):** the midday rest follows the day's temperature (Tmax > 33 °C) in any month (was months 3-5 only, so a mason worked through 35 °C in month 2); the courier's station messenger sleeps in the station's shade through it.
+- **The harvest afternoon:** after the midday meal the rest lasts as long as the heat demands (about 1 h at 26 °C, 4.5 h at 38 °C), then the household goes back out until the sheaves are carried (a snack at the field edge in a long afternoon); a woman goes back out on most days, otherwise works at home; the vintage has its press and the figs a second picking. A household no longer rests 4 h at 27 °C.
+- **Children** play out in the evening only in the warm half of the year and until dusk (D-082).
+
+## D-087 Reasons, evidence codes and what is carried (N7, N8)
+- **Evidence codes out of the reasons:** a code in a reason ("(E-43)", "(HDT 1.136)") moves to the segment's `ev` (out-of-world, for the dev overlay and the shadow tool, printed as `{E-43}`).
+- **One stint, one reason:** "stopping to nurse" + "nursing" and the morning's and afternoon's grinding back to back are joined; walks out name where they go ("out to the threshing floor", "out to the vineyard", not "to the fields"); idle time at home is "playing in the courtyard" under ten and "at home" after; an old woman minds grandchildren only where there are small children; one occupation of the home hours does not simply run on into the same again; an evening visit only when there is time to go, stay and come back before bed.
+- **What is carried (`Seg.carry`; §9.5):** the load of every carrying act (sheaves, dung cakes and brushwood, a sack of grain, the ration, a jar of water on the head, the bread basket, a small jar of oil), the water jar at the well, the day's tools on the way to work and back (a mason's chisels and mallet in a bag, a mattock and a basket, a sickle, a hoe, a winnowing fork, the plough and yoke with the oxen: Q-145, C), bread and water for the day on a harvest morning, the empty basket home, a sealed letter, and the guards' arms on watch and on the rounds (Persian guards a spear and a wicker shield, the others a spear, a bow case and a short sword, as the Persepolis reliefs show them: A for the reliefs, B as daily dress; Q-144). For the detailed people the plan's carry travels with the task (`Task.holds`) where the sim does not carry the thing physically (`Agent.carry` stays the renderer's load: sack, jar, basket).
+- **The station messenger's day:** the hours between relays are his horse and its harness, talk with the grooms, the midday meal and, in the heat, sleep in the shade; he carries the letters to the official building and up to the Treasury; he goes home at dusk (was 12 h "waiting for the relay").
+- **Shadow tool:** header ages are ages on the day (months under three); each plan line prints `[carrying …]` and `{evidence}`; the detailed agents' lines print "→" while walking and the carried thing.
+- **Soak (`npm run soak`, seed 1, 354 days, everyone, court absent; after D-082 ... D-087): PASS, all eight gates.** Detailed agents: worst near-copy share 0.021 (a child), guards 0.002. Population (43,258 measured over 15.45 M plans): no one at or over 0.10; the worst are a child present 7 days (0.095) and a builder present 19 days (0.094), so the margin for the short-lived is thin. Infants reported: 5 of 3,489 would fail (mean 0.002). Plans well formed: 15,454,999 person-days and 118 days of companions and children at night, no issue. Event kinds per week 14-20. Nobody stuck; nothing unperformable rendered. Stores in bounds, no ration shortfall, harvest factor 0.945. Life: 1,853 births, 1,461 deaths, 377 marriages. Construction advanced in 51 of 51 weeks (34 drums, shafts 38 -> 46, 7 fluted, 27 courses). Cost: step() at 60 fps 0.059 ms mean, 0.519 ms p99, midnight frame 4.4 ms; at 60x 7.1 ms mean, 144 ms p99. The population part takes ~29 min.
+- **Checked on an unseen sample:** `tools/shadow_days.ts 1 37` (pick seed 37, not 7, 11 or 23), read but not scored; the next reviewer should use another seed.
 
 ## D-063 — Visitor mode implemented from the access research (session 3)
 - **What:**
@@ -1124,3 +1175,319 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - rooms of the Treasury other than the Hall of 99 Columns (not roofed in the model);
   - doors closed at night (the bake uses the walkable-grid pose);
   - the people, props and reliefs as occluders.
+- **Addendum (local cover):** the weather field scales the cover by ×0.6–1.4 across its 46 km tile. The tile-mean calibration drew about 50 % cloud over the Terrace on a "clear" day, seen in the dawn moment. The sky now solves the uniform for the sky over the observer:
+  - It uses a second measured curve: column cover against a fixed effective cover.
+  - It divides by the mean of the drifted weather field over a 12 km disc around the camera (21 samples, recomputed after 500 m of movement).
+  - Measured error of the cover over the observer's 12 km disc: worst 0.053, mean 0.018, across 30 observer/cover cases (tested ±0.08).
+
+## D-065 — Four-stepped crenellations on the stair parapets (session 3; Phase 4 item)
+- **Problem:** the Apadana stairs had their merlons (B), but the Grand Stair and the Phase 4 palace stairs ended in flat parapets. SITE_SPEC itself calls for merlons on them: the grand_stair.parapet_height note and the Tachara stair_s_reliefs "Persepolis stair convention".
+- **Decision:** new row `global.r_stair_crenellation` (tools/apply_crenellation_patch.py). The merlons are the Apadana's: 0.9 × 0.9 m, four steps, pitch 1.15 × width.
+  - Depth equals the parapet thickness, up to 0.45 m. The Grand Stair W lane parapets are 0.15 m thick, so their merlons are 0.15 m deep.
+  - Buildings: grand_stair, tachara, hadish, tripylon. The motif on each is C (by the convention). Sizes are C.
+  - `stairCrenellationPlan` (src/arch/decor.ts) chains each building's parapet blocks into runs (same line, same thickness, touching end to end). It centres merlons along each run at the pitch, and seats each merlon on the lowest block under it, so none floats over a lower step.
+  - 228 merlons in one instanced draw: Grand Stair 130, Hadish 44, Tripylon 40, Tachara 14. There is no collider: the parapets under them already block.
+- **Left out:**
+  - the terrace-edge parapet stays plain. terrace.parapet_height "assumes" crenellations, but no source was reached, and the motif is attested on stairs;
+  - the Hadish S balcony "behind four-stepped crenellations" (B) is not modelled.
+- **Tests:** `tests/crenellation.test.ts`. Every listed stair has merlons. Each merlon is on its parapet's mid-line, fully over blocks, based at the lowest block top under it, and no deeper than the parapet. Merlons on a run do not overlap.
+
+## D-066 — XPe carved on the Hadish E and W doorways (session 3; Phase 4 item)
+- **Text:** XPe is ARIo Q007213 (Schmitt 2009, CC0 mirror). `tools/build_inscriptions.py` now includes it; the rebuild reproduces every other entry exactly.
+  - Old Persian: *Xšayaṛšā xšāyaθiya vazṛka xšāyaθiya xšāyaθiyānām Dārayavahau̯š xšāyaθiyahyā puça Haxāmanišiya*, "Xerxes, the great king, king of kings, son of king Darius, the Achaemenid" (A).
+  - The Elamite and Babylonian versions map to OSL signs with nothing unmapped (B).
+  - XPe has no god line, so the version split also cuts at the Babylonian king's name `{m}hi-ši-ʾ-ar-ši` (C, like the other splits).
+- **Placement:** "XPe above king and attendants" on the E doorway (SI-ARCH, B), and "two large Xerxes inscriptions on the eastern and western doorways" (FARROKH, B).
+  - `hadish.door_jamb_reliefs` E and W now name the inscription.
+  - New row `global.r_jamb_inscription` (C): 8 cm signs, three versions stacked top to bottom (OP, El, Bab; order C), starting 0.25 m under the reveal top, over 90 % of the reveal.
+  - Whether each reveal carries all three versions or one each is NOT SEEN (Q-090). Both reveals carry all three: 12 panels.
+- **Signs are flat (drawn 3 mm proud), not bevelled incisions.** The panels stand 4.6–5.8 m above the floor. There a pixel is about 5 mm (1080p, 60° field), so the 2.5 mm bevel is under half a pixel. The bevelled panels cost 162 k triangles per reveal (647 k in all).
+- The translation layer names the panel (XPe, placement C). Glosses come from the project lexicon; there is no published translation (NEEDS #14).
+- **Tests:** `tests/xpe.test.ts` checks the edition text, 4 panels per version, each above the figures and under the reveal top, on the reveal plane within the passage, and flat (under 20 k triangles).
+
+## D-067 — The Treasury N range and the scribes' room; doorways in the walkable grid (session 3)
+- **Problem:** the §1.1 moment "a scribe's room, mid-work" rendered as an open court. The Treasury had only its enclosure and the Hall of 99 Columns.
+- **Evidence:**
+  - The PT tablets were found in "a northeastern room of the Treasury" (IR-TREAS, SX, B).
+  - REF-PLAN, resampled into the grid with the Phase 4 transform (`tools/apply_treasury_rooms_patch.py` header), shows a range of rooms along the inside of the N wall. Positions are ±0.5 m at ~2.1 px/m (B):
+    - four rooms, each 4.2 m deep, between the enclosure's inner face (y −80.5) and an inner wall (−84.7 to −86.4);
+    - full-depth cross walls at x 144–146, 159–161, 176–178 and 192–194;
+    - one doorway from the S into each room, 1.1–1.3 m wide;
+    - the E room is the vestibule of the N door, with a doorway at the N end of its E wall.
+- **Decision:**
+  - Rows `treasury.n_range` (B) and `r_n_range_height` (C: 4.5 m clear, 0.5 m timber-and-earth roof, 2.6 m doorways under lintels).
+  - `scribes_room` (C): the NE room, x 178.1–192.0, beside the vestibule. The desk sits 1.2 m from the S doorway for its daylight.
+  - `r_scribes_room` (C): a mud-brick bench along the N and W walls with filed tablets in two rows, a drying board of fresh tablets, a lump of clay under a damp cloth, and three reed baskets. Types B; forms, sizes and number C (`src/world/furnish.ts` `buildScribesRoom`).
+  - `treasury_desk` (people_places) moved into the room. The visitor zone `treasury_desk` is now the room's rectangle; the old 8 m circle reached 2.8 m into the street. The scribe-at-work moment looks from the room's NE corner toward the desk.
+  - Not modelled: the hypostyle hall S of the range, the E corridor, and a rectangle drawn in the vestibule (NOT SEEN at the plan's resolution).
+- **Walkable grid:** the one-cell erosion sealed any doorway narrower than about 1.3 m, depending on how the 0.5 m grid fell, so the scribes' room could not be reached. `tools/build_nav.ts` now keeps a cell in a narrow passage (unwalkable within two cells on both opposite sides) if its centre is at least 0.3 m (body radius + 5 cm) from the obstacles, tested by rays.
+  - First try: relaxing the erosion along every wall let routes climb the Hall 100 S doorway steps from the side, where the capsule caught on the 0.5 m step (botcheck). Limited to narrow passages, the grid is the old one plus 48 cells: 1,416,157 walkable.
+  - The grid was rebuilt for the current parts (this also covers the "rebuild the walkable grid after the merges" item).
+  - Offline bots: all six areas pass (77 legs, including new legs into the scribes' room and out), and the slice passes (28 legs).
+- **Tests:** `tests/treasury_rooms.test.ts` covers the wall and doorway solids, cross walls, roof, the desk and zone, the route street → N door → vestibule → court → room doorway → desk, and the furnishing.
+- **Open:** the room is lit only through its 1.1 m doorway; the interior-light agent's probes must cover it when merged. Which room held the archive is C (Q-124: Schmidt's room numbers NOT SEEN).
+
+## D-068 — The Apadana foundation deposits, sealed under the hall corners (session 3)
+- **Why:** the brief names "the Apadana foundation plates in their stone boxes" among the real objects to show "at the point in its life you're witnessing". In 467 that point is sealed underground.
+- **Text:** DPh is ARIo Q007164, trilingual (A); Q007148 is DH, the same wording from Hamadan. `tools/build_inscriptions.py` adds it with a per-text version split: the Babylonian opens with `{m}`, the Elamite writes persons with `{DIŠ}`. Every existing entry rebuilds byte-identical.
+- **Build:** new row `apadana.r_foundation_deposits` (C; tools/apply_foundation_patch.py), `buildFoundationDeposits` in `src/arch/decor.ts`.
+  - At the NE and SE corners of the hall (Q-016: the boxes found; Livius names one box at NE): a limestone box with a lid, centred under the outer corner of the hall wall, its top 0.45 m below the floor (C).
+  - Each box holds a gold and a silver plate, 33 × 33 cm (recollection, NOT SEEN, C).
+  - The plates carry DPh as data, not carved glyphs, since no camera can reach them.
+  - A pick rectangle over each corner's footing lets the translation layer name the plates and show the text: out-of-world knowledge. The world itself shows nothing.
+  - The coins reported beneath the boxes are not modelled (not in the retrieved sources).
+- **Tests:** `tests/foundation.test.ts` covers the edition text and the versions, the boxes under the hall wall and below the floor, the plates inside the boxes, and the pick rectangles on the pick layer only.
+
+## D-069 — The Naqsh-e Rustam tomb reliefs carved by the relief system (session 3; Phase 7 placeholder)
+- **Problem:** the upper registers and side panels of the rock tombs were schematic extruded silhouettes (PLACEHOLDER).
+- **Decision:** every figure is now a relief item (`ReliefSet`, D-019: carved heightfield, per-figure LOD, far chunks, paint film), standing on the recess back of each tomb. The programme is B (NR-ACHAEMENICA, NR-IRANICA, WP-NR); the drawing is C and NOT SEEN.
+  - 28 throne-bearers in two tiers under the dais beams (people and dress C);
+  - the king on the three-stepped podium, right hand raised, bow in the left hand resting on the ground (new kind `king_worship`, new prop `bow`);
+  - the stepped fire altar with flames (new kind `fire_altar`; it replaces the box-and-flame stand-in);
+  - the figure in the winged ring above (new kind `winged_figure`: a bust with a raised hand and a ring, over the Tripylon winged disc, with a longer tail hiding the lower robe);
+  - the moon, a disc with a crescent (new kind `moon`);
+  - three tiers of guards or attendants on each side panel, facing inward (`guard`; which figure is which C).
+- **Painted like the Persepolis reliefs (C):** whether the NR reliefs were painted is not in the retrieved sources. Paint is the Persepolis analogue; log it with Q-074.
+- The Neo-Elamite relief keeps its schematic figures (PLACEHOLDER, flagged).
+- Checked in the node raking-light preview (`tools/relief_preview.ts`); not yet seen in a browser render.
+- **Tests:** in `tests/plain.test.ts`, each tomb set has 28 bearers, one king, altar, winged figure and moon, and 6 guards; it is no longer a placeholder; the king faces the altar. The kinds carry tiers and known sources (`tests/reliefs.test.ts`).
+- **Addendum (distance):** a relief set drew its merged coarsest level at any distance, which for the NR tombs is about 80 figures seen from the Terrace 6 km away, each under 0.2 px. `ReliefSet` now takes an optional `hideBeyond`. The NR sets use 1.5 km (a 2.3 m figure is about 1 px there): beyond it the set is not drawn and its LOD work stops. Tested: hidden from the Terrace, drawn at 60 m.
+
+## D-070 — Smoke scatters the skylight, not the horizon behind it; a mountain view for the dusk-smoke moment (session 3)
+- **Measured:**
+  - terrace-w-dusk renders at high with and without the town differed in fewer than 1,000 pixels.
+  - The debug render (`?smokedbg`: haze blue, plumes red) shows 1,303 plumes and the quarter haze all drawn, in the right place, but as a 10–15 px band on the horizon line. The Terrace stands ~15 m over the plain and the quarters are 0.9–1.6 km away.
+  - The smoke's in-scattered light was the calibrated horizon radiance *in the view direction* (D-060). That is the colour of the fogged distance behind the smoke, so the smoke drew as its own background.
+- **Physics:** optically thin smoke with an isotropic part of its phase function scatters the mean radiance over the sphere: the sky above (hemisphere irradiance E/π, which the calibrated dome averages to, D-060) and the ground below (albedo × E/π), halved.
+  - `smokeSkyRadiance` (src/world/fire.ts) gives E/π × (1 + 0.25)/2 (ground albedo 0.25, C), still times ω and plus the forward-scattered sun.
+  - Used by the fire smoke puffs and the town haze and plumes.
+  - After sunset the smoke is then brighter than the dark plain under it and darker than the bright western horizon, as it should be.
+- **Views:**
+  - The slope-s-dusk camera moves 3 m E, off a garden tree's trunk that filled the frame.
+  - New settlement view `mountain-dusk`, run only when named: from Kuh-e Rahmat E of the Terrace at (380, −60), +65 m over the court, looking 250° true, pitch −8°. It frames the Terrace in front, the quarters 1–2 km beyond, and the April sunset.
+- **Not yet rendered after the fix.** The terrace-W view stays low and shallow by geometry.
+- `tests/smoke_light.test.ts` covers the formula, its independence from the horizon, and the fallback.
+
+## D-130 — The Tachara rebuilt from REF-PLAN: walls, rooms, doorways, windows, niches and columns (session 3)
+- **Problem:** the model had only the hall ring (2.4 m walls, C), the portico and the S stair. The N doorways were at ±6 m from the axis (C), the W and E walls had blind niches (C), the S wall had two windows (C), and the 12 hall columns stood 3 across × 4 deep on a 5.05 m pitch. The W rooms that carry the lance-bearer jambs did not exist.
+- **Measurement:** REF-PLAN was resampled into the grid with the Phase 4 transform (bilinear, 0.02 m steps; `tools/apply_tachara_plan_patch.py` header). Method:
+  - A wall face is where R+G+B crosses 392, half-way between the yellow floor (~545) and the olive wall fill (~239). Each face is the median over 3–12 scan lines.
+  - An opening is a run above 392 along a wall's centre line. Doorways and windows reach floor tone through the whole wall (543–547). Niches lighten one face only; the wall's middle stays dark.
+  - A column is the tone-weighted centroid of a dark dot.
+  - The plan is ~2.1 px/m of uncertain provenance: everything is B at ±0.5 m. Narrow gaps read narrower than they are.
+- **What the plan shows (rows `plan_walls`, `plan_openings`, `plan_columns`, `plan_rooms`, B):**
+  - Hall 15.9 × 15.7 m between faces, walls ~1.5 m. Outer walls ~1.45 m in the S part and ~1.0 m in the N part. Walls of the N rooms 0.75–0.85 m.
+  - 12 hall columns 4 across (pitch 3.2 m, in line with the portico) × 3 deep (3.9 m). Portico rows at y −94.0 / −97.85, 1.5 m S of the old C rows.
+  - S wall: the main doorway (1.4 m) and four windows (0.9–0.95 m) on the intercolumniations.
+  - N wall: doorways at x −24.9 and −18.25 (1.3 m), on the aisles (the model had −27.3 / −15.3), and three niches.
+  - W wall: two doorways (W1 at y −74.95, W2 at −82.8) and two niches. E wall: one doorway (E2 at −82.7) and three niches.
+  - Portico side walls: a doorway into each corner room (0.95–1.0 m) and a niche each.
+  - Four rooms on each side: W1, W2, W3 (entered from W2), SW; E1 (entered from the NE room), E2, E3 (from E2), SE.
+  - N part: two four-column rooms (2 × 2 columns), a 1.5 m room between them (entered from the NE room, a partition at y −65.5), and narrow rooms W and E, each with a partitioned opening. The N outer wall is at y −59.85…−58.25.
+- **Built** (`src/arch/plan_walls.ts`, new; the Tachara block of `terrace.ts`): every wall rectangle between its faces. The brick is cut away at the openings:
+  - stone-framed doorways (`door`) as wide as the frame, up to the cornice;
+  - plain openings (`gap`) up to a brick lintel;
+  - windows and niches in the openings.ts frames.
+  - The generic builder returns the same doorway descriptors and leaf clearances as the wall-ring helpers. Door leaves (D-051) and jamb reliefs (D-049) work unchanged.
+  - Also: 28 columns of the hall order (the N rooms' order C); red plaster floors in all 15 rooms (B for the Tachara); one flat roof over the whole building at the column tops (C). The S stair and its reliefs are unchanged; the plan agrees with them.
+  - Rows superseded and marked unused: `doors`, `r_windows`, `r_niches`, `r_hall_centre_y`, `r_wall`, `r_portico_gap`, `r_portico_row_spacing`. `north_rooms` rises to B. `r_doors` now holds C height classes: S 5.5, N 4.5, side 4.5, portico 3.5, inner 2.6. The portico braziers (world.ts) follow the new column rows.
+- **Measured against the plan** (`tools/dev/tachara_section.ts` + `tools/dev/tachara_overlay.py`: the built walls and frames cut at 2 m above the floor, against the plan's wall mask with the column dots left out, over the building's extent):
+  - Wall IoU 0.159 → 0.837. Precision 0.464 → 0.936 (the part of the built wall that lies on plan wall). Recall 0.195 → 0.888 (the part of the plan wall that is built).
+  - Columns within 1 m of a plan dot: 0 of 20 → 28 of 28. Mean error 1.99 → 0.06 m, max 3.31 → 0.10 m.
+  - The remaining mismatch is the blurred edges, the unbuilt A3 doorway (D-131), and the second E outline (Q-180).
+
+## D-131 — Readings of the Tachara plan that are judgements (C) (session 3)
+- **Artaxerxes III's W doorway is not built.**
+  - The plan has a 1.35 m doorway through the outer W wall at y −75, facing the ghosted NW stair.
+  - That stair and a new W doorway are A3's (A3Pa; `stair_w_present_467` false, B), so the wall stands whole in 467.
+  - The opening is kept in `plan_openings` as `A3_W` with `present_467: false` and is tested as solid.
+- **The hall E wall at y −74.7 is read as a niche, not a doorway** (Q-181).
+  - The gap reaches only 413–489 of the floor tone, while every doorway on the plan reaches 543–547.
+  - E1 has a clear doorway N into the NE room.
+- **Frames:** only on the doorways of the hall and the portico (8, each with leaves; the Tachara's "monolithic frames", WP-EXT C). The ten openings between the small rooms are plain, under a lintel: a 0.6 m jamb does not fit beside them (C).
+- **Not built:**
+  - A second black line 0.5 m outside the E outer wall of the S part, and the stepped line E of the building at y −71 (Q-180).
+  - Any stair in the narrow room between the N rooms (Q-183).
+- **Consequences of the thinner walls:**
+  - The reveals are 1.66 m deep (the plan's 1.5 m wall plus the frames' projection). The king group on the S jambs is fitted at S 1.77 (it was 2.2 on the old 2.4 m wall; Q-184).
+  - Door widths are the plan's (the main doorway 1.4 m, not the 2.4 m C value).
+- **Alternatives rejected:**
+  - Mirroring the W side onto the E side: the plan is not symmetric there.
+  - Keeping the 2.4 m walls: C against a B measurement.
+  - Framing every opening: the frames overlap the corners and partitions.
+
+## D-132 — Tachara jamb programmes on the plan's doorways; the lance-bearers placed (session 3)
+- **Lance-bearers with wicker shields** (`lance_bearer`, B: "W rooms", WP-EXT/ISAC-PA):
+  - One figure per reveal (C) on the three doorways into W rooms: W_N (W1), W_S (W2) and the portico doorway P_W into the SW room. That the SW room is meant is C.
+  - Size r_jamb_relief (0.4 × the 4.5 / 3.5 m door height). They walk out of the W rooms into the hall and the portico, as every jamb figure walks into the hall (D-049).
+  - New `jamb` programme `lance_bearers` in `relief_programmes.ts`.
+- **The other programmes on the doorways the plan has** (`door_jamb_reliefs`):
+  - The king with parasol- and fly-whisk-bearers on S_main (B).
+  - The hero vs lion / monster on N_W; the attendants with towel and flask on N_E (C, unchanged).
+  - The same attendants on E_S, into E2 (C: the extracts put them on "the chambers").
+  - The portico E doorway P_E is left plain: no programme found (the D-049 rule).
+- The Tachara jamb set grows from 8 to 18 figures. The worst relief load in front of any Phase 4 jamb is unchanged at 0.95 M triangles (Hall of 100 Columns N1), under the 1.5 M budget.
+
+## D-133 — Walkable grid, routes and tests after the Tachara rebuild (session 3)
+- **Walkable grid rebuilt** (`npx tsx tools/build_nav.ts`): 1,414,437 walkable cells. 69 cells in narrow passages are kept by the D-067 clearance test.
+  - The rooms that are reachable from the S court: hall, portico, W1, W2, W3, E1, E2, E3, SE, both N rooms, the corridor and both narrow N rooms.
+  - **SW is not reachable:** its 0.95 m portico doorway falls between grid cell centres (no cell centre is 0.3 m clear of both jambs). The visitor can walk in; people and the bots cannot.
+- **Route** (`tests/e2e/lib/routes.ts`): the Tachara route goes from 12 to 28 legs. It enters W2 and W1 through the lance-bearer doorways, W3 through its opening, both N rooms, E1 through the NE room, and E2.
+- **Offline bot:** all six areas pass (97 legs, max fall 0). The slice route passes (28 legs).
+- **Tests:**
+  - `tests/tachara_plan.test.ts` (new, 10 tests):
+    - every plan wall is built between its faces and solid except in its openings (≥ 10,000 samples at 0.5 and 2 m);
+    - every doorway sits at its plan centre and width, framed and hung where the plan row says;
+    - A3's doorway is solid; 4 windows go through and 10 niches are blind, all on the aisles;
+    - 28 columns at the plan centres, 4 × 3 in the hall; every room plastered and roofed; the plan's room graph joins every room to the portico;
+    - 6 lance-bearers stand on the W-room reveals and walk into the hall or portico; the other programmes are where D-132 puts them;
+    - the rooms with ≥ 1.1 m doorways are walkable.
+  - Updated: `arch.test.ts` (the hall N wall line is now 4 runs with 3 lintel zones), `doors.test.ts` (27 doors, was 22). The literal lint now covers `plan_walls.ts`.
+- **Renders:** see D-134.
+
+## D-134 — Tachara renders after the rebuild (session 3)
+- **Two views** (`tests/e2e/moments.spec.ts`, quality test, SwiftShader WebGPU, day 25 15:30, clear; one queued run of 13.9 min):
+  - `tachara-s-stair`, from the S court: the four front portico columns and the plan's portico side walls, each with a framed doorway and a niche; the main doorway and the S-wall window frames behind; one roof over the whole building. Mean luma 68.8, nothing clipped.
+  - `tachara-lance-bearers` (new), from the hall's W aisle looking SW at the W2 doorway: the lance-bearer with lance and wicker shield stands on the doorway's S reveal between the two open leaves. The S window shows the portico capitals beyond. Mean luma 43.9.
+- **Judged:**
+  - The geometry reads as the plan: frames, leaves, windows, red floor, square column bases.
+  - The hall is dim. Its only daylight comes through the S doorway and windows, and this tree has no interior-light probes (the other agent's work).
+  - Not seen in a render: the N rooms, the E rooms, the portico doorways from inside, and the rooms at quality high.
+- `tests/e2e/phase4.spec.ts` p4-tachara-jamb-king moves to the plan's S doorway (0.95 m from the W reveal), unrendered.
+
+## D-115 — Light levels from published clear-sky illuminance (USNO Circular 171); noon unchanged (twilight agent, session 3)
+- **Measured problem:** the skylight followed a C ramp, smoothstep(−14°, 4°): 79 % of noon at sunrise and 37 % at −6°. Measured clear-sky diffuse illuminance at sunrise is about 1/30 of noon's, and at the end of civil twilight about 1/5,000. The exposure (2.3 / E) then normalised the dawn into a bright, flat, overcast-looking day.
+- **Decision:** the sun (direct beam), the sky (diffuse) and the moon follow USNO Circular 171 (Janiczek & DeYoung 1987, a fit to Brown 1952; `src/sky/illuminance.ts`). The circular is blocked; its formulas are read in full in the `skylight` R package's verbatim transcription (SKYLIGHT-R).
+  - E_sun = 133 775 lx · exp(−k M) · sin h; E_sky = 133 775 lx · 0.0289 · exp(−0.042 M) · (1 + (h + 90°) sin h / 57.3°); M is the spherical-shell air mass (X = 753.66). The moon: USNO's phase law × the same terms. Night floor 0.0005 lx (USNO's starlight constant).
+  - Renderer units: at the zenith sun the lights keep their session-3 values (sun 3.2 · exp(−k), skylight 0.98); every other altitude keeps the USNO ratio. k = 0.21 (USNO clear) at the weather's clear-day haze 0.25, rising with haze as the old law did: k = 0.21 (1 + haze) / 1.25.
+  - The cloud factors are the session-3 ones (sun × (1 − 0.75 c), sky × (1 − 0.3 c), moon × (1 − 0.8 c); C).
+  - The sun's colour is the spectral transmittance of the D-116 atmosphere: the zenith sun comes out (1, 0.95, 0.85), session 3 had (1, 0.92, 0.84). The direct beam fades while the disc crosses the horizon (±0.5°, C).
+- **Numbers (clear, haze 0.25):** skylight ÷ skylight at a 70° noon = 1/18 at 0°, 1/200 at −3°, 1/4,500 at −6°, 1/116,000 at −9°. The session-3 ramp gave 0.79 and 0.37 at 0° and −6°. The direct sun at the zenith is 2.59 (session 3: 2.55).
+- **Changes by day (data, not tuning):** the skylight now falls with the sun's altitude as USNO's does: 0.87 of the zenith value at a spring noon (70°), 0.58 at 40° (the rain moment's sun), 0.54 at the winter-solstice noon (36.6°). USNO's diffuse slope is steeper than the IES clear-sky model's (Q-160); both are within a factor of 2 of each other.
+- **Tests (`tests/illuminance.test.ts`):**
+  - against values that are not USNO's: 400–750 lx at sunrise; 3.4 lx at −6° (the "twilight envelope" 3.2 lx); a night floor ≤ 0.002 lx; the 129 klx measured clear-sky maximum in Iran; a full moon of 0.05–1 lx;
+  - the brief's ratios, 1/30 at sunrise and 1/5,000 at −6°, within 2×;
+  - the direct beam against a Kasten–Young Beer–Lambert law within 2×;
+  - the renderer's lights against the USNO ratios at +0.2°, −2.9°, −4.8° and −7° within 2×, and noon against the session-3 values.
+- **Tiers:** the curves B (published, measured elsewhere, standard clear atmosphere). The cloud factors and the skylight's share at noon C (about 2× USNO's, kept: "noon stays as it is").
+
+## D-116 — Twilight dome: a spectral spherical-atmosphere model below +10°, blended with Preetham and calibrated as D-060
+- **Measured problem:** the Preetham dome has no Earth's shadow and no Belt of Venus on the antisolar side, and gives a magenta band at dusk (`settlement-terrace-w-dusk-high`, 18:45, sun −5°). The dawn moment looks W over the plain, away from the sunrise.
+- **Decision:** `src/sky/atmosphere.ts` integrates single scattering through a spherical atmosphere and adds Hillaire's (2020) isotropic multiple-scattering term Ψ_ms(h, μ_s) = L₂ / (1 − f_ms).
+  - Bruneton's (2017) constants, read in full: Rayleigh 1.24062e-6 λ⁻⁴, H 8 km; ozone 300 DU in a tent profile 10–40 km with the Bremen cross-sections; Mie H 1.2 km, albedo 0.9, Cornette–Shanks g 0.8; his transmittance parametrisation.
+  - Ground: the plain at 1600 m asl, albedo 0.2 (C).
+  - Aerosol optical depth above the observer: the USNO extinction k minus Rayleigh and ozone (0.093 at the clear-day haze), Ångström 0.8 (C).
+  - **Spectral:** 8 bins of 40 nm (400–720 nm) → CIE 1931 → linear sRGB, white-balanced to the sun above the atmosphere (Bruneton's convention; it reproduces the session-3 noon sun colour). With three discrete wavelengths ozone removes only the 550 nm channel, which reads magenta.
+  - **Sky-view table:** 32 × 32 (elevation mapped as √(e / 90°), azimuth from the sun 0–180°).
+    - It is recomputed when the sun moves 0.05° (12–25 ms on the CPU) and clamped at −12°: below that the single-scattering sky has no structure left and the night dome takes over.
+    - It is uploaded as a half-float texture, normalised by its own irradiance.
+    - The transmittance (96 × 32) and multiple-scattering (48 × 12) tables are built once per aerosol step of 0.01 (~0.3 s) and kept. A haze change rebuilds them only while the sun is below 15°.
+  - **Dome:** kP · Preetham (with its disc) + kT · table + the physical sun disc. The table's weight is w = 1 − smoothstep(+2°, +10°). Each part is scaled so that its horizontal irradiance equals the skylight's (D-060), then mixed. At night both give way to the Preetham dome at scale 1 (the D-047 night sky, unchanged).
+  - **Consistency:** the CPU mirror (`horizon.ts` `domeRadiance`, `skyCalibration(…, twilight)`) samples the same table with the same bilinear texel convention. The fog colour, the far cloud haze, the rain shafts and the river reflection therefore converge to the dome as before. In twilight the skylight's colour is the table's irradiance colour; by day and at night it keeps the session-3 colours (luminance kept at 0.796).
+- **Geometry (model output, antisolar vertical, clear, haze 0.25):**
+
+  | sun | dark segment (minimum) | shadow top (midpoint rise) | arch maximum | arch / shadow |
+  |---|---|---|---|---|
+  | +2° | horizon | 3.5° | 8° | 2.4 |
+  | 0° | horizon | 4.5° | 10° | 2.4 |
+  | −1° | 1.5° | 6° | 12° | 2.2 |
+  | −2° | 3.5° | 8° | 16° | 1.8 |
+  | −3° | 6° | 11° | 21° | 1.5 |
+  | −4° | 9.5° | 15° | 24° | 1.3 |
+  | −5° | – | – | – | 1.0 (gone) |
+
+  Toward the sun at 3° elevation the sky is 3.5–21× the antisolar sky at the same height, peach to orange (R ≥ G ≥ B). At haze 0.6 the arch is weaker (1.5 at −2°).
+- **Checked against documented observations (`tests/horizon.test.ts`):**
+  - a darker band on the antisolar horizon under a brighter, warmer arch for the sun from −1° to −4° (arch ÷ shadow > 1.3, fading by −4°);
+  - the shadow rises as the sun sinks (6°, 8°, 11°, 15°);
+  - the arch lies within 5–25° while it is seen ("roughly 10–20° above the horizon", WP-TWILIGHT-SX; "the rapid rising of the Belt of Venus", RICHTSMEIER17);
+  - the dark segment and the sky above the arch are within 0.02 in CIE xy (LEE15-BOV: "colour differences … small or nil");
+  - the glow toward the sun is brighter (> 2×) and warmer than the antisolar sky, and not magenta;
+  - the calibrated blend carries the skylight irradiance within 1 % at +6°, +1°, −3° and −8°;
+  - the fog toward the afterglow is warmer than away from it.
+- **Weak / unverified:**
+  - The heights are model output, not measurements. Lee's measured heights and chromaticities (full text blocked) would test them (Q-161).
+  - The arch comes out lilac-white rather than the photographed pink. The model's arch light is Rayleigh-scattered from 10–30 km, where the sunlight is only mildly reddened. A deeper aerosol layer (2.5 km scale height) made it bluer, not pinker (tested, not adopted). C.
+  - Toward the sun at −4° to −6°, the lowest degree turns lavender: near-field multiple scattering on long, low lines of sight. The band at 2–4° is peach/orange, as observed.
+  - Multiple scattering is Hillaire's isotropic approximation, and it dominates deep twilight (below −8°).
+  - Below +10°, at test quality (where the volumetric clouds are off), the table replaces SkyMesh's 2-D cloud layer.
+- **Tiers:** method and constants B; the aerosol amount and profile, the ground albedo and the blend range C; the colours C (a model, not measured at Pārsa).
+
+## D-117 — Exposure: the eye's key and adaptation limit; the camera law unchanged, the rest as a sky gain
+- **Problem:** exposure = 2.3 / E (clamped 0.35–6) normalised every scene to the same brightness. With D-115's physical light levels, a dawn at 1/150 of the noon illuminance would either look like noon or, clamped at 6, be black.
+- **Decision (`src/sky/exposure.ts`; main.ts calls `exposureTarget`, the sky calls `skyGain`):**
+  - **Displayed brightness** of the grey ground (`displayedGrey`) = D(F · La) · F_noon / F:
+    - La = 0.18 E / π, an 18 % grey under the outdoor illuminance (the reflected-metering convention).
+    - F: the frame's brightness in grey-card units for a centre-weighted reflected meter that gives the sky a fifth of the weight (C; the principle of ISO 2720 meters): F = 0.8 + 0.2 · E_sky / (0.18 E). F is 0.94 at the zenith sun (the sky darker than the sunlit ground) and 1.9 in twilight (the sky ~5.6× the ground), so at twilight the camera exposes for the sky, as a photographer does.
+    - D(La) = key(La) / key(La_noon) · min(1, La / La_abs), with the key taken at the frame's adapting luminance F · La, as Krawczyk et al. take it at the scene's average.
+    - key = 1.03 − 2 / (2 + log10(La + 1)) (Krawczyk, Myszkowski & Seidel 2005, SX): 0.69 in daylight, 0.03 at night.
+    - La_abs = 10^−3.94 cd/m² (≈ 0.002 lx): the rods' absolute-threshold plateau in Ferwerda et al.'s (1996) TVI (read in full in Banterle's HDR Toolbox). Below it the eye cannot adapt further.
+    - Displayed grey ÷ noon: 0.95 at 30°, 0.71 at 10°, 0.52 at 5°, 0.37 at sunrise, 0.25 at −3°, 0.063 at −6°, 0.023 at −9° and −12°; by moonlight 0.040 (half) to 0.049 (full); 0.010 on a moonless night.
+    - A first version without F (the illuminance-metered key alone: 0.70 at sunrise, 0.41 at −3°) left the twilight sky ~5× the ground and displayed pale and washed out in the CPU panoramas. A sky weight of 0.35 made the end of civil twilight darker than a half-moon night and −6.7° black, so it was not kept.
+  - **Camera:** the session-3 law X = clamp(2.3 / E_eye, 0.35, 6) is unchanged, because fires, lamps and the night dome were tuned against it (perceptual values).
+  - **Sky gain:** the part of the adaptation beyond that range is a gain G ≥ 1 on every light that comes from the sun, the sky or the moon (a pre-exposure): G = max(1, (2.3 / 6) · displayedGrey / E_sky-lights).
+    - The ratios between those lights stay physical at every moment, and a grey lit by them is displayed at 2.3 · displayedGrey.
+    - G = 1 whenever the camera law alone gives a brighter display (a clear sky with the sun above ~5°; X reaches its limit of 6 below ~12°). Every daylit and golden-hour scene is therefore normalised exactly as before, and the meter's sky weight acts only in twilight and at night.
+- **Why not Ferwerda's full display model:** its rod term is scaled by the scotopic threshold at the display's level. That is a visibility match, not a brightness model: a full-moon scene comes out at ~70 % of daylight, and the output is non-monotonic through the mesopic range (checked numerically, not adopted).
+- **Night:** darker than in session 3 where only the sky lights it. A grey is displayed at 4–5 % of daylight by moonlight (session 3: ~17 %) and 1 % on a moonless night (session 3: ~7 %). Fires, lamps and the night sky are unchanged. The rod image is not desaturated, since a scalar exposure cannot do that; the moonlight's perceptual blue stands in (C).
+- **Tests (`tests/exposure.test.ts`):**
+  - the TVI pieces are continuous; the key's end values; D is monotone; the camera law is unchanged within its range;
+  - the displayed grey falls monotonically as the sun goes from 30° to −12°; the end of civil twilight is not below a half-moon night;
+  - on the SkySystem's own lights, the displayed grey relative to noon is 1 at noon, < 0.85 at sunrise, < 0.55 at dawn (−2.9°), < 0.15 at the end of civil twilight, < 0.03 on a moonless night;
+  - a moonlit night is more than 2× a moonless one, and above 0.02.
+- **Weak:**
+  - The meter is a model of a frame (20 % sky weight, the sky's mean radiance), not a measurement of the rendered frame. Looking up at the sky or down at the ground does not change the exposure (Q-162).
+  - Nautical twilight (−9°, 0.12 lx) displays its ground darker than a half-moon night (0.023 vs 0.040): the key has saturated at both, and the meter exposes for the bright western sky at −9°. The sky itself is far brighter at −9°.
+  - There is no chromatic adaptation: twilight is rendered as a daylight-balanced camera would record it, strongly blue.
+- **Tiers:** the published functions B; their use as a scalar exposure, the 18 % adapting grey and the camera range C.
+- **Addendum: fire light (measured in the first dawn render).**
+  - At 05:24 the lit braziers at the stair top set the exposure to 1.89 instead of 6. The sky-lit plain came out at luma 14, and the Gate of All Nations was lit as at night.
+  - Cause: the fires' light values are perceptual, tuned at night. A lamp's point light is 0.08 · 40 = 3.2 renderer candela; an oil lamp gives about a candle, ~1 cd (C). So fire light is pre-exposed by ~63,000 against the skylight's scale, which is about the moonlit-night sky gain (8 × 10⁴ under a half moon). At dawn (gain 26 with the final meter) the brazier was ~2400× too strong for the ~70 lx of skylight.
+  - Decision: the fires' cast light (the point lights in fire.ts) and their share in the eye's adaptation estimate are scaled by min(1, G / 63,000). That is 1 at night (unchanged), 4 × 10⁻⁴ at dawn (−2.9°), 1.6 × 10⁻³ at −5°, 0.27 at −11.3° and ~10⁻⁵ by day, which also removes the session-3 pools of firelight around daytime kilns in full sun. The flames themselves (emissive) and the fire-lit smoke keep their values: a flame is far brighter than its surroundings at every one of these levels.
+  - Tested (`tests/exposure.test.ts`): scale 1 on moonlit and moonless nights, < 0.01 at dawn, < 10⁻⁴ at noon.
+  - **Fire-share cap.** With the scale alone, the torch-lit Gate at 19:15 (−11.3°, scale 0.27) rendered at luma 34 against 76: the camera cap of 6 stopped the eye adapting to the weaker fire light.
+    - Where fire light dominates the adaptation, the cap now rises with the fire's share, to at most 6 / scale: cap = 6 · max(1, min(1 / scale, E_fire / E_sky)).
+    - At night (scale 1) the law is exactly the session-3 one. At dawn beside a brazier the sky dominates and the cap stays 6. In the torch-lit Gate at dusk the exposure is 20.5 and the view renders as in session 3 (luma 76.1).
+    - Side effect: while X exceeds 6, perceptual night values seen in the same view (stars, moon disc, the night dome) are brighter than tuned. Not seen in the renders.
+
+
+## D-118 — The dawn moment before sunrise; twilight renders measured (twilight agent, session 3)
+- **Slot:** "dawn from the top of the Grand Stairway, looking over the plain" moves from 05:51 (sun +2.5°, already risen) to 05:24 on day 0 (17 April 467 BCE; the sun 2.9° below the horizon, sunrise ~05:35). There the Earth's shadow and the arch stand over the W plain, and there are no sun shadows yet.
+  - The old slot is kept as `dawn-sunrise`, for comparison.
+  - `dawn-glow-e` looks E (79°, pitch 6°) from the same spot at 05:24, toward the glow over Kuh-e Rahmat.
+- **Renders (quality high, WebGPU / SwiftShader, 960 × 540; luma = Rec. 709 on sRGB values; `tools/dev/lum_bands.mjs`):**
+  | view (sun) | exposure | frame mean | sky | ground | session 3 (same view) |
+  |---|---|---|---|---|---|
+  | dawn-stair-top, 05:24 (−2.9°), 1st render: braziers at night strength | 1.89 | 68.7 | 101–104 | plain 14; terrace 65, warm (brazier) | – |
+  | dawn-stair-top, 05:24 (−2.9°), final | 6 | 81.6 | 131–134, grey-blue cloud deck in the Earth's shadow | plain 30; terrace 45, blue (b/r 1.9) | at 05:51: sky 121, plain 45, terrace 78 warm |
+  | the same view at test quality (no cloud layer) | 6 | 84.4 | 2–4° up (97,125,157) R/B 0.62 → 10–15° up (127,142,167) R/B 0.76 → higher (117,137,164): the dark segment under the arch | – | – |
+  | dawn-glow-e, 05:24 (−2.9°) | 6 | 51.4 | above the portico (112,132,160) | floor (41,48,57); brazier flame bright, no night-strength pool | – |
+  | dawn-sunrise, 05:51 (+2.5°) | 6 | 107.4 | 168, clouds lit warm from the low sun | plain 46; terrace 62, blue shade | 89 (exposure 1.27, set by the braziers): sky 121, plain 45, terrace 78 |
+  | settlement terrace-w-dusk, 18:45 (−5.0°), before the metering change | – | – | 127, warm glow toward the sun, no magenta band | plain 19; terrace 22, blue | sky 164 (pink-grey, magenta band), plain 67, terrace 74 |
+  | terrace-w-dusk view at test quality (no cloud layer), final code, 18:45 (−5.0°) | 6 (gain 98) | 64.0 | toward the sun, W low (163,153,154) warm; W 10° up (156,172,188); S low (80,108,141); overhead (76,105,141): glow → deep blue, no magenta | plain (7,14,14); terrace (18,29,43) | – |
+  | gate-dusk, 19:15 (−11.3°), with the fire-share cap | 20.5 | 76.1 | – | torch-lit interior as at night | 76.0 |
+  | night-terrace, 22:30 (moon 46 %, 27° up) | 6 | 25.0 | 40 | 22; fire-lit columns p90 60 | 37.9: sky 55, ground 37, columns p90 66 |
+  | stair-climb, 08:30 (+41.9°): daytime check | 1.17 | 48.5 | left sky 66 | stairs in shade 23 | 59.1: sky 77, stairs 33 |
+  | rain-approach, 11:06 (+40.7°, cover 0.76): daytime check | 2.30 | 69.7 | near the horizon (124,143,151) | floor in shade 50; sunlit plain 92 | 81.0: (139,158,166); floor 63; plain 90 |
+  | reliefs-raking, 18:18 (+6.6°): daytime check | 6 | 83.5 | – | relief band 97, warmer (b/r 0.65); sky-lit floor 82 | 92.8: relief band 97 (b/r 0.79); floor 105 |
+- **Findings from the renders, fixed in this session:**
+  - first dawn render: the lit braziers at the stair top set the exposure to 1.89 (plain luma 14), which led to the fire-light addendum of D-117;
+  - CPU panoramas: the twilight sky was displayed pale, which led to the centre-weighted meter of D-117;
+  - gate-dusk with the fire scale alone: luma 34 against 76, which led to the fire-share cap of D-117.
+- **Judgement of the dawn (the lead's criteria):** dim and cool: yes (ground 30–45, blue, exposure 6). No sun shadows before sunrise: yes. A glow in the E: the E view looks at the Gate and Kuh-e Rahmat, and the low glow is behind them; the sky above is lighter toward the sun. The Earth's shadow over the W plain: visible only without the cloud deck (the test-quality row); at high quality the "clear" day's deck covers it (below).
+- **Dusk is dark on the ground:** at −5° the plain is nearly black (luma ~12) under a readable sky. This is the photographic rendition (the meter exposes for the sky); the eye sees more at 8.5 lx (Q-162).
+- **Daytime changes (D-115's skylight slope; not a tuning):** with the sun at 40–42° the shade is 20–30 % darker and the low sky ~10 % darker; sunlit surfaces are unchanged. At 6.6° the sunlit reliefs keep their brightness but are warmer, and the sky-lit floor is darker (82 vs 105).
+- **Other artefacts seen:** a pale rectangle around the brazier flame in the E view. The flame and smoke sprites fade to zero at their edges, so this is probably the post pipeline's temporal AA reprojecting the billboard's quad; the fire-lit surroundings hid it before. Not investigated (pipeline.ts is out of this agent's scope).
+- **Not fixed (reported):**
+  - On "clear" days (weather cover 0.05) the volumetric layer still draws a broken deck across the low sky of these views. The cover inversion gives ~8 % cloudy columns over the observer (D-064), but lines of sight near the horizon cross many columns. The session-3 dawn render shows the same deck, so D-064 owns it. In twilight the deck is in the Earth's shadow and reads grey-blue, which makes the dawn look overcast.
+
+## D-119 — Clouds at low sun: sunlight at the cloud's own height, reddened by its path
+- **Problem:** at dawn and dusk the cloud layer was lit grey-white: it took the ground's sun colour, which was zero once the sun set for the ground. Real low-sun cloud is lit warm from below. The sun still reaches a cloud 1.5–3.6 km above the observer for about 1.3–2° below the ground's horizon.
+- **Decision:** the cloud shader takes two sun colours, at the base (1.5 km above the observer) and the top (3.6 km), interpolated by height in the slab.
+  - Each is the spectral transmittance of the D-116 atmosphere from that height toward the sun: zero below that height's own horizon (softened over the solar disc), and reddened by the grazing path.
+  - Both carry the sky gain and the session-3 cloud factor.
+  - The light march already goes toward the sun when it is below the horizon, so the deck is lit from below.
+- **Numbers (clear, haze 0.25):** the geometric dips are 1.25° (base) and 1.93° (top) over the 1600 m plain; with the disc the base is lit to −1.4° and the top to −2.1°. The grazing path runs through the dense, aerosol-laden lower air, so the base gets only 7 × 10⁻⁴ of the zenith-sun light at −0.5° (deep red) and ~3 × 10⁻⁶ at −1°. The top gets 9 × 10⁻³ at −1°: after sunset the glow is carried by the upper deck, and the low base greys at once, as low cumulus does. At noon the deck's sunlight is ~1.1–1.2× the ground's (less air above it), where session 3 used the ground's.
+- **Tests (`tests/twilight.test.ts`):** the base is still lit, and red, at −1.0° and dark at −1.6°; the top is lit at −1.6° and dark at −2.3°, and at −1° is > 100× the base; at noon the base is 1–1.25× the ground; the SkySystem hands the shader a red top colour and no base colour at −1.4°, with the ground's sun off.
+- **Unchanged:** the cover calibration (D-064: the coverage uniform and the local weather factor) and the rain-cell uniform. The ambient term is the skylight, which carries the gain.
+- **Tier:** the geometry A (a spherical Earth), the colour B (a model), the cloud optics C as before.

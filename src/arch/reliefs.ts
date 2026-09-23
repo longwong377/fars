@@ -140,7 +140,10 @@ export class ReliefSet extends THREE.Group {
    *  chunks, shadow proxies and the two rosette meshes */
   stats = { tris: 0, byLod: [0, 0, 0, 0], rosetteTris: 0, pending: 0, farTris: 0, draws: 0, farChunks: 0, farDraws: 0, proxies: 0, chunks: 0 };
 
-  constructor(items: ReliefItem[], rosettes: RosetteItem[] = [], name = 'reliefs') {
+  /** hideBeyond (m): the set is not drawn (and its LOD work stops) while the camera is farther than this from its bounds;
+   *  for sets seen only from kilometres away, where every figure is under a pixel (Naqsh-e Rustam, D-069) */
+  private bounds = new THREE.Box3();
+  constructor(items: ReliefItem[], rosettes: RosetteItem[] = [], name = 'reliefs', private hideBeyond = Infinity) {
     super(); this.name = name; this.userData = { ...RELIEF_META };
     this.items = items; this.rosettes = rosettes;
     const n = items.length; this.level = new Int8Array(n).fill(-1); this.shown = new Int8Array(n).fill(-1); this.centres = new Float32Array(n * 4); this.chunkOf = new Int32Array(n);
@@ -155,6 +158,7 @@ export class ReliefSet extends THREE.Group {
       let ch = byKey.get(k); if (!ch) { ch = { items: [], lo: new THREE.Vector3(Infinity, Infinity, Infinity), hi: new THREE.Vector3(-Infinity, -Infinity, -Infinity), far: null, proxy: null, isFar: false, tris: 0 }; byKey.set(k, ch); this.chunks.push(ch); }
       ch.items.push(i); this.chunkOf[i] = this.chunks.indexOf(ch);
       ch.lo.min(new THREE.Vector3(c.x - r, c.y - r, c.z - r)); ch.hi.max(new THREE.Vector3(c.x + r, c.y + r, c.z + r));
+      this.bounds.expandByPoint(ch.lo).expandByPoint(ch.hi);
       this.mats.push(new THREE.Matrix4().makeBasis(it.X.clone().multiplyScalar(it.S), it.Y.clone().multiplyScalar(it.S), it.Z.clone().multiplyScalar(it.D)).setPosition(it.o.clone().addScaledVector(it.Z, -carving().embed)));
     });
     // coarsest LOD of every figure: synchronously when there is no worker pool (node, tests), so the set is complete at
@@ -245,6 +249,11 @@ export class ReliefSet extends THREE.Group {
   /** choose each figure's LOD for the camera position; request missing meshes (workers) or build them within budgetMs (sync) */
   update(cam: THREE.Vector3, budgetMs = 4) {
     if (!this.batch) return;
+    if (this.hideBeyond < Infinity) {
+      const hide = this.bounds.distanceToPoint(cam) > this.hideBeyond;
+      if (hide === this.visible) { this.visible = !hide; this.dirty = true; }
+      if (hide) return;
+    }
     const moved = cam.distanceToSquared(this.lastCam) > 0.04;
     if (!moved && !this.dirty) return;
     this.dirty = false; if (moved) this.lastCam.copy(cam);

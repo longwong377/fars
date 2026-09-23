@@ -2,7 +2,8 @@
 // never pass through a wall, column, parapet or drop that the player could not. Flood fill over a 0.5 m grid from seeds
 // on the plain and the Terrace court: a neighbour is reachable when the ground under it (ray down from just above the
 // current ground, so lintels/roofs are ignored) is within one step (MAX_STEP) and two clearance rays (knee and head
-// height) between the cell centres hit nothing. The result is eroded by one cell for body clearance.
+// height) between the cell centres hit nothing. The result is eroded by one cell for body clearance, except in narrow passages (doorways), where a cell whose centre is at
+// least 0.3 m (body radius + 5 cm) from the obstacles on both sides is kept.
 // Output: public/generated/nav.i16 (Int16 heights in cm, NAV_BLOCKED = not walkable) + nav.json (grid meta, parts hash).
 // Run: npx tsx tools/build_nav.ts
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -56,14 +57,28 @@ for (let j = 0; j < h - 1; j++) for (let i = 0; i < w - 1; i++) {
     const g0 = H[k], g1 = H[kk]; const ok = Math.abs(g1 - g0) <= maxStep && !blocked(cx(i), cy(j), g0 + knee, cx(ii), cy(jj), g1 + knee) && !blocked(cx(i), cy(j), g0 + head, cx(ii), cy(jj), g1 + head);
     rays += 2; if (!ok) { wallSide[k] = 1; wallSide[kk] = 1; } }
 }
-// erode by one cell (4-neighbourhood) for body clearance
+// body clearance (D-067): a cell next to an unwalkable cell (4-neighbourhood) is dropped, as before, except in a narrow
+// passage (unwalkable on both opposite sides: a doorway or a gap under ~1.5 m). There the cell is kept if its centre
+// stands at least CLEAR from whatever made each such neighbour unwalkable, tested in that direction: the knee and head
+// rays over CLEAR hit nothing and the ground CLEAR away is within one step. CLEAR = the 0.25 m body radius of the player
+// and the people plus 5 cm. (The one-cell erosion alone sealed real doorways narrower than ~1.3 m, depending on how the
+// grid fell, e.g. the 1.1 m doorways of the Treasury N range. Relaxing it along every wall let routes run 0.3 m from walls
+// and climb stair flights from the side, where the capsule caught on the higher step: Hall 100 S doorway, botcheck.)
+const CLEAR = 0.3; let kept = 0;
 const out = new Int16Array(w * h).fill(NAV.blocked); let walk = 0;
 for (let j = 1; j < h - 1; j++) for (let i = 1; i < w - 1; i++) {
   const k = idx(i, j); if (Number.isNaN(H[k]) || wallSide[k]) continue;
-  // 4-neighbour erosion: a kept cell has no blocked edge-neighbour, so its centre is ≥ 0.35 m (half a cell diagonal) from
-  // anything that blocks a neighbour: more than the 0.25 m body radius of the player and the people. (8-neighbour
-  // erosion kept ≥ 0.5 m and sealed real gaps of ~1.2 m, e.g. between the Tachara S doorway and the first hall column.)
-  let ok = true; for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (Number.isNaN(H[idx(i + di, j + dj)])) { ok = false; break; }
+  const nan = (di: number, dj: number) => { const ii = i + di, jj = j + dj; return ii < 0 || jj < 0 || ii >= w || jj >= h || Number.isNaN(H[idx(ii, jj)]); };
+  // narrow: unwalkable within two cells on both opposite sides (an opening of at most three cells, under ~1.5 m)
+  const edge = nan(1, 0) || nan(-1, 0) || nan(0, 1) || nan(0, -1), side = (di: number, dj: number) => nan(di, dj) || nan(2 * di, 2 * dj);
+  const narrow = (side(1, 0) && side(-1, 0)) || (side(0, 1) && side(0, -1));
+  let ok = !edge || narrow; const g0 = H[k], e = cx(i), n = cy(j);
+  if (edge && narrow) for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    if (!nan(di, dj)) continue;
+    const pe = e + di * CLEAR, pn = n + dj * CLEAR, g1 = ground(pe, pn, g0 + maxStep + head); rays += 3;
+    if (g1 === null || Math.abs(g1 - g0) > maxStep || blocked(e, n, g0 + knee, pe, pn, g1 + knee) || blocked(e, n, g0 + head, pe, pn, g1 + head)) { ok = false; break; }
+  }
+  if (ok && edge) kept++;
   if (ok) { out[k] = Math.round(H[k] * 100); walk++; }
 }
 // legal moves between neighbouring walkable cells (bit 0 = to the east neighbour, bit 1 = to the north neighbour):
@@ -83,4 +98,4 @@ writeFileSync('public/generated/nav_edges.u8', Buffer.from(edges.buffer));
 const hash = createHash('sha1').update(JSON.stringify(parts)).digest('hex').slice(0, 16);
 writeFileSync('public/generated/nav.i16', Buffer.from(out.buffer));
 writeFileSync('public/generated/nav.json', JSON.stringify({ ...NAV, partsHash: hash, walkable: walk, cutEdges: cut, rays, built: new Date().toISOString().slice(0, 10) }, null, 1));
-console.log(`nav grid ${w}×${h} @ ${cell} m: ${walk} walkable cells (${(walk * cell * cell / 1e4).toFixed(1)} ha), ${rays} rays, ${cut} edges cut by thin walls, ${((Date.now() - t0) / 1000).toFixed(1)} s, parts ${hash}`);
+console.log(`nav grid ${w}×${h} @ ${cell} m: ${walk} walkable cells (${kept} cells in narrow passages kept by the clearance test) (${(walk * cell * cell / 1e4).toFixed(1)} ha), ${rays} rays, ${cut} edges cut by thin walls, ${((Date.now() - t0) / 1000).toFixed(1)} s, parts ${hash}`);

@@ -28,10 +28,10 @@ import { buildTerrace } from '../arch/terrace';
 import { buildMeshes } from '../arch/meshes';
 import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/runtime';
 import { loadSculpt } from '../arch/sculpt';
-import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Reliefs } from '../arch/decor';
+import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Reliefs, buildStairCrenellations, buildFoundationDeposits } from '../arch/decor';
 import { updateReliefs, settleReliefs } from '../arch/reliefs';
 import { FireSystem } from './fire';
-import { buildTreasuryGoods } from './furnish';
+import { buildTreasuryGoods, buildScribesRoom } from './furnish';
 import { buildPlain } from './plain';
 import { ConstructionView } from './construction';
 import { Visitor } from './visitor/controller';
@@ -89,8 +89,8 @@ function placeFires(fire: FireSystem, m: any, parts: any[]) {
   // porticoes; a cooking hearth in the Harem court; torches at the Treasury N doorway (guard post)
   for (const b of ['tachara', 'hadish', 'harem']) { const r = (m[b] as any)?.room as number[] | undefined; if (!r) continue; const [cx, cy, sx, sy, fl] = r;
     for (const s of [-1, 1]) for (const face of [-1, 1]) fire.add('torch', gw(cx + s * (sx / 2 - 0.4), cy + face * sy / 4, fl + 2.4), { ...C, note: `torch on the ${b} hall wall (C)` }); }
-  const th = (m.tachara as any)?.room as number[] | undefined; // portico braziers midway between the portico columns (bay = hall width / 3)
-  if (th) for (const s of [-1, 1]) fire.add('brazier', gw(th[0] + s * th[2] / 3, th[1] - th[3] / 2 - v('tachara', 'r_wall') - v('tachara', 'r_portico_gap'), th[4]), { ...C, note: 'brazier in the Tachara portico (C)' });
+  const th = (m.tachara as any)?.room as number[] | undefined, tb = (m.tachara as any)?.porticoBraziers as [number, number][] | undefined; // portico braziers between the column rows (terrace.ts, D-130)
+  if (th && tb) for (const [e, n] of tb) fire.add('brazier', gw(e, n, th[4]), { ...C, note: 'brazier in the Tachara portico (C)' });
   const hd = (m.hadish as any)?.room as number[] | undefined, NC = v<any>('hadish', 'north_court');
   if (hd) for (const s of [-1, 1]) fire.add('brazier', gw(hd[0] + s * hd[2] / 3, NC.y[0] + 2, hd[4]), { ...C, note: 'brazier in the Hadish N court, before the portico (C)' });
   const hm = (m.harem as any)?.room as number[] | undefined, HC = v<any>('harem', 'court');
@@ -118,8 +118,11 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   await loadInscriptionFonts(async p => (await fetch('/' + p)).arrayBuffer());
   const reliefs = buildReliefs(manifest); root.add(reliefs);
   const p4 = buildPhase4Reliefs(doorways); root.add(p4.group); // stair and door-jamb reliefs of the other palaces (D-049)
+  const cren = buildStairCrenellations(parts); if (cren) root.add(cren); // stair-parapet merlons (D-065)
   const insc = buildInscriptions(manifest, parts, p4.inscriptions); root.add(insc);
+  insc.add(buildFoundationDeposits(manifest)); // the Apadana foundation deposits, sealed under the hall corners (D-068)
   if ((manifest.treasury as any)?.benches) root.add(buildTreasuryGoods((manifest.treasury as any).benches, seed)); // stored goods (types B, placement C)
+  if ((manifest.treasury as any)?.scribesRoom) root.add(buildScribesRoom((manifest.treasury as any).scribesRoom, (manifest.treasury as any).scribesShelves, seed)); // the scribes' room (D-067)
   const q = settings?.quality ?? 'high';
   const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q]); placeFires(fire, manifest, parts);
   // Phase 6 settlement: its hearths, ovens and kilns join the fire system before it builds (?notown leaves it out, for A/B budgets)

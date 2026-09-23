@@ -3,7 +3,12 @@ import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { lumStats } from './lib/lum';
 // Camera-rig prototypes for §1.1 moments (fixed views; world state frozen via ?test&day&hour&weather).
 const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, number, number, number, number]; frames?: number }[] = [
-  { n: 'dawn-stair-top', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -2] },
+  // dawn before sunrise (D-118): day 0 (17 Apr 467 BCE) 05:24, the sun 2.9° below the horizon (sunrise ~05:35): the
+  // Earth's shadow and the antitwilight arch over the W plain, no sun shadows; the old slot (05:51, sun +2.5°) and a view
+  // E into the glow over Kuh-e Rahmat are kept for comparison
+  { n: 'dawn-stair-top', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -2] },
+  { n: 'dawn-sunrise', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -2] },
+  { n: 'dawn-glow-e', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 122.45, 1.6, 79, 6] },
   { n: 'gate-dusk', day: 0, hour: 19.25, w: 'clear', v: [0.1, 118, 1.6, 341, 4] },
   { n: 'night-terrace', day: 5, hour: 22.5, w: 'clear', v: [0, 92, 1.6, 161, 6] },
   // moonless pre-dawn (day 1 = 18 Apr 467 BCE, the moon a thin crescent set in the evening): the Milky Way from Cygnus to
@@ -16,12 +21,15 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // WSW (245°); at 05:40 its cell is ~6 km out over the plain (WeatherSystem.rainCell); seen from the Apadana W portico
   { n: 'rain-approach', day: 299, hour: 11.1, w: 'auto', v: [-38, -5, 1.6, 232, 3] }, // a heavy cell (14 mm) 15 km SW over the plain, seen out of the Apadana W portico, 50 min before it arrives (D-060, D-064)
   { n: 'apadana-enter', day: 25, hour: 11, w: 'clear', v: [1.9, 36, 1.6, 161, 2] },
-  { n: 'reliefs-raking', day: 60, hour: 18.3, w: 'clear', v: [-20, 72, 1.6, 161, 2] },
-  { n: 'scribe-at-work', day: 25, hour: 10, w: 'clear', v: [196, -81.8, 1.7, 206, -14] },
+  { n: 'reliefs-raking', day: 60, hour: 18.3, w: 'clear', v: [-30, 63.5, 1.6, 83, -3] }, // 4.5 m off the Apadana N stair façade, looking E along it: the low NW sun grazes the procession (session 3)
+  { n: 'scribe-at-work', day: 25, hour: 10, w: 'clear', v: [190.9, -82.0, 1.7, 235, -15] }, // inside the scribes' room (D-067), from its NE corner toward the desk by the S doorway
   { n: 'stair-climb', day: 25, hour: 8.5, w: 'clear', v: [-43.9, 128, 1.6, 341, 12] },
   { n: 'snow-terrace', day: 280, hour: 10, w: 'snow', v: [-20, 70, 1.6, 161, 4] },
   // Phase 4: the rest of the Terrace
   { n: 'tachara-s-stair', day: 25, hour: 15.5, w: 'clear', v: [-21, -112, 1.6, 341, 6] },
+  // inside the Tachara hall, in the W aisle, looking SW at the doorway into the W2 room: its S reveal carries a
+  // lance-bearer with a wicker shield (D-132); the W1 doorway and the hall niches are to the right
+  { n: 'tachara-lance-bearers', day: 25, hour: 15.5, w: 'clear', v: [-27.9, -80.0, 1.6, 201, 0] },
   { n: 'hadish-hall', day: 25, hour: 11, w: 'clear', v: [22, -150, 1.6, 161, 2] },
   { n: 'hall100-site', day: 25, hour: 9.5, w: 'clear', v: [146, 45, 1.6, 161, 4] },
   { n: 'tripylon-n-stair', day: 25, hour: 16, w: 'clear', v: [82, -38, 1.6, 161, 6] },

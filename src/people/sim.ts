@@ -39,6 +39,9 @@ export const PLACES: Record<string, Place> = Object.fromEntries([...(placesData 
 export interface Env { rain: number; lightning: boolean; windMs: number; tempC: number; dust?: number }
 /** `off`: the task is off the rendered Terrace (in the town, on the road, in the plain): the person is hidden */
 export interface Task { act: ActivityId; place: string; spot: P2; heading: number | null; until: number /* sim hours */; why: string; off?: boolean;
+  /** what the plan says the person carries in this block (population.ts Seg.carry: tools, arms, a letter); the physical
+   *  load the renderer shows is Agent.carry */
+  holds?: string;
   /** off the Terrace: where the hidden person goes on from the town edge (the lane exit of the house's quarter, then its
    *  street door: town_plots.json), travelled abstractly at walking pace (D-081) */
   legs?: P2[] }
@@ -202,6 +205,11 @@ export class PeopleSim {
     const rng = new Rng(this.seed, `d:${a.id}:${day}:${a.decisions++}`);
     const seg = segAt(this.planOf(a, day), hour);
     const end = Math.max(day * 24 + seg.t1, this.t + 1 / 120);
+    // what the plan says is carried, where the sim does not carry it physically (Agent.carry: the sack, the jar, the basket)
+    const T0 = this.decide0(a, seg, end, rng); if (seg.carry && !T0.holds && (T0.off || !/^(carry_|draw_water)/.test(seg.act))) T0.holds = seg.carry; return T0;
+  }
+  private decide0(a: Agent, seg: Seg, end: number, rng: Rng): Task {
+    const day = Math.floor(this.t / 24);
     a.sick = seg.act === 'lie_ill';
     // a guard whose watch has ended keeps the post until the relief arrives (at most ~36 minutes)
     if (a.role === 'guard' && a.task?.act === 'stand_guard' && a.post && GUARD_POSTS.includes(a.post) && !a.relieved && a.watchEnd !== undefined && this.t < a.watchEnd + 0.6 && !(seg.act === 'stand_guard' && seg.place === a.post))
@@ -230,7 +238,9 @@ export class PeopleSim {
       }
       case 'patrol': { // walking the rounds between the posts: the next post along the round, then the next
         const posts = GUARD_POSTS; const cur = posts.findIndex(p => this.nearP(a, p, 3)); const nxt = posts[(cur < 0 ? Math.floor(rng.next() * posts.length) : cur + 1) % posts.length];
-        a.post = undefined; return this.task('patrol', nxt, this.nav.snap(PLACES[nxt].at[0] + 1.5, PLACES[nxt].at[1] - 1.5, 3) ?? PLACES[nxt].at, Math.min(end, this.t + 0.02), why);
+        const manned = this.agents.some(o => o !== a && o.post === nxt && o.task?.act === 'stand_guard'); const spot = this.nav.snap(PLACES[nxt].at[0] + 1.5, PLACES[nxt].at[1] - 1.5, 3) ?? PLACES[nxt].at;
+        const walk = Math.hypot(spot[0] - a.pos[0], spot[1] - a.pos[1]) * ABSTRACT_DETOUR / a.speed * H_PER_S; // the stop counts from the arrival
+        a.post = undefined; return this.task('patrol', nxt, spot, Math.min(end, this.t + walk + (manned ? rng.range(0.02, 0.05) : rng.range(0.005, 0.02))), why);
       }
       case 'carry_sack': {
         if (a.role === 'porter') break;

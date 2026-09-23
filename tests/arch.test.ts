@@ -115,18 +115,20 @@ describe('§13.3 dimension tests (built parts vs SITE_SPEC)', () => {
 describe('§13.3 Phase 4 dimension tests (stairs, doors, corrected outlines)', () => {
   const steps = (b: string) => parts.filter(p => p.building === b && p.kind === 'step') as any[];
   const risersOf = (ss: any[]) => { const tops = [...new Set(ss.map(q => +q.y1.toFixed(4)))].sort((a, b) => a - b); return tops.slice(1).map((t, i) => t - tops[i]); };
-  it('Tachara S stair: 2 flights × 26 risers of 0.10 m up to the 2.6 m floor, central landing at floor level; hall centre y −80', () => {
+  it('Tachara S stair: 2 flights × 26 risers of 0.10 m up to the 2.6 m floor, central landing at floor level; hall centre from REF-PLAN (D-130)', () => {
     const ss = steps('tachara'); expect(ss.length).toBe(52); expect(Math.max(...ss.map(q => q.y1))).toBeCloseTo(v('tachara', 'floor'), 6);
     for (const d of risersOf(ss)) expect(d).toBeCloseTo(0.1, 6);
     const land = parts.find(p => p.building === 'tachara' && p.kind === 'landing') as any; expect(land.y1).toBeCloseTo(2.6, 6);
-    expect(manifest.tachara.hallCentreY).toBe(-80);
-    const nWalls = (parts.filter(p => p.building === 'tachara' && p.kind === 'wall') as any[]).filter(w => w.c[1] > -80 + 7);
-    // two N doorways (to the two N rooms) split the N wall into three runs at floor level (pieces merged: a niche cuts its run into several)
+    const H = v<any[]>('tachara', 'plan_rooms').find(r => r.id === 'hall'); expect(manifest.tachara.hallCentreY).toBeCloseTo((H.y[0] + H.y[1]) / 2, 9);
+    const N = v<any[]>('tachara', 'plan_walls').find(w => w.id === 'N_line');
+    const nWalls = (parts.filter(p => p.building === 'tachara' && p.kind === 'wall') as any[]).filter(w => w.c[1] > N.y[0] && w.c[1] < N.y[1]);
+    // the hall N wall line: the two N doorways and the E1 opening split it into four runs at floor level (pieces merged:
+    // a niche cuts its run into several), with a lintel zone over each opening
     const runs = nWalls.filter(w => w.y0 === 2.6).map(w => [w.c[0] - w.size[0] / 2, w.c[0] + w.size[0] / 2]).sort((a, b) => a[0] - b[0])
       .reduce((m: number[][], q) => { const l = m[m.length - 1]; if (l && q[0] <= l[1] + 1e-6) l[1] = Math.max(l[1], q[1]); else m.push([...q]); return m; }, []);
-    expect(runs.length).toBe(3);
-    const hx = (manifest.tachara.room as number[])[0], nDoors = (v<any[]>('tachara', 'doors').find(d => d.id === 'N_pair').offsets_x as number[]).map(o => hx + o);
-    expect(nWalls.filter(w => w.y0 > 2.6 && nDoors.some(x => Math.abs(w.c[0] - x) < w.size[0] / 2)).length).toBe(2); // with a lintel zone above each
+    expect(runs.length).toBe(4);
+    const nDoors = v<any[]>('tachara', 'plan_openings').filter(o => o.wall === 'N_line' && (o.kind === 'door' || o.kind === 'gap')).map(o => o.at as number);
+    expect(nWalls.filter(w => w.y0 > 2.6 && nDoors.some(x => Math.abs(w.c[0] - x) < w.size[0] / 2)).length).toBe(3);
   });
   it('Hadish: hall 27 m between wall faces, 6 × 6 at 3.9 m; W and E stairs 4 flights × 25 risers of 0.12 m to the 6.0 m floor', () => {
     expect(manifest.hadish.hallInterior).toBe(27); expect(manifest.hadish.stairSteps).toBe(200);
@@ -167,7 +169,7 @@ describe('part sanity', () => {
 import { readFileSync } from 'node:fs';
 describe('review MJ-1/MJ-2 regressions', () => {
   it('generator has no dimensional literals (only 0, 1, 2, 3, 0.5, 8, 9 as structural constants: halves, thirds, sample counts)', () => {
-    for (const file of ['src/arch/terrace.ts', 'src/arch/openings.ts']) {
+    for (const file of ['src/arch/terrace.ts', 'src/arch/openings.ts', 'src/arch/plan_walls.ts']) {
     const src = readFileSync(file, 'utf8').split('\n').filter(l => !l.trim().startsWith('//')).join('\n').replace(/\/\/.*$/gm, '').replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g, ''); // strings in order of appearance (a "…'…'…" string is one token)
     const lits = [...src.matchAll(/(?<![\w.])(\d+\.?\d*(?:e-?\d+)?)(?![\w])/g)].map(m => m[1]).filter(n => !['0', '1', '2', '3', '0.5', '8', '9'].includes(n));
     expect(lits, file).toEqual([]);

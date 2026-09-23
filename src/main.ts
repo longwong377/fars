@@ -9,6 +9,8 @@ import { latLonToGrid, gridToLatLon } from './core/geo';
 import { Terrain, curvatureDrop } from './terrain/heightfield';
 import { TerrainMesh } from './terrain/terrainMesh';
 import { SkySystem } from './sky/skySystem';
+import { exposureTarget } from './sky/exposure';
+import { twilightWeight } from './sky/horizon';
 import { WeatherSystem, WeatherOverride } from './weather/weatherState';
 import { Physics } from './player/physics';
 import { Player } from './player/player';
@@ -194,7 +196,7 @@ async function boot() {
     /** doors (D-051): list, work the door faced (as E does), or set one by id */
     doors: () => world.doors?.list() ?? [], useDoor: () => world.doors?.use(camera) ?? null, setDoor: (id: string, open: boolean) => world.doors?.toggle(id, open) ?? null,
     resetFalls: () => { player.maxFall = 0; },
-    exposureInfo: () => ({ exposure: renderer.toneMappingExposure, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, toneMapping: renderer.toneMapping }),
+    exposureInfo: () => ({ exposure: renderer.toneMappingExposure, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, gain: sky.gain, lux: sky.lux, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],
     /** people: summary rows (out-of-world; for tests and the dev overlay) */
     people: () => { const P = (world as any).people; if (!P) return null; return { t: P.sim.t, stock: P.sim.stock, events: P.sim.events.slice(-20),
@@ -310,8 +312,7 @@ async function boot() {
     if (adaptT > 0.25 || skyVis < 0 || TEST) { adaptT = 0; skyVis = probeSkyVisibility(camera.position, skyVisibility); } // light probes in the roofed halls (D-113), upward rays elsewhere; every frame in frozen test renders (dt = 0 never reached 0.25 s, so moments kept the first frame's value)
     const sunE = sky.sun.visible ? sky.sun.intensity * Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)) : 0;
     const fireE = world.fire ? world.fire.localIlluminance(camera.position) : 0;
-    const E = (sunE + sky.hemi.intensity * 0.8) * (0.15 + 0.85 * skyVis) + sky.moonLight.intensity * 0.3 + fireE + 0.004;
-    const target = Math.min(6, Math.max(0.35, 2.3 / E));
+    const target = exposureTarget(sunE, sky.hemi.intensity * 0.8, skyVis, sky.moonLight.intensity * 0.3, fireE, sky.fireScale); // the sky's lights carry the eye's gain beyond this range (D-117)
     const k = target > exposure ? 1 - Math.exp(-dt / 2.5) : 1 - Math.exp(-dt / 0.6); // dark adaptation is slower than light adaptation
     exposure = TEST ? target : exposure + (target - exposure) * k;
     renderer.toneMappingExposure = exposure;
@@ -336,7 +337,7 @@ async function boot() {
     overlay.update(renderer, scene, camera, [
       `grid E ${camera.position.x.toFixed(1)} N ${(-camera.position.z).toFixed(1)} · ${(camera.position.y + curvatureDrop(camera.position.x, camera.position.z) + terrain.meta.court_asl).toFixed(1)} m asl · ground ${terrain.aslAt(camera.position.x, camera.position.z).toFixed(1)}`,
       clock.label(),
-      `sun alt ${sky.state.sunAlt.toFixed(1)}° · moon ${(sky.state.moonFraction * 100).toFixed(0)}% alt ${sky.state.moonAlt.toFixed(0)}°`,
+      `sun alt ${sky.state.sunAlt.toFixed(1)}° · moon ${(sky.state.moonFraction * 100).toFixed(0)}% alt ${sky.state.moonAlt.toFixed(0)}° · ${sky.lux.toPrecision(2)} lx (USNO-C171, B) · sky gain ${sky.gain.toPrecision(3)} · exposure ${exposure.toFixed(2)} (D-117, C) · twilight dome ${(twilightWeight(sky.state.sunAlt) * 100).toFixed(0)}% (D-116, B/C)`,
       `weather: ${weather.override} · ${cond.tempC.toFixed(1)} °C · cloud ${(cond.cloud * 100).toFixed(0)}% · rain ${cond.rain.toFixed(2)} · wind ${cond.windMs.toFixed(1)} m/s from ${cond.windDirDeg.toFixed(0)}° · wet ${cond.wetness.toFixed(2)} · snow ${cond.snowCover.toFixed(2)}`,
       `terrain chunks ${tmesh.stats().chunks}, ${(tmesh.stats().tris / 1e6).toFixed(2)} M tris · ${world.summary?.() ?? ''}`,
     ]);

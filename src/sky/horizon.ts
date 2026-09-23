@@ -4,6 +4,7 @@
 // horizon, and scales the dome so that it agrees with the scene's skylight (skyCalibration). With a hand-set fog colour, distant terrain and rain shafts came out brighter than the sky behind them
 // (session 3, measured on the rain-approach moment: shafts 227, sky beside them 209, horizon band 194 in sRGB).
 // Pure functions (node-testable).
+import { skyViewRadiance, type SkyView } from './atmosphere';
 
 export interface SkyParams { turbidity: number; rayleigh: number; mieCoefficient: number; mieDirectionalG: number }
 type V3 = [number, number, number];
@@ -78,21 +79,52 @@ export function skyIrradianceY(sun: V3, p: SkyParams): number {
   irrKey = key; irrVal = E; return E;
 }
 
-/** Calibration of the SkyMesh dome against the scene's skylight (session 3, D-060). The hemisphere light stands for the
- *  sky's irradiance on a horizontal surface (three: diffuse radiance = albedo · I · colour / π), so the dome must carry
- *  the same irradiance: scale = E_hemi / ∫ L cosθ dω. Measured: uncalibrated, the dome is 9–15× too bright in daylight
- *  (a pale, washed-out sky, horizons 12× sunlit ground) and 35× too dark in civil twilight. At night the scale returns to
- *  1 (the night sky, airglow and Milky Way keep their own perceptual values; the night skylight is a visibility floor).
- *  Returns the scale and the horizon radiance the fog, the far cloud haze and rain shafts converge to: the scaled dome
- *  1.5° above the horizon across the view (a 90° fan), capped at 2.5× the all-round mean so the solar aureole near a low
- *  sun does not light up the whole distance (C). */
-export function skyCalibration(sun: V3, p: SkyParams, hemiE: number, nightFactor: number, vx: number, vz: number): { scale: number; horizon: V3 } {
-  const E = skyIrradianceY(sun, p);
-  const k = Math.min(50, Math.max(0.01, hemiE / Math.max(E, 1e-6)));
-  const scale = k + (1 - k) * Math.max(0, Math.min(1, nightFactor));
+/** The twilight part of the dome (D-116): a physical sky-view table for the current sun (atmosphere.ts) and its weight
+ *  against the Preetham dome (1 at and below the blend's lower end, 0 by day). */
+export interface TwilightSky { view: SkyView; w: number }
+/** weight of the physical twilight sky against the Preetham dome for a sun at apparent altitude h (deg): the physical
+ *  model below +2° (where Preetham has no Earth's shadow and wrong colours), Preetham above +10° (as calibrated in D-060),
+ *  a smoothstep between (C) */
+export function twilightWeight(hDeg: number): number { const t = Math.min(1, Math.max(0, (hDeg - TW_LO) / (TW_HI - TW_LO))); return 1 - t * t * (3 - 2 * t); }
+export const TW_LO = 2, TW_HI = 10;
+
+/** Calibration of the dome against the scene's skylight (session 3, D-060; twilight part D-116). The hemisphere light
+ *  stands for the sky's irradiance on a horizontal surface (three: diffuse radiance = albedo · I · colour / π), so the
+ *  dome must carry the same irradiance: each part is scaled by E_hemi / ∫ L cos θ dω of that part, and they are mixed by
+ *  the twilight weight w. Measured: uncalibrated, the Preetham dome is 9–15× too bright in daylight (a pale, washed-out
+ *  sky, horizons 12× sunlit ground) and 35× too dark in civil twilight. At night both give way to the Preetham dome at
+ *  scale 1 (the night sky, airglow and Milky Way keep their own perceptual values; D-047).
+ *  Returns kP (the Preetham dome's factor; `scale`, as before), kT (the factor on the raw sky-view radiance) and the
+ *  horizon radiance the fog, the far cloud haze and rain shafts converge to: the calibrated dome 1.5° above the horizon
+ *  across the view (a 90° fan), capped at 2.5× the all-round mean so the solar aureole near a low sun does not light up
+ *  the whole distance (C). */
+export function skyCalibration(sun: V3, p: SkyParams, hemiE: number, nightFactor: number, vx: number, vz: number, twilight?: TwilightSky | null): { scale: number; kP: number; kT: number; horizon: V3 } {
+  const n = Math.max(0, Math.min(1, nightFactor)), w = twilight ? Math.max(0, Math.min(1, twilight.w)) : 0;
+  const E = w < 1 ? skyIrradianceY(sun, p) : 1;
+  const kday = Math.min(50, Math.max(0.01, hemiE / Math.max(E, 1e-6)));
+  const kP = (1 - w) * (1 - n) * kday + n;
+  const kT = twilight && w > 0 ? (w * (1 - n) * hemiE) / Math.max(twilight.view.irradianceY, 1e-30) : 0;
   const Y = (c: V3) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
-  const h = horizonRadiance(sun, p, vx, vz);
-  let mean = 0; for (const [x, z] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) mean += Y(horizonRadiance(sun, p, x, z)) / 4;
-  const cap = Math.min(1, (2.5 * mean) / Math.max(Y(h), 1e-9));
-  return { scale, horizon: [h[0] * scale * cap, h[1] * scale * cap, h[2] * scale * cap] };
+  const h = calibratedHorizon(sun, p, kP, kT, twilight?.view ?? null, vx, vz);
+  let mean = 0; for (const [x, z] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) mean += Y(calibratedHorizon(sun, p, kP, kT, twilight?.view ?? null, x, z)) / 4;
+  const cap = Math.min(1, (2.5 * mean) / Math.max(Y(h), 1e-12));
+  return { scale: kP, kP, kT, horizon: [h[0] * cap, h[1] * cap, h[2] * cap] };
+}
+
+/** the calibrated dome (without the sun disc) in world direction `dir`: kP · Preetham + kT · sky-view table */
+export function domeRadiance(dir: V3, sun: V3, p: SkyParams, kP: number, kT: number, view: SkyView | null): V3 {
+  const a = kP > 0 ? skyRadiance(dir, sun, p) : [0, 0, 0] as V3;
+  const out: V3 = [a[0] * kP, a[1] * kP, a[2] * kP];
+  if (view && kT > 0) { const t = skyViewRadiance(view, dir, sun[0], sun[2]); out[0] += t[0] * kT; out[1] += t[1] * kT; out[2] += t[2] * kT; }
+  return out;
+}
+function calibratedHorizon(sun: V3, p: SkyParams, kP: number, kT: number, view: SkyView | null, vx: number, vz: number): V3 {
+  const hl = Math.hypot(vx, vz) || 1, a0 = Math.atan2(vz / hl, vx / hl), el = (1.5 * Math.PI) / 180;
+  const out: V3 = [0, 0, 0]; const N = 5;
+  for (let i = 0; i < N; i++) {
+    const a = a0 + ((i / (N - 1)) - 0.5) * (Math.PI / 2);
+    const r = domeRadiance([Math.cos(a) * Math.cos(el), Math.sin(el), Math.sin(a) * Math.cos(el)], sun, p, kP, kT, view);
+    out[0] += r[0] / N; out[1] += r[1] / N; out[2] += r[2] / N;
+  }
+  return out;
 }

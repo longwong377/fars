@@ -5,7 +5,7 @@
 // phenology offset). Far away, where a plot is a few pixels, it fades to the date's mean colour of the zone (bilinear
 // zone weights), so the patchwork does not shimmer. No runtime select() (D-012): masks are arithmetic.
 import * as THREE from 'three/webgpu';
-import { Fn, uniform, positionWorld, attribute, vec2, vec3, vec4, float, uint, int, ivec2, floor, fract, min, max, mix, step, smoothstep, length, fwidth, textureLoad, texture, abs, sin, cos, clamp, color, mx_noise_float } from 'three/tsl';
+import { Fn, uniform, positionWorld, cameraPosition, attribute, vec2, vec3, vec4, float, uint, int, ivec2, floor, fract, min, max, mix, step, smoothstep, length, fwidth, textureLoad, texture, abs, sin, cos, clamp, color, mx_noise_float } from 'three/tsl';
 import { surfaceMaterial, type Layer } from '../../render/materials';
 import { DISTRICT, SALT, STRIP, ZONE, ZoneMap, IRR_STEPS, RAINFED_BARLEY, VINE_SHARE, pcg } from './fields';
 import { CROP_ROWS, YEAR, cropTable, cropState, PLOT_OFFSET_DAYS, foliage } from './seasonal';
@@ -23,6 +23,9 @@ export class PlainGround {
   readonly day = uniform(0); // day of year (0..364)
   readonly meanIrr = uniform(new THREE.Vector4()); readonly meanRain = uniform(new THREE.Vector4()); readonly meanOrch = uniform(new THREE.Vector4());
   readonly oakLeaf = uniform(new THREE.Vector4(0.2, 0.26, 0.12, 1)); // woodland canopy colour + leaf amount
+  /** radius (m) within which the plain draws 3-D trees: the painted canopy dots fade out inside it (they drew a grey disc
+   *  under every near tree, read as 'grey domes', session 3) */
+  readonly treeR = uniform(60);
   readonly zoneTex: THREE.DataTexture; readonly cropTex: THREE.DataTexture;
   readonly material: THREE.MeshStandardNodeMaterial;
   constructor(readonly zones: ZoneMap) {
@@ -140,7 +143,8 @@ export class PlainGround {
       }
       const leaf = oak.w;
       const canopy = mix(lin(0.30, 0.27, 0.23), oak.xyz.mul(0.55), leaf);
-      const dotAmt = mix(cover.mul(0.9), dot, near).mul(mix(float(0.25), float(0.85), leaf));
+      const camD = length(positionWorld.xz.sub(cameraPosition.xz));
+      const dotAmt = mix(cover.mul(0.9), dot, near).mul(mix(float(0.25), float(0.85), leaf)).mul(smoothstep(this.treeR.mul(0.8), this.treeR, camD));
       alb = mix(alb, canopy, dotAmt);
       const hOut = bund.mul(0.12).add(furrow.mul(tilled).mul(0.05)).add(dot.mul(near).mul(0.0));
       return vec4(alb, hOut);

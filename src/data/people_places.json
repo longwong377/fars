@@ -336,11 +336,12 @@
    "id": "treasury_desk",
    "kind": "desk",
    "at": [
-    192,
-    -84
+    186.8,
+    -83.2
    ],
    "tier": "C",
-   "note": "Treasury scribes writing and sealing tablets (PT archive found here: B; desk C)"
+   "note": "the scribes' room of the Treasury N range (site_spec treasury.scribes_room, D-067): PT tablets found in 'a northeastern room of the Treasury' (IR-TREAS, SX, B); room and desk position C",
+   "src": "IR-TREAS;REF-PLAN"
   },
   {
    "id": "forecourt",
