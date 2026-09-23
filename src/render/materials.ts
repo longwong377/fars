@@ -28,7 +28,7 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean } =
   const key = name + (opts.vertexColors ? '+vc' : '');
   const hit = cache.get(key); if (hit) return hit;
   const d = SURFACES[name] ?? SURFACES.limestone;
-  const m = new THREE.MeshStandardNodeMaterial({ vertexColors: !!opts.vertexColors });
+  const m = new THREE.MeshStandardNodeMaterial(); // vertex colours are read explicitly below; the vertexColors flag would multiply them in a second time
   const p = positionWorld, n = normalWorld;
   const base = opts.vertexColors ? attribute('color', 'vec3') : color(new THREE.Color().setRGB(d.albedo[0], d.albedo[1], d.albedo[2], THREE.SRGBColorSpace));
   // mottling: large + small scale noise

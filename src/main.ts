@@ -81,7 +81,7 @@ async function boot() {
   const pipeline = new Pipeline(renderer, scene, camera, settings.quality);
   shell.loading('Raising the Terrace…');
   const phys = await Physics.create();
-  const world: WorldBuild = await buildWorld(scene, phys, terrain);
+  const world: WorldBuild = await buildWorld(scene, phys, terrain, settings);
   const [sx, sz] = [SPAWN.east, -SPAWN.north];
   phys.updateTerrain(terrain, { x: sx, y: 0, z: sz }); phys.step(1 / 60);
   const player = new Player(phys, sx, terrain.heightAt(sx, sz) + 0.05, sz);
@@ -154,6 +154,10 @@ async function boot() {
     sky: () => ({ sunAlt: sky.state.sunAlt, moonAlt: sky.state.moonAlt, moonFraction: sky.state.moonFraction }),
     conditions: () => weather.conditions(clock.dayIndex, clock.localHour),
     errors: [] as string[],
+    /** debug: what is under NDC (x, y)? */
+    pick: (x: number, y: number) => { const rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(x, y), camera); rc.far = 20000;
+      const h = rc.intersectObjects(scene.children, true).filter(i => (i.object as any).isMesh && i.object.visible)[0];
+      return h ? { name: h.object.name || h.object.parent?.name, parent: h.object.parent?.name, d: h.distance, p: [h.point.x, h.point.y, h.point.z], mat: (h.object as any).material?.type } : null; },
     save: () => writeSave(state()), load: () => restore(readSave() as any), saveState: () => state(),
     /** §13.2 rendered plan overlay: renders the given building's parts (filtered by kind) top-down, orthographic,
      *  0.25 m/px over grid x∈[-80,272], y∈[-250,250]; returns a row-major 0/1 mask (row 0 = north). */
@@ -196,6 +200,13 @@ async function boot() {
     phys.step(Math.max(1 / 240, dt));
     world.simulate?.(dt, clock);
   }
+  let exposure = 1, adaptT = 0, skyVis = -1;
+  const upRay = new THREE.Raycaster(); const archGroup = world.root.getObjectByName('architecture');
+  function skyVisibility() {
+    if (!archGroup) return 1; let open = 0; const dirs = [[0, 1, 0], [0.5, 0.85, 0], [-0.5, 0.85, 0], [0, 0.85, 0.5], [0, 0.85, -0.5], [0.35, 0.6, 0.35], [-0.35, 0.6, -0.35], [0.35, 0.6, -0.35], [-0.35, 0.6, 0.35]];
+    for (const d of dirs) { upRay.set(camera.position, new THREE.Vector3(d[0], d[1], d[2]).normalize()); upRay.far = 60; if (upRay.intersectObject(archGroup, true).length === 0) open++; }
+    return open / dirs.length;
+  }
   let prev = performance.now();
   async function frame(dtOverride?: number) {
     const now = performance.now();
@@ -214,15 +225,26 @@ async function boot() {
       body.position.x += Math.sin(input.yaw) * 0.12; body.position.z += Math.cos(input.yaw) * 0.12;
     }
     sky.update(clock.jdUT, camera.position, cond.cloud, cond.haze);
-    const fogCol = new THREE.Color().setRGB(0.62, 0.68, 0.74).multiplyScalar(0.12 + 0.88 * sky.state.daylight);
+    if (P.get('hemi')) sky.hemi.intensity *= +P.get('hemi')!; if (P.has('noshadow')) sky.sun.castShadow = false;
+    const fogCol = new THREE.Color().setRGB(0.62 + 0.1 * (1 - sky.state.daylight), 0.66, 0.74 - 0.08 * (1 - sky.state.daylight)).multiplyScalar(0.03 + 0.97 * sky.twilight); // fog follows skylight (horizon glow at dawn/dusk)
     if (scene.fog) (scene.fog as THREE.FogExp2).color.copy(fogCol);
     if (scene.fog) (scene.fog as THREE.FogExp2).density = 0.000012 + 0.00012 * cond.haze * cond.haze + 0.004 * cond.mist * Math.max(0, 1 - (camera.position.y - terrain.heightAt(camera.position.x, camera.position.z)) / 40);
-    renderer.toneMappingExposure = exposureFor(sky.state.sunAlt, cond.cloud);
+    // eye adaptation (C): exposure follows an estimate of the illuminance at the eye — sun + skylight scaled by the visible
+    // sky fraction (upward rays against the architecture, every 0.25 s) + moon + nearby fires — with asymmetric time constants
+    adaptT += dt;
+    if (adaptT > 0.25 || skyVis < 0) { adaptT = 0; skyVis = skyVisibility(); }
+    const sunE = sky.sun.visible ? sky.sun.intensity * Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)) : 0;
+    const fireE = world.fire ? world.fire.localIlluminance(camera.position) : 0;
+    const E = (sunE + sky.hemi.intensity * 0.8) * (0.15 + 0.85 * skyVis) + sky.moonLight.intensity * 0.3 + fireE + 0.004;
+    const target = Math.min(6, Math.max(0.35, 2.3 / E));
+    const k = target > exposure ? 1 - Math.exp(-dt / 2.5) : 1 - Math.exp(-dt / 0.6); // dark adaptation is slower than light adaptation
+    exposure = TEST ? target : exposure + (target - exposure) * k;
+    renderer.toneMappingExposure = exposure;
     world.update?.(dt, { clock, cond, sky: sky.state, camera, player, settings });
     tmesh.update(camera.position);
     const t0 = performance.now();
     WEATHER.wetness.value = cond.wetness; WEATHER.snow.value = cond.snowCover; WEATHER.puddles.value = Math.max(0, cond.wetness - 0.4) / 0.6;
-    pipeline.flash.value = 0;
+    pipeline.flash.value = world.flash?.() ?? 0;
     pipeline.render(scene, camera);
     lastFrameMs = performance.now() - t0;
     overlay.update(renderer, scene, camera, [
@@ -241,11 +263,6 @@ async function boot() {
   void lastSave; void gridToLatLon; void YEAR_DAYS;
 }
 
-/** Simple eye-adaptation target (C): exposure rises as scene illuminance falls; capped so night stays night. Phase 3 replaces it with measured-luminance adaptation. */
-function exposureFor(sunAlt: number, cloud: number) {
-  const day = Math.min(1, Math.max(0, (sunAlt + 4) / 14));
-  return (0.55 + 0.35 * cloud) * day + (1 - day) * 2.2;
-}
 
 const hooksImpl: any = {};
 function hooks() { return new Proxy({}, { get: (_t, k) => (...a: any[]) => hooksImpl[k]?.(...a) }) as any; }

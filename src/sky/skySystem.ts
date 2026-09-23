@@ -22,6 +22,7 @@ export class SkySystem {
   private uNight = uniform(0);
   private uMoonSun = uniform(new THREE.Vector3(0, 1, 0));
   private lastStarJD = -1;
+  twilight = 1;
   state: SkyState = { sunDir: new THREE.Vector3(0, 1, 0), sunAlt: 45, moonDir: new THREE.Vector3(0, -1, 0), moonAlt: -10, moonFraction: 0, daylight: 1, nightFactor: 0 };
 
   constructor(readonly scene: THREE.Scene, shadowMapSize: number) {
@@ -49,10 +50,9 @@ export class SkySystem {
     // stars
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3), 3));
-    const pm = new THREE.PointsNodeMaterial({ transparent: true, depthWrite: false, depthTest: false, fog: false, sizeAttenuation: false });
+    const pm = new THREE.PointsNodeMaterial({ transparent: false, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, fog: false, sizeAttenuation: false }); // opaque pass (drawn first by renderOrder, covered by architecture), additive so faint stars never darken the sky
     const bright = attribute('bright', 'float'), tint = attribute('tint', 'vec3');
     pm.colorNode = vec4(tint.mul(bright).mul(this.uNight), 1);
-    pm.opacityNode = bright.mul(this.uNight);
     pm.sizeNode = float(1.0).add(bright.mul(1.5));
     this.stars = new THREE.Points(geo, pm);
     this.stars.frustumCulled = false; this.stars.renderOrder = -9;
@@ -120,7 +120,8 @@ export class SkySystem {
     // moonlight ~ 1/400000 of sun in reality; exposure adaptation lifts it — here a perceptual value (C)
     this.moonLight.intensity = 0.12 * ph.fraction * smoothstepJS(-2, 10, mo.altitude) * night * (1 - 0.8 * cloudCover);
     this.moonLight.position.copy(camPos).addScaledVector(this.state.moonDir, 800); this.moonLight.target.position.copy(camPos);
-    this.hemi.intensity = 0.05 + 0.9 * day * (1 - 0.3 * cloudCover) + 0.03 * ph.fraction * night;
+    const twilight = smoothstepJS(-14, 4, s.altitude); this.twilight = twilight; // skylight is substantial through civil twilight
+    this.hemi.intensity = 0.03 + 0.95 * twilight * (1 - 0.3 * cloudCover) + 0.04 * ph.fraction * night;
     this.hemi.color.setRGB(0.55 + 0.2 * day, 0.62 + 0.18 * day, 0.8 + 0.1 * day);
     if (Math.abs(jdUT - this.lastStarJD) > 10 / 86400) { this.updateStars(jdUT); this.lastStarJD = jdUT; }
   }

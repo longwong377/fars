@@ -1,0 +1,18 @@
+<!doctype html><html><body style="margin:0"><canvas id="c" width="320" height="200"></canvas><script type="module">
+import * as THREE from 'three/webgpu';
+import { installWebGPUCompat } from '/src/render/compat.ts'; installWebGPUCompat();
+import { surfaceMaterial } from '/src/render/materials.ts';
+const r = new THREE.WebGPURenderer({ canvas: document.getElementById('c') }); await r.init();
+const s = new THREE.Scene(); const cam = new THREE.PerspectiveCamera(50, 1.6, 0.1, 100); cam.position.set(0, 0, 4);
+const res = {};
+for (const [name, mat] of [['std', new THREE.MeshStandardNodeMaterial({ color: 0x888888 })], ['surf', surfaceMaterial('limestone')]]) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), mat); s.add(m);
+  for (const [k, light] of [['none', null], ['hemi', new THREE.HemisphereLight(0xffffff, 0x444444, 2)], ['amb', new THREE.AmbientLight(0xffffff, 2)]]) {
+    if (light) s.add(light); const rt = new THREE.RenderTarget(64, 64); r.setRenderTarget(rt); r.render(s, cam); r.setRenderTarget(null);
+    const px = await r.readRenderTargetPixelsAsync(rt, 32, 32, 1, 1); res[name + '-' + k] = Array.from(px.slice(0, 3)).map(v => +(+v).toFixed(3));
+    if (light) s.remove(light);
+  }
+  s.remove(m);
+}
+window.__res = res; console.log(JSON.stringify(res));
+</script></body></html>
