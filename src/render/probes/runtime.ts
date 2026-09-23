@@ -130,7 +130,11 @@ export class ProbeHemisphereLightNode extends HemisphereLightNode {
     const self = this as any;
     const dotNL = normalWorld.dot(self.lightDirectionNode);
     const hemi = mix(self.groundColorNode, self.colorNode, dotNL.mul(0.5).add(0.5));
-    builder.context.irradiance.addAssign(probeAmbient(positionWorld, normalWorld, self.colorNode, probeSun, hemi).E);
+    const P = probeAmbient(positionWorld, normalWorld, self.colorNode, probeSun, hemi);
+    // debug (?probedbg=w, chosen when the shader is built): the field weight as the irradiance colour (red = probes, green =
+    // plain skylight), scaled to the sky's brightness
+    const dbg = typeof location !== 'undefined' && new URLSearchParams(location.search).get('probedbg') === 'w';
+    builder.context.irradiance.addAssign(dbg ? vec3(P.w, float(1).sub(P.w), 0).mul(self.colorNode.x.add(0.2)).mul(3) : P.E);
     return undefined;
   }
 }
