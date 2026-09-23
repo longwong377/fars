@@ -177,7 +177,7 @@ day 201 of the regnal year · Tashritu 24 (3 Nov 467 BCE) · sunrise 06:33, suns
 14:56  walk @ road:terrace — going home [off the Terrace: not drawn]
 14:57  grind @ h:303 — grinding for tomorrow’s bread [off the Terrace: not drawn]
 15:18  rest @ h:303 — at home, minding the children [off the Terrace: not drawn]
-16:13  cook [PLACEHOLDER: not performed] @ h:303 — lighting the fire and warming the evening meal [off the Terrace: not drawn]
+16:13  cook @ h:303 — lighting the fire and warming the evening meal [off the Terrace: not drawn]
 16:31  rest @ h:303 — at home, minding the children [off the Terrace: not drawn]
 16:34  eat @ h:303 — the evening meal with the household [off the Terrace: not drawn]
 17:01  talk @ h:303 — with the household [off the Terrace: not drawn]
@@ -189,7 +189,7 @@ day 84 of the regnal year · Simanu 25 (9 Jul 467 BCE) · sunrise 05:03, sunset 
 04:52  talk @ h:1106 — with the household [off the Terrace: not drawn]
 05:34  eat @ h:1106 — breakfast with the household [off the Terrace: not drawn]
 05:53  talk @ h:1106 — with the household [off the Terrace: not drawn]
-07:03  craft [PLACEHOLDER: not performed] @ h:1106 — mending tools and baskets [off the Terrace: not drawn]
+07:03  craft @ h:1106 — mending tools and baskets [off the Terrace: not drawn]
 08:06  rest @ h:1106 — at home [off the Terrace: not drawn]
 08:13  walk → road:terrace — on the way [off the Terrace: not drawn]
 08:22  walk @ road:terrace — on the way [off the Terrace: not drawn]
@@ -216,13 +216,13 @@ day 90 of the regnal year · Duzu 1 (15 Jul 467 BCE) · sunrise 05:05, sunset 18
 04:50–04:53  rest @ h:291 (town) — at home
 04:53–05:02  eat @ h:291 (town) — bread and water before leaving (the household eats later)
 05:02–05:26  walk @ road:terrace (road) — going to the building site [carrying a mattock and a brick mould]
-05:26–12:00  lay_brick [PLACEHOLDER: not performed] @ h100_wall_N (terrace) — laying mud brick on the hall walls
+05:26–12:00  lay_brick @ h100_wall_N (terrace) — laying mud brick on the hall walls
 12:00–12:35  eat @ work_hearth (terrace) — the midday meal at the site: the camp’s bread and water {work stops in the heat, E-64}
 12:35–12:59  walk @ road:terrace (road) — going home [carrying a mattock and a brick mould]
-12:59–14:08  craft [PLACEHOLDER: not performed] @ h:291 (town) — mending tools and baskets
+12:59–14:08  craft @ h:291 (town) — mending tools and baskets
 14:08–15:33  rest @ h:291 (town) — resting at home after work
 15:33–17:03  talk @ h:291 (town) — with the household
-17:03–18:24  craft [PLACEHOLDER: not performed] @ h:291 (town) — mending tools and baskets
+17:03–18:24  craft @ h:291 (town) — mending tools and baskets
 18:24–18:51  eat @ h:291 (town) — the evening meal with the household
 18:51–19:00  walk @ road:town (road) — visiting
 19:00–20:14  talk @ h:1732 (town) — visiting Pirnuš
@@ -236,10 +236,10 @@ day 344 of the regnal year · Addaru 19 (26 Mar 466 BCE) · sunrise 06:01, sunse
 05:08–05:46  rest @ h:178 (town) — at home
 05:46–05:54  eat @ h:178 (town) — bread and water before leaving (the household eats later)
 05:54–06:22  walk @ road:terrace (road) — going to the building site [carrying a mattock and a carrying basket]
-06:22–12:00  haul [PLACEHOLDER: not performed] @ hall100_site (terrace) — building up the earth ramp
+06:22–12:00  haul @ hall100_site (terrace) — building up the earth ramp
 12:00–12:32  eat @ work_hearth (terrace) — the midday meal: the camp’s bread and water
-12:32–12:36  haul [PLACEHOLDER: not performed] @ hall100_site (terrace) — building up the earth ramp
-12:36–15:30  haul [PLACEHOLDER: not performed] @ worksite (terrace) — unloading column drums from the quarry at the yard
+12:32–12:36  haul @ hall100_site (terrace) — building up the earth ramp
+12:36–15:30  haul @ worksite (terrace) — unloading column drums from the quarry at the yard
 15:30–15:57  walk @ road:terrace (road) — going home [carrying a mattock and a carrying basket]
 15:57–17:31  rest @ h:178 (town) — resting at home after work
 17:31–18:03  eat @ h:178 (town) — the evening meal with the household
@@ -270,7 +270,7 @@ day 233 of the regnal year · Arahsamnu 26 (5 Dec 467 BCE) · sunrise 06:53, sun
 ## Person 2956: Belpakka — scribe (store), male, age 50, Babylonian, zone town
 day 125 of the regnal year · Abu 7 (19 Aug 467 BCE) · sunrise 05:26, sunset 18:33 · weather: 19–38 °C, cloud 0 %, dry, wind 2 m/s · household 1138 (town q_pw_s, 8 people: 2956 scribe m50, 2957 homemaker f40, 2958 porter m20, 2959 homemaker f15, 2960 child f12, 2961 child m8, 2962 child m5, 2963 child f3)
 00:00–04:40  sleep @ h:1138 (town) — asleep
-04:40–05:35  craft [PLACEHOLDER: not performed] @ h:1138 (town) — mending tools and baskets
+04:40–05:35  craft @ h:1138 (town) — mending tools and baskets
 05:35–06:26  rest @ h:1138 (town) — at home
 06:26–06:54  eat @ h:1138 (town) — breakfast with the household: the new bread
 06:54–07:13  rest @ h:1138 (town) — at home
@@ -310,16 +310,16 @@ day 213 of the regnal year · Arahsamnu 6 (15 Nov 467 BCE) · sunrise 06:42, sun
 10:52–11:58  rest @ h:95 (town) — minding the children
 11:58–12:30  eat @ h:95 (town) — the midday meal with the household
 12:30–12:33  walk @ road:town (road) — walking
-12:33–12:41  spin [PLACEHOLDER: not performed] @ lane:q_pw_s (town) — spinning with the women outside the door
+12:33–12:41  spin @ lane:q_pw_s (town) — spinning with the women outside the door
 12:41–12:58  rest @ lane:q_pw_s (town) — stopping to nurse the baby
-12:58–13:38  spin [PLACEHOLDER: not performed] @ lane:q_pw_s (town) — spinning with the women outside the door
+12:58–13:38  spin @ lane:q_pw_s (town) — spinning with the women outside the door
 13:38–13:41  walk @ road:town (road) — walking
 13:41–14:35  grind @ h:95 (town) — grinding the household’s flour
-14:35–15:08  spin [PLACEHOLDER: not performed] @ h:95 (town) — spinning
+14:35–15:08  spin @ h:95 (town) — spinning
 15:08–15:21  grind @ h:95 (town) — grinding for tomorrow’s bread
 15:21–15:37  rest @ h:95 (town) — stopping to nurse the baby
 15:37–16:17  talk @ h:95 (town) — with the household
-16:17–16:34  cook [PLACEHOLDER: not performed] @ h:95 (town) — lighting the fire and warming the evening meal
+16:17–16:34  cook @ h:95 (town) — lighting the fire and warming the evening meal
 16:34–17:02  eat @ h:95 (town) — the evening meal with the household
 17:02–17:05  walk @ road:town (road) — walking
 17:05–17:20  draw_water @ well:q_pw_s (town) — evening water [carrying a water jar]
@@ -337,12 +337,12 @@ day 118 of the regnal year · Duzu 29 (12 Aug 467 BCE) · sunrise 05:21, sunset 
 04:57–05:22  eat @ h:4571 (plain) — breakfast with the household: the new bread
 05:22–05:49  rest @ h:4571 (plain) — at home
 05:49–05:52  walk @ road:plain (road) — out to the threshing floor [carrying a winnowing fork, and bread and water]
-05:52–10:30  thresh [PLACEHOLDER: not performed] @ threshing:v_14 (plain) — threshing: driving the animals round over the sheaves on the village floor {E-43}
+05:52–10:30  thresh @ threshing:v_14 (plain) — threshing: driving the animals round over the sheaves on the village floor {E-43}
 10:30–11:04  eat @ threshing:v_14 (plain) — the midday meal in the shade by the threshing floor: bread and water carried out in the morning
 11:04–15:28  sleep @ threshing:v_14 (plain) — sleeping in the shade by the threshing floor through the heat
-15:28–16:26  thresh [PLACEHOLDER: not performed] @ threshing:v_14 (plain) — turning the threshed straw; the air is too still to winnow {E-43}
+15:28–16:26  thresh @ threshing:v_14 (plain) — turning the threshed straw; the air is too still to winnow {E-43}
 16:26–16:29  walk @ road:plain (road) — home from the field [carrying a winnowing fork]
-16:29–17:26  tend_animals [PLACEHOLDER: not performed] @ h:4571 (plain) — seeing to the household’s animals
+16:29–17:26  tend_animals @ h:4571 (plain) — seeing to the household’s animals
 17:26–17:48  rest @ h:4571 (plain) — at home
 17:48–18:20  eat @ h:4571 (plain) — the evening meal with the household
 18:20–18:25  walk @ road:plain (road) — visiting
@@ -358,13 +358,13 @@ day 292 of the regnal year · Tebetu 26 (2 Feb 466 BCE) · sunrise 06:44, sunset
 06:52–07:14  eat @ h:5129 (plain) — breakfast with the household: the new bread
 07:14–07:29  rest @ h:5129 (plain) — at home
 07:29–07:34  walk @ road:plain (road) — out to the field [carrying a hoe, and bread and water]
-07:34–07:37  field_work [PLACEHOLDER: not performed] @ field:5129:0 (plain) — mending the field banks and the water channels
+07:34–07:37  field_work @ field:5129:0 (plain) — mending the field banks and the water channels
 07:37–11:49  shelter @ field:5129:0 (plain) — sheltering from the rain {W-01}
 11:49–12:10  eat @ field:5129:0 (plain) — bread and water
 12:10–13:00  shelter @ field:5129:0 (plain) — sheltering from the rain {W-01}
-13:00–13:37  field_work [PLACEHOLDER: not performed] @ field:5129:0 (plain) — mending the field banks and the water channels
+13:00–13:37  field_work @ field:5129:0 (plain) — mending the field banks and the water channels
 13:37–13:42  walk @ road:plain (road) — walking [carrying a hoe]
-13:42–15:22  tend_animals [PLACEHOLDER: not performed] @ h:5129 (plain) — feeding the animals the stored straw
+13:42–15:22  tend_animals @ h:5129 (plain) — feeding the animals the stored straw
 15:22–16:24  rest @ h:5129 (plain) — at home
 16:24–16:59  eat @ h:5129 (plain) — the evening meal with the household
 16:59–17:03  walk @ road:plain (road) — visiting
@@ -469,7 +469,7 @@ day 239 of the regnal year · Kislimu 3 (11 Dec 467 BCE) · sunrise 06:55, sunse
 08:00–08:05  carry_jar_head @ road:town (road) — carrying water home [carrying a jar of water on the head]
 08:05–08:57  rest @ h:1121 (town) — minding the little ones, the youngest on his hip
 08:57–09:41  walk @ road:town (road) — out for fuel
-09:41–10:36  gather [PLACEHOLDER: not performed] @ outside (town) — gathering dung and brushwood for the fire
+09:41–10:36  gather @ outside (town) — gathering dung and brushwood for the fire
 10:36–11:21  carry_sack @ road:town (road) — carrying the fuel home [carrying dung cakes and brushwood]
 11:21–11:24  rest @ h:1121 (town) — setting the load down at home
 11:24–11:28  walk @ road:town (road) — out to the garden channels
@@ -504,7 +504,7 @@ day 320 of the regnal year · Shabatu 25 (2 Mar 466 BCE) · sunrise 06:23, sunse
 11:57–12:30  eat @ h:7813 (plain) — the midday meal with the household
 12:30–13:51  sleep @ h:7813 (plain) — an afternoon sleep
 13:51–15:38  rest @ h:7813 (plain) — resting at home
-15:38–16:25  spin [PLACEHOLDER: not performed] @ h:7813 (plain) — light work: spinning
+15:38–16:25  spin @ h:7813 (plain) — light work: spinning
 16:25–16:34  rest @ h:7813 (plain) — at home, minding the children
 16:34–17:13  eat @ h:7813 (plain) — the evening meal with the household
 17:13–19:57  rest @ h:7813 (plain) — with the household
@@ -517,9 +517,9 @@ day 265 of the regnal year · Kislimu 29 (6 Jan 466 BCE) · sunrise 06:56, sunse
 06:54–07:17  eat @ h:3620 (plain) — breakfast with the household: the new bread
 07:17–07:33  rest @ h:3620 (plain) — at home
 07:33–07:38  walk @ road:plain (road) — out to the field [carrying the plough and the yoke, driving the oxen]
-07:38–12:11  plough [PLACEHOLDER: not performed] @ field:3620:1 (plain) — ploughing and sowing barley and wheat {E-40}
+07:38–12:11  plough @ field:3620:1 (plain) — ploughing and sowing barley and wheat {E-40}
 12:11–12:46  eat @ field:3620:1 (plain) — the midday meal: bread and water brought out from home by a child of the house
-12:46–15:44  plough [PLACEHOLDER: not performed] @ field:3620:1 (plain) — ploughing and sowing barley and wheat {E-40}
+12:46–15:44  plough @ field:3620:1 (plain) — ploughing and sowing barley and wheat {E-40}
 15:44–15:49  walk @ road:plain (road) — walking [carrying the plough and the yoke, driving the oxen]
 15:49–16:14  rest @ h:3620 (plain) — at home
 16:14–16:51  eat @ h:3620 (plain) — the evening meal with the household
@@ -535,9 +535,9 @@ day 344 of the regnal year · Addaru 19 (26 Mar 466 BCE) · sunrise 06:01, sunse
 05:38–05:49  carry_sack @ h:76 (town) — carrying in brushwood for the morning fire [carrying dung cakes and brushwood]
 05:49–06:31  rest @ h:76 (town) — waiting for the morning bread
 06:31–06:46  eat @ h:76 (town) — breakfast with the household
-06:46–07:31  spin [PLACEHOLDER: not performed] @ h:76 (town) — spinning wool with a drop spindle
+06:46–07:31  spin @ h:76 (town) — spinning wool with a drop spindle
 07:31–08:39  rest @ h:76 (town) — minding the little ones, the youngest on her hip
-08:39–09:58  spin [PLACEHOLDER: not performed] @ h:76 (town) — spinning wool with a drop spindle
+08:39–09:58  spin @ h:76 (town) — spinning wool with a drop spindle
 09:58–10:01  walk @ road:town (road) — out to the lane
 10:01–10:57  play @ lane:q_lt_e (town) — playing in the lane
 10:57–11:00  walk @ road:town (road) — walking home
