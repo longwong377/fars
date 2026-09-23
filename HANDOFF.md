@@ -28,6 +28,7 @@ They may not survive a restart. Each works on a `worktree-agent-<id>` branch; me
 - **Phase 4 (a48ca…):** reliefs on the new stairs and jambs, windows, doors, merging far relief sets (draw budget). Uses D-070 … D-079.
 - **Humans (a7359…):** runtime loader, dress, crowd pool on `sim.visibleAgents`. Uses D-090 … D-099.
 - **Sim (a7468…):** shadow-review fixes; households linked to `src/data/town_plots.json`. Uses D-080 … D-089.
+- **Language (a691e…):** lexicons extended, new Babylonian and Ionic Greek lexicons, scripted lines and voices. Uses D-105 … D-109 and Q-130 … Q-139.
 - **Access research (abc85…):** `research/ACCESS.md` and `src/data/access.json` for visitor mode, docs only. Uses Q-120 … Q-129 and D-100 … D-104.
 
 After each merge:
