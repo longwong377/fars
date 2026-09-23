@@ -4,6 +4,7 @@
 // that are lit right now (the fire schedules), thicker in the still evening air, drifting with the wind. Deterministic
 // in time (no accumulation), so frozen test renders show it. Density, height and colour are C.
 import * as THREE from 'three/webgpu';
+import { colourOnly } from '../../render/fx';
 import { uniform, uv, vec3, vec2, length, smoothstep, mx_noise_float, attribute, time, float, positionWorld, positionGeometry, cameraPosition, normalize, dot, pow } from 'three/tsl';
 import type { TownPlan } from './plan';
 import type { FireSystem, FireKind } from '../fire';
@@ -35,7 +36,7 @@ export class TownHaze {
         this.puffs.push({ site: s.id, base: new THREE.Vector3(e, H(e, nn), -nn), size: rng.range(0.6, 1.0) * Math.min(s.W, s.H) * 0.55, h: rng.range(9, 22), ph: rng.range(0, 100) }); } }
     const N = Math.max(1, this.puffs.length), g = new THREE.PlaneGeometry(1, 1);
     this.alpha = new THREE.InstancedBufferAttribute(new Float32Array(N), 1); g.setAttribute('aAlpha', this.alpha);
-    const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide });
+    const m = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide }));
     const u = uv(), r = length(u.sub(0.5)).mul(2);
     const soft = smoothstep(0.15, 1.0, r).oneMinus();
     const nz = mx_noise_float(vec3(u.x.mul(2.5), u.y.mul(1.6), time.mul(0.02))).mul(0.35).add(0.65);
@@ -65,7 +66,7 @@ export class TownHaze {
     const toCam = vec2(cameraPosition.x.sub(pb.x), cameraPosition.z.sub(pb.z)), d = toCam.div(length(toCam).max(0.01));
     const right = vec3(d.y, 0, d.x.negate());
     const bend = vec3(this.uWind.x, 0, this.uWind.y).mul(y.mul(y).mul(H).mul(0.35)); // bent over downwind
-    const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide });
+    const m = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide }));
     m.positionNode = vec3(pb.x, pb.y, pb.z).add(right.mul(pg.x.mul(w))).add(vec3(0, y.mul(H), 0)).add(bend);
     const u2 = uv(); const across = float(1).sub(smoothstep(0.2, 0.5, u2.x.sub(0.5).abs()));
     const turb = mx_noise_float(vec3(u2.x.mul(2.0), y.mul(3.0).sub(time.mul(0.25)), pb.w.mul(0.01))).mul(0.35).add(0.75);

@@ -2,6 +2,7 @@
 // weather wind; lightning = sky flash + brief directional light, rate from the climate's thunder statistics; the
 // out-of-world "lightning-flash warning" setting caps the flash brightness.
 import * as THREE from 'three/webgpu';
+import { colourOnly } from '../render/fx';
 import { attribute, vec4, vec3, float, uv, smoothstep, abs } from 'three/tsl';
 import { Rng } from '../core/rng';
 
@@ -19,11 +20,11 @@ export class WeatherVfx {
     this.drops = new Float32Array(maxDrops * 3); this.flakes = new Float32Array(maxDrops * 3);
     for (let i = 0; i < maxDrops; i++) { for (const a of [this.drops, this.flakes]) { a[i * 3] = (this.rng.next() - 0.5) * 2 * R; a[i * 3 + 1] = this.rng.next() * H; a[i * 3 + 2] = (this.rng.next() - 0.5) * 2 * R; } }
     const streak = new THREE.PlaneGeometry(0.012, 0.55);
-    const rm = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide });
+    const rm = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide }));
     const u = uv(); rm.colorNode = vec4(vec3(0.72, 0.76, 0.82), 1); rm.opacityNode = smoothstep(0.0, 0.4, u.y).mul(smoothstep(0.6, 1.0, u.y).oneMinus()).mul(0.35);
     this.rain = new THREE.InstancedMesh(streak, rm, maxDrops); this.rain.frustumCulled = false; this.rain.count = 0;
     const flake = new THREE.PlaneGeometry(0.03, 0.03);
-    const sm = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide });
+    const sm = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide }));
     sm.colorNode = vec4(vec3(0.95, 0.96, 1.0), 1); sm.opacityNode = smoothstep(0.2, 0.5, abs(u.x.sub(0.5)).add(abs(u.y.sub(0.5)))).oneMinus().mul(0.9);
     this.snow = new THREE.InstancedMesh(flake, sm, maxDrops); this.snow.frustumCulled = false; this.snow.count = 0;
     this.group.add(this.rain, this.snow, this.flash, this.flash.target);

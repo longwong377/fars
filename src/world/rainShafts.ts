@@ -9,6 +9,7 @@
 // under the cloud deck is shaded and reads darker than the horizon sky behind it (C, 0.7 of the calibrated horizon
 // radiance, D-060); snow is slightly brighter. σ and the shapes are C.
 import * as THREE from 'three/webgpu';
+import { colourOnly } from '../render/fx';
 import { color, uniform, positionWorld, cameraPosition, normalWorld, normalize, vec3, vec2, float, dot, abs, exp, smoothstep, clamp, mx_noise_float, length, max } from 'three/tsl';
 import type { Terrain } from '../terrain/heightfield';
 import { azAltToWorld } from '../sky/ephemeris';
@@ -30,7 +31,7 @@ export class RainShafts {
     const rng = new Rng(3, 'rain-shafts');
     for (let i = 0; i < count; i++) {
       const R = uniform(1000);
-      const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.FrontSide, fog: true });
+      const m = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.FrontSide, fog: true }));
       const v = normalize(cameraPosition.sub(positionWorld)), n = normalWorld;
       const cosT = abs(dot(vec2(n.x, n.z), vec2(v.x, v.z)).div(max(length(vec2(v.x, v.z)), 1e-3)));
       const tau = R.mul(SIGMA * Math.sqrt(Math.PI)).mul(exp(float(1).sub(cosT.mul(cosT)).mul(-4))); // Gaussian column, mesh at 2R

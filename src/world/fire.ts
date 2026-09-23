@@ -2,6 +2,7 @@
 // billboard, a flickering light (nearest N fires get a real point light; colour ≈ 1800–2000 K) and optional smoke
 // that drifts with the wind. Fires are lit at dusk and put out after the night (C schedule until NPCs light them, Phase 5).
 import * as THREE from 'three/webgpu';
+import { colourOnly } from '../render/fx';
 import { uniform, uv, vec3, vec4, float, mx_noise_float, time, attribute, smoothstep, mix, length, vec2, max, positionWorld, cameraPosition, normalize, dot, pow } from 'three/tsl';
 import { Rng } from '../core/rng';
 
@@ -97,7 +98,7 @@ export class FireSystem {
     const plane = new THREE.PlaneGeometry(1, 1).translate(0, 0.5, 0);
     const seedAttr = new THREE.InstancedBufferAttribute(new Float32Array(n), 1); this.fires.forEach((f, i) => (seedAttr.array[i] = f.seed));
     plane.setAttribute('aSeed', seedAttr);
-    const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
+    const m = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }));
     const u = uv(), seed = attribute('aSeed', 'float');
     const n1 = mx_noise_float(vec3(u.x.mul(3), u.y.mul(2.5).sub(time.mul(2.2)), seed)).mul(0.5).add(0.5);
     const shape = smoothstep(0.0, 0.5, length(vec2(u.x.sub(0.5).mul(2.0), u.y.sub(0.35).mul(1.1)))).oneMinus().mul(smoothstep(0.5, 1.0, u.y).oneMinus());
@@ -110,7 +111,7 @@ export class FireSystem {
     // smoke puffs: soft quads, per-instance alpha
     const SMAX = 400; const sq = new THREE.PlaneGeometry(1, 1);
     this.smokeAlpha = new THREE.InstancedBufferAttribute(new Float32Array(SMAX), 1); sq.setAttribute('aAlpha', this.smokeAlpha);
-    const sm = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide });
+    const sm = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide }));
     const su = uv(); const r = length(su.sub(0.5)).mul(2);
     const puff = smoothstep(0.2, 1.0, r).oneMinus().mul(mx_noise_float(vec3(su.mul(3), time.mul(0.1))).mul(0.3).add(0.7));
     this.smokeGlow = new THREE.InstancedBufferAttribute(new Float32Array(SMAX), 1); sq.setAttribute('aGlow', this.smokeGlow);
