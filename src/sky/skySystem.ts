@@ -238,10 +238,9 @@ export class SkySystem {
     this.moonLight.position.copy(camPos).addScaledVector(this.state.moonDir, 800); this.moonLight.target.position.copy(camPos);
     this.twilight = smoothstepJS(-14, 4, alt);
     this.hemi.intensity = G * hemiI;
-    // twilight dome table: recomputed when the sun has moved 0.05° (12–25 ms), clamped to −12° (below, the single-
-    // scattering sky has no structure left and the night dome takes over)
-    // (12–25 ms for the whole table: after a jump in time, or on the first frame, it is built at once; while the sun moves
-    // it is rebuilt 4 rows per frame (~2–3 ms) in a back buffer and swapped when complete)
+    // twilight dome table, clamped to −12° (below, the single-scattering sky has no structure left and the night dome takes
+    // over): built at once on the first frame or after a jump in time (12–25 ms); while the sun moves, rebuilt after every
+    // 0.05° four rows per frame (~2–3 ms) in a back buffer and swapped when complete
     const w = twilightWeight(alt), vAlt = Math.max(-12, Math.min(TW_HI, alt));
     if (w > 0) {
       const stale = !this.view || this.viewTau !== tau || Math.abs(vAlt - this.viewAlt) > 1;
