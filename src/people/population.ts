@@ -417,7 +417,8 @@ export class Population {
     for (const pa of this.parties) { const hh = this.hh('station', 'transient', false, 'station');
       for (let k = 0; k < pa.size; k++) { const r = this.rng(-20000 - pa.i * 30 - k); this.person({ sex: 'm', age: this.ageIn(r, 18, 55), job: 'traveller', rank: k === 0 ? 1 : 0, hh, origin: 'Persian', arrive: pa.day, leave: Math.min(REGNAL_DAYS - 1, pa.day + pa.stay), zone: 'transient', idx: pa.i }); } }
     // a transhumant band (E-49) is herding families in their tents (S4 of shadow review r4; lives.json herders, D-150):
-    // each tent a man and his wife with their surviving children, now and then an old parent or a grown brother, until the
+    // each tent a man and his wife with their surviving children, now and then an old parent or (in a young man's tent) an
+    // unmarried younger brother, until the
     // band has its E-49 number of people (5-40); the eldest tent's man leads it. Was: 80 % men aged 10-55, no small child,
     // no girl, no elder (C)
     for (const b of this.bands) { const hh = this.hh(`band${b.i}`, 'transient', true, `camp:band${b.i}`), HB = L.herders, F = L.family; this.bandHH[b.i] = hh;
@@ -427,7 +428,8 @@ export class Population {
         const man = this.ageIn(r, 22, 50), wifeAge = Math.max(16, Math.min(45, man - Math.round(lerp(2, 10, r.next()))));
         add({ sex: 'm', age: man, squad: tent, rank: tent === 0 ? 1 : 0 }); const mom = add({ sex: 'f', age: wifeAge, squad: tent });
         if (r.chance(HB.tent_extra.elder)) add({ sex: r.chance(0.5) ? 'm' : 'f', age: Math.min(72, man + this.ageIn(r, 20, 28)), squad: tent });
-        if (r.chance(HB.tent_extra.brother)) add({ sex: 'm', age: this.ageIn(r, 16, 24), squad: tent });
+        // (an unmarried younger brother: only in a young man's tent, 3-12 years younger and 16 or more)
+        if (man <= 34 && r.chance(HB.tent_extra.brother)) add({ sex: 'm', age: Math.max(16, man - this.ageIn(r, 3, 12)), squad: tent });
         if (mom < 0) continue;
         for (let a = lerp(17, 20, r.next()); a <= Math.min(F.last_birth_age, wifeAge); a += lerp(F.birth_interval_y[0], F.birth_interval_y[1], r.next())) { const age = Math.floor(wifeAge - a), sex: 'm' | 'f' = r.chance(0.5) ? 'm' : 'f';
           const survive = (F.survival_to_age as [number, number][]).reduce((v, [x, s]) => age >= x ? s : v, 1);
@@ -1498,7 +1500,8 @@ class Planner {
       const twins = this.p.twin !== undefined && P.present(this.p.twin, d) && P.home(this.p.twin, d) === hid ? [this.p.twin] : [];
       const front = twins.some(c => c < this.pid); const carried = front ? `at ${relS} front` : `on ${relS} back`;
       // the baby's sleep by its age (S5, r4; lives.json infant_care.sleep, C): under four months it is awake a short while
-      // after each feed and asleep until the next, wherever she is (14-17 h in 24); from four months three naps, from six two.
+      // after each feed and asleep until the next, wherever she is (14-17 h in 24); from four months three naps (from six
+      // later and shorter) and asleep from soon after sunset.
       // Was: asleep only when she slept or at three fixed naps (a baby of two months awake 5.5 h at a stretch)
       const IS = L.infant_care.sleep, ageD = this.p.born >= 0 ? d - this.p.born : this.p.bday >= 0 ? d + REGNAL_DAYS - this.p.bday : 200;
       const feedsM = lactating ? ms.filter(s => nursing(s) && !/ in the night/.test(s.why)) : [];
@@ -1506,8 +1509,8 @@ class Planner {
       const awakeAfter = row ? lerp(row[1], row[2], u01(P.seed, S.nurse, this.pid, d, 3)) : 0, cycle = !!row && feedsM.length >= 3;
       // awake from each feed until `awakeAfter` past it, but when the feeds come close together the time awake runs on from
       // the last waking and it falls asleep at the breast once it has been awake the longest it stays awake at its age
-      // (the row's upper bound + 0.5 h, C): so no chain of feeds keeps it awake for hours
-      const wMax = row ? row[2] + 0.5 : 0, awakeIv: [number, number][] = [];
+      // (the row's upper bound + awake_max_extra_h, C): so no chain of feeds keeps it awake for hours
+      const wMax = row ? row[2] + IS.awake_max_extra_h : 0, awakeIv: [number, number][] = [];
       if (cycle) { let since = -1, end = -1; for (const f of feedsM) { const a = f.t0 - 0.02; if (a >= end) since = a; const e = Math.max(f.t1, Math.min(f.t1 + awakeAfter, since + wMax));
         if (a < end && awakeIv.length) awakeIv[awakeIv.length - 1][1] = Math.max(end, e); else awakeIv.push([a, e]); end = Math.max(end, e); } }
       const nt = (ageD < 180 ? IS.naps_from_4_months : IS.naps_from_6_months) as [number, number][];
@@ -1993,9 +1996,9 @@ class Planner {
     /** play, the rest of the time until `until` (lives.json children.choices); in the house while the little ones are
      *  in the child-minder's care, and not in rain or dust (W-03) */
     let lastPlay = '';
-    // one spell of play leads straight on to the next: from the lane to a friend's house is one walk, and a second spell in
-    // the same lane goes on where the child is (S10, r4: a walk home and straight back out read as a 12-minute "walking"
-    // that left the lane and came back, and a walk was split in two); the child walks home when the play is over
+    // one spell of play leads straight on to the next: from the lane to a friend's house is one walk, not a walk home and
+    // out again (S10, r4: a walk home and straight back out read as a 12-minute "walking" that left the lane and came back,
+    // and a walk was split in two); the child walks home when the play is over
     const home = () => { if ((this.cur ?? this.home) !== this.home) this.go(this.home, W, 'walking home'); };
     const spell = (until: number) => {
       for (let g = 0; g < 10 && this.t < until - 0.3; g++) {
@@ -2395,7 +2398,7 @@ class Planner {
     // the late afternoon, when the heat breaks (CE-14): the household carries sheaves to the threshing floor together at the
     // harvest; the oxen are fed in the ploughing season
     if (T.sheaves && T.late > this.t + 0.5) { this.homeHours(T.late, 'resting through the heat'); this.errand(`threshing:${q}`, 'plain', 'carry_sack', 'carrying sheaves to the threshing floor with the household (E-43)', 1.2, this.home, w); }
-    else if (act === 'reap' && T.late > this.t + 0.5 && p.sex === 'm' && r.chance(0.4)) { this.homeHours(T.late, 'resting through the heat'); this.errand(place, 'plain', 'reap', 'binding the last sheaves and gleaning the stubble', 1.3, this.home, w); }
+    else if (act === 'reap' && T.late > this.t + 0.5 && p.sex === 'm' && r.chance(0.4)) { this.homeHours(T.late, 'resting through the heat'); this.errand(place, 'plain', 'reap', T.kind === 'other' ? 'cutting the last of the sesame and standing the bundles up to dry' : 'binding the last sheaves and gleaning the stubble', 1.3, this.home, w); }
     else if (act === 'plough' && T.late > this.t + 0.5 && r.chance(0.5)) { this.homeHours(T.late, 'resting'); this.atHome(this.t + 1, 'tend_animals', 'feeding and watering the oxen'); }
     this.evening(Math.max(this.t, this.sun.set - 1.2)); return this.finish();
   }

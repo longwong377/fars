@@ -144,6 +144,12 @@ describe('S6, S7, S10: children at the floor, women in winter, planner artefacts
       for (const x of s) expect(x.why).not.toMatch(/an older brother or sister/); } }
     expect(kids).toBeGreaterThan(3000);
   }, 180_000);
+  it('the grown-ups too: two spells in the lane run on, and between two trips to the well the water is poured at home', () => {
+    let n = 0; for (let pid = 1; pid < P.persons.length; pid += 9) { const p = P.persons[pid]; if (p.age < 14) continue; for (const d of [60, 163, 242]) { if (!P.present(pid, d)) continue; n++; const s: Seg[] = P.plan(pid, d);
+      for (let i = 1; i + 1 < s.length; i++) if (s[i].where === 'road') expect(s[i - 1].place === s[i + 1].place && s[i - 1].where !== 'road', `${pid} d${d} ${s[i].t0.toFixed(2)} ${s[i - 1].place}`).toBe(false);
+      for (let i = 1; i + 2 < s.length; i++) if (s[i].act === 'carry_jar_head' && s[i + 1].where === 'road' && s[i + 2].act === 'draw_water') expect(`${pid} d${d} ${s[i].t0.toFixed(2)}: carried home and straight back out`).toBe(''); } }
+    expect(n).toBeGreaterThan(5000);
+  }, 180_000);
 });
 
 describe('S12: the shadow tool', () => {
