@@ -281,7 +281,7 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Lanes:** a maze by construction. Through streets (4 m) run with jogs, then lanes (3 m) and alleys (2 m) branch off them until no ground lies more than 16 m from a lane. Branches end in blind alleys or close into loops, and small squares hold wells.
   - The Merkes quarter had wide and narrow streets and blind alleys (B analogue).
   - Tests: every home's door opens onto ground connected to the plain; every large quarter has blind alleys.
-- **Capacity:** a house holds its roofed area ÷ 13 m² in people, 3–10 (large houses 6–16, C). The town zones hold 8,404, against the court-absent working value of 7,000 (range 5,000–10,000, population.json). The house plots go to the simulation in `src/data/town_plots.json` (1,521 plots, 1,494 homes).
+- **Capacity:** a house holds its roofed area ÷ 13 m² in people, 3–10 (large houses 6–16, C). The town zones hold 7,820 people (another 123 in the Dasht-e Gohar hamlet and the way-station), against the court-absent working value of 7,000 (range 5,000–10,000, population.json). The house plots go to the simulation in `src/data/town_plots.json` (1,479 plots, 1,456 homes).
 - **Kept clear:**
   - the Terrace approach, 480 m W of the Grand Stair (the walkable grid e −620…262, n −245…185). The Phase 3–5 people and bot routes stay valid, and the approach reads as open ground before the Terrace (C).
   - the empty Frataraka site (80 m).
@@ -317,6 +317,28 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - The scope of Phase 6 names storehouses and stables.
 - Only one of each, so the town does not suggest a known layout. Both are flagged C in the overlay and in town_plots.json.
 - **Alternative:** leave them unplaced and the workers placeless. Reversible: two rows.
+## D-044 Settlement rendering, colliders and fire (Phase 6, session 3)
+- **Meshes:** each quarter is merged into one mesh per material, together with any compound within 60 m of its edge. Gardens with orchards share one mesh, and so do the four estates. Every face keeps an owner id, so the dev overlay (F3) names the plot or object under the view centre with its tier, sources and basis (`userData.describe`, a small additive hook in `ui/overlay.ts`).
+  - The whole settlement is 39 meshes, 10 of them instanced (trees and haze). It holds 0.88 M triangles if everything were drawn once.
+  - Shared meshes: trodden ground, refuse, water, roads and canal banks are one mesh each; none casts a shadow.
+- **Shadows:** a town mesh casts shadows only while its bounds are within 150 m of the camera. Far trees never cast. The near-tree level's bounds follow its instances. So from the Terrace no town content enters the shadow cascades.
+- **Colliders:** walls, props, kilns, troughs, mangers and well heads are Rapier cuboids (24,847 boxes). They stream per site: added within 200 m of the player, at most 1,500 per frame; dropped beyond 300 m.
+  - Roofs are not colliders. The test camera's ground cast lands in the lane, and nobody walks on roofs without a stair.
+- **Fires:** 1,289 town hearths, bread ovens, forges and kilns join the fire system with schedules (`fire.ts` `scheduleLit`, C):
+  - hearths (`home`) light as the sun sinks from +6° to −4°, staggered per fire, and are banked 2–4 h after dark; they are relit before dawn;
+  - ovens (`bake`) burn before dawn into the morning;
+  - kilns and forges (`day`) burn in working hours.
+  - Their bodies are drawn in the town meshes (`fire.add(..., { body: false })`), not the fire system's instanced bodies. That saves ~130 k triangles per pass.
+  - Smoke puffs come only from fires within 300 m of the camera (`SMOKE_RANGE`). From further away the town's smoke is `TownHaze`: soft sheets per quarter whose opacity follows the lit share of that quarter's fires, thicker in the still evening air.
+- **Trees:** 3,581 instanced trees in 4 forms, at two distance levels (near < 160 m). Deciduous species go bare in winter (`LEAF_TABLE`, C). They are PLACEHOLDER-grade.
+- **Measured (SwiftShader, `?test&quality=test`, same view with and without the town):**
+  - Terrace W edge, looking SW over the town: +16 draw calls and +0.72 M triangles at dusk; +19 draw calls and +0.79 M triangles by day.
+  - High quality: see the Phase 6 report (D-044 addendum).
+- **Alternatives:**
+  - instancing house types: every house differs;
+  - impostor cards for far quarters: not needed at < 1 M triangles;
+  - a trimesh collider per quarter: slower to build and cannot stream;
+  - the fire system's smoke for every hearth: its 400-puff pool would starve the Terrace's fires.
 ## D-045 Music: tunings, physically modelled instruments and a performer-only music system (Phase 8 start, session 3)
 - **Rule (brief §11):** only what someone in the world is playing, with no background score. `MusicSystem.perform()` needs a finite world position and plays through an HRTF panner on the `music` channel. `update()` stops any performance whose performer is no longer present.
 - **Evidence rules in code (research/SOUNDSCAPE.md):**
