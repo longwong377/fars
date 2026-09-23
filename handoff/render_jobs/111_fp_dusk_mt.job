@@ -1,0 +1,3 @@
+fp_dusk_mt
+tests/e2e/settlement.spec.ts
+E2E_PORT=5210 Q=high ONLY=mountain-dusk

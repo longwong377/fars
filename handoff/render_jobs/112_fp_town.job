@@ -1,0 +1,3 @@
+fp_town
+tests/e2e/settlement.spec.ts
+E2E_PORT=5212 Q=high ONLY=lane-q_w1-dusk,lane-q_s1

@@ -1,0 +1,3 @@
+fp_dusk_tw
+tests/e2e/settlement.spec.ts
+E2E_PORT=5209 Q=high ONLY=terrace-w-dusk

@@ -1,0 +1,3 @@
+fp_fire1
+tests/e2e/moments.spec.ts
+E2E_PORT=5206 Q=high ONLY=gate-dusk,apadana-hall-torch

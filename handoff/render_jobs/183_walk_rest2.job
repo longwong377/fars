@@ -1,0 +1,3 @@
+walk_rest2
+tests/e2e/walkthrough_terrace.spec.ts
+E2E_PORT=5234 AREA=hall100,treasury

@@ -1,0 +1,3 @@
+fp_ajori
+tests/e2e/settlement.spec.ts
+E2E_PORT=5213 Q=high ONLY=tol-ajori-50m,workshop-area-b

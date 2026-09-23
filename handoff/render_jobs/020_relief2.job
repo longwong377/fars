@@ -1,3 +1,0 @@
-relief2
-tests/e2e/moments.spec.ts
-E2E_PORT=5195 Q=high ONLY=reliefs-raking

@@ -1,0 +1,3 @@
+fp_plain1
+tests/e2e/plain.spec.ts
+E2E_PORT=5214 Q=high ONLY=stair-dawn-plain,apadana-north-nr,stair-foot-east,stair-noon-plain
