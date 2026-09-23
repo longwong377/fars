@@ -21,6 +21,11 @@ import coverTable from '../data/cloud_cover_table.json';
 export interface SkyState { sunDir: THREE.Vector3; sunAlt: number; moonDir: THREE.Vector3; moonAlt: number; moonFraction: number; daylight: number; nightFactor: number }
 
 const DOME = 60000;
+/** linear albedo of the open ground around a viewer (C): the mean of the Terrace courts' fill and the plain's loam
+ *  (materials.ts SURFACES court_fill and earth), for the hemisphere light's ground bounce (D-153) */
+export const GROUND_RHO: [number, number, number] = [0.20, 0.15, 0.10];
+/** the share of that ground in direct sun (C: buildings, trees and relief shade the rest) */
+export const GROUND_SUNLIT = 0.85;
 export class SkySystem {
   readonly sky = new SkyMesh();
   readonly sun = new THREE.DirectionalLight(0xffffff, 3);
@@ -261,6 +266,13 @@ export class SkySystem {
       const nd = dayC.map(x => x / Yc(dayC)), nn = nightC.map(x => x / Yc(nightC)), nt = twC.map(x => x / Yc(twC));
       const c = [0, 1, 2].map(i => ((1 - w) * nd[i] + w * nt[i]) * (1 - night) + nn[i] * night);
       const y = Yc(c); this.hemi.color.setRGB((0.796 * c[0]) / y, (0.796 * c[1]) / y, (0.796 * c[2]) / y); }
+    // ground bounce (D-153, C): the hemisphere light's lower half is the light the open ground around the viewer reflects,
+    // albedo × (direct sun and moon on the horizontal + the skylight), in the sky term's units: a shaded wall on a clear
+    // day gets about as much from the sunlit ground as from the sky (it was a fixed dark brown, 0.13 of the sky term,
+    // so shade outdoors ran ~1.4× too dark and undersides ~4× too dark; the probes, inside, already bake this bounce)
+    { const I = Math.max(this.hemi.intensity, 1e-12), hc = this.hemi.color, sc = this.sun.color, mc = this.moonLight.color;
+      const sunH = (this.sun.visible ? this.sun.intensity : 0) * sinA * GROUND_SUNLIT, moonH = this.moonLight.intensity * sinM * GROUND_SUNLIT;
+      this.hemi.groundColor.setRGB(GROUND_RHO[0] * (hc.r + (sc.r * sunH + mc.r * moonH) / I), GROUND_RHO[1] * (hc.g + (sc.g * sunH + mc.g * moonH) / I), GROUND_RHO[2] * (hc.b + (sc.b * sunH + mc.b * moonH) / I)); }
     // volumetric clouds: cover, light, wind drift (the wind blows FROM windDir: clouds move the opposite way). Sunlight at
     // the cloud base and top: the spherical atmosphere's transmittance from those heights, so low sun lights the deck from
     // below, reddened, until the sun sets for the cloud (~1.3–2° below the ground's horizon at 1.5–3.6 km).

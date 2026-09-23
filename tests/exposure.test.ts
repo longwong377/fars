@@ -123,3 +123,24 @@ describe('interior adaptation (probe volumes)', () => {
     expect(adaptExposure(0.6, 60, 60)).toBeCloseTo(60, 1);
   });
 });
+
+// D-153: the hemisphere light's ground half is the sunlit ground's reflection, so shade outdoors has its ground bounce
+describe('ground bounce (hemisphere ground term)', () => {
+  const sky = new SkySystem(new THREE.Scene(), 256, 'test');
+  const Y = (c: THREE.Color) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+  const at = (day: number, hour: number) => {
+    sky.update(new WorldClock(day, hour).jdUT, new THREE.Vector3(), 0.05, 0.25, { ms: 2, fromDeg: 270, tSeconds: 0 }, new THREE.Vector3(1, 0, 0));
+    const sinA = Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)), I = sky.hemi.intensity;
+    const Eh = (sky.sun.visible ? sky.sun.intensity * sinA : 0) + I * Y(sky.hemi.color); // global horizontal (renderer units)
+    return { Eh, up: I * Y(sky.hemi.color), down: I * Y(sky.hemi.groundColor), vert: (I * (Y(sky.hemi.color) + Y(sky.hemi.groundColor))) / 2 };
+  };
+  it('a clear midday: a shaded wall gets 15–25 % of the global horizontal light, a downward face ~ the ground albedo', () => {
+    const L = at(25, 12);
+    expect(L.vert / L.Eh).toBeGreaterThan(0.15); expect(L.vert / L.Eh).toBeLessThan(0.25);
+    expect(L.down / L.Eh).toBeGreaterThan(0.1); expect(L.down / L.Eh).toBeLessThan(0.2);
+    expect(L.down).toBeGreaterThan(L.up * 0.3); // the sunlit ground rivals the sky for a shaded face
+  });
+  it('without sun (a moonless night, deep twilight) the ground reflects only the sky', () => {
+    for (const [d, h] of [[1, 3.5], [0, 19.4]] as const) { const L = at(d, h); expect(L.down / L.up).toBeGreaterThan(0.1); expect(L.down / L.up).toBeLessThan(0.2); }
+  });
+});
