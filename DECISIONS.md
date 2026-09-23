@@ -968,3 +968,22 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Where the data disagree:** `town.json`'s quarter shares (C) put ~3,400 people in Persepolis West and ~440 around the official building, where the built settlement has 3,058 and 60 places. The households that do not fit live in the nearest sites of other zones (q_n1 and the lower town), and their quarter follows the house: lanes, wells, the women at the well and the quarter's position (now the mean of its houses' doors) are those of where they live. Logged, not resolved: the settlement's capacities are the physical fact now; the shares are C.
 - **The detailed people:** going home, a person walks the nav grid to the town edge on the approach (as before), then goes on hidden, at walking pace, to the lane exit of the house's quarter and to the street door, and back out the same way in the morning (`Task.legs`), instead of waiting at the single 'town' point. The town's people are still not drawn (D-024): their positions are right for a renderer that will draw them.
 - **Cost:** building the population takes ~0.45 s (was ~0.3 s).
+
+## D-063 — Visitor mode implemented from the access research (session 3)
+- **What:**
+  - `src/world/visitor/access.ts` resolves the research's 41 zones: Terrace footprints present in 467, the Treasury street and the scribes' room first, the PF bastion, the courts; town plots by their town-element row from the built plan; lanes, roads, canal, the approach, Naqsh-e Rustam.
+  - It applies open / business / escort / closed with night (the Terrace's hours: the sun below 6° stands for sunrise/sunset ± 0.5 h, C), the court flag, the admission, the errand's business and recognition.
+  - `src/world/visitor/controller.ts` holds the visitor's state (the halmi, the letter, the step), the stop, the escort and the errand.
+- **In the world:**
+  - A move into a zone the visitor may not enter puts him back at his last allowed point. The nearest guard of that zone's posts turns and speaks: *halmi?* (Elamite, the only attested word for it) where a document opens the way, a refusal line where nothing does.
+  - The interact key shows the halmi to the guard who stopped him, or does the errand's business at its place.
+  - At the Gate an escort comes after 4 min (C: "a guard goes for an escort; the visitor waits on the bench"). The escort is a guard walking beside him, a crowd figure, not a simulated person (C).
+  - The letter handed in before midday is answered the next morning at 07:00, otherwise the morning after (access.json timing, C).
+  - The guards' memory of the visitor (lives.json familiarity) relaxes the courts to business when he is recognised with the errand open.
+  - No HUD: the errand's log reaches the player only through the translation layer's chronicle.
+- **Tests:** `tests/visitor_access.test.ts` and `tests/visitor_controller.test.ts` (8), over a fake world.
+- **Not done:**
+  - no e2e walk yet;
+  - the guard does not step physically into the path; the stop is a boundary at the post;
+  - errand steps 0 (the way-station on arrival) and 6 (the night at the stable) are implicit;
+  - nothing checks the ration receipts.

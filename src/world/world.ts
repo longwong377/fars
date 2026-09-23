@@ -33,6 +33,9 @@ import { FireSystem } from './fire';
 import { buildTreasuryGoods } from './furnish';
 import { buildPlain } from './plain';
 import { ConstructionView } from './construction';
+import { Visitor } from './visitor/controller';
+import { indexTown } from './visitor/access';
+import livesJson from '../data/lives.json';
 import { present } from '../arch/spec';
 import { buildMapLayers, builtPlainOf, MapItem } from '../ui/mapLayers';
 import { DoorSystem } from '../arch/doors';
@@ -193,11 +196,40 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     crowd.speaking(best.id, 2.5, time); h.ready.then(() => { if (Number.isFinite(h.duration)) crowd.speaking(best.id, h.duration, time); }); // the jaw moves while they speak
     return { lineId: pick.line.id, lang: pick.line.lang, translit: pick.line.translit, gloss: pick.line.gloss, tier: pick.line.tier, speakerId: best.id, backend: 'formant' } as Subtitle;
   };
+  // visitor mode (D-100 … D-104; src/world/visitor): the guards at their posts stop the visitor, ask for the halmi, give
+  // an escort; the errand advances only through what the visitor does at real places. Applied only in visitor mode.
+  let escortP: any = null, escortLast: [number, number] | null = null;
+  const visitor = new Visitor({
+    guards: () => sim.agents.filter(a => !a.offmap && a.role === 'guard').map(a => ({ id: a.id, pos: a.pos as [number, number], post: (a as any).post ?? null, onDuty: a.task?.act === 'stand_guard' })),
+    familiarity: id => sim.familiarity(id), recognise: (livesJson as any).familiarity.recognise,
+    react: (id, intent) => {
+      const a = sim.agents[id]; if (!a) return false;
+      crowd.speaking(id, 2.5, time); // he turns and speaks (the jaw moves; the gaze follows the visitor within reach)
+      const pick = pickLine({ langs: a.langs, intent, role: a.role, seed: a.seed + Math.floor(sim.t) }); if (!pick) return false;
+      const vo = voiceFor({ seed: a.seed, sex: a.sex, role: a.role });
+      speech.say(pick.line, vo, { x: a.pos[0], y: a.y + 1.55, z: -a.pos[1] }, { speakerId: a.id, voiceKey: voiceKeyFor(vo) }); return true;
+    },
+    escort: at => {
+      if (!at) { if (escortP) { crowd.detach('visitor-escort'); escortP = null; escortLast = null; } return; }
+      const nh = nav.heightAt(at.x, -at.z), y = Number.isFinite(nh) ? nh : terrain.heightAt(at.x, at.z);
+      const moving = escortLast ? Math.hypot(at.x - escortLast[0], at.z - escortLast[1]) > 0.01 : false; escortLast = [at.x, at.z];
+      if (!escortP) escortP = crowd.addExtra('visitor-escort', { id: -4670, dress: 'guard', sex: 'm', role: 'guard', seed: 4670, x: at.x, y, z: at.z, yaw: at.yaw + Math.PI, anim: 'walk' } as any);
+      else Object.assign(escortP.extra, { x: at.x, y, z: at.z, yaw: at.yaw + Math.PI, anim: moving ? 'walk' : 'idle' });
+    },
+  }, settlement ? indexTown(settlement.plan as any) : null);
+  const court = settings?.courtCalendar === 'seasonal';
   let mapItems: MapItem[] | null = null; // out-of-world map layers (translation layer), built on first use
   return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav, humans }, address, plain, doors, get lastSubtitle() { return lastSubtitle; },
     building,
+    /** visitor mode: where the player may stand (blocked moves go back to the last allowed point), the interact key, the
+     *  log (translation layer chronicle only). `night`: outside the Terrace's hours (C: the sun below 6°) */
+    visitor: {
+      update: (p: { x: number; z: number; yaw: number }, night: boolean) => visitor.update(p, sim.t, night, court),
+      interact: (p: { x: number; z: number }, night: boolean) => visitor.interact(p, sim.t, night, court),
+      log: () => visitor.s.log, state: () => visitor.s,
+    },
     mapLayers: () => (mapItems ??= buildMapLayers({ town: settlement?.plan as any, plain: builtPlainOf(plain.data as any) })),
-    saveState: () => ({ people: sim.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } },
+    saveState: () => ({ people: sim.save(), visitor: visitor.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } visitor.load(s?.visitor); },
     /** persistence (brief §9.5): simulate the time the world ran while the visitor was away, everyone in the abstract LOD
      *  (same decisions, timed travel), capped at CATCHUP_MAX_DAYS (older time is placed by schedule); returns the
      *  simulated hours and the wall-clock cost */

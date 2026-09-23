@@ -100,7 +100,8 @@ async function boot() {
   const player = new Player(phys, sx, terrain.heightAt(sx, sz) + 0.05, sz);
   const input = new Input(canvas, () => settings);
   input.yaw = SPAWN.yaw;
-  input.onInteract = () => { // E: the door faced within reach (D-051), else the nearest person in front
+  input.onInteract = () => { // E: in visitor mode the halmi / the errand's business first; the door faced within reach (D-051), else the nearest person in front
+    if (settings.playerMode === 'visitor') { const pp = player.position, v = (world as any).visitor?.interact({ x: pp.x, z: pp.z }, sky.state.sunAlt < 6); if (v) { console.info('[visitor]', v); return; } }
     const d = world.doors?.use(camera); if (d) { console.info('[door]', JSON.stringify(d)); return; }
     const r = world.address?.(camera); if (r) console.info('[translation layer]', JSON.stringify(r)); };
   const tl = new TranslationLayer(() => settings); input.onAction = a => tl.toggle(a);
@@ -263,6 +264,10 @@ async function boot() {
     if (botInput.yawDeg !== undefined) { input.yaw = -((botInput.yawDeg - 341) * Math.PI) / 180; input.pitch = ((botInput.pitchDeg ?? 0) * Math.PI) / 180; }
     phys.updateTerrain(terrain, player.position);
     player.update(dt, { ...ax, yaw: input.yaw, pitch: input.pitch });
+    if (settings.playerMode === 'visitor' && (world as any).visitor) { // guards stop the visitor where they would have (D-100 … D-104)
+      const pp = player.position, r = (world as any).visitor.update({ x: pp.x, z: pp.z, yaw: input.yaw }, sky.state.sunAlt < 6);
+      if (r.blocked) player.teleport(r.x, player.feetY, r.z);
+    }
     phys.step(Math.max(1 / 240, dt));
     world.simulate?.(dt, clock);
   }
@@ -323,7 +328,8 @@ async function boot() {
     { const sub = (world as any).lastSubtitle ?? null; if (sub && sub !== lastSub) { lastSub = sub; lastSubAt = now / 1000; }
       const P = (world as any).people; const hm = (t: number) => { const d = Math.floor(t / 24), h = t - d * 24; return `day ${d + 1}, ${Math.floor(h)}:${String(Math.floor((h % 1) * 60)).padStart(2, '0')}`; };
       tl.update({ camera, inscriptions: inscGroup, subtitle: sub, subtitleAt: lastSubAt, now: now / 1000, player: { e: camera.position.x, n: -camera.position.z, yawDeg: -(input.yaw * 180) / Math.PI },
-        events: P?.sim.events ?? [], timeLabel: hm, places: PLACES as any, mapLayers: (world as any).mapLayers }); }
+        events: settings.playerMode === 'visitor' ? [...(P?.sim.events ?? []), ...(((world as any).visitor?.log() ?? []) as any[]).map(l => ({ t: l.t, kind: 'visitor', text: 'You: ' + l.text, place: '' }))].sort((a, b) => a.t - b.t) : (P?.sim.events ?? []),
+        timeLabel: hm, places: PLACES as any, mapLayers: (world as any).mapLayers }); }
     overlay.update(renderer, scene, camera, [
       `grid E ${camera.position.x.toFixed(1)} N ${(-camera.position.z).toFixed(1)} · ${(camera.position.y + curvatureDrop(camera.position.x, camera.position.z) + terrain.meta.court_asl).toFixed(1)} m asl · ground ${terrain.aslAt(camera.position.x, camera.position.z).toFixed(1)}`,
       clock.label(),
