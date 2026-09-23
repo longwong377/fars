@@ -1175,6 +1175,15 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - rooms of the Treasury other than the Hall of 99 Columns (not roofed in the model);
   - doors closed at night (the bake uses the walkable-grid pose);
   - the people, props and reliefs as occluders.
+- **Outdoors (tachara-s-stair moment, high, WebGPU, same camera and frames as the session-3 shot):**
+  - Pixels outside the probe volumes are identical within 2: sky 152/182/208 before and after; court 119/108/93; stair faces 36–40; walls 59–134.
+  - Frame mean is 82.7 against 83.1. p50, p99 and max are identical.
+  - Inside the Tachara's roofed portico the image changes as intended: shaded columns 35–37 → 39–46 (light from the sunlit court); soffit 19 → 23; the hall behind the doorway 29 → 0.
+- **After merging the session branch** (the Tachara rebuilt, the Treasury N range; exposure D-117):
+  - Roofs are grouped per roofed space, so the Treasury has two volumes, the Hall of 99 Columns and `treasury:1`, the N range with the scribes' room. Grids are rounded down so volumes never overlap (tested).
+  - Rebaked: 7 volumes, 50,030 probes, parts `5a7f090cd6a48f11`. Hall-centre ambient against open ground: Gate 3.1 %, Apadana 0.66 %, Tachara 0.26 %, Hadish 1.4 %, Treasury hall 0.03 %, Harem 0.74 %.
+  - `exposureTarget` receives the probe visibility as `skyVis`, with no further change.
+  - **Not rendered after the merge:** the scribes' room, the new Tachara rooms, and WebGL2 (the run was cancelled at the end of the session).
 - **Addendum (local cover):** the weather field scales the cover by ×0.6–1.4 across its 46 km tile. The tile-mean calibration drew about 50 % cloud over the Terrace on a "clear" day, seen in the dawn moment. The sky now solves the uniform for the sky over the observer:
   - It uses a second measured curve: column cover against a fixed effective cover.
   - It divides by the mean of the drifted weather field over a 12 km disc around the camera (21 samples, recomputed after 500 m of movement).

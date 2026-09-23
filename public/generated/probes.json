@@ -1,7 +1,7 @@
 {
  "tier": "C",
  "stride": 12,
- "count": 50730,
+ "count": 50030,
  "normalBias": 0.9,
  "options": {
   "spacing": 2,
@@ -16,16 +16,16 @@
   "skyRays": 2,
   "sunSkyRatio": 3
  },
- "partsHash": "cd0635917c5c7ce7",
+ "partsHash": "5a7f090cd6a48f11",
  "built": "2026-09-23",
  "note": "baked light probes of the roofed buildings: sky through the openings, one and two bounces of sun and sky, year-averaged sun (D-110, D-111; model C)",
  "hallCentreVisibility": {
-  "gate_nations": 0.0308,
-  "apadana": 0.0067,
-  "tachara": 0.0005,
-  "hadish": 0.0148,
-  "treasury": 0.0004,
-  "harem": 0.0076
+  "gate_nations": 0.0307,
+  "apadana": 0.0066,
+  "tachara": 0.0026,
+  "hadish": 0.0143,
+  "treasury": 0.0003,
+  "harem": 0.0074
  },
  "volumes": [
   {
@@ -41,9 +41,9 @@
     2
    ],
    "dims": [
-    24,
+    23,
     9,
-    25
+    24
    ],
    "roof": [
     -16.39,
@@ -75,9 +75,9 @@
     2
    ],
    "dims": [
-    71,
+    70,
     9,
-    54
+    53
    ],
    "roof": [
     -61.489999999999995,
@@ -94,14 +94,14 @@
     22.5,
     25
    ],
-   "offset": 5400
+   "offset": 4968
   },
   {
    "building": "tachara",
    "origin": [
-    -37.29,
+    -42.5,
     2.85,
-    59.89
+    52.24999999999999
    ],
    "spacing": [
     2,
@@ -109,15 +109,15 @@
     2
    ],
    "dims": [
-    17,
+    21,
     4,
-    24
+    27
    ],
    "roof": [
-    -31.29,
-    -11.340000000000002,
-    65.89,
-    98.11
+    -36.5,
+    -6.700000000000001,
+    58.24999999999999,
+    99.19999999999999
    ],
    "full": 2,
    "yLo": [
@@ -128,7 +128,7 @@
     10.6,
     12.1
    ],
-   "offset": 39906
+   "offset": 38358
   },
   {
    "building": "hadish",
@@ -143,9 +143,9 @@
     2
    ],
    "dims": [
-    24,
+    23,
     5,
-    29
+    28
    ],
    "roof": [
     5.699999999999999,
@@ -162,14 +162,14 @@
     16,
     17.8
    ],
-   "offset": 41538
+   "offset": 40626
   },
   {
    "building": "treasury",
    "origin": [
     151.23000000000002,
     0.55,
-    87.545
+    90.07249999999999
    ],
    "spacing": [
     2,
@@ -179,7 +179,7 @@
    "dims": [
     30,
     4,
-    35
+    32
    ],
    "roof": [
     157.23000000000002,
@@ -196,7 +196,41 @@
     6.3,
     6.8999999999999995
    ],
-   "offset": 45018
+   "offset": 43846
+  },
+  {
+   "building": "treasury:1",
+   "origin": [
+    137,
+    0.55,
+    74.5
+   ],
+   "spacing": [
+    2,
+    2,
+    2
+   ],
+   "dims": [
+    41,
+    3,
+    8
+   ],
+   "roof": [
+    143,
+    212.7,
+    80.5,
+    86.4
+   ],
+   "full": 2,
+   "yLo": [
+    -0.7,
+    0.25
+   ],
+   "yHi": [
+    4.8,
+    5.3
+   ],
+   "offset": 47686
   },
   {
    "building": "harem",
@@ -211,9 +245,9 @@
     2
    ],
    "dims": [
-    18,
+    17,
     4,
-    21
+    20
    ],
    "roof": [
     104.7,
@@ -230,7 +264,7 @@
     7,
     7.9
    ],
-   "offset": 49218
+   "offset": 48670
   }
  ]
 }

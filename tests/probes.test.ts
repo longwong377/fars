@@ -9,7 +9,7 @@ import { buildTerrace } from '../src/arch/terrace';
 import { SURFACES } from '../src/render/materials';
 import { TraceScene, sceneFromParts } from '../src/render/probes/trace';
 import { BAKE, BakeOptions, bakeAll, sunSet, surfaceTable, albedoFn, probeVolumes, yearSunSamples } from '../src/render/probes/bake';
-import { ProbeField, ProbeVolume, PROBE_STRIDE, sampleField, fieldVisibility, evalSample, openField, atlasData, encodeField, decodeField, probeIndex, volumeWeight } from '../src/render/probes/field';
+import { ProbeField, ProbeVolume, PROBE_STRIDE, sampleField, fieldVisibility, evalSample, openField, atlasData, encodeField, decodeField, probeIndex, volumeWeight, gridExtent } from '../src/render/probes/field';
 
 const SURF = surfaceTable(SURFACES as any), ALB = albedoFn(SURF);
 const CAPS = { protome: [3.4, 1.1] as [number, number], plain: 1.4, volute: [1.25, 0.9] as [number, number] };
@@ -124,6 +124,15 @@ describe('light probes: the baked Terrace field', () => {
     expect(meta.partsHash).toBe(createHash('sha1').update(JSON.stringify(parts)).digest('hex').slice(0, 16));
     expect(F.count).toBe(F.data.length / PROBE_STRIDE);
     expect(F.volumes.map(v => v.building).sort()).toEqual(probeVolumes(parts, manifest).map(v => v.building).sort());
+  });
+  it('one volume per roofed space, none overlapping (the shader sums masked terms over the volumes)', () => {
+    const E = F.volumes.map(v => ({ v, g: gridExtent(v) }));
+    for (const a of E) for (const b of E) if (a !== b) {
+      const apart = a.g.x1 < b.g.x0 || b.g.x1 < a.g.x0 || a.g.z1 < b.g.z0 || b.g.z1 < a.g.z0 || a.g.y1 < b.g.y0 || b.g.y1 < a.g.y0;
+      expect(apart, `${a.v.building} / ${b.v.building}`).toBe(true);
+    }
+    const roofed = new Set(parts.filter(p => p.kind === 'roof').map(p => p.building));
+    for (const b of roofed) expect(F.volumes.some(v => v.building === b || v.building.startsWith(b + ':')), b).toBe(true);
   });
   it('covers every roofed building with finite, bounded values', () => {
     for (const v of F.volumes) expect(v.dims[0] * v.dims[1] * v.dims[2]).toBeGreaterThan(0);

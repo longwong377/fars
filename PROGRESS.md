@@ -8,6 +8,11 @@
   - Frozen test renders (moments) used to keep the first frame's exposure (the spawn, outdoors). They now re-evaluate it each frame, so every interior moment renders differently from earlier shots.
   - Not covered: town houses (no volumes); the Tripylon, Hall of 100 Columns and garrison have no roofs as built. The sun's bounce is its yearly mean (C). There is one bounce outdoors and two inside.
   - A shadow-map leak was fixed on the way: roofs now cast from their top faces (D-114).
+  - **Unverified:**
+    - WebGL2 (never rendered with the probes);
+    - the post-merge interiors: Tachara rooms, the Treasury N range and scribes' room (volume `treasury:1`);
+    - the full unit suite after the merge (the probe tests pass; the full suite passed before the merge);
+    - the roof tops' self-shadowing after the roof fix.
 - **Photorealism is not established.** The §8.2 rubric review and the independent Phase 3 and Phase 4 reviews have not run. The §1.1 moments have not been re-rendered at high quality since the session 2 fixes.
 - **Calibration scene (§8.1):** blocked (NEEDS #13). Stone and light values are C estimates.
 - **People (merged in session 3, D-090 to D-093):**

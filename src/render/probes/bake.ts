@@ -41,20 +41,43 @@ export interface BakeOptions {
 export const BAKE: BakeOptions = { spacing: 2, layer: 2.5, margin: 6, full: 2, inset: 0.25, normalBias: 0.9, skyDirs: 4096, rays: 1024, sunRays: 2, skyRays: 2, sunSkyRatio: 3 };
 
 // ------------------------------------------------------------------ volumes
-/** one volume per building with roof parts: the roofs' footprint plus the margin; layers from the floor (manifest room
- *  floor) to the roof's underside. Volumes whose margins would overlap are trimmed at the midline between them. */
+/** one volume per roofed space: the roof boxes of a building that touch each other at the same ceiling height form one
+ *  (the Apadana's hall and three portico roofs); separate roofs make separate volumes (the Treasury's Hall of 99 Columns
+ *  and its N range, whose ceilings differ). A volume covers the roofs' footprint plus the margin, with layers from the
+ *  floor (manifest room floor) to the roof's underside. Volumes whose margins would overlap are trimmed at the midline
+ *  between them. The volume holding the building's manifest room keeps the building's name; others are `building:k`. */
 export function probeVolumes(parts: Part[], manifest: Manifest, o: BakeOptions = BAKE): ProbeVolume[] {
-  const byB = new Map<string, { x0: number; x1: number; z0: number; z1: number; ceil: number; top: number }>();
+  type R = { b: string; x0: number; x1: number; z0: number; z1: number; ceil: number; top: number };
+  const roofs: R[] = [];
   for (const p of parts) {
     if (p.kind !== 'roof' || p.type !== 'box') continue;
     const c = Math.cos(p.rot ?? 0), s = Math.sin(p.rot ?? 0), hx = p.size[0] / 2, hz = p.size[1] / 2;
     const ex = Math.abs(c) * hx + Math.abs(s) * hz, ez = Math.abs(s) * hx + Math.abs(c) * hz;
-    const r = byB.get(p.building) ?? { x0: Infinity, x1: -Infinity, z0: Infinity, z1: -Infinity, ceil: Infinity, top: -Infinity };
-    r.x0 = Math.min(r.x0, p.c[0] - ex); r.x1 = Math.max(r.x1, p.c[0] + ex); r.z0 = Math.min(r.z0, -p.c[1] - ez); r.z1 = Math.max(r.z1, -p.c[1] + ez);
-    r.ceil = Math.min(r.ceil, p.y0); r.top = Math.max(r.top, p.y1); byB.set(p.building, r);
+    roofs.push({ b: p.building, x0: p.c[0] - ex, x1: p.c[0] + ex, z0: -p.c[1] - ez, z1: -p.c[1] + ez, ceil: p.y0, top: p.y1 });
   }
+  // union of touching roofs at the same ceiling (per building), repeated until stable
+  const groups: R[] = [];
+  for (const r of roofs) {
+    let g: R = { ...r };
+    for (let merged = true; merged;) {
+      merged = false;
+      for (let i = groups.length - 1; i >= 0; i--) {
+        const q = groups[i], touch = q.x0 <= g.x1 + 0.01 && g.x0 <= q.x1 + 0.01 && q.z0 <= g.z1 + 0.01 && g.z0 <= q.z1 + 0.01;
+        if (q.b !== g.b || !touch || Math.abs(q.ceil - g.ceil) > 0.05) continue;
+        g = { b: g.b, x0: Math.min(g.x0, q.x0), x1: Math.max(g.x1, q.x1), z0: Math.min(g.z0, q.z0), z1: Math.max(g.z1, q.z1), ceil: Math.min(g.ceil, q.ceil), top: Math.max(g.top, q.top) };
+        groups.splice(i, 1); merged = true;
+      }
+    }
+    groups.push(g);
+  }
+  const named = new Map<string, number>();
+  const nameOf = (g: R) => {
+    const room = (manifest[g.b] as any)?.room as number[] | undefined;
+    if (room && room[0] >= g.x0 && room[0] <= g.x1 && -room[1] >= g.z0 && -room[1] <= g.z1) return g.b;
+    const k = (named.get(g.b) ?? 0) + 1; named.set(g.b, k); return `${g.b}:${k}`;
+  };
   const vols: ProbeVolume[] = []; let offset = 0;
-  const boxes = [...byB.entries()].map(([b, r]) => ({ b, r, m: { x0: r.x0 - o.margin, x1: r.x1 + o.margin, z0: r.z0 - o.margin, z1: r.z1 + o.margin } }));
+  const boxes = groups.map(r => ({ b: nameOf(r), floorOf: r.b, r, m: { x0: r.x0 - o.margin, x1: r.x1 + o.margin, z0: r.z0 - o.margin, z1: r.z1 + o.margin } }));
   for (const A of boxes) for (const B of boxes) { // trim overlapping margins at the midline between the roofs
     if (A === B) continue;
     const ox = Math.min(A.m.x1, B.m.x1) - Math.max(A.m.x0, B.m.x0), oz = Math.min(A.m.z1, B.m.z1) - Math.max(A.m.z0, B.m.z0);
@@ -62,10 +85,11 @@ export function probeVolumes(parts: Part[], manifest: Manifest, o: BakeOptions =
     if (ox < oz) { if (A.r.x1 <= B.r.x0) { const mid = (A.r.x1 + B.r.x0) / 2; A.m.x1 = Math.min(A.m.x1, mid - 0.1); } else if (B.r.x1 <= A.r.x0) { const mid = (B.r.x1 + A.r.x0) / 2; A.m.x0 = Math.max(A.m.x0, mid + 0.1); } }
     else { if (A.r.z1 <= B.r.z0) { const mid = (A.r.z1 + B.r.z0) / 2; A.m.z1 = Math.min(A.m.z1, mid - 0.1); } else if (B.r.z1 <= A.r.z0) { const mid = (B.r.z1 + A.r.z0) / 2; A.m.z0 = Math.max(A.m.z0, mid + 0.1); } }
   }
-  for (const { b, r, m } of boxes) {
-    const room = (manifest[b] as any)?.room as number[] | undefined;
+  for (const { b, floorOf, r, m } of boxes) {
+    const room = (manifest[floorOf] as any)?.room as number[] | undefined;
     const floor = room ? room[4] : 0;
-    const nx = Math.ceil((m.x1 - m.x0) / o.spacing) + 1, nz = Math.ceil((m.z1 - m.z0) / o.spacing) + 1;
+    // round down: the grid never reaches past its (possibly trimmed) margin, so no two volumes overlap
+    const nx = Math.floor((m.x1 - m.x0) / o.spacing + 1e-9) + 1, nz = Math.floor((m.z1 - m.z0) / o.spacing + 1e-9) + 1;
     const y0 = floor + o.inset, y1 = r.ceil - o.inset, ny = Math.max(2, Math.ceil((y1 - y0) / o.layer) + 1);
     vols.push({ building: b, origin: [m.x0, y0, m.z0], spacing: [o.spacing, (y1 - y0) / (ny - 1), o.spacing], dims: [nx, ny, nz],
       roof: [r.x0, r.x1, r.z0, r.z1], full: o.full, yLo: [floor - 1, floor - 0.05], yHi: [r.ceil, r.top], offset });
