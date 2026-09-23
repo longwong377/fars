@@ -223,5 +223,130 @@
   "cite": "ISAC Photographic Archives, 'Miscellaneous finds' / 'Contents of the Treasury' (Schmidt, Persepolis II)",
   "url": "https://isac.uchicago.edu/collections/photographic-archives/persepolis/miscellaneous-finds",
   "access": "search-extract only; page not verified (MATERIAL_CULTURE.md)"
+ },
+ "TOLAJORI2017": {
+  "cite": "A. Askari Chaverdi, P. Callieri, E. Matin, \"Tol-e Ajori: a Monumental Gate of the Early Achaemenian period in the Persepolis Area. The 2014 excavation season of the Iranian-Italian project From Palace to Town\" (2017), with an appendix by G. P. Basello",
+  "url": "https://www.academia.edu/30688057/",
+  "access": "search-extract only (academia/ResearchGate blocked, B6)"
+ },
+ "AJORI-BRICK2018": {
+  "cite": "\"Advances in Achaemenid brick manufacturing technology: Evidence from the monumental gate at Tol-e Ajori (Fars, Iran)\", Applied Clay Science 152 (2018) 131-",
+  "url": "https://www.sciencedirect.com/science/article/abs/pii/S0169131717304994",
+  "access": "search-extract only (abstract)"
+ },
+ "AJORI2013": {
+  "cite": "A. Askari Chaverdi, P. Callieri, S. Gondet, \"Tol-e Ajori, a new monumental building in Parsa: preliminary cross interpretations from recent surveys and excavations around Persepolis (2005-2012)\", ARTA 2013.006",
+  "url": "http://www.achemenet.com/document/ARTA_2013.006-Askari-Callieri-Gondet.pdf",
+  "access": "search-extract only"
+ },
+ "PW2017": {
+  "cite": "A. Askari Chaverdi, P. Callieri (eds.), Persepolis West (Fars, Iran): Report on the field work carried out by the Iranian-Italian Joint Archaeological Mission in 2008-2009, BAR IS 2870 (2017); AJA 123.3 (2019) book review",
+  "url": "https://ajaonline.org/book-review/3891/",
+  "access": "search-extract only (review and publisher pages)"
+ },
+ "PW-PIGMENT2021": {
+  "cite": "\"Advances in characterization of colourful residues unearthed in Persepolis West craft zone using microscopic and spectroscopic techniques\", Microchemical Journal 167 (2021) 106304",
+  "url": "https://www.sciencedirect.com/science/article/abs/pii/S0026265X2100388X",
+  "access": "search-extract only (abstract)"
+ },
+ "GONDET2009": {
+  "cite": "S. Gondet, A. Dhemaied, K. Mohammadkhani, F. Rejiba, \"Geophysical investigations in the vicinity of the Persepolis Royal Terrace (Fars province, Iran)\", ArcheoSciences 33 suppl. (2009) 69-72; with Gondet's survey summaries",
+  "url": "https://journals.openedition.org/archeosciences/1307",
+  "access": "search-extract only (openedition blocked)"
+ },
+ "BOUCHARLAT2012": {
+  "cite": "R. Boucharlat, T. De Schacht, S. Gondet, \"Surface reconnaissance in the Persepolis Plain (2005-2008). New data on the city organisation and landscape management\", Series Minor 77 (Naples 2012) 123-166",
+  "url": "https://www.academia.edu/3473021/",
+  "access": "search-extract only (map legend of Achaemenid hydrological traces)"
+ },
+ "GONDET2018": {
+  "cite": "S. Gondet, K. Mohammadkhani, A. Askari Chaverdi, \"A newly discovered building complex north of the Frataraka Complex. Consequences for the spatial definition of the Persepolis-Parsa Royal Area\", ARTA 2018.003",
+  "url": "http://www.achemenet.com/pdf/arta/ARTA_2018.003-Gondet-Mohammadkhani-Askari.pdf",
+  "access": "search-extract only (abstract)"
+ },
+ "DASHTESTAN2021": {
+  "cite": "\"The Achaemenid Settlement of Dashtestan (Borazjan): A View from Persepolis\" (ResearchGate 361108776; cites Gondet, Mohammadkhani & Askari Chaverdi 2018 fig. 8)",
+  "url": "https://www.researchgate.net/publication/361108776",
+  "access": "search-extract only"
+ },
+ "KURHYDRO2024": {
+  "cite": "Motaleat-e Bastanshenasi-e Parseh 8, no. 28 (Summer 2024), article on Achaemenid hydraulic structures of the Kur River Basin",
+  "url": "https://ensani.ir/file/download/article/1758346877-68ce3e7d48afa-10184-1404-8.pdf",
+  "access": "search-extract only (ensani.ir blocked)"
+ },
+ "MAYS2010": {
+  "cite": "L. W. Mays, Y. Gorokhovich, \"Water Resource Management for Iran's Persepolis Complex\", in Ancient Water Technologies (Springer 2010), and \"The water supply system in Iran's ancient Persepolis Complex\"",
+  "url": "https://link.springer.com/chapter/10.1007/978-90-481-8632-7_5",
+  "access": "search-extract only (engineering overview; secondary)"
+ },
+ "SHOBAIRI2018": {
+  "cite": "S. A. Shobairi, \"Beyond the Palace: Some Perspective on Agriculture and Irrigation Systems in the Achaemenid Heartland\", Proc. 10th ICAANE vol. 2 (Wiesbaden 2018) 149-162",
+  "url": "https://www.biblioiranica.info/some-perspective-on-agriculture-and-irrigation-systems-in-the-achaemenid-heartland/",
+  "access": "search-extract only (abstract)"
+ },
+ "PLEIADES-FARS": {
+  "cite": "Pleiades gazetteer places in Barrington Atlas map 94 (Persis) within ~50 km of Persepolis: per-place JSON with periods and references (isawnyu/pleiades.datasets, main) and GeoJSON (ryanfb/pleiades-geojson); incl. 922645, 922634, 922620, 922677, 922721, 922674, 922715, 922622, 922662, 922684, 922685, 922701, 922672",
+  "url": "https://github.com/isawnyu/pleiades.datasets",
+  "access": "downloaded (CC-BY 3.0); Barrington points are map-scale (accuracy up to 10 km)"
+ },
+ "OVERTURE-2026": {
+  "cite": "Overture Maps release 2026-08-19.0, themes places and base (land_use, infrastructure), bbox 52.45-53.35 E, 29.55-30.32 N (modern features used only as anchors and for the blocklist)",
+  "url": "s3://overturemaps-us-west-2/release/2026-08-19.0/",
+  "access": "downloaded (ODbL/CDLA per source)"
+ },
+ "LIVIUS-TR": {
+  "cite": "J. Lendering, \"Takht-e Rostam\", Livius.org",
+  "url": "https://www.livius.org/articles/place/takht-e-rostam/",
+  "access": "search-extract only"
+ },
+ "ROYALROAD-GIS": {
+  "cite": "\"'Royal' road, 'royal' needs: a GIS-based approach to Achaemenid court logistics between royal capitals of Susa and Persepolis\", Antiquity (2025); D. T. Potts 2009, \"The Persepolis Fortification Texts and the Royal Road: another look at the Fahliyan area\"",
+  "url": "https://www.cambridge.org/core/journals/antiquity/article/royal-road-royal-needs-a-gisbased-approach-to-achaemenid-court-logistics-between-royal-capitals-of-susa-and-persepolis/1E58AC9DA5DBDD355224331E6B7C6CE2",
+  "access": "search-extract only"
+ },
+ "IR-ARCH2": {
+  "cite": "\"Archaeology ii. Median and Achaemenid\", Encyclopaedia Iranica",
+  "url": "https://www.iranicaonline.org/articles/archaeology-ii/",
+  "access": "search-extract only"
+ },
+ "IR-FOODAG": {
+  "cite": "Encyclopaedia Iranica \"Cooking\", \"Barley\", \"Economy iii. In the Achaemenid period\", \"Persepolis Elamite Tablets\" (PF commodities, fruits, grains, calendar of barley)",
+  "url": "https://www.iranicaonline.org/articles/barley/",
+  "access": "search-extract only"
+ },
+ "SAEIDI2021": {
+  "cite": "Saeidi Ghavi Andam et al., \"Vegetation history of the Maharlou basin\", Veg. Hist. Archaeobot. 30 (2021); Djamali et al. 2009 (research/_climate_C.md)",
+  "url": "https://amu.hal.science/hal-03007388v1",
+  "access": "abstract via search extract (see _climate_C.md)"
+ },
+ "KOR-HSJ2023": {
+  "cite": "Hydrological Sciences Journal (2023), Kor River basin study (doi 10.1080/02626667.2023.2230197)",
+  "url": "https://www.tandfonline.com/doi/pdf/10.1080/02626667.2023.2230197",
+  "access": "search-extract only"
+ },
+ "FARS-WHEAT": {
+  "cite": "\"Optimizing planting dates and irrigation schedules to enhance wheat production in Fars Province ... CERES-Wheat model\" (PMC12318503)",
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12318503/",
+  "access": "search-extract only (modern agronomy)"
+ },
+ "ISTAKHR2018": {
+  "cite": "M. V. Fontana (ed.), Istakhr (Iran), 2011-2016. Historical and Archaeological Essays, Quaderni di Vicino Oriente XIII (2018)",
+  "url": "https://www.academia.edu/36878598/",
+  "access": "search-extract only"
+ },
+ "QANAT-WH2018": {
+  "cite": "\"The Qanat: a multidisciplinary and diachronic approach to the study of groundwater catchment systems in archaeology\", Water History (2018)",
+  "url": "https://link.springer.com/article/10.1007/s12685-018-0214-9",
+  "access": "search-extract only"
+ },
+ "WP-NR": {
+  "cite": "Tertiary web pages via search extracts: Wikipedia \"Ka'ba-ye Zartosht\", \"Tomb of Darius the Great\" (Ctesias on Darius' tomb in his lifetime), surfiran/CAIS \"Naqsh-e Rostam\" (Husain Kuh)",
+  "url": "https://en.wikipedia.org/wiki/Ka%27ba-ye_Zartosht",
+  "access": "search-extract only (tertiary; cap C unless confirmed)"
+ },
+ "HDT": {
+  "cite": "Herodotus, Histories (A. D. Godley tr.), Perseus canonical-greekLit TEI tlg0016.tlg001.perseus-eng2 (1.140 burial; 3.117 royal irrigation gates, summer sesame)",
+  "url": "https://github.com/PerseusDL/canonical-greekLit",
+  "access": "read in full (downloaded TEI)"
  }
 }

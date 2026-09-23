@@ -1,0 +1,890 @@
+{
+ "_meta": {
+  "phase": "6 (settlement)",
+  "year_bce": 467,
+  "frame": "Persepolis grid (x grid-east, y grid-north, metres), origin Apadana OSM centroid 29.9351174N 52.8894969E, grid north 341 deg true. xy from pyproj tmerc + rotate (tools/osm_to_grid.py convention; the local approximation in src/core/geo.ts differs by <2 m at 6 km and ~80 m at 40 km).",
+  "tiers": "tier = lowest of existence and position; every scholarly source was seen only as a web-search extract (BLOCKERS B6), so existence is capped at B; positions are C unless a dataset coordinate exists.",
+  "fields": "id, kind, name, tier, src (keys in sources.json), note, date_range, present_467 (true / false / null = not placed), xy or polygon or polyline (grid m), latlon, unc_m (1-sigma position uncertainty, m)",
+  "layout_warning": "Layout of the town, housing, storehouses and stables is reconstruction (C). Only Tol-e Ajori (size), Persepolis West Area B (activity), Takht-e Rustam (size) and the existence of garden zones, a 1 ha official building and a Pulvar canal are sourced.",
+  "density": {
+   "plain_population_max": 44000,
+   "plain_settled_area_ha": 675,
+   "persons_per_ha_derived": 65.2,
+   "town_and_palace_zone_pop_court_absent": [
+    3000,
+    6000
+   ],
+   "src": "SUMNER1986;PEOPLE-R",
+   "tier": "C (derived)"
+  },
+  "garden_planting": {
+   "trees": [
+    "plane (Platanus)",
+    "cypress",
+    "pomegranate (Punica)",
+    "olive (Olea)",
+    "fig",
+    "apple",
+    "pear",
+    "mulberry",
+    "grape vine"
+   ],
+   "src": "SAEIDI2021 via research/_climate_C.md (pollen: Olea, Punica, Platanus, cypress with Achaemenid arboriculture, B); IR-FOODAG (PF fruits, B)",
+   "layout": "rectilinear beds divided by stone-lined or earthen channels, by analogy with Pasargadae (B analogy, C here)"
+  },
+  "not_placed": [
+   "storehouses (PF stores exist; no excavated store outside the Terrace)",
+   "stables (horse rations in PF: title-only lead Potts 2023 \"Pain et vin\"; no stable excavated)",
+   "garrison outside the Terrace (none evidenced)",
+   "qanats (no archaeologically dated Achaemenid qanat; QANAT-WH2018) - wells and river canals only"
+  ]
+ },
+ "features": [
+  {
+   "id": "tol_ajori_gate",
+   "kind": "monumental_gate",
+   "name": "Tol-e Ajori gate (Bagh-e Firuzi)",
+   "tier": "C",
+   "src": "TOLAJORI2017;AJORI-BRICK2018;AJORI2013;DASHTESTAN2021",
+   "note": "Mud brick with baked and glazed brick facing; plan modelled on the inner section of Babylon's Ishtar Gate but larger; two entrance corridors (TOLAJORI2017, SX, B). Size 39.07 m NW-SE x 29.05 m NE-SW (B). Height ~12 m and \"30-40 m wide\" are press figures (C). Glazed relief bricks copy the Babylonian panels (bulls, dragons) \"down to the smallest detail\" (B). Position: \"3.5 km NW\" (AJORI-BRICK2018), \"3 km\" (press), \"almost 3.5 km W/NW, S side of the Pulvar\" (DASHTESTAN2021): placed 3.3 km at 295 deg true, S of the modern Pulvar (C, +-700 m). State in 467 unknown: the 2014 report traces it \"from construction to destruction\" but the date of destruction was not retrieved (Q-004, Q-034). Working value: standing, old and unrepaired (C).",
+   "date_range": "c. 539-518 BCE (Cyrus/Cambyses), before the Terrace",
+   "present_467": true,
+   "xy": [
+    -2381,
+    2290
+   ],
+   "latlon": [
+    29.94766,
+    52.85846
+   ],
+   "unc_m": 700,
+   "size_m": [
+    39.07,
+    29.05
+   ],
+   "size_tier": "B",
+   "height_m": 12,
+   "height_tier": "C",
+   "axis_note": "long side NW-SE (B); passage direction not retrieved (C: NE-SW)"
+  },
+  {
+   "id": "zone_bagh_e_firuzi",
+   "kind": "zone_palace_garden",
+   "name": "Bagh-e Firuzi palace-and-garden zone",
+   "tier": "C",
+   "src": "GONDET2009;DASHTESTAN2021;AJORI2013",
+   "note": "Very low-density elite/royal occupation set in large green spaces with Achaemenid garden complexes (GONDET2009, SX, B); \"important urban zone ... 3.5 km W/NW ... S side of the Pulvar\" (DASHTESTAN2021, B). Column bases and foundations beyond the gate (press, C). Extent is reconstructed (C): 1.7 x 1.5 km around the gate, N edge kept S of the modern Pulvar.",
+   "date_range": "Achaemenid (from c. 539)",
+   "present_467": true,
+   "unc_m": 500,
+   "polygon": [
+    [
+     -3280.7523049789083,
+     1390.2032330144489
+    ],
+    [
+     -1680.7523049789083,
+     1390.2032330144489
+    ],
+    [
+     -1580.7523049789083,
+     2390.203233014449
+    ],
+    [
+     -2080.7523049789083,
+     2890.203233014449
+    ],
+    [
+     -3280.7523049789083,
+     2790.203233014449
+    ]
+   ],
+   "polygon_latlon": [
+    [
+     29.93733,
+     52.85268
+    ],
+    [
+     29.94204,
+     52.86835
+    ],
+    [
+     29.95086,
+     52.86595
+    ],
+    [
+     29.95366,
+     52.85937
+    ],
+    [
+     29.94927,
+     52.84795
+    ]
+   ]
+  },
+  {
+   "id": "zone_persepolis_west",
+   "kind": "zone_town",
+   "name": "Persepolis West (Sumner's Firuzi mounds; lower town)",
+   "tier": "C",
+   "src": "PW2017;GONDET2009;DASHTESTAN2021;SUMNER1986;PLEIADES-FARS",
+   "note": "Low mounds W of the Terrace with dense surface material (Sumner, via DASHTESTAN2021/GONDET2009); geophysics: strong magnetism read as kilns and craft activity, and the levelled remains of a settlement with mud-brick structures (B). Geomagnetic survey 50 ha in 23 areas; 11 trial trenches 2008-09 (PW2017, B). Many geomagnetic plans are post-Achaemenid (PW2017 review, B). Barrington Atlas \"Firuzi 2 / Matezzish? / Humadeshu? / Uvadaichaya?\" (settlement, Classical = 550-330 BCE) is this cluster; the BA point itself is map-scale (C). Extent reconstructed (C).",
+   "date_range": "Achaemenid and post-Achaemenid",
+   "present_467": true,
+   "unc_m": 400,
+   "polygon": [
+    [
+     -1700,
+     -700
+    ],
+    [
+     -100,
+     -700
+    ],
+    [
+     -100,
+     900
+    ],
+    [
+     -1700,
+     1100
+    ]
+   ],
+   "polygon_latlon": [
+    [
+     29.92415,
+     52.87521
+    ],
+    [
+     29.92885,
+     52.89088
+    ],
+    [
+     29.9425,
+     52.88548
+    ],
+    [
+     29.93951,
+     52.86914
+    ]
+   ]
+  },
+  {
+   "id": "pw_area_a",
+   "kind": "excavation_area",
+   "name": "Persepolis West Area A (strong geomagnetic anomalies)",
+   "tier": "C",
+   "src": "PW2017;OVERTURE-2026",
+   "note": "Area A lay W of the modern Persepolis parking lot (PW2017, B). Placed 200 m W of the parking centroid (C, +-200 m). Findings in Area A not retrieved.",
+   "date_range": "Achaemenid?/post-Achaemenid",
+   "present_467": true,
+   "xy": [
+    -590,
+    375
+   ],
+   "latlon": [
+    29.93658,
+    52.88246
+   ],
+   "unc_m": 200
+  },
+  {
+   "id": "pw_area_b_craft",
+   "kind": "workshop_zone",
+   "name": "Persepolis West Area B craft zone: kiln, bone pits, pigment workshop",
+   "tier": "B",
+   "src": "PW2017;PW-PIGMENT2021",
+   "note": "Area B 500 m W of Area A (PW2017, B). A kiln and industrial remains \"of possible Achaemenid date\"; pits full of bone fragments, read as raw material for fluorapatite used to whiten the grey limestone of the Terrace (B). Pigment lumps: azurite, malachite, Egyptian blue, glauconite, red and yellow ochre (haematite, magnetite, goethite); a bronze scrap with an Egyptian-blue crust and diopside suggest Egyptian blue was made here; palette matches the Terrace palaces (PW-PIGMENT2021, B). Position C (+-250 m); activity B; date in 467 C (possible Achaemenid).",
+   "date_range": "possible Achaemenid",
+   "present_467": true,
+   "xy": [
+    -1063,
+    538
+   ],
+   "latlon": [
+    29.93658,
+    52.87727
+   ],
+   "unc_m": 250,
+   "crafts": [
+    "pigment making (Egyptian blue, ochres, malachite, azurite)",
+    "kiln firing (product not retrieved)",
+    "bone processing (fluorapatite whitening)"
+   ]
+  },
+  {
+   "id": "pw_area_c_garden",
+   "kind": "garden",
+   "name": "Persepolis West Area C: garden (ditch grid + fence wall)",
+   "tier": "C",
+   "src": "PW2017;DASHTESTAN2021",
+   "note": "A grid of ditches with a fencing wall, read as a garden (B). Position not retrieved: placed in the W part of Persepolis West (C, +-600 m).",
+   "date_range": "Achaemenid?",
+   "present_467": true,
+   "xy": [
+    -1300,
+    200
+   ],
+   "latlon": [
+    29.933,
+    52.87609
+   ],
+   "unc_m": 600
+  },
+  {
+   "id": "north_official_complex",
+   "kind": "official_building",
+   "name": "~1 ha building N of the \"Frataraka\" complex",
+   "tier": "C",
+   "src": "GONDET2018",
+   "note": "Geophysics and pedestrian survey 2012-14 in the fields N of the Terrace revealed part of an almost 1 ha building; features suggest an Achaemenid date and an official function (B existence). Position C (+-300 m), size ~100 x 100 m (C).",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "xy": [
+    -50,
+    650
+   ],
+   "latlon": [
+    29.94051,
+    52.88682
+   ],
+   "unc_m": 300,
+   "size_m": [
+    100,
+    100
+   ]
+  },
+  {
+   "id": "frataraka_complex",
+   "kind": "temple_complex",
+   "name": "\"Frataraka\" complex (pedestal temple)",
+   "tier": "B",
+   "src": "GONDET2018;DASHTESTAN2021",
+   "note": "Post-Achaemenid by Callieri (brick sizes, column-base types, pedestal style) (SX, B). ABSENT in 467. Position C (N of the Terrace).",
+   "date_range": "post-Achaemenid (3rd-2nd c. BCE?)",
+   "present_467": false,
+   "xy": [
+    -50,
+    430
+   ],
+   "latlon": [
+    29.93864,
+    52.88756
+   ],
+   "unc_m": 250
+  },
+  {
+   "id": "takht_e_rustam",
+   "kind": "platform_monument",
+   "name": "Takht-e Rustam (unfinished stepped platform)",
+   "tier": "C",
+   "src": "LIVIUS-TR;PLEIADES-FARS",
+   "note": "Local stone, about 12.5 x 12.5 m, base for a higher structure; resembles the lower tiers of Cyrus' tomb; suggested tomb of Cambyses (LIVIUS-TR, SX: B for size, C for attribution). \"Two kilometers south of Naqsh-e Rustam\", on the road from Naqsh-e Rustam to Naqsh-e Rajab: placed 2 km from Naqsh-e Rustam toward Naqsh-e Rajab (C, +-400 m). CONFLICT: the Barrington/DARMC point for \"Dasht-i Gohar/Takht-i Rustam\" lies 0.8 km S of the Terrace (accuracy 10 km, map-scale) (Q-031).",
+   "date_range": "early Achaemenid (c. 530-522?)",
+   "present_467": true,
+   "xy": [
+    818,
+    4099
+   ],
+   "latlon": [
+    29.97248,
+    52.88368
+   ],
+   "unc_m": 400,
+   "size_m": [
+    12.5,
+    12.5
+   ],
+   "state": "unfinished platform (two steps)"
+  },
+  {
+   "id": "zone_dasht_e_gohar",
+   "kind": "zone_palace_garden",
+   "name": "Dasht-e Gohar palace-and-garden zone",
+   "tier": "C",
+   "src": "GONDET2009;PLEIADES-FARS",
+   "note": "Low-density elite/royal occupation with Achaemenid garden complexes (GONDET2009, B); a hypostyle hall reburied behind the Takht-e Rustam platform (search extract, C); Barrington \"settlement\", Classical (B). Extent C.",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "unc_m": 600,
+   "polygon": [
+    [
+     117.69722907724918,
+     3498.7117479829876
+    ],
+    [
+     1517.6972290772492,
+     3498.7117479829876
+    ],
+    [
+     1517.6972290772492,
+     4598.711747982988
+    ],
+    [
+     117.69722907724918,
+     4598.711747982988
+    ]
+   ],
+   "polygon_latlon": [
+    [
+     29.96531,
+     52.87885
+    ],
+    [
+     29.96942,
+     52.89256
+    ],
+    [
+     29.9788,
+     52.88885
+    ],
+    [
+     29.97469,
+     52.87514
+    ]
+   ]
+  },
+  {
+   "id": "canal_kuh_e_rahmat",
+   "kind": "canal",
+   "name": "Kuh-e Rahmat canal (Pulvar to Persepolis)",
+   "tier": "C",
+   "src": "MAYS2010;BOUCHARLAT2012;KURHYDRO2024",
+   "note": "\"The 4-km canal began at the Pulvar and followed a steep, but declining, slope toward Persepolis\"; a small dam and a network of canals and gutters, with an entrance reservoir (MAYS2010, SX, B/C: engineering overview). \"Kuh-e Rahmat canal\" is on the map of Achaemenid hydrological traces (BOUCHARLAT2012, SX, B) and \"Rahmat Mountain Canal\" among Kur-basin structures (KURHYDRO2024, B). Course C: from the modern Pulvar at ~1626 m (DEM mid ring) along the NW foot of Kuh-e Rahmat to the Terrace N side (~1616 m); ~5.4 km, mean fall ~0.2 %. Width 2 m, depth 0.8 m (C).",
+   "date_range": "Achaemenid (probable)",
+   "present_467": true,
+   "unc_m": 500,
+   "polyline": [
+    [
+     4446,
+     3351
+    ],
+    [
+     3600,
+     2500
+    ],
+    [
+     2600,
+     1700
+    ],
+    [
+     1600,
+     1100
+    ],
+    [
+     700,
+     600
+    ],
+    [
+     260,
+     300
+    ]
+   ],
+   "polyline_latlon": [
+    [
+     29.97675,
+     52.92175
+    ],
+    [
+     29.96701,
+     52.91633
+    ],
+    [
+     29.95725,
+     52.90923
+    ],
+    [
+     29.9492,
+     52.90146
+    ],
+    [
+     29.94229,
+     52.89433
+    ],
+    [
+     29.93844,
+     52.89103
+    ]
+   ],
+   "width_m": 2.0,
+   "depth_m": 0.8
+  },
+  {
+   "id": "zone_lower_town_south",
+   "kind": "zone_town",
+   "name": "Lower town S/SW of the Terrace (Matezziš?)",
+   "tier": "C",
+   "src": "DASHTESTAN2021;GONDET2009;PEOPLE-R",
+   "note": "Matezziš is identified with sites in the plain adjacent to Persepolis (DASHTESTAN2021, B); the settled zone spans ~20 km2 around the Terrace but at very low density (GONDET2009, B). No excavated houses: housing form (mud-brick courtyard houses with flat roofs) is by regional analogy (C). Population 3,000-6,000 in the town and palace zone with the court absent (PEOPLE.md, C).",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "unc_m": 600,
+   "polygon": [
+    [
+     -1700,
+     -1600
+    ],
+    [
+     -100,
+     -1600
+    ],
+    [
+     -100,
+     -700
+    ],
+    [
+     -1700,
+     -700
+    ]
+   ],
+   "polygon_latlon": [
+    [
+     29.91648,
+     52.87825
+    ],
+    [
+     29.92118,
+     52.89391
+    ],
+    [
+     29.92885,
+     52.89088
+    ],
+    [
+     29.92415,
+     52.87521
+    ]
+   ]
+  },
+  {
+   "id": "road_naqsh_e_rustam",
+   "kind": "road",
+   "name": "Road Terrace - Naqsh-e Rajab gap - Takht-e Rustam - Naqsh-e Rustam",
+   "tier": "C",
+   "src": "LIVIUS-TR",
+   "note": "A road \"from Naqš-e Rustam to Naqš-e Rajab\" passing Takht-e Rustam is stated by Livius (modern road, SX). Ancient course C; unpaved earth, 6-8 m (C). Crosses the Pulvar (ford or bridge, C).",
+   "date_range": "Achaemenid (C)",
+   "present_467": true,
+   "polyline": [
+    [
+     150,
+     260
+    ],
+    [
+     300,
+     1200
+    ],
+    [
+     908,
+     3365
+    ],
+    [
+     818,
+     4099
+    ],
+    [
+     565,
+     5907
+    ]
+   ],
+   "polyline_latlon": [
+    [
+     29.93778,
+     52.89009
+    ],
+    [
+     29.94623,
+     52.88839
+    ],
+    [
+     29.96649,
+     52.88704
+    ],
+    [
+     29.97248,
+     52.88368
+    ],
+    [
+     29.98716,
+     52.8751
+    ]
+   ],
+   "width_m": 7
+  },
+  {
+   "id": "road_pasargadae",
+   "kind": "road",
+   "name": "Road Persepolis - Pulvar valley - Sivand - Tang-e Bulaghi - Pasargadae",
+   "tier": "C",
+   "src": "PLEIADES-FARS;BOUCHARLAT2012",
+   "note": "Persepolis and Pasargadae (Batrakataš) are ~40 km apart and linked by the Pulvar valley (Pleiades Pulvar: \"flows near Pasargadae and through the Bolaghi gorge\"). Course reconstructed along the modern Pulvar (C). Sivand quarry (Classical) lies near it.",
+   "date_range": "Achaemenid (C)",
+   "present_467": true,
+   "polyline": [
+    [
+     250,
+     250
+    ],
+    [
+     2600,
+     1900
+    ],
+    [
+     5200,
+     2600
+    ],
+    [
+     8600,
+     2500
+    ],
+    [
+     10700,
+     3500
+    ],
+    [
+     10800,
+     6500
+    ],
+    [
+     8900,
+     9600
+    ],
+    [
+     7400,
+     13200
+    ],
+    [
+     9300,
+     17400
+    ],
+    [
+     12500,
+     16900
+    ],
+    [
+     16400,
+     13600
+    ],
+    [
+     20700,
+     11700
+    ],
+    [
+     24400,
+     14800
+    ],
+    [
+     28800,
+     14700
+    ],
+    [
+     33000,
+     16500
+    ],
+    [
+     35300,
+     18400
+    ]
+   ],
+   "polyline_latlon": [
+    [
+     29.93798,
+     52.8911
+    ],
+    [
+     29.95896,
+     52.90856
+    ],
+    [
+     29.97256,
+     52.93167
+    ],
+    [
+     29.98168,
+     52.96532
+    ],
+    [
+     29.99636,
+     52.98254
+    ],
+    [
+     30.02225,
+     52.97342
+    ],
+    [
+     30.04313,
+     52.94434
+    ],
+    [
+     30.06944,
+     52.91749
+    ],
+    [
+     30.11084,
+     52.92196
+    ],
+    [
+     30.11596,
+     52.95504
+    ],
+    [
+     30.09923,
+     53.00443
+    ],
+    [
+     30.09561,
+     53.05303
+    ],
+    [
+     30.13288,
+     53.07892
+    ],
+    [
+     30.14488,
+     53.12246
+    ],
+    [
+     30.1725,
+     53.15767
+    ],
+    [
+     30.19542,
+     53.17389
+    ]
+   ],
+   "width_m": 7
+  },
+  {
+   "id": "road_royal_west",
+   "kind": "road",
+   "name": "Royal road toward Susa (leaves the plain W/NW)",
+   "tier": "C",
+   "src": "ROYALROAD-GIS;SUMNER1986",
+   "note": "The PF travel texts document the Susa-Persepolis road (23 stages, ~552 km in one summary) through the Fahliyan area (ROYALROAD-GIS, SX, B). Sumner records \"a paved road\" and parts of the Royal Road in the plain (B; location not retrieved). Course here C: along the S bank of the Pulvar past Persepolis West and Tol-e Ajori, crossing the Kur near the Pulvar confluence, then NW toward Kamfiruz.",
+   "date_range": "Achaemenid",
+   "present_467": true,
+   "polyline": [
+    [
+     -120,
+     0
+    ],
+    [
+     -1800,
+     600
+    ],
+    [
+     -2380.7523049789083,
+     1990.2032330144489
+    ],
+    [
+     -6000,
+     1600
+    ],
+    [
+     -9000,
+     1300
+    ],
+    [
+     -11300,
+     350
+    ],
+    [
+     -16000,
+     3500
+    ],
+    [
+     -22000,
+     8000
+    ],
+    [
+     -30000,
+     14000
+    ],
+    [
+     -38000,
+     20000
+    ]
+   ],
+   "polyline_latlon": [
+    [
+     29.93476,
+     52.88832
+    ],
+    [
+     29.93495,
+     52.86985
+    ],
+    [
+     29.9451,
+     52.85947
+    ],
+    [
+     29.93113,
+     52.82535
+    ],
+    [
+     29.91974,
+     52.79699
+    ],
+    [
+     29.90487,
+     52.77769
+    ],
+    [
+     29.91787,
+     52.72103
+    ],
+    [
+     29.93852,
+     52.64706
+    ],
+    [
+     29.96598,
+     52.54839
+    ],
+    [
+     29.99337,
+     52.44966
+    ]
+   ],
+   "width_m": 8
+  },
+  {
+   "id": "road_south_tirazzish",
+   "kind": "road",
+   "name": "Road S across the plain to the Kur crossing near Tukrash? and on to Tirazziš (Shiraz)",
+   "tier": "C",
+   "src": "PLEIADES-FARS;SUMNER1986",
+   "note": "Tirazziš (Shiraz) is a PF toponym (Pleiades 922706, B); Tukrash? (Sumner) lies at the Kur 20 km S (B). Course C.",
+   "date_range": "Achaemenid (C)",
+   "present_467": true,
+   "polyline": [
+    [
+     -60,
+     -250
+    ],
+    [
+     -1500,
+     -3000
+    ],
+    [
+     -4500,
+     -8000
+    ],
+    [
+     -8000,
+     -13000
+    ],
+    [
+     -10767,
+     -17046
+    ],
+    [
+     -11500,
+     -22000
+    ],
+    [
+     -14000,
+     -30000
+    ],
+    [
+     -17000,
+     -40000
+    ]
+   ],
+   "polyline_latlon": [
+    [
+     29.93281,
+     52.88975
+    ],
+    [
+     29.90512,
+     52.88492
+    ],
+    [
+     29.85366,
+     52.87242
+    ],
+    [
+     29.80073,
+     52.85503
+    ],
+    [
+     29.75809,
+     52.84162
+    ],
+    [
+     29.71368,
+     52.85115
+    ],
+    [
+     29.6381,
+     52.85366
+    ],
+    [
+     29.54399,
+     52.85802
+    ]
+   ],
+   "width_m": 6
+  },
+  {
+   "id": "waystation_kur_west",
+   "kind": "way_station",
+   "name": "Way-station at the Kur crossing (royal road)",
+   "tier": "C",
+   "src": "ROYALROAD-GIS",
+   "note": "PF travel rations imply stations roughly a day apart; the first station W of Persepolis is not identified (C placement at the Kur crossing, ~12 km). Form: walled court with store and stable (C, analogy with Jinjun/Qaleh-ye Kali way-stations, B).",
+   "date_range": "Achaemenid (C)",
+   "present_467": true,
+   "xy": [
+    -11000,
+    500
+   ],
+   "latlon": [
+    29.90703,
+    52.78012
+   ],
+   "unc_m": 3000
+  },
+  {
+   "id": "akhor_rostam_niches",
+   "kind": "cemetery",
+   "name": "Akhor Rostam rock-cut burial niches",
+   "tier": "C",
+   "src": "IR-ARCH2;PLEIADES-FARS",
+   "note": "Vanden Berghe dated the niches to the Achaemenid period (IR-ARCH2, SX); Barrington/Pleiades list the cemetery as Roman/Late Antique (FT). Conflict (Q-032): present_467 uncertain, modelled as present (C). BA point accuracy 10 km (C).",
+   "date_range": "Achaemenid? / Sasanian?",
+   "present_467": true,
+   "xy": [
+    2889,
+    -9151
+   ],
+   "latlon": [
+    29.86553,
+    52.94861
+   ],
+   "unc_m": 3000
+  },
+  {
+   "id": "spring_cemetery",
+   "kind": "cemetery",
+   "name": "\"Spring Cemetery\" near Persepolis",
+   "tier": "B",
+   "src": "IR-ARCH2",
+   "note": "Extended burials in slipper coffins, simple pottery; late 4th c. BCE or later: ABSENT in 467. Position not retrieved.",
+   "date_range": "late 4th c. BCE or later",
+   "present_467": false
+  },
+  {
+   "id": "private_rock_tombs",
+   "kind": "cemetery",
+   "name": "Rock-cut tombs of private people near Persepolis (Herzfeld)",
+   "tier": "C",
+   "src": "IR-ARCH2",
+   "note": "Cut into vertical rock or boulders, or into horizontal rock, closed by large slabs (SX, B existence); dates and positions not retrieved: not placed.",
+   "date_range": "undated",
+   "present_467": null
+  }
+ ]
+}
