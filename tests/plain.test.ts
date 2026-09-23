@@ -243,6 +243,19 @@ describe('the plain as built (headless): budgets, tiers, chronology', () => {
     P.group.traverse(o => { if (!(o as THREE.Mesh).isMesh) return; let q: THREE.Object3D | null = o; while (q && !q.userData?.tier) q = q.parent; if (!q) missing.push(o.name); else if (q.userData.placeholder) placeholders++; });
     expect(missing).toEqual([]); expect(placeholders).toBeGreaterThan(0);
   });
+  it('the tomb reliefs are carved figures of the attested programme (D-069)', () => {
+    const sets: any[] = []; P.group.traverse(o => { if (o.name.endsWith('-reliefs') && (o as any).items) sets.push(o); });
+    expect(sets.length).toBeGreaterThan(0);
+    for (const rs of sets) {
+      const count = (k: string) => rs.items.filter((i: any) => i.kind === k).length;
+      expect(count('bearer'), rs.name).toBe(28);
+      for (const k of ['king_worship', 'fire_altar', 'winged_figure', 'moon']) expect(count(k), `${rs.name} ${k}`).toBe(1);
+      expect(count('guard'), rs.name).toBe(6);
+      expect(rs.userData.placeholder).toBe(false);
+      const king = rs.items.find((i: any) => i.kind === 'king_worship'), altar = rs.items.find((i: any) => i.kind === 'fire_altar');
+      expect(king.mirror).toBe(false); expect(altar.o.x).toBeGreaterThan(king.o.x); // the king faces the altar
+    }
+  });
   it('nothing absent in 467 is built (later tombs, Sasanian reliefs, Istakhr, Naqsh-e Rajab)', () => {
     const names: string[] = []; P.group.traverse(o => names.push(o.name.toLowerCase()));
     for (const bad of ['artaxerxes', 'darius_ii', 'darius ii', 'sasanian', 'istakhr', 'rajab', 'bahram', 'qanat']) expect(names.some(n => n.includes(bad)), bad).toBe(false);

@@ -206,7 +206,7 @@ export function human(fr: Frame, h: Human, extra: Partial<Record<Layer, Mass[]>>
 
 // ---------------- held objects (props) ----------------
 export type Prop = 'spear' | 'lotus' | 'bowl' | 'phiale' | 'amphora' | 'lidded' | 'bracelets' | 'textile' | 'tusk' | 'basket' | 'axe' | 'skin' | 'shield' | 'spears2'
-  | 'kid' | 'wineskin' | 'dish' | 'cubs' | 'parasol' | 'whisk' | 'towel' | 'flask' | 'staff' | 'sceptre' | 'dagger' | 'leash' | 'wicker';
+  | 'kid' | 'wineskin' | 'dish' | 'cubs' | 'parasol' | 'whisk' | 'towel' | 'flask' | 'staff' | 'sceptre' | 'dagger' | 'leash' | 'wicker' | 'bow';
 /** masses for a prop held at hand position (hx, hy) in frame fr; `pc` = its paint */
 export function prop(fr: Frame, kind: Prop, hx: number, hy: number, pc: C3): Mass[] {
   const out: Mass[] = [], metal = pc;
@@ -215,6 +215,9 @@ export function prop(fr: Frame, kind: Prop, hx: number, hy: number, pc: C3): Mas
       out.push(M([fr.seg(hx, 0.035, hx, 0.94, 0.0062)], { amp: 0.86, lift: 0.14, colour: P.yellowOchre, round: 0.006, edge: 0.6, groove: 0.08 }));
       out.push(M([fr.spoly([[hx, 0.998], [hx + 0.011, 0.965], [hx + 0.006, 0.935], [hx - 0.006, 0.935], [hx - 0.011, 0.965]], 3)], { amp: 0.86, lift: 0.14, colour: P.white, round: 0.006 }));
       out.push(M([fr.circ(hx, 0.028, 0.02), fr.poly([[hx - 0.01, 0.042], [hx - 0.006, 0.056], [hx, 0.046], [hx + 0.006, 0.056], [hx + 0.01, 0.042]])], { amp: 0.9, lift: 0.1, colour: metal, round: 0.012, groove: 0.06 }));
+      break;
+    case 'bow': // the king's bow held upright in the far hand, its lower end on the ground (Naqsh-e Rustam tomb reliefs, B; form C)
+      out.push(M(fr.stroke([[hx + 0.035, 0.03], [hx + 0.06, 0.16], [hx + 0.035, hy - 0.08], [hx, hy], [hx + 0.02, hy + 0.12], [hx + 0.055, hy + 0.22], [hx + 0.03, hy + 0.3]], 0.006, 0.004), { amp: 0.84, lift: 0.12, colour: P.yellowOchre, round: 0.005 }));
       break;
     case 'wicker': // lance of the lance-bearers (Tachara W rooms, B)
       out.push(M([fr.seg(hx, 0.035, hx + 0.02, 0.94, 0.0062)], { amp: 0.86, lift: 0.14, colour: P.yellowOchre, round: 0.006 }));
@@ -483,6 +486,11 @@ function wingedDisc(fr: Frame): Mass[] { // winged disc (Tripylon panel, B): rin
   out.push(M([diff(fr.circ(0, 0.5, 0.085), fr.circ(0, 0.5, 0.05))], { amp: 0.8, lift: 0.12, colour: P.gold, round: 0.02, groove: 0.1 }));
   return out;
 }
+function fireAltar(fr: Frame): Mass[] { // stepped fire altar (Naqsh-e Rustam tombs, B): three-stepped base and top, a shaft, flames (C); unit = height with the flames
+  const steps = (y0: number, up: boolean) => [0, 1, 2].map(i => { const w = up ? 0.2 + i * 0.03 : 0.26 - i * 0.03, y = y0 + i * 0.05; return fr.poly([[-w, y], [w, y], [w, y + 0.05], [-w, y + 0.05]]); });
+  return [M([...steps(0, false), fr.poly([[-0.14, 0.15], [0.14, 0.15], [0.14, 0.55], [-0.14, 0.55]]), ...steps(0.55, true)], { amp: 0.7, colour: STONE, round: 0.01, groove: 0.08 }),
+    M([fr.spoly([[-0.2, 0.7], [0.2, 0.7], [0.14, 0.8], [0.16, 0.88], [0.06, 0.84], [0.04, 1.0], [-0.04, 0.9], [-0.1, 0.96], [-0.12, 0.82], [-0.18, 0.84]], 3)], { amp: 0.6, lift: 0.04, colour: P.cinnabar, round: 0.02 })];
+}
 function incenseBurner(fr: Frame): Mass[] { // tall incense stand before the king (Treasury audience relief; NS, C)
   return [M([fr.poly([[-0.06, 0], [0.06, 0], [0.02, 0.05], [0.012, 0.4], [0.05, 0.45], [0.05, 0.5], [-0.05, 0.5], [-0.05, 0.45], [-0.012, 0.4], [-0.02, 0.05]]), fr.spoly([[-0.045, 0.5], [0.045, 0.5], [0.02, 0.6], [0, 0.63], [-0.02, 0.6]], 3)],
     { amp: 0.7, colour: P.gold, round: 0.012, groove: 0.08, detail: fr.det((x, y) => (y > 0.5 ? pleats(y, 0.02, 0.1) : flutes(x, 0.012, 0.1))) })];
@@ -583,6 +591,10 @@ export const FIGURE_KINDS: Record<string, KindInfo> = {
   winged_disc: K('B', 'IR-PERS;SI-ARCH;COMMONS-TRIP;RELIEF-R', 'emblem', 1.3, 'winged disc (Tripylon panel, B); feather colours after the pigments of the Hall of 100 Columns winged figure (Lerner 2024, B), mapping C'),
   sphinx: K('B', 'IR-PERS;SI-ARCH;COMMONS-TRIP', 'emblem', 0.8, 'seated winged sphinx (Tripylon panel, B); human head with crown, wing form C'),
   incense_burner: K('C', 'MATCULT-R', 'plant', 0.2, 'tall incense stand before the king (NS, C)'),
+  king_worship: K('B', 'NR-ACHAEMENICA;NR-IRANICA;WP-NR', 'person', 0.62, 'the king on the stepped podium of the Naqsh-e Rustam tomb reliefs, right hand raised toward the fire altar, the bow in his left hand resting on the ground (B); crown and robe paint C (as the Persepolis king, IR-CLOTH)'),
+  winged_figure: K('B', 'NR-ACHAEMENICA;NR-IRANICA;WP-NR', 'emblem', 1.3, 'the figure rising from the winged ring above the king (Naqsh-e Rustam tombs, B): bust with a raised hand and a ring (C) over the winged disc of the Tripylon panel (form C)'),
+  fire_altar: K('B', 'NR-ACHAEMENICA;NR-IRANICA;WP-NR', 'emblem', 0.45, 'stepped fire altar with flames before the king (Naqsh-e Rustam tombs, B); proportions and paint C'),
+  moon: K('B', 'NR-ACHAEMENICA;WP-NR', 'emblem', 1.0, 'the moon above the altar, a disc with a crescent (Naqsh-e Rustam tombs, B; form C); unit = diameter'),
   rosette: K('C', 'RECON', 'ornament', 1.0, 'twelve-petalled rosette of the border bands (motif from reconstructions, C); unit = diameter'),
 };
 
@@ -638,6 +650,16 @@ export function figureDef(kind: string, seed: number): FigureDef {
       const h = (seed % 2 ? medianDress : persianDress)({ beard: seed % 3 ? 'none' : 'short', head: seed % 2 ? 'cap' : 'band', near: pk === 'parasol' || pk === 'whisk' ? { elbow: [0.05, 0.62], hand: [0.1, 0.72] } : ARM_CARRY.near });
       return withProps(h, [[pk, 'near']], P.gold); }
     case 'lance_bearer': return withProps(persianDress({ ...ARM_SPEAR, head: 'band' }), [['wicker', 'near'], ['shield', 'far']]);
+    case 'king_worship': return withProps(persianDress({ head: 'crown', garment: P.purple, garment2: P.egyptianBlue, stride: 0.7, near: { elbow: [0.07, 0.66], hand: [0.135, 0.79] }, far: { elbow: [0.035, 0.53], hand: [0.085, 0.46] } }), [['bow', 'far']]);
+    case 'winged_figure': { // bust rising from the winged ring: hips at the ring, the lower robe hidden by the tail (C)
+      const S = 0.55, bf = new Frame(0, 0.5 - 0.49 * S, 0, S);
+      const b = human(bf, persianDress({ head: 'crown', garment: P.egyptianBlue, garment2: P.gold, near: { elbow: [0.07, 0.66], hand: [0.13, 0.78] }, far: { elbow: [0.03, 0.58], hand: [0.1, 0.62] } }), { front: [M([diff(bf.circ(0.1, 0.62, 0.035), bf.circ(0.1, 0.62, 0.02))], { amp: 0.8, lift: 0.1, colour: P.gold, round: 0.01 })] });
+      // a longer feathered tail than the Tripylon disc's, covering the figure's lower robe (C)
+      const tail = M([fr.spoly([[-0.09, 0.4], [0.09, 0.4], [0.13, 0.2], [0.05, 0.23], [0, 0.18], [-0.05, 0.23], [-0.13, 0.2]], 3)], { amp: 0.62, lift: 0.06, colour: P.egyptianBlue, round: 0.02, detail: fr.det(x => pleats(x, 0.025, 0.14)) });
+      return { masses: [...b.masses, tail, ...wingedDisc(fr)], incisions: b.incisions };
+    }
+    case 'fire_altar': return { masses: fireAltar(fr) };
+    case 'moon': return { masses: [M([diff(fr.circ(0, 0.5, 0.5), fr.circ(0.16, 0.56, 0.42))], { amp: 0.7, colour: P.gold, round: 0.03, groove: 0.1 }), M([diff(fr.circ(0, 0.5, 0.5), fr.circ(0, 0.5, 0.44))], { amp: 0.6, colour: STONE, round: 0.02 })] };
     case 'hero': { // the royal hero grasps the rampant beast and stabs it in the belly (composition C); seed % 3: lion, bull,
       // monster (a lion with bull's horns and a wing: the "lion-headed monster / griffin" of the Harem E door, form C)
       const kindOf = (['lion', 'bull', 'monster'] as const)[seed % 3], monster = kindOf === 'monster';

@@ -1068,3 +1068,17 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - A pick rectangle over each corner's footing lets the translation layer name the plates and show the text: out-of-world knowledge. The world itself shows nothing.
   - The coins reported beneath the boxes are not modelled (not in the retrieved sources).
 - **Tests:** `tests/foundation.test.ts` covers the edition text and the versions, the boxes under the hall wall and below the floor, the plates inside the boxes, and the pick rectangles on the pick layer only.
+
+## D-069 — The Naqsh-e Rustam tomb reliefs carved by the relief system (session 3; Phase 7 placeholder)
+- **Problem:** the upper registers and side panels of the rock tombs were schematic extruded silhouettes (PLACEHOLDER).
+- **Decision:** every figure is now a relief item (`ReliefSet`, D-019: carved heightfield, per-figure LOD, far chunks, paint film), standing on the recess back of each tomb. The programme is B (NR-ACHAEMENICA, NR-IRANICA, WP-NR); the drawing is C and NOT SEEN.
+  - 28 throne-bearers in two tiers under the dais beams (people and dress C);
+  - the king on the three-stepped podium, right hand raised, bow in the left hand resting on the ground (new kind `king_worship`, new prop `bow`);
+  - the stepped fire altar with flames (new kind `fire_altar`; it replaces the box-and-flame stand-in);
+  - the figure in the winged ring above (new kind `winged_figure`: a bust with a raised hand and a ring, over the Tripylon winged disc, with a longer tail hiding the lower robe);
+  - the moon, a disc with a crescent (new kind `moon`);
+  - three tiers of guards or attendants on each side panel, facing inward (`guard`; which figure is which C).
+- **Painted like the Persepolis reliefs (C):** whether the NR reliefs were painted is not in the retrieved sources. Paint is the Persepolis analogue; log it with Q-074.
+- The Neo-Elamite relief keeps its schematic figures (PLACEHOLDER, flagged).
+- Checked in the node raking-light preview (`tools/relief_preview.ts`); not yet seen in a browser render.
+- **Tests:** in `tests/plain.test.ts`, each tomb set has 28 bearers, one king, altar, winged figure and moon, and 6 guards; it is no longer a placeholder; the king faces the altar. The kinds carry tiers and known sources (`tests/reliefs.test.ts`).
