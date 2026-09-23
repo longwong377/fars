@@ -11,11 +11,13 @@
 //
 // It adds indirect SPECULAR radiance only (SkySpecularNode): no irradiance, because the diffuse skylight is the
 // hemisphere light and, inside the roofed halls, the light probes (D-110 … D-112). Inside the probe volumes the sky
-// visibility along the reflected ray comes from the probe field (a specular occlusion registered by the pipeline, which
-// owns the probe lookup), so the halls do not mirror the sky.
+// visibility around the reflected ray comes from the probe field (registered by the pipeline, which owns the probe
+// lookup) and becomes a specular occlusion through Lagarde & de Rousiers' cone fit (below), so the halls do not mirror
+// the sky: the field's L1 visibility is a cosine-wide average, and without the fit a polished floor seen at a grazing
+// angle (Fresnel ≈ 0.4) turned a 0.3 % sky visibility into a uniform blue sheen brighter than its own diffuse light.
 import * as THREE from 'three/webgpu';
 import { LightingNode } from 'three/webgpu';
-import { pmremTexture, positionViewDirection, normalView, roughness, cameraWorldMatrix, isolate, positionWorld, normalWorld, cameraPosition, normalize, vec4, mix, smoothstep, dot, uniform, float } from 'three/tsl';
+import { pmremTexture, positionViewDirection, normalView, roughness, cameraWorldMatrix, isolate, positionWorld, normalWorld, cameraPosition, normalize, vec4, mix, smoothstep, dot, uniform, float, clamp, pow, exp2 } from 'three/tsl';
 
 /** cube face size of the captured environment (px): a texel spans 1.4°, finer than the GGX lobe of the most polished
  *  surface in the scene at its prefiltered level (roughness 0.18) */
@@ -41,11 +43,20 @@ function cubeUVTarget(size: number): THREE.RenderTarget {
  *  pipeline registers (probe field), and an intensity (1; 0 for A/B measurements, window.__parsaSurf.env) */
 export const skyEnv = {
   target: cubeUVTarget(ENV_CUBE),
-  /** (world position, world normal, world reflection direction) → sky visibility along the reflection (0..1) */
+  /** (world position, world normal, world reflection direction) → the sky's visibility around the reflection (0..1: the
+   *  probe field's cosine-weighted sky irradiance for that direction over an open sky's) */
   occlusion: null as null | ((p: any, n: any, r: any) => any),
   intensity: uniform(1),
   captures: 0,
 };
+
+/** Specular occlusion from an ambient visibility `vis` (Lagarde & de Rousiers 2014, Moving Frostbite to PBR §4.10.2: a
+ *  fit of the visible fraction of the specular cone given a visibility cone): saturate((n·v + vis)^(2^(−16·roughness − 1))
+ *  − 1 + vis). ≈ vis for rough surfaces; for glossy ones it falls to 0 at grazing angles unless the visibility is high,
+ *  so a sky visibility of a few per cent (a hall seen through its doors) gives a polished floor no sky sheen, while in the
+ *  open (vis 1) it stays 1. Both bases are ≥ 0 (no NaN from pow). */
+export const specularOcclusion = (vis: any, dotNV: any, rough: any) =>
+  clamp(pow(clamp(dotNV, 0, 1).add(vis), exp2(rough.mul(-16).sub(1))).sub(1).add(vis), 0, 1);
 
 /** Indirect specular from the sky environment, and no irradiance (EnvironmentNode adds both). The lookup mirrors three's
  *  EnvironmentNode: the reflected view vector bent toward the normal by roughness⁴, the prefiltered level by roughness. */
@@ -57,7 +68,8 @@ export class SkySpecularNode extends LightingNode {
     const dirWorld = mix(refl, normalView, r2.mul(r2)).normalize().transformDirection(cameraWorldMatrix);
     const env: any = pmremTexture(skyEnv.target.texture);
     const radiance: any = isolate(env.context({ getUV: () => dirWorld, getTextureLevel: () => roughness }));
-    const occ = skyEnv.occlusion ? skyEnv.occlusion(positionWorld, normalWorld, dirWorld) : float(1);
+    const vis = skyEnv.occlusion ? skyEnv.occlusion(positionWorld, normalWorld, dirWorld) : float(1);
+    const occ = specularOcclusion(vis, dot(normalView, positionViewDirection), roughness);
     builder.context.radiance.addAssign(radiance.mul(occ).mul(skyEnv.intensity));
     return undefined;
   }

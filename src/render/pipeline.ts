@@ -27,8 +27,8 @@
 //
 // SSR (high/ultra, D-157): three's SSRNode on the scene colour for surfaces smoother than roughness 0.5 (the red floors,
 // the polished frames, bronze, wet stone), mirror rays blurred by roughness, weighted by the split-sum specular
-// reflectance of each pixel; where a ray hits, it replaces the sky environment the material reflected (outside the probe
-// volumes; inside them that environment is occluded anyway).
+// reflectance of each pixel; where a ray hits, it replaces the sky environment the material reflected (the composite
+// re-evaluates that term with the material's own lookup and specular occlusion).
 import * as THREE from 'three/webgpu';
 import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2, metalness, roughness, Fn, dot, normalize, luminance, smoothstep, pmremTexture, EnvironmentBRDF, reflect } from 'three/tsl';
 import { ssgi } from './ssgi';
@@ -40,7 +40,7 @@ import { meterNode } from './meter';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import type { Quality } from '../core/settings';
 import { installProbeLight, updateProbeLights, probeAmbient, probeSun } from './probes/runtime';
-import { SkyEnvCapture, skyEnv } from './envmap';
+import { SkyEnvCapture, skyEnv, specularOcclusion } from './envmap';
 
 export const GI_SCALE = Math.PI / 2;
 /** bloom threshold (scene radiance, before exposure) at the outdoor exposures; scaled for interior exposures (D-141) */
@@ -93,9 +93,10 @@ export class Pipeline {
     let skyMesh: any = null;
     scene.traverse(o => { if (!this.sun && (o as any).isDirectionalLight && o.castShadow) this.sun = o as THREE.DirectionalLight; if (!skyMesh && (o as any).isSkyMesh) skyMesh = o; });
     if (skyMesh) this.env = new SkyEnvCapture(renderer, skyMesh);
-    // specular occlusion of the sky environment (D-157): the probe field's sky visibility along the reflected ray (the
-    // L1 sky irradiance for the reflection direction, looked up 0.9 m out along it, against the open sky's (1 + r_y)/2);
-    // 1 outside the volumes. Built into each material when its shader is built (the probes have loaded by then)
+    // the sky's visibility around a reflected ray, for the environment's specular occlusion (D-157): the probe field's
+    // L1 sky irradiance for the reflection direction, looked up 0.9 m out along it, against the open sky's (1 + r_y)/2;
+    // 1 outside the volumes. Built into each material when its shader is built (the probes have loaded by then); the
+    // materials and the composite turn it into an occlusion with envmap.specularOcclusion
     skyEnv.occlusion = (p: any, _n: any, r: any) => {
       const open = r.y.mul(0.5).add(0.5).max(0.05);
       const P = probeAmbient(p, r, vec3(1, 1, 1), vec3(0, 0, 0), vec3(open, open, open));
@@ -164,10 +165,13 @@ export class Pipeline {
       const S: any = ssr(col, dep, nrm, { metalnessNode: specY.div(fres).mul(gate).mul(this.ab.ssr), roughnessNode: rough, camera } as any);
       S.maxDistance.value = SSR_MAX_DISTANCE; S.thickness.value = SSR_THICKNESS; S.quality.value = quality === 'ultra' ? 0.5 : 0.3;
       S.resolutionScale = quality === 'ultra' ? 1 : 0.5; // half resolution at high: the reflections of these surfaces are blurred anyway
-      // the sky environment the material reflected (outside the halls: inside, its probe occlusion is ~0), removed where a
-      // ray hits, by the node's own falloff (1 − plane distance / max distance)²; alpha = the hit's distance along the ray
-      const Rw = this.camWorld.mul(vec4(reflect(vV.negate(), nV), 0)).xyz;
-      const envSpec = spec.mul((pmremTexture as any)(skyEnv.target.texture, Rw, rough)).mul(float(1).sub(w)).mul(skyEnv.intensity);
+      // the sky environment the material reflected (the same lookup and specular occlusion as SkySpecularNode: the
+      // dominant direction, the probe field's visibility through the cone fit), removed where a ray hits, by the node's own
+      // falloff (1 − plane distance / max distance)²; alpha = the hit's distance along the ray
+      const r4 = rough.mul(rough).mul(rough).mul(rough);
+      const Rw = this.camWorld.mul(vec4(mix(reflect(vV.negate(), nV), nV, r4).normalize(), 0)).xyz;
+      const envOcc = specularOcclusion(skyEnv.occlusion ? skyEnv.occlusion(pWorld, nW, Rw) : float(1), dotNV, rough);
+      const envSpec = spec.mul((pmremTexture as any)(skyEnv.target.texture, Rw, rough)).mul(envOcc).mul(skyEnv.intensity);
       const hit = clamp(S.a.mul(50), 0, 1), fall = float(1).sub(clamp(S.a.mul(dotNV).div(SSR_MAX_DISTANCE), 0, 1));
       const ssrAdd = S.rgb.mul(spec.div(specY)).sub(envSpec.mul(hit).mul(fall.mul(fall))).mul(gate).mul(this.ab.ssr);
       // ---- sun contact shadows (D-157) --------------------------------------------------------------------------------

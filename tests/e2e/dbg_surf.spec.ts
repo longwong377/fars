@@ -7,7 +7,8 @@ import { lumStats } from './lib/lum';
 // SSGI input and contact AO; window.__parsaSurf) in ONE page load (views at other hours through setTime, as plain.spec).
 // Between the variants of a view the frame meter (D-159) is frozen at the B frame's reading, so both variants are exposed
 // identically and the pixels compare directly. Debug spec: runs only with DBG=1.
-// ONLY=view,view  VARIANTS=B,A,gi0 (gi0 = only the SSGI input switched back)  FRAMES=6  Q=high
+// ONLY=view[@frames][:V1+V2],…  VARIANTS=B,A,gi0 (gi0 = only the SSGI input switched back; env0, ssr0 = B without the sky
+// specular / the SSR)  FRAMES=6  Q=high
 const IN = 46;
 const VIEWS: Record<string, { day: number; hour: number; v: [number, number, number, number, number]; fov?: number }> = {
   'apadana-hall-in': { day: 25, hour: 11, v: [10.55, 12.4, 1.6, 170, 20], fov: 50 },
@@ -24,14 +25,17 @@ const SET: Record<string, Record<string, number | boolean>> = {
   B: { surf: 1, env: 1, ssr: 1, sss: 1, giDirect: 1, contact: 1, bevels: true },
   A: { surf: 0, env: 0, ssr: 0, sss: 0, giDirect: 0, contact: 0, bevels: false },
   gi0: { surf: 1, env: 1, ssr: 1, sss: 1, giDirect: 0, contact: 1, bevels: true },
+  // one term off: B − env0 = the sky specular the materials add, B − ssr0 = the screen-space reflections
+  env0: { surf: 1, env: 0, ssr: 1, sss: 1, giDirect: 1, contact: 1, bevels: true },
+  ssr0: { surf: 1, env: 1, ssr: 0, sss: 1, giDirect: 1, contact: 1, bevels: true },
 };
 test('surfaces A/B', async ({ page }) => {
   test.setTimeout(1_380_000);
   const t0 = Date.now(), budget = +(process.env.BUDGET_S ?? 1150) * 1000; // stop starting new renders after ~19 min
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(m.text().slice(0, 300)); });
-  // ONLY=view[:V1+V2],… (per-view variants; default VARIANTS)
-  const only = (process.env.ONLY ?? 'apadana-hall-in').split(',').map(x => x.split(':')), frames = +(process.env.FRAMES ?? 6), Q = process.env.Q ?? 'high';
-  const first = VIEWS[only[0][0]];
+  // ONLY=view[@frames][:V1+V2],… (per-view frame count and variants; defaults FRAMES, VARIANTS)
+  const only = (process.env.ONLY ?? 'apadana-hall-in').split(',').map(x => x.split(':')), FRAMES = +(process.env.FRAMES ?? 6), Q = process.env.Q ?? 'high';
+  const first = VIEWS[only[0][0].split('@')[0]];
   await page.goto(`/?test&quality=${Q}&day=${first.day}&hour=${first.hour}&weather=clear`);
   await page.waitForFunction(() => (window as any).__parsa?.ready === true || (window as any).__parsa?.error, null, { timeout: 600_000 });
   await page.evaluate(() => (window as any).__parsa?.renderer?.setAnimationLoop(null));
@@ -47,7 +51,8 @@ test('surfaces A/B', async ({ page }) => {
   });
   mkdirSync('shots', { recursive: true });
   const out: Record<string, any> = {}, w0: { last?: string } = {};
-  for (const [name, vs] of only) {
+  for (const [nameF, vs] of only) {
+    const [name, nf] = nameF.split('@'), frames = nf ? +nf : FRAMES;
     const s = VIEWS[name]; if (!s) throw new Error(`unknown view ${name}`);
     const variants = (vs ?? process.env.VARIANTS ?? 'B,A').split(/[+,]/);
     await page.evaluate(([d, h]) => { const p = (window as any).__parsa; p.setTime(d, h); p.setWeather('clear'); }, [s.day, s.hour]);
