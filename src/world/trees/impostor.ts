@@ -24,14 +24,20 @@ export function leafAlbedo(tex: { r: number; g: number; b: number }, leafCol: nu
   return [0, 1, 2].map(k => (leafCol[k] * shade * lm + blCol[k] * ps * petal + bark[k] * shade * bk) * tint * ao) as V3;
 }
 
+type Level = { data: Uint8Array; width: number; height: number };
 export class ImpostorBaker {
-  readonly width: number; readonly height: number;
-  /** float working images (colour: linear albedo + alpha; normal: encoded + alpha) */
-  readonly col: Float32Array; readonly nrm: Float32Array;
+  readonly width: number; readonly height: number; readonly nl: number;
+  /** the atlas mip levels (RGBA8; colour sRGB-encoded + coverage, normal encoded + coverage), updated row by row */
+  readonly out: { col: Level[]; nrm: Level[] };
+  /** float working strip of one model row (colour: linear albedo + alpha; normal: encoded + alpha): tiles never cross
+   *  rows, so each row's mips are built on its own and copied into the levels (a whole-atlas float image cost 47-106 MB) */
+  private colS: Float32Array; private nrmS: Float32Array;
   /** lod 1: the far atlas (what the near LOD1 draws); lod 0: the full model (tests compare the two) */
   constructor(readonly models: TreeModel[], readonly atlas: Atlas, readonly px: number, readonly lod: 0 | 1 = 1) {
-    this.width = NV * px; this.height = models.length * px;
-    this.col = new Float32Array(this.width * this.height * 4); this.nrm = new Float32Array(this.width * this.height * 4);
+    this.width = NV * px; this.height = models.length * px; this.nl = Math.max(1, Math.floor(Math.log2(px)) - 1);
+    this.colS = new Float32Array(this.width * px * 4); this.nrmS = new Float32Array(this.width * px * 4);
+    const lv = (): Level[] => { const o: Level[] = []; for (let L = 0; L < this.nl && (px >> L) >= 2; L++) { const w = this.width >> L, h = this.height >> L; o.push({ data: new Uint8Array(w * h * 4), width: w, height: h }); } return o; };
+    this.out = { col: lv(), nrm: lv() };
   }
   /** bake model row r for its group's state; writes the row into the working images. The impostor shows the tree as
    *  the near LOD1 draws it (the level of detail just inside the near radius): its first M1 segments and first K1 cards
@@ -43,11 +49,10 @@ export class ImpostorBaker {
     const z = new Float32Array(N * N);
     const kc = this.lod ? K1 : K0, km = this.lod ? M1 : M0;
     const states = m.cards.slice(0, Math.min(kc, m.used.cards)).map(cd => ({ cd, cs: cardState(cd, lc[3], bc[3]) })).filter(q => q.cs.size > 0);
-    const col = this.col, nrm = this.nrm;
+    const col = this.colS, nrm = this.nrmS; col.fill(0); nrm.fill(0);
     for (let v = 0; v < NV; v++) {
       const al = (v / NV) * Math.PI * 2, rx = Math.cos(al), rz = -Math.sin(al), dx = Math.sin(al), dz = Math.cos(al); // right, toward the viewer
-      const ox = v * N, oy = r * N; z.fill(-1e9);
-      for (let j = 0; j < N; j++) { const o0 = ((oy + j) * W + ox) * 4; for (let i = 0; i < N; i++) { col[o0 + i * 4 + 3] = 0; nrm[o0 + i * 4 + 3] = 0; } }
+      const ox = v * N, oy = 0; z.fill(-1e9);
       const k = N / m.T, sx = (x: number) => (x + m.T / 2) * k, sy = (y: number) => (y - m.y0) * k;
       const put = (i: number, j: number, depth: number, cr: number, cg: number, cb: number, n0: number, n1: number, n2: number) => {
         const q = j * N + i; if (depth <= z[q]) return; z[q] = depth;
@@ -97,11 +102,14 @@ export class ImpostorBaker {
           }
       }
     }
+    this.commitRow(r);
   }
   /** mip levels of both images (per-tile coverage kept) */
-  levels() {
-    const nl = Math.max(1, Math.floor(Math.log2(this.px)) - 1);
-    return { col: mipChain(this.col, this.width, this.height, this.px, NV, this.models.length, nl, true), nrm: mipChain(this.nrm, this.width, this.height, this.px, NV, this.models.length, nl) };
+  levels() { return this.out; }
+  /** the row strip's mips, copied into the atlas levels at the row */
+  private commitRow(r: number) {
+    const lc = mipChain(this.colS, this.width, this.px, this.px, NV, 1, this.nl, true), ln = mipChain(this.nrmS, this.width, this.px, this.px, NV, 1, this.nl);
+    for (let L = 0; L < this.out.col.length; L++) { const off = r * (this.px >> L) * (this.width >> L) * 4; this.out.col[L].data.set(lc[L].data, off); this.out.nrm[L].data.set(ln[L].data, off); }
   }
 }
 /** foliage group state from the FoliageState table layout (TREE_GROUPS x 2 texels RGBA) */

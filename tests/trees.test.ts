@@ -100,8 +100,9 @@ describe('levels of detail and impostors agree (silhouette area, colour)', () =>
   const bakeStats = (lod: 0 | 1, px: number, doy: number) => {
     const b = new ImpostorBaker(models, atlas, px, lod), st = groupStates(foliageTable(doy));
     models.forEach((m, r) => b.bakeRow(r, st[groupIndex(m.species.group)]));
+    const lv = b.levels().col[0].data; // the atlas as the GPU gets it (sRGB-encoded colour, coverage)
     return models.map((m, r) => { let n = 0; const c = [0, 0, 0];
-      for (let j = 0; j < px; j++) for (let i = 0; i < NV * px; i++) { const o = ((r * px + j) * b.width + i) * 4; if (b.col[o + 3] < 0.5) continue; n++; for (let k = 0; k < 3; k++) c[k] += b.col[o + k]; }
+      for (let j = 0; j < px; j++) for (let i = 0; i < NV * px; i++) { const o = ((r * px + j) * b.width + i) * 4; if (lv[o + 3] < 128) continue; n++; for (let k = 0; k < 3; k++) c[k] += srgbToLinear(lv[o + k] / 255); }
       const texel = m.T / px; return { area: (n * texel * texel) / NV, col: c.map(v => v / Math.max(1, n)) }; });
   };
   for (const [doy, label] of [[200, 'summer'], [105, 'April (blossom, leaf-out)'], [15, 'winter']] as const)
