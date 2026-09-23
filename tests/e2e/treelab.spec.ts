@@ -6,7 +6,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 // from the same camera at the near radius, each against an empty frame: silhouette area (pixels that differ) and the
 // mean colour inside it (shots/treelab-r3.json). Env: Q (quality, default test), ONLY (comma list of shots; default all).
 const { PNG } = createRequire(import.meta.url)('playwright-core/lib/utilsBundle');
-const R3: Record<string, number> = { test: 160, low: 200, medium: 220, high: 250, ultra: 320 };
+const R3: Record<string, number> = { test: 145, low: 180, medium: 200, high: 225, ultra: 290 }; // PLAIN_QUALITY r3 (src/world/plain/index.ts, D-149)
 const BIG = ['plane', 'poplar', 'willow', 'cypress', 'mulberry'], SMALL = ['tamarisk', 'fig', 'apple', 'pear', 'pomegranate', 'oak', 'almond', 'pistachio', 'olive', 'vine'];
 const rows = (lod: 0 | 1 | 'imp' = 0) => [...BIG.map((sp, i) => ({ sp, x: (i - 2) * 17, z: -22, lod })), ...SMALL.map((sp, i) => ({ sp, x: (i - 4.5) * 8, z: 0, lod }))];
 // [name, day, hour, trees, camera, target]

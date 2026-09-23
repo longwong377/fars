@@ -5,7 +5,8 @@
 // Budget (D-039, D-120): the plain adds a fixed handful of draw calls whatever the view (terrain material layer: 0;
 // rivers + canal water: 2; canal banks: 1; tracks: 1; villages: one per occupied 8 km cell; far tree impostors: 1; mid
 // ring impostors: 1; orchard rows: 1; near trees: wood + leaves at LOD0, LOD1 with shadows and LOD1 without: 6 (+ shadow
-// cascades; empty sets draw nothing); near crops: 1; Naqsh-e Rustam: 7; quarries: 1). Measured in tests/e2e/plain.spec.ts.
+// cascades; empty sets draw nothing); near crops: 1; reeds, rushes and grass at the water: 1; Naqsh-e Rustam: 7;
+// quarries: 1). Measured in tests/e2e/plain.spec.ts.
 import * as THREE from 'three/webgpu';
 import { uniform } from 'three/tsl';
 import type { Terrain } from '../../terrain/heightfield';
@@ -23,16 +24,19 @@ import { TreeKit, NearTreeSet, ImpostorSet, impostorPx, registerShadowLight, typ
 import { nearCrops } from './crops';
 import { buildNaqsh } from './naqsh';
 import { buildQuarries } from './quarries';
-import { doyOf, riverState } from './seasonal';
+import { doyOf, riverState, marginState } from './seasonal';
+import { riparianMargins } from './riparian';
 
 /** r3: 3-D tree radius; maxNear: 3-D trees at most; lod0R: full-detail radius (LOD0, at most MAX_LOD0 trees); rMid: the
- *  mid ring of per-tree impostors (orchards, woodland) ends here; maxMid: its instances at most (D-120) */
+ *  mid ring of per-tree impostors (orchards, woodland) ends here; maxMid: its instances at most (D-120). r3 is 0.9x the
+ *  D-120 radii since D-149: LOD1 has 120 smaller leaf-cluster cards (was 80; 368 triangles, was 288), and the 19%
+ *  smaller ring pays for them (village P22 at high: 1,979 3-D trees, 0.82 M triangles at r3 250 m) */
 export const PLAIN_QUALITY: Record<Quality, { r3: number; maxNear: number; cropR: number; cropStep: number; lod0R: number; rMid: number; maxMid: number }> = {
-  test: { r3: 160, maxNear: 700, cropR: 18, cropStep: 0.42, lod0R: 30, rMid: 450, maxMid: 14000 },
-  low: { r3: 200, maxNear: 900, cropR: 20, cropStep: 0.45, lod0R: 35, rMid: 550, maxMid: 18000 },
-  medium: { r3: 220, maxNear: 1300, cropR: 24, cropStep: 0.4, lod0R: 40, rMid: 700, maxMid: 24000 },
-  high: { r3: 250, maxNear: 1800, cropR: 30, cropStep: 0.36, lod0R: 50, rMid: 900, maxMid: 32000 },
-  ultra: { r3: 320, maxNear: 2600, cropR: 38, cropStep: 0.33, lod0R: 70, rMid: 1200, maxMid: 44000 },
+  test: { r3: 145, maxNear: 700, cropR: 18, cropStep: 0.42, lod0R: 30, rMid: 450, maxMid: 14000 },
+  low: { r3: 180, maxNear: 900, cropR: 20, cropStep: 0.45, lod0R: 35, rMid: 550, maxMid: 18000 },
+  medium: { r3: 200, maxNear: 1300, cropR: 24, cropStep: 0.4, lod0R: 40, rMid: 700, maxMid: 24000 },
+  high: { r3: 225, maxNear: 1800, cropR: 30, cropStep: 0.36, lod0R: 50, rMid: 900, maxMid: 32000 },
+  ultra: { r3: 290, maxNear: 2600, cropR: 38, cropStep: 0.33, lod0R: 70, rMid: 1200, maxMid: 44000 },
 };
 /** trees that cast shadows: the nearest SHADOW_N within SHADOW_R m of the camera; at most MAX_LOD0 at full detail */
 const SHADOW_N = 400, SHADOW_R = 120, MAX_LOD0 = 300;
@@ -62,6 +66,9 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   if (terrainGroup) terrainGroup.userData.note = `${terrainGroup.userData.note}; fields, crops, orchard floors and woodland canopy from plain.json zones (C)`;
   // water, banks, canals, tracks
   const rv = buildRivers(terrain, rivers.rivers, canals); group.add(rv.group);
+  // reeds, rushes and grass at the water (riparian.ts, D-149): on the corridor as drawn, around the camera
+  const floodDepth = rivers.rivers.map(r => (feature(r.id).flow_by_month as { month: string; depth_m: number }[]).reduce((m, q) => Math.max(m, q.depth_m), 0)) as [number, number];
+  const margins = riparianMargins(rv.profiles, canals, terrain, opts.quality, floodDepth); group.add(margins.mesh);
   const cb = canalBanks(canals, terrain); group.add(cb);
   const tr = tracksMesh(trackLines(villages), terrain); group.add(tr);
   if (PLAIN_DRAWS_SETTLEMENT_ROADS) for (const r of settlementRoads()) group.add(tracksMesh([r.pts], terrain, r.width, 'plain-road-' + r.id)); // off by default (D-040)
@@ -143,13 +150,13 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
       const r = Math.max(0.12, t.h * 0.02), y = terrain.heightAt(t.x, -t.y);
       trunkColl.push(phys.world.createCollider(R.ColliderDesc.cylinder(1.5, r).setTranslation(t.x, y + 1.5, -t.y))); }
   };
-  let lastDay = NaN, flow: { pulvar: ReturnType<typeof riverState>; kur: ReturnType<typeof riverState> } | null = null;
+  let lastDay = NaN, flow: { pulvar: ReturnType<typeof riverState>; kur: ReturnType<typeof riverState>; margins: ReturnType<typeof marginState> } | null = null;
   const hemi = (() => { let h: THREE.HemisphereLight | null = null; scene.traverse(o => { if ((o as any).isHemisphereLight) h = o as THREE.HemisphereLight; }); return h as THREE.HemisphereLight | null; })();
   const skyC = new THREE.Color(), horC = new THREE.Color();
   const update = (dt: number, ctx: any) => {
     const day = ctx.clock.dayIndex as number;
     if (day !== lastDay) { lastDay = day; const doy = doyOf(day);
-      ground.setDay(doy); kit.setDay(doy); flow = { pulvar: riverState('river_pulvar', day), kur: riverState('river_kur', day) }; }
+      ground.setDay(doy); kit.setDay(doy); margins.setDay(doy); flow = { pulvar: riverState('river_pulvar', day), kur: riverState('river_kur', day), margins: marginState(doy) }; }
     if (hemi) skyC.copy(hemi.color).multiplyScalar(hemi.intensity);
     if (scene.fog) horC.copy((scene.fog as THREE.FogExp2).color); // the fog colour is the calibrated horizon radiance (D-060)
     rv.update(flow!, { sky: skyC, horizon: horC });
@@ -158,7 +165,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     // the mid ring is rebuilt before the near set moves far enough to leave it (its centre stays within (rMid - r3) / 4)
     if (Math.hypot(cam.x - lastMid.x, cam.z - lastMid.z) > (Q.rMid - Q.r3) * 0.25) { lastMid = cam.clone(); rebuildMid(cam); }
     if (Math.hypot(cam.x - lastNear.x, cam.z - lastNear.z) > Q.r3 * 0.08) { lastNear = cam.clone(); rebuildNear(cam); }
-    crops.update(cam, terrain);
+    crops.update(cam, terrain); margins.update(cam); (margins as any).wind.value = kit.wind.value;
     // shadow casting only near the camera (the CSM cascades end at 600 m; a far caster would still be drawn into every
     // cascade its bounding sphere touches): village cells, Naqsh-e Rustam and the quarries
     for (const c of vb.cells) c.mesh.castShadow = c.centres.some(([x, z]) => Math.hypot(x - cam.x, z - cam.z) < 900);
@@ -171,7 +178,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const stats = () => ({ canals: canals.length, villages: villages.length, compounds: vb.compounds, villageTris: vb.tris, riverTris: rv.stats().tris, lineTrees: lineTrees.length, orchardPlots: plots.length,
     nearTrees: lod0.count() + lod1s.count() + lod1n.count(), lod0Trees: lod0.count(), shadowTrees: lod0.count() + lod1s.count(), nearTreeTris: lod0.tris() + lod1s.tris() + lod1n.tris(), nearR: Math.round(nearR.value),
     midTrees: midCount, orchardRows: orch.userData.rows, treeKitMs: Math.round(kit.buildMs), treeBakeMs: Math.round(kit.bakeMs), treeBakes: kit.bakes,
-    crops: crops.count(), naqshTris: nr.tris, genMs: Math.round(tGen), buildMs: Math.round(tBuild) });
+    crops: crops.count(), margins: margins.count(), naqshTris: nr.tris, genMs: Math.round(tGen), buildMs: Math.round(tBuild) });
   return { group, data: { rivers, canals, villages, zones }, update, stats,
     summary: () => { const s = stats(); return `plain: ${s.villages} villages (${s.compounds} compounds), ${s.canals} canals, ${s.lineTrees} river/canal trees, ${s.orchardPlots} orchard plots, near trees ${s.nearTrees} (LOD0 ${s.lod0Trees}), mid-ring impostors ${s.midTrees}, crop tufts ${s.crops}, built in ${s.buildMs} ms`; } };
 }

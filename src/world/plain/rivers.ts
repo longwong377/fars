@@ -9,6 +9,7 @@
 // near the viewer they sit exactly where the colliders are.
 import * as THREE from 'three/webgpu';
 import { attribute, uniform, positionLocal, positionWorld, cameraPosition, cameraViewMatrix, vec2, vec3, vec4, float, mix, smoothstep, clamp, length, sin, cos, dot, normalize, max, pow, mx_noise_float, time, color, step, abs } from 'three/tsl';
+import { rippleNormal, waterBody, skyReflection, waterRoughness, WATER_SKY } from './waterShade';
 import type { Terrain } from '../../terrain/heightfield';
 import { curvatureDrop } from '../../terrain/heightfield';
 import { surfaceMaterial, type Layer } from '../../render/materials';
@@ -39,7 +40,11 @@ function sections(r: RiverProfile): Section[] {
   return out;
 }
 
-export interface RiverBuild { group: THREE.Group; banks: THREE.Mesh; water: THREE.Mesh; update(dayState: { pulvar: { width: number; depth: number; turbid: number; flowRel: number }; kur: { width: number; depth: number; turbid: number; flowRel: number } }, sky: { sky: THREE.Color; horizon: THREE.Color }): void;
+/** one cross-section of the corridor mesh as drawn: centre (grid), left normal and tangent (grid), distance along the river,
+ *  and its 13 vertices (0 centre, 1-6 right side outward, 7-12 left side outward): signed lateral offset (m), height
+ *  (world y, before the distance lift), height above the bed (m) and apron fraction t (0 inside the channel) */
+export interface CorridorSection { ri: number; x: number; y: number; nx: number; ny: number; tx: number; ty: number; s: number; off: Float32Array; hy: Float32Array; hrel: Float32Array; t: Float32Array }
+export interface RiverBuild { group: THREE.Group; banks: THREE.Mesh; water: THREE.Mesh; profiles: CorridorSection[][]; update(dayState: { pulvar: { width: number; depth: number; turbid: number; flowRel: number }; kur: { width: number; depth: number; turbid: number; flowRel: number }; margins?: { grassGreen: number } }, sky: { sky: THREE.Color; horizon: THREE.Color }): void;
   segments: { cx: number; cy: number; pos: Float32Array; idx: Uint32Array }[]; stats(): { tris: number; sections: number } }
 
 export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Canal[] = []): RiverBuild {
@@ -53,9 +58,9 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
   const wPos: number[] = [], wAttr: number[] = [], wAttr2: number[] = [], wIdx: number[] = [];
   const segments: RiverBuild['segments'] = [];
   const soil = new THREE.Color().setRGB(0.43, 0.36, 0.27, THREE.SRGBColorSpace);
-  let nSections = 0;
+  let nSections = 0; const profiles: CorridorSection[][] = [];
   rivers.forEach((r, ri) => {
-    const secs = sections(r); nSections += secs.length;
+    const secs = sections(r); nSections += secs.length; const prof: CorridorSection[] = []; profiles.push(prof);
     const { bed_width_m: b, side_slope_h_per_v: sl, bank_height_m: H } = r.channel, top = r.topWidth;
     // curvature radius at each section (for clamping the inner apron at bends)
     const radius = secs.map((q, i) => { const a = secs[Math.max(0, i - 3)], c = secs[Math.min(secs.length - 1, i + 3)];
@@ -71,6 +76,7 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
       const offs: number[] = [0];
       for (const side of [-1, 1]) for (const u of [b / 2, b / 2 + sl * H / 2, top / 2, top / 2 + apron / 3, top / 2 + 2 * apron / 3, top / 2 + apron]) offs.push(side * u);
       const edgeX = (side: number, u: number) => { const lim = side === turn ? Math.max(top / 2 + 4, radius[i] * 0.8) : 1e9; return Math.min(u, lim); };
+      const cs: CorridorSection = { ri, x: q.x, y: q.y, nx, ny, tx: q.tx, ty: q.ty, s: q.s, off: new Float32Array(PER), hy: new Float32Array(PER), hrel: new Float32Array(PER), t: new Float32Array(PER) }; prof.push(cs);
       for (let k = 0; k < PER; k++) {
         const u0 = offs[k], side = Math.sign(u0) || 1, u = side * edgeX(side, Math.abs(u0));
         const x = q.x + nx * u, y = q.y + ny * u, au = Math.abs(u);
@@ -87,6 +93,7 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
         bankPos.push(x, hy, -y);
         bankCol.push(soil.r, soil.g, soil.b);
         bankAttr.push(hrel, t, ri, 0);
+        cs.off[k] = u; cs.hy[k] = hy; cs.hrel[k] = hrel; cs.t[k] = t;
       }
       if (i > 0) quads(bankIdx, base0 + (i - 1) * PER, base0 + i * PER);
       // water: three vertices across (edges and centre), placed in the vertex shader from width and depth uniforms
@@ -123,22 +130,31 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
   bg.setAttribute('position', new THREE.Float32BufferAttribute(bankPos, 3)); bg.setAttribute('color', new THREE.Float32BufferAttribute(bankCol, 3));
   bg.setAttribute('river', new THREE.Float32BufferAttribute(bankAttr, 4)); bg.setIndex(bankIdx); bg.computeVertexNormals(); bg.computeBoundingSphere();
   const depthU = [uniform(1), uniform(1)], widthU = [uniform(10), uniform(20)], turbidU = [uniform(0), uniform(0)], flowU = [uniform(0.5), uniform(0.5)];
-  const skyU = uniform(new THREE.Color(0.5, 0.6, 0.8)), horU = uniform(new THREE.Color(0.7, 0.72, 0.75));
+  const bedHalfU = rivers.slice(0, 2).map(r => uniform(r.channel.bed_width_m / 2)); while (bedHalfU.length < 2) bedHalfU.push(uniform(2));
   const pick = (u: any[], ri: any) => mix(u[0], u[1], ri);
+  // bank vegetation and wetness by the date: the riparian sward's green share (seasonal.ts marginState, set in update)
+  const swardGreen = uniform(1);
   const bankMat = surfaceMaterial('earth', { vertexColors: true, variant: 'riverbank', modify: (L: Layer) => {
     const a = attribute('river', 'vec4'), hrel = a.x, t = a.y, ri = a.z;
-    const depth = pick(depthU, ri), above = hrel.sub(depth);
-    const wet = float(1).sub(smoothstep(0.0, 0.3, above)); // wet mud at and just above the water line
-    const silt = float(1).sub(smoothstep(0.0, 0.25, above.sub(0.3))).mul(float(1).sub(wet)); // band exposed since the spring high water
-    const exposed = step(0.3, above).mul(float(1).sub(smoothstep(0.2, 1.2, hrel.sub(mix(float(1.2), float(1.8), ri))))); // up to the April level
-    const mud = color(new THREE.Color().setRGB(0.27, 0.23, 0.18, THREE.SRGBColorSpace)), siltC = color(new THREE.Color().setRGB(0.55, 0.51, 0.44, THREE.SRGBColorSpace));
-    const grass = color(new THREE.Color().setRGB(0.26, 0.35, 0.14, THREE.SRGBColorSpace));
-    let alb = mix(L.alb, siltC.mul(mx_noise_float(positionWorld.mul(0.7)).mul(0.1).add(1)), max(silt, exposed.mul(0.7)));
+    const depth = pick(depthU, ri), above = hrel.sub(depth), flood = mix(float(1.2), float(1.8), ri); // today's water; the April (table peak) level
+    // wet mud film at the waterline, a damp darker band above it
+    const wet = float(1).sub(smoothstep(0.0, 0.14, above));
+    const damp = float(1).sub(smoothstep(0.1, 0.5, above)).mul(float(1).sub(wet));
+    // the band between today's water and the spring high water: bare silt and mud (none in April, widest in September).
+    // It was 'everything below 2.4 m above the bed', which took in the whole apron: the bare-sand banks of session 4
+    const band = step(0.14, above).mul(float(1).sub(smoothstep(flood.sub(0.05), flood.add(0.12), hrel)));
+    const mud = color(new THREE.Color().setRGB(0.25, 0.21, 0.16, THREE.SRGBColorSpace)), siltC = color(new THREE.Color().setRGB(0.5, 0.46, 0.39, THREE.SRGBColorSpace));
+    const siltTone = mx_noise_float(positionWorld.mul(0.7)).mul(0.1).add(1).mul(float(1).sub(smoothstep(0.2, 0.9, mx_noise_float(positionWorld.xz.mul(3.1)).abs()).mul(0.12))); // drying cracks
+    let alb = mix(L.alb, siltC.mul(siltTone), band.mul(0.85));
+    // above the flood line: a riparian sward on the upper bank, the bank top and the apron, thinning out toward the
+    // terrain, greener and longer green than the steppe (the water table is near; C), in patches
+    const grassG = color(new THREE.Color().setRGB(0.24, 0.33, 0.12, THREE.SRGBColorSpace)), grassS = color(new THREE.Color().setRGB(0.55, 0.49, 0.32, THREE.SRGBColorSpace));
+    const patch = smoothstep(-0.35, 0.3, mx_noise_float(positionWorld.xz.mul(0.21)).add(mx_noise_float(positionWorld.xz.mul(1.3)).mul(0.35)));
+    const sward = smoothstep(flood, flood.add(0.25), hrel).mul(float(1).sub(smoothstep(0.55, 1.0, t))).mul(patch.mul(0.35).add(0.6));
+    alb = mix(alb, mix(grassS, grassG, swardGreen).mul(mx_noise_float(positionWorld.mul(2.3)).mul(0.14).add(1)), sward);
+    alb = mix(alb, alb.mul(0.62), damp);
     alb = mix(alb, mud, wet);
-    // a riparian sward on the bank top and the apron, thinning out toward the terrain (C)
-    const sward = smoothstep(0.0, 0.2, above.sub(0.6)).mul(float(1).sub(smoothstep(0.5, 1.0, t))).mul(mx_noise_float(positionWorld.xz.mul(0.15)).mul(0.3).add(0.6));
-    alb = mix(alb, grass.mul(mx_noise_float(positionWorld.mul(2.3)).mul(0.15).add(1)), sward.mul(0.75));
-    return { alb, rough: mix(L.rough, float(0.35), wet), height: L.height };
+    return { alb, rough: mix(mix(L.rough, float(0.55), damp), float(0.22), wet), height: L.height };
   } });
   bankMat.positionNode = positionLocal.add(vec3(0, liftNode(positionLocal), 0));
   const banks = new THREE.Mesh(bg, bankMat); banks.name = 'river-banks'; banks.receiveShadow = true; banks.frustumCulled = false; banks.userData = group.userData;
@@ -154,41 +170,44 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
   const lateral = ac.z.mul(width.mul(0.5).add(mix(float(0.35), float(0.05), isCanal)));
   const basePos = positionLocal.add(vec3(ac.x.mul(lateral), depth, ac.y.mul(lateral)));
   wm.positionNode = basePos.add(vec3(0, liftNode(basePos).add(0.0), 0));
-  // ripples: two wave trains advected downstream at a speed that follows the flow (0.3-1.2 m/s, C)
-  const speed = mix(pick(flowU, riR).mul(0.9).add(0.3), float(0.25), isCanal);
+  // ripples (waterShade.ts): band-limited noise advected downstream at a speed that follows the flow (0.3-1.2 m/s in the
+  // rivers, 0.25 m/s in the canals, C), faded out by the pixel footprint so distant water never stripes
+  const flowRel = pick(flowU, riR), speed = mix(flowRel.mul(0.9).add(0.3), float(0.25), isCanal);
   const sAlong = fl.x, across = ac.z.mul(width.mul(0.5));
-  const ph1 = sAlong.sub(time.mul(speed)).mul(1.9).add(across.mul(0.7)), ph2 = sAlong.sub(time.mul(speed.mul(0.8))).mul(0.83).sub(across.mul(1.3)).add(2.1);
-  const nz = mx_noise_float(vec3(sAlong.sub(time.mul(speed)).mul(0.35), across.mul(0.6), time.mul(0.15)));
-  const amp = float(0.035).add(pick(flowU, riR).mul(0.05)).mul(mix(float(1), float(0.3), isCanal));
-  const dhds = cos(ph1).mul(1.9).mul(amp).add(cos(ph2).mul(0.83).mul(amp.mul(0.7))).add(nz.mul(0.03));
-  const dhdu = cos(ph1).mul(0.7).mul(amp).sub(cos(ph2).mul(1.3).mul(amp.mul(0.7)));
   const T = vec3(fl.y, 0, fl.z), B = vec3(ac.x, 0, ac.y);
-  const nW = normalize(vec3(0, 1, 0).sub(T.mul(dhds)).sub(B.mul(dhdu)));
+  const rip = rippleNormal(sAlong, across, T, B, speed, mix(flowRel.mul(0.6).add(0.55), float(0.35), isCanal));
+  const nW = rip.n;
   wm.normalNode = normalize(cameraViewMatrix.mul(vec4(nW, 0)).xyz);
-  // body colour: turbid spring flood (silt brown-green) or clear low water (dark green over the bed); shallow margins show the bed
+  // the local water depth across the trapezoid (bed half-width, then the side slopes to the edge; C): deep and dark in
+  // mid-channel, the bed showing through in the shallows; canals 0.45 m at the middle (C)
+  const halfW = width.mul(0.5), bedHalf = pick(bedHalfU, riR);
+  const dRiver = depth.mul(clamp(halfW.sub(abs(across)).div(max(halfW.sub(bedHalf), 0.5)), 0, 1));
+  const dLocal = mix(dRiver, float(1).sub(ac.z.mul(ac.z)).mul(0.45), isCanal);
+  // body colour: turbid spring flood (silt brown) or clear low water (dark green over the bed)
   const turbid = mix(pick(turbidU, riR), turbidU[0], isCanal); // canals carry Pulvar/Kur water: the Pulvar's state stands for both (C)
-  const clear = color(new THREE.Color().setRGB(0.05, 0.075, 0.06, THREE.SRGBColorSpace)), silty = color(new THREE.Color().setRGB(0.22, 0.19, 0.13, THREE.SRGBColorSpace));
-  const bedC = color(new THREE.Color().setRGB(0.24, 0.21, 0.16, THREE.SRGBColorSpace));
-  const shallow = max(smoothstep(0.55, 1.0, abs(ac.z)), isCanal.mul(0.45)).mul(float(1).sub(turbid.mul(0.7)));
-  const riffle = smoothstep(0.62, 0.85, nz.add(0.5)).mul(float(1).sub(smoothstep(0.3, 0.6, depth))); // broken water over riffles at low flow
-  wm.colorNode = mix(mix(mix(clear, silty, turbid), bedC, shallow.mul(0.6)), vec3(0.55, 0.57, 0.55), riffle.mul(0.5));
-  // sky reflection (no environment map): Fresnel (F0 0.02) x sky radiance = hemisphere irradiance / pi, brighter to the horizon
-  const V = normalize(cameraPosition.sub(positionWorld)), cosT = max(dot(nW, V), 0.0);
-  const F = float(0.02).add(pow(float(1).sub(cosT), 5).mul(0.98));
-  const R = V.negate().reflect(nW);
-  const skyRad = mix(horU, skyU, smoothstep(0.0, 0.5, R.y)).mul(1 / Math.PI);
-  wm.emissiveNode = skyRad.mul(F).mul(float(1).sub(riffle.mul(0.5)));
-  wm.roughnessNode = mix(float(0.06), float(0.3), riffle); wm.metalnessNode = float(0);
+  const nz = mx_noise_float(vec3(sAlong.sub(time.mul(speed)).mul(0.35), across.mul(0.6), time.mul(0.15)));
+  const riffle = smoothstep(0.62, 0.85, nz.add(0.5)).mul(float(1).sub(smoothstep(0.3, 0.6, depth))).mul(float(1).sub(isCanal)); // broken water over riffles at low flow
+  wm.colorNode = mix(waterBody(dLocal, turbid), vec3(0.5, 0.52, 0.5), riffle.mul(0.45));
+  // sky reflection (no environment map): Fresnel x the calibrated horizon-to-sky radiance, and where the reflected ray
+  // meets the far bank (its reeds and grass ~1.5 m over the bank top; riparian trees ~12 m tall over about half its
+  // length, 15 m back; C) the bank instead of the sky (waterShade.ts)
+  const Vw = normalize(cameraPosition.sub(positionWorld)), Rr = Vw.negate().reflect(nW), Rh = Rr.xz.div(max(length(Rr.xz), 1e-4));
+  const rl = dot(Rh, vec2(ac.x, ac.y)), toEdge = mix(halfW.sub(across), halfW.add(across), step(rl, 0)).div(max(abs(rl), 0.05));
+  const bankUp = mix(mix(float(1.6), float(2.2), riR).sub(depth).max(0.1).add(1.5), float(0.75), isCanal); // the far bank top over the water (channel bank 1.6 / 2.2 m), plus its low growth
+  const dh = max(toEdge, 0.3), sinB = bankUp.div(length(vec2(dh, bankUp))), sinT = float(12).div(length(vec2(dh.add(15), 12)));
+  wm.emissiveNode = skyReflection(nW, riffle, { sin: sinB, trees: mix(float(0.5), float(0.3), isCanal), treeSin: sinT });
+  wm.roughnessNode = waterRoughness(rip.lost, riffle); wm.metalnessNode = float(0);
   const water = new THREE.Mesh(wg, wm); water.name = 'river-water'; water.frustumCulled = false; water.receiveShadow = true;
   water.userData = tag(pul, 'river water: level and width from flow_by_month for the date (C); turbid Mar-May, clear in summer (C)');
   group.add(water);
-  void clamp; void sin; void vec2;
+  void sin; void vec2; void cos; void pow; void dot; void positionWorld; void cameraPosition; void color;
   return {
-    group, banks, water, segments,
+    group, banks, water, segments, profiles,
     update(st, sky) {
       depthU[0].value = st.pulvar.depth; depthU[1].value = st.kur.depth; widthU[0].value = st.pulvar.width; widthU[1].value = st.kur.width;
       turbidU[0].value = st.pulvar.turbid; turbidU[1].value = st.kur.turbid; flowU[0].value = st.pulvar.flowRel; flowU[1].value = st.kur.flowRel;
-      skyU.value.copy(sky.sky); horU.value.copy(sky.horizon);
+      WATER_SKY.sky.value.copy(sky.sky); WATER_SKY.horizon.value.copy(sky.horizon);
+      if (st.margins) swardGreen.value = st.margins.grassGreen;
     },
     stats: () => ({ tris: bankIdx.length / 3 + wIdx.length / 3, sections: nSections }),
   };

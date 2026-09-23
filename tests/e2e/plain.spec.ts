@@ -50,9 +50,13 @@ test('plain', async ({ page }, info) => {
     await page.evaluate(() => (window as any).__parsa.renderOnce());
     const without = await page.evaluate(() => { const st = (window as any).__parsa.stats(); return { drawCalls: st.drawCalls, triangles: st.triangles }; });
     await page.evaluate(() => { (window as any).__parsa.world.root.getObjectByName('plain').visible = true; });
+    // the town's share too (its garden trees, channels and water: the garden view, D-149)
+    const town = await page.evaluate(async () => { const p = (window as any).__parsa, g = p.world.root.getObjectByName('settlement'); if (!g) return null;
+      g.visible = false; await p.renderOnce(); const st = p.stats(); g.visible = true; return { drawCalls: st.drawCalls, triangles: st.triangles, trees: p.world.settlement?.stats?.().trees ?? null }; });
     const lum = await lumStats(page, png);
     const pick = await page.evaluate(() => (window as any).__parsa.pick(0, 0));
-    out[s.n] = { quality: Q, withPlain, withoutPlain: without, plainAdds: { drawCalls: withPlain.drawCalls - without.drawCalls, triangles: withPlain.triangles - without.triangles }, lum, centre: pick };
+    out[s.n] = { quality: Q, withPlain, withoutPlain: without, plainAdds: { drawCalls: withPlain.drawCalls - without.drawCalls, triangles: withPlain.triangles - without.triangles },
+      townAdds: town ? { drawCalls: withPlain.drawCalls - town.drawCalls, triangles: withPlain.triangles - town.triangles, trees: town.trees } : null, lum, centre: pick };
     console.log(s.n, JSON.stringify(out[s.n]));
   }
   mkdirSync('shots', { recursive: true }); const f = 'shots/plain-stats.json'; const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {};

@@ -146,4 +146,32 @@ Species and where they grow (`src/data/trees.json`; placement in `src/world/plai
 | Olive | town gardens only (the plain has 44 frost days a year: WMO, A) | B: SAEIDI2021 | 4-6.5 | 0.95-1.2 | 0.25-0.35 | broad, irregular, evergreen grey-green |
 | Grape vine | town gardens (head-trained, C); vineyards stay in the terrain layer | B: IR-FOODAG | 1.2-1.8 | 1.0-1.3 | 0.3-0.42 | low, spreading canes |
 
-Seasons: the foliage groups of `src/world/plain/seasonal.ts`. Planes leaf out on day 82-108 of the year (late March to mid-April). Apple and pear blossom falls on days 75-108, wild almond on days 45-72, pomegranate on days 130-175. Evergreens keep their leaves. Leaves fall in October and November (C).
+Seasons: the foliage groups of `src/world/plain/seasonal.ts` (day of year, Gregorian; world day 0, 17 April Julian, is day 102). Checked for mid-April at ~1,610 m in session 4 (D-149); the table below replaces the session-3 dates where it says so. Recalled botany is C and says so; modern observations elsewhere in Fars are B for the place observed and C for the plain in 467.
+
+| Group | Leaf-out (start, full) | On day 0 (17 April) | Evidence | Tier |
+|---|---|---|---|---|
+| pomegranate | 78, 118 (was 100, 125) | in young leaf (0.65), red young leaves turning green; flowers May-June, scattered (peak share 0.45) | Eram garden, Shiraz (~1,540 m): red leaves mid-March, red-green late March, green leaves with the flower buds still closed by the end of March (PUNICA-SHIRAZ, search extract) | B there / C here (+5 days for the height) |
+| fig | 92, 130 (was 100, 128) | first small leaves (0.17) on the stout branches; the bare crown shows its skeleton, few twig sprays (twig_cards 0.22) | rain-fed figs of Estahban, Fars (~1,750 m): bud break in April (FIG-ESTAHBAN, search extract) | B there / C here |
+| plane | 86, 124 (was 82, 108) | young leaf (0.38), light green, the limbs showing | foliation over ~1.5 months from mid-April in a Platanus orientalis stand in Turkey (PLATANUS-LAI, search extract) | B there / C here |
+| mulberry | 95, 118 (unchanged) | leaves coming out (0.22) | silkworm rearing from late April when the leaves are out (IR-SERICULTURE, search extract) | B / C |
+| apple, pear | 95, 120; blossom 75-108 (unchanged) | in blossom | crops.fruit_trees "blossom Mar-Apr" (IR-FOODAG) | B calendar / C |
+| willow, poplar, tamarisk, vine, oak, almond, pistachio | unchanged | willow, poplar in leaf; vine at budburst | recalled (BOTANY-GEN) | C |
+
+The three variants of each species leaf out a little apart (model.ts variantLeaf: up to +-0.11 of the leaf amount in the middle of the change), so a row of trees is not all at one stage (C).
+
+Vineyards (crop row 6): head-trained stocks of about half a metre of old wood all year; budburst in April (crops.vines "leaf_out Apr"), leaves and shoots through May and June to ~1.5 m; leaves down in November (C). Until session 4 the canopy began rising on day 92 and the vine rows stood 1.1 m tall and a third green on 17 April (the "~1 m crop blades" of the village-p22 view were vine rows).
+
+## 11. The river margins and the water (session 4, D-149)
+**Read this first: what is weak.** Nothing here is observed on the Pulvar or the Kur. The reed beds and rushes are an analogy with Iranian wetlands and plateau rivers today and with marsh-plant pollen in the Maharlou basin; their extent, heights, seasonal cycle and the share cut in winter are C (recalled). The water's ripple scales, colours and absorption are C.
+
+| Item | Value | Source | Access | Tier |
+|---|---|---|---|---|
+| Common reed (Phragmites australis) in Iranian wetlands and river margins | "a significant vegetation type covering much of certain Iranian wetland areas"; "dense stands of reeds and tamarisk" | IR-WETLAND-REEDS | SX | B (generic) |
+| Emergent marsh plants in the basin | "a slight increase in Sparganium-type pollen" in the Maharlou core (bur-reed / reed-mace type) | MAHARLOU-SPARGANIUM | SX | B |
+| Riparian shrubs | Tamarix ramosissima, Salix acmophylla along the Zayandeh-Rud | IR-RIPARIAN | SX | B (analogy) |
+| Reed beds on the Pulvar and the Kur in 467 | on the channel slopes between the low summer water and the spring flood line; about half the bank, in patches 25-90 m long; a third cut in winter for mats, roofs and fodder | reconstruction | - | C |
+| Reed cycle | new shoots from late March (about 0.5 m by mid-April, 2.4 m by early July, 2.7 m from August, plumes from August, brown from October); last year's culms stand pale through the spring and go down in early summer | recalled (BOTANY-GEN) | NS | C |
+| Rushes and sedges; bank grass | rushes at the wet edge, green but for their tips in summer; bank grass green from the winter rains, dry from July (a month after the steppe) | recalled | NS | C |
+| Banks | wet mud film at today's waterline, a damp band above it; bare silt between today's water and the spring flood line (none in April, widest in September); a riparian sward above the flood line | reconstruction | - | C |
+| Water | ripples as band-limited noise advected at the flow speed (wavelengths 2.4-0.17 m), faded by the pixel footprint; body absorbs with the local depth (dark green in mid-channel, the bed in the shallows); turbid flood water an opaque silty brown; Fresnel sky | reconstruction (`src/world/plain/waterShade.ts`) | - | C |
+
