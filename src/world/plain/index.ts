@@ -19,7 +19,7 @@ import { PlainGround } from './terrainPlain';
 import { buildRivers } from './rivers';
 import { canalBanks, trackLines, tracksMesh } from './ribbons';
 import { riparianTrees, canalTrees, orchardPlots, orchardPlotTrees, woodlandTrees, orchardRows, instOf, Tree, TREE_TAG } from './trees';
-import { TreeKit, NearTreeSet, ImpostorSet, impostorPx, type TreeInst } from '../trees/render';
+import { TreeKit, NearTreeSet, ImpostorSet, impostorPx, registerShadowLight, type TreeInst } from '../trees/render';
 import { nearCrops } from './crops';
 import { buildNaqsh } from './naqsh';
 import { buildQuarries } from './quarries';
@@ -68,7 +68,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   // villages
   const vb = buildVillageMeshes(villages, terrain, opts.seed); group.add(vb.group);
   // trees (D-120): one kit (models, leaf atlas, impostor atlas) shared with the town gardens
-  const kit = TreeKit.get({ impostorPx: impostorPx(opts.quality) });
+  const kit = TreeKit.get({ impostorPx: impostorPx(opts.quality) }); registerShadowLight(scene);
   const nearC = uniform(new THREE.Vector3(1e9, 0, 1e9)), nearR = uniform(0); // the 3-D set: centre and radius
   const midC = ground.paintC, midR = ground.treeR; // the mid ring: centre and radius (the terrain paints woodland beyond it)
   const lineTrees = [...riparianTrees(rivers.rivers, opts.seed).map(t => ({ t, where: 'riparian woodland (river_*.riparian)' })), ...canalTrees(canals, opts.seed).map(t => ({ t, where: 'canal tree line' }))];

@@ -9,7 +9,9 @@ test('plain layer debug', async ({ page }, info) => {
   await page.evaluate(v => (window as any).__parsa.view(...v), v); await page.evaluate(() => (window as any).__parsa.renderOnce()); await page.evaluate(v => (window as any).__parsa.view(...v), v);
   const names = await page.evaluate(() => { const p = (window as any).__parsa.world.root.getObjectByName('plain'); return p.children.map((c: any) => `${c.name}:${c.type}:${c.visible}`); });
   console.log('plain children', JSON.stringify(names));
-  const sets: [string, string[]][] = [['base', []], ['nocrown', ['plain-trees-crown', 'plain-trees-crown-far']], ['nowood', ['plain-trees-wood', 'plain-trees-wood-far']], ['noimpostor', ['plain-trees-far', 'plain-orchards-far']], ['nocrops', ['plain-crops-near']], ['novillage', ['plain-villages']]];
+  // mesh names since D-120 (tree kit): near leaves/wood per LOD, impostors (river/canal far, mid ring, orchard rows)
+  const leaves = ['plain-trees-leaves-lod0', 'plain-trees-leaves-lod1', 'plain-trees-noshadow-leaves-lod1'], wood = leaves.map(n => n.replace('leaves', 'wood'));
+  const sets: [string, string[]][] = [['base', []], ['nocrown', leaves], ['nowood', wood], ['noimpostor', ['plain-trees-far', 'plain-trees-mid', 'plain-orchards-far']], ['nocrops', ['plain-crops-near']], ['novillage', ['plain-villages']]];
   for (const [tag, hide] of sets) {
     await page.evaluate(h => { const p = (window as any).__parsa.world.root.getObjectByName('plain'); p.traverse((o: any) => { if (o.userData.__dbgHidden) { o.visible = true; delete o.userData.__dbgHidden; } }); p.traverse((o: any) => { if (h.includes(o.name)) { o.visible = false; o.userData.__dbgHidden = true; } }); }, hide);
     for (let i = 0; i < 6; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());

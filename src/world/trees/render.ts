@@ -92,16 +92,36 @@ export class TreeKit {
     this.bakeMs = performance.now() - t0; if (n) this.bakes++;
     return L ?? this.baker.levels();
   }
-  /** the day of year: foliage state, and the impostors re-baked where a group changed */
+  /** the day of year: foliage state, and the impostors re-baked where a group changed. A day-to-day tick re-bakes in a
+   *  worker (bake_worker.ts: up to ~1 s of work at high quality, off the main thread; the far trees follow within a
+   *  second or two); a jump (loading, the test harness, a first call) bakes here at once, so a frame never shows far
+   *  trees of another season than the near ones after a jump */
   setDay(doy: number) {
     if (doy === this.foliage.doy) return;
-    this.foliage.setDay(doy);
+    const prev = this.foliage.doy; this.foliage.setDay(doy);
     const st = groupStates(this.foliage.data);
     const changed = this.models.some((m, r) => { const s = st[groupIndex(m.species.group)], p = this.baked[r]; return !p || p.leaf.some((v, i) => Math.abs(v - s.leaf[i]) >= 0.004) || p.blossom.some((v, i) => Math.abs(v - s.blossom[i]) >= 0.004); });
     if (!changed) return;
-    const L = this.bakeAll();
+    const step = Number.isNaN(prev) ? 99 : Math.min(Math.abs(doy - prev), 365 - Math.abs(doy - prev)), w = step <= 1 ? this.bakeWorker() : null;
+    const id = ++this.reqId;
+    if (w) { w.postMessage({ id, px: this.baker.px, table: this.foliage.data.slice() }); return; }
+    this.apply(this.bakeAll());
+  }
+  private reqId = 0; private worker: Worker | null | undefined;
+  private apply(L: { col: { data: Uint8Array; width: number; height: number }[]; nrm: { data: Uint8Array; width: number; height: number }[] }) {
     for (const [tex, lv] of [[this.impCol, L.col], [this.impNrm, L.nrm]] as const) { tex.mipmaps = lv.map(l => ({ data: l.data, width: l.width, height: l.height })) as any; (tex.image as any).data = lv[0].data; tex.needsUpdate = true; }
   }
+  private bakeWorker(): Worker | null {
+    if (this.worker !== undefined) return this.worker;
+    try {
+      if (typeof Worker === 'undefined' || typeof window === 'undefined') return (this.worker = null);
+      const w = new Worker(new URL('./bake_worker.ts', import.meta.url), { type: 'module' });
+      w.onmessage = (e: MessageEvent) => { if (e.data.id !== this.reqId) return; this.apply(e.data); this.bakes++; this.asyncBakes++; };
+      w.onerror = () => { this.worker = null; };
+      return (this.worker = w);
+    } catch { return (this.worker = null); }
+  }
+  asyncBakes = 0;
   /** texel k of model row `row` in a data texture (TSL) */
   private rec(tex: THREE.DataTexture, x: any, row: any) { return textureLoad(tex, ivec2(int(x), int(row))); }
   /** sway of a tree-local point (m): the crown bends with the wind, more toward the top (C) */
@@ -124,7 +144,7 @@ export class TreeKit {
     m.positionNode = toWorld(local.add(this.sway(local, sp1.w, itree.z)), iscl, ipos);
     m.normalNode = normalToView(n, iscl);
     const barkLin = sp1.xyz; // packed linear (kitdata.packSpecies)
-    m.colorNode = barkLin.mul(mx_noise_float(local.mul(vec3(6, 1.5, 6)).add(itree.z)).mul(0.12).add(1)).mul(iscl.w);
+    m.colorNode = vec4(barkLin.mul(mx_noise_float(local.mul(vec3(6, 1.5, 6)).add(itree.z)).mul(0.12).add(1)).mul(iscl.w), 1); // vec4: the shadow pass reads colorNode.a
     m.roughnessNode = float(0.9);
     this.mats.set(key, m); return m;
   }
@@ -194,6 +214,27 @@ export class TreeKit {
   spRec(k: number, row: any) { return this.rec(this.spTex, k, row); }
 }
 
+// ---------------------------------------------------------------- shadow cascades
+/** trees cast shadows from within 120 m of the camera (SHADOW_R), and those shadows fall within ~180 m: a cascade that
+ *  starts farther out draws none of them (the instanced meshes' bounds span the world, so without this every caster was
+ *  drawn into every cascade, as the people found: humanGPU.ts cascadeNeedsPeople) */
+export const TREE_SHADOW_REACH = 180;
+const SHADOW_LIGHTS: THREE.DirectionalLight[] = [];
+/** register the scene's shadow-casting sun (its CSM node, if any, gives the cascades' distances) */
+export function registerShadowLight(scene: THREE.Object3D) { scene.traverse(o => { const l = o as THREE.DirectionalLight; if (l.isDirectionalLight && l.castShadow && !SHADOW_LIGHTS.includes(l)) SHADOW_LIGHTS.push(l); }); }
+/** where the cascade drawn by this shadow camera starts (m from the view camera); 0 if unknown or the first */
+function cascadeStart(shadowCam: THREE.Camera) {
+  for (const L of SHADOW_LIGHTS) { const n: any = (L.shadow as any).shadowNode; if (!n?.lights?.length || !n.camera) continue;
+    const i = n.lights.findIndex((l: any) => l.shadow?.camera === shadowCam); if (i <= 0) continue;
+    return (n.breaks[i - 1] ?? 0) * Math.min(n.camera.far, n.maxFar); }
+  return 0;
+}
+function nearCascadesOnly(mesh: THREE.Mesh) {
+  let saved = -1; const g = mesh.geometry as THREE.InstancedBufferGeometry;
+  mesh.onBeforeShadow = (_r, _o, _c, shadowCam) => { if (cascadeStart(shadowCam) < TREE_SHADOW_REACH) { saved = -1; return; } saved = g.instanceCount; g.instanceCount = 0; };
+  mesh.onAfterShadow = () => { if (saved >= 0) { g.instanceCount = saved; saved = -1; } };
+}
+
 // ---------------------------------------------------------------- template geometry and instanced meshes
 function woodTemplate(M: number, S: number) {
   const pos: number[] = [], idx: number[] = [];
@@ -259,7 +300,7 @@ export class NearTreeSet {
     this.wood = new THREE.Mesh(this.inst.geometry(woodTemplate(lod ? M1 : M0, lod ? SIDES1 : SIDES0)), kit.woodMaterial());
     this.leaves = new THREE.Mesh(this.inst.geometry(cardTemplate(lod ? K1 : K0)), kit.leafMaterial(lod));
     this.wood.name = `${name}-wood-lod${lod}`; this.leaves.name = `${name}-leaves-lod${lod}`;
-    for (const m of [this.wood, this.leaves]) { m.castShadow = castShadow; m.receiveShadow = true; m.frustumCulled = false; pickable(m, () => this.inst.recs, kit.models, name); }
+    for (const m of [this.wood, this.leaves]) { m.castShadow = castShadow; m.receiveShadow = true; m.frustumCulled = false; pickable(m, () => this.inst.recs, kit.models, name); if (castShadow) nearCascadesOnly(m); }
   }
   set(recs: TreeInst[]) { const n = this.inst.apply(recs); (this.wood.geometry as THREE.InstancedBufferGeometry).instanceCount = n; (this.leaves.geometry as THREE.InstancedBufferGeometry).instanceCount = n; return n; }
   count() { return (this.wood.geometry as THREE.InstancedBufferGeometry).instanceCount; }
