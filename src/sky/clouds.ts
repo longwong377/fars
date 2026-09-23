@@ -39,6 +39,8 @@ export class VolumetricClouds {
   /** the approaching rain cell (world x, world z, radius m, strength 0..1; strength 0 = none): the cloud above it is
    *  thicker and taller, so the curtain hangs from a darker base (the light march does the darkening). C (session 3). */
   readonly cell = uniform(new THREE.Vector4(0, 0, 1, 0));
+  /** the scene fog density (FogExp2, 1/m): distant cloud fades into the horizon haze through the same air as the terrain */
+  readonly fogDensity = uniform(0.000025);
   constructor(radius: number, quality: string) {
     const [N, NL] = STEPS[quality] ?? STEPS.high;
     // drawn like the sky, stars and moon: in the opaque pass by render order (−7, after them), no depth test or write, so
@@ -107,7 +109,7 @@ export class VolumetricClouds {
           If(T.lessThan(0.02), () => { Break(); });
         });
         // aerial perspective: distant cloud fades into the horizon haze
-        const fade = exp(t0.mul(-1 / 26000));
+        const td = t0.mul(this.fogDensity), fade = exp(td.mul(td).negate()); // the scene fog's own law and density (FogExp2): the same air as the terrain (D-064)
         out.assign(vec4(mix(hz, col.div(max(float(1).sub(T), 0.001)), fade), float(1).sub(T).mul(fade)));
       });
       return out;

@@ -25,7 +25,8 @@ test('visitor mode: stopped at the Gate, the halmi, the escort', async ({ page }
   const r3 = await page.evaluate(() => (window as any).__parsa.walkTo(0, 90, 30, 0.8, 1 / 30));
   console.log('walk 3', JSON.stringify({ reached: r3.reached, x: r3.state.x, n: -r3.state.z }), await log());
   expect(r3.reached).toBe(false); expect(await log()).toMatch(/not walk here alone/);
-  await page.evaluate(() => (window as any).__parsa.simulate(300, 1));
+  // the test world's clock is frozen (scale 0): move it on six minutes, then take a step so the visitor sees the time
+  await page.evaluate(() => (window as any).__parsa.setTime(30, 10 + 6 / 60));
   const r4 = await page.evaluate(() => (window as any).__parsa.walkTo(0, 90, 60, 0.8, 1 / 30));
   console.log('walk 4', JSON.stringify({ reached: r4.reached, x: r4.state.x, n: -r4.state.z }), await log());
   expect(await page.evaluate(() => (window as any).__parsa.world.visitor.state().escorted)).toBe(true);

@@ -68,7 +68,7 @@ export class RainShafts {
       s.mesh.visible = Math.hypot(x - camPos.x, z - camPos.z) > 2.1 * r; // FrontSide only: hidden once the camera is inside the column's mesh
     }
     this.uStrength.value = cell.intensity; this.uSnow.value = cell.snow ? 1 : 0;
-    this.uTint.value.copy(skyTint).multiplyScalar(cell.snow ? 1.05 : 0.5); // skyTint: the calibrated horizon radiance (D-060); a curtain under the thick cell cloud is well shaded (C)
+    this.uTint.value.copy(skyTint).multiplyScalar(cell.snow ? 1.05 : 0.35); // skyTint: the calibrated horizon radiance (D-060); a curtain under the thick cell cloud is well shaded (C)
     this.cellWorld.set(cx, cz, cell.radiusM, cell.intensity);
   }
 }
