@@ -444,7 +444,8 @@ export function colossusFrontProjections(parts: (Box | { type: string })[]): num
 export const columnTriangles = (o: ColumnOrder, built = 1, lod: Lod = 0) => columnMesh(o, built, lod).idx.length / 3;
 /** the inputs that determine the precomputed pieces (the tool and the staleness test hash the same list) */
 export const sculptInputs = (read: (path: string) => string, params: { voluteH: number; colossusFront: number }) =>
-  [read('src/data/sculpture.json'), read('src/arch/sdf.ts'), read('src/arch/sculpt_models.ts'), JSON.stringify(P()), JSON.stringify({ v: params.voluteH.toFixed(4), f: params.colossusFront.toFixed(3) })];
+  // sculpt.ts itself since D-151: the lock templates, their placement and the pieces' normals are generated here
+  [read('src/data/sculpture.json'), read('src/arch/sdf.ts'), read('src/arch/sculpt_models.ts'), read('src/arch/sculpt.ts'), JSON.stringify(P()), JSON.stringify({ v: params.voluteH.toFixed(4), f: params.colossusFront.toFixed(3) })];
 /** a stable text hash (FNV-1a, 2 × 32 bit) of the inputs of the precomputed pieces */
 export function sculptHash(texts: string[]): string {
   let h1 = 0x811c9dc5, h2 = 0x01000193 ^ 0x5bd1e995;

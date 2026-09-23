@@ -1,6 +1,6 @@
 {
  "version": 1,
- "hash": "d045e9e734803a0d",
+ "hash": "343cebff52fd70e7",
  "params": {
   "voluteH": 1.6087500000000001,
   "colossusFront": 0.8450000000000006
@@ -9,12 +9,12 @@
   "protome": [
    {
     "file": "generated/sculpt_protome_0.bin",
-    "verts": 10858,
-    "tris": 8814
+    "verts": 10910,
+    "tris": 8816
    },
    {
     "file": "generated/sculpt_protome_1.bin",
-    "verts": 1460,
+    "verts": 1468,
     "tris": 1074
    }
   ],

@@ -280,8 +280,9 @@ export function protomeSDF(lod: 0 | 1 = 0): PieceSDF {
 }
 
 // ================================================================== vertical double-volute member (unit D)
-/** SDF of the volute member: core with, on each of the four faces, two stacked pairs of spiral scrolls joined by stems
- *  and a reeded central band. x ∈ ±wx/2, z ∈ ±wz/2, y ∈ [0, hv]. */
+/** SDF of the volute member: a core with four rolls along z (two above curling down, two below curling up), their ends
+ *  carved with the spiral round a raised eye, stems joining them on the broad faces and a reeded panel between.
+ *  x ∈ ±wx/2, z ∈ ±wz/2, y ∈ [0, hv]. */
 export function voluteSDF(hv: number, wx: number, wz: number, lod: 0 | 1 = 0): PieceSDF {
   const V = r('volute', 'member');
   const t = V.relief * wx; // relief of the stems and reeds above the core faces
