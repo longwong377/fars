@@ -62,6 +62,7 @@ async function boot() {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2) * Q.pixelRatio);
   renderer.setSize(innerWidth, innerHeight, false);
   renderer.toneMapping = THREE.AgXToneMapping; renderer.toneMappingExposure = 1.0;
+  renderer.info.autoReset = false; // the post pipeline renders several passes per frame: count per frame (reset in frame())
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const scene = new THREE.Scene();
@@ -274,7 +275,7 @@ async function boot() {
     renderer.toneMappingExposure = exposure;
     world.update?.(dt, { clock, cond, sky: sky.state, camera, player, settings });
     tmesh.update(camera.position);
-    const t0 = performance.now();
+    const t0 = performance.now(); if (opts.render !== false) renderer.info.reset();
     { const ss = seasonAt(clock.dayIndex); SEASON.green.value = ss.green; SEASON.dry.value = ss.dry; }
     WEATHER.wetness.value = cond.wetness; WEATHER.snow.value = cond.snowCover; WEATHER.puddles.value = Math.max(0, cond.wetness - 0.4) / 0.6;
     pipeline.flash.value = world.flash?.() ?? 0;
