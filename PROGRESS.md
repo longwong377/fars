@@ -37,7 +37,13 @@
     - **Construction state has no geometry hook:** the Hall of 100 Columns is drawn at its day-0 state.
     - **Rendered floors (≥ 300 visible, ≥ 50 close) are not met:** the crowd still builds one placeholder rig per detailed agent (135).
     - Newborns under one year (3,104) are reported, not gated (178 would fail in their first days). This is a scope decision in D-021, to be judged by the independent review.
-    - The §13.11 shadow review is running (REVIEWS/shadow_phase5.md).
+    - **The §13.11 shadow review FAILED:** 10 of 20 people scored below 4 (REVIEWS/shadow_phase5.md). The causes are systemic:
+      - heavy workers eat once;
+      - plain children who follow their mother never sleep;
+      - infants are nursed only at the mother's meals;
+      - marriage takes mothers from young children;
+      - households are not synchronised and schedules run like clockwork.
+      The population agent is fixing them. A fresh independent reviewer will re-run the review.
     - Every day-plan weight is C. The grain deliveries in the read texts cannot feed the ration groups (Q-056). Workers other than guards have no regular rest days (Q-057).
 - **Phases 6 and 7:** the settlement and plain are not built yet (session 3 agents started). The out-of-world map shows the Terrace only.
 - **King absent by default (D-003):** no evidence places Xerxes at Persepolis in 467. The court appears only in the C-tier "seasonal pattern" setting.
