@@ -43,12 +43,43 @@ Read `CLAUDE.md` first (the resume procedure), then this file, then `PROGRESS.md
   - `tests/e2e/dbg_boot.spec.ts` with `&trace`: boot-stage markers;
   - `tests/e2e/dbg_quality.spec.ts`: `QS=high,high+post=scene|ao|gi`, `WEATHER=`, `V=`.
 
-## Agent work (background worktrees; state at handoff is below)
-Five agents ran in isolated worktrees: sculpted columns and colossi (D-014 slot in their brief); carved low-relief figures; realistic humans from the CC0 MakeHuman assets (verified CC0: base mesh, targets, skins, rigs; the program code is AGPL and was not used); Phase 5 research; Phase 6/7 research.
-See the section **"Agent results at handoff"** below for what was merged and what was not.
+## Agent results at handoff (all merged into this branch; 134 tests pass, tsc clean, lint:chrono OK)
+- **Sculpted columns and Gate colossi (D-018), merged:**
+  - lathe bases, true fluted shafts (48 flutes on the Apadana), composite and double-bull capitals, and SDF colossi, precomputed by `npm run sculpt` into `public/generated/sculpt_*.bin` (1.4 MB), with per-instance LODs;
+  - new row `apadana.portico_capitals` (hall and N/E porticoes composite, W portico bulls);
+  - **known look faults, not fixed:**
+    - the limestone material draws ashlar joints across the carving (a joint-free "carved" material is needed);
+    - the curls read as bubble wrap and the protome horns are too small (sheep-like);
+    - the Gate door leaves hide the colossi, and the wall ring overlaps the jamb volume in the parts/colliders.
+  - Everything is tier C.
+- **Carved low-relief figures (D-019), merged, but NOT YET SEEN IN A BROWSER:** RTIN heightfield meshes, 30 figure kinds, BatchedMesh with a Web Worker pool, and the `buildRegister` API.
+  - **Run `npx playwright test -c playwright.relief.config.ts --project=webgpu` first.** If BatchedMesh or the workers fail under WebGPU or WebGL2 there is no fallback, and the reliefs will be missing.
+  - Only 15 of the 23 delegations fit the modelled landings (15.8 m vs about 27 m).
+- **Humans from MakeHuman CC0 (D-020), merged as a pipeline only:**
+  - `tools/build_humans.ts` produces 23 body variants, a 59-bone rig and 3 LODs (3 MB in `public/generated/humans/`).
+  - **The game still uses the old placeholder rigs.** To do: the runtime loader, the fitted period dress, hair and beards, headgear, the skin material (use arithmetic masks, not `select()`, per D-012), retargeting the activity poses, crowd and player integration, and the CPU budget test.
+- **Phase 5 research, merged:**
+  - `research/EVENTS.md`, `src/data/population.json`, `src/data/events_calendar.json` (56 events, 20 cause-effect rules);
+  - a P5 section in PEOPLE.md; Q-030–Q-046.
+  - Headlines: Terrace by day about 575 (winter 425) and at night about 125; town 6,300–7,000; plain about 36,000.
+  - Almost every rhythm is C: only 67 PF texts were read in full.
+  - It proposes a soak floor of **8** event kinds a week (the harness currently uses 6; decide and log).
+- **Phase 6/7 research, merged:**
+  - `research/SETTLEMENT.md`, `research/PLAIN.md`, `src/data/settlement.json` (20 features), `src/data/plain.json` (34 features, a crop calendar, river flows); Q-047–Q-055 (renumbered).
+  - **Actions it left for us:**
+    - add its structure ids to `src/data/chronology.json` before any geometry uses them;
+    - sync `src/data/blocklist.json` with the 9 new rows in `research/ANACHRONISM_BLOCKLIST.md`;
+    - decide Q-047 (Xerxes' tomb at Naqsh-e Rustam, possibly cut by 467).
+  - **Measured skyline gap:** the far terrain ring stops at 40.96 km, so mountains 55–66 km away (0.1–0.4° high at 150–160°, 230–250° and 270–290° true) are missing. Widen the ring to about 70 km in `tools/build_terrain.py`.
+  - `src/core/geo.ts` drifts about 80 m at 40 km from the pyproj frame; use `tools/osm_to_grid.py` for far features.
 
 ## Next steps, in order
-1. Merge or finish whatever agent work is listed as unmerged below. Re-run `npx tsc --noEmit`, `npx vitest run` and `npx tsx tools/build_nav.ts` after any change to the architecture or people.
+1. **Render-check the merged agent work** (reliefs first: no fallback). Then fix the known faults:
+   - a joint-free carved-stone material for capitals and colossi;
+   - the relief view;
+   - the Gate door leaves.
+   Re-run `npx tsc --noEmit`, `npx vitest run` and `npx tsx tools/build_nav.ts` after any change to the architecture or people.
+   Finish the human runtime integration (D-020 to-do list).
 2. Re-run the pending checks:
    - `AREA=hadish` walkthrough;
    - `tests/e2e/translation.spec.ts`;
