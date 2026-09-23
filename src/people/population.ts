@@ -1404,23 +1404,34 @@ class Planner {
     // the feeds that are this child's: all of them when it is the youngest she nurses, and a wet-nursed child's always
     const myFeeds = lactating && this.p.age === 1 && (m === nurseNow || !P.nurslings(m, d).some(c => c !== this.pid && P.persons[c].age === 0));
     // on some days the small ones are taken outside the door to play with the neighbours' children, or to a neighbour's or
-    // a kinswoman's house in the same lane while the mother works at home; not in rain or dust (W-03) (C)
-    const outing = (am: boolean) => this.C.wx.storm || this.C.wx.dust || taken || ill ? null : (() => {
+    // a kinswoman's house in the same lane while the mother works at home; not in rain, and not while a storm or the dust is
+    // in the air (W-02, W-03): by the weather's own hours, so a morning before the dust rises and an evening after a storm
+    // are like any other (D-140; was: kept in the whole day) (C)
+    const wxS = this.C.wx; const keepIn = (h: number) => (!!wxS.stormH && h >= wxS.stormH[0] - 0.25 && h < wxS.stormH[1] + 0.25) || (!!wxS.dustH && h >= wxS.dustH[0] && h < wxS.dustH[1]);
+    /** the span a woman is awake at her house around the hour t (her spells there one after another), or null */
+    const homeRun = (xs: Seg[], at: string, t: number): [number, number] | null => { const i = xs.findIndex(s => t < s.t1); const up = (s: Seg) => s.place === at && s.act !== 'sleep' && s.act !== 'lie_ill' && !/ in the night/.test(s.why);
+      if (i < 0 || !up(xs[i])) return null; let a = i, b = i; while (a > 0 && up(xs[a - 1])) a--; while (b + 1 < xs.length && up(xs[b + 1])) b++; return [xs[a].t0, xs[b].t1]; };
+    const outing = (am: boolean) => taken || ill ? null : (() => {
       const k = this.choose((this.p.age >= 3 ? U.outing_from_3 : U.outing) as Record<'none' | 'lane' | 'neighbour' | 'kin', number>); if (k === 'none') return null;
       const cool = this.C.heatRest || this.C.wx.tmax >= 31 ? 16.3 : 0; // after the heat of the day (E-64)
       const h0 = am ? this.r.range(7.5, 10) : this.r.range(Math.max(napW[1] + 0.2, cool), Math.max(napW[1] + 0.3, cool + 0.1, this.sun.set - 2)); let h1 = Math.min(am ? napW[0] - 0.3 : this.sun.set - 0.3, h0 + this.r.range(U.outing_h[0], U.outing_h[1]));
-      // only while the one minding it stays at home and is not at a meal: the child is fetched in for meals
-      { let e = h0; while (e < h1) { const g = segAt(ms, e + 0.01); if (g.place !== base || g.act === 'eat' || g.act === 'sleep' || / in the night/.test(g.why) || (this.p.age === 1 && nursing(g))) break; e += 0.1; } h1 = Math.min(h1, e - 0.05); }
+      if (keepIn(h0)) return null;
+      // only while the one minding it stays at home and is not at a meal: the child is fetched in for meals, and called in
+      // when the dust rises or a storm comes on
+      { let e = h0; while (e < h1) { const g = segAt(ms, e + 0.01); if (g.place !== base || g.act === 'eat' || g.act === 'sleep' || / in the night/.test(g.why) || (this.p.age === 1 && nursing(g)) || keepIn(e + 0.01)) break; e += 0.1; } h1 = Math.min(h1, e - 0.05); }
       if (h1 - h0 < 0.4 || this.rainIn(h0, h1) > 0) return null;
-      let place = `lane:${this.hh.q}`, why = 'playing outside the door with the neighbours’ children', host = -1;
       if (k !== 'lane') { const cand = (k === 'kin' ? this.hh.kin : Mo.ties.map(o => P.home(o, d))).map(h => P.households[h]).filter(H => H.id !== this.hh.id && H.q === this.hh.q && H.zone === this.hh.zone);
-        const Hh = cand.length ? cand[Math.floor(this.r.next() * cand.length)] : null; const w = Hh ? P.membersOn(Hh.id, d).find(x => P.persons[x].sex === 'f' && P.persons[x].age >= 14 && segAt(P.plan(x, d), (h0 + h1) / 2).place === Hh.home) : undefined;
-        if (Hh && w !== undefined) { place = Hh.home; host = w; why = k === 'kin' ? 'at a kinswoman’s house in the lane, playing with her children' : 'playing at a neighbour’s house with their children'; const hs = segAt(P.plan(w, d), (h0 + h1) / 2); return { h0: Math.max(h0, hs.t0), h1: Math.min(h1, hs.t1), place, why, host }; } }
+        const Hh = cand.length ? cand[Math.floor(this.r.next() * cand.length)] : null; const mid = (h0 + h1) / 2;
+        const w = Hh ? P.membersOn(Hh.id, d).find(x => P.persons[x].sex === 'f' && P.persons[x].age >= 14 && !!homeRun(P.plan(x, d), Hh.home, mid)) : undefined;
+        // the child stays while she is at home (her spells there one after another, not only the one she is in at the middle:
+        // D-140); when she is not at home long enough, it plays in the lane with the other children instead
+        const run = Hh && w !== undefined ? homeRun(P.plan(w, d), Hh.home, mid)! : null;
+        if (Hh && run && Math.min(h1, run[1]) - Math.max(h0, run[0]) >= 0.4) return { h0: Math.max(h0, run[0]), h1: Math.min(h1, run[1]), place: Hh.home, host: w!,
+          why: k === 'kin' ? 'at a kinswoman’s house in the lane, playing with her children' : 'playing at a neighbour’s house with their children' }; }
       // from two a child plays in the lane with the neighbours' children, the older ones watching the small; a child of one on
       // the doorstep, the one minding them inside (C)
-      if (host < 0) return this.p.age >= 2 ? { h0, h1, place: `lane:${this.hh.q}`, why: 'playing in the lane with the neighbours’ children, the older ones watching the small', host: -1 }
-        : { h0, h1, place: base, why: this.p.age < 2 ? `playing on the doorstep with the neighbours’ children, ${rel} inside` : `playing outside the door with the neighbours’ children, ${rel} within call`, host: m! };
-      return { h0, h1, place, why, host }; })();
+      return this.p.age >= 2 ? { h0, h1, place: `lane:${this.hh.q}`, why: 'playing in the lane with the neighbours’ children, the older ones watching the small', host: -1 }
+        : { h0, h1, place: base, why: this.p.age < 2 ? `playing on the doorstep with the neighbours’ children, ${rel} inside` : `playing outside the door with the neighbours’ children, ${rel} within call`, host: m! }; })();
     // the walk there and back along the lane is part of the outing (with the other children)
     const outWs = [outing(true), outing(false)].filter((x): x is NonNullable<typeof x> => !!x && x.h1 - x.h0 >= 0.4)
       .map(o => ({ ...o, wk: o.place === base ? 0 : Math.min(0.2, (o.h1 - o.h0) / 3, P.walkH(base, o.place, d, baseW, baseW)) }));
@@ -1431,7 +1442,7 @@ class Planner {
     const outings = (xs: Seg[] | null, ok: (x: Seg) => boolean) => { const out: [number, number][] = []; if (!xs) return out; let a = -1, good = true;
       for (const x of xs) { if (x.place !== base) { if (a < 0) { a = x.t0; good = true; } if (x.where !== 'road' && !ok(x)) good = false; } else if (a >= 0) { if (good) out.push([a, x.t0]); a = -1; } } return out; };
     const clear = ([x, y]: [number, number]) => { if (y - x < 0.4 || x < wakeT || y > bedtime - 0.2 || (x < napW[1] && y > napW[0]) || (x < napAM[1] && y > napAM[0]) || ill) return false; const w = this.C.wx.rain; if (w && w[0] < y && w[1] > x) return false;
-      for (let h = x; h < y; h += 0.1) { const M = segAt(ms, h); if (M.place !== base || (this.p.age === 1 && nursing(M))) return false; } return true; };
+      for (let h = x; h < y; h += 0.1) { const M = segAt(ms, h); if (M.place !== base || (this.p.age === 1 && nursing(M)) || keepIn(h)) return false; } return true; };
     const sibSpans = outings(ss, x => x.act === 'play' && (x.place.startsWith('lane:') || x.place.startsWith('garden:') || x.place.startsWith('canal:'))).filter(clear);
     const eSpans = outings(es, x => ['talk', 'exchange', 'eat'].includes(x.act)).filter(sp => sp[0] > 6 && sp[1] < this.sun.set && clear(sp));
     // a child kept at a kinswoman's house is taken there along the lane and fetched home (S4)

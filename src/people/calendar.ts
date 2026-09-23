@@ -36,19 +36,22 @@ export function sunTimes(day: number): { rise: number; set: number } {
 // ------------------------------------------------------------------ weather of a day, as the people feel it
 export interface EnvLike { rain: number; lightning: boolean; tempC: number; dust?: number; windMs?: number }
 export interface DayWx { wet: boolean; rain: [number, number] | null; rainH: number; storm: boolean; stormH: [number, number] | null; dust: boolean; frost: boolean; hot: boolean; tmax: number; tmin: number;
+  /** the hours the dust is in the air (dust > 0.25; W-03), or null: a dust day is a day whose dust rises above 0.5 */
+  dustH: [number, number] | null;
   /** mean wind (m/s) of the morning (07-11) and of the afternoon (14-18): winnowing needs a wind (E-43) */
   windAM: number; windPM: number }
 /** sampled from the hourly weather: rain > 0.25 = people shelter (the Phase 3 rule); lightning or rain > 0.7 = storm */
 export function dayWx(env: (t: number) => EnvLike, day: number): DayWx {
-  let r0 = -1, r1 = -1, s0 = -1, s1 = -1, rainH = 0, tmax = -99, tmin = 99, dust = 0, wa = 0, na = 0, wp = 0, np = 0;
+  let r0 = -1, r1 = -1, s0 = -1, s1 = -1, d0 = -1, d1 = -1, rainH = 0, tmax = -99, tmin = 99, dust = 0, wa = 0, na = 0, wp = 0, np = 0;
   for (let q = 0; q < 96; q++) {
     const h = q * 0.25 + 0.125, e = env(day * 24 + h);
     if (e.rain > 0.25) { if (r0 < 0) r0 = h - 0.125; r1 = h + 0.125; rainH += 0.25; }
     if (e.lightning || e.rain > 0.7) { if (s0 < 0) s0 = h - 0.125; s1 = h + 0.125; }
+    if ((e.dust ?? 0) > 0.25) { if (d0 < 0) d0 = h - 0.125; d1 = h + 0.125; }
     tmax = Math.max(tmax, e.tempC); tmin = Math.min(tmin, e.tempC); dust = Math.max(dust, e.dust ?? 0);
     if (h >= 7 && h < 11) { wa += e.windMs ?? 0; na++; } else if (h >= 14 && h < 18) { wp += e.windMs ?? 0; np++; }
   }
-  return { wet: rainH >= 0.5, rain: r0 >= 0 ? [r0, r1] : null, rainH, storm: s0 >= 0, stormH: s0 >= 0 ? [s0, s1] : null, dust: dust > 0.5, frost: tmin < 0, hot: tmax > 33, tmax, tmin, windAM: na ? wa / na : 0, windPM: np ? wp / np : 0 };
+  return { wet: rainH >= 0.5, rain: r0 >= 0 ? [r0, r1] : null, rainH, storm: s0 >= 0, stormH: s0 >= 0 ? [s0, s1] : null, dust: dust > 0.5, dustH: dust > 0.5 && d0 >= 0 ? [d0, d1] : null, frost: tmin < 0, hot: tmax > 33, tmax, tmin, windAM: na ? wa / na : 0, windPM: np ? wp / np : 0 };
 }
 
 // ------------------------------------------------------------------ pure schedules (also used to create transients)
