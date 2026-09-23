@@ -125,9 +125,12 @@ export class Site {
   /** all wall segments (runs of equal edges merged; corners closed: u-direction walls extend, v-direction walls trim) */
   walls(): Wall[] {
     const { W, H } = this;
-    type E = { kind: Wall['kind']; sides: { plot: number; top: number }[]; thick: number; door: boolean; key: string } | null;
+    type E = { kind: Wall['kind']; sides: { plot: number; top: number }[]; thick: number; door: boolean; key: number } | null;
     const hE: E[] = new Array(W * (H + 1)).fill(null), vE: E[] = new Array((W + 1) * H).fill(null);
-    let nd = 0; const key = (w: NonNullable<ReturnType<Site['edgeWall']>>, door: boolean) => `${w.kind}|${w.thick}|${w.sides.map(s => s.plot + ':' + s.top.toFixed(3)).join(',')}|${door ? 'd' + nd++ : ''}`;
+    let nd = 0; const KI = { outer: 1, facade: 2, partition: 3, yard: 4 };
+    // run signature: equal for edges of one wall run (same kind, thickness, plots and tops); every door is unique
+    const key = (w: NonNullable<ReturnType<Site['edgeWall']>>, door: boolean) => { if (door) return -1 - nd++; let h = KI[w.kind] * 7919 + Math.round(w.thick * 1000);
+      for (const sd of w.sides) { h = (Math.imul(h, 31) + sd.plot + 1) | 0; h = (Math.imul(h, 131) + Math.round(sd.top * 1000)) | 0; } return h >>> 0; };
     // horizontal edges along u at v-line j (between row j−1 and row j), j = 0..H
     for (let j = 0; j <= H; j++) for (let i = 0; i < W; i++) {
       const a = j > 0 ? this.k(i, j - 1) : -1, b = j < H ? this.k(i, j) : -1;
