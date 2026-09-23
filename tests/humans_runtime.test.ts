@@ -7,7 +7,7 @@ import { decodeHumanAssets, meshoptSimplify, type HumanAssets } from '../src/peo
 import { HB, HBONES, PART, MAT } from '../src/people/humanFormat';
 import { RigSolver, PALETTE_STRIDE, RETARGET, PLANTED, skinPoint, type RigInput } from '../src/people/humanRig';
 import { ANIMS, POSE_BONES, pose } from '../src/people/anim';
-import { buildOutfits, DRESSES, COSTUMES, PIECES, pieceBit, unpackNormal, packNormal, type OutfitBuild } from '../src/people/outfits';
+import { buildOutfits, DRESSES, BUILT, COSTUME_OF, COSTUMES, PIECES, pieceBit, unpackNormal, packNormal, type OutfitBuild } from '../src/people/outfits';
 import { lookFor, STATURE, TEXTILE } from '../src/people/looks';
 import { HumanGPU } from '../src/people/humanGPU';
 import { Crowd, ATTACH_R, DETACH_R } from '../src/people/crowd';
@@ -98,13 +98,15 @@ describe('skin texture (re-baked, D-025)', () => {
 describe('costumes (fitted to every variant)', () => {
   it('every dress builds at three LODs within triangle budgets; every piece is tiered with a source', () => {
     const budget = [42000, 7000, 3200, 800];
-    for (const d of DRESSES) for (const C of O.costumes[d]) {
+    expect(Object.keys(O.costumes).sort()).toEqual([...BUILT].sort()); // guards share the Persian costume's meshes
+    for (const d of DRESSES) expect(O.costumes[COSTUME_OF[d]].length).toBe(4);
+    for (const d of BUILT) for (const C of O.costumes[d]) {
       expect(C.triangles, `${d} LOD${C.lod}`).toBeLessThanOrEqual(budget[C.lod]);
       let mx = 0; for (const i of C.index) mx = Math.max(mx, i); expect(mx).toBeLessThan(C.tid.length);
       for (let k = 0; k < C.tid.length; k++) { let s = 0; for (let j = 0; j < 4; j++) { s += C.skinWeight[k * 4 + j]; if (C.skinWeight[k * 4 + j]) expect(C.skinIndex[k * 4 + j]).toBeLessThan(HBONES.length); } expect(Math.abs(s - 255)).toBeLessThanOrEqual(1); }
     }
     for (const d of DRESSES) for (const id of [...COSTUMES[d].always, ...COSTUMES[d].opt]) { const p = PIECES[id]; expect(p, id).toBeDefined(); expect(['A', 'B', 'C']).toContain(p.tier); expect(p.src.length).toBeGreaterThan(2); }
-    console.log(DRESSES.map(d => `${d}: ${O.costumes[d].map(c => `${c.triangles}/${c.bodyTriangles}`).join(' · ')}`).join('; '));
+    console.log(BUILT.map(d => `${d}: ${O.costumes[d].map(c => `${c.triangles}/${c.bodyTriangles}`).join(' · ')}`).join('; '));
   });
   it('no piece or colour is named after a blocklisted thing (anachronism lint: ids and labels; notes may cite negatives)', () => {
     const block = JSON.parse(readFileSync('src/data/blocklist.json', 'utf8'));
@@ -123,7 +125,7 @@ describe('costumes (fitted to every variant)', () => {
     }
   });
   it('the body under always-worn garments is dropped (fewer triangles, nothing to poke through)', () => {
-    for (const d of ['persian', 'guard', 'median', 'woman'] as const) expect(O.costumes[d][0].bodyTriangles).toBeLessThan(A.lods[0].length / 3 * 0.8);
+    for (const d of ['persian', 'guard', 'median', 'woman'] as const) expect(O.costumes[COSTUME_OF[d]][0].bodyTriangles).toBeLessThan(A.lods[0].length / 3 * 0.8);
   });
 });
 
@@ -137,6 +139,7 @@ describe('looks', () => {
       else expect(L1.stature).toBeLessThan(1.4);
       for (const id of L1.pieces) expect([...COSTUMES[dress].always, ...COSTUMES[dress].opt]).toContain(id);
       for (const id of COSTUMES[dress].opt) expect(((L1.mask >> pieceBit(dress, id)) & 1) === 1).toBe(L1.pieces.includes(id));
+      for (const id of COSTUMES[dress].always) expect((L1.mask >> pieceBit(dress, id)) & 1).toBe(1); // guards' bow and quiver: bits of the shared costume
       if (sex === 'f') expect(L1.pieces.some(p => p.startsWith('beard'))).toBe(false);
       expect(L1.note).toMatch(/C/);
     }

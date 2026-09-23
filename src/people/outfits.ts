@@ -289,15 +289,21 @@ export const PIECES: Record<string, PieceMeta> = {
 // costume composition: pieces per dress; `opt` = optional per person (a bit in the person's piece mask)
 export interface CostumeDef { dress: Dress; always: string[]; opt: string[] }
 export const COSTUMES: Record<Dress, CostumeDef> = {
-  persian: { dress: 'persian', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque'] },
+  persian: { dress: 'persian', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque', 'quiver', 'bow'] },
+  // guards wear the Persian costume (the same mesh) with the bow and quiver bits always set: one draw fewer per LOD and cascade
   guard: { dress: 'guard', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'quiver', 'bow'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque'] },
   median: { dress: 'median', always: ['tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos', 'kandys'] },
   worker: { dress: 'worker', always: ['work_upper', 'work_skirt', 'belt'], opt: ['hair', 'beard_long', 'beard_short', 'work_trousers', 'shoes', 'headband', 'cap_soft'] },
   woman: { dress: 'woman', always: ['dress_upper', 'dress_skirt', 'belt'], opt: ['hair', 'hair_bob', 'headcloth', 'shoes'] },
   child: { dress: 'child', always: ['child_upper', 'child_skirt'], opt: ['hair', 'shoes'] },
 };
-/** bit of an optional piece in a costume's mask (bit 0 = always present) */
-export const pieceBit = (dress: Dress, id: string) => { const i = COSTUMES[dress].opt.indexOf(id); return i < 0 ? 0 : i + 1; };
+/** the built costume (one instanced mesh per LOD) a dress is drawn with */
+export const COSTUME_OF: Record<Dress, Dress> = { persian: 'persian', guard: 'persian', median: 'median', worker: 'worker', woman: 'woman', child: 'child' };
+/** the costumes that are built */
+export const BUILT: Dress[] = ['persian', 'median', 'worker', 'woman', 'child'];
+/** bit of a piece in the mask of the costume a dress is drawn with (bit 0 = always present; 0 also for pieces that are
+ *  always part of that costume) */
+export const pieceBit = (dress: Dress, id: string) => { const i = COSTUMES[COSTUME_OF[dress]].opt.indexOf(id); return i < 0 ? 0 : i + 1; };
 
 // ------------------------------------------------------------------------------------------------ piece builders
 const W = (b: HBone, w = 1): [number, number] => [HB[b], w];
@@ -779,7 +785,7 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
   const ref = A.byId.m03 ?? A.variants[0];
   const J = (b: HBone): V3 => [ref.joints[HB[b] * 3], ref.joints[HB[b] * 3 + 1], ref.joints[HB[b] * 3 + 2]];
   const L: Lib = { A, ref, J };
-  const dresses = opts.dresses ?? DRESSES, lods = opts.lods ?? [0, 1, 2];
+  const dresses = (opts.dresses ?? BUILT).map(d => COSTUME_OF[d]).filter((d, i, a) => a.indexOf(d) === i), lods = opts.lods ?? [0, 1, 2];
   // distinct piece geometries (LOD1 and LOD2 shells share a tessellation → same key)
   const geos: Record<string, Geo> = {};
   const need: { id: string; lod: number }[] = [];

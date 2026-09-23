@@ -107,6 +107,7 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
     case 'child': if (rng.chance(0.3)) on.add('shoes'); break;
   }
   let mask = 1; const pieces: string[] = [...COSTUMES[dress].always];
+  for (const id of COSTUMES[dress].always) mask |= (1 << pieceBit(dress, id)) & ~1; // always worn, but a bit of the shared costume (guards' bow and quiver)
   for (const id of COSTUMES[dress].opt) if (on.has(id)) { mask |= 1 << pieceBit(dress, id); pieces.push(id); }
   const hasBeard = on.has('beard_long') || on.has('beard_short');
   const stubble = man && !hasBeard ? rng.range(0.5, 1) : 0;

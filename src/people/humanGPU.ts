@@ -7,7 +7,7 @@
 import * as THREE from 'three/webgpu';
 import type { HumanAssets } from './humanAssets';
 import type { OutfitBuild, CostumeLOD, Dress } from './outfits';
-import { DRESSES } from './outfits';
+import { BUILT } from './outfits';
 import { HumanMaterial, PERSON_TEXELS, type HumanTextures } from './humanMaterial';
 import { NBONES, PALETTE_STRIDE } from './humanRig';
 
@@ -58,7 +58,7 @@ export class HumanGPU {
     this.material = new HumanMaterial(this.textures); this.materials.push(this.material);
     const shadowMat = new HumanMaterial(this.textures, { shadowOnly: true }); this.materials.push(shadowMat);
     const cast = opts.castShadow ?? true;
-    for (const d of DRESSES) {
+    for (const d of BUILT) {
       const list = O.costumes[d] ?? [];
       // shadow maps do not need fingers and eyelids (a cascade texel is 1–12 cm): the far body (≈2.5k triangles) casts
       // for everyone within 200 m, in one draw per costume and cascade

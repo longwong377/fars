@@ -3,7 +3,7 @@
 // Run: npx tsx tools/dev/outfit_preview.ts [dress,…] [variant] [anim]
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { decodeHumanAssets } from '../../src/people/humanAssets';
-import { buildOutfits, DRESSES, COSTUMES, pieceBit, type Dress } from '../../src/people/outfits';
+import { buildOutfits, DRESSES, COSTUMES, COSTUME_OF, pieceBit, type Dress } from '../../src/people/outfits';
 import { RigSolver, PALETTE_STRIDE, skinPoint } from '../../src/people/humanRig';
 import { pose, type AnimId } from '../../src/people/anim';
 import { MAT } from '../../src/people/humanFormat';
@@ -22,8 +22,8 @@ const COLS: Record<number, [number, number, number]> = { [MAT.skin]: [220, 170, 
   [MAT.teeth]: [240, 240, 220], [MAT.mouth]: [150, 60, 60], [MAT.leather]: [120, 80, 50], [MAT.felt]: [150, 140, 110], [MAT.metal]: [230, 200, 90], [MAT.lash]: [20, 20, 20], [MAT.wood]: [120, 90, 60], [MAT.wicker]: [170, 150, 100] };
 mkdirSync('shots', { recursive: true });
 for (const d of dresses) {
-  const C = O.costumes[d][0]; const all = (1 << (COSTUMES[d].opt.length + 1)) - 1;
-  const keep = (dress: Dress) => { const m = new Set(['hair', 'bun', 'beard_long', 'hat_fluted', 'cap_soft', 'headcloth', 'work_trousers', 'shoes', 'akinaka', 'gorytos', 'torque', 'kandys']); if (dress === 'woman') m.delete('hair_bob'); let mask = 1; for (const id of COSTUMES[dress].opt) if (m.has(id)) mask |= 1 << pieceBit(dress, id); return mask; };
+  const C = O.costumes[COSTUME_OF[d]][0]; const all = (1 << (COSTUMES[d].opt.length + 1)) - 1;
+  const keep = (dress: Dress) => { const m = new Set(['hair', 'bun', 'beard_long', 'hat_fluted', 'cap_soft', 'headcloth', 'work_trousers', 'shoes', 'akinaka', 'gorytos', 'torque', 'kandys']); if (dress === 'woman') m.delete('hair_bob'); let mask = 1; for (const id of COSTUMES[dress].always) mask |= (1 << pieceBit(dress, id)) & ~1; for (const id of COSTUMES[dress].opt) if (m.has(id)) mask |= 1 << pieceBit(dress, id); return mask; };
   const mask = keep(d); void all;
   // bind positions for this variant
   const n = C.tid.length, pos = new Float32Array(n * 3); const src = O.source, base = v.index * O.NV * 4;
@@ -42,5 +42,5 @@ for (const d of dresses) {
   const pp = new Float32Array(n * 3); const o = [0, 0, 0];
   for (let k = 0; k < n; k++) { skinPoint(pal, 0, C.skinIndex.subarray(k * 4, k * 4 + 4), Array.from(C.skinWeight.subarray(k * 4, k * 4 + 4), x => x / 255), pos.subarray(k * 3, k * 3 + 3), o); pp.set(o, k * 3); }
   for (const view of ['front', 'side'] as const) writeFileSync(`shots/outfit_${d}_${vid}_${anim}_${view}.png`, encodePNG(360, 720, preview([{ pos: pp, index: idx, color: col }], view, 360, 720, { cx: 0, cy: 0.9, half: 0.5 }), 4));
-  console.log(d, O.costumes[d].map(c => `LOD${c.lod}: ${c.triangles} tris (body ${c.bodyTriangles}), ${c.tid.length} verts`).join(' | '), JSON.stringify(O.costumes[d][0].pieceTris));
+  console.log(d, O.costumes[COSTUME_OF[d]].map(c => `LOD${c.lod}: ${c.triangles} tris (body ${c.bodyTriangles}), ${c.tid.length} verts`).join(' | '), JSON.stringify(O.costumes[COSTUME_OF[d]][0].pieceTris));
 }

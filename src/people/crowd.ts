@@ -24,7 +24,7 @@ import { lookFor, type PersonLook, type LookInput } from './looks';
 import { HB } from './humanFormat';
 import { PERSON_TEXELS, FLAG_HIDE_HEAD } from './humanMaterial';
 import { propGeometry, propUnionGeometry, paintedBox, PROP_KINDS, PROP_NOTES } from './props';
-import { PIECES, pieceBit, type Dress } from './outfits';
+import { PIECES, pieceBit, COSTUME_OF, type Dress } from './outfits';
 /** poses in which people sit, kneel or lie (coats and back-carried weapons are laid aside) */
 const SEATED = new Set<AnimId>(['sit', 'write', 'eat', 'dice', 'sleep', 'grind', 'knead', 'bake']);
 import type { AnimId } from './anim';
@@ -226,7 +226,7 @@ export class Crowd {
       const every = d < 30 ? 1 : d < 90 ? 2 : d < 200 ? 4 : 8;
       if (p.poseFrame < 0 || (this.frame + p.frameMod) % every === 0 || this.frame - p.poseFrame > every) { this.posePerson(p, time, d, playerPos, cam, lod); posed++; }
       else if (p.poseFrame === this.frame - 1) this.copyPrev(p); // no bone change this frame: previous = current
-      const c = gpu.costumes.get(`${p.look.dress}@${lod}`)!;
+      const c = gpu.costumes.get(`${COSTUME_OF[p.look.dress]}@${lod}`)!;
       gpu.push(c, p.slot, p.root[0], p.root[1], p.root[2], p.root[3], p.prevRoot[0], p.prevRoot[1], p.prevRoot[2], p.prevRoot[3], d < SHADOW_DIST);
       p.drawnFrame = this.frame;
       if (p.prop) this.placeProp(p);
