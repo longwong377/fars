@@ -1373,3 +1373,8 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Tests (`tests/twilight.test.ts`):** the base is still lit, and red, at −1.0° and dark at −1.6°; the top is lit at −1.6° and dark at −2.3°, and at −1° is > 100× the base; at noon the base is 1–1.25× the ground; the SkySystem hands the shader a red top colour and no base colour at −1.4°, with the ground's sun off.
 - **Unchanged:** the cover calibration (D-064: the coverage uniform and the local weather factor) and the rain-cell uniform. The ambient term is the skylight, which carries the gain.
 - **Tier:** the geometry A (a spherical Earth), the colour B (a model), the cloud optics C as before.
+- **Addendum (rendered, test quality, before the twilight merge):**
+  - terrace-w-dusk with and without the town now differs in 3,373 px by more than 30 levels (was 955).
+  - Over the town the smoke is bluish grey (124, 128, 137), where the same pixels without the town read (92, 87, 85). The pink horizon above is (124, 94, 105) and the plain (74, 70, 51).
+  - But the 1,303 plumes read as a fence of bright vertical lines. They kept their opacity while widening from 0.6 to 7 m. Their opacity now falls as base width over width (the smoke dilutes as it spreads; mass conservation, C), so the quarter haze carries the band.
+  - The `mountain-dusk` view was killed by the 15-min watchdog along with it (4 page loads at ~5 min each). It is re-queued alone.

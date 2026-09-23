@@ -73,7 +73,10 @@ export class TownHaze {
     const OMEGA = 0.9, G = 0.6;
     const cosT = dot(normalize(positionWorld.sub(cameraPosition)), this.uSunDir), hg = float((1 - G * G) / (4 * Math.PI)).div(pow(float(1 + G * G).sub(cosT.mul(2 * G)), 1.5));
     m.colorNode = (this.uSky as any).add((this.uSun as any).mul(hg)).mul(OMEGA);
-    m.opacityNode = across.mul(along).mul(turb).mul(pa);
+    // the smoke dilutes as it spreads: the optical depth across the plume falls as the base width over the width here (mass
+    // conservation, C); with a constant opacity the widening plumes read as a fence of bright lines from the Terrace (D-070)
+    const dilute = float(0.6).div(w);
+    m.opacityNode = across.mul(along).mul(turb).mul(pa).mul(dilute);
     if (SMOKE_DBG) { m.colorNode = vec3(1, 0, 0); m.opacityNode = across.mul(along); } // debug: plumes solid red
     const mesh = new THREE.Mesh(g, m); mesh.frustumCulled = false; mesh.renderOrder = 3; mesh.name = 'settlement:smoke-plumes';
     mesh.userData = { tier: 'C', src: 'RECON', note: `rising smoke of the town's lit hearths, ovens and kilns (${n} sources; fire schedules C; plume height, width and opacity C)` };
