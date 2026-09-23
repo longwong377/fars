@@ -23,6 +23,7 @@ import { reliefStats } from './arch/reliefs';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
 import { Pipeline } from './render/pipeline';
+import { probeSkyVisibility } from './render/probes/runtime';
 import { WEATHER, SEASON } from './render/materials';
 import { seasonAt } from './world/season';
 import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
@@ -306,7 +307,7 @@ async function boot() {
     // eye adaptation (C): exposure follows an estimate of the illuminance at the eye — sun + skylight scaled by the visible
     // sky fraction (upward rays against the architecture, every 0.25 s) + moon + nearby fires — with asymmetric time constants
     adaptT += dt;
-    if (adaptT > 0.25 || skyVis < 0) { adaptT = 0; skyVis = skyVisibility(); }
+    if (adaptT > 0.25 || skyVis < 0) { adaptT = 0; skyVis = probeSkyVisibility(camera.position, skyVisibility); } // light probes in the roofed halls (D-113), upward rays elsewhere
     const sunE = sky.sun.visible ? sky.sun.intensity * Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)) : 0;
     const fireE = world.fire ? world.fire.localIlluminance(camera.position) : 0;
     const E = (sunE + sky.hemi.intensity * 0.8) * (0.15 + 0.85 * skyVis) + sky.moonLight.intensity * 0.3 + fireE + 0.004;

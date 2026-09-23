@@ -1,0 +1,157 @@
+// Light-probe field (D-110): per roofed building, a regular grid of probes over the roofed floor plus a margin, each
+// holding the ambient (sky) irradiance that the building's openings let in, as a linear function of the surface normal.
+// Pure TypeScript: the bake (bake.ts), the unit tests, the eye adaptation and the shader (runtime.ts) read the same data.
+//
+// Per probe, 12 values (PROBE_STRIDE):
+//   0–3   S channel: irradiance per unit sky irradiance S (the hemisphere light's sky term): the sky seen through the
+//         openings plus light the sky puts on surfaces that the probe sees (one and two bounces). E_S(n) = a + b·n.
+//   4–7   U channel: irradiance per unit horizontal direct sun irradiance U (sun intensity × sin altitude): sunlit
+//         surfaces seen by the probe (courts beyond the doorways, sun patches on floors), time-averaged over the year's
+//         daylight (bake.ts). E_U(n) = a + b·n.
+//   8, 9  bounce tint (red, blue; luminance 1, so green follows): the colour the bounced light takes from the albedos.
+//   10    bounce fraction of the S channel's mean (the rest is the sky itself, untinted).
+//   11    validity (0 = the probe is inside a solid; its values are 0 and it is left out of the interpolation).
+// Ambient irradiance at a point, normal n:  E = S·mix(1, tint, fb)·max(0, E_S(n)) + U·tint·max(0, E_U(n)).
+// In the open this reproduces the hemisphere light's sky term S·(1 + n_y)/2 exactly (L1 is exact for a hemisphere).
+export const PROBE_STRIDE = 12;
+
+export interface ProbeVolume {
+  building: string;
+  /** world position of probe (0, 0, 0): x = grid east, y = up, z = −grid north */
+  origin: [number, number, number];
+  /** probe spacing along x, y (layers), z (m) */
+  spacing: [number, number, number];
+  /** probe counts along x, y (layers), z */
+  dims: [number, number, number];
+  /** weight: 1 over the roofed footprint (+ `full` m), falling to 0 at the grid edge; below the floor it fades out over
+   *  [yLo0, yLo1], above the ceiling over [yHi0, yHi1] (the roof slab: the roof's top face is outdoors) */
+  roof: [number, number, number, number]; // world x0, x1, z0, z1 of the roofed footprint
+  full: number;
+  yLo: [number, number]; yHi: [number, number];
+  /** index of the volume's first probe in the data (probes are layer-major: ix + nx·(iz + nz·iy)) */
+  offset: number;
+}
+export interface ProbeField { volumes: ProbeVolume[]; data: Float32Array; count: number; normalBias: number; tier: string; note: string; partsHash?: string }
+
+const sstep = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+export const gridExtent = (v: ProbeVolume) => ({
+  x0: v.origin[0], x1: v.origin[0] + (v.dims[0] - 1) * v.spacing[0],
+  y0: v.yLo[0], y1: v.yHi[1],
+  z0: v.origin[2], z1: v.origin[2] + (v.dims[2] - 1) * v.spacing[2],
+});
+/** weight of the probe field at a point (0 outside the volume, 1 well inside the roofed space) */
+export function volumeWeight(v: ProbeVolume, x: number, y: number, z: number): number {
+  const g = gridExtent(v), [rx0, rx1, rz0, rz1] = v.roof, f = v.full;
+  if (x < g.x0 || x > g.x1 || z < g.z0 || z > g.z1 || y < g.y0 || y > g.y1) return 0;
+  const wx = sstep(g.x0, rx0 - f, x) * (1 - sstep(rx1 + f, g.x1, x));
+  const wz = sstep(g.z0, rz0 - f, z) * (1 - sstep(rz1 + f, g.z1, z));
+  return wx * wz * sstep(v.yLo[0], v.yLo[1], y) * (1 - sstep(v.yHi[0], v.yHi[1], y));
+}
+export function volumeAt(F: ProbeField, x: number, y: number, z: number): ProbeVolume | null {
+  for (const v of F.volumes) { const g = gridExtent(v); if (x >= g.x0 && x <= g.x1 && y >= g.y0 && y <= g.y1 && z >= g.z0 && z <= g.z1) return v; }
+  return null;
+}
+export const probePosition = (v: ProbeVolume, ix: number, iy: number, iz: number): [number, number, number] =>
+  [v.origin[0] + ix * v.spacing[0], v.origin[1] + iy * v.spacing[1], v.origin[2] + iz * v.spacing[2]];
+export const probeIndex = (v: ProbeVolume, ix: number, iy: number, iz: number) => v.offset + ix + v.dims[0] * (iz + v.dims[2] * iy);
+
+/** the interpolated probe at a point: validity-weighted trilinear over the 8 surrounding probes (what the GPU computes with
+ *  premultiplied, hardware-filtered textures). Returns null outside every volume. `out` receives the 12 values
+ *  (validity-normalised) and the weight. */
+export interface ProbeSample { w: number; v: number; s: Float64Array }
+export function sampleField(F: ProbeField, x: number, y: number, z: number, nx = 0, ny = 0, nz = 0, out: ProbeSample = { w: 0, v: 0, s: new Float64Array(PROBE_STRIDE) }, data = F.data): ProbeSample | null {
+  const vol = volumeAt(F, x, y, z); if (!vol) return null;
+  const b = F.normalBias, qx = x + nx * b, qy = y + ny * b, qz = z + nz * b;
+  const [n0, n1, n2] = vol.dims;
+  const gx = Math.min(n0 - 1, Math.max(0, (qx - vol.origin[0]) / vol.spacing[0]));
+  const gy = Math.min(n1 - 1, Math.max(0, (qy - vol.origin[1]) / vol.spacing[1]));
+  const gz = Math.min(n2 - 1, Math.max(0, (qz - vol.origin[2]) / vol.spacing[2]));
+  const ix = Math.min(n0 - 2, Math.floor(gx)), iy = Math.min(Math.max(0, n1 - 2), Math.floor(gy)), iz = Math.min(n2 - 2, Math.floor(gz));
+  const fx = gx - ix, fy = n1 > 1 ? gy - iy : 0, fz = gz - iz;
+  out.s.fill(0); let wsum = 0;
+  for (let c = 0; c < 8; c++) {
+    const dx = c & 1, dy = (c >> 1) & 1, dz = (c >> 2) & 1;
+    if (n1 === 1 && dy) continue;
+    const wt = (dx ? fx : 1 - fx) * (dy ? fy : 1 - fy) * (dz ? fz : 1 - fz); if (wt <= 0) continue;
+    const o = probeIndex(vol, ix + dx, iy + dy, iz + dz) * PROBE_STRIDE, val = data[o + 11];
+    if (val <= 0) continue;
+    const k = wt * val; wsum += k;
+    for (let j = 0; j < 11; j++) out.s[j] += k * data[o + j];
+  }
+  out.v = wsum; // (the trilinear weights sum to 1, so this is the interpolated validity)
+  if (wsum > 1e-6) for (let j = 0; j < 11; j++) out.s[j] /= wsum;
+  out.s[11] = wsum;
+  out.w = volumeWeight(vol, x, y, z) * sstep(0.05, 0.3, wsum);
+  return out;
+}
+/** irradiance for normal n from a sample, per unit S and U (luminance; tint and fb are colour only):
+ *  [sky part E_S, sun part E_U] */
+export function evalSample(s: Float64Array, nx: number, ny: number, nz: number): [number, number] {
+  return [Math.max(0, s[0] + s[1] * nx + s[2] * ny + s[3] * nz), Math.max(0, s[4] + s[5] * nx + s[6] * ny + s[7] * nz)];
+}
+
+/** the open-field reference the probes are compared with: a surface of normal n on open, level, sunlit ground of
+ *  albedo `rho` sees the sky above (S (1 + n_y)/2) and the ground below, lit by sun and sky ((S + U) ρ (1 − n_y)/2) */
+export function openField(ny: number, S: number, U: number, rho: number) { return S * (1 + ny) / 2 + (S + U) * rho * (1 - ny) / 2; }
+/** directions over which a probe's "visibility" is averaged for the eye: up and the four horizontal axes */
+const EYE_DIRS: [number, number, number][] = [[0, 1, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]];
+/** the open-field ambient irradiance averaged over the eye directions */
+export function openAmbientMean(S: number, U: number, rho: number) { let o = 0; for (const d of EYE_DIRS) o += openField(d[1], S, U, rho); return o / EYE_DIRS.length; }
+/** ambient light at a point relative to the open field (0 … ~1): the mean over the eye directions of the probe irradiance
+ *  divided by the mean open-field irradiance, for sky S and sun U (luminance). Returns the field weight w too (0 outside
+ *  the volumes, where vis is 1), so a caller blends it with its own estimate: w·vis + (1 − w)·other. */
+export function fieldVisibility(F: ProbeField, x: number, y: number, z: number, S: number, U: number, rho: number): { vis: number; w: number } {
+  const smp = sampleField(F, x, y, z); if (!smp || smp.w <= 0) return { vis: 1, w: 0 };
+  let e = 0, o = 0;
+  for (const [a, b, c] of EYE_DIRS) { const [es, eu] = evalSample(smp.s, a, b, c); e += S * es + U * eu; o += openField(b, S, U, rho); }
+  return { vis: o > 0 ? Math.min(1, e / o) : 1, w: smp.w };
+}
+
+// ------------------------------------------------------------------ packing (file ↔ field ↔ texture atlas)
+/** the atlas the GPU samples: per volume, its layers side by side as tiles of nx × nz texels, shelf-packed into rows of
+ *  width ≤ maxW. Returns each volume's (u0, v0) texel origin and the atlas size. */
+export function atlasLayout(vols: ProbeVolume[], maxW = 1024) {
+  const order = vols.map((v, i) => i).sort((a, b) => vols[b].dims[2] - vols[a].dims[2]);
+  const pos: [number, number][] = vols.map(() => [0, 0]);
+  let x = 0, y = 0, rowH = 0, W = 0;
+  for (const i of order) {
+    const w = vols[i].dims[0] * vols[i].dims[1], h = vols[i].dims[2];
+    if (w > maxW) throw new Error(`probe volume ${vols[i].building} is wider than the atlas (${w} > ${maxW})`);
+    if (x + w > maxW) { y += rowH; x = 0; rowH = 0; }
+    pos[i] = [x, y]; x += w; rowH = Math.max(rowH, h); W = Math.max(W, x);
+  }
+  return { pos, width: W, height: y + rowH };
+}
+/** three RGBA atlases of the field, premultiplied by validity (so hardware bilinear filtering gives the validity-weighted
+ *  mean): T0 = S channel (a, bx, by, bz), T1 = U channel, T2 = (tint r, tint b, fb, 1) · v with v in alpha */
+export function atlasData(F: ProbeField, maxW = 1024) {
+  const L = atlasLayout(F.volumes, maxW), W = L.width, H = L.height;
+  const T = [new Float32Array(W * H * 4), new Float32Array(W * H * 4), new Float32Array(W * H * 4)];
+  F.volumes.forEach((v, vi) => {
+    const [u0, v0] = L.pos[vi], [nx, ny, nz] = v.dims;
+    for (let iy = 0; iy < ny; iy++) for (let iz = 0; iz < nz; iz++) for (let ix = 0; ix < nx; ix++) {
+      const o = probeIndex(v, ix, iy, iz) * PROBE_STRIDE, d = F.data, val = d[o + 11];
+      const t = ((v0 + iz) * W + (u0 + iy * nx + ix)) * 4;
+      for (let c = 0; c < 4; c++) { T[0][t + c] = d[o + c] * val; T[1][t + c] = d[o + 4 + c] * val; }
+      T[2][t] = d[o + 8] * val; T[2][t + 1] = d[o + 9] * val; T[2][t + 2] = d[o + 10] * val; T[2][t + 3] = val;
+    }
+  });
+  return { width: W, height: H, pos: L.pos, textures: T };
+}
+
+// half floats (the file stores 16-bit values: ±65504, 11-bit mantissa, ample for irradiance ratios)
+const f32 = new Float32Array(1), u32 = new Uint32Array(f32.buffer);
+export function toHalf(v: number): number {
+  f32[0] = v; const x = u32[0], s = (x >>> 16) & 0x8000; let e = ((x >>> 23) & 0xff) - 127 + 15, m = x & 0x7fffff;
+  if (e <= 0) { if (e < -10) return s; m = (m | 0x800000) >> (1 - e); return s | ((m + 0x1000) >> 13); }
+  if (e >= 31) return s | 0x7c00;
+  const r = s | (e << 10) | ((m + 0x1000) >> 13); return r; // (rounding may carry into the exponent: still correct)
+}
+export function fromHalf(h: number): number {
+  const s = h & 0x8000 ? -1 : 1, e = (h >> 10) & 0x1f, m = h & 0x3ff;
+  if (e === 0) return s * m * 2 ** -24;
+  if (e === 31) return m ? NaN : s * Infinity;
+  return s * (1 + m / 1024) * 2 ** (e - 15);
+}
+export function encodeField(data: Float32Array): Uint16Array { const o = new Uint16Array(data.length); for (let i = 0; i < data.length; i++) o[i] = toHalf(data[i]); return o; }
+export function decodeField(h: Uint16Array): Float32Array { const o = new Float32Array(h.length); for (let i = 0; i < h.length; i++) o[i] = fromHalf(h[i]); return o; }

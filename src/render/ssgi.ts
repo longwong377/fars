@@ -2,8 +2,11 @@
 // Patched copy of three r186 examples/jsm/tsl/display/SSGINode.js (MIT, three.js authors; ASSET_LEDGER).
 // PĀRSA changes (D-012): (1) sky pixels (depth = clear value; the sky, moon and stars write no depth, D-007) are neither
 // shaded nor used as occluders or light sources: skylight is the analytic hemisphere light, so counting sky pixels again
-// would double it, and a far-plane sample would mark a thin occluded sector; (2) reversed-Z depth handled for that test.
-import { RenderTarget, Vector2, TempNode, QuadMesh, NodeMaterial, RendererUtils, MathUtils, RGBFormat, RedFormat, UnsignedInt101111Type, UnsignedByteType } from 'three/webgpu';
+// would double it, and a far-plane sample would mark a thin occluded sector; (2) reversed-Z depth handled for that test;
+// (3) a second, short-range AO (D-112): the same horizon samples, counting only occluders within `aoNearRadius` (world
+// metres) of the pixel, written to the AO texture's green channel. Inside the light-probe volumes the probes carry the
+// large-scale occlusion of the skylight, so the composite uses this contact AO there instead of the full-radius one.
+import { RenderTarget, Vector2, TempNode, QuadMesh, NodeMaterial, RendererUtils, MathUtils, RGBFormat, RGFormat, UnsignedInt101111Type, UnsignedByteType } from 'three/webgpu';
 import { clamp, normalize, reference, Fn, NodeUpdateType, uniform, vec4, passTexture, uv, logarithmicDepthToViewZ, viewZToPerspectiveDepth, getViewPosition, screenCoordinate, float, sub, fract, dot, vec2, rand, vec3, Loop, mul, PI, cos, sin, uint, cross, acos, sign, pow, luminance, If, max, abs, Break, sqrt, HALF_PI, div, ceil, shiftRight, convertToTexture, bool, getNormalFromDepth, countOneBits, interleavedGradientNoise, property, outputStruct, context, Continue } from 'three/tsl';
 
 const _quadMesh = /*@__PURE__*/ new QuadMesh();
@@ -130,6 +133,13 @@ class SSGINode extends TempNode {
 		 * @default 10
 		 */
 		this.giIntensity = uniform( 10, 'float' );
+
+		/**
+		 * PĀRSA (D-112): radius in world metres of the contact AO in the green channel of the AO texture.
+		 *
+		 * @type {UniformNode<float>}
+		 */
+		this.aoNearRadius = uniform( 1.2, 'float' );
 
 		/**
 		 * Effective sampling radius in world space. AO and GI can only have influence within that radius.
@@ -283,7 +293,7 @@ class SSGINode extends TempNode {
 		const aoTexture = this._ssgiRenderTarget.textures[ 0 ];
 		aoTexture.name = 'SSGI.AO';
 		aoTexture.type = UnsignedByteType;
-		aoTexture.format = RedFormat;
+		aoTexture.format = RGFormat; // PĀRSA: R = AO over the full radius, G = contact AO within aoNearRadius
 
 		const giTexture = this._ssgiRenderTarget.textures[ 1 ];
 		giTexture.name = 'SSGI.GI';
@@ -425,6 +435,7 @@ class SSGINode extends TempNode {
 		const uvNode = uv();
 		const MAX_RAY = uint( 32 );
 		const globalOccludedBitfield = uint( 0 );
+		const nearOccludedBitfield = uint( 0 ); // PĀRSA: sectors occluded by samples within aoNearRadius
 
 		const sampleDepth = ( uv ) => {
 
@@ -534,6 +545,10 @@ class SSGINode extends TempNode {
 				currentOccludedBitfield = currentOccludedBitfield.bitAnd( globalOccludedBitfield.bitNot() );
 
 				globalOccludedBitfield.assign( globalOccludedBitfield.bitOr( currentOccludedBitfield ) );
+
+				// PĀRSA: the contact AO counts the sectors of samples that lie within aoNearRadius of the pixel
+				const nearBits = sampleViewPosition.sub( viewPosition ).length().lessThan( this.aoNearRadius ).select( angleHorizonBitfield.shiftLeft( startHorizonInt ), uint( 0 ) );
+				nearOccludedBitfield.assign( nearOccludedBitfield.bitOr( nearBits ) );
 				const numOccludedZones = countOneBits( currentOccludedBitfield );
 
 				//
@@ -572,7 +587,7 @@ class SSGINode extends TempNode {
 
 		} );
 
-		const aoField = property( 'float' );
+		const aoField = property( 'vec2' );
 		const giField = property( 'vec3' );
 
 		const outputNode = outputStruct( aoField, giField );
@@ -584,7 +599,7 @@ class SSGINode extends TempNode {
 			// PĀRSA: sky pixels (reversed-Z aware) write neutral values (AO 1, GI 0) instead of being discarded, so the
 			// composite can leave them untouched without testing depth itself
 			const skyPixel = isSkyDepth( this.depthNode.sample( uvNode ).r );
-			aoField.assign( 1 );
+			aoField.assign( vec2( 1 ) );
 			giField.assign( vec3( 0 ) );
 
 			If( skyPixel.not(), () => {
@@ -601,6 +616,7 @@ class SSGINode extends TempNode {
 			const initialRayStep = fract( noiseOffset.add( this._temporalOffset ) ).add( rand( uvNode.add( noiseJitterIdx ).mul( 2 ).sub( 1 ) ) );
 
 			const ao = float( 0 );
+			const aoNear = float( 0 );
 			const color = vec3( 0 );
 
 			const ROTATION_COUNT = this.sliceCount.toConst();
@@ -641,16 +657,20 @@ class SSGINode extends TempNode {
 				const n = sign( dot( projectedNormal, tangent ) ).negate().mul( acos( cos_n ) ).toConst();
 
 				globalOccludedBitfield.assign( 0 );
+				nearOccludedBitfield.assign( 0 );
 
 				color.addAssign( horizonSampling( bool( true ), stepRadius, radiusVS, viewPosition, slideDirTexelSize, initialRayStep, uvNode, viewDir, viewNormal, n ) );
 				color.addAssign( horizonSampling( bool( false ), stepRadius, radiusVS, viewPosition, slideDirTexelSize, initialRayStep, uvNode, viewDir, viewNormal, n ) );
 
 				ao.addAssign( float( countOneBits( globalOccludedBitfield ) ).div( float( MAX_RAY ) ) );
+				aoNear.addAssign( float( countOneBits( nearOccludedBitfield ) ).div( float( MAX_RAY ) ) );
 
 			} );
 
 			ao.divAssign( float( ROTATION_COUNT ) );
 			ao.assign( pow( ao.clamp().oneMinus(), AO_INTENSITY ).clamp() );
+			aoNear.divAssign( float( ROTATION_COUNT ) );
+			aoNear.assign( pow( aoNear.clamp().oneMinus(), AO_INTENSITY ).clamp() );
 
 			color.divAssign( float( ROTATION_COUNT ) );
 			color.mulAssign( GI_INTENSITY );
@@ -663,7 +683,7 @@ class SSGINode extends TempNode {
 			const scale = currentLuminance.greaterThan( maxLuminance ).select( maxLuminance.div( currentLuminance ), float( 1 ) );
 			color.mulAssign( scale );
 
-			aoField.assign( ao );
+			aoField.assign( vec2( ao, aoNear ) );
 			giField.assign( color );
 
 			} ); // PĀRSA: end of the non-sky branch

@@ -1,0 +1,236 @@
+{
+ "tier": "C",
+ "stride": 12,
+ "count": 50730,
+ "normalBias": 0.9,
+ "options": {
+  "spacing": 2,
+  "layer": 2.5,
+  "margin": 6,
+  "full": 2,
+  "inset": 0.25,
+  "normalBias": 0.9,
+  "skyDirs": 4096,
+  "rays": 1024,
+  "sunRays": 2,
+  "skyRays": 2,
+  "sunSkyRatio": 3
+ },
+ "partsHash": "cd0635917c5c7ce7",
+ "built": "2026-09-23",
+ "note": "baked light probes of the roofed buildings: sky through the openings, one and two bounces of sun and sky, year-averaged sun (D-110, D-111; model C)",
+ "hallCentreVisibility": {
+  "gate_nations": 0.0308,
+  "apadana": 0.0067,
+  "tachara": 0.0005,
+  "hadish": 0.0148,
+  "treasury": 0.0004,
+  "harem": 0.0076
+ },
+ "volumes": [
+  {
+   "building": "gate_nations",
+   "origin": [
+    -22.39,
+    0.25,
+    -148.04
+   ],
+   "spacing": [
+    2,
+    2.25,
+    2
+   ],
+   "dims": [
+    24,
+    9,
+    25
+   ],
+   "roof": [
+    -16.39,
+    16.659999999999997,
+    -142.04,
+    -107.14000000000001
+   ],
+   "full": 2,
+   "yLo": [
+    -1,
+    -0.05
+   ],
+   "yHi": [
+    18.5,
+    19.7
+   ],
+   "offset": 0
+  },
+  {
+   "building": "apadana",
+   "origin": [
+    -67.49,
+    3.25,
+    -57.97
+   ],
+   "spacing": [
+    2,
+    2.375,
+    2
+   ],
+   "dims": [
+    71,
+    9,
+    54
+   ],
+   "roof": [
+    -61.489999999999995,
+    65.35,
+    -51.97,
+    40.47
+   ],
+   "full": 2,
+   "yLo": [
+    2,
+    2.95
+   ],
+   "yHi": [
+    22.5,
+    25
+   ],
+   "offset": 5400
+  },
+  {
+   "building": "tachara",
+   "origin": [
+    -37.29,
+    2.85,
+    59.89
+   ],
+   "spacing": [
+    2,
+    2.5,
+    2
+   ],
+   "dims": [
+    17,
+    4,
+    24
+   ],
+   "roof": [
+    -31.29,
+    -11.340000000000002,
+    65.89,
+    98.11
+   ],
+   "full": 2,
+   "yLo": [
+    1.6,
+    2.5500000000000003
+   ],
+   "yHi": [
+    10.6,
+    12.1
+   ],
+   "offset": 39906
+  },
+  {
+   "building": "hadish",
+   "origin": [
+    -0.3000000000000007,
+    6.25,
+    127.19999999999999
+   ],
+   "spacing": [
+    2,
+    2.375,
+    2
+   ],
+   "dims": [
+    24,
+    5,
+    29
+   ],
+   "roof": [
+    5.699999999999999,
+    38.3,
+    133.2,
+    175.8
+   ],
+   "full": 2,
+   "yLo": [
+    5,
+    5.95
+   ],
+   "yHi": [
+    16,
+    17.8
+   ],
+   "offset": 41538
+  },
+  {
+   "building": "treasury",
+   "origin": [
+    151.23000000000002,
+    0.55,
+    87.545
+   ],
+   "spacing": [
+    2,
+    1.8333333333333333,
+    2
+   ],
+   "dims": [
+    30,
+    4,
+    35
+   ],
+   "roof": [
+    157.23000000000002,
+    203.23000000000002,
+    93.545,
+    147.945
+   ],
+   "full": 2,
+   "yLo": [
+    -0.7,
+    0.25
+   ],
+   "yHi": [
+    6.3,
+    6.8999999999999995
+   ],
+   "offset": 45018
+  },
+  {
+   "building": "harem",
+   "origin": [
+    98.7,
+    1.25,
+    119
+   ],
+   "spacing": [
+    2,
+    1.8333333333333333,
+    2
+   ],
+   "dims": [
+    18,
+    4,
+    21
+   ],
+   "roof": [
+    104.7,
+    124.8,
+    125,
+    152.3
+   ],
+   "full": 2,
+   "yLo": [
+    0,
+    0.95
+   ],
+   "yHi": [
+    7,
+    7.9
+   ],
+   "offset": 49218
+  }
+ ]
+}

@@ -1,0 +1,165 @@
+// Light probes (D-110 … D-113): the ray tracer against the parts, the bake on synthetic rooms, and the baked field of the
+// Terrace (public/generated/probes.*): bounded values, open ground ≈ 1, the Apadana hall ≪ 1 but > 0 and brighter at its
+// doorways and porticoes than at its centre, monotone with the size of the opening, and up to date with the architecture.
+import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import type { Part, Box, Prism, Material } from '../src/arch/parts';
+import { buildTerrace } from '../src/arch/terrace';
+import { SURFACES } from '../src/render/materials';
+import { TraceScene, sceneFromParts } from '../src/render/probes/trace';
+import { BAKE, BakeOptions, bakeAll, sunSet, surfaceTable, albedoFn, probeVolumes, yearSunSamples } from '../src/render/probes/bake';
+import { ProbeField, ProbeVolume, PROBE_STRIDE, sampleField, fieldVisibility, evalSample, openField, atlasData, encodeField, decodeField, probeIndex, volumeWeight } from '../src/render/probes/field';
+
+const SURF = surfaceTable(SURFACES as any), ALB = albedoFn(SURF);
+const CAPS = { protome: [3.4, 1.1] as [number, number], plain: 1.4, volute: [1.25, 0.9] as [number, number] };
+const scene = (parts: Part[]) => sceneFromParts(parts, ALB, CAPS);
+const base = { building: 'test', material: 'mudbrick' as Material, tier: 'C' as const, src: 'TEST' };
+const box = (c: [number, number], size: [number, number], y0: number, y1: number, extra: Partial<Box> = {}): Box => ({ ...base, kind: 'wall', type: 'box', c, size, y0, y1, ...extra });
+const ground = (half = 200): Prism => ({ ...base, kind: 'platform', material: 'terrace', type: 'prism', polygon: [[-half, -half], [half, -half], [half, half], [-half, half]], y0: -1, y1: 0 });
+/** a closed room: interior 20 × 20 m, 8 m high, 1 m walls, floor at 0, roof slab 8–9 m; a doorway of width `door` (m) and
+ *  height 4 m in the S wall (0 = no opening) */
+function room(door: number): Part[] {
+  const H = 8, t = 1, half = 10, out: Part[] = [ground()];
+  out.push(box([0, half + t / 2], [2 * half + 2 * t, t], 0, H)); // N
+  out.push(box([half + t / 2, 0], [t, 2 * half], 0, H), box([-half - t / 2, 0], [t, 2 * half], 0, H)); // E, W
+  const sy = -half - t / 2, L = 2 * half + 2 * t;
+  if (door <= 0) out.push(box([0, sy], [L, t], 0, H));
+  else {
+    const a = (L - door) / 2; out.push(box([-L / 2 + a / 2, sy], [a, t], 0, H), box([L / 2 - a / 2, sy], [a, t], 0, H), box([0, sy], [door, t], 4, H)); // jambs' walls + lintel wall
+  }
+  out.push({ ...box([0, 0], [L, L], H, H + 1), kind: 'roof', material: 'timber' });
+  return out;
+}
+/** a single-volume probe grid over the room (and 6 m beyond it) */
+function roomVolume(): ProbeVolume {
+  return { building: 'test', origin: [-16, 0.25, -16], spacing: [2, 2.5, 2], dims: [17, 4, 17], roof: [-11, 11, -11, 11], full: 2, yLo: [-1, -0.05], yHi: [8, 9], offset: 0 };
+}
+const FAST: BakeOptions = { ...BAKE, skyDirs: 2048, rays: 512 };
+// a clear midday sun from due south (grid), 60° up: it shines through a S doorway onto the floor
+const noonSun = sunSet([{ dir: [0, Math.sin(Math.PI / 3), Math.cos(Math.PI / 3)], alt: 60 }]);
+const PLAIN = ALB('earth', true);
+const S = 0.8, U = 2.1, RHO = 0.2; // a clear midday in renderer units (sky, horizontal sun), open ground albedo (C)
+const bake = (parts: Part[], vol = roomVolume()) => bakeAll(scene(parts), [vol], noonSun, PLAIN, FAST);
+const visAt = (F: ProbeField, x: number, y: number, z: number) => fieldVisibility(F, x, y, z, S, U, RHO).vis;
+
+describe('ray tracer against parts', () => {
+  const sc = scene([box([0, 0], [2, 4], 0, 3), { ...box([10, 0], [2, 2], 0, 2), rot: Math.PI / 4 }, ground(50)]);
+  it('hits an axis-aligned box face at the right distance with the outward normal', () => {
+    const h = sc.intersect(-5, 1, 0, 1, 0, 0)!; // from grid west toward the box: its W face at x = −1
+    expect(h.t).toBeCloseTo(4, 6); expect(h.nx).toBeCloseTo(-1, 6);
+    const g = sc.intersect(0, 10, 0, 0, -1, 0)!; expect(g.t).toBeCloseTo(7, 6); expect(g.ny).toBeCloseTo(1, 6);
+  });
+  it('hits a rotated box at its corner distance and the platform top as ground', () => {
+    const h = sc.intersect(5, 1, 0, 1, 0, 0)!; expect(h.t).toBeCloseTo(5 - Math.SQRT2, 5); // 45° box: the W corner at x = 10 − √2
+    const g = sc.intersect(20, 5, 20, 0, -1, 0)!; expect(g.t).toBeCloseTo(5, 6);
+    const top = sc.albedoAt(g.prim, g.ny, [0, 0, 0]), want = ALB('terrace', true); top.forEach((c, k) => expect(c).toBeCloseTo(want[k], 6)); // the court fill on top
+  });
+  it('a ray that starts on a face and heads into the solid is blocked (no leaks through walls)', () => {
+    expect(sc.occluded(-1, 1, 0, 1, 0, 0)).toBe(true); expect(sc.intersect(-1, 1, 0, 1, 0, 0)).not.toBeNull();
+    expect(sc.occluded(-1, 1, 0, -1, 0, 0)).toBe(false); // heading away: free
+  });
+  it('knows solid interiors and escapes to the sky', () => {
+    expect(sc.inside(0, 1, 0)).toBe(true); expect(sc.inside(0, 1, 3)).toBe(false); expect(sc.inside(20, -0.5, 20)).toBe(true);
+    expect(sc.occluded(20, 1, 20, 0, 1, 0)).toBe(false); expect(sc.intersect(20, 1, 20, 0, 1, 0)).toBeNull();
+  });
+  it('builds columns as base, shaft and capital', () => {
+    const { parts } = buildTerrace(); const col = parts.find(p => p.type === 'column' && p.building === 'apadana' && p.built >= 1)!;
+    const s = scene([col]), x = (col as any).c[0], z = -(col as any).c[1], o = (col as any).order;
+    const h = s.intersect(x - 10, (col as any).y0 + o.baseH + 3, z, 1, 0, 0)!; expect(h.t).toBeCloseTo(10 - o.shaftD / 2, 5); // the shaft
+    expect(s.occluded(x, (col as any).y0 + o.height + 0.1, z, 0, 1, 0)).toBe(false); // nothing above the capital
+  });
+});
+
+describe('light probes: synthetic room', () => {
+  const open = bake([ground()]);
+  const rooms = [0, 1, 2, 4, 8].map(d => ({ d, F: bake(room(d)) }));
+  it('are bounded and finite', () => {
+    for (const F of [open, ...rooms.map(r => r.F)]) for (let i = 0; i < F.count; i++) {
+      const o = i * PROBE_STRIDE, d = F.data;
+      for (let j = 0; j < PROBE_STRIDE; j++) expect(Number.isFinite(d[o + j])).toBe(true);
+      if (!d[o + 11]) continue;
+      expect(d[o]).toBeGreaterThanOrEqual(0); expect(d[o]).toBeLessThanOrEqual(1.5); // sky channel mean (open: 0.5 sky + bounce)
+      expect(Math.hypot(d[o + 1], d[o + 2], d[o + 3])).toBeLessThanOrEqual(2 * d[o] + 1e-6); // L1 of a non-negative radiance: |b| ≤ 2a
+      expect(d[o + 4]).toBeGreaterThanOrEqual(0); expect(d[o + 4]).toBeLessThanOrEqual(1.5);
+      expect(d[o + 10]).toBeGreaterThanOrEqual(0); expect(d[o + 10]).toBeLessThanOrEqual(1);
+    }
+  });
+  it('read ≈ 1 on open ground (the hemisphere light, sky part exact)', () => {
+    const smp = sampleField(open, 0, 1.6, 0)!; const [up, upU] = evalSample(smp.s, 0, 1, 0);
+    expect(up).toBeCloseTo(1, 1); expect(evalSample(smp.s, 1, 0, 0)[0]).toBeGreaterThan(0.45); // a wall sees half the sky
+    expect(upU).toBeLessThan(0.02); // nothing sunlit above
+    expect(visAt(open, 0, 1.6, 0)).toBeGreaterThan(0.93); expect(visAt(open, 0, 1.6, 0)).toBeLessThan(1.001);
+  });
+  it('a closed room is dark; the ambient grows monotonically with the doorway', () => {
+    const v = rooms.map(r => visAt(r.F, 0, 1.6, 0));
+    expect(v[0]).toBeLessThan(1e-3);
+    for (let i = 1; i < v.length; i++) expect(v[i]).toBeGreaterThan(v[i - 1]);
+    expect(v[v.length - 1]).toBeLessThan(0.5); // still well below the open field
+  });
+  it('is brighter near the doorway than at the back of the room', () => {
+    const F = rooms.find(r => r.d === 4)!.F;
+    expect(visAt(F, 0, 1.6, 7)).toBeGreaterThan(2 * visAt(F, 0, 1.6, -7)); // grid y −7 (near the S door) vs y +7 (N wall)
+  });
+  it('faces toward the doorway get more light than faces away from it', () => {
+    const F = rooms.find(r => r.d === 4)!.F, smp = sampleField(F, 0, 1.6, 0)!;
+    const toward = evalSample(smp.s, 0, 0, 1), away = evalSample(smp.s, 0, 0, -1); // world +z = grid south
+    expect(S * toward[0] + U * toward[1]).toBeGreaterThan(S * away[0] + U * away[1]);
+  });
+  it('the weight is 1 inside the roofed space and 0 beyond the grid', () => {
+    const v = roomVolume();
+    expect(volumeWeight(v, 0, 2, 0)).toBe(1); expect(volumeWeight(v, 30, 2, 0)).toBe(0); expect(volumeWeight(v, 0, 9.5, 0)).toBe(0);
+    expect(volumeWeight(v, 14, 2, 0)).toBeGreaterThan(0); expect(volumeWeight(v, 14, 2, 0)).toBeLessThan(1); // the fade outside the eaves
+  });
+});
+
+describe('light probes: the baked Terrace field', () => {
+  const meta = JSON.parse(readFileSync('public/generated/probes.json', 'utf8'));
+  const b = readFileSync('public/generated/probes.f16');
+  const F: ProbeField = { volumes: meta.volumes, data: decodeField(new Uint16Array(b.buffer, b.byteOffset, b.byteLength / 2)), count: meta.count, normalBias: meta.normalBias, tier: meta.tier, note: meta.note };
+  const { parts, manifest } = buildTerrace();
+  const ap = (manifest as any).apadana, [cx, cy] = ap.hallCentre as number[], fl = ap.podium as number, inner = ap.hallInterior / 2;
+  const at = (e: number, n: number, h = 1.6) => visAt(F, e, fl + h, -n);
+  it('is up to date with the architecture (parts hash) — rerun `npx tsx tools/build_probes.ts` if this fails', () => {
+    expect(meta.partsHash).toBe(createHash('sha1').update(JSON.stringify(parts)).digest('hex').slice(0, 16));
+    expect(F.count).toBe(F.data.length / PROBE_STRIDE);
+    expect(F.volumes.map(v => v.building).sort()).toEqual(probeVolumes(parts, manifest).map(v => v.building).sort());
+  });
+  it('covers every roofed building with finite, bounded values', () => {
+    for (const v of F.volumes) expect(v.dims[0] * v.dims[1] * v.dims[2]).toBeGreaterThan(0);
+    let bad = 0; for (let i = 0; i < F.data.length; i++) if (!Number.isFinite(F.data[i]) || Math.abs(F.data[i]) > 8) bad++;
+    expect(bad).toBe(0);
+  });
+  it('reads 1 outdoors, away from the roofed buildings', () => {
+    expect(visAt(F, -20, 1.6, -75)).toBe(1); // the court between the Apadana and the Gate (outside every volume)
+    expect(fieldVisibility(F, -20, 1.6, -75, S, U, RHO).w).toBe(0);
+  });
+  it('the Apadana hall is dark (≪ 1) but not black deep inside, brighter at the doorways and in the porticoes', () => {
+    // deep inside: the middles of the four quadrants (the exact centre lies on both doorway axes and sees out of all four doors)
+    const deep = [[-1, -1], [-1, 1], [1, -1], [1, 1]].map(([a, b]) => at(cx + a * inner / 2, cy + b * inner / 2));
+    const nDoor = at(cx, cy + inner - 3), wDoor = at(cx - inner + 3, cy), eDoor = at(cx + inner - 3, cy), nPortico = at(cx, cy + inner + ap.wallThickness + 6);
+    const deepMax = Math.max(...deep);
+    for (const d of deep) { expect(d).toBeGreaterThan(0); expect(d).toBeLessThan(0.01); }
+    for (const d of [nDoor, wDoor, eDoor]) expect(d).toBeGreaterThan(3 * deepMax);
+    expect(at(cx, cy)).toBeGreaterThan(deepMax); // the crossing of the doorway axes
+    expect(nPortico).toBeGreaterThan(nDoor); expect(nPortico).toBeLessThan(0.8);
+    // along the N–S axis from the N doorway: falls off with depth, and stays above the quadrants' level
+    const axis = [3, 10, 15, 20].map(d => at(cx, cy + inner - d));
+    for (let i = 1; i < axis.length; i++) expect(axis[i]).toBeLessThan(axis[i - 1]);
+    expect(axis[axis.length - 1]).toBeGreaterThan(deepMax);
+  });
+  it('every roofed hall is darker at its centre than open ground', () => {
+    for (const [b, v] of Object.entries(meta.hallCentreVisibility as Record<string, number>)) { expect(v, b).toBeGreaterThan(0); expect(v, b).toBeLessThan(0.2); }
+  });
+  it('the atlas holds the probes premultiplied by validity (half floats round-trip)', () => {
+    const A = atlasData(F), v = F.volumes[0], i = probeIndex(v, 3, 1, 4), [u0, v0] = A.pos[0];
+    const t = ((v0 + 4) * A.width + (u0 + 1 * v.dims[0] + 3)) * 4, val = F.data[i * PROBE_STRIDE + 11];
+    expect(A.textures[2][t + 3]).toBe(val); expect(A.textures[0][t]).toBeCloseTo(F.data[i * PROBE_STRIDE] * val, 6);
+    const x = Float32Array.from([0, 1e-4, 0.123, -0.75, 1.5, 3.25]); const y = decodeField(encodeField(x));
+    x.forEach((q, k) => expect(Math.abs(y[k] - q)).toBeLessThanOrEqual(Math.abs(q) * 1e-3 + 1e-7));
+  });
+  it('open-field reference: up = sky, down = sunlit ground', () => {
+    expect(openField(1, S, U, RHO)).toBe(S); expect(openField(-1, S, U, RHO)).toBeCloseTo((S + U) * RHO, 9);
+  });
+  void yearSunSamples; void TraceScene;
+});
