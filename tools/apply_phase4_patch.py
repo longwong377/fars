@@ -1,4 +1,5 @@
-"""Apply research/_phase4_spec_patch.json to src/data/site_spec.json (Phase 4, session 2).
+"""Apply research/_phase4_spec_patch.json to src/data/site_spec.json (Phase 4, session 2), plus the other session-2 spec
+fixes (render-only thicknesses that were generator literals, the garrison W door move). Re-run from a clean spec.
 Rows are copied as proposed, except: patch keys that collide with existing rows of a different meaning are renamed
 (`portico` -> `portico_layout`), `floor` rows marked "unchanged" are skipped, and a few derived reconstruction rows the
 generator needs are added (each C, with its derivation in the note). New source keys go into src/data/sources.json.
@@ -31,6 +32,12 @@ spec['hall100']['r_threshold_steps'] = R(3, 'steps', 'external steps down from t
 spec['harem']['r_hall_wall'] = R(1.8, 'm', 'hall wall thickness (C)')
 spec['harem']['r_portico_rows_y'] = R([-128.0, -131.8], 'm', 'two portico rows between the front (-125) and the hall N wall (-134.5 - wall): evenly spaced (C)')
 spec['harem']['r_entrance_steps'] = R({'steps': 7, 'tread': 0.35}, '', 'steps down from the raised wing floor (1.0) to the court outside each entrance: low risers (~0.14) like the palace stairs (C)')
+spec['global']['r_floor_finish'] = R(0.01, 'm', 'render-only thickness of the plaster floor coat drawn over hall floors (the attested coat is ~2 cm white + ≤1.5 mm red; flooring-plaster study 2022, search extract); not collidable')
+fr = spec['gate_nations']['r_frieze']; fr['v'].update({'thickness': 0.06, 'offset': 0.03})
+if 'thickness' not in fr['note']: fr['note'] += '; band thickness 0.06 and offset 0.03 from the wall face (render, C; were literals in the generator before session 2)'
+gd = spec['garrison']['r_doors']
+if gd['v'][0]['at'] == [183.27, 22.5]:
+    gd['v'][0]['at'] = [183.27, 32.0]; gd['note'] += '; W door moved from y 22.5 to 32 in Phase 4: the Hall of 100 Columns portico and its E anta tower (REF-PLAN) now occupy y 8.3..27 there (C)'
 spec['harem']['r_door_height'] = R(4.0, 'm', 'main hall doorway height, about 2/3 of the 6 m columns (C, NOT SEEN, verify)')
 spec['harem']['r_entrance_width'] = R(2.4, 'm', 'width of the enclosure entrances (r_entrances), as the hall N door (C)')
 if 'SUPERSEDED' not in spec['treasury']['r_doors']['note']: spec['treasury']['r_doors']['note'] += ' [SUPERSEDED in Phase 4 by doors (REF-PLAN): this point lies in the street N of the Treasury]'

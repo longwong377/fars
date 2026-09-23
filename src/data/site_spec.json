@@ -192,6 +192,13 @@
    "src": "RECON",
    "tier": "C",
    "note": "outer parapet of the Phase-4 palace stairs: 0.3 m (patch flight notes), height as the Apadana stair parapet order of magnitude; the first open_steps steps at each flight foot are left open so the flight can be entered from the side (C)"
+  },
+  "r_floor_finish": {
+   "v": 0.01,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "render-only thickness of the plaster floor coat drawn over hall floors (the attested coat is ~2 cm white + ≤1.5 mm red; flooring-plaster study 2022, search extract); not collidable"
   }
  },
  "terrace": {
@@ -615,12 +622,14 @@
   "r_frieze": {
    "v": {
     "height": 0.9,
-    "above_door": 0.4
+    "above_door": 0.4,
+    "thickness": 0.06,
+    "offset": 0.03
    },
    "u": "m",
    "src": "RECON",
    "tier": "C",
-   "note": "painted/glazed palmette frieze band above each doorway lintel (reconstruction references; glazed brick fragments at Persepolis B; placement C)"
+   "note": "painted/glazed palmette frieze band above each doorway lintel (reconstruction references; glazed brick fragments at Persepolis B; placement C); band thickness 0.06 and offset 0.03 from the wall face (render, C; were literals in the generator before session 2)"
   },
   "r_door_leaves": {
    "v": {
@@ -2925,7 +2934,7 @@
     {
      "at": [
       183.27,
-      22.5
+      32.0
      ],
      "width": 2.4
     },
@@ -2940,7 +2949,7 @@
    "u": "m",
    "src": "RECON",
    "tier": "C",
-   "note": "doorways: W onto the court N of the Hall of 100 Columns; S into the Treasury NE entrance (positions C)"
+   "note": "doorways: W onto the court N of the Hall of 100 Columns; S into the Treasury NE entrance (positions C); W door moved from y 22.5 to 32 in Phase 4: the Hall of 100 Columns portico and its E anta tower (REF-PLAN) now occupy y 8.3..27 there (C)"
   }
  },
  "fortification_e": {

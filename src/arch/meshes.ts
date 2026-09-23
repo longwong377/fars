@@ -10,6 +10,7 @@ const ALBEDO: Record<Material, [number, number, number]> = {
   limestone: [0.62, 0.6, 0.56], limestone_dark: [0.2, 0.2, 0.21], mudbrick: [0.66, 0.56, 0.44], plaster: [0.8, 0.76, 0.68],
   plaster_red: [0.5, 0.16, 0.12], bronze: [0.55, 0.4, 0.22],
   timber: [0.36, 0.27, 0.19], glazed: [0.2, 0.4, 0.55], earth: [0.5, 0.42, 0.32], scaffold: [0.45, 0.35, 0.24], rubble: [0.55, 0.52, 0.48],
+  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56],
 };
 import { surfaceMaterial } from '../render/materials';
 const matCache = new Map<string, THREE.MeshStandardNodeMaterial>();

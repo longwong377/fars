@@ -53,6 +53,10 @@ function flightAlong(b: string, t: Tier, s: string, start: Pt, u: Pt, steps: num
   for (let i = 0; i < steps; i++) { const a = (i + 0.5) * tread; out.push({ ...box(b, 'step', 'limestone', t, s, [start[0] + u[0] * a, start[1] + u[1] * a], [tread, width], base, y0 + (i + 1) * riser, { solid: true }), rot }); }
   return out;
 }
+/** red lime-plaster floor finish over a hall interior (global.interior_floor; attested for the Tachara and Treasury, B;
+ *  extended to the other halls, C) */
+const floorFinish = (b: string, c: Pt, sx: number, sy: number, fl: number, attested: boolean) =>
+  box(b, 'floor_finish', v<string>('global', 'interior_floor') as Material, attested ? T_('global', 'interior_floor') : 'C', S_('global', 'interior_floor'), c, [sx, sy], fl, fl + v('global', 'r_floor_finish'), { solid: false, note: attested ? 'red hematite-painted lime plaster floor (B)' : 'red lime-plaster floor as in the Tachara and Treasury (C here)' });
 /** landing row {x:[x0,x1], y:[y0,y1], z} → solid box from `base` */
 const landingBox = (b: string, t: Tier, s: string, L: { x: [number, number]; y: [number, number]; z: number }, base: number, kind = 'landing') =>
   box(b, kind, 'limestone', t, s, [(L.x[0] + L.x[1]) / 2, (L.y[0] + L.y[1]) / 2], [L.x[1] - L.x[0], L.y[1] - L.y[0]], base, L.z, { solid: true });
@@ -87,14 +91,15 @@ export function buildTerrace(): BuildResult {
     const walk = (from: number, to: number) => { const r: Pt[] = []; for (let j = (from + 1) % S.length; j !== to; j = (j + 1) % S.length) if (!T.some(p => key(p) === key(S[j]))) r.push(S[j]); return r; };
     const ra = walk(jTop, jBot), rb = walk(jBot, jTop); const recess = ra.length >= rb.length ? ra : rb;
     // walk direction: choose the orientation that goes around the E side of the stair (x > terrace-edge x)
-    const recessPath = recess.some(p => p[0] > -35) ? recess : [];
+    const [elx0, elx1] = v<number[]>('grand_stair', 'east_lane_x'), eSide = (elx0 + elx1) / 2; // points E of the upper lane's centreline
+    const recessPath = recess.some(p => p[0] > eSide) ? recess : [];
     if (!recessPath.length) throw new Error('recess path not found');
     const ordered = Math.abs(recessPath[0][1] - T[iTop][1]) < Math.abs(recessPath[recessPath.length - 1][1] - T[iTop][1]) ? recessPath : [...recessPath].reverse();
     const poly = [...T.slice(0, iTop + 1), ...ordered, ...T.slice(iBot)] as Pt[];
-    parts.push(prism('terrace', 'platform', 'limestone', 'B', srcOf(row('terrace', 'extent_ns'), row('terrace', 'stair_recess')), poly, FOUND, 0, { solid: true, note: 'retaining walls of dressed grey limestone; top = court datum' }));
+    parts.push(prism('terrace', 'platform', 'terrace', 'B', srcOf(row('terrace', 'extent_ns'), row('terrace', 'stair_recess')), poly, FOUND, 0, { solid: true, note: 'retaining walls of dressed grey limestone; top = court datum (open-court surface C, Q-027)' }));
     const ph = v('terrace', 'parapet_height'), pt = v('terrace', 'r_parapet_thickness'), sg = ringSign(poly);
-    const topOpen = [ordered.reduce((m, p) => (p[0] > m[0] ? p : m)), ordered.filter(p => p[0] > -35)].flat() as any;
-    const eastmost = ordered.filter(p => p[0] > -35).map(key);
+    const topOpen = [ordered.reduce((m, p) => (p[0] > m[0] ? p : m)), ordered.filter(p => p[0] > eSide)].flat() as any;
+    const eastmost = ordered.filter(p => p[0] > eSide).map(key);
     for (let i = 0; i < poly.length; i++) {
       const a = poly[i], b2 = poly[(i + 1) % poly.length];
       if (a[0] > EAST && b2[0] > EAST) continue; // E side: fortification wall instead
@@ -155,16 +160,16 @@ export function buildTerrace(): BuildResult {
     for (const p of grid(nx, ny, c[0], c[1], v(b, 'interaxial'))) parts.push(col(b, p, fl, ord, T_(b, 'column_height'), S_(b, 'column_height')));
     parts.push(box(b, 'roof', 'timber', T_(b, 'roof'), S_(b, 'roof'), c, [x1 - x0, y1 - y0], roofY, roofY + v(b, 'r_roof_thickness'), { note: 'cedar beams, earth roof' }));
     const FL = v<string>('global', 'interior_floor') as Material, FLt = T_('global', 'interior_floor'), FLs = S_('global', 'interior_floor');
-    parts.push(box(b, 'floor_finish', FL, FLt, FLs, c, [hs, hs], fl, fl + 0.01, { solid: false, note: 'red hematite-painted lime plaster floor' }));
+    parts.push(box(b, 'floor_finish', FL, FLt, FLs, c, [hs, hs], fl, fl + v('global', 'r_floor_finish'), { solid: false, note: 'red hematite-painted lime plaster floor' }));
     // frieze band above each doorway (on both wall faces) and bronze-studded timber door leaves (open, against the reveals)
     const FR = v<any>(b, 'r_frieze'), DL = v<any>(b, 'r_door_leaves');
     for (const side of doors.map(d => d.side as string)) {
       const horiz = side === 'S' || side === 'N';
       const faceOff = horiz ? hs / 2 + ty : hs / 2 + tx; const sgn = side === 'E' || side === 'N' ? 1 : -1;
-      for (const face of [-1, 1]) { const off = sgn * (faceOff + face * (horiz ? ty : tx)) ; const cc: Pt = horiz ? [c[0], c[1] + sgn * (hs / 2 + ty / 2) + face * (ty / 2 + 0.03)] : [c[0] + sgn * (hs / 2 + tx / 2) + face * (tx / 2 + 0.03), c[1]]; void off;
-        parts.push(box(b, 'frieze', 'glazed', 'C', S_(b, 'r_frieze'), cc, horiz ? [dw + 2 * FR.above_door, 0.06] : [0.06, dw + 2 * FR.above_door], fl + dh + FR.above_door, fl + dh + FR.above_door + FR.height, { solid: false })); }
+      for (const face of [-1, 1]) { const off = sgn * (faceOff + face * (horiz ? ty : tx)) ; const cc: Pt = horiz ? [c[0], c[1] + sgn * (hs / 2 + ty / 2) + face * (ty / 2 + FR.offset)] : [c[0] + sgn * (hs / 2 + tx / 2) + face * (tx / 2 + FR.offset), c[1]]; void off;
+        parts.push(box(b, 'frieze', 'glazed', 'C', S_(b, 'r_frieze'), cc, horiz ? [dw + 2 * FR.above_door, FR.thickness] : [FR.thickness, dw + 2 * FR.above_door], fl + dh + FR.above_door, fl + dh + FR.above_door + FR.height, { solid: false })); }
       for (const lr of [-1, 1]) { // two leaves, open 90°, standing against the inner reveals
-        const lc: Pt = horiz ? [c[0] + lr * (dw / 2 - DL.thickness / 2), c[1] + sgn * (hs / 2 + ty - dw / 4)] : [c[0] + sgn * (hs / 2 + tx - dw / 4), c[1] + lr * (dw / 2 - DL.thickness / 2)];
+        const lc: Pt = horiz ? [c[0] + lr * (dw / 2 - DL.thickness / 2), c[1] + sgn * (hs / 2 + ty - dw / 2 / 2)] : [c[0] + sgn * (hs / 2 + tx - dw / 2 / 2), c[1] + lr * (dw / 2 - DL.thickness / 2)];
         parts.push(box(b, 'door_leaf', 'timber', 'C', S_(b, 'r_door_leaves'), lc, horiz ? [DL.thickness, dw / 2] : [dw / 2, DL.thickness], fl, fl + dh, { solid: true, note: 'timber door leaf with bronze bosses (C)' }));
       }
     }
@@ -189,7 +194,7 @@ export function buildTerrace(): BuildResult {
     const D = v<any>(b, 'r_door');
     parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'wall_thickness'), row(b, 'wall_height')) }, cx, cy, hs, hs, wt, pod, pod + v(b, 'wall_height'),
       (['N', 'W', 'E', 'S'] as const).map(side => ({ side, at: 0, width: D.width, height: D.height }))).map(w => ({ ...w, solid: true })));
-    parts.push(box(b, 'floor_finish', v<string>('global', 'interior_floor') as Material, T_('global', 'interior_floor'), S_('global', 'interior_floor'), [cx, cy], [hs, hs], pod, pod + 0.01, { solid: false }));
+    parts.push(box(b, 'floor_finish', v<string>('global', 'interior_floor') as Material, T_('global', 'interior_floor'), S_('global', 'interior_floor'), [cx, cy], [hs, hs], pod, pod + v('global', 'r_floor_finish'), { solid: false }));
     const hallOrd = order(b, { base: 'square2', capital: 'bull' }), porOrd = order(b, { base: 'bell', capital: 'bull' });
     const [hnx, hny] = v<number[]>(b, 'hall_columns');
     const hallCols = grid(hnx, hny, cx, cy, ia);
@@ -278,6 +283,7 @@ export function buildTerrace(): BuildResult {
       [{ side: 'S', at: dS.at[0] - hc[0], width: dS.width, height: dS.height }, ...dN.offsets_x.map((o: number) => ({ side: 'N' as const, at: o, width: dN.width, height: dN.height }))]).map(w => ({ ...w, solid: true })));
     const cols = grid(ncx, ncy, hc[0], hc[1], hx / ncx, hy / ncy);
     for (const p of cols) parts.push(col(b, p, fl, ord, 'C', srcOf(row(b, 'hall_columns'), row(b, 'hall_size'))));
+    parts.push(floorFinish(b, hc, hx, hy, fl, true));
     const [pcx, pcy] = v<number[]>(b, 'portico'); const pc: Pt = [hc[0], hc[1] - hy / 2 - wt - v(b, 'r_portico_gap')];
     const pcols = grid(pcx, pcy, pc[0], pc[1], hx / ncx, v(b, 'r_portico_row_spacing'));
     for (const p of pcols) parts.push(col(b, p, fl, ord, T_(b, 'portico'), S_(b, 'portico')));
@@ -314,6 +320,7 @@ export function buildTerrace(): BuildResult {
     parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: ds }, hc[0], hc[1], hsx, hsy, wt, fl, fl + ord.height + v(b, 'r_wall_above_columns'), doors).map(w => ({ ...w, solid: true })));
     const cols = grid(hnx, hny, hc[0], hc[1], ia);
     for (const p of cols) parts.push(col(b, p, fl, ord, T_(b, 'hall'), srcOf(row(b, 'hall_columns'), row(b, 'hall'))));
+    parts.push(floorFinish(b, hc, hsx, hsy, fl, false));
     const PL = v<any>(b, 'portico_layout'); const pcols: Pt[] = [];
     for (const y of PL.rows_y) for (let i = 0; i < pnx; i++) pcols.push([PL.x[0] + i * (PL.x[1] - PL.x[0]) / (pnx - 1), y]);
     for (const p of pcols) parts.push(col(b, p, fl, ord, T_(b, 'portico_layout'), srcOf(row(b, 'portico'), row(b, 'portico_layout'))));
@@ -372,7 +379,9 @@ export function buildTerrace(): BuildResult {
     const PX = v<any>(b, 'r_portico_extent'), PS = v<any>(b, 'r_portico_step'), tread = v(b, 'r_step_tread');
     const depth = PX.front_y - y1, pxs = PS.x as [number, number];
     parts.push(box(b, 'portico_floor', 'limestone', 'C', srcOf(row(b, 'r_portico_extent'), row(b, 'floor')), [(pxs[0] + pxs[1]) / 2, y1 + depth / 2], [pxs[1] - pxs[0], depth], FOUND, fl, { solid: true }));
-    for (const [tx0, tx1] of PX.towers_x as [number, number][]) parts.push(box(b, 'tower', 'mudbrick', 'C', S_(b, 'r_portico_extent'), [(tx0 + tx1) / 2, y1 + depth / 2], [tx1 - tx0, depth], FOUND, fl + wallH, { solid: true, note: 'portico anta tower, under construction (C)' }));
+    // the E tower read on REF-PLAN (to x 185) overlaps the traced garrison W edge (182.7): clip it there (C)
+    const gx0 = present('garrison') ? footprint('garrison').bounds[0] : Infinity;
+    for (const [tx0, tx1r] of PX.towers_x as [number, number][]) { const tx1 = Math.min(tx1r, gx0); parts.push(box(b, 'tower', 'mudbrick', 'C', S_(b, 'r_portico_extent'), [(tx0 + tx1) / 2, y1 + depth / 2], [tx1 - tx0, depth], FOUND, fl + wallH, { solid: true, note: 'portico anta tower, under construction (C)' })); }
     parts.push(...flight(b, 'C', S_(b, 'r_portico_step'), [(pxs[0] + pxs[1]) / 2, PX.front_y + PS.steps * tread], 'S', PS.steps, fl / PS.steps, tread, pxs[1] - pxs[0], 0, FOUND));
     const [pnx, pny] = v<number[]>(b, 'portico');
     const por = grid(pnx, pny, c[0], y1 + depth / 2, ia, depth / pny);
@@ -403,6 +412,7 @@ export function buildTerrace(): BuildResult {
     parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'hall'), row(b, 'doors')) }, c[0], c[1], hall, hall, v(b, 'r_wall'), fl, fl + ord.height * v(b, 'r_wall_fraction_built'), doors).map(w => ({ ...w, solid: true, note: 'under construction' })));
     const [nx, ny] = v<number[]>(b, 'hall_columns'); const built = v(b, 'r_column_built');
     for (const p of grid(nx, ny, c[0], c[1], v(b, 'r_interaxial'))) parts.push(col(b, p, fl, ord, 'C', 'RECON', built));
+    parts.push(floorFinish(b, c, hall, hall, fl, false));
     // two-column porticoes N and S of the hall (N read on the plan; S mirrored, C)
     const NP = v<any>(b, 'r_n_portico');
     for (const x of NP.x) { parts.push(col(b, [x, NP.y], fl, ord, T_(b, 'r_n_portico'), S_(b, 'r_n_portico'), built)); parts.push(col(b, [x, SC.portico_columns_y], fl, ord, 'C', S_(b, 's_portico_court'), built)); }
@@ -428,9 +438,9 @@ export function buildTerrace(): BuildResult {
   // ---------------- Treasury, Harem, Garrison (perimeter walls + key halls; C interiors) ----------------
   /** enclosure walls along an outline; `doors` (grid point + width) cut gaps in the nearest wall run; `steps` puts a short
    *  flight outside each gap, down from the raised floor to the court */
-  const perimeter = (b: string, poly: Pt[], fl: number, wallT: number, wallH: number, note: string, doors: { at: Pt; width: number }[] = [], steps?: { n: number; tread: number; t: Tier; s: string }) => {
+  const perimeter = (b: string, poly: Pt[], fl: number, wallT: number, wallH: number, note: string, doors: { at: Pt; width: number }[] = [], steps?: { n: number; tread: number; t: Tier; s: string }, floor: Material = 'court_fill') => {
     const sg = ringSign(poly);
-    parts.push(prism(b, 'floor', 'earth', 'B', 'OSM', poly, FOUND, fl, { solid: true }));
+    parts.push(prism(b, 'floor', floor, 'B', 'OSM', poly, FOUND, fl, { solid: true }));
     for (let i = 0; i < poly.length; i++) {
       const a = poly[i], c2 = poly[(i + 1) % poly.length], len = Math.hypot(c2[0] - a[0], c2[1] - a[1]); if (len < wallT / 2) continue;
       const ux = (c2[0] - a[0]) / len, uy = (c2[1] - a[1]) / len, nx = -uy, ny = ux;
@@ -455,7 +465,8 @@ export function buildTerrace(): BuildResult {
     const [bx0, by0, bx1] = footprint(b).bounds;
     const poly = single(polyIntersection(fpRing(b), rectPoly([bx0 - 1, bx1 + 1], [by0 - 1, v(b, 'r_north_wall_y')])), 'treasury outline');
     const DR = v<any[]>(b, 'doors');
-    perimeter(b, poly, fl, W.thickness, W.height, 'Treasury enclosure (C thickness/height); N and E doorways (REF-PLAN, C)', DR);
+    // floors: lime plaster with a red hematite coat, attested for the Treasury (flooring-plaster study; global.interior_floor, B)
+    perimeter(b, poly, fl, W.thickness, W.height, 'Treasury enclosure (C thickness/height); N and E doorways (REF-PLAN, C)', DR, undefined, v<string>('global', 'interior_floor') as Material);
     const [x0, y0, x1, y1] = footprint(b).bounds;
     const ord = order(b, { base: 'square2', capital: 'plain', material: 'timber' });
     const [gx, gy] = v<number[]>(b, 'r_hall99_grid');
@@ -480,6 +491,7 @@ export function buildTerrace(): BuildResult {
     parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'hall'), row(b, 'doors')) }, hc[0], hc[1], hx, hy, v(b, 'r_hall_wall'), fl, fl + W.height, doors).map(w => ({ ...w, solid: true })));
     const [hnx, hny] = v<number[]>(b, 'hall_columns'), [pnx] = v<number[]>(b, 'portico');
     const hall = grid(hnx, hny, hc[0], hc[1], ia); for (const p of hall) parts.push(col(b, p, fl, ord, T_(b, 'hall'), srcOf(row(b, 'hall_columns'), row(b, 'hall'))));
+    parts.push(floorFinish(b, hc, hx, hy, fl, false));
     const PL = v<any>(b, 'portico_layout'); const por: Pt[] = [];
     for (const y of v<number[]>(b, 'r_portico_rows_y')) for (let i = 0; i < pnx; i++) por.push([(PL.x[0] + PL.x[1]) / 2 + (i - (pnx - 1) / 2) * ia, y]);
     for (const p of por) parts.push(col(b, p, fl, ord, 'C', srcOf(row(b, 'portico'), row(b, 'portico_layout'))));

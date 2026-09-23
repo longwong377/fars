@@ -160,7 +160,7 @@ describe('part sanity', () => {
 import { readFileSync } from 'node:fs';
 describe('review MJ-1/MJ-2 regressions', () => {
   it('generator has no dimensional literals (only 0, 1, 2, 3, 0.5, 8, 9 as structural constants: halves, thirds, sample counts)', () => {
-    const src = readFileSync('src/arch/terrace.ts', 'utf8').split('\n').filter(l => !l.trim().startsWith('//')).join('\n').replace(/\/\/.*$/gm, '').replace(/'[^']*'|`[^`]*`/g, '');
+    const src = readFileSync('src/arch/terrace.ts', 'utf8').split('\n').filter(l => !l.trim().startsWith('//')).join('\n').replace(/\/\/.*$/gm, '').replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g, ''); // strings in order of appearance (a "…'…'…" string is one token)
     const lits = [...src.matchAll(/(?<![\w.])(\d+\.?\d*(?:e-?\d+)?)(?![\w])/g)].map(m => m[1]).filter(n => !['0', '1', '2', '3', '0.5', '8', '9'].includes(n));
     expect(lits).toEqual([]);
   });

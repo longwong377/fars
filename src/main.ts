@@ -19,7 +19,8 @@ import { buildWorld, WorldBuild } from './world/world';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
 import { Pipeline } from './render/pipeline';
-import { WEATHER } from './render/materials';
+import { WEATHER, SEASON } from './render/materials';
+import { seasonAt } from './world/season';
 import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
 installWebGPUCompat();
 
@@ -262,6 +263,7 @@ async function boot() {
     world.update?.(dt, { clock, cond, sky: sky.state, camera, player, settings });
     tmesh.update(camera.position);
     const t0 = performance.now();
+    { const ss = seasonAt(clock.dayIndex); SEASON.green.value = ss.green; SEASON.dry.value = ss.dry; }
     WEATHER.wetness.value = cond.wetness; WEATHER.snow.value = cond.snowCover; WEATHER.puddles.value = Math.max(0, cond.wetness - 0.4) / 0.6;
     pipeline.flash.value = world.flash?.() ?? 0;
     if (opts.render === false) return;
