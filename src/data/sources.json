@@ -478,5 +478,60 @@
   "cite": "Dendroclimatic potential of riparian plane trees (Platanus orientalis) along the Zayandeh-Rud River, Iran (Dendrochronologia 2024)",
   "url": "https://www.sciencedirect.com/science/article/abs/pii/S1125786524000651",
   "access": "search-extract only: riparian woodland dominants Platanus orientalis, Populus, Salix alba; shrubs Tamarix ramosissima, Salix acmophylla"
+ },
+ "KJV-BIBLE": {
+  "cite": "The Holy Bible, King James Version (1611; public domain), JSON edition thiagobodruk/bible: Nehemiah 2:1-10; Ezra 5:6-17, 6:1-2; Esther 2:19-21, 3:12-15, 4:2, 4:11",
+  "url": "https://raw.githubusercontent.com/thiagobodruk/bible/master/json/en_kjv.json",
+  "access": "downloaded; the passages read in full (FT). Biblical texts about the Persian court and its letters: literary claims, max tier B (Ezra, Nehemiah) or C (Esther, late)"
+ },
+ "ARSHAMA-TA": {
+  "cite": "Arshama's travel authorisation for his steward Nakhthor (Nehtihor), Bodleian Aramaic leather letters (Pell. Aram.; Driver 6 / TAD A6.9), via Oxford 'Travel authorisation by Arshama' (cabinet.ox.ac.uk), the Bodleian Arshama project and J. Ma's introduction",
+  "url": "https://www.cabinet.ox.ac.uk/travel-authorisation-arshama-0",
+  "access": "search-extract only (hosts blocked, B6): the addressees, the daily rations, the clause 'If he should be more than one day in a place, then for these days do not give them any rations', and 'the only surviving example of a halmi'. The letter is late 5th century (not 467)"
+ },
+ "HALMI-SX": {
+  "cite": "Search-engine summaries (2026-09-23) of W. F. M. Henkelman's work on the halmi, esp. 'The seal of prince Arsama: from Persepolis to Oxford' (in Arsama and his World, 2020), and of Iranica 'Persepolis Administrative Archives': halmi 'seal' > 'seal impression', 'sealed document', 'letter order', 'travel authorisation'; the bulla on leather travel documents; 'the halmi of Bakabana, the satrap in Susa'; Zissawis issuing halmis",
+  "url": "https://www.academia.edu/67513254/The_seal_of_prince_Ar%C5%A1%C4%81ma_From_Persepolis_to_Oxford",
+  "access": "search-extract only (academia, Iranica blocked, B6). WHICH SENTENCE COMES FROM WHICH PAGE CANNOT BE VERIFIED: cap B, treat as one source"
+ },
+ "MDPI-ARACH2025": {
+  "cite": "'Deciphering Arachosian Tribute at Persepolis: Orthopraxy and Regulated Gifts in the Achaemenid Empire', Religions 16/8 (2025) 965 (NN 0859: Maudadda carried a sealed document from the King, went to Barrikana)",
+  "url": "https://www.mdpi.com/2077-1444/16/8/965",
+  "access": "search-extract only (mdpi blocked, B6)"
+ },
+ "HUNARA2024": {
+  "cite": "'One Person, Several Names: Median or Old Persian?', Hunara: Journal of Ancient Iranian Arts and History 2/1 (2024) (Kaudama carries a halmi from Zisramas = Zissawis, journey from Persepolis, month Anamaka, yr 22)",
+  "url": "https://www.hunara.org/article_183637_6977b39aa9877988c12aa6722948161a.pdf",
+  "access": "search-extract only (host blocked, B6)"
+ },
+ "POTTS2024": {
+  "cite": "D. T. Potts, 'Similarities and Differences between the Office of the Achaemenid barrisdama and the Safavid-Qajar mihmandar', Ktema 49 (2024) 207-221",
+  "url": "https://www.academia.edu/Documents/in/Achaemenid_Royal_Road",
+  "access": "abstract only, via search extract: barrisdama 'charged with escorting select individuals and large groups on journeys, some of which were over hundreds of kilometers'"
+ },
+ "HENK2002": {
+  "cite": "W. F. M. Henkelman, 'Exit der Posaunenblaser: on lance-guards and lance-bearers in the Persepolis Fortification archive', ARTA 2002.007",
+  "url": "http://www.achemenet.com/ressources/enligne/arta/pdf/2002.007.pdf",
+  "access": "abstract only, via search extract: PF lance-bearers served primarily as labour inspectors and escorts of groups, not as military personnel"
+ },
+ "SEALDOC2018": {
+  "cite": "'El documento sellado en la Persia aqueménida' (2018), ResearchGate publication 324825105 (miyatukkas = OIr. *viyatika- 'travel pass', used more or less interchangeably with halmi)",
+  "url": "https://www.researchgate.net/publication/324825105_El_documento_sellado_en_la_Persia_aquemenida",
+  "access": "search-extract only (ResearchGate blocked, B6)"
+ },
+ "AZZONI2019": {
+  "cite": "A. Azzoni, ARTA 2019.003 (Aramaic epigraphs on Persepolis Fortification tablets: PF 0999 ptp ʾšprtʾ \"rations (for) female weavers\")",
+  "url": "http://www.achemenet.com/pdf/arta/ARTA_2019_003_Azzoni.pdf",
+  "access": "search-extract only (achemenet blocked, B6)"
+ },
+ "PFA-ISAC": {
+  "cite": "ISAC / OCHRE Persepolis Fortification Archive project pages; M. W. Stolper & J. Tavernier, ARTA 2007.001; Wikipedia 'Persepolis Administrative Archives' (find-spot: 'at the northeastern corner of the platform ... in two small spaces of a bastion in the casemate fortification wall'; entrance 'bricked up in antiquity')",
+  "url": "https://isac.uchicago.edu/research/projects/persepolis-fortification-archive",
+  "access": "search-extract only (hosts blocked, B6). Key named in research/PEOPLE.md, added to sources.json in the visitor-mode pass"
+ },
+ "ALEX-HIST": {
+  "cite": "Alexander historians via search extracts: Diodorus Siculus 17.70-71 (the Persepolis citadel: triple wall, bronze gates \"for security\", the treasure) and Arrian, Anabasis 6.29 (after Aristobulus: Magi guarding the tomb of Cyrus, a sheep a day, meal and wine, a horse a month)",
+  "url": "https://penelope.uchicago.edu/Thayer/e/roman/texts/diodorus_siculus/17a*.html",
+  "access": "search-extract only (LacusCurtius, Perseus, Livius and Wikisource blocked, B6). Late Greek claims about 330 BCE: max tier B, and the triple wall is not matched by the excavated Terrace"
  }
 }
