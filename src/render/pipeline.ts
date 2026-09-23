@@ -18,7 +18,7 @@
 // giIntensity: with uniform sectors weighted by the receiver cosine, a surface fully enclosed by radiance L accumulates
 // 2L/π per slice, while a Lambert surface under that enclosure reflects albedo·L; so the scale is π/2 (C, derivation only).
 import * as THREE from 'three/webgpu';
-import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp } from 'three/tsl';
+import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min } from 'three/tsl';
 import { ssgi } from './ssgi';
 import { ssgi as ssgiOrig } from 'three/addons/tsl/display/SSGINode.js';
 import { traa } from 'three/addons/tsl/display/TRAANode.js';
@@ -29,6 +29,11 @@ import { installProbeLight, updateProbeLights, probeAmbient, probeSun } from './
 export const GI_SCALE = Math.PI / 2;
 /** bloom threshold (scene radiance, before exposure) at the outdoor exposures; scaled for interior exposures (D-141) */
 export const BLOOM_THRESHOLD = 0.9, BLOOM_STRENGTH = 0.12;
+/** the glare's input saturates at this many times display white (after exposure), as a sensor does: an interior exposed
+ *  hundreds of times the outdoor one cannot feed a sunlit doorway at 100–400× white into the glare (session 4 triage) */
+export const BLOOM_SAT = 16;
+/** the bloom radius (the weight of its broad mips) outdoors; it falls to 0 (the narrow mips) at interior exposures */
+export const BLOOM_RADIUS = 0.35;
 
 export class Pipeline {
   rp: THREE.RenderPipeline | null = null;
@@ -39,6 +44,8 @@ export class Pipeline {
   private sun: THREE.DirectionalLight | undefined;
   private built = false;
   private bloomNode: unknown = null;
+  /** the absolute exposure (renderer.toneMappingExposure), for the glare's saturation cap */
+  private expAbs = uniform(1);
   constructor(private renderer: THREE.WebGPURenderer, private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, readonly quality: Quality, private hemi?: THREE.HemisphereLight) {
     installProbeLight(renderer); // before any material is built
     // the sun: the shadow-casting directional light (SkySystem.sun)
@@ -91,7 +98,8 @@ export class Pipeline {
       composite = vec4(chosen, col.a);
     }
     let out: any = traa(composite, dep, vel, camera);
-    const b = bloom(out, BLOOM_STRENGTH, 0.35, BLOOM_THRESHOLD); this.bloomNode = b;
+    const bin = vec4(min(out.rgb, vec3(float(BLOOM_SAT).div(this.expAbs.max(1e-6)))), float(1)); // sensor-like saturation (display terms)
+    const b = bloom(bin, BLOOM_STRENGTH, BLOOM_RADIUS, BLOOM_THRESHOLD); this.bloomNode = b;
     out = out.add(b).add(this.flash);
     this.rp = new THREE.RenderPipeline(renderer, out);
   }
@@ -99,9 +107,13 @@ export class Pipeline {
    *  outdoor range, so a fixed threshold would flood a hall's view with glare from every sunlit doorway. `rel` = exposure /
    *  X_MAX: at or below 1 (every outdoor and night state) the threshold is the session-3 value; above it, the threshold
    *  scales down with the exposure so it stays the same in display terms. */
-  setExposure(rel: number) {
+  setExposure(rel: number, abs = rel) {
     const b = this.bloomNode as any, r = Math.max(1, rel);
+    this.expAbs.value = abs;
     if (b?.threshold && 'value' in b.threshold) b.threshold.value = BLOOM_THRESHOLD / r;
+    // a tight kernel at interior exposures: the broad mips fade out by 8× the outdoor range (a lens's glare is a sharp core
+    // with a weak tail; the broad Gaussian stack veiled the near columns in the Hadish hall)
+    if (b?.radius && 'value' in b.radius) { const t = Math.min(1, Math.max(0, (r - 1) / 7)); b.radius.value = BLOOM_RADIUS * (1 - t * t * (3 - 2 * t)); }
     // the glow is a fraction of the source added before exposure: a doorway 1,000× brighter than an adapted hall would
     // haze half the frame (first interior render, D-141). Strength falls as 1/√(exposure above the outdoor range) (C).
     if (b?.strength && 'value' in b.strength) b.strength.value = BLOOM_STRENGTH / Math.sqrt(r);

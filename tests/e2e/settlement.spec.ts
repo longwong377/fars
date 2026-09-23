@@ -56,7 +56,9 @@ for (const v of [...VIEWS, ...EXTRA]) for (const town of v.ab ? [true, false] : 
         if (spot === 'ajori') { const c = plan.gate.c, th = plan.gate.theta; const e = c[0] + Math.cos(th) * 60, n = c[1] + Math.sin(th) * 60; const gb = 90 - (th + Math.PI) * 180 / Math.PI; return [e, n, 1.6, ((gb + 341) % 360 + 360) % 360, 6]; }
         return [-50.5, -120, 1.6, 215, -3];
       }, v.spot);
-      await page.evaluate(c => (window as any).__parsa.view(...c), cam);
+      // a photographic lens (vertical 40°, ≈ 28 mm; FOV=game: the player's 70°), session 4
+      const fov = process.env.FOV === 'game' ? undefined : 40;
+      await page.evaluate(([c, f]) => (window as any).__parsa.view(...c, f), [cam, fov] as const);
       for (let i = 0; i < (v.frames ?? 6); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
       const tag = `${v.n}${town ? '' : '-notown'}-${Q}-${info.project.name}`;
       await page.screenshot({ path: `shots/settlement-${tag}.png` });

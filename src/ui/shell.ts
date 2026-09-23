@@ -34,7 +34,9 @@ export class Shell {
     )));
     start.focus();
   }
-  playing() { this.mode = 'playing'; root().replaceChildren(el('div', { className: 'crosshair' })); }
+  // the aiming dot is out-of-world UI: shown only with the translation layer on (whose inscription picks use it), never in
+  // ?test captures (brief §1.1, §6: no in-world HUD; session 4)
+  playing() { this.mode = 'playing'; const dot = this.settings.translation && !new URLSearchParams(location.search).has('test'); root().replaceChildren(...(dot ? [el('div', { className: 'crosshair' })] : [])); }
   pause() {
     this.mode = 'paused';
     const t = this.hooks.getTime();

@@ -162,8 +162,11 @@ async function boot() {
     setTime: (day: number, hour: number) => clock.set(day, hour),
     setWeather: (w: WeatherOverride) => { weather.override = w; },
     /** place the camera at grid (east, north) with eye height above ground (or absolute asl), true-north azimuth + pitch in degrees */
-    view: (east: number, north: number, eyeAboveGround: number, azTrueDeg: number, pitchDeg: number) => {
+    view: (east: number, north: number, eyeAboveGround: number, azTrueDeg: number, pitchDeg: number, fovDeg?: number) => {
       const x = east, z = -north; const g = groundAt(east, north); freeCam = { x, y: g + eyeAboveGround, z, yaw: -((azTrueDeg - 341) * Math.PI) / 180, pitch: (pitchDeg * Math.PI) / 180 };
+      // camera rig (session 4): a photographic vertical field of view per capture (24 mm ≈ 46°, 35 mm ≈ 32° at 16:9);
+      // omitted = the player's setting (70° by default, a 14 mm lens: fine for presence, not for judging a photograph)
+      camera.fov = fovDeg ?? settings.fov; camera.updateProjectionMatrix();
     },
     viewLatLon: (lat: number, lon: number, eye: number, az: number, pitch: number) => { const [e, n] = latLonToGrid(lat, lon); api.view(e, n, eye, az, pitch); },
     walkMode: () => { freeCam = null; },
@@ -326,7 +329,7 @@ async function boot() {
     exposure = TEST ? target : adaptExposure(exposure, target, dt); // dark adaptation is slower than light adaptation
     if (P.get('xp')) exposure = +P.get('xp')!; // debug: a fixed exposure (diagnostic renders)
     renderer.toneMappingExposure = exposure;
-    pipeline.setExposure(exposure / X_MAX); // bloom threshold in display terms once the exposure leaves the outdoor range
+    pipeline.setExposure(exposure / X_MAX, exposure); // bloom threshold in display terms once the exposure leaves the outdoor range; saturation cap
     world.update?.(dt, { clock, cond, sky: sky.state, skyLight: sky, camera, player, settings }); // skyLight: horizon radiance and sun light (D-060)
     tmesh.update(camera.position);
     const t0 = performance.now(); if (opts.render !== false) renderer.info.reset();

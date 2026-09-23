@@ -2,7 +2,11 @@ import { test } from '@playwright/test';
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { lumStats } from './lib/lum';
 // Camera-rig prototypes for §1.1 moments (fixed views; world state frozen via ?test&day&hour&weather).
-const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, number, number, number, number]; frames?: number }[] = [
+// fov: vertical field of view of the capture (degrees; session 4). Photographs of the site are taken at 24–35 mm: 46° (24 mm
+// at 16:9) indoors and in courts, 40° (≈ 28 mm) for the wider outdoor views. FOV=game renders at the player's setting (70°,
+// a 14 mm lens: for judging first-person presence).
+const IN = 46, OUT = 40;
+const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, number, number, number, number]; fov?: number; frames?: number }[] = [
   // dawn before sunrise (D-118): day 0 (17 Apr 467 BCE) 05:24, the sun 2.9° below the horizon (sunrise ~05:35): the
   // Earth's shadow and the antitwilight arch over the W plain, no sun shadows; the old slot (05:51, sun +2.5°) and a view
   // E into the glow over Kuh-e Rahmat are kept for comparison
@@ -15,17 +19,28 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'night-terrace', day: 5, hour: 22.5, w: 'clear', v: [0, 92, 1.6, 161, 6] },
   // moonless pre-dawn (day 1 = 18 Apr 467 BCE, the moon a thin crescent set in the evening): the Milky Way from Cygnus to
   // Sagittarius over the SE, seen from the Grand Stair top (D-047)
-  { n: 'night-milkyway', day: 1, hour: 3.5, w: 'clear', v: [-36, 125, 1.6, 125, 28] },
-  { n: 'brazier-close', day: 0, hour: 21.5, w: 'clear', v: [-36.4, 132, 1.6, 161, -8] },
-  { n: 'apadana-hall-torch', day: 0, hour: 21, w: 'clear', v: [-8, 0, 4.6, 161, 6] },
+  { n: 'night-milkyway', day: 1, hour: 3.5, w: 'clear', v: [-36, 125, 1.6, 125, 28], fov: 60 },
+  { n: 'brazier-close', day: 0, hour: 21.5, w: 'clear', v: [-36.4, 132, 1.6, 161, -8], fov: IN },
+  { n: 'apadana-hall-torch', day: 0, hour: 21, w: 'clear', v: [-8, 0, 4.6, 161, 6], fov: IN },
   { n: 'rain-columns', day: 2, hour: 14, w: 'rain', v: [-20, 70, 1.6, 161, 4] },
   // §1.1 "rain moving across the plain toward the columns": day 12's rain episode reaches the Terrace at 06:01 from the
   // WSW (245°); at 05:40 its cell is ~6 km out over the plain (WeatherSystem.rainCell); seen from the Apadana W portico
   { n: 'rain-approach', day: 299, hour: 11.1, w: 'auto', v: [-38, -5, 1.6, 232, 3] }, // a heavy cell (14 mm) 15 km SW over the plain, seen out of the Apadana W portico, 50 min before it arrives (D-060, D-064)
-  { n: 'apadana-enter', day: 25, hour: 11, w: 'clear', v: [1.9, 36, 1.6, 161, 2] },
-  { n: 'apadana-hall-in', day: 25, hour: 11, w: 'clear', v: [1.9, 12, 1.6, 161, 6] }, // 18 m inside the N doorway: the eye adapted to the hall (D-141)
+  // from the sunlit N court, 10 m out from the N portico's outer row (y 48), between its two axial columns (x −2.4, 6.2):
+  // sunlit pavement, the portico's shade and the black doorway 27 m off (session 4 reframe; the old view stood in the
+  // portico facing two blank walls)
+  { n: 'apadana-enter', day: 25, hour: 11, w: 'clear', v: [1.9, 58, 1.6, 161, 4], fov: IN },
+  { n: 'apadana-enter-portico', day: 25, hour: 11, w: 'clear', v: [1.9, 36, 1.6, 161, 2], fov: IN }, // the old view, in the portico
+  // inside the hall, one bay E of the axis (between column lines x 6.2 and 14.9), looking SSW and up: the capitals and
+  // beams close overhead, the far doorway the one bright thing low in the frame (session 4 reframe)
+  { n: 'apadana-hall-in', day: 25, hour: 11, w: 'clear', v: [10.55, 12.4, 1.6, 170, 20], fov: 50 },
+  { n: 'apadana-hall-axis', day: 25, hour: 11, w: 'clear', v: [1.9, 12, 1.6, 161, 6], fov: IN }, // the old view: 18 m inside the N doorway, along the axis
   { n: 'reliefs-raking', day: 60, hour: 18.3, w: 'clear', v: [-30, 63.5, 1.6, 83, -3] }, // 4.5 m off the Apadana N stair façade, looking E along it: the low NW sun grazes the procession (session 3)
-  { n: 'scribe-at-work', day: 25, hour: 10, w: 'clear', v: [190.9, -82.0, 1.7, 235, -15] }, // inside the scribes' room (D-067), from its NE corner toward the desk by the S doorway
+  // inside the scribes' room (D-067): from just W of the S doorway (x 184.0–185.1), looking ENE at the scribe by the desk
+  // (186.8, −83.2), so the door's light falls across him as a side key (session 4 reframe; the old view from the NE corner
+  // saw him as a silhouette against the door)
+  { n: 'scribe-at-work', day: 25, hour: 10, w: 'clear', v: [183.2, -83.9, 1.6, 60, -20], fov: 50 },
+  { n: 'scribe-room-ne', day: 25, hour: 10, w: 'clear', v: [190.9, -82.0, 1.7, 235, -15], fov: 50 }, // the old view from the NE corner
   { n: 'stair-climb', day: 25, hour: 8.5, w: 'clear', v: [-43.9, 128, 1.6, 341, 12] },
   { n: 'stair-climb-pm', day: 25, hour: 16, w: 'clear', v: [-43.9, 128, 1.6, 341, 12] }, // the W-facing stair in the afternoon sun (the morning view is in the Terrace's shadow); shares its state with tripylon-n-stair
   { n: 'snow-terrace', day: 280, hour: 10, w: 'snow', v: [-20, 70, 1.6, 161, 4] },
@@ -33,12 +48,12 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'tachara-s-stair', day: 25, hour: 15.5, w: 'clear', v: [-21, -112, 1.6, 341, 6] },
   // inside the Tachara hall, in the W aisle, looking SW at the doorway into the W2 room: its S reveal carries a
   // lance-bearer with a wicker shield (D-132); the W1 doorway and the hall niches are to the right
-  { n: 'tachara-lance-bearers', day: 25, hour: 15.5, w: 'clear', v: [-27.8, -81.9, 1.6, 219, 6] }, // from the hall into the W doorway (S), the lance-bearer on its S jamb (reframed session 4: the old view missed the reliefs)
-  { n: 'tachara-lance-bearer-close', day: 25, hour: 15.5, w: 'clear', v: [-30.25, -82.25, 1.6, 161, 12] }, // inside the passage, 1.2 m from the S jamb's relief
-  { n: 'hadish-hall', day: 25, hour: 11, w: 'clear', v: [22, -150, 1.6, 161, 2] },
+  { n: 'tachara-lance-bearers', day: 25, hour: 15.5, w: 'clear', v: [-27.8, -81.9, 1.6, 219, 6], fov: IN }, // from the hall into the W doorway (S), the lance-bearer on its S jamb (reframed session 4: the old view missed the reliefs)
+  { n: 'tachara-lance-bearer-close', day: 25, hour: 15.5, w: 'clear', v: [-30.25, -82.25, 1.6, 161, 12], fov: IN }, // inside the passage, 1.2 m from the S jamb's relief
+  { n: 'hadish-hall', day: 25, hour: 11, w: 'clear', v: [22, -150, 1.6, 161, 2], fov: IN },
   { n: 'hall100-site', day: 25, hour: 9.5, w: 'clear', v: [146, 45, 1.6, 161, 4] },
   { n: 'tripylon-n-stair', day: 25, hour: 16, w: 'clear', v: [82, -38, 1.6, 161, 6] },
-  { n: 'harem-portico', day: 25, hour: 10, w: 'clear', v: [114, -114, 1.6, 161, 4] },
+  { n: 'harem-portico', day: 25, hour: 10, w: 'clear', v: [114, -114, 1.6, 161, 4], fov: IN },
 ];
 test('moments', async ({ page }, info) => {
   test.setTimeout(1_380_000); // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run)
@@ -61,13 +76,14 @@ test('moments', async ({ page }, info) => {
       await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
       loaded = state;
     }
-    await page.evaluate(v => (window as any).__parsa.view(...v), s.v);
+    const fov = process.env.FOV === 'game' ? undefined : s.fov ?? OUT;
+    await page.evaluate(([v, f]) => (window as any).__parsa.view(...v, f), [s.v, fov] as const);
     for (let i = 0; i < (s.frames ?? 8); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
     const png = await page.screenshot({ path: `shots/moment-${s.n}-${proj}.png` });
     // §8.3 luminance (display-referred sRGB luma): whole frame; appended to shots/moments-lum.json
     const lum = await lumStats(page, png); const exp = await page.evaluate(() => (window as any).__parsa.exposureInfo());
     mkdirSync('shots', { recursive: true }); const f = 'shots/moments-lum.json'; const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {};
-    all[`${s.n}|${process.env.Q ?? 'test'}|${proj}`] = { lum, exposure: +exp.exposure.toFixed(3), sunAlt: +exp.sunAlt.toFixed(1) }; writeFileSync(f, JSON.stringify(all, null, 1));
+    all[`${s.n}|${process.env.Q ?? 'test'}|${proj}`] = { lum, exposure: +exp.exposure.toFixed(3), sunAlt: +exp.sunAlt.toFixed(1), fov: fov ?? 'game' }; writeFileSync(f, JSON.stringify(all, null, 1));
     console.log(s.n, JSON.stringify(lum), 'backend', await page.evaluate(() => (window as any).__parsa.backend));
   }
   console.log(errs.slice(0, 5).join('\n'));

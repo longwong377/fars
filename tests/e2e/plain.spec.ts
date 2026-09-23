@@ -39,10 +39,12 @@ test('plain', async ({ page }, info) => {
   const err = await page.evaluate(() => (window as any).__parsa.error); if (err) throw new Error(err);
   for (const s of run) {
     await page.evaluate(([d, h, w]) => { const p = (window as any).__parsa; p.setTime(d, h); p.setWeather(w); }, [s.day, s.hour, s.w] as [number, number, string]);
-    await page.evaluate(v => (window as any).__parsa.view(...v), s.v);
+    // a photographic lens (vertical 40°, ≈ 28 mm; FOV=game: the player's 70°), session 4
+    const fov = process.env.FOV === 'game' ? undefined : 40;
+    await page.evaluate(([v, f]) => (window as any).__parsa.view(...v, f), [s.v, fov] as const);
     // one frame lets the plain build its lazy colliders around the camera (river corridor, village, trees); view again so
     // the eye stands on what is drawn (the heightfield alone is carved lower under the river corridor)
-    await page.evaluate(() => (window as any).__parsa.renderOnce()); await page.evaluate(v => (window as any).__parsa.view(...v), s.v);
+    await page.evaluate(() => (window as any).__parsa.renderOnce()); await page.evaluate(([v, f]) => (window as any).__parsa.view(...v, f), [s.v, fov] as const);
     for (let i = 0; i < (Q === 'test' ? 6 : 3); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
     const png = await page.screenshot({ path: `shots/plain-${s.n}-${Q}-${info.project.name}.png` });
     const withPlain = await page.evaluate(() => { const p = (window as any).__parsa; const st = p.stats(); return { drawCalls: st.drawCalls, triangles: st.triangles, terrainTris: st.terrain.tris, backend: st.backend, plain: p.world.plain?.stats() }; });
