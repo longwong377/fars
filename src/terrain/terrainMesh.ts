@@ -6,6 +6,9 @@ import { Ring, Terrain } from './heightfield';
 import { surfaceMaterial } from '../render/materials';
 
 const CHUNK = 128;
+/** the far ring (±71.7 km, 80 m cells) uses 256-cell chunks: 48 draw calls instead of 192, and the mid ring's hole is
+ *  exactly one chunk (mid half-size 10,240 m = 128 far cells) */
+const FAR_CHUNK = 256;
 interface Chunk { ring: Ring; r0: number; c0: number; cells: number; center: THREE.Vector3; radius: number; lods: Map<number, THREE.BufferGeometry>; mesh: THREE.Mesh; step: number }
 
 /** Ground colour: procedural and tier C. It will be replaced by calibrated materials in Phase 3 (flagged in the dev overlay). */
@@ -30,18 +33,19 @@ export class TerrainMesh {
     this.addRing(terrain.far, terrain.mid.half);
   }
   private addRing(ring: Ring, holeHalf: number | null) {
-    const nChunks = (ring.n - 1) / CHUNK;
+    const CH = ring === this.terrain.far ? FAR_CHUNK : CHUNK, nChunks = (ring.n - 1) / CH;
+    if (!Number.isInteger(nChunks)) throw new Error(`terrain ring of ${ring.n} samples is not a whole number of ${CH}-cell chunks`);
     for (let cr = 0; cr < nChunks; cr++) for (let cc = 0; cc < nChunks; cc++) {
-      const x0 = -ring.half + cc * CHUNK * ring.cell, z0 = -ring.half + cr * CHUNK * ring.cell, size = CHUNK * ring.cell;
+      const x0 = -ring.half + cc * CH * ring.cell, z0 = -ring.half + cr * CH * ring.cell, size = CH * ring.cell;
       if (holeHalf !== null && x0 >= -holeHalf - 1e-6 && x0 + size <= holeHalf + 1e-6 && z0 >= -holeHalf - 1e-6 && z0 + size <= holeHalf + 1e-6) continue;
       let hmin = Infinity, hmax = -Infinity;
-      for (let r = 0; r <= CHUNK; r += 4) for (let c = 0; c <= CHUNK; c += 4) { const h = ring.at(cr * CHUNK + r, cc * CHUNK + c); hmin = Math.min(hmin, h); hmax = Math.max(hmax, h); }
+      for (let r = 0; r <= CH; r += 4) for (let c = 0; c <= CH; c += 4) { const h = ring.at(cr * CH + r, cc * CH + c); hmin = Math.min(hmin, h); hmax = Math.max(hmax, h); }
       const center = new THREE.Vector3(x0 + size / 2, (hmin + hmax) / 2, z0 + size / 2);
       const radius = Math.hypot(size / 2, size / 2, (hmax - hmin) / 2);
       const mesh = new THREE.Mesh(undefined, this.material);
       mesh.receiveShadow = true; mesh.castShadow = ring === this.terrain.near; mesh.matrixAutoUpdate = false;
       mesh.userData = this.group.userData;
-      this.chunks.push({ ring, r0: cr * CHUNK, c0: cc * CHUNK, cells: CHUNK, center, radius, lods: new Map(), mesh, step: -1 });
+      this.chunks.push({ ring, r0: cr * CH, c0: cc * CH, cells: CH, center, radius, lods: new Map(), mesh, step: -1 });
       this.group.add(mesh);
     }
   }

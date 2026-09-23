@@ -6,7 +6,7 @@ import { WORLD_SEED_DEFAULT } from './core/rng';
 import { Input } from './core/input';
 import { writeSave, readSave } from './core/save';
 import { latLonToGrid, gridToLatLon } from './core/geo';
-import { Terrain } from './terrain/heightfield';
+import { Terrain, curvatureDrop } from './terrain/heightfield';
 import { TerrainMesh } from './terrain/terrainMesh';
 import { SkySystem } from './sky/skySystem';
 import { WeatherSystem, WeatherOverride } from './weather/weatherState';
@@ -68,7 +68,7 @@ async function boot() {
 
   const scene = new THREE.Scene();
   scene.fog = new THREE.FogExp2(0xb9c3cc, 0.00002);
-  const camera = new THREE.PerspectiveCamera(settings.fov, innerWidth / innerHeight, 0.05, 90000);
+  const camera = new THREE.PerspectiveCamera(settings.fov, innerWidth / innerHeight, 0.05, 110000); // far ring corners lie 101 km out
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight, false); });
 
   shell.loading('Loading the plain and the mountain…');
@@ -290,12 +290,13 @@ async function boot() {
     if (opts.render === false) return;
     pipeline.render(scene, camera);
     lastFrameMs = performance.now() - t0;
-    { const sub = (world as any).lastSubtitle ?? null; if (sub && sub !== lastSub) { lastSub = sub; lastSubAt = now / 1000; }
+    { const wall = (now || performance.now()) / 1000; // test renders call frame(0): the layer's timers still need wall time
+      const sub = (world as any).lastSubtitle ?? null; if (sub && sub !== lastSub) { lastSub = sub; lastSubAt = wall; }
       const P = (world as any).people; const hm = (t: number) => { const d = Math.floor(t / 24), h = t - d * 24; return `day ${d + 1}, ${Math.floor(h)}:${String(Math.floor((h % 1) * 60)).padStart(2, '0')}`; };
-      tl.update({ camera, inscriptions: inscGroup, subtitle: sub, subtitleAt: lastSubAt, now: now / 1000, player: { e: camera.position.x, n: -camera.position.z, yawDeg: -(input.yaw * 180) / Math.PI },
+      tl.update({ camera, inscriptions: inscGroup, subtitle: sub, subtitleAt: lastSubAt, now: wall, player: { e: camera.position.x, n: -camera.position.z, yawDeg: -(input.yaw * 180) / Math.PI },
         events: P?.sim.events ?? [], timeLabel: hm, places: PLACES as any }); }
     overlay.update(renderer, scene, camera, [
-      `grid E ${camera.position.x.toFixed(1)} N ${(-camera.position.z).toFixed(1)} · ${(camera.position.y + terrain.meta.court_asl).toFixed(1)} m asl · ground ${(terrain.heightAt(camera.position.x, camera.position.z) + terrain.meta.court_asl).toFixed(1)}`,
+      `grid E ${camera.position.x.toFixed(1)} N ${(-camera.position.z).toFixed(1)} · ${(camera.position.y + curvatureDrop(camera.position.x, camera.position.z) + terrain.meta.court_asl).toFixed(1)} m asl · ground ${terrain.aslAt(camera.position.x, camera.position.z).toFixed(1)}`,
       clock.label(),
       `sun alt ${sky.state.sunAlt.toFixed(1)}° · moon ${(sky.state.moonFraction * 100).toFixed(0)}% alt ${sky.state.moonAlt.toFixed(0)}°`,
       `weather: ${weather.override} · ${cond.tempC.toFixed(1)} °C · cloud ${(cond.cloud * 100).toFixed(0)}% · rain ${cond.rain.toFixed(2)} · wind ${cond.windMs.toFixed(1)} m/s from ${cond.windDirDeg.toFixed(0)}° · wet ${cond.wetness.toFixed(2)} · snow ${cond.snowCover.toFixed(2)}`,

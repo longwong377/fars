@@ -32,7 +32,7 @@ mosaic, mtrans = merge(srcs)
 mosaic = mosaic[0].astype(np.float32)
 src_crs = srcs[0].crs
 rings = {  # name: (half-size m, cell m) — built coarse to fine so finer rings can blend their edges into the coarser one
-    'far': (40960, 80.0),
+    'far': (71680, 80.0),  # ±71.7 km: the ranges 55-66 km away at 150-160, 230-250 and 270-290 deg true rise above the 41 km skyline (Q-053)
     'mid': (10240, 16.0),
     'near': (2048, 4.0),
 }

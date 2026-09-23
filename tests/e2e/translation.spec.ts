@@ -13,11 +13,13 @@ test('translation layer: inscription, map, chronicle', async ({ page }, info) =>
     m.geometry.computeBoundingBox(); const c = m.geometry.boundingBox.getCenter(new (m.position.constructor)()).applyMatrix4(m.matrixWorld); return { x: c.x, y: c.y, z: c.z }; });
   // camera 6 m from the panel along its normal, looking at it
   // camera on the doorway axis below the panel, looking across and up at it (the doorway is only a few metres wide)
-  await page.evaluate(t => { const w = (window as any).__parsa; const e = t.x, n = -t.z, axis = 124.6, dn = Math.abs(n - axis);
-    w.view(e, axis, 1.6, n > axis ? 341 : 161, Math.atan2(t.y - 1.6, dn) * 180 / Math.PI); }, target);
+  // aim exactly at the panel centre from the doorway axis (azimuth and pitch from the offsets, not assumed)
+  await page.evaluate(t => { const w = (window as any).__parsa; const n = -t.z, axis = 124.6, camE = t.x - 0.4, de = t.x - camE, dn = n - axis;
+    w.view(camE, axis, 1.6, (Math.atan2(de, dn) * 180) / Math.PI + 341, (Math.atan2(t.y - 1.6, Math.hypot(de, dn)) * 180) / Math.PI); }, target);
   for (let i = 0; i < 3; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
   await page.waitForTimeout(400); await page.evaluate(() => (window as any).__parsa.renderOnce());
   const insc = await page.locator('.tl-insc').textContent();
+  console.log('target', JSON.stringify(target), 'centre ray hits', JSON.stringify(await page.evaluate(() => (window as any).__parsa.pick(0, 0))));
   await page.screenshot({ path: 'shots/translation-xpa.png' });
   expect(insc ?? '').toContain('XPa'); expect(insc ?? '').toContain('ARIo');
   await page.keyboard.press('KeyM'); await page.evaluate(() => (window as any).__parsa.renderOnce());
