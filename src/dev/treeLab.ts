@@ -29,7 +29,7 @@ async function boot() {
   const clock = new WorldClock(+(P.get('day') ?? 80), +(P.get('hour') ?? 10));
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000).rotateX(-Math.PI / 2), surfaceMaterial('earth')); ground.receiveShadow = true; scene.add(ground);
   const t0 = performance.now();
-  const kit = TreeKit.get({ impostorPx: impostorPx(quality) });
+  const kit = TreeKit.get({ impostorPx: impostorPx(quality) }); kit.configure(quality);
   const cutC = uniform(new THREE.Vector3(1e9, 0, 1e9)), cutR = uniform(0);
   const sets = { lod0: new NearTreeSet(kit, 0, 64, true, 'lab'), lod1: new NearTreeSet(kit, 1, 64, true, 'lab'), imp: new ImpostorSet(kit, 64, { c: cutC, r: cutR }, 1e6, 'lab-imp') };
   for (const m of [sets.lod0.wood, sets.lod0.leaves, sets.lod1.wood, sets.lod1.leaves, sets.imp.mesh]) scene.add(m);

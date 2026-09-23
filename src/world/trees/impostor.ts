@@ -3,7 +3,8 @@
 // (render.ts leafAlbedo): what a far tree shows is what the near tree would show from that side, today.
 //
 // Layout: one row per model (species x variant), NV columns = views around the tree (azimuth i * 360/NV deg in the
-// tree's own frame, orthographic, horizontal). Colour texel: albedo (sRGB-encoded) + coverage; normal texel: the
+// tree's own frame, orthographic, horizontal). Colour texel: albedo (mips averaged linear, stored sRGB-encoded) +
+// coverage; normal texel: the
 // lighting normal in the view's frame (x right, y up, z toward the viewer), encoded 0..1. Re-baked per model row when
 // its foliage group's state changes (render.ts). Pure JS (unit-tested: tests/trees.test.ts).
 import { cardState, M0, M1, K0, K1, lod1Size, type TreeModel, type V3 } from './model';
@@ -25,7 +26,7 @@ export function leafAlbedo(tex: { r: number; g: number; b: number }, leafCol: nu
 
 export class ImpostorBaker {
   readonly width: number; readonly height: number;
-  /** float working images (colour: sRGB-encoded albedo + alpha; normal: encoded + alpha) */
+  /** float working images (colour: linear albedo + alpha; normal: encoded + alpha) */
   readonly col: Float32Array; readonly nrm: Float32Array;
   /** lod 1: the far atlas (what the near LOD1 draws); lod 0: the full model (tests compare the two) */
   constructor(readonly models: TreeModel[], readonly atlas: Atlas, readonly px: number, readonly lod: 0 | 1 = 1) {
@@ -51,7 +52,7 @@ export class ImpostorBaker {
       const put = (i: number, j: number, depth: number, cr: number, cg: number, cb: number, n0: number, n1: number, n2: number) => {
         const q = j * N + i; if (depth <= z[q]) return; z[q] = depth;
         const o = ((oy + j) * W + ox + i) * 4;
-        col[o] = linearToSrgb(Math.min(1, cr)); col[o + 1] = linearToSrgb(Math.min(1, cg)); col[o + 2] = linearToSrgb(Math.min(1, cb)); col[o + 3] = 1;
+        col[o] = Math.min(1, cr); col[o + 1] = Math.min(1, cg); col[o + 2] = Math.min(1, cb); col[o + 3] = 1;
         nrm[o] = n0 * 0.5 + 0.5; nrm[o + 1] = n1 * 0.5 + 0.5; nrm[o + 2] = n2 * 0.5 + 0.5; nrm[o + 3] = 1;
       };
       // leaf-cluster cards in today's state, nearest first
@@ -97,7 +98,7 @@ export class ImpostorBaker {
   /** mip levels of both images (per-tile coverage kept) */
   levels() {
     const nl = Math.max(1, Math.floor(Math.log2(this.px)) - 1);
-    return { col: mipChain(this.col, this.width, this.height, this.px, NV, this.models.length, nl), nrm: mipChain(this.nrm, this.width, this.height, this.px, NV, this.models.length, nl) };
+    return { col: mipChain(this.col, this.width, this.height, this.px, NV, this.models.length, nl, true), nrm: mipChain(this.nrm, this.width, this.height, this.px, NV, this.models.length, nl) };
   }
 }
 /** foliage group state from the FoliageState table layout (TREE_GROUPS x 2 texels RGBA) */

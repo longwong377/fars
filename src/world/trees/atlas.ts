@@ -180,12 +180,20 @@ function drawTile(name: TileName, leafFrac: number, c: Canvas) {
     case 'blossom_small': case 'blossom_pomegranate': {
       const pom = name === 'blossom_pomegranate';
       const tw = spray(rng, { spread: 0.75, levels: 2, w: 0.011, node: 0.09 }); twigs(tw, 0.65);
-      if (pom) leafy(tw, HW.narrowWide, 0.02, 0.7, 0.2);
-      else for (const n of nodes(tw, 0.1, rng)) if (n.level > 0 && rng.chance(0.3)) c.leaf(n.x, n.y, n.ang + n.side * 0.7, 0.06, HW.ovate, sh()); // a few young leaves
-      for (const n of shuffle(nodes(tw, pom ? 0.1 : 0.036, rng))) { if (!inOval(n.x, n.y, rng)) continue; const r = pom ? rng.range(0.028, 0.04) : rng.range(0.022, 0.032);
-        const ox = n.x + Math.sin(n.ang + n.side * 1.2) * r * 0.7, oy = n.y + Math.cos(n.ang + n.side * 1.2) * r * 0.7;
-        if (pom) c.leaf(ox, oy - r, rng.range(-0.4, 0.4), r * 2.1, s2 => 0.3 * Math.pow(s2, 0.6) * (s2 > 0.72 ? 1.25 : 1), rng.range(0.75, 1), 1); // tubular calyx and crumpled petals
-        else c.flower(ox, oy, r, rng.range(0.85, 1)); }
+      if (pom) {
+        leafy(tw, HW.narrowWide, 0.02, 0.7, 0.2);
+        for (const n of shuffle(nodes(tw, 0.1, rng))) { if (!inOval(n.x, n.y, rng)) continue; const r = rng.range(0.028, 0.04);
+          const ox = n.x + Math.sin(n.ang + n.side * 1.2) * r * 0.7, oy = n.y + Math.cos(n.ang + n.side * 1.2) * r * 0.7;
+          c.leaf(ox, oy - r, rng.range(-0.4, 0.4), r * 2.1, s2 => 0.3 * Math.pow(s2, 0.6) * (s2 > 0.72 ? 1.25 : 1), rng.range(0.75, 1), 1); } // tubular calyx and crumpled petals
+      } else {
+        // apple, pear and almond blossom sits in clusters on short spurs (4-7 flowers, a few young leaves), irregularly
+        // spaced along the shoots: evenly spaced single flowers read as a regular dot grid (tree lab, 5 m)
+        for (const n of shuffle(nodes(tw, 0.075, rng))) { if (!inOval(n.x, n.y, rng) || rng.chance(0.25)) continue;
+          const a = n.ang + n.side * rng.range(0.6, 1.3), cx = n.x + Math.sin(a) * 0.03, cy = n.y + Math.cos(a) * 0.03;
+          c.line(n.x, n.y, cx, cy, 0.006, 0.004, 2, 0.6);
+          for (let k = rng.int(1, 2); k > 0; k--) c.leaf(cx, cy, a + rng.range(-1.2, 1.2), rng.range(0.045, 0.065), HW.ovate, sh());
+          for (let k = rng.int(4, 7); k > 0; k--) { const t = rng.range(0, Math.PI * 2), d = rng.range(0, 0.03); c.flower(cx + Math.cos(t) * d, cy + Math.sin(t) * d, rng.range(0.016, 0.024), rng.range(0.85, 1)); } }
+      }
       break; }
     case 'twig_fine': { const tw = spray(rng, { spread: 0.7, levels: 3, w: 0.014, node: 0.07 }); for (const t of tw) c.line(t.x0, t.y0, t.x1, t.y1, t.w * 0.75, t.w * 0.55, 2, sh()); break; }
     case 'twig_hanging': { const tw = spray(rng, { spread: 0.35, levels: 2, w: 0.01, node: 0.07, curve: 0.2 }); for (const t of tw) c.line(t.x0, t.y0, t.x1, t.y1, t.w * 0.8, t.w * 0.6, 2, sh()); break; }
@@ -216,12 +224,15 @@ export function buildAtlas(leafFrac: Partial<Record<TileName, number>>): Atlas {
 /** RGBA float (0..1) -> mip levels as RGBA8, per tile: colour averaged by coverage (transparent texels take the colour of
  *  their covered neighbours, so bilinear edges do not darken), alpha scaled so the texels passing 0.5 keep the tile's
  *  full-size share (found per tile and level from an alpha histogram) */
-export function mipChain(base: Float32Array, W: number, H: number, tile: number, cols: number, rows: number, nLevels: number) {
+export function mipChain(base: Float32Array, W: number, H: number, tile: number, cols: number, rows: number, nLevels: number, srgb = false) {
   const levels: { data: Uint8Array; width: number; height: number }[] = [];
   const nt = cols * rows, cover0 = new Float64Array(nt);
   for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) if (base[(j * W + i) * 4 + 3] >= 0.5) cover0[Math.floor(j / tile) * cols + Math.floor(i / tile)]++;
   for (let t = 0; t < nt; t++) cover0[t] /= tile * tile;
-  const toU8 = (f: Float32Array) => { const u = new Uint8Array(f.length); for (let i = 0; i < f.length; i++) { const v = f[i] * 255 + 0.5; u[i] = v <= 0 ? 0 : v >= 255 ? 255 : v; } return u; };
+  // srgb: the colour channels are linear and averaged as such, and written sRGB-encoded (averaging encoded values
+  // darkened every mip of a contrasty image: the impostors read 10-19/255 darker than the near trees, tree lab r3)
+  const enc = (c: number) => (c <= 0.0031308 ? c * 12.92 : 1.055 * Math.pow(c, 1 / 2.4) - 0.055);
+  const toU8 = (f: Float32Array) => { const u = new Uint8Array(f.length); for (let i = 0; i < f.length; i++) { const x = srgb && (i & 3) !== 3 ? enc(Math.max(0, f[i])) : f[i]; const v = x * 255 + 0.5; u[i] = v <= 0 ? 0 : v >= 255 ? 255 : v; } return u; };
   /** colour of empty texels from covered neighbours (2 passes, 4-neighbourhood) */
   const bleed = (f: Float32Array, fw: number, fh: number) => {
     const has = new Uint8Array(fw * fh); for (let k = 0; k < fw * fh; k++) has[k] = f[k * 4 + 3] > 0.02 ? 1 : 0;

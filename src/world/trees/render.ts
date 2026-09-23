@@ -65,12 +65,17 @@ export class TreeKit {
   readonly wind: any = uniform(2);
   /** LOD0 radius (m): near cards turn partly toward the camera, fading out by this radius (set by the tree layers) */
   readonly lod0R: any = uniform(40);
+  /** mip bias of the leaf atlas: +1 where nothing averages sub-pixel alpha over frames (MSAA qualities: the alpha-tested
+   *  leaf edges speckled at test quality); 0 under temporal AA (medium and above), which averages them */
+  readonly atlasBias: any = uniform(0);
   readonly baker: ImpostorBaker; readonly impCol: THREE.DataTexture; readonly impNrm: THREE.DataTexture;
   private baked: (GroupState | null)[] = [];
   readonly buildMs: number; bakeMs = 0; bakes = 0;
   private mats = new Map<string, THREE.MeshStandardNodeMaterial>();
   /** the kit shared by every tree layer (built on first use; the impostor resolution of the first caller wins) */
   static get(opts: KitOptions = { impostorPx: 64 }) { return (shared ??= new TreeKit(opts)); }
+  /** quality-dependent settings (the tree layers call this with their quality) */
+  configure(quality: string) { this.atlasBias.value = quality === 'test' || quality === 'low' ? 1 : 0; }
   private constructor(opts: KitOptions) {
     const t0 = performance.now();
     this.models = allModels();
@@ -141,7 +146,8 @@ export class TreeKit {
     const sp1 = this.rec(this.spTex, 1, row);
     const d = normalize(t1.xyz.sub(t0.xyz).add(vec3(0, 1e-5, 0))), u = t2.xyz, v = cross(d, u), ang = P.x.mul(Math.PI * 2);
     const n = u.mul(cos(ang)).add(v.mul(sin(ang)));
-    const e = P.y, local = mix(t0.xyz, t1.xyz, e).add(n.mul(mix(t0.w, t1.w, e)));
+    // each tube runs a little past both ends (half its radius), so joints between segments of a bending branch close
+    const e = P.y, ext = mix(t0.w.mul(-0.5), t1.w.mul(0.5), e), local = mix(t0.xyz, t1.xyz, e).add(d.mul(ext)).add(n.mul(mix(t0.w, t1.w, e)));
     const m = new THREE.MeshStandardNodeMaterial();
     m.positionNode = toWorld(local.add(this.sway(local, sp1.w, itree.z)), iscl, ipos);
     m.normalNode = normalToView(n, iscl);
@@ -182,7 +188,7 @@ export class TreeKit {
     const vTile = varying(tile), vUV = varying(vec2(P.x.mul(0.5).add(0.5), P.y.mul(0.5).add(0.5)));
     const vTint = varying(c3.w.mul(iscl.w)), vAo = varying(c4.w), vLeaf = varying(leaf.xyz), vBl = varying(bl.xyz), vBark = varying(sp1.xyz);
     const ti = floor(vTile.add(0.5)), uvA = vec2(mod(ti, COLS).add(vUV.x).div(COLS), floor(ti.div(COLS)).add(vUV.y).div(ROWS));
-    const tx = texture(this.atlasTex, uvA);
+    const tx = texture(this.atlasTex, uvA).bias(this.atlasBias);
     // impostor.ts leafAlbedo, the same formula
     const shade = tx.r.mul(0.6).add(0.55), petal = tx.g, bk = tx.b, lm = max(float(1).sub(petal).sub(bk), 0);
     const alb = vLeaf.mul(shade).mul(lm).add(vBl.mul(tx.r.mul(0.15).add(0.85)).mul(petal)).add(vBark.mul(shade).mul(bk)).mul(vTint).mul(vAo);
