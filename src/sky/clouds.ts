@@ -36,6 +36,9 @@ export class VolumetricClouds {
   readonly haze = uniform(new THREE.Color(0.7, 0.75, 0.8));   // horizon haze colour
   readonly time = uniform(0);
   readonly wind = uniform(new THREE.Vector2(3, 0));          // m/s, world x/z
+  /** the approaching rain cell (world x, world z, radius m, strength 0..1; strength 0 = none): the cloud above it is
+   *  thicker and taller, so the curtain hangs from a darker base (the light march does the darkening). C (session 3). */
+  readonly cell = uniform(new THREE.Vector4(0, 0, 1, 0));
   constructor(radius: number, quality: string) {
     const [N, NL] = STEPS[quality] ?? STEPS.high;
     // drawn like the sky, stars and moon: in the opaque pass by render order (−7, after them), no depth test or write, so
@@ -43,7 +46,7 @@ export class VolumetricClouds {
     // geometry and laid the cloud deck over walls and mountains above the horizon.) Custom blending keeps the alpha, which
     // a non-transparent NormalBlending material would force to 1.
     const m = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, transparent: false, blending: THREE.CustomBlending, blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendEquation: THREE.AddEquation, depthTest: false, depthWrite: false, fog: false });
-    const cov = this.coverage, sd = this.sunDir, sc = this.sunColor, amb = this.ambient, hz = this.haze, tm = this.time, wd = this.wind;
+    const cov = this.coverage, sd = this.sunDir, sc = this.sunColor, amb = this.ambient, hz = this.haze, tm = this.time, wd = this.wind, cell = this.cell;
     const atlas = N > 0 ? noiseAtlas() : null;
     /** trilinear sample of the tileable volume at uvw (any real numbers; period 1): bilinear inside two adjacent slice
      *  tiles of the atlas, then a linear blend between them */
@@ -64,9 +67,12 @@ export class VolumetricClouds {
       const pw = vec3(p.x.add(cameraPosition.x).add(wd.x.mul(tm)), p.y, p.z.add(cameraPosition.z).add(wd.y.mul(tm)));
       const lo = sample3(pw.mul(1 / BASE_TILE)).r;
       const weather = sample3(vec3(pw.x.mul(1 / WEATHER_TILE), 0.37, pw.z.mul(1 / WEATHER_TILE))).r;
-      const top = float(0.35).add(lo.mul(0.6)); // taller towers where the base field is strong
+      // over the rain cell (world position, not the wind-drifted noise frame): more cover and taller towers
+      const dcell = vec2(p.x.add(cameraPosition.x).sub(cell.x), p.z.add(cameraPosition.z).sub(cell.y)).length();
+      const boost = smoothstep(cell.z.mul(1.6), cell.z.mul(0.5), dcell).mul(cell.w);
+      const top = float(0.35).add(lo.mul(0.6)).add(boost.mul(0.35)); // taller towers where the base field is strong
       const shape = smoothstep(0.0, 0.06, h).mul(float(1).sub(smoothstep(top.mul(0.7), top, h)));
-      const c = clamp(cov.mul(weather.mul(0.8).add(0.6)), 0, 1);
+      const c = clamp(cov.mul(weather.mul(0.8).add(0.6)).add(boost.mul(0.6)), 0, 1);
       const base = clamp(remap(lo.mul(shape), float(1).sub(c), float(1), float(0), float(1)), 0, 1).mul(c);
       const hi = sample3(pw.mul(1 / DETAIL_TILE)); const hf = hi.g.mul(0.625).add(hi.b.mul(0.25)).add(hi.a.mul(0.125));
       const erode = mix(hf, float(1).sub(hf), clamp(h.mul(4), 0, 1)).mul(0.35);
