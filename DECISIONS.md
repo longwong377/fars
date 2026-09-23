@@ -544,3 +544,17 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - Sign forms C.
   - Panel position, size and line layout C (the real OP columns run to more lines than the C-sized panels hold at this glyph size).
   - Elamite and Babylonian versions not carved (not in the mirror): still a placeholder, flagged in the mesh note.
+
+## D-062 — The Hall of 100 Columns follows the simulated construction (session 3; Phase 5 gate item)
+- **Before:** the simulation advanced construction every week (D-022: drums arrive, are dressed and set; shafts are fluted; capitals set), but the hall was drawn at its day-0 state.
+- **Now:** `src/world/construction.ts` (ConstructionView) replaces the architecture's static hall columns with instances grouped by each column's state: drums set, fluting done, capital set. It rebuilds only when that state changes, a few times a week, so frames cost nothing extra.
+  - `columnMesh` takes an explicit `{ fluted, capital }`. Defaults are unchanged: fluted and capped only when complete.
+  - So the geometry can show the sim's intermediate states: a complete shaft still plain (fluting follows erection, C) and a fluted shaft waiting for its capital.
+- **Verified (`tests/construction_view.test.ts`):**
+  - At day 0 the view draws the same 116 columns as the architecture, shaft tops within half a drum (worst 0.55 m; drum 1.15 m). The static geometry's fractions are continuous, the simulation counts whole drums.
+  - After 120 simulated days of work, 7 drums are set and 2 columns stand visibly taller.
+  - It rebuilds only on change.
+- **Side effect:** 19 static column groups become 5 state groups, so fewer draw calls at the hall.
+- **Not done (C, noted in the module):**
+  - Colliders keep their day-0 height. A shaft stump sits above the bell base, which is already beyond the step-up, so walking is unaffected.
+  - Walls, relief carving, the yard (drum stacks, capital blocks) and ramps stay at day-0 geometry.

@@ -117,13 +117,15 @@ function baseMesh(o: ColumnOrder, lod: Lod): NormMesh {
 }
 
 // =============================================================== shaft
-function shaftMesh(o: ColumnOrder, built: number, lod: Lod): NormMesh | null {
+/** `fluted`: override for a shaft under construction (the Hall of 100 Columns follows the simulation: a shaft is fluted
+ *  after erection, so a complete shaft can still be plain); by default partial shafts are plain and complete ones fluted */
+function shaftMesh(o: ColumnOrder, built: number, lod: Lod, fluted?: boolean): NormMesh | null {
   const shaftH = o.height - o.baseH - o.capitalH, sh = shaftH * built;
   if (sh < 0.01) return null;
   const y0 = o.baseH, y1 = y0 + sh, R0 = o.shaftD / 2, Rtop = R0 * P().shaft_top_ratio;
   const R = (y: number) => R0 + (Rtop - R0) * ((y - y0) / shaftH);
   const U = srow('shaft', 'unfluted'), F = srow('shaft', 'flutes'), TS = srow('shaft', 'tessellation');
-  const unfluted = (U.timber && o.material === 'timber') || (U.under_construction && built < 1) || o.flutes < 3;
+  const unfluted = (U.timber && o.material === 'timber') || (U.under_construction && (fluted === undefined ? built < 1 : !fluted)) || o.flutes < 3;
   if (unfluted) return norm(revolve(TESS().shaft_plain[lod], [y0, y1], [R0, R(y1)]), CR().lathe);
   const N = o.flutes, Sf = lod ? TS.lod1_per_flute : TS.lod0_per_flute, n = N * Sf;
   const ya = y0 + F.stop_bottom * o.shaftD, yb = y1 - F.stop_top * o.shaftD; // flute ends (depth 0 on the flute axis)
@@ -298,13 +300,16 @@ const COL_CACHE = new Map<string, NormMesh>(), PART_CACHE = new Map<string, Norm
 const cached = (key: string, make: () => NormMesh | null) => { if (!PART_CACHE.has(key)) PART_CACHE.set(key, make()); return PART_CACHE.get(key)!; };
 /** the whole column in local space (base at y = 0, top at o.height); built < 1: shaft partly raised, no capital.
  *  Bases and capitals are cached per order (the Hall of 100 Columns' many construction states share them). */
-export function columnMesh(o: ColumnOrder, built = 1, lod: Lod = 0): NormMesh {
-  const ok = JSON.stringify(o), key = `${ok}|${built.toFixed(4)}|${lod}`;
+/** construction state of one column beyond its built fraction (the Hall of 100 Columns, src/world/construction.ts):
+ *  whether the shaft is fluted and the capital set; unset = the default (fluted and capped only when complete) */
+export interface ColumnState { fluted?: boolean; capital?: boolean }
+export function columnMesh(o: ColumnOrder, built = 1, lod: Lod = 0, st: ColumnState = {}): NormMesh {
+  const ok = JSON.stringify(o), key = `${ok}|${built.toFixed(4)}|${lod}|${st.fluted ?? '-'}|${st.capital ?? '-'}`;
   let m = COL_CACHE.get(key);
   if (!m) {
     const parts = [cached(`base|${ok}|${lod}`, () => baseMesh(o, lod))!];
-    const sh = shaftMesh(o, built, lod); if (sh) parts.push(sh);
-    if (built >= 1) { const c = cached(`cap|${ok}|${lod}`, () => capitalMesh(o, lod)); if (c) parts.push(c); }
+    const sh = shaftMesh(o, built, lod, st.fluted); if (sh) parts.push(sh);
+    if (st.capital ?? built >= 1) { const c = cached(`cap|${ok}|${lod}`, () => capitalMesh(o, lod)); if (c) parts.push(c); }
     m = mergeNorm(parts); COL_CACHE.set(key, m);
   }
   return m;
@@ -317,13 +322,13 @@ export function memberMaterials(o: ColumnOrder): { base: Material; shaft: Materi
 }
 /** the column split by surface: one mesh per distinct member material (a single entry for one-material orders, identical to
  *  columnMesh). Same caching and geometry as columnMesh. */
-export function columnMeshesByMaterial(o: ColumnOrder, built = 1, lod: Lod = 0): { material: Material; mesh: NormMesh }[] {
+export function columnMeshesByMaterial(o: ColumnOrder, built = 1, lod: Lod = 0, st: ColumnState = {}): { material: Material; mesh: NormMesh }[] {
   const M = memberMaterials(o);
-  if (M.base === M.shaft && M.shaft === M.capital) return [{ material: M.base, mesh: columnMesh(o, built, lod) }];
+  if (M.base === M.shaft && M.shaft === M.capital) return [{ material: M.base, mesh: columnMesh(o, built, lod, st) }];
   const ok = JSON.stringify(o), by = new Map<Material, NormMesh[]>(), add = (mat: Material, m: NormMesh | null) => { if (m) { if (!by.has(mat)) by.set(mat, []); by.get(mat)!.push(m); } };
   add(M.base, cached(`base|${ok}|${lod}`, () => baseMesh(o, lod)));
-  add(M.shaft, shaftMesh(o, built, lod));
-  if (built >= 1) add(M.capital, cached(`cap|${ok}|${lod}`, () => capitalMesh(o, lod)));
+  add(M.shaft, shaftMesh(o, built, lod, st.fluted));
+  if (st.capital ?? built >= 1) add(M.capital, cached(`cap|${ok}|${lod}`, () => capitalMesh(o, lod)));
   return [...by].map(([material, ms]) => ({ material, mesh: mergeNorm(ms) }));
 }
 export function toGeometry(m: NormMesh): THREE.BufferGeometry {

@@ -30,6 +30,8 @@ import { updateReliefs, settleReliefs } from '../arch/reliefs';
 import { FireSystem } from './fire';
 import { buildTreasuryGoods } from './furnish';
 import { buildPlain } from './plain';
+import { ConstructionView } from './construction';
+import { present } from '../arch/spec';
 import { buildMapLayers, MapItem } from '../ui/mapLayers';
 import { WeatherVfx } from './weatherVfx';
 import { RainShafts } from './rainShafts';
@@ -123,6 +125,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const sim = new PeopleSim(seed, nav, env, { court: settings?.courtCalendar === 'seasonal' }); let simStarted = false;
   sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
   const crowd = new Crowd(sim, seed); root.add(crowd.group);
+  // the Hall of 100 Columns follows the simulation's construction state (Phase 5; replaces the static hall columns)
+  const building = present('hall100') ? new ConstructionView(arch.group, () => sim.construction) : null; if (building) root.add(building.group);
   // people are solid to the player: a kinematic capsule each (brief §6: player collision with crowds)
   const R = phys.R; const bodies = sim.agents.map(() => { const b = phys.world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(0, -1000, 0)); phys.world.createCollider(R.ColliderDesc.capsule(0.55, 0.25).setTranslation(0, 0.8, 0), b); return b; });
   const ms = performance.now() - t0;
@@ -176,6 +180,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   };
   let mapItems: MapItem[] | null = null; // out-of-world map layers (translation layer), built on first use
   return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav }, address, plain, get lastSubtitle() { return lastSubtitle; },
+    building,
     mapLayers: () => (mapItems ??= buildMapLayers({ town: settlement?.plan as any, plain: plain.data as any })),
     saveState: () => ({ people: sim.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } },
     /** persistence (brief §9.5): simulate the time the world ran while the visitor was away, everyone in the abstract LOD
@@ -200,6 +205,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, cond: ctx.cond, player: ctx.player });
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time, ctx.clock.localHour);
       plain.update(dt, ctx);
+      building?.sync(); // cheap unless a column changed state
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
       { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
