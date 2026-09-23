@@ -50,8 +50,8 @@ export class Visitor {
    *  zones on the way to it that are open anyway) */
   business(t: number): Set<string> {
     const b = businessZones(this.s.step);
-    if (this.s.step >= 3 && this.s.step <= 5) { b.add('gate_nations'); b.add('terrace_courts'); b.add('treasury_street'); }
-    if (this.s.step === 7) { b.add('gate_nations'); b.add('terrace_courts'); b.add('treasury_street'); }
+    // carrying the letter (or going back for the answer), his business is the way to the Treasury door
+    if (this.s.letter === 'carried' || (this.s.letter === 'handed' && this.s.step >= 7)) { b.add('gate_nations'); b.add('terrace_courts'); b.add('treasury_street'); }
     void t; return b;
   }
   /** per frame: the player's proposed position; returns where the player may stand (the last allowed point if the move

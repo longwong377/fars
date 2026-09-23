@@ -33,6 +33,7 @@ const settings: Settings = loadSettings();
 if (P.get('quality')) settings.quality = P.get('quality') as any;
 if (P.get('webgl')) settings.forceWebGL = P.get('webgl') === '1';
 if (P.has('tl')) settings.translation = true; // tests: translation layer on
+if (P.has('visitor')) settings.playerMode = 'visitor'; // tests: visitor mode (D-063)
 if (P.get('court')) settings.courtCalendar = P.get('court') === 'seasonal' ? 'seasonal' : 'evidence'; // tests: ?court=seasonal (C) for the court-resident scenes
 const SEED = +(P.get('seed') ?? WORLD_SEED_DEFAULT);
 const TEST = P.has('test'); // frozen world for camera rig / walkthrough tests
