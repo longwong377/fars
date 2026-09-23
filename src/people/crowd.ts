@@ -162,10 +162,15 @@ export class Crowd {
   /** a person is speaking (address → speech line): the jaw moves for `seconds` */
   speaking(agentId: number, seconds: number, now: number) { const p = this.byAgent.get(agentId); if (p) p.speakUntil = now + seconds; }
   private now = 0;
-  private autoPoolStep(cam: THREE.Vector3) {
+  /** agents that were off the map (in the town) at the last update: coming on the map within 50 m in view is a pop-in
+   *  (§13.8), as in the Phase 3 crowd; attaching or changing LOD at a distance is not */
+  private wasOff = new Map<number, boolean>();
+  private autoPoolStep(cam: THREE.Vector3, camera?: THREE.Camera) {
     for (const a of this.sim!.agents) {
       const has = this.byAgent.has(a.id);
+      const prevOff = this.wasOff.get(a.id); this.wasOff.set(a.id, a.offmap);
       if (a.offmap) { if (has) this.detach(a); continue; }
+      if (prevOff === true && camera) { const d = Math.hypot(a.pos[0] - cam.x, a.y + 1 - cam.y, -a.pos[1] - cam.z); if (d < 50 && this.frustum.containsPoint(_v.set(a.pos[0], a.y + 1, -a.pos[1]))) this.onPopIn?.(`person ${a.id} (${a.role})`, d); }
       const dx = a.pos[0] - cam.x, dz = -a.pos[1] - cam.z, d2 = dx * dx + dz * dz;
       if (!has && d2 < ATTACH_R * ATTACH_R) this.attach(a); else if (has && d2 > DETACH_R * DETACH_R) this.detach(a);
     }
@@ -178,7 +183,7 @@ export class Crowd {
     const S = this.sim?.stock;
     if (S && S.depot !== this.lastStock.depot) { this.pileLayout(this.sackPiles.depot, [PLACES.stair_foot.at[0] - 3, PLACES.stair_foot.at[1] - 2.5], S.depot); this.lastStock.depot = S.depot; }
     if (S && S.store !== this.lastStock.store) { this.pileLayout(this.sackPiles.store, [PLACES.treasury_store.at[0] - 4, PLACES.treasury_store.at[1] - 3], S.store); this.lastStock.store = S.store; }
-    if (this.autoPool) this.autoPoolStep(cam);
+    if (this.autoPool) this.autoPoolStep(cam, camera);
     const gpu = this.humans.gpu; gpu.begin();
     for (const im of this.props.values()) im.count = 0;
     // order by distance for the full-detail cap
@@ -191,8 +196,7 @@ export class Crowd {
       if (p.drawnFrame === this.frame - 1) { pr[0] = r[0]; pr[1] = r[1]; pr[2] = r[2]; pr[3] = r[3]; } else { pr[0] = x; pr[1] = y; pr[2] = z; pr[3] = yaw; }
       r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
       const d = Math.hypot(x - cam.x, y + 0.9 - cam.y, z - cam.z);
-      const was = p.shown; p.shown = d < LOD_DIST[3];
-      if (!was && p.shown && camera && d < 50 && this.frustum.containsPoint(_v.set(x, y + 1, z))) this.onPopIn?.(`person ${p.key} (${a?.role ?? 'extra'})`, d);
+      p.shown = d < LOD_DIST[3];
       if (!p.shown) continue;
       if (camera && !this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), 1.3 * p.look.scale))) { if (a) this.soundsOnly(p, d, time); continue; }
       p.dist = d; list.push(p);

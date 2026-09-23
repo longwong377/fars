@@ -172,9 +172,12 @@ describe('crowd: pooling and the per-frame CPU budget (slice population + 300 ex
     const agents = Array.from({ length: 60 }, (_, i) => ({ id: i, sex: i % 4 === 3 ? 'f' : 'm', role: ['guard', 'scribe', 'mason', 'grinder'][i % 4], dress: dresses[i % 4], origin: 'Persian', seed: 900 + i,
       pos: [i * 30, 0] as [number, number], y: 0, heading: 90, offmap: false, carry: null, gait: 0, metPlayer: 0, slot: [0, 0] }));
     const sim: any = { agents, stock: { depot: 0, store: 0 }, nav: { heightAt: () => 0 }, performance: () => ({ act: 'walk' }) };
-    const crowd = new Crowd(sim, 1, humans);
+    const crowd = new Crowd(sim, 1, humans); const pops: string[] = []; crowd.onPopIn = w => pops.push(w);
     const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0); cam.lookAt(100, 1.6, 0); cam.updateMatrixWorld();
-    crowd.update(0, cam.position, null, cam);
+    agents[1].offmap = true; crowd.update(0, cam.position, null, cam);
+    expect(pops).toEqual([]); // attaching at start is not a pop-in
+    agents[1].offmap = false; crowd.update(0.05, cam.position, null, cam);
+    expect(pops.length).toBe(1); // coming on the map 30 m ahead, in view, is (§13.8)
     const within = agents.filter(a => a.pos[0] < ATTACH_R).length; expect(crowd.persons.size).toBe(within);
     agents[5].offmap = true; cam.position.set(1700, 1.6, 0); cam.updateMatrixWorld(); crowd.update(0.1, cam.position, null, cam);
     expect([...crowd.persons.values()].every(p => Math.abs(p.agent!.pos[0] - 1700) < DETACH_R && !p.agent!.offmap)).toBe(true);
