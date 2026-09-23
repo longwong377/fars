@@ -15,7 +15,8 @@
     "test:e2e": "playwright test",
     "lint:chrono": "tsx tools/lint_chrono.ts",
     "lint:lang": "vitest run tests/language.test.ts",
-    "lint:all": "npm run lint:chrono && npm run lint:lang",
+    "lint:activity": "tsx tools/lint_activity.ts",
+    "lint:all": "npm run lint:chrono && npm run lint:lang && npm run lint:activity",
     "typecheck": "tsc --noEmit",
     "bench": "playwright test tests/e2e/bench.spec.ts --project=webgpu",
     "soak": "tsx tools/soak.ts"
