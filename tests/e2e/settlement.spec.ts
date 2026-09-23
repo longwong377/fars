@@ -8,6 +8,8 @@ type V = { n: string; day: number; hour: number; w: string; q?: string; ab?: boo
 const VIEWS: V[] = [
   { n: 'terrace-w-dusk', day: 0, hour: 18.75, w: 'clear', ab: true, spot: 'terrace' },
   { n: 'terrace-w-day', day: 25, hour: 10, w: 'clear', ab: true, spot: 'terrace' },
+  // from the slope of Kuh-e Rahmat S of the Terrace (+42 m), over the lower town at dusk: smoke as the hearths are lit
+  { n: 'slope-s-dusk', day: 0, hour: 18.75, w: 'clear', ab: true, spot: 'slope' },
   { n: 'lane-q_s1', day: 25, hour: 10.5, w: 'clear', spot: 'lane:q_s1' },
   { n: 'lane-q_w1-dusk', day: 0, hour: 18.9, w: 'clear', spot: 'lane:q_w1' },
   { n: 'workshop-area-b', day: 25, hour: 9.5, w: 'clear', spot: 'areab' },
@@ -26,8 +28,9 @@ for (const v of VIEWS) for (const town of v.ab ? [true, false] : [true]) {
       await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 900_000 });
       const cam = await page.evaluate((spot: string) => {
         const P = (window as any).__parsa, S = P.world.settlement;
+        if (spot === 'slope') return [250, -650, 1.6, 228, -4];
         if (spot === 'terrace') return [-50.5, -120, 1.6, 215, -3]; // on the Terrace platform 2.3 m inside its W edge (x −52.8 here), looking SW over the lower town
-        if (!S) return [-50.5, -120, 1.6, 215, -3];
+        if (!S) return spot === 'slope' ? [250, -650, 1.6, 228, -4] : [-50.5, -120, 1.6, 215, -3];
         const plan = S.plan;
         if (spot.startsWith('lane:')) { // a lane vertex with 3 m clear around it, deep in the quarter, looking along the longer open run
           const s = plan.sites.find((x: any) => x.id === spot.slice(5)); const open = (i: number, j: number) => { const c = s.at(i, j); return c === -2 || c === -4; };
