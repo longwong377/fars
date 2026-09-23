@@ -3,22 +3,23 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
-import { decodeHumanAssets, type HumanAssets } from '../src/people/humanAssets';
+import { decodeHumanAssets, meshoptSimplify, type HumanAssets } from '../src/people/humanAssets';
 import { HB, HBONES, PART, MAT } from '../src/people/humanFormat';
 import { RigSolver, PALETTE_STRIDE, RETARGET, PLANTED, skinPoint, type RigInput } from '../src/people/humanRig';
 import { ANIMS, POSE_BONES, pose } from '../src/people/anim';
 import { buildOutfits, DRESSES, COSTUMES, PIECES, pieceBit, unpackNormal, packNormal, type OutfitBuild } from '../src/people/outfits';
 import { lookFor, STATURE, TEXTILE } from '../src/people/looks';
 import { HumanGPU } from '../src/people/humanGPU';
-import { Crowd } from '../src/people/crowd';
+import { Crowd, ATTACH_R, DETACH_R } from '../src/people/crowd';
 import { ACTIVITIES } from '../src/people/activities';
 import { propGeometry } from '../src/people/props';
 
 let A: HumanAssets, O: OutfitBuild;
-beforeAll(() => {
+beforeAll(async () => {
   const b = readFileSync('public/generated/humans/humans.bin');
   A = decodeHumanAssets(JSON.parse(readFileSync('public/generated/humans/humans.json', 'utf8')), b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
-  O = buildOutfits(A);
+  const { MeshoptSimplifier } = await import('three/addons/libs/meshopt_simplifier.module.js'); await MeshoptSimplifier.ready;
+  O = buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier) });
   console.log(`outfits built in ${O.ms.toFixed(0)} ms (node): NV ${O.NV}, source ${(O.source.byteLength / 1e6).toFixed(1)} MB`);
 }, 60_000);
 const face = () => ({ jaw: 0, blink: 0, look: null, eyeYaw: 0, eyePitch: 0 });
@@ -96,7 +97,7 @@ describe('skin texture (re-baked, D-025)', () => {
 
 describe('costumes (fitted to every variant)', () => {
   it('every dress builds at three LODs within triangle budgets; every piece is tiered with a source', () => {
-    const budget = [42000, 7000, 3200];
+    const budget = [42000, 7000, 3200, 800];
     for (const d of DRESSES) for (const C of O.costumes[d]) {
       expect(C.triangles, `${d} LOD${C.lod}`).toBeLessThanOrEqual(budget[C.lod]);
       let mx = 0; for (const i of C.index) mx = Math.max(mx, i); expect(mx).toBeLessThan(C.tid.length);
@@ -169,14 +170,14 @@ describe('crowd: pooling and the per-frame CPU budget (slice population + 300 ex
     const humans = { A, O, gpu: new HumanGPU(A, O, { skin: img(), eye: img() }, { capacity: 16 }), ms: { load: 0, outfits: 0, gpu: 0, worker: false } };
     const dresses = ['guard', 'median', 'worker', 'woman'] as const;
     const agents = Array.from({ length: 60 }, (_, i) => ({ id: i, sex: i % 4 === 3 ? 'f' : 'm', role: ['guard', 'scribe', 'mason', 'grinder'][i % 4], dress: dresses[i % 4], origin: 'Persian', seed: 900 + i,
-      pos: [i * 20, 0] as [number, number], y: 0, heading: 90, offmap: false, carry: null, gait: 0, metPlayer: 0, slot: [0, 0] }));
+      pos: [i * 30, 0] as [number, number], y: 0, heading: 90, offmap: false, carry: null, gait: 0, metPlayer: 0, slot: [0, 0] }));
     const sim: any = { agents, stock: { depot: 0, store: 0 }, nav: { heightAt: () => 0 }, performance: () => ({ act: 'walk' }) };
     const crowd = new Crowd(sim, 1, humans);
     const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0); cam.lookAt(100, 1.6, 0); cam.updateMatrixWorld();
     crowd.update(0, cam.position, null, cam);
-    const within = agents.filter(a => a.pos[0] < 440).length; expect(crowd.persons.size).toBe(within);
-    agents[5].offmap = true; cam.position.set(1100, 1.6, 0); cam.updateMatrixWorld(); crowd.update(0.1, cam.position, null, cam);
-    expect([...crowd.persons.values()].every(p => Math.abs(p.agent!.pos[0] - 1100) < 480 && !p.agent!.offmap)).toBe(true);
+    const within = agents.filter(a => a.pos[0] < ATTACH_R).length; expect(crowd.persons.size).toBe(within);
+    agents[5].offmap = true; cam.position.set(1700, 1.6, 0); cam.updateMatrixWorld(); crowd.update(0.1, cam.position, null, cam);
+    expect([...crowd.persons.values()].every(p => Math.abs(p.agent!.pos[0] - 1700) < DETACH_R && !p.agent!.offmap)).toBe(true);
     const slots = [...crowd.persons.values()].map(p => p.slot); expect(new Set(slots).size).toBe(slots.length);
     expect(Math.max(...slots)).toBeLessThan(within + 25); // freed slots are reused, not appended forever
   });

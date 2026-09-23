@@ -44,13 +44,15 @@ export interface Geo {
   si: Uint8Array; sw: Uint8Array; uv: Float32Array;
   /** material class (MAT), colour slot (COL), class parameter, sleeve/drape slack 0..255 (the shader sags it), cavity AO 0..255 */
   mat: Uint8Array; col: Uint8Array; prm: Uint8Array; slack: Uint8Array; ao: Uint8Array;
+  /** 0 at a shell's cut line … 255 a ramp inside it (hair and beard edges are frayed in the shader) */
+  edge: Uint8Array;
   /** bind positions for one variant (n × 3) */
   place(c: Ctx): Float32Array;
 }
 export interface Ctx { A: HumanAssets; v: HumanVariant; J(b: HBone): V3; /** positions of pieces already placed for this variant */ placed: Map<string, Float32Array>; }
 
 function newGeo(key: string, n: number, index: number[], place: (c: Ctx) => Float32Array): Geo {
-  return { key, n, index, si: new Uint8Array(n * 4), sw: new Uint8Array(n * 4), uv: new Float32Array(n * 2), mat: new Uint8Array(n), col: new Uint8Array(n), prm: new Uint8Array(n), slack: new Uint8Array(n), ao: new Uint8Array(n).fill(255), place };
+  return { key, n, index, si: new Uint8Array(n * 4), sw: new Uint8Array(n * 4), uv: new Float32Array(n * 2), mat: new Uint8Array(n), col: new Uint8Array(n), prm: new Uint8Array(n), slack: new Uint8Array(n), ao: new Uint8Array(n).fill(255), edge: new Uint8Array(n).fill(255), place };
 }
 /** pack up to 4 (bone, weight) pairs as bytes summing to 255 */
 function setW(g: Geo, i: number, list: [number, number][]) {
@@ -135,7 +137,7 @@ function shellGeo(A: HumanAssets, ref: HumanVariant, key: string, o: ShellOpts):
     else { const m = new Map<number, number>(); for (const [v, w] of [[a, 1 - t], [b, t]] as [number, number][]) for (let q = 0; q < 4; q++) { const bi = A.skinIndex[v * 4 + q], wt = A.skinWeight[v * 4 + q] / 255; if (wt) m.set(bi, (m.get(bi) ?? 0) + wt * w); }
       setW(g, k, [...m.entries()]); }
     g.uv[k * 2] = lerp(A.uv[a * 2], A.uv[b * 2], t); g.uv[k * 2 + 1] = lerp(A.uv[a * 2 + 1], A.uv[b * 2 + 1], t);
-    g.ao[k] = Math.round(255 * (0.55 + 0.45 * lerp(A.ao[a], A.ao[b], t)));
+    g.ao[k] = Math.round(255 * (0.55 + 0.45 * lerp(A.ao[a], A.ao[b], t))); g.edge[k] = Math.round(255 * clamp(vd[k] / o.ramp));
     if (o.slack) g.slack[k] = Math.round(255 * clamp(o.slack(refP(k), a)));
   }
   setMat(g, o.mat, o.col, o.prm ?? 0);
@@ -374,7 +376,7 @@ function merge(key: string, gs: Geo[]): Geo {
   const n = gs.reduce((a, g) => a + g.n, 0); const idx: number[] = []; let off = 0;
   for (const g of gs) { for (const i of g.index) idx.push(i + off); off += g.n; }
   const out = newGeo(key, n, idx, (c: Ctx) => { const o = new Float32Array(n * 3); let k = 0; for (const g of gs) { o.set(g.place(c), k * 3); k += g.n; } return o; });
-  off = 0; for (const g of gs) { out.si.set(g.si, off * 4); out.sw.set(g.sw, off * 4); out.uv.set(g.uv, off * 2); out.mat.set(g.mat, off); out.col.set(g.col, off); out.prm.set(g.prm, off); out.slack.set(g.slack, off); out.ao.set(g.ao, off); off += g.n; }
+  off = 0; for (const g of gs) { out.si.set(g.si, off * 4); out.sw.set(g.sw, off * 4); out.uv.set(g.uv, off * 2); out.mat.set(g.mat, off); out.edge.set(g.edge, off); out.col.set(g.col, off); out.prm.set(g.prm, off); out.slack.set(g.slack, off); out.ao.set(g.ao, off); off += g.n; }
   return out;
 }
 /** band around the body at a height, fitted over whatever is placed there already (belts) */
@@ -758,7 +760,11 @@ const geoKey = (id: string, lod: number) => `${id}@${geoLod(id, lod)}`;
 /** placement order: pieces a belt is fitted over come first */
 const ORDER = (id: string) => (id === 'belt' ? 2 : id.includes('upper') || id.includes('skirt') ? 0 : 1);
 
-export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: number[]; variants?: string[]; profile?: Record<string, number> } = {}): OutfitBuild {
+/** share of the far costume's triangles kept by the farthest LOD (C) */
+export const FAR_KEEP = 0.2;
+export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: number[]; variants?: string[]; profile?: Record<string, number>;
+  /** index-only simplifier (meshoptimizer) for the farthest LOD; without it there are three LODs */
+  simplify?: (index: Uint32Array, pos: Float32Array, targetTris: number) => Uint32Array } = {}): OutfitBuild {
   const t0 = performance.now();
   const ref = A.byId.m03 ?? A.variants[0];
   const J = (b: HBone): V3 => [ref.joints[HB[b] * 3], ref.joints[HB[b] * 3 + 1], ref.joints[HB[b] * 3 + 2]];
@@ -809,11 +815,19 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
         if (q.kind === 'body') { const i = q.i; for (let j = 0; j < 4; j++) { out.skinIndex[k * 4 + j] = A.skinIndex[i * 4 + j]; out.skinWeight[k * 4 + j] = A.skinWeight[i * 4 + j]; }
           out.uv[k * 2] = A.uv[i * 2]; out.uv[k * 2 + 1] = A.uv[i * 2 + 1];
           const pt = A.part[i]; const mat = pt === PART.eye ? MAT.eye : pt === PART.teeth ? MAT.teeth : pt === PART.tongue ? MAT.mouth : pt === PART.lash ? MAT.lash : MAT.skin;
-          out.hmat[k * 4] = mat; out.hmat[k * 4 + 1] = mat === MAT.lash ? COL.hair : mat === MAT.skin ? COL.skin : COL.fixed; out.hext[k * 4] = Math.round(255 * A.ao[i]); out.hext[k * 4 + 2] = Math.round(255 * beardV[i]); }
+          out.hmat[k * 4] = mat; out.hmat[k * 4 + 1] = mat === MAT.lash ? COL.hair : mat === MAT.skin ? COL.skin : COL.fixed; out.hext[k * 4] = Math.round(255 * A.ao[i]); out.hext[k * 4 + 2] = Math.round(255 * beardV[i]); out.hext[k * 4 + 3] = 255; }
         else { const g = q.g!, i = q.i; for (let j = 0; j < 4; j++) { out.skinIndex[k * 4 + j] = g.si[i * 4 + j]; out.skinWeight[k * 4 + j] = g.sw[i * 4 + j]; } out.uv[k * 2] = g.uv[i * 2]; out.uv[k * 2 + 1] = g.uv[i * 2 + 1];
-          out.hmat[k * 4] = g.mat[i]; out.hmat[k * 4 + 1] = g.col[i]; out.hmat[k * 4 + 2] = q.bit; out.hmat[k * 4 + 3] = g.prm[i]; out.hext[k * 4] = g.ao[i]; out.hext[k * 4 + 1] = g.slack[i]; }
+          out.hmat[k * 4] = g.mat[i]; out.hmat[k * 4 + 1] = g.col[i]; out.hmat[k * 4 + 2] = q.bit; out.hmat[k * 4 + 3] = g.prm[i]; out.hext[k * 4] = g.ao[i]; out.hext[k * 4 + 1] = g.slack[i]; out.hext[k * 4 + 3] = g.edge[i]; }
       }
       costumes[d].push(out);
+      // the farthest costume: the far one simplified (index-only, meshoptimizer; pieces are separate components, so hidden
+      // optional pieces stay separable). Same vertices, a quarter or less of the triangles.
+      if (lod === 2 && opts.simplify) {
+        const idx = opts.simplify(out.index, out.refPos, Math.max(200, Math.round(out.triangles * FAR_KEEP)));
+        const far: CostumeLOD = { ...out, lod: 3, index: idx, triangles: idx.length / 3, bodyTriangles: -1, pieceTris: {},
+          tid: out.tid.slice(), skinIndex: out.skinIndex.slice(), skinWeight: out.skinWeight.slice(), uv: out.uv.slice(), hmat: out.hmat.slice(), hext: out.hext.slice(), refPos: out.refPos.slice(), refNrm: out.refNrm.slice() };
+        costumes[d].push(far);
+      }
     }
   }
   if (opts.profile) opts.profile.$assemble = performance.now() - t0;

@@ -8,7 +8,7 @@
 //   tid                → bind position + packed normal of this vertex in this person's body variant (source texture)
 //   skinIndex/Weight   → 4 × 3 texels of the person's skin palette (rows of 3×4 matrices, character space)
 //   hmat               → material class, colour slot (texel of the person row), optional-piece bit, class parameter
-//   hext               → cavity AO, drape slack (wide sleeves sag when the arm is raised), beard region (stubble)
+//   hext               → cavity AO, drape slack (wide sleeves sag when the arm is raised), beard region (stubble), shell edge
 // Hidden optional pieces collapse to a point (zero-area triangles). Previous-frame skinning feeds the velocity buffer
 // (TRAA) when the pipeline asks for it.
 // Fragment stage: arithmetic class masks (no runtime select(): D-012) pick albedo, roughness, metalness and a procedural
@@ -100,7 +100,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
         return acc; });
       return r;
     };
-    const vColor = varyingProperty('vec3', 'vHumanColor'), vHair = varyingProperty('vec3', 'vHumanCol2'), vMat = varyingProperty('vec4', 'vHumanMat'), vBind = varyingProperty('vec3', 'vHumanBind'), vAux = varyingProperty('vec4', 'vHumanAux');
+    const vColor = varyingProperty('vec3', 'vHumanColor'), vHair = varyingProperty('vec3', 'vHumanCol2'), vMat = varyingProperty('vec4', 'vHumanMat'), vBind = varyingProperty('vec3', 'vHumanBind'), vAux = varyingProperty('vec4', 'vHumanAux'), vEdge = varyingProperty('float', 'vHumanEdge');
     this.positionNode = Fn((builder: any) => {
       const s = src.toVar(), bind = s.xyz, nB = decodeN(s.w);
       const R = skinned(boneTex);
@@ -134,7 +134,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       vHair.assign(mix(row(5).rgb, row(4).rgb, clothV));
       vMat.assign(vec4(hmat.x, hmat.w, person0.z, person0.w));
       vBind.assign(bind);
-      vAux.assign(vec4(hext.x, hext.z, row(1).w, row(7).x));
+      vAux.assign(vec4(hext.x, hext.z, row(1).w, row(7).x)); vEdge.assign(hext.w);
       return p;
     })();
 
@@ -193,7 +193,12 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const h = curls.mul(0.0016).mul(kHair).add(foldH.mul(kCloth)).add(mx_noise_float(P.mul(200)).mul(0.0002).mul(kLeather.add(kFelt)));
     this.normalNode = bumped(h);
     this.skinMask = kSkin; this.scatter = vec3(1.0, 0.45, 0.3);
-    if (opts.shadowOnly) { this.colorWrite = false; this.depthWrite = false; }
+    // frayed hair and beard edges: near a shell's cut line (vEdge → 0) fragments are cut away by the curl noise (alpha test;
+    // shadows follow). Only hair; everything else keeps its edge.
+    this.maskNode = float(1).sub(kHair.mul(step(vEdge.mul(1.15), ridge.mul(0.55).add(fine.mul(0.35))))).greaterThan(0.5);
+    // shadow-only copies (the player's head; the cheaper shadow casters of full-detail people): no colour, no depth, and
+    // a constant fragment so the main pass only pays for vertices; the shadow pass uses this positionNode
+    if (opts.shadowOnly) { this.colorWrite = false; this.depthWrite = false; this.fragmentNode = vec4(0, 0, 0, 1); }
     void clamp; void min; void pow; void color; void cos;
   }
   setupLightingModel() { return new HumanLightingModel(this.skinMask, this.scatter) as any; }

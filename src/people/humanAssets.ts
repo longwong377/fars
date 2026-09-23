@@ -88,3 +88,11 @@ export const HUMANS_DIR = 'generated/humans';
 
 /** is this render vertex part of the body surface (skin), as opposed to eyes, teeth, tongue, lashes */
 export const isBodySurface = (A: HumanAssets, i: number) => A.part[i] < PART.eye;
+
+/** index-only simplification with meshoptimizer (the far-LOD costumes): keeps the vertex set, reduces the triangles */
+export function meshoptSimplify(M: any) {
+  return (index: Uint32Array, pos: Float32Array, targetTris: number) => {
+    const [res] = M.simplify(index, pos, 3, Math.min(index.length, targetTris * 3), 0.03, []);
+    return Uint32Array.from(res as Uint32Array);
+  };
+}

@@ -2,7 +2,8 @@
 // (outfits.ts, built at load for every body variant in a Web Worker, so the main thread keeps building the world),
 // the textures and the GPU resources (humanGPU.ts).
 import * as THREE from 'three/webgpu';
-import { decodeHumanAssets, HUMANS_DIR, type HumanAssets } from './humanAssets';
+import { decodeHumanAssets, HUMANS_DIR, meshoptSimplify, type HumanAssets } from './humanAssets';
+import { MeshoptSimplifier } from 'three/addons/libs/meshopt_simplifier.module.js';
 import { buildOutfits, type OutfitBuild } from './outfits';
 import { HumanGPU } from './humanGPU';
 
@@ -29,8 +30,8 @@ export async function loadHumans(opts: { base?: string; velocity?: boolean; capa
   const A = decodeHumanAssets(meta, bin);
   const t1 = performance.now();
   let O: OutfitBuild;
-  try { O = outfits ? await outfits : buildOutfits(A); }
-  catch (e) { console.warn('outfit worker failed, building on the main thread', e); O = buildOutfits(A); }
+  try { O = outfits ? await outfits : (await MeshoptSimplifier.ready, buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier) })); }
+  catch (e) { console.warn('outfit worker failed, building on the main thread', e); await MeshoptSimplifier.ready; O = buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier) }); }
   const t2 = performance.now();
   const gpu = new HumanGPU(A, O, { skin, eye }, { capacity: opts.capacity, velocity: opts.velocity });
   return { A, O, gpu, ms: { load: t1 - t0, outfits: t2 - t1, gpu: performance.now() - t2, worker: !!outfits } };

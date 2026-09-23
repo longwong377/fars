@@ -7,7 +7,8 @@
 // `attach()`/`detach()` are public so a future dynamic roster can drive the pool itself (autoPool = false).
 //
 // LOD per frame: full detail (the 30k-triangle close-up body with fingers, eyes, mouth, lashes) within LOD_DIST[0]
-// for up to MAX_FULL people, nearest first; the mid body to LOD_DIST[1]; the far body to LOD_DIST[2]. Impostors beyond
+// for up to MAX_FULL people, nearest first; the mid body to LOD_DIST[1]; the far body to LOD_DIST[2]; the far body
+// simplified to a fifth (meshoptimizer) to LOD_DIST[3] (when the simplifier ran; otherwise the far body). Impostors beyond
 // are not built. Each costume × LOD is one instanced draw (humanGPU.ts). Poses are refreshed every frame near the
 // camera and less often further away; root motion is per frame for everyone (instanced root attribute).
 // Face: blinks, the jaw while speaking or eating, eyes and head turned to a nearby stranger.
@@ -32,9 +33,9 @@ const rad = (deg: number) => (deg * Math.PI) / 180;
 /** world yaw for a grid heading (deg clockwise from grid north); the rig faces +Z in bind pose */
 export const yawOf = (headingDeg: number) => Math.PI - rad(headingDeg);
 /** LOD distances (m): full detail, mid, far (nothing beyond: impostors not built) */
-export const LOD_DIST = [25, 90, 420] as const;
+export const LOD_DIST = [25, 90, 200, 600] as const;
 export const MAX_FULL = 64;
-export const ATTACH_R = 440, DETACH_R = 480;
+export const ATTACH_R = 620, DETACH_R = 660;
 
 export interface Person {
   key: string; agent: Agent | null; look: PersonLook; slot: number; rig: RigInput; face: FaceState;
@@ -61,7 +62,7 @@ export class Crowd {
   private frustum = new THREE.Frustum(); private wide = new THREE.Frustum(); private pm = new THREE.Matrix4();
   private lastStock = { depot: -1, store: -1 };
   /** last frame's CPU cost (ms) of pooling, posing and instance filling; people drawn per LOD */
-  readonly perf = { ms: 0, poseMs: 0, posed: 0, drawn: [0, 0, 0], attached: 0 };
+  readonly perf = { ms: 0, poseMs: 0, posed: 0, drawn: [0, 0, 0, 0], attached: 0 };
   private hitProxy: THREE.Mesh; private list: Person[] = [];
   /** `sim` null: a crowd of extras only (the human lab page, tests) */
   constructor(readonly sim: PeopleSim | null, readonly seed: number, readonly humans: HumanSystem) {
@@ -190,17 +191,17 @@ export class Crowd {
       if (p.drawnFrame === this.frame - 1) { pr[0] = r[0]; pr[1] = r[1]; pr[2] = r[2]; pr[3] = r[3]; } else { pr[0] = x; pr[1] = y; pr[2] = z; pr[3] = yaw; }
       r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
       const d = Math.hypot(x - cam.x, y + 0.9 - cam.y, z - cam.z);
-      const was = p.shown; p.shown = d < LOD_DIST[2];
+      const was = p.shown; p.shown = d < LOD_DIST[3];
       if (!was && p.shown && camera && d < 50 && this.frustum.containsPoint(_v.set(x, y + 1, z))) this.onPopIn?.(`person ${p.key} (${a?.role ?? 'extra'})`, d);
       if (!p.shown) continue;
       if (camera && !this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), 1.3 * p.look.scale))) { if (a) this.soundsOnly(p, d, time); continue; }
       p.dist = d; list.push(p);
     }
     list.sort((a, b) => a.dist - b.dist);
-    const tp = performance.now(); let posed = 0; const drawn = [0, 0, 0];
+    const tp = performance.now(); let posed = 0; const drawn = [0, 0, 0, 0]; const has3 = this.humans.gpu.costumes.has('worker@3');
     for (let i = 0; i < list.length; i++) {
       const p = list[i], d = p.dist;
-      const lod = d < LOD_DIST[0] && drawn[0] < MAX_FULL ? 0 : d < LOD_DIST[1] ? 1 : 2; drawn[lod]++;
+      const lod = d < LOD_DIST[0] && drawn[0] < MAX_FULL ? 0 : d < LOD_DIST[1] ? 1 : d < LOD_DIST[2] || !has3 ? 2 : 3; drawn[lod]++;
       const every = d < 30 ? 1 : d < 90 ? 2 : d < 200 ? 4 : 8;
       if (p.poseFrame < 0 || (this.frame + p.frameMod) % every === 0 || this.frame - p.poseFrame > every) { this.posePerson(p, time, d, playerPos, cam, lod); posed++; }
       else if (p.poseFrame === this.frame - 1) this.copyPrev(p); // no bone change this frame: previous = current

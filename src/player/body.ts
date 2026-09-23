@@ -29,7 +29,7 @@ export function makePlayerBody(crowd?: Crowd): THREE.Group {
   const slots: [number, number] = [crowd.allocSlot(), crowd.allocSlot()];
   crowd.writePerson(slots[0], look, FLAG_HIDE_HEAD); crowd.writePerson(slots[1], look, 0);
   const C = H.O.costumes.median[0];
-  const shadowMat = new HumanMaterial(gpu.textures, { shadowOnly: true });
+  const shadowMat = new HumanMaterial(gpu.textures, { shadowOnly: true }); gpu.materials.push(shadowMat);
   const vis = gpu.makeMesh(C, gpu.material, false, 1), shadow = gpu.makeMesh(C, shadowMat, true, 1);
   gpu.group.remove(vis.mesh); gpu.group.remove(shadow.mesh); // owned by the player body, not the crowd
   for (const [cm, slot] of [[vis, slots[0]], [shadow, slots[1]]] as const) {
