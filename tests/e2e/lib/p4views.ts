@@ -9,8 +9,12 @@ export async function renderViews(page: Page, views: P4View[]) {
   page.on('pageerror', e => logs.push('PAGEERR ' + e));
   await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=60&hour=${process.env.HOUR ?? 10}&weather=clear`);
   await page.waitForFunction(() => (window as any).__parsa?.ready === true || (window as any).__parsa?.error, null, { timeout: 780_000 });
+  // the world is frozen in test mode: stop the animation loop so each view costs only its own frames (under SwiftShader
+  // a screenshot otherwise waits behind the running loop's frames, ~3 min each)
+  await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
+  const only = process.env.ONLY?.split(',');
   for (const { name, v, door } of views) {
-    if (process.env.ONLY && !name.includes(process.env.ONLY)) continue;
+    if (only && !only.some(o => name.includes(o))) continue;
     await page.evaluate(([v, door]) => { const P = (window as any).__parsa; P.view(...v);
       const D = P.world.doors; if (door) { const d = D.doors.get(door[0]); d.target = door[1]; d.t = door[1]; d.dirty = true; D.update(0, door[2] ?? 10); } }, [v, door] as any);
     for (let i = 0; i < 2; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
