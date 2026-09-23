@@ -1,0 +1,3 @@
+bench_terrace
+tests/e2e/bench.spec.ts
+E2E_PORT=5211 ROUTES=terrace
