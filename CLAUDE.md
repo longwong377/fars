@@ -34,5 +34,5 @@ SwiftShader), `npm run lint:all` (chronology/anachronism/language/activity cover
 
 ## How to run (§15)
 No questions, no pauses; decide, log in `DECISIONS.md`, proceed. Gates bind — never lower one to pass it.
-Commit at every gate; push to the branch the session designates (session 1: `claude/new-session-lfjkbn`; session 2: `claude/amazing-fermi-40ds7j`); never force-push.
+Commit at every gate; push to the branch the session designates (session 1: `claude/new-session-lfjkbn`; sessions 2–3: `claude/amazing-fermi-40ds7j`); never force-push.
 Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived files from `data/dem/`.

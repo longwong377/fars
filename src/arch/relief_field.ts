@@ -7,8 +7,15 @@
 // The field is sampled on a (2^k+1)² grid and meshed with a right-triangulated irregular network (RTIN, after Evans et
 // al. 2001 / mapbox "martini"): error-driven, crack-free, one field → every LOD by changing the error bound. Empty
 // background triangles are dropped. Normals come from the field (central differences), so raking light shows the modelling.
+import PC from '../data/polychromy.json';
+import { srgbToLinear } from '../core/colour';
 export type C3 = [number, number, number];
 export type Box = [number, number, number, number];
+/** the unpainted carved limestone (sRGB) = src/render/materials.ts SURFACES.limestone_carved.albedo (tests/polychromy.test.ts
+ *  checks they agree; this module runs in workers, so it cannot import the renderer's materials) */
+export const STONE_SRGB: C3 = [0.44, 0.43, 0.4];
+/** paint wear on raised arrises (src/data/polychromy.json paint.wear, C) */
+const WEAR = (PC as any).paint.wear.v as { radius: number; conv0: number; conv1: number; max: number };
 export interface SDF { f: (x: number, y: number) => number; b: Box; pv?: Float64Array /* polygon vertices x0,y0,x1,y1… (fast band raster) */ }
 
 // ---------------- primitives (exact or near-exact 2-D SDFs; after I. Quilez) ----------------
@@ -308,15 +315,34 @@ export function rtinErrors(f: Field, colourEdgeError = 0.02): Float32Array {
 }
 
 /** A LOD mesh in the figure's normalised frame: x, y in figure units, z = height in depth units (0..1);
- *  gradients (dh/dx, dh/dy in depth units per figure unit) for normals; linear-light colours. */
-export interface LodMesh { pos: Float32Array; grad: Float32Array; col: Float32Array; index: Uint32Array; tris: number; verts: number; maxH: number }
+ *  gradients (dh/dx, dh/dy in depth units per figure unit) for normals; linear-light colours; paint coverage per vertex
+ *  (0 = bare stone: background, faces, animals; on painted masses 1 − wear at raised arrises, D-030). */
+export interface LodMesh { pos: Float32Array; grad: Float32Array; col: Float32Array; paint: Float32Array; index: Uint32Array; tris: number; verts: number; maxH: number }
 
-const srgbToLinear = (c: number) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+/** paint coverage at grid points: 0 where the colour is bare stone; else 1 − WEAR.max · smoothstep(conv0, conv1, convexity),
+ *  convexity = h − (mean h within WEAR.radius figure units, at least one cell) from a summed-area table */
+function paintCoverage(f: Field, verts: Int32Array, nv: number): Float32Array {
+  const { n, h, col, cell, palette } = f, out = new Float32Array(nv);
+  const painted = palette.map((c, i) => i !== BG && !(c[0] === STONE_SRGB[0] && c[1] === STONE_SRGB[1] && c[2] === STONE_SRGB[2]));
+  if (!painted.some(Boolean)) return out;
+  const sat = new Float64Array((n + 1) * (n + 1)), W = n + 1;
+  for (let j = 0; j < n; j++) { let row = 0; for (let i = 0; i < n; i++) { row += h[j * n + i]; sat[(j + 1) * W + i + 1] = sat[j * W + i + 1] + row; } }
+  // a worn outline vertex tints triangles about one cell wide: scale the wear so a coarse LOD does not show more of it
+  const r = Math.max(1, Math.round(WEAR.radius / cell)), amount = WEAR.max * Math.min(1, WEAR.radius / cell);
+  for (let v = 0; v < nv; v++) {
+    const g = verts[v]; if (!painted[col[g]]) continue;
+    const i = g % n, j = (g - i) / n, i0 = Math.max(0, i - r), i1 = Math.min(n - 1, i + r), j0 = Math.max(0, j - r), j1 = Math.min(n - 1, j + r);
+    const mean = (sat[(j1 + 1) * W + i1 + 1] - sat[j0 * W + i1 + 1] - sat[(j1 + 1) * W + i0] + sat[j0 * W + i0]) / ((i1 - i0 + 1) * (j1 - j0 + 1));
+    const t = Math.min(1, Math.max(0, (h[g] - mean - WEAR.conv0) / (WEAR.conv1 - WEAR.conv0)));
+    out[v] = 1 - amount * t * t * (3 - 2 * t);
+  }
+  return out;
+}
 
 /** Extract a LOD: RTIN triangles with error ≤ maxError, background-only triangles dropped, vertices compacted.
  *  `gradStep` = central-difference half-width in cells (larger for coarse LODs → normals of the local average). */
 const scratch = new Map<number, { vid: Int32Array; vlist: Int32Array; tris: Uint32Array }>();
-export function extractLod(f: Field, err: Float32Array, maxError: number, gradStep = 1, bgColour: C3 = [0.5, 0.5, 0.5]): LodMesh {
+export function extractLod(f: Field, err: Float32Array, maxError: number, gradStep = 1, bgColour: C3 = STONE_SRGB): LodMesh {
   const { n, h, col, cell, x0, y0, palette } = f, max = n - 1;
   let sc = scratch.get(n); if (!sc) { sc = { vid: new Int32Array(n * n), vlist: new Int32Array(n * n), tris: new Uint32Array(max * max * 6) }; scratch.set(n, sc); }
   const { vid, vlist, tris } = sc; vid.fill(-1);
@@ -349,7 +375,7 @@ export function extractLod(f: Field, err: Float32Array, maxError: number, gradSt
     const a = index[t] * 3, b = index[t + 1] * 3, c = index[t + 2] * 3;
     if ((pos[b] - pos[a]) * (pos[c + 1] - pos[a + 1]) - (pos[b + 1] - pos[a + 1]) * (pos[c] - pos[a]) < 0) { const q = index[t + 1]; index[t + 1] = index[t + 2]; index[t + 2] = q; }
   }
-  return { pos, grad, col: cl, index, tris: nt / 3, verts: nv, maxH };
+  return { pos, grad, col: cl, paint: paintCoverage(f, vlist, nv), index, tris: nt / 3, verts: nv, maxH };
 }
 
 /** RTIN error bounds per LOD (relief-depth units) and the gradient half-widths for their normals */
