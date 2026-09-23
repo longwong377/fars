@@ -22,12 +22,20 @@ export const tileUV = (i: number) => ({ u: (i % COLS) / COLS, v: Math.floor(i / 
 /** texels kept clear at each tile edge (bilinear filtering and the low mips must not bleed between tiles) */
 export const PAD = 6;
 
-export interface Atlas { width: number; height: number; levels: { data: Uint8Array; width: number; height: number }[]; fill: number[] }
+export interface Atlas { width: number; height: number; levels: { data: Uint8Array; width: number; height: number }[]; fill: number[];
+  /** per-texel leaf tilt (RG: tilt along the tile's u and v, encoded 0..1; A: coverage), same layout and mips */
+  tilt: { data: Uint8Array; width: number; height: number }[] }
+/** how far a leaf's tilt turns the card's lighting normal (render.ts and impostor.ts) */
+export const TILT = 0.55;
 
 type Cls = 0 | 1 | 2; // leaf, petal, bark
 class Canvas {
-  readonly a: Float32Array; readonly r: Float32Array; readonly g: Float32Array; readonly b: Float32Array; private readonly pad: number;
-  constructor(readonly n = TILE) { this.a = new Float32Array(n * n); this.r = new Float32Array(n * n); this.g = new Float32Array(n * n); this.b = new Float32Array(n * n); this.pad = Math.max(2, Math.round(PAD * n / TILE)); }
+  readonly a: Float32Array; readonly r: Float32Array; readonly g: Float32Array; readonly b: Float32Array; readonly tx: Float32Array; readonly ty: Float32Array; private readonly pad: number;
+  /** the tilt of what is being drawn (tile axes; each leaf faces its own way and curves across its midrib), 0 for twigs */
+  tilt: (x: number, y: number) => [number, number] = () => [0, 0];
+  private trng = new Rng(7, 'leaf-tilt');
+  constructor(readonly n = TILE) { this.a = new Float32Array(n * n); this.r = new Float32Array(n * n); this.g = new Float32Array(n * n); this.b = new Float32Array(n * n); this.tx = new Float32Array(n * n); this.ty = new Float32Array(n * n); this.pad = Math.max(2, Math.round(PAD * n / TILE)); }
+  private randTilt(): [number, number] { const a = this.trng.range(0, Math.PI * 2), m = 0.75 * Math.sqrt(this.trng.next()); return [Math.cos(a) * m, Math.sin(a) * m]; }
   /** paint where inside(x, y) (tile units 0..1) holds at texel centres, over a bbox; shade(x, y) 0..1. One sample per
    *  texel: the full-size level is used only close up (alpha-tested edges), the mip chain does the filtering */
   shape(x0: number, y0: number, x1: number, y1: number, inside: (x: number, y: number) => boolean, cls: Cls, shade: (x: number, y: number) => number) {
@@ -36,7 +44,7 @@ class Canvas {
     const j0 = Math.max(P, Math.floor(Math.min(y0, y1) * N)), j1 = Math.min(N - 1 - P, Math.ceil(Math.max(y0, y1) * N));
     const g = cls === 1 ? 1 : 0, b = cls === 2 ? 1 : 0;
     for (let j = j0; j <= j1; j++) { const y = (j + 0.5) / N; for (let i = i0; i <= i1; i++) { const x = (i + 0.5) / N; if (!inside(x, y)) continue;
-      const k = j * N + i; this.a[k] = 1; this.r[k] = shade(x, y); this.g[k] = g; this.b[k] = b; } }
+      const k = j * N + i; this.a[k] = 1; this.r[k] = shade(x, y); this.g[k] = g; this.b[k] = b; const t = this.tilt(x, y); this.tx[k] = t[0]; this.ty[k] = t[1]; } }
   }
   /** a tapered stroke from p to q (tile units), widths in tile units */
   line(px: number, py: number, qx: number, qy: number, w0: number, w1: number, cls: Cls, shade: number) {
@@ -46,9 +54,15 @@ class Canvas {
       return cx * cx + cy * cy < ((w0 + (w1 - w0) * t) / 2) ** 2;
     }, cls, () => shade);
   }
+  private withTilt<T>(f: (x: number, y: number) => [number, number], draw: () => T) { const old = this.tilt; this.tilt = f; const r = draw(); this.tilt = old; return r; }
   /** a leaf: base at (x, y), direction ang (radians from +v toward +u), length L (tile units), half-width profile hw(s)
    *  (in units of L, s = 0 base .. 1 tip), or a polar outline for palmate leaves */
   leaf(x: number, y: number, ang: number, L: number, hw: (s: number) => number, shade: number, cls: Cls = 0) {
+    const [bx0, by0] = this.randTilt(), c0 = Math.cos(ang), s0 = Math.sin(ang);
+    return this.withTilt((px, py) => { const dx = px - x, dy = py - y, t = (dx * c0 - dy * s0) / L; // across the blade: the two halves face apart
+      return [bx0 + c0 * t * 2.2, by0 - s0 * t * 2.2]; }, () => this.leaf0(x, y, ang, L, hw, shade, cls));
+  }
+  private leaf0(x: number, y: number, ang: number, L: number, hw: (s: number) => number, shade: number, cls: Cls = 0) {
     const c = Math.cos(ang), s = Math.sin(ang); let wm = 0; for (let k = 0; k <= 10; k++) wm = Math.max(wm, hw(k / 10)); wm = (wm * 1.1 + 0.02) * L;
     // bbox of the rotated rectangle [0, L] x [-wm, wm]
     const ex = Math.abs(s) * L, ey = Math.abs(c) * L, bx = Math.abs(c) * wm, by = Math.abs(s) * wm;
@@ -60,6 +74,11 @@ class Canvas {
       const rib = Math.abs(t) < 0.015 ? 0.86 : 1; return Math.min(1, shade * rib * (0.84 + 0.16 * a) * (0.94 + 0.12 * Math.min(1, Math.abs(t) / Math.max(1e-3, hw(a))))); });
   }
   palmate(x: number, y: number, ang: number, L: number, lobes: number[], width: number, base: number, shade: number) {
+    const [bx0, by0] = this.randTilt();
+    // a palmate blade is cupped: its lobes face outward from the petiole
+    return this.withTilt((px, py) => [bx0 + (px - x) / L * 0.9, by0 + (py - y) / L * 0.9], () => this.palmate0(x, y, ang, L, lobes, width, base, shade));
+  }
+  private palmate0(x: number, y: number, ang: number, L: number, lobes: number[], width: number, base: number, shade: number) {
     const c = Math.cos(ang), s = Math.sin(ang);
     const Rt = lut(u => { const th = (u - 0.5) * 4.6; let m = 0; for (const lb of lobes) m = Math.max(m, Math.exp(-(((th - lb) / width) ** 2))); return (base + (1 - base) * m) * (0.55 + 0.45 * Math.cos(th * 0.35)); }, 256);
     this.shape(x - L, y - L, x + L, y + L, (px, py) => {
@@ -70,6 +89,9 @@ class Canvas {
       let vein = 1; for (const lb of lobes) if (Math.abs(th - lb) < 0.035) vein = 0.86; return Math.min(1, shade * vein * (0.86 + 0.14 * Math.hypot(a, t) / L)); });
   }
   flower(x: number, y: number, r: number, shade: number, petals = 5) {
+    const t = this.randTilt(); return this.withTilt(() => t, () => this.flower0(x, y, r, shade, petals));
+  }
+  private flower0(x: number, y: number, r: number, shade: number, petals = 5) {
     const ph = shade * 13;
     this.shape(x - r, y - r, x + r, y + r, (px, py) => { const dx = px - x, dy = py - y, rho = Math.hypot(dx, dy) / r, th = Math.atan2(dy, dx) + ph; return rho < 0.55 + 0.45 * Math.abs(Math.cos((th * petals) / 2)); }, 1,
       (px, py) => { const rho = Math.hypot(px - x, py - y) / r; return rho < 0.22 ? 0.55 : Math.min(1, shade * (0.88 + 0.12 * rho)); });
@@ -209,16 +231,17 @@ export function atlasFill(leafFrac: Partial<Record<TileName, number>>, n = 64): 
 }
 /** per-tile leaf length (tile units) from the species using each tile: leaf size / card size */
 export function buildAtlas(leafFrac: Partial<Record<TileName, number>>): Atlas {
-  const W = TILE * COLS, H = TILE * ROWS, base = new Float32Array(W * H * 4);
+  const W = TILE * COLS, H = TILE * ROWS, base = new Float32Array(W * H * 4), tb = new Float32Array(W * H * 4);
   const fill: number[] = [];
   TILE_NAMES.forEach((name, ti) => {
     const c = new Canvas(); drawTile(name, leafFrac[name] ?? 0.1, c);
     const { u, v } = tileUV(ti), ox = Math.round(u * W), oy = Math.round(v * H); let n = 0;
     for (let j = 0; j < TILE; j++) for (let i = 0; i < TILE; i++) { const k = j * TILE + i, o = ((oy + j) * W + ox + i) * 4;
-      base[o] = c.r[k]; base[o + 1] = c.g[k]; base[o + 2] = c.b[k]; base[o + 3] = c.a[k]; if (c.a[k] >= 0.5) n++; }
+      base[o] = c.r[k]; base[o + 1] = c.g[k]; base[o + 2] = c.b[k]; base[o + 3] = c.a[k]; if (c.a[k] >= 0.5) n++;
+      tb[o] = Math.max(-1, Math.min(1, c.tx[k])) * 0.5 + 0.5; tb[o + 1] = Math.max(-1, Math.min(1, c.ty[k])) * 0.5 + 0.5; tb[o + 2] = 0.5; tb[o + 3] = c.a[k]; }
     fill.push(n / (TILE * TILE));
   });
-  return { width: W, height: H, levels: mipChain(base, W, H, TILE, COLS, ROWS, 7), fill };
+  return { width: W, height: H, levels: mipChain(base, W, H, TILE, COLS, ROWS, 7), fill, tilt: mipChain(tb, W, H, TILE, COLS, ROWS, 7) };
 }
 
 /** RGBA float (0..1) -> mip levels as RGBA8, per tile: colour averaged by coverage (transparent texels take the colour of

@@ -8,7 +8,7 @@
 // lighting normal in the view's frame (x right, y up, z toward the viewer), encoded 0..1. Re-baked per model row when
 // its foliage group's state changes (render.ts). Pure JS (unit-tested: tests/trees.test.ts).
 import { cardState, M0, M1, K0, K1, lod1Size, type TreeModel, type V3 } from './model';
-import { tileIndex, TILE, COLS, ROWS, mipChain, type Atlas } from './atlas';
+import { tileIndex, TILE, COLS, ROWS, TILT, mipChain, type Atlas } from './atlas';
 import { TREE_GROUPS } from '../plain/seasonal';
 
 export const NV = 8;
@@ -64,9 +64,9 @@ export class ImpostorBaker {
         const Sz = (cd.side[0] * dx + cd.side[2] * dz) * h, Uz = (cd.up[0] * dx + cd.up[2] * dz) * h;
         const det = Sx * Uy - Sy * Ux; if (Math.abs(det) < 1e-3) continue; // edge-on
         const ext = Math.abs(Sx) + Math.abs(Ux), eyt = Math.abs(Sy) + Math.abs(Uy);
-        const lvl = Math.min(nL - 1, Math.max(0, Math.floor(Math.log2(TILE / Math.max(1, 2 * h * k))))), L = AL[lvl], ts = TILE >> lvl, d = L.data, lw = L.width;
+        const lvl = Math.min(nL - 1, Math.max(0, Math.floor(Math.log2(TILE / Math.max(1, 2 * h * k))))), L = AL[lvl], ts = TILE >> lvl, d = L.data, lw = L.width, td = this.atlas.tilt[lvl].data;
         const tx0 = (tile % COLS) * ts, ty0 = Math.floor(tile / COLS) * ts;
-        const n0 = cd.n[0] * rx + cd.n[2] * rz, n1 = cd.n[1], n2 = cd.n[0] * dx + cd.n[2] * dz, tint = cd.tint * cd.ao;
+        const tint = cd.tint * cd.ao, Sv = cd.side, Uv = cd.up, Nv = cd.n;
         for (let j = Math.max(0, Math.floor(cy - eyt)); j <= Math.min(N - 1, Math.ceil(cy + eyt)); j++)
           for (let i = Math.max(0, Math.floor(cx - ext)); i <= Math.min(N - 1, Math.ceil(cx + ext)); i++) {
             const qx = i + 0.5 - cx, qy = j + 0.5 - cy, a = (qx * Uy - qy * Ux) / det, b = (Sx * qy - Sy * qx) / det; // corner coords -1..1
@@ -76,7 +76,10 @@ export class ImpostorBaker {
             if (d[o + 3] < 128) continue;
             // impostor.ts leafAlbedo, inlined
             const tr = d[o] / 255, petal = d[o + 1] / 255, bk = d[o + 2] / 255, shade = 0.55 + 0.6 * tr, lm = Math.max(0, 1 - petal - bk), ps = (0.85 + 0.15 * tr) * petal;
-            put(i, j, depth, (lc[0] * shade * lm + bc[0] * ps + bark[0] * shade * bk) * tint, (lc[1] * shade * lm + bc[1] * ps + bark[1] * shade * bk) * tint, (lc[2] * shade * lm + bc[2] * ps + bark[2] * shade * bk) * tint, n0, n1, n2);
+            // the leaf's tilt turns the lighting normal (render.ts leaf shader)
+            const tx = (td[o] / 255 * 2 - 1) * TILT, ty = (td[o + 1] / 255 * 2 - 1) * TILT;
+            let nx = Nv[0] + Sv[0] * tx + Uv[0] * ty, ny = Nv[1] + Sv[1] * tx + Uv[1] * ty, nz = Nv[2] + Sv[2] * tx + Uv[2] * ty; const nl = Math.hypot(nx, ny, nz) || 1; nx /= nl; ny /= nl; nz /= nl;
+            put(i, j, depth, (lc[0] * shade * lm + bc[0] * ps + bark[0] * shade * bk) * tint, (lc[1] * shade * lm + bc[1] * ps + bark[1] * shade * bk) * tint, (lc[2] * shade * lm + bc[2] * ps + bark[2] * shade * bk) * tint, nx * rx + nz * rz, ny, nx * dx + nz * dz);
           }
       }
       // branches: the projected tube (normal across it, bulging toward the viewer)

@@ -15,7 +15,7 @@
 import * as THREE from 'three/webgpu';
 import { attribute, uniform, varying, textureLoad, texture, cameraPosition, cameraViewMatrix, positionGeometry, vec2, vec3, vec4, float, int, ivec2, mix, step, max, min, normalize, cross, dot, sign, cos, sin, floor, mod, atan, time, length, mx_noise_float, clamp, smoothstep } from 'three/tsl';
 import { allModels, K1, LOD1_LEAF, LOD1_TWIG, M0, M1, K0, SIDES0, SIDES1, VARIANTS, rowOf, TRIS, type TreeModel } from './model';
-import { COLS, ROWS, type Atlas } from './atlas';
+import { COLS, ROWS, TILT, type Atlas } from './atlas';
 import { calibrateAndDrawAtlas, packCards, packSegments, packSpecies, SEG_TEX, CARD_TEX } from './kitdata';
 import { ImpostorBaker, NV, groupStates, barkLinear, type GroupState } from './impostor';
 import { SPECIES, speciesIndex, speciesTag, groupIndex } from './species';
@@ -59,7 +59,7 @@ export interface KitOptions { impostorPx: number }
 export const impostorPx = (q: string) => (q === 'ultra' ? 128 : q === 'high' ? 96 : q === 'medium' ? 80 : 64);
 let shared: TreeKit | null = null;
 export class TreeKit {
-  readonly models: TreeModel[]; readonly atlas: Atlas; readonly atlasTex: THREE.DataTexture;
+  readonly models: TreeModel[]; readonly atlas: Atlas; readonly atlasTex: THREE.DataTexture; readonly tiltTex: THREE.DataTexture;
   readonly segTex: THREE.DataTexture; readonly cardTex: THREE.DataTexture; readonly spTex: THREE.DataTexture;
   readonly foliage = new FoliageState();
   readonly wind: any = uniform(2);
@@ -80,7 +80,7 @@ export class TreeKit {
     const t0 = performance.now();
     this.models = allModels();
     this.atlas = calibrateAndDrawAtlas(this.models);
-    this.atlasTex = mipTex(this.atlas.levels, false);
+    this.atlasTex = mipTex(this.atlas.levels, false); this.tiltTex = mipTex(this.atlas.tilt, false);
     this.segTex = dataTex(packSegments(this.models)); this.cardTex = dataTex(packCards(this.models)); this.spTex = dataTex(packSpecies(this.models));
     this.baker = new ImpostorBaker(this.models, this.atlas, opts.impostorPx);
     this.foliage.setDay(105);
@@ -183,12 +183,15 @@ export class TreeKit {
     const flutter = c4.xyz.mul(sin(time.mul(3.1).add(slot.mul(1.7)).add(itree.z)).mul(this.wind).mul(0.006).mul(size));
     const m = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide });
     m.positionNode = toWorld(local.add(flutter).add(this.sway(local, sp1.w, itree.z)), iscl, ipos);
-    m.normalNode = normalToView(c4.xyz, iscl);
     const tile = isL.mul(sp0.y).add(isB.mul(max(sp0.w, 0))).add(isT.mul(sp0.z));
     const vTile = varying(tile), vUV = varying(vec2(P.x.mul(0.5).add(0.5), P.y.mul(0.5).add(0.5)));
     const vTint = varying(c3.w.mul(iscl.w)), vAo = varying(c4.w), vLeaf = varying(leaf.xyz), vBl = varying(bl.xyz), vBark = varying(sp1.xyz);
     const ti = floor(vTile.add(0.5)), uvA = vec2(mod(ti, COLS).add(vUV.x).div(COLS), floor(ti.div(COLS)).add(vUV.y).div(ROWS));
     const tx = texture(this.atlasTex, uvA).bias(this.atlasBias);
+    // each drawn leaf has its own tilt (atlas.ts): the card's lighting normal turns by it, so a card shades as many
+    // leaves facing their own ways, not as one flat disc (impostor.ts applies the same)
+    const tl = texture(this.tiltTex, uvA).bias(this.atlasBias).xy.mul(2).sub(1), vN: any = varying(c4.xyz), vS: any = varying(side), vU: any = varying(up);
+    m.normalNode = normalToView(normalize(vN.add(vS.mul(tl.x.mul(TILT))).add(vU.mul(tl.y.mul(TILT)))), iscl);
     // impostor.ts leafAlbedo, the same formula
     const shade = tx.r.mul(0.6).add(0.55), petal = tx.g, bk = tx.b, lm = max(float(1).sub(petal).sub(bk), 0);
     const alb = vLeaf.mul(shade).mul(lm).add(vBl.mul(tx.r.mul(0.15).add(0.85)).mul(petal)).add(vBark.mul(shade).mul(bk)).mul(vTint).mul(vAo);
