@@ -142,11 +142,12 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       g.push(P(box(0.14, 0.03, 0.08, 0, 0.03, 0), [0.4, 0.12, 0.05], 0.7));
       for (let i = 0; i < 3; i++) g.push(P(rod([-0.3 + 0.05 * i, 0.03, -0.05 + 0.05 * i], [0.05 * i, 0.06, 0.02 * i], 0.015, 0.012, 3), [0.3, 0.22, 0.15]));
       return merge(g); }
-    case 'ard': { // in the ploughman's frame: the stilt rises to his left hand (≈ 0.12, 0.92, 0.5), the share runs in the soil at z ≈ 1.2, the beam goes to the yoke on the oxen's necks at z ≈ 3.15
+    case 'ard': { // in the ploughman's frame: the stilt rises to his left hand (≈ 0.12, 0.92, 0.5), the share runs in the soil at z ≈ 1.2, the beam goes to the yoke
+      // on the oxen's necks in front of the withers (the team walks at z 3.35: animals.ts 'team'; yoke at z 4.05)
       const g = [P(rod([0.12, 0.92, 0.52], [0.06, 0.08, 1.02], 0.025, 0.03, 5), WOOD), P(rod([0.12, 0.92, 0.52], [0.24, 0.98, 0.48], 0.02, 0.02, 4), WOOD_D),
         P(rod([0.06, 0.06, 0.95], [0.02, -0.04, 1.42], 0.04, 0.025, 5), WOOD_D), P(new THREE.ConeGeometry(0.03, 0.12, 4).rotateX(Math.PI / 2 + 0.2).translate(0.02, -0.06, 1.47), [0.3, 0.29, 0.28], 0.5, 0.6),
-        P(rod([0.05, 0.12, 1.05], [0, 1.02, 3.12], 0.035, 0.03, 5), WOOD), P(rod([-0.72, 1.06, 3.15], [0.72, 1.06, 3.15], 0.04, 0.04, 6), WOOD)];
-      for (const x of [-0.55, 0.55]) for (const s of [-0.16, 0.16]) g.push(P(rod([x + s, 1.06, 3.15], [x + s * 0.9, 0.8, 3.12], 0.012, 0.012, 3), WOOD_D));
+        P(rod([0.05, 0.12, 1.05], [0, 1.08, 4.02], 0.035, 0.03, 5), WOOD), P(rod([-0.72, 1.12, 4.05], [0.72, 1.12, 4.05], 0.04, 0.04, 6), WOOD)];
+      for (const x of [-0.55, 0.55]) for (const s of [-0.2, 0.2]) g.push(P(rod([x + s, 1.12, 4.05], [x + s * 0.9, 0.86, 4.02], 0.012, 0.012, 3), WOOD_D));
       return merge(g); }
   }
 }
