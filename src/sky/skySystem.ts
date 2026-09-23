@@ -128,7 +128,11 @@ export class SkySystem {
     this.sun.shadow.mapSize.set(shadowMapSize, shadowMapSize);
     const sc = this.sun.shadow.camera as THREE.OrthographicCamera;
     sc.left = -120; sc.right = 120; sc.top = 120; sc.bottom = -120; sc.near = 1; sc.far = 2000;
-    this.sun.shadow.bias = -0.0004; this.sun.shadow.normalBias = 0.05;
+    // depth bias in the shadow camera's normalised depth: its range is 1999 m (near 1, far 2000), so -0.0004 was 0.8 m in the
+    // world, and CSM multiplies it per cascade (x2..x4): wall heads within ~0.3 m of a 0.5 m roof slab received the sun inside
+    // every hall (a white line at the ceiling once the halls were exposed for their own light; diagnosed with ?nosun and
+    // ?sbias=0, D-146). -0.00003 is 6 cm in the nearest cascade (24 cm in the farthest); acne is held by the normal bias.
+    this.sun.shadow.bias = -0.00003; this.sun.shadow.normalBias = 0.06;
     scene.add(this.sun, this.sun.target, this.moonLight, this.moonLight.target, this.hemi);
     // moon: disc of 0.52° apparent diameter, shaded by the true sun direction (phase)
     const moonR = Math.tan((0.26 * Math.PI) / 180) * DOME * 0.9;
@@ -284,7 +288,7 @@ export class SkySystem {
     // solved for the drifted field around the camera (recomputed when the observer or the field has moved > 500 m)
     { const cx = camPos.x + C.wind.value.x * C.time.value, cz = camPos.z + C.wind.value.y * C.time.value;
       if (!this.coverAt || Math.hypot(cx - this.coverAt[0], cz - this.coverAt[1]) > 500) { this.coverAt = [cx, cz]; this.coverFactor = C.mesh.visible ? localWeatherFactor(cx, cz) : 1; }
-      C.coverage.value = localCoverageUniform(cloudCover, (coverTable as any).local, this.coverFactor); }
+      C.coverage.value = localCoverageUniform(cloudCover, (coverTable as any).dome, this.coverFactor); } // the weather's cover is the observed DOME cover (D-145)
     if (Math.abs(jdUT - this.lastStarJD) > 10 / 86400) { this.updateStars(jdUT); this.updateGalactic(jdUT); this.lastStarJD = jdUT; }
   }
 }
