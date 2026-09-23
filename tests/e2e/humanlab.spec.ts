@@ -1,7 +1,8 @@
 import { test, expect } from '@playwright/test';
 // Human lab (dev page): the human system alone under the game's sky, tone mapping and pipeline, for close-ups of faces,
 // dress and poses. Screenshots → shots/humanlab-*.png (screenshots find problems; tests/humans*.test.ts measure).
-// Env: Q (quality, default test), HOUR, ONLY (comma list of shot names).
+// Env: Q (quality, default test), HOUR, ONLY (comma list of shot names; default: the 3 shots in DEFAULT, so the spec stays
+// within the shared queue's limits: ≤ 4 views, < 15 min; ONLY=all runs every shot), HIGH=1 adds the high-quality view.
 const LINEUPS: Record<string, any[]> = {
   men: [{ dress: 'persian', sex: 'm', role: 'official', seed: 11 }, { dress: 'guard', sex: 'm', role: 'guard', seed: 12 }, { dress: 'median', sex: 'm', role: 'guard', seed: 13 }, { dress: 'worker', sex: 'm', role: 'mason', seed: 14 }],
   mixed: [{ dress: 'woman', sex: 'f', role: 'grinder', seed: 21 }, { dress: 'woman', sex: 'f', role: 'baker', seed: 22 }, { dress: 'child', sex: 'm', role: 'child', seed: 23 }, { dress: 'worker', sex: 'm', role: 'porter', seed: 24 }],
@@ -26,6 +27,7 @@ const SHOTS: [string, string, number[], number[]][] = [
   ['men-side', 'men', [3.2, 1.5, 0.6], [0, 1.0, 0]],
   ['men-back', 'men', [0.5, 1.6, -3.5], [0, 1.0, 0]],
 ];
+const DEFAULT = ['mixed-full', 'macro-persian', 'macro-woman2'];
 test('human lab close-ups', async ({ page }, info) => {
   test.setTimeout(1_800_000);
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(`${m.type()}: ${m.text().slice(0, 300)}`); });
@@ -33,7 +35,7 @@ test('human lab close-ups', async ({ page }, info) => {
   await page.waitForFunction(() => (window as any).__lab?.ready === true || (window as any).__lab?.error, null, { timeout: 900_000 });
   const err = await page.evaluate(() => (window as any).__lab.error); expect(err ?? null).toBeNull();
   console.log('load', JSON.stringify(await page.evaluate(() => ({ load: (window as any).__lab.loadMs, total: (window as any).__lab.totalMs }))));
-  const only = process.env.ONLY?.split(',');
+  const only = process.env.ONLY === 'all' ? null : process.env.ONLY?.split(',') ?? DEFAULT;
   let lastLineup = '';
   for (const [n, lu, c, t] of SHOTS) {
     if (only && !only.includes(n)) continue;
@@ -50,7 +52,7 @@ test('human lab close-ups', async ({ page }, info) => {
 });
 // The velocity path (TRAA at medium and above needs the previous-frame skinning) and SSGI at high quality.
 test('human lab at high quality (TRAA, previous-frame skinning)', async ({ page }, info) => {
-  test.skip(!!process.env.ONLY && !process.env.ONLY.includes('high'), 'ONLY filter');
+  test.skip(process.env.HIGH !== '1', 'HIGH=1 only (quality=high is for the one final check)');
   test.setTimeout(1_800_000);
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 300)); });
   await page.goto(`/humanlab.html?test&quality=high&hour=${process.env.HOUR ?? 10}`);
@@ -61,9 +63,6 @@ test('human lab at high quality (TRAA, previous-frame skinning)', async ({ page 
   await page.evaluate(() => (window as any).__lab.render(8));
   console.log('high', JSON.stringify(await page.evaluate(() => (window as any).__lab.stats())));
   await page.screenshot({ path: `shots/humanlab-high-full-${info.project.name}.png` });
-  await page.evaluate(() => (window as any).__lab.frameFace(1, 0.6, 0.1));
-  await page.evaluate(() => (window as any).__lab.render(8));
-  await page.screenshot({ path: `shots/humanlab-high-face-${info.project.name}.png` });
   console.log(errs.slice(0, 10).join('\n'));
   expect(errs).toEqual([]);
 });
