@@ -665,6 +665,11 @@ export class Population {
     const H = this.households[h]; if (!H || H.zone !== 'plain' || d < 0 || d >= REGNAL_DAYS) return -1;
     if (this.cal.ctx(d).wx.storm) return -1; const T = this.hday(h, d).task; if (!T || T.kind !== 'thresh') return -1;
     const u = u01(this.seed, S.assign, 7000 + h, d); if (!(u < 0.2) || (u < 0.1 && this.walkH(H.home, 'store_town', d, 'plain', 'town') < 3)) return -1;
+    // not when it would leave children under ten without a grown woman of the house at home, tonight or after midnight (the
+    // soak on D-150's first pass: a widower's child of nine alone at night, a toddler taken to the floor)
+    const kids = (dd: number) => this.membersOn(h, dd).some(x => this.persons[x].age < 10);
+    const woman = (dd: number) => this.membersOn(h, dd).some(x => { const q = this.persons[x]; return q.sex === 'f' && q.age >= 14 && q.agent < 0 && ['homemaker', 'elder', 'farmer'].includes(q.job); });
+    if ((kids(d) || kids(d + 1)) && !(woman(d) && woman(d + 1))) return -1;
     const men = this.membersOn(h, d).filter(x => { const q = this.persons[x]; return q.job === 'farmer' && q.sex === 'm' && q.age >= 16 && q.agent < 0 && !this.sick(x, d) && !this.mourning(x, d) && q.marry !== d && q.marry !== d + 1; }).sort((a, b) => a - b);
     return men.length ? men[(d + h) % men.length] : -1;
   }
@@ -1698,9 +1703,11 @@ class Planner {
       // and the elder sister comes out to it): it waits there with the other children (C)
       else if (r1 - r0 <= 0.3) { const who = c.with !== undefined && c.with >= 0 ? relOf(c.with) : null;
         this.segs.splice(i, j - i, { t0: r0, t1: r1, place: a.place, where: a.where, act: 'play', why: `playing there with the other children${who ? ` until ${who} comes` : ''}` }); } }
-    // a moment of seconds at a place between two walks (two outings' spans meeting on the way home) is the walk's
+    // a moment of seconds at a place between two walks (two outings' spans meeting on the way home) is walked through along
+    // the lane with the other children (with no one of the house: the walks either side keep their company, so neither is
+    // stretched over a moment when that one stood still: the soak on D-150's first pass)
     for (let i = 1; i + 1 < this.segs.length; i++) { const x = this.segs[i]; if (x.where === 'road' || x.t1 - x.t0 >= 0.02 || this.segs[i - 1].where !== 'road' || this.segs[i + 1].where !== 'road') continue;
-      this.segs[i - 1].t1 = x.t1; this.segs.splice(i, 1); i--; }
+      Object.assign(x, { place: this.segs[i - 1].place, where: 'road', act: this.p.age >= 2 ? 'walk' : 'rest', why: this.p.age >= 2 ? 'walking along the lane' : 'carried along the lane' }); delete x.with; }
     return illness();
   }
   // ---------------------------------------------------------------- jobs

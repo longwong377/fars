@@ -1721,3 +1721,108 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 ## D-148 Ashlar blocks vary in tone; the dawn moment stands at the landing's edge (session 4)
 - **Block tone (C):** real quarried ashlar varies from block to block. `SurfaceDef.blockTone` gives each cell of the joint pattern (course × block, the same cells that draw the hairline joints) its own tone, ±8 % on `limestone` and `terrace` (a hash of the cell indices; arithmetic, no `select()`). Seen in the stair-climb render (session 4): the flights and walls read as single flat planes in shade.
 - **Dawn camera:** the §1.1 dawn moment (`dawn-stair-top`, `dawn-sunrise`, and the plain budget view `stair-dawn-plain`) stood 4.2 m back from the W edge of the Grand Stair's top landing (x −40.6; there is no parapet on the axis), so the bottom quarter of the frame was flat landing pavement. It now stands 1 m from the edge (x −39.6), pitched −4°, so the frame shows the descent, the lower flights and the plain with the Terrace's long dawn shadow. The date, hour and weather are unchanged.
+
+## D-150 The round-4 shadow review's systemic findings, fixed at their rules (session 4, sim agent)
+- **Why:** shadow review round 4 (`REVIEWS/shadow_phase5_r4.md`) failed its gate on S1 (a farming man's idle day) and listed S2-S12. Each fix changes the rule that made the day, not the day itself. Every new rule is C unless a row is named, and each new data row cites the row it rests on. Open questions: Q-220 ... Q-226. Days below are the code's 0-based indices; seed 1 throughout.
+- **Broken or placeholder first:**
+  - S11 was not touched (placeholders, performances, rendering). The new work is mostly placeholder activities: garden, fodder, fuel, the vines, the chores at home, the spindle and the loom, the herders' camp. The population's placeholder share of waking hours rises from 24.2 % to 26.6 %: farming men 44 % → 51 %, homemakers 24 % → 27 % (days 15, 104, 163 and 281, every fifth person, 34,898 person-days).
+  - The population is still not rendered; its days are plans only.
+- **S1 (blocking): a farming man with no field task idled at home.**
+  - Cause: P5.6's "fraction of adults in the fields by day" (spring 0.5, summer 0.6, autumn 0.4, winter 0.15; C) was used as a man's chance of a field day. On the other days he had no task, and his hours at home were weighted to rest. Round 4 measured 24 % of farming men with no task in month 6 and 85 % in month 10, with about 4 h of daylight rest on those days.
+  - Fix 1 (`population.json` `field_fraction_by_sex`, C): P5.6's fraction counts the women too. They keep the house's work on those days and go out only for the whole-household tasks (harvest, threshing, vintage, fruit). The men's share is twice the adults', capped at 0.9: 0.9 / 0.9 / 0.8 / 0.3 by season. The women's is 0 outside the whole-household tasks.
+  - Fix 2 (`lives.json` `farm_men_other_work`, C, each option citing its row): on a man's other days, the season's other work, drawn by weight for the month:
+    - the threshing floor readied in the 12 days before the barley harvest (E-41, E-43);
+    - the vines (pruned in months 11-12, hoed in 1-2) and the fruit trees (IR-FOODAG);
+    - the garden beds (dug over in months 6-8);
+    - green fodder along the canal;
+    - the threshed straw carried home (months 3-6);
+    - the sesame cut in month 6 (PF 56);
+    - fuel for the winter;
+    - exchange in kind in the town's lanes, or in the village lane when the town is more than 1.5 h away.
+    - A day at home only in the winter months 9-11 ("little field work in winter": P5.6, E-62).
+  - Fix 3 (`home_hours`, C): his hours at home carry the season's jobs (`farm_chores`): the sickles before the harvest, the winnowing gear, the roof before the rains, the plough, the ewes at lambing, stall-feeding. His daylight rest at home is capped at 2.5 h (3.5 h in winter; the E-64 heat's hours are not counted). The idle fillers of his day, before the midday meal and before supper, go to his hours at home too.
+  - Measured (every able farming man of 16-60 on the plain, mid-month days):
+    - no task outside winter: 0 % in every month;
+    - no task in month 9: 8 %; month 10: 44 %; month 11: 24 %;
+    - mean daylight rest: 0.75-2.15 h a day; on a winter day at home, 1.9-2.1 h (at most 4.6 h).
+    - 31224 on day 21, the failing day of round 4, is out hoeing.
+- **S2: the grain-heap vigil ended at bedtime.**
+  - Now, on about one threshing day in ten (the household's draw, C; Q-225), one of its men of 16 or more, by turns, sleeps in the afternoon. After the evening meal he sits up by the heap until 0.6-1.8 h past his bedtime and sleeps beside it until dawn.
+  - His next day begins asleep at the floor. He walks home at first light, or straight to the well when he fetches the water.
+  - Day 139, every third household: 437 vigils, at most one man a household, no plan issue on the next day. One vigil man dies in the night, and one is taken ill by the heap.
+- **S3: the leader of ten's change-of-watch round walked other files' posts.**
+  - Cause: `roundFor` took the posts where a man already stood. At the change of watch his men were still walking out, so the round fell back to all sixteen posts.
+  - Fix (`sim.ts`): he walks the posts his file holds on this watch, from `P.rota(d)`. For the tail of a night watch after midnight, that is the day before's rota. A post within 3 m of where he stands is not a leg.
+  - A leg he cannot walk and stand before the round's block ends is not begun: he goes back to the hearth instead (was: #80's leg cut off at 06:46).
+  - His watch opens with the change of watch, seeing his men off to their posts, before the first round.
+  - `rota(-1)` (the eve of the year) exists, so the night watch is at its posts after midnight on day 0.
+  - A guard's bread between meals is eaten at his file's hearth, never in the forecourt (#52).
+- **S4: the herders were one plan for the whole band.**
+  - Decided on E-49's own sources. Its analogue, the Qashqai, migrate as families. HDT 1.125 names the Dai, Mardi, Dropici and Sagartii among the Persians as "all wandering herdsmen" (checked in Godley's text; FT, B).
+  - The Basseri of Fars, whose route crosses the Marvdasht plain, are recalled as families with tents, donkeys and dogs, keeping a night watch on the flock (Barth 1961: RECOLLECTION, NOT SEEN, verify).
+  - The band is not a drive crew: the state's drives of the king's sheep to Susa are E-13.
+  - A band (`lives.json` `herders`, C) is herding families in tents, 5-40 people (E-49). Each tent holds a man and his wife with their children. Now and then an old parent joins them (0.25), or in a young man's tent an unmarried younger brother (0.15). E-49's participants row now reads "herding families".
+  - Each person's day:
+    - The flock goes ahead with the men, the older boys and the dogs, grazing, and lies up through the midday heat (1-3.5 h by the heat).
+    - The families follow with the loaded donkeys, one man in four with them by turns, and reach the new camp first.
+    - The women milk before dawn and as the flock comes in, in the months after the lambing (11-4, E-48), and they set the curds and bake.
+    - Two men watch the flock by turns at night and sleep at the halt the next day.
+    - On a day in four the band stays where it is (never two days running, except for rain).
+  - Measured: 39 bands, 908 people (428 women and girls, 298 under ten, 167 under five, 33 aged 56 or more), 3,650 person-days, no plan issue, no near-copy pair. On a band-day, 81 % of a band's members have plans that differ from one another's; the little ones' plans follow their mothers'.
+- **S5: infants were awake through their mothers' work.**
+  - `infant_care.sleep` (C; modern norms, Hirshkowitz et al. 2015: RECOLLECTION, verify): under four months a baby is awake 0.5-0.9 h after each feed (0.9-1.4 h by four months) and asleep until the next, wherever she is.
+  - When feeds come close together it is awake at most `awake_max_extra_h` (0.5 h) beyond the row's longest, counted from its last waking.
+  - From four months: three naps, and asleep from sunset + 0.6 h.
+  - Labels: "asleep on the mother's back while she works", "asleep in the mother's lap", "asleep on a mat beside the mother".
+  - Measured: at 0-3 months, median 15.8 h asleep in 24 (p10 13.7, p90 18.4), and the longest awake stretch is 1.7 h or less on nine days in ten. At 4-11 months, median 13.6 h. Was: a baby of two months awake 5.5 h at a stretch and asleep 11 h.
+- **S6:** a child driving the animals on the floor did `field_work` and carried a hoe. Now it is `thresh`, with a stick (a wooden fork for turning the straw).
+- **S7: thin winter days for women at home.**
+  - `home_hours.women_winter` (spindle 0.42, loom 0.16, rest 0.12) and `women_day_off`.
+  - Her daylight rest at home is capped at 3 h (2.5 h in winter).
+  - From noon on a winter day she takes up the spindle first, until she has spun 1.5 h (`spin_min_h`, C).
+  - Measured (winter days 254-310, homemakers and camp women aged 14-59): on average 3.6-3.9 h of spinning and weaving and 1.2-1.4 h of daylight rest; under 1 h spun on 0.2-0.4 % of days. The baker #122's winter day off (day 271) has spinning in it.
+- **S10: planner artefacts.**
+  - A walk home and straight back out: in `go()`, when the last leg brought the person home just now from the place they are going back to, the walk home is undone. The time is spent at the place instead. Nothing must have been done at home, or only a moment under 2 min.
+  - A walk split in two (18978): a walk that arrives and goes straight on stops there 3 min. At home the load carried in is set down (the water poured into the house jar), or the jar or the next leg's load is taken up; elsewhere it is a moment at the place. Not from the Terrace, on a guard's way up to it, or on a road.
+  - `homeStops()` does the same for the water pass's trips at the edge of a spell at home (D-140's no-sliver rule). The minutes come off the drawing.
+  - A little one:
+    - A kinswoman's walk happens only for a kinswoman of another house.
+    - A run of walks that leads back to where it started is resolved: the child stays with whoever is there, with the other children on an outing, or waits a few minutes with them until the one it goes to comes.
+    - A moment of seconds between two walks is part of the walk.
+    - The sleep before the first meal holds to within float error. A child of six "walked with the mother" home from a well it never went to.
+  - A child's spells of play are never the same kind twice running (D-082's spells stay spells).
+  - The herders' drinking stop is at water, not at the halt; a gardener's fruit is gathered where his walk leads.
+  - Labels: "the elder sister" / "the elder brother" for a known sibling (was "an older brother or sister"); the leader's opening "change of watch". The shadow tool now writes the act the renderer is given, marked for a guard's armed walk to his own post (was: written "walk").
+  - Measured (days 15, 104, 163 and 281, every fifth person, 34,898 person-days):
+    - walks back to where they started: 6,630 in round 4 → 2 (a horse led along the road and back);
+    - runs of two or more walks: 12,840 → 576 (a baby falling asleep on its mother's back, a toddler joining its mother at the door).
+  - Single walks there and back on days 60, 163 and 242:
+    - ages 1-13 (every fourth person): 2,737 → 0;
+    - ages 14 and over (every seventh person): 663 → 0.
+- **S8, S9: logged, not changed** (Q-221, Q-222, with numbers).
+  - Names come only from the attested pool matched to origin; a cap on namesakes would leave thousands more unnamed.
+  - A cap on village size would move plain households between villages and rebuild every kin and neighbour tie of the plain.
+- **S12 (`tools/shadow_days.ts`):**
+  - A stratified pick: 6 detailed agents (3 guards, 3 others) and 14 of the population (2 Terrace workers, 3 other townspeople, 9 from everyone), each on a day when alive and here (days 0-353).
+  - Each detailed agent is stepped in a fresh simulation that jumps to the start of its day, walking its routes at full LOD. The population's plans come from a simulation that is never stepped.
+  - Nothing is elided. The header gives the strata, the Babylonian and Julian dates, sunrise and sunset.
+  - What remains: a jump places everyone where the plan puts them at midnight, and the slice's sacks start from the initial stock. The detailed tier itself still carries relationship changes from shared meals across a jump in one sim; the tool avoids this and the sim is unchanged.
+- **Soak:** **FAIL on the last full run; the final commit is NOT soak-verified.** `npm run soak` (seed 1, 354 days, everyone, court absent) on 8448975: seven of eight gates pass, `plansWellFormed` fails. Report `bench-reports/soak-2026-09-23T22-43-16-579Z.json` (not in the repository).
+  - plansWellFormed: 15 issues. In 15,454,999 person-days, 1 teleport: 16679 on day 114, a toddler taken to the threshing floor by his father's vigil after his mother left the household. On the 118 checked days, 13 "alone" and 1 "apart":
+    - "alone": the vigil left a widower's child of nine alone at night (households 9844 and 9805), and the children of 4100.
+    - "apart": 6423, a wet-nursed child of one, on day 294. The child's walk was stretched over a moment of seconds when the wet nurse stood at home.
+  - Fixed after the run (final commit): no vigil when it would leave children under ten without a grown woman of the house at home on that night and after midnight. The child's moment between two walks is now a walk of its own, with no one of the house. Checked on the failing days (87, 90, 96, 114, 294): `checkDay` 0 issues, and 16679's day 114 passes `checkPlan`. The full soak was not re-run: the session ended.
+  - variety (135 detailed agents, stepped): worst 0.016 (#127, a child); then 0.014 (#119, a scribe; #128 and #129, children).
+  - populationVariety (43,223 measured): none at or over 0.10. The worst are 44754 (builder, 19 days, 0.094, unchanged since round 2), 14200 (0.077), 1636 (0.075) and 2746 (0.069). Infants (not gated): 0 of 3,524 would fail.
+  - events: 14-20 kinds a week (mean 16.86; floor 8).
+  - stuck, stocks, renderedHonest and visibleChange: pass.
+  - Run time: 42 min wall (22:01-22:43 UTC): 40 s for the detailed agents and 2,468 s for the population and its checks, on 4 cores shared with other sessions.
+- **Tests:** `tests/people_days_r5.test.ts`, 18 tests. Against f905e29's sources, 16 fail and 2 pass. The 2 are guards on the new rules, not regressions: the season's other work keeps to its rows, and every herder day passes `checkPlan`. They cover S1 (4), S2, S3/S10 (3), S4 (3), S5, S6 (with 18978's split walk), S7, S10 (children and grown-ups) and S12. Before the last fix: `npx tsc --noEmit` clean; full `npx vitest run --maxWorkers=2` 46 files, 423 passed and 1 skipped (on cb3e96d, before the walk fixes); `tests/people_days_r5.test.ts` 18/18 and the other people suites 116/116 on e613318 (`tests/people.test.ts` timed out once at load 12 and passed alone); `npx tsx tools/lint_chrono.ts` OK.
+- **Round-5 input:** `REVIEWS/shadow_days_input_seed1_pick97.txt` (`npx tsx tools/shadow_days.ts 1 97`, on the final code). 20 living, present, distinct people:
+  - 6 detailed agents: 3 guards (#9, #81, #2) and 3 others (#116 porter, #123 camp woman, #132 official);
+  - 14 of the population: 2 Terrace workers (builders 1123 and 654), 3 townspeople drawn as such (1906, 2956, 290; 5 in all), and 9 from everyone.
+  - Not scored.
+- **Still open:**
+  - A farming man's winter day at home still holds about 4.5 h of rest, talk and knucklebones (C: "little field work in winter").
+  - "stopping there a moment" is a generic label for a stop at a place other than home (197 in 34,898 person-days: potters, shepherds, millers, grooms).
+  - S8 and S9 (Q-221, Q-222); the herders' evidence (Q-223, Barth unverified); the infant norms (Q-224, unverified); the vigil's frequency (Q-225).

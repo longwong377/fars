@@ -131,7 +131,7 @@ describe('S5: an infant sleeps through much of the mother\'s work', () => {
 });
 
 describe('S6, S7, S10: children at the floor, women in winter, planner artefacts', () => {
-  it('a child at the threshing floor threshes and carries a stick or a fork, never a hoe (18978, day 104)', () => {
+  it('a child at the threshing floor threshes and carries a stick or a fork, never a hoe, and her walks are not split in two (18978, day 104)', () => {
     const segs: Seg[] = P.plan(18978, 103); expect(segs.some(s => s.act === 'thresh' && s.place.startsWith('threshing:'))).toBe(true);
     for (const [i, j] of roadRuns(segs)) expect(j - i, `18978 d103 a walk split in two at ${segs[i].t0.toFixed(2)} (S10)`).toBe(1);
     for (const s of segs) { expect(s.act === 'field_work' && s.place.startsWith('threshing:')).toBe(false); if (s.carry) expect(s.carry).not.toMatch(/hoe/); }
