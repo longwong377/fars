@@ -2006,6 +2006,13 @@ the CPU and is not representative. The node figures below are the reference.
   - props, work objects and animals over their caps: 0.
   - Props add 0.26–0.31 M submitted triangles on the Terrace views (B13).
   - `tests/performances.test.ts` checks resolve() against a stub view: variants from the reason, goods, one threshing floor for two threshers, the extras.
+  - The pop-in walk: 0 pop-ins in 4,597 frames. NaN plan hours: 0 (Q-208 does not reproduce on the round-4 sim). Walks drawn hurrying: 9.2 % (was 7.5 %).
+- **CPU (node, the machine at load 7–9):**
+  - The crowd: 6.3–7.5 ms per frame at 1× (was 3.7–5.2 ms before the merge): D-142's IK and things for up to 448 people.
+  - The view: 5.7–7.0 ms at 1× (was 1.4–2.8 ms).
+    - Its test limit is < 6 ms: it failed at load 8–9, in the full suite (7.0) and alone (6.5), and passed at load 7 (5.7).
+    - The cause is not the merge: population.ts day plans now cost p50 145–202 µs and mean 289–518 µs (3,000 plans, load 4.5). D-143 measured 20–110 µs. So the view spends its plan budget in more updates.
+  - The D-142 crowd-CPU test (< 10 ms, 300 performers) failed in the full suite (11.8 and 14.3 ms at load 9) and passed alone three times.
 - **Not done:**
   - Impostors (beyond the pool or 600 m) still take the base activity's anim, not the variant's. D-142's seated and kneeling work cycles have no impostor frame of their own, so they stand.
   - The population's grinders have no quern: the querns are the Terrace agents' static work objects.
