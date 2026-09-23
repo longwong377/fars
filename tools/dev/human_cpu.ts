@@ -94,7 +94,8 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const sA = skinTex && kSkin ? sample(skinTex, U[0] * 0.5, U[1]) : [0.5, 0.35, 0.28, 0], sD = skinTex && kSkin ? sample(skinTex, U[0] * 0.5 + 0.5, U[1]) : [0.214, 0, 0.214, 0];
   const tone: V3 = [f.color[0] / REF_LIN[0], f.color[1] / REF_LIN[1], f.color[2] / REF_LIN[2]];
   const stub = f.aux[2], roots = stub >= 1.5 ? 1 : 0, stubV = Math.min(stub, 1) * (1 - roots);
-  let skinAlb: V3 = [sA[0] * tone[0] * (1 + 0.05 * n3), sA[1] * tone[1] * (1 + 0.03 * n3), sA[2] * tone[2] * (1 + 0.025 * n3)];
+  const fineM = 1 + n2 * 0.035 * band(SKIN.pores[1][0]);
+  let skinAlb: V3 = [sA[0] * tone[0] * (1 + 0.05 * n3) * fineM, sA[1] * tone[1] * (1 + 0.03 * n3) * fineM, sA[2] * tone[2] * (1 + 0.025 * n3) * fineM];
   const browA = sstep(pv(3) * 0.4, 1 - pv(4) * 0.3, sA[3]);
   skinAlb = mix3(skinAlb, [f.hair[0] * 0.9, f.hair[1] * 0.9, f.hair[2] * 0.9], browA * (pv(5) * 0.25 + 0.7));
   skinAlb = mix3(skinAlb, skinAlb.map((x, i) => x * Math.min(f.hair[i] * 2.2 + 0.35, 1)) as V3, f.aux[1] * stubV * 0.55);
@@ -167,7 +168,7 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const where = Math.max(low, arms * zHands, front * zFront, load * zLoad * 0.8);
   const grimeMask = grime * where * (kCloth + kSkin * Math.max(feet * 0.65 + 0.35, arms * zHands) + kLeather * 0.8 + kFelt * 0.3) * (u3 * 0.6 + 0.7);
   alb = mix3(alb, grimeCol, grimeMask * 0.35);
-  const rough = Math.min(1, kSkin * (SKIN.roughSheen - oil * 0.08) + kEye * mix(0.1, 0.035, irisM) + kHair * 0.5 + kTeeth * 0.25 + kMouth * 0.3 + kLeather * 0.55 + kFelt * 0.95 + kMetal * 0.32 + kLash * 0.6 + kWood * 0.55 + kWicker * 0.85 + kCloth * mix(0.92, 0.8, isLinen) + grimeMask * 0.2);
+  const rough = Math.min(1, kSkin * (SKIN.roughSheen - oil * 0.08 + n1 * 0.06 * band(SKIN.pores[0][0])) + kEye * mix(0.1, 0.035, irisM) + kHair * 0.5 + kTeeth * 0.25 + kMouth * 0.3 + kLeather * 0.55 + kFelt * 0.95 + kMetal * 0.32 + kLash * 0.6 + kWood * 0.55 + kWicker * 0.85 + kCloth * mix(0.92, 0.8, isLinen) + grimeMask * 0.2);
   const f0 = 0.04 - kSkin * (0.04 - SKIN.f0) - kEye * (0.04 - EYE.f0) + kHair * 0.006;
   const ao = mix(1, f.aux[0], 0.85 - kEye * 0.45) * mix(1, curls * 0.45 + 0.55, kHair);
   const h = hairH * kHair + skinH * kSkin + clothH * kCloth + feltH * kFelt + leatherH * kLeather;

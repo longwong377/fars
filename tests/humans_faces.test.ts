@@ -88,6 +88,10 @@ describe('skin (D-155)', () => {
     const hs = (fw: number) => { const h: number[] = []; for (let i = 0; i < 200; i++) h.push(surface(frag(MAT.skin, { bind: [0.02 + i * 0.00013, 1.6, 0.1] }), fw, [0, 0, 1], 0, null).h); const m = h.reduce((a, b) => a + b) / h.length; return Math.sqrt(h.reduce((a, b) => a + (b - m) ** 2, 0) / h.length); };
     expect(hs(0.0013)).toBeLessThan(1e-7); // 1 m, 1080p, 70°: the pore octaves have faded out (no shimmer)
     expect(hs(0.0002)).toBeGreaterThan(5e-6);
+    // the fine mottling of colour and gloss follows the same band limit (relative spread over a 2.6 cm strip)
+    const spread = (fw: number, k: (s: ReturnType<typeof surface>) => number) => { const v: number[] = []; for (let i = 0; i < 200; i++) v.push(k(surface(frag(MAT.skin, { bind: [0.02 + i * 0.00013, 1.6, 0.1] }), fw, [0, 0, 1], 0, null))); const m = v.reduce((a, b) => a + b) / v.length; return Math.sqrt(v.reduce((a, b) => a + (b - m) ** 2, 0) / v.length) / m; };
+    expect(spread(0.0002, s => lum(s.alb))).toBeGreaterThan(0.008); expect(spread(0.0013, s => lum(s.alb))).toBeLessThan(0.004);
+    expect(spread(0.0002, s => s.rough)).toBeGreaterThan(0.01); expect(spread(0.0013, s => s.rough)).toBeLessThan(0.001);
   });
   it('the skin atlas: 2:1, oil on the nose, translucent ears, the upper lid crease', () => {
     expect(skin.w).toBe(2 * skin.h);

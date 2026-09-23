@@ -256,7 +256,9 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const refLin = new THREE.Color().setRGB(...REF_TONE, THREE.SRGBColorSpace);
     const tone = vColor.div(vec3(refLin.r, refLin.g, refLin.b));
     const stub = vAux.z, roots = step(1.5, stub), stubV = min(stub, 1).mul(float(1).sub(roots));
-    let skinAlb: any = sA.rgb.mul(tone).mul(vec3(1).add(vec3(0.05, 0.03, 0.025).mul(n3))); // blotchy redness, per person (C)
+    // blotchy redness (per person), and a fine mottling at the pore scale, band-limited like the pores (skin is not one
+    // smooth colour up close; C)
+    let skinAlb: any = sA.rgb.mul(tone).mul(vec3(1).add(vec3(0.05, 0.03, 0.025).mul(n3))).mul(float(1).add(n2.mul(0.035).mul(band(SKIN.pores[1][0]))));
     const browA = smoothstep(pv(3).mul(0.4), float(1).sub(pv(4).mul(0.3)), sA.a); // sparser or denser brows per person
     skinAlb = mix(skinAlb, vHair.mul(0.9), browA.mul(pv(5).mul(0.25).add(0.7))); // brows
     skinAlb = mix(skinAlb, skinAlb.mul(vHair.mul(2.2).add(0.35).min(1)), vAux.y.mul(stubV).mul(0.55)); // shaven stubble
@@ -357,7 +359,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     alb = mix(alb, grimeCol, grimeMask.mul(0.35));
     this.colorNode = alb;
     // roughness: skin broad lobe (the oily lobe is separate), eyes wet, cloth by fibre, dust makes things matte
-    this.roughnessNode = kSkin.mul(float(SKIN.roughSheen).sub(oil.mul(0.08))).add(kEye.mul(mix(0.1, 0.035, irisM))).add(kHair.mul(0.5)).add(kTeeth.mul(0.25)).add(kMouth.mul(0.3))
+    this.roughnessNode = kSkin.mul(float(SKIN.roughSheen).sub(oil.mul(0.08)).add(n1.mul(0.06).mul(band(SKIN.pores[0][0])))).add(kEye.mul(mix(0.1, 0.035, irisM))).add(kHair.mul(0.5)).add(kTeeth.mul(0.25)).add(kMouth.mul(0.3))
       .add(kLeather.mul(0.55)).add(kFelt.mul(0.95)).add(kMetal.mul(0.32)).add(kLash.mul(0.6)).add(kWood.mul(0.55)).add(kWicker.mul(0.85)).add(kCloth.mul(mix(0.92, 0.8, isLinen))).add(grimeMask.mul(0.2)).min(1);
     this.metalnessNode = kMetal;
     // specular F0 (dielectrics): skin 0.028, cornea 0.025, hair cuticle 0.046, others 0.04 (setupSpecular)

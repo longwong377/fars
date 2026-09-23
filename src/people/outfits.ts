@@ -585,7 +585,8 @@ function headBand(L: Lib, key: string, lod: number, o: { dy: number; w: number; 
   const cache = { v: null as HumanVariant | null, r: [] as number[] };
   return tubeGeo(L.A, key, { segs, rings: 2, lining: 0.003, closeTop: true,
     frame: (c, t) => { const F = headRingFrame(c, o.dy, 0.15); return { ...F, o: add(F.o, scl(F.w, (t - 0.5) * o.w)) }; },
-    radius: (c, t, th) => { const r = headRim(c, headRingFrame(c, o.dy, 0.15), 0.01, cache); return rimAt(r, th) + (o.gap ?? 0.006) + (o.twisted ? 0.003 * Math.sin(th * 30 + t * 3) : 0) + o.t * Math.sin(Math.PI * t); },
+    // a wrapped strip, not a lathe: small irregular lumps and creases along it (a perfect torus read as a plastic ring, D-155)
+    radius: (c, t, th) => { const r = headRim(c, headRingFrame(c, o.dy, 0.15), 0.01, cache); return rimAt(r, th) + (o.gap ?? 0.006) + (o.twisted ? 0.003 * Math.sin(th * 30 + t * 3) : 0.0012 * Math.sin(th * 7 + 0.7) * Math.sin(Math.PI * t) + 0.0007 * Math.sin(th * 19 + t * 5)) + o.t * Math.sin(Math.PI * t); },
     weights: () => [W('head', 1)], mat: MAT.cloth_trim, col: o.col, prm: o.twisted ? 3 : 0 });
 }
 /** soft felt cap: shell over the cranium, ears and nape, domed on top (Median dress, C) */
