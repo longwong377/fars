@@ -28,7 +28,7 @@ const eyeAt = (exMM: number, eyMM: number, pat = 0) => frag(MAT.eye, { ext: [0.5
 
 describe('eyes (D-155)', () => {
   it('the sclera is a white tissue, the iris dark with a darker limbal ring, the pupil black', () => {
-    const at = (ex: number, ey: number) => lum(surface(eyeAt(ex, ey, packLookBits({ motif: 0, hairStyle: 0, iris: 2, wearsHair: 0, linen: 0, age: 3, beard: 0 })), 0.001, [0, 0, 1], 0, null).alb);
+    const at = (ex: number, ey: number) => lum(surface(eyeAt(ex, ey, packLookBits({ motif: 0, hairStyle: 0, iris: 2, wearsHair: 0, linen: 0, age: 3, beard: 0, grimeZone: 0 })), 0.001, [0, 0, 1], 0, null).alb);
     const sclera = [at(8.5, -3), at(-8.5, -3), at(7, -4.5)];
     for (const s of sclera) expect(s, 'sclera albedo (linear); the old shader gave 0.30').toBeGreaterThan(0.5);
     const mid = at(0, -3.5), limbus = at(0, -5.5), pupil = at(0, -0.3);
@@ -110,6 +110,11 @@ describe('skin (D-155)', () => {
     }
     const c0 = surface(frag(MAT.cloth_main, { bind: [0.03, 0.3, 0.1], mat: [1, 0, 0, 0] }), 0.001, [0, 0, 1], 0, null).alb, c1 = surface(frag(MAT.cloth_main, { bind: [0.03, 0.3, 0.1], mat: [1, 0, 0, 0.6], aux: [1, 0, 0, 0.9] }), 0.001, [0, 0, 1], 0, null).alb;
     expect(lum(c1)).toBeGreaterThan(lum(c0) * 1.1);
+    // each trade's contact zones (bind pose): flour on a baker's front, dust on a porter's shoulders, none on a clerk's
+    const at = (zone: number, P: [number, number, number]) => lum(surface(frag(MAT.cloth_main, { bind: P, mat: [1, 0, packLookBits({ motif: 0, hairStyle: 0, iris: 0, wearsHair: 0, linen: 0, age: 3, beard: 0, grimeZone: zone }), 0.5], aux: [1, 0, 0, 0.9] }), 0.001, [0, 0, 1], 0, null).alb);
+    expect(at(2, [0, 1.0, 0.12])).toBeGreaterThan(at(0, [0, 1.0, 0.12]) * 1.1);
+    expect(at(3, [0.12, 1.4, -0.02])).toBeGreaterThan(at(0, [0.12, 1.4, -0.02]) * 1.1);
+    expect(at(1, [0.25, 0.9, 0.02])).toBeGreaterThan(at(0, [0.25, 0.9, 0.02]) * 1.1);
   });
 });
 

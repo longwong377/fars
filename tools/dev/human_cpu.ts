@@ -143,7 +143,7 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const thB = Math.atan2(P[0], P[2] - 0.02), sideS = sstep(0.35, 0.9, Math.abs(Math.sin(thB)));
   const pleatT = Math.abs(fract(thB * 26 / (Math.PI * 2) + P[1] * 9 * Math.sign(thB) * sideS) - 0.5) * 2;
   const pleatH = (pleatT - 0.5) * 0.003 * is(prm, 1) * band(21);
-  const clothH = n2 * 0.003 + n1 * 0.0004 + weaveH + pleatH;
+  const clothH = n2 * mix(0.003, 0.0012, is(prm, 4)) + n1 * mix(0.00025, 0.00012, isLinen) + weaveH + pleatH;
   // felt, leather, metal, wood, wicker
   const feltAlb = f.color.map(c => c * (1 + n3 * 0.1 + n1 * 0.05)) as V3;
   const seam = Math.exp(-((P[0] / 0.0022) ** 2)) * 0.00045 * is(prm, 0);
@@ -156,7 +156,12 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   let alb: V3 = [0, 0, 0]; for (const [c, k] of parts) if (k) { alb[0] += c[0] * k; alb[1] += c[1] * k; alb[2] += c[2] * k; }
   const gl = f.aux[3], grimeCol: V3 = [gl, gl * 0.97, gl * 0.9];
   const low = 1 - sstep(0.1, 0.9, P[1]), feet = 1 - sstep(0.02, 0.14, P[1]);
-  const grimeMask = grime * low * (kCloth + kSkin * (feet * 0.65 + 0.35) + kLeather * 0.8 + kFelt * 0.3) * (u3 * 0.6 + 0.7);
+  const zone = bits(pat, 'grimeZone'), zHands = is(zone, 1) + is(zone, 2), zFront = is(zone, 2), zLoad = is(zone, 3);
+  const arms = sstep(0.15, 0.2, Math.abs(P[0])) * (1 - sstep(1.02, 1.12, P[1]));
+  const front = sstep(0.02, 0.08, P[2]) * sstep(0.72, 0.8, P[1]) * (1 - sstep(1.2, 1.3, P[1])) * (1 - sstep(0.14, 0.18, Math.abs(P[0])));
+  const load = sstep(1.28, 1.36, P[1]) * Math.max(sstep(0.06, 0.1, Math.abs(P[0])), sstep(0.0, -0.05, P[2]));
+  const where = Math.max(low, arms * zHands, front * zFront, load * zLoad * 0.8);
+  const grimeMask = grime * where * (kCloth + kSkin * Math.max(feet * 0.65 + 0.35, arms * zHands) + kLeather * 0.8 + kFelt * 0.3) * (u3 * 0.6 + 0.7);
   alb = mix3(alb, grimeCol, grimeMask * 0.35);
   const rough = Math.min(1, kSkin * (SKIN.roughSheen - oil * 0.08) + kEye * mix(0.1, 0.035, irisM) + kHair * 0.5 + kTeeth * 0.25 + kMouth * 0.3 + kLeather * 0.55 + kFelt * 0.95 + kMetal * 0.32 + kLash * 0.6 + kWood * 0.55 + kWicker * 0.85 + kCloth * mix(0.92, 0.8, isLinen) + grimeMask * 0.2);
   const f0 = 0.04 - kSkin * (0.04 - SKIN.f0) - kEye * (0.04 - EYE.f0) + kHair * 0.006;

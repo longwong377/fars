@@ -610,8 +610,10 @@ function headcloth(L: Lib, key: string, lod: number) {
     return Math.min(face, open, top, 0.2 - Math.abs(p[0])); });
   // over the dress (below the neck) it lies 2.4 cm out, and smoothing may not pull it closer than 2.2 cm: the dress is
   // 1 cm out plus its own smoothing, and a closer cloth z-fought with it; over the head 1.4–2 cm (no hair is worn under it)
-  return shellGeo(A, ref, key, { tris: A.lods[TESS[lod].tris], d, ramp: 0.012, smooth: 8, minOff: 0.022,
-    thick: p => (p[1] < neckY ? 0.024 : 0.014 + 0.006 * sstep(eyeY, eyeY + 0.1, p[1])), mat: MAT.cloth_second, col: COL.second, prm: 0 });
+  // D-155: it hugged the skull like a cap; the cloth now stands off the crown and falls away from the back of the head
+  // (a draped cloth, not a fitted one; C), and is relaxed more
+  return shellGeo(A, ref, key, { tris: A.lods[TESS[lod].tris], d, ramp: 0.012, smooth: lod === 0 ? 14 : 8, minOff: 0.022,
+    thick: p => (p[1] < neckY ? 0.024 : 0.018 + 0.01 * sstep(eyeY, eyeY + 0.1, p[1]) + 0.014 * sstep(0.02, -0.07, p[2] - h[2])), mat: MAT.cloth_second, col: COL.second, prm: 4 });
 }
 /** torque: a ring around the base of the neck, fitted to the neck's support radius (per θ) plus 7 mm */
 function torqueGeo(L: Lib, key: string, lod: number) {

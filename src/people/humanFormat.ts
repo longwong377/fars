@@ -56,6 +56,7 @@ export const LOOK_BITS = {
   linen: [7, 3], // main, second, trim textile is linen (else wool)
   age: [10, 3], // age decade (0-7) of the body variant: wrinkles
   beard: [13, 2], // beard density 0 dense … 2 sparse
+  grimeZone: [15, 2], // where the work's dirt sits besides hems and feet: 0 none, 1 hands and forearms (stone), 2 the front and forearms (flour), 3 shoulders and upper back (loads)
 } as const satisfies Record<string, readonly [number, number]>;
 export type LookBits = { -readonly [K in keyof typeof LOOK_BITS]: number };
 export function packLookBits(b: LookBits): number {

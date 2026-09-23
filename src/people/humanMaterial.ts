@@ -319,7 +319,8 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const thB = atan(P.x, P.z.sub(0.02)), sideS = smoothstep(0.35, 0.9, abs(sin(thB)));
     const pleatT = abs(fract(thB.mul(26 / TAU).add(P.y.mul(9).mul(sign(thB)).mul(sideS))).sub(0.5)).mul(2);
     const pleatH = pleatT.sub(0.5).mul(0.003).mul(is(prm, 1)).mul(band(21));
-    const clothH = n2.mul(0.003).add(n1.mul(0.0004)).add(weaveH).add(pleatH);
+    // (a head-cloth, prm 4, takes shallower drape folds: on the head the vertical fold noise read as lumps)
+    const clothH = n2.mul(mix(0.003, 0.0012, is(prm, 4))).add(n1.mul(mix(0.00025, 0.00012, isLinen))).add(weaveH).add(pleatH); // linen is smoother than wool
 
     // ---- felt, leather, metal, wood, wicker
     const feltAlb = vColor.mul(float(1).add(n3.mul(0.1)).add(n1.mul(0.05)));
@@ -336,7 +337,14 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     // grime by work (C): dust toward the hem and the feet, patchy; court dress stays clean (grime ≈ 0)
     const grime = vMat.w, grimeCol = vec3(vAux.w, vAux.w, vAux.w).mul(vec3(1, 0.97, 0.9));
     const low = float(1).sub(smoothstep(0.1, 0.9, P.y)), feet = float(1).sub(smoothstep(0.02, 0.14, P.y));
-    const grimeMask = grime.mul(low).mul(kCloth.add(kSkin.mul(feet.mul(0.65).add(0.35))).add(kLeather.mul(0.8)).add(kFelt.mul(0.3))).mul(u3.mul(0.6).add(0.7));
+    // the trade's contact zones (bind pose: arms hanging, hands at the thighs; C): hands and forearms (stone), the front
+    // below the chest and the forearms (flour), shoulders and upper back (loads)
+    const zone = bits('grimeZone'), zHands = is(zone, 1).add(is(zone, 2)), zFront = is(zone, 2), zLoad = is(zone, 3);
+    const arms = smoothstep(0.15, 0.2, abs(P.x)).mul(float(1).sub(smoothstep(1.02, 1.12, P.y)));
+    const front = smoothstep(0.02, 0.08, P.z).mul(smoothstep(0.72, 0.8, P.y)).mul(float(1).sub(smoothstep(1.2, 1.3, P.y))).mul(float(1).sub(smoothstep(0.14, 0.18, abs(P.x))));
+    const load = smoothstep(1.28, 1.36, P.y).mul(smoothstep(0.06, 0.1, abs(P.x)).max(smoothstep(0.0, -0.05, P.z)));
+    const where = low.max(arms.mul(zHands)).max(front.mul(zFront)).max(load.mul(zLoad).mul(0.8));
+    const grimeMask = grime.mul(where).mul(kCloth.add(kSkin.mul(feet.mul(0.65).add(0.35).max(arms.mul(zHands)))).add(kLeather.mul(0.8)).add(kFelt.mul(0.3))).mul(u3.mul(0.6).add(0.7));
     alb = mix(alb, grimeCol, grimeMask.mul(0.35));
     this.colorNode = alb;
     // roughness: skin broad lobe (the oily lobe is separate), eyes wet, cloth by fibre, dust makes things matte

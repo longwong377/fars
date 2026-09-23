@@ -141,7 +141,7 @@ export function faceDetail(F: FaceFrame, p: number[], n: number[], isHead: boole
     const faceFront = z > nz - 0.05 ? front : 0;
     // nasolabial fold: from the nose wing to beside the mouth corner; alar groove around the nose wing
     const nl = bez([0.0165, ny + 0.003], [0.028, ny - 0.012], [lipA + 0.011, my - 0.008]);
-    out.crease -= faceFront * groove(nl, 0.0018) * 0.8 * DETAIL_SCALE.crease;
+    out.crease -= faceFront * groove(nl, 0.0022) * 0.5 * DETAIL_SCALE.crease; // soft in the young; the age channel deepens it
     out.age -= faceFront * groove(nl, 0.0026) * 0.9 * DETAIL_SCALE.age;
     const al = bez([0.0125, ny + 0.011], [0.0195, ny + 0.004], [0.0125, ny - 0.005]);
     out.crease -= faceFront * groove(al, 0.0011) * 0.7 * DETAIL_SCALE.crease;

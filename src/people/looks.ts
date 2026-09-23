@@ -74,11 +74,13 @@ function pickVariant(A: HumanAssets, rng: Rng, sex: 'm' | 'f', group: 'adult' | 
   const near = [...cand].sort((a, b) => Math.abs(a.height - target) - Math.abs(b.height - target)).slice(0, Math.min(3, cand.length));
   return rng.pick(near);
 }
+/** where each trade's dirt sits besides hems and feet (LOOK_BITS grimeZone; C) */
+const GRIME_ZONE: Record<string, number> = { mason: 1, grinder: 2, baker: 2, porter: 3 };
 const grimeFor = (role: string): [number, number, string] => {
   switch (role) {
-    case 'mason': return [0.55, 0.78, 'limestone dust'];
-    case 'porter': return [0.35, 0.5, 'dust'];
-    case 'grinder': case 'baker': return [0.4, 0.9, 'flour'];
+    case 'mason': return [0.55, 0.78, 'limestone dust on hems, feet, hands and forearms'];
+    case 'porter': return [0.35, 0.5, 'dust on hems, feet, shoulders and back'];
+    case 'grinder': case 'baker': return [0.4, 0.9, 'flour on the front, forearms and hems'];
     case 'child': return [0.25, 0.5, 'dust'];
     case 'guard': return [0.04, 0.5, 'dust'];
     default: return [0.08, 0.5, 'dust'];
@@ -147,7 +149,7 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   const hairStyle = on.has('hair_bob') ? 2 : court ? 1 : 0;
   const beardDensity = dress === 'worker' && hasBeard ? rng.int(0, 2) : 0;
   const lookBits = packLookBits({ motif: pattern, hairStyle, iris, wearsHair: on.has('hair') || on.has('hair_bob') ? 1 : 0,
-    linen: (mainK === 'linen' ? 1 : 0) + (secondK === 'linen' ? 2 : 0) + (trimK === 'linen' ? 4 : 0), age: Math.floor(v.meta.ageYears / 10), beard: beardDensity });
+    linen: (mainK === 'linen' ? 1 : 0) + (secondK === 'linen' ? 2 : 0) + (trimK === 'linen' ? 4 : 0), age: Math.floor(v.meta.ageYears / 10), beard: beardDensity, grimeZone: GRIME_ZONE[p.role] ?? 0 });
   const tiers = pieces.map(id => `${id} ${PIECES[id]?.tier ?? 'C'}`).join(', ');
   const note = `body ${v.meta.id} (variant, C) × ${scale.toFixed(3)} → ${(v.height * scale).toFixed(2)} m (stature C, Q-066); ${tiers}; colours main ${mainK} (${TEXTILE[mainK].tier}), second ${secondK}, trim ${trimK}${pattern ? ', Susa-style rosettes (B)' : ''}; skin tone p ${toneP.toFixed(2)} for ${origin} (C, Q-240), hair ${['natural curls', 'court rows of curls', 'straight'][hairStyle]} (C), iris ${iris}; grime ${grimeWhat} (C)`;
   return { dress, variant: v.index, variantId: v.meta.id, scale, stature: v.height * scale, mask, pieces, pattern: lookBits, grime, grimeLevel, stubble, col, note };
