@@ -785,6 +785,9 @@ export class Population {
   }
   private pos(place: string, d: number): [number, number] {
     if (place.startsWith('h:')) return this.households[+place.slice(2)].xy;
+    // the trees of a garden or an estate stand beside its beds (C). Was: `estate:<h>:trees` read "trees" as a plot number
+    // (NaN: every walk to them and the rest of the day had NaN times) and `garden:<q>:trees` fell through to the Terrace
+    if (place.endsWith(':trees')) { const b = this.pos(place.slice(0, -6), d); return [b[0] + 90, b[1] + 120]; }
     const k = place.indexOf(':'); if (k > 0) { const tail = place.slice(k + 1); if (place.startsWith('field:') || place.startsWith('estate:')) { const H = this.households[parseInt(tail, 10)]; const plot = +(tail.split(':')[1] ?? 0); return [H.xy[0] + 300 - plot * 150, H.xy[1] + 200 + plot * 120]; }
       if (this.quarters[tail]) return this.quarters[tail].xy; if (place.startsWith('ws:')) return [T.treasury_workshops.around[0] + (+tail - 1.5) * 150, T.treasury_workshops.around[1]]; }
     if (this.facilities[place]) return this.facilities[place]; if (place === 'ws_textile') return [-700, -1000];
@@ -887,8 +890,21 @@ class Planner {
     if (this.p.sex === 'f' && this.p.age >= 14) this.nurse(segs);
     this.fieldBite(segs); this.water(segs); this.fire(segs);
     if (this.p.age >= 2) this.meals(segs);
-    this.tidy(segs); this.carries(segs);
+    this.joinSlivers(segs); this.tidy(segs); this.carries(segs);
     return segs;
+  }
+  /** the post-passes cut spells by arithmetic, and a cut can leave a remainder of a second or less (a float residue: 0.36 s
+   *  "at home" between two well trips, 14:59:59.6 at a window's edge). Such a sliver is no part of anyone's day, and the
+   *  plans that follow this one (a child with its mother, D-140) drop pieces under 1e-4 h and walk straight through it. A
+   *  piece shorter than 3.6 s goes to its neighbour at the same place, else to the walk beside it, else to the one before;
+   *  a walk that is the only way between two places stays, and so do the day's first and last pieces (where yesterday
+   *  ended and tomorrow begins) */
+  private joinSlivers(segs: Seg[]) {
+    for (let i = 1; i < segs.length - 1; i++) { const s = segs[i], pv = segs[i - 1], nx = segs[i + 1]; if (!(s.t1 - s.t0 < 0.001)) continue;
+      if (s.where === 'road' && pv.where !== 'road' && nx.where !== 'road' && pv.place !== nx.place) continue;
+      const same = (x: Seg) => x.place === s.place && x.where === s.where;
+      if (same(pv) || (!same(nx) && (pv.where === 'road' || nx.where !== 'road'))) pv.t1 = s.t1; else nx.t0 = s.t0;
+      segs.splice(i, 1); i--; }
   }
   /** a harvest morning of four hours or more at the field or the floor has its bite of the bread and water carried out at
    *  dawn, about half-way (S6; C) */
@@ -910,12 +926,18 @@ class Planner {
     for (const [lo, hi] of [[this.sun.rise - 0.2, 11], [15, this.sun.set - 0.1], [11, 15]] as [number, number][]) {
       // runs of spells at home in a row (a short spin, a little grinding, a rest) that together hold a trip
       for (let i = 0; i < segs.length && need > 0; i++) { if (!okHome(segs[i])) continue; let j = i; while (j + 1 < segs.length && okHome(segs[j + 1])) j++;
-        if (j === i) continue; const a = Math.max(segs[i].t0, lo), b = Math.min(segs[j].t1, hi); if (b - a < trip + 0.05) { i = j; continue; } if (rain && rain[0] < a + trip && rain[1] > a) { i = j; continue; }
-        const e = a + trip, keep: Seg[] = [];
+        if (j === i) continue; let a = Math.max(segs[i].t0, lo); const b = Math.min(segs[j].t1, hi); if (b - a < trip + 0.05) { i = j; continue; }
+        // no slivers (D-140): she does not sit down at home for a moment before she goes, and when what is left of a spell
+        // after the trip is a matter of seconds or a minute or two, the trip ends with it (the water poured into the house's
+        // jar). Was: a spell exactly one trip long left 0.36 s "at home" between two trips, and her children walked through it
+        const ka = segs.findIndex((s, k) => k >= i && k <= j && s.t0 <= a && s.t1 > a); if (ka >= 0 && a - segs[ka].t0 < 0.05) a = segs[ka].t0;
+        let e = a + trip; const ke = segs.findIndex((s, k) => k >= i && k < j && s.t0 < e && s.t1 > e); if (ke >= 0 && segs[ke].t1 - e < 0.05) e = segs[ke].t1;
+        if (rain && rain[0] < e && rain[1] > a) { i = j; continue; }
+        const keep: Seg[] = [];
         for (let k = i; k <= j; k++) { const s = segs[k]; if (s.t1 <= a + 1e-6) keep.push(s); else if (s.t0 < a) keep.push({ ...s, t1: a }); }
         keep.push({ t0: a, t1: a + walk, place: `road:${W}`, act: 'walk', why: 'to the well with the jar', where: 'road' }, { t0: a + walk, t1: a + walk + 0.22, place: w, act: 'draw_water', why: 'drawing the house’s water', where: W }, { t0: a + walk + 0.22, t1: e, place: `road:${W}`, act: 'carry_jar_head', why: 'carrying water home', where: 'road' });
         for (let k = i; k <= j; k++) { const s = segs[k]; if (s.t0 >= e - 1e-6) keep.push(s); else if (s.t1 > e + 1e-6) keep.push({ ...s, t0: e }); }
-        segs.splice(i, j - i + 1, ...keep.filter(x => x.t1 - x.t0 > 1e-6)); need--; i += keep.length - 1; } }
+        const kept = keep.filter(x => x.t1 - x.t0 > 1e-6); segs.splice(i, j - i + 1, ...kept); need--; i += kept.length - 1; } }
     for (const [lo, hi] of [[this.sun.rise - 0.2, 11], [15, this.sun.set - 0.1], [11, 15]] as [number, number][]) {
       for (let i = 0; i < segs.length && need > 0; i++) { const s = segs[i];
         if (s.place !== this.home || s.where !== W || !(/^(rest|talk|play|spin|craft)$/.test(s.act) || (s.act === 'grind' && s.t1 - s.t0 >= trip + 0.5)) || / in the night|nurs|sick|ill|asleep/.test(s.why)) continue;
