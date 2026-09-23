@@ -12,3 +12,4 @@ __pycache__/
 bench-reports/*.json
 !bench-reports/.gitkeep
 shots/
+.claude/worktrees/
