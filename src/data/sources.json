@@ -453,5 +453,20 @@
   "cite": "Tertiary web pages via search extracts: Wikipedia \"Ka'ba-ye Zartosht\", \"Tomb of Darius the Great\" (Ctesias on Darius' tomb in his lifetime), surfiran/CAIS \"Naqsh-e Rostam\" (Husain Kuh)",
   "url": "https://en.wikipedia.org/wiki/Ka%27ba-ye_Zartosht",
   "access": "search-extract only (tertiary; cap C unless confirmed)"
+ },
+ "NR-ACHAEMENICA": {
+  "cite": "Achaemenica, \"Naqsh-e Rostam\"; surfiran mag \"Naqsh-e Rostam\" (tertiary syntheses citing Schmidt, Persepolis III)",
+  "url": "https://achaemenica.org/articles/naqsh-e-rostam",
+  "access": "search-extract only: Darius I facade 22.93 m high, its foot ~15 m above the ancient ground, cliff ~64 m; tomb order W to E Darius II, Artaxerxes I, Darius I, Xerxes I"
+ },
+ "NR-IRANICA": {
+  "cite": "Encyclopaedia Iranica, \"Naqš-e Rostam\"",
+  "url": "https://www.iranicaonline.org/articles/naqs-e-rostam/",
+  "access": "search-extract only: median register 14 x 7.60 m; upper arm 8.50 m high; ancient floor at the cliff foot at least 5 m below present ground"
+ },
+ "IR-RIPARIAN": {
+  "cite": "Dendroclimatic potential of riparian plane trees (Platanus orientalis) along the Zayandeh-Rud River, Iran (Dendrochronologia 2024)",
+  "url": "https://www.sciencedirect.com/science/article/abs/pii/S1125786524000651",
+  "access": "search-extract only: riparian woodland dominants Platanus orientalis, Populus, Salix alba; shrubs Tamarix ramosissima, Salix acmophylla"
  }
 }

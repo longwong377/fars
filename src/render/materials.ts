@@ -53,7 +53,7 @@ function bumped(h: any) {
   return abs(det).mul(n).sub(grad).normalize();
 }
 
-interface Layer { alb: any; rough: any; height: any | null }
+export interface Layer { alb: any; rough: any; height: any | null }
 /** albedo, roughness and height of one surface definition (before weather) */
 function layer(d: SurfaceDef, base: any): Layer {
   const p = positionWorld, n = normalWorld;
@@ -94,8 +94,8 @@ function layer(d: SurfaceDef, base: any): Layer {
 }
 
 const cache = new Map<string, THREE.MeshStandardNodeMaterial>();
-export function surfaceMaterial(name: string, opts: { vertexColors?: boolean } = {}): THREE.MeshStandardNodeMaterial {
-  const key = name + (opts.vertexColors ? '+vc' : '');
+export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; variant?: string; modify?: (L: Layer, d: SurfaceDef) => Layer } = {}): THREE.MeshStandardNodeMaterial {
+  const key = name + (opts.vertexColors ? '+vc' : '') + (opts.variant ? '+' + opts.variant : ''); // `modify` (Phase 7 plain layers) needs its own `variant` key
   const hit = cache.get(key); if (hit) return hit;
   const d = SURFACES[name] ?? SURFACES.limestone;
   const m = new THREE.MeshStandardNodeMaterial(); // vertex colours are read explicitly below; the vertexColors flag would multiply them in a second time
@@ -107,6 +107,7 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean } =
     const T = layer(SURFACES[d.top], lin(SURFACES[d.top].albedo)); const t = smoothstep(0.7, 0.9, n.y);
     L = { alb: mix(L.alb, T.alb, t), rough: mix(L.rough, T.rough, t), height: L.height && T.height ? mix(L.height, T.height, t) : (L.height ?? T.height) };
   }
+  if (opts.modify) L = opts.modify(L, d); // e.g. fields, crops and woodland over the plain's earth (src/world/plain/terrainPlain.ts)
   let alb = L.alb;
   // weather: wet darkening (porous surfaces up to ~45% darker), gloss; puddles on near-horizontal surfaces; snow cover
   const up = smoothstep(0.75, 0.95, n.y);

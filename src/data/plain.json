@@ -1140,7 +1140,29 @@
     }
    ],
    "dry_season_flow": "perennial trickle (C)",
-   "chrono": "river_pulvar"
+   "chrono": "river_pulvar",
+   "channel": {
+    "bed_width_m": 2.38,
+    "side_slope_h_per_v": 6.52,
+    "bank_height_m": 1.6,
+    "tier": "C",
+    "src": "RECON",
+    "note": "Trapezoid fitted by least squares to this river's flow_by_month width/depth rows (width = bed + 2 x slope x depth; max residual 0.09 m). Bank height = April depth 1.2 m + 0.4 m freeboard (C). Bed level along the course: bare-earth floodplain sampled on the centreline, smoothed (sigma 200 m), forced non-increasing downstream (isotonic fit), minus the bank height; the heightfield is carved under the channel (tools/build_terrain.py; public/generated/rivers.json)."
+   },
+   "riparian": {
+    "species": [
+     "plane (Platanus orientalis)",
+     "white willow (Salix alba)",
+     "poplar (Populus)",
+     "tamarisk (Tamarix, shrub)"
+    ],
+    "band_m": 30,
+    "mean_spacing_m": 16,
+    "gap_share": 0.35,
+    "tier": "C",
+    "src": "IR-RIPARIAN;SAEIDI2021",
+    "note": "Riparian woodland of Iranian plateau rivers today: Platanus orientalis, Populus and Salix alba trees, Tamarix and Salix acmophylla shrubs (Zayandeh-Rud analogy, IR-RIPARIAN, search extract: B for the modern community). Platanus pollen with Achaemenid arboriculture (SAEIDI2021, B). Band width, spacing and gaps are reconstruction (C); gaps stand for fords, grazing and cut-over banks."
+   }
   },
   {
    "id": "river_kur",
@@ -2307,7 +2329,29 @@
      "state": "moderate"
     }
    ],
-   "chrono": "river_kur"
+   "chrono": "river_kur",
+   "channel": {
+    "bed_width_m": 4.72,
+    "side_slope_h_per_v": 8.4,
+    "bank_height_m": 2.2,
+    "tier": "C",
+    "src": "RECON",
+    "note": "As the Pulvar: trapezoid fitted to the Kur flow_by_month rows (max residual 0.10 m); bank height = April depth 1.8 m + 0.4 m (C)."
+   },
+   "riparian": {
+    "species": [
+     "plane (Platanus orientalis)",
+     "white willow (Salix alba)",
+     "poplar (Populus)",
+     "tamarisk (Tamarix, shrub)"
+    ],
+    "band_m": 45,
+    "mean_spacing_m": 16,
+    "gap_share": 0.35,
+    "tier": "C",
+    "src": "IR-RIPARIAN;SAEIDI2021",
+    "note": "Riparian woodland of Iranian plateau rivers today: Platanus orientalis, Populus and Salix alba trees, Tamarix and Salix acmophylla shrubs (Zayandeh-Rud analogy, IR-RIPARIAN, search extract: B for the modern community). Platanus pollen with Achaemenid arboriculture (SAEIDI2021, B). Band width, spacing and gaps are reconstruction (C); gaps stand for fords, grazing and cut-over banks."
+   }
   },
   {
    "id": "confluence",
@@ -2393,7 +2437,15 @@
      0.4,
      0.8
     ],
-    "tier": "C"
+    "tier": "C",
+    "gradient_m_per_km": 0.5,
+    "length_km": [
+     2.5,
+     7
+    ],
+    "bank_crest_m": 0.45,
+    "offtake_side": "alternating, only where the irrigated zone polygon lies beside the river",
+    "rule_note": "Canal gradient 0.5 m/km and lengths are reconstruction (C): shallower than the rivers (0.8-1.5 m/km on the DEM), so a contour canal gains height over the plain and can water it by gravity. Canals follow the contour on the bare-earth DEM, water surface at ground level between spoil banks (C). Tree lines along them use the riparian species list (C)."
    },
    "chrono": "irrigation_systems_sumner"
   },
@@ -2506,7 +2558,35 @@
     ],
     "tier": "C"
    },
-   "chrono": "villages_unlocated"
+   "chrono": "villages_unlocated",
+   "layout": {
+    "household_size": 6,
+    "compound_m": [
+     14,
+     24
+    ],
+    "room_depth_m": [
+     3.5,
+     4.5
+    ],
+    "room_height_m": [
+     2.4,
+     2.9
+    ],
+    "wall_m": 0.6,
+    "yard_wall_h_m": 2.0,
+    "persons_per_ha": 65.2,
+    "total_procedural_pop": 30000,
+    "tier": "C",
+    "src": "SUMNER1986;RECON",
+    "note": "No Achaemenid village plan in the plain has been excavated (none retrieved): courtyard compounds of mud brick with flat timber-and-reed roofs, rooms along one or two sides, packed into an irregular cluster whose area follows Sumner's density (675 ha for <= 44,000 people: 65 persons/ha, B derived). Household size 6 and all dimensions are reconstruction (C). The 33 unlocated secure sites share 30,000 people (C; the four located villages hold 3,700 and the town zones 3,000-6,000, within Sumner's maximum)."
+   },
+   "tracks": {
+    "width_m": 3.5,
+    "tier": "C",
+    "src": "RECON",
+    "note": "Earth tracks from each village to its nearest neighbour (minimum spanning tree) and to the nearest settlement.json road; courses reconstructed (C). The four roads themselves are settlement.json features (Phase 6)."
+   }
   },
   {
    "id": "quarry_sivand",
@@ -2598,7 +2678,12 @@
    "date_range": "c. 486-465 BCE?",
    "present_467": true,
    "unc_m": 30,
-   "chrono": "nr_xerxes_tomb"
+   "chrono": "nr_xerxes_tomb",
+   "xy": [
+    652,
+    6129
+   ],
+   "xy_basis": "Placed on the cliff line (naqsh_e_rustam.cliff) 60 m ENE of the Darius I tomb point. The order of the tombs is sourced (Darius II, Artaxerxes I, Darius I, Xerxes I from W to E, SX); the spacing was not retrieved (C, Q-076)."
   },
   {
    "id": "nr_kaba",
@@ -3801,7 +3886,11 @@
    "date_range": "Achaemenid",
    "present_467": true,
    "rule": {
-    "ring_m": 300
+    "ring_m": 300,
+    "fill": 0.45,
+    "tree_spacing_m": 7,
+    "vine_share": 0.3,
+    "rule_note": "Within the 300 m ring 45 % is orchard or vineyard (the rest gardens, threshing floors and pens), trees on a 7 m grid, 30 % of plots vines (C). Species: crops.fruit_trees + vines (B species, C mix)."
    },
    "chrono": "orchards_gardens"
   },
@@ -3837,7 +3926,21 @@
     "cover": [
      0.1,
      0.3
-    ]
+    ],
+    "crown_m": [
+     5,
+     9
+    ],
+    "height_m": [
+     4,
+     8
+    ],
+    "thinning": {
+     "full_cover_from_km": 10,
+     "min_factor": 0.1,
+     "min_factor_within_km": 2
+    },
+    "rule_note": "Quercus brantii crowns 5-9 m, 4-8 m tall; pistachio-almond as 2-4 m scrub (C). Cover thinned to 10 % of the rule within 2 km of the Terrace, rising to the full rule at 10 km: fuel cutting near the capital (C)."
    },
    "chrono": "woodland"
   },
@@ -4256,5 +4359,66 @@
    "summit_asl": 2665,
    "chrono": "mountain_kuh_e_hossein"
   }
- ]
+ ],
+ "naqsh_e_rustam": {
+  "note": "Geometry of the Naqsh-e Rustam monuments used by src/world/plain/naqsh.ts and by tools/build_terrain.py (cliff-front and ancient-ground carve). Every value carries its tier; C values state their basis.",
+  "cliff": {
+   "face_y": 6124,
+   "x_range": [
+    432,
+    932
+   ],
+   "height_m": 64,
+   "tier": "B (height, SX) / C (line)",
+   "src": "NR-ACHAEMENICA;COP-DEM",
+   "note": "The cliff \"rises about sixty-four metres in all\" (NR-ACHAEMENICA, search extract). The face line is grid y 6124 (5 m S of the Darius I tomb point), straight along grid x (true 71 deg, ENE-WSW), from the raw DSM: its 1,635-1,660 m contours lie at grid y 6109-6149 between x 470 and 930 (C, +-10 m). West of x 432 the cliff turns N (the later tombs, absent in 467, are not modelled); east of x 932 it fades into the slope."
+  },
+  "ancient_ground": {
+   "drop_at_foot_m": 5.0,
+   "taper_m": 250,
+   "tier": "B (drop) / C (taper)",
+   "src": "NR-IRANICA",
+   "note": "\"The original floor at the foot of the cliff was, at least, 5 m below the present-day ground\" (Iranica, search extract): the heightfield in front of the cliff is lowered 5 m at the foot, tapering to 0 at 250 m out (C)."
+  },
+  "facade": {
+   "height_m": 22.93,
+   "foot_above_ground_m": 15.0,
+   "median_register_w_m": 14.0,
+   "median_register_h_m": 7.6,
+   "upper_arm_h_m": 8.5,
+   "lower_arm_h_m": 6.83,
+   "arm_w_m": 10.9,
+   "recess_m": 1.2,
+   "columns": 4,
+   "column_h_m": 5.3,
+   "door_w_m": 1.4,
+   "door_h_m": 2.8,
+   "throne_bearers": 28,
+   "throne_bearer_tiers": 2,
+   "tier": "B (height, foot, registers, programme: SX) / C (arm width, recess, column and door sizes)",
+   "src": "NR-ACHAEMENICA;NR-IRANICA;WP-NR",
+   "note": "Fa\u00e7ade 22.93 m high, foot ~15 m above the ancient ground (NR-ACHAEMENICA, SX). Median register 14 x 7.60 m and upper arm 8.50 m high (NR-IRANICA, SX); lower arm 6.83 m = 22.93 - 7.60 - 8.50 (derived). Four engaged columns with double-bull capitals and a single central doorway; upper register: the king on a three-stepped podium before a fire altar, the winged figure and the moon above, the dais carried by 28 throne-bearers in two tiers (SX, B for the programme). Width of the upper and lower arms 10.9 m, the recess depth, column height 5.3 m and the door 1.4 x 2.8 m are reconstruction (C: proportions, not measured). The DNa/DNb inscription panels are dressed but their text is not carved (PLACEHOLDER: the published text is not in inscriptions.json). The Xerxes fa\u00e7ade repeats this design uninscribed (D-033)."
+  },
+  "kaba": {
+   "height_m": 12.0,
+   "height_with_base_m": 14.12,
+   "base_side_m": 7.3,
+   "base_steps": 3,
+   "stair_steps": 30,
+   "door_w_m": 0.87,
+   "door_h_m": 1.7,
+   "stair_side": "facing the cliff (C)",
+   "tier": "C",
+   "src": "WP-NR",
+   "note": "About 12 m high, 14.12 m with its triple-stepped base; base side 7.30 m; a 30-step stone stair leads to the doorway, 1.7 m high and 0.87 m wide (Wikipedia via search extract: C). Dark stone blind windows and dovetail-clamped white limestone (B, SX). Stair on the side facing the cliff (C)."
+  },
+  "elamite_relief": {
+   "w_m": 7.0,
+   "h_m": 2.5,
+   "base_above_ground_m": 1.5,
+   "tier": "B (size) / C (height above ground, figures)",
+   "src": "ALVAREZMON",
+   "note": "Neo-Elamite relief 7 x 2.5 m, intact in 467 (the Sasanian overcarving is absent). Placed on the cliff face at the nearest point to its xy (+-50 m). Figures schematic (PLACEHOLDER carving, C)."
+  }
+ }
 }

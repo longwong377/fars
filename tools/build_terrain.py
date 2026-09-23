@@ -5,8 +5,18 @@
  3. Terrace and its foot: inside the terrace polygon (OSM, minus the Grand Stair recess) the ground is held at plain level,
     hidden under the platform; the platform is modelled as geometry by the architecture generators, so no terrain cliff pokes through the walls. A 25-90 m band outside the W/N/S walls is replaced by a harmonic
     (Laplace) infill from the surrounding plain, removing the DSM's smear of the terrace wall and modern spoil. Tier C.
- 4. Output rings (Uint16 heights, h = asl_min + q * step) + JSON metadata into public/generated/.
-Validation spot checks: tests/terrain.test.ts."""
+ 4. Rivers (Phase 7, D-037): the bare-earth filter fills the river channels, so the Pulvar and Kur channels are carved
+    back under their plain.json courses. Bank-top level = bare-earth floodplain on the centreline, smoothed (sigma 200 m)
+    and forced non-increasing downstream (running minimum); bed = bank - channel.bank_height_m. Every sample within
+    (channel top width / 2 + one cell) of the centreline is lowered to bed - 0.3 m, so the terrain stays below the
+    river corridor mesh drawn over it (src/world/plain/rivers.ts). The profile is written to public/generated/rivers.json.
+    Tier C (course modern, level reconstruction).
+ 5. Naqsh-e Rustam (Phase 7): the ancient ground at the cliff foot lies at least 5 m below the present ground (NR-IRANICA),
+    tapering to 0 at 250 m out (C); the ground in front of the cliff face line (plain.json naqsh_e_rustam.cliff) and two
+    cells behind it is held at that ancient level, so the vertical face drawn by src/world/plain/naqsh.ts is not
+    hidden by the 16 m heightfield's smoothed ramp. Tier C.
+ 6. Output rings (Uint16 heights, h = asl_min + q * step) + JSON metadata into public/generated/.
+Validation spot checks: tests/terrain.test.ts, tests/plain.test.ts."""
 import json, glob, numpy as np, rasterio
 from rasterio.warp import reproject, Resampling
 from rasterio.transform import from_origin
@@ -14,6 +24,7 @@ from scipy import ndimage
 from shapely.geometry import Polygon, Point
 import shapely
 from pyproj import CRS
+from scipy.spatial import cKDTree
 import os
 LAT0, LON0, ROT = 29.9351174, 52.8894969, 19.0
 spec = json.load(open('src/data/site_spec.json'))
@@ -40,7 +51,12 @@ built = {}
 os.makedirs('public/generated', exist_ok=True)
 meta = {'frame': 'Persepolis grid (x grid-east, y grid-north), origin Apadana centroid', 'court_asl': COURT, 'rings': {}}
 c, s = np.cos(np.radians(ROT)), np.sin(np.radians(ROT))
-for name, (half, cell) in rings.items():
+plain = json.load(open('src/data/plain.json'))
+PF = {f['id']: f for f in plain['features']}
+
+
+def base_ring(half, cell):
+    """layers 1-3 for one ring: DSM resampled into the grid, bare earth, Terrace foot. Returns (h, GX, GY)."""
     n = int(2 * half / cell) + 1
     # sample on a tm grid big enough to contain the rotated square, then rotate-sample
     big = half * 1.42 + cell * 2
@@ -87,6 +103,122 @@ for name, (half, cell) in rings.items():
         under_stair = shapely.contains_xy(stair.buffer(0.5), GX, GY)
         h[under_stair] = np.minimum(h[under_stair], COURT - 12.0 - 0.3)  # below the stair's plain-level pavement (plain_at_stair = court - 12)
         h[inside] = np.minimum(h[inside], COURT - 1.0)  # hidden under the platform (top = court): the platform geometry alone forms the retaining walls
+    return h, GX, GY
+
+
+def bilinear(h, half, cell, x, y):
+    """ring height at grid (x, y); row 0 = grid north"""
+    return ndimage.map_coordinates(h, [(half - np.asarray(y, float)) / cell, (np.asarray(x, float) + half) / cell], order=1, mode='nearest')
+
+
+def resample(poly, step):
+    """polyline (list of [x, y]) resampled every `step` m along its length; returns (pts, s)"""
+    p = np.asarray(poly, float); seg = np.hypot(*np.diff(p, axis=0).T); cum = np.concatenate([[0], np.cumsum(seg)])
+    s_new = np.arange(0, cum[-1], step)
+    return np.stack([np.interp(s_new, cum, p[:, 0]), np.interp(s_new, cum, p[:, 1])], 1), s_new
+
+
+def river_profiles(rings_h):
+    """Bank-top and bed levels along each river (layer 4). The parts of a course (clipped OSM pieces) are joined in order."""
+    out = {}
+    fh, fhalf, fcell = rings_h['far']; mh, mhalf, mcell = rings_h['mid']
+    # far ring: an opening (r 240 m) removes riparian trees and villages that the 80 m average keeps (no bare-earth filter there)
+    f_open = ndimage.grey_opening(fh, size=(7, 7))
+    kur_course = np.asarray([pt for part in PF['river_kur']['polylines'] for pt in part], float)
+    for rid in ('river_pulvar', 'river_kur'):
+        f = PF[rid]; ch = f['channel']
+        course = [pt for part in f['polylines'] for pt in part]
+        if rid == 'river_pulvar':  # the OSM Pulvar line stops ~340 m short of the Kur: join it to the nearest point of the Kur (C)
+            kd, _ = resample(kur_course, 5.0); j = int(np.argmin(np.hypot(*(kd - np.asarray(course[-1])).T))); course = course + [list(kd[j])]
+        pts, sdist = resample(course, 20.0)
+        zf = bilinear(f_open, fhalf, fcell, pts[:, 0], pts[:, 1])
+        inmid = (np.abs(pts[:, 0]) < mhalf - 256) & (np.abs(pts[:, 1]) < mhalf - 256)
+        zf[inmid] = bilinear(mh, mhalf, mcell, pts[inmid, 0], pts[inmid, 1])
+        zs = ndimage.gaussian_filter1d(zf, sigma=200 / 20.0, mode='nearest')
+        bank = np.minimum.accumulate(zs)  # non-increasing downstream, never above the smoothed floodplain
+        out[rid] = {'pts': pts, 's': sdist, 'floodplain': zs, 'bank': bank, 'bed': bank - ch['bank_height_m'], 'channel': ch}
+    # the Pulvar ends in the Kur: its last 1.5 km of bed converge on the Kur's level at the confluence (no step between surfaces)
+    P, K = out['river_pulvar'], out['river_kur']
+    end = P['pts'][-1]; ki = int(np.argmin(np.hypot(*(K['pts'] - end).T)))
+    target = K['bank'][ki]; L = 1500.0; w = np.clip((P['s'] - (P['s'][-1] - L)) / L, 0, 1)
+    P['bank'] = np.minimum.accumulate(P['bank'] * (1 - w) + np.minimum(P['bank'], target) * w)
+    P['bed'] = P['bank'] - P['channel']['bank_height_m']
+    return out
+
+
+def top_width(ch):
+    return ch['bed_width_m'] + 2 * ch['side_slope_h_per_v'] * ch['bank_height_m']
+
+
+def carve_rivers(h, GX, GY, cell, prof):
+    """lower every sample within (top/2 + cell) of a centreline below the bed (layer 4): 0.3 m, plus the bed's fall over one
+    cell at 2 m/km, so the bilinear surface between samples stays under the channel even where the bed falls along the reach"""
+    margin = 0.3 + 0.002 * cell * 2
+    for rid, P in prof.items():
+        rc = top_width(P['channel']) / 2 + cell
+        dense, _ = resample(P['pts'], 4.0)
+        bed_d = np.interp(np.linspace(0, len(P['pts']) - 1, len(dense)), np.arange(len(P['pts'])), P['bed'])
+        tree = cKDTree(dense)
+        x0, x1 = dense[:, 0].min() - rc, dense[:, 0].max() + rc; y0, y1 = dense[:, 1].min() - rc, dense[:, 1].max() + rc
+        idx = np.nonzero((GX >= x0) & (GX <= x1) & (GY >= y0) & (GY <= y1))
+        d, k = tree.query(np.stack([GX[idx], GY[idx]], 1), distance_upper_bound=rc)
+        hit = np.isfinite(d)
+        rr, cc = idx[0][hit], idx[1][hit]
+        h[rr, cc] = np.minimum(h[rr, cc], bed_d[k[hit]] - margin)
+        print(f'  carved {rid}: {hit.sum()} samples at {cell:.0f} m (radius {rc:.1f} m)')
+
+
+def smooth01(t):
+    t = np.clip(t, 0, 1); return t * t * (3 - 2 * t)
+
+
+def carve_naqsh(h, GX, GY, half, cell):
+    """layer 5: the ancient ground in front of the Naqsh-e Rustam cliff; the face line and two cells behind it held there"""
+    nr = plain['naqsh_e_rustam']; cl = nr['cliff']; ag = nr['ancient_ground']
+    fy, (xa, xb) = cl['face_y'], cl['x_range']
+    ramp = 2 * cell  # the carve fades out over two cells beyond the ends of the face line
+    wx = np.clip(np.minimum(GX - (xa - ramp), (xb + ramp) - GX) / ramp, 0, 1)
+    d = fy - GY  # metres in front (grid S) of the face line; negative = behind it
+    # present ground at the foot: 30 m in front of the face (the DSM ramp of the smoothed cliff starts about there)
+    foot = float(np.median(bilinear(h, half, cell, np.linspace(xa, xb, 40), np.full(40, fy - 30.0))))
+    anc_foot = foot - ag['drop_at_foot_m']
+    target = h - ag['drop_at_foot_m'] * (1 - smooth01(d / ag['taper_m']))
+    target = np.where(d < 2 * cell, np.minimum(target, anc_foot + 0.02 * np.clip(d, 0, None)), target)  # the DSM's smeared cliff foot flattened
+    target = np.where(d <= 0, anc_foot, target)  # two cells behind the face: inside the rock (under the cliff mesh's top), held low
+    sel = (wx > 0) & (d > -2 * cell - 1) & (d < ag['taper_m'])
+    h[sel] = np.minimum(h[sel], (wx * target + (1 - wx) * h)[sel])
+    print(f'  Naqsh-e Rustam: present foot {foot:.1f} m, ancient foot {anc_foot:.1f} m asl; {sel.sum()} samples at {cell:.0f} m')
+    return anc_foot
+
+
+# layers 1-3 per ring
+H = {}
+for name, (half, cell) in rings.items():
+    h, GX, GY = base_ring(half, cell)
+    H[name] = (h, GX, GY, half, cell)
+    print(name, 'base built')
+# layer 4: river profiles from the base rings, then carve far and mid (the rivers stay > 3 km from the Apadana: outside the near ring)
+prof = river_profiles({k: (v[0], v[3], v[4]) for k, v in H.items()})
+for name in ('far', 'mid'):
+    h, GX, GY, half, cell = H[name]
+    carve_rivers(h, GX, GY, cell, prof)
+# layer 5: Naqsh-e Rustam lies 6.2 km out, inside the mid ring only
+anc_foot = carve_naqsh(H['mid'][0], H['mid'][1], H['mid'][2], H['mid'][3], H['mid'][4])
+rivers_out = {'_meta': {'frame': 'Persepolis grid (x grid-east, y grid-north, m); levels m asl (true, no curvature)', 'step_m': 20.0,
+                        'source': 'tools/build_terrain.py layer 4 (D-037); courses and channel parameters from src/data/plain.json', 'tier': 'C'},
+              'naqsh_e_rustam': {'ancient_foot_asl': round(anc_foot, 2)}, 'rivers': {}}
+for rid, P in prof.items():
+    ch = P['channel']
+    rivers_out['rivers'][rid] = {'top_width_m': round(top_width(ch), 2), 'carve_radius_m': {k: round(top_width(ch) / 2 + rings[k][1], 2) for k in ('far', 'mid')},
+                                 'channel': {k: ch[k] for k in ('bed_width_m', 'side_slope_h_per_v', 'bank_height_m')},
+                                 'x': [round(float(v), 1) for v in P['pts'][:, 0]], 'y': [round(float(v), 1) for v in P['pts'][:, 1]],
+                                 'bank': [round(float(v), 2) for v in P['bank']], 'floodplain': [round(float(v), 2) for v in P['floodplain']]}
+    dz = P['floodplain'] - P['bank']
+    print(f'  {rid}: {len(P["pts"])} pts, bank {P["bank"][0]:.1f} -> {P["bank"][-1]:.1f} m, floodplain - bank: median {np.median(dz):.2f}, p95 {np.percentile(dz, 95):.2f}, max {dz.max():.2f} m')
+json.dump(rivers_out, open('public/generated/rivers.json', 'w'))
+# seam blending and output, coarse to fine (each finer ring blends into the final coarser one)
+for name, (half, cell) in rings.items():
+    h, GX, GY, _, _ = H[name]; n = h.shape[0]
     # seam blending (C0 continuity between rings): over the outer 12 cells, fade toward the next-coarser ring
     coarser = {'mid': 'far', 'near': 'mid'}.get(name)
     if coarser:
