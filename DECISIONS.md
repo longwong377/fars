@@ -1120,6 +1120,7 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   | dawn-glow-e, 05:24 (−2.9°) | 6 | 51.4 | above the portico (112,132,160) | floor (41,48,57); brazier flame bright, no night-strength pool | – |
   | dawn-sunrise, 05:51 (+2.5°) | 6 | 107.4 | 168, clouds lit warm from the low sun | plain 46; terrace 62, blue shade | 89 (exposure 1.27, set by the braziers): sky 121, plain 45, terrace 78 |
   | settlement terrace-w-dusk, 18:45 (−5.0°), before the metering change | – | – | 127, warm glow toward the sun, no magenta band | plain 19; terrace 22, blue | sky 164 (pink-grey, magenta band), plain 67, terrace 74 |
+  | terrace-w-dusk view at test quality (no cloud layer), final code, 18:45 (−5.0°) | 6 (gain 98) | 64.0 | toward the sun, W low (163,153,154) warm; W 10° up (156,172,188); S low (80,108,141); overhead (76,105,141): glow → deep blue, no magenta | plain (7,14,14); terrace (18,29,43) | – |
   | gate-dusk, 19:15 (−11.3°), with the fire-share cap | 20.5 | 76.1 | – | torch-lit interior as at night | 76.0 |
   | night-terrace, 22:30 (moon 46 %, 27° up) | 6 | 25.0 | 40 | 22; fire-lit columns p90 60 | 37.9: sky 55, ground 37, columns p90 66 |
   | stair-climb, 08:30 (+41.9°): daytime check | 1.17 | 48.5 | left sky 66 | stairs in shade 23 | 59.1: sky 77, stairs 33 |
@@ -1130,6 +1131,7 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - CPU panoramas: the twilight sky was displayed pale, which led to the centre-weighted meter of D-117;
   - gate-dusk with the fire scale alone: luma 34 against 76, which led to the fire-share cap of D-117.
 - **Judgement of the dawn (the lead's criteria):** dim and cool: yes (ground 30–45, blue, exposure 6). No sun shadows before sunrise: yes. A glow in the E: the E view looks at the Gate and Kuh-e Rahmat, and the low glow is behind them; the sky above is lighter toward the sun. The Earth's shadow over the W plain: visible only without the cloud deck (the test-quality row); at high quality the "clear" day's deck covers it (below).
+- **Dusk is dark on the ground:** at −5° the plain is nearly black (luma ~12) under a readable sky. This is the photographic rendition (the meter exposes for the sky); the eye sees more at 8.5 lx (Q-162).
 - **Daytime changes (D-115's skylight slope; not a tuning):** with the sun at 40–42° the shade is 20–30 % darker and the low sky ~10 % darker; sunlit surfaces are unchanged. At 6.6° the sunlit reliefs keep their brightness but are warmer, and the sky-lit floor is darker (82 vs 105).
 - **Other artefacts seen:** a pale rectangle around the brazier flame in the E view. The flame and smoke sprites fade to zero at their edges, so this is probably the post pipeline's temporal AA reprojecting the billboard's quad; the fire-lit surroundings hid it before. Not investigated (pipeline.ts is out of this agent's scope).
 - **Not fixed (reported):**
