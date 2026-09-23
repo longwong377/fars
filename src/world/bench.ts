@@ -9,26 +9,33 @@ export const ROUTES: Record<string, { name: string; keys: [number, number, numbe
   palaces: { name: 'Phase 4 palaces: Tachara S court → Hadish N court → Tripylon → Hall of 100 Columns → Treasury hall → Harem court', seconds: 40, day: 25, hour: 11,
     keys: [[-21, -112, 1.6, 341, 4], [20, -120, 1.6, 161, 0], [82, -44, 1.6, 161, 4], [146, 40, 1.6, 161, 2], [180, -110, 1.6, 161, 0], [114, -116, 1.6, 161, 2]] },
 };
-export async function runBench(which: string, api: any, frame: (dt?: number) => Promise<void>) {
+/** frameMs = one frame's CPU work plus waiting for the GPU to finish it (serialised latency: an upper bound on the frame
+ *  time of a pipelined run); cpuMs = the CPU part alone; gpuMs = GPU pass time from timestamp queries (null where the
+ *  browser does not expose them). On SwiftShader all of these are software-rasteriser numbers and mean nothing for the
+ *  60 fps target; draw calls and triangles are the proxies (README budgets). */
+export async function runBench(which: string, api: any, frame: (dt?: number) => Promise<void>, gpuSync: () => Promise<void> = async () => {}, gpuMs: () => Promise<number | null> = async () => null) {
   const list = which === 'all' ? Object.keys(ROUTES) : which.split(',');
   const report: any = { when: new Date().toISOString(), userAgent: navigator.userAgent, backend: api.backend, screen: [innerWidth, innerHeight, devicePixelRatio], routes: {} };
   for (const k of list) {
     const r = ROUTES[k]; if (!r) continue;
     api.setTime(r.day, r.hour);
-    const times: number[] = [], draws: number[] = [], tris: number[] = [];
-    const t0 = performance.now(); let last = t0;
-    for (let i = 0; i < 30; i++) { const [e, n, h, az, p] = r.keys[0]; api.view(e, n, h, az, p); await frame(1 / 60); } // warm-up
+    const times: number[] = [], cpu: number[] = [], gpu: number[] = [], draws: number[] = [], tris: number[] = [];
+    for (let i = 0; i < 30; i++) { const [e, n, h, az, p] = r.keys[0]; api.view(e, n, h, az, p); await frame(1 / 60); await gpuSync(); } // warm-up
+    const t0 = performance.now();
     while (true) {
       const now = performance.now(), u = (now - t0) / 1000 / r.seconds; if (u >= 1) break;
       const f = u * (r.keys.length - 1), i = Math.min(r.keys.length - 2, Math.floor(f)), t = f - i;
       const a = r.keys[i], b = r.keys[i + 1]; let daz = b[3] - a[3]; if (daz > 180) daz -= 360; if (daz < -180) daz += 360;
       api.view(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t, a[3] + daz * t, a[4] + (b[4] - a[4]) * t);
-      await frame(); const n2 = performance.now(); times.push(n2 - last); last = n2;
+      const f0 = performance.now(); await frame(); const f1 = performance.now(); await gpuSync(); const f2 = performance.now();
+      cpu.push(f1 - f0); times.push(f2 - f0);
       const s = api.stats(); draws.push(s.drawCalls); tris.push(s.triangles);
+      const g = await gpuMs(); if (g !== null) gpu.push(g);
     }
-    const sorted = [...times].sort((x, y) => x - y), q = (p: number) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))];
+    const pct = (a: number[], p: number) => { if (!a.length) return null; const srt = [...a].sort((x, y) => x - y); return +srt[Math.min(srt.length - 1, Math.floor(p * srt.length))].toFixed(2); };
+    const q = (p: number) => pct(times, p);
     const st = api.stats(); const pp = api.people?.();
-    report.routes[k] = { name: r.name, frames: times.length, medianMs: q(0.5), p95Ms: q(0.95), p99Ms: q(0.99), maxDrawCalls: Math.max(...draws), maxTriangles: Math.max(...tris), geometries: st.geometries, textures: st.textures, heapMB: st.heap ? +(st.heap / 1048576).toFixed(0) : null, people: pp ? pp.agents.filter((a: any) => !a.offmap).length : null };
+    report.routes[k] = { name: r.name, frames: times.length, medianMs: q(0.5), p95Ms: q(0.95), p99Ms: q(0.99), cpuMedianMs: pct(cpu, 0.5), gpuMedianMs: pct(gpu, 0.5), gpuP95Ms: pct(gpu, 0.95), medianDrawCalls: pct(draws, 0.5), maxDrawCalls: Math.max(...draws), maxTriangles: Math.max(...tris), geometries: st.geometries, textures: st.textures, heapMB: st.heap ? +(st.heap / 1048576).toFixed(0) : null, people: pp ? pp.agents.filter((a: any) => !a.offmap).length : null };
   }
   (window as any).__benchReport = report;
   const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
