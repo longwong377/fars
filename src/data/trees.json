@@ -132,7 +132,7 @@
    "tier": "C", "src": "BOTANY-GEN",
    "height_m": [9, 15], "crown_width_ratio": [0.16, 0.24], "crown_base_ratio": [0.02, 0.05], "dbh_ratio": 0.03, "stems": [1, 1],
    "habit": "excurrent", "envelope": { "shape": "cone", "widest": 0.28, "top": 1.3, "bottom": 2.0 }, "limbs": [16, 18], "limb_angle_deg": 14, "droop": 0.0,
-   "leaf": { "tile": "spray_cypress", "size_cm": 10, "layers": 3.2 }, "twig_tile": "spray_cypress", "twig_cards": 1, "card": { "aspect": 2.3, "up": 0.8, "clump": 0.25 }, "blossom_tile": null,
+   "leaf": { "tile": "spray_cypress", "size_cm": 10, "layers": 3.2 }, "twig_tile": "spray_cypress", "twig_cards": 1, "card": { "aspect": 2.3, "up": 0.8, "clump": 0 }, "blossom_tile": null,
    "bark": [0.33, 0.25, 0.2],
    "note": "the narrow upright form planted in gardens (C: the wild form of Iran is broader, Q-171); dense dark scale-leaf foliage to the ground, evergreen"
   },
