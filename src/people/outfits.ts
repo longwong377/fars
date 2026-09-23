@@ -156,8 +156,8 @@ interface TubeOpts {
   support?: { parts: number[]; slab: number; running?: 'max' };
   weights: (t: number, th: number) => [number, number][];
   mat: number; col: number; prm?: number; slack?: (t: number, th: number) => number;
-  /** lining thickness (m): adds an inner layer with reversed winding and closes the rim at t = 1 (and t = 0 if closeTop) */
-  lining?: number; closeTop?: boolean;
+  /** lining thickness (m, or per (t, θ)): adds an inner layer with reversed winding and closes the rim at t = 1 (and t = 0 if closeTop) */
+  lining?: number | ((t: number, th: number) => number); closeTop?: boolean;
   /** raise the end pole along the axis (a domed top), m */
   capLift?: number;
   /** cap the ends with a pole vertex (closed volumes: hats' tops, beard, bun, quiver) */
@@ -168,7 +168,8 @@ interface TubeOpts {
   arc?: [number, number];
 }
 function tubeGeo(A: HumanAssets, key: string, o: TubeOpts): Geo {
-  const S = o.segs, R = o.rings, lined = (o.lining ?? 0) > 0, arc = o.arc, cols = arc ? S + 1 : S;
+  const S = o.segs, R = o.rings, lining = o.lining ?? 0, lined = typeof lining === 'function' || lining > 0, arc = o.arc, cols = arc ? S + 1 : S;
+  const linAt = typeof lining === 'function' ? lining : () => lining;
   const layers = lined ? 2 : 1, nRing = cols * (R + 1), poles = (o.capStart ? 1 : 0) + (o.capEnd ? 1 : 0);
   const n = nRing * layers + poles;
   const idx: number[] = [];
@@ -209,7 +210,7 @@ function tubeGeo(A: HumanAssets, key: string, o: TubeOpts): Geo {
       for (let j = 0; j < cols; j++) {
         const th = thOf(j), r = o.radius(c, t, th, sup), dir = add(scl(F.u, Math.cos(th)), scl(F.v, Math.sin(th)));
         const p = add(F.o, scl(dir, r)); out.set(p, vid(0, k, j) * 3);
-        if (lined) out.set(add(F.o, scl(dir, Math.max(0.0005, r - o.lining!))), vid(1, k, j) * 3);
+        if (lined) out.set(add(F.o, scl(dir, Math.max(0.0005, r - linAt(t, th)))), vid(1, k, j) * 3);
       }
     }
     if (pS >= 0) { const F = o.frame(c, tOf(0, R)); out.set(add(F.o, scl(F.w, -0.0)), pS * 3); }
@@ -680,12 +681,14 @@ function kandysGeo(L: Lib, key: string, lod: number) {
  *  face, its ends turned under. The first bob was a shell on the skull and the neck and read as cropped hair (C). */
 function bobCurtain(L: Lib, key: string, lod: number) {
   const T = TESS[lod], segs = lod === 0 ? Math.round(T.seg * 0.8) : Math.max(6, Math.round(T.seg * 0.6)), rings = Math.max(2, Math.round(T.ring * 0.5));
-  // from the level of the brow (inside the scalp shell there) down to the jaw line; a hanging mass 1–1.5 cm thick
-  const top = (c: Ctx) => c.v.eyeY + 0.055, bot = (c: Ctx) => c.J('jaw')[1] - 0.012;
+  // from the level of the brow (inside the scalp shell there) down to the jaw line; a hanging mass 1.2 cm thick at the
+  // crown that thins to its ends (~5 mm at the back, ~2 mm at the front edges: full-thickness ends read as rolls)
+  const top = (c: Ctx) => c.v.eyeY + 0.055, bot = (c: Ctx) => c.J('jaw')[1] - 0.012, a0 = 0.36 * Math.PI, a1 = 1.64 * Math.PI;
   const frame = (c: Ctx, t: number) => vertFrame([0, lerp(top(c), bot(c), t), c.J('head')[2] + 0.015]);
-  return tubeGeo(L.A, key, { segs, rings, lining: 0.012, arc: [0.36 * Math.PI, 1.64 * Math.PI],
+  const lining = (t: number, th: number) => lerp(0.004, 0.012, sstep(0, 0.35 * Math.PI, Math.min(th - a0, a1 - th))) * (1 - 0.6 * sstep(0.5, 1, t));
+  return tubeGeo(L.A, key, { segs, rings, lining, arc: [a0, a1],
     frame, support: { parts: [P.head, P.neck], slab: 0.012, running: 'max' },
-    radius: (c, t, th, sup) => sup(th) + 0.009 + 0.01 * sstep(0, 0.3, t) + 0.004 * sstep(0.3, 1, t) - 0.006 * sstep(0.84, 1, t) + 0.0015 * Math.sin(th * 23 + t * 4),
+    radius: (c, t, th, sup) => sup(th) + 0.009 + 0.006 * sstep(0, 0.3, t) + 0.004 * sstep(0.3, 1, t) - 0.006 * sstep(0.84, 1, t) + 0.0015 * Math.sin(th * 23 + t * 4),
     weights: t => [W('head', 1 - 0.35 * sstep(0.5, 1, t)), W('neck_01', 0.35 * sstep(0.5, 1, t))], mat: MAT.hair, col: COL.hair, prm: 1 });
 }
 /** quiver on the back: a long, slightly tapering case, top over the left shoulder (C placement) */

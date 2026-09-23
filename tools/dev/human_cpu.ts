@@ -87,14 +87,16 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const q1 = fr(s3(SKIN.pores[0][0]), hairF1, s3(160), s3(900), s3(200), s3(60)), q2 = fr(s3(SKIN.pores[1][0]), hairF2, [14, 5, 14], s3(250), s3(60), s3(40)), q3 = fr(s3(30), s3(40), s3(9), s3(40), s3(20), s3(40));
   const i1: V3 = kEye ? [Math.cos(eang) * 6, Math.sin(eang) * 6, et * 3.2] : [P[0] * q1[0], P[1] * q1[1], P[2] * q1[2]];
   const i2: V3 = kEye ? [ex * 900, ey * 900, P[0] * 900] : [P[0] * q2[0], P[1] * q2[1], P[2] * q2[2]];
-  const n1 = mxNoise(i1[0], i1[1], i1[2]), n2 = mxNoise(i2[0], i2[1], i2[2]), n3 = mxNoise(P[0] * q3[0], P[1] * q3[1], P[2] * q3[2]);
+  const pv = (k: number) => fract(Math.sin((f.color[0] + f.hair[0]) * (12.9898 + k) + (f.color[1] + f.hair[1]) * 78.233 + (f.color[2] + f.hair[2]) * (37.719 + 2 * k)) * 43758.5453);
+  const n1 = mxNoise(i1[0], i1[1], i1[2]), n2 = mxNoise(i2[0], i2[1], i2[2]), n3 = mxNoise(P[0] * q3[0] + pv(0) * 57 * kSkin, P[1] * q3[1] + pv(1) * 31 * kSkin, P[2] * q3[2] + pv(2) * 13 * kSkin);
   const u1 = n1 * 0.5 + 0.5, u2 = n2 * 0.5 + 0.5, u3 = n3 * 0.5 + 0.5;
   // skin
   const sA = skinTex && kSkin ? sample(skinTex, U[0] * 0.5, U[1]) : [0.5, 0.35, 0.28, 0], sD = skinTex && kSkin ? sample(skinTex, U[0] * 0.5 + 0.5, U[1]) : [0.214, 0, 0.214, 0];
   const tone: V3 = [f.color[0] / REF_LIN[0], f.color[1] / REF_LIN[1], f.color[2] / REF_LIN[2]];
   const stub = f.aux[2], roots = stub >= 1.5 ? 1 : 0, stubV = Math.min(stub, 1) * (1 - roots);
-  let skinAlb: V3 = [sA[0] * tone[0], sA[1] * tone[1], sA[2] * tone[2]];
-  skinAlb = mix3(skinAlb, [f.hair[0] * 0.9, f.hair[1] * 0.9, f.hair[2] * 0.9], sA[3] * 0.85);
+  let skinAlb: V3 = [sA[0] * tone[0] * (1 + 0.05 * n3), sA[1] * tone[1] * (1 + 0.03 * n3), sA[2] * tone[2] * (1 + 0.025 * n3)];
+  const browA = sstep(pv(3) * 0.4, 1 - pv(4) * 0.3, sA[3]);
+  skinAlb = mix3(skinAlb, [f.hair[0] * 0.9, f.hair[1] * 0.9, f.hair[2] * 0.9], browA * (pv(5) * 0.25 + 0.7));
   skinAlb = mix3(skinAlb, skinAlb.map((x, i) => x * Math.min(f.hair[i] * 2.2 + 0.35, 1)) as V3, f.aux[1] * stubV * 0.55);
   skinAlb = mix3(skinAlb, [f.hair[0] * 0.7, f.hair[1] * 0.7, f.hair[2] * 0.7], f.aux[1] * roots * 0.9);
   skinAlb = mix3(skinAlb, [f.hair[0] * 0.55, f.hair[1] * 0.55, f.hair[2] * 0.55], e1 * kSkin * bits(pat, 'wearsHair') * 0.9);
@@ -122,9 +124,11 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const cu = fract(cellX) - 0.5 + (h1 - 0.5) * 0.3, cv = fract(rowC) - 0.5 + (h2 - 0.5) * 0.3, rr = Math.hypot(cu, cv) * (h1 * 0.3 + 1.7), th = Math.atan2(cv, cu) + h2 * Math.PI * 2;
   const tuft = clamp(1 - rr * rr) * (Math.sin(th + rr * 8) * 0.25 + 0.75);
   let court = mix(natural, tuft * (u1 * 0.4 + 0.6), 0.6);
-  const locks = Math.sin((P[0] + Math.sin(P[1] * 160) * 0.003) * (Math.PI * 2 / 0.0075)) * 0.5 + 0.5;
+  const lockPh = P[1] * 150 + n3 * 4, lc = (P[0] + Math.sin(lockPh) * 0.0022 + n2 * 0.001) / 0.0075;
+  const lf = (fract(lc) - 0.5) * 2, lh = fract(Math.sin(Math.floor(lc) * 91.345) * 47453.5453);
+  const locks = Math.max(1 - lf * lf, 0) * (lh * 0.25 + 0.6) * ((1 - Math.abs(n1)) * 0.4 + 0.6) + 0.15;
   const lockZone = isMass * sstep(0.2, 0.3, U[1]) * (1 - sstep(0.86, 0.94, U[1]));
-  court = mix(court, locks * 0.85 + u1 * 0.15, lockZone);
+  court = mix(court, locks, lockZone);
   const straight = u1 * 0.6 + u2 * 0.4;
   const curls = mix(mix(natural, court, kCourt), straight, kStraight);
   const hairAlb = f.color.map(c => c * (curls * 0.75 + 0.42) * (u3 * 0.2 + 0.9)) as V3;
@@ -180,7 +184,7 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const clumpC = Math.abs(fract(along * mix(LASH.clumps, LASH.clumps * 0.6, e2) + n1 * 0.35) - 0.5) * 2, lashW = ((1 - tl) * Math.sqrt(Math.max(0, 1 - tl)) * 0.8 + 0.1) * mix(1, 0.7, e2);
   const lashCut = Math.max(lashW <= clumpC ? 1 : 0, 0.9 <= tl ? 1 : 0);
   const keep = 1 - kHair * Math.max(edgeCut, silCut) - kLash * lashCut > 0.5;
-  return { alb, rough, metal: kMetal, h, ao, keep, f0, wrap, trans, roughB: SKIN.roughOil, lobeB: kSkin * mix(SKIN.oilLobe[0], SKIN.oilLobe[1], oil), kHair, hairTilt: (curls - 0.5) * 1.6,
+  return { alb, rough, metal: kMetal, h, ao, keep, f0, wrap, trans, roughB: SKIN.roughOil, lobeB: kSkin * mix(SKIN.oilLobe[0], SKIN.oilLobe[1], oil), kHair, hairTilt: mix((curls - 0.5) * 1.6, Math.cos(lockPh) * 0.33, lockZone * kCourt),
     sheenCol: sheenBase.map(c => c * sheenK) as V3, sheenRough: kCloth * mix(0.55, 0.35, isLinen) + kFelt * 0.7 + (1 - kCloth - kFelt) * 0.5,
     specOcc: mix(1, f.aux[0], kSkin * 0.5) * mix(1, curls * 0.6 + 0.4, kHair),
     roughEnv: kSkin * 0.45 + kEye * 0.04 + kHair * 0.5 + kTeeth * 0.3 + kMouth * 0.3 + kLeather * 0.55 + kMetal * 0.32 + kWood * 0.6 + kWicker * 0.8 + (kCloth + kFelt + kLash) * 0.9,

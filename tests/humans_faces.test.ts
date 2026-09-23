@@ -116,6 +116,32 @@ describe('skin (D-155)', () => {
     expect(at(3, [0.12, 1.4, -0.02])).toBeGreaterThan(at(0, [0.12, 1.4, -0.02]) * 1.1);
     expect(at(1, [0.25, 0.9, 0.02])).toBeGreaterThan(at(0, [0.25, 0.9, 0.02]) * 1.1);
   });
+  it('brows differ from person to person (the skin map, and so its brows, is shared by everyone)', () => {
+    const brow: [number, number][] = [];
+    for (let y = 0; y < skin.h; y++) for (let x = 0; x < skin.w / 2; x++) { const a = skin.linRGB[(y * skin.w + x) * 4 + 3]; if (a > 0.3 && a < 0.97) brow.push([(2 * (x + 0.5)) / skin.w, 1 - (y + 0.5) / skin.h]); }
+    expect(brow.length).toBeGreaterThan(100);
+    const fore: [number, number] = [brow[0][0], brow[0][1] + 12 / skin.h]; // skin 12 texels above the brow
+    const ratio = (p: number) => { // same hair colour, tones within 2 %: what varies is the person's hash
+      const t = 1 + 0.02 * Math.sin(p * 1.7), f = (uv: [number, number]) => frag(MAT.skin, { color: [0.3 * t, 0.2 * t, 0.15 * t], ext: [0.5, 0.2], uv });
+      const ref = lum(surface(f(fore), 0.001, [0, 0, 1], 0, skin).alb); let s = 0; for (const b of brow) s += lum(surface(f(b), 0.001, [0, 0, 1], 0, skin).alb) / ref; return s / brow.length; };
+    const r = Array.from({ length: 16 }, (_, p) => ratio(p)), m = r.reduce((a, b) => a + b) / r.length, sd = Math.sqrt(r.reduce((a, b) => a + (b - m) ** 2, 0) / r.length);
+    expect(sd, 'spread of the brow/forehead luminance ratio (one brow for all: ~0)').toBeGreaterThan(0.04); // measured 0.073 (0.22 to 0.44)
+  });
+});
+
+describe('hair (D-155)', () => {
+  it('the long beard locks are not one periodic field (it read as corrugated sheet)', () => {
+    const pat = packLookBits({ motif: 0, hairStyle: 1, iris: 0, wearsHair: 0, linen: 0, age: 3, beard: 0, grimeZone: 0 });
+    const f = (x: number, y: number) => lum(surface(frag(MAT.hair, { color: [0.03, 0.02, 0.015], mat: [MAT.hair, 3, pat, 0], bind: [x, y, 0.12] }), 0.0002, [0, 0, 1], 0, null).alb);
+    const dx = 0.00025, N = 240, lag = Math.round(0.0075 / dx); // 6 cm across the mass; the old lock spacing
+    const ac = (k: number) => { let num = 0, den = 0;
+      for (let row = 0; row < 40; row++) { const y = 1.36 + row * 0.0023, v = Array.from({ length: N }, (_, i) => f(-0.03 + i * dx, y)), mv = v.reduce((a, b) => a + b) / N;
+        for (let i = 0; i + k < N; i++) num += (v[i] - mv) * (v[i + k] - mv); for (let i = 0; i < N; i++) den += ((v[i] - mv) ** 2 * (N - k)) / N; }
+      return num / den; };
+    // the old field (one sine over the whole mass) correlated 0.997 at one lock spacing and 0.996 at two
+    expect(ac(lag), 'autocorrelation at one lock spacing').toBeLessThan(0.7); // measured 0.52
+    expect(ac(2 * lag), 'at two').toBeLessThan(0.45); // measured 0.26
+  });
 });
 
 describe('looks (D-155)', () => {

@@ -245,7 +245,10 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const hairF1 = mix(vec3(900, 300, 900), vec3(700, 40, 700), kStraight), hairF2 = mix(mix(vec3(260, 170, 260), vec3(190, 110, 190), isBeard), vec3(120, 15, 120), kStraight);
     const n1 = mx_noise_float(mix(P.mul(fr(SKIN.pores[0][0], hairF1, 160, 900, 200, 60)), irisCoord, kEye));
     const n2 = mx_noise_float(mix(P.mul(fr(SKIN.pores[1][0], hairF2, vec3(14, 5, 14), 250, 60, 40)), vec3(ex, ey, P.x).mul(900), kEye));
-    const n3 = mx_noise_float(P.mul(fr(30, 40, 9, 40, 20, 40)));
+    // per-person values from a hash of the person's skin and hair colours (drawn per person; the skin map is shared by
+    // everyone, so its brows and blotches would otherwise repeat on every face)
+    const pv = (k: number) => fract(sin(dot(vColor.add(vHair), vec3(12.9898 + k, 78.233, 37.719 + 2 * k))).mul(43758.5453));
+    const n3 = mx_noise_float(P.mul(fr(30, 40, 9, 40, 20, 40)).add(vec3(pv(0).mul(57), pv(1).mul(31), pv(2).mul(13)).mul(kSkin)));
     const u1 = n1.mul(0.5).add(0.5), u2 = n2.mul(0.5).add(0.5), u3 = n3.mul(0.5).add(0.5);
 
     // ---- skin: baked albedo (atlas left half) and detail (right half: crease height, oil, age lines, translucency)
@@ -253,8 +256,9 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const refLin = new THREE.Color().setRGB(...REF_TONE, THREE.SRGBColorSpace);
     const tone = vColor.div(vec3(refLin.r, refLin.g, refLin.b));
     const stub = vAux.z, roots = step(1.5, stub), stubV = min(stub, 1).mul(float(1).sub(roots));
-    let skinAlb: any = sA.rgb.mul(tone);
-    skinAlb = mix(skinAlb, vHair.mul(0.9), sA.a.mul(0.85)); // brows
+    let skinAlb: any = sA.rgb.mul(tone).mul(vec3(1).add(vec3(0.05, 0.03, 0.025).mul(n3))); // blotchy redness, per person (C)
+    const browA = smoothstep(pv(3).mul(0.4), float(1).sub(pv(4).mul(0.3)), sA.a); // sparser or denser brows per person
+    skinAlb = mix(skinAlb, vHair.mul(0.9), browA.mul(pv(5).mul(0.25).add(0.7))); // brows
     skinAlb = mix(skinAlb, skinAlb.mul(vHair.mul(2.2).add(0.35).min(1)), vAux.y.mul(stubV).mul(0.55)); // shaven stubble
     skinAlb = mix(skinAlb, vHair.mul(0.7), vAux.y.mul(roots).mul(0.9)); // under a beard: roots
     skinAlb = mix(skinAlb, vHair.mul(0.55), e1.mul(kSkin).mul(bits('wearsHair')).mul(0.9)); // scalp under worn hair
@@ -292,10 +296,15 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const rr = length(vec2(cu, cv)).mul(h1.mul(0.3).add(1.7)), th = atan(cv, cu).add(h2.mul(TAU));
     const tuft = clamp(float(1).sub(rr.mul(rr)), 0, 1).mul(sin(th.add(rr.mul(8))).mul(0.25).add(0.75));
     let court: any = mix(natural, tuft.mul(u1.mul(0.4).add(0.6)), 0.6);
-    // the long beard's hanging mass: wavy vertical locks between the curls at the chin and a row of curled ends
-    const locks = sin(P.x.add(sin(P.y.mul(160)).mul(0.003)).mul(TAU / 0.0075)).mul(0.5).add(0.5);
+    // the long beard's hanging mass: wavy locks between the curls at the chin and a row of curled ends. Each lock's wave
+    // phase drifts with a slow noise (neighbours do not wave in step), its edges wander, its section is rounded and fine
+    // strands run along it (one regular sine field over the mass read as corrugated sheet)
+    const lockPh = P.y.mul(150).add(n3.mul(4));
+    const lc = P.x.add(sin(lockPh).mul(0.0022)).add(n2.mul(0.001)).div(0.0075);
+    const lf = fract(lc).sub(0.5).mul(2), lh = fract(sin(floor(lc).mul(91.345)).mul(47453.5453));
+    const locks = max(float(1).sub(lf.mul(lf)), 0).mul(lh.mul(0.25).add(0.6)).mul(float(1).sub(abs(n1)).mul(0.4).add(0.6)).add(0.15);
     const lockZone = isMass.mul(smoothstep(0.2, 0.3, U.y)).mul(float(1).sub(smoothstep(0.86, 0.94, U.y)));
-    court = mix(court, locks.mul(0.85).add(u1.mul(0.15)), lockZone);
+    court = mix(court, locks, lockZone);
     const straight = u1.mul(0.6).add(u2.mul(0.4));
     const curls = mix(mix(natural, court, kCourt), straight, kStraight);
     const hairAlb = vColor.mul(curls.mul(0.75).add(0.42)).mul(u3.mul(0.2).add(0.9));
@@ -365,7 +374,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       wrap: skinWrap.mul(kSkin).add(vec3(kHair.mul(0.25).add(kFelt.mul(0.1)).add(kCloth.mul(0.05)))),
       trans: vec3(...SKIN.transTint).mul(transl.mul(kSkin).mul(SKIN.trans)),
       roughB: float(SKIN.roughOil), lobeB: kSkin.mul(mix(SKIN.oilLobe[0], SKIN.oilLobe[1], oil)),
-      kHair, hairTilt: curls.sub(0.5).mul(1.6),
+      kHair, hairTilt: mix(curls.sub(0.5).mul(1.6), cos(lockPh).mul(0.33), lockZone.mul(kCourt)), // along the locks' waves
       sheenCol: mix(vec3(1), clothAlb.mul(2).min(1), 0.5).mul(kCloth.mul(mix(0.22, 0.14, isLinen)).add(kFelt.mul(0.25))),
       sheenRough: kCloth.mul(mix(0.55, 0.35, isLinen)).add(kFelt.mul(0.7)).add(float(1).sub(kCloth).sub(kFelt).mul(0.5)),
       specOcc: mix(float(1), vAux.x, kSkin.mul(0.5)).mul(mix(float(1), curls.mul(0.6).add(0.4), kHair)),
