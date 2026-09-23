@@ -281,7 +281,7 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Lanes:** a maze by construction. Through streets (4 m) run with jogs, then lanes (3 m) and alleys (2 m) branch off them until no ground lies more than 16 m from a lane. Branches end in blind alleys or close into loops, and small squares hold wells.
   - The Merkes quarter had wide and narrow streets and blind alleys (B analogue).
   - Tests: every home's door opens onto ground connected to the plain; every large quarter has blind alleys.
-- **Capacity:** a house holds its roofed area ÷ 13 m² in people, 3–10 (large houses 6–16, C). The town zones hold 7,820 people (another 123 in the Dasht-e Gohar hamlet and the way-station), against the court-absent working value of 7,000 (range 5,000–10,000, population.json). The house plots go to the simulation in `src/data/town_plots.json` (1,479 plots, 1,456 homes).
+- **Capacity:** a house holds its roofed area ÷ 13 m² in people, 3–10 (large houses 6–16, C). The town zones hold 7,830 people (another 138 in the Dasht-e Gohar hamlet and the way-station), against the court-absent working value of 7,000 (range 5,000–10,000, population.json). The house plots go to the simulation in `src/data/town_plots.json` (1,505 plots, 1,456 homes; 30 animal pens at the quarter edges).
 - **Kept clear:**
   - the Terrace approach, 480 m W of the Grand Stair (the walkable grid e −620…262, n −245…185). The Phase 3–5 people and bot routes stay valid, and the approach reads as open ground before the Terrace (C).
   - the empty Frataraka site (80 m).
@@ -322,15 +322,15 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - The whole settlement is 39 meshes, 10 of them instanced (trees and haze). It holds 0.88 M triangles if everything were drawn once.
   - Shared meshes: trodden ground, refuse, water, roads and canal banks are one mesh each; none casts a shadow.
 - **Shadows:** a town mesh casts shadows only while its bounds are within 150 m of the camera. Far trees never cast. The near-tree level's bounds follow its instances. So from the Terrace no town content enters the shadow cascades.
-- **Colliders:** walls, props, kilns, troughs, mangers and well heads are Rapier cuboids (24,847 boxes). They stream per site: added within 200 m of the player, at most 1,500 per frame; dropped beyond 300 m.
+- **Colliders:** walls, props, kilns, troughs, mangers and well heads are Rapier cuboids (25,134 boxes). They stream per site: added within 200 m of the player, at most 1,500 per frame; dropped beyond 300 m.
   - Roofs are not colliders. The test camera's ground cast lands in the lane, and nobody walks on roofs without a stair.
-- **Fires:** 1,289 town hearths, bread ovens, forges and kilns join the fire system with schedules (`fire.ts` `scheduleLit`, C):
+- **Fires:** 1,303 town hearths, bread ovens, forges and kilns join the fire system with schedules (`fire.ts` `scheduleLit`, C):
   - hearths (`home`) light as the sun sinks from +6° to −4°, staggered per fire, and are banked 2–4 h after dark; they are relit before dawn;
   - ovens (`bake`) burn before dawn into the morning;
   - kilns and forges (`day`) burn in working hours.
   - Their bodies are drawn in the town meshes (`fire.add(..., { body: false })`), not the fire system's instanced bodies. That saves ~130 k triangles per pass.
   - Smoke puffs come only from fires within 300 m of the camera (`SMOKE_RANGE`). From further away the town's smoke is `TownHaze`: soft sheets per quarter whose opacity follows the lit share of that quarter's fires, thicker in the still evening air.
-- **Trees:** 3,581 instanced trees in 4 forms, at two distance levels (near < 160 m). Deciduous species go bare in winter (`LEAF_TABLE`, C). They are PLACEHOLDER-grade.
+- **Trees:** 3,595 instanced trees in 4 forms, at two distance levels (near < 160 m). Deciduous species go bare in winter (`LEAF_TABLE`, C). They are PLACEHOLDER-grade.
 - **Measured (SwiftShader, `?test&quality=test`, same view with and without the town):**
   - Terrace W edge, looking SW over the town: +16 draw calls and +0.72 M triangles at dusk; +19 draw calls and +0.79 M triangles by day.
   - High quality (fixed counters, D-047; the same frame with the settlement group hidden, and a separate `?notown` page load that agrees):
