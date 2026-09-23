@@ -55,7 +55,7 @@ export class SkySystem {
   gain = 1;
   /** illuminance on the ground in lux (sun + sky + moon + night sky), clear-sky model with the cloud factors (D-115) */
   lux = 0;
-  /** scale on the fires' cast light (1 at night; ~1e-3 at dawn): their values are pre-exposed for night (exposure.ts) */
+  /** scale on the fires’ cast light (1 at night; ~4e-4 at dawn, −2.9°): their values are pre-exposed for night (exposure.ts) */
   fireScale = 1;
   private coverAt: [number, number] | null = null; private coverFactor = 1;
   state: SkyState = { sunDir: new THREE.Vector3(0, 1, 0), sunAlt: 45, moonDir: new THREE.Vector3(0, -1, 0), moonAlt: -10, moonFraction: 0, daylight: 1, nightFactor: 0 };
