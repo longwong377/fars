@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# dev: wait until no Playwright run is active, then run tools/e2e_snapshot.sh with the given args (serialises SwiftShader runs)
+# dev: wait until no Playwright test runner process is alive, then run tools/e2e_snapshot.sh with the given args.
+# Matches only real node runner processes by executable, never shell command lines (which may quote the pattern).
 SNAP="$1"; shift
-while pgrep -f "node_modules/.bin/playwright test" >/dev/null || pgrep -f "npm exec playwright test" >/dev/null; do sleep 15; done
+busy() { for p in $(pgrep -x node); do tr '\0' ' ' < /proc/$p/cmdline 2>/dev/null | grep -q "playwright test" && return 0; done; return 1; }
+while busy; do sleep 15; done
 exec "$(dirname "$0")/../e2e_snapshot.sh" "$SNAP" "$@"

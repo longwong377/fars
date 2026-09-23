@@ -6,6 +6,8 @@ export const ROUTES: Record<string, { name: string; keys: [number, number, numbe
     keys: [[320, -60, 2, 251, -4], [320, -60, 2, 311, -4], [320, -60, 2, 191, -4]] },
   terrace: { name: 'Terrace loop', seconds: 40, day: 0, hour: 12,
     keys: [[-20, 124, 1.6, 161, 0], [150, 60, 1.6, 161, 0], [150, -150, 1.6, 251, 0], [0, -200, 7.6, 341, 0], [-40, -40, 1.6, 341, 0]] },
+  palaces: { name: 'Phase 4 palaces: Tachara S court → Hadish N court → Tripylon → Hall of 100 Columns → Treasury hall → Harem court', seconds: 40, day: 25, hour: 11,
+    keys: [[-21, -112, 1.6, 341, 4], [20, -120, 1.6, 161, 0], [82, -44, 1.6, 161, 4], [146, 40, 1.6, 161, 2], [180, -110, 1.6, 161, 0], [114, -116, 1.6, 161, 2]] },
 };
 export async function runBench(which: string, api: any, frame: (dt?: number) => Promise<void>) {
   const list = which === 'all' ? Object.keys(ROUTES) : which.split(',');
@@ -25,7 +27,8 @@ export async function runBench(which: string, api: any, frame: (dt?: number) => 
       const s = api.stats(); draws.push(s.drawCalls); tris.push(s.triangles);
     }
     const sorted = [...times].sort((x, y) => x - y), q = (p: number) => sorted[Math.min(sorted.length - 1, Math.floor(p * sorted.length))];
-    report.routes[k] = { name: r.name, frames: times.length, medianMs: q(0.5), p95Ms: q(0.95), p99Ms: q(0.99), maxDrawCalls: Math.max(...draws), maxTriangles: Math.max(...tris) };
+    const st = api.stats(); const pp = api.people?.();
+    report.routes[k] = { name: r.name, frames: times.length, medianMs: q(0.5), p95Ms: q(0.95), p99Ms: q(0.99), maxDrawCalls: Math.max(...draws), maxTriangles: Math.max(...tris), geometries: st.geometries, textures: st.textures, heapMB: st.heap ? +(st.heap / 1048576).toFixed(0) : null, people: pp ? pp.agents.filter((a: any) => !a.offmap).length : null };
   }
   (window as any).__benchReport = report;
   const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
