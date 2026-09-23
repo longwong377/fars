@@ -10,7 +10,6 @@ Read `CLAUDE.md` first (the resume procedure), then this file, then `PROGRESS.md
    - The rubric has no reference photographs (every photo host is blocked, B6): a logged exception, not a pass.
 2. **Moments at high quality (rendered in session 3):**
    - interiors are near black;
-   - dawn reads as midday;
    - the stair-climb is dark;
    - the trees are crude.
    - **Dusk smoke did not show:** it was drawn in the colour of its own background, lit by the horizon radiance of the view direction. D-070 lights it with the mean skylight and adds a `mountain-dusk` view. Not yet re-rendered.
@@ -33,11 +32,11 @@ Read `CLAUDE.md` first (the resume procedure), then this file, then `PROGRESS.md
 |---|---|---|
 | Sim, round 3 (a7468…) | round-2 fixes merged; now fixing round-3 findings S1–S11 (REVIEWS/shadow_phase5_r3.md) | D-088, D-089, D-135 … D-139, Q-146 … Q-149 |
 | Interior lighting (ab5df…) | irradiance probes; dark interiors | D-110 … D-114, Q-150 … Q-159 |
-| Twilight (aa071…) | light curves, exposure (`src/sky/exposure.ts`), Earth's shadow | D-115 … D-119, Q-160 … Q-169 |
+| ~~Twilight (aa071…)~~ | MERGED (b290be4): USNO light levels, twilight dome, adaptation exposure | D-115 … D-119, Q-160 … Q-169 |
 | Trees (a1ae0…) | species trees, leaf clusters, impostors matched to near trees; fixes the grey domes | D-120 … D-129, Q-170 … Q-179 |
 | ~~Tachara plan (a7b31…)~~ | MERGED (51f8dde): Tachara from REF-PLAN, IoU 0.84, lance-bearers | D-130 … D-134, Q-180 … Q-184 |
 
-Merge order for the rest: interior → twilight → sim (round 3) → trees. The sim round 2 and the Tachara are merged. After each merge:
+Merge order for the rest: interior → sim (round 3) → trees. The sim round 2, the Tachara and the twilight are merged. After each merge:
 - renumber any colliding D- or Q- ids;
 - run `npx tsc --noEmit -p .`, `npx vitest run`, `npm run lint:all`, `npx tsx tools/dev/botcheck.ts` and `… slice`;
 - rebuild the walkable grid (`npx tsx tools/build_nav.ts`) if the architecture changed;

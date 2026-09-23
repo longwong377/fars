@@ -119,13 +119,22 @@
 - **Moments rendered at high quality in session 3 (after the sky and cloud calibration):**
   - Too dark or wrong:
     - interiors are near black: the Apadana entered from the portico, the Hadish hall;
-    - dawn reads as midday (the twilight light curve is C);
+    - dawn read as midday; fixed by the twilight merge (D-115 to D-119, below);
     - the scribe's place was an open court. The Treasury N range is now built from REF-PLAN, with the scribes' room furnished (D-067). Rendered at test quality, the scene reads (the seated scribe, drying board, clay under a cloth, filed tablets on the bench, baskets), but the ceiling is black and the room underexposed: mean luma 40, and the red floor measures (51, 1, 1) because its green falls into the tone curve's toe. Re-check after the interior-light and exposure merges;
     - dusk smoke was not visible: the smoke drew in the colour of its own background (fixed in D-070, see Phase 6; not yet re-rendered);
     - the stair-climb view is dark;
     - trees are crude.
   - Reasonable: night on the Terrace, the Gate at dusk, the Tachara S stair.
-  - Agents are working on interior light (irradiance probes) and twilight (light curves, exposure, the Earth's shadow). The §8.2 rubric follows their merges.
+  - **Twilight merged (D-115 to D-119).** Sun, sky and moon illuminance follow USNO Circular 171. Below +10° the dome is a spherical-atmosphere model. Exposure is adaptation-aware. The dawn moment now sits at 05:24 (sun −2.9°) and reads as a blue pre-sunrise dawn; `dawn-sunrise` (+2.5°) and `dawn-glow-e` were added.
+    - **Weak or changed (the agent's own list):**
+      - At high quality, the cloud layer on a "clear" day (cover 0.05) draws a broken deck across the low sky. It hides the Earth's shadow and the arch, which were verified only at test quality, which has no clouds.
+      - Daytime shade is 20–30 % darker (the USNO sky/sun ratio; its slope is steeper than the IES model, Q-160): stair-climb mean luma 48.5, was 59.1.
+      - Night ground lit only by the sky or moon is darker (22, was 37).
+      - Exposure is a model meter, not a measurement of the frame (20 % sky weight, Q-162). At −5° the plain is nearly black under a readable sky; there is no chromatic adaptation, so twilight is strongly blue.
+      - Firelight is now scaled with the sky's brightness (it assumes a lamp gives about one candle). Exposure goes above 6 in fire-dominated dusk views (gate-dusk 20.5).
+      - The Belt of Venus comes out lilac-white rather than pink; its heights are model output (Q-161).
+      - A pale rectangle around the brazier flame, probably TRAA, not investigated.
+    - The interior-light agent (irradiance probes) is still working. The §8.2 rubric follows its merge.
 - **King absent by default (D-003):** no evidence places Xerxes at Persepolis in 467. The court appears only in the C-tier "seasonal pattern" setting.
 - **No primary sources reachable (B6):** SITE_SPEC is tier B/C, nothing is A, and the plan overlay compares against OSM, not Schmidt.
 - **Sky, clouds and rain (D-060, D-064; rendered and measured in session 3):**
