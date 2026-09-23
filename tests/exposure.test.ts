@@ -144,3 +144,24 @@ describe('ground bounce (hemisphere ground term)', () => {
     for (const [d, h] of [[1, 3.5], [0, 19.4]] as const) { const L = at(d, h); expect(L.down / L.up).toBeGreaterThan(0.1); expect(L.down / L.up).toBeLessThan(0.2); }
   });
 });
+
+// D-159: the frame meter (a bounded, centre-weighted correction on top of the law)
+import { meterEV, meterLogMean, meterWeight, METER_W, METER_H, METER_MAX_EV, METER_MIN_EV } from '../src/render/meter';
+describe('frame meter', () => {
+  const frame = (f: (i: number, j: number) => number) => { const a = new Float32Array(METER_W * METER_H * 4); for (let j = 0; j < METER_H; j++) for (let i = 0; i < METER_W; i++) a[(j * METER_W + i) * 4] = Math.log(f(i, j)); return a; };
+  it('weights the centre ~3× the corners', () => {
+    expect(meterWeight(METER_W / 2, METER_H / 2) / meterWeight(0, 0)).toBeGreaterThan(2.5);
+  });
+  it('a frame that matches the law’s grey card needs no correction; a frame of shade opens up, bounded; a glare frame closes down, bounded', () => {
+    const X = 0.7, E = KEY / X, grey = (0.18 * E) / Math.PI;
+    expect(meterEV(meterLogMean(frame(() => grey)), X, KEY, 50000)).toBeCloseTo(0, 6);
+    const shade = meterEV(meterLogMean(frame(() => grey / 4)), X, KEY, 50000); // 2 stops of shade: 0.6 × 2 EV
+    expect(shade).toBeCloseTo(0.6 * 2, 1); expect(meterEV(meterLogMean(frame(() => grey / 1000)), X, KEY, 50000)).toBe(METER_MAX_EV);
+    expect(meterEV(meterLogMean(frame(() => grey * 1000)), X, KEY, 50000)).toBe(METER_MIN_EV);
+  });
+  it('does nothing at night (below ~10 lx at the eye) and is partial in deep twilight', () => {
+    const X = 6, E = KEY / X, grey = (0.18 * E) / Math.PI;
+    expect(meterEV(meterLogMean(frame(() => grey / 8)), X, KEY, 0.05)).toBe(0);
+    expect(Math.abs(meterEV(meterLogMean(frame(() => grey / 8)), X, KEY, 30))).toBeLessThan(1.5);
+  });
+});

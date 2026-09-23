@@ -9,7 +9,8 @@ import { latLonToGrid, gridToLatLon } from './core/geo';
 import { Terrain, curvatureDrop } from './terrain/heightfield';
 import { TerrainMesh } from './terrain/terrainMesh';
 import { SkySystem } from './sky/skySystem';
-import { exposureTarget, interiorExposureTarget, adaptExposure, X_MAX } from './sky/exposure';
+import { exposureTarget, interiorExposureTarget, adaptExposure, X_MAX, KEY } from './sky/exposure';
+import { meterEV, meterLogMean, METER_W, METER_H } from './render/meter';
 import { twilightWeight } from './sky/horizon';
 import { WeatherSystem, WeatherOverride } from './weather/weatherState';
 import { Physics } from './player/physics';
@@ -203,7 +204,7 @@ async function boot() {
     /** doors (D-051): list, work the door faced (as E does), or set one by id */
     doors: () => world.doors?.list() ?? [], useDoor: () => world.doors?.use(camera) ?? null, setDoor: (id: string, open: boolean) => world.doors?.toggle(id, open) ?? null,
     resetFalls: () => { player.maxFall = 0; },
-    exposureInfo: () => ({ exposure: renderer.toneMappingExposure, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, gain: sky.gain, lux: sky.lux, toneMapping: renderer.toneMapping }),
+    exposureInfo: () => ({ exposure: renderer.toneMappingExposure, meterEV: meterGain, meterLn, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, gain: sky.gain, lux: sky.lux, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],
     /** people: summary rows (out-of-world; for tests and the dev overlay) */
     people: () => { const P = (world as any).people; if (!P) return null; return { t: P.sim.t, stock: P.sim.stock, events: P.sim.events.slice(-20),
@@ -265,6 +266,7 @@ async function boot() {
   { const P = (world as any).people; if (P) P.crowd.onPopIn = (what: string, d: number) => api.popins.push({ what, d: +d.toFixed(1), t: clock.t }); }
   addEventListener('error', e => api.errors.push(String(e.message)));
   let freeCam: null | { x: number; y: number; z: number; yaw: number; pitch: number } = null;
+  let meterLn = NaN, meterBusy = false, meterT = 0, meterGain = 0; // frame meter (D-159)
   let botInput: { forward: number; right: number; run: boolean; yawDeg?: number; pitchDeg?: number } = { forward: 0, right: 0, run: false };
   let lastFrameMs = 0; let probeT = 0;
 
@@ -326,7 +328,12 @@ async function boot() {
     const outside = exposureTarget(sunE, sky.hemi.intensity * 0.8, rayVis, sky.moonLight.intensity * 0.3, fireE, sky.fireScale);
     // inside a probe volume the eye adapts to the interior's own light (D-141); blended in stops across the volume's edge
     const target = probeVis.w > 0 ? Math.exp(probeVis.w * Math.log(interiorExposureTarget(sunE, sky.hemi.intensity * 0.8, sky.moonLight.intensity * 0.3, fireE, probeVis.eye, sky.lux, sky.skyLux)) + (1 - probeVis.w) * Math.log(outside)) : outside;
-    exposure = TEST ? target : adaptExposure(exposure, target, dt); // dark adaptation is slower than light adaptation
+    // frame meter (D-159, C): a bounded share of the frame's own centre-weighted log-average on top of the law, faded out
+    // below ~10 lx at the eye (night stays with the law's absolute threshold); read back from the previous frame
+    const lawE = KEY / target, lawSum = sunE + sky.hemi.intensity * 0.8 + sky.moonLight.intensity * 0.3;
+    meterGain = meterEV(meterLn, target, KEY, sky.lux * Math.min(1, lawE / Math.max(lawSum, 1e-12)));
+    const metered = target * Math.pow(2, meterGain);
+    exposure = TEST ? metered : adaptExposure(exposure, metered, dt); // dark adaptation is slower than light adaptation
     if (P.get('xp')) exposure = +P.get('xp')!; // debug: a fixed exposure (diagnostic renders)
     renderer.toneMappingExposure = exposure;
     pipeline.setExposure(exposure / X_MAX, exposure); // bloom threshold in display terms once the exposure leaves the outdoor range; saturation cap
@@ -343,6 +350,13 @@ async function boot() {
     if (!inAnimationLoop) { const nf = (renderer as any)._nodes?.nodeFrame; if (nf) { nf.update(); (renderer.info as any).frame = nf.frameId; } }
     pipeline.render(scene, camera);
     lastFrameMs = performance.now() - t0;
+    // read the frame meter back (every 0.25 s; every frame in frozen test renders, awaited, so captures are deterministic)
+    meterT += dt;
+    if (pipeline.meterTarget && !meterBusy && (TEST || meterT > 0.25)) {
+      meterBusy = true; meterT = 0;
+      const rd = renderer.readRenderTargetPixelsAsync(pipeline.meterTarget, 0, 0, METER_W, METER_H).then(px => { meterLn = meterLogMean(px as any); }).catch(() => {}).finally(() => { meterBusy = false; });
+      if (TEST) await rd;
+    }
     { const sub = (world as any).lastSubtitle ?? null; if (sub && sub !== lastSub) { lastSub = sub; lastSubAt = now / 1000; }
       const P = (world as any).people; const hm = (t: number) => { const d = Math.floor(t / 24), h = t - d * 24; return `day ${d + 1}, ${Math.floor(h)}:${String(Math.floor((h % 1) * 60)).padStart(2, '0')}`; };
       tl.update({ camera, inscriptions: inscGroup, subtitle: sub, subtitleAt: lastSubAt, now: now / 1000, player: { e: camera.position.x, n: -camera.position.z, yawDeg: -(input.yaw * 180) / Math.PI },

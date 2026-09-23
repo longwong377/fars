@@ -18,10 +18,11 @@
 // giIntensity: with uniform sectors weighted by the receiver cosine, a surface fully enclosed by radiance L accumulates
 // 2L/π per slice, while a Lambert surface under that enclosure reflects albedo·L; so the scale is π/2 (C, derivation only).
 import * as THREE from 'three/webgpu';
-import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min } from 'three/tsl';
+import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2 } from 'three/tsl';
 import { ssgi } from './ssgi';
 import { ssgi as ssgiOrig } from 'three/addons/tsl/display/SSGINode.js';
 import { traa } from 'three/addons/tsl/display/TRAANode.js';
+import { meterNode } from './meter';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 import type { Quality } from '../core/settings';
 import { installProbeLight, updateProbeLights, probeAmbient, probeSun } from './probes/runtime';
@@ -44,6 +45,9 @@ export class Pipeline {
   private sun: THREE.DirectionalLight | undefined;
   private built = false;
   private bloomNode: unknown = null;
+  /** the frame meter's render target (D-159: centre-weighted log luminance before exposure; null at test/low quality) */
+  meterTarget: THREE.RenderTarget | null = null;
+  private meterZero = uniform(0);
   /** the absolute exposure (renderer.toneMappingExposure), for the glare's saturation cap */
   private expAbs = uniform(1);
   constructor(private renderer: THREE.WebGPURenderer, private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, readonly quality: Quality, private hemi?: THREE.HemisphereLight) {
@@ -100,7 +104,10 @@ export class Pipeline {
     let out: any = traa(composite, dep, vel, camera);
     const bin = vec4(min(out.rgb, vec3(float(BLOOM_SAT).div(this.expAbs.max(1e-6)))), float(1)); // sensor-like saturation (display terms)
     const b = bloom(bin, BLOOM_STRENGTH, BLOOM_RADIUS, BLOOM_THRESHOLD); this.bloomNode = b;
-    out = out.add(b).add(this.flash);
+    // frame meter (D-159): the TRAA output before exposure, averaged into a tiny float target each frame; its sample
+    // joins the graph at weight 0 so the render-to-texture runs with the pipeline
+    const meter = meterNode(out); this.meterTarget = meter.renderTarget;
+    out = out.add(b).add(this.flash).add(meter.sample(vec2(0.5, 0.5)).x.mul(this.meterZero));
     this.rp = new THREE.RenderPipeline(renderer, out);
   }
   /** The bloom threshold applies to the scene before exposure. Interior exposures (D-141) run up to hundreds of times the
