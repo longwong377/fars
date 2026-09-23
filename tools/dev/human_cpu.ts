@@ -96,7 +96,7 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   let skinAlb: V3 = [sA[0] * tone[0], sA[1] * tone[1], sA[2] * tone[2]];
   skinAlb = mix3(skinAlb, [f.hair[0] * 0.9, f.hair[1] * 0.9, f.hair[2] * 0.9], sA[3] * 0.85);
   skinAlb = mix3(skinAlb, skinAlb.map((x, i) => x * Math.min(f.hair[i] * 2.2 + 0.35, 1)) as V3, f.aux[1] * stubV * 0.55);
-  skinAlb = mix3(skinAlb, [f.hair[0] * 0.6, f.hair[1] * 0.6, f.hair[2] * 0.6], f.aux[1] * roots * 0.75);
+  skinAlb = mix3(skinAlb, [f.hair[0] * 0.7, f.hair[1] * 0.7, f.hair[2] * 0.7], f.aux[1] * roots * 0.9);
   skinAlb = mix3(skinAlb, [f.hair[0] * 0.55, f.hair[1] * 0.55, f.hair[2] * 0.55], e1 * kSkin * bits(pat, 'wearsHair') * 0.9);
   const oil = sD[1], transl = sD[3];
   const poreH = n1 * SKIN.pores[0][1] * band(SKIN.pores[0][0]) + n2 * SKIN.pores[1][1] * band(SKIN.pores[1][0]);
@@ -140,7 +140,10 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const ax = Math.abs(nb[0]), az = Math.abs(nb[2]), sH = (P[0] * az + P[2] * ax) / (ax + az + 1e-4);
   const fq = mix(700, 1500, isLinen);
   const weaveH = Math.sin(P[1] * fq * Math.PI * 2) * Math.sin(sH * fq * Math.PI * 2) * mix(0.00012, 0.00006, isLinen) * band(fq);
-  const clothH = n2 * 0.003 + n1 * 0.0004 + weaveH;
+  const thB = Math.atan2(P[0], P[2] - 0.02), sideS = sstep(0.35, 0.9, Math.abs(Math.sin(thB)));
+  const pleatT = Math.abs(fract(thB * 26 / (Math.PI * 2) + P[1] * 9 * Math.sign(thB) * sideS) - 0.5) * 2;
+  const pleatH = (pleatT - 0.5) * 0.003 * is(prm, 1) * band(21);
+  const clothH = n2 * 0.003 + n1 * 0.0004 + weaveH + pleatH;
   // felt, leather, metal, wood, wicker
   const feltAlb = f.color.map(c => c * (1 + n3 * 0.1 + n1 * 0.05)) as V3;
   const seam = Math.exp(-((P[0] / 0.0022) ** 2)) * 0.00045 * is(prm, 0);
@@ -164,8 +167,9 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const trans = SKIN.transTint.map(c => c * transl * kSkin * SKIN.trans) as V3;
   const sheenBase = mix3([1, 1, 1], clothAlb.map(c => Math.min(1, c * 2)) as V3, 0.5), sheenK = kCloth * mix(0.22, 0.14, isLinen) + kFelt * 0.25;
   // alpha test
-  const edgeK = 1 + bits(pat, 'beard') * 0.6 * isBeard;
-  const edgeCut = (e2 * 1.15) / edgeK <= curls * 0.55 + u1 * 0.35 ? 1 : 0;
+  const cover = sstep(0, 0.7 + bits(pat, 'beard') * 0.35 * isBeard, e2), frayPat = mix(curls * 0.55 + u1 * 0.35, u1 * 0.75 + curls * 0.15, isBeard * (1 - kCourt));
+  const speckle = isBeard * (1 - kCourt) * (0.92 - bits(pat, 'beard') * 0.1 <= u1 ? 1 : 0);
+  const edgeCut = Math.max(cover * 1.15 <= frayPat ? 1 : 0, speckle);
   const silCut = curls + 0.3 <= (silh - 0.45) * 2.8 ? 1 : 0;
   const along = (U[0] - LASH.u0) / (LASH.u1 - LASH.u0), tl = e1;
   const clumpC = Math.abs(fract(along * mix(LASH.clumps, LASH.clumps * 0.6, e2) + n1 * 0.35) - 0.5) * 2, lashW = ((1 - tl) * Math.sqrt(Math.max(0, 1 - tl)) * 0.8 + 0.1) * mix(1, 0.7, e2);

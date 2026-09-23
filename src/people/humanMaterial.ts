@@ -256,7 +256,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     let skinAlb: any = sA.rgb.mul(tone);
     skinAlb = mix(skinAlb, vHair.mul(0.9), sA.a.mul(0.85)); // brows
     skinAlb = mix(skinAlb, skinAlb.mul(vHair.mul(2.2).add(0.35).min(1)), vAux.y.mul(stubV).mul(0.55)); // shaven stubble
-    skinAlb = mix(skinAlb, vHair.mul(0.6), vAux.y.mul(roots).mul(0.75)); // under a beard: roots
+    skinAlb = mix(skinAlb, vHair.mul(0.7), vAux.y.mul(roots).mul(0.9)); // under a beard: roots
     skinAlb = mix(skinAlb, vHair.mul(0.55), e1.mul(kSkin).mul(bits('wearsHair')).mul(0.9)); // scalp under worn hair
     const oil = sD.g, transl = sD.a;
     const poreH = n1.mul(SKIN.pores[0][1]).mul(band(SKIN.pores[0][0])).add(n2.mul(SKIN.pores[1][1]).mul(band(SKIN.pores[1][0])));
@@ -313,7 +313,13 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const sH = P.x.mul(az).add(P.z.mul(ax)).div(ax.add(az).add(1e-4)); // horizontal coordinate on the garment
     const fq = mix(700, 1500, isLinen); // threads per metre: coarse wool, fine linen (C)
     const weaveH = sin(P.y.mul(fq).mul(TAU)).mul(sin(sH.mul(fq).mul(TAU))).mul(mix(0.00012, 0.00006, isLinen)).mul(band(fq));
-    const clothH = n2.mul(0.003).add(n1.mul(0.0004)).add(weaveH);
+    // pleated skirts (prm 1: the court robe, the woman's dress): a triangle-wave pleat field around the body, vertical in
+    // the front and slanting up to the belt at the sides (the robe drawn up to the belt on the reliefs: B for the pattern,
+    // C for its geometry). 26 pleats cannot be carried by a 40-segment tube (1.5 segments each), so they are shading.
+    const thB = atan(P.x, P.z.sub(0.02)), sideS = smoothstep(0.35, 0.9, abs(sin(thB)));
+    const pleatT = abs(fract(thB.mul(26 / TAU).add(P.y.mul(9).mul(sign(thB)).mul(sideS))).sub(0.5)).mul(2);
+    const pleatH = pleatT.sub(0.5).mul(0.003).mul(is(prm, 1)).mul(band(21));
+    const clothH = n2.mul(0.003).add(n1.mul(0.0004)).add(weaveH).add(pleatH);
 
     // ---- felt, leather, metal, wood, wicker
     const feltAlb = vColor.mul(float(1).add(n3.mul(0.1)).add(n1.mul(0.05)));
@@ -361,8 +367,14 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     // alpha test (shadows follow): hair frays at a shell's cut line (vEdge → 0; sparse beards fray wider) and its outline
     // is scalloped by the curls where the surface turns away; lashes are cut into tapering clumps
     const silh = float(1).sub(abs(dot(normalViewGeometry, positionViewDirection)));
-    const edgeK = float(1).add(bits('beard').mul(0.6).mul(isBeard));
-    const edgeCut = step(e2.mul(1.15).div(edgeK), curls.mul(0.55).add(u1.mul(0.35)));
+    // the fray band: the outer 70 % of a shell's ramp; a sparse beard frays over a wider band (its interior stays covered:
+    // cutting holes through it read as spots); natural beards fray on the fine strand pattern, not the curl blobs
+    const cover = smoothstep(0, float(0.7).add(bits('beard').mul(0.35).mul(isBeard)), e2);
+    const frayPat = mix(curls.mul(0.55).add(u1.mul(0.35)), u1.mul(0.75).add(curls.mul(0.15)), isBeard.mul(float(1).sub(kCourt)));
+    // natural beards also let the (darkened) skin show through at the strand scale, more where sparse; under TRAA this
+    // averages to partial coverage (C)
+    const speckle = isBeard.mul(float(1).sub(kCourt)).mul(step(float(0.92).sub(bits('beard').mul(0.1)), u1));
+    const edgeCut = max(step(cover.mul(1.15), frayPat), speckle);
     const silCut = step(curls.add(0.3), silh.sub(0.45).mul(2.8));
     // (lower strip, e2 = 1: fewer, finer clumps)
     const along = U.x.sub(LASH.u0).div(LASH.u1 - LASH.u0), tl = e1;
