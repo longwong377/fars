@@ -3,7 +3,12 @@ import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { lumStats } from './lib/lum';
 // Camera-rig prototypes for §1.1 moments (fixed views; world state frozen via ?test&day&hour&weather).
 const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, number, number, number, number]; frames?: number }[] = [
-  { n: 'dawn-stair-top', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -2] },
+  // dawn before sunrise (D-118): day 0 (17 Apr 467 BCE) 05:24, the sun 2.9° below the horizon (sunrise ~05:35): the
+  // Earth's shadow and the antitwilight arch over the W plain, no sun shadows; the old slot (05:51, sun +2.5°) and a view
+  // E into the glow over Kuh-e Rahmat are kept for comparison
+  { n: 'dawn-stair-top', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -2] },
+  { n: 'dawn-sunrise', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -2] },
+  { n: 'dawn-glow-e', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 122.45, 1.6, 79, 6] },
   { n: 'gate-dusk', day: 0, hour: 19.25, w: 'clear', v: [0.1, 118, 1.6, 341, 4] },
   { n: 'night-terrace', day: 5, hour: 22.5, w: 'clear', v: [0, 92, 1.6, 161, 6] },
   // moonless pre-dawn (day 1 = 18 Apr 467 BCE, the moon a thin crescent set in the evening): the Milky Way from Cygnus to

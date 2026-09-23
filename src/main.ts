@@ -9,6 +9,7 @@ import { latLonToGrid, gridToLatLon } from './core/geo';
 import { Terrain, curvatureDrop } from './terrain/heightfield';
 import { TerrainMesh } from './terrain/terrainMesh';
 import { SkySystem } from './sky/skySystem';
+import { exposureTarget } from './sky/exposure';
 import { WeatherSystem, WeatherOverride } from './weather/weatherState';
 import { Physics } from './player/physics';
 import { Player } from './player/player';
@@ -193,7 +194,7 @@ async function boot() {
     /** doors (D-051): list, work the door faced (as E does), or set one by id */
     doors: () => world.doors?.list() ?? [], useDoor: () => world.doors?.use(camera) ?? null, setDoor: (id: string, open: boolean) => world.doors?.toggle(id, open) ?? null,
     resetFalls: () => { player.maxFall = 0; },
-    exposureInfo: () => ({ exposure: renderer.toneMappingExposure, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, toneMapping: renderer.toneMapping }),
+    exposureInfo: () => ({ exposure: renderer.toneMappingExposure, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, gain: sky.gain, lux: sky.lux, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],
     /** people: summary rows (out-of-world; for tests and the dev overlay) */
     people: () => { const P = (world as any).people; if (!P) return null; return { t: P.sim.t, stock: P.sim.stock, events: P.sim.events.slice(-20),
@@ -309,8 +310,7 @@ async function boot() {
     if (adaptT > 0.25 || skyVis < 0) { adaptT = 0; skyVis = skyVisibility(); }
     const sunE = sky.sun.visible ? sky.sun.intensity * Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)) : 0;
     const fireE = world.fire ? world.fire.localIlluminance(camera.position) : 0;
-    const E = (sunE + sky.hemi.intensity * 0.8) * (0.15 + 0.85 * skyVis) + sky.moonLight.intensity * 0.3 + fireE + 0.004;
-    const target = Math.min(6, Math.max(0.35, 2.3 / E));
+    const target = exposureTarget(sunE, sky.hemi.intensity * 0.8, skyVis, sky.moonLight.intensity * 0.3, fireE); // the sky's lights carry the eye's gain beyond this range (D-117)
     const k = target > exposure ? 1 - Math.exp(-dt / 2.5) : 1 - Math.exp(-dt / 0.6); // dark adaptation is slower than light adaptation
     exposure = TEST ? target : exposure + (target - exposure) * k;
     renderer.toneMappingExposure = exposure;
