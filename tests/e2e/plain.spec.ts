@@ -4,7 +4,8 @@ import { lumStats } from './lib/lum';
 // Phase 7 camera rig: the plain from the Terrace (the §1.1 dawn moment), the river bank close, a field in several seasons,
 // a village, and Naqsh-e Rustam from 200 m; each view logs __parsa.stats() (draw calls, triangles) with the plain shown
 // and hidden, so the plain's own share of the frame is measured (the Phase 7 gate: proxy performance at the plain vista).
-// ONLY=name,name  Q=test|high  (views marked `budget` also run at Q=high when BUDGET=1)
+// ONLY=name,name (at most 4 views per run: the shared render queue's watchdog kills runs older than 15 min)  Q=test|high
+// Default (no ONLY): the three `budget` views. One page load per run; each view sets day/hour through __parsa.setTime.
 const VIEWS: { n: string; day: number; hour: number; w: string; v: [number, number, number, number, number]; budget?: boolean }[] = [
   { n: 'stair-dawn-plain', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -2], budget: true },
   { n: 'stair-noon-plain', day: 0, hour: 11, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -3] },
@@ -22,16 +23,17 @@ const VIEWS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'naqsh-kaba-40m', day: 0, hour: 15, w: 'clear', v: [520, 5980, 1.6, 20, 12] },
 ];
 test('plain', async ({ page }, info) => {
-  test.setTimeout(3_600_000);
+  test.setTimeout(840_000);
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(m.text().slice(0, 300)); });
   const only = process.env.ONLY?.split(','), Q = process.env.Q ?? 'test';
+  const run = VIEWS.filter(s => (only ? only.includes(s.n) : s.budget));
+  if (run.length === 0 || run.length > 4) throw new Error(`plain.spec: ${run.length} views selected; pick 1-4 with ONLY=`);
   const out: Record<string, any> = {};
-  for (const s of VIEWS) {
-    if (only && !only.includes(s.n)) continue;
-    if (Q !== 'test' && !s.budget) continue;
-    await page.goto(`/?test&quality=${Q}&day=${s.day}&hour=${s.hour}&weather=${s.w}`);
-    await page.waitForFunction(() => (window as any).__parsa?.ready === true || (window as any).__parsa?.error, null, { timeout: 900_000 });
-    const err = await page.evaluate(() => (window as any).__parsa.error); if (err) throw new Error(err);
+  await page.goto(`/?test&quality=${Q}&day=${run[0].day}&hour=${run[0].hour}&weather=clear`);
+  await page.waitForFunction(() => (window as any).__parsa?.ready === true || (window as any).__parsa?.error, null, { timeout: 600_000 });
+  const err = await page.evaluate(() => (window as any).__parsa.error); if (err) throw new Error(err);
+  for (const s of run) {
+    await page.evaluate(([d, h, w]) => { const p = (window as any).__parsa; p.setTime(d, h); p.setWeather(w); }, [s.day, s.hour, s.w] as [number, number, string]);
     await page.evaluate(v => (window as any).__parsa.view(...v), s.v);
     // one frame lets the plain build its lazy colliders around the camera (river corridor, village, trees); view again so
     // the eye stands on what is drawn (the heightfield alone is carved lower under the river corridor)

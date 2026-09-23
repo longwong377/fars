@@ -126,19 +126,24 @@ function tombFacade(f: Face, cx: number, inscribed: boolean): { stone: THREE.Buf
 }
 
 // ---------------------------------------------------------------- the cliff
-// The rock is reconstruction (C): a face that leans back ~6 deg and rounds over at the crest, relief at three scales (buttresses
-// and bays 30-80 m, ribs and ledges 5-15 m, blocks ~2 m), and an irregular crest 54-74 m above the ancient ground around the
-// sourced 64 m. Around the tomb panels the face is planar (dressed), blending into the rough rock over 5 m.
+// The rock is reconstruction (C): a face that leans back ~3.4 deg and rounds over at the crest, relief at three scales (vertical
+// buttresses and bays 30-80 m, ribs and bedding ledges 5-15 m, blocks ~2 m), and an irregular crest 54-74 m above the ancient ground around the
+// sourced 64 m, lowered to the DEM ridge behind the face where that is lower (the west end). Around the tomb panels the face is planar (dressed), blending into the rough rock over 5 m.
 type Hole = { x0: number; x1: number; h0: number; h1: number };
 const n1 = (t: number) => Math.sin(t) * 0.55 + Math.sin(t * 2.13 + 1.7) * 0.3 + Math.sin(t * 4.71 + 0.4) * 0.15;
 const n2 = (x: number, y: number) => n1(x + 0.37 * y) * 0.6 + n1(y * 1.31 - 0.5 * x + 3.1) * 0.4;
+/** height of the (DEM) ridge behind the face above the ancient foot, 5 m table set by buildNaqsh; where the ridge is lower than
+ *  the sourced 64 m (the west end, where the hill runs out) the crest follows it down instead of ending as a sheer slab */
+let ridge: { x0: number; v: Float32Array } | null = null;
+const ridgeAt = (x: number) => { if (!ridge) return Infinity; const t = Math.min(Math.max((x - ridge.x0) / 5, 0), ridge.v.length - 1.001), i = Math.floor(t); return ridge.v[i] + (ridge.v[i + 1] - ridge.v[i]) * (t - i); };
 /** crest height above the ancient foot along the face */
-const crestH = (x: number, H: number) => H + 7 * n1(x / 70) + 3 * n1(x / 17 + 2);
+const crestH = (x: number, H: number) => Math.min(H + 7 * n1(x / 70) + 3 * n1(x / 17 + 2), Math.max(8, ridgeAt(x) + 3 + 2 * n1(x / 11)));
 function faceDepth(x: number, h: number, H: number, holes: Hole[]) {
   let m = 0; for (const q of holes) { const dx = Math.max(q.x0 - x, 0, x - q.x1), dh = Math.max(q.h0 - h, 0, h - q.h1); m = Math.max(m, 1 - Math.min(1, Math.hypot(dx, dh) / 5)); }
   const top = crestH(x, H), u = Math.max(0, h) / top;
-  const rough = 3.2 * n2(x / 45, h / 30) + 1.3 * n2(x / 9, h / 7) + 0.8 * Math.abs(n1(x / 6 + n1(h / 11))) + 0.35 * n2(x / 2.3, h / 1.9);
-  return (rough + 0.1 * Math.max(0, h) + 6 * u * u * u) * (1 - m); // + lean-back and a rounded crest
+  // vertical jointing (buttresses and bays, ribs) and sub-horizontal bedding ledges, then blocks: oriented, not isotropic noise
+  const rough = 2.6 * n1(x / 38 + 0.25 * n1(h / 23)) + 0.9 * n1(h / 5.5 + 0.4 * n1(x / 17)) + 0.8 * Math.abs(n1(x / 6 + 0.5 * n1(h / 11))) + 0.35 * n2(x / 2.3, h / 1.9);
+  return (rough + 0.06 * Math.max(0, h) + 6 * u * u * u) * (1 - m); // + lean-back (~3.4 deg) and a rounded crest
 }
 function cliffGeometry(f: Face, holes: Hole[], xa: number, xb: number, H: number): THREE.BufferGeometry {
   const xs = new Set<number>(), hs = new Set<number>(), hMax = H + 11;
@@ -221,6 +226,10 @@ export interface NaqshBuild { group: THREE.Group; colliders(phys: Physics): void
 export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild {
   const cl = NR().cliff, fy = cl.face_y as number, [xa, xb] = cl.x_range as [number, number], H = cl.height_m as number;
   const f: Face = { fy, groundAsl: ancientFootAsl, court: terrain.meta.court_asl };
+  { const x0 = xa - 20, n = Math.ceil((xb + 20 - x0) / 5) + 1, raw = new Float32Array(n), v = new Float32Array(n);
+    for (let i = 0; i < n; i++) { let m = -Infinity; for (const d of [20, 30, 45, 60, 80, 100, 130]) m = Math.max(m, terrain.aslAt(x0 + i * 5, -(fy + d)) - ancientFootAsl); raw[i] = m; }
+    for (let i = 0; i < n; i++) v[i] = (raw[Math.max(0, i - 1)] + 2 * raw[i] + raw[Math.min(n - 1, i + 1)]) / 4;
+    ridge = { x0, v }; }
   const group = new THREE.Group(); group.name = 'naqsh-e-rustam';
   group.userData = tag(feature('nr_darius_tomb'), 'Naqsh-e Rustam in 467 BCE: cliff, tomb of Darius I (sealed), tomb attributed to Xerxes (façade cut, uninscribed, D-033), Ka\'ba-ye Zardosht, Neo-Elamite relief; geometry plain.json naqsh_e_rustam (tiers there)');
   const tombs = [{ id: 'nr_darius_tomb', x: feature('nr_darius_tomb').xy[0] as number, inscribed: true }, { id: 'nr_xerxes_tomb', x: feature('nr_xerxes_tomb').xy[0] as number, inscribed: false }];
