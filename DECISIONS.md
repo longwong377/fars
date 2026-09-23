@@ -1082,3 +1082,4 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - The Neo-Elamite relief keeps its schematic figures (PLACEHOLDER, flagged).
 - Checked in the node raking-light preview (`tools/relief_preview.ts`); not yet seen in a browser render.
 - **Tests:** in `tests/plain.test.ts`, each tomb set has 28 bearers, one king, altar, winged figure and moon, and 6 guards; it is no longer a placeholder; the king faces the altar. The kinds carry tiers and known sources (`tests/reliefs.test.ts`).
+- **Addendum (distance):** a relief set drew its merged coarsest level at any distance, which for the NR tombs is about 80 figures seen from the Terrace 6 km away, each under 0.2 px. `ReliefSet` now takes an optional `hideBeyond`. The NR sets use 1.5 km (a 2.3 m figure is about 1 px there): beyond it the set is not drawn and its LOD work stops. Tested: hidden from the Terrace, drawn at 60 m.

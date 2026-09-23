@@ -254,6 +254,9 @@ describe('the plain as built (headless): budgets, tiers, chronology', () => {
       expect(rs.userData.placeholder).toBe(false);
       const king = rs.items.find((i: any) => i.kind === 'king_worship'), altar = rs.items.find((i: any) => i.kind === 'fire_altar');
       expect(king.mirror).toBe(false); expect(altar.o.x).toBeGreaterThan(king.o.x); // the king faces the altar
+      // not drawn from the Terrace (≈ 6 km), drawn from the foot of the cliff
+      rs.update(new THREE.Vector3(0, 10, 0)); expect(rs.visible, 'hidden from the Terrace').toBe(false);
+      rs.update(king.o.clone().add(new THREE.Vector3(0, -15, 60))); expect(rs.visible, 'drawn at 60 m').toBe(true);
     }
   });
   it('nothing absent in 467 is built (later tombs, Sasanian reliefs, Istakhr, Naqsh-e Rajab)', () => {

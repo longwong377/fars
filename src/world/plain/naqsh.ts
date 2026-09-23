@@ -44,6 +44,8 @@ SURFACES.kaba_white = { albedo: [0.7, 0.68, 0.62], roughness: 0.6, porosity: 0.3
 
 const NR = () => PLAIN.naqsh_e_rustam;
 const F_BEARERS = () => NR().facade.throne_bearers as number;
+/** the tomb reliefs are not drawn beyond this distance (m): a 2.3 m figure at 1.5 km is ~1 px at 1080p / 70° (C) */
+export const NR_RELIEF_HIDE = 1500;
 interface Face { fy: number; groundAsl: number; court: number }
 const toWorld = (f: Face, x: number, h: number, d: number) => new THREE.Vector3(x, f.groundAsl - f.court - curvatureDrop(x, -f.fy) + h, -f.fy - d);
 
@@ -280,7 +282,7 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
     const st = new THREE.Mesh(mergeGeometries(fc.stone.map(g => g.index ? g.toNonIndexed() : g))!, dressed); st.name = t.id; st.castShadow = st.receiveShadow = true;
     st.userData = tag(ft, `${ft.name}: façade 22.93 m, median register 14 x 7.60 m, upper arm 8.50 m (B, SX); arm width 10.9 m, recess, columns and door C${t.inscribed ? '' : '; uninscribed (D-033)'}`);
     // the upper register and side panels carved by the relief system (D-069; per-figure LOD, far chunks): programme B, carving C
-    const fig = new ReliefSet(fc.items, [], t.id + '-reliefs');
+    const fig = new ReliefSet(fc.items, [], t.id + '-reliefs', NR_RELIEF_HIDE); // beyond 1.5 km every figure is under ~1 px
     fig.userData = { ...fig.userData, tier: 'C', src: 'NR-ACHAEMENICA;NR-IRANICA;WP-NR', note: `upper register: ${F_BEARERS()} throne-bearers in two tiers, the king on a three-stepped podium before the fire altar, the winged figure and the moon; guards and attendants on the side panels (programme B); carved relief figures, drawing and paint C (NOT SEEN)`, placeholder: false };
     group.add(st, fig); tris += st.geometry.getAttribute('position').count / 3;
     if (fc.panels.length) { const pm = new THREE.Mesh(mergeGeometries(fc.panels)!, dressed); pm.name = t.id + '-inscription-panels'; pm.userData = { tier: 'C', src: 'LIVIUS-NR', note: 'DNa/DNb inscription panels: dressed fields (position and size C)', placeholder: false }; group.add(pm); }
