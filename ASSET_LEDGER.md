@@ -10,3 +10,5 @@
 | three.js, astronomy-engine, Rapier | npm | MIT / MIT / Apache-2.0 | respective authors | — |
 | Sky model | three SkyMesh (Preetham) | MIT | three.js authors | B |
 | Player body | procedural placeholder | project | — | C (placeholder) |
+| All sounds (wind, rain, thunder, birds, jackals, crickets, fire, chisels, footsteps) | procedural Web Audio synthesis (src/audio) | project (no recordings) | — | species B/C (research/SOUNDSCAPE.md); sound design C |
+| Reverb impulse responses | generated from room dimensions (Sabine RT60) | project | — | C |

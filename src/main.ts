@@ -154,6 +154,7 @@ async function boot() {
     sky: () => ({ sunAlt: sky.state.sunAlt, moonAlt: sky.state.moonAlt, moonFraction: sky.state.moonFraction }),
     conditions: () => weather.conditions(clock.dayIndex, clock.localHour),
     errors: [] as string[],
+    audioUnlock: () => world.audio?.unlock(), audioState: () => (world.audio as any)?.state?.(),
     /** debug: what is under NDC (x, y)? */
     pick: (x: number, y: number) => { const rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(x, y), camera); rc.far = 20000;
       const h = rc.intersectObjects(scene.children, true).filter(i => (i.object as any).isMesh && i.object.visible)[0];

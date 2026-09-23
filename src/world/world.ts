@@ -19,6 +19,9 @@ import { buildMeshes } from '../arch/meshes';
 import { buildReliefs, buildInscriptions, loadInscriptionFonts } from '../arch/decor';
 import { FireSystem } from './fire';
 import { WeatherVfx } from './weatherVfx';
+import { AudioEngine } from '../audio/engine';
+import { Soundscape } from '../audio/soundscape';
+import { babylonianDate } from '../core/calendar';
 import { QUALITY } from '../core/settings';
 import { v } from '../arch/spec';
 const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
@@ -59,11 +62,36 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const ms = performance.now() - t0;
   (root.userData as any).manifest = manifest;
   let time = 0; let lastFlash = 0;
+  const audio = new AudioEngine(); const sound = new Soundscape(audio);
+  wvfx.onThunder = (delay, strength) => sound.thunder(delay, strength);
+  // which acoustic space is the listener in (grid footprint tests; C)
+  const a = manifest.apadana as any;
+  const spaceAt = (x: number, y: number, z: number) => {
+    const e = x, n = -z;
+    if (a && Math.abs(e - a.hallCentre[0]) < a.hallInterior / 2 && Math.abs(n - a.hallCentre[1]) < a.hallInterior / 2 && y > a.podium - 0.5) return 'apadana';
+    const g = parts.find((p: any) => p.building === 'gate_nations' && p.kind === 'floor') as any;
+    if (g && Math.abs(e - g.c[0]) < 12.4 && Math.abs(n - g.c[1]) < 12.4) return 'gate';
+    return 'open';
+  };
+  const surfaceAt = (y: number, groundY: number) => (y > -1 ? 'stone' : Math.abs(y - groundY) < 0.3 ? 'earth' : 'stone') as 'stone' | 'earth';
   return { root, fire, wvfx,
+    audio: { unlock: () => { audio.unlock(); if (settings) audio.setVolumes(settings.volume); }, state: () => ({ ctx: audio.ctx?.state ?? 'none', space: audio.currentSpace, sampleRate: audio.ctx?.sampleRate }) } as any,
+    applySettings: (s: Settings) => audio.setVolumes(s.volume),
     update(dt: number, ctx: any) {
       time += dt;
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time);
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
+      if (audio.ctx) {
+        const cam = ctx.camera, fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);
+        audio.setListener(cam.position, fwd);
+        const jdn = ctx.clock.jdn, b = babylonianDate(jdn); void b;
+        const month = ctx.cond.day.climMonth; const hour = ctx.clock.localHour;
+        const p = ctx.player.position, feet = ctx.player.feetY;
+        sound.update(dt, { hour, month, windMs: ctx.cond.windMs, rain: ctx.cond.rain, insideSpace: spaceAt(cam.position.x, cam.position.y, cam.position.z),
+          nearColumns: spaceAt(cam.position.x, cam.position.y, cam.position.z) !== 'open', stepPhase: ctx.player.bobPhase, running: false,
+          surface: surfaceAt(feet, terrain.heightAt(p.x, p.z)), fires: fire.fires, listener: cam.position,
+          worksite: manifest.hall100 ? new THREE.Vector3(146, 0, 29) : null, workHours: hour > 6.5 && hour < 17.5 });
+      }
     },
     flash: () => lastFlash,
     summary: () => `architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}` } as WorldBuild;

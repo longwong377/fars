@@ -1,7 +1,7 @@
 import { defineConfig } from '@playwright/test';
 // Headless Chromium with software rendering (SwiftShader). Two projects so each render path is tested separately and
 // every test records which path it actually ran on (brief §6 Testing without my GPU).
-const common = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
+const common = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'];
 export default defineConfig({
   testDir: 'tests/e2e', timeout: 600_000, workers: 1, retries: 0,
   reporter: [['list'], ['json', { outputFile: 'test-results/e2e.json' }]],
