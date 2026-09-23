@@ -27,7 +27,18 @@
     - "gold" is drawn as a yellow paint film;
     - Treasury shafts are bare plaster (the colours are unknown), flagged as a placeholder;
     - the door-leaf position is inferred (Q-073).
-- **Phase 5:** the soak test FAILS (baseline: near-copy days, 3 event kinds a week). A session 3 agent is building the events calendar, town life, rotas, construction progress, player memory and population scale.
+- **Phase 5 (session 3; merged, D-021 to D-024):** `npm run soak` PASSES all eight gates for the full year, seed 1, court absent.
+  - Variety: all 43,348 people measured, worst 0.099; detailed agents worst 0.031.
+  - Events: 13–19 kinds a week against a floor of 8.
+  - No stuck agents, stocks bounded, construction advancing every week.
+  - The Phase 5 gate is still NOT passed:
+    - **Activity coverage FAILS the brief's rule:** 25 simulated activities have no visible performance. They are marked placeholder/abstractOnly and are used only off-Terrace (haul, weave, brew, herd, field work, plough, reap …).
+    - **About 550 people on the Terrace by day are simulated but not rendered**, counted as a PLACEHOLDER in the F3 overlay.
+    - **Construction state has no geometry hook:** the Hall of 100 Columns is drawn at its day-0 state.
+    - **Rendered floors (≥ 300 visible, ≥ 50 close) are not met:** the crowd still builds one placeholder rig per detailed agent (135).
+    - Newborns under one year (3,104) are reported, not gated (178 would fail in their first days). This is a scope decision in D-021, to be judged by the independent review.
+    - The §13.11 shadow review is running (REVIEWS/shadow_phase5.md).
+    - Every day-plan weight is C. The grain deliveries in the read texts cannot feed the ration groups (Q-056). Workers other than guards have no regular rest days (Q-057).
 - **Phases 6 and 7:** the settlement and plain are not built yet (session 3 agents started). The out-of-world map shows the Terrace only.
 - **King absent by default (D-003):** no evidence places Xerxes at Persepolis in 467. The court appears only in the C-tier "seasonal pattern" setting.
 - **No primary sources reachable (B6):** SITE_SPEC is tier B/C, nothing is A, and the plan overlay compares against OSM, not Schmidt.
@@ -54,7 +65,7 @@
 | 2 | Terrace greybox from the parametric generators | **Passed with logged exceptions:** footprints are OSM traces (B6); the overlay mostly checks footprints against themselves |
 | 3 | Vertical slice: materials, reliefs, fire, weather VFX, audio, 65 people, speech/murmur, walkthrough bot (28 legs, re-verified session 3) | **Not passed:** rubric and independent review not run; calibration blocked; people placeholder; bench to re-run |
 | 4 | Rest of the Terrace: stairs, doors, frames, corrected outlines, floors, fires, acoustics, guard posts; overlay + dimension tests; walkthrough e2e passes all six areas (session 3) | **In progress:** reliefs on the new stairs and jambs, windows and niches, furnishings, people beyond guards, Phase 4 review |
-| 5 | Simulation LOD, catch-up persistence, soak harness; session 3 agent on the calendar, town life, rotas, construction and scale | **Not passed:** soak fails (baseline) |
+| 5 | Two-tier simulation of 46,590 people: events calendar, town life, rota, construction state, memory, persistence; soak PASSES (session 3); birds and jackals visible (D-054) | **Not passed:** activity coverage (25 placeholders), rendered floors, unrendered Terrace workforce, construction geometry, shadow review pending |
 | 6 | Research done; chronology and lint in place; session 3 agent building | — |
 | 7 | Research done; horizon fixed (D-035); session 3 agent building | — |
 | 8 | Translation layer built and e2e-verified; speech and murmur from Phase 3 (placeholders) | — |
