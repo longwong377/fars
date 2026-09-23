@@ -10,7 +10,7 @@ const F = (act: string, why = '', o: Partial<St> = {}): St => ({ act, why, dress
 // groups: stations in a row along x (spacing m), facing +Z
 const G: Record<string, [St[], number]> = {
   fieldsA: [[M('field_work', 'hoeing and weeding the growing crop'), M('irrigate'), M('reap', 'reaping the barley'), M('reap', 'binding sheaves at the harvest')], 3.4],
-  fieldsB: [[F('field_work', 'gleaning behind the reapers'), M('thresh', 'winnowing on the village floor'), M('dig_canal', 'clearing the village canal'), M('dig_canal', 'filling the silt baskets and carrying them out')], 3.6],
+  fieldsB: [[F('field_work', 'gleaning behind the reapers'), M('thresh', 'winnowing on the village floor'), M('dig_canal', 'clearing the village canal'), M('dig_canal', 'filling the silt baskets and carrying them out')], 5.2], // wide: the threshing floor's 4 m radius
   thresh: [[M('thresh', 'threshing: driving the animals round over the sheaves')], 0],
   plough: [[M('plough')], 0],
   animalsA: [[M('tend_animals', 'seeing to the household’s animals', { variant: -1 }), M('tend_animals', 'tending the relay horses'), F('tend_animals', 'with the ewes at lambing'), M('shear')], 4.2],
@@ -28,7 +28,7 @@ const G: Record<string, [St[], number]> = {
 // [shot name, group, camera (x, y, z), target (x, y, z) — relative to the group's centre; time (s)]
 type Shot = [string, string, number[], number[], number];
 const PAGE1: Shot[] = [
-  ['fields-a', 'fieldsA', [2, 2.3, 8.5], [0, 0.7, 0.5], 3.4], ['fields-b', 'fieldsB', [-2, 2.5, 9], [0, 0.7, 0.5], 3.4],
+  ['fields-a', 'fieldsA', [2, 2.3, 8.5], [0, 0.7, 0.5], 3.4], ['fields-b', 'fieldsB', [-1.5, 3.2, 12], [0, 0.6, 0.5], 3.4],
   ['thresh', 'thresh', [5, 3.2, 7.5], [0, 0.6, 1.2], 5], ['plough', 'plough', [12, 3.5, 8], [0, 0.8, 8], 4],
   ['animals-a', 'animalsA', [1, 2.6, 10.5], [0.5, 0.8, 0.8], 3.4], ['animals-b', 'animalsB', [-1, 2.6, 10.5], [-0.5, 0.8, 0.8], 3.4],
   ['herd', 'herd', [9, 4, 14], [0, 0.5, 2], 6], ['train', 'train', [-3, 1.9, -4.5], [0, 1.1, 8], 9.15], ['train-draw', 'train', [-3.6, 1.5, 1.6], [0, 1.2, 0.6], 9.15],
