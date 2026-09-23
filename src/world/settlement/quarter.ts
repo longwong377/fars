@@ -127,6 +127,9 @@ export function generateQuarter(s: Site, o: QuarterOpts, rng: Rng) {
   assignWorkshops(s, o, rng);
   // 7. leftovers: back yards, store rooms, walled yards
   absorbLeftovers(s, o, rng);
+  // 7b. animal pens hugging the town edge (C): walled enclosures on the open ground against the house backs, their
+  // gates facing the plain; stockyard flocks and donkeys (PF 58-60, PFAT 0025) had to be kept somewhere
+  stampPens(s, o, rng);
   // 8. house plans, doors, fittings
   const extras = new Map<number, number[]>();
   for (let k = 0; k < s.cell.length; k++) { const c = s.cell[k]; if (c < 0) continue; const p = s.plots[c], i = k % s.W, j = (k / s.W) | 0;
@@ -216,8 +219,34 @@ function absorbLeftovers(s: Site, o: QuarterOpts, rng: Rng) {
   }
 }
 
+function stampPens(s: Site, o: QuarterOpts, rng: Rng) {
+  const { W, H } = s, want = Math.max(2, Math.round(W * H / 14000)); let made = 0;
+  const forced = (o.forced ?? []).map(f => f.axis === 'v' ? { axis: 'v', c: s.ci(f.offset), w: f.width } : { axis: 'u', c: s.cj(f.offset), w: f.width });
+  for (let tries = 0; tries < 4000 && made < want; tries++) {
+    const pw = rng.int(9, 14), pd = rng.int(8, 12), i0 = rng.int(1, W - pw - 1), j0 = rng.int(1, H - pd - 1);
+    if (forced.some(f => f.axis === 'v' ? (i0 + pw > f.c - f.w - 6 && i0 < f.c + f.w + 6) : (j0 + pd > f.c - f.w - 6 && j0 < f.c + f.w + 6))) continue;
+    let ok = true, touch = 0, lane = 0;
+    for (let j = j0 - 1; j <= j0 + pd && ok; j++) for (let i = i0 - 1; i <= i0 + pw; i++) { const inside = i >= i0 && i < i0 + pw && j >= j0 && j < j0 + pd, c = s.at(i, j);
+      if (inside) { if (c !== OUT) { ok = false; break; } } else if (c >= 0) touch++; else if (c === LANE || c === SQUARE) lane++; }
+    if (!ok || touch < 6 || lane > 0) continue;
+    // keep 4 m from the next pen
+    let near = false; for (let j = j0 - 4; j < j0 + pd + 4 && !near; j++) for (let i = i0 - 4; i < i0 + pw + 4; i++) { const c = s.at(i, j); if (c >= 0 && s.plots[c].kind === 'pen') { near = true; break; } }
+    if (near) continue;
+    const p = s.addPlot({ id: `${o.idPrefix}-${String(s.plots.length + 1).padStart(4, '0')}`, kind: 'pen', rect: [i0, j0, i0 + pw, j0 + pd], o: [i0, j0], t: [1, 0], n: [0, 1], w: pw, d: pd,
+      door: null, court: false, height: 0, parapet: 0, yardWall: HOUSE.penWall, outerT: 0.45, row: 'town_pens', feature: o.feature, note: 'animal pen at the town edge (C)' });
+    for (let j = j0; j < j0 + pd; j++) for (let i = i0; i < i0 + pw; i++) { const k = s.k(i, j); s.cell[k] = p.idx; s.sub[k] = YARD; }
+    // gate: the middle of a side that faces open ground
+    const sides: [number, number, number, number][] = [[i0 + (pw >> 1), j0 - 1, i0 + (pw >> 1), j0], [i0 + (pw >> 1), j0 + pd, i0 + (pw >> 1), j0 + pd - 1], [i0 - 1, j0 + (pd >> 1), i0, j0 + (pd >> 1)], [i0 + pw, j0 + (pd >> 1), i0 + pw - 1, j0 + (pd >> 1)]];
+    for (const [oi, oj, ii, jj] of shuffle(sides, rng)) { if (s.at(oi, oj) !== OUT || !s.inb(oi, oj)) continue; const k = s.k(ii, jj), ko = s.k(oi, oj); p.door = { cell: k, out: ko }; s.doors.add(s.edgeBetween(k, ko)); break; }
+    s.fittings.push({ kind: 'pen_dung', u: s.cu(i0) + pw / 2 - 0.5, v: s.cv(j0) + pd / 2 - 0.5, rot: 0, size: Math.min(pw, pd) * 0.4, plot: p.idx, note: 'dung trodden into the pen floor (C)' });
+    s.fittings.push({ kind: 'trough', u: s.cu(i0) + 1.5, v: s.cv(j0) + 1.2, rot: 0, size: 1, plot: p.idx });
+    made++;
+  }
+}
+
 /** rooms, court and doors inside a plot's main rectangle; extra (absorbed) cells keep the class set above */
 function layoutPlot(s: Site, p: Plot, rng: Rng, extras: Map<number, number[]>) {
+  if (p.kind === 'pen') return; // stamped whole by stampPens
   if (p.kind === 'yard') { layoutYard(s, p, rng); return; }
   const { w, d } = p, cells = (a: number, b: number) => s.ab(p, a, b);
   const R = () => rng.int(HOUSE.roomDepth[0], HOUSE.roomDepth[1]);
