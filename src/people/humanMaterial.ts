@@ -154,7 +154,9 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     skinAlb = mix(skinAlb, skinAlb.mul(vHair.mul(2.2).add(0.35).min(1)), vAux.y.mul(stubble).mul(0.55));
     // eyes: MakeHuman iris/sclera texture; the sclera toned down (a pure white sclera reads as uncanny, C)
     const eyeT = texture(T.eye, uv()).rgb; const sclera = smoothstep(0.55, 0.75, eyeT.r.add(eyeT.g).add(eyeT.b).div(3));
-    const eyeAlb = mix(eyeT, eyeT.mul(vec3(0.82, 0.78, 0.74)), sclera);
+    // the MakeHuman brown iris is a saturated red-brown: pulled toward a darker, less red brown (C)
+    const irisL = dot(eyeT, vec3(0.3, 0.55, 0.15)), iris = mix(eyeT, vec3(irisL.mul(0.95), irisL.mul(0.72), irisL.mul(0.5)), 0.55);
+    const eyeAlb = mix(iris, eyeT.mul(vec3(0.82, 0.78, 0.74)), sclera);
     // hair: clumps of curls and strands (height field in bind space; ridged noise reads as curled locks, elongated
     // vertically on beards; relief beards are carved in rows of curls, B; the rendering is C)
     const hs = mix(vec3(260, 170, 260), vec3(190, 110, 190), step(1.5, prm)); // beard and bun (prm ≥ 1.5 beard) vs scalp

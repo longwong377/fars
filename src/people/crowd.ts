@@ -22,7 +22,9 @@ import { lookFor, type PersonLook, type LookInput } from './looks';
 import { HB } from './humanFormat';
 import { PERSON_TEXELS, FLAG_HIDE_HEAD } from './humanMaterial';
 import { propGeometry, PROP_NOTES } from './props';
-import { PIECES, type Dress } from './outfits';
+import { PIECES, pieceBit, type Dress } from './outfits';
+/** poses in which people sit, kneel or lie (coats and back-carried weapons are laid aside) */
+const SEATED = new Set<AnimId>(['sit', 'write', 'eat', 'dice', 'sleep', 'grind', 'knead', 'bake']);
 import type { AnimId } from './anim';
 
 const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
@@ -39,6 +41,8 @@ export interface Person {
   root: [number, number, number, number]; prevRoot: [number, number, number, number];
   shown: boolean; drawnFrame: number; poseFrame: number; frameMod: number; lastHit: boolean;
   blinkAt: number; speakUntil: number; prop: string | null; propM: THREE.Matrix4; anim: AnimId; t0: number; dist: number;
+  /** piece mask in effect (the look's mask minus what is laid aside while seated or asleep) */
+  mask: number;
   /** extras (lineups, tests): fixed animation and place */
   extra?: { anim: AnimId; x: number; y: number; z: number; yaw: number; look?: [number, number, number] | null };
 }
@@ -135,7 +139,7 @@ export class Crowd {
     const face: FaceState = { jaw: 0, blink: 0, look: null, eyeYaw: 0, eyePitch: 0 };
     const p: Person = { key, agent, look, slot, face, rig: { joints: v.joints, pose: { rot: {}, hips: [0, 0, 0] }, face, grip: [0, 0], x: 0, y: 0, z: 0, yaw: 0, scale: 1 },
       root: [0, 0, 0, 0], prevRoot: [0, 0, 0, 0], shown: false, drawnFrame: -10, poseFrame: -10, frameMod: seed % 8, lastHit: false,
-      blinkAt: (seed % 997) / 997 * 4, speakUntil: -1, prop: null, propM: new THREE.Matrix4(), anim: 'idle', t0: (seed % 100), dist: 0 };
+      blinkAt: (seed % 997) / 997 * 4, speakUntil: -1, prop: null, propM: new THREE.Matrix4(), anim: 'idle', t0: (seed % 100), dist: 0, mask: look.mask };
     this.persons.set(key, p); if (agent) this.byAgent.set(agent.id, p); return p;
   }
   /** attached people by agent id (no string keys in the per-frame pool scan) */
@@ -223,6 +227,9 @@ export class Crowd {
       p.lastHit = !!po.hit;
     } else { anim = p.extra!.anim; po = pose(anim, time + p.t0, time * 4.2, 0.3); }
     p.anim = anim;
+    // coats, weapons on the back and hats are laid aside while seated or asleep (they would pass through the ground; C)
+    const mask = SEATED.has(anim) ? p.look.mask & ~this.asideBits(p.look.dress, anim) : p.look.mask;
+    if (mask !== p.mask) { p.mask = mask; this.humans.gpu.person[p.slot * PERSON_TEXELS * 4 + 1] = mask; this.humans.gpu.markPersonDirty(); }
     // glance: a stranger within 7 m turns heads (clamped), and eyes look at them (people notice a stranger)
     const f = p.face; f.look = null; f.eyeYaw = 0; f.eyePitch = 0; f.jaw = 0;
     const lookAt = p.extra?.look ?? null;
@@ -251,6 +258,12 @@ export class Crowd {
     if (p.poseFrame < 0) g.prevPalette.set(g.palette.subarray(o, o + PALETTE_STRIDE), o);
     p.poseFrame = this.frame;
     p.prop = propKind; if (propKind) this.propLocal(p, propKind);
+  }
+  private asideCache = new Map<string, number>();
+  private asideBits(dress: Dress, anim: AnimId) {
+    const k = dress + (anim === 'sleep' ? ':s' : ''); let b = this.asideCache.get(k);
+    if (b === undefined) { b = 0; for (const id of ['kandys', 'quiver', 'bow', 'gorytos', 'akinaka', ...(anim === 'sleep' ? ['hat_fluted', 'fillet', 'cap_soft', 'headband'] : [])]) { const bit = pieceBit(dress, id); if (bit) b |= 1 << bit; } this.asideCache.set(k, b); }
+    return b;
   }
   /** people culled from view still make their tool sounds */
   private soundsOnly(p: Person, d: number, time: number) {

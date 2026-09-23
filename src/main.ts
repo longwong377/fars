@@ -176,6 +176,13 @@ async function boot() {
         const p = P.crowd.addExtra(`lineup${i}`, { id: -100 - i, x, y, z, yaw: Math.PI - (headingDeg * Math.PI) / 180, look: lookAtCamera ? (freeCam ? [freeCam.x, freeCam.y, freeCam.z] : [camera.position.x, camera.position.y, camera.position.z]) : null, ...sp });
         return { key: p.key, variant: p.look.variantId, stature: +p.look.stature.toFixed(3), pieces: p.look.pieces, note: p.look.note }; }); },
     clearLineup: () => (world as any).people?.crowd.removeExtras(),
+    /** load test: n extra people (mixed dress and activity) scattered over a disc of `radius` m around grid (east, north) */
+    humanCrowd: (n: number, east: number, north: number, radius: number) => {
+      const P = (world as any).people; if (!P) return null; P.crowd.removeExtras();
+      const dress = ['guard', 'median', 'persian', 'worker', 'woman', 'child', 'worker', 'median'], anims = ['walk', 'idle', 'talk', 'guard', 'carry_shoulder', 'sit', 'chisel', 'inspect'];
+      for (let i = 0; i < n; i++) { const r = radius * Math.sqrt((i + 0.5) / n), a = i * 2.39996; const e = east + r * Math.cos(a), no = north + r * Math.sin(a); const d = dress[i % dress.length];
+        P.crowd.addExtra(`load${i}`, { id: -1000 - i, dress: d, sex: d === 'woman' ? 'f' : 'm', role: d === 'guard' ? 'guard' : d === 'child' ? 'child' : 'porter', seed: 7000 + i, x: e, y: groundAt(e, no), z: -no, yaw: a * 3, anim: anims[i % anims.length] }); }
+      return n; },
     resetFalls: () => { player.maxFall = 0; },
     exposureInfo: () => ({ exposure: renderer.toneMappingExposure, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],

@@ -32,6 +32,12 @@ test('people bodies in the world', async ({ page }, info) => {
   console.log('lineup', JSON.stringify(r));
   await shot('lineup', [E0 + 2.25, N0 - 3.6, 1.55, az(0), -6]);
   for (let i = 0; i < specs.length; i++) await shot(`face-${specs[i].dress}`, [E0 + i * 0.9, N0 - 1.0, specs[i].dress === 'child' ? 1.1 : specs[i].dress === 'woman' ? 1.45 : 1.55, az(0), -2]);
+  // load: 300 people in the Apadana forecourt (the rendered-floor target, §9.2), seen from the Gate's E door and from inside the crowd
+  if (!only || only.includes('crowd300')) {
+    await page.evaluate(() => (window as any).__parsa.humanCrowd(300, 0, 88, 20));
+    await shot('crowd300', [0, 114, 1.7, az(180), -3]);
+    await shot('crowd300-inside', [3, 92, 1.65, az(200), -3]);
+  }
   console.log(errs.slice(0, 10).join('\n'));
   expect(errs).toEqual([]);
 });

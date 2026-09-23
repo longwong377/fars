@@ -433,9 +433,14 @@ function faceGeom(L: Lib) {
   const { A, ref } = L; const rvOf = (pid: number) => { for (let i = 0; i < A.NO; i++) if (A.orig[i] === pid) return i; return 0; };
   const chinI = rvOf(A.meta.landmarks.chin), noseI = rvOf(A.meta.landmarks.nose_tip);
   const cy = ref.pos[chinI * 3 + 1], ny = ref.pos[noseI * 3 + 1], nz = ref.pos[noseI * 3 + 2];
-  let mouthY = (cy + ny) / 2, best = 1e9;
+  // the lips' parting: where the midline front vertices change from head-weighted (upper lip) to jaw-weighted (lower lip)
+  // (the most recessed point finds the mentolabial sulcus on MakeHuman's closed mouth, 1.5–2 cm too low)
+  let upLow = Infinity, loHigh = -Infinity, best = 1e9;
   for (let i = 0; i < A.NO; i++) { if (A.part[i] !== P.head) continue; const x = ref.pos[i * 3], y = ref.pos[i * 3 + 1], z = ref.pos[i * 3 + 2];
-    if (Math.abs(x) > 0.0025 || y < cy + 0.3 * (ny - cy) || y > ny - 0.3 * (ny - cy) || z < nz - 0.045) continue; if (z < best) { best = z; mouthY = y; } }
+    if (Math.abs(x) > 0.0025 || y < cy || y > ny - 0.01 || z < nz - 0.03) continue;
+    let w = 0; for (let k = 0; k < 4; k++) if (A.skinIndex[i * 4 + k] === HB.jaw) w = A.skinWeight[i * 4 + k] / 255;
+    if (w < 0.3) upLow = Math.min(upLow, y); else if (w > 0.5) loHigh = Math.max(loHigh, y); best = Math.min(best, z); }
+  const mouthY = Number.isFinite(upLow) && Number.isFinite(loHigh) ? (upLow + loHigh) / 2 : (cy + ny) / 2;
   let halfW = 0; for (let i = 0; i < A.NO; i++) if (A.part[i] === P.head && Math.abs(ref.pos[i * 3 + 1] - ref.eyeY) < 0.015) halfW = Math.max(halfW, Math.abs(ref.pos[i * 3]));
   return { chinI, noseI, mouthY, lipZ: best, halfW };
 }

@@ -8,7 +8,7 @@ import { HB, HBONES, PART, MAT } from '../src/people/humanFormat';
 import { RigSolver, PALETTE_STRIDE, RETARGET, PLANTED, skinPoint, type RigInput } from '../src/people/humanRig';
 import { ANIMS, POSE_BONES, pose } from '../src/people/anim';
 import { buildOutfits, DRESSES, COSTUMES, PIECES, pieceBit, unpackNormal, packNormal, type OutfitBuild } from '../src/people/outfits';
-import { lookFor, STATURE } from '../src/people/looks';
+import { lookFor, STATURE, TEXTILE } from '../src/people/looks';
 import { HumanGPU } from '../src/people/humanGPU';
 import { Crowd } from '../src/people/crowd';
 import { ACTIVITIES } from '../src/people/activities';
@@ -79,6 +79,21 @@ describe('rig retarget (59 bones)', () => {
   });
 });
 
+describe('skin texture (re-baked, D-025)', () => {
+  it('paints the lips at the lips’ parting (head/jaw weight split), not on the chin', async () => {
+    const { decodePNG } = await import('../tools/humans/png');
+    const img = decodePNG(readFileSync('public/generated/humans/skin.png')); const v = A.byId.m03;
+    let upLow = 9, loHigh = -9; // the parting from the weights (as the bake does)
+    for (let i = 0; i < A.NO; i++) { if (A.part[i] !== PART.head || Math.abs(v.pos[i * 3]) > 0.0025 || v.pos[i * 3 + 2] < 0.14 || v.pos[i * 3 + 1] > v.eyeY - 0.05 || v.pos[i * 3 + 1] < v.eyeY - 0.13) continue;
+      let w = 0; for (let k = 0; k < 4; k++) if (A.skinIndex[i * 4 + k] === HB.jaw) w = A.skinWeight[i * 4 + k] / 255; if (w < 0.3) upLow = Math.min(upLow, v.pos[i * 3 + 1]); else if (w > 0.5) loHigh = Math.max(loHigh, v.pos[i * 3 + 1]); }
+    const mouth = (upLow + loHigh) / 2;
+    const redness = (y: number) => { let best = -1, dBest = 9; for (let i = 0; i < A.NO; i++) { if (A.part[i] !== PART.head || Math.abs(v.pos[i * 3]) > 0.004 || v.pos[i * 3 + 2] < 0.13) continue; const d = Math.abs(v.pos[i * 3 + 1] - y); if (d < dBest) { dBest = d; best = i; } }
+      const x = Math.min(img.width - 1, Math.floor(A.uv[best * 2] * img.width)), yy = Math.min(img.height - 1, Math.floor((1 - A.uv[best * 2 + 1]) * img.height)), k = (yy * img.width + x) * 4; return img.data[k] / Math.max(1, img.data[k + 1]); };
+    const lipUp = redness(mouth + 0.004), lipLo = redness(mouth - 0.005), chin = redness(mouth - 0.028), cheek = redness(mouth + 0.03);
+    expect(lipUp).toBeGreaterThan(chin * 1.08); expect(lipLo).toBeGreaterThan(chin * 1.08); expect(lipUp).toBeGreaterThan(cheek * 1.05);
+  });
+});
+
 describe('costumes (fitted to every variant)', () => {
   it('every dress builds at three LODs within triangle budgets; every piece is tiered with a source', () => {
     const budget = [42000, 7000, 3200];
@@ -89,6 +104,12 @@ describe('costumes (fitted to every variant)', () => {
     }
     for (const d of DRESSES) for (const id of [...COSTUMES[d].always, ...COSTUMES[d].opt]) { const p = PIECES[id]; expect(p, id).toBeDefined(); expect(['A', 'B', 'C']).toContain(p.tier); expect(p.src.length).toBeGreaterThan(2); }
     console.log(DRESSES.map(d => `${d}: ${O.costumes[d].map(c => `${c.triangles}/${c.bodyTriangles}`).join(' · ')}`).join('; '));
+  });
+  it('no piece or colour is named after a blocklisted thing (anachronism lint: ids and labels; notes may cite negatives)', () => {
+    const block = JSON.parse(readFileSync('src/data/blocklist.json', 'utf8'));
+    const terms = block.entries.flatMap((e: any) => e.terms.map((t: string) => ({ id: e.id, re: new RegExp(`\\b${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i') })));
+    for (const p of Object.values(PIECES)) for (const t of terms) expect(t.re.test(`${p.id} ${p.label}`), `${p.id} matches ${t.id}`).toBe(false);
+    for (const k of Object.keys(TEXTILE)) for (const t of terms) expect(t.re.test(k)).toBe(false);
   });
   it('garment surfaces face outward and stay outside the body in the bind pose', () => {
     const v = A.byId.m05; // a variant that is not the reference
