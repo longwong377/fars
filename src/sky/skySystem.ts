@@ -19,7 +19,7 @@ import { localCoverageUniform, localWeatherFactor } from './cloudCover';
 import coverTable from '../data/cloud_cover_table.json';
 import { HorizonMap, HORIZON_LAYOUT, loadHorizonMap } from '../terrain/horizonMap';
 import { horizonAtlasTexture, horizonVisibility, type HorizonAtlases } from '../terrain/horizonShadow';
-import { Air, AIR_ALBEDO } from './aerial';
+import { Air, AIR_ALBEDO, EYE_SKY } from './aerial';
 import { domeRadiance } from './horizon';
 
 export interface SkyState { sunDir: THREE.Vector3; sunAlt: number; moonDir: THREE.Vector3; moonAlt: number; moonFraction: number; daylight: number; nightFactor: number }
@@ -346,7 +346,8 @@ export class SkySystem {
     { const b = A.sunColorAt(OBSERVER_ALT + CLOUD_BASE, alt), t = A.sunColorAt(OBSERVER_ALT + CLOUD_TOP, alt);
       const p0 = (x: number) => Math.max(0, x) * cf;
       C.sunColor.value.setRGB(p0(b[0]), p0(b[1]), p0(b[2])).add(moonC); C.sunColorTop.value.setRGB(p0(t[0]), p0(t[1]), p0(t[2])).add(moonC); }
-    C.ambient.value.copy(this.hemi.color).multiplyScalar(this.hemi.intensity * 0.55);
+    // the clouds' ambient: the mean radiance of the sky above and of the sunlit ground below (irradiance / π; D-156)
+    C.ambient.value.copy(this.hemi.color).multiplyScalar(this.hemi.intensity / Math.PI); C.ambientGround.value.copy(this.hemi.groundColor).multiplyScalar(this.hemi.intensity / Math.PI);
     // dome calibration and the horizon radiance (D-060, D-116): fog, far cloud haze and rain shafts converge to it
     { const sk = this.sky, P = { turbidity: sk.turbidity.value as number, rayleigh: sk.rayleigh.value as number, mieCoefficient: sk.mieCoefficient.value as number, mieDirectionalG: sk.mieDirectionalG.value as number };
       const hc = this.hemi.color, hemiE = this.hemi.intensity * (0.2126 * hc.r + 0.7152 * hc.g + 0.0722 * hc.b);
@@ -365,7 +366,7 @@ export class SkySystem {
       const amb: [number, number, number] = [0, 1, 2].map(i => (AIR_ALBEDO * 0.5 * hI * ([hc.r, hc.g, hc.b][i] + [gc.r, gc.g, gc.b][i])) / Math.PI) as [number, number, number];
       const twv = tw?.view ?? null;
       this.air.setInscatter(d => domeRadiance(d, sv, P, cal.kP, cal.kT, twv), sv, amb);
-      this.air.vEye.value = this.eyeSunVisibility; this.air.sunUp.value = this.sun.visible ? smoothstepJS(-0.5, 0.5, alt) : 0; }
+      this.air.vEye.value = EYE_SKY.sunVisibility = this.eyeSunVisibility; this.air.sunUp.value = this.sun.visible ? smoothstepJS(-0.5, 0.5, alt) : 0; }
     if (wind) { const a = ((wind.fromDeg + 180) * Math.PI) / 180; C.wind.value.set(Math.sin(a) * wind.ms * 2.5, -Math.cos(a) * wind.ms * 2.5); C.time.value = wind.tSeconds; } // winds aloft ~2.5 × surface (C)
     // cover over THIS observer (D-064): the weather field scales the cover by 0.6–1.4 across its tile, so the uniform is
     // solved for the drifted field around the camera (recomputed when the observer or the field has moved > 500 m)
