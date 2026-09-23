@@ -5,6 +5,7 @@ import { row, v, tierOf, srcOf, present, footprint } from './spec';
 import { Part, Pt, Box, Prism, Column, Manifest, wallRing, grid, BuildResult, Material } from './parts';
 import { order } from './orders';
 import { Rng } from '../core/rng';
+import { polyDifference, polyUnion, polyIntersection, rectPoly, single } from './poly';
 
 type Tier = 'A' | 'B' | 'C';
 const P = (building: string, kind: string, material: Material, tier: Tier, src: string, extra: Partial<Part> = {}) => ({ building, kind, material, tier, src, ...extra });
@@ -23,6 +24,38 @@ function flight(b: string, t: Tier, s: string, start: Pt, dir: 'N' | 'S' | 'E' |
   }
   return out;
 }
+/** a flight from a SITE_SPEC flight row {foot, head, z0, z1, steps, tread, width} (axis-aligned; foot = first riser) */
+interface FlightRow { id: string; foot: Pt; head: Pt; z0: number; z1: number; steps: number; tread: number; width: number }
+const isFlight = (f: any): f is FlightRow => Array.isArray(f.foot) && Array.isArray(f.head);
+function flightDirOf(f: { foot: Pt; head: Pt }): 'N' | 'S' | 'E' | 'W' {
+  const dx = f.head[0] - f.foot[0], dy = f.head[1] - f.foot[1];
+  return Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'E' : 'W') : (dy > 0 ? 'N' : 'S');
+}
+function specFlight(b: string, t: Tier, s: string, f: FlightRow, base: number): Box[] {
+  return flight(b, t, s, f.foot, flightDirOf(f), f.steps, (f.z1 - f.z0) / f.steps, f.tread, f.width, f.z0, base);
+}
+/** stepped parapet along one side of a flight (side +1 = left of the rising direction, −1 = right); the first `open`
+ *  steps are left open so the flight can be entered from that side */
+function flightParapet(b: string, t: Tier, s: string, f: FlightRow, side: 1 | -1, th: number, h: number, open: number, base: number): Box[] {
+  const out: Box[] = []; const dir = flightDirOf(f); const d = { N: [0, 1], S: [0, -1], E: [1, 0], W: [-1, 0] }[dir];
+  const lx = -d[1] * side, ly = d[0] * side, lat = f.width / 2 + th / 2, riser = (f.z1 - f.z0) / f.steps;
+  for (let i = open; i < f.steps; i++) {
+    const along = (i + 0.5) * f.tread;
+    out.push(box(b, 'parapet', 'limestone', t, s, [f.foot[0] + d[0] * along + lx * lat, f.foot[1] + d[1] * along + ly * lat], d[0] ? [f.tread, th] : [th, f.tread], base, f.z0 + (i + 1) * riser + h, { solid: true }));
+  }
+  return out;
+}
+/** which side (+1 left / −1 right of the rising direction) a point lies on */
+function sideOf(f: FlightRow, p: Pt): 1 | -1 { const d = flightDirOf(f); const v2 = { N: [0, 1], S: [0, -1], E: [1, 0], W: [-1, 0] }[d]; return (-v2[1] * (p[0] - f.foot[0]) + v2[0] * (p[1] - f.foot[1])) >= 0 ? 1 : -1; }
+/** straight flight of steps along an arbitrary unit direction (rotated boxes), foot at `start` */
+function flightAlong(b: string, t: Tier, s: string, start: Pt, u: Pt, steps: number, riser: number, tread: number, width: number, y0: number, base: number): Box[] {
+  const out: Box[] = []; const rot = Math.atan2(u[1], u[0]);
+  for (let i = 0; i < steps; i++) { const a = (i + 0.5) * tread; out.push({ ...box(b, 'step', 'limestone', t, s, [start[0] + u[0] * a, start[1] + u[1] * a], [tread, width], base, y0 + (i + 1) * riser, { solid: true }), rot }); }
+  return out;
+}
+/** landing row {x:[x0,x1], y:[y0,y1], z} → solid box from `base` */
+const landingBox = (b: string, t: Tier, s: string, L: { x: [number, number]; y: [number, number]; z: number }, base: number, kind = 'landing') =>
+  box(b, kind, 'limestone', t, s, [(L.x[0] + L.x[1]) / 2, (L.y[0] + L.y[1]) / 2], [L.x[1] - L.x[0], L.y[1] - L.y[0]], base, L.z, { solid: true });
 /** extreme coordinate of a polygon's boundary along a scan line (e.g. the N edge at x = const) */
 function edgeAt(poly: Pt[], axis: 'x' | 'y', value: number, pick: 'max' | 'min'): number {
   const hits: number[] = [];
@@ -229,16 +262,20 @@ export function buildTerrace(): BuildResult {
   }
 
   // ---------------- Tachara ----------------
+  const SP = v<any>('global', 'r_stair_parapet'), SPt = T_('global', 'r_stair_parapet'), SPs = S_('global', 'r_stair_parapet');
   if (present('tachara')) {
     const b = 'tachara', f = footprint(b), [x0, , x1, y1] = f.bounds, fl = v(b, 'floor');
-    parts.push(prism(b, 'platform', 'limestone', 'B', srcOf(row(b, 'platform_footprint'), row(b, 'floor')), f.polygon.slice(0, -1) as Pt[], FOUND, fl, { solid: true }));
+    // the S stair runs along the S front inside the traced outline: the platform stops at the building front (Phase 4)
+    const Z = v<any>(b, 'stair_s_zone');
+    const plat = single(polyIntersection(f.polygon.slice(0, -1) as Pt[], rectPoly([x0 - 1, x1 + 1], [Z.y_building_front, y1 + 1])), 'tachara platform');
+    parts.push(prism(b, 'platform', 'limestone', 'B', srcOf(row(b, 'platform_footprint'), row(b, 'floor'), row(b, 'stair_s_zone')), plat, FOUND, fl, { solid: true }));
     const [, Lh] = v<number[]>(b, 'overall'); const bc: Pt = [(x0 + x1) / 2, y1 - Lh / 2];
     const [hx, hy] = v<number[]>(b, 'hall_size'), [ncx, ncy] = v<number[]>(b, 'hall_columns');
-    const hc: Pt = [bc[0], bc[1] + v(b, 'r_hall_offset_n')]; const wt = v(b, 'r_wall');
+    const hc: Pt = [bc[0], v(b, 'r_hall_centre_y')]; const wt = v(b, 'r_wall');
     const ord = order(b, { base: 'square2', capital: 'bull' });
-    const D = v<any>(b, 'r_doors');
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: 'RECON' }, hc[0], hc[1], hx, hy, wt, fl, fl + ord.height + v(b, 'r_wall_above_columns'),
-      [{ side: 'S', at: 0, width: D.S.width, height: D.S.height }, { side: 'N', at: 0, width: D.N.width, height: D.N.height }]).map(w => ({ ...w, solid: true })));
+    const DR = v<any[]>(b, 'doors'); const dS = DR.find(d => d.id === 'S_main'), dN = DR.find(d => d.id === 'N_pair');
+    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'doors'), row(b, 'r_hall_centre_y')) }, hc[0], hc[1], hx, hy, wt, fl, fl + ord.height + v(b, 'r_wall_above_columns'),
+      [{ side: 'S', at: dS.at[0] - hc[0], width: dS.width, height: dS.height }, ...dN.offsets_x.map((o: number) => ({ side: 'N' as const, at: o, width: dN.width, height: dN.height }))]).map(w => ({ ...w, solid: true })));
     const cols = grid(ncx, ncy, hc[0], hc[1], hx / ncx, hy / ncy);
     for (const p of cols) parts.push(col(b, p, fl, ord, 'C', srcOf(row(b, 'hall_columns'), row(b, 'hall_size'))));
     const [pcx, pcy] = v<number[]>(b, 'portico'); const pc: Pt = [hc[0], hc[1] - hy / 2 - wt - v(b, 'r_portico_gap')];
@@ -246,26 +283,72 @@ export function buildTerrace(): BuildResult {
     for (const p of pcols) parts.push(col(b, p, fl, ord, T_(b, 'portico'), S_(b, 'portico')));
     const RF = v<any>(b, 'r_roof');
     parts.push(box(b, 'roof', 'timber', 'C', 'RECON', [hc[0], hc[1] + RF.offset_n], [hx + 2 * wt, hy + 2 * wt + RF.extend_s], fl + ord.height, fl + ord.height + RF.thickness));
-    manifest.tachara = { hallColumns: cols.length, porticoColumns: pcols.length, floor: fl };
+    // S stairway (standing in 467: XPc on its central façade): two flights along the front rising to a central landing
+    let stairSteps = 0;
+    if (v<boolean>(b, 'stair_s_present_467')) {
+      const st = T_(b, 'stair_s_flights'), ss = srcOf(row(b, 'stair_s_flights'), row(b, 'stair_s_zone'));
+      for (const F of v<any[]>(b, 'stair_s_flights')) {
+        if (!isFlight(F)) { parts.push(landingBox(b, st, ss, F as any, FOUND)); continue; }
+        const fs = specFlight(b, st, ss, F, FOUND); parts.push(...fs); stairSteps += fs.length;
+        parts.push(...flightParapet(b, SPt, SPs, F, sideOf(F, [F.foot[0], Z.y_facade - 1]), SP.thickness, SP.height, 0, FOUND)); // outer (S) side
+      }
+    }
+    manifest.tachara = { hallColumns: cols.length, porticoColumns: pcols.length, floor: fl, stairSteps, hallCentreY: hc[1] };
   }
 
   // ---------------- Hadish ----------------
   if (present('hadish')) {
     const b = 'hadish', f = footprint(b), [x0, y0, x1, y1] = f.bounds, fl = v(b, 'floor');
-    parts.push(prism(b, 'platform', 'limestone', 'B', srcOf(row(b, 'platform_footprint'), row(b, 'floor')), f.polygon.slice(0, -1) as Pt[], FOUND, fl, { solid: true }));
-    const ia = v(b, 'r_interaxial'), [hnx, hny] = v<number[]>(b, 'hall_columns'), [pnx, pny] = v<number[]>(b, 'portico'), wt = v(b, 'r_wall');
-    const hc: Pt = [(x0 + x1) / 2, (y0 + y1) / 2 + v(b, 'r_hall_offset_n')];
-    const hs = (hnx + 1) * ia; // one-bay margins as in the Apadana (DERIVED from r_interaxial)
-    const ord = order(b, { base: 'plain', capital: 'bull' }); const D = v<any>(b, 'r_doors');
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: 'RECON' }, hc[0], hc[1], hs, hs, wt, fl, fl + ord.height + v(b, 'r_wall_above_columns'),
-      [...D.N_offsets.map((at: number) => ({ side: 'N' as const, at, width: D.width, height: D.height })), { side: 'S', at: 0, width: D.width, height: D.height }]).map(w => ({ ...w, solid: true })));
+    // platform = traced outline minus the two stair zones (W recessed inside the outline, E partly projecting beyond it)
+    const ZW = v<any>(b, 'stair_w_zone'), ZE = v<any>(b, 'stair_e_zone');
+    const cutW = rectPoly([Math.min(ZW.x[0], x0) - 1, ZW.x[1]], ZW.y), cutE = rectPoly([ZE.x[0], Math.max(ZE.x[1], x1) + 1], ZE.y);
+    const plat = single(polyDifference(f.polygon.slice(0, -1) as Pt[], cutW, cutE), 'hadish platform');
+    parts.push(prism(b, 'platform', 'limestone', 'B', srcOf(row(b, 'platform_footprint'), row(b, 'floor'), row(b, 'stair_w_zone'), row(b, 'stair_e_zone')), plat, FOUND, fl, { solid: true }));
+    // hall measured on both plans (~27 m, pitch 3.9; Q-P4-06 replaces the 38 m reconstruction)
+    const H = v<any>(b, 'hall'), hc = H.centre as Pt, hsx = H.interior_x[1] - H.interior_x[0], hsy = H.interior_y[1] - H.interior_y[0], ia = H.interaxial;
+    const [hnx, hny] = v<number[]>(b, 'hall_columns'), [pnx] = v<number[]>(b, 'portico'), wt = v(b, 'r_hall_wall');
+    const ord = order(b, { base: 'plain', capital: 'bull' });
+    const DR = v<any[]>(b, 'doors'), ds = srcOf(row(b, 'doors'), row(b, 'hall'));
+    const doors = DR.flatMap((d: any) => d.offsets_x_from_22 ? d.offsets_x_from_22.map((o: number) => ({ side: 'N' as const, at: o, width: d.width, height: d.height })) // offsets from the hall axis (x 22 = hall centre)
+      : [{ side: d.id as 'S' | 'E' | 'W', at: d.id === 'S' ? d.at[0] - hc[0] : d.at[1] - hc[1], width: d.width, height: d.height }]);
+    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: ds }, hc[0], hc[1], hsx, hsy, wt, fl, fl + ord.height + v(b, 'r_wall_above_columns'), doors).map(w => ({ ...w, solid: true })));
     const cols = grid(hnx, hny, hc[0], hc[1], ia);
-    for (const p of cols) parts.push(col(b, p, fl, ord, 'C', srcOf(row(b, 'hall_columns'), row(b, 'r_interaxial'))));
-    const pcols = grid(pnx, pny, hc[0], hc[1] + hs / 2 + wt + v(b, 'r_portico_gap'), ia, v(b, 'r_portico_row_spacing'));
-    for (const p of pcols) parts.push(col(b, p, fl, ord, 'C', S_(b, 'portico')));
+    for (const p of cols) parts.push(col(b, p, fl, ord, T_(b, 'hall'), srcOf(row(b, 'hall_columns'), row(b, 'hall'))));
+    const PL = v<any>(b, 'portico_layout'); const pcols: Pt[] = [];
+    for (const y of PL.rows_y) for (let i = 0; i < pnx; i++) pcols.push([PL.x[0] + i * (PL.x[1] - PL.x[0]) / (pnx - 1), y]);
+    for (const p of pcols) parts.push(col(b, p, fl, ord, T_(b, 'portico_layout'), srcOf(row(b, 'portico'), row(b, 'portico_layout'))));
     const RF = v<any>(b, 'r_roof');
-    parts.push(box(b, 'roof', 'timber', 'C', 'RECON', [hc[0], hc[1] + RF.offset_n], [hs + 2 * wt, hs + 2 * wt + RF.extend], fl + ord.height, fl + ord.height + v(b, 'r_wall_above_columns')));
-    manifest.hadish = { hallColumns: cols.length, porticoColumns: pcols.length, floor: fl };
+    parts.push(box(b, 'roof', 'timber', 'C', 'RECON', [hc[0], hc[1] + RF.offset_n], [hsx + 2 * wt, hsy + 2 * wt + RF.extend], fl + ord.height, fl + ord.height + v(b, 'r_wall_above_columns')));
+    // W and E stairs: double-reversed (lower flights rise outward from the centre in the outer lane, upper flights
+    // return inward to the top in the inner lane). Outer parapet with the foot steps open (entry from the court); the
+    // lane divider is a parapet as thick as the gap between the lanes.
+    let stairSteps = 0;
+    for (const key of ['stair_w_flights', 'stair_e_flights']) {
+      const st = T_(b, key), ss = srcOf(row(b, key), row(b, key === 'stair_w_flights' ? 'stair_w_zone' : 'stair_e_zone'));
+      const F = v<any[]>(b, key); const flights = F.filter(isFlight) as FlightRow[];
+      const lower = flights.filter(q => q.z0 === Math.min(...flights.map(r => r.z0))), upper = flights.filter(q => !lower.includes(q));
+      const centre = (q: FlightRow): Pt => [q.foot[0], q.foot[1]];
+      for (const L of F) if (!isFlight(L) && !String(L.id).includes('exit')) parts.push(landingBox(b, st, ss, L as any, FOUND)); // top exits lie on the platform
+      for (const q of lower) {
+        const fs = specFlight(b, st, ss, q, FOUND); parts.push(...fs); stairSteps += fs.length;
+        const inner = upper[0] ? centre(upper[0]) : hc; // the outer side is away from the inner lane
+        parts.push(...flightParapet(b, SPt, SPs, q, (-sideOf(q, inner)) as 1 | -1, SP.thickness, SP.height, SP.open_steps, FOUND));
+      }
+      const Z = v<any>(b, key === 'stair_w_flights' ? 'stair_w_zone' : 'stair_e_zone');
+      for (const q0 of upper) {
+        // the upper flight reaches the platform edge of the zone on its inner side (no slot between flight and platform)
+        const lo0 = lower[0], inner = Math.abs(Z.x[0] - lo0.foot[0]) > Math.abs(Z.x[1] - lo0.foot[0]) ? Z.x[0] : Z.x[1];
+        const edgeIn = q0.foot[0] + Math.sign(inner - q0.foot[0]) * q0.width / 2, gapIn = Math.abs(inner - edgeIn), sh = Math.sign(inner - q0.foot[0]) * gapIn / 2;
+        const q: FlightRow = { ...q0, width: q0.width + gapIn, foot: [q0.foot[0] + sh, q0.foot[1]], head: [q0.head[0] + sh, q0.head[1]] };
+        const fs = specFlight(b, st, ss, q, FOUND); parts.push(...fs); stairSteps += fs.length;
+        const lo = lower[0]; const lat = (p: FlightRow) => (flightDirOf(p) === 'N' || flightDirOf(p) === 'S') ? p.foot[0] : p.foot[1];
+        const gap = Math.max(SP.thickness, Math.abs(lat(q) - lat(lo)) - (q.width + lo.width) / 2);
+        const side = sideOf(q, centre(lo));
+        parts.push(...flightParapet(b, SPt, SPs, q, side, gap, SP.height, 0, FOUND)); // lane divider, flush with the upper flight
+      }
+    }
+    manifest.hadish = { hallColumns: cols.length, porticoColumns: pcols.length, floor: fl, hallInterior: hsx, stairSteps };
+    void y0; void y1;
   }
 
   // ---------------- Hall of a Hundred Columns (under construction) ----------------
@@ -277,34 +360,76 @@ export function buildTerrace(): BuildResult {
     parts.push(box(b, 'floor', 'limestone', 'C', S_(b, 'floor'), c, [x1 - x0, y1 - y0], FOUND, fl, { solid: true }));
     const ord = order(b, { base: 'bell', capital: 'bull' });
     const wallH = (ord.height + v(b, 'r_wall_top_above_columns')) / 3;
-    const nDoors = v(b, 'doors'); const perSide = nDoors / 4;
-    const doors = (['N', 'S', 'E', 'W'] as const).flatMap(side => Array.from({ length: perSide }, (_, k) => ({ side, at: (k - (perSide - 1) / 2) * hs / perSide, width: v(b, 'r_door_width'), height: Infinity })));
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: 'RECON' }, c[0], c[1], hs, hs, 0, fl, fl + wallH, doors, tx, ty).map(w => ({ ...w, solid: true, note: 'under construction: walls at ~1/3 height' })));
+    // eight doorways, two per wall on the aisles ±12.5 m from the centre (REF-PLAN / REF-SCHMIDT; Phase 4). Walls stand at
+    // a third of their height, below the door heads, so the openings run to the wall top.
+    const DR = v<any[]>(b, 'doors');
+    const doors = DR.map((d: any) => { const side = d.wall as 'N' | 'S' | 'E' | 'W'; return { side, at: side === 'N' || side === 'S' ? d.at[0] - c[0] : d.at[1] - c[1], width: d.width, height: Infinity }; });
+    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'doors'), row(b, 'construction_state')) }, c[0], c[1], hs, hs, 0, fl, fl + wallH, doors, tx, ty).map(w => ({ ...w, solid: true, note: 'under construction: walls at ~1/3 height' })));
     let raised = 0; const [nx, ny] = v<number[]>(b, 'hall_columns'); const pts = grid(nx, ny, c[0], c[1], ia);
     for (const p of pts) { const u = rng.next(); const built = u < CP.raised ? 1 : u < CP.raised + CP.partial ? CP.partial_min + CP.partial_span * rng.next() : 0; if (built === 1) raised++; parts.push(col(b, p, fl, ord, 'C', srcOf(row(b, 'construction_state'), row(b, 'interaxial')), built)); }
+    // N portico: floor between the antae towers out to the portico front (y ~27, REF-PLAN), a low step band down to the
+    // forecourt (C), two rows of column bases evenly spaced in its depth (shafts not yet raised)
+    const PX = v<any>(b, 'r_portico_extent'), PS = v<any>(b, 'r_portico_step'), tread = v(b, 'r_step_tread');
+    const depth = PX.front_y - y1, pxs = PS.x as [number, number];
+    parts.push(box(b, 'portico_floor', 'limestone', 'C', srcOf(row(b, 'r_portico_extent'), row(b, 'floor')), [(pxs[0] + pxs[1]) / 2, y1 + depth / 2], [pxs[1] - pxs[0], depth], FOUND, fl, { solid: true }));
+    for (const [tx0, tx1] of PX.towers_x as [number, number][]) parts.push(box(b, 'tower', 'mudbrick', 'C', S_(b, 'r_portico_extent'), [(tx0 + tx1) / 2, y1 + depth / 2], [tx1 - tx0, depth], FOUND, fl + wallH, { solid: true, note: 'portico anta tower, under construction (C)' }));
+    parts.push(...flight(b, 'C', S_(b, 'r_portico_step'), [(pxs[0] + pxs[1]) / 2, PX.front_y + PS.steps * tread], 'S', PS.steps, fl / PS.steps, tread, pxs[1] - pxs[0], 0, FOUND));
     const [pnx, pny] = v<number[]>(b, 'portico');
-    const por = grid(pnx, pny, c[0], y1 + v(b, 'r_portico_gap'), ia, v(b, 'r_portico_row_spacing'));
-    for (const p of por) parts.push(col(b, p, fl, ord, 'C', S_(b, 'portico'), 0));
-    manifest.hall100 = { columns: pts.length, porticoColumns: por.length, raised, interaxial: ia, hallInterior: hs, columnHeight: ord.height };
+    const por = grid(pnx, pny, c[0], y1 + depth / 2, ia, depth / pny);
+    for (const p of por) parts.push(col(b, p, fl, ord, 'C', srcOf(row(b, 'portico'), row(b, 'r_portico_extent')), 0));
+    // threshold steps outside the W, E and S doorways (the floor is raised above the court)
+    const nT = v(b, 'r_threshold_steps');
+    for (const d of DR as any[]) {
+      if (d.wall === 'N') continue;
+      const [start, dir]: [Pt, 'N' | 'S' | 'E' | 'W'] = d.wall === 'W' ? [[x0 - nT * tread, d.at[1]], 'E'] : d.wall === 'E' ? [[x1 + nT * tread, d.at[1]], 'W'] : [[d.at[0], y0 - nT * tread], 'N'];
+      parts.push(...flight(b, 'C', S_(b, 'r_threshold_steps'), start, dir, nT, fl / nT, tread, d.width, 0, FOUND));
+    }
+    manifest.hall100 = { columns: pts.length, porticoColumns: por.length, raised, interaxial: ia, hallInterior: hs, columnHeight: ord.height, doors: DR.length };
   }
 
   // ---------------- Tripylon (under construction) ----------------
   if (present('tripylon')) {
     const b = 'tripylon', f = footprint(b), [x0, y0, x1, y1] = f.bounds, fl = v(b, 'floor');
-    parts.push(prism(b, 'platform', 'limestone', 'B', S_(b, 'floor'), f.polygon.slice(0, -1) as Pt[], FOUND, fl, { solid: true }));
-    const c: Pt = [(x0 + x1) / 2, (y0 + y1) / 2]; const ord = order(b, { base: 'bell', capital: 'bull' });
-    const hall = v(b, 'r_hall'), dw = v(b, 'r_door_width');
-    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: 'RECON' }, c[0], c[1], hall, hall, v(b, 'r_wall'), fl, fl + ord.height * v(b, 'r_wall_fraction_built'),
-      (['N', 'E', 'S'] as const).map(side => ({ side, at: 0, width: dw, height: Infinity }))).map(w => ({ ...w, solid: true, note: 'under construction' })));
-    const [nx, ny] = v<number[]>(b, 'hall_columns');
-    for (const p of grid(nx, ny, c[0], c[1], v(b, 'r_interaxial'))) parts.push(col(b, p, fl, ord, 'C', 'RECON', v(b, 'r_column_built')));
-    manifest.tripylon = { columns: nx * ny, floor: fl };
+    // platform: traced core + the N portico and stair-head terrace, the small S court, and the E corridor with the landing
+    // at the head of the narrow E stair (all at floor level; Phase 4, PHASE4_ACCESS §5)
+    const NZ = v<any>(b, 'stair_n_zone'), NF = v<any[]>(b, 'stair_n_flights'), UT = NF.find((q: any) => q.id === 'upper_terrace');
+    const SC = v<any>(b, 's_portico_court'), EC = v<any>(b, 'r_e_corridor'), EN = v<any>(b, 'stair_e_narrow');
+    const plat = single(polyUnion(f.polygon.slice(0, -1) as Pt[], rectPoly(NZ.x, [y1 - 1, UT.y[1]]), rectPoly(SC.court.x, [SC.court.y[0], y0 + 1]),
+      rectPoly([x1 - 1, EC.x[1]], EC.y), rectPoly(EN.x, EC.landing_y)), 'tripylon platform');
+    parts.push(prism(b, 'platform', 'limestone', 'B', srcOf(row(b, 'floor'), row(b, 'stair_n_zone'), row(b, 's_portico_court'), row(b, 'r_e_corridor')), plat, FOUND, fl, { solid: true }));
+    const H = v<any>(b, 'hall'), c = H.centre as Pt, hall = H.side; const ord = order(b, { base: 'bell', capital: 'bull' });
+    const DR = v<any[]>(b, 'doors');
+    const doors = DR.map((d: any) => ({ side: d.id as 'N' | 'E' | 'S', at: d.id === 'E' ? d.at[1] - c[1] : d.at[0] - c[0], width: d.width, height: Infinity }));
+    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'hall'), row(b, 'doors')) }, c[0], c[1], hall, hall, v(b, 'r_wall'), fl, fl + ord.height * v(b, 'r_wall_fraction_built'), doors).map(w => ({ ...w, solid: true, note: 'under construction' })));
+    const [nx, ny] = v<number[]>(b, 'hall_columns'); const built = v(b, 'r_column_built');
+    for (const p of grid(nx, ny, c[0], c[1], v(b, 'r_interaxial'))) parts.push(col(b, p, fl, ord, 'C', 'RECON', built));
+    // two-column porticoes N and S of the hall (N read on the plan; S mirrored, C)
+    const NP = v<any>(b, 'r_n_portico');
+    for (const x of NP.x) { parts.push(col(b, [x, NP.y], fl, ord, T_(b, 'r_n_portico'), S_(b, 'r_n_portico'), built)); parts.push(col(b, [x, SC.portico_columns_y], fl, ord, 'C', S_(b, 's_portico_court'), built)); }
+    // N stair: two flights rising toward a projecting central landing; outer parapet on the N side
+    let stairSteps = 0; const nt = T_(b, 'stair_n_flights'), ns = srcOf(row(b, 'stair_n_flights'), row(b, 'stair_n_zone'));
+    for (const F of NF) {
+      if (!isFlight(F)) { if (F.id !== 'upper_terrace') parts.push(landingBox(b, nt, ns, F as any, FOUND)); continue; } // the terrace is part of the platform
+      const fs = specFlight(b, nt, ns, F, FOUND); parts.push(...fs); stairSteps += fs.length;
+      parts.push(...flightParapet(b, SPt, SPs, F, sideOf(F, [F.foot[0], NZ.y[1] + 1]), SP.thickness, SP.height, 0, FOUND));
+    }
+    // small S stair from the S court down to the area E of the Hadish (C) and the narrow E stair up to the E corridor
+    const SS = v<any>(b, 'r_stair_s_flight');
+    const sF: FlightRow = { id: 'S', foot: [SS.x, SS.top_y - SS.steps * SS.tread], head: [SS.x, SS.top_y], z0: 0, z1: SS.steps * SS.riser, steps: SS.steps, tread: SS.tread, width: SS.width };
+    parts.push(...specFlight(b, 'C', S_(b, 'r_stair_s_flight'), sF, FOUND)); stairSteps += SS.steps;
+    for (const sd of [1, -1] as const) parts.push(...flightParapet(b, SPt, SPs, sF, sd, SP.thickness, SP.height, 0, FOUND));
+    const z0 = v(b, 'r_stair_e_start_level'), dirS = Math.sign(EN.head[1] - EN.foot[1]);
+    const eF: FlightRow = { id: 'E', foot: EN.foot, head: [EN.foot[0], EN.foot[1] + dirS * EN.steps * EN.tread], z0, z1: fl, steps: EN.steps, tread: EN.tread, width: EN.x[1] - EN.x[0] };
+    parts.push(...specFlight(b, T_(b, 'stair_e_narrow'), srcOf(row(b, 'stair_e_narrow'), row(b, 'r_stair_e_start_level')), eF, FOUND)); stairSteps += EN.steps;
+    for (const sd of [1, -1] as const) parts.push(...flightParapet(b, SPt, SPs, eF, sd, SP.thickness, SP.height, 0, FOUND));
+    manifest.tripylon = { columns: nx * ny, floor: fl, hallInterior: hall, stairSteps, doors: DR.length };
   }
 
   // ---------------- Treasury, Harem, Garrison (perimeter walls + key halls; C interiors) ----------------
-  /** enclosure walls along a footprint; `doors` (r_doors rows: grid point + width) cut gaps in the nearest wall run */
-  const perimeter = (b: string, fkey: string, fl: number, wallT: number, wallH: number, note: string, doors: { at: Pt; width: number }[] = []) => {
-    const poly = footprint(fkey).polygon.slice(0, -1) as Pt[]; const sg = ringSign(poly);
+  /** enclosure walls along an outline; `doors` (grid point + width) cut gaps in the nearest wall run; `steps` puts a short
+   *  flight outside each gap, down from the raised floor to the court */
+  const perimeter = (b: string, poly: Pt[], fl: number, wallT: number, wallH: number, note: string, doors: { at: Pt; width: number }[] = [], steps?: { n: number; tread: number; t: Tier; s: string }) => {
+    const sg = ringSign(poly);
     parts.push(prism(b, 'floor', 'earth', 'B', 'OSM', poly, FOUND, fl, { solid: true }));
     for (let i = 0; i < poly.length; i++) {
       const a = poly[i], c2 = poly[(i + 1) % poly.length], len = Math.hypot(c2[0] - a[0], c2[1] - a[1]); if (len < wallT / 2) continue;
@@ -317,28 +442,52 @@ export function buildTerrace(): BuildResult {
       runs.push([s0, len]);
       for (const [r0, r1] of runs) { if (r1 - r0 < wallT / 2) continue; const m = (r0 + r1) / 2;
         parts.push({ ...box(b, 'wall', 'mudbrick', 'C', 'RECON', [a[0] + ux * m + sg * nx * wallT / 2, a[1] + uy * m + sg * ny * wallT / 2], [r1 - r0, wallT], fl, fl + wallH, { solid: true, note }), rot: Math.atan2(uy, ux) }); }
+      if (steps && fl > 0) for (const g of gaps) { // outward = −(inward normal)
+        const ox = -sg * nx, oy = -sg * ny, run = steps.n * steps.tread, ex: Pt = [a[0] + ux * g.s + ox * run, a[1] + uy * g.s + oy * run];
+        parts.push(...flightAlong(b, steps.t, steps.s, ex, [-ox, -oy], steps.n, fl / steps.n, steps.tread, g.w, 0, FOUND));
+      }
     }
   };
+  const fpRing = (k: string) => footprint(k).polygon.slice(0, -1) as Pt[];
   if (present('treasury')) {
     const b = 'treasury', fl = v(b, 'floor') + v(b, 'r_floor_raise'), W = v<any>(b, 'r_wall');
-    perimeter(b, 'treasury', fl, W.thickness, W.height, 'Treasury enclosure (C thickness/height); single NE entrance (C)', v<any>(b, 'r_doors'));
+    // the traced N edge includes the ~12 m street S of the Hall of 100 Columns: the N wall stands at y −78 (both plans)
+    const [bx0, by0, bx1] = footprint(b).bounds;
+    const poly = single(polyIntersection(fpRing(b), rectPoly([bx0 - 1, bx1 + 1], [by0 - 1, v(b, 'r_north_wall_y')])), 'treasury outline');
+    const DR = v<any[]>(b, 'doors');
+    perimeter(b, poly, fl, W.thickness, W.height, 'Treasury enclosure (C thickness/height); N and E doorways (REF-PLAN, C)', DR);
     const [x0, y0, x1, y1] = footprint(b).bounds;
     const ord = order(b, { base: 'square2', capital: 'plain', material: 'timber' });
     const [gx, gy] = v<number[]>(b, 'r_hall99_grid');
     const pts = grid(gx, gy, (x0 + x1) / 2, (y0 + y1) / 2 + v(b, 'r_hall99_offset_n'), v(b, 'r_hall99_spacing'));
     for (const p of pts) parts.push(col(b, p, fl, ord, 'C', S_(b, 'hall99')));
-    manifest.treasury = { hall99Columns: pts.length, columnHeight: ord.height };
+    manifest.treasury = { hall99Columns: pts.length, columnHeight: ord.height, northWallY: Math.max(...poly.map(q => q[1])), doors: DR.length };
   }
   if (present('harem')) {
-    const b = 'harem', fl = v(b, 'floor'), W = v<any>(b, 'r_wall'); perimeter(b, 'harem', fl, W.thickness, W.height, 'Harem enclosure (C)');
-    const [x0, y0, x1, y1] = footprint(v<string>(b, 'r_main_wing_footprint')).bounds;
-    const c: Pt = [(x0 + x1) / 2, (y0 + y1) / 2]; const ord = order(b, { base: 'bell', capital: 'bull' }); const ia = v(b, 'r_interaxial');
-    const [hnx, hny] = v<number[]>(b, 'hall_columns'), [pnx, pny] = v<number[]>(b, 'portico');
-    const hall = grid(hnx, hny, c[0], c[1] + v(b, 'r_hall_offset_n'), ia); for (const p of hall) parts.push(col(b, p, fl, ord, 'C', S_(b, 'hall_columns')));
-    const por = grid(pnx, pny, c[0], c[1] - v(b, 'r_portico_offset_s'), ia, v(b, 'r_portico_row_spacing')); for (const p of por) parts.push(col(b, p, fl, ord, 'C', S_(b, 'portico')));
-    manifest.harem = { hallColumns: hall.length, porticoColumns: por.length };
+    const b = 'harem', fl = v(b, 'floor'), W = v<any>(b, 'r_wall');
+    // the main wing runs N of the modern museum footprint to y ~−73 (both plans): enclosure = traced outline ∪ wing extent
+    const MW = v<any>(b, 'r_main_wing_extent');
+    const poly = single(polyUnion(fpRing(b), rectPoly(MW.x, MW.y)), 'harem outline');
+    const ES = v<any>(b, 'r_entrance_steps');
+    perimeter(b, poly, fl, W.thickness, W.height, 'Harem enclosure (C)', (v<any[]>(b, 'r_entrances')).map(e => ({ at: e.at, width: v(b, 'r_entrance_width') })),
+      { n: ES.steps, tread: ES.tread, t: T_(b, 'r_entrance_steps'), s: S_(b, 'r_entrance_steps') });
+    // main hall (12 columns, 3 × 4) with its four doorways, and the 8-column portico facing the N court
+    const HL = v<any>(b, 'hall'), hc: Pt = [(HL.interior_x[0] + HL.interior_x[1]) / 2, (HL.interior_y[0] + HL.interior_y[1]) / 2];
+    const hx = HL.interior_x[1] - HL.interior_x[0], hy = HL.interior_y[1] - HL.interior_y[0];
+    const ord = order(b, { base: 'bell', capital: 'bull' }); const ia = v(b, 'r_interaxial');
+    const DR = v<any[]>(b, 'doors');
+    const doors = DR.map((d: any) => ({ side: d.id as 'N' | 'S' | 'E' | 'W', at: d.id === 'N' || d.id === 'S' ? d.at[0] - hc[0] : d.at[1] - hc[1], width: d.width, height: v(b, 'r_door_height') }));
+    parts.push(...wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'hall'), row(b, 'doors')) }, hc[0], hc[1], hx, hy, v(b, 'r_hall_wall'), fl, fl + W.height, doors).map(w => ({ ...w, solid: true })));
+    const [hnx, hny] = v<number[]>(b, 'hall_columns'), [pnx] = v<number[]>(b, 'portico');
+    const hall = grid(hnx, hny, hc[0], hc[1], ia); for (const p of hall) parts.push(col(b, p, fl, ord, T_(b, 'hall'), srcOf(row(b, 'hall_columns'), row(b, 'hall'))));
+    const PL = v<any>(b, 'portico_layout'); const por: Pt[] = [];
+    for (const y of v<number[]>(b, 'r_portico_rows_y')) for (let i = 0; i < pnx; i++) por.push([(PL.x[0] + PL.x[1]) / 2 + (i - (pnx - 1) / 2) * ia, y]);
+    for (const p of por) parts.push(col(b, p, fl, ord, 'C', srcOf(row(b, 'portico'), row(b, 'portico_layout'))));
+    const hw = v(b, 'r_hall_wall');
+    parts.push(box(b, 'roof', 'timber', 'C', 'RECON', [hc[0], (hc[1] - hy / 2 - hw + PL.front_y) / 2], [hx + 2 * hw, PL.front_y - (hc[1] - hy / 2 - hw)], fl + ord.height, fl + ord.height + hw / 2, { note: 'roof over the main hall and portico (C)' }));
+    manifest.harem = { hallColumns: hall.length, porticoColumns: por.length, northEdge: Math.max(...poly.map(q => q[1])) };
   }
-  if (present('garrison')) { const W = v<any>('garrison', 'r_wall'); perimeter('garrison', 'garrison', v('garrison', 'floor') + v('garrison', 'r_floor_raise'), W.thickness, W.height, 'garrison quarters (C)', v<any>('garrison', 'r_doors')); }
+  if (present('garrison')) { const W = v<any>('garrison', 'r_wall'); perimeter('garrison', fpRing('garrison'), v('garrison', 'floor') + v('garrison', 'r_floor_raise'), W.thickness, W.height, 'garrison quarters (C)', v<any>('garrison', 'r_doors')); }
 
   // ---------------- East fortification (mud brick) ----------------
   if (present('fortification_e')) {

@@ -12,3 +12,4 @@
 | Player body | procedural placeholder | project | — | C (placeholder) |
 | All sounds (wind, rain, thunder, birds, jackals, crickets, fire, chisels, footsteps) | procedural Web Audio synthesis (src/audio) | project (no recordings) | — | species B/C (research/SOUNDSCAPE.md); sound design C |
 | Reverb impulse responses | generated from room dimensions (Sabine RT60) | project | — | C |
+| SSGI node, patched (src/render/ssgi.ts) | three.js r186 examples/jsm/tsl/display/SSGINode.js; sky samples skipped, reversed-Z sky test (D-012) | MIT | three.js authors | — |

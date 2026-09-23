@@ -78,7 +78,7 @@ async function boot() {
     const csm = new CSMShadowNode(sky.sun, { cascades: 4, maxFar: 600, mode: 'practical', lightMargin: 200 });
     (sky.sun.shadow as any).shadowNode = csm; sky.sun.shadow.mapSize.set(Q.shadowMapSize / 2, Q.shadowMapSize / 2);
   }
-  const pipeline = new Pipeline(renderer, scene, camera, settings.quality);
+  const pipeline = new Pipeline(renderer, scene, camera, settings.quality, sky.hemi);
   shell.loading('Raising the Terrace…');
   const phys = await Physics.create();
   const world: WorldBuild = await buildWorld(scene, phys, terrain, settings, weather, SEED);
@@ -143,6 +143,8 @@ async function boot() {
       const still = P.sim.agents.filter((a: any) => !a.offmap && !a.walking).map((a: any) => a.pos); return P.nav.findPathAvoiding(from, to, still, 0.9); },
     address: () => world.address?.(camera) ?? null,
     resetFalls: () => { player.maxFall = 0; },
+    /** post debug view (high/ultra): 0 composite, 1 scene pass only, 2 AO, 3 GI bounce */
+    debugView: (n: number) => { pipeline.debugView.value = n; },
     exposureInfo: () => ({ exposure: renderer.toneMappingExposure, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],
     /** people: summary rows (out-of-world; for tests and the dev overlay) */

@@ -178,5 +178,45 @@
   "cite": "AWS Terrain Tiles (Tilezen terrarium, SRTM-derived)",
   "url": "s3://elevation-tiles-prod",
   "access": "downloaded (39 check points)"
+ },
+ "REF-PLAN": {
+  "cite": "references/Persepolis Plan.webp (user-supplied colour plan, redrawn from Schmidt; provenance uncertain) registered to the grid by tools/plan_check.py",
+  "url": "references/Persepolis Plan.webp",
+  "access": "measured in this project (research/PHASE4_ACCESS.md); ~2.1 px/m; not redistributed"
+ },
+ "REF-SCHMIDT": {
+  "cite": "references/palace-of-darius-i-and-xerxes.webp (black-and-white Schmidt-style Terrace plan, legend A-P, 100 m bar)",
+  "url": "references/palace-of-darius-i-and-xerxes.webp",
+  "access": "measured in this project; ~1.85 px/m; cross-check only"
+ },
+ "SI-ARCH": {
+  "cite": "Smithsonian NMAA Archives: Ernst Herzfeld Papers (FSA.A.06) and Myron Bement Smith Collection (FSA.A.04), Persepolis photograph captions (excavation-era titles), incl. DPLA mirrors",
+  "url": "https://www.si.edu/object/archives/components/sova-fsa-a-06-ref27137",
+  "access": "search-extract only (titles); si.edu and dp.la blocked"
+ },
+ "FARROKH": {
+  "cite": "K. Farrokh, pages 'The Palace of Xerxes (the Hadis)' and 'The Tachara (Winter Palace) of Persepolis' (reproduce Encyclopaedia Iranica 'Persepolis' text)",
+  "url": "https://www.kavehfarrokh.com/ancient-prehistory-651-a-d/achaemenids/the-palace-of-xerxes-the-hadis/",
+  "access": "search-extract only; host blocked"
+ },
+ "COMMONS-TRIP": {
+  "cite": "Wikimedia Commons, Category 'Staircase - Persepolis - Tripylon - 5th century BC - National museum of Iran - Inventory number 2012' (description)",
+  "url": "https://commons.wikimedia.org/wiki/Category:Staircase_-_Persepolis_-_Tripylon_-_5th_century_BC_-_National_museum_of_Iran_-_Inventory_number_2012",
+  "access": "search-extract only (tertiary)"
+ },
+ "BRIT-H100": {
+  "cite": "Encyclopaedia Britannica, 'Hall of the Hundred Columns'",
+  "url": "https://www.britannica.com/place/Hall-of-the-Hundred-Columns",
+  "access": "search-extract only (tertiary)"
+ },
+ "SG-H100": {
+  "cite": "StudyGuides.com, 'Hall of One Hundred Columns' ('two meters below the Apadana platform')",
+  "url": "https://studyguides.com/",
+  "access": "search-extract only; weak tertiary - C at most"
+ },
+ "IRANTOUR-TREAS": {
+  "cite": "irantour.tours, 'Persepolis The Treasury' (paraphrase of Schmidt's Treasury phases)",
+  "url": "https://www.irantour.tours/iran-cities/shiraz/shiraz-historical-sites/persepolis-the-treasury.html/",
+  "access": "search-extract only; tertiary; verify against Schmidt 1939/1953"
  }
 }

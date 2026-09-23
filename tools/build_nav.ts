@@ -56,11 +56,14 @@ for (let j = 0; j < h - 1; j++) for (let i = 0; i < w - 1; i++) {
     const g0 = H[k], g1 = H[kk]; const ok = Math.abs(g1 - g0) <= maxStep && !blocked(cx(i), cy(j), g0 + knee, cx(ii), cy(jj), g1 + knee) && !blocked(cx(i), cy(j), g0 + head, cx(ii), cy(jj), g1 + head);
     rays += 2; if (!ok) { wallSide[k] = 1; wallSide[kk] = 1; } }
 }
-// erode by one cell (8-neighbourhood) for body clearance
+// erode by one cell (4-neighbourhood) for body clearance
 const out = new Int16Array(w * h).fill(NAV.blocked); let walk = 0;
 for (let j = 1; j < h - 1; j++) for (let i = 1; i < w - 1; i++) {
   const k = idx(i, j); if (Number.isNaN(H[k]) || wallSide[k]) continue;
-  let ok = true; for (let dj = -1; dj <= 1 && ok; dj++) for (let di = -1; di <= 1; di++) if (Number.isNaN(H[idx(i + di, j + dj)])) { ok = false; break; }
+  // 4-neighbour erosion: a kept cell has no blocked edge-neighbour, so its centre is ≥ 0.35 m (half a cell diagonal) from
+  // anything that blocks a neighbour: more than the 0.25 m body radius of the player and the people. (8-neighbour
+  // erosion kept ≥ 0.5 m and sealed real gaps of ~1.2 m, e.g. between the Tachara S doorway and the first hall column.)
+  let ok = true; for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (Number.isNaN(H[idx(i + di, j + dj)])) { ok = false; break; }
   if (ok) { out[k] = Math.round(H[k] * 100); walk++; }
 }
 // legal moves between neighbouring walkable cells (bit 0 = to the east neighbour, bit 1 = to the north neighbour):
