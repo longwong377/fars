@@ -1073,3 +1073,54 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - ambient_ratio is the probe's ambient irradiance (sky and bounces, averaged over up and the four horizontal directions) relative to open ground, and A_open is that open-field ambient;
   - `sunlit` is one ray toward the sun against the same parts, built once in the browser (about 50 ms).
 - A first version returned the ambient ratio alone. Under the Apadana N portico that is 0.098 against an eye illuminance of 0.023, so it would have lowered the exposure there by 0.64× compared with the old estimate.
+- **Frozen test renders** now re-evaluate the adaptation every frame (`|| TEST` on the same line). With `dt = 0` the 0.25 s timer never fired, so every moment kept the first frame's value, the spawn on the plain (`skyVis` 1). **The session-3 interior moments were exposed for outdoors:** `moments-lum.json` records 0.743 for apadana-enter and hadish-hall.
+
+## D-114 — Interior light measured; the roof shadow leak; what remains (session 3)
+- **Roof shadows:** three renders a FrontSide material's back faces into the shadow map, which for a roof slab is its underside.
+  - Capital tops and wall heads touching the ceiling lay within the depth bias (−0.0004 of a cascade several hundred metres deep, about 0.3 m) and received direct sun inside the halls. The bright skylight used to hide this.
+  - Measured: Hadish capital crest sRGB 168 → 9 at the what-if exposure; Apadana crests 32 → 0 at the formula's exposure.
+  - Fix: the merged roof meshes (the only parts in their merge groups) use a clone of their material with `shadowSide = FrontSide` (`meshes.ts`). No draw calls are added. The roof's own top can now self-shadow; `normalBias` 0.05 covers it (not seen in a render).
+- **Measured renders** (high, WebGPU, SwiftShader, `tests/e2e/probes.spec.ts`, day 25 11:00, the moments' cameras; sRGB from `tools/dev/px.mjs`). Before = session-3 moment shots at exposure 0.743; after = probes at the formula's exposure, with the what-if in brackets:
+
+  | View | Point | Before | After (what-if) |
+  |---|---|---|---|
+  | Apadana entry (N portico) | exposure | 0.743 | 4.34, eye 2.4 % (29.5) |
+  | | portico wall | 46 | 65 (152) |
+  | | portico floor | 38 | 23 (93) |
+  | | hall columns 10–20 m in | 24–25 | 0 (2–4) |
+  | | hall floor inside the doorway | 24 (red) | 1 (23) |
+  | | ceiling | 1 | 0 (0) |
+  | | frame mean | 31.1 | 33.4 (97.3) |
+  | Hadish hall | exposure | 0.744 | 4.87, eye 0.18 % (60) |
+  | | near columns | 27 | 0 (29) |
+  | | mid columns | 22 | 0–1 (16–33) |
+  | | ceiling | 1 | 0 (8) |
+  | | floor | 35 | 1 (33) |
+  | | S doorway | 150–175 | 224–241 (255) |
+  | | frame mean | 19 | 1.6 (14.7) |
+  | Apadana hall centre (new view) | exposure | — | 4.90, eye 0.08 % (60) |
+  | | everything but the far doorway | — | 0 |
+  | | columns | — | 0 (8–27) |
+  | | far doorway | — | 5 (77) |
+
+  - Every doorway is brighter than the hall around it.
+- **Acceptance "luma ≥ 25 on the Apadana columns 10–20 m in, seen from the N portico": NOT MET** (B10).
+  - The hall's light is 0.005–1 % of open ground, the portico's 2.4 % at the eye. At the what-if exposure the portico wall reaches 152 while the columns reach 2–4.
+  - The earlier 24–25 came from the unoccluded skylight at an outdoor exposure.
+- **Three approaches measured:**
+  1. Probes with the adaptation formula: halls near black.
+  2. The calibrated dome's radiance for the sky through openings (D-111): 0.78–0.91× through the N doorway. Rejected.
+  3. A what-if exposure without the formula's 15 % floor (test-only override): the Hadish reads; the Apadana from its portico does not.
+
+  The probes ship as the most faithful. How the eye adapts is Q-153 (for the exposure rework); how the Apadana hall was lit is Q-150.
+- **Frame cost:**
+  - No draw calls added: 541 / 374 / 517 draws for the three views, 71 textures.
+  - One RGBA16F texture of 879 × 237 texels, 1.67 MB.
+  - Per lit fragment: 6 bilinear fetches plus about 20 ALU ops per volume. The composite does the same once per pixel, plus a depth-to-world reconstruction. The AO target grows from R8 to RG8.
+  - SwiftShader frame times are not meaningful. Real hardware: REAL_HARDWARE_TODO.
+- **Not covered:**
+  - town houses (no volumes; their roofed rooms keep the skylight with the SSGI AO);
+  - the Tripylon, the Hall of 100 Columns and the garrison (no roofs as built);
+  - rooms of the Treasury other than the Hall of 99 Columns (not roofed in the model);
+  - doors closed at night (the bake uses the walkable-grid pose);
+  - the people, props and reliefs as occluders.
