@@ -99,7 +99,7 @@ describe('houses of the built settlement (town_plots.json; D-081)', () => {
 describe('activities', () => {
   it('every emitted activity is performable; the abstract-only placeholders are listed and flagged, never emitted', () => {
     for (const id of PeopleSim.EMITS) expect(ACTIVITIES[id].placeholder ?? false, id).toBe(false);
-    expect([...ABSTRACT_PLACEHOLDERS].sort()).toEqual(['brew', 'carry_bier', 'clean', 'craft', 'dig_canal', 'field_work', 'garden_work', 'gather', 'haul', 'herd', 'irrigate', 'lay_brick', 'mould_brick', 'offer', 'pick_fruit', 'plough', 'polish_metal', 'reap', 'shear', 'slaughter', 'spin', 'tend_animals', 'thresh', 'train', 'wash', 'weave', 'work_wood']);
+    expect([...ABSTRACT_PLACEHOLDERS].sort()).toEqual(['brew', 'carry_bier', 'clean', 'cook', 'craft', 'dig_canal', 'field_work', 'garden_work', 'gather', 'haul', 'herd', 'irrigate', 'lay_brick', 'mould_brick', 'offer', 'pick_fruit', 'plough', 'polish_metal', 'reap', 'shear', 'slaughter', 'spin', 'tend_animals', 'thresh', 'train', 'wash', 'weave', 'work_wood']);
     for (const id of ABSTRACT_PLACEHOLDERS) { expect(ACTIVITIES[id].placeholder).toBe(true); expect(ACTIVITIES[id].note).toMatch(/PLACEHOLDER/); expect(PeopleSim.EMITS).not.toContain(id); }
   });
   it('the generated Hall of 100 Columns places are on walkable ground', () => {

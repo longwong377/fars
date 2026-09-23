@@ -19,7 +19,7 @@ export type ActivityId =
   | 'queue' | 'exchange' | 'lie_ill'
   // abstract-tier only, no performance yet (placeholders)
   | 'haul' | 'mould_brick' | 'lay_brick' | 'polish_metal' | 'work_wood' | 'weave' | 'spin' | 'gather' | 'brew' | 'tend_animals' | 'herd' | 'shear' | 'slaughter'
-  | 'offer' | 'clean' | 'garden_work' | 'field_work' | 'irrigate' | 'plough' | 'reap' | 'thresh' | 'dig_canal' | 'pick_fruit' | 'craft' | 'carry_bier' | 'wash' | 'train';
+  | 'offer' | 'clean' | 'garden_work' | 'field_work' | 'irrigate' | 'plough' | 'reap' | 'thresh' | 'dig_canal' | 'pick_fruit' | 'craft' | 'carry_bier' | 'wash' | 'train' | 'cook';
 
 export interface Performance {
   anim: AnimId; moving?: boolean;
@@ -88,7 +88,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   craft: PH('kiln firing, pigment making and bone working in the Persepolis West craft zone (PW2017, B)'),
   carry_bier: PH('carrying the dead out of the settlement (E-71; HDT 1.140). Exposure is never shown'),
   wash: PH('washing and dyeing wool and cloth at the water (C)'),
-  train: PH('Persian boys learning to ride and to shoot with the bow (HDT 1.136, a Greek claim: B)'),
+  train: PH('boys of households of standing learning to ride and to shoot with the bow (HDT 1.136, a Greek claim: B; XEN-CYR 1.2.15; Q-146)'),
+  cook: PH('lighting the hearth fire at dusk and warming the evening meal (§9.2 "fires are lit at dusk"; C)'),
 };
 /** the abstract-only placeholders, by name (tests pin this list) */
 export const ABSTRACT_PLACEHOLDERS = (Object.keys(ACTIVITIES) as ActivityId[]).filter(k => ACTIVITIES[k].abstractOnly);
