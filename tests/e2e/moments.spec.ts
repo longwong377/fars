@@ -48,8 +48,8 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'tachara-s-stair', day: 25, hour: 15.5, w: 'clear', v: [-21, -112, 1.6, 341, 6] },
   // inside the Tachara hall, in the W aisle, looking SW at the doorway into the W2 room: its S reveal carries a
   // lance-bearer with a wicker shield (D-132); the W1 doorway and the hall niches are to the right
-  { n: 'tachara-lance-bearers', day: 25, hour: 15.5, w: 'clear', v: [-27.8, -81.9, 1.6, 219, 6], fov: IN }, // from the hall into the W doorway (S), the lance-bearer on its S jamb (reframed session 4: the old view missed the reliefs)
-  { n: 'tachara-lance-bearer-close', day: 25, hour: 15.5, w: 'clear', v: [-30.25, -82.25, 1.6, 161, 12], fov: IN }, // inside the passage, 1.2 m from the S jamb's relief
+  { n: 'tachara-lance-bearers', day: 25, hour: 15.5, w: 'clear', v: [-25.5, -80.5, 1.6, 225, 5], fov: IN }, // from the hall, 5 m E of the W2 doorway (x −30.25, y −83.45…−82.15): its frame, the folded leaves and the jambs' reliefs (reframed again in session 4: at 46° the old spot saw only the leaves)
+  { n: 'tachara-lance-bearer-close', day: 25, hour: 15.5, w: 'clear', v: [-28.8, -82.0, 1.6, 206, -10], fov: IN }, // at the hall end of the W2 passage, looking SW at the S jamb's reveal and its lance-bearer (the old spot, mid-passage, rendered black)
   { n: 'hadish-hall', day: 25, hour: 11, w: 'clear', v: [22, -150, 1.6, 161, 2], fov: IN },
   { n: 'hall100-site', day: 25, hour: 9.5, w: 'clear', v: [146, 45, 1.6, 161, 4] },
   { n: 'tripylon-n-stair', day: 25, hour: 16, w: 'clear', v: [82, -38, 1.6, 161, 6] },
