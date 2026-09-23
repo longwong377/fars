@@ -1694,7 +1694,7 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
     - work objects: 287 in 27 draws, 39 k triangles;
     - animals: 222 in 4 draws, 154 k triangles;
     - people: 2.63 M triangles in 6 draws;
-    - crowd CPU median 8.6 ms (p95 15 ms) with IK.
+    - crowd CPU median 6.8 ms (p95 12.4 ms) with IK, measured at load 7 on the 4 shared cores after the kit speed-up (8.6 ms before it). The test's gate is < 10 ms; it failed only in full-suite runs under load 8-10 and passed when re-run alone.
     Work objects, props and animals cast only into the near shadow cascades. Worst case: (2 + 32 + 5) draws × 3 passes.
   - **Browser** (humanlab, WebGPU, quality test; tests/e2e/perf.spec.ts): 8-15 draw calls and 21 k-270 k triangles per station view, with no placeholder act.
 - **Not done / weak:** see REVIEWS/agent_performances.md.
