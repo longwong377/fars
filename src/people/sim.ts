@@ -19,7 +19,7 @@ import type { NavGrid, P2 } from './navgrid';
 import { ACTIVITIES, ActivityId } from './activities';
 import type { Dress } from './body';
 import { EventCalendar, sunTimes as sunT } from './calendar';
-import { Population, Seg, segAt, GUARD_POSTS, SliceSeat, TERRACE_ABSTRACT } from './population';
+import { Population, Seg, segAt, GUARD_POSTS, SliceSeat, TERRACE_ABSTRACT, TOWN_SITES } from './population';
 import { hall100Layout, colPlace } from './construction';
 import { PlayerMemory, Encounter } from './memory';
 
@@ -38,7 +38,10 @@ export const PLACES: Record<string, Place> = Object.fromEntries([...(placesData 
 
 export interface Env { rain: number; lightning: boolean; windMs: number; tempC: number; dust?: number }
 /** `off`: the task is off the rendered Terrace (in the town, on the road, in the plain): the person is hidden */
-export interface Task { act: ActivityId; place: string; spot: P2; heading: number | null; until: number /* sim hours */; why: string; off?: boolean }
+export interface Task { act: ActivityId; place: string; spot: P2; heading: number | null; until: number /* sim hours */; why: string; off?: boolean;
+  /** off the Terrace: where the hidden person goes on from the town edge (the lane exit of the house's quarter, then its
+   *  street door: town_plots.json), travelled abstractly at walking pace (D-081) */
+  legs?: P2[] }
 export interface Agent {
   id: number; name: string | null; nameNote: string; nameTier: string; sex: 'm' | 'f'; origin: string; langs: string[];
   role: Role; dress: Dress; household: number; ties: number[]; ration: { qaPerMonth: number; tier: string };
@@ -56,6 +59,8 @@ export interface Agent {
   /** simulation LOD (brief §9.2 continuity, §9.5): 'full' walks nav-grid paths; 'abstract' (far from the player, and the
    *  headless soak) makes the same decisions but travels as a timed straight-line move (distance × detour / speed) */
   lod?: 'full' | 'abstract'; travel?: { from: P2; to: P2; t0: number; t1: number } | null;
+  /** the hidden legs still to go in the town (see Task.legs) */
+  legs?: P2[];
 }
 /** straight-line → walked-route factor for abstract travel (C: the Terrace's stairs and doorways add detours) */
 export const ABSTRACT_DETOUR = 1.3;
@@ -170,6 +175,19 @@ export class PeopleSim {
     return { act, place, spot, heading: heading ?? P?.heading ?? face, until, why };
   }
   private log(kind: string, text: string, place: string, id?: string, t = this.t, tier?: string) { this.events.push({ t, kind, text, place, id, tier }); if (this.events.length > 2000) this.events.shift(); }
+  /** a town household's house: its place id in the plans, its street door and the lane exit of its quarter nearest the
+   *  Terrace approach (grid metres, the nav frame) */
+  private houseOf(a: Agent, day: number): { place: string; door: P2; exit: P2 } | null {
+    const hid = this.pop.home(a.pid, day), H = this.pop.households[hid], x = this.pop.plotOf(hid); if (!x) return null;
+    const ex = TOWN_SITES[x.site]?.exits ?? []; const edge = PLACES.town.at;
+    const exit = ex.length ? ex.reduce((b, e) => Math.hypot(e[0] - edge[0], e[1] - edge[1]) < Math.hypot(b[0] - edge[0], b[1] - edge[1]) ? e : b) : x.door;
+    return { place: H.home, door: [x.door[0], x.door[1]], exit: [exit[0], exit[1]] };
+  }
+  /** start the next hidden leg in the town; false when none is left */
+  private nextLeg(a: Agent): boolean {
+    const to = a.legs?.shift(); if (!to) return false; const d = Math.hypot(to[0] - a.pos[0], to[1] - a.pos[1]); if (d < 0.4) return this.nextLeg(a);
+    a.path = null; a.walking = true; a.travel = { from: [...a.pos] as P2, to: [...to] as P2, t0: this.t, t1: this.t + d / a.speed * H_PER_S }; return true;
+  }
   /** the person's plan for a day (cached per agent) */
   planOf(a: Agent, day: number): Seg[] {
     const c = this.planCache.get(a.id); if (c && c.day === day) return c.segs;
@@ -188,7 +206,14 @@ export class PeopleSim {
     // a guard whose watch has ended keeps the post until the relief arrives (at most ~36 minutes)
     if (a.role === 'guard' && a.task?.act === 'stand_guard' && a.post && GUARD_POSTS.includes(a.post) && !a.relieved && a.watchEnd !== undefined && this.t < a.watchEnd + 0.6 && !(seg.act === 'stand_guard' && seg.place === a.post))
       return this.task('stand_guard', a.post, PLACES[a.post].at, Math.min(a.watchEnd + 0.6, this.t + 0.1), 'waiting to be relieved', PLACES[a.post].heading);
-    if (seg.where !== 'terrace' || !(seg.place in PLACES || seg.place === 'terrace_round')) return { act: seg.act, place: seg.place, spot: PLACES.town.at, heading: null, until: end, why: seg.why, off: true };
+    if (seg.where !== 'terrace' || !(seg.place in PLACES || seg.place === 'terrace_round')) {
+      const T: Task = { act: seg.act, place: seg.place, spot: PLACES.town.at, heading: null, until: end, why: seg.why, off: true };
+      const h = this.houseOf(a, day);
+      if (h) { const plan = this.planOf(a, day), nxt = segAt(plan, Math.min(24 - 1e-6, seg.t1 + 1e-4));
+        if (seg.place === h.place || (seg.where === 'road' && nxt.place === h.place)) T.legs = [h.exit, h.door]; // home, or on the way home
+        else if (seg.where === 'road' && nxt.where === 'terrace') T.legs = [h.exit, PLACES.town.at]; } // from the door up to the Terrace
+      return T;
+    }
     return this.onTerrace(a, seg, end, rng);
   }
   /** fine-grained behaviour on the Terrace inside one plan block (the block's place and act are the plan's) */
@@ -303,9 +328,12 @@ export class PeopleSim {
     a.offmap = !!task.off;
     if (a.offmap && !instant && !wasOff && Math.hypot(a.pos[0] - task.spot[0], a.pos[1] - task.spot[1]) > 1) { a.offmap = false; } // walk out to the town edge first
     if (wasOff && !a.offmap) a.pos = [...PLACES.town.at] as P2; // leaving the town: enter at the plain edge
-    a.travel = null;
+    a.travel = null; a.legs = undefined;
     const dist = Math.hypot(a.pos[0] - task.spot[0], a.pos[1] - task.spot[1]);
-    if (instant) { a.pos = [...task.spot] as P2; a.path = null; a.walking = false; if (task.off) a.offmap = true; this.ground(a); }
+    if (instant) { a.pos = [...(task.legs?.length ? task.legs[task.legs.length - 1] : task.spot)] as P2; a.path = null; a.walking = false; if (task.off) a.offmap = true; this.ground(a); }
+    else if (task.off && wasOff) { // already in the town: on along the legs (the whole way from the edge, else straight on to the last)
+      const L0 = task.legs ?? []; const atEdge = Math.hypot(a.pos[0] - PLACES.town.at[0], a.pos[1] - PLACES.town.at[1]) < 1;
+      a.legs = atEdge ? L0.slice() : L0.length ? [L0[L0.length - 1]] : []; a.path = null; a.walking = false; this.nextLeg(a); }
     else if (dist > 0.4 && a.lod === 'abstract') { a.path = null; a.walking = true; a.travel = { from: [...a.pos] as P2, to: [...task.spot] as P2, t0: this.t, t1: this.t + dist * ABSTRACT_DETOUR / (a.speed * (a.carry ? 0.8 : 1)) * H_PER_S }; }
     else if (dist > 0.4) { const r = this.routeTo(a, task.spot); if (r === undefined) { a.path = null; a.walking = false; a.waitRoute = true; } else { a.path = r; a.pathI = 1; a.walking = !!a.path; if (!a.path) a.pos = [...task.spot] as P2; } }
     else { a.path = null; a.walking = false; }
@@ -372,7 +400,7 @@ export class PeopleSim {
     for (let guard = 0; guard < 8 && budget > 0; guard++) {
       if (a.walking && a.travel) { // abstract travel: timed straight-line move
         const tr = a.travel;
-        if (this.t >= tr.t1) { a.pos = [...tr.to] as P2; a.travel = null; a.walking = false; budget = Math.min(budget, (this.t - tr.t1) * 3600); if (a.task?.off) a.offmap = true; this.arrive(a); continue; }
+        if (this.t >= tr.t1) { a.pos = [...tr.to] as P2; a.travel = null; a.walking = false; budget = Math.min(budget, (this.t - tr.t1) * 3600); if (a.task?.off) { a.offmap = true; if (a.legs === undefined) a.legs = a.task.legs?.slice() ?? []; if (this.nextLeg(a)) continue; } this.arrive(a); continue; }
         const f = (this.t - tr.t0) / Math.max(1e-9, tr.t1 - tr.t0); a.pos = [tr.from[0] + (tr.to[0] - tr.from[0]) * f, tr.from[1] + (tr.to[1] - tr.from[1]) * f];
         a.heading = Math.atan2(tr.to[0] - tr.from[0], tr.to[1] - tr.from[1]) * 180 / Math.PI; a.gait += a.speed * dt / 0.72 * Math.PI; budget = 0; break;
       }
@@ -386,7 +414,7 @@ export class PeopleSim {
           if (d > 1e-3) a.heading = Math.atan2(de, dn) * 180 / Math.PI;
           a.gait += step / 0.72 * Math.PI; // one stride ≈ 1.44 m
         }
-        if (a.pathI >= a.path.length) { a.walking = false; a.path = null; if (a.task?.off) a.offmap = true; this.arrive(a); }
+        if (a.pathI >= a.path.length) { a.walking = false; a.path = null; if (a.task?.off) { a.offmap = true; if (a.legs === undefined) a.legs = a.task.legs?.slice() ?? []; if (this.nextLeg(a)) continue; } this.arrive(a); }
         continue;
       }
       // performing: wait until the task ends

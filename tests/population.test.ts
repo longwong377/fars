@@ -4,7 +4,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, Env, PLACES } from '../src/people/sim';
-import { segAt, GUARD_POSTS } from '../src/people/population';
+import { segAt, GUARD_POSTS, TOWN_PLOTS } from '../src/people/population';
 import { checkPlan, checkDay, reasonOk } from '../src/people/planCheck';
 import { EventCalendar, STORE_BOUNDS } from '../src/people/calendar';
 import { Construction, hall100Layout } from '../src/people/construction';
@@ -75,6 +75,25 @@ describe('households, meals and sleep (shadow review, §13.11)', () => {
       const feeds = P.plan(p.id, d).filter(s => s.act === 'eat'); expect(feeds.length, `${p.id}`).toBeGreaterThanOrEqual(6); expect(feeds.some(s => s.t0 < 5 || s.t0 > 21), `${p.id} fed at night`).toBe(true); if (++n >= 40) break; }
     expect(n).toBeGreaterThan(10);
   }, 60_000);
+});
+
+describe('houses of the built settlement (town_plots.json; D-081)', () => {
+  it('every town household has a real house plot of its settlement; no plot is ever over its capacity', () => {
+    const P = sim.pop; const hs = P.households.filter(H => H.zone === 'town'); expect(hs.length).toBeGreaterThan(1500);
+    const cap = new Map(TOWN_PLOTS.map(x => [x.id, x.capacity])); const by = new Map<string, number[]>();
+    for (const H of hs) { expect(H.plot, `household ${H.id}`).toBeDefined(); expect(cap.get(H.plot!)).toBeGreaterThan(0); const x = P.plotOf(H.id)!; expect(H.xy).toEqual(x.door);
+      for (const id of H.plots ?? [H.plot!]) (by.get(id) ?? by.set(id, []).get(id)!).push(H.id); }
+    for (let d = 0; d < 354; d += 7) for (const [id, list] of by) { let n = 0;
+      for (const h of list) { const H = P.households[h]; let left = P.membersOn(h, d).length; if (!H.plots) { n += left; continue; } for (let i = 0; i < H.plots.length; i++) { const t = Math.min(left, H.shares![i]); left -= t; if (H.plots[i] === id) n += t; } expect(left, `household ${h} day ${d}`).toBe(0); }
+      expect(n, `${id} on day ${d}`).toBeLessThanOrEqual(cap.get(id)!); }
+    const again = new PeopleSim(1, nav, env).pop; expect(again.households.filter(H => H.zone === 'town').map(H => H.plots?.join('+') ?? H.plot)).toEqual(hs.map(H => H.plots?.join('+') ?? H.plot));
+    const crafted = hs.filter(H => H.members.some(x => P.persons[x].job === 'weaver') && P.plotOf(H.id)!.kind === 'workshop'); expect(crafted.every(H => P.plotOf(H.id)!.craft === 'textile')).toBe(true);
+  }, 60_000);
+  it('the detailed people of the town sleep behind their own street door, not at the one town point', () => {
+    const s = new PeopleSim(1, nav, env); s.jumpTo(24 * 30 + 12); for (let t = 0; t < 12 * 60; t++) s.step(60);
+    let n = 0; for (const a of s.agents) { if (a.role === 'guard') continue; const x = s.pop.plotOf(s.pop.home(a.pid, 31)); if (!x) continue; n++; expect(Math.hypot(a.pos[0] - x.door[0], a.pos[1] - x.door[1]), `${a.id} ${a.role}`).toBeLessThan(1); expect(a.offmap).toBe(true); }
+    expect(n).toBeGreaterThan(20);
+  }, 120_000);
 });
 
 describe('activities', () => {

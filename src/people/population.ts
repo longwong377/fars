@@ -12,12 +12,19 @@ import popData from '../data/population.json';
 import townData from '../data/town.json';
 import livesData from '../data/lives.json';
 import namesData from '../data/names.json';
+import plotsData from '../data/town_plots.json';
 import { u01, salt, HStream } from './hash';
 import { dateOf, REGNAL_DAYS, travellerParties, transfers, transhumantBands, flockDrives, DayCtx, EventCalendar } from './calendar';
 import { colPlace } from './construction';
 import type { ActivityId } from './activities';
 
 const POPD = popData as any, T = townData as any, L = livesData as any;
+/** a house plot of the built settlement (town_plots.json, Phase 6: D-041); grid metres */
+export interface TownPlot { id: string; site: string; zone: string; pop_zone: string; kind: string; craft?: string; c: [number, number]; door: [number, number]; door_in: [number, number]; capacity: number }
+export const TOWN_PLOTS: TownPlot[] = (plotsData as any).plots;
+const PLOT_BY_ID = new Map(TOWN_PLOTS.map(x => [x.id, x]));
+/** each settlement site's lane exits onto the open ground (town_plots.json _meta.sites) */
+export const TOWN_SITES: Record<string, { c: [number, number]; zone: string; exits: [number, number][] }> = Object.fromEntries(((plotsData as any)._meta.sites as any[]).map(x => [x.id, { c: x.c, zone: x.zone, exits: x.exits ?? [] }]));
 export type Job = 'guard' | 'builder' | 'porter' | 'camp' | 'scribe' | 'treasury' | 'official' | 'messenger' | 'storekeeper' | 'miller' | 'weaver' | 'brewer' | 'groom'
   | 'shepherd' | 'priest' | 'caretaker' | 'gardener' | 'farmer' | 'craftsman' | 'servant' | 'steward' | 'homemaker' | 'child' | 'elder' | 'traveller' | 'herder';
 export type Where = 'terrace' | 'town' | 'plain' | 'road' | 'away';
@@ -40,6 +47,8 @@ export interface Person {
   moved?: 'fostered';
 }
 export interface Household { id: number; home: string; q: string; zone: 'town' | 'plain' | 'terrace' | 'transient'; xy: [number, number]; persian: boolean; members: number[]; kin: number[]; deaths: number[]; births: number[];
+  /** the house plot (town_plots.json id) of a town household, and all its plots when it needs more than one (estates) */
+  plot?: string; plots?: string[]; shares?: number[]; need?: number;
   /** people who join it by marriage during the year (from their `marry` day) */
   joins: number[] }
 export interface Group { id: number; kind: string; label: string; members: number[]; issuePlace: string; silver: boolean; head: number; from: number; zone: 'terrace' | 'town' }
@@ -104,8 +113,66 @@ export class Population {
     this.generate();
     for (const s of opts.slice ?? []) { const pid = this.bySeat.get(s.agent); if (pid !== undefined) this.persons[pid].nm = s.name ?? null; }
     this.precomputeLife();
+    this.housePlots();
   }
   attach(cal: EventCalendar) { this.cal = cal; }
+  /** the plot a household lives in (town households: always; others: none) */
+  plotOf(h: number): TownPlot | null { const id = this.households[h]?.plot; return id ? PLOT_BY_ID.get(id) ?? null : null; }
+  /** the most people a household holds on any day of the year (births, marriages, fosterage, deaths, arrivals) */
+  private maxMembers(H: Household) {
+    const diff = new Int16Array(REGNAL_DAYS + 1); const span = (a: number, b: number) => { a = Math.max(0, a); b = Math.min(REGNAL_DAYS - 1, b); if (a <= b) { diff[a]++; diff[b + 1]--; } };
+    for (const x of H.members) { const q = this.persons[x]; const a = Math.max(q.arrive, q.born), b = Math.min(q.dies, q.leave); span(a, q.hh2 >= 0 && q.marry < 1e9 ? Math.min(b, q.marry - 1) : b); }
+    for (const x of H.joins) { const q = this.persons[x]; span(Math.max(q.arrive, q.born, q.marry), Math.min(q.dies, q.leave)); }
+    let m = 0, c = 0; for (let d = 0; d < REGNAL_DAYS; d++) { c += diff[d]; if (c > m) m = c; } return m;
+  }
+  /** every town household gets a real house plot of the built settlement (town_plots.json; D-081): its own quarter's
+   *  sites first (the settlement zone of the quarter, nearest sites first), then the nearest sites elsewhere; a craft
+   *  household a workshop of its craft where there is one; empty houses before shared ones (several households in a
+   *  large house: C); a household larger than any house (the estates) takes neighbouring plots; no plot is ever over
+   *  its capacity on any day. Quarters then follow their houses (lane, well and neighbours) */
+  private housePlots() {
+    const usable = TOWN_PLOTS.filter(x => x.capacity > 0 && x.kind !== 'station');
+    const free = new Map(usable.map(x => [x.id, x.capacity])); const used = new Set<string>();
+    const d2 = (a: [number, number], b: [number, number]) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
+    const townQ = (T.quarters as any[]).filter(q => q.kind === 'town' || q.kind === 'garden');
+    const siteIds = Object.keys(TOWN_SITES);
+    // the population quarter each settlement site belongs to: the nearest quarter of its zone, else the nearest
+    const owner = new Map(siteIds.map(sid => { const S = TOWN_SITES[sid]; const same = townQ.filter(q => q.zone === S.zone); const pool = same.length ? same : townQ;
+      return [sid, pool.reduce((b, q) => d2(q.at, S.c) < d2(b.at, S.c) ? q : b).id as string]; }));
+    const order = new Map(townQ.map(q => [q.id, [...siteIds].sort((a, b) => ((TOWN_SITES[a].zone === q.zone ? 0 : 1) - (TOWN_SITES[b].zone === q.zone ? 0 : 1)) || d2(TOWN_SITES[a].c, q.at) - d2(TOWN_SITES[b].c, q.at) || (a < b ? -1 : 1))]));
+    const plotsIn = new Map<string, TownPlot[]>(); for (const x of usable) (plotsIn.get(x.site) ?? plotsIn.set(x.site, []).get(x.site)!).push(x);
+    const craftOf = (H: Household) => { for (const x of H.members) { const j = this.persons[x].job; if (j === 'weaver') return ['textile']; if (j === 'brewer') return ['brewery']; if (j === 'craftsman') return ['metal', 'wood', 'pottery', 'pigment']; } return null; };
+    const hs = this.households.filter(H => H.zone === 'town'); for (const H of hs) H.need = Math.max(1, this.maxMembers(H));
+    hs.sort((a, b) => b.need! - a.need! || a.id - b.id);
+    const take = (H: Household, id: string) => { free.set(id, free.get(id)! - H.need!); used.add(id); H.plot = id; };
+    const zoneOf = new Map(townQ.map(q => [q.id, q.zone as string]));
+    const tryIn = (H: Household, sids: string[], ok: (x: TownPlot) => boolean) => { for (const sid of sids) for (const x of plotsIn.get(sid) ?? []) if (ok(x) && free.get(x.id)! >= H.need!) return x.id; return null; };
+    const house = (x: TownPlot) => !used.has(x.id) && x.kind !== 'workshop', empty = (x: TownPlot) => !used.has(x.id), any = () => true;
+    for (const H of hs) {
+      const ord = order.get(H.q) ?? siteIds, own = ord.filter(sid => TOWN_SITES[sid].zone === zoneOf.get(H.q)), other = ord.filter(sid => TOWN_SITES[sid].zone !== zoneOf.get(H.q));
+      const cr = craftOf(H); let id: string | null = null;
+      if (cr) id = tryIn(H, own, x => x.kind === 'workshop' && !!x.craft && cr.includes(x.craft) && !used.has(x.id));
+      id ??= tryIn(H, own, house) ?? tryIn(H, own, empty) ?? tryIn(H, own, any);
+      if (id) { take(H, id); continue; }
+      // larger than any free house of its zone (an estate): the empty plots of one site of its zone together, before
+      // anything elsewhere
+      const multi = (sids: string[]) => { for (const sid of sids) { const cand = (plotsIn.get(sid) ?? []).filter(x => !used.has(x.id)).sort((a, b) => b.capacity - a.capacity || (a.id < b.id ? -1 : 1));
+        const ids: string[] = []; let cap = 0; for (const x of cand) { ids.push(x.id); cap += x.capacity; if (cap >= H.need!) break; }
+        if (cap >= H.need!) { let left = H.need!; H.shares = []; for (const i of ids) { const t = Math.min(free.get(i)!, left); free.set(i, free.get(i)! - t); left -= t; used.add(i); H.shares.push(t); } H.plot = ids[0]; H.plots = ids; return true; } } return false; };
+      if (H.need! > 10 && multi(own)) continue;
+      for (const sid of other) { id = tryIn(H, [sid], house) ?? tryIn(H, [sid], empty) ?? tryIn(H, [sid], any); if (id) break; }
+      if (id) { take(H, id); continue; }
+      for (const sid of order.get(H.q) ?? siteIds) { const cand = (plotsIn.get(sid) ?? []).filter(x => !used.has(x.id)).sort((a, b) => b.capacity - a.capacity || (a.id < b.id ? -1 : 1));
+        const ids: string[] = []; let cap = 0; for (const x of cand) { ids.push(x.id); cap += x.capacity; if (cap >= H.need!) break; }
+        if (cap >= H.need!) { let left = H.need!; H.shares = []; for (const i of ids) { const t = Math.min(free.get(i)!, left); free.set(i, free.get(i)! - t); left -= t; used.add(i); H.shares.push(t); } H.plot = ids[0]; H.plots = ids; break; } }
+      if (!H.plot) throw new Error(`household ${H.id} (${H.need} people) finds no house plot`);
+    }
+    // quarters follow their houses: a household housed in another quarter's site belongs to that quarter's lanes
+    for (const H of hs) { const x = PLOT_BY_ID.get(H.plot!)!; H.q = owner.get(x.site) ?? H.q; H.xy = [x.door[0], x.door[1]]; }
+    for (const q of townQ) { const Q = this.quarters[q.id]; if (!Q) continue; const mine = hs.filter(H => H.q === q.id); if (mine.length) Q.xy = [mine.reduce((s0, H) => s0 + H.xy[0], 0) / mine.length, mine.reduce((s0, H) => s0 + H.xy[1], 0) / mine.length];
+      Q.women = []; Q.farmers = []; }
+    for (const p of this.persons) { const H = this.households[p.hh]; if (H.zone !== 'town' || !this.quarters[H.q]) continue; if (p.sex === 'f' && p.age >= 14) this.quarters[H.q].women.push(p.id); if (p.job === 'gardener' || p.job === 'farmer') this.quarters[H.q].farmers.push(p.id); }
+  }
 
   // ================================================================== generation
   private rng(k: number) { return new HStream(this.seed, S.gen, k); }
@@ -672,7 +739,7 @@ class Planner {
    *  arrival; returns the start used, or -1 */
   private insertAt(segs: Seg[], t: number, len: number, act: ActivityId, why: string, keep?: (s: Seg) => boolean): number {
     let i = segs.findIndex(s => t < s.t1); if (i < 0) return -1;
-    while (i < segs.length && (segs[i].where === 'road' || (segs[i].t1 - t < 0.12 && i + 1 < segs.length))) { t = segs[i].t1; i++; } if (i >= segs.length) return -1;
+    while (i < segs.length && (segs[i].where === 'road' || (segs[i].t1 - t < 0.12 && i + 1 < segs.length && segs[i + 1].act !== 'eat'))) { t = segs[i].t1; i++; } // never into a meal if (i >= segs.length) return -1;
     const s = segs[i]; if (keep && keep(s)) return -1; if (s.t1 - t < len) t = Math.max(s.t0, s.t1 - len); if (t - s.t0 < 0.05) t = s.t0; // no slivers
     let t1 = Math.min(24, t + len); if (s.t1 - t1 < 0.05) t1 = s.t1; if (Math.min(t1, s.t1) - t < 0.05) return -1;
     const parts: Seg[] = [];
@@ -1274,13 +1341,13 @@ class Planner {
         else if (camp && s.where === 'terrace' && !['sleep', 'eat', 'walk', 'play', 'queue'].includes(a)) { a = 'play'; why = 'playing near the mother at the work camp'; }
         const last = this.segs[this.segs.length - 1]; this.add(s.t1, place, a, why, wh, !!last && (last.why !== why || (last.with ?? -1) !== w));
         const L0 = this.segs[this.segs.length - 1]; if (w >= 0) L0.with = w; else delete L0.with; } return this.segs; };
-    const keptBy = (ms: Seg[], blocks: [number, number][], kw: number, KH: Household) => {
+    const keptBy = (ms: Seg[], blocks: [number, number][], kw: number, KH: Household, who = 'a kinswoman') => {
       const kwh: Where = KH.zone === 'plain' ? 'plain' : 'town', walk = Math.min(0.2, P.walkH(this.home, KH.home, d, this.homeW, kwh)), fe = firstEat(ms), done = new Set<number>();
       for (const s of ms) { const b = blocks.find(([x, y]) => s.t0 >= x - 1e-6 && s.t1 <= y + 1e-6);
         if (!b) { follow([s], false, fe); continue; }
         if (done.has(b[0])) continue; done.add(b[0]);
-        this.add(b[0] + walk, `road:${this.homeW}`, 'walk', 'taken to a kinswoman’s house in the lane', 'road');
-        this.add(b[1] - walk, KH.home, 'play', 'at a kinswoman’s house while the mother works, playing with her children', kwh, true); this.segs[this.segs.length - 1].with = kw;
+        this.add(b[0] + walk, `road:${this.homeW}`, 'walk', `taken to ${who}’s house`, 'road');
+        this.add(b[1] - walk, KH.home, 'play', `at ${who}’s house while the mother works, playing with her children`, kwh, true); this.segs[this.segs.length - 1].with = kw;
         this.add(b[1], `road:${this.homeW}`, 'walk', 'fetched home by the mother', 'road'); }
       return this.segs; };
     if (m >= 0 && P.persons[m].job === 'camp' && p.agent >= 0) { // the slice's camp children go up with their mothers (Phase 3)
@@ -1300,7 +1367,11 @@ class Planner {
             let kw = -1, KH: Household | null = null;
             for (const k of this.hh.kin) { const H = P.households[k]; if (H.zone !== this.hh.zone || H.q !== this.hh.q || H.id === this.hh.id) continue;
               const x = P.membersOn(H.id, d).find(y => P.persons[y].sex === 'f' && P.persons[y].age >= 14 && P.persons[y].job !== 'guard' && !P.sick(y, d) && homeThrough(y, H.home)); if (x !== undefined) { kw = x; KH = H; break; } }
-            if (kw >= 0 && KH && r.chance(L.children_under_five.left_with_minder)) return keptBy(ms, blocks, kw, KH);
+            const terrace = ms.some(s => s.where === 'terrace') && P.persons[m].job !== 'camp'; let who = 'a kinswoman';
+            if (kw < 0 && terrace) { const women = P.quarters[this.hh.q]?.women ?? []; const k0 = Math.floor(u01(P.seed, S.assign, 8800 + this.pid, d) * women.length);
+              for (let i = 0; i < Math.min(40, women.length) && kw < 0; i++) { const y = women[(k0 + i) % women.length]; const H = P.households[P.home(y, d)];
+                if (H.id === this.hh.id || H.zone !== this.hh.zone || !P.present(y, d) || P.sick(y, d) || P.persons[y].job === 'guard') continue; if (homeThrough(y, H.home)) { kw = y; KH = H; who = 'a neighbour'; } } }
+            if (kw >= 0 && KH && (terrace || r.chance(L.children_under_five.left_with_minder))) return keptBy(ms, blocks, kw, KH, who);
             return follow(ms, P.persons[m].job === 'camp'); } } } }
     const q = this.hh.q, l = `lane:${q}`, W = this.homeW, CH = L.children.chores; const inside = C.wx.wet || C.wx.dust;
     const little = mem.find(x => x !== this.pid && P.persons[x].age <= 2);
