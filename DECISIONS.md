@@ -1721,3 +1721,93 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 ## D-148 Ashlar blocks vary in tone; the dawn moment stands at the landing's edge (session 4)
 - **Block tone (C):** real quarried ashlar varies from block to block. `SurfaceDef.blockTone` gives each cell of the joint pattern (course × block, the same cells that draw the hairline joints) its own tone, ±8 % on `limestone` and `terrace` (a hash of the cell indices; arithmetic, no `select()`). Seen in the stair-climb render (session 4): the flights and walls read as single flat planes in shade.
 - **Dawn camera:** the §1.1 dawn moment (`dawn-stair-top`, `dawn-sunrise`, and the plain budget view `stair-dawn-plain`) stood 4.2 m back from the W edge of the Grand Stair's top landing (x −40.6; there is no parapet on the axis), so the bottom quarter of the frame was flat landing pavement. It now stands 1 m from the edge (x −39.6), pitched −4°, so the frame shows the descent, the lower flights and the plain with the Terrace's long dawn shadow. The date, hour and weather are unchanged.
+
+## D-149 The plain and the gardens at close range: crowns lit as volumes, the April seasons checked, water without stripes, river margins, garden channels (session 4, plain-look agent)
+- **Read first: what is weak or unverified.**
+  - Every value here is C unless it names a source. The phenology sources are search extracts from other places in Fars and from Turkey: B for those places, C for the plain in 467 (Q-210).
+  - The leaf albedo change (×0.6, below) is a judgement against generic leaf optics and one measured render, not a measurement of these species (Q-173, Q-214). Even after it, a sunlit crown's median reads 0.75-0.97 of the sunlit sward beside it; in photographs it is nearer half.
+  - Leaf transmission is added as emission and ignores the shadow map. A back-lit crown standing in the shadow of a building or a larger tree still glows; only the crown's own depth and occlusion attenuate it.
+  - The river's reflection of its far bank is a model, not a reflection pass: the bank's height and colour, and trees "in clumps over about half its length" placed by a noise along the bank, not the actual line trees. At grazing angles it can show a tree's reflection where no tree stands.
+  - **Not rendered:** the last two look commits, the margins' pop-free placement (50a1812) and the cypress without clump shading (28388b8). The final renders (shots/agent-plain) predate them; renders were stopped at session end. The blade widening was judged in one 960×540 render. No walkthrough bot has checked the margins for pop-in (§13.8); the unit test checks the placement radii.
+  - The garden view is dark (frame mean luma 27.7/255; the sunlit path Y 0.10, the shaded soil 0.011). This is not the trees. The camera stands under a closed canopy with the outdoor exposure, and the garden soil (materials.ts) reads dark brown in shade. Eye adaptation under a canopy is not modelled (src/sky/exposure.ts, D-141: probe volumes only).
+  - P22: the town's and orchard trunks show white speckles on their shaded sides, before this change too. Most likely SSGI noise not converged in 3 frozen frames (src/render/ssgi.ts). Not investigated.
+  - The tamarisks on the far bank still read as reddish blotches in April (the card-by-card leaf-out does not suit a fine-twigged shrub whose shoots green all at once).
+  - Kit build time: in the browser 3.3-5.1 s in this session's runs against 2.8-4.3 s in the main checkout's runs today; the machine's load differs run to run, so that is not a controlled comparison. In node, back to back: models +30 % (~0.07 s), atlas and impostor bake about equal (after the allocation-free baker).
+  - **Tree lab at high, r3 225 m (the first high-quality run of the r3 match; shots/treelab-r3-high.json): FAILS for the oak.**
+    - Plane, poplar, apple and cypress impostors are within 4/255 of LOD1, with areas 0.85-0.99.
+    - Willow is 11-13/255 darker than LOD1, and oak 14-16/255: over the spec's 14/255 limit (tests/e2e/treelab.spec.ts).
+    - Session 3 measured the oak within 1/255, but at quality test. High was never measured before, and the comparison run on the old code was stopped at session end, so whether this is new is not known.
+    - Likely cause: LOD1's leaves take a specular sheen from the smooth crown normal at roughness 0.75 (the impostors use 0.8, with filtered normals). The near-plane lab frame shows the sunlit crown top grey-white (sRGB 77/90/93) where it should be green, and the lower albedo makes the sheen a larger share.
+    - Not fixed. Proposed next step: one roughness, ~0.92, for every leaf material (near, impostor, orchard rows), then re-run the tree lab at high.
+- **Problem (session 4 renders at high: pulvar-bank-april, village-p22, garden-paradise):**
+  - Crowns read as lollipops and cabbages. Each leaf-cluster card (1-5 m) turned into a solid disc at the coarse mips and was lit flat, with its own normal and tint, so a crown was a pile of shaded plates. In the garden the cypresses were stacks of cabbage leaves.
+  - The foreground trees at village P22 were bare on 17 April; they are figs. The "~1 m crop blades" beside them were vine rows standing 1.1 m tall and a third green.
+  - The Pulvar and the canals were flat bands of regular stripes: two cosine wave trains, aliased.
+  - The river bank was bare sand. The silt band ("exposed since the spring high water") took in every apron vertex below 2.4 m above the bed, so the whole corridor was silt.
+  - The garden channels' kerbs read as white road paint: two continuous raised strips, 20 cm wide and 12 cm high, for 300 m.
+- **Trees (src/world/trees, all C):**
+  - *Leaf tiles (atlas.ts):* leaves grow in 4-5 ragged clumps per tile (radius ~1.25 leaf lengths, 3 % strays) on bare twigs. A card is a few clumps with sky between them, and its outline stays lobed at the coarse mips. The cypress and tamarisk sprays are clumped too (cypress: smaller clumps, 22 % strays). Pinnate pistachio and the almond keep open shoots. The bare tamarisk tile drops over half its finest twigs: its cards were solid red-brown patches at the coarse mips.
+  - *Crown form (model.ts):* foliage masses at the secondary branch tips, pushed out to 3/4 of the envelope. A card is kept with a probability that falls off between the masses: floor 0.2; 0.17 for the irregular oak, olive, willow and fig; 0.5 along the leader of the excurrent poplar, cypress and pear. The crowns are lobed with hollows, not balls.
+  - *LOD1:* 120 cards (was 80) at 1.31× the LOD0 card size (was 1.6×). Its 5 m cards read as single big leaves at 50-100 m. 368 triangles per tree (was 288). To pay for it, the plain's near radius r3 is 0.9× D-120's: high 225 m (was 250); test 145, low 180, medium 200, ultra 290.
+  - *Bare crowns:* each species has a share of cards that show a bare-twig spray (trees.json `twig_cards`): fig 0.22 and vine 0.3 show their branch skeleton, cypress and olive 1, tamarisk 0.55. While leafless, LOD1 shows up to a quarter more, standing in for the fine branches it does not draw (16 of LOD0's 64 segments).
+  - *Card shape (trees.json `card`):* tall upright sprays for cypress (aspect 2.3, turned 80 % toward the vertical) and poplar (1.5, 45 %); long hanging shoots for willow (1.6) and tamarisk (1.3). The clump weight scales the clump's part in the lighting (below): 1 for the broadleaves, 0.8 willow and tamarisk, 0.6 poplar, 0 cypress, whose sprays are centimetres, so its column is lit as one surface.
+  - *Variation:* each tree has its own hue from its phase (R ±7 %, B ±10 %). The card tint is ±5 % (was ±12 %). The three variants of a species leaf out a little apart (±0.11 of the leaf amount at mid-change, `variantLeaf`).
+  - *Lighting (shade.ts; one model for the leaf shader, the impostor baker and the tools):*
+    - normal: the crown ellipsoid's normal (0.62) blended with the card's clump sphere (0.38 at LOD0, 0.2 at LOD1 and in the impostors), the clump part times the species' clump weight;
+    - occlusion per texel: by depth into the crown (0.45 at the core), by height (0.76 at the bottom) and toward the twig end of a clump (0.82; 0.9 at LOD1), the last times the clump weight;
+    - transmission: a texel facing away from the sun glows with sun × albedo × 1.3 × back × exp(−κ·back), κ = 1.05 per leaf layer through the crown, tint (1, 1.12, 0.62) (Q-214). The sun is copied from the registered shadow light before each draw (`syncSun`);
+    - over the outer half of the LOD0 radius the clump weight and the leaf tilt fade to LOD1's, so the switch keeps the shading.
+  - *Leaf albedo ×0.6 (seasonal.ts `LEAF_K`):* the first render round lit the crowns brighter than the sunlit bank sward beside them (Pulvar bank, 10:00: foliage median Y 0.077-0.087, top decile 0.19-0.20, sward 0.069). In a photograph a crown reads darker than sunlit grass. A green leaf reflects about 0.1 at 550 nm and 0.05 in the red and blue (generic leaf optics, recalled: C); the session-3 tables were about 2.5× that. Hues, blossom and bark are unchanged. After: foliage median 0.052-0.066, top decile 0.14-0.15, sward 0.067-0.069. The far layers (impostors, orchard rows, the terrain's painted woodland) read the same table and follow.
+  - *Impostors and orchard rows:* baked with the same per-texel model, allocation-free (`leafShadeTo`), with transmission in both.
+- **Phenology for 17 April (world day 0, doy 102) at ~1,610 m (seasonal.ts PHENO; research/PLAIN.md §10; Q-210):**
+  - Pomegranate: leaf-out 78-118 (was 100-125: bare on day 0, wrong). The Eram garden in Shiraz (~1,540 m) shows red young leaves in mid-March and green leaves by the end of March (PUNICA-SHIRAZ). Young leaves unfold red and turn green over ~3 weeks. The scarlet flowers (May-June) stand scattered, peak share 0.45 (at 1 the shrub was a red ball).
+  - Fig: 92-130 (was 100-128). Rain-fed figs at Estahban, Fars (~1,750 m) break bud in April (FIG-ESTAHBAN). On day 0 a fig carries its first small leaves (0.17).
+  - Plane: 86-124 (was 82-108). A Platanus orientalis stand in Turkey foliates over ~1.5 months from mid-April (PLATANUS-LAI); on the warmer plain it starts earlier. On day 0 the planes are in young leaf (0.38).
+  - Mulberry is unchanged (leaves by April; silkworms from late April: IR-SERICULTURE). The rest are recalled (BOTANY-GEN, C) and unchanged.
+  - Vineyards: head-trained stocks of ~0.5 m old wood, budburst in April (crops.vines "leaf_out Apr"), a canopy to ~1.5 m by June (Q-213).
+  - Barley and wheat stand 0.6 m on 17 April, as plain.json's April height (checked, unchanged).
+- **Water (src/world/plain/waterShade.ts, rivers.ts, settlement/water.ts; C):**
+  - Ripples: four octaves of noise normals (wavelengths 2.4, 1.0, 0.42 and 0.17 m, not harmonics), advected downstream at the flow speed. Each octave fades where its wavelength spans fewer than 3-8 pixels (`fwidth` of the world position), and the lost slope raises the roughness and blurs the reflection instead of aliasing into stripes.
+  - Body: absorption with the local depth across the trapezoid (per channel 1.1, 0.42 and 0.34 per m): dark green in mid-channel, the bed showing in the shallows. Flood water is an opaque silty brown (turbidity from the flow table).
+  - Reflection: Fresnel × the calibrated sky and horizon radiance. Where the reflected ray meets the far bank (its top plus ~1.5 m of reeds and grass), it reflects a sunlit sward at about a third of the horizon's luminance, in its own green. Where it meets the riparian trees (~12 m, 15 m back), it reflects darker crowns. The trees stand in clumps over about half the bank (canals less), by a noise along the bank. In round 2 a uniform grey bank reflection read as asphalt.
+  - The town's pools and channels use the same model (a depth attribute, a stone bed).
+- **Banks (rivers.ts):** a wet mud film at today's waterline and a damp band up to 0.5 m above it. Bare silt lies only between today's water and the spring flood line: none in April, widest in September. Above the flood line a riparian sward grows in patches, green by the date (`marginState.grassGreen`). The old rule covered everything below 2.4 m above the bed with silt.
+- **River margins (src/world/plain/riparian.ts, new; species in plain.json `riparian.margins`; Q-211):**
+  - What grows: reed beds on the channel slopes between the summer water and the flood line, over about half the bank, in patches 25-90 m long that thin out over a few metres at their ends; rushes at the wet edge; grass on the upper bank and the apron; rushes and grass along the canals. Evidence: IR-WETLAND-REEDS and MAHARLOU-SPARGANIUM, B for Iran and the basin, C for the Pulvar in 467.
+  - How it is drawn: instanced tufts of 14 blades, one draw call, drawn to 70 m (grass 38 m) at high, shrinking to nothing toward those radii, with no shadows cast. Past ~1.2 px per blade, the blades that remain widen and the others fold away, which keeps the tuft's projected area (the reed beds speckled at 30-70 m).
+  - No pop-in (§13.8): tufts are placed out to each drawn radius plus the 7 m the camera may move before the next placement. The extra tufts that make the margins denser within 22 m grow in over 22-16 m. Beyond 22 m the grid keeps 45 % of its points for reeds and rushes and 35 % for grass. Caps: 22,000 at high, 25 % over the worst of 84 cameras along both rivers (17,208, on the Kur's wide reed slopes; tested at test and high quality).
+  - By the date (`marginState`): in mid-April, last year's pale culms (a third broken over the winter, leaning) stand over ~0.5 m of new shoots. The reeds reach 2.4 m by July, with plumes from August. The bank grass turns straw from July, and one blade in twelve is dead all year.
+- **Garden channels (src/world/settlement/water.ts; research/SETTLEMENT.md; Q-212):**
+  - Evidence: Pasargadae's watercourses are limestone channels 25 cm wide with a deep square basin every 13-14 m, probably flush with the ground (PASARGADAE-CHANNELS, search extract; B as an analogy).
+  - Built: dressed blocks 0.9-1.15 m long with 2 cm joints and a tone of their own; 13 cm lips standing 7 cm proud of the ground, because the heightfield cannot be cut (C); a basin 0.7 m square every 13.5 m (none within 4 m of a pool); the water 3.5 cm below the lip.
+  - They replace the white 20 cm kerbs. The kerbs call in settlement/build.ts is removed; its `kerbs()` method is now unused.
+  - Whole town, headless, high: 38 → 39 meshes, 0.823 → 0.840 M triangles (channel stones +20,180, garden stone −6,100, water +2,674).
+- **Measured (quality high, WebGPU/SwiftShader, 960×540, frozen frames; tests/e2e/plain.spec.ts, the plain shown vs hidden; the town the same way):**
+
+  | view | plain adds before | plain adds after | near-tree triangles before → after | margins (tufts) | frame after |
+  |---|---|---|---|---|---|
+  | stair-dawn-plain (budget) | +15 calls, 0.962 M | +15, 0.962 M | 0 → 0 | 0 | 348 calls, 5.72 M |
+  | apadana-north-nr (budget) | +18, 0.951 M | +20, 0.951 M | 0 → 0 | 0 | 469, 10.32 M |
+  | stair-foot-east (budget) | +10, 0.797 M | +10, 0.797 M | 0 → 0 | 0 | 541, 10.08 M |
+  | pulvar-bank-april | +26, 0.881 M | +27, 0.984 M | 20,160 → 23,184 | 6,705 | 135, 3.21 M |
+  | village-p22 | +40, 2.338 M | +41, 2.564 M | 0.671 M → 0.735 M (1,979 → 1,743 trees) | 4,691 | 139, 4.63 M |
+  | garden-paradise | +12, 0.896 M | +12, 0.896 M (the town: +39, 1.647 M, first measured) | 0 → 0 | 0 | 136, 4.38 M |
+
+  - "Before" is the main checkout's session-4 renders at high (/home/user/fars/shots/plain-stats.json). "After" is the final renders (commit 031e6ae's look). The pop-free margin placement since then places about 14 % more tufts at the Pulvar bank (7,630 against 6,705 headless; +13 k triangles, a third of them at zero size). Frame totals moved for reasons outside this work (other agents' changes in the main checkout), so compare the plain's share.
+  - From the Terrace every tree is an impostor and no margins are placed, so the plain's triangles in the budget views are unchanged. The +2 calls at apadana-north-nr were not traced.
+  - At P22 the near trees cost +0.064 M (+9.5 %) at the smaller r3. The rest of the increase is the shadow passes (400 LOD1 shadow casters × 80 more triangles × up to 3 cascades) and the margins. P22 was over the Phase 7 plain limit at high before this work (2.34 M against ≤ 2 M, a limit set at quality test) and is further over now.
+- **Other measurements:**
+  - River band at the Pulvar bank (pulvar-bank-april, x 0-520): before, blue-grey (sRGB 93/98/95, Y 0.121) with regular stripes, the row profile varying 7.1 % about its trend; after, the olive of the reflected far bank (74/74/50, Y 0.067), varying 0.9 %.
+  - Unit suite (`npx vitest run --maxWorkers=2`, before the cypress clump commit): 413 passed, 1 skipped. tests/trees.test.ts passes after it. `npx tsc --noEmit` is clean and `tools/lint_chrono.ts` OK.
+- **Tests:**
+  - tests/plain_look.test.ts (new): the margins at the Pulvar bank stand on the drawn corridor and are placed out to their fade radii plus the re-placement step; the cap never binds along either river; the margins' calendar; barley, wheat and vines on day 0; the ripple octaves are band-limited and not harmonics; the channel dimensions.
+  - tests/trees.test.ts: mid-April (pomegranate in young leaf turning from red to green, the first fig leaves, planes in young leaf, apple blossom, the variants apart, a bare fig with few twig sprays); LOD1 368 triangles.
+  - tests/plain.test.ts: the orchard rows are checked against PLAIN_QUALITY's r3.
+- **Alternatives rejected:**
+  - larger leaf textures or more LOD0 cards (the cabbages came from coverage and flat lighting, not resolution);
+  - a noise normal map on the crowns (it lights every card alike, so the flat-plate look stays);
+  - crown-sphere normals alone (a smooth ball: the lollipop);
+  - higher-order lobes on the crown envelope (tried: hairier outlines, still round);
+  - a reflection pass for the rivers (none exists; SSGI only), and at grazing angles most of the far bank is off screen anyway;
+  - reed cards (flat, they read as fences at 20 m);
+  - keeping r3 at 250 m (+0.15 M triangles at P22).
