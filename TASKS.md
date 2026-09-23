@@ -37,7 +37,7 @@
 - [x] Walkthrough e2e over all six areas (session 3, after the step-up fix D-034)
 - [ ] Camera-rig views of the new areas at high quality
 - [x] Reliefs on the Tachara/Hadish/Tripylon/Harem/Hall-100 stairs and jambs (355 figures), 11 windows, 9 niches, 22 working doors; far relief chunks (draws ~1,000) — D-048..D-052
-- [ ] Tachara lance-bearers, XPe, stair crenellations; furnishings
+- [~] XPe (D-066) and stair crenellations (D-065) added; Treasury N range + scribes' room (D-067); Tachara lance-bearers and other furnishings open
 - [ ] Phase 4 independent review
 ## Phase 5 — Population + economy sim in workers, events, memory, persistence, soak test
 - [x] Simulation LOD (abstract/full) with non-teleporting promotion; load-time catch-up (persistence)
@@ -53,14 +53,14 @@
 - [x] Sky calibrated against the skylight; fog, cloud haze, smoke and rain shafts follow the horizon radiance (D-060)
 - [~] Visitor mode (D-063): zones, rules, stop, halmi, escort, errand; e2e queued
 - [ ] Clouds render check; `QUALITY=high npm run bench` re-run
-- [ ] Rebuild the walkable grid after the merges (curvature ≤ 3 cm; Gate layout changes)
+- [x] Rebuild the walkable grid after the merges (D-067: rebuilt; doorways under 1.3 m no longer sealed; bots 77 + 28 legs pass offline)
 ## Phase 6 — Settlement
 - [x] Research (SETTLEMENT.md, settlement.json); chronology rows + fail-closed lint (D-033)
 - [~] Town, gardens, workshops, Tol-e Ajori, Takht-e Rustam, roads, way-station; house plots for the simulation (agent)
 ## Phase 7 — Plain and horizon
 - [x] Research (PLAIN.md, plain.json); horizon: far ring ±71.7 km + curvature, skyline matches SRTM (D-035)
 - [x] Rivers, canals, fields by season, villages, orchards, Naqsh-e Rustam merged (D-037..D-040); DNa/DNb carved (D-061)
-- [ ] Plain look: crude tree crowns and tamarisk domes, dark ground specks, dawn vista, schematic NR reliefs
+- [~] Plain look: dark specks fixed; grey domes = impostor per-vertex fade (cause found); trees rework (agent, D-120…); dawn vista, schematic NR reliefs open
 ## Phase 8 — Language, speech, music, translation layer, map, Now view, photo mode
 - [~] Translation layer: subtitles, inscriptions (transliteration + glosses; translations need NEEDS #14), map (M; Z: town and plain scales), chronicle (J; visitor log)
 - [x] Lexicons in five languages (Babylonian, Ionic Greek new), 73 lines, 372 voice clips (D-105..D-109); listening test open (H8)

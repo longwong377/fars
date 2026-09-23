@@ -68,12 +68,15 @@
 - **Phase 4b (merged in session 3, D-048 to D-052):**
   - Draw calls at quality high fell from 3,361 / 3,225 / 3,120 to 1,120 / 991 / 1,018 (Grand Stair foot, Apadana N court, Tachara S court): far relief chunks are merged into one coarse mesh.
   - All carving is procedural (C, NEEDS #10). Figure counts and placements are C, and the ledges between tiers of throne-bearers are from recollection.
-  - Not placed: the Tachara lance-bearers, XPe (not in inscriptions.json) and the stair crenellations. The Hadish S doorway, the Apadana hall doorways and the Tripylon S stair are plain for lack of a programme.
+  - Not placed: the Tachara lance-bearers (their W-room doorways are not modelled). The Hadish S doorway, the Apadana hall doorways and the Tripylon S stair are plain for lack of a programme.
+  - Added later in session 3, not yet seen in a render:
+    - XPe is carved on the Hadish E and W doorway reveals: three versions stacked, flat signs (D-066);
+    - 228 four-stepped merlons on the Grand Stair, Tachara, Hadish and Tripylon parapets (D-065, motif C on these stairs).
   - Unverified in a render: daylight through the windows, and walking through doors with people (doors are unit-tested only).
 - **Phase 6 (settlement; merged in session 3, D-041 to D-044):**
   - Built: 10 town quarters (maze lanes, courtyard houses, workshops, pens), compounds, gardens, Tol-e Ajori (plan from the 2017 report, B/C), Takht-e Rustam, roads, canal and way-station. It is walkable (131 m lane walk offline) and adds only 17–43 draw calls.
   - Weak or unverified:
-    - **The dusk-smoke moment does not land from the Terrace:** the town is a thin band and the haze is barely visible. The slope view meant to show it was never rendered.
+    - **The dusk-smoke moment does not land from the Terrace (measured):** the terrace-w-dusk renders at high with and without the town differ in fewer than 1,000 pixels by more than 30 levels. Neither the town nor its plumes or haze show; the plumes added this session did not change that. A debug render (`?smokedbg`: haze blue, plumes red) is queued to tell "not drawn" from "no contrast". The slope view failed: the run's snapshot was deleted mid-run (a cleanup error) and it is re-queued.
     - Several views were not re-rendered after the final fixes, and WebGL2 is untested.
     - Trees and houses are placeholders (boxes and low-poly crowns); street doors never move.
     - Every layout is C: the house type is the Babylonian courtyard analogue (Q-082).
@@ -85,7 +88,7 @@
   - Weak:
     - the dawn vista from the Grand Stair reads as a mottled brown-green plain; no trees, villages or rivers can be made out at 960×540;
     - from the Apadana looking north almost none of the plain shows;
-    - grey dome shapes at the bases of orchard trees in village P22 (cause not found);
+    - grey dome shapes at the bases of orchard trees in village P22. **Cause found:** the far impostors (orchard rows) fade by distance per vertex, so a long row quad whose ends lie beyond r3 stands where it passes the camera (layer-toggle debug render). The fix is assigned to the tree agent;
     - the east end of the Naqsh-e Rustam cliff is probably still a sheer slab;
     - the edge of the near-crop radius is visible (18 m test, 30 m high);
     - dark specks on the ground, probably the earth material's stone chips.
@@ -106,8 +109,8 @@
   - Too dark or wrong:
     - interiors are near black: the Apadana entered from the portico, the Hadish hall;
     - dawn reads as midday (the twilight light curve is C);
-    - the scribe's place is an open court, not a room (Treasury architecture);
-    - dusk smoke is not visible from the slope (plumes added since, not yet rendered);
+    - the scribe's place was an open court. The Treasury N range is now built from REF-PLAN, with the scribes' room furnished (D-067); not yet rendered;
+    - dusk smoke is not visible: the plumes added this session changed nothing measurable from the Terrace (see Phase 6);
     - the stair-climb view is dark;
     - trees are crude.
   - Reasonable: night on the Terrace, the Gate at dusk, the Tachara S stair.
@@ -141,7 +144,7 @@
 | 1 | Engine foundation: renderer (WebGPU + WebGL2), terrain rings, sky, weather, Rapier player, shell, save/load, overlay, bench, test harness | **Passed with logged exceptions:** real frame rate not measurable (REAL_HARDWARE_TODO); sky is Preetham analytic |
 | 2 | Terrace greybox from the parametric generators | **Passed with logged exceptions:** footprints are OSM traces (B6); the overlay mostly checks footprints against themselves |
 | 3 | Vertical slice: materials, reliefs, fire, weather VFX, audio, 65 people, speech/murmur, walkthrough bot (28 legs, re-verified session 3) | **Not passed:** rubric and independent review not run; calibration blocked; people placeholder; bench to re-run |
-| 4 | Rest of the Terrace: stairs, doors, frames, corrected outlines, floors, fires, acoustics, guard posts; stair and jamb reliefs (355 figures), 11 windows, 9 niches, 22 working doors (session 3, D-048 to D-052); far relief chunks cut draws to ~1,000 | **Not passed:** Phase 4 review not run; carving C (NEEDS #10); Tachara lance-bearers, XPe and stair crenellations not placed; windows never seen lit through |
+| 4 | Rest of the Terrace: stairs, doors, frames, corrected outlines, floors, fires, acoustics, guard posts; stair and jamb reliefs (355 figures), 11 windows, 9 niches, 22 working doors (session 3, D-048 to D-052); far relief chunks cut draws to ~1,000 | **Not passed:** Phase 4 review not run; carving C (NEEDS #10); Tachara lance-bearers not placed (XPe and stair crenellations added, D-065/D-066, unrendered); windows never seen lit through |
 | 5 | Two-tier simulation of 46,590 people: events calendar, town life, rota, construction state, memory, persistence; soak PASSES (session 3); birds and jackals visible (D-054) | **Not passed:** activity coverage (25 placeholders), rendered floors, unrendered Terrace workforce, construction geometry, shadow review pending |
 | 6 | Settlement built (session 3): quarters, houses (1,456 homes / 7,830 people), workshops, gardens, Tol-e Ajori, roads; lints pass, layout sourced and tiered (C) | **Gate items met on paper (lints pass; layout sourced and tiered)**; smoke moment and people-to-houses link open |
 | 7 | Plain built (session 3): rivers, canals, fields, crop calendar, orchards, villages, quarries, Naqsh-e Rustam; horizon fixed (D-035); +8–21 draws | **Not passed:** last fixes unrendered, dawn vista weak, relief figures and DNa/DNb schematic or textless, review not run |
