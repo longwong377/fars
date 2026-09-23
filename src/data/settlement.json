@@ -33,11 +33,12 @@
    "layout": "rectilinear beds divided by stone-lined or earthen channels, by analogy with Pasargadae (B analogy, C here)"
   },
   "not_placed": [
-   "storehouses (PF stores exist; no excavated store outside the Terrace)",
-   "stables (horse rations in PF: title-only lead Potts 2023 \"Pain et vin\"; no stable excavated)",
+   "storehouses: PF stores exist, no excavated store outside the Terrace. The Phase 6 build places ONE storehouse as C (town_elements town_stores; D-043)",
+   "stables: horse rations in PF (POTTS2023); no stable excavated. The Phase 6 build places ONE state stable as C (town_elements town_stables; D-043)",
    "garrison outside the Terrace (none evidenced)",
    "qanats (no archaeologically dated Achaemenid qanat; QANAT-WH2018) - wells and river canals only"
-  ]
+  ],
+  "town_elements": "Reconstruction rows (Phase 6 build): every generated plot, fitting and prop names one of these rows (tier, sources, basis) and a present feature (in_feature). tools/lint_chrono.ts checks them fail-closed."
  },
  "features": [
   {
@@ -65,8 +66,26 @@
    "size_tier": "B",
    "height_m": 12,
    "height_tier": "C",
-   "axis_note": "long side NW-SE (B); passage direction not retrieved (C: NE-SW)",
-   "chrono": "tol_ajori"
+   "axis_note": "long side NW-SE, WNW-ESE at 110/290 deg true; the passage runs along the long axis through corridors on the short sides (plan_2026, B). Superseded: 'passage direction not retrieved (C: NE-SW)'.",
+   "chrono": "tol_ajori",
+   "plan_2026": {
+    "long_axis_true_deg": [
+     110,
+     290
+    ],
+    "wall_thickness_m": 10.47,
+    "inner_room_m": [
+     14.36,
+     8.0
+    ],
+    "benches": "low benches along the inner room walls",
+    "corridors": "two entrance corridors, on the NW and SE short sides (so the passage runs along the long axis)",
+    "motifs": "aurochs and mushhushshu glazed relief bricks copied from the Babylonian panels; originally a blue ground, the surviving colours paler",
+    "src": "TOLAJORI2017;WP-ISHTAR",
+    "access": "SX (search extracts of the 2017 report abstract and of Wikipedia 'Ishtar Gate', 2026-09-23)",
+    "tier": "B",
+    "note": "\"rectangular plan ... 39.07 m (NW-SE) x 29.05 m (NE-SW), oriented from WNW to ESE, with a 20 deg shift to N from the E-W axis. Its outer perimeter is formed by a massive wall 10.47 m thick, which encloses a rather limited inner room (w. 8.00 m, l. 14.36 m) with low benches along its walls and accessed by two corridors on the NW and SE short sides\" (abstract as quoted by the search engine). Supersedes the earlier C guess of a NE-SW passage (D-042)."
+   }
   },
   {
    "id": "zone_bagh_e_firuzi",
@@ -914,6 +933,289 @@
    "date_range": "undated",
    "present_467": null,
    "chrono": "private_rock_tombs"
+  }
+ ],
+ "town_elements": [
+  {
+   "id": "town_houses",
+   "kind": "houses",
+   "name": "courtyard houses of the town quarters",
+   "tier": "C",
+   "src": "BAKER2014;RECON",
+   "in_feature": [
+    "zone_lower_town_south",
+    "zone_persepolis_west",
+    "pw_area_a",
+    "pw_area_b_craft",
+    "zone_bagh_e_firuzi",
+    "zone_dasht_e_gohar"
+   ],
+   "note": "House type after the first-millennium Babylonian courtyard house (BAKER2014 with Reuther 1926 on the Merkes quarter of Babylon, search extracts: B for the analogue): a court with rooms on two to four sides, one street door into a vestibule set to block the view in, blind alleys. Babylon was inside the empire and lived in through the Achaemenid period. Plot sizes (8-16 x 10-20 m), room depths (3-4 m), roof heights (3.1-3.6 m) and capacities (13 m2 of rooms per person) are C. No house has been excavated at Persepolis."
+  },
+  {
+   "id": "town_lanes",
+   "kind": "lanes",
+   "name": "streets, lanes, blind alleys and small squares",
+   "tier": "C",
+   "src": "BAKER2014;RECON",
+   "in_feature": [
+    "zone_lower_town_south",
+    "zone_persepolis_west",
+    "pw_area_a",
+    "pw_area_b_craft",
+    "zone_bagh_e_firuzi",
+    "zone_dasht_e_gohar"
+   ],
+   "note": "Generated maze: through streets 4 m with jogs, lanes 3 m and alleys 2 m branching until no ground lies more than 16 m from a lane (C). Babylon Merkes: wide and narrow streets, blind alleys giving access to houses (B analogue)."
+  },
+  {
+   "id": "town_workshops",
+   "kind": "workshops",
+   "name": "craft workshops (treasury metal, wood and textile work; bakeries, breweries, potters)",
+   "tier": "C",
+   "src": "IR-TREAS;HENK2023;LIVIUS-TREAS;CDLI-PF;RECON",
+   "in_feature": [
+    "zone_lower_town_south",
+    "zone_persepolis_west",
+    "pw_area_a",
+    "pw_area_b_craft",
+    "zone_bagh_e_firuzi",
+    "zone_dasht_e_gohar"
+   ],
+   "note": "Crafts B: PT craftsmen include woodworkers, goldsmiths and stonecutters (IR-TREAS); treasury staff handle wood, carpentry supplies, precious metals and probably textiles (HENK2023); >= 1,348 employed in the treasury in 467, mostly in town workshops (LIVIUS-TREAS; split C, Q-031); PF 40 'He made beer' (A, Darius-era). Workshop places, share (5-10 % of plots) and fittings (forges, looms, ovens, querns, vats, kilns) C."
+  },
+  {
+   "id": "town_yards",
+   "kind": "yards",
+   "name": "back yards and walled yards",
+   "tier": "C",
+   "src": "RECON",
+   "in_feature": [
+    "zone_lower_town_south",
+    "zone_persepolis_west",
+    "pw_area_a",
+    "pw_area_b_craft",
+    "zone_bagh_e_firuzi",
+    "zone_dasht_e_gohar"
+   ],
+   "note": "ground left between plots, walled as yards or small gardens (C)"
+  },
+  {
+   "id": "town_pens",
+   "kind": "pens",
+   "name": "animal pens (sheep, goats, donkeys)",
+   "tier": "C",
+   "src": "CDLI-PF;POTTS2023;RECON",
+   "in_feature": [
+    "zone_lower_town_south",
+    "zone_persepolis_west",
+    "pw_area_a",
+    "pw_area_b_craft",
+    "zone_bagh_e_firuzi",
+    "zone_dasht_e_gohar"
+   ],
+   "note": "stockyard flocks (PF 58-60, A Darius-era) and donkeys fed bread (PFAT 0025 via POTTS2023, B); pens in the town, their walls (1.4 m) and dung floors C"
+  },
+  {
+   "id": "town_wells",
+   "kind": "wells",
+   "name": "wells in squares and courts",
+   "tier": "C",
+   "src": "QANAT-WH2018;RECON",
+   "in_feature": [
+    "zone_lower_town_south",
+    "zone_persepolis_west",
+    "pw_area_a",
+    "pw_area_b_craft",
+    "zone_bagh_e_firuzi",
+    "zone_dasht_e_gohar",
+    "north_official_complex",
+    "waystation_kur_west"
+   ],
+   "note": "no qanat is dated to the Achaemenid period (Q-052): wells and river-fed canals only; well places and form C"
+  },
+  {
+   "id": "town_middens",
+   "kind": "middens",
+   "name": "middens at the town edge, by the kiln and outside the stable",
+   "tier": "C",
+   "src": "PW2017;RECON",
+   "in_feature": [
+    "zone_lower_town_south",
+    "zone_persepolis_west",
+    "pw_area_a",
+    "pw_area_b_craft",
+    "zone_bagh_e_firuzi",
+    "zone_dasht_e_gohar",
+    "waystation_kur_west"
+   ],
+   "note": "SETTLEMENT.md zoning: middens by the kiln (C); ash, sherds, bone and dung where work happens (brief 5.5)"
+  },
+  {
+   "id": "town_hearths",
+   "kind": "fires",
+   "name": "domestic hearths, bread ovens, workshop forges and kilns",
+   "tier": "C",
+   "src": "RECON",
+   "in_feature": [
+    "zone_lower_town_south",
+    "zone_persepolis_west",
+    "pw_area_a",
+    "pw_area_b_craft",
+    "zone_bagh_e_firuzi",
+    "zone_dasht_e_gohar",
+    "north_official_complex",
+    "waystation_kur_west"
+   ],
+   "note": "65 % of houses with a court hearth, 22 % with a bread oven (C); hearths lit as the light goes and banked a few hours after dark, relit before dawn; ovens before dawn; kilns and forges by day (fire.ts schedules, C); brief 9.2 'Fires are lit at dusk'"
+  },
+  {
+   "id": "town_stores",
+   "kind": "storehouse",
+   "name": "storehouse of the royal stores",
+   "tier": "C",
+   "src": "CDLI-PF;RECON",
+   "in_feature": [
+    "zone_persepolis_west"
+   ],
+   "note": "PF 2-8: grain, flour and loaves taken to Persepolis 'for the royal stores' (A, Darius-era). No store excavated outside the Terrace (SETTLEMENT.md listed stores as not placed); placed here as C by the road south, magazines round a court (plan C) (D-043)"
+  },
+  {
+   "id": "town_stables",
+   "kind": "stable",
+   "name": "state stable by the royal road",
+   "tier": "C",
+   "src": "POTTS2023;HDT;RECON",
+   "in_feature": [
+    "zone_persepolis_west"
+   ],
+   "note": "horse rations for months at a time in 76 PF texts (POTTS2023, B); express couriers change horses at stations (HDT 8.98, B claim). No stable excavated (SETTLEMENT.md: not placed); placed C by the royal road W of the town, stalls on three sides of a yard (plan C) (D-043)"
+  },
+  {
+   "id": "official_court",
+   "kind": "official_building_plan",
+   "name": "plan of the ~1 ha official building N of the Terrace",
+   "tier": "C",
+   "src": "GONDET2018;RECON",
+   "in_feature": [
+    "north_official_complex"
+   ],
+   "note": "existence and size B/C (GONDET2018); plan (ranges of rooms round a court, a gate toward the Terrace, a square columned hall in the court, 6 m high) C"
+  },
+  {
+   "id": "area_b_yard",
+   "kind": "workshop_yard",
+   "name": "Persepolis West Area B craft yard: kiln, bone pits, pigment workshop",
+   "tier": "C",
+   "src": "PW2017;PW-PIGMENT2021;RECON",
+   "in_feature": [
+    "pw_area_b_craft"
+   ],
+   "note": "activity B (kiln, pits of bone fragments for the fluorapatite that whitened the Terrace limestone, pigment lumps incl. Egyptian blue made on site); walled yard 44 x 34 m, kiln form, pit form, furnace, grinding slabs, midden by the kiln C"
+  },
+  {
+   "id": "area_c_ditch_garden",
+   "kind": "garden",
+   "name": "Persepolis West Area C garden: ditch grid in an enclosing wall",
+   "tier": "C",
+   "src": "PW2017",
+   "in_feature": [
+    "pw_area_c_garden"
+   ],
+   "note": "'a grid of ditches with a fencing wall, read as a garden' (PW2017, B); 170 x 130 m, 12 m ditch spacing, 2.4 m wall and fruit trees C"
+  },
+  {
+   "id": "paradise_bagh_e_firuzi",
+   "kind": "garden",
+   "name": "walled garden behind the Tol-e Ajori gate",
+   "tier": "C",
+   "src": "GONDET2009;DASHTESTAN2021;SAEIDI2021;IR-FOODAG;RECON",
+   "in_feature": [
+    "zone_bagh_e_firuzi"
+   ],
+   "note": "Achaemenid garden complexes in the zone (GONDET2009, B); column bases and foundations beyond the gate (press, C). 330 x 260 m, the gate in its ESE wall, beds divided by stone-lined channels with basins after the Pasargadae garden (B analogy), cypress and plane on the axis, fruit trees in the beds (species B, mix C)"
+  },
+  {
+   "id": "garden_dasht_e_gohar",
+   "kind": "garden",
+   "name": "walled garden at Dasht-e Gohar",
+   "tier": "C",
+   "src": "GONDET2009;SAEIDI2021;IR-FOODAG;RECON",
+   "in_feature": [
+    "zone_dasht_e_gohar"
+   ],
+   "note": "garden complexes in the zone (GONDET2009, B); 210 x 150 m E of Takht-e Rustam, channels and planting as the Bagh-e Firuzi garden (C)"
+  },
+  {
+   "id": "hall_dasht_e_gohar",
+   "kind": "columned_hall",
+   "name": "columned hall behind Takht-e Rustam",
+   "tier": "C",
+   "src": "GONDET2009;RECON",
+   "in_feature": [
+    "zone_dasht_e_gohar"
+   ],
+   "note": "'a hypostyle hall reburied behind the platform' (search extract, C); 4 x 5 columns on stone bases, 24 x 30 m, flat roof, back wall: size and plan C"
+  },
+  {
+   "id": "estates_bagh_e_firuzi",
+   "kind": "estate",
+   "name": "elite estates: courtyard house, orchard, pool",
+   "tier": "C",
+   "src": "GONDET2009;HDT;RECON",
+   "in_feature": [
+    "zone_bagh_e_firuzi"
+   ],
+   "note": "very low-density elite occupation among gardens (GONDET2009, B); estate households of 15-45 (population.json template, C); 90 x 70 m walled orchard with a 34 m courtyard house (C)"
+  },
+  {
+   "id": "town_gardens_orchards",
+   "kind": "orchard",
+   "name": "walled orchards among the town blocks",
+   "tier": "C",
+   "src": "SELOPERSE;IR-FOODAG;SAEIDI2021;RECON",
+   "in_feature": [
+    "zone_lower_town_south",
+    "zone_persepolis_west",
+    "pw_area_a",
+    "pw_area_b_craft",
+    "zone_bagh_e_firuzi",
+    "zone_dasht_e_gohar"
+   ],
+   "note": "a garden city of separate blocks among gardens, parks, fields and orchards (SELOPERSE, B); orchard places, walls and plantings C"
+  },
+  {
+   "id": "waystation_plan",
+   "kind": "way_station_plan",
+   "name": "plan of the way-station at the Kur crossing",
+   "tier": "C",
+   "src": "ROYALROAD-GIS;HYLAND2022;RECON",
+   "in_feature": [
+    "waystation_kur_west"
+   ],
+   "note": "stations a day apart on the royal road (ROYALROAD-GIS, B); walled court 44 x 44 m with rooms, store and stable, well and hearth by analogy with the Jinjun and Qaleh-ye Kali stations (B analogy, C here); travel rations by the sealed document (HYLAND2022, B)"
+  },
+  {
+   "id": "road_spur_ajori",
+   "kind": "road",
+   "name": "spur from the royal road to the Tol-e Ajori gate",
+   "tier": "C",
+   "src": "RECON",
+   "in_feature": [
+    "zone_bagh_e_firuzi"
+   ],
+   "note": "course C"
+  },
+  {
+   "id": "takht_steps",
+   "kind": "platform_steps",
+   "name": "Takht-e Rustam steps",
+   "tier": "C",
+   "src": "LIVIUS-TR;RECON",
+   "in_feature": [
+    "takht_e_rustam"
+   ],
+   "note": "12.5 x 12.5 m base and two steps (B size); step height 1.1 m and set-back 1.0 m not retrieved (C); orientation C"
   }
  ]
 }

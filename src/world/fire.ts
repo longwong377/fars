@@ -5,15 +5,22 @@ import * as THREE from 'three/webgpu';
 import { uniform, uv, vec3, vec4, float, mx_noise_float, time, attribute, smoothstep, mix, length, vec2, max } from 'three/tsl';
 import { Rng } from '../core/rng';
 
-export type FireKind = 'torch' | 'brazier' | 'hearth' | 'oven' | 'lamp';
-export interface FireSource { id: string; kind: FireKind; pos: THREE.Vector3; lit: boolean; seed: number; tier: string; src: string; note: string }
+export type FireKind = 'torch' | 'brazier' | 'hearth' | 'oven' | 'lamp' | 'kiln';
+/** when a fire burns (C schedules): 'night' dusk to after sunrise (default); 'home' a domestic hearth, lit as the light
+ *  goes for the evening meal and banked a few hours after dark, relit before dawn; 'bake' a bread oven, before dawn into
+ *  the morning; 'day' a workshop fire (kiln, forge) in working hours. Needs the local hour (update's last argument). */
+export type FireSchedule = 'night' | 'home' | 'bake' | 'day';
+export interface FireSource { id: string; kind: FireKind; pos: THREE.Vector3; lit: boolean; seed: number; tier: string; src: string; note: string; sched?: FireSchedule; group?: string }
 const SPEC: Record<FireKind, { flameH: number; flameW: number; power: number; range: number; smoke: number }> = {
   torch: { flameH: 0.45, flameW: 0.22, power: 1.2, range: 14, smoke: 0.2 },
   brazier: { flameH: 0.7, flameW: 0.55, power: 2.4, range: 22, smoke: 0.5 },
   hearth: { flameH: 0.5, flameW: 0.6, power: 1.6, range: 14, smoke: 1.0 },
   oven: { flameH: 0.25, flameW: 0.4, power: 0.8, range: 8, smoke: 1.2 },
   lamp: { flameH: 0.06, flameW: 0.03, power: 0.08, range: 3.5, smoke: 0.0 },
+  kiln: { flameH: 0.35, flameW: 0.5, power: 1.4, range: 10, smoke: 1.6 },
 };
+/** smoke puffs come only from fires within this distance of the camera (the pool is shared; far smoke is the town haze) */
+export const SMOKE_RANGE = 300;
 // ~1900 K blackbody (Planck, sRGB-normalised) — the colour temperature of wood/oil flames (C)
 const FIRE_RGB = new THREE.Color().setRGB(1.0, 0.52, 0.18);
 
@@ -32,8 +39,8 @@ export class FireSystem {
     for (let i = 0; i < maxLights; i++) { const l = new THREE.PointLight(FIRE_RGB, 0, 20, 2); l.castShadow = false; this.lights.push(l); this.group.add(l); }
   }
   /** `base` = where the object stands (floor) or, for torches, the bracket point on the wall */
-  add(kind: FireKind, base: THREE.Vector3, meta: { tier: string; src: string; note: string }) {
-    const lift = { torch: 0.35, brazier: 1.02, hearth: 0.15, oven: 0.25, lamp: 0.05 }[kind];
+  add(kind: FireKind, base: THREE.Vector3, meta: { tier: string; src: string; note: string; sched?: FireSchedule; group?: string }) {
+    const lift = { torch: 0.35, brazier: 1.02, hearth: 0.15, oven: 0.25, lamp: 0.05, kiln: 0.6 }[kind];
     this.fires.push({ id: `${kind}-${this.fires.length}`, kind, pos: base.clone().add(new THREE.Vector3(0, lift, 0)), lit: false, seed: this.rng.next() * 100, ...meta });
     this.bodies.push({ kind, base: base.clone() });
   }
@@ -86,9 +93,9 @@ export class FireSystem {
     this.group.add(this.smoke);
   }
   /** lit state: fires burn from dusk (sun < 4° and falling or night) until after sunrise (C schedule) */
-  update(dt: number, camera: THREE.Camera, sunAlt: number, windMs: number, windDirDeg: number, rain: number, t: number) {
+  update(dt: number, camera: THREE.Camera, sunAlt: number, windMs: number, windDirDeg: number, rain: number, t: number, hour?: number) {
     const lit = sunAlt < 4;
-    for (const f of this.fires) f.lit = lit && !(rain > 0.6 && (f.kind === 'brazier' || f.kind === 'hearth'));
+    for (const f of this.fires) f.lit = (hour === undefined || !f.sched || f.sched === 'night' ? lit : scheduleLit(f.sched, hour, sunAlt, f.seed)) && !(rain > 0.6 && (f.kind === 'brazier' || f.kind === 'hearth'));
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
     // flames: cylindrical billboards (yaw only) facing the camera
     this.fires.forEach((f, i) => {
@@ -110,8 +117,10 @@ export class FireSystem {
     // smoke
     const wr = ((windDirDeg + 180 - 341) * Math.PI) / 180; // wind blows FROM windDir; grid frame
     const wind = new THREE.Vector3(Math.sin(wr) * windMs, 0, -Math.cos(wr) * windMs);
+    const cp = camera.position;
     for (const f of this.fires) {
       const s = SPEC[f.kind]; if (!f.lit || s.smoke <= 0) continue;
+      if (f.pos.distanceToSquared(cp) > SMOKE_RANGE * SMOKE_RANGE) continue;
       if (this.rng.next() < s.smoke * dt * 3 && this.smokeP.length < 400)
         this.smokeP.push({ pos: f.pos.clone().add(new THREE.Vector3(0, s.flameH, 0)), vel: new THREE.Vector3((this.rng.next() - 0.5) * 0.2, 0.5 + this.rng.next() * 0.4, (this.rng.next() - 0.5) * 0.2), age: 0, life: 6 + this.rng.next() * 6, size: 0.4 });
     }
@@ -127,4 +136,16 @@ export class FireSystem {
   /** illuminance-like contribution of lit fires near a point (for eye adaptation) */
   localIlluminance(p: THREE.Vector3) { let e = 0; for (const f of this.fires) { if (!f.lit) continue; const d2 = f.pos.distanceToSquared(p) + 1; e += SPEC[f.kind].power * 4 / d2; } return e; }
   stats() { return { fires: this.fires.length, lit: this.fires.filter(f => f.lit).length, smoke: this.smokeP.length }; }
+}
+
+/** lit state of a scheduled fire (C). `seed` (0..100) staggers the fires so a town lights up over an hour, not at once. */
+export function scheduleLit(sched: FireSchedule, hour: number, sunAlt: number, seed: number): boolean {
+  const j = (seed % 1 + (seed * 0.137) % 1) % 1; // 0..1
+  const pm = hour >= 12;
+  switch (sched) {
+    case 'home': return pm ? sunAlt < 6 - 10 * j && sunAlt > -(16 + 20 * j) : sunAlt > -(8 + 8 * j) && sunAlt < 6 + 10 * j;
+    case 'bake': return !pm ? sunAlt > -(12 + 6 * j) && sunAlt < 10 + 18 * j : j < 0.25 && sunAlt < 3 && sunAlt > -10;
+    case 'day': return hour > 6.5 + j && hour < 16 + 1.5 * j && sunAlt > -2;
+    default: return sunAlt < 4;
+  }
 }
