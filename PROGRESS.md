@@ -1,6 +1,15 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Session 4 (2026-09-23 evening; in progress — read this block first).** Base was be6db72 (the session-3 handoff). Done and pushed so far:
+  - **Soak passes all 8 gates again** (D-140, sim agent): the "apart" failure was a 0.324 s sliver left by the round-3 water pass; the toddler's near-copy days came from all-day weather rules and visits cut to one host segment; a NaN-times bug for gardeners (since round 2) fixed. Worst population variety 0.094 (thin margin, unchanged). Shadow review round 4 input: `REVIEWS/shadow_days_input_seed1_pick89.txt`; the independent reviewer is running.
+  - **Interiors are no longer black** (D-141, B10 resolved): the eye adapts to the probes' interior light with the same key/threshold model. Hadish hall mean luma 83 (was 1.6); `apadana-hall-in` mean 31, columns readable. Bloom threshold and strength follow the exposure above the outdoor range.
+  - **Sun shadow bias was 0.8 m in the world** (D-146): wall heads under every roof were sunlit (a white line at the ceilings once the halls were exposed). Now 6 cm.
+  - **Clear skies drew a quarter of the dome in cloud** (D-145): the weather's cover now inverts a measured DOME-cover curve of our own shader.
+  - **§8.3 detail at 1 m** (D-147): band-limited micro grain on every surface (6–18 mm), finer LOD0 column lathes (≤ 1.44 px chord error at 1 m), `tests/detail.test.ts`. Ashlar block tone variation (D-148).
+  - **Naqsh-e Rustam** (D-144): cross-shaped dressed margins (the 18 m panels read as dark boxes), vertically jointed face; the 15:00 view still shows regular stripes (toned down, not re-rendered).
+  - **Rendered at high this session:** apadana-enter, apadana-hall-in, hadish-hall, scribe-at-work (ceiling line fixed; a thin bright red strip at one wall base unexplained), tachara-lance-bearers (the view misses the reliefs: reframe), dawn-sunrise (composition weak: reframed to the landing edge, D-148, re-render queued), stair-climb, the plain budget views (stair-dawn-plain 348 draws / 5.7 M tris; apadana-north-nr 467 / 10.3 M; stair-foot-east 541 / 10.1 M), naqsh-200m (am/pm).
+  - **Running agents (worktrees):** performances for the 27 placeholder activities (D-142), the population rendered at scale with impostors (D-143), shadow review round 4. Not yet run: the §8.2 rubric and the independent Phase 3/4/6/7 reviews (after the merges and a full high-quality moment pass).
 - **State at the end of session 3 (evening). Every agent branch is merged; HANDOFF.md lists the next steps in order.**
   - **The soak FAILS 2 of 8 gates after the round-3 sim merge** (the sim agent's full run on bf4ccf7, D-139):
     - populationVariety: child 41397, present 7 days, has a near-copy share of 0.19 (0.095 after round 2);
