@@ -1,27 +1,32 @@
 // Trees of the plain (Phase 7). Where they stand comes from plain.json (all placement C): riparian woodland along the
-// Pulvar and the Kur (river_*.riparian: plane, willow, poplar, tamarisk), tree lines along the canals, orchards in the
-// 300 m ring around each village (orchards_gardens: fig, apple, pear, mulberry, pomegranate), and open oak woodland with
-// pistachio-almond scrub on the slopes (woodland rule, thinned near the capital). Their leaves follow the date
-// (seasonal.ts foliage: leaf-out, autumn colour, bare winter, blossom).
+// Pulvar and the Kur (river_*.riparian: plane, white willow, poplar, tamarisk), tree lines along the canals (plane,
+// willow, mulberry), orchards in the 300 m ring around each village (orchards_gardens: fig, apple, pear, mulberry,
+// pomegranate; one species per plot), and open oak woodland with wild almond and pistachio scrub on the slopes (woodland
+// rule, thinned near the capital). What they look like comes from src/data/trees.json through the shared tree kit
+// (src/world/trees: species form C, presence B), and their leaves follow the date (seasonal.ts).
 //
-// Drawing (D-038): near the camera (R3) every tree is a 3D instance (wood + crown, 2 draw calls, shadows); beyond it the
-// riparian and canal trees are camera-facing billboards (1 draw call, one static mesh) and the orchards are "row
-// impostors": vertical quads along the orchard rows with a scalloped crown line (1 draw call). Woodland beyond R3 is the
-// canopy pattern the terrain shader draws at the same hash positions (terrainPlain.ts).
+// Layers (D-120): within the near radius R3 of the near set's centre every tree is 3-D (render.ts NearTreeSet: LOD0
+// within LOD0_R, LOD1 beyond; shadows from the nearest SHADOW_N within SHADOW_R); from there to the mid radius every
+// orchard and woodland tree is a baked impostor quad (one instanced draw, rebuilt around the camera); beyond the mid
+// radius the river and canal trees stay single impostors (one static instanced draw), the orchards become row impostors
+// (vertical quads along the exact tree rows of each plot sampling the same impostor atlas; a plot is drawn as rows only
+// when its centre lies beyond the mid radius, and no row fragment is drawn within R3 of the camera), and woodland is the
+// canopy pattern the terrain shader paints at the same hash positions (terrainPlain.ts), beyond the mid radius.
 import * as THREE from 'three/webgpu';
-import { attribute, uniform, positionLocal, positionGeometry, normalGeometry, cameraPosition, cameraViewMatrix, vec2, vec3, vec4, float, int, ivec2, mix, smoothstep, length, normalize, textureLoad, mx_noise_float, uv, step, clamp, max, abs, fract, sin, cos, time, positionWorld } from 'three/tsl';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { attribute, positionLocal, positionWorld, cameraPosition, cameraViewMatrix, vec2, vec3, vec4, float, floor, fract, sin, cos, atan, mod, length, max, normalize, step } from 'three/tsl';
 import type { Terrain } from '../../terrain/heightfield';
 import { Rng } from '../../core/rng';
 import { feature, tag, RiverProfile, pointInPolygon, settlementZones } from './data';
 import type { Canal } from './canals';
-import { TREE_GROUPS, TreeGroup, foliageTable } from './seasonal';
 import { hash2, unit, cellU, SALT, ZoneMap, zoneAt, landUseAt, plotAt } from './fields';
 import type { Village } from './villages';
+import { TreeKit, treeInst, speciesSize, type TreeInst } from '../trees/render';
+import { NV } from '../trees/impostor';
+import { VARIANTS, rowOf, allModels } from '../trees/model';
+import { speciesIndex, SPECIES } from '../trees/species';
 
-export interface Tree { x: number; y: number; g: number; h: number; r: number; shape: number; seed: number }
-/** crown shapes: 0 round (plane, fruit, mulberry), 1 columnar (poplar), 2 weeping/oval (willow), 3 shrub (tamarisk, almond), 4 spreading (oak) */
-const G = (g: TreeGroup) => TREE_GROUPS.indexOf(g);
+/** a tree of the plain: grid position, species (trees.json id), height and crown width (m), seed */
+export interface Tree { x: number; y: number; sp: string; h: number; w: number; seed: number }
 
 // ---------------------------------------------------------------- placement
 export function riparianTrees(rivers: RiverProfile[], seed = 1): Tree[] {
@@ -36,13 +41,10 @@ export function riparianTrees(rivers: RiverProfile[], seed = 1): Tree[] {
         const u = r.topWidth / 2 + 2 + rng.next() ** 1.4 * band;
         const x = r.x[i] + (tx / l) * a + nx * side * u + rng.range(-3, 3), y = r.y[i] + (ty / l) * a + ny * side * u + rng.range(-3, 3);
         const pick = rng.next(), nearWater = u < r.topWidth / 2 + 10;
-        let g: number, h: number, rr: number, shape: number;
-        if (nearWater && pick < 0.45) { g = G('tamarisk'); h = rng.range(2.5, 5); rr = rng.range(1.5, 2.8); shape = 3; }
-        else if (pick < 0.35) { g = G('plane'); h = rng.range(14, 24); rr = h * rng.range(0.32, 0.42); shape = 0; }
-        else if (pick < 0.65) { g = G('willow_poplar'); h = rng.range(6, 11); rr = h * rng.range(0.4, 0.5); shape = 2; }
-        else if (pick < 0.85) { g = G('willow_poplar'); h = rng.range(13, 21); rr = h * rng.range(0.12, 0.16); shape = 1; }
-        else { g = G('tamarisk'); h = rng.range(2.5, 5); rr = rng.range(1.5, 2.8); shape = 3; }
-        out.push({ x, y, g, h, r: rr, shape, seed: rng.int(0, 1 << 30) });
+        // species mix (C): tamarisk thickets at the water's edge; planes, willows and poplars behind
+        const sp = nearWater && pick < 0.45 ? 'tamarisk' : pick < 0.35 ? 'plane' : pick < 0.65 ? 'willow' : pick < 0.85 ? 'poplar' : 'tamarisk';
+        const { h, w } = speciesSize(sp, rng.next(), rng.next());
+        out.push({ x, y, sp, h, w, seed: rng.int(0, 1 << 30) });
       }
     }
   }
@@ -55,29 +57,31 @@ export function canalTrees(canals: Canal[], seed = 1): Tree[] {
     for (let a = 0; a < l; a += 11) for (const side of [-1, 1]) {
       if (!rng.chance(0.28)) continue;
       const u = c.width / 2 + 2.5 + rng.range(0, 2), x = ax + ((bx - ax) * a) / l + nx * side * u, y = ay + ((by - ay) * a) / l + ny * side * u;
-      const pick = rng.next();
-      if (pick < 0.4) out.push({ x, y, g: G('plane'), h: rng.range(10, 20), r: 0, shape: 0, seed: rng.int(0, 1 << 30) });
-      else if (pick < 0.8) out.push({ x, y, g: G('willow_poplar'), h: rng.range(6, 10), r: 0, shape: 2, seed: rng.int(0, 1 << 30) });
-      else out.push({ x, y, g: G('mulberry'), h: rng.range(6, 9), r: 0, shape: 0, seed: rng.int(0, 1 << 30) });
-      const t = out[out.length - 1]; t.r = t.shape === 2 ? t.h * 0.45 : t.h * 0.38;
+      const pick = rng.next(), sp = pick < 0.4 ? 'plane' : pick < 0.8 ? 'willow' : 'mulberry';
+      // canal planes are younger than the riparian stands: the lower half of the species' heights (C)
+      const { h, w } = speciesSize(sp, rng.next() * (sp === 'plane' ? 0.5 : 1), rng.next());
+      out.push({ x, y, sp, h, w, seed: rng.int(0, 1 << 30) });
     }
   }
   return out;
 }
-const FRUIT: { h: [number, number]; r: number }[] = [{ h: [4, 6], r: 0.45 }, { h: [4.5, 7], r: 0.4 }, { h: [5, 8], r: 0.38 }, { h: [3, 5], r: 0.42 }]; // fig, apple/pear, mulberry-like, pomegranate (C sizes)
+/** orchard species of a plot (orchards_gardens + crops.fruit_trees: fig, apple, pear, mulberry, pomegranate; shares C) */
+const ORCHARD: [string, number][] = [['fig', 0.22], ['apple', 0.2], ['pear', 0.18], ['mulberry', 0.13], ['pomegranate', 0.27]];
+export function orchardSpecies(plotHash: number) { let u = unit(hash2(plotHash, 3, 81)); for (const [sp, p] of ORCHARD) { if (u < p) return sp; u -= p; } return 'pomegranate'; }
+export const ORCHARD_SPACING = () => feature('orchards_gardens').rule.tree_spacing_m as number;
 /** orchard trees of one plot on a 7 m grid in the plot's strip frame (orchards_gardens rule), as the terrain shader sees the plot */
 export function orchardPlotTrees(zm: ZoneMap, seedX: number, seedZ: number): Tree[] {
   const pu = landUseAt(zm, seedX, seedZ); if (pu.row !== 'orchard_floor') return [];
-  const p = pu.plot, sp = feature('orchards_gardens').rule.tree_spacing_m as number;
+  const p = pu.plot, sp = ORCHARD_SPACING();
   const ca = Math.cos(p.angle), sa = Math.sin(p.angle), out: Tree[] = [];
-  const kind = unit(hash2(p.h, 3, 81)), fr = FRUIT[Math.min(3, Math.floor(kind * 4))];
+  const species = orchardSpecies(p.h);
   // walk a grid around the seed in the strip frame and keep points of this plot, 2 m inside its edge
   const nu = Math.ceil((p.w * 1.6) / sp), nv = Math.ceil((p.l * 1.6) / sp);
   for (let i = -nu; i <= nu; i++) for (let j = -nv; j <= nv; j++) {
     const u = i * sp, v = j * sp, x = seedX + u * ca - v * sa, z = seedZ + u * sa + v * ca;
     const q = plotAt(x, z); if (q.h !== p.h || q.edge < 2) continue;
-    const hs = hash2(cellU(x), cellU(z), 82), h = fr.h[0] + (fr.h[1] - fr.h[0]) * unit(hs);
-    out.push({ x, y: -z, g: kind < 0.75 ? G('fruit') : G('mulberry'), h, r: h * fr.r, shape: 0, seed: hs & 0x3fffffff });
+    const hs = hash2(cellU(x), cellU(z), 82), { h, w } = speciesSize(species, unit(hs), unit(hash2(hs, 5, 83)));
+    out.push({ x, y: -z, sp: species, h, w, seed: hs & 0x3fffffff });
   }
   return out;
 }
@@ -95,194 +99,97 @@ export function orchardPlots(zm: ZoneMap, villages: Village[]): { sx: number; sz
 }
 /** woodland trees in a square around (x, z) (world): the same 10 m jittered cells the terrain shader draws as crowns */
 export function woodlandTrees(zm: ZoneMap, cx: number, cz: number, R: number): Tree[] {
-  const out: Tree[] = []; const wl = feature('woodland').rule;
+  const out: Tree[] = [];
   for (let i = Math.floor((cx - R) / 10); i <= Math.floor((cx + R) / 10); i++) for (let j = Math.floor((cz - R) / 10); j <= Math.floor((cz + R) / 10); j++) {
     const a = cellU(i), b = cellU(j);
     const x = (i + 0.2 + 0.6 * unit(hash2(a, b, SALT.tx))) * 10, z = (j + 0.2 + 0.6 * unit(hash2(a, b, SALT.tz))) * 10;
     if (Math.hypot(x - cx, z - cz) > R) continue;
     const cover = (zoneAt(zm, x, z)[3] / 255) * 0.5;
     if (!(unit(hash2(a, b, SALT.tree)) <= cover * 2.2)) continue;
-    const r = 2.5 + 2.0 * unit(hash2(a, b, SALT.tsize)), scrub = unit(hash2(a, b, 55)) < 0.35;
-    const h = scrub ? 2 + 2 * unit(hash2(a, b, 56)) : wl.height_m[0] + (wl.height_m[1] - wl.height_m[0]) * unit(hash2(a, b, 56));
-    out.push({ x, y: -z, g: scrub ? G('almond_pistachio') : G('oak'), h, r: scrub ? r * 0.5 : r, shape: scrub ? 3 : 4, seed: hash2(a, b, 57) & 0x3fffffff });
+    // the crown the terrain paints at this cell: radius 2.5-4.5 m (woodland rule crowns 5-9 m)
+    const r = 2.5 + 2.0 * unit(hash2(a, b, SALT.tsize)), su = unit(hash2(a, b, 55));
+    const sp = su < 0.35 ? (su < 0.19 ? 'almond' : 'pistachio') : 'oak'; // pistachio-almond scrub 35 % (C)
+    const hu = unit(hash2(a, b, 56)), sz = speciesSize(sp, hu, 0.5);
+    out.push({ x, y: -z, sp, h: sz.h, w: sp === 'oak' ? 2 * r : sz.w, seed: hash2(a, b, 57) & 0x3fffffff });
   }
   return out;
 }
-export function keepOutOfZones(trees: Tree[]): Tree[] { const z = settlementZones(); return trees.filter(t => !z.some(p => pointInPolygon(t.x, t.y, p))); }
-
-// ---------------------------------------------------------------- shared foliage state
-export class FoliageState {
-  readonly data = new Float32Array(2 * TREE_GROUPS.length * 4);
-  readonly tex: THREE.DataTexture;
-  constructor() { this.tex = new THREE.DataTexture(this.data, 2, TREE_GROUPS.length, THREE.RGBAFormat, THREE.FloatType); this.tex.magFilter = this.tex.minFilter = THREE.NearestFilter; this.tex.needsUpdate = true; }
-  setDay(doy: number) { this.data.set(foliageTable(doy)); this.tex.needsUpdate = true; }
-  /** leaf colour+amount and blossom colour+amount of group g (TSL) */
-  leaf(g: any) { return textureLoad(this.tex, ivec2(int(0), int(g))); }
-  blossom(g: any) { return textureLoad(this.tex, ivec2(int(1), int(g))); }
-}
-const lin = (r: number, g: number, b: number) => new THREE.Color().setRGB(r, g, b, THREE.SRGBColorSpace);
-
-// ---------------------------------------------------------------- near: 3D instances
-function woodGeometry(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  const cyl = (r0: number, r1: number, a: THREE.Vector3, b: THREE.Vector3, seg = 5) => {
-    const g = new THREE.CylinderGeometry(r1, r0, 1, seg, 1, true); const d = b.clone().sub(a), L = d.length();
-    g.scale(1, L, 1); g.translate(0, L / 2, 0); g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize())); g.translate(a.x, a.y, a.z);
-    g.deleteAttribute('uv'); return g; };
-  const base = new THREE.Vector3(0, -0.05, 0), fork = new THREE.Vector3(0, 0.42, 0);
-  parts.push(cyl(0.035, 0.025, base, fork, 6));
-  for (let k = 0; k < 4; k++) { const a = (k / 4) * Math.PI * 2 + 0.4, tip = new THREE.Vector3(Math.cos(a) * 0.32, 0.78, Math.sin(a) * 0.32); parts.push(cyl(0.02, 0.008, fork, tip, 4));
-    for (let t = 0; t < 2; t++) { const b = a + (t ? 0.6 : -0.6), s = fork.clone().lerp(tip, 0.6), e = new THREE.Vector3(Math.cos(b) * 0.5, 0.95, Math.sin(b) * 0.5); parts.push(cyl(0.008, 0.003, s, e, 3)); } }
-  return mergeGeometries(parts)!;
-}
-function crownGeometry(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-  const blobs = [[0, 0.7, 0, 0.62], [0.26, 0.6, 0.12, 0.46], [-0.2, 0.64, -0.2, 0.47]];
-  for (const [bi, [x, y, z, r]] of blobs.entries()) {
-    const g = new THREE.IcosahedronGeometry(1, 1); g.deleteAttribute('uv');
-    const p = g.getAttribute('position') as THREE.BufferAttribute, nrm = g.getAttribute('normal') as THREE.BufferAttribute; const c = new Float32Array(p.count * 3);
-    for (let i = 0; i < p.count; i++) {
-      const dx = p.getX(i), dy = p.getY(i), dz = p.getZ(i);
-      // lumpy but closed: the radius is a smooth function of direction (shared corners move together; the geometry is non-indexed)
-      const k = 0.9 + 0.1 * Math.sin(3.1 * dx + 1.7 * dz + bi) + 0.06 * Math.sin(5.3 * dy - 2.2 * dx + 2 * bi);
-      p.setXYZ(i, x + dx * r * k, y + dy * r * k * 0.8, z + dz * r * k); c.set([x, y, z], i * 3);
-      nrm.setXYZ(i, dx, dy, dz); // soft, rounded shading (radial normals) instead of facets
-    }
-    g.setAttribute('blob', new THREE.BufferAttribute(c, 3)); parts.push(g);
-  }
-  return mergeGeometries(parts)!;
-}
-/** Per-instance transform done in the vertex shader (three applies InstancedMesh matrices *before* positionNode, so the
- *  crown's leaf-fall deformation, which works in template space, needs its own instancing): instanced attributes
- *  ipos (base, world), iscl (scale x, y, z, yaw) and tree (group, seed) on an InstancedBufferGeometry drawn by a Mesh. */
+/** Per-instance transform done in the vertex shader (used by the near crop tufts, crops.ts): instanced attributes ipos
+ *  (base, world), iscl (scale x, y, z, yaw) */
 export function instanceTransform(local: any, iscl: any, ipos: any) {
   const c = cos(iscl.w), s = sin(iscl.w), l = local.mul(iscl.xyz);
   return vec3(l.x.mul(c).add(l.z.mul(s)), l.y, l.z.mul(c).sub(l.x.mul(s))).add(ipos);
 }
 export function instanceNormal(n: any, iscl: any) { const c = cos(iscl.w), s = sin(iscl.w); return normalize(cameraViewMatrix.mul(vec4(n.x.mul(c).add(n.z.mul(s)), n.y, n.z.mul(c).sub(n.x.mul(s)), 0)).xyz); }
-export interface NearTrees { wood: THREE.Mesh; crown: THREE.Mesh; set(trees: Tree[], terrain: Terrain): void; count(): number }
-export function nearTrees(max: number, foliage: FoliageState, wind: any, castShadow = true): NearTrees {
-  const mk = (g: THREE.BufferGeometry) => { const ig = new THREE.InstancedBufferGeometry(); for (const [k, a] of Object.entries(g.attributes)) ig.setAttribute(k, a); if (g.index) ig.setIndex(g.index); ig.instanceCount = 0; return ig; };
-  const woodG = mk(woodGeometry()), crownG = mk(crownGeometry());
-  const posA = new THREE.InstancedBufferAttribute(new Float32Array(max * 3), 3), sclA = new THREE.InstancedBufferAttribute(new Float32Array(max * 4), 4), gAttr = new THREE.InstancedBufferAttribute(new Float32Array(max * 2), 2);
-  for (const g of [woodG, crownG]) { g.setAttribute('ipos', posA); g.setAttribute('iscl', sclA); g.setAttribute('tree', gAttr); }
-  const ipos = attribute('ipos', 'vec3'), iscl = attribute('iscl', 'vec4'), t = attribute('tree', 'vec2'), grp = t.x, sd = t.y;
-  const leaf = foliage.leaf(grp), bl = foliage.blossom(grp);
-  const amount = clamp(leaf.w.mul(0.85).add(bl.w.mul(0.7)).add(0.001), 0, 1);
-  // crown: blobs shrink toward their centres as leaves fall (bare in winter), sway a little in the wind
-  const blob = attribute('blob', 'vec3'), pg = positionGeometry;
-  // leaves fill the crown envelope as they come out (C): the envelope keeps its size, and the leaf amount sets how much of
-  // it is solid (an alpha-tested leaf-clump mask), so a crown in early leaf is thin and the branches show through. Shrinking
-  // each blob toward its centre (before) turned a half-leafed tree into balls on sticks (session 3 dusk render)
-  const shrunk = blob.add(pg.sub(blob).mul(step(0.02, amount)));
-  const sway: any = sin(time.mul(1.3).add(sd.mul(0.001))).mul(wind).mul(0.012).mul(pg.y).mul(iscl.y);
-  const cm = new THREE.MeshStandardNodeMaterial(); cm.alphaTest = 0.5;
-  cm.positionNode = instanceTransform(shrunk, iscl, ipos).add(vec3(sway, 0, sway.mul(0.6)));
-  // leaf clumps (C): the radial normal is broken up by noise at the scale of leaf clusters, so a crown shades as many
-  // small masses rather than one smooth ball (the near crowns read as snowballs and grey domes, session 3 renders)
-  const clump = vec3(mx_noise_float(pg.mul(7.3).add(sd.mul(0.00001))), mx_noise_float(pg.mul(7.3).add(vec3(3.1, 1.7, 5.2))), mx_noise_float(pg.mul(7.3).add(vec3(9.4, 2.2, 0.6))));
-  cm.normalNode = instanceNormal(normalize(normalGeometry.add(clump.mul(0.55))), iscl);
-  const tint = mx_noise_float(pg.mul(6).add(sd.mul(0.00001))).mul(0.12).add(1).mul(fract(sd.mul(0.000013)).mul(0.25).add(0.88));
-  const bmix = bl.w.div(bl.w.add(leaf.w).max(0.001));
-  // self-shadowing of the leaf mass (C): the underside and inside of a crown get far less skylight than its top
-  const selfShade = smoothstep(-0.9, 0.7, normalGeometry.y).mul(0.55).add(0.45);
-  cm.colorNode = mix(leaf.xyz, bl.xyz, bmix).mul(tint).mul(selfShade);
-  const leafMask = mx_noise_float(pg.mul(5.1).add(sd.mul(0.00002))).mul(0.5).add(0.5); // ~0..1, clumps at leaf-cluster scale
-  cm.opacityNode = step(leafMask, amount.mul(1.15).add(0.02));
-  cm.roughnessNode = float(0.8);
-  const crown = new THREE.Mesh(crownG, cm); crown.name = castShadow ? 'plain-trees-crown' : 'plain-trees-crown-far'; crown.castShadow = castShadow; crown.receiveShadow = true; crown.frustumCulled = false;
-  const wm = new THREE.MeshStandardNodeMaterial(); wm.positionNode = instanceTransform(positionGeometry, iscl, ipos); wm.normalNode = instanceNormal(normalGeometry, iscl);
-  wm.colorNode = vec3(0.24, 0.2, 0.16).mul(mx_noise_float(positionGeometry.mul(9).add(sd.mul(0.00001))).mul(0.1).add(1)); wm.roughnessNode = float(0.9);
-  const wood = new THREE.Mesh(woodG, wm); wood.name = castShadow ? 'plain-trees-wood' : 'plain-trees-wood-far'; wood.castShadow = castShadow; wood.receiveShadow = true; wood.frustumCulled = false;
-  let n = 0;
-  return { wood, crown, count: () => n,
-    set(trees: Tree[], terrain: Terrain) {
-      n = Math.min(max, trees.length);
-      for (let i = 0; i < n; i++) { const tr = trees[i];
-        const wf = [1.0, 1.0, 1.0, 1.1, 1.25][tr.shape];
-        let w = (tr.r / 0.62) * wf, hy = tr.h; // crown template radius ~0.62 at the main blob
-        if (tr.shape === 1) w = tr.r / 0.4; if (tr.shape === 3) { w = tr.r / 0.55; hy = tr.h * 1.1; }
-        posA.setXYZ(i, tr.x, terrain.heightAt(tr.x, -tr.y), -tr.y); sclA.setXYZW(i, w, hy, w, (tr.seed % 628) / 100);
-        gAttr.setXY(i, tr.g, tr.seed % 100000);
-      }
-      woodG.instanceCount = crownG.instanceCount = n; posA.needsUpdate = sclA.needsUpdate = gAttr.needsUpdate = true;
-    } };
-}
+export function keepOutOfZones(trees: Tree[]): Tree[] { const z = settlementZones(); return trees.filter(t => !z.some(p => pointInPolygon(t.x, t.y, p))); }
+/** the drawn record of a plain tree (ground height from the terrain) */
+export const instOf = (t: Tree, terrain: Terrain, where: string): TreeInst => treeInst(t.sp, t.x, terrain.heightAt(t.x, -t.y), -t.y, t.h, t.w, t.seed, where);
 
-// ---------------------------------------------------------------- far: billboards and orchard row impostors
-/** camera-facing billboards (cylindrical), collapsed inside `inner` m and beyond `outer` m of the camera */
-export function farBillboards(trees: Tree[], terrain: Terrain, foliage: FoliageState, inner: any, outer: number): THREE.Mesh {
-  const n = trees.length, pos = new Float32Array(n * 4 * 3), cor = new Float32Array(n * 4 * 2), att = new Float32Array(n * 4 * 4), idx = new Uint32Array(n * 6);
-  trees.forEach((t, i) => {
-    const y = terrain.heightAt(t.x, -t.y);
-    for (let k = 0; k < 4; k++) { pos.set([t.x, y, -t.y], (i * 4 + k) * 3); cor.set([k & 1 ? 1 : -1, k & 2 ? 1 : 0], (i * 4 + k) * 2); att.set([t.g, t.r, t.h, t.shape], (i * 4 + k) * 4); }
-    idx.set([i * 4, i * 4 + 1, i * 4 + 2, i * 4 + 2, i * 4 + 1, i * 4 + 3], i * 6);
-  });
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('corner', new THREE.BufferAttribute(cor, 2)); g.setAttribute('tree', new THREE.BufferAttribute(att, 4)); g.setIndex(new THREE.BufferAttribute(idx, 1));
-  g.computeBoundingSphere();
-  const m = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide });
-  const c = attribute('corner', 'vec2'), a = attribute('tree', 'vec4');
-  const toCam = positionLocal.xz.sub(cameraPosition.xz), dist = length(toCam);
-  const dir = toCam.div(dist.max(1e-3)), right = vec3(dir.y.negate(), 0, dir.x);
-  const vis = smoothstep(inner.mul(0.85), inner, dist).mul(float(1).sub(smoothstep(outer * 0.8, outer, dist)));
-  const wdt = mix(a.y, a.y.mul(1.2), step(2.5, a.w)).mul(vis), hgt = a.z.mul(vis);
-  m.positionNode = positionLocal.add(right.mul(c.x.mul(wdt))).add(vec3(0, c.y.mul(hgt), 0));
-  // silhouette: crown ellipse over a thin trunk; winter crowns thin to a branch haze
-  const u = uv(); void u;
-  const cu = c.x, cv = c.y;
-  const crownBase = mix(float(0.3), float(0.05), step(2.5, a.w)); // shrubs and oaks carry foliage lower
-  const ey = cv.sub(crownBase).div(float(1).sub(crownBase)).mul(2).sub(1);
-  const ell = float(1).sub(smoothstep(0.85, 1.0, length(vec2(cu, ey))));
-  const leaf = foliage.leaf(a.x), bl = foliage.blossom(a.x), amount = clamp(leaf.w.add(bl.w.mul(0.8)), 0, 1);
-  const noise = mx_noise_float(vec3(cu.mul(3.1), cv.mul(4.3), a.y.mul(7.7))).mul(0.5).add(0.5);
-  const crownMask = ell.mul(step(noise, amount.mul(0.9).add(0.25)));
-  const trunk = step(abs(cu), 0.07).mul(step(cv, crownBase.add(0.1)));
-  m.opacityNode = max(crownMask, trunk); m.alphaTest = 0.5;
-  const bmix = bl.w.div(bl.w.add(leaf.w).max(0.001));
-  const leafCol = mix(leaf.xyz, bl.xyz, bmix).mul(noise.mul(0.3).add(0.75));
-  const bare = vec3(0.3, 0.27, 0.23);
-  m.colorNode = mix(mix(bare, leafCol, smoothstep(0.1, 0.4, amount)), vec3(0.2, 0.17, 0.13), trunk.mul(float(1).sub(crownMask)));
-  m.normalNode = vec3(0, 0, 1); // view-facing normal: lit like a crown seen from the side
-  m.roughnessNode = float(0.85);
-  const mesh = new THREE.Mesh(g, m); mesh.name = 'plain-trees-far'; mesh.frustumCulled = false;
-  return mesh;
-}
-/** orchard row impostors: vertical quads along the tree rows (both directions) of each orchard plot */
-export function orchardRows(plots: ReturnType<typeof orchardPlots>, terrain: Terrain, foliage: FoliageState, inner: any, outer: number): THREE.Mesh {
-  const sp = 14; const pos: number[] = [], att: number[] = [], idx: number[] = [];
-  const addQuad = (x0: number, z0: number, x1: number, z1: number, h: number) => {
-    const b = pos.length / 3, y0 = terrain.heightAt(x0, z0), y1 = terrain.heightAt(x1, z1), L = Math.hypot(x1 - x0, z1 - z0);
-    pos.push(x0, y0, z0, x1, y1, z1, x0, y0, z0, x1, y1, z1); att.push(0, 0, L, h, L, 0, L, h, 0, 1, L, h, L, 1, L, h);
-    idx.push(b, b + 1, b + 2, b + 2, b + 1, b + 3);
-  };
+// ---------------------------------------------------------------- far: orchard row impostors
+export interface RowPlot { sx: number; sz: number; angle: number; w: number; l: number; h: number }
+/** Row impostors of the orchard plots: for each plot, vertical quads along the grid lines of its trees in both
+ *  directions (trees at i x 7 m, j x 7 m from the plot seed in the strip frame, as orchardPlotTrees), spanning the
+ *  plot's inner extent. A fragment finds its tree column along the row, that tree's size and variant from a hash, and
+ *  samples the plot species' impostor from the side the camera sees it. A plot's rows collapse (per vertex, the plot
+ *  centre is the same for all its rows) when its centre lies within `mid.r` of `mid.c` (the mid ring draws those trees
+ *  one by one), and every fragment within `nearR` of the camera is discarded (P22 grey domes: the old rows faded per
+ *  vertex, so a long row passing beside the camera kept its height, D-121). */
+export function orchardRows(kit: TreeKit, plots: RowPlot[], terrain: Terrain, mid: { c: any; r: any }, nearR: any, outer: number): THREE.Mesh {
+  const sp = ORCHARD_SPACING(); const pos: number[] = [], rowA: number[] = [], rowB: number[] = [], rowC: number[] = [], idx: number[] = [];
+  const models = allModels();
+  let rows = 0;
   for (const p of plots) {
-    const ca = Math.cos(p.angle), sa = Math.sin(p.angle), h = 5 + 1.5 * unit(hash2(p.h, 3, 83));
-    const W = p.w * 0.42, Lh = p.l * 0.42; // stay inside the (irregular) plot
+    const species = orchardSpecies(p.h), si = speciesIndex(species), s = SPECIES[si], H = models[rowOf(si, 0)].H;
+    let top = 0; for (let v = 0; v < VARIANTS; v++) { const m = models[rowOf(si, v)]; top = Math.max(top, (m.T + m.y0) * (s.height_m[1] / H)); } // tallest tree's tile top (m)
+    const ca = Math.cos(p.angle), sa = Math.sin(p.angle);
     const pt = (u: number, v: number): [number, number] => [p.sx + u * ca - v * sa, p.sz + u * sa + v * ca];
-    for (let u = -W + sp / 2; u <= W; u += sp) { const [x0, z0] = pt(u, -Lh), [x1, z1] = pt(u, Lh); addQuad(x0, z0, x1, z1, h); }
-    for (let v = -Lh + sp / 2; v <= Lh; v += sp) { const [x0, z0] = pt(-W, v), [x1, z1] = pt(W, v); addQuad(x0, z0, x1, z1, h); }
+    const nu = Math.floor((p.w * 0.42) / sp), nv = Math.floor((p.l * 0.42) / sp);
+    const addRow = (u0: number, v0: number, u1: number, v1: number, line: number) => {
+      const [x0, z0] = pt(u0, v0), [x1, z1] = pt(u1, v1), b = pos.length / 3, L = Math.hypot(x1 - x0, z1 - z0);
+      const y0 = terrain.heightAt(x0, z0), y1 = terrain.heightAt(x1, z1);
+      pos.push(x0, y0, z0, x1, y1, z1, x0, y0, z0, x1, y1, z1);
+      // rowA: along (m; trees at (k + 0.5) x spacing), up 0/1, quad height, trees in the row; rowB: plot centre x, z,
+      // species index, line hash; rowC: the species' height range over its reference model height
+      for (const [al, up] of [[0, 0], [L, 0], [0, 1], [L, 1]]) { rowA.push(al, up, top, Math.round(L / sp)); rowB.push(p.sx, p.sz, si, (p.h % 9973) + line * 0.001); rowC.push(s.height_m[0] / H, s.height_m[1] / H); }
+      idx.push(b, b + 1, b + 2, b + 2, b + 1, b + 3); rows++;
+    };
+    // lines of constant u (along v) and of constant v (along u); each spans its trees +- half a spacing
+    for (let i = -nu; i <= nu; i++) addRow(i * sp, -(nv + 0.5) * sp, i * sp, (nv + 0.5) * sp, i + 100);
+    for (let j = -nv; j <= nv; j++) addRow(-(nu + 0.5) * sp, j * sp, (nu + 0.5) * sp, j * sp, j + 300);
   }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('row', new THREE.Float32BufferAttribute(att, 4)); g.setIndex(idx); g.computeBoundingSphere();
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('rowA', new THREE.Float32BufferAttribute(rowA, 4)); g.setAttribute('rowB', new THREE.Float32BufferAttribute(rowB, 4)); g.setAttribute('rowC', new THREE.Float32BufferAttribute(rowC, 2));
+  g.setIndex(idx); g.computeBoundingSphere();
   const m = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide });
-  const r = attribute('row', 'vec4'); // (along m, up 0/1, length, height)
-  const dist = length(positionLocal.xz.sub(cameraPosition.xz));
-  const vis = smoothstep(inner.mul(0.85), inner, dist).mul(float(1).sub(smoothstep(outer * 0.8, outer, dist)));
-  m.positionNode = positionLocal.add(vec3(0, r.y.mul(r.w).mul(vis), 0));
-  const along = r.x, up = r.y;
-  const per = fract(along.div(7)).sub(0.5).mul(2); // one crown per 7 m
-  const top = float(1).sub(per.mul(per).mul(0.35)); // scalloped crown line
-  const fruitLeaf = foliage.leaf(float(G('fruit'))), fruitBl = foliage.blossom(float(G('fruit')));
-  const amount = clamp(fruitLeaf.w.add(fruitBl.w.mul(0.8)), 0, 1);
-  const noise = mx_noise_float(vec3(along.mul(0.8), up.mul(5.0), r.z.mul(0.1))).mul(0.5).add(0.5);
-  const crown = step(0.28, up).mul(step(up, top)).mul(step(noise, amount.mul(0.85).add(0.2)));
-  const trunk = step(abs(per), 0.05).mul(step(up, 0.3));
-  m.opacityNode = max(crown, trunk); m.alphaTest = 0.5;
-  const bmix = fruitBl.w.div(fruitBl.w.add(fruitLeaf.w).max(0.001));
-  m.colorNode = mix(mix(vec3(0.3, 0.27, 0.23), mix(fruitLeaf.xyz, fruitBl.xyz, bmix).mul(noise.mul(0.3).add(0.75)), smoothstep(0.1, 0.4, amount)), vec3(0.2, 0.17, 0.13), trunk.mul(float(1).sub(crown)));
-  m.normalNode = vec3(0, 0, 1); m.roughnessNode = float(0.85);
-  const mesh = new THREE.Mesh(g, m); mesh.name = 'plain-orchards-far'; mesh.frustumCulled = false;
-  void normalize; void vec4; void uniform; void lin;
+  const A = attribute('rowA', 'vec4'), B = attribute('rowB', 'vec4'), C = attribute('rowC', 'vec2');
+  const vis = step(mid.r, length(B.xy.sub(mid.c.xz))).mul(float(1).sub(step(float(outer), length(positionLocal.xz.sub(cameraPosition.xz)))));
+  m.positionNode = positionLocal.add(vec3(0, A.y.mul(A.z).mul(vis), 0));
+  // fragment: the tree columns either side of this point (a crown can be wider than the spacing), each with its size,
+  // variant and yaw from a hash of plot, line and column (C at this distance: the mid ring draws the exact trees nearer)
+  const along = A.x, upM = A.y.mul(A.z), toCam = cameraPosition.xz.sub(positionWorld.xz), dir = toCam.div(max(length(toCam), 1e-3));
+  const col0 = floor(along.div(sp)), side = step(col0.add(0.5).mul(sp), along).mul(2).sub(1);
+  const column = (col: any) => {
+    const rnd = (k: number) => fract(sin(col.mul(12.9898).add(B.w.mul(78.233)).add(k * 37.719)).mul(43758.5453));
+    const variant = floor(rnd(2).mul(VARIANTS - 0.001)), row = B.z.mul(VARIANTS).add(variant), sp2 = kit.spRec(2, row), T = sp2.x, y0 = sp2.y;
+    const k = C.x.add(C.y.sub(C.x).mul(rnd(1))), yaw = rnd(3).mul(6.28); // tree height / reference height, in the species' range
+    const dx = along.sub(col.add(0.5).mul(sp));
+    const uvT = vec2(dx.div(T.mul(k)).add(0.5), upM.div(k).sub(y0).div(T));
+    const c = cos(yaw), s = sin(yaw), f = mod(atan(dir.x.mul(c).sub(dir.y.mul(s)), dir.x.mul(s).add(dir.y.mul(c))).div(Math.PI * 2).add(1).mul(NV), NV);
+    const smp = kit.impostorSample(row, f, uvT);
+    const real = step(0, col).mul(step(col, A.w.sub(1))); // columns beyond the row's ends hold no tree
+    const a = smp.a.mul(step(0, uvT.x)).mul(step(uvT.x, 1)).mul(step(0, uvT.y)).mul(step(uvT.y, 1)).mul(real);
+    return { col: smp.col, n: smp.n, a };
+  };
+  const s0 = column(col0), s1 = column(col0.add(side));
+  const pick = step(s0.a, s1.a); // the neighbour's crown is in front where it covers more
+  const nearCut = step(nearR, length(positionWorld.xz.sub(cameraPosition.xz))); // per fragment: never within the near radius
+  m.colorNode = vec4(s0.col.mul(float(1).sub(pick)).add(s1.col.mul(pick)), max(s0.a, s1.a).mul(nearCut));
+  const n = normalize(s0.n.mul(float(1).sub(pick)).add(s1.n.mul(pick)));
+  const right = vec3(dir.y, 0, dir.x.negate()), nW = right.mul(n.x).add(vec3(0, 1, 0).mul(n.y)).add(vec3(dir.x, 0, dir.y).mul(n.z));
+  m.normalNode = normalize(cameraViewMatrix.mul(vec4(nW, 0)).xyz);
+  m.alphaTest = 0.5; m.alphaToCoverage = true; m.roughnessNode = float(0.8);
+  const mesh = new THREE.Mesh(g, m); mesh.name = 'plain-orchards-far'; mesh.frustumCulled = false; mesh.userData = { ...TREE_TAG(), rows };
   return mesh;
 }
-export const TREE_TAG = () => tag(feature('orchards_gardens'), 'trees of the plain: riparian (river_*.riparian), canal lines, orchards (orchards_gardens), woodland (woodland rule); species B, placement and size C; far trees are billboards / row impostors');
+export const TREE_TAG = () => tag(feature('orchards_gardens'), 'trees of the plain: riparian (river_*.riparian), canal lines, orchards (orchards_gardens), woodland (woodland rule); species presence B, form C (src/data/trees.json), placement C; far trees are impostors baked from the same models');
+export { VARIANTS };

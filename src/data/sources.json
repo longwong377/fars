@@ -648,5 +648,10 @@
   "cite": "'The Achaemenid Messenger Service and the Ionian Revolt' (ResearchGate)",
   "url": "https://www.researchgate.net/",
   "access": "search-extract only"
+ },
+ "BOTANY-GEN": {
+  "cite": "General dendrology of the species' habit (height, crown shape and width, crown base, trunk, stems, leaf form), recalled by the builder from standard floras and tree guides; not consulted in this session",
+  "url": "",
+  "access": "recollection only (tier C)"
  }
 }

@@ -97,8 +97,9 @@ describe('fields and crops by date (plain.json crops; seasonal.ts)', () => {
       expect(Math.abs(t[i] / 255 * 1.5 - Math.min(1.5, s.height))).toBeLessThan(0.01); expect(Math.abs(t[i + 1] / 255 - s.green)).toBeLessThan(0.005); }
   });
   it('deciduous trees are bare in January and in leaf in June; fruit trees blossom in late March', () => {
-    for (const g of ['plane', 'fruit', 'oak', 'willow_poplar'] as const) { expect(foliage(g, 15).leaf).toBeLessThan(0.05); expect(foliage(g, 166).leaf).toBeGreaterThan(0.95); }
-    expect(foliage('fruit', 90).blossom).toBeGreaterThan(0.9);
+    for (const g of ['plane', 'pome', 'oak', 'willow', 'poplar', 'fig', 'almond'] as const) { expect(foliage(g, 15).leaf).toBeLessThan(0.05); expect(foliage(g, 166).leaf).toBeGreaterThan(0.95); }
+    expect(foliage('pome', 90).blossom).toBeGreaterThan(0.9); expect(foliage('fig', 90).blossom).toBe(0); expect(foliage('pomegranate', 150).blossom).toBeGreaterThan(0.9);
+    for (const g of ['evergreen_dark', 'evergreen_grey'] as const) for (const d of [15, 105, 200, 330]) expect(foliage(g, d).leaf).toBe(1);
   });
 });
 
