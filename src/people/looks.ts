@@ -1,11 +1,13 @@
 // What each person looks like (D-092): body variant and stature, skin and hair, garment colours, which optional pieces
 // they wear (headgear, beard, weapons), grime from their work. Deterministic from the person's seed, so a person looks
 // the same every time they are attached to the crowd pool. Every choice carries its tier; the dev overlay (F3) prints
-// the summary. Nothing here is a claim about the looks of any people of the empire: body variants and skin tones are
-// drawn from one range for everyone (C), because no evidence was read that would tie them to origin.
+// the summary. Body variants are drawn from one range for everyone (C). Skin tone means shift with origin along the
+// modern regional cline, with wide overlap (D-155, C, Q-240): the brief asks for the physical variety of a cosmopolitan
+// centre, and no ancient evidence ties a colour to a people (the reliefs are painted by convention).
 import { Rng } from '../core/rng';
 import type { HumanAssets } from './humanAssets';
 import { COSTUMES, pieceBit, PIECES, type Dress } from './outfits';
+import { packLookBits } from './humanFormat';
 
 type RGB = [number, number, number];
 const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
@@ -29,8 +31,25 @@ export const TEXTILE: Record<string, { c: RGB; tier: 'B' | 'C'; note: string }> 
 const LEATHER: RGB[] = [L(0.36, 0.24, 0.15), L(0.45, 0.31, 0.2), L(0.28, 0.19, 0.13), L(0.52, 0.38, 0.25)];
 /** undyed felt, tan to dark brown (C; no cream or light tan: a pale fluted cylinder in sunlight read as a modern cook's hat) */
 const FELT: RGB[] = [L(0.54, 0.47, 0.37), L(0.5, 0.44, 0.35), L(0.33, 0.27, 0.21), L(0.4, 0.34, 0.27)];
-/** skin tones (sRGB) — one range for everyone (C); outdoor workers a little darker (sun) */
-const SKIN: RGB[] = [[0.76, 0.58, 0.46], [0.72, 0.53, 0.42], [0.66, 0.48, 0.36], [0.6, 0.43, 0.31], [0.54, 0.38, 0.27], [0.47, 0.32, 0.22]];
+/** skin tones (sRGB) along a pigmentation ramp p 0 (light) … 1 (dark), D-155. The old ramp was too orange (blue/red
+ *  0.47–0.6 in sRGB against ~0.65–0.7 for measured facial skin colour under daylight); the new stops keep G/R ≈ 0.76 and
+ *  B/R ≈ 0.6–0.7 (C: after published facial skin colour measurements, not read in full). */
+export const SKIN_RAMP: RGB[] = [[0.82, 0.66, 0.56], [0.76, 0.59, 0.49], [0.68, 0.51, 0.41], [0.58, 0.42, 0.33], [0.46, 0.32, 0.24], [0.34, 0.23, 0.17]];
+/** Mean pigmentation p by origin (C, OPEN_QUESTIONS Q-240): the physical variety of a cosmopolitan centre. No skin colour
+ *  of any people of the empire is attested (the reliefs are painted by convention), so the means follow the modern
+ *  regional cline of skin reflectance with ultraviolet exposure (Jablonski & Chaplin 2000: darker toward the tropics),
+ *  on the assumption that the regional pattern is old; the spread (sd 0.16) overlaps widely, so no origin reads as one
+ *  tone. Egyptians darker on average; Anatolians, Ionians and Thracians lighter; Iranians and Mesopotamians between. */
+export const ORIGIN_TONE: Record<string, number> = { Thracian: 0.2, Ionian: 0.28, Lydian: 0.3, Carian: 0.3, Lycian: 0.3, Cappadocian: 0.32, Sogdian: 0.36, Bactrian: 0.38, Median: 0.38, Persian: 0.4,
+  Syrian: 0.44, Babylonian: 0.46, Elamite: 0.48, Egyptian: 0.62 };
+export const TONE_SD = 0.16;
+const rampAt = (p: number): RGB => { const f = Math.max(0, Math.min(1, p)) * (SKIN_RAMP.length - 1), i = Math.min(SKIN_RAMP.length - 2, Math.floor(f)), t = f - i;
+  return [0, 1, 2].map(c => SKIN_RAMP[i][c] + (SKIN_RAMP[i + 1][c] - SKIN_RAMP[i][c]) * t) as RGB; };
+/** iris colour index (humanMaterial IRIS) by origin (C): dark to light brown for nearly everyone; a small share of
+ *  lighter eyes among the northern and Anatolian groups (Xenophanes fr. 16 DK calls the Thracians' gods blue-eyed and
+ *  red-haired: a Greek stereotype, tier C) */
+const IRIS_P: Record<string, number[]> = { default: [0.3, 0.36, 0.24, 0.1], Thracian: [0.15, 0.2, 0.2, 0.15, 0.12, 0.06, 0.07, 0.05], north: [0.25, 0.3, 0.24, 0.12, 0.06, 0.02, 0.01] };
+const NORTH = new Set(['Ionian', 'Lydian', 'Carian', 'Lycian', 'Cappadocian', 'Sogdian', 'Bactrian', 'Median']);
 /** hair (sRGB): black-brown to dark brown (C; the reliefs paint hair dark blue, a convention); greying with age. Measured
  *  dark hair is about 0.02–0.05 linear albedo; the first range (0.003 linear) rendered beards as flat black masks */
 const HAIR: RGB[] = [[0.13, 0.1, 0.08], [0.16, 0.115, 0.085], [0.2, 0.14, 0.095], [0.24, 0.165, 0.11]];
@@ -55,11 +74,13 @@ function pickVariant(A: HumanAssets, rng: Rng, sex: 'm' | 'f', group: 'adult' | 
   const near = [...cand].sort((a, b) => Math.abs(a.height - target) - Math.abs(b.height - target)).slice(0, Math.min(3, cand.length));
   return rng.pick(near);
 }
+/** where each trade's dirt sits besides hems and feet (LOOK_BITS grimeZone; C) */
+const GRIME_ZONE: Record<string, number> = { mason: 1, grinder: 2, baker: 2, porter: 3 };
 const grimeFor = (role: string): [number, number, string] => {
   switch (role) {
-    case 'mason': return [0.55, 0.78, 'limestone dust'];
-    case 'porter': return [0.35, 0.5, 'dust'];
-    case 'grinder': case 'baker': return [0.4, 0.9, 'flour'];
+    case 'mason': return [0.55, 0.78, 'limestone dust on hems, feet, hands and forearms'];
+    case 'porter': return [0.35, 0.5, 'dust on hems, feet, shoulders and back'];
+    case 'grinder': case 'baker': return [0.4, 0.9, 'flour on the front, forearms and hems'];
     case 'child': return [0.25, 0.5, 'dust'];
     case 'guard': return [0.04, 0.5, 'dust'];
     default: return [0.08, 0.5, 'dust'];
@@ -78,7 +99,10 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   // colours
   const T = (k: string) => TEXTILE[k].c, pick = (ks: string[]) => rng.pick(ks);
   const outdoor = ['mason', 'porter', 'guard', 'courier', 'child', 'grinder', 'baker'].includes(p.role);
-  const skinS = rng.pick(SKIN).map(x => x * (outdoor ? rng.range(0.9, 0.98) : 1)) as RGB;
+  // pigmentation: one draw (the old tone pick's), mapped through a normal quantile about the origin's mean; outdoor
+  // workers a little darker (sun), with the old per-channel draws
+  const toneU = rng.next(), toneP = (ORIGIN_TONE[p.origin ?? 'Persian'] ?? 0.42) + TONE_SD * Math.log(Math.max(1e-6, toneU) / Math.max(1e-6, 1 - toneU)) / 1.702;
+  const skinS = rampAt(toneP).map(x => x * (outdoor ? rng.range(0.9, 0.98) : 1)) as RGB;
   const elder = group === 'elder';
   const hairS = rng.pick(HAIR).map(x => x) as RGB; const grey = elder ? rng.range(0.25, 0.7) : child ? 0 : rng.chance(0.08) ? rng.range(0.05, 0.2) : 0;
   const hair = hairS.map(x => lin(x + (0.42 - x) * grey)) as RGB;
@@ -111,10 +135,22 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   for (const id of COSTUMES[dress].always) mask |= (1 << pieceBit(dress, id)) & ~1; // always worn, but a bit of the shared costume (guards' bow and quiver)
   for (const id of COSTUMES[dress].opt) if (on.has(id)) { mask |= 1 << pieceBit(dress, id); pieces.push(id); }
   const hasBeard = on.has('beard_long') || on.has('beard_short');
-  const stubble = man && !hasBeard ? rng.range(0.5, 1) : 0;
+  // stubble: shaven men 0.5–1; a beard's wearer 2, so the skin under the beard reads as roots where the beard thins
+  const stubble = man && !hasBeard ? rng.range(0.5, 1) : hasBeard ? 2 : 0;
   const [grime, grimeLevel, grimeWhat] = grimeFor(p.role);
   const col = { skin: skinS.map(lin) as RGB, main: T(mainK), second: T(secondK), trim: T(trimK), hair, leather: rng.pick(LEATHER), felt: rng.pick(FELT) };
+  // D-155 look flags (new draws come last, so every earlier choice of an existing seed is unchanged)
+  const origin = p.origin ?? 'Persian', ip = IRIS_P[origin] ?? (NORTH.has(origin) ? IRIS_P.north : IRIS_P.default);
+  let iu = rng.next(), iris = 0; for (let k = 0; k < ip.length; k++) { if (iu < ip[k]) { iris = k; break; } iu -= ip[k]; iris = k; }
+  if (origin === 'Thracian' && !elder && rng.chance(0.25)) col.hair = [0.36, 0.2, 0.12].map(lin) as RGB; // auburn (Xenophanes fr. 16, C)
+  // court dressing: Persian and Median dress wear hair and beard curled in rows (the reliefs' convention: A for the
+  // carving, C for real hair); working men natural; the bob straight
+  const court = dress === 'persian' || dress === 'guard' || dress === 'median';
+  const hairStyle = on.has('hair_bob') ? 2 : court ? 1 : 0;
+  const beardDensity = dress === 'worker' && hasBeard ? rng.int(0, 2) : 0;
+  const lookBits = packLookBits({ motif: pattern, hairStyle, iris, wearsHair: on.has('hair') || on.has('hair_bob') ? 1 : 0,
+    linen: (mainK === 'linen' ? 1 : 0) + (secondK === 'linen' ? 2 : 0) + (trimK === 'linen' ? 4 : 0), age: Math.floor(v.meta.ageYears / 10), beard: beardDensity, grimeZone: GRIME_ZONE[p.role] ?? 0 });
   const tiers = pieces.map(id => `${id} ${PIECES[id]?.tier ?? 'C'}`).join(', ');
-  const note = `body ${v.meta.id} (variant, C) × ${scale.toFixed(3)} → ${(v.height * scale).toFixed(2)} m (stature C, Q-066); ${tiers}; colours main ${mainK} (${TEXTILE[mainK].tier}), second ${secondK}, trim ${trimK}${pattern ? ', Susa-style rosettes (B)' : ''}; skin/hair tones C; grime ${grimeWhat} (C)`;
-  return { dress, variant: v.index, variantId: v.meta.id, scale, stature: v.height * scale, mask, pieces, pattern, grime, grimeLevel, stubble, col, note };
+  const note = `body ${v.meta.id} (variant, C) × ${scale.toFixed(3)} → ${(v.height * scale).toFixed(2)} m (stature C, Q-066); ${tiers}; colours main ${mainK} (${TEXTILE[mainK].tier}), second ${secondK}, trim ${trimK}${pattern ? ', Susa-style rosettes (B)' : ''}; skin tone p ${toneP.toFixed(2)} for ${origin} (C, Q-240), hair ${['natural curls', 'court rows of curls', 'straight'][hairStyle]} (C), iris ${iris}; grime ${grimeWhat} (C)`;
+  return { dress, variant: v.index, variantId: v.meta.id, scale, stature: v.height * scale, mask, pieces, pattern: lookBits, grime, grimeLevel, stubble, col, note };
 }

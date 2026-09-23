@@ -289,7 +289,7 @@ const ao = cavityAO(ref.pos, refN, [...triBody, ...triEye], outOrig, NP); // las
 log(`cavity occlusion: mean ${(ao.reduce((a, b) => a + b, 0) / NP).toFixed(3)}, min ${Math.min(...ao).toFixed(3)}`);
 mkdirSync(OUT, { recursive: true });
 const baked = bakeSkin({ W: 1024, H: 1024, pos: ref.pos, orig: outOrig, uv: outUV, tris: triBody, part, joints: ref.joints, tails: ref.tails, landmarks, bone: HB, ao, skinIndex: skinIdx, skinWeight: skinW });
-writeFileSync(`${OUT}/skin.png`, encodePNG(1024, 1024, baked.skin, 4));
+writeFileSync(`${OUT}/skin.png`, encodePNG(baked.skinW, baked.skinH, baked.skin, 4));
 writeFileSync(`${OUT}/hair.png`, encodePNG(512, 512, baked.hair, 4));
 const masks = vertexMasks(baked.frame, ref.pos, refN, part, NP);
 const eyeSmall = downscale(eyeTex, Math.max(1, Math.round(eyeTex.width / 256)));
@@ -326,7 +326,7 @@ const meta: HumanAssetsMeta = {
   vertexCount: NO, bodyVertexCount: P0,
   layout, lods: [{ name: 'full', indexKey: 'lod0', triangles: LOD0.length / 3 }, { name: 'mid', indexKey: 'lod1', triangles: LOD1.length / 3 }, { name: 'far', indexKey: 'lod2', triangles: LOD2.length / 3 }],
   landmarks, curlAxes, variants,
-  textures: { skin: { file: 'skin.png', width: 1024, height: 1024, note: 'skin albedo of a reference tone, baked from 3-D procedural functions on the reference body (C); alpha = eyebrow density' },
+  textures: { skin: { file: 'skin.png', width: baked.skinW, height: baked.skinH, note: 'a 2:1 atlas (D-155): left half skin albedo of a reference tone (RGB) and eyebrow density (A); right half crease height, skin oil, age-line height (RGB, sRGB-encoded data) and translucency (A); baked from 3-D procedural functions on the reference body (C)' },
     hair: { file: 'hair.png', width: 512, height: 512, note: 'R beard density, G scalp hair density, B cavity occlusion (C)' },
     eye: { file: 'eye.png', width: eyeSmall.width, height: eyeSmall.height, note: 'MakeHuman brown_eye.png (CC0), downscaled' } },
 };
@@ -346,7 +346,7 @@ if (PREVIEW) {
       writeFileSync(`shots/humans_${id}_${view}.png`, encodePNG(400, 800, img, 4));
     }
     const hy = b.joints[HB.head][1] + 0.05;
-    const tex = { w: 1024, h: 1024, data: baked.skin }, hairT = { w: 512, h: 512, data: baked.hair };
+    const tex = { w: 1024, h: 1024, data: baked.albedo }, hairT = { w: 512, h: 512, data: baked.hair };
     const bodyT = (t: number) => part[outOrig[LOD0[t * 3]]] < PART.eye;
     for (const [nm, T] of [['face', tex], ['facemask', hairT]] as const)
       for (const view of ['front', 'side'] as const) {

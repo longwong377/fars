@@ -39,6 +39,35 @@ export type PartId = typeof PART[keyof typeof PART];
 export const MAT = { skin: 0, cloth_main: 1, cloth_second: 2, cloth_trim: 3, eye: 4, hair: 5, teeth: 6, mouth: 7, leather: 8, felt: 9, metal: 10, lash: 11, wood: 12, wicker: 13 } as const;
 export type MatId = typeof MAT[keyof typeof MAT];
 
+/** Per-vertex extras of BODY render vertices (D-155), in the bytes that garments use for other things (the material
+ *  reads them by class): skin: hext.y = scalp-hair mask, hext.w = surface curvature (0..1 → 0..SKIN_CURV_MAX 1/m);
+ *  eye: hext.y, hext.w = planar coordinates from the eye's centre in the bind frame (0.5 = centre, ±0.5 = ±EYE_UNIT m);
+ *  lash: hext.y = root (0) → tip (1) across the lash strip. Garments keep slack (hext.y) and the cut-line ramp (hext.w). */
+export const EYE_UNIT = 0.012;
+export const SKIN_CURV_MAX = 250;
+
+/** The person's look flags, packed into the `pattern` value of the person texel row (texel 0.z; an exact integer in
+ *  float32, written by crowd.writePerson from PersonLook.pattern). [low bit, bit count] */
+export const LOOK_BITS = {
+  motif: [0, 1], // Susa-style rosettes on the main garment (B pattern, C layout)
+  hairStyle: [1, 2], // 0 natural curls, 1 court dressing in rows of curls (reliefs), 2 straight (bob)
+  iris: [3, 3], // iris colour index (humanMaterial IRIS)
+  wearsHair: [6, 1], // scalp hair is worn: the scalp skin under it reads as roots
+  linen: [7, 3], // main, second, trim textile is linen (else wool)
+  age: [10, 3], // age decade (0-7) of the body variant: wrinkles
+  beard: [13, 2], // beard density 0 dense … 2 sparse
+  grimeZone: [15, 2], // where the work's dirt sits besides hems and feet: 0 none, 1 hands and forearms (stone), 2 the front and forearms (flour), 3 shoulders and upper back (loads)
+} as const satisfies Record<string, readonly [number, number]>;
+export type LookBits = { -readonly [K in keyof typeof LOOK_BITS]: number };
+export function packLookBits(b: LookBits): number {
+  let v = 0;
+  for (const k of Object.keys(LOOK_BITS) as (keyof LookBits)[]) { const [lo, n] = LOOK_BITS[k]; v += (Math.max(0, Math.min(2 ** n - 1, Math.round(b[k]))) * 2 ** lo); }
+  return v;
+}
+export function unpackLookBits(v: number): LookBits {
+  const o = {} as LookBits; for (const k of Object.keys(LOOK_BITS) as (keyof LookBits)[]) { const [lo, n] = LOOK_BITS[k]; o[k] = Math.floor(v / 2 ** lo) % 2 ** n; } return o;
+}
+
 export interface HumanVariantMeta {
   id: string; label: string; sex: 'm' | 'f'; ageYears: number; group: 'adult' | 'elder' | 'child';
   /** MakeHuman macro values used (0..1) and the population-morph blend, labelled neutrally (tier C) */

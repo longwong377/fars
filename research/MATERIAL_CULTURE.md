@@ -32,8 +32,20 @@ citing a plate. Source keys shared with PEOPLE.md are defined there.
 | Women: elite | many-folded Persian dress belted at the front, an elaborate necklace, a crenellated ("turreted") crown, bobbed hair (statuette of a high-ranking Persian woman from Egypt) | IR-WOMEN (SX) | B | |
 | Women: Pazyryk tapestry | Persian women with crowns and a **long veil falling down the back** | IR-WOMEN (SX) | B | Hermitage. Achaemenid-period import |
 | Women: seals | PFS 77*: a woman enthroned, a female servant behind (Neo-Elamite style); women in art almost always uncovered | IR-WOMEN (SX) | B | Chador-like covering only on Ergili relief, Pazyryk and some seals. **The chador itself is blocklisted** |
-| Women: workers | no imagery. Reconstruct as the ordinary tunic with a mantle or headcloth | reconstruction | C | label C in the overlay |
+| Women: workers | no imagery. Reconstruct as the ordinary tunic with a mantle or headcloth | reconstruction | C | label C in the overlay. D-155: the cloth covers the head and the back of the neck, ends a little below the shoulders, and hangs down the front of the chest and the back (Q-249) |
 | Children | no imagery; smaller tunics | reconstruction | C | |
+
+## Hair and beards (D-155)
+| item | description | source | tier | note |
+|---|---|---|---|---|
+| Court dressing of hair and beard | Persian- and Median-dress men on the Persepolis reliefs: the hair gathered in a bushy mass at the nape, the beard long and squared, both carved as rows of small snail curls; the long beard's lower part as wavy vertical locks ending in a row of curls | RELIEF-R; NS (a model prior of the Apadana and Tripylon reliefs; verify from a plate) | B for the carved convention, C for real hair | rendered as curls jittered in rows and blended with natural curls, not as carved shells (the literal pattern read as sculpture); Q-241 |
+| Median court grooming | the Median king "with pencilled eyes, rouged cheeks and false hair, as is the Median fashion" | Xenophon, *Cyropaedia* 1.3.2 (NS: recollection of the text, not read this session) | C | not modelled (no make-up or wigs are drawn); evidence that court hair was dressed, Q-241 |
+| Hair and beard colour | painted dark blue on the reliefs (a convention); natural dark brown to black rendered, greying with age | RELIEFS_AND_COLOUR §3b | C | |
+| Working men's beards | shorter, untrimmed beards of varied density; no relief evidence for workers | reconstruction | C | three densities (looks.ts) |
+| Egyptians shaven | the Egyptians shave head and chin and let them grow only in mourning | Herodotus 2.36 (NS) | C | workers of Egyptian origin get no beard (D-092) |
+| Thracians' colouring | the Thracians say their gods are "blue-eyed and red-haired" | Xenophanes fr. 16 DK (NS) | C | a Greek stereotype: a small share of Thracians get light eyes or auburn hair; Q-244 |
+| Elite woman's bob | bobbed hair on the statuette of a high-ranking Persian woman from Egypt | IR-WOMEN (SX) | B | rendered as a bob hanging to the jaw line over the ears; length, fringe and parting C (Q-245) |
+| Skin and eye colour by origin | not attested for any people of the empire (the reliefs paint by convention) | reconstruction from the modern regional cline (Jablonski & Chaplin 2000, title only) | C | Q-240, Q-244 |
 
 ## Colours and fabrics
 | item | description | source | tier | note |
