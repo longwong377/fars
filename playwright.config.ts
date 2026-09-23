@@ -5,7 +5,8 @@ const PORT = process.env.E2E_PORT ?? '5173';
 // every test records which path it actually ran on (brief §6 Testing without my GPU).
 const common = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--autoplay-policy=no-user-gesture-required'];
 export default defineConfig({
-  testDir: 'tests/e2e', timeout: 600_000, workers: 1, retries: 0,
+  testDir: 'tests/e2e', testIgnore: process.env.DBG ? [] : ['**/dbg_*.spec.ts'], // debug specs run only on request (DBG=1)
+  timeout: 600_000, workers: 1, retries: 0,
   reporter: [['list'], ['json', { outputFile: 'test-results/e2e.json' }]],
   use: { baseURL: `http://localhost:${PORT}`, viewport: { width: 960, height: 540 }, channel: 'chromium' },
   webServer: { command: `npx vite --port ${PORT} --strictPort`, url: `http://localhost:${PORT}`, reuseExistingServer: false, timeout: 120_000 },
