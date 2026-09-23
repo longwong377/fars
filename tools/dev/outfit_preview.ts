@@ -1,5 +1,5 @@
 // dev: build the costumes in node and write orthographic previews (bind pose and a posed frame) to shots/outfit_*.png.
-// Verification aid for src/people/outfits.ts (screenshots find problems; tests/outfits.test.ts measures).
+// Verification aid for src/people/outfits.ts (screenshots find problems; tests/humans_runtime.test.ts measures).
 // Run: npx tsx tools/dev/outfit_preview.ts [dress,…] [variant] [anim]
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { decodeHumanAssets } from '../../src/people/humanAssets';

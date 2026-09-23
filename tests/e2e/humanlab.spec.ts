@@ -48,3 +48,22 @@ test('human lab close-ups', async ({ page }, info) => {
   console.log(errs.slice(0, 20).join('\n'));
   expect(errs.filter(e => !e.startsWith('warning'))).toEqual([]);
 });
+// The velocity path (TRAA at medium and above needs the previous-frame skinning) and SSGI at high quality.
+test('human lab at high quality (TRAA, previous-frame skinning)', async ({ page }, info) => {
+  test.skip(!!process.env.ONLY && !process.env.ONLY.includes('high'), 'ONLY filter');
+  test.setTimeout(1_800_000);
+  const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 300)); });
+  await page.goto(`/humanlab.html?test&quality=high&hour=${process.env.HOUR ?? 10}`);
+  await page.waitForFunction(() => (window as any).__lab?.ready === true || (window as any).__lab?.error, null, { timeout: 900_000 });
+  expect(await page.evaluate(() => (window as any).__lab.error ?? null)).toBeNull();
+  await page.evaluate(() => (window as any).__lab.view(0, 1.5, 3.2, 0, 1.1, 0));
+  await page.evaluate(() => (window as any).__lab.lineup([{ dress: 'guard', sex: 'm', role: 'guard', seed: 12, anim: 'walk' }, { dress: 'woman', sex: 'f', role: 'grinder', seed: 21 }, { dress: 'median', sex: 'm', role: 'scribe', seed: 31, anim: 'talk' }]));
+  await page.evaluate(() => (window as any).__lab.render(8));
+  console.log('high', JSON.stringify(await page.evaluate(() => (window as any).__lab.stats())));
+  await page.screenshot({ path: `shots/humanlab-high-full-${info.project.name}.png` });
+  await page.evaluate(() => (window as any).__lab.frameFace(1, 0.6, 0.1));
+  await page.evaluate(() => (window as any).__lab.render(8));
+  await page.screenshot({ path: `shots/humanlab-high-face-${info.project.name}.png` });
+  console.log(errs.slice(0, 10).join('\n'));
+  expect(errs).toEqual([]);
+});

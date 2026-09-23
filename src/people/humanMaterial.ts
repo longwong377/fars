@@ -190,7 +190,8 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     this.aoNode = mix(float(1), vAux.x, 0.85);
     // shading normal: curls on hair, folds and weave on cloth, grain on leather, flutes are geometry
     const foldH = mx_noise_float(P.mul(vec3(14, 5, 14))).mul(0.003).add(mx_noise_float(P.mul(70)).mul(0.0004));
-    const h = curls.mul(0.0016).mul(kHair).add(foldH.mul(kCloth)).add(mx_noise_float(P.mul(200)).mul(0.0002).mul(kLeather.add(kFelt)));
+    const pores = mx_noise_float(P.mul(1900)).mul(0.00003).add(mx_noise_float(P.mul(260)).mul(0.00008)); // skin micro-relief (C)
+    const h = curls.mul(0.0016).mul(kHair).add(pores.mul(kSkin)).add(foldH.mul(kCloth)).add(mx_noise_float(P.mul(200)).mul(0.0002).mul(kLeather.add(kFelt)));
     this.normalNode = bumped(h);
     this.skinMask = kSkin; this.scatter = vec3(1.0, 0.45, 0.3);
     // frayed hair and beard edges: near a shell's cut line (vEdge → 0) fragments are cut away by the curl noise (alpha test;
