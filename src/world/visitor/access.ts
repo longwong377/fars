@@ -45,6 +45,9 @@ export function terraceZoneAt(e: number, n: number): string | null {
   const T = FOOTPRINTS.terrace; const onTerrace = T && pointInPolygon(e, n, T.polygon);
   if (Math.hypot(e - TREASURY_DESK.at[0], n - TREASURY_DESK.at[1]) < TREASURY_DESK.r) return 'treasury_desk';
   if (TREASURY_STREET && e >= TREASURY_STREET.x0 && e <= TREASURY_STREET.x1 && n >= TREASURY_STREET.y0 && n <= TREASURY_STREET.y1) return 'treasury_street';
+  // the Gate is a square hall: its zone is its bounding rectangle (the traced polygon is skewed by ~0.5 m, which left a
+  // sliver of 'courts' between the landing and the W door)
+  const GB = FOOTPRINTS.gate_nations?.bounds; if (GB && present('gate_nations') && e >= GB[0] && e <= GB[2] && n >= GB[1] && n <= GB[3]) return 'gate_nations';
   for (const b of BUILDING_ZONES) { const f = FOOTPRINTS[b]; if (f && present(b) && pointInPolygon(e, n, f.polygon)) return b; }
   if (PF_BASTION.length > 2 && pointInPolygon(e, n, PF_BASTION)) return 'pf_archive_findspot';
   // the landing at the stair heads, in front of the Gate's W door: part of the stair (the Gate is 'the only entrance to the

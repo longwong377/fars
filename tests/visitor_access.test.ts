@@ -17,6 +17,8 @@ describe('visitor access zones', () => {
   it('places on the Terrace fall in the zones the research names', () => {
     expect(terraceZoneAt(...P('gate_hall'))).toBe('gate_nations');
     expect(terraceZoneAt(-28, 121.5)).toBe('grand_stair'); // the landing at the stair heads, before the Gate's W door
+    expect(terraceZoneAt(-16.2, 123)).toBe('gate_nations'); // the W doorway: no sliver of courts between the landing and the Gate
+    for (let e = -30; e <= 0; e += 0.25) expect(['grand_stair', 'gate_nations'], `e ${e}`).toContain(terraceZoneAt(e, 123));
     expect(terraceZoneAt(...P('forecourt'))).toBe('terrace_courts');
     expect(terraceZoneAt(...P('treasury_desk'))).toBe('treasury_desk');
     expect(terraceZoneAt(...P('post_treas_1'))).toBe('treasury_street');
