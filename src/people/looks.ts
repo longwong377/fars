@@ -84,7 +84,7 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   switch (dress) {
     case 'persian': mainK = rng.chance(0.08) ? 'purple' : pick(['madder', 'madder', 'woad', 'weld', 'linen', 'wool']); secondK = pick(['wool', 'linen']); trimK = pick(['weld', 'woad', 'madder']); break;
     case 'guard': if (rng.chance(0.6)) { pattern = 1; mainK = pick(['ochre', 'brown', 'linen']); trimK = pick(['turquoise', 'ochre', 'brown'].filter(k => k !== mainK)); } else { mainK = pick(['madder', 'woad', 'weld']); trimK = pick(['weld', 'woad']); } secondK = 'wool'; break;
-    case 'median': mainK = pick(['madder', 'woad', 'green', 'weld', 'brown']); secondK = pick(['brown', 'woad', 'madder', 'wool', 'grey']); trimK = pick(['weld', 'madder', 'woad', 'brown']); break;
+    case 'median': mainK = pick(['madder', 'woad', 'green', 'weld', 'brown']); secondK = pick(['brown', 'woad', 'madder', 'wool', 'grey']); trimK = pick(['purple', 'madder', 'woad', 'brown', 'purple']); break; // trim also colours the kandys (often purple, B)
     case 'woman': mainK = pick(['madder', 'woad', 'wool', 'weld', 'brown', 'linen']); secondK = pick(['linen', 'wool', 'woad', 'madder', 'grey']); trimK = pick(['weld', 'madder', 'woad']); break;
     case 'child': mainK = pick(['wool', 'linen', 'brown']); secondK = 'wool'; trimK = 'brown'; break;
     default: mainK = pick(['wool', 'linen', 'brown', 'grey', 'wool']); secondK = pick(['brown', 'wool', 'grey']); trimK = pick(['brown', 'wool', 'madder']); break;
@@ -98,7 +98,8 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   switch (dress) {
     case 'persian': on.add('bun'); if (man) on.add(beardRoll < 0.9 ? 'beard_long' : 'beard_short'); if (rng.chance(0.85)) on.add('hat_fluted'); if (rng.chance(0.3)) on.add('torque'); break;
     case 'guard': on.add('bun'); if (man) on.add(beardRoll < 0.85 ? 'beard_long' : 'beard_short'); on.add(rng.chance(0.7) ? 'hat_fluted' : 'fillet'); if (rng.chance(0.15)) on.add('torque'); break;
-    case 'median': on.add('bun'); if (man) on.add(beardRoll < 0.8 ? 'beard_long' : 'beard_short'); on.add('cap_soft'); if (p.role === 'guard') { on.add('akinaka'); on.add('gorytos'); } break;
+    case 'median': on.add('bun'); if (man) on.add(beardRoll < 0.8 ? 'beard_long' : 'beard_short'); on.add('cap_soft'); if (p.role === 'guard') { on.add('akinaka'); on.add('gorytos'); }
+      else if (rng.chance(0.45)) on.add('kandys'); break;
     case 'worker': if (man) { const egyptian = p.origin === 'Egyptian'; if (!egyptian && beardRoll < 0.3) on.add('beard_long'); else if (!egyptian && beardRoll < 0.8) on.add('beard_short'); }
       if (rng.chance(0.4)) on.add('work_trousers'); if (rng.chance(0.6)) on.add('shoes'); const h = rng.next(); if (h < 0.3) on.add('headband'); else if (h < 0.45) on.add('cap_soft'); break;
     case 'woman': if (rng.chance(0.8)) on.add('headcloth'); else { on.delete('hair'); on.add('hair_bob'); } if (rng.chance(0.6)) on.add('shoes'); break;

@@ -160,18 +160,22 @@ interface TubeOpts {
   capStart?: boolean; capEnd?: boolean;
   /** ring parameter spacing (default uniform) */
   tOf?: (k: number, rings: number) => number;
+  /** open sheet over θ ∈ [a0, a1] instead of a closed ring (a cape); the side edges are closed when lined */
+  arc?: [number, number];
 }
 function tubeGeo(A: HumanAssets, key: string, o: TubeOpts): Geo {
-  const S = o.segs, R = o.rings, lined = (o.lining ?? 0) > 0;
-  const layers = lined ? 2 : 1, nRing = S * (R + 1), poles = (o.capStart ? 1 : 0) + (o.capEnd ? 1 : 0);
+  const S = o.segs, R = o.rings, lined = (o.lining ?? 0) > 0, arc = o.arc, cols = arc ? S + 1 : S;
+  const layers = lined ? 2 : 1, nRing = cols * (R + 1), poles = (o.capStart ? 1 : 0) + (o.capEnd ? 1 : 0);
   const n = nRing * layers + poles;
   const idx: number[] = [];
-  const vid = (layer: number, k: number, j: number) => layer * nRing + k * S + ((j % S) + S) % S;
+  const vid = (layer: number, k: number, j: number) => layer * nRing + k * cols + (arc ? j : ((j % S) + S) % S);
+  const thOf = (j: number) => (arc ? arc[0] + ((arc[1] - arc[0]) * j) / S : (j / S) * 2 * Math.PI);
   for (let layer = 0; layer < layers; layer++) for (let k = 0; k < R; k++) for (let j = 0; j < S; j++) {
     const a = vid(layer, k, j), b = vid(layer, k, j + 1), c = vid(layer, k + 1, j), d = vid(layer, k + 1, j + 1);
     // outer faces outward: (a, c, b) with θ increasing counter-clockwise about +w, t along +w (checked by the tests' normal-direction test)
     if (layer === 0) idx.push(a, b, c, b, d, c); else idx.push(a, c, b, b, c, d);
   }
+  if (lined && arc) for (let k = 0; k < R; k++) for (const [j, flip] of [[0, false], [S, true]] as const) { const a = vid(0, k, j), b = vid(0, k + 1, j), c = vid(1, k, j), d = vid(1, k + 1, j); if (flip) idx.push(a, c, b, b, c, d); else idx.push(a, b, c, b, d, c); }
   if (lined) { for (let j = 0; j < S; j++) { const a = vid(0, R, j), b = vid(0, R, j + 1), c = vid(1, R, j), d = vid(1, R, j + 1); idx.push(a, b, c, b, d, c); }
     if (o.closeTop) for (let j = 0; j < S; j++) { const a = vid(0, 0, j), b = vid(0, 0, j + 1), c = vid(1, 0, j), d = vid(1, 0, j + 1); idx.push(a, c, b, b, c, d); } }
   let pole = nRing * layers;
@@ -198,8 +202,8 @@ function tubeGeo(A: HumanAssets, key: string, o: TubeOpts): Geo {
         if (o.support!.running === 'max') { if (run) supArr = supArr.map((x, b) => Math.max(x, run![b])); run = supArr; }
       }
       const sup = (th: number) => { if (!supArr) return 0; const B = supArr.length; const f = (((th / (2 * Math.PI)) % 1) + 1) % 1 * B, b0 = Math.floor(f) % B, b1 = (b0 + 1) % B, a = f - Math.floor(f); return supArr[b0] * (1 - a) + supArr[b1] * a; };
-      for (let j = 0; j < S; j++) {
-        const th = (j / S) * 2 * Math.PI, r = o.radius(c, t, th, sup), dir = add(scl(F.u, Math.cos(th)), scl(F.v, Math.sin(th)));
+      for (let j = 0; j < cols; j++) {
+        const th = thOf(j), r = o.radius(c, t, th, sup), dir = add(scl(F.u, Math.cos(th)), scl(F.v, Math.sin(th)));
         const p = add(F.o, scl(dir, r)); out.set(p, vid(0, k, j) * 3);
         if (lined) out.set(add(F.o, scl(dir, Math.max(0.0005, r - o.lining!))), vid(1, k, j) * 3);
       }
@@ -209,8 +213,8 @@ function tubeGeo(A: HumanAssets, key: string, o: TubeOpts): Geo {
     return out;
   };
   const g = newGeo(key, n, idx, place);
-  for (let layer = 0; layer < layers; layer++) for (let k = 0; k <= R; k++) for (let j = 0; j < S; j++) {
-    const i = vid(layer, k, j), t = tOf(k, R), th = (j / S) * 2 * Math.PI; setW(g, i, o.weights(t, th)); g.uv[i * 2] = j / S; g.uv[i * 2 + 1] = t;
+  for (let layer = 0; layer < layers; layer++) for (let k = 0; k <= R; k++) for (let j = 0; j < cols; j++) {
+    const i = vid(layer, k, j), t = tOf(k, R), th = thOf(j); setW(g, i, o.weights(t, th)); g.uv[i * 2] = j / S; g.uv[i * 2 + 1] = t;
     if (o.slack) g.slack[i] = Math.round(255 * clamp(o.slack(t, th))); if (layer === 1) g.ao[i] = 150; }
   if (pS >= 0) { setW(g, pS, o.weights(tOf(0, R), 0)); g.uv.set([0.5, 0], pS * 2); }
   if (pE >= 0) { setW(g, pE, o.weights(tOf(R, R), 0)); g.uv.set([0.5, 1], pE * 2); }
@@ -275,6 +279,7 @@ export const PIECES: Record<string, PieceMeta> = {
   bow: { id: 'bow', label: 'composite bow over the left shoulder', tier: 'B', src: 'SUSA-ARCH', note: 'bow carried over the shoulder by the Susa archers; shape C' },
   quiver: { id: 'quiver', label: 'quiver on the back', tier: 'B', src: 'SUSA-ARCH', note: 'large quiver on the back (glazed-brick archers); form and lid C' },
   akinaka: { id: 'akinaka', label: 'short sword (akinakes) at the right thigh', tier: 'B', src: 'ISAC-FINDS', note: 'scabbard hung at the right thigh with a lobed top and a chape (scabbard tips in the Treasury); proportions C' },
+  kandys: { id: 'kandys', label: 'kandys: sleeved coat over the shoulders, sleeves empty', tier: 'B', src: 'IR-CAND', note: 'Median dress: full-length sleeved coat slung over the shoulders with empty sleeves hanging; cut, length and colour C; follows the shoulders and hips, not the arms' },
   gorytos: { id: 'gorytos', label: 'bow case (gorytos) at the left hip', tier: 'C', src: 'RECON', note: 'Median guards on the reliefs (MATERIAL_CULTURE: NOT SEEN, C)' },
   body: { id: 'body', label: 'MakeHuman body (variant)', tier: 'C', src: 'RECON', note: 'MakeHuman CC0 base mesh with macro/face morphs; skin albedo procedural (D-020)' },
 };
@@ -284,7 +289,7 @@ export interface CostumeDef { dress: Dress; always: string[]; opt: string[] }
 export const COSTUMES: Record<Dress, CostumeDef> = {
   persian: { dress: 'persian', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque'] },
   guard: { dress: 'guard', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'quiver', 'bow'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque'] },
-  median: { dress: 'median', always: ['tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos'] },
+  median: { dress: 'median', always: ['tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos', 'kandys'] },
   worker: { dress: 'worker', always: ['work_upper', 'work_skirt', 'belt'], opt: ['hair', 'beard_long', 'beard_short', 'work_trousers', 'shoes', 'headband', 'cap_soft'] },
   woman: { dress: 'woman', always: ['dress_upper', 'dress_skirt', 'belt'], opt: ['hair', 'hair_bob', 'headcloth', 'shoes'] },
   child: { dress: 'child', always: ['child_upper', 'child_skirt'], opt: ['hair', 'shoes'] },
@@ -544,6 +549,42 @@ function torqueGeo(L: Lib, key: string, lod: number) {
     frame: (c, t) => { const o = at(c, t), w = nrm(sub(at(c, t + 0.01), at(c, t - 0.01))), u: V3 = [0, 1, 0]; return { o, u: nrm(sub(u, scl(w, dot(u, w)))), v: nrm(cross(w, u)), w }; },
     radius: () => 0.0045, weights: () => [W('neck_01', 0.5), W('spine_03', 0.5)], mat: MAT.metal, col: COL.fixed, prm: METAL.gold });
 }
+/** support function (64 θ bins) of already placed pieces in a ring plane, within ±slab of it */
+function placedSupport(c: Ctx, keys: string[], F: Frame, slab: number) {
+  const r = new Array(64).fill(0);
+  for (const k of keys) { const pp = c.placed.get(k); if (!pp) continue; for (let i = 0; i < pp.length; i += 3) { const dx = pp[i] - F.o[0], dy = pp[i + 1] - F.o[1], dz = pp[i + 2] - F.o[2];
+    if (Math.abs(dx * F.w[0] + dy * F.w[1] + dz * F.w[2]) > slab) continue; const x = dx * F.u[0] + dy * F.u[1] + dz * F.u[2], y = dx * F.v[0] + dy * F.v[1] + dz * F.v[2];
+    for (let b = 0; b < 64; b++) { const h = x * COS64[b] + y * SIN64[b]; if (h > r[b]) r[b] = h; } } }
+  return r;
+}
+/** kandys: a long sleeved coat slung over the shoulders, open at the front, the empty sleeves hanging behind (Median
+ *  dress, B; cut and length C). A relaxed shell over the shoulders and upper back, the skirt of the coat hanging from
+ *  under it (clear of the arms and the tunic skirt); it follows the shoulders and hips, not the arms. */
+function kandysGeo(L: Lib, key: string, lod: number) {
+  const { A, ref, J } = L; const T = TESS[lod], segs = Math.max(8, Math.round(T.seg * 0.7)), rings = Math.max(3, Math.round(T.ring * 0.8));
+  const sh = J('upperarm_l')[1], zBack = J('spine_03')[2] + 0.03;
+  const d = regionOf(A, ref, [P.neck, P.chest, P.uarm_l, P.uarm_r, P.belly], p => {
+    const upper = p[1] - (sh - 0.17); // the upper back and the shoulders
+    const back = zBack - p[2], top = Math.abs(p[0]) > 0.075 ? p[1] - (sh - 0.035) : -1; // behind the spine, or on top of the shoulders
+    const neck = J('neck_01')[1] + 0.02 - p[1];
+    return Math.min(upper, Math.max(back, top), neck, 0.04); });
+  const cape = shellGeo(A, ref, `${key}_cape`, { tris: A.lods[TESS[lod].tris], d, ramp: 0.02, smooth: 6, minOff: 0.018, thick: () => 0.026, mat: MAT.cloth_trim, col: COL.trim, prm: 1 });
+  const skirtKeys = ['tunic_skirt'].map(k => geoKey(k, lod));
+  const top = (c: Ctx) => c.J('upperarm_l')[1] - 0.1, hem = (c: Ctx) => c.J('calf_l')[1] - 0.1;
+  const frame = (c: Ctx, t: number) => vertFrame([0, lerp(top(c), hem(c), t), lerp(c.J('spine_03')[2], c.J('pelvis')[2], t) - 0.01]);
+  const hang = tubeGeo(A, `${key}_hang`, { segs, rings, lining: 0.005, arc: [0.45 * Math.PI, 1.55 * Math.PI],
+    frame,
+    support: { parts: [P.chest, P.belly, P.pelvis, ...ARMS, P.hand_l, P.hand_r, P.thigh_l, P.thigh_r, P.calf_l, P.calf_r], slab: 0.035, running: 'max' },
+    radius: (c, t, th, sup) => { const skirt = rimAt(placedSupport(c, skirtKeys, frame(c, t), 0.03), th);
+      return Math.max(sup(th) + 0.012 + 0.018 * sstep(0, 0.2, t), skirt + 0.015) + 0.035 * sstep(0.1, 1, t) * (0.5 - 0.5 * Math.cos(th)) + 0.004 * Math.sin(th * 14) * sstep(0.1, 0.5, t); }, // starts under the shoulder shell
+    weights: t => [W('spine_03', Math.max(0, 1 - 1.6 * t)), W('spine_02', 0.4 * Math.sin(Math.PI * Math.min(1, t * 1.3))), W('pelvis', sstep(0.2, 0.9, t))],
+    mat: MAT.cloth_trim, col: COL.trim, prm: 1 });
+  const sleeve = (s: 1 | -1) => tubeGeo(A, `${key}_sleeve${s}`, { segs: Math.max(4, Math.round(segs * 0.5)), rings: Math.max(2, Math.round(rings * 0.6)), capEnd: true,
+    frame: (c, t) => { const u = c.J(s > 0 ? 'upperarm_l' : 'upperarm_r'), a: V3 = [u[0] + s * 0.02, u[1] - 0.02, u[2] - 0.085], b: V3 = [u[0] + s * 0.045, c.J('pelvis')[1] - 0.05, u[2] - 0.13]; return segFrame(a, b, t, [s, 0, 0]); },
+    radius: (c, t, th) => { const wd = lerp(0.05, 0.065, t), dp = 0.016; return (wd * dp) / Math.hypot(dp * Math.cos(th), wd * Math.sin(th)); },
+    weights: t => [W('spine_03', 1 - 0.5 * t), W('spine_02', 0.5 * t)], mat: MAT.cloth_trim, col: COL.trim, prm: 1 });
+  return merge(key, [cape, hang, sleeve(1), sleeve(-1)]);
+}
 /** quiver on the back: a long, slightly tapering case, top over the left shoulder (C placement) */
 function quiverGeo(L: Lib, key: string, lod: number) {
   const T = TESS[lod], segs = Math.max(6, Math.round(T.seg * 0.4)), rings = Math.max(2, Math.round(T.ring * 0.4));
@@ -627,6 +668,7 @@ function buildPiece(L: Lib, id: string, lod: number): Geo {
     case 'cap_soft': return softCap(L, `${id}@${lod}`, lod);
     case 'torque': return torqueGeo(L, `${id}@${lod}`, lod);
     case 'quiver': return quiverGeo(L, `${id}@${lod}`, lod);
+    case 'kandys': return kandysGeo(L, `${id}@${lod}`, lod);
     case 'bow': return bowGeo(L, `${id}@${lod}`, lod);
     case 'akinaka': return akinakaGeo(L, `${id}@${lod}`, lod);
     case 'gorytos': return gorytosGeo(L, `${id}@${lod}`, lod);

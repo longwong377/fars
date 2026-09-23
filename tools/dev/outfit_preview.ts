@@ -23,7 +23,7 @@ const COLS: Record<number, [number, number, number]> = { [MAT.skin]: [220, 170, 
 mkdirSync('shots', { recursive: true });
 for (const d of dresses) {
   const C = O.costumes[d][0]; const all = (1 << (COSTUMES[d].opt.length + 1)) - 1;
-  const keep = (dress: Dress) => { const m = new Set(['hair', 'bun', 'beard_long', 'hat_fluted', 'cap_soft', 'headcloth', 'work_trousers', 'shoes', 'akinaka', 'gorytos', 'torque']); if (dress === 'woman') m.delete('hair_bob'); let mask = 1; for (const id of COSTUMES[dress].opt) if (m.has(id)) mask |= 1 << pieceBit(dress, id); return mask; };
+  const keep = (dress: Dress) => { const m = new Set(['hair', 'bun', 'beard_long', 'hat_fluted', 'cap_soft', 'headcloth', 'work_trousers', 'shoes', 'akinaka', 'gorytos', 'torque', 'kandys']); if (dress === 'woman') m.delete('hair_bob'); let mask = 1; for (const id of COSTUMES[dress].opt) if (m.has(id)) mask |= 1 << pieceBit(dress, id); return mask; };
   const mask = keep(d); void all;
   // bind positions for this variant
   const n = C.tid.length, pos = new Float32Array(n * 3); const src = O.source, base = v.index * O.NV * 4;

@@ -143,6 +143,22 @@ describe('crowd: pooling and the per-frame CPU budget (slice population + 300 ex
     // detach frees slots for reuse
     const before = crowd.persons.size; crowd.removeExtras(); expect(crowd.persons.size).toBe(before - 300);
   }, 120_000);
+  it('pools simulation agents by distance: attach within ATTACH_R, detach beyond DETACH_R or offmap; slots are reused', () => {
+    const img = () => new THREE.DataTexture(new Uint8Array(4), 1, 1);
+    const humans = { A, O, gpu: new HumanGPU(A, O, { skin: img(), eye: img() }, { capacity: 16 }), ms: { load: 0, outfits: 0, gpu: 0, worker: false } };
+    const dresses = ['guard', 'median', 'worker', 'woman'] as const;
+    const agents = Array.from({ length: 60 }, (_, i) => ({ id: i, sex: i % 4 === 3 ? 'f' : 'm', role: ['guard', 'scribe', 'mason', 'grinder'][i % 4], dress: dresses[i % 4], origin: 'Persian', seed: 900 + i,
+      pos: [i * 20, 0] as [number, number], y: 0, heading: 90, offmap: false, carry: null, gait: 0, metPlayer: 0, slot: [0, 0] }));
+    const sim: any = { agents, stock: { depot: 0, store: 0 }, nav: { heightAt: () => 0 }, performance: () => ({ act: 'walk' }) };
+    const crowd = new Crowd(sim, 1, humans);
+    const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0); cam.lookAt(100, 1.6, 0); cam.updateMatrixWorld();
+    crowd.update(0, cam.position, null, cam);
+    const within = agents.filter(a => a.pos[0] < 440).length; expect(crowd.persons.size).toBe(within);
+    agents[5].offmap = true; cam.position.set(1100, 1.6, 0); cam.updateMatrixWorld(); crowd.update(0.1, cam.position, null, cam);
+    expect([...crowd.persons.values()].every(p => Math.abs(p.agent!.pos[0] - 1100) < 480 && !p.agent!.offmap)).toBe(true);
+    const slots = [...crowd.persons.values()].map(p => p.slot); expect(new Set(slots).size).toBe(slots.length);
+    expect(Math.max(...slots)).toBeLessThan(within + 25); // freed slots are reused, not appended forever
+  });
   it('every activity prop exists', () => {
     for (const [id, p] of Object.entries(ACTIVITIES)) if (p.prop) expect(propGeometry(p.prop === 'jar_head' ? 'jar' : p.prop === 'bread' ? 'basket' : p.prop), id).not.toBeNull();
   });

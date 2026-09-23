@@ -136,15 +136,17 @@ export class Crowd {
     const p: Person = { key, agent, look, slot, face, rig: { joints: v.joints, pose: { rot: {}, hips: [0, 0, 0] }, face, grip: [0, 0], x: 0, y: 0, z: 0, yaw: 0, scale: 1 },
       root: [0, 0, 0, 0], prevRoot: [0, 0, 0, 0], shown: false, drawnFrame: -10, poseFrame: -10, frameMod: seed % 8, lastHit: false,
       blinkAt: (seed % 997) / 997 * 4, speakUntil: -1, prop: null, propM: new THREE.Matrix4(), anim: 'idle', t0: (seed % 100), dist: 0 };
-    this.persons.set(key, p); return p;
+    this.persons.set(key, p); if (agent) this.byAgent.set(agent.id, p); return p;
   }
+  /** attached people by agent id (no string keys in the per-frame pool scan) */
+  private byAgent = new Map<number, Person>();
   /** attach a simulation agent (gives it a slot and a look); idempotent */
   attach(a: Agent): Person {
-    const key = `a${a.id}`; const hit = this.persons.get(key); if (hit) return hit;
+    const hit = this.byAgent.get(a.id); if (hit) return hit; const key = `a${a.id}`;
     const look = lookFor(this.humans.A, { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed } as LookInput, this.seed);
     return this.newPerson(key, a, look, a.seed);
   }
-  detach(a: Agent | string) { const key = typeof a === 'string' ? a : `a${a.id}`; const p = this.persons.get(key); if (!p) return; this.freeSlot(p.slot); this.persons.delete(key); }
+  detach(a: Agent | string) { const p = typeof a === 'string' ? this.persons.get(a) : this.byAgent.get(a.id); if (!p) return; this.freeSlot(p.slot); this.persons.delete(p.key); if (p.agent) this.byAgent.delete(p.agent.id); }
   /** an extra person not driven by the simulation (test lineups): fixed place, yaw and animation */
   addExtra(key: string, spec: LookInput & { x: number; y: number; z: number; yaw: number; anim?: AnimId; look?: [number, number, number] | null }) {
     const old = this.persons.get(key); if (old) { this.freeSlot(old.slot); this.persons.delete(key); }
@@ -153,14 +155,14 @@ export class Crowd {
   }
   removeExtras() { for (const [k, p] of this.persons) if (!p.agent) { this.freeSlot(p.slot); this.persons.delete(k); } }
   /** a person is speaking (address → speech line): the jaw moves for `seconds` */
-  speaking(agentId: number, seconds: number, now: number) { const p = this.persons.get(`a${agentId}`); if (p) p.speakUntil = now + seconds; }
+  speaking(agentId: number, seconds: number, now: number) { const p = this.byAgent.get(agentId); if (p) p.speakUntil = now + seconds; }
   private now = 0;
   private autoPoolStep(cam: THREE.Vector3) {
     for (const a of this.sim!.agents) {
-      const key = `a${a.id}`, has = this.persons.has(key);
-      if (a.offmap) { if (has) this.detach(key); continue; }
+      const has = this.byAgent.has(a.id);
+      if (a.offmap) { if (has) this.detach(a); continue; }
       const dx = a.pos[0] - cam.x, dz = -a.pos[1] - cam.z, d2 = dx * dx + dz * dz;
-      if (!has && d2 < ATTACH_R * ATTACH_R) this.attach(a); else if (has && d2 > DETACH_R * DETACH_R) this.detach(key);
+      if (!has && d2 < ATTACH_R * ATTACH_R) this.attach(a); else if (has && d2 > DETACH_R * DETACH_R) this.detach(a);
     }
   }
   // ------------------------------------------------------------------------------------------------ per frame

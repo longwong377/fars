@@ -164,10 +164,10 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     // cloth: dyed wool/linen, gentle mottling; patterned robes (pattern 1: rosettes/stars in the trim colour, after the Susa guard robes, B)
     const mott = mx_noise_float(P.mul(9)).mul(0.05).add(mx_noise_float(P.mul(160)).mul(0.035));
     const pat = vMat.z;
-    const cell = fract(vec2(P.x.add(P.z.mul(0.7)), P.y).mul(22)).sub(0.5), rose = smoothstep(0.26, 0.18, length(cell)).mul(step(0.5, pat)).mul(is(m, MAT.cloth_main));
+    const cell = fract(vec2(P.x.add(P.z.mul(0.7)), P.y).mul(22)).sub(0.5), rose = float(1).sub(smoothstep(0.18, 0.26, length(cell))).mul(step(0.5, pat)).mul(is(m, MAT.cloth_main));
     const trimCol = vHair; // motif colour = the person's trim colour (C)
     const grime = vMat.w, grimeCol = vec3(vAux.w, vAux.w, vAux.w).mul(vec3(1, 0.97, 0.9)); // dust/flour toward the hem and hands
-    const grimeMask = grime.mul(smoothstep(0.9, 0.1, P.y)).mul(kCloth.add(kSkin.mul(0.5)));
+    const grimeMask = grime.mul(float(1).sub(smoothstep(0.1, 0.9, P.y))) // (reversed smoothstep edges are undefined in WGSL).mul(kCloth.add(kSkin.mul(0.5)));
     let clothAlb: any = vColor.mul(float(1).add(mott));
     clothAlb = mix(clothAlb, trimCol, rose);
     const leatherAlb = vColor.mul(float(1).add(mx_noise_float(P.mul(60)).mul(0.08)));
