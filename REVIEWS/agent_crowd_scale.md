@@ -27,7 +27,7 @@
   - Browser, quality high, visible (drawn in view):
     - the Terrace from the hillside above it: 560 (5,603), most at 60–200 m and a few pixels tall;
     - the approach at dawn from the Grand Stair top: 228 (4,751), specks at 0.6–5 km;
-    - the Hall of 100 Columns site among the workers: 97 (2,968);
+    - the Hall of 100 Columns site among the workers: 96 (2,967);
     - the Apadana forecourt: 84 (775);
     - a lower-town lane at 12:11: 51 (3,101);
     - the court setting: the forecourt 94 (641), from the hillside 558 (5,659).
@@ -86,7 +86,7 @@
 
 | scene (day 25 unless court) | drawn in view: skinned full/mid/far/farthest + impostors | visible (depth probe): total; <50/<200/<600/<1500/<5000 m | frame with people: draws / triangles | without people | people's share | pop-ins | placeholder acts shown standing: skinned + impostors |
 |---|---|---|---|---|---|---|---|
-| Hall of 100 Columns site among the workers, 10:00 ([144, −12], S) † | 50/100/18/203 + 2,597 = 2,968 | 97; 91/6/0/0/0 | 621 / 13.51 M | 593 / 10.21 M | +28 / +3.30 M | 0 | 182 + 1,084 |
+| Hall of 100 Columns site among the workers, 10:00 ([144, −12], S) | 50/100/18/202 + 2,597 = 2,967 | 96; 89/7/0/0/0 | 624 / 13.51 M | 593 / 10.21 M | +31 / +3.30 M | 0 | 181 + 1,084 |
 | the Terrace from the hillside above it, 10:00 ([290, −20], W, 26 m above the court) | 0/3/0/399 + 5,201 = 5,603 | 560; 0/311/13/116/120 | 671 / 12.52 M | 650 / 11.97 M | +21 / +0.54 M | 0 | 76 + 1,976 |
 | the Apadana forecourt, 10:00 ([20, 80], SE) | 0/2/0/403 + 370 = 775 | 84; 1/83/0/0/0 | 616 / 8.53 M | 596 / 7.96 M | +20 / +0.57 M | 0 | 127 + 120 |
 | lower-town lane (q_s1), 12:11 ([−422, −941], NNE) | 18/41/0/176 + 2,866 = 3,101 | 51; 19/7/25/0/0 | 485 / 11.35 M | 450 / 10.30 M | +35 / +1.06 M | 0 | 47 + 960 |
@@ -94,8 +94,7 @@
 | court setting, day 0 10:00, the forecourt | 1/2/0/418 + 220 = 641 | 94; 2/92/0/0/0 | 618 / 8.60 M | 594 / 8.02 M | +24 / +0.57 M | 0 | 123 + 33 |
 | court setting, day 0 10:00, from the hillside | 0/0/0/448 + 5,211 = 5,659 | 558; 0/234/17/147/160 | 662 / 12.64 M | 647 / 12.04 M | +15 / +0.60 M | 0 | 91 + 1,863 |
 
-† Run before the spacing of standing people and the walled-off rule (neither changes the Terrace much). Superseded
-runs, kept for comparison:
+All rows are from the final code. Superseded runs, kept for comparison:
 - the hall site looking W from [170, −20]: 4,523 drawn, 176 visible, 16.79 / 13.64 M;
 - the hillside before the LOD change: 13.50 M, people +1.52 M;
 - the town lane before the walled-off rule: 13.14 M, people +2.85 M, 26 visible.
