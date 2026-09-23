@@ -85,7 +85,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   // lazy colliders near the player: village boxes, river corridor trimeshes, tree trunks
   const villageColl = new Map<string, any[]>(), riverColl = new Map<number, any>();
   let trunkColl: any[] = [], lastTrunk = new THREE.Vector3(1e9, 0, 1e9);
-  const syncColliders = (p: THREE.Vector3) => {
+  const syncColliders = (p: { x: number; y: number; z: number }) => {
     if (!phys) return;
     for (const v of villages) { const d = Math.hypot(v.x - p.x, v.y + p.z) - v.r, has = villageColl.has(v.id);
       if (d < 500 && !has) villageColl.set(v.id, (vb.boxes.get(v.id) ?? []).filter((b: Box) => !b.door).map((b: Box) => phys.addBox(new THREE.Vector3(b.cx, b.cy, b.cz), new THREE.Vector3(b.hx, b.hy, b.hz), b.rot)));
@@ -105,9 +105,9 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     nearList = list; const k = Math.min(SHADOW_N, list.findIndex(t => Math.hypot(t.x - cx, t.y - cy) > SHADOW_R) >>> 0);
     near.set(list.slice(0, k), terrain); nearNS.set(list.slice(k), terrain);
   };
-  const syncTrunks = (p: THREE.Vector3) => {
+  const syncTrunks = (p: { x: number; y: number; z: number }) => {
     if (!phys || Math.hypot(p.x - lastTrunk.x, p.z - lastTrunk.z) < 15) return;
-    lastTrunk = p.clone(); for (const c of trunkColl) phys.world.removeCollider(c, false); trunkColl = [];
+    lastTrunk = new THREE.Vector3(p.x, p.y, p.z); for (const c of trunkColl) phys.world.removeCollider(c, false); trunkColl = [];
     const R = phys.R;
     for (const t of nearList) { const d = Math.hypot(t.x - p.x, t.y + p.z); if (d > 40) break; if (t.shape === 3) continue; // shrubs are pushed through
       const r = Math.max(0.12, t.h * 0.02), y = terrain.heightAt(t.x, -t.y);
