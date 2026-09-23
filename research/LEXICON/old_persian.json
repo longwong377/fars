@@ -10,7 +10,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: UT Austin EIEOL Old Iranian Online lessons 7-8 (Harvey, Lehmann, Slocum; GitHub copy galeorhinus/projects)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "EIEOL-OI"
+  ]
  },
  {
   "form": "baga",
@@ -23,7 +27,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "bagaibiš",
@@ -36,7 +44,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "Auramazdā",
@@ -49,7 +61,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "vazṛka",
@@ -62,7 +78,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "dahyāuš",
@@ -75,7 +95,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "visadahyu-",
@@ -88,7 +112,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Kent 1953 Old Persian lexicon, OCR quoted in sfmqrb/rishe data/verification (GitHub)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "KENT-OCR"
+  ]
  },
  {
   "form": "duvarθi-",
@@ -101,7 +129,12 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/); Kent 1953 Old Persian lexicon, OCR quoted in sfmqrb/rishe data/verification (GitHub)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI",
+   "KENT-OCR"
+  ]
  },
  {
   "form": "hadiš",
@@ -114,7 +147,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "tacara-",
@@ -127,7 +164,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "apadāna-",
@@ -140,7 +181,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "ardastāna",
@@ -153,7 +197,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "stūnā",
@@ -166,7 +214,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "būmi-",
@@ -179,7 +230,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "asmāna-",
@@ -192,7 +247,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "martiya",
@@ -205,7 +264,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: UT Austin EIEOL Old Iranian Online lessons 7-8 (Harvey, Lehmann, Slocum; GitHub copy galeorhinus/projects)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "EIEOL-OI"
+  ]
  },
  {
   "form": "šiyāti-",
@@ -218,7 +281,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "naiba-",
@@ -231,7 +298,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "asa-",
@@ -244,7 +315,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "uvaspa-",
@@ -257,7 +331,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "umartiya-",
@@ -270,7 +348,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "ušabāri-",
@@ -283,7 +365,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "pitā",
@@ -296,7 +381,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "puça",
@@ -309,7 +398,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "brātā",
@@ -322,7 +415,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "xšaça-",
@@ -335,7 +431,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "viθ-",
@@ -348,7 +448,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "Pārsa",
@@ -361,7 +465,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "drauga-",
@@ -374,7 +482,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "dušiyāra-",
@@ -387,7 +499,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "hainā-",
@@ -400,7 +516,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "kāra-",
@@ -413,7 +533,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "dipi-",
@@ -426,7 +549,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "dāta-",
@@ -439,7 +565,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "gāθu-",
@@ -452,7 +581,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "θarda-",
@@ -465,7 +597,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "māh-",
@@ -478,7 +613,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "draya-",
@@ -491,7 +629,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "daraniya-",
@@ -504,7 +645,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "kāsaka",
@@ -517,7 +661,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "ustašanā-",
@@ -530,7 +677,10 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "framātar-",
@@ -543,7 +693,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "nāma",
@@ -556,7 +710,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: UT Austin EIEOL Old Iranian Online lessons 7-8 (Harvey, Lehmann, Slocum; GitHub copy galeorhinus/projects)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "EIEOL-OI"
+  ]
  },
  {
   "form": "adam",
@@ -569,7 +727,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "manā",
@@ -582,7 +744,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: UT Austin EIEOL Old Iranian Online lessons 7-8 (Harvey, Lehmann, Slocum; GitHub copy galeorhinus/projects)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "EIEOL-OI"
+  ]
  },
  {
   "form": "vašnā",
@@ -595,7 +761,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "θāti",
@@ -608,7 +778,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: UT Austin EIEOL Old Iranian Online lessons 7-8 (Harvey, Lehmann, Slocum; GitHub copy galeorhinus/projects)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "EIEOL-OI"
+  ]
  },
  {
   "form": "akunavam",
@@ -621,7 +795,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "kṛta-",
@@ -634,7 +812,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: UT Austin EIEOL Old Iranian Online lessons 7-8 (Harvey, Lehmann, Slocum; GitHub copy galeorhinus/projects)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "EIEOL-OI"
+  ]
  },
  {
   "form": "pātu",
@@ -647,7 +829,11 @@
   "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "C"
+  "tier_script": "C",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ]
  },
  {
   "form": "(greetings / politeness formulas)",
@@ -660,19 +846,1163 @@
   "source": "ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl (word scan, 2026-09-22)",
   "tier": "A (absence in corpus)",
   "tier_ipa": "-",
-  "tier_script": "-"
+  "tier_script": "-",
+  "src": [
+   "ARIO"
+  ]
  },
  {
   "form": "(water)",
   "script": null,
   "sign_spelling": null,
-  "gloss": "No word for 'water' was found in a scan of the ARIo Old Persian corpus as mirrored (search for ap-/āp- forms returned none). Do not put an OP 'water' word on screen without a new source.",
+  "gloss": "SUPERSEDED 2026-09-23: 'water' IS attested in DB (ARIo Q007134): \"aniya apiyā āhyatā apišim parābara\" (others were thrown into the water, the water carried them off) — see api-. The earlier scan looked for ap-/āp- forms in another normalisation and missed them (research/OPEN_QUESTIONS.md Q-130).",
   "pos": "-",
   "ipa": null,
   "attested": "-",
   "source": "ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl",
   "tier": "B",
   "tier_ipa": "-",
-  "tier_script": "-"
+  "tier_script": "-",
+  "src": [
+   "ARIO"
+  ]
+ },
+ {
+  "form": "api-",
+  "script": "𐎠𐎱𐎡𐎹𐎠",
+  "sign_spelling": "a-pa-i-ya-a",
+  "gloss": "water (loc. apiyā 'into the water'; apišim 'the water [carried] them')",
+  "pos": "noun f.",
+  "ipa": "apijaː",
+  "attested": "DB (ARIo Q007134): \"aniya apiyā āhyatā apišim parābara\" (others were thrown into the water, the water carried them off)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO",
+   "KENT-OCR"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Attested in DB, so the earlier '(water)' absence entry was wrong (logged Q-130). ARIo spells apiyā with short a (Kent āpiyā). Only the locative is attested; a bare 'water!' (nom. *āpiš) is not. Kent-style spelling: âpiyâ."
+ },
+ {
+  "form": "rau̯ca",
+  "script": "𐎼𐎢𐎨",
+  "sign_spelling": "ra-u-ca",
+  "gloss": "day (DB date formula 'Garmapadahya māhyā 1 rau̯ca θakatam āha': one day of Garmapada had passed; pl. rau̯cabiš)",
+  "pos": "noun n.",
+  "ipa": "raut͡ʃa",
+  "attested": "DB (ARIo Q007134): \"Garmapadahya māhyā 1 rau̯ca θakatam\"; rau̯cabiš 18× in date formulas",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "The meaning follows from the formula month + numeral + rau̯ca(biš) + θakatā \"had passed\". Kent-style spelling: rauca."
+ },
+ {
+  "form": "xšapavā",
+  "script": "𐎧𐏁𐎱𐎺𐎠",
+  "sign_spelling": "xa-ša-pa-va-a",
+  "gloss": "by night (DB 'xšapavā rau̯capativā' by night and by day)",
+  "pos": "adv. (instr./loc.)",
+  "ipa": "xʃapawaː",
+  "attested": "DB (ARIo Q007134): \"xšapavā rau̯capativā ava akunavayantā\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: xšapavâ."
+ },
+ {
+  "form": "ai̯va-",
+  "script": "𐎠𐎡𐎺𐎶",
+  "sign_spelling": "a-i-va-ma",
+  "gloss": "one (acc. ai̯vam: 'one king of many', XPa)",
+  "pos": "numeral",
+  "ipa": "aiwam",
+  "attested": "XPa 4-5 (ARIo Q007209): \"ai̯vam parūnām xšāyaθiyam\"; also DSf, DNa",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "The only Old Persian cardinal written out in the inscriptions read here; other numbers are numeral signs (DB \"māhyā 9 rau̯cabiš\"). Kent-style spelling: aivam."
+ },
+ {
+  "form": "paru",
+  "script": "𐎱𐎽𐎢𐎺",
+  "sign_spelling": "pa-ru-u-va",
+  "gloss": "much, many (DSf 'paru frašam' very excellent; parūnām 'of many' XPa)",
+  "pos": "adj./adv.",
+  "ipa": "paru",
+  "attested": "DSf (ARIo Q007172): \"Çūšāyā paru frašam framātam\"; XPa 5 parūnām",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: paruv."
+ },
+ {
+  "form": "aθanga-",
+  "script": "𐎠𐎰𐎥𐎶",
+  "sign_spelling": "a-θa-ga-ma",
+  "gloss": "stone, rock (acc. aθangam; DSf 'the stone-cutters who wrought the stone')",
+  "pos": "noun m.",
+  "ipa": "aθaŋɡam",
+  "attested": "DSf (ARIo Q007172): \"martiyā kṛnuvakā tayai̯ aθangam akunavantā\"; \"yātā aθangam būmiyā avārsam\" (until I reached rock)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "The nasal before g is not written in the script (a-θa-ga-ma). Kent-style spelling: aθagam."
+ },
+ {
+  "form": "išti-",
+  "script": "𐎡𐏁𐎫𐎡𐏁",
+  "sign_spelling": "i-ša-ta-i-ša",
+  "gloss": "(sun-dried) brick (DSf 'ištiš ajaniya' the brick was moulded)",
+  "pos": "noun f.",
+  "ipa": "iʃtiʃ",
+  "attested": "DSf (ARIo Q007172): \"utā taya ištiš ajaniya kāra haya Bābiruviya hau̯ akunau̯š\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Livius translates \"the sun-dried brick was molded ... the Babylonian people performed these tasks\". Kent-style spelling: ištiš."
+ },
+ {
+  "form": "agurā-",
+  "script": "𐎠𐎦𐎢𐎽𐎢𐎶",
+  "sign_spelling": "a-gu-u-ru-u-ma",
+  "gloss": "baked brick (acc. agurum; loan from Akkadian agurru)",
+  "pos": "noun f.",
+  "ipa": "aɡurum",
+  "attested": "DSf (ARIo Q007172): \"martiyā tayai̯ agurum akunavaša avai̯ Bābiruviyā\" (the men who wrought the baked brick, those were Babylonians)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Cf. Babylonian agurru (babylonian.json, Cyrus Cylinder). Kent-style spelling: agurum."
+ },
+ {
+  "form": "θikā",
+  "script": "𐎰𐎡𐎣𐎠",
+  "sign_spelling": "θa-i-ka-a",
+  "gloss": "rubble, gravel fill (DSf: rubble was packed down under the palace)",
+  "pos": "noun f.",
+  "ipa": "θikaː",
+  "attested": "DSf (ARIo Q007172): \"pasāva θikā avaniya\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: θikâ."
+ },
+ {
+  "form": "dāru",
+  "script": "𐎭𐎠𐎽𐎢𐎺",
+  "sign_spelling": "da-a-ru-u-va",
+  "gloss": "wood, timber",
+  "pos": "noun n.",
+  "ipa": "daːru",
+  "attested": "DSf (ARIo Q007172): \"martiyā tayai̯ dāru akunavaša avai̯ Spardiyā utā Mudrāyā\" (the men who wrought the wood, those were Lydians and Egyptians)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: dâruv."
+ },
+ {
+  "form": "kṛnuvaka-",
+  "script": "𐎣𐎼𐎵𐎢𐎺𐎣𐎠",
+  "sign_spelling": "ka-ra-nu-u-va-ka-a",
+  "gloss": "craftsman, stone-cutter (nom. pl. kṛnuvakā)",
+  "pos": "noun m.",
+  "ipa": "kr̩nuwakaː",
+  "attested": "DSf (ARIo Q007172): \"martiyā kṛnuvakā tayai̯ aθangam akunavantā avai̯ Yau̯nā utā Spardiyā\" (the stone-cutters ... were Ionians and Lydians)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: karnuvakâ."
+ },
+ {
+  "form": "daraniyakara-",
+  "script": "𐎭𐎼𐎴𐎡𐎹𐎣𐎼𐎠",
+  "sign_spelling": "da-ra-na-i-ya-ka-ra-a",
+  "gloss": "goldsmith (nom. pl.)",
+  "pos": "noun m.",
+  "ipa": "daranijakaraː",
+  "attested": "DSf (ARIo Q007172): \"martiyā daraniyakarā tayai̯ daraniyam akunavaša avai̯ Mādā utā Mudrāyā\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: daraniyakarâ."
+ },
+ {
+  "form": "ṛdata-",
+  "script": "𐎠𐎼𐎭𐎫𐎶",
+  "sign_spelling": "a-ra-da-ta-ma",
+  "gloss": "silver (acc. ṛdatam)",
+  "pos": "noun n.",
+  "ipa": "r̩datam",
+  "attested": "DSf (ARIo Q007172): \"ṛdatam utā asā dāru hacā Mudrāyā ā̌bariya\" (the silver and the ebony were brought from Egypt)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: ardatam."
+ },
+ {
+  "form": "idā",
+  "script": "𐎡𐎭𐎠",
+  "sign_spelling": "i-da-a",
+  "gloss": "here",
+  "pos": "adv.",
+  "ipa": "idaː",
+  "attested": "DSf (ARIo Q007172): \"taya idā akariya\" (which was wrought here); DB",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: idâ."
+ },
+ {
+  "form": "avadā",
+  "script": "𐎠𐎺𐎭𐎠",
+  "sign_spelling": "a-va-da-a",
+  "gloss": "there",
+  "pos": "adv.",
+  "ipa": "awadaː",
+  "attested": "XPh (ARIo Q007216) and DB (ARIo Q007134): \"avadā hamaranam akunava\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Livius XPh: \"there I worshipped Ahuramazda\". Kent-style spelling: avadâ."
+ },
+ {
+  "form": "ima",
+  "script": "𐎡𐎶",
+  "sign_spelling": "i-ma",
+  "gloss": "this (n.; DSf 'ima hadiš' this palace)",
+  "pos": "demonstr.",
+  "ipa": "ima",
+  "attested": "DSf (ARIo Q007172): \"akunavam ima hadiš taya Çūšāyā akunavam\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Masc./fem. acc. imam (XPa, \"imam duvarθim\"). Kent-style spelling: ima."
+ },
+ {
+  "form": "iyam",
+  "script": "𐎡𐎹𐎶",
+  "sign_spelling": "i-ya-ma",
+  "gloss": "this (is) (nom.; the throne-bearer labels: 'iyam Yau̯na takabarā' this is the petasos-wearing Ionian)",
+  "pos": "demonstr.",
+  "ipa": "ijam",
+  "attested": "DNe labels (ARIo Q007280): \"iyam Skudra iyam Yau̯na takabarā\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Label use (\"this is ...\") read from the ARIo text; the Livius DNe page was not read. Kent-style spelling: iyam."
+ },
+ {
+  "form": "nai̯",
+  "script": "𐎴𐎡𐎹",
+  "sign_spelling": "na-i-ya",
+  "gloss": "not, no",
+  "pos": "negation",
+  "ipa": "nai",
+  "attested": "DNb (ARIo Q007153) \"miθa nai̯ dau̯štā ami\" (of wrong I am not a friend); DB passim (51×)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Used as a bare refusal only in the reconstruction (usage C). Kent-style spelling: naiy."
+ },
+ {
+  "form": "mā",
+  "script": "𐎶𐎠",
+  "sign_spelling": "ma-a",
+  "gloss": "do not! (prohibitive)",
+  "pos": "negation",
+  "ipa": "maː",
+  "attested": "DNa (ARIo Q007152): \"mā θadaya paθī̆m tayām rāstām mā avarada\" (let [it] not seem repugnant; do not leave the right path); DB, DNb",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: mâ."
+ },
+ {
+  "form": "tuvam",
+  "script": "𐎬𐎢𐎺𐎶",
+  "sign_spelling": "tu-u-va-ma",
+  "gloss": "you (sg.)",
+  "pos": "pron. 2sg.",
+  "ipa": "tuwam",
+  "attested": "XPh (ARIo Q007216): \"tuvam kā haya aparam\" (you who [shall be] hereafter); DB 4",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: tuvam."
+ },
+ {
+  "form": "vayam",
+  "script": "𐎺𐎹𐎶",
+  "sign_spelling": "va-ya-ma",
+  "gloss": "we",
+  "pos": "pron. 1pl.",
+  "ipa": "wajam",
+  "attested": "DB (ARIo Q007134): \"avahyarādī vayam Haxāmanišiyā θanhyāmahi\" (for this reason we are called Achaemenids)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: vayam."
+ },
+ {
+  "form": "bandaka",
+  "script": "𐎲𐎭𐎣",
+  "sign_spelling": "ba-da-ka",
+  "gloss": "subject, servant, bondsman ('manā bandaka' my subject)",
+  "pos": "noun m.",
+  "ipa": "bandaka",
+  "attested": "DB (ARIo Q007134): \"Vidṛna nāma Pārsa manā bandaka\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: search extracts (ResearchGate on bandaka; EIEOL base-form dictionary: dargam \"long\", jīvā- \"life\")",
+  "src": [
+   "ARIO",
+   "OP-SX"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "The term for the king's loyal men, including nobles; not \"slave\". Nasal unwritten (ba-da-ka). Kent-style spelling: badaka."
+ },
+ {
+  "form": "maθišta",
+  "script": "𐎶𐎰𐎡𐏁𐎫",
+  "sign_spelling": "ma-θa-i-ša-ta",
+  "gloss": "greatest; chief, commander (DB 'avamšām maθištam akunavam' I made him their chief)",
+  "pos": "adj./noun",
+  "ipa": "maθiʃta",
+  "attested": "DSf (ARIo Q007172): \"A.uramazdā haya maθišta bagānām\" (the greatest of the gods); DB 11×",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: maθišta."
+ },
+ {
+  "form": "dargam",
+  "script": "𐎭𐎼𐎥𐎶",
+  "sign_spelling": "da-ra-ga-ma",
+  "gloss": "long (adv.; DB 'utā dargam jīvā' and may you live long)",
+  "pos": "adj./adv.",
+  "ipa": "darɡam",
+  "attested": "DB (ARIo Q007134): \"utātai̯ tau̯mā vasai̯ biyā utā dargam jīvā\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: search extracts (ResearchGate on bandaka; EIEOL base-form dictionary: dargam \"long\", jīvā- \"life\")",
+  "src": [
+   "ARIO",
+   "OP-SX"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Blessing on the future king who keeps the inscription. Kent-style spelling: daragam."
+ },
+ {
+  "form": "jīvā",
+  "script": "𐎪𐎡𐎺𐎠",
+  "sign_spelling": "ji-i-va-a",
+  "gloss": "may you live (DB 'dargam jīvā' live long)",
+  "pos": "verb 2sg.",
+  "ipa": "d͡ʒiːwaː",
+  "attested": "DB (ARIo Q007134), twice; XPh jīva \"(when) living\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: search extracts (ResearchGate on bandaka; EIEOL base-form dictionary: dargam \"long\", jīvā- \"life\")",
+  "src": [
+   "ARIO",
+   "OP-SX"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Grammatical analysis (imperative vs. subjunctive) not checked here. Kent-style spelling: jîvâ."
+ },
+ {
+  "form": "dau̯štā",
+  "script": "𐎭𐎢𐏁𐎫𐎠",
+  "sign_spelling": "da-u-ša-ta-a",
+  "gloss": "friend (DNb 'rāstam dau̯štā ami' I am a friend of the right)",
+  "pos": "noun m.",
+  "ipa": "dauʃtaː",
+  "attested": "DNb (ARIo Q007153); DB 4 \"A.uramazdā θuvām dau̯štā biyā\" (may Ahuramazda be a friend to you)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: dauštâ."
+ },
+ {
+  "form": "biyā",
+  "script": "𐎲𐎡𐎹𐎠",
+  "sign_spelling": "ba-i-ya-a",
+  "gloss": "may (he) be (optative of 'to be')",
+  "pos": "verb 3sg. opt.",
+  "ipa": "bijaː",
+  "attested": "DB (ARIo Q007134): \"A.uramazdā θuvām dau̯štā biyā\" ",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: biyâ."
+ },
+ {
+  "form": "hašiya-",
+  "script": "𐏃𐏁𐎡𐎹𐎶",
+  "sign_spelling": "ha-ša-i-ya-ma",
+  "gloss": "true (n. hašiyam; DB 'ima hašiyam nai̯ duruxtam' this is true, not false)",
+  "pos": "adj.",
+  "ipa": "haʃijam",
+  "attested": "DB (ARIo Q007134): \"yaθā ima hašiyam nai̯ duruxtam adam akunavam\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Spoken as \"(that is) true\" = yes is a reconstruction (usage C). Kent-style spelling: hašiyam."
+ },
+ {
+  "form": "duruxta-",
+  "script": "𐎯𐎢𐎽𐎢𐎧𐎫𐎶",
+  "sign_spelling": "du-u-ru-u-xa-ta-ma",
+  "gloss": "false, a lie (n. duruxtam)",
+  "pos": "adj. (ppp.)",
+  "ipa": "duruxtam",
+  "attested": "DB (ARIo Q007134): \"hašiyam nai̯ duruxtam\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: duruxtam."
+ },
+ {
+  "form": "parai̯tā",
+  "script": "𐎱𐎼𐎡𐎫𐎠",
+  "sign_spelling": "pa-ra-i-ta-a",
+  "gloss": "go forth! march! (2 pl. impv.)",
+  "pos": "verb 2pl. impv.",
+  "ipa": "paraitaː",
+  "attested": "DB (ARIo Q007134): \"avaθāšām aθanham parai̯tā avam kāram ... jantā\" (thus I said to them: go forth, smite that army)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "A military order in DB; used as a work call only in the reconstruction (usage C). Kent-style spelling: paraitâ."
+ },
+ {
+  "form": "parai̯di",
+  "script": "𐎱𐎼𐎡𐎮𐎡𐎹",
+  "sign_spelling": "pa-ra-i-di-i-ya",
+  "gloss": "go forth! (2 sg. impv.)",
+  "pos": "verb 2sg. impv.",
+  "ipa": "paraidi",
+  "attested": "DB (ARIo Q007134): \"avaθāšai̯ aθanham parai̯di ...\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: paraidiy."
+ },
+ {
+  "form": "vṛdana-",
+  "script": "𐎺𐎼𐎭𐎴𐎶",
+  "sign_spelling": "va-ra-da-na-ma",
+  "gloss": "town (acc. vṛdanam; DB 'Zāzāna nāma vṛdanam' a town named Zazana)",
+  "pos": "noun n.",
+  "ipa": "wr̩danam",
+  "attested": "DB (ARIo Q007134), 9×",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: vardanam."
+ },
+ {
+  "form": "āvahana-",
+  "script": "𐎠𐎺𐏃𐎴𐎶",
+  "sign_spelling": "a-va-ha-na-ma",
+  "gloss": "village (DSf 'Abirāduš nāma āvahanam Ūjai' a village named Abiradu in Elam)",
+  "pos": "noun n.",
+  "ipa": "aːwahanam",
+  "attested": "DSf (ARIo Q007172); DB",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: âvahanam."
+ },
+ {
+  "form": "kau̯fa",
+  "script": "𐎣𐎢𐎳",
+  "sign_spelling": "ka-u-fa",
+  "gloss": "mountain (DSf 'Labanāna nāma kau̯fa' a mountain named Lebanon)",
+  "pos": "noun m.",
+  "ipa": "kaufa",
+  "attested": "DSf (ARIo Q007172); DB",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: kaufa."
+ },
+ {
+  "form": "niyāka",
+  "script": "𐎴𐎡𐎹𐎠𐎣",
+  "sign_spelling": "na-i-ya-a-ka",
+  "gloss": "grandfather (DSf 'Ṛšāma haya manā niyāka' Arsames my grandfather)",
+  "pos": "noun m.",
+  "ipa": "nijaːka",
+  "attested": "DSf (ARIo Q007172)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: niyâka."
+ },
+ {
+  "form": "napā",
+  "script": "𐎴𐎱𐎠",
+  "sign_spelling": "na-pa-a",
+  "gloss": "grandson (DB 1 'Ṛšāmahyā napā' grandson of Arsames)",
+  "pos": "noun m.",
+  "ipa": "napaː",
+  "attested": "DB (ARIo Q007134); AmH",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: napâ."
+ },
+ {
+  "form": "tau̯mā",
+  "script": "𐎫𐎢𐎶𐎠",
+  "sign_spelling": "ta-u-ma-a",
+  "gloss": "family, lineage (DB 4 'utātai̯ tau̯mā vasai̯ biyā' and may your family be numerous)",
+  "pos": "noun f.",
+  "ipa": "taumaː",
+  "attested": "DB (ARIo Q007134), 10×",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: taumâ."
+ },
+ {
+  "form": "Yau̯nā",
+  "script": "𐎹𐎢𐎴𐎠",
+  "sign_spelling": "ya-u-na-a",
+  "gloss": "Ionians, Greeks (nom. pl.; the stone-cutters of DSf); sg. Yau̯na Ionia",
+  "pos": "proper noun",
+  "ipa": "jaunaː",
+  "attested": "DSf (ARIo Q007172): \"avai̯ Yau̯nā utā Spardiyā\"; DNa \"Yau̯nā takabarā\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: Yaunâ."
+ },
+ {
+  "form": "takabara-",
+  "script": "𐎫𐎣𐎲𐎼𐎠",
+  "sign_spelling": "ta-ka-ba-ra-a",
+  "gloss": "wearing the sun-hat (petasos) (DNa 'Yau̯nā takabarā' the sun hat-wearing Greeks)",
+  "pos": "adj.",
+  "ipa": "takabaraː",
+  "attested": "DNa (ARIo Q007152); DNe label",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: takabarâ."
+ },
+ {
+  "form": "Bābiruviya",
+  "script": "𐎲𐎠𐎲𐎡𐎽𐎢𐎻𐎡𐎹𐎠",
+  "sign_spelling": "ba-a-ba-i-ru-u-vi-i-ya-a",
+  "gloss": "Babylonian (DSf: 'those were Babylonians' who made the baked brick)",
+  "pos": "adj./noun",
+  "ipa": "baːbiruwijaː",
+  "attested": "DSf (ARIo Q007172): \"avai̯ Bābiruviyā\"; DB \"martiya Bābiruviya\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "IPA of the nom. pl. Bābiruviyā. Kent-style spelling: Bâbiruviyâ."
+ },
+ {
+  "form": "Spardiya",
+  "script": "𐎿𐎱𐎼𐎮𐎡𐎹𐎠",
+  "sign_spelling": "sa-pa-ra-di-i-ya-a",
+  "gloss": "Sardian, Lydian (nom. pl. Spardiyā)",
+  "pos": "adj./noun",
+  "ipa": "spardijaː",
+  "attested": "DSf (ARIo Q007172): \"avai̯ Yau̯nā utā Spardiyā\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: Spardiyâ."
+ },
+ {
+  "form": "Mudrāya",
+  "script": "𐎸𐎢𐎭𐎼𐎠𐎹𐎠",
+  "sign_spelling": "mu-u-da-ra-a-ya-a",
+  "gloss": "Egypt; Egyptian (nom. pl. Mudrāyā)",
+  "pos": "proper noun",
+  "ipa": "mudraːjaː",
+  "attested": "DSf (ARIo Q007172): \"avai̯ Mādā utā Mudrāyā\"; DB, DNa",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: Mudrâyâ."
+ },
+ {
+  "form": "Māda",
+  "script": "𐎶𐎠𐎭",
+  "sign_spelling": "ma-a-da",
+  "gloss": "Mede; Media",
+  "pos": "proper noun",
+  "ipa": "maːda",
+  "attested": "DB, DNa (ARIo Q007134, Q007152)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: Mâda."
+ },
+ {
+  "form": "Ūja",
+  "script": "𐎢𐎺𐎩",
+  "sign_spelling": "u-va-ja",
+  "gloss": "Elam (also the Elamites' land around Susa)",
+  "pos": "proper noun",
+  "ipa": "uːd͡ʒa",
+  "attested": "DNa (ARIo Q007152); DB \"Ūjai\" (loc.)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent Ūvja, spelled u-v-j; Schmitt (H)ūja. Kent-style spelling: Ûvja."
+ },
+ {
+  "form": "Haxāmanišiya",
+  "script": "𐏃𐎧𐎠𐎶𐎴𐎡𐏁𐎡𐎹",
+  "sign_spelling": "ha-xa-a-ma-na-i-ša-i-ya",
+  "gloss": "Achaemenid, of the house of Achaemenes",
+  "pos": "adj.",
+  "ipa": "haxaːmaniʃija",
+  "attested": "XPa 10 (ARIo Q007209); passim",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: Haxâmanišiya."
+ },
+ {
+  "form": "A.uramazdāha",
+  "script": "𐎠𐎢𐎼𐎶𐏀𐎭𐎠𐏃",
+  "sign_spelling": "a-u-ra-ma-za-da-a-ha",
+  "gloss": "of Ahuramazda (gen.; 'vašnā A.uramazdāha' by the favour of Ahuramazda)",
+  "pos": "proper noun gen.",
+  "ipa": "auramazdaːha",
+  "attested": "DB, DSf (ARIo Q007134, Q007172: \"vašnā A.uramazdāha\"); XPa 11 has A.uramazdāhā",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Fills gap Q-022: the formula vašnā A.uramazdāha can now be spoken. ARIo writes the logogram-free spelling. Kent-style spelling: Auramazdâha."
+ },
+ {
+  "form": "asabāra",
+  "script": "𐎠𐎿𐎲𐎠𐎼",
+  "sign_spelling": "a-sa-ba-a-ra",
+  "gloss": "horseman",
+  "pos": "noun m.",
+  "ipa": "asabaːra",
+  "attested": "DNb (ARIo Q007153): \"asabāra uvasabāra ami\" (as a horseman I am a good horseman)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: asabâra."
+ },
+ {
+  "form": "θanuvaniya",
+  "script": "𐎰𐎵𐎢𐎺𐎴𐎡𐎹",
+  "sign_spelling": "θa-nu-u-va-na-i-ya",
+  "gloss": "bowman",
+  "pos": "noun m.",
+  "ipa": "θanuwanija",
+  "attested": "DNb (ARIo Q007153): \"θanuvaniya uθanuvaniya ami\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: θanuvaniya."
+ },
+ {
+  "form": "ṛštika",
+  "script": "𐎠𐎼𐏁𐎫𐎡𐎣",
+  "sign_spelling": "a-ra-ša-ta-i-ka",
+  "gloss": "spearman",
+  "pos": "noun m.",
+  "ipa": "r̩ʃtika",
+  "attested": "DNb (ARIo Q007153): \"ṛštika ami uvṛštika\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Fits the Terrace guards (spear-bearers on the reliefs); used by them only in the reconstruction. Kent-style spelling: arštika."
+ },
+ {
+  "form": "ṛšti-",
+  "script": "𐎠𐎼𐏁𐎫𐎡𐏁",
+  "sign_spelling": "a-ra-ša-ta-i-ša",
+  "gloss": "spear (DNa 'Pārsahyā martiyahyā dūrai̯ ṛštiš parāgmatā' the spear of a Persian man has gone forth far)",
+  "pos": "noun f.",
+  "ipa": "r̩ʃtiʃ",
+  "attested": "DNa (ARIo Q007152)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: arštiš."
+ },
+ {
+  "form": "šiyāta",
+  "script": "𐏁𐎡𐎹𐎠𐎫",
+  "sign_spelling": "ša-i-ya-a-ta",
+  "gloss": "happy (XPh 'šiyāta ahani jīva' happy may I be when living)",
+  "pos": "adj.",
+  "ipa": "ʃijaːta",
+  "attested": "XPh (ARIo Q007216)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: šiyâta."
+ },
+ {
+  "form": "vasai̯",
+  "script": "𐎺𐎿𐎡𐎹",
+  "sign_spelling": "va-sa-i-ya",
+  "gloss": "much, greatly, very (XPa 'vasai̯ aniyašci nai̯bam' much else that is beautiful)",
+  "pos": "adv.",
+  "ipa": "wasai",
+  "attested": "XPa 13 (ARIo Q007209); DB, DNb",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent vasiy. Kent-style spelling: vasiy."
+ },
+ {
+  "form": "utā",
+  "script": "𐎢𐎫𐎠",
+  "sign_spelling": "u-ta-a",
+  "gloss": "and",
+  "pos": "conj.",
+  "ipa": "utaː",
+  "attested": "XPa 19 (ARIo Q007209) \"utā taya manā kṛtam\"; passim",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: utâ."
+ },
+ {
+  "form": "hadā",
+  "script": "𐏃𐎭𐎠",
+  "sign_spelling": "ha-da-a",
+  "gloss": "with, together with (XPc/XPd 'hadā bagai̯biš' with the gods)",
+  "pos": "prep.",
+  "ipa": "hadaː",
+  "attested": "XPd (ARIo Q007212); DB",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: hadâ."
+ },
+ {
+  "form": "hacā",
+  "script": "𐏃𐎨𐎠",
+  "sign_spelling": "ha-ca-a",
+  "gloss": "from (DSf 'hacā Mudrāyā' from Egypt)",
+  "pos": "prep.",
+  "ipa": "hat͡ʃaː",
+  "attested": "DSf (ARIo Q007172); passim",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: Livius.org translation (scraped copy in Electronic-Old-Persian-Library/Old-Persian-Dataset textdata/web_scraping/)",
+  "src": [
+   "ARIO",
+   "LIVIUS-AI"
+  ],
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: hacâ."
+ },
+ {
+  "form": "maguš",
+  "script": "𐎶𐎦𐎢𐏁",
+  "sign_spelling": "ma-gu-u-ša",
+  "gloss": "magus, priest (DB 'martiya maguš āha Gau̯māta nāma' there was a man, a magus, named Gaumata)",
+  "pos": "noun m.",
+  "ipa": "maɡuʃ",
+  "attested": "DB (ARIo Q007134), 8×",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Magi appear as ritual specialists in the PF tablets (Elamite makuš); the word in OP is attested only for Gaumata. Kent-style spelling: maguš."
+ },
+ {
+  "form": "kṛšā",
+  "script": "𐎣𐎼𐏁𐎠",
+  "sign_spelling": "ka-ra-ša-a",
+  "gloss": "karša (a weight unit; 'II kṛšā' on Darius's weight stones)",
+  "pos": "noun m.",
+  "ipa": "kr̩ʃaː",
+  "attested": "weight inscriptions (ARIo Q007204 \"II kṛšā\"; Q009254 \"CXX kṛšayā\")",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Weight value not given here (not read). Kent-style spelling: karšâ."
+ },
+ {
+  "form": "Ādukanaiša",
+  "script": "𐎠𐎯𐎢𐎣𐎴𐎡𐏁",
+  "sign_spelling": "a-du-u-ka-na-i-ša",
+  "gloss": "month 1 (= Babylonian Nisannu; gen. Ādukaniyahya 'in the month Adukanaisha')",
+  "pos": "month name",
+  "ipa": "aːdukanaiʃa",
+  "attested": "DB (ARIo Q007134): \"Ādukaniyahya māhyā 15 rau̯cabiš θakatā\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO",
+   "WP-CAL"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "The attested form is the genitive Ādukaniyahya (IPA of the citation form, C). Month equation from events_calendar.json (WP-CAL). Kent-style spelling: Âdukanaiša."
+ },
+ {
+  "form": "Θūravāhara",
+  "script": "𐎰𐎢𐎼𐎺𐎠𐏃𐎼",
+  "sign_spelling": "θa-u-ra-va-a-ha-ra",
+  "gloss": "month 2 (= Aiaru)",
+  "pos": "month name",
+  "ipa": "θuːrawaːhara",
+  "attested": "DB (ARIo Q007134): \"Θūravāharahaya māhyā 8 rau̯cabiš θakatā\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO",
+   "WP-CAL"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Attested gen. Θūravāharahaya. Kent-style spelling: Θûravâhara."
+ },
+ {
+  "form": "Garmapada",
+  "script": "𐎥𐎼𐎶𐎱𐎭",
+  "sign_spelling": "ga-ra-ma-pa-da",
+  "gloss": "month 4 (= Duzu)",
+  "pos": "month name",
+  "ipa": "ɡarmapada",
+  "attested": "DB (ARIo Q007134): \"Garmapadahya māhyā 9 rau̯cabiš θakatā\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO",
+   "WP-CAL"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Attested gen. Garmapadahya. Kent-style spelling: Garmapada."
+ },
+ {
+  "form": "Bāgayādi",
+  "script": "𐎲𐎠𐎥𐎹𐎠𐎮𐎡𐏁",
+  "sign_spelling": "ba-a-ga-ya-a-di-i-ša",
+  "gloss": "month 7 (= Tašritu)",
+  "pos": "month name",
+  "ipa": "baːɡajaːdiʃ",
+  "attested": "DB (ARIo Q007134): \"Bāgayādai̯š māhyā X rau̯cabiš θakatā\" (the day Gaumata was killed)",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO",
+   "WP-CAL"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: Bâgayâdiš."
+ },
+ {
+  "form": "Āçiyādiya",
+  "script": "𐎠𐏂𐎡𐎹𐎠𐎮𐎡𐎹",
+  "sign_spelling": "a-ça-i-ya-a-di-i-ya",
+  "gloss": "month 9 (= Kislimu)",
+  "pos": "month name",
+  "ipa": "aːçijaːdija",
+  "attested": "DB (ARIo Q007134): \"Āçiyādiyahya māhyā 26 rau̯cabiš θakatā\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO",
+   "WP-CAL"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: Âçiyâdiya."
+ },
+ {
+  "form": "Anāmaka",
+  "script": "𐎠𐎴𐎠𐎶𐎣",
+  "sign_spelling": "a-na-a-ma-ka",
+  "gloss": "month 10 (= Tebetu)",
+  "pos": "month name",
+  "ipa": "anaːmaka",
+  "attested": "DB (ARIo Q007134): \"Anāmakahya māhyā 2 rau̯cabiš θakatā\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO",
+   "WP-CAL"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "Kent-style spelling: Anâmaka."
+ },
+ {
+  "form": "Viyaxna",
+  "script": "𐎻𐎡𐎹𐎧𐎴",
+  "sign_spelling": "vi-i-ya-xa-na",
+  "gloss": "month 12 (= Addaru)",
+  "pos": "month name",
+  "ipa": "wijaxna",
+  "attested": "DB (ARIo Q007134): \"Viyaxanahya māhyā 14 rau̯cabiš θakatā\"",
+  "source": "form: ORACC ARIo (Schmitt 2009 ed., digitized by H. Heitmann-Gordon, MOCCI; CC0) via GitHub mirror SLAB-NLP/Akk data/jsonl/ario.jsonl; gloss: from context in the ARIo text (no translation of this passage read in this pass; standard meaning, Kent 1953 NOT SEEN)",
+  "src": [
+   "ARIO",
+   "WP-CAL"
+  ],
+  "tier": "B",
+  "tier_ipa": "C",
+  "tier_script": "C",
+  "note": "ARIo gen. Viyaxanahya; the citation form Viyax(a)na is disputed. Kent-style spelling: Viyaxana."
  }
 ]

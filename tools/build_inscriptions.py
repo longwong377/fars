@@ -46,20 +46,25 @@ def atf_to_cun(atf):
                 else: missing.append(tok)
         out.append(''.join(signs))
     return ' '.join(out), missing
-texts = {json.loads(l)['id_text']: json.loads(l)['raw_text'] for l in open('data/corpus/ario.jsonl', encoding='utf8')}
-IDS = {'XPa': 'Q007209', 'XPb': 'Q007210', 'XPc': 'Q007211', 'XPd': 'Q007212', 'DNa': 'Q007152', 'DNb': 'Q007153'}  # DNa/DNb: Darius I's tomb, Naqsh-e Rustam (identified by content: DNa 'Ariyaciça', 'gāθum', 'patikarā'; DNb 'ima frašam ... upari Dārayava.um')
-res = {}
-for sig, q in IDS.items():
-    raw = texts[q]
-    # split versions: OP runs until the first Elamite token (determinative braces); Babylonian begins at the second 'a-na-ku' block? use the ARIo convention:
-    m = re.search(r'\{', raw)
-    op = raw[:m.start()].strip() if m else raw
-    rest = raw[m.start():] if m else ''
-    # Babylonian versions of Xerxes texts open with 'DINGIR GAL₂' / '{d}u₂-ra-ma-az-da' patterns; split at the first occurrence of ' DINGIR ' or 'AN GAL'
-    b = re.search(r'\bDINGIR\b|\bAN GAL\b|\bil-lu\b', rest)
-    el, bab = (rest[:b.start()].strip(), rest[b.start():].strip()) if b else (rest.strip(), '')
-    elc, elm = atf_to_cun(el); bac, bam = atf_to_cun(bab)
-    res[sig] = {'ario': q, 'op_translit': op, 'el_atf': el, 'el_cuneiform': elc, 'el_unmapped': sorted(set(elm)), 'bab_atf': bab, 'bab_cuneiform': bac, 'bab_unmapped': sorted(set(bam)),
-                'tier': {'text': 'A (standard edition, via CC0 mirror)', 'op_signs': 'C (Kent orthographic rules)', 'el_bab_signs': 'B (ATF indices → OSL)', 'version_split': 'C (heuristic split of the ARIo running text)'}}
-    print(sig, 'OP words', len(op.split()), '| El tokens unmapped', len(set(elm)), '| Bab unmapped', len(set(bam)), '| bab len', len(bab.split()))
-json.dump({'_meta': 'ARIo (Schmitt 2009, CC0) via SLAB-NLP/Akk mirror; signs via oracc/osl; tools/build_inscriptions.py', **res}, open('src/data/inscriptions.json', 'w'), ensure_ascii=False, indent=1)
+def main():
+    texts = {json.loads(l)['id_text']: json.loads(l)['raw_text'] for l in open('data/corpus/ario.jsonl', encoding='utf8')}
+    IDS = {'XPa': 'Q007209', 'XPb': 'Q007210', 'XPc': 'Q007211', 'XPd': 'Q007212', 'DNa': 'Q007152', 'DNb': 'Q007153'}  # DNa/DNb: Darius I's tomb, Naqsh-e Rustam (identified by content: DNa 'Ariyaciça', 'gāθum', 'patikarā'; DNb 'ima frašam ... upari Dārayava.um')
+    res = {}
+    for sig, q in IDS.items():
+        raw = texts[q]
+        # split versions: OP runs until the first Elamite token (determinative braces); Babylonian begins at the second 'a-na-ku' block? use the ARIo convention:
+        m = re.search(r'\{', raw)
+        op = raw[:m.start()].strip() if m else raw
+        rest = raw[m.start():] if m else ''
+        # Babylonian versions of Xerxes texts open with 'DINGIR GAL₂' / '{d}u₂-ra-ma-az-da' patterns; split at the first occurrence of ' DINGIR ' or 'AN GAL'
+        b = re.search(r'\bDINGIR\b|\bAN GAL\b|\bil-lu\b', rest)
+        el, bab = (rest[:b.start()].strip(), rest[b.start():].strip()) if b else (rest.strip(), '')
+        elc, elm = atf_to_cun(el); bac, bam = atf_to_cun(bab)
+        res[sig] = {'ario': q, 'op_translit': op, 'el_atf': el, 'el_cuneiform': elc, 'el_unmapped': sorted(set(elm)), 'bab_atf': bab, 'bab_cuneiform': bac, 'bab_unmapped': sorted(set(bam)),
+                    'tier': {'text': 'A (standard edition, via CC0 mirror)', 'op_signs': 'C (Kent orthographic rules)', 'el_bab_signs': 'B (ATF indices → OSL)', 'version_split': 'C (heuristic split of the ARIo running text)'}}
+        print(sig, 'OP words', len(op.split()), '| El tokens unmapped', len(set(elm)), '| Bab unmapped', len(set(bam)), '| bab len', len(bab.split()))
+    json.dump({'_meta': 'ARIo (Schmitt 2009, CC0) via SLAB-NLP/Akk mirror; signs via oracc/osl; tools/build_inscriptions.py', **res}, open('src/data/inscriptions.json', 'w'), ensure_ascii=False, indent=1)
+
+
+if __name__ == '__main__':
+    main()

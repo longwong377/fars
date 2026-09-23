@@ -106,6 +106,17 @@ describe('formant synthesiser: measured output', () => {
     expect(el[0].stressed).toBe(true);
     const mid = planUtterance('mamama', MALE, { lang: 'el' }).segments.filter(s => s.manner === 'vowel');
     expect(mid[0].end - mid[0].start).toBeGreaterThan((mid[1].end - mid[1].start) * 1.1);
+    // Babylonian: last non-final heavy syllable, else the first (i.qab.bi → qab; bab.ba.nuː → bab)
+    expect(planUtterance('iqabbi', MALE, { lang: 'bab' }).segments.filter(s => s.manner === 'vowel').map(s => s.stressed)).toEqual([false, true, false]);
+    expect(planUtterance('babbanuː', MALE, { lang: 'bab' }).segments.filter(s => s.manner === 'vowel').map(s => s.stressed)).toEqual([true, false, false]);
+    // Greek: the lexicon's accent mark wins over the fallback rule (ἡμέρη ɛːˈmerɛː)
+    expect(planUtterance('ɛːˈmerɛː', MALE, { lang: 'grc' }).segments.filter(s => s.manner === 'vowel').map(s => s.stressed)).toEqual([false, true, false]);
+  });
+  it('aspirated stops (Greek pʰ tʰ kʰ) are tokenized and released with a longer voiceless interval than plain ones', () => {
+    const k = tokenizeIpa('ˈkʰaire'); expect(k[0].sym).toBe('k'); expect(k[0].aspirated).toBe(true);
+    expect(() => tokenizeIpa('aʰ')).toThrow(IpaError);
+    const dur = (ipa: string) => { const p = planUtterance(ipa, MALE, { lang: 'grc' }); const a = p.segments.find(s => s.sym === 'a')!; const kk = p.segments[0]; return a.start - kk.start; };
+    expect(dur('kʰa')).toBeGreaterThan(dur('ka') + 0.03);
   });
   it('voices: female and child are higher than male, children have shorter vocal tracts; rate shortens', () => {
     expect(voiceBase({ ...MALE, sex: 'f' }).f0).toBeGreaterThan(voiceBase(MALE).f0 * 1.5);
@@ -146,6 +157,19 @@ describe('speech lines: selection', () => {
     expect(pickLine({ langs: ['Egyptian'], intent: 'greet' })).toBeNull();
     expect(pickLine({ langs: ['Old Persian', 'Elamite'], intent: 'farewell' })!.line.lang).toBe('op');
   });
+  it('Babylonian and Greek speakers get lines in their own language (D-105, D-106); Egyptians and Lydians still gesture', () => {
+    expect(pickLine({ langs: ['Babylonian'], intent: 'greet' })!.line.lang).toBe('bab');
+    expect(pickLine({ langs: ['Greek', 'Aramaic'], intent: 'greet', role: 'mason' })!.line.lang).toBe('grc');
+    // the sim lists Aramaic first for its Babylonians: Aramaic where it has a line, Babylonian where it has none
+    expect(pickLine({ langs: ['Aramaic', 'Babylonian'], intent: 'greet', role: 'scribe' })!.line.lang).toBe('arc');
+    expect(pickLine({ langs: ['Aramaic', 'Babylonian'], intent: 'pious', role: 'scribe' })!.line.lang).toBe('bab');
+    for (const lang of ['Lydian', 'Egyptian']) expect(pickLine({ langs: [lang], intent: 'greet' })).toBeNull();
+    const per: Record<string, number> = {};
+    for (const l of LINES) per[l.lang] = (per[l.lang] ?? 0) + 1;
+    for (const lang of ['op', 'el', 'arc', 'bab', 'grc']) expect(per[lang] ?? 0, lang).toBeGreaterThanOrEqual(10);
+    for (const intent of ['greet', 'reply', 'farewell', 'refuse'] as const) for (const lang of ['Aramaic', 'Babylonian', 'Greek'])
+      expect(pickLine({ langs: [lang], intent }), `${lang} ${intent}`).not.toBeNull();
+  });
   it('role-restricted lines only go to those roles', () => {
     expect(pickLine({ langs: ['Elamite'], intent: 'ask_document', role: 'guard' })!.line.id).toBe('el.ask_document.halmi');
     expect(pickLine({ langs: ['Elamite'], intent: 'ask_document', role: 'child' })).toBeNull();
@@ -185,10 +209,19 @@ describe('pre-rendered voices (eSpeak-NG from the lexicon IPA; tools/build_speec
     const { readFileSync, statSync } = await import('node:fs');
     const { LINES, voiceKeyFor, voiceFor } = await import('../src/people/speech_lines');
     const man = JSON.parse(readFileSync('public/voices/manifest.json', 'utf8'));
+    // languages with no eSpeak voice are declared formant-only in the manifest (D-107): they must have no clip at all (the
+    // runtime formant synthesiser voices them) and a stated reason; every other line needs all six clips
+    const formantOnly: Record<string, string> = man._meta.formant_only ?? {};
+    expect(Object.keys(formantOnly)).toEqual(['bab']);
     for (const l of LINES) for (const k of ['m1', 'm2', 'm3', 'f1', 'f2', 'c1']) {
-      const c = man.clips[`${l.id}|${k}`]; expect(c, `${l.id}|${k}`).toBeTruthy();
+      const c = man.clips[`${l.id}|${k}`];
+      if (formantOnly[l.lang]) { expect(c, `${l.id}|${k} is formant-only`).toBeUndefined(); expect(formantOnly[l.lang].length).toBeGreaterThan(20); continue; }
+      expect(c, `${l.id}|${k}`).toBeTruthy();
       expect(c.url).toMatch(/^voices\/[^/]+\.ogg$/); const size = statSync('public/' + c.url).size; expect(size).toBeGreaterThan(1500); expect(size).toBeLessThan(40000);
     }
+    // no orphan clips: every manifest entry belongs to a current line
+    const ids = new Set(LINES.map(l => l.id));
+    for (const key of Object.keys(man.clips)) expect(ids.has(key.split('|')[0]), key).toBe(true);
     const keys = new Set<string>(); for (let s = 0; s < 400; s++) for (const sex of ['m', 'f'] as const) for (const role of ['guard', 'child', 'baker']) keys.add(voiceKeyFor(voiceFor({ seed: s, sex, role })));
     expect([...keys].sort()).toEqual(['c1', 'f1', 'f2', 'm1', 'm2', 'm3']);
   });

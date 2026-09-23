@@ -14,8 +14,9 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { LINE_DEFS, LINES } from '../src/people/speech_lines';
-import { findModernWords, nonPeriodChars, romanisedWords, MODERN_WORDS } from '../src/lang/modern';
-import { allLexEntries, lexEntry, citationForm } from '../src/lang/lexicon';
+import { findModernWords, nonPeriodChars, romanisedWords, MODERN_WORDS, PERIOD_SCRIPTS } from '../src/lang/modern';
+import { allLexEntries, lexEntry, citationForm, LANG_IDS, LEXICON, type LangId } from '../src/lang/lexicon';
+import sources from '../src/data/sources.json';
 import { toCuneiform } from '../src/lang/oldPersian';
 import { buildProfile, pseudoPhrase, murmurLangFor } from '../src/audio/murmur';
 import { Rng } from '../src/core/rng';
@@ -35,6 +36,7 @@ const LEXICON_HOMOGRAPHS: Record<string, { words: string[]; why: string }> = {
   'arc:ḥd': { words: ['had'], why: 'Aramaic "one" (ḥad)' },
   'arc:mrʾ': { words: ['mr'], why: 'consonantal spelling mrʾ "lord"' },
   'op:dāta-': { words: ['data'], why: 'Old Persian dāta- "law"' },
+  'grc:ouk': { words: ['ok'], why: 'Greek οὐκ "not" (5th-c. [oːk], Herodotus passim)' },
 };
 /** Same for the inscription transliterations (ARIo text, A): token → where it occurs. */
 const INSCRIPTION_HOMOGRAPHS: Record<string, { words: string[]; why: string }> = {
@@ -112,10 +114,27 @@ describe('language lint: inscriptions and scripts rendered in the world', () => 
     }
   });
   it('lexicon native-script fields use their own period script block', () => {
-    const block = { op: 'oldPersian', el: 'cuneiform', arc: 'imperialAramaic' } as const;
-    let n = 0;
-    for (const e of allLexEntries()) if (e.script) { n++; expect(nonPeriodChars(e.script, [block[e.lang]]), e.id).toEqual([]); }
-    expect(n).toBeGreaterThan(40);
+    // one block per language, typed over every LangId: a new language fails to compile until its script is classed here
+    const block: Record<LangId, keyof typeof PERIOD_SCRIPTS> = { op: 'oldPersian', el: 'cuneiform', arc: 'imperialAramaic', bab: 'cuneiform', grc: 'greekIonic' };
+    const n: Record<string, number> = {};
+    for (const e of allLexEntries()) if (e.script) { n[e.lang] = (n[e.lang] ?? 0) + 1; expect(nonPeriodChars(e.script, [block[e.lang]]), e.id).toEqual([]); }
+    for (const l of LANG_IDS) expect(n[l] ?? 0, `${l} entries with a native script`).toBeGreaterThan(30);
+  });
+  it('Greek is written as in the 5th c.: capitals only; lower case, accents and breathings are rejected', () => {
+    expect(nonPeriodChars('ΧΑΙΡΕ ΞΕΙΝΕ', ['greekIonic'])).toEqual([]);
+    expect(nonPeriodChars('χαῖρε', ['greekIonic']).length).toBeGreaterThan(0);  // lower case + circumflex
+    expect(nonPeriodChars('Ἴωνες', ['greekIonic']).length).toBeGreaterThan(0);  // breathing + accent (Greek Extended)
+    expect(nonPeriodChars('ΧΑΙΡΕ', ['cuneiform'])[0]).toMatch(/greekModern/); // Greek is never allowed on a cuneiform surface
+    for (const e of allLexEntries()) if (e.lang === 'grc') expect(e.script, e.id).toMatch(/^[Α-Ω ]+$/);
+  });
+  it('every lexicon entry is tiered and cites known source keys (fail-closed)', () => {
+    const keys = new Set(Object.keys(sources as Record<string, unknown>));
+    for (const l of LANG_IDS) expect(LEXICON[l].length, l).toBeGreaterThan(40);
+    for (const e of allLexEntries()) {
+      expect(['A', 'B', 'C'], `${e.id} tier "${e.tier}"`).toContain(e.tier.trim()[0]);
+      expect(e.src.length, `${e.id} has no source key`).toBeGreaterThan(0);
+      for (const k of e.src) expect(keys.has(k), `${e.id}: source key ${k} is not in src/data/sources.json`).toBe(true);
+    }
   });
 });
 
@@ -142,13 +161,15 @@ describe('language lint: other in-world text', () => {
 
 describe('language lint: crowd murmur', () => {
   it('pseudo-phrases in every language contain no modern word (2,000 phrases per language)', () => {
-    for (const lang of ['op', 'el', 'arc'] as const) {
+    for (const lang of LANG_IDS) {
       const p = buildProfile(lang), r = new Rng(7, `lint:${lang}`);
       for (let i = 0; i < 2000; i++) { const ph = pseudoPhrase(p, r); expect(findModernWords(ph.ipa, { ipa: true }), `${lang}: ${ph.ipa}`).toEqual([]); }
     }
   });
-  it('languages without a lexicon fall back to the Aramaic profile and are flagged C', () => {
-    for (const l of ['Greek', 'Egyptian', 'Babylonian', 'Lydian', 'unknown']) { const m = murmurLangFor(l); expect(m.lang).toBe('arc'); expect(m.fallback).toBe(true); expect(m.tier).toBe('C'); }
+  it('languages without a lexicon fall back to the Aramaic profile and are flagged C; Babylonian and Greek use their own', () => {
+    for (const l of ['Egyptian', 'Lydian', 'unknown']) { const m = murmurLangFor(l); expect(m.lang).toBe('arc'); expect(m.fallback).toBe(true); expect(m.tier).toBe('C'); }
     expect(murmurLangFor('Elamite')).toMatchObject({ lang: 'el', fallback: false });
+    expect(murmurLangFor('Babylonian')).toMatchObject({ lang: 'bab', fallback: false });
+    expect(murmurLangFor('Greek')).toMatchObject({ lang: 'grc', fallback: false });
   });
 });
