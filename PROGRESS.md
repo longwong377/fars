@@ -45,7 +45,16 @@
       - households are not synchronised and schedules run like clockwork.
       The population agent is fixing them. A fresh independent reviewer will re-run the review.
     - Every day-plan weight is C. The grain deliveries in the read texts cannot feed the ration groups (Q-056). Workers other than guards have no regular rest days (Q-057).
-- **Phases 6 and 7:** the settlement and plain are not built yet (session 3 agents started). The out-of-world map shows the Terrace only.
+- **Phase 6 (settlement; merged in session 3, D-041 to D-044):**
+  - Built: 10 town quarters (maze lanes, courtyard houses, workshops, pens), compounds, gardens, Tol-e Ajori (plan from the 2017 report, B/C), Takht-e Rustam, roads, canal and way-station. It is walkable (131 m lane walk offline) and adds only 17–43 draw calls.
+  - Weak or unverified:
+    - **The dusk-smoke moment does not land from the Terrace:** the town is a thin band and the haze is barely visible. The slope view meant to show it was never rendered.
+    - Several views were not re-rendered after the final fixes, and WebGL2 is untested.
+    - Trees and houses are placeholders (boxes and low-poly crowns); street doors never move.
+    - Every layout is C: the house type is the Babylonian courtyard analogue (Q-082).
+    - **People are not connected to the houses:** the sim still sends them to an off-map "town" point, and there is no NPC walkable grid for the town.
+    - The Akhor Rostam niches are not built (Q-085).
+- **Phase 7 (plain):** an agent is building it. The out-of-world map shows the Terrace only.
 - **King absent by default (D-003):** no evidence places Xerxes at Persepolis in 467. The court appears only in the C-tier "seasonal pattern" setting.
 - **No primary sources reachable (B6):** SITE_SPEC is tier B/C, nothing is A, and the plan overlay compares against OSM, not Schmidt.
 - **Sky and bench:**
@@ -72,7 +81,7 @@
 | 3 | Vertical slice: materials, reliefs, fire, weather VFX, audio, 65 people, speech/murmur, walkthrough bot (28 legs, re-verified session 3) | **Not passed:** rubric and independent review not run; calibration blocked; people placeholder; bench to re-run |
 | 4 | Rest of the Terrace: stairs, doors, frames, corrected outlines, floors, fires, acoustics, guard posts; overlay + dimension tests; walkthrough e2e passes all six areas (session 3) | **In progress:** reliefs on the new stairs and jambs, windows and niches, furnishings, people beyond guards, Phase 4 review |
 | 5 | Two-tier simulation of 46,590 people: events calendar, town life, rota, construction state, memory, persistence; soak PASSES (session 3); birds and jackals visible (D-054) | **Not passed:** activity coverage (25 placeholders), rendered floors, unrendered Terrace workforce, construction geometry, shadow review pending |
-| 6 | Research done; chronology and lint in place; session 3 agent building | — |
+| 6 | Settlement built (session 3): quarters, houses (1,456 homes / 7,830 people), workshops, gardens, Tol-e Ajori, roads; lints pass, layout sourced and tiered (C) | **Gate items met on paper (lints pass; layout sourced and tiered)**; smoke moment and people-to-houses link open |
 | 7 | Research done; horizon fixed (D-035); session 3 agent building | — |
 | 8 | Translation layer built and e2e-verified; speech and murmur from Phase 3 (placeholders) | — |
 | 9 | Not started | — |
