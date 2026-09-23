@@ -151,6 +151,40 @@ export function textPanelGeometry(fontKey: 'op' | 'cun', text: string, width: nu
 /** layer of the inscriptions' invisible pick rectangles (no camera renders it) */
 export const INSCRIPTION_PICK_LAYER = 5;
 const pickMat = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide, visible: false });
+/** the Apadana foundation deposits (D-068, apadana.r_foundation_deposits): a limestone box with a lid under the outer corner
+ *  of the hall wall at each listed corner, holding a gold and a silver plate inscribed with DPh. Sealed since the foundation:
+ *  no camera can see them from the walkable world; the plates carry the text as data (the translation layer shows it), not
+ *  as carved glyphs, and a pick rectangle over the corner's footing lets the translation layer name them */
+export function buildFoundationDeposits(m: Manifest): THREE.Group {
+  const g = new THREE.Group(); g.name = 'apadana-foundation-deposits';
+  const a = m.apadana as any; if (!a) return g;
+  const F = v<any>('apadana', 'r_foundation_deposits'), [cx, cy, hs] = a.room as number[], wt = a.wallThickness as number, floor = a.podium as number;
+  const [bx, bz, bh] = F.box_outer as number[], t = F.box_wall as number, top = floor - F.top_below_floor, y0 = top - bh;
+  const meta = { tier: 'C', src: 'ISAC-PA;LIVIUS-AI;ARIO', note: 'Apadana foundation deposit: stone box with a gold and a silver plate inscribed DPh (existence and contents B; corners Q-016; sizes and depth C)' };
+  const stone = surfaceMaterial('limestone');
+  const metal = (rgb: [number, number, number], metalness: number) => new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...rgb, THREE.SRGBColorSpace), roughness: 0.35, metalness });
+  const mats: Record<string, THREE.Material> = { gold: metal([0.83, 0.66, 0.26], 0.6), silver: metal([0.78, 0.78, 0.76], 0.6) };
+  const slab = (w: number, h: number, d: number, x: number, y: number, z: number) => new THREE.BoxGeometry(w, h, d).translate(x, y, z);
+  const boxGeo = mergeGeometries([slab(bx, t, bz, 0, t / 2, 0), slab(t, bh - F.lid - t, bz, -(bx - t) / 2, t + (bh - F.lid - t) / 2, 0), slab(t, bh - F.lid - t, bz, (bx - t) / 2, t + (bh - F.lid - t) / 2, 0),
+    slab(bx - 2 * t, bh - F.lid - t, t, 0, t + (bh - F.lid - t) / 2, -(bz - t) / 2), slab(bx - 2 * t, bh - F.lid - t, t, 0, t + (bh - F.lid - t) / 2, (bz - t) / 2), slab(bx, F.lid, bz, 0, bh - F.lid / 2, 0)].map(q => { q.deleteAttribute('uv'); return q; }))!;
+  for (const corner of F.corners as string[]) {
+    const sx = corner.includes('E') ? 1 : -1, sy = corner.includes('N') ? 1 : -1, off = hs / 2 + wt / 2;
+    const e = cx + sx * off, n = cy + sy * off;
+    const box = new THREE.Mesh(boxGeo, stone); box.position.set(e, y0, -n); box.name = `foundation-box:${corner}`; box.userData = meta; g.add(box);
+    let y = y0 + t; // plates lie flat on the floor of the box, silver under gold (order C)
+    for (const P of [...(F.plates as any[])].reverse()) {
+      const [pw, pd, pt] = P.size as number[]; const plate = new THREE.Mesh(new THREE.BoxGeometry(pw, pt, pd), mats[P.metal]);
+      plate.position.set(e, y + pt / 2, -n); y += pt; plate.name = `foundation-plate:${corner}:${P.metal}`;
+      plate.userData = { ...meta, inscription: F.inscription, note: `${P.metal} plate inscribed with DPh in Old Persian, Elamite and Babylonian (text: ARIo Q007164, A; the signs are data, not carved geometry: sealed out of sight)` };
+      g.add(plate);
+    }
+    // the pick rectangle: horizontal at floor level over the corner's footing, reaching 1 m beyond the wall's outer faces
+    const size = wt + 2, quad = new THREE.Mesh(new THREE.PlaneGeometry(size, size).rotateX(-Math.PI / 2), pickMat);
+    quad.position.set(e + sx * 1, floor + 0.02, -(n + sy * 1)); quad.layers.set(INSCRIPTION_PICK_LAYER); quad.name = `inscription:${F.inscription}:deposit:${corner}:pick`;
+    quad.userData = { ...meta, inscription: F.inscription, version: 'op', pickFar: 8 }; g.add(quad);
+  }
+  return g;
+}
 export function buildInscriptions(m: Manifest, parts: any[], extra: InscriptionPlacement[] = []): THREE.Group {
   const g = new THREE.Group(); g.name = 'inscriptions';
   const inscMat = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(0.22, 0.21, 0.2, THREE.SRGBColorSpace), roughness: 0.95 });

@@ -1057,3 +1057,14 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - Offline bots: all six areas pass (77 legs, including new legs into the scribes' room and out), and the slice passes (28 legs).
 - **Tests:** `tests/treasury_rooms.test.ts` covers the wall and doorway solids, cross walls, roof, the desk and zone, the route street → N door → vestibule → court → room doorway → desk, and the furnishing.
 - **Open:** the room is lit only through its 1.1 m doorway; the interior-light agent's probes must cover it when merged. Which room held the archive is C (Q-124: Schmidt's room numbers NOT SEEN).
+
+## D-068 — The Apadana foundation deposits, sealed under the hall corners (session 3)
+- **Why:** the brief names "the Apadana foundation plates in their stone boxes" among the real objects to show "at the point in its life you're witnessing". In 467 that point is sealed underground.
+- **Text:** DPh is ARIo Q007164, trilingual (A); Q007148 is DH, the same wording from Hamadan. `tools/build_inscriptions.py` adds it with a per-text version split: the Babylonian opens with `{m}`, the Elamite writes persons with `{DIŠ}`. Every existing entry rebuilds byte-identical.
+- **Build:** new row `apadana.r_foundation_deposits` (C; tools/apply_foundation_patch.py), `buildFoundationDeposits` in `src/arch/decor.ts`.
+  - At the NE and SE corners of the hall (Q-016: the boxes found; Livius names one box at NE): a limestone box with a lid, centred under the outer corner of the hall wall, its top 0.45 m below the floor (C).
+  - Each box holds a gold and a silver plate, 33 × 33 cm (recollection, NOT SEEN, C).
+  - The plates carry DPh as data, not carved glyphs, since no camera can reach them.
+  - A pick rectangle over each corner's footing lets the translation layer name the plates and show the text: out-of-world knowledge. The world itself shows nothing.
+  - The coins reported beneath the boxes are not modelled (not in the retrieved sources).
+- **Tests:** `tests/foundation.test.ts` covers the edition text and the versions, the boxes under the hall wall and below the floor, the plates inside the boxes, and the pick rectangles on the pick layer only.

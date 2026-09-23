@@ -1187,6 +1187,45 @@
    "src": "RECON",
    "tier": "C",
    "note": "palace doors stand open by day and can be closed; people open a closed door as they pass (C, D-051); leaves as global.r_door_leaf (C); no jamb reliefs found for the Apadana hall doorways (left plain)"
+  },
+  "r_foundation_deposits": {
+   "v": {
+    "corners": [
+     "NE",
+     "SE"
+    ],
+    "box_outer": [
+     0.62,
+     0.62,
+     0.46
+    ],
+    "box_wall": 0.08,
+    "lid": 0.1,
+    "top_below_floor": 0.45,
+    "plates": [
+     {
+      "metal": "gold",
+      "size": [
+       0.33,
+       0.33,
+       0.0015
+      ]
+     },
+     {
+      "metal": "silver",
+      "size": [
+       0.33,
+       0.33,
+       0.0015
+      ]
+     }
+    ],
+    "inscription": "DPh"
+   },
+   "u": "m",
+   "src": "ISAC-PA;LIVIUS-AI;RECON",
+   "tier": "C",
+   "note": "the foundation deposits of the Apadana: in each stone box a gold and a silver plate inscribed with DPh in Old Persian, Elamite and Babylonian (ARIo Q007164; the same wording as DH from Hamadan). Existence and contents B (apadana.foundation_deposits, ISAC-PA; LIVIUS-AI DPh: \"two golden and two silver tablets\"). Corners: the boxes found at NE and SE (Q-016: 2 boxes vs 4 corners; Livius names one box at NE); plate size 33 x 33 cm from recollection (NOT SEEN, C); box size, thickness, lid and depth below the floor C; centred under the outer corner of the hall wall (C). The coins reported beneath the boxes are not modelled (not in the retrieved sources). Sealed since the foundation: nothing in the world shows them; the translation layer names them at the corner"
   }
  },
  "tachara": {
