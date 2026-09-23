@@ -1,0 +1,252 @@
+{
+  "_meta": {
+    "title": "Population of Persepolis and the Marvdasht plain, 467 BCE (Xerxes yr 19), per zone, court state, time of day and season; household, work-group and ration templates; animals",
+    "doc": "research/PEOPLE.md section P5; research/EVENTS.md",
+    "built": "2026-09-23 (Phase 5 research)",
+    "tiers": "A attested / B inferred (includes every search-extract value: capped at B) / C reconstructed. Every population value is a C derivation from B inputs; see 'derivation'.",
+    "access": "FT = read in full this session; SX = web-search extract of a named page (capped at B); NS = not seen (model recollection, capped at C, verify)",
+    "ranges": "value ranges are [min, max]; 'w' is the working value the simulation should use unless a setting overrides it",
+    "default_court_state": "court_absent (DECISIONS D-003; OPEN_QUESTIONS Q-005). court_resident is the out-of-world setting 'Court calendar = seasonal pattern' (resident months 1-4), tier C.",
+    "src_keys": "all keys resolve in src/data/sources.json"
+  },
+  "units": {
+    "qa_litres": { "v": 0.97, "range": [0.9, 1.0], "tier": "C", "src": "IR-ADMIN", "note": "IR-ADMIN (SX): '1 bar = ca. 10 liters' (B for ~1 L); the 0.97 L working value is NS (Hallock's convention, verify)" },
+    "BAR_qa": { "v": 10, "tier": "B", "src": "RATION-30;IR-ADMIN", "note": "dry measure; grain, flour, fruit" },
+    "marris_qa": { "v": 10, "tier": "B", "src": "RATION-30", "note": "liquid measure; wine, beer" },
+    "karsa_shekels": { "v": 10, "tier": "B", "src": "IR-TREAS", "note": "silver weight" },
+    "shekel_g": { "v": 8.33, "tier": "B", "src": "IR-TREAS", "note": "weighed silver; coins only as stored Treasury items (blocklist coins-everyday; Q-011)" }
+  },
+  "seasons": {
+    "note": "Babylonian months of year 19 (src/data/calendar_467.json). Month 12 (Addaru, 8 Mar-5 Apr 466) is grouped with spring.",
+    "spring": { "months": [12, 1, 2], "julian": "8 Mar-5 Apr 466 and 17 Apr-14 Jun 467" },
+    "summer": { "months": [3, 4, 5], "julian": "15 Jun-11 Sep 467" },
+    "autumn": { "months": [6, 7, 8], "julian": "12 Sep-8 Dec 467" },
+    "winter": { "months": [9, 10, 11], "julian": "9 Dec 467-7 Mar 466" }
+  },
+  "zones": [
+    {
+      "id": "terrace",
+      "label": "Terrace platform, including the garrison quarters on it",
+      "court_absent": {
+        "day": {
+          "spring": { "range": [290, 930], "w": 575 },
+          "summer": { "range": [260, 830], "w": 515 },
+          "autumn": { "range": [290, 930], "w": 575 },
+          "winter": { "range": [210, 680], "w": 425 }
+        },
+        "night": {
+          "spring": { "range": [60, 200], "w": 125 },
+          "summer": { "range": [60, 200], "w": 125 },
+          "autumn": { "range": [60, 200], "w": 125 },
+          "winter": { "range": [60, 200], "w": 125 }
+        }
+      },
+      "court_resident": {
+        "day": { "all_seasons": { "range": [3000, 8000], "w": 5000 } },
+        "night": { "all_seasons": { "range": [1500, 4000], "w": 2500 } }
+      },
+      "components_court_absent": [
+        { "role": "garrison (all resident on the Terrace; ~1/3 on watch)", "day": [50, 150], "night": [50, 150], "w": 100, "tier": "C", "src": "RECON", "note": "brief 9.1 (smaller garrison when the king is away, especially on the Treasury); no count retrieved (Q-043)" },
+        { "role": "Treasury building staff (treasurer's office, scribes, storekeepers, weighers, treasury artisans working inside)", "day": [50, 150], "night": [5, 15], "w": 100, "tier": "C", "src": "LIVIUS-TREAS;HENK2023;IR-TREAS", "note": "a subset of the >=1,348 people 'employed in the treasury' in 467 (LIVIUS-TREAS, SX, B); the split between the building and the workshops is C" },
+        { "role": "building gangs (Hall of 100 Columns, Tripylon)", "day": [150, 500], "night": [2, 10], "w": 300, "season_factor": { "spring": 1.0, "summer": 0.8, "autumn": 1.0, "winter": 0.5 }, "tier": "C", "src": "PT-WAGE;RECON", "note": "gangs of ~100 under a chief (PT-WAGE, SX, C); the night figure is site watchmen; the season factors are C (harvest and heat in summer; frost and rain in winter, climate A)" },
+        { "role": "porters, water carriers, deliveries", "day": [20, 60], "night": [0, 0], "w": 40, "tier": "C", "src": "RECON" },
+        { "role": "palace caretakers, cleaners, lamp keepers (palaces shut while the court is away)", "day": [10, 40], "night": [5, 20], "w": 20, "tier": "C", "src": "RECON" },
+        { "role": "officials, couriers, visitors", "day": [5, 30], "night": [0, 0], "w": 15, "tier": "C", "src": "RECON" }
+      ],
+      "tier": "C",
+      "src": "LIVIUS-TREAS;PT-WAGE;RECON",
+      "derivation": "sum of components; day = components x season factor for the gangs; night = garrison + Treasury night staff + caretakers + site watchmen. Court resident: guards at full ceremonial strength 1,000-2,000 (HDT 7.41 '1,000 spearmen' is a claim about the army on the march) + court officials, servants, table staff, petitioners; the royal household sleeps in the palaces (C)."
+    },
+    {
+      "id": "town",
+      "label": "Persepolis urban zone around the Terrace: Royal Precinct, Persepolis West, Bagh-e Firuzi, Tol-e Ajori (a garden-city landscape of about 600 ha)",
+      "court_absent": {
+        "day": {
+          "spring": { "range": [4800, 10300], "w": 6900 },
+          "summer": { "range": [4300, 9500], "w": 6300 },
+          "autumn": { "range": [4800, 10300], "w": 6900 },
+          "winter": { "range": [4900, 10200], "w": 7000 }
+        },
+        "night": {
+          "spring": { "range": [5000, 10000], "w": 7000 },
+          "summer": { "range": [5000, 10000], "w": 7000 },
+          "autumn": { "range": [5000, 10000], "w": 7000 },
+          "winter": { "range": [5000, 10000], "w": 7000 }
+        }
+      },
+      "court_resident": {
+        "day": { "all_seasons": { "range": [13000, 30000], "w": 20000 } },
+        "night": { "all_seasons": { "range": [13000, 30000], "w": 20000 } }
+      },
+      "components_court_absent": [
+        { "role": "treasury people (workshops; includes those who work in the Treasury building by day)", "night": [1348, 1600], "w": 1400, "tier": "B", "src": "LIVIUS-TREAS", "note": "'no less than 1,348 people were employed in the treasury' in 467 (SX); whether women and children are included is unknown (Q-031)" },
+        { "role": "building kurtaš and their families", "night": [500, 1500], "w": 900, "tier": "C", "src": "PT-WAGE;RECON" },
+        { "role": "families of the garrison", "night": [100, 400], "w": 200, "tier": "C", "src": "RECON" },
+        { "role": "officials, scribes, storekeepers and their households", "night": [300, 800], "w": 500, "tier": "C", "src": "RECON" },
+        { "role": "other state dependants: mills, breweries, stores, stables, herdsmen, road station, women's work groups", "night": [500, 1500], "w": 1000, "tier": "C", "src": "IR-PET;RECON", "note": "the L lists show women's work groups as the majority of ration recipients (IR-PET, SX, B); the count is C" },
+        { "role": "non-state residents: gardeners and farmers of the garden city, elite estate households, craftsmen", "night": [2000, 5000], "w": 3000, "tier": "C", "src": "SELOPERSE;RECON" }
+      ],
+      "tier": "C",
+      "src": "LIVIUS-TREAS;SELOPERSE;SUMNER1986;RECON",
+      "derivation": "night = sum of components (4,650-10,300, rounded to 5,000-10,000). Cross-check: 600 ha (SELOPERSE, SX, B: 'probably not densely built-up'; separate blocks among gardens, parks, fields, orchards) with 8-15 % built blocks at 65-150 persons/ha gives 3,100-13,500; 65/ha = Sumner's plain-wide mean 43,600/675 ha (my arithmetic on B inputs). Day = night - Terrace day workers (~450) + plain villagers visiting stores and the road station (200-800) - harvest labour sent to fields in summer (5-15 %). Court resident: + 8,000-20,000 retinue lodged or camped (C). Scale checks: PF 0701, 126,100 qa flour 'consumed before the king' (IR-ADMIN, SX, B) = ~4,200 man-months at 30 qa over an unstated period; the king's table 'fed 15,000 a day' is a Greek claim (ATH4)."
+    },
+    {
+      "id": "plain",
+      "label": "the rest of the Marvdasht (Persepolis) plain: villages, fields, orchards, canals, road stations",
+      "court_absent": {
+        "day": {
+          "spring": { "range": [30500, 42000], "w": 37000 },
+          "summer": { "range": [30000, 39000], "w": 36000 },
+          "autumn": { "range": [30500, 42000], "w": 37000 },
+          "winter": { "range": [30000, 39000], "w": 36000 }
+        },
+        "night": {
+          "spring": { "range": [30500, 42000], "w": 37000 },
+          "summer": { "range": [30000, 39000], "w": 36000 },
+          "autumn": { "range": [30500, 42000], "w": 37000 },
+          "winter": { "range": [30000, 39000], "w": 36000 }
+        }
+      },
+      "court_resident": {
+        "day": { "all_seasons": { "range": [33000, 49000], "w": 42000 } },
+        "night": { "all_seasons": { "range": [33000, 49000], "w": 42000 } }
+      },
+      "field_fraction_adults_by_day": { "spring": 0.5, "summer": 0.6, "autumn": 0.4, "winter": 0.15, "tier": "C", "src": "FARS-CROP;RECON", "note": "barley harvest from mid-May; wheat harvest and threshing in summer; ploughing, sowing and vintage in autumn" },
+      "transients": { "herders_passing": { "months": [12, 1, 6, 7], "range": [500, 3000], "w": 1000, "tier": "C", "src": "RECON", "note": "modern Qashqai move north in April and south in September (SX; C analogue); no Achaemenid source. PF: ~700 shepherds drove 'the sheep of the king' to Susa (IR-ADMIN, SX, B)" } },
+      "tier": "C",
+      "src": "SUMNER1986;FARS-CROP;RECON",
+      "derivation": "Sumner <= 44,000 sedentary in the plain (39 sites, ~675 ha; SX, B) minus the town (5,000-10,000) = 34,000-39,000 if Sumner counts the town, up to 44,000 if not (Q-038); working 36,000. Spring and autumn add transient herders. Day = night: people move into the fields within the zone. Court resident: + 3,000-10,000 in supply trains, royal herds and camps (C)."
+    }
+  ],
+  "totals_court_absent": { "range": [44000, 51000], "w": 44100, "tier": "C", "note": "night, spring, working values: Terrace 125 + town 7,000 + plain 37,000 = 44,125; by day the Terrace adds ~450 who sleep in the town. About Sumner's ceiling for the plain, plus transients" },
+  "ration_scale": [
+    { "category": "man", "grain_qa_month": 30, "liquid_qa_month": null, "tier": "B", "src": "RATION-30;IR-PET", "note": "3 BAR, 'the normal men's ration'" },
+    { "category": "man_skilled_or_foreman", "grain_qa_month": [40, 60], "liquid_qa_month": null, "tier": "C", "src": "RECON", "note": "NS; the PT/PF scale by skill was not retrieved" },
+    { "category": "woman_unskilled", "grain_qa_month": 20, "liquid_qa_month": null, "tier": "B", "src": "IR-WOMEN", "note": "'one third less food than men' for less skilled labour" },
+    { "category": "woman_skilled", "grain_qa_month": [30, 40], "liquid_qa_month": null, "tier": "B", "src": "IR-WOMEN;RATION-30", "note": "equal to men at the same qualification; the Liduma list pays most women 40" },
+    { "category": "woman_group_head_arrassara", "grain_qa_month": 50, "liquid_qa_month": 30, "meat": "1/3 sheep per month", "tier": "B", "src": "IR-WOMEN;RATION-30" },
+    { "category": "boy", "grain_qa_month": [10, 20], "steps": [10, 15, 20], "liquid_qa_month": null, "tier": "B", "src": "RATION-30", "note": "the ages behind the steps are not stated; use age 4-7 -> 10, 8-11 -> 15, 12-15 -> 20 (C)" },
+    { "category": "girl", "grain_qa_month": [10, 20], "steps": [10, 15, 20], "liquid_qa_month": null, "tier": "B", "src": "RATION-30", "note": "as boys; the age mapping is C" },
+    { "category": "infant_under_4", "grain_qa_month": 0, "liquid_qa_month": null, "tier": "C", "src": "RECON", "note": "not on the lists retrieved; fed from the mother's ration (C)" },
+    { "category": "special_ration_M", "grain_qa_month": "one extra day's ration per month", "tier": "B", "src": "IR-PET" },
+    { "category": "mother_of_boy_N", "grain_qa_once": 10, "liquid_qa_once": 10, "tier": "C", "src": "IR-PET;IR-WOMEN", "note": "the boy x2 girl ratio is B; the amounts are NS (Q-030; conflicting SX '2 vs 1 quarts')" },
+    { "category": "mother_of_girl_N", "grain_qa_once": 5, "liquid_qa_once": 5, "tier": "C", "src": "IR-PET;IR-WOMEN", "note": "as above" },
+    { "category": "traveller_per_day", "flour_qa_day": [1.0, 1.5], "liquid_qa_day": 1.0, "tier": "B", "src": "HYLAND2022;IR-PET", "note": "the scale is written on the sealed document (halmi); higher-status travellers get more" },
+    { "category": "worker_in_transit_per_day", "flour_qa_day": 1.5, "tier": "B", "src": "HYLAND2022", "note": "2,450 L for 1,633 Lycian marataš = 1.50 L each (my division)" },
+    { "category": "priest_lan", "grain_qa_month": 7.5, "tier": "C", "src": "HENK2008", "note": "PF 1955: 360 qa barley in 4 equal shares (lan, Mišebaka, mountain, river); if the text covers a year, the lan share is 90 qa/yr = 7.5 qa/month (the period was not retrieved); the priest's own keep is separate and unknown" },
+    { "category": "horse_per_day", "grain_qa_day": 4.5, "tier": "C", "src": "POTTS2023", "note": "'mature horses typically received around 4.5 QA per day' (SX summary; underlying source not identified; Q-036)" }
+  ],
+  "work_group_templates": [
+    {
+      "id": "pasap_group",
+      "label": "women's work group (pašap), e.g. the workers of Liduma",
+      "size": 92,
+      "mix": { "men": 16, "women": 45, "boys": 18, "girls": 13 },
+      "ration_steps_qa_month": { "men": [[16, 30]], "women": [[1, 50], [34, 40], [9, 30], [1, 20]], "boys": [[7, 20], [5, 15], [6, 10]], "girls": [[2, 20], [2, 15], [9, 10]] },
+      "total_BAR_month": 261.5,
+      "supervisors": [{ "role": "group head (arraššara pašabena)", "sex": "f", "count": 1, "ration": "50 qa grain + 30 qa wine + 1/3 sheep" }],
+      "admin": { "assigned_by": "an official (Iršena in the text)", "supplied_by": "a storekeeper's account (Irtuppiya in the text)" },
+      "jobs": "grinding, baking, textile work, field work (C)",
+      "tier": "B",
+      "src": "RATION-30;IR-WOMEN;IR-PET",
+      "note": "L text, month 5, yr 21 of Darius, quoted on RATION-30 (SX); I checked that the rows sum to 92 persons and 261.5 BAR. The Liduma counts (17 % men, 49 % women, 34 % children) are one attested group, not a statistic."
+    },
+    {
+      "id": "construction_gang",
+      "label": "labour team on the Terrace works",
+      "size": [80, 120],
+      "mix": { "men": 1.0 },
+      "supervisors": [{ "role": "chief of the team", "count": 1, "wage": "3 karša 2½ shekels (Herdkama 'the Egyptian', chief of 100)" }, { "role": "leader of ten", "count": 10, "tier": "C", "note": "decimal command per HDT 7.81 (a claim about the army), applied by analogy" }],
+      "ration_qa_month": { "labourer": 30, "skilled_mason": [30, 45] },
+      "pay": "rations in kind, part or all replaced by silver at the Treasury (PT)",
+      "origins": "Syrians, Ionians, Egyptians among PT stoneworkers; Cappadocians, Lydians, Carians, Thracians, Ionians, Sogdians, Bactrians, Babylonians, Egyptians most often named among workers (IR-PET, IR-TREAS, SX, B)",
+      "tier": "C",
+      "src": "PT-WAGE;IR-TREAS;HDT",
+      "note": "a team of 100 + chief and a group of 136 masons (possibly plasterers) are known from PT-type texts via journalism (SX, C)"
+    },
+    {
+      "id": "treasury_workshop",
+      "label": "treasury personnel (kurtaš kapnuškip)",
+      "size": [100, 200],
+      "example": "176 treasury workers at Tirazziš under Baratkama (Darius era)",
+      "roles": ["handler of wood", "handler of carpentry supplies", "handler of precious metals", "textile handler (probable)", "storekeeper", "supervisor", "recorder", "tarkabana (high-status, exceptional ration)", "šumanna (high-status, exceptional ration)", "gold-and-silver shiner"],
+      "mix": { "unknown": true },
+      "ration_qa_month": "not retrieved; use the ration_scale by sex, age and skill (C)",
+      "tier": "B",
+      "src": "HENK2023;LIVIUS-TREAS",
+      "note": ">= 1,348 people 'employed in the treasury' at Persepolis in 467 (LIVIUS-TREAS, SX, B)"
+    },
+    {
+      "id": "treasury_office",
+      "label": "the Treasury on the Terrace",
+      "members": [
+        { "role": "treasurer (kapnuškira)", "count": 1, "tier": "B", "note": "holder in yr 19 unknown (Q-032)" },
+        { "role": "scribe (Elamite, clay; Aramaic secretary)", "count": [2, 6], "tier": "C" },
+        { "role": "storekeeper / weigher", "count": [4, 10], "tier": "C" },
+        { "role": "guard", "count": [20, 60], "tier": "C" }
+      ],
+      "src": "IR-TREAS;RECON",
+      "tier": "C"
+    },
+    {
+      "id": "garrison_company",
+      "label": "Terrace garrison unit",
+      "size": 100,
+      "mix": { "men": 1.0 },
+      "supervisors": [{ "role": "leader of a hundred", "count": 1 }, { "role": "leader of ten", "count": 10 }],
+      "ration_qa_month": 30,
+      "watches": 3,
+      "tier": "C",
+      "src": "HDT;RECON",
+      "note": "decimal units per HDT 7.81 (FT, B claim); the size of the Terrace garrison in 467 is unknown (Q-043)"
+    },
+    {
+      "id": "travel_party",
+      "label": "travellers with a sealed authorisation (halmi)",
+      "size": [1, 20],
+      "size_rare_max": 1633,
+      "roles": ["leader named on the halmi", "companions or workers", "guide (C)", "servants (C)"],
+      "ration": "1-1.5 qa flour + ~1 qa beverage per head per day, at the scale stated on the halmi",
+      "tier": "B",
+      "src": "IR-PET;HYLAND2022",
+      "note": "routes: Susa (via Bessitme and Dašer), Media, India, Arachosia, Sagartia, Areia, Gandara, Bactria, Sardis (SX, B)"
+    },
+    {
+      "id": "cult_personnel",
+      "label": "magus (makuš) or priest (šatin) with a lan allocation",
+      "size": [1, 3],
+      "ration": "lan allocation (basic income) + commodities for offerings",
+      "tier": "B",
+      "src": "HENK2008",
+      "note": "Darius-era; continuity to 467 is C (Q-035)"
+    },
+    {
+      "id": "shepherds",
+      "label": "state herdsmen with flocks",
+      "size": [2, 10],
+      "size_rare_max": 700,
+      "tier": "B",
+      "src": "CDLI-PF;IR-ADMIN",
+      "note": "stockyard flocks (PF 58-60, FT); the ~700-shepherd drive to Susa (SX)"
+    }
+  ],
+  "household_templates": [
+    { "id": "farming_household", "zone": ["plain", "town"], "size": [5, 7], "members": "couple, 2-4 children, 0-2 elders or unmarried kin", "animals": "0-2 draught animals, a few sheep or goats, 0-1 dog", "tier": "C", "src": "RECON", "note": "no household-size source retrieved" },
+    { "id": "kurtas_mother_children", "zone": ["town"], "size": [2, 4], "members": "a woman of a work group plus 1-3 children who draw rations in the same group; any husband is in a men's group", "tier": "C", "src": "RATION-30;RECON", "note": "the L lists are ration groups, not households (B); how families map onto groups is not stated" },
+    { "id": "persian_household_boys", "zone": ["town"], "rule": "boys live with the women until age 5, then are taught riding, archery and honesty until 20", "tier": "B", "src": "HDT", "note": "HDT 1.136 (FT), a Greek claim about Persians" },
+    { "id": "elite_estate_household", "zone": ["town"], "size": [15, 45], "members": "head, 1-3 wives (HDT 1.135 'many lawful wives', claim), children, 10-30 servants and estate workers", "tier": "C", "src": "HDT;RECON", "note": "court absent: kept by stewards; the head may be away with the court" },
+    { "id": "official_scribe_household", "zone": ["town"], "size": [4, 11], "members": "official or scribe, spouse, children, 0-3 servants", "tier": "C", "src": "RECON" },
+    { "id": "garrison_man", "zone": ["terrace", "town"], "size": [1, 6], "members": "the guard lives in the garrison quarters on the Terrace; any wife and children live in the town", "tier": "C", "src": "RECON" },
+    { "id": "treasury_artisan_household", "zone": ["town"], "size": [4, 7], "members": "artisan (m or f), spouse, children", "tier": "C", "src": "RECON" }
+  ],
+  "sex_ratio_at_birth": { "v": "about even", "tier": "B", "src": "IR-WOMEN", "note": "'almost even balance between male and female births ... infanticide was not practiced' (Brosius via Iranica, SX)" },
+  "animals": [
+    { "id": "horse", "jobs": ["road-station relay horses for express couriers", "state stables", "officials' mounts"], "owner": "the state (stables, stations); officials", "ration": "grain for months at a time (76 texts, PF 1635-1704, 2060-65); ~4.5 qa/day (C); special rations of bread (PF 1769: 3 BAR barley loaves to one horse), wine and beer", "count_town_court_absent": [30, 120], "tier": "B", "src": "POTTS2023;HDT;XEN-CYR", "note": "the counts are C" },
+    { "id": "donkey", "jobs": ["pack transport", "station animals"], "owner": "state and households", "ration": "bread attested (PFAT 0025: four donkeys, yr 22)", "count_town_court_absent": [100, 400], "tier": "B", "src": "POTTS2023", "note": "counts C" },
+    { "id": "mule", "jobs": ["pack transport"], "owner": "state", "ration": "not retrieved", "count_town_court_absent": [20, 100], "tier": "C", "src": "MATCULT-R" },
+    { "id": "camel", "jobs": ["caravans from outside Fars"], "owner": "caravan owners", "ration": "not retrieved", "count_town_court_absent": [0, 20], "tier": "C", "src": "MATCULT-R", "note": "Bactrian camels and dromedaries on the Apadana reliefs (B imagery); no PF text retrieved" },
+    { "id": "sheep_goat", "jobs": ["rations", "hides for the treasury", "sacrifice", "tax"], "owner": "state stockyards (supplier named per text), households", "ration": "grazing; fodder not retrieved", "count_town_court_absent": [500, 3000], "tier": "A", "src": "CDLI-PF;IR-ADMIN", "note": "PF 58-60 (FT): stockyard slaughter of 6-17 head; PF 0696: 1,224 head in one text (SX); the counts are C" },
+    { "id": "poultry", "jobs": ["table"], "owner": "state", "ration": "fodder for poultry (IR-PET)", "count_town_court_absent": [100, 500], "tier": "B", "src": "IR-PET;IR-ADMIN", "note": "PF 2034: 1,044 poultry (a royal-table scale); counts C" },
+    { "id": "dog", "jobs": ["herding", "guarding", "scavenging"], "owner": "herders, households; strays", "ration": "none", "count_town_court_absent": [100, 400], "tier": "C", "src": "HDT;RECON", "note": "HDT 1.140: the magi kill every creature 'except dogs and men' (claim)" }
+  ]
+}

@@ -1,0 +1,526 @@
+{
+  "_meta": {
+    "title": "Events calendar for the simulation: Xerxes yr 19 = 1 Nisannu (17 Apr 467 BCE) to 29 Addaru (5 Apr 466 BCE)",
+    "doc": "research/EVENTS.md (ids E-xx and CE-xx match); populations and ration templates in src/data/population.json",
+    "built": "2026-09-23 (Phase 5 research)",
+    "tiers": "A attested / B inferred (includes all search-extract values) / C reconstructed. Most rhythms are C: the dated evidence is Darius-era (PF, 509-493) and only 67 PF texts were read in full (CDLI-PF).",
+    "court_state": "default court_absent (D-003). Events with 'setting': 'court_resident' run only when the out-of-world setting 'Court calendar = seasonal pattern' is on (resident months 1-4).",
+    "months_field": "Babylonian month numbers of year 19 (1 = Nisanu ... 12 = Addaru), or \"all\"",
+    "rule_types": {
+      "monthly": "once per month per unit (group, household ...) on a day drawn from day_range (day 1 = first day of the Babylonian month)",
+      "daily": "every day in the listed months, between hours (local solar time) when given",
+      "rate": "Poisson arrivals with the given mean per 'per' (day | week | month | year), clipped to range",
+      "per_1000_per_year": "per-capita annual rate applied to the simulated population of the zone(s)",
+      "trigger": "fires when the named event or state change occurs",
+      "once": "fires once at month/day",
+      "state": "a continuous state keyed by month, not a discrete event",
+      "never": "documented but not scheduled (kept so that the gap is visible)"
+    },
+    "effects_grammar": "pseudo-code for the simulation engineer, not executable: store.X -= qty; agent.need += x; group.flag = v; spawn(template); schedule(E-xx)",
+    "stores": ["grain", "tarmu", "flour", "beer", "wine", "figs", "sesame", "sheep", "hides", "silver_shekels", "poultry"],
+    "src_keys": "all keys resolve in src/data/sources.json"
+  },
+  "months": [
+    { "n": 1, "bab": "Nisanu", "op": "Ādukanaiša", "elam": "Hadukannaš", "gloss": "sowing (month) (disputed)", "jdn": 1550958, "julian": "17 Apr 467", "days": 29 },
+    { "n": 2, "bab": "Aiaru", "op": "Θūravāhara", "elam": "Turmar", "gloss": "(month of) strong spring", "jdn": 1550987, "julian": "16 May 467", "days": 30 },
+    { "n": 3, "bab": "Simanu", "op": "Θāigraciš", "elam": "Sākurriziš", "gloss": "garlic-collecting (month)", "jdn": 1551017, "julian": "15 Jun 467", "days": 30 },
+    { "n": 4, "bab": "Duzu", "op": "Garmapada", "elam": "Karmabataš", "gloss": "heat-station (month)", "jdn": 1551047, "julian": "15 Jul 467", "days": 29 },
+    { "n": 5, "bab": "Abu", "op": "*Dṛnabāji", "elam": "Turnabaziš", "gloss": "harvest (month)", "jdn": 1551076, "julian": "13 Aug 467", "days": 30 },
+    { "n": 6, "bab": "Ululu", "op": "Kārapaθiya (?)", "elam": "Karbašiyaš", "gloss": "uncertain", "jdn": 1551106, "julian": "12 Sep 467", "days": 29 },
+    { "n": 7, "bab": "Tashritu", "op": "Bāgayādiš", "elam": "Bakeyatiš", "gloss": "(month of) the worship of baga", "jdn": 1551135, "julian": "11 Oct 467", "days": 30 },
+    { "n": 8, "bab": "Arahsamnu", "op": "*Vṛkazana", "elam": "Markašanaš", "gloss": "wolf-killing (month)", "jdn": 1551165, "julian": "10 Nov 467", "days": 29 },
+    { "n": 9, "bab": "Kislimu", "op": "Āçiyādiya", "elam": "Hašiyatiš", "gloss": "(month) of the worship of the fire", "jdn": 1551194, "julian": "9 Dec 467", "days": 30 },
+    { "n": 10, "bab": "Tebetu", "op": "Anāmaka", "elam": "Hanamakaš", "gloss": "(month of) the nameless god(?)", "jdn": 1551224, "julian": "8 Jan 466", "days": 29 },
+    { "n": 11, "bab": "Shabatu", "op": "*Θwayauvā", "elam": "Samiyamaš", "gloss": "(month of) the terrible one", "jdn": 1551253, "julian": "6 Feb 466", "days": 30 },
+    { "n": 12, "bab": "Addaru", "op": "Viyax(a)na", "elam": "Miyakannaš", "gloss": "digging-up (month)", "jdn": 1551283, "julian": "8 Mar 466", "days": 29 }
+  ],
+  "months_src": { "dates": "PD1956", "names": "WP-CAL;EWB", "tier": "A (Babylonian dates); B (Persian names, SX); glosses are etymologies, not evidence of practice" },
+  "events": [
+    {
+      "id": "E-01", "kind": "ration_issue", "name": "monthly grain ration issue to a work group (L texts)",
+      "months": "all", "rule": { "type": "monthly", "day_range": [1, 5], "per": "work_group" },
+      "participants": [{ "role": "storekeeper (supplier, kurmin)", "count": 1 }, { "role": "apportioner (šaramana)", "count": 1 }, { "role": "scribe (seals the tablet)", "count": 1 }, { "role": "group head", "count": 1 }, { "role": "group members queue and carry", "count": "whole group" }],
+      "place_kind": "storehouse (town); Terrace depot for Terrace gangs",
+      "goods": [{ "item": "grain", "qty": "sum of population.json ration_scale over the group (Liduma group: 261.5 BAR)", "unit": "BAR" }],
+      "preconditions": ["store.grain >= demand, else CE-02 / CE-03"],
+      "effects": ["store.grain -= demand", "each member: ration_stock += own ration", "tablet sealed and filed (E-15)"],
+      "default": true, "tier": "B", "src": "RATION-30;IR-PET;IR-WOMEN;CDLI-PF",
+      "note": "scale and roles B/A; the day of issue is not recorded (C; Q-034)"
+    },
+    {
+      "id": "E-02", "kind": "ration_issue", "name": "wine or beer ration for workers",
+      "months": "all", "rule": { "type": "monthly", "day_range": [1, 5], "per": "work_group", "probability": 0.3 },
+      "participants": [{ "role": "wine carrier", "count": 1 }, { "role": "storekeeper", "count": 1 }, { "role": "group head", "count": 1 }],
+      "place_kind": "storehouse",
+      "goods": [{ "item": "wine", "qty": [10, 40], "unit": "marriš per group (PF 50: 36)" }],
+      "preconditions": ["store.wine >= qty"], "effects": ["store.wine -= qty"],
+      "default": true, "tier": "C", "src": "CDLI-PF",
+      "note": "the act is attested (PF 50, 'for rations of workers', A Darius-era); how often, and for which groups, is unknown (Q-045)"
+    },
+    {
+      "id": "E-03", "kind": "special_ration", "name": "special ration (M texts): an extra day's ration",
+      "months": "all", "rule": { "type": "monthly", "day_range": [1, 29], "per": "work_group", "probability": 0.25 },
+      "participants": [{ "role": "storekeeper", "count": 1 }, { "role": "group", "count": "whole group" }],
+      "place_kind": "storehouse",
+      "goods": [{ "item": "grain", "qty": "1/30 of the group's monthly ration", "unit": "qa per head" }],
+      "preconditions": [], "effects": ["store.grain -= qty"],
+      "default": true, "tier": "B", "src": "IR-PET",
+      "note": "'most commonly an extra day's ration per month' (SX); the probability is C"
+    },
+    {
+      "id": "E-04", "kind": "maternity_ration", "name": "mother's ration after a birth (N texts)",
+      "months": "all", "rule": { "type": "trigger", "on": "E-70 in a ration group", "delay_days": [0, 29] },
+      "participants": [{ "role": "mother", "count": 1 }, { "role": "group head", "count": 1 }, { "role": "storekeeper", "count": 1 }],
+      "place_kind": "storehouse",
+      "goods": [{ "item": "grain", "qty": { "boy": 10, "girl": 5 }, "unit": "qa, once" }, { "item": "wine_or_beer", "qty": { "boy": 10, "girl": 5 }, "unit": "qa, once" }],
+      "preconditions": ["mother is in a state ration group"], "effects": ["store.grain -= qty", "store.wine -= qty"],
+      "default": true, "tier": "B", "src": "IR-PET;IR-WOMEN",
+      "note": "single payment, boy twice girl: B. The amounts are C (NS; conflicting SX '2 vs 1 quarts'; Q-030)"
+    },
+    {
+      "id": "E-05", "kind": "treasury_payment", "name": "silver paid at the Treasury in lieu of part or all of a group's sheep, wine or grain rations",
+      "months": "all", "rule": { "type": "rate", "per": "week", "mean": 3, "range": [2, 4] },
+      "participants": [{ "role": "treasurer", "count": 1 }, { "role": "scribe", "count": [1, 2] }, { "role": "weigher (C)", "count": 1 }, { "role": "team chief or group head", "count": 1 }, { "role": "Treasury guard", "count": [2, 6] }],
+      "place_kind": "Treasury (Terrace)",
+      "goods": [{ "item": "silver_shekels", "qty": "chief of 100: 32.5; ordinary worker: 1-1.5 per month in lieu (C placeholder)", "unit": "shekel (weighed, not coined)" }],
+      "preconditions": ["a letter or memorandum from an ordering official for a completed work period"],
+      "effects": ["store.silver_shekels -= qty", "schedule(E-81)", "the group's in-kind ration for that period is reduced by the part paid in silver"],
+      "default": true, "tier": "B", "src": "IR-TREAS;IR-PET;PT-WAGE",
+      "note": "practice B; rhythm C: 753 PT tablets over 492-458, with the most dated texts in yrs 19-20 -> 110-150 documents a year if 30-40 % fall in those years (Q-033 for rates)"
+    },
+    {
+      "id": "E-06", "kind": "delivery", "name": "grain delivery to the royal stores at Persepolis",
+      "months": "all", "rule": { "type": "rate", "per": "month", "mean_by_month": { "1": 1, "2": 1, "3": 2, "4": 8, "5": 10, "6": 10, "7": 8, "8": 6, "9": 2, "10": 1, "11": 1, "12": 1 }, "range": [0, 12] },
+      "participants": [{ "role": "receiver", "count": 1 }, { "role": "companions", "count": [1, 6] }, { "role": "grain handler (tumara)", "count": [0, 1] }, { "role": "delivery man", "count": [0, 2] }, { "role": "pack donkeys (C)", "count": [4, 40] }],
+      "place_kind": "storehouse (town) / royal stores",
+      "goods": [{ "item": "grain", "qty": [6, 3000], "unit": "BAR per consignment (median of the read texts ~ 100-400)" }],
+      "preconditions": ["not a storm day", "harvest done (months 4-8 peak)"],
+      "effects": ["store.grain += qty", "tablet sealed (E-15)"],
+      "default": true, "tier": "C", "src": "CDLI-PF",
+      "note": "quantities A (PF 2-8, 26, 30-33); seasonality C: only PF 6 (months 4-6) and PF 7 (month 8) are dated to the month"
+    },
+    {
+      "id": "E-07", "kind": "milling", "name": "grain to the mill (nupištaš), flour back to the stores",
+      "months": "all", "rule": { "type": "rate", "per": "week", "mean": 1, "range": [0, 2] },
+      "participants": [{ "role": "grain handler", "count": 1 }, { "role": "millers (women's groups, C)", "count": [5, 30] }],
+      "place_kind": "mill (town)",
+      "goods": [{ "item": "grain", "qty": [300, 1200], "unit": "BAR in" }, { "item": "flour", "qty": [20, 730], "unit": "BAR out per consignment" }],
+      "preconditions": ["store.grain >= qty"], "effects": ["store.grain -= qty", "store.flour += qty"],
+      "default": true, "tier": "C", "src": "CDLI-PF",
+      "note": "the flow is A (PF 28-29 'taken to the nupištaš (i.e. the mill?)'; flour consignments PF 30-33, 54); the rhythm and the conversion loss are C"
+    },
+    {
+      "id": "E-08", "kind": "brewing", "name": "beer brewed from tarmu",
+      "months": "all", "rule": { "type": "rate", "per": "month", "mean": 1, "range": [0, 2] },
+      "participants": [{ "role": "brewer", "count": [1, 4] }],
+      "place_kind": "brewery (town)",
+      "goods": [{ "item": "tarmu", "qty": [50, 700], "unit": "BAR in" }, { "item": "beer", "qty": "C", "unit": "marriš out" }],
+      "preconditions": ["store.tarmu >= qty"], "effects": ["store.tarmu -= qty", "store.beer += qty"],
+      "default": true, "tier": "C", "src": "CDLI-PF", "note": "PF 40: 700 BAR tarmu ... 'He made beer' (A, Darius-era); rhythm C"
+    },
+    {
+      "id": "E-09", "kind": "delivery", "name": "wine delivery",
+      "months": "all", "rule": { "type": "rate", "per": "month", "mean_by_month": { "6": 4, "7": 4, "8": 3, "other": 1 }, "range": [0, 5] },
+      "participants": [{ "role": "wine carrier", "count": [1, 3] }, { "role": "receiver", "count": 1 }, { "role": "pack donkeys (C)", "count": [2, 20] }],
+      "place_kind": "storehouse / royal stores",
+      "goods": [{ "item": "wine", "qty": [5, 925], "unit": "marriš (PF 41: 43 to Persepolis)" }],
+      "preconditions": [], "effects": ["store.wine += qty"],
+      "default": true, "tier": "C", "src": "CDLI-PF", "note": "quantities A (PF 41-52); the post-vintage peak is C"
+    },
+    {
+      "id": "E-10", "kind": "delivery", "name": "figs and fruit to the royal stores",
+      "months": [4, 5, 6], "rule": { "type": "rate", "per": "month", "mean": 1, "range": [0, 2] },
+      "participants": [{ "role": "receiver", "count": [1, 2] }],
+      "place_kind": "storehouse", "goods": [{ "item": "figs", "qty": [1, 5], "unit": "BAR (PF 53: 2)" }],
+      "preconditions": [], "effects": ["store.figs += qty"],
+      "default": true, "tier": "C", "src": "CDLI-PF", "note": "PF 53 (A); the season is C"
+    },
+    {
+      "id": "E-11", "kind": "delivery", "name": "sesame moved to stores",
+      "months": [7, 8], "rule": { "type": "rate", "per": "month", "mean": 0.5, "range": [0, 1] },
+      "participants": [{ "role": "receiver", "count": 1 }], "place_kind": "storehouse",
+      "goods": [{ "item": "sesame", "qty": [20, 60], "unit": "BAR (PF 56: 60)" }],
+      "preconditions": [], "effects": ["store.sesame += qty"],
+      "default": true, "tier": "C", "src": "CDLI-PF", "note": "PF 56 (A); the season is C"
+    },
+    {
+      "id": "E-12", "kind": "slaughter", "name": "stockyard slaughter; hides delivered to the treasury",
+      "months": "all", "rule": { "type": "rate", "per": "month", "mean": 3, "range": [2, 4] },
+      "participants": [{ "role": "animal supplier (named per text)", "count": 1 }, { "role": "slaughterers (C)", "count": [2, 4] }, { "role": "hide receivers", "count": 2 }],
+      "place_kind": "stockyard (town), then the Treasury",
+      "goods": [{ "item": "sheep", "qty": [6, 17], "unit": "head (goats, rams, ewes, lambs)" }, { "item": "hides", "qty": [6, 17], "unit": "hides" }],
+      "preconditions": ["store.sheep >= qty"], "effects": ["store.sheep -= qty", "store.hides += qty (Treasury)", "meat to rations or offerings (C)"],
+      "default": true, "tier": "A", "src": "CDLI-PF", "note": "PF 58-60 (FT; Darius-era, Hiran and Shiraz treasuries; PF 60 in month 1); the rate is C"
+    },
+    {
+      "id": "E-13", "kind": "flock_drive", "name": "tax animals and 'the sheep of the king' driven to Susa",
+      "months": [6, 7, 8], "rule": { "type": "rate", "per": "year", "mean": 1, "range": [0, 2] },
+      "participants": [{ "role": "shepherds", "count": [20, 700] }, { "role": "dogs (C)", "count": [5, 50] }],
+      "place_kind": "road west out of the plain",
+      "goods": [{ "item": "sheep", "qty": "hundreds to thousands (C)", "unit": "head" }],
+      "preconditions": [], "effects": ["store.sheep -= qty", "crowded roads for 1-3 days"],
+      "default": true, "tier": "B", "src": "CDLI-PF;IR-ADMIN", "note": "PF 57: 4 tax animals to Susa (A); ~700 shepherds with the king's sheep (SX, B); the month is C"
+    },
+    {
+      "id": "E-14", "kind": "treasury_draw", "name": "flour drawn 'in the treasury' for the kurakaraš",
+      "months": "all", "rule": { "type": "monthly", "day_range": [1, 29], "per": "treasury" },
+      "participants": [{ "role": "treasury receiver", "count": 1 }, { "role": "apportioner", "count": 1 }],
+      "place_kind": "Treasury / treasury workshop",
+      "goods": [{ "item": "flour", "qty": [20, 25], "unit": "BAR" }],
+      "preconditions": ["store.flour >= qty"], "effects": ["store.flour -= qty"],
+      "default": true, "tier": "B", "src": "CDLI-PF", "note": "PF 403-406 (FT; Darius-era, other treasuries); kurakaraš is untranslated. Carried to Persepolis in 467: C"
+    },
+    {
+      "id": "E-15", "kind": "record_keeping", "name": "sealed receipts filed; stock counted",
+      "months": "all", "rule": { "type": "rate", "per": "week", "mean": 5, "range": [2, 10] },
+      "participants": [{ "role": "scribe", "count": [1, 2] }, { "role": "storekeeper", "count": 1 }],
+      "place_kind": "storehouse / Treasury archive room",
+      "goods": [{ "item": "tablets", "qty": [1, 10], "unit": "tablets" }],
+      "preconditions": [], "effects": ["archive += tablets"],
+      "default": true, "tier": "C", "src": "IR-PET", "note": "tablets sealed by supplier and recipient go back as the record (B); the rhythm is C"
+    },
+    {
+      "id": "E-20", "kind": "courier", "name": "express courier (pirradaziš) arrives or leaves",
+      "months": "all", "rule": { "type": "rate", "per": "day", "mean": 0.6, "range": [0, 2], "court_resident_mean": 4 },
+      "participants": [{ "role": "courier", "count": 1 }, { "role": "station groom", "count": 1 }, { "role": "horse", "count": [1, 2] }],
+      "place_kind": "road station (town edge); sealed letters carried up to the Treasury",
+      "goods": [{ "item": "sealed letter", "qty": [1, 3], "unit": "documents" }],
+      "preconditions": ["none: 'stopped neither by snow nor rain nor heat nor darkness' (HDT 8.98)"],
+      "effects": ["a fresh horse is issued; the tired horse is stabled", "schedule(E-81) if the letter is for the Treasury"],
+      "default": true, "tier": "B", "src": "HDT;XEN-CYR;IR-PET", "note": "institution B (Greek claims plus PF); the rate is C"
+    },
+    {
+      "id": "E-21", "kind": "travellers", "name": "a party with a sealed authorisation (halmi) arrives and draws travel rations",
+      "months": "all", "rule": { "type": "rate", "per": "week", "mean": 2, "range": [1, 3], "court_resident_per_day": 2 },
+      "participants": [{ "role": "party leader named on the halmi", "count": 1 }, { "role": "companions, workers or servants", "count": [0, 19] }, { "role": "guide (C)", "count": [0, 1] }, { "role": "storekeeper", "count": 1 }, { "role": "gate guard checks the halmi", "count": 1 }],
+      "place_kind": "road station / storehouse; lodging in the town",
+      "goods": [{ "item": "flour", "qty": [1.0, 1.5], "unit": "qa per head per day" }, { "item": "beer_or_wine", "qty": 1.0, "unit": "qa per head per day" }],
+      "preconditions": ["the party holds a halmi from the king or a satrap-level official"],
+      "effects": ["store.flour -= party x days", "store.beer -= party x days", "lodging occupied 1-5 days (C)", "no halmi -> no rations (C)"],
+      "routes": ["Susa (via Bessitme, Dašer)", "Media", "India", "Arachosia", "Sagartia", "Areia", "Gandara", "Bactria", "Sardis"],
+      "default": true, "tier": "B", "src": "IR-PET;HYLAND2022", "note": "practice and scale B; the rate and party sizes are C (Q-041)"
+    },
+    {
+      "id": "E-23", "kind": "work_group_transfer", "name": "a large work group arrives (reassigned kurtaš)",
+      "months": [1, 2, 6, 7], "rule": { "type": "rate", "per": "year", "mean": 1, "range": [0, 2] },
+      "participants": [{ "role": "group with heads and guide", "count": [50, 1633] }],
+      "place_kind": "road -> town (new quarters)",
+      "goods": [{ "item": "flour", "qty": 1.5, "unit": "qa per head per day in transit" }],
+      "preconditions": [], "effects": ["spawn(pasap_group or construction_gang)", "the monthly ration demand rises from the next month"],
+      "default": true, "tier": "C", "src": "HYLAND2022", "note": "practice B (1,633 Lycian marataš); the months and rate are C"
+    },
+    {
+      "id": "E-24", "kind": "delegation", "name": "gift-bearing delegation",
+      "months": [], "rule": { "type": "never" },
+      "participants": [], "place_kind": "-", "goods": [], "preconditions": ["court_resident"], "effects": [],
+      "default": false, "setting": "court_resident", "tier": "C", "src": "RECON",
+      "note": "none while the king is absent (D-003). Whether the Apadana reliefs show a real annual procession is debated (brief section 2); even with the court resident, no delegation is scheduled unless evidence is found"
+    },
+    {
+      "id": "E-25", "kind": "court_movement", "name": "the court arrives",
+      "months": [1], "rule": { "type": "once", "month": 1, "day": 1 },
+      "participants": [{ "role": "king, household, guards, officials, servants", "count": "court_resident populations (population.json)" }],
+      "place_kind": "road from Susa -> Terrace, palaces, town", "goods": [],
+      "preconditions": ["setting: court calendar = seasonal pattern"], "effects": ["populations switch to court_resident over 1-3 days", "royal-table supply lines open (CE-17)", "guards to full strength"],
+      "default": false, "setting": "court_resident", "tier": "C", "src": "RECON;KING2022", "note": "D-003; Q-005"
+    },
+    {
+      "id": "E-26", "kind": "court_movement", "name": "the court leaves",
+      "months": [4], "rule": { "type": "once", "month": 4, "day": 29 },
+      "participants": [{ "role": "court", "count": "all" }], "place_kind": "Terrace -> road", "goods": [],
+      "preconditions": ["setting: court calendar = seasonal pattern"], "effects": ["populations return to court_absent over 7-14 days (CE-18)"],
+      "default": false, "setting": "court_resident", "tier": "C", "src": "RECON", "note": "D-003"
+    },
+    {
+      "id": "E-27", "kind": "court_movement", "name": "journeys to the king at the New Year",
+      "months": [12, 1], "rule": { "type": "rate", "per": "day", "mean": 3, "range": [1, 8] },
+      "participants": [{ "role": "officials and taxpayers with their parties", "count": [1, 20] }], "place_kind": "road -> Terrace",
+      "goods": [], "preconditions": ["court_resident"], "effects": ["travellers (E-21) x 3"],
+      "default": false, "setting": "court_resident", "tier": "C", "src": "KING2022", "note": "a Darius-era pattern (B, abstract only)"
+    },
+    {
+      "id": "E-30", "kind": "offering", "name": "lan: the regular (daily) sacrifice, drawn as an allocation by a magus or priest",
+      "months": "all", "rule": { "type": "daily", "allocation_drawn": "monthly, days 1-5" },
+      "participants": [{ "role": "magus (makuš) or priest (šatin)", "count": 1 }, { "role": "storekeeper (issues the allocation)", "count": 1 }],
+      "place_kind": "offering place off the Terrace (C)",
+      "goods": [{ "item": "barley", "qty": 7.5, "unit": "qa per month for lan (C: PF 1955's 90-qa share, if the text covers a year)" }, { "item": "wine", "qty": "C", "unit": "qa" }],
+      "preconditions": [], "effects": ["store.grain -= qty", "the priest's keep is covered (lan as basic income)"],
+      "performance": "minimal: the allocation is received and carried to the offering place. No invented liturgy. If a sacrifice is ever shown: no altar, no fire, no music; the magus chants (HDT 1.132, claim)",
+      "default": true, "tier": "B", "src": "HENK2008;HDT", "note": "Darius-era PF; continuity in 467 and the place are C (Q-035)"
+    },
+    {
+      "id": "E-31", "kind": "offering", "name": "offering to a named mountain and a named river",
+      "months": "all", "rule": { "type": "rate", "per": "month", "mean": 1, "range": [0, 2] },
+      "participants": [{ "role": "magus", "count": 1 }], "place_kind": "mountain slope / river bank (C)",
+      "goods": [{ "item": "barley", "qty": "share of the allocation", "unit": "qa" }],
+      "preconditions": [], "effects": ["store.grain -= qty"], "performance": "as E-30",
+      "default": true, "tier": "B", "src": "HENK2008", "note": "PF 1955 and the journals of the magi Kammargina and Upiš (SX); rate C"
+    },
+    {
+      "id": "E-32", "kind": "offering", "name": "offering for gods: Mišebaka ('All Gods'), Auramazdā, Humban, Napiriša, Adad, Šimut",
+      "months": "all", "rule": { "type": "rate", "per": "month", "mean": 2, "range": [1, 4], "weights": { "Humban": 3, "Auramazdā": 1, "Mišebaka": 1, "Napiriša": 1, "Adad": 0.5, "Šimut": 0.5 } },
+      "participants": [{ "role": "magus or šatin", "count": 1 }], "place_kind": "offering place (C)",
+      "goods": [{ "item": "barley or wine; sheep for larger offerings", "qty": "C", "unit": "-" }],
+      "preconditions": [], "effects": ["store.grain -= qty"], "performance": "as E-30",
+      "default": true, "tier": "B", "src": "IR-ADMIN;HENK2008", "note": "gods and relative weight from SX (Humban's grain more than 3x Auramazdā's); rates C"
+    },
+    {
+      "id": "E-33", "kind": "feast", "name": "šip: large sacrificial feast connected with the crown",
+      "months": [], "rule": { "type": "never" },
+      "participants": [{ "role": "presiding high official", "count": 1 }, { "role": "priests", "count": [1, 5] }, { "role": "guests", "count": "C" }],
+      "place_kind": "attested at Pasargadae and Appištapdan, not at Persepolis",
+      "goods": [{ "item": "sheep", "qty": "C", "unit": "head" }, { "item": "grain", "qty": "C", "unit": "BAR" }, { "item": "wine", "qty": "C", "unit": "marriš" }],
+      "preconditions": ["a presiding high official is present (none attested in 467)"], "effects": [],
+      "default": false, "tier": "B", "src": "HENK2011", "note": "Darius-era (Parnakka, Ziššawiš; NN 2259); not scheduled by default"
+    },
+    {
+      "id": "E-35", "kind": "feast", "name": "the king's birthday feast (tukta)",
+      "months": [], "rule": { "type": "never", "if_court_resident": "once a year, date unknown" },
+      "participants": [{ "role": "king and court", "count": "all" }], "place_kind": "wherever the king is", "goods": [],
+      "preconditions": ["court_resident"], "effects": ["the king anoints his head and gives gifts to the Persians (claim)"],
+      "default": false, "setting": "court_resident", "tier": "B", "src": "HDT", "note": "HDT 9.110 (FT, Greek claim); the date is unknown, so it is not scheduled"
+    },
+    {
+      "id": "E-36", "kind": "offering", "name": "the king sacrifices and gives gifts when he comes to Persia",
+      "months": [1], "rule": { "type": "trigger", "on": "E-25" },
+      "participants": [{ "role": "king", "count": 1 }, { "role": "Persians, men and women (gift recipients)", "count": "many" }], "place_kind": "C", "goods": [],
+      "preconditions": ["court_resident"], "effects": ["gift distribution (C)"],
+      "default": false, "setting": "court_resident", "tier": "B", "src": "XEN-CYR", "note": "Cyropaedia 8.5.21, 8.5.26 (FT, Greek claim; written of Cyrus, 'even to this day the great king ...')"
+    },
+    {
+      "id": "E-37", "kind": "household", "name": "birthday meal",
+      "months": "all", "rule": { "type": "per_1000_per_year", "mean": 1000, "applies_to": "adults in Persian households" },
+      "participants": [{ "role": "household", "count": "all" }], "place_kind": "home",
+      "goods": [{ "item": "a small animal (sheep or goat) or better food", "qty": 1, "unit": "-" }],
+      "preconditions": [], "effects": ["household food store -= 1 small animal (C)"],
+      "default": true, "tier": "B", "src": "HDT", "note": "HDT 1.133: 'The day which every man values most is his own birthday' (FT, claim)"
+    },
+    {
+      "id": "E-40", "kind": "agriculture", "name": "ploughing and sowing winter barley and wheat",
+      "months": [7, 8, 9], "rule": { "type": "daily", "hours": [7, 16], "peak_month": 8 },
+      "participants": [{ "role": "farming households", "count": "field_fraction x adults" }, { "role": "draught animals (C)", "count": [1, 2] }],
+      "place_kind": "fields", "goods": [{ "item": "seed grain", "qty": "C", "unit": "BAR" }],
+      "preconditions": ["the first autumn rains have fallen (CE-20)", "not a rain day"], "effects": ["fields: sown"],
+      "default": true, "tier": "C", "src": "FARS-CROP", "note": "modern irrigated wheat: sown 2 Oct-10 Jan, normal 11 Nov-1 Dec (SX, B for modern Fars)"
+    },
+    {
+      "id": "E-41", "kind": "agriculture", "name": "barley harvest",
+      "months": [1, 2, 3], "rule": { "type": "daily", "hours": [5, 11], "peak_month": 2 },
+      "participants": [{ "role": "whole households; assigned kurtaš (C)", "count": "field_fraction x adults + children" }],
+      "place_kind": "fields", "goods": [{ "item": "barley sheaves", "qty": "C", "unit": "-" }],
+      "preconditions": ["fields: ripe"], "effects": ["fields: harvested", "schedule(E-43)"],
+      "default": true, "tier": "C", "src": "FARS-CROP", "note": "'winter barley ... harvested between May and July' (SX, modern)"
+    },
+    {
+      "id": "E-42", "kind": "agriculture", "name": "wheat harvest",
+      "months": [2, 3, 4], "rule": { "type": "daily", "hours": [5, 11], "peak_month": 3 },
+      "participants": [{ "role": "as E-41", "count": "as E-41" }], "place_kind": "fields",
+      "goods": [{ "item": "wheat sheaves", "qty": "C", "unit": "-" }],
+      "preconditions": ["fields: ripe"], "effects": ["fields: harvested", "schedule(E-43)"],
+      "default": true, "tier": "C", "src": "FARS-CROP", "note": "'wheat harvest late May to late July'; rainfed mid-July (SX, modern)"
+    },
+    {
+      "id": "E-43", "kind": "agriculture", "name": "threshing, winnowing, grain to the stores",
+      "months": [3, 4, 5], "rule": { "type": "daily", "hours": [6, 17] },
+      "participants": [{ "role": "households, grain handlers", "count": "C" }], "place_kind": "threshing floors",
+      "goods": [{ "item": "grain", "qty": "C", "unit": "BAR" }],
+      "preconditions": ["harvested sheaves"], "effects": ["village stores += grain", "state share -> E-06 deliveries"],
+      "default": true, "tier": "C", "src": "WP-CAL;CDLI-PF", "note": "OP month 5 is 'harvest (month)' (SX); PF 6 delivery in months 4-6 (FT)"
+    },
+    {
+      "id": "E-44", "kind": "agriculture", "name": "spring sowing of summer crops (sesame attested)",
+      "months": [1], "rule": { "type": "daily", "hours": [6, 16] },
+      "participants": [{ "role": "households", "count": "C" }], "place_kind": "irrigated fields", "goods": [],
+      "preconditions": [], "effects": ["fields: sown (summer crop)"],
+      "default": true, "tier": "C", "src": "CDLI-PF;WP-CAL", "note": "PF 56 sesame (A); OP month 1 'sowing' gloss (SX, disputed)"
+    },
+    {
+      "id": "E-45", "kind": "agriculture", "name": "vintage: grape harvest and pressing",
+      "months": [5, 6, 7], "rule": { "type": "daily", "hours": [6, 15], "peak_month": 6 },
+      "participants": [{ "role": "households, estate workers", "count": "C" }], "place_kind": "vineyards, presses",
+      "goods": [{ "item": "grapes -> wine", "qty": "C", "unit": "-" }],
+      "preconditions": [], "effects": ["wine stock rises after 1-2 months -> E-09"],
+      "default": true, "tier": "C", "src": "RECON", "note": "no Fars source for the dates"
+    },
+    {
+      "id": "E-46", "kind": "agriculture", "name": "fig and fruit harvest",
+      "months": [4, 5, 6], "rule": { "type": "daily", "hours": [6, 11] },
+      "participants": [{ "role": "households", "count": "C" }], "place_kind": "orchards and gardens",
+      "goods": [{ "item": "figs", "qty": "C", "unit": "BAR" }], "preconditions": [], "effects": ["-> E-10"],
+      "default": true, "tier": "C", "src": "CDLI-PF", "note": "figs are attested (PF 53); the season is C"
+    },
+    {
+      "id": "E-47", "kind": "pastoral", "name": "shearing",
+      "months": [12, 1, 2], "rule": { "type": "rate", "per": "year", "mean": 1, "per_unit": "flock" },
+      "participants": [{ "role": "shepherds", "count": [2, 6] }], "place_kind": "folds",
+      "goods": [{ "item": "wool", "qty": "C", "unit": "-" }], "preconditions": ["dry day"], "effects": ["wool to households or the state (C)"],
+      "default": true, "tier": "C", "src": "RECON", "note": "RECOLLECTION, NOT SEEN, verify: Babylonian temple flocks were plucked or shorn in spring (Q-040)"
+    },
+    {
+      "id": "E-48", "kind": "pastoral", "name": "lambing",
+      "months": [10, 11, 12], "rule": { "type": "state" },
+      "participants": [{ "role": "shepherds", "count": [1, 4] }], "place_kind": "folds", "goods": [],
+      "preconditions": [], "effects": ["flock size += 0.6-0.9 lambs per ewe (C)"],
+      "default": true, "tier": "C", "src": "RECON", "note": "no source"
+    },
+    {
+      "id": "E-49", "kind": "pastoral", "name": "transhumant flocks pass through the plain",
+      "months": [12, 1, 6, 7], "rule": { "type": "rate", "per": "week", "mean": 2, "range": [0, 5] },
+      "participants": [{ "role": "herders", "count": [5, 40] }, { "role": "dogs", "count": [2, 10] }, { "role": "donkeys", "count": [2, 20] }],
+      "place_kind": "roads and plain edges", "goods": [{ "item": "sheep and goats", "qty": [100, 1000], "unit": "head" }],
+      "preconditions": [], "effects": ["dust on the roads", "grazing on stubble (C)"],
+      "default": true, "tier": "C", "src": "RECON", "note": "modern Qashqai: north in April, south in September (SX, C analogue); no Achaemenid source"
+    },
+    {
+      "id": "E-50", "kind": "agriculture", "name": "canal and channel clearing",
+      "months": [11, 12], "rule": { "type": "daily", "hours": [8, 15], "days": [5, 15] },
+      "participants": [{ "role": "village labour", "count": [10, 60] }], "place_kind": "canals of the plain", "goods": [],
+      "preconditions": [], "effects": ["irrigation capacity restored for the year"],
+      "default": true, "tier": "C", "src": "WP-CAL;SUMNER1986", "note": "OP month 12 'digging-up' gloss (SX); canals and weirs are attested in the survey (SX)"
+    },
+    {
+      "id": "E-51", "kind": "river", "name": "river flow of the Pulvar and Kur",
+      "months": "all", "rule": { "type": "state", "by_month": { "11": "rising", "12": "high", "1": "high", "2": "falling", "3": "low", "4": "low/dry", "5": "low/dry", "6": "low/dry", "7": "low/dry", "8": "rising (first rains)", "9": "moderate", "10": "rising" } },
+      "participants": [], "place_kind": "rivers", "goods": [],
+      "preconditions": [], "effects": ["irrigation water available per state (CE-19)", "river sound near the water"],
+      "default": true, "tier": "C", "src": "LANDSCAPE-R;WMO-CLINO", "note": "Pulvar today intermittent, often dry in summer and autumn (B); rain Nov-Apr (A)"
+    },
+    {
+      "id": "E-60", "kind": "construction", "name": "daily building work (Hall of 100 Columns, Tripylon)",
+      "months": "all", "rule": { "type": "daily", "hours": ["sunrise+0.5", 15.5], "gang_factor_by_season": { "spring": 1.0, "summer": 0.8, "autumn": 1.0, "winter": 0.5 } },
+      "participants": [{ "role": "construction_gang (population.json)", "count": [2, 5] }],
+      "place_kind": "Terrace building sites", "goods": [{ "item": "stone blocks, drums, timber, mud-brick", "qty": "C", "unit": "-" }],
+      "preconditions": ["not a storm day", "not a rain day for outdoor tasks"], "effects": ["construction progress (E-61)"],
+      "default": true, "tier": "C", "src": "PT-WAGE;RECON", "note": "gangs of ~100 + chief (SX, C)"
+    },
+    {
+      "id": "E-61", "kind": "construction", "name": "construction progress",
+      "months": "all", "rule": { "type": "rate", "per": "year", "mean": 5, "unit": "column shafts raised on the Hall of 100 Columns", "plus": "wall courses and relief carving in proportion (C)" },
+      "participants": [{ "role": "masons, porters", "count": "E-60" }], "place_kind": "Hall of 100 Columns", "goods": [],
+      "preconditions": ["E-60 worked days accumulate"], "effects": ["geometry: +1 shaft about every 10 weeks of full-strength work"],
+      "default": true, "tier": "C", "src": "RECON", "note": "derived: ~70 shafts left in 467 (Q-012, ~30 % up) over ~15 years before completion under Artaxerxes I"
+    },
+    {
+      "id": "E-62", "kind": "construction", "name": "winter slowdown: no mud-brick, mortar or plaster work on frost or rain days",
+      "months": [9, 10, 11], "rule": { "type": "state" },
+      "participants": [], "place_kind": "Terrace building sites", "goods": [],
+      "preconditions": ["frost day or rain day"], "effects": ["brick, mortar, plaster tasks suspended; stone dressing continues on dry days", "gang strength x 0.5"],
+      "default": true, "tier": "C", "src": "WMO-CLINO;RECON", "note": "frost 12-18 days/month and rain 5-6 days/month in Dec-Feb (A); the rule is C (Q-037)"
+    },
+    {
+      "id": "E-63", "kind": "construction", "name": "mud-brick moulding and drying season",
+      "months": [2, 3, 4, 5], "rule": { "type": "daily", "hours": [5, 11] },
+      "participants": [{ "role": "brick makers", "count": [10, 40] }], "place_kind": "brick yards by water (town)",
+      "goods": [{ "item": "mud-brick", "qty": "C", "unit": "bricks" }], "preconditions": ["not a rain day"], "effects": ["brick stock += qty"],
+      "default": true, "tier": "C", "src": "WP-CAL", "note": "Babylonian month 3 is 'the month of the brick mould of the king' (Astrolabe B via extract; B for Babylonia, C for Persepolis)"
+    },
+    {
+      "id": "E-64", "kind": "weather_effect", "name": "midday rest in the heat",
+      "months": [3, 4, 5], "rule": { "type": "daily", "hours": [12, 15] },
+      "participants": [{ "role": "all outdoor workers", "count": "all" }], "place_kind": "shade", "goods": [],
+      "preconditions": ["air temperature > 33 C (C)"], "effects": ["outdoor work paused", "water carrying up (CE-14)"],
+      "default": true, "tier": "C", "src": "WMO-CLINO;RECON", "note": "Tmax 36-38 C in Jun-Aug (A); the rule is C"
+    },
+    {
+      "id": "W-01", "kind": "weather_effect", "name": "rain: people shelter; outdoor work stops",
+      "months": "all", "rule": { "type": "trigger", "on": "weather.rain" },
+      "participants": [{ "role": "everyone outdoors except couriers", "count": "all" }], "place_kind": "-", "goods": [],
+      "preconditions": [], "effects": ["outdoor tasks suspended", "deliveries delayed 1 day (CE-04)"],
+      "default": true, "tier": "C", "src": "WMO-CLINO;RECON", "note": "rain days (>= 1 mm) 6.3/5.4/5.1 in Jan-Mar (A)"
+    },
+    {
+      "id": "W-02", "kind": "weather_effect", "name": "storm: all outdoor work stops; couriers still ride",
+      "months": "all", "rule": { "type": "trigger", "on": "weather.storm" },
+      "participants": [], "place_kind": "-", "goods": [], "preconditions": [],
+      "effects": ["all outdoor work stops", "E-20 continues (HDT 8.98, claim)"],
+      "default": true, "tier": "C", "src": "HDT;RECON", "note": "thunder days 1.5-1.8 in Mar-Apr (A)"
+    },
+    {
+      "id": "W-03", "kind": "weather_effect", "name": "dust: travel and deliveries slow; faces covered",
+      "months": "all", "rule": { "type": "trigger", "on": "weather.dust" },
+      "participants": [], "place_kind": "-", "goods": [], "preconditions": [],
+      "effects": ["travel speed x 0.7 (C)", "work continues"],
+      "default": true, "tier": "C", "src": "WMO-CLINO;RECON", "note": "dust days peak Apr-Jul (A, x 0.5 per D-004)"
+    },
+    {
+      "id": "E-70", "kind": "life_event", "name": "birth",
+      "months": "all", "rule": { "type": "per_1000_per_year", "mean": 40, "range": [35, 54] },
+      "participants": [{ "role": "mother", "count": 1 }, { "role": "women of her group or household (C)", "count": [1, 4] }], "place_kind": "home",
+      "goods": [], "preconditions": ["woman aged 15-45 (C)"],
+      "effects": ["new child (sex about even, IR-WOMEN)", "schedule(E-04) if in a ration group", "mother off work 10-40 days (C)"],
+      "default": true, "tier": "C", "src": "BF1994;IR-WOMEN", "note": "Roman Egypt analogue (SX): female birth rate 'as high as 54 per thousand', argued too high; Q-039"
+    },
+    {
+      "id": "E-71", "kind": "life_event", "name": "death",
+      "months": "all", "rule": { "type": "per_1000_per_year", "mean": 40, "range": [35, 45], "infant_deaths_per_1000_births": [250, 350] },
+      "participants": [{ "role": "household", "count": "all" }, { "role": "bearers", "count": [2, 4] }], "place_kind": "home -> burial ground outside the settlement (C)",
+      "goods": [], "preconditions": [],
+      "effects": ["household shrinks; the person's ration stops (CE-16)", "the group head reports it (C)"],
+      "performance": "the body is carried out of the settlement. Herodotus 1.140: Persians coat the body in wax and bury it; the magi first let birds or dogs tear it ('secretly and obscurely told'). Do not show exposure",
+      "default": true, "tier": "C", "src": "BF1994;HDT", "note": "e0 22-25 in Roman Egypt (SX) -> CDR ~40-45; infant mortality is RECOLLECTION, NOT SEEN (Coale-Demeny West levels 2-4)"
+    },
+    {
+      "id": "E-72", "kind": "life_event", "name": "sickness episode",
+      "months": "all", "rule": { "type": "per_1000_per_year", "mean": 1500, "range": [1000, 2000], "seasonal_weight": { "summer": 1.4, "winter": 1.2, "spring": 0.8, "autumn": 0.8 } },
+      "participants": [{ "role": "the sick person", "count": 1 }, { "role": "a carer from the household", "count": [0, 1] }], "place_kind": "home",
+      "goods": [], "preconditions": [], "effects": ["off work 1-7 days (C)", "the ration continues (CE-15)"],
+      "default": true, "tier": "C", "src": "RECON", "note": "no source"
+    },
+    {
+      "id": "E-73", "kind": "life_event", "name": "marriage (household change only; no rite shown)",
+      "months": "all", "rule": { "type": "per_1000_per_year", "mean": 9, "range": [8, 10] },
+      "participants": [{ "role": "the two households", "count": "C" }], "place_kind": "home", "goods": [],
+      "preconditions": [], "effects": ["one person moves household"],
+      "default": true, "tier": "C", "src": "RECON", "note": "no rite attested for commoners at Persepolis, so no ceremony is performed"
+    },
+    {
+      "id": "E-74", "kind": "dispute", "name": "small dispute (ration shortfall, queue, tool, water turn)",
+      "months": "all", "rule": { "type": "per_1000_per_year", "mean": 100, "range": [50, 150], "multiplier_if": { "CE-03 short ration": 3, "CE-19 low river": 1.5 } },
+      "participants": [{ "role": "disputants", "count": 2 }, { "role": "onlookers", "count": [0, 6] }, { "role": "group head or official (rare)", "count": [0, 1] }],
+      "place_kind": "storehouse queue, work site, canal", "goods": [], "preconditions": [], "effects": ["relationship between the two agents worsens (C)"],
+      "default": true, "tier": "C", "src": "RECON", "note": "no PF or PT dispute text retrieved"
+    },
+    {
+      "id": "E-80", "kind": "guard_shift", "name": "change of watch",
+      "months": "all", "rule": { "type": "daily", "times": "three watches (Phase 3 sim)" },
+      "participants": [{ "role": "guards of the outgoing and incoming watch", "count": "per post" }], "place_kind": "guard posts", "goods": [],
+      "preconditions": [], "effects": ["posts relieved"],
+      "default": true, "tier": "C", "src": "RECON", "note": "reconstruction"
+    },
+    {
+      "id": "E-81", "kind": "guard_shift", "name": "Treasury guard doubled while silver is out or a courier is at the Treasury",
+      "months": "all", "rule": { "type": "trigger", "on": "E-05 or E-20 at the Treasury" },
+      "participants": [{ "role": "extra guards", "count": [2, 6] }], "place_kind": "Treasury door", "goods": [],
+      "preconditions": [], "effects": ["guards at the Treasury x 2 for the duration"],
+      "default": true, "tier": "C", "src": "RECON", "note": "brief 9.1 (the Treasury is guarded when the king is away)"
+    }
+  ],
+  "cause_effect": [
+    { "id": "CE-01", "cause": "E-01 ration issue", "effect": "store drawn down by the group's ration total", "tier": "B", "src": "RATION-30;IR-PET" },
+    { "id": "CE-02", "cause": "store short at issue time", "effect": "part of the ration paid in another commodity or in silver at the Treasury (E-05)", "tier": "B", "src": "IR-TREAS", "note": "substitution in lieu is attested; the trigger by shortage is C" },
+    { "id": "CE-03", "cause": "store short and no substitute", "effect": "short ration: hunger up, work output down, disputes x 3 (E-74)", "tier": "C", "src": "RECON" },
+    { "id": "CE-04", "cause": "late or missing grain delivery (E-06), e.g. rain or storm on the road", "effect": "stocks fall -> CE-02 / CE-03 in the following months", "tier": "C", "src": "RECON" },
+    { "id": "CE-05", "cause": "harvest (E-41 to E-43)", "effect": "grain deliveries peak in months 4-8 -> stores refill", "tier": "C", "src": "CDLI-PF", "note": "only PF 6 and PF 7 are dated to the month (A)" },
+    { "id": "CE-06", "cause": "grain", "effect": "mill -> flour -> rations and travel rations; tarmu -> beer", "tier": "A", "src": "CDLI-PF", "note": "PF 28-33, 40 (Darius-era)" },
+    { "id": "CE-07", "cause": "slaughter (E-12)", "effect": "hides to the treasury -> treasury workshop stock", "tier": "A", "src": "CDLI-PF", "note": "PF 58-60 (Darius-era)" },
+    { "id": "CE-08", "cause": "travellers with a halmi (E-21)", "effect": "travel rations issued; store falls; no halmi -> no rations", "tier": "B", "src": "IR-PET;HYLAND2022", "note": "the refusal is C" },
+    { "id": "CE-09", "cause": "birth (E-70)", "effect": "mother's ration (E-04), boy x 2; a new member of the ration group", "tier": "B", "src": "IR-PET;IR-WOMEN" },
+    { "id": "CE-10", "cause": "completed work period", "effect": "memorandum -> silver payment (E-05) -> Treasury guard doubled (E-81)", "tier": "B", "src": "IR-TREAS;IR-PET", "note": "the guard rule is C" },
+    { "id": "CE-11", "cause": "rain or storm (W-01, W-02)", "effect": "outdoor work stops; couriers still ride", "tier": "C", "src": "WMO-CLINO;HDT" },
+    { "id": "CE-12", "cause": "frost day (E-62)", "effect": "no brick, mortar or plaster work; winter gang strength x 0.5", "tier": "C", "src": "WMO-CLINO;RECON" },
+    { "id": "CE-13", "cause": "dust day (W-03)", "effect": "travel and deliveries slow", "tier": "C", "src": "WMO-CLINO;RECON" },
+    { "id": "CE-14", "cause": "summer heat (E-64)", "effect": "midday rest; more water carrying", "tier": "C", "src": "WMO-CLINO;RECON" },
+    { "id": "CE-15", "cause": "sickness (E-72)", "effect": "worker stays home; group output falls; ration continues", "tier": "C", "src": "RECON" },
+    { "id": "CE-16", "cause": "death (E-71)", "effect": "household shrinks; the ration stops", "tier": "C", "src": "RECON" },
+    { "id": "CE-17", "cause": "court arrives (E-25, setting only)", "effect": "royal-table supplies on the scale of PF 0701 (126,100 qa flour), PF 0696 (1,224 sheep/goats), PF 2034 (1,044 poultry); guards at full strength; couriers and travellers x 3-6; crowded roads", "tier": "B", "src": "IR-ADMIN", "note": "B for the scale (SX); the consequences are C (brief 9.5)" },
+    { "id": "CE-18", "cause": "court leaves (E-26, setting only)", "effect": "populations fall back to court_absent within 1-2 weeks", "tier": "C", "src": "RECON" },
+    { "id": "CE-19", "cause": "river low (E-51, months 3-7)", "effect": "irrigation water scarce; water turns rationed; disputes x 1.5", "tier": "C", "src": "LANDSCAPE-R" },
+    { "id": "CE-20", "cause": "dry autumn (no rain in months 7-8)", "effect": "sowing (E-40) delayed; smaller harvest next year", "tier": "C", "src": "WMO-CLINO;RECON" }
+  ],
+  "soak_variety_floor": {
+    "distinct_event_kinds_per_week": 8,
+    "tier": "C",
+    "src": "RECON",
+    "basis": "every week of the year, court absent, contains E-05, E-07, E-12, E-15, E-20, E-30, E-60, E-72, E-74, E-80 (10 kinds by id; 8 or more distinct 'kind' values) plus a seasonal farm or herd event; the first week of each month adds E-01/E-02/E-03"
+  }
+}
