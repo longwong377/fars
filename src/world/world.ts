@@ -29,6 +29,8 @@ import { FireSystem } from './fire';
 import { buildTreasuryGoods } from './furnish';
 import { WeatherVfx } from './weatherVfx';
 import { RainShafts } from './rainShafts';
+import { Birds } from './wildlife';
+import { azAltToWorld } from '../sky/ephemeris';
 import { AudioEngine } from '../audio/engine';
 import { Soundscape, registerRoom } from '../audio/soundscape';
 import { babylonianDate } from '../core/calendar';
@@ -100,6 +102,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   void QUALITY;
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
   const nav = await NavGrid.load(async p => (await fetch('/' + p)).arrayBuffer());
+  // visible birds (§5.5): swallows over the courts in season, raptors over the slope, sparrows on the court floors
+  const birds = new Birds(seed, nav, terrain, ([[0, 90], [-20, 124], [60, -10], [-20, -110], [150, 40], [200, -70], [100, -110], [20, -125]] as [number, number][]).map(p => nav.snap(p[0], p[1], 8) ?? p));
+  root.add(birds.group);
   for (const f of fire.fires) nav.blockDisc(f.pos.x, -f.pos.z, f.kind === 'torch' ? 0 : 0.8);
   const env = (t: number): Env => { if (!weather) return { rain: 0, lightning: false, windMs: 2, tempC: 18 }; const d = Math.floor(t / 24), c = weather.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC }; };
   const sim = new PeopleSim(seed, nav, env); let simStarted = false;
@@ -172,6 +177,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time);
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
+      { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
+        birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain); }
       shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)));
       if (audio.ctx) {
         const cam = ctx.camera, fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);
