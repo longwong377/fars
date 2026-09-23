@@ -68,3 +68,13 @@ export function exposureTarget(sunE: number, skyE: number, skyVis: number, moonE
   const E = (sunE + skyE) * (0.15 + 0.85 * skyVis) + moonE + fireE + 0.004;
   return Math.min(X_MAX, Math.max(X_MIN, KEY / E));
 }
+
+/** The gain at which the fires' session-3 light values are physical (D-117 addendum): a lamp's point light is 0.08 · 40 =
+ *  3.2 renderer candela (fire.ts), and an oil lamp gives about a candle, ~1 cd (C; the candela's historical definition,
+ *  B), so fire light is pre-exposed by 3.2 renderer units per lux, against REN_PER_LUX_SKY · 0.796 = 5.1e-5 for the
+ *  skylight at G = 1: a gain of ~63 000. That is about the moonlit-night gain (8.8e4 under a half moon), so the fires
+ *  tuned at night are consistent with the physical night sky. Where the sky gain is lower (twilight, day) the fires' cast
+ *  light is scaled by G / FIRE_GAIN, never above 1 (night unchanged). The flames themselves (emissive) are not scaled: a
+ *  flame is thousands of times its surroundings' luminance at any of these levels. */
+export const FIRE_GAIN = 3.2 / ((0.98 / 15354) * 0.796);
+export const fireLightScale = (gain: number) => Math.min(1, gain / FIRE_GAIN);

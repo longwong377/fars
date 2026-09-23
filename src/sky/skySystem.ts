@@ -13,7 +13,7 @@ import { VolumetricClouds } from './clouds';
 import { skyCalibration, twilightWeight, TW_HI } from './horizon';
 import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, type SkyView, type SkyViewJob } from './atmosphere';
 import { sunNormalLux, skyLux, moonLux, elongationFromFraction, extinctionK, NIGHT_LUX, REN_PER_LUX_SUN, REN_PER_LUX_SKY } from './illuminance';
-import { skyGain } from './exposure';
+import { skyGain, fireLightScale } from './exposure';
 import { CLOUD_BASE, CLOUD_TOP } from './clouds';
 import { localCoverageUniform, localWeatherFactor } from './cloudCover';
 import coverTable from '../data/cloud_cover_table.json';
@@ -55,6 +55,8 @@ export class SkySystem {
   gain = 1;
   /** illuminance on the ground in lux (sun + sky + moon + night sky), clear-sky model with the cloud factors (D-115) */
   lux = 0;
+  /** scale on the fires' cast light (1 at night; ~1e-3 at dawn): their values are pre-exposed for night (exposure.ts) */
+  fireScale = 1;
   private coverAt: [number, number] | null = null; private coverFactor = 1;
   state: SkyState = { sunDir: new THREE.Vector3(0, 1, 0), sunAlt: 45, moonDir: new THREE.Vector3(0, -1, 0), moonAlt: -10, moonFraction: 0, daylight: 1, nightFactor: 0 };
 
@@ -217,7 +219,7 @@ export class SkySystem {
     this.lux = sunN * sinA + skyL + moonN * sinM;
     const sunI = sunN * REN_PER_LUX_SUN, hemiI = skyL * REN_PER_LUX_SKY, moonI = moonN * REN_PER_LUX_SUN;
     this.gain = skyGain(sunI * sinA + hemiI * 0.8 + moonI * 0.3, this.lux); // the exposure estimate's weights (main.ts)
-    const G = this.gain;
+    const G = this.gain; this.fireScale = fireLightScale(G);
     // ---- the physical atmosphere (D-116): sun colour, cloud light at the cloud's height, twilight dome ----------------------
     // aerosol depth in steps of 0.01, each model built once (~0.3 s) and kept; with the sun above 15° only the sun's colour
     // uses it, so a haze change waits until the sun is low (no rebuild hitches through a dusty day)

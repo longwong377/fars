@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three/webgpu';
-import { logTviCones, logTviRods, keyValue, adaptationBrightness, adaptingLuminance, skyGain, exposureTarget, KEY, X_MAX, LA_ABSOLUTE } from '../src/sky/exposure';
+import { logTviCones, logTviRods, keyValue, adaptationBrightness, adaptingLuminance, skyGain, exposureTarget, KEY, X_MAX, LA_ABSOLUTE, FIRE_GAIN } from '../src/sky/exposure';
 import { SkySystem } from '../src/sky/skySystem';
 import { WorldClock } from '../src/core/clock';
 
@@ -56,6 +56,13 @@ describe('dawn, dusk and night do not look like noon (exposure on the SkySystem 
     expect(civil.b, `civil twilight (${civil.alt.toFixed(1)}°)`).toBeLessThan(0.15);
     expect(night.b, 'a moonless night (day 1, 03:30)').toBeLessThan(0.03);
     expect(dawn.b).toBeGreaterThan(civil.b); expect(civil.b).toBeGreaterThan(night.b);
+  });
+  it('fire light is pre-exposed for night: unchanged at night, a small addition at dawn, nothing by day', () => {
+    shown(5, 22.5); expect(sky.fireScale).toBe(1);             // moonlit night: as tuned in session 3
+    shown(1, 3.5); expect(sky.fireScale).toBe(1);              // moonless
+    shown(0, 5.4); expect(sky.fireScale).toBeLessThan(0.01);   // dawn, sun −2.9°: ~50 lx of skylight
+    shown(0, 12.5); expect(sky.fireScale).toBeLessThan(1e-4);  // noon: no pools of firelight in the sun
+    expect(FIRE_GAIN).toBeGreaterThan(3e4); expect(FIRE_GAIN).toBeLessThan(1.2e5);
   });
   it('a moonlit night stays readable and brighter than a moonless one', () => {
     const moonless = shown(1, 3.5), moonlit = shown(5, 22.5); // day 5 22:30: a 46 % moon 27° up

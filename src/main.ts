@@ -10,6 +10,7 @@ import { Terrain, curvatureDrop } from './terrain/heightfield';
 import { TerrainMesh } from './terrain/terrainMesh';
 import { SkySystem } from './sky/skySystem';
 import { exposureTarget } from './sky/exposure';
+import { twilightWeight } from './sky/horizon';
 import { WeatherSystem, WeatherOverride } from './weather/weatherState';
 import { Physics } from './player/physics';
 import { Player } from './player/player';
@@ -335,7 +336,7 @@ async function boot() {
     overlay.update(renderer, scene, camera, [
       `grid E ${camera.position.x.toFixed(1)} N ${(-camera.position.z).toFixed(1)} · ${(camera.position.y + curvatureDrop(camera.position.x, camera.position.z) + terrain.meta.court_asl).toFixed(1)} m asl · ground ${terrain.aslAt(camera.position.x, camera.position.z).toFixed(1)}`,
       clock.label(),
-      `sun alt ${sky.state.sunAlt.toFixed(1)}° · moon ${(sky.state.moonFraction * 100).toFixed(0)}% alt ${sky.state.moonAlt.toFixed(0)}°`,
+      `sun alt ${sky.state.sunAlt.toFixed(1)}° · moon ${(sky.state.moonFraction * 100).toFixed(0)}% alt ${sky.state.moonAlt.toFixed(0)}° · ${sky.lux.toPrecision(2)} lx (USNO-C171, B) · sky gain ${sky.gain.toPrecision(3)} · exposure ${exposure.toFixed(2)} (D-117, C) · twilight dome ${(twilightWeight(sky.state.sunAlt) * 100).toFixed(0)}% (D-116, B/C)`,
       `weather: ${weather.override} · ${cond.tempC.toFixed(1)} °C · cloud ${(cond.cloud * 100).toFixed(0)}% · rain ${cond.rain.toFixed(2)} · wind ${cond.windMs.toFixed(1)} m/s from ${cond.windDirDeg.toFixed(0)}° · wet ${cond.wetness.toFixed(2)} · snow ${cond.snowCover.toFixed(2)}`,
       `terrain chunks ${tmesh.stats().chunks}, ${(tmesh.stats().tris / 1e6).toFixed(2)} M tris · ${world.summary?.() ?? ''}`,
     ]);
