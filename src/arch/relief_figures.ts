@@ -638,11 +638,11 @@ export function figureDef(kind: string, seed: number): FigureDef {
       const beast: Species = monster ? { ...SPECIES.lion, horns: 'bull', mane: undefined, note: 'monster' } : SPECIES[kindOf], lean = 1.15;
       const q = quadruped(standing(beast, lean, 1.0, 0.44, true, 0.95), beast, { lean, fore: 'reach', jawOpen: true, neckAng: 30, headAng: beast.feet === 'paw' ? -5 : -40 });
       const extra: Mass[] = [];
-      if (monster) { const wf = new Frame(q.shoulder[0], q.shoulder[1], 0, 1, true); // wing raised from the shoulder, behind the hero
+      if (monster) { const wf = new Frame(q.shoulder[0], q.shoulder[1], -0.35, 0.55, true); // wing raised from the shoulder, drawn behind the body
         extra.push(M([wf.spoly([[-0.04, -0.02], [0.05, 0.05], [0.02, 0.2], [-0.1, 0.4], [-0.2, 0.46], [-0.19, 0.33], [-0.12, 0.15]], 4)],
           { amp: 0.6, lift: 0.08, colour: STONE, round: 0.03, groove: 0.1, detail: wf.det((x, y) => feathers(x * 0.8 + y * 0.6, y * 0.8 - x * 0.6, 0.03, 0.04, 0.2)) })); }
       const b = human(fr, persianDress({ head: 'crown', garment: P.purple, garment2: P.egyptianBlue, near: { elbow: [0.07, 0.5], hand: [0.18, 0.47] }, far: { elbow: [0.07, 0.68], hand: [0.18, 0.76] } }), { front: prop(fr, 'dagger', 0.18, 0.47, P.white) });
-      return { masses: [...q.masses, ...extra, ...b.masses], incisions: [...q.incisions, ...b.incisions] };
+      return { masses: [...extra, ...q.masses, ...b.masses], incisions: [...q.incisions, ...b.incisions] };
     }
     case 'king_attendants': { // the king walking under a parasol held by an attendant behind him; seed 0: a fly-whisk bearer
       // behind that, 1: a towel bearer, 2: none. Attendants at the hierarchic scale (C); back to front: second attendant,
