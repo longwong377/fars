@@ -232,7 +232,7 @@ function paradiseSite(): Site {
     const ii = i + di, jj = j + dj; if (s.inb(ii, jj) && !inNotch(ii, jj) && s.cell[s.k(ii, jj)] === p.idx) s.noWall.add(s.edgeBetween(s.k(i, j), s.k(ii, jj))); }
   const rng = new Rng(TOWN_SEED, 'town:paradise');
   gardenBeds(s, p, rng, { axisV: 0, u0: -L / 2 + 30, u1: L / 2 - 24, v0: -Wd / 2 + 8, v1: Wd / 2 - 8, cross: [-L / 2 + 30, -40, 50, L / 2 - 24], row: 'paradise_bagh_e_firuzi', feature: 'zone_bagh_e_firuzi' });
-  s.recount(); return s;
+  s.recount(); PAVILION.frame = { c: s.grid(-L / 2 + 14, 0), theta: f.theta }; return s;
 }
 
 function gardenBeds(s: Site, p: Plot, rng: Rng, o: { axisV: number; u0: number; u1: number; v0: number; v1: number; cross: number[]; row: string; feature: string }) {
@@ -260,6 +260,21 @@ function areaCGardenSite(): Site {
   s.recount(); return s;
 }
 
+/** the pavilion at the far (WNW) end of the garden axis, facing the gate: a columned porch (2 x 4 columns) before a
+ *  roofed room (C: "column bases and foundations beyond the gate", press) */
+const PAVILION: { frame: Frame | null } = { frame: null };
+function pavilionProps(props: Prop[], groups: Map<string, P2[]>) {
+  const f = PAVILION.frame; if (!f) return; const W = 18, D = 14, row = 'paradise_bagh_e_firuzi', feature = 'zone_bagh_e_firuzi', note = 'garden pavilion on the axis, facing the gate: columned porch before a room (C; column bases beyond the gate: press)';
+  groups.set('pavilion', [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => toGrid(f, a * D / 2, b * W / 2)));
+  const B = (u: number, v: number, hu: number, hv: number, y0: number, y1: number, mat: Mat = 'mud', collide = true, colour?: [number, number, number]) => props.push({ shape: 'box', mat, c: toGrid(f, u, v), theta: f.theta, hu, hv, y0, y1, group: 'pavilion', collide, row, feature, note, colour });
+  B(-D / 2 + 0.4, 0, 0.45, W / 2, -0.4, 5.2); B(-D / 2 + 3.5, W / 2 - 0.4, 3.5, 0.45, -0.4, 5.2); B(-D / 2 + 3.5, -W / 2 + 0.4, 3.5, 0.45, -0.4, 5.2); // room walls (back and sides)
+  B(-D / 2 + 7, 3.5, 0.4, W / 2 - 3.5, -0.4, 5.2); B(-D / 2 + 7, -W / 2 + 1, 0.4, 1, -0.4, 5.2); // front wall of the room with a door
+  B(0, 0, D / 2 + 0.4, W / 2 + 0.4, 5.2, 5.9, 'mud', false); // flat roof
+  B(0, 0, D / 2 + 0.6, W / 2 + 0.6, -0.3, 0.35, 'stone', true); // stone platform
+  for (let k = 0; k < 4; k++) { const v = -W / 2 + 2.25 + k * 4.5; for (const u of [D / 2 - 0.9, 2.2]) {
+    props.push({ shape: 'cyl', mat: 'stone', c: toGrid(f, u, v), theta: 0, hu: 0.55, hv: 0.55, y0: 0.3, y1: 0.7, group: 'pavilion', collide: true, row, feature, note: note + ': stone column base' });
+    props.push({ shape: 'cyl', mat: 'timber', c: toGrid(f, u, v), theta: 0, hu: 0.26, hv: 0.26, y0: 0.7, y1: 5.2, group: 'pavilion', collide: true, row, feature, note: note + ': plastered timber column (C)', colour: [0.8, 0.74, 0.64] }); } }
+}
 // Takht-e Rustam (LIVIUS-TR: ~12.5 x 12.5 m, local stone, base for a higher structure like the lower tiers of Cyrus'
 // tomb, B size): placed 18 m E of the road line (the road passes beside it; position C ±400 m). Two steps (the
 // settlement.json state); step heights and set-back not retrieved (C: 1.1 m and 1.0 m); orientation C (true north).
@@ -326,6 +341,7 @@ export function buildTownPlan(): TownPlan {
     props.push({ shape: 'cyl', mat: 'timber', c: toGrid(hf, u, v), theta: 0, hu: 0.34, hv: 0.34, y0: 0.45, y1: 6.2, group: 'hall_gohar', collide: true, row: 'hall_dasht_e_gohar', feature: 'zone_dasht_e_gohar', note: HN + ': plastered timber column (C)', colour: [0.78, 0.72, 0.62] }); }
   props.push({ shape: 'box', mat: 'mud', c: toGrid(hf, -hallW / 2 - 0.5, 0), theta: hf.theta, hu: 0.5, hv: hallD / 2 + 1, y0: -0.4, y1: 6.9, group: 'hall_gohar', collide: true, row: 'hall_dasht_e_gohar', feature: 'zone_dasht_e_gohar', note: HN + ': back wall' });
   props.push({ shape: 'box', mat: 'mud', c: toGrid(hf, 0, 0), theta: hf.theta, hu: hallW / 2 + 1, hv: hallD / 2 + 1, y0: 6.2, y1: 6.9, group: 'hall_gohar', collide: false, row: 'hall_dasht_e_gohar', feature: 'zone_dasht_e_gohar', note: HN + ': flat roof on timber beams' });
+  pavilionProps(props, groups);
   // roads (settlement.json) and the spur to the Tol-e Ajori gate (C)
   const roads: Road[] = SETTLEMENT.features.filter((f: any) => f.kind === 'road' && f.present_467).map((f: any) => ({ id: f.id, feature: f.id, row: f.id, pts: f.polyline, width: f.width_m ?? 7, note: f.note }));
   const mouth = toGrid({ c: AJORI.c, theta: ajTheta }, AJORI.long / 2, 0), pout = toGrid({ c: AJORI.c, theta: ajTheta }, AJORI.long / 2 + 80, 0);

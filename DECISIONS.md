@@ -216,3 +216,47 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Fix for 3:** each panel now has an invisible rectangle over its bounding box plus 5 cm, on a layer no camera renders (`INSCRIPTION_PICK_LAYER`). The translation layer raycasts only that layer. A reader looking at the panel now gets the text wherever the view centre falls on it.
 - **Still wrong (found here, not fixed):** the Gate's open door leaves stand 0.24 m in front of the XPa panels and hide them up to 7.7 m. This is the known door-leaf layout fault, now with the sculpture agent (D-018 follow-up). The layer shows the text through the leaf because its raycast ignores occluders; that is acceptable only for an out-of-world layer.
 - The e2e passes: XPa transliteration with glosses, map (M), chronicle (J).
+## D-041 The settlement's layout: separate quarters of courtyard houses in lane mazes, generated (Phase 6, session 3)
+- **What:** the town is built by `src/world/settlement/` from `src/data/settlement.json`. Zones, named features, roads and the canal keep the research positions and tiers. Everything inside them is reconstruction (C), and every generated plot, fitting and prop names its basis row (`town_elements`, 21 rows) and a present feature. `tools/lint_chrono.ts` checks this fail-closed.
+- **Garden city, not one block:** SELOPERSE (search extract, B) describes the urban zone as separate blocks of housing among gardens, parks, fields and orchards. So the town is 8 dense quarters (1.3–3.6 ha each), 2 hamlets, the official building, a storehouse, a stable, 4 estates, 3 gardens and 8 walled orchards, 0.3–1 km apart (C; Q-084).
+- **House type:** the first-millennium Babylonian courtyard house (BAKER2014, with Reuther 1926 on Babylon's Merkes quarter; search extracts). It is a court with rooms on two to four sides, and one street door into a vestibule set so the court cannot be seen from the street. The analogue is B; using it here is C. Babylon lay inside the empire and was lived in through the Achaemenid period. No house has been excavated at Persepolis (Q-082).
+  - Sizes (C): plots 8–16 × 10–20 m; rooms 3–4 m deep (the span of poplar roof poles); roof tops 3.1–3.6 m.
+- **Lanes:** a maze by construction. Through streets (4 m) run with jogs, then lanes (3 m) and alleys (2 m) branch off them until no ground lies more than 16 m from a lane. Branches end in blind alleys or close into loops, and small squares hold wells.
+  - The Merkes quarter had wide and narrow streets and blind alleys (B analogue).
+  - Tests: every home's door opens onto ground connected to the plain; every large quarter has blind alleys.
+- **Capacity:** a house holds its roofed area ÷ 13 m² in people, 3–10 (large houses 6–16, C). The town zones hold 8,404, against the court-absent working value of 7,000 (range 5,000–10,000, population.json). The house plots go to the simulation in `src/data/town_plots.json` (1,521 plots, 1,494 homes).
+- **Kept clear:**
+  - the Terrace approach, 480 m W of the Grand Stair (the walkable grid e −620…262, n −245…185). The Phase 3–5 people and bot routes stay valid, and the approach reads as open ground before the Terrace (C).
+  - the empty Frataraka site (80 m).
+  - the roads, except that the road south is q_s1's main street.
+- **Alternatives:**
+  - one continuous town over the zone polygons: contradicts "very low density" and "separate blocks";
+  - a regular grid of streets: modern;
+  - recursive block splitting: T-junctions only, no blind alleys;
+  - Voronoi or organic plots: staircase walls, and thousands more collider boxes.
+- Reversible: the generator is seeded (467) and data-driven; quarters are one row each in `plan.ts`.
+## D-042 Tol-e Ajori built to the 2017 report's plan (Phase 6, session 3)
+- **New evidence (search extract of the TOLAJORI2017 abstract, B):** the plan is 39.07 × 29.05 m, "oriented from WNW to ESE, with a 20° shift to N from the E-W axis". A massive wall 10.47 m thick encloses an inner room of 8.00 × 14.36 m with low benches along its walls, reached by two corridors on the NW and SE short sides.
+  - So the passage runs along the LONG axis, at 110°/290° true. This supersedes the research file's C guess of a NE–SW passage; settlement.json now carries `plan_2026`.
+  - Glazed reliefs: aurochs and mušḫuššu on an originally blue ground, with the colours now paler (WP-ISHTAR search extract, B).
+- **Built (C where not stated):**
+  - 12 m high (a press figure);
+  - corridors 4.2 m wide and 7.5 m high, the room 9 m high, all with flat ceilings (vault or roof unknown, Q-081);
+  - benches 0.45 × 0.6 m;
+  - stepped crenellations;
+  - baked-brick facing over the mud-brick core (B material);
+  - relief rows: three on each short façade and two in each corridor wall, with the animals walking toward the passage (C);
+  - glaze weathered 0–28 % per panel (C), because the gate is 50–70 years old and unrepaired (Q-051).
+  - The figures are drawn from the Babylonian type, not traced from the fragments.
+- **Setting (C):** the gate stands in the ESE wall of a 330 × 260 m walled garden, with a spur road from the royal road to its ESE mouth ("column bases and foundations beyond the gate", press; garden complexes in the zone, B).
+- **Alternatives:** two parallel NE–SW passages (the earlier guess, now contradicted); a free-standing gate with no enclosure (possible; Q-081).
+## D-043 One storehouse and one state stable placed (C), although the research listed them as not placed (Phase 6, session 3)
+- The research file lists storehouses and stables as "not placed" because none has been excavated outside the Terrace. The build places one of each as C, each a `town_elements` row with its basis:
+  - **the storehouse** (magazines round a court) by the road south: PF 2–8 send grain, flour and loaves to Persepolis "for the royal stores" (A, Darius-era);
+  - **the state stable** by the royal road W of the town: horse rations for months at a time in 76 PF texts (POTTS2023, B).
+- **Why:**
+  - Their existence is attested.
+  - The population model counts people working at "mills, breweries, stores, stables" (population.json), who need places to work.
+  - The scope of Phase 6 names storehouses and stables.
+- Only one of each, so the town does not suggest a known layout. Both are flagged C in the overlay and in town_plots.json.
+- **Alternative:** leave them unplaced and the workers placeless. Reversible: two rows.

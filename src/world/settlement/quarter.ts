@@ -78,12 +78,14 @@ export function generateQuarter(s: Site, o: QuarterOpts, rng: Rng) {
       if (k + W < W * H && dist[k + W] < 0 && cell[k + W] === FREE) { dist[k + W] = d1; src[k + W] = sk; queue[qn++] = k + W; }
       if (k >= W && dist[k - W] < 0 && cell[k - W] === FREE) { dist[k - W] = d1; src[k - W] = sk; queue[qn++] = k - W; } }
     // far cells, farthest first; free cells no lane can reach (enclosed by reserved ground) are left for yards
-    const far: number[] = []; for (let k = 0; k < W * H; k++) if (s.cell[k] === FREE && !skip[k] && dist[k] > o.dmax) far.push(k);
-    if (!far.length) break;
-    far.sort((a, b) => dist[b] - dist[a] || a - b);
+    // bucket by distance (small integers), farthest first, index order within a bucket
+    const buckets: number[][] = [];
+    for (let k = 0; k < W * H; k++) { const dk = dist[k]; if (dk > o.dmax && cell[k] === FREE && !skip[k]) (buckets[dk] ??= []).push(k); }
+    if (!buckets.length) break;
+    const far: number[] = []; for (let dd = buckets.length - 1; dd > o.dmax; dd--) if (buckets[dd]) for (const k of buckets[dd]) far.push(k);
     const chosen: number[] = [];
-    for (const t of far) { if (chosen.length >= 8) break; const ti = t % W, tj = (t / W) | 0;
-      if (chosen.some(c => Math.abs((c % W) - ti) + Math.abs(((c / W) | 0) - tj) < 3 * o.dmax)) continue; chosen.push(t); }
+    for (const t of far) { if (chosen.length >= 24) break; const ti = t % W, tj = (t / W) | 0;
+      if (chosen.some(c => Math.abs((c % W) - ti) + Math.abs(((c / W) | 0) - tj) < 2 * o.dmax)) continue; chosen.push(t); }
     for (const t of chosen) {
       if (s.cell[t] !== FREE) continue;
       const bd = dist[t], l = src[t], ti = t % W, tj = (t / W) | 0, li = l % W, lj = (l / W) | 0;
@@ -194,8 +196,10 @@ function absorbLeftovers(s: Site, o: QuarterOpts, rng: Rng) {
     const comp = [k0]; seen[k0] = 1;
     for (let h = 0; h < comp.length; h++) { const k = comp[h], i = k % W, j = (k / W) | 0;
       for (const [di, dj] of DIRS) { const ii = i + di, jj = j + dj; if (!s.inb(ii, jj)) continue; const kk = s.k(ii, jj); if (!seen[kk] && s.cell[kk] === FREE) { seen[kk] = 1; comp.push(kk); } } }
-    const shared = new Map<number, number>(); let lane = 0;
-    for (const k of comp) { const i = k % W, j = (k / W) | 0; for (const [di, dj] of DIRS) { const c = s.at(i + di, j + dj); if (c >= 0) shared.set(c, (shared.get(c) ?? 0) + 1); else if (c === LANE || c === SQUARE) lane++; } }
+    const shared = new Map<number, number>(); let lane = 0, out = 0;
+    for (const k of comp) { const i = k % W, j = (k / W) | 0; for (const [di, dj] of DIRS) { const c = s.at(i + di, j + dj); if (c >= 0) shared.set(c, (shared.get(c) ?? 0) + 1); else if (c === LANE || c === SQUARE) lane++; else if (c === OUT) out++; } }
+    // ground left at the town's edge stays open plain: the edge is house backs, not a staircase of walled scraps
+    if (out > 0) { for (const k of comp) s.cell[k] = OUT; continue; }
     if (comp.length >= 140 && lane >= 4) { // a walled yard (garden, pen or orchard plot) of its own
       const xs = comp.map(k => k % W), ys = comp.map(k => (k / W) | 0);
       const p = s.addPlot({ id: `${o.idPrefix}-${String(s.plots.length + 1).padStart(4, '0')}`, kind: 'yard', rect: [Math.min(...xs), Math.min(...ys), Math.max(...xs) + 1, Math.max(...ys) + 1],

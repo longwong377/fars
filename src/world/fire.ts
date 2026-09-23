@@ -39,10 +39,12 @@ export class FireSystem {
     for (let i = 0; i < maxLights; i++) { const l = new THREE.PointLight(FIRE_RGB, 0, 20, 2); l.castShadow = false; this.lights.push(l); this.group.add(l); }
   }
   /** `base` = where the object stands (floor) or, for torches, the bracket point on the wall */
-  add(kind: FireKind, base: THREE.Vector3, meta: { tier: string; src: string; note: string; sched?: FireSchedule; group?: string }) {
+  /** `meta.body: false` = the caller draws the fire's body itself (the settlement merges its hearths and ovens) */
+  add(kind: FireKind, base: THREE.Vector3, meta: { tier: string; src: string; note: string; sched?: FireSchedule; group?: string; body?: boolean }) {
     const lift = { torch: 0.35, brazier: 1.02, hearth: 0.15, oven: 0.25, lamp: 0.05, kiln: 0.6 }[kind];
-    this.fires.push({ id: `${kind}-${this.fires.length}`, kind, pos: base.clone().add(new THREE.Vector3(0, lift, 0)), lit: false, seed: this.rng.next() * 100, ...meta });
-    this.bodies.push({ kind, base: base.clone() });
+    const { body, ...m } = meta;
+    this.fires.push({ id: `${kind}-${this.fires.length}`, kind, pos: base.clone().add(new THREE.Vector3(0, lift, 0)), lit: false, seed: this.rng.next() * 100, ...m });
+    if (body !== false) this.bodies.push({ kind, base: base.clone() });
   }
   private bodies: { kind: FireKind; base: THREE.Vector3 }[] = [];
   /** simple physical bodies (C forms): brazier = bronze bowl on a stand (after the incense stands on the reliefs), torch = wooden

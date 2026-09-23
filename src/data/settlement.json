@@ -910,7 +910,8 @@
     52.94861
    ],
    "unc_m": 3000,
-   "chrono": "akhor_rostam_niches"
+   "chrono": "akhor_rostam_niches",
+   "build_note": "Not built in Phase 6: rock-cut niches need a rock face and none lies within 1 km of the map-scale point (DEM check; nearest steep rock ~3 km E/NE). Nothing is invented in its place (Q-085)."
   },
   {
    "id": "spring_cemetery",

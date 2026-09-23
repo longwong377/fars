@@ -33,7 +33,7 @@ export class Settlement {
   private trees!: TreeField; private haze!: TownHaze; private wr!: ReturnType<typeof buildWaterAndRoads>;
   private fireIdx: { site: string; kind: FireKind }[] = [];
   private fire: FireSystem;
-  readonly info = { tris: 0, meshes: 0, colliders: 0, liveColliders: 0, fires: 0, trees: 0, buildMs: 0 };
+  readonly info = { tris: 0, meshes: 0, colliders: 0, liveColliders: 0, fires: 0, trees: 0, buildMs: 0, phases: {} as Record<string, number> };
   constructor(private phys: Physics | null, private terrain: Terrain, fire: FireSystem, quality = 'high') {
     const t0 = performance.now();
     this.fire = fire;
@@ -41,6 +41,7 @@ export class Settlement {
     this.group.name = 'settlement';
     this.group.userData = { tier: 'C', src: 'RECON', note: 'settlement (Phase 6): zones and named features from settlement.json; town layout reconstructed (C)' };
     this.plan = buildTownPlan();
+    let tp = performance.now(); const phase = (n: string) => { const t = performance.now(); this.info.phases[n] = Math.round(t - tp); tp = t; }; phase('plan');
     const H = (e: number, n: number) => terrain.heightAt(e, -n);
     // clusters: every quarter is one; each compound joins the nearest quarter within 450 m, else its zone
     const clusters = new Map<string, Cluster>();
@@ -57,11 +58,12 @@ export class Settlement {
       const cl = getC(clusterOf(s), s.frame.c); const col: SiteCol = { id: s.id, c: s.frame.c, r: Math.hypot(s.W, s.H) / 2 + 5, boxes: [], live: null };
       this.cols.push(col); this.buildSite(s, cl, B(cl, 'mud'), () => B(cl, 'stone'), col, H);
     }
+    phase('sites');
     // props (Takht-e Rustam, the Dasht-e Gohar hall)
     const groupBase = new Map<string, number>(); for (const [g, pts] of this.plan.groups) groupBase.set(g, Math.min(...pts.map(p => H(p[0], p[1]))));
     const propCol = new Map<string, SiteCol>();
     for (const p of this.plan.props) {
-      const cl = getC(p.group === 'takht' || p.group === 'hall_gohar' ? 'zone_dasht_e_gohar' : p.group, p.c);
+      const cl = getC(p.group === 'takht' || p.group === 'hall_gohar' ? 'zone_dasht_e_gohar' : p.group === 'pavilion' ? 'zone_bagh_e_firuzi' : p.group, p.c);
       const b = B(cl, p.mat === 'stone' ? (p.group === 'takht' ? 'takht' : 'stone') : 'mud');
       const base = groupBase.get(p.group) ?? H(p.c[0], p.c[1]);
       const d = cl.desc.length; cl.desc.push({ tier: ROWS[p.row]?.tier ?? FEATURES[p.row]?.tier ?? 'C', src: ROWS[p.row]?.src ?? FEATURES[p.feature]?.src ?? 'RECON', note: p.note });
@@ -71,6 +73,22 @@ export class Settlement {
       if (p.collide) { let pc = propCol.get(p.group); if (!pc) { pc = { id: 'props:' + p.group, c: p.c, r: 60, boxes: [], live: null }; propCol.set(p.group, pc); this.cols.push(pc); }
         pc.boxes.push({ x: p.c[0], y: base + (p.y0 + p.y1) / 2, z: -p.c[1], hx: p.hu, hy: (p.y1 - p.y0) / 2, hz: p.hv, rot: p.theta }); }
     }
+    phase('props');
+    // trodden ground: lanes, squares, courts and floors of the quarters and compounds are bare packed earth, not the
+    // plain's seasonal herb layer (gardens and orchards keep it). One receive-only mesh, 4 m tiles draped on the terrain.
+    const ground = new Batch(), gDesc: Desc[] = [{ tier: 'C', src: 'RECON', note: 'trodden earth of lanes, squares, courts and floors (C)' }];
+    for (const s of this.plan.sites) {
+      const green = (k: number) => { const c = s.cell[k]; if (c < 0) return c === -1; const kd = s.plots[c].kind; return kd === 'garden' || kd === 'yard' || (kd === 'elite' && s.sub[k] === 3); };
+      const colOf = (k: number): RGB => { const c = s.cell[k]; if (c < 0) return c === -4 ? lin([0.56, 0.49, 0.39]) : lin([0.53, 0.46, 0.36]); const sb = s.sub[k]; return sb === 1 ? lin([0.44, 0.38, 0.3]) : sb === 2 ? lin([0.56, 0.49, 0.38]) : lin([0.5, 0.43, 0.33]); };
+      const tile = (i0: number, j0: number, n: number, c: RGB) => { const P = (i: number, j: number) => { const g = s.grid(s.u0 + i, s.v0 + j); return [g[0], H(g[0], g[1]) + 0.04, -g[1]]; };
+        ground.quad(P(i0, j0), P(i0 + n, j0), P(i0 + n, j0 + n), P(i0, j0 + n), [0, 1, 0], c, c, c, c, 0); };
+      for (let bj = 0; bj < s.H; bj += 4) for (let bi = 0; bi < s.W; bi += 4) {
+        let all = true; for (let j = bj; j < Math.min(s.H, bj + 4) && all; j++) for (let i = bi; i < Math.min(s.W, bi + 4); i++) if (green(s.k(i, j))) { all = false; break; }
+        if (all && bi + 4 <= s.W && bj + 4 <= s.H) { tile(bi, bj, 4, colOf(s.k(bi + 1, bj + 1))); continue; }
+        for (let j = bj; j < Math.min(s.H, bj + 4); j++) for (let i = bi; i < Math.min(s.W, bi + 4); i++) if (!green(s.k(i, j))) tile(i, j, 1, colOf(s.k(i, j)));
+      }
+    }
+    phase('ground');
     // middens, dung, bone pits: one refuse mesh (grime where work happens, brief 5.5)
     const refuse = new Batch(), rDesc: Desc[] = [];
     for (const m of this.plan.middens) { const d = rDesc.length; rDesc.push({ tier: 'C', src: ROWS[m.row]?.src ?? 'RECON', note: `${m.kind === 'bone' ? 'pit of bone fragments (PW2017, B activity; form C)' : m.kind === 'dung' ? 'dung in an animal pen (C)' : 'midden: ash, sherds, bone and dung (C)'}` });
@@ -87,14 +105,19 @@ export class Settlement {
       m.userData = { tier: 'C', src: 'RECON', note: `settlement cluster ${cl.id} (${mat})`, describe: (hit: any) => desc[owner[hit?.faceIndex ?? -1]] ?? null };
       this.group.add(m); this.info.tris += b.tris; this.info.meshes++;
     }
+    if (ground.tris) { const gm = surfaceMaterial('road', { vertexColors: true }) as any; gm.polygonOffset = true; gm.polygonOffsetFactor = -2; gm.polygonOffsetUnits = -2;
+      const m = new THREE.Mesh(ground.toGeometry(), gm); m.name = 'settlement:ground'; m.receiveShadow = true; m.matrixAutoUpdate = false; const own = ground.owner;
+      m.userData = { tier: 'C', src: 'RECON', note: gDesc[0].note, describe: (hit: any) => gDesc[own[hit?.faceIndex ?? -1]] ?? gDesc[0] }; this.group.add(m); this.info.tris += ground.tris; this.info.meshes++; }
     if (refuse.tris) { const m = new THREE.Mesh(refuse.toGeometry(), mats.refuse); m.name = 'settlement:refuse'; m.receiveShadow = true; m.matrixAutoUpdate = false; const own = refuse.owner;
       m.userData = { tier: 'C', src: 'RECON', note: 'middens and dung', describe: (hit: any) => rDesc[own[hit?.faceIndex ?? -1]] ?? null }; this.group.add(m); this.info.tris += refuse.tris; this.info.meshes++; }
+    phase('meshes');
     // Tol-e Ajori, trees, water/roads/canal, haze
     const aj = buildAjori(this.plan.gate, H); this.group.add(aj.group); this.info.tris += aj.tris; this.info.meshes += aj.meshes;
     this.cols.push({ id: 'tol_ajori', c: this.plan.gate.c, r: 40, boxes: aj.colliders, live: null });
     this.trees = new TreeField(this.plan.trees, H, quality); this.group.add(this.trees.group); this.info.trees = this.plan.trees.length;
     const wr = buildWaterAndRoads(this.plan, H); this.wr = wr; this.group.add(wr.group); this.info.tris += wr.tris; this.info.meshes += wr.meshes;
     this.haze = new TownHaze(this.plan, H, this.fire, this.fireIdx); this.group.add(this.haze.group);
+    phase('ajori_trees_water_haze');
     this.info.colliders = this.cols.reduce((a, c) => a + c.boxes.length, 0);
     this.info.buildMs = performance.now() - t0;
   }
@@ -157,10 +180,11 @@ export class Settlement {
       const at = (du: number, dv: number): P2 => { const c = Math.cos(th), sn = Math.sin(th); return [g[0] + du * c - dv * sn, g[1] + du * sn + dv * c]; };
       const pot = lin(POT), st = lin(STONE), tim = lin(TIMBER), mc = lin(MUD);
       const fireMeta = (sched: FireSchedule) => ({ tier: 'C', src: f.plot >= 0 ? (ROWS[plots[f.plot].row]?.src ?? 'RECON') : 'RECON', note: f.note ?? `${f.kind} (C)`, sched, group: s.id });
-      const addFire = (kind: FireKind, e: number, n: number, yy: number, sched: FireSchedule) => { this.fire.add(kind, new THREE.Vector3(e, yy, -n), fireMeta(sched)); this.fireIdx.push({ site: s.id, kind }); this.info.fires++; };
+      const addFire = (kind: FireKind, e: number, n: number, yy: number, sched: FireSchedule) => { this.fire.add(kind, new THREE.Vector3(e, yy, -n), { ...fireMeta(sched), body: false }); this.fireIdx.push({ site: s.id, kind }); this.info.fires++; };
       switch (f.kind) {
-        case 'hearth': addFire('hearth', g[0], g[1], y, plots[f.plot]?.kind === 'official' || plots[f.plot]?.kind === 'station' || plots[f.plot]?.kind === 'store' || plots[f.plot]?.kind === 'stable' ? 'night' : 'home'); break;
-        case 'oven': addFire('oven', g[0], g[1], y, 'bake'); break;
+        case 'hearth': this.hearthRing(mud, g, y, d); addFire('hearth', g[0], g[1], y, plots[f.plot]?.kind === 'official' || plots[f.plot]?.kind === 'station' || plots[f.plot]?.kind === 'store' || plots[f.plot]?.kind === 'stable' ? 'night' : 'home'); break;
+        case 'oven': { const oc = lin([0.6, 0.47, 0.34]); mud.cyl(g[0], g[1], 0.42, 0.34, y - 0.1, y + 0.75, 8, shade(oc, 0.7), oc, d, false); mud.cyl(g[0], g[1], 0.34, 0.2, y + 0.75, y + 0.82, 8, oc, shade(oc, 0.25), d, true);
+          col.boxes.push({ x: g[0], y: y + 0.4, z: -g[1], hx: 0.35, hy: 0.45, hz: 0.35, rot: 0 }); addFire('oven', g[0], g[1], y + 0.55, 'bake'); break; }
         case 'forge': mud.box(g[0], g[1], th, 0.5 * f.size, 0.4 * f.size, y - 0.1, y + 0.55, shade(mc, 0.5), shade(mc, 0.35), d); addFire('hearth', g[0], g[1], y + 0.45, 'day'); break;
         case 'kiln': { const r = 1.2 * f.size; mud.cyl(g[0], g[1], r, r * 0.92, y - 0.1, y + 1.3 * f.size, 12, shade(mc, 0.55), shade(mc, 0.85), d, false); mud.cyl(g[0], g[1], r * 0.92, 0.35, y + 1.3 * f.size, y + 2.0 * f.size, 12, shade(mc, 0.85), shade(mc, 0.4), d);
           col.boxes.push({ x: g[0], y: y + 1, z: -g[1], hx: r * 0.8, hy: 1, hz: r * 0.8, rot: 0 }); addFire('kiln', g[0], g[1], y, 'day'); break; }
@@ -184,6 +208,12 @@ export class Settlement {
         default: break;
       }
     }
+  }
+  /** a ring of hearth stones with ash inside (C) */
+  private hearthRing(b: Batch, g: P2, y: number, d: number) {
+    const st = lin([0.5, 0.48, 0.44]), ash = lin([0.2, 0.19, 0.18]);
+    for (let k = 0; k < 6; k++) { const a = (k / 6) * Math.PI * 2; b.box(g[0] + Math.cos(a) * 0.42, g[1] + Math.sin(a) * 0.42, a, 0.1, 0.13, y - 0.05, y + 0.14, st, shade(st, 1.1), d); }
+    b.cyl(g[0], g[1], 0.34, 0.3, y - 0.05, y + 0.03, 6, ash, ash, d);
   }
   private well(g: P2, y: number, b: Batch, d: number) {
     const st = lin(STONE), ro = 0.8, ri = 0.55, n = 10, x = g[0], z = -g[1];
