@@ -9,6 +9,7 @@ import type { Settings } from '../core/settings';
 import inscriptions from '../data/inscriptions.json';
 import opLexicon from '../../research/LEXICON/old_persian.json';
 import { FOOTPRINTS, present } from '../arch/spec';
+import { INSCRIPTION_PICK_LAYER } from '../arch/decor';
 
 export interface SubtitleLike { lang: string; translit: string; gloss: string; tier: string; speakerId?: number }
 export interface ChronicleEvent { t: number; kind: string; text: string; place: string }
@@ -37,6 +38,7 @@ export class TranslationLayer {
   private mode: 'none' | 'map' | 'chronicle' = 'none';
   private ray = new THREE.Raycaster(); private lastPick = 0; private picked: string | null = null;
   constructor(private settings: () => Settings) {
+    this.ray.layers.set(INSCRIPTION_PICK_LAYER); // the panels' pick rectangles, not the carved signs
     this.root.append(this.sub, this.insc, this.panel); document.body.append(this.root);
     this.mapCanvas.width = 900; this.mapCanvas.height = 900; this.mapCanvas.className = 'tl-map';
   }

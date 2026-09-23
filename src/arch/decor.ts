@@ -83,6 +83,9 @@ export function textPanelGeometry(fontKey: 'op' | 'cun', text: string, width: nu
   return { geo, lines, height: lines * (glyphH + lineGap) };
 }
 
+/** layer of the inscriptions' invisible pick rectangles (no camera renders it) */
+export const INSCRIPTION_PICK_LAYER = 5;
+const pickMat = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide, visible: false });
 export function buildInscriptions(m: Manifest, parts: any[]): THREE.Group {
   const g = new THREE.Group(); g.name = 'inscriptions';
   const inscMat = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(0.22, 0.21, 0.2, THREE.SRGBColorSpace), roughness: 0.95 });
@@ -91,6 +94,12 @@ export function buildInscriptions(m: Manifest, parts: any[]): THREE.Group {
     const X = gw(alongGrid[0], alongGrid[1]), Z = gw(normalGrid[0], normalGrid[1]);
     const o = gw(originGrid[0], originGrid[1]).addScaledVector(X, -width / 2); o.y = yTop;
     const mesh = new THREE.Mesh(geo, inscMat); mesh.matrixAutoUpdate = false; mesh.matrix.makeBasis(X, up, Z).setPosition(o.addScaledVector(Z, 0.002)); mesh.userData = meta; mesh.name = `inscription:${meta.inscription}:${meta.version}`; g.add(mesh);
+    // pick rectangle over the whole panel (the carved mesh is only the signs, so a look between wedges would miss); on
+    // INSCRIPTION_PICK_LAYER, which no camera renders; the translation layer raycasts that layer only
+    geo.computeBoundingBox(); const bb = geo.boundingBox!, pad = 0.05;
+    const quad = new THREE.PlaneGeometry(bb.max.x - bb.min.x + 2 * pad, bb.max.y - bb.min.y + 2 * pad).translate((bb.min.x + bb.max.x) / 2, (bb.min.y + bb.max.y) / 2, bb.max.z + 0.001);
+    const pick = new THREE.Mesh(quad, pickMat); pick.matrixAutoUpdate = false; pick.matrix.copy(mesh.matrix); pick.layers.set(INSCRIPTION_PICK_LAYER);
+    pick.name = `inscription:${meta.inscription}:${meta.version}:pick`; pick.userData = meta; g.add(pick);
   };
   // XPa above each colossus of the Gate of All Nations, on the door reveals (versions OP / El / Bab / OP — assignment C)
   if (present('gate_nations') && m.gate_nations) {

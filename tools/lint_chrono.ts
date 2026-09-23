@@ -36,6 +36,19 @@ for (const a of assets) {
   const text = [a.id, a.name, a.description, ...(a.tags ?? [])].filter(Boolean).join(' ');
   for (const t of terms) if (t.re.test(text) && !(a.exempt === 'calibration' || a.exempt === 'nowview')) errors.push(`asset ${a.id}: matches blocklist '${t.id}'`);
 }
+// settlement and plain features (Phases 6-7): each names its chronology row, and presence must agree (fail-closed:
+// present_467 null = not placed = absent). Present features are matched against the blocklist on id, name and kind only
+// (their notes cite blocklisted things as negatives); a match is exempt only with a written reason in `blocklist_ok`.
+for (const [file, zone] of [['src/data/settlement.json', 'settlement'], ['src/data/plain.json', 'plain']] as const) {
+  for (const f of J(file).features as any[]) {
+    if (!f.chrono || !present.has(f.chrono)) { errors.push(`${zone} feature ${f.id}: chronology row '${f.chrono}' missing (fail-closed)`); continue; }
+    if (!!f.present_467 !== present.get(f.chrono)) errors.push(`${zone} feature ${f.id}: present_467=${f.present_467} but chronology ${f.chrono} present=${present.get(f.chrono)}`);
+    for (const k of String(f.src ?? '').split(';')) if (k && !sources[k]) errors.push(`${zone} feature ${f.id}: unknown source key ${k}`);
+    if (!['A', 'B', 'C'].includes(f.tier)) errors.push(`${zone} feature ${f.id}: bad tier ${f.tier}`);
+    if (f.present_467) { const text = [f.id.replace(/_/g, ' '), f.name, f.kind].join(' ');
+      for (const t of terms) if (t.re.test(text) && !f.blocklist_ok?.[t.id]) errors.push(`${zone} feature ${f.id}: present in 467 but matches blocklist '${t.id}' (exempt only with a blocklist_ok reason)`); }
+  }
+}
 // generated architecture: every part's building must be a PRESENT chronology structure (fail-closed)
 const { buildTerrace } = await import('../src/arch/terrace');
 const { parts } = buildTerrace();

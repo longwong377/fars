@@ -260,6 +260,101 @@
     "arabic inscription",
     "kufic"
    ]
+  },
+  {
+   "id": "frataraka",
+   "what": "\"Frataraka\" pedestal-temple complex N of the Terrace",
+   "reason": "post-Achaemenid (Callieri; GONDET2018, SX)",
+   "terms": [
+    "frataraka"
+   ]
+  },
+  {
+   "id": "istakhr-town",
+   "what": "Walled town of Istakhr, its mosque and fortress (Qal'a-ye Istakhr)",
+   "reason": "Sasanian\u2013Islamic: \"no evidence \u2026 of the pre-Sasanian history\" (ISTAKHR2018, SX); Barrington: Roman/Late Antique (PLEIADES-FARS)",
+   "terms": [
+    "istakhr",
+    "qal'a-ye istakhr",
+    "qala-ye istakhr"
+   ]
+  },
+  {
+   "id": "later-sites-plain",
+   "what": "Darre-ye Barre, Hajjiabad, Maqsudabad, Kuh-i Ayyub, Kuh-i Shahrak \"temples\"; Naqsh-i Bahram; Barm-i Dilak",
+   "reason": "Barrington/Pleiades Roman/Late Antique only (FT)",
+   "terms": [
+    "darre-ye barre",
+    "hajjiabad",
+    "maqsudabad",
+    "kuh-i ayyub",
+    "kuh-i shahrak",
+    "naqsh-i bahram",
+    "barm-i dilak",
+    "naqsh-e rajab"
+   ]
+  },
+  {
+   "id": "spring-cemetery",
+   "what": "\"Spring Cemetery\" slipper-coffin burials",
+   "reason": "late 4th c. BCE or later (IR-ARCH2, SX)",
+   "terms": [
+    "spring cemetery",
+    "slipper coffin",
+    "slipper-coffin"
+   ]
+  },
+  {
+   "id": "later-tombs-nr",
+   "what": "Naqsh-e Rustam tombs of Artaxerxes I and Darius II",
+   "reason": "kings reigning after 465 (the Xerxes tomb is open: Q-047)",
+   "terms": [
+    "tomb of artaxerxes i",
+    "tomb of darius ii",
+    "artaxerxes i tomb",
+    "darius ii tomb"
+   ]
+  },
+  {
+   "id": "modern-dams",
+   "what": "Doroodzan dam, Mulla Sadra dam, Sivand dam and reservoirs; modern canals and pumping",
+   "reason": "modern (KOR-HSJ2023)",
+   "terms": [
+    "doroodzan",
+    "mulla sadra dam",
+    "sivand dam",
+    "reservoir",
+    "pumping station"
+   ]
+  },
+  {
+   "id": "modern-plain",
+   "what": "Marvdasht city, sugar factory, petrochemical complex, Shiraz\u2013Isfahan highway and bridges, sugar-beet fields",
+   "reason": "modern (OVERTURE-2026)",
+   "terms": [
+    "marvdasht city",
+    "sugar factory",
+    "petrochemical",
+    "highway",
+    "sugar beet",
+    "sugar-beet"
+   ]
+  },
+  {
+   "id": "date-palms-plain",
+   "what": "date palms growing on the Marvdasht plain",
+   "reason": "dates are imported from the lowlands; 44 frost days a year (C)",
+   "terms": [
+    "date palm"
+   ]
+  },
+  {
+   "id": "qanat",
+   "what": "qanat shafts and galleries in the plain",
+   "reason": "not dated to the Achaemenid period (Q-052): **not placed**; unblock only with evidence",
+   "terms": [
+    "qanat"
+   ]
   }
  ]
 }

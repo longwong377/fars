@@ -1,0 +1,52 @@
+{
+  "_meta": {
+    "title": "Abstract places of the town and the plain for the Phase 5 population simulation (Xerxes yr 19, court absent by default)",
+    "built": "2026-09-23 (Phase 5 simulation, session 2)",
+    "frame": "grid metres (east, north), as src/data/settlement.json and people_places.json",
+    "status": "ABSTRACT, NOT RENDERED. The settlement geometry is Phase 6 and does not exist; these are named places with a representative position used only for walking times and for 'where is this person' queries. Nobody stands at these coordinates in the rendered world. Tier C throughout unless a row says otherwise.",
+    "tiers": "A attested / B inferred (search extracts capped at B) / C reconstructed. Zones come from settlement.json (existence B, extent C); every facility position is C because SETTLEMENT.md section 7 found no storehouse, stable or burial ground located.",
+    "src_keys": "all keys resolve in src/data/sources.json"
+  },
+  "quarters": [
+    { "id": "q_pw_n", "zone": "zone_persepolis_west", "at": [-900, 500], "share": 0.17, "kind": "town", "tier": "C", "src": "PW2017;GONDET2009", "note": "N half of Persepolis West (Sumner's Firuzi mounds): scattered mud-brick houses and yards around the Area B craft zone (B existence; houses C)" },
+    { "id": "q_pw_s", "zone": "zone_persepolis_west", "at": [-900, -300], "share": 0.18, "kind": "town", "tier": "C", "src": "PW2017;GONDET2009", "note": "S half of Persepolis West (C)" },
+    { "id": "q_lt_e", "zone": "zone_lower_town_south", "at": [-500, -1150], "share": 0.24, "kind": "town", "tier": "C", "src": "DASHTESTAN2021;GONDET2009", "note": "E part of the lower town S/SW of the Terrace, nearest the Terrace foot; 'the densest part of the town' is itself C (SETTLEMENT section 3)" },
+    { "id": "q_lt_w", "zone": "zone_lower_town_south", "at": [-1300, -1150], "share": 0.21, "kind": "town", "tier": "C", "src": "DASHTESTAN2021;GONDET2009", "note": "W part of the lower town (C)" },
+    { "id": "q_north", "zone": "north_official_complex", "at": [-150, 750], "share": 0.05, "kind": "town", "tier": "C", "src": "GONDET2018", "note": "houses around the ~1 ha official building N of the Terrace (building B existence; houses C)" },
+    { "id": "q_firuzi", "zone": "zone_bagh_e_firuzi", "at": [-2381, 2000], "share": 0.08, "kind": "garden", "tier": "C", "src": "GONDET2009;DASHTESTAN2021", "note": "palace-and-garden zone: 'very low-density elite-royal occupation' (B); estate households live here (C)" },
+    { "id": "q_gohar", "zone": "zone_dasht_e_gohar", "at": [818, 3800], "share": 0.07, "kind": "garden", "tier": "C", "src": "GONDET2009;PLEIADES-FARS", "note": "palace-and-garden zone around Takht-e Rustam (B existence); estate households (C)" }
+  ],
+  "facilities": [
+    { "id": "store_town", "kind": "store", "at": [-200, -750], "tier": "C", "src": "EVENTS-R;RECON", "note": "the storehouse where town ration groups receive their monthly issue (E-01 place_kind 'storehouse (town)'). No storehouse is located (SETTLEMENT section 7): position C, at the lower town's NE edge nearest the Terrace" },
+    { "id": "royal_store", "kind": "store", "at": [-150, -650], "tier": "C", "src": "CDLI-PF;RECON", "note": "the royal stores that receive grain, wine and figs (PF 2-8, 26, 30-33, 41, 53: 'to Persepolis ... for the royal stores', A Darius-era); position C" },
+    { "id": "mill", "kind": "mill", "at": [-260, -620], "tier": "C", "src": "CDLI-PF;RECON", "note": "the nupištaš ('the mill?', PF 28-29, A); hand grinding by women's groups (C); position C" },
+    { "id": "brewery", "kind": "brewery", "at": [-350, -820], "tier": "C", "src": "CDLI-PF;RECON", "note": "PF 40 'he made beer' (A); place C" },
+    { "id": "stockyard", "kind": "stockyard", "at": [-700, -1500], "tier": "C", "src": "CDLI-PF;RECON", "note": "PF 58-60 slaughter 'at the stockyard' (A, Darius-era, Hiran/Shiraz); a Persepolis stockyard and its position are C" },
+    { "id": "station", "kind": "station", "at": [-1800, 600], "tier": "C", "src": "ROYALROAD-GIS;HDT;RECON", "note": "road station at the town edge on the royal road W (E-20 place_kind 'road station at the edge of town (C)'); relay horses and messengers (HDT 8.98, B claim)" },
+    { "id": "official_bldg", "kind": "office", "at": [-50, 650], "tier": "C", "src": "GONDET2018", "note": "the ~1 ha official building N of the Terrace (B existence, C use as an office)" },
+    { "id": "craft_zone", "kind": "workshop", "at": [-1063, 538], "tier": "B", "src": "PW2017;PW-PIGMENT2021", "note": "Persepolis West Area B: kiln, bone pits, pigment making incl. Egyptian blue (activity B, date 'possible Achaemenid')" },
+    { "id": "brickyard", "kind": "brickyard", "at": [200, 380], "tier": "C", "src": "WP-CAL;MAYS2010;RECON", "note": "brick yards 'by water' (E-63): placed where the Kuh-e Rahmat canal reaches the Terrace foot (canal B existence, course C)" },
+    { "id": "offering_place", "kind": "offering", "at": [650, -250], "tier": "C", "src": "HENK2008;RECON", "note": "where the lan and other offerings are made: NOT on the Terrace (no evidence; E-30); position C on the lower slope of Kuh-e Rahmat E of the Terrace. Q-035" },
+    { "id": "mountain", "kind": "offering", "at": [2200, -1200], "tier": "C", "src": "HENK2008;RECON", "note": "a named mountain receives offerings (PF 1955, B); which mountain is not stated: Kuh-e Rahmat slope used (C)" },
+    { "id": "river", "kind": "offering", "at": [-1600, 2400], "tier": "C", "src": "HENK2008;PLEIADES-FARS", "note": "a named river receives offerings (PF 1955, B); the Pulvar bank N of the town (C)" },
+    { "id": "outside", "kind": "burial", "at": [-2600, -2200], "tier": "C", "src": "HDT;RECON", "note": "the dead are carried out of the settlement (E-71); no burial ground in use in 467 is located (SETTLEMENT section 6), so nothing is placed: an abstract 'outside the settlement'" },
+    { "id": "garden_pw", "kind": "garden", "at": [-1300, 200], "tier": "C", "src": "PW2017", "note": "Persepolis West Area C garden (ditch grid and fence wall, B reading; position C)" },
+    { "id": "crown_fields", "kind": "fields", "at": [-2600, -600], "tier": "C", "src": "PEOPLE-R;RECON", "note": "fields worked for the state by drafted town labour at harvest (population.json: 'harvest labour sent to fields in summer (5-15 %)'); which fields and where is not known (C)" },
+    { "id": "clay_pit", "kind": "workshop", "at": [-1500, 1700], "tier": "C", "src": "PW2017;RECON", "note": "where the Area B kiln workers dig clay: by the Pulvar (C)" },
+    { "id": "terrace_edge", "kind": "edge", "at": [-600, 122.5], "tier": "C", "src": "RECON", "note": "where the town road meets the rendered approach W of the Grand Stair (people_places.json 'town')" }
+  ],
+  "treasury_workshops": { "n": 4, "around": [-450, -950], "spread_m": 250, "tier": "C", "src": "HENK2023;LIVIUS-TREAS;RECON", "note": "the >=1,348 treasury people (LIVIUS-TREAS, B) mostly work in treasury workshops in the lower town (PEOPLE P5.4, C); SETTLEMENT section 2: metal, wood, textiles, gold (PT craftsmen B), location unknown" },
+  "villages": {
+    "located": [
+      { "id": "v_masumabad", "at": [-10222, 6663], "tier": "C", "src": "PLEIADES-FARS", "note": "Barrington settlement, Classical (FT); BA point" },
+      { "id": "v_saidun", "at": [12848, -286], "tier": "C", "src": "PLEIADES-FARS", "note": "Barrington settlement, Classical (FT); BA accuracy 10 km" },
+      { "id": "v_tukrash", "at": [-10767, -17046], "tier": "C", "src": "PLEIADES-FARS;SUMNER1986", "note": "PF toponym per Sumner (B); BA point" },
+      { "id": "v_rakkan", "at": [-23137, 2608], "tier": "C", "src": "PLEIADES-FARS;SUMNER1986", "note": "Sumner site R (B); BA accuracy 10 km" }
+    ],
+    "unlocated_n": 35,
+    "unlocated_dist_km": [3, 22],
+    "rank_size_exponent": 1.0,
+    "tier": "C", "src": "SUMNER1986;RECON",
+    "note": "Sumner: 39 secure + 18 possible Achaemenid sites, 675 ha, <= 44,000 people in a five-level hierarchy (B). Only the 39 secure sites are populated (4 located + 35 unlocated with an abstract distance from the Terrace); sizes follow a rank-size rule scaled to the plain working total in population.json (C)"
+  }
+}

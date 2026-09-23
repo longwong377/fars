@@ -89,7 +89,10 @@ describe('§13.3 dimension tests (built parts vs SITE_SPEC)', () => {
     const cols = parts.filter(p => p.building === 'gate_nations' && p.type === 'column') as any[];
     expect(cols.length).toBe(4); const g = columnGeometry(cols[0].order, 1); g.computeBoundingBox(); expect(g.boundingBox!.max.y).toBeCloseTo(16.5, 2);
     const walls = parts.filter(p => p.building === 'gate_nations' && p.kind === 'wall') as any[];
-    const lintels = walls.filter(w => w.y0 > 0.1); expect(lintels.length).toBe(3); for (const l of lintels) expect(l.y0).toBeCloseTo(10, 6);
+    const jambs = parts.filter(p => p.building === 'gate_nations' && p.type === 'box' && (p.kind === 'colossus' || p.kind === 'plinth')) as any[];
+    const overJamb = (w: any) => jambs.some(c => Math.abs(w.c[0] - c.c[0]) < (w.size[0] + c.size[0]) / 2 && Math.abs(w.c[1] - c.c[1]) < (w.size[1] + c.size[1]) / 2);
+    const lintels = walls.filter(w => w.y0 > 0.1 && !overJamb(w)); expect(lintels.length).toBe(3); for (const l of lintels) expect(l.y0).toBeCloseTo(10, 6);
+    const overColossi = walls.filter(w => w.y0 > 0.1 && overJamb(w)); expect(overColossi.length).toBe(4); // the wall ring is cut around the colossus jambs (D-032)
     expect(manifest.gate_nations.hallInteriorX).toBeCloseTo(Math.sqrt(612), 2);
   });
   it('Hall of 100 Columns: 10 × 10 grid at 68.5/11 m, 16-column portico; under construction (some shafts not raised)', () => {

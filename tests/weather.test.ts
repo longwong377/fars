@@ -44,3 +44,18 @@ describe('weather generator (§13.6)', () => {
     }
   });
 });
+
+describe('rain cell timeline (distant rain shafts, §1.1 rain moment)', () => {
+  it('a cell approaches from upwind at the steering wind speed, is overhead during the episode, and recedes downwind', async () => {
+    const { WeatherSystem } = await import('../src/weather/weatherState');
+    const W = new WeatherSystem(1); const i = W.days.findIndex((d, k) => d.wet && !d.snow && (W as any).rainWindows[k][0] > 2 && (W as any).rainWindows[k][1] < 21);
+    const [rs, re] = (W as any).rainWindows[i]; const d = W.days[i];
+    const a = W.rainCell(i, rs - 1)!, b = W.rainCell(i, rs - 0.5)!, mid = W.rainCell(i, (rs + re) / 2)!, after = W.rainCell(i, re + 0.5)!;
+    expect(a.distanceM).toBeGreaterThan(b.distanceM); expect(b.distanceM).toBeGreaterThan(0);
+    expect(a.bearingTrueDeg).toBeCloseTo(d.windDirDeg, 6); // from where the wind blows
+    expect(Math.abs(a.distanceM - 2 * b.distanceM)).toBeLessThan(1); // constant speed
+    expect(mid.distanceM).toBe(0);
+    expect(after.bearingTrueDeg).toBeCloseTo((d.windDirDeg + 180) % 360, 6);
+    W.override = 'rain'; expect(W.rainCell(i, rs - 1)).toBeNull();
+  });
+});

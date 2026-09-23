@@ -17,7 +17,7 @@ F3 toggles the dev overlay, which shows the evidence tier and source of whatever
 
 ## Deploy
 Static site (`dist/`) on a host that can set COOP/COEP headers. `public/_headers` covers Cloudflare Pages and Netlify.
-Large source data (`data/dem/*.tif`, raw imagery) stays out of git. Derived terrain rings (6.7 MB) are committed so a fresh
+Large source data (`data/dem/*.tif`, raw imagery) stays out of git. Derived terrain rings (11.8 MB) are committed so a fresh
 clone runs without the DEM.
 
 ## Budgets (set in Phase 1; proxies measured headless, real numbers from `?bench=all` — see REAL_HARDWARE_TODO.md)
@@ -28,8 +28,8 @@ clone runs without the DEM.
 | Triangles per frame | ≤ 12 M | 1.11 M (approach view) |
 | JS heap | ≤ 1.5 GB | ~125 MB after boot |
 | GPU memory (textures + buffers) | ≤ 3.5 GB | tracked via `renderer.info.memory` counts |
-| First playable load (download) | ≤ 60 MB | ≈ 9 MB (JS about 2 MB, terrain 6.7 MB, stars 0.2 MB) |
-| Total download (streamed) | ≤ 2.5 GB | ≈ 9 MB so far |
+| First playable load (download) | ≤ 60 MB | ≈ 14 MB (JS about 2 MB, terrain 11.8 MB, stars 0.2 MB) |
+| Total download (streamed) | ≤ 2.5 GB | ≈ 14 MB so far |
 
 ## Layout
 `research/`: evidence bible (SITE_SPEC, CHRONOLOGY, …). `src/data/`: machine-readable spec, chronology, sources, climate,

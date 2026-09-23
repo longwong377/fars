@@ -1,53 +1,72 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
-- The player body is a PLACEHOLDER figure. Ground colour is procedural (C). No weather is rendered yet except cloud cover, haze and fog (Phase 3).
-- The night sky has no Milky Way or airglow. Star brightness is perceptual (C).
-- No primary sources reachable (B6). The whole SITE_SPEC is tier B/C; nothing is A. The plan overlay compares against OSM, not Schmidt.
-- No evidence places Xerxes at Persepolis in 467, so the king is ABSENT by default (D-003). The court appears only in the C-tier "seasonal pattern" setting.
+- **Photorealism is not established.** The §8.2 rubric review and the independent Phase 3 and Phase 4 reviews have not run. The §1.1 moments have not been re-rendered at high quality since the session 2 fixes.
+- **Calibration scene (§8.1):** blocked (NEEDS #13). Stone and light values are C estimates.
+- **People:**
+  - On screen they are still the placeholder procedural rigs with abstract faces.
+  - D-020 built MakeHuman CC0 bodies, but the runtime does not use them yet. A session 3 agent is integrating them.
+- **Speech (D-011):** a placeholder formant synthesiser, not yet rated for intelligibility. The lexicons are thin.
+- **Carving (improved in session 3 by the stone agent, D-029 to D-032; still C):**
+  - The sculpted columns and colossi (D-018) and the carved reliefs (D-019) are procedural reconstructions of the type, not measured carving (licensed scans: NEEDS #10).
+  - Now fixed:
+    - joints are 0.8 mm hairlines on a joint-free carved surface;
+    - reliefs use mineral pigments as a matte film with wear, though every value is C (Q-074);
+    - curls are spiral locks and the horns are longer;
+    - the Gate door leaves hang at the inner end and the wall is cut in the parts;
+    - the dark door frames are Munsell N3, not black;
+    - Treasury members have their own materials;
+    - the reliefs are verified on WebGL2.
+  - Still weak:
+    - the running-bond block layout is uniform (the polygonal retaining walls are not modelled, Q-071);
+    - capital curls come out as noisy pits, and the lower LOD shows no curls;
+    - volutes are faceted;
+    - the lamassu face is rudimentary;
+    - the relief colour fields still dominate at register distance;
+    - no garment patterns are painted;
+    - "gold" is drawn as a yellow paint film;
+    - Treasury shafts are bare plaster (the colours are unknown), flagged as a placeholder;
+    - the door-leaf position is inferred (Q-073).
+- **Phase 5 (session 3; merged, D-021 to D-024):** `npm run soak` PASSES all eight gates for the full year, seed 1, court absent.
+  - Variety: all 43,348 people measured, worst 0.099; detailed agents worst 0.031.
+  - Events: 13–19 kinds a week against a floor of 8.
+  - No stuck agents, stocks bounded, construction advancing every week.
+  - The Phase 5 gate is still NOT passed:
+    - **Activity coverage FAILS the brief's rule:** 25 simulated activities have no visible performance. They are marked placeholder/abstractOnly and are used only off-Terrace (haul, weave, brew, herd, field work, plough, reap …).
+    - **About 550 people on the Terrace by day are simulated but not rendered**, counted as a PLACEHOLDER in the F3 overlay.
+    - **Construction state has no geometry hook:** the Hall of 100 Columns is drawn at its day-0 state.
+    - **Rendered floors (≥ 300 visible, ≥ 50 close) are not met:** the crowd still builds one placeholder rig per detailed agent (135).
+    - Newborns under one year (3,104) are reported, not gated (178 would fail in their first days). This is a scope decision in D-021, to be judged by the independent review.
+    - The §13.11 shadow review is running (REVIEWS/shadow_phase5.md).
+    - Every day-plan weight is C. The grain deliveries in the read texts cannot feed the ration groups (Q-056). Workers other than guards have no regular rest days (Q-057).
+- **Phases 6 and 7:** the settlement and plain are not built yet (session 3 agents started). The out-of-world map shows the Terrace only.
+- **King absent by default (D-003):** no evidence places Xerxes at Persepolis in 467. The court appears only in the C-tier "seasonal pattern" setting.
+- **No primary sources reachable (B6):** SITE_SPEC is tier B/C, nothing is A, and the plan overlay compares against OSM, not Schmidt.
+- **Sky and bench:**
+  - The Milky Way and airglow are implemented (D-047: position A, structure C) but not yet seen in a render.
+  - The volumetric clouds are now seen: drawn behind all geometry (D-046). They read as soft, blurry stratocumulus smears, not crisp cumulus. A texture-based rework was in progress (not yet verified).
+  - Bench numbers from session 2, and the first session 3 run, are **void**. Frames rendered outside the animation loop never advanced the node frame, so the scene pass was skipped: 1 draw call and sub-millisecond "frames". Fixed (D-047); a re-run is needed.
 
-- **People (Phase 3, in progress):** bodies and animation are PLACEHOLDERS. D-020: realistic bodies from MakeHuman CC0 assets are built (`tools/build_humans.ts` → `public/generated/humans/`, 23 variants, 59-bone skeleton, 3 LODs, generated skin) but NOT yet used at runtime; garments, hair/beards, the human material and the animation retarget are still to do. They are procedural rigid-skinned rigs with hand-authored pose cycles, not photoreal humans, and faces are abstract. The Phase 3 slice has 65 people: 30 guards on three watches at 10 posts, a mason gang of 12 plus a foreman, 6 porters, 2 scribes, 2 bakers, 4 grinders, 3 children, 2 couriers and 3 officials. The town is off the map (Phase 6), so the edge of the plain stands in for home. There is no Recast navmesh yet (D-010).
-
-- **Speech (D-011) is a PLACEHOLDER formant synthesiser** (robotic; not yet rated for intelligibility). The lexicons are thin: Old Persian has no greeting, so Persians greet in Aramaic or by gesture. The murmur is built from lexicon sound patterns, and languages with no lexicon (Greek, Egyptian, Lydian, Babylonian) fall back to C-tier profiles.
-- **Columns and Gate colossi are procedural sculpture (D-018, tier C), not measured carving.** They are reconstructed from the type (recollection), not from drawings, scans or photographs. Licensed scans would replace them (NEEDS #10). Known weak points:
-  - The first renders (shots/sculpt-*.png) show three faults. The limestone wall material's ashlar joint lines are drawn across capitals, protomes and colossi, so the carving reads as brickwork; carved members need a joint-free surface (not done). The curls are plain bosses, not spirals, and read as "bubble wrap": on the lamassu they run unbroken from the beard down the chest.
-  - The protome's bull heads are generic, and the horns are too small (they read as ears).
-  - The volute scrolls are coarse (2.5 k triangles).
-  - The colossi's leg count and proportions are not verified.
-  - The protome axis is always grid E–W (the beam direction is unknown).
-  - The Gate's open door leaves stand against the reveals over the front of the colossus flanks (layout).
-  - The Gate wall ring still overlaps the jamb volume in the colliders; only the render cuts it out.
-  - Treasury columns render with one material (timber) for the stone base, the plastered shaft and the capital.
-- **Calibration scene (§8.1) not done:** no dated photo of the ruin is reachable (NEEDS #13). Stone and light values remain C estimates, and the Phase 3 gate can pass only with this logged exception.
-
-- **High quality (session 2):** the washout is fixed (D-012: r186 SSGI outputs AO and GI separately; the old composite added albedo-red × AO everywhere). A boot hang on the new composite is fixed too (D-012 addendum). The moments are **not yet re-judged at high quality**, and the GI scale (π/2) is a derivation, not a calibration.
-- **Phase 4 (session 2, in progress):**
-  - Stairs, doors, corrected outlines and frames are built for the Tachara, Hadish, Tripylon, Hall of 100 Columns, Treasury and Harem (D-013, D-015).
-  - Every stair geometry is C inside B plan zones, and every court level is C.
-  - **Not built:** the Hadish balcony stairs to the Harem, the Harem portico step, the Tachara's third small stair, windows and niches, furnishings (thrones, hangings, stored goods), and reliefs on the new stairs and door jambs (the relief agent's figures come first).
-  - The Phase 4 walkthrough routes validate offline; the **e2e run is pending**.
-- **Phase 5 (started):** abstract simulation LOD, load-time catch-up and the soak harness exist (D-017). **The soak test FAILS** (near-copy days; 3 event kinds a week). There is no events calendar, town life, rota rotation or construction progress yet.
-- **Translation layer:** subtitles, inscription transliteration with lexicon glosses (no published translation: NEEDS #14), map and chronicle. The e2e check has not run.
-- **Volumetric clouds:** implemented (C shapes and optics) but **not yet seen in a render**.
-- **Bench:** the high-quality numbers from session 2 are invalid (draw calls accumulated across post passes; fixed, re-run needed).
-- **Surfaces (D-018):** walls are clay-painted mud plaster (B/C); floors are red plaster (B Tachara/Treasury, C elsewhere); the open courts are compacted fill (C, Q-027); the plain has a seasonal herb layer (C). All procedural, no photo calibration.
+## Fixed / verified in session 3 (2026-09-23)
+- **Reliefs:** rendered in a browser for the first time. Under WebGPU/SwiftShader, 143 figures were generated by the worker pool (0.82 M triangles at arm's length), with no errors.
+- **Step-up (D-034):** Rapier's autostep did not lift the player (measured: 0.24 m head-on, 0.12 m at 60°). The player now has an explicit step-up to `NAV.maxStep` (0.42 m) at any approach angle, covered by a regression test.
+- **Walkthroughs:** the bot's waypoint tolerance was tightened. The walkthrough bot now passes all six Phase 4 areas (77 legs, including Hadish) and the Phase 3 slice (28 legs) in the browser, with no falls, pop-ins or errors. `tools/dev/botcheck.ts` runs the same bot offline in seconds.
+- **Test camera (D-034):** `view()` and `teleport()` no longer land on roofs. They had landed on top of every roofed space.
+- **Translation layer (D-036):** the e2e passes: XPa transliteration and glosses, map, chronicle. Each inscription panel has a pick rectangle.
+- **Horizon (D-035, Q-053):** the far terrain ring is now ±71.7 km, with Earth curvature and refraction. The far skyline matches the independent SRTM profile within 0.15° in all 36 sectors, and the missing W/SW/SSE ranges are restored.
+- **Phase 6/7 bookkeeping (D-033):** settlement and plain features are in the chronology, and the chronology lint is fail-closed on them. The blocklist is synced (37 entries). Q-047 is decided: the Xerxes tomb is present, façade cut (C).
+- **E2E isolation:** each tree runs on its own Vite port (`E2E_PORT`), and no existing server is reused.
 
 ## Phase status
 | Phase | Status | Gate |
 |---|---|---|
-| 0 | research bible; review FAIL → fixes → re-review PASS (REVIEWS/phase0.md). Logged exceptions: no primary sources (B6); king absent by default (B9); footprints single-source (GEOMETRY_DIFF) | **passed with logged exceptions** |
-| 1 | Engine foundation: renderer (WebGPU + WebGL2 fallback, both verified headless), terrain rings (Copernicus, bare-earth, terrace foot), sky/sun/moon/stars (astronomy-engine, HYG with proper motion), seeded weather generator + runtime, Rapier player (walk/run/step-up/fall), placeholder body, shell (title, click-to-start, pause, settings, controls, key remap), save/load, dev overlay, bench mode, Playwright + vitest harness | **passed with logged exceptions**: terrain spot checks 7/7 (self-consistency with the Copernicus DSM and by-construction values; review MJ-4), plus an independent check against SRTM-derived AWS Terrain Tiles on 39 points: plain bias −5.3 m (a dataset-level difference that the raw DSM shows too), LE90 < 5 m; §13.6 sun 0.041° vs an independent Meeus implementation (Horizons blocked, B2); monthly T within 0.81 °C; wet days 29 vs 29.8. Budgets recorded (README). Exceptions: real frame rate not measurable (REAL_HARDWARE_TODO); sky is Preetham analytic (C for twilight/night); no volumetric clouds, rain or snow rendering yet (Phase 3) |
-| 2 | Terrace greybox from parametric generators (src/arch): Terrace platform + stair recess, Grand Stair (111 steps/side), Gate of All Nations, Apadana (72 columns, towers, N/E stairs), Tachara, Hadish, Hall of 100 Columns (under construction), Tripylon (under construction), Treasury, Harem, garrison, E fortification | **passed with logged exceptions**: plan overlay IoU ≥ 0.95 and offset < 0.5 m for all 11 structures on both render paths (rendered, 0.25 m/px) and geometrically; dimension tests 19/19; chronology lint covers generated parts; walk bot climbs the Grand Stair and passes through the Gate. Exceptions (corrected after review phase1-2 MJ-3):
-- The footprints are OSM ruin traces, not Schmidt's plan (B6).
-- For every building except the Grand Stair, the overlay mostly checks the footprint against itself. Platform-type buildings are built *from* their footprint polygon, and the Gate and Hall of 100 Columns are built from their footprint's bounding box, so their IoU only measures how rectangular the traced ruin is.
-- Only the Grand Stair (0.962) is partly independent, because its flights come from spec rows.
-- The overlay's real value is verifying the grid→world→render transform on both backends (10 structures rendered, 11 checked geometrically). |
-| 3 | Vertical slice: materials, reliefs, fire, weather VFX, audio, 65 people, speech/murmur, walkthrough bot (28 legs pass). Open: SSGI washout, rubric + independent review, bench, calibration (blocked) | **not passed** |
-| 4 | Rest of the Terrace (session 2): Phase 4 patch applied; stairs, doorways with stone frames, corrected Treasury/Harem outlines, floors, fires, acoustic rooms, guard posts; overlay + dimension tests pass (overlay vs trace + documented corrections); nav grid reaches every palace floor | **in progress**: walkthrough e2e, reliefs on the new stairs/jambs, windows/niches, furnishings, people beyond guards |
-| 5 | started: simulation LOD, catch-up persistence, soak harness (baseline fails) | — |
-| 6–7 | research agent (session 2): see HANDOFF | — |
-| 8 | translation layer built (e2e pending); speech/murmur from Phase 3 | — |
-| 9 | not started | — |
-| 3 | Vertical slice: materials, reliefs (carved low-relief heightfield figures with per-figure LOD since D-019: PLACEHOLDER, procedural C pending licensed scans NEEDS #10; browser render of the new relief path NOT yet verified by screenshot), fire, weather VFX, audio, 65 people, speech/murmur, walkthrough bot (28 legs pass). Open: SSGI washout, rubric + independent review, bench, calibration (blocked) | **not passed** |
-| 4 | research ready (research/PHASE4_ACCESS.md, patch not applied) | — |
-| 5–9 | not started | — |
+| 0 | Research bible. The review failed, was fixed, and passed on re-review (REVIEWS/phase0.md). | **Passed with logged exceptions:** no primary sources (B6); king absent (B9); footprints single-source |
+| 1 | Engine foundation: renderer (WebGPU + WebGL2), terrain rings, sky, weather, Rapier player, shell, save/load, overlay, bench, test harness | **Passed with logged exceptions:** real frame rate not measurable (REAL_HARDWARE_TODO); sky is Preetham analytic |
+| 2 | Terrace greybox from the parametric generators | **Passed with logged exceptions:** footprints are OSM traces (B6); the overlay mostly checks footprints against themselves |
+| 3 | Vertical slice: materials, reliefs, fire, weather VFX, audio, 65 people, speech/murmur, walkthrough bot (28 legs, re-verified session 3) | **Not passed:** rubric and independent review not run; calibration blocked; people placeholder; bench to re-run |
+| 4 | Rest of the Terrace: stairs, doors, frames, corrected outlines, floors, fires, acoustics, guard posts; overlay + dimension tests; walkthrough e2e passes all six areas (session 3) | **In progress:** reliefs on the new stairs and jambs, windows and niches, furnishings, people beyond guards, Phase 4 review |
+| 5 | Two-tier simulation of 46,590 people: events calendar, town life, rota, construction state, memory, persistence; soak PASSES (session 3); birds and jackals visible (D-054) | **Not passed:** activity coverage (25 placeholders), rendered floors, unrendered Terrace workforce, construction geometry, shadow review pending |
+| 6 | Research done; chronology and lint in place; session 3 agent building | — |
+| 7 | Research done; horizon fixed (D-035); session 3 agent building | — |
+| 8 | Translation layer built and e2e-verified; speech and murmur from Phase 3 (placeholders) | — |
+| 9 | Not started | — |

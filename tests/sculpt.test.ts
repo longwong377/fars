@@ -8,6 +8,7 @@ import type { Box, Column, ColumnOrder } from '../src/arch/parts';
 import { columnMesh, colossusMesh, colossusFrontProjections, sculptIndex, sculptHash, sculptInputs, sculptParams, piece, encodePiece, decodePiece, srow, PieceName, Lod } from '../src/arch/sculpt';
 import { columnGeometry, InstancedLOD, buildMeshes, cutWall } from '../src/arch/meshes';
 import { weldPositions, NormMesh } from '../src/arch/sdf';
+import { snail } from '../src/arch/sculpt_models';
 import S from '../src/data/sculpture.json';
 import sources from '../src/data/sources.json';
 
@@ -61,6 +62,21 @@ function sanity(m: NormMesh, what: string) {
     if (Math.hypot(uy * vz - uz * vy, uz * vx - ux * vz, ux * vy - uy * vx) / 2 < 1e-10) degenerate++;
   }
   expect(degenerate, `${what}: degenerate triangles`).toBe(0);
+}
+/** a ray at world (x, y) coming from the passage side (grid north offset s·∞ from the jamb centre cn) toward the wall: the
+ *  first surface it meets, as the grid-north offset from cn measured toward the passage (s·(n − cn)); null if it misses */
+function passageHit(m: NormMesh, x: number, y: number, cn: number, s: number): number | null {
+  let best: number | null = null;
+  for (let t = 0; t < m.idx.length; t += 3) {
+    const a = m.idx[t] * 3, b = m.idx[t + 1] * 3, c = m.idx[t + 2] * 3;
+    const ax = m.pos[a] - x, ay = m.pos[a + 1] - y, bx = m.pos[b] - x, by = m.pos[b + 1] - y, cx = m.pos[c] - x, cy = m.pos[c + 1] - y;
+    const d = (bx - ax) * (cy - ay) - (by - ay) * (cx - ax); if (Math.abs(d) < 1e-14) continue;
+    const u = (bx * cy - by * cx) / d, v = (cx * ay - cy * ax) / d, w = 1 - u - v; // barycentrics of (x, y) in the xy projection
+    if (u < 0 || v < 0 || w < 0) continue;
+    const off = s * (-(u * m.pos[a + 2] + v * m.pos[b + 2] + w * m.pos[c + 2]) - cn); // world z = −grid north
+    if (best === null || off > best) best = off;
+  }
+  return best;
 }
 /** edges used by exactly one triangle once coincident positions are welded (0 for closed surfaces) */
 function openEdges(m: NormMesh) {
@@ -169,32 +185,92 @@ describe('doorway colossi (D-018)', () => {
       let y0 = Infinity, y1 = -Infinity, z0 = Infinity, z1 = -Infinity;
       for (let i = 0; i < m.pos.length; i += 3) if (f * (m.pos[i] - c.c[0]) > c.size[0] / 2 - fr[ci] + 0.05) { y0 = Math.min(y0, m.pos[i + 1]); y1 = Math.max(y1, m.pos[i + 1]); z0 = Math.min(z0, m.pos[i + 2]); z1 = Math.max(z1, m.pos[i + 2]); }
       expect(y1 - c.y0).toBeGreaterThan(H * 0.75); expect(y0 - c.y0).toBeLessThan(0.05); expect(z1 - z0).toBeLessThan(c.size[1] * 0.85);
-      // at mid-height, halfway along the body, the passage-side surface is carved back (relief) while the wall side is flat
-      const y = (c.y0 + c.y1) / 2, band = (i: number) => Math.abs(m.pos[i + 1] - y) < 0.3 && Math.abs(m.pos[i] - c.c[0]) < 0.5;
-      let passageFlat = 0, nPass = 0, wallMost = Infinity;
-      for (let i = 0; i < m.pos.length; i += 3) {
-        const n = -m.pos[i + 2] - c.c[1]; wallMost = Math.min(wallMost, s * n);
-        if (band(i) && s * n > 0) { nPass++; if (Math.abs(s * n - c.size[1] / 2) < 1e-3) passageFlat++; }
+      // at mid-height, halfway along the body, the passage-side surface is carved back (relief) while the wall side is flat:
+      // rays cast from the passage toward the wall over a 7 × 7 grid (x ± 0.5 m, y ± 0.3 m) all hit the carving, and most
+      // of them hit it off the box face (surface sampling, independent of how the simplifier spread the vertices)
+      const y = (c.y0 + c.y1) / 2; let wallMost = Infinity, hits = 0, flat = 0;
+      for (let i = 0; i < m.pos.length; i += 3) wallMost = Math.min(wallMost, s * (-m.pos[i + 2] - c.c[1]));
+      for (let a = 0; a < 7; a++) for (let b = 0; b < 7; b++) {
+        const n = passageHit(m, c.c[0] - 0.5 + a / 6, y - 0.3 + (b / 6) * 0.6, c.c[1], s);
+        if (n === null) continue; hits++; if (Math.abs(n - c.size[1] / 2) < 1e-3) flat++;
       }
-      expect(nPass).toBeGreaterThan(8); expect(passageFlat / nPass).toBeLessThan(0.5);
+      expect(hits).toBe(49); expect(flat / hits).toBeLessThan(0.5);
       expect(wallMost).toBeCloseTo(-c.size[1] / 2, 3); // the back of the jamb block is the wall-side face of the box
     });
   });
   it('triangle budgets per LOD', () => {
     for (const n of ['colossus_bull', 'colossus_lamassu'] as PieceName[]) { expect(piece(n, 0).idx.length / 3).toBeLessThanOrEqual(BUDGET.colossus_lod0); expect(piece(n, 1).idx.length / 3).toBeLessThanOrEqual(BUDGET.colossus_lod1); }
   });
-  it('render: the wall is drawn around the jamb (cut out), the collider box is kept', () => {
+  it('parts: the wall ring is cut around each colossus and plinth (no overlap in parts, colliders or render; D-032)', () => {
     const walls = parts.filter(p => p.type === 'box' && p.kind === 'wall' && p.building === 'gate_nations') as Box[];
-    const cutters = parts.filter(p => p.type === 'box' && (p.sculpt || p.kind === 'plinth')) as Box[];
-    const cut = walls.map(w => cutWall(w, cutters)).filter(Boolean) as Box[][];
-    expect(cut.length).toBe(4); // the W and E walls on either side of the two colossus doorways
-    for (const pieces of cut) for (const p of pieces) for (const c of cutters) {
-      const overlap = Math.max(0, Math.min(p.c[0] + p.size[0] / 2, c.c[0] + c.size[0] / 2) - Math.max(p.c[0] - p.size[0] / 2, c.c[0] - c.size[0] / 2)) * Math.max(0, Math.min(p.c[1] + p.size[1] / 2, c.c[1] + c.size[1] / 2) - Math.max(p.c[1] - p.size[1] / 2, c.c[1] - c.size[1] / 2)) * Math.max(0, Math.min(p.y1, c.y1) - Math.max(p.y0, c.y0));
-      expect(overlap).toBeLessThan(1e-9);
+    const cutters = parts.filter(p => p.type === 'box' && p.building === 'gate_nations' && (p.sculpt || p.kind === 'plinth')) as Box[];
+    expect(cutters.length).toBe(8);
+    const ov = (p: Box, c: Box) => Math.max(0, Math.min(p.c[0] + p.size[0] / 2, c.c[0] + c.size[0] / 2) - Math.max(p.c[0] - p.size[0] / 2, c.c[0] - c.size[0] / 2)) * Math.max(0, Math.min(p.c[1] + p.size[1] / 2, c.c[1] + c.size[1] / 2) - Math.max(p.c[1] - p.size[1] / 2, c.c[1] - c.size[1] / 2)) * Math.max(0, Math.min(p.y1, c.y1) - Math.max(p.y0, c.y0));
+    for (const w of walls) for (const c of cutters) expect(ov(w, c), `wall at ${w.c} vs ${c.kind} at ${c.c}`).toBeLessThan(1e-6);
+    for (const w of walls) { // nothing left to cut: cutting again removes no volume (≤ 1 cm³; floating-point residue at shared faces)
+      const vol = (b: Box) => b.size[0] * b.size[1] * (b.y1 - b.y0), again = cutWall(w, cutters);
+      if (again) expect(Math.abs(again.reduce((q, b) => q + vol(b), 0) - vol(w))).toBeLessThan(1e-6);
     }
+    // the wall still stands over every colossus (from its top to the wall top), so the doorway reads as before
+    for (const c of cutters.filter(q => q.sculpt)) expect(walls.some(w => ov({ ...w, y0: c.y0, y1: c.y1 }, c) > 0 && Math.abs(w.y0 - c.y1) < 1e-9), `wall above ${c.c}`).toBe(true);
     const g = buildMeshes(parts.filter(p => p.building === 'gate_nations'));
     expect(g.group.children.filter(o => o.name.startsWith('gate_nations:colossus')).length).toBe(4);
     for (const o of g.group.children.filter(o => o.name.startsWith('gate_nations:colossus'))) { expect(o.userData.tier).toBe('C'); expect(o.userData.placeholder).toBe(false); expect(o.userData.note).toMatch(/NEEDS #10/); }
+  });
+  it('door leaves hang at the inner end and stand open against the inner wall face, clear of the colossi and the passage', () => {
+    const leaves = parts.filter(p => p.type === 'box' && p.kind === 'door_leaf' && p.building === 'gate_nations') as Box[];
+    const floor = parts.find(p => p.building === 'gate_nations' && p.kind === 'floor') as Box, hs = Math.sqrt(612);
+    expect(leaves.length).toBe(6);
+    for (const l of leaves) {
+      // inside the hall square, touching its boundary (the inner wall face)
+      const x0 = l.c[0] - l.size[0] / 2, x1 = l.c[0] + l.size[0] / 2, y0 = l.c[1] - l.size[1] / 2, y1 = l.c[1] + l.size[1] / 2;
+      const hx0 = floor.c[0] - hs / 2, hx1 = floor.c[0] + hs / 2, hy0 = floor.c[1] - hs / 2, hy1 = floor.c[1] + hs / 2;
+      expect(x0).toBeGreaterThanOrEqual(hx0 - 0.02); expect(x1).toBeLessThanOrEqual(hx1 + 0.02); expect(y0).toBeGreaterThanOrEqual(hy0 - 0.02); expect(y1).toBeLessThanOrEqual(hy1 + 0.02);
+      expect(Math.min(Math.abs(x0 - hx0), Math.abs(x1 - hx1), Math.abs(y0 - hy0), Math.abs(y1 - hy1))).toBeLessThan(0.02);
+      for (const c of colossi) { // clearance to every colossus box, in plan (m)
+        const dx = Math.max(0, Math.max(x0, c.c[0] - c.size[0] / 2) - Math.min(x1, c.c[0] + c.size[0] / 2)), dy = Math.max(0, Math.max(y0, c.c[1] - c.size[1] / 2) - Math.min(y1, c.c[1] + c.size[1] / 2));
+        expect(Math.hypot(dx, dy), 'leaf clear of the colossus').toBeGreaterThan(0);
+      }
+    }
+  });
+});
+
+describe('carving details (D-029)', () => {
+  it('curls are snail curls: a spiral groove cuts each boss, neighbouring locks coil in opposite senses (not plain domes)', () => {
+    const C = srow('colossus', 'curls'), at = (u0: number, rr: number, a: number) => snail(u0 + rr * C.rad * Math.cos(a), rr * C.rad * Math.sin(a), C.pitch, C.rad, C.turns, C.groove_w, C.groove_d);
+    for (const u0 of [0, C.pitch]) { // two neighbouring locks in the same row
+      let lo = Infinity, hi = -Infinity; for (let k = 0; k < 90; k++) { const v = at(u0, 0.5, (k / 90) * 2 * Math.PI); lo = Math.min(lo, v); hi = Math.max(hi, v); }
+      expect(hi - lo, 'the groove crosses a circle of half the lock radius (a dome would be constant there)').toBeGreaterThan(0.3);
+      expect(lo).toBeLessThan(Math.sqrt(0.75) - 0.3);
+    }
+    // handedness: the groove's angle grows with the radius in opposite senses on the two locks
+    const grooveAngle = (u0: number, rr: number) => { let best = Infinity, ba = 0; for (let k = 0; k < 360; k++) { const a = (k / 360) * 2 * Math.PI, v = at(u0, rr, a); if (v < best) { best = v; ba = a; } } return ba; };
+    const turn = (u0: number) => { let d = grooveAngle(u0, 0.62) - grooveAngle(u0, 0.5); d = ((d + 3 * Math.PI) % (2 * Math.PI)) - Math.PI; return Math.sign(d); };
+    expect(turn(0) * turn(C.pitch)).toBe(-1);
+  });
+  it('protome horns read as horns: they spread at least 0.4 D out from the head axis and rise above the skull', () => {
+    const H = srow('protome', 'head'), m = piece('protome', 0), skullTop = H.skull_c[1] + H.skull_r[1];
+    // the unit protome is fitted to its box at load; in the piece's own frame (D units) measure the head region of one bull
+    let zMax = 0, yMax = -Infinity; for (let i = 0; i < m.pos.length; i += 3) if (m.pos[i] > H.skull_c[0] - 0.3) { zMax = Math.max(zMax, Math.abs(m.pos[i + 2])); yMax = Math.max(yMax, m.pos[i + 1]); }
+    expect(zMax).toBeGreaterThan(0.4); expect(yMax).toBeGreaterThan(skullTop + 0.05);
+    let len = 0; for (let k = 1; k < H.horn.length; k++) len += Math.hypot(...H.horn[k].map((v: number, j: number) => v - H.horn[k - 1][j]) as [number, number, number]);
+    expect(len, 'horn length along the curve (D)').toBeGreaterThan(0.45); expect(H.horn_r[0]).toBeGreaterThan(0.07);
+  });
+  it('the lamassu beard and chest curls are separate: a smooth band of chest between them (rays along the front)', () => {
+    const HM = srow('colossus', 'human_head'), BE = srow('colossus', 'beard'), BD = srow('colossus', 'body'), m = piece('colossus_lamassu', 0);
+    const beardBottom = HM.beard_c[1] - HM.beard_h[1];
+    const frontX = (y: number, z: number) => { let best = -Infinity; // first surface met by a ray from +x at (y, z)
+      for (let t = 0; t < m.idx.length; t += 3) {
+        const a = m.idx[t] * 3, b = m.idx[t + 1] * 3, c = m.idx[t + 2] * 3;
+        const ay = m.pos[a + 1] - y, az = m.pos[a + 2] - z, by = m.pos[b + 1] - y, bz = m.pos[b + 2] - z, cy = m.pos[c + 1] - y, cz = m.pos[c + 2] - z;
+        const d = (by - ay) * (cz - az) - (bz - az) * (cy - ay); if (Math.abs(d) < 1e-14) continue;
+        const u = (by * cz - bz * cy) / d, v = (cy * az - cz * ay) / d, w = 1 - u - v; if (u < 0 || v < 0 || w < 0) continue;
+        best = Math.max(best, u * m.pos[a] + v * m.pos[b] + w * m.pos[c]); }
+      return best; };
+    // roughness = mean |second difference| of the front profile at 1 cm steps, beside the median plane (the legs are below)
+    const rough = (y0: number, y1: number) => { let s = 0, n = 0; for (const z of [BD.zc - 0.15, BD.zc + 0.15]) { const p: number[] = []; for (let y = y0; y <= y1 + 1e-9; y += 0.01) p.push(frontX(y, z)); for (let i = 1; i < p.length - 1; i++) { s += Math.abs(p[i + 1] - 2 * p[i] + p[i - 1]); n++; } } return s / n; };
+    const gap = rough(beardBottom - BE.chest_gap + 0.03, beardBottom - 0.03), curls = rough(beardBottom - BE.chest_gap - 0.4, beardBottom - BE.chest_gap - 0.1);
+    expect(gap * 3, `gap ${gap.toFixed(4)} vs curls ${curls.toFixed(4)}`).toBeLessThan(curls);
   });
 });
 

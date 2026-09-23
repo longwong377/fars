@@ -3,12 +3,23 @@
 export interface RingMeta { half: number; cell: number; n: number; asl_min: number; step: number; file: string; min: number; max: number }
 export interface TerrainMeta { court_asl: number; rings: Record<'near' | 'mid' | 'far', RingMeta> }
 
+/** Earth curvature seen through standard atmospheric refraction: a point at distance d from the grid origin appears
+ *  d²(1 − k)/(2R) lower. R = mean Earth radius (A); k = 0.13, the conventional terrestrial refraction coefficient (B; it
+ *  varies with the air's temperature gradient). The drop is 1 cm at 0.4 km, 0.27 m at 2 km, 110 m at 40 km, 300 m at 66 km:
+ *  negligible on the Terrace, but it sets how far ranges rise above the skyline (plain.json horizon_check, Q-053). It is
+ *  applied relative to the grid origin (the Apadana), not the eye: for an eye up to 6 km away the skyline error stays
+ *  below ~0.05°, and the extra tilt of the local ground below 0.05°. Rendered and walked heights include it; aslAt()
+ *  removes it again, so elevations stay true. */
+export const CURVATURE = { R: 6371000, k: 0.13 };
+export const curvatureDrop = (x: number, z: number) => ((x * x + z * z) * (1 - CURVATURE.k)) / (2 * CURVATURE.R);
+
 export class Ring {
-  readonly h: Float32Array; // heights relative to court, row-major, row 0 = grid north edge (y = +half)
+  readonly h: Float32Array; // apparent heights relative to court (curvature included), row-major, row 0 = grid north edge (y = +half)
   constructor(readonly meta: RingMeta, raw: Uint16Array, courtAsl: number) {
     this.h = new Float32Array(raw.length);
-    const off = meta.asl_min - courtAsl;
-    for (let i = 0; i < raw.length; i++) this.h[i] = off + raw[i] * meta.step;
+    const off = meta.asl_min - courtAsl, n = meta.n;
+    for (let r = 0; r < n; r++) { const z = r * meta.cell - meta.half;
+      for (let c = 0; c < n; c++) { const i = r * n + c, x = c * meta.cell - meta.half; this.h[i] = off + raw[i] * meta.step - curvatureDrop(x, z); } }
   }
   get n() { return this.meta.n; }
   get cell() { return this.meta.cell; }
@@ -39,8 +50,8 @@ export class Terrain {
     if (this.mid.contains(x, z, 32)) return this.mid.heightAt(x, z);
     return this.far.heightAt(x, z);
   }
-  /** absolute elevation above sea level */
-  aslAt(x: number, z: number) { return this.heightAt(x, z) + this.meta.court_asl; }
+  /** true elevation above sea level (the apparent curvature drop removed) */
+  aslAt(x: number, z: number) { return this.heightAt(x, z) + curvatureDrop(x, z) + this.meta.court_asl; }
 }
 
 /** grid (east, north) → world (x, z) */

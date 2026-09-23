@@ -68,3 +68,27 @@ describe('independent elevation check vs SRTM-derived AWS Terrain Tiles (review 
     srtm.points.forEach((p, i) => { if (p.h >= 1650 && p.id !== 'naqsh_foot') expect(d[i], p.id).toBeLessThan(30); });
   });
 });
+
+import plain from '../src/data/plain.json';
+describe('skyline vs the independent SRTM horizon check (plain.json horizon_check, Q-053; curvature + refraction k = 0.13)', () => {
+  // eye on the Apadana court (1,626.6 m asl); sector s spans true azimuths [s, s + 10]
+  const eye = 1626.6 - meta.court_asl, lim = T.far.half - 80;
+  const sky = (a0: number, a1: number, dMin = 300, dMax = 1e9) => { let best = -90, bd = 0;
+    for (let az = a0; az <= a1; az += 0.5) { const g = ((az - 341) * Math.PI) / 180, sx = Math.sin(g), sz = -Math.cos(g);
+      for (let d = dMin; d <= dMax; d *= 1.006) { const x = sx * d, z = sz * d; if (Math.abs(x) > lim || Math.abs(z) > lim) break;
+        const el = (Math.atan2(T.heightAt(x, z) - eye, d) * 180) / Math.PI; if (el > best) { best = el; bd = d; } } }
+    return { el: best, km: bd / 1000 }; };
+  const sectors = (plain as any).features.find((f: any) => f.id === 'horizon_check').sectors as any[];
+  it('far-field skyline (feature ≥ 15 km away) within 0.15° in every sector', () => {
+    const rows: string[] = [];
+    for (const s of sectors) { const truthKm = s.beyond_visible ? s.beyond_km : s.in_ring_km; if (truthKm < 15) continue;
+      // compare the far skyline itself (ground ≥ 15 km): within a few km the 4 m near ring and SRTM's ~150 m cells differ
+      // at the mountain foot (e.g. sector 150: ours 1.2° at 1.0 km vs SRTM 0.4° at 1.2 km), which is resolution, not error
+      const ours = sky(s.sector, s.sector + 10, 15000), truth = s.beyond_visible ? s.beyond_deg : s.in_ring_deg; rows.push(`${s.sector}: ${ours.el.toFixed(2)} vs ${truth}`);
+      expect(Math.abs(ours.el - truth), `sector ${s.sector}: ours ${ours.el.toFixed(2)}° @${ours.km.toFixed(1)} km, SRTM ${truth}° @${truthKm} km`).toBeLessThan(0.15); }
+    console.log('skyline', rows.join(' · '));
+  });
+  it('the ranges beyond 41 km that rise above the nearer skyline are present (was truncated by the old 40.96 km ring)', () => {
+    for (const s of sectors.filter(x => x.beyond_visible)) expect(sky(s.sector, s.sector + 10, 45000, 75000).el, `sector ${s.sector}`).toBeGreaterThan(s.beyond_deg - 0.15);
+  });
+});

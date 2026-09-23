@@ -48,9 +48,9 @@ describe('walkable grid', () => {
 });
 
 describe('roster', () => {
-  it('50–100 people; names are attested or honestly unnamed; every person has home, household, job, ration and ties', () => {
+  it('135 detailed people (the garrison of 100 in ten files and the 35 of the slice: D-021, D-023); names are attested or honestly unnamed; every person has home, household, job, ration and ties', () => {
     const sim = new PeopleSim(1, nav, env);
-    expect(sim.agents.length).toBeGreaterThanOrEqual(50); expect(sim.agents.length).toBeLessThanOrEqual(100);
+    expect(sim.agents.length).toBe(135); expect(sim.agents.filter(a => a.role === 'guard').length).toBe(100);
     const pool = new Set((JSON.parse(readFileSync('src/data/names.json', 'utf8')).names as any[]).map(n => n.name));
     for (const a of sim.agents) {
       if (a.name) expect(pool.has(a.name), a.name).toBe(true); else expect(a.nameNote).toMatch(/unnamed/);
@@ -65,7 +65,7 @@ describe('a simulated day (dry day, court absent)', () => {
     const sim = new PeopleSim(1, nav, env);
     const posts = [...new Set(sim.agents.filter(a => a.post).map(a => a.post!))];
     let samples = 0; const held: Record<string, number> = {}; const stuck: string[] = [];
-    const lastMove = new Map<number, { p: [number, number]; t: number }>();
+    const lastMove = new Map<number, { p: [number, number]; t: number; w: boolean }>();
     const acts = new Set<string>(); let masonsAt10 = 0;
     runDay(sim, dryDay, 2, h => {
       samples++;
@@ -73,7 +73,9 @@ describe('a simulated day (dry day, court absent)', () => {
       for (const a of sim.agents) {
         acts.add(sim.performance(a).act);
         const lm = lastMove.get(a.id);
-        if (!lm || Math.hypot(a.pos[0] - lm.p[0], a.pos[1] - lm.p[1]) > 0.5) lastMove.set(a.id, { p: [...a.pos] as [number, number], t: sim.t });
+        // stuck = walking at consecutive samples (a quarter-hour apart) without getting 0.5 m further; someone who has only
+        // just set off at a sample (standing at the previous one) is not stuck
+        if (!lm || Math.hypot(a.pos[0] - lm.p[0], a.pos[1] - lm.p[1]) > 0.5 || !a.walking || !lm.w) lastMove.set(a.id, { p: [...a.pos] as [number, number], t: sim.t, w: a.walking });
         else if (a.walking && sim.t - lm.t > 0.25) stuck.push(`${a.id} ${a.role} at ${a.pos.map(v => v.toFixed(1))} (${a.task?.why})`);
       }
       if (h === 10) masonsAt10 = sim.agents.filter(a => a.role === 'mason' && a.task?.act === 'dress_stone' && !a.walking).length;
