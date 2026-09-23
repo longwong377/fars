@@ -8,7 +8,7 @@ import { float, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoo
 import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt } from './ephemeris';
 import { VolumetricClouds } from './clouds';
 import { skyCalibration } from './horizon';
-import { coverageUniform } from './cloudCover';
+import { localCoverageUniform, localWeatherFactor } from './cloudCover';
 import coverTable from '../data/cloud_cover_table.json';
 
 export interface SkyState { sunDir: THREE.Vector3; sunAlt: number; moonDir: THREE.Vector3; moonAlt: number; moonFraction: number; daylight: number; nightFactor: number }
@@ -30,6 +30,7 @@ export class SkySystem {
   /** radiance of the sky just above the horizon across the view, after calibration: the fog colour (D-060) */
   readonly horizon = new THREE.Color(0.6, 0.63, 0.68);
   private uSkyScale = uniform(1);
+  private coverAt: [number, number] | null = null; private coverFactor = 1;
   state: SkyState = { sunDir: new THREE.Vector3(0, 1, 0), sunAlt: 45, moonDir: new THREE.Vector3(0, -1, 0), moonAlt: -10, moonFraction: 0, daylight: 1, nightFactor: 0 };
 
   readonly clouds: VolumetricClouds;
@@ -181,7 +182,7 @@ export class SkySystem {
     this.hemi.intensity = 0.03 + 0.95 * twilight * (1 - 0.3 * cloudCover) + 0.04 * ph.fraction * night;
     this.hemi.color.setRGB(0.55 + 0.2 * day, 0.62 + 0.18 * day, 0.8 + 0.1 * day);
     // volumetric clouds: cover, light, wind drift (the wind blows FROM windDir: clouds move the opposite way)
-    const C = this.clouds; C.mesh.position.copy(camPos); C.coverage.value = coverageUniform(cloudCover, coverTable as any); /* the weather's cover → the uniform that draws that fraction (measured, D-064) */ C.sunDir.value.copy(this.state.sunDir);
+    const C = this.clouds; C.mesh.position.copy(camPos);  C.sunDir.value.copy(this.state.sunDir);
     C.sunColor.value.copy(this.sun.color).multiplyScalar(this.sun.visible ? this.sun.intensity / 3.2 : 0).add(new THREE.Color(0.55, 0.6, 0.75).multiplyScalar(this.moonLight.intensity * 0.5));
     C.ambient.value.copy(this.hemi.color).multiplyScalar(this.hemi.intensity * 0.55);
     // dome calibration and the horizon radiance (D-060): fog, far cloud haze and rain shafts converge to it
@@ -191,6 +192,11 @@ export class SkySystem {
       this.uSkyScale.value = cal.scale; this.horizon.setRGB(cal.horizon[0], cal.horizon[1], cal.horizon[2]); }
     C.haze.value.copy(this.horizon);
     if (wind) { const a = ((wind.fromDeg + 180) * Math.PI) / 180; C.wind.value.set(Math.sin(a) * wind.ms * 2.5, -Math.cos(a) * wind.ms * 2.5); C.time.value = wind.tSeconds; } // winds aloft ~2.5 × surface (C)
+    // cover over THIS observer (D-064): the weather field scales the cover by 0.6–1.4 across its tile, so the uniform is
+    // solved for the drifted field around the camera (recomputed when the observer or the field has moved > 500 m)
+    { const cx = camPos.x + C.wind.value.x * C.time.value, cz = camPos.z + C.wind.value.y * C.time.value;
+      if (!this.coverAt || Math.hypot(cx - this.coverAt[0], cz - this.coverAt[1]) > 500) { this.coverAt = [cx, cz]; this.coverFactor = C.mesh.visible ? localWeatherFactor(cx, cz) : 1; }
+      C.coverage.value = localCoverageUniform(cloudCover, (coverTable as any).local, this.coverFactor); }
     if (Math.abs(jdUT - this.lastStarJD) > 10 / 86400) { this.updateStars(jdUT); this.updateGalactic(jdUT); this.lastStarJD = jdUT; }
   }
 }

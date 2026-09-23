@@ -1006,3 +1006,7 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
     - the shaft tint is now 0.35 of the horizon radiance (C).
   - Measured at 24 km: the band just above the horizon toward the cell is 17 % darker than the same heights to the W (133 vs 161 sRGB). A real but subtle curtain.
   - The moment moved to 11:06, with the cell 15 km out, 50 min before it arrives. The camera must stay beyond the shaft mesh's radius, two core radii (12.7 km).
+- **Addendum (local cover):** the weather field scales the cover by ×0.6–1.4 across its 46 km tile. The tile-mean calibration drew about 50 % cloud over the Terrace on a "clear" day, seen in the dawn moment. The sky now solves the uniform for the sky over the observer:
+  - It uses a second measured curve: column cover against a fixed effective cover.
+  - It divides by the mean of the drifted weather field over a 12 km disc around the camera (21 samples, recomputed after 500 m of movement).
+  - Measured error of the cover over the observer's 12 km disc: worst 0.053, mean 0.018, across 30 observer/cover cases (tested ±0.08).

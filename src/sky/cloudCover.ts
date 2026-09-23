@@ -27,24 +27,25 @@ export function sample3(u: number, v: number, w: number): [number, number, numbe
   return out;
 }
 /** the shader's density (per metre) at world (x, z) and height y above the observer, for the coverage uniform `cov` */
-export function density(x: number, y: number, z: number, cov: number): number {
+/** `fixedC`: use this effective cover everywhere instead of cov × the weather field (the local-cover calibration) */
+export function density(x: number, y: number, z: number, cov: number, fixedC?: number): number {
   const h = clamp01((y - CLOUD.base) / (CLOUD.top - CLOUD.base));
   const lo = sample3(x / CLOUD.baseTile, y / CLOUD.baseTile, z / CLOUD.baseTile)[0];
   const weather = sample3(x / CLOUD.weatherTile, 0.37, z / CLOUD.weatherTile)[0];
   const top = 0.35 + lo * 0.6;
   const shape = smooth(0, 0.06, h) * (1 - smooth(top * 0.7, top, h));
-  const c = clamp01(cov * (weather * 0.8 + 0.6));
+  const c = fixedC !== undefined ? clamp01(fixedC) : clamp01(cov * (weather * 0.8 + 0.6));
   const base = clamp01(remap(lo * shape, 1 - c, 1, 0, 1)) * c;
   const hi = sample3(x / CLOUD.detailTile, y / CLOUD.detailTile, z / CLOUD.detailTile), hf = hi[1] * 0.625 + hi[2] * 0.25 + hi[3] * 0.125;
   const erode = (hf + ((1 - hf) - hf) * clamp01(h * 4)) * 0.35;
   return clamp01(remap(base, erode, 1, 0, 1)) * 0.02;
 }
 /** fraction of vertical columns with optical depth > 1, over one weather tile (grid × grid columns, `steps` samples each) */
-export function columnCover(cov: number, grid = 64, steps = 32): number {
+export function columnCover(cov: number, grid = 64, steps = 32, fixedC?: number): number {
   let covered = 0; const dy = (CLOUD.top - CLOUD.base) / steps;
   for (let i = 0; i < grid; i++) for (let j = 0; j < grid; j++) {
     const x = ((i + 0.5) / grid) * CLOUD.weatherTile, z = ((j + 0.5) / grid) * CLOUD.weatherTile;
-    let tau = 0; for (let k = 0; k < steps && tau <= 1; k++) tau += density(x, CLOUD.base + (k + 0.5) * dy, z, cov) * dy;
+    let tau = 0; for (let k = 0; k < steps && tau <= 1; k++) tau += density(x, CLOUD.base + (k + 0.5) * dy, z, cov, fixedC) * dy;
     if (tau > 1) covered++;
   }
   return covered / (grid * grid);
@@ -55,4 +56,31 @@ export function coverageUniform(f: number, table: { cov: number[]; frac: number[
   if (t <= frac[0]) return cov[0];
   for (let i = 1; i < frac.length; i++) if (t <= frac[i]) { const a = frac[i - 1], b = frac[i]; return cov[i - 1] + ((t - a) / Math.max(b - a, 1e-6)) * (cov[i] - cov[i - 1]); }
   return cov[cov.length - 1];
+}
+
+/** mean of the weather field's multiplier (weather × 0.8 + 0.6) over a disc of radius r around world (x, z), in the
+ *  shader's drifted frame (x + wind × t): the local scale of the cover over the observer */
+export function localWeatherFactor(x: number, z: number, r = 12000): number {
+  let s = 0, n = 0;
+  for (let i = -2; i <= 2; i++) for (let j = -2; j <= 2; j++) {
+    if (i * i + j * j > 5) continue; const px = x + (i / 2) * r, pz = z + (j / 2) * r;
+    s += sample3(px / CLOUD.weatherTile, 0.37, pz / CLOUD.weatherTile)[0] * 0.8 + 0.6; n++;
+  }
+  return s / n;
+}
+/** the uniform that makes the sky over an observer draw the cover `f`: invert the fixed-effective-cover curve (the local
+ *  cover depends on the effective cover c = uniform × local weather factor), then divide by the local weather factor */
+export function localCoverageUniform(f: number, local: { c: number[]; frac: number[] }, weatherFactor: number): number {
+  const ceff = coverageUniform(f, { cov: local.c, frac: local.frac });
+  return Math.min(1.5, ceff / Math.max(0.3, weatherFactor));
+}
+/** fraction of columns with optical depth > 1 in a disc of radius r around (x, z) (the sky over one observer) */
+export function discCover(cov: number, x: number, z: number, r = 8000, grid = 16, steps = 20): number {
+  let covered = 0, n = 0; const dy = (CLOUD.top - CLOUD.base) / steps;
+  for (let i = 0; i < grid; i++) for (let j = 0; j < grid; j++) {
+    const u = ((i + 0.5) / grid) * 2 - 1, v = ((j + 0.5) / grid) * 2 - 1; if (u * u + v * v > 1) continue; n++;
+    let tau = 0; for (let k = 0; k < steps && tau <= 1; k++) tau += density(x + u * r, CLOUD.base + (k + 0.5) * dy, z + v * r, cov) * dy;
+    if (tau > 1) covered++;
+  }
+  return covered / n;
 }
