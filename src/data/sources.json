@@ -218,5 +218,115 @@
   "cite": "irantour.tours, 'Persepolis The Treasury' (paraphrase of Schmidt's Treasury phases)",
   "url": "https://www.irantour.tours/iran-cities/shiraz/shiraz-historical-sites/persepolis-the-treasury.html/",
   "access": "search-extract only; tertiary; verify against Schmidt 1939/1953"
+ },
+ "CDLI-PF": {
+  "cite": "R. T. Hallock, Persepolis Fortification Tablets (OIP 92, 1969): PF 1-60 and 400-406, transliterations and Hallock's English translations as carried by CDLI (P382687-P382746, P383086-P383092)",
+  "url": "https://media.githubusercontent.com/media/cdli-gh/data/master/cdliatf_unblocked.atf",
+  "access": "downloaded; the 67 texts read in full (FT). Darius-era (years 16-28). The only PF texts read in full"
+ },
+ "HDT": {
+  "cite": "Herodotus, Histories, tr. A. D. Godley (Perseus Digital Library, canonical-greekLit tlg0016.tlg001.perseus-eng2)",
+  "url": "https://raw.githubusercontent.com/PerseusDL/canonical-greekLit/master/data/tlg0016/tlg001/tlg0016.tlg001.perseus-eng2.xml",
+  "access": "downloaded; read in full (FT). Greek literature about Persia: claims, max tier B"
+ },
+ "XEN-CYR": {
+  "cite": "Xenophon, Cyropaedia, tr. W. Miller (Perseus Digital Library, canonical-greekLit tlg0032.tlg007.perseus-eng2)",
+  "url": "https://raw.githubusercontent.com/PerseusDL/canonical-greekLit/master/data/tlg0032/tlg007/tlg0032.tlg007.perseus-eng2.xml",
+  "access": "downloaded; read in full (FT). Greek literature about Persia: claims, max tier B"
+ },
+ "EWB": {
+  "cite": "W. Hinz & H. Koch, Elamisches Wörterbuch (1987), lemma and sense base digitised by DANES-ALP (DigitalPasts/ALP-MEGA2024, commit 3160b20, js/data/senses.js)",
+  "url": "https://github.com/DigitalPasts/ALP-MEGA2024",
+  "access": "downloaded; glosses and page refs read (FT). No licence in the repo: facts only, not redistributed"
+ },
+ "IR-PET": {
+  "cite": "M. A. Dandamayev, 'Persepolis Elamite Tablets', Encyclopaedia Iranica",
+  "url": "https://www.iranicaonline.org/articles/persepolis-elamite-tablets/",
+  "access": "search-extract only (host blocked, B6)"
+ },
+ "IR-ADMIN": {
+  "cite": "'Persepolis Administrative Archives', Encyclopaedia Iranica (main article)",
+  "url": "https://www.iranicaonline.org/articles/persepolis-admin-archive/",
+  "access": "search-extract only (host blocked, B6)"
+ },
+ "IR-WOMEN": {
+  "cite": "M. Brosius, 'Women i. In pre-Islamic Persia', Encyclopaedia Iranica (after Brosius, Women in Ancient Persia 559-331 BC, 1996, pp. 171-78)",
+  "url": "https://www.iranicaonline.org/articles/women-i/",
+  "access": "search-extract only (host blocked, B6)"
+ },
+ "RATION-30": {
+  "cite": "'Persepolis', Investigating Civilisations: Persia (teaching site; quotes a Hallock L text: 261 1/2 BAR for 92 workers of Liduma, month 5, yr 21)",
+  "url": "https://www.the-persians.co.uk/persiaTG/13persepolis.htm",
+  "access": "search-extract only (host blocked); the quoted ration list was checked arithmetically"
+ },
+ "ATH4": {
+  "cite": "Athenaeus, Deipnosophistae 4 (tr. Yonge), citing Ctesias and Dinon on the king's table",
+  "url": "https://www.attalus.org/old/athenaeus4.html",
+  "access": "search-extract only; Greek claim"
+ },
+ "HENK2023": {
+  "cite": "W. F. M. Henkelman, 'Treasury Staff Rations from Baradkama', Études Mésopotamiennes 3 (2023)",
+  "url": "https://www.academia.edu/106393644/",
+  "access": "abstract via search extract only"
+ },
+ "PT-WAGE": {
+  "cite": "Tehran Times, 'Achaemenid workers paid silver for wages, study on clay tablets finds' (journalism quoting PT-type texts)",
+  "url": "https://www.tehrantimes.com/news/465107/",
+  "access": "search-extract only; journalism, max tier C for numbers"
+ },
+ "HENK2008": {
+  "cite": "W. F. M. Henkelman, The Other Gods Who Are: Studies in Elamite-Iranian Acculturation Based on the Persepolis Fortification Texts (Achaemenid History XIV, Leiden 2008)",
+  "url": "https://bmcr.brynmawr.edu/2019/2019.02.17/",
+  "access": "search-extract only, via BMCR 2019.02.17, achaemenica.org 'The Magi' and Iranica 'Magi'"
+ },
+ "HENK2011": {
+  "cite": "W. F. M. Henkelman, 'Parnakka's Feast: šip in Pārsa and Elam', in J. Álvarez-Mon & M. Garrison (eds), Elam and Persia (2011)",
+  "url": "http://www.achemenet.com/pdf/news/WH15-02-07_ParnakkasFeast.pdf",
+  "access": "search-extract only (host blocked, B6)"
+ },
+ "HYLAND2022": {
+  "cite": "J. O. Hyland, 'Persia's Lycian Work Force and the Satrap of Sardis', ARTA 2022.002",
+  "url": "http://www.achemenet.com/pdf/arta/ARTA_2022_002_Hyland.pdf",
+  "access": "search-extract only (host blocked, B6)"
+ },
+ "POTTS2023": {
+  "cite": "D. T. Potts, ''Pain et vin': Equine Rations of Bread and Wine at Persepolis in their Broader Historical Context', Cheiron 3/1 (2023) 25-47",
+  "url": "https://trivent-publishing.eu/img/cms/2-%20Cheiron_issue%201-2023_D-%20T-%20Potts.pdf",
+  "access": "search-extract only (host blocked)"
+ },
+ "LIVIUS-TREAS": {
+  "cite": "J. Lendering, 'Persepolis, Treasury', Livius.org ('in 467 BCE, no less than 1,348 people were employed in the treasury'; the page credits the Fortification tablets, which is impossible for 467)",
+  "url": "https://www.livius.org/articles/place/persepolis/persepolis-photos/persepolis-treasury/",
+  "access": "search-extract only (host blocked, B6); tertiary"
+ },
+ "SELOPERSE": {
+  "cite": "S. Gondet et al., SELOPerse (Settlement and Landscape Organisation of the Persepolis Region), EU project 299665 final report; Gondet & Thiesson 2013",
+  "url": "https://www.cordis.europa.eu/project/id/299665/reporting/fr",
+  "access": "search-extract only (host blocked)"
+ },
+ "WP-CAL": {
+  "cite": "Wikipedia 'Iranian calendars' and 'Babylonian calendar' (tertiary), with G. P. Basello, 'Old Persian in Elamite: the spellings of month-names' (2006)",
+  "url": "https://en.wikipedia.org/wiki/Iranian_calendars",
+  "access": "search-extract only (host blocked); tertiary"
+ },
+ "FARS-CROP": {
+  "cite": "'Optimizing planting dates and irrigation schedules to enhance wheat production in Fars Province ... CERES-Wheat' (PMC12318503, 2025); FAO GIEWS country brief, Iran",
+  "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12318503/",
+  "access": "search-extract only; modern agronomy used as an analogue (C for 467)"
+ },
+ "BF1994": {
+  "cite": "R. S. Bagnall & B. W. Frier, The Demography of Roman Egypt (Cambridge 1994), via BMCR 1995.03.20 and Wikipedia 'Demography of the Roman Empire'",
+  "url": "https://bmcr.brynmawr.edu/1995/1995.03.20/",
+  "access": "search-extract only; a demographic analogue (C for Persepolis)"
+ },
+ "LANDSCAPE-R": {
+  "cite": "project file research/LANDSCAPE.md",
+  "url": "research/LANDSCAPE.md",
+  "access": "project file; underlying sources mostly search extracts"
+ },
+ "EVENTS-R": {
+  "cite": "project file research/EVENTS.md",
+  "url": "research/EVENTS.md",
+  "access": "project file"
  }
 }
