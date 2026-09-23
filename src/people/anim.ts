@@ -4,6 +4,9 @@
 // a knee bends with shin.x > 0; an elbow bends with fore.x < 0; left arm abducts with +z, right arm with −z.
 // PLACEHOLDER quality: hand-authored cycles, not motion capture (brief §9.3 asks for photoreal; logged in PROGRESS).
 // The cycles drive 17 pose channels; src/people/humanRig.ts retargets them onto the 59-bone MakeHuman skeleton (D-090).
+// The work cycles of the activities performed since D-142 (hoeing, reaping, weaving, …) are in workAnims.ts: they are
+// authored from hand and foot targets (poseKit.ts IK) and return prop hints (tip, at, show, ip) for the carried props.
+import { workPose, WORK_ANIMS, type WorkAnim } from './workAnims';
 
 /** pose channels (the Phase 3 rig's bones); RETARGET in humanRig.ts maps each onto the 59-bone skeleton */
 export const POSE_BONES = ['hips', 'spine', 'chest', 'neck', 'head', 'l_upper', 'l_fore', 'l_hand', 'r_upper', 'r_fore', 'r_hand', 'l_thigh', 'l_shin', 'l_foot', 'r_thigh', 'r_shin', 'r_foot'] as const;
@@ -11,9 +14,25 @@ export type PoseBone = typeof POSE_BONES[number];
 type BoneName = PoseBone;
 
 export type AnimId = 'idle' | 'walk' | 'carry_shoulder' | 'carry_head' | 'carry_front' | 'guard' | 'guard_walk' | 'chisel' | 'grind' | 'knead'
-  | 'bake' | 'draw_water' | 'write' | 'eat' | 'sleep' | 'talk' | 'sit' | 'dice' | 'inspect' | 'play';
+  | 'bake' | 'draw_water' | 'write' | 'eat' | 'sleep' | 'talk' | 'sit' | 'dice' | 'inspect' | 'play' | WorkAnim;
 export type E3 = [number, number, number];
-export interface Pose { rot: Partial<Record<BoneName, E3>>; hips: E3; /** strike/impact event this frame (for tool sounds) */ hit?: boolean }
+export interface Pose { rot: Partial<Record<BoneName, E3>>; hips: E3; /** strike/impact event this frame (for tool sounds) */ hit?: boolean;
+  /** the performer's root moved along a path of the cycle's own (m, m, rad in the performer's frame: the ploughman along
+   *  the furrow, the thresher turning with his team, the archer side-on to the target) */
+  root?: [number, number, number];
+  /** finger grip per hand [left, right] (0 relaxed … 1 closed); overrides the prop's default grip */
+  grip?: [number, number];
+  /** props 1 and 2 shown this frame (a brick in the hand only while it is carried) */
+  show?: [boolean, boolean];
+  /** where a prop's working end points (character space): the staff's foot, the broom's end, the adze blade */
+  tip?: [E3 | null, E3 | null];
+  /** prop 1 placed at a point instead of in the hands (x, y, z, yaw in character space): the brick mould on the ground */
+  at?: [number, number, number, number];
+  /** a prop parameter: the bow's draw (0…1) */
+  ip?: number;
+  /** a second prop parameter: the spindle's drop below the hand (m) */
+  aux?: number;
+}
 
 const S = Math.sin, C = Math.cos, PI = Math.PI;
 const fr = (x: number) => x - Math.floor(x);
@@ -40,6 +59,7 @@ function sitCross(p: Pose) {
 
 /** pose for an animation at time t (s); `ph` = gait phase (radians) for moving anims; `k` = per-person seed */
 export function pose(id: AnimId, t: number, ph: number, k: number): Pose {
+  if (WORK.has(id)) return workPose(id as WorkAnim, t, ph, k);
   const p: Pose = { rot: {}, hips: [0, 0, 0] }; const r = p.rot;
   const breath = 0.025 * S(t * 1.5 + k);
   r.chest = [breath, 0, 0];
@@ -112,4 +132,5 @@ export function pose(id: AnimId, t: number, ph: number, k: number): Pose {
   }
   return p;
 }
-export const ANIMS: AnimId[] = ['idle', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'chisel', 'grind', 'knead', 'bake', 'draw_water', 'write', 'eat', 'sleep', 'talk', 'sit', 'dice', 'inspect', 'play'];
+const WORK = new Set<string>(WORK_ANIMS);
+export const ANIMS: AnimId[] = ['idle', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'chisel', 'grind', 'knead', 'bake', 'draw_water', 'write', 'eat', 'sleep', 'talk', 'sit', 'dice', 'inspect', 'play', ...WORK_ANIMS];
