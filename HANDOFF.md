@@ -1,11 +1,12 @@
 # HANDOFF — state at the end of session 2 (2026-09-23)
 
-Read `CLAUDE.md` first (the resume procedure), then this file, then `PROGRESS.md`, `TASKS.md`, `DECISIONS.md` (D-012 … D-017 are new) and `BLOCKERS.md`.
+Read `CLAUDE.md` first (the resume procedure), then this file, then `PROGRESS.md`, `TASKS.md`, `DECISIONS.md` (D-012 … D-020 are new) and `BLOCKERS.md`.
 **Branch:** `claude/amazing-fermi-40ds7j`. Session 1 used `claude/new-session-lfjkbn`; this branch contains all of it. Push to whatever branch the new session designates, and never force-push.
 
 ## What is broken, unverified or placeholder (read first)
-1. **The visuals are still far from photoreal.** The rubric review (§8.2) and the independent Phase 3 review (§13.9) have **not** run. Columns are greybox profiles, the Gate colossi are blocks, the reliefs are flat silhouettes and people are placeholder rigs.
-   - Background agents worked on all four this session (see "Agent work" below). Check what was merged before judging.
+1. **The visuals are still far from photoreal.** The rubric review (§8.2) and the independent Phase 3 review (§13.9) have **not** run.
+   - Merged at the end of the session, all tier C and not yet render-checked together: sculpted columns and colossi (with known look faults), carved reliefs (never seen in a browser) and the human asset pipeline.
+   - People on screen are still the placeholder rigs. See "Agent results at handoff" below.
 2. **The §1.1 moments have not been re-rendered at high quality** since the fixes. `tests/e2e/moments.spec.ts` now has 5 Phase 4 views and logs luminance to `shots/moments-lum.json`. Render them after the agent work is in.
 3. **Bench numbers:** the high-quality bench run this session is **invalid**. `renderer.info` accumulated across post-processing passes; this is fixed in the last commit (`info.autoReset = false`, reset once per frame). **Re-run `QUALITY=high npm run bench`.**
    - The earlier per-frame numbers are also suspect: a 2,753 draw-call peak on the approach at high quality, near the ≤ 3,000 budget.
