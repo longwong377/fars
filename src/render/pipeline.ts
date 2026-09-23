@@ -28,7 +28,7 @@ import { installProbeLight, updateProbeLights, probeAmbient, probeSun } from './
 
 export const GI_SCALE = Math.PI / 2;
 /** bloom threshold (scene radiance, before exposure) at the outdoor exposures; scaled for interior exposures (D-141) */
-export const BLOOM_THRESHOLD = 0.9;
+export const BLOOM_THRESHOLD = 0.9, BLOOM_STRENGTH = 0.12;
 
 export class Pipeline {
   rp: THREE.RenderPipeline | null = null;
@@ -91,7 +91,7 @@ export class Pipeline {
       composite = vec4(chosen, col.a);
     }
     let out: any = traa(composite, dep, vel, camera);
-    const b = bloom(out, 0.12, 0.35, BLOOM_THRESHOLD); this.bloomNode = b;
+    const b = bloom(out, BLOOM_STRENGTH, 0.35, BLOOM_THRESHOLD); this.bloomNode = b;
     out = out.add(b).add(this.flash);
     this.rp = new THREE.RenderPipeline(renderer, out);
   }
@@ -99,7 +99,13 @@ export class Pipeline {
    *  outdoor range, so a fixed threshold would flood a hall's view with glare from every sunlit doorway. `rel` = exposure /
    *  X_MAX: at or below 1 (every outdoor and night state) the threshold is the session-3 value; above it, the threshold
    *  scales down with the exposure so it stays the same in display terms. */
-  setExposure(rel: number) { const t = (this.bloomNode as any)?.threshold; if (t && 'value' in t) t.value = BLOOM_THRESHOLD / Math.max(1, rel); }
+  setExposure(rel: number) {
+    const b = this.bloomNode as any, r = Math.max(1, rel);
+    if (b?.threshold && 'value' in b.threshold) b.threshold.value = BLOOM_THRESHOLD / r;
+    // the glow is a fraction of the source added before exposure: a doorway 1,000× brighter than an adapted hall would
+    // haze half the frame (first interior render, D-141). Strength falls as 1/√(exposure above the outdoor range) (C).
+    if (b?.strength && 'value' in b.strength) b.strength.value = BLOOM_STRENGTH / Math.sqrt(r);
+  }
   render(scene: THREE.Scene, camera: THREE.Camera) {
     if (this.hemi) { // hemisphere-light uniforms follow the light (colour × intensity, as HemisphereLightNode does)
       this.hemiSky.value.copy(this.hemi.color).multiplyScalar(this.hemi.intensity);
