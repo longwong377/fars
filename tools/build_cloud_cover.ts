@@ -1,0 +1,11 @@
+// Measure the volumetric cloud layer's column cover as a function of the shader's coverage uniform (D-064) and write
+// src/data/cloud_cover_table.json (the sky inverts it). Usage: npx tsx tools/build_cloud_cover.ts
+import { writeFileSync } from 'node:fs';
+import { columnCover, CLOUD } from '../src/sky/cloudCover';
+const GRID = 48, STEPS = 32;
+const cov: number[] = [0], frac: number[] = [0];
+for (let c = 0.3; c <= 0.7001; c += 0.01) { cov.push(+c.toFixed(2)); frac.push(columnCover(c, GRID, STEPS)); }
+cov.push(1); frac.push(1);
+for (let i = 1; i < frac.length; i++) frac[i] = Math.max(frac[i], frac[i - 1]); // monotone (sampling noise)
+writeFileSync('src/data/cloud_cover_table.json', JSON.stringify({ _meta: { what: 'fraction of vertical columns with optical depth > 1 (over one weather tile) drawn by the volumetric cloud shader, per value of its coverage uniform', grid: GRID, steps: STEPS, cloud: CLOUD, tool: 'tools/build_cloud_cover.ts', tier: 'measured (of our own shader); the mapping of weather cover to column cover is C' }, cov, frac: frac.map(f => +f.toFixed(4)) }, null, 1) + '\n');
+console.log(cov.map((c, i) => `${c}:${frac[i].toFixed(3)}`).join(' '));

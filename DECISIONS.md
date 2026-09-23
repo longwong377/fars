@@ -987,3 +987,15 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - the guard does not step physically into the path; the stop is a boundary at the post;
   - errand steps 0 (the way-station on arrival) and 6 (the night at the stable) are implicit;
   - nothing checks the ration receipts.
+
+## D-064 — Volumetric cloud cover calibrated by measuring our own shader (session 3)
+- **Measured problem:** the rain-approach render at high quality showed a featureless grey sky at a weather cover of 0.76, so the curtain had no bright horizon to stand against.
+  - A CPU port of the cloud density (`src/sky/cloudCover.ts`: the same noise volume, trilinear wrap sampling, height profile, weather field and erosion as `clouds.ts`) measured the fraction of vertical columns with optical depth above 1 over one weather tile.
+  - The shader's `coverage` uniform was a cliff: 0.3 or less drew a clear sky, 0.4 drew 18 %, 0.5 drew 69 %, and 0.68 or more drew 100 %.
+  - So "mostly cloudy" was solid overcast, and every scattered-cloud day drew no cloud at all.
+- **Decision:** `tools/build_cloud_cover.ts` stores the measured curve (`src/data/cloud_cover_table.json`: 0.30–0.70 in steps of 0.01, 48² columns, 32 samples each). The sky inverts it, so the weather's cloud fraction is the fraction the layer draws. The shader is unchanged.
+- **Tests (`tests/cloudcover.test.ts`):**
+  - the table matches a fresh coarse measurement within 0.08 and is monotone;
+  - the inverse draws 0.2 / 0.5 / 0.76 / 0.95 within 0.05.
+- **Tier:** the measurement is of our own shader. Mapping the weather's cover (observed sky fraction) onto vertical columns is C: the observed cover also counts cloud sides near the horizon.
+- **Rain cell:** the cell's boost (+0.6) still makes the cloud above the cell solid.

@@ -8,6 +8,8 @@ import { float, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoo
 import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt } from './ephemeris';
 import { VolumetricClouds } from './clouds';
 import { skyCalibration } from './horizon';
+import { coverageUniform } from './cloudCover';
+import coverTable from '../data/cloud_cover_table.json';
 
 export interface SkyState { sunDir: THREE.Vector3; sunAlt: number; moonDir: THREE.Vector3; moonAlt: number; moonFraction: number; daylight: number; nightFactor: number }
 
@@ -179,7 +181,7 @@ export class SkySystem {
     this.hemi.intensity = 0.03 + 0.95 * twilight * (1 - 0.3 * cloudCover) + 0.04 * ph.fraction * night;
     this.hemi.color.setRGB(0.55 + 0.2 * day, 0.62 + 0.18 * day, 0.8 + 0.1 * day);
     // volumetric clouds: cover, light, wind drift (the wind blows FROM windDir: clouds move the opposite way)
-    const C = this.clouds; C.mesh.position.copy(camPos); C.coverage.value = cloudCover; C.sunDir.value.copy(this.state.sunDir);
+    const C = this.clouds; C.mesh.position.copy(camPos); C.coverage.value = coverageUniform(cloudCover, coverTable as any); /* the weather's cover → the uniform that draws that fraction (measured, D-064) */ C.sunDir.value.copy(this.state.sunDir);
     C.sunColor.value.copy(this.sun.color).multiplyScalar(this.sun.visible ? this.sun.intensity / 3.2 : 0).add(new THREE.Color(0.55, 0.6, 0.75).multiplyScalar(this.moonLight.intensity * 0.5));
     C.ambient.value.copy(this.hemi.color).multiplyScalar(this.hemi.intensity * 0.55);
     // dome calibration and the horizon radiance (D-060): fog, far cloud haze and rain shafts converge to it
