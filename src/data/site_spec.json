@@ -212,6 +212,112 @@
    "src": "RECON",
    "tier": "C",
    "note": "stone door frames: jambs lining the opening, lintel and a projecting cornice block (the cavetto \"Egyptian\" cornice of Persepolis doorways: NOT SEEN, verify). Frames of polished stone are reported for the Tachara (tachara.stone_frames, WP-EXT, C); elsewhere C. In unfinished buildings the frames stand complete above the low walls: stone elements were set before the mud brick (C). Sizes C"
+  },
+  "r_window": {
+   "v": {
+    "width_of_door": 0.5,
+    "sill": 1.2,
+    "sill_block": 0.25
+   },
+   "u": "m",
+   "src": "WP-EXT;IR-PERS;RECON",
+   "tier": "C",
+   "note": "window openings through the wall in monolithic dark-stone frames (Tachara \"monolithic door/window/niche frames\", WP-EXT C; Hadish 19 windows, IR-PERS B count). Width half the building's main door (C), sill 1.2 m above the floor (C), head level with the door head so lintels and cornices run level (C); frame = r_door_frame jambs, lintel and cornice plus a sill block of sill_block (C). Positions and sizes NOT SEEN (Q-087); no glazing (blocklist glass-windows), no shutters modelled"
+  },
+  "r_niche": {
+   "v": {
+    "depth": 0.5
+   },
+   "u": "m",
+   "src": "WP-EXT;IR-PERS;RECON",
+   "tier": "C",
+   "note": "blind niches: window-shaped recesses in the inner wall face with the same frame as the windows (Tachara stone frames, WP-EXT C; Hadish 4 niches, IR-PERS B count); depth C (Q-087)"
+  },
+  "r_door_leaf": {
+   "v": {
+    "thickness": 0.12,
+    "post_r": 0.07,
+    "bands": 4,
+    "band_h": 0.08,
+    "band_t": 0.006,
+    "boss_r": 0.022,
+    "boss_pitch": 0.2,
+    "gap": 0.01,
+    "shoe_h": 0.14,
+    "swing_s": 1.5,
+    "reach": 2.2,
+    "bronze_metalness": 0.35,
+    "boss_range": 40
+   },
+   "u": "m",
+   "src": "WP-EXT;RECON",
+   "tier": "C",
+   "note": "timber double-leaf doors of the stone-framed palace doorways (C: analogue of the Gate of All Nations, whose pivot sockets show two-leaf doors, WP extract C). Each leaf turns on a vertical post (post_r) standing in a stone socket, its foot shod in bronze (shoe_h; Near Eastern pivot doors, RECOLLECTION); bronze bands across both faces (bands x band_h x band_t; bronze-banded doors are a Neo-Assyrian analogue, RECOLLECTION, NOT SEEN for Persepolis) studded with bronze bosses (boss_r at boss_pitch; as gate_nations.r_door_leaves, C). Timber species not known (C). Leaves hang at the inner end of the passage and swing 180 deg through the hall to lie against the inner wall face (the D-032 Gate rule, C; Q-088), so the jamb reliefs on the reveals stay visible. swing_s = time to open or close (1.5 s, C); reach = how far a person can work a leaf from (C). bronze_metalness: the fittings are drawn partly metallic because the renderer has no environment reflection and full metal reads black in shade (the D-030 precedent for gilding, C); boss_range: bosses are drawn on leaves within this distance of the camera (a 22 mm stud is under a pixel beyond it, C)"
+  },
+  "r_door_sealing": {
+   "v": {
+    "height": 1.1,
+    "knob_r": 0.035,
+    "lump": [
+     0.11,
+     0.08,
+     0.045
+    ],
+    "cord_r": 0.006,
+    "bar": [
+     0.1,
+     0.08
+    ],
+    "clay_srgb": [
+     0.56,
+     0.45,
+     0.34
+    ]
+   },
+   "u": "m",
+   "src": "MATCULT-R;RECON",
+   "tier": "C",
+   "note": "fastening of a sealed or barred door: a bronze knob on each leaf at height, a cord wound between them and a clay lump pressed over the cord and impressed with a seal (sealing practice B: seals rolled on tablets and string, PFA via MATCULT; sealed labels on Treasury goods C; the peg-and-cord door sealing is a Near Eastern practice, RECOLLECTION, NOT SEEN at Persepolis: C, Q-089); a timber bar across both leaves on the inside of a barred door (bar section, C); clay_srgb: unfired clay, the colour of the Treasury storage jars (furnish.ts, C)"
+  },
+  "r_door_schedule": {
+   "v": {
+    "open": 6.5,
+    "close": 17.5,
+    "keeper_look": 60
+   },
+   "u": "h",
+   "src": "RECON",
+   "tier": "C",
+   "note": "hours when a scheduled door (Treasury N entrance, Hall of 99 Columns store) stands open; outside them it is barred or sealed (C; the same working day as the building-site sounds in world.ts). People at the door are let through; the doorkeeper also lets the visitor through the barred entrance (observer mode: nothing is barred, brief §1; visitor-mode guards use door.locked); the store keeper does not seal the store while the visitor is inside it (within keeper_look m beyond the door, C), and a sealed store never opens for the visitor from outside"
+  },
+  "r_jamb_relief": {
+   "v": {
+    "figure_of_door": 0.4,
+    "ground": 0.15,
+    "margin": 0.12,
+    "depth_factor": 1.2,
+    "attendant_scale": 0.78,
+    "register_gap": 0.05
+   },
+   "u": "m",
+   "src": "WP-EXT;ISAC-PA;SI-ARCH;RECON",
+   "tier": "C",
+   "note": "door-jamb reliefs on the two reveals of a stone-framed doorway: the leading royal figure is figure_of_door x the clear door height (C; sizes NOT SEEN, verify on Schmidt 1953 plates), standing on a ground line `ground` above the floor, `margin` clear at each end of the jamb; depth r_relief_depth x depth_factor (within r_relief_carving, C); attendants at attendant_scale of the king (hierarchic scale, C); figures walk into the hall (C)"
+  },
+  "r_stair_relief": {
+   "v": {
+    "central_register": 1.4,
+    "central_ground": 0.3,
+    "panel_width": 2.4,
+    "glyph": 0.06,
+    "line_gap": 0.03,
+    "guards_per_side": 4,
+    "bearer_rows": 3
+   },
+   "u": "m",
+   "src": "SI-ARCH;ISAC-PA;IR-PERS;RECON",
+   "tier": "C",
+   "note": "Phase 4 stair reliefs: parapet registers are r_stair_parapet.height tall on the outer face of each flight and follow the slope (C); central facades carry a register of central_register m on a ground line central_ground above the court (C) with the inscription panel (panel_width, glyph height, line gap as the XPb panel, C) between guards_per_side guards (C; Q-P4-08 for the Tripylon); throne-bearer scenes have bearer_rows rows of bearers (C)"
   }
  },
  "terrace": {
@@ -653,7 +759,18 @@
    "u": "m",
    "src": "RECON",
    "tier": "C",
-   "note": "timber double doors with bronze bosses turning on pivot sockets (pivot sockets: WP extract C; leaves/bosses C). hang = inner (D-032, C): the pivots sit at the inner (hall-side) end of each passage and the leaves open into the hall, standing against the inner wall face beside the opening. Reason: the W and E colossi (r_colossus, 5.0 m) fill the passage from the outer to the inner wall face (wall 4.15 m + 0.85 m projection), so a leaf opened against the reveal would stand over the carved flank; pivot-socket positions were not read (RECOLLECTION: sockets on the hall side, Q-073). The S doorway follows the same rule"
+   "note": "timber double doors with bronze bosses turning on pivot sockets (pivot sockets: WP extract C; leaves/bosses C). hang = inner (D-032, C): the pivots sit at the inner (hall-side) end of each passage and the leaves open into the hall, standing against the inner wall face beside the opening. Reason: the W and E colossi (r_colossus, 5.0 m) fill the passage from the outer to the inner wall face (wall 4.15 m + 0.85 m projection), so a leaf opened against the reveal would stand over the carved flank; pivot-socket positions were not read (RECOLLECTION: sockets on the hall side, Q-073). The S doorway follows the same rule.. D-051: the leaves are working doors (doors.ts, global.r_door_leaf fittings; this row keeps their thickness); open by default"
+  },
+  "r_door_state": {
+   "v": {
+    "W": "open",
+    "E": "open",
+    "S": "open"
+   },
+   "u": "",
+   "src": "RECON",
+   "tier": "C",
+   "note": "palace doors stand open by day and can be closed; people open a closed door as they pass (C, D-051)"
   }
  },
  "apadana": {
@@ -1020,6 +1137,18 @@
    "src": "RECON",
    "tier": "C",
    "note": "cypress rows along the diagonal flight parapets (reconstruction references; C)"
+  },
+  "r_door_state": {
+   "v": {
+    "N": "open",
+    "W": "open",
+    "E": "open",
+    "S": "open"
+   },
+   "u": "",
+   "src": "RECON",
+   "tier": "C",
+   "note": "palace doors stand open by day and can be closed; people open a closed door as they pass (C, D-051); leaves as global.r_door_leaf (C); no jamb reliefs found for the Apadana hall doorways (left plain)"
   }
  },
  "tachara": {
@@ -1325,6 +1454,83 @@
    "src": "REF-PLAN",
    "tier": "C",
    "note": "hall centre between the S main doorway (y -88) and the N doorway pair (y -72) read on REF-PLAN (doors row); replaces r_hall_offset_n, which left the N rooms only ~6 m deep"
+  },
+  "r_windows": {
+   "v": {
+    "S": [
+     -4.69,
+     4.69
+    ]
+   },
+   "u": "m",
+   "src": "WP-EXT;RECON",
+   "tier": "C",
+   "note": "two windows in the hall S wall, one either side of the main doorway, centred in the free wall between the door frame and the hall corner (C; RECOLLECTION of window frames flanking the Tachara doorway, NOT SEEN; Q-087)"
+  },
+  "r_niches": {
+   "v": {
+    "N": [
+     0.0
+    ],
+    "E": [
+     -3.86,
+     3.86
+    ],
+    "W": [
+     -3.86,
+     3.86
+    ]
+   },
+   "u": "m",
+   "src": "WP-EXT;RECON",
+   "tier": "C",
+   "note": "blind niches on the inner faces of the walls to the side rooms: N wall between the two doorways, E and W walls on the aisles between the column rows (C; Q-087)"
+  },
+  "r_door_state": {
+   "v": {
+    "S_main": "open",
+    "N_W": "open",
+    "N_E": "open"
+   },
+   "u": "",
+   "src": "RECON",
+   "tier": "C",
+   "note": "palace doors stand open by day and can be closed; people open a closed door as they pass (C, D-051)"
+  },
+  "door_jamb_reliefs": {
+   "v": {
+    "S_main": {
+     "programme": "king",
+     "attendants": [
+      "parasol",
+      "whisk"
+     ],
+     "tier": "B",
+     "note": "king with attendants on the main doorway (WP-EXT, B); a parasol- and a fly-whisk-bearer (C, as on the Harem S door)"
+    },
+    "N_W": {
+     "programme": "hero",
+     "beasts": [
+      "lion",
+      "monster"
+     ],
+     "tier": "B",
+     "note": "royal hero vs lion / monster (WP-EXT, B); which doorway and jamb C"
+    },
+    "N_E": {
+     "programme": "attendants",
+     "props": [
+      "towel",
+      "flask"
+     ],
+     "tier": "B",
+     "note": "attendants with towel and perfume flask (ISAC-PA, WP-EXT: B); which doorway C"
+    }
+   },
+   "u": "",
+   "src": "WP-EXT;ISAC-PA;RECON",
+   "tier": "B/C",
+   "note": "jamb programme of the Tachara doorways (B motifs; assignment to the modelled doorways C). The lance-bearers with wicker shields of the W rooms (B) have no modelled doorway (the hall W wall has none in the model) and are not placed"
   }
  },
  "hadish": {
@@ -1897,6 +2103,105 @@
    "src": "RECON",
    "tier": "C",
    "note": "hall wall thickness (was r_wall; unchanged value)"
+  },
+  "r_windows": {
+   "v": {
+    "N": [
+     -11.7,
+     0.0,
+     11.7
+    ],
+    "S": [
+     -11.7,
+     -7.8,
+     -3.9,
+     3.9,
+     7.8,
+     11.7
+    ]
+   },
+   "u": "m",
+   "src": "IR-PERS;RECON",
+   "tier": "C",
+   "note": "9 of the 19 windows (count B) in the hall walls that face the portico (N) and the balcony (S), on the aisle axes between the column rows (3.9 m pitch) where the door frames leave room (C). The other 10 belong to the apartments, which are not modelled (C; Q-087)"
+  },
+  "r_niches": {
+   "v": {
+    "E": [
+     -7.8,
+     7.8
+    ],
+    "W": [
+     -7.8,
+     7.8
+    ]
+   },
+   "u": "m",
+   "src": "IR-PERS;RECON",
+   "tier": "C",
+   "note": "the 4 niches (count B) in the hall walls to the E and W apartments, either side of the apartment doorways on the aisle axes (positions C; Q-087)"
+  },
+  "r_door_state": {
+   "v": {
+    "N_W": "open",
+    "N_E": "open",
+    "S": "open",
+    "E": "open",
+    "W": "open"
+   },
+   "u": "",
+   "src": "RECON",
+   "tier": "C",
+   "note": "palace doors stand open by day and can be closed; people open a closed door as they pass (C, D-051)"
+  },
+  "door_jamb_reliefs": {
+   "v": {
+    "N_W": {
+     "programme": "king",
+     "attendants": [
+      "parasol",
+      "towel"
+     ],
+     "tier": "B",
+     "note": "king with parasol- and towel-bearers, labelled \"Darius the king\" (FARROKH/SI-ARCH, B)"
+    },
+    "N_E": {
+     "programme": "king",
+     "attendants": [
+      "parasol",
+      "towel"
+     ],
+     "tier": "C",
+     "note": "NOT FOUND: reconstructed as the NW doorway (C, analogue)"
+    },
+    "E": {
+     "programme": "king",
+     "attendants": [
+      "parasol",
+      "whisk"
+     ],
+     "tier": "B",
+     "note": "king and attendants with XPe above (SI-ARCH, B); XPe is not in inscriptions.json and is not carved (C)"
+    },
+    "W": {
+     "programme": "king",
+     "attendants": [
+      "parasol",
+      "whisk"
+     ],
+     "tier": "C",
+     "note": "XPe on the W doorway (FARROKH, B); the figures reconstructed as the E doorway (C, analogue)"
+    },
+    "S": {
+     "programme": "plain",
+     "tier": "C",
+     "note": "no programme found for the balcony doorway: left plain"
+    }
+   },
+   "u": "",
+   "src": "FARROKH;SI-ARCH;RECON",
+   "tier": "B/C",
+   "note": "jamb programme of the Hadish hall doorways"
   }
  },
  "hall100": {
@@ -2157,6 +2462,59 @@
    "src": "RECON",
    "tier": "C",
    "note": "external steps down from the raised floor at the W, E and S doorways so they are walkable both ways (C, NOT SEEN, verify)"
+  },
+  "r_door_state": {
+   "v": {},
+   "u": "",
+   "src": "CHRON-C;RECON",
+   "tier": "C",
+   "note": "no leaves hung: under construction in 467 (walls at a third of their height, no roof) (C)"
+  },
+  "relief_state_467": {
+   "v": "blocked_out",
+   "u": "",
+   "src": "ISAC-PA;IR-PERS;RECON",
+   "tier": "C",
+   "note": "jamb reliefs blocked out, not finished: the outlines cut back and the masses roughed out, no detail, no paint (C). The hall was begun by Xerxes and completed by Artaxerxes I (ISAC-PA, B) and in 467 its shafts are ~30% raised (construction_state, C); the finished programme is attested (door_reliefs, B), its carving date is not. The roughed-out stage follows the Unfinished Gate figures (RECOLLECTION, NOT SEEN). Q-086"
+  },
+  "door_jamb_reliefs": {
+   "v": {
+    "N": {
+     "programme": "throne_guards",
+     "registers": 5,
+     "tier": "B",
+     "note": "throne/audience scene with the king enthroned (BRIT-H100, B); registers of guards below: \"5 registers\" NOT SEEN (C)"
+    },
+    "S": {
+     "programme": "throne_bearers",
+     "tier": "B",
+     "note": "king enthroned, throne borne by representatives of the subject nations (B); rows C"
+    },
+    "E": {
+     "programme": "hero",
+     "beasts": [
+      "lion",
+      "bull",
+      "monster"
+     ],
+     "tier": "B",
+     "note": "royal hero in combat with lion / bull / monster (B)"
+    },
+    "W": {
+     "programme": "hero",
+     "beasts": [
+      "lion",
+      "bull",
+      "monster"
+     ],
+     "tier": "B",
+     "note": "royal hero in combat with lion / bull / monster (B)"
+    }
+   },
+   "u": "",
+   "src": "BRIT-H100;IR-PERS;ISAC-PA",
+   "tier": "B",
+   "note": "jamb programme of the eight doorways (both doors of a wall share it; carving state: relief_state_467)"
   }
  },
  "tripylon": {
@@ -2509,6 +2867,51 @@
    "src": "RECON",
    "tier": "C",
    "note": "doorway height about 2.2 x width (tripylon.doors note; C)"
+  },
+  "r_door_state": {
+   "v": {},
+   "u": "",
+   "src": "CHRON-C;RECON",
+   "tier": "C",
+   "note": "no leaves hung: under construction in 467 (walls at half height, no roof); joinery is fitted last (C)"
+  },
+  "relief_state_467": {
+   "v": "carved",
+   "u": "",
+   "src": "IR-PERS;SI-ARCH;RECON",
+   "tier": "C",
+   "note": "stair and jamb reliefs carved and painted by 467 although the brickwork is unfinished (C): the Tripylon is dated to Darius I by Iranica (extract, B) and its E-jamb king is captioned \"Darius I\" with crown prince Xerxes (SI-ARCH, B), which would put the carving before 486; stone members were set and carved before the mud brick rose (D-015, C). Contested (Xerxes / Artaxerxes I dating, LIVIUS): Q-086"
+  },
+  "door_jamb_reliefs": {
+   "v": {
+    "E": {
+     "programme": "throne_bearers",
+     "tier": "B",
+     "note": "king (Darius I) with the crown prince (Xerxes) on a throne carried by representatives of the nations (SI-ARCH, B); rows and count C"
+    },
+    "S": {
+     "programme": "king",
+     "attendants": [
+      "parasol",
+      "whisk"
+     ],
+     "tier": "B",
+     "note": "king and attendants (SI-ARCH, B); attendant props C"
+    },
+    "N": {
+     "programme": "king",
+     "attendants": [
+      "parasol",
+      "whisk"
+     ],
+     "tier": "B",
+     "note": "king with attendants (extract, B; which jamb C)"
+    }
+   },
+   "u": "",
+   "src": "SI-ARCH;REF-PLAN;RECON",
+   "tier": "B/C",
+   "note": "jamb programme of the Tripylon doorways (carving state: relief_state_467)"
   }
  },
  "treasury": {
@@ -2707,6 +3110,24 @@
    "src": "ISAC-FINDS",
    "tier": "B",
    "note": "what the Treasury held (types B, search extracts of ISAC Contents of the Treasury); quantities and placement C"
+  },
+  "r_door_state": {
+   "v": {
+    "N": "scheduled_locked",
+    "E": "sealed",
+    "hall99": "scheduled_sealed"
+   },
+   "u": "",
+   "src": "IRANTOUR-TREAS;MATCULT-R;RECON",
+   "tier": "C",
+   "note": "N: the working entrance in 467 (entrances_history, C), open in working hours (global.r_door_schedule) and barred at night; E: a secondary door in the outer wall (REF-PLAN gap, C) kept barred and sealed; hall99: the store of the Hall of 99 Columns, open while the store staff work (people place treasury_store) and sealed with clay outside working hours (C; sealing global.r_door_sealing, Q-089). Barred and sealed doors do not open for the visitor; door.id and door.locked are the hooks for visitor-mode guards"
+  },
+  "r_door_height": {
+   "v": 4.5,
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "clear height of the enclosure doorways N and E (as the Hall of 99 Columns doorway, r_hall99_walls, C); the brick wall closes over them (the doorway gaps ran to the wall top before, D-051)"
   }
  },
  "harem": {
@@ -2994,6 +3415,60 @@
    "src": "RECON",
    "tier": "C",
    "note": "width of the enclosure entrances (r_entrances), as the hall N door (C)"
+  },
+  "r_door_state": {
+   "v": {
+    "N": "open",
+    "S": "open",
+    "E": "open",
+    "W": "open"
+   },
+   "u": "",
+   "src": "RECON",
+   "tier": "C",
+   "note": "palace doors stand open by day and can be closed; people open a closed door as they pass (C, D-051)"
+  },
+  "door_jamb_reliefs": {
+   "v": {
+    "S": {
+     "programme": "king",
+     "attendants": [
+      "whisk",
+      "parasol"
+     ],
+     "tier": "B",
+     "note": "Xerxes entering, followed by a fly-whisk bearer and a parasol bearer (ISAC-PA, B)"
+    },
+    "E": {
+     "programme": "hero",
+     "beasts": [
+      "monster"
+     ],
+     "tier": "B",
+     "note": "royal hero stabbing a lion-headed monster / rampant griffin (ISAC-PA, SI-ARCH: B); monster form C"
+    },
+    "W": {
+     "programme": "hero",
+     "beasts": [
+      "lion"
+     ],
+     "tier": "B",
+     "note": "royal hero fighting a lion (ISAC-PA, B)"
+    },
+    "N": {
+     "programme": "king",
+     "attendants": [
+      "whisk",
+      "parasol"
+     ],
+     "tier": "C",
+     "note": "NOT SEEN (\"probably king with attendants\"): reconstructed as the S doorway (C, analogue)"
+    }
+   },
+   "u": "",
+   "src": "ISAC-PA;SI-ARCH;RECON",
+   "tier": "B/C",
+   "note": "jamb programme of the Harem hall doorways"
   }
  },
  "garrison": {

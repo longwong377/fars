@@ -11,6 +11,7 @@ import { buildCanals } from '../src/world/plain/canals';
 import { placeVillages, villageCompounds, compoundBoxes } from '../src/world/plain/villages';
 import { buildPlain, PlainBuild } from '../src/world/plain';
 import { carvableTranslit } from '../src/world/plain/naqsh';
+import { buildMapLayers, builtPlainOf } from '../src/ui/mapLayers';
 import { loadInscriptionFonts } from '../src/arch/decor';
 import { curvatureDrop } from '../src/terrain/heightfield';
 
@@ -213,6 +214,12 @@ describe('the plain as built (headless): budgets, tiers, chronology', () => {
   beforeAll(async () => {
     P = await buildPlain(scene, T, null, { quality: 'high', seed: 1, fetchJson: async p => JSON.parse(readFileSync('public/' + p, 'utf8')) });
   }, 120_000);
+  it('the out-of-world map reads the plain as built (rivers, canals, villages)', () => {
+    const L = buildMapLayers({ plain: builtPlainOf(P.data as any) });
+    expect(L.filter(i => i.style === 'river' && i.id.startsWith('river_')).length).toBe(P.data.rivers.rivers.length);
+    expect(L.filter(i => i.style === 'village').length).toBe(P.data.villages.length);
+    expect(L.filter(i => i.style === 'canal').length).toBeGreaterThanOrEqual(P.data.canals.length);
+  });
   it('the tomb of Darius carries DNa and DNb in Old Persian from the edition, without the modern lacunae', () => {
     const tm = P.group.getObjectByName('nr-inscriptions-carved') as THREE.Mesh; expect(tm).toBeTruthy();
     const note = String(tm.userData.note); console.log(note);

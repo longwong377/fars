@@ -3,9 +3,10 @@
 // level of detail per figure. Figures are procedural low relief, tier C (licensed scans would replace them, NEEDS #10);
 // layout B/C per SITE_SPEC; paint per research/RELIEFS_AND_COLOUR.md (hair/beard dark blue B, other colours C).
 import * as THREE from 'three/webgpu';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { v } from './spec';
 import { Rng } from '../core/rng';
-import { FIGURE_KINDS, PIGMENT, DELEGATIONS, SPECIES, defBounds, figureDef } from './relief_figures';
+import { FIGURE_KINDS, PIGMENT, DELEGATIONS, SPECIES, defBounds, figureDef, baseKind } from './relief_figures';
 const SPECIES_HALF = (k: string) => (SPECIES[k] ? SPECIES[k].L / 2 : 0.3);
 import { rasterize, rtinErrors, extractLod, LodMesh, Box, FigureDef } from './relief_field';
 import { paintedStoneMaterial } from '../render/materials';
@@ -21,7 +22,9 @@ export const RELIEF_META = { tier: 'C', src: 'RELIEF-R;MATCULT-R;IR-APAD', place
  *  switch distance (m, camera to the figure's bounding sphere). Bands chosen for ≳ 4 px per triangle at 1080p / 70° (D-019):
  *  L0 only at arm's length, where a 1.6 mm cell is ~1 px. */
 export const RELIEF_LODS = [
-  { cell: 0.0016, maxN: 513, err: 0.03, grad: 1, dist: 1.2 },
+  // L0 grid up to 1025² (D-048): the Phase 4 door-jamb figures are 1.6–3.4 m tall, and at 513² a 2.2 m king had 5 mm cells
+  // (≈ 4 px at arm's length); figures under 0.82 m (every Apadana register figure) are unaffected
+  { cell: 0.0016, maxN: 1025, err: 0.03, grad: 1, dist: 1.2 },
   { cell: 0.0032, maxN: 257, err: 0.06, grad: 1, dist: 4 },
   { cell: 0.0064, maxN: 129, err: 0.12, grad: 1, dist: 14 },
   { cell: 0.0128, maxN: 65, err: 0.3, grad: 1, dist: Infinity },
@@ -29,6 +32,13 @@ export const RELIEF_LODS = [
 /** rosettes: carved within ROSETTE_NEAR, a 40-triangle boss within ROSETTE_FAR, not drawn beyond (≤ 1.5 px) */
 export const ROSETTE_NEAR = 2.0, ROSETTE_FAR = 40;
 const HYST = 1.12; // a finer LOD is dropped only beyond HYST × its switch distance
+/** far representation (D-048): WebGPU issues one draw per BatchedMesh instance, so a set's figures are grouped into
+ *  spatial chunks of RELIEF_CHUNK m; a chunk whose bounds lie beyond RELIEF_FAR (the coarsest band, where every figure is
+ *  at L3 anyway) is drawn as ONE merged mesh of its figures at L3 and its figures leave the batch. Shadows: the figures
+ *  cast none (low relief; the 5 cm normal bias of the sun's shadow erases a 4.5 cm relief's self-shadow anyway) except
+ *  within RELIEF_SHADOW_RANGE, through the chunk's merged L3 mesh drawn into the shadow maps only. When every chunk of a
+ *  set is far, the whole set is one merged mesh (one draw) */
+export const RELIEF_CHUNK = 12, RELIEF_FAR = RELIEF_LODS[2].dist, RELIEF_SHADOW_RANGE = 8;
 /** grid size (2^k + 1) for a figure whose larger extent on the stone is `extentM` metres, at LOD `lod` */
 export function lodGrid(extentM: number, lod: number) {
   const cells = extentM / RELIEF_LODS[lod].cell;
@@ -110,6 +120,12 @@ let reliefMat: THREE.MeshStandardNodeMaterial | null = null;
 /** carved limestone with a matte mineral paint film (D-030): no masonry joints, paint coverage per vertex */
 const paintMaterial = () => (reliefMat ??= paintedStoneMaterial());
 const carving = () => v<any>('apadana', 'r_relief_carving');
+let proxyMat: THREE.MeshBasicNodeMaterial | null = null;
+/** shadow proxies (D-048) write nothing in the view passes (no colour, no depth) and are drawn into the shadow maps with
+ *  both faces, since a relief heightfield is an open surface */
+const shadowProxyMaterial = () => (proxyMat ??= Object.assign(new THREE.MeshBasicNodeMaterial({ colorWrite: false, depthWrite: false }), { shadowSide: THREE.DoubleSide }));
+/** a spatial chunk of a relief set: its figures, bounds (world, padded by each figure's radius), merged far mesh and proxy */
+interface Chunk { items: number[]; lo: THREE.Vector3; hi: THREE.Vector3; far: THREE.Mesh | null; proxy: THREE.Mesh | null; isFar: boolean; tris: number }
 
 export class ReliefSet extends THREE.Group {
   readonly items: ReliefItem[]; readonly batch: THREE.BatchedMesh | null = null;
@@ -117,19 +133,29 @@ export class ReliefSet extends THREE.Group {
   private inst: number[] = []; private level: Int8Array; private shown: Int8Array; private grids: number[][] = []; private centres: Float32Array;
   private geoIds = new Map<string, number>(); private geoUse = new Map<string, number>(); private lastCam = new THREE.Vector3(Infinity, 0, 0);
   private rosNear: THREE.InstancedMesh | null = null; private rosettes: RosetteItem[]; private rosMats: THREE.Matrix4[] = [];
-  /** triangles currently submitted (before frustum culling) */
-  stats = { tris: 0, byLod: [0, 0, 0, 0], rosetteTris: 0, pending: 0 };
+  private mats: THREE.Matrix4[] = []; private chunks: Chunk[] = []; private chunkOf: Int32Array;
+  /** the whole set merged at L3, drawn instead of the far chunks while every chunk is far (D-048) */
+  private whole: THREE.Mesh | null = null;
+  /** triangles and draw ranges currently submitted (before frustum culling): per-figure batch instances, merged far
+   *  chunks, shadow proxies and the two rosette meshes */
+  stats = { tris: 0, byLod: [0, 0, 0, 0], rosetteTris: 0, pending: 0, farTris: 0, draws: 0, farChunks: 0, farDraws: 0, proxies: 0, chunks: 0 };
 
   constructor(items: ReliefItem[], rosettes: RosetteItem[] = [], name = 'reliefs') {
     super(); this.name = name; this.userData = { ...RELIEF_META };
     this.items = items; this.rosettes = rosettes;
-    const n = items.length; this.level = new Int8Array(n).fill(-1); this.shown = new Int8Array(n).fill(-1); this.centres = new Float32Array(n * 4);
+    const n = items.length; this.level = new Int8Array(n).fill(-1); this.shown = new Int8Array(n).fill(-1); this.centres = new Float32Array(n * 4); this.chunkOf = new Int32Array(n);
+    const byKey = new Map<string, Chunk>();
     items.forEach((it, i) => {
       const b = boundsOf(it.kind, it.seed), ext = Math.max(b[2] - b[0], b[3] - b[1]) * it.S;
       this.grids.push(RELIEF_LODS.map((_, l) => lodGrid(ext, l)));
       const cx = ((b[0] + b[2]) / 2) * (it.mirror ? -1 : 1) * it.S, cy = ((b[1] + b[3]) / 2) * it.S;
-      const c = it.o.clone().addScaledVector(it.X, cx).addScaledVector(it.Y, cy);
-      this.centres.set([c.x, c.y, c.z, (Math.hypot(b[2] - b[0], b[3] - b[1]) / 2) * it.S], i * 4);
+      const c = it.o.clone().addScaledVector(it.X, cx).addScaledVector(it.Y, cy), r = (Math.hypot(b[2] - b[0], b[3] - b[1]) / 2) * it.S;
+      this.centres.set([c.x, c.y, c.z, r], i * 4);
+      const k = [c.x, c.y, c.z].map(q => Math.floor(q / RELIEF_CHUNK)).join(',');
+      let ch = byKey.get(k); if (!ch) { ch = { items: [], lo: new THREE.Vector3(Infinity, Infinity, Infinity), hi: new THREE.Vector3(-Infinity, -Infinity, -Infinity), far: null, proxy: null, isFar: false, tris: 0 }; byKey.set(k, ch); this.chunks.push(ch); }
+      ch.items.push(i); this.chunkOf[i] = this.chunks.indexOf(ch);
+      ch.lo.min(new THREE.Vector3(c.x - r, c.y - r, c.z - r)); ch.hi.max(new THREE.Vector3(c.x + r, c.y + r, c.z + r));
+      this.mats.push(new THREE.Matrix4().makeBasis(it.X.clone().multiplyScalar(it.S), it.Y.clone().multiplyScalar(it.S), it.Z.clone().multiplyScalar(it.D)).setPosition(it.o.clone().addScaledVector(it.Z, -carving().embed)));
     });
     // coarsest LOD of every figure: synchronously when there is no worker pool (node, tests), so the set is complete at
     // once; in the browser the workers generate it and figures appear as their meshes arrive (main thread stays free)
@@ -139,15 +165,14 @@ export class ReliefSet extends THREE.Group {
       else { const m = reliefLodMesh(it.kind, it.seed, this.grids[i][3], 3); nv += m.verts; ni += m.index.length; } });
     if (n) {
       (this as any).batch = new THREE.BatchedMesh(n, Math.max(4096, nv * 3 + 200_000), Math.max(12288, ni * 3 + 600_000), paintMaterial());
-      const bm = this.batch!; bm.name = 'relief:figures'; bm.userData = { ...RELIEF_META }; bm.castShadow = true; bm.receiveShadow = true; bm.sortObjects = false; bm.perObjectFrustumCulled = true;
-      const mtx = new THREE.Matrix4(), emb = carving().embed;
+      // no shadow from the batch (D-048): near chunks cast theirs through a merged coarse proxy
+      const bm = this.batch!; bm.name = 'relief:figures'; bm.userData = { ...RELIEF_META }; bm.castShadow = false; bm.receiveShadow = true; bm.sortObjects = false; bm.perObjectFrustumCulled = true;
       let placeholder = -1;
       items.forEach((it, i) => {
         const gid = this.geomId(i, 3);
         if (gid === null && placeholder < 0) { const e = new THREE.BufferGeometry(); e.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3)); e.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1], 3)); e.setAttribute('color', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3)); e.setAttribute('paint', new THREE.Float32BufferAttribute([0, 0, 0], 1)); e.setIndex([0, 1, 2]); placeholder = bm.addGeometry(e); }
         const id = bm.addInstance(gid ?? placeholder);
-        mtx.makeBasis(it.X.clone().multiplyScalar(it.S), it.Y.clone().multiplyScalar(it.S), it.Z.clone().multiplyScalar(it.D)).setPosition(it.o.clone().addScaledVector(it.Z, -emb));
-        bm.setMatrixAt(id, mtx); this.inst.push(id);
+        bm.setMatrixAt(id, this.mats[i]); this.inst.push(id);
         if (gid !== null) { this.level[i] = 3; this.shown[i] = 3; this.use(this.key(i, 3), 1); } else bm.setVisibleAt(id, false);
       });
       bm.computeBoundingBox(); bm.computeBoundingSphere(); bm.frustumCulled = false; // per-instance culling does the work
@@ -180,15 +205,53 @@ export class ReliefSet extends THREE.Group {
     if (cur >= 0 && l > cur && d < RELIEF_LODS[cur].dist * HYST) l = cur; // hysteresis: keep the finer level a little longer
     return l;
   }
+  /** merge a chunk's figures at L3 into one mesh (far representation) and its shadow proxy; false while an L3 mesh is missing */
+  private buildFar(ch: Chunk): boolean {
+    for (const i of ch.items) if (!meshCache.has(this.key(i, 3, false))) return false;
+    const geos = ch.items.map(i => lodGeometry(meshCache.get(this.key(i, 3, false))!, this.items[i].mirror).applyMatrix4(this.mats[i]));
+    const g = mergeGeometries(geos)!; geos.forEach(q => q.dispose()); g.computeBoundingSphere();
+    ch.tris = g.index!.count / 3;
+    const meta = { ...RELIEF_META, note: 'far representation: the chunk\'s figures merged at the coarsest LOD (D-048); ' + RELIEF_META.note };
+    ch.far = new THREE.Mesh(g, paintMaterial()); ch.far.name = 'relief:far'; ch.far.userData = meta; ch.far.castShadow = false; ch.far.receiveShadow = true; ch.far.visible = false;
+    ch.proxy = new THREE.Mesh(g, shadowProxyMaterial()); ch.proxy.name = 'relief:shadow-proxy'; ch.proxy.userData = { ...meta, note: 'shadow proxy (D-048): drawn into the shadow maps only; ' + RELIEF_META.note }; ch.proxy.castShadow = true; ch.proxy.receiveShadow = false; ch.proxy.visible = false; ch.proxy.raycast = () => {}; // never picked
+    this.add(ch.far, ch.proxy);
+    return true;
+  }
+  /** far chunks (one merged mesh each) and shadow proxies for the camera position; the figures of a far chunk leave the batch */
+  private updateChunks(cam: THREE.Vector3) {
+    let far = 0, prox = 0;
+    for (const ch of this.chunks) {
+      const dx = Math.max(ch.lo.x - cam.x, 0, cam.x - ch.hi.x), dy = Math.max(ch.lo.y - cam.y, 0, cam.y - ch.hi.y), dz = Math.max(ch.lo.z - cam.z, 0, cam.z - ch.hi.z), d = Math.hypot(dx, dy, dz);
+      if (!ch.far) this.buildFar(ch);
+      const wantFar = ch.far !== null && d > RELIEF_FAR * (ch.isFar ? 1 : HYST);
+      // a hidden instance is parked on its L3 geometry, which is never deleted (BatchedMesh.deleteGeometry removes the
+      // instances that still reference a geometry)
+      if (wantFar && !ch.isFar) for (const i of ch.items) if (this.shown[i] >= 0) { this.use(this.key(i, this.shown[i]), -1); const g3 = this.geomId(i, 3); if (g3 !== null) this.batch!.setGeometryIdAt(this.inst[i], g3); this.batch!.setVisibleAt(this.inst[i], false); this.shown[i] = -1; }
+      ch.isFar = wantFar;
+      if (ch.far) { ch.far.visible = wantFar; ch.proxy!.visible = d < RELIEF_SHADOW_RANGE; if (wantFar) far++; if (d < RELIEF_SHADOW_RANGE) prox++; }
+    }
+    // every chunk far: the whole set as one mesh instead of one per chunk
+    const allFar = far === this.chunks.length && far > 0;
+    if (allFar && !this.whole) {
+      const g = mergeGeometries(this.chunks.map(ch => ch.far!.geometry))!; g.computeBoundingSphere();
+      this.whole = new THREE.Mesh(g, paintMaterial()); this.whole.name = 'relief:far-set';
+      this.whole.userData = { ...RELIEF_META, note: 'far representation: the whole set merged at the coarsest LOD while every chunk is far (D-048); ' + RELIEF_META.note };
+      this.whole.castShadow = false; this.whole.receiveShadow = true; this.add(this.whole);
+    }
+    if (this.whole) this.whole.visible = allFar;
+    if (allFar) for (const ch of this.chunks) ch.far!.visible = false;
+    this.stats.farChunks = far; this.stats.farDraws = allFar ? 1 : far; this.stats.proxies = prox; this.stats.chunks = this.chunks.length;
+  }
   /** choose each figure's LOD for the camera position; request missing meshes (workers) or build them within budgetMs (sync) */
   update(cam: THREE.Vector3, budgetMs = 4) {
     if (!this.batch) return;
     const moved = cam.distanceToSquared(this.lastCam) > 0.04;
     if (!moved && !this.dirty) return;
     this.dirty = false; if (moved) this.lastCam.copy(cam);
+    this.updateChunks(cam);
     const wp = workers(), t0 = performance.now(), dist = new Float32Array(this.items.length), c = this.centres;
     for (let i = 0; i < this.items.length; i++) dist[i] = Math.max(0, Math.hypot(cam.x - c[i * 4], cam.y - c[i * 4 + 1], cam.z - c[i * 4 + 2]) - c[i * 4 + 3]);
-    const order = Array.from(dist.keys()).sort((a, b) => dist[a] - dist[b]);
+    const order = Array.from(dist.keys()).filter(i => !this.chunks[this.chunkOf[i]].isFar).sort((a, b) => dist[a] - dist[b]);
     let pending = 0;
     for (const i of order) {
       const want = this.wanted(i, dist[i]); this.level[i] = want;
@@ -215,9 +278,13 @@ export class ReliefSet extends THREE.Group {
     this.countTris();
   }
   private countTris() {
-    this.stats.byLod = [0, 0, 0, 0]; this.stats.tris = 0;
-    for (let i = 0; i < this.items.length; i++) { if (this.shown[i] < 0) continue; const m = meshCache.get(this.key(i, this.shown[i], false)); if (m) { this.stats.byLod[this.shown[i]] += m.tris; this.stats.tris += m.tris; } }
-    this.stats.tris += this.stats.rosetteTris;
+    this.stats.byLod = [0, 0, 0, 0]; this.stats.tris = 0; let inBatch = 0;
+    for (let i = 0; i < this.items.length; i++) { if (this.shown[i] < 0) continue; inBatch++; const m = meshCache.get(this.key(i, this.shown[i], false)); if (m) { this.stats.byLod[this.shown[i]] += m.tris; this.stats.tris += m.tris; } }
+    this.stats.farTris = this.chunks.reduce((s, ch) => s + (ch.isFar ? ch.tris : 0), 0);
+    this.stats.tris += this.stats.farTris + this.stats.rosetteTris;
+    // view-pass draw ranges before frustum culling (WebGPU: one per batch instance, one per mesh); proxies add one each
+    // (they write nothing in the view) and are the only relief draws in the shadow passes
+    this.stats.draws = inBatch + this.stats.farDraws + this.stats.proxies + (this.rosNear && this.rosNear.count ? 1 : 0) + (this.rosFar && this.rosFar.count ? 1 : 0);
   }
   /** rosettes (tiny and numerous, so instanced rather than batched): carved LOD near the camera, a painted boss in the mid
    *  range, nothing beyond ROSETTE_FAR; both lists are rebuilt from the camera position */
@@ -241,7 +308,7 @@ export class ReliefSet extends THREE.Group {
     near.count = kn; far.count = kf; near.instanceMatrix.needsUpdate = true; far.instanceMatrix.needsUpdate = true;
     this.stats.rosetteTris = kn * this.rosTris[0] + kf * this.rosTris[1];
   }
-  dispose() { liveSets.delete(this); this.batch?.dispose(); this.rosNear?.dispose(); this.rosFar?.dispose(); }
+  dispose() { liveSets.delete(this); this.batch?.dispose(); this.rosNear?.dispose(); this.rosFar?.dispose(); for (const ch of this.chunks) ch.far?.geometry.dispose(); this.whole?.geometry.dispose(); }
 }
 
 /** the mid-range rosette: an octagonal painted boss (Egyptian blue, yellow-ochre centre), 40 triangles, same frame as the carved one */
@@ -265,8 +332,8 @@ export async function settleReliefs(cam: THREE.Vector3, timeoutMs = 60_000) {
   const t0 = performance.now();
   for (;;) { for (const s of liveSets) { s.dirty = true; s.update(cam, 1e9); } if (reliefsPending() === 0 || performance.now() - t0 > timeoutMs) return; await new Promise(r => setTimeout(r, 30)); }
 }
-export function reliefStats() { const out = { sets: liveSets.size, tris: 0, byLod: [0, 0, 0, 0], pending: reliefsPending(), generated: genStats.generated, workerJobs: genStats.workerJobs };
-  for (const s of liveSets) { out.tris += s.stats.tris; s.stats.byLod.forEach((t, i) => (out.byLod[i] += t)); } return out; }
+export function reliefStats() { const out = { sets: liveSets.size, tris: 0, byLod: [0, 0, 0, 0], farTris: 0, draws: 0, farChunks: 0, farDraws: 0, proxies: 0, chunks: 0, pending: reliefsPending(), generated: genStats.generated, workerJobs: genStats.workerJobs };
+  for (const s of liveSets) { out.tris += s.stats.tris; out.farTris += s.stats.farTris; out.draws += s.stats.draws; out.farChunks += s.stats.farChunks; out.farDraws += s.stats.farDraws; out.proxies += s.stats.proxies; out.chunks += s.stats.chunks; s.stats.byLod.forEach((t, i) => (out.byLod[i] += t)); } return out; }
 
 // ---------------- generic register API (Phase 4 programmes) ----------------
 type V3 = THREE.Vector3 | [number, number, number];
@@ -301,8 +368,8 @@ export function registerItems(spec: RegisterSpec): { items: ReliefItem[]; rosett
   const items: ReliefItem[] = [];
   let cursor = 0;
   for (const f of spec.figures) {
-    if (!FIGURE_KINDS[f.kind]) throw new Error(`relief kind ${f.kind} unknown (see RELIEF_KINDS)`);
-    const s = f.scale ?? 1, w = FIGURE_KINDS[f.kind].w * figH * s;
+    if (!FIGURE_KINDS[baseKind(f.kind)]) throw new Error(`relief kind ${f.kind} unknown (see RELIEF_KINDS)`);
+    const s = f.scale ?? 1, w = FIGURE_KINDS[baseKind(f.kind)].w * figH * s;
     const at = f.at ?? (spec.facing > 0 ? spec.length - cursor - w / 2 : cursor + w / 2);
     cursor += w + gap;
     if (at < 0 || at > spec.length) continue; // does not fit

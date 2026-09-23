@@ -23,10 +23,10 @@ export interface TranslationContext {
 const INSCRIPTION_INFO: Record<string, { title: string; where: string }> = {
   XPa: { title: 'XPa — Xerxes, Gate of All Nations', where: 'carved above the doorway colossi of the Gate (version per colossus: C)' },
   XPb: { title: 'XPb — Xerxes, Apadana', where: 'beside the audience panels of the Apadana stairs (placement C)' },
-  XPc: { title: 'XPc — Xerxes, Tachara', where: 'Tachara (S stair façade)' },
+  XPc: { title: 'XPc — Xerxes, Tachara', where: 'between the guards of the central façade of the Tachara S stair (placement C)' },
   DNa: { title: 'DNa — Darius I, his tomb at Naqsh-e Rustam', where: 'upper register, behind the king (panel position C; Old Persian version only)' },
   DNb: { title: 'DNb — Darius I, his tomb at Naqsh-e Rustam', where: 'façade, between the columns left of the door (panel position C; Old Persian version only; modern lacunae shown as x)' },
-  XPd: { title: 'XPd — Xerxes, Hadish', where: 'Hadish (W stair façade)' },
+  XPd: { title: 'XPd — Xerxes, Hadish', where: 'between the guards of the central façade of the Hadish W stair (placement C)' },
 };
 const LANG_NAME: Record<string, string> = { op: 'Old Persian', el: 'Elamite', arc: 'Aramaic', bab: 'Babylonian' };
 import { MAP_ZOOMS, MapItem, MapStyle, P2 } from './mapLayers';

@@ -62,6 +62,12 @@ export function buildMapLayers(built: { town?: BuiltTown | null; plain?: BuiltPl
   return out;
 }
 
+/** the plain build's data (PlainBuild.data: rivers is a RiversData object with a `rivers` list) → BuiltPlain */
+export function builtPlainOf(d: { rivers: { rivers: BuiltPlain['rivers'] } | BuiltPlain['rivers']; canals: BuiltPlain['canals']; villages: BuiltPlain['villages'] } | null | undefined): BuiltPlain | null {
+  if (!d) return null;
+  return { rivers: Array.isArray(d.rivers) ? d.rivers : d.rivers.rivers, canals: d.canals, villages: d.villages };
+}
+
 /** map zoom levels: the Terrace (fixed frame), the town around the visitor, the plain around the visitor */
 export const MAP_ZOOMS = [
   { name: 'Terrace', half: 0, bar: 50 },

@@ -121,8 +121,12 @@ describe('§13.3 Phase 4 dimension tests (stairs, doors, corrected outlines)', (
     const land = parts.find(p => p.building === 'tachara' && p.kind === 'landing') as any; expect(land.y1).toBeCloseTo(2.6, 6);
     expect(manifest.tachara.hallCentreY).toBe(-80);
     const nWalls = (parts.filter(p => p.building === 'tachara' && p.kind === 'wall') as any[]).filter(w => w.c[1] > -80 + 7);
-    expect(nWalls.filter(w => w.y0 === 2.6).length).toBe(3); // two N doorways (to the two N rooms) split the N wall into three runs
-    expect(nWalls.filter(w => w.y0 > 2.6).length).toBe(2); // with a lintel zone above each
+    // two N doorways (to the two N rooms) split the N wall into three runs at floor level (pieces merged: a niche cuts its run into several)
+    const runs = nWalls.filter(w => w.y0 === 2.6).map(w => [w.c[0] - w.size[0] / 2, w.c[0] + w.size[0] / 2]).sort((a, b) => a[0] - b[0])
+      .reduce((m: number[][], q) => { const l = m[m.length - 1]; if (l && q[0] <= l[1] + 1e-6) l[1] = Math.max(l[1], q[1]); else m.push([...q]); return m; }, []);
+    expect(runs.length).toBe(3);
+    const hx = (manifest.tachara.room as number[])[0], nDoors = (v<any[]>('tachara', 'doors').find(d => d.id === 'N_pair').offsets_x as number[]).map(o => hx + o);
+    expect(nWalls.filter(w => w.y0 > 2.6 && nDoors.some(x => Math.abs(w.c[0] - x) < w.size[0] / 2)).length).toBe(2); // with a lintel zone above each
   });
   it('Hadish: hall 27 m between wall faces, 6 × 6 at 3.9 m; W and E stairs 4 flights × 25 risers of 0.12 m to the 6.0 m floor', () => {
     expect(manifest.hadish.hallInterior).toBe(27); expect(manifest.hadish.stairSteps).toBe(200);
@@ -163,9 +167,11 @@ describe('part sanity', () => {
 import { readFileSync } from 'node:fs';
 describe('review MJ-1/MJ-2 regressions', () => {
   it('generator has no dimensional literals (only 0, 1, 2, 3, 0.5, 8, 9 as structural constants: halves, thirds, sample counts)', () => {
-    const src = readFileSync('src/arch/terrace.ts', 'utf8').split('\n').filter(l => !l.trim().startsWith('//')).join('\n').replace(/\/\/.*$/gm, '').replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g, ''); // strings in order of appearance (a "…'…'…" string is one token)
+    for (const file of ['src/arch/terrace.ts', 'src/arch/openings.ts']) {
+    const src = readFileSync(file, 'utf8').split('\n').filter(l => !l.trim().startsWith('//')).join('\n').replace(/\/\/.*$/gm, '').replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"|`(?:[^`\\]|\\.)*`/g, ''); // strings in order of appearance (a "…'…'…" string is one token)
     const lits = [...src.matchAll(/(?<![\w.])(\d+\.?\d*(?:e-?\d+)?)(?![\w])/g)].map(m => m[1]).filter(n => !['0', '1', '2', '3', '0.5', '8', '9'].includes(n));
-    expect(lits).toEqual([]);
+    expect(lits, file).toEqual([]);
+    }
   });
   it('Apadana N and E stair landings adjoin the podium edge (no trench) and no step lies inside a landing', () => {
     const ap = parts.filter(p => p.building === 'apadana') as any[];

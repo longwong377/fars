@@ -1,7 +1,7 @@
 // dev: run the §13.8 walkthrough bot offline (node, no browser): same Rapier colliders, player controller, walkable-grid
 // routing and walkTo steering as tests/e2e/lib/bot.ts + src/main.ts, minus rendering and people. Seconds instead of the
 // minutes a SwiftShader run takes, so a route can be debugged before the e2e run. Usage:
-//   npx tsx tools/dev/botcheck.ts [area[,area…]] [--trace]
+//   npx tsx tools/dev/botcheck.ts [area[,area…]|slice] [--trace]
 import { readFileSync } from 'node:fs';
 import { Ring, Terrain, TerrainMeta } from '../../src/terrain/heightfield';
 import { Physics } from '../../src/player/physics';
@@ -9,7 +9,7 @@ import { Player } from '../../src/player/player';
 import { buildTerrace } from '../../src/arch/terrace';
 import { buildMeshes } from '../../src/arch/meshes';
 import { NavGrid } from '../../src/people/navgrid';
-import { ROUTES } from '../../tests/e2e/lib/routes';
+import { ROUTES, SLICE } from '../../tests/e2e/lib/routes';
 
 const meta: TerrainMeta = JSON.parse(readFileSync('public/generated/terrain.json', 'utf8'));
 const ring = (k: 'near' | 'mid' | 'far') => new Ring(meta.rings[k], new Uint16Array(readFileSync(`public/${meta.rings[k].file}`).buffer.slice(0)), meta.court_asl);
@@ -22,7 +22,7 @@ const areas = (process.argv[2] && !process.argv[2].startsWith('--') ? process.ar
 
 let bad = 0;
 for (const area of areas) {
-  const R = ROUTES[area]; let pos: [number, number] = R.start;
+  const R = area === 'slice' ? SLICE : ROUTES[area]; let pos: [number, number] = R.start; // 'slice' = the Phase 3 route (not run by default)
   const x0 = pos[0], z0 = -pos[1]; P.updateTerrain(T, { x: x0, y: 0, z: z0 }); P.step(1e-4);
   const pl = new Player(P, x0, P.castRayDown(x0, z0, 400) ?? T.heightAt(x0, z0), z0); pl.maxFall = 0; pl.fallStartY = null;
   const stepDt = (yawDeg: number, fwd: number, dt: number) => { P.updateTerrain(T, pl.position); pl.update(dt, { forward: fwd, right: 0, run: false, yaw: -((yawDeg - 341) * Math.PI) / 180, pitch: 0 }); P.step(Math.max(1 / 240, dt)); };

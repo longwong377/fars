@@ -100,7 +100,9 @@ async function boot() {
   const player = new Player(phys, sx, terrain.heightAt(sx, sz) + 0.05, sz);
   const input = new Input(canvas, () => settings);
   input.yaw = SPAWN.yaw;
-  input.onInteract = () => { const r = world.address?.(camera); if (r) console.info('[translation layer]', JSON.stringify(r)); };
+  input.onInteract = () => { // E: the door faced within reach (D-051), else the nearest person in front
+    const d = world.doors?.use(camera); if (d) { console.info('[door]', JSON.stringify(d)); return; }
+    const r = world.address?.(camera); if (r) console.info('[translation layer]', JSON.stringify(r)); };
   const tl = new TranslationLayer(() => settings); input.onAction = a => tl.toggle(a);
   let lastSub: any = null, lastSubAt = -1e9; const inscGroup = [world.root.getObjectByName('inscriptions') ?? null, world.root.getObjectByName('nr-inscriptions') ?? null];
   const body = makePlayerBody((world as any).people?.crowd); scene.add(body);
@@ -109,7 +111,7 @@ async function boot() {
   function state() {
     const p = player.position;
     return { v: 1 as const, savedAt: new Date().toISOString(), seed: SEED, clockT: clock.t, timeScale: settings.timeScale, weatherOverride: weather.override,
-      player: { x: p.x, y: p.y, z: p.z, yaw: input.yaw, pitch: input.pitch }, npc: world.saveState?.() };
+      player: { x: p.x, y: p.y, z: p.z, yaw: input.yaw, pitch: input.pitch }, npc: world.saveState?.(), doors: world.doors?.save() };
   }
   function restore(s: ReturnType<typeof state> | null) {
     if (!s) return false;
@@ -118,7 +120,7 @@ async function boot() {
     }
     settings.timeScale = s.timeScale; clock.scale = TEST ? 0 : s.timeScale;
     clock.t = s.clockT; weather.override = s.weatherOverride as WeatherOverride; input.yaw = s.player.yaw; input.pitch = s.player.pitch;
-    phys.updateTerrain(terrain, s.player); player.body.setTranslation(s.player, true); world.loadState?.(s.npc);
+    phys.updateTerrain(terrain, s.player); player.body.setTranslation(s.player, true); world.loadState?.(s.npc); world.doors?.load((s as any).doors);
     // the world kept running while the visitor was away (§9.5): advance the clock by the real time elapsed × the time scale
     // and catch the simulation up (frozen test worlds excepted)
     const away = TEST ? 0 : Math.max(0, (Date.now() - Date.parse(s.savedAt)) / 1000) * s.timeScale;
@@ -186,6 +188,8 @@ async function boot() {
       for (let i = 0; i < n; i++) { const r = radius * Math.sqrt((i + 0.5) / n), a = i * 2.39996; const e = east + r * Math.cos(a), no = north + r * Math.sin(a); const d = dress[i % dress.length];
         P.crowd.addExtra(`load${i}`, { id: -1000 - i, dress: d, sex: d === 'woman' ? 'f' : 'm', role: d === 'guard' ? 'guard' : d === 'child' ? 'child' : 'porter', seed: 7000 + i, x: e, y: groundAt(e, no), z: -no, yaw: a * 3, anim: anims[i % anims.length] }); }
       return n; },
+    /** doors (D-051): list, work the door faced (as E does), or set one by id */
+    doors: () => world.doors?.list() ?? [], useDoor: () => world.doors?.use(camera) ?? null, setDoor: (id: string, open: boolean) => world.doors?.toggle(id, open) ?? null,
     resetFalls: () => { player.maxFall = 0; },
     exposureInfo: () => ({ exposure: renderer.toneMappingExposure, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],
