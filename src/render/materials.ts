@@ -246,7 +246,9 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     alb = alb.mul(float(1).sub(slot.mul(J.dark)).sub(lip.mul((J.lipDark ?? 0) * 1).mul(SURF_AB)));
     rough = mix(rough, float(1), slot);
     // per block: tone ± blockTone (the old ±8 % at SURF_AB = 0), a warm/cool split, and a tilt of the block's face
-    const riseRow = floor(p.y.mul(20)); // tread heights (5 cm steps)
+    // tread heights in 5.8 cm bins, scaled and offset off round numbers: a tread at a round height (0.10 m × k) would sit
+    // exactly on a bin edge and speckle between two tones
+    const riseRow = floor(p.y.mul(17.3).add(0.371));
     const idV = hash12(W.blk.add(0.37), W.c.add(11.3)), idH = hash12(S.blk.add(riseRow.mul(7.1)).add(0.37), S.c.add(11.3));
     const wcV = hash12(W.c.mul(1.618).add(5.1), W.blk.add(2.9)), wcH = hash12(S.c.mul(1.618).add(riseRow).add(5.1), S.blk.add(2.9));
     const amp = mix(float(0.08), float(d.blockTone ?? 0.08), SURF_AB);
