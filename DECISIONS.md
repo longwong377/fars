@@ -1072,22 +1072,28 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 ## D-117 — Exposure: the eye's key and adaptation limit; the camera law unchanged, the rest as a sky gain
 - **Problem:** exposure = 2.3 / E (clamped 0.35–6) normalised every scene to the same brightness. With D-115's physical light levels, a dawn at 1/150 of the noon illuminance would either look like noon or, clamped at 6, be black.
 - **Decision (`src/sky/exposure.ts`; main.ts calls `exposureTarget`, the sky calls `skyGain`):**
-  - **Displayed brightness** of a grey at the adapting luminance La (an 18 % grey under the outdoor illuminance, the reflected-metering convention): D(La) = key(La) / key(La_noon) · min(1, La / La_abs).
+  - **Displayed brightness** of the grey ground (`displayedGrey`) = D(F · La) · F_noon / F:
+    - La = 0.18 E / π, an 18 % grey under the outdoor illuminance (the reflected-metering convention).
+    - F: the frame's brightness in grey-card units for a centre-weighted reflected meter that gives the sky a fifth of the weight (C; the principle of ISO 2720 meters): F = 0.8 + 0.2 · E_sky / (0.18 E). F is 0.94 at the zenith sun (the sky darker than the sunlit ground) and 1.9 in twilight (the sky ~5.6× the ground), so at twilight the camera exposes for the sky, as a photographer does.
+    - D(La) = key(La) / key(La_noon) · min(1, La / La_abs), with the key taken at the frame's adapting luminance F · La, as Krawczyk et al. take it at the scene's average.
     - key = 1.03 − 2 / (2 + log10(La + 1)) (Krawczyk, Myszkowski & Seidel 2005, SX): 0.69 in daylight, 0.03 at night.
     - La_abs = 10^−3.94 cd/m² (≈ 0.002 lx): the rods' absolute-threshold plateau in Ferwerda et al.'s (1996) TVI (read in full in Banterle's HDR Toolbox). Below it the eye cannot adapt further.
-    - D = 1 at the zenith sun, 0.70 at sunrise, 0.41 at −3°, 0.09 at −6°, 0.044–0.049 from −9° through moonlit nights, 0.011 on a moonless night.
+    - Displayed grey ÷ noon: 0.95 at 30°, 0.71 at 10°, 0.52 at 5°, 0.37 at sunrise, 0.25 at −3°, 0.063 at −6°, 0.023 at −9° and −12°; by moonlight 0.040 (half) to 0.049 (full); 0.010 on a moonless night.
+    - A first version without F (the illuminance-metered key alone: 0.70 at sunrise, 0.41 at −3°) left the twilight sky ~5× the ground and displayed pale and washed out in the CPU panoramas. A sky weight of 0.35 made the end of civil twilight darker than a half-moon night and −6.7° black, so it was not kept.
   - **Camera:** the session-3 law X = clamp(2.3 / E_eye, 0.35, 6) is unchanged, because fires, lamps and the night dome were tuned against it (perceptual values).
-  - **Sky gain:** the part of the adaptation beyond that range is a gain G ≥ 1 on every light that comes from the sun, the sky or the moon (a pre-exposure): G = max(1, (2.3 / 6) · D(La) / E_sky-lights).
-    - The ratios between those lights stay physical at every moment, and a grey lit by them is displayed at 2.3 · D.
-    - G = 1 whenever the sky alone keeps X inside its range (a clear sky with the sun above ~12°), so every daylit scene is normalised exactly as before.
+  - **Sky gain:** the part of the adaptation beyond that range is a gain G ≥ 1 on every light that comes from the sun, the sky or the moon (a pre-exposure): G = max(1, (2.3 / 6) · displayedGrey / E_sky-lights).
+    - The ratios between those lights stay physical at every moment, and a grey lit by them is displayed at 2.3 · displayedGrey.
+    - G = 1 whenever the camera law alone gives a brighter display (a clear sky with the sun above ~5°; X reaches its limit of 6 below ~12°). Every daylit and golden-hour scene is therefore normalised exactly as before, and the meter's sky weight acts only in twilight and at night.
 - **Why not Ferwerda's full display model:** its rod term is scaled by the scotopic threshold at the display's level. That is a visibility match, not a brightness model: a full-moon scene comes out at ~70 % of daylight, and the output is non-monotonic through the mesopic range (checked numerically, not adopted).
-- **Night:** darker than in session 3 where only the sky lights it. A grey is displayed at 4.4 % of daylight by moonlight (session 3: ~17 %) and 1.1 % on a moonless night (session 3: ~7 %). Fires, lamps and the night sky are unchanged. The rod image is not desaturated, since a scalar exposure cannot do that; the moonlight's perceptual blue stands in (C).
+- **Night:** darker than in session 3 where only the sky lights it. A grey is displayed at 4–5 % of daylight by moonlight (session 3: ~17 %) and 1 % on a moonless night (session 3: ~7 %). Fires, lamps and the night sky are unchanged. The rod image is not desaturated, since a scalar exposure cannot do that; the moonlight's perceptual blue stands in (C).
 - **Tests (`tests/exposure.test.ts`):**
   - the TVI pieces are continuous; the key's end values; D is monotone; the camera law is unchanged within its range;
+  - the displayed grey falls monotonically as the sun goes from 30° to −12°; the end of civil twilight is not below a half-moon night;
   - on the SkySystem's own lights, the displayed grey relative to noon is 1 at noon, < 0.85 at sunrise, < 0.55 at dawn (−2.9°), < 0.15 at the end of civil twilight, < 0.03 on a moonless night;
   - a moonlit night is more than 2× a moonless one, and above 0.02.
 - **Weak:**
-  - The metering is incident (the illuminance at the eye), as before. At sunrise and sunset the sky is ~5× the grey ground, so it is displayed bright and pale (CPU panoramas, `tools/dev/sky_panorama.ts`). A reflected (average) meter would expose for the sky at twilight, but would also change golden-hour and daytime views by ±20 % with the view direction, so it was not adopted (Q-162).
+  - The meter is a model of a frame (20 % sky weight, the sky's mean radiance), not a measurement of the rendered frame. Looking up at the sky or down at the ground does not change the exposure (Q-162).
+  - Nautical twilight (−9°, 0.12 lx) displays its ground darker than a half-moon night (0.023 vs 0.040): the key has saturated at both, and the meter exposes for the bright western sky at −9°. The sky itself is far brighter at −9°.
   - There is no chromatic adaptation: twilight is rendered as a daylight-balanced camera would record it, strongly blue.
 - **Tiers:** the published functions B; their use as a scalar exposure, the 18 % adapting grey and the camera range C.
 - **Addendum: fire light (measured in the first dawn render).**
