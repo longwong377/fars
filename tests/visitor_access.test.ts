@@ -16,6 +16,7 @@ describe('visitor access zones', () => {
   });
   it('places on the Terrace fall in the zones the research names', () => {
     expect(terraceZoneAt(...P('gate_hall'))).toBe('gate_nations');
+    expect(terraceZoneAt(-28, 121.5)).toBe('grand_stair'); // the landing at the stair heads, before the Gate's W door
     expect(terraceZoneAt(...P('forecourt'))).toBe('terrace_courts');
     expect(terraceZoneAt(...P('treasury_desk'))).toBe('treasury_desk');
     expect(terraceZoneAt(...P('post_treas_1'))).toBe('treasury_street');

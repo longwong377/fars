@@ -47,6 +47,9 @@ export function terraceZoneAt(e: number, n: number): string | null {
   if (TREASURY_STREET && e >= TREASURY_STREET.x0 && e <= TREASURY_STREET.x1 && n >= TREASURY_STREET.y0 && n <= TREASURY_STREET.y1) return 'treasury_street';
   for (const b of BUILDING_ZONES) { const f = FOOTPRINTS[b]; if (f && present(b) && pointInPolygon(e, n, f.polygon)) return b; }
   if (PF_BASTION.length > 2 && pointInPolygon(e, n, PF_BASTION)) return 'pf_archive_findspot';
+  // the landing at the stair heads, in front of the Gate's W door: part of the stair (the Gate is 'the only entrance to the
+  // terrace', ISAC-PA, B), not the courts beyond it; the stair-head guards watch here (C: the Terrace W of the Gate, level with it)
+  const G = FOOTPRINTS.gate_nations?.bounds; if (onTerrace && G && e < G[0] && n > G[1] - 15 && n < G[3] + 15) return 'grand_stair';
   return onTerrace ? 'terrace_courts' : null;
 }
 
