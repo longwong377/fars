@@ -1,16 +1,18 @@
 // Crowd renderer (D-090, D-093): renders the simulation's people with the MakeHuman-derived bodies in period dress.
 //
 // Pooling: the pool is fed by the simulation's `visibleAgents(centre, ATTACH_R, POOL_MAX)` (the detailed agents on the
-// Terrace, nearest first, capped; D-024): people are attached when they come into that set and detached beyond DETACH_R
-// or when they leave for the town. Attaching gives a person a palette slot and writes their
-// look (looks.ts; deterministic from their seed, so a person looks the same every time). The simulation's roster can
-// therefore grow to thousands (Phase 5) without one rig per agent: cost scales with the people near the camera.
+// Terrace, nearest first, capped; D-024) and, with a population view (popview.ts, D-143), by everyone of the population
+// who is out of doors near the camera (and the detailed agents off the Terrace, where the view places them): the nearest
+// POOL_MAX of all of them are attached (with a margin before anyone is dropped), the rest within IMP_R are drawn as
+// impostors (impostors.ts), in the same place, colours and activity. Attaching gives a person a palette slot and writes
+// their look (looks.ts; deterministic from their seed, so a person looks the same every time). Cost scales with the
+// people near the camera, not with the population.
 // `attach()`/`detach()` are public so a future dynamic roster can drive the pool itself (autoPool = false).
 //
 // LOD per frame: full detail (the 30k-triangle close-up body with fingers, eyes, mouth, lashes) within LOD_DIST[0]
 // for up to MAX_FULL people, nearest first; the mid body to LOD_DIST[1]; the far body to LOD_DIST[2]; the far body
-// simplified to a fifth (meshoptimizer) to LOD_DIST[3] (when the simplifier ran; otherwise the far body). Impostors beyond
-// are not built. Each costume × LOD is one instanced draw (humanGPU.ts). Poses are refreshed every frame near the
+// simplified to a fifth (meshoptimizer) to LOD_DIST[3] (when the simplifier ran; otherwise the far body); impostors beyond
+// it and beyond the pool (one instanced draw, impostors.ts). Each costume × LOD is one instanced draw (humanGPU.ts). Poses are refreshed every frame near the
 // camera and less often further away; root motion is per frame for everyone (instanced root attribute).
 // Face: blinks, the jaw while speaking or eating, eyes and head turned to a nearby stranger.
 import * as THREE from 'three/webgpu';
@@ -27,6 +29,8 @@ import { PERSON_TEXELS, FLAG_HIDE_HEAD } from './humanMaterial';
 import { nearCascadesOnly } from './humanGPU';
 import { propGeometry, propUnionGeometry, paintedBox, PROP_KINDS, PROP_NOTES } from './props';
 import { PIECES, pieceBit, COSTUME_OF, type Dress } from './outfits';
+import type { PopView, ViewPerson } from './popview';
+import { CrowdImpostors, rowOf, frameOf } from './impostors';
 /** poses in which people sit, kneel or lie (coats and back-carried weapons are laid aside) */
 const SEATED = new Set<AnimId>(['sit', 'write', 'eat', 'dice', 'sleep', 'grind', 'knead', 'bake']);
 import type { AnimId } from './anim';
@@ -35,8 +39,16 @@ const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
 const rad = (deg: number) => (deg * Math.PI) / 180;
 /** world yaw for a grid heading (deg clockwise from grid north); the rig faces +Z in bind pose */
 export const yawOf = (headingDeg: number) => Math.PI - rad(headingDeg);
-/** LOD distances (m): full detail, mid, far (nothing beyond: impostors not built) */
+/** LOD distances (m): full detail, mid, far, farthest (impostors beyond, D-143) */
 export const LOD_DIST = [25, 90, 200, 600] as const;
+/** impostors are drawn to this distance (m): the Terrace, the town and the nearer villages from anywhere on them */
+export const IMP_R = 5000;
+/** an attached person is kept until their rank by distance passes POOL_MAX + POOL_HYST (no attach/detach flicker) */
+export const POOL_HYST = 48;
+/** looks computed per frame for people first seen as impostors (lookFor is ~10-40 µs) */
+export const LOOKS_PER_FRAME = 300;
+/** a person out of view ranks this much farther for the pool (m) */
+export const OUT_OF_VIEW = 400;
 /** full detail for at most the nearest MAX_FULL (brief: ≥ 50), mid detail for at most the next MAX_MID; beyond, the far
  *  body even within 90 m. Measured at high quality, 300 people within 20 m: 64 + all-mid cost 3.55 M view triangles
  *  (15.7 M frame); 50 + 160 cost 2.88 M (12.33 M frame, budget 12 M); hence 50 + 100 (D-093) */
@@ -66,7 +78,12 @@ export interface Person {
   nodAt: number;
   /** extras (lineups, tests): fixed animation and place */
   extra?: { anim: AnimId; x: number; y: number; z: number; yaw: number; look?: [number, number, number] | null };
+  /** the population person (D-143; -1 for extras), the view's data for them this frame (population people, and detailed
+   *  agents off the Terrace), and their walking phase */
+  pid: number; vp: ViewPerson | null; vpFrame: number; gaitPh: number;
 }
+/** a person drawn as an impostor: their cached look (packed colours, dress row, stature scale) */
+interface ImpLook { packed: Float32Array; dress: Dress; scale: number }
 
 export class Crowd {
   readonly group = new THREE.Group();
@@ -85,6 +102,15 @@ export class Crowd {
   /** last frame's CPU cost (ms) of pooling, posing and instance filling; people drawn per LOD */
   readonly perf = { ms: 0, poseMs: 0, posed: 0, drawn: [0, 0, 0, 0], attached: 0 };
   private hitProxy: THREE.Mesh; private list: Person[] = [];
+  /** the population view (world.ts sets it, D-143): with it the pool draws the population, not only the detailed agents */
+  view: PopView | null = null;
+  /** impostors beyond the pool (set when the atlas is baked) */
+  imp: CrowdImpostors | null = null;
+  private byPid = new Map<number, Person>(); private impLooks = new Map<number, ImpLook>();
+  private impList: { vp: ViewPerson | null; a: Agent | null; d: number; x: number; y: number; z: number; yaw: number }[] = []; private nImp = 0;
+  /** impostors and the pool feeding this frame (stats) */
+  readonly impPerf = { drawn: 0, candidates: 0, looksPending: 0, poolCands: 0, popins: 0, doorEntries: 0, walking: 0, placeholders: 0, bands: [0, 0, 0, 0] as number[], feedMs: 0, impMs: 0 };
+  private camAt = new THREE.Vector3();
   /** `sim` null: a crowd of extras only (the human lab page, tests) */
   constructor(readonly sim: PeopleSim | null, readonly seed: number, readonly humans: HumanSystem) {
     this.group.name = 'people';
@@ -167,7 +193,8 @@ export class Crowd {
     const face: FaceState = { jaw: 0, blink: 0, look: null, eyeYaw: 0, eyePitch: 0 };
     const p: Person = { key, agent, look, slot, face, rig: { joints: v.joints, pose: { rot: {}, hips: [0, 0, 0] }, face, grip: [0, 0], x: 0, y: 0, z: 0, yaw: 0, scale: 1 },
       root: [0, 0, 0, 0], prevRoot: [0, 0, 0, 0], shown: false, drawnFrame: -10, poseFrame: -10, frameMod: seed % 8, lastHit: false,
-      blinkAt: (seed % 997) / 997 * 4, speakUntil: -1, prop: null, propM: new THREE.Matrix4(), anim: 'idle', t0: (seed % 100), dist: 0, mask: look.mask, lookC: [0, 0, 0], act: '', actPlaceholder: false, nodAt: -1 };
+      blinkAt: (seed % 997) / 997 * 4, speakUntil: -1, prop: null, propM: new THREE.Matrix4(), anim: 'idle', t0: (seed % 100), dist: 0, mask: look.mask, lookC: [0, 0, 0], act: '', actPlaceholder: false, nodAt: -1,
+      pid: agent ? agent.pid : -1, vp: null, vpFrame: -10, gaitPh: (seed % 628) / 100 };
     this.persons.set(key, p); if (agent) this.byAgent.set(agent.id, p); return p;
   }
   /** attached people by agent id (no string keys in the per-frame pool scan) */
@@ -178,7 +205,14 @@ export class Crowd {
     const look = lookFor(this.humans.A, { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed } as LookInput, this.seed);
     return this.newPerson(key, a, look, a.seed);
   }
-  detach(a: Agent | string) { const p = typeof a === 'string' ? this.persons.get(a) : this.byAgent.get(a.id); if (!p) return; this.freeSlot(p.slot); this.persons.delete(p.key); if (p.agent) this.byAgent.delete(p.agent.id); }
+  detach(a: Agent | string) { const p = typeof a === 'string' ? this.persons.get(a) : this.byAgent.get(a.id); if (!p) return; this.freeSlot(p.slot); this.persons.delete(p.key); if (p.agent) this.byAgent.delete(p.agent.id); else if (p.pid >= 0) this.byPid.delete(p.pid); }
+  /** attach a person of the population (D-143): their look from the view (a detailed agent keeps its own); idempotent */
+  attachPop(pid: number): Person {
+    const hit = this.byPid.get(pid); if (hit) return hit;
+    const inp = this.view!.lookInput(pid), look = lookFor(this.humans.A, inp, this.seed), h = this.view!.childStature(pid);
+    if (h) { const v = this.humans.A.variants[look.variant]; look.scale = h / v.height; look.stature = h; } // a child's size by age (C)
+    const p = this.newPerson(`p${pid}`, null, look, inp.seed); p.pid = pid; this.byPid.set(pid, p); return p;
+  }
   /** an extra person not driven by the simulation (test lineups): fixed place, yaw and animation */
   addExtra(key: string, spec: LookInput & { x: number; y: number; z: number; yaw: number; anim?: AnimId; look?: [number, number, number] | null }) {
     const old = this.persons.get(key); if (old) { this.freeSlot(old.slot); this.persons.delete(key); }
@@ -192,6 +226,48 @@ export class Crowd {
   /** agents that were off the map (in the town) at the last update: coming on the map within 50 m in view is a pop-in
    *  (§13.8), as in the Phase 3 crowd; attaching or changing LOD at a distance is not */
   private visPrev = new Set<number>(); private visNow = new Set<number>(); private poolPrimed = false;
+  /** the pool fed by the detailed agents and the population view (D-143): everyone out of doors within IMP_R is a
+   *  candidate; the nearest POOL_MAX are attached (an attached person stays until their rank passes POOL_MAX + POOL_HYST
+   *  or they are beyond DETACH_R or gone indoors), the rest are drawn as impostors. Pop-in probe (§13.8): a person who is
+   *  a candidate within 50 m in view and was none in the last frame, unless they came out through a door (entry 1). */
+  private seenPrev = new Set<number>(); private seenNow = new Set<number>(); private cands: { d: number; a: Agent | null; vp: ViewPerson | null; id: number; rank: number }[] = []; private vpBuf: ViewPerson[] = [];
+  private feedPool(cam: THREE.Vector3, camera?: THREE.Camera) {
+    const sim = this.sim!, view = this.view!, cx = cam.x, cn = -cam.z; let nc = 0;
+    const cand = (d: number, a: Agent | null, vp: ViewPerson | null, id: number) => { let c = this.cands[nc]; if (!c) this.cands[nc] = c = { d, a, vp, id, rank: d }; else { c.d = d; c.a = a; c.vp = vp; c.id = id; c.rank = d; } nc++; };
+    for (const a of sim.visibleAgents([cx, cn], ATTACH_R, POOL_MAX)) cand(Math.hypot(a.pos[0] - cx, a.y + 1 - cam.y, a.pos[1] - cn), a, null, a.id);
+    for (const o of view.query([cx, cn], IMP_R, this.vpBuf)) { const a = o.agent >= 0 ? sim.agents[o.agent] : null; if (a && !a.offmap) continue; cand(Math.hypot(o.e - cx, o.y + 1 - cam.y, o.n - cn), a, o, a ? a.id : 1e7 + o.pid); }
+    const C = this.cands; C.length = Math.max(C.length, nc); const order = this.orderBuf.length >= nc ? this.orderBuf : (this.orderBuf = new Int32Array(Math.max(1024, nc * 2)));
+    // rank: distance, people out of view counted OUT_OF_VIEW m farther (the pool's bodies go to the people seen; the
+    // nearest behind the camera keep theirs, so turning round finds them drawn)
+    let np = 0; for (let i = 0; i < nc; i++) { const c = C[i]; if (c.d >= DETACH_R) continue; order[np++] = i;
+      const x = c.vp ? c.vp.e : c.a!.pos[0], y = c.vp ? c.vp.y : c.a!.y, z = c.vp ? -c.vp.n : -c.a!.pos[1];
+      c.rank = !camera || this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), 1.3)) ? c.d : c.d + OUT_OF_VIEW; }
+    const ix = Array.from(order.subarray(0, np)).sort((x, y) => C[x].rank - C[y].rank); this.impPerf.poolCands = np;
+    // attach the nearest POOL_MAX; keep the attached to POOL_MAX + POOL_HYST
+    const keep = this.keepBuf; keep.clear(); let attached = 0;
+    for (let r = 0; r < ix.length; r++) { const c = C[ix[r]]; const p = c.a ? this.byAgent.get(c.a.id) : this.byPid.get(c.vp!.pid);
+      if (p && r < POOL_MAX + POOL_HYST) { keep.add(p); attached++; if (c.vp) { p.vp = c.vp; p.vpFrame = this.frame; } } }
+    for (let r = 0; r < Math.min(ix.length, POOL_MAX) && attached < POOL_MAX + POOL_HYST; r++) { const c = C[ix[r]]; if (c.d > ATTACH_R) continue;
+      let p = c.a ? this.byAgent.get(c.a.id) : this.byPid.get(c.vp!.pid); if (p) continue;
+      p = c.a ? this.attach(c.a) : this.attachPop(c.vp!.pid); keep.add(p); attached++; if (c.vp) { p.vp = c.vp; p.vpFrame = this.frame; } }
+    for (const p of [...this.persons.values()]) if ((p.agent || p.pid >= 0) && !p.extra && !keep.has(p)) this.detach(p.key);
+    // impostors: every candidate not attached (in view: update() culls)
+    this.nImp = 0;
+    for (let i = 0; i < nc; i++) { const c = C[i]; const p = c.a ? this.byAgent.get(c.a.id) : this.byPid.get(c.vp!.pid); if (p && keep.has(p)) continue;
+      let e = this.impList[this.nImp]; if (!e) this.impList[this.nImp] = e = { vp: null, a: null, d: 0, x: 0, y: 0, z: 0, yaw: 0 }; this.nImp++;
+      e.vp = c.vp; e.a = c.a; e.d = c.d;
+      if (c.vp) { e.x = c.vp.e; e.y = c.vp.y; e.z = -c.vp.n; e.yaw = yawOf(c.vp.heading); } else { const a = c.a!; e.x = a.pos[0]; e.y = a.y; e.z = -a.pos[1]; e.yaw = yawOf(a.heading); } }
+    this.impPerf.candidates = this.nImp;
+    // pop-in probe (§13.8)
+    const now = this.seenNow; now.clear();
+    for (let i = 0; i < nc; i++) { const c = C[i]; if (c.d > 60) continue; now.add(c.id);
+      if (!this.poolPrimed || !camera || this.seenPrev.has(c.id) || c.d >= 50) continue;
+      if (c.vp && c.vp.entry === 1) { this.impPerf.doorEntries++; continue; }
+      const x = c.vp ? c.vp.e : c.a!.pos[0], y = c.vp ? c.vp.y : c.a!.y, z = c.vp ? -c.vp.n : -c.a!.pos[1];
+      if (this.frustum.containsPoint(_v.set(x, y + 1, z))) { this.impPerf.popins++; this.onPopIn?.(c.a ? `person ${c.a.id} (${c.a.role})` : `person p${c.vp!.pid} (${c.vp!.act}; ${c.vp!.what})`, c.d); } }
+    this.seenNow = this.seenPrev; this.seenPrev = now; this.poolPrimed = true;
+  }
+  private orderBuf = new Int32Array(1024); private keepBuf = new Set<Person>();
   /** the pool, fed by the simulation's visible set: attach newcomers, detach the pooled who left (offmap, or beyond
    *  DETACH_R). A newcomer within 50 m in view is a pop-in (it came on the map there: ATTACH_R ≫ 50 m) */
   private autoPoolStep(cam: THREE.Vector3, camera?: THREE.Camera) {
@@ -216,19 +292,24 @@ export class Crowd {
       const ns = this.pileLayout(nd, 400, [PLACES.treasury_store.at[0] - 4, PLACES.treasury_store.at[1] - 3], S.store);
       this.sacks.count = nd + ns; this.sacks.visible = nd + ns > 0; this.sacks.instanceMatrix.needsUpdate = true; this.lastStock.depot = S.depot; this.lastStock.store = S.store;
     }
-    if (this.autoPool) this.autoPoolStep(cam, camera);
+    this.camAt.copy(cam); const tf = performance.now();
+    if (this.autoPool) { if (this.view && this.sim) this.feedPool(cam, camera); else this.autoPoolStep(cam, camera); }
+    this.impPerf.feedMs = performance.now() - tf;
     const gpu = this.humans.gpu; gpu.begin();
     this.carried.count = 0;
     // order by distance for the full-detail cap
     const list = this.list; list.length = 0;
     for (const p of this.persons.values()) {
       const a = p.agent; let x: number, y: number, z: number, yaw: number;
-      if (a) { if (a.offmap) { p.shown = false; continue; } x = a.pos[0]; y = a.y; z = -a.pos[1]; yaw = yawOf(a.heading); }
-      else { const e = p.extra!; x = e.x; y = e.y; z = e.z; yaw = e.yaw; }
+      const vp = p.vpFrame === this.frame ? p.vp : null; // the view's place for a population person or an agent off the Terrace
+      if (a && !a.offmap) { x = a.pos[0]; y = a.y; z = -a.pos[1]; yaw = yawOf(a.heading); }
+      else if (vp) { x = vp.e; y = vp.y; z = -vp.n; yaw = yawOf(vp.heading); }
+      else if (p.extra) { const e = p.extra; x = e.x; y = e.y; z = e.z; yaw = e.yaw; }
+      else { p.shown = false; continue; }
       const pr = p.prevRoot, r = p.root;
       if (p.drawnFrame === this.frame - 1) { pr[0] = r[0]; pr[1] = r[1]; pr[2] = r[2]; pr[3] = r[3]; } else { pr[0] = x; pr[1] = y; pr[2] = z; pr[3] = yaw; }
       r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
-      const d = Math.hypot(x - cam.x, y + 0.9 - cam.y, z - cam.z);
+      const d = Math.hypot(x - cam.x, y + 0.9 - cam.y, z - cam.z); p.dist = d;
       p.shown = d < LOD_DIST[3];
       if (!p.shown) continue;
       if (camera && !this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), 1.3 * p.look.scale))) { if (a) this.soundsOnly(p, d, time); continue; }
@@ -236,8 +317,10 @@ export class Crowd {
     }
     list.sort((a, b) => a.dist - b.dist);
     const tp = performance.now(); let posed = 0; const drawn = [0, 0, 0, 0]; const has3 = this.humans.gpu.costumes.has('worker@3');
+    const dtP = Math.max(0, Math.min(0.5, time - this.lastPoseT)); this.lastPoseT = time;
     for (let i = 0; i < list.length; i++) {
       const p = list[i], d = p.dist;
+      if (!p.agent && p.vp && p.vp.moving) p.gaitPh += (p.vp.speed || 1.2) * dtP / 0.72 * Math.PI;
       const lod = d < LOD_DIST[0] && drawn[0] < MAX_FULL ? 0 : d < LOD_DIST[1] && drawn[1] < MAX_MID ? 1 : d < LOD_DIST[2] || !has3 ? 2 : 3; drawn[lod]++;
       const every = d < 30 ? 1 : d < 90 ? 2 : d < 200 ? 4 : 8;
       if (p.poseFrame < 0 || (this.frame + p.frameMod) % every === 0 || this.frame - p.poseFrame > every) { this.posePerson(p, time, d, playerPos, cam, lod); posed++; }
@@ -248,10 +331,38 @@ export class Crowd {
       if (p.prop) this.placeProp(p);
     }
     gpu.end(true);
+    { const ti = performance.now(); this.drawImpostors(time); this.impPerf.impMs = performance.now() - ti; }
     { const im = this.carried; im.visible = im.count > 0; if (im.count) { im.instanceMatrix.needsUpdate = true; im.instanceMatrix.clearUpdateRanges(); im.instanceMatrix.addUpdateRange(0, im.count * 16);
       this.carriedKind.needsUpdate = true; this.carriedKind.clearUpdateRanges(); this.carriedKind.addUpdateRange(0, im.count); } }
     this.perf.ms = performance.now() - t0; this.perf.poseMs = performance.now() - tp; this.perf.posed = posed; this.perf.drawn = drawn; this.perf.attached = this.persons.size;
   }
+  /** the impostors of this frame: the pool's candidates not attached, and the attached beyond the farthest LOD, in the
+   *  widened frustum; a person's look is computed once (LOOKS_PER_FRAME new ones a frame) */
+  private lastT = 0;
+  private drawImpostors(time: number) {
+    const imp = this.imp; if (!imp) return; imp.begin(); const dt = Math.max(0, Math.min(0.5, time - this.lastT)); this.lastT = time;
+    let made = 0, pending = 0, walkers = 0, placeholders = 0; const bands = [0, 0, 0, 0];
+    const one = (pid: number, a: Agent | null, vp: ViewPerson | null, x: number, y: number, z: number, yaw: number) => {
+      if (!this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), 1.3))) return;
+      const key = a ? -1 - a.id : pid; let L = this.impLooks.get(key);
+      if (!L) { if (made >= this.looksPerFrame) { pending++; return; } made++;
+        const inp = a ? { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed } : this.view!.lookInput(pid); const look = lookFor(this.humans.A, inp as LookInput, this.seed);
+        const ch = a ? null : this.view!.childStature(pid); L = { packed: CrowdImpostors.pack(look.col), dress: look.dress, scale: (ch ?? look.stature) / (imp.atlas.refStature[look.dress] || 1.65) }; this.impLooks.set(key, L); }
+      const act = a ? this.sim!.performance(a).act : vp!.act, anim = ACTIVITIES[act].anim, moving = a ? a.walking : vp!.moving;
+      if (ACTIVITIES[act].placeholder && !moving) placeholders++; // shown standing (idle), counted as the skinned are
+      const ph = a ? a.gait : ((this.impPhase.get(key) ?? (pid % 628) / 100) + (moving ? (vp!.speed || 1.2) * dt / 0.72 * Math.PI : 0)); if (!a) this.impPhase.set(key, ph);
+      imp.push(x, y, z, yaw, rowOf(L.dress, frameOf(moving && !ACTIVITIES[act].moving ? 'walk' : anim, ph)), L.scale, null, L.packed);
+      const dd = Math.hypot(x - this.camAt.x, z - this.camAt.z); bands[dd < 600 ? 0 : dd < 1500 ? 1 : dd < 3000 ? 2 : 3]++; if (moving) walkers++;
+    };
+    for (let i = 0; i < this.nImp; i++) { const e = this.impList[i]; one(e.vp ? e.vp.pid : -1, e.a, e.vp, e.x, e.y, e.z, e.yaw); }
+    for (const p of this.persons.values()) if (!p.shown && (p.agent || p.pid >= 0) && p.dist >= LOD_DIST[3] && p.drawnFrame !== this.frame) { const r = p.root; if (r[0] || r[2]) one(p.pid, p.agent, p.vp, r[0], r[1], r[2], r[3]); }
+    imp.end(); this.impPerf.drawn = imp.count; this.impPerf.looksPending = pending; this.impPerf.bands = bands; this.impPerf.walking = walkers; this.impPerf.placeholders = placeholders;
+    if (this.impLooks.size > 60_000) this.impLooks.clear(); if (this.impPhase.size > 60_000) this.impPhase.clear();
+  }
+  private impPhase = new Map<number, number>();
+  /** looks computed per frame for people first seen as impostors (tests set it high to fill a frozen frame at once) */
+  looksPerFrame = LOOKS_PER_FRAME;
+  private lastPoseT = 0;
   private copyPrev(p: Person) { const o = p.slot * PALETTE_STRIDE; const g = this.humans.gpu; g.prevPalette.set(g.palette.subarray(o, o + PALETTE_STRIDE), o); }
   /** activity, pose, face and hands → skin palette (character space); props and tool sounds */
   private posePerson(p: Person, time: number, d: number, playerPos: THREE.Vector3 | null, cam: THREE.Vector3, lod: number) {
@@ -264,6 +375,12 @@ export class Crowd {
       const want = P.prop ?? (a.carry === 'sack' ? 'sack' : a.carry === 'jar_head' ? 'jar_head' : a.carry === 'basket' ? 'basket' : undefined);
       propKind = want ? (want === 'bread' ? 'basket' : want) : null;
       if (po.hit && !p.lastHit && d < 60) this.onHit?.(P.sound ?? 'chisel', _v.set(p.root[0], p.root[1], p.root[2]).clone());
+      p.lastHit = !!po.hit;
+    } else if (p.vp && !p.extra) { // a person of the population (D-143): the plan's act (a placeholder is shown standing and flagged)
+      const vp = p.vp, P = ACTIVITIES[vp.act]; anim = vp.moving && !P.moving ? 'walk' : P.anim; p.act = vp.act; p.actPlaceholder = !!P.placeholder && anim !== 'walk';
+      po = pose(anim, time + p.t0, p.gaitPh, (p.slot % 1000) / 159);
+      propKind = vp.prop;
+      if (po.hit && !p.lastHit && d < 60 && P.sound) this.onHit?.(P.sound, _v.set(p.root[0], p.root[1], p.root[2]).clone()); // their tools sound too
       p.lastHit = !!po.hit;
     } else { anim = p.extra!.anim; po = pose(anim, time + p.t0, time * 4.2, 0.3); }
     p.anim = anim;
@@ -357,7 +474,8 @@ export class Crowd {
       for (let y = r; y <= h - r + 1e-6; y += r) { const c = _v2.copy(base).setY(base.y + y); const t = ray.intersectSphere(_s.set(c, r), _v3); if (t) best = Math.min(best, ray.origin.distanceTo(t)); }
       if (best < rc.far && best > rc.near) {
         const proxy = new THREE.Mesh(); proxy.name = `person:${p.agent ? p.agent.id : p.key}`;
-        const who = p.agent ? `${p.agent.name ?? 'unnamed'} (${p.agent.role}, ${p.agent.origin})` : `extra ${p.key}`;
+        const pp = !p.agent && p.pid >= 0 && this.view ? this.view.pop.persons[p.pid] : null;
+        const who = p.agent ? `${p.agent.name ?? 'unnamed'} (${p.agent.role}, ${p.agent.origin})` : pp ? `${this.view!.pop.nameOf(p.pid) ?? 'unnamed'} (${pp.job}, ${pp.origin}; population person ${p.pid}: ${p.vp?.what ?? ''})` : `extra ${p.key}`;
         const act = p.act ? `; doing ${p.act}${p.actPlaceholder ? ' — PLACEHOLDER: no performance for this activity (abstract-only), a standing pose is shown' : ''}` : '';
         proxy.userData = { tier: 'C', src: 'RECON', placeholder: p.actPlaceholder, note: `${who}; ${p.look.dress} dress${act}; ${p.look.note}` };
         out.push({ distance: best, point: ray.at(best, new THREE.Vector3()), object: proxy } as THREE.Intersection);
@@ -367,7 +485,8 @@ export class Crowd {
   /** draw calls and triangles the crowd submits this frame (main pass; shadow passes repeat some of them) */
   stats() { const s = this.humans.gpu.stats(); const propDraws = this.carried.count ? 1 : 0;
     let placeholderActs = 0; for (const p of this.persons.values()) if (p.actPlaceholder && p.drawnFrame === this.frame) placeholderActs++;
-    return { ...s, propDraws, props: this.carried.count, placeholderActs, perf: { ...this.perf } }; }
+    const imp = this.imp ? { impostors: this.imp.count, impostorDraws: this.imp.count ? 1 : 0, impostorTriangles: this.imp.count * 2 } : { impostors: 0, impostorDraws: 0, impostorTriangles: 0 };
+    return { ...s, propDraws, props: this.carried.count, placeholderActs, perf: { ...this.perf }, ...imp, impPerf: { ...this.impPerf }, view: this.view ? { ...this.view.stats } : null }; }
   /** evidence notes for the pieces a person wears (tests, overlay) */
   static pieceNotes(look: PersonLook) { return look.pieces.map(id => ({ ...PIECES[id], id })); }
 }
