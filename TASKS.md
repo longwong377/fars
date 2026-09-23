@@ -36,19 +36,22 @@
 - [x] Nav grid over the whole Terrace; walkthrough routes validated offline
 - [x] Walkthrough e2e over all six areas (session 3, after the step-up fix D-034)
 - [ ] Camera-rig views of the new areas at high quality
-- [ ] Reliefs on the Tachara/Hadish/Tripylon stairs and door jambs (after the relief agent); windows, niches, furnishings
+- [x] Reliefs on the Tachara/Hadish/Tripylon/Harem/Hall-100 stairs and jambs (355 figures), 11 windows, 9 niches, 22 working doors; far relief chunks (draws ~1,000) — D-048..D-052
+- [ ] Tachara lance-bearers, XPe, stair crenellations; furnishings
 - [ ] Phase 4 independent review
 ## Phase 5 — Population + economy sim in workers, events, memory, persistence, soak test
 - [x] Simulation LOD (abstract/full) with non-teleporting promotion; load-time catch-up (persistence)
 - [x] Soak harness + gates (`npm run soak`); baseline measured: FAILS variety/events
 - [~] Events calendar, town life, rota/post rotation, days off, errands; memory of the player (agent, session 3); construction columns follow the sim (D-062)
-- [ ] Population scale-up (worker, crowd pooling, impostors); rendered floors ≥ 300 visible / ≥ 50 close
-- [ ] Soak passes; shadow review of 20 NPC days
+- [~] MakeHuman bodies in period dress, crowd pooling (D-090..D-093); impostors, rendering the population beyond the Terrace agents, rendered floors ≥ 300 / ≥ 50 still open
+- [~] Soak passes (all eight gates, D-080/D-081); shadow review round 1 FAILED, fixes merged, round 2 (unseen sample) running
 ## Cross-cutting (session 3)
 - [x] Player step-up (D-034); offline walkthrough bot `tools/dev/botcheck.ts`; test camera floor fix
 - [x] Translation layer e2e (D-036)
 - [~] Stone/sculpture/relief look faults (agent): carved-stone material, relief paint, curls, horns, Gate door leaves, collider overlap, dark door frame, Treasury column materials, reliefs on WebGL2
-- [~] Human runtime integration (agent): loader, garments, hair, headgear, skin material, retarget, crowd pooling, player body
+- [x] Human runtime integration merged (D-090..D-093)
+- [x] Sky calibrated against the skylight; fog, cloud haze, smoke and rain shafts follow the horizon radiance (D-060)
+- [~] Visitor mode (D-063): zones, rules, stop, halmi, escort, errand; e2e queued
 - [ ] Clouds render check; `QUALITY=high npm run bench` re-run
 - [ ] Rebuild the walkable grid after the merges (curvature ≤ 3 cm; Gate layout changes)
 ## Phase 6 — Settlement
@@ -56,7 +59,9 @@
 - [~] Town, gardens, workshops, Tol-e Ajori, Takht-e Rustam, roads, way-station; house plots for the simulation (agent)
 ## Phase 7 — Plain and horizon
 - [x] Research (PLAIN.md, plain.json); horizon: far ring ±71.7 km + curvature, skyline matches SRTM (D-035)
-- [~] Rivers, canals, fields by season, roads, villages, orchards, landcover, Naqsh-e Rustam; plain-vista budget (agent)
+- [x] Rivers, canals, fields by season, villages, orchards, Naqsh-e Rustam merged (D-037..D-040); DNa/DNb carved (D-061)
+- [ ] Plain look: crude tree crowns and tamarisk domes, dark ground specks, dawn vista, schematic NR reliefs
 ## Phase 8 — Language, speech, music, translation layer, map, Now view, photo mode
-- [~] Translation layer: subtitles, inscriptions (transliteration + glosses; translations need NEEDS #14), map (M), chronicle (J)
+- [~] Translation layer: subtitles, inscriptions (transliteration + glosses; translations need NEEDS #14), map (M; Z: town and plain scales), chronicle (J; visitor log)
+- [x] Lexicons in five languages (Babylonian, Ionic Greek new), 73 lines, 372 voice clips (D-105..D-109); listening test open (H8)
 ## Phase 9 — Polish, optimisation, FINAL_REPORT.md
