@@ -27,6 +27,7 @@ const INSCRIPTION_INFO: Record<string, { title: string; where: string }> = {
   DNa: { title: 'DNa — Darius I, his tomb at Naqsh-e Rustam', where: 'upper register, behind the king (panel position C; Old Persian version only)' },
   DNb: { title: 'DNb — Darius I, his tomb at Naqsh-e Rustam', where: 'façade, between the columns left of the door (panel position C; Old Persian version only; modern lacunae shown as x)' },
   XPd: { title: 'XPd — Xerxes, Hadish', where: 'between the guards of the central façade of the Hadish W stair (placement C)' },
+  XPe: { title: 'XPe — Xerxes, Hadish', where: 'above the king and his attendants on the reveals of the Hadish E and W doorways (versions stacked; order and size C)' },
 };
 const LANG_NAME: Record<string, string> = { op: 'Old Persian', el: 'Elamite', arc: 'Aramaic', bab: 'Babylonian' };
 import { MAP_ZOOMS, MapItem, MapStyle, P2 } from './mapLayers';

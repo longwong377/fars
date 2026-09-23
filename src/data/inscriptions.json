@@ -64,6 +64,22 @@
    "version_split": "C (heuristic split of the ARIo running text)"
   }
  },
+ "XPe": {
+  "ario": "Q007213",
+  "op_translit": "Xšayaṛšā xšāyaθiya vazṛka xšāyaθiya xšāyaθiyānām Dārayavahau̯š xšāyaθiyahyā puça Haxāmanišiya",
+  "el_atf": "{DIŠ}ik-še-ir-ša₂ {DIŠ}EŠŠANA ir-ša₂-ir ra {DIŠ}EŠŠANA {DIŠ}EŠŠANA-ip-in-na {DIŠ}da ri-ia-ma-u-iš {DIŠ}EŠŠANA {DIŠ}ša₂-ak ri {DIŠ}ha-ak-ka₄-man-nu-ši-ia",
+  "el_cuneiform": "𒁹𒅅𒊺𒅕𒃻 𒁹𒁹𒁹𒁹𒎙 𒅕𒃻𒅕 𒊏 𒁹𒁹𒁹𒁹𒎙 𒁹𒁹𒁹𒁹𒎙𒅁𒅔𒈾 𒁹𒁕 𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒁹𒃻𒀝 𒊑 𒁹𒄩𒀝𒋡𒎙𒉡𒅆𒅀",
+  "el_unmapped": [],
+  "bab_atf": "{m}hi-ši-ʾ-ar-ši LUGAL GAL-u₂ LUGAL LUGAL.MEŠ A {m}da-a-ri-ia-a-muš LUGAL {m}a-ha-ma-an-niš-ši-ʾ",
+  "bab_cuneiform": "𒁹𒄭𒅆𒀪𒅈𒅆 𒈗 𒃲𒌑 𒈗 𒈗𒎌 𒀀 𒁹𒁕𒀀𒊑𒅀𒀀𒈲 𒈗 𒁹𒀀𒄩𒈠𒀭𒎙𒅆𒀪",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "C (Kent orthographic rules)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)"
+  }
+ },
  "DNa": {
   "ario": "Q007152",
   "op_translit": "baga vazṛka A.uramazdā haya imām būmim adā haya avam asmānam adā haya martiyam adā haya šiyātim adā martiyahyā haya Dārayava.um xšāyaθiyam akunau̯š ai̯vam parūnām xšāyaθiyam ai̯vam parūnām framātāram adam Dārayava.uš xšāyaθiya vazṛka xšāyaθiya xšāyaθiyānām xšāyaθiya dahyunām vispazanānām xšāyaθiya ahyāyā būmiyā vazṛkāyā dūrai̯ api Vištāspahyā puça Haxāmanišiya Pārsa Pārsahyā puça Ariya Ariyaciça θāti Dārayava.uš xšāyaθiya vašnā A.uramazdāhā imā dahyāva tayā adam agṛbāyam apataram hacā Pārsā adamšām patiyaxšayai̯ manā bājim abaraha tayašām hacāma aθanhya ava akunava dātam taya manā avadiš adāraya Māda Ūja Parθava Harai̯va Bāxtriš Suguda Uvārazmiš Zranka Hara.uvatiš Θataguš Gandāra Hinduš Sakā Hau̯mavargā Sakā tigraxau̯dā Bābiruš Aθurā Arbāya Mudrāya Armina Katpatuka Sparda Yau̯na Sakā tayai̯ paradraya Skudra Yau̯nā takabarā Putāyā Kūšiyā Maciyā Kṛkā θāti Dārayava.uš xšāyaθiya A.uramazdā yaθā avai̯na imām būmim yau̯dantī̆m pasāvadim manā frābara mām xšāyaθiyam akunau̯š adam xšāyaθiya ami vašnā A.uramazdāhā adamšim gāθavā niyašādayam tayašām adam aθanham ava akunava yaθā mām kāma āha yadipati maniyāhai̯ ciyākaram avā dahyāva tayā Dārayava.uš xšāyaθiya adāraya patikarā dīdi tayai̯ gāθum baranti adā xšnāsāhi adatai̯ azdā bavāti Pārsahyā martiyahyā dūrai̯ ṛštiš parāgmatā adatai̯ azdā bavāti Pārsa martiya dūrai̯ hacā Pārsā parataram patiyajatā θāti Dārayava.uš xšāyaθiya ai̯ta taya kṛtam ava visam vašnā A.uramazdāhā akunavam A.uramazdāmai̯ upastām abara yātā kṛtam akunavam mām A.uramazdā pātu hacā gastā utāmai̯ viθam utā imām dahyāu̯m ai̯ta adam A.uramazdām jadiyāmi ai̯tamai̯ A.uramazdā dadātu martiyā hayā A.uramazdāhā framānā hau̯tai̯ gastā mā θadaya paθī̆m tayām rāstām mā avarada mā stabava",

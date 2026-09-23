@@ -337,6 +337,25 @@
    "src": "IR-PERS;SI-ARCH;RECON",
    "tier": "C",
    "note": "four-stepped merlons crowning the stair parapets. Motif B on the Apadana stairs (IR-PERS, apadana.r_crenellation); on the Tachara S stair by analogy (tachara.stair_s_reliefs \"Persepolis stair convention\", C); on the Grand Stair per grand_stair.parapet_height (C); on the Hadish and Tripylon stairs by the same convention (C, NOT SEEN). Size as the Apadana merlon (0.9 x 0.9 m, C), pitch 1.15 x width as on the Apadana (C); depth = the parapet thickness up to max_depth (the Apadana merlon depth, C). Each merlon stands on the lowest parapet block under it (no merlon floats over a lower step; C). The terrace-edge parapet is left plain: terrace.parapet_height assumes crenellations but no source for them was reached (the motif is attested on stairs). The Hadish S balcony \"behind four-stepped crenellations\" (B) is not modelled (Q-P4 balcony geometry NOT SEEN)."
+  },
+  "r_jamb_inscription": {
+   "v": {
+    "glyph": 0.08,
+    "line_gap": 0.04,
+    "version_gap": 0.12,
+    "versions": [
+     "op",
+     "el",
+     "bab"
+    ],
+    "top_margin": 0.25,
+    "width_of_reveal": 0.9,
+    "flat": true
+   },
+   "u": "m",
+   "src": "SI-ARCH;FARROKH;RECON",
+   "tier": "C",
+   "note": "a door-jamb inscription (XPe on the Hadish E and W doorways: \"XPe above king and attendants\", SI-ARCH B; \"two large Xerxes inscriptions on the eastern and western doorways\", FARROKH B): carved on each reveal above the figures, the Old Persian, Elamite and Babylonian versions stacked top to bottom (order C), each version in lines of glyph m signs (C: \"large\", size NOT SEEN) with line_gap between lines and version_gap between versions, the stack starting top_margin below the reveal top and spanning width_of_reveal of the reveal (C). Whether each reveal carries all three versions or one each is NOT SEEN (Q-090)"
   }
  },
  "terrace": {
@@ -2200,7 +2219,8 @@
       "whisk"
      ],
      "tier": "B",
-     "note": "king and attendants with XPe above (SI-ARCH, B); XPe is not in inscriptions.json and is not carved (C)"
+     "note": "king and attendants with XPe above (SI-ARCH, B); XPe carved above the figures on both reveals, the three versions stacked (global.r_jamb_inscription, C)",
+     "inscription": "XPe"
     },
     "W": {
      "programme": "king",
@@ -2209,7 +2229,8 @@
       "whisk"
      ],
      "tier": "C",
-     "note": "XPe on the W doorway (FARROKH, B); the figures reconstructed as the E doorway (C, analogue)"
+     "note": "XPe on the W doorway (FARROKH, B); the figures reconstructed as the E doorway (C, analogue); XPe carved above them as on the E doorway (C)",
+     "inscription": "XPe"
     },
     "S": {
      "programme": "plain",

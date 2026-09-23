@@ -194,12 +194,18 @@ export function buildInscriptions(m: Manifest, parts: any[], extra: InscriptionP
       }
     }
   }
-  // Phase 4 central façades (D-049): XPc on the Tachara S stair, XPd on the Hadish W stair (Old Persian; placement C)
+  // Phase 4 central façades (D-049): XPc on the Tachara S stair, XPd on the Hadish W stair (Old Persian; placement C),
   const SR = v<any>('global', 'r_stair_relief');
+  // and the door-jamb inscriptions (D-066: XPe on the Hadish E and W doorways, the three versions stacked)
   for (const p of extra) {
     const t = (inscriptions as any)[p.id]; if (!t) continue;
-    const { geo } = textPanelGeometry('op', toCuneiform(t.op_translit), p.width, SR.glyph, SR.line_gap);
-    place(geo, panelMeta(p.id, p.version), [p.origin[0] + p.normal[0] * 0.01, p.origin[1] + p.normal[1] * 0.01], p.along, p.normal, p.yTop, p.width);
+    let y = p.yTop;
+    for (const ver of p.versions ?? [p.version]) {
+      const text = ver === 'op' ? toCuneiform(t.op_translit) : ver === 'el' ? t.el_cuneiform : t.bab_cuneiform; if (!text) continue;
+      const glyph = p.glyph ?? SR.glyph, { geo, height } = textPanelGeometry(ver === 'op' ? 'op' : 'cun', text, p.width, glyph, p.lineGap ?? SR.line_gap, !!p.flat);
+      place(geo, panelMeta(p.id, ver), [p.origin[0] + p.normal[0] * 0.01, p.origin[1] + p.normal[1] * 0.01], p.along, p.normal, y, p.width);
+      y -= height + (p.gap ?? 0);
+    }
   }
   return g;
 }

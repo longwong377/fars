@@ -19,7 +19,9 @@ const unit = (a: Pt): Pt => { const l = Math.hypot(a[0], a[1]) || 1; return [a[0
 const rightOf = (n: Pt): Pt => [-n[1], n[0]];
 const dot = (a: Pt, b: Pt) => a[0] * b[0] + a[1] * b[1];
 
-export interface InscriptionPlacement { id: string; version: 'op'; origin: Pt; along: Pt; normal: Pt; yTop: number; width: number }
+/** a carved inscription panel: `version` alone, or `versions` stacked top to bottom from yTop (glyph, line gap and the gap
+ *  between versions default to global.r_stair_relief's panel values) */
+export interface InscriptionPlacement { id: string; version: 'op' | 'el' | 'bab'; origin: Pt; along: Pt; normal: Pt; yTop: number; width: number; versions?: ('op' | 'el' | 'bab')[]; glyph?: number; lineGap?: number; gap?: number; flat?: boolean }
 export interface ProgrammeSet { name: string; building: string; items: ReliefItem[]; inscriptions: InscriptionPlacement[] }
 type Tagged = { programme: string; tier: string; where: string };
 
@@ -163,6 +165,13 @@ function tripylonStair(): ProgrammeSet | null {
 function jambFaces(d: Doorway) {
   return [-1, 1].map(s => ({ c: add(d.c, d.u, s * d.width / 2), n: [-s * d.u[0], -s * d.u[1]] as Pt, L: d.depth + 2 * d.proj, H: d.height, y0: d.y0 }));
 }
+/** an inscription carved on a reveal above its figures (global.r_jamb_inscription): the versions stacked from near the
+ *  reveal top, reading left to right as one faces the reveal */
+function jambInscription(face: ReturnType<typeof jambFaces>[number], id: string): InscriptionPlacement {
+  const JI = v<any>('global', 'r_jamb_inscription'), JR = v<any>('global', 'r_jamb_relief');
+  return { id, version: JI.versions[0], versions: JI.versions, origin: face.c, along: rightOf(face.n), normal: face.n,
+    yTop: face.y0 + face.H - JI.top_margin - JI.glyph, width: (face.L - 2 * JR.margin) * JI.width_of_reveal, glyph: JI.glyph, lineGap: JI.line_gap, gap: JI.version_gap, flat: !!JI.flat };
+}
 /** a door-jamb programme on one reveal (global.r_jamb_relief): figures walk into the hall (toward d.n), the leader at the
  *  inner end; `rough` = blocked-out variant (relief_state_467) */
 function jamb(out: ReliefItem[], d: Doorway, face: ReturnType<typeof jambFaces>[number], P: any, jambIndex: number, rough: string, tier: string, building: string) {
@@ -215,14 +224,14 @@ function jambProgrammes(doorways: Doorway[]): ProgrammeSet[] {
   for (const b of ['tachara', 'hadish', 'tripylon', 'hall100', 'harem']) {
     if (!present(b)) continue;
     const prog = v<Record<string, any>>(b, 'door_jamb_reliefs'), state = (() => { try { return v<string>(b, 'relief_state_467'); } catch { return 'carved'; } })();
-    const rough = state === 'blocked_out' ? ROUGH : '', out: ReliefItem[] = [];
+    const rough = state === 'blocked_out' ? ROUGH : '', out: ReliefItem[] = [], ins: InscriptionPlacement[] = [];
     for (const d of doorways.filter(q => q.building === b && q.framed)) {
       // Hall of 100 Columns: one programme per wall (N1/N2 share N, …)
       const P = prog[d.door] ?? prog[d.door.replace(/\d+$/, '')];
       if (!P || P.programme === 'plain') continue;
-      jambFaces(d).forEach((f, i) => jamb(out, d, f, P, i, rough, P.tier ?? 'C', b));
+      jambFaces(d).forEach((f, i) => { jamb(out, d, f, P, i, rough, P.tier ?? 'C', b); if (P.inscription) ins.push(jambInscription(f, P.inscription)); });
     }
-    if (out.length) sets.push({ name: `relief:${b}-jambs`, building: b, items: out, inscriptions: [] });
+    if (out.length) sets.push({ name: `relief:${b}-jambs`, building: b, items: out, inscriptions: ins });
   }
   return sets;
 }

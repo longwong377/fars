@@ -1022,3 +1022,16 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - the terrace-edge parapet stays plain. terrace.parapet_height "assumes" crenellations, but no source was reached, and the motif is attested on stairs;
   - the Hadish S balcony "behind four-stepped crenellations" (B) is not modelled.
 - **Tests:** `tests/crenellation.test.ts`. Every listed stair has merlons. Each merlon is on its parapet's mid-line, fully over blocks, based at the lowest block top under it, and no deeper than the parapet. Merlons on a run do not overlap.
+
+## D-066 — XPe carved on the Hadish E and W doorways (session 3; Phase 4 item)
+- **Text:** XPe is ARIo Q007213 (Schmitt 2009, CC0 mirror). `tools/build_inscriptions.py` now includes it; the rebuild reproduces every other entry exactly.
+  - Old Persian: *Xšayaṛšā xšāyaθiya vazṛka xšāyaθiya xšāyaθiyānām Dārayavahau̯š xšāyaθiyahyā puça Haxāmanišiya*, "Xerxes, the great king, king of kings, son of king Darius, the Achaemenid" (A).
+  - The Elamite and Babylonian versions map to OSL signs with nothing unmapped (B).
+  - XPe has no god line, so the version split also cuts at the Babylonian king's name `{m}hi-ši-ʾ-ar-ši` (C, like the other splits).
+- **Placement:** "XPe above king and attendants" on the E doorway (SI-ARCH, B), and "two large Xerxes inscriptions on the eastern and western doorways" (FARROKH, B).
+  - `hadish.door_jamb_reliefs` E and W now name the inscription.
+  - New row `global.r_jamb_inscription` (C): 8 cm signs, three versions stacked top to bottom (OP, El, Bab; order C), starting 0.25 m under the reveal top, over 90 % of the reveal.
+  - Whether each reveal carries all three versions or one each is NOT SEEN (Q-090). Both reveals carry all three: 12 panels.
+- **Signs are flat (drawn 3 mm proud), not bevelled incisions.** The panels stand 4.6–5.8 m above the floor. There a pixel is about 5 mm (1080p, 60° field), so the 2.5 mm bevel is under half a pixel. The bevelled panels cost 162 k triangles per reveal (647 k in all).
+- The translation layer names the panel (XPe, placement C). Glosses come from the project lexicon; there is no published translation (NEEDS #14).
+- **Tests:** `tests/xpe.test.ts` checks the edition text, 4 panels per version, each above the figures and under the reveal top, on the reveal plane within the passage, and flat (under 20 k triangles).
