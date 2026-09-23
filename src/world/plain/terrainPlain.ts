@@ -23,9 +23,10 @@ export class PlainGround {
   readonly day = uniform(0); // day of year (0..364)
   readonly meanIrr = uniform(new THREE.Vector4()); readonly meanRain = uniform(new THREE.Vector4()); readonly meanOrch = uniform(new THREE.Vector4());
   readonly oakLeaf = uniform(new THREE.Vector4(0.2, 0.26, 0.12, 1)); // woodland canopy colour + leaf amount
-  /** radius (m) within which the plain draws 3-D trees: the painted canopy dots fade out inside it (they drew a grey disc
-   *  under every near tree, read as 'grey domes', session 3) */
+  /** the canopy is painted only for trees farther than treeR from paintC (the tree layers' mid-ring centre and radius,
+   *  D-120): nearer woodland trees stand as impostors or 3-D trees, so a painted dot never lies under a standing tree */
   readonly treeR = uniform(60);
+  readonly paintC: any = uniform(new THREE.Vector3(1e9, 0, 1e9));
   readonly zoneTex: THREE.DataTexture; readonly cropTex: THREE.DataTexture;
   readonly material: THREE.MeshStandardNodeMaterial;
   constructor(readonly zones: ZoneMap) {
@@ -135,16 +136,17 @@ export class PlainGround {
       const tq = p.div(10), tcl = floor(tq), dot = float(0).toVar();
       for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
         const c = tcl.add(vec2(i, j)), a = cellUN(c.x), b = cellUN(c.y);
-        const present = step(unitN(hash2N(a, b, SALT.tree)), cover.mul(2.2)); // ~cover of area under crowns (crowns ~ 0.45 of a cell)
         const s = c.add(0.2).add(vec2(unitN(hash2N(a, b, SALT.tx)), unitN(hash2N(a, b, SALT.tz))).mul(0.6)).mul(10);
+        // ~cover of area under crowns (crowns ~ 0.45 of a cell); a tree inside the tree layers' ring is not painted
+        const present = step(unitN(hash2N(a, b, SALT.tree)), cover.mul(2.2)).mul(step(this.treeR, length(s.sub(this.paintC.xz))));
         const r = float(2.5).add(unitN(hash2N(a, b, SALT.tsize)).mul(2.0));
         const d = length(p.sub(s));
         dot.assign(max(dot, float(1).sub(smoothstep(r.mul(0.7), r, d)).mul(present)));
       }
       const leaf = oak.w;
       const canopy = mix(lin(0.30, 0.27, 0.23), oak.xyz.mul(0.55), leaf);
-      const camD = length(positionWorld.xz.sub(cameraPosition.xz));
-      const dotAmt = mix(cover.mul(0.9), dot, near).mul(mix(float(0.25), float(0.85), leaf)).mul(smoothstep(this.treeR.mul(0.8), this.treeR, camD));
+      const outside = step(this.treeR, length(p.sub(this.paintC.xz))); // the mean-cover (far pixel) path, by pixel
+      const dotAmt = mix(cover.mul(0.9).mul(outside), dot, near).mul(mix(float(0.25), float(0.85), leaf));
       alb = mix(alb, canopy, dotAmt);
       const hOut = bund.mul(0.12).add(furrow.mul(tilled).mul(0.05)).add(dot.mul(near).mul(0.0));
       return vec4(alb, hOut);

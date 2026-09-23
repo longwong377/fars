@@ -118,6 +118,24 @@
   - Placeholders (flagged in F3): the Naqsh-e Rustam and Neo-Elamite relief figures are schematic silhouettes. DNa and DNb now carry their Old Persian text from the CC0 edition (D-061; not yet seen in a render); their Elamite and Babylonian versions are not carved.
   - Every placement is C (Q-076 to Q-080); the rivers follow their modern courses. Qadamgah and the 18 "possible" sites are not built.
   - The out-of-world map now has town and plain scales (Z), drawn from what the world builds (not yet seen in a render).
+- **Trees (D-120 to D-123; session 3, trees agent; merged from branch worktree-agent-a1ae071e0ac078512):**
+  - **Weak or unverified, read first:**
+    - every species form value is C (BOTANY-GEN, recalled);
+    - poplar and cypress forms are open (Q-170, Q-171); orchard shares and colours are C (Q-172, Q-173);
+    - not rendered at high quality: the budget views, TRAA dithering and the r3 match under TRAA (renders cancelled at session end);
+    - the town garden view (plain.spec `garden-paradise`) has never been rendered;
+    - the final state (leaf tilt on LOD0 only) is unrendered, but it is the union of two rendered states;
+    - big plane crowns close up still show their leaf-cluster cards;
+    - winter and cypress impostors read 12-22/255 darker than LOD1 at test quality (MSAA edge antialiasing);
+    - the kit adds 1.8-2.9 s to the load.
+  - Built:
+    - 15 species from src/data/trees.json, generated per species (branch skeleton + 320 leaf-cluster cards, 3 variants) with a procedural leaf, blossom and twig atlas;
+    - LOD0 and LOD1 in one draw each per part for all species;
+    - far impostors baked on the CPU from the same model and season;
+    - a mid ring of per-tree impostors to 450-1,200 m;
+    - orchard rows cut per plot and per fragment: the P22 grey domes are fixed (D-121);
+    - town gardens on the same kit.
+  - Measured: village-p22 plain adds +31 calls / +1.36 M at test (before +26 / +1.24 M); r3 silhouette area impostor/LOD1 0.90-1.06 and summer colour within 4/255 (DECISIONS D-120).
 - **Visitor mode (D-063; the e2e passes in the browser):**
   - Tested:
     - the Gate guard stops the visitor and asks for the halmi (Elamite *halmi*);

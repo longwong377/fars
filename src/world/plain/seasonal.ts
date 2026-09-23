@@ -118,31 +118,41 @@ export function cropTable(): Uint8Array {
 export const PLOT_OFFSET_DAYS = 12;
 
 // ---------------------------------------------------------------- trees
-export const TREE_GROUPS = ['plane', 'willow_poplar', 'tamarisk', 'fruit', 'vine', 'oak', 'almond_pistachio', 'mulberry'] as const;
+/** foliage groups: one phenology per group (species -> group in src/data/trees.json) */
+export const TREE_GROUPS = ['plane', 'willow', 'poplar', 'tamarisk', 'pome', 'fig', 'pomegranate', 'mulberry', 'vine', 'oak', 'almond', 'pistachio', 'evergreen_dark', 'evergreen_grey'] as const;
 export type TreeGroup = typeof TREE_GROUPS[number];
 export interface Foliage { leaf: number; colour: [number, number, number]; blossom: number; blossomColour: [number, number, number] }
 const lerp3 = (a: number[], b: number[], t: number) => a.map((v, i) => v + (b[i] - v) * t) as [number, number, number];
 const SUMMER: Record<TreeGroup, number[]> = { // leaf albedo (linear-ish sRGB), C
-  plane: [0.20, 0.30, 0.12], willow_poplar: [0.24, 0.32, 0.15], tamarisk: [0.30, 0.34, 0.24], fruit: [0.19, 0.28, 0.11], vine: [0.24, 0.33, 0.12],
-  oak: [0.20, 0.26, 0.12], almond_pistachio: [0.25, 0.29, 0.15], mulberry: [0.19, 0.30, 0.11] };
+  plane: [0.20, 0.30, 0.12], willow: [0.25, 0.31, 0.18], poplar: [0.21, 0.31, 0.13], tamarisk: [0.30, 0.34, 0.24], pome: [0.19, 0.28, 0.11],
+  fig: [0.21, 0.31, 0.12], pomegranate: [0.18, 0.28, 0.09], mulberry: [0.19, 0.30, 0.11], vine: [0.24, 0.33, 0.12], oak: [0.20, 0.26, 0.12],
+  almond: [0.25, 0.29, 0.15], pistachio: [0.18, 0.26, 0.11], evergreen_dark: [0.10, 0.16, 0.08], evergreen_grey: [0.27, 0.30, 0.21] };
 const AUTUMN: Record<TreeGroup, number[]> = {
-  plane: [0.48, 0.36, 0.14], willow_poplar: [0.55, 0.48, 0.16], tamarisk: [0.40, 0.36, 0.25], fruit: [0.50, 0.36, 0.14], vine: [0.50, 0.22, 0.10],
-  oak: [0.42, 0.30, 0.15], almond_pistachio: [0.50, 0.30, 0.14], mulberry: [0.55, 0.50, 0.15] };
-/** Leaf amount, colour and blossom of each group on a day (C phenology; species B from pollen/PF where stated in plain.json). */
+  plane: [0.48, 0.36, 0.14], willow: [0.55, 0.50, 0.18], poplar: [0.60, 0.52, 0.14], tamarisk: [0.40, 0.36, 0.25], pome: [0.50, 0.36, 0.14],
+  fig: [0.55, 0.50, 0.18], pomegranate: [0.60, 0.50, 0.12], mulberry: [0.55, 0.50, 0.15], vine: [0.50, 0.22, 0.10], oak: [0.42, 0.30, 0.15],
+  almond: [0.50, 0.30, 0.14], pistachio: [0.55, 0.22, 0.12], evergreen_dark: [0.10, 0.16, 0.08], evergreen_grey: [0.27, 0.30, 0.21] };
+/** [leaf-out start, full leaf, colour start, leaf fall end] (doy), C; evergreens hold their leaves */
+const PHENO: Record<TreeGroup, [number, number, number, number] | null> = {
+  plane: [82, 108, 300, 340], willow: [75, 100, 305, 340], poplar: [80, 105, 290, 330], tamarisk: [90, 115, 295, 335], pome: [95, 120, 290, 330],
+  fig: [100, 128, 290, 325], pomegranate: [100, 125, 295, 330], mulberry: [95, 118, 295, 330], vine: [105, 135, 285, 325], oak: [95, 125, 285, 330],
+  almond: [70, 100, 250, 300], pistachio: [90, 115, 280, 320], evergreen_dark: null, evergreen_grey: null };
+/** blossom window [start, end, edge] (doy) and colour (C): apple and pear Mar-Apr (crops.fruit_trees), wild almond Feb-Mar, pomegranate May-Jun */
+const BLOSSOM: Partial<Record<TreeGroup, { w: [number, number, number]; c: [number, number, number] }>> = {
+  pome: { w: [75, 108, 8], c: [0.93, 0.9, 0.88] }, almond: { w: [45, 72, 7], c: [0.92, 0.82, 0.84] }, pomegranate: { w: [130, 175, 10], c: [0.72, 0.1, 0.05] } };
+/** Leaf amount, colour and blossom of each group on a day (C phenology; species B from pollen/PF where stated in trees.json). */
 export function foliage(g: TreeGroup, doy: number): Foliage {
   const d = ((doy % YEAR) + YEAR) % YEAR;
-  // [leaf-out start, full leaf, colour start, leaf fall end] (doy), blossom window
-  const P: Record<TreeGroup, [number, number, number, number]> = {
-    plane: [82, 108, 300, 340], willow_poplar: [78, 105, 305, 340], tamarisk: [90, 115, 295, 335], fruit: [95, 120, 290, 330],
-    vine: [105, 135, 285, 325], oak: [95, 125, 285, 330], almond_pistachio: [70, 100, 280, 320], mulberry: [95, 118, 295, 330] };
-  const [a, b, c, e] = P[g];
+  const P = PHENO[g], B = BLOSSOM[g];
+  const bl = B ? window(d, B.w[0], B.w[1], B.w[2]) : 0;
+  const blossomColour: [number, number, number] = B ? B.c : [0.93, 0.9, 0.88];
+  if (!P) return { leaf: 1, colour: [...SUMMER[g]] as [number, number, number], blossom: bl, blossomColour };
+  const [a, b, c, e] = P;
   const leaf = smooth(a, b, d) * (1 - smooth(c + (e - c) * 0.5, e, d));
   const autumn = smooth(c, c + (e - c) * 0.6, d);
   const spring = 1 - smooth(a, b + 20, d); // young leaves are lighter
   let colour = lerp3(SUMMER[g], AUTUMN[g], autumn);
   colour = lerp3(colour, [colour[0] * 1.25, colour[1] * 1.3, colour[2] * 1.1], spring * leaf);
-  const bl = g === 'fruit' ? window(d, 75, 108, 8) : g === 'almond_pistachio' ? window(d, 45, 72, 7) : 0; // fruit blossom Mar-Apr (crops.fruit_trees); almond Feb-Mar (C)
-  return { leaf, colour, blossom: bl, blossomColour: g === 'almond_pistachio' ? [0.92, 0.82, 0.84] : [0.93, 0.9, 0.88] };
+  return { leaf, colour, blossom: bl, blossomColour };
 }
 /** tree-group state table: TREE_GROUPS.length × 2 texels RGBA (leaf colour + amount; blossom colour + amount) */
 export function foliageTable(doy: number): Float32Array {

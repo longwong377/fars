@@ -97,8 +97,9 @@ describe('fields and crops by date (plain.json crops; seasonal.ts)', () => {
       expect(Math.abs(t[i] / 255 * 1.5 - Math.min(1.5, s.height))).toBeLessThan(0.01); expect(Math.abs(t[i + 1] / 255 - s.green)).toBeLessThan(0.005); }
   });
   it('deciduous trees are bare in January and in leaf in June; fruit trees blossom in late March', () => {
-    for (const g of ['plane', 'fruit', 'oak', 'willow_poplar'] as const) { expect(foliage(g, 15).leaf).toBeLessThan(0.05); expect(foliage(g, 166).leaf).toBeGreaterThan(0.95); }
-    expect(foliage('fruit', 90).blossom).toBeGreaterThan(0.9);
+    for (const g of ['plane', 'pome', 'oak', 'willow', 'poplar', 'fig', 'almond'] as const) { expect(foliage(g, 15).leaf).toBeLessThan(0.05); expect(foliage(g, 166).leaf).toBeGreaterThan(0.95); }
+    expect(foliage('pome', 90).blossom).toBeGreaterThan(0.9); expect(foliage('fig', 90).blossom).toBe(0); expect(foliage('pomegranate', 150).blossom).toBeGreaterThan(0.9);
+    for (const g of ['evergreen_dark', 'evergreen_grey'] as const) for (const d of [15, 105, 200, 330]) expect(foliage(g, d).leaf).toBe(1);
   });
 });
 
@@ -273,6 +274,31 @@ describe('the plain as built (headless): budgets, tiers, chronology', () => {
     const k = P.group.getObjectByName('nr-kaba') as THREE.Mesh; k.geometry.computeBoundingBox(); const kb = k.geometry.boundingBox!;
     // the lowest base step is sunk 0.6 m into the ground
     expect(kb.max.y - kb.min.y - 0.6).toBeCloseTo(PLAIN.naqsh_e_rustam.kaba.height_with_base_m, 2);
+  });
+  it('orchard row impostors never stand within the 3-D radius (the grey domes at village P22, D-121), and the tree layers hand over exactly', () => {
+    // high quality (this describe): r3 250 m, mid ring 900 m. The row mesh as built: a row collapses when its plot centre
+    // lies within the mid radius of the mid-ring centre (per vertex), and fragments within r3 of the camera are cut.
+    const rows = P.group.getObjectByName('plain-orchards-far') as THREE.Mesh, g = rows.geometry;
+    const pos = g.getAttribute('position'), B = g.getAttribute('rowB'), Q = { r3: 250, rMid: 900 };
+    const cams: [number, number][] = [[-973, -3287], [-2505, -2700], [-5205, -1611], [-36.4, -122.45]]; // P22, Pulvar bank, field, Grand Stair
+    for (const [cx, cz] of cams) {
+      // the mid centre lags the camera by at most (rMid - r3) / 4 (index.ts rebuilds it then)
+      for (const [ox, oz] of [[0, 0], [(Q.rMid - Q.r3) / 4, 0], [0, -(Q.rMid - Q.r3) / 4]]) {
+        const mx = cx + ox, mz = cz + oz; let nearest = Infinity;
+        for (let q = 0; q < pos.count; q += 4) {
+          if (Math.hypot(B.getX(q) - mx, B.getY(q) - mz) < Q.rMid) continue; // collapsed: the mid ring draws these trees
+          // the row's two ends (vertices q, q+1) at the ground: distance from the camera to the segment
+          const ax = pos.getX(q), az = pos.getZ(q), bx = pos.getX(q + 1), bz = pos.getZ(q + 1), dx = bx - ax, dz = bz - az, l2 = dx * dx + dz * dz || 1;
+          const t = Math.max(0, Math.min(1, ((cx - ax) * dx + (cz - az) * dz) / l2)); nearest = Math.min(nearest, Math.hypot(ax + dx * t - cx, az + dz * t - cz));
+        }
+        expect(nearest, `camera ${cx},${cz} mid offset ${ox},${oz}`).toBeGreaterThan(Q.r3);
+      }
+    }
+    // the layers at P22: the 3-D set within its radius, the impostors' cut at the same centre and radius
+    P.update(0, { clock: { dayIndex: 0 }, cond: { windMs: 2 }, camera: { position: new THREE.Vector3(-973, 1.6, -3287) } });
+    const st = P.stats(); console.log('P22 tree layers', JSON.stringify({ near: st.nearTrees, lod0: st.lod0Trees, shadow: st.shadowTrees, nearR: st.nearR, mid: st.midTrees, rows: st.orchardRows, tris: st.nearTreeTris }));
+    expect(st.nearTrees).toBeGreaterThan(100); expect(st.nearR).toBeGreaterThan(100); expect(st.midTrees).toBeGreaterThan(st.nearTrees);
+    expect(st.nearTreeTris).toBeLessThan(1.2e6);
   });
   it('seasons drive the uniforms: the river is wider on 17 April than in September', () => {
     const ctx = (day: number) => ({ clock: { dayIndex: day }, cond: { windMs: 2 }, camera: { position: new THREE.Vector3(-4000, 20, -3000) } });

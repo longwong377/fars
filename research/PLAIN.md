@@ -119,3 +119,31 @@ Data added to `src/data/plain.json` (each with tier, source and note):
 - New source keys: NR-ACHAEMENICA, NR-IRANICA, IR-RIPARIAN (all search extracts).
 
 What the build does with them: `src/world/plain/` (rivers carved into the heightfield and drawn with a date-driven water level; fields, crops, orchard floors and woodland in the terrain material; near crop tufts; trees near/far; 37 villages; 37 canals; tracks; two quarries; Naqsh-e Rustam). Tests: `tests/plain.test.ts`; renders and measured budgets: `tests/e2e/plain.spec.ts`.
+
+## 10. Trees as built (session 3, trees agent; D-120 to D-123)
+**Read this first: what is weak.**
+- Every form value is C and recalled (source key BOTANY-GEN): heights, crown width and base, trunk, stems, crown shape, branching, leaf size, bark colour.
+- The poplar's narrow form (Q-170) and the garden cypress's upright form (Q-171) may be later cultivated forms.
+- The orchard mix of one species per plot, and its shares, is C (Q-172). Leaf and blossom colours and the phenology dates are chosen, not measured (Q-173).
+
+Species and where they grow (`src/data/trees.json`; placement in `src/world/plain/trees.ts` and the town plan):
+
+| Species | Where | Presence (tier, source) | Height (m) | Crown width / height | Crown base / height | Habit (C) |
+|---|---|---|---|---|---|---|
+| Oriental plane (*Platanus orientalis*) | river banks (35 % behind the water's edge), canals (40 %), town garden axes | B: IR-RIPARIAN analogy, SAEIDI2021 pollen | 14-24 (canals 14-19) | 0.7-0.9 | 0.22-0.32 | broad dome on a short thick bole, 4-5 limbs |
+| White willow (*Salix alba*) | river banks (30 %), canals (40 %) | B: IR-RIPARIAN | 7-14 | 0.6-0.8 | 0.18-0.28 | rounded, upswept limbs, hanging outer shoots, 1-2 stems |
+| Poplar (*Populus*) | river banks (20 %) | B: IR-RIPARIAN (genus) | 13-21 | 0.26-0.36 | 0.12-0.2 | narrow: a leader with steep short branches (Q-170) |
+| Tamarisk (*Tamarix ramosissima*) | the water's edge (45 %) and banks | B: IR-RIPARIAN | 2.5-5 | 0.9-1.2 | 0.08-0.15 | 4-8 stems, feathery drooping sprays |
+| Mulberry | canals (20 %), orchards (13 % of plots), town gardens | B: IR-FOODAG | 6-9 | 0.85-1.05 | 0.25-0.32 | dense dome |
+| Fig | orchards (22 %), town gardens | B: IR-FOODAG | 3.5-6 | 1.05-1.35 | 0.1-0.2 | 2-4 stems, wider than tall, no blossom |
+| Apple | orchards (20 %), town gardens | B: IR-FOODAG | 4-7 | 0.9-1.1 | 0.22-0.3 | rounded, open; blossom in April |
+| Pear | orchards (18 %), town gardens | B: IR-FOODAG | 5-8 | 0.55-0.72 | 0.2-0.28 | upright, with a leader; blossom from late March |
+| Pomegranate | orchards (27 %), town gardens | B: SAEIDI2021, IR-FOODAG | 3-5 | 0.9-1.15 | 0.08-0.16 | 3-6 stems; scarlet flowers from May |
+| Brant's oak (*Quercus brantii*) | woodland (65 % of trees) | B: SAEIDI2021 | 4-8 | 1.0-1.3 (woodland rule: crowns 5-9 m) | 0.18-0.3 | open, irregular, 1-3 stems |
+| Wild almond (*Amygdalus*) | woodland scrub (19 %) | B: SAEIDI2021 | 2-4 | 0.8-1.0 | 0.08-0.14 | broom-like, sparse leaves; pale-pink blossom in Feb-Mar |
+| Wild pistachio (*Pistacia atlantica*) | woodland scrub (16 %) | B: SAEIDI2021, IR-FOODAG | 3.5-7 | 0.95-1.2 | 0.2-0.28 | stout, dense dome; red in autumn |
+| Cypress | town garden axes | B: SAEIDI2021 | 9-15 | 0.16-0.24 | 0.02-0.05 | narrow cone, evergreen (Q-171) |
+| Olive | town gardens only (the plain has 44 frost days a year: WMO, A) | B: SAEIDI2021 | 4-6.5 | 0.95-1.2 | 0.25-0.35 | broad, irregular, evergreen grey-green |
+| Grape vine | town gardens (head-trained, C); vineyards stay in the terrain layer | B: IR-FOODAG | 1.2-1.8 | 1.0-1.3 | 0.3-0.42 | low, spreading canes |
+
+Seasons: the foliage groups of `src/world/plain/seasonal.ts`. Planes leaf out on day 82-108 of the year (late March to mid-April). Apple and pear blossom falls on days 75-108, wild almond on days 45-72, pomegranate on days 130-175. Evergreens keep their leaves. Leaves fall in October and November (C).

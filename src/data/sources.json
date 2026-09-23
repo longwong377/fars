@@ -713,5 +713,10 @@
   "cite": "'Estimation of Horizontal Illuminance for Clear Skies in Iran', Journal of Applied Sciences (2009): maximum measured clear-sky illuminance 129 klx",
   "url": "https://scialert.net/fulltext/?doi=jas.2009.2144.2149",
   "access": "search-extract only"
+ },
+ "BOTANY-GEN": {
+  "cite": "General dendrology of the species' habit (height, crown shape and width, crown base, trunk, stems, leaf form), recalled by the builder from standard floras and tree guides; not consulted in this session",
+  "url": "",
+  "access": "recollection only (tier C)"
  }
 }

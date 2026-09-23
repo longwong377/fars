@@ -15,7 +15,9 @@ const meta: TerrainMeta = JSON.parse(readFileSync('public/generated/terrain.json
 const ring = (k: 'near' | 'mid' | 'far') => new Ring(meta.rings[k], new Uint16Array(readFileSync(`public/${meta.rings[k].file}`).buffer.slice(0)), meta.court_asl);
 const T = new Terrain(meta, ring('near'), ring('mid'), ring('far'));
 let P: Physics, town: Settlement, fire: FireSystem;
-beforeAll(async () => { P = await Physics.create(); P.updateTerrain(T, { x: 0, y: 0, z: 0 }); fire = new FireSystem(4); town = new Settlement(P, T, fire, 'high'); P.step(1 / 60); });
+// the whole town at quality high (houses, fires, the tree kit): a build, not a timed budget, so it gets the time a loaded
+// machine needs (it timed out at vitest's default 10 s while renders and a soak shared the cores)
+beforeAll(async () => { P = await Physics.create(); P.updateTerrain(T, { x: 0, y: 0, z: 0 }); fire = new FireSystem(4); town = new Settlement(P, T, fire, 'high'); P.step(1 / 60); }, 120_000);
 
 describe('settlement geometry budget (whole-frame proxy: settlement ≤ 150 draw calls, ≤ 2 M triangles)', () => {
   it('meshes and triangles of everything the settlement adds', () => {
