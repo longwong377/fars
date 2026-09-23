@@ -155,7 +155,7 @@ describe('bevels (D-157)', () => {
     // worst case, every part mesh drawn in the view and all four shadow cascades: well under 5 % of the 12 M budget
     expect(5 * (B.trisBevelled - B.trisFlat)).toBeLessThan(0.05 * 12e6);
     // every merged part mesh carries the part attributes the architecture materials read
-    let meshes = 0; g.group.traverse((o: any) => { if (o.isMesh && !o.isInstancedMesh && o.geometry.getAttribute('pbox')) { meshes++; expect(o.geometry.getAttribute('y0').count).toBe(o.geometry.getAttribute('position').count); } });
+    let meshes = 0; g.group.traverse((o: any) => { if (o.isMesh && !o.isInstancedMesh && o.geometry.getAttribute('pbox')) { meshes++; for (const a of ['y0', 'ytop']) expect(o.geometry.getAttribute(a).count).toBe(o.geometry.getAttribute('position').count); } });
     expect(meshes).toBeGreaterThan(20);
   });
 });

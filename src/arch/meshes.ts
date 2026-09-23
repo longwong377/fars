@@ -211,7 +211,7 @@ export interface BevelStats { edges: number; bevelled: number; trisFlat: number;
 const FLOORS = new Set(['floor_finish', 'portico_floor', 'pavement', 'landing', 'floor']);
 /** per-vertex part attributes for the architecture variant of the surface materials (D-157): `y0` = the part's base height
  *  (wall-foot band), `pbox` = (centre x, centre z, ±half size x, half size z) in world axes (+ for floors: traffic wear;
- *  the sizes also gate the slab joints of large up-facing parts) */
+ *  the sizes also gate the slab joints of large up-facing parts), `ytop` = the part's top (run-off streaks) */
 function partAttributes(g: THREE.BufferGeometry, p: Box | Prism, index: PartIndex) {
   const n = g.getAttribute('position').count, y0 = new Float32Array(n).fill(-1000), box = new Float32Array(n * 4);
   // `y0`: the floor in front of each vertex of a vertical face (5 cm out along its normal, the highest part top at or below
@@ -238,6 +238,7 @@ function partAttributes(g: THREE.BufferGeometry, p: Box | Prism, index: PartInde
   const sx = FLOORS.has(p.kind) ? hx : -hx;
   for (let i = 0; i < n; i++) box.set([cx, cz, sx, hz], i * 4);
   g.setAttribute('y0', new THREE.BufferAttribute(y0, 1)); g.setAttribute('pbox', new THREE.BufferAttribute(box, 4));
+  g.setAttribute('ytop', new THREE.BufferAttribute(new Float32Array(n).fill(p.y1), 1)); // run-off streaks below the part's top
 }
 /** A/B for measurements (window.__parsaSurf.bevels(on)): swap the merged part meshes between their bevelled and their
  *  plain geometry */
