@@ -120,3 +120,71 @@ export class Birds {
 }
 const ONE = new THREE.Vector3(1, 1, 1);
 function hashSeed(seed: number, id: string, i: number) { let h = seed * 2654435761 >>> 0; for (const c of `${id}:${i}`) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0; return h; }
+
+// ---------------------------------------------------------------------------------------------- part 2: jackals
+// Golden jackal (B: confirmed in Fars, research/SOUNDSCAPE.md §5; their dusk/night chorus is in the soundscape). A pack of
+// 2–4 roams the plain below the W and S Terrace walls, ~130–970 m out, from dusk to dawn (behaviour C): trotting ~2 m/s
+// on slow wandering curves, pausing to sniff. Closed-form in (seed, day, time) like the birds. One InstancedMesh (1 draw
+// call, no shadows); the legs swing in the vertex shader (diagonal pairs in phase, a trot).
+export const JACKAL = { name: 'golden jackal', tier: 'B species (Fars) / C behaviour', hours: [18.6, 5.8] as [number, number], count: 4, length: 0.75, height: 0.45, colour: [0.52, 0.42, 0.28] as [number, number, number] };
+
+function jackalGeometry(): THREE.BufferGeometry {
+  const P: number[] = [], LEG: number[] = [];
+  const box = (cx: number, cy: number, cz: number, sx: number, sy: number, sz: number, leg: number) => {
+    const x0 = cx - sx / 2, x1 = cx + sx / 2, y0 = cy - sy / 2, y1 = cy + sy / 2, z0 = cz - sz / 2, z1 = cz + sz / 2;
+    const v = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]];
+    for (const [a, b, c, d] of [[0, 1, 2, 3], [5, 4, 7, 6], [4, 0, 3, 7], [1, 5, 6, 2], [3, 2, 6, 7], [4, 5, 1, 0]]) for (const k of [a, b, c, a, c, d]) { P.push(...v[k]); LEG.push(leg === 0 ? 0 : leg * Math.max(0, (cy + sy / 2 - v[k][1]) / sy)); }
+  };
+  const L = JACKAL.length, H = JACKAL.height;
+  box(0, H * 0.72, 0, 0.2, 0.22, L * 0.62, 0);            // body
+  box(0, H * 0.9, L * 0.38, 0.14, 0.14, 0.2, 0);         // head
+  box(0, H * 0.95, L * 0.5, 0.07, 0.07, 0.1, 0);         // muzzle
+  box(0, H * 0.7, -L * 0.42, 0.07, 0.07, 0.26, 0);       // tail (brush)
+  for (const [x, z, leg] of [[-0.07, 0.22, 1], [0.07, 0.22, -1], [-0.07, -0.2, -1], [0.07, -0.2, 1]]) box(x, H * 0.3, z * L, 0.05, H * 0.6, 0.05, leg); // legs: diagonal pairs share a phase
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('leg', new THREE.Float32BufferAttribute(LEG, 1)); g.computeVertexNormals();
+  return g;
+}
+
+/** a jackal's place on the night's wander: closed form; `moving` false while it pauses */
+export function jackalAt(seed: number, night: number, i: number, t: number, out: { e: number; n: number; heading: number; moving: boolean }) {
+  const r = new Rng(seed, `jackal:${night}`);
+  // loop centres 350–600 m W of the W wall or 480–750 m S of the S wall; excursions ≤ 1.35 A ≤ 216 m keep them on the plain
+  const side = r.chance(0.5) ? 'W' : 'S', cx = side === 'W' ? r.range(-600, -350) : r.range(-150, 250), cn = side === 'W' ? r.range(-150, 250) : r.range(-750, -480);
+  const q = new Rng(seed, `jackal:${night}:${i}`), ox = q.range(-6, 6), on = q.range(-6, 6), lag = i * 2.5;
+  const T = t - lag, A = r.range(80, 160), w = 2.0 / A; // ~2 m/s along a wandering loop of scale A
+  const s = w * T, ph = r.range(0, 6.3);
+  // pause for ~20 % of the time (sniffing): time-warp the path parameter
+  const cyc = (T % 60 + 60) % 60, moving = cyc < 48, sw = moving ? s - Math.floor(T / 60) * w * 12 : s - (cyc - 48) * w - Math.floor(T / 60) * w * 12;
+  out.e = cx + A * Math.sin(sw + ph) + 0.35 * A * Math.sin(2.3 * sw) + ox; out.n = cn + A * 0.6 * Math.sin(1.7 * sw + ph) + on;
+  const de = A * Math.cos(sw + ph) + 0.35 * A * 2.3 * Math.cos(2.3 * sw), dn = A * 0.6 * 1.7 * Math.cos(1.7 * sw + ph);
+  out.heading = Math.atan2(de, dn); out.moving = moving;
+}
+
+export class Jackals {
+  readonly mesh: THREE.InstancedMesh;
+  private uTime = uniform(0); private moveAttr: THREE.InstancedBufferAttribute;
+  private p = { e: 0, n: 0, heading: 0, moving: false }; private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private up = new THREE.Vector3(0, 1, 0);
+  constructor(private seed: number, private terrain: Terrain) {
+    const g = jackalGeometry();
+    const m = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...JACKAL.colour, THREE.SRGBColorSpace), roughness: 0.95 });
+    const leg = attribute('leg', 'float'), mv = attribute('moving', 'float');
+    // trot: legs swing ±25° about the hip at ~2.2 Hz, diagonal pairs opposite (sign of `leg`)
+    m.positionNode = positionLocal.add(vec3(0, 0, sin(this.uTime.mul(2.2 * Math.PI * 2)).mul(leg).mul(mv).mul(0.12)));
+    this.mesh = new THREE.InstancedMesh(g, m, JACKAL.count); this.mesh.count = 0; this.mesh.castShadow = false; this.mesh.frustumCulled = false;
+    this.moveAttr = new THREE.InstancedBufferAttribute(new Float32Array(JACKAL.count), 1); g.setAttribute('moving', this.moveAttr);
+    this.mesh.userData = { tier: JACKAL.tier, src: 'SOUND-R', note: `${JACKAL.name}; pack range and paths procedural (C)` };
+    this.mesh.name = 'wildlife-jackals';
+  }
+  /** dayIndex/hour local; t world seconds */
+  update(dayIndex: number, hour: number, t: number) {
+    this.uTime.value = t % 100000;
+    const on = hour >= JACKAL.hours[0] || hour <= JACKAL.hours[1]; if (!on) { this.mesh.count = 0; return; }
+    const night = hour >= JACKAL.hours[0] ? dayIndex : dayIndex - 1, pack = 2 + new Rng(this.seed, `jackal-pack:${night}`).int(0, JACKAL.count - 2);
+    for (let i = 0; i < pack; i++) {
+      jackalAt(this.seed, night, i, t, this.p); const y = this.terrain.heightAt(this.p.e, -this.p.n);
+      this.q.setFromAxisAngle(this.up, this.p.heading); this.m4.compose(new THREE.Vector3(this.p.e, y, -this.p.n), this.q, new THREE.Vector3(1, 1, 1));
+      this.mesh.setMatrixAt(i, this.m4); this.moveAttr.setX(i, this.p.moving ? 1 : 0);
+    }
+    this.mesh.count = pack; this.mesh.instanceMatrix.needsUpdate = true; this.moveAttr.needsUpdate = true;
+  }
+}

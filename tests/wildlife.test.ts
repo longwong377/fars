@@ -34,3 +34,20 @@ describe('birds (brief §5.5)', () => {
     expect(new THREE.Vector3().setFromMatrixPosition(m4).y - p.y).toBeGreaterThan(0.5);
   });
 });
+
+import { jackalAt, Jackals, JACKAL } from '../src/world/wildlife';
+import footprints from '../src/data/geo/footprints.json';
+describe('jackals (brief §5.5)', () => {
+  const inside = (poly: number[][], e: number, n: number) => { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const [xi, yi] = poly[i], [xj, yj] = poly[j]; if ((yi > n) !== (yj > n) && e < ((xj - xi) * (n - yi)) / (yj - yi) + xi) c = !c; } return c; };
+  it('stay off the Terrace, trot at ~2 m/s when moving, and pause sometimes', () => {
+    const terr = (footprints as any).terrace.polygon as number[][], p = { e: 0, n: 0, heading: 0, moving: false }, q = { ...p };
+    let moving = 0, total = 0, sum = 0, max = 0;
+    for (let night = 0; night < 40; night++) for (let i = 0; i < 4; i++) for (let t = 0; t < 36000; t += 97) {
+      jackalAt(1, night, i, t, p); expect(inside(terr, p.e, p.n), `night ${night} jackal ${i} at ${p.e.toFixed(0)},${p.n.toFixed(0)}`).toBe(false);
+      jackalAt(1, night, i, t + 1, q); const v = Math.hypot(q.e - p.e, q.n - p.n); total++;
+      if (p.moving && q.moving) { moving++; sum += v; max = Math.max(max, v); }
+    }
+    expect(moving / total).toBeGreaterThan(0.6); expect(moving / total).toBeLessThan(0.95);
+    expect(sum / moving).toBeGreaterThan(1.2); expect(sum / moving).toBeLessThan(3); expect(max).toBeLessThan(5); // walk to trot
+  });
+});
