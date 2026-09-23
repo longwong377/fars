@@ -333,7 +333,10 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Trees:** 3,581 instanced trees in 4 forms, at two distance levels (near < 160 m). Deciduous species go bare in winter (`LEAF_TABLE`, C). They are PLACEHOLDER-grade.
 - **Measured (SwiftShader, `?test&quality=test`, same view with and without the town):**
   - Terrace W edge, looking SW over the town: +16 draw calls and +0.72 M triangles at dusk; +19 draw calls and +0.79 M triangles by day.
-  - High quality: see the Phase 6 report (D-044 addendum).
+  - High quality (fixed counters, D-047; the same frame with the settlement group hidden, and a separate `?notown` page load that agrees):
+    - Terrace W edge: +17 draw calls and +0.64 M triangles at dusk and by day. Frame totals: 121 draws / 2.46 M at dusk, 308 / 4.42 M by day.
+    - Inside q_s1's main street, looking up the road at the Terrace: +43 draw calls and +0.99 M triangles, including the local quarter's shadows. The frame total is 1,611 / 8.68 M, most of it the Terrace at the end of the street; nothing occludes it, because there is no occlusion culling.
+    - All within the settlement's budget of ≤ 150 draw calls and ≤ 2 M triangles.
 - **Alternatives:**
   - instancing house types: every house differs;
   - impostor cards for far quarters: not needed at < 1 M triangles;
