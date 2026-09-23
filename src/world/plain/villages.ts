@@ -111,20 +111,26 @@ export function villageCompounds(v: Village, terrain: Terrain, seed = 1): Compou
 }
 
 // ---------------------------------------------------------------- geometry and colliders
-export interface Box { cx: number; cy: number; cz: number; hx: number; hy: number; hz: number; rot: number; roof: boolean }
+export interface Box { cx: number; cy: number; cz: number; hx: number; hy: number; hz: number; rot: number; roof: boolean; /** a timber door leaf (drawn dark, no collider) */ door?: boolean }
 /** boxes of one compound (world frame; rot about +y): yard walls with a gate gap, room blocks with flat roofs. Every box
  *  reaches 0.6 m below the ground at the compound centre, so gentle slopes do not show a gap. */
 export function compoundBoxes(c: Compound, groundY: number): Box[] {
   const lay = feature('villages_unlocated').layout, t = lay.wall_m as number, wh = lay.yard_wall_h_m as number;
   const ca = Math.cos(c.angle), sa = Math.sin(c.angle), out: Box[] = [];
-  const add = (u0: number, v0: number, u1: number, v1: number, h: number, roof: boolean) => {
+  const add = (u0: number, v0: number, u1: number, v1: number, h: number, roof: boolean, door = false, base = -0.6) => {
     const u = (u0 + u1) / 2, v = (v0 + v1) / 2, x = c.x + u * ca - v * sa, y = c.y + u * sa + v * ca;
-    out.push({ cx: x, cy: groundY + (h - 0.6) / 2, cz: -y, hx: Math.abs(u1 - u0) / 2, hy: (h + 0.6) / 2, hz: Math.abs(v1 - v0) / 2, rot: c.angle, roof });
+    out.push({ cx: x, cy: groundY + (h + base) / 2, cz: -y, hx: Math.abs(u1 - u0) / 2, hy: (h - base) / 2, hz: Math.abs(v1 - v0) / 2, rot: c.angle, roof, door });
   };
   const W = c.w / 2, D = c.d / 2, g = c.gate * (c.w - 3), gw = 1.4;
   add(-W, D - t, W, D, wh, false); add(-W, -D + t, -W + t, D - t, wh, false); add(W - t, -D + t, W, D - t, wh, false); // N, W, E walls
   add(-W, -D, g - gw / 2, -D + t, wh, false); add(g + gw / 2, -D, W, -D + t, wh, false); // S wall with the gate
-  for (const r of c.rooms) add(r.u0, r.v0, r.u1, r.v1, r.h, true);
+  for (const [k, r] of c.rooms.entries()) {
+    add(r.u0, r.v0, r.u1, r.v1, r.h, true);
+    // a door on the courtyard side (0.9 x 1.8 m timber leaf, C): the main range opens south, a wing opens toward the yard
+    const du = (c.seed % 7) / 7 - 0.5;
+    if (k === 0) { const u = (r.u0 + r.u1) / 2 + du * (r.u1 - r.u0) * 0.6; add(u - 0.45, r.v0 - 0.05, u + 0.45, r.v0 + 0.02, 1.8, false, true, 0); }
+    else { const v = (r.v0 + r.v1) / 2, inner = r.u0 < 0 ? r.u1 : r.u0, s = r.u0 < 0 ? 1 : -1; add(Math.min(inner, inner + s * 0.05), v - 0.45, Math.max(inner, inner + s * 0.05), v + 0.45, 1.8, false, true, 0); }
+  }
   return out;
 }
 /** the corners of a box in world coordinates: local u along the compound's grid-x, v along grid-y (world z = -y) */
@@ -132,6 +138,7 @@ const corner = (b: Box, su: number, sy: number, sv: number): THREE.Vector3 => {
   const ca = Math.cos(b.rot), sa = Math.sin(b.rot), u = su * b.hx, v = sv * b.hz;
   return new THREE.Vector3(b.cx + u * ca - v * sa, b.cy + sy * b.hy, b.cz - (u * sa + v * ca));
 };
+const DOOR = new THREE.Color().setRGB(0.2, 0.15, 0.1, THREE.SRGBColorSpace);
 /** merged mesh of many boxes (5 faces each, no bottom), vertex-coloured walls and roofs, outward normals */
 export function boxesMesh(boxes: Box[], seed: number): THREE.BufferGeometry {
   const pos: number[] = [], nor: number[] = [], col: number[] = [];
@@ -149,7 +156,7 @@ export function boxesMesh(boxes: Box[], seed: number): THREE.BufferGeometry {
       const fc = q.reduce((a, p) => a.add(p), new THREE.Vector3()).multiplyScalar(0.25);
       let n = q[1].clone().sub(q[0]).cross(q[3].clone().sub(q[0])).normalize();
       if (n.dot(fc.sub(centre)) < 0) { q = [q[0], q[3], q[2], q[1]]; n.negate(); }
-      const cl = fi === 0 && b.roof ? roof : wall;
+      const cl = b.door ? DOOR : fi === 0 && b.roof ? roof : wall;
       for (const p of [q[0], q[1], q[2], q[0], q[2], q[3]]) { pos.push(p.x, p.y, p.z); nor.push(n.x, n.y, n.z); col.push(cl.r, cl.g, cl.b); }
     });
   }

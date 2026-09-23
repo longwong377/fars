@@ -11,8 +11,8 @@
     (channel top width / 2 + one cell) of the centreline is lowered to bed - 0.3 m, so the terrain stays below the
     river corridor mesh drawn over it (src/world/plain/rivers.ts). The profile is written to public/generated/rivers.json.
     Tier C (course modern, level reconstruction).
- 5. Naqsh-e Rustam (Phase 7): the ancient ground at the cliff foot lies at least 5 m below the present ground (NR-IRANICA),
-    tapering to 0 at 250 m out (C); the ground in front of the cliff face line (plain.json naqsh_e_rustam.cliff) and two
+ 5. Naqsh-e Rustam (Phase 7): the ancient ground at the cliff foot lies at least 5 m below the present ground (NR-IRANICA):
+    the talus in front of the cliff is removed down to a surface rising 1 % from that foot, out to 250 m (C); the ground in front of the cliff face line (plain.json naqsh_e_rustam.cliff) and two
     cells behind it is held at that ancient level, so the vertical face drawn by src/world/plain/naqsh.ts is not
     hidden by the 16 m heightfield's smoothed ramp. Tier C.
  6. Output rings (Uint16 heights, h = asl_min + q * step) + JSON metadata into public/generated/.
@@ -182,8 +182,9 @@ def carve_naqsh(h, GX, GY, half, cell):
     # present ground at the foot: 30 m in front of the face (the DSM ramp of the smoothed cliff starts about there)
     foot = float(np.median(bilinear(h, half, cell, np.linspace(xa, xb, 40), np.full(40, fy - 30.0))))
     anc_foot = foot - ag['drop_at_foot_m']
-    target = h - ag['drop_at_foot_m'] * (1 - smooth01(d / ag['taper_m']))
-    target = np.where(d < 2 * cell, np.minimum(target, anc_foot + 0.02 * np.clip(d, 0, None)), target)  # the DSM's smeared cliff foot flattened
+    # the talus that has built up against the cliff since antiquity is removed down to a surface rising 1 % from the ancient
+    # foot; where the plain is already lower (beyond the talus) it is left as it is, and nothing is lowered beyond taper_m
+    target = np.where(d < ag['taper_m'], np.minimum(h, anc_foot + 0.01 * np.clip(d, 0, None)), h)
     target = np.where(d <= 0, anc_foot, target)  # two cells behind the face: inside the rock (under the cliff mesh's top), held low
     sel = (wx > 0) & (d > -2 * cell - 1) & (d < ag['taper_m'])
     h[sel] = np.minimum(h[sel], (wx * target + (1 - wx) * h)[sel])

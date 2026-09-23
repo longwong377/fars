@@ -4376,9 +4376,10 @@
   "ancient_ground": {
    "drop_at_foot_m": 5.0,
    "taper_m": 250,
-   "tier": "B (drop) / C (taper)",
+   "tier": "B (drop at the foot) / C (the removed talus surface)",
    "src": "NR-IRANICA",
-   "note": "\"The original floor at the foot of the cliff was, at least, 5 m below the present-day ground\" (Iranica, search extract): the heightfield in front of the cliff is lowered 5 m at the foot, tapering to 0 at 250 m out (C)."
+   "note": "\"The original floor at the foot of the cliff was, at least, 5 m below the present-day ground\" (Iranica, search extract, B): the ancient foot is the present ground 30 m in front of the face minus 5 m; the talus accumulated since is removed down to a surface rising 1 % outward from that foot within 250 m, and the plain beyond the talus, already at or below that surface, is left unchanged (C).",
+   "rule": "ancient ground = min(present, ancient foot + 1 % x distance from the face), within 250 m"
   },
   "facade": {
    "height_m": 22.93,

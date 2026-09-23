@@ -83,7 +83,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const syncColliders = (p: THREE.Vector3) => {
     if (!phys) return;
     for (const v of villages) { const d = Math.hypot(v.x - p.x, v.y + p.z) - v.r, has = villageColl.has(v.id);
-      if (d < 500 && !has) villageColl.set(v.id, (vb.boxes.get(v.id) ?? []).map((b: Box) => phys.addBox(new THREE.Vector3(b.cx, b.cy, b.cz), new THREE.Vector3(b.hx, b.hy, b.hz), b.rot)));
+      if (d < 500 && !has) villageColl.set(v.id, (vb.boxes.get(v.id) ?? []).filter((b: Box) => !b.door).map((b: Box) => phys.addBox(new THREE.Vector3(b.cx, b.cy, b.cz), new THREE.Vector3(b.hx, b.hy, b.hz), b.rot)));
       else if (d > 800 && has) { for (const c of villageColl.get(v.id)!) phys.world.removeCollider(c, false); villageColl.delete(v.id); } }
     rv.segments.forEach((s, i) => { const d = Math.hypot(s.cx - p.x, s.cy + p.z), has = riverColl.has(i);
       if (d < 600 && !has) riverColl.set(i, phys.addTrimesh(s.pos, s.idx, { tier: 'C', what: 'river corridor' }));
