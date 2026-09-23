@@ -43,5 +43,15 @@ describe('construction view (Hall of 100 Columns)', () => {
     let grew = 0; for (const [k, h] of h1) { expect(h, k).toBeGreaterThanOrEqual(h0.get(k)! - 1e-6); if (h > h0.get(k)! + 0.5) grew++; }
     console.log(`after 120 days: ${set} drums set, ${grew} column(s) visibly taller`);
     expect(grew).toBeGreaterThan(0);
+    // the site shows what the simulation counts: drums in the yard, capitals, scaffolds at the working columns
+    const site = view.group.getObjectByName('hall100:site')!; expect(site).toBeTruthy();
+    const t = C.tasks[C.day]; const S = view.site;
+    expect(S.waiting).toBe(Math.min(36, C.yard.waiting)); expect(S.dressed).toBe(Math.min(36, C.yard.dressed));
+    expect(S.scaffolds).toEqual([...new Set([t.raise, t.flute].filter(i => i != null && i >= 0))]);
+    if (S.scaffolds.length) expect(site.getObjectByName('hall100:site:scaffold')).toBeTruthy();
+    console.log(`site: ${JSON.stringify(S)}; meshes ${site.children.map(c => c.name).join(', ')}`);
+    // everything on the site stays inside the masons' yard or at a hall column
+    site.traverse(o => { const m = o as THREE.Mesh; if (!m.isMesh) return; m.geometry.computeBoundingBox(); const b = m.geometry.boundingBox!;
+      expect(b.min.x, m.name).toBeGreaterThan(40); expect(b.max.x, m.name).toBeLessThan(200); expect(-b.max.z, m.name).toBeGreaterThan(-80); expect(-b.min.z, m.name).toBeLessThan(50); });
   });
 });

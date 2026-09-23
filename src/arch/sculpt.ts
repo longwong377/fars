@@ -298,6 +298,11 @@ function capitalMesh(o: ColumnOrder, lod: Lod): NormMesh | null {
 }
 const COL_CACHE = new Map<string, NormMesh>(), PART_CACHE = new Map<string, NormMesh | null>();
 const cached = (key: string, make: () => NormMesh | null) => { if (!PART_CACHE.has(key)) PART_CACHE.set(key, make()); return PART_CACHE.get(key)!; };
+/** the capital of an order alone, standing on y = 0 (a finished capital waiting in the masons' yard, src/world/construction.ts) */
+export function capitalAlone(o: ColumnOrder, lod: Lod = 1): NormMesh | null {
+  const m = cached(`cap|${JSON.stringify(o)}|${lod}`, () => capitalMesh(o, lod)); if (!m) return null;
+  return transformNorm(m, [1, 0, 0, 0, 0, 1, 0, -(o.height - o.capitalH), 0, 0, 1, 0]);
+}
 /** the whole column in local space (base at y = 0, top at o.height); built < 1: shaft partly raised, no capital.
  *  Bases and capitals are cached per order (the Hall of 100 Columns' many construction states share them). */
 /** construction state of one column beyond its built fraction (the Hall of 100 Columns, src/world/construction.ts):
