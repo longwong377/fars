@@ -24,7 +24,7 @@ export class TreeField {
   constructor(spots: TreeSpot[], H: (e: number, n: number) => number, quality = 'high') {
     this.group.name = 'settlement:trees';
     this.group.userData = { tier: 'C', src: 'SAEIDI2021;IR-FOODAG;BOTANY-GEN', note: 'garden and orchard trees: species B (pollen, PF fruits); forms and sizes C (src/data/trees.json, generated models); placement C' };
-    this.kit = TreeKit.get({ impostorPx: impostorPx(quality) }); this.R = RADII[quality] ?? RADII.high;
+    this.kit = TreeKit.get({ impostorPx: impostorPx(quality) }); this.R = RADII[quality] ?? RADII.high; this.kit.lod0R.value = this.R.lod0;
     for (const s of spots) {
       const sp = SPECIES_IDS.includes(s.species) ? s.species : 'pomegranate', hs = hashString(s.c.join(','));
       const sz = speciesSize(sp, (hs % 1000) / 1000, ((hs >>> 10) % 1000) / 1000);

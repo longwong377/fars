@@ -53,6 +53,12 @@ async function boot() {
       sets.lod0.set(by.lod0); sets.lod1.set(by.lod1); sets.imp.set(by.imp);
       return { lod0: by.lod0.length, lod1: by.lod1.length, imp: by.imp.length };
     },
+    /** screen pixel box (CSS px) of a world box: [xmin, ymin, xmax, ymax] */
+    project: (x0: number, y0: number, z0: number, x1: number, y1: number, z1: number) => { const b = [1e9, 1e9, -1e9, -1e9], v = new THREE.Vector3();
+      for (const x of [x0, x1]) for (const y of [y0, y1]) for (const z of [z0, z1]) { v.set(x, y, z).project(camera); const px = (v.x * 0.5 + 0.5) * innerWidth, py = (0.5 - v.y * 0.5) * innerHeight; b[0] = Math.min(b[0], px); b[1] = Math.min(b[1], py); b[2] = Math.max(b[2], px); b[3] = Math.max(b[3], py); }
+      return b.map(Math.round); },
+    /** model reference size of a species (m): height, crown width */
+    size: (sp: string) => speciesSize(sp, 0.5, 0.5),
     view: (x: number, y: number, z: number, tx: number, ty: number, tz: number) => { camera.position.set(x, y, z); camera.lookAt(tx, ty, tz); camera.updateMatrixWorld(); },
     setTime: (day: number, hour: number) => clock.set(day, hour),
     render: async (frames = 1) => { for (let i = 0; i < frames; i++) await frame(); },

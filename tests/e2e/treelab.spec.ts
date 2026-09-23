@@ -19,9 +19,11 @@ const SHOTS: [string, number, number, any[], number[], number[]][] = [
   ['lod-trio', 80, 10, ['plane', 'poplar', 'apple'].flatMap((sp, i) => [0, 1, 'imp'].map((lod, j) => ({ sp, x: (j - 1) * 24 + (sp === 'apple' ? 0 : 0), z: -i * 30, lod }))), [0, 1.6, 45], [0, 6, -20]],
 ];
 const decode = (buf: Buffer) => PNG.sync.read(buf) as { width: number; height: number; data: Buffer };
-function maskStats(img: ReturnType<typeof decode>, empty: ReturnType<typeof decode>) {
-  let n = 0; const c = [0, 0, 0]; const d = img.data, e = empty.data;
-  for (let i = 0; i < d.length; i += 4) { if (Math.abs(d[i] - e[i]) + Math.abs(d[i + 1] - e[i + 1]) + Math.abs(d[i + 2] - e[i + 2]) <= 18) continue; n++; c[0] += d[i]; c[1] += d[i + 1]; c[2] += d[i + 2]; }
+/** pixels inside the box that differ from the empty frame (sum of |dRGB| > 18) and their mean colour */
+function maskStats(img: ReturnType<typeof decode>, empty: ReturnType<typeof decode>, box: number[]) {
+  let n = 0; const c = [0, 0, 0]; const d = img.data, e = empty.data, W = img.width;
+  for (let y = Math.max(0, box[1]); y <= Math.min(img.height - 1, box[3]); y++) for (let x = Math.max(0, box[0]); x <= Math.min(W - 1, box[2]); x++) { const i = (y * W + x) * 4;
+    if (Math.abs(d[i] - e[i]) + Math.abs(d[i + 1] - e[i + 1]) + Math.abs(d[i + 2] - e[i + 2]) <= 18) continue; n++; c[0] += d[i]; c[1] += d[i + 1]; c[2] += d[i + 2]; }
   return { px: n, rgb: c.map(v => +(v / Math.max(1, n)).toFixed(1)) };
 }
 test('tree lab', async ({ page }, info) => {
@@ -45,8 +47,11 @@ test('tree lab', async ({ page }, info) => {
     for (const [sp, day] of [['plane', 80], ['poplar', 80], ['willow', 80], ['apple', 0], ['oak', 80], ['plane', 280], ['cypress', 80]] as [string, number][]) {
       await L('setTime', day, 10); await L('view', 0, 1.6, r3, 0, 6, 0);
       const shot = async (lod: any) => { await L('place', lod === null ? [] : [{ sp, x: 0, z: 0, lod }]); await L('render', 3); return decode(await page.screenshot()); };
-      const empty = await shot(null), near = await shot(1), far = await shot('imp');
-      const a = maskStats(near, empty), b = maskStats(far, empty);
+      // the tree's box on screen (+4 px), and an empty frame right before each view (the clouds drift between frames)
+      const sz = await L('size', sp), box = (await L('project', -sz.w * 0.75, -0.5, -sz.w * 0.75, sz.w * 0.75, sz.h * 1.1, sz.w * 0.75)) as number[];
+      box[0] -= 4; box[1] -= 4; box[2] += 4; box[3] += 4;
+      const e1 = await shot(null), near = await shot(1), e2 = await shot(null), far = await shot('imp');
+      const a = maskStats(near, e1, box), b = maskStats(far, e2, box);
       const key = `${sp}@day${day}`; out[key] = { r3, lod1: a, impostor: b, areaRatio: +(b.px / Math.max(1, a.px)).toFixed(3), dRGB: a.rgb.map((v, k) => +(b.rgb[k] - v).toFixed(1)) };
       console.log('r3', key, JSON.stringify(out[key]));
       if (sp === 'plane' && day === 80) { const png = new PNG({ width: near.width * 2, height: near.height }); for (let y = 0; y < near.height; y++) { near.data.copy(png.data, y * near.width * 8, y * near.width * 4, (y + 1) * near.width * 4); far.data.copy(png.data, y * near.width * 8 + near.width * 4, y * near.width * 4, (y + 1) * near.width * 4); }

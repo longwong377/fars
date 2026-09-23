@@ -187,7 +187,7 @@ export function orchardRows(kit: TreeKit, plots: RowPlot[], terrain: Terrain, mi
   const n = normalize(s0.n.mul(float(1).sub(pick)).add(s1.n.mul(pick)));
   const right = vec3(dir.y, 0, dir.x.negate()), nW = right.mul(n.x).add(vec3(0, 1, 0).mul(n.y)).add(vec3(dir.x, 0, dir.y).mul(n.z));
   m.normalNode = normalize(cameraViewMatrix.mul(vec4(nW, 0)).xyz);
-  m.alphaTest = 0.5; m.alphaToCoverage = true; m.roughnessNode = float(0.8);
+  m.alphaTest = 0.5; m.roughnessNode = float(0.8);
   const mesh = new THREE.Mesh(g, m); mesh.name = 'plain-orchards-far'; mesh.frustumCulled = false; mesh.userData = { ...TREE_TAG(), rows };
   return mesh;
 }

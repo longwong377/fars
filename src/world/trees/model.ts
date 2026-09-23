@@ -155,7 +155,8 @@ export function buildModel(si: number, variant: number): TreeModel {
   while (queue.length && segs.length < M0) {
     const q = queue.shift()!;
     const reach = toEnvelope(env, q.p, q.d, W + H);
-    const depthFrac = q.level === 1 ? (s.habit === 'excurrent' ? 0.92 : 0.62) : q.level === 2 ? 0.78 : 0.95;
+    // twigs end inside the leaf shell (cards sit ~0.3 of their size inside the envelope): no sticks poking out of the crown
+    const depthFrac = q.level === 1 ? (s.habit === 'excurrent' ? 0.88 : 0.62) : q.level === 2 ? 0.75 : 0.82;
     let L = Math.max(0.15, reach * depthFrac);
     if (reach < 0.05) continue; // a sprout on the crown surface grows no further (the cards there are its twigs)
     const n = q.level === 1 ? 2 : 1;

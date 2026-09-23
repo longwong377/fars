@@ -13,7 +13,7 @@
 // normals. A quad collapses inside the near radius of the near set's centre (the trees drawn in 3-D there) and beyond
 // an outer radius. No runtime select(): masks are arithmetic (D-012).
 import * as THREE from 'three/webgpu';
-import { attribute, uniform, varying, textureLoad, texture, cameraPosition, cameraViewMatrix, positionGeometry, vec2, vec3, vec4, float, int, ivec2, mix, step, max, min, normalize, cross, cos, sin, floor, mod, atan, time, length, mx_noise_float, clamp } from 'three/tsl';
+import { attribute, uniform, varying, textureLoad, texture, cameraPosition, cameraViewMatrix, positionGeometry, vec2, vec3, vec4, float, int, ivec2, mix, step, max, min, normalize, cross, dot, sign, cos, sin, floor, mod, atan, time, length, mx_noise_float, clamp, smoothstep } from 'three/tsl';
 import { allModels, K1, LOD1_LEAF, LOD1_TWIG, M0, M1, K0, SIDES0, SIDES1, VARIANTS, rowOf, TRIS, type TreeModel } from './model';
 import { COLS, ROWS, type Atlas } from './atlas';
 import { calibrateAndDrawAtlas, packCards, packSegments, packSpecies, SEG_TEX, CARD_TEX } from './kitdata';
@@ -42,7 +42,7 @@ const mipTex = (levels: { data: Uint8Array; width: number; height: number }[], s
   const t = new THREE.DataTexture(levels[0].data, levels[0].width, levels[0].height, THREE.RGBAFormat, THREE.UnsignedByteType);
   t.mipmaps = levels.map(l => ({ data: l.data, width: l.width, height: l.height })) as any; t.generateMipmaps = false;
   t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
-  t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.needsUpdate = true; return t;
+  t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.anisotropy = 8; t.needsUpdate = true; return t; // anisotropic: an edge-on card keeps its detail instead of a coarse, blurred mip
 };
 
 /** instance attributes shared by every tree mesh: ipos (world base), iscl (sxz, sy, yaw, tint), itree (row, group, phase, species) */
@@ -63,6 +63,8 @@ export class TreeKit {
   readonly segTex: THREE.DataTexture; readonly cardTex: THREE.DataTexture; readonly spTex: THREE.DataTexture;
   readonly foliage = new FoliageState();
   readonly wind: any = uniform(2);
+  /** LOD0 radius (m): near cards turn partly toward the camera, fading out by this radius (set by the tree layers) */
+  readonly lod0R: any = uniform(40);
   readonly baker: ImpostorBaker; readonly impCol: THREE.DataTexture; readonly impNrm: THREE.DataTexture;
   private baked: (GroupState | null)[] = [];
   readonly buildMs: number; bakeMs = 0; bakes = 0;
@@ -160,7 +162,17 @@ export class TreeKit {
     const place = isL.mul(L.mul(0.45).add(0.55)).add(isB.mul(0.8));
     const size = c0.w.mul(grow).mul(lod ? isT.mul(float(1).sub(L)).mul(LOD1_TWIG - LOD1_LEAF).add(LOD1_LEAF) : 1); // model.ts lod1Size
     const centre = mix(c1.xyz, c0.xyz, place);
-    const local = centre.add(c3.xyz.mul(P.x.mul(size).mul(0.5))).add(c2.xyz.mul(P.y.mul(size).mul(0.5)));
+    let side: any = c3.xyz, up: any = c2.xyz;
+    if (lod === 0) {
+      // close up, a card seen edge-on is a sliver: LOD0 cards turn up to 40 % toward the camera (in the tree's frame),
+      // fading to their fixed orientation by the LOD0 radius, so LOD1 and the impostors (fixed cards) take over unchanged
+      const cw = toWorld(centre, iscl, ipos), toCam = cameraPosition.sub(cw), d = length(toCam), dw = toCam.div(max(d, 1e-3));
+      const cy = cos(iscl.z), sy = sin(iscl.z), dl = normalize(vec3(dw.x.mul(cy).sub(dw.z.mul(sy)), dw.y, dw.x.mul(sy).add(dw.z.mul(cy))).add(vec3(0, 1e-4, 0)));
+      const r = normalize(cross(vec3(0, 1, 0), dl).add(vec3(1e-4, 0, 0))), u = cross(dl, r);
+      const k = float(0.4).mul(float(1).sub(smoothstep(this.lod0R.mul(0.5), this.lod0R, d)));
+      side = normalize(mix(side, r.mul(sign(dot(side, r)).add(0.001)), k)); up = normalize(mix(up, u.mul(sign(dot(up, u)).add(0.001)), k));
+    }
+    const local = centre.add(side.mul(P.x.mul(size).mul(0.5))).add(up.mul(P.y.mul(size).mul(0.5)));
     // leaf flutter: a few cm along the card normal (C)
     const flutter = c4.xyz.mul(sin(time.mul(3.1).add(slot.mul(1.7)).add(itree.z)).mul(this.wind).mul(0.006).mul(size));
     const m = new THREE.MeshStandardNodeMaterial({ side: THREE.DoubleSide });
@@ -175,8 +187,11 @@ export class TreeKit {
     const shade = tx.r.mul(0.6).add(0.55), petal = tx.g, bk = tx.b, lm = max(float(1).sub(petal).sub(bk), 0);
     const alb = vLeaf.mul(shade).mul(lm).add(vBl.mul(tx.r.mul(0.15).add(0.85)).mul(petal)).add(vBark.mul(shade).mul(bk)).mul(vTint).mul(vAo);
     m.colorNode = vec4(alb, tx.a);
-    m.alphaTest = 0.5; m.alphaToCoverage = true;
-    (m as any).maskShadowNode = tx.a.greaterThan(0.5); // the shadow pass has no alpha test of its own
+    // a plain alpha test: alpha-to-coverage drew an ordered screen-door dither under MSAA (test quality, tree lab)
+    m.alphaTest = 0.5;
+    // the shadow pass has no alpha test of its own; it reads a coarse mip (32 px tiles, coverage kept), so the shadow map
+    // holds leaf clumps rather than single leaves it cannot resolve (per-leaf alpha speckled the crowns with acne)
+    (m as any).maskShadowNode = texture(this.atlasTex, uvA).level(float(3)).a.greaterThan(0.5);
     m.roughnessNode = float(0.75);
     this.mats.set(key, m); return m;
   }
@@ -200,7 +215,7 @@ export class TreeKit {
     const nW = vRight.mul(nV.x).add(vec3(0, 1, 0).mul(nV.y)).add(vDir.mul(nV.z));
     m.normalNode = normalize(cameraViewMatrix.mul(vec4(nW, 0)).xyz);
     m.colorNode = vec4(mix(a0.xyz, a1.xyz, t).mul(vTint), mix(a0.w, a1.w, t));
-    m.alphaTest = 0.5; m.alphaToCoverage = true; m.roughnessNode = float(0.8);
+    m.alphaTest = 0.5; m.roughnessNode = float(0.8);
     return m;
   }
   /** sample the impostor of model `row` from view float `f` (0..NV) at tile uv (TSL helper for row impostors) */
