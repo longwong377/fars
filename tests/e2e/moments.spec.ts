@@ -9,6 +9,7 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'dawn-stair-top', day: 0, hour: 5.40, w: 'clear', v: [-39.6, 122.45, 1.6, 251, -4] }, // 1 m from the W edge of the top landing (x −40.6), so the frame shows the descent and the plain, not 4 m of pavement (session 4)
   { n: 'dawn-sunrise', day: 0, hour: 5.85, w: 'clear', v: [-40.2, 122.45, 1.6, 251, -12] }, // at the landing's W parapet, pitched down so its merlons stand in the foreground (session 4: at −4° the frame held only the plain)
   { n: 'dawn-sunrise-nw', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 134.8, 1.6, 311, -8] }, // from the N end of the top landing: the N upper flight descending on the right, the plain to the NW
+  { n: 'dawn-stair-top-nw', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 134.8, 1.6, 311, -8] }, // the pre-sunrise moment from the head of the N upper flight: the stair descending, the plain to the NW (session 4)
   { n: 'dawn-glow-e', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 122.45, 1.6, 79, 6] },
   { n: 'gate-dusk', day: 0, hour: 19.25, w: 'clear', v: [0.1, 118, 1.6, 341, 4] },
   { n: 'night-terrace', day: 5, hour: 22.5, w: 'clear', v: [0, 92, 1.6, 161, 6] },
