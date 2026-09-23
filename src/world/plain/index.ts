@@ -26,10 +26,12 @@ import { doyOf, riverState } from './seasonal';
 export const PLAIN_QUALITY: Record<Quality, { r3: number; maxNear: number; cropR: number; cropStep: number }> = {
   test: { r3: 160, maxNear: 700, cropR: 26, cropStep: 0.75 },
   low: { r3: 200, maxNear: 900, cropR: 30, cropStep: 0.7 },
-  medium: { r3: 250, maxNear: 1600, cropR: 38, cropStep: 0.6 },
-  high: { r3: 300, maxNear: 2500, cropR: 45, cropStep: 0.55 },
-  ultra: { r3: 400, maxNear: 4000, cropR: 60, cropStep: 0.5 },
+  medium: { r3: 220, maxNear: 1300, cropR: 38, cropStep: 0.6 },
+  high: { r3: 250, maxNear: 1800, cropR: 45, cropStep: 0.55 },
+  ultra: { r3: 320, maxNear: 2600, cropR: 55, cropStep: 0.5 },
 };
+/** trees that cast shadows: the nearest SHADOW_N within SHADOW_R m of the camera */
+const SHADOW_N = 400, SHADOW_R = 120;
 /** Phase 6 owns the four settlement.json roads (D-040): the plain draws them only if this is switched on at merge */
 export const PLAIN_DRAWS_SETTLEMENT_ROADS = false;
 
@@ -67,7 +69,10 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const far = farBillboards(lineTrees, terrain, foliage, r3, 20000); far.userData = TREE_TAG(); group.add(far);
   const plots = orchardPlots(zones, villages);
   const orch = orchardRows(plots, terrain, foliage, r3, 16000); orch.userData = TREE_TAG(); group.add(orch);
-  const near = nearTrees(Q.maxNear, foliage, wind); near.wood.userData = near.crown.userData = TREE_TAG(); group.add(near.wood, near.crown);
+  // the nearest trees (within SHADOW_R, at most SHADOW_N) cast shadows; the rest of the 3D set does not (shadow passes cost
+  // their triangles once per cascade, D-040)
+  const near = nearTrees(SHADOW_N, foliage, wind, true), nearNS = nearTrees(Q.maxNear, foliage, wind, false);
+  for (const m of [near.wood, near.crown, nearNS.wood, nearNS.crown]) { m.userData = TREE_TAG(); group.add(m); }
   const crops = nearCrops(zones, ground.cropTex, ground.day, wind, Q.cropR, Q.cropStep);
   crops.mesh.userData = tag(feature('fields_irrigated_pulvar'), 'standing crops: plot crop and phenology from the zone mix and crop calendar (plain.json crops: B calendar, C heights and layout)');
   group.add(crops.mesh);
@@ -97,7 +102,8 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const p of plots) if (Math.hypot(p.sx - cam.x, p.sz - cam.z) < R + 150) for (const t of orchardPlotTrees(zones, p.sx, p.sz)) if (Math.hypot(t.x - cx, t.y - cy) < R) list.push(t);
     for (const t of woodlandTrees(zones, cam.x, cam.z, R)) list.push(t);
     list.sort((a, b) => Math.hypot(a.x - cx, a.y - cy) - Math.hypot(b.x - cx, b.y - cy));
-    nearList = list; near.set(list, terrain);
+    nearList = list; const k = Math.min(SHADOW_N, list.findIndex(t => Math.hypot(t.x - cx, t.y - cy) > SHADOW_R) >>> 0);
+    near.set(list.slice(0, k), terrain); nearNS.set(list.slice(k), terrain);
   };
   const syncTrunks = (p: THREE.Vector3) => {
     if (!phys || Math.hypot(p.x - lastTrunk.x, p.z - lastTrunk.z) < 15) return;
@@ -121,11 +127,16 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     const cam: THREE.Vector3 = ctx.camera.position;
     if (Math.hypot(cam.x - lastNear.x, cam.z - lastNear.z) > Q.r3 * 0.08) { lastNear = cam.clone(); rebuildNear(cam); }
     crops.update(cam, terrain);
+    // shadow casting only near the camera (the CSM cascades end at 600 m; a far caster would still be drawn into every
+    // cascade its bounding sphere touches): village cells, Naqsh-e Rustam and the quarries
+    for (const c of vb.cells) c.mesh.castShadow = c.centres.some(([x, z]) => Math.hypot(x - cam.x, z - cam.z) < 900);
+    const nrNear = Math.hypot(600 - cam.x, -6124 - cam.z) < 1200; nr.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = nrNear; });
+    const qNear = qb.sites.some(s => Math.hypot(s.x - cam.x, -s.y - cam.z) < 900); qb.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = qNear; });
     const pp = ctx.player?.position ?? cam; syncColliders(pp); syncTrunks(pp);
     void dt;
   };
   const stats = () => ({ canals: canals.length, villages: villages.length, compounds: vb.compounds, villageTris: vb.tris, riverTris: rv.stats().tris, lineTrees: lineTrees.length, orchardPlots: plots.length,
-    nearTrees: near.count(), crops: crops.count(), naqshTris: nr.tris, genMs: Math.round(tGen), buildMs: Math.round(tBuild) });
+    nearTrees: near.count() + nearNS.count(), shadowTrees: near.count(), crops: crops.count(), naqshTris: nr.tris, genMs: Math.round(tGen), buildMs: Math.round(tBuild) });
   return { group, data: { rivers, canals, villages, zones }, update, stats,
     summary: () => { const s = stats(); return `plain: ${s.villages} villages (${s.compounds} compounds), ${s.canals} canals, ${s.lineTrees} river/canal trees, ${s.orchardPlots} orchard plots, near trees ${s.nearTrees}, crop tufts ${s.crops}, built in ${s.buildMs} ms`; } };
 }

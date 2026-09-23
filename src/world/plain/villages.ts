@@ -165,26 +165,28 @@ export function boxesMesh(boxes: Box[], seed: number): THREE.BufferGeometry {
   g.computeBoundingSphere();
   return g;
 }
-export interface VillageBuild { group: THREE.Group; boxes: Map<string, Box[]>; tris: number; compounds: number }
+export interface VillageBuild { group: THREE.Group; boxes: Map<string, Box[]>; tris: number; compounds: number; /** per cell mesh: the centres (world x, z) of its villages, for switching shadows on near the camera */ cells: { mesh: THREE.Mesh; centres: [number, number][] }[] }
 /** all villages: one merged mesh per 8 km cell (a few draw calls, frustum-culled per cell); boxes kept for lazy colliders */
 export function buildVillageMeshes(villages: Village[], terrain: Terrain, seed = 1): VillageBuild {
   const group = new THREE.Group(); group.name = 'plain-villages';
   const mat = surfaceMaterial('village_mud', { vertexColors: true });
-  const cells = new Map<string, Box[]>(), boxes = new Map<string, Box[]>(); let tris = 0, compounds = 0;
+  const cells = new Map<string, Box[]>(), boxes = new Map<string, Box[]>(), centres = new Map<string, [number, number][]>(); let tris = 0, compounds = 0;
+  const cellList: VillageBuild['cells'] = [];
   for (const v of villages) {
     const cs = villageCompounds(v, terrain, seed); compounds += cs.length;
     const bx: Box[] = [];
     for (const c of cs) bx.push(...compoundBoxes(c, terrain.heightAt(c.x, -c.y)));
     boxes.set(v.id, bx);
-    const key = `${Math.floor(v.x / 8000)},${Math.floor(v.y / 8000)}`; if (!cells.has(key)) cells.set(key, []); cells.get(key)!.push(...bx);
+    const key = `${Math.floor(v.x / 8000)},${Math.floor(v.y / 8000)}`; if (!cells.has(key)) { cells.set(key, []); centres.set(key, []); } cells.get(key)!.push(...bx); centres.get(key)!.push([v.x, -v.y]);
   }
   const vu = feature('villages_unlocated');
   for (const [key, bx] of cells) {
     const g = boxesMesh(bx, bx.length); tris += g.getAttribute('position').count / 3;
-    const m = new THREE.Mesh(g, mat); m.name = 'plain-villages-' + key; m.castShadow = true; m.receiveShadow = true;
+    const m = new THREE.Mesh(g, mat); m.name = 'plain-villages-' + key; m.castShadow = false; m.receiveShadow = true; // shadows switched on near the camera (index.ts)
+    cellList.push({ mesh: m, centres: centres.get(key)! });
     m.userData = tag(vu, 'village houses: courtyard compounds of mud brick (layout C, villages_unlocated.layout); positions: Barrington points (C, map-scale +-3 km) or placed by rule (C)');
     group.add(m);
   }
   group.userData = tag(vu);
-  return { group, boxes, tris, compounds };
+  return { group, boxes, tris, compounds, cells: cellList };
 }

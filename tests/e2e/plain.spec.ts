@@ -9,6 +9,7 @@ const VIEWS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'stair-dawn-plain', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -2], budget: true },
   { n: 'stair-noon-plain', day: 0, hour: 11, w: 'clear', v: [-36.4, 122.45, 1.6, 251, -3] },
   { n: 'apadana-north-nr', day: 0, hour: 9, w: 'clear', v: [1.9, 40, 1.6, 341, 1], budget: true },
+  { n: 'stair-foot-east', day: 0, hour: 9, w: 'clear', v: [-60, 122, 1.6, 71, 10], budget: true }, // the lead's baseline view (the Terrace, plain behind the camera)
   { n: 'pulvar-bank-april', day: 0, hour: 10, w: 'clear', v: [-2505, 2700, 1.6, 341, -8] },
   { n: 'pulvar-bank-september', day: 150, hour: 10, w: 'clear', v: [-2505, 2700, 1.6, 341, -8] },
   { n: 'field-april', day: 0, hour: 10, w: 'clear', v: [-5205, 1611, 1.6, 251, -12] },

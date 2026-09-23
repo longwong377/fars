@@ -137,7 +137,7 @@ function woodGeometry(): THREE.BufferGeometry {
 }
 function crownGeometry(): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = []; const rng = new Rng(7, 'crown');
-  const blobs = [[0, 0.68, 0, 0.62], [0.28, 0.6, 0.1, 0.45], [-0.22, 0.62, -0.2, 0.46], [0.05, 0.86, -0.05, 0.42]];
+  const blobs = [[0, 0.7, 0, 0.62], [0.26, 0.6, 0.12, 0.46], [-0.2, 0.64, -0.2, 0.47]];
   for (const [x, y, z, r] of blobs) {
     const g = new THREE.IcosahedronGeometry(1, 1); g.deleteAttribute('uv');
     const p = g.getAttribute('position') as THREE.BufferAttribute; const c = new Float32Array(p.count * 3);
@@ -155,7 +155,7 @@ export function instanceTransform(local: any, iscl: any, ipos: any) {
 }
 export function instanceNormal(n: any, iscl: any) { const c = cos(iscl.w), s = sin(iscl.w); return normalize(cameraViewMatrix.mul(vec4(n.x.mul(c).add(n.z.mul(s)), n.y, n.z.mul(c).sub(n.x.mul(s)), 0)).xyz); }
 export interface NearTrees { wood: THREE.Mesh; crown: THREE.Mesh; set(trees: Tree[], terrain: Terrain): void; count(): number }
-export function nearTrees(max: number, foliage: FoliageState, wind: any): NearTrees {
+export function nearTrees(max: number, foliage: FoliageState, wind: any, castShadow = true): NearTrees {
   const mk = (g: THREE.BufferGeometry) => { const ig = new THREE.InstancedBufferGeometry(); for (const [k, a] of Object.entries(g.attributes)) ig.setAttribute(k, a); if (g.index) ig.setIndex(g.index); ig.instanceCount = 0; return ig; };
   const woodG = mk(woodGeometry()), crownG = mk(crownGeometry());
   const posA = new THREE.InstancedBufferAttribute(new Float32Array(max * 3), 3), sclA = new THREE.InstancedBufferAttribute(new Float32Array(max * 4), 4), gAttr = new THREE.InstancedBufferAttribute(new Float32Array(max * 2), 2);
@@ -174,10 +174,10 @@ export function nearTrees(max: number, foliage: FoliageState, wind: any): NearTr
   const bmix = bl.w.div(bl.w.add(leaf.w).max(0.001));
   cm.colorNode = mix(leaf.xyz, bl.xyz, bmix).mul(tint);
   cm.roughnessNode = float(0.8);
-  const crown = new THREE.Mesh(crownG, cm); crown.name = 'plain-trees-crown'; crown.castShadow = true; crown.receiveShadow = true; crown.frustumCulled = false;
+  const crown = new THREE.Mesh(crownG, cm); crown.name = castShadow ? 'plain-trees-crown' : 'plain-trees-crown-far'; crown.castShadow = castShadow; crown.receiveShadow = true; crown.frustumCulled = false;
   const wm = new THREE.MeshStandardNodeMaterial(); wm.positionNode = instanceTransform(positionGeometry, iscl, ipos); wm.normalNode = instanceNormal(normalGeometry, iscl);
   wm.colorNode = vec3(0.24, 0.2, 0.16).mul(mx_noise_float(positionGeometry.mul(9).add(sd.mul(0.00001))).mul(0.1).add(1)); wm.roughnessNode = float(0.9);
-  const wood = new THREE.Mesh(woodG, wm); wood.name = 'plain-trees-wood'; wood.castShadow = true; wood.receiveShadow = true; wood.frustumCulled = false;
+  const wood = new THREE.Mesh(woodG, wm); wood.name = castShadow ? 'plain-trees-wood' : 'plain-trees-wood-far'; wood.castShadow = castShadow; wood.receiveShadow = true; wood.frustumCulled = false;
   let n = 0;
   return { wood, crown, count: () => n,
     set(trees: Tree[], terrain: Terrain) {
