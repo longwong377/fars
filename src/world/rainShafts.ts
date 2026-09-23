@@ -9,12 +9,14 @@
 // under the cloud deck is shaded and reads darker than the horizon sky behind it (C, 0.7 of the calibrated horizon
 // radiance, D-060); snow is slightly brighter. σ and the shapes are C.
 import * as THREE from 'three/webgpu';
-import { uniform, positionWorld, cameraPosition, normalWorld, normalize, vec3, vec2, float, dot, abs, exp, smoothstep, clamp, mx_noise_float, length, max } from 'three/tsl';
+import { color, uniform, positionWorld, cameraPosition, normalWorld, normalize, vec3, vec2, float, dot, abs, exp, smoothstep, clamp, mx_noise_float, length, max } from 'three/tsl';
 import type { Terrain } from '../terrain/heightfield';
 import { azAltToWorld } from '../sky/ephemeris';
 import { CLOUD_BASE } from '../sky/clouds';
 import { Rng } from '../core/rng';
 
+/** debug (?shaftdbg=1|2|3): 1 = solid red at full strength; 2 = red, optical-depth term only; 3 = red, height fade only */
+const DBG = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('shaftdbg') : null;
 const SIGMA = 0.00025; // 1/m extinction at the core (C: a 4.4 km core radius → optical depth ~2 through the middle, ~0.86 opacity)
 interface Shaft { mesh: THREE.Mesh; radius: ReturnType<typeof uniform>; off: [number, number]; scale: number }
 
@@ -35,8 +37,9 @@ export class RainShafts {
       const y01 = clamp(positionWorld.y.sub(this.baseY).div(max(this.topY.sub(this.baseY), 1)), 0, 1);
       const streak = mx_noise_float(vec3(positionWorld.x.mul(0.0015), positionWorld.y.mul(0.0004).add(this.uTime.mul(0.01)), positionWorld.z.mul(0.0015))).mul(0.15).add(0.9);
       const fade = float(1).sub(smoothstep(0.4, 1.0, y01)).mul(smoothstep(0.0, 0.03, y01));
-      m.colorNode = this.uTint;
-      m.opacityNode = float(1).sub(exp(tau.negate().mul(float(1).sub(this.uSnow.mul(0.4))))).mul(fade).mul(streak).mul(this.uStrength);
+      m.colorNode = DBG ? color(1, 0, 0) : this.uTint;
+      const optic = float(1).sub(exp(tau.negate().mul(float(1).sub(this.uSnow.mul(0.4)))));
+      m.opacityNode = DBG === '1' ? this.uStrength : DBG === '2' ? optic : DBG === '3' ? fade : optic.mul(fade).mul(streak).mul(this.uStrength);
       const mesh = new THREE.Mesh(geo, m); mesh.frustumCulled = false; mesh.visible = false; mesh.castShadow = false; mesh.receiveShadow = false; mesh.renderOrder = 2;
       mesh.userData = { tier: 'C', src: 'RECON', note: 'rain cell shafts: position from the weather episode timing and the steering wind; optics C' };
       this.group.add(mesh);

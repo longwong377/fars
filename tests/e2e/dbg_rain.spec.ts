@@ -2,7 +2,7 @@ import { test } from '@playwright/test';
 // debug: the rain-approach moment's live state (shafts, cloud layer, fog) at high quality
 test('rain debug', async ({ page }, info) => {
   test.skip(info.project.name !== 'webgpu'); test.setTimeout(840_000);
-  await page.goto(`/?test&quality=${process.env.Q ?? 'high'}&day=299&hour=10.6&weather=auto`);
+  await page.goto(`/?test&quality=${process.env.Q ?? 'high'}&day=299&hour=10.6&weather=auto${process.env.SHAFTDBG ? '&shaftdbg=' + process.env.SHAFTDBG : ''}`);
   await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 600_000 });
   await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
   await page.evaluate(() => (window as any).__parsa.view(-38, -5, 1.6, 232, 3));
@@ -16,5 +16,5 @@ test('rain debug', async ({ page }, info) => {
     return { shafts, clouds, fog: scene.fog ? { c: scene.fog.color.toArray().map((v: number) => +v.toFixed(4)), d: scene.fog.density } : null, clock: P.clockLabel(), exposure: P.exposureInfo?.() };
   });
   console.log(JSON.stringify(info2));
-  await page.screenshot({ path: 'shots/dbg-rain.png' });
+  await page.screenshot({ path: `shots/dbg-rain${process.env.SHAFTDBG ?? ''}.png` });
 });
