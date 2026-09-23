@@ -119,7 +119,7 @@
   - Too dark or wrong:
     - interiors are near black: the Apadana entered from the portico, the Hadish hall;
     - dawn reads as midday (the twilight light curve is C);
-    - the scribe's place was an open court. The Treasury N range is now built from REF-PLAN, with the scribes' room furnished (D-067); not yet rendered;
+    - the scribe's place was an open court. The Treasury N range is now built from REF-PLAN, with the scribes' room furnished (D-067). Rendered at test quality, the scene reads (the seated scribe, drying board, clay under a cloth, filed tablets on the bench, baskets), but the ceiling is black and the room underexposed: mean luma 40, and the red floor measures (51, 1, 1) because its green falls into the tone curve's toe. Re-check after the interior-light and exposure merges;
     - dusk smoke was not visible: the smoke drew in the colour of its own background (fixed in D-070, see Phase 6; not yet re-rendered);
     - the stair-climb view is dark;
     - trees are crude.
