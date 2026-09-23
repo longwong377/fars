@@ -785,6 +785,9 @@ export class Population {
   }
   private pos(place: string, d: number): [number, number] {
     if (place.startsWith('h:')) return this.households[+place.slice(2)].xy;
+    // the trees of a garden or an estate stand beside its beds (C). Was: `estate:<h>:trees` read "trees" as a plot number
+    // (NaN: every walk to them and the rest of the day had NaN times) and `garden:<q>:trees` fell through to the Terrace
+    if (place.endsWith(':trees')) { const b = this.pos(place.slice(0, -6), d); return [b[0] + 90, b[1] + 120]; }
     const k = place.indexOf(':'); if (k > 0) { const tail = place.slice(k + 1); if (place.startsWith('field:') || place.startsWith('estate:')) { const H = this.households[parseInt(tail, 10)]; const plot = +(tail.split(':')[1] ?? 0); return [H.xy[0] + 300 - plot * 150, H.xy[1] + 200 + plot * 120]; }
       if (this.quarters[tail]) return this.quarters[tail].xy; if (place.startsWith('ws:')) return [T.treasury_workshops.around[0] + (+tail - 1.5) * 150, T.treasury_workshops.around[1]]; }
     if (this.facilities[place]) return this.facilities[place]; if (place === 'ws_textile') return [-700, -1000];
@@ -887,8 +890,21 @@ class Planner {
     if (this.p.sex === 'f' && this.p.age >= 14) this.nurse(segs);
     this.fieldBite(segs); this.water(segs); this.fire(segs);
     if (this.p.age >= 2) this.meals(segs);
-    this.tidy(segs); this.carries(segs);
+    this.joinSlivers(segs); this.tidy(segs); this.carries(segs);
     return segs;
+  }
+  /** the post-passes cut spells by arithmetic, and a cut can leave a remainder of a second or less (a float residue: 0.32 s
+   *  "at home" between two well trips, 14:59:59.6 at a window's edge). Such a sliver is no part of anyone's day, and the
+   *  plans that follow this one (a child with its mother, D-140) drop pieces under 1e-4 h and walk straight through it. A
+   *  piece shorter than 3.6 s goes to its neighbour at the same place, else to the walk beside it, else to the one before;
+   *  a walk that is the only way between two places stays, and so do the day's first and last pieces (where yesterday
+   *  ended and tomorrow begins) */
+  private joinSlivers(segs: Seg[]) {
+    for (let i = 1; i < segs.length - 1; i++) { const s = segs[i], pv = segs[i - 1], nx = segs[i + 1]; if (!(s.t1 - s.t0 < 0.001)) continue;
+      if (s.where === 'road' && pv.where !== 'road' && nx.where !== 'road' && pv.place !== nx.place) continue;
+      const same = (x: Seg) => x.place === s.place && x.where === s.where;
+      if (same(pv) || (!same(nx) && (pv.where === 'road' || nx.where !== 'road'))) pv.t1 = s.t1; else nx.t0 = s.t0;
+      segs.splice(i, 1); i--; }
   }
   /** a harvest morning of four hours or more at the field or the floor has its bite of the bread and water carried out at
    *  dawn, about half-way (S6; C) */
@@ -910,12 +926,18 @@ class Planner {
     for (const [lo, hi] of [[this.sun.rise - 0.2, 11], [15, this.sun.set - 0.1], [11, 15]] as [number, number][]) {
       // runs of spells at home in a row (a short spin, a little grinding, a rest) that together hold a trip
       for (let i = 0; i < segs.length && need > 0; i++) { if (!okHome(segs[i])) continue; let j = i; while (j + 1 < segs.length && okHome(segs[j + 1])) j++;
-        if (j === i) continue; const a = Math.max(segs[i].t0, lo), b = Math.min(segs[j].t1, hi); if (b - a < trip + 0.05) { i = j; continue; } if (rain && rain[0] < a + trip && rain[1] > a) { i = j; continue; }
-        const e = a + trip, keep: Seg[] = [];
+        if (j === i) continue; let a = Math.max(segs[i].t0, lo); const b = Math.min(segs[j].t1, hi); if (b - a < trip + 0.05) { i = j; continue; }
+        // no slivers (D-140): she does not sit down at home for a moment before she goes, and when what is left of a spell
+        // after the trip is a matter of seconds or a minute or two, the trip ends with it (the water poured into the house's
+        // jar). Was: a spell exactly one trip long left 0.32 s "at home" between two trips, and her children walked through it
+        const ka = segs.findIndex((s, k) => k >= i && k <= j && s.t0 <= a && s.t1 > a); if (ka >= 0 && a - segs[ka].t0 < 0.05) a = segs[ka].t0;
+        let e = a + trip; const ke = segs.findIndex((s, k) => k >= i && k < j && s.t0 < e && s.t1 > e); if (ke >= 0 && segs[ke].t1 - e < 0.05) e = segs[ke].t1;
+        if (rain && rain[0] < e && rain[1] > a) { i = j; continue; }
+        const keep: Seg[] = [];
         for (let k = i; k <= j; k++) { const s = segs[k]; if (s.t1 <= a + 1e-6) keep.push(s); else if (s.t0 < a) keep.push({ ...s, t1: a }); }
         keep.push({ t0: a, t1: a + walk, place: `road:${W}`, act: 'walk', why: 'to the well with the jar', where: 'road' }, { t0: a + walk, t1: a + walk + 0.22, place: w, act: 'draw_water', why: 'drawing the house’s water', where: W }, { t0: a + walk + 0.22, t1: e, place: `road:${W}`, act: 'carry_jar_head', why: 'carrying water home', where: 'road' });
         for (let k = i; k <= j; k++) { const s = segs[k]; if (s.t0 >= e - 1e-6) keep.push(s); else if (s.t1 > e + 1e-6) keep.push({ ...s, t0: e }); }
-        segs.splice(i, j - i + 1, ...keep.filter(x => x.t1 - x.t0 > 1e-6)); need--; i += keep.length - 1; } }
+        const kept = keep.filter(x => x.t1 - x.t0 > 1e-6); segs.splice(i, j - i + 1, ...kept); need--; i += kept.length - 1; } }
     for (const [lo, hi] of [[this.sun.rise - 0.2, 11], [15, this.sun.set - 0.1], [11, 15]] as [number, number][]) {
       for (let i = 0; i < segs.length && need > 0; i++) { const s = segs[i];
         if (s.place !== this.home || s.where !== W || !(/^(rest|talk|play|spin|craft)$/.test(s.act) || (s.act === 'grind' && s.t1 - s.t0 >= trip + 0.5)) || / in the night|nurs|sick|ill|asleep/.test(s.why)) continue;
@@ -1382,23 +1404,34 @@ class Planner {
     // the feeds that are this child's: all of them when it is the youngest she nurses, and a wet-nursed child's always
     const myFeeds = lactating && this.p.age === 1 && (m === nurseNow || !P.nurslings(m, d).some(c => c !== this.pid && P.persons[c].age === 0));
     // on some days the small ones are taken outside the door to play with the neighbours' children, or to a neighbour's or
-    // a kinswoman's house in the same lane while the mother works at home; not in rain or dust (W-03) (C)
-    const outing = (am: boolean) => this.C.wx.storm || this.C.wx.dust || taken || ill ? null : (() => {
+    // a kinswoman's house in the same lane while the mother works at home; not in rain, and not while a storm or the dust is
+    // in the air (W-02, W-03): by the weather's own hours, so a morning before the dust rises and an evening after a storm
+    // are like any other (D-140; was: kept in the whole day) (C)
+    const wxS = this.C.wx; const keepIn = (h: number) => (!!wxS.stormH && h >= wxS.stormH[0] - 0.25 && h < wxS.stormH[1] + 0.25) || (!!wxS.dustH && h >= wxS.dustH[0] && h < wxS.dustH[1]);
+    /** the span a woman is awake at her house around the hour t (her spells there one after another), or null */
+    const homeRun = (xs: Seg[], at: string, t: number): [number, number] | null => { const i = xs.findIndex(s => t < s.t1); const up = (s: Seg) => s.place === at && s.act !== 'sleep' && s.act !== 'lie_ill' && !/ in the night/.test(s.why);
+      if (i < 0 || !up(xs[i])) return null; let a = i, b = i; while (a > 0 && up(xs[a - 1])) a--; while (b + 1 < xs.length && up(xs[b + 1])) b++; return [xs[a].t0, xs[b].t1]; };
+    const outing = (am: boolean) => taken || ill ? null : (() => {
       const k = this.choose((this.p.age >= 3 ? U.outing_from_3 : U.outing) as Record<'none' | 'lane' | 'neighbour' | 'kin', number>); if (k === 'none') return null;
       const cool = this.C.heatRest || this.C.wx.tmax >= 31 ? 16.3 : 0; // after the heat of the day (E-64)
       const h0 = am ? this.r.range(7.5, 10) : this.r.range(Math.max(napW[1] + 0.2, cool), Math.max(napW[1] + 0.3, cool + 0.1, this.sun.set - 2)); let h1 = Math.min(am ? napW[0] - 0.3 : this.sun.set - 0.3, h0 + this.r.range(U.outing_h[0], U.outing_h[1]));
-      // only while the one minding it stays at home and is not at a meal: the child is fetched in for meals
-      { let e = h0; while (e < h1) { const g = segAt(ms, e + 0.01); if (g.place !== base || g.act === 'eat' || g.act === 'sleep' || / in the night/.test(g.why) || (this.p.age === 1 && nursing(g))) break; e += 0.1; } h1 = Math.min(h1, e - 0.05); }
+      if (keepIn(h0)) return null;
+      // only while the one minding it stays at home and is not at a meal: the child is fetched in for meals, and called in
+      // when the dust rises or a storm comes on
+      { let e = h0; while (e < h1) { const g = segAt(ms, e + 0.01); if (g.place !== base || g.act === 'eat' || g.act === 'sleep' || / in the night/.test(g.why) || (this.p.age === 1 && nursing(g)) || keepIn(e + 0.01)) break; e += 0.1; } h1 = Math.min(h1, e - 0.05); }
       if (h1 - h0 < 0.4 || this.rainIn(h0, h1) > 0) return null;
-      let place = `lane:${this.hh.q}`, why = 'playing outside the door with the neighbours’ children', host = -1;
       if (k !== 'lane') { const cand = (k === 'kin' ? this.hh.kin : Mo.ties.map(o => P.home(o, d))).map(h => P.households[h]).filter(H => H.id !== this.hh.id && H.q === this.hh.q && H.zone === this.hh.zone);
-        const Hh = cand.length ? cand[Math.floor(this.r.next() * cand.length)] : null; const w = Hh ? P.membersOn(Hh.id, d).find(x => P.persons[x].sex === 'f' && P.persons[x].age >= 14 && segAt(P.plan(x, d), (h0 + h1) / 2).place === Hh.home) : undefined;
-        if (Hh && w !== undefined) { place = Hh.home; host = w; why = k === 'kin' ? 'at a kinswoman’s house in the lane, playing with her children' : 'playing at a neighbour’s house with their children'; const hs = segAt(P.plan(w, d), (h0 + h1) / 2); return { h0: Math.max(h0, hs.t0), h1: Math.min(h1, hs.t1), place, why, host }; } }
+        const Hh = cand.length ? cand[Math.floor(this.r.next() * cand.length)] : null; const mid = (h0 + h1) / 2;
+        const w = Hh ? P.membersOn(Hh.id, d).find(x => P.persons[x].sex === 'f' && P.persons[x].age >= 14 && !!homeRun(P.plan(x, d), Hh.home, mid)) : undefined;
+        // the child stays while she is at home (her spells there one after another, not only the one she is in at the middle:
+        // D-140); when she is not at home long enough, it plays in the lane with the other children instead
+        const run = Hh && w !== undefined ? homeRun(P.plan(w, d), Hh.home, mid)! : null;
+        if (Hh && run && Math.min(h1, run[1]) - Math.max(h0, run[0]) >= 0.4) return { h0: Math.max(h0, run[0]), h1: Math.min(h1, run[1]), place: Hh.home, host: w!,
+          why: k === 'kin' ? 'at a kinswoman’s house in the lane, playing with her children' : 'playing at a neighbour’s house with their children' }; }
       // from two a child plays in the lane with the neighbours' children, the older ones watching the small; a child of one on
       // the doorstep, the one minding them inside (C)
-      if (host < 0) return this.p.age >= 2 ? { h0, h1, place: `lane:${this.hh.q}`, why: 'playing in the lane with the neighbours’ children, the older ones watching the small', host: -1 }
-        : { h0, h1, place: base, why: this.p.age < 2 ? `playing on the doorstep with the neighbours’ children, ${rel} inside` : `playing outside the door with the neighbours’ children, ${rel} within call`, host: m! };
-      return { h0, h1, place, why, host }; })();
+      return this.p.age >= 2 ? { h0, h1, place: `lane:${this.hh.q}`, why: 'playing in the lane with the neighbours’ children, the older ones watching the small', host: -1 }
+        : { h0, h1, place: base, why: this.p.age < 2 ? `playing on the doorstep with the neighbours’ children, ${rel} inside` : `playing outside the door with the neighbours’ children, ${rel} within call`, host: m! }; })();
     // the walk there and back along the lane is part of the outing (with the other children)
     const outWs = [outing(true), outing(false)].filter((x): x is NonNullable<typeof x> => !!x && x.h1 - x.h0 >= 0.4)
       .map(o => ({ ...o, wk: o.place === base ? 0 : Math.min(0.2, (o.h1 - o.h0) / 3, P.walkH(base, o.place, d, baseW, baseW)) }));
@@ -1409,7 +1442,7 @@ class Planner {
     const outings = (xs: Seg[] | null, ok: (x: Seg) => boolean) => { const out: [number, number][] = []; if (!xs) return out; let a = -1, good = true;
       for (const x of xs) { if (x.place !== base) { if (a < 0) { a = x.t0; good = true; } if (x.where !== 'road' && !ok(x)) good = false; } else if (a >= 0) { if (good) out.push([a, x.t0]); a = -1; } } return out; };
     const clear = ([x, y]: [number, number]) => { if (y - x < 0.4 || x < wakeT || y > bedtime - 0.2 || (x < napW[1] && y > napW[0]) || (x < napAM[1] && y > napAM[0]) || ill) return false; const w = this.C.wx.rain; if (w && w[0] < y && w[1] > x) return false;
-      for (let h = x; h < y; h += 0.1) { const M = segAt(ms, h); if (M.place !== base || (this.p.age === 1 && nursing(M))) return false; } return true; };
+      for (let h = x; h < y; h += 0.1) { const M = segAt(ms, h); if (M.place !== base || (this.p.age === 1 && nursing(M)) || keepIn(h)) return false; } return true; };
     const sibSpans = outings(ss, x => x.act === 'play' && (x.place.startsWith('lane:') || x.place.startsWith('garden:') || x.place.startsWith('canal:'))).filter(clear);
     const eSpans = outings(es, x => ['talk', 'exchange', 'eat'].includes(x.act)).filter(sp => sp[0] > 6 && sp[1] < this.sun.set && clear(sp));
     // a child kept at a kinswoman's house is taken there along the lane and fetched home (S4)

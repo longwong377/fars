@@ -1675,3 +1675,45 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Micro grain (`SurfaceDef.micro`, src/render/materials.ts, C):** one more noise octave in height and albedo at 55–160 cycles/m (tool marks, grit, trowel texture: limestone 95/m 0.18 mm, carved 130/m, frames 160/m, mud plaster 55/m 0.6 mm, plaster 70/m, red floor 85/m, timber 60/m, earth and court fill 55/m). It fades out where one period spans fewer than ~3–7 pixels (`fwidth` of the world position), so it adds detail near and never shimmers far away. Arithmetic only (no `select()`, D-012).
 - **Lathes:** LOD0 foot 72 segments (was 48), drum/collar/plain shaft 56 (40), torus 60 (48); the leafy bell 112 (128; 7 per leaf) to keep the Apadana column within its 25 k LOD0 budget (25,278 → under 25,000 after the bell change). Sculpt pieces regenerated (hash only; the SDF pieces are unchanged).
 - **Test (`tests/detail.test.ts`):** every architectural and ground surface has texture detail at ≤ 2 cm wavelength (measured 6.3–18.2 mm, 6–19 px per period at 1 m; `bench-reports/detail-surfaces.txt`); every stone column order's LOD0 lathe rings have a silhouette chord error ≤ 1.5 px at 1 m (measured 0.49–1.44 px; `bench-reports/detail-columns.txt`). Not covered: sculpted capital members and colossi (their own budgets, D-018/D-029), reliefs (D-019: 1.6 mm cells at L0), people (D-090: LOD0 29.8 k triangles; face edge length not measured).
+
+## D-140 The soak after round 3: a sliver at home between two well trips, the weather's own hours, the host's time at home (session 4, sim agent)
+- **Why:** the soak on the round-3 merge failed two gates (D-139). Both were reproduced with targeted runs before any change (household 9660 on day 123; 41397's seven days), then fixed at their causes.
+  - HANDOFF suspected that a post-pass (water, fire) changes the mother's plan after the children's plan was drawn from it. That does not hold. `Population.plan` caches only finished plans, so a child's plan reads its carer's finished plan. The fault was in what that finished plan held.
+- **plansWellFormed ("apart", day 123): a 0.32-second sliver.**
+  - Cause: the water pass (D-137) puts a well trip into a run of spells at home. The mother's talk spell (16:02:43-16:22:16) was, to within 1e-4 h, exactly one trip long (0.3258 h). The pass kept the float remainder: 0.32 s "with the household" at home, between two trips.
+  - The children's planners drop pieces under 1e-4 h (`Planner.add`) and join equal neighbours. So 42002 and 42003 each had one walk, 16:19-16:25, whose middle fell in her sliver.
+  - Fix 1: the run pass keeps no slivers, as the single-spell pass already did. A trip starts at a spell's start when within 3 min of it, and ends with a spell when within 3 min of its end (the water poured into the house's jar). The loop now advances by the pieces it kept.
+  - Fix 2 (`joinSlivers`, after all post-passes): a piece shorter than 3.6 s joins its neighbour at the same place, else the walk beside it, else the one before. Two kinds stay: a walk that is the only way between two places, and the day's first and last pieces (they carry the day-to-day continuity).
+  - Such residues were not rare. Round 3 had 444 mid-day pieces under 3.6 s in 217,913 plans (days 5, 50, 123, 200, 300; 157 of them in adults' plans), e.g. 14:59:59.6-15:00:00 at a window's edge. After the fix there are none.
+- **Found on the way: NaN days for the estates' gardeners** (present since round 2 at least: c5075a2 has it).
+  - `pos()` read `estate:<h>:trees` as plot number "trees" (NaN). Every walk to the trees, and the rest of those days, had NaN times: 518 NaN-timed pieces in the five days above.
+  - The soak cannot see NaN: its order checks are comparisons, which are false for NaN (`tools/soak.ts` is unchanged here; a test now guards it).
+  - `garden:<q>:trees` fell through to the Terrace's position: a town gardener walked about 20 minutes to his own garden's trees.
+  - Fix: a garden's or an estate's trees stand beside its beds (C). Checked: 292,810 person-days of gardeners, stewards and servants with no plan issue and no NaN.
+- **populationVariety: 41397 at 0.190 (0.095 after round 2).**
+  - Who: a girl of three, present on days 0-6 (she dies on day 6). Day 2 had a storm (02:30-14:00), day 5 dust (10:45-17:15), day 3 rain before dawn. Near-copy pairs: days 2 & 3, 2 & 5, 3 & 5, 5 & 6.
+  - Cause 1: `small()` kept small children in from dawn to dark on a storm day or a dust day (the day flags), though the weather has hours.
+  - Cause 2: a visit to a kinswoman's or a neighbour's house was cut to the one plan segment the host was in at the visit's middle, and dropped when that was under 0.4 h. Round 3 cut the hosts' spells at home into more pieces (the well trips, the feeds). Her day-3 visit (08:12-09:07 after round 2) fell to under 0.3 h, the length of her kinswoman's feed of her own little one, and vanished with nothing in its place.
+  - Fix 1: `DayWx.dustH` (the hours with dust > 0.25). An outing is not begun during a storm (± 0.25 h) or the dust, and the child is called in when they come on. Outings with an older sibling or the grandparent keep out of them too (W-02, W-03; C).
+  - Fix 2: a visit lasts while the host is awake at her house (her spells there one after another, `homeRun`). When she is not at home long enough, the child plays in the lane with the other children instead (from two; on the doorstep at one).
+  - Unchanged: rain keeps its rule (no outing touching the rain hours), and the nap and the mother's day are as they were. The added variety comes from the weather's hours and the neighbours' houses, not from jitter.
+  - Measured on the targeted scan: 41397 has 0 near-copy pairs of 21. Everyone present 2-40 days, plus every 25th longer-present toddler (1,881 people): none at or over 0.10 (was one). The 247 toddlers among them: mean share 0.0061 → 0.0028, worst 0.190 → 0.057.
+- **Soak (`npm run soak`, seed 1, 354 days, everyone, court absent; commit de032c0): PASS, all eight gates.** Report `bench-reports/soak-2026-09-23T18-53-24-046Z.json` (not in git).
+  - variety (135 detailed agents, stepped): worst 0.016 (a child); guards 0.002, masons 0.006.
+  - populationVariety (43,258 measured over 15,454,999 plans): none at or over 0.10. The worst are the builder 44754 present 19 days (0.094), a girl of six present 13 days (0.077), and a boy of seven of the town present all year (0.073). The ten worst have the same shares on be6db72: these fixes moved none of them. Infants reported, not gated: 5 of 3,489 would fail (mean 0.002).
+  - events: 14-20 kinds a week (mean 16.9; floor 8), 23 kinds in the year.
+  - stuck: nobody (detailed agents and plans).
+  - stocks: sacks 0-258; every store within its bounds (grain 9,741-71,288 BAR, flour 608-2,039); no ration shortfall, no collapse; harvest factor 0.945.
+  - renderedHonest: no detailed agent on the Terrace performs a placeholder or an unlisted activity.
+  - plansWellFormed: 15,454,999 person-days with no issue, 118 days of companions and children at night with no issue, and no malformed plan.
+  - visibleChange: construction advanced in 51 of 51 weeks (34 drums set, shafts 38 → 46, 7 fluted, 27 wall courses, 0.35 of a doorway's reliefs, capitals 38 → 40).
+  - Life: 1,853 births, 1,461 deaths, 377 marriages, 66,392 sickness onsets.
+  - Cost: the population builds in 0.53 s. step() at 60 fps: 0.049 ms mean, 0.148 ms p99, 4.1 ms at midnight. At 60×: 9.6 ms mean, 188 ms p99.
+  - Run time: 37 min 48 s wall (38 s for the detailed agents, 2,217 s for the population and its checks), on 4 cores shared with a render session.
+- **Tests:** `tests/people_days_r4.test.ts` (8; seven fail on be6db72, and the "apart" rule over sampled households is a guard that passes on both):
+  - the day-123 household; no sliver and no NaN in sampled plans; the gardeners' days contiguous; the "apart" rule over sampled households;
+  - 41397 under the gate; outings on storm and dust days happen and keep out of the storm and dust hours; the day-3 visit, with the host at home through every visit; every toddler present a few weeks or less under the gate.
+- **Still open:**
+  - The builder 44754 (present 19 days) has sat at 0.094 (16 near-copy pairs of 171) since round 2. His working days are the labour gang's (the ramp, dawn to 15:30: E-60) and are alike. One more near-copy pair would fail the gate.
+  - The adults and the children of 5-13 still use the day flags: on a wet or dusty day they keep in the whole day.
+  - A toddler still goes with its mother to the well in the dust.
