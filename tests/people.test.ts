@@ -103,7 +103,7 @@ describe('a simulated day (dry day, court absent)', () => {
     const c = sig(5); let same = 0, tot = 0;
     a.out.forEach((row, i) => { const r1 = row.split(','), r2 = (c.out[i] ?? '').split(','); r1.forEach((x, j) => { tot++; if (x === r2[j]) same++; }); });
     expect(same / tot).toBeGreaterThan(0.85);
-  }, 120_000);
+  }, 300_000); // three simulated days: 92 s alone at load 7 (session 3), over 120 s while a render shares the 4 cores
   it('save → load restores everyone (task, place, carried goods, memory) and the stores', () => {
     const s1 = new PeopleSim(1, nav, env); s1.jumpTo(dryDay * 24 + 10); for (let i = 0; i < 600; i++) s1.step(1);
     s1.agents[3].metPlayer = 2;
