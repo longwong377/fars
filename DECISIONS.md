@@ -1650,12 +1650,13 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - The trunk FK is the rig's own retarget (the spine channel split 50/50, the hips offset scaled by pelvis height). The reference skeleton is body m03, within 1.2 mm of the asset.
   - Analytic two-bone IK: arms (wrist to target, elbow pole, forearm twist) and legs (ankle to target, knee pole, flat foot).
   - `gripIK` iterates on the palm point until the palm is on the target (< 0.5 mm, 4 passes). The crowd runs 4 / 2 / 1 passes by distance.
+  - The grip evaluates the palm from the arm solver's own frames, and channel names and bind vectors are precomputed per side. This about halved the kit's cost with the same math.
   - Measured on the real rig (`tests/performances.test.ts`): palms within 5 mm, the kit's FK within 3 mm of the rig's.
 - **36 work cycles (`src/people/workAnims.ts`)** in the 17-channel pose system, retargeted as before:
   - Fields: hoe, irrigate, reap, bind, winnow, drive, plough. Animals: herd, groom, fodder, shear, butcher, hold_lead.
   - Household and crafts: hold, hold_sack, sweep, weave, spin, gather, pat, stir, mould, lay, haul, pass, polish, adze, pick, tread, stoke, mend, wash, cook. The bier: bier_l and bier_r. Training: archery.
   - Standing cycles are planted: every foot point within ±2 cm of the ground, no skate over 4 cm, on bodies m03, f02 and m08. Seated and kneeling cycles (shear, butcher, weave, polish, mend, wash) rest on the ground within ±3 cm on m03, f02 and c01.
-  - Every target is reachable: the worst grip error over all cycles is 3.5 cm, the worst leg error 0.6 cm.
+  - Every target is reachable: grip errors within 3.5 cm and leg errors within 0.6 cm over all cycles (tests/performances.test.ts).
   - Path cycles move the root: the ploughman walks a 16 m furrow at 0.62 m/s and turns at the headland; the thresher turns at the centre of the floor once in 26 s; the archer stands side-on to the shot.
   - Tempo and form are C. They are hand-authored, not motion capture (the anim.ts caveat stands).
 - **Carried props (`src/people/props.ts`):** 32 kinds in two instanced unions (21 small things, 11 long tools). Each instance carries its kind index and one parameter (bow draw in metres, spindle drop), as before: arithmetic mask, no `select()`.
@@ -1690,12 +1691,12 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Measured budgets:**
   - **Node** (tests/performances.test.ts), 300 performers of every activity in view:
     - props: 306 in 2 draws (unions of 986 and 410 triangles per instance);
-    - work objects: 287 in 27 draws, 36 k triangles;
+    - work objects: 287 in 27 draws, 39 k triangles;
     - animals: 222 in 4 draws, 154 k triangles;
     - people: 2.63 M triangles in 6 draws;
     - crowd CPU median 8.6 ms (p95 15 ms) with IK.
     Work objects, props and animals cast only into the near shadow cascades. Worst case: (2 + 32 + 5) draws × 3 passes.
-  - **Browser** (humanlab, WebGPU, quality test; tests/e2e/perf.spec.ts): 8-15 draw calls and 32 k-270 k triangles per station view, with no placeholder act.
+  - **Browser** (humanlab, WebGPU, quality test; tests/e2e/perf.spec.ts): 8-15 draw calls and 21 k-270 k triangles per station view, with no placeholder act.
 - **Not done / weak:** see REVIEWS/agent_performances.md.
   - The crowd renders only the Terrace's detailed agents, and none of these 28 activities happens on the Terrace. The performances appear in the world only when the abstract population is rendered (the next agent's crowd rework). Until then they are seen in the human lab and the node previews.
   - Work objects and animals sit at the performer's base height; there is no ground query per object (Q-199).
