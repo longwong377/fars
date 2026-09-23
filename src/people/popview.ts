@@ -204,6 +204,7 @@ export class PopView {
    *  states whose interval ended, then the list of people out of doors */
   update(t: number, centre: P2) {
     const t0 = performance.now(); this.stats.updates++;
+    if (this.lastT >= 0 && (t < this.lastT - 1e-6 || t - this.lastT > 0.25)) this.jumps++; this.lastT = t;
     if (Math.hypot(centre[0] - this.centre[0], centre[1] - this.centre[1]) > 300) this.recentre(centre);
     this.budgetLeft = this.planBudgetMs; this.tPlan = performance.now(); this.navLeft = this.navBudget; this.routeT = 0;
     const d = Math.floor(t / 24), h = t - d * 24; this.stats.pending = 0;
@@ -261,7 +262,11 @@ export class PopView {
     return { e: sp.e, n: sp.n, heading: sp.heading, moving: false, what: sp.what };
   }
   /** update with no budgets (a test render, a jump in time): every person near the centre is placed now */
+  /** the time of the last update, and the number of jumps in time so far (back, or more than a quarter hour ahead: the
+   *  people are where the new time puts them, so the crowd's pop-in probe starts afresh) */
+  lastT = -1; jumps = 0;
   settle(t: number, centre: P2) {
+    this.jumps++;
     const b = [this.planBudgetMs, this.routeBudgetMs, this.navBudget, this.nearR]; this.planBudgetMs = this.routeBudgetMs = this.navBudget = 1e9;
     try { this.update(t, centre); } finally { [this.planBudgetMs, this.routeBudgetMs, this.navBudget, this.nearR] = b; }
   }

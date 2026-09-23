@@ -81,6 +81,8 @@ export interface Person {
   /** the population person (D-143; -1 for extras), the view's data for them this frame (population people, and detailed
    *  agents off the Terrace), and their walking phase */
   pid: number; vp: ViewPerson | null; vpFrame: number; gaitPh: number;
+  /** the LOD drawn with in the last frame */
+  lod?: number;
 }
 /** a person drawn as an impostor: their cached look (packed colours, dress row, stature scale) */
 interface ImpLook { packed: Float32Array; dress: Dress; scale: number }
@@ -233,6 +235,7 @@ export class Crowd {
   private seenPrev = new Set<number>(); private seenNow = new Set<number>(); private cands: { d: number; a: Agent | null; vp: ViewPerson | null; id: number; rank: number }[] = []; private vpBuf: ViewPerson[] = [];
   private feedPool(cam: THREE.Vector3, camera?: THREE.Camera) {
     const sim = this.sim!, view = this.view!, cx = cam.x, cn = -cam.z; let nc = 0;
+    if (view.jumps !== this.viewJumps) { this.viewJumps = view.jumps; this.resetPopinProbe(); } // a jump in time
     const cand = (d: number, a: Agent | null, vp: ViewPerson | null, id: number) => { let c = this.cands[nc]; if (!c) this.cands[nc] = c = { d, a, vp, id, rank: d }; else { c.d = d; c.a = a; c.vp = vp; c.id = id; c.rank = d; } nc++; };
     for (const a of sim.visibleAgents([cx, cn], ATTACH_R, POOL_MAX)) cand(Math.hypot(a.pos[0] - cx, a.y + 1 - cam.y, a.pos[1] - cn), a, null, a.id);
     for (const o of view.query([cx, cn], IMP_R, this.vpBuf)) { const a = o.agent >= 0 ? sim.agents[o.agent] : null; if (a && !a.offmap) continue; cand(Math.hypot(o.e - cx, o.y + 1 - cam.y, o.n - cn), a, o, a ? a.id : 1e7 + o.pid); }
@@ -267,7 +270,9 @@ export class Crowd {
       if (this.frustum.containsPoint(_v.set(x, y + 1, z))) { this.impPerf.popins++; this.onPopIn?.(c.a ? `person ${c.a.id} (${c.a.role})` : `person p${c.vp!.pid} (${c.vp!.act}; ${c.vp!.what})`, c.d); } }
     this.seenNow = this.seenPrev; this.seenPrev = now; this.poolPrimed = true;
   }
-  private orderBuf = new Int32Array(1024); private keepBuf = new Set<Person>();
+  private orderBuf = new Int32Array(1024); private keepBuf = new Set<Person>(); private viewJumps = 0;
+  /** the camera jumped (a test view, a teleport, a time jump): the pop-in probe starts afresh at the next frame */
+  resetPopinProbe() { this.poolPrimed = false; this.seenPrev.clear(); this.visPrev.clear(); }
   /** the pool, fed by the simulation's visible set: attach newcomers, detach the pooled who left (offmap, or beyond
    *  DETACH_R). A newcomer within 50 m in view is a pop-in (it came on the map there: ATTACH_R ≫ 50 m) */
   private autoPoolStep(cam: THREE.Vector3, camera?: THREE.Camera) {
@@ -284,7 +289,7 @@ export class Crowd {
   // ------------------------------------------------------------------------------------------------ per frame
   update(time: number, cam: THREE.Vector3, playerPos: THREE.Vector3 | null, camera?: THREE.Camera) {
     const t0 = performance.now(); this.now = time;
-    if (camera) { camera.updateMatrixWorld(); this.pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); this.frustum.setFromProjectionMatrix(this.pm); this.wide.copy(this.frustum); for (const pl of this.wide.planes) pl.constant += 3; }
+    if (camera) { this.lastCamera = camera; camera.updateMatrixWorld(); this.pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); this.frustum.setFromProjectionMatrix(this.pm); this.wide.copy(this.frustum); for (const pl of this.wide.planes) pl.constant += 3; }
     this.frame++;
     const S = this.sim?.stock;
     if (S && (S.depot !== this.lastStock.depot || S.store !== this.lastStock.store)) {
@@ -292,6 +297,7 @@ export class Crowd {
       const ns = this.pileLayout(nd, 400, [PLACES.treasury_store.at[0] - 4, PLACES.treasury_store.at[1] - 3], S.store);
       this.sacks.count = nd + ns; this.sacks.visible = nd + ns > 0; this.sacks.instanceMatrix.needsUpdate = true; this.lastStock.depot = S.depot; this.lastStock.store = S.store;
     }
+    if (this.frame > 1 && this.camAt.distanceTo(cam) > 30) this.resetPopinProbe(); // the camera was moved, not walked (a teleport)
     this.camAt.copy(cam); const tf = performance.now();
     if (this.autoPool) { if (this.view && this.sim) this.feedPool(cam, camera); else this.autoPoolStep(cam, camera); }
     this.impPerf.feedMs = performance.now() - tf;
@@ -327,7 +333,7 @@ export class Crowd {
       else if (p.poseFrame === this.frame - 1) this.copyPrev(p); // no bone change this frame: previous = current
       const c = gpu.costumes.get(`${COSTUME_OF[p.look.dress]}@${lod}`)!;
       gpu.push(c, p.slot, p.root[0], p.root[1], p.root[2], p.root[3], p.prevRoot[0], p.prevRoot[1], p.prevRoot[2], p.prevRoot[3], lod === 0 ? 1 : d < SHADOW_DIST ? 2 : 0);
-      p.drawnFrame = this.frame;
+      p.drawnFrame = this.frame; p.lod = lod;
       if (p.prop) this.placeProp(p);
     }
     gpu.end(true);
@@ -360,6 +366,16 @@ export class Crowd {
     if (this.impLooks.size > 60_000) this.impLooks.clear(); if (this.impPhase.size > 60_000) this.impPhase.clear();
   }
   private impPhase = new Map<number, number>();
+  /** the camera of the last update (crowdprobe.ts counts the people visible from it) */
+  lastCamera: THREE.Camera | null = null;
+  /** the people drawn in the last frame (occlusion counts, crowdprobe.ts): feet x, y, z, body height (m) and kind (0-3 the
+   *  skinned LOD, 4 an impostor) per person */
+  drawnPoints(): Float32Array {
+    const a: number[] = [];
+    for (const p of this.persons.values()) if (p.drawnFrame === this.frame) a.push(p.root[0], p.root[1], p.root[2], p.look.stature || 1.65, p.lod ?? 2);
+    const imp = this.imp; if (imp) for (let i = 0; i < imp.count; i++) { const o = imp.at(i); a.push(o[0], o[1], o[2], o[3] * 1.65, 4); }
+    return Float32Array.from(a);
+  }
   /** looks computed per frame for people first seen as impostors (tests set it high to fill a frozen frame at once) */
   looksPerFrame = LOOKS_PER_FRAME;
   private lastPoseT = 0;

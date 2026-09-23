@@ -387,31 +387,11 @@ export class PopGeo {
     return this.openNear(c, 60, pid, `${head}:${tail}`, `${head === 'camp' ? 'camp' : 'on the move'} of a transhumant band (C)`);
   }
 
-  // -------------------------------------------------------------------------------------------------- visibility
-  /** can an eye at (e, n, y) see a point at (e, n, y) (a person's head)? A 2.5-D test for measuring what a view shows
-   *  (tests, the crowd's stats; not used for drawing): the town's and the villages' plots as prisms (rooms to their roof
-   *  and parapet, walls on the cell edges to their tops, courts open), the Terrace's platform where the walkable grid is
-   *  higher than the line and its blocked cells (walls, columns) as tall, and the terrain. Conservative at columns. */
-  lineOfSight(eye: [number, number, number], tgt: [number, number, number]): boolean {
-    const [ex, en, ey] = eye, [tx, tn, ty] = tgt, L = Math.hypot(tx - ex, tn - en); if (L < 0.5) return true;
-    const steps = Math.ceil(L / 0.5), tw = this.town;
-    let prevSite: Site | null = null, prevK = -1;
-    for (let s = 1; s < steps; s++) { const f = s / steps, e = ex + (tx - ex) * f, n = en + (tn - en) * f, y = ey + (ty - ey) * f;
-      if (s % 8 === 0 && y < this.ground(e, n) - 0.2) return false; // the terrain (every 4 m)
-      if (this.inNav(e, n)) { const [i, j] = this.nav.ij(e, n), h = this.nav.hcm[j * NAV.w + i];
-        if (h !== NAV.blocked) { if (h / 100 > y + 0.05) return false; }
-        else { const g = this.ground(e, n); if (g > -3 && y < g + 12) return false; } } // a wall or column on the Terrace (conservative)
-      let site: Site | null = null, k = -1;
-      const l = tw?.locate(e, n); if (l) { site = tw!.boxes[l.si].s; k = l.k; }
-      else if (this.villages.length) { const vi = this.villageAt(e, n); if (vi >= 0) { const S = this.vsite(vi).site, [u, w] = toLocal(S.frame, e, n); if (S.inb(S.ci(u), S.cj(w))) { site = S; k = S.k(S.ci(u), S.cj(w)); } } }
-      if (site) { const c = site.cell[k], g = this.ground(e, n);
-        if (c >= 0 && site.sub[k] === ROOM && y < g + site.plots[c].height + site.plots[c].parapet) return false;
-        if (prevSite === site && prevK !== k && prevK >= 0) { const c0 = site.cell[prevK]; // a wall on the edge crossed
-          if (c0 !== c && (c0 >= 0 || c >= 0)) { const top = Math.max(c0 >= 0 ? (site.sub[prevK] === ROOM ? site.plots[c0].height + site.plots[c0].parapet : site.plots[c0].yardWall) : 0, c >= 0 ? (site.sub[k] === ROOM ? site.plots[c].height + site.plots[c].parapet : site.plots[c].yardWall) : 0);
-            if (!site.doors.has(site.edgeBetween(prevK, k)) || y > g + 2) { if (y < g + top) return false; } } } }
-      prevSite = site; prevK = k; }
-    return true;
-  }
+  // -------------------------------------------------------------------------------------------------- for sightlines
+  /** ground height at grid (e, n) (the terrain) */
+  groundAt(e: number, n: number) { return this.ground(e, n); }
+  /** every built village as a site raster (sightline.ts) */
+  villageSites(): Site[] { return this.villages.map((_, vi) => this.vsite(vi).site); }
 
   // -------------------------------------------------------------------------------------------------- routes
   /** ground height at a spot or route point */

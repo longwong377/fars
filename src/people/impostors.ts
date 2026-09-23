@@ -221,6 +221,8 @@ export class CrowdImpostors {
     if (packed) { a[o + 6] = packed[0]; a[o + 7] = packed[1]; a[o + 8] = packed[2]; a[o + 9] = packed[3]; a[o + 10] = packed[4]; a[o + 11] = packed[5]; }
     else if (col) { a[o + 6] = packRGB(col.main); a[o + 7] = packRGB(col.second); a[o + 8] = packRGB(col.trim); a[o + 9] = packRGB(col.skin); a[o + 10] = packRGB(col.hair); a[o + 11] = packRGB(col.leather); }
   }
+  /** instance i of this frame: feet x, y, z and stature scale */
+  at(i: number): [number, number, number, number] { const a = this.buf.array as Float32Array, o = i * IMP_STRIDE; return [a[o], a[o + 1], a[o + 2], a[o + 5]]; }
   end() { const g = this.geo; g.instanceCount = this.count; this.mesh.visible = this.count > 0; if (this.count) { this.buf.needsUpdate = true; this.buf.clearUpdateRanges(); this.buf.addUpdateRange(0, this.count * IMP_STRIDE); } }
   /** the packed colours of a look (cache them per person) */
   static pack(col: PersonLook['col']): Float32Array { return Float32Array.of(packRGB(col.main), packRGB(col.second), packRGB(col.trim), packRGB(col.skin), packRGB(col.hair), packRGB(col.leather)); }

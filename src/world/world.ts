@@ -13,7 +13,7 @@ export interface WorldBuild {
   applySettings?(s: Settings): void;
   audio?: { unlock(): void };
   fire?: FireSystem; wvfx?: WeatherVfx; flash?(): number;
-  people?: { sim: PeopleSim; crowd: Crowd; nav: NavGrid; humans: HumanSystem; view: PopView; geo: PopGeo };
+  people?: { sim: PeopleSim; crowd: Crowd; nav: NavGrid; humans: HumanSystem; view: PopView; geo: PopGeo; probe(renderer: THREE.WebGPURenderer): Promise<VisibleCount> };
   /** address the nearest person in front of the camera (§9.4); returns what was said (out-of-world subtitle) or null */
   address?(camera: THREE.Camera): Subtitle | { gesture: string } | null;
   lastSubtitle?: Subtitle | null;
@@ -56,6 +56,7 @@ import { Crowd } from '../people/crowd';
 import { PopGeo } from '../people/popgeo';
 import { PopView } from '../people/popview';
 import { bakeImpostors, CrowdImpostors } from '../people/impostors';
+import { countVisible, type VisibleCount } from '../people/crowdprobe';
 import { propGeometry } from '../people/props';
 import { villageCompounds } from './plain/villages';
 import { loadHumans, type HumanSystem } from '../people/humans';
@@ -251,7 +252,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   }, settlement ? indexTown(settlement.plan as any) : null);
   const court = settings?.courtCalendar === 'seasonal';
   let mapItems: MapItem[] | null = null; // out-of-world map layers (translation layer), built on first use
-  return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav, humans, view, geo }, address, plain, doors, get lastSubtitle() { return lastSubtitle; },
+  return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav, humans, view, geo, probe: (r: THREE.WebGPURenderer) => countVisible(r, crowd) }, address, plain, doors, get lastSubtitle() { return lastSubtitle; },
     building,
     /** visitor mode: where the player may stand (blocked moves go back to the last allowed point), the interact key, the
      *  log (translation layer chronicle only). `night`: outside the Terrace's hours (C: the sun below 6°) */
