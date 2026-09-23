@@ -81,7 +81,7 @@ function hairline(x: any, period: number, w: number) {
   return clamp(overlap.div(px), 0, 1);
 }
 
-interface Layer { alb: any; rough: any; height: any | null }
+export interface Layer { alb: any; rough: any; height: any | null }
 /** albedo, roughness and height of one surface definition (before weather) */
 function layer(d: SurfaceDef, base: any): Layer {
   const p = positionWorld, n = normalWorld;
@@ -125,8 +125,8 @@ function layer(d: SurfaceDef, base: any): Layer {
 
 const cache = new Map<string, THREE.MeshStandardNodeMaterial>();
 const lin = (a: [number, number, number]) => color(new THREE.Color().setRGB(a[0], a[1], a[2], THREE.SRGBColorSpace));
-export function surfaceMaterial(name: string, opts: { vertexColors?: boolean } = {}): THREE.MeshStandardNodeMaterial {
-  const key = name + (opts.vertexColors ? '+vc' : '');
+export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; variant?: string; modify?: (L: Layer, d: SurfaceDef) => Layer } = {}): THREE.MeshStandardNodeMaterial {
+  const key = name + (opts.vertexColors ? '+vc' : '') + (opts.variant ? '+' + opts.variant : ''); // `modify` (Phase 7 plain layers) needs its own `variant` key
   const hit = cache.get(key); if (hit) return hit;
   const d = SURFACES[name] ?? SURFACES.limestone;
   const m = new THREE.MeshStandardNodeMaterial(); // vertex colours are read explicitly below; the vertexColors flag would multiply them in a second time
@@ -137,6 +137,7 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean } =
     const T = layer(SURFACES[d.top], lin(SURFACES[d.top].albedo)); const t = smoothstep(0.7, 0.9, n.y);
     L = { alb: mix(L.alb, T.alb, t), rough: mix(L.rough, T.rough, t), height: L.height && T.height ? mix(L.height, T.height, t) : (L.height ?? T.height) };
   }
+  if (opts.modify) L = opts.modify(L, d); // e.g. fields, crops and woodland over the plain's earth (src/world/plain/terrainPlain.ts)
   finish(m, L, d);
   m.userData = { tier: d.tier, note: d.note };
   cache.set(key, m);

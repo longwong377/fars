@@ -13,7 +13,7 @@ export interface WorldBuild {
   applySettings?(s: Settings): void;
   audio?: { unlock(): void };
   fire?: FireSystem; wvfx?: WeatherVfx; flash?(): number;
-  people?: { sim: PeopleSim; crowd: Crowd; nav: NavGrid };
+  people?: { sim: PeopleSim; crowd: Crowd; nav: NavGrid; humans: HumanSystem };
   /** address the nearest person in front of the camera (§9.4); returns what was said (out-of-world subtitle) or null */
   address?(camera: THREE.Camera): Subtitle | { gesture: string } | null;
   lastSubtitle?: Subtitle | null;
@@ -29,6 +29,10 @@ import { buildReliefs, buildInscriptions, loadInscriptionFonts } from '../arch/d
 import { updateReliefs, settleReliefs } from '../arch/reliefs';
 import { FireSystem } from './fire';
 import { buildTreasuryGoods } from './furnish';
+import { buildPlain } from './plain';
+import { ConstructionView } from './construction';
+import { present } from '../arch/spec';
+import { buildMapLayers, MapItem } from '../ui/mapLayers';
 import { WeatherVfx } from './weatherVfx';
 import { RainShafts } from './rainShafts';
 import { Birds, Jackals } from './wildlife';
@@ -42,6 +46,7 @@ import { v } from '../arch/spec';
 import { NavGrid } from '../people/navgrid';
 import { PeopleSim, Env } from '../people/sim';
 import { Crowd } from '../people/crowd';
+import { loadHumans, type HumanSystem } from '../people/humans';
 import { ACTIVITIES } from '../people/activities';
 import { Speech, Subtitle, RecordingBackend, FormantBackend } from '../audio/speech';
 import { Murmur, Talker } from '../audio/murmur';
@@ -89,6 +94,9 @@ function placeFires(fire: FireSystem, m: any, parts: any[]) {
 export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Terrain, settings?: Settings, weather?: WeatherSystem, seed = 1): Promise<WorldBuild> {
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
   const t0 = performance.now();
+  // people's bodies (D-090): loading and costume fitting (a worker) run while the architecture is built
+  const q0 = settings?.quality ?? 'high';
+  const humansP = loadHumans({ velocity: q0 !== 'test' && q0 !== 'low' });
   const { parts, manifest } = buildTerrace();
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
   const arch = buildMeshes(parts, phys);
@@ -106,6 +114,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group);
   const shafts = new RainShafts(terrain); root.add(shafts.group); // distant rain cells approaching on the wind
   void QUALITY;
+  // Phase 7: the Marvdasht plain (src/world/plain; plain.json): rivers, canals, fields, orchards, villages, Naqsh-e Rustam
+  const plain = await buildPlain(scene, terrain, phys, { quality: q, seed }); root.add(plain.group);
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
   const nav = await NavGrid.load(async p => (await fetch('/' + p)).arrayBuffer());
   // visible birds (§5.5): swallows over the courts in season, raptors over the slope, sparrows on the court floors
@@ -118,7 +128,11 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // 'Court calendar = seasonal pattern' is on (D-003)
   const sim = new PeopleSim(seed, nav, env, { court: settings?.courtCalendar === 'seasonal' }); let simStarted = false;
   sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
-  const crowd = new Crowd(sim, seed); root.add(crowd.group);
+  // people's bodies (D-090): MakeHuman-derived variants in period dress, instanced per costume and LOD, pooled (D-093)
+  const humans = await humansP;
+  const crowd = new Crowd(sim, seed, humans); root.add(crowd.group);
+  // the Hall of 100 Columns follows the simulation's construction state (Phase 5; replaces the static hall columns)
+  const building = present('hall100') ? new ConstructionView(arch.group, () => sim.construction) : null; if (building) root.add(building.group);
   // people are solid to the player: a kinematic capsule each (brief §6: player collision with crowds)
   const R = phys.R; const bodies = sim.agents.map(() => { const b = phys.world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(0, -1000, 0)); phys.world.createCollider(R.ColliderDesc.capsule(0.55, 0.25).setTranslation(0, 0.8, 0), b); return b; });
   const ms = performance.now() - t0;
@@ -167,10 +181,15 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     const day = Math.floor(sim.t / 24);
     const pick = pickLine({ langs: best.langs, intent: best.metPlayer > 1 ? 'reply' : 'greet', role: best.role, seed: best.seed + day });
     if (!pick) return { gesture: 'nods (no attested line in their language)' };
-    { const vo = voiceFor({ seed: best.seed, sex: best.sex, role: best.role }); speech.say(pick.line, vo, { x: best.pos[0], y: best.y + 1.55, z: -best.pos[1] }, { speakerId: best.id, voiceKey: voiceKeyFor(vo) }); }
+    const vo = voiceFor({ seed: best.seed, sex: best.sex, role: best.role });
+    const h = speech.say(pick.line, vo, { x: best.pos[0], y: best.y + 1.55, z: -best.pos[1] }, { speakerId: best.id, voiceKey: voiceKeyFor(vo) });
+    crowd.speaking(best.id, 2.5, time); h.ready.then(() => { if (Number.isFinite(h.duration)) crowd.speaking(best.id, h.duration, time); }); // the jaw moves while they speak
     return { lineId: pick.line.id, lang: pick.line.lang, translit: pick.line.translit, gloss: pick.line.gloss, tier: pick.line.tier, speakerId: best.id, backend: 'formant' } as Subtitle;
   };
-  return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav }, address, get lastSubtitle() { return lastSubtitle; },
+  let mapItems: MapItem[] | null = null; // out-of-world map layers (translation layer), built on first use
+  return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav, humans }, address, plain, get lastSubtitle() { return lastSubtitle; },
+    building,
+    mapLayers: () => (mapItems ??= buildMapLayers({ town: settlement?.plan as any, plain: plain.data as any })),
     saveState: () => ({ people: sim.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } },
     /** persistence (brief §9.5): simulate the time the world ran while the visitor was away, everyone in the abstract LOD
      *  (same decisions, timed travel), capped at CATCHUP_MAX_DAYS (older time is placed by schedule); returns the
@@ -191,8 +210,11 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       updateReliefs(ctx.camera.position, dt === 0 ? 50 : 4); // carved-relief LOD (D-019); dt 0 = a test render
       { const pp = ctx.player.position; playerAt = new THREE.Vector3(pp.x, pp.y, pp.z); }
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
-      settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, cond: ctx.cond, player: ctx.player });
+      settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, skyLight: ctx.skyLight, cond: ctx.cond, player: ctx.player });
+      fire.setSkyLight(ctx.skyLight);
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time, ctx.clock.localHour);
+      plain.update(dt, ctx);
+      building?.sync(); // cheap unless a column changed state
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
       { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
@@ -214,5 +236,5 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       }
     },
     flash: () => lastFlash,
-    summary: () => `people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''}` } as WorldBuild;
+    summary: () => `people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest, ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''} · ${plain.summary()}` } as WorldBuild;
 }

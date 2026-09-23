@@ -123,6 +123,7 @@ describe('language lint: other in-world text', () => {
   /** files allowed to draw text into the 3D world, with what they draw (checked above) */
   const IN_WORLD_TEXT_SITES: Record<string, string> = {
     'src/arch/decor.ts': 'carved inscriptions from inscriptions.json (toCuneiform / *_cuneiform), checked above',
+    'src/world/plain/naqsh.ts': 'DNa/DNb Old Persian from inscriptions.json (toCuneiform of the edition text minus lacunae), checked above',
   };
   const TEXT_API = /\b(fillText|strokeText|TextGeometry|textPanelGeometry|CSS2DObject|CSS3DObject|SpriteText|TroikaText)\b/;
   const walk = (d: string): string[] => readdirSync(d).flatMap(f => { const p = join(d, f); return statSync(p).isDirectory() ? walk(p) : p.endsWith('.ts') ? [p] : []; });

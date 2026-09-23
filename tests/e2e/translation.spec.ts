@@ -24,6 +24,12 @@ test('translation layer: inscription, map, chronicle', async ({ page }, info) =>
   expect(insc ?? '').toContain('XPa'); expect(insc ?? '').toContain('ARIo');
   await page.keyboard.press('KeyM'); await page.evaluate(() => (window as any).__parsa.renderOnce());
   await expect(page.locator('.tl-map')).toBeVisible();
+  // Z cycles the scale: the Terrace, the town and gardens, the plain (what the world builds, tiered)
+  for (const [k, name] of [[0, 'Terrace'], [1, 'town and gardens'], [2, 'plain']] as const) {
+    if (k) { await page.keyboard.press('KeyZ'); await page.evaluate(() => (window as any).__parsa.renderOnce()); }
+    await expect(page.locator('.tl-panel h2')).toContainText(name);
+    await page.locator('.tl-map').screenshot({ path: `shots/translation-map-${k}.png` });
+  }
   await page.keyboard.press('KeyM'); await page.keyboard.press('KeyJ'); await page.evaluate(() => (window as any).__parsa.renderOnce());
   await expect(page.locator('.tl-panel')).toContainText('Chronicle');
 });

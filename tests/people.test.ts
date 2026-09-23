@@ -6,10 +6,10 @@ import { NavGrid, NAV } from '../src/people/navgrid';
 import { PeopleSim, PLACES, Env } from '../src/people/sim';
 import { ACTIVITIES } from '../src/people/activities';
 import { ANIMS, pose } from '../src/people/anim';
-import { propGeometry, bodyGeometry, randomAppearance, BONES } from '../src/people/body';
+import { propGeometry } from '../src/people/body';
+import { COSTUMES, DRESSES } from '../src/people/outfits';
 import { WeatherSystem } from '../src/weather/weatherState';
 import { buildTerrace } from '../src/arch/terrace';
-import { Rng } from '../src/core/rng';
 
 const navMeta = JSON.parse(readFileSync('public/generated/nav.json', 'utf8'));
 const loadNav = () => new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
@@ -32,10 +32,19 @@ describe('walkable grid', () => {
     for (const k of ['e0', 'n0', 'cell', 'w', 'h'] as const) expect(navMeta[k]).toBe(NAV[k]);
   });
   it('every place is on walkable ground (or within 2 m of it) and reachable from the town', () => {
+    // one flood fill from the town instead of an A* per place (that timed out under load): 4-neighbour connectivity equals
+    // the pathfinder's 8-neighbour connectivity, since a diagonal step needs both orthogonal detours to be legal (move8)
+    const W = nav.w, seen = new Uint8Array(W * nav.h), t = nav.snap(PLACES.town.at[0], PLACES.town.at[1], 2)!; expect(t).not.toBeNull();
+    const [ti, tj] = nav.ij(t[0], t[1]); const q = new Int32Array(W * nav.h); let head = 0, tail = 0; q[tail++] = tj * W + ti; seen[tj * W + ti] = 1;
+    while (head < tail) { const k = q[head++], i = k % W, j = (k / W) | 0;
+      for (const [ii, jj] of [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]]) { const kk = jj * W + ii; if (ii >= 0 && jj >= 0 && ii < W && jj < nav.h && !seen[kk] && nav.move(i, j, ii, jj)) { seen[kk] = 1; q[tail++] = kk; } } }
     for (const p of Object.values(PLACES)) {
       const s = nav.snap(p.at[0], p.at[1], 2); expect(s, p.id).not.toBeNull();
-      if (p.id !== 'town') expect(nav.findPath(PLACES.town.at, s!), `route town → ${p.id}`).not.toBeNull();
+      const [i, j] = nav.ij(s![0], s![1]); expect(seen[j * W + i], `route town → ${p.id}`).toBe(1);
     }
+    // and the pathfinder itself reaches the farthest place within its expansion budget
+    const far = Object.values(PLACES).reduce((a, b) => (Math.hypot(b.at[0] - t[0], b.at[1] - t[1]) > Math.hypot(a.at[0] - t[0], a.at[1] - t[1]) ? b : a));
+    expect(nav.findPath(PLACES.town.at, far.at), `route town → ${far.id}`).not.toBeNull();
   });
   it('the route from the plain climbs the Grand Stair and enters the Apadana through its N stair (not through walls)', () => {
     const path = nav.findPath(PLACES.town.at, PLACES.apadana_hall.at)!;
@@ -94,7 +103,7 @@ describe('a simulated day (dry day, court absent)', () => {
     const c = sig(5); let same = 0, tot = 0;
     a.out.forEach((row, i) => { const r1 = row.split(','), r2 = (c.out[i] ?? '').split(','); r1.forEach((x, j) => { tot++; if (x === r2[j]) same++; }); });
     expect(same / tot).toBeGreaterThan(0.85);
-  }, 120_000);
+  }, 300_000); // three whole days at full detail (~105 s alone; the full suite runs files in parallel)
   it('save → load restores everyone (task, place, carried goods, memory) and the stores', () => {
     const s1 = new PeopleSim(1, nav, env); s1.jumpTo(dryDay * 24 + 10); for (let i = 0; i < 600; i++) s1.step(1);
     s1.agents[3].metPlayer = 2;
@@ -114,11 +123,8 @@ describe('activity lint (brief §9.5: every activity is performed)', () => {
     const idle = JSON.stringify(pose('idle', 1, 0, 0).rot);
     for (const a of ANIMS) { const p = pose(a, 1.3, 0.7, 0.2); for (const v of Object.values(p.rot)) for (const x of v!) expect(Number.isFinite(x)).toBe(true); if (a !== 'idle' && a !== 'inspect') expect(JSON.stringify(p.rot)).not.toBe(idle); }
   });
-  it('bodies build for every dress with skin attributes on every vertex', () => {
-    for (const d of ['persian', 'median', 'worker', 'woman', 'child', 'guard'] as const) {
-      const g = bodyGeometry(randomAppearance(d, new Rng(1, d))); const n = g.getAttribute('position').count;
-      expect(g.getAttribute('skinIndex').count).toBe(n); expect(g.getAttribute('color').count).toBe(n);
-      const si = g.getAttribute('skinIndex').array; for (let i = 0; i < n * 4; i += 4) expect(si[i]).toBeLessThan(BONES.length);
-    }
+  it('every dress the roster uses has a costume (bodies and fitting: tests/humans_runtime.test.ts)', () => {
+    const sim = new PeopleSim(1, nav, env);
+    for (const a of sim.agents) { expect(DRESSES, `${a.role} ${a.dress}`).toContain(a.dress); expect(COSTUMES[a.dress].always.length).toBeGreaterThan(0); }
   });
 });

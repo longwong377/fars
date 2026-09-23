@@ -11,6 +11,8 @@ import { rasterTri } from './raster';
 export interface SkinBakeInput {
   W: number; H: number; pos: Float64Array; orig: number[]; uv: number[]; tris: number[]; part: Uint8Array;
   joints: number[][]; tails: number[][]; bone: Record<string, number>; landmarks: Record<string, number>; ao: Float32Array;
+  /** per position vertex skin indices/weights (4 each, bytes): when given, the mouth line is the upper/lower-lip weight split */
+  skinIndex?: Uint8Array; skinWeight?: Uint8Array;
 }
 /** reference skin tone the albedo map is authored for (sRGB 0..1); the renderer multiplies by tone / REF_TONE (linear) */
 export const REF_TONE: [number, number, number] = [0.72, 0.53, 0.42];
@@ -29,7 +31,7 @@ const smooth = (e0: number, e1: number, x: number) => { const t = Math.max(0, Ma
 const gauss = (d2: number, r: number) => Math.exp(-d2 / (r * r));
 
 /** face frame measured on the reference body (bind pose: facing +Z, left = +X) */
-export function faceFrame(inp: Pick<SkinBakeInput, 'pos' | 'joints' | 'bone' | 'landmarks' | 'part'>) {
+export function faceFrame(inp: Pick<SkinBakeInput, 'pos' | 'joints' | 'bone' | 'landmarks' | 'part' | 'skinIndex' | 'skinWeight'>) {
   const J = (b: string) => inp.joints[inp.bone[b]]; const P = inp.pos;
   const eL = J('eye_l'), eR = J('eye_r'), eyeY = (eL[1] + eR[1]) / 2, eyeZ = (eL[2] + eR[2]) / 2, ipd = Math.abs(eL[0] - eR[0]);
   const nose = [P[inp.landmarks.nose_tip * 3], P[inp.landmarks.nose_tip * 3 + 1], P[inp.landmarks.nose_tip * 3 + 2]];
@@ -40,6 +42,15 @@ export function faceFrame(inp: Pick<SkinBakeInput, 'pos' | 'joints' | 'bone' | '
     for (let p = 0; p < 13380; p++) { if (inp.part[p] !== 0) continue; const x = P[p * 3], y = P[p * 3 + 1], z = P[p * 3 + 2];
       if (Math.abs(x) > 0.0025 || y < y0 || y > y1 || z < nose[2] - 0.045) continue;
       if (z < best) { best = z; mouth = [0, y, z]; } }
+    // The most recessed point finds the mentolabial sulcus on MakeHuman's closed neutral mouth, 1.5–2 cm below the lips
+    // (the first skin bake painted the lower lip on the chin). With skin weights, the mouth line is where the midline
+    // front vertices change from head-weighted (upper lip) to jaw-weighted (lower lip).
+    if (inp.skinIndex && inp.skinWeight) { const jb = inp.bone.jaw; let upLow = Infinity, loHigh = -Infinity;
+      for (let p = 0; p < 13380; p++) { if (inp.part[p] !== 0) continue; const x = P[p * 3], y = P[p * 3 + 1], z = P[p * 3 + 2];
+        if (Math.abs(x) > 0.0025 || y < chin[1] || y > nose[1] - 0.01 || z < nose[2] - 0.03) continue;
+        let w = 0; for (let k = 0; k < 4; k++) if (inp.skinIndex[p * 4 + k] === jb) w = inp.skinWeight[p * 4 + k] / 255;
+        if (w < 0.3) upLow = Math.min(upLow, y); else if (w > 0.5) loHigh = Math.max(loHigh, y); }
+      if (Number.isFinite(upLow) && Number.isFinite(loHigh)) mouth = [0, (upLow + loHigh) / 2, mouth[2]]; }
     for (let p = 0; p < 13380; p++) { if (inp.part[p] !== 0) continue; const x = P[p * 3], y = P[p * 3 + 1], z = P[p * 3 + 2];
       if (Math.abs(x) < 0.006 && Math.abs(y - mouth[1]) < 0.012) lipZ = Math.max(lipZ, z); } }
   // head extents at eye height
@@ -131,7 +142,7 @@ export function bakeSkin(inp: SkinBakeInput) {
     r *= k * (1 + 0.05 * red); g *= k * (1 - 0.02 * red); b *= k * (1 - 0.03 * red);
     // regional tints (multiplicative, linear)
     const tint = (f: number, tr: number, tg: number, tb: number) => { r *= 1 + (tr - 1) * f; g *= 1 + (tg - 1) * f; b *= 1 + (tb - 1) * f; };
-    tint(m.lips, 0.92, 0.55, 0.58); tint(m.cheek, 1.04, 0.9, 0.9); tint(m.noseRed, 1.05, 0.88, 0.88); tint(m.ear, 1.02, 0.84, 0.84);
+    tint(m.lips, 0.93, 0.7, 0.7); tint(m.cheek, 1.03, 0.93, 0.93); tint(m.noseRed, 1.04, 0.91, 0.91); tint(m.ear, 1.01, 0.91, 0.91); // lip and flush tints toned down (the first bake read as lipstick and sunburn; C)
     tint(m.lid * 0.7, 0.86, 0.8, 0.86);
     if (isHead) tint(smooth(F.eyeY + 0.03, F.eyeY + 0.08, p[1]) * 0.5, 1.03, 1.02, 0.97); // forehead a little yellower
     // hands and feet: palms/soles paler and pinker; knuckles, nails

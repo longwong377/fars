@@ -258,12 +258,12 @@ export class Settlement {
       } else if (d > 300 && c.live) { for (const k of c.live) this.phys.world.removeCollider(k, false); this.info.liveColliders -= c.live.length; c.live = null; }
     }
   }
-  update(dt: number, ctx: { camera: THREE.Camera; clock: any; sky: any; cond: any; player: any }) {
+  update(dt: number, ctx: { camera: THREE.Camera; clock: any; sky: any; skyLight?: any; cond: any; player: any }) {
     const p = ctx.player?.position ?? ctx.camera.position; this.streamColliders(p.x, p.z);
     const cp = ctx.camera.position;
     for (const m of this.casters) { const bs = m.geometry.boundingSphere!; m.castShadow = bs.center.distanceTo(cp) - bs.radius < SHADOW_RANGE; }
     this.trees.update(ctx.camera, ctx.clock?.dayIndex ?? 0, ctx.cond?.windMs ?? 2); this.wr.update(ctx.camera.position);
-    this.haze.update(dt, ctx.camera, ctx.sky?.sunAlt ?? 30, ctx.cond?.windMs ?? 2, ctx.cond?.windDirDeg ?? 0, ctx.clock?.localHour ?? 12, ctx.sky);
+    this.haze.update(dt, ctx.camera, ctx.sky?.sunAlt ?? 30, ctx.cond?.windMs ?? 2, ctx.cond?.windDirDeg ?? 0, ctx.clock?.localHour ?? 12, ctx.skyLight);
   }
   stats() { return { ...this.info, casting: this.casters.filter(m => m.castShadow).length, trees: this.trees.stats(), haze: this.haze.stats() }; }
 }

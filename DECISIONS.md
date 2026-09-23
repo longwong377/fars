@@ -176,7 +176,7 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **LODs:** index-only simplification (meshoptimizer, MIT) on the reference body, shared by all variants: full 29,804 tris (body 26,756 + lashes + mouth + high-poly eyes), mid 5,372, far 1,272 (low-poly eyes). Impostors beyond ~150 m are planned, not built.
 - **Skin (C):** MakeHuman's skin textures, proxies, eyebrows, eyelashes and hair live in its separate asset repository (makehuman-assets), which the sandbox cannot reach (403/404). The skin albedo is baked in UV space from 3-D procedural functions on the reference body (mottling, pores, lips with cupid's bow, cheek/nose/ear redness, lids, palms/soles, nails, knuckles), with eyebrow density in alpha and beard/scalp/cavity masks in hair.png; cavity occlusion is ray-cast (≤ 3.5 cm) per vertex.
 - **Alternatives considered:** MakeHuman's own skins/proxies/hair (CC0 but unreachable); hand-modelled heads (no likeness data, slower); keeping the procedural rigs (the rubric's weakest area).
-- **NOT DONE (honest status):** the runtime still renders the PLACEHOLDER rigs (`src/people/body.ts`, `crowd.ts`, `player/body.ts` unchanged). Not yet written: the runtime loader/geometry assembly, garments (coverage + inflation of body regions, skirt tubes, sleeves, belts), hair/beard shells and volumes (Persian nape bun, long curled beard), hats (fluted hat, soft cap, band, veil), the TSL human material (wrap-lighting SSS approximation, per-object colours via userData), the animation retarget to the 59-bone skeleton (face: jaw/blink/eye look-at; finger curl axes are already in the asset), crowd/player integration, the per-frame CPU budget test and the in-engine close-up renders. Cloth simulation is not planned (garments will follow the skeleton).
+- **NOT DONE (honest status):** the runtime still renders the PLACEHOLDER rigs (`src/people/body.ts`, `crowd.ts`, `player/body.ts` unchanged). Not yet written: the runtime loader/geometry assembly, garments (coverage + inflation of body regions, skirt tubes, sleeves, belts), hair/beard shells and volumes (Persian nape bun, long curled beard), hats (fluted hat, soft cap, band, veil), the TSL human material (wrap-lighting SSS approximation, per-object colours via userData), the animation retarget to the 59-bone skeleton (face: jaw/blink/eye look-at; finger curl axes are already in the asset), crowd/player integration, the per-frame CPU budget test and the in-engine close-up renders. Cloth simulation is not planned (garments will follow the skeleton). **Update (session 3):** the runtime, garments, hair and beards, headgear, material, retarget with face, pooled crowd and player body are done: D-090…D-093. Still not built: impostors beyond 600 m, the wicker shield and the elite women's veil.
 ## D-021 People simulation in two tiers: an abstract population with day plans, and the detailed Terrace agents (Phase 5)
 - **Population (`src/people/population.ts`):** every person of the Terrace, the town and the plain is generated deterministically from `population.json`, `town.json` (7 quarters, facilities, 39 villages: 4 located, 35 rank-size) and `lives.json` (rates and choices, each tiered): 46,590 persons over the year (incl. the year's ~1,550 newborns, travellers with a halmi, transhumant bands and transferred groups), in households with kin, neighbours and work groups (ration groups with issue places). Names only from `names.json`, drawn by sex and origin, `notable` and uncertain readings excluded (A form / C assignment); names recur as they do in the tablets.
 - **Day plans:** a person's day is a pure function of (seed, person, day) and the calendar's day context: a list of (t0, t1, place, activity, why, where) segments. Nothing is stored per person except the relationship deltas (below), so the population costs nothing per frame, is deterministic, and saves as a few kB. A plan costs ~20 µs (measured over 26,624 plans).
@@ -205,6 +205,70 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Route searches:** a long route on the 0.5 m nav grid costs 20-200 ms (A* plus string pulling), and a watch change asks for many at once; `sim.routeSearchesPerStep` (world: 1 per frame) makes the others wait a frame where they stand. Measured at 60 fps across midnight: see the soak's `frameCost`. A single long search still costs up to ~200 ms on a cold cache (the cache fills as routes repeat); a time-sliced or hierarchical search is the fix (not done).
 - **Not materialised:** the population also puts ~550 people on the Terrace by day (Treasury staff, stonecutters, labour and brick gangs, camp women, porters, caretakers, officials; `sim.abstractOnTerrace()` counts them by place and activity). They are simulated but not rendered: detailed agents for them need spots on the nav grid and performances for their activities. The dev overlay (F3) shows the population and this count, marked PLACEHOLDER.
 - **Placeholders (abstract only):** 27 activities have no performance: haul, mould_brick, lay_brick, polish_metal, work_wood, weave, spin, gather, brew, tend_animals, herd, shear, slaughter, offer, clean, garden_work, field_work, irrigate, plough, reap, thresh, dig_canal, pick_fruit, craft, carry_bier, wash, train (spin and gather added with D-080: spinning at home, gathering dung and brushwood). `tools/shadow_days.ts` prints `[PLACEHOLDER: not performed]` after each of them. They are flagged `placeholder: true, abstractOnly: true` with a PLACEHOLDER note in `ACTIVITIES` (dev overlay), and the soak's rendered-honesty gate proves no detailed agent performs one on the Terrace.
+## D-090 People's bodies switched to the MakeHuman variants; fitted costumes (session 3, humans agent)
+- **Runtime:** `src/people/humanAssets.ts` decodes humans.json/.bin into per-variant render-vertex positions and smooth normals (seams share a normal). `src/people/outfits.ts` fits every costume to all 23 variants at load, in a Web Worker (`outfit_worker.ts`) that runs while the Terrace is built. Everything is written into one RGBA32F "vertex source" texture: xyz = bind position, w = an octahedral 12+12-bit normal packed as an exact integer. Each vertex of a costume mesh carries only an index (`tid`) into that texture, so one mesh serves all 23 bodies.
+- **Pieces:** three kinds.
+  - *Shells:* a copy of the body surface over a region (neck to hips, arms to a cut, the beard region, the scalp), pushed out along the normal. Triangles are clipped exactly at the region's iso-line, so hems, necklines, boot tops and hairlines are clean contours rather than stair-stepped triangle edges (the first version's edges were jagged). Loose garments are relaxed by Laplacian smoothing that is kept outside the body.
+  - *Tubes:* rings swept along an axis (skirts with pleats and a front cascade, wide sleeves, belts, the fluted hat, the beard mass, the nape bun, the quiver, the bow, the akinaka, the gorytos). Their radius comes from the body's support function in each ring's plane, plus ease, flare and pleats. They are lined, so they can be seen from inside.
+  - *The body itself:* body triangles deep under an always-worn piece are dropped. Nothing can poke through, and the robe costume loses a third of its body triangles.
+  - Skirts are skinned to the pelvis, then the thighs, then the calves, blended left/right. Wide sleeves carry a "slack" value, and the shader lets them sag under gravity as the forearm turns horizontal.
+- **Costumes (6 dresses, 5 built costumes × 4 LODs):** persian, guard, median, worker, woman, child. Guards wear the Persian costume's meshes with the bow and quiver bits always set (one draw fewer per LOD and per shadow cascade). Optional pieces (hair, bun, long or short beard, fluted hat, fillet, soft cap, headband, headcloth, bobbed hair, torque, trousers, shoes, akinaka, gorytos) are bits in a per-person mask; hidden pieces collapse to a point in the vertex shader. Every piece has a tier and source key (`PIECES`), printed by the dev overlay (F3) for the person under the crosshair.
+- **Bug found and fixed on the way:** MakeHuman's high-poly eye has a second, transparent cornea layer mapped to the corner disc of the eye texture. Drawn opaque, it covered every iris with a pale blue shell; it is now left out (`isCornea`). The D-020 skin bake bounded the beard mask by the height of the jaw *joint* (near the ear), which left the chin bare; the beard region is rebuilt from face measurements (`beardMask`). The same bake took the mouth line to be the most recessed midline point, which on MakeHuman's closed neutral mouth is the mentolabial sulcus, 1.7 cm below the lips. The lower lip colour was painted on the chin and read as an open mouth in the first close-ups. The mouth line is now where the midline changes from head-weighted (upper lip) to jaw-weighted (lower lip): 1.507 m on the reference body, against 1.490 before. skin.png and hair.png were re-baked from humans.bin (`tools/humans/rebake_skin.ts`, no download; nail positions come from extrapolated finger tails) with lip, cheek and ear tints toned down. A test samples the texture at the lips and on the chin.
+- **Alternatives rejected:** one SkinnedMesh per person (the old way: 1 draw per person per pass, and three's skinning is one skeleton per mesh); BatchedMesh (one GPU draw per instance in the WebGPU backend, and no skinning); per-variant garment meshes (23 × 18 geometries); cloth simulation (not planned, D-020).
+
+## D-091 The human material: texture-fetch GPU skinning, packed attributes, wrap-lit skin
+- One `HumanMaterial` (`src/people/humanMaterial.ts`) for every body, garment, hair and worn object. The vertex stage fetches the bind position and normal (source texture) and 4 × 3 texels of the person's skin palette (RGBA32F, one row per person slot, character space). It then applies the per-instance root (`iRoot`: feet position and yaw), so root motion updates every frame even when distant people's bones are refreshed less often. Colours come from the person's row (10 texels: variant, piece mask, pattern, grime, skin tone + stubble, main, second, trim, hair, leather, grime level + scale + flags, felt).
+- **Previous-frame skinning** (`iRootPrev` and the previous palette) feeds `positionPrevious` when the pipeline renders velocity (TRAA at medium and above). Without it, people would ghost.
+- **WebGPU vertex-buffer limit:** the first build used 11 attributes and failed pipeline validation ("Vertex buffer count (10) exceeds the maximum number of vertex buffers (8)"). Attributes are now three interleaved buffers: per-vertex floats (position, normal, uv, tid), per-vertex bytes (skin indices and weights, material class, colour slot, piece bit, parameter, AO, slack, beard region) and per-instance floats (slot, root, previous root).
+- **Fragment:** material classes by arithmetic masks. There is no runtime `select()` (D-012). Skin uses the baked albedo rescaled to the person's tone (linear), eyebrows from its alpha and stubble from the beard region. A custom `PhysicalLightingModel` adds wrap lighting (w = 0.35, tinted red) as a subsurface-scattering approximation (C). Hair uses ridged-noise curls and strands in bind space. Cloth has mottling, drape folds, Susa-style rosettes on patterned guard robes (B pattern, C layout) and grime by work (C). Leather, felt, metal (gold/silver/bronze), wood and wicker are the other classes. The shading normal comes from a procedural height field (screen-space surface gradient).
+- **Alternatives:** three's `MeshSSSNodeMaterial` (a thickness map per mesh; one material per person); per-person uniforms (one draw per person).
+
+## D-092 Looks: stature, body variant, colours and optional pieces (all C unless the piece is attested)
+- `src/people/looks.ts`, deterministic from the person's seed, so the same person looks the same each time the pool attaches them.
+- **Stature (C, Q-066):** men N(1.66, 0.055) m, women N(1.54, 0.05) m, clamped at ±2.2 sd. The nearest of three suitable variants (sex, adult/elder/child) is chosen, then scaled by the remainder (clamped 0.93–1.07).
+- **Tones:** one skin-tone range and one hair range for everyone, dark hair greying with age (C). Nothing is tied to origin: no evidence was read. The reliefs' dark blue hair is a paint convention (RELIEFS_AND_COLOUR §3b); natural dark tones are rendered.
+- **Palette:** madder red and purple (B for robes and the kandys), woad, weld, green, undyed wool and linen, brown, grey (C). 60 % of Persian-dress guards wear patterned robes in the Susa guard colours (turquoise, yellow, brown: B).
+- **Pieces:** Persian dress: bun, long beard (90 %), fluted hat (85 %), torque (30 %). Guards: fluted hat 70 % or twisted fillet 30 % (after the Susa archers, C), bow and quiver (B). Median dress: soft cap (C), long beard; guards add the akinaka (B) and gorytos (C). Workers: short or long beard; none for Egyptians, who shaved (C). Trousers 40 %, shoes 60 %, headband or cap. Women: headcloth 80 % (C, not a chador; no hair is worn under it, it poked through), otherwise bobbed hair (B for the elite statuette). Children: tunic, mostly barefoot.
+- **Felt (C):** undyed, tan to dark brown. Cream and light tan were dropped: a pale fluted cylinder in sunlight read as a modern cook's hat in the close-ups.
+- **Hair and beard regions (from the close-ups):** the baked scalp mask stopped at the temples, so men looked shaven at the sides under hats and bands. Hair now comes down in front of the ear (sideburns to the ear canal) and behind it. The beard region stopped 1 cm below the nose, which left a clean upper lip; it now starts under the nose, so bearded men have the moustache the reliefs show (A for the convention).
+- **Grime (C):** masons carry limestone dust, grinders and bakers flour, porters dust.
+
+## D-093 Animation retarget, face, crowd pooling and LOD, the player's body
+- **Retarget (`src/people/humanRig.ts`):** the 17 pose channels of `anim.ts` map onto the 59 bones. Both skeletons have identity bind orientations, so an Euler rotation means the same on both. The old spine channel is split over spine_01/02, and hips offsets scale with the pelvis height. Finger curl comes from the asset's curl axes: a relaxed rest, blended to a grip for held props, cached per grip level. Standing and walking poses are **planted**: the lowest heel/ball/toe point is kept on the ground (the cycles were authored on another rig; unplanted, the walking foot sank 6 cm). Seated, kneeling and lying poses rest their lowest flesh point (buttocks, thighs, knees, shins, feet, back, head; radii C) on the ground: the high-quality render showed seated porters 0.2–0.3 m in the air. Tested for every seated cycle (±3 cm).
+- **Face:** jaw while speaking (world.address → crowd.speaking, for the line's duration), in 'talk' and chewing in 'eat'. Blinks every 2–6 s (150 ms). Small saccades. Eyes (clamped) and head turn toward a stranger within 7 m. Tested: the chin drops ≥ 6 mm at 0.2 rad, the upper lid ≥ 4 mm, and the gaze follows a target.
+  - **Bug found in the close-ups and fixed:** the rig solves in character space (the root is applied per instance on the GPU), but the crowd passed gaze targets in world space, so everyone looked past the camera. Targets are now converted (`toChar`). A test places people at three roots and yaws and requires both eyes within 4° of a world target 0.8 m away (the old code: 18.6° off).
+- **Crowd (`src/people/crowd.ts`):** the pool is fed by the simulation's `visibleAgents(centre, 620 m, 400)` (D-024: the detailed agents on the Terrace, nearest first, capped). A person is **attached** (a palette slot plus a look) when they enter that set and **detached** beyond 660 m (hysteresis 40 m; the far band ends at 600 m) or when they leave for the town. A newcomer within 50 m in view is reported as a pop-in (§13.8). The per-frame loop costs O(attached), not O(roster). `attach()`, `detach()`, `allocSlot()` and `writePerson()` are public, and `autoPool = false` hands the pool to another roster.
+  - **Performance:** `sim.performance(a)` → `ACTIVITIES[act]` gives the animation and prop. An abstract-only activity (a PLACEHOLDER with no performance) that ever reaches a rendered person is shown standing, counted in `crowd.stats().placeholderActs`, and flagged PLACEHOLDER in the dev overlay (F3) with the activity's name. Nothing loops a made-up performance. Tested.
+  - **Greeting:** `sim.greeting(id)` sets the head turn toward the player within 7 m. `none` gives a stranger's glance (80 % of the angle); `nod` or `recognise` turns the head fully and nods once within 4 m (0.18 rad over 0.8 s, C).
+  - **Bug found and fixed:** the overlay's person picking was dead. The line that installs the proxy's raycast had been swallowed by the comment before it. The instanced people meshes and the carried-prop union no longer answer raycasts: their CPU geometry sits in bind pose at the origin. A test now picks a person and reads their overlay note.
+- **LOD:** four bands. The full body is drawn within 25 m for the nearest 64 people (≥ 50 required). The mid body runs to 90 m and the far body to 200 m. From 200 to 600 m the far costume is simplified by meshoptimizer to a fifth of its triangles (about 450–560 triangles, the same vertices). Nothing is drawn beyond 600 m: **impostors are NOT built.**
+  - Poses are refreshed every frame within 30 m, every 2 frames to 90 m, every 4 to 200 m and every 8 beyond. Root motion is refreshed every frame for everyone.
+  - People outside a 3 m-widened frustum are not drawn, so they cast no shadow. Their tool sounds continue.
+  - **Shadows:** the drawn meshes cast none. Each costume has two shadow-only casters on their own layer (`SHADOW_LAYER`). The sun's shadow cameras and CSM cascades see that layer; the view camera does not, so casters cost nothing in the view pass.
+    - The near caster uses the far-body geometry (about 2.5k triangles) and carries the full-detail people. The far caster uses the farthest, simplified geometry (about 0.5k) and carries everyone else within 90 m (`SHADOW_DIST`). A cascade texel is 1–12 cm, so fingers and eyelids add nothing.
+    - An instanced caster is drawn whole in every cascade its bounds touch. The first measurement found each caster drawn into all four cascades. Casters now skip the cascades whose slice starts beyond 130 m (`SHADOW_CASCADE_REACH`): with slices starting at 0, 75, 154 and 258 m, that keeps two of four. Skipping works by setting 0 instances in `onBeforeShadow`, a draw the backend drops.
+    - Far people cast no shadow; at 90 m a person's shadow is a few pixels.
+  - **Caps:** full detail for at most the nearest 50 (`MAX_FULL`, the brief's floor), mid detail for at most the next 100 (`MAX_MID`), and the far body beyond that even within 90 m.
+    - The first caps were 64 full and no mid cap. With 300 people within 20 m at high quality, that cost 3.55 M view triangles and 0.79 M per cascade in shadows: 15.7 M for the frame (budget 12 M; the scene alone is 8.83 M there).
+    - With 50 full + 160 mid, two-tier casters and two cascades, the frame was 12.33 M. Hence a mid cap of 100 (the people moved to the far body are 10–20 m away, mostly behind the front rows).
+  - **Things:** carried props, sack piles and work objects are also drawn only into the near cascades (`nearCascadesOnly`).
+  - **Measured at quality=high** (backend draw commands counted per mesh and pass, people shown vs hidden, same frame; `tests/e2e/humans_cost.spec.ts`; day 0, 09:00; 50 + 160 caps, before the things' cascade limit):
+    - **Grand Stair foot** (−60, 122): 108 people in view (6 full, 11 mid, 11 far, 80 farthest).
+      - People add 32 draws (14 view, 18 shadow) and 0.52 M triangles.
+      - Frame: 2,806 draw calls and 9.66 M triangles (2,775 and 9.15 M without people).
+    - **Apadana N court** (0, 60): 10 people in view.
+      - People add 21 draws and 0.11 M triangles.
+      - Frame: 2,862 draw calls and 9.47 M triangles.
+    - **300 extras within 20 m of the forecourt camera, plus the simulation:** 325 people in view.
+      - People add 52 draws and 3.51 M triangles.
+      - Frame: 3,213 draw calls (3,161 without people) and 12.33 M triangles.
+    - The frame's draw budget is already exceeded without people at the two crowded views: reliefs, D-029…, being fixed separately.
+    - **After the mid cap of 100** (quality=test, the same 300-person view): 2.71 M view triangles (was 2.88 M) and 0.26 M per shadow map. At high, the frame is estimated at about 12.1 M. **This was not re-measured:** the shared render queue allows one high-quality check.
+    - **WebGL2 fallback:** verified in the lab (`--project=webgl2`, no errors). The frames match the WebGPU ones.
+  - **Props:** every carried prop (spear, sack, jar, tablet, mallet, basket) is one instanced mesh over a union geometry (432 triangles; the sack and the spear butt were made lower-poly). A per-instance kind index keeps that kind's vertices and collapses the rest (arithmetic, no `select`). Both sack piles are one instanced mesh; the static work objects (blocks, querns, mats, trough) are merged into one mesh. People, props and goods together: at most 5 costumes × 4 LODs in the view pass, 5 casters per cascade, and 3 prop/goods draws per pass.
+- **Seated or asleep:** people lay aside the kandys and back-carried weapons (and hats, when asleep) by clearing those piece bits. Otherwise they would pass through the ground.
+- **Player (`src/player/body.ts`):** the same system. A man in undyed-wool Median riding dress with a soft cap and a short beard (C), scaled so his eyes are at EYE_HEIGHT. The visible copy collapses the head (person flag). A shadow-only copy (the mid body, on the shadow layer) keeps the head's shadow. The player adds 1 view draw and 1 caster per cascade. Walk and idle are blended by whether the step phase advances.
+
 ## D-029 Carved stone: hairline joints, a joint-free carved surface, snail curls, horns, rolled volutes, Treasury members (session 3, stone agent)
 - **Problem (renders):** the limestone material drew procedural *sunk* ashlar joints by world position on every limestone surface, capitals, protomes, colossi and relief figures included (the reliefs used that same material with vertex colours). The joints were soft dark bands about 0.1 m wide, darkened 35 % and sunk 4 mm in the bump field.
 - **Evidence for the joints:** the Terrace walls are "dressed grey limestone blocks, dry-laid, metal clamps" (SITE_SPEC terrace.wall_material, IR-PERS, B); the Grand Stair blocks are "dry-jointed" (Iranica, _extract_B, B). No mortar, so no mortar joint. Fitting by anathyrosis to hairline joints is recollection (C, Q-071).
@@ -460,6 +524,241 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Alternatives:**
   - A neural phoneme-input TTS (e.g. Piper/VITS): its models are hosted on blocked sites.
   - The eSpeak WASM build at runtime: 2+ MB of GPL code shipped, for no gain over pre-rendering.
+## D-037 Rivers carved into the heightfield; the Naqsh-e Rustam ground restored (Phase 7)
+- **Problem:** the bare-earth filter (D-006: opening/closing r 110 m) fills the Pulvar and Kur channels, and the 16/80 m rings cannot hold an 8-42 m channel or a 64 m vertical cliff. A river ribbon laid on that surface would float on the floodplain, and a tomb façade set on the smoothed Naqsh-e Rustam slope would be half buried.
+- **Rivers (tools/build_terrain.py layer 4, `public/generated/rivers.json`):**
+  - The channel is the trapezoid fitted to each river's own flow table (plain.json `channel`: width = bed + 2 x slope x depth, residual <= 0.10 m; Pulvar bed 2.38 m, slope 1:6.52; Kur 4.72 m, 1:8.40). Bank height = April depth + 0.4 m (1.6 / 2.2 m, C).
+  - Bank-top level = the bare-earth floodplain on the centreline (mid ring; far ring after a 240 m opening that removes riparian trees), smoothed (sigma 200 m) and made non-increasing downstream by a running minimum, so it is never above the local floodplain and water never runs uphill. Where the floodplain has a dip the channel downstream is incised deeper (up to 7 m on the Pulvar for ~1 km N of the Terrace; median 0 m, p95 1.9 m). Alternatives: isotonic least squares (puts the bank on a levee where the DSM dips), no carve (river floats on the plain).
+  - The OSM Pulvar line stops ~340 m short of the Kur; it is joined to the nearest Kur point (C), and its last 1.5 km of bed converge on the Kur's level (step < 0.5 m, tested).
+  - Every sample within (top/2 + one cell) of the centreline is lowered to bed - (0.3 m + the bed's fall over two cells). The river corridor mesh (`src/world/plain/rivers.ts`: bed, banks, and an apron out to where the carve's influence ends) is drawn over the trough; river-corridor trimesh colliders are created lazily within 600 m of the player, so what is walked is what is drawn.
+  - The water surface is one mesh whose width and level follow the date through uniforms (flow_by_month interpolated at mid-month, C): the river rises and falls without rebuilding geometry. Canal water shares the mesh.
+  - Distance lift: beyond 1.2-2.5 km the corridor, water and draped ribbons are raised in the vertex shader by up to 3 m (0.07 deg at 2.5 km), because the terrain's coarse far LODs can bridge the trough. Colliders are not lifted.
+- **Naqsh-e Rustam (layer 5):** "the original floor at the foot of the cliff was, at least, 5 m below the present-day ground" (NR-IRANICA, B): the talus against the cliff is removed down to a surface rising 1 % outward from an ancient foot 5 m below the present foot, out to 250 m (C; the plain beyond the talus is already at or below it and is left alone: a first version lowered the whole 250 m apron by a tapered 5 m and dug a 3 m pit into the plain, measured and rejected); two cells behind the face are held at the ancient level, under the cliff mesh's top (the face may be displaced up to 2 m into the rock). Ancient foot 1,622.5 m asl (present 1,627.5 m). The face line (grid y 6,124, x 432-932) is read off the raw DSM's 1,635-1,660 m contours (C, +-10 m).
+- **Verified (tests/plain.test.ts, tests/terrain.test.ts):** trapezoid vs table; terrain under the channel at 480+ sampled centreline points; bank monotone and never above the floodplain; confluence step; Naqsh-e Rustam ground; all terrain spot checks, seams and the SRTM skyline still pass. Terrain changes only inside the carved corridors and the Naqsh-e Rustam precinct (near ring unchanged).
+- Reversible: yes (the pipeline layers are separate functions; `npm run terrain` regenerates).
+
+## D-038 Fields, crops, orchards and woodland in the terrain material; trees by distance (Phase 7)
+- **Fields are drawn by the terrain's own material** (`surfaceMaterial('earth', { modify })`, a small hook added to materials.ts; `src/world/plain/terrainPlain.ts`): zero extra draw calls for ~2,700 km2 of land use. Per pixel: an 800 m "district" (jittered-grid Voronoi; strips of one orientation, bounded by a track), a plot inside it (anisotropic Voronoi, strips 22-52 x 90-210 m, C), the plot's land use read at its seed from a 64 m zone texture (irrigated polygons, rain-fed rule, village orchard rings, woodland cover; settlement zones, the Terrace, river corridors, village cores and the Naqsh-e Rustam precinct left natural), the crop chosen from the data mix by a hash, and its state read from a crop-state texture (365 days x 8 rows) at today's date +- the plot's own phenology offset (+-12 days). Bunds, district tracks, furrows and vineyard rows near; beyond ~3-10 m per pixel the plot fades to the zone's mean colour for the date (no shimmer).
+- **One hash on both sides:** a 32-bit PCG integer hash (three's TSL `hash` recipe) with 24-bit float outputs, identical in WGSL and JS (tested against a BigInt reference), so the near crop instances, orchard trees and woodland trees stand exactly on the plots and crowns the shader draws.
+- **Crop calendar (`src/world/plain/seasonal.ts`, C on B calendars):** barley sown mid-Nov, table heights, golden from late April, cut ~30 May (+-12 d), grazed stubble to the autumn ploughing; wheat/emmer sown ~22 Nov, cut ~27 Jun; sesame May-Sep; fallow and orchard floors follow the herb curve (season.ts); vines leaf out in April. Trees: leaf-out, autumn colour and bare winters per group; fruit blossom Mar-Apr, almond Feb-Mar (C).
+- **Crops near the camera:** one instanced mesh of 6-blade tufts within 26-60 m (by quality); height and colour read in the vertex shader from the same texture, so nothing is rebuilt when the date changes.
+- **Trees:** riparian (plane, willow, poplar, tamarisk; IR-RIPARIAN analogy B, placement C), canal lines, orchards (7 m grid in orchard plots), woodland (10 m jittered cells, cover from the woodland rule thinned to 10 % within 2 km of the Terrace). Within R3 (160-400 m by quality) every tree is a 3D instance (wood + crown: 2 draw calls, shadows; crowns shrink to bare branches in winter); beyond, the 43,000 riparian and canal trees are camera-facing billboards (1 call) and the 4,200 orchard plots are row impostors (vertical quads along the rows with a scalloped crown line, 1 call); woodland beyond R3 is the crown pattern the terrain shader draws at the same hash positions. Trunk colliders within 40 m of the player.
+- Alternatives: field polygons as meshes (10^5 plots: memory and draw calls), a baked field texture (a 20 km x 20 km area at 2 m = 10^8 texels), decals (z-fighting, draw calls). All C-tier layout either way.
+
+## D-039 Villages, canals, tracks, quarries and Naqsh-e Rustam as built (Phase 7)
+- **Villages (`villages.ts`):** the four Barrington villages at their data points (map-scale, +-3 km, C); Rakkan is moved 900 m to the nearest suitable ground (the point falls where no village can stand), recorded in its note. The other 33 of Sumner's 39 secure sites (2 are settlement.json zones) by the `villages_unlocated` rule: on low rises within 1.5 km of a river or canal, >= 2 km apart, below 1,660 m, outside the settlement zones; populations log-uniform in 150-3,000 scaled to 30,000 (C; with the four located, 33,700 <= Sumner's 44,000). Area from Sumner's density (65 persons/ha, B derived). Houses: courtyard compounds of mud brick (household 6, compounds 14-24 m, rooms on the N side and sometimes a wing, 2 m yard walls, gates, a timber door on each room's courtyard side; C), about 4,000 compounds, merged per 8 km cell (12-13 draw calls, frustum-culled per cell); cuboid colliders created within 500 m of the player.
+- **Canals (`canals.ts`):** off-takes every 2-4 km on the side where the irrigated polygon lies; each follows the contour of the bare-earth DEM at 0.5 m/km for 2.5-7 km (stopping where it would need a cutting > 2.5 m or an embankment > 1.2 m, reaches a settlement zone, another canal or leaves its polygon). 37 canals. Water at ground level between 0.45 m spoil banks (C); tree lines along them.
+- **Tracks (`ribbons.ts`):** a minimum spanning tree over the villages plus each village's link to its nearest settlement.json road, meandering +-12 m, cut where the ground is steeper than 10 % (C).
+- **Quarries:** Sivand (B, +-100 m) and Majdabad (+-3 km, C), moved to the nearest rock (regional slope > 25 %) within their uncertainty; stepped benches, cut blocks, spoil (C).
+- **Naqsh-e Rustam (`naqsh.ts`, plain.json `naqsh_e_rustam`):** a 64 m cliff face (B height; C line and rock surface: vertical jointing, bedding ledges, ~3.4° lean-back, a crest varying ±10 m and lowered to the DEM ridge behind the face where that is lower, so the west end runs down with the hill instead of ending as a sheer slab) with the tomb of Darius I and, 60 m ENE on the same line, the uninscribed tomb attributed to Xerxes (D-033; spacing C, Q-076). Façade 22.93 m, foot 15 m above the ancient ground, median register 14 x 7.60 m, upper arm 8.50 m (B, search extracts); arm width 10.9 m, recess 1.2 m, four engaged columns 5.3 m with schematic double-bull capitals, three-fascia architrave, dentils, cornice, a sealed doorway 1.4 x 2.8 m (C). Upper register: 28 throne-bearers in two tiers under the dais, the king on a three-stepped podium before the fire altar, the winged figure, the moon, guards on the side panels (programme B; silhouettes C, flagged PLACEHOLDER). The DNa/DNb panels are dressed but not inscribed (PLACEHOLDER: the published text is not in inscriptions.json). Ka'ba-ye Zardosht: 12 m tower on a triple-stepped base (14.12 m), base 7.30 m, 30-step stair to a 1.7 x 0.87 m door, dark blind windows (C, WP-NR); stair facing the cliff (C, Q-078). Neo-Elamite relief 7 x 2.5 m on the face (B size; schematic figures, PLACEHOLDER). Colliders: the cliff trimesh and the Ka'ba boxes and steps. Nothing of the later tombs, the Sasanian reliefs or Naqsh-e Rajab is built (tested by name).
+
+## D-040 The plain's budget at the vista; ownership boundary with Phase 6 (Phase 7)
+- **Budget design:** the plain adds a fixed set of meshes, not per-feature objects: 33 meshes in all (terrain layer 0; river banks + water 2; canal banks 1; tracks 1; villages 12 cells; far trees 1; orchard rows 1; near trees 4 (wood + crown, shadow-casting and not); near crops 1; Naqsh-e Rustam 9; quarries 1). Worst-case triangles with nothing culled: 1.01 M (tests/plain.test.ts). Shadow casters are only the near trees, villages, Naqsh-e Rustam and quarries (the CSM cascades end at 600 m, so far casters are culled from the shadow passes).
+- **Measured in the browser** (tests/e2e/plain.spec.ts, headless Chromium + SwiftShader WebGPU, after merging the fixed `__parsa.stats()` counters; the plain group shown vs hidden, same view, same frame state; renderer.info counts every pass of the frame, so the CSM shadow passes are included):
+
+  | view (quality=high) | frame without plain | frame with plain | plain adds |
+  |---|---|---|---|
+  | Grand Stair top, looking W at dawn (-36.4, 122.45, eye 13.6 m) | 1,472 calls, 4.36 M tris | 1,486 calls, 5.23 M | **+14 calls, +0.87 M** |
+  | Apadana, looking N toward Naqsh-e Rustam (1.9, 40) | 2,573 calls, 9.36 M | 2,594 calls, 10.23 M | **+21 calls, +0.87 M** |
+  | Grand Stair foot, looking E (the lead's baseline view, -60, 122) | 3,112 calls, 9.47 M | 3,120 calls, 10.18 M | **+8 calls, +0.71 M** |
+
+  At quality=test (run 4, same method): Kuh-e Rahmat slope +20 / +0.89 M; Pulvar bank +24 / +0.78 M; field (April, crops near) +14 / +0.91 M; village P22 +26 / +1.24 M (the worst case measured: 976 near trees, 400 of them shadow-casting, plus the village's shadow cell); Naqsh-e Rustam at 200 m +20 / +0.78 M; the Ka'ba at 40 m +18 / +0.73 M. All inside the Phase 7 limits (<= 150 calls, <= 2 M triangles). At the three high-quality vista views the plain casts no shadows at all (no near trees; villages farther than 900 m, Naqsh-e Rustam farther than 1,200 m). The whole frame at the Grand Stair foot is over the 3,000-call frame budget before the plain (3,112): not the plain's; the reliefs are being fixed separately. The river/cliff carve in the terrain rings adds <= 0.03 M terrain triangles at bias 1 and none at high-quality bias (counted in the `without` column, measured headless).
+- **Ownership with Phase 6 (settlement.json):** the plain reads settlement.json but draws nothing of it: its zone polygons are kept free of plain fields, villages and orchards; its four roads are not drawn here (`PLAIN_DRAWS_SETTLEMENT_ROADS = false` in src/world/plain/index.ts: flip it at merge if the settlement agent draws only the roads inside its zones); village tracks end on those roads. The Kuh-e Rahmat canal is settlement.json's.
+- **Shared-file edits (small, additive):** `materials.ts`: `export interface Layer` and an optional `modify`/`variant` on `surfaceMaterial` (any other ground layer, e.g. the settlement's, can compose into the same hook); `world.ts`: build and update the plain; `tools/build_terrain.py`: restructured into per-ring functions plus layers 4-5 (D-037). The plain swaps the terrain chunks' material by name ('terrain' group) instead of editing terrainMesh.ts.
+
+## D-060 — Sky dome calibrated against the skylight; the distance converges to the sky at the horizon (session 3)
+- **Measured problem:** the first rain-approach render showed the rain shafts brighter than the sky beside them (sRGB 227 against 209; horizon band 194). The cause is general. The fog colour and the cloud layer's far haze were a fixed hand-set blue-grey (0.62, 0.66, 0.74) scaled only by twilight. A CPU port of three's SkyMesh (`src/sky/horizon.ts`, same constants and steps as its colour node) shows that this was never the sky's horizon radiance:
+  - At 35° sun, the uncalibrated dome's horizon is 1.6–3.3 renderer units, 12× the radiance of sunlit ground. Its horizontal irradiance is 9–15× the scene's skylight (the hemisphere light). The tone mapper hid this as a pale, washed-out sky.
+  - At −2° sun, the dome is 35× darker than the skylight, while the fog was 500× the dome's horizon. The pre-dawn frame therefore looked like daytime overcast.
+- **Decision:** one calibration, applied alike to everything that fades into the sky:
+  - The dome is scaled so that its horizontal irradiance equals the hemisphere light's (three's diffuse radiance is albedo · I · colour / π, so I is the sky irradiance): `scale = E_hemi / ∫ L cosθ dω`, a 16 × 32 quadrature within 2 % of a fine reference.
+  - At night the scale blends back to 1, so the night sky, airglow and Milky Way keep their own perceptual values (D-047).
+  - The fog colour, the cloud layer's far haze and the rain shafts' tint all derive from the calibrated horizon radiance: the scaled dome 1.5° up, averaged over a 90° fan across the view, capped at 2.5× the all-round mean so a low sun's aureole does not light the whole distance.
+  - The river reflection takes the fog colour directly.
+- **Result, by construction and tested (`tests/horizon.test.ts`):**
+  - Fog, far cloud and the sky at the horizon agree.
+  - The calibrated clear horizon is 0.5–3× the radiance of sunlit ground of albedo 0.25, as a clear sky is (C). The measured ratio is about 1.3 at 35° sun, against 3 for the old fog and 12 for the raw dome.
+  - The daytime sky becomes a deeper blue relative to the ground.
+- **Tiers:**
+  - The dome's shape is B (Preetham).
+  - The scale is only as good as the hemisphere light it is tied to. Its daytime value is C, its twilight curve (smoothstep −14° to 4°) is C, and the calibration scene is blocked (NEEDS #13).
+  - The aureole cap and the 90° fan are C.
+  - Under cloud the dome is not reshaped to the CIE overcast distribution. It is only scaled with the reduced skylight.
+- **Rain shafts, same session:**
+  - Each column now has a Gaussian density profile. The mesh has twice the core radius, and the optical depth is σ·R·√π·exp(−4 sin²θ), so the edges fade out instead of a hard rim.
+  - The top fades over the upper 60 %. The streaks are softer.
+  - The tint is 0.7 of the calibrated horizon (C: a curtain shaded under the deck reads darker than the horizon behind it).
+  - The moment moves to day 241, 13:24, looking 300°: the cell is 23 km NW over the plain, 1.3 h before the episode, cloud 0.78. The old pre-dawn slot (day 12, 05:40) was under full overcast with the far ranges hidden.
+
+## D-061 — DNa and DNb carved at Naqsh-e Rustam from the edition text (session 3)
+- **Before:** the Phase 7 panels on Darius I's tomb were dressed but blank (D-039 placeholder), because the text was believed missing.
+- **Found:** it is in the project's own CC0 ARIo mirror (`data/corpus/ario.jsonl`, Schmitt 2009), identified by content:
+  - Q007152 = DNa ("Ariyaciça", the throne-bearers passage "patikarā … gāθum");
+  - Q007153 = DNb ("haya adadā ima frašam … upari Dārayava.um").
+  - The neighbouring Q007172 is DSf, not DNa.
+  - These ARIo entries carry the Old Persian versions only.
+- **Built:**
+  - `tools/build_inscriptions.py` adds both; XPa–XPd come out byte-identical.
+  - The Old Persian is carved on the two panels with the Terrace pipeline (glyph outlines, sign forms by Kent's rules, C), fitted to fill each panel: DNa 1,358 signs, 3.2 cm glyphs, 43 lines; DNb 1,585 signs, 4.2 cm, 42 lines.
+  - Modern lacunae (ARIo "x" and hyphenated damaged groups) are left out. In 467 those words were intact, but they are unknown to us, so no signs are invented for them.
+  - The glyphs are flat faces (`textPanelGeometry(…, flat = true)`). Extruded, bevelled glyphs cost 2.6 M triangles; flat faces cost 98 k. From 15–25 m below, an incision reads as a dark stroke.
+  - The carving is drawn only within 600 m of the cliff.
+  - Pick rectangles let the translation layer read both texts from up to 80 m (the Terrace panels: 15 m).
+- **Tiers:**
+  - Text A (standard edition).
+  - Sign forms C.
+  - Panel position, size and line layout C (the real OP columns run to more lines than the C-sized panels hold at this glyph size).
+  - Elamite and Babylonian versions not carved (not in the mirror): still a placeholder, flagged in the mesh note.
+
+## D-062 — The Hall of 100 Columns follows the simulated construction (session 3; Phase 5 gate item)
+- **Before:** the simulation advanced construction every week (D-022: drums arrive, are dressed and set; shafts are fluted; capitals set), but the hall was drawn at its day-0 state.
+- **Now:** `src/world/construction.ts` (ConstructionView) replaces the architecture's static hall columns with instances grouped by each column's state: drums set, fluting done, capital set. It rebuilds only when that state changes, a few times a week, so frames cost nothing extra.
+  - `columnMesh` takes an explicit `{ fluted, capital }`. Defaults are unchanged: fluted and capped only when complete.
+  - So the geometry can show the sim's intermediate states: a complete shaft still plain (fluting follows erection, C) and a fluted shaft waiting for its capital.
+- **Verified (`tests/construction_view.test.ts`):**
+  - At day 0 the view draws the same 116 columns as the architecture, shaft tops within half a drum (worst 0.55 m; drum 1.15 m). The static geometry's fractions are continuous, the simulation counts whole drums.
+  - After 120 simulated days of work, 7 drums are set and 2 columns stand visibly taller.
+  - It rebuilds only on change.
+- **Side effect:** 19 static column groups become 5 state groups, so fewer draw calls at the hall.
+- **Not done (C, noted in the module):**
+  - Colliders keep their day-0 height. A shaft stump sits above the bell base, which is already beyond the step-up, so walking is unaffected.
+  - Walls, relief carving, the yard (drum stacks, capital blocks) and ramps stay at day-0 geometry.
+- **Addendum (same session): the building site.** The view also draws the site the simulation counts (brief §1.2: "an active building site, with scaffolds, stone-cutters and rationed work gangs, is honest"):
+  - quarry-rough drums waiting and dressed drums ready to raise, up to 36 each, in rows in the masons' yard (`worksite`);
+  - finished double-bull capitals (the real capital mesh) and the block being carved (a roughed-out box of its size) at `worksite_capital`;
+  - timber scaffolds (four poles, ledgers every 2 m, a plank deck a man's height below the shaft top) at the column receiving drums and the shaft being fluted.
+  - It rebuilds when the yard counts or the working columns change.
+  - Scaffold form, stacking and layout are C: no evidence of the method was retrieved (D-022).
+- **Addendum (same session): smoke follows the same light.** The town haze sheets (settlement/haze.ts) were a hand-set grey scaled by a daylight ramp. The fire smoke puffs (fire.ts) were a constant unlit grey, which glowed on a moonless night. Both now use single scattering: ω · (the calibrated horizon radiance across the view + the sun's irradiance × a Henyey–Greenstein phase, g 0.6). The puffs add their fire's glow as they leave the flame (power × 0.6 × e^(−1.5·age), orange). ω 0.9, g and the glow are C.
+## D-100 — Visitor mode: access rules on the Terrace and in the town (research agent, session 3; `src/data/access.json`, research/ACCESS.md)
+- **Four rule levels per zone,** read only with PLAYER_MODE = visitor. Observer mode still bars nothing.
+  - **open:** free.
+  - **business:** the halmi is shown and a stated business belongs to this place.
+  - **escort:** only with a guard or official beside the visitor.
+  - **closed:** no entry, and no escort offered.
+- **Terrace, court absent (D-003):**
+  - Grand Stair: **open** by day; the stair heads watch.
+  - **The Gate of All Nations W door is the one check** (business). The visitor waits on the Gate's bench for an escort.
+  - The courts beyond the Gate: **escort** (business once recognised on the same errand, D-103).
+  - The street N of the Treasury: **business**. The letter is handed over there, at the N door posts.
+  - **Closed:** the Apadana, the Tachara, the Hadish, the Harem, the Tripylon, the Hall of 100 Columns site and camp,
+    the Treasury interior, the garrison quarters, the E fortification and the PF find-spot.
+  - **Night:** the whole Terrace is closed to the visitor. He is turned back at the stair heads.
+  - **Court resident:** the Apadana and the palaces stay closed except by summons; the Gate stays the check.
+- **Town:**
+  - Open: lanes, wells, roads and open ground.
+  - Closed: houses (unless invited), yards and pens, walled gardens and orchards, the Bagh-e Firuzi paradise and
+    estates, and the Dasht-e Gohar walled garden and hall.
+  - Business: workshops (the visitor may watch from the door), the storehouse, the stable, the official building, the
+    Area B craft yard and the way-station.
+- **Posts:** the 18 existing people_places posts get a kind:
+  - **check:** gate_w1/w2, gate_s1/s2 and treas_1–4;
+  - **watch:** stair_n/s, which bar at night;
+  - **bar:** apa, tachara, hadish and harem.
+
+  Proposed posts, all unplaced and all on existing door coordinates: the garrison W and S doors, the Treasury E door,
+  the Harem N passage, the Tripylon narrow E stair foot and the Gate E door. The keepers of the town places are not
+  soldiers.
+- **Why:**
+  - "All visitors had to pass through [the Gate], the only entrance to the terrace" (ISAC-PA, SX, B).
+  - The S approach was blocked by Xerxes (LIVIUS, SX).
+  - The palace guard goes with the king (XEN-CYR 7.5.68, a claim).
+  - Everything else is by analogy with gate and road practice at other palaces (HDT, XEN-CYR, Ezra; B claims).
+- **Tier:** C for every rule and post kind. No text describes anyone being checked at Persepolis (Q-121, Q-123, Q-129).
+- **Alternatives rejected:**
+  - Checks at the stair heads *and* the Gate: the visitor would be stopped three times on one climb, and nothing
+    supports a double check.
+  - The courts open to anyone once through the Gate: a stranger would roam the royal Terrace alone with the court away.
+- **Note for the lead:** `sim.ts` CHECK_POSTS currently includes the stair heads. access.json proposes they watch.
+
+## D-101 — The visitor's documents: a halmi of the satrap at Susa and a sealed letter for the treasurer (research agent, session 3)
+- **The halmi:**
+  - Issued by "the satrap at Susa", named by office only: no 467 holder is known (Q-120). It follows the Darius-era
+    pattern that the issuer belongs to the place the journey starts from (HALMI-SX, HUNARA2024, HYLAND2022; B pattern).
+  - Route Susa → Pārsa.
+  - Scale: 1.5 qa flour and 1 qa wine or beer a day (HYLAND2022, B).
+  - The visitor travels alone, on foot, with no guide. He is a messenger (Elam. *hutlak*, PF 45, A Darius-era).
+- **Form:** folded leather, tied, with a clay bulla (HALMI-SX, ARSHAMA-TA; B form, C instance). **It is never opened in
+  the world, and no text is rendered on it.** The only surviving halmi (Aršāma's) names other people and is later, and
+  brief §10 allows only published texts.
+- **The letter:** a sealed letter for the treasurer at Pārsa, in Aramaic on leather with a bulla. Its content is unknown
+  to the visitor and never shown. Treasury letters are orders from officials addressed to the treasurer (PT-WAGE,
+  IR-PET; B); the instance is C.
+- **What the documents do:** they entitle the visitor to rations at the storehouse and the way-station (B practice). They
+  give him a reason to be let through the Gate and escorted to the Treasury door (C). They open nothing else.
+- **Alternatives:**
+  - A halmi "of the king": attested (NN 0859), but it implies travel to or from the court, and the court is away.
+  - A named Darius-era issuer: rejected, because it would place a Darius-era person in 467 (§9.1).
+
+## D-102 — The errand "a sealed letter for the treasurer at Pārsa" (research agent, session 3)
+- **Steps** (access.json `errand.steps`; every place id and coordinate is from existing data):
+  - 0 (optional) way-station on the royal road: rations;
+  - 1 storehouse `stores-0001`: rations;
+  - 2 the stair;
+  - 3 the stop at the Gate W door, then the wait on the bench;
+  - 4 escorted to the Treasury street;
+  - 5 hand-over at the N door posts; the letter goes to the scribes (`treasury_desk`); word comes back: tomorrow;
+  - 6 the night at `stables-0001` (D-104);
+  - 7 next morning: recognised at the Gate, he receives the Treasury's sealed answer at the door;
+  - 8 `official-0001`: a halmi for the return journey;
+  - 9 the storehouse: the first day's ration;
+  - 10 out by the royal road.
+- **Timing (C):**
+  - Letter handed in before midday: answer the next morning from sunrise + 1 h. After midday: the morning after next.
+  - One day more if silver is weighed out that day (E-05).
+  - The return halmi: the same day if asked before midday, otherwise next morning.
+  - The Terrace is open to the visitor from sunrise + 0.5 h to sunset − 0.5 h.
+- **Why this errand:**
+  - The Treasury archive is the one archive that is live in 467: its dated texts peak in Xerxes years 19–20
+    (IR-TREAS, B).
+  - Its letters are addressed to the treasurer, and the tablets were kept in a NE room of the Treasury (B).
+  - Journeys that start from Pārsa carry a halmi of the Pārsa administration (HUNARA2024, B).
+  - Each link is B, and the chain, the places and the waits are C.
+- **The Fortification archive is not a destination:** Darius-era, stored in the NE bastion, bricked up (PFA-ISAC; D-104).
+- **Variant B** (the lead chooses): the visitor is escorted into the scribes' room for the hand-over instead of
+  waiting outside.
+- **Words:** only lexicon ids.
+  - The guard: `el:halmi` (the existing line).
+  - The visitor: `arc:ʾgrh` + `arc:gdbr` ("letter … treasurer").
+  - The scribe: `arc:ywm` + `arc:ḥd` ("one day").
+
+  The phrases are composed, C. There is no Elamite sentence, and everything else is gesture (Q-127).
+
+## D-103 — The stop: gesture first, no combat, no punishment; recognition (research agent, session 3)
+- **The sequence** (access.json `stop_procedure`):
+  - The guard faces the visitor, steps half a pace into the way and raises an open hand.
+  - The spear stays upright, butt to the ground, as the relief guards stand. It is **never levelled**.
+  - He asks "halmi?" (`el.ask_document.halmi`) and looks at the bulla. He does not read the leather.
+  - The business is shown by the letter's bulla.
+  - He sends for an escort, or makes a flat-hand gesture back.
+- **If the visitor walks on:** the two men of the post close the way with their bodies, the patrol pair comes, and
+  they walk him to the zone's edge. **No blows, no weapons used, no arrest, no punishment shown** (brief §9.1 and §12).
+- **Recognition,** from lives.json `familiarity` (stopped 0.5, recognise ≥ 0.25, half-life 6 days):
+  - Last stop admitted and the same errand still open: a nod, no question, and the courts relax from escort to
+    business.
+  - Last stop turned back: he bars the way at once.
+  - The errand closed: the full check again.
+- **Basis:**
+  - B practice, all claims: HDT 3.77 (known men pass unquestioned; the court messengers ask why they have come), 3.118,
+    3.128 and 3.140 (the doorkeeper carries word in); XEN-CYR 7.5.25; Ezra 5:9–10.
+  - C for the build.
+- **Not used:** HDT 3.118's mutilation of the gatekeepers; Esther 4:11's death penalty; Diodorus' triple wall.
+
+## D-104 — Places of the errand in the town; the PF find-spot is not an office (research agent, session 3)
+- **The office that issues the return halmi:** `official-0001`, the ~1 ha building N of the Terrace with "an official
+  function" (GONDET2018, B existence). Its use as this office is C (Q-126).
+- **Rations:** the storehouse `stores-0001` (D-043), where the storekeeper checks the halmi. This is the only halmi check
+  that is attested in practice (B). The place is C.
+- **Lodging:** `stables-0001`, the state stable by the royal road, serves as the post station (relay horses: HDT 8.98, B
+  claim). The reason: the town's `station` in town.json (−1800, 600) is abstract and not rendered, and the rendered
+  Kur way-station is 11.0 km from the stair foot, 2.2–2.5 h each way on foot at 1.2–1.4 m/s (lives.json
+  walk_ms), which is not playable daily. Tier C. **It does
+  not move the simulation's abstract `station`.**
+- **The PF archive find-spot** (NE bastion; terrace outline vertices 31–36) is **closed**. Its tablets are Darius-era;
+  its entrance was bricked up in antiquity at an unknown date (PFA-ISAC, SX). In 467 it is a dead store, not an office
+  (C).
+- **Conflict logged, not resolved:** Aršāma's "no rations for extra days" against the simulation's multi-day station
+  rations (Q-128). The visitor's waiting day's keep comes from the storekeeper against the halmi (C).
 ## D-080 The household's day: shared meals, the quern, infants on demand, children minded, marriage, the gangs' hours (Phase 5 shadow-review fixes, session 3)
 - **Why:** the §13.11 shadow review (`REVIEWS/shadow_phase5.md`) failed Phase 5 (10 of 20 people below 4) on systemic causes it traced to code: the heaviest workers ate least (C1), children following their mother never slept (C2), infants were fed only at the mother's meals (C3), marriage took mothers from their children (C4), children had no mother link and 20 % of households a same-age pair (C5), households did not eat together (C6), clockwork times (C7), the gangs' hours against E-60 (C8), weather gaps (C9), activities contradicting their reasons (C10) and the shadow tool's household labels (C11). Each is fixed at its cause, not by jitter.
 - **The household's day (`Population.hday`, `lives.json` meals, household_bread; Q-064; C):** every plan of a town or plain household is built around one shared day. Breakfast after sunrise (later on a baking day), or before dawn on a field day so that the household eats before its people go out; the midday meal at home at the house's own midday, at the gang's call (12:00) at the site, or in the field; the evening meal together before sunset (earlier in winter, later on a sheaves day). Durations follow the number who eat, a baking day, the winter evening and a birthday. Anyone who leaves before the household eats has bread and water in hand first; the E-64 heat rest comes after the midday meal, never instead of it; split morning and afternoon tasks keep it; reapers eat in the shade by the field or at home. A post-pass (`meals()`) fills any gap of more than ~7 h awake with bread and water where the person is. Each house keeps its own sense of midday and evening (a fixed habit of the house, within ±0.25 h: `house_habit_h`), so the villages are not in lockstep. Evidence: rations were grain, flour, beer and wine (PF, A/B); daily bread issues to workers (IR-PET, B); how many meals and when is not recorded (C).

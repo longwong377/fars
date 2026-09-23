@@ -7,6 +7,7 @@ import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
 import { float, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color, Fn, positionWorld, cameraPosition, normalize, atan, asin, abs, exp, clamp, sqrt, mx_fractal_noise_float, int } from 'three/tsl';
 import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt } from './ephemeris';
 import { VolumetricClouds } from './clouds';
+import { skyCalibration } from './horizon';
 
 export interface SkyState { sunDir: THREE.Vector3; sunAlt: number; moonDir: THREE.Vector3; moonAlt: number; moonFraction: number; daylight: number; nightFactor: number }
 
@@ -24,6 +25,9 @@ export class SkySystem {
   private uMoonSun = uniform(new THREE.Vector3(0, 1, 0));
   private lastStarJD = -1;
   twilight = 1;
+  /** radiance of the sky just above the horizon across the view, after calibration: the fog colour (D-060) */
+  readonly horizon = new THREE.Color(0.6, 0.63, 0.68);
+  private uSkyScale = uniform(1);
   state: SkyState = { sunDir: new THREE.Vector3(0, 1, 0), sunAlt: 45, moonDir: new THREE.Vector3(0, -1, 0), moonAlt: -10, moonFraction: 0, daylight: 1, nightFactor: 0 };
 
   readonly clouds: VolumetricClouds;
@@ -73,6 +77,7 @@ export class SkySystem {
     this.sky.frustumCulled = false;
     // SkyMesh pins its depth to 1.0, which is the NEAR plane under reversed-Z (WebGPU path) — draw it first, untested
     const skyMat = this.sky.material as THREE.Material; skyMat.depthTest = false; skyMat.depthWrite = false; this.sky.renderOrder = -10;
+    { const cn = (skyMat as any).colorNode; (skyMat as any).colorNode = vec4(cn.xyz.mul(this.uSkyScale), 1); } // dome calibrated against the skylight (D-060)
     scene.add(this.sky);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(shadowMapSize, shadowMapSize);
@@ -139,7 +144,7 @@ export class SkySystem {
     pos.needsUpdate = true;
   }
 
-  update(jdUT: number, camPos: THREE.Vector3, cloudCover: number, haze: number, wind?: { ms: number; fromDeg: number; tSeconds: number }) {
+  update(jdUT: number, camPos: THREE.Vector3, cloudCover: number, haze: number, wind?: { ms: number; fromDeg: number; tSeconds: number }, view?: THREE.Vector3) {
     const s = sunHorizon(jdUT), mo = moonHorizon(jdUT), ph = moonPhase(jdUT);
     const sd = azAltToWorld(s.azimuth, s.altitude), md = azAltToWorld(mo.azimuth, mo.altitude);
     this.state.sunDir.set(sd[0], sd[1], sd[2]); this.state.sunAlt = s.altitude;
@@ -177,7 +182,12 @@ export class SkySystem {
     const C = this.clouds; C.mesh.position.copy(camPos); C.coverage.value = cloudCover; C.sunDir.value.copy(this.state.sunDir);
     C.sunColor.value.copy(this.sun.color).multiplyScalar(this.sun.visible ? this.sun.intensity / 3.2 : 0).add(new THREE.Color(0.55, 0.6, 0.75).multiplyScalar(this.moonLight.intensity * 0.5));
     C.ambient.value.copy(this.hemi.color).multiplyScalar(this.hemi.intensity * 0.55);
-    C.haze.value.setRGB(0.62 + 0.1 * (1 - day), 0.66, 0.74 - 0.08 * (1 - day)).multiplyScalar(0.05 + 0.95 * twilight);
+    // dome calibration and the horizon radiance (D-060): fog, far cloud haze and rain shafts converge to it
+    { const sk = this.sky, P = { turbidity: sk.turbidity.value as number, rayleigh: sk.rayleigh.value as number, mieCoefficient: sk.mieCoefficient.value as number, mieDirectionalG: sk.mieDirectionalG.value as number };
+      const hc = this.hemi.color, hemiE = this.hemi.intensity * (0.2126 * hc.r + 0.7152 * hc.g + 0.0722 * hc.b);
+      const cal = skyCalibration([this.state.sunDir.x, this.state.sunDir.y, this.state.sunDir.z], P, hemiE, night, view?.x ?? 1, view?.z ?? 0);
+      this.uSkyScale.value = cal.scale; this.horizon.setRGB(cal.horizon[0], cal.horizon[1], cal.horizon[2]); }
+    C.haze.value.copy(this.horizon);
     if (wind) { const a = ((wind.fromDeg + 180) * Math.PI) / 180; C.wind.value.set(Math.sin(a) * wind.ms * 2.5, -Math.cos(a) * wind.ms * 2.5); C.time.value = wind.tSeconds; } // winds aloft ~2.5 × surface (C)
     if (Math.abs(jdUT - this.lastStarJD) > 10 / 86400) { this.updateStars(jdUT); this.updateGalactic(jdUT); this.lastStarJD = jdUT; }
   }

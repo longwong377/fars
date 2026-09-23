@@ -11,7 +11,7 @@ export interface Settings {
 }
 export const DEFAULT_KEYS: Record<string, string> = {
   forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD', run: 'ShiftLeft', interact: 'KeyE', pause: 'Escape', overlay: 'F3',
-  map: 'KeyM', chronicle: 'KeyJ', // translation layer only (out-of-world)
+  map: 'KeyM', mapZoom: 'KeyZ', chronicle: 'KeyJ', // translation layer only (out-of-world)
 };
 export const DEFAULT_SETTINGS: Settings = {
   quality: 'high', forceWebGL: false, playerMode: 'observer', courtCalendar: 'evidence', translation: false, fov: 70, headBob: true,

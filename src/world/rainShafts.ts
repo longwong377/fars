@@ -1,11 +1,13 @@
 // Distant rain shafts (brief §1.1 moment "rain moving across the plain toward the columns"; §5.3). The weather gives each
 // wet day one rain episode at the Terrace (weatherState.ts); its cell is modelled as a moving object: before the episode
 // it stands upwind and drifts in on the steering wind, afterwards it moves off downwind (WeatherSystem.rainCell). The
-// cell is a cluster of vertical columns from the ground to the cloud base. Each column is drawn analytically, with no
-// raymarch: its opacity is 1 − exp(−σ·chord), where the chord through a cylinder at a side point seen horizontally is
-// 2R·|cos θ| (θ between the view and the surface normal). Streaks drift down; the top fades into the cloud base; scene
-// fog supplies the aerial perspective. σ and the shapes are C: rain shafts read as translucent grey curtains at
-// 5–40 km. Snow cells are paler and softer.
+// cell is a cluster of vertical columns from the ground to the cloud base, each with a Gaussian density profile across it
+// (a hard-walled cylinder read as a solid white drum, session 3). Drawn analytically, with no raymarch: the mesh is a
+// cylinder of twice the core radius; a view ray meeting its side at angle θ to the surface normal (horizontal) passes the
+// axis at b = 2R·sin θ, and the optical depth through a Gaussian column is σ·R·√π·exp(−b²/R²) = σ·R·√π·exp(−4 sin²θ).
+// Streaks drift down; the top fades into the cloud base; scene fog supplies the aerial perspective. Colour: a rain curtain
+// under the cloud deck is shaded and reads darker than the horizon sky behind it (C, 0.7 of the calibrated horizon
+// radiance, D-060); snow is slightly brighter. σ and the shapes are C.
 import * as THREE from 'three/webgpu';
 import { uniform, positionWorld, cameraPosition, normalWorld, normalize, vec3, vec2, float, dot, abs, exp, smoothstep, clamp, mx_noise_float, length, max } from 'three/tsl';
 import type { Terrain } from '../terrain/heightfield';
@@ -13,7 +15,7 @@ import { azAltToWorld } from '../sky/ephemeris';
 import { CLOUD_BASE } from '../sky/clouds';
 import { Rng } from '../core/rng';
 
-const SIGMA = 0.0003; // 1/m extinction in the shaft (C: a 6 km chord through a heavy core → ~0.85 opacity)
+const SIGMA = 0.00025; // 1/m extinction at the core (C: a 4.4 km core radius → optical depth ~2 through the middle, ~0.86 opacity)
 interface Shaft { mesh: THREE.Mesh; radius: ReturnType<typeof uniform>; off: [number, number]; scale: number }
 
 export class RainShafts {
@@ -29,12 +31,12 @@ export class RainShafts {
       const m = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.FrontSide, fog: true });
       const v = normalize(cameraPosition.sub(positionWorld)), n = normalWorld;
       const cosT = abs(dot(vec2(n.x, n.z), vec2(v.x, v.z)).div(max(length(vec2(v.x, v.z)), 1e-3)));
-      const chord = R.mul(2).mul(cosT);
+      const tau = R.mul(SIGMA * Math.sqrt(Math.PI)).mul(exp(float(1).sub(cosT.mul(cosT)).mul(-4))); // Gaussian column, mesh at 2R
       const y01 = clamp(positionWorld.y.sub(this.baseY).div(max(this.topY.sub(this.baseY), 1)), 0, 1);
-      const streak = mx_noise_float(vec3(positionWorld.x.mul(0.004), positionWorld.y.mul(0.0006).add(this.uTime.mul(0.012)), positionWorld.z.mul(0.004))).mul(0.3).add(0.8);
-      const fade = float(1).sub(smoothstep(0.7, 1.0, y01)).mul(smoothstep(0.0, 0.03, y01));
+      const streak = mx_noise_float(vec3(positionWorld.x.mul(0.0015), positionWorld.y.mul(0.0004).add(this.uTime.mul(0.01)), positionWorld.z.mul(0.0015))).mul(0.15).add(0.9);
+      const fade = float(1).sub(smoothstep(0.4, 1.0, y01)).mul(smoothstep(0.0, 0.03, y01));
       m.colorNode = this.uTint;
-      m.opacityNode = float(1).sub(exp(chord.mul(-SIGMA).mul(float(1).sub(this.uSnow.mul(0.4))))).mul(fade).mul(streak).mul(this.uStrength);
+      m.opacityNode = float(1).sub(exp(tau.negate().mul(float(1).sub(this.uSnow.mul(0.4))))).mul(fade).mul(streak).mul(this.uStrength);
       const mesh = new THREE.Mesh(geo, m); mesh.frustumCulled = false; mesh.visible = false; mesh.castShadow = false; mesh.receiveShadow = false; mesh.renderOrder = 2;
       mesh.userData = { tier: 'C', src: 'RECON', note: 'rain cell shafts: position from the weather episode timing and the steering wind; optics C' };
       this.group.add(mesh);
@@ -48,7 +50,7 @@ export class RainShafts {
   update(dt: number, camPos: THREE.Vector3, cell: { distanceM: number; bearingTrueDeg: number; intensity: number; snow: boolean; radiusM: number } | null, skyTint: THREE.Color) {
     this.uTime.value += dt;
     const show = !!cell && cell.distanceM > cell.radiusM * 0.8 && cell.distanceM < 70000;
-    for (const s of this.shafts) s.mesh.visible = show;
+    for (const s of this.shafts) s.mesh.visible = false;
     if (!show || !cell) return;
     const [dx, , dz] = azAltToWorld(cell.bearingTrueDeg, 0); // unit vector toward the cell (world x/z)
     const cx = dx * cell.distanceM, cz = dz * cell.distanceM;
@@ -56,9 +58,10 @@ export class RainShafts {
     this.baseY.value = ground - 60; this.topY.value = camPos.y + CLOUD_BASE;
     for (const s of this.shafts) {
       const r = cell.radiusM * s.scale, x = cx + s.off[0] * cell.radiusM, z = cz + s.off[1] * cell.radiusM;
-      s.mesh.position.set(x, this.baseY.value, z); s.mesh.scale.set(r, this.topY.value - this.baseY.value, r); s.radius.value = r;
+      s.mesh.position.set(x, this.baseY.value, z); s.mesh.scale.set(2 * r, this.topY.value - this.baseY.value, 2 * r); s.radius.value = r;
+      s.mesh.visible = Math.hypot(x - camPos.x, z - camPos.z) > 2.1 * r; // FrontSide only: hidden once the camera is inside the column's mesh
     }
     this.uStrength.value = cell.intensity; this.uSnow.value = cell.snow ? 1 : 0;
-    this.uTint.value.copy(skyTint).multiplyScalar(cell.snow ? 1.1 : 0.8);
+    this.uTint.value.copy(skyTint).multiplyScalar(cell.snow ? 1.05 : 0.7); // skyTint: the calibrated horizon radiance (D-060)
   }
 }

@@ -74,3 +74,36 @@ Access key: SX = search extract (the host is blocked, B6); FT = downloaded or re
 Also used, with existing keys: SUMNER1986, LIVIUS-NR, ALVAREZMON, WMO-CLINO, COP-DEM, SRTM-TILES (the AWS terrarium z10 tiles, fetched again for the horizon check), PEOPLE-R.
 
 Seen as titles only (not keyed): D. T. Potts 2023, "Pain et vin: equine rations of bread and wine" (*Cheiron*), a lead for stables; "The fruits of Pārsa", *Paleopersepolis* (2021), pp. 133–67, a lead for orchards.
+
+## Visitor mode (research agent, 2026-09-23): 11 keys added to `src/data/sources.json`
+Scope: `research/ACCESS.md` and `src/data/access.json`. Access key: SX = search extract (host blocked, B6); FT = read in
+full. GitHub raw was reachable. So this pass read four sets of texts in full: the CDLI dump (the 67 PF texts),
+Herodotus and Xenophon's *Cyropaedia* (Perseus TEI; new passages HDT 1.99, 1.123, 3.72, 3.77, 3.84, 3.118, 3.128,
+3.140, 5.35, 5.52, 7.239 and XEN-CYR 4.5.14, 7.5.25–29, 7.5.65–68, 8.1.6), and the King James Bible.
+
+| key | cite (short) | access | used for |
+|---|---|---|---|
+| KJV-BIBLE | King James Bible (public domain), JSON edition | FT | Nehemiah 2:7–9 (letters to governors, escort); Ezra 5:9–10 (officials ask who authorised and write down names), 6:1–2 (records kept where the treasures were); Esther (late, C) |
+| ARSHAMA-TA | Aršāma's travel authorisation for Nakhthor (Bodleian leather letters) | SX | the only surviving halmi: addressees on the route, daily rations, no rations for extra days |
+| HALMI-SX | search summaries of Henkelman on the halmi and Aršāma's seal, and of Iranica "Persepolis administrative archives" | SX; **page attribution uncertain** | halmi senses; leather with a bulla; the Susa satrap's halmi; Ziššawiš as an issuer |
+| MDPI-ARACH2025 | *Religions* 16/8 (2025) 965 | SX | NN 0859, a halmi of the king (Maudadda, to Arachosia) |
+| HUNARA2024 | "One Person, Several Names", *Hunara* 2/1 (2024) | SX | Kaudama with a halmi of Ziššawiš, a journey from Persepolis |
+| POTTS2024 | Potts, *barrišdama* and *mihmāndār*, *Ktèma* 49 (2024) | SX (abstract) | guides escorting travellers |
+| HENK2002 | Henkelman, "Exit der Posaunenbläser", ARTA 2002.007 | SX (abstract) | PF lance-bearers were labour inspectors and escorts, not guards |
+| SEALDOC2018 | "El documento sellado en la Persia aqueménida" (2018) | SX | *miyatukkaš* = \*viyātika-, used interchangeably with halmi |
+| AZZONI2019 | Azzoni, ARTA 2019.003 | SX | Aramaic *ptp* "rations" (PF 0999) |
+| PFA-ISAC | ISAC PFA pages; ARTA 2007.001; Wikipedia | SX | the PF find-spot in the NE bastion, bricked up in antiquity (the key was named in PEOPLE.md but missing from sources.json) |
+| ALEX-HIST | Diodorus 17.70–71; Arrian 6.29 (via extracts) | SX | "gates … for security" (the triple wall is not adopted); guardians of Cyrus' tomb |
+
+Also used, with existing keys: CDLI-PF (new readings, FT: *hal-mi* PF 15; *du-iš-da* in 26 texts; *hu-ut-lak* PF 45;
+*kur-min* in 47 texts), HDT, XEN-CYR, IR-ADMIN, IR-PET, IR-TREAS, IR-PERS, IR-FORT, HYLAND2022, RATION-30 (the
+Aššašturrana travel text), PT-WAGE, ISAC-PA (the Gate as "the only entrance"; the garrison quarters), ISAC-FINDS,
+IRANTOUR-TREAS, LIVIUS (the S approach blocked by Xerxes; the garrison quarters' "conventional" name), LIVIUS-TR,
+LIVIUS-TREAS, ROYALROAD-GIS, REF-PLAN, GONDET2009, GONDET2018, TOLAJORI2017, PW2017, BAKER2014, QANAT-WH2018,
+POTTS2023, RELIEF-R, EVENTS-R, PEOPLE-R.
+
+New sources this pass: **11** (cap ≈ 10). The extra one is KJV-BIBLE, the only full-text source for the biblical gate
+and letter analogies.
+Tried and blocked this pass: pazand.ir (the Q-text article), docdroid (a copy of Hallock's glossary),
+achemenet, mdpi, hunara.org, academia, ResearchGate, cabinet.ox.ac.uk, arshama.bodleian, blogs.bodleian,
+achaemenica, Wikipedia, antigonejournal, dokumen.pub, ephe.psl.eu, scholar.colorado.edu, bradford-delong.

@@ -106,3 +106,16 @@ Conflict: Iranica (IR-ARCH2) gives "100–150 Achaemenid settlements within the 
 3. Measured monthly discharge for either river (only the regime is sourced).
 4. Positions of Band-e Bas, Asiyab, Rud-i Main and Qondashloo.
 5. The first way-station on each road (PF Q texts: Hallock 1969).
+
+## 9. As built (Phase 7, session 3; D-037 to D-040)
+**Placeholder or weak, read first:** the Naqsh-e Rustam relief figures are schematic silhouettes and the DNa/DNb panels are dressed but not inscribed (both flagged PLACEHOLDER in the dev overlay); the Xerxes tomb spacing (60 m) and the façade's arm widths, recess, columns and door are C (Q-076, Q-077); the Ka'ba stair/door side and window layout are C (Q-078); 33 of the 37 villages, all 37 canals, all field plots, tracks and orchards are placed by rule (C).
+
+Data added to `src/data/plain.json` (each with tier, source and note):
+- `river_*.channel`: trapezoid fitted to the flow table (bed, side slope, bank height; C); `river_*.riparian`: species (IR-RIPARIAN analogy + SAEIDI2021 Platanus), band, spacing and gaps (C).
+- `irrigation_systems_sumner.procedural_rule`: gradient 0.5 m/km, lengths 2.5-7 km, bank crest 0.45 m (C).
+- `villages_unlocated.layout` (household 6, compound and room sizes, 65 persons/ha, 30,000 people for the 33 unlocated sites; C) and `.tracks` (C).
+- `orchards_gardens.rule` fill, tree spacing, vine share; `woodland.rule` crown and height ranges, thinning near the capital (C).
+- `nr_xerxes_tomb.xy` (C, Q-076) and a top-level `naqsh_e_rustam` block: cliff line and height, ancient ground (-5 m at the foot, B), façade registers (B) and C proportions, Ka'ba dimensions (C), Elamite relief size (B).
+- New source keys: NR-ACHAEMENICA, NR-IRANICA, IR-RIPARIAN (all search extracts).
+
+What the build does with them: `src/world/plain/` (rivers carved into the heightfield and drawn with a date-driven water level; fields, crops, orchard floors and woodland in the terrain material; near crop tufts; trees near/far; 37 villages; 37 canals; tracks; two quarries; Naqsh-e Rustam). Tests: `tests/plain.test.ts`; renders and measured budgets: `tests/e2e/plain.spec.ts`.
