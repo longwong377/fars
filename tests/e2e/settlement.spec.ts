@@ -48,9 +48,14 @@ for (const v of VIEWS) for (const town of v.ab ? [true, false] : [true]) {
       for (let i = 0; i < (v.frames ?? 6); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
       const tag = `${v.n}${town ? '' : '-notown'}-${Q}-${info.project.name}`;
       await page.screenshot({ path: `shots/settlement-${tag}.png` });
-      const st = await page.evaluate(() => { const P = (window as any).__parsa; const s = P.stats(); const S = P.world.settlement; return { drawCalls: s.drawCalls, triangles: s.triangles, backend: s.backend, town: S ? S.stats() : null, fires: P.world.fire.stats(), sun: P.sky() }; });
+      const st: any = await page.evaluate(() => { const P = (window as any).__parsa; const s = P.stats(); const S = P.world.settlement; return { drawCalls: s.drawCalls, triangles: s.triangles, backend: s.backend, town: S ? S.stats() : null, fires: P.world.fire.stats(), sun: P.sky() }; });
+      // the settlement's own share at this very view: the same frame with the settlement group hidden (its fires stay)
+      if (town) { await page.evaluate(() => { (window as any).__parsa.world.settlement.group.visible = false; }); await page.evaluate(() => (window as any).__parsa.renderOnce());
+        const hid = await page.evaluate(() => { const s = (window as any).__parsa.stats(); return { drawCalls: s.drawCalls, triangles: s.triangles }; });
+        await page.evaluate(() => { (window as any).__parsa.world.settlement.group.visible = true; });
+        st.added = { drawCalls: st.drawCalls - hid.drawCalls, triangles: st.triangles - hid.triangles }; }
       const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {}; all[tag] = { cam, ...st }; writeFileSync(f, JSON.stringify(all, null, 1));
-      console.log(tag, JSON.stringify({ cam: cam.map((x: number) => +x.toFixed(1)), drawCalls: st.drawCalls, triangles: st.triangles, backend: st.backend, fires: st.fires, haze: st.town?.haze?.maxAlpha, colliders: st.town?.liveColliders }));
+      console.log(tag, JSON.stringify({ cam: cam.map((x: number) => +x.toFixed(1)), drawCalls: st.drawCalls, triangles: st.triangles, added: st.added, backend: st.backend, fires: st.fires, haze: st.town?.haze?.maxAlpha, colliders: st.town?.liveColliders }));
     }
     console.log('errors:', errs.slice(0, 8).join('\n'));
   });

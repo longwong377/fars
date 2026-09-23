@@ -90,7 +90,7 @@ export class Settlement {
     for (const s of this.plan.sites) {
       const green = (k: number) => { const c = s.cell[k]; if (c < 0) return c === -1; const kd = s.plots[c].kind; return kd === 'garden' || kd === 'yard' || (kd === 'elite' && s.sub[k] === 3); };
       const colOf = (k: number): RGB => { const c = s.cell[k]; if (c < 0) return c === -4 ? lin([0.56, 0.49, 0.39]) : lin([0.53, 0.46, 0.36]); const sb = s.sub[k]; return sb === 1 ? lin([0.44, 0.38, 0.3]) : sb === 2 ? lin([0.56, 0.49, 0.38]) : lin([0.5, 0.43, 0.33]); };
-      const tile = (i0: number, j0: number, n: number, c: RGB) => { const P = (i: number, j: number) => { const g = s.grid(s.u0 + i, s.v0 + j); return [g[0], H(g[0], g[1]) + 0.04, -g[1]]; };
+      const tile = (i0: number, j0: number, n: number, c: RGB) => { const P = (i: number, j: number) => { const g = s.grid(s.u0 + i, s.v0 + j); return [g[0], H(g[0], g[1]) + 0.1, -g[1]]; };
         ground.quad(P(i0, j0), P(i0 + n, j0), P(i0 + n, j0 + n), P(i0, j0 + n), [0, 1, 0], c, c, c, c, 0); };
       for (let bj = 0; bj < s.H; bj += 4) for (let bi = 0; bi < s.W; bi += 4) {
         let all = true; for (let j = bj; j < Math.min(s.H, bj + 4) && all; j++) for (let i = bi; i < Math.min(s.W, bi + 4); i++) if (green(s.k(i, j))) { all = false; break; }
@@ -115,7 +115,7 @@ export class Settlement {
       m.userData = { tier: 'C', src: 'RECON', note: `settlement cluster ${cl.id} (${mat})`, describe: (hit: any) => desc[owner[hit?.faceIndex ?? -1]] ?? null };
       this.group.add(m); this.info.tris += b.tris; this.info.meshes++; if (cl.id === 'gardens') m.castShadow = false; else this.casters.push(m);
     }
-    if (ground.tris) { const gm = surfaceMaterial('road', { vertexColors: true }) as any; gm.polygonOffset = true; gm.polygonOffsetFactor = -2; gm.polygonOffsetUnits = -2;
+    if (ground.tris) { const gm = surfaceMaterial('road', { vertexColors: true }) as any; gm.polygonOffset = true; gm.polygonOffsetFactor = -4; gm.polygonOffsetUnits = -8; // 10 cm over the ground: the terrain's coarser LODs must not poke through
       const m = new THREE.Mesh(ground.toGeometry(), gm); m.name = 'settlement:ground'; m.receiveShadow = true; m.matrixAutoUpdate = false; const own = ground.owner;
       m.userData = { tier: 'C', src: 'RECON', note: gDesc[0].note, describe: (hit: any) => gDesc[own[hit?.faceIndex ?? -1]] ?? gDesc[0] }; this.group.add(m); this.info.tris += ground.tris; this.info.meshes++; }
     if (refuse.tris) { const m = new THREE.Mesh(refuse.toGeometry(), mats.refuse); m.name = 'settlement:refuse'; m.receiveShadow = true; m.matrixAutoUpdate = false; const own = refuse.owner;
@@ -144,7 +144,9 @@ export class Settlement {
       cl.desc.push({ tier: row?.tier ?? 'C', src: row?.src ?? 'RECON', note: `${p.id}: ${kindLabel(p)}${p.capacity ? `, houses ${p.capacity}` : ''}, ${p.area} m² (${p.roofed} m² roofed). ${p.note || ''} ${row?.note ?? HOUSE_BASIS}`.replace(/\s+/g, ' ') });
       const rng = new Rng(hashString(p.id), 'colour');
       const official = p.kind === 'official';
-      const baseC: RGB = official ? [0.58, 0.57, 0.45] : [MUD[0] * rng.range(0.9, 1.08) + rng.range(-0.015, 0.015), MUD[1] * rng.range(0.92, 1.06), MUD[2] * rng.range(0.9, 1.06)];
+      // each house its own batch of loam: brightness varies, the hue only slightly toward warmer or greyer (C)
+      const k = rng.range(0.88, 1.07), warm = rng.range(-0.012, 0.012);
+      const baseC: RGB = official ? [0.58, 0.57, 0.45] : [MUD[0] * k + warm, MUD[1] * k, MUD[2] * k - warm];
       pcol[p.idx] = lin(baseC);
     }
     // walls

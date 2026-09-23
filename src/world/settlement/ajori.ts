@@ -93,7 +93,7 @@ export function buildAjori(g: { c: P2; theta: number }, H: (e: number, n: number
   for (const s of [-1, 1]) { box(s * rl - (s > 0 ? 0.6 : 0), s * rl + (s < 0 ? 0.6 : 0), cw, rw - 0.6, 0, 0.45, true, bc); box(s * rl - (s > 0 ? 0.6 : 0), s * rl + (s < 0 ? 0.6 : 0), -rw + 0.6, -cw, 0, 0.45, true, bc); }
   // stepped crenellations along the top (C)
   for (let u = -L + 0.6; u < L - 0.5; u += 2.2) for (const s of [-1, 1]) { box(u, u + 1.1, s * W - (s > 0 ? 0.9 : 0), s * W + (s < 0 ? 0.9 : 0), top, top + 0.7, false); box(u + 0.25, u + 0.85, s * W - (s > 0 ? 0.9 : 0), s * W + (s < 0 ? 0.9 : 0), top + 0.7, top + 1.2, false); }
-  for (let v = -W + 2.8; v < W - 2.2; v += 2.2) for (const s of [-1, 1]) { if (Math.abs(v) < cw + 1) continue; box(s * L - (s > 0 ? 0.9 : 0), s * L + (s < 0 ? 0.9 : 0), v, v + 1.1, top, top + 0.7, false); box(s * L - (s > 0 ? 0.9 : 0), s * L + (s < 0 ? 0.9 : 0), v + 0.25, v + 0.85, top + 0.7, top + 1.2, false); }
+  for (let v = -W + 2.8; v < W - 2.2; v += 2.2) for (const s of [-1, 1]) { box(s * L - (s > 0 ? 0.9 : 0), s * L + (s < 0 ? 0.9 : 0), v, v + 1.1, top, top + 0.7, false); box(s * L - (s > 0 ? 0.9 : 0), s * L + (s < 0 ? 0.9 : 0), v + 0.25, v + 0.85, top + 0.7, top + 1.2, false); }
   const bg = brick.toGeometry(); const bm = new THREE.Mesh(bg, surfaceMaterial('baked_brick')); bm.name = 'settlement:tol_ajori:body'; bm.castShadow = bm.receiveShadow = true; bm.matrixAutoUpdate = false;
   bm.userData = { tier: 'B/C', src: 'TOLAJORI2017;AJORI-BRICK2018;AJORI2013', note: TIER_NOTE }; group.add(bm);
   // glazed panels: quads 4 cm proud of the façades (short sides, flanking the corridor mouths) and along the corridor
