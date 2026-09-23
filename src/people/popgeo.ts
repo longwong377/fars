@@ -19,7 +19,7 @@ import { footprint } from '../arch/spec';
 import { h32, salt } from './hash';
 import type { ActivityId } from './activities';
 import type { TownPlan } from '../world/settlement/plan';
-import { TownWalk, plotCells, openCode, walkableCell } from '../world/settlement/walk';
+import { TownWalk, plotCells, openCode, walkableCell, siteLine } from '../world/settlement/walk';
 import { Site, OUT, ROOM, YARD, toLocal, toGrid } from '../world/settlement/site';
 import townJson from '../data/town.json';
 import livesJson from '../data/lives.json';
@@ -276,8 +276,11 @@ export class PopGeo {
       if (A) { e = A.c[0] + (this.hash(pid, place, 13 + 50 * t) * 2 - 1) * A.h[0]; n = A.c[1] + (this.hash(pid, place, 14 + 50 * t) * 2 - 1) * A.h[1]; }
       else if (P.kind === 'post') { e = P.at[0]; n = P.at[1]; }
       else if (P.span) { const [[x0, y0], [x1, y1]] = P.span; e = x0 + (x1 - x0) * this.hash(pid, place, 13 + 50 * t); n = y0 + (y1 - y0) * this.hash(pid, place, 14 + 50 * t); }
-      else { const a = this.hash(pid, place, 13 + 50 * t) * Math.PI * 2, r = P.kind === 'hearth' || P.kind === 'oven' ? 1.6 + this.hash(pid, place, 14 + 50 * t) : 0.8 + 1.8 * this.hash(pid, place, 14 + 50 * t); e = P.at[0] + Math.cos(a) * r; n = P.at[1] + Math.sin(a) * r; if (P.kind === 'hearth' || P.kind === 'oven') face = P.at; }
-      const q = this.nav.snap(e, n, 4); if (q && (Math.hypot(q[0] - ap[0], q[1] - ap[1]) < 0.3 || this.nav.lineClear(q, ap))) s = q; }
+      // round a hearth, where a whole work gang or watch eats, up to 8 m out (evenly by area; C); an oven's bakers and
+      // other places within 2.6 m
+      else { const a = this.hash(pid, place, 13 + 50 * t) * Math.PI * 2, u = this.hash(pid, place, 14 + 50 * t), r = P.kind === 'hearth' ? Math.sqrt(1.6 * 1.6 + u * (8 * 8 - 1.6 * 1.6)) : P.kind === 'oven' ? 1.6 + u : 0.8 + 1.8 * u; e = P.at[0] + Math.cos(a) * r; n = P.at[1] + Math.sin(a) * r; if (P.kind === 'hearth' || P.kind === 'oven') face = P.at; }
+      // the point itself where it is walkable (snapping to cell centres stacked people on one point), else the nearest cell
+      const q: P2 | null = this.nav.walkable(e, n) ? [e, n] : this.nav.snap(e, n, 4); if (q && (Math.hypot(q[0] - ap[0], q[1] - ap[1]) < 0.3 || this.nav.lineClear(q, ap))) s = q; }
     s ??= ap;
     const hd = face ? headingOf(face[0] - s[0], face[1] - s[1]) : P?.heading ?? this.hash(pid, place, 15) * 360;
     return this.sp(s[0], s[1], true, hd, 'nav', `Terrace: ${place}`, { anchor });
@@ -392,6 +395,25 @@ export class PopGeo {
   groundAt(e: number, n: number) { return this.ground(e, n); }
   /** every built village as a site raster (sightline.ts) */
   villageSites(): Site[] { return this.villages.map((_, vi) => this.vsite(vi).site); }
+
+  // -------------------------------------------------------------------------------------------------- short steps
+  /** a short straight step from a spot to a point stays walkable, crosses no wall and stays in the same kind of place: the
+   *  same court or yard, open ground to open ground, the Terrace grid in line (popview.ts spreads people who would stand
+   *  on one another) */
+  stepClear(a: Spot, b: P2): boolean {
+    if (a.net === 'nav') return this.nav.walkable(b[0], b[1]) && this.nav.lineClear([a.e, a.n], b);
+    const within = (s: Site, la: P2, lb: P2) => { const ia = s.ci(la[0]), ja = s.cj(la[1]), ib = s.ci(lb[0]), jb = s.cj(lb[1]); if (!s.inb(ia, ja) || !s.inb(ib, jb)) return false;
+      const ca = s.cell[s.k(ia, ja)], cb = s.cell[s.k(ib, jb)];
+      if (openCode(ca) ? !openCode(cb) : cb !== ca || s.sub[s.k(ib, jb)] === ROOM) return false;
+      return siteLine(s, la, lb, 0.25); };
+    if (a.net === 'town' && this.town) { const la = this.town.locate(a.e, a.n), lb = this.town.locate(b[0], b[1]); if (!la || !lb || la.si !== lb.si) return false;
+      return within(this.town.boxes[la.si].s, [la.u, la.v], [lb.u, lb.v]); }
+    if (a.net === 'village' && a.v !== undefined) { const S = this.vsite(a.v).site; return within(S, toLocal(S.frame, a.e, a.n), toLocal(S.frame, b[0], b[1])); }
+    // open ground: no plot of the town or a village entered, the Terrace's walls not climbed
+    if (this.town) { const l = this.town.locate(b[0], b[1]); if (l && !openCode(this.town.boxes[l.si].s.cell[l.k])) return false; if (!this.town.clear([a.e, a.n], b)) return false; }
+    const vi = this.villages.length ? this.villageAt(b[0], b[1]) : -1; if (vi >= 0) { const S = this.vsite(vi).site, [u, w] = toLocal(S.frame, b[0], b[1]); if (!openCode(S.cell[S.k(S.ci(u), S.cj(w))])) return false; }
+    return this.navClear([a.e, a.n], b);
+  }
 
   // -------------------------------------------------------------------------------------------------- routes
   /** ground height at a spot or route point */

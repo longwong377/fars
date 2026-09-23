@@ -18,7 +18,7 @@
 import type { Population, Seg } from './population';
 import type { PeopleSim, Agent } from './sim';
 import { ACTIVITIES, type ActivityId } from './activities';
-import { PopGeo, routeAt, type Spot, type Route } from './popgeo';
+import { PopGeo, routeAt, headingOf, type Spot, type Route } from './popgeo';
 import { sunTimes } from './calendar';
 import { h32, salt } from './hash';
 import type { P2 } from './navgrid';
@@ -50,10 +50,15 @@ interface PS {
   spots: Map<number, Spot>;
   /** standing: ground height and carried prop, computed once per state */
   y: number; prop: ViewPerson['prop']; yOk: boolean;
+  /** where the person stands at their spot (clear of the others standing there), since when, the occupancy cell held, and
+   *  the mode of the last update (a walker arriving steps from the spot to it) */
+  sepFor: Spot | null; sepE: number; sepN: number; sepT: number; occ: number; lastMode: number;
 }
 const ACTS = Object.keys(ACTIVITIES) as ActivityId[]; const ACT_IX = new Map(ACTS.map((a, i) => [a, i]));
 const WHERE = ['terrace', 'town', 'plain', 'road', 'away'] as const; const W_IX = new Map<string, number>(WHERE.map((w, i) => [w, i])); const ROAD = 3, AWAY = 4;
-const S = { pace: salt('popview-pace') };
+const S = { pace: salt('popview-pace'), sep: salt('popview-sep') };
+/** people standing keep at least this far apart (m, C: shoulder to shoulder); an arriving walker takes STEP_S to step aside */
+export const SEP = 0.6; const STEP_S = 2;
 /** slowest walk shown (m/s); below it the person walks at their own pace and leaves late (C) */
 export const MIN_PACE = 0.75;
 /** walks faster than this are counted as hurried (C: brisk walking) */
@@ -90,7 +95,7 @@ export class PopView {
   /** route searches per update (ms): beyond it, people farther than `nearR` wait at the place they are leaving (they
    *  then walk faster to arrive on time); nearer people always get their route */
   routeBudgetMs = 3; nearR = 150;
-  readonly stats = { candidates: 0, planned: 0, planMs: 0, pending: 0, visible: 0, walking: 0, hurried: 0, lateLeaves: 0, steps: 0, hidden: 0, unresolved: 0, routeWait: 0, agentsOff: 0, evalMs: 0, updates: 0, carried: 0, nanTimes: 0 };
+  readonly stats = { candidates: 0, planned: 0, planMs: 0, pending: 0, visible: 0, walking: 0, hurried: 0, lateLeaves: 0, steps: 0, hidden: 0, unresolved: 0, routeWait: 0, agentsOff: 0, evalMs: 0, updates: 0, carried: 0, nanTimes: 0, spread: 0, crowded: 0 };
   private out: ViewPerson[] = []; private nOut = 0;
   private anchorsBuilt = false; private homes: Float64Array | null = null;
   constructor(readonly sim: PeopleSim, readonly geo: PopGeo, readonly seed = 1) { this.pop = sim.pop; }
@@ -117,9 +122,10 @@ export class PopView {
       const dh = Number.isFinite(hx) ? Math.hypot(hx - c[0], hy - c[1]) : Infinity, dw = Number.isFinite(wx) ? Math.hypot(wx - c[0], wy - c[1]) : Infinity, d = Math.min(dh, dw);
       if (d > R) continue;
       let s = this.ps.get(pid);
-      if (!s) s = { pid, home: [hx, hy], work: Number.isFinite(wx) ? [wx, wy] : null, d2: 0, plan: null, next: null, prev: null, v0: 1, v1: 0, mode: 0, spot: null, route: null, w0: 0, w1: 0, wOut: true, act: 'rest', carry: -1, speed: 0, what: '', entry: 0, spots: new Map(), y: 0, prop: null, yOk: false };
+      if (!s) s = { pid, home: [hx, hy], work: Number.isFinite(wx) ? [wx, wy] : null, d2: 0, plan: null, next: null, prev: null, v0: 1, v1: 0, mode: 0, spot: null, route: null, w0: 0, w1: 0, wOut: true, act: 'rest', carry: -1, speed: 0, what: '', entry: 0, spots: new Map(), y: 0, prop: null, yOk: false, sepFor: null, sepE: 0, sepN: 0, sepT: -1e9, occ: -1, lastMode: 0 };
       s.d2 = d * d; keep.set(pid, s);
     }
+    for (const [pid, o] of this.ps) if (!keep.has(pid)) this.release(o);
     this.ps = keep; this.list = [...keep.values()].sort((a, b) => a.d2 - b.d2); this.stats.candidates = this.list.length;
   }
   private compact(day: number, segs: Seg[]): DayPlan {
@@ -222,7 +228,10 @@ export class PopView {
   private tmp = { e: 0, n: 0, heading: 0 };
   private collect(t: number) {
     this.nOut = 0; let walking = 0, carried = 0; const day = Math.floor(t / 24);
+    this.agentOcc.clear(); for (const a of this.sim.agents) if (!a.offmap) { const k = this.occKey(a.pos[0], a.pos[1]); const L = this.agentOcc.get(k); if (L) L.push(a); else this.agentOcc.set(k, [a]); }
     for (const s of this.list) {
+      const last = s.lastMode; s.lastMode = s.mode;
+      if (s.occ >= 0 && (s.mode !== 1 || s.sepFor !== s.spot)) this.release(s);
       if (s.mode === 0 || !s.spot) continue; if (this.pop.persons[s.pid].agent >= 0) continue; // detailed agents: below
       // infants are held, nursed or carried on the back (their plan's place is the carer's): no body is drawn for a
       // carried child (C; counted); from one year a child is drawn when it plays or walks by itself
@@ -230,11 +239,47 @@ export class PopView {
       const o = this.vp(); o.pid = s.pid; o.agent = -1; o.act = s.act; o.what = s.what; o.entry = s.entry; o.carryNote = s.carry >= 0 ? this.strings[s.carry] : null;
       if (s.mode === 2 && s.route) { const f = Math.max(0, Math.min(1, (t - s.w0) / Math.max(1e-9, s.w1 - s.w0))); routeAt(s.route, f * s.route.len, this.tmp); o.e = this.tmp.e; o.n = this.tmp.n; o.heading = this.tmp.heading; o.moving = true; o.speed = s.speed; walking++;
         if (!ACTIVITIES[o.act].moving) o.act = 'walk'; o.y = this.geo.y(o.e, o.n); o.prop = propOf(o.act, o.carryNote); }
-      else { o.e = s.spot.e; o.n = s.spot.n; o.heading = s.spot.heading; o.moving = false; o.speed = 0;
-        if (!s.yOk) { s.y = this.geo.y(o.e, o.n, s.spot.net); s.prop = propOf(o.act, o.carryNote); s.yOk = true; } o.y = s.y; o.prop = s.prop; }
+      else {
+        if (s.sepFor !== s.spot) { this.separate(s, t, last === 2); s.yOk = false; }
+        const sp = s.spot, k = (t - s.sepT) * 3600 / STEP_S;
+        if (k >= 0 && k < 1 && (s.sepE !== sp.e || s.sepN !== sp.n)) { // just arrived: stepping aside from the spot
+          o.e = sp.e + (s.sepE - sp.e) * k; o.n = sp.n + (s.sepN - sp.n) * k; o.heading = headingOf(s.sepE - sp.e, s.sepN - sp.n); o.moving = true; o.speed = Math.hypot(s.sepE - sp.e, s.sepN - sp.n) / STEP_S;
+          o.y = this.geo.y(o.e, o.n, sp.net); o.prop = propOf(o.act, o.carryNote); walking++; continue; }
+        o.e = s.sepE; o.n = s.sepN; o.heading = sp.heading; o.moving = false; o.speed = 0;
+        if (!s.yOk) { s.y = this.geo.y(o.e, o.n, sp.net); s.prop = propOf(o.act, o.carryNote); s.yOk = true; } o.y = s.y; o.prop = s.prop; }
     }
     this.agentsOff(t);
     this.stats.visible = this.nOut; this.stats.walking = walking; this.stats.carried = carried;
+  }
+  /** standing places held (1 m cells of grid metres → the people holding them) */
+  private occ = new Map<number, number[]>();
+  private occKey(e: number, n: number) { return (Math.floor(e) + 60000) * 131072 + (Math.floor(n) + 60000); }
+  private release(s: PS) {
+    if (s.occ >= 0) { const L = this.occ.get(s.occ); if (L) { const i = L.indexOf(s.pid); if (i >= 0) L.splice(i, 1); if (!L.length) this.occ.delete(s.occ); } }
+    s.occ = -1; s.sepFor = null;
+  }
+  /** nobody else stands within SEP of (e, n): the population's people standing, the detailed agents on the map */
+  private freeAt(e: number, n: number, pid: number): boolean {
+    const fx = Math.floor(e), fy = Math.floor(n);
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) { const L = this.occ.get((fx + dx + 60000) * 131072 + (fy + dy + 60000)); if (!L) continue;
+      for (const q of L) { if (q === pid) continue; const o = this.ps.get(q); if (o && Math.hypot(o.sepE - e, o.sepN - n) < SEP) return false; } }
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) { const L = this.agentOcc.get((fx + dx + 60000) * 131072 + (fy + dy + 60000)); if (!L) continue;
+      for (const a of L) if (Math.hypot(a.pos[0] - e, a.pos[1] - n) < SEP) return false; }
+    return true;
+  }
+  /** the detailed agents on the map by 1 m cell (rebuilt each update) */
+  private agentOcc = new Map<number, Agent[]>();
+  /** where the person stands at their spot: the spot, or when someone already stands there the nearest clear place on
+   *  rings around it (0.63 m apart, to 5 m; C), reached by a short straight step that stays in the same court, yard or
+   *  open ground (popgeo.stepClear). Counted: `stats.spread`, and `stats.crowded` when no ring has room */
+  private separate(s: PS, t: number, arriving: boolean) {
+    this.release(s); const sp = s.spot!; let e = sp.e, n = sp.n;
+    if (!this.freeAt(e, n, s.pid)) { let found = false; const ph = h32(this.seed, S.sep, s.pid) / 4294967296 * Math.PI * 2;
+      for (let ring = 1; ring <= 8 && !found; ring++) { const m = 6 * ring; for (let k = 0; k < m && !found; k++) { const a = ph + (k / m) * Math.PI * 2, r = SEP * 1.05 * ring, e2 = sp.e + Math.cos(a) * r, n2 = sp.n + Math.sin(a) * r;
+        if (this.freeAt(e2, n2, s.pid) && this.geo.stepClear(sp, [e2, n2])) { e = e2; n = n2; found = true; } } }
+      if (found) this.stats.spread++; else this.stats.crowded++; }
+    s.sepE = e; s.sepN = n; s.sepFor = sp; s.sepT = arriving ? t : -1e9; s.occ = this.occKey(e, n);
+    const L = this.occ.get(s.occ); if (L) L.push(s.pid); else this.occ.set(s.occ, [s.pid]);
   }
   /** a child under three who is not drawn now: under one always (in arms, nursing, on the back); at one and two when
    *  resting, eating or asleep with its carer, or carried on the way */

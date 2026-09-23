@@ -90,7 +90,7 @@ describe('population view: the plans in the built world (D-143)', () => {
     expect(ok / n).toBeGreaterThan(0.995);
   }, 300_000);
   it('nobody drawn stands inside a wall or a roofed room; walked routes cross no wall', () => {
-    let people = 0, walkers = 0, routes = 0; const off: string[] = [];
+    let people = 0, walkers = 0, routes = 0, standing = 0, close = 0; const off: string[] = [];
     for (const [d, h, c] of [[25, 10, [0, 60]], [25, 12.2, [-422, -941]], [25, 17.5, [-800, 400]], [150, 7, [-1000, -1100]]] as [number, number, [number, number]][]) {
       sim.jumpTo(d * 24 + h); view.settle(d * 24 + h, c);
       for (const o of view.query(c, 2500)) { people++;
@@ -98,16 +98,24 @@ describe('population view: the plans in the built world (D-143)', () => {
         if (cc) { const code = cc.s.cell[cc.k]; if (!(code >= 0 || openCode(code))) off.push(`p${o.pid} ${o.what}: in a wall cell`); else if (!o.moving && code >= 0 && cc.s.sub[cc.k] === ROOM) off.push(`p${o.pid} ${o.what}: drawn in a roofed room`); }
         else if (o.e > -619 && o.e < 261 && o.n > -244 && o.n < 184 && !nav.walkable(o.e, o.n)) off.push(`p${o.pid} ${o.what}: off the walkable grid`); }
       for (const s of (view as any).list) { if (s.mode !== 2 || !s.route || routes > 2500) continue; routes++; walkers++; const w = wallCrossing(s.route); if (w) off.push(`route of p${s.pid} (${s.what}): ${w}`); }
+      // people standing do not stand on one another (the population's; the detailed agents are the simulation's own)
+      const still = view.query(c, 2500).filter(o => !o.moving && o.agent < 0), grid = new Map<string, number[]>(); standing += still.length;
+      still.forEach((o, i) => { const k = `${Math.floor(o.e)},${Math.floor(o.n)}`; (grid.get(k) ?? grid.set(k, []).get(k)!).push(i); });
+      still.forEach((o, i) => { let near = false; for (let dx = -1; dx <= 1 && !near; dx++) for (let dy = -1; dy <= 1 && !near; dy++) for (const j of grid.get(`${Math.floor(o.e) + dx},${Math.floor(o.n) + dy}`) ?? []) if (j !== i && Math.hypot(still[j].e - o.e, still[j].n - o.n) < 0.45) { near = true; break; } if (near) close++; });
     }
-    note('m02', `checked ${people} people drawn and ${routes} routes walked: ${off.length} offences ${JSON.stringify(off.slice(0, 6))}`);
+    note('m02', `checked ${people} people drawn and ${routes} routes walked: ${off.length} offences ${JSON.stringify(off.slice(0, 6))}; standing closer than 0.45 m to another of the population: ${close} of ${standing} (${(100 * close / Math.max(1, standing)).toFixed(1)} %; spread aside ${view.stats.spread}, no room ${view.stats.crowded})`);
     expect(people).toBeGreaterThan(5000); expect(walkers).toBeGreaterThan(100); expect(off).toEqual([]);
+    expect(close / standing).toBeLessThan(0.05);
   }, 600_000);
   it('positions are the plans\': a person at a place is at its spot; a walker is on the route between the plan\'s places and arrives at its hour', () => {
     const d = 25, P = sim.pop; let stays = 0, walks = 0; const bad: string[] = [];
     for (const h of [8.25, 10.5, 16.75]) { sim.jumpTo(d * 24 + h); view.settle(d * 24 + h, [-400, -300]);
       const byPid = new Map(view.visible.filter(o => o.agent < 0).map(o => [o.pid, o]));
       for (const s of (view as any).list) { const o = byPid.get(s.pid); if (!o || !s.plan) continue; const seg = segAt(P.plan(s.pid, d), h);
-        if (s.mode === 1 && seg.where !== 'road') { stays++; const sp = geo.spot(s.pid, seg.place, seg.act, d, h); if (Math.hypot(sp.e - o.e, sp.n - o.n) > 0.01 && !s.what.includes('leaves')) bad.push(`p${s.pid} at ${seg.place}: drawn ${Math.hypot(sp.e - o.e, sp.n - o.n).toFixed(2)} m off its spot`); }
+        // at a place: at its spot, or (when others stood there first) at the clear place beside it that the view gave them
+        if (s.mode === 1 && seg.where !== 'road' && !o.moving) { stays++; const sp = geo.spot(s.pid, seg.place, seg.act, d, h), aside = Math.hypot(s.sepE - sp.e, s.sepN - sp.n);
+          if (!s.what.includes('leaves')) { if (Math.hypot(s.sepE - o.e, s.sepN - o.n) > 0.01) bad.push(`p${s.pid} at ${seg.place}: drawn ${Math.hypot(s.sepE - o.e, s.sepN - o.n).toFixed(2)} m off its place`);
+            if (aside > 5.1) bad.push(`p${s.pid} at ${seg.place}: ${aside.toFixed(2)} m from its spot`); } }
         if (s.mode === 2 && s.route && seg.where === 'road') { walks++; const r: Route = s.route; let best = Infinity; const q = { e: 0, n: 0, heading: 0 };
           for (let k = 0; k <= 200; k++) { routeAt(r, r.len * k / 200, q); best = Math.min(best, Math.hypot(q.e - o.e, q.n - o.n)); } if (best > r.len / 200 + 0.05) bad.push(`p${s.pid} walking ${best.toFixed(2)} m off its route`);
           routeAt(r, r.len, q); const end = Math.hypot(q.e - s.spot.e, q.n - s.spot.n); if (end > 0.05) bad.push(`p${s.pid}: route ends ${end.toFixed(2)} m from the place it walks to`);
@@ -195,9 +203,9 @@ describe('impostors (D-143): the far body baked, matched at the switch', () => {
 });
 
 describe('crowd fed by the population view (D-143)', () => {
-  const makeCrowd = () => { const img = () => new THREE.DataTexture(new Uint8Array(4), 1, 1);
+  const makeCrowd = (S: PeopleSim = sim, V: PopView = view) => { const img = () => new THREE.DataTexture(new Uint8Array(4), 1, 1);
     const humans = { A, O, gpu: new HumanGPU(A, O, { skin: img(), eye: img() }, { capacity: 64 }), ms: { load: 0, outfits: 0, gpu: 0, worker: false } };
-    const crowd = new Crowd(sim, 1, humans); crowd.view = view; crowd.imp = new CrowdImpostors(atlas); crowd.looksPerFrame = 1e9; return crowd; };
+    const crowd = new Crowd(S, 1, humans); crowd.view = V; crowd.imp = new CrowdImpostors(atlas); crowd.looksPerFrame = 1e9; return crowd; };
   // the player's camera: 70° vertical field of view (settings.fov), 16:9, eyes 1.6 m above the ground
   const camAt = (e: number, n: number, headingDeg: number, pitch = 0) => { const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 20000); const g = nav.heightAt(e, n); const y = (Number.isFinite(g) ? g : terrain.heightAt(e, -n)) + 1.6;
     cam.position.set(e, y, -n); const r = headingDeg * Math.PI / 180; cam.lookAt(e + Math.sin(r) * 10, y + Math.tan(pitch * Math.PI / 180) * 10, -(n + Math.cos(r) * 10)); cam.updateMatrixWorld(); cam.updateProjectionMatrix(); return cam; };
@@ -207,9 +215,14 @@ describe('crowd fed by the population view (D-143)', () => {
     ['hall-site-working-morning', 25, 10, 144, -12, 180, -3], ['terrace-from-hillside', 25, 10, 290, -20, 270, -8], ['forecourt-morning', 25, 10, 20, 80, 135, -2],
     ['town-lane-midday', 25, 12.2, -422, -941, 28, 0], ['approach-dawn', 25, 5.4, -36.4, 122.45, 250, -3]];
   it('the busiest scenes: everyone simulated out of doors in view is drawn; the people visible over the walls counted; ≥ 300 visible where the plans put them in sight (the rest: B11)', () => {
+    // a fresh simulation, with its own geography: the tests above run the simulation across the year, and its population
+    // does not go back when time jumps back (life events), nor do the detailed agents
+    const sim = new PeopleSim(1, nav, env), canals = buildCanals(terrain, loadRiversFile().rivers, 1);
+    const geo = new PopGeo({ pop: sim.pop, nav, town: plan, ground: (e, n) => terrain.heightAt(e, -n), villages, compounds: vi => villageCompounds(villages[vi], terrain, 1), canals: canals.map(c => c.pts), seed: 1 });
+    const view = new PopView(sim, geo, 1);
     const sl = new Sightlines(geo, buildTerrace().parts), rows: string[] = [], B = [50, 200, 600, 1500, 5000], _v = new THREE.Vector3(), got: Record<string, { vis: number; full: number; near25: number }> = {};
     for (const [name, d, h, e, n, hd, pitch] of SCENES) {
-      sim.jumpTo(d * 24 + h); view.settle(d * 24 + h, [e, n]); const crowd = makeCrowd(), cam = camAt(e, n, hd, pitch); crowd.drawnKeys = new Set();
+      sim.jumpTo(d * 24 + h); view.settle(d * 24 + h, [e, n]); const crowd = makeCrowd(sim, view), cam = camAt(e, n, hd, pitch); crowd.drawnKeys = new Set();
       for (let f = 0; f < 3; f++) crowd.update(f / 30, cam.position, cam.position, cam);
       const st = crowd.stats(), pts = crowd.drawnPoints(), fr = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
       // what is simulated is what is drawn: everyone out of doors (and every detailed agent on the map) in the view within the
