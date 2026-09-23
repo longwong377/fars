@@ -198,8 +198,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // dev overlay: the abstract population, and the Terrace workforce it simulates but nobody renders yet (D-024), recounted
   // every ten game minutes
   let popAt = -1, popTxt = '';
-  const popLine = () => { if (Math.abs(sim.t - popAt) > 1 / 6) { popAt = sim.t; const V = view.stats, I = crowd.impPerf;
-    popTxt = `population ${sim.pop.persons.length} simulated · out of doors near: ${V.visible} (${V.walking} walking) of ${V.candidates} kept, drawn ${crowd.perf.drawn.reduce((a, b) => a + b, 0)} skinned + ${I.drawn} impostors [D-143] · places not built: ${V.unresolved} · activities with no performance, shown standing: ${crowd.stats().placeholderActs} skinned + ${I.placeholders} impostors [PLACEHOLDER] · pop-ins ${I.popins}`; } return popTxt; };
+  // (placeholder activities: none since D-142; flagged PLACEHOLDER here only if one ever reaches a drawn person again)
+  const popLine = () => { if (Math.abs(sim.t - popAt) > 1 / 6) { popAt = sim.t; const V = view.stats, I = crowd.impPerf, st = crowd.stats(), ph = st.placeholderActs + I.placeholders;
+    popTxt = `population ${sim.pop.persons.length} simulated · out of doors near: ${V.visible} (${V.walking} walking) of ${V.candidates} kept, drawn ${crowd.perf.drawn.reduce((a, b) => a + b, 0)} skinned + ${I.drawn} impostors [D-143] · places not built: ${V.unresolved} · activities with no performance, shown standing: ${st.placeholderActs} skinned + ${I.placeholders} impostors${ph ? ' [PLACEHOLDER]' : ''} · props ${st.props}${st.propsDropped ? ` (${st.propsDropped} over the cap, NOT DRAWN)` : ''} · work objects ${st.things.instances}, animals ${st.animals.instances} [D-142] · pop-ins ${I.popins}`; } return popTxt; };
   const simulate = (dt: number, clock: any) => {
     const target = clock.t * 24;
     if (!simStarted) { sim.jumpTo(target); simStarted = true; }

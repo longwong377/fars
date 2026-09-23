@@ -31,6 +31,9 @@ export interface ViewPerson {
   /** the plan's reason for the block (population.ts `Seg.why`): the crowd resolves the performance's variant from it
    *  (activities.ts performanceFor, D-142) */
   why: string;
+  /** the plan's place for the block ('' on a walk): performers of one place share its work objects (the threshing floor,
+   *  the bier: crowd.ts placeThings) */
+  place: string;
   /** a carried thing the crowd can draw (props.ts kinds), or null; `carryNote` is the plan's own words */
   prop: 'sack' | 'jar' | 'jar_head' | 'basket' | 'tablet' | 'spear' | null; carryNote: string | null;
   /** walking pace (m/s) of the current walk (0 standing): the crowd's gait follows it */
@@ -52,8 +55,8 @@ interface PS {
   /** cached state and the absolute hours it holds for */
   v0: number; v1: number; mode: 0 | 1 | 2; spot: Spot | null; route: Route | null; w0: number; w1: number; wOut: boolean;
   act: ActivityId; carry: number; speed: number; what: string; entry: number;
-  /** the plan's reason for the act shown (string index; -1 none) */
-  why: number;
+  /** the plan's reason for the act shown and its place (string indices; -1 none) */
+  why: number; pl: number;
   spots: Map<number, Spot>;
   /** standing: ground height and carried prop, computed once per state */
   y: number; prop: ViewPerson['prop']; yOk: boolean;
@@ -129,7 +132,7 @@ export class PopView {
       const dh = Number.isFinite(hx) ? Math.hypot(hx - c[0], hy - c[1]) : Infinity, dw = Number.isFinite(wx) ? Math.hypot(wx - c[0], wy - c[1]) : Infinity, d = Math.min(dh, dw);
       if (d > R) continue;
       let s = this.ps.get(pid);
-      if (!s) s = { pid, home: [hx, hy], work: Number.isFinite(wx) ? [wx, wy] : null, d2: 0, plan: null, next: null, prev: null, v0: 1, v1: 0, mode: 0, spot: null, route: null, w0: 0, w1: 0, wOut: true, act: 'rest', carry: -1, speed: 0, what: '', entry: 0, why: -1, spots: new Map(), y: 0, prop: null, yOk: false, sepFor: null, sepE: 0, sepN: 0, sepT: -1e9, occ: -1, lastMode: 0 };
+      if (!s) s = { pid, home: [hx, hy], work: Number.isFinite(wx) ? [wx, wy] : null, d2: 0, plan: null, next: null, prev: null, v0: 1, v1: 0, mode: 0, spot: null, route: null, w0: 0, w1: 0, wOut: true, act: 'rest', carry: -1, speed: 0, what: '', entry: 0, why: -1, pl: -1, spots: new Map(), y: 0, prop: null, yOk: false, sepFor: null, sepE: 0, sepN: 0, sepT: -1e9, occ: -1, lastMode: 0 };
       s.d2 = d * d; keep.set(pid, s);
     }
     for (const [pid, o] of this.ps) if (!keep.has(pid)) this.release(o);
@@ -181,14 +184,14 @@ export class PopView {
       if (i1 < P.n - 1) to = this.spotAt(s, P, i1 + 1); else { const Q = this.planOf(s, d + 1, true); if (Q) { let k = 0; while (k < Q.n - 1 && Q.where[k] === ROAD) k++; to = this.spotAt(s, Q, k); } }
       if (!from?.ok || !to?.ok) { this.stats.unresolved++; return hide(T1, `walking between places not built (${from?.what ?? '?'} → ${to?.what ?? '?'})`); }
       const r = this.routeFor(s, from, to);
-      if (r === undefined) { this.stats.routeWait++; if (from.out) { s.mode = 1; s.spot = from; s.route = null; s.act = i0 > 0 ? ACTS[P.act[i0 - 1]] : 'rest'; s.why = i0 > 0 ? P.why[i0 - 1] : -1; s.carry = -1; s.speed = 0; s.what = `${from.what} (waiting for a route)`; } else s.mode = 0; s.v0 = t; s.v1 = t; return; } // over this update's search budget: ask again
+      if (r === undefined) { this.stats.routeWait++; if (from.out) { s.mode = 1; s.spot = from; s.route = null; s.act = i0 > 0 ? ACTS[P.act[i0 - 1]] : 'rest'; s.why = i0 > 0 ? P.why[i0 - 1] : -1; s.pl = i0 > 0 ? P.place[i0 - 1] : -1; s.carry = -1; s.speed = 0; s.what = `${from.what} (waiting for a route)`; } else s.mode = 0; s.v0 = t; s.v1 = t; return; } // over this update's search budget: ask again
       if (r === null) { this.stats.unresolved++; return hide(T1, `no route ${from.what} → ${to.what}`); }
       const D = (T1 - T0) * 3600, v = r.len / Math.max(1, D), nat = this.pace(s.pid);
       let S0 = T0; if (v < MIN_PACE) { S0 = T1 - r.len / nat / 3600; this.stats.lateLeaves++; } else if (v > MAX_PACE) this.stats.hurried++;
       if (t < S0) { // not yet gone: still at the place before, doing what was done there
-        s.mode = from.out ? 1 : 0; s.spot = from; s.route = null; s.v0 = T0; s.v1 = S0; s.act = i0 > 0 ? ACTS[P.act[i0 - 1]] : 'rest'; s.why = i0 > 0 ? P.why[i0 - 1] : -1; s.carry = -1; s.speed = 0; s.what = `${from.what} (leaves ${fmtH(S0 - base)})`; return; }
+        s.mode = from.out ? 1 : 0; s.spot = from; s.route = null; s.v0 = T0; s.v1 = S0; s.act = i0 > 0 ? ACTS[P.act[i0 - 1]] : 'rest'; s.why = i0 > 0 ? P.why[i0 - 1] : -1; s.pl = i0 > 0 ? P.place[i0 - 1] : -1; s.carry = -1; s.speed = 0; s.what = `${from.what} (leaves ${fmtH(S0 - base)})`; return; }
       s.mode = 2; s.route = r; s.w0 = S0; s.w1 = T1; s.wOut = true; s.spot = to; s.v0 = Math.max(T0, base + this.segT0(P, i)); s.v1 = Math.min(T1, base + P.t1[i]);
-      s.act = ACTS[P.act[i]]; s.why = P.why[i]; s.carry = P.carry[i]; s.speed = r.len / Math.max(1, (T1 - S0) * 3600); s.what = `walking: ${from.what} → ${to.what} (${r.len.toFixed(0)} m)`;
+      s.act = ACTS[P.act[i]]; s.why = P.why[i]; s.pl = -1; s.carry = P.carry[i]; s.speed = r.len / Math.max(1, (T1 - S0) * 3600); s.what = `walking: ${from.what} → ${to.what} (${r.len.toFixed(0)} m)`;
       if (!from.out) s.entry = 1; return;
     }
     const sp = this.spotAt(s, P, i); if (!sp.ok) { this.stats.unresolved++; return hide(base + P.t1[i], sp.what); }
@@ -200,10 +203,10 @@ export class PopView {
         const r = this.routeFor(s, pr, sp);
         if (r === undefined) { this.stats.routeWait++; s.mode = pr.out ? 1 : 0; s.spot = pr; s.route = null; s.v0 = t; s.v1 = t; return; }
         if (r) { const dur = r.len / this.pace(s.pid) / 3600, t1 = Math.min(base + P.t1[i], t0 + dur);
-          if (t < t1) { this.stats.steps++; s.mode = 2; s.route = r; s.w0 = t0; s.w1 = t1; s.wOut = true; s.spot = sp; s.v0 = t0; s.v1 = t1; s.act = 'walk'; s.why = P.why[i]; s.carry = -1; s.speed = r.len / Math.max(1, (t1 - t0) * 3600); s.what = `stepping ${pr.what} → ${sp.what}`; if (!pr.out) s.entry = 1; return; }
+          if (t < t1) { this.stats.steps++; s.mode = 2; s.route = r; s.w0 = t0; s.w1 = t1; s.wOut = true; s.spot = sp; s.v0 = t0; s.v1 = t1; s.act = 'walk'; s.why = P.why[i]; s.pl = -1; s.carry = -1; s.speed = r.len / Math.max(1, (t1 - t0) * 3600); s.what = `stepping ${pr.what} → ${sp.what}`; if (!pr.out) s.entry = 1; return; }
           s.v0 = t1; } } }
     s.mode = sp.out ? 1 : 0; s.spot = sp; s.route = null; if (s.v0 < t0 || s.v0 > t) s.v0 = t0; s.v1 = base + P.t1[i];
-    s.act = ACTS[P.act[i]]; s.why = P.why[i]; s.carry = P.carry[i]; s.speed = 0; s.what = sp.what;
+    s.act = ACTS[P.act[i]]; s.why = P.why[i]; s.pl = P.place[i]; s.carry = P.carry[i]; s.speed = 0; s.what = sp.what;
     if (sp.out && i > 0) { const pr = P.where[i - 1] === ROAD ? null : this.spotAt(s, P, i - 1); if (pr && !pr.out) s.entry = 1; }
     if (!sp.out) this.stats.hidden++;
   }
@@ -231,7 +234,7 @@ export class PopView {
     this.collect(t);
     this.stats.evalMs = performance.now() - t0;
   }
-  private vp(): ViewPerson { let o = this.out[this.nOut]; if (!o) { o = { pid: -1, e: 0, n: 0, y: 0, heading: 0, act: 'rest', moving: false, why: '', prop: null, carryNote: null, speed: 0, entry: 0, what: '', agent: -1, plot: 0, wall: 0 }; this.out[this.nOut] = o; } this.nOut++; return o; }
+  private vp(): ViewPerson { let o = this.out[this.nOut]; if (!o) { o = { pid: -1, e: 0, n: 0, y: 0, heading: 0, act: 'rest', moving: false, why: '', place: '', prop: null, carryNote: null, speed: 0, entry: 0, what: '', agent: -1, plot: 0, wall: 0 }; this.out[this.nOut] = o; } this.nOut++; return o; }
   private tmp = { e: 0, n: 0, heading: 0 };
   private collect(t: number) {
     this.nOut = 0; let walking = 0, carried = 0; const day = Math.floor(t / 24);
@@ -243,7 +246,7 @@ export class PopView {
       // infants are held, nursed or carried on the back (their plan's place is the carer's): no body is drawn for a
       // carried child (C; counted); from one year a child is drawn when it plays or walks by itself
       if (this.pop.persons[s.pid].age < 3 && this.young(s.pid, day, s)) { carried++; continue; }
-      const o = this.vp(); o.pid = s.pid; o.agent = -1; o.act = s.act; o.why = s.why >= 0 ? this.strings[s.why] : ''; o.what = s.what; o.entry = s.entry; o.carryNote = s.carry >= 0 ? this.strings[s.carry] : null;
+      const o = this.vp(); o.pid = s.pid; o.agent = -1; o.act = s.act; o.why = s.why >= 0 ? this.strings[s.why] : ''; o.place = s.mode === 1 && s.pl >= 0 ? this.strings[s.pl] : ''; o.what = s.what; o.entry = s.entry; o.carryNote = s.carry >= 0 ? this.strings[s.carry] : null;
       o.plot = s.mode === 1 ? s.spot.plot ?? 0 : 0; o.wall = s.mode === 1 ? s.spot.wall ?? 0 : 0;
       if (s.mode === 2 && s.route) { const f = Math.max(0, Math.min(1, (t - s.w0) / Math.max(1e-9, s.w1 - s.w0))); routeAt(s.route, f * s.route.len, this.tmp); o.e = this.tmp.e; o.n = this.tmp.n; o.heading = this.tmp.heading; o.moving = true; o.speed = s.speed; walking++;
         if (!ACTIVITIES[o.act].moving) o.act = 'walk'; o.y = this.geo.y(o.e, o.n); o.prop = propOf(o.act, o.carryNote); }
@@ -301,7 +304,7 @@ export class PopView {
   private agentsOff(t: number) {
     let n = 0;
     for (const a of this.sim.agents) { if (!a.offmap) continue; const sp = this.agentSpot(a, t); if (!sp) continue; n++;
-      const o = this.vp(); o.pid = a.pid; o.agent = a.id; o.e = sp.e; o.n = sp.n; o.heading = sp.heading; o.moving = sp.moving; o.speed = sp.moving ? a.speed : 0; o.act = sp.moving ? 'walk' : (a.task?.act ?? 'rest'); o.why = a.task?.why ?? ''; o.plot = 0; o.wall = 0;
+      const o = this.vp(); o.pid = a.pid; o.agent = a.id; o.e = sp.e; o.n = sp.n; o.heading = sp.heading; o.moving = sp.moving; o.speed = sp.moving ? a.speed : 0; o.act = sp.moving ? 'walk' : (a.task?.act ?? 'rest'); o.why = a.task?.why ?? ''; o.place = sp.moving ? '' : a.task?.place ?? ''; o.plot = 0; o.wall = 0;
       o.carryNote = a.task?.holds ?? null; o.prop = propOf(o.act, o.carryNote); o.entry = 0; o.what = sp.what; o.y = this.geo.y(o.e, o.n); }
     this.stats.agentsOff = n;
   }

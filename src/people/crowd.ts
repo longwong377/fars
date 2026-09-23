@@ -71,8 +71,10 @@ export const POOL_MAX = 400;
 /** people cast shadows within this distance (m) only. An instanced caster is drawn whole in every cascade its bounds
  *  touch, so each caster costs its triangles × cascades; at 90 m a person's shadow is a few pixels (D-093) */
 export const SHADOW_DIST = LOD_DIST[1];
-/** carried props drawn per frame (per prop class: one instanced mesh each) */
-export const CARRIED_MAX = 256;
+/** carried props drawn per frame (per prop class: one instanced mesh each). Two slots for everyone the pool can hold
+ *  (POOL_MAX + POOL_HYST since D-143; 256 dropped the farthest people's props once the population was drawn) and room
+ *  for extras; a prop over the cap is counted (stats().propsDropped), never silently dropped */
+export const CARRIED_MAX = 2 * (POOL_MAX + POOL_HYST) + 128;
 /** work objects and animals are placed for performers within this distance (m); beyond, a person is a speck */
 export const THINGS_DIST = 400;
 /** a flock bleats about once every BLEAT_S seconds when the listener is within 60 m (C) */
@@ -267,7 +269,8 @@ export class Crowd {
     if (!spec.act) p.animK = 0.3; // the Phase 3 lineups' fixed seed
     return p;
   }
-  removeExtras() { for (const [k, p] of this.persons) if (!p.agent) { this.freeSlot(p.slot); this.persons.delete(k); } }
+  /** remove the extras only (the pool's population people, attached by feedPool and indexed by pid, stay: D-143) */
+  removeExtras() { for (const [k, p] of this.persons) if (p.extra) { this.freeSlot(p.slot); this.persons.delete(k); } }
   /** a person is speaking (address → speech line): the jaw moves for `seconds` */
   speaking(agentId: number, seconds: number, now: number) { const p = this.byAgent.get(agentId); if (p) p.speakUntil = now + seconds; }
   private now = 0;
@@ -350,7 +353,7 @@ export class Crowd {
   }
   private lastTime = 0;
   /** shared work objects this frame: one per place (the threshing floor) or one per group (the bier, at its bearers' centre) */
-  private shared = new Map<string, { kind: string; x: number; y: number; z: number; yaw: number; n: number; one: THREE.Matrix4 }>();
+  private shared = new Map<string, { kind: string; x: number; y: number; z: number; yaw: number; n: number; rank: number; one: THREE.Matrix4 }>();
   update(time: number, cam: THREE.Vector3, playerPos: THREE.Vector3 | null, camera?: THREE.Camera) {
     const t0 = performance.now(); this.now = time; const dt = Math.max(0, Math.min(0.5, time - this.lastTime)); this.lastTime = time;
     if (camera) { this.lastCamera = camera; camera.updateMatrixWorld(); this.pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); this.frustum.setFromProjectionMatrix(this.pm); this.wide.copy(this.frustum); for (const pl of this.wide.planes) pl.constant += 3; }
@@ -367,7 +370,7 @@ export class Crowd {
     if (this.autoPool) { if (this.view && this.sim) this.feedPool(cam, camera); else this.autoPoolStep(cam, camera); }
     this.impPerf.feedMs = performance.now() - tf;
     const gpu = this.humans.gpu; gpu.begin();
-    for (const c of this.carried) c.mesh.count = 0;
+    for (const c of this.carried) c.mesh.count = 0; this.propsDropped = 0;
     this.things.begin(); this.animals.begin(time); this.shared.clear();
     // order by distance for the full-detail cap
     const list = this.list; list.length = 0;
@@ -391,7 +394,7 @@ export class Crowd {
       p.shown = d < LOD_DIST[3];
       if (!p.shown) continue;
       const reach = p.perf?.animals || p.perf?.work?.length ? 4 : 1.3; // a performance's things and animals spread a few metres
-      if (camera && !this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), reach * p.look.scale))) { if (a) this.soundsOnly(p, d, time); continue; }
+      if (camera && !this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), reach * p.look.scale))) { if (a || !p.extra) this.soundsOnly(p, d, time); continue; }
       p.dist = d; list.push(p);
     }
     list.sort((a, b) => a.dist - b.dist);
@@ -534,16 +537,18 @@ export class Crowd {
     if (b === undefined) { b = 0; for (const id of ['kandys', 'quiver', 'bow', 'gorytos', 'akinaka', ...(anim === 'sleep' ? ['hat_fluted', 'fillet', 'cap_soft', 'headband'] : [])]) { const bit = pieceBit(dress, id); if (bit) b |= 1 << bit; } this.asideCache.set(k, b); }
     return b;
   }
-  /** people culled from view still make their tool sounds */
+  /** people culled from view still make their tool sounds (detailed agents and the population's people, D-143) */
   private soundsOnly(p: Person, d: number, time: number) {
-    if (d > 60 || !p.perf?.sound) return; const a = p.agent!;
-    const po = pose(p.anim, this.cycleT(p, time), a.gait, p.animK);
+    if (d > 60 || !p.perf?.sound) return; const a = p.agent;
+    const po = pose(p.anim, this.cycleT(p, time), a ? a.gait : p.gaitPh, p.animK);
     if (po.hit && !p.lastHit) this.onHit?.(p.perf.sound, new THREE.Vector3(p.root[0], p.root[1], p.root[2])); p.lastHit = !!po.hit;
   }
+  /** props not drawn this frame because their class was full (stats) */
+  private propsDropped = 0;
   /** a prop instance: its class mesh, kind index and parameter; the character-space transform composed with the root */
   private placeProp(p: Person, kind: string, M: THREE.Matrix4, param: number) {
     const sl = propSlot(kind === 'jar_head' ? 'jar' : kind); if (!sl) return; const c = this.carried[sl[0]], im = c.mesh;
-    if (im.count >= CARRIED_MAX) return;
+    if (im.count >= CARRIED_MAX) { this.propsDropped++; return; }
     _m.makeRotationY(p.root[3]).setPosition(p.root[0], p.root[1], p.root[2]).multiply(M);
     const e = _m.elements, i = im.count; c.axes[0].setXYZ(i, e[0], e[1], e[2]); c.axes[1].setXYZ(i, e[4], e[5], e[6]); c.axes[2].setXYZ(i, e[8], e[9], e[10]);
     c.kind.setX(i, sl[1]); c.param.setX(i, param); im.setMatrixAt(im.count++, _m);
@@ -558,11 +563,20 @@ export class Crowd {
     for (const w of P.work ?? []) {
       const fr = w.follow ? r : b;
       if (w.kind === 'fodder' && A0) { const mz = grazeReach(A0.sp); this.things.push('fodder', place(fr, A0.x + Math.sin(A0.yaw) * mz, 0, A0.z + Math.cos(A0.yaw) * mz, 0, _m)); continue; } // under the muzzle
+      // a person of the population (D-143): the view places each performer of a place on a spot of their own, not in a
+      // formation, so a shared object (the threshing floor, the drum, the bier) is keyed by the plan's place and drawn once,
+      // at the performer with the lowest population id among those drawn (not the performers' centroid: popgeo puts a
+      // funeral's bearers within 40 m of the town's burial ground, or 90-220 m out of a village each in a direction of
+      // their own; not the nearest performer, which changes as the camera moves). Q-196: the bearers do not walk together
+      const pop = w.shared && !p.agent && !p.extra && p.vp?.place ? p.vp.place : null;
+      if (pop) { const key = `${w.kind}|pop:${pop}`, g = this.shared.get(key);
+        if (!g || g.rank > p.pid) this.shared.set(key, { kind: w.kind, x: 0, y: 0, z: 0, yaw: 0, n: 1, rank: p.pid, one: place(fr, w.at[0], w.at[1], w.at[2], 0, g?.one ?? new THREE.Matrix4()) });
+        continue; }
       if (w.shared) { const key = `${w.kind}|${w.shared === 'place' ? (p.agent?.task?.place ?? p.extra?.group ?? p.key) : (p.extra?.group ?? `${p.agent?.task?.place ?? p.key}`)}`;
         const g = this.shared.get(key);
-        if (w.shared === 'place') { if (!g) this.shared.set(key, { kind: w.kind, x: 0, y: 0, z: 0, yaw: 0, n: 1, one: place(fr, w.at[0], w.at[1], w.at[2], 0, new THREE.Matrix4()) }); continue; }
+        if (w.shared === 'place') { if (!g) this.shared.set(key, { kind: w.kind, x: 0, y: 0, z: 0, yaw: 0, n: 1, rank: -1, one: place(fr, w.at[0], w.at[1], w.at[2], 0, new THREE.Matrix4()) }); continue; }
         // a group object (the bier) at the centre of its bearers
-        if (g) { g.x += fr[0]; g.y += fr[1]; g.z += fr[2]; g.n++; } else this.shared.set(key, { kind: w.kind, x: fr[0], y: fr[1], z: fr[2], yaw: fr[3], n: 1, one: place(fr, w.at[0], w.at[1], w.at[2], 0, new THREE.Matrix4()) });
+        if (g) { g.x += fr[0]; g.y += fr[1]; g.z += fr[2]; g.n++; } else this.shared.set(key, { kind: w.kind, x: fr[0], y: fr[1], z: fr[2], yaw: fr[3], n: 1, rank: -1, one: place(fr, w.at[0], w.at[1], w.at[2], 0, new THREE.Matrix4()) });
         continue; }
       this.things.push(w.kind, place(fr, w.at[0], w.at[1], w.at[2], 0, _m));
     }
@@ -602,10 +616,12 @@ export class Crowd {
     }
   }
   /** draw calls and triangles the crowd submits this frame (main pass; shadow passes repeat some of them) */
-  stats() { const s = this.humans.gpu.stats(); let propDraws = 0, props = 0; for (const c of this.carried) if (c.mesh.count) { propDraws++; props += c.mesh.count; }
+  stats() { const s = this.humans.gpu.stats(); let propDraws = 0, props = 0, propTriangles = 0;
+    // every prop instance submits its class's whole union (the other kinds' vertices collapse to a point)
+    for (const c of this.carried) if (c.mesh.count) { propDraws++; props += c.mesh.count; const g = c.mesh.geometry; propTriangles += c.mesh.count * (g.index ? g.index.count : g.getAttribute('position').count) / 3; }
     let placeholderActs = 0; for (const p of this.persons.values()) if (p.actPlaceholder && p.drawnFrame === this.frame) placeholderActs++;
     const imp = this.imp ? { impostors: this.imp.count, impostorDraws: this.imp.count ? 1 : 0, impostorTriangles: this.imp.count * 2 } : { impostors: 0, impostorDraws: 0, impostorTriangles: 0 };
-    return { ...s, propDraws, props, placeholderActs, things: this.things.stats(), animals: this.animals.stats(), perf: { ...this.perf }, ...imp, impPerf: { ...this.impPerf }, view: this.view ? { ...this.view.stats } : null }; }
+    return { ...s, propDraws, props, propTriangles, propsDropped: this.propsDropped, placeholderActs, things: this.things.stats(), animals: this.animals.stats(), perf: { ...this.perf }, ...imp, impPerf: { ...this.impPerf }, view: this.view ? { ...this.view.stats } : null }; }
   /** evidence notes for the pieces a person wears (tests, overlay) */
   static pieceNotes(look: PersonLook) { return look.pieces.map(id => ({ ...PIECES[id], id })); }
 }

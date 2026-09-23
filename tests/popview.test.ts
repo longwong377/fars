@@ -25,7 +25,7 @@ import { pose } from '../src/people/anim';
 import { lookFor } from '../src/people/looks';
 import { HumanGPU } from '../src/people/humanGPU';
 import { Crowd, MAX_FULL } from '../src/people/crowd';
-import { ACTIVITIES } from '../src/people/activities';
+import { ACTIVITIES, performanceFor } from '../src/people/activities';
 import { Sightlines } from '../src/people/sightline';
 import { buildTerrace } from '../src/arch/terrace';
 
@@ -241,8 +241,19 @@ describe('crowd fed by the population view (D-143)', () => {
         if (!sl.see(eye, [x, -z, y + 0.93 * hh]) && !sl.see(eye, [x, -z, y + 0.72 * hh])) continue; vis++; kinds[pts[i + 4]]++;
         const dd = Math.hypot(x - cam.position.x, z - cam.position.z), bi = B.findIndex(r => dd < r); vb[bi < 0 ? 4 : bi]++; }
       got[name] = { vis, full: st.byLod[0], near25 };
-      rows.push(`${name} (day ${d}, ${h} h; [${e}, ${n}] heading ${hd}°, pitch ${pitch}°): simulated in view ${simIn}, drawn in view ${inF} (skinned ${st.byLod.join('/')} full/mid/far/farthest, of them behind court walls ${st.impPerf.walled}, impostors ${st.impostors}); main-pass people triangles ${(st.triangles / 1e6).toFixed(2)} M; visible by sightline ${vis} (by distance ${vb.join('/')} <50/<200/<600/<1500/<5000 m; skinned ${kinds.slice(0, 4).join('/')}, impostors ${kinds[4]}); within 25 m ${near25}; placeholder acts drawn standing ${st.placeholderActs} skinned + ${st.impPerf.placeholders} impostors; missing ${missing.length} ${JSON.stringify(missing.slice(0, 3))}`);
+      // the population people drawn skinned: their performance from the view (D-142 × D-143 merge)
+      let popDrawn = 0, performing = 0, withThings = 0; const badResolve: string[] = [], fno = (crowd as any).frame as number;
+      for (const p of crowd.persons.values()) { if (p.agent || p.pid < 0 || p.drawnFrame !== fno || !p.vp) continue; popDrawn++;
+        const act = p.vp.moving && !ACTIVITIES[p.vp.act].moving ? 'walk' : p.vp.act;
+        if (p.act !== act || p.why !== p.vp.why || !p.perf || (p.perf as { variant?: number }).variant !== performanceFor(act, p.vp.why, Math.round(p.animK * 159)).variant) badResolve.push(`p${p.pid} ${p.act}/${act} "${p.why}"/"${p.vp.why}"`);
+        if (act !== 'walk' && act !== 'rest' && act !== 'talk') performing++; if (p.perf?.work?.length || p.perf?.animals) withThings++; }
+      rows.push(`${name} (day ${d}, ${h} h; [${e}, ${n}] heading ${hd}°, pitch ${pitch}°): simulated in view ${simIn}, drawn in view ${inF} (skinned ${st.byLod.join('/')} full/mid/far/farthest, of them behind court walls ${st.impPerf.walled}, impostors ${st.impostors}); main-pass people triangles ${(st.triangles / 1e6).toFixed(2)} M; visible by sightline ${vis} (by distance ${vb.join('/')} <50/<200/<600/<1500/<5000 m; skinned ${kinds.slice(0, 4).join('/')}, impostors ${kinds[4]}); within 25 m ${near25}; placeholder acts drawn standing ${st.placeholderActs} skinned + ${st.impPerf.placeholders} impostors; missing ${missing.length} ${JSON.stringify(missing.slice(0, 3))}`
+        + `; D-142 (merge): props ${st.props} in ${st.propDraws} draws (${(st.propTriangles / 1e6).toFixed(2)} M triangles submitted, over the cap ${st.propsDropped}), work objects ${st.things.instances} (${(st.things.triangles / 1e6).toFixed(2)} M), animals ${st.animals.instances} (${(st.animals.triangles / 1e6).toFixed(2)} M); population people performing ${performing} of ${popDrawn} skinned (with work objects or animals ${withThings})`);
       expect(missing, name).toEqual([]);
+      // every activity is performed since D-142 (the merge): no placeholder reaches a drawn person, skinned or impostor; a
+      // population person's performance is resolved from the view (the plan's act and reason)
+      expect(st.placeholderActs, name).toBe(0); expect(st.impPerf.placeholders, name).toBe(0); expect(badResolve, name).toEqual([]);
+      expect(st.propsDropped, name).toBe(0); expect(st.animals.dropped, name).toBe(0); expect(st.things.dropped, name).toBe(0);
       expect(st.byLod[0]).toBeLessThanOrEqual(MAX_FULL); expect(MAX_FULL).toBeGreaterThanOrEqual(50);
       if (near25 >= MAX_FULL) expect(st.byLod[0], `${name}: the full-detail cap filled`).toBe(MAX_FULL);
     }

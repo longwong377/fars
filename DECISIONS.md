@@ -1979,6 +1979,37 @@ the CPU and is not representative. The node figures below are the reference.
     - view 1.4–2.8 ms at 1×, 2.5–5.3 ms at 60×;
     - pool, pose and impostors 3.7–5.2 ms at 1×, 3.7–6.7 ms at 60×.
 
+### Merged with D-142 (session 5)
+- **Not yet seen:** no browser render of the merged crowd. The browser rows above (and B11–B13) predate the merge.
+- **Kept from D-142 in crowd.ts:**
+  - the performance system, for everyone drawn: `resolve()` / `performanceFor` variants, the two prop classes, work objects, animals, path cycles, IK passes by LOD, sounds.
+- **Kept from D-143 in crowd.ts:**
+  - the population pool (`feedPool`, `attachPop`, `byPid`, `vp`), the walled-off LOD, `caps` (`K.shadow`), `drawnKeys` and `drawImpostors`.
+  - D-143's single carried mesh and its own population branch of `posePerson` are gone.
+- **A population person's performance comes from the view:**
+  - the act and the plan's reason come from `p.vp.act` and `p.vp.why`. `ViewPerson.why` is new: population.ts `Seg.why`, block by block.
+  - a person stepping aside on arrival walks.
+  - the walking phase is `gaitPh`.
+  - the plan's goods (`vp.prop`) are carried only where the activity has no prop of its own, so a variant that puts the prop down keeps the hands free.
+  - Culled people within 60 m still sound their tools.
+- **Shared work objects:**
+  - For the population, the threshing floor, the drum and the bier are keyed by the plan's place (`ViewPerson.place`, new).
+  - Each is drawn once, at the performer with the lowest population id among those drawn.
+  - popgeo places each performer on a spot of their own, so a funeral's bearers stand tens to hundreds of metres apart (Q-196). One bier per place is drawn, at one bearer; the others hold a pole that is not drawn.
+- **Other changes:**
+  - `CARRIED_MAX` is now 1,024 per class (it was 256), and a prop over the cap is counted (`propsDropped`).
+  - `removeExtras()` removes extras only; it used to drop the pool's population people and leave `byPid` stale.
+  - The dev overlay says PLACEHOLDER only if a placeholder act is drawn, and it counts props, work objects and animals.
+- **Measured (node, `tests/popview.test.ts` m07, the five busiest scenes):**
+  - placeholder acts drawn: 0 skinned and 0 impostors in every scene (Q-207 closed).
+  - every skinned population person's act, reason and variant match the view's.
+  - props, work objects and animals over their caps: 0.
+  - Props add 0.26–0.31 M submitted triangles on the Terrace views (B13).
+  - `tests/performances.test.ts` checks resolve() against a stub view: variants from the reason, goods, one threshing floor for two threshers, the extras.
+- **Not done:**
+  - Impostors (beyond the pool or 600 m) still take the base activity's anim, not the variant's. D-142's seated and kneeling work cycles have no impostor frame of their own, so they stand.
+  - The population's grinders have no quern: the querns are the Terrace agents' static work objects.
+
 ## D-159 A frame meter on top of the illuminance law (session 4)
 - **Fault (triage item 9):** the exposure law meters the light at the eye (sun + sky × visibility, D-117/D-141), never the frame, so frames that are mostly shade came out 1–1.5 stops dark (stair-climb at 08:30: median sRGB 34; the backlit Grand Stair façade), where a camera's evaluative meter and the eye's field adaptation open up.
 - **Now (C):** the TRAA output (scene-linear, before exposure) is averaged into a 24 × 14 float target inside the post graph (3 × 3 taps of ln L per texel) and read back every 0.25 s (every frame, awaited, in frozen `?test` renders). The centre-weighted mean (a Gaussian: the centre ~3× the corners) is compared with the law's reference, an 18 % grey under the illuminance the law exposes for (E = KEY / X); the correction is 0.6 of the difference in EV, bounded to −1 … +1.5 EV, and fades out between 100 and 10 lx at the eye, so night and deep twilight stay with the law's absolute threshold (D-117). The adaptation's time constants apply to the corrected target.

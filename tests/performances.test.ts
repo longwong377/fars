@@ -17,7 +17,8 @@ import { HumanGPU } from '../src/people/humanGPU';
 import { Crowd, CARRIED_MAX } from '../src/people/crowd';
 import { ACTIVITIES, ABSTRACT_PLACEHOLDERS, performanceFor, type ActivityId, type Performance } from '../src/people/activities';
 import { activityLint } from '../src/people/activityLint';
-import { PROPS, PROP_CLASSES, PROP_NOTES, propGeometry, propUnionGeometry } from '../src/people/props';
+import { PROPS, PROP_CLASSES, PROP_NOTES, propGeometry, propUnionGeometry, propSlot } from '../src/people/props';
+import { propOf, type ViewPerson } from '../src/people/popview';
 import { WORK_NOTES, workGeometry, type WorkKind } from '../src/people/workObjects';
 import { SPECIES, ANIMAL_BUILD, animalGeometry, animalFrame, deformAnimal, animalsFor, lieDrop, grazeReach } from '../src/people/animals';
 import { STRIKE_KINDS } from '../src/audio/soundscape';
@@ -270,4 +271,67 @@ describe('crowd: performers with their things and animals (budgets)', () => {
     expect(checkedMeshes).toBeGreaterThan(10);
     expect(ms[45]).toBeLessThan(10); // node, 300 performers in view (the crowd's people-only budget is 6 ms: humans_runtime)
   }, 180_000);
+});
+
+describe('population people perform too (the D-142 × D-143 merge)', () => {
+  // a crowd with a population view (a stub here; the view itself: tests/popview.test.ts): people attached by population id
+  // and placed by the view's ViewPerson, as crowd.feedPool does
+  const makeCrowd = () => {
+    const img = () => new THREE.DataTexture(new Uint8Array(4), 1, 1);
+    const humans = { A, O, gpu: new HumanGPU(A, O, { skin: img(), eye: img() }, { capacity: 64 }), ms: { load: 0, outfits: 0, gpu: 0, worker: false } };
+    const crowd = new Crowd(null, 1, humans);
+    crowd.view = { lookInput: (pid: number) => ({ id: 100000 + pid, sex: 'm', role: 'porter', dress: 'worker', origin: 'persian', seed: 7777 + pid * 31 }), childStature: () => null,
+      geo: { plotAt: () => 0 }, stats: {}, pop: { persons: [], nameOf: () => null } } as any;
+    return crowd;
+  };
+  const vpOf = (pid: number, e: number, n: number, act: ActivityId, why: string, o: Partial<ViewPerson> = {}): ViewPerson =>
+    ({ pid, e, n, y: 0, heading: 180, act, moving: false, why, place: '', prop: propOf(act, o.carryNote ?? null), carryNote: null, speed: 0, entry: 0, what: 'test', agent: -1, plot: 0, wall: 0, ...o });
+  it('resolve() takes a population person\'s act and reason from the view (vp.act, vp.why): D-142\'s variant, props, work objects and animals; the plan\'s goods carried where the activity has no prop; no placeholder', () => {
+    const crowd = makeCrowd(), frame = () => (crowd as any).frame as number;
+    const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0); cam.lookAt(0, 1.2, -10); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+    const V = [
+      vpOf(1, -3, 10, 'thresh', 'threshing: driving the animals round over the sheaves on the village floor (E-43)', { place: 'threshing:v1' }),
+      vpOf(2, 1, 12, 'thresh', 'threshing and winnowing on the village floor (E-43)', { place: 'threshing:v1' }),
+      vpOf(3, 3, 8, 'walk', 'walking', { moving: true, speed: 1.3, carryNote: 'a sack of barley from the store' }),
+      vpOf(4, -1, 7, 'gather', 'shaping dung cakes and setting them out to dry'),
+      vpOf(5, 2, 15, 'reap', 'reaping the barley', { moving: true, speed: 0.3 }), // stepping aside on arriving: a walk
+      vpOf(6, -4, 16, 'field_work', 'hoeing the fields'),
+    ];
+    expect(V[2].prop, 'the view reads the goods from the plan\'s words').toBe('sack');
+    const P = V.map(v => [crowd.attachPop(v.pid), v] as const);
+    for (let f = 0; f < 3; f++) { for (const [p, v] of P) { p.vp = v; p.vpFrame = frame() + 1; } crowd.update(f / 30, cam.position, cam.position, cam); }
+    const st = crowd.stats();
+    for (const [p, v] of P) {
+      const act = v.moving && !ACTIVITIES[v.act].moving ? 'walk' : v.act, want = performanceFor(act, v.why, Math.round(p.animK * 159));
+      expect(p.drawnFrame, `p${v.pid} drawn`).toBe(frame());
+      expect(p.act, `p${v.pid}`).toBe(act); expect(p.why, `p${v.pid}`).toBe(v.why);
+      expect((p.perf as { variant?: number } | null)?.variant, `p${v.pid}`).toBe(want.variant); expect(p.anim, `p${v.pid}`).toBe(want.anim); expect(p.actPlaceholder).toBe(false);
+    }
+    const get = (pid: number) => crowd.persons.get(`p${pid}`)!;
+    expect(get(1).anim).toBe('drive'); expect(get(1).prop).toBe('goad');
+    expect(get(2).anim).toBe('winnow'); expect(get(2).prop).toBe('fork');
+    expect(get(3).anim).toBe('walk'); expect(get(3).prop).toBe('sack'); // the plan's goods, carried as D-142's prop
+    expect(get(4).anim).toBe('pat'); expect(get(4).prop, 'a variant that leaves the prop out keeps the hands free').toBeNull();
+    expect(get(5).act).toBe('walk');
+    expect(get(6).anim).toBe('hoe'); expect(get(6).prop).toBe('hoe');
+    // the props are D-142's instanced props (kind index per instance, per prop class)
+    const meshes = crowd.group.children.filter(o => (o as THREE.InstancedMesh).isInstancedMesh && /^props:/.test(o.name)) as THREE.InstancedMesh[];
+    const kindsIn = (c: number) => { const im = meshes.find(m => m.name === (c === 0 ? 'props:carried' : 'props:tools'))!; const ik = im.geometry.getAttribute('ik') as THREE.InterleavedBufferAttribute; return Array.from({ length: im.count }, (_, i) => ik.getX(i)); };
+    for (const k of ['sack', 'goad', 'fork', 'hoe']) { const [c, i] = propSlot(k)!; expect(kindsIn(c), k).toContain(i); }
+    // D-142's work objects and animals: one threshing floor for the two at the same place (keyed by the plan's place), the
+    // driver's oxen, the winnower's grain heap, the dung cakes
+    expect(st.things.kinds.threshing_floor).toBe(1); expect(st.things.kinds.grain_heap).toBe(1); expect(st.things.kinds.dung_cakes).toBe(1);
+    expect(st.animals.species.ox).toBeGreaterThanOrEqual(2);
+    expect(st.placeholderActs).toBe(0); expect(st.propsDropped).toBe(0);
+    // the performance follows the plan's reason when it changes (the resolve cache is keyed by act and reason)
+    V[1].why = 'threshing: driving the animals round over the sheaves on the village floor (E-43)';
+    for (const [p, v] of P) { p.vp = v; p.vpFrame = frame() + 1; } crowd.update(0.2, cam.position, cam.position, cam);
+    expect(get(2).why).toBe(V[1].why); expect(get(2).anim).toBe('drive'); expect(crowd.stats().things.kinds.threshing_floor).toBe(1);
+    // a person the view does not place this frame is not drawn (and not resolved from a stale place)
+    get(6).vpFrame = -10; for (const [p, v] of P) if (v.pid !== 6) { p.vp = v; p.vpFrame = frame() + 1; } crowd.update(0.25, cam.position, cam.position, cam);
+    expect(get(6).shown).toBe(false); expect(get(6).drawnFrame).toBeLessThan(frame());
+    // removing the extras keeps the pool's population people (attached by population id)
+    crowd.addExtra('x', { id: -5, sex: 'm', role: 'porter', dress: 'worker', seed: 5, x: 0, y: 0, z: -5, yaw: 0 }); crowd.removeExtras();
+    expect(crowd.persons.size).toBe(6); expect(crowd.attachPop(3)).toBe(get(3));
+  }, 120_000);
 });
