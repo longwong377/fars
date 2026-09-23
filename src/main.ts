@@ -102,7 +102,7 @@ async function boot() {
   const input = new Input(canvas, () => settings);
   input.yaw = SPAWN.yaw;
   input.onInteract = () => { // E: in visitor mode the halmi / the errand's business first; the door faced within reach (D-051), else the nearest person in front
-    if (settings.playerMode === 'visitor') { const pp = player.position, v = (world as any).visitor?.interact({ x: pp.x, z: pp.z }, sky.state.sunAlt < 6); if (v) { console.info('[visitor]', v); return; } }
+    if (settings.playerMode === 'visitor') { const pp = player.position, v = (world as any).visitor?.interact({ x: pp.x, z: pp.z }, sky.state.sunAlt < 6, clock.t * 24); if (v) { console.info('[visitor]', v); return; } }
     const d = world.doors?.use(camera); if (d) { console.info('[door]', JSON.stringify(d)); return; }
     const r = world.address?.(camera); if (r) console.info('[translation layer]', JSON.stringify(r)); };
   const tl = new TranslationLayer(() => settings); input.onAction = a => tl.toggle(a);
@@ -266,7 +266,7 @@ async function boot() {
     phys.updateTerrain(terrain, player.position);
     player.update(dt, { ...ax, yaw: input.yaw, pitch: input.pitch });
     if (settings.playerMode === 'visitor' && (world as any).visitor) { // guards stop the visitor where they would have (D-100 … D-104)
-      const pp = player.position, r = (world as any).visitor.update({ x: pp.x, z: pp.z, yaw: input.yaw }, sky.state.sunAlt < 6);
+      const pp = player.position, r = (world as any).visitor.update({ x: pp.x, z: pp.z, yaw: input.yaw }, sky.state.sunAlt < 6, clock.t * 24);
       if (r.blocked) player.teleport(r.x, player.feetY, r.z);
     }
     phys.step(Math.max(1 / 240, dt));

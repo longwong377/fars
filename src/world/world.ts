@@ -224,8 +224,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     /** visitor mode: where the player may stand (blocked moves go back to the last allowed point), the interact key, the
      *  log (translation layer chronicle only). `night`: outside the Terrace's hours (C: the sun below 6°) */
     visitor: {
-      update: (p: { x: number; z: number; yaw: number }, night: boolean) => visitor.update(p, sim.t, night, court),
-      interact: (p: { x: number; z: number }, night: boolean) => visitor.interact(p, sim.t, night, court),
+      // t: world hours from the clock (main passes clock.t × 24; the escort's wait and the letter's answer run on it)
+      update: (p: { x: number; z: number; yaw: number }, night: boolean, t = sim.t) => visitor.update(p, t, night, court),
+      interact: (p: { x: number; z: number }, night: boolean, t = sim.t) => visitor.interact(p, t, night, court),
       log: () => visitor.s.log, state: () => visitor.s,
     },
     mapLayers: () => (mapItems ??= buildMapLayers({ town: settlement?.plan as any, plain: builtPlainOf(plain.data as any) })),
