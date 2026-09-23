@@ -27,12 +27,13 @@ export const TEXTILE: Record<string, { c: RGB; tier: 'B' | 'C'; note: string }> 
   ochre: { c: L(0.66, 0.5, 0.26), tier: 'B', note: 'yellow of the Susa guard robes (SUSA-ARCH)' },
 };
 const LEATHER: RGB[] = [L(0.36, 0.24, 0.15), L(0.45, 0.31, 0.2), L(0.28, 0.19, 0.13), L(0.52, 0.38, 0.25)];
-/** undyed felt, light tan to dark brown (C; no cream: a white fluted cylinder read as a modern cook's hat) */
-const FELT: RGB[] = [L(0.62, 0.56, 0.45), L(0.5, 0.44, 0.35), L(0.33, 0.27, 0.21), L(0.4, 0.34, 0.27)];
+/** undyed felt, tan to dark brown (C; no cream or light tan: a pale fluted cylinder in sunlight read as a modern cook's hat) */
+const FELT: RGB[] = [L(0.54, 0.47, 0.37), L(0.5, 0.44, 0.35), L(0.33, 0.27, 0.21), L(0.4, 0.34, 0.27)];
 /** skin tones (sRGB) — one range for everyone (C); outdoor workers a little darker (sun) */
 const SKIN: RGB[] = [[0.76, 0.58, 0.46], [0.72, 0.53, 0.42], [0.66, 0.48, 0.36], [0.6, 0.43, 0.31], [0.54, 0.38, 0.27], [0.47, 0.32, 0.22]];
-/** hair: near-black to dark brown (C; the reliefs paint hair dark blue, a convention); greying with age */
-const HAIR: RGB[] = [[0.045, 0.035, 0.03], [0.07, 0.05, 0.035], [0.1, 0.07, 0.05], [0.13, 0.09, 0.06]];
+/** hair (sRGB): black-brown to dark brown (C; the reliefs paint hair dark blue, a convention); greying with age. Measured
+ *  dark hair is about 0.02–0.05 linear albedo; the first range (0.003 linear) rendered beards as flat black masks */
+const HAIR: RGB[] = [[0.13, 0.1, 0.08], [0.16, 0.115, 0.085], [0.2, 0.14, 0.095], [0.24, 0.165, 0.11]];
 
 /** statures (m) by sex, mean and sd (C: no skeletal series from Achaemenid Fars was read; values typical of Iron Age
  *  West Asian series; OPEN_QUESTIONS Q-066) */

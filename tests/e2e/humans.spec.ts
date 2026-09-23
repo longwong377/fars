@@ -4,6 +4,7 @@ import { test, expect } from '@playwright/test';
 // view and at the busiest slice views. Screenshots → shots/humans-*.png. Env: Q (quality), ONLY (shot names).
 const az = (gridDeg: number) => gridDeg - 19; // grid heading → true azimuth
 test('people bodies in the world', async ({ page }, info) => {
+  test.skip(process.env.SKIP_WORLD_SHOTS === '1', 'SKIP_WORLD_SHOTS');
   test.setTimeout(2_400_000);
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 300)); });
   await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=25&hour=10`);
@@ -57,16 +58,16 @@ test('people draw cost (with and without people, shadow passes included)', async
     const d = b.draw.bind(b); b.draw = (ro: any, ...a: any[]) => { const c = w.__dc; c.total++;
       if (inPeople(ro.object)) { c.people++; if (ro.camera?.isPerspectiveCamera) c.view++; else c.shadow++; const n = `${ro.object.name}${ro.camera?.isPerspectiveCamera ? '' : ' (shadow)'}`; c.byName[n] = (c.byName[n] ?? 0) + 1; }
       return d(ro, ...a); }; });
-  const frame = async (people: boolean) => {
+  const frame = async (people: boolean, warm: boolean) => { // warm: one frame first (pipelines compile, shadows settle)
     await page.evaluate(p => { (window as any).__parsa.world.people.crowd.group.visible = p; }, people);
-    await page.evaluate(() => (window as any).__parsa.renderOnce());
+    if (warm) await page.evaluate(() => (window as any).__parsa.renderOnce());
     await page.evaluate(() => { const w = window as any; w.__dc.total = w.__dc.people = w.__dc.view = w.__dc.shadow = 0; w.__dc.byName = {}; });
     await page.evaluate(() => (window as any).__parsa.renderOnce());
     return page.evaluate(() => { const w = window as any, s = w.__parsa.stats(); return { draws: w.__dc.total, drawCalls: s.drawCalls, triangles: s.triangles, people: { ...w.__dc } }; });
   };
   const measure = async (label: string, v: number[]) => {
     await page.evaluate(v => (window as any).__parsa.view(...v), v);
-    const withP = await frame(true), without = await frame(false); await page.evaluate(() => { (window as any).__parsa.world.people.crowd.group.visible = true; });
+    const withP = await frame(true, true), without = await frame(false, false); await page.evaluate(() => { (window as any).__parsa.world.people.crowd.group.visible = true; });
     const h = await page.evaluate(() => (window as any).__parsa.humans());
     console.log(`cost ${label} [${q}]`, JSON.stringify({ with: withP, without, peopleDraws: withP.draws - without.draws, peopleTriangles: withP.triangles - without.triangles, crowd: { byLod: h.byLod, draws: h.draws, triangles: h.triangles, shadowDraws: h.shadowDraws, shadowTriangles: h.shadowTriangles, props: h.props, perf: h.perf } }));
     await page.screenshot({ path: `shots/humans-cost-${label}-${q}-${info.project.name}.png` });
