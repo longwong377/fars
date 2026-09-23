@@ -19,7 +19,12 @@
     - eye whites are greyish;
     - skin albedo is procedural (C).
   - Not yet seen after the fixes: the seated-pose ground fix and the greeting nod.
-- **Speech (D-011):** a placeholder formant synthesiser, not yet rated for intelligibility. The lexicons are thin.
+- **Speech and language (D-011, D-055, D-105 to D-109):**
+  - Five lexicons now exist; Babylonian and Ionic Greek are new. There are 73 scripted lines and 372 pre-rendered eSpeak clips.
+  - **Nobody has listened to the voices.** The §10 intelligibility and naturalness acceptance is open (Q-138).
+  - Every line's pronunciation and usage is C. Only 10 of the 73 lines are verbatim word sequences from a text.
+  - No greeting is attested in Old Persian or Elamite; Persians greet in Aramaic. Babylonian has no eSpeak voice (it uses the placeholder formant synthesiser) and no attested greeting.
+  - The new intents (affirm, refuse, ration) are not yet called: visitor mode will use them.
 - **Carving (improved in session 3 by the stone agent, D-029 to D-032; still C):**
   - The sculpted columns and colossi (D-018) and the carved reliefs (D-019) are procedural reconstructions of the type, not measured carving (licensed scans: NEEDS #10).
   - Now fixed:
@@ -114,5 +119,5 @@
 | 5 | Two-tier simulation of 46,590 people: events calendar, town life, rota, construction state, memory, persistence; soak PASSES (session 3); birds and jackals visible (D-054) | **Not passed:** activity coverage (25 placeholders), rendered floors, unrendered Terrace workforce, construction geometry, shadow review pending |
 | 6 | Settlement built (session 3): quarters, houses (1,456 homes / 7,830 people), workshops, gardens, Tol-e Ajori, roads; lints pass, layout sourced and tiered (C) | **Gate items met on paper (lints pass; layout sourced and tiered)**; smoke moment and people-to-houses link open |
 | 7 | Plain built (session 3): rivers, canals, fields, crop calendar, orchards, villages, quarries, Naqsh-e Rustam; horizon fixed (D-035); +8–21 draws | **Not passed:** last fixes unrendered, dawn vista weak, relief figures and DNa/DNb schematic or textless, review not run |
-| 8 | Translation layer built and e2e-verified; speech and murmur from Phase 3 (placeholders) | — |
+| 8 | Translation layer (map now at town and plain scales; its e2e rerun pending); DNa/DNb carved; five lexicons, 73 lines, 372 voice clips (session 3) | **Not passed:** translations need NEEDS #14; voices not listened to; Now view and photo mode not started (stretch) |
 | 9 | Not started | — |
