@@ -1738,3 +1738,76 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 ## D-154 The ground's herb layer: a slowly varying density dithered by tufts (session 4)
 - **Fault:** seen from the top of the Grand Stair at dawn (`dawn-sunrise`, high), the plain below read as camouflage: the `herbs` layer of the earth material (materials.ts) was one noise field of ~3 m patches with hard edges, bright green on brown.
 - **Now (C):** a local herb density (0–1) varies at 25 m and 7 m scales; tufts ~0.3 m across dither it (a tuft is drawn where a fine noise exceeds 1 − density, with the edge widened by the pixel footprint); where the tuft spacing falls under ~2 px the tufts give way to their mean, so the far ground is a soft mottle of the density (band-limited, as D-147). A per-tuft tone varies ±12 %. Colours and the season weights are unchanged (spring green 0.31/0.36/0.18 sRGB, straw in summer: C).
+
+## D-155 People up close: skin, eyes, lashes, hair and beards, cloth, the kandys, the bob, the felt cap, the headcloth, seated skirts, grime by trade (session 4, faces agent)
+- **Why:** PROGRESS listed the close-up faults of D-090 … D-093: lashes as solid bands, grey eye whites, the short beard a mask, the bob cropped, the Median cap smooth, the kandys a flat cape, seated knees ballooning the skirt, procedural skin albedo. Brief §9.3 asks for subsurface-scattering skin, proper hair, refractive eyes and cloth with weave, drape and weight, with faces first. Baseline: humanlab at Q=high (`shots/agent-faces/before/`).
+- **Still reads as CG (as of this entry):** hair is still alpha-tested shells, not strands or cards: short court hair and the bob's crown read as a textured cap, and the long beard's mass is a squared box with drawn locks (the relief convention, B). The skin albedo is still procedural and shared: per-person brows and blotches only; no freckles, moles, scars or sweat. The brows are painted in the albedo. The eyes have no iris refraction. Garments are body shells: folds and pleats are mostly shading, and hanging edges (headcloth, kandys fronts) are smoothed but designed. The kandys's sleeves are flattened tubes. Hands and teeth were not touched.
+- **Verification status (unverified in the browser):** the browser checked only the baseline (humanlab at Q=high, `shots/agent-faces/before/`). The mid-way and final browser runs did not happen: the shared queue was 7–8 runs deep and the session ended. Everything in this entry is verified only by:
+  - node tests (tests/humans_faces.test.ts, humans_shader.test.ts and the existing human tests);
+  - a node build of the material to WGSL and GLSL (main, velocity and shadow-only passes), which catches TSL graph errors but not how the result looks;
+  - the CPU mirror's previews (tools/dev/face_preview.ts: no TRAA, no SSGI, a coarse shadow map).
+  **The next browser check must look at:** the eyes (sclera, catchlights, lash clumps under TRAA), the beards' fray, the bob, the headcloth, the kandys, the seated skirt, and the stress view's counts. A risk found late and fixed without a browser check: the look flags (an integer up to 2^17) travel in an interpolated varying, and a constant can interpolate a hair under N, so floor() would flip bits. The material now rounds the value before decoding.
+- **Bug found on the way:** a comment in the material had swallowed the class mask of the grime (`// (reversed smoothstep …).mul(kCloth.add(kSkin.mul(0.5)))`). Dust fell on eyes, hair, metal and lashes as well as cloth. Fixed; a test holds it.
+- **Skin (humanMaterial.ts; C unless noted):**
+  - **Diffusion:** a per-channel wrapped diffuse whose wrap grows with the surface curvature: w = base + min(κ·ℓ, 0.55), with ℓ = 2.8/1.1/0.6 mm (red scatters furthest; after d'Eon & Luebke's profile widths) and base 0.1/0.035/0.018. D = sat((n·l + w)/(1 + w))^(1+w), which is Lambert where w = 0. The curvature |κ| is measured per body vertex (1-ring mean normal curvature, smoothed; head median 64 /m, nose tip 81, forehead 8, ears and lids up to 250) and carried in a spare byte (humanFormat).
+  - **Thin-part transmission:** a translucency channel from a ray-cast thickness bake (exp(−t/3.5 mm): ears, nostril wings, lids) lets back light through, tinted red.
+  - **Specular:** F0 0.028 (n ≈ 1.4, B). Two GGX lobes: a broad sheen (roughness 0.6 − 0.08·oil) and a sharp oily lobe (0.34). The oily lobe's share (0.10 → 0.34) follows a baked oil map: nose, forehead centre, chin and wet lips are oily, the lids dry.
+  - **The skin map** is a 2:1 atlas (2048 × 1024, was 1024²). The albedo half is as before. The detail half holds:
+    - crease height (upper and lower lid creases, nasolabial and alar grooves, philtrum, mentolabial sulcus);
+    - skin oil;
+    - age-line height (forehead lines, glabella, crow's feet, tear trough, marionette lines, neck rings), scaled at runtime by the body variant's age decade;
+    - translucency.
+    The data are stored sRGB-encoded because the texture is decoded as sRGB.
+  - **Pores:** two band-limited noise octaves (1,100 and 340 cycles/m). They fade where a period spans fewer than ~3 px (as D-147); at 1 m and 1080p they are gone. The same band limit applies to a fine mottling of colour (±3.5 %) and gloss (±0.06 roughness) at the pore scale.
+  - **Albedo and tone:** the albedo ramp was too orange (B/R 0.47–0.6 sRGB). The new ramp keeps G/R ≈ 0.76 and B/R ≈ 0.6–0.7. Tone follows origin: a pigmentation mean per origin (Egyptians darkest, Thracians lightest, Iranians and Mesopotamians between) with sd 0.16, so every origin overlaps (Q-240). Sun exposure darkens the face's upper planes, the forearms and the feet a little in the bake.
+  - **Per person:** the skin map is shared by everyone, so its brows would repeat on every face. A hash of the person's skin and hair colours now sets the brows' density and offsets a low-frequency redness mottling (±5 % red). Measured over 16 people with the same hair and near-equal tones: the brow/forehead luminance ratio spreads 0.22–0.44 (sd 0.073; one brow for all gave ~0).
+  - **Hair on skin:** under a beard the skin reads as roots (hair colour), and so does the scalp under worn hair, so holes and hairlines read as depth, not bare skin.
+  - **Ambient specular:** there is no environment map, so nothing reflected the sky. The indirect term now adds the sky's reflection, estimated from the irradiance at the normal (irradiance/π, brighter for reflections pointing up), times a Schlick-roughness Fresnel and a per-class mask. Skin gets a sheen in shade, eyes their catchlight, gold its colour.
+- **Eyes:** the MakeHuman eye texture is no longer sampled. Its sclera was sRGB 0.66, which the old shader dimmed to 0.30 linear: the grey whites.
+  - Procedural, in the eye's planar coordinates (per-vertex bytes, from the eye joint): sclera albedo 0.64/0.60/0.55 (linear), veins toward the corners, a pink caruncle.
+  - Iris 5.9 mm in eight colours by origin (Q-244), with radial fibres, a collarette, a limbal ring and a 1.5 mm pupil. The upper lid shadows the eyeball.
+  - The eyeball's normals are analytic (humanAssets.eyeNormals): the sphere about the eye joint and a 7.8 mm cornea in front of the iris (B: standard anatomy). Its highlight reads as a wet cornea and follows the gaze.
+  - **Not done:** refraction of the iris through the cornea. The MakeHuman eyeball's recessed iris gives some parallax.
+- **Lashes:** the lash strips carry a root → tip parameter, taken from their UV rows per stretch of the lid. The alpha test cuts them into tapering clumps: 72 per upper lid, fewer and finer on the lower. Coverage is 0.6–1 at the root, 0.15–0.65 halfway and 0 at the tip.
+- **Hair and beards (MATERIAL_CULTURE "Hair and beards"):** three dressings by look flag.
+  - **Natural curls** (working men).
+  - **The court dressing** (Persian and Median dress): curls in rows, each jittered in place, size and turn per cell and blended with natural curls; the literal relief pattern read as carved snail shells.
+  - **The long beard's hanging mass:** wavy locks, each waving in its own phase with wandering edges, a rounded section and strands along it. The mass had the shell's parameter, so its locks were never drawn; then one sine field read as corrugated sheet. Measured brightness autocorrelation across the mass: 0.997 → 0.52 at one lock spacing, 0.996 → 0.26 at two.
+  - **Straight strands** (the bob).
+  - **Highlights and edges:** two shifted Kajiya–Kay lobes replace GGX on hair. Their strand tangent is world-down on the surface, swirled by the curls and following the locks' waves. Where the surface turns away, the curls scallop the silhouette. Shell edges fray over a band that widens for sparse beards, and natural beards show roots at the strand scale. The short beard's shell is 3.5 mm (was 5), with a 1.1 cm ramp.
+- **The bob:** a scalp shell plus a hanging curtain. The curtain is a lined tube from the brow's height to the jaw, open over the face, with its ends turned under. Its radius is the running maximum of the head's support, so it hangs from the widest part of the head over the ears instead of following the neck in. It thins from 12 mm at the crown to ~5 mm at the back ends and ~2 mm at the front edges; full-thickness ends read as rolls.
+- **Cloth:** wool or linen by look flag.
+  - A plain-weave micro-normal (700 or 1,500 threads/m), band-limited.
+  - Drape folds, smoother on linen.
+  - A sheen lobe (Charlie distribution, Neubelt visibility) and its sky term.
+  - Shaded pleats on the court robe and the dress: 26, vertical in front and slanting up to the belt at the sides. A 40-segment tube cannot carry them as geometry.
+  - Folds on the robe's wide sleeves.
+- **The kandys:** the coat's body hangs from the shoulders to the lower calf around the back and the sides; its fronts fall past the chest over the arms. The folds deepen toward the hem. A border in the second colour runs along the fronts and the hem. The empty sleeves are flattened tubes from the backs of the shoulders to below the hips, outside the coat (Q-242).
+- **The felt cap:** built on the full body at LOD0 (it was the mid body's), with a blunt 4.5 mm felt edge, lappets standing off the cheek, a centre seam, and felt fibre and mottling in the shading (Q-243).
+- **The fluted hat and the headcloth:**
+  - The fluted hat has flutes of uneven depth that never cut inside the rim, and a domed crown. The workers' headband is a wrapped strip with small lumps, not a lathe.
+  - The headcloth is looser (it hugged the skull), with shallower folds. Its mantle ends over the arms a little below the shoulder. Lower down, arm and chest are separate surfaces and the shell left two holes between them whose rims read as torn teeth. Its cut line and ramp are smoothed along themselves, and its hanging edge stands off the dress. Cut-line zigzag below the neck, p90: 21 → 1.8 mm. Boundary loops: 5 → 3.
+- **Seated skirts:** skirt vertices carry slack that grows toward the hem and the front and back middle. The material drops them under gravity when the thighs turn horizontal. This is the existing sleeve sag, now limited to cloth, because body vertices use that byte for other data. Measured on the seated porter: the slack cloth drops 3.6 cm on average (0 before).
+- **Grime by trade (look flag):** besides hems and feet, masons get stone dust on the hands and forearms, bakers and grinders flour on the front and forearms, and porters dust on the shoulders and back. The grime is patchy (Q-248).
+- **Looks:** the look flags (hair dressing, iris, worn hair, linen, age decade, beard density, grime zone) are packed into the person row's pattern value (humanFormat LOOK_BITS). crowd.writePerson already copies that value, so crowd.ts is unchanged. New random draws come after the old ones, so every existing seed keeps its pieces and colours.
+- **Budgets:** measured with tools/dev/human_budget.ts, which reproduces the lab's stress view exactly (the baseline browser run logged 2,621,354 triangles and 15 draws, 245,400 shadow triangles in 10 draws; the tool's before numbers are the same).
+  - The 300-person stress view (2–20 m): 2,621,354 → 2,608,117 main-pass triangles (−0.5 %), 15 → 15 draws; shadows 245,400 → 244,938 triangles per map, 10 → 10 draws.
+  - The 2–60 m crowd of tests/humans_runtime: 2,525,469 → 2,512,299; shadows 239,646 → 239,178.
+  - Both stay under D-093's measured 2.71 M view triangles and 0.26 M per shadow map.
+  - Per costume at LOD0 (only the nearest 64 people): Persian 35,395 → 34,099; Median 35,324 → 37,355 (+2,031, the felt cap on the full body); worker 38,262 → 39,961 (+1,699, the same cap); woman 33,143 → 31,475; child 30,697 → 29,737.
+  - LOD1: Median −42, Persian −24, woman +36 (the bob's curtain). LOD2: woman −56, Median +8. LOD3: ±9 at most.
+  - Vertex source 17.61 → 17.14 MB (46,589 vertices per variant, was 47,861).
+  - **Skin texture: 5.59 → 11.18 MB on the GPU with mips (the 2:1 atlas): the one increase.**
+  - Fragment shader (node WGSL build of the main pass): Perlin evaluations per fragment 12 → 3, texture fetches 2 → 2, statements in main 230 → 378. Per light: one GGX → two GGX lobes, two Kajiya–Kay lobes and a sheen lobe. **GPU time is not measured:** SwiftShader timings do not represent a GPU (REAL_HARDWARE_TODO).
+- **Tools:**
+  - tools/dev/human_cpu.ts: a CPU mirror of the material with the same constants and the bit-exact MaterialX noise.
+  - tools/dev/face_preview.ts: node close-ups with shadows, the lab's exposure and AgX, for iterating without the shared queue.
+  - tools/dev/human_budget.ts: triangles, draws and memory, including the lab's stress view.
+  - tests/humans_shader.test.ts: builds the material to WGSL and GLSL in node (main, velocity, shadow-only), which catches TSL graph errors between browser runs.
+  - tests/humans_faces.test.ts: measures the above.
+- **Tiers:** skin optics, iris colours, tones by origin, curls, grime zones, the kandys's cut and border, the bob's form, the cap's lappets and the headcloth's cut are C. The court curls as a relief convention and the bob on the elite statuette are B.
+- **Alternatives considered:**
+  - three's MeshSSSNodeMaterial: a thickness map per mesh, one material per person.
+  - Screen-space subsurface blur: a post pass not available in the pipeline, and it blurs the whole frame's skin pixels.
+  - Card hair: needs new geometry per style and alpha blending.
+  - A photographic skin texture: none is licensed and reachable, and a scan of an identifiable face would breach §12.

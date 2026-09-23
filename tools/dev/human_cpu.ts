@@ -70,7 +70,7 @@ export interface Surf {
 /** the surface stage for one fragment (fw = metres per pixel on the surface, as length(fwidth(P)); nb = the bind-space
  *  facet normal from dFdx/dFdy of P; silh = 1 − |n_geom · v|) */
 export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex | null): Surf {
-  const m = f.mat[0], prm = f.mat[1], pat = f.mat[2], grime = f.mat[3], e1 = f.ext[0], e2 = f.ext[1], P = f.bind, U = f.uv;
+  const m = f.mat[0], prm = f.mat[1], pat = Math.floor(f.mat[2] + 0.5), grime = f.mat[3], e1 = f.ext[0], e2 = f.ext[1], P = f.bind, U = f.uv;
   const kSkin = is(m, MAT.skin), kEye = is(m, MAT.eye), kHair = is(m, MAT.hair), kTeeth = is(m, MAT.teeth), kMouth = is(m, MAT.mouth);
   const kLeather = is(m, MAT.leather), kFelt = is(m, MAT.felt), kMetal = is(m, MAT.metal), kLash = is(m, MAT.lash), kWood = is(m, MAT.wood), kWicker = is(m, MAT.wicker);
   const kCloth = is(m, MAT.cloth_main) + is(m, MAT.cloth_second) + is(m, MAT.cloth_trim);

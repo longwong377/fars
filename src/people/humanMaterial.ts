@@ -220,7 +220,9 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     })();
 
     // ---- fragment
-    const m = vMat.x, prm = vMat.y, pat = vMat.z, e1 = vExt.x, e2 = vExt.y;
+    // (the look flags are an integer up to 2^17 carried by an interpolated varying: a constant interpolates to N·(b0+b1+b2),
+    // which can land a hair under N, and floor() would then flip every bit above a run of zero bits; round it first)
+    const m = vMat.x, prm = vMat.y, pat = floor(vMat.z.add(0.5)), e1 = vExt.x, e2 = vExt.y;
     const bits = (k: keyof typeof LOOK_BITS) => { const [lo, n] = LOOK_BITS[k]; return mod(floor(pat.div(2 ** lo)), 2 ** n); };
     const kSkin = is(m, MAT.skin), kEye = is(m, MAT.eye), kHair = is(m, MAT.hair), kTeeth = is(m, MAT.teeth), kMouth = is(m, MAT.mouth);
     const kLeather = is(m, MAT.leather), kFelt = is(m, MAT.felt), kMetal = is(m, MAT.metal), kLash = is(m, MAT.lash), kWood = is(m, MAT.wood), kWicker = is(m, MAT.wicker);

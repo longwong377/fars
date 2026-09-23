@@ -32,7 +32,7 @@ citing a plate. Source keys shared with PEOPLE.md are defined there.
 | Women: elite | many-folded Persian dress belted at the front, an elaborate necklace, a crenellated ("turreted") crown, bobbed hair (statuette of a high-ranking Persian woman from Egypt) | IR-WOMEN (SX) | B | |
 | Women: Pazyryk tapestry | Persian women with crowns and a **long veil falling down the back** | IR-WOMEN (SX) | B | Hermitage. Achaemenid-period import |
 | Women: seals | PFS 77*: a woman enthroned, a female servant behind (Neo-Elamite style); women in art almost always uncovered | IR-WOMEN (SX) | B | Chador-like covering only on Ergili relief, Pazyryk and some seals. **The chador itself is blocklisted** |
-| Women: workers | no imagery. Reconstruct as the ordinary tunic with a mantle or headcloth | reconstruction | C | label C in the overlay |
+| Women: workers | no imagery. Reconstruct as the ordinary tunic with a mantle or headcloth | reconstruction | C | label C in the overlay. D-155: the cloth covers the head and the back of the neck, ends a little below the shoulders, and hangs down the front of the chest and the back (Q-249) |
 | Children | no imagery; smaller tunics | reconstruction | C | |
 
 ## Hair and beards (D-155)
