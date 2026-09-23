@@ -15,6 +15,8 @@ import { Player } from './player/player';
 import { makePlayerBody, animateBody } from './player/body';
 import { Shell } from './ui/shell';
 import { DevOverlay } from './ui/overlay';
+import { TranslationLayer } from './ui/translation';
+import { PLACES } from './people/sim';
 import { buildWorld, WorldBuild } from './world/world';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
@@ -28,6 +30,7 @@ const P = urlParams();
 const settings: Settings = loadSettings();
 if (P.get('quality')) settings.quality = P.get('quality') as any;
 if (P.get('webgl')) settings.forceWebGL = P.get('webgl') === '1';
+if (P.has('tl')) settings.translation = true; // tests: translation layer on
 const SEED = +(P.get('seed') ?? WORLD_SEED_DEFAULT);
 const TEST = P.has('test'); // frozen world for camera rig / walkthrough tests
 const Q = QUALITY[settings.quality];
@@ -93,6 +96,8 @@ async function boot() {
   const input = new Input(canvas, () => settings);
   input.yaw = SPAWN.yaw;
   input.onInteract = () => { const r = world.address?.(camera); if (r) console.info('[translation layer]', JSON.stringify(r)); };
+  const tl = new TranslationLayer(() => settings); input.onAction = a => tl.toggle(a);
+  let lastSub: any = null, lastSubAt = -1e9; const inscGroup = world.root.getObjectByName('inscriptions') ?? null;
   const body = makePlayerBody(); scene.add(body);
 
   let lastSave: string | null = null;
@@ -271,6 +276,10 @@ async function boot() {
     if (opts.render === false) return;
     pipeline.render(scene, camera);
     lastFrameMs = performance.now() - t0;
+    { const sub = (world as any).lastSubtitle ?? null; if (sub && sub !== lastSub) { lastSub = sub; lastSubAt = now / 1000; }
+      const P = (world as any).people; const hm = (t: number) => { const d = Math.floor(t / 24), h = t - d * 24; return `day ${d + 1}, ${Math.floor(h)}:${String(Math.floor((h % 1) * 60)).padStart(2, '0')}`; };
+      tl.update({ camera, inscriptions: inscGroup, subtitle: sub, subtitleAt: lastSubAt, now: now / 1000, player: { e: camera.position.x, n: -camera.position.z, yawDeg: -(input.yaw * 180) / Math.PI },
+        events: P?.sim.events ?? [], timeLabel: hm, places: PLACES as any }); }
     overlay.update(renderer, scene, camera, [
       `grid E ${camera.position.x.toFixed(1)} N ${(-camera.position.z).toFixed(1)} · ${(camera.position.y + terrain.meta.court_asl).toFixed(1)} m asl · ground ${(terrain.heightAt(camera.position.x, camera.position.z) + terrain.meta.court_asl).toFixed(1)}`,
       clock.label(),

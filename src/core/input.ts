@@ -6,11 +6,13 @@ export class Input {
   onPauseRequest: () => void = () => {};
   onOverlayToggle: () => void = () => {};
   onInteract: () => void = () => {};
+  onAction: (action: 'map' | 'chronicle') => void = () => {};
   constructor(private canvas: HTMLCanvasElement, private settings: () => Settings) {
     addEventListener('keydown', e => {
       this.down.add(e.code);
       if (e.code === this.settings().keys.overlay) { this.onOverlayToggle(); e.preventDefault(); }
       if (e.code === this.settings().keys.interact && !e.repeat) this.onInteract();
+      for (const a of ['map', 'chronicle'] as const) if (e.code === this.settings().keys[a] && !e.repeat) this.onAction(a);
     });
     addEventListener('keyup', e => this.down.delete(e.code));
     addEventListener('blur', () => this.down.clear());
