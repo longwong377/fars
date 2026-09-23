@@ -34,17 +34,29 @@
 ## Phase 4 — Rest of Terrace at slice fidelity
 - [x] Apply the access patch; stairs, doors, frames, corrected outlines (D-013, D-015); overlay + dimension tests
 - [x] Nav grid over the whole Terrace; walkthrough routes validated offline
-- [ ] Walkthrough e2e over all six areas; camera-rig views of the new areas at high quality
+- [x] Walkthrough e2e over all six areas (session 3, after the step-up fix D-034)
+- [ ] Camera-rig views of the new areas at high quality
 - [ ] Reliefs on the Tachara/Hadish/Tripylon stairs and door jambs (after the relief agent); windows, niches, furnishings
 - [ ] Phase 4 independent review
 ## Phase 5 — Population + economy sim in workers, events, memory, persistence, soak test
 - [x] Simulation LOD (abstract/full) with non-teleporting promotion; load-time catch-up (persistence)
 - [x] Soak harness + gates (`npm run soak`); baseline measured: FAILS variety/events
-- [ ] Events calendar, town life, rota/post rotation, days off, errands; construction progress visible; memory of the player
+- [~] Events calendar, town life, rota/post rotation, days off, errands; construction progress visible; memory of the player (agent, session 3)
 - [ ] Population scale-up (worker, crowd pooling, impostors); rendered floors ≥ 300 visible / ≥ 50 close
 - [ ] Soak passes; shadow review of 20 NPC days
+## Cross-cutting (session 3)
+- [x] Player step-up (D-034); offline walkthrough bot `tools/dev/botcheck.ts`; test camera floor fix
+- [x] Translation layer e2e (D-036)
+- [~] Stone/sculpture/relief look faults (agent): carved-stone material, relief paint, curls, horns, Gate door leaves, collider overlap, dark door frame, Treasury column materials, reliefs on WebGL2
+- [~] Human runtime integration (agent): loader, garments, hair, headgear, skin material, retarget, crowd pooling, player body
+- [ ] Clouds render check; `QUALITY=high npm run bench` re-run
+- [ ] Rebuild the walkable grid after the merges (curvature ≤ 3 cm; Gate layout changes)
 ## Phase 6 — Settlement
+- [x] Research (SETTLEMENT.md, settlement.json); chronology rows + fail-closed lint (D-033)
+- [~] Town, gardens, workshops, Tol-e Ajori, Takht-e Rustam, roads, way-station; house plots for the simulation (agent)
 ## Phase 7 — Plain and horizon
+- [x] Research (PLAIN.md, plain.json); horizon: far ring ±71.7 km + curvature, skyline matches SRTM (D-035)
+- [~] Rivers, canals, fields by season, roads, villages, orchards, landcover, Naqsh-e Rustam; plain-vista budget (agent)
 ## Phase 8 — Language, speech, music, translation layer, map, Now view, photo mode
 - [~] Translation layer: subtitles, inscriptions (transliteration + glosses; translations need NEEDS #14), map (M), chronicle (J)
 ## Phase 9 — Polish, optimisation, FINAL_REPORT.md
