@@ -11,6 +11,8 @@
 - **Speech (D-011) is a PLACEHOLDER formant synthesiser** (robotic; not yet rated for intelligibility). The lexicons are thin: Old Persian has no greeting, so Persians greet in Aramaic or by gesture. The murmur is built from lexicon sound patterns, and languages with no lexicon (Greek, Egyptian, Lydian, Babylonian) fall back to C-tier profiles.
 - **Calibration scene (§8.1) not done:** no dated photo of the ruin is reachable (NEEDS #13). Stone and light values remain C estimates, and the Phase 3 gate can pass only with this logged exception.
 
+- **High-quality renders are washed out** (the SSGI composite lifts everything; diagnosis in HANDOFF.md). The Phase 3 moments are not yet judged at high quality.
+
 ## Phase status
 | Phase | Status | Gate |
 |---|---|---|
@@ -21,4 +23,6 @@
 - For every building except the Grand Stair, the overlay mostly checks the footprint against itself. Platform-type buildings are built *from* their footprint polygon, and the Gate and Hall of 100 Columns are built from their footprint's bounding box, so their IoU only measures how rectangular the traced ruin is.
 - Only the Grand Stair (0.962) is partly independent, because its flights come from spec rows.
 - The overlay's real value is verifying the grid→world→render transform on both backends (10 structures rendered, 11 checked geometrically). |
-| 3–9 | not started | — |
+| 3 | Vertical slice: materials, reliefs, fire, weather VFX, audio, 65 people, speech/murmur, walkthrough bot (28 legs pass). Open: SSGI washout, rubric + independent review, bench, calibration (blocked) | **not passed** |
+| 4 | research ready (research/PHASE4_ACCESS.md, patch not applied) | — |
+| 5–9 | not started | — |
