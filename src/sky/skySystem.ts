@@ -11,7 +11,7 @@ import { float, vec2, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix
 import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt } from './ephemeris';
 import { VolumetricClouds } from './clouds';
 import { skyCalibration, twilightWeight, TW_HI } from './horizon';
-import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, type SkyView } from './atmosphere';
+import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, type SkyView, type SkyViewJob } from './atmosphere';
 import { sunNormalLux, skyLux, moonLux, elongationFromFraction, extinctionK, NIGHT_LUX, REN_PER_LUX_SUN, REN_PER_LUX_SKY } from './illuminance';
 import { skyGain } from './exposure';
 import { CLOUD_BASE, CLOUD_TOP } from './clouds';
@@ -43,6 +43,14 @@ export class SkySystem {
   private lutTex: THREE.DataTexture;
   private atmos = new Map<number, Atmosphere>(); private atmo: Atmosphere | null = null;
   private view: SkyView | null = null; private viewAlt = NaN; private viewTau = NaN;
+  private viewJob: { job: SkyViewJob; tau: number } | null = null;
+  /** install a finished sky-view table: keep it for the CPU mirror, upload it normalised by its irradiance (half float) */
+  private setView(v: SkyView, tau: number) {
+    this.view = v; this.viewAlt = v.sunAltDeg; this.viewTau = tau;
+    const src = v.data, dst = this.lutTex.image.data as Uint16Array, inv = 1 / Math.max(v.irradianceY, 1e-30);
+    for (let i = 0; i < src.length; i++) dst[i] = THREE.DataUtils.toHalfFloat((i & 3) === 3 ? 1 : Math.min(60000, src[i] * inv));
+    this.lutTex.needsUpdate = true;
+  }
   /** the eye's adaptation beyond the camera's range, applied to the sky's lights (D-117) */
   gain = 1;
   /** illuminance on the ground in lux (sun + sky + moon + night sky), clear-sky model with the cloud factors (D-115) */
@@ -230,12 +238,14 @@ export class SkySystem {
     this.hemi.intensity = G * hemiI;
     // twilight dome table: recomputed when the sun has moved 0.05° (12–25 ms), clamped to −12° (below, the single-
     // scattering sky has no structure left and the night dome takes over)
+    // (12–25 ms for the whole table: after a jump in time, or on the first frame, it is built at once; while the sun moves
+    // it is rebuilt 4 rows per frame (~2–3 ms) in a back buffer and swapped when complete)
     const w = twilightWeight(alt), vAlt = Math.max(-12, Math.min(TW_HI, alt));
-    if (w > 0 && (!this.view || Math.abs(vAlt - this.viewAlt) > 0.05 || this.viewTau !== tau)) {
-      this.view = A.skyView(vAlt); this.viewAlt = vAlt; this.viewTau = tau;
-      const src = this.view.data, dst = this.lutTex.image.data as Uint16Array, inv = 1 / Math.max(this.view.irradianceY, 1e-30);
-      for (let i = 0; i < src.length; i++) dst[i] = THREE.DataUtils.toHalfFloat((i & 3) === 3 ? 1 : Math.min(60000, src[i] * inv));
-      this.lutTex.needsUpdate = true;
+    if (w > 0) {
+      const stale = !this.view || this.viewTau !== tau || Math.abs(vAlt - this.viewAlt) > 1;
+      if (stale) { this.viewJob = null; this.setView(A.skyView(vAlt), tau); }
+      else if (this.viewJob) { if (A.stepSkyView(this.viewJob.job, 4)) { this.setView(this.viewJob.job.view, this.viewJob.tau); this.viewJob = null; } }
+      else if (Math.abs(vAlt - this.viewAlt) > 0.05) this.viewJob = { job: A.beginSkyView(vAlt), tau };
     }
     // skylight colour: the session-3 day colour by day, the physical sky's irradiance colour in twilight, the session-3
     // night blue at night; its luminance is kept at the day colour's 0.796 so hemi.intensity · 0.8 stays the illuminance

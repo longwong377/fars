@@ -234,9 +234,17 @@ export class Atmosphere {
    *  horizon) × NA azimuths from the sun (0..180°: the sky is symmetric about the sun's vertical), RGBA (A = 1), with its
    *  horizontal irradiance ∫ L cos θ dω (16 × 32 quadrature, as horizon.ts). */
   skyView(sunAltDeg: number, NE = 32, NA = 32): SkyView {
-    const a = (sunAltDeg * Math.PI) / 180, s: V3 = [Math.cos(a), Math.sin(a), 0];
-    const data = new Float32Array(NE * NA * 4), L: V3 = [0, 0, 0];
-    for (let j = 0; j < NE; j++) {
+    const job = this.beginSkyView(sunAltDeg, NE, NA); this.stepSkyView(job, NE); return job.view;
+  }
+  /** the same table built a few rows at a time (a time-lapse must not stall a frame): begin, then step until it returns
+   *  true; the view's irradiance is set on the last step */
+  beginSkyView(sunAltDeg: number, NE = 32, NA = 32): SkyViewJob {
+    return { view: { data: new Float32Array(NE * NA * 4), NE, NA, sunAltDeg, irradianceY: 0, irradiance: [0, 0, 0] }, row: 0 };
+  }
+  stepSkyView(job: SkyViewJob, rows: number): boolean {
+    const { view } = job, { NE, NA, data } = view, a = (view.sunAltDeg * Math.PI) / 180, s: V3 = [Math.cos(a), Math.sin(a), 0], L: V3 = [0, 0, 0];
+    const end = Math.min(NE, job.row + rows);
+    for (let j = job.row; j < end; j++) {
       const vv = (j + 0.5) / NE, e = (vv * vv * Math.PI) / 2, ce = Math.cos(e), se = Math.sin(e);
       const steps = e < 0.3 ? 56 : 32; // long, grazing lines of sight cross the shadow boundary: finer steps
       for (let i = 0; i < NA; i++) {
@@ -245,12 +253,14 @@ export class Atmosphere {
         const o = (j * NA + i) * 4; data[o] = L[0]; data[o + 1] = L[1]; data[o + 2] = L[2]; data[o + 3] = 1;
       }
     }
-    const view: SkyView = { data, NE, NA, sunAltDeg, irradianceY: 0, irradiance: [0, 0, 0] };
+    job.row = end;
+    if (end < NE) return false;
     const E = skyViewIrradiance(view); view.irradiance = E; view.irradianceY = 0.2126 * E[0] + 0.7152 * E[1] + 0.0722 * E[2];
-    return view;
+    return true;
   }
 }
 
+export interface SkyViewJob { view: SkyView; row: number }
 export interface SkyView { data: Float32Array; NE: number; NA: number; sunAltDeg: number; irradianceY: number; irradiance: V3 }
 
 /** bilinear sample of a sky-view table at elevation e (rad, clamped to ≥ 0) and azimuth from the sun φ (rad, 0..π): the
