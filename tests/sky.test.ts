@@ -117,3 +117,19 @@ describe('stars', () => {
     expect(Math.abs(p.altitude - 29.935)).toBeGreaterThan(10);
   });
 });
+
+import { worldToGalactic } from '../src/sky/skySystem';
+import { azAltToWorld as azAltToWorld_ } from '../src/sky/ephemeris';
+import * as THREE_ from 'three/webgpu';
+describe('Milky Way frame (galactic coordinates from the verified star path)', () => {
+  it('the galactic centre maps to l = b = 0 and the north galactic pole to b = +90°, at any epoch and hour', () => {
+    for (const jd of [1550958.3, 1550958.8, 1551100.1]) {
+      const M = worldToGalactic(jd);
+      const gal = (ra: number, dec: number) => { const h = starAzAlt(ra, dec, 0, 0, jd); const w = azAltToWorld_(h.azimuth, h.altitude); const g = new THREE_.Vector3(...w).applyMatrix3(M); return { l: Math.atan2(g.y, g.x) * 180 / Math.PI, b: Math.asin(g.z) * 180 / Math.PI }; };
+      const gc = gal(266.405, -28.936), ngp = gal(192.859, 27.128), deneb = gal(310.358, 45.280);
+      expect(Math.abs(gc.l)).toBeLessThan(0.1); expect(Math.abs(gc.b)).toBeLessThan(0.1);
+      expect(ngp.b).toBeGreaterThan(89.9);
+      expect(Math.abs(deneb.l - 84.28)).toBeLessThan(0.2); expect(Math.abs(deneb.b - 1.99)).toBeLessThan(0.2); // Deneb: l 84.28°, b +1.99°
+    }
+  });
+});

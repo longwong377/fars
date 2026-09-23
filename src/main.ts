@@ -52,7 +52,7 @@ async function boot() {
   try {
     // reversed-Z on WebGPU; the WebGL2 fallback needs EXT_clip_control for that, so it uses a logarithmic depth buffer (D-007)
     const gpuOK = !settings.forceWebGL && !!(navigator as any).gpu && !!(await (navigator as any).gpu.requestAdapter().catch(() => null));
-    renderer = new THREE.WebGPURenderer({ canvas, antialias: true, forceWebGL: !gpuOK, reversedDepthBuffer: gpuOK && !P.has('noreverse'), logarithmicDepthBuffer: !gpuOK });
+    renderer = new THREE.WebGPURenderer({ canvas, antialias: true, forceWebGL: !gpuOK, reversedDepthBuffer: gpuOK && !P.has('noreverse'), logarithmicDepthBuffer: !gpuOK, trackTimestamp: P.has('bench') });
     await renderer.init();
   } catch (e) {
     console.warn('WebGPU init failed, falling back to WebGL2', e);
@@ -189,7 +189,7 @@ async function boot() {
       botInput = { forward: 0, right: 0, run: false };
       return { reached: false, stuck: false, t, state: api.playerState() };
     },
-    clockLabel: () => clock.label(), gridToLatLon, world,
+    clockLabel: () => clock.label(), gridToLatLon, world, renderer, // renderer: tests and debugging only
     sky: () => ({ sunAlt: sky.state.sunAlt, moonAlt: sky.state.moonAlt, moonFraction: sky.state.moonFraction }),
     conditions: () => weather.conditions(clock.dayIndex, clock.localHour),
     errors: [] as string[],
@@ -250,6 +250,7 @@ async function boot() {
     return open / dirs.length;
   }
   let prev = performance.now();
+  let inAnimationLoop = false; // set while three's animation loop (which advances the node frame) calls frame()
   async function frame(dtOverride?: number, opts: { sim?: boolean; render?: boolean } = {}) {
     const now = performance.now();
     const dt = dtOverride ?? Math.min(0.1, (now - prev) / 1000); prev = now;
@@ -289,12 +290,15 @@ async function boot() {
     WEATHER.wetness.value = cond.wetness; WEATHER.snow.value = cond.snowCover; WEATHER.puddles.value = Math.max(0, cond.wetness - 0.4) / 0.6;
     pipeline.flash.value = world.flash?.() ?? 0;
     if (opts.render === false) return;
+    // a frame rendered outside the renderer's animation loop (renderOnce, bench, bots) must advance the node frame itself:
+    // passes update once per node frame, so otherwise the scene pass is skipped and only the final quad is drawn (the
+    // session 2 bench and every renderOnce-based count measured that: 1 draw call, sub-millisecond "frames")
+    if (!inAnimationLoop) { const nf = (renderer as any)._nodes?.nodeFrame; if (nf) { nf.update(); (renderer.info as any).frame = nf.frameId; } }
     pipeline.render(scene, camera);
     lastFrameMs = performance.now() - t0;
-    { const wall = (now || performance.now()) / 1000; // test renders call frame(0): the layer's timers still need wall time
-      const sub = (world as any).lastSubtitle ?? null; if (sub && sub !== lastSub) { lastSub = sub; lastSubAt = wall; }
+    { const sub = (world as any).lastSubtitle ?? null; if (sub && sub !== lastSub) { lastSub = sub; lastSubAt = now / 1000; }
       const P = (world as any).people; const hm = (t: number) => { const d = Math.floor(t / 24), h = t - d * 24; return `day ${d + 1}, ${Math.floor(h)}:${String(Math.floor((h % 1) * 60)).padStart(2, '0')}`; };
-      tl.update({ camera, inscriptions: inscGroup, subtitle: sub, subtitleAt: lastSubAt, now: wall, player: { e: camera.position.x, n: -camera.position.z, yawDeg: -(input.yaw * 180) / Math.PI },
+      tl.update({ camera, inscriptions: inscGroup, subtitle: sub, subtitleAt: lastSubAt, now: now / 1000, player: { e: camera.position.x, n: -camera.position.z, yawDeg: -(input.yaw * 180) / Math.PI },
         events: P?.sim.events ?? [], timeLabel: hm, places: PLACES as any }); }
     overlay.update(renderer, scene, camera, [
       `grid E ${camera.position.x.toFixed(1)} N ${(-camera.position.z).toFixed(1)} · ${(camera.position.y + curvatureDrop(camera.position.x, camera.position.z) + terrain.meta.court_asl).toFixed(1)} m asl · ground ${terrain.aslAt(camera.position.x, camera.position.z).toFixed(1)}`,
@@ -305,9 +309,16 @@ async function boot() {
     ]);
   }
   if (P.get('loadsave')) restore(readSave() as any);
-  if (P.get('bench')) { api.ready = true; await runBench(P.get('bench')!, api, frame); return; }
+  if (P.get('bench')) {
+    // the bench must time the GPU's work, not just command submission (WebGPU renders asynchronously): wait for the queue
+    // (WebGPU) or read one pixel back (WebGL2) after each frame; GPU pass time from timestamp queries where supported
+    const b: any = (renderer as any).backend, px = new Uint8Array(4);
+    const gpuSync = async () => { if (b?.device) await b.device.queue.onSubmittedWorkDone(); else if (b?.gl) b.gl.readPixels(0, 0, 1, 1, b.gl.RGBA, b.gl.UNSIGNED_BYTE, px); };
+    const gpuMs = async () => { try { if (!b?.trackTimestamp) return null; await renderer.resolveTimestampsAsync('render'); const t = (renderer.info.render as any).timestamp; return Number.isFinite(t) && t > 0 ? t : null; } catch { return null; } };
+    api.ready = true; await runBench(P.get('bench')!, api, frame, gpuSync, gpuMs); return;
+  }
   TRACE('world built');
-  renderer.setAnimationLoop(() => { frame(); });
+  renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
   api.ready = true;
   if (TEST) shell.playing(); else shell.title();
   void lastSave; void gridToLatLon; void YEAR_DAYS;
