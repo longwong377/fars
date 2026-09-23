@@ -21,6 +21,9 @@ const VIEWS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'village-p22', day: 0, hour: 16, w: 'clear', v: [-973, 3287, 1.6, 341, 1] },
   { n: 'naqsh-200m', day: 0, hour: 15, w: 'clear', v: [592, 5924, 1.6, 341, 7] },
   { n: 'naqsh-kaba-40m', day: 0, hour: 15, w: 'clear', v: [520, 5980, 1.6, 20, 12] },
+  // the town's trees (D-122): inside the walled paradise garden behind the Tol-e Ajori gate, 40 m from the planting's
+  // centroid toward the gate, looking at it (grid bearing 309 = 290 true); mid-May (day 25)
+  { n: 'garden-paradise', day: 25, hour: 10, w: 'clear', v: [-2475.4, 2365.5, 1.6, 290, 2] },
 ];
 test('plain', async ({ page }, info) => {
   test.setTimeout(840_000);
