@@ -1642,3 +1642,178 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - The 64 px impostor keeps LOD1's area within 15 % (bare crowns within 20 %) and luminance within 8 %, in summer, April and winter.
   - Triangles: LOD0 1,408; LOD1 288; impostor 2.
 - **Load:** the kit builds in 1.8-2.9 s in the browser (models, atlas and the first impostor bake). A day-to-day re-bake is 0.4-1.2 s, off the main thread in a worker.
+
+## D-143 — The whole population drawn: everyone out of doors placed in the built world, the nearest skinned, the rest as impostors to 5 km; visibility measured (session 4, crowd agent)
+
+### Missing, weak or placeholder (read first)
+- **The floor "≥ 300 people visible in the busiest scenes" is met in one view of seven (B11).**
+  - "Visible" is measured, not assumed: of the people drawn in a frame, those whose chest or head is in front of the
+    depth of the same frame rendered without people (browser, `crowdprobe.ts`). Node estimates the same with 2.5-D
+    sightlines (`sightline.ts`).
+  - Frustum counts overstate by 10–100×: they include people in walled courts and rooms, and in the Hall of 100 Columns
+    site behind its walls and columns.
+  - Browser, quality high, visible (drawn in view):
+    - the Terrace from the hillside above it: 560 (5,603), most at 60–200 m and a few pixels tall;
+    - the approach at dawn from the Grand Stair top: 228 (4,751), specks at 0.6–5 km;
+    - the Hall of 100 Columns site among the workers: 97 (2,968);
+    - the Apadana forecourt: 84 (775);
+    - a lower-town lane at 12:11: 51 (3,101);
+    - the court setting: the forecourt 94 (641), from the hillside 558 (5,659).
+  - These are the best views a node scan of ~350 viewpoints × headings found.
+  - Rendering is not the limit: every simulated person out of doors in view within 5 km is drawn (tested: 0 missing).
+    The limit is where the plans put people: at 12:12 the plans put 5,471 of the town's people in their courts and 14
+    in its lanes (Q-204), and the Terrace's workers are inside the hall site.
+- **The court in full assembly is not simulated (B12, Q-200).**
+  - population.json gives the Terrace 3,000–8,000 people by day with the court resident; the Population does not use
+    those values.
+  - On day 0 at 10:00 the plans put 685 people on the Terrace with the court setting and 676 without.
+- **Frame triangles at quality high (≤ 12 M) are exceeded in 3 of 7 views (B13).** Draw calls (≤ 3,000) are met
+  everywhere: 418–671.
+  - On the hillside (12.52 M; 11.97 M without people) and the court hillside (12.64; 12.04 without), the world alone
+    takes about 12 M.
+  - In the hall site (13.51; 10.21 without), people add 3.30 M, 1.8 M of it the floor of 50 at full detail.
+  - Within budget with people: the forecourt (8.53, court 8.60), the town lane at noon (11.35) and the dawn approach
+    (6.74).
+  - Three approaches were measured; shipped: the farthest body from 90 m, and walled-off people at the farthest body.
+- **Walk times are the plans' (Q-203).**
+  - A walk arrives at the plan's hour. Where the plan allows more time than the route needs (63 % of walks sampled),
+    the walker leaves late.
+  - 7.5 % of walks need more than 1.8 m/s and are drawn hurrying.
+  - The simulation's travel was not changed: population.ts belongs to another agent this session.
+- **Placeholder activities reach drawn people (Q-207).** They are shown standing, flagged in the dev overlay and
+  counted: up to 182 skinned and 1,976 impostors per frame in the busiest views.
+- **Children.**
+  - Under one: never drawn. At one or two: drawn only when playing or walking; otherwise carried, with no carried-child
+    prop (Q-205).
+  - Statures are modern growth-chart medians (Q-206).
+- **population.ts gives NaN hours in 81 of 130,592 plans (Q-208).** The view repairs and counts them.
+- **Jumping back in time.** The population's life events do not go back when time jumps back, nor do the detailed
+  agents: a test that runs the year and jumps back sees other people. This is population.ts and sim.ts behaviour. The
+  busiest-scenes test builds its own simulation.
+- **Impostors.**
+  - They cast no shadows.
+  - There are 14 frames; performances with no frame of their own stand.
+  - Size and colour-slot match with the far body is tested in node. No browser A/B render at the 600 m switch was made.
+  - When more than 448 people are nearer than 600 m, the rest are impostors inside 600 m.
+- **Standing apart.** People standing keep 0.6 m apart (tests: 0.8 % closer than 0.45 m). Round the work-camp hearth at
+  the noon meal, 3.2 % find no room within 5 m. The detailed agents' own positions (sim.ts) sometimes coincide.
+- **Pop-in.**
+  - A node walk through the lower town to the Terrace (1×, 4,597 frames, 1.6 km): 0 pop-ins.
+  - Every e2e scene: 0.
+  - Not run: a browser walkthrough, and a walk at 60×.
+- **main.ts (not owned):** one line, so the bots' paths avoid the population's people standing still.
+- **Per-quality caps:** none set. `crowd.caps` can take them; a budget is stated only for quality high.
+
+### What is drawn, and where (C unless stated)
+- **Who is drawn:**
+  - everyone the plans put out of doors, or in an open court, yard or workshop, within 5 km of the camera;
+  - every detailed agent on the map, and those off the Terrace on their hidden legs, placed on the town's lanes.
+- **Not drawn:**
+  - people in roofed rooms: sleep, lie_ill, offmap, rest after dusk;
+  - people away;
+  - carried infants;
+  - places with no built counterpart, which are counted: 0.03 % of place visits (Q-201, Q-202).
+- **Where (popgeo.ts):** each abstract place resolves, per person and deterministically, to a spot:
+  - a household: its court or yard (rooms hide);
+  - its quarter's lane: outside the street door;
+  - wells and canals: the nearest built;
+  - workshops: spread over the nearest workshop plots of the craft;
+  - town facilities: their compounds, or clear open ground near town.json's coordinates;
+  - fields and estates: around the compound;
+  - Terrace places: spots in line of sight of the place's anchor on the walkable grid.
+- **Villages:** each built village is rasterised as a site (compounds as plots, yard walls, gates, room doors). The 39
+  population villages map to the 37 built ones by name, then by size rank (Q-201).
+- **Routes:**
+  - Terrace and approach: the walkable grid (A* between cached anchors, straight when clear).
+  - Town: the site rasters as built (settlement/walk.ts, read-only on the plan). Walls stand on cell edges; houses are
+    entered by their street doors. Paths are string-pulled with 0.3 m wall clearance, and a lane graph of lane mouths,
+    gates and road vertices joins sites over open ground.
+  - Villages: the same method on their rasters.
+  - Open ground: straight runs that cross no plot.
+- **Timing (popview.ts):**
+  - A walk fills the plan's road blocks and arrives at the plan's hour.
+  - Where the implied pace is below 0.75 m/s, the walker leaves late at their own pace (1.1–1.4 m/s, per person).
+  - Above 1.8 m/s the walk is drawn hurrying, and counted.
+  - A change of place with no walk in the plan (room to court) is a short step at the block's start.
+  - A person coming out of a roofed room is marked as entering by a door.
+- **Pool (crowd.ts):**
+  - Candidates are every detailed agent on the map and the view's people within 5 km.
+  - The nearest 400 are skinned; people out of view rank 400 m farther. The attached keep their bodies to rank 448.
+  - Everyone else in view is an impostor.
+  - LOD: full detail to 25 m (at most 50), the mid body to 90 m (at most 100), the far body only for the rest within
+    90 m, the farthest body (0.5k triangles) from 90 m (was 200 m), impostors beyond 600 m.
+  - Walled-off people get the farthest body at any distance, cast no shadow and count against neither cap. These are
+    people standing in a walled court or yard (`Spot.plot`, `Spot.wall`) that the camera is outside of and below the
+    walls of; they are hidden but for a glimpse through the street door. They also rank 400 m farther for the pool, so
+    full detail goes to the people in sight.
+  - Looks are computed lazily, 300 new ones a frame.
+  - A child's body is scaled to its age.
+  - Placeholder activities are shown standing and flagged.
+- **Pop-in probe (§13.8):**
+  - Every candidate within 50 m in view that was no candidate in the last frame is a pop-in, unless they came out of
+    a door (counted apart).
+  - The probe restarts after a camera teleport (> 30 m in a frame) or a jump in time (back, or > 15 min ahead).
+- **Impostors (impostors.ts):**
+  - A CPU bake of each dress family's far body (6 families), posed by the rig in 14 frames and 8 views; cells are 32 px
+    over 1.6 × 2 m.
+  - The frames: stand; 6 of a walk; a jar on the head; a sack on the shoulder, both carried props baked in; sit; kneel
+    (grinding); bend (chisel); lie; a guard's stance.
+  - Each texel holds colour-slot weights (main, second, trim, skin, hair, leather, fixed) with a normal and cavity. Each
+    instance carries its own look's colours (packed, within 1.6/255 in sRGB) and its stature.
+  - Coverage-preserving mips; alpha test at 0.5. The TSL vertex stage writes the previous position for TRAA.
+  - One instanced draw, cylindrical billboards, the nearest of 8 views.
+- **Visibility counts:** `world.people.probe(renderer)` in the browser (depth of the frame without people) and
+  `Sightlines` in node. Both are measurement tools, not used for drawing.
+- **Standing apart (popview.ts):**
+  - People standing keep 0.6 m apart. Each takes their spot, or the nearest free point on rings around it (0.63 m
+    apart, to 5 m), reached by a short straight step in the same court, yard or open ground (`popgeo.stepClear`).
+  - An arriving walker steps there over 2 s.
+  - Terrace spots keep their drawn point: snapping to grid-cell centres had stacked people.
+  - A hearth's gathering spreads over 8 m.
+- **Player collisions:** 48 kinematic capsules follow the population's people within 20 m of the player.
+- **Doors:** the population's walkers on the Terrace open doors.
+
+### Simulation API
+- population.ts and sim.ts are unchanged; the view reads their public API.
+- New read-only modules: `settlement/walk.ts`, `people/popgeo.ts`, `people/popview.ts`, `people/impostors.ts`,
+  `people/crowdprobe.ts`, `people/sightline.ts`.
+- `world.people` gains `view`, `geo` and `probe(renderer)`.
+- `crowd.ts` gains `view`, `imp`, `caps`, `attachPop`, `impPerf`, `drawnPoints`, `drawnKeys`, `resetPopinProbe` and
+  `lastCamera`.
+- Offered, not made: plans could take walk times from `PopGeo.route(a, b).len` (Q-203).
+
+### Measured
+- **Browser:** quality high, WebGPU on SwiftShader, 960 × 540; `tests/e2e/crowd_scale.spec.ts`; `shots/crowd-scale.json`.
+  Every backend draw is counted with people shown and hidden in the same frame state.
+
+| scene (day 25 unless court) | drawn in view: skinned full/mid/far/farthest + impostors | visible (depth probe): total; <50/<200/<600/<1500/<5000 m | frame with people: draws / triangles | without people | people's share | pop-ins | placeholder acts shown standing: skinned + impostors |
+|---|---|---|---|---|---|---|---|
+| Hall of 100 Columns site among the workers, 10:00 ([144, −12], S) † | 50/100/18/203 + 2,597 = 2,968 | 97; 91/6/0/0/0 | 621 / 13.51 M | 593 / 10.21 M | +28 / +3.30 M | 0 | 182 + 1,084 |
+| the Terrace from the hillside above it, 10:00 ([290, −20], W, 26 m above the court) | 0/3/0/399 + 5,201 = 5,603 | 560; 0/311/13/116/120 | 671 / 12.52 M | 650 / 11.97 M | +21 / +0.54 M | 0 | 76 + 1,976 |
+| the Apadana forecourt, 10:00 ([20, 80], SE) | 0/2/0/403 + 370 = 775 | 84; 1/83/0/0/0 | 616 / 8.53 M | 596 / 7.96 M | +20 / +0.57 M | 0 | 127 + 120 |
+| lower-town lane (q_s1), 12:11 ([−422, −941], NNE) | 18/41/0/176 + 2,866 = 3,101 | 51; 19/7/25/0/0 | 485 / 11.35 M | 450 / 10.30 M | +35 / +1.06 M | 0 | 47 + 960 |
+| the approach at dawn from the Grand Stair top, 05:24 | 8/0/0/139 + 4,604 = 4,751 | 228; 0/1/35/103/89 | 418 / 6.74 M | 400 / 6.31 M | +18 / +0.43 M | 0 | 20 + 1,768 |
+| court setting, day 0 10:00, the forecourt | 1/2/0/418 + 220 = 641 | 94; 2/92/0/0/0 | 618 / 8.60 M | 594 / 8.02 M | +24 / +0.57 M | 0 | 123 + 33 |
+| court setting, day 0 10:00, from the hillside | 0/0/0/448 + 5,211 = 5,659 | 558; 0/234/17/147/160 | 662 / 12.64 M | 647 / 12.04 M | +15 / +0.60 M | 0 | 91 + 1,863 |
+
+† Run before the spacing of standing people and the walled-off rule (neither changes the Terrace much). Superseded
+runs, kept for comparison:
+- the hall site looking W from [170, −20]: 4,523 drawn, 176 visible, 16.79 / 13.64 M;
+- the hillside before the LOD change: 13.50 M, people +1.52 M;
+- the town lane before the walled-off rule: 13.14 M, people +2.85 M, 26 visible.
+
+Crowd CPU in these frozen browser frames (feed 1–16 ms, pose 5–46 ms, impostors 1–14 ms) competes with SwiftShader for
+the CPU and is not representative. The node figures below are the reference.
+
+- **Node** (`tests/popview.test.ts`; lines in `bench-reports/popview-tests.json`):
+  - Places: 99.97 % of 110,126 place visits resolved.
+  - Walls: 0 of 25,490 people drawn in walls or roofed rooms; 0 of 732 routes cross a wall.
+  - Positions: 0 off the plan (20,946 at their places, 526 walking).
+  - Walk pace the plans imply: p50 0.40 m/s (63.3 % leave late, 7.5 % hurry).
+  - Impostor vs far body, 18 cases: height and width within a texel, area within 3.9 %, colour-slot shares within
+    0.045.
+  - Busiest scenes by sightline: hall 89, hillside 953, forecourt 108, town at noon 34, dawn 379; 0 missing.
+  - Pop-in walk: 0.
+  - CPU per frame (machine at load 7–9 on 4 cores):
+    - view 1.4–2.8 ms at 1×, 2.5–5.3 ms at 60×;
+    - pool, pose and impostors 3.7–5.2 ms at 1×, 3.7–6.7 ms at 60×.
