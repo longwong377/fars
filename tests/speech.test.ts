@@ -179,3 +179,17 @@ describe('crowd murmur profiles', () => {
     expect(same).toBeLessThan(40); // mostly non-words; an occasional real short word is harmless
   });
 });
+
+describe('pre-rendered voices (eSpeak-NG from the lexicon IPA; tools/build_speech.py)', () => {
+  it('every scripted line has all six voice classes, as local clips of plausible length; voice classes cover every speaker', async () => {
+    const { readFileSync, statSync } = await import('node:fs');
+    const { LINES, voiceKeyFor, voiceFor } = await import('../src/people/speech_lines');
+    const man = JSON.parse(readFileSync('public/voices/manifest.json', 'utf8'));
+    for (const l of LINES) for (const k of ['m1', 'm2', 'm3', 'f1', 'f2', 'c1']) {
+      const c = man.clips[`${l.id}|${k}`]; expect(c, `${l.id}|${k}`).toBeTruthy();
+      expect(c.url).toMatch(/^voices\/[^/]+\.ogg$/); const size = statSync('public/' + c.url).size; expect(size).toBeGreaterThan(1500); expect(size).toBeLessThan(40000);
+    }
+    const keys = new Set<string>(); for (let s = 0; s < 400; s++) for (const sex of ['m', 'f'] as const) for (const role of ['guard', 'child', 'baker']) keys.add(voiceKeyFor(voiceFor({ seed: s, sex, role })));
+    expect([...keys].sort()).toEqual(['c1', 'f1', 'f2', 'm1', 'm2', 'm3']);
+  });
+});

@@ -40,9 +40,9 @@ import { NavGrid } from '../people/navgrid';
 import { PeopleSim, Env } from '../people/sim';
 import { Crowd } from '../people/crowd';
 import { ACTIVITIES } from '../people/activities';
-import { Speech, Subtitle } from '../audio/speech';
+import { Speech, Subtitle, RecordingBackend, FormantBackend } from '../audio/speech';
 import { Murmur, Talker } from '../audio/murmur';
-import { pickLine, voiceFor } from '../people/speech_lines';
+import { pickLine, voiceFor, voiceKeyFor } from '../people/speech_lines';
 import type { WeatherSystem } from '../weather/weatherState';
 import placesJson from '../data/people_places.json';
 const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
@@ -121,7 +121,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const audio = new AudioEngine(); const sound = new Soundscape(audio);
   crowd.onHit = (kind, pos) => sound.strike(kind, pos);
   // speech + crowd murmur (D-011): murmur from everyone whose activity sounds as talk; lines only from the lexicons
-  const speech = new Speech(audio); const murmur = new Murmur(audio, { maxVoices: 10, radius: 40 });
+  // voices: eSpeak-NG clips pre-rendered from the lexicon IPA (tools/build_speech.py) first, the formant synthesiser for anything missing
+  const voiceManifest = await fetch('/voices/manifest.json').then(r => (r.ok ? r.json() : { clips: {} })).catch(() => ({ clips: {} }));
+  const speech = new Speech(audio, [new RecordingBackend(Object.fromEntries(Object.entries(voiceManifest.clips as Record<string, { url: string; tier: string }>).map(([k, v]) => [k, { url: v.url, tier: v.tier }]))), new FormantBackend()]); const murmur = new Murmur(audio, { maxVoices: 10, radius: 40 });
   let lastSubtitle: Subtitle | null = null; speech.onSubtitle = (s: Subtitle) => { lastSubtitle = s; };
   let playerAt: THREE.Vector3 | null = null;
   wvfx.onThunder = (delay, strength) => sound.thunder(delay, strength);
@@ -159,7 +161,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     const day = Math.floor(sim.t / 24);
     const pick = pickLine({ langs: best.langs, intent: best.metPlayer > 1 ? 'reply' : 'greet', role: best.role, seed: best.seed + day });
     if (!pick) return { gesture: 'nods (no attested line in their language)' };
-    speech.say(pick.line, voiceFor({ seed: best.seed, sex: best.sex, role: best.role }), { x: best.pos[0], y: best.y + 1.55, z: -best.pos[1] }, { speakerId: best.id });
+    { const vo = voiceFor({ seed: best.seed, sex: best.sex, role: best.role }); speech.say(pick.line, vo, { x: best.pos[0], y: best.y + 1.55, z: -best.pos[1] }, { speakerId: best.id, voiceKey: voiceKeyFor(vo) }); }
     return { lineId: pick.line.id, lang: pick.line.lang, translit: pick.line.translit, gloss: pick.line.gloss, tier: pick.line.tier, speakerId: best.id, backend: 'formant' } as Subtitle;
   };
   return { root, fire, wvfx, simulate, people: { sim, crowd, nav }, address, get lastSubtitle() { return lastSubtitle; },
