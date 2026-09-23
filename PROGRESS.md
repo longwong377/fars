@@ -2,7 +2,14 @@
 
 ## Broken / placeholder / weak (read first)
 - **State at the end of session 3 (evening). Every agent branch is merged; HANDOFF.md lists the next steps in order.**
-  - Interiors now render near black until eye adaptation follows the probe illuminance indoors (below; Q-153). This is the first job of session 4.
+  - **The soak FAILS 2 of 8 gates after the round-3 sim merge** (the sim agent's full run on bf4ccf7, D-139):
+    - populationVariety: child 41397, present 7 days, has a near-copy share of 0.19 (0.095 after round 2);
+    - plansWellFormed: on day 123, children 42002 and 42003 walk on road:plain at 16.32 while their mother 42000 is already at h:9660 ("apart").
+    - The other six gates pass (15,454,999 person-days, no per-plan issue).
+    - Likely causes: the new toddler walk-between pass and the lane-outing changes (population.ts `small()`), and mothers' plans diverging from the children's after the water()/fire() post-passes.
+    - **This is the first job of session 4**, with interiors.
+    - The last soak that passed all eight gates is the round-2 state (merge c5075a2, re-run at the end of session 3).
+  - Interiors now render near black until eye adaptation follows the probe illuminance indoors (below; Q-153). This is the first job of session 4 with the soak.
   - Merged in the last hour and **not rendered at high quality**:
     - the trees (D-120 … D-123; P22 grey domes fixed, per a test-quality render);
     - the Tachara rebuild (D-130 … D-134; N and E rooms unrendered);

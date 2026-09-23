@@ -14,8 +14,13 @@ is no work outside this branch. No background agents are running.
    - The exposure model (`src/sky/exposure.ts`, `exposureTarget`) opens at most ~3 stops above outdoors, and the halls sit 7–10 stops below.
    - Measured at high: hadish-hall frame mean 19 → 1.6; the apadana-enter hall columns 25 → 0.
    - **First job of session 4:** let eye adaptation follow the probe illuminance indoors (the `skyVis` hook already feeds `exposureTarget`). Then re-render the interior moments: apadana-enter, hadish-hall, scribe-at-work and the Tachara rooms.
-3. **Merged in the last hour, not rendered or not fully checked:**
-   - **Sim round 3** (D-135 … D-139): the soak was re-run at the end of session 3; see PROGRESS for the result.
+3. **The soak FAILS 2 of 8 gates after the sim round-3 merge** (D-139):
+   - populationVariety: child 41397 (7 days present) has a near-copy share of 0.19;
+   - plansWellFormed: two "apart" day-issues on day 123, children 42002 and 42003 on road:plain while their mother is home.
+   - Suspects: population.ts `small()` (the toddler walk-between pass, lane outings) and the water()/fire() post-passes changing the mother's plan after the children's was drawn.
+   - Fix it before shadow review round 4. The round-2 state (c5075a2) passed all eight.
+4. **Merged in the last hour, not rendered or not fully checked:**
+   - **Sim round 3** (D-135 … D-139): soak failing (item 3).
      - Shadow review round 4 has not run. Use a pick seed other than 7, 11, 23, 37, 53 and 71.
      - Rounds 1–3 failed (10, 3 and 3 of 20 below 4).
    - **Trees** (D-120 … D-123): 15 species, leaf-cluster cards, impostors matched to the near trees, one kit for the plain and the town.
@@ -24,15 +29,15 @@ is no work outside this branch. No background agents are running.
      - Winter and cypress impostors read 6–22/255 darker than LOD1 at test quality.
    - **Tachara rebuilt from REF-PLAN** (D-130 … D-134): the N and E rooms are unrendered, the e2e walkthrough (28 legs) has not run, and the SW room is not on the walkable grid (0.95 m doorway).
    - **Twilight** (D-115 … D-119): on a "clear" day at high quality, the cloud layer hides the Earth's shadow; twilight is strongly blue (no chromatic adaptation); daytime shade is 20–30 % darker.
-4. **Built in session 3 and seen at test quality only (or not at all):**
+5. **Built in session 3 and seen at test quality only (or not at all):**
    - Seen at test quality: the scribes' room (D-067; reads, but underexposed); Naqsh-e Rustam at 200 m (D-069; the reliefs are specks on dark façades, and the cliff reads as a banded low mound, not a 64 m rock face); town dusk smoke (D-070; visible now, plumes diluted since, not re-rendered).
    - Not rendered at all: the stair crenellations (D-065); XPe (D-066); the foundation deposits (D-068, sealed by design); the `mountain-dusk` view.
-5. **Phase 5:** activity coverage fails (placeholder activities, including threshing, weaving and animals); the population beyond the Terrace agents is not rendered; rendered floors are unmet.
-6. **Bench:** there are no valid numbers since D-047. The four per-route jobs are ready in `handoff/render_jobs/`.
-7. **Calibration scene (§8.1):** blocked (NEEDS #13). **Translations** need NEEDS #14. **Voices:** nobody has listened to them (H8).
+6. **Phase 5:** activity coverage fails (placeholder activities, including threshing, weaving and animals); the population beyond the Terrace agents is not rendered; rendered floors are unmet.
+7. **Bench:** there are no valid numbers since D-047. The four per-route jobs are ready in `handoff/render_jobs/`.
+8. **Calibration scene (§8.1):** blocked (NEEDS #13). **Translations** need NEEDS #14. **Voices:** nobody has listened to them (H8).
 
 ## Next steps, in order
-1. Exposure for interiors (item 2 above). Re-render the interior moments.
+1. Fix the two failing soak gates (item 3), and exposure for interiors (item 2). Re-run `npm run soak` (~25 min) and re-render the interior moments.
 2. Run the queued renders in `handoff/render_jobs/`: mountain-dusk, reliefs-raking, and the four bench routes. Then the trees at high quality: the three plain budget views (`tests/e2e/plain.spec.ts` with no ONLY), village-p22, pulvar-bank-april, garden-paradise, and `treelab.spec` at Q=high. Record draw calls and triangles in PROGRESS.
 3. The Naqsh-e Rustam cliff: its material bands and apparent height at 200 m, compared with plain.json (64 m cliff).
 4. Shadow review round 4: `npx tsx tools/shadow_days.ts 1 <seed> > REVIEWS/shadow_days_input_seed1_pick<seed>.txt`, then a fresh reviewer subagent with the round-3 protocol (see REVIEWS/shadow_phase5_r3.md).
