@@ -15,7 +15,7 @@ test('people at work (day 25, 10:00)', async ({ page }, info) => {
   const on = P.agents.filter((a: any) => !a.offmap);
   console.log(`people on the Terrace at 10:00: ${on.length}/${P.agents.length}; acts ${JSON.stringify(on.reduce((m: any, a: any) => ((m[a.act] = (m[a.act] ?? 0) + 1), m), {}))}`);
   expect(on.length).toBeGreaterThan(30);
-  expect(on.filter((a: any) => a.act === 'stand_guard').length).toBe(10);
+  expect(on.filter((a: any) => a.act === 'stand_guard').length).toBe(16); // every post of the rota held (GUARD_POSTS, D-023)
   expect(on.filter((a: any) => a.act === 'dress_stone').length).toBeGreaterThanOrEqual(8);
   for (const [n, e, no, h, a, p] of SHOTS.filter(s => !process.env.ONLY || process.env.ONLY.split(',').includes(s[0]))) {
     await page.evaluate(([e, no, h, a, p]) => (window as any).__parsa.view(e, no, h, a, p), [e, no, h, a, p]);

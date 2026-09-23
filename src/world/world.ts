@@ -107,8 +107,11 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   root.add(birds.group);
   const jackals = new Jackals(seed, terrain); root.add(jackals.mesh); // on the plain edge from dusk to dawn
   for (const f of fire.fires) nav.blockDisc(f.pos.x, -f.pos.z, f.kind === 'torch' ? 0 : 0.8);
-  const env = (t: number): Env => { if (!weather) return { rain: 0, lightning: false, windMs: 2, tempC: 18 }; const d = Math.floor(t / 24), c = weather.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC }; };
-  const sim = new PeopleSim(seed, nav, env); let simStarted = false;
+  const env = (t: number): Env => { if (!weather) return { rain: 0, lightning: false, windMs: 2, tempC: 18 }; const d = Math.floor(t / 24), c = weather.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
+  // Phase 5 (D-021): the whole population and the year's calendar; the court is absent unless the out-of-world setting
+  // 'Court calendar = seasonal pattern' is on (D-003)
+  const sim = new PeopleSim(seed, nav, env, { court: settings?.courtCalendar === 'seasonal' }); let simStarted = false;
+  sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
   const crowd = new Crowd(sim, seed); root.add(crowd.group);
   // people are solid to the player: a kinematic capsule each (brief §6: player collision with crowds)
   const R = phys.R; const bodies = sim.agents.map(() => { const b = phys.world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(0, -1000, 0)); phys.world.createCollider(R.ColliderDesc.capsule(0.55, 0.25).setTranslation(0, 0.8, 0), b); return b; });
@@ -132,6 +135,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const surfaceAt = (y: number, groundY: number) => (y > -1 ? 'stone' : Math.abs(y - groundY) < 0.3 ? 'earth' : 'stone') as 'stone' | 'earth';
   const syncBodies = () => sim.agents.forEach((a, i) => bodies[i].setNextKinematicTranslation(a.offmap ? { x: 0, y: -1000, z: 0 } : { x: a.pos[0], y: a.y, z: -a.pos[1] }));
   let lodT = 0;
+  // dev overlay: the abstract population, and the Terrace workforce it simulates but nobody renders yet (D-024), recounted
+  // every ten game minutes
+  let popAt = -1, popTxt = '';
+  const popLine = () => { if (Math.abs(sim.t - popAt) > 1 / 6) { popAt = sim.t; const n = sim.abstractOnTerrace().total; popTxt = `population ${sim.pop.persons.length} simulated (abstract) · ${n} more on the Terrace NOT RENDERED [PLACEHOLDER: D-024]`; } return popTxt; };
   const simulate = (dt: number, clock: any) => {
     const target = clock.t * 24;
     if (!simStarted) { sim.jumpTo(target); simStarted = true; }
@@ -148,7 +155,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     for (const ag of sim.agents) { if (ag.offmap || ag.task?.act === 'sleep') continue; const d = Math.hypot(ag.pos[0] - cp.x, -ag.pos[1] - cp.z); if (d > bd) continue;
       const dir = new THREE.Vector3(ag.pos[0] - cp.x, 0, -ag.pos[1] - cp.z).normalize(); if (dir.dot(new THREE.Vector3(fwd.x, 0, fwd.z).normalize()) < 0.5) continue; best = ag; bd = d; }
     if (!best) return null;
-    best.metPlayer++; best.heading = Math.atan2(cp.x - best.pos[0], -cp.z - best.pos[1]) * 180 / Math.PI; // turns to the stranger
+    best.metPlayer++; sim.noteAddressed(best.id); best.heading = Math.atan2(cp.x - best.pos[0], -cp.z - best.pos[1]) * 180 / Math.PI; // turns to the stranger; remembered (§9.5)
     const day = Math.floor(sim.t / 24);
     const pick = pickLine({ langs: best.langs, intent: best.metPlayer > 1 ? 'reply' : 'greet', role: best.role, seed: best.seed + day });
     if (!pick) return { gesture: 'nods (no attested line in their language)' };
@@ -198,5 +205,5 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       }
     },
     flash: () => lastFlash,
-    summary: () => `people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}` } as WorldBuild;
+    summary: () => `people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}` } as WorldBuild;
 }

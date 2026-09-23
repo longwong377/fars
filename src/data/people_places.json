@@ -1,7 +1,7 @@
 {
  "_meta": {
   "frame": "grid metres (east, north); heading = degrees clockwise from grid north the person faces",
-  "note": "Where people stand, work, eat and sleep in the vertical slice (Phase 3). All positions are reconstruction (C) unless stated; they are checked against the walkable grid by tests/people.test.ts. Phase 4 (session 2): masons camp moved N of the new Hall of 100 Columns portico; Treasury posts at the new N door; posts added at the Tachara, Hadish and Harem."
+  "note": "Where people stand, work, eat and sleep in the vertical slice (Phase 3). All positions are reconstruction (C) unless stated; they are checked against the walkable grid by tests/people.test.ts. Phase 4 (session 2): masons camp moved N of the new Hall of 100 Columns portico; Treasury posts at the new N door; posts added at the Tachara, Hadish and Harem. Phase 5 (session 2): capital-carving spot in the yard and two extra Treasury door posts for E-81; the Hall of 100 Columns column and doorway work spots are generated in sim.ts from the spec."
  },
  "places": [
   {
@@ -401,6 +401,38 @@
    ],
    "tier": "C",
    "note": "the Gate hall: shelter from rain"
+  },
+  {
+   "id": "worksite_capital",
+   "kind": "work",
+   "at": [
+    172,
+    42
+   ],
+   "tier": "C",
+   "note": "E end of the masons’ yard where a double-bull capital block is carved (Phase 5 construction model, D-022; capitals carved in the yard before setting: C)"
+  },
+  {
+   "id": "post_treas_3",
+   "kind": "post",
+   "at": [
+    202.2,
+    -76.4
+   ],
+   "heading": 0,
+   "tier": "C",
+   "note": "extra guard at the Treasury N doorway while silver is out or a courier’s letter comes in (E-81 doubling; C)"
+  },
+  {
+   "id": "post_treas_4",
+   "kind": "post",
+   "at": [
+    211.0,
+    -76.4
+   ],
+   "heading": 0,
+   "tier": "C",
+   "note": "second extra guard at the Treasury N doorway (E-81; C)"
   }
  ]
 }
