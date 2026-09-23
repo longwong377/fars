@@ -187,7 +187,8 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       .add(kFelt.mul(0.95)).add(kMetal.mul(0.32)).add(kLash.mul(0.6)).add(kWood.mul(0.55)).add(kWicker.mul(0.85)).add(kCloth.mul(0.9));
     this.metalnessNode = kMetal;
     // cavity occlusion (indirect light only)
-    this.aoNode = mix(float(1), vAux.x, 0.85);
+    // (weaker on the eyeball: the bake's ray-cast cavity inside the socket greyed the whites of the eyes in the close-ups)
+    this.aoNode = mix(float(1), vAux.x, float(0.85).sub(kEye.mul(0.45)));
     // shading normal: curls on hair, folds and weave on cloth, grain on leather, flutes are geometry
     const foldH = mx_noise_float(P.mul(vec3(14, 5, 14))).mul(0.003).add(mx_noise_float(P.mul(70)).mul(0.0004));
     const pores = mx_noise_float(P.mul(1900)).mul(0.00003).add(mx_noise_float(P.mul(260)).mul(0.00008)); // skin micro-relief (C)

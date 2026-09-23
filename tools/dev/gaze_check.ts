@@ -9,7 +9,7 @@ import { pose } from '../../src/people/anim';
 
 const b = readFileSync('public/generated/humans/humans.bin');
 const A = decodeHumanAssets(JSON.parse(readFileSync('public/generated/humans/humans.json', 'utf8')), b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
-const v = A.byId.m03; const rig = new RigSolver(A.meta.curlAxes); const pal = new Float32Array(PALETTE_STRIDE);
+const v = A.byId[process.argv[2] ?? 'm03']; const rig = new RigSolver(A.meta.curlAxes); const pal = new Float32Array(PALETTE_STRIDE);
 // eye vertices per side: the eyeball centre (mean) and the iris centre (the most forward vertices)
 for (const side of ['l', 'r'] as const) {
   const bone = HB[`eye_${side}`]; const ids: number[] = [];

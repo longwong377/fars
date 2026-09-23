@@ -548,14 +548,16 @@ function softCap(L: Lib, key: string, lod: number) {
 /** headcloth: over the head, down the back of the neck and the shoulders, relaxed so it drapes (women, C) */
 function headcloth(L: Lib, key: string, lod: number) {
   const { A, ref, J } = L; const eyeY = ref.eyeY, h = J('head');
+  // continuous distances (clean cut lines): the face oval stays open, and the front below the neck is open as a mantle
+  // is (the first version cut a level line across the chest, which dipped around the breasts into a blotchy bib)
+  const neckY = J('neck_01')[1], s3 = J('spine_03')[1];
   const d = regionOf(A, ref, [P.head, P.neck, P.chest, P.uarm_l, P.uarm_r], p => {
-    const faceOpen = p[2] > h[2] + 0.04 && Math.abs(p[0]) < 0.062 && p[1] < eyeY + 0.035 ? -1 : 1; // the face stays open
-    const top = p[1] - (J('spine_03')[1] + 0.12 - 0.1 * sstep(0.05, -0.1, p[2])); // falls lower at the back
-    const arm = Math.abs(p[0]) > 0.2 ? -1 : 1;
-    return Math.min(faceOpen * 0.03, top, arm * 0.03); });
+    const face = Math.max(Math.hypot(p[0] / 0.066, (p[1] - (eyeY - 0.035)) / 0.078) - 1, h[2] + 0.02 - p[2]) * 0.05;
+    const open = Math.max(Math.abs(p[0]) - 0.085, p[1] - (neckY - 0.01), 0.02 - p[2]);
+    const top = p[1] - (s3 + 0.02 - 0.07 * sstep(0.05, -0.1, p[2])); // to mid-chest at the sides, lower at the back
+    return Math.min(face, open, top, 0.2 - Math.abs(p[0])); });
   // over the dress (below the neck) it lies 2.4 cm out, and smoothing may not pull it closer than 2.2 cm: the dress is
   // 1 cm out plus its own smoothing, and a closer cloth z-fought with it; over the head 1.4–2 cm (no hair is worn under it)
-  const neckY = J('neck_01')[1];
   return shellGeo(A, ref, key, { tris: A.lods[TESS[lod].tris], d, ramp: 0.012, smooth: 8, minOff: 0.022,
     thick: p => (p[1] < neckY ? 0.024 : 0.014 + 0.006 * sstep(eyeY, eyeY + 0.1, p[1])), mat: MAT.cloth_second, col: COL.second, prm: 0 });
 }
