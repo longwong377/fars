@@ -23,7 +23,7 @@ describe('settlement geometry budget (whole-frame proxy: settlement ≤ 150 draw
     town.group.traverse((o: any) => { if (!o.isMesh) return; meshes++; const t = (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; tris += o.isInstancedMesh ? t * o.count : t; if (o.isInstancedMesh) inst++; });
     console.log(`[settlement] ${meshes} meshes (${inst} instanced), ${(tris / 1e6).toFixed(3)} M triangles if everything were drawn once; build ${town.info.buildMs.toFixed(0)} ms; ${town.info.colliders} collider boxes; ${town.info.fires} fires`);
     // every mesh drawn once in the main pass: the worst case (all in view) must leave room for shadow cascades
-    expect(meshes).toBeLessThanOrEqual(40);
+    expect(meshes).toBeLessThanOrEqual(45);
     expect(tris).toBeLessThanOrEqual(1.2e6);
   });
   it('hearths, ovens and kilns join the fire system with schedules and site groups', () => {

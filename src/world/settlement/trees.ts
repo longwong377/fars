@@ -67,7 +67,7 @@ export class TreeField {
       for (const lvl of ['near', 'far'] as const) {
         const g = (lvl === 'near' ? nearGeo : farGeo)[form].clone();
         g.setAttribute('aTint', new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3)); g.setAttribute('aDecid', new THREE.InstancedBufferAttribute(new Float32Array(n), 1));
-        const im = new THREE.InstancedMesh(g, mat, n); im.castShadow = true; im.frustumCulled = true; im.receiveShadow = lvl === 'near'; im.name = `settlement:trees:${form}:${lvl}`; im.userData = this.group.userData;
+        const im = new THREE.InstancedMesh(g, mat, n); im.castShadow = lvl === 'near'; im.frustumCulled = true; // far trees cast no shadow into the cascades im.receiveShadow = lvl === 'near'; im.name = `settlement:trees:${form}:${lvl}`; im.userData = this.group.userData;
         (set as any)[lvl] = im; this.group.add(im);
       }
       // bounds over all instances, once (a valid bound whatever the per-level count)
@@ -102,10 +102,11 @@ export class TreeField {
         const ta = im.geometry.getAttribute('aTint') as THREE.InstancedBufferAttribute, da = im.geometry.getAttribute('aDecid') as THREE.InstancedBufferAttribute; let k = 0;
         for (let i = 0; i < s.spots.length; i++) { if (s.level[i] !== lvl) continue; im.setMatrixAt(k, s.spots[i].m); (ta.array as Float32Array).set(s.tint.subarray(i * 3, i * 3 + 3), k * 3); (da.array as Float32Array)[k] = s.dec[i]; k++; }
         im.count = k; im.visible = k > 0; im.instanceMatrix.needsUpdate = true; ta.needsUpdate = true; da.needsUpdate = true;
+        if (lvl === 0 && k > 0) im.computeBoundingSphere(); // the near level's bounds follow its few instances (culling, shadow cascades)
       }
     }
-    let tc = force; for (let i = 0; i < this.trunkM.length; i++) { const want = this.trunkM[i].p.distanceTo(cam) < 400 ? 0 : 1; if (want !== this.trunkLevel[i]) { this.trunkLevel[i] = want; tc = true; } }
-    if (tc) { let k = 0; for (let i = 0; i < this.trunkM.length; i++) if (this.trunkLevel[i] === 0) this.trunks.setMatrixAt(k++, this.trunkM[i].m); this.trunks.count = k; this.trunks.visible = k > 0; this.trunks.instanceMatrix.needsUpdate = true; }
+    let tc = force; for (let i = 0; i < this.trunkM.length; i++) { const want = this.trunkM[i].p.distanceTo(cam) < NEAR ? 0 : 1; if (want !== this.trunkLevel[i]) { this.trunkLevel[i] = want; tc = true; } }
+    if (tc) { let k = 0; for (let i = 0; i < this.trunkM.length; i++) if (this.trunkLevel[i] === 0) this.trunks.setMatrixAt(k++, this.trunkM[i].m); this.trunks.count = k; this.trunks.visible = k > 0; this.trunks.instanceMatrix.needsUpdate = true; if (k) this.trunks.computeBoundingSphere(); }
   }
   update(camera: THREE.Camera, dayIndex: number, windMs: number) {
     this.uLeaf.value = leafAt(DOY_AT_DAY0 + dayIndex);

@@ -25,6 +25,8 @@ interface SiteCol { id: string; c: P2; r: number; boxes: ColBox[]; live: any[] |
 
 const MUD: RGB = [0.56, 0.47, 0.36], TIMBER: RGB = [0.36, 0.26, 0.17], POT: RGB = [0.63, 0.43, 0.3], STONE: RGB = [0.55, 0.53, 0.49], BONE: RGB = [0.82, 0.78, 0.68];
 const shade = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k];
+/** town meshes farther than this from the camera cast no shadows (they would only fill the Terrace's far cascades) */
+export const SHADOW_RANGE = 150;
 
 export class Settlement {
   readonly group = new THREE.Group();
@@ -33,6 +35,8 @@ export class Settlement {
   private trees!: TreeField; private haze!: TownHaze; private wr!: ReturnType<typeof buildWaterAndRoads>;
   private fireIdx: { site: string; kind: FireKind }[] = [];
   private fire: FireSystem;
+  /** town meshes cast shadows only within SHADOW_RANGE of the camera: distant town content stays out of the cascades */
+  private casters: THREE.Mesh[] = [];
   readonly info = { tris: 0, meshes: 0, colliders: 0, liveColliders: 0, fires: 0, trees: 0, buildMs: 0, phases: {} as Record<string, number> };
   constructor(private phys: Physics | null, private terrain: Terrain, fire: FireSystem, quality = 'high') {
     const t0 = performance.now();
@@ -48,8 +52,14 @@ export class Settlement {
     const quarters = this.plan.sites.filter(s => s.meta.kind === 'quarter');
     const clusterOf = (s: Site): string => {
       if (s.meta.kind === 'quarter') return s.id;
-      let best = '', bd = 450; for (const q of quarters) { const d = Math.hypot(q.frame.c[0] - s.frame.c[0], q.frame.c[1] - s.frame.c[1]); if (d < bd) { bd = d; best = q.id; } }
-      return best || s.meta.zone;
+      // low garden and orchard walls in one mesh that casts no shadow; the four estates in one mesh
+      if (s.plots.length && s.plots.every(p => p.kind === 'garden')) return 'gardens';
+      if (s.id.startsWith('estate_')) return 'estates';
+      // a compound joins a quarter's mesh only when it stands within 60 m of the quarter's edge, so a mesh's bounds stay
+      // tight (culling, and shadow casting by distance); otherwise it is its own mesh
+      const rs = Math.hypot(s.W, s.H) / 2;
+      let best = '', bd = Infinity; for (const q of quarters) { const d = Math.hypot(q.frame.c[0] - s.frame.c[0], q.frame.c[1] - s.frame.c[1]) - Math.min(q.W, q.H) / 2 - rs; if (d < 60 && d < bd) { bd = d; best = q.id; } }
+      return best || s.id;
     };
     const getC = (id: string, c: P2) => { let x = clusters.get(id); if (!x) { x = { id, c, batches: new Map(), desc: [] }; clusters.set(id, x); } return x; };
     const B = (cl: Cluster, mat: string) => { let b = cl.batches.get(mat); if (!b) { b = new Batch(); cl.batches.set(mat, b); } return b; };
@@ -103,7 +113,7 @@ export class Settlement {
       const m = new THREE.Mesh(b.toGeometry(), mats[mat]); m.name = `settlement:${cl.id}:${mat}`; m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false;
       const owner = b.owner, desc = cl.desc;
       m.userData = { tier: 'C', src: 'RECON', note: `settlement cluster ${cl.id} (${mat})`, describe: (hit: any) => desc[owner[hit?.faceIndex ?? -1]] ?? null };
-      this.group.add(m); this.info.tris += b.tris; this.info.meshes++;
+      this.group.add(m); this.info.tris += b.tris; this.info.meshes++; if (cl.id === 'gardens') m.castShadow = false; else this.casters.push(m);
     }
     if (ground.tris) { const gm = surfaceMaterial('road', { vertexColors: true }) as any; gm.polygonOffset = true; gm.polygonOffsetFactor = -2; gm.polygonOffsetUnits = -2;
       const m = new THREE.Mesh(ground.toGeometry(), gm); m.name = 'settlement:ground'; m.receiveShadow = true; m.matrixAutoUpdate = false; const own = ground.owner;
@@ -112,7 +122,7 @@ export class Settlement {
       m.userData = { tier: 'C', src: 'RECON', note: 'middens and dung', describe: (hit: any) => rDesc[own[hit?.faceIndex ?? -1]] ?? null }; this.group.add(m); this.info.tris += refuse.tris; this.info.meshes++; }
     phase('meshes');
     // Tol-e Ajori, trees, water/roads/canal, haze
-    const aj = buildAjori(this.plan.gate, H); this.group.add(aj.group); this.info.tris += aj.tris; this.info.meshes += aj.meshes;
+    const aj = buildAjori(this.plan.gate, H); this.group.add(aj.group); aj.group.traverse((o: any) => { if (o.isMesh && o.castShadow) this.casters.push(o); }); this.info.tris += aj.tris; this.info.meshes += aj.meshes;
     this.cols.push({ id: 'tol_ajori', c: this.plan.gate.c, r: 40, boxes: aj.colliders, live: null });
     this.trees = new TreeField(this.plan.trees, H, quality); this.group.add(this.trees.group); this.info.trees = this.plan.trees.length;
     const wr = buildWaterAndRoads(this.plan, H); this.wr = wr; this.group.add(wr.group); this.info.tris += wr.tris; this.info.meshes += wr.meshes;
@@ -204,7 +214,7 @@ export class Settlement {
         case 'well': this.well(g, y, mud, d); col.boxes.push({ x: g[0], y: y + 0.35, z: -g[1], hx: 0.85, hy: 0.4, hz: 0.85, rot: 0 }); break;
         case 'column': { mud.cyl(g[0], g[1], 0.55, 0.5, y - 0.2, y + 0.4, 10, st, st, d); mud.cyl(g[0], g[1], 0.3, 0.27, y + 0.4, y + f.size, 10, lin([0.78, 0.72, 0.62]), lin([0.78, 0.72, 0.62]), d, false);
           mud.box(g[0], g[1], th, 0.45, 0.45, y + f.size, y + f.size + 0.35, tim, tim, d); col.boxes.push({ x: g[0], y: y + f.size / 2, z: -g[1], hx: 0.35, hy: f.size / 2, hz: 0.35, rot: 0 }); break; }
-        case 'pool': this.poolKerb(s, f, stone(), H, d); break;
+        case 'pool': this.poolKerb(s, f, s.plots[f.plot]?.kind === 'garden' ? stone() : mud, H, d); break;
         default: break;
       }
     }
@@ -248,10 +258,12 @@ export class Settlement {
   }
   update(dt: number, ctx: { camera: THREE.Camera; clock: any; sky: any; cond: any; player: any }) {
     const p = ctx.player?.position ?? ctx.camera.position; this.streamColliders(p.x, p.z);
+    const cp = ctx.camera.position;
+    for (const m of this.casters) { const bs = m.geometry.boundingSphere!; m.castShadow = bs.center.distanceTo(cp) - bs.radius < SHADOW_RANGE; }
     this.trees.update(ctx.camera, ctx.clock?.dayIndex ?? 0, ctx.cond?.windMs ?? 2); this.wr.update(ctx.camera.position);
     this.haze.update(dt, ctx.camera, ctx.sky?.sunAlt ?? 30, ctx.cond?.windMs ?? 2, ctx.cond?.windDirDeg ?? 0, ctx.clock?.localHour ?? 12, ctx.sky);
   }
-  stats() { return { ...this.info, trees: this.trees.stats(), haze: this.haze.stats() }; }
+  stats() { return { ...this.info, casting: this.casters.filter(m => m.castShadow).length, trees: this.trees.stats(), haze: this.haze.stats() }; }
 }
 
 function kindLabel(p: Plot) {
