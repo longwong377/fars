@@ -7,11 +7,21 @@
 //    extinction toward the sun × aⁱ, the contribution × bⁱ and the phase asymmetry × cⁱ; 3 octaves, a = b = c = 0.5.
 //    (B: published method; the parameters are theirs, used as published.)
 //  • Phase: the session-3 two-lobe Henyey–Greenstein (forward 0.65, back −0.25, 60 % forward; C), per octave.
-//  • Calibration (C, measured on this code): the octave sum leaves the light that thick cloud scatters back far too low
-//    (a finite number of octaves), so it is scaled by K_MS, set so that a thick homogeneous layer (optical depth 20) lit
-//    at 40° and seen from the sunward side reflects like a Lambertian surface of albedo 0.75, the middle of the albedos
-//    measured for thick convective cloud (≈ 0.7–0.8; e.g. the thick-cloud albedos compiled by Stephens 1978, J. Atmos.
-//    Sci. 35, cited from memory: verify). tests/cloudlight.test.ts measures it.
+//  • Calibration (C, measured on this code): the octave sum alone returns ~5× too little light from thick cloud (a finite
+//    number of octaves), so it is weighted (K_MS, with the diffusion term below) so that a thick homogeneous layer
+//    (optical depth 20) lit at 40° and seen from the sunward side reflects like a Lambertian surface of albedo 0.75, the
+//    middle of the albedos measured for thick convective cloud (≈ 0.7–0.8; e.g. the thick-cloud albedos compiled by
+//    Stephens 1978, J. Atmos. Sci. 35, cited from memory: verify). tests/cloudlight.test.ts measures it.
+//  • Diffusion (B method, C weight): the octaves carry almost no light through thick cloud (the base of an optical depth
+//    20 layer received ~0.7 % of a Lambertian surface's light), while conservative multiple scattering transmits
+//    T = 2 / (2 + (1 − g) τ) (Bohren 1987, "Multiple scattering of light and some of its observable consequences", Am. J.
+//    Phys. 55, two-stream; g ≈ 0.85 for cloud droplets): 0.4 at τ 20. An isotropic source K_D · T(τ_sun) / 4π carries it;
+//    K_MS and K_D are fitted together (tools/dev/cloud_calibrate.ts) so that a τ-20 layer lit at 40° reflects like albedo
+//    0.75 toward the sunward side and shows its base, from below, at 0.25 — Bohren's value for τ ≈ 40, the middle of
+//    cumulus optical depths (20–100); the layer's own 0.40 needs a negative octave weight (both terms are local and do
+//    not know how deep the cloud is below a sample). Grey bases, as photographed, instead of black.
+//    Known limit: thin cloud reflects as much as thick cloud from the sunward side (τ 2: 0.74 vs Bohren's 0.13); it is
+//    semi-transparent, so the sky shows through it.
 //  • Ambient: the isotropic in-scatter of the sky from above and the sunlit ground from below (the D-153 ground colour),
 //    as radiances (the hemisphere light's irradiance / π): half the sky's at the top of the layer, half the ground's at
 //    its base, a linear blend between (C), so bases come out warm-grey rather than sky-blue.
@@ -29,8 +39,13 @@ export function lightSamples(N: number): { at: number[]; w: number[] } {
   for (let j = 0; j < N; j++) { const a = (s0 * (Math.pow(r, j) - 1)) / (r - 1), b = (s0 * (Math.pow(r, j + 1) - 1)) / (r - 1); at.push((a + b) / 2); w.push(b - a); }
   return { at, w };
 }
-/** calibration of the octave sum (see header; tests/cloudlight.test.ts) */
-export const K_MS = 3.9;
+/** calibration of the octave sum and of the diffusion term (see header; tools/dev/cloud_calibrate.ts fits them;
+ *  tests/cloudlight.test.ts checks them) */
+export const K_MS = 1.41, K_D = 1.41;
+/** the droplets' asymmetry for the diffusion term (B: ≈ 0.85 at visible wavelengths) */
+export const G_DROPLET = 0.85;
+/** the diffusion term per unit sunlight: 2 / (2 + (1 − g) τ) / 4π */
+export const diffusion = (tauSun: number) => 2 / (2 + (1 - G_DROPLET) * tauSun) / (4 * Math.PI);
 /** march per quality: [max steps, step in cloud (m), light samples]; the step through empty air is 3× */
 export const CLOUD_MARCH: Record<string, [number, number, number]> = { test: [0, 0, 0], low: [28, 240, 2], medium: [40, 160, 3], high: [64, 120, 4], ultra: [96, 100, 5] };
 export const EMPTY_STRIDE = 3;
@@ -38,9 +53,9 @@ export const EMPTY_STRIDE = 3;
 export const hg = (c: number, g: number) => (1 - g * g) / (4 * Math.PI * Math.pow(1 + g * g - 2 * g * c, 1.5));
 export const cloudPhase = (c: number, i = 0) => { const s = Math.pow(OCT_C, i); return hg(c, PHASE_BACK * s) * (1 - PHASE_MIX) + hg(c, PHASE_FWD * s) * PHASE_MIX; };
 /** the sun term per unit sunlight at a sample whose optical depth toward the sun is `tauSun` */
-export function sunScatter(cosT: number, tauSun: number): number {
+export function sunScatter(cosT: number, tauSun: number, kms = K_MS, kd = K_D): number {
   let s = 0; for (let i = 0; i < OCTAVES; i++) s += Math.pow(OCT_B, i) * cloudPhase(cosT, i) * Math.exp(-tauSun * Math.pow(OCT_A, i));
-  return s * K_MS;
+  return s * kms + kd * diffusion(tauSun);
 }
 /** the ambient in-scatter at height fraction h (0 base, 1 top) from the sky's and the ground's mean radiances */
 export const ambientAt = (h: number, skyL: number, groundL: number) => 0.5 * (h * skyL + (1 - h) * groundL);
@@ -48,14 +63,14 @@ export const ambientAt = (h: number, skyL: number, groundL: number) => 0.5 * (h 
 /** CPU mirror of the shader's march for one view ray (luminance only): `density(t)` along the ray (per m), `densitySun(t, s)`
  *  at distance s toward the sun from the ray's point t, `hAt(t)` the height fraction. Returns the premultiplied cloud
  *  radiance per unit sun (sunE = 1) plus the ambient, and the transmittance. */
-export function marchCPU(o: { t0: number; t1: number; cosT: number; density: (t: number) => number; densitySun: (t: number, s: number) => number; hAt: (t: number) => number; sunE: number; skyL: number; groundL: number; quality?: string; jitter?: number }) {
+export function marchCPU(o: { t0: number; t1: number; cosT: number; density: (t: number) => number; densitySun: (t: number, s: number) => number; hAt: (t: number) => number; sunE: number; skyL: number; groundL: number; quality?: string; jitter?: number; kms?: number; kd?: number }) {
   const [N, dt, NL] = CLOUD_MARCH[o.quality ?? 'high'], L = lightSamples(NL);
   let T = 1, col = 0, t = o.t0 + dt * (o.jitter ?? 0.5), empty = 0;
   for (let i = 0; i < N && t < o.t1; i++) {
     const d = o.density(t);
     if (d > 1e-5) {
       let tau = 0; for (let j = 0; j < NL; j++) tau += o.densitySun(t, L.at[j]) * L.w[j];
-      const lum = o.sunE * sunScatter(o.cosT, tau) + ambientAt(o.hAt(t), o.skyL, o.groundL);
+      const lum = o.sunE * sunScatter(o.cosT, tau, o.kms ?? K_MS, o.kd ?? K_D) + ambientAt(o.hAt(t), o.skyL, o.groundL);
       const a = Math.exp(-d * dt); col += T * lum * (1 - a); T *= a; empty = 0;
     } else empty++;
     if (T < 0.02) break;
@@ -82,12 +97,12 @@ export function marchDepth(density: (t: number) => number, t0: number, t1: numbe
 /** radiance (per unit sun irradiance, no ambient) of a homogeneous layer (density σ per m, thickness H m) seen along a ray
  *  of elevation `e` (deg; negative = looking down onto its top from above) with the sun at `alt`; φ = the ray's azimuth
  *  from the sun's */
-export function layerRadiance(sigma: number, H: number, alt: number, e: number, phi: number, fromAbove = e < 0) {
+export function layerRadiance(sigma: number, H: number, alt: number, e: number, phi: number, fromAbove = e < 0, kms = K_MS, kd = K_D) {
   const D = Math.PI / 180, s = [Math.cos(alt * D), Math.sin(alt * D), 0], v = [Math.cos(e * D) * Math.cos(phi * D), Math.sin(e * D), Math.cos(e * D) * Math.sin(phi * D)];
   const cosT = v[0] * s[0] + v[1] * s[1] + v[2] * s[2], sy = Math.abs(v[1]);
   // the ray enters the layer at t0 = 0 (top from above, base from below); height above the base at t:
   const zAt = (t: number) => (fromAbove ? H - t * sy : t * sy);
-  const res = marchCPU({ t0: 0, t1: H / sy, cosT, density: t => (zAt(t) >= 0 && zAt(t) <= H ? sigma : 0), densitySun: (t, d) => { const z = zAt(t) + d * s[1]; return z <= H ? sigma : 0; }, hAt: t => zAt(t) / H, sunE: 1, skyL: 0, groundL: 0 });
+  const res = marchCPU({ t0: 0, t1: H / sy, cosT, density: t => (zAt(t) >= 0 && zAt(t) <= H ? sigma : 0), densitySun: (t, d) => { const z = zAt(t) + d * s[1]; return z <= H ? sigma : 0; }, hAt: t => zAt(t) / H, sunE: 1, skyL: 0, groundL: 0, kms, kd });
   return res.col;
 }
 

@@ -9,7 +9,7 @@
 import * as THREE from 'three/webgpu';
 import { Fn, uniform, positionWorld, cameraPosition, normalize, vec3, vec4, float, Loop, int, max, min, exp, mix, smoothstep, dot, pow, clamp, If, Break, texture, screenCoordinate, fract, floor, mod, sin, vec2, step } from 'three/tsl';
 import { cloudNoiseVolume, cloudNoiseAtlas } from './cloudNoise';
-import { CLOUD_MARCH, EMPTY_STRIDE, K_MS, OCTAVES, OCT_A, OCT_B, OCT_C, PHASE_BACK, PHASE_FWD, PHASE_MIX, lightSamples } from './cloudLight';
+import { CLOUD_MARCH, EMPTY_STRIDE, K_MS, K_D, G_DROPLET, OCTAVES, OCT_A, OCT_B, OCT_C, PHASE_BACK, PHASE_FWD, PHASE_MIX, lightSamples } from './cloudLight';
 import type { Air } from './aerial';
 
 /** tileable noise volume shared by all cloud layers, flattened into a 2-D atlas (built once, ~0.5 s; only at qualities
@@ -112,7 +112,9 @@ export class VolumetricClouds {
             const hFrac = clamp(p.y.sub(CLOUD_BASE).div(CLOUD_TOP - CLOUD_BASE), 0, 1);
             const sunH = mix(sc, scTop as any, hFrac);
             // ambient: half the sky's mean radiance at the top of the slab, half the sunlit ground's at its base
-            const lum = sunH.mul(ms.mul(K_MS)).add(mix(ambG, amb, hFrac).mul(0.5));
+            // + the diffusion term: conservative two-stream transmittance to this depth (Bohren 1987), isotropic
+            const diff = float(2).div(tau.mul(1 - G_DROPLET).add(2)).mul(1 / (4 * Math.PI));
+            const lum = sunH.mul(ms.mul(K_MS).add(diff.mul(K_D))).add(mix(ambG, amb, hFrac).mul(0.5));
             const a = exp(d.mul(DT).negate());
             col.addAssign(T.mul(lum).mul(a.oneMinus()));
             T.mulAssign(a); empty.assign(0);

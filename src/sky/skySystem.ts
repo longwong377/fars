@@ -189,6 +189,7 @@ export class SkySystem {
     this.stars.userData = { tier: 'A', src: 'HYG41', note: 'HYG v4.1 positions + proper motion to 467 BCE, precessed (astronomy-engine)' };
     scene.add(this.stars);
     this.clouds = new VolumetricClouds(DOME * 0.85, quality, this.air); scene.add(this.clouds.mesh);
+    EYE_SKY.sunVisibilityAt = (x, y, z) => this.sunVisibilityAt(x, y, z);
   }
 
   /** install the terrain horizon map (D-156): the reference-height atlas once; the per-body atlases on the next update */
