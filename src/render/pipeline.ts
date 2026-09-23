@@ -34,6 +34,7 @@ import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, samp
 import { ssgi } from './ssgi';
 import { ssgi as ssgiOrig } from 'three/addons/tsl/display/SSGINode.js';
 import { ssr } from 'three/addons/tsl/display/SSRNode.js';
+import { sss } from 'three/addons/tsl/display/SSSNode.js';
 import { traa } from 'three/addons/tsl/display/TRAANode.js';
 import { meterNode } from './meter';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
@@ -55,6 +56,10 @@ export const SSGI_THICKNESS = 0.25, SSGI_CONTACT_RADIUS = 1.2, SSGI_CONTACT_STEP
 /** SSR (D-157): surfaces below this roughness reflect (fading out over the last 0.1), rays reach 30 m from the reflecting
  *  plane, depth samples 0.3 m thick */
 export const SSR_MAX_ROUGHNESS = 0.5, SSR_MAX_DISTANCE = 30, SSR_THICKNESS = 0.3;
+/** sun contact shadows (D-157): screen-space rays toward the sun, 0.6 m long, against depth samples 6 cm thick; they darken
+ *  only the pixel's share of direct sun (estimated as below), where the shadow map's texels and bias (6 cm, D-146) leave a
+ *  plinth or a step nosing without its contact shadow */
+export const SSS_MAX_DISTANCE = 0.6, SSS_THICKNESS = 0.06;
 
 export class Pipeline {
   rp: THREE.RenderPipeline | null = null;
@@ -72,9 +77,12 @@ export class Pipeline {
   private expAbs = uniform(1);
   /** the sky environment's capture (D-157; null when the scene has no SkyMesh) */
   private env: SkyEnvCapture | null = null;
-  /** A/B switches for measurements (window.__parsaSurf; 1 = on): SSR, the direct-only SSGI input with its bounce inside
+  private sssDebug: any = null;
+  /** A/B switches for measurements (window.__parsaSurf; 1 = on): SSR, sun contact shadows (sss), the direct-only SSGI input with its bounce inside
    *  the probe volumes (0 = the session-4 composite: full scene into the SSGI, bounce × (1 − w)), the contact AO outdoors */
-  readonly ab = { ssr: uniform(1), giDirect: uniform(1), contact: uniform(1) };
+  readonly ab = { ssr: uniform(1), giDirect: uniform(1), contact: uniform(1), sss: uniform(1) };
+  /** the sun as the composite's contact-shadow estimate sees it: direction toward the sun (world) and colour × intensity */
+  private sunDirW = uniform(new THREE.Vector3(0, 1, 0)); private sunE = uniform(new THREE.Color(0, 0, 0));
   constructor(private renderer: THREE.WebGPURenderer, private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, readonly quality: Quality, private hemi?: THREE.HemisphereLight) {
     installProbeLight(renderer); // before any material is built
     // the sun: the shadow-casting directional light (SkySystem.sun); the sky dome (SkySystem.sky) for the environment
@@ -158,14 +166,25 @@ export class Pipeline {
       const envSpec = spec.mul((pmremTexture as any)(skyEnv.target.texture, Rw, rough)).mul(float(1).sub(w)).mul(skyEnv.intensity);
       const hit = clamp(S.a.mul(50), 0, 1), fall = float(1).sub(clamp(S.a.mul(dotNV).div(SSR_MAX_DISTANCE), 0, 1));
       const ssrAdd = S.rgb.mul(spec.div(specY)).sub(envSpec.mul(hit).mul(fall.mul(fall))).mul(gate).mul(this.ab.ssr);
-      const litR = max(lit.add(ssrAdd), vec3(0));
+      // ---- sun contact shadows (D-157) --------------------------------------------------------------------------------
+      // the pixel's share of direct sun: its direct light (scene − skylight) bounded by the unshadowed Lambert sun term
+      // albedo · E_sun · max(0, n·l) / π, so a pixel the shadow map already darkens loses nothing more
+      let sunLoss: any = vec3(0);
+      if (this.sun) {
+        const C: any = sss(dep, camera, this.sun); C.maxDistance.value = SSS_MAX_DISTANCE; C.thickness.value = SSS_THICKNESS; C.quality.value = 0.5;
+        C.resolutionScale = quality === 'ultra' ? 1 : 0.5;
+        const sunEst = dif.rgb.mul(this.sunE).mul(max(dot(nW, this.sunDirW), 0)).mul(1 / Math.PI);
+        sunLoss = min(max(col.rgb.sub(sky), vec3(0)), sunEst).mul(float(1).sub(C.r)).mul(notSky).mul(this.ab.sss);
+        this.sssDebug = vec3(C.r);
+      }
+      const litR = max(lit.add(ssrAdd).sub(sunLoss), vec3(0));
       // [reserved: the air-light pass (another agent) joins here]
-      // debug views are chosen when the pipeline is built (?post=scene|ao|aonear|gi|probe|plain|direct|ssr|env; probe =
+      // debug views are chosen when the pipeline is built (?post=scene|ao|aonear|gi|probe|plain|direct|ssr|env|sss; probe =
       // (w, AO near, AO full) as RGB): a runtime select() on these texture nodes inside the TRAA input made the first-frame
       // node build run away and crash the page (session-2 bisect)
       const chosen = V.includes('scene') ? col.rgb : V.includes('aonear') ? vec3(aoNear) : V.includes('ao') ? vec3(ao) : V.includes('gi') ? bounce
         : V.includes('probe') ? vec3(w, aoNear, aoFull) : V.includes('plain') ? col.rgb.mul(aoFull).add(dif.rgb.mul(bounce)) : V.includes('direct') ? colDirect
-        : V.includes('ssr') ? S.rgb.mul(spec.div(specY)) : V.includes('env') ? envSpec : litR;
+        : V.includes('ssr') ? S.rgb.mul(spec.div(specY)) : V.includes('env') ? envSpec : V.includes('sss') ? (this.sssDebug ?? vec3(1)) : litR;
       composite = vec4(chosen, col.a);
     }
     let out: any = traa(composite, dep, vel, camera);
@@ -198,6 +217,10 @@ export class Pipeline {
       this.hemiGround.value.copy(this.hemi.groundColor).multiplyScalar(this.hemi.intensity);
     }
     updateProbeLights(this.hemi, this.sun);
+    if (this.sun) { // the contact shadows' sun (D-157)
+      this.sunDirW.value.subVectors(this.sun.position, this.sun.target.position).normalize();
+      this.sunE.value.copy(this.sun.color).multiplyScalar(this.sun.visible ? this.sun.intensity : 0);
+    }
     this.env?.update(this.hemi); // the sky environment, re-captured when the sun or the light has changed (D-157)
     if (!this.built) this.build();
     if (this.rp) this.rp.render(); else this.renderer.render(scene, camera);

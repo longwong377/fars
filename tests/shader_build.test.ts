@@ -44,7 +44,7 @@ describe('surface shaders build (WGSL, node)', () => {
     }
     expect(fails).toEqual([]);
   });
-  it('the post graph (composite with the probe lookups, SSGI with contact samples, SSR, the environment capture) generates WGSL', () => {
+  it('the post graph (composite with the probe lookups, SSGI with contact samples, SSR, sun contact shadows, the environment capture) generates WGSL', () => {
     const meta = JSON.parse(readFileSync('public/generated/probes.json', 'utf8')), bin = readFileSync('public/generated/probes.f16');
     setProbeField({ volumes: meta.volumes, data: decodeField(new Uint16Array(bin.buffer, bin.byteOffset, bin.byteLength / 2)), count: meta.count, normalBias: meta.normalBias, tier: meta.tier, note: meta.note });
     (globalThis as any).location = { search: '' };
@@ -66,11 +66,12 @@ describe('surface shaders build (WGSL, node)', () => {
     for (const n of walk(pipe.rp.outputNode)) {
       if (n.constructor?.name === 'SSGINode') { try { n.setup(setupBuilder()); tryBuild('ssgi', n._material); } catch (e: any) { fails.push('ssgi setup: ' + String(e?.message ?? e).slice(0, 300)); } }
       if (n.constructor?.name === 'SSRNode') { try { n.setup(setupBuilder()); tryBuild('ssr', n._ssrMaterial); } catch (e: any) { fails.push('ssr setup: ' + String(e?.message ?? e).slice(0, 300)); } }
+      if (n.constructor?.name === 'SSSNode') { try { n.setup(setupBuilder()); tryBuild('sss', n._material); } catch (e: any) { fails.push('sss setup: ' + String(e?.message ?? e).slice(0, 300)); } }
     }
     // the environment's dome material (SkyMesh nodes, masked sun disc, ground below the horizon)
     const env = pipe.env; tryBuild('environment dome', env.scene.children[0].material);
     setProbeField(null);
     expect(fails).toEqual([]);
-    expect(built).toEqual(expect.arrayContaining(['composite', 'ssgi', 'ssr', 'environment dome']));
+    expect(built).toEqual(expect.arrayContaining(['composite', 'ssgi', 'ssr', 'sss', 'environment dome']));
   });
 });

@@ -2,7 +2,8 @@ import { test } from '@playwright/test';
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { lumStats } from './lib/lum';
 // D-157 surfaces / reflections / contact shading: renders each view with the photoreal-triage switches on (B) and off
-// (A: no broad tone, wall-foot band, floor wear, worn arrises or block tilt; no bevels, sky specular or SSR; the session-4
+// (A: no broad tone, wall-foot band, floor wear, worn arrises or block tilt; no bevels, sky specular, SSR or sun contact
+// shadows; the session-4
 // SSGI input and contact AO; window.__parsaSurf) in ONE page load (views at other hours through setTime, as plain.spec).
 // Between the variants of a view the frame meter (D-159) is frozen at the B frame's reading, so both variants are exposed
 // identically and the pixels compare directly. Debug spec: runs only with DBG=1.
@@ -20,9 +21,9 @@ const VIEWS: Record<string, { day: number; hour: number; v: [number, number, num
   'stair-climb-pm': { day: 25, hour: 16, v: [-43.9, 128, 1.6, 341, 12] },
 };
 const SET: Record<string, Record<string, number | boolean>> = {
-  B: { surf: 1, env: 1, ssr: 1, giDirect: 1, contact: 1, bevels: true },
-  A: { surf: 0, env: 0, ssr: 0, giDirect: 0, contact: 0, bevels: false },
-  gi0: { surf: 1, env: 1, ssr: 1, giDirect: 0, contact: 1, bevels: true },
+  B: { surf: 1, env: 1, ssr: 1, sss: 1, giDirect: 1, contact: 1, bevels: true },
+  A: { surf: 0, env: 0, ssr: 0, sss: 0, giDirect: 0, contact: 0, bevels: false },
+  gi0: { surf: 1, env: 1, ssr: 1, sss: 1, giDirect: 0, contact: 1, bevels: true },
 };
 test('surfaces A/B', async ({ page }) => {
   test.setTimeout(1_380_000);
