@@ -20,8 +20,10 @@
 //    0.75 toward the sunward side and shows its base, from below, at 0.25 — Bohren's value for τ ≈ 40, the middle of
 //    cumulus optical depths (20–100); the layer's own 0.40 needs a negative octave weight (both terms are local and do
 //    not know how deep the cloud is below a sample). Grey bases, as photographed, instead of black.
-//    Known limit: thin cloud reflects as much as thick cloud from the sunward side (τ 2: 0.74 vs Bohren's 0.13); it is
-//    semi-transparent, so the sky shows through it.
+//    Known limit: thin cloud is far too bright from the sunward side (1 km deep layers of τ 0.5–5 reflect 0.55–0.90,
+//    Bohren's two-stream 0.04–0.27; a droplet-like phase refitted does not help): both terms add multiply scattered light
+//    whatever the depth of cloud beyond the sample. Q-253: weight them by the two-stream mean intensity, which needs the
+//    optical depth away from the sun (more samples).
 //  • Ambient: the isotropic in-scatter of the sky from above and the sunlit ground from below (the D-153 ground colour),
 //    as radiances (the hemisphere light's irradiance / π): half the sky's at the top of the layer, half the ground's at
 //    its base, a linear blend between (C), so bases come out warm-grey rather than sky-blue.

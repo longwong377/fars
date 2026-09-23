@@ -42,6 +42,17 @@ function hit(dir: THREE.Vector3): { t: number; p: THREE.Vector3 } | null {
   }
   return null;
 }
+if (process.env.PROFILE) { // the centre column: distance and the air's transmittance (G) per row band
+  const px = W / 2, out: string[] = [];
+  for (let py = 0; py < H; py += 6) {
+    const sx = ((px + 0.5) / W) * 2 - 1, sy = 1 - ((py + 0.5) / H) * 2;
+    const dir = fwd.clone().addScaledVector(right, sx * th * asp).addScaledVector(up, sy * th).normalize();
+    const h = hit(dir); if (!h) continue;
+    const zc = y0 + tmeta.court_asl + curvatureDropOrigin(x0, z0), zp = h.p.y + tmeta.court_asl + curvatureDropOrigin(h.p.x, h.p.z);
+    out.push(`${py}:${(h.t / 1000).toFixed(1)}km/T${Math.exp(-opticalDepth(o, zc, zp, h.t)[1]).toFixed(2)}`);
+  }
+  console.log(`centre column (row: distance / transmittance G): ${out.join(' ')}`);
+}
 for (let px = 40; px < W; px += 110) {
   const rows: string[] = []; let last = -1;
   for (let py = 0; py < H; py += 1) {

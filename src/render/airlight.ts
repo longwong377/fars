@@ -111,7 +111,8 @@ class AirLightNode extends TempNode {
 
 /** the composite plus the hall air's in-scattered sunlight (vec4 in, vec4 out): `depth` the scene pass's depth texture node */
 export function addAirLight(composite: any, depth: any, camera: THREE.PerspectiveCamera, sun: THREE.DirectionalLight | undefined): any {
-  if (!sun) return composite;
+  // ?airlight=0: without the pass (a switch to bisect with: the pass has not yet been seen in a browser, D-156)
+  if (!sun || (typeof location !== 'undefined' && new URLSearchParams(location.search).get('airlight') === '0')) return composite;
   const n = new AirLightNode(depth, camera, sun);
   return vec4(composite.rgb.add(n.getTextureNode().rgb), composite.a);
 }

@@ -167,11 +167,16 @@ export class SkySystem {
     const sunA: HorizonAtlases = { levels: HORIZON_LAYOUT.levels, tex: this.hzSun, kind: 'lines', ref: this.hzMoon, refChannel: 'b' };
     const moonA: HorizonAtlases = { levels: HORIZON_LAYOUT.levels, tex: this.hzMoon, kind: 'chord' };
     const sunC = new THREE.Color(), moonC = new THREE.Color();
-    (this.sun as any).colorNode = uniform(sunC).onRenderUpdate(() => sunC.copy(this.sun.color).multiplyScalar(this.sun.intensity)).mul(horizonVisibility(sunA, this.uSunAlt, this.uSunDirW));
-    (this.moonLight as any).colorNode = uniform(moonC).onRenderUpdate(() => moonC.copy(this.moonLight.color).multiplyScalar(this.moonLight.intensity)).mul(horizonVisibility(moonA, this.uMoonAlt, this.uMoonDirW));
-    // aerial perspective (D-156): three r186 uses scene.fogNode ahead of scene.fog (main.ts keeps its FogExp2 for the colour
-    // that the rain shafts and the rivers read); the air's sun weighting reads the coarse horizon levels
-    (scene as any).fogNode = this.air.fogNode(p => horizonVisibility(sunA, this.uSunAlt, this.uSunDirW, p, [1, 2]));
+    // ?air=0: without the horizon colour nodes and the aerial-perspective fog node (a switch to bisect with: these nodes
+    // have not yet been seen in a browser, D-156); main.ts's FogExp2 then draws, at its fixed density
+    const off = typeof location !== 'undefined' && new URLSearchParams(location.search).get('air') === '0';
+    if (!off) {
+      (this.sun as any).colorNode = uniform(sunC).onRenderUpdate(() => sunC.copy(this.sun.color).multiplyScalar(this.sun.intensity)).mul(horizonVisibility(sunA, this.uSunAlt, this.uSunDirW));
+      (this.moonLight as any).colorNode = uniform(moonC).onRenderUpdate(() => moonC.copy(this.moonLight.color).multiplyScalar(this.moonLight.intensity)).mul(horizonVisibility(moonA, this.uMoonAlt, this.uMoonDirW));
+      // aerial perspective (D-156): three r186 uses scene.fogNode ahead of scene.fog (main.ts keeps its FogExp2 for the colour
+      // that the rain shafts and the rivers read); the air's sun weighting reads the coarse horizon levels
+      (scene as any).fogNode = this.air.fogNode(p => horizonVisibility(sunA, this.uSunAlt, this.uSunDirW, p, [1, 2]));
+    }
     // moon: disc of 0.52° apparent diameter, shaded by the true sun direction (phase)
     const moonR = Math.tan((0.26 * Math.PI) / 180) * DOME * 0.9;
     const mm = new THREE.MeshBasicNodeMaterial({ fog: false, depthWrite: false, depthTest: false });
