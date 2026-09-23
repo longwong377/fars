@@ -17,7 +17,7 @@ import * as THREE from 'three/webgpu';
 import { attribute, positionLocal, float, abs, min } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { pose, type Pose } from './anim';
-import { ACTIVITIES } from './activities';
+import { ACTIVITIES, performanceFor, type ActivityId, type Performance } from './activities';
 import { PeopleSim, PLACES, type Agent } from './sim';
 import type { HumanSystem } from './humans';
 import { RigSolver, PALETTE_STRIDE, PLANTED, type RigInput, type FaceState } from './humanRig';
@@ -25,11 +25,20 @@ import { lookFor, type PersonLook, type LookInput } from './looks';
 import { HB } from './humanFormat';
 import { PERSON_TEXELS, FLAG_HIDE_HEAD } from './humanMaterial';
 import { nearCascadesOnly } from './humanGPU';
-import { propGeometry, propUnionGeometry, paintedBox, PROP_KINDS, PROP_NOTES } from './props';
+import { propGeometry, propUnionGeometry, paintedBox, PROP_NOTES, PROPS, PROP_CLASSES, propSlot, placeProp } from './props';
 import { PIECES, pieceBit, COSTUME_OF, type Dress } from './outfits';
-/** poses in which people sit, kneel or lie (coats and back-carried weapons are laid aside) */
-const SEATED = new Set<AnimId>(['sit', 'write', 'eat', 'dice', 'sleep', 'grind', 'knead', 'bake']);
+import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim } from './workAnims';
+import { IK_Q } from './poseKit';
+import { WorkObjects, WORK_NOTES } from './workObjects';
+import { Animals, animalsFor, ANIMAL_BUILD, grazeReach } from './animals';
 import type { AnimId } from './anim';
+/** poses in which people sit, kneel or lie (the seat pass rests them on the ground; coats and back-carried weapons are
+ *  laid aside) */
+const SEATED = new Set<AnimId>(['sit', 'write', 'eat', 'dice', 'sleep', 'grind', 'knead', 'bake', ...(Object.keys(WORK_META) as WorkAnim[]).filter(k => WORK_META[k].ground === 'seat')]);
+/** crouched work (squatting at the mould, the hearth, the kiln): feet planted, but coats and weapons laid aside too */
+const ASIDE = new Set<AnimId>([...SEATED, ...(Object.keys(WORK_META) as WorkAnim[]).filter(k => WORK_META[k].aside)]);
+/** cycles that move the performer's root along a path of their own (the furrow, turning with the threshing team) */
+const PATHED = new Set<AnimId>((Object.keys(WORK_META) as WorkAnim[]).filter(k => WORK_META[k].path));
 
 const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
 const rad = (deg: number) => (deg * Math.PI) / 180;
@@ -47,14 +56,24 @@ export const POOL_MAX = 400;
 /** people cast shadows within this distance (m) only. An instanced caster is drawn whole in every cascade its bounds
  *  touch, so each caster costs its triangles × cascades; at 90 m a person's shadow is a few pixels (D-093) */
 export const SHADOW_DIST = LOD_DIST[1];
-/** carried props drawn per frame (one instanced mesh) */
+/** carried props drawn per frame (per prop class: one instanced mesh each) */
 export const CARRIED_MAX = 256;
+/** work objects and animals are placed for performers within this distance (m); beyond, a person is a speck */
+export const THINGS_DIST = 400;
+/** a flock bleats about once every BLEAT_S seconds when the listener is within 60 m (C) */
+const BLEAT_S = 7;
 
 export interface Person {
   key: string; agent: Agent | null; look: PersonLook; slot: number; rig: RigInput; face: FaceState;
   root: [number, number, number, number]; prevRoot: [number, number, number, number];
   shown: boolean; drawnFrame: number; poseFrame: number; frameMod: number; lastHit: boolean;
   blinkAt: number; speakUntil: number; prop: string | null; propM: THREE.Matrix4; anim: AnimId; t0: number; dist: number;
+  /** the second prop (the other hand's thing) and the props' instance parameters (bow draw, spindle drop) */
+  prop2: string | null; propM2: THREE.Matrix4; ip: [number, number];
+  /** the performance being given (activities.ts performanceFor), the time and seed its cycle runs on */
+  perf: Performance | null; why: string; animT: number; animK: number;
+  /** the simulation's spot (root before the cycle's own path) and the path offset in effect [dx, dz, dyaw] */
+  base: [number, number, number, number]; path: [number, number, number] | null;
   /** piece mask in effect (the look's mask minus what is laid aside while seated or asleep) */
   mask: number;
   /** gaze target in character space (the rig's space: the root is applied per instance on the GPU) */
@@ -64,8 +83,9 @@ export interface Person {
   act: string; actPlaceholder: boolean;
   /** when the greeting nod started (−1: not greeted on this approach) */
   nodAt: number;
-  /** extras (lineups, tests): fixed animation and place */
-  extra?: { anim: AnimId; x: number; y: number; z: number; yaw: number; look?: [number, number, number] | null };
+  /** extras (lineups, tests): fixed animation and place, or an activity performed (with its props, work objects and
+   *  animals); `group` joins extras sharing an object (the bearers of one bier) */
+  extra?: { anim: AnimId; x: number; y: number; z: number; yaw: number; look?: [number, number, number] | null; act?: ActivityId; why?: string; group?: string; variant?: number };
 }
 
 export class Crowd {
@@ -78,8 +98,11 @@ export class Crowd {
   private rigS: RigSolver;
   private freeSlots: number[] = []; private nextSlot = 0;
   private frame = 0; private sacks: THREE.InstancedMesh;
-  /** every carried prop: one instanced mesh (the union geometry; 'ik' picks the kind per instance) */
-  private carried!: THREE.InstancedMesh; private carriedKind!: THREE.InstancedBufferAttribute;
+  /** carried props: one instanced mesh per prop class (props.ts PROP_CLASSES: small things, long tools), each over the
+   *  class's union geometry; 'ik' picks the kind per instance, 'ip' is the kind's parameter (bow draw, spindle drop) */
+  private carried: { mesh: THREE.InstancedMesh; kind: THREE.InstancedBufferAttribute; param: THREE.InstancedBufferAttribute }[] = [];
+  /** the things at the place of work and the animals the work needs (D-142), placed from the performers every frame */
+  readonly things: WorkObjects; readonly animals: Animals;
   private frustum = new THREE.Frustum(); private wide = new THREE.Frustum(); private pm = new THREE.Matrix4();
   private lastStock = { depot: -1, store: -1 };
   /** last frame's CPU cost (ms) of pooling, posing and instance filling; people drawn per LOD */
@@ -92,6 +115,9 @@ export class Crowd {
     this.rigS = new RigSolver(humans.A.meta.curlAxes);
     this.buildPropMeshes();
     if (sim) this.buildWorkObjects(); else this.autoPool = false;
+    const wm = this.propMaterial().clone(); wm.side = THREE.DoubleSide; // open baskets and tubs are seen from above
+    this.things = new WorkObjects(wm); this.group.add(this.things.group);
+    this.animals = new Animals(); this.group.add(this.animals.group);
     // both sack piles (depot, store) are one instanced mesh: one draw
     const sk = new THREE.InstancedMesh(propGeometry('sack')!, this.propMaterial(), 600); sk.castShadow = true; sk.receiveShadow = true; sk.count = 0; sk.visible = false; sk.frustumCulled = false;
     sk.name = 'goods:sacks'; sk.userData = { tier: 'C', src: 'RECON', note: 'sacks counted by the simulation (stocks)' }; this.group.add(sk); this.sacks = sk; nearCascadesOnly(sk);
@@ -110,15 +136,20 @@ export class Crowd {
     this.propMat = m; return m;
   }
   private buildPropMeshes() {
-    const g = propUnionGeometry(); const ik = new THREE.InstancedBufferAttribute(new Float32Array(CARRIED_MAX), 1); ik.setUsage(THREE.DynamicDrawUsage); g.setAttribute('ik', ik);
-    const m = new THREE.MeshStandardNodeMaterial(); const mr = attribute('mr', 'vec2');
-    m.colorNode = attribute('color', 'vec3'); m.metalnessNode = mr.x; m.roughnessNode = mr.y;
-    // the instance's own kind only: other kinds' vertices collapse to a point (arithmetic mask, no select: D-012)
-    m.positionNode = positionLocal.mul(float(1).sub(min(abs(attribute('pk', 'float').sub(attribute('ik', 'float'))), 1)));
-    const im = new THREE.InstancedMesh(g, m, CARRIED_MAX); im.count = 0; im.visible = false; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false;
-    im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.name = 'props:carried'; im.raycast = () => {}; // all kinds are in every instance on the CPU side
-    im.userData = { tier: 'C', src: 'RECON', note: 'carried: ' + PROP_KINDS.map(k => `${k} (${PROP_NOTES[k].tier}): ${PROP_NOTES[k].note}`).join('; ') };
-    this.group.add(im); this.carried = im; this.carriedKind = ik; nearCascadesOnly(im);
+    PROP_CLASSES.forEach((kinds, c) => {
+      const g = propUnionGeometry(c);
+      const ik = new THREE.InstancedBufferAttribute(new Float32Array(CARRIED_MAX), 1); ik.setUsage(THREE.DynamicDrawUsage); g.setAttribute('ik', ik);
+      const ip = new THREE.InstancedBufferAttribute(new Float32Array(CARRIED_MAX), 1); ip.setUsage(THREE.DynamicDrawUsage); g.setAttribute('ip', ip);
+      const m = new THREE.MeshStandardNodeMaterial(); const mr = attribute('mr', 'vec2');
+      m.colorNode = attribute('color', 'vec3'); m.metalnessNode = mr.x; m.roughnessNode = mr.y;
+      // the instance's own kind only: other kinds' vertices collapse to a point (arithmetic mask, no select: D-012); the
+      // instance parameter moves the vertices that carry a displacement (the bowstring's middle, the spindle on its yarn)
+      m.positionNode = positionLocal.add(attribute('sv', 'vec3').mul(attribute('ip', 'float'))).mul(float(1).sub(min(abs(attribute('pk', 'float').sub(attribute('ik', 'float'))), 1)));
+      const im = new THREE.InstancedMesh(g, m, CARRIED_MAX); im.count = 0; im.visible = false; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false;
+      im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.name = c === 0 ? 'props:carried' : 'props:tools'; im.raycast = () => {}; // all kinds are in every instance on the CPU side
+      im.userData = { tier: 'C', src: 'RECON', note: 'carried: ' + kinds.map(k => `${k} (${PROP_NOTES[k].tier}): ${PROP_NOTES[k].note}`).join('; ') };
+      this.group.add(im); this.carried.push({ mesh: im, kind: ik, param: ip }); nearCascadesOnly(im);
+    });
   }
   /** blocks at the masons' places, querns, mats, the trough (C forms): static, merged into one mesh (one draw) */
   private buildWorkObjects() {
@@ -167,7 +198,8 @@ export class Crowd {
     const face: FaceState = { jaw: 0, blink: 0, look: null, eyeYaw: 0, eyePitch: 0 };
     const p: Person = { key, agent, look, slot, face, rig: { joints: v.joints, pose: { rot: {}, hips: [0, 0, 0] }, face, grip: [0, 0], x: 0, y: 0, z: 0, yaw: 0, scale: 1 },
       root: [0, 0, 0, 0], prevRoot: [0, 0, 0, 0], shown: false, drawnFrame: -10, poseFrame: -10, frameMod: seed % 8, lastHit: false,
-      blinkAt: (seed % 997) / 997 * 4, speakUntil: -1, prop: null, propM: new THREE.Matrix4(), anim: 'idle', t0: (seed % 100), dist: 0, mask: look.mask, lookC: [0, 0, 0], act: '', actPlaceholder: false, nodAt: -1 };
+      blinkAt: (seed % 997) / 997 * 4, speakUntil: -1, prop: null, propM: new THREE.Matrix4(), anim: 'idle', t0: (seed % 100), dist: 0, mask: look.mask, lookC: [0, 0, 0], act: '', actPlaceholder: false, nodAt: -1,
+      prop2: null, propM2: new THREE.Matrix4(), ip: [0, 0], perf: null, why: '', animT: seed % 100, animK: (seed % 1000) / 159, base: [0, 0, 0, 0], path: null };
     this.persons.set(key, p); if (agent) this.byAgent.set(agent.id, p); return p;
   }
   /** attached people by agent id (no string keys in the per-frame pool scan) */
@@ -179,11 +211,14 @@ export class Crowd {
     return this.newPerson(key, a, look, a.seed);
   }
   detach(a: Agent | string) { const p = typeof a === 'string' ? this.persons.get(a) : this.byAgent.get(a.id); if (!p) return; this.freeSlot(p.slot); this.persons.delete(p.key); if (p.agent) this.byAgent.delete(p.agent.id); }
-  /** an extra person not driven by the simulation (test lineups): fixed place, yaw and animation */
-  addExtra(key: string, spec: LookInput & { x: number; y: number; z: number; yaw: number; anim?: AnimId; look?: [number, number, number] | null }) {
+  /** an extra person not driven by the simulation (test lineups, the performance sheet): fixed place, yaw and animation,
+   *  or an activity (`act`, with the plan's reason `why`) performed with its props, work objects and animals */
+  addExtra(key: string, spec: LookInput & { x: number; y: number; z: number; yaw: number; anim?: AnimId; look?: [number, number, number] | null; act?: ActivityId; why?: string; group?: string; variant?: number }) {
     const old = this.persons.get(key); if (old) { this.freeSlot(old.slot); this.persons.delete(key); }
     const look = lookFor(this.humans.A, spec, this.seed);
-    const p = this.newPerson(key, null, look, spec.seed); p.extra = { anim: spec.anim ?? 'idle', x: spec.x, y: spec.y, z: spec.z, yaw: spec.yaw, look: spec.look ?? null }; return p;
+    const p = this.newPerson(key, null, look, spec.seed); p.extra = { anim: spec.anim ?? 'idle', x: spec.x, y: spec.y, z: spec.z, yaw: spec.yaw, look: spec.look ?? null, act: spec.act, why: spec.why, group: spec.group, variant: spec.variant };
+    if (!spec.act) p.animK = 0.3; // the Phase 3 lineups' fixed seed
+    return p;
   }
   removeExtras() { for (const [k, p] of this.persons) if (!p.agent) { this.freeSlot(p.slot); this.persons.delete(k); } }
   /** a person is speaking (address → speech line): the jaw moves for `seconds` */
@@ -206,8 +241,19 @@ export class Crowd {
     this.visNow = this.visPrev; this.visPrev = now; this.poolPrimed = true;
   }
   // ------------------------------------------------------------------------------------------------ per frame
+  /** the performance a person gives now (activities.ts: the plan's activity and reason resolve the variant) */
+  private resolve(p: Person) {
+    const a = p.agent, e = p.extra;
+    const act = a ? this.sim!.performance(a).act : e!.act, why = a ? (a.task?.why ?? '') : (e!.why ?? '');
+    if (act !== p.act || why !== p.why) { // the performance changes only with the activity or the plan's reason
+      p.act = act ?? ''; p.why = why; p.perf = act ? performanceFor(act, why, a ? a.seed : Math.round(p.animK * 159), a ? undefined : e!.variant) : null; p.actPlaceholder = !!p.perf?.placeholder; }
+    p.anim = p.perf ? p.perf.anim : e!.anim;
+  }
+  private lastTime = 0;
+  /** shared work objects this frame: one per place (the threshing floor) or one per group (the bier, at its bearers' centre) */
+  private shared = new Map<string, { kind: string; x: number; y: number; z: number; yaw: number; n: number; one: THREE.Matrix4 }>();
   update(time: number, cam: THREE.Vector3, playerPos: THREE.Vector3 | null, camera?: THREE.Camera) {
-    const t0 = performance.now(); this.now = time;
+    const t0 = performance.now(); this.now = time; const dt = Math.max(0, Math.min(0.5, time - this.lastTime)); this.lastTime = time;
     if (camera) { camera.updateMatrixWorld(); this.pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); this.frustum.setFromProjectionMatrix(this.pm); this.wide.copy(this.frustum); for (const pl of this.wide.planes) pl.constant += 3; }
     this.frame++;
     const S = this.sim?.stock;
@@ -218,20 +264,28 @@ export class Crowd {
     }
     if (this.autoPool) this.autoPoolStep(cam, camera);
     const gpu = this.humans.gpu; gpu.begin();
-    this.carried.count = 0;
+    for (const c of this.carried) c.mesh.count = 0;
+    this.things.begin(); this.animals.begin(time); this.shared.clear();
     // order by distance for the full-detail cap
     const list = this.list; list.length = 0;
     for (const p of this.persons.values()) {
       const a = p.agent; let x: number, y: number, z: number, yaw: number;
       if (a) { if (a.offmap) { p.shown = false; continue; } x = a.pos[0]; y = a.y; z = -a.pos[1]; yaw = yawOf(a.heading); }
       else { const e = p.extra!; x = e.x; y = e.y; z = e.z; yaw = e.yaw; }
+      const b = p.base; b[0] = x; b[1] = y; b[2] = z; b[3] = yaw;
+      this.resolve(p);
+      // a cycle with a path of its own (the ploughman on the furrow, the thresher turning with his team, the archer
+      // side-on): the root follows it every frame, between pose refreshes too
+      p.path = PATHED.has(p.anim) ? workRoot(p.anim as WorkAnim, this.cycleT(p, time), p.animK) : null;
+      if (p.path) { const c = Math.cos(yaw), sn = Math.sin(yaw), o = p.path; x += c * o[0] + sn * o[1]; z += -sn * o[0] + c * o[1]; yaw += o[2]; }
       const pr = p.prevRoot, r = p.root;
       if (p.drawnFrame === this.frame - 1) { pr[0] = r[0]; pr[1] = r[1]; pr[2] = r[2]; pr[3] = r[3]; } else { pr[0] = x; pr[1] = y; pr[2] = z; pr[3] = yaw; }
       r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
       const d = Math.hypot(x - cam.x, y + 0.9 - cam.y, z - cam.z);
       p.shown = d < LOD_DIST[3];
       if (!p.shown) continue;
-      if (camera && !this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), 1.3 * p.look.scale))) { if (a) this.soundsOnly(p, d, time); continue; }
+      const reach = p.perf?.animals || p.perf?.work?.length ? 4 : 1.3; // a performance's things and animals spread a few metres
+      if (camera && !this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), reach * p.look.scale))) { if (a) this.soundsOnly(p, d, time); continue; }
       p.dist = d; list.push(p);
     }
     list.sort((a, b) => a.dist - b.dist);
@@ -240,35 +294,38 @@ export class Crowd {
       const p = list[i], d = p.dist;
       const lod = d < LOD_DIST[0] && drawn[0] < MAX_FULL ? 0 : d < LOD_DIST[1] && drawn[1] < MAX_MID ? 1 : d < LOD_DIST[2] || !has3 ? 2 : 3; drawn[lod]++;
       const every = d < 30 ? 1 : d < 90 ? 2 : d < 200 ? 4 : 8;
-      if (p.poseFrame < 0 || (this.frame + p.frameMod) % every === 0 || this.frame - p.poseFrame > every) { this.posePerson(p, time, d, playerPos, cam, lod); posed++; }
+      if (p.poseFrame < 0 || (this.frame + p.frameMod) % every === 0 || this.frame - p.poseFrame > every) { IK_Q.passes = lod === 0 ? 4 : lod === 1 ? 2 : 1; this.posePerson(p, time, d, playerPos, cam, lod); posed++; }
       else if (p.poseFrame === this.frame - 1) this.copyPrev(p); // no bone change this frame: previous = current
       const c = gpu.costumes.get(`${COSTUME_OF[p.look.dress]}@${lod}`)!;
       gpu.push(c, p.slot, p.root[0], p.root[1], p.root[2], p.root[3], p.prevRoot[0], p.prevRoot[1], p.prevRoot[2], p.prevRoot[3], lod === 0 ? 1 : d < SHADOW_DIST ? 2 : 0);
       p.drawnFrame = this.frame;
-      if (p.prop) this.placeProp(p);
+      if (p.prop) this.placeProp(p, p.prop, p.propM, p.ip[0]);
+      if (p.prop2) this.placeProp(p, p.prop2, p.propM2, p.ip[1]);
+      if (p.perf && d < THINGS_DIST && (p.perf.work?.length || p.perf.animals)) this.placeThings(p, time, d, dt);
     }
-    gpu.end(true);
-    { const im = this.carried; im.visible = im.count > 0; if (im.count) { im.instanceMatrix.needsUpdate = true; im.instanceMatrix.clearUpdateRanges(); im.instanceMatrix.addUpdateRange(0, im.count * 16);
-      this.carriedKind.needsUpdate = true; this.carriedKind.clearUpdateRanges(); this.carriedKind.addUpdateRange(0, im.count); } }
+    for (const [, g] of this.shared) { if (g.n > 1) { _q.setFromAxisAngle(_up, g.yaw); _m.compose(_v.set(g.x / g.n, g.y / g.n, g.z / g.n), _q, _one); this.things.push(g.kind as any, _m); } else this.things.push(g.kind as any, g.one); }
+    IK_Q.passes = 4; gpu.end(true); this.things.end(); this.animals.end();
+    for (const c of this.carried) { const im = c.mesh; im.visible = im.count > 0; if (!im.count) continue;
+      im.instanceMatrix.needsUpdate = true; im.instanceMatrix.clearUpdateRanges(); im.instanceMatrix.addUpdateRange(0, im.count * 16);
+      for (const at of [c.kind, c.param]) { at.needsUpdate = true; at.clearUpdateRanges(); at.addUpdateRange(0, im.count); } }
     this.perf.ms = performance.now() - t0; this.perf.poseMs = performance.now() - tp; this.perf.posed = posed; this.perf.drawn = drawn; this.perf.attached = this.persons.size;
   }
   private copyPrev(p: Person) { const o = p.slot * PALETTE_STRIDE; const g = this.humans.gpu; g.prevPalette.set(g.palette.subarray(o, o + PALETTE_STRIDE), o); }
+  /** the time a person's cycle runs on (the same for the pose and the path) */
+  private cycleT(p: Person, time: number) { return time + p.animT; }
   /** activity, pose, face and hands → skin palette (character space); props and tool sounds */
   private posePerson(p: Person, time: number, d: number, playerPos: THREE.Vector3 | null, cam: THREE.Vector3, lod: number) {
     const a = p.agent; const g = this.humans.gpu;
-    let po: Pose; let propKind: string | null = null; let anim: AnimId;
-    if (a) {
-      const perf = this.sim!.performance(a); const P = ACTIVITIES[perf.act]; anim = P.anim;
-      p.act = perf.act; p.actPlaceholder = !!P.placeholder;
-      po = pose(anim, time + a.seed % 100, a.gait, (a.seed % 1000) / 159);
-      const want = P.prop ?? (a.carry === 'sack' ? 'sack' : a.carry === 'jar_head' ? 'jar_head' : a.carry === 'basket' ? 'basket' : undefined);
-      propKind = want ? (want === 'bread' ? 'basket' : want) : null;
+    let po: Pose; let prop1: string | null = null, prop2: string | null = null; const anim = p.anim; const P = p.perf;
+    if (P) {
+      po = pose(anim, this.cycleT(p, time), a ? a.gait : time * 4.2, p.animK);
+      const want = P.prop ?? (a?.carry === 'sack' ? 'sack' : a?.carry === 'jar_head' ? 'jar_head' : a?.carry === 'basket' ? 'basket' : undefined);
+      prop1 = want ? (want === 'bread' ? 'basket' : want) : null; prop2 = P.prop2 ?? null;
       if (po.hit && !p.lastHit && d < 60) this.onHit?.(P.sound ?? 'chisel', _v.set(p.root[0], p.root[1], p.root[2]).clone());
       p.lastHit = !!po.hit;
-    } else { anim = p.extra!.anim; po = pose(anim, time + p.t0, time * 4.2, 0.3); }
-    p.anim = anim;
-    // coats, weapons on the back and hats are laid aside while seated or asleep (they would pass through the ground; C)
-    const mask = SEATED.has(anim) ? p.look.mask & ~this.asideBits(p.look.dress, anim) : p.look.mask;
+    } else po = pose(anim, time + p.t0, time * 4.2, p.animK);
+    // coats, weapons on the back and hats are laid aside while seated, crouched or asleep (they would pass through the ground; C)
+    const mask = ASIDE.has(anim) ? p.look.mask & ~this.asideBits(p.look.dress, anim) : p.look.mask;
     if (mask !== p.mask) { p.mask = mask; this.humans.gpu.person[p.slot * PERSON_TEXELS * 4 + 1] = mask; this.humans.gpu.markPersonDirty(); }
     // glance: the player within 7 m turns heads (clamped) and eyes. How much follows the simulation's memory of the
     // player (sim.greeting: none → a stranger's glance; nod / recognise → the head turns fully and nods once, within 4 m)
@@ -294,15 +351,17 @@ export class Crowd {
       if (talking) f.jaw = Math.max(0, 0.15 * Math.abs(Math.sin(time * 10.5 + p.slot)) * (0.6 + 0.4 * Math.sin(time * 3.1 + p.slot)) - (anim === 'talk' && Math.sin(time * 0.8 + p.slot) < 0 ? 0.1 : 0));
       if (anim === 'eat') f.jaw = 0.06 * (0.5 + 0.5 * Math.sin(time * 9 + p.slot));
     } else f.blink = anim === 'sleep' ? 1 : 0;
-    // hands: grip what they hold
-    p.rig.grip = propKind === 'spear' || propKind === 'mallet' || propKind === 'jar' ? [0.15, 1] : propKind === 'basket' ? [0.8, 0.8] : propKind === 'tablet' ? [0.6, 0.3] : propKind === 'sack' ? [0.1, 0.7] : anim === 'guard' || anim === 'guard_walk' ? [0.5, 1] : [0, 0];
+    // hands: the cycle's grip, else what they hold
+    p.rig.grip = po.grip ?? (prop1 ? PROPS[prop1]?.grip : undefined) ?? (anim === 'guard' || anim === 'guard_walk' ? [0.5, 1] : [0, 0]);
     p.rig.pose = po; p.rig.plant = PLANTED.has(anim); p.rig.seat = SEATED.has(anim);
     const o = p.slot * PALETTE_STRIDE;
     g.prevPalette.set(g.palette.subarray(o, o + PALETTE_STRIDE), o);
     this.rigS.setPose(p.rig); this.rigS.solve(p.rig, g.palette, o);
     if (p.poseFrame < 0) g.prevPalette.set(g.palette.subarray(o, o + PALETTE_STRIDE), o);
     p.poseFrame = this.frame;
-    p.prop = propKind; if (propKind) this.propLocal(p, propKind);
+    const par = { v: 0 }, sc = p.look.scale;
+    p.prop = prop1 && placeProp(prop1, this.rigS, po, sc, time, 0, p.propM, par) ? prop1 : null; p.ip[0] = par.v;
+    p.prop2 = prop2 && placeProp(prop2, this.rigS, po, sc, time, 1, p.propM2, par) ? prop2 : null; p.ip[1] = par.v;
   }
   /** a world point in the person's character space (inverse of the instance root: translate, yaw about +Y, scale).
    *  The rig solves in character space, so gaze targets must be given there (world targets aimed the eyes wrongly). */
@@ -318,33 +377,50 @@ export class Crowd {
   }
   /** people culled from view still make their tool sounds */
   private soundsOnly(p: Person, d: number, time: number) {
-    const a = p.agent!; if (d > 60) return; const perf = this.sim!.performance(a); const P = ACTIVITIES[perf.act]; if (!P.sound) return;
-    const po = pose(P.anim, time + a.seed % 100, a.gait, (a.seed % 1000) / 159);
-    if (po.hit && !p.lastHit) this.onHit?.(P.sound, new THREE.Vector3(p.root[0], p.root[1], p.root[2])); p.lastHit = !!po.hit;
+    if (d > 60 || !p.perf?.sound) return; const a = p.agent!;
+    const po = pose(p.anim, this.cycleT(p, time), a.gait, p.animK);
+    if (po.hit && !p.lastHit) this.onHit?.(p.perf.sound, new THREE.Vector3(p.root[0], p.root[1], p.root[2])); p.lastHit = !!po.hit;
   }
-  /** prop transform in character space (from the solved bones; composed with the root when drawn) */
-  private propLocal(p: Person, k: string) {
-    const R = this.rigS, J = (b: number) => new THREE.Vector3(R.wt[b * 3], R.wt[b * 3 + 1], R.wt[b * 3 + 2]);
-    const palm = (s: 'l' | 'r') => J(HB[`hand_${s}`]).lerp(J(HB[`middle_01_${s}`]), 0.75);
-    const M = p.propM; const s = p.look.scale;
-    const rotOf = (b: number) => { const w = R.wr, o = b * 9; return new THREE.Matrix4().set(w[o], w[o + 1], w[o + 2], 0, w[o + 3], w[o + 4], w[o + 5], 0, w[o + 6], w[o + 7], w[o + 8], 0, 0, 0, 0, 1); };
-    let pos: THREE.Vector3, rot = new THREE.Matrix4(), sc = 1;
-    switch (k) {
-      case 'spear': { const h = palm('r'); pos = new THREE.Vector3(h.x, 0, h.z).multiplyScalar(s); pos.y = 0; break; } // upright, butt on the ground by the right hand
-      case 'sack': { const h = J(HB.upperarm_r); pos = h.multiplyScalar(s).add(new THREE.Vector3(0.02, 0.13, -0.02)); rot.makeRotationZ(0.3); break; }
-      case 'jar': { const h = palm('r'); pos = h.multiplyScalar(s).add(new THREE.Vector3(0, -0.45, 0.08)); break; }
-      case 'jar_head': { const h = J(HB.head); pos = h.multiplyScalar(s).add(new THREE.Vector3(0, 0.25, 0.02)); sc = 0.8; break; }
-      case 'tablet': { const h = palm('l'); pos = h.multiplyScalar(s).add(new THREE.Vector3(0, 0.02, 0.03)); break; }
-      case 'mallet': { pos = palm('r').multiplyScalar(s); rot = rotOf(HB.hand_r); break; }
-      case 'basket': default: { const h = palm('l').add(palm('r')).multiplyScalar(0.5 * s); pos = h.add(new THREE.Vector3(0, 0.05, 0)); break; }
+  /** a prop instance: its class mesh, kind index and parameter; the character-space transform composed with the root */
+  private placeProp(p: Person, kind: string, M: THREE.Matrix4, param: number) {
+    const sl = propSlot(kind === 'jar_head' ? 'jar' : kind); if (!sl) return; const c = this.carried[sl[0]], im = c.mesh;
+    if (im.count >= CARRIED_MAX) return;
+    _m.makeRotationY(p.root[3]).setPosition(p.root[0], p.root[1], p.root[2]).multiply(M);
+    c.kind.array[im.count] = sl[1]; c.param.array[im.count] = param; im.setMatrixAt(im.count++, _m);
+  }
+  /** the performer's work objects and animals (activities.ts `work`, `animals`), placed from the simulation's spot (base)
+   *  or the performer's own path (`follow`); shared objects once per place or group; a flock bleats now and then */
+  private placeThings(p: Person, time: number, d: number, dt: number) {
+    const P = p.perf!, b = p.base, r = p.root;
+    const place = (fr: number[], x: number, y: number, z: number, yaw: number, out: THREE.Matrix4) => { const c = Math.cos(fr[3]), s = Math.sin(fr[3]);
+      _q.setFromAxisAngle(_up, fr[3] + yaw); return out.compose(_v.set(fr[0] + c * x + s * z, fr[1] + y, fr[2] - s * x + c * z), _q, _one); };
+    const A0 = P.animals?.kind === 'beside' ? animalsFor(P.animals, 0, 0)[0] : null;
+    for (const w of P.work ?? []) {
+      const fr = w.follow ? r : b;
+      if (w.kind === 'fodder' && A0) { const mz = grazeReach(A0.sp); this.things.push('fodder', place(fr, A0.x + Math.sin(A0.yaw) * mz, 0, A0.z + Math.cos(A0.yaw) * mz, 0, _m)); continue; } // under the muzzle
+      if (w.shared) { const key = `${w.kind}|${w.shared === 'place' ? (p.agent?.task?.place ?? p.extra?.group ?? p.key) : (p.extra?.group ?? `${p.agent?.task?.place ?? p.key}`)}`;
+        const g = this.shared.get(key);
+        if (w.shared === 'place') { if (!g) this.shared.set(key, { kind: w.kind, x: 0, y: 0, z: 0, yaw: 0, n: 1, one: place(fr, w.at[0], w.at[1], w.at[2], 0, new THREE.Matrix4()) }); continue; }
+        // a group object (the bier) at the centre of its bearers
+        if (g) { g.x += fr[0]; g.y += fr[1]; g.z += fr[2]; g.n++; } else this.shared.set(key, { kind: w.kind, x: fr[0], y: fr[1], z: fr[2], yaw: fr[3], n: 1, one: place(fr, w.at[0], w.at[1], w.at[2], 0, new THREE.Matrix4()) });
+        continue; }
+      this.things.push(w.kind, place(fr, w.at[0], w.at[1], w.at[2], 0, _m));
     }
-    M.compose(pos, new THREE.Quaternion().setFromRotationMatrix(rot), new THREE.Vector3(sc, sc, sc));
-  }
-  private placeProp(p: Person) {
-    const k = (p.prop === 'jar_head' ? 'jar' : p.prop!) as typeof PROP_KINDS[number]; const ki = PROP_KINDS.indexOf(k); const im = this.carried;
-    if (ki < 0 || im.count >= CARRIED_MAX) return;
-    _m.makeRotationY(p.root[3]).setPosition(p.root[0], p.root[1], p.root[2]).multiply(p.propM);
-    this.carriedKind.array[im.count] = ki; im.setMatrixAt(im.count++, _m);
+    const A = P.animals; if (!A) return;
+    const t = this.cycleT(p, time), anim = p.anim;
+    const path = anim === 'plough' ? { s: ploughPath(t, p.animK).s } : anim === 'drive' ? { yaw: -2 * Math.PI * ((t / THRESH_TURN_S + p.animK * 0.05) % 1) } : undefined;
+    const list = animalsFor(A, t, Math.round(p.animK * 159) + (p.agent?.id ?? 0), path);
+    for (const an of list) {
+      const fr = an.follow ? r : b;
+      if (an.roll) { // lying on its side: the body centre is put on the ground at half its width, then rolled
+        const B = ANIMAL_BUILD[an.sp], bodyY = B.h - B.girth * 0.5, c = Math.cos(fr[3]), s = Math.sin(fr[3]);
+        _q.setFromAxisAngle(_up, fr[3] + an.yaw); _m.compose(_v.set(fr[0] + c * an.x + s * an.z, fr[1] + B.girth * 0.45, fr[2] - s * an.x + c * an.z), _q, _one);
+        _m.multiply(_m2.makeRotationZ(an.roll)).multiply(_m3.makeTranslation(0, -bodyY, 0));
+      } else place(fr, an.x, an.y ?? 0, an.z, an.yaw, _m);
+      this.animals.push(an, _m);
+    }
+    if (A.kind === 'flock' && d < 60 && list.length && Math.random() < dt / BLEAT_S) { const an = list[Math.floor(Math.random() * list.length)]; const c = Math.cos(b[3]), s = Math.sin(b[3]);
+      this.onHit?.('bleat', new THREE.Vector3(b[0] + c * an.x + s * an.z, b[1] + 0.5, b[2] - s * an.x + c * an.z)); }
   }
   // ------------------------------------------------------------------------------------------------ hits (overlay, pick)
   private raycast(rc: THREE.Raycaster, out: THREE.Intersection[]) {
@@ -358,17 +434,18 @@ export class Crowd {
       if (best < rc.far && best > rc.near) {
         const proxy = new THREE.Mesh(); proxy.name = `person:${p.agent ? p.agent.id : p.key}`;
         const who = p.agent ? `${p.agent.name ?? 'unnamed'} (${p.agent.role}, ${p.agent.origin})` : `extra ${p.key}`;
-        const act = p.act ? `; doing ${p.act}${p.actPlaceholder ? ' — PLACEHOLDER: no performance for this activity (abstract-only), a standing pose is shown' : ''}` : '';
+        const act = p.act ? `; doing ${p.act}${p.actPlaceholder ? ' — PLACEHOLDER: no performance for this activity (abstract-only), a standing pose is shown' : p.perf ? ` (${p.perf.tier}: ${p.perf.note})` : ''}` : '';
         proxy.userData = { tier: 'C', src: 'RECON', placeholder: p.actPlaceholder, note: `${who}; ${p.look.dress} dress${act}; ${p.look.note}` };
         out.push({ distance: best, point: ray.at(best, new THREE.Vector3()), object: proxy } as THREE.Intersection);
       }
     }
   }
   /** draw calls and triangles the crowd submits this frame (main pass; shadow passes repeat some of them) */
-  stats() { const s = this.humans.gpu.stats(); const propDraws = this.carried.count ? 1 : 0;
+  stats() { const s = this.humans.gpu.stats(); let propDraws = 0, props = 0; for (const c of this.carried) if (c.mesh.count) { propDraws++; props += c.mesh.count; }
     let placeholderActs = 0; for (const p of this.persons.values()) if (p.actPlaceholder && p.drawnFrame === this.frame) placeholderActs++;
-    return { ...s, propDraws, props: this.carried.count, placeholderActs, perf: { ...this.perf } }; }
+    return { ...s, propDraws, props, placeholderActs, things: this.things.stats(), animals: this.animals.stats(), perf: { ...this.perf } }; }
   /** evidence notes for the pieces a person wears (tests, overlay) */
   static pieceNotes(look: PersonLook) { return look.pieces.map(id => ({ ...PIECES[id], id })); }
 }
-const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _s = new THREE.Sphere(), _m = new THREE.Matrix4();
+const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _s = new THREE.Sphere(), _m = new THREE.Matrix4(), _m2 = new THREE.Matrix4(), _m3 = new THREE.Matrix4();
+const _q = new THREE.Quaternion(), _up = new THREE.Vector3(0, 1, 0), _one = new THREE.Vector3(1, 1, 1);
