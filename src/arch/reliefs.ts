@@ -8,7 +8,7 @@ import { Rng } from '../core/rng';
 import { FIGURE_KINDS, PIGMENT, DELEGATIONS, SPECIES, defBounds, figureDef } from './relief_figures';
 const SPECIES_HALF = (k: string) => (SPECIES[k] ? SPECIES[k].L / 2 : 0.3);
 import { rasterize, rtinErrors, extractLod, LodMesh, Box, FigureDef } from './relief_field';
-import { surfaceMaterial } from '../render/materials';
+import { paintedStoneMaterial } from '../render/materials';
 export { FIGURE_KINDS, PIGMENT, DELEGATIONS } from './relief_figures';
 export type { KindInfo } from './relief_figures';
 
@@ -96,7 +96,8 @@ export function lodGeometry(m: LodMesh, mirror: boolean): THREE.BufferGeometry {
   if (mirror) for (let t = 0; t < idx.length; t += 3) { const q = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = q; }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
-  g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(m.col), 3)); g.setIndex(new THREE.BufferAttribute(idx, 1));
+  g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(m.col), 3)); g.setAttribute('paint', new THREE.BufferAttribute(new Float32Array(m.paint), 1));
+  g.setIndex(new THREE.BufferAttribute(idx, 1));
   return g;
 }
 
@@ -106,7 +107,8 @@ export interface ReliefItem { kind: string; seed: number; o: THREE.Vector3; X: T
 export interface RosetteItem { o: THREE.Vector3; X: THREE.Vector3; Y: THREE.Vector3; Z: THREE.Vector3; S: number; D: number }
 const liveSets = new Set<ReliefSet>();
 let reliefMat: THREE.MeshStandardNodeMaterial | null = null;
-const paintMaterial = () => (reliefMat ??= surfaceMaterial('limestone', { vertexColors: true }));
+/** carved limestone with a matte mineral paint film (D-030): no masonry joints, paint coverage per vertex */
+const paintMaterial = () => (reliefMat ??= paintedStoneMaterial());
 const carving = () => v<any>('apadana', 'r_relief_carving');
 
 export class ReliefSet extends THREE.Group {
@@ -142,7 +144,7 @@ export class ReliefSet extends THREE.Group {
       let placeholder = -1;
       items.forEach((it, i) => {
         const gid = this.geomId(i, 3);
-        if (gid === null && placeholder < 0) { const e = new THREE.BufferGeometry(); e.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3)); e.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1], 3)); e.setAttribute('color', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3)); e.setIndex([0, 1, 2]); placeholder = bm.addGeometry(e); }
+        if (gid === null && placeholder < 0) { const e = new THREE.BufferGeometry(); e.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3)); e.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1], 3)); e.setAttribute('color', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3)); e.setAttribute('paint', new THREE.Float32BufferAttribute([0, 0, 0], 1)); e.setIndex([0, 1, 2]); placeholder = bm.addGeometry(e); }
         const id = bm.addInstance(gid ?? placeholder);
         mtx.makeBasis(it.X.clone().multiplyScalar(it.S), it.Y.clone().multiplyScalar(it.S), it.Z.clone().multiplyScalar(it.D)).setPosition(it.o.clone().addScaledVector(it.Z, -emb));
         bm.setMatrixAt(id, mtx); this.inst.push(id);
@@ -250,7 +252,8 @@ function rosetteBoss(): THREE.BufferGeometry {
   for (const [r, z, c] of rings) for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; pos.push(Math.cos(a) * r, 0.5 + Math.sin(a) * r, z); col.push(...c); }
   for (let k = 0; k < 8; k++) idx.push(0, 1 + k, 1 + ((k + 1) % 8));
   for (let ring = 0; ring < 2; ring++) for (let k = 0; k < 8; k++) { const a = 1 + ring * 8 + k, b = 1 + ring * 8 + ((k + 1) % 8), c = a + 8, d = b + 8; idx.push(a, c, d, a, d, b); }
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setIndex(idx); g.computeVertexNormals();
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setAttribute('paint', new THREE.Float32BufferAttribute(new Array(pos.length / 3).fill(1), 1)); g.setIndex(idx); g.computeVertexNormals();
   return g;
 }
 /** per-frame hook (world.update): LOD selection for every live relief set; budgetMs bounds main-thread generation when no Worker exists */

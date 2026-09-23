@@ -71,3 +71,29 @@ export function doorFrames(b: Omit<Base, 'kind'>, cx: number, cy: number, w: num
   }
   return out;
 }
+
+type AABB = [number, number, number, number, number, number]; // e0 e1 n0 n1 y0 y1
+const aabb = (b: Box): AABB => [b.c[0] - b.size[0] / 2, b.c[0] + b.size[0] / 2, b.c[1] - b.size[1] / 2, b.c[1] + b.size[1] / 2, b.y0, b.y1];
+function subtractAabb(a: AABB, c: AABB): AABB[] {
+  if (a[0] >= c[1] || a[1] <= c[0] || a[2] >= c[3] || a[3] <= c[2] || a[4] >= c[5] || a[5] <= c[4]) return [a];
+  const out: AABB[] = [], r = [...a] as AABB;
+  for (let ax = 0; ax < 3; ax++) {
+    const lo = ax * 2, hi = lo + 1;
+    if (r[lo] < c[lo]) { const q = [...r] as AABB; q[hi] = c[lo]; out.push(q); r[lo] = c[lo]; }
+    if (r[hi] > c[hi]) { const q = [...r] as AABB; q[lo] = c[hi]; out.push(q); r[hi] = c[hi]; }
+  }
+  return out;
+}
+/** slivers thinner than this (m) are dropped: floating-point residue where a cutter face coincides with a wall face */
+const SLIVER = 1e-4;
+/** A grid-aligned wall box minus the volumes of grid-aligned cutters (the Gate's colossus jambs and their plinths): the wall
+ *  pieces that remain, so walls, colossi and plinths never overlap in the parts, the colliders or the render (D-032).
+ *  Returns null when nothing intersects (or the wall is rotated). */
+export function cutWall(w: Box, cutters: Box[]): Box[] | null {
+  if ((w.rot ?? 0) !== 0) return null;
+  let pieces: AABB[] = [aabb(w)], hit = false;
+  for (const c of cutters) { const next: AABB[] = []; for (const q of pieces) { const s = subtractAabb(q, aabb(c)); if (s.length !== 1 || s[0] !== q) hit = true; next.push(...s); } pieces = next; }
+  if (!hit) return null;
+  return pieces.filter(q => q[1] - q[0] > SLIVER && q[3] - q[2] > SLIVER && q[5] - q[4] > SLIVER)
+    .map(q => ({ ...w, c: [(q[0] + q[1]) / 2, (q[2] + q[3]) / 2] as Pt, size: [q[1] - q[0], q[3] - q[2]] as [number, number], y0: q[4], y1: q[5] }));
+}

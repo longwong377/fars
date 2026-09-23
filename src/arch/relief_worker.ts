@@ -9,6 +9,6 @@ ctx.onmessage = (e: MessageEvent<ReliefJob>) => {
   const j = e.data;
   try {
     const f = rasterize(figureDef(j.kind, j.seed), j.n), m = extractLod(f, rtinErrors(f), j.err, j.grad);
-    ctx.postMessage({ id: j.id, mesh: m }, [m.pos.buffer, m.grad.buffer, m.col.buffer, m.index.buffer]);
+    ctx.postMessage({ id: j.id, mesh: m }, [m.pos.buffer, m.grad.buffer, m.col.buffer, m.paint.buffer, m.index.buffer]);
   } catch (err) { ctx.postMessage({ id: j.id, error: String(err) }); }
 };

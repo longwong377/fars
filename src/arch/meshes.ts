@@ -4,11 +4,12 @@ import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Part, Prism, Box, Column, ColumnOrder, Material } from './parts';
 import type { Physics } from '../player/physics';
-import { columnMesh, toGeometry, colossusMesh, colossusFrontProjections, setColossusFront, sculptIndex, srow, Lod } from './sculpt';
+import { columnMesh, columnMeshesByMaterial, memberMaterials, toGeometry, colossusMesh, colossusFrontProjections, setColossusFront, sculptIndex, srow, Lod } from './sculpt';
+export { cutWall } from './parts';
 
 /** Greybox materials (Phase 2): flat albedos from pigment/stone references are Phase 3; these are neutral and tagged C. */
 const ALBEDO: Record<Material, [number, number, number]> = {
-  limestone: [0.62, 0.6, 0.56], limestone_dark: [0.2, 0.2, 0.21], mudbrick: [0.66, 0.56, 0.44], plaster: [0.8, 0.76, 0.68],
+  limestone: [0.62, 0.6, 0.56], limestone_dark: [0.28, 0.28, 0.28], mudbrick: [0.66, 0.56, 0.44], plaster: [0.8, 0.76, 0.68],
   plaster_red: [0.5, 0.16, 0.12], bronze: [0.55, 0.4, 0.22],
   timber: [0.36, 0.27, 0.19], glazed: [0.2, 0.4, 0.55], earth: [0.5, 0.42, 0.32], scaffold: [0.45, 0.35, 0.24], rubble: [0.55, 0.52, 0.48],
   court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56],
@@ -21,8 +22,14 @@ export function flatMaterial(m: Material) {
   if (!x) { const [r, g, b] = ALBEDO[m]; x = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(r, g, b, THREE.SRGBColorSpace), roughness: m === 'glazed' ? 0.35 : 0.9, metalness: 0 }); matCache.set(m, x); }
   return x;
 }
+/** carved members (column orders, colossi) are drawn in the joint-free carved variant of their stone (D-029): masonry joints
+ *  belong to coursed ashlar, not to a capital, a shaft or a colossus */
+const CARVED: Partial<Record<Material, string>> = { limestone: 'limestone_carved' };
 export let material: (m: Material) => THREE.Material = m => surfaceMaterial(m);
-export function useFlatMaterials(flat: boolean) { material = flat ? flatMaterial : (m => surfaceMaterial(m)); }
+export let carvedMaterial: (m: Material) => THREE.Material = m => surfaceMaterial(CARVED[m] ?? m);
+export function useFlatMaterials(flat: boolean) {
+  material = flat ? flatMaterial : (m => surfaceMaterial(m)); carvedMaterial = flat ? flatMaterial : (m => surfaceMaterial(CARVED[m] ?? m));
+}
 
 export function prismGeometry(p: Prism): THREE.BufferGeometry {
   const shape = new THREE.Shape(p.polygon.map(([x, y]) => new THREE.Vector2(x, y)));
@@ -102,36 +109,12 @@ export class MeshLOD extends THREE.Object3D {
   private show(k: number) { this.cur = k; this.levels.forEach((m, i) => { m.visible = i === k; }); }
 }
 
-// render-only jamb cut-outs: where a sculpted jamb (colossus) or its plinth stands inside a wall box, the wall is drawn
-// around it (the wall ring has no jamb slots; its collider is left whole)
-type AABB = [number, number, number, number, number, number]; // e0 e1 n0 n1 y0 y1
-const aabb = (b: Box): AABB => [b.c[0] - b.size[0] / 2, b.c[0] + b.size[0] / 2, b.c[1] - b.size[1] / 2, b.c[1] + b.size[1] / 2, b.y0, b.y1];
-function subtractAabb(a: AABB, c: AABB): AABB[] {
-  if (a[0] >= c[1] || a[1] <= c[0] || a[2] >= c[3] || a[3] <= c[2] || a[4] >= c[5] || a[5] <= c[4]) return [a];
-  const out: AABB[] = [], r = [...a] as AABB;
-  for (let ax = 0; ax < 3; ax++) {
-    const lo = ax * 2, hi = lo + 1;
-    if (r[lo] < c[lo]) { const q = [...r] as AABB; q[hi] = c[lo]; out.push(q); r[lo] = c[lo]; }
-    if (r[hi] > c[hi]) { const q = [...r] as AABB; q[lo] = c[hi]; out.push(q); r[hi] = c[hi]; }
-  }
-  return out;
-}
-export function cutWall(w: Box, cutters: Box[]): Box[] | null {
-  if ((w.rot ?? 0) !== 0) return null;
-  let pieces: AABB[] = [aabb(w)], hit = false;
-  for (const c of cutters) { const next: AABB[] = []; for (const q of pieces) { const s = subtractAabb(q, aabb(c)); if (s.length !== 1 || s[0] !== q) hit = true; next.push(...s); } pieces = next; }
-  if (!hit) return null;
-  return pieces.filter(q => q[1] - q[0] > 1e-4 && q[3] - q[2] > 1e-4 && q[5] - q[4] > 1e-4)
-    .map(q => ({ ...w, c: [(q[0] + q[1]) / 2, (q[2] + q[3]) / 2], size: [q[1] - q[0], q[3] - q[2]], y0: q[4], y1: q[5] }));
-}
-
 export interface BuiltArch { group: THREE.Group; triangles: number; colliders: number }
 export function buildMeshes(parts: Part[], phys?: Physics): BuiltArch {
   const group = new THREE.Group(); group.name = 'architecture';
   const byKey = new Map<string, { geos: THREE.BufferGeometry[]; parts: Part[] }>();
   const cols = new Map<string, { order: ColumnOrder; built: number; parts: Column[] }>();
   const colossi = parts.filter(p => p.type === 'box' && p.sculpt) as Box[];
-  const cutters = parts.filter(p => p.type === 'box' && (p.sculpt || p.kind === 'plinth')) as Box[];
   let colliders = 0;
   for (const p of parts) {
     if (p.type === 'column') {
@@ -147,12 +130,7 @@ export function buildMeshes(parts: Part[], phys?: Physics): BuiltArch {
       phys.addTrimesh(new Float32Array(pos), idx, { building: p.building, kind: p.kind }); colliders++;
     }
     if (p.type === 'box' && p.sculpt) continue; // rendered as sculpture below; the box is the collider only
-    let rg = g;
-    if (p.type === 'box' && p.kind === 'wall') {
-      const cut = cutWall(p, cutters.filter(c => c.building === p.building));
-      if (cut) { rg = cut.length ? mergeGeometries(cut.map(boxGeometry).map(q => { for (const k of Object.keys(q.attributes)) if (k !== 'position' && k !== 'normal') q.deleteAttribute(k); return q; }))! : new THREE.BufferGeometry(); }
-    }
-    if (!rg.getAttribute('position')) continue;
+    const rg = g; // walls around sculpted jambs are already cut in the parts (terrace.ts: parts.cutWall)
     const key = `${p.building}|${p.material}|${p.tier}|${p.placeholder ? 1 : 0}`;
     if (!byKey.has(key)) byKey.set(key, { geos: [], parts: [] }); byKey.get(key)!.geos.push(rg); byKey.get(key)!.parts.push(p);
   }
@@ -166,23 +144,30 @@ export function buildMeshes(parts: Part[], phys?: Physics): BuiltArch {
   }
   const SW = srow('lod', 'switch');
   for (const [, c] of cols) {
-    const g0 = columnGeometry(c.order, c.built, 0), g1 = columnGeometry(c.order, c.built, 1);
+    // one InstancedLOD per member surface (a stone order is one; the Treasury's stone base, plastered shaft and timber
+    // capital are three, sculpture.json shaft.members)
+    const L0 = columnMeshesByMaterial(c.order, c.built, 0), L1 = columnMeshesByMaterial(c.order, c.built, 1), M = memberMaterials(c.order);
     const at = new Float32Array(c.parts.length * 4); c.parts.forEach((p, i) => at.set([p.c[0], p.y0, -p.c[1], c.order.baseH + (c.order.height - c.order.baseH) * c.built], i * 4));
-    const lod = new InstancedLOD([g0, g1], material(c.order.material), at, SW.column, SW.hysteresis);
-    const b = c.parts[0].building;
-    lod.name = `${b}:columns`;
-    lod.userData = { tier: c.parts[0].tier, src: `${c.parts[0].src};RECON`, placeholder: false, building: b,
-      note: `column order ${c.order.id} (${c.order.base} base, ${c.order.capital} capital): dimensions SITE_SPEC; carving procedural sculpture, form C (D-018; scans would replace it, NEEDS #10)${c.built < 1 ? '; under construction: unfluted drums' : ''}` };
-    lod.levels.forEach((im, k) => { im.name = `${b}:columns:lod${k}`; im.userData = lod.userData; });
-    tris += (g0.index!.count / 3) * c.parts.length;
-    group.add(lod);
+    const b = c.parts[0].building, split = L0.length > 1;
+    for (const { material: mat, mesh } of L0) {
+      const g0 = toGeometry(mesh), g1 = toGeometry(L1.find(x => x.material === mat)!.mesh);
+      const lod = new InstancedLOD([g0, g1], carvedMaterial(mat), at, SW.column, SW.hysteresis);
+      const members = (['base', 'shaft', 'capital'] as const).filter(k => M[k] === mat).join(' + ');
+      const paintMissing = split && mat === 'plaster'; // the Treasury shafts were painted 'in bright colours' (B); colours not found
+      lod.name = `${b}:columns${split ? ':' + mat : ''}`;
+      lod.userData = { tier: c.parts[0].tier, src: `${c.parts[0].src};RECON${split ? ';ISAC-PA' : ''}`, placeholder: paintMissing, building: b,
+        note: `column order ${c.order.id} (${c.order.base} base, ${c.order.capital} capital)${split ? `, ${members} in ${mat}` : ''}: dimensions SITE_SPEC; carving procedural sculpture, form C (D-018; scans would replace it, NEEDS #10)${c.built < 1 ? '; under construction: unfluted drums' : ''}${paintMissing ? '; PLACEHOLDER paint: shafts attested painted in bright colours (B), colours and pattern not found, shown as bare lime plaster (Q-020)' : ''}` };
+      lod.levels.forEach((im, k) => { im.name = `${lod.name}:lod${k}`; im.userData = lod.userData; });
+      tris += (g0.index!.count / 3) * c.parts.length;
+      group.add(lod);
+    }
   }
   if (colossi.length) {
     const fr = colossusFrontProjections(parts as Box[]); const front = fr.reduce((a, b) => a + b, 0) / fr.length;
     setColossusFront(front);
     const idx = sculptIndex(); if (idx && Math.abs(idx.params.colossusFront - front) > 0.05) console.warn(`sculpt: colossi were generated for a ${idx.params.colossusFront.toFixed(2)} m fore-part, the layout gives ${front.toFixed(2)} m (rerun npx tsx tools/build_sculpt.ts)`);
     for (const p of colossi) {
-      const meshes = ([0, 1] as Lod[]).map(l => { const m = new THREE.Mesh(toGeometry(colossusMesh(p, l)), material(p.material)); m.castShadow = m.receiveShadow = true; return m; });
+      const meshes = ([0, 1] as Lod[]).map(l => { const m = new THREE.Mesh(toGeometry(colossusMesh(p, l)), carvedMaterial(p.material)); m.castShadow = m.receiveShadow = true; return m; });
       const centre = new THREE.Vector3(p.c[0], (p.y0 + p.y1) / 2, -p.c[1]);
       const lod = new MeshLOD(meshes, centre, SW.colossus, SW.hysteresis); lod.name = `${p.building}:colossus:${p.sculpt!.model}`;
       lod.userData = { tier: p.tier, src: p.src, placeholder: false, building: p.building, note: `${p.note ?? 'colossus'}; carved form reconstructed from the type (RECOLLECTION), not measured; licensed scans would replace it (NEEDS #10)` };
