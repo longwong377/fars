@@ -20,6 +20,7 @@ const VIEWS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'field-january', day: 280, hour: 11, w: 'clear', v: [-5205, 1611, 1.6, 251, -12] },
   { n: 'village-p22', day: 0, hour: 16, w: 'clear', v: [-973, 3287, 1.6, 341, 1] },
   { n: 'naqsh-200m', day: 0, hour: 15, w: 'clear', v: [592, 5924, 1.6, 341, 7] },
+  { n: 'naqsh-200m-am', day: 0, hour: 10, w: 'clear', v: [592, 5924, 1.6, 341, 7] }, // the tombs face SSE: lit in the morning (D-144)
   { n: 'naqsh-kaba-40m', day: 0, hour: 15, w: 'clear', v: [520, 5980, 1.6, 20, 12] },
   // the town's trees (D-122): inside the walled paradise garden behind the Tol-e Ajori gate, 40 m from the planting's
   // centroid toward the gate, looking at it (grid bearing 309 = 290 true); mid-May (day 25)

@@ -303,6 +303,7 @@ async function boot() {
     }
     sky.update(clock.jdUT, camera.position, cond.cloud, cond.haze, { ms: cond.windMs, fromDeg: cond.windDirDeg, tSeconds: (clock.t % 7) * 86400 }, viewDir.set(0, 0, -1).applyEuler(camera.rotation));
     if (P.get('hemi')) sky.hemi.intensity *= +P.get('hemi')!; if (P.has('noshadow')) sky.sun.castShadow = false;
+    if (P.has('nosun')) sky.sun.intensity = 0; if (P.get('sbias')) sky.sun.shadow.bias = +P.get('sbias')!; // debug (diagnostic renders)
     if (scene.fog) (scene.fog as THREE.FogExp2).color.copy(sky.horizon); // the distance converges to the sky at the horizon (D-060)
     if (scene.fog) (scene.fog as THREE.FogExp2).density = 0.000012 + 0.00012 * cond.haze * cond.haze + 0.004 * cond.mist * Math.max(0, 1 - (camera.position.y - terrain.heightAt(camera.position.x, camera.position.z)) / 40);
     if (scene.fog) sky.clouds.fogDensity.value = (scene.fog as THREE.FogExp2).density; // clouds fade through the same air (D-064)
@@ -319,6 +320,7 @@ async function boot() {
     // inside a probe volume the eye adapts to the interior's own light (D-141); blended in stops across the volume's edge
     const target = probeVis.w > 0 ? Math.exp(probeVis.w * Math.log(interiorExposureTarget(sunE, sky.hemi.intensity * 0.8, sky.moonLight.intensity * 0.3, fireE, probeVis.eye, sky.lux, sky.skyLux)) + (1 - probeVis.w) * Math.log(outside)) : outside;
     exposure = TEST ? target : adaptExposure(exposure, target, dt); // dark adaptation is slower than light adaptation
+    if (P.get('xp')) exposure = +P.get('xp')!; // debug: a fixed exposure (diagnostic renders)
     renderer.toneMappingExposure = exposure;
     pipeline.setExposure(exposure / X_MAX); // bloom threshold in display terms once the exposure leaves the outdoor range
     world.update?.(dt, { clock, cond, sky: sky.state, skyLight: sky, camera, player, settings }); // skyLight: horizon radiance and sun light (D-060)

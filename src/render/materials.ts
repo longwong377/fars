@@ -24,6 +24,9 @@ export interface SurfaceDef {
   top?: string;
   /** scattered chips / stones: fraction of area and their albedo */
   chips?: { cover: number; size: number; albedo: [number, number, number] };
+  /** vertical weathering streaks on rock faces (run-off, varnish): albedo darkened by up to `amp` in bands `1/freq` m
+   *  wide, stretched ~12× vertically (C) */
+  streaks?: { amp: number; freq: number };
   /** herb layer that follows SEASON (ground surfaces only) */
   herbs?: number;
 }
@@ -110,6 +113,11 @@ function layer(d: SurfaceDef, base: any): Layer {
     // raised by about the chip's own radius (≈ cover × size in cell units; a pebble's proportions). It was size × 0.25:
     // 8.7 cm over a 2.5 cm chip on the earth, near-vertical bump normals, so every light chip rendered as a dark ring (session 3)
     if (height) height = height.add(chip.mul(d.chips.size * d.chips.cover * 0.6));
+  }
+  if (d.streaks) { // vertical weathering streaks: noise fast across the face, slow down it (C)
+    const f = d.streaks.freq, q = vec3(p.x.mul(f), p.y.mul(f * 0.08), p.z.mul(f));
+    const st = smoothstep(0.1, 0.75, mx_noise_float(q).mul(0.5).add(0.5).add(mx_noise_float(q.mul(3.1)).mul(0.15)));
+    alb = alb.mul(float(1).sub(st.mul(d.streaks.amp)));
   }
   if (d.herbs) { // seasonal herb layer in patches (C): green in spring, straw in summer, sparse in winter
     const patch = smoothstep(-0.1, 0.45, mx_noise_float(p.xz.mul(0.35)).add(mx_noise_float(p.xz.mul(2.2)).mul(0.35)));

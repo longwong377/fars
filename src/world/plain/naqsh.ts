@@ -38,7 +38,7 @@ function fitText(text: string, w: number, h: number) {
   return { ...best, glyphH: g };
 }
 
-SURFACES.nr_rock = { albedo: [0.5, 0.47, 0.42], roughness: 0.9, porosity: 0.3, noiseScale: 0.35, noiseAmp: 0.16, bump: { amp: 0.05, freq: 0.6 }, tier: 'C', note: 'Naqsh-e Rustam cliff: grey limestone, weathered (albedo C)' };
+SURFACES.nr_rock = { albedo: [0.56, 0.52, 0.46], roughness: 0.9, porosity: 0.3, noiseScale: 0.35, noiseAmp: 0.09, bump: { amp: 0.03, freq: 0.6 }, streaks: { amp: 0.15, freq: 0.8 }, tier: 'C', note: 'Naqsh-e Rustam cliff: buff-grey limestone with vertical weathering streaks (albedo and streaks C, D-144)' };
 SURFACES.nr_dressed = { albedo: [0.55, 0.52, 0.47], roughness: 0.75, porosity: 0.3, noiseScale: 1.1, noiseAmp: 0.07, bump: { amp: 0.002, freq: 4 }, tier: 'C', note: 'dressed limestone of the rock-cut façades (albedo C)' };
 SURFACES.kaba_white = { albedo: [0.7, 0.68, 0.62], roughness: 0.6, porosity: 0.3, noiseScale: 1.2, noiseAmp: 0.06, joints: { course: 0.95, block: 1.9, width: 0.001, dark: 0.5 }, bump: { amp: 0.0015, freq: 5 }, tier: 'B/C', note: "Ka'ba-ye Zardosht: white limestone with dovetail-clamped blocks (B, search extract); tone C" };
 
@@ -80,6 +80,18 @@ function onFace(f: Face, g: THREE.BufferGeometry, x0: number, h0: number, d0: nu
 }
 const box = (w: number, h: number, d: number) => { const g = new THREE.BoxGeometry(w, h, d).toNonIndexed(); g.deleteAttribute('uv'); g.translate(0, h / 2, d / 2); return g; }; // base at y 0, back at z 0
 
+/** dressed rock left around each cross-shaped façade (m, C): the cutters dressed the face just beyond the cross */
+const DRESSED_MARGIN = 1.2;
+/** distance over which the rough rock blends into the dressed margin (m, C; was 5) */
+const DRESSED_BLEND = 2.5;
+/** the cross-shaped hole in the cliff mesh for a façade on axis cx: the vertical arms and the median register, each with
+ *  the dressed margin (two rectangles whose union is the offset cross) */
+function facadeHoles(cx: number): Hole[] {
+  const F = NR().facade, M = DRESSED_MARGIN, h0 = F.foot_above_ground_m, hMid = h0 + F.lower_arm_h_m, hTop = hMid + F.median_register_h_m, hEnd = hTop + F.upper_arm_h_m;
+  const aw = F.arm_w_m / 2, mw = F.median_register_w_m / 2;
+  return [{ x0: cx - aw - M, x1: cx + aw + M, h0: h0 - M, h1: hEnd + M }, { x0: cx - mw - M, x1: cx + mw + M, h0: hMid - M, h1: hTop + M }];
+}
+
 // ---------------------------------------------------------------- one tomb façade
 /** a text area on a dressed panel: left edge x0, top yTop (face coordinates), size w × h, panel front at depth d */
 interface TextArea { id: 'DNa' | 'DNb'; x0: number; yTop: number; w: number; h: number; d: number }
@@ -92,10 +104,13 @@ function tombFacade(f: Face, cx: number, inscribed: boolean, id: string): { ston
   const rfig = (kind: string, seed: number, x: number, h: number, S: number, facing: 1 | -1, programme: string, tier = 'B') => items.push({ kind, seed, o: toWorld(f, cx + x, h, R0), X: new THREE.Vector3(1, 0, 0), Y: new THREE.Vector3(0, 1, 0), Z: new THREE.Vector3(0, 0, 1), S, D: 0.1, mirror: facing < 0, meta: { programme, tier, where: `${id} upper register` } });
   const h0 = F.foot_above_ground_m, hL = F.lower_arm_h_m, hM = F.median_register_h_m, hU = F.upper_arm_h_m, aw = F.arm_w_m / 2, mw = F.median_register_w_m / 2, R = F.recess_m;
   const hMid = h0 + hL, hTop = hMid + hM, hEnd = hTop + hU;
-  // the dressed panel around the cross: a rectangle (matching the hole left in the cliff mesh) minus the cross
-  const PW = 9, P0 = h0 - 2, P1 = hEnd + 2;
-  const outer = new THREE.Shape(); outer.moveTo(-PW, P0); outer.lineTo(PW, P0); outer.lineTo(PW, P1); outer.lineTo(-PW, P1); outer.lineTo(-PW, P0);
+  // the dressed margin around the cross: the cross outline offset by DRESSED_MARGIN (matching the cross-shaped hole left in
+  // the cliff mesh, facadeHoles) minus the cross. Was an 18 m rectangle, which in raking light read as a dark box that hid
+  // the cross (session 4 render, D-144)
+  const M = DRESSED_MARGIN;
   const cross: [number, number][] = [[-aw, h0], [aw, h0], [aw, hMid], [mw, hMid], [mw, hTop], [aw, hTop], [aw, hEnd], [-aw, hEnd], [-aw, hTop], [-mw, hTop], [-mw, hMid], [-aw, hMid]];
+  const off: [number, number][] = [[-aw - M, h0 - M], [aw + M, h0 - M], [aw + M, hMid - M], [mw + M, hMid - M], [mw + M, hTop + M], [aw + M, hTop + M], [aw + M, hEnd + M], [-aw - M, hEnd + M], [-aw - M, hTop + M], [-mw - M, hTop + M], [-mw - M, hMid - M], [-aw - M, hMid - M]];
+  const outer = new THREE.Shape(off.map(([x, y]) => new THREE.Vector2(x, y)));
   outer.holes.push(new THREE.Path(cross.slice().reverse().map(([x, y]) => new THREE.Vector2(x, y))));
   const front = new THREE.ShapeGeometry(outer); front.deleteAttribute('uv');
   const frontG = onFace(f, front.toNonIndexed(), cx, 0, 0); // the dressed rock around the cross: drawn with the cliff's material
@@ -170,10 +185,12 @@ const ridgeAt = (x: number) => { if (!ridge) return Infinity; const t = Math.min
 /** crest height above the ancient foot along the face */
 const crestH = (x: number, H: number) => Math.min(H + 7 * n1(x / 70) + 3 * n1(x / 17 + 2), Math.max(8, ridgeAt(x) + 3 + 2 * n1(x / 11)));
 function faceDepth(x: number, h: number, H: number, holes: Hole[]) {
-  let m = 0; for (const q of holes) { const dx = Math.max(q.x0 - x, 0, x - q.x1), dh = Math.max(q.h0 - h, 0, h - q.h1); m = Math.max(m, 1 - Math.min(1, Math.hypot(dx, dh) / 5)); }
+  let m = 0; for (const q of holes) { const dx = Math.max(q.x0 - x, 0, x - q.x1), dh = Math.max(q.h0 - h, 0, h - q.h1); m = Math.max(m, 1 - Math.min(1, Math.hypot(dx, dh) / DRESSED_BLEND)); }
   const top = crestH(x, H), u = Math.max(0, h) / top;
-  // vertical jointing (buttresses and bays, ribs) and sub-horizontal bedding ledges, then blocks: oriented, not isotropic noise
-  const rough = 2.6 * n1(x / 38 + 0.25 * n1(h / 23)) + 0.9 * n1(h / 5.5 + 0.4 * n1(x / 17)) + 0.8 * Math.abs(n1(x / 6 + 0.5 * n1(h / 11))) + 0.35 * n2(x / 2.3, h / 1.9);
+  // vertical jointing (buttresses and bays, ribs, fissures), faint sub-horizontal bedding, then blocks: oriented, not
+  // isotropic noise. The bedding term was 0.9 m: under a low sun its ledges drew dark horizontal bands across the whole face
+  // (session 3 and 4 renders), where the cliff reads as a sheer, vertically jointed face (D-144, C)
+  const rough = 2.6 * n1(x / 38 + 0.25 * n1(h / 23)) + 0.3 * n1(h / 5.5 + 0.4 * n1(x / 17)) + 0.8 * Math.abs(n1(x / 6 + 0.5 * n1(h / 11))) + 0.18 * Math.abs(n1(x / 2.1 + 0.9 * n1(h / 7) + 0.6 * n1(x / 9.3))) + 0.3 * n2(x / 2.3, h / 1.9);
   return (rough + 0.06 * Math.max(0, h) + 6 * u * u * u) * (1 - m); // + lean-back (~3.4 deg) and a rounded crest
 }
 function cliffGeometry(f: Face, holes: Hole[], xa: number, xb: number, H: number): THREE.BufferGeometry {
@@ -264,8 +281,7 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   const group = new THREE.Group(); group.name = 'naqsh-e-rustam';
   group.userData = tag(feature('nr_darius_tomb'), 'Naqsh-e Rustam in 467 BCE: cliff, tomb of Darius I (sealed), tomb attributed to Xerxes (façade cut, uninscribed, D-033), Ka\'ba-ye Zardosht, Neo-Elamite relief; geometry plain.json naqsh_e_rustam (tiers there)');
   const tombs = [{ id: 'nr_darius_tomb', x: feature('nr_darius_tomb').xy[0] as number, inscribed: true }, { id: 'nr_xerxes_tomb', x: feature('nr_xerxes_tomb').xy[0] as number, inscribed: false }];
-  const F = NR().facade, h0 = F.foot_above_ground_m - 2, h1 = F.foot_above_ground_m + F.height_m + 2;
-  const holes = tombs.map(t => ({ x0: t.x - 9, x1: t.x + 9, h0, h1 }));
+  const holes = tombs.flatMap(t => facadeHoles(t.x));
   const rock = surfaceMaterial('nr_rock'), dressed = surfaceMaterial('nr_dressed');
   rock.side = THREE.DoubleSide; // the cliff's top and end returns are seen from both sides
   const facades = tombs.map(t => ({ t, fc: tombFacade(f, t.x, t.inscribed, t.id) }));
