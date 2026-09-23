@@ -216,3 +216,25 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Fix for 3:** each panel now has an invisible rectangle over its bounding box plus 5 cm, on a layer no camera renders (`INSCRIPTION_PICK_LAYER`). The translation layer raycasts only that layer. A reader looking at the panel now gets the text wherever the view centre falls on it.
 - **Still wrong (found here, not fixed):** the Gate's open door leaves stand 0.24 m in front of the XPa panels and hide them up to 7.7 m. This is the known door-leaf layout fault, now with the sculpture agent (D-018 follow-up). The layer shows the text through the leaf because its raycast ignores occluders; that is acceptable only for an out-of-world layer.
 - The e2e passes: XPa transliteration with glosses, map (M), chronicle (J).
+## D-045 Music: tunings, physically modelled instruments and a performer-only music system (Phase 8 start, session 3)
+- **Rule (brief §11):** only what someone in the world is playing, with no background score. `MusicSystem.perform()` needs a finite world position and plays through an HRTF panner on the `music` channel. `update()` stops any performance whose performer is no longer present.
+- **Evidence rules in code (research/SOUNDSCAPE.md):**
+  - No instrument at an offering. At sacrifice a magus chants unaccompanied (Herodotus 1.132, B); `context: 'offering'` is refused.
+  - Court music plays only when the court is resident (Heracleides via Athenaeus, B for the court in general; D-003 court setting).
+  - Work songs and herders' pipes are C, and the caller keeps them sparing.
+- **Tunings (`src/audio/tuning.ts`):**
+  - Mesopotamian heptatonic: tuning by alternating fifths and fourths (CBS 10996, UET VII 74/126, B) gives the Pythagorean diatonic. The interval sizes are an inference (C).
+  - Seven modes as rotations. The Akkadian names follow the Kilmer cycle as recalled; they were not seen in an extract (C).
+  - Greek modes for the Ionian masons, on the Philolaan diatonic tetrachord (B ratios, C use).
+  - Tests: every step is a 2^a·3^b ratio, and none is equal temperament.
+- **Instruments (`src/audio/instruments.ts`, pure DSP, node-tested):**
+  - Vertical angular harp (9 strings), round-bodied lyre and long-necked lute: Karplus–Strong waveguides with a fractional-delay allpass. Measured pitch is within ±3 cents of the tuning.
+  - Double pipe: an STK-clarinet-type reed and cylindrical bore with in-loop bore loss (0.3), which stops overblowing to the 3rd/7th mode, and a fractional bore. Measured within ±2 cents from 220 to 880 Hz, plus a drone pipe.
+  - Frame drum: a modal membrane. Clappers: filtered noise.
+  - No oud, duduk, santur or orchestral instrument exists.
+- **Composition (`src/audio/music.ts`, C):** a seeded motif is stated, shifted, ornamented and reversed. Phrases cadence on the 1st or 5th degree. Plucked strings add string-pair dyads (fourths and fifths) at cadences. Drums play 4–7-beat seeded cycles. The same seed gives the same piece, and another seed gives a different one (tested).
+- **Not yet done:**
+  - No performer plays in the world. Performers need the population sim (who plays, when: herders, work songs, off-duty leisure) and the human animation (instruments at true size, played with matching animation).
+  - No title-screen piece: audio unlocks only on the Enter click, which starts the game.
+  - The magus's chant is speech-synthesis work (`src/audio/speech.ts`).
+- **Alternatives:** sampled instruments (no CC0 recordings reachable, and they would not vary); additive synthesis (not physical modelling as the brief asks).
