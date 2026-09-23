@@ -3,9 +3,22 @@
 ## Broken / placeholder / weak (read first)
 - **Photorealism is not established.** The §8.2 rubric review and the independent Phase 3 and Phase 4 reviews have not run. The §1.1 moments have not been re-rendered at high quality since the session 2 fixes.
 - **Calibration scene (§8.1):** blocked (NEEDS #13). Stone and light values are C estimates.
-- **People:**
-  - On screen they are still the placeholder procedural rigs with abstract faces.
-  - D-020 built MakeHuman CC0 bodies, but the runtime does not use them yet. A session 3 agent is integrating them.
+- **People (merged in session 3, D-090 to D-093):**
+  - What changed: MakeHuman CC0 bodies in period dress replace the placeholder rigs. There are 5 built costumes with 4 LODs each; the crowd is pooled from the simulation, one instanced draw per costume per LOD.
+  - Measured at high quality:
+    - Grand Stair foot: people add +32 draws and +0.52 M triangles.
+    - 300-person stress view: 12.33 M triangles against the 12 M budget before the mid-detail cap; about 12.1 M estimated after it, NOT re-measured.
+  - Not built: impostors (nobody is drawn beyond 600 m), the wicker shield, the elite women's veil (a headcloth mantle stands in, C), cloth simulation.
+  - Weak in close-ups:
+    - eyelashes render solid dark;
+    - the Median cap is smooth;
+    - the kandys hangs like a flat cape;
+    - the short beard reads as a mask;
+    - the bobbed hair reads cropped;
+    - seated knees balloon the skirt;
+    - eye whites are greyish;
+    - skin albedo is procedural (C).
+  - Not yet seen after the fixes: the seated-pose ground fix and the greeting nod.
 - **Speech (D-011):** a placeholder formant synthesiser, not yet rated for intelligibility. The lexicons are thin.
 - **Carving (improved in session 3 by the stone agent, D-029 to D-032; still C):**
   - The sculpted columns and colossi (D-018) and the carved reliefs (D-019) are procedural reconstructions of the type, not measured carving (licensed scans: NEEDS #10).
