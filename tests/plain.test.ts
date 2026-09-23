@@ -228,8 +228,8 @@ describe('the plain as built (headless): budgets, tiers, chronology', () => {
   it('the Naqsh-e Rustam façade stands 15 m above the ancient ground and is 22.93 m high', () => {
     const m = P.group.getObjectByName('nr_darius_tomb') as THREE.Mesh; m.geometry.computeBoundingBox(); const bb = m.geometry.boundingBox!;
     const f = PLAIN.naqsh_e_rustam.facade, x = feature('nr_darius_tomb').xy[0], ground = R.nrAncientFootAsl - T.meta.court_asl - curvatureDrop(x, -PLAIN.naqsh_e_rustam.cliff.face_y);
-    // the dressed panel extends 2 m beyond the cross at top and bottom
-    expect(bb.min.y - ground).toBeCloseTo(f.foot_above_ground_m - 2, 1); expect(bb.max.y - bb.min.y).toBeCloseTo(f.height_m + 4, 1);
+    // the cut cross: its foot 15 m above the ancient ground, 22.93 m high (the dressed rock around it is part of the cliff mesh)
+    expect(bb.min.y - ground).toBeCloseTo(f.foot_above_ground_m, 1); expect(bb.max.y - bb.min.y).toBeCloseTo(f.height_m, 1);
     const k = P.group.getObjectByName('nr-kaba') as THREE.Mesh; k.geometry.computeBoundingBox(); const kb = k.geometry.boundingBox!;
     // the lowest base step is sunk 0.6 m into the ground
     expect(kb.max.y - kb.min.y - 0.6).toBeCloseTo(PLAIN.naqsh_e_rustam.kaba.height_with_base_m, 2);

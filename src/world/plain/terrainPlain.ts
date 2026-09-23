@@ -117,11 +117,13 @@ export class PlainGround {
       const bare = float(1).sub(gCov).sub(sCov).max(0);
       const soilT = soil.mul(float(1).sub(tilled.mul(0.28).mul(furrow.mul(0.6).add(0.4))));
       const speck = mx_noise_float(positionWorld.mul(3.1)).mul(0.12).add(1);
-      let plotAlb: any = soilT.mul(bare).add(green.mul(gCov).mul(speck)).add(straw.mul(sCov).mul(speck));
+      // each plot its own shade (sowing density, soil, weeding: +-12 %, C), so neighbouring plots of one crop still read apart
+      const tint = unitN(hash2N(ph, uint(5), 43)).mul(0.24).add(0.88).mul(near).add(float(1).sub(near));
+      let plotAlb: any = soilT.mul(bare).add(green.mul(gCov).mul(speck)).add(straw.mul(sCov).mul(speck)).mul(tint);
       // bunds on plot edges (0.35 m) and a track along district edges (2.5 m wide), near only, in fields
-      const bund = float(1).sub(smoothstep(0.2, 0.45, edge)).mul(near).mul(mask);
+      const bund = float(1).sub(smoothstep(0.3, 0.6, edge)).mul(near).mul(mask); // earth bunds between plots, ~1 m wide (C)
       const track = float(1).sub(smoothstep(1.0, 1.6, dEdge)).mul(near).mul(mask);
-      plotAlb = mix(plotAlb, mix(soil.mul(1.02), green, 0.35), bund.mul(0.8));
+      plotAlb = mix(plotAlb, mix(soil.mul(1.05), lin(0.36, 0.40, 0.2), 0.45), bund.mul(0.85));
       plotAlb = mix(plotAlb, soil.mul(1.15).add(vec3(0.02, 0.018, 0.012)), track.mul(0.9));
       let alb: any = mix(albIn, plotAlb, M);
       // --- woodland canopy (oak and pistachio-almond; woodland rule, thinned near the capital): crowns on a 10 m jittered grid

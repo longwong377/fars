@@ -101,7 +101,7 @@ export function cropState(row: CropRow, doy: number): CropState {
       const stubble = window(d, 262, 330, 10) * 0.35, hb = herb(d);
       return { height: h * grow, green: cover * (1 - ripe) + (1 - grow) * hb.green * 0.35, straw: cover * ripe + stubble, tilled: window(d, 115, 135, 5) };
     }
-    case 'fallow': { const hb = herb(d); return { height: 0.12 * hb.green, green: hb.green * 0.7, straw: hb.dry * 0.45, tilled: 0 }; } // grazed weedy fallow (C)
+    case 'fallow': { const hb = herb(d); return { height: 0.12 * hb.green, green: hb.green * 0.45, straw: hb.dry * 0.4, tilled: 0 }; } // grazed weedy fallow: soil shows between the weeds (C)
     case 'orchard_floor': { const hb = herb(d); return { height: 0.15, green: Math.max(0.35, hb.green) * 0.8, straw: hb.dry * 0.2, tilled: 0 }; } // watered ground under trees (C)
     case 'vineyard': { const leaf = window(d, 110, 300, 18); return { height: 1.5 * (0.35 + 0.65 * leaf), green: 0.55 * leaf, straw: 0.25 * window(d, 300, 335, 8), tilled: window(d, 60, 90, 6) * 0.6 }; } // leaf-out Apr, vintage Sep-Oct (crops.vines, C)
     case 'steppe': { const hb = herb(d); return { height: 0.2 * hb.green + 0.1 * hb.dry, green: hb.green, straw: hb.dry, tilled: 0 }; }
@@ -133,7 +133,7 @@ export function foliage(g: TreeGroup, doy: number): Foliage {
   const d = ((doy % YEAR) + YEAR) % YEAR;
   // [leaf-out start, full leaf, colour start, leaf fall end] (doy), blossom window
   const P: Record<TreeGroup, [number, number, number, number]> = {
-    plane: [100, 125, 300, 340], willow_poplar: [78, 105, 305, 340], tamarisk: [90, 115, 295, 335], fruit: [95, 120, 290, 330],
+    plane: [82, 108, 300, 340], willow_poplar: [78, 105, 305, 340], tamarisk: [90, 115, 295, 335], fruit: [95, 120, 290, 330],
     vine: [105, 135, 285, 325], oak: [95, 125, 285, 330], almond_pistachio: [70, 100, 280, 320], mulberry: [95, 118, 295, 330] };
   const [a, b, c, e] = P[g];
   const leaf = smooth(a, b, d) * (1 - smooth(c + (e - c) * 0.5, e, d));

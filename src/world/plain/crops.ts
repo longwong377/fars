@@ -10,16 +10,15 @@ import type { Terrain } from '../../terrain/heightfield';
 import { ZoneMap, landUseAt, hash2, unit, cellU } from './fields';
 import { YEAR } from './seasonal';
 
+/** a clump of 10 tapering blades within 0.2 m (one triangle each, drawn double-sided), height 1 (scaled by the crop height) */
 function tuftGeometry(): THREE.BufferGeometry {
   const pos: number[] = [], lean: number[] = [];
-  const blades = 6;
+  const blades = 10;
   for (let b = 0; b < blades; b++) {
-    const a = (b / blades) * Math.PI * 2 + 0.3 * Math.sin(b * 7.1), r = 0.05 + 0.06 * ((b * 37) % 5) / 5, lx = Math.cos(a), lz = Math.sin(a);
-    const w = 0.012, x0 = lx * r, z0 = lz * r, px = -lz * w, pz = lx * w, tl = 0.18; // blade base at radius r, leaning outward by tl at the tip
-    // two triangles: base left, base right, tip
-    pos.push(x0 - px, 0, z0 - pz, x0 + px, 0, z0 + pz, x0 + lx * tl, 1, z0 + lz * tl);
-    pos.push(x0 + px, 0, z0 + pz, x0 - px, 0, z0 - pz, x0 + lx * tl, 1, z0 + lz * tl); // back face
-    for (let k = 0; k < 6; k++) lean.push(k % 3 === 2 ? 1 : 0);
+    const a = (b / blades) * Math.PI * 2 + 0.7 * Math.sin(b * 7.1), r = 0.03 + 0.17 * (((b * 37) % 7) / 7), lx = Math.cos(a), lz = Math.sin(a);
+    const w = 0.022, x0 = lx * r, z0 = lz * r, px = -lz * w, pz = lx * w, tl = 0.08 + 0.14 * (((b * 13) % 5) / 5), th = 0.75 + 0.25 * (((b * 29) % 4) / 4);
+    pos.push(x0 - px, 0, z0 - pz, x0 + px, 0, z0 + pz, x0 + lx * tl, th, z0 + lz * tl);
+    lean.push(0, 0, 1);
   }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('tip', new THREE.Float32BufferAttribute(lean, 1)); g.computeVertexNormals();
   return g;
@@ -44,11 +43,11 @@ export function nearCrops(zm: ZoneMap, cropTex: THREE.DataTexture, day: any, win
   const sway: any = sin(time.mul(2.1).add(a.z.mul(6.28))).mul(wind).mul(0.02).mul(tip).mul(h);
   const pg = positionGeometry;
   m.positionNode = instanceTransform(vec3(pg.x.mul(h.mul(0.6).add(0.4)), pg.y.mul(h), pg.z.mul(h.mul(0.6).add(0.4))), iscl, ipos).add(vec3(sway, 0, sway.mul(0.5)));
-  m.normalNode = instanceNormal(normalGeometry, iscl);
+  m.normalNode = instanceNormal(mix(normalGeometry, vec3(0, 1, 0), 0.75).normalize(), iscl); // leaves lit like a canopy, not like flat cards
   const green = st.y, straw = st.z;
-  const gCol = mix(vec3(0.16, 0.24, 0.07), vec3(0.11, 0.17, 0.06), smoothstep(0.2, 0.8, hCrop)), sCol = mix(vec3(0.42, 0.36, 0.2), vec3(0.47, 0.37, 0.16), smoothstep(0.1, 0.4, hCrop));
+  const gCol = mix(vec3(0.2, 0.3, 0.08), vec3(0.14, 0.23, 0.07), smoothstep(0.2, 0.8, hCrop)), sCol = mix(vec3(0.42, 0.36, 0.2), vec3(0.52, 0.41, 0.18), smoothstep(0.1, 0.4, hCrop));
   const tipCol = mix(gCol, sCol, clamp(straw.div(green.add(straw).max(0.01)), 0, 1));
-  const baseCol = mix(tipCol.mul(0.55), vec3(0.08, 0.1, 0.04), green.mul(0.3));
+  const baseCol = tipCol.mul(0.7);
   m.colorNode = mix(baseCol, tipCol, tip).mul(mx_noise_float(vec3(a.z.mul(40), 0, 0)).mul(0.15).add(1));
   m.roughnessNode = float(0.8);
   const mesh = new THREE.Mesh(g, m); mesh.name = 'plain-crops-near'; mesh.frustumCulled = false; mesh.receiveShadow = true;

@@ -47,7 +47,7 @@ function figureShape(kind: FigureKind): THREE.Shape {
   s.lineTo(-0.12, 0.78); s.lineTo(-0.15, 0.45); s.lineTo(-0.14, 0);
   return s;
 }
-const extrude = (shape: THREE.Shape, depth: number) => { const g = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 5 }); g.deleteAttribute('uv'); return g.toNonIndexed(); };
+const extrude = (shape: THREE.Shape, depth: number) => { const g = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, curveSegments: 5 }); g.deleteAttribute('uv'); return g.index ? g.toNonIndexed() : g; };
 /** place a local geometry (x along the face, y up, z out of the back wall) at face position (x0, h0) with its back at depth d0 */
 function onFace(f: Face, g: THREE.BufferGeometry, x0: number, h0: number, d0: number, sx = 1, sy = 1, sz = 1): THREE.BufferGeometry {
   const p = g.getAttribute('position') as THREE.BufferAttribute;
@@ -58,7 +58,7 @@ function onFace(f: Face, g: THREE.BufferGeometry, x0: number, h0: number, d0: nu
 const box = (w: number, h: number, d: number) => { const g = new THREE.BoxGeometry(w, h, d).toNonIndexed(); g.deleteAttribute('uv'); g.translate(0, h / 2, d / 2); return g; }; // base at y 0, back at z 0
 
 // ---------------------------------------------------------------- one tomb façade
-function tombFacade(f: Face, cx: number, inscribed: boolean): { stone: THREE.BufferGeometry[]; figures: THREE.BufferGeometry[]; panels: THREE.BufferGeometry[] } {
+function tombFacade(f: Face, cx: number, inscribed: boolean): { stone: THREE.BufferGeometry[]; figures: THREE.BufferGeometry[]; panels: THREE.BufferGeometry[]; front: THREE.BufferGeometry } {
   const F = NR().facade, stone: THREE.BufferGeometry[] = [], figures: THREE.BufferGeometry[] = [], panels: THREE.BufferGeometry[] = [];
   const h0 = F.foot_above_ground_m, hL = F.lower_arm_h_m, hM = F.median_register_h_m, hU = F.upper_arm_h_m, aw = F.arm_w_m / 2, mw = F.median_register_w_m / 2, R = F.recess_m;
   const hMid = h0 + hL, hTop = hMid + hM, hEnd = hTop + hU;
@@ -68,7 +68,7 @@ function tombFacade(f: Face, cx: number, inscribed: boolean): { stone: THREE.Buf
   const cross: [number, number][] = [[-aw, h0], [aw, h0], [aw, hMid], [mw, hMid], [mw, hTop], [aw, hTop], [aw, hEnd], [-aw, hEnd], [-aw, hTop], [-mw, hTop], [-mw, hMid], [-aw, hMid]];
   outer.holes.push(new THREE.Path(cross.slice().reverse().map(([x, y]) => new THREE.Vector2(x, y))));
   const front = new THREE.ShapeGeometry(outer); front.deleteAttribute('uv');
-  stone.push(onFace(f, front.toNonIndexed(), cx, 0, 0));
+  const frontG = onFace(f, front.toNonIndexed(), cx, 0, 0); // the dressed rock around the cross: drawn with the cliff's material
   // recess walls around the cross outline, and its back
   for (let i = 0; i < cross.length; i++) {
     const [ax, ay] = cross[i], [bx, by] = cross[(i + 1) % cross.length];
@@ -122,54 +122,68 @@ function tombFacade(f: Face, cx: number, inscribed: boolean): { stone: THREE.Buf
   figures.push(onFace(f, extrude(moon, 0.08), cx + 3.6, top + 3.25, R));
   for (const s of [-1, 1]) for (let t = 0; t < 3; t++) figures.push(onFace(f, extrude(figureShape('guard'), 0.1), cx + s * 4.75 - 0.15, u0 + 0.35 + t * 2.6, R, 1.8, 1.8, 1));
   if (inscribed) panels.push(onFace(f, box(1.6, 2.2, 0.02), cx - 4.9 + 0.1, top + 0.9, R)); // DNa panel behind the king (PLACEHOLDER: not inscribed here)
-  return { stone, figures, panels };
+  return { stone, figures, panels, front: frontG };
 }
 
 // ---------------------------------------------------------------- the cliff
-function cliffGeometry(f: Face, holes: { x0: number; x1: number; h0: number; h1: number }[], xa: number, xb: number, H: number): THREE.BufferGeometry {
-  const xs = new Set<number>(), hs = new Set<number>();
+// The rock is reconstruction (C): a face that leans back ~6 deg and rounds over at the crest, relief at three scales (buttresses
+// and bays 30-80 m, ribs and ledges 5-15 m, blocks ~2 m), and an irregular crest 54-74 m above the ancient ground around the
+// sourced 64 m. Around the tomb panels the face is planar (dressed), blending into the rough rock over 5 m.
+type Hole = { x0: number; x1: number; h0: number; h1: number };
+const n1 = (t: number) => Math.sin(t) * 0.55 + Math.sin(t * 2.13 + 1.7) * 0.3 + Math.sin(t * 4.71 + 0.4) * 0.15;
+const n2 = (x: number, y: number) => n1(x + 0.37 * y) * 0.6 + n1(y * 1.31 - 0.5 * x + 3.1) * 0.4;
+/** crest height above the ancient foot along the face */
+const crestH = (x: number, H: number) => H + 7 * n1(x / 70) + 3 * n1(x / 17 + 2);
+function faceDepth(x: number, h: number, H: number, holes: Hole[]) {
+  let m = 0; for (const q of holes) { const dx = Math.max(q.x0 - x, 0, x - q.x1), dh = Math.max(q.h0 - h, 0, h - q.h1); m = Math.max(m, 1 - Math.min(1, Math.hypot(dx, dh) / 5)); }
+  const top = crestH(x, H), u = Math.max(0, h) / top;
+  const rough = 3.2 * n2(x / 45, h / 30) + 1.3 * n2(x / 9, h / 7) + 0.8 * Math.abs(n1(x / 6 + n1(h / 11))) + 0.35 * n2(x / 2.3, h / 1.9);
+  return (rough + 0.1 * Math.max(0, h) + 6 * u * u * u) * (1 - m); // + lean-back and a rounded crest
+}
+function cliffGeometry(f: Face, holes: Hole[], xa: number, xb: number, H: number): THREE.BufferGeometry {
+  const xs = new Set<number>(), hs = new Set<number>(), hMax = H + 11;
   for (let x = xa; x <= xb + 1e-6; x += 1.5) xs.add(+x.toFixed(3));
-  for (let h = -1.5; h <= H + 1e-6; h += 1.5) hs.add(+h.toFixed(3));
+  for (let h = -1.5; h <= hMax + 1e-6; h += 1.5) hs.add(+h.toFixed(3));
   for (const q of holes) { xs.add(q.x0); xs.add(q.x1); hs.add(q.h0); hs.add(q.h1); }
   const X = [...xs].sort((a, b) => a - b).filter((v, i, a) => i === 0 || v - a[i - 1] > 0.3), Hh = [...hs].sort((a, b) => a - b).filter((v, i, a) => i === 0 || v - a[i - 1] > 0.3);
   const nx = X.length, nh = Hh.length;
-  const vn = (x: number, h: number) => { const a = Math.sin(x * 0.21 + h * 0.07) + Math.sin(x * 0.05 - h * 0.13) * 1.4 + Math.sin(x * 0.63 + h * 0.41) * 0.35 + Math.sin(h * 0.9 + x * 0.17) * 0.2; return a; };
-  const planar = (x: number, h: number) => { let m = 0; for (const q of holes) { const dx = Math.max(q.x0 - x, 0, x - q.x1), dh = Math.max(q.h0 - h, 0, h - q.h1); m = Math.max(m, 1 - Math.min(1, Math.hypot(dx, dh) / 5)); } return m; };
   const pos: number[] = [];
-  const P = (i: number, j: number) => { const x = X[i], h = Hh[j]; const d = (vn(x, h) * 0.6 + h * 0.02) * (1 - planar(x, h)); return toWorld(f, x, h, d); };
-  const grid: THREE.Vector3[] = []; for (let j = 0; j < nh; j++) for (let i = 0; i < nx; i++) grid.push(P(i, j));
+  for (let j = 0; j < nh; j++) for (let i = 0; i < nx; i++) { const x = X[i], h = Math.min(Hh[j], crestH(x, H)); const v = toWorld(f, x, h, faceDepth(x, h, H, holes)); pos.push(v.x, v.y, v.z); }
   const idx: number[] = [];
   for (let j = 0; j < nh - 1; j++) for (let i = 0; i < nx - 1; i++) {
     const xm = (X[i] + X[i + 1]) / 2, hm = (Hh[j] + Hh[j + 1]) / 2;
     if (holes.some(q => xm > q.x0 && xm < q.x1 && hm > q.h0 && hm < q.h1)) continue;
+    if (Hh[j] >= crestH(X[i], H) && Hh[j] >= crestH(X[i + 1], H)) continue; // above the crest: collapsed rows
     const a = j * nx + i, b = a + 1, c = a + nx, d = c + 1; idx.push(a, b, c, c, b, d); // faces +z (out of the rock)
   }
-  for (const v of grid) pos.push(v.x, v.y, v.z);
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
   return g;
 }
-/** the cliff top: from the face's top edge back into the mountain until it meets the (uncarved) terrain */
-function cliffTop(f: Face, terrain: Terrain, xa: number, xb: number, H: number): THREE.BufferGeometry {
+/** the cliff top: from the crest back into the mountain until it meets the (uncarved) terrain */
+function cliffTop(f: Face, terrain: Terrain, xa: number, xb: number, H: number, holes: Hole[]): THREE.BufferGeometry {
   const pos: number[] = [], idx: number[] = []; const back = [0, 4, 10, 18, 28, 40, 52];
-  const X: number[] = []; for (let x = xa; x <= xb + 1e-6; x += 3) X.push(x);
-  for (const x of X) for (const d of back) {
-    const top = toWorld(f, x, H, d), tz = top.z, ty = terrain.heightAt(x, tz) + 0.15;
-    const last = d === back[back.length - 1];
-    pos.push(x, last ? ty : Math.max(top.y - d * 0.05, ty), tz);
-  }
+  const X: number[] = []; for (let x = xa; x <= xb + 1e-6; x += 1.5) X.push(x);
+  for (const x of X) { const top = crestH(x, H), d0 = faceDepth(x, top, H, holes);
+    for (const d of back) {
+      const p = toWorld(f, x, top, d0 + d), ty = terrain.heightAt(x, p.z) + 0.15, last = d === back[back.length - 1];
+      pos.push(x, last ? ty : Math.max(p.y - d * 0.08 + 1.2 * n2(x / 13, d / 9) * Math.min(1, d / 10), ty), p.z);
+    } }
   const nb = back.length;
-  for (let i = 0; i + 1 < X.length; i++) for (let k = 0; k + 1 < nb; k++) { const a = i * nb + k, b = a + 1, c = a + nb, d = c + 1; idx.push(a, b, c, c, b, d); }
+  for (let i = 0; i + 1 < X.length; i++) for (let k = 0; k + 1 < nb; k++) { const a = i * nb + k, b = a + 1, c = a + nb, d = c + 1; idx.push(a, c, b, b, c, d); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
-  // make it face up
-  const n = g.getAttribute('normal') as THREE.BufferAttribute; if (n.getY(0) < 0) { const ix = g.getIndex()!; for (let i = 0; i < ix.count; i += 3) { const t = ix.getX(i + 1); ix.setX(i + 1, ix.getX(i + 2)); ix.setX(i + 2, t); } g.computeVertexNormals(); }
   return g;
 }
-/** vertical returns at both ends of the face, from the face back into the rock, so the carved ground behind is closed */
-function endCaps(f: Face, xa: number, xb: number, H: number): THREE.BufferGeometry {
+/** returns at both ends of the face, from the face back into the rock, so the carved ground behind is closed */
+function endCaps(f: Face, xa: number, xb: number, H: number, holes: Hole[]): THREE.BufferGeometry {
   const parts: THREE.BufferGeometry[] = [];
-  for (const [x, s] of [[xa, -1], [xb, 1]] as [number, number][]) {
-    const q = [toWorld(f, x, -1.5, 0), toWorld(f, x, H, 0), toWorld(f, x, -1.5, 40), toWorld(f, x, H, 40)];
-    const tri = s > 0 ? [q[0], q[2], q[1], q[1], q[2], q[3]] : [q[0], q[1], q[2], q[2], q[1], q[3]];
+  for (const x of [xa, xb]) {
+    const pts: THREE.Vector3[] = []; const top = crestH(x, H);
+    for (let h = -1.5; h <= top; h += 3) pts.push(toWorld(f, x, h, faceDepth(x, h, H, holes)));
+    pts.push(toWorld(f, x, top, faceDepth(x, top, H, holes)));
+    const back = [toWorld(f, x, top, 40), toWorld(f, x, -1.5, 40)];
+    const tri: THREE.Vector3[] = []; // fan from the rear bottom corner
+    for (let k = 0; k + 1 < pts.length; k++) tri.push(back[1], pts[k], pts[k + 1]);
+    tri.push(back[1], pts[pts.length - 1], back[0]);
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(tri.flatMap(v => [v.x, v.y, v.z]), 3)); g.computeVertexNormals(); parts.push(g);
   }
   return mergeGeometries(parts)!;
@@ -198,7 +212,7 @@ function kaba(f: Face, terrain: Terrain, court: number, ancAsl: number): { white
   // dark stone blind windows (B: black-on-white stone), two rows on the other three faces (placement C)
   const win = (u: number, h: number, face: number) => { const ww = 0.8, wh = 1.6, o = S / 2 + 0.01;
     if (face === 0) add(dark, X + u, base + h, Z + o, ww, wh, 0.06, false); else add(dark, X + face * o, base + h, Z + u, 0.06, wh, ww, false); };
-  for (const face of [0, -1, 1]) { win(-1.5, 3.4, face); win(1.5, 3.4, face); win(0, 7.6, face); }
+  for (const face of [0, -1, 1]) for (const u of [-1.4, 1.4]) { win(u, 5.0, face); win(u, 8.6, face); } // two tiers of two (C, Q-078)
   return { white: mergeGeometries(white.map(g => { g.computeVertexNormals(); return g; }))!, dark: mergeGeometries(dark)!, boxes };
 }
 
@@ -214,13 +228,14 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   const holes = tombs.map(t => ({ x0: t.x - 9, x1: t.x + 9, h0, h1 }));
   const rock = surfaceMaterial('nr_rock'), dressed = surfaceMaterial('nr_dressed');
   rock.side = THREE.DoubleSide; // the cliff's top and end returns are seen from both sides
-  const cliff = new THREE.Mesh(mergeGeometries([cliffGeometry(f, holes, xa, xb, H), cliffTop(f, terrain, xa, xb, H), endCaps(f, xa, xb, H)].map(g => g.index ? g.toNonIndexed() : g))!, rock);
+  const facades = tombs.map(t => ({ t, fc: tombFacade(f, t.x, t.inscribed) }));
+  const cliff = new THREE.Mesh(mergeGeometries([cliffGeometry(f, holes, xa, xb, H), cliffTop(f, terrain, xa, xb, H, holes), endCaps(f, xa, xb, H, holes), ...facades.map(q => q.fc.front)].map(g => g.index ? g.toNonIndexed() : g))!, rock);
   cliff.name = 'nr-cliff'; cliff.castShadow = cliff.receiveShadow = true;
   cliff.userData = { tier: 'C', src: cl.src, note: `cliff ${H} m high (B, SX); face line and rock surface reconstructed (C)`, placeholder: false };
   group.add(cliff);
   let tris = cliff.geometry.getAttribute('position').count / 3;
-  for (const t of tombs) {
-    const fc = tombFacade(f, t.x, t.inscribed), ft = feature(t.id);
+  for (const { t, fc } of facades) {
+    const ft = feature(t.id);
     const st = new THREE.Mesh(mergeGeometries(fc.stone.map(g => g.index ? g.toNonIndexed() : g))!, dressed); st.name = t.id; st.castShadow = st.receiveShadow = true;
     st.userData = tag(ft, `${ft.name}: façade 22.93 m, median register 14 x 7.60 m, upper arm 8.50 m (B, SX); arm width 10.9 m, recess, columns and door C${t.inscribed ? '' : '; uninscribed (D-033)'}`);
     const fig = new THREE.Mesh(mergeGeometries(fc.figures)!, dressed); fig.name = t.id + '-reliefs'; fig.castShadow = fig.receiveShadow = true;

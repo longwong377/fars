@@ -24,11 +24,11 @@ import { buildQuarries } from './quarries';
 import { doyOf, riverState } from './seasonal';
 
 export const PLAIN_QUALITY: Record<Quality, { r3: number; maxNear: number; cropR: number; cropStep: number }> = {
-  test: { r3: 160, maxNear: 700, cropR: 26, cropStep: 0.75 },
-  low: { r3: 200, maxNear: 900, cropR: 30, cropStep: 0.7 },
-  medium: { r3: 220, maxNear: 1300, cropR: 38, cropStep: 0.6 },
-  high: { r3: 250, maxNear: 1800, cropR: 45, cropStep: 0.55 },
-  ultra: { r3: 320, maxNear: 2600, cropR: 55, cropStep: 0.5 },
+  test: { r3: 160, maxNear: 700, cropR: 18, cropStep: 0.42 },
+  low: { r3: 200, maxNear: 900, cropR: 20, cropStep: 0.45 },
+  medium: { r3: 220, maxNear: 1300, cropR: 24, cropStep: 0.4 },
+  high: { r3: 250, maxNear: 1800, cropR: 30, cropStep: 0.36 },
+  ultra: { r3: 320, maxNear: 2600, cropR: 38, cropStep: 0.33 },
 };
 /** trees that cast shadows: the nearest SHADOW_N within SHADOW_R m of the camera */
 const SHADOW_N = 400, SHADOW_R = 120;
