@@ -237,7 +237,9 @@ export class Crowd {
     const sim = this.sim!, view = this.view!, cx = cam.x, cn = -cam.z; let nc = 0;
     if (view.jumps !== this.viewJumps) { this.viewJumps = view.jumps; this.resetPopinProbe(); } // a jump in time
     const cand = (d: number, a: Agent | null, vp: ViewPerson | null, id: number) => { let c = this.cands[nc]; if (!c) this.cands[nc] = c = { d, a, vp, id, rank: d }; else { c.d = d; c.a = a; c.vp = vp; c.id = id; c.rank = d; } nc++; };
-    for (const a of sim.visibleAgents([cx, cn], ATTACH_R, POOL_MAX)) cand(Math.hypot(a.pos[0] - cx, a.y + 1 - cam.y, a.pos[1] - cn), a, null, a.id);
+    // every detailed agent on the map within the impostor range (beyond ATTACH_R they are impostors: the Terrace seen
+    // from the town)
+    for (const a of sim.visibleAgents([cx, cn], IMP_R)) cand(Math.hypot(a.pos[0] - cx, a.y + 1 - cam.y, a.pos[1] - cn), a, null, a.id);
     for (const o of view.query([cx, cn], IMP_R, this.vpBuf)) { const a = o.agent >= 0 ? sim.agents[o.agent] : null; if (a && !a.offmap) continue; cand(Math.hypot(o.e - cx, o.y + 1 - cam.y, o.n - cn), a, o, a ? a.id : 1e7 + o.pid); }
     const C = this.cands; C.length = Math.max(C.length, nc); const order = this.orderBuf.length >= nc ? this.orderBuf : (this.orderBuf = new Int32Array(Math.max(1024, nc * 2)));
     // rank: distance, people out of view counted OUT_OF_VIEW m farther (the pool's bodies go to the people seen; the
@@ -298,7 +300,7 @@ export class Crowd {
       this.sacks.count = nd + ns; this.sacks.visible = nd + ns > 0; this.sacks.instanceMatrix.needsUpdate = true; this.lastStock.depot = S.depot; this.lastStock.store = S.store;
     }
     if (this.frame > 1 && this.camAt.distanceTo(cam) > 30) this.resetPopinProbe(); // the camera was moved, not walked (a teleport)
-    this.camAt.copy(cam); const tf = performance.now();
+    this.camAt.copy(cam); const tf = performance.now(); this.drawnKeys?.clear();
     if (this.autoPool) { if (this.view && this.sim) this.feedPool(cam, camera); else this.autoPoolStep(cam, camera); }
     this.impPerf.feedMs = performance.now() - tf;
     const gpu = this.humans.gpu; gpu.begin();
@@ -333,7 +335,7 @@ export class Crowd {
       else if (p.poseFrame === this.frame - 1) this.copyPrev(p); // no bone change this frame: previous = current
       const c = gpu.costumes.get(`${COSTUME_OF[p.look.dress]}@${lod}`)!;
       gpu.push(c, p.slot, p.root[0], p.root[1], p.root[2], p.root[3], p.prevRoot[0], p.prevRoot[1], p.prevRoot[2], p.prevRoot[3], lod === 0 ? 1 : d < SHADOW_DIST ? 2 : 0);
-      p.drawnFrame = this.frame; p.lod = lod;
+      p.drawnFrame = this.frame; p.lod = lod; if (this.drawnKeys) this.drawnKeys.add(p.agent ? -1 - p.agent.id : p.pid);
       if (p.prop) this.placeProp(p);
     }
     gpu.end(true);
@@ -357,7 +359,7 @@ export class Crowd {
       const act = a ? this.sim!.performance(a).act : vp!.act, anim = ACTIVITIES[act].anim, moving = a ? a.walking : vp!.moving;
       if (ACTIVITIES[act].placeholder && !moving) placeholders++; // shown standing (idle), counted as the skinned are
       const ph = a ? a.gait : ((this.impPhase.get(key) ?? (pid % 628) / 100) + (moving ? (vp!.speed || 1.2) * dt / 0.72 * Math.PI : 0)); if (!a) this.impPhase.set(key, ph);
-      imp.push(x, y, z, yaw, rowOf(L.dress, frameOf(moving && !ACTIVITIES[act].moving ? 'walk' : anim, ph)), L.scale, null, L.packed);
+      imp.push(x, y, z, yaw, rowOf(L.dress, frameOf(moving && !ACTIVITIES[act].moving ? 'walk' : anim, ph)), L.scale, null, L.packed); this.drawnKeys?.add(key);
       const dd = Math.hypot(x - this.camAt.x, z - this.camAt.z); bands[dd < 600 ? 0 : dd < 1500 ? 1 : dd < 3000 ? 2 : 3]++; if (moving) walkers++;
     };
     for (let i = 0; i < this.nImp; i++) { const e = this.impList[i]; one(e.vp ? e.vp.pid : -1, e.a, e.vp, e.x, e.y, e.z, e.yaw); }
@@ -366,6 +368,8 @@ export class Crowd {
     if (this.impLooks.size > 60_000) this.impLooks.clear(); if (this.impPhase.size > 60_000) this.impPhase.clear();
   }
   private impPhase = new Map<number, number>();
+  /** tests: when set, filled each frame with everyone drawn (population id; a detailed agent as -1 - agent id) */
+  drawnKeys: Set<number> | null = null;
   /** the camera of the last update (crowdprobe.ts counts the people visible from it) */
   lastCamera: THREE.Camera | null = null;
   /** the people drawn in the last frame (occlusion counts, crowdprobe.ts): feet x, y, z, body height (m) and kind (0-3 the
