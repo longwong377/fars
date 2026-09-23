@@ -175,10 +175,15 @@ export function nearTrees(max: number, foliage: FoliageState, wind: any, castSha
   const sway: any = sin(time.mul(1.3).add(sd.mul(0.001))).mul(wind).mul(0.012).mul(pg.y).mul(iscl.y);
   const cm = new THREE.MeshStandardNodeMaterial();
   cm.positionNode = instanceTransform(shrunk, iscl, ipos).add(vec3(sway, 0, sway.mul(0.6)));
-  cm.normalNode = instanceNormal(normalGeometry, iscl);
+  // leaf clumps (C): the radial normal is broken up by noise at the scale of leaf clusters, so a crown shades as many
+  // small masses rather than one smooth ball (the near crowns read as snowballs and grey domes, session 3 renders)
+  const clump = vec3(mx_noise_float(pg.mul(7.3).add(sd.mul(0.00001))), mx_noise_float(pg.mul(7.3).add(vec3(3.1, 1.7, 5.2))), mx_noise_float(pg.mul(7.3).add(vec3(9.4, 2.2, 0.6))));
+  cm.normalNode = instanceNormal(normalize(normalGeometry.add(clump.mul(0.55))), iscl);
   const tint = mx_noise_float(pg.mul(6).add(sd.mul(0.00001))).mul(0.12).add(1).mul(fract(sd.mul(0.000013)).mul(0.25).add(0.88));
   const bmix = bl.w.div(bl.w.add(leaf.w).max(0.001));
-  cm.colorNode = mix(leaf.xyz, bl.xyz, bmix).mul(tint);
+  // self-shadowing of the leaf mass (C): the underside and inside of a crown get far less skylight than its top
+  const selfShade = smoothstep(-0.9, 0.7, normalGeometry.y).mul(0.55).add(0.45);
+  cm.colorNode = mix(leaf.xyz, bl.xyz, bmix).mul(tint).mul(selfShade);
   cm.roughnessNode = float(0.8);
   const crown = new THREE.Mesh(crownG, cm); crown.name = castShadow ? 'plain-trees-crown' : 'plain-trees-crown-far'; crown.castShadow = castShadow; crown.receiveShadow = true; crown.frustumCulled = false;
   const wm = new THREE.MeshStandardNodeMaterial(); wm.positionNode = instanceTransform(positionGeometry, iscl, ipos); wm.normalNode = instanceNormal(normalGeometry, iscl);
