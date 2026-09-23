@@ -10,7 +10,7 @@
 import { cardState, variantLeaf, cardHalf, M0, M1, K0, K1, lod1Size, lod1Twigs, type TreeModel, type V3 } from './model';
 import { tileIndex, TILE, COLS, ROWS, TILT, mipChain, type Atlas } from './atlas';
 import { TREE_GROUPS } from '../plain/seasonal';
-import { crownOf, leafShade, crownAO, SHADE } from './shade';
+import { crownOf, leafShadeTo, crownAO, SHADE } from './shade';
 
 export const NV = 8;
 export interface GroupState { leaf: [number, number, number, number]; blossom: [number, number, number, number] }
@@ -52,6 +52,7 @@ export class ImpostorBaker {
     const leaf = variantLeaf(lc[3], m.variant); // this variant's leaf amount (model.ts)
     const states = m.cards.slice(0, Math.min(kc, m.used.cards)).map(cd => ({ cd, cs: cardState(cd, leaf, bc[3], this.lod ? lod1Twigs(s.twig_cards, leaf) : s.twig_cards) })).filter(q => q.cs.size > 0);
     const col = this.colS, nrm = this.nrmS; col.fill(0); nrm.fill(0);
+    const SH = new Float64Array(4), clumpS = s.card.clump; // shade.ts leafShadeTo's output (normal, occlusion)
     for (let v = 0; v < NV; v++) {
       const al = (v / NV) * Math.PI * 2, rx = Math.cos(al), rz = -Math.sin(al), dx = Math.sin(al), dz = Math.cos(al); // right, toward the viewer
       const ox = v * N, oy = 0; z.fill(-1e9);
@@ -74,7 +75,8 @@ export class ImpostorBaker {
         const ext = Math.abs(Sx) + Math.abs(Ux), eyt = Math.abs(Sy) + Math.abs(Uy);
         const lvl = Math.min(nL - 1, Math.max(0, Math.floor(Math.log2(TILE / Math.max(1, 2 * h * k))))), L = AL[lvl], ts = TILE >> lvl, d = L.data, lw = L.width, td = this.atlas.tilt[lvl].data;
         const tx0 = (tile % COLS) * ts, ty0 = Math.floor(tile / COLS) * ts;
-        const tint = cd.tint, Sv = cd.side, Uv = cd.up, P0 = cs.pos, size = 2 * hu;
+        const tint = cd.tint, Sv = cd.side, Uv = cd.up, P0 = cs.pos, size = 2 * hu, kb = SHADE.clumpBack * size * 0.5;
+        const ccx = P0[0] - Uv[0] * kb, ccy = P0[1] - Uv[1] * kb, ccz = P0[2] - Uv[2] * kb; // the clump's centre (shade.ts)
         for (let j = Math.max(0, Math.floor(cy - eyt)); j <= Math.min(N - 1, Math.ceil(cy + eyt)); j++)
           for (let i = Math.max(0, Math.floor(cx - ext)); i <= Math.min(N - 1, Math.ceil(cx + ext)); i++) {
             const qx = i + 0.5 - cx, qy = j + 0.5 - cy, a = (qx * Uy - qy * Ux) / det, b = (Sx * qy - Sy * qx) / det; // corner coords -1..1
@@ -85,11 +87,12 @@ export class ImpostorBaker {
             // impostor.ts leafAlbedo, inlined
             const tr = d[o] / 255, petal = d[o + 1] / 255, bk = d[o + 2] / 255, shade = 0.55 + 0.6 * tr, lm = Math.max(0, 1 - petal - bk), ps = (0.85 + 0.15 * tr) * petal;
             // the crown's and the clump's normal and occlusion at this texel (shade.ts; render.ts leaf shader)
-            const p: V3 = [P0[0] + Sv[0] * a * hs + Uv[0] * b * hu, P0[1] + Sv[1] * a * hs + Uv[1] * b * hu, P0[2] + Sv[2] * a * hs + Uv[2] * b * hu];
-            const sh = leafShade(cr, p, P0, Uv, size, this.lod, s.card.clump), Nv = sh.n, tao = tint * sh.ao;
+            const as = a * hs, bu = b * hu;
+            leafShadeTo(SH, cr, P0[0] + Sv[0] * as + Uv[0] * bu, P0[1] + Sv[1] * as + Uv[1] * bu, P0[2] + Sv[2] * as + Uv[2] * bu, ccx, ccy, ccz, Uv[0], Uv[1], Uv[2], size, this.lod, clumpS);
+            const tao = tint * SH[3];
             // the leaf's tilt turns the lighting normal (render.ts leaf shader)
             const tk = this.lod ? 0 : TILT, tx = (td[o] / 255 * 2 - 1) * tk, ty = (td[o + 1] / 255 * 2 - 1) * tk; // LOD0 only (render.ts)
-            let nx = Nv[0] + Sv[0] * tx + Uv[0] * ty, ny = Nv[1] + Sv[1] * tx + Uv[1] * ty, nz = Nv[2] + Sv[2] * tx + Uv[2] * ty; const nl = Math.hypot(nx, ny, nz) || 1; nx /= nl; ny /= nl; nz /= nl;
+            let nx = SH[0] + Sv[0] * tx + Uv[0] * ty, ny = SH[1] + Sv[1] * tx + Uv[1] * ty, nz = SH[2] + Sv[2] * tx + Uv[2] * ty; const nl = Math.hypot(nx, ny, nz) || 1; nx /= nl; ny /= nl; nz /= nl;
             put(i, j, depth, (lc[0] * shade * lm + bc[0] * ps + bark[0] * shade * bk) * tao, (lc[1] * shade * lm + bc[1] * ps + bark[1] * shade * bk) * tao, (lc[2] * shade * lm + bc[2] * ps + bark[2] * shade * bk) * tao, nx * rx + nz * rz, ny, nx * dx + nz * dz);
           }
       }

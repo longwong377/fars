@@ -49,13 +49,28 @@ export function crownAO(c: Crown, p: V3, aoIn = SHADE.aoIn) {
  *  centre is `centre`, outward axis `up` and length along it `size` (all as drawn: the card's state and level of detail);
  *  clumpScale: the species' clump weight (trees.json card.clump) */
 export function leafShade(c: Crown, p: V3, centre: V3, up: V3, size: number, lod: 0 | 1 = 0, clumpScale = 1): { n: V3; ao: number } {
-  const k = SHADE.clumpBack * size * 0.5, cc: V3 = [centre[0] - up[0] * k, centre[1] - up[1] * k, centre[2] - up[2] * k];
-  const d: V3 = [p[0] - cc[0], p[1] - cc[1], p[2] - cc[2]], dl = Math.hypot(d[0], d[1], d[2]) || 1;
-  const nc = crownNormal(c, p), w1 = SHADE.crownW, w2 = (lod ? SHADE.clumpW1 : SHADE.clumpW) * clumpScale / dl, aoC = 1 - (1 - (lod ? SHADE.aoClump1 : SHADE.aoClump)) * clumpScale;
-  const n: V3 = [nc[0] * w1 + d[0] * w2, nc[1] * w1 + d[1] * w2, nc[2] * w1 + d[2] * w2], nl = Math.hypot(n[0], n[1], n[2]) || 1;
+  const k = SHADE.clumpBack * size * 0.5, o = [0, 0, 0, 0];
+  leafShadeTo(o, c, p[0], p[1], p[2], centre[0] - up[0] * k, centre[1] - up[1] * k, centre[2] - up[2] * k, up[0], up[1], up[2], size, lod, clumpScale);
+  return { n: [o[0], o[1], o[2]], ao: o[3] };
+}
+/** leafShade without allocation, for the impostor baker's inner loop: the texel at (px, py, pz), its clump's centre
+ *  (the card centre moved clumpBack half-sizes back along -up) and the card's up axis; writes the unit normal to
+ *  out[0..2] and the occlusion to out[3] */
+export function leafShadeTo(out: { [i: number]: number }, c: Crown, px: number, py: number, pz: number, ccx: number, ccy: number, ccz: number,
+  ux: number, uy: number, uz: number, size: number, lod: 0 | 1, clumpScale: number) {
+  const dx = px - ccx, dy = py - ccy, dz = pz - ccz, dl = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;
+  // crownNormal and crownCoords (one ry for both)
+  const ry = py > c.yc ? c.ryT : c.ryB, r2 = c.rx * c.rx, gx = px / r2, gy = (py - c.yc) / (ry * ry), gz = pz / r2, gl = Math.sqrt(gx * gx + gy * gy + gz * gz);
+  const ncx = gl > 1e-9 ? gx / gl : 0, ncy = gl > 1e-9 ? gy / gl : 1, ncz = gl > 1e-9 ? gz / gl : 0;
+  const w1 = SHADE.crownW, w2 = (lod ? SHADE.clumpW1 : SHADE.clumpW) * clumpScale / dl, aoC = 1 - (1 - (lod ? SHADE.aoClump1 : SHADE.aoClump)) * clumpScale;
+  const nx = ncx * w1 + dx * w2, ny = ncy * w1 + dy * w2, nz = ncz * w1 + dz * w2, nl = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
   // along the clump's axis: 0 at the twig end, 1 at the outer end of the card
-  const along = Math.min(1, Math.max(0, (d[0] * up[0] + d[1] * up[1] + d[2] * up[2]) / Math.max(1e-3, size * 0.5 * (1 + SHADE.clumpBack))));
-  return { n: [n[0] / nl, n[1] / nl, n[2] / nl], ao: crownAO(c, p) * (aoC + (1 - aoC) * along) };
+  const along = Math.min(1, Math.max(0, (dx * ux + dy * uy + dz * uz) / Math.max(1e-3, size * 0.5 * (1 + SHADE.clumpBack))));
+  // crownAO: by depth into the crown and height in it
+  const qx = px / c.rx, qy = (py - c.yc) / ry, qz = pz / c.rx, dq = Math.sqrt(qx * qx + qy * qy + qz * qz);
+  const hy = Math.min(1, Math.max(0, (py - c.CB) / Math.max(0.1, c.H - c.CB)));
+  const ao = (SHADE.aoIn + (1 - SHADE.aoIn) * smooth(SHADE.aoQ0, SHADE.aoQ1, dq)) * (SHADE.aoLow + (1 - SHADE.aoLow) * hy);
+  out[0] = nx / nl; out[1] = ny / nl; out[2] = nz / nl; out[3] = ao * (aoC + (1 - aoC) * along);
 }
 /** transmitted light factor of a texel with unit normal n under the sun direction l (unit, toward the sun) */
 export function transmission(c: Crown, n: V3, l: V3) { const back = Math.max(0, -(n[0] * l[0] + n[1] * l[1] + n[2] * l[2])); return SHADE.trans * back * Math.exp(-c.kappa * back); }
