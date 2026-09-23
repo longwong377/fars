@@ -24,6 +24,19 @@ export const SMOKE_RANGE = 300;
 // ~1900 K blackbody (Planck, sRGB-normalised) — the colour temperature of wood/oil flames (C)
 const FIRE_RGB = new THREE.Color().setRGB(1.0, 0.52, 0.18);
 
+/** the sky and sun as the smoke sees them: SkySystem (horizon radiance, hemisphere light, sun) */
+export interface SmokeSky { horizon: THREE.Color; hemi?: THREE.HemisphereLight; sun: THREE.DirectionalLight; state: { sunDir: THREE.Vector3 } }
+/** ground albedo under the smoke for the light it reflects up into it (C) */
+const SMOKE_GROUND_ALBEDO = 0.25;
+/** radiance the skylight gives an optically thin smoke by single scattering, before the albedo (D-070): the isotropic
+ *  part of the phase function sees the mean radiance over the sphere, the sky above (hemisphere irradiance E / pi, the
+ *  radiance the calibrated dome averages to, D-060) and the ground below (albedo x E / pi), halved. It was the horizon
+ *  radiance in the view direction, the colour of whatever lies behind the smoke at a distance, so town smoke and haze
+ *  vanished into the distance they stood against (measured: terrace-w-dusk with and without the town differed in < 1,000 px) */
+export function smokeSkyRadiance(sky: SmokeSky, out: THREE.Color): THREE.Color {
+  if (!sky.hemi) return out.copy(sky.horizon);
+  return out.copy(sky.hemi.color).multiplyScalar((sky.hemi.intensity * (1 + SMOKE_GROUND_ALBEDO)) / (2 * Math.PI));
+}
 export class FireSystem {
   readonly group = new THREE.Group();
   readonly fires: FireSource[] = [];
@@ -32,12 +45,12 @@ export class FireSystem {
   private smoke!: THREE.InstancedMesh;
   private smokeP: { pos: THREE.Vector3; vel: THREE.Vector3; age: number; life: number; size: number; power?: number }[] = [];
   private smokeGlow!: THREE.InstancedBufferAttribute;
-  // light on the smoke (session 3, D-060): the sky across the view (calibrated horizon radiance), the sun through a
+  // light on the smoke (session 3, D-060, D-070): the skylight scattered by the smoke (smokeSkyRadiance), the sun through a
   // forward-peaked phase function, and the fire below it; set each frame by setSkyLight (was a constant unlit grey,
   // which glowed on a moonless night)
   private uSky = uniform(new THREE.Color(0.3, 0.3, 0.3)); private uSun = uniform(new THREE.Color(0, 0, 0)); private uSunDir = uniform(new THREE.Vector3(0, 1, 0));
-  setSkyLight(sky: { horizon: THREE.Color; sun: THREE.DirectionalLight; state: { sunDir: THREE.Vector3 } } | null | undefined) {
-    if (!sky?.horizon || !sky.sun) return; this.uSky.value.copy(sky.horizon);
+  setSkyLight(sky: SmokeSky | null | undefined) {
+    if (!sky?.horizon || !sky.sun) return; smokeSkyRadiance(sky, this.uSky.value);
     this.uSun.value.copy(sky.sun.color).multiplyScalar(sky.sun.visible ? sky.sun.intensity : 0); this.uSunDir.value.copy(sky.state.sunDir);
   }
   private smokeAlpha!: THREE.InstancedBufferAttribute;

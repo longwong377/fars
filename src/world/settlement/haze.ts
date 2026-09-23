@@ -7,6 +7,7 @@ import * as THREE from 'three/webgpu';
 import { uniform, uv, vec3, vec2, length, smoothstep, mx_noise_float, attribute, time, float, positionWorld, positionGeometry, cameraPosition, normalize, dot, pow } from 'three/tsl';
 import type { TownPlan } from './plan';
 import type { FireSystem, FireKind } from '../fire';
+import { smokeSkyRadiance } from '../fire';
 import { Rng } from '../../core/rng';
 
 interface Puff { site: string; base: THREE.Vector3; size: number; h: number; ph: number }
@@ -15,9 +16,9 @@ const SMOKE_DBG = typeof location !== 'undefined' && new URLSearchParams(locatio
 export class TownHaze {
   readonly group = new THREE.Group();
   private mesh: THREE.InstancedMesh; private alpha: THREE.InstancedBufferAttribute; private puffs: Puff[] = [];
-  // light on the smoke (session 3, D-060): single scattering of the sky seen across the view (the calibrated horizon
-  // radiance) and of the sun through a forward-peaked phase function; albedo ω (C). Before, a hand-set grey that did not
-  // follow the sky and glowed against a calibrated dusk.
+  // light on the smoke (session 3, D-060, D-070): single scattering of the skylight (the mean radiance over the sphere,
+  // fire.ts smokeSkyRadiance) and of the sun through a forward-peaked phase function; albedo ω (C). Before: a hand-set
+  // grey, then the horizon radiance across the view, which matched the distance behind the smoke and hid it.
   private uSky = uniform(new THREE.Color(0.3, 0.3, 0.3)); private uSun = uniform(new THREE.Color(0, 0, 0)); private uSunDir = uniform(new THREE.Vector3(0, 1, 0));
   private siteFires = new Map<string, number[]>(); private lastFrac = new Map<string, number>();
   private maxA = 0;
@@ -83,7 +84,7 @@ export class TownHaze {
     if (!this.siteFires.size) { this.fire.fires.forEach((f, i) => { if (!f.group) return; if (!this.siteFires.has(f.group)) this.siteFires.set(f.group, []); this.siteFires.get(f.group)!.push(i); }); }
     for (const [site, list] of this.siteFires) { let lit = 0; for (const i of list) if (this.fire.fires[i].lit) lit++; this.lastFrac.set(site, list.length ? lit / list.length : 0); }
     // light on the smoke: the sky's horizon radiance across the view and the direct sun (its irradiance and colour)
-    if (sky?.horizon) this.uSky.value.copy(sky.horizon);
+    if (sky?.horizon && sky.sun) smokeSkyRadiance(sky, this.uSky.value); // the skylight the smoke scatters (D-070)
     if (sky?.sun && sky.state) { this.uSun.value.copy(sky.sun.color).multiplyScalar(sky.sun.visible ? sky.sun.intensity : 0); this.uSunDir.value.copy(sky.state.sunDir); }
     // still evening air holds the smoke low (C): stronger after sunset, weaker with wind
     const evening = hour >= 12 && sunAlt < 5 ? 1.4 : 1.0, windK = 1 / (1 + windMs * 0.25);

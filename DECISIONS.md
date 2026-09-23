@@ -1083,3 +1083,18 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - Checked in the node raking-light preview (`tools/relief_preview.ts`); not yet seen in a browser render.
 - **Tests:** in `tests/plain.test.ts`, each tomb set has 28 bearers, one king, altar, winged figure and moon, and 6 guards; it is no longer a placeholder; the king faces the altar. The kinds carry tiers and known sources (`tests/reliefs.test.ts`).
 - **Addendum (distance):** a relief set drew its merged coarsest level at any distance, which for the NR tombs is about 80 figures seen from the Terrace 6 km away, each under 0.2 px. `ReliefSet` now takes an optional `hideBeyond`. The NR sets use 1.5 km (a 2.3 m figure is about 1 px there): beyond it the set is not drawn and its LOD work stops. Tested: hidden from the Terrace, drawn at 60 m.
+
+## D-070 — Smoke scatters the skylight, not the horizon behind it; a mountain view for the dusk-smoke moment (session 3)
+- **Measured:**
+  - terrace-w-dusk renders at high with and without the town differed in fewer than 1,000 pixels.
+  - The debug render (`?smokedbg`: haze blue, plumes red) shows 1,303 plumes and the quarter haze all drawn, in the right place, but as a 10–15 px band on the horizon line. The Terrace stands ~15 m over the plain and the quarters are 0.9–1.6 km away.
+  - The smoke's in-scattered light was the calibrated horizon radiance *in the view direction* (D-060). That is the colour of the fogged distance behind the smoke, so the smoke drew as its own background.
+- **Physics:** optically thin smoke with an isotropic part of its phase function scatters the mean radiance over the sphere: the sky above (hemisphere irradiance E/π, which the calibrated dome averages to, D-060) and the ground below (albedo × E/π), halved.
+  - `smokeSkyRadiance` (src/world/fire.ts) gives E/π × (1 + 0.25)/2 (ground albedo 0.25, C), still times ω and plus the forward-scattered sun.
+  - Used by the fire smoke puffs and the town haze and plumes.
+  - After sunset the smoke is then brighter than the dark plain under it and darker than the bright western horizon, as it should be.
+- **Views:**
+  - The slope-s-dusk camera moves 3 m E, off a garden tree's trunk that filled the frame.
+  - New settlement view `mountain-dusk`, run only when named: from Kuh-e Rahmat E of the Terrace at (380, −60), +65 m over the court, looking 250° true, pitch −8°. It frames the Terrace in front, the quarters 1–2 km beyond, and the April sunset.
+- **Not yet rendered after the fix.** The terrace-W view stays low and shallow by geometry.
+- `tests/smoke_light.test.ts` covers the formula, its independence from the horizon, and the fallback.
