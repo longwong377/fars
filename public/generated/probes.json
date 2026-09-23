@@ -1,6 +1,6 @@
 {
  "tier": "C",
- "stride": 12,
+ "stride": 16,
  "count": 50030,
  "normalBias": 0.9,
  "options": {

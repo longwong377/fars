@@ -12,7 +12,7 @@ import { buildTerrace } from '../src/arch/terrace';
 import { memberMaterials } from '../src/arch/sculpt';
 import { SPEC } from '../src/arch/spec';
 import { SURFACES } from '../src/render/materials';
-import { BAKE, BakeContext, probeVolumes, probePositions, probeSky, probeBounce, traceScene, surfaceTable, sunSet, yearSunSamples, sphereDirs, fieldOf, SKY_SLOTS, bounceSlots, assemble, albedoFn, dilate, DILATED } from '../src/render/probes/bake';
+import { BAKE, BakeContext, probeVolumes, probePositions, probeSky, probeBounce, probeReach, traceScene, surfaceTable, sunSet, yearSunSamples, sphereDirs, fieldOf, SKY_SLOTS, bounceSlots, assemble, albedoFn, dilate, DILATED } from '../src/render/probes/bake';
 import { encodeField, PROBE_STRIDE, ProbeVolume, fieldVisibility, ProbeField } from '../src/render/probes/field';
 
 const T0 = Date.now();
@@ -74,7 +74,10 @@ const b2 = await runPass(2, dir, workers);
 console.log(`pass 2 (second bounce): ${((Date.now() - t) / 1000).toFixed(1)} s`);
 rmSync(dir, { recursive: true, force: true });
 
-const data = assemble(sky, b1, b2), filled = dilate(vols, data);
+t = Date.now();
+const reachCtx = context(), reach = pos.map(p => probeReach(reachCtx, p[0], p[1], p[2])); // 4 rays a probe: in-process
+console.log(`reach (D-152): ${((Date.now() - t) / 1000).toFixed(1)} s, ${reach.filter(r => r.some(v => v < 1)).length} probes with a solid within one spacing`);
+const data = assemble(sky, b1, b2, reach), filled = dilate(vols, data);
 console.log(`dilated into ${filled} probes inside solids (weight ${DILATED})`);
 const hash = createHash('sha1').update(JSON.stringify(parts)).digest('hex').slice(0, 16);
 const field: ProbeField = { volumes: vols, data, count: pos.length, normalBias: BAKE.normalBias, tier: 'C', note: '' };

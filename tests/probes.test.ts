@@ -6,9 +6,11 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import type { Part, Box, Prism, Material } from '../src/arch/parts';
 import { buildTerrace } from '../src/arch/terrace';
+import { v as specV } from '../src/arch/spec';
 import { SURFACES } from '../src/render/materials';
 import { TraceScene, sceneFromParts } from '../src/render/probes/trace';
 import { BAKE, BakeOptions, bakeAll, sunSet, surfaceTable, albedoFn, probeVolumes, yearSunSamples } from '../src/render/probes/bake';
+import { REACH, reachFrac } from '../src/render/probes/field';
 import { ProbeField, ProbeVolume, PROBE_STRIDE, sampleField, fieldVisibility, evalSample, openField, atlasData, encodeField, decodeField, probeIndex, volumeWeight, gridExtent } from '../src/render/probes/field';
 
 const SURF = surfaceTable(SURFACES as any), ALB = albedoFn(SURF);
@@ -106,6 +108,28 @@ describe('light probes: synthetic room', () => {
     const toward = evalSample(smp.s, 0, 0, 1), away = evalSample(smp.s, 0, 0, -1); // world +z = grid south
     expect(S * toward[0] + U * toward[1]).toBeGreaterThan(S * away[0] + U * away[1]);
   });
+  it('no light leaks through a wall thinner than the probe spacing (reach, D-152)', () => {
+    // the closed room's probe grid shifted so a probe row stands 0.2 m inside the 1 m W wall (world x −9.8) and the next
+    // 0.8 m outside it (x −11.8), in sunlit open ground: without the reach test the floor at the wall's foot mixes them
+    const vol = { ...roomVolume(), origin: [-15.8, 0.25, -15.8] as [number, number, number] };
+    const F = bake(room(0), vol), F0: ProbeField = { ...F, data: F.data.slice() };
+    for (let i = 0; i < F0.count; i++) for (let k = 0; k < 4; k++) F0.data[i * PROBE_STRIDE + REACH + k] = 0; // no reach data
+    const i0 = probeIndex(vol, 2, 0, 8), i1 = probeIndex(vol, 3, 0, 8); // x −11.8 (outside), x −9.8 (inside)
+    expect(F.data[i0 * PROBE_STRIDE + REACH]).toBeCloseTo(0.4, 2); // +x: the wall's outer face 0.8 m away
+    expect(F.data[i1 * PROBE_STRIDE + REACH + 1]).toBeCloseTo(0.1, 2); // −x: the inner face 0.2 m away
+    expect(F.data[i1 * PROBE_STRIDE + REACH]).toBe(1); // +x: the next probe, in the room, is in sight
+    const foot = visAt(F, -9.9, 0.5, 0.3), leak = visAt(F0, -9.9, 0.5, 0.3);
+    expect(leak).toBeGreaterThan(0.02); // the old lookup: ~5 % of the open field at the wall's foot
+    expect(foot).toBeLessThan(1e-3); // the room is closed: dark up to its wall
+    expect(visAt(F, -12.5, 0.5, 0.3)).toBeGreaterThan(0.5); // and outside the wall the open ground stays lit
+    // the fraction rule itself: a side none of whose probes reaches the point is left out, else plain bilinear
+    expect(reachFrac(0.95, 0.4, 0.4, 0.1, 0.1)).toBe(1); expect(reachFrac(0.05, 0.1, 0, 0.4, 0.4, 0)).toBe(0);
+    expect(reachFrac(0.5, 1, 1, 1, 1)).toBe(0.5); expect(reachFrac(0.5, 0, 0, 0, 0)).toBe(0.5);
+    // beside a doorway: of the far (low) side, only the corner in line with the opening (lo0, at t = 0) reaches the point;
+    // at the jamb's side (t = 1) the far side is left out, in front of the opening (t = 0) the lookup blends as before
+    expect(reachFrac(0.9, 1, 0.3, 0.2, 0.2, 1)).toBe(1); expect(reachFrac(0.9, 1, 0.3, 0.2, 0.2, 0)).toBeCloseTo(0.9, 9);
+    expect(reachFrac(0.9, 1, 0.3, 0.2, 0.2, 0.5)).toBeGreaterThan(0.9); expect(reachFrac(0.9, 1, 0.3, 0.2, 0.2, 0.5)).toBeLessThan(1);
+  });
   it('the weight is 1 inside the roofed space and 0 beyond the grid', () => {
     const v = roomVolume();
     expect(volumeWeight(v, 0, 2, 0)).toBe(1); expect(volumeWeight(v, 30, 2, 0)).toBe(0); expect(volumeWeight(v, 0, 9.5, 0)).toBe(0);
@@ -156,6 +180,19 @@ describe('light probes: the baked Terrace field', () => {
     const axis = [3, 10, 15, 20].map(d => at(cx, cy + inner - d));
     for (let i = 1; i < axis.length; i++) expect(axis[i]).toBeLessThan(axis[i - 1]);
     expect(axis[axis.length - 1]).toBeGreaterThan(deepMax);
+  });
+  it('carries every probe reach (D-152), and the scribes room floor at the foot of its 1.7 m inner wall reads as the room', () => {
+    let out = 0; for (let i = 0; i < F.count; i++) for (let k = 0; k < 4; k++) { const r = F.data[i * PROBE_STRIDE + REACH + k]; if (!(r >= 0 && r <= 1)) out++; }
+    expect(out).toBe(0);
+    const tr = (manifest as any).treasury.scribesRoom as number[], [sx, , , , sfl] = tr; // [cx, cy, sx, sy, floor, clear]
+    const wallN = specV<any>('treasury', 'n_range').inner_wall[1] as number; // the inner wall's N face (grid y)
+    // along the wall's foot inside the room, 0.1 m off its face, vs 1.5 m into the room: no bright strip at the wall. The
+    // points keep 2.4 m or more from the S doorway (x 184.0–185.1): within one spacing of a doorway a cell whose far side
+    // has one probe in line with the opening still blends (D-152: the residual is a ≤ 0.3 m band beside the jambs)
+    for (const dx of [-5.5, -3.5, 3.5, 5.5]) {
+      const foot = visAt(F, sx + dx, sfl + 0.3, -(wallN + 0.1)), room = visAt(F, sx + dx, sfl + 0.3, -(wallN + 1.5));
+      expect(foot, `x ${sx + dx}`).toBeLessThan(Math.max(2 * room, 0.002));
+    }
   });
   it('every roofed hall is darker at its centre than open ground', () => {
     for (const [b, v] of Object.entries(meta.hallCentreVisibility as Record<string, number>)) { expect(v, b).toBeGreaterThan(0); expect(v, b).toBeLessThan(0.2); }

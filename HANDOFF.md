@@ -84,3 +84,8 @@ is no work outside this branch. No background agents are running.
 - **Vitest console output is suppressed:** write debug dumps to a file.
 - **Timing tests** (cloud-noise build, crowd posing) and heavy `beforeAll` builds fail under load (renders plus a soak share 4 cores). Re-run them alone before calling anything a regression.
 - **Removing old agent worktrees** (`.claude/worktrees/`) is refused by the permission classifier. Leave them.
+- **Session start (session 4 lesson):** compare the local branch with `origin/claude/amazing-fermi-40ds7j` before doing anything (`git fetch origin <branch> && git status -sb`). Session 4 began on a checkout 218 commits behind the remote; its first push was rejected.
+- **Shared scratchpad:** agents and the lead write logs side by side; give every log a unique name (two vitest runs once wrote the same file).
+- **The runner snapshots the tree when a job takes the lock, not when it is queued** (tools/dev/queue_e2e.sh → e2e_snapshot.sh after `flock`). Never leave code and generated data out of step (e.g. a new probe format before the re-bake): a job starting in that window renders garbage (session 4: the Tachara views came out green).
+- **Camera rig (session 4):** `moments.spec` loads the page once per world state (day, hour, weather); views that share one reuse it. Group views by state when you queue jobs.
+- **Light probes (D-152):** 16 values per probe now (slots 12–15: reach along ±x, ±z). Rebuild with `npx tsx tools/build_probes.ts` (WORKERS=3 on a shared box: ~5 min).

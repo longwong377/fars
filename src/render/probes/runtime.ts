@@ -20,8 +20,10 @@ import type { Part } from '../../arch/parts';
 import { SPEC } from '../../arch/spec';
 
 let FIELD: ProbeField | null = null;
-/** one RGBA16F texture: the three atlases stacked as bands of `height` rows (S channel, U channel, tint + validity), so the
- *  probes cost every material a single texture binding (CSM already binds four shadow maps) */
+/** atlas bands: S channel, U channel, tint + validity, reach (field.ts atlasData) */
+const BANDS = 4;
+/** one RGBA16F texture: the four atlases stacked as bands of `height` rows (S channel, U channel, tint + validity, reach),
+ *  so the probes cost every material a single texture binding (CSM already binds four shadow maps) */
 let ATLAS: { tex: THREE.DataTexture; width: number; height: number; pos: [number, number][] } | null = null;
 let META: any = null;
 /** horizontal direct sun irradiance U (sun colour × intensity × sin altitude, 0 when the sun is down): the probes' sun
@@ -50,15 +52,15 @@ export async function loadProbes(base = '/'): Promise<ProbeField | null> {
 }
 export function setProbeField(F: ProbeField | null) {
   FIELD = F; ATLAS = null; if (!F) return;
-  const A = atlasData(F), band = A.width * A.height * 4, all = new Float32Array(band * 3);
+  const A = atlasData(F), band = A.width * A.height * 4, all = new Float32Array(band * BANDS);
   A.textures.forEach((t, i) => all.set(t, i * band));
-  const d = new THREE.DataTexture(encodeField(all), A.width, A.height * 3, THREE.RGBAFormat, THREE.HalfFloatType);
+  const d = new THREE.DataTexture(encodeField(all), A.width, A.height * BANDS, THREE.RGBAFormat, THREE.HalfFloatType);
   d.minFilter = d.magFilter = THREE.LinearFilter; d.wrapS = d.wrapT = THREE.ClampToEdgeWrapping; d.generateMipmaps = false; d.flipY = false;
   d.name = 'light probes'; d.needsUpdate = true;
   ATLAS = { tex: d, width: A.width, height: A.height, pos: A.pos };
 }
 /** GPU memory of the atlases (bytes) */
-export const probeTextureBytes = () => (ATLAS ? ATLAS.width * ATLAS.height * 3 * 8 : 0);
+export const probeTextureBytes = () => (ATLAS ? ATLAS.width * ATLAS.height * BANDS * 8 : 0);
 
 /** per frame: the sky S (hemisphere colour × intensity) and the sun U the probes scale */
 export function updateProbeLights(hemi: THREE.HemisphereLight | undefined, sun: THREE.DirectionalLight | undefined) {
@@ -103,7 +105,9 @@ const ramp = (a: number, b: number, x: any) => (b - a > 1e-3 ? smoothstep(a, b, 
 export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any): { E: any; w: any } {
   if (!FIELD || !ATLAS || !FIELD.volumes.length) return { E: hemi, w: float(0) };
   const q = p.add(n.mul(FIELD.normalBias)), W = ATLAS.width, H = ATLAS.height;
-  let uA: any = float(0), uB: any = float(0), vv: any = float(0), fy: any = float(0), fade: any = float(0);
+  // per volume (masked sums: the volumes do not overlap): the texel centre of the cell's low corner in q's two layers,
+  // the fractions within the cell, and the fade
+  let uA: any = float(0), uB: any = float(0), vv: any = float(0), fx: any = float(0), fy: any = float(0), fz: any = float(0), fade: any = float(0);
   FIELD.volumes.forEach((v: ProbeVolume, i: number) => {
     const g = gridExtent(v), [u0, v0] = ATLAS!.pos[i], [nx, ny, nz] = v.dims, [rx0, rx1, rz0, rz1] = v.roof, f = v.full;
     const inside = step(g.x0, p.x).mul(step(p.x, g.x1)).mul(step(g.y0, p.y)).mul(step(p.y, g.y1)).mul(step(g.z0, p.z)).mul(step(p.z, g.z1));
@@ -114,14 +118,27 @@ export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any): { E: an
     const gy = clamp(q.y.sub(v.origin[1]).div(v.spacing[1]), 0, ny - 1);
     const gz = clamp(q.z.sub(v.origin[2]).div(v.spacing[2]), 0, nz - 1);
     const k0 = min(floor(gy), Math.max(0, ny - 2)), k1 = min(k0.add(1), ny - 1);
-    uA = uA.add(inside.mul(k0.mul(nx).add(gx).add(u0 + 0.5)));
-    uB = uB.add(inside.mul(k1.mul(nx).add(gx).add(u0 + 0.5)));
-    vv = vv.add(inside.mul(gz.add(v0 + 0.5)));
+    const ix = min(floor(gx), Math.max(0, nx - 2)), iz = min(floor(gz), Math.max(0, nz - 2));
+    uA = uA.add(inside.mul(k0.mul(nx).add(ix).add(u0 + 0.5)));
+    uB = uB.add(inside.mul(k1.mul(nx).add(ix).add(u0 + 0.5)));
+    vv = vv.add(inside.mul(iz.add(v0 + 0.5)));
+    fx = fx.add(inside.mul(gx.sub(ix)));
+    fz = fz.add(inside.mul(gz.sub(iz)));
     fy = fy.add(inside.mul(gy.sub(k0)));
     fade = fade.add(inside.mul(wx).mul(wz).mul(wy));
   });
-  const T = ATLAS.tex, at = (u: any, band: number) => texture(T, vec2(u.div(W), vv.add(band * H).div(3 * H)));
-  const s0 = mix(at(uA, 0), at(uB, 0), fy), s1 = mix(at(uA, 1), at(uB, 1), fy), s2 = mix(at(uA, 2), at(uB, 2), fy);
+  const T = ATLAS.tex, at = (u: any, v: any, band: number) => texture(T, vec2(u.div(W), v.add(band * H).div(BANDS * H)));
+  // D-152: the reach of the lower layer's four corner probes (texel centres: unfiltered); a side of the cell none of whose
+  // probes reaches q is left out (field.ts reachFrac: a wall thinner than the spacing lies between them)
+  const r00 = at(uA, vv, 3), r10 = at(uA.add(1), vv, 3), r01 = at(uA, vv.add(1), 3), r11 = at(uA.add(1), vv.add(1), 3);
+  const snap = (f: any, lo0: any, lo1: any, hi0: any, hi1: any, t: any) => {
+    const g = float(1).sub(f), lo = mix(step(f, lo0), step(f, lo1), t), hi = mix(step(g, hi0), step(g, hi1), t);
+    const loOnly = lo.mul(float(1).sub(hi)), hiOnly = hi.mul(float(1).sub(lo));
+    return f.mul(float(1).sub(loOnly).sub(hiOnly)).add(hiOnly);
+  };
+  const sx = snap(fx, r00.x, r01.x, r10.y, r11.y, fz), sz = snap(fz, r00.z, r10.z, r01.w, r11.w, fx);
+  const vS = vv.add(sz), uAS = uA.add(sx), uBS = uB.add(sx);
+  const s0 = mix(at(uAS, vS, 0), at(uBS, vS, 0), fy), s1 = mix(at(uAS, vS, 1), at(uBS, vS, 1), fy), s2 = mix(at(uAS, vS, 2), at(uBS, vS, 2), fy);
   const val = s2.w, inv = float(1).div(max(val, 1e-4));
   const eS = max(s0.x.add(dot(s0.yzw, n)).mul(inv), 0), eU = max(s1.x.add(dot(s1.yzw, n)).mul(inv), 0);
   const tr = s2.x.mul(inv), tb = s2.y.mul(inv), fb = clamp(s2.z.mul(inv), 0, 1);

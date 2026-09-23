@@ -21,7 +21,7 @@
 //  • Colour: the bounce carries the albedos' colour (a per-probe tint), weighted by a typical daytime sun/sky ratio.
 import type { Part, Manifest, Material } from '../../arch/parts';
 import { TraceScene, sceneFromParts, srgbToLinear, lum, RGB } from './trace';
-import { ProbeField, ProbeVolume, PROBE_STRIDE, sampleField, probePosition, probeIndex } from './field';
+import { ProbeField, ProbeVolume, PROBE_STRIDE, REACH, sampleField, probePosition, probeIndex } from './field';
 import { sunHorizon, azAltToWorld } from '../../sky/ephemeris';
 import { WorldClock, YEAR_DAYS } from '../../core/clock';
 
@@ -244,12 +244,27 @@ export function probeBounce(ctx: BakeContext, x: number, y: number, z: number, p
   return out;
 }
 
+/** the reach of a probe along the four horizontal grid axes (+x, −x, +z, −z): the distance to the first solid as a
+ *  fraction of the spacing, 1 when the neighbour probe is in sight, 0 inside a solid (D-152). The lookup leaves out a
+ *  cell's side whose probes cannot reach the point, so light does not leak through a wall thinner than the spacing
+ *  (the Treasury N range's 1.7 m inner wall lit the scribes' room floor along its foot from the sunlit court). */
+export function probeReach(ctx: BakeContext, x: number, y: number, z: number): number[] {
+  if (ctx.scene.inside(x, y, z, -PROBE_CLEAR)) return [0, 0, 0, 0];
+  const sp = ctx.o.spacing, out: number[] = [];
+  for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    // (zero direction components are nudged off zero: the slab test divides by them)
+    const h = ctx.scene.intersect(x, y, z, dx || 1e-9, 1e-9, dz || 1e-9, 1e-4, sp * 1.001);
+    out.push(h ? Math.min(1, h.t / sp) : 1);
+  }
+  return out;
+}
 /** the three passes over a list of probe positions, in-process (tests; the tool farms the same calls out to workers).
- *  Returns the finished field data (PROBE_STRIDE values per probe). */
-export function assemble(sky: number[][], b1: number[][], b2: number[][]): Float32Array {
+ *  Returns the finished field data (PROBE_STRIDE values per probe); `reach` (probeReach per probe) fills slots 12–15. */
+export function assemble(sky: number[][], b1: number[][], b2: number[][], reach?: number[][]): Float32Array {
   const n = sky.length, d = new Float32Array(n * PROBE_STRIDE);
   for (let i = 0; i < n; i++) {
     const A = sky[i], B = b1[i], C = b2[i], o = i * PROBE_STRIDE;
+    if (reach) for (let k = 0; k < 4; k++) d[o + REACH + k] = reach[i][k];
     if (!A[4]) continue;
     for (let j = 0; j < 4; j++) { d[o + j] = A[j] + B[j] + C[j]; d[o + 4 + j] = B[4 + j] + C[4 + j]; }
     const r = B[8] + C[8], g = B[9] + C[9], b = B[10] + C[10], L = B[11] + C[11];
@@ -313,6 +328,6 @@ export function bakeAll(scene: TraceScene, vols: ProbeVolume[], sun: SunSet, pla
   const b1 = pos.map((p, i) => probeBounce(ctx, ...p, 1, i));
   ctx.bounce1 = fieldOf(vols, b1, bounceSlots(i => sky[i][4]), o); dilate(vols, ctx.bounce1.data);
   const b2 = pos.map((p, i) => probeBounce(ctx, ...p, 2, i));
-  const data = assemble(sky, b1, b2); dilate(vols, data);
+  const data = assemble(sky, b1, b2, pos.map(p => probeReach(ctx, ...p))); dilate(vols, data);
   return { volumes: vols, data, count: pos.length, normalBias: o.normalBias, tier: 'C', note: 'baked light probes (D-110)' };
 }

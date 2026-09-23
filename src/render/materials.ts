@@ -36,6 +36,9 @@ export interface SurfaceDef {
    *  and albedo variation, faded out where one period spans fewer than ~3–7 pixels, so surfaces keep detail at arm's
    *  length (brief §8.3 "detail at 1 m") and never shimmer far away (D-147, C) */
   micro?: { amp: number; freq: number; alb?: number };
+  /** roughness variation (C): ±this fraction of the roughness in broad patches (0.3–3 m): polish and wear of floors, the
+   *  burnish and dull spots of plaster (session 4: large planes read as uniform CG surfaces) */
+  roughVar?: number;
 }
 /** neutral grey of luminous reflectance Y (linear) as the sRGB triple the surface table uses */
 function grey(Y: number): [number, number, number] { const v = linearToSrgb(Y); return [v, v, v]; }
@@ -57,9 +60,9 @@ export const SURFACES: Record<string, SurfaceDef> = {
   limestone_dark: { albedo: grey(munsellY(3)), roughness: 0.18, porosity: 0.1, noiseScale: 2, noiseAmp: 0.05, micro: { amp: 0.00003, freq: 160, alb: 0.02 }, tier: 'B/C', note: 'polished dark grey limestone (door/window frames): stone B (Majdabad dark grey, Iranica); albedo N3 = 6.4 % C (D-031); whitish finishing coat? (Q-072)' },
   // mud plaster on mud brick, coated with a greyish yellow-green clay paint: attested at Pasargadae and, per Schmidt, on
   // the Treasury walls (Stein et al. 2016, npj Herit. Sci., search extract: B for the coating); tone and extent C
-  mudbrick: { albedo: [0.58, 0.57, 0.45], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.07, bump: { amp: 0.004, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster with greyish yellow-green clay paint (Pasargadae; Treasury walls per Schmidt, via Stein et al. 2016: B); tone and extent C' },
-  plaster: { albedo: [0.78, 0.74, 0.66], roughness: 0.85, porosity: 0.7, noiseScale: 0.8, noiseAmp: 0.05, bump: { amp: 0.0015, freq: 3 }, micro: { amp: 0.00025, freq: 70, alb: 0.03 }, tier: 'C', note: 'lime/gypsum plaster' },
-  plaster_red: { albedo: [0.48, 0.14, 0.1], roughness: 0.35, porosity: 0.3, noiseScale: 0.9, noiseAmp: 0.04, bump: { amp: 0.0006, freq: 4 }, micro: { amp: 0.0001, freq: 85, alb: 0.03 }, tier: 'B', note: 'lime-plaster floor with two hematite-rich paint coats, deep red over white (Stein et al. 2016; flooring-plaster study 2022, Treasury/Edifice C/Tachara: search extracts, B); polish C' },
+  mudbrick: { albedo: [0.58, 0.57, 0.45], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, bump: { amp: 0.004, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster with greyish yellow-green clay paint (Pasargadae; Treasury walls per Schmidt, via Stein et al. 2016: B); tone and extent C' },
+  plaster: { albedo: [0.78, 0.74, 0.66], roughness: 0.85, porosity: 0.7, noiseScale: 0.8, noiseAmp: 0.08, roughVar: 0.1, bump: { amp: 0.0022, freq: 2.4 }, micro: { amp: 0.00025, freq: 70, alb: 0.03 }, tier: 'C', note: 'lime/gypsum plaster' },
+  plaster_red: { albedo: [0.48, 0.14, 0.1], roughness: 0.35, porosity: 0.3, noiseScale: 0.9, noiseAmp: 0.07, roughVar: 0.35, bump: { amp: 0.0006, freq: 4 }, micro: { amp: 0.0001, freq: 85, alb: 0.03 }, tier: 'B', note: 'lime-plaster floor with two hematite-rich paint coats, deep red over white (Stein et al. 2016; flooring-plaster study 2022, Treasury/Edifice C/Tachara: search extracts, B); polish C' },
   bronze: { albedo: [0.55, 0.38, 0.2], roughness: 0.35, porosity: 0.0, noiseScale: 3, noiseAmp: 0.08, metal: 1, tier: 'C', note: 'bronze fittings' },
   timber: { albedo: [0.32, 0.23, 0.15], roughness: 0.75, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, bump: { amp: 0.002, freq: 5 }, micro: { amp: 0.0003, freq: 60, alb: 0.06 }, tier: 'C', note: 'cedar/timber beams' },
   glazed: { albedo: [0.12, 0.33, 0.48], roughness: 0.25, porosity: 0.05, noiseScale: 3, noiseAmp: 0.06, tier: 'C', note: 'glazed brick' },
@@ -99,6 +102,7 @@ function layer(d: SurfaceDef, base: any): Layer {
   const mott = mx_noise_float(p.mul(d.noiseScale * 0.18)).mul(d.noiseAmp * 0.6).add(mx_noise_float(p.mul(d.noiseScale * 1.7)).mul(d.noiseAmp * 0.25)).add(mx_noise_float(p.mul(d.noiseScale * 9.0)).mul(d.noiseAmp * 0.12));
   let alb = base.mul(float(1).add(mott));
   let rough: any = float(d.roughness);
+  if (d.roughVar) rough = rough.mul(float(1).add(mx_noise_float(p.mul(0.9).add(3.7)).mul(0.7).add(mx_noise_float(p.mul(3.1).add(1.3)).mul(0.3)).mul(d.roughVar))).clamp(0.04, 1);
   let height: any = null;
   if (d.bump) { // two octaves of relief: broad undulation (trowel / settling) + fine grain
     height = mx_noise_float(p.mul(d.bump.freq)).mul(d.bump.amp).add(mx_noise_float(p.mul(d.bump.freq * 5.3)).mul(d.bump.amp * 0.35));

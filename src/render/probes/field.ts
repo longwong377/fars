@@ -12,9 +12,28 @@
 //   10    bounce fraction of the S channel's mean (the rest is the sky itself, untinted).
 //   11    validity: 1 = a real probe; 0.02 = inside a solid, carrying its neighbours' mean (bake.ts dilate), so it only
 //         counts where no real probe is near; 0 = deep inside a solid, left out.
+//   12–15 reach along +x, −x, +z, −z: the free distance from the probe to the first solid along that grid axis, as a
+//         fraction of the spacing (1 = the neighbour is in sight; 0 inside a solid). The lookup drops the side of a cell
+//         whose probes cannot reach the point (a wall between them: its light is on the other side), D-152.
 // Ambient irradiance at a point, normal n:  E = S·mix(1, tint, fb)·max(0, E_S(n)) + U·tint·max(0, E_U(n)).
 // In the open this reproduces the hemisphere light's sky term S·(1 + n_y)/2 exactly (L1 is exact for a hemisphere).
-export const PROBE_STRIDE = 12;
+export const PROBE_STRIDE = 16;
+/** first of the four reach slots (+x, −x, +z, −z) */
+export const REACH = 12;
+/** the interpolation fraction along one axis after the reach test (D-152): f is the point's position between the cell's
+ *  low probes (f = 0) and high probes (f = 1); lo0/lo1 are the two low corners' reach toward +, hi0/hi1 the two high
+ *  corners' reach toward − (fractions of the spacing), and t the point's fraction along the other axis (0 at the "0"
+ *  corners, 1 at the "1" corners). Each side reaches the point by the reach test of its two corners blended by t (so the
+ *  corner nearer the point counts: beside a doorway, the probe in line with the opening does not light the wall's foot
+ *  behind its jamb). A side that does not reach the point is left out (the point snaps to the other side); if both or
+ *  neither side reaches it, the plain bilinear fraction stands. Probes without reach data (0: the bake's intermediate
+ *  fields) never snap. The shader (runtime.ts) does the same with step()s. */
+export function reachFrac(f: number, lo0: number, lo1: number, hi0: number, hi1: number, t = 0.5): number {
+  const ok = (r: number, d: number) => (r >= d ? 1 : 0);
+  const lo = ok(lo0, f) * (1 - t) + ok(lo1, f) * t, hi = ok(hi0, 1 - f) * (1 - t) + ok(hi1, 1 - f) * t;
+  const loOnly = lo * (1 - hi), hiOnly = hi * (1 - lo);
+  return f * (1 - loOnly - hiOnly) + hiOnly;
+}
 /** the interpolated validity below which the field gives way to the plain skylight: only where every neighbour is inside a
  *  solid and was not reached by the dilation (bake.ts; dilated probes weigh 0.02) */
 export const VALID_LO = 0.002, VALID_HI = 0.01;
@@ -71,7 +90,12 @@ export function sampleField(F: ProbeField, x: number, y: number, z: number, nx =
   const gy = Math.min(n1 - 1, Math.max(0, (qy - vol.origin[1]) / vol.spacing[1]));
   const gz = Math.min(n2 - 1, Math.max(0, (qz - vol.origin[2]) / vol.spacing[2]));
   const ix = Math.min(n0 - 2, Math.floor(gx)), iy = Math.min(Math.max(0, n1 - 2), Math.floor(gy)), iz = Math.min(n2 - 2, Math.floor(gz));
-  const fx = gx - ix, fy = n1 > 1 ? gy - iy : 0, fz = gz - iz;
+  const fy = n1 > 1 ? gy - iy : 0;
+  // reach test on the lower layer's four corners (both layers use its fractions, as the shader does)
+  const R = (dx: number, dz: number, k: number) => data[probeIndex(vol, ix + dx, iy, iz + dz) * PROBE_STRIDE + REACH + k];
+  const tx = gx - ix, tz = gz - iz;
+  const fx = reachFrac(tx, R(0, 0, 0), R(0, 1, 0), R(1, 0, 1), R(1, 1, 1), tz);
+  const fz = reachFrac(tz, R(0, 0, 2), R(1, 0, 2), R(0, 1, 3), R(1, 1, 3), tx);
   out.s.fill(0); let wsum = 0;
   for (let c = 0; c < 8; c++) {
     const dx = c & 1, dy = (c >> 1) & 1, dz = (c >> 2) & 1;
@@ -126,11 +150,12 @@ export function atlasLayout(vols: ProbeVolume[], maxW = 1024) {
   }
   return { pos, width: W, height: y + rowH };
 }
-/** three RGBA atlases of the field, premultiplied by validity (so hardware bilinear filtering gives the validity-weighted
- *  mean): T0 = S channel (a, bx, by, bz), T1 = U channel, T2 = (tint r, tint b, fb, 1) · v with v in alpha */
+/** four RGBA atlases of the field, the first three premultiplied by validity (so hardware bilinear filtering gives the
+ *  validity-weighted mean): T0 = S channel (a, bx, by, bz), T1 = U channel, T2 = (tint r, tint b, fb, 1) · v with v in
+ *  alpha; T3 = the reach (+x, −x, +z, −z), read at texel centres (not filtered) */
 export function atlasData(F: ProbeField, maxW = 1024) {
   const L = atlasLayout(F.volumes, maxW), W = L.width, H = L.height;
-  const T = [new Float32Array(W * H * 4), new Float32Array(W * H * 4), new Float32Array(W * H * 4)];
+  const T = [new Float32Array(W * H * 4), new Float32Array(W * H * 4), new Float32Array(W * H * 4), new Float32Array(W * H * 4)];
   F.volumes.forEach((v, vi) => {
     const [u0, v0] = L.pos[vi], [nx, ny, nz] = v.dims;
     for (let iy = 0; iy < ny; iy++) for (let iz = 0; iz < nz; iz++) for (let ix = 0; ix < nx; ix++) {
@@ -138,6 +163,7 @@ export function atlasData(F: ProbeField, maxW = 1024) {
       const t = ((v0 + iz) * W + (u0 + iy * nx + ix)) * 4;
       for (let c = 0; c < 4; c++) { T[0][t + c] = d[o + c] * val; T[1][t + c] = d[o + 4 + c] * val; }
       T[2][t] = d[o + 8] * val; T[2][t + 1] = d[o + 9] * val; T[2][t + 2] = d[o + 10] * val; T[2][t + 3] = val;
+      for (let c = 0; c < 4; c++) T[3][t + c] = d[o + REACH + c];
     }
   });
   return { width: W, height: H, pos: L.pos, textures: T };

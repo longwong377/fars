@@ -150,7 +150,11 @@ async function boot() {
    *  just above it (a cast from high up would land on a roof, lintel or colossus top: every part is a collider) */
   const groundAt = (east: number, north: number) => {
     const x = east, z = -north; phys.updateTerrain(terrain, { x, y: 0, z }); phys.step(1e-4);
-    const nh = (world as any).people?.nav?.heightAt(east, north);
+    const nav = (world as any).people?.nav;
+    let nh = nav?.heightAt(east, north);
+    // off the walkable grid (a doorway narrower than the grid's clearance, e.g. the Tachara's W-room passages): the floor
+    // of the nearest walkable cell within 2.5 m, so the cast starts under the roof instead of 400 m up (session 4)
+    if (!Number.isFinite(nh) && nav) { const s = nav.snap(east, north, 2.5); if (s) nh = nav.heightAt(s[0], s[1]); }
     return (Number.isFinite(nh) ? phys.castRayDown(x, z, nh + 1.2) : null) ?? phys.castRayDown(x, z, 400) ?? terrain.heightAt(x, z);
   };
   const api = {
