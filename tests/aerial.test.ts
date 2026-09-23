@@ -10,6 +10,8 @@ import { decodeHorizonMap } from '../src/terrain/horizonMap';
 import { airToBase } from '../src/sky/cloudCover';
 import { Ring, Terrain, TerrainMeta } from '../src/terrain/heightfield';
 import { sunHorizon } from '../src/sky/ephemeris';
+import { Atmosphere, aerosolTauFor } from '../src/sky/atmosphere';
+import { extinctionK } from '../src/sky/illuminance';
 const tmeta: TerrainMeta = JSON.parse(readFileSync('public/generated/terrain.json', 'utf8'));
 const ring = (k: 'near' | 'mid' | 'far') => new Ring(tmeta.rings[k], new Uint16Array(readFileSync(`public/${tmeta.rings[k].file}`).buffer.slice(0)), tmeta.court_asl);
 const T = new Terrain(tmeta, ring('near'), ring('mid'), ring('far'));
@@ -110,5 +112,26 @@ describe('terrain horizon in shading (D-156)', () => {
     const node = new (THREE as any).DirectionalLightNode(sky.sun);
     expect(node.colorNode).toBe(cn);
     expect((sky.scene as any).fogNode?.isNode).toBe(true);
+  });
+});
+
+describe('the physical sky by day follows the haze without stalling a frame (D-156)', () => {
+  it('a deferred sky model equals an immediate one, cell for cell', () => {
+    const a = new Atmosphere(0.12), b = new Atmosphere(0.12, true); let n = 0;
+    while (!b.buildStep(37)) n++;
+    expect(n).toBeGreaterThan(10);
+    expect(Array.from((b as any).trans)).toEqual(Array.from((a as any).trans)); expect(Array.from((b as any).ms)).toEqual(Array.from((a as any).ms));
+  });
+  it('by day a haze change builds the new model over frames; a jump in time builds it at once', () => {
+    const sky = new SkySystem(new THREE.Scene(), 256, 'test'), cam = new THREE.Vector3(), w = { ms: 2, fromDeg: 270, tSeconds: 0 }, v = new THREE.Vector3(1, 0, 0);
+    const jd = new WorldClock(25, 10).jdUT, dt = 1 / 86400 / 60, tauOf = (h: number) => Math.round(aerosolTauFor(extinctionK(h)) / 0.01) * 0.01;
+    sky.update(jd, cam, 0.05, 0.25, w, v); const t0 = (sky as any).atmo.aerosolTau;
+    expect(tauOf(0.55) - t0).toBeGreaterThanOrEqual(0.03); expect(tauOf(0.55) - t0).toBeLessThan(0.1);
+    let f = 1; sky.update(jd + dt, cam, 0.05, 0.55, w, v);
+    expect((sky as any).atmo.aerosolTau).toBe(t0); // the old model serves while the new one is built
+    while ((sky as any).atmo.aerosolTau === t0 && f < 3000) sky.update(jd + dt * ++f, cam, 0.05, 0.55, w, v);
+    expect(f).toBeGreaterThan(2); expect((sky as any).atmo.aerosolTau).toBeCloseTo(tauOf(0.55), 9);
+    sky.update(new WorldClock(26, 10).jdUT, cam, 0.05, 0.9, w, v); // setTime: at once
+    expect((sky as any).atmo.aerosolTau).toBeCloseTo(tauOf(0.9), 9);
   });
 });

@@ -106,14 +106,30 @@ export class Atmosphere {
   // scratch
   private ext = new Float64Array(NL); private sR = new Float64Array(NL); private sM = new Float64Array(NL);
   private ts = new Float64Array(NL); private mss = new Float64Array(NL); private thr = new Float64Array(NL); private acc = new Float64Array(NL);
-  constructor(readonly aerosolTau: number) {
+  /** `deferred`: allocate only; the tables are then built by buildStep() a few cells at a time (a haze change by day must
+   *  not stall a frame for the ~0.3 s the two tables take, D-156). Not usable until `complete`. */
+  constructor(readonly aerosolTau: number, deferred = false) {
     const b0 = aerosolTau / (H_M * Math.exp(-OBSERVER_ALT / H_M));
     this.mieExt = LAM.map(l => b0 * Math.pow(l / 550, -ANGSTROM));
     this.mieSca = this.mieExt.map(v => v * MIE_ALBEDO);
     this.trans = new Float32Array(Atmosphere.TW * Atmosphere.TH * NL);
-    this.buildTransmittance();
     this.ms = new Float32Array(Atmosphere.MW * Atmosphere.MH * NL);
-    this.buildMultipleScattering();
+    if (!deferred) this.buildStep(Infinity);
+  }
+  /** table cells built so far: the transmittance table's, then the multiple-scattering table's (which reads it) */
+  private built = 0;
+  private static readonly CELLS = Atmosphere.TW * Atmosphere.TH + Atmosphere.MW * Atmosphere.MH;
+  get complete(): boolean { return this.built >= Atmosphere.CELLS; }
+  /** build up to `maxCells` more cells, stopping early once `maxMs` have passed; true when both tables are complete. The
+   *  cells are the same arithmetic as a full build, in the same order, so a deferred model equals an immediate one. */
+  buildStep(maxCells: number, maxMs = Infinity): boolean {
+    const { TW, MW } = Atmosphere, nT = TW * Atmosphere.TH, t0 = maxMs < Infinity ? performance.now() : 0;
+    for (let n = 0; n < maxCells && this.built < Atmosphere.CELLS; n++) {
+      const k = this.built++;
+      if (k < nT) this.transmittanceCell(k % TW, Math.floor(k / TW)); else this.multipleScatteringCell((k - nT) % MW, Math.floor((k - nT) / MW));
+      if (maxMs < Infinity && (n & 7) === 7 && performance.now() - t0 > maxMs) break;
+    }
+    return this.complete;
   }
 
   /** extinction, Rayleigh and Mie scattering at radius r into the scratch arrays */
@@ -125,9 +141,10 @@ export class Atmosphere {
 
   // ---- transmittance (Bruneton 2017, functions.glsl: GetTransmittanceTextureUvFromRMu and its inverse) -------------------
   private static readonly HH = Math.sqrt(R_TOP * R_TOP - R_GROUND * R_GROUND);
-  private buildTransmittance() {
-    const { TW, TH } = Atmosphere, H = Atmosphere.HH, od = new Float64Array(NL);
-    for (let j = 0; j < TH; j++) for (let i = 0; i < TW; i++) {
+  private od = new Float64Array(NL);
+  private transmittanceCell(i: number, j: number) {
+    const { TW, TH } = Atmosphere, H = Atmosphere.HH, od = this.od;
+    {
       const xmu = i / (TW - 1), xr = j / (TH - 1);
       const rho = H * xr, r = Math.sqrt(rho * rho + R_GROUND * R_GROUND);
       const dmin = R_TOP - r, dmax = rho + H, d = dmin + xmu * (dmax - dmin);
@@ -165,10 +182,11 @@ export class Atmosphere {
   }
 
   // ---- multiple scattering (Hillaire 2020 §5.5) ------------------------------------------------------------------------
-  private buildMultipleScattering() {
-    const { MW, MH } = Atmosphere, SQ = 6, NS = 20, L2 = new Float64Array(NL), fms = new Float64Array(NL);
+  private L2 = new Float64Array(NL); private fms = new Float64Array(NL);
+  private multipleScatteringCell(i: number, j: number) {
+    const { MW, MH } = Atmosphere, SQ = 6, NS = 20, L2 = this.L2, fms = this.fms;
     const { ts, thr } = this;
-    for (let j = 0; j < MH; j++) for (let i = 0; i < MW; i++) {
+    {
       const muS = ((i + 0.5) / MW) * 2 - 1, r = R_GROUND + ((j + 0.5) / MH) * (R_TOP - R_GROUND - 1);
       const sx = Math.sqrt(Math.max(0, 1 - muS * muS)), sy = muS;
       L2.fill(0); fms.fill(0);

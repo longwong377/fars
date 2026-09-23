@@ -51,6 +51,8 @@ export class SkySystem {
   /** the twilight sky-view table as a texture (RGBA half float, radiance / its irradiance luminance) */
   private lutTex: THREE.DataTexture;
   private atmos = new Map<number, Atmosphere>(); private atmo: Atmosphere | null = null;
+  /** a model being built a few ms per frame (a haze change by day, D-156) */
+  private atmoJob: Atmosphere | null = null; private atmoJd = NaN;
   private view: SkyView | null = null; private viewAlt = NaN; private viewTau = NaN;
   private viewJob: { job: SkyViewJob; tau: number } | null = null;
   /** install a finished sky-view table: keep it for the CPU mirror, upload it normalised by its irradiance (half float) */
@@ -298,14 +300,21 @@ export class SkySystem {
     this.gain = skyGain(sunI * sinA * vS + hemiI * 0.8 + moonI * 0.3 * vM, this.lux, skyL); // the exposure estimate's weights (main.ts)
     const G = this.gain; this.fireScale = fireLightScale(G);
     // ---- the physical atmosphere (D-116): sun colour, cloud light at the cloud's height, twilight dome ----------------------
-    // aerosol depth in steps of 0.01, each model built once (~0.3 s) and kept; with the sun above 15° only the sun's colour
-    // uses it, so a haze change waits until the sun is low (no rebuild hitches through a dusty day)
-    const tau = Math.round(aerosolTauFor(k) / 0.01) * 0.01;
-    // (by day the sky itself is the table since D-156: a haze change of 0.03 or more also rebuilds by day, a 0.3 s step)
-    if (!this.atmo || (Math.abs(this.atmo.aerosolTau - tau) > 1e-6 && (alt < 15 || this.atmos.has(tau) || Math.abs(this.atmo.aerosolTau - tau) >= 0.03))) {
-      let a = this.atmos.get(tau); if (!a) { a = new Atmosphere(tau); this.atmos.set(tau, a); if (this.atmos.size > 12) this.atmos.delete(this.atmos.keys().next().value!); }
-      this.atmo = a;
+    // aerosol depth in steps of 0.01, each model built once (~0.3 s) and kept (12); with the sun above 15° a small haze
+    // change waits until the sun is low. By day the sky itself is the table (D-156): a change of 0.03 or more builds the
+    // new model a few ms per frame and switches when it is complete (after a jump in time, or below 15°, at once)
+    const tau = Math.round(aerosolTauFor(k) / 0.01) * 0.01, vAlt = Math.max(-12, Math.min(TW_HI, alt));
+    if (!this.atmo || Math.abs(this.atmo.aerosolTau - tau) > 1e-6) {
+      const keep = (a: Atmosphere) => { this.atmos.set(a.aerosolTau, a); if (this.atmos.size > 12) this.atmos.delete(this.atmos.keys().next().value!); return a; };
+      // a jump: in time (setTime, the test rigs), in the sun's altitude, or a weather switch (0.1 of aerosol depth)
+      const cached = this.atmos.get(tau), jump = !this.view || Math.abs(vAlt - this.viewAlt) > 1 || !(Math.abs(jdUT - this.atmoJd) * 1440 < 2) || Math.abs((this.atmo?.aerosolTau ?? tau) - tau) >= 0.1;
+      if (!this.atmo || cached || jump || alt < 15) { this.atmo = cached ?? keep(new Atmosphere(tau)); this.atmoJob = null; }
+      else if (Math.abs(this.atmo.aerosolTau - tau) >= 0.03 || this.atmoJob) {
+        this.atmoJob ??= new Atmosphere(tau, true);
+        if (this.atmoJob.buildStep(Infinity, 3)) { this.atmo = keep(this.atmoJob); this.atmoJob = null; }
+      }
     }
+    this.atmoJd = jdUT;
     const A = this.atmo, sc = A.sunColorAt(OBSERVER_ALT, alt), scM = Math.max(sc[0], sc[1], sc[2]);
     if (scM > 1e-6) this.sun.color.setRGB(Math.max(0, sc[0]) / scM, Math.max(0, sc[1]) / scM, Math.max(0, sc[2]) / scM); // reddened by the air mass (spectral transmittance)
     this.sun.intensity = G * sunI;
@@ -319,12 +328,14 @@ export class SkySystem {
     // twilight dome table, clamped to −12° (below, the single-scattering sky has no structure left and the night dome takes
     // over): built at once on the first frame or after a jump in time (12–25 ms); while the sun moves, rebuilt after every
     // 0.05° four rows per frame (~2–3 ms) in a back buffer and swapped when complete
-    const w = twilightWeight(alt), vAlt = Math.max(-12, Math.min(TW_HI, alt));
+    // (the table follows the model in use, A: after a switch of model it is rebuilt at once below 15° as before, and by day
+    // a few rows per frame like a moving sun's)
+    const w = twilightWeight(alt), aTau = A.aerosolTau;
     if (w > 0) {
-      const stale = !this.view || this.viewTau !== tau || Math.abs(vAlt - this.viewAlt) > 1;
-      if (stale) { this.viewJob = null; this.setView(A.skyView(vAlt), tau); }
-      else if (this.viewJob) { if (A.stepSkyView(this.viewJob.job, 4)) { this.setView(this.viewJob.job.view, this.viewJob.tau); this.viewJob = null; } }
-      else if (Math.abs(vAlt - this.viewAlt) > 0.05) this.viewJob = { job: A.beginSkyView(vAlt), tau };
+      const stale = !this.view || Math.abs(vAlt - this.viewAlt) > 1 || (this.viewTau !== aTau && alt < 15);
+      if (stale) { this.viewJob = null; this.setView(A.skyView(vAlt), aTau); }
+      else if (this.viewJob && this.viewJob.tau === aTau) { if (A.stepSkyView(this.viewJob.job, 4)) { this.setView(this.viewJob.job.view, this.viewJob.tau); this.viewJob = null; } }
+      else if (this.viewTau !== aTau || Math.abs(vAlt - this.viewAlt) > 0.05) this.viewJob = { job: A.beginSkyView(vAlt), tau: aTau };
     }
     // skylight colour: the session-3 day colour by day, the physical sky's irradiance colour in twilight, the session-3
     // night blue at night; its luminance is kept at the day colour's 0.796 so hemi.intensity · 0.8 stays the illuminance
