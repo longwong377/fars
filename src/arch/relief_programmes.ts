@@ -192,6 +192,8 @@ function jamb(out: ReliefItem[], d: Doorway, face: ReturnType<typeof jambFaces>[
   } else if (P.programme === 'hero') {
     const beasts: string[] = P.beasts ?? ['lion'];
     lead('hero', ['lion', 'bull', 'monster'].indexOf(beasts[jambIndex % beasts.length]), JR.figure_of_door * H, len);
+  } else if (P.programme === 'lance_bearers') { // one lance-bearer with a wicker shield per reveal (count C), r_jamb_relief size
+    lead('lance_bearer', jambIndex, JR.figure_of_door * H, len);
   } else if (P.programme === 'attendants') { // equal attendants in file, the whole file fitted to the reveal
     const props: string[] = P.props ?? ['towel'], seeds = props.map(p => ['parasol', 'whisk', 'towel', 'flask'].indexOf(p) + (jambIndex ? 4 : 0));
     const total = seeds.reduce((q, sd) => { const [x0, x1] = extent('attendant', sd); return q + x1 - x0; }, 0), S = Math.min(JR.figure_of_door * H, len / total);

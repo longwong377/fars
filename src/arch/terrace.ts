@@ -7,6 +7,7 @@ import { ringSide, ringDoorway, openingParts, leafParts } from './openings';
 import { order } from './orders';
 import { Rng } from '../core/rng';
 import { polyDifference, polyUnion, polyIntersection, rectPoly, single } from './poly';
+import { buildPlanWalls, type PlanWall, type PlanOpening } from './plan_walls';
 
 type Tier = 'A' | 'B' | 'C';
 const P = (building: string, kind: string, material: Material, tier: Tier, src: string, extra: Partial<Part> = {}) => ({ building, kind, material, tier, src, ...extra });
@@ -333,34 +334,43 @@ export function buildTerrace(): BuildResult {
     const Z = v<any>(b, 'stair_s_zone');
     const plat = single(polyIntersection(f.polygon.slice(0, -1) as Pt[], rectPoly([x0 - 1, x1 + 1], [Z.y_building_front, y1 + 1])), 'tachara platform');
     parts.push(prism(b, 'platform', 'limestone', 'B', srcOf(row(b, 'platform_footprint'), row(b, 'floor'), row(b, 'stair_s_zone')), plat, FOUND, fl, { solid: true }));
-    const [, Lh] = v<number[]>(b, 'overall'); const bc: Pt = [(x0 + x1) / 2, y1 - Lh / 2];
-    const [hx, hy] = v<number[]>(b, 'hall_size'), [ncx, ncy] = v<number[]>(b, 'hall_columns');
-    const hc: Pt = [bc[0], v(b, 'r_hall_centre_y')]; const wt = v(b, 'r_wall');
-    const ord = order(b, { base: 'square2', capital: 'bull' });
-    const DR = v<any[]>(b, 'doors'); const dS = DR.find(d => d.id === 'S_main'), dN = DR.find(d => d.id === 'N_pair');
-    const TD = framed(b, hc[0], hc[1], hx, hy, wt, fl, [{ id: 'S_main', side: 'S', at: dS.at[0] - hc[0], width: dS.width, height: dS.height }, ...dN.offsets_x.map((o: number) => ({ id: o < 0 ? 'N_W' : 'N_E', side: 'N' as const, at: o, width: dN.width, height: dN.height }))], dS.height);
-    // windows either side of the main doorway and blind niches toward the side rooms (D-050), then the door leaves (D-051)
-    const TO = openings(b, hc[0], hc[1], hx, hy, wt, wt, fl, wallRing({ building: b, material: 'mudbrick', tier: 'C', src: srcOf(row(b, 'doors'), row(b, 'r_hall_centre_y')) }, hc[0], hc[1], hx, hy, wt, fl, fl + ord.height + v(b, 'r_wall_above_columns'), TD.wallDoors), TD.doors, dS);
-    parts.push(...TO.walls.map(w => ({ ...w, solid: true })), ...TD.frames, ...TO.frames, ...hang(b, TD.doorways, TO.blocked)); doorways.push(...TD.doorways);
-    const cols = grid(ncx, ncy, hc[0], hc[1], hx / ncx, hy / ncy);
-    for (const p of cols) parts.push(col(b, p, fl, ord, 'C', srcOf(row(b, 'hall_columns'), row(b, 'hall_size'))));
-    parts.push(floorFinish(b, hc, hx, hy, fl, true));
-    const [pcx, pcy] = v<number[]>(b, 'portico'); const pc: Pt = [hc[0], hc[1] - hy / 2 - wt - v(b, 'r_portico_gap')];
-    const pcols = grid(pcx, pcy, pc[0], pc[1], hx / ncx, v(b, 'r_portico_row_spacing'));
-    for (const p of pcols) parts.push(col(b, p, fl, ord, T_(b, 'portico'), S_(b, 'portico')));
-    const RF = v<any>(b, 'r_roof');
-    parts.push(box(b, 'roof', 'timber', 'C', 'RECON', [hc[0], hc[1] + RF.offset_n], [hx + 2 * wt, hy + 2 * wt + RF.extend_s], fl + ord.height, fl + ord.height + RF.thickness));
+    // the building as REF-PLAN draws it (D-130): walls between measured faces, the doorways, windows and niches cut in them,
+    // the columns of the hall, the portico and the two N rooms, every room roofed and plastered
+    const ord = order(b, { base: 'square2', capital: 'bull' }), top = fl + ord.height + v(b, 'r_wall_above_columns');
+    const PW = v<PlanWall[]>(b, 'plan_walls'), PO = v<PlanOpening[]>(b, 'plan_openings'), RD = v<Record<string, { height: number }>>(b, 'r_doors');
+    const heights = Object.fromEntries(Object.entries(RD).map(([k, q]) => [k, q.height]));
+    const WI = v<any>('global', 'r_window'), NI = v<any>('global', 'r_niche'), F = v<FrameDims>('global', 'r_door_frame');
+    const wm = (k: string) => ({ building: b, material: 'limestone_dark' as Material, tier: tierOf(row(b, 'plan_openings'), row(b, 'r_doors'), row('global', k), row(b, 'stone_frames')), src: srcOf(row(b, 'plan_openings'), row(b, 'r_doors'), row('global', k), row(b, 'stone_frames')) });
+    const TB = buildPlanWalls(b, { wall: { building: b, material: 'mudbrick', tier: T_(b, 'plan_walls'), src: srcOf(row(b, 'plan_walls'), row(b, 'r_wall_above_columns')) },
+      door: wm('r_door_frame'), window: wm('r_window'), niche: wm('r_niche') }, PW, PO, fl, top, heights, F, { sill: WI.sill, sillBlock: WI.sill_block, nicheDepth: NI.depth });
+    parts.push(...TB.walls, ...TB.frames, ...hang(b, TB.doorways.filter(d => d.framed), TB.blocked)); doorways.push(...TB.doorways);
+    const PC = v<any>(b, 'plan_columns'), grid2 = (xs: number[], ys: number[]) => ys.flatMap(y => xs.map(x => [x, y] as Pt));
+    const cols = grid2(PC.hall.x, PC.hall.y), pcols = grid2(PC.portico.x, PC.portico.y), ncols = grid2((PC.n_rooms.x as number[][]).flat(), PC.n_rooms.y);
+    for (const p of cols) parts.push(col(b, p, fl, ord, T_(b, 'plan_columns'), srcOf(row(b, 'plan_columns'), row(b, 'hall_columns'))));
+    for (const p of pcols) parts.push(col(b, p, fl, ord, T_(b, 'plan_columns'), srcOf(row(b, 'plan_columns'), row(b, 'portico'))));
+    for (const p of ncols) parts.push(col(b, p, fl, ord, T_(b, 'plan_columns'), srcOf(row(b, 'plan_columns'), row(b, 'north_rooms')))); // the hall's order (C)
+    // red plaster floors in every room (attested for the Tachara, global.interior_floor), one roof over the whole building
+    const RM = v<{ id: string; x: [number, number]; y: [number, number] }[]>(b, 'plan_rooms'), H = RM.find(r => r.id === 'hall')!;
+    for (const r of RM) parts.push(floorFinish(b, [(r.x[0] + r.x[1]) / 2, (r.y[0] + r.y[1]) / 2], r.x[1] - r.x[0], r.y[1] - r.y[0], fl, true));
+    const ex = [Math.min(...PW.map(w => w.x[0])), Math.max(...PW.map(w => w.x[1]))], ey = [Math.min(...PW.map(w => w.y[0])), Math.max(...PW.map(w => w.y[1]))];
+    parts.push(box(b, 'roof', 'timber', 'C', srcOf(row(b, 'r_roof'), row(b, 'plan_walls')), [(ex[0] + ex[1]) / 2, (ey[0] + ey[1]) / 2], [ex[1] - ex[0], ey[1] - ey[0]], fl + ord.height, fl + ord.height + v<any>(b, 'r_roof').thickness,
+      { note: 'one flat roof over the hall, the portico and every room, at the column tops (C)' }));
     // S stairway (standing in 467: XPc on its central façade): two flights along the front rising to a central landing
     let stairSteps = 0;
     if (v<boolean>(b, 'stair_s_present_467')) {
       const st = T_(b, 'stair_s_flights'), ss = srcOf(row(b, 'stair_s_flights'), row(b, 'stair_s_zone'));
-      for (const F of v<any[]>(b, 'stair_s_flights')) {
-        if (!isFlight(F)) { parts.push(landingBox(b, st, ss, F as any, FOUND)); continue; }
-        const fs = specFlight(b, st, ss, F, FOUND); parts.push(...fs); stairSteps += fs.length;
-        parts.push(...flightParapet(b, SPt, SPs, F, sideOf(F, [F.foot[0], Z.y_facade - 1]), SP.thickness, SP.height, 0, FOUND)); // outer (S) side
+      for (const Fl of v<any[]>(b, 'stair_s_flights')) {
+        if (!isFlight(Fl)) { parts.push(landingBox(b, st, ss, Fl as any, FOUND)); continue; }
+        const fs = specFlight(b, st, ss, Fl, FOUND); parts.push(...fs); stairSteps += fs.length;
+        parts.push(...flightParapet(b, SPt, SPs, Fl, sideOf(Fl, [Fl.foot[0], Z.y_facade - 1]), SP.thickness, SP.height, 0, FOUND)); // outer (S) side
       }
     }
-    manifest.tachara = { room: [hc[0], hc[1], hx, hy, fl, ord.height], hallColumns: cols.length, porticoColumns: pcols.length, floor: fl, stairSteps, hallCentreY: hc[1], windows: TO.windows, niches: TO.niches };
+    const hc: Pt = [(H.x[0] + H.x[1]) / 2, (H.y[0] + H.y[1]) / 2], hx = H.x[1] - H.x[0], hy = H.y[1] - H.y[0];
+    // portico braziers (world.ts): between the two column rows, midway between each outer column and its neighbour (C)
+    const px = PC.portico.x as number[], pyc = (PC.portico.y[0] + PC.portico.y[1]) / 2;
+    manifest.tachara = { room: [hc[0], hc[1], hx, hy, fl, ord.height], hallColumns: cols.length, porticoColumns: pcols.length, nRoomColumns: ncols.length, floor: fl, stairSteps, hallCentreY: hc[1],
+      windows: TB.windows, niches: TB.niches, doorways: TB.doorways.filter(d => d.framed).length, openings: TB.doorways.filter(d => !d.framed).length, rooms: RM.length,
+      porticoBraziers: [[(px[0] + px[1]) / 2, pyc], [(px[px.length - 2] + px[px.length - 1]) / 2, pyc]] as any };
   }
 
   // ---------------- Hadish ----------------

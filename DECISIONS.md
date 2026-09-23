@@ -1149,3 +1149,90 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - New settlement view `mountain-dusk`, run only when named: from Kuh-e Rahmat E of the Terrace at (380, −60), +65 m over the court, looking 250° true, pitch −8°. It frames the Terrace in front, the quarters 1–2 km beyond, and the April sunset.
 - **Not yet rendered after the fix.** The terrace-W view stays low and shallow by geometry.
 - `tests/smoke_light.test.ts` covers the formula, its independence from the horizon, and the fallback.
+
+## D-130 — The Tachara rebuilt from REF-PLAN: walls, rooms, doorways, windows, niches and columns (session 3)
+- **Problem:** the model had only the hall ring (2.4 m walls, C), the portico and the S stair. The N doorways were at ±6 m from the axis (C), the W and E walls had blind niches (C), the S wall had two windows (C), and the 12 hall columns stood 3 across × 4 deep on a 5.05 m pitch. The W rooms that carry the lance-bearer jambs did not exist.
+- **Measurement:** REF-PLAN was resampled into the grid with the Phase 4 transform (bilinear, 0.02 m steps; `tools/apply_tachara_plan_patch.py` header). Method:
+  - A wall face is where R+G+B crosses 392, half-way between the yellow floor (~545) and the olive wall fill (~239). Each face is the median over 3–12 scan lines.
+  - An opening is a run above 392 along a wall's centre line. Doorways and windows reach floor tone through the whole wall (543–547). Niches lighten one face only; the wall's middle stays dark.
+  - A column is the tone-weighted centroid of a dark dot.
+  - The plan is ~2.1 px/m of uncertain provenance: everything is B at ±0.5 m. Narrow gaps read narrower than they are.
+- **What the plan shows (rows `plan_walls`, `plan_openings`, `plan_columns`, `plan_rooms`, B):**
+  - Hall 15.9 × 15.7 m between faces, walls ~1.5 m. Outer walls ~1.45 m in the S part and ~1.0 m in the N part. Walls of the N rooms 0.75–0.85 m.
+  - 12 hall columns 4 across (pitch 3.2 m, in line with the portico) × 3 deep (3.9 m). Portico rows at y −94.0 / −97.85, 1.5 m S of the old C rows.
+  - S wall: the main doorway (1.4 m) and four windows (0.9–0.95 m) on the intercolumniations.
+  - N wall: doorways at x −24.9 and −18.25 (1.3 m), on the aisles (the model had −27.3 / −15.3), and three niches.
+  - W wall: two doorways (W1 at y −74.95, W2 at −82.8) and two niches. E wall: one doorway (E2 at −82.7) and three niches.
+  - Portico side walls: a doorway into each corner room (0.95–1.0 m) and a niche each.
+  - Four rooms on each side: W1, W2, W3 (entered from W2), SW; E1 (entered from the NE room), E2, E3 (from E2), SE.
+  - N part: two four-column rooms (2 × 2 columns), a 1.5 m room between them (entered from the NE room, a partition at y −65.5), and narrow rooms W and E, each with a partitioned opening. The N outer wall is at y −59.85…−58.25.
+- **Built** (`src/arch/plan_walls.ts`, new; the Tachara block of `terrace.ts`): every wall rectangle between its faces. The brick is cut away at the openings:
+  - stone-framed doorways (`door`) as wide as the frame, up to the cornice;
+  - plain openings (`gap`) up to a brick lintel;
+  - windows and niches in the openings.ts frames.
+  - The generic builder returns the same doorway descriptors and leaf clearances as the wall-ring helpers. Door leaves (D-051) and jamb reliefs (D-049) work unchanged.
+  - Also: 28 columns of the hall order (the N rooms' order C); red plaster floors in all 15 rooms (B for the Tachara); one flat roof over the whole building at the column tops (C). The S stair and its reliefs are unchanged; the plan agrees with them.
+  - Rows superseded and marked unused: `doors`, `r_windows`, `r_niches`, `r_hall_centre_y`, `r_wall`, `r_portico_gap`, `r_portico_row_spacing`. `north_rooms` rises to B. `r_doors` now holds C height classes: S 5.5, N 4.5, side 4.5, portico 3.5, inner 2.6. The portico braziers (world.ts) follow the new column rows.
+- **Measured against the plan** (`tools/dev/tachara_section.ts` + `tools/dev/tachara_overlay.py`: the built walls and frames cut at 2 m above the floor, against the plan's wall mask with the column dots left out, over the building's extent):
+  - Wall IoU 0.159 → 0.837. Precision 0.464 → 0.936 (the part of the built wall that lies on plan wall). Recall 0.195 → 0.888 (the part of the plan wall that is built).
+  - Columns within 1 m of a plan dot: 0 of 20 → 28 of 28. Mean error 1.99 → 0.06 m, max 3.31 → 0.10 m.
+  - The remaining mismatch is the blurred edges, the unbuilt A3 doorway (D-131), and the second E outline (Q-180).
+
+## D-131 — Readings of the Tachara plan that are judgements (C) (session 3)
+- **Artaxerxes III's W doorway is not built.**
+  - The plan has a 1.35 m doorway through the outer W wall at y −75, facing the ghosted NW stair.
+  - That stair and a new W doorway are A3's (A3Pa; `stair_w_present_467` false, B), so the wall stands whole in 467.
+  - The opening is kept in `plan_openings` as `A3_W` with `present_467: false` and is tested as solid.
+- **The hall E wall at y −74.7 is read as a niche, not a doorway** (Q-181).
+  - The gap reaches only 413–489 of the floor tone, while every doorway on the plan reaches 543–547.
+  - E1 has a clear doorway N into the NE room.
+- **Frames:** only on the doorways of the hall and the portico (8, each with leaves; the Tachara's "monolithic frames", WP-EXT C). The ten openings between the small rooms are plain, under a lintel: a 0.6 m jamb does not fit beside them (C).
+- **Not built:**
+  - A second black line 0.5 m outside the E outer wall of the S part, and the stepped line E of the building at y −71 (Q-180).
+  - Any stair in the narrow room between the N rooms (Q-183).
+- **Consequences of the thinner walls:**
+  - The reveals are 1.66 m deep (the plan's 1.5 m wall plus the frames' projection). The king group on the S jambs is fitted at S 1.77 (it was 2.2 on the old 2.4 m wall; Q-184).
+  - Door widths are the plan's (the main doorway 1.4 m, not the 2.4 m C value).
+- **Alternatives rejected:**
+  - Mirroring the W side onto the E side: the plan is not symmetric there.
+  - Keeping the 2.4 m walls: C against a B measurement.
+  - Framing every opening: the frames overlap the corners and partitions.
+
+## D-132 — Tachara jamb programmes on the plan's doorways; the lance-bearers placed (session 3)
+- **Lance-bearers with wicker shields** (`lance_bearer`, B: "W rooms", WP-EXT/ISAC-PA):
+  - One figure per reveal (C) on the three doorways into W rooms: W_N (W1), W_S (W2) and the portico doorway P_W into the SW room. That the SW room is meant is C.
+  - Size r_jamb_relief (0.4 × the 4.5 / 3.5 m door height). They walk out of the W rooms into the hall and the portico, as every jamb figure walks into the hall (D-049).
+  - New `jamb` programme `lance_bearers` in `relief_programmes.ts`.
+- **The other programmes on the doorways the plan has** (`door_jamb_reliefs`):
+  - The king with parasol- and fly-whisk-bearers on S_main (B).
+  - The hero vs lion / monster on N_W; the attendants with towel and flask on N_E (C, unchanged).
+  - The same attendants on E_S, into E2 (C: the extracts put them on "the chambers").
+  - The portico E doorway P_E is left plain: no programme found (the D-049 rule).
+- The Tachara jamb set grows from 8 to 18 figures. The worst relief load in front of any Phase 4 jamb is unchanged at 0.95 M triangles (Hall of 100 Columns N1), under the 1.5 M budget.
+
+## D-133 — Walkable grid, routes and tests after the Tachara rebuild (session 3)
+- **Walkable grid rebuilt** (`npx tsx tools/build_nav.ts`): 1,414,437 walkable cells. 69 cells in narrow passages are kept by the D-067 clearance test.
+  - The rooms that are reachable from the S court: hall, portico, W1, W2, W3, E1, E2, E3, SE, both N rooms, the corridor and both narrow N rooms.
+  - **SW is not reachable:** its 0.95 m portico doorway falls between grid cell centres (no cell centre is 0.3 m clear of both jambs). The visitor can walk in; people and the bots cannot.
+- **Route** (`tests/e2e/lib/routes.ts`): the Tachara route goes from 12 to 28 legs. It enters W2 and W1 through the lance-bearer doorways, W3 through its opening, both N rooms, E1 through the NE room, and E2.
+- **Offline bot:** all six areas pass (97 legs, max fall 0). The slice route passes (28 legs).
+- **Tests:**
+  - `tests/tachara_plan.test.ts` (new, 10 tests):
+    - every plan wall is built between its faces and solid except in its openings (≥ 10,000 samples at 0.5 and 2 m);
+    - every doorway sits at its plan centre and width, framed and hung where the plan row says;
+    - A3's doorway is solid; 4 windows go through and 10 niches are blind, all on the aisles;
+    - 28 columns at the plan centres, 4 × 3 in the hall; every room plastered and roofed; the plan's room graph joins every room to the portico;
+    - 6 lance-bearers stand on the W-room reveals and walk into the hall or portico; the other programmes are where D-132 puts them;
+    - the rooms with ≥ 1.1 m doorways are walkable.
+  - Updated: `arch.test.ts` (the hall N wall line is now 4 runs with 3 lintel zones), `doors.test.ts` (27 doors, was 22). The literal lint now covers `plan_walls.ts`.
+- **Renders:** see D-134.
+
+## D-134 — Tachara renders after the rebuild (session 3)
+- **Two views** (`tests/e2e/moments.spec.ts`, quality test, SwiftShader WebGPU, day 25 15:30, clear; one queued run of 13.9 min):
+  - `tachara-s-stair`, from the S court: the four front portico columns and the plan's portico side walls, each with a framed doorway and a niche; the main doorway and the S-wall window frames behind; one roof over the whole building. Mean luma 68.8, nothing clipped.
+  - `tachara-lance-bearers` (new), from the hall's W aisle looking SW at the W2 doorway: the lance-bearer with lance and wicker shield stands on the doorway's S reveal between the two open leaves. The S window shows the portico capitals beyond. Mean luma 43.9.
+- **Judged:**
+  - The geometry reads as the plan: frames, leaves, windows, red floor, square column bases.
+  - The hall is dim. Its only daylight comes through the S doorway and windows, and this tree has no interior-light probes (the other agent's work).
+  - Not seen in a render: the N rooms, the E rooms, the portico doorways from inside, and the rooms at quality high.
+- `tests/e2e/phase4.spec.ts` p4-tachara-jamb-king moves to the plan's S doorway (0.95 m from the W reveal), unrendered.

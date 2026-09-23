@@ -34,7 +34,7 @@ describe('door leaves (parts)', () => {
     for (const id of ids) expect(leaves.filter(l => l.door!.id === id).length, id).toBe(2);
     expect(ids.filter(i => i.startsWith('tripylon') || i.startsWith('hall100'))).toEqual([]);
     for (const b of ['gate_nations', 'apadana', 'tachara', 'hadish', 'harem', 'treasury']) expect(ids.some(i => i.startsWith(b)), b).toBe(true);
-    expect(ids.length).toBe(22);
+    expect(ids.length).toBe(27); // Tachara 8 (D-130: the W, E and portico doorways of REF-PLAN), Apadana 4, Hadish 5, Harem 4, Gate 3, Treasury 3
     for (const l of leaves) { expect(l.material).toBe('timber'); expect(['A', 'B', 'C']).toContain(l.tier); expect(l.src.length).toBeGreaterThan(0); }
   });
   it('closed, the two leaves span the clear opening (gap r_door_leaf.gap at the meeting stiles)', () => {

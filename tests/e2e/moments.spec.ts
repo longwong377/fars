@@ -22,6 +22,9 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'snow-terrace', day: 280, hour: 10, w: 'snow', v: [-20, 70, 1.6, 161, 4] },
   // Phase 4: the rest of the Terrace
   { n: 'tachara-s-stair', day: 25, hour: 15.5, w: 'clear', v: [-21, -112, 1.6, 341, 6] },
+  // inside the Tachara hall, in the W aisle, looking SW at the doorway into the W2 room: its S reveal carries a
+  // lance-bearer with a wicker shield (D-132); the W1 doorway and the hall niches are to the right
+  { n: 'tachara-lance-bearers', day: 25, hour: 15.5, w: 'clear', v: [-27.9, -80.0, 1.6, 201, 0] },
   { n: 'hadish-hall', day: 25, hour: 11, w: 'clear', v: [22, -150, 1.6, 161, 2] },
   { n: 'hall100-site', day: 25, hour: 9.5, w: 'clear', v: [146, 45, 1.6, 161, 4] },
   { n: 'tripylon-n-stair', day: 25, hour: 16, w: 'clear', v: [82, -38, 1.6, 161, 6] },
