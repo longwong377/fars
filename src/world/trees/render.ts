@@ -188,10 +188,14 @@ export class TreeKit {
     const vTint = varying(c3.w.mul(iscl.w)), vAo = varying(c4.w), vLeaf = varying(leaf.xyz), vBl = varying(bl.xyz), vBark = varying(sp1.xyz);
     const ti = floor(vTile.add(0.5)), uvA = vec2(mod(ti, COLS).add(vUV.x).div(COLS), floor(ti.div(COLS)).add(vUV.y).div(ROWS));
     const tx = texture(this.atlasTex, uvA).bias(this.atlasBias);
-    // each drawn leaf has its own tilt (atlas.ts): the card's lighting normal turns by it, so a card shades as many
-    // leaves facing their own ways, not as one flat disc (impostor.ts applies the same)
-    const tl = texture(this.tiltTex, uvA).bias(this.atlasBias).xy.mul(2).sub(1), vN: any = varying(c4.xyz), vS: any = varying(side), vU: any = varying(up);
-    m.normalNode = normalToView(normalize(vN.add(vS.mul(tl.x.mul(TILT))).add(vU.mul(tl.y.mul(TILT)))), iscl);
+    // LOD0: each drawn leaf has its own tilt (atlas.ts), so a card close up shades as many leaves facing their own ways,
+    // not as one flat disc. LOD1 and the impostors (which bake LOD1) use the card normal alone: lighting is not linear in
+    // the normal, so the tilt brightened LOD1 by 3-6/255 while the impostor's filtered normals averaged it away (tree lab
+    // runs 2 and 3, at R3)
+    const vN: any = varying(c4.xyz);
+    if (lod === 0) { const tl = texture(this.tiltTex, uvA).bias(this.atlasBias).xy.mul(2).sub(1), vS: any = varying(side), vU: any = varying(up);
+      m.normalNode = normalToView(normalize(vN.add(vS.mul(tl.x.mul(TILT))).add(vU.mul(tl.y.mul(TILT)))), iscl); }
+    else m.normalNode = normalToView(vN, iscl);
     // impostor.ts leafAlbedo, the same formula
     const shade = tx.r.mul(0.6).add(0.55), petal = tx.g, bk = tx.b, lm = max(float(1).sub(petal).sub(bk), 0);
     const alb = vLeaf.mul(shade).mul(lm).add(vBl.mul(tx.r.mul(0.15).add(0.85)).mul(petal)).add(vBark.mul(shade).mul(bk)).mul(vTint).mul(vAo);

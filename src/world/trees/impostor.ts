@@ -82,7 +82,7 @@ export class ImpostorBaker {
             // impostor.ts leafAlbedo, inlined
             const tr = d[o] / 255, petal = d[o + 1] / 255, bk = d[o + 2] / 255, shade = 0.55 + 0.6 * tr, lm = Math.max(0, 1 - petal - bk), ps = (0.85 + 0.15 * tr) * petal;
             // the leaf's tilt turns the lighting normal (render.ts leaf shader)
-            const tx = (td[o] / 255 * 2 - 1) * TILT, ty = (td[o + 1] / 255 * 2 - 1) * TILT;
+            const tk = this.lod ? 0 : TILT, tx = (td[o] / 255 * 2 - 1) * tk, ty = (td[o + 1] / 255 * 2 - 1) * tk; // LOD0 only (render.ts)
             let nx = Nv[0] + Sv[0] * tx + Uv[0] * ty, ny = Nv[1] + Sv[1] * tx + Uv[1] * ty, nz = Nv[2] + Sv[2] * tx + Uv[2] * ty; const nl = Math.hypot(nx, ny, nz) || 1; nx /= nl; ny /= nl; nz /= nl;
             put(i, j, depth, (lc[0] * shade * lm + bc[0] * ps + bark[0] * shade * bk) * tint, (lc[1] * shade * lm + bc[1] * ps + bark[1] * shade * bk) * tint, (lc[2] * shade * lm + bc[2] * ps + bark[2] * shade * bk) * tint, nx * rx + nz * rz, ny, nx * dx + nz * dz);
           }

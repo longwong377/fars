@@ -1035,3 +1035,109 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Signs are flat (drawn 3 mm proud), not bevelled incisions.** The panels stand 4.6–5.8 m above the floor. There a pixel is about 5 mm (1080p, 60° field), so the 2.5 mm bevel is under half a pixel. The bevelled panels cost 162 k triangles per reveal (647 k in all).
 - The translation layer names the panel (XPe, placement C). Glosses come from the project lexicon; there is no published translation (NEEDS #14).
 - **Tests:** `tests/xpe.test.ts` checks the edition text, 4 panels per version, each above the figures and under the reveal top, on the reveal plane within the passage, and flat (under 20 k triangles).
+
+## D-120 — Trees generated per species from data; every level of detail and the far impostors from one model (session 3, trees agent)
+- **Problem (session 3 renders):**
+  - Near crowns were three lumpy icosahedron blobs cut by a noise mask. They read as green broccoli at the Pulvar bank, and as a dithered grey sack for orchard blossom at test quality.
+  - Every species had the same shape.
+  - Far trees were ellipse billboards and scalloped orchard rows. Their shape and colour matched the near trees in neither case.
+  - The town's garden trees were low-poly placeholders.
+- **Data (`src/data/trees.json`):** 15 species: plane, white willow, poplar, tamarisk, mulberry, fig, apple, pear, pomegranate, Brant's oak, wild almond, wild pistachio, cypress, olive and vine.
+  - Each species has a presence tier and source (B): the IR-RIPARIAN analogy, SAEIDI2021 pollen, or the IR-FOODAG PF fruits.
+  - Form values are all C, sourced to the new key BOTANY-GEN (recollection, not a flora read this session): height range, crown width / height, crown base / height, trunk diameter / height, stems, crown envelope, excurrent or decurrent habit, limb angle, droop, leaf tile, leaf size, leaf layers and bark albedo. Table in research/PLAIN.md §10.
+- **Generator (`src/world/trees/model.ts`, pure JS, seeded; 3 variants per species):**
+  - **Skeleton:** grows breadth-first toward a superellipse crown envelope with azimuthal lobes, irregular for oak, olive and willow. 64 tapered segments: stems, then limbs, then twigs. Stems per species: tamarisk 4-8, fig 2-4, pomegranate 3-6. Willow and tamarisk twigs hang.
+  - **Cards:** 320 leaf-cluster cards on the crown shell, ordered by farthest-point sampling so that any prefix is evenly spread. Each card is attached to its nearest branch point and oriented outward from it.
+  - **Card size:** set so that cards × area × the tile's measured opaque share = the species' leaf layers × the crown's surface.
+  - **Thresholds:** leaf-out and blossom thresholds are stratified per card, within LOD1's prefix and within the rest.
+  - **Measured against the data** (tests/trees.test.ts):
+    - every variant's height within 8 %;
+    - crown width / height within the species range ± 12 %;
+    - crown base within ± 0.08 H;
+    - trunk diameter within ± 35 %;
+    - stem counts in range;
+    - species read apart (poplar W/H 0.31, cypress 0.20, plane 0.81, fig 1.24, oak 1.23).
+- **Leaf atlas (`atlas.ts`, pure JS, no external asset):** 22 tiles of 256 px:
+  - leaf sprays per leaf form, drawn to scale (leaf size / card size);
+  - two blossom sprays: spur clusters of 4-7 flowers with young leaves, and pomegranate bells;
+  - six bare-twig sprays.
+  - Texels carry shade, petal share, bark share and coverage, plus a second image of per-leaf tilt.
+  - Mips are built per tile so that the share of texels passing the 0.5 alpha test stays that of the full tile.
+- **Seasons (seasonal.ts, D-123):** each card shows a leaf, blossom or bare-twig spray, from its group's leaf and blossom amount of the day.
+  - Blossom comes first. Leaves come out card by card, growing from 45 % to full size and moving out from the twig.
+  - The remaining cards are bare-twig sprays near their branches, so a winter crown shows its branching.
+- **Near drawing (`render.ts`), vertex pulling:** the template geometry holds only slot numbers. The vertex shader reads the slot's segment or card from float textures (one row per species variant) and places it by the instance's position, scale and yaw. Every species draws in one call per level of detail and part.
+  - **LOD0:** 64 segments × 6 sides + 320 cards = 1,408 triangles. Close up, its cards turn up to 40 % toward the camera, fading out by the LOD0 radius.
+  - **LOD1:** 16 segments × 4 sides + 80 cards at 1.6× (leaves) to 1.8× (bare twigs) = 288 triangles. It keeps LOD0's silhouette area within 25 % and its mean colour within 12 % in every season (tests).
+  - **Radii:** LOD0 within 30-70 m (at most 300 trees), LOD1 to R3.
+  - **Shadows:** from LOD0 and from LOD1 within 120 m (at most 400 trees, as before). They skip the CSM cascades that start beyond 180 m. The shadow pass reads a coarse mip, so the shadow map holds leaf clumps rather than leaves it cannot resolve.
+  - **Alpha test:** a plain alpha test. Alpha-to-coverage drew an ordered screen-door dither under MSAA (tree lab, test quality). The leaf atlas has a +1 mip bias at the MSAA qualities (test, low) and none under TRAA. Filtering is anisotropic.
+  - **Lighting:** at LOD0, each leaf's tilt turns the card's lighting normal, so a crown close up shades as many leaves. LOD1 and the impostors use the card normal alone: with the tilt, LOD1 read 3-6/255 brighter than its impostor at R3 (tree lab run 3).
+  - **Other:** wind sway and leaf flutter. The dev overlay (F3) picks a tree and names its species, presence and form tiers and sources.
+- **Far drawing (impostors, `impostor.ts`):** baked on the CPU from the same model as LOD1 draws it (the level just inside R3). The bake uses the same cards, atlas, season rules and colour formula.
+  - 8 views around each tree, 64-128 px by quality, colour plus lighting normal. Colour mips are averaged in linear light: sRGB-averaged mips had made the impostors 10-19/255 darker than the near trees. Coverage-preserving mips.
+  - A quad faces the camera, blends the two nearest views and is lit with the baked normals.
+  - Re-baked for the rows whose group changed: in a worker (`bake_worker.ts`) for day-to-day ticks, at once for jumps.
+- **Layers and hand-over (plain, index.ts):**
+  - **Near 3-D:** within R3 of the near set's centre. The impostors' cut uses the same centre, and the same radius: the distance of the first tree the caps left out. So a tree is 3-D or an impostor, never both or neither.
+  - **Mid ring** (R3 to 450-1,200 m by quality): every orchard tree of the plots whose centres lie inside it, and every woodland tree, as impostors (one instanced draw, rebuilt around the camera).
+  - **River and canal trees:** one static impostor draw.
+  - **Orchard plots beyond the mid ring:** row impostors at the exact grid lines, sampling the same impostor atlas (D-121).
+  - **Woodland beyond the mid ring:** the terrain's painted canopy, cut per painted tree at the mid-ring centre.
+- **Alternatives:**
+  - a GPU render-to-texture bake: the exact shader, but not measurable headless and without coverage-preserving mips;
+  - one InstancedMesh per species: ×15 draw calls;
+  - geometric leaves without alpha: too few triangles for a crown;
+  - alpha-to-coverage: an ordered dither under SwiftShader MSAA;
+  - licensed tree assets: none needed.
+
+## D-121 — The grey domes under the orchard trees of village P22: orchard row impostors, cut per plot and per fragment (session 3, trees agent)
+- **Cause (found by the lead with tests/e2e/dbg_plain.spec.ts, confirmed here):** the far orchard rows faded by camera distance per vertex. A row quad spans its whole plot (up to ~100 m) with vertices only at the row's ends. So a row whose ends lay beyond R3 kept its full height where it passed beside the camera, and its scalloped crown line read as low grey domes under the 3-D trees.
+- **Fix:**
+  - Rows are drawn only for plots whose centre lies beyond the mid ring (per vertex, since the plot centre is the same for all four vertices). The mid ring draws those plots' exact trees one by one.
+  - Every row fragment within R3 of the camera is discarded.
+  - A row samples, per tree column, the same impostor atlas as the near and mid trees: the plot's species, a hashed variant, size and yaw, and the neighbouring column where crowns overlap.
+- **Test (tests/plain.test.ts):** from the P22 view, the Pulvar bank, a field and the Grand Stair, with the mid-ring centre lagging the camera by up to (rMid − R3)/4, no visible row comes within R3.
+- **Render:** plain-village-p22 at test quality after the fix: the ground under the orchard trees is clean.
+
+## D-122 — The town's garden trees on the same tree kit (session 3, trees agent)
+- `src/world/settlement/trees.ts` now draws the plan's garden and orchard trees with the kit. Species come from the plan (plane, cypress, pomegranate, olive, fig, apple, pear, mulberry, vine); sizes from trees.json in the species' ranges × the plan's size factor.
+- Layers: 3-D within 120-220 m by quality (LOD0 within 30-70 m, shadows within 120 m); beyond, one impostor quad each (3,595 trees, one draw).
+- The trees follow the plain's foliage groups, so town and plain agree on the day. The town's own LEAF_TABLE curve (town_rules.ts) no longer drives the trees. The placeholder flag is removed from the trees; form and placement stay C.
+
+## D-123 — Foliage groups per species (session 3, trees agent)
+- `seasonal.ts` TREE_GROUPS: plane, willow, poplar, tamarisk, pome (apple, pear), fig, pomegranate, mulberry, vine, oak, almond, pistachio, evergreen_dark (cypress), evergreen_grey (olive). The old groups were willow_poplar, fruit and almond_pistachio.
+- Phenology C:
+  - figs leaf out late and never blossom;
+  - pomegranate blossoms scarlet in May-June;
+  - wild almond blossoms pale pink in February-March and sheds its leaves early (summer drought);
+  - pistachio reddens in autumn;
+  - poplar and willow yellow in autumn;
+  - evergreens hold their leaves.
+- The terrain's woodland paint still reads the oak group.
+
+### Measured (session 3; SwiftShader, headless)
+- **Budgets, plain share of the frame at quality test** (tests/e2e/plain.spec.ts, plain shown vs hidden):
+  - village-p22: before +26 calls, +1.24 M triangles. After **+31 calls, +1.36 M**: 976 3-D trees (34 LOD0, 434 casting shadows), 0.32 M near-tree triangles, 3,826 mid-ring impostors, 88,386 orchard row quads.
+  - pulvar-bank-april: before +24, +0.78 M. After **+24, +0.86 M**.
+  - Whole frame after: 102 calls / 4.69 M and 100 calls / 4.36 M.
+- **High quality, headless build** (tests/plain.test.ts at P22): 1,979 3-D trees (90 LOD0, 490 casting shadows), 0.67 M near-tree triangles before the shadow passes, 6,902 mid-ring impostors. The shadow passes add at most 3 cascades × (90 × 1,408 + 400 × 288) = 0.73 M.
+- **Not measured (renders cancelled at session end):** the three high-quality budget views after the change. Before, at HEAD: stair-dawn-plain +14 calls / +0.87 M (frame 347 / 5.60 M), apadana-north-nr +19 / +0.87 M (467 / 10.24 M), stair-foot-east +9 / +0.71 M (522 / 9.99 M). From those views every plain and town tree is an impostor (nearest town tree 470-570 m), so the change there is the mid ring (one draw) and a heavier orchard-row draw (0.18 M triangles, against ~0.09 M before).
+- **Near/far at R3** (tree lab, quality test, R3 160 m; one tree as LOD1 and as its impostor from the same camera, each against an empty frame, inside the tree's screen box; shots/treelab-r3-test.json):
+
+  | case | silhouette area, impostor / LOD1 | mean colour Δ, impostor − LOD1 (sRGB /255) |
+  |---|---|---|
+  | plane, summer | 0.998 | −1.7, −2.1, −2.4 |
+  | poplar, summer | 0.989 | −0.6, −1.2, −2.3 |
+  | willow, summer | 1.03 | −0.3, −0.4, −1.0 |
+  | apple in blossom (17 April) | 1.00 | +3.9, +1.5, +1.7 |
+  | oak, summer | 1.055 | −0.9, −0.3, −1.0 |
+  | plane, winter | 0.90 | −6, −13, −19 |
+  | cypress | 1.00 | −10, −11.5, −14 |
+
+  These are lab run 2 figures: without the leaf tilt, which LOD1 no longer uses. The winter and cypress colour gaps are an antialiasing difference, not albedo: MSAA smooths LOD1's geometry edges against the sky, while the impostor's alpha-tested edges stay hard. Both silhouettes are nearly all edge at 160 m. Not yet measured under TRAA (high).
+- **Unit** (tests/trees.test.ts; per species, 128 px views):
+  - LOD1 keeps LOD0's silhouette area within 25 % and mean luminance within 12 %.
+  - The 64 px impostor keeps LOD1's area within 15 % (bare crowns within 20 %) and luminance within 8 %, in summer, April and winter.
+  - Triangles: LOD0 1,408; LOD1 288; impostor 2.
+- **Load:** the kit builds in 1.8-2.9 s in the browser (models, atlas and the first impostor bake). A day-to-day re-bake is 0.4-1.2 s, off the main thread in a worker.
