@@ -13,7 +13,8 @@
 // camera and less often further away; root motion is per frame for everyone (instanced root attribute).
 // Face: blinks, the jaw while speaking or eating, eyes and head turned to a nearby stranger.
 import * as THREE from 'three/webgpu';
-import { attribute } from 'three/tsl';
+import { attribute, positionLocal, float, abs, min } from 'three/tsl';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { pose, type Pose } from './anim';
 import { ACTIVITIES } from './activities';
 import { PeopleSim, PLACES, type Agent } from './sim';
@@ -22,7 +23,7 @@ import { RigSolver, PALETTE_STRIDE, PLANTED, type RigInput, type FaceState } fro
 import { lookFor, type PersonLook, type LookInput } from './looks';
 import { HB } from './humanFormat';
 import { PERSON_TEXELS, FLAG_HIDE_HEAD } from './humanMaterial';
-import { propGeometry, PROP_NOTES } from './props';
+import { propGeometry, propUnionGeometry, paintedBox, PROP_KINDS, PROP_NOTES } from './props';
 import { PIECES, pieceBit, type Dress } from './outfits';
 /** poses in which people sit, kneel or lie (coats and back-carried weapons are laid aside) */
 const SEATED = new Set<AnimId>(['sit', 'write', 'eat', 'dice', 'sleep', 'grind', 'knead', 'bake']);
@@ -36,6 +37,8 @@ export const yawOf = (headingDeg: number) => Math.PI - rad(headingDeg);
 export const LOD_DIST = [25, 90, 200, 600] as const;
 export const MAX_FULL = 64;
 export const ATTACH_R = 620, DETACH_R = 660;
+/** carried props drawn per frame (one instanced mesh) */
+export const CARRIED_MAX = 256;
 
 export interface Person {
   key: string; agent: Agent | null; look: PersonLook; slot: number; rig: RigInput; face: FaceState;
@@ -44,6 +47,8 @@ export interface Person {
   blinkAt: number; speakUntil: number; prop: string | null; propM: THREE.Matrix4; anim: AnimId; t0: number; dist: number;
   /** piece mask in effect (the look's mask minus what is laid aside while seated or asleep) */
   mask: number;
+  /** gaze target in character space (the rig's space: the root is applied per instance on the GPU) */
+  lookC: [number, number, number];
   /** extras (lineups, tests): fixed animation and place */
   extra?: { anim: AnimId; x: number; y: number; z: number; yaw: number; look?: [number, number, number] | null };
 }
@@ -57,8 +62,9 @@ export class Crowd {
   onPopIn?: (what: string, d: number) => void;
   private rigS: RigSolver;
   private freeSlots: number[] = []; private nextSlot = 0;
-  private frame = 0; private sackPiles: { depot: THREE.InstancedMesh; store: THREE.InstancedMesh };
-  private props = new Map<string, THREE.InstancedMesh>();
+  private frame = 0; private sacks: THREE.InstancedMesh;
+  /** every carried prop: one instanced mesh (the union geometry; 'ik' picks the kind per instance) */
+  private carried!: THREE.InstancedMesh; private carriedKind!: THREE.InstancedBufferAttribute;
   private frustum = new THREE.Frustum(); private wide = new THREE.Frustum(); private pm = new THREE.Matrix4();
   private lastStock = { depot: -1, store: -1 };
   /** last frame's CPU cost (ms) of pooling, posing and instance filling; people drawn per LOD */
@@ -71,9 +77,9 @@ export class Crowd {
     this.rigS = new RigSolver(humans.A.meta.curlAxes);
     this.buildPropMeshes();
     if (sim) this.buildWorkObjects(); else this.autoPool = false;
-    const sackG = propGeometry('sack')!;
-    const pile = (n: number) => { const im = new THREE.InstancedMesh(sackG, this.propMaterial(), n); im.castShadow = true; im.receiveShadow = true; im.count = 0; im.frustumCulled = false; im.name = 'goods:sacks'; im.userData = { tier: 'C', src: 'RECON', note: 'sacks counted by the simulation (stocks)' }; this.group.add(im); return im; };
-    this.sackPiles = { depot: pile(200), store: pile(400) };
+    // both sack piles (depot, store) are one instanced mesh: one draw
+    const sk = new THREE.InstancedMesh(propGeometry('sack')!, this.propMaterial(), 600); sk.castShadow = true; sk.receiveShadow = true; sk.count = 0; sk.visible = false; sk.frustumCulled = false;
+    sk.name = 'goods:sacks'; sk.userData = { tier: 'C', src: 'RECON', note: 'sacks counted by the simulation (stocks)' }; this.group.add(sk); this.sacks = sk;
     // ray hits on people (dev overlay, pick): a proxy mesh whose raycast tests each shown person's standing capsule
     this.hitProxy = new THREE.Mesh(); this.hitProxy.name = 'people:hit'; this.hitProxy.visible = false; // never drawn; raycasters still call it (this.hitProxy as any).raycast = (rc: THREE.Raycaster, out: THREE.Intersection[]) => this.raycast(rc, out);
     this.group.add(this.hitProxy);
@@ -88,36 +94,41 @@ export class Crowd {
     this.propMat = m; return m;
   }
   private buildPropMeshes() {
-    for (const k of ['spear', 'sack', 'jar', 'tablet', 'mallet', 'basket']) {
-      const im = new THREE.InstancedMesh(propGeometry(k)!, this.propMaterial(), 64); im.count = 0; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false;
-      im.name = `prop:${k}`; im.userData = { tier: PROP_NOTES[k].tier, src: 'RECON', note: PROP_NOTES[k].note }; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      this.group.add(im); this.props.set(k, im);
-    }
+    const g = propUnionGeometry(); const ik = new THREE.InstancedBufferAttribute(new Float32Array(CARRIED_MAX), 1); ik.setUsage(THREE.DynamicDrawUsage); g.setAttribute('ik', ik);
+    const m = new THREE.MeshStandardNodeMaterial(); const mr = attribute('mr', 'vec2');
+    m.colorNode = attribute('color', 'vec3'); m.metalnessNode = mr.x; m.roughnessNode = mr.y;
+    // the instance's own kind only: other kinds' vertices collapse to a point (arithmetic mask, no select: D-012)
+    m.positionNode = positionLocal.mul(float(1).sub(min(abs(attribute('pk', 'float').sub(attribute('ik', 'float'))), 1)));
+    const im = new THREE.InstancedMesh(g, m, CARRIED_MAX); im.count = 0; im.visible = false; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false;
+    im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.name = 'props:carried';
+    im.userData = { tier: 'C', src: 'RECON', note: 'carried: ' + PROP_KINDS.map(k => `${k} (${PROP_NOTES[k].tier}): ${PROP_NOTES[k].note}`).join('; ') };
+    this.group.add(im); this.carried = im; this.carriedKind = ik;
   }
-  /** blocks at the masons' places, querns, mats (C forms) */
+  /** blocks at the masons' places, querns, mats, the trough (C forms): static, merged into one mesh (one draw) */
   private buildWorkObjects() {
-    const stone = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color(0x8d8a84), roughness: 0.9 });
-    const clay = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color(0x7c6a55), roughness: 0.95 });
-    const reed = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color(0xa08e62), roughness: 0.95 });
-    const put = (g: THREE.BufferGeometry, m: THREE.Material, items: [THREE.Vector3, number][], name: string, note: string) => {
-      if (!items.length) return; const im = new THREE.InstancedMesh(g, m, items.length); const q = new THREE.Quaternion(), s = new THREE.Vector3(1, 1, 1), M = new THREE.Matrix4();
-      items.forEach(([p, yaw], i) => { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw); im.setMatrixAt(i, M.compose(p, q, s)); });
-      im.castShadow = im.receiveShadow = true; im.name = name; im.userData = { tier: 'C', src: 'RECON', note }; this.group.add(im); };
+    const stone: [number, number, number] = [0.553, 0.541, 0.518], clay: [number, number, number] = [0.486, 0.416, 0.333], reed: [number, number, number] = [0.627, 0.557, 0.384];
+    const parts: THREE.BufferGeometry[] = []; const q = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1), M = new THREE.Matrix4();
+    const put = (g: THREE.BufferGeometry, items: [THREE.Vector3, number][]) => { for (const [p, yaw] of items) { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw); parts.push(g.clone().applyMatrix4(M.compose(p, q, one))); } };
     const sim = this.sim!, nav = sim.nav;
     const masons = sim.agents.filter(a => a.role === 'mason');
-    put(new THREE.BoxGeometry(1.4, 0.75, 0.9).translate(0, 0.375, 0), stone, masons.map(a => { const e = a.slot[0], n = a.slot[1] + 0.95; return [gw(e, n, nav.heightAt(e, n) || 0), 0.1 * Math.sin(a.id)]; }), 'work:blocks', 'limestone blocks being dressed (C)');
+    put(paintedBox(1.4, 0.75, 0.9, stone, 0.9), masons.map(a => { const e = a.slot[0], n = a.slot[1] + 0.95; return [gw(e, n, nav.heightAt(e, n) || 0), 0.1 * Math.sin(a.id)]; }));
     const grind = sim.agents.filter(a => a.role === 'grinder' || a.role === 'baker');
-    put(new THREE.BoxGeometry(0.4, 0.14, 0.7).translate(0, 0.07, 0), stone, grind.map(a => { const e = a.slot[0] + 0.62, n = a.slot[1]; return [gw(e, n, nav.heightAt(e, n) || 0), Math.PI / 2]; }), 'work:querns', 'saddle querns (period type B, placement C)');
+    put(paintedBox(0.4, 0.14, 0.7, stone, 0.9), grind.map(a => { const e = a.slot[0] + 0.62, n = a.slot[1]; return [gw(e, n, nav.heightAt(e, n) || 0), Math.PI / 2]; }));
     const guards = sim.agents.filter(a => a.role === 'guard');
-    put(new THREE.BoxGeometry(0.8, 0.03, 1.9).translate(0, 0.015, 0), reed, guards.map(a => [gw(a.slot[0], a.slot[1] + 0.2, (nav.heightAt(a.slot[0], a.slot[1]) || 0)), Math.PI]), 'work:mats', 'reed sleeping mats (C)');
-    const o = PLACES.oven.at; put(new THREE.BoxGeometry(0.9, 0.2, 0.5).translate(0, 0.1, 0), clay, [[gw(o[0] - 1.5, o[1] - 0.6, nav.heightAt(o[0], o[1] - 0.6) || 0), 0.2]], 'work:trough', 'kneading trough (C)');
+    put(paintedBox(0.8, 0.03, 1.9, reed, 0.95), guards.map(a => [gw(a.slot[0], a.slot[1] + 0.2, (nav.heightAt(a.slot[0], a.slot[1]) || 0)), Math.PI]));
+    const o = PLACES.oven.at; put(paintedBox(0.9, 0.2, 0.5, clay, 0.95), [[gw(o[0] - 1.5, o[1] - 0.6, nav.heightAt(o[0], o[1] - 0.6) || 0), 0.2]]);
+    if (!parts.length) return;
+    const mesh = new THREE.Mesh(mergeGeometries(parts)!, this.propMaterial()); mesh.castShadow = mesh.receiveShadow = true; mesh.name = 'work:objects';
+    mesh.userData = { tier: 'C', src: 'RECON', note: 'work objects: limestone blocks being dressed (C); saddle querns (period type B, placement C); reed sleeping mats (C); kneading trough (C)' };
+    this.group.add(mesh);
   }
-  private pileLayout(im: THREE.InstancedMesh, centre: [number, number], count: number) {
-    const n = Math.min(count, im.instanceMatrix.count); im.count = n; const M = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(1, 1, 1);
+  /** lay out `count` sacks of a pile from instance `from` (at most `max`); returns how many were placed */
+  private pileLayout(from: number, max: number, centre: [number, number], count: number) {
+    const im = this.sacks, n = Math.max(0, Math.min(count, max)); const M = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(1, 1, 1);
     const g0 = this.sim!.nav.heightAt(centre[0], centre[1]) || 0; const per = 5 * 4;
     for (let i = 0; i < n; i++) { const layer = Math.floor(i / per), k = i % per, row = Math.floor(k / 5), col = k % 5;
-      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), (i * 0.37) % 0.4 - 0.2); im.setMatrixAt(i, M.compose(gw(centre[0] + (col - 2) * 0.5 + layer * 0.1, centre[1] + (row - 1.5) * 0.4, g0 + 0.12 + layer * 0.26), q, s)); }
-    im.instanceMatrix.needsUpdate = true;
+      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), (i * 0.37) % 0.4 - 0.2); im.setMatrixAt(from + i, M.compose(gw(centre[0] + (col - 2) * 0.5 + layer * 0.1, centre[1] + (row - 1.5) * 0.4, g0 + 0.12 + layer * 0.26), q, s)); }
+    return n;
   }
   // ------------------------------------------------------------------------------------------------ pool
   allocSlot(): number {
@@ -140,7 +151,7 @@ export class Crowd {
     const face: FaceState = { jaw: 0, blink: 0, look: null, eyeYaw: 0, eyePitch: 0 };
     const p: Person = { key, agent, look, slot, face, rig: { joints: v.joints, pose: { rot: {}, hips: [0, 0, 0] }, face, grip: [0, 0], x: 0, y: 0, z: 0, yaw: 0, scale: 1 },
       root: [0, 0, 0, 0], prevRoot: [0, 0, 0, 0], shown: false, drawnFrame: -10, poseFrame: -10, frameMod: seed % 8, lastHit: false,
-      blinkAt: (seed % 997) / 997 * 4, speakUntil: -1, prop: null, propM: new THREE.Matrix4(), anim: 'idle', t0: (seed % 100), dist: 0, mask: look.mask };
+      blinkAt: (seed % 997) / 997 * 4, speakUntil: -1, prop: null, propM: new THREE.Matrix4(), anim: 'idle', t0: (seed % 100), dist: 0, mask: look.mask, lookC: [0, 0, 0] };
     this.persons.set(key, p); if (agent) this.byAgent.set(agent.id, p); return p;
   }
   /** attached people by agent id (no string keys in the per-frame pool scan) */
@@ -181,11 +192,14 @@ export class Crowd {
     if (camera) { camera.updateMatrixWorld(); this.pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); this.frustum.setFromProjectionMatrix(this.pm); this.wide.copy(this.frustum); for (const pl of this.wide.planes) pl.constant += 3; }
     this.frame++;
     const S = this.sim?.stock;
-    if (S && S.depot !== this.lastStock.depot) { this.pileLayout(this.sackPiles.depot, [PLACES.stair_foot.at[0] - 3, PLACES.stair_foot.at[1] - 2.5], S.depot); this.lastStock.depot = S.depot; }
-    if (S && S.store !== this.lastStock.store) { this.pileLayout(this.sackPiles.store, [PLACES.treasury_store.at[0] - 4, PLACES.treasury_store.at[1] - 3], S.store); this.lastStock.store = S.store; }
+    if (S && (S.depot !== this.lastStock.depot || S.store !== this.lastStock.store)) {
+      const nd = this.pileLayout(0, 200, [PLACES.stair_foot.at[0] - 3, PLACES.stair_foot.at[1] - 2.5], S.depot);
+      const ns = this.pileLayout(nd, 400, [PLACES.treasury_store.at[0] - 4, PLACES.treasury_store.at[1] - 3], S.store);
+      this.sacks.count = nd + ns; this.sacks.visible = nd + ns > 0; this.sacks.instanceMatrix.needsUpdate = true; this.lastStock.depot = S.depot; this.lastStock.store = S.store;
+    }
     if (this.autoPool) this.autoPoolStep(cam, camera);
     const gpu = this.humans.gpu; gpu.begin();
-    for (const im of this.props.values()) im.count = 0;
+    this.carried.count = 0;
     // order by distance for the full-detail cap
     const list = this.list; list.length = 0;
     for (const p of this.persons.values()) {
@@ -215,7 +229,8 @@ export class Crowd {
       if (p.prop) this.placeProp(p);
     }
     gpu.end(true);
-    for (const im of this.props.values()) im.instanceMatrix.needsUpdate = true;
+    { const im = this.carried; im.visible = im.count > 0; if (im.count) { im.instanceMatrix.needsUpdate = true; im.instanceMatrix.clearUpdateRanges(); im.instanceMatrix.addUpdateRange(0, im.count * 16);
+      this.carriedKind.needsUpdate = true; this.carriedKind.clearUpdateRanges(); this.carriedKind.addUpdateRange(0, im.count); } }
     this.perf.ms = performance.now() - t0; this.perf.poseMs = performance.now() - tp; this.perf.posed = posed; this.perf.drawn = drawn; this.perf.attached = this.persons.size;
   }
   private copyPrev(p: Person) { const o = p.slot * PALETTE_STRIDE; const g = this.humans.gpu; g.prevPalette.set(g.palette.subarray(o, o + PALETTE_STRIDE), o); }
@@ -238,11 +253,11 @@ export class Crowd {
     // glance: a stranger within 7 m turns heads (clamped), and eyes look at them (people notice a stranger)
     const f = p.face; f.look = null; f.eyeYaw = 0; f.eyePitch = 0; f.jaw = 0;
     const lookAt = p.extra?.look ?? null;
-    if (lookAt) f.look = lookAt;
+    if (lookAt) f.look = this.toChar(p, lookAt);
     else if (playerPos && d < 7 && anim !== 'sleep') {
       const dx = cam.x - p.root[0], dz = cam.z - p.root[2]; const cy = Math.cos(p.root[3]), sy = Math.sin(p.root[3]);
       const lx = cy * dx - sy * dz, lz = sy * dx + cy * dz; const yaw = Math.atan2(lx, lz);
-      if (Math.abs(yaw) < 1.9) { const h = po.rot.head ?? [0, 0, 0]; po.rot.head = [h[0], Math.max(-1, Math.min(1, yaw)) * (a && a.metPlayer > 1 ? 1 : 0.8), h[2]]; f.look = [cam.x, cam.y, cam.z]; }
+      if (Math.abs(yaw) < 1.9) { const h = po.rot.head ?? [0, 0, 0]; po.rot.head = [h[0], Math.max(-1, Math.min(1, yaw)) * (a && a.metPlayer > 1 ? 1 : 0.8), h[2]]; f.look = this.toChar(p, [cam.x, cam.y, cam.z]); }
     }
     if (lod < 2) { // face detail only where it can be seen
       // blinks every 2–6 s (150 ms), saccades
@@ -263,6 +278,12 @@ export class Crowd {
     if (p.poseFrame < 0) g.prevPalette.set(g.palette.subarray(o, o + PALETTE_STRIDE), o);
     p.poseFrame = this.frame;
     p.prop = propKind; if (propKind) this.propLocal(p, propKind);
+  }
+  /** a world point in the person's character space (inverse of the instance root: translate, yaw about +Y, scale).
+   *  The rig solves in character space, so gaze targets must be given there (world targets aimed the eyes wrongly). */
+  private toChar(p: Person, w: ArrayLike<number>) {
+    const dx = w[0] - p.root[0], dy = w[1] - p.root[1], dz = w[2] - p.root[2], c = Math.cos(p.root[3]), s = Math.sin(p.root[3]), k = 1 / p.look.scale, o = p.lookC;
+    o[0] = (c * dx - s * dz) * k; o[1] = dy * k; o[2] = (s * dx + c * dz) * k; return o;
   }
   private asideCache = new Map<string, number>();
   private asideBits(dress: Dress, anim: AnimId) {
@@ -295,10 +316,10 @@ export class Crowd {
     M.compose(pos, new THREE.Quaternion().setFromRotationMatrix(rot), new THREE.Vector3(sc, sc, sc));
   }
   private placeProp(p: Person) {
-    const k = p.prop === 'jar_head' ? 'jar' : p.prop!; const im = this.props.get(k); if (!im) return;
-    if (im.count >= im.instanceMatrix.count) return;
+    const k = (p.prop === 'jar_head' ? 'jar' : p.prop!) as typeof PROP_KINDS[number]; const ki = PROP_KINDS.indexOf(k); const im = this.carried;
+    if (ki < 0 || im.count >= CARRIED_MAX) return;
     _m.makeRotationY(p.root[3]).setPosition(p.root[0], p.root[1], p.root[2]).multiply(p.propM);
-    im.setMatrixAt(im.count++, _m);
+    this.carriedKind.array[im.count] = ki; im.setMatrixAt(im.count++, _m);
   }
   // ------------------------------------------------------------------------------------------------ hits (overlay, pick)
   private raycast(rc: THREE.Raycaster, out: THREE.Intersection[]) {
@@ -318,7 +339,7 @@ export class Crowd {
     }
   }
   /** draw calls and triangles the crowd submits this frame (main pass; shadow passes repeat some of them) */
-  stats() { const s = this.humans.gpu.stats(); let propDraws = 0; for (const im of this.props.values()) if (im.count) propDraws++; return { ...s, propDraws, perf: { ...this.perf } }; }
+  stats() { const s = this.humans.gpu.stats(); const propDraws = this.carried.count ? 1 : 0; return { ...s, propDraws, props: this.carried.count, perf: { ...this.perf } }; }
   /** evidence notes for the pieces a person wears (tests, overlay) */
   static pieceNotes(look: PersonLook) { return look.pieces.map(id => ({ ...PIECES[id], id })); }
 }

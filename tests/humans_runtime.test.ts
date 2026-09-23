@@ -184,6 +184,29 @@ describe('crowd: pooling and the per-frame CPU budget (slice population + 300 ex
     const slots = [...crowd.persons.values()].map(p => p.slot); expect(new Set(slots).size).toBe(slots.length);
     expect(Math.max(...slots)).toBeLessThan(within + 25); // freed slots are reused, not appended forever
   });
+  it('eyes look at a world target from any root (the rig solves in character space; the target is converted)', () => {
+    const img = () => new THREE.DataTexture(new Uint8Array(4), 1, 1);
+    const humans = { A, O, gpu: new HumanGPU(A, O, { skin: img(), eye: img() }, { capacity: 16 }), ms: { load: 0, outfits: 0, gpu: 0, worker: false } };
+    const crowd = new Crowd(null, 1, humans); const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000);
+    for (const [x, z, yaw, side] of [[3, -4, 0.8, 0.25], [-40, 12, -2.2, -0.2], [0, 0, 0, 0]]) {
+      crowd.removeExtras();
+      const p = crowd.addExtra('g', { id: 1, sex: 'm', role: 'official', dress: 'persian', seed: 11, x, y: 0.5, z, yaw, anim: 'idle', look: null });
+      const s = p.look.scale, v = A.variants[p.look.variant], cy = Math.cos(yaw), sy = Math.sin(yaw);
+      // a target 0.7 m in front of the face and `side` m to his left (character +X → world (cy, 0, −sy); +Z → (sy, 0, cy))
+      const t: [number, number, number] = [x + sy * 0.8 + cy * side, 0.5 + v.eyeY * s, z + cy * 0.8 - sy * side]; p.extra!.look = t;
+      cam.position.set(t[0], t[1], t[2]); cam.lookAt(x, 0.5 + v.eyeY * s, z); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+      crowd.update(1, cam.position, null, cam);
+      for (const b of [HB.eye_l, HB.eye_r]) {
+        const m = humans.gpu.palette.subarray(p.slot * PALETTE_STRIDE + b * 12, p.slot * PALETTE_STRIDE + b * 12 + 12);
+        const jx = v.joints[b * 3], jy = v.joints[b * 3 + 1], jz = v.joints[b * 3 + 2];
+        const ec = [m[0] * jx + m[1] * jy + m[2] * jz + m[3], m[4] * jx + m[5] * jy + m[6] * jz + m[7], m[8] * jx + m[9] * jy + m[10] * jz + m[11]]; // character space
+        const ew = [x + s * (cy * ec[0] + sy * ec[2]), 0.5 + s * ec[1], z + s * (-sy * ec[0] + cy * ec[2])];
+        const g = [cy * m[2] + sy * m[10], m[6], -sy * m[2] + cy * m[10]], d = [t[0] - ew[0], t[1] - ew[1], t[2] - ew[2]];
+        const ang = Math.acos((g[0] * d[0] + g[1] * d[1] + g[2] * d[2]) / Math.hypot(...g) / Math.hypot(...d)) * 180 / Math.PI;
+        expect(ang, `yaw ${yaw}, eye ${b}`).toBeLessThan(4); // within the plant offset's few cm at 0.7 m
+      }
+    }
+  });
   it('every activity prop exists', () => {
     for (const [id, p] of Object.entries(ACTIVITIES)) if (p.prop) expect(propGeometry(p.prop === 'jar_head' ? 'jar' : p.prop === 'bread' ? 'basket' : p.prop), id).not.toBeNull();
   });

@@ -27,7 +27,8 @@ export const TEXTILE: Record<string, { c: RGB; tier: 'B' | 'C'; note: string }> 
   ochre: { c: L(0.66, 0.5, 0.26), tier: 'B', note: 'yellow of the Susa guard robes (SUSA-ARCH)' },
 };
 const LEATHER: RGB[] = [L(0.36, 0.24, 0.15), L(0.45, 0.31, 0.2), L(0.28, 0.19, 0.13), L(0.52, 0.38, 0.25)];
-const FELT: RGB[] = [L(0.62, 0.56, 0.45), L(0.5, 0.44, 0.35), L(0.7, 0.65, 0.55), L(0.4, 0.34, 0.27)];
+/** undyed felt, light tan to dark brown (C; no cream: a white fluted cylinder read as a modern cook's hat) */
+const FELT: RGB[] = [L(0.62, 0.56, 0.45), L(0.5, 0.44, 0.35), L(0.33, 0.27, 0.21), L(0.4, 0.34, 0.27)];
 /** skin tones (sRGB) — one range for everyone (C); outdoor workers a little darker (sun) */
 const SKIN: RGB[] = [[0.76, 0.58, 0.46], [0.72, 0.53, 0.42], [0.66, 0.48, 0.36], [0.6, 0.43, 0.31], [0.54, 0.38, 0.27], [0.47, 0.32, 0.22]];
 /** hair: near-black to dark brown (C; the reliefs paint hair dark blue, a convention); greying with age */
@@ -102,7 +103,7 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
       else if (rng.chance(0.45)) on.add('kandys'); break;
     case 'worker': if (man) { const egyptian = p.origin === 'Egyptian'; if (!egyptian && beardRoll < 0.3) on.add('beard_long'); else if (!egyptian && beardRoll < 0.8) on.add('beard_short'); }
       if (rng.chance(0.4)) on.add('work_trousers'); if (rng.chance(0.6)) on.add('shoes'); const h = rng.next(); if (h < 0.3) on.add('headband'); else if (h < 0.45) on.add('cap_soft'); break;
-    case 'woman': if (rng.chance(0.8)) on.add('headcloth'); else { on.delete('hair'); on.add('hair_bob'); } if (rng.chance(0.6)) on.add('shoes'); break;
+    case 'woman': if (rng.chance(0.8)) { on.add('headcloth'); on.delete('hair'); /* hidden under it (it poked through) */ } else { on.delete('hair'); on.add('hair_bob'); } if (rng.chance(0.6)) on.add('shoes'); break;
     case 'child': if (rng.chance(0.3)) on.add('shoes'); break;
   }
   let mask = 1; const pieces: string[] = [...COSTUMES[dress].always];

@@ -398,7 +398,7 @@ function beltTube(L: Lib, key: string, lod: number, over: string[], o: { dy: num
 function footShell(L: Lib, key: string, lod: number, top: number) {
   const { A, ref, J } = L;
   const d = regionOf(A, ref, [P.foot_l, P.foot_r, P.calf_l, P.calf_r], p => J('foot_l')[1] + top - p[1]);
-  return shellGeo(A, ref, key, { tris: A.lods[TESS[lod].tris], d, ramp: 0.012, thick: p => (p[1] < 0.012 ? 0.006 : 0.0045), smooth: 1, minOff: 0.003, mat: MAT.leather, col: COL.leather });
+  return shellGeo(A, ref, key, { tris: A.lods[TESS[lod].tris], d, ramp: 0.012, thick: p => (p[1] < 0.012 ? 0.0065 : 0.005), smooth: 16, minOff: 0.0035, mat: MAT.leather, col: COL.leather });
 }
 /** legs: trousers from the hips to above the ankle */
 function trouserShell(L: Lib, key: string, lod: number, col: number) {
@@ -408,12 +408,17 @@ function trouserShell(L: Lib, key: string, lod: number, col: number) {
 }
 /** scalp hair: shell over the scalp mask; thicker on the crown and at the back */
 function hairShell(L: Lib, key: string, lod: number, bob: boolean) {
-  const { A, ref, J } = L; const eyeY = ref.eyeY, jaw = J('jaw');
+  const { A, ref, J } = L; const eyeY = ref.eyeY, jaw = J('jaw'), hz = J('head')[2];
   const d = regionOf(A, ref, [P.head, P.neck], (p, i) => {
-    const m = (A.scalp[i] - 0.45) * 0.05; if (!bob) return m;
+    const m = (A.scalp[i] - 0.45) * 0.05;
+    // sideburns: the hair comes down in front of the ear to about the ear canal (the baked scalp mask stops at the
+    // temple, which left bald-looking temples under hats and bands in the first close-ups)
+    const side = Math.max(Math.min(Math.abs(p[0]) - 0.058, hz + 0.068 - p[2], p[2] - (hz + 0.022), p[1] - (eyeY - 0.035)),
+      Math.min(Math.abs(p[0]) - 0.045, hz - 0.036 - p[2], p[1] - (eyeY - 0.045))); // and behind the ear (clear of the pinna)
+    if (!bob) return Math.max(m, side);
     // bob: the hair falls to the jaw line behind the front edge of the ears
-    const bobD = p[2] < J('head')[2] + 0.035 ? Math.min(p[1] - (jaw[1] - 0.02), 0.02) : -1;
-    return Math.max(m, bobD); });
+    const bobD = p[2] < hz + 0.035 ? Math.min(p[1] - (jaw[1] - 0.02), 0.02) : -1;
+    return Math.max(m, side, bobD); });
   return shellGeo(A, ref, key, { tris: A.lods[lod === 0 ? 0 : TESS[lod].tris], d, ramp: 0.008, smooth: lod === 0 ? 5 : 3, minOff: 0.004,
     thick: p => 0.006 + 0.008 * sstep(eyeY + 0.02, eyeY + 0.1, p[1]) + (bob ? 0.01 : 0.004) * sstep(0.05, -0.04, p[2] - J('head')[2]), mat: MAT.hair, col: COL.hair, prm: 0 });
 }
@@ -455,8 +460,10 @@ export function beardMask(L: Lib): Float32Array {
   const F = faceGeom(L); const out = new Float32Array(A.NO);
   const noseY = ref.pos[F.noseI * 3 + 1], eyeY = ref.eyeY;
   for (let i = 0; i < A.NO; i++) { const pt = A.part[i]; if (pt !== P.head && pt !== P.neck) continue; const x = ref.pos[i * 3], y = ref.pos[i * 3 + 1], z = ref.pos[i * 3 + 2], ax = Math.abs(x);
-    const cheekLine = lerp(noseY - 0.016, eyeY - 0.03, sstep(0.018, 0.05, ax)); // under the nose in the middle, the cheekbone line at the sides
-    const dy = y - F.mouthY, lips = (Math.hypot(x / 0.026, dy / (dy > 0 ? 0.0105 : 0.0125)) - 1) * 0.012; // outside the lips > 0
+    // under the nose in the middle (the subnasale: the moustache covers the philtrum and the top of the upper lip, as on
+    // the reliefs; the first version stopped 1 cm lower and left a clean-shaven upper lip), the cheekbone line at the sides
+    const cheekLine = lerp(noseY - 0.008, eyeY - 0.03, sstep(0.018, 0.05, ax));
+    const dy = y - F.mouthY, lips = (Math.hypot(x / 0.026, dy / (dy > 0 ? 0.006 : 0.0125)) - 1) * 0.012; // outside the lips > 0
     const d = Math.min(cheekLine - y, z - (J('jaw')[2] - 0.012), y - (J('neck_01')[1] - 0.005), F.halfW - 0.004 - ax, lips);
     out[i] = sstep(-0.003, 0.005, d); }
   BEARD_CACHE.set(A, out); return out;
@@ -508,17 +515,17 @@ function flutedHatFitted(L: Lib, key: string, lod: number) {
   return tubeGeo(L.A, key, { segs, rings, lining: 0.004, capEnd: true,
     frame: (c, t) => { const F = headRingFrame(c, 0.045, 0.12); return { ...F, o: add(F.o, scl(F.w, -0.012 + (H + 0.012) * t)) }; },
     radius: (c, t, th) => { const r = headRim(c, headRingFrame(c, 0.045, 0.12), 0.008, cache);
-      const fl = 0.006 * Math.abs(Math.sin(th * flutes / 2)) * (t > 0.08 ? 1 : 0); // flutes (vertical grooves)
+      const fl = 0.009 * Math.abs(Math.sin(th * flutes / 2)) * (t > 0.08 ? 1 : 0); // flutes (vertical grooves)
       return rimAt(r, th) + 0.006 + 0.012 * t - fl; },
     weights: () => [W('head', 1)], mat: MAT.felt, col: COL.felt, prm: 1 });
 }
 /** torus-like band around the head (fillet, headband) */
-function headBand(L: Lib, key: string, lod: number, o: { dy: number; w: number; t: number; twisted: boolean; col: number }) {
+function headBand(L: Lib, key: string, lod: number, o: { dy: number; w: number; t: number; twisted: boolean; col: number; gap?: number }) {
   const T = TESS[lod], segs = Math.max(8, T.hs);
   const cache = { v: null as HumanVariant | null, r: [] as number[] };
   return tubeGeo(L.A, key, { segs, rings: 2, lining: 0.003, closeTop: true,
     frame: (c, t) => { const F = headRingFrame(c, o.dy, 0.15); return { ...F, o: add(F.o, scl(F.w, (t - 0.5) * o.w)) }; },
-    radius: (c, t, th) => { const r = headRim(c, headRingFrame(c, o.dy, 0.15), 0.01, cache); return rimAt(r, th) + 0.006 + (o.twisted ? 0.003 * Math.sin(th * 30 + t * 3) : 0) + o.t * Math.sin(Math.PI * t); },
+    radius: (c, t, th) => { const r = headRim(c, headRingFrame(c, o.dy, 0.15), 0.01, cache); return rimAt(r, th) + (o.gap ?? 0.006) + (o.twisted ? 0.003 * Math.sin(th * 30 + t * 3) : 0) + o.t * Math.sin(Math.PI * t); },
     weights: () => [W('head', 1)], mat: MAT.cloth_trim, col: o.col, prm: o.twisted ? 3 : 0 });
 }
 /** soft felt cap: shell over the cranium, ears and nape, domed on top (Median dress, C) */
@@ -540,8 +547,11 @@ function headcloth(L: Lib, key: string, lod: number) {
     const top = p[1] - (J('spine_03')[1] + 0.12 - 0.1 * sstep(0.05, -0.1, p[2])); // falls lower at the back
     const arm = Math.abs(p[0]) > 0.2 ? -1 : 1;
     return Math.min(faceOpen * 0.03, top, arm * 0.03); });
-  return shellGeo(A, ref, key, { tris: A.lods[TESS[lod].tris], d, ramp: 0.012, smooth: 8, minOff: 0.01,
-    thick: p => 0.014 + 0.006 * sstep(eyeY, eyeY + 0.1, p[1]), mat: MAT.cloth_second, col: COL.second, prm: 0 });
+  // over the dress (below the neck) it lies 2.4 cm out, and smoothing may not pull it closer than 2.2 cm: the dress is
+  // 1 cm out plus its own smoothing, and a closer cloth z-fought with it; over the head 1.4–2 cm (no hair is worn under it)
+  const neckY = J('neck_01')[1];
+  return shellGeo(A, ref, key, { tris: A.lods[TESS[lod].tris], d, ramp: 0.012, smooth: 8, minOff: 0.022,
+    thick: p => (p[1] < neckY ? 0.024 : 0.014 + 0.006 * sstep(eyeY, eyeY + 0.1, p[1])), mat: MAT.cloth_second, col: COL.second, prm: 0 });
 }
 /** torque: a ring around the base of the neck, fitted to the neck's support radius (per θ) plus 7 mm */
 function torqueGeo(L: Lib, key: string, lod: number) {
@@ -671,7 +681,7 @@ function buildPiece(L: Lib, id: string, lod: number): Geo {
     case 'beard_short': return beardGeo(L, `${id}@${lod}`, lod, false);
     case 'hat_fluted': return flutedHatFitted(L, `${id}@${lod}`, lod);
     case 'fillet': return headBand(L, `${id}@${lod}`, lod, { dy: 0.04, w: 0.022, t: 0.006, twisted: true, col: COL.trim });
-    case 'headband': return headBand(L, `${id}@${lod}`, lod, { dy: 0.045, w: 0.03, t: 0.003, twisted: false, col: COL.second });
+    case 'headband': return headBand(L, `${id}@${lod}`, lod, { dy: 0.045, w: 0.02, t: 0.002, twisted: false, col: COL.second, gap: 0.0045 });
     case 'cap_soft': return softCap(L, `${id}@${lod}`, lod);
     case 'torque': return torqueGeo(L, `${id}@${lod}`, lod);
     case 'quiver': return quiverGeo(L, `${id}@${lod}`, lod);

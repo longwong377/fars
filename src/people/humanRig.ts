@@ -25,7 +25,8 @@ export const POSE_PELVIS_Y = 0.95;
 export interface FaceState {
   /** jaw opening (rad, + opens) */ jaw: number;
   /** 0 open … 1 closed */ blink: number;
-  /** gaze target in world space (m) or null (eyes follow the head, with small saccades in eyeYaw/eyePitch) */
+  /** gaze target (m) in the space of the rig input's root (x, y, z, yaw, scale): world space when the root is the
+   *  person's, character space when the root is zero (the crowd); null: eyes follow the head, with saccades */
   look: [number, number, number] | null;
   eyeYaw: number; eyePitch: number;
 }

@@ -1,5 +1,6 @@
 // Objects people hold while they work (activities.ts `prop`): spear, sack, jar, tablet, mallet, basket. Geometry per
-// kind with vertex colours (tier notes in PROP_NOTES). Instanced by the crowd, placed from the hand bones each frame.
+// kind with vertex colours (tier notes in PROP_NOTES). All kinds are one instanced mesh (propUnionGeometry: each
+// instance shows its own kind, the others collapse), placed from the hand bones each frame: one draw for every prop.
 import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 
@@ -37,3 +38,12 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
     default: return null;
   }
 }
+export const PROP_KINDS = ['spear', 'sack', 'jar', 'tablet', 'mallet', 'basket'] as const;
+/** every prop kind in one geometry, with the kind's index per vertex ('pk'); an instance shows the kind whose index it
+ *  carries ('ik') and the other kinds' vertices collapse to a point (572 triangles per instance, most of them empty) */
+export function propUnionGeometry(): THREE.BufferGeometry {
+  return mergeGeometries(PROP_KINDS.map((k, i) => { const g = propGeometry(k)!.clone(); const n = g.getAttribute('position').count;
+    g.setAttribute('pk', new THREE.BufferAttribute(new Float32Array(n).fill(i), 1)); return g; }))!;
+}
+/** a box painted for the prop material (work objects) */
+export function paintedBox(w: number, h: number, d: number, rgb: [number, number, number], rough: number) { return paint(new THREE.BoxGeometry(w, h, d).translate(0, h / 2, 0), rgb, 0, rough); }

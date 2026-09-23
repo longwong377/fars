@@ -1,7 +1,9 @@
 // GPU resources for the human crowd (D-025/D-026): the vertex-source texture (every body variant and fitted garment), the
 // skin palettes (current and previous frame), the per-person data rows, and one instanced mesh per costume and LOD.
 // All people of a costume and LOD are one draw call; the crowd fills the instance lists (slot, root, previous root)
-// each frame for the people it decided to show at that LOD.
+// each frame for the people it decided to show at that LOD. Shadows: the drawn meshes cast none. One shadow-only mesh
+// per costume (the far-body geometry, on SHADOW_LAYER, which only the sun's shadow cameras see) carries everyone within
+// the far band (LOD 0–2): one draw per costume per shadow cascade, whatever the LOD mix; nobody beyond 200 m casts.
 import * as THREE from 'three/webgpu';
 import type { HumanAssets } from './humanAssets';
 import type { OutfitBuild, CostumeLOD, Dress } from './outfits';
@@ -11,8 +13,16 @@ import { NBONES, PALETTE_STRIDE } from './humanRig';
 
 export const SOURCE_WIDTH = 2048;
 export interface CostumeMesh { dress: Dress; lod: number; mesh: THREE.Mesh; geo: THREE.InstancedBufferGeometry; inst: THREE.InstancedInterleavedBuffer; count: number; triangles: number; box: THREE.Box3;
-  /** shadow-only caster drawn with the same instances (full-detail costumes cast with the mid-detail geometry) */
+  /** the costume's shadow-only caster (far-body geometry) that also receives this mesh's instances */
   shadow?: CostumeMesh }
+/** layer of the shadow-only meshes: never drawn by the view camera, only by shadow cameras that enable it */
+export const SHADOW_LAYER = 7;
+/** let a light's shadow camera (and its cascades' cameras, if a CSM node is set) see the shadow-only people meshes.
+ *  Call before the first render: CSMShadowNode clones the light's shadow camera (with its layers) when it initialises. */
+export function shadowsSeePeople(light: THREE.DirectionalLight) {
+  light.shadow.camera.layers.enable(0); light.shadow.camera.layers.enable(SHADOW_LAYER);
+  for (const l of ((light.shadow as any).shadowNode?.lights ?? []) as any[]) l.shadow?.camera?.layers.enable(SHADOW_LAYER);
+}
 /** floats per instance: slot, root (x, y, z, yaw), previous root */
 export const INST_STRIDE = 9;
 
@@ -24,6 +34,8 @@ function dataTex(data: Float32Array, w: number, h: number) {
 export class HumanGPU {
   readonly group = new THREE.Group();
   readonly costumes = new Map<string, CostumeMesh>();
+  /** per costume: the shadow-only caster */
+  readonly shadows: CostumeMesh[] = [];
   readonly material: HumanMaterial;
   /** every material sampling the palette textures (repointed when they grow) */
   readonly materials: HumanMaterial[] = [];
@@ -46,11 +58,14 @@ export class HumanGPU {
     this.material = new HumanMaterial(this.textures); this.materials.push(this.material);
     const shadowMat = new HumanMaterial(this.textures, { shadowOnly: true }); this.materials.push(shadowMat);
     const cast = opts.castShadow ?? true;
-    for (const d of DRESSES) for (const C of O.costumes[d] ?? []) {
-      const cm = this.makeMesh(C, this.material, cast && C.lod > 0); this.costumes.set(`${d}@${C.lod}`, cm);
-      // full-detail people cast their shadow with the mid-detail body (a shadow-only copy): shadow maps do not need
-      // fingers and eyelids, and the full body would be drawn again in every cascade that contains it
-      if (C.lod === 0 && cast) { const mid = O.costumes[d].find(c => c.lod === 1); if (mid) { const sm = this.makeMesh(mid, shadowMat, true); sm.mesh.name = `humans:${d}:lod0-shadow`; cm.shadow = sm; } }
+    for (const d of DRESSES) {
+      const list = O.costumes[d] ?? [];
+      // shadow maps do not need fingers and eyelids (a cascade texel is 1–12 cm): the far body (≈2.5k triangles) casts
+      // for everyone within 200 m, in one draw per costume and cascade
+      const geo = list.find(c => c.lod === 2) ?? list.find(c => c.lod === 1);
+      const sm = cast && geo ? this.makeMesh(geo, shadowMat, true) : null;
+      if (sm) { sm.mesh.name = `humans:${d}:shadow`; sm.mesh.layers.set(SHADOW_LAYER); sm.mesh.receiveShadow = false; this.shadows.push(sm); }
+      for (const C of list) { const cm = this.makeMesh(C, this.material, false); if (sm && C.lod <= 2) cm.shadow = sm; this.costumes.set(`${d}@${C.lod}`, cm); }
     }
   }
   /** one instanced mesh for a costume LOD (plain Mesh + InstancedBufferGeometry: the material places every instance).
@@ -84,7 +99,7 @@ export class HumanGPU {
   setInstance(c: CostumeMesh, i: number, slot: number, root: number[], prev: number[]) { const a = c.inst.array as Float32Array; a[i * INST_STRIDE] = slot; a.set(root, i * INST_STRIDE + 1); a.set(prev, i * INST_STRIDE + 5); c.inst.needsUpdate = true; }
   /** start filling the instance lists for a frame */
   begin() { for (const c of this.all()) { c.count = 0; c.box.makeEmpty(); } }
-  private *all() { for (const c of this.costumes.values()) { yield c; if (c.shadow) yield c.shadow; } }
+  private *all() { yield* this.costumes.values(); yield* this.shadows; }
   push(c: CostumeMesh, slot: number, x: number, y: number, z: number, yaw: number, px: number, py: number, pz: number, pyaw: number) {
     if ((c.count + 1) * INST_STRIDE > c.inst.array.length) c.inst = this.instBuffer(c.geo, c.inst.count * 2, c.inst.array as Float32Array);
     const a = c.inst.array as Float32Array, o = c.count++ * INST_STRIDE;
@@ -116,10 +131,11 @@ export class HumanGPU {
     }
     this.personDirty = true;
   }
-  /** main-pass draws and triangles of the costumes; the shadow-only copies of full-detail people are counted apart
-   *  (they are drawn in the main pass without colour or depth, and in the shadow cascades) */
+  /** view-pass draws and triangles of the costumes, and the shadow casters' draws and triangles per shadow map (each
+   *  cascade that contains them draws them again) */
   stats() { let draws = 0, tris = 0, people = 0, shadowDraws = 0, shadowTris = 0; const byLod = [0, 0, 0, 0];
-    for (const c of this.costumes.values()) if (c.count) { draws++; tris += c.count * c.triangles; people += c.count; byLod[c.lod] += c.count; if (c.shadow) { shadowDraws++; shadowTris += c.count * c.shadow.triangles; } }
-    return { draws, triangles: tris, people, byLod, shadowCopyDraws: shadowDraws, shadowCopyTriangles: shadowTris }; }
+    for (const c of this.costumes.values()) if (c.count) { draws++; tris += c.count * c.triangles; people += c.count; byLod[c.lod] += c.count; }
+    for (const c of this.shadows) if (c.count) { shadowDraws++; shadowTris += c.count * c.triangles; }
+    return { draws, triangles: tris, people, byLod, shadowDraws, shadowTriangles: shadowTris }; }
 }
 const _v = new THREE.Vector3();

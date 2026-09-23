@@ -1,11 +1,12 @@
 // The player's visible body (brief §6: visible, in period dress, with a shadow; D-025). The same MakeHuman-derived body
 // and costume system as everyone else: a man in Median riding dress of undyed wool (tunic, trousers, boots, soft cap;
 // C: the visitor's dress is not evidenced, the riding costume is the common dress of the period, B). The camera sits
-// inside the head, so the visible copy collapses the head (person flag) and a second, shadow-only copy (no colour,
-// no depth) keeps the head's shadow. Walk and idle cycles from anim.ts.
+// inside the head, so the visible copy collapses the head (person flag) and a second, shadow-only copy (mid body, on
+// the shadow-only layer: drawn by the sun's shadow cameras only) keeps the head's shadow. Walk and idle cycles from anim.ts.
 import * as THREE from 'three/webgpu';
 import type { Crowd } from '../people/crowd';
 import { HumanMaterial, FLAG_HIDE_HEAD } from '../people/humanMaterial';
+import { SHADOW_LAYER } from '../people/humanGPU';
 import { RigSolver, PALETTE_STRIDE, type RigInput } from '../people/humanRig';
 import { lookFor } from '../people/looks';
 import { pose } from '../people/anim';
@@ -28,9 +29,11 @@ export function makePlayerBody(crowd?: Crowd): THREE.Group {
   look.pieces = [...COSTUMES.median.always, 'hair', 'bun', 'beard_short', 'cap_soft'];
   const slots: [number, number] = [crowd.allocSlot(), crowd.allocSlot()];
   crowd.writePerson(slots[0], look, FLAG_HIDE_HEAD); crowd.writePerson(slots[1], look, 0);
-  const C = H.O.costumes.median[0];
+  // the visible body at full detail (casts nothing); the shadow from the mid body, on the shadow-only layer
+  const C = H.O.costumes.median[0], Cs = H.O.costumes.median.find(c => c.lod === 1) ?? C;
   const shadowMat = new HumanMaterial(gpu.textures, { shadowOnly: true }); gpu.materials.push(shadowMat);
-  const vis = gpu.makeMesh(C, gpu.material, false, 1), shadow = gpu.makeMesh(C, shadowMat, true, 1);
+  const vis = gpu.makeMesh(C, gpu.material, false, 1), shadow = gpu.makeMesh(Cs, shadowMat, true, 1);
+  shadow.mesh.layers.set(SHADOW_LAYER);
   gpu.group.remove(vis.mesh); gpu.group.remove(shadow.mesh); // owned by the player body, not the crowd
   for (const [cm, slot] of [[vis, slots[0]], [shadow, slots[1]]] as const) {
     gpu.setInstance(cm, 0, slot, [0, 0, 0, Math.PI], [0, 0, 0, Math.PI]);

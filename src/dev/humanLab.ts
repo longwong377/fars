@@ -9,6 +9,7 @@ import { QUALITY, type Quality } from '../core/settings';
 import { installWebGPUCompat } from '../render/compat';
 import { loadHumans } from '../people/humans';
 import { Crowd } from '../people/crowd';
+import { shadowsSeePeople } from '../people/humanGPU';
 import { surfaceMaterial } from '../render/materials';
 import type { AnimId } from '../people/anim';
 installWebGPUCompat();
@@ -26,6 +27,7 @@ async function boot() {
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(+(P.get('fov') ?? 50), innerWidth / innerHeight, 0.05, 20000);
   const sky = new SkySystem(scene, QUALITY[quality].shadowMapSize, quality); await sky.loadStars('/');
+  shadowsSeePeople(sky.sun);
   const clock = new WorldClock(+(P.get('day') ?? 25), +(P.get('hour') ?? 10));
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200).rotateX(-Math.PI / 2), surfaceMaterial('court_fill')); floor.receiveShadow = true; scene.add(floor);
   // a wall behind the lineup (a backdrop for judging silhouettes and bounce light)
