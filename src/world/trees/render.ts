@@ -288,7 +288,8 @@ function pickable(mesh: THREE.Mesh, inst: () => TreeInst[], models: TreeModel[],
       if (!best || d < best.distance) best = { distance: d, point: hit.clone(), object: mesh, instanceId: i }; }
     if (best) out.push(best);
   };
-  mesh.userData = { tier: 'C', src: 'BOTANY-GEN', note: `${layer}: trees generated from src/data/trees.json`, describe: (h: any) => { const r = inst()[h?.instanceId ?? -1]; if (!r) return null; const m = models[r.row];
+  const general = { tier: 'C', src: 'BOTANY-GEN', note: `${layer}: trees generated from src/data/trees.json (species presence B, form C, placement C)` };
+  mesh.userData = { ...general, describe: (h: any) => { const r = inst()[h?.instanceId ?? -1]; if (!r) return general; const m = models[r.row];
     const t = speciesTag(m.species, r.where ?? layer); return { ...t, note: `${t.note}; this tree ${(m.H * r.sy).toFixed(1)} m tall, crown ${(m.W * r.sxz).toFixed(1)} m (placement C)` }; } };
 }
 
