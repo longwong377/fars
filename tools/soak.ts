@@ -12,6 +12,10 @@
 //    the slice's sacks stay in [0, 5000]; every store stays within its bounds (calendar.ts STORE_BOUNDS) and no ration
 //    group goes short two issues running (CE-03 collapse).
 //  - rendered honesty: no detailed agent on the Terrace ever performs an activity outside PeopleSim.EMITS or a placeholder.
+//  - plans well formed (planCheck.ts): every person-day of every plan (the detailed agents' plans too) is checked for a
+//    night's sleep, an activity that contradicts its own reason, meals for adults awake through a day, and yesterday's
+//    end matching today's start; on every third day (118 days) every person is also checked for being "with" someone
+//    who is elsewhere (a person in two places) and every child under ten for being alone at night. Gate: no issue at all.
 //  - visible change: construction progress week by week and the seasonal state.
 //  - cost: step() at 60 fps with the full population (ms/frame), and the day-rollover spike.
 // Usage: npx tsx tools/soak.ts [days=354] [dtSeconds=60] [seed=1] [--sample N] [--court]
@@ -20,7 +24,8 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, Env } from '../src/people/sim';
 import { ACTIVITIES } from '../src/people/activities';
-import { segAt } from '../src/people/population';
+import { segAt, Seg } from '../src/people/population';
+import { checkPlan, checkDay } from '../src/people/planCheck';
 import { EVENT_KINDS, STORE_BOUNDS, Stores } from '../src/people/calendar';
 import { WeatherSystem } from '../src/weather/weatherState';
 import { seasonAt } from '../src/world/season';
@@ -114,23 +119,29 @@ export function runSoak(days = 354, dt = 60, seed = 1, log = (s: string) => cons
     for (let i = persons - 1; i > 0; i--) { const j = Math.floor(((Math.imul(i + seed, 2654435761) >>> 0) / 4294967296) * (i + 1)); [ids[i], ids[j]] = [ids[j], ids[i]]; } ids.length = sampleN; }
   const popStats: { pid: number; job: string; days: number; share: number }[] = []; const popStuck: { pid: number; job: string; key: string; hours: number }[] = []; const popBad: string[] = [];
   const newborn = { n: 0, excludedDays: 0, rawFailing: 0, rawShares: [] as number[] };
+  const planIssues: Record<string, number> = {}; const planExamples: string[] = [];
   const byJob: Record<string, { n: number; mean: number; worst: number; failing: number; timingBlind: number; tbn: number }> = {};
   const t1 = Date.now(); let plans = 0;
   if (!opts.skipPopulation) for (let k = 0; k < ids.length; k++) {
-    const pid = ids[k], p = P.persons[pid]; if (p.agent >= 0) continue; // the detailed agents are measured by what they actually did (part a)
+    // the detailed agents' variety is measured by what they actually did (part a); their plans are checked here like anyone's
+    const pid = ids[k], p = P.persons[pid], agent = p.agent >= 0;
     const sig = new Uint8Array(days * B); const codes = new Map<string, number>(); const present: number[] = [];
-    let runKey = '', runStart = 0, runEnd = 0, maxRun = 0, maxKey = '';
+    let runKey = '', runStart = 0, runEnd = 0, maxRun = 0, maxKey = '', prevLast: string | null = null, prevD = -9;
     for (let d = 0; d < days; d++) {
       if (!P.present(pid, d)) { runKey = ''; continue; } present.push(d);
       const segs = P.plan(pid, d); plans++;
+      for (const x of checkPlan(P, pid, d, segs, prevD === d - 1 ? prevLast : null)) { planIssues[x.kind] = (planIssues[x.kind] ?? 0) + 1; if (planExamples.length < 30) planExamples.push(`${pid} ${p.job} ${p.sex}${p.age} day ${d}: ${x.kind}: ${x.note}`); }
+      prevLast = segs[segs.length - 1].place; prevD = d;
       let prev = 0; for (const s of segs) { if (s.t0 < prev - 1e-6 || s.t1 < s.t0 - 1e-9) { if (popBad.length < 20) popBad.push(`${pid} ${p.job} day ${d}: segments out of order at ${s.t0}`); break; } prev = s.t1;
         if (!ACTIVITIES[s.act] && popBad.length < 20) popBad.push(`${pid} ${p.job}: unknown activity ${s.act}`);
         if (s.where === 'road' && s.t1 - s.t0 > 3.1 && p.zone !== 'transient' && popBad.length < 20) popBad.push(`${pid} ${p.job} day ${d}: a ${(s.t1 - s.t0).toFixed(1)} h walk (${s.why})`);
         const key = `${s.place}|${s.act}`; if (key === runKey && Math.abs(d * 24 + s.t0 - runEnd) < 1e-6) runEnd = d * 24 + s.t1; else { runKey = key; runStart = d * 24 + s.t0; runEnd = d * 24 + s.t1; }
         if (runEnd - runStart > maxRun) { maxRun = runEnd - runStart; maxKey = key; } }
       if (segs[segs.length - 1].t1 < 24 - 1e-6 && popBad.length < 20) popBad.push(`${pid} ${p.job} day ${d}: plan ends at ${segs[segs.length - 1].t1}`);
+      if (agent) continue;
       for (let b = 0; b < B; b++) { const s = segAt(segs, b * 0.5 + 0.5 - 1e-6); const key = `${s.place}|${s.act}`; let c = codes.get(key); if (c === undefined) { c = Math.min(255, codes.size + 1); codes.set(key, c); } sig[d * B + b] = c; }
     }
+    if (agent) continue;
     if (maxRun > SOAK_GATES.STUCK_HOURS && popStuck.length < 50 && !maxKey.startsWith('-|')) popStuck.push({ pid, job: p.job, key: maxKey, hours: +maxRun.toFixed(1) });
     // infants in their first year are carried by their mothers: their day is hers, and the gate is applied to her (every
     // mother is measured like anyone). The infants' own shares are measured and REPORTED, not gated (D-021).
@@ -141,6 +152,12 @@ export function runSoak(days = 354, dt = 60, seed = 1, log = (s: string) => cons
     if (k % 97 === 0) { j.timingBlind += histShare(sig, present); j.tbn++; }
     if (k % 5000 === 4999) log(`  population: ${k + 1}/${ids.length} people, ${((Date.now() - t1) / 1000).toFixed(0)} s`);
   }
+  // every third day: everyone "with" someone is where that one is; no child under ten alone at night
+  const dayIssues: Record<string, number> = {}; const dayExamples: string[] = []; let daysChecked = 0;
+  if (!opts.skipPopulation) for (let d = 0; d < days; d += 3) { daysChecked++; const cache = new Map<number, Seg[]>();
+    const planOf = (x: number) => { let v = cache.get(x); if (!v) { v = P.plan(x, d); cache.set(x, v); } return v; };
+    for (const x of checkDay(P, d, planOf)) { dayIssues[x.kind] = (dayIssues[x.kind] ?? 0) + 1; if (dayExamples.length < 30) dayExamples.push(`${x.pid} ${P.persons[x.pid].job} ${P.persons[x.pid].sex}${P.persons[x.pid].age} day ${d}: ${x.kind}: ${x.note}`); }
+    if (d % 60 === 0) log(`  day checks: day ${d + 1}, ${((Date.now() - t1) / 1000).toFixed(0)} s`); }
   for (const j of Object.values(byJob)) { j.mean = +(j.mean / j.n).toFixed(3); j.worst = +j.worst.toFixed(3); j.timingBlind = j.tbn ? +(j.timingBlind / j.tbn).toFixed(3) : NaN; }
   const popSeconds = (Date.now() - t1) / 1000;
   const popFailing = popStats.filter(s => s.share >= SOAK_GATES.MAX_NEAR_COPY_SHARE);
@@ -155,7 +172,7 @@ export function runSoak(days = 354, dt = 60, seed = 1, log = (s: string) => cons
     stuck: stuck.length === 0 && popStuck.length === 0,
     stocks: sacks.min >= 0 && sacks.max < SOAK_GATES.SACKS_MAX && Object.values(stores).every(s => s.ok) && collapse.length === 0,
     renderedHonest: badRendered.length === 0,
-    plansWellFormed: popBad.length === 0,
+    plansWellFormed: !opts.skipPopulation && popBad.length === 0 && Object.keys(planIssues).length === 0 && Object.keys(dayIssues).length === 0,
     visibleChange: advanced >= SOAK_GATES.CONSTRUCTION_WEEKS * weekly.length,
   };
   return { days, dt, seed, court: !!opts.court, detailedAgents: N, population: persons, populationMeasured: popStats.length, sampled: sampleN ? `random ${sampleN} of ${persons}` : 'everyone',
@@ -165,7 +182,9 @@ export function runSoak(days = 354, dt = 60, seed = 1, log = (s: string) => cons
     kindsPerWeek: { min: Math.min(...kindsPerWeek), max: Math.max(...kindsPerWeek), mean: +(kindsPerWeek.reduce((a, b) => a + b, 0) / kindsPerWeek.length).toFixed(2), floor: SOAK_GATES.MIN_EVENT_KINDS_WEEK },
     eventKinds: [...new Set(weeks.flatMap(s => [...(s ?? [])]))].sort(), otherEventKinds: [...other].sort(),
     stuck: stuck.slice(0, 10), populationStuck: popStuck.slice(0, 10), sacks, stores, shortfalls: cal.shortfalls.length, collapse, harvestFactor: +cal.harvestFactor.toFixed(3),
-    life: lifeCounts, construction, renderedActivities: rendered, badRendered, planProblems: popBad, season, frameCost: cost };
+    life: lifeCounts, construction, renderedActivities: rendered, badRendered, planProblems: popBad,
+    planChecks: { personDays: plans, issues: planIssues, examples: planExamples, daysChecked, dayIssues, dayExamples, note: 'planCheck.ts: no_sleep, reason, meals, teleport on every person-day; apart (a person in two places) and alone (a child under ten at night) on every third day for everyone' },
+    season, frameCost: cost };
 }
 
 /** step() cost with the full population at 60 fps and the real-time clock, over a stretch that crosses midnight */

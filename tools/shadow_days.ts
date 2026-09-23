@@ -9,6 +9,9 @@ import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, Env } from '../src/people/sim';
 import { WeatherSystem } from '../src/weather/weatherState';
 import { Rng } from '../src/core/rng';
+import { ACTIVITIES } from '../src/people/activities';
+/** the placeholder flag (D-024): an activity simulated but with no performance */
+const ph = (a: string) => ((ACTIVITIES as any)[a]?.placeholder ? ' [PLACEHOLDER: not performed]' : '');
 
 const seed = +(process.argv[2] ?? 1), pick = new Rng(+(process.argv[3] ?? 7), 'shadow-pick');
 const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
@@ -29,12 +32,13 @@ out.push(`# Shadow days (§13.11): 20 people, one full day each (seed ${seed}); 
     const d = days[k]; sim.jumpTo(d * 24); const a = sim.agents[id];
     // the agent's household is its population person's home on that day (not the agent's own index)
     const P0 = (sim as any).pop; const pid = P0?.persons?.findIndex((q: any) => q.agent === a.id) ?? -1; const H = pid >= 0 ? P0.households[P0.home(pid, d)] : null;
-    out.push('', `## Detailed agent #${id}: ${a.name ?? '(unnamed)'} — ${a.role}, ${a.sex === 'm' ? 'man' : 'woman'}, ${a.origin}${a.name ? ` (name ${a.nameTier}: ${a.nameNote})` : ''}; speaks ${a.langs.join(', ')}`);
-    out.push(`day ${d + 1} of the regnal year · ${weatherLine(d)}${H ? ` · household ${H.id} (${H.q ?? H.zone}, home ${H.home}, ${H.members.length} members)` : ''}`);
+    const ag: number | null = pid >= 0 ? P0.persons[pid].age : null; const sx = ag !== null && ag < 14 ? (a.sex === 'm' ? 'boy' : 'girl') : (a.sex === 'm' ? 'man' : 'woman');
+    out.push('', `## Detailed agent #${id}: ${a.name ?? '(unnamed)'} — ${a.role}, ${sx}${ag !== null ? ` ${ag}` : ''}, ${a.origin}${a.name ? ` (name ${a.nameTier}: ${a.nameNote})` : ''}; speaks ${a.langs.join(', ')}`);
+    out.push(`day ${d + 1} of the regnal year · ${weatherLine(d)}${H ? ` · household ${H.id} (${H.q ?? H.zone}, home ${H.home}, ${P0.membersOn(H.id, d).length} people)` : ''}`);
     let last = ''; const log: string[] = [];
     for (let t = d * 24; t < d * 24 + 24; t += 1 / 60) {
       while (sim.t < t) sim.step(Math.min(60, (t - sim.t) * 3600));
-      const tk = a.task; const s = `${sim.performance(a).act} @ ${tk?.place ?? '-'} — ${tk?.why ?? ''}${a.carry ? ` [carrying ${a.carry}]` : ''}${a.sick ? ' [sick]' : ''}`;
+      const tk = a.task; const s = `${sim.performance(a).act}${ph(sim.performance(a).act)} @ ${tk?.place ?? '-'} — ${tk?.why ?? ''}${a.carry ? ` [carrying ${a.carry}]` : ''}${a.sick ? ' [sick]' : ''}`;
       if (s !== last) { log.push(`${hm(t - d * 24)}  ${s}`); last = s; }
     }
     out.push(...(log.length > 90 ? [...log.slice(0, 60), `  … ${log.length - 80} more changes …`, ...log.slice(-20)] : log));
@@ -47,8 +51,8 @@ out.push(`# Shadow days (§13.11): 20 people, one full day each (seed ${seed}); 
     if (!P.present(pid, d)) continue;
     const H = P.households[P.home(pid, d)];
     out.push('', `## Person ${pid}: ${p.nm ?? '(name from the attested pool)'} — ${p.job}${p.sub ? ` (${p.sub})` : ''}, ${p.sex === 'm' ? 'male' : 'female'}, age ${p.age}, ${p.origin}, zone ${p.zone}`);
-    out.push(`day ${d + 1} of the regnal year · ${weatherLine(d)} · household ${H.id} (${H.zone}, ${H.members.length} members)${P.sick(pid, d) ? ' · SICK today' : ''}`);
-    for (const s of P.plan(pid, d)) out.push(`${hm(s.t0)}–${hm(s.t1)}  ${s.act} @ ${s.place} (${s.where}) — ${s.why}`);
+    out.push(`day ${d + 1} of the regnal year · ${weatherLine(d)} · household ${H.id} (${H.zone}, ${P.membersOn(H.id, d).length} people: ${P.membersOn(H.id, d).map((x: number) => `${x} ${P.persons[x].job} ${P.persons[x].sex}${P.persons[x].age}`).join(', ')})${P.sick(pid, d) ? ' · SICK today' : ''}`);
+    for (const s of P.plan(pid, d)) out.push(`${hm(s.t0)}–${hm(s.t1)}  ${s.act}${ph(s.act)} @ ${s.place} (${s.where}) — ${s.why}${s.with !== undefined ? ` [with ${s.with}]` : ''}`);
   }
 }
 console.log(out.join('\n'));

@@ -18,7 +18,7 @@ export type ActivityId =
   | 'write_tablet' | 'eat' | 'sleep' | 'talk' | 'rest' | 'gamble' | 'inspect' | 'shelter' | 'play' | 'offmap'
   | 'queue' | 'exchange' | 'lie_ill'
   // abstract-tier only, no performance yet (placeholders)
-  | 'haul' | 'mould_brick' | 'lay_brick' | 'polish_metal' | 'work_wood' | 'weave' | 'brew' | 'tend_animals' | 'herd' | 'shear' | 'slaughter'
+  | 'haul' | 'mould_brick' | 'lay_brick' | 'polish_metal' | 'work_wood' | 'weave' | 'spin' | 'gather' | 'brew' | 'tend_animals' | 'herd' | 'shear' | 'slaughter'
   | 'offer' | 'clean' | 'garden_work' | 'field_work' | 'irrigate' | 'plough' | 'reap' | 'thresh' | 'dig_canal' | 'pick_fruit' | 'craft' | 'carry_bier' | 'wash' | 'train';
 
 export interface Performance {
@@ -67,7 +67,9 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   lay_brick: PH('laying mud brick on the walls of the Hall of a Hundred Columns'),
   polish_metal: PH('gold-and-silver shiners of the treasury (LIVIUS-TREAS, B)'),
   work_wood: PH('handlers of wood and carpentry supplies in the treasury workshops (HENK2023, B)'),
-  weave: PH('textile work: spinning and weaving in the women’s work groups (C)'),
+  weave: PH('weaving at the loom: the women’s work groups and the household (C)'),
+  gather: PH('gathering dung cakes and brushwood for the household’s fire (children and women; C)'),
+  spin: PH('spinning wool with a drop spindle, at home or in the lane (spindle whorls are common finds: B object, C scene)'),
   brew: PH('brewing beer from tarmu (PF 40: "he made beer", A)'),
   tend_animals: PH('feeding and watering horses, donkeys, the household’s ox and sheep'),
   herd: PH('grazing a flock; shepherds and village boys'),
