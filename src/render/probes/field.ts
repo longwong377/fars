@@ -8,16 +8,24 @@
 //   4–7   U channel: irradiance per unit horizontal direct sun irradiance U (sun intensity × sin altitude): sunlit
 //         surfaces seen by the probe (courts beyond the doorways, sun patches on floors), time-averaged over the year's
 //         daylight (bake.ts). E_U(n) = a + b·n.
-//   8, 9  bounce tint (red, blue; luminance 1, so green follows): the colour the bounced light takes from the albedos.
+//   8, 9  bounce tint of the light arriving from above (red, blue; luminance 1, so green follows): the colour the bounced
+//         light takes from the albedos, as an up-facing surface receives it (D-158; before, one tint for all directions).
 //   10    bounce fraction of the S channel's mean (the rest is the sky itself, untinted).
 //   11    validity: 1 = a real probe; 0.02 = inside a solid, carrying its neighbours' mean (bake.ts dilate), so it only
 //         counts where no real probe is near; 0 = deep inside a solid, left out.
 //   12–15 reach along +x, −x, +z, −z: the free distance from the probe to the first solid along that grid axis, as a
 //         fraction of the spacing (1 = the neighbour is in sight; 0 inside a solid). The lookup drops the side of a cell
 //         whose probes cannot reach the point (a wall between them: its light is on the other side), D-152.
-// Ambient irradiance at a point, normal n:  E = S·mix(1, tint, fb)·max(0, E_S(n)) + U·tint·max(0, E_U(n)).
+//   16, 17 bounce tint of the light arriving from below (red, blue), as a down-facing surface receives it (D-158): under a
+//         red floor the ceiling glows red; the floor itself is lit by the walls, columns and doorways.
+// Ambient irradiance at a point, normal n:  tint(n) = mix(tint_below, tint_above, (1 + n_y)/2);
+//   E = S·mix(1, tint(n), fb)·max(0, E_S(n)) + U·tint(n)·max(0, E_U(n)).
 // In the open this reproduces the hemisphere light's sky term S·(1 + n_y)/2 exactly (L1 is exact for a hemisphere).
-export const PROBE_STRIDE = 16;
+export const PROBE_STRIDE = 18;
+/** first of the two slots of the tint from below (red, blue) */
+export const TINT_DOWN = 16;
+/** the slots a probe's value is made of (interpolated, dilated): the channels, both tints and the bounce fraction */
+export const CARRIED = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 16, 17];
 /** first of the four reach slots (+x, −x, +z, −z) */
 export const REACH = 12;
 /** the interpolation fraction along one axis after the reach test (D-152): f is the point's position between the cell's
@@ -104,10 +112,10 @@ export function sampleField(F: ProbeField, x: number, y: number, z: number, nx =
     const o = probeIndex(vol, ix + dx, iy + dy, iz + dz) * PROBE_STRIDE, val = data[o + 11];
     if (val <= 0) continue;
     const k = wt * val; wsum += k;
-    for (let j = 0; j < 11; j++) out.s[j] += k * data[o + j];
+    for (const j of CARRIED) out.s[j] += k * data[o + j];
   }
   out.v = wsum; // (the trilinear weights sum to 1, so this is the interpolated validity)
-  if (wsum > 1e-6) for (let j = 0; j < 11; j++) out.s[j] /= wsum;
+  if (wsum > 1e-6) for (const j of CARRIED) out.s[j] /= wsum;
   out.s[11] = wsum;
   out.w = volumeWeight(vol, x, y, z) * sstep(VALID_LO, VALID_HI, wsum);
   return out;
@@ -150,12 +158,13 @@ export function atlasLayout(vols: ProbeVolume[], maxW = 1024) {
   }
   return { pos, width: W, height: y + rowH };
 }
-/** four RGBA atlases of the field, the first three premultiplied by validity (so hardware bilinear filtering gives the
- *  validity-weighted mean): T0 = S channel (a, bx, by, bz), T1 = U channel, T2 = (tint r, tint b, fb, 1) · v with v in
- *  alpha; T3 = the reach (+x, −x, +z, −z), read at texel centres (not filtered) */
+/** five RGBA atlases of the field, all but T3 premultiplied by validity (so hardware bilinear filtering gives the
+ *  validity-weighted mean): T0 = S channel (a, bx, by, bz), T1 = U channel, T2 = (tint above r, b, fb, 1) · v with v in
+ *  alpha; T3 = the reach (+x, −x, +z, −z), read at texel centres (not filtered); T4 = (tint below r, b, 0, 1) · v */
+export const ATLAS_BANDS = 5;
 export function atlasData(F: ProbeField, maxW = 1024) {
   const L = atlasLayout(F.volumes, maxW), W = L.width, H = L.height;
-  const T = [new Float32Array(W * H * 4), new Float32Array(W * H * 4), new Float32Array(W * H * 4), new Float32Array(W * H * 4)];
+  const T = Array.from({ length: ATLAS_BANDS }, () => new Float32Array(W * H * 4));
   F.volumes.forEach((v, vi) => {
     const [u0, v0] = L.pos[vi], [nx, ny, nz] = v.dims;
     for (let iy = 0; iy < ny; iy++) for (let iz = 0; iz < nz; iz++) for (let ix = 0; ix < nx; ix++) {
@@ -164,6 +173,7 @@ export function atlasData(F: ProbeField, maxW = 1024) {
       for (let c = 0; c < 4; c++) { T[0][t + c] = d[o + c] * val; T[1][t + c] = d[o + 4 + c] * val; }
       T[2][t] = d[o + 8] * val; T[2][t + 1] = d[o + 9] * val; T[2][t + 2] = d[o + 10] * val; T[2][t + 3] = val;
       for (let c = 0; c < 4; c++) T[3][t + c] = d[o + REACH + c];
+      T[4][t] = d[o + TINT_DOWN] * val; T[4][t + 1] = d[o + TINT_DOWN + 1] * val; T[4][t + 3] = val;
     }
   });
   return { width: W, height: H, pos: L.pos, textures: T };

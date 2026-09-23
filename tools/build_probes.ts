@@ -12,7 +12,7 @@ import { buildTerrace } from '../src/arch/terrace';
 import { memberMaterials } from '../src/arch/sculpt';
 import { SPEC } from '../src/arch/spec';
 import { SURFACES } from '../src/render/materials';
-import { BAKE, BakeContext, probeVolumes, probePositions, probeSky, probeBounce, probeReach, traceScene, surfaceTable, sunSet, yearSunSamples, sphereDirs, fieldOf, SKY_SLOTS, bounceSlots, assemble, albedoFn, dilate, DILATED } from '../src/render/probes/bake';
+import { BAKE, BakeContext, probeVolumes, probePositions, probeSky, probeBounce, probeReach, BOUNCE_W, traceScene, surfaceTable, sunSet, yearSunSamples, sphereDirs, fieldOf, SKY_SLOTS, bounceSlots, assemble, albedoFn, dilate, DILATED } from '../src/render/probes/bake';
 import { encodeField, PROBE_STRIDE, ProbeVolume, fieldVisibility, ProbeField } from '../src/render/probes/field';
 
 const T0 = Date.now();
@@ -29,12 +29,12 @@ const readF32 = (f: string) => { const b = readFileSync(f); return new Float32Ar
 const fieldFrom = (f: string, vs: ProbeVolume[]): ProbeField => ({ volumes: vs, data: readF32(f), count: pos.length, normalBias: BAKE.normalBias, tier: 'C', note: '' });
 
 if (process.argv[2] === 'child') {
-  // child: pass, [start, end), tmp dir → <tmp>/pass<k>_<start>.f32 (per probe: 5 values for pass 0, 12 for passes 1–2)
+  // child: pass, [start, end), tmp dir → <tmp>/pass<k>_<start>.f32 (per probe: 5 values for pass 0, BOUNCE_W for passes 1–2)
   const [pass, start, end] = process.argv.slice(3, 6).map(Number), dir = process.argv[6];
   const ctx = context();
   if (pass >= 1) ctx.sky = fieldFrom(join(dir, 'sky.f32'), vols);
   if (pass >= 2) ctx.bounce1 = fieldFrom(join(dir, 'b1.f32'), vols);
-  const W = pass === 0 ? 5 : 12, out = new Float32Array((end - start) * W);
+  const W = pass === 0 ? 5 : BOUNCE_W, out = new Float32Array((end - start) * W);
   for (let i = start; i < end; i++) {
     const p = pos[i];
     const r = pass === 0 ? probeSky(ctx, p[0], p[1], p[2]) : probeBounce(ctx, p[0], p[1], p[2], pass as 1 | 2, i);
@@ -45,7 +45,7 @@ if (process.argv[2] === 'child') {
 }
 
 async function runPass(pass: number, dir: string, workers: number): Promise<number[][]> {
-  const W = pass === 0 ? 5 : 12, n = pos.length, chunk = Math.ceil(n / workers), jobs: Promise<void>[] = [], starts: number[] = [];
+  const W = pass === 0 ? 5 : BOUNCE_W, n = pos.length, chunk = Math.ceil(n / workers), jobs: Promise<void>[] = [], starts: number[] = [];
   for (let s = 0; s < n; s += chunk) {
     const e = Math.min(n, s + chunk); starts.push(s);
     jobs.push(new Promise((res, rej) => {

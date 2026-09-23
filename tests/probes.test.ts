@@ -10,7 +10,7 @@ import { v as specV } from '../src/arch/spec';
 import { SURFACES } from '../src/render/materials';
 import { TraceScene, sceneFromParts } from '../src/render/probes/trace';
 import { BAKE, BakeOptions, bakeAll, sunSet, surfaceTable, albedoFn, probeVolumes, yearSunSamples } from '../src/render/probes/bake';
-import { REACH, reachFrac } from '../src/render/probes/field';
+import { REACH, reachFrac, TINT_DOWN } from '../src/render/probes/field';
 import { ProbeField, ProbeVolume, PROBE_STRIDE, sampleField, fieldVisibility, evalSample, openField, atlasData, encodeField, decodeField, probeIndex, volumeWeight, gridExtent } from '../src/render/probes/field';
 
 const SURF = surfaceTable(SURFACES as any), ALB = albedoFn(SURF);
@@ -129,6 +129,20 @@ describe('light probes: synthetic room', () => {
     // at the jamb's side (t = 1) the far side is left out, in front of the opening (t = 0) the lookup blends as before
     expect(reachFrac(0.9, 1, 0.3, 0.2, 0.2, 1)).toBe(1); expect(reachFrac(0.9, 1, 0.3, 0.2, 0.2, 0)).toBeCloseTo(0.9, 9);
     expect(reachFrac(0.9, 1, 0.3, 0.2, 0.2, 0.5)).toBeGreaterThan(0.9); expect(reachFrac(0.9, 1, 0.3, 0.2, 0.2, 0.5)).toBeLessThan(1);
+  });
+  it('a red floor tints the light a ceiling gets, not the light the floor itself gets (up/down tints, D-158)', () => {
+    // the same room with a limestone and with a red plaster floor slab: the red shows in the light from below far more than
+    // in the light from above (which comes off the walls and the ceiling, lit in turn by the floor: a second bounce)
+    const tints = (mat: string) => {
+      const parts = room(4); parts.push({ ...box([0, 0], [20, 20], 0, 0.05), kind: 'platform', material: mat as Material });
+      const smp = sampleField(bake(parts), 0, 2.5, 0)!;
+      return { up: smp.s[8], upB: smp.s[9], down: smp.s[TINT_DOWN], downB: smp.s[TINT_DOWN + 1] }; // red, blue relative to luminance 1
+    };
+    const grey = tints('limestone'), red = tints('plaster_red');
+    // measured: limestone floor up/down red 1.45/1.10 (the timber ceiling is brown), red floor 1.80/1.85
+    expect(red.down).toBeGreaterThan(1.6); // from below: the red floor (with the doorway's view of the plain and the wall feet)
+    expect(red.down - grey.down).toBeGreaterThan(2 * (red.up - grey.up)); // the floor's red reaches the ceiling, not itself
+    expect(grey.downB - red.downB).toBeGreaterThan(2 * (grey.upB - red.upB)); // and takes the blue out of it, not out of the floor's own light
   });
   it('the weight is 1 inside the roofed space and 0 beyond the grid', () => {
     const v = roomVolume();

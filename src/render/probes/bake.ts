@@ -21,7 +21,7 @@
 //  • Colour: the bounce carries the albedos' colour (a per-probe tint), weighted by a typical daytime sun/sky ratio.
 import type { Part, Manifest, Material } from '../../arch/parts';
 import { TraceScene, sceneFromParts, srgbToLinear, lum, RGB } from './trace';
-import { ProbeField, ProbeVolume, PROBE_STRIDE, REACH, sampleField, probePosition, probeIndex } from './field';
+import { ProbeField, ProbeVolume, PROBE_STRIDE, REACH, TINT_DOWN, CARRIED, sampleField, probePosition, probeIndex } from './field';
 import { sunHorizon, azAltToWorld } from '../../sky/ephemeris';
 import { WorldClock, YEAR_DAYS } from '../../core/clock';
 
@@ -209,16 +209,21 @@ function sunAt(ctx: BakeContext, px: number, py: number, pz: number, nx: number,
 }
 
 /** pass 1 (first bounce) or pass 2 (second bounce): returns 8 L1 values (sky-lit bounce 0–3, sun-lit bounce 4–7) and the
- *  colour sums [r, g, b, luminance] (slots 8–11) */
+ *  colour sums of the light arriving from above [r, g, b, luminance] (slots 8–11, each ray weighted by max(0, dy): what
+ *  an up-facing surface receives) and from below (slots 12–15, weighted by max(0, −dy)): a red floor tints the light the
+ *  ceiling gets, not the light the floor itself gets (D-158) */
+export const BOUNCE_W = 16;
 export function probeBounce(ctx: BakeContext, x: number, y: number, z: number, pass: 1 | 2, seed: number): number[] {
-  const out = new Array(12).fill(0);
+  const out = new Array(BOUNCE_W).fill(0);
   if (ctx.scene.inside(x, y, z, -PROBE_CLEAR)) return out;
   const D = ctx.dirs, N = D.length / 3, sc = ctx.scene, rho: RGB = [0, 0, 0], k2 = ctx.o.sunSkyRatio;
   const add = (dx: number, dy: number, dz: number, ls: number, lu: number, r: number, g: number, b: number) => {
     // ls, lu: radiance·π of the ray per unit S and U (luminance); rgb: its colour weight
     out[0] += ls; out[1] += 2 * ls * dx; out[2] += 2 * ls * dy; out[3] += 2 * ls * dz;
     out[4] += lu; out[5] += 2 * lu * dx; out[6] += 2 * lu * dy; out[7] += 2 * lu * dz;
-    out[8] += r; out[9] += g; out[10] += b; out[11] += lum(r, g, b);
+    const wu = Math.max(0, dy), wd = Math.max(0, -dy), L = lum(r, g, b);
+    out[8] += r * wu; out[9] += g * wu; out[10] += b * wu; out[11] += L * wu;
+    out[12] += r * wd; out[13] += g * wd; out[14] += b * wd; out[15] += L * wd;
   };
   const plainL = lum(...ctx.plain);
   for (let i = 0; i < N; i++) {
@@ -236,7 +241,8 @@ export function probeBounce(ctx: BakeContext, x: number, y: number, z: number, p
     } else if (ctx.bounce1) {
       const s = sampleField(ctx.bounce1, px, py, pz, nx, ny, nz, _smp); if (!s || s.w <= 0) continue;
       const bs = Math.max(0, s.s[0] + s.s[1] * nx + s.s[2] * ny + s.s[3] * nz) * s.w, bu = Math.max(0, s.s[4] + s.s[5] * nx + s.s[6] * ny + s.s[7] * nz) * s.w;
-      const tr = s.s[8], tb = s.s[9], tg = Math.max(0, (1 - 0.2126 * tr - 0.0722 * tb) / 0.7152), e = bs + k2 * bu;
+      const up = ny * 0.5 + 0.5, tr = s.s[TINT_DOWN] * (1 - up) + s.s[8] * up, tb = s.s[TINT_DOWN + 1] * (1 - up) + s.s[9] * up; // the tint the hit's own facing receives
+      const tg = Math.max(0, (1 - 0.2126 * tr - 0.0722 * tb) / 0.7152), e = bs + k2 * bu;
       add(dx, dy, dz, rl * bs, rl * bu, rho[0] * tr * e, rho[1] * tg * e, rho[2] * tb * e);
     }
   }
@@ -267,8 +273,9 @@ export function assemble(sky: number[][], b1: number[][], b2: number[][], reach?
     if (reach) for (let k = 0; k < 4; k++) d[o + REACH + k] = reach[i][k];
     if (!A[4]) continue;
     for (let j = 0; j < 4; j++) { d[o + j] = A[j] + B[j] + C[j]; d[o + 4 + j] = B[4 + j] + C[4 + j]; }
-    const r = B[8] + C[8], g = B[9] + C[9], b = B[10] + C[10], L = B[11] + C[11];
-    d[o + 8] = L > 1e-9 ? r / L : 1; d[o + 9] = L > 1e-9 ? b / L : 1; void g;
+    const r = B[8] + C[8], b = B[10] + C[10], L = B[11] + C[11], rD = B[12] + C[12], bD = B[14] + C[14], LD = B[15] + C[15];
+    d[o + 8] = L > 1e-9 ? r / L : 1; d[o + 9] = L > 1e-9 ? b / L : 1; // light from above (what an up-facing surface gets)
+    d[o + TINT_DOWN] = LD > 1e-9 ? rD / LD : 1; d[o + TINT_DOWN + 1] = LD > 1e-9 ? bD / LD : 1; // from below
     const bounceA = B[0] + C[0]; d[o + 10] = d[o] > 1e-9 ? bounceA / d[o] : 0; d[o + 11] = 1;
   }
   return d;
@@ -287,16 +294,17 @@ export function dilate(vols: ProbeVolume[], d: Float32Array, passes = 3): number
       const updates: [number, number[]][] = [];
       for (let iy = 0; iy < ny; iy++) for (let iz = 0; iz < nz; iz++) for (let ix = 0; ix < nx; ix++) {
         const i = idx(ix, iy, iz); if (d[i * PROBE_STRIDE + 11] > 0) continue;
-        const acc = new Array(11).fill(0); let n = 0;
+        const acc = new Array(PROBE_STRIDE).fill(0); let n = 0;
         for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
           if (!dx && !dy && !dz) continue; if (Math.abs(dx) + Math.abs(dy) + Math.abs(dz) > 2) continue;
           const x = ix + dx, y = iy + dy, z = iz + dz; if (x < 0 || y < 0 || z < 0 || x >= nx || y >= ny || z >= nz) continue;
           const j = idx(x, y, z) * PROBE_STRIDE; if (d[j + 11] <= 0) continue;
-          for (let k = 0; k < 11; k++) acc[k] += d[j + k]; n++;
+          for (const k of CARRIED) acc[k] += d[j + k]; n++;
         }
         if (n) updates.push([i, acc.map(a => a / n)]);
       }
-      for (const [i, vals] of updates) { d.set(vals, i * PROBE_STRIDE); d[i * PROBE_STRIDE + 11] = DILATED; filled++; }
+      // the values and tints are carried (the reach slots stay: a probe inside a solid reaches nothing)
+      for (const [i, vals] of updates) { for (const k of CARRIED) d[i * PROBE_STRIDE + k] = vals[k]; d[i * PROBE_STRIDE + 11] = DILATED; filled++; }
     }
   }
   return filled;
@@ -317,7 +325,8 @@ export function probePositions(vols: ProbeVolume[]): [number, number, number][] 
 export const SKY_SLOTS = (r: number[]) => { const s = new Array(PROBE_STRIDE).fill(0); s[0] = r[0]; s[1] = r[1]; s[2] = r[2]; s[3] = r[3]; s[11] = r[4]; return s; };
 export const bounceSlots = (valid: (i: number) => number) => (r: number[], i: number) => {
   const s = new Array(PROBE_STRIDE).fill(0); for (let j = 0; j < 8; j++) s[j] = r[j];
-  s[8] = r[11] > 1e-9 ? r[8] / r[11] : 1; s[9] = r[11] > 1e-9 ? r[10] / r[11] : 1; s[11] = valid(i); return s;
+  s[8] = r[11] > 1e-9 ? r[8] / r[11] : 1; s[9] = r[11] > 1e-9 ? r[10] / r[11] : 1;
+  s[TINT_DOWN] = r[15] > 1e-9 ? r[12] / r[15] : 1; s[TINT_DOWN + 1] = r[15] > 1e-9 ? r[14] / r[15] : 1; s[11] = valid(i); return s;
 };
 /** whole bake in one process (tests and small scenes) */
 export function bakeAll(scene: TraceScene, vols: ProbeVolume[], sun: SunSet, plain: RGB, o: BakeOptions = BAKE): ProbeField {

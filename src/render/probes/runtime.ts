@@ -13,15 +13,15 @@
 import * as THREE from 'three/webgpu';
 import { HemisphereLightNode } from 'three/webgpu';
 import { uniform, texture, vec2, vec3, float, mix, max, min, clamp, floor, smoothstep, step, normalWorld, positionWorld, dot } from 'three/tsl';
-import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, openAmbientMean, VALID_LO, VALID_HI } from './field';
+import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, openAmbientMean, VALID_LO, VALID_HI, ATLAS_BANDS, PROBE_STRIDE } from './field';
 import { SURFACES } from '../materials';
 import { srgbToLinear, lum, sceneFromParts, TraceScene } from './trace';
 import type { Part } from '../../arch/parts';
 import { SPEC } from '../../arch/spec';
 
 let FIELD: ProbeField | null = null;
-/** atlas bands: S channel, U channel, tint + validity, reach (field.ts atlasData) */
-const BANDS = 4;
+/** atlas bands: S channel, U channel, tint above + validity, reach, tint below (field.ts atlasData) */
+const BANDS = ATLAS_BANDS;
 /** one RGBA16F texture: the four atlases stacked as bands of `height` rows (S channel, U channel, tint + validity, reach),
  *  so the probes cost every material a single texture binding (CSM already binds four shadow maps) */
 let ATLAS: { tex: THREE.DataTexture; width: number; height: number; pos: [number, number][] } | null = null;
@@ -46,6 +46,8 @@ export async function loadProbes(base = '/'): Promise<ProbeField | null> {
     const [mj, bin] = await Promise.all([fetch(`${base}generated/probes.json`), fetch(`${base}generated/probes.f16`)]);
     if (!mj.ok || !bin.ok) throw new Error(`HTTP ${mj.status}/${bin.status}`);
     META = await mj.json(); const buf = await bin.arrayBuffer();
+    // a field baked in another format (code and data out of step, e.g. mid-rebuild) would be read as garbage: refuse it
+    if (META.stride !== PROBE_STRIDE || buf.byteLength !== META.count * PROBE_STRIDE * 2) throw new Error(`probe data stride ${META.stride} / ${buf.byteLength} B, code expects ${PROBE_STRIDE}: rebuild with tools/build_probes.ts`);
     setProbeField({ volumes: META.volumes, data: decodeField(new Uint16Array(buf)), count: META.count, normalBias: META.normalBias, tier: META.tier, note: META.note, partsHash: META.partsHash });
   } catch (e) { console.warn('[probes] no light probes; roofed halls get the plain skylight', e); FIELD = null; ATLAS = null; }
   return FIELD;
@@ -139,9 +141,12 @@ export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any): { E: an
   const sx = snap(fx, r00.x, r01.x, r10.y, r11.y, fz), sz = snap(fz, r00.z, r10.z, r01.w, r11.w, fx);
   const vS = vv.add(sz), uAS = uA.add(sx), uBS = uB.add(sx);
   const s0 = mix(at(uAS, vS, 0), at(uBS, vS, 0), fy), s1 = mix(at(uAS, vS, 1), at(uBS, vS, 1), fy), s2 = mix(at(uAS, vS, 2), at(uBS, vS, 2), fy);
+  const s4 = mix(at(uAS, vS, 4), at(uBS, vS, 4), fy);
   const val = s2.w, inv = float(1).div(max(val, 1e-4));
   const eS = max(s0.x.add(dot(s0.yzw, n)).mul(inv), 0), eU = max(s1.x.add(dot(s1.yzw, n)).mul(inv), 0);
-  const tr = s2.x.mul(inv), tb = s2.y.mul(inv), fb = clamp(s2.z.mul(inv), 0, 1);
+  // D-158: the tint of the light from above (up-facing) and from below (down-facing), blended by the normal
+  const up = n.y.mul(0.5).add(0.5);
+  const tr = mix(s4.x, s2.x, up).mul(inv), tb = mix(s4.y, s2.y, up).mul(inv), fb = clamp(s2.z.mul(inv), 0, 1);
   const tint = vec3(tr, max(float(1).sub(tr.mul(0.2126)).sub(tb.mul(0.0722)).div(0.7152), 0), tb);
   const E = S.mul(mix(vec3(1, 1, 1), tint, fb)).mul(eS).add(U.mul(tint).mul(eU));
   const w = fade.mul(smoothstep(VALID_LO, VALID_HI, val));

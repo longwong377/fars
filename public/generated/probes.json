@@ -1,6 +1,6 @@
 {
  "tier": "C",
- "stride": 16,
+ "stride": 18,
  "count": 50030,
  "normalBias": 0.9,
  "options": {
@@ -20,12 +20,12 @@
  "built": "2026-09-23",
  "note": "baked light probes of the roofed buildings: sky through the openings, one and two bounces of sun and sky, year-averaged sun (D-110, D-111; model C)",
  "hallCentreVisibility": {
-  "gate_nations": 0.0307,
-  "apadana": 0.0066,
-  "tachara": 0.0026,
-  "hadish": 0.0143,
+  "gate_nations": 0.0321,
+  "apadana": 0.0068,
+  "tachara": 0.0028,
+  "hadish": 0.0149,
   "treasury": 0.0003,
-  "harem": 0.0074
+  "harem": 0.0076
  },
  "volumes": [
   {
