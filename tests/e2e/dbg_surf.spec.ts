@@ -46,7 +46,7 @@ test('surfaces A/B', async ({ page }) => {
     };
   });
   mkdirSync('shots', { recursive: true });
-  const out: Record<string, any> = {};
+  const out: Record<string, any> = {}, w0: { last?: string } = {};
   for (const [name, vs] of only) {
     const s = VIEWS[name]; if (!s) throw new Error(`unknown view ${name}`);
     const variants = (vs ?? process.env.VARIANTS ?? 'B,A').split(/[+,]/);
@@ -54,14 +54,18 @@ test('surfaces A/B', async ({ page }) => {
     await page.evaluate(([v, f]) => (window as any).__parsa.view(...v, f), [s.v, s.fov] as const);
     for (const vn of variants) {
       if (Date.now() - t0 > budget) { console.log(`budget: skipping ${name}/${vn}`); continue; }
-      await page.evaluate(([set, freeze]) => {
+      // a variant `post=<view>` renders a pipeline debug view (B settings), rebuilt at run time; the next variant rebuilds the image
+      const post = vn.startsWith('post=') ? vn.slice(5) : '';
+      await page.evaluate(([set, freeze, pv, wasPost]) => {
         const w = window as any, S = w.__parsaSurf;
         for (const [k, v] of Object.entries(set as any)) { if (k === 'bevels') S.bevels(v); else if (S[k]) S[k].value = v; }
+        if (pv || wasPost) S.post(pv);
         w.__meterFreeze = freeze ? w.__meterLast : null;
-      }, [SET[vn], vn !== variants[0]] as const);
+      }, [SET[post ? 'B' : vn], vn !== variants[0], post, !!(w0.last?.startsWith('post='))] as const);
+      w0.last = vn;
       const ts = Date.now();
       for (let i = 0; i < frames; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
-      const png = await page.screenshot({ path: `shots/surf-${name}-${vn}.png` });
+      const png = await page.screenshot({ path: `shots/surf-${name}-${vn.replace('=', '-')}.png` });
       const lum = await lumStats(page, png);
       const info = await page.evaluate(() => { const p = (window as any).__parsa, st = p.stats(), e = p.exposureInfo(); return { drawCalls: st.drawCalls, triangles: st.triangles, exposure: e.exposure, meterEV: e.meterEV, envCaptures: (window as any).__parsaSurf.envCaptures?.() }; });
       out[`${name}|${vn}`] = { ...info, lum, frameS: +((Date.now() - ts) / 1000 / frames).toFixed(1) };

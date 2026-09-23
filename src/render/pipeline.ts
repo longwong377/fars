@@ -78,6 +78,10 @@ export class Pipeline {
   /** the sky environment's capture (D-157; null when the scene has no SkyMesh) */
   private env: SkyEnvCapture | null = null;
   private sssDebug: any = null;
+  /** a debug view chosen at run time (window.__parsaSurf.post(name); '' = the image): the post graph is rebuilt on the
+   *  next frame (tests and diagnostics only; the old graph's targets are left to the garbage collector) */
+  private debugView: string | null = null;
+  setDebugView(v: string) { this.debugView = v; this.built = false; this.rp = null; }
   /** A/B switches for measurements (window.__parsaSurf; 1 = on): SSR, sun contact shadows (sss), the direct-only SSGI input with its bounce inside
    *  the probe volumes (0 = the session-4 composite: full scene into the SSGI, bounce × (1 − w)), the contact AO outdoors */
   readonly ab = { ssr: uniform(1), giDirect: uniform(1), contact: uniform(1), sss: uniform(1) };
@@ -97,7 +101,7 @@ export class Pipeline {
       const P = probeAmbient(p, r, vec3(1, 1, 1), vec3(0, 0, 0), vec3(open, open, open));
       return clamp(luminance(P.E).div(open), 0, 1);
     };
-    (globalThis as any).__parsaSurf = { ...((globalThis as any).__parsaSurf ?? {}), ...this.ab, env: skyEnv.intensity, envCaptures: () => skyEnv.captures };
+    (globalThis as any).__parsaSurf = { ...((globalThis as any).__parsaSurf ?? {}), ...this.ab, env: skyEnv.intensity, envCaptures: () => skyEnv.captures, post: (v: string) => this.setDebugView(v) };
   }
   /** the post graph is built at the first render, after the world (and its light probes) has loaded: the composite reads
    *  the probe volumes as constants */
@@ -119,7 +123,7 @@ export class Pipeline {
     if (quality === 'medium') {
       composite = col; // TRAA only: GTAO's shader module fails to compile under SwiftShader (logged D-009); medium keeps AA without AO
     } else {
-      const V = new URLSearchParams(location.search).get('post') ?? ''; // debug: orig = unpatched three node; scene | ao | aonear | gi | probe | plain | direct | ssr | env = debug views
+      const V = this.debugView ?? new URLSearchParams(location.search).get('post') ?? ''; // debug: orig = unpatched three node; scene | ao | aonear | gi | probe | plain | direct | ssr | env | sss = debug views
       // world-space normal from the view-space normal (camera rotation), for the hemisphere-light weight
       this.camWorld = uniform(camera.matrixWorld);
       const nV = unpackRGBToNormal(nrmTex.rgb), nW = this.camWorld.mul(vec4(nV, 0)).xyz.normalize();
