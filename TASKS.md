@@ -22,6 +22,14 @@
 - [x] Test harness: vitest + Playwright (SwiftShader), camera rig, benchmark mode
 ## Phase 2 — [x] Terrace greybox from SITE_SPEC via parametric generators; plan overlay + dimension tests (passed with logged exceptions)
 ## Phase 3 — Vertical slice (plain → Grand Stairway → Gate of All Nations → Apadana), calibration scene, NPCs 50–100
+- [~] Materials (procedural TSL, wetness/snow), post (SSGI/TRAA/bloom), CSM, eye adaptation — C values, uncalibrated
+- [ ] Calibration scene — BLOCKED: no dated photograph reachable (NEEDS #13, B6/B7)
+- [x] Reliefs (placeholder silhouettes on the reference layout), inscriptions carved from published texts
+- [x] Fire and smoke, weather VFX, lightning; spatial audio + soundscape
+- [x] 65 living NPCs: roster, names, schedules, needs, goods, nav grid, bodies, props, animation (D-010)
+- [x] Speech + crowd murmur + language lint (D-011); addressing people (E)
+- [x] Walkthrough bot over the whole slice (28 legs, pop-in probe, falls, stuck)
+- [~] §1.1 moments on the route in the camera rig; rubric review; independent review; performance proxy
 ## Phase 4 — Rest of Terrace at slice fidelity
 ## Phase 5 — Population + economy sim in workers, events, memory, persistence, soak test
 ## Phase 6 — Settlement

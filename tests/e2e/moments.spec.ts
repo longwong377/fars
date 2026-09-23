@@ -7,6 +7,10 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'brazier-close', day: 0, hour: 21.5, w: 'clear', v: [-36.4, 132, 1.6, 161, -8] },
   { n: 'apadana-hall-torch', day: 0, hour: 21, w: 'clear', v: [-8, 0, 4.6, 161, 6] },
   { n: 'rain-columns', day: 2, hour: 14, w: 'rain', v: [-20, 70, 1.6, 161, 4] },
+  { n: 'apadana-enter', day: 25, hour: 11, w: 'clear', v: [1.9, 36, 1.6, 161, 2] },
+  { n: 'reliefs-raking', day: 60, hour: 18.3, w: 'clear', v: [-20, 72, 1.6, 161, 2] },
+  { n: 'scribe-at-work', day: 25, hour: 10, w: 'clear', v: [196, -80.5, 1.7, 206, -14] },
+  { n: 'stair-climb', day: 25, hour: 8.5, w: 'clear', v: [-43.9, 128, 1.6, 341, 12] },
   { n: 'snow-terrace', day: 280, hour: 10, w: 'snow', v: [-20, 70, 1.6, 161, 4] },
 ];
 test('moments', async ({ page }, info) => {

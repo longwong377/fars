@@ -8,6 +8,9 @@
 
 - **People (Phase 3, in progress):** bodies and animation are PLACEHOLDERS. They are procedural rigid-skinned rigs with hand-authored pose cycles, not photoreal humans, and faces are abstract. The Phase 3 slice has 65 people: 30 guards on three watches at 10 posts, a mason gang of 12 plus a foreman, 6 porters, 2 scribes, 2 bakers, 4 grinders, 3 children, 2 couriers and 3 officials. The town is off the map (Phase 6), so the edge of the plain stands in for home. There is no Recast navmesh yet (D-010).
 
+- **Speech (D-011) is a PLACEHOLDER formant synthesiser** (robotic; not yet rated for intelligibility). The lexicons are thin: Old Persian has no greeting, so Persians greet in Aramaic or by gesture. The murmur is built from lexicon sound patterns, and languages with no lexicon (Greek, Egyptian, Lydian, Babylonian) fall back to C-tier profiles.
+- **Calibration scene (§8.1) not done:** no dated photo of the ruin is reachable (NEEDS #13). Stone and light values remain C estimates, and the Phase 3 gate can pass only with this logged exception.
+
 ## Phase status
 | Phase | Status | Gate |
 |---|---|---|

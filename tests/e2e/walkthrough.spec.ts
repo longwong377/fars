@@ -18,7 +18,7 @@ test('walkthrough bot: the whole Phase 3 slice on foot', async ({ page }, info) 
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e)));
   await page.goto(`/?test&quality=test&day=25&hour=${process.env.HOUR ?? 9.5}`);
   await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 300_000 });
-  await page.evaluate(() => { const w = (window as any).__parsa; w.walkMode(); w.teleport(-175, 122.45); });
+  await page.evaluate(() => { const w = (window as any).__parsa; w.walkMode(); w.teleport(-175, 122.45); w.simulate(1, 1 / 60); w.resetFalls(); });
   const legs: any[] = []; let pos: [number, number] = [-175, 122.45]; let totalT = 0;
   for (const [e, n, what] of TARGETS) {
     let ok = false, tries = 0, last: any = null;
