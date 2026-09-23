@@ -7,16 +7,19 @@
 // values are C (no cloud climatology for Fars was sourced; spring cumulus bases ~1.5–3 km above ground are typical of
 // semi-arid highlands — NOT SEEN, verify). Quality sets the step counts; `test` quality draws no clouds.
 import * as THREE from 'three/webgpu';
-import { Fn, uniform, positionWorld, cameraPosition, normalize, vec3, vec4, float, Loop, int, max, min, exp, mix, smoothstep, dot, pow, clamp, If, Break, texture3D, screenCoordinate, fract, sin, vec2 } from 'three/tsl';
-import { cloudNoiseVolume } from './cloudNoise';
+import { Fn, uniform, positionWorld, cameraPosition, normalize, vec3, vec4, float, Loop, int, max, min, exp, mix, smoothstep, dot, pow, clamp, If, Break, texture, screenCoordinate, fract, floor, mod, sin, vec2 } from 'three/tsl';
+import { cloudNoiseVolume, cloudNoiseAtlas } from './cloudNoise';
 
-/** tileable noise volume shared by all cloud layers (built once, ~0.5 s; only at qualities that draw clouds) */
-let NOISE: THREE.Data3DTexture | null = null;
-function noiseTexture() {
-  if (NOISE) return NOISE; const n = 64;
-  const t = new THREE.Data3DTexture(cloudNoiseVolume(n), n, n, n); t.format = THREE.RGBAFormat; t.type = THREE.UnsignedByteType;
-  t.wrapS = t.wrapT = t.wrapR = THREE.RepeatWrapping; t.minFilter = t.magFilter = THREE.LinearFilter; t.unpackAlignment = 1; t.needsUpdate = true;
-  return (NOISE = t);
+/** tileable noise volume shared by all cloud layers, flattened into a 2-D atlas (built once, ~0.5 s; only at qualities
+ *  that draw clouds) */
+const NOISE_N = 64, ATLAS_ROW = 8;
+let NOISE: { tex: THREE.DataTexture; tile: number; width: number } | null = null;
+function noiseAtlas() {
+  if (NOISE) return NOISE;
+  const a = cloudNoiseAtlas(cloudNoiseVolume(NOISE_N), NOISE_N, ATLAS_ROW);
+  const t = new THREE.DataTexture(a.data, a.width, a.width, THREE.RGBAFormat, THREE.UnsignedByteType);
+  t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; t.minFilter = t.magFilter = THREE.LinearFilter; t.generateMipmaps = false; t.flipY = false; t.needsUpdate = true;
+  return (NOISE = { tex: t, tile: a.tile, width: a.width });
 }
 /** horizontal scales (m per texture tile, C): base shapes, the large-scale weather field, erosion detail */
 const BASE_TILE = 7000, WEATHER_TILE = 46000, DETAIL_TILE = 1400;
@@ -41,7 +44,16 @@ export class VolumetricClouds {
     // a non-transparent NormalBlending material would force to 1.
     const m = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, transparent: false, blending: THREE.CustomBlending, blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendEquation: THREE.AddEquation, depthTest: false, depthWrite: false, fog: false });
     const cov = this.coverage, sd = this.sunDir, sc = this.sunColor, amb = this.ambient, hz = this.haze, tm = this.time, wd = this.wind;
-    const tex = N > 0 ? noiseTexture() : null;
+    const atlas = N > 0 ? noiseAtlas() : null;
+    /** trilinear sample of the tileable volume at uvw (any real numbers; period 1): bilinear inside two adjacent slice
+     *  tiles of the atlas, then a linear blend between them */
+    const sample3 = (uvw: any) => {
+      const n = NOISE_N, T = atlas!.tile, W = atlas!.width;
+      const z = fract(uvw.z).mul(n).sub(0.5), z0 = mod(floor(z).add(n), n), z1 = mod(z0.add(1), n), fz = z.sub(floor(z));
+      const inTile = vec2(fract(uvw.x), fract(uvw.y)).mul(n).add(1); // texel coordinates inside a tile (after the 1-texel border)
+      const at = (zz: any) => { const tx = mod(zz, ATLAS_ROW), ty = floor(zz.div(ATLAS_ROW)); return texture(atlas!.tex, vec2(tx.mul(T), ty.mul(T)).add(inTile).div(W)); };
+      return mix(at(z0), at(z1), fz);
+    };
     const remap = (v: any, a: any, b: any, c: any, d: any) => v.sub(a).div(max(b.sub(a), 1e-4)).mul(d.sub(c)).add(c);
     /** density (per metre) at an observer-relative point p (metres, y up): Perlin–Worley base shapes from a 3-D noise
      *  volume in WORLD coordinates (so the clouds stay put while the player walks), a large-scale weather field that
@@ -50,13 +62,13 @@ export class VolumetricClouds {
     const density = Fn(([p]: [any]) => {
       const h = clamp(p.y.sub(CLOUD_BASE).div(CLOUD_TOP - CLOUD_BASE), 0, 1);
       const pw = vec3(p.x.add(cameraPosition.x).add(wd.x.mul(tm)), p.y, p.z.add(cameraPosition.z).add(wd.y.mul(tm)));
-      const lo = texture3D(tex!, pw.mul(1 / BASE_TILE)).r;
-      const weather = texture3D(tex!, vec3(pw.x.mul(1 / WEATHER_TILE), 0.37, pw.z.mul(1 / WEATHER_TILE))).r;
+      const lo = sample3(pw.mul(1 / BASE_TILE)).r;
+      const weather = sample3(vec3(pw.x.mul(1 / WEATHER_TILE), 0.37, pw.z.mul(1 / WEATHER_TILE))).r;
       const top = float(0.35).add(lo.mul(0.6)); // taller towers where the base field is strong
       const shape = smoothstep(0.0, 0.06, h).mul(float(1).sub(smoothstep(top.mul(0.7), top, h)));
       const c = clamp(cov.mul(weather.mul(0.8).add(0.6)), 0, 1);
       const base = clamp(remap(lo.mul(shape), float(1).sub(c), float(1), float(0), float(1)), 0, 1).mul(c);
-      const hi = texture3D(tex!, pw.mul(1 / DETAIL_TILE)); const hf = hi.g.mul(0.625).add(hi.b.mul(0.25)).add(hi.a.mul(0.125));
+      const hi = sample3(pw.mul(1 / DETAIL_TILE)); const hf = hi.g.mul(0.625).add(hi.b.mul(0.25)).add(hi.a.mul(0.125));
       const erode = mix(hf, float(1).sub(hf), clamp(h.mul(4), 0, 1)).mul(0.35);
       return clamp(remap(base, erode, float(1), float(0), float(1)), 0, 1).mul(0.02);
     });
