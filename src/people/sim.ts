@@ -46,7 +46,8 @@ function pickName(rng: Rng, sex: 'm' | 'f', origins: string[], used: Set<string>
 }
 
 /** roster for the slice, court absent (PEOPLE.md: Terrace 300–600 by day; this slice holds the part on the route) */
-const GUARD_POSTS = ['post_stair_n', 'post_stair_s', 'post_gate_w1', 'post_gate_w2', 'post_gate_s1', 'post_gate_s2', 'post_apa_w', 'post_apa_e', 'post_treas_1', 'post_treas_2'];
+const GUARD_POSTS = ['post_stair_n', 'post_stair_s', 'post_gate_w1', 'post_gate_w2', 'post_gate_s1', 'post_gate_s2', 'post_apa_w', 'post_apa_e', 'post_treas_1', 'post_treas_2',
+  'post_tachara_1', 'post_tachara_2', 'post_hadish_1', 'post_hadish_2', 'post_harem_1', 'post_harem_2'];
 const SHIFT_START = [6, 14, 22]; // three watches (C)
 
 export class PeopleSim {
@@ -71,7 +72,7 @@ export class PeopleSim {
         hunger: rng.range(0, 0.3), fatigue: rng.range(0, 0.3), sick: false, day: -1, decisions: 0, metPlayer: 0, lastMetDay: -1, gait: rng.range(0, 6.28), offmap: home === 'town', relieved: false, ...extra };
       this.agents.push(a); return a;
     };
-    // guards: 10 posts × 3 watches; Persian and Median dress alternate as on the reliefs (B); garrison quarters (C)
+    // guards: 16 posts × 3 watches (Phase 4: + Tachara, Hadish, Harem); Persian and Median dress alternate as on the reliefs (B); garrison quarters (C)
     const watches: Agent[][] = [[], [], []];
     GUARD_POSTS.forEach((post, pi) => { for (let s = 0; s < 3; s++) {
       const persian = (pi + s) % 2 === 0;

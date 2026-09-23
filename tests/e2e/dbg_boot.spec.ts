@@ -7,7 +7,7 @@ test('boot trace', async ({ page }, info) => {
   page.on('console', m => console.log(ts(), 'console', m.type(), m.text().slice(0, 300)));
   page.on('pageerror', e => console.log(ts(), 'pageerror', String(e).slice(0, 500)));
   page.on('crash', () => console.log(ts(), 'CRASH'));
-  await page.goto(`/?test&quality=${process.env.Q ?? 'high'}&day=60&hour=18.3&weather=clear`);
+  await page.goto(`/?test&quality=${process.env.Q ?? 'high'}&day=60&hour=18.3&weather=clear&trace${process.env.EXTRA ? '&' + process.env.EXTRA : ''}`);
   for (let i = 0; i < 120; i++) {
     const st = await Promise.race([page.evaluate(() => { const p = (window as any).__parsa; return p ? { ready: p.ready, error: p.error } : null; }), new Promise(r => setTimeout(() => r('main thread busy'), 20_000))]);
     console.log(ts(), 'state', JSON.stringify(st)); if ((st as any)?.ready || (st as any)?.error) break;

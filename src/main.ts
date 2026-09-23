@@ -40,6 +40,7 @@ if (settings.devOverlay || P.has('overlay')) overlay.toggle();
 // spawn: on the approach from the plain, west of the Grand Stair, facing the Terrace (grid east)
 const SPAWN = { east: -175, north: 122.45, yaw: -Math.PI / 2 };
 
+const TRACE = P.has('trace') ? (stage: string) => console.info('[boot]', stage, performance.now().toFixed(0), 'ms') : (_: string) => {};
 async function boot() {
   const shell = new Shell(settings, hooks());
   shell.loading('Preparing the renderer…');
@@ -79,9 +80,12 @@ async function boot() {
     const csm = new CSMShadowNode(sky.sun, { cascades: 4, maxFar: 600, mode: 'practical', lightMargin: 200 });
     (sky.sun.shadow as any).shadowNode = csm; sky.sun.shadow.mapSize.set(Q.shadowMapSize / 2, Q.shadowMapSize / 2);
   }
+  TRACE('before pipeline');
   const pipeline = new Pipeline(renderer, scene, camera, settings.quality, sky.hemi);
+  TRACE('pipeline built');
   shell.loading('Raising the Terrace…');
   const phys = await Physics.create();
+  TRACE('physics ready');
   const world: WorldBuild = await buildWorld(scene, phys, terrain, settings, weather, SEED);
   const [sx, sz] = [SPAWN.east, -SPAWN.north];
   phys.updateTerrain(terrain, { x: sx, y: 0, z: sz }); phys.step(1 / 60);
@@ -144,8 +148,6 @@ async function boot() {
       const still = P.sim.agents.filter((a: any) => !a.offmap && !a.walking).map((a: any) => a.pos); return P.nav.findPathAvoiding(from, to, still, 0.9); },
     address: () => world.address?.(camera) ?? null,
     resetFalls: () => { player.maxFall = 0; },
-    /** post debug view (high/ultra): 0 composite, 1 scene pass only, 2 AO, 3 GI bounce */
-    debugView: (n: number) => { pipeline.debugView.value = n; },
     exposureInfo: () => ({ exposure: renderer.toneMappingExposure, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],
     /** people: summary rows (out-of-world; for tests and the dev overlay) */
@@ -279,6 +281,7 @@ async function boot() {
   }
   if (P.get('loadsave')) restore(readSave() as any);
   if (P.get('bench')) { api.ready = true; await runBench(P.get('bench')!, api, frame); return; }
+  TRACE('world built');
   renderer.setAnimationLoop(() => { frame(); });
   api.ready = true;
   if (TEST) shell.playing(); else shell.title();

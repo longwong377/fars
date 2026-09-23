@@ -581,7 +581,13 @@ class SSGINode extends TempNode {
 
 			const depth = sampleDepth( uvNode ).toVar();
 
-			isSkyDepth( this.depthNode.sample( uvNode ).r ).discard(); // PĀRSA: reversed-Z aware
+			// PĀRSA: sky pixels (reversed-Z aware) write neutral values (AO 1, GI 0) instead of being discarded, so the
+			// composite can leave them untouched without testing depth itself
+			const skyPixel = isSkyDepth( this.depthNode.sample( uvNode ).r );
+			aoField.assign( 1 );
+			giField.assign( vec3( 0 ) );
+
+			If( skyPixel.not(), () => {
 
 			const viewPosition = getViewPosition( uvNode, depth, this._cameraProjectionMatrixInverse ).toVar();
 			const viewNormal = sampleNormal( uvNode ).toVar();
@@ -659,6 +665,8 @@ class SSGINode extends TempNode {
 
 			aoField.assign( ao );
 			giField.assign( color );
+
+			} ); // PĀRSA: end of the non-sky branch
 
 			return vec4( 0 );
 

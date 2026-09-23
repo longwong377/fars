@@ -36,6 +36,7 @@ import { Speech, Subtitle } from '../audio/speech';
 import { Murmur, Talker } from '../audio/murmur';
 import { pickLine, voiceFor } from '../people/speech_lines';
 import type { WeatherSystem } from '../weather/weatherState';
+import placesJson from '../data/people_places.json';
 const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
 /** Fire placements for the vertical slice (all C: fires/lamps are attested in general, positions are reconstruction). */
 function placeFires(fire: FireSystem, m: any, parts: any[]) {
@@ -55,7 +56,8 @@ function placeFires(fire: FireSystem, m: any, parts: any[]) {
   const gar = parts.find((p: any) => p.building === 'garrison' && p.kind === 'floor');
   if (gar) { const xs = gar.polygon.map((q: any) => q[0]), ys = gar.polygon.map((q: any) => q[1]); const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
     for (const y of [Math.min(...ys) + 30, (Math.min(...ys) + Math.max(...ys)) / 2, Math.max(...ys) - 30]) fire.add('hearth', gw(cx, y, 0.25), { ...C, note: 'garrison hearth (C)' }); }
-  if (m.hall100) { fire.add('hearth', gw(125, 16, 0), { ...C, note: 'masons’ work-camp hearth, Hall of 100 Columns site (C)' }); fire.add('oven', gw(130, 18, 0), { ...C, note: 'bread oven for the work gang (C)' }); }
+  if (m.hall100) { const pl = (id: string) => (placesJson as any).places.find((q: any) => q.id === id).at as [number, number]; // the people's places and the fires agree
+    fire.add('hearth', gw(...pl('work_hearth'), 0), { ...C, note: 'masons’ work-camp hearth, Hall of 100 Columns site (C)' }); fire.add('oven', gw(...pl('oven'), 0), { ...C, note: 'bread oven for the work gang (C)' }); }
   // Phase 4 palaces (all C): torches beside the main doorway inside each roofed hall; braziers at the Tachara and Hadish
   // porticoes; a cooking hearth in the Harem court; torches at the Treasury N doorway (guard post)
   for (const b of ['tachara', 'hadish', 'harem']) { const r = (m[b] as any)?.room as number[] | undefined; if (!r) continue; const [cx, cy, sx, sy, fl] = r;

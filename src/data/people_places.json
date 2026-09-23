@@ -1,7 +1,7 @@
 {
  "_meta": {
   "frame": "grid metres (east, north); heading = degrees clockwise from grid north the person faces",
-  "note": "Where people stand, work, eat and sleep in the vertical slice (Phase 3). All positions are reconstruction (C) unless stated; they are checked against the walkable grid by tests/people.test.ts."
+  "note": "Where people stand, work, eat and sleep in the vertical slice (Phase 3). All positions are reconstruction (C) unless stated; they are checked against the walkable grid by tests/people.test.ts. Phase 4 (session 2): masons camp moved N of the new Hall of 100 Columns portico; Treasury posts at the new N door; posts added at the Tachara, Hadish and Harem."
  },
  "places": [
   {
@@ -118,23 +118,89 @@
    "id": "post_treas_1",
    "kind": "post",
    "at": [
-    199.4,
-    -62.5
+    204.4,
+    -76.4
    ],
    "heading": 0,
    "tier": "C",
-   "note": "Treasury entrance guard (Treasury weapons finds B; post C)"
+   "note": "Treasury N doorway guard, street side (Treasury weapons finds B; post C; door moved to the N wall in Phase 4, REF-PLAN)"
   },
   {
    "id": "post_treas_2",
    "kind": "post",
    "at": [
-    204.2,
-    -62.5
+    208.8,
+    -76.4
    ],
    "heading": 0,
    "tier": "C",
-   "note": "Treasury entrance guard (C)"
+   "note": "Treasury N doorway guard, street side (C)"
+  },
+  {
+   "id": "post_harem_2",
+   "kind": "post",
+   "at": [
+    111.7,
+    -77.0
+   ],
+   "heading": 0,
+   "tier": "C",
+   "note": "guard inside the Harem N entrance (C)"
+  },
+  {
+   "id": "post_harem_1",
+   "kind": "post",
+   "at": [
+    107.3,
+    -77.0
+   ],
+   "heading": 0,
+   "tier": "C",
+   "note": "guard inside the Harem N entrance (C)"
+  },
+  {
+   "id": "post_hadish_2",
+   "kind": "post",
+   "at": [
+    5.0,
+    -126.0
+   ],
+   "heading": 270,
+   "tier": "C",
+   "note": "guard at the head of the Hadish W stair (C)"
+  },
+  {
+   "id": "post_hadish_1",
+   "kind": "post",
+   "at": [
+    5.0,
+    -120.0
+   ],
+   "heading": 270,
+   "tier": "C",
+   "note": "guard at the head of the Hadish W stair, on the N court (C)"
+  },
+  {
+   "id": "post_tachara_2",
+   "kind": "post",
+   "at": [
+    -17.6,
+    -100.4
+   ],
+   "heading": 180,
+   "tier": "C",
+   "note": "guard on the Tachara S stair landing (C)"
+  },
+  {
+   "id": "post_tachara_1",
+   "kind": "post",
+   "at": [
+    -25.0,
+    -100.4
+   ],
+   "heading": 180,
+   "tier": "C",
+   "note": "guard on the Tachara S stair landing (guards flank XPc on the stair façade: B for the motif; post C)"
   },
   {
    "id": "garrison_hearth_s",
@@ -191,27 +257,27 @@
    "kind": "work",
    "at": [
     140,
-    18
+    38
    ],
    "span": [
     [
      114,
-     12
+     32
     ],
     [
      178,
-     26
+     46
     ]
    ],
    "tier": "C",
-   "note": "masons' yard N of the Hall of 100 Columns: blocks being dressed (construction in 467: B; yard C)"
+   "note": "masons' yard N of the Hall of 100 Columns portico: blocks being dressed (construction in 467: B; yard C). Moved N in Phase 4: the portico floor (REF-PLAN) now reaches y 27"
   },
   {
    "id": "work_hearth",
    "kind": "hearth",
    "at": [
     125,
-    16
+    36
    ],
    "tier": "C",
    "note": "work-camp hearth (matches the fire placement)"
@@ -221,7 +287,7 @@
    "kind": "oven",
    "at": [
     130,
-    18
+    38
    ],
    "tier": "C",
    "note": "bread oven (matches the fire placement)"
@@ -231,16 +297,16 @@
    "kind": "work",
    "at": [
     120,
-    22
+    42
    ],
    "span": [
     [
      114,
-     20
+     40
     ],
     [
      122,
-     26
+     46
     ]
    ],
    "tier": "C",
