@@ -6,7 +6,8 @@
 // shader (seasonal.ts marginState): in mid-April pale dry culms of last year stand over half a metre of new green shoots;
 // in late summer the reeds are 2.5 m tall and plumed and the bank grass is straw. Tufts stand on the corridor mesh as
 // drawn (rivers.ts profiles) and on the canal banks' profile (ribbons.ts). They shrink to nothing toward the layer's
-// radius, so none pops in, and cast no shadows (receive only).
+// radius, and are placed out to that radius plus the distance the camera may move before they are placed again, so
+// none pops in (brief §13.8); they cast no shadows (receive only).
 import * as THREE from 'three/webgpu';
 import { attribute, uniform, cameraPosition, cameraViewMatrix, vec3, vec4, float, mix, smoothstep, length, sin, cos, time, clamp, max, step, normalize, fract } from 'three/tsl';
 import type { Terrain } from '../../terrain/heightfield';
@@ -17,6 +18,9 @@ import { marginState, type MarginState } from './seasonal';
 import { hash2, unit, cellU } from './fields';
 
 export const KIND = { reed: 0, rush: 1, grass: 2 } as const;
+/** within this distance (m) the margins are denser (a 0.42 x 0.45 m grid; 57 % of it beyond): the extra tufts grow in
+ *  from nothing between nearDense and 0.72 x nearDense; 22 m at high and ultra, smaller with the lower qualities' radii */
+export const nearDense = (R: number) => Math.min(22, R * 0.315);
 const BLADES = 14;
 /** a tuft of 14 blades (one triangle each, drawn double-sided); per vertex: blade index, 0 base / 1 tip, class (0/1:
  *  for reeds, last year's culm / a new shoot), a random number */
@@ -29,13 +33,14 @@ function tuftGeometry() {
 }
 
 export interface Margins { mesh: THREE.Mesh; update(cam: THREE.Vector3): boolean; setDay(doy: number): void; count(): number; state(): MarginState }
-/** radius (m) of the layer and the (smaller) radius of its bank grass, by quality */
+/** radius (m) of the layer and the (smaller) radius of its bank grass, by quality; cap: instances at most (the worst
+ *  of 84 cameras along both rivers at high: 17,208, on the Kur's wide reed slopes; tests/plain_look.test.ts) */
 export const MARGIN_R: Record<string, { r: number; grass: number; cap: number }> = {
-  test: { r: 45, grass: 26, cap: 5000 }, low: { r: 50, grass: 28, cap: 6000 }, medium: { r: 60, grass: 32, cap: 8000 }, high: { r: 70, grass: 38, cap: 11000 }, ultra: { r: 85, grass: 46, cap: 15000 },
+  test: { r: 45, grass: 26, cap: 10000 }, low: { r: 50, grass: 28, cap: 12500 }, medium: { r: 60, grass: 32, cap: 16500 }, high: { r: 70, grass: 38, cap: 22000 }, ultra: { r: 85, grass: 46, cap: 32000 },
 };
 
 export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], terrain: Terrain, quality: string, flood: [number, number]): Margins {
-  const Q = MARGIN_R[quality] ?? MARGIN_R.high, R = Q.r, cap = Q.cap;
+  const Q = MARGIN_R[quality] ?? MARGIN_R.high, R = Q.r, cap = Q.cap, NEAR_DENSE = nearDense(R);
   const g0 = tuftGeometry(), g = new THREE.InstancedBufferGeometry(); for (const [k, a] of Object.entries(g0.attributes)) g.setAttribute(k, a); g.instanceCount = 0;
   const posA = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3), varA = new THREE.InstancedBufferAttribute(new Float32Array(cap * 4), 4);
   g.setAttribute('ipos', posA); g.setAttribute('ivar', varA);
@@ -44,7 +49,8 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
   let st = marginState(102);
   // ---- vertex shader: blade i of a tuft of kind k
   const P = attribute('position', 'vec3'), bl = attribute('blade', 'vec4'), ipos = attribute('ipos', 'vec3'), iv = attribute('ivar', 'vec4');
-  const kind = iv.x, seed = iv.y, scale = iv.z, yaw = iv.w;
+  // kind + 4: one of the extra tufts that make the margins denser within 22 m of the camera (placement below)
+  const extraT = step(3.5, iv.x), kind = iv.x.sub(extraT.mul(4)), seed = iv.y, scale = iv.z, yaw = iv.w;
   const isReed = float(1).sub(step(0.5, kind)), isRush = step(0.5, kind).mul(float(1).sub(step(1.5, kind))), isGrass = step(1.5, kind);
   const rnd = (k: number) => fract(sin(bl.x.mul(91.7).add(seed.mul(47.3)).add(k * 13.7)).mul(43758.5453));
   const old = bl.z.mul(isReed); // reeds: even blades are last year's culms
@@ -57,7 +63,8 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
   const wBlade = isReed.mul(0.03).add(isRush.mul(0.012)).add(isGrass.mul(0.018)).mul(scale);
   const lean = isReed.mul(mix(float(0.07), float(0.2), old)).add(isRush.mul(0.12)).add(isGrass.mul(0.42)).mul(rnd(3).mul(0.9).add(0.45));
   // nothing pops in: tufts grow from nothing toward their radius (bank grass is placed only within Q.grass)
-  const fadeR = mix(float(R), float(Q.grass), isGrass), d = length(ipos.xz.sub(cameraPosition.xz)), fade = float(1).sub(smoothstep(fadeR.mul(0.72), fadeR, d));
+  const fadeR = mix(float(R), float(Q.grass), isGrass), d = length(ipos.xz.sub(cameraPosition.xz));
+  const fade = float(1).sub(smoothstep(fadeR.mul(0.72), fadeR, d)).mul(float(1).sub(extraT.mul(smoothstep(NEAR_DENSE * 0.72, NEAR_DENSE, d))));
   // blades narrower than a pixel alias into speckle (the reed beds at 30-70 m, the grass past ~7 m): once a blade spans
   // less than ~1.2 px, the blades that remain widen and the others fold away, keeping the tuft's projected area
   // (coverage-preserving level of detail). The rank is the blade's golden-ratio number, so the kept ones stay spread round the tuft
@@ -109,8 +116,10 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
     return unit(hash2(cellU(i), k, salt)) * (1 - w) + unit(hash2(cellU(i + 1), k, salt)) * w; };
   const put = (x: number, y: number, z: number, k: number, h: number) => {
     if (n >= cap) return; posA.setXYZ(n, x, y, z); varA.setXYZW(n, k, unit(h), 0.8 + 0.4 * unit(hash2(h, 7, 3)), unit(hash2(h, 9, 5)) * 6.283); n++; };
+  // the camera moves up to stepR between placements: every radius is placed that much wider than the shader draws it
+  const stepR = R * 0.1;
   const update = (cam: THREE.Vector3) => {
-    if (Math.hypot(cam.x - last.x, cam.z - last.z) < R * 0.1) return false;
+    if (Math.hypot(cam.x - last.x, cam.z - last.z) < stepR) return false;
     last = cam.clone(); n = 0;
     const cx = cam.x, cy = -cam.z, near: [number, number, number][] = [];
     for (let i = Math.floor((cx - R - 40) / cell); i <= Math.floor((cx + R + 40) / cell); i++) for (let j = Math.floor((cy - R - 40) / cell); j <= Math.floor((cy + R + 40) / cell); j++) {
@@ -119,7 +128,8 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
     for (const [, ri, si] of near) {
       const q0 = profiles[ri][si], q1 = profiles[ri][si + 1]; if (!q1) continue;
       const L = Math.hypot(q1.x - q0.x, q1.y - q0.y), aprilD = flood[ri] ?? 1.2;
-      // a 0.42 x 0.45 m grid; beyond 22 m of the camera 57 % of its points (a 0.55 x 0.6 m density): denser near
+      // a 0.42 x 0.45 m grid; beyond NEAR_DENSE of the camera 45 % of its points for reeds and rushes and 35 % for grass
+      // (the widened blades and the sward's own colour carry it there): denser near
       for (let along = 0; along < L; along += 0.42) {
         const f = along / L, sx = q0.x + (q1.x - q0.x) * f, sy = q0.y + (q1.y - q0.y) * f, s = q0.s + along;
         if (Math.hypot(sx - cx, sy - cy) > R + 30) continue;
@@ -129,19 +139,20 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
         const bedB = vn(s, 60, ri * 2 + 2, 211) * 0.65 + vn(s, 17, ri * 2 + 2, 212) * 0.35;
         const maxU = Math.abs(q0.off[12]);
         for (let u = -maxU; u <= maxU; u += 0.45) {
-          const x = sx + nx * u, y = sy + ny * u, dc = Math.hypot(x - cx, y - cy); if (dc > R) continue;
+          const x = sx + nx * u, y = sy + ny * u, dc = Math.hypot(x - cx, y - cy); if (dc > R + stepR) continue;
           const h = hash2(cellU(x / 0.3), cellU(y / 0.3), 213 + ri), r1 = unit(h);
-          if (dc >= 22 && unit(hash2(h, 5, 6)) > 0.573) continue;
+          const hx = unit(hash2(h, 5, 6)); if (hx > 0.45 && dc >= NEAR_DENSE + stepR) continue;
+          const ex = hx > 0.45 ? 4 : 0, exG = hx > 0.35 ? 4 : 0; // extra (near-only) tufts: kind + 4
           const p0 = prof(q0, u), p1 = prof(q1, u), hy = p0[0] + (p1[0] - p0[0]) * f, hrel = p0[1] + (p1[1] - p0[1]) * f, t = p0[2] + (p1[2] - p0[2]) * f;
           const bed = u < 0 ? bedA : bedB, inBed = r1 < 0.8 * Math.min(1, Math.max(0, (bed - 0.47) / 0.1)); // a bed thins out over a few metres at its ends
           const jx = (unit(hash2(h, 1, 2)) - 0.5) * 0.5, jy = (unit(hash2(h, 3, 4)) - 0.5) * 0.5;
           if (hrel > 0.18 && hrel < aprilD - 0.05 && t === 0) { // the channel slope between the low summer water and the spring flood level
-            if (inBed) put(x + jx, hy, -(y + jy), KIND.reed, h);
-            else if (r1 < 0.12) put(x + jx, hy, -(y + jy), KIND.rush, h);
-          } else if (hrel >= aprilD - 0.05 && t < 0.75 && dc < Q.grass) { // the upper bank, the bank top and the apron: grass, rushes near the flood line
+            if (inBed) put(x + jx, hy, -(y + jy), KIND.reed + ex, h);
+            else if (r1 < 0.12) put(x + jx, hy, -(y + jy), KIND.rush + ex, h);
+          } else if (hrel >= aprilD - 0.05 && t < 0.75 && dc < Q.grass + stepR) { // the upper bank, the bank top and the apron: grass, rushes near the flood line
             const nearFlood = hrel < aprilD + 0.35;
-            if (nearFlood && r1 < 0.18) put(x + jx, hy, -(y + jy), KIND.rush, h);
-            else if (r1 < 0.62 * (1 - t * 0.6)) put(x + jx, hy + 0.01, -(y + jy), KIND.grass, h);
+            if (nearFlood && r1 < 0.18) put(x + jx, hy, -(y + jy), KIND.rush + ex, h);
+            else if (r1 < 0.62 * (1 - t * 0.6) && !(exG && dc >= NEAR_DENSE + stepR)) put(x + jx, hy + 0.01, -(y + jy), KIND.grass + exG, h);
           }
         }
       }
@@ -155,12 +166,12 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
         const L = Math.hypot(bx - ax, by - ay), nx = -(by - ay) / L, ny = (bx - ax) / L;
         for (let along = 0; along < L; along += 0.6) { const sx = ax + (bx - ax) * along / L, sy = ay + (by - ay) * along / L, g0 = terrain.heightAt(sx, -sy);
           for (const side of [-1, 1]) for (let du = -0.15; du <= 2.2; du += 0.5) {
-            const u = side * (w + du), x = sx + nx * u, y = sy + ny * u, dc = Math.hypot(x - cx, y - cy); if (dc > R) continue;
+            const u = side * (w + du), x = sx + nx * u, y = sy + ny * u, dc = Math.hypot(x - cx, y - cy); if (dc > R + stepR) continue;
             const h = hash2(cellU(x / 0.3), cellU(y / 0.3), 231), r1 = unit(h);
             const bank = du < 0 ? 0.02 : du < 0.7 ? 0.02 + (crest - 0.02) * du / 0.7 : crest + (0.03 - crest) * (du - 0.7) / 1.5; // the ribbon's profile
             const gy = Math.abs(u) < 1.5 ? g0 : terrain.heightAt(x, -y);
             if (du < 0.35) { if (r1 < 0.35) put(x, gy + bank, -y, KIND.rush, h); }
-            else if (dc < Q.grass && r1 < 0.5) put(x, gy + bank + 0.01, -y, KIND.grass, h);
+            else if (dc < Q.grass + stepR && r1 < 0.5) put(x, gy + bank + 0.01, -y, KIND.grass, h);
           } }
       }
     }

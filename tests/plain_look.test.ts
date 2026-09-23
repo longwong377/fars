@@ -7,7 +7,7 @@ import * as THREE from 'three/webgpu';
 import { loadTerrain, loadRiversFile } from './plainLib';
 import { buildCanals } from '../src/world/plain/canals';
 import { buildRivers } from '../src/world/plain/rivers';
-import { riparianMargins, KIND, MARGIN_R } from '../src/world/plain/riparian';
+import { riparianMargins, KIND, MARGIN_R, nearDense } from '../src/world/plain/riparian';
 import { marginState, cropState, doyOf } from '../src/world/plain/seasonal';
 import { RIPPLE_OCTAVES } from '../src/world/plain/waterShade';
 import { CHANNEL } from '../src/world/settlement/water';
@@ -18,22 +18,36 @@ const T = loadTerrain(), R = loadRiversFile();
 describe('river margins (riparian.ts, seasonal.ts marginState)', () => {
   const canals = buildCanals(T, R.rivers, 1), rv = buildRivers(T, R.rivers, canals);
   const flood = R.rivers.map(r => (feature(r.id).flow_by_month as { depth_m: number }[]).reduce((m, q) => Math.max(m, q.depth_m), 0)) as [number, number];
-  it('at the Pulvar bank (the pulvar-bank-april view) reeds stand on the channel slope, rushes at the edge, grass on the bank, all within the radius and on the drawn corridor', () => {
+  it('at the Pulvar bank (the pulvar-bank-april view) reeds stand on the channel slope, rushes at the edge, grass on the bank, all on the drawn corridor, placed out to their fade radii plus the re-placement step (no pop-in)', () => {
     const mg = riparianMargins(rv.profiles, canals, T, 'high', flood), cam = new THREE.Vector3(-2505, 0, -2700);
     mg.update(cam);
     const g = mg.mesh.geometry as THREE.InstancedBufferGeometry, pos = g.getAttribute('ipos'), v = g.getAttribute('ivar'), n = g.instanceCount;
-    const kinds = [0, 0, 0]; let far = 0, grassFar = 0, below = 0;
-    for (let i = 0; i < n; i++) { const k = v.getX(i), d = Math.hypot(pos.getX(i) - cam.x, pos.getZ(i) - cam.z); kinds[k]++;
-      if (d > MARGIN_R.high.r + 1) far++; if (k === KIND.grass && d > MARGIN_R.high.grass + 1) grassFar++;
+    const kinds = [0, 0, 0], H = MARGIN_R.high, step = H.r * 0.1; let far = 0, grassFar = 0, below = 0, extraFar = 0, grassNear = 0;
+    for (let i = 0; i < n; i++) { const kx = v.getX(i), k = kx % 4, d = Math.hypot(pos.getX(i) - cam.x, pos.getZ(i) - cam.z); kinds[k]++;
+      // placed out to the shader's fade radius plus the distance the camera moves before the next placement
+      if (d > H.r + step + 1) far++; if (k === KIND.grass && d > H.grass + step + 1) grassFar++; if (kx >= 4 && d > nearDense(H.r) + step + 1) extraFar++;
+      if (k === KIND.grass && d > H.grass - 1 && d < H.grass + step) grassNear++;
       // on or above the ground the player walks (the corridor mesh is drawn over the carved heightfield)
       if (pos.getY(i) < T.heightAt(pos.getX(i), pos.getZ(i)) - 1.8) below++; }
     console.log('margins at the Pulvar bank', JSON.stringify({ n, reeds: kinds[0], rushes: kinds[1], grass: kinds[2] }));
     expect(n).toBeGreaterThan(800); expect(n).toBeLessThanOrEqual(MARGIN_R.high.cap);
     expect(kinds[KIND.reed]).toBeGreaterThan(100); expect(kinds[KIND.rush]).toBeGreaterThan(20); expect(kinds[KIND.grass]).toBeGreaterThan(200);
-    expect(far).toBe(0); expect(grassFar).toBe(0); expect(below).toBe(0);
+    expect(far).toBe(0); expect(grassFar).toBe(0); expect(extraFar).toBe(0); expect(below).toBe(0);
+    expect(grassNear).toBeGreaterThan(0); // grass beyond its drawn radius is placed (at zero size), ready for the camera's next steps
+    expect(n).toBeLessThan(H.cap); // the cap never cuts the far tufts off
     // it re-places only when the camera has moved a tenth of the radius
     expect(mg.update(cam.clone().add(new THREE.Vector3(2, 0, 0)))).toBe(false); expect(mg.update(cam.clone().add(new THREE.Vector3(20, 0, 0)))).toBe(true);
   }, 120_000);
+  it('the instance cap never binds: on the banks every ~1 km along both rivers, at village P22 and at the Pulvar bank view (test and high quality)', () => {
+    for (const q of ['test', 'high']) {
+    const mg = riparianMargins(rv.profiles, canals, T, q, flood); let worst = 0, where = '';
+    const cams: [number, number][] = [[-973, -3287], [-2505, -2700]];
+    rv.profiles.forEach(prof => { for (let i = 0; i < prof.length; i += Math.max(1, Math.floor(prof.length / 40))) { const q = prof[i]; cams.push([q.x + q.nx * 12, -(q.y + q.ny * 12)]); } });
+    for (const [x, z] of cams) { mg.update(new THREE.Vector3(x, 0, z)); if (mg.count() > worst) { worst = mg.count(); where = `${x.toFixed(0)},${z.toFixed(0)}`; } }
+    console.log(`margins (${q}): worst count`, worst, 'at', where, 'of', cams.length, 'cameras');
+    expect(worst).toBeLessThan(MARGIN_R[q].cap);
+    }
+  }, 240_000);
   it('by the date: mid-April pale old culms over half a metre of new shoots; August 2.5 m green reeds; bank grass straw in late summer, green in spring', () => {
     const apr = marginState(doyOf(0)), aug = marginState(doyOf(120)), jan = marginState(doyOf(280));
     expect(apr.reedNew).toBeGreaterThan(0.35); expect(apr.reedNew).toBeLessThan(0.7); expect(apr.reedOld).toBeGreaterThan(0.6); expect(apr.grassGreen).toBeGreaterThan(0.95);
