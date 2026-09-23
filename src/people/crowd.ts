@@ -37,6 +37,9 @@ export const yawOf = (headingDeg: number) => Math.PI - rad(headingDeg);
 export const LOD_DIST = [25, 90, 200, 600] as const;
 export const MAX_FULL = 64;
 export const ATTACH_R = 620, DETACH_R = 660;
+/** people cast shadows within this distance (m) only. An instanced caster is drawn whole in every cascade its bounds
+ *  touch, so each caster costs its triangles × cascades; at 90 m a person's shadow is a few pixels (D-028) */
+export const SHADOW_DIST = LOD_DIST[1];
 /** carried props drawn per frame (one instanced mesh) */
 export const CARRIED_MAX = 256;
 
@@ -224,7 +227,7 @@ export class Crowd {
       if (p.poseFrame < 0 || (this.frame + p.frameMod) % every === 0 || this.frame - p.poseFrame > every) { this.posePerson(p, time, d, playerPos, cam, lod); posed++; }
       else if (p.poseFrame === this.frame - 1) this.copyPrev(p); // no bone change this frame: previous = current
       const c = gpu.costumes.get(`${p.look.dress}@${lod}`)!;
-      gpu.push(c, p.slot, p.root[0], p.root[1], p.root[2], p.root[3], p.prevRoot[0], p.prevRoot[1], p.prevRoot[2], p.prevRoot[3]);
+      gpu.push(c, p.slot, p.root[0], p.root[1], p.root[2], p.root[3], p.prevRoot[0], p.prevRoot[1], p.prevRoot[2], p.prevRoot[3], d < SHADOW_DIST);
       p.drawnFrame = this.frame;
       if (p.prop) this.placeProp(p);
     }

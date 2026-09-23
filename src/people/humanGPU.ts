@@ -2,8 +2,8 @@
 // skin palettes (current and previous frame), the per-person data rows, and one instanced mesh per costume and LOD.
 // All people of a costume and LOD are one draw call; the crowd fills the instance lists (slot, root, previous root)
 // each frame for the people it decided to show at that LOD. Shadows: the drawn meshes cast none. One shadow-only mesh
-// per costume (the far-body geometry, on SHADOW_LAYER, which only the sun's shadow cameras see) carries everyone within
-// the far band (LOD 0–2): one draw per costume per shadow cascade, whatever the LOD mix; nobody beyond 200 m casts.
+// per costume (the far-body geometry, on SHADOW_LAYER, which only the sun's shadow cameras see) carries everyone the crowd
+// lets cast (within SHADOW_DIST, crowd.ts): one draw per costume per shadow cascade, whatever the LOD mix.
 import * as THREE from 'three/webgpu';
 import type { HumanAssets } from './humanAssets';
 import type { OutfitBuild, CostumeLOD, Dress } from './outfits';
@@ -100,12 +100,13 @@ export class HumanGPU {
   /** start filling the instance lists for a frame */
   begin() { for (const c of this.all()) { c.count = 0; c.box.makeEmpty(); } }
   private *all() { yield* this.costumes.values(); yield* this.shadows; }
-  push(c: CostumeMesh, slot: number, x: number, y: number, z: number, yaw: number, px: number, py: number, pz: number, pyaw: number) {
+  /** add an instance; `cast`: also to the costume's shadow caster */
+  push(c: CostumeMesh, slot: number, x: number, y: number, z: number, yaw: number, px: number, py: number, pz: number, pyaw: number, cast = true) {
     if ((c.count + 1) * INST_STRIDE > c.inst.array.length) c.inst = this.instBuffer(c.geo, c.inst.count * 2, c.inst.array as Float32Array);
     const a = c.inst.array as Float32Array, o = c.count++ * INST_STRIDE;
     a[o] = slot; a[o + 1] = x; a[o + 2] = y; a[o + 3] = z; a[o + 4] = yaw; a[o + 5] = px; a[o + 6] = py; a[o + 7] = pz; a[o + 8] = pyaw;
     c.box.expandByPoint(_v.set(x, y, z));
-    if (c.shadow) this.push(c.shadow, slot, x, y, z, yaw, px, py, pz, pyaw);
+    if (c.shadow && cast) this.push(c.shadow, slot, x, y, z, yaw, px, py, pz, pyaw);
   }
   /** instance counts, bounds (frustum and shadow-cascade culling), uploads */
   end(uploadPrev: boolean) {
