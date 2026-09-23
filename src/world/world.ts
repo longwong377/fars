@@ -203,6 +203,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       { const pp = ctx.player.position; playerAt = new THREE.Vector3(pp.x, pp.y, pp.z); }
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
       settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, cond: ctx.cond, player: ctx.player });
+      fire.setSkyLight(ctx.sky);
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time, ctx.clock.localHour);
       plain.update(dt, ctx);
       building?.sync(); // cheap unless a column changed state

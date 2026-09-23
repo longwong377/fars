@@ -4,7 +4,7 @@
 // that are lit right now (the fire schedules), thicker in the still evening air, drifting with the wind. Deterministic
 // in time (no accumulation), so frozen test renders show it. Density, height and colour are C.
 import * as THREE from 'three/webgpu';
-import { uniform, uv, vec3, vec4, length, smoothstep, mx_noise_float, attribute, time, float } from 'three/tsl';
+import { uniform, uv, vec3, length, smoothstep, mx_noise_float, attribute, time, float, positionWorld, cameraPosition, normalize, dot, pow } from 'three/tsl';
 import type { TownPlan } from './plan';
 import type { FireSystem, FireKind } from '../fire';
 import { Rng } from '../../core/rng';
@@ -13,7 +13,10 @@ interface Puff { site: string; base: THREE.Vector3; size: number; h: number; ph:
 export class TownHaze {
   readonly group = new THREE.Group();
   private mesh: THREE.InstancedMesh; private alpha: THREE.InstancedBufferAttribute; private puffs: Puff[] = [];
-  private uCol = uniform(new THREE.Color(0.5, 0.48, 0.46));
+  // light on the smoke (session 3, D-060): single scattering of the sky seen across the view (the calibrated horizon
+  // radiance) and of the sun through a forward-peaked phase function; albedo ω (C). Before, a hand-set grey that did not
+  // follow the sky and glowed against a calibrated dusk.
+  private uSky = uniform(new THREE.Color(0.3, 0.3, 0.3)); private uSun = uniform(new THREE.Color(0, 0, 0)); private uSunDir = uniform(new THREE.Vector3(0, 1, 0));
   private siteFires = new Map<string, number[]>(); private lastFrac = new Map<string, number>();
   private maxA = 0;
   constructor(plan: TownPlan, H: (e: number, n: number) => number, private fire: FireSystem, _idx: { site: string; kind: FireKind }[]) {
@@ -28,18 +31,21 @@ export class TownHaze {
     const u = uv(), r = length(u.sub(0.5)).mul(2);
     const soft = smoothstep(0.15, 1.0, r).oneMinus();
     const nz = mx_noise_float(vec3(u.x.mul(2.5), u.y.mul(1.6), time.mul(0.02))).mul(0.35).add(0.65);
-    m.colorNode = vec4(this.uCol, float(1)); m.opacityNode = soft.mul(nz).mul(attribute('aAlpha', 'float'));
+    const OMEGA = 0.9, G = 0.6; // smoke single-scattering albedo and Henyey–Greenstein asymmetry (C: wood smoke, forward-scattering)
+    const cosT = dot(normalize(positionWorld.sub(cameraPosition)), this.uSunDir);
+    const hg = float((1 - G * G) / (4 * Math.PI)).div(pow(float(1 + G * G).sub(cosT.mul(2 * G)), 1.5));
+    m.colorNode = (this.uSky as any).add((this.uSun as any).mul(hg)).mul(OMEGA); m.opacityNode = soft.mul(nz).mul(attribute('aAlpha', 'float'));
     this.mesh = new THREE.InstancedMesh(g, m, N); this.mesh.frustumCulled = false; this.mesh.renderOrder = 3; this.mesh.name = 'settlement:haze';
     this.mesh.userData = { tier: 'C', src: 'RECON', note: 'town smoke haze: opacity follows the lit share of the quarter\'s hearths, ovens and kilns (fire schedules, C); density, height and colour C' };
     this.group.add(this.mesh);
   }
   update(dt: number, camera: THREE.Camera, sunAlt: number, windMs: number, windDirDeg: number, hour: number, sky: any) {
-    void dt; void sky;
+    void dt; void sunAlt;
     if (!this.siteFires.size) { this.fire.fires.forEach((f, i) => { if (!f.group) return; if (!this.siteFires.has(f.group)) this.siteFires.set(f.group, []); this.siteFires.get(f.group)!.push(i); }); }
     for (const [site, list] of this.siteFires) { let lit = 0; for (const i of list) if (this.fire.fires[i].lit) lit++; this.lastFrac.set(site, list.length ? lit / list.length : 0); }
-    // light on the smoke: daylight falls off through twilight to a faint night level (moon and fires), warm at low sun
-    const day = Math.min(1, Math.max(0.025, (sunAlt + 8) / 22)), warm = Math.max(0, 1 - Math.abs(sunAlt - 2) / 10);
-    this.uCol.value.setRGB((0.5 + 0.1 * warm) * day, (0.48 + 0.03 * warm) * day, (0.47 - 0.05 * warm) * day);
+    // light on the smoke: the sky's horizon radiance across the view and the direct sun (its irradiance and colour)
+    if (sky?.horizon) this.uSky.value.copy(sky.horizon);
+    if (sky?.sun) { this.uSun.value.copy(sky.sun.color).multiplyScalar(sky.sun.visible ? sky.sun.intensity : 0); this.uSunDir.value.copy(sky.state.sunDir); }
     // still evening air holds the smoke low (C): stronger after sunset, weaker with wind
     const evening = hour >= 12 && sunAlt < 5 ? 1.4 : 1.0, windK = 1 / (1 + windMs * 0.25);
     const wr = ((windDirDeg + 180 - 341) * Math.PI) / 180, wx = Math.sin(wr), wz = -Math.cos(wr);

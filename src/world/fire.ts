@@ -2,7 +2,7 @@
 // billboard, a flickering light (nearest N fires get a real point light; colour ≈ 1800–2000 K) and optional smoke
 // that drifts with the wind. Fires are lit at dusk and put out after the night (C schedule until NPCs light them, Phase 5).
 import * as THREE from 'three/webgpu';
-import { uniform, uv, vec3, vec4, float, mx_noise_float, time, attribute, smoothstep, mix, length, vec2, max } from 'three/tsl';
+import { uniform, uv, vec3, vec4, float, mx_noise_float, time, attribute, smoothstep, mix, length, vec2, max, positionWorld, cameraPosition, normalize, dot, pow } from 'three/tsl';
 import { Rng } from '../core/rng';
 
 export type FireKind = 'torch' | 'brazier' | 'hearth' | 'oven' | 'lamp' | 'kiln';
@@ -30,7 +30,16 @@ export class FireSystem {
   private flames!: THREE.InstancedMesh;
   private lights: THREE.PointLight[] = [];
   private smoke!: THREE.InstancedMesh;
-  private smokeP: { pos: THREE.Vector3; vel: THREE.Vector3; age: number; life: number; size: number }[] = [];
+  private smokeP: { pos: THREE.Vector3; vel: THREE.Vector3; age: number; life: number; size: number; power?: number }[] = [];
+  private smokeGlow!: THREE.InstancedBufferAttribute;
+  // light on the smoke (session 3, D-060): the sky across the view (calibrated horizon radiance), the sun through a
+  // forward-peaked phase function, and the fire below it; set each frame by setSkyLight (was a constant unlit grey,
+  // which glowed on a moonless night)
+  private uSky = uniform(new THREE.Color(0.3, 0.3, 0.3)); private uSun = uniform(new THREE.Color(0, 0, 0)); private uSunDir = uniform(new THREE.Vector3(0, 1, 0));
+  setSkyLight(sky: { horizon: THREE.Color; sun: THREE.DirectionalLight; state: { sunDir: THREE.Vector3 } } | null | undefined) {
+    if (!sky) return; this.uSky.value.copy(sky.horizon);
+    this.uSun.value.copy(sky.sun.color).multiplyScalar(sky.sun.visible ? sky.sun.intensity : 0); this.uSunDir.value.copy(sky.state.sunDir);
+  }
   private smokeAlpha!: THREE.InstancedBufferAttribute;
   private rng = new Rng(1, 'fire');
   private uLit = uniform(1);
@@ -89,7 +98,12 @@ export class FireSystem {
     const sm = new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide });
     const su = uv(); const r = length(su.sub(0.5)).mul(2);
     const puff = smoothstep(0.2, 1.0, r).oneMinus().mul(mx_noise_float(vec3(su.mul(3), time.mul(0.1))).mul(0.3).add(0.7));
-    sm.colorNode = vec4(vec3(0.42, 0.4, 0.38), 1); sm.opacityNode = puff.mul(attribute('aAlpha', 'float'));
+    this.smokeGlow = new THREE.InstancedBufferAttribute(new Float32Array(SMAX), 1); sq.setAttribute('aGlow', this.smokeGlow);
+    { const OMEGA = 0.9, G = 0.6; // single-scattering albedo and Henyey–Greenstein asymmetry of wood smoke (C)
+      const cosT = dot(normalize(positionWorld.sub(cameraPosition)), this.uSunDir);
+      const hg = float((1 - G * G) / (4 * Math.PI)).div(pow(float(1 + G * G).sub(cosT.mul(2 * G)), 1.5));
+      sm.colorNode = (this.uSky as any).add((this.uSun as any).mul(hg)).mul(OMEGA).add(vec3(1.0, 0.55, 0.25).mul(attribute('aGlow', 'float'))); }
+    sm.opacityNode = puff.mul(attribute('aAlpha', 'float'));
     this.smoke = new THREE.InstancedMesh(sq, sm, SMAX); this.smoke.frustumCulled = false; this.smoke.count = 0; this.smoke.renderOrder = 4;
     this.smoke.userData = { tier: 'C', src: 'RECON', note: 'smoke puffs (procedural), drift with the weather wind' };
     this.group.add(this.smoke);
@@ -124,16 +138,17 @@ export class FireSystem {
       const s = SPEC[f.kind]; if (!f.lit || s.smoke <= 0) continue;
       if (f.pos.distanceToSquared(cp) > SMOKE_RANGE * SMOKE_RANGE) continue;
       if (this.rng.next() < s.smoke * dt * 3 && this.smokeP.length < 400)
-        this.smokeP.push({ pos: f.pos.clone().add(new THREE.Vector3(0, s.flameH, 0)), vel: new THREE.Vector3((this.rng.next() - 0.5) * 0.2, 0.5 + this.rng.next() * 0.4, (this.rng.next() - 0.5) * 0.2), age: 0, life: 6 + this.rng.next() * 6, size: 0.4 });
+        this.smokeP.push({ power: s.power, pos: f.pos.clone().add(new THREE.Vector3(0, s.flameH, 0)), vel: new THREE.Vector3((this.rng.next() - 0.5) * 0.2, 0.5 + this.rng.next() * 0.4, (this.rng.next() - 0.5) * 0.2), age: 0, life: 6 + this.rng.next() * 6, size: 0.4 });
     }
     let k = 0; const camQ = camera.quaternion;
     this.smokeP = this.smokeP.filter(p => (p.age += dt) < p.life);
     for (const p of this.smokeP) {
       p.vel.lerp(new THREE.Vector3(wind.x * 0.6, 0.35, wind.z * 0.6), Math.min(1, dt * 0.5)); p.pos.addScaledVector(p.vel, dt); p.size += dt * 0.35;
       m4.compose(p.pos, camQ, new THREE.Vector3(p.size, p.size, p.size)); this.smoke.setMatrixAt(k, m4);
-      this.smokeAlpha.array[k] = 0.35 * Math.min(1, p.age * 2) * (1 - p.age / p.life); k++;
+      this.smokeAlpha.array[k] = 0.35 * Math.min(1, p.age * 2) * (1 - p.age / p.life);
+      this.smokeGlow.array[k] = (p.power ?? 1) * 0.6 * Math.exp(-p.age * 1.5); k++; // lit by its fire as it leaves the flame (C)
     }
-    this.smoke.count = k; this.smoke.instanceMatrix.needsUpdate = true; this.smokeAlpha.needsUpdate = true;
+    this.smoke.count = k; this.smoke.instanceMatrix.needsUpdate = true; this.smokeAlpha.needsUpdate = true; this.smokeGlow.needsUpdate = true;
   }
   /** illuminance-like contribution of lit fires near a point (for eye adaptation) */
   localIlluminance(p: THREE.Vector3) { let e = 0; for (const f of this.fires) { if (!f.lit) continue; const d2 = f.pos.distanceToSquared(p) + 1; e += SPEC[f.kind].power * 4 / d2; } return e; }
