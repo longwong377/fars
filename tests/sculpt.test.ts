@@ -5,10 +5,10 @@ import { readFileSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 import { buildTerrace } from '../src/arch/terrace';
 import type { Box, Column, ColumnOrder } from '../src/arch/parts';
-import { columnMesh, colossusMesh, colossusFrontProjections, sculptIndex, sculptHash, sculptInputs, sculptParams, piece, encodePiece, decodePiece, srow, PieceName, Lod } from '../src/arch/sculpt';
+import { columnMesh, colossusMesh, colossusFrontProjections, sculptIndex, sculptHash, sculptInputs, sculptParams, piece, pieceModel, lockTemplate, encodePiece, decodePiece, srow, PieceName, Lod } from '../src/arch/sculpt';
 import { columnGeometry, InstancedLOD, buildMeshes, cutWall } from '../src/arch/meshes';
 import { weldPositions, NormMesh } from '../src/arch/sdf';
-import { snail } from '../src/arch/sculpt_models';
+import { snail, lockProfile } from '../src/arch/sculpt_models';
 import S from '../src/data/sculpture.json';
 import sources from '../src/data/sources.json';
 
@@ -248,17 +248,17 @@ describe('carving details (D-029)', () => {
     const turn = (u0: number) => { let d = grooveAngle(u0, 0.62) - grooveAngle(u0, 0.5); d = ((d + 3 * Math.PI) % (2 * Math.PI)) - Math.PI; return Math.sign(d); };
     expect(turn(0) * turn(C.pitch)).toBe(-1);
   });
-  it('protome horns read as horns: they spread at least 0.4 D out from the head axis and rise above the skull', () => {
-    const H = srow('protome', 'head'), m = piece('protome', 0), skullTop = H.skull_c[1] + H.skull_r[1];
+  it('protome horns read as horns: they spread at least 0.4 D out from the head axis and rise above the poll', () => {
+    const H = srow('protome', 'head'), HR = srow('protome', 'horns'), m = piece('protome', 0), pollTop = H.poll[1] + 0.1; // the top of the head lies about 0.07 D above the poll point
     // the unit protome is fitted to its box at load; in the piece's own frame (D units) measure the head region of one bull
-    let zMax = 0, yMax = -Infinity; for (let i = 0; i < m.pos.length; i += 3) if (m.pos[i] > H.skull_c[0] - 0.3) { zMax = Math.max(zMax, Math.abs(m.pos[i + 2])); yMax = Math.max(yMax, m.pos[i + 1]); }
-    expect(zMax).toBeGreaterThan(0.4); expect(yMax).toBeGreaterThan(skullTop + 0.05);
-    let len = 0; for (let k = 1; k < H.horn.length; k++) len += Math.hypot(...H.horn[k].map((v: number, j: number) => v - H.horn[k - 1][j]) as [number, number, number]);
-    expect(len, 'horn length along the curve (D)').toBeGreaterThan(0.45); expect(H.horn_r[0]).toBeGreaterThan(0.07);
+    let zMax = 0, yMax = -Infinity; for (let i = 0; i < m.pos.length; i += 3) if (m.pos[i] > H.poll[0] - 0.2) { zMax = Math.max(zMax, Math.abs(m.pos[i + 2])); yMax = Math.max(yMax, m.pos[i + 1]); }
+    expect(zMax).toBeGreaterThan(0.4); expect(yMax).toBeGreaterThan(pollTop + 0.05);
+    let len = 0; for (let k = 1; k < HR.horn.length; k++) len += Math.hypot(...HR.horn[k].map((v: number, j: number) => v - HR.horn[k - 1][j]) as [number, number, number]);
+    expect(len, 'horn length along the curve (D)').toBeGreaterThan(0.45); expect(HR.horn_r[0]).toBeGreaterThan(0.07);
   });
   it('the lamassu beard and chest curls are separate: a smooth band of chest between them (rays along the front)', () => {
     const HM = srow('colossus', 'human_head'), BE = srow('colossus', 'beard'), BD = srow('colossus', 'body'), m = piece('colossus_lamassu', 0);
-    const beardBottom = HM.beard_c[1] - HM.beard_h[1];
+    const beardBottom = HM.beard[0][1] - HM.beard[1][1];
     const frontX = (y: number, z: number) => { let best = -Infinity; // first surface met by a ray from +x at (y, z)
       for (let t = 0; t < m.idx.length; t += 3) {
         const a = m.idx[t] * 3, b = m.idx[t + 1] * 3, c = m.idx[t + 2] * 3;
@@ -271,6 +271,64 @@ describe('carving details (D-029)', () => {
     const rough = (y0: number, y1: number) => { let s = 0, n = 0; for (const z of [BD.zc - 0.15, BD.zc + 0.15]) { const p: number[] = []; for (let y = y0; y <= y1 + 1e-9; y += 0.01) p.push(frontX(y, z)); for (let i = 1; i < p.length - 1; i++) { s += Math.abs(p[i + 1] - 2 * p[i] + p[i - 1]); n++; } } return s / n; };
     const gap = rough(beardBottom - BE.chest_gap + 0.03, beardBottom - 0.03), curls = rough(beardBottom - BE.chest_gap - 0.4, beardBottom - BE.chest_gap - 0.1);
     expect(gap * 3, `gap ${gap.toFixed(4)} vs curls ${curls.toFixed(4)}`).toBeLessThan(curls);
+  });
+});
+
+describe('carving details (D-151)', () => {
+  it('snail locks are flat discs with a steep rim: the crown outside the groove stays within 12 % of its height, the rim falls to the ground', () => {
+    const C = srow('protome', 'curls');
+    const prof = (r: number, a: number) => lockProfile(r * Math.cos(a), r * Math.sin(a), 1, C.turns, C.groove_w, C.groove_d, C.bevel, 1);
+    let lo = Infinity, hi = -Infinity; // the crown between r = 0.15 and 0.65, off the groove (upper envelope over the circle)
+    for (const r of [0.15, 0.3, 0.45, 0.6]) { let best = -Infinity; for (let k = 0; k < 180; k++) best = Math.max(best, prof(r, (k / 180) * 2 * Math.PI)); lo = Math.min(lo, best); hi = Math.max(hi, best); }
+    expect(hi - lo, 'a flat crown, not a dome').toBeLessThan(0.12); expect(lo).toBeGreaterThan(0.85);
+    let rim = -Infinity; for (let k = 0; k < 180; k++) rim = Math.max(rim, prof(0.97, (k / 180) * 2 * Math.PI));
+    expect(rim, 'the bevelled rim near the lock edge').toBeLessThan(0.35);
+  });
+  it('locks are placed on the carving in whole locks, lying on the surface; the lock template is a closed 2-manifold', () => {
+    for (const [name, M] of [['protome', pieceModel('protome', sculptParams(0.845), 0)], ['colossus_lamassu', pieceModel('colossus_lamassu', sculptParams(colossusFrontProjections(parts as Box[])[0]), 0)], ['colossus_bull', pieceModel('colossus_bull', sculptParams(colossusFrontProjections(parts as Box[])[0]), 0)]] as const) {
+      const L = M.locks!; expect(L.list.length, `${name}: locks on one animal (the protome's list is one bull, mirrored for the other)`).toBeGreaterThanOrEqual(24);
+      for (const l of L.list) {
+        expect(Math.abs(L.surface(l.c[0], l.c[1], l.c[2])), `${name} lock on the surface`).toBeLessThan(0.002);
+        expect(Math.abs(Math.hypot(...l.n) - 1)).toBeLessThan(1e-6);
+      }
+      // no two locks overlap (the fields are laid in whole locks)
+      for (let i = 0; i < L.list.length; i++) for (let j = i + 1; j < L.list.length; j++) {
+        const a = L.list[i], b = L.list[j]; expect(Math.hypot(a.c[0] - b.c[0], a.c[1] - b.c[1], a.c[2] - b.c[2]), `${name} locks ${i}/${j}`).toBeGreaterThan(Math.max(a.rad, b.rad) * 1.2);
+      }
+      const T = lockTemplate(L); sanity(T, `${name} lock template`); expect(openEdges(T), `${name} lock template open edges`).toBe(0);
+      expect(T.idx.length / 3).toBeLessThanOrEqual(L.tris);
+    }
+  });
+  it('analytic normals: unit, and within 60° of the faces they shade on every sculpted piece (visible corners)', () => {
+    const fr = colossusFrontProjections(parts as Box[])[0];
+    for (const n of ['protome', 'volute', 'colossus_bull', 'colossus_lamassu'] as PieceName[]) for (const lod of [0, 1] as Lod[]) {
+      // corners buried in the body (a lock's embedded foot) are never seen: the model without its locks tells which they are
+      const m = piece(n, lod), M = pieceModel(n, sculptParams(fr), lod); let bad = 0, tot = 0;
+      for (let t = 0; t < m.idx.length; t += 3) {
+        const a = m.idx[t] * 3, b = m.idx[t + 1] * 3, c = m.idx[t + 2] * 3;
+        const ux = m.pos[b] - m.pos[a], uy = m.pos[b + 1] - m.pos[a + 1], uz = m.pos[b + 2] - m.pos[a + 2], vx = m.pos[c] - m.pos[a], vy = m.pos[c + 1] - m.pos[a + 1], vz = m.pos[c + 2] - m.pos[a + 2];
+        const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, l = Math.hypot(nx, ny, nz); if (l < 1e-12) continue;
+        for (const v of [a, b, c]) {
+          if (M.f(m.pos[v], m.pos[v + 1], m.pos[v + 2]) < -0.003) continue;
+          expect(Math.abs(Math.hypot(m.nrm[v], m.nrm[v + 1], m.nrm[v + 2]) - 1)).toBeLessThan(1e-3);
+          tot++; if ((m.nrm[v] * nx + m.nrm[v + 1] * ny + m.nrm[v + 2] * nz) / l < 0.5 - 0.02) bad++;
+        }
+      }
+      expect(bad / tot, `${n} ${lod}: corner normals more than 60° off their face`).toBeLessThan(0.01);
+    }
+  });
+  it('the composite volute is four rolls along the beam-crossing axis, their ends carved with the spiral round a raised eye', () => {
+    const { voluteH } = sculptParams(0.845), [vw, vd] = [1.25, 0.9], M = pieceModel('volute', sculptParams(0.845), 0), V = srow('volute', 'member');
+    const rs = Math.min(vw * V.scroll_r, voluteH * V.scroll_r_max), rcx = vw / 2 - rs;
+    // through the roll's axis the member is solid from face to face; the eye stands proud of the end face
+    for (const sx of [-1, 1]) for (const top of [false, true]) {
+      const cy = top ? voluteH - rs : rs;
+      expect(M.f(sx * rcx, cy, 0)).toBeLessThan(0); expect(M.f(sx * rcx, cy, vd / 2 - 0.005)).toBeLessThan(0);
+      expect(M.f(sx * rcx, cy, vd / 2 + V.eye_h * V.relief * vw * 0.5)).toBeLessThan(0); // the eye
+      // the channel between the coils is cut into the end: somewhere on a circle of half the roll radius the end face is carved back
+      let deepest = -Infinity; for (let k = 0; k < 72; k++) { const a = (k / 72) * 2 * Math.PI, x = sx * rcx + 0.5 * rs * Math.cos(a), y = cy + 0.5 * rs * Math.sin(a); deepest = Math.max(deepest, M.f(x, y, vd / 2 - 0.002)); }
+      expect(deepest, 'a spiral channel at the end of the roll').toBeGreaterThan(0);
+    }
   });
 });
 

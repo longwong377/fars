@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { SURFACES } from '../src/render/materials';
 import { buildTerrace } from '../src/arch/terrace';
-import { columnMesh } from '../src/arch/sculpt';
+import { columnMesh, srow } from '../src/arch/sculpt';
 import { writeFileSync, mkdirSync } from 'node:fs';
 
 // Brief §8.3 "Detail: minimum texel and triangle density at 1 m" (session 4, D-147). At 1440p with the default 70° vertical
@@ -26,10 +26,16 @@ describe('§8.3 detail at 1 m', () => {
     const orders = new Map<string, any>();
     for (const p of buildTerrace().parts as any[]) if (p.type === 'column' && p.order.material !== 'timber') orders.set(JSON.stringify(p.order), p.order);
     const rows: string[] = []; let worst = 0;
+    const split = srow('capital', 'composite_split'), collar = srow('capital', 'bull').collar_h;
     for (const o of orders.values()) {
       const m = columnMesh(o, 1, 0), P = m.pos, I = m.idx; let sag = 0;
+      // the lathes end where the sculpted members begin (the volute and protome of a composite capital, the protome of a bull
+      // capital): those are SDF carvings with their own budgets (tests/sculpt.test.ts), and their planar faces (the protome's
+      // saddle, a lock's crown) have long horizontal edges that are not rings
+      const lathesTop = o.capital === 'composite' ? o.height - o.capitalH * (split.volute + split.protome) : o.capital === 'bull' ? o.height - o.capitalH * (1 - collar) : Infinity;
       for (let t = 0; t < I.length; t += 3) for (let e = 0; e < 3; e++) {
         const a = I[t + e] * 3, b = I[t + ((e + 1) % 3)] * 3;
+        if (P[a + 1] > lathesTop - 1e-6 || P[b + 1] > lathesTop - 1e-6) continue; // a sculpted member, not a lathe
         if (Math.abs(P[a + 1] - P[b + 1]) > 1e-4) continue; // an edge along a ring of the lathe
         const ra = Math.hypot(P[a], P[a + 2]), rb = Math.hypot(P[b], P[b + 2]); if (ra < 0.05 || rb < 0.05) continue;
         const cos = (P[a] * P[b] + P[a + 2] * P[b + 2]) / (ra * rb), th = Math.acos(Math.max(-1, Math.min(1, cos)));

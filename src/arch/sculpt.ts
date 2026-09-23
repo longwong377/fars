@@ -11,8 +11,8 @@ import * as THREE from 'three/webgpu';
 import S from '../data/sculpture.json';
 import { SPEC } from './spec';
 import type { ColumnOrder, Box, Material } from './parts';
-import { NormMesh, RawMesh, creaseNormals, mergeNorm, transformNorm, marchingCubes, simplify, smoothstep } from './sdf';
-import { protomeSDF, voluteSDF, colossusSDF, ColossusModel } from './sculpt_models';
+import { NormMesh, RawMesh, SDF, creaseNormals, sdfNormals, mergeNorm, transformNorm, marchingCubes, simplify, smoothstep } from './sdf';
+import { protomeSDF, voluteSDF, colossusSDF, lockProfile, ColossusModel, type PieceSDF, type LockSet } from './sculpt_models';
 
 export type Lod = 0 | 1;
 const SC = S as any;
@@ -193,18 +193,84 @@ export function sculptParams(colossusFront?: number) {
   if (front === undefined) throw new Error('sculpt: colossus fore-part length unknown (setColossusFront or a built index)');
   return { voluteH: split.volute * capOverD, colossusFront: front };
 }
-/** generate one organic piece (both LODs) from its SDF: marching cubes + quadric simplification (offline tool) */
-export function generatePiece(name: PieceName, params?: { voluteH: number; colossusFront: number }): NormMesh[] {
+/** the signed-distance model of a piece at a level of detail (LOD1 models leave out carving finer than its grid) */
+export function pieceModel(name: PieceName, params: { voluteH: number; colossusFront: number }, lod: Lod): PieceSDF {
   const [vw, vd] = P().capital_boxes.volute as number[];
-  const cfg = name === 'protome' ? srow('protome', 'mc') : name === 'volute' ? srow('volute', 'mc') : srow('colossus', 'mc');
-  const sdf = name === 'protome' ? protomeSDF() : name === 'volute' ? voluteSDF((params ?? sculptParams(0)).voluteH, vw, vd) : colossusSDF(name.slice(9) as ColossusModel, (params ?? sculptParams()).colossusFront);
-  // LOD1 is polygonised on its own coarser grid: simplifying LOD0 that far leaves spikes and broken silhouettes
-  const l0 = simplify(marchingCubes(sdf.f, sdf.min, sdf.max, cfg.cell), cfg.lod0), l1 = simplify(marchingCubes(sdf.f, sdf.min, sdf.max, cfg.lod1_cell), cfg.lod1);
-  if (name.startsWith('colossus')) { // simplification may nudge a vertex a few mm past the jamb faces: keep the carving inside its block
-    const RB = srow('colossus', 'reference_box'), lo = [-RB.L / 2, 0, -RB.W / 2], hi = [RB.L / 2, RB.H, RB.W / 2];
-    for (const m of [l0, l1]) for (let i = 0; i < m.pos.length; i++) m.pos[i] = Math.min(hi[i % 3], Math.max(lo[i % 3], m.pos[i]));
+  return name === 'protome' ? protomeSDF(lod) : name === 'volute' ? voluteSDF(params.voluteH, vw, vd, lod) : colossusSDF(name.slice(9) as ColossusModel, params.colossusFront, lod);
+}
+const TEMPLATES = new Map<string, NormMesh>();
+/** The lock template (D-151): one flat snail lock of radius 1 (crown `height` above its foot, embedded `depth` below it)
+ *  polygonised finely and simplified to `tris` triangles with analytic normals. Every lock of a piece is this mesh, so each
+ *  keeps the same clean disc, bevelled rim and spiral groove whatever the simplifier does to the body. Cached per profile. */
+export function lockTemplate(L: LockSet): NormMesh {
+  const key = [L.turns, L.gw, L.gd, L.bevel, L.height, L.depth, L.tris].join('|');
+  const hit = TEMPLATES.get(key); if (hit) return hit;
+  const H = L.height, Dp = L.depth, cell = 1 / 40;
+  const f: SDF = (a, b, h) => Math.max(h - H * lockProfile(a, b, 1, L.turns, L.gw, L.gd, L.bevel, 1), -Dp - h, Math.hypot(a, b) - 1);
+  const m = simplify(marchingCubes(f, [-1.08, -1.08, -Dp - 0.06], [1.08, 1.08, H + 0.06], cell), L.tris);
+  // a lock of a few dozen triangles: facets bridge the groove, so a corner's normal stays within 40° of its own face (the
+  // margin keeps it within 60° after the template is bent onto a curved chest)
+  const n = sdfNormals(m, f, 50, cell * 0.3, 40), t = { pos: n.pos, nrm: n.nrm, idx: n.idx };
+  TEMPLATES.set(key, t); return t;
+}
+/** the locks of a piece as meshes: the template laid on each lock's frame (u, v in the surface, n out; mirrored in u for the
+ *  other coiling sense) and shrink-wrapped onto `surface` (every template vertex keeps its height above the local
+ *  surface, so a disc on a curved chest touches it all round); `mirrorX` adds the mirror image (the protome's other bull) */
+export function lockMeshes(L: LockSet): NormMesh {
+  const T = lockTemplate(L), nv = T.pos.length / 3, out: NormMesh[] = [], S = L.surface;
+  const grad = (x: number, y: number, z: number, e: number) => { const g = [S(x + e, y, z) - S(x - e, y, z), S(x, y + e, z) - S(x, y - e, z), S(x, y, z + e) - S(x, y, z - e)], l = Math.hypot(g[0], g[1], g[2]) || 1; return [g[0] / l, g[1] / l, g[2] / l]; };
+  for (const l of L.list) {
+    const u = [l.u[0] * l.hand, l.u[1] * l.hand, l.u[2] * l.hand], v = l.v, n = l.n, R = l.rad, e = R * 0.05;
+    const pos = new Float32Array(nv * 3), nrm = new Float32Array(nv * 3);
+    for (let i = 0; i < nv; i++) {
+      const a = T.pos[i * 3], b = T.pos[i * 3 + 1], h = T.pos[i * 3 + 2];
+      // the template point's foot on the surface (along the lock's normal), then its height along the surface normal there,
+      // and its normal turned with the local frame: the lock follows the curvature of the chest it is carved on
+      const px = l.c[0] + R * (a * u[0] + b * v[0]), py = l.c[1] + R * (a * u[1] + b * v[1]), pz = l.c[2] + R * (a * u[2] + b * v[2]);
+      const d0 = S(px, py, pz), qx = px - n[0] * d0, qy = py - n[1] * d0, qz = pz - n[2] * d0, nl = grad(qx, qy, qz, e);
+      pos[i * 3] = qx + nl[0] * R * h; pos[i * 3 + 1] = qy + nl[1] * R * h; pos[i * 3 + 2] = qz + nl[2] * R * h;
+      const ud = u[0] * nl[0] + u[1] * nl[1] + u[2] * nl[2], ul = [u[0] - nl[0] * ud, u[1] - nl[1] * ud, u[2] - nl[2] * ud], ull = Math.hypot(ul[0], ul[1], ul[2]) || 1;
+      ul[0] /= ull; ul[1] /= ull; ul[2] /= ull;
+      const vl = l.hand > 0 ? [nl[1] * ul[2] - nl[2] * ul[1], nl[2] * ul[0] - nl[0] * ul[2], nl[0] * ul[1] - nl[1] * ul[0]] : [ul[1] * nl[2] - ul[2] * nl[1], ul[2] * nl[0] - ul[0] * nl[2], ul[0] * nl[1] - ul[1] * nl[0]];
+      const na = T.nrm[i * 3], nb = T.nrm[i * 3 + 1], nh = T.nrm[i * 3 + 2];
+      for (let k = 0; k < 3; k++) nrm[i * 3 + k] = na * ul[k] + nb * vl[k] + nh * nl[k];
+    }
+    const idx = Uint32Array.from(T.idx);
+    if (l.hand < 0) for (let t = 0; t < idx.length; t += 3) { const q = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = q; }
+    out.push({ pos, nrm, idx });
+    if (L.mirrorX) {
+      const mp = pos.slice(), mn = nrm.slice(), mi = idx.slice();
+      for (let i = 0; i < nv; i++) { mp[i * 3] = -mp[i * 3]; mn[i * 3] = -mn[i * 3]; }
+      for (let t = 0; t < mi.length; t += 3) { const q = mi[t + 1]; mi[t + 1] = mi[t + 2]; mi[t + 2] = q; }
+      out.push({ pos: mp, nrm: mn, idx: mi });
+    }
   }
-  return [creaseNormals(l0, cfg.crease), creaseNormals(l1, cfg.crease)];
+  return mergeNorm(out);
+}
+export interface GenOptions { lods?: Lod[]; cell?: number; raw?: boolean }
+/** generate one organic piece (both LODs) from its SDF: marching cubes, quadric simplification weighted toward the carved
+ *  detail, and analytic normals from the SDF gradient (D-151). Offline tool; `opts` serve the node preview (one LOD, another
+ *  grid, or the raw marching-cubes surface) */
+export function generatePiece(name: PieceName, params?: { voluteH: number; colossusFront: number }, opts: GenOptions = {}): NormMesh[] {
+  const cfg = name === 'protome' ? srow('protome', 'mc') : name === 'volute' ? srow('volute', 'mc') : srow('colossus', 'mc');
+  const prm = params ?? sculptParams(name === 'volute' || name === 'protome' ? 0 : undefined);
+  const out: NormMesh[] = [];
+  for (const lod of opts.lods ?? ([0, 1] as Lod[])) {
+    // LOD1 is polygonised on its own coarser grid: simplifying LOD0 that far leaves spikes and broken silhouettes
+    const M = pieceModel(name, prm, lod), cell = opts.cell ?? (lod ? cfg.lod1_cell : cfg.cell);
+    // the locks are added as template meshes (lockMeshes): the body gets what is left of the budget
+    const lockTris = M.locks ? M.locks.list.length * (M.locks.mirrorX ? 2 : 1) * lockTemplate(M.locks).idx.length / 3 : 0;
+    let m = marchingCubes(M.f, M.min, M.max, cell);
+    if (!opts.raw) m = simplify(m, (lod ? cfg.lod1 : cfg.lod0) - lockTris, M.weight);
+    const n = sdfNormals(m, M.f, cfg.crease, cell * (cfg.normal_eps ?? 0.3), cfg.max_dev ?? 60);
+    const piece: NormMesh = M.locks ? mergeNorm([{ pos: n.pos, nrm: n.nrm, idx: n.idx }, lockMeshes(M.locks)]) : { pos: n.pos, nrm: n.nrm, idx: n.idx };
+    if (name.startsWith('colossus')) { // simplification (or a lock on the flank) may reach a few mm past the jamb faces: keep the carving inside its block
+      const RB = srow('colossus', 'reference_box'), lo = [-RB.L / 2, 0, -RB.W / 2], hi = [RB.L / 2, RB.H, RB.W / 2];
+      for (let i = 0; i < piece.pos.length; i++) piece.pos[i] = Math.min(hi[i % 3], Math.max(lo[i % 3], piece.pos[i]));
+    }
+    out[lod] = piece;
+  }
+  return out;
 }
 // ---- compact binary: 'SCLP' | u32 version | u32 nv | u32 ni | f32×6 box | u16×3nv positions (quantised) | pad |
 //      i8×3nv normals | pad | u16 or u32 ×ni indices
