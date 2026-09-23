@@ -84,4 +84,5 @@ After the sim merge, run a fresh independent shadow review (round 4) on a seed t
 - **`world.update` ctx:** `ctx.sky` is `sky.state`; the SkySystem (horizon radiance, sun light) is `ctx.skyLight`.
 - **Vitest console output is suppressed:** write debug dumps to a file.
 - **Load contention:** SwiftShader renders take 4–15 min each, and agents share the queue. Queue only what you will look at.
+- **Page loads take about 5 min each at test quality** since the merges (settlement.spec loads once per view, and twice for A/B views). Keep each job at 2 page loads or fewer, or the 15-min watchdog kills it: dusk3 died after 2 of 4. moments.spec loads once and then steps its views with setTime, so it can take 2–3 views.
 - **Removing old agent worktrees** is refused by the permission classifier. Leave them; they cost about 55 MB each.
