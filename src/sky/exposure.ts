@@ -53,12 +53,32 @@ export function adaptationBrightness(La: number): number {
   return Math.min(1, (keyValue(La) / keyValue(LA_NOON)) * Math.min(1, La / LA_ABSOLUTE));
 }
 
+/** Reflected metering (C; the principle of ISO 2720 reflected-light meters): the camera meters the frame, not an 18 %
+ *  grey card. A centre-weighted meter gives the top of a landscape frame (the sky) about a fifth of the weight (C). The
+ *  sky's mean radiance is E_sky / π and the grey ground's 0.18 E / π, so the frame reads F = 0.8 + 0.2 · E_sky / (0.18 E)
+ *  grey-card units: ≈ 0.94 at the zenith sun (the sky darker than the sunlit ground), ≈ 1.9 in twilight (the sky ~5.6×
+ *  the ground), and the camera exposes for it. It acts only through the sky gain, i.e. only where the camera is already
+ *  at its limit (a clear sky with the sun below ~5°): daylit and golden-hour scenes keep the session-3 law. The eye's key
+ *  is taken at the frame's adapting luminance F · La, as Krawczyk et al. take it at the scene average. */
+export const SKY_WEIGHT = 0.2;
+export const meterFactor = (skyLux: number, lux: number) => 1 - SKY_WEIGHT + SKY_WEIGHT * (skyLux / Math.max(0.18 * lux, 1e-12));
+export const METER_NOON = meterFactor(15354, 123800);
+
+/** displayed brightness of the grey ground relative to the zenith sun, for the illuminance `lux` of which `skyLux` is
+ *  diffuse (sky, moonlit sky, night sky): the key at the frame's adapting luminance, the limit of adaptation, and the
+ *  exposure the meter sets for a frame that is F grey-card units bright */
+export function displayedGrey(lux: number, skyLux: number): number {
+  const F = meterFactor(skyLux, lux), La = F * adaptingLuminance(lux);
+  const D = Math.min(1, (keyValue(La) / keyValue(METER_NOON * LA_NOON)) * Math.min(1, La / LA_ABSOLUTE));
+  return D * Math.min(1, METER_NOON / F);
+}
+
 /** The sky gain G (≥ 1) that multiplies every sun-, sky- and moon-derived light. `renE` is the illuminance those lights
  *  put on the eye's reference surface in renderer units at G = 1 (sun · sin h + skylight luminance + moon, as the exposure
- *  estimate counts them); `lux` is the same illuminance in lux. With the camera at its limit X_MAX the displayed grey is
- *  then KEY · D(La). */
-export function skyGain(renE: number, lux: number): number {
-  const target = (KEY / X_MAX) * adaptationBrightness(adaptingLuminance(lux));
+ *  estimate counts them); `lux` is the same illuminance in lux and `skyLux` its diffuse part. With the camera at its
+ *  limit X_MAX the displayed grey is then KEY · displayedGrey. */
+export function skyGain(renE: number, lux: number, skyLux = 0.18 * lux * (METER_NOON - 1 + SKY_WEIGHT) / SKY_WEIGHT): number {
+  const target = (KEY / X_MAX) * displayedGrey(lux, skyLux);
   return Math.max(1, target / Math.max(renE, 1e-12));
 }
 

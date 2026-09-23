@@ -218,7 +218,7 @@ export class SkySystem {
     const skyL = (skyLux(alt) + ml.sky + NIGHT_LUX) * (1 - 0.3 * cloudCover);
     this.lux = sunN * sinA + skyL + moonN * sinM;
     const sunI = sunN * REN_PER_LUX_SUN, hemiI = skyL * REN_PER_LUX_SKY, moonI = moonN * REN_PER_LUX_SUN;
-    this.gain = skyGain(sunI * sinA + hemiI * 0.8 + moonI * 0.3, this.lux); // the exposure estimate's weights (main.ts)
+    this.gain = skyGain(sunI * sinA + hemiI * 0.8 + moonI * 0.3, this.lux, skyL); // the exposure estimate's weights (main.ts)
     const G = this.gain; this.fireScale = fireLightScale(G);
     // ---- the physical atmosphere (D-116): sun colour, cloud light at the cloud's height, twilight dome ----------------------
     // aerosol depth in steps of 0.01, each model built once (~0.3 s) and kept; with the sun above 15° only the sun's colour

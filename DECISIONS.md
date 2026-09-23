@@ -1090,6 +1090,11 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - The metering is incident (the illuminance at the eye), as before. At sunrise and sunset the sky is ~5× the grey ground, so it is displayed bright and pale (CPU panoramas, `tools/dev/sky_panorama.ts`). A reflected (average) meter would expose for the sky at twilight, but would also change golden-hour and daytime views by ±20 % with the view direction, so it was not adopted (Q-162).
   - There is no chromatic adaptation: twilight is rendered as a daylight-balanced camera would record it, strongly blue.
 - **Tiers:** the published functions B; their use as a scalar exposure, the 18 % adapting grey and the camera range C.
+- **Addendum: fire light (measured in the first dawn render).**
+  - At 05:24 the lit braziers at the stair top set the exposure to 1.89 instead of 6. The sky-lit plain came out at luma 14, and the Gate of All Nations was lit as at night.
+  - Cause: the fires' light values are perceptual, tuned at night. A lamp's point light is 0.08 · 40 = 3.2 renderer candela; an oil lamp gives about a candle, ~1 cd (C). So fire light is pre-exposed by ~63,000 against the skylight's scale, which is the moonlit-night sky gain (8.8 × 10⁴ under a half moon). At dawn (gain 65) the brazier was ~1000× too strong for the ~50 lx of skylight.
+  - Decision: the fires' cast light (the point lights in fire.ts) and their share in the eye's adaptation estimate are scaled by min(1, G / 63,000). That is 1 at night (unchanged), ~10⁻³ at dawn and ~10⁻⁵ by day, which also removes the session-3 pools of firelight around daytime kilns in full sun. The flames themselves (emissive) and the fire-lit smoke keep their values: a flame is far brighter than its surroundings at every one of these levels.
+  - Tested (`tests/exposure.test.ts`): scale 1 on moonlit and moonless nights, < 0.01 at dawn, < 10⁻⁴ at noon.
 
 ## D-119 — Clouds at low sun: sunlight at the cloud's own height, reddened by its path
 - **Problem:** at dawn and dusk the cloud layer was lit grey-white: it took the ground's sun colour, which was zero once the sun set for the ground. Real low-sun cloud is lit warm from below. The sun still reaches a cloud 1.5–3.6 km above the observer for about 1.3–2° below the ground's horizon.

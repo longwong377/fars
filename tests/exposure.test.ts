@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three/webgpu';
-import { logTviCones, logTviRods, keyValue, adaptationBrightness, adaptingLuminance, skyGain, exposureTarget, KEY, X_MAX, LA_ABSOLUTE, FIRE_GAIN } from '../src/sky/exposure';
+import { logTviCones, logTviRods, keyValue, adaptationBrightness, adaptingLuminance, skyGain, exposureTarget, KEY, X_MAX, LA_ABSOLUTE, FIRE_GAIN, displayedGrey } from '../src/sky/exposure';
+import { skyLux, sunHorizontalLux, NIGHT_LUX } from '../src/sky/illuminance';
 import { SkySystem } from '../src/sky/skySystem';
 import { WorldClock } from '../src/core/clock';
 
@@ -27,6 +28,13 @@ describe('visual adaptation functions', () => {
     expect(D(0.25)).toBeGreaterThan(D(0.0005) * 3); // moonlight is readable against a moonless night
     expect(D(0.0005)).toBeLessThan(0.02);
     expect(adaptingLuminance(0.002)).toBeGreaterThan(LA_ABSOLUTE * 0.9); // the plateau sits at ~0.002 lx (airglow night)
+  });
+  it('with the centre-weighted meter, the displayed grey falls monotonically as the sun sets, and twilight stays above moonlight', () => {
+    let prev = 2;
+    for (let h = 30; h >= -12; h -= 0.5) { const sk = skyLux(h) + NIGHT_LUX, d = displayedGrey(sunHorizontalLux(h) + sk, sk); expect(d, `sun ${h}°`).toBeLessThanOrEqual(prev + 1e-9); prev = d; }
+    const civilEnd = displayedGrey(skyLux(-6) + NIGHT_LUX, skyLux(-6) + NIGHT_LUX), halfMoon = displayedGrey(0.0086, 0.0017);
+    expect(civilEnd).toBeGreaterThanOrEqual(halfMoon * 0.95);
+    expect(displayedGrey(123800, 15354)).toBeCloseTo(1, 6);
   });
   it('the camera law is the session-3 one inside its range, and the sky gain is 1 by day', () => {
     expect(exposureTarget(2.5, 0.78, 1, 0, 0)).toBeCloseTo(2.3 / (3.28 + 0.004), 3);
