@@ -22,7 +22,11 @@ export class VolumetricClouds {
   readonly wind = uniform(new THREE.Vector2(3, 0));          // m/s, world x/z
   constructor(radius: number, quality: string) {
     const [N, NL] = STEPS[quality] ?? STEPS.high;
-    const m = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, transparent: true, depthTest: false, depthWrite: false, fog: false });
+    // drawn like the sky, stars and moon: in the opaque pass by render order (−7, after them), no depth test or write, so
+    // every piece of geometry drawn later covers it. (As a transparent material with depthTest off it was drawn AFTER the
+    // geometry and laid the cloud deck over walls and mountains above the horizon.) Custom blending keeps the alpha, which
+    // a non-transparent NormalBlending material would force to 1.
+    const m = new THREE.MeshBasicNodeMaterial({ side: THREE.BackSide, transparent: false, blending: THREE.CustomBlending, blendSrc: THREE.SrcAlphaFactor, blendDst: THREE.OneMinusSrcAlphaFactor, blendEquation: THREE.AddEquation, depthTest: false, depthWrite: false, fog: false });
     const cov = this.coverage, sd = this.sunDir, sc = this.sunColor, amb = this.ambient, hz = this.haze, tm = this.time, wd = this.wind;
     /** density at a point (metres, observer-relative, y up) */
     const density = Fn(([p]: [any]) => {

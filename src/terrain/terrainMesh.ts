@@ -9,7 +9,12 @@ const CHUNK = 128;
 /** the far ring (±71.7 km, 80 m cells) uses 256-cell chunks: 48 draw calls instead of 192, and the mid ring's hole is
  *  exactly one chunk (mid half-size 10,240 m = 128 far cells) */
 const FAR_CHUNK = 256;
-interface Chunk { ring: Ring; r0: number; c0: number; cells: number; center: THREE.Vector3; radius: number; lods: Map<number, THREE.BufferGeometry>; mesh: THREE.Mesh; step: number }
+interface Chunk { ring: Ring; r0: number; c0: number; cells: number; center: THREE.Vector3; radius: number; lods: Map<number, THREE.BufferGeometry>; mesh: THREE.Mesh; step: number; err: number[] | null }
+const STEPS = [1, 2, 4, 8, 16];
+/** LOD thresholds (geomipmapping, de Boer 2000): a step is allowed when its worst height error, seen from the camera,
+ *  subtends ≤ ERR_RAD (≈ 1.5 px at 1440p / 70° vertical FOV) and its vertex spacing ≤ SPACING_RAD (keeps shading and
+ *  silhouettes from turning into large facets even on flat ground) */
+const ERR_RAD = 0.0013, SPACING_RAD = 0.02;
 
 /** Ground colour: procedural and tier C. It will be replaced by calibrated materials in Phase 3 (flagged in the dev overlay). */
 function groundColour(h: number, slope: number, out: THREE.Color) {
@@ -45,7 +50,7 @@ export class TerrainMesh {
       const mesh = new THREE.Mesh(undefined, this.material);
       mesh.receiveShadow = true; mesh.castShadow = ring === this.terrain.near; mesh.matrixAutoUpdate = false;
       mesh.userData = this.group.userData;
-      this.chunks.push({ ring, r0: cr * CH, c0: cc * CH, cells: CH, center, radius, lods: new Map(), mesh, step: -1 });
+      this.chunks.push({ ring, r0: cr * CH, c0: cc * CH, cells: CH, center, radius, lods: new Map(), mesh, step: -1, err: null });
       this.group.add(mesh);
     }
   }
@@ -81,12 +86,26 @@ export class TerrainMesh {
     g.boundingSphere = new THREE.Sphere(ch.center, ch.radius);
     return g;
   }
-  /** choose LOD per chunk from camera distance (screen-space-ish error: vertex spacing / distance). */
+  /** worst vertical error (m) of each decimation step against the full-resolution heights: the bilinear surface of the
+   *  decimated grid versus every sample it skips (computed once per chunk, on first use) */
+  private chunkErrors(ch: Chunk): number[] {
+    const { ring, r0, c0, cells } = ch, H = (r: number, c: number) => ring.at(Math.min(ring.n - 1, r), Math.min(ring.n - 1, c));
+    return STEPS.map(s => { if (s === 1) return 0; let worst = 0;
+      for (let i = 0; i <= cells; i++) { const ri = Math.floor(i / s) * s, ty = (i - ri) / s, ri2 = Math.min(cells, ri + s);
+        for (let j = 0; j <= cells; j++) { const cj = Math.floor(j / s) * s, tx = (j - cj) / s, cj2 = Math.min(cells, cj + s);
+          if (!ty && !tx) continue;
+          const h = (H(r0 + ri, c0 + cj) * (1 - tx) + H(r0 + ri, c0 + cj2) * tx) * (1 - ty) + (H(r0 + ri2, c0 + cj) * (1 - tx) + H(r0 + ri2, c0 + cj2) * tx) * ty;
+          worst = Math.max(worst, Math.abs(h - H(r0 + i, c0 + j))); } }
+      return worst; });
+  }
+  /** choose LOD per chunk: the coarsest step whose height error and vertex spacing, seen from the camera, stay under
+   *  ERR_RAD and SPACING_RAD (× lodBias for lower quality settings) */
   update(camPos: THREE.Vector3) {
     for (const ch of this.chunks) {
       const d = Math.max(1, camPos.distanceTo(ch.center) - ch.radius);
-      const target = (d * 0.004) / (ch.ring.cell * this.lodBias); // allow ~0.004 rad per vertex spacing
-      let step = 1; while (step < 16 && step * 2 <= target) step *= 2;
+      const err = (ch.err ??= this.chunkErrors(ch));
+      let step = 1;
+      for (let k = 1; k < STEPS.length; k++) { const s = STEPS[k]; if (err[k] / d <= ERR_RAD * this.lodBias && (s * ch.ring.cell) / d <= SPACING_RAD * this.lodBias) step = s; else break; }
       if (step !== ch.step) {
         let g = ch.lods.get(step); if (!g) { g = this.buildGeometry(ch, step); ch.lods.set(step, g); }
         ch.mesh.geometry = g; ch.step = step;

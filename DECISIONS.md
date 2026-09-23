@@ -209,11 +209,11 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - Leaving curvature out: a systematic 0.1–0.3° error on every distant range.
 - The walkable grid (built from the physics terrain) differs from the flat build by ≤ 3 cm at its W edge, 620 m out. It will be rebuilt at the next nav rebuild.
 ## D-036 Translation layer: inscriptions picked by panel, not by sign (session 3)
-- The translation e2e (never run in session 2) failed for three reasons:
+- The translation e2e (never run in session 2) failed for two reasons:
   1. Its camera sat on the Gate roof (D-034).
-  2. The layer throttles picking by the frame timestamp, and test renders pass 0, so it never picked. The layer now uses wall time when a frame has no timestamp.
-  3. The carved mesh is only the signs, so a ray through a panel often passes between wedges.
-- **Fix for 3:** each panel now has an invisible rectangle over its bounding box plus 5 cm, on a layer no camera renders (`INSCRIPTION_PICK_LAYER`). The translation layer raycasts only that layer. A reader looking at the panel now gets the text wherever the view centre falls on it.
+  2. The carved mesh is only the signs, so a ray through a panel often passes between wedges.
+  (A suspected third cause, a timestamp of 0 in test frames, was wrong: `frame()` always takes `performance.now()`. The change made for it is reverted.)
+- **Fix for 2:** each panel now has an invisible rectangle over its bounding box plus 5 cm, on a layer no camera renders (`INSCRIPTION_PICK_LAYER`). The translation layer raycasts only that layer. A reader looking at the panel now gets the text wherever the view centre falls on it.
 - **Still wrong (found here, not fixed):** the Gate's open door leaves stand 0.24 m in front of the XPa panels and hide them up to 7.7 m. This is the known door-leaf layout fault, now with the sculpture agent (D-018 follow-up). The layer shows the text through the leaf because its raycast ignores occluders; that is acceptable only for an out-of-world layer.
 - The e2e passes: XPa transliteration with glosses, map (M), chronicle (J).
 ## D-045 Music: tunings, physically modelled instruments and a performer-only music system (Phase 8 start, session 3)
@@ -238,3 +238,13 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - No title-screen piece: audio unlocks only on the Enter click, which starts the game.
   - The magus's chant is speech-synthesis work (`src/audio/speech.ts`).
 - **Alternatives:** sampled instruments (no CC0 recordings reachable, and they would not vary); additive synthesis (not physical modelling as the brief asks).
+## D-046 Clouds drawn behind the world; terrain LOD by geometric error (session 3)
+- **Clouds:** the first render of the volumetric clouds (high quality, overcast) showed the cloud deck laid over a wall. The cloud dome was a transparent material with the depth test off, so it was drawn after all opaque geometry and covered every surface above the horizon (the Apadana tower read as sky-grey; at test quality the same wall is olive plaster).
+  - It is now drawn like the sky, stars and moon: in the opaque pass by render order (−7), with no depth test or write, so every later object covers it.
+  - Custom src-alpha blending keeps its alpha. A non-transparent NormalBlending material would force the alpha to 1.
+  - Verified: the wall is back to its plaster colour under the overcast deck, and the image's mean luminance fell from 171 to 152.
+- **Terrain LOD:** the far ring widening (D-035) left 8.3 M terrain triangles across all chunks, because LOD was chosen from vertex spacing alone (0.004 rad) and kept the flat plain at full resolution.
+  - Each chunk now precomputes the worst height error of each decimation step (geomipmapping, de Boer 2000). The coarsest step is used whose error, seen from the camera, subtends ≤ 0.0013 rad (≈ 1.5 px at 1440p) and whose vertex spacing subtends ≤ 0.02 rad.
+  - Measured over all chunks: 4.6 M triangles (near 2.1 → 0.5 M, mid 2.5 → 0.8 M, far 3.7 → 3.3 M).
+  - The far ring keeps 256-cell chunks because draw calls are the tighter budget. 128-cell chunks would save a further 1 M triangles for 144 more draw calls.
+  - The skyline and seam tests still pass.
