@@ -23,6 +23,6 @@
 - For every building except the Grand Stair, the overlay mostly checks the footprint against itself. Platform-type buildings are built *from* their footprint polygon, and the Gate and Hall of 100 Columns are built from their footprint's bounding box, so their IoU only measures how rectangular the traced ruin is.
 - Only the Grand Stair (0.962) is partly independent, because its flights come from spec rows.
 - The overlay's real value is verifying the grid→world→render transform on both backends (10 structures rendered, 11 checked geometrically). |
-| 3 | Vertical slice: materials, reliefs, fire, weather VFX, audio, 65 people, speech/murmur, walkthrough bot (28 legs pass). Open: SSGI washout, rubric + independent review, bench, calibration (blocked) | **not passed** |
+| 3 | Vertical slice: materials, reliefs (carved low-relief heightfield figures with per-figure LOD since D-015: PLACEHOLDER, procedural C pending licensed scans NEEDS #10; browser render of the new relief path NOT yet verified by screenshot), fire, weather VFX, audio, 65 people, speech/murmur, walkthrough bot (28 legs pass). Open: SSGI washout, rubric + independent review, bench, calibration (blocked) | **not passed** |
 | 4 | research ready (research/PHASE4_ACCESS.md, patch not applied) | — |
 | 5–9 | not started | — |

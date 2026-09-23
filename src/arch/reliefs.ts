@@ -1,145 +1,403 @@
-// Apadana stair reliefs (Phase 3): façade programme from SITE_SPEC apadana.relief_programme (B/C), procedural low-relief
-// figures (PLACEHOLDER silhouettes pending licensed scans, NEEDS #10), painted per research/RELIEFS_AND_COLOUR.md:
-// hair/beard dark blue (B); garments from the attested pigment palette (colour-per-figure C); background unpainted (no evidence).
+// Carved low reliefs (D-015): façade programmes (Apadana stairs, Phase 3; generic registers for Phase 4) placed as carved
+// heightfield figures (relief_figures.ts → relief_field.ts), rendered through one BatchedMesh per relief set with a
+// level of detail per figure. Figures are procedural low relief, tier C (licensed scans would replace them, NEEDS #10);
+// layout B/C per SITE_SPEC; paint per research/RELIEFS_AND_COLOUR.md (hair/beard dark blue B, other colours C).
 import * as THREE from 'three/webgpu';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { v } from './spec';
 import { Rng } from '../core/rng';
+import { FIGURE_KINDS, PIGMENT, DELEGATIONS, SPECIES, defBounds, figureDef } from './relief_figures';
+const SPECIES_HALF = (k: string) => (SPECIES[k] ? SPECIES[k].L / 2 : 0.3);
+import { rasterize, rtinErrors, extractLod, LodMesh, Box, FigureDef } from './relief_field';
+import { surfaceMaterial } from '../render/materials';
+export { FIGURE_KINDS, PIGMENT, DELEGATIONS } from './relief_figures';
+export type { KindInfo } from './relief_figures';
 
-type C3 = [number, number, number];
-// attested pigments (research §3a), as linear-ish display colours (C for exact tone)
-export const PIGMENT: Record<string, C3> = {
-  stone: [0.56, 0.55, 0.52], egyptianBlue: [0.13, 0.28, 0.62], darkBlue: [0.07, 0.1, 0.25], cinnabar: [0.72, 0.13, 0.08], redOchre: [0.55, 0.2, 0.12],
-  malachite: [0.18, 0.5, 0.33], yellowOchre: [0.78, 0.6, 0.25], white: [0.9, 0.88, 0.83], black: [0.05, 0.05, 0.05], purple: [0.35, 0.12, 0.32], gold: [0.83, 0.66, 0.3],
-};
-const S = (pts: number[][]) => new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y)));
-const ellipse = (cx: number, cy: number, rx: number, ry: number, n = 16) => S(Array.from({ length: n }, (_, i) => [cx + rx * Math.cos((i / n) * Math.PI * 2), cy + ry * Math.sin((i / n) * Math.PI * 2)]));
-interface Piece { shape: THREE.Shape; colour: C3; depth: number; z?: number }
+/** the carvable figure kinds (see FIGURE_KINDS for tier / source / note of each) */
+export const RELIEF_KINDS = Object.keys(FIGURE_KINDS);
+export const RELIEF_META = { tier: 'C', src: 'RELIEF-R;MATCULT-R;IR-APAD', placeholder: true, note: 'procedural low relief; licensed scans would replace (NEEDS #10). Carved heightfield figures (D-015); layout B/C; hair/beard dark blue B, other paint C' };
 
-/** Build one figure type; local frame: x = walking direction, y = up, z = out of the wall. Height ~0.78 m. */
-export function figurePieces(kind: string, rng: Rng): Piece[] {
-  const d = v('apadana', 'r_relief_depth');
-  const garments = [PIGMENT.cinnabar, PIGMENT.egyptianBlue, PIGMENT.malachite, PIGMENT.yellowOchre, PIGMENT.purple, PIGMENT.redOchre];
-  const g1 = rng.pick(garments), g2 = rng.pick(garments);
-  const P: Piece[] = [];
-  const head = (hy: number, hat: 'fluted' | 'cap' | 'band' | 'pointed' | 'none') => {
-    P.push({ shape: ellipse(0.02, hy, 0.055, 0.065), colour: PIGMENT.stone, depth: d });
-    P.push({ shape: S([[-0.06, hy + 0.01], [0.0, hy + 0.035], [0.0, hy - 0.02], [-0.03, hy - 0.11], [-0.05, hy - 0.1]]), colour: PIGMENT.darkBlue, depth: d * 1.05, z: 0.001 }); // hair at nape
-    P.push({ shape: S([[0.0, hy - 0.03], [0.07, hy - 0.035], [0.05, hy - 0.13], [-0.01, hy - 0.12]]), colour: PIGMENT.darkBlue, depth: d * 1.05, z: 0.001 }); // beard
-    if (hat === 'fluted') P.push({ shape: S([[-0.055, hy + 0.04], [0.065, hy + 0.04], [0.075, hy + 0.13], [-0.065, hy + 0.13]]), colour: g2, depth: d });
-    if (hat === 'cap') P.push({ shape: S([[-0.07, hy + 0.02], [0.07, hy + 0.02], [0.05, hy + 0.1], [-0.02, hy + 0.12], [-0.08, hy + 0.05]]), colour: g2, depth: d });
-    if (hat === 'pointed') P.push({ shape: S([[-0.06, hy + 0.03], [0.06, hy + 0.03], [-0.03, hy + 0.2]]), colour: g2, depth: d });
-    if (hat === 'band') P.push({ shape: S([[-0.057, hy + 0.02], [0.06, hy + 0.02], [0.06, hy + 0.045], [-0.057, hy + 0.045]]), colour: g2, depth: d * 1.08, z: 0.001 });
-  };
-  const robe = (colour: C3, long: boolean) => {
-    const hem = long ? 0.04 : 0.3;
-    P.push({ shape: S([[-0.08, 0.6], [0.09, 0.6], [0.13, hem], [-0.15, hem]]), colour, depth: d });
-    P.push({ shape: S([[-0.075, 0.58], [0.085, 0.58], [0.1, 0.42], [-0.08, 0.42]]), colour, depth: d * 1.1, z: 0.001 }); // chest / sleeves
-    if (long) for (let i = 0; i < 5; i++) { const x = -0.12 + i * 0.05; P.push({ shape: S([[x, 0.05], [x + 0.012, 0.05], [x + 0.02, 0.35], [x + 0.008, 0.35]]), colour: [colour[0] * 0.8, colour[1] * 0.8, colour[2] * 0.8], depth: d * 1.12, z: 0.002 }); } // pleats
-    if (!long) { P.push({ shape: S([[-0.09, 0.3], [-0.04, 0.3], [-0.05, 0.03], [-0.085, 0.03]]), colour: g2, depth: d }); P.push({ shape: S([[0.02, 0.3], [0.08, 0.3], [0.07, 0.03], [0.035, 0.03]]), colour: g2, depth: d }); } // trousers
-    P.push({ shape: S([[-0.15, 0.0], [0.02, 0.0], [0.02, 0.04], [-0.14, 0.04]]), colour: PIGMENT.stone, depth: d }); // feet
-    P.push({ shape: S([[0.0, 0.0], [0.16, 0.0], [0.15, 0.04], [0.02, 0.04]]), colour: PIGMENT.stone, depth: d });
-  };
-  const arm = (fwd: number) => P.push({ shape: S([[0.04, 0.57], [0.08, 0.56], [0.08 + fwd, 0.42], [0.05 + fwd, 0.4]]), colour: g1, depth: d * 1.15, z: 0.003 });
-  switch (kind) {
-    case 'persian': robe(g1, true); head(0.69, 'fluted'); arm(0.06); break;
-    case 'mede': robe(g1, false); head(0.69, 'cap'); arm(0.06); P.push({ shape: S([[-0.14, 0.52], [-0.1, 0.52], [-0.12, 0.25], [-0.16, 0.26]]), colour: PIGMENT.yellowOchre, depth: d * 1.1, z: 0.003 }); break; // gorytos
-    case 'guard': robe(g1, true); head(0.69, 'fluted'); P.push({ shape: S([[0.12, 0.0], [0.135, 0.0], [0.135, 1.02], [0.12, 1.02]]), colour: PIGMENT.stone, depth: d * 1.2, z: 0.004 }); // spear
-      P.push({ shape: ellipse(0.1275, 0.02, 0.03, 0.03, 10), colour: PIGMENT.gold, depth: d * 1.25, z: 0.004 }); // pomegranate butt (B)
-      arm(0.05); break;
-    case 'usher': robe(g1, rng.chance(0.5)); head(0.69, rng.chance(0.5) ? 'fluted' : 'cap'); P.push({ shape: S([[0.08, 0.56], [0.2, 0.47], [0.21, 0.44], [0.08, 0.5]]), colour: g1, depth: d * 1.15, z: 0.003 }); break;
-    case 'delegate': { const long = rng.chance(0.5); robe(g1, long); head(0.69, rng.pick(['band', 'pointed', 'cap', 'none'] as const)); arm(0.12);
-      P.push(rng.chance(0.5) ? { shape: ellipse(0.2, 0.47, 0.06, 0.05, 12), colour: PIGMENT.gold, depth: d * 1.3, z: 0.004 } : { shape: S([[0.14, 0.52], [0.26, 0.52], [0.25, 0.4], [0.15, 0.4]]), colour: g2, depth: d * 1.25, z: 0.004 }); break; }
-    case 'horse': P.push({ shape: S([[-0.35, 0.28], [0.2, 0.3], [0.33, 0.48], [0.4, 0.46], [0.3, 0.3], [0.28, 0.02], [0.23, 0.02], [0.18, 0.2], [-0.2, 0.2], [-0.25, 0.02], [-0.3, 0.02], [-0.33, 0.2], [-0.4, 0.3]]), colour: PIGMENT.yellowOchre, depth: d }); break;
-    case 'bull': P.push({ shape: S([[-0.35, 0.22], [0.18, 0.3], [0.32, 0.36], [0.38, 0.3], [0.28, 0.2], [0.26, 0.02], [0.2, 0.02], [0.16, 0.14], [-0.2, 0.14], [-0.25, 0.02], [-0.3, 0.02], [-0.33, 0.14]]), colour: PIGMENT.yellowOchre, depth: d }); P.push({ shape: ellipse(0.02, 0.34, 0.08, 0.06, 10), colour: PIGMENT.yellowOchre, depth: d }); break; // humped
-    case 'camel': P.push({ shape: S([[-0.35, 0.35], [-0.2, 0.5], [-0.05, 0.42], [0.08, 0.5], [0.2, 0.36], [0.3, 0.55], [0.37, 0.55], [0.3, 0.3], [0.25, 0.02], [0.2, 0.02], [0.17, 0.25], [-0.22, 0.25], [-0.26, 0.02], [-0.31, 0.02], [-0.33, 0.25]]), colour: PIGMENT.yellowOchre, depth: d }); break;
-    case 'ram': P.push({ shape: S([[-0.2, 0.12], [0.1, 0.18], [0.2, 0.28], [0.26, 0.22], [0.18, 0.12], [0.16, 0.01], [0.12, 0.01], [0.1, 0.08], [-0.12, 0.08], [-0.15, 0.01], [-0.19, 0.01], [-0.22, 0.1]]), colour: PIGMENT.yellowOchre, depth: d }); break;
-    case 'lion': P.push({ shape: S([[-0.4, 0.3], [0.1, 0.34], [0.22, 0.46], [0.36, 0.44], [0.4, 0.34], [0.3, 0.28], [0.28, 0.02], [0.22, 0.02], [0.18, 0.18], [-0.22, 0.18], [-0.28, 0.02], [-0.34, 0.02], [-0.36, 0.2], [-0.5, 0.36], [-0.46, 0.3]]), colour: PIGMENT.yellowOchre, depth: d }); P.push({ shape: ellipse(0.24, 0.4, 0.12, 0.1, 12), colour: PIGMENT.yellowOchre, depth: d * 1.2, z: 0.002 }); break; // mane
-    case 'king': // seated king on throne with footstool (audience scene): scale is applied by the placement
-      P.push({ shape: S([[-0.2, 0.0], [0.14, 0.0], [0.14, 0.34], [0.1, 0.36], [-0.16, 0.36], [-0.2, 0.34]]), colour: PIGMENT.stone, depth: d * 0.8 }); // throne
-      P.push({ shape: S([[-0.18, 0.36], [-0.16, 0.8], [-0.2, 0.8], [-0.22, 0.36]]), colour: PIGMENT.stone, depth: d * 0.8 }); // backrest
-      P.push({ shape: S([[0.15, 0.0], [0.32, 0.0], [0.32, 0.08], [0.15, 0.08]]), colour: PIGMENT.stone, depth: d * 0.8 }); // footstool
-      P.push({ shape: S([[-0.12, 0.34], [0.08, 0.36], [0.26, 0.34], [0.28, 0.1], [0.2, 0.08], [0.16, 0.28], [-0.1, 0.3]]), colour: PIGMENT.purple, depth: d }); // lap & legs in robe
-      P.push({ shape: S([[-0.12, 0.34], [0.06, 0.34], [0.07, 0.68], [-0.1, 0.68]]), colour: PIGMENT.purple, depth: d }); // torso (royal robe red/purple, B)
-      P.push({ shape: S([[-0.13, 0.33], [0.08, 0.33], [0.08, 0.36], [-0.13, 0.36]]), colour: PIGMENT.egyptianBlue, depth: d * 1.1, z: 0.001 }); // blue hem band (B)
-      P.push({ shape: S([[0.04, 0.62], [0.24, 0.5], [0.25, 0.47], [0.05, 0.56]]), colour: PIGMENT.purple, depth: d * 1.15, z: 0.003 }); // arm with sceptre
-      P.push({ shape: S([[0.23, 0.2], [0.245, 0.2], [0.26, 0.72], [0.245, 0.72]]), colour: PIGMENT.gold, depth: d * 1.2, z: 0.004 }); // sceptre
-      break;
-    case 'cypress': P.push({ shape: S([[-0.06, 0.0], [0.06, 0.0], [0.07, 0.25], [0.05, 0.55], [0.0, 0.8], [-0.05, 0.55], [-0.07, 0.25]]), colour: PIGMENT.malachite, depth: d * 0.9 }); break;
-  }
-  return P;
+// ---------------- levels of detail ----------------
+/** per LOD: target grid cell on the stone (m), largest grid, RTIN error bound (relief-depth units), normal smoothing (cells),
+ *  switch distance (m, camera to the figure's bounding sphere). Bands chosen for ≳ 4 px per triangle at 1080p / 70° (D-015):
+ *  L0 only at arm's length, where a 1.6 mm cell is ~1 px. */
+export const RELIEF_LODS = [
+  { cell: 0.0016, maxN: 513, err: 0.03, grad: 1, dist: 1.2 },
+  { cell: 0.0032, maxN: 257, err: 0.06, grad: 1, dist: 4 },
+  { cell: 0.0064, maxN: 129, err: 0.12, grad: 1, dist: 14 },
+  { cell: 0.0128, maxN: 65, err: 0.3, grad: 1, dist: Infinity },
+];
+/** rosettes: carved within ROSETTE_NEAR, a 40-triangle boss within ROSETTE_FAR, not drawn beyond (≤ 1.5 px) */
+export const ROSETTE_NEAR = 2.0, ROSETTE_FAR = 40;
+const HYST = 1.12; // a finer LOD is dropped only beyond HYST × its switch distance
+/** grid size (2^k + 1) for a figure whose larger extent on the stone is `extentM` metres, at LOD `lod` */
+export function lodGrid(extentM: number, lod: number) {
+  const cells = extentM / RELIEF_LODS[lod].cell;
+  return Math.min(RELIEF_LODS[lod].maxN, Math.max(17, 2 ** Math.ceil(Math.log2(Math.max(16, cells))) + 1));
 }
 
-export function figureGeometry(pieces: Piece[], mirror: boolean): THREE.BufferGeometry {
-  const gs = pieces.map(p => {
-    const g = new THREE.ExtrudeGeometry(p.shape, { depth: p.depth, bevelEnabled: true, bevelThickness: p.depth * 0.35, bevelSize: 0.006, bevelSegments: 2, curveSegments: 6 });
-    g.translate(0, 0, p.z ?? 0);
-    if (mirror) g.scale(-1, 1, 1);
-    const n = g.getAttribute('position').count; const col = new Float32Array(n * 3);
-    const c = new THREE.Color().setRGB(p.colour[0], p.colour[1], p.colour[2], THREE.SRGBColorSpace);
-    for (let i = 0; i < n; i++) col.set([c.r, c.g, c.b], i * 3);
-    g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.deleteAttribute('uv');
-    return g.index ? g.toNonIndexed() : g;
-  });
-  const g = mergeGeometries(gs)!;
-  if (mirror) { // restore winding after the mirror
-    const pos = g.getAttribute('position'), nor = g.getAttribute('normal'), col = g.getAttribute('color');
-    for (let i = 0; i < pos.count; i += 3) for (const a of [pos, nor, col]) { for (let k = 0; k < a.itemSize; k++) { const t = a.array[(i + 1) * a.itemSize + k]; (a.array as any)[(i + 1) * a.itemSize + k] = a.array[(i + 2) * a.itemSize + k]; (a.array as any)[(i + 2) * a.itemSize + k] = t; } }
+// ---------------- generation: cache, worker pool, synchronous fallback ----------------
+const meshCache = new Map<string, LodMesh>();          // key = kind|seed|n|lod
+const bounds = new Map<string, Box>();
+export const genStats = { generated: 0, ms: 0, workerJobs: 0 };
+const defs = new Map<string, FigureDef>();
+/** figure definitions are pure data + SDF closures: built once per kind and seed */
+const defOf = (kind: string, seed: number) => { const k = kind + '|' + seed; let d = defs.get(k); if (!d) { d = figureDef(kind, seed); defs.set(k, d); } return d; };
+const boundsOf = (kind: string, seed: number) => { const k = kind + '|' + seed; let b = bounds.get(k); if (!b) { b = defBounds(defOf(kind, seed)); bounds.set(k, b); } return b; };
+/** synchronous generation of one LOD mesh (node / tests / no-Worker fallback) */
+export function reliefLodMesh(kind: string, seed: number, n: number, lod: number): LodMesh {
+  const key = `${kind}|${seed}|${n}|${lod}`; let m = meshCache.get(key); if (m) return m;
+  const t0 = performance.now();
+  const f = rasterize(defOf(kind, seed), n); m = extractLod(f, rtinErrors(f), RELIEF_LODS[lod].err, RELIEF_LODS[lod].grad, PIGMENT.stone);
+  genStats.generated++; genStats.ms += performance.now() - t0;
+  meshCache.set(key, m); return m;
+}
+class WorkerPool {
+  private workers: Worker[] = []; private idle: Worker[] = []; private queue: { key: string; job: any }[] = []; private waiting = new Map<number, string>(); private nextId = 1;
+  readonly pending = new Set<string>();
+  onDone: (() => void) | null = null;
+  constructor(n: number) {
+    for (let i = 0; i < n; i++) {
+      const w = new Worker(new URL('./relief_worker.ts', import.meta.url), { type: 'module' });
+      w.onmessage = (e: MessageEvent) => { const key = this.waiting.get(e.data.id)!; this.waiting.delete(e.data.id); this.pending.delete(key);
+        if (e.data.mesh) { meshCache.set(key, e.data.mesh); genStats.generated++; } else console.error('relief worker', key, e.data.error);
+        this.idle.push(w); this.pump(); this.onDone?.(); };
+      w.onerror = e => console.error('relief worker error', e.message);
+      this.workers.push(w); this.idle.push(w);
+    }
   }
+  request(key: string, kind: string, seed: number, n: number, lod: number) {
+    if (this.pending.has(key) || meshCache.has(key)) return;
+    this.pending.add(key); this.queue.push({ key, job: { kind, seed, n, err: RELIEF_LODS[lod].err, grad: RELIEF_LODS[lod].grad } }); this.pump();
+  }
+  /** jobs are served nearest-first: the caller re-sorts by priority before pumping */
+  prioritise(prio: (key: string) => number) { this.queue.sort((a, b) => prio(a.key) - prio(b.key)); }
+  private pump() {
+    while (this.idle.length && this.queue.length) { const w = this.idle.pop()!, q = this.queue.shift()!, id = this.nextId++; this.waiting.set(id, q.key); genStats.workerJobs++; w.postMessage({ id, ...q.job }); }
+  }
+}
+let pool: WorkerPool | null | undefined;
+function workers(): WorkerPool | null {
+  if (pool !== undefined) return pool;
+  try { pool = typeof Worker !== 'undefined' && typeof window !== 'undefined' ? new WorkerPool(Math.max(1, Math.min(3, (navigator.hardwareConcurrency ?? 2) - 1))) : null; }
+  catch (e) { console.warn('relief workers unavailable, generating on the main thread', e); pool = null; }
+  if (pool) pool.onDone = () => { for (const s of liveSets) s.dirty = true; };
+  return pool;
+}
+
+// ---------------- geometry: LOD mesh → BufferGeometry in the normalised frame (x, y figure units; z relief-depth units) ----------------
+export function lodGeometry(m: LodMesh, mirror: boolean): THREE.BufferGeometry {
+  const nv = m.verts, pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), sx = mirror ? -1 : 1;
+  for (let i = 0; i < nv; i++) {
+    pos[i * 3] = m.pos[i * 3] * sx; pos[i * 3 + 1] = m.pos[i * 3 + 1]; pos[i * 3 + 2] = m.pos[i * 3 + 2];
+    const nx = -m.grad[i * 2] * sx, ny = -m.grad[i * 2 + 1], l = Math.sqrt(nx * nx + ny * ny + 1);
+    nor[i * 3] = nx / l; nor[i * 3 + 1] = ny / l; nor[i * 3 + 2] = 1 / l;
+  }
+  const idx = new Uint32Array(m.index);
+  if (mirror) for (let t = 0; t < idx.length; t += 3) { const q = idx[t + 1]; idx[t + 1] = idx[t + 2]; idx[t + 2] = q; }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(m.col), 3)); g.setIndex(new THREE.BufferAttribute(idx, 1));
   return g;
 }
 
+// ---------------- relief sets ----------------
+/** one carved figure on a wall: origin on the wall face at the figure's ground line, unit along-wall / up / out-of-wall axes */
+export interface ReliefItem { kind: string; seed: number; o: THREE.Vector3; X: THREE.Vector3; Y: THREE.Vector3; Z: THREE.Vector3; S: number; D: number; mirror: boolean; meta?: Record<string, unknown> }
+export interface RosetteItem { o: THREE.Vector3; X: THREE.Vector3; Y: THREE.Vector3; Z: THREE.Vector3; S: number; D: number }
+const liveSets = new Set<ReliefSet>();
+let reliefMat: THREE.MeshStandardNodeMaterial | null = null;
+const paintMaterial = () => (reliefMat ??= surfaceMaterial('limestone', { vertexColors: true }));
+const carving = () => v<any>('apadana', 'r_relief_carving');
+
+export class ReliefSet extends THREE.Group {
+  readonly items: ReliefItem[]; readonly batch: THREE.BatchedMesh | null = null;
+  dirty = true;
+  private inst: number[] = []; private level: Int8Array; private shown: Int8Array; private grids: number[][] = []; private centres: Float32Array;
+  private geoIds = new Map<string, number>(); private geoUse = new Map<string, number>(); private lastCam = new THREE.Vector3(Infinity, 0, 0);
+  private rosNear: THREE.InstancedMesh | null = null; private rosettes: RosetteItem[]; private rosMats: THREE.Matrix4[] = [];
+  /** triangles currently submitted (before frustum culling) */
+  stats = { tris: 0, byLod: [0, 0, 0, 0], rosetteTris: 0, pending: 0 };
+
+  constructor(items: ReliefItem[], rosettes: RosetteItem[] = [], name = 'reliefs') {
+    super(); this.name = name; this.userData = { ...RELIEF_META };
+    this.items = items; this.rosettes = rosettes;
+    const n = items.length; this.level = new Int8Array(n).fill(-1); this.shown = new Int8Array(n).fill(-1); this.centres = new Float32Array(n * 4);
+    items.forEach((it, i) => {
+      const b = boundsOf(it.kind, it.seed), ext = Math.max(b[2] - b[0], b[3] - b[1]) * it.S;
+      this.grids.push(RELIEF_LODS.map((_, l) => lodGrid(ext, l)));
+      const cx = ((b[0] + b[2]) / 2) * (it.mirror ? -1 : 1) * it.S, cy = ((b[1] + b[3]) / 2) * it.S;
+      const c = it.o.clone().addScaledVector(it.X, cx).addScaledVector(it.Y, cy);
+      this.centres.set([c.x, c.y, c.z, (Math.hypot(b[2] - b[0], b[3] - b[1]) / 2) * it.S], i * 4);
+    });
+    // coarsest LOD of every figure: synchronously when there is no worker pool (node, tests), so the set is complete at
+    // once; in the browser the workers generate it and figures appear as their meshes arrive (main thread stays free)
+    const wp = workers(); let nv = 0, ni = 0; const seen = new Set<string>();
+    items.forEach((it, i) => { const k = this.key(i, 3, false); if (seen.has(k)) return; seen.add(k);
+      if (wp) { wp.request(k, it.kind, it.seed, this.grids[i][3], 3); nv += 600; ni += 3000; }
+      else { const m = reliefLodMesh(it.kind, it.seed, this.grids[i][3], 3); nv += m.verts; ni += m.index.length; } });
+    if (n) {
+      (this as any).batch = new THREE.BatchedMesh(n, Math.max(4096, nv * 3 + 200_000), Math.max(12288, ni * 3 + 600_000), paintMaterial());
+      const bm = this.batch!; bm.name = 'relief:figures'; bm.userData = { ...RELIEF_META }; bm.castShadow = true; bm.receiveShadow = true; bm.sortObjects = false; bm.perObjectFrustumCulled = true;
+      const mtx = new THREE.Matrix4(), emb = carving().embed;
+      let placeholder = -1;
+      items.forEach((it, i) => {
+        const gid = this.geomId(i, 3);
+        if (gid === null && placeholder < 0) { const e = new THREE.BufferGeometry(); e.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3)); e.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1], 3)); e.setAttribute('color', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3)); e.setIndex([0, 1, 2]); placeholder = bm.addGeometry(e); }
+        const id = bm.addInstance(gid ?? placeholder);
+        mtx.makeBasis(it.X.clone().multiplyScalar(it.S), it.Y.clone().multiplyScalar(it.S), it.Z.clone().multiplyScalar(it.D)).setPosition(it.o.clone().addScaledVector(it.Z, -emb));
+        bm.setMatrixAt(id, mtx); this.inst.push(id);
+        if (gid !== null) { this.level[i] = 3; this.shown[i] = 3; this.use(this.key(i, 3), 1); } else bm.setVisibleAt(id, false);
+      });
+      bm.computeBoundingBox(); bm.computeBoundingSphere(); bm.frustumCulled = false; // per-instance culling does the work
+      this.add(bm);
+    }
+    if (rosettes.length) this.buildRosettes();
+    this.countTris(); liveSets.add(this);
+  }
+  private key(i: number, lod: number, withMirror = true) { const it = this.items[i]; return `${it.kind}|${it.seed}|${this.grids[i][lod]}|${lod}` + (withMirror ? (it.mirror ? '|m' : '|n') : ''); }
+  private use(k: string, d: number) { this.geoUse.set(k, (this.geoUse.get(k) ?? 0) + d); }
+  /** geometry id for item i at a LOD (adds it to the batch if its mesh is ready; null if not generated yet) */
+  private geomId(i: number, lod: number): number | null {
+    const k = this.key(i, lod); let id = this.geoIds.get(k); if (id !== undefined) return id;
+    const m = meshCache.get(this.key(i, lod, false)); if (!m) return null;
+    const g = lodGeometry(m, this.items[i].mirror), bm = this.batch!;
+    const vc = g.getAttribute('position').count, ic = g.index!.count;
+    if ((bm as any)._nextVertexStart + vc > (bm as any)._maxVertexCount || (bm as any)._nextIndexStart + ic > (bm as any)._maxIndexCount) this.makeRoom(vc, ic);
+    id = bm.addGeometry(g); g.dispose(); this.geoIds.set(k, id); return id;
+  }
+  /** free batch space: drop geometries no instance uses, repack, and grow if still short */
+  private makeRoom(vc: number, ic: number) {
+    const bm = this.batch! as any;
+    for (const [k, id] of this.geoIds) if ((this.geoUse.get(k) ?? 0) <= 0 && !k.includes('|3|')) { bm.deleteGeometry(id); this.geoIds.delete(k); this.geoUse.delete(k); }
+    bm.optimize();
+    if (bm._nextVertexStart + vc > bm._maxVertexCount || bm._nextIndexStart + ic > bm._maxIndexCount)
+      bm.setGeometrySize(Math.ceil((bm._maxVertexCount + vc) * 1.5), Math.ceil((bm._maxIndexCount + ic) * 1.5));
+  }
+  private wanted(i: number, d: number) {
+    const cur = this.level[i]; let l = RELIEF_LODS.findIndex(x => d < x.dist);
+    if (cur >= 0 && l > cur && d < RELIEF_LODS[cur].dist * HYST) l = cur; // hysteresis: keep the finer level a little longer
+    return l;
+  }
+  /** choose each figure's LOD for the camera position; request missing meshes (workers) or build them within budgetMs (sync) */
+  update(cam: THREE.Vector3, budgetMs = 4) {
+    if (!this.batch) return;
+    const moved = cam.distanceToSquared(this.lastCam) > 0.04;
+    if (!moved && !this.dirty) return;
+    this.dirty = false; if (moved) this.lastCam.copy(cam);
+    const wp = workers(), t0 = performance.now(), dist = new Float32Array(this.items.length), c = this.centres;
+    for (let i = 0; i < this.items.length; i++) dist[i] = Math.max(0, Math.hypot(cam.x - c[i * 4], cam.y - c[i * 4 + 1], cam.z - c[i * 4 + 2]) - c[i * 4 + 3]);
+    const order = Array.from(dist.keys()).sort((a, b) => dist[a] - dist[b]);
+    let pending = 0;
+    for (const i of order) {
+      const want = this.wanted(i, dist[i]); this.level[i] = want;
+      let show = want;
+      if (!meshCache.has(this.key(i, want, false))) {
+        const it = this.items[i];
+        if (wp) { wp.request(this.key(i, want, false), it.kind, it.seed, this.grids[i][want], want); pending++; if (this.shown[i] < 0 && want !== 3) wp.request(this.key(i, 3, false), it.kind, it.seed, this.grids[i][3], 3); }
+        else if (performance.now() - t0 < budgetMs) reliefLodMesh(it.kind, it.seed, this.grids[i][want], want);
+        else { pending++; this.dirty = true; }
+        if (!meshCache.has(this.key(i, want, false))) { // fall back to the nearest generated level (coarser first)
+          show = -1; for (let l = want + 1; l < 4 && show < 0; l++) if (meshCache.has(this.key(i, l, false))) show = l;
+          for (let l = want - 1; l >= 0 && show < 0; l--) if (meshCache.has(this.key(i, l, false))) show = l;
+        }
+      }
+      if (show !== this.shown[i] && show >= 0) {
+        const gid = this.geomId(i, show); if (gid === null) continue;
+        if (this.shown[i] >= 0) this.use(this.key(i, this.shown[i]), -1); else this.batch.setVisibleAt(this.inst[i], true);
+        this.use(this.key(i, show), 1); this.batch.setGeometryIdAt(this.inst[i], gid); this.shown[i] = show;
+      }
+    }
+    if (wp) wp.prioritise(k => { let best = Infinity; for (let i = 0; i < this.items.length; i++) if (k.startsWith(this.items[i].kind + '|' + this.items[i].seed + '|')) best = Math.min(best, dist[i]); return best; });
+    this.stats.pending = pending;
+    this.updateRosettes(cam);
+    this.countTris();
+  }
+  private countTris() {
+    this.stats.byLod = [0, 0, 0, 0]; this.stats.tris = 0;
+    for (let i = 0; i < this.items.length; i++) { if (this.shown[i] < 0) continue; const m = meshCache.get(this.key(i, this.shown[i], false)); if (m) { this.stats.byLod[this.shown[i]] += m.tris; this.stats.tris += m.tris; } }
+    this.stats.tris += this.stats.rosetteTris;
+  }
+  /** rosettes (tiny and numerous, so instanced rather than batched): carved LOD near the camera, a painted boss in the mid
+   *  range, nothing beyond ROSETTE_FAR; both lists are rebuilt from the camera position */
+  private buildRosettes() {
+    const RS = this.rosettes, emb = carving().embed, mtx = new THREE.Matrix4();
+    for (const r of RS) this.rosMats.push(mtx.clone().makeBasis(r.X.clone().multiplyScalar(r.S), r.Y.clone().multiplyScalar(r.S), r.Z.clone().multiplyScalar(r.D)).setPosition(r.o.clone().addScaledVector(r.Z, -emb)));
+    const nearMesh = reliefLodMesh('rosette', 0, lodGrid(RS[0].S * 1.04, 1), 2), meta = { ...RELIEF_META, note: 'rosette border bands (motif from reconstructions, C); ' + RELIEF_META.note };
+    const mk = (g: THREE.BufferGeometry, name: string, shadow: boolean) => { const m = new THREE.InstancedMesh(g, paintMaterial(), RS.length); m.count = 0; m.name = name; m.userData = meta; m.castShadow = shadow; m.receiveShadow = true; m.frustumCulled = false; this.add(m); return m; };
+    this.rosNear = mk(lodGeometry(nearMesh, false), 'relief:rosettes-carved', true);
+    this.rosFar = mk(rosetteBoss(), 'relief:rosettes', false);
+    this.rosTris = [nearMesh.tris, this.rosFar.geometry.index!.count / 3];
+  }
+  private rosFar: THREE.InstancedMesh | null = null; private rosTris = [0, 0];
+  private updateRosettes(cam: THREE.Vector3) {
+    const near = this.rosNear, far = this.rosFar; if (!near || !far) return;
+    let kn = 0, kf = 0;
+    for (let i = 0; i < this.rosettes.length; i++) {
+      const o = this.rosettes[i].o; if (Math.abs(o.x - cam.x) > ROSETTE_FAR || Math.abs(o.z - cam.z) > ROSETTE_FAR) continue;
+      const d = o.distanceTo(cam); if (d < ROSETTE_NEAR) near.setMatrixAt(kn++, this.rosMats[i]); else if (d < ROSETTE_FAR) far.setMatrixAt(kf++, this.rosMats[i]);
+    }
+    near.count = kn; far.count = kf; near.instanceMatrix.needsUpdate = true; far.instanceMatrix.needsUpdate = true;
+    this.stats.rosetteTris = kn * this.rosTris[0] + kf * this.rosTris[1];
+  }
+  dispose() { liveSets.delete(this); this.batch?.dispose(); this.rosNear?.dispose(); this.rosFar?.dispose(); }
+}
+
+/** the mid-range rosette: an octagonal painted boss (Egyptian blue, yellow-ochre centre), 40 triangles, same frame as the carved one */
+function rosetteBoss(): THREE.BufferGeometry {
+  const pos: number[] = [], col: number[] = [], idx: number[] = [], lin = (c: number[]) => c.map(x => (x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4));
+  const blue = lin(PIGMENT.egyptianBlue), yel = lin(PIGMENT.yellowOchre), rings: [number, number, number[]][] = [[0.12, 0.9, yel], [0.3, 0.62, blue], [0.49, 0.05, blue]];
+  pos.push(0, 0.5, 0.95); col.push(...yel);
+  for (const [r, z, c] of rings) for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; pos.push(Math.cos(a) * r, 0.5 + Math.sin(a) * r, z); col.push(...c); }
+  for (let k = 0; k < 8; k++) idx.push(0, 1 + k, 1 + ((k + 1) % 8));
+  for (let ring = 0; ring < 2; ring++) for (let k = 0; k < 8; k++) { const a = 1 + ring * 8 + k, b = 1 + ring * 8 + ((k + 1) % 8), c = a + 8, d = b + 8; idx.push(a, c, d, a, d, b); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setIndex(idx); g.computeVertexNormals();
+  return g;
+}
+/** per-frame hook (world.update): LOD selection for every live relief set; budgetMs bounds main-thread generation when no Worker exists */
+export function updateReliefs(cam: THREE.Vector3, budgetMs = 4) { for (const s of liveSets) s.update(cam, budgetMs); }
+/** meshes still being generated for the current views */
+export function reliefsPending() { let n = 0; for (const s of liveSets) n += s.stats.pending; return n + (pool ? pool.pending.size : 0); }
+/** resolves when every requested relief mesh is generated and shown (tests / screenshots) */
+export async function settleReliefs(cam: THREE.Vector3, timeoutMs = 60_000) {
+  const t0 = performance.now();
+  for (;;) { for (const s of liveSets) { s.dirty = true; s.update(cam, 1e9); } if (reliefsPending() === 0 || performance.now() - t0 > timeoutMs) return; await new Promise(r => setTimeout(r, 30)); }
+}
+export function reliefStats() { const out = { sets: liveSets.size, tris: 0, byLod: [0, 0, 0, 0], pending: reliefsPending(), generated: genStats.generated, workerJobs: genStats.workerJobs };
+  for (const s of liveSets) { out.tris += s.stats.tris; s.stats.byLod.forEach((t, i) => (out.byLod[i] += t)); } return out; }
+
+// ---------------- generic register API (Phase 4 programmes) ----------------
+type V3 = THREE.Vector3 | [number, number, number];
+const vec = (a: V3) => (Array.isArray(a) ? new THREE.Vector3(a[0], a[1], a[2]) : a.clone());
+export interface RegisterFigure { kind: string; seed?: number; at?: number; scale?: number; dy?: number; facing?: 1 | -1 }
+export interface RegisterSpec {
+  /** world point on the wall face at the register's left end (as the viewer faces the wall) */
+  start: V3;
+  /** horizontal unit direction along the wall, viewer's left → right */
+  dir: V3;
+  length: number;
+  /** world y of the register's ground line (default start.y) */
+  baseY?: number;
+  /** register height (m): a standing figure incl. headgear fills r_relief_carving.figure_fill of it */
+  height: number;
+  /** procession direction along dir (+1: figures walk toward the right end) */
+  facing: 1 | -1;
+  /** in procession order (the leader first); `at` = distance from the start (m) overrides the automatic spacing */
+  figures: RegisterFigure[];
+  normal?: V3; depth?: number; slope?: number; gap?: number; rosettes?: 'below' | 'above' | 'both'; name?: string;
+}
+/** Place one register of carved figures on any wall span; returns a relief set (a THREE.Group) that manages its own LOD
+ *  once `updateReliefs` runs each frame (world.ts does). */
+export function buildRegister(spec: RegisterSpec): ReliefSet {
+  const { items, rosettes } = registerItems(spec);
+  return new ReliefSet(items, rosettes, spec.name ?? 'relief-register');
+}
+export function registerItems(spec: RegisterSpec): { items: ReliefItem[]; rosettes: RosetteItem[] } {
+  const X = vec(spec.dir).setY(0).normalize(), Y = new THREE.Vector3(0, 1, 0), Z = spec.normal ? vec(spec.normal).normalize() : X.clone().cross(Y).normalize();
+  const start = vec(spec.start); if (spec.baseY !== undefined) start.y = spec.baseY;
+  const CV = carving(), figH = spec.height * CV.figure_fill, D: number = spec.depth ?? v<number>('apadana', 'r_relief_depth'), gap = spec.gap ?? 0, slope = spec.slope ?? 0;
+  const items: ReliefItem[] = [];
+  let cursor = 0;
+  for (const f of spec.figures) {
+    if (!FIGURE_KINDS[f.kind]) throw new Error(`relief kind ${f.kind} unknown (see RELIEF_KINDS)`);
+    const s = f.scale ?? 1, w = FIGURE_KINDS[f.kind].w * figH * s;
+    const at = f.at ?? (spec.facing > 0 ? spec.length - cursor - w / 2 : cursor + w / 2);
+    cursor += w + gap;
+    if (at < 0 || at > spec.length) continue; // does not fit
+    const facing = f.facing ?? spec.facing;
+    items.push({ kind: f.kind, seed: f.seed ?? 0, o: start.clone().addScaledVector(X, at).addScaledVector(Y, (f.dy ?? 0) + slope * at), X, Y, Z, S: figH * s, D, mirror: facing < 0 });
+  }
+  const rosettes: RosetteItem[] = [];
+  if (spec.rosettes) { const RS = v<any>('apadana', 'r_rosette');
+    for (const where of spec.rosettes === 'both' ? ['below', 'above'] : [spec.rosettes]) for (let a = RS.pitch / 2; a < spec.length; a += RS.pitch)
+      rosettes.push({ o: start.clone().addScaledVector(X, a).addScaledVector(Y, slope * a + (where === 'below' ? -RS.diameter - 0.01 : spec.height + 0.01)), X, Y, Z, S: RS.diameter, D: D * 0.6 }); }
+  return { items, rosettes };
+}
+
+// ---------------- the Apadana stair façades ----------------
 export interface Facade { id: 'N' | 'E'; origin: [number, number]; along: [number, number]; normal: [number, number]; length: number; y0: number; height: number }
 export interface Span { a0: number; a1: number; type: 'flight' | 'landing'; rise: 1 | -1 }
-export interface Placement { kind: string; variant: number; along: number; y: number; facing: 1 | -1; scale: number; tilt?: number }
+/** kind, seed (variant), along-façade position (m), base height above the façade foot (m), facing, scale (× register figure height) */
+export interface Placement { kind: string; variant: number; along: number; y: number; facing: 1 | -1; scale: number; depth?: number }
 export interface StairGeom { spans: Span[]; riser: number; tread: number; parapet: number; podium: number }
 
 /** Plan the reliefs on one façade from the stair spans (all dimensions from SITE_SPEC via the terrace manifest).
- *  Viewer's left → right = −L/2 → +L/2. Outer landings carry the registers (delegations on one wing, nobles/guards on the
- *  other, per apadana.relief_programme). Flights carry a lion-and-bull combat in the triangle under the slope and a
- *  cypress row along the parapet. The central landing carries the audience panel (placed by decor.ts). */
+ *  Viewer's left → right = −L/2 → +L/2. Outer landings carry the registers (delegations on one wing, nobles and guards on
+ *  the other, per apadana.relief_programme). Flights carry the lion-and-bull combat in the triangle under the slope and a
+ *  cypress row along the parapet. The central landing carries the audience panel (planAudience). */
 export function planFacade(f: Facade, g: StairGeom): { figures: Placement[]; rosettes: { a: number; y: number }[] } {
   const prog = v<any>('apadana', 'relief_programme')[f.id], R = v<any>('apadana', 'r_registers'), sp = v('apadana', 'r_figure_spacing');
-  const RS = v<any>('apadana', 'r_rosette'), CY = v<any>('apadana', 'r_cypress_band');
-  const out: Placement[] = [], ros: { a: number; y: number }[] = [], rng = new Rng(1, 'relief-' + f.id), nDel = v('apadana', 'r_delegation_members');
-  const DELEG = ['mede', 'bull', 'horse', 'delegate', 'bull', 'delegate', 'camel', 'ram', 'delegate', 'delegate', 'horse', 'delegate', 'camel', 'bull', 'camel', 'horse', 'delegate', 'delegate', 'horse', 'camel', 'bull', 'delegate', 'delegate'];
+  const RS = v<any>('apadana', 'r_rosette'), CY = v<any>('apadana', 'r_cypress_band'), CV = v<any>('apadana', 'r_relief_carving'), nDel = v('apadana', 'r_delegation_members');
+  const figH = R.height * CV.figure_fill, wOf = (k: string) => FIGURE_KINDS[k].w * figH;
+  const out: Placement[] = [], ros: { a: number; y: number }[] = [], rng = new Rng(1, 'relief-' + f.id);
   const wings = g.spans.filter(s => s.type === 'landing' && Math.abs((s.a0 + s.a1) / 2) > 1);
+  const delegWings = wings.filter(x => prog[((x.a0 + x.a1) / 2 < 0 ? 'left' : 'right') + '_wing'] !== 'nobles').length;
   let delegIdx = 0;
   for (const w of wings) {
-    const wing = (w.a0 + w.a1) / 2 < 0 ? 'left' : 'right'; const content = prog[wing + '_wing'];
+    const wing = (w.a0 + w.a1) / 2 < 0 ? 'left' : 'right', content = prog[wing + '_wing'];
     const facing: 1 | -1 = wing === 'left' ? 1 : -1; // processions walk toward the centre
-    const nReg = R.count;
-    for (let r = 0; r < nReg; r++) {
+    for (let r = 0; r < R.count; r++) {
       const y = R.bottom + r * (R.height + R.gap);
       for (let a = w.a0 + RS.pitch / 2; a < w.a1; a += RS.pitch) ros.push({ a, y: y - R.gap / 2 }); // band under each register
-      if (content === 'nobles') {
-        let k = 0; for (let a = w.a0 + sp / 2; a < w.a1 - sp / 2; a += sp, k++) out.push({ kind: r === 0 ? 'guard' : (k % 2 ? 'mede' : 'persian'), variant: rng.int(0, 5), along: a, y, facing, scale: 1 });
-      } else {
-        const perReg = Math.ceil(DELEG.length / (nReg * wings.filter(x => prog[((x.a0 + x.a1) / 2 < 0 ? 'left' : 'right') + '_wing'] !== 'nobles').length));
-        let a = facing > 0 ? w.a1 - sp / 2 : w.a0 + sp / 2; const stepA = -facing * sp;
-        for (let n = 0; n < perReg && delegIdx < DELEG.length; n++, delegIdx++) {
-          const di = delegIdx;
-          out.push({ kind: 'cypress', variant: 0, along: a, y, facing, scale: 1 }); a += stepA * 0.8;
-          out.push({ kind: 'usher', variant: di % 6, along: a, y, facing, scale: 1 }); a += stepA;
-          for (let m = 0; m < nDel - 1; m++) { const animal = m === 1 && DELEG[di] !== 'delegate' && DELEG[di] !== 'mede' ? DELEG[di] : 'delegate'; out.push({ kind: animal, variant: di % 6, along: a + (animal !== 'delegate' ? stepA * 0.3 : 0), y, facing, scale: 1 }); a += stepA * (animal !== 'delegate' ? 1.4 : 1); }
-          if ((facing > 0 && a < w.a0 + sp) || (facing < 0 && a > w.a1 - sp)) { delegIdx++; break; }
+      if (content === 'nobles') { // bottom register: guards; above: Persian and Median nobles alternating (B)
+        let k = 0; for (let a = w.a0 + sp / 2; a < w.a1 - sp / 2; a += sp, k++)
+          out.push({ kind: r === 0 ? (k % 4 === 3 ? 'mede_guard' : 'guard') : (k % 2 ? 'mede' : 'persian'), variant: rng.int(0, 3), along: a, y, facing, scale: 1 });
+      } else { // delegations, each led by an usher and separated by a cypress (B); the leader nearest the centre
+        // offsets behind the leader in figure heights (C): cypress, usher, the delegate he leads by the hand (hands meet),
+        // the animal handler with the animal behind him on a lead, then gift bearers at the file spacing
+        const perReg = Math.ceil(DELEGATIONS.length / (R.count * delegWings)), u = figH, file = sp / u;
+        let a = facing > 0 ? w.a1 - wOf('cypress') : w.a0 + wOf('cypress'); const step = -facing;
+        for (let n = 0; n < perReg && delegIdx < DELEGATIONS.length; n++) {
+          const di = delegIdx, d = DELEGATIONS[di], group: Placement[] = [];
+          const put = (kind: string, seed: number, off: number) => group.push({ kind, variant: seed, along: a + step * off * u, y, facing, scale: 1 });
+          let o = 0; put('cypress', 0, o);
+          o += 0.42; put('usher', di, o);
+          o += 0.4; put('delegate', di * 10, o);
+          for (let m = 1; m < nDel - 1; m++) {
+            if (m === 1 && d.animal) { o += file * 0.8; put('delegate', di * 10 + 1, o); o += 0.3 + SPECIES_HALF(d.animal) + 0.62; put(d.animal, 0, o); o += SPECIES_HALF(d.animal) + 0.2; }
+            else { o += file; put('delegate', di * 10 + m + 1, o); }
+          }
+          o += 0.42;
+          const end = a + step * o * u;
+          if (end < w.a0 + 0.1 || end > w.a1 - 0.1) break; // the delegation does not fit on this register
+          out.push(...group); a = end; delegIdx++;
         }
       }
     }
-    for (let a = w.a0 + RS.pitch / 2; a < w.a1; a += RS.pitch) ros.push({ a, y: R.bottom + nReg * (R.height + R.gap) - R.gap / 2 });
+    for (let a = w.a0 + RS.pitch / 2; a < w.a1; a += RS.pitch) ros.push({ a, y: R.bottom + R.count * (R.height + R.gap) - R.gap / 2 });
   }
   for (const s of g.spans.filter(x => x.type === 'flight')) {
-    const len = s.a1 - s.a0, slope = g.riser / g.tread, rise = len * slope;
-    const low = s.rise > 0 ? s.a0 : s.a1; const dir = s.rise; // +1: rising toward +a
-    // lion attacking bull fills the triangle under the slope, facing up-slope (C composition, B motif)
-    const k = Math.min(rise * 0.75 / 0.5, len * 0.28 / 0.9);
-    out.push({ kind: 'bull', variant: 0, along: low + dir * len * 0.62, y: R.bottom, facing: (-dir) as 1 | -1, scale: k });
-    out.push({ kind: 'lion', variant: 0, along: low + dir * len * 0.4, y: R.bottom + 0.25 * k, facing: dir as 1 | -1, scale: k * 0.9 });
+    const len = s.a1 - s.a0, slope = g.riser / g.tread, low = s.rise > 0 ? s.a0 : s.a1, dir = s.rise;
+    // lion attacking bull in the triangle under the slope, the bull toward the high end (B motif, C composition)
+    const dc = len * 0.6, top = dc * slope + g.parapet, k = Math.min((top - 0.15 - R.bottom) / (figH * 1.05), (len * 0.55) / (wOf('lion_bull') * 1.1));
+    out.push({ kind: 'lion_bull', variant: 0, along: low + dir * dc, y: R.bottom, facing: dir as 1 | -1, scale: k, depth: v('apadana', 'r_relief_depth') * CV.panel_depth_factor });
     // cypress row along the parapet band, parallel to the slope
     for (let d = CY.pitch; d < len - CY.pitch / 2; d += CY.pitch) {
-      const top = d * slope + g.parapet; out.push({ kind: 'cypress', variant: 1, along: low + dir * d, y: Math.max(0.05, top - CY.height - 0.15), facing: 1, scale: CY.height / 0.8 });
-      ros.push({ a: low + dir * d, y: top - 0.1 });
+      const t = d * slope + g.parapet; out.push({ kind: 'cypress', variant: 1, along: low + dir * d, y: Math.max(0.05, t - CY.height - 0.15), facing: 1, scale: CY.height / (figH * 0.93) });
+      ros.push({ a: low + dir * d, y: t - 0.1 });
     }
   }
   return { figures: out, rosettes: ros };
+}
+/** the audience panel at the centre of each façade (Tilia 1972 via Iranica: still in place in 467, B): the king enthroned,
+ *  the crown prince behind him, an official before him, incense stands between (NS, C); guards flanking the panel */
+export function planAudience(): { figures: Placement[]; rosettes: { a: number; y: number }[] } {
+  const AP = v<any>('apadana', 'r_audience_panel'), R = v<any>('apadana', 'r_registers'), CV = v<any>('apadana', 'r_relief_carving'), figH = R.height * CV.figure_fill;
+  const k = (AP.height / figH) * 0.92, Dp = v('apadana', 'r_relief_depth') * CV.panel_depth_factor, out: Placement[] = [], ros: { a: number; y: number }[] = [];
+  out.push({ kind: 'king', variant: 0, along: -0.7, y: R.bottom, facing: 1, scale: k, depth: Dp });
+  out.push({ kind: 'crown_prince', variant: 1, along: -2.0, y: R.bottom, facing: 1, scale: k * 0.97, depth: Dp });
+  out.push({ kind: 'official', variant: 2, along: 1.55, y: R.bottom, facing: -1, scale: k * 0.95, depth: Dp });
+  for (const x of [0.55, 0.95]) out.push({ kind: 'incense_burner', variant: 0, along: x, y: R.bottom, facing: 1, scale: k * 0.55, depth: Dp });
+  for (const s of [-1, 1]) for (let i = 0; i < 2; i++) out.push({ kind: 'guard', variant: i, along: s * (AP.width / 2 + 0.5 + i * 0.7), y: R.bottom, facing: (s > 0 ? -1 : 1) as 1 | -1, scale: 1.35 });
+  for (let x = -AP.width / 2; x <= AP.width / 2; x += v<any>('apadana', 'r_rosette').pitch) ros.push({ a: x, y: R.bottom - 0.08 }, { a: x, y: R.bottom + AP.height });
+  return { figures: out, rosettes: ros };
+}
+/** façade placements → relief items in world space (grid e/n → world x = e, z = −n) */
+export function facadeItems(f: Facade, plan: { figures: Placement[]; rosettes: { a: number; y: number }[] }): { items: ReliefItem[]; rosettes: RosetteItem[] } {
+  const X = new THREE.Vector3(f.along[0], 0, -f.along[1]), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(f.normal[0], 0, -f.normal[1]);
+  const R = v<any>('apadana', 'r_registers'), CV = v<any>('apadana', 'r_relief_carving'), figH = R.height * CV.figure_fill, D = v('apadana', 'r_relief_depth'), RS = v<any>('apadana', 'r_rosette');
+  const at = (a: number, y: number) => new THREE.Vector3(f.origin[0] + f.along[0] * a, f.y0 + y, -(f.origin[1] + f.along[1] * a));
+  return {
+    items: plan.figures.map(p => ({ kind: p.kind, seed: p.variant, o: at(p.along, p.y), X, Y, Z, S: figH * p.scale, D: p.depth ?? D, mirror: p.facing < 0 })),
+    rosettes: plan.rosettes.map(r => ({ o: at(r.a, r.y - RS.diameter / 2), X, Y, Z, S: RS.diameter, D: D * 0.6 })),
+  };
 }

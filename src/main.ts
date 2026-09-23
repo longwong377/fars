@@ -16,6 +16,7 @@ import { makePlayerBody, animateBody } from './player/body';
 import { Shell } from './ui/shell';
 import { DevOverlay } from './ui/overlay';
 import { buildWorld, WorldBuild } from './world/world';
+import { reliefStats } from './arch/reliefs';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
 import { Pipeline } from './render/pipeline';
@@ -132,8 +133,8 @@ async function boot() {
     teleport: (east: number, north: number) => { const x = east, z = -north; phys.updateTerrain(terrain, { x, y: 0, z }); phys.step(1e-4); player.teleport(x, phys.castRayDown(x, z, 400) ?? terrain.heightAt(x, z), z); player.maxFall = 0; player.fallStartY = null; },
     setInput: (i: Partial<{ forward: number; right: number; run: boolean; yawDeg: number; pitchDeg: number }>) => { botInput = { ...botInput, ...i }; },
     playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, maxFall: player.maxFall, yaw: input.yaw, ground: phys.castRayDown(player.position.x, player.position.z, player.position.y + 0.5, player.collider) ?? terrain.heightAt(player.position.x, player.position.z) }),
-    stats: () => ({ backend, drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, terrain: tmesh.stats(), frameMs: lastFrameMs, heap: (performance as any).memory?.usedJSHeapSize ?? null }),
-    renderOnce: async () => { await frame(0); },
+    stats: () => ({ reliefs: reliefStats(), backend, drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, terrain: tmesh.stats(), frameMs: lastFrameMs, heap: (performance as any).memory?.usedJSHeapSize ?? null }),
+    renderOnce: async () => { await frame(0, { render: false }); await world.settle?.(camera); await frame(0); },
     /** deterministic fixed-step simulation without rendering (walkthrough bots, soak); returns max frame sim time */
     simulate: (seconds: number, dt = 1 / 30) => { const steps = Math.round(seconds / dt); for (let i = 0; i < steps; i++) simStep(dt); },
     /** advance world time (and everything simulated) by game seconds in fixed steps, regardless of clock.scale (tests) */

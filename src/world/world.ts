@@ -17,10 +17,13 @@ export interface WorldBuild {
   /** address the nearest person in front of the camera (§9.4); returns what was said (out-of-world subtitle) or null */
   address?(camera: THREE.Camera): Subtitle | { gesture: string } | null;
   lastSubtitle?: Subtitle | null;
+  /** wait until streamed detail (carved-relief LODs) for this camera is generated (tests, screenshots) */
+  settle?(camera: THREE.Camera): Promise<void>;
 }
 import { buildTerrace } from '../arch/terrace';
 import { buildMeshes } from '../arch/meshes';
 import { buildReliefs, buildInscriptions, loadInscriptionFonts } from '../arch/decor';
+import { updateReliefs, settleReliefs } from '../arch/reliefs';
 import { FireSystem } from './fire';
 import { WeatherVfx } from './weatherVfx';
 import { AudioEngine } from '../audio/engine';
@@ -124,8 +127,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     saveState: () => ({ people: sim.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } },
     audio: { unlock: () => { audio.unlock(); if (settings) audio.setVolumes(settings.volume); }, state: () => ({ ctx: audio.ctx?.state ?? 'none', space: audio.currentSpace, sampleRate: audio.ctx?.sampleRate }) } as any,
     applySettings: (s: Settings) => audio.setVolumes(s.volume),
+    settle: (camera: THREE.Camera) => settleReliefs(camera.position),
     update(dt: number, ctx: any) {
       time += dt;
+      updateReliefs(ctx.camera.position, dt === 0 ? 50 : 4); // carved-relief LOD (D-015); dt 0 = a test render
       { const pp = ctx.player.position; playerAt = new THREE.Vector3(pp.x, pp.y, pp.z); }
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time);
