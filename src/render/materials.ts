@@ -418,28 +418,45 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   }
 }
 
-/** Painted carved stone (relief figures, D-030): the joint-free carved limestone under a matte mineral paint film. Per
- *  vertex: `color` = the pigment's linear albedo (src/data/polychromy.json), `paint` = coverage (0 = bare stone: background,
- *  faces, animals; < 1 on worn arrises, relief_field.paintCoverage). Per pixel: the film's optical thickness varies at brush
- *  scale (opacity 1 - exp(-hiding * t): the light stone shows through thin brushing), small flaked losses (more on worn
- *  arrises) expose the stone, pigment grain modulates the albedo, the film is dull (rough) where the stone is rubbed smooth,
- *  and it stands a fraction of a millimetre proud (visible at the edge of a loss). Arithmetic masks only (D-012). */
+/** Painted carved stone (relief figures, D-030, D-151): the joint-free carved limestone under a matte mineral paint film,
+ *  and gold leaf where the carving was gilded. Per vertex: `color` = the pigment's linear albedo (src/data/polychromy.json),
+ *  `paint` = coverage (0 = bare stone: background, faces, animals; < 1 on worn arrises, relief_field.paintCoverage), `gilt` =
+ *  1 on gilded masses. Per pixel: the film's optical thickness varies at brush scale (opacity 1 - exp(-hiding * t): the light
+ *  stone shows through thin brushing), small flaked losses (more on worn arrises) expose the stone, pigment grain modulates
+ *  the albedo, the film is dull (rough) where the stone is rubbed smooth, and it stands a fraction of a millimetre proud
+ *  (visible at the edge of a loss). Gilding (D-151) is gold metal: metalness 1, the F0 of gold, a burnished roughness, lost
+ *  with the paint on worn arrises. The renderer has no environment map, which left metal black in shade (D-030 drew gold
+ *  as a yellow film for that reason); here the lighting model reflects the skylight into the metal's specular lobe: the
+ *  radiance round the reflection is taken as the skylight's irradiance at the point / pi (the hemisphere light, through the
+ *  light probes indoors, so gold in a doorway is as dim as the doorway). Arithmetic masks only (D-012). */
 export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
   const key = 'painted-stone'; const hit = cache.get(key); if (hit) return hit;
-  const d = SURFACES.limestone_carved, F = (PC as any).paint.film.v, LS = (PC as any).paint.loss.v;
-  const m = new THREE.MeshStandardNodeMaterial(), p = positionWorld;
+  const d = SURFACES.limestone_carved, F = (PC as any).paint.film.v, LS = (PC as any).paint.loss.v, G = (PC as any).paint.gold.v;
+  const p = positionWorld;
   const S = layer(d, lin(d.albedo));
-  const pig = attribute('color', 'vec3'), cov = attribute('paint', 'float');
+  const pig = attribute('color', 'vec3'), cov = attribute('paint', 'float'), gilt = attribute('gilt', 'float');
   const n01 = (x: any) => mx_noise_float(x).mul(0.5).add(0.5);
   const thick = n01(p.mul(F.brush_freq)).mul(1 - F.thickness_min).add(F.thickness_min);
   const opacity = float(1).sub(exp(thick.mul(-F.hiding)));
   const lossField = n01(p.mul(LS.freq)).add(float(1).sub(cov).mul(LS.wear_bias));
   const kept = float(1).sub(smoothstep(LS.level - LS.soft, LS.level + LS.soft, lossField));
-  const film = clamp(cov, 0, 1).mul(opacity).mul(kept);
+  const leaf = clamp(gilt, 0, 1).mul(smoothstep(0.05, 0.35, cov)).mul(kept); // gold leaf where it is not lost
+  const film = clamp(cov, 0, 1).mul(opacity).mul(kept).mul(float(1).sub(leaf));
   const grain = float(1).add(mx_noise_float(p.mul(F.grain_freq)).mul(F.grain_amp));
-  const L: Layer = { alb: mix(S.alb, pig.mul(grain), film), rough: mix(S.rough, float(F.roughness), film), height: (S.height ?? float(0)).add(film.mul(F.relief)) };
+  const gold = vec3(G.f0[0], G.f0[1], G.f0[2]).mul(float(1).add(mx_noise_float(p.mul(G.grain_freq)).mul(G.grain_amp)));
+  const L: Layer = { alb: mix(mix(S.alb, pig.mul(grain), film), gold, leaf), rough: mix(mix(S.rough, float(F.roughness), film), float(G.roughness), leaf), height: (S.height ?? float(0)).add(film.add(leaf).mul(F.relief)) };
+  class GiltLighting extends (THREE as any).PhysicalLightingModel {
+    indirectSpecular(builder: any) {
+      const ctx = builder.context; // the skylight's irradiance (hemisphere light / probes), reflected by the gold only
+      ctx.radiance.addAssign(ctx.irradiance.mul(leaf).mul(1 / Math.PI));
+      super.indirectSpecular(builder);
+    }
+  }
+  const m = new THREE.MeshStandardNodeMaterial();
   finish(m, L, d);
-  m.userData = { tier: 'C', note: 'carved limestone (joint-free) with a matte mineral paint film: pigments B (RELIEFS_AND_COLOUR §3a), colour values, film and wear C (src/data/polychromy.json, D-030)' };
+  m.metalnessNode = leaf;
+  (m as any).setupLightingModel = () => new GiltLighting();
+  m.userData = { tier: 'C', note: 'carved limestone (joint-free) with a matte mineral paint film: pigments B (RELIEFS_AND_COLOUR §3a), colour values, film and wear C (src/data/polychromy.json, D-030); gilding drawn as gold leaf (metal, D-151): gilding on the reliefs B (Iranica "Persepolis": traces of gold; Nagel 2010 "color and gilding"), the technique and the gilded zones C (Q-231)' };
   cache.set(key, m);
   return m;
 }

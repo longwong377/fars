@@ -2007,3 +2007,60 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - Screen-space subsurface blur: a post pass not available in the pipeline, and it blurs the whole frame's skin pixels.
   - Card hair: needs new geometry per style and alpha blending.
   - A photographic skin texture: none is licensed and reachable, and a scan of an identifiable face would breach §12.
+
+## D-151 Carving at arm's length: the capital bulls, snail locks, volutes and Gate colossi re-modelled; relief modelling, gold leaf and the royal robe (session 4, carving agent)
+- **Still broken or placeholder (lead):**
+  - Every sculpted form is tier C (RECOLLECTION of the Persepolis capital bulls and gate colossi; no measured drawing, scan or photograph was read). The one sourced detail is the protome's inserted ears and horns (a Met extract, Q-230).
+  - Snail locks at LOD0 are 64-triangle templates on the protome (62 per capital) and 88-triangle templates on the colossi (131 on a bull, 167 on a lamassu): the rim reads as an octagon at arm's length. LOD1 has no locks: the fields are a low pad of the locks' mean height.
+  - The masons' yard capital (src/world/construction.ts, not this agent's file) draws the LOD1 protome, so the unfinished capitals in the yard show no locks.
+  - The relief carving is a heightfield: no undercut. The outline's crisp cut-back step and the contour groove stand in for it.
+  - Gold is lit by an approximation: the renderer has no environment map, so the leaf reflects the skylight's irradiance / pi (hemisphere light, probes indoors) into its specular lobe. There is no sky gradient in the reflection and no reflected sun disc beyond the analytic highlight.
+  - The lamassu face (destroyed at the site), the wing, the crown's details and all lock fields are reconstructions (Q-233, Q-234, Q-232).
+- **Double-bull protome (C):** the forepart is blocked out from a side, plan and front outline with rounded arrises: planar flanks, a flat chest front for the curl apron, a thick neck and a low shoulder muscle. It was a union of ellipsoids that read as a plush toy.
+  - The head has a flat forehead and cheeks with crisp arrises, a broad squared muzzle with dished nostrils and the mouth line, heavy-lidded eyes under a brow ridge, leaf ears with a hollow, and horns sweeping out, forward and up.
+  - The ears and horns were made separately and inserted (Met 47.100.83 extract, B-level, not registered: Q-230). They are drawn in place with a joint groove at the root.
+  - The forelegs fold under the chest: forearm, squared knee, cannon, fetlock and cloven hoof. They were chained round cones ending in ball hooves. After the first previews they were widened by about a quarter (forearm half-width 0.125 D, cannon 0.092 D), where they had read as a deer's.
+- **Snail locks (C):** one closed template per piece: a flat-topped disc with a steep bevelled rim, cut by a 1.5-turn spiral groove. It is polygonised once, then laid on the carving in whole locks and shrink-wrapped onto the surface (`lockTemplate`, `lockMeshes`, `placeLocks` in src/arch/sculpt.ts and sculpt_models.ts).
+  - Neighbouring locks coil in opposite senses. A lock is placed only where its centre lies in its field and the surface is flat within 40°.
+  - Fields: the protome's chest apron, dewlap and forelock; on the colossi the chest (front and passage side), a belly fringe, the haunch, tufts behind the fetlocks, the bull's forelock, the lamassu's beard bands and the hair at its nape.
+  - They replace the D-029 SDF-displaced bosses, which the simplifier left as noisy pits and bubbles.
+- **Volute member (C, Q-235):** four rolls run along the beam-crossing axis, as an Ionic capital's volutes stood on end. Each roll's end carries the spiral (1.75 turns of a rolled band, rounded channels) round a raised eye, with stems and a reeded panel on the broad faces. The D-029 scrolls carved on all four faces polygonised into jagged facets; these are extrusions that simplify smoothly.
+- **Gate colossi (C):**
+  - Legs are side outlines extruded to a width that narrows down the leg, with the forearm muscle, a tendon groove down each cannon and a cleft hoof.
+  - The bull head is the capital bull's head scaled up, with a forelock.
+  - The lamassu face is extruded from a profile: brow, a straight nose line, moustache, full lips, almond eyes in sockets under heavy upper lids, and a lower lid.
+  - The rectangular beard alternates bands of locks with wavy strands. It stands off the chest in a crisp step: `colossus.beard.blend` [0.02, 0.04] m below and at the chin. Blended into the body at 0.084 m, as the head is, its fillet had spread over the smooth band of chest under it, and the D-029 gap test failed (roughness 0.0012 against 0.0031 for the curls; now 0.00013).
+  - The crown carries three pairs of horns tapering round the tiara, a band of rosettes and a ribbed crest.
+  - The wing has covert rows with rounded tips stepping over each other, a split, and ribbed primaries with stepped lower edges and stepped tips.
+- **Normals:** analytic per-corner normals from the SDF gradient (`sdfNormals`, src/arch/sdf.ts), grouped by crease angle and sampled just inside each group's faces. A normal more than `max_dev` off its group's mean face normal, or off the corner's own face, falls back to the group mean; a coarse facet bridging a lock's groove had left corners more than 80° off it. The lock template uses crease 50° and max_dev 40°, which leaves margin once it is bent onto a curved chest. Test: under 1 % of visible corners more than 60° off their face, on every piece and LOD (was 2.2 % on the protome).
+- **Freshness:** `sculptInputs` now also hashes src/arch/sculpt.ts, where the lock templates, their placement and the normals are generated.
+- **Budgets (measured, all within):**
+  - Worst column LOD0 24,410 of 25,000 (was 24,694); LOD1 2,914 of 3,000 (was 2,840).
+  - Protome 8,816 / 1,074 (was 6,966 / 1,000); volute 2,538 / 296 (was 3,800 / 296).
+  - Bull 49,116 / 4,860; lamassu 49,026 / 4,902 (were 49,244 / 4,892 and 49,336 / 4,886; limit 50,000 / 5,000).
+  - tests/detail.test.ts: lathe chords 0.54-1.44 px at 1 m. The sculpted members above the lathe are excluded there; they are verified by the carving tests.
+- **Relief modelling (C):**
+  - The body domes more toward its outline (0.5 over 0.1 of the figure height; was 0.35 over 0.08) and keeps its crisp cut-back step.
+  - The Persian robe's fanned folds are 0.14 of the relief depth (was 0.07), with shallow swags above the belt; the front cascade pleats are 0.2 (was 0.12); Median trouser folds 0.13 (was 0.08); tunic folds 0.1 (was 0.05); sleeve folds 0.16 (was 0.1).
+  - The face rises toward the profile, with a shallow eye socket and a cheek plane (it was a dome, highest mid-cheek). An incised heavy upper lid was added.
+  - A leather strap crosses the chest of every figure with a quiver or bow case.
+- **Relief paint:**
+  - The Persian court robe is red or purple ('red and purple for the robe', RELIEFS_AND_COLOUR §3b, B/C), girt with a blue belt (C). D-030 drew robes from all six garment pigments, which read as a toy. The fluted hats vary (yellow ochre, blue, white: C, Q-237).
+  - The kings (seated, walking, worshipping, the royal hero, under the parasol) wear the royal robe as the research describes it (Iranica 'Clothing ii' citing Tilia, B): a red or purple field patterned with concentric circles and lotus blossoms, and blue hem and sleeve strips with red walking lions (Nagel citing Tilia 1978: 46, B). The motif colours, sizes and the lions' drawing are C (Q-236). It is paint only (`royalRobe` in relief_figures.ts).
+  - Throne, dais, incense stand, moon and the winged figure's belt are now yellow ochre (painted, not gilded).
+- **Gold leaf (metal):** masses in the gilt key colour carry `gilt` = 1 per vertex. The relief material (`paintedStoneMaterial`, the only function changed in src/render/materials.ts) draws them as gold, with the F0 in polychromy.json `paint.gold`:
+  - metalness 1, F0 [1.0, 0.71, 0.29], roughness 0.35, a faint leaf grain;
+  - lost with the paint on worn arrises.
+  - Tiers: gilding on the reliefs is B (Iranica 'Persepolis': traces of gold; Nagel 2010 'color and gilding'); the technique and the zones are C (Q-231). The zones are crowns, sceptres, scabbard fittings, vessels, bracelets, the winged ring and half the guards' spear butts. The spear butts keep D-030's gold-or-white choice; Herodotus 7.41 gives golden and silver pomegranates to the king's spearmen, recalled here and not checked against the text.
+  - D-030 drew gold as a yellow film because metal went black in shade without an environment. A `PhysicalLightingModel` subclass now adds the skylight irradiance / pi to the specular radiance of the gilded pixels only.
+- **Paint edges were never refined in the game:** `rtinErrors` gave colour edges an error of 0.02, under every RELIEF_LODS bound since D-048 (L0 0.03). Painted bands blurred across the coarse triangles of flat stone. It is now 0.04: refined at L0 (within 1.2 m) and ignored from L1.
+  - Measured relief triangles (tests/reliefs.test.ts, limit 1.5 M): Apadana façades, worst camera 760,827 → 895,294; all Phase 4 sets, worst jamb 952,542 → 1,074,770. Still 9 relief draws for 911 figures from the Grand Stair foot.
+- **Tools:**
+  - tools/sculpt_preview.ts: a node software rasteriser for pieces, capitals and lock templates.
+  - tools/relief_preview.ts: renders the LOD mesh with the paint film and the gold, with `--crop`, `--dist` (the figure as the screen shows it from a distance) and `--bare`. It now uses the game's RELIEF_LODS bounds; it had used a private, 5× finer L0 bound, so it showed detail the game never drew. `LOD_ERRORS` and `LOD_GRAD` are removed.
+- **Tests:**
+  - tests/sculpt.test.ts: flat lock profile; whole locks on the surface with no overlap and a closed template; analytic normals; the volute rolls. The horn and beard tests were updated.
+  - tests/polychromy.test.ts: gilding per vertex and the gold metal; the royal robe's pattern and lion strip, and none on a noble; paint edges refined at L0 only; the gilt attribute.
+  - tests/detail.test.ts: sculpted members excluded from the lathe check.
+- **Walkable grid and light probes:** unchanged. The colossus boxes and the parts hash are the same, and the probes trace the capital boxes, not the sculpted meshes.
+- **Verification:** `npx tsc --noEmit` clean; the full `npx vitest run --maxWorkers=2`: 413 passed, 1 skipped (a first run under load timed out once in tests/people.test.ts at 135 s, and that file passed alone); `tools/lint_chrono.ts` OK. The browser render (tests/e2e/sculpt.spec.ts: apadana-capital, gate-lamassu, gate-bull-flank, relief-close; WebGPU on SwiftShader, Q=high, one page load) waited behind other agents' runs and started only as the session closed. UNVERIFIED until its screenshots are looked at: the gold-leaf lighting model (a `PhysicalLightingModel` subclass) has not been seen compiled and drawn in a browser, and the in-game look of the new carving and paint rests on the node previews.

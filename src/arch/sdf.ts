@@ -51,6 +51,37 @@ export const sdCylY = (x: number, y: number, z: number, r: number, h0: number, h
 /** extrusion of a 2D distance d2 through a slab of half-thickness h centred at w = 0 */
 export function extrude(d2: number, w: number, h: number) { const qx = d2, qy = Math.abs(w) - h; return Math.min(Math.max(qx, qy), 0) + Math.hypot(Math.max(qx, 0), Math.max(qy, 0)); }
 
+/** exact signed distance to a closed 2-D polygon (flat array x0, y0, x1, y1 …; either winding), negative inside */
+export function sdPoly2(u: number, v: number, P: ArrayLike<number>) {
+  const n = P.length / 2; let d = (u - P[0]) ** 2 + (v - P[1]) ** 2, s = 1;
+  for (let i = 0, j = n - 1; i < n; j = i, i++) {
+    const xi = P[i * 2], yi = P[i * 2 + 1], ex = P[j * 2] - xi, ey = P[j * 2 + 1] - yi, wx = u - xi, wy = v - yi;
+    const t = clamp((wx * ex + wy * ey) / (ex * ex + ey * ey || 1), 0, 1), bx = wx - ex * t, by = wy - ey * t;
+    d = Math.min(d, bx * bx + by * by);
+    const c1 = v >= yi, c2 = v < P[j * 2 + 1], c3 = ex * wy > ey * wx;
+    if ((c1 && c2 && c3) || (!c1 && !c2 && !c3)) s = -s;
+  }
+  return s * Math.sqrt(d);
+}
+/** closed Catmull-Rom curve through control points [[x, y] …] as a flat polygon array (sub points per span) */
+export function smoothPoly(ctrl: number[][], sub = 4): Float64Array {
+  const n = ctrl.length, out: number[] = [], Q = (i: number) => ctrl[((i % n) + n) % n];
+  for (let i = 0; i < n; i++) {
+    const p0 = Q(i - 1), p1 = Q(i), p2 = Q(i + 1), p3 = Q(i + 2);
+    for (let k = 0; k < sub; k++) {
+      const t = k / sub, t2 = t * t, t3 = t2 * t;
+      for (let c = 0; c < 2; c++) out.push(0.5 * (2 * p1[c] + (-p0[c] + p2[c]) * t + (2 * p0[c] - 5 * p1[c] + 4 * p2[c] - p3[c]) * t2 + (-p0[c] + 3 * p1[c] - 3 * p2[c] + p3[c]) * t3));
+    }
+  }
+  return Float64Array.from(out);
+}
+/** the bounding circle of a flat polygon array: [cx, cy, r] */
+export function polyCircle(P: ArrayLike<number>): [number, number, number] {
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (let i = 0; i < P.length; i += 2) { x0 = Math.min(x0, P[i]); x1 = Math.max(x1, P[i]); y0 = Math.min(y0, P[i + 1]); y1 = Math.max(y1, P[i + 1]); }
+  return [(x0 + x1) / 2, (y0 + y1) / 2, Math.hypot(x1 - x0, y1 - y0) / 2];
+}
+
 /** distance to an Archimedean spiral band in 2D: r = r0 + pitch·θ/2π for θ ∈ [0, turns·2π], band half-width hw.
  *  dir = +1 counter-clockwise outward, −1 clockwise; phase rotates the start. */
 export function sdSpiral2(u: number, v: number, r0: number, pitch: number, turns: number, hw: number, dir = 1, phase = 0) {
@@ -160,8 +191,9 @@ function orientOutward(m: RawMesh, f: SDF, h: number) {
 // ---------------------------------------------------------------- quadric error simplification
 export const SIMPLIFY_STATS = { link: 0, quality: 0, flip: 0, sliver: 0, sliverFail: 0 };
 /** Edge-collapse simplification to about `targetTris` triangles. Rejects collapses that flip or degrade a face or
- *  break the link condition, so a closed 2-manifold input stays closed and manifold. */
-export function simplify(m: RawMesh, targetTris: number): RawMesh {
+ *  break the link condition, so a closed 2-manifold input stays closed and manifold. `weight(x, y, z)` (optional, ≥ 0)
+ *  scales the error of the faces around a point: > 1 keeps more triangles there (carved detail such as curls), < 1 fewer. */
+export function simplify(m: RawMesh, targetTris: number, weight?: (x: number, y: number, z: number) => number): RawMesh {
   const nV = m.pos.length / 3, nF = m.idx.length / 3;
   if (nF <= targetTris) return m;
   const P = Float64Array.from(m.pos), F = Int32Array.from(m.idx), fAlive = new Uint8Array(nF).fill(1);
@@ -172,7 +204,8 @@ export function simplify(m: RawMesh, targetTris: number): RawMesh {
     vFaces[a].push(f); vFaces[b].push(f); vFaces[c].push(f);
     const ux = P[b * 3] - P[a * 3], uy = P[b * 3 + 1] - P[a * 3 + 1], uz = P[b * 3 + 2] - P[a * 3 + 2], vx = P[c * 3] - P[a * 3], vy = P[c * 3 + 1] - P[a * 3 + 1], vz = P[c * 3 + 2] - P[a * 3 + 2];
     let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx; const l = Math.hypot(nx, ny, nz); if (l < 1e-20) continue;
-    const area = l / 2; nx /= l; ny /= l; nz /= l; const d = -(nx * P[a * 3] + ny * P[a * 3 + 1] + nz * P[a * 3 + 2]);
+    const area = (l / 2) * (weight ? weight((P[a * 3] + P[b * 3] + P[c * 3]) / 3, (P[a * 3 + 1] + P[b * 3 + 1] + P[c * 3 + 1]) / 3, (P[a * 3 + 2] + P[b * 3 + 2] + P[c * 3 + 2]) / 3) : 1);
+    nx /= l; ny /= l; nz /= l; const d = -(nx * P[a * 3] + ny * P[a * 3 + 1] + nz * P[a * 3 + 2]);
     const q = [nx * nx, nx * ny, nx * nz, nx * d, ny * ny, ny * nz, ny * d, nz * nz, nz * d, d * d];
     for (const v of [a, b, c]) for (let i = 0; i < 10; i++) Q[v * 10 + i] += q[i] * area;
   }
@@ -355,6 +388,67 @@ export function creaseNormals(m: RawMesh, creaseDeg: number): NormMesh {
     }
   }
   return { pos: new Float32Array(outP), nrm: new Float32Array(outN), idx: new Uint32Array(outI) };
+}
+/** Per-corner normals from the SDF gradient ("analytic normals", D-151). Corners are grouped by the crease angle as in
+ *  creaseNormals; a group's normal is the gradient of `f` (central differences, step eps) at a point just inside its faces:
+ *  the vertex moved toward the group's area-weighted centroid by up to 3·eps (never more than 0.45 of the way), so a sharp
+ *  arris keeps each side's own normal while a smooth surface shades smoothly whatever the size of its triangles (the
+ *  simplified meshes are coarse: face normals drew their facets). Where the gradient departs from the group's face normal,
+ *  or from the corner's own face, by more than maxDev degrees (thin features, a gradient dominated by another surface, a
+ *  coarse facet bridging a groove) the group's face normal is kept. */
+export function sdfNormals(m: RawMesh, f: SDF, creaseDeg: number, eps: number, maxDev = 60): NormMesh & { fallback: number } {
+  const P = m.pos, I = m.idx, nF = I.length / 3, nV = P.length / 3, cosT = Math.cos((creaseDeg * Math.PI) / 180), cosD = Math.cos((maxDev * Math.PI) / 180);
+  const fn = new Float64Array(nF * 3), fu = new Float64Array(nF * 3), fc = new Float64Array(nF * 3), keep = new Uint8Array(nF);
+  for (let t = 0; t < nF; t++) {
+    const a = I[t * 3] * 3, b = I[t * 3 + 1] * 3, c = I[t * 3 + 2] * 3;
+    const ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2], vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2];
+    const nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, l = Math.hypot(nx, ny, nz);
+    if (l < 1e-12) continue; keep[t] = 1;
+    fn[t * 3] = nx; fn[t * 3 + 1] = ny; fn[t * 3 + 2] = nz; fu[t * 3] = nx / l; fu[t * 3 + 1] = ny / l; fu[t * 3 + 2] = nz / l;
+    fc[t * 3] = (P[a] + P[b] + P[c]) / 3; fc[t * 3 + 1] = (P[a + 1] + P[b + 1] + P[c + 1]) / 3; fc[t * 3 + 2] = (P[a + 2] + P[b + 2] + P[c + 2]) / 3;
+  }
+  const cnt = new Int32Array(nV + 1); for (let t = 0; t < nF; t++) if (keep[t]) for (let k = 0; k < 3; k++) cnt[I[t * 3 + k] + 1]++;
+  for (let v = 0; v < nV; v++) cnt[v + 1] += cnt[v];
+  const vf = new Int32Array(cnt[nV]), fill = cnt.slice(0, nV);
+  for (let t = 0; t < nF; t++) if (keep[t]) for (let k = 0; k < 3; k++) vf[fill[I[t * 3 + k]]++] = t;
+  const whole = new Float32Array(nV * 3).fill(NaN); // cache: the normal of a vertex whose group is its whole fan (smooth)
+  let fallback = 0;
+  const groupNormal = (v: number, t: number, out: number[]) => {
+    let nx = 0, ny = 0, nz = 0, cx = 0, cy = 0, cz = 0, A = 0, all = true;
+    for (let q = cnt[v]; q < cnt[v + 1]; q++) {
+      const g = vf[q];
+      if (fu[t * 3] * fu[g * 3] + fu[t * 3 + 1] * fu[g * 3 + 1] + fu[t * 3 + 2] * fu[g * 3 + 2] < cosT) { all = false; continue; }
+      const a = Math.hypot(fn[g * 3], fn[g * 3 + 1], fn[g * 3 + 2]);
+      nx += fn[g * 3]; ny += fn[g * 3 + 1]; nz += fn[g * 3 + 2]; cx += fc[g * 3] * a; cy += fc[g * 3 + 1] * a; cz += fc[g * 3 + 2] * a; A += a;
+    }
+    // the corner's own face bounds the normal too (a coarse facet bridging a groove may lie far from the smooth surface's
+    // normal at its corner): a cached or analytic normal more than maxDev off this face falls back to the group's mean
+    const tx = fu[t * 3], ty = fu[t * 3 + 1], tz = fu[t * 3 + 2];
+    if (all && !Number.isNaN(whole[v * 3]) && whole[v * 3] * tx + whole[v * 3 + 1] * ty + whole[v * 3 + 2] * tz >= cosD) { out[0] = whole[v * 3]; out[1] = whole[v * 3 + 1]; out[2] = whole[v * 3 + 2]; return; }
+    const ln = Math.hypot(nx, ny, nz) || 1; nx /= ln; ny /= ln; nz /= ln;
+    const px = P[v * 3], py = P[v * 3 + 1], pz = P[v * 3 + 2];
+    let dx = cx / A - px, dy = cy / A - py, dz = cz / A - pz; const dl = Math.hypot(dx, dy, dz);
+    const s = dl > 1e-12 ? Math.min(3 * eps, 0.45 * dl) / dl : 0; dx *= s; dy *= s; dz *= s;
+    const x = px + dx, y = py + dy, z = pz + dz;
+    let gx = f(x + eps, y, z) - f(x - eps, y, z), gy = f(x, y + eps, z) - f(x, y - eps, z), gz = f(x, y, z + eps) - f(x, y, z - eps);
+    const gl = Math.hypot(gx, gy, gz);
+    if (gl < 1e-12 || (gx * nx + gy * ny + gz * nz) / gl < cosD || (gx * tx + gy * ty + gz * tz) / gl < cosD) { gx = nx; gy = ny; gz = nz; fallback++; } else { gx /= gl; gy /= gl; gz /= gl; }
+    out[0] = gx; out[1] = gy; out[2] = gz;
+    if (all && Number.isNaN(whole[v * 3])) { whole[v * 3] = gx; whole[v * 3 + 1] = gy; whole[v * 3 + 2] = gz; }
+  };
+  const outP: number[] = [], outN: number[] = [], outI: number[] = [], nrm = [0, 0, 0];
+  const head = new Int32Array(nV).fill(-1), next: number[] = [];
+  for (let t = 0; t < nF; t++) {
+    if (!keep[t]) continue;
+    for (let k = 0; k < 3; k++) {
+      const v = I[t * 3 + k]; groupNormal(v, t, nrm);
+      let id = head[v];
+      while (id >= 0 && Math.abs(outN[id * 3] - nrm[0]) + Math.abs(outN[id * 3 + 1] - nrm[1]) + Math.abs(outN[id * 3 + 2] - nrm[2]) > 1e-3) id = next[id];
+      if (id < 0) { id = outP.length / 3; outP.push(P[v * 3], P[v * 3 + 1], P[v * 3 + 2]); outN.push(nrm[0], nrm[1], nrm[2]); next.push(head[v]); head[v] = id; }
+      outI.push(id);
+    }
+  }
+  return { pos: new Float32Array(outP), nrm: new Float32Array(outN), idx: new Uint32Array(outI), fallback };
 }
 /** weld coincident positions (tolerance tol) so separately generated strips share vertices before creaseNormals */
 export function weldPositions(m: RawMesh, tol = 1e-5): RawMesh {

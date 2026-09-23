@@ -4,15 +4,17 @@ import { test, expect } from '@playwright/test';
 // E-portico composite capital at capital height, lit by the morning sun; a human-headed winged bull of the Gate of All
 // Nations E doorway; the W doorway's bull flank seen from inside the passage; the W doorway from the hall (door leaves
 // against the inner wall face); the Apadana N doorway frame (polished dark grey limestone); Treasury columns (stone base,
-// plastered shaft, timber capital). Weather is forced clear (WEATHER=auto to use the day's weather). Output:
-// shots/sculpt-*.png. VIEWS=name,name… renders a subset.
+// plastered shaft, timber capital); and (D-151) a relief close-up at arm's length on the Apadana N stair (nobles and guards,
+// the painted film and gilding) in the evening raking light, the clock moved within the same page load. Weather is forced
+// clear (WEATHER=auto to use the day's weather). Output: shots/sculpt-*.png. VIEWS=name,name… renders a subset.
 // Run: npx playwright test -c playwright.sculpt.config.ts --project=webgpu   (SwiftShader: several minutes)
 // view(east, north, eye above ground, azimuth from TRUE north (grid north = 341° true), pitch)
 test('sculpted capital and colossus close-ups', async ({ page }) => {
   const logs: string[] = []; page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') logs.push(m.text().slice(0, 300)); }); page.on('pageerror', e => logs.push('PAGEERR ' + e));
   await page.goto(`/?test&quality=${process.env.Q ?? 'medium'}&day=60&hour=${process.env.HOUR ?? 9}&weather=${process.env.WEATHER ?? 'clear'}`);
   await page.waitForFunction(() => (window as any).__parsa?.ready === true || (window as any).__parsa?.error, null, { timeout: 600_000 });
-  const views: [string, number, number, number, number, number][] = [
+  // [name, east, north, eye above ground, azimuth, pitch, hour (optional: the clock is set before the view)]
+  const views: [string, number, number, number, number, number, number?][] = [
     // E portico, outer row: column at (54.75, −0.58); camera 7 m E-NE of it, eye 16 m above the podium (≈ capital)
     ['apadana-capital', 61.5, 2.2, 16, 228, 2],
     // E doorway of the Gate: the N lamassu (head at x ≈ 17.5, y ≈ 127.3) seen from the SE at eye height
@@ -25,10 +27,13 @@ test('sculpted capital and colossus close-ups', async ({ page }) => {
     ['apadana-n-door', 1.9, 44.5, 1.7, 161, 14],
     // Treasury Hall of 99 Columns: stone bases, plastered shafts, timber capitals (D-029)
     ['treasury-columns', 175, -112, 1.7, 181, 6],
+    // Apadana N stair, W wing: 0.9 m from the noble/guard register (as tests/e2e/relief2.spec.ts), the low NW sun raking it
+    ['relief-close', 1.9 - 20, 59.05 + 0.9, 1.2, 161, -8, 17.8],
   ];
   const only = process.env.VIEWS ? process.env.VIEWS.split(',') : null;
-  for (const [n, e, no, h, az, p] of views) {
+  for (const [n, e, no, h, az, p, hour] of views) {
     if (only && !only.includes(n)) continue;
+    if (hour !== undefined) await page.evaluate(hr => (window as any).__parsa.setTime(60, hr), hour);
     await page.evaluate(([e, no, h, az, p]) => (window as any).__parsa.view(e, no, h, az, p), [e, no, h, az, p]);
     for (let i = 0; i < 3; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
     await page.screenshot({ path: `shots/sculpt-${n}${process.env.SUFFIX ?? ''}.png` });

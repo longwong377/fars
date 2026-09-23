@@ -8,12 +8,17 @@
 // al. 2001 / mapbox "martini"): error-driven, crack-free, one field → every LOD by changing the error bound. Empty
 // background triangles are dropped. Normals come from the field (central differences), so raking light shows the modelling.
 import PC from '../data/polychromy.json';
-import { srgbToLinear } from '../core/colour';
+import { srgbToLinear, labToSrgb } from '../core/colour';
 export type C3 = [number, number, number];
 export type Box = [number, number, number, number];
 /** the unpainted carved limestone (sRGB) = src/render/materials.ts SURFACES.limestone_carved.albedo (tests/polychromy.test.ts
  *  checks they agree; this module runs in workers, so it cannot import the renderer's materials) */
 export const STONE_SRGB: C3 = [0.44, 0.43, 0.4];
+/** the colour key of gilding (gold leaf, D-151): a mass drawn in this colour is gilded, and its vertices carry `gilt` = 1 so
+ *  the relief material shades them as gold metal (src/data/polychromy.json pigment.gilt: its Lab row is the tone the
+ *  leaf shows where it is lost or seen by a renderer without the metal path) */
+const GL = (PC as any).pigment.gilt.v as number[];
+export const GILT_SRGB: C3 = labToSrgb(GL[0], GL[1], GL[2]);
 /** paint wear on raised arrises (src/data/polychromy.json paint.wear, C) */
 const WEAR = (PC as any).paint.wear.v as { radius: number; conv0: number; conv1: number; max: number };
 export interface SDF { f: (x: number, y: number) => number; b: Box; pv?: Float64Array /* polygon vertices x0,y0,x1,y1… (fast band raster) */ }
@@ -297,8 +302,10 @@ function rtinCoords(n: number): Uint16Array {
   coordCache.set(n, c); return c;
 }
 /** per-vertex approximation error of the RTIN hierarchy (vertical error; colour edges count as a small error so that
- *  paint boundaries are refined at the finest LOD only) */
-export function rtinErrors(f: Field, colourEdgeError = 0.02): Float32Array {
+ *  paint boundaries are refined at the finest LOD only: above the L0 bound of reliefs.ts RELIEF_LODS (0.03), below L1's
+ *  (0.06). D-151: it was 0.02, under every in-game bound since D-048, so no paint edge was ever refined and painted bands
+ *  and patterns blurred across the coarse triangles of flat stone) */
+export function rtinErrors(f: Field, colourEdgeError = 0.04): Float32Array {
   const { n, h, col } = f, tile = n - 1, numTri = tile * tile * 2 - 2, numParent = numTri - tile * tile, coords = rtinCoords(n);
   const err = new Float32Array(n * n);
   if (colourEdgeError > 0) for (let j = 1; j < n - 1; j++) for (let i = 1; i < n - 1; i++) { const g = j * n + i, c = col[g];
@@ -317,7 +324,7 @@ export function rtinErrors(f: Field, colourEdgeError = 0.02): Float32Array {
 /** A LOD mesh in the figure's normalised frame: x, y in figure units, z = height in depth units (0..1);
  *  gradients (dh/dx, dh/dy in depth units per figure unit) for normals; linear-light colours; paint coverage per vertex
  *  (0 = bare stone: background, faces, animals; on painted masses 1 − wear at raised arrises, D-030). */
-export interface LodMesh { pos: Float32Array; grad: Float32Array; col: Float32Array; paint: Float32Array; index: Uint32Array; tris: number; verts: number; maxH: number }
+export interface LodMesh { pos: Float32Array; grad: Float32Array; col: Float32Array; paint: Float32Array; gilt: Float32Array; index: Uint32Array; tris: number; verts: number; maxH: number }
 
 /** paint coverage at grid points: 0 where the colour is bare stone; else 1 − WEAR.max · smoothstep(conv0, conv1, convexity),
  *  convexity = h − (mean h within WEAR.radius figure units, at least one cell) from a summed-area table */
@@ -371,13 +378,12 @@ export function extractLod(f: Field, err: Float32Array, maxError: number, gradSt
     const c = col[g] === BG ? bgl : lin[col[g]]; cl[v * 3] = c[0]; cl[v * 3 + 1] = c[1]; cl[v * 3 + 2] = c[2];
   }
   const index = tris.slice(0, nt);
+  // gilding (D-151): 1 on vertices of a gilded mass (their colour is the gilt key), 0 elsewhere
+  const gilt = new Float32Array(nv), gk = palette.findIndex(c => c[0] === GILT_SRGB[0] && c[1] === GILT_SRGB[1] && c[2] === GILT_SRGB[2]);
+  if (gk > 0) for (let v = 0; v < nv; v++) if (col[vlist[v]] === gk) gilt[v] = 1;
   for (let t = 0; t < nt; t += 3) { // counter-clockwise seen from +z (out of the wall)
     const a = index[t] * 3, b = index[t + 1] * 3, c = index[t + 2] * 3;
     if ((pos[b] - pos[a]) * (pos[c + 1] - pos[a + 1]) - (pos[b + 1] - pos[a + 1]) * (pos[c] - pos[a]) < 0) { const q = index[t + 1]; index[t + 1] = index[t + 2]; index[t + 2] = q; }
   }
-  return { pos, grad, col: cl, paint: paintCoverage(f, vlist, nv), index, tris: nt / 3, verts: nv, maxH };
+  return { pos, grad, col: cl, paint: paintCoverage(f, vlist, nv), gilt, index, tris: nt / 3, verts: nv, maxH };
 }
-
-/** RTIN error bounds per LOD (relief-depth units) and the gradient half-widths for their normals */
-export const LOD_ERRORS = [0.006, 0.03, 0.1, 0.25];
-export const LOD_GRAD = [1, 2, 3, 5];
