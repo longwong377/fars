@@ -81,7 +81,8 @@ describe('twilight dome (D-116)', () => {
       }
       expect(E / hemiE, `sun ${h}°`).toBeCloseTo(1, 2);
     }
-    expect(twilightWeight(12)).toBe(0); expect(twilightWeight(1)).toBe(1);
+    // D-156: the physical sky serves at every sun altitude (was Preetham above +10°, D-116)
+    expect(twilightWeight(12)).toBe(1); expect(twilightWeight(1)).toBe(1); expect(twilightWeight(60)).toBe(1);
   });
   it('Earth\'s shadow: a dark band on the antisolar horizon under a brighter arch, for the sun from −1° to −4°', () => {
     for (const h of [-1, -2, -3, -4]) {
