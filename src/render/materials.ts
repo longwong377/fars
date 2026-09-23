@@ -29,6 +29,10 @@ export interface SurfaceDef {
   streaks?: { amp: number; freq: number };
   /** herb layer that follows SEASON (ground surfaces only) */
   herbs?: number;
+  /** fine grain at millimetre–centimetre scale (tool marks, grit, trowel texture): height amplitude (m), frequency (1/m)
+   *  and albedo variation, faded out where one period spans fewer than ~3–7 pixels, so surfaces keep detail at arm's
+   *  length (brief §8.3 "detail at 1 m") and never shimmer far away (D-147, C) */
+  micro?: { amp: number; freq: number; alb?: number };
 }
 /** neutral grey of luminous reflectance Y (linear) as the sRGB triple the surface table uses */
 function grey(Y: number): [number, number, number] { const v = linearToSrgb(Y); return [v, v, v]; }
@@ -39,31 +43,31 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // Persepolis grey limestone, freshly dressed (C until colour research lands): mid-grey, slightly warm. Ashlar dry-laid
   // without mortar (SITE_SPEC terrace.wall_material, B: 'dry-laid'; Grand Stair 'dry-jointed', B) and, by the Achaemenid
   // practice of anathyrosis (recollection, C; Q-071), fitted to hairline joints: 0.8 mm (C), not a sunk mortar groove
-  limestone: { albedo: [0.44, 0.43, 0.40], roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, bump: { amp: 0.0015, freq: 6 }, tier: 'C', note: 'dressed grey limestone, dry-laid ashlar with hairline joints (B dry-laid; joint width C, Q-071); albedo C pending calibration photo (NEEDS #13)' },
+  limestone: { albedo: [0.44, 0.43, 0.40], roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'dressed grey limestone, dry-laid ashlar with hairline joints (B dry-laid; joint width C, Q-071); albedo C pending calibration photo (NEEDS #13)' },
   // carved members (column bases, shafts and capitals, colossi, relief figures): the same stone with no masonry joints drawn
   // (the block layout of carved members is unknown; a joint may cross a carving only as a hairline) and a finer, rubbed
   // finish (D-029, C)
-  limestone_carved: { albedo: [0.44, 0.43, 0.40], roughness: 0.55, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.1, bump: { amp: 0.0004, freq: 14 }, tier: 'C', note: 'carved limestone (columns, colossi, reliefs): joint-free rubbed finish (D-029, C); albedo C pending calibration photo (NEEDS #13)' },
+  limestone_carved: { albedo: [0.44, 0.43, 0.40], roughness: 0.55, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.1, bump: { amp: 0.0004, freq: 14 }, micro: { amp: 0.00012, freq: 130, alb: 0.03 }, tier: 'C', note: 'carved limestone (columns, colossi, reliefs): joint-free rubbed finish (D-029, C); albedo C pending calibration photo (NEEDS #13)' },
   // polished dark grey limestone of the door and window frames: 'dark grey limestone from Majdabad' (RELIEFS_AND_COLOUR §4,
   // Iranica via search extract: B). 'Dark grey' = N3 on the GSA rock-colour chart → luminous reflectance 6.4 % (ASTM D1535):
   // albedo C (D-031). Was 0.013 (sRGB 0.12), i.e. black. Whether frames carried the whitish finishing coat is Q-072
-  limestone_dark: { albedo: grey(munsellY(3)), roughness: 0.18, porosity: 0.1, noiseScale: 2, noiseAmp: 0.05, tier: 'B/C', note: 'polished dark grey limestone (door/window frames): stone B (Majdabad dark grey, Iranica); albedo N3 = 6.4 % C (D-031); whitish finishing coat? (Q-072)' },
+  limestone_dark: { albedo: grey(munsellY(3)), roughness: 0.18, porosity: 0.1, noiseScale: 2, noiseAmp: 0.05, micro: { amp: 0.00003, freq: 160, alb: 0.02 }, tier: 'B/C', note: 'polished dark grey limestone (door/window frames): stone B (Majdabad dark grey, Iranica); albedo N3 = 6.4 % C (D-031); whitish finishing coat? (Q-072)' },
   // mud plaster on mud brick, coated with a greyish yellow-green clay paint: attested at Pasargadae and, per Schmidt, on
   // the Treasury walls (Stein et al. 2016, npj Herit. Sci., search extract: B for the coating); tone and extent C
-  mudbrick: { albedo: [0.58, 0.57, 0.45], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.07, bump: { amp: 0.004, freq: 1.4 }, tier: 'B/C', note: 'mud plaster with greyish yellow-green clay paint (Pasargadae; Treasury walls per Schmidt, via Stein et al. 2016: B); tone and extent C' },
-  plaster: { albedo: [0.78, 0.74, 0.66], roughness: 0.85, porosity: 0.7, noiseScale: 0.8, noiseAmp: 0.05, bump: { amp: 0.0015, freq: 3 }, tier: 'C', note: 'lime/gypsum plaster' },
-  plaster_red: { albedo: [0.48, 0.14, 0.1], roughness: 0.35, porosity: 0.3, noiseScale: 0.9, noiseAmp: 0.04, bump: { amp: 0.0006, freq: 4 }, tier: 'B', note: 'lime-plaster floor with two hematite-rich paint coats, deep red over white (Stein et al. 2016; flooring-plaster study 2022, Treasury/Edifice C/Tachara: search extracts, B); polish C' },
+  mudbrick: { albedo: [0.58, 0.57, 0.45], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.07, bump: { amp: 0.004, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster with greyish yellow-green clay paint (Pasargadae; Treasury walls per Schmidt, via Stein et al. 2016: B); tone and extent C' },
+  plaster: { albedo: [0.78, 0.74, 0.66], roughness: 0.85, porosity: 0.7, noiseScale: 0.8, noiseAmp: 0.05, bump: { amp: 0.0015, freq: 3 }, micro: { amp: 0.00025, freq: 70, alb: 0.03 }, tier: 'C', note: 'lime/gypsum plaster' },
+  plaster_red: { albedo: [0.48, 0.14, 0.1], roughness: 0.35, porosity: 0.3, noiseScale: 0.9, noiseAmp: 0.04, bump: { amp: 0.0006, freq: 4 }, micro: { amp: 0.0001, freq: 85, alb: 0.03 }, tier: 'B', note: 'lime-plaster floor with two hematite-rich paint coats, deep red over white (Stein et al. 2016; flooring-plaster study 2022, Treasury/Edifice C/Tachara: search extracts, B); polish C' },
   bronze: { albedo: [0.55, 0.38, 0.2], roughness: 0.35, porosity: 0.0, noiseScale: 3, noiseAmp: 0.08, metal: 1, tier: 'C', note: 'bronze fittings' },
-  timber: { albedo: [0.32, 0.23, 0.15], roughness: 0.75, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, bump: { amp: 0.002, freq: 5 }, tier: 'C', note: 'cedar/timber beams' },
+  timber: { albedo: [0.32, 0.23, 0.15], roughness: 0.75, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, bump: { amp: 0.002, freq: 5 }, micro: { amp: 0.0003, freq: 60, alb: 0.06 }, tier: 'C', note: 'cedar/timber beams' },
   glazed: { albedo: [0.12, 0.33, 0.48], roughness: 0.25, porosity: 0.05, noiseScale: 3, noiseAmp: 0.06, tier: 'C', note: 'glazed brick' },
   // open ground on the plain: loam with stones and a seasonal herb layer (C; fields and crops are Phase 7)
-  earth: { albedo: [0.47, 0.39, 0.29], roughness: 0.95, porosity: 0.9, noiseScale: 0.4, noiseAmp: 0.14, bump: { amp: 0.02, freq: 0.9 }, chips: { cover: 0.06, size: 0.35, albedo: [0.55, 0.53, 0.49] }, herbs: 1, tier: 'C', note: 'plain surface: loam, stones and a seasonal herb layer (C); fields Phase 7' },
+  earth: { albedo: [0.47, 0.39, 0.29], roughness: 0.95, porosity: 0.9, noiseScale: 0.4, noiseAmp: 0.14, bump: { amp: 0.02, freq: 0.9 }, chips: { cover: 0.06, size: 0.35, albedo: [0.55, 0.53, 0.49] }, herbs: 1, micro: { amp: 0.0012, freq: 55, alb: 0.08 }, tier: 'C', note: 'plain surface: loam, stones and a seasonal herb layer (C); fields Phase 7' },
   // the open courts of the Terrace: no source found for their surface (OPEN_QUESTIONS Q-027). Compacted fill with
   // limestone dressing chips over the levelled platform (C)
-  court_fill: { albedo: [0.50, 0.46, 0.39], roughness: 0.9, porosity: 0.7, noiseScale: 0.5, noiseAmp: 0.1, bump: { amp: 0.004, freq: 2.5 }, chips: { cover: 0.12, size: 0.06, albedo: [0.64, 0.62, 0.57] }, tier: 'C', note: 'Terrace open court: compacted fill with limestone chips (surface unknown, Q-027: C)' },
-  terrace: { albedo: [0.44, 0.43, 0.40], roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, bump: { amp: 0.0015, freq: 6 }, top: 'court_fill', tier: 'C', note: 'Terrace platform: dressed limestone retaining walls, dry-laid with hairline joints (Q-071); open court surface C (Q-027)' },
+  court_fill: { albedo: [0.50, 0.46, 0.39], roughness: 0.9, porosity: 0.7, noiseScale: 0.5, noiseAmp: 0.1, bump: { amp: 0.004, freq: 2.5 }, chips: { cover: 0.12, size: 0.06, albedo: [0.64, 0.62, 0.57] }, micro: { amp: 0.0007, freq: 55, alb: 0.06 }, tier: 'C', note: 'Terrace open court: compacted fill with limestone chips (surface unknown, Q-027: C)' },
+  terrace: { albedo: [0.44, 0.43, 0.40], roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, bump: { amp: 0.0015, freq: 6 }, top: 'court_fill', micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'Terrace platform: dressed limestone retaining walls, dry-laid with hairline joints (Q-071); open court surface C (Q-027)' },
   scaffold: { albedo: [0.45, 0.35, 0.24], roughness: 0.85, porosity: 0.5, noiseScale: 3, noiseAmp: 0.1, tier: 'C', note: 'timber scaffold poles' },
-  rubble: { albedo: [0.5, 0.48, 0.44], roughness: 0.9, porosity: 0.5, noiseScale: 2, noiseAmp: 0.2, bump: { amp: 0.01, freq: 3 }, tier: 'C', note: 'stone chips' },
+  rubble: { albedo: [0.5, 0.48, 0.44], roughness: 0.9, porosity: 0.5, noiseScale: 2, noiseAmp: 0.2, bump: { amp: 0.01, freq: 3 }, micro: { amp: 0.0015, freq: 32, alb: 0.06 }, tier: 'C', note: 'stone chips' },
 };
 
 /** shading normal from a procedural height field (view space; surface-gradient method, Mikkelsen 2010) */
@@ -95,6 +99,11 @@ function layer(d: SurfaceDef, base: any): Layer {
   let height: any = null;
   if (d.bump) { // two octaves of relief: broad undulation (trowel / settling) + fine grain
     height = mx_noise_float(p.mul(d.bump.freq)).mul(d.bump.amp).add(mx_noise_float(p.mul(d.bump.freq * 5.3)).mul(d.bump.amp * 0.35));
+  }
+  if (d.micro) { // fine grain, band-limited by the pixel footprint (D-147)
+    const fade = float(1).sub(smoothstep(0.15, 0.35, fwidth(p).length().max(1e-6).mul(d.micro.freq)));
+    height = (height ?? float(0)).add(mx_noise_float(p.mul(d.micro.freq)).mul(d.micro.amp).mul(fade));
+    alb = alb.mul(float(1).add(mx_noise_float(p.mul(d.micro.freq * 1.9).add(7.3)).mul(d.micro.alb ?? 0.04).mul(fade)));
   }
   if (d.joints) { // hairline ashlar joints (D-029): visual only, never sunk; on vertical faces only
     const J = d.joints;
