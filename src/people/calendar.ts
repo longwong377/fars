@@ -97,7 +97,7 @@ export function travellerParties(seed: number, court: boolean) {
 export function transfers(seed: number) {
   return rateSchedule(seed, 'E-23').map((x, i) => ({ i, day: x.day, hour: x.hour, size: Math.round(50 + (300 - 50) * u01(seed, salt('xfer'), i)), kind: u01(seed, salt('xferk'), i) < 0.5 ? 'pasap_group' : 'construction_gang' }));
 }
-/** transhumant bands passing (E-49): 5–40 herders (C), 2–4 days in the plain (C) */
+/** transhumant bands passing (E-49): herding families of 5–40 people (C; D-150), 2–4 days in the plain (C) */
 export function transhumantBands(seed: number) {
   return rateSchedule(seed, 'E-49').map((x, i) => ({ i, day: x.day, hour: x.hour, size: 5 + Math.floor(u01(seed, salt('band'), i) * 36), stay: 2 + Math.floor(u01(seed, salt('bstay'), i) * 3) }));
 }
@@ -229,7 +229,7 @@ export class EventCalendar {
     for (const p of this.pop.parties) if (p.day === d) ops.push({ t: p.hour, f: () => { const fl = p.size * p.stay * 1.25 / 10, be = p.size * p.stay / 10; S.flour -= Math.min(S.flour, fl); S.beer -= Math.min(S.beer, be);
       E(p.hour, 'E-21', `a party of ${p.size} from ${p.route} showed its sealed halmi and drew travel rations`, 'station', p.size); } });
     for (const x of this.pop.transferList) if (x.day === d) ops.push({ t: x.hour, f: () => { S.flour -= Math.min(S.flour, x.size * 1.5 / 10); E(x.hour, 'E-23', `a work group of ${x.size} arrived to new quarters in the town`, 'store_town', x.size); } });
-    for (const x of this.pop.bands) if (x.day === d) E(x.hour, 'E-49', `transhumant herders (${x.size}) with their flocks passed along the plain`, 'river', x.size);
+    for (const x of this.pop.bands) if (x.day === d) E(x.hour, 'E-49', `a band of herding families (${x.size} people) came down into the plain with their flocks, donkeys and dogs`, 'river', x.size);
     for (const id of ['E-31', 'E-32']) for (const x of this.inst(id, d)) { let god: string | undefined;
       if (id === 'E-32') { const tot = Object.values(GODS).reduce((a, b) => a + b, 0); let u = u01(seed, salt('god'), d, x.k) * tot; for (const [k, w] of Object.entries(GODS)) { u -= w; if (u <= 0) { god = k; break; } } }
       const place = id === 'E-31' ? (u01(seed, salt('mtn'), d, x.k) < 0.5 ? 'mountain' : 'river') : 'offering_place';

@@ -379,10 +379,10 @@
     {
       "id": "E-49", "kind": "pastoral", "name": "transhumant flocks pass through the plain",
       "months": [12, 1, 6, 7], "rule": { "type": "rate", "per": "week", "mean": 2, "range": [0, 5] },
-      "participants": [{ "role": "herders", "count": [5, 40] }, { "role": "dogs", "count": [2, 10] }, { "role": "donkeys", "count": [2, 20] }],
+      "participants": [{ "role": "herders: herding families (men, women, children, the old; lives.json herders, D-150)", "count": [5, 40] }, { "role": "dogs", "count": [2, 10] }, { "role": "donkeys", "count": [2, 20] }],
       "place_kind": "roads and plain edges", "goods": [{ "item": "sheep and goats", "qty": [100, 1000], "unit": "head" }],
       "preconditions": [], "effects": ["dust on the roads", "grazing on stubble (C)"],
-      "default": true, "tier": "C", "src": "RECON", "note": "modern Qashqai: north in April, south in September (SX, C analogue); no Achaemenid source"
+      "default": true, "tier": "C", "src": "RECON;HDT", "note": "modern Qashqai: north in April, south in September (SX, C analogue); no Achaemenid source. The Qashqai migrate as families, and HDT 1.125 (FT, a Greek claim) names four Persian tribes as all wandering herdsmen; a band is herding families, the make-up its analogue shows (D-150, lives.json herders)"
     },
     {
       "id": "E-50", "kind": "agriculture", "name": "canal and channel clearing",
