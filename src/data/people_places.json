@@ -1,0 +1,31 @@
+{
+ "_meta": { "frame": "grid metres (east, north); heading = degrees clockwise from grid north the person faces", "note": "Where people stand, work, eat and sleep in the vertical slice (Phase 3). All positions are reconstruction (C) unless stated; they are checked against the walkable grid by tests/people.test.ts." },
+ "places": [
+  { "id": "town", "kind": "offmap", "at": [-138, 122.5], "heading": 90, "tier": "C", "note": "edge of the walkable grid on the plain, W of the Grand Stair: stands in for the town until the settlement is built (Phase 6)" },
+  { "id": "stair_foot", "kind": "depot", "at": [-52, 118.5], "heading": 90, "tier": "C", "note": "goods set down at the stair foot for carrying up (caravans unload here; C)" },
+  { "id": "post_stair_n", "kind": "post", "at": [-39.3, 134.3], "heading": 0, "tier": "C", "note": "guard at the head of the N upper flight (guards on stairways: reliefs B, post C)" },
+  { "id": "post_stair_s", "kind": "post", "at": [-39.3, 110.7], "heading": 180, "tier": "C", "note": "guard at the head of the S upper flight (C)" },
+  { "id": "post_gate_w1", "kind": "post", "at": [-18.8, 120.4], "heading": 270, "tier": "C", "note": "gate guard W door, S jamb (tablets attest gate guards; B type, C post)" },
+  { "id": "post_gate_w2", "kind": "post", "at": [-18.8, 128.8], "heading": 270, "tier": "C", "note": "gate guard W door, N jamb (C)" },
+  { "id": "post_gate_s1", "kind": "post", "at": [-3.4, 103.4], "heading": 180, "tier": "C", "note": "gate guard S door (C)" },
+  { "id": "post_gate_s2", "kind": "post", "at": [3.6, 103.4], "heading": 180, "tier": "C", "note": "gate guard S door (C)" },
+  { "id": "post_apa_w", "kind": "post", "at": [-42, 60.5], "heading": 270, "tier": "C", "note": "guard at the foot of the Apadana N stair, W wing (C)" },
+  { "id": "post_apa_e", "kind": "post", "at": [45.8, 60.5], "heading": 90, "tier": "C", "note": "guard at the foot of the Apadana N stair, E wing (C)" },
+  { "id": "post_treas_1", "kind": "post", "at": [199.4, -62.5], "heading": 0, "tier": "C", "note": "Treasury entrance guard (Treasury weapons finds B; post C)" },
+  { "id": "post_treas_2", "kind": "post", "at": [204.2, -62.5], "heading": 0, "tier": "C", "note": "Treasury entrance guard (C)" },
+  { "id": "garrison_hearth_s", "kind": "hearth", "at": [201.5, -36.4], "tier": "C", "note": "garrison hearth (matches the fire placement)" },
+  { "id": "garrison_hearth_m", "kind": "hearth", "at": [201.5, 26.6], "tier": "C", "note": "garrison hearth" },
+  { "id": "garrison_hearth_n", "kind": "hearth", "at": [201.5, 89.7], "tier": "C", "note": "garrison hearth" },
+  { "id": "garrison_sleep", "kind": "sleep", "at": [215.5, 45], "span": [[187.5, -60], [216, 115]], "tier": "C", "note": "sleeping places along the garrison walls (C)" },
+  { "id": "worksite", "kind": "work", "at": [140, 18], "span": [[114, 12], [178, 26]], "tier": "C", "note": "masons' yard N of the Hall of 100 Columns: blocks being dressed (construction in 467: B; yard C)" },
+  { "id": "work_hearth", "kind": "hearth", "at": [125, 16], "tier": "C", "note": "work-camp hearth (matches the fire placement)" },
+  { "id": "oven", "kind": "oven", "at": [130, 18], "tier": "C", "note": "bread oven (matches the fire placement)" },
+  { "id": "querns", "kind": "work", "at": [120, 22], "span": [[114, 20], [122, 26]], "tier": "C", "note": "saddle querns for the work gang's flour (women's work groups grinding: PF rations B; place C)" },
+  { "id": "water", "kind": "water", "at": [212, 106], "tier": "C", "note": "water point inside the garrison court (a cistern/drain system is known on the Terrace, B; this spot C)" },
+  { "id": "treasury_store", "kind": "store", "at": [178, -100], "tier": "C", "note": "Treasury store: sacks and jars stacked (C)" },
+  { "id": "treasury_desk", "kind": "desk", "at": [192, -84], "tier": "C", "note": "Treasury scribes writing and sealing tablets (PT archive found here: B; desk C)" },
+  { "id": "forecourt", "kind": "idle", "at": [0, 82], "span": [[-25, 68], [30, 95]], "tier": "C", "note": "court between the Gate and the Apadana" },
+  { "id": "apadana_hall", "kind": "idle", "at": [1.9, -4.9], "span": [[-20, -25], [24, 15]], "tier": "C", "note": "inside the Apadana hall (court absent: officials inspecting)" },
+  { "id": "gate_hall", "kind": "shelter", "at": [0.1, 124.6], "span": [[-9, 115], [9, 134]], "tier": "C", "note": "the Gate hall: shelter from rain" }
+ ]
+}

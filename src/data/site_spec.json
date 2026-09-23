@@ -1457,6 +1457,21 @@
    "src": "RECON",
    "tier": "C",
    "note": ""
+  },
+  "r_doors": {
+   "v": [
+    {
+     "at": [
+      201.8,
+      -66.3
+     ],
+     "width": 2.4
+    }
+   ],
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "single NE entrance, reached through the garrison court (position and width C; the Treasury had one controlled entrance per ISAC-PA summary, not verified)"
   }
  },
  "harem": {
@@ -1589,6 +1604,28 @@
    "src": "RECON",
    "tier": "C",
    "note": ""
+  },
+  "r_doors": {
+   "v": [
+    {
+     "at": [
+      183.27,
+      22.5
+     ],
+     "width": 2.4
+    },
+    {
+     "at": [
+      201.8,
+      -66.3
+     ],
+     "width": 2.4
+    }
+   ],
+   "u": "m",
+   "src": "RECON",
+   "tier": "C",
+   "note": "doorways: W onto the court N of the Hall of 100 Columns; S into the Treasury NE entrance (positions C)"
   }
  },
  "fortification_e": {

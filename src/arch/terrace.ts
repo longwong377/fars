@@ -302,18 +302,26 @@ export function buildTerrace(): BuildResult {
   }
 
   // ---------------- Treasury, Harem, Garrison (perimeter walls + key halls; C interiors) ----------------
-  const perimeter = (b: string, fkey: string, fl: number, wallT: number, wallH: number, note: string) => {
+  /** enclosure walls along a footprint; `doors` (r_doors rows: grid point + width) cut gaps in the nearest wall run */
+  const perimeter = (b: string, fkey: string, fl: number, wallT: number, wallH: number, note: string, doors: { at: Pt; width: number }[] = []) => {
     const poly = footprint(fkey).polygon.slice(0, -1) as Pt[]; const sg = ringSign(poly);
     parts.push(prism(b, 'floor', 'earth', 'B', 'OSM', poly, FOUND, fl, { solid: true }));
     for (let i = 0; i < poly.length; i++) {
       const a = poly[i], c2 = poly[(i + 1) % poly.length], len = Math.hypot(c2[0] - a[0], c2[1] - a[1]); if (len < wallT / 2) continue;
-      const nx = -(c2[1] - a[1]) / len, ny = (c2[0] - a[0]) / len;
-      parts.push({ ...box(b, 'wall', 'mudbrick', 'C', 'RECON', [(a[0] + c2[0]) / 2 + sg * nx * wallT / 2, (a[1] + c2[1]) / 2 + sg * ny * wallT / 2], [len, wallT], fl, fl + wallH, { solid: true, note }), rot: Math.atan2(c2[1] - a[1], c2[0] - a[0]) });
+      const ux = (c2[0] - a[0]) / len, uy = (c2[1] - a[1]) / len, nx = -uy, ny = ux;
+      // wall runs along this edge between door gaps (parameter s along the edge)
+      const gaps = doors.map(d => ({ s: (d.at[0] - a[0]) * ux + (d.at[1] - a[1]) * uy, off: Math.abs((d.at[0] - a[0]) * nx + (d.at[1] - a[1]) * ny), w: d.width }))
+        .filter(g => g.off < wallT * 2 && g.s > 0 && g.s < len).sort((p, q) => p.s - q.s);
+      const runs: [number, number][] = []; let s0 = 0;
+      for (const g of gaps) { runs.push([s0, g.s - g.w / 2]); s0 = g.s + g.w / 2; }
+      runs.push([s0, len]);
+      for (const [r0, r1] of runs) { if (r1 - r0 < wallT / 2) continue; const m = (r0 + r1) / 2;
+        parts.push({ ...box(b, 'wall', 'mudbrick', 'C', 'RECON', [a[0] + ux * m + sg * nx * wallT / 2, a[1] + uy * m + sg * ny * wallT / 2], [r1 - r0, wallT], fl, fl + wallH, { solid: true, note }), rot: Math.atan2(uy, ux) }); }
     }
   };
   if (present('treasury')) {
     const b = 'treasury', fl = v(b, 'floor') + v(b, 'r_floor_raise'), W = v<any>(b, 'r_wall');
-    perimeter(b, 'treasury', fl, W.thickness, W.height, 'Treasury enclosure (C thickness/height); single NE entrance not yet cut');
+    perimeter(b, 'treasury', fl, W.thickness, W.height, 'Treasury enclosure (C thickness/height); single NE entrance (C)', v<any>(b, 'r_doors'));
     const [x0, y0, x1, y1] = footprint(b).bounds;
     const ord = order(b, { base: 'square2', capital: 'plain', material: 'timber' });
     const [gx, gy] = v<number[]>(b, 'r_hall99_grid');
@@ -330,7 +338,7 @@ export function buildTerrace(): BuildResult {
     const por = grid(pnx, pny, c[0], c[1] - v(b, 'r_portico_offset_s'), ia, v(b, 'r_portico_row_spacing')); for (const p of por) parts.push(col(b, p, fl, ord, 'C', S_(b, 'portico')));
     manifest.harem = { hallColumns: hall.length, porticoColumns: por.length };
   }
-  if (present('garrison')) { const W = v<any>('garrison', 'r_wall'); perimeter('garrison', 'garrison', v('garrison', 'floor') + v('garrison', 'r_floor_raise'), W.thickness, W.height, 'garrison quarters (C)'); }
+  if (present('garrison')) { const W = v<any>('garrison', 'r_wall'); perimeter('garrison', 'garrison', v('garrison', 'floor') + v('garrison', 'r_floor_raise'), W.thickness, W.height, 'garrison quarters (C)', v<any>('garrison', 'r_doors')); }
 
   // ---------------- East fortification (mud brick) ----------------
   if (present('fortification_e')) {

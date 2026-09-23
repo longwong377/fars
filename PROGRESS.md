@@ -6,6 +6,8 @@
 - No primary sources reachable (B6). The whole SITE_SPEC is tier B/C; nothing is A. The plan overlay compares against OSM, not Schmidt.
 - No evidence places Xerxes at Persepolis in 467, so the king is ABSENT by default (D-003). The court appears only in the C-tier "seasonal pattern" setting.
 
+- **People (Phase 3, in progress):** bodies and animation are PLACEHOLDERS. They are procedural rigid-skinned rigs with hand-authored pose cycles, not photoreal humans, and faces are abstract. The Phase 3 slice has 65 people: 30 guards on three watches at 10 posts, a mason gang of 12 plus a foreman, 6 porters, 2 scribes, 2 bakers, 4 grinders, 3 children, 2 couriers and 3 officials. The town is off the map (Phase 6), so the edge of the plain stands in for home. There is no Recast navmesh yet (D-010).
+
 ## Phase status
 | Phase | Status | Gate |
 |---|---|---|

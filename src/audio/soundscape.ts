@@ -64,6 +64,22 @@ export class Soundscape {
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(Math.min(1, 0.6 * strength + 0.2), t + 0.08); g.gain.exponentialRampToValueAtTime(0.001, t + 5.5);
     s.connect(f); f.connect(g); g.connect(e.ch.effects); s.start(t); s.stop(t + 6);
   }
+  /** a one-shot from a person's work at a world position (driven by the animation, so what you hear is what is done) */
+  strike(kind: string, pos: { x: number; y: number; z: number }) {
+    const e = this.e, c = e.ctx; if (!c) return; const t = c.currentTime;
+    if (kind === 'chisel') { // iron/bronze chisel on limestone (C)
+      const p = e.panner(pos.x, pos.y + 1, pos.z, 3, 300), o = c.createOscillator(), g = c.createGain(); o.type = 'triangle'; o.frequency.value = 2200 + this.rng.next() * 900;
+      g.gain.setValueAtTime(0.05, t); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.06); o.connect(g); g.connect(p); p.connect(e.ch.effects); o.start(t); o.stop(t + 0.08);
+    } else if (kind === 'quern') { // stone rubbing on stone: band-passed brown noise swell
+      const p = e.panner(pos.x, pos.y + 0.4, pos.z, 2, 60), s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = e.noiseBuffer(0.7, 'brown'); f.type = 'bandpass'; f.frequency.value = 420; f.Q.value = 0.8;
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + 0.25); g.gain.linearRampToValueAtTime(0.0001, t + 0.65); s.connect(f); f.connect(g); g.connect(p); p.connect(e.ch.effects); s.start(t);
+    } else if (kind === 'dice') { // knucklebones on a hard floor: two or three clicks
+      const p = e.panner(pos.x, pos.y + 0.2, pos.z, 1.5, 40);
+      for (let i = 0; i < 3; i++) { const o = c.createOscillator(), g = c.createGain(), tt = t + i * (0.06 + this.rng.next() * 0.05); o.type = 'square'; o.frequency.value = 1400 + this.rng.next() * 600;
+        g.gain.setValueAtTime(0.03, tt); g.gain.exponentialRampToValueAtTime(0.0003, tt + 0.02); o.connect(g); g.connect(p); o.start(tt); o.stop(tt + 0.03); }
+      p.connect(e.ch.effects);
+    }
+  }
   footstep(surface: 'stone' | 'earth' | 'plaster', run: boolean) {
     const e = this.e; if (!e.ctx) return; const c = e.ctx, t = c.currentTime;
     const s = c.createBufferSource(); s.buffer = e.noiseBuffer(0.12, surface === 'earth' ? 'brown' : 'white');
@@ -100,7 +116,7 @@ export class Soundscape {
       if (n) { n.gain.gain.setTargetAtTime(f.lit && d < 40 ? 0.08 * (0.7 + 0.3 * Math.random()) : 0, t, 0.05); if (this.rng.next() < dt * 6 && f.lit && d < 25) { // crackle pops
           const s = c.createBufferSource(); s.buffer = e.noiseBuffer(0.02, 'white'); const g = c.createGain(); g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.03); s.connect(g); g.connect(n.pan); s.start(t); } }
     }
-    // masons at the Hall of 100 Columns: chisel strikes during working hours (bronze/iron chisel on limestone; C)
+    // generic worksite chisels only when no simulated masons drive `strike` (kept for audio tests without people)
     if (ctx.worksite && ctx.workHours && (this.nextChisel -= dt) <= 0) {
       this.nextChisel = 0.35 + this.rng.next() * 0.6;
       const p = e.panner(ctx.worksite.x + (this.rng.next() - 0.5) * 30, ctx.worksite.y + 1, ctx.worksite.z + (this.rng.next() - 0.5) * 30, 3, 300);

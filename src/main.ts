@@ -81,7 +81,7 @@ async function boot() {
   const pipeline = new Pipeline(renderer, scene, camera, settings.quality);
   shell.loading('Raising the Terrace…');
   const phys = await Physics.create();
-  const world: WorldBuild = await buildWorld(scene, phys, terrain, settings);
+  const world: WorldBuild = await buildWorld(scene, phys, terrain, settings, weather, SEED);
   const [sx, sz] = [SPAWN.east, -SPAWN.north];
   phys.updateTerrain(terrain, { x: sx, y: 0, z: sz }); phys.step(1 / 60);
   const player = new Player(phys, sx, terrain.heightAt(sx, sz) + 0.05, sz);
@@ -135,6 +135,11 @@ async function boot() {
     renderOnce: async () => { await frame(0); },
     /** deterministic fixed-step simulation without rendering (walkthrough bots, soak); returns max frame sim time */
     simulate: (seconds: number, dt = 1 / 30) => { const steps = Math.round(seconds / dt); for (let i = 0; i < steps; i++) simStep(dt); },
+    /** advance world time (and everything simulated) by game seconds in fixed steps, regardless of clock.scale (tests) */
+    advanceWorld: (seconds: number, dt = 1) => { const steps = Math.round(seconds / dt); for (let i = 0; i < steps; i++) { clock.t += dt / 86400; simStep(dt, false); } },
+    /** people: summary rows (out-of-world; for tests and the dev overlay) */
+    people: () => { const P = (world as any).people; if (!P) return null; return { t: P.sim.t, stock: P.sim.stock, events: P.sim.events.slice(-20),
+      agents: P.sim.agents.map((a: any) => ({ id: a.id, name: a.name, role: a.role, origin: a.origin, act: P.sim.performance(a).act, walking: a.walking, offmap: a.offmap, e: +a.pos[0].toFixed(2), n: +a.pos[1].toFixed(2), y: +a.y.toFixed(2), why: a.task?.why, met: a.metPlayer })) }; },
     /** walkthrough bot: steer toward grid (east, north) at walking pace; returns {reached, stuck, t, state} (fixed-step, deterministic) */
     walkTo: (east: number, north: number, maxSeconds = 120, tol = 0.6, dt = 1 / 60) => {
       let t = 0, lastProgress = 0, best = Infinity;

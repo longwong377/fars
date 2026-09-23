@@ -215,6 +215,7 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | r_hall99_grid | [9, 11] | cols | RECON | C | factorisation of 99 (hall99, ISAC-PA) into a grid: C |
 | r_hall99_offset_n | 20.0 | m | RECON | C | hall position N of footprint centre |
 | r_hall99_spacing | 4.2 | m | RECON | C |  |
+| r_doors | [{"at": [201.8, -66.3], "width": 2.4}] | m | RECON | C | single NE entrance, reached through the garrison court (position and width C; the Treasury had one controlled entrance per ISAC-PA summary, not verified) |
 
 ## harem — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
@@ -239,6 +240,7 @@ Footprint polygons: `src/data/geo/footprints.json` (OSM/Overture, ODbL; `tools/o
 | note | "modest mud-brick rooms near E/SE foot of mountain; OSM label 'guardhouse & hall of 32 columns' (32-column hall absent in 467: RECON)" |  | ISAC-PA | B |  |
 | r_wall | {"thickness": 1.2, "height": 4.0} | m | RECON | C | modest mud-brick rooms |
 | r_floor_raise | 0.2 | m | RECON | C |  |
+| r_doors | [{"at": [183.27, 22.5], "width": 2.4}, {"at": [201.8, -66.3], "width": 2.4}] | m | RECON | C | doorways: W onto the court N of the Hall of 100 Columns; S into the Treasury NE entrance (positions C) |
 
 ## fortification_e — state in 467 BCE: **standing**
 | parameter | value | unit | source | tier | note |
