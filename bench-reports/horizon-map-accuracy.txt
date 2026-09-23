@@ -1,0 +1,12 @@
+valley floor, Terrace, Naqsh-e Rustam, town (40 m and 256 m levels): landing: mean 0.148° p90 0.29° max 0.81°
+valley floor, Terrace, Naqsh-e Rustam, town (40 m and 256 m levels): Apadana: mean 0.140° p90 0.27° max 0.91°
+valley floor, Terrace, Naqsh-e Rustam, town (40 m and 256 m levels): plain 3 km W: mean 0.146° p90 0.31° max 0.83°
+valley floor, Terrace, Naqsh-e Rustam, town (40 m and 256 m levels): Naqsh-e Rustam foot: mean 0.190° p90 0.48° max 1.43°
+valley floor, Terrace, Naqsh-e Rustam, town (40 m and 256 m levels): tomb of Artaxerxes II: mean 0.141° p90 0.28° max 0.70°
+valley floor, Terrace, Naqsh-e Rustam, town (40 m and 256 m levels): Tol-e Ajori: mean 0.130° p90 0.31° max 0.92°
+valley floor, Terrace, Naqsh-e Rustam, town (40 m and 256 m levels): plain 8 km SW: mean 0.136° p90 0.29° max 0.58°
+valley floor, Terrace, Naqsh-e Rustam, town (40 m and 256 m levels): plain 12 km NW: mean 0.112° p90 0.26° max 0.38°
+far plain (1,120 m level): plain 30 km W: mean 0.284° p90 0.75° max 1.32°
+far plain (1,120 m level): 50 km S: mean 0.244° p90 0.56° max 1.13°
+Kuh-e Rahmat, open slope: slope 1.4 km E: mean 0.378° p90 1.19° max 1.99°
+Kuh-e Rahmat, ravine (resolution limit): ravine 800 m E: mean 2.262° p90 4.18° max 6.28°
