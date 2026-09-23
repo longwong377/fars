@@ -261,6 +261,13 @@ describe('crowd: performers with their things and animals (budgets)', () => {
     expect(st.animals.draws).toBeLessThanOrEqual(SPECIES.length); expect(st.things.draws).toBeLessThanOrEqual(Object.keys(WORK_NOTES).length);
     expect(st.things.triangles + st.animals.triangles).toBeLessThan(1.2e6);
     expect(st.animals.dropped, 'animals over the instance cap').toBe(0); expect(st.things.dropped, 'work objects over the instance cap').toBe(0);
+    // WebGPU allows 8 vertex buffers per pipeline: every attribute buffer of the geometry (an interleaved buffer counts
+    // once) plus the instance matrix and colour must fit (an upper bound: unused attributes are counted too)
+    let checkedMeshes = 0;
+    crowd.group.traverse(o => { const im = o as THREE.InstancedMesh; if (!im.isInstancedMesh || !/^(props|work|animals):/.test(im.name)) return;
+      const bufs = new Set<unknown>(); for (const a of Object.values(im.geometry.attributes)) bufs.add((a as any).isInterleavedBufferAttribute ? (a as any).data : a);
+      const n = bufs.size + 1 + (im.instanceColor ? 1 : 0); expect(n, `${im.name}: vertex buffers`).toBeLessThanOrEqual(8); checkedMeshes++; });
+    expect(checkedMeshes).toBeGreaterThan(10);
     expect(ms[45]).toBeLessThan(10); // node, 300 performers in view (the crowd's people-only budget is 6 ms: humans_runtime)
   }, 180_000);
 });

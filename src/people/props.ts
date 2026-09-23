@@ -174,8 +174,22 @@ export function propSlot(kind: string): [number, number] | null {
 /** the kinds of a class in one geometry, with the kind's index per vertex ('pk'); an instance shows the kind whose index
  *  it carries ('ik') and the other kinds' vertices collapse to a point */
 export function propUnionGeometry(cls = 0): THREE.BufferGeometry {
-  return mergeGeometries(PROP_CLASSES[cls].map((k, i) => { let g = propGeometry(k)!.clone(); if (!g.getAttribute('sv')) g = withSv(g); const n = g.getAttribute('position').count;
+  const g = mergeGeometries(PROP_CLASSES[cls].map((k, i) => { let g = propGeometry(k)!.clone(); if (!g.getAttribute('sv')) g = withSv(g); const n = g.getAttribute('position').count;
     g.setAttribute('pk', new THREE.BufferAttribute(new Float32Array(n).fill(i), 1)); return g; }))!;
+  interleave(g, ['color', 'mr', 'sv', 'pk']); return g;
+}
+/** packs named float attributes into one interleaved buffer under the same names. WebGPU allows 8 vertex buffers per
+ *  pipeline; an instanced mesh with one buffer per attribute (the carried props, the animals) exceeds it and its
+ *  pipeline fails. `instanced`: a per-instance buffer (attributes of `count` instances, zero-filled) */
+export function interleave(g: THREE.BufferGeometry, names: string[], instanced?: { count: number; sizes: number[] }): THREE.InterleavedBuffer {
+  const sizes = instanced ? instanced.sizes : names.map(n => g.getAttribute(n).itemSize), n = instanced ? instanced.count : g.getAttribute(names[0]).count;
+  const stride = sizes.reduce((a, b) => a + b, 0), arr = new Float32Array(n * stride);
+  const buf = instanced ? new THREE.InstancedInterleavedBuffer(arr, stride) : new THREE.InterleavedBuffer(arr, stride);
+  let off = 0;
+  names.forEach((name, j) => { const a = instanced ? null : g.getAttribute(name);
+    if (a) for (let i = 0; i < n; i++) for (let k = 0; k < sizes[j]; k++) arr[i * stride + off + k] = a.getComponent(i, k);
+    g.setAttribute(name, new THREE.InterleavedBufferAttribute(buf, sizes[j], off)); off += sizes[j]; });
+  return buf;
 }
 function withSv(g: THREE.BufferGeometry) { g.setAttribute('sv', new THREE.BufferAttribute(new Float32Array(g.getAttribute('position').count * 3), 3)); return g; }
 /** a box painted for the prop material (work objects) */

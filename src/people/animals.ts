@@ -13,6 +13,7 @@ import * as THREE from 'three/webgpu';
 import { attribute, positionLocal, positionGeometry, vec3, sin, cos, max, float, uniform } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { nearCascadesOnly } from './humanGPU';
+import { interleave } from './props';
 import type { AnimalSpec } from './activities';
 
 export type Species = 'sheep' | 'goat' | 'ox' | 'donkey' | 'horse';
@@ -96,7 +97,8 @@ export function animalGeometry(sp: Species): THREE.BufferGeometry {
     const col = new Float32Array(n * 3), leg = new Float32Array(n * 4), piv = new Float32Array(n * 4), ht2 = new Float32Array(n * 4);
     for (let i = 0; i < n; i++) { col.set(pt.col.map(c => (c > 1 ? c : lin(c))), i * 3); leg.set(pt.leg ?? [0, 0, 0, 0], i * 4); piv.set(pt.piv ?? [0, 0, 0, 0], i * 4); ht2.set(pt.ht ?? [0, 0, 0, 0], i * 4); }
     g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('aLeg', new THREE.BufferAttribute(leg, 4)); g.setAttribute('aPiv', new THREE.BufferAttribute(piv, 4)); g.setAttribute('aHT', new THREE.BufferAttribute(ht2, 4)); return g; });
-  const g = mergeGeometries(gs)!; g.computeBoundingSphere(); return g;
+  // colour and the rig attributes in one interleaved buffer (WebGPU allows 8 vertex buffers per pipeline)
+  const g = mergeGeometries(gs)!; interleave(g, ['color', 'aLeg', 'aPiv', 'aHT']); g.computeBoundingSphere(); return g;
 }
 /** rig constants: leg swing and knee flex at a full walk */
 export const RIG = { swing: 0.42, knee: 0.75 } as const;
@@ -165,7 +167,7 @@ export function animalsFor(spec: AnimalSpec, t: number, seed: number, path?: { s
 /** the animals: one instanced mesh per species, filled every frame by the crowd (begin / push / end) */
 export class Animals {
   readonly group = new THREE.Group();
-  private meshes = new Map<Species, { mesh: THREE.InstancedMesh; state: THREE.InstancedBufferAttribute; rot: THREE.InstancedBufferAttribute[]; n: number; box: THREE.Box3 }>();
+  private meshes = new Map<Species, { mesh: THREE.InstancedMesh; data: THREE.InterleavedBuffer; state: THREE.InterleavedBufferAttribute; rot: THREE.InterleavedBufferAttribute[]; n: number; box: THREE.Box3 }>();
   private uTime = uniform(0);
   /** animals not drawn this frame because their species' instance cap was full (reported by stats: never silent) */
   dropped = 0;
@@ -173,11 +175,12 @@ export class Animals {
   private mesh(sp: Species) {
     let m = this.meshes.get(sp); if (m) return m;
     const g = animalGeometry(sp), F = animalFrame(sp), drop = lieDrop(sp);
-    const state = new THREE.InstancedBufferAttribute(new Float32Array(this.cap * 4), 4); state.setUsage(THREE.DynamicDrawUsage); g.setAttribute('aState', state);
-    // the instance's rotation (its matrix's axes): three.js applies the instance matrix to positionLocal BEFORE the
-    // material's positionNode, so the rig deforms the raw geometry position in the animal's own frame and adds the
-    // displacement turned by these axes (rotating legs about pivots in world space would throw them across the field)
-    const rot = ['aRx', 'aRy', 'aRz'].map(n => { const a = new THREE.InstancedBufferAttribute(new Float32Array(this.cap * 3), 3); a.setUsage(THREE.DynamicDrawUsage); g.setAttribute(n, a); return a; });
+    // per instance, in one interleaved buffer: the state (gait phase, walk, graze, lie) and the instance's rotation (its
+    // matrix's axes). three.js applies the instance matrix to positionLocal BEFORE the material's positionNode, so the rig
+    // deforms the raw geometry position in the animal's own frame and adds the displacement turned by these axes
+    // (rotating legs about pivots in world space would throw them across the field)
+    const data = interleave(g, ['aState', 'aRx', 'aRy', 'aRz'], { count: this.cap, sizes: [4, 3, 3, 3] }); data.setUsage(THREE.DynamicDrawUsage);
+    const state = g.getAttribute('aState') as THREE.InterleavedBufferAttribute, rot = ['aRx', 'aRy', 'aRz'].map(n => g.getAttribute(n) as THREE.InterleavedBufferAttribute);
     const mat = new THREE.MeshStandardNodeMaterial({ roughness: 0.95 }); mat.vertexColors = true;
     const L = attribute('aLeg', 'vec4'), Pv = attribute('aPiv', 'vec4'), H = attribute('aHT', 'vec4'), S = attribute('aState', 'vec4');
     const rx = (p: any, a: any, cy: any, cz: any) => { const dy = p.y.sub(cy), dz = p.z.sub(cz), c = cos(a), s = sin(a); return vec3(p.x, cy.add(dy.mul(c)).sub(dz.mul(s)), cz.add(dy.mul(s)).add(dz.mul(c))); };
@@ -197,7 +200,7 @@ export class Animals {
     const mesh = new THREE.InstancedMesh(g, mat, this.cap); mesh.count = 0; mesh.visible = false; mesh.castShadow = mesh.receiveShadow = true; mesh.frustumCulled = true; mesh.boundingSphere = new THREE.Sphere();
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); mesh.name = `animals:${sp}`; mesh.userData = { tier: 'C', src: 'RECON', note: `${ANIMAL_BUILD[sp].note}; ${ANIMAL_BUILD[sp].tier}` }; mesh.raycast = () => {};
     mesh.setColorAt(0, new THREE.Color(1, 1, 1)); nearCascadesOnly(mesh);
-    this.group.add(mesh); m = { mesh, state, rot, n: 0, box: new THREE.Box3() }; this.meshes.set(sp, m); return m;
+    this.group.add(mesh); m = { mesh, data, state, rot, n: 0, box: new THREE.Box3() }; this.meshes.set(sp, m); return m;
   }
   begin(time: number) { this.uTime.value = time % 100000; this.dropped = 0; for (const m of this.meshes.values()) { m.n = 0; m.box.makeEmpty(); } }
   /** an animal at a world transform with its state */
@@ -211,8 +214,7 @@ export class Animals {
   end() {
     for (const m of this.meshes.values()) { const im = m.mesh; im.count = m.n; im.visible = m.n > 0; if (!m.n) continue;
       im.instanceMatrix.needsUpdate = true; im.instanceMatrix.clearUpdateRanges(); im.instanceMatrix.addUpdateRange(0, m.n * 16);
-      m.state.needsUpdate = true; m.state.clearUpdateRanges(); m.state.addUpdateRange(0, m.n * 4);
-      for (const r of m.rot) { r.needsUpdate = true; r.clearUpdateRanges(); r.addUpdateRange(0, m.n * 3); }
+      m.data.needsUpdate = true; m.data.clearUpdateRanges(); m.data.addUpdateRange(0, m.n * m.data.stride);
       if (im.instanceColor) { im.instanceColor.needsUpdate = true; im.instanceColor.clearUpdateRanges(); im.instanceColor.addUpdateRange(0, m.n * 3); }
       m.box.getBoundingSphere(im.boundingSphere!); im.boundingSphere!.radius += 1.5; }
   }
