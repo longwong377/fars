@@ -27,9 +27,10 @@ out.push(`# Shadow days (§13.11): 20 people, one full day each (seed ${seed}); 
   const days = [...chosen].map(() => pick.int(1, 350));
   for (const [k, id] of [...chosen].entries()) {
     const d = days[k]; sim.jumpTo(d * 24); const a = sim.agents[id];
-    const H = (sim.pop as any)?.households?.[a.household];
+    // the agent's household is its population person's home on that day (not the agent's own index)
+    const P0 = (sim as any).pop; const pid = P0?.persons?.findIndex((q: any) => q.agent === a.id) ?? -1; const H = pid >= 0 ? P0.households[P0.home(pid, d)] : null;
     out.push('', `## Detailed agent #${id}: ${a.name ?? '(unnamed)'} — ${a.role}, ${a.sex === 'm' ? 'man' : 'woman'}, ${a.origin}${a.name ? ` (name ${a.nameTier}: ${a.nameNote})` : ''}; speaks ${a.langs.join(', ')}`);
-    out.push(`day ${d + 1} of the regnal year · ${weatherLine(d)}${H ? ` · household ${H.id} (${H.q ?? H.zone})` : ''}`);
+    out.push(`day ${d + 1} of the regnal year · ${weatherLine(d)}${H ? ` · household ${H.id} (${H.q ?? H.zone}, home ${H.home}, ${H.members.length} members)` : ''}`);
     let last = ''; const log: string[] = [];
     for (let t = d * 24; t < d * 24 + 24; t += 1 / 60) {
       while (sim.t < t) sim.step(Math.min(60, (t - sim.t) * 3600));
