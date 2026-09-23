@@ -62,7 +62,13 @@
         - N1: older children, especially girls of 9–13, play most of the day and do little of their age's work.
         - N2: households whose mother dies are not reorganised.
         - Also: the harvest timing conflicts with PLAIN.md; fixed-duration templates; abstract travel times ignore distance; very little is carried.
-        - The sim agent is fixing these; round 3 needs another unseen sample.
+        - Round-2 fixes merged (D-082 to D-087): children's work by age and sex, bereaved households, sourced harvest windows, carried things.
+      - **Round 3 FAILED** (REVIEWS/shadow_phase5_r3.md, pick seed 53): 3 of 20 below 4.
+        - One is a sampling-tool fault: a man drawn 12 days after his death.
+        - The other two are real: a leader of ten walking the same 16 posts in the same order for 8 hours, and a toddler reappearing asleep at home with no fetch.
+        - Also: plan and performance disagree at the posts (9 h without food); water carried that was never drawn; bread and water vanishing at the threshing floor; no kneading or baking in any of the 20 days; riding and archery for every Persian boy against PEOPLE.md's own sources.
+        - 11 of 14 population people spend part of the day in placeholder activities (50 h 27 min); summer threshing is performed nowhere.
+        - The sim agent is fixing these (D-135 to D-139, Q-146 to Q-149). Round 4 needs a seed other than 7, 11, 23, 37 and 53.
     - Still open: 27 placeholder activities; construction runs above E-61 (8 shafts a year vs ~5); marriages run below E-73; the town.json shares disagree with the built houses' capacity (D-081); mean frame time at 60× time went from 4.7 ms to 8.1 ms.
     - Every day-plan weight is C. The grain deliveries in the read texts cannot feed the ration groups (Q-056). Workers other than guards have no regular rest days (Q-057).
 - **Phase 4b (merged in session 3, D-048 to D-052):**

@@ -31,13 +31,13 @@ Read `CLAUDE.md` first (the resume procedure), then this file, then `PROGRESS.md
 ## Background agents (worktrees under `.claude/worktrees/`, branches `worktree-agent-<id>`; merge what is committed)
 | Agent | Scope | Id ranges |
 |---|---|---|
-| Sim, round 2 (a7468…) | shadow-review N1/N2 fixes, soak must pass | D-082 … D-089, Q-140 … Q-149 |
+| Sim, round 3 (a7468…) | round-2 fixes merged; now fixing round-3 findings S1–S11 (REVIEWS/shadow_phase5_r3.md) | D-088, D-089, D-135 … D-139, Q-146 … Q-149 |
 | Interior lighting (ab5df…) | irradiance probes; dark interiors | D-110 … D-114, Q-150 … Q-159 |
 | Twilight (aa071…) | light curves, exposure (`src/sky/exposure.ts`), Earth's shadow | D-115 … D-119, Q-160 … Q-169 |
 | Trees (a1ae0…) | species trees, leaf clusters, impostors matched to near trees; fixes the grey domes | D-120 … D-129, Q-170 … Q-179 |
-| Tachara plan (a7b31…) | Tachara rebuilt from REF-PLAN: side rooms, N rooms, doorways, windows, lance-bearers | D-130 … D-134, Q-180 … Q-184 |
+| ~~Tachara plan (a7b31…)~~ | MERGED (51f8dde): Tachara from REF-PLAN, IoU 0.84, lance-bearers | D-130 … D-134, Q-180 … Q-184 |
 
-Merge order: interior → twilight → sim → trees → Tachara. After each merge:
+Merge order for the rest: interior → twilight → sim (round 3) → trees. The sim round 2 and the Tachara are merged. After each merge:
 - renumber any colliding D- or Q- ids;
 - run `npx tsc --noEmit -p .`, `npx vitest run`, `npm run lint:all`, `npx tsx tools/dev/botcheck.ts` and `… slice`;
 - rebuild the walkable grid (`npx tsx tools/build_nav.ts`) if the architecture changed;
