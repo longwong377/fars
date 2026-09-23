@@ -318,27 +318,27 @@
     },
     {
       "id": "E-41", "kind": "agriculture", "name": "barley harvest",
-      "months": [1, 2, 3], "rule": { "type": "daily", "hours": [5, 11], "peak_month": 2 },
+      "months": [2, 3], "day_window": [33, 66], "rule": { "type": "daily", "hours": [5, 11], "peak_month": 2 },
       "participants": [{ "role": "whole households; assigned kurtaš (C)", "count": "field_fraction x adults + children" }],
       "place_kind": "fields", "goods": [{ "item": "barley sheaves", "qty": "C", "unit": "-" }],
       "preconditions": ["fields: ripe"], "effects": ["fields: harvested", "schedule(E-43)"],
-      "default": true, "tier": "C", "src": "FARS-CROP", "note": "'winter barley ... harvested between May and July' (SX, modern)"
+      "default": true, "tier": "C", "src": "FARS-CROP;IR-FOODAG", "note": "'winter barley ... harvested between May and July' (SX, modern); IR-FOODAG harvest May-Jun; the plain's crop model cuts it by mid-June (plain.json). Window: days 33-66 = 15 May - 17 Jun in the seasons (20 May - 22 Jun Julian). Was months 1-3 (from 12 Apr), ahead of every source (Q-140)"
     },
     {
       "id": "E-42", "kind": "agriculture", "name": "wheat harvest",
-      "months": [2, 3, 4], "rule": { "type": "daily", "hours": [5, 11], "peak_month": 3 },
+      "months": [2, 3, 4], "day_window": [50, 95], "rule": { "type": "daily", "hours": [5, 11], "peak_month": 3 },
       "participants": [{ "role": "as E-41", "count": "as E-41" }], "place_kind": "fields",
       "goods": [{ "item": "wheat sheaves", "qty": "C", "unit": "-" }],
       "preconditions": ["fields: ripe"], "effects": ["fields: harvested", "schedule(E-43)"],
-      "default": true, "tier": "C", "src": "FARS-CROP", "note": "'wheat harvest late May to late July'; rainfed mid-July (SX, modern)"
+      "default": true, "tier": "C", "src": "FARS-CROP;IR-FOODAG", "note": "'wheat harvest late May to late July'; rainfed mid-July (SX, modern); IR-FOODAG harvest Jun-Jul; the plain's crop model cuts it by mid-July (plain.json). Window: days 50-95 = 1 Jun - 16 Jul in the seasons (Q-140)"
     },
     {
       "id": "E-43", "kind": "agriculture", "name": "threshing, winnowing, grain to the stores",
-      "months": [3, 4, 5], "rule": { "type": "daily", "hours": [6, 17] },
+      "months": [2, 3, 4, 5], "day_window": [43, 141], "rule": { "type": "daily", "hours": [6, 17] },
       "participants": [{ "role": "households, grain handlers", "count": "C" }], "place_kind": "threshing floors",
       "goods": [{ "item": "grain", "qty": "C", "unit": "BAR" }],
       "preconditions": ["harvested sheaves"], "effects": ["village stores += grain", "state share -> E-06 deliveries"],
-      "default": true, "tier": "C", "src": "WP-CAL;CDLI-PF", "note": "OP month 5 is 'harvest (month)' (SX); PF 6 delivery in months 4-6 (FT)"
+      "default": true, "tier": "C", "src": "WP-CAL;CDLI-PF", "note": "OP month 5 is 'harvest (month)' (SX); PF 6 delivery in months 4-6 (FT). Window: days 43-141 = 25 May - 31 Aug in the seasons, from ten days after the first reaping until the harvest month (Q-140)"
     },
     {
       "id": "E-44", "kind": "agriculture", "name": "spring sowing of summer crops (sesame attested)",
@@ -429,10 +429,10 @@
     },
     {
       "id": "E-64", "kind": "weather_effect", "name": "midday rest in the heat",
-      "months": [3, 4, 5], "rule": { "type": "daily", "hours": [12, 15] },
+      "months": "all", "rule": { "type": "daily", "hours": [12, 15] },
       "participants": [{ "role": "all outdoor workers", "count": "all" }], "place_kind": "shade", "goods": [],
       "preconditions": ["air temperature > 33 C (C)"], "effects": ["outdoor work paused", "water carrying up (CE-14)"],
-      "default": true, "tier": "C", "src": "WMO-CLINO;RECON", "note": "Tmax 36-38 C in Jun-Aug (A); the rule is C"
+      "default": true, "tier": "C", "src": "WMO-CLINO;RECON", "note": "Tmax 36-38 C in Jun-Aug (A); the rule is C. Was months 3-5 only; the rest now follows the day's temperature, so a hot day in month 2 or 6 has it too and a cool day in month 4 does not (D-086)"
     },
     {
       "id": "W-01", "kind": "weather_effect", "name": "rain: people shelter; outdoor work stops",
