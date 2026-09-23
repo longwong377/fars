@@ -118,6 +118,19 @@ describe('door system: swing, collider, locks, schedules, people, save', () => {
     doors.people = [[gate.centre()[0] - gw.n[0] * (gw.depth + 1), gate.centre()[1] - gw.n[1] * (gw.depth + 1)]]; expect(doors['someoneAt'](gate, doors.people)).toBe(true);
     run(L.swing_s + 0.2, SCH.close + 2); expect(gate.t).toBe(1);
     doors.people = []; run(L.swing_s + 0.2, SCH.close + 2); expect(gate.t).toBe(0); expect(gate.locked).toBe(true);
+    // the visitor: let through the barred entrance at night (observer mode), never into the sealed store from outside, and
+    // not sealed in: the store stays open while the visitor is inside
+    const at = (id: string, k: number) => { const d = doorways.find(q => q.id === id)!; const c = doors.doors.get(id)!.centre(); return new THREE.Vector3(c[0] - d.n[0] * k, 0.5, -(c[1] - d.n[1] * k)); };
+    doors.player = at('treasury:N', 3); run(L.swing_s + 0.2, SCH.close + 2); expect(gate.t).toBe(1);
+    doors.player = null; run(L.swing_s + 0.2, SCH.close + 2); expect(gate.t).toBe(0);
+    const sd = doorways.find(q => q.id === 'treasury:hall99')!; // swings out: n points north (out), the store lies on −n… flipped in hang(); its passage vector points into the store
+    const inStore = store.leaves[0].through, c99 = store.centre();
+    doors.player = new THREE.Vector3(c99[0] + inStore[0] * 4, 0.5, -(c99[1] + inStore[1] * 4)); run(L.swing_s + 0.2, SCH.close + 2);
+    expect(store.t, 'the keeper waits while the visitor is inside the store').toBe(1);
+    doors.player = new THREE.Vector3(c99[0] - inStore[0] * 1.5, 0.5, -(c99[1] - inStore[1] * 1.5)); run(L.swing_s + 0.2, SCH.close + 2);
+    expect(store.t, 'sealed once the visitor is out').toBe(0); expect(store.sealed).toBe(true);
+    expect(doors.toggle('treasury:hall99', true)!.result).toBe('sealed'); void sd;
+    doors.player = null;
     run(L.swing_s + 0.2, SCH.open + 0.5); expect(store.t).toBe(1); expect(gate.t).toBe(1); expect(store.sealed).toBe(false);
   });
   it('people open a closed door as they pass', () => {

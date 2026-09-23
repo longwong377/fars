@@ -21,7 +21,8 @@ row('global', 'r_niche', {'depth': 0.5}, 'm', 'WP-EXT;IR-PERS;RECON', 'C',
     'blind niches: window-shaped recesses in the inner wall face with the same frame as the windows (Tachara stone frames, '
     'WP-EXT C; Hadish 4 niches, IR-PERS B count); depth C (Q-087)')
 row('global', 'r_door_leaf', {'thickness': 0.12, 'post_r': 0.07, 'bands': 4, 'band_h': 0.08, 'band_t': 0.006,
-                              'boss_r': 0.022, 'boss_pitch': 0.2, 'gap': 0.01, 'shoe_h': 0.14, 'swing_s': 1.5, 'reach': 2.2},
+                              'boss_r': 0.022, 'boss_pitch': 0.2, 'gap': 0.01, 'shoe_h': 0.14, 'swing_s': 1.5, 'reach': 2.2,
+                              'bronze_metalness': 0.35, 'boss_range': 40},
     'm', 'WP-EXT;RECON', 'C',
     'timber double-leaf doors of the stone-framed palace doorways (C: analogue of the Gate of All Nations, whose pivot sockets '
     'show two-leaf doors, WP extract C). Each leaf turns on a vertical post (post_r) standing in a stone socket, its foot shod '
@@ -30,16 +31,22 @@ row('global', 'r_door_leaf', {'thickness': 0.12, 'post_r': 0.07, 'bands': 4, 'ba
     '(boss_r at boss_pitch; as gate_nations.r_door_leaves, C). Timber species not known (C). Leaves hang at the inner end of '
     'the passage and swing 180 deg through the hall to lie against the inner wall face (the D-032 Gate rule, C; Q-088), so '
     'the jamb reliefs on the reveals stay visible. swing_s = time to open or close (1.5 s, C); reach = how far a person can '
-    'work a leaf from (C)')
+    'work a leaf from (C). bronze_metalness: the fittings are drawn partly metallic because the renderer has no environment '
+    'reflection and full metal reads black in shade (the D-030 precedent for gilding, C); boss_range: bosses are drawn on '
+    'leaves within this distance of the camera (a 22 mm stud is under a pixel beyond it, C)')
 row('global', 'r_door_sealing', {'height': 1.1, 'knob_r': 0.035, 'lump': [0.11, 0.08, 0.045], 'cord_r': 0.006,
-                                 'bar': [0.1, 0.08]}, 'm', 'MATCULT-R;RECON', 'C',
+                                 'bar': [0.1, 0.08], 'clay_srgb': [0.56, 0.45, 0.34]}, 'm', 'MATCULT-R;RECON', 'C',
     'fastening of a sealed or barred door: a bronze knob on each leaf at height, a cord wound between them and a clay lump '
     'pressed over the cord and impressed with a seal (sealing practice B: seals rolled on tablets and string, PFA via '
     'MATCULT; sealed labels on Treasury goods C; the peg-and-cord door sealing is a Near Eastern practice, RECOLLECTION, '
-    'NOT SEEN at Persepolis: C, Q-089); a timber bar across both leaves on the inside of a barred door (bar section, C)')
-row('global', 'r_door_schedule', {'open': 6.5, 'close': 17.5}, 'h', 'RECON', 'C',
+    'NOT SEEN at Persepolis: C, Q-089); a timber bar across both leaves on the inside of a barred door (bar section, C); '
+    'clay_srgb: unfired clay, the colour of the Treasury storage jars (furnish.ts, C)')
+row('global', 'r_door_schedule', {'open': 6.5, 'close': 17.5, 'keeper_look': 60}, 'h', 'RECON', 'C',
     'hours when a scheduled door (Treasury N entrance, Hall of 99 Columns store) stands open; outside them it is barred or '
-    'sealed (C; the same working day as the building-site sounds in world.ts). People inside or arriving are let through')
+    'sealed (C; the same working day as the building-site sounds in world.ts). People at the door are let through; the '
+    'doorkeeper also lets the visitor through the barred entrance (observer mode: nothing is barred, brief §1; visitor-mode '
+    'guards use door.locked); the store keeper does not seal the store while the visitor is inside it (within keeper_look m '
+    'beyond the door, C), and a sealed store never opens for the visitor from outside')
 row('global', 'r_jamb_relief', {'figure_of_door': 0.4, 'ground': 0.15, 'margin': 0.12, 'depth_factor': 1.2,
                                 'attendant_scale': 0.78, 'register_gap': 0.05}, 'm', 'WP-EXT;ISAC-PA;SI-ARCH;RECON', 'C',
     'door-jamb reliefs on the two reveals of a stone-framed doorway: the leading royal figure is figure_of_door x the clear '
@@ -53,6 +60,11 @@ row('global', 'r_stair_relief', {'central_register': 1.4, 'central_ground': 0.3,
     'the slope (C); central facades carry a register of central_register m on a ground line central_ground above the court '
     '(C) with the inscription panel (panel_width, glyph height, line gap as the XPb panel, C) between guards_per_side guards '
     '(C; Q-P4-08 for the Tripylon); throne-bearer scenes have bearer_rows rows of bearers (C)')
+
+# the Gate's leaves become working doors of the door system (D-051); the D-032 'reveal' layout option is gone
+gl = spec['gate_nations']['r_door_leaves']
+gl['note'] = gl['note'].split(' D-051:')[0].replace('`hang: "reveal"` restores the old layout', 'the old layout (hang "reveal") is no longer built') + \
+    '. D-051: the leaves are working doors (doors.ts, global.r_door_leaf fittings; this row keeps their thickness); open by default'
 
 # ---------------- windows and niches (positions: offsets along the wall from the hall centre, m) ----------------
 row('tachara', 'r_windows', {'S': [-4.69, 4.69]}, 'm', 'WP-EXT;RECON', 'C',

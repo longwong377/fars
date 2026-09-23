@@ -20,11 +20,9 @@ type RB = ReturnType<Physics['world']['createRigidBody']>;
 const LEAF = () => v<any>('global', 'r_door_leaf'), SEAL = () => v<any>('global', 'r_door_sealing'), SCHED = () => v<any>('global', 'r_door_schedule');
 /** body radius of the player and the people (m) for the swing-arc check: the capsule radius used by physics and people */
 const BODY_R = 0.25;
-/** bosses are drawn only on leaves within this distance of the camera (m): 22 mm studs are under a pixel beyond it (C) */
-export const BOSS_RANGE = 40;
-/** the fittings' bronze reads black in shade with full metalness because the renderer has no environment reflection (the
- *  D-030 precedent for gilding), so it is drawn as a partly metallic surface (C) */
-const BRONZE_METAL = 0.35;
+/** bosses are drawn only on leaves within r_door_leaf.boss_range of the camera; the fittings' bronze is drawn with
+ *  r_door_leaf.bronze_metalness (no environment reflection in the renderer: full metal reads black in shade, D-030) */
+const bronzeMaterial = () => { const m = (surfaceMaterial('bronze') as THREE.MeshStandardNodeMaterial).clone(); m.metalnessNode = float(LEAF().bronze_metalness); return m; };
 export const DOOR_META = { tier: 'C', src: 'WP-EXT;RECON', placeholder: false, note: 'timber door leaves on pivot posts with bronze bands, bosses and pivot shoes (analogues: Gate pivot sockets, Near Eastern pivot doors, bronze-banded doors; C, D-051); timber species unknown' };
 
 export type DoorResult = { id: string; result: 'opening' | 'closing' | 'locked' | 'sealed' | 'blocked' };
@@ -75,7 +73,7 @@ export class DoorSystem {
       door.leaves.push(d); this.leaves.push({ door, l: d });
     }
     const L = LEAF(), n = this.leaves.length;
-    const timber = surfaceMaterial('timber'), bronze = (surfaceMaterial('bronze') as THREE.MeshStandardNodeMaterial).clone(); bronze.metalnessNode = float(BRONZE_METAL);
+    const timber = surfaceMaterial('timber'), bronze = bronzeMaterial();
     const mk = (g: THREE.BufferGeometry, m: THREE.Material, count: number, name: string, shadow: boolean) => { const im = new THREE.InstancedMesh(g, m, Math.max(1, count)); im.name = name; im.userData = { ...DOOR_META }; im.castShadow = shadow; im.receiveShadow = true; im.frustumCulled = false; this.group.add(im); return im; };
     this.slab = mk(new THREE.BoxGeometry(1, 1, 1), timber, n, 'doors:leaves', true);
     this.band = mk(new THREE.BoxGeometry(1, 1, 1), bronze, n * L.bands, 'doors:bands', true);
@@ -109,9 +107,10 @@ export class DoorSystem {
   /** leaf frame → world matrix: pivot at floor level, rotated to azimuth az (grid CCW = world rotation about +Y) */
   private frame(l: DoorLeafData, az: number) { return new THREE.Matrix4().makeRotationY(az).setPosition(l.pivot[0], l.y0, -l.pivot[1]); }
   private sync(all = false) {
-    const L = LEAF(), m = new THREE.Matrix4(), s = new THREE.Matrix4();
+    const L = LEAF(), m = new THREE.Matrix4(), s = new THREE.Matrix4(); let changed = all;
     this.leaves.forEach(({ door, l }, i) => {
       if (!all && !door.dirty) return;
+      changed = true;
       const F = this.frame(l, door.az(l));
       this.slab.setMatrixAt(i, m.copy(F).multiply(s.makeTranslation(l.len / 2, l.height / 2, 0)).multiply(new THREE.Matrix4().makeScale(l.len, l.height, l.thickness)));
       for (let k = 0; k < L.bands; k++) { const y = (l.height * (k + 1)) / (L.bands + 1);
@@ -121,13 +120,14 @@ export class DoorSystem {
       this.shoe.setMatrixAt(i, m.copy(F).multiply(s.makeTranslation(0, L.shoe_h / 2, 0)).multiply(new THREE.Matrix4().makeScale(sr, L.shoe_h, sr)));
     });
     for (const d of this.doors.values()) d.dirty = false;
+    if (!changed) return; // nothing turned: no upload, no boss rebuild
     this.slab.instanceMatrix.needsUpdate = this.band.instanceMatrix.needsUpdate = this.post.instanceMatrix.needsUpdate = this.shoe.instanceMatrix.needsUpdate = true;
     this.dirty = true;
   }
   /** bosses on the leaves near the camera (rebuilt when the camera moved or a leaf turned) */
   private syncBosses(cam: THREE.Vector3) {
     const L = LEAF(), m = new THREE.Matrix4(), s = new THREE.Matrix4(); let k = 0;
-    const near = this.leaves.map(({ l }) => Math.hypot(l.pivot[0] - cam.x, -l.pivot[1] - cam.z) < BOSS_RANGE + l.len);
+    const near = this.leaves.map(({ l }) => Math.hypot(l.pivot[0] - cam.x, -l.pivot[1] - cam.z) < L.boss_range + l.len);
     for (const b of this.bossList) {
       if (!near[b.leaf]) continue;
       const { door, l } = this.leaves[b.leaf], F = this.frame(l, door.az(l));
@@ -140,8 +140,8 @@ export class DoorSystem {
   /** clay sealings (knobs, cord, lump) on the approach face of sealed doors and timber bars inside barred ones, at the
    *  closed pose; shown only while the door is shut and sealed / barred */
   private buildSeals() {
-    const S = SEAL(), clay = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(0.56, 0.45, 0.34, THREE.SRGBColorSpace), roughness: 0.92 });
-    const bronze = (surfaceMaterial('bronze') as THREE.MeshStandardNodeMaterial).clone(); bronze.metalnessNode = float(BRONZE_METAL);
+    const S = SEAL(), clay = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(S.clay_srgb[0], S.clay_srgb[1], S.clay_srgb[2], THREE.SRGBColorSpace), roughness: 0.92 });
+    const bronze = bronzeMaterial();
     const timber = surfaceMaterial('timber');
     const sealMeta = { tier: 'C', src: 'MATCULT-R;RECON', placeholder: false, note: 'clay sealing over a cord wound between knobs on the door fastening, impressed with a seal (sealing practice B; the peg-and-cord door sealing C, Q-089); clay colour C' };
     for (const door of this.doors.values()) {
@@ -192,6 +192,13 @@ export class DoorSystem {
     const [ce, cn] = door.centre(), [tx, ty] = door.leaves[0].through, tt = tx * tx + ty * ty || 1, R = LEAF().reach;
     return list.some(([e, n]) => { const u = Math.min(1, Math.max(0, ((e - ce) * tx + (n - cn) * ty) / tt)); return Math.hypot(e - ce - tx * u, n - cn - ty * u) < R; });
   }
+  private visitor(): [number, number][] { return this.player ? [[this.player.x, -this.player.z]] : []; }
+  /** is the visitor beyond the passage (inside what the door closes), within r_door_schedule.keeper_look? */
+  private visitorInside(door: Door) {
+    if (!this.player) return false;
+    const [ce, cn] = door.centre(), [tx, ty] = door.leaves[0].through, tt = tx * tx + ty * ty || 1, e = this.player.x, n = -this.player.z;
+    return ((e - ce) * tx + (n - cn) * ty) / tt > 1 && Math.hypot(e - ce, n - cn) < SCHED().keeper_look;
+  }
   /** set a door's target; false if it cannot move (barred, sealed) */
   private aim(door: Door, open: boolean) { if (open && (door.locked || door.sealed)) return false; door.target = open ? 1 : 0; return true; }
   update(dt: number, hour?: number) {
@@ -201,7 +208,9 @@ export class DoorSystem {
       if (door.scheduled && hour !== undefined) {
         const inHours = hour >= S.open && hour < S.close, crossed = !Number.isNaN(this.lastHour) && (this.lastHour >= S.open && this.lastHour < S.close) !== inHours;
         if (crossed || Number.isNaN(this.lastHour)) door.manual = false;
-        const waiting = this.someoneAt(door, this.people);
+        // someone at the door is let through: people always; the visitor through the barred entrance (observer mode), and
+        // the store is not sealed while the visitor is inside it (a sealed store never opens for the visitor from outside)
+        const waiting = this.someoneAt(door, this.people) || (door.base === 'scheduled_locked' ? this.someoneAt(door, this.visitor()) : this.visitorInside(door));
         if (inHours || waiting) { door.locked = false; door.sealed = false; if (!door.manual || waiting) this.aim(door, true); }
         else { this.aim(door, false); if (door.t === 0) { door.locked = true; door.sealed = door.base === 'scheduled_sealed'; } } // the keeper shuts it at night
       }

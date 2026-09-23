@@ -245,12 +245,14 @@
     "gap": 0.01,
     "shoe_h": 0.14,
     "swing_s": 1.5,
-    "reach": 2.2
+    "reach": 2.2,
+    "bronze_metalness": 0.35,
+    "boss_range": 40
    },
    "u": "m",
    "src": "WP-EXT;RECON",
    "tier": "C",
-   "note": "timber double-leaf doors of the stone-framed palace doorways (C: analogue of the Gate of All Nations, whose pivot sockets show two-leaf doors, WP extract C). Each leaf turns on a vertical post (post_r) standing in a stone socket, its foot shod in bronze (shoe_h; Near Eastern pivot doors, RECOLLECTION); bronze bands across both faces (bands x band_h x band_t; bronze-banded doors are a Neo-Assyrian analogue, RECOLLECTION, NOT SEEN for Persepolis) studded with bronze bosses (boss_r at boss_pitch; as gate_nations.r_door_leaves, C). Timber species not known (C). Leaves hang at the inner end of the passage and swing 180 deg through the hall to lie against the inner wall face (the D-032 Gate rule, C; Q-088), so the jamb reliefs on the reveals stay visible. swing_s = time to open or close (1.5 s, C); reach = how far a person can work a leaf from (C)"
+   "note": "timber double-leaf doors of the stone-framed palace doorways (C: analogue of the Gate of All Nations, whose pivot sockets show two-leaf doors, WP extract C). Each leaf turns on a vertical post (post_r) standing in a stone socket, its foot shod in bronze (shoe_h; Near Eastern pivot doors, RECOLLECTION); bronze bands across both faces (bands x band_h x band_t; bronze-banded doors are a Neo-Assyrian analogue, RECOLLECTION, NOT SEEN for Persepolis) studded with bronze bosses (boss_r at boss_pitch; as gate_nations.r_door_leaves, C). Timber species not known (C). Leaves hang at the inner end of the passage and swing 180 deg through the hall to lie against the inner wall face (the D-032 Gate rule, C; Q-088), so the jamb reliefs on the reveals stay visible. swing_s = time to open or close (1.5 s, C); reach = how far a person can work a leaf from (C). bronze_metalness: the fittings are drawn partly metallic because the renderer has no environment reflection and full metal reads black in shade (the D-030 precedent for gilding, C); boss_range: bosses are drawn on leaves within this distance of the camera (a 22 mm stud is under a pixel beyond it, C)"
   },
   "r_door_sealing": {
    "v": {
@@ -265,22 +267,28 @@
     "bar": [
      0.1,
      0.08
+    ],
+    "clay_srgb": [
+     0.56,
+     0.45,
+     0.34
     ]
    },
    "u": "m",
    "src": "MATCULT-R;RECON",
    "tier": "C",
-   "note": "fastening of a sealed or barred door: a bronze knob on each leaf at height, a cord wound between them and a clay lump pressed over the cord and impressed with a seal (sealing practice B: seals rolled on tablets and string, PFA via MATCULT; sealed labels on Treasury goods C; the peg-and-cord door sealing is a Near Eastern practice, RECOLLECTION, NOT SEEN at Persepolis: C, Q-089); a timber bar across both leaves on the inside of a barred door (bar section, C)"
+   "note": "fastening of a sealed or barred door: a bronze knob on each leaf at height, a cord wound between them and a clay lump pressed over the cord and impressed with a seal (sealing practice B: seals rolled on tablets and string, PFA via MATCULT; sealed labels on Treasury goods C; the peg-and-cord door sealing is a Near Eastern practice, RECOLLECTION, NOT SEEN at Persepolis: C, Q-089); a timber bar across both leaves on the inside of a barred door (bar section, C); clay_srgb: unfired clay, the colour of the Treasury storage jars (furnish.ts, C)"
   },
   "r_door_schedule": {
    "v": {
     "open": 6.5,
-    "close": 17.5
+    "close": 17.5,
+    "keeper_look": 60
    },
    "u": "h",
    "src": "RECON",
    "tier": "C",
-   "note": "hours when a scheduled door (Treasury N entrance, Hall of 99 Columns store) stands open; outside them it is barred or sealed (C; the same working day as the building-site sounds in world.ts). People inside or arriving are let through"
+   "note": "hours when a scheduled door (Treasury N entrance, Hall of 99 Columns store) stands open; outside them it is barred or sealed (C; the same working day as the building-site sounds in world.ts). People at the door are let through; the doorkeeper also lets the visitor through the barred entrance (observer mode: nothing is barred, brief §1; visitor-mode guards use door.locked); the store keeper does not seal the store while the visitor is inside it (within keeper_look m beyond the door, C), and a sealed store never opens for the visitor from outside"
   },
   "r_jamb_relief": {
    "v": {
@@ -751,7 +759,7 @@
    "u": "m",
    "src": "RECON",
    "tier": "C",
-   "note": "timber double doors with bronze bosses turning on pivot sockets (pivot sockets: WP extract C; leaves/bosses C). hang = inner (D-032, C): the pivots sit at the inner (hall-side) end of each passage and the leaves open into the hall, standing against the inner wall face beside the opening. Reason: the W and E colossi (r_colossus, 5.0 m) fill the passage from the outer to the inner wall face (wall 4.15 m + 0.85 m projection), so a leaf opened against the reveal would stand over the carved flank; pivot-socket positions were not read (RECOLLECTION: sockets on the hall side, Q-073). The S doorway follows the same rule"
+   "note": "timber double doors with bronze bosses turning on pivot sockets (pivot sockets: WP extract C; leaves/bosses C). hang = inner (D-032, C): the pivots sit at the inner (hall-side) end of each passage and the leaves open into the hall, standing against the inner wall face beside the opening. Reason: the W and E colossi (r_colossus, 5.0 m) fill the passage from the outer to the inner wall face (wall 4.15 m + 0.85 m projection), so a leaf opened against the reveal would stand over the carved flank; pivot-socket positions were not read (RECOLLECTION: sockets on the hall side, Q-073). The S doorway follows the same rule.. D-051: the leaves are working doors (doors.ts, global.r_door_leaf fittings; this row keeps their thickness); open by default"
   },
   "r_door_state": {
    "v": {

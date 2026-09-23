@@ -69,8 +69,9 @@ function antithetic(out: ReliefItem[], centre: Pt, n: Pt, y: number, kinds: (sid
 
 function tacharaStair(): ProgrammeSet | null {
   if (!present('tachara') || !v<boolean>('tachara', 'stair_s_present_467')) return null;
-  const out: ReliefItem[] = [], ins: InscriptionPlacement[] = [], Z = v<any>('tachara', 'stair_s_zone'), SR = v<any>('global', 'r_stair_relief'), SP = v<any>('global', 'r_stair_parapet');
-  const t = v<any>('tachara', 'stair_s_reliefs'); void t;
+  // programme: tachara.stair_s_reliefs (B): guards flanking XPc on the central façade, servants on the flight parapets,
+  // lion-and-bull in the corner angles
+  const out: ReliefItem[] = [], ins: InscriptionPlacement[] = [], Z = v<any>('tachara', 'stair_s_zone'), SR = v<any>('global', 'r_stair_relief');
   const tagF: Tagged = { programme: 'servants climbing with kids, wineskins, covered dishes; Persian/Median dress alternating', tier: 'B', where: 'Tachara S stair flight parapets' };
   for (const F0 of v<any[]>('tachara', 'stair_s_flights')) {
     if (!isFlight(F0)) { // central landing: guards flanking XPc (B); count and size C
@@ -83,7 +84,6 @@ function tacharaStair(): ProgrammeSet | null {
     climbingFile(out, F, 0, i => ['servant', i], tagF);
     lionBull(out, F, { programme: 'lion attacking a bull in the corner angle', tier: 'B', where: 'Tachara S stair (corner angle; position C)' });
   }
-  void SP;
   return { name: 'relief:tachara-stair', building: 'tachara', items: out, inscriptions: ins };
 }
 

@@ -22,7 +22,9 @@ export const RELIEF_META = { tier: 'C', src: 'RELIEF-R;MATCULT-R;IR-APAD', place
  *  switch distance (m, camera to the figure's bounding sphere). Bands chosen for ≳ 4 px per triangle at 1080p / 70° (D-019):
  *  L0 only at arm's length, where a 1.6 mm cell is ~1 px. */
 export const RELIEF_LODS = [
-  { cell: 0.0016, maxN: 513, err: 0.03, grad: 1, dist: 1.2 },
+  // L0 grid up to 1025² (D-048): the Phase 4 door-jamb figures are 1.6–3.4 m tall, and at 513² a 2.2 m king had 5 mm cells
+  // (≈ 4 px at arm's length); figures under 0.82 m (every Apadana register figure) are unaffected
+  { cell: 0.0016, maxN: 1025, err: 0.03, grad: 1, dist: 1.2 },
   { cell: 0.0032, maxN: 257, err: 0.06, grad: 1, dist: 4 },
   { cell: 0.0064, maxN: 129, err: 0.12, grad: 1, dist: 14 },
   { cell: 0.0128, maxN: 65, err: 0.3, grad: 1, dist: Infinity },
@@ -208,7 +210,7 @@ export class ReliefSet extends THREE.Group {
     ch.tris = g.index!.count / 3;
     const meta = { ...RELIEF_META, note: 'far representation: the chunk\'s figures merged at the coarsest LOD (D-048); ' + RELIEF_META.note };
     ch.far = new THREE.Mesh(g, paintMaterial()); ch.far.name = 'relief:far'; ch.far.userData = meta; ch.far.castShadow = false; ch.far.receiveShadow = true; ch.far.visible = false;
-    ch.proxy = new THREE.Mesh(g, shadowProxyMaterial()); ch.proxy.name = 'relief:shadow-proxy'; ch.proxy.userData = { ...meta, note: 'shadow proxy (D-048): drawn into the shadow maps only; ' + RELIEF_META.note }; ch.proxy.castShadow = true; ch.proxy.receiveShadow = false; ch.proxy.visible = false;
+    ch.proxy = new THREE.Mesh(g, shadowProxyMaterial()); ch.proxy.name = 'relief:shadow-proxy'; ch.proxy.userData = { ...meta, note: 'shadow proxy (D-048): drawn into the shadow maps only; ' + RELIEF_META.note }; ch.proxy.castShadow = true; ch.proxy.receiveShadow = false; ch.proxy.visible = false; ch.proxy.raycast = () => {}; // never picked
     this.add(ch.far, ch.proxy);
     return true;
   }
