@@ -149,7 +149,10 @@ export class TranslationLayer {
         const [e, n] = it.pts[0]; c.setLineDash([]);
         c.fillStyle = st === 'village' ? '#d9b777' : st === 'mountain' ? '#9a8f80' : '#eee3cf';
         c.beginPath(); c.arc(px(e), py(n), st === 'village' ? 3.5 : 3, 0, Math.PI * 2); c.fill();
-        if (it.label) labels.push([it.label + (it.tier === 'C' ? ' (C)' : ''), px(e), py(n)]);
+        // labels: the name alone (the tier shows as the dashed outline and the trailing C); villages placed by rule with no
+        // ancient name stay dots, or their long descriptions overprint the plain
+        const name = (it.label ?? '').replace(/\s*\([^)]*\)/g, '').trim();
+        if (name && !/^unlocated/i.test(name)) labels.push([name + (it.tier === 'C' ? ' (C)' : ''), px(e), py(n)]);
       }
     }
     c.setLineDash([]); c.fillStyle = '#eee3cf'; c.font = '12px Georgia'; c.textAlign = 'left';
