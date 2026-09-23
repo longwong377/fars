@@ -10,10 +10,14 @@
 //         daylight (bake.ts). E_U(n) = a + b·n.
 //   8, 9  bounce tint (red, blue; luminance 1, so green follows): the colour the bounced light takes from the albedos.
 //   10    bounce fraction of the S channel's mean (the rest is the sky itself, untinted).
-//   11    validity (0 = the probe is inside a solid; its values are 0 and it is left out of the interpolation).
+//   11    validity: 1 = a real probe; 0.02 = inside a solid, carrying its neighbours' mean (bake.ts dilate), so it only
+//         counts where no real probe is near; 0 = deep inside a solid, left out.
 // Ambient irradiance at a point, normal n:  E = S·mix(1, tint, fb)·max(0, E_S(n)) + U·tint·max(0, E_U(n)).
 // In the open this reproduces the hemisphere light's sky term S·(1 + n_y)/2 exactly (L1 is exact for a hemisphere).
 export const PROBE_STRIDE = 12;
+/** the interpolated validity below which the field gives way to the plain skylight: only where every neighbour is inside a
+ *  solid and was not reached by the dilation (bake.ts; dilated probes weigh 0.02) */
+export const VALID_LO = 0.002, VALID_HI = 0.01;
 
 export interface ProbeVolume {
   building: string;
@@ -81,7 +85,7 @@ export function sampleField(F: ProbeField, x: number, y: number, z: number, nx =
   out.v = wsum; // (the trilinear weights sum to 1, so this is the interpolated validity)
   if (wsum > 1e-6) for (let j = 0; j < 11; j++) out.s[j] /= wsum;
   out.s[11] = wsum;
-  out.w = volumeWeight(vol, x, y, z) * sstep(0.05, 0.3, wsum);
+  out.w = volumeWeight(vol, x, y, z) * sstep(VALID_LO, VALID_HI, wsum);
   return out;
 }
 /** irradiance for normal n from a sample, per unit S and U (luminance; tint and fb are colour only):

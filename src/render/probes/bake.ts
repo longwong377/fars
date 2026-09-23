@@ -21,7 +21,7 @@
 //  • Colour: the bounce carries the albedos' colour (a per-probe tint), weighted by a typical daytime sun/sky ratio.
 import type { Part, Manifest, Material } from '../../arch/parts';
 import { TraceScene, sceneFromParts, srgbToLinear, lum, RGB } from './trace';
-import { ProbeField, ProbeVolume, PROBE_STRIDE, sampleField, probePosition } from './field';
+import { ProbeField, ProbeVolume, PROBE_STRIDE, sampleField, probePosition, probeIndex } from './field';
 import { sunHorizon, azAltToWorld } from '../../sky/ephemeris';
 import { WorldClock, YEAR_DAYS } from '../../core/clock';
 
@@ -234,6 +234,34 @@ export function assemble(sky: number[][], b1: number[][], b2: number[][]): Float
   }
   return d;
 }
+/** weight of a probe that is inside a solid but carries its valid neighbours' mean (dilate) */
+export const DILATED = 0.02;
+/** fill invalid probes (inside solids) with the mean of their valid or already-filled face and edge neighbours, `passes`
+ *  rings deep, at a small weight: in the validity-weighted interpolation real probes dominate wherever any is near, and a
+ *  lookup whose neighbours are all inside solids (a capital's top against the ceiling) still reads the room it faces
+ *  instead of dropping to the unoccluded skylight. */
+export function dilate(vols: ProbeVolume[], d: Float32Array, passes = 3): number {
+  let filled = 0;
+  for (const v of vols) {
+    const [nx, ny, nz] = v.dims, idx = (x: number, y: number, z: number) => probeIndex(v, x, y, z);
+    for (let pass = 0; pass < passes; pass++) {
+      const updates: [number, number[]][] = [];
+      for (let iy = 0; iy < ny; iy++) for (let iz = 0; iz < nz; iz++) for (let ix = 0; ix < nx; ix++) {
+        const i = idx(ix, iy, iz); if (d[i * PROBE_STRIDE + 11] > 0) continue;
+        const acc = new Array(11).fill(0); let n = 0;
+        for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
+          if (!dx && !dy && !dz) continue; if (Math.abs(dx) + Math.abs(dy) + Math.abs(dz) > 2) continue;
+          const x = ix + dx, y = iy + dy, z = iz + dz; if (x < 0 || y < 0 || z < 0 || x >= nx || y >= ny || z >= nz) continue;
+          const j = idx(x, y, z) * PROBE_STRIDE; if (d[j + 11] <= 0) continue;
+          for (let k = 0; k < 11; k++) acc[k] += d[j + k]; n++;
+        }
+        if (n) updates.push([i, acc.map(a => a / n)]);
+      }
+      for (const [i, vals] of updates) { d.set(vals, i * PROBE_STRIDE); d[i * PROBE_STRIDE + 11] = DILATED; filled++; }
+    }
+  }
+  return filled;
+}
 /** field from per-probe pass results (for the lookups of the next pass) */
 export function fieldOf(vols: ProbeVolume[], values: number[][], slots: (r: number[], i: number) => number[], o: BakeOptions): ProbeField {
   const n = values.length, data = new Float32Array(n * PROBE_STRIDE);
@@ -257,9 +285,10 @@ export function bakeAll(scene: TraceScene, vols: ProbeVolume[], sun: SunSet, pla
   const ctx: BakeContext = { scene, dirs: sphereDirs(o.rays), skyDirs: sphereDirs(o.skyDirs), sun, o, plain };
   const pos = probePositions(vols);
   const sky = pos.map(p => probeSky(ctx, ...p));
-  ctx.sky = fieldOf(vols, sky, SKY_SLOTS, o);
+  ctx.sky = fieldOf(vols, sky, SKY_SLOTS, o); dilate(vols, ctx.sky.data);
   const b1 = pos.map((p, i) => probeBounce(ctx, ...p, 1, i));
-  ctx.bounce1 = fieldOf(vols, b1, bounceSlots(i => sky[i][4]), o);
+  ctx.bounce1 = fieldOf(vols, b1, bounceSlots(i => sky[i][4]), o); dilate(vols, ctx.bounce1.data);
   const b2 = pos.map((p, i) => probeBounce(ctx, ...p, 2, i));
-  return { volumes: vols, data: assemble(sky, b1, b2), count: pos.length, normalBias: o.normalBias, tier: 'C', note: 'baked light probes (D-110)' };
+  const data = assemble(sky, b1, b2); dilate(vols, data);
+  return { volumes: vols, data, count: pos.length, normalBias: o.normalBias, tier: 'C', note: 'baked light probes (D-110)' };
 }

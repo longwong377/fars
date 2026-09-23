@@ -12,7 +12,7 @@ import { buildTerrace } from '../src/arch/terrace';
 import { memberMaterials } from '../src/arch/sculpt';
 import { SPEC } from '../src/arch/spec';
 import { SURFACES } from '../src/render/materials';
-import { BAKE, BakeContext, probeVolumes, probePositions, probeSky, probeBounce, traceScene, surfaceTable, sunSet, yearSunSamples, sphereDirs, fieldOf, SKY_SLOTS, bounceSlots, assemble, albedoFn } from '../src/render/probes/bake';
+import { BAKE, BakeContext, probeVolumes, probePositions, probeSky, probeBounce, traceScene, surfaceTable, sunSet, yearSunSamples, sphereDirs, fieldOf, SKY_SLOTS, bounceSlots, assemble, albedoFn, dilate, DILATED } from '../src/render/probes/bake';
 import { encodeField, PROBE_STRIDE, ProbeVolume, fieldVisibility, ProbeField } from '../src/render/probes/field';
 
 const T0 = Date.now();
@@ -65,16 +65,17 @@ const dir = mkdtempSync(join(tmpdir(), 'probes-'));
 console.log(`probe volumes: ${vols.map(v => `${v.building} ${v.dims.join('×')}`).join(', ')} = ${pos.length} probes, ${BAKE.skyDirs} sky + ${BAKE.rays} bounce rays each, ${workers} workers`);
 let t = Date.now();
 const sky = await runPass(0, dir, workers);
-writeFileSync(join(dir, 'sky.f32'), toF32(fieldOf(vols, sky, SKY_SLOTS, BAKE)));
+{ const f = fieldOf(vols, sky, SKY_SLOTS, BAKE); dilate(vols, f.data); writeFileSync(join(dir, 'sky.f32'), toF32(f)); }
 console.log(`pass 0 (sky, validity): ${((Date.now() - t) / 1000).toFixed(1)} s, ${sky.filter(r => !r[4]).length} probes inside solids`); t = Date.now();
 const b1 = await runPass(1, dir, workers);
-writeFileSync(join(dir, 'b1.f32'), toF32(fieldOf(vols, b1, bounceSlots(i => sky[i][4]), BAKE)));
+{ const f = fieldOf(vols, b1, bounceSlots(i => sky[i][4]), BAKE); dilate(vols, f.data); writeFileSync(join(dir, 'b1.f32'), toF32(f)); }
 console.log(`pass 1 (first bounce): ${((Date.now() - t) / 1000).toFixed(1)} s`); t = Date.now();
 const b2 = await runPass(2, dir, workers);
 console.log(`pass 2 (second bounce): ${((Date.now() - t) / 1000).toFixed(1)} s`);
 rmSync(dir, { recursive: true, force: true });
 
-const data = assemble(sky, b1, b2);
+const data = assemble(sky, b1, b2), filled = dilate(vols, data);
+console.log(`dilated into ${filled} probes inside solids (weight ${DILATED})`);
 const hash = createHash('sha1').update(JSON.stringify(parts)).digest('hex').slice(0, 16);
 const field: ProbeField = { volumes: vols, data, count: pos.length, normalBias: BAKE.normalBias, tier: 'C', note: '' };
 // summary: the ambient at each hall's centre relative to open ground (sky 0.8, sun 2.1 in renderer units: a clear midday)

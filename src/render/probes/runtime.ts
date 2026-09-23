@@ -13,7 +13,7 @@
 import * as THREE from 'three/webgpu';
 import { HemisphereLightNode } from 'three/webgpu';
 import { uniform, texture, vec2, vec3, float, mix, max, min, clamp, floor, smoothstep, step, normalWorld, positionWorld, dot } from 'three/tsl';
-import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, openAmbientMean } from './field';
+import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, openAmbientMean, VALID_LO, VALID_HI } from './field';
 import { SURFACES } from '../materials';
 import { srgbToLinear, lum, sceneFromParts, TraceScene } from './trace';
 import type { Part } from '../../arch/parts';
@@ -119,7 +119,7 @@ export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any): { E: an
   const tr = s2.x.mul(inv), tb = s2.y.mul(inv), fb = clamp(s2.z.mul(inv), 0, 1);
   const tint = vec3(tr, max(float(1).sub(tr.mul(0.2126)).sub(tb.mul(0.0722)).div(0.7152), 0), tb);
   const E = S.mul(mix(vec3(1, 1, 1), tint, fb)).mul(eS).add(U.mul(tint).mul(eU));
-  const w = fade.mul(smoothstep(0.05, 0.3, val));
+  const w = fade.mul(smoothstep(VALID_LO, VALID_HI, val));
   return { E: mix(hemi, E, w), w };
 }
 
