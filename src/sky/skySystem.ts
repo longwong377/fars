@@ -93,7 +93,7 @@ export class SkySystem {
     scene.add(this.milkyWay);
     this.sky.scale.setScalar(DOME * 0.95);
     this.sky.turbidity.value = 3; this.sky.rayleigh.value = 1.2; this.sky.mieCoefficient.value = 0.004; this.sky.mieDirectionalG.value = 0.8;
-    this.sky.userData = { tier: 'B', src: 'RECON', note: 'Preetham analytic sky (three SkyMesh); cloud layer is SkyMesh procedural (C) until Phase 3 volumetrics' };
+    this.sky.userData = { tier: 'B', src: 'RECON', note: 'Preetham analytic sky by day (three SkyMesh); below +10° a spectral spherical-atmosphere model (Bruneton 2017 constants, Hillaire 2020 multiple scattering: Earth\'s shadow, antitwilight arch, glow; aerosol amount C); both calibrated to the USNO-C171 skylight (D-060, D-115, D-116)' };
     this.sky.frustumCulled = false;
     // SkyMesh pins its depth to 1.0, which is the NEAR plane under reversed-Z (WebGPU path) — draw it first, untested
     const skyMat = this.sky.material as THREE.Material; skyMat.depthTest = false; skyMat.depthWrite = false; this.sky.renderOrder = -10;
@@ -211,8 +211,10 @@ export class SkySystem {
     this.gain = skyGain(sunI * sinA + hemiI * 0.8 + moonI * 0.3, this.lux); // the exposure estimate's weights (main.ts)
     const G = this.gain;
     // ---- the physical atmosphere (D-116): sun colour, cloud light at the cloud's height, twilight dome ----------------------
-    const tau = Math.round(aerosolTauFor(k) / 0.01) * 0.01; // aerosol depth in steps of 0.01, each model built once (~0.3 s)
-    if (!this.atmo || Math.abs(this.atmo.aerosolTau - tau) > 1e-6) {
+    // aerosol depth in steps of 0.01, each model built once (~0.3 s) and kept; with the sun above 15° only the sun's colour
+    // uses it, so a haze change waits until the sun is low (no rebuild hitches through a dusty day)
+    const tau = Math.round(aerosolTauFor(k) / 0.01) * 0.01;
+    if (!this.atmo || (Math.abs(this.atmo.aerosolTau - tau) > 1e-6 && (alt < 15 || this.atmos.has(tau)))) {
       let a = this.atmos.get(tau); if (!a) { a = new Atmosphere(tau); this.atmos.set(tau, a); if (this.atmos.size > 12) this.atmos.delete(this.atmos.keys().next().value!); }
       this.atmo = a;
     }

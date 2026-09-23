@@ -648,5 +648,60 @@
   "cite": "'The Achaemenid Messenger Service and the Ionian Revolt' (ResearchGate)",
   "url": "https://www.researchgate.net/",
   "access": "search-extract only"
+ },
+ "USNO-C171": {
+  "cite": "P. M. Janiczek & J. A. DeYoung, 'Computer Programs for Sun and Moon Illuminance With Contingent Tables and Diagrams', U.S. Naval Observatory Circular 171 (1987); a fit to D. R. E. Brown, 'Natural illumination charts', US Navy Bureau of Ships report 374-1 (1952)",
+  "url": "https://apps.dtic.mil/sti/tr/pdf/ADA182110.pdf",
+  "access": "circular blocked (egress); formulas read in full in the verbatim transcription SKYLIGHT-R"
+ },
+ "SKYLIGHT-R": {
+  "cite": "K. Hufkens (BlueGreen Labs), 'skylight: A Simple Sky Illuminance Model' (R package, an 'almost verbatim transcription' of USNO Circular 171): src/skylight.cpp, src/subroutines.h",
+  "url": "https://github.com/bluegreen-labs/skylight",
+  "access": "read in full (raw GitHub)"
+ },
+ "BRUNETON17": {
+  "cite": "E. Bruneton, 'Precomputed Atmospheric Scattering: a New Implementation' (2017), BSD-3 code: atmosphere/demo/demo.cc, model.cc, constants.h (Rayleigh, ozone and Mie constants; ASTM G-173 solar spectrum; CIE 1931 2-degree CMFs; transmittance-table parametrisation)",
+  "url": "https://github.com/ebruneton/precomputed_atmospheric_scattering",
+  "access": "read in full (raw GitHub)"
+ },
+ "HILLAIRE20": {
+  "cite": "S. Hillaire, 'A Scalable and Production Ready Sky and Atmosphere Rendering Technique', Computer Graphics Forum 39(4) (EGSR 2020); MIT code sebh/UnrealEngineSkyAtmosphere (RenderSkyRayMarching.hlsl, RenderSkyCommon.hlsl)",
+  "url": "https://github.com/sebh/UnrealEngineSkyAtmosphere",
+  "access": "code read in full (raw GitHub); paper not opened"
+ },
+ "FERWERDA96": {
+  "cite": "J. A. Ferwerda, S. N. Pattanaik, P. Shirley & D. P. Greenberg, 'A model of visual adaptation for realistic image synthesis', SIGGRAPH 96, 249-258 (threshold-versus-intensity functions of cones and rods)",
+  "url": "https://jamesferwerda.com/wp-content/uploads/2015/06/j03_ferwerda96_sig.pdf",
+  "access": "paper blocked; TVI formulas read in full in BANTERLE-HDRT"
+ },
+ "BANTERLE-HDRT": {
+  "cite": "F. Banterle, HDR Toolbox (GPL): source_code/Tmo/FerwerdaTMO.m, util/TpFerwerda.m, TsFerwerda.m, WalravenValeton_k.m",
+  "url": "https://github.com/banterle/HDR_Toolbox",
+  "access": "read in full (raw GitHub)"
+ },
+ "KRAWCZYK05": {
+  "cite": "G. Krawczyk, K. Myszkowski & H.-P. Seidel, 'Perceptual effects in real-time tone mapping', SCCG 2005 (auto key value 1.03 - 2/(2 + log10(L + 1)))",
+  "url": "https://resources.mpi-inf.mpg.de/hdr/peffects/krawczyk05sccg.pdf",
+  "access": "search-extract only (host blocked); the formula as quoted in a tone-mapping tutorial extract"
+ },
+ "LEE15-BOV": {
+  "cite": "R. L. Lee Jr, 'Measuring and modeling twilight's Belt of Venus', Applied Optics 54(4), B194-B203 (2015)",
+  "url": "https://opg.optica.org/ao/abstract.cfm?uri=ao-54-4-B194",
+  "access": "search-extract only (abstract)"
+ },
+ "RICHTSMEIER17": {
+  "cite": "S. C. Richtsmeier, D. K. Lynch et al., 'Antitwilight I: structure and optics' and 'Antitwilight II: Monte Carlo simulations', Applied Optics 56(19), G156 and G169 (2017)",
+  "url": "https://opg.optica.org/ao/abstract.cfm?uri=ao-56-19-G156",
+  "access": "search-extract only (abstracts)"
+ },
+ "WP-TWILIGHT-SX": {
+  "cite": "Wikipedia 'Belt of Venus', 'Earth's shadow' and 'Lux' (illuminance table); visualexpert.com 'Illuminance as a visibility criterion: the twilight envelope (3.2 lux)'",
+  "url": "https://en.wikipedia.org/wiki/Belt_of_Venus",
+  "access": "search-extract only (tertiary)"
+ },
+ "IRAN-ILLUM-SX": {
+  "cite": "'Estimation of Horizontal Illuminance for Clear Skies in Iran', Journal of Applied Sciences (2009): maximum measured clear-sky illuminance 129 klx",
+  "url": "https://scialert.net/fulltext/?doi=jas.2009.2144.2149",
+  "access": "search-extract only"
  }
 }
