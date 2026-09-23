@@ -8,7 +8,7 @@ import { PLAIN, feature, pointInPolygon, settlementZones, distToPolyline } from 
 import { riverState, cropState, foliage, doyOf, MID_MONTH, MONTHS, CROP_ROWS, cropTable, YEAR } from '../src/world/plain/seasonal';
 import { plotAt, landUseAt, pcg, unit, checkMixes, IRR_STEPS, RAINFED_BARLEY, VINE_SHARE, buildZones, zoneAt } from '../src/world/plain/fields';
 import { buildCanals } from '../src/world/plain/canals';
-import { placeVillages } from '../src/world/plain/villages';
+import { placeVillages, villageCompounds, compoundBoxes } from '../src/world/plain/villages';
 import { buildPlain, PlainBuild } from '../src/world/plain';
 import { curvatureDrop } from '../src/terrain/heightfield';
 
@@ -154,6 +154,52 @@ describe('placement: canals, villages, zones', () => {
     for (let i = 0; i < 60000 && n < 4000; i++) { const x = -12000 + (i * 7919) % 24000, z = -12000 + ((i * 104729) % 24000); const u = landUseAt(Z, x, z); if (u.use !== 'irrigated') continue; counts[u.row] = (counts[u.row] ?? 0) + 1; n++; }
     const mix = feature('fields_irrigated_pulvar').crop_mix;
     for (const [k, v] of Object.entries({ barley: mix.barley, wheat: mix.wheat, emmer_spelt: mix.emmer_spelt, sesame: mix.sesame, fallow: mix.fallow })) expect(Math.abs((counts[k] ?? 0) / n - v), k).toBeLessThan(0.06);
+  });
+});
+
+describe('walking the plain (terrain heightfield + lazy plain colliders)', () => {
+  let P: PlainBuild, phys: any, Player: any;
+  beforeAll(async () => {
+    const { Physics } = await import('../src/player/physics'); Player = (await import('../src/player/player')).Player;
+    phys = await Physics.create();
+    P = await buildPlain(new THREE.Scene(), T, phys, { quality: 'test', seed: 1, fetchJson: async p => JSON.parse(readFileSync('public/' + p, 'utf8')) });
+  }, 120_000);
+  /** walk from grid (e, n) at a world yaw for `sec` seconds; the plain's lazy colliders follow the player */
+  const walk = (e: number, n: number, yaw: number, sec: number) => {
+    phys.updateTerrain(T, { x: e, y: 0, z: -n });
+    const ctx = (p: any) => ({ clock: { dayIndex: 150 }, cond: { windMs: 1 }, camera: { position: new THREE.Vector3(p.x, p.y + 1.6, p.z) }, player: { position: new THREE.Vector3(p.x, p.y, p.z) } });
+    P.update(0, ctx({ x: e, y: T.heightAt(e, -n), z: -n })); phys.step(1 / 60);
+    const ground = phys.castRayDown(e, -n, T.heightAt(e, -n) + 30) ?? T.heightAt(e, -n);
+    const pl = new Player(phys, e, ground + 0.05, -n); let minY = Infinity;
+    for (let i = 0; i < sec * 60; i++) {
+      if (i % 30 === 0) { phys.updateTerrain(T, pl.position); P.update(0, ctx(pl.position)); }
+      pl.update(1 / 60, { forward: 1, right: 0, run: false, yaw, pitch: 0 }); phys.step(1 / 60); minY = Math.min(minY, pl.feetY);
+    }
+    return { pl, minY };
+  };
+  it('crosses the Pulvar at low water (September): wades the channel and climbs out, no fall', () => {
+    const r = R.rivers.find(q => q.id === 'river_pulvar')!; let i = 0, bd = Infinity;
+    for (let k = 0; k < r.x.length; k++) { const d = Math.hypot(r.x[k] + 2511, r.y[k] - 2729); if (d < bd) { bd = d; i = k; } }
+    const bedY = r.bank[i] - r.channel.bank_height_m - T.meta.court_asl - curvatureDrop(r.x[i], -r.y[i]);
+    const { pl, minY } = walk(r.x[i], r.y[i] - 60, 0, 90); // yaw 0 walks grid north, across the W-flowing reach
+    expect(-pl.position.z - (r.y[i] - 60)).toBeGreaterThan(100); // got across (not stuck on a bank)
+    expect(minY).toBeGreaterThan(bedY - 0.4); // never fell through the carved trough
+    expect(pl.maxFall).toBeLessThan(1);
+  });
+  it('a village house wall stops the player', () => {
+    const v = P.data.villages.find(q => q.id === 'village_p01')!;
+    const c = villageCompounds(v, T, 1)[0], wall = compoundBoxes(c, T.heightAt(c.x, -c.y))[0]; // the N yard wall
+    const sa = Math.sin(c.angle), ca = Math.cos(c.angle), out = c.d / 2 + 10;
+    const e = c.x - sa * out, n = c.y + ca * out; // 10 m outside the N wall along the compound's +v axis
+    const yaw = Math.atan2(-sa, -ca); // walk along -v (world direction (sa, ca))
+    const { pl } = walk(e, n, yaw, 20);
+    const along = (pl.position.x - c.x) * -sa + (-pl.position.z - c.y) * ca; // position along +v from the compound centre
+    expect(along).toBeGreaterThan(c.d / 2 - 0.05); void wall;
+  });
+  it('the Naqsh-e Rustam cliff face stops the player at its foot', () => {
+    const fy = PLAIN.naqsh_e_rustam.cliff.face_y;
+    const { pl } = walk(700, fy - 40, 0, 40);
+    expect(-pl.position.z).toBeLessThan(fy + 2.5); expect(-pl.position.z).toBeGreaterThan(fy - 6);
   });
 });
 
