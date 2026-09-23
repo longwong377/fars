@@ -1,6 +1,22 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Session 5 (2026-09-23/24; in progress).** Base 2f6dbaa (the session-4 handoff), up to date with the remote.
+  - **Baseline on the merged tree:** tsc clean; vitest 519 passed / 1 skipped (57 files); lint:all OK; offline walkthrough bot 97/97 legs.
+  - **Smoke renders (the new shaders on a GPU backend, first time):** at quality test every effect material (flames, smoke, haze, rain, snow) FAILED to
+    compile on WebGPU ("structures must have at least one member": colourOnly's MRT matched no attachment of the unnamed frame-buffer target). Fixed
+    (cd83211, node test tests/fx_shader.test.ts). At quality high `stair-climb-pm` and `tripylon-n-stair` render on WebGPU with **no shader error**
+    (atmosphere D-156, surfaces D-157 and faces D-155 compile). Look, not yet judged: the relief figures on the Tripylon stair read as flat painted cut-outs.
+  - **Shadow review round 5 FAILED** (two independent reviewers, pick seed 97; REVIEWS/shadow_phase5_r5.md: 1 of 20 below 4; _b.md: 3 of 20 below 4).
+    Shared blocking cause: outdoor field work starts into rain and people "shelter" for hours in open fields (~20–40 k person-days a year). Also: the
+    planners use the start-of-year age (1,446 one-year-olds planned as infants by day 341), children "mind" little ones who are elsewhere, the camp's flour
+    is not real goods, a guard's second breakfast, home hours blind to rank and heat, 229 of 230 Egyptian men named Muzraaya. Fixes: sim agent (D-160..).
+  - **Phase 8 independent review FAILED** (REVIEWS/phase8.md, phase8_b.md). Critical: the carved Old Persian misspells 22 % of the words against the
+    published sign sequence (Kent's spelling rules missing, Xerxes' name in every Xerxes inscription); the translation status is contradicted by the
+    project's own records (Livius CC-BY-NC translations recorded as read, yet reported unavailable). Major: 45 of 73 lines never heard; no music in the
+    world; tablets blank, no Aramaic leather; most Terrace inscriptions missing; signs raised, not cut; lint blind to audio and murmur; no audio occlusion.
+    Fixes: four workstreams (D-165..D-173).
+  - Running: crowd merge D-143 (workflow), soak on the D-150 code, WebGL2 interior render.
 - **Session 4 (2026-09-23; ended — read this block and HANDOFF.md first).** Base was be6db72 (the session-3 handoff). Done and pushed:
   - **Soak passes all 8 gates again** (D-140, sim agent). Worst population variety 0.094 (thin margin, unchanged).
   - **Shadow review round 4 FAILED** (REVIEWS/shadow_phase5_r4.md, pick seed 89): 1 of 20 below 4 (a farming man idle at home all day). The sim agent is fixing the round-4 findings (D-150); round 5 (pick seed 97) follows its merge.
