@@ -114,7 +114,11 @@ export class Crowd {
   private byPid = new Map<number, Person>(); private impLooks = new Map<number, ImpLook>();
   private impList: { vp: ViewPerson | null; a: Agent | null; d: number; x: number; y: number; z: number; yaw: number }[] = []; private nImp = 0;
   /** impostors and the pool feeding this frame (stats) */
-  readonly impPerf = { drawn: 0, candidates: 0, looksPending: 0, poolCands: 0, popins: 0, doorEntries: 0, walking: 0, placeholders: 0, bands: [0, 0, 0, 0] as number[], feedMs: 0, impMs: 0 };
+  readonly impPerf = { drawn: 0, candidates: 0, looksPending: 0, poolCands: 0, popins: 0, doorEntries: 0, walking: 0, placeholders: 0, walled: 0, bands: [0, 0, 0, 0] as number[], feedMs: 0, impMs: 0 };
+  /** the walled plot the camera is in (PopGeo.plotAt; 0 none) */
+  private camPlot = 0;
+  /** hidden behind the walls of the court or yard they stand in, from a camera outside it and below the wall tops */
+  private walledOff(vp: ViewPerson, camY: number) { return vp.wall > 0 && vp.plot !== this.camPlot && camY < vp.y + vp.wall - 0.3; }
   private camAt = new THREE.Vector3();
   /** `sim` null: a crowd of extras only (the human lab page, tests) */
   constructor(readonly sim: PeopleSim | null, readonly seed: number, readonly humans: HumanSystem) {
@@ -249,7 +253,7 @@ export class Crowd {
     // nearest behind the camera keep theirs, so turning round finds them drawn)
     let np = 0; for (let i = 0; i < nc; i++) { const c = C[i]; if (c.d >= DETACH_R) continue; order[np++] = i;
       const x = c.vp ? c.vp.e : c.a!.pos[0], y = c.vp ? c.vp.y : c.a!.y, z = c.vp ? -c.vp.n : -c.a!.pos[1];
-      c.rank = !camera || this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), 1.3)) ? c.d : c.d + OUT_OF_VIEW; }
+      c.rank = (!camera || this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), 1.3))) && !(c.vp && this.walledOff(c.vp, cam.y)) ? c.d : c.d + OUT_OF_VIEW; }
     const ix = Array.from(order.subarray(0, np)).sort((x, y) => C[x].rank - C[y].rank); this.impPerf.poolCands = np;
     // attach the nearest POOL_MAX; keep the attached to POOL_MAX + POOL_HYST
     const keep = this.keepBuf; keep.clear(); let attached = 0;
@@ -303,6 +307,7 @@ export class Crowd {
       this.sacks.count = nd + ns; this.sacks.visible = nd + ns > 0; this.sacks.instanceMatrix.needsUpdate = true; this.lastStock.depot = S.depot; this.lastStock.store = S.store;
     }
     if (this.frame > 1 && this.camAt.distanceTo(cam) > 30) this.resetPopinProbe(); // the camera was moved, not walked (a teleport)
+    this.camPlot = this.view ? this.view.geo.plotAt(cam.x, -cam.z) : 0;
     this.camAt.copy(cam); const tf = performance.now(); this.drawnKeys?.clear();
     if (this.autoPool) { if (this.view && this.sim) this.feedPool(cam, camera); else this.autoPoolStep(cam, camera); }
     this.impPerf.feedMs = performance.now() - tf;
@@ -327,17 +332,20 @@ export class Crowd {
       p.dist = d; list.push(p);
     }
     list.sort((a, b) => a.dist - b.dist);
-    const tp = performance.now(); let posed = 0; const drawn = [0, 0, 0, 0]; const has3 = this.humans.gpu.costumes.has('worker@3');
+    const tp = performance.now(); let posed = 0, walled = 0; const drawn = [0, 0, 0, 0]; const has3 = this.humans.gpu.costumes.has('worker@3');
     const dtP = Math.max(0, Math.min(0.5, time - this.lastPoseT)); this.lastPoseT = time;
     for (let i = 0; i < list.length; i++) {
       const p = list[i], d = p.dist;
       if (!p.agent && p.vp && p.vp.moving) p.gaitPh += (p.vp.speed || 1.2) * dtP / 0.72 * Math.PI;
-      const K = this.caps, lod = d < LOD_DIST[0] && drawn[0] < K.full ? 0 : d < LOD_DIST[1] && drawn[1] < K.mid ? 1 : d < K.far || !has3 ? 2 : 3; drawn[lod]++;
+      // a person in a walled court or yard the camera is outside of and below the walls of is hidden (but through the street
+      // door): the farthest body, no shadow, not counted against the full and mid caps (they go to the people seen)
+      const hid = !p.agent && p.vpFrame === this.frame && !!p.vp && this.walledOff(p.vp, cam.y); if (hid) walled++;
+      const K = this.caps, lod = hid ? (has3 ? 3 : 2) : d < LOD_DIST[0] && drawn[0] < K.full ? 0 : d < LOD_DIST[1] && drawn[1] < K.mid ? 1 : d < K.far || !has3 ? 2 : 3; drawn[lod]++;
       const every = d < 30 ? 1 : d < 90 ? 2 : d < 200 ? 4 : 8;
       if (p.poseFrame < 0 || (this.frame + p.frameMod) % every === 0 || this.frame - p.poseFrame > every) { this.posePerson(p, time, d, playerPos, cam, lod); posed++; }
       else if (p.poseFrame === this.frame - 1) this.copyPrev(p); // no bone change this frame: previous = current
       const c = gpu.costumes.get(`${COSTUME_OF[p.look.dress]}@${lod}`)!;
-      gpu.push(c, p.slot, p.root[0], p.root[1], p.root[2], p.root[3], p.prevRoot[0], p.prevRoot[1], p.prevRoot[2], p.prevRoot[3], lod === 0 ? 1 : d < K.shadow ? 2 : 0);
+      gpu.push(c, p.slot, p.root[0], p.root[1], p.root[2], p.root[3], p.prevRoot[0], p.prevRoot[1], p.prevRoot[2], p.prevRoot[3], lod === 0 ? 1 : d < K.shadow && !hid ? 2 : 0);
       p.drawnFrame = this.frame; p.lod = lod; if (this.drawnKeys) this.drawnKeys.add(p.agent ? -1 - p.agent.id : p.pid);
       if (p.prop) this.placeProp(p);
     }
@@ -345,7 +353,7 @@ export class Crowd {
     { const ti = performance.now(); this.drawImpostors(time); this.impPerf.impMs = performance.now() - ti; }
     { const im = this.carried; im.visible = im.count > 0; if (im.count) { im.instanceMatrix.needsUpdate = true; im.instanceMatrix.clearUpdateRanges(); im.instanceMatrix.addUpdateRange(0, im.count * 16);
       this.carriedKind.needsUpdate = true; this.carriedKind.clearUpdateRanges(); this.carriedKind.addUpdateRange(0, im.count); } }
-    this.perf.ms = performance.now() - t0; this.perf.poseMs = performance.now() - tp; this.perf.posed = posed; this.perf.drawn = drawn; this.perf.attached = this.persons.size;
+    this.perf.ms = performance.now() - t0; this.perf.poseMs = performance.now() - tp; this.perf.posed = posed; this.perf.drawn = drawn; this.perf.attached = this.persons.size; this.impPerf.walled = walled;
   }
   /** the impostors of this frame: the pool's candidates not attached, and the attached beyond the farthest LOD, in the
    *  widened frustum; a person's look is computed once (LOOKS_PER_FRAME new ones a frame) */

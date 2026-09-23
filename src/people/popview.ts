@@ -39,6 +39,8 @@ export interface ViewPerson {
   what: string;
   /** a detailed agent off the Terrace (drawn by the view), or -1 */
   agent: number;
+  /** standing in a walled court or yard: its plot key and wall top above the ground (Spot.plot, Spot.wall); 0 when open */
+  plot: number; wall: number;
 }
 interface DayPlan { day: number; n: number; t1: Float32Array; place: Int32Array; act: Uint8Array; where: Uint8Array; carry: Int32Array; withP: Int32Array }
 interface PS {
@@ -224,7 +226,7 @@ export class PopView {
     this.collect(t);
     this.stats.evalMs = performance.now() - t0;
   }
-  private vp(): ViewPerson { let o = this.out[this.nOut]; if (!o) { o = { pid: -1, e: 0, n: 0, y: 0, heading: 0, act: 'rest', moving: false, prop: null, carryNote: null, speed: 0, entry: 0, what: '', agent: -1 }; this.out[this.nOut] = o; } this.nOut++; return o; }
+  private vp(): ViewPerson { let o = this.out[this.nOut]; if (!o) { o = { pid: -1, e: 0, n: 0, y: 0, heading: 0, act: 'rest', moving: false, prop: null, carryNote: null, speed: 0, entry: 0, what: '', agent: -1, plot: 0, wall: 0 }; this.out[this.nOut] = o; } this.nOut++; return o; }
   private tmp = { e: 0, n: 0, heading: 0 };
   private collect(t: number) {
     this.nOut = 0; let walking = 0, carried = 0; const day = Math.floor(t / 24);
@@ -237,6 +239,7 @@ export class PopView {
       // carried child (C; counted); from one year a child is drawn when it plays or walks by itself
       if (this.pop.persons[s.pid].age < 3 && this.young(s.pid, day, s)) { carried++; continue; }
       const o = this.vp(); o.pid = s.pid; o.agent = -1; o.act = s.act; o.what = s.what; o.entry = s.entry; o.carryNote = s.carry >= 0 ? this.strings[s.carry] : null;
+      o.plot = s.mode === 1 ? s.spot.plot ?? 0 : 0; o.wall = s.mode === 1 ? s.spot.wall ?? 0 : 0;
       if (s.mode === 2 && s.route) { const f = Math.max(0, Math.min(1, (t - s.w0) / Math.max(1e-9, s.w1 - s.w0))); routeAt(s.route, f * s.route.len, this.tmp); o.e = this.tmp.e; o.n = this.tmp.n; o.heading = this.tmp.heading; o.moving = true; o.speed = s.speed; walking++;
         if (!ACTIVITIES[o.act].moving) o.act = 'walk'; o.y = this.geo.y(o.e, o.n); o.prop = propOf(o.act, o.carryNote); }
       else {
@@ -293,7 +296,7 @@ export class PopView {
   private agentsOff(t: number) {
     let n = 0;
     for (const a of this.sim.agents) { if (!a.offmap) continue; const sp = this.agentSpot(a, t); if (!sp) continue; n++;
-      const o = this.vp(); o.pid = a.pid; o.agent = a.id; o.e = sp.e; o.n = sp.n; o.heading = sp.heading; o.moving = sp.moving; o.speed = sp.moving ? a.speed : 0; o.act = sp.moving ? 'walk' : (a.task?.act ?? 'rest');
+      const o = this.vp(); o.pid = a.pid; o.agent = a.id; o.e = sp.e; o.n = sp.n; o.heading = sp.heading; o.moving = sp.moving; o.speed = sp.moving ? a.speed : 0; o.act = sp.moving ? 'walk' : (a.task?.act ?? 'rest'); o.plot = 0; o.wall = 0;
       o.carryNote = a.task?.holds ?? null; o.prop = propOf(o.act, o.carryNote); o.entry = 0; o.what = sp.what; o.y = this.geo.y(o.e, o.n); }
     this.stats.agentsOff = n;
   }

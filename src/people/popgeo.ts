@@ -20,7 +20,7 @@ import { h32, salt } from './hash';
 import type { ActivityId } from './activities';
 import type { TownPlan } from '../world/settlement/plan';
 import { TownWalk, plotCells, openCode, walkableCell, siteLine } from '../world/settlement/walk';
-import { Site, OUT, ROOM, YARD, toLocal, toGrid } from '../world/settlement/site';
+import { Site, OUT, ROOM, YARD, COURT, toLocal, toGrid } from '../world/settlement/site';
 import townJson from '../data/town.json';
 import livesJson from '../data/lives.json';
 
@@ -41,6 +41,9 @@ export interface Spot {
   what: string;
   /** false when the place has no counterpart in the built world (not drawn; counted in the stats) */
   ok: boolean;
+  /** a court or yard of a walled plot: the plot's key (PopGeo.plotAt) and the top of the walls round it (m above the
+   *  ground): from outside it, below that height, the person is hidden (the crowd's LOD; D-143) */
+  plot?: number; wall?: number;
 }
 export interface Route { pts: Float64Array; cum: Float64Array; len: number }
 /** a built village as the plain builds it (plain/villages.ts Village and Compound, the fields used here) */
@@ -194,8 +197,17 @@ export class PopGeo {
     const u = this.hash(pid, key, 1), k = list[Math.floor(u * list.length)], out = !indoor && cells.open.length > 0;
     const j = this.hash(pid, key, 2) * 0.5 - 0.25, jj = this.hash(pid, key, 3) * 0.5 - 0.25;
     const [e, n] = s.grid(s.cu(k % s.W) + j, s.cv((k / s.W) | 0) + jj);
-    const [i0, j0, i1, j1] = s.plots[pi].rect, c = s.grid((s.cu(i0) + s.cu(i1 - 1)) / 2, (s.cv(j0) + s.cv(j1 - 1)) / 2);
-    return this.sp(e, n, out, headingOf(c[0] - e, c[1] - n) + (this.hash(pid, key, 4) - 0.5) * 120, net, `${what}${out ? 'court' : 'room'} of ${s.plots[pi].id}`, v !== undefined ? { v } : {});
+    const [i0, j0, i1, j1] = s.plots[pi].rect, c = s.grid((s.cu(i0) + s.cu(i1 - 1)) / 2, (s.cv(j0) + s.cv(j1 - 1)) / 2), P = s.plots[pi];
+    const walled = out && s.cell[k] === pi ? { plot: this.plotKey(net, s, pi, v), wall: s.sub[k] === COURT ? P.height : Math.min(P.yardWall, P.height) } : {};
+    return this.sp(e, n, out, headingOf(c[0] - e, c[1] - n) + (this.hash(pid, key, 4) - 0.5) * 120, net, `${what}${out ? 'court' : 'room'} of ${P.id}`, { ...(v !== undefined ? { v } : {}), ...walled });
+  }
+  /** a plot's key: a town plot positive, a village compound negative */
+  private plotKey(net: 'town' | 'village', s: Site, pi: number, v?: number) { return net === 'town' ? ((this.siteIx.get(s.id) ?? 0) + 1) * 100000 + pi : -(((v ?? 0) + 1) * 100000 + pi); }
+  /** the key of the walled plot a grid point is in (0: none; lanes, open ground, the Terrace) */
+  plotAt(e: number, n: number): number {
+    const l = this.town?.locate(e, n); if (l) { const s = this.town!.boxes[l.si].s, c = s.cell[l.k]; if (c >= 0) return this.plotKey('town', s, c); }
+    const vi = this.villages.length ? this.villageAt(e, n) : -1; if (vi >= 0) { const S = this.vsite(vi).site, [u, w] = toLocal(S.frame, e, n), c = S.cell[S.k(S.ci(u), S.cj(w))]; if (c >= 0) return this.plotKey('village', S, c, vi); }
+    return 0;
   }
   /** an open cell near a site point (a small BFS over open cells), chosen per person */
   private nearOpen(s: Site, k0: number, pid: number, key: string, r: number, prefer?: (k: number) => boolean): number {

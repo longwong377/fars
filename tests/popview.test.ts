@@ -228,9 +228,12 @@ describe('crowd fed by the population view (D-143)', () => {
       // what is simulated is what is drawn: everyone out of doors (and every detailed agent on the map) in the view within the
       // impostor range is drawn, skinned or as an impostor
       let simIn = 0, near25 = 0; const missing: string[] = [];
-      const check = (key: number, x: number, y: number, z: number, what: string) => { if (!fr.containsPoint(_v.set(x, y + 1, z))) return; const dd = Math.hypot(x - cam.position.x, y + 0.9 - cam.position.y, z - cam.position.z); if (dd > 4990) return;
-        simIn++; if (dd < 25) near25++; if (!crowd.drawnKeys!.has(key)) missing.push(what); };
-      for (const o of view.query([e, n], 5000)) if (o.agent < 0) check(o.pid, o.e, o.y, -o.n, `p${o.pid} ${o.what}`);
+      // (near25: people within 25 m who are not behind the walls of a court or yard the camera is outside of: the full-detail
+      // bodies go to them)
+      const camPlot = geo.plotAt(e, n), walledOff = (o: { wall: number; plot: number; y: number }) => o.wall > 0 && o.plot !== camPlot && cam.position.y < o.y + o.wall - 0.3;
+      const check = (key: number, x: number, y: number, z: number, what: string, hidden = false) => { if (!fr.containsPoint(_v.set(x, y + 1, z))) return; const dd = Math.hypot(x - cam.position.x, y + 0.9 - cam.position.y, z - cam.position.z); if (dd > 4990) return;
+        simIn++; if (dd < 25 && !hidden) near25++; if (!crowd.drawnKeys!.has(key)) missing.push(what); };
+      for (const o of view.query([e, n], 5000)) if (o.agent < 0) check(o.pid, o.e, o.y, -o.n, `p${o.pid} ${o.what}`, walledOff(o));
       for (const a of sim.agents) if (!a.offmap) check(-1 - a.id, a.pos[0], a.y, -a.pos[1], `agent ${a.id}`);
       // of the drawn in view, those a line of sight reaches (chest or head)
       const eye: [number, number, number] = [cam.position.x, -cam.position.z, cam.position.y]; let inF = 0, vis = 0; const vb = [0, 0, 0, 0, 0], kinds = [0, 0, 0, 0, 0];
@@ -238,7 +241,7 @@ describe('crowd fed by the population view (D-143)', () => {
         if (!sl.see(eye, [x, -z, y + 0.93 * hh]) && !sl.see(eye, [x, -z, y + 0.72 * hh])) continue; vis++; kinds[pts[i + 4]]++;
         const dd = Math.hypot(x - cam.position.x, z - cam.position.z), bi = B.findIndex(r => dd < r); vb[bi < 0 ? 4 : bi]++; }
       got[name] = { vis, full: st.byLod[0], near25 };
-      rows.push(`${name} (day ${d}, ${h} h; [${e}, ${n}] heading ${hd}°, pitch ${pitch}°): simulated in view ${simIn}, drawn in view ${inF} (skinned ${st.byLod.join('/')} full/mid/far/farthest, impostors ${st.impostors}); visible by sightline ${vis} (by distance ${vb.join('/')} <50/<200/<600/<1500/<5000 m; skinned ${kinds.slice(0, 4).join('/')}, impostors ${kinds[4]}); within 25 m ${near25}; placeholder acts drawn standing ${st.placeholderActs} skinned + ${st.impPerf.placeholders} impostors; missing ${missing.length} ${JSON.stringify(missing.slice(0, 3))}`);
+      rows.push(`${name} (day ${d}, ${h} h; [${e}, ${n}] heading ${hd}°, pitch ${pitch}°): simulated in view ${simIn}, drawn in view ${inF} (skinned ${st.byLod.join('/')} full/mid/far/farthest, of them behind court walls ${st.impPerf.walled}, impostors ${st.impostors}); main-pass people triangles ${(st.triangles / 1e6).toFixed(2)} M; visible by sightline ${vis} (by distance ${vb.join('/')} <50/<200/<600/<1500/<5000 m; skinned ${kinds.slice(0, 4).join('/')}, impostors ${kinds[4]}); within 25 m ${near25}; placeholder acts drawn standing ${st.placeholderActs} skinned + ${st.impPerf.placeholders} impostors; missing ${missing.length} ${JSON.stringify(missing.slice(0, 3))}`);
       expect(missing, name).toEqual([]);
       expect(st.byLod[0]).toBeLessThanOrEqual(MAX_FULL); expect(MAX_FULL).toBeGreaterThanOrEqual(50);
       if (near25 >= MAX_FULL) expect(st.byLod[0], `${name}: the full-detail cap filled`).toBe(MAX_FULL);
