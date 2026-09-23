@@ -43,6 +43,9 @@ test('moments', async ({ page }, info) => {
   test.setTimeout(1_380_000); // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run)
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
   const only = process.env.ONLY?.split(',');
+  // WEBGL=1 forces the WebGL2 backend inside the webgpu project (the render queue runs one project): shots are suffixed
+  // -webgl2-forced and __parsa.backend is logged
+  const WEBGL = !!process.env.WEBGL, proj = WEBGL ? 'webgl2-forced' : info.project.name;
   // one page load per world state: views that share day, hour and weather reuse the loaded world (a page load is
   // ~3–5 min at high under SwiftShader; the state is frozen, so only the camera moves between them)
   let loaded = '';
@@ -50,7 +53,7 @@ test('moments', async ({ page }, info) => {
     if (only && !only.includes(s.n)) continue;
     const state = `${s.day}|${s.hour}|${s.w}`;
     if (state !== loaded) {
-      await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=${s.day}&hour=${s.hour}&weather=${s.w}`);
+      await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=${s.day}&hour=${s.hour}&weather=${s.w}${WEBGL ? '&webgl=1' : ''}`);
       await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 600_000 });
       // the world is frozen in test mode: stop the animation loop, so the screenshot does not wait behind its frames under
       // SwiftShader (minutes each; the Phase 4 render helper found this, tests/e2e/lib/p4views.ts)
@@ -59,12 +62,12 @@ test('moments', async ({ page }, info) => {
     }
     await page.evaluate(v => (window as any).__parsa.view(...v), s.v);
     for (let i = 0; i < (s.frames ?? 8); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
-    const png = await page.screenshot({ path: `shots/moment-${s.n}-${info.project.name}.png` });
+    const png = await page.screenshot({ path: `shots/moment-${s.n}-${proj}.png` });
     // §8.3 luminance (display-referred sRGB luma): whole frame; appended to shots/moments-lum.json
     const lum = await lumStats(page, png); const exp = await page.evaluate(() => (window as any).__parsa.exposureInfo());
     mkdirSync('shots', { recursive: true }); const f = 'shots/moments-lum.json'; const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {};
-    all[`${s.n}|${process.env.Q ?? 'test'}|${info.project.name}`] = { lum, exposure: +exp.exposure.toFixed(3), sunAlt: +exp.sunAlt.toFixed(1) }; writeFileSync(f, JSON.stringify(all, null, 1));
-    console.log(s.n, JSON.stringify(lum));
+    all[`${s.n}|${process.env.Q ?? 'test'}|${proj}`] = { lum, exposure: +exp.exposure.toFixed(3), sunAlt: +exp.sunAlt.toFixed(1) }; writeFileSync(f, JSON.stringify(all, null, 1));
+    console.log(s.n, JSON.stringify(lum), 'backend', await page.evaluate(() => (window as any).__parsa.backend));
   }
   console.log(errs.slice(0, 5).join('\n'));
 });
