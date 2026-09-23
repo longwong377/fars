@@ -36,7 +36,8 @@ const HYST = 1.12; // a finer LOD is dropped only beyond HYST × its switch dist
  *  spatial chunks of RELIEF_CHUNK m; a chunk whose bounds lie beyond RELIEF_FAR (the coarsest band, where every figure is
  *  at L3 anyway) is drawn as ONE merged mesh of its figures at L3 and its figures leave the batch. Shadows: the figures
  *  cast none (low relief; the 5 cm normal bias of the sun's shadow erases a 4.5 cm relief's self-shadow anyway) except
- *  within RELIEF_SHADOW_RANGE, through the chunk's merged L3 mesh drawn into the shadow maps only */
+ *  within RELIEF_SHADOW_RANGE, through the chunk's merged L3 mesh drawn into the shadow maps only. When every chunk of a
+ *  set is far, the whole set is one merged mesh (one draw) */
 export const RELIEF_CHUNK = 12, RELIEF_FAR = RELIEF_LODS[2].dist, RELIEF_SHADOW_RANGE = 8;
 /** grid size (2^k + 1) for a figure whose larger extent on the stone is `extentM` metres, at LOD `lod` */
 export function lodGrid(extentM: number, lod: number) {
@@ -133,9 +134,11 @@ export class ReliefSet extends THREE.Group {
   private geoIds = new Map<string, number>(); private geoUse = new Map<string, number>(); private lastCam = new THREE.Vector3(Infinity, 0, 0);
   private rosNear: THREE.InstancedMesh | null = null; private rosettes: RosetteItem[]; private rosMats: THREE.Matrix4[] = [];
   private mats: THREE.Matrix4[] = []; private chunks: Chunk[] = []; private chunkOf: Int32Array;
+  /** the whole set merged at L3, drawn instead of the far chunks while every chunk is far (D-048) */
+  private whole: THREE.Mesh | null = null;
   /** triangles and draw ranges currently submitted (before frustum culling): per-figure batch instances, merged far
    *  chunks, shadow proxies and the two rosette meshes */
-  stats = { tris: 0, byLod: [0, 0, 0, 0], rosetteTris: 0, pending: 0, farTris: 0, draws: 0, farChunks: 0, proxies: 0, chunks: 0 };
+  stats = { tris: 0, byLod: [0, 0, 0, 0], rosetteTris: 0, pending: 0, farTris: 0, draws: 0, farChunks: 0, farDraws: 0, proxies: 0, chunks: 0 };
 
   constructor(items: ReliefItem[], rosettes: RosetteItem[] = [], name = 'reliefs') {
     super(); this.name = name; this.userData = { ...RELIEF_META };
@@ -227,7 +230,17 @@ export class ReliefSet extends THREE.Group {
       ch.isFar = wantFar;
       if (ch.far) { ch.far.visible = wantFar; ch.proxy!.visible = d < RELIEF_SHADOW_RANGE; if (wantFar) far++; if (d < RELIEF_SHADOW_RANGE) prox++; }
     }
-    this.stats.farChunks = far; this.stats.proxies = prox; this.stats.chunks = this.chunks.length;
+    // every chunk far: the whole set as one mesh instead of one per chunk
+    const allFar = far === this.chunks.length && far > 0;
+    if (allFar && !this.whole) {
+      const g = mergeGeometries(this.chunks.map(ch => ch.far!.geometry))!; g.computeBoundingSphere();
+      this.whole = new THREE.Mesh(g, paintMaterial()); this.whole.name = 'relief:far-set';
+      this.whole.userData = { ...RELIEF_META, note: 'far representation: the whole set merged at the coarsest LOD while every chunk is far (D-048); ' + RELIEF_META.note };
+      this.whole.castShadow = false; this.whole.receiveShadow = true; this.add(this.whole);
+    }
+    if (this.whole) this.whole.visible = allFar;
+    if (allFar) for (const ch of this.chunks) ch.far!.visible = false;
+    this.stats.farChunks = far; this.stats.farDraws = allFar ? 1 : far; this.stats.proxies = prox; this.stats.chunks = this.chunks.length;
   }
   /** choose each figure's LOD for the camera position; request missing meshes (workers) or build them within budgetMs (sync) */
   update(cam: THREE.Vector3, budgetMs = 4) {
@@ -271,7 +284,7 @@ export class ReliefSet extends THREE.Group {
     this.stats.tris += this.stats.farTris + this.stats.rosetteTris;
     // view-pass draw ranges before frustum culling (WebGPU: one per batch instance, one per mesh); proxies add one each
     // (they write nothing in the view) and are the only relief draws in the shadow passes
-    this.stats.draws = inBatch + this.stats.farChunks + this.stats.proxies + (this.rosNear && this.rosNear.count ? 1 : 0) + (this.rosFar && this.rosFar.count ? 1 : 0);
+    this.stats.draws = inBatch + this.stats.farDraws + this.stats.proxies + (this.rosNear && this.rosNear.count ? 1 : 0) + (this.rosFar && this.rosFar.count ? 1 : 0);
   }
   /** rosettes (tiny and numerous, so instanced rather than batched): carved LOD near the camera, a painted boss in the mid
    *  range, nothing beyond ROSETTE_FAR; both lists are rebuilt from the camera position */
@@ -295,7 +308,7 @@ export class ReliefSet extends THREE.Group {
     near.count = kn; far.count = kf; near.instanceMatrix.needsUpdate = true; far.instanceMatrix.needsUpdate = true;
     this.stats.rosetteTris = kn * this.rosTris[0] + kf * this.rosTris[1];
   }
-  dispose() { liveSets.delete(this); this.batch?.dispose(); this.rosNear?.dispose(); this.rosFar?.dispose(); for (const ch of this.chunks) ch.far?.geometry.dispose(); }
+  dispose() { liveSets.delete(this); this.batch?.dispose(); this.rosNear?.dispose(); this.rosFar?.dispose(); for (const ch of this.chunks) ch.far?.geometry.dispose(); this.whole?.geometry.dispose(); }
 }
 
 /** the mid-range rosette: an octagonal painted boss (Egyptian blue, yellow-ochre centre), 40 triangles, same frame as the carved one */
@@ -319,8 +332,8 @@ export async function settleReliefs(cam: THREE.Vector3, timeoutMs = 60_000) {
   const t0 = performance.now();
   for (;;) { for (const s of liveSets) { s.dirty = true; s.update(cam, 1e9); } if (reliefsPending() === 0 || performance.now() - t0 > timeoutMs) return; await new Promise(r => setTimeout(r, 30)); }
 }
-export function reliefStats() { const out = { sets: liveSets.size, tris: 0, byLod: [0, 0, 0, 0], farTris: 0, draws: 0, farChunks: 0, proxies: 0, chunks: 0, pending: reliefsPending(), generated: genStats.generated, workerJobs: genStats.workerJobs };
-  for (const s of liveSets) { out.tris += s.stats.tris; out.farTris += s.stats.farTris; out.draws += s.stats.draws; out.farChunks += s.stats.farChunks; out.proxies += s.stats.proxies; out.chunks += s.stats.chunks; s.stats.byLod.forEach((t, i) => (out.byLod[i] += t)); } return out; }
+export function reliefStats() { const out = { sets: liveSets.size, tris: 0, byLod: [0, 0, 0, 0], farTris: 0, draws: 0, farChunks: 0, farDraws: 0, proxies: 0, chunks: 0, pending: reliefsPending(), generated: genStats.generated, workerJobs: genStats.workerJobs };
+  for (const s of liveSets) { out.tris += s.stats.tris; out.farTris += s.stats.farTris; out.draws += s.stats.draws; out.farChunks += s.stats.farChunks; out.farDraws += s.stats.farDraws; out.proxies += s.stats.proxies; out.chunks += s.stats.chunks; s.stats.byLod.forEach((t, i) => (out.byLod[i] += t)); } return out; }
 
 // ---------------- generic register API (Phase 4 programmes) ----------------
 type V3 = THREE.Vector3 | [number, number, number];

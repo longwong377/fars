@@ -194,7 +194,7 @@ describe('Phase 4 relief programmes (D-049)', () => {
     for (const p of progs) for (const it of p.items) { const peak = it.D * reliefLodMesh(it.kind, it.seed, 65, 3).maxH; expect(peak).toBeLessThanOrEqual(CV.depth_max + 1e-9); expect(peak).toBeGreaterThanOrEqual(CV.depth_min * 0.8); }
     for (const k of ['king~rough', 'bearer~rough', 'hero~rough']) { const m = reliefLodMesh(k, 1, 129, 2); expect(Math.max(...m.paint), k).toBe(0); expect(m.tris).toBeGreaterThan(50); }
   });
-  it(`all relief sets: ≤ ${TRI_BUDGET / 1e6} M relief triangles in front of every Phase 4 jamb and stair face; far sets collapse to one draw per chunk`, () => {
+  it(`all relief sets: ≤ ${TRI_BUDGET / 1e6} M relief triangles in front of every Phase 4 jamb and stair face; a far set collapses to one draw`, () => {
     const p4 = buildPhase4Reliefs(doorways).group, sets = [set, ...p4.children.filter(c => c instanceof ReliefSet) as ReliefSet[]];
     let worst = 0, where = '';
     const probe = (e: number, n: number, y: number, what: string) => { updateReliefs(new THREE.Vector3(e, y, -n), 1e9); const t = sets.reduce((s, q) => s + q.stats.tris, 0); if (t > worst) { worst = t; where = what; } };
@@ -202,14 +202,15 @@ describe('Phase 4 relief programmes (D-049)', () => {
     for (const p of progs.filter(q => q.name.endsWith('stair'))) for (const it of p.items.filter((_, i) => i % 3 === 0)) for (const off of [1.2, 4]) probe(it.o.x + it.Z.x * off, -(it.o.z + it.Z.z * off), it.o.y + 1.2, `${p.name} off ${off}`);
     console.warn(`all relief sets: worst ${worst} triangles at ${where}`);
     expect(worst).toBeLessThanOrEqual(TRI_BUDGET);
-    // from the Grand Stair foot every set is far: one draw per chunk, no figure in any batch, no shadow proxy
+    // from the Grand Stair foot every set is far: one merged mesh per set, no figure in any batch, no shadow proxy
     updateReliefs(new THREE.Vector3(-60, 1.6, -122), 1e9);
-    let draws = 0, chunks = 0; for (const s of sets) { draws += s.stats.draws; chunks += s.stats.chunks; expect(s.stats.byLod.reduce((a, b) => a + b, 0), s.name).toBe(0); expect(s.stats.proxies).toBe(0); }
+    let draws = 0, chunks = 0; for (const s of sets) { draws += s.stats.draws; chunks += s.stats.chunks; expect(s.stats.byLod.reduce((a, b) => a + b, 0), s.name).toBe(0); expect(s.stats.proxies).toBe(0); expect(s.stats.farDraws, s.name).toBe(1); }
     console.warn(`from the Grand Stair foot: ${draws} relief draws for ${sets.reduce((q, s) => q + s.items.length, 0)} figures in ${chunks} chunks`);
-    expect(draws).toBeLessThanOrEqual(chunks + 2 * sets.length);
+    expect(draws).toBeLessThanOrEqual(3 * sets.length); // the set mesh and at most the two rosette meshes
     // before the Tachara S stair: its near chunk is in the batch with a shadow proxy; the Apadana stays merged
     updateReliefs(new THREE.Vector3(-21, 1.6, 103), 1e9);
     const ts = sets.find(s => s.name === 'relief:tachara-stair')!; expect(ts.stats.byLod.reduce((a, b) => a + b, 0)).toBeGreaterThan(0); expect(ts.stats.proxies).toBeGreaterThan(0);
-    expect(set.stats.farChunks).toBe(set.stats.chunks);
+    expect(set.stats.farChunks).toBe(set.stats.chunks); expect(set.stats.farDraws).toBe(1);
+    expect(ts.stats.farDraws).toBe(ts.stats.farChunks); expect(ts.stats.farChunks).toBeLessThan(ts.stats.chunks); // partly near: one draw per far chunk
   });
 });

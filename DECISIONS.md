@@ -351,10 +351,11 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - A per-pixel start jitter lets TRAA average away the banding.
   - Shapes and optics remain C.
 ## D-048 Relief far representation, shadow proxies and the finest relief grid (session 3, phase-4b agent)
-- **Problem (the lead's measurement at quality high, Grand Stair foot):** ~3,200 GPU draws per frame against a budget of 3,000. Most came from the relief BatchedMesh: WebGPU issues one draw per figure instance per pass, so the 534 Apadana figures cost 500+ draws in the view pass and again in each shadow cascade, even 60 m away at L3.
+- **Problem (the lead's measurement at quality high, Grand Stair foot):** ~3,200 GPU draws per frame against a budget of 3,000, of which the Apadana relief BatchedMesh `relief:figures` alone was 2,274 (0.45 M triangles; per-object tally, `tests/e2e/dbg_draws.spec.ts`). WebGPU issues one draw per figure instance per pass, so the 534 Apadana figures cost one draw each in the view pass and again in each shadow cascade, even 60 m away at L3.
 - **Far chunks** (`reliefs.ts`, `RELIEF_CHUNK` 12 m):
   - A relief set's figures are grouped by position into chunks. When a chunk's bounds are beyond `RELIEF_FAR` (the L2 range, 14 m, with the 1.12 hysteresis), it is drawn as ONE merged mesh of its figures at L3 (the same geometry the figures would show there), and its figures leave the batch.
   - Near chunks keep per-figure LOD.
+  - **Whole set:** while every chunk of a set is far, the set is drawn as ONE mesh (its far chunks merged, built once on first use), so a set seen from afar is one draw whatever its size.
   - A hidden batch instance is parked on its L3 geometry, because `BatchedMesh.deleteGeometry` also deletes the instances that still reference a geometry. The first version lost instances this way (caught by tests/reliefs.test.ts).
 - **Shadows:**
   - The batch and the far meshes cast none. Low relief loses little: the sun's shadow normal bias (5 cm) already erases a 4.5 cm relief's self-shadow.
@@ -364,10 +365,13 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
 - **Measured (node, tests/reliefs.test.ts):**
   - Apadana worst case unchanged: 0.76 M triangles.
   - All nine relief sets (889 figures), probed in front of every framed jamb and along every Phase 4 stair face: worst 0.95 M ≤ 1.5 M (at the Hall of 100 Columns N1 jamb).
-  - From the Grand Stair foot: 52 relief draws for the 889 figures (52 chunks, no figure in any batch, no shadow proxy). Before, the 534 Apadana figures alone were one draw each per pass.
+  - Relief draw ranges before culling, view pass (node probe of the nine sets, three views):
+    - Grand Stair foot: 9 (one mesh per set; no batch figure, no proxy), 0.23 M triangles. Before, the 534 Apadana figures alone were one draw each per pass.
+    - Apadana N court (0, 60): 195 (Apadana 187: the figures within 14 m of the N stair in the batch, the rest of its chunks merged; 2 proxies), 0.53 M triangles.
+    - Tachara S court (-21, -112): 42 (Tachara stair 34 near; every other set one mesh), 0.25 M triangles.
 - **Measured (e2e, quality high):** see the table below (before = the tree at merge 465c4e7; after = this work, which also adds 355 figures and the doors).
 - **Alternatives rejected:**
-  - One merged mesh per whole set: cannot be partly near.
+  - One merged mesh per whole set as the only far form: a set is 80 m long, so standing at one end would put the whole set in the batch. Used only when every chunk is far.
   - A second BatchedMesh with chunks as instances: the same draw count as meshes on WebGPU.
   - Batch shadows within a range: hundreds of draws per cascade.
   - A shadow-only layer: the CSM cascade cameras copy the view camera's layers.
