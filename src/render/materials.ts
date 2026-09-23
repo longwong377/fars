@@ -140,16 +140,27 @@ function layer(d: SurfaceDef, base: any): Layer {
     const st = smoothstep(0.1, 0.75, mx_noise_float(q).mul(0.5).add(0.5).add(mx_noise_float(q.mul(3.1)).mul(0.15)));
     alb = alb.mul(float(1).sub(st.mul(d.streaks.amp)));
   }
-  if (d.herbs) { // seasonal herb layer in patches (C): green in spring, straw in summer, sparse in winter
-    const patch = smoothstep(-0.1, 0.45, mx_noise_float(p.xz.mul(0.35)).add(mx_noise_float(p.xz.mul(2.2)).mul(0.35)));
+  if (d.herbs) { // seasonal herb layer (C): green in spring, straw in summer, sparse in winter
+    // Session 4: the cover was one field of 3 m blobs with hard edges, which read from the Terrace as camouflage. Now a
+    // local density that varies slowly (25 m and 7 m scales) is dithered by tufts ~0.3 m across; where a tuft spans
+    // under ~2 px the tufts give way to their mean (the density), so the far ground is a soft mottle, never blobs or
+    // shimmer (band-limited as in D-147)
+    const q = p.xz;
+    const dens = clamp(float(0.5).add(mx_noise_float(q.mul(0.04)).mul(0.35)).add(mx_noise_float(q.mul(0.15).add(5.1)).mul(0.25)), 0, 1);
+    const tq = q.mul(3.1), tuft = mx_noise_float(tq).add(mx_noise_float(q.mul(9.7).add(2.3)).mul(0.5)).mul(0.5).add(0.5); // ~[0, 1]
+    const thr = float(1).sub(dens), w = fwidth(tuft).mul(1.5).add(0.06);
+    const fine = smoothstep(thr.sub(w), thr.add(w), tuft);
+    const far = smoothstep(0.35, 0.9, fwidth(tq).length()); // tuft spacing under ~2 px: use the mean
+    const patch = mix(fine, dens, far);
     const up = smoothstep(0.8, 0.97, n.y);
     const cover = patch.mul(up).mul(d.herbs);
-    const green = color(new THREE.Color().setRGB(0.30, 0.36, 0.16, THREE.SRGBColorSpace)), straw = color(new THREE.Color().setRGB(0.62, 0.55, 0.36, THREE.SRGBColorSpace));
+    const green = color(new THREE.Color().setRGB(0.31, 0.36, 0.18, THREE.SRGBColorSpace)), straw = color(new THREE.Color().setRGB(0.62, 0.55, 0.36, THREE.SRGBColorSpace));
     const veg = mix(straw, green, SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)));
+    const tint = float(1).add(mx_noise_float(q.mul(1.3).add(9.1)).mul(0.12)).add(mott.mul(1.5)); // tuft-to-tuft tone
     const amount = cover.mul(SEASON.green.add(SEASON.dry).min(1)).mul(0.85);
-    alb = mix(alb, veg.mul(float(1).add(mott.mul(2))), amount);
+    alb = mix(alb, veg.mul(tint), amount);
     rough = mix(rough, float(0.85), amount);
-    if (height) height = height.add(amount.mul(mx_noise_float(p.mul(14)).abs().mul(0.03)));
+    if (height) height = height.add(amount.mul(tuft).mul(0.02).mul(float(1).sub(far)));
   }
   return { alb, rough, height };
 }
