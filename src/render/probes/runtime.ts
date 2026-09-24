@@ -13,7 +13,7 @@
 import * as THREE from 'three/webgpu';
 import { HemisphereLightNode } from 'three/webgpu';
 import { uniform, texture, vec2, vec3, float, mix, max, min, clamp, floor, smoothstep, step, normalWorld, positionWorld, dot } from 'three/tsl';
-import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, openAmbientMean, VALID_LO, VALID_HI, ATLAS_BANDS, PROBE_STRIDE } from './field';
+import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, volumeAt, openAmbientMean, VALID_LO, VALID_HI, ATLAS_BANDS, PROBE_STRIDE } from './field';
 import { SURFACES } from '../materials';
 import { srgbToLinear, lum, sceneFromParts, TraceScene } from './trace';
 import type { Part } from '../../arch/parts';
@@ -98,6 +98,13 @@ export function probeEyeVisibility(p: { x: number; y: number; z: number }): { ey
   const d = current.sun, sunlit = U > 0 && !(OCC?.occluded(p.x, p.y, p.z, d.x, d.y, d.z, 0.05, 2000) ?? false) ? EYE_SKY.sunVisibilityAt(p.x, p.y, p.z) : 0;
   const A = openAmbientMean(S, U, RHO_OPEN), eye = (r.vis * A + U * sunlit) / (A + U);
   return { eye, w: r.w };
+}
+
+/** the horizontal diagonal (m) of the roofed footprint of the probe volume containing p (the hall around the eye), or 0
+ *  outside every volume: how far that enclosure's air reaches along a view ray (aerial.ts Air.setInterior, session 5) */
+export function probeVolumeExtent(p: { x: number; y: number; z: number }): number {
+  const v = FIELD ? volumeAt(FIELD, p.x, p.y, p.z) : null;
+  return v ? Math.hypot(v.roof[1] - v.roof[0], v.roof[3] - v.roof[2]) : 0;
 }
 
 /** reversed smoothstep edges are undefined in WGSL/GLSL: a (near-)empty ramp becomes a step */

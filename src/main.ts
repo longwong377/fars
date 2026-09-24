@@ -26,7 +26,7 @@ import { reliefStats } from './arch/reliefs';
 import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
 import { Pipeline } from './render/pipeline';
-import { probeEyeVisibility } from './render/probes/runtime';
+import { probeEyeVisibility, probeVolumeExtent } from './render/probes/runtime';
 import { WEATHER, SEASON } from './render/materials';
 import { seasonAt } from './world/season';
 import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
@@ -320,7 +320,9 @@ async function boot() {
     adaptT += dt;
     // light probes in the roofed halls (D-113), upward rays elsewhere; every frame in frozen test renders (dt = 0 never
     // reached 0.25 s, so moments kept the first frame's value)
-    if (adaptT > 0.25 || skyVis < 0 || TEST) { adaptT = 0; probeVis = probeEyeVisibility(camera.position); rayVis = probeVis.w < 0.999 ? skyVisibility() : 1; skyVis = probeVis.w * probeVis.eye + (1 - probeVis.w) * rayVis; }
+    if (adaptT > 0.25 || skyVis < 0 || TEST) { adaptT = 0; probeVis = probeEyeVisibility(camera.position); rayVis = probeVis.w < 0.999 ? skyVisibility() : 1; skyVis = probeVis.w * probeVis.eye + (1 - probeVis.w) * rayVis;
+      // the air inside the hall around the eye is lit by the hall's light, not the horizon's (session 5)
+      sky.air.setInterior(probeVis.w > 0 ? probeVis.w * Math.min(1, probeVis.eye) + (1 - probeVis.w) : 1, probeVis.w > 0 ? probeVolumeExtent(camera.position) : 0); }
     // the sun the eye has: above the terrain's horizon at the camera (D-156: Kuh-e Rahmat shades the Terrace at sunrise)
     const sunE = sky.sun.visible ? sky.sun.intensity * Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)) * sky.eyeSunVisibility : 0;
     const fireE = world.fire ? world.fire.localIlluminance(camera.position) : 0;
