@@ -27,7 +27,11 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'dawn-sunrise-nw', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 134.8, 1.6, 311, -8] }, // from the N end of the top landing: the N upper flight descending on the right, the plain to the NW
   { n: 'dawn-stair-top-nw', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 134.8, 1.6, 311, -8] }, // the pre-sunrise moment from the head of the N upper flight: the stair descending, the plain to the NW (session 4)
   { n: 'dawn-glow-e', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 122.45, 1.6, 79, 6] },
-  { n: 'gate-dusk', day: 0, hour: 19.25, w: 'clear', v: [0.1, 118, 1.6, 341, 4] },
+  // §1.1 "how small a person is at the foot of a gate", as the fires are lit (session 7 reframe: the old view, (0.1, 118)
+  // looking N, stood inside the Gate hall facing a blank wall between two columns): from the Grand Stair's top landing 24 m
+  // W of the Gate's W façade (x −16.4), looking E along the doorway's axis (y 124.6): the 18.5 m wall and the 10 m doorway
+  // with its colossi, the guards at their feet and the braziers (pitch 15° at the photographic 40°: the wall top at +35°)
+  { n: 'gate-dusk', day: 0, hour: 19.25, w: 'clear', v: [-40, 124.6, 1.6, 90, 15] },
   { n: 'night-terrace', day: 5, hour: 22.5, w: 'clear', v: [0, 92, 1.6, 161, 6] },
   // moonless pre-dawn (day 1 = 18 Apr 467 BCE, the moon a thin crescent set in the evening): the Milky Way from Cygnus to
   // Sagittarius over the SE, seen from the Grand Stair top (D-047)
