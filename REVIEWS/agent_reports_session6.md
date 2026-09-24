@@ -103,3 +103,33 @@ every copy standing in 467 (14 carved, 10 missing, hidden texts DPh, XPf, XPh, X
 words across 12 carved OP texts, 0 mismatches; Xerxes' name xa-ša-ya-a-ra-ša-a in all 14 places.
 **Tests:** tsc clean; language/lang/inscriptions/translation/plain 85/85; lint:all OK; full vitest 618 passed, 1 failed
 (humans_runtime CPU timing, passes alone), 1 skipped.
+
+## Court in full assembly (branch court-s6, head 5d1c126, D-182) — merged in session 6
+**Broken, unverified or placeholder (read first)**
+- No browser render: every visible count and triangle figure is node (2.5-D sightlines, the crowd's main-pass counts).
+  To run: tests/e2e/crowd_scale.spec.ts COURT scenes (4 views: court-forecourt, court-from-hillside, court-forecourt-w,
+  court-apadana-n) and moments.spec `court-assembly` (day 30 10:00, `&court=seasonal`).
+- Placeholders (court.json `_meta.placeholders`, PROGRESS, D-182): delegates and petitioners in the generic Median riding
+  dress; no tents in the court camp (people drawn in the open, asleep too); the spearmen's apple butts are the ordinary
+  spear; the royal women's night music (Heracleides) not performed.
+- The king is not a person (B9); delegations wait "to be led before the king" and the audience happens out of sight (Q-335).
+- Not simulated: the town's +13,000 retinue and the plain's +5,000 (only ~1,900 court people lodge in the court camp
+  below the Terrace); the court's food does not draw on the calendar's stores.
+- The 30-day court soak fails variety and population variety; the 30-day soak WITHOUT the court fails the same two gates
+  with the same 88 people (the gate is set for a full year). Every court person passes; a road-station groom 0.085 →
+  0.106 (the court's couriers). The year soak with the court was not run.
+- Frame budget: the hillside view is over 12 M triangles on the world alone; the new Terrace views' world-only baselines
+  are unmeasured.
+- Load cost with the court setting: ~150 route pairs searched up front, 6.6–8 s on the loaded box (`view.stats.warmMs`).
+
+**Composition** (src/data/court.json, research/COURT.md; counts C, Greek sources capped at B): 1,000 spearmen (Hdt 7.41,
+7.83; Heracleides), 300 women of the royal household (Q-334), 200 attendants, 700 palace servants, 800 at the king's table
+(Athenaeus 4.145–146; PF 0701), 450 porters, 60 butchers (PF 58–60), 320 officials, 550 Persians of rank, 537 parties /
+4,230 petitioners and delegates (Apadana reliefs B for type, timing C). Total 9,310 (seed 1). Spearmen in 10 hundreds on a
+five-day watch cycle at 21 stretches of 10 ceremonial posts. Present day 0 (Q-330) to day 116.
+**Terrace by hour, day 30:** 00h 2,294 · 06h 3,198 · 08h 4,385 · 10h 4,448 · 12h 4,255 · 16h 3,229 · 20h 2,427 (target
+~5,000 by day, 2,500 by night; without the court 758 at 10:00).
+**Views (node):** court-forecourt-w 745 visible (day 30: 878), people 2.96 M tris; court-apadana-n 1,025 visible, 2.98 M;
+hillside 2,305–3,699 visible. B11's ≥ 300 met by node estimate. Pop-in 0 over 1,811 frames / 633 m after route warm-up.
+**Tests:** tsc clean; full vitest 625 passed, 1 skipped; new tests/court.test.ts (7), court_view.test.ts (3); lint:all OK;
+botcheck 97/97. Q-330..Q-336.
