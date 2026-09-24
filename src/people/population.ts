@@ -113,6 +113,8 @@ const AGE: [number, number, number][] = L.age_structure.v;
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 /** a feed or a spell while the household sleeps (Planner.nightWords): in the night, or at first light before getting up, or
  *  before sleeping */
+/** a feed (the mother's or the nursling's words; not "playing near the wet nurse") */
+export const FEED_SEG = /(^|, )nursing\b|stopping to nurse|^nursed\b/;
 export const NIGHT_FEED = / in the night| at first light, before getting up| before sleeping/;
 /** the hours a person stands in the ration queue once the issue opens (C; E-01 has the group's head receive for the group,
  *  the individual queue is the visible performance of §9.5): within planCheck's WAIT_CAP_H */
@@ -160,7 +162,7 @@ export function dustWear(segs: Seg[], wx: DayCtx['wx']) {
     // (asleep and carried too; not while eating. A spell that runs on into the dust, or out of it, for more than a quarter
     // of an hour is cut where the dust begins or ends: S2 of reviewer B, r7, a post wrapped from 09:03 for dust at 10:45)
     for (let i = 0; i < segs.length; i++) { const s = segs[i]; if (!outdoors(s) || s.act === 'eat' || Math.min(s.t1, dh[1]) - Math.max(s.t0, dh[0]) <= 0.05) continue;
-      if (/nurs/.test(s.why)) { s.wear = s.wear ? `${s.wear}, and ${W}` : W; continue; } // (a feed is not cut in two: one feed)
+      if (FEED_SEG.test(s.why)) { s.wear = s.wear ? `${s.wear}, and ${W}` : W; continue; } // (a feed is not cut in two: one feed)
       const parts: Seg[] = []; let a = s.t0; const e = s.t1;
       if (dh[0] - a > 0.25) { parts.push({ ...s, t0: a, t1: dh[0] }); a = dh[0]; }
       const mid: Seg = { ...s, t0: a, t1: e - dh[1] > 0.25 ? dh[1] : e }; mid.wear = mid.wear ? `${mid.wear}, and ${W}` : W; parts.push(mid);
@@ -184,7 +186,7 @@ export function coldWear(segs: Seg[], wx: DayCtx['wx'], agent = false) {
       for (let q = Math.floor(s.t0 * 4) + 1; q * 0.25 < s.t1 - 1e-9; q++) if (cold(q) !== c) { runs.push([a, q * 0.25, c]); a = q * 0.25; c = cold(q); }
       runs.push([a, s.t1, c]);
       const coldIn = (x: number, y: number) => { let h = 0; for (let q = Math.floor(x * 4); q * 0.25 < y - 1e-9; q++) if (cold(q)) h += Math.max(0, Math.min(y, q * 0.25 + 0.25) - Math.max(x, q * 0.25)); return h; };
-      if ((s.where === 'road' && (s.t1 - s.t0 < 0.75 || agent)) || runs.length === 1 || /nurs/.test(s.why)) { /* (a feed is not cut in two: one feed) */ const ch = coldIn(s.t0, s.t1); if (ch > 0.25 || ch >= (s.t1 - s.t0) / 2) add(s); continue; }
+      if ((s.where === 'road' && (s.t1 - s.t0 < 0.75 || agent)) || runs.length === 1 || FEED_SEG.test(s.why)) { /* (a feed is not cut in two: one feed) */ const ch = coldIn(s.t0, s.t1); if (ch > 0.25 || ch >= (s.t1 - s.t0) / 2) add(s); continue; }
       for (let k = 0; k < runs.length && runs.length > 1;) { if (runs[k][1] - runs[k][0] < 0.05) { if (k > 0) runs[k - 1][1] = runs[k][1]; else runs[1][0] = runs[0][0]; runs.splice(k, 1); } else k++; }
       for (let k = runs.length - 1; k > 0; k--) if (runs[k][2] === runs[k - 1][2]) { runs[k - 1][1] = runs[k][1]; runs.splice(k, 1); }
       const parts = runs.map(([x, y]) => { const b: Seg = { ...s, t0: x, t1: y }; const ch = coldIn(x, y); if (ch > 0.25 || ch >= (y - x) / 2) add(b); return b; });
