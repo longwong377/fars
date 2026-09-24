@@ -113,7 +113,9 @@ const ramp = (a: number, b: number, x: any) => (b - a > 1e-3 ? smoothstep(a, b, 
 
 /** TSL: the ambient (sky) irradiance at world position p with world normal n. S = hemisphere sky colour × intensity,
  *  U = probeSun, hemi = the hemisphere light's irradiance for n (the fallback). Returns the irradiance and the field weight. */
-export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any): { E: any; w: any } {
+/** `directSky`: E is the sky seen directly only, S·E_S(n)·(1 − bounce fraction), untinted: what a mirror of the sky may
+ *  reflect (the environment's specular occlusion, D-181); the bounced part is light off the hall's own surfaces */
+export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any, directSky = false): { E: any; w: any } {
   if (!FIELD || !ATLAS || !FIELD.volumes.length) return { E: hemi, w: float(0) };
   const q = p.add(n.mul(FIELD.normalBias)), W = ATLAS.width, H = ATLAS.height;
   // per volume (masked sums: the volumes do not overlap): the texel centre of the cell's low corner in q's two layers,
@@ -157,7 +159,7 @@ export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any): { E: an
   const up = n.y.mul(0.5).add(0.5);
   const tr = mix(s4.x, s2.x, up).mul(inv), tb = mix(s4.y, s2.y, up).mul(inv), fb = clamp(s2.z.mul(inv), 0, 1);
   const tint = vec3(tr, max(float(1).sub(tr.mul(0.2126)).sub(tb.mul(0.0722)).div(0.7152), 0), tb);
-  const E = S.mul(mix(vec3(1, 1, 1), tint, fb)).mul(eS).add(U.mul(tint).mul(eU));
+  const E = directSky ? S.mul(eS).mul(float(1).sub(fb)) : S.mul(mix(vec3(1, 1, 1), tint, fb)).mul(eS).add(U.mul(tint).mul(eU));
   const w = fade.mul(smoothstep(VALID_LO, VALID_HI, val));
   return { E: mix(hemi, E, w), w };
 }

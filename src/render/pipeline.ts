@@ -100,7 +100,7 @@ export class Pipeline {
     // materials and the composite turn it into an occlusion with envmap.specularOcclusion
     skyEnv.occlusion = (p: any, _n: any, r: any) => {
       const open = r.y.mul(0.5).add(0.5).max(0.05);
-      const P = probeAmbient(p, r, vec3(1, 1, 1), vec3(0, 0, 0), vec3(open, open, open));
+      const P = probeAmbient(p, r, vec3(1, 1, 1), vec3(0, 0, 0), vec3(open, open, open), true); // direct sky only (D-181)
       return clamp(luminance(P.E).div(open), 0, 1);
     };
     (globalThis as any).__parsaSurf = { ...((globalThis as any).__parsaSurf ?? {}), ...this.ab, env: skyEnv.intensity, envCaptures: () => skyEnv.captures, post: (v: string) => this.setDebugView(v) };

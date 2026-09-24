@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { decodeField, sampleField, evalSample } from '../../src/render/probes/field';
 const meta = JSON.parse(readFileSync('public/generated/probes.json', 'utf8')), b = readFileSync('public/generated/probes.f16');
 const F = { volumes: meta.volumes, data: decodeField(new Uint16Array(b.buffer, b.byteOffset, b.byteLength / 2)), count: meta.count, normalBias: meta.normalBias } as any;
-const so = (vis: number, nv: number, r: number) => Math.min(1, Math.max(0, Math.pow(Math.min(1, Math.max(0, nv)) + vis, 2 ** (-16 * r - 1)) - 1 + vis));
+const so = (vis: number, nv: number, r: number) => Math.min(1, Math.max(0, Math.pow(Math.min(1, Math.max(0, nv)) + vis, 2 ** (-16 * 0.35 - 1) + 0 * r) - 1 + vis));
 // views as in tests/e2e/dbg_surf.spec.ts: grid east, north, floor height (m), eye 1.6 m, true azimuth (deg)
 const views: [string, number, number, number, number][] = [['apadana-hall-in', 10.55, 12.4, 3.0, 170], ['hadish-hall', 22, -150, 6.0, 161]];
 for (const [name, e, nth, floor, az] of views) {
@@ -18,7 +18,8 @@ for (const [name, e, nth, floor, az] of views) {
     const open = Math.max(0.05, (1 + r[1]) / 2);
     if (!s) { console.log(`${name} floor ${d} m: no volume`); continue; }
     const [eS] = evalSample(s.s, r[0], r[1], r[2]);
-    const vis = Math.min(1, (s.w * eS + (1 - s.w) * open) / open);
+    const fb = Math.min(1, Math.max(0, s.s[10])), direct = eS * (1 - fb); // the sky seen directly (D-181)
+    const vis = Math.min(1, (s.w * direct + (1 - s.w) * open) / open);
     console.log(`${name} floor ${d} m: n·v ${nv.toFixed(3)} w ${s.w.toFixed(2)} vis ${vis.toFixed(4)} occlusion (rough 0.35) ${so(vis, nv, 0.35).toFixed(4)} (rough 0.55) ${so(vis, nv, 0.55).toFixed(4)}`);
   }
 }

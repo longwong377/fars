@@ -52,11 +52,24 @@ export const skyEnv = {
 
 /** Specular occlusion from an ambient visibility `vis` (Lagarde & de Rousiers 2014, Moving Frostbite to PBR §4.10.2: a
  *  fit of the visible fraction of the specular cone given a visibility cone): saturate((n·v + vis)^(2^(−16·roughness − 1))
- *  − 1 + vis). ≈ vis for rough surfaces; for glossy ones it falls to 0 at grazing angles unless the visibility is high,
+ *  − 1 + vis), at the fixed roughness OCC_ROUGH (D-181). It falls to 0 at grazing angles unless the visibility is high,
  *  so a sky visibility of a few per cent (a hall seen through its doors) gives a polished floor no sky sheen, while in the
  *  open (vis 1) it stays 1. Both bases are ≥ 0 (no NaN from pow). */
-export const specularOcclusion = (vis: any, dotNV: any, rough: any) =>
-  clamp(pow(clamp(dotNV, 0, 1).add(vis), exp2(rough.mul(-16).sub(1))).sub(1).add(vis), 0, 1);
+export const specularOcclusion = (vis: any, dotNV: any, _rough?: any) =>
+  clamp(pow(clamp(dotNV, 0, 1).add(vis), float(OCC_EXP)).sub(1).add(vis), 0, 1);
+/** The roughness the fit is evaluated at, for every surface (D-181). At a grazing view and a sky visibility of a few per
+ *  cent the fit goes from 0 to ≈ vis between roughness 0.25 and 0.45, so the red floors' polish and wear mottling
+ *  (roughness 0.35 ± 35 % in 0.3–3 m patches) switched whole patches between no sky and the sky through the doors: white
+ *  blotches over the Hadish floor (session-6 render at quality test; gone with the environment off). The occlusion is a
+ *  large-scale visibility (the probes' cosine-wide L1, 2 m apart), too coarse to be modulated by a pixel's roughness; the
+ *  roughness still shapes the highlight through the prefiltered level and the BRDF. 0.35 = the red floor's own roughness:
+ *  the floors keep the D-157 behaviour on average (no sky sheen at grazing angles in a hall); matte stone indoors gets
+ *  less grazing sky than the fit's ≈ vis, which it hardly shows anyway. */
+export const OCC_ROUGH = 0.35;
+const OCC_EXP = 2 ** (-16 * OCC_ROUGH - 1);
+/** CPU mirror of specularOcclusion (tests, tests/lib/occ_check.ts) */
+export const specularOcclusionCPU = (vis: number, nv: number, _r?: number) =>
+  Math.min(1, Math.max(0, Math.pow(Math.min(1, Math.max(0, nv)) + vis, OCC_EXP) - 1 + vis));
 
 /** Indirect specular from the sky environment, and no irradiance (EnvironmentNode adds both). The lookup mirrors three's
  *  EnvironmentNode: the reflected view vector bent toward the normal by roughness⁴, the prefiltered level by roughness. */

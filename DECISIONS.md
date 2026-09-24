@@ -2681,3 +2681,21 @@ edge 0.16 mm; the door sealing's inscription panel more than 3× a band-free cor
 **Not done / open.** The PT text (B18, NEEDS #15); the Aramaic chert texts (Bowman) on the store's chert sets; any
 Aramaic writing visible in the world (none reachable to place); PF/PFAT texts nowhere (not in the Treasury); seal figures
 are schematic; no browser render has been looked at (node previews of the height field only).
+
+## D-181 Sky specular occlusion: one roughness for the fit, the direct sky only (session 6, lead)
+- **Found:** `hadish-hall` at quality test (session 6, WebGPU; the session-5 WebGL2 render showed the same) has white
+  blotches over the red floor. A/B with `__parsaSurf.env = 0` (dbg_surf, shots/surf-hadish-hall-{B,env0}.png): they are
+  the sky environment's specular (D-157); the frame mean falls 71 → 62 without it. A debug view of the occlusion
+  (`?envdbg=occ`: visibility red, occlusion green) shows it in patches that follow the floor's roughness mottling.
+- **Cause:** the Lagarde–de Rousiers fit saturate((n·v + vis)^(2^(−16 r − 1)) − 1 + vis) goes from 0 to ≈ vis between
+  roughness 0.25 and 0.45 at a grazing view with vis of a few per cent; the red floor is 0.35 ± 35 % in 0.3–3 m patches
+  (D-148, D-157), so the patches switched between no sky and the sky through the doors (up to 11 % visibility 20 m in,
+  toward the door: tests/lib/occ_check.ts), ×229 interior exposure.
+- **Changed (envmap.ts, pipeline.ts, probes/runtime.ts):** the fit is evaluated at OCC_ROUGH = 0.35 (the red floor's own
+  roughness) for every surface: the occlusion is a large-scale visibility from probes 2 m apart and should not be
+  modulated by a pixel's roughness; the roughness still shapes the highlight (prefiltered level, BRDF). The visibility is
+  the probes' **direct** sky only (S channel × (1 − bounce fraction), `probeAmbient(..., directSky)`): the bounced part is
+  light off the hall's own surfaces, not sky radiance. Measured on the CPU: the Hadish floor's visibility falls ~13 %
+  (0.0249 → 0.0217 at 10 m); the Apadana's by 20–100 %. Matte stone indoors now gets less grazing sky specular than the
+  fit's ≈ vis (C). Test: tests/envocc.test.ts.
+- **Not verified:** a render after the change (dbg job queued: B and env0 of hadish-hall at test).
