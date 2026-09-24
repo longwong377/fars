@@ -110,7 +110,8 @@ async function boot() {
     const d = world.doors?.use(camera); if (d) { console.info('[door]', JSON.stringify(d)); return; }
     const r = world.address?.(camera); if (r) console.info('[translation layer]', JSON.stringify(r)); };
   const tl = new TranslationLayer(() => settings); input.onAction = a => tl.toggle(a);
-  let lastSub: any = null, lastSubAt = -1e9; const inscGroup = [world.root.getObjectByName('inscriptions') ?? null, world.root.getObjectByName('nr-inscriptions') ?? null];
+  let lastSub: any = null, lastSubAt = -1e9; const inscGroup = [world.root.getObjectByName('inscriptions') ?? null, world.root.getObjectByName('nr-inscriptions') ?? null,
+    world.root.getObjectByName('treasury_scribes_room') ?? null, world.root.getObjectByName('doors') ?? null]; // the last two: writing on objects (D-179)
   const body = makePlayerBody((world as any).people?.crowd); scene.add(body);
 
   let lastSave: string | null = null;
