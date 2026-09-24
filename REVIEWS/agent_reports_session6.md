@@ -202,3 +202,22 @@ the sample header prints rain, storm and dust hours.
 **Checks:** tsc clean; people_days_r7 12/12; people/sim/court/popview suites 142/142; full vitest 693 passed, 1 skipped;
 lint:all OK; botcheck 97/97. **Soak PASS all 8 gates** (22dc891; variety worst 0.019; populationVariety worst 0.067;
 events 14–20 kinds/week; plansWellFormed 15,462,938 person-days, 0 issues; visibleChange 51/51). Round-7 input pick 131.
+
+## Voice re-render (branch voices-s6, head 1f7a07e, D-185) — merged in session 6
+**Broken, unverified or placeholder:** nobody has listened (H8 open): naturalness, Praat pitch-lowering artefacts, and
+whether the old man (8.45 st) and the woman (7.5 st) now sound sing-song (wider than the natural control 5.66 st; no upper
+limit set) are unknown. Machine phone recognition did not improve (allosaurus median error / shuffled / share beating
+shuffle, before → after: Aramaic 0.50/0.69/73 % → 0.60/0.71/67 %; OP 0.80/0.83/67 % → 0.84/0.86/51 %; Elamite
+0.81/0.83/50 % → 0.80/0.80/54 %; Greek 0.83/0.86/34 % → 1.00/1.00/28 %; noisy; the script is a re-implementation).
+eSpeak's echo kept on women's and the child's voices (removing it worsened recognition): reverberated twice (Q-287). The
+`espeak-ng` command fallback is untested. One threshold definition (the end-of-line rise/fall) was changed after the first
+render (both versions reported). Two age-norm sources read in abstract only (C). Babylonian and the murmur unchanged.
+**Method:** libespeak-ng 1.52.0 via `espeakng-loader` (ctypes), `--engine auto|lib|cmd`; IPA round trip 0 mismatches over
+62 lines; monotony was missing stress marks: `markStress` (src/audio/speech.ts) marks the syllable the formant voice
+stresses; per-class target pitch inside Hillenbrand et al. 1995 (C); contours per utterance type with a 2-semitone final
+lowering in Praat for statements (Liberman & Pierrehumbert 1984); byte-identical rebuilds. tools/voice_acceptance.py →
+research/voice_acceptance.json; tests/voice_acceptance.test.ts ties the report to the shipped clips by sha256.
+**Before → after (372 clips):** men 78.8/97.0/83.6 Hz → 114.8/133.2/120.6 (109–153); women 209.4/181.4 → 216.5/203.9
+(197–244); child 280.4 → 244.2 (212–263); median range 1.29 → 6.44 st (≥ 3); clips ≥ 2 st 31 % → 100 %; questions rising
+17 % → 100 %; statements falling 24 % → 99 %; greetings 28 % → 100 %; commands 15 % → 97 %; vowel frames in the
+Hillenbrand space 88–96 % → 86–97 % (≥ 85 %). Clips +132 KB (+8.4 %). Tests 125 passed (8 files); lint:all OK.

@@ -50,7 +50,7 @@ export const INSCRIPTION_INFO: Record<string, { title: string; where: string; ca
 const VERSION_NAME: Record<string, string> = { op: 'Old Persian', el: 'Elamite', bab: 'Babylonian' };
 const LEX_FILE: Record<string, string> = { op: 'old_persian.json', el: 'elamite.json', bab: 'babylonian.json' };
 /** why no translation is shown (D-167): the project's own finding, with where it is logged */
-export const TRANSLATION_STATUS = 'No published English translation is shown. The one this project has read, Livius.org\'s (J. Lendering, after Kent and Lecoq; read through the Electronic-Old-Persian-Library scrape), carries "All content copyright © 1995–2024 Livius.org. All rights reserved." on its own pages; the scrape\'s CC-BY-NC cannot relicense it, and §12 allows only CC0, CC-BY or CC-BY-NC here. A public-domain or CC-BY(-NC) translation is needed (NEEDS_FROM_ME #14; BLOCKERS B17). Nothing is paraphrased from memory.';
+export const TRANSLATION_STATUS = 'No published English translation is shown. The one this project has read, Livius.org\'s (J. Lendering, after Kent and Lecoq; read through the Electronic-Old-Persian-Library scrape), carries "All content copyright © 1995–2024 Livius.org. All rights reserved." on its own pages; the scrape\'s CC-BY-NC cannot relicense it. §12 allows, for this personal, non-commercial use, any licence that permits that use with credit (CC0, CC-BY, CC-BY-NC, and also CC-BY-SA: D-192); "All rights reserved" permits none. A translation under such a licence, or in the public domain, is needed (NEEDS_FROM_ME #14; BLOCKERS B17). Nothing is paraphrased from memory.';
 import { MAP_ZOOMS, MapItem, MapStyle, P2 } from './mapLayers';
 
 /** English names for the map and the chronicle (out-of-world; the conventional modern names, not period ones) */
@@ -119,7 +119,11 @@ export function inscriptionReading(id: string, version = 'op'): InscriptionReadi
     } else for (const k of atfKeys(w)) { g = G.exact.get(k); if (g) { how = 'form'; break; } }
     words.push({ w, gloss: g?.gloss ?? null, how, tier: g?.tier, src: g?.src });
   }
-  if (v !== 'op') notes.push(`Version split of the ARIo running text: ${t.tier?.version_split ?? 'C'}.`);
+  if (v !== 'op') {
+    notes.push(`Version split of the ARIo running text: ${t.tier?.version_split ?? 'C'}.`);
+    const m = t[`${v}_marks`]; // what the stone has that this running text does not show (D-184)
+    if (m && (m.omitted || m.restored)) notes.push(`The stone's signs as carved, in the edition's lines: ${m.omitted ? `${m.omitted} sign${m.omitted > 1 ? 's' : ''} the scribe omitted (supplied above by the editor) not carved; ` : ''}${m.restored} signs restored after later damage carved (C).`);
+  }
   else if (t.op_lined) { // what is carved is the edition's sign line (D-184); say what the stone has that the words above do not show
     const rows = ((t.op_words as any[]) ?? []).filter(r => r.signs), sum = (k: string) => rows.reduce((q, r) => q + (Array.isArray(r[k]) ? r[k].length : typeof r[k] === 'number' ? r[k] : 0), 0);
     const omittedWords = ((t.op_words as any[]) ?? []).filter(r => r.cmp === 'ario-only').length;

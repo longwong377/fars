@@ -60,6 +60,8 @@ describe('translation layer', () => {
   it('shows no translation it may not show, and says why (Livius is all rights reserved; D-167, B17)', () => {
     const r = TL.inscriptionReading('XPa', 'op')!;
     expect(r.translation).toMatch(/No published English translation is shown/); expect(r.translation).toMatch(/All rights reserved/); expect(r.translation).toMatch(/B17/);
+    // §12 stated as D-192 reads it: any licence that permits personal non-commercial use with credit (CC-BY-SA included)
+    expect(r.translation).not.toMatch(/only CC0/); expect(r.translation).toMatch(/CC-BY-SA: D-192/);
     // a stem gloss never fires on the bare stem (api "also" is not api- "water")
     expect(r.words.find(w => w.w === 'api')?.gloss ?? null).toBeNull();
   });
