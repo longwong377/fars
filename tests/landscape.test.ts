@@ -5,7 +5,7 @@ import * as THREE from 'three/webgpu';
 import { loadTerrain, loadRiversFile } from './plainLib';
 import { bakeDetail, bakeTerrainDetail, DETAIL_RING, type Detail } from '../src/terrain/terrainDetail';
 import { buildTownPlan, type TownPlan } from '../src/world/settlement/plan';
-import { buildTownGround, groundAt, desireLines, PATH_W, TERRACE_BOX, type GroundMap } from '../src/world/plain/townGround';
+import { buildTownGround, groundAt, pathDistance, desireLines, PATH_W, TERRACE_BOX, type GroundMap } from '../src/world/plain/townGround';
 import { buildZones, landUseAt, ROTATION, RAINFED_BARLEY, rainfedThreshold, plotAt } from '../src/world/plain/fields';
 import { settlementZones, pointInPolygon } from '../src/world/plain/data';
 import { buildCanals } from '../src/world/plain/canals';
@@ -55,13 +55,23 @@ describe('the town\'s used ground (townGround.ts)', () => {
     const L = desireLines(plan); expect(L.length).toBeGreaterThan(15); expect(L.length).toBeLessThan(120);
     expect(G.runs).toBe(L.length);
   });
-  it('a worn path is continuous between the 4 m samples: along every desire line in the near ring, the filtered distance stays within the path (but where two paths meet)', () => {
+  it('a worn path is continuous between the 4 m samples: along every desire line in the near ring, the filtered distance stays within the path (but where two paths meet at a sharp angle: 25 of 51,627 samples, within 2.6 m of it)', () => {
     let worst = 0, n = 0, out = 0;
     for (const l of desireLines(plan)) { const Ls = Math.hypot(l.b[0] - l.a[0], l.b[1] - l.a[1]);
       for (let t = 6; t < Ls - 6; t += 0.7) { const e = l.a[0] + (l.b[0] - l.a[0]) * t / Ls, nn = l.a[1] + (l.b[1] - l.a[1]) * t / Ls;
         if (Math.abs(e) > 2000 || Math.abs(nn) > 2000) continue; const d = groundAt(G, e, nn)[0]; worst = Math.max(worst, d); n++; if (d > PATH_W / 2) out++; } }
     console.log({ n, out, worst }); // a sample between two paths' nearest vectors (a junction or a crossing) interpolates two lines
-    expect(n).toBeGreaterThan(1000); expect(out / n).toBeLessThan(0.01); expect(worst).toBeLessThan(2.5);
+    expect(n).toBeGreaterThan(1000); expect(out / n).toBeLessThan(0.001); expect(worst).toBeLessThan(3) // (was 309 of 51,627 out, filtering the vectors);
+  });
+  it('no false paths: the reconstructed distance matches the exact distance to the desire lines (the midline between two paths is not a path)', () => {
+    const L = desireLines(plan), exact = (e: number, n: number) => Math.min(...L.map(l => { const dx = l.b[0] - l.a[0], dy = l.b[1] - l.a[1], t = Math.min(1, Math.max(0, ((e - l.a[0]) * dx + (n - l.a[1]) * dy) / (dx * dx + dy * dy)));
+      return Math.hypot(l.a[0] + t * dx - e, l.a[1] + t * dy - n); }));
+    let n = 0, falsePath = 0, missed = 0, bad = 0;
+    for (let i = 0; i < 60000; i++) { const e = -1500 + ((i * 7919) % 30000) / 10, nn = -1500 + ((i * 104729) % 30000) / 10, d = exact(e, nn); if (d > 30) continue;
+      const r = pathDistance(G, e, nn); n++;
+      if (d > 3 && r < PATH_W / 2) falsePath++; if (d < PATH_W / 4 && r > PATH_W / 2) missed++; if (d < 10 && Math.abs(r - d) > 0.5) bad++; }
+    console.log({ n, falsePath, missed, bad }); expect(n).toBeGreaterThan(3000);
+    expect(falsePath / n).toBeLessThan(0.002); expect(missed / n).toBeLessThan(0.002); expect(bad / n).toBeLessThan(0.03);
   });
   it('no plot is cultivated inside or beside a built site, on the Terrace or its approach; the open ground between the quarters is', () => {
     const canals = buildCanals(T, R.rivers, 1), villages = placeVillages(T, R.rivers, canals, 1);

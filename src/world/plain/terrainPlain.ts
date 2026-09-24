@@ -38,7 +38,7 @@ export const HILL = {
   /** bedding: packages of beds (m) of which ~45 % form cliffs; beds 0.6-2.2 m; a gentle dip (C) */
   pkg: 12, cliffShare: 0.45, bed: [0.6, 1.6], dip: 0.05, dipDir: 0.52,
   /** shrubs: 5 m cells, crowns 0.6-1.6 m radius; cover on open slopes, in gullies, on shaded (north-facing) slopes (C) */
-  shrubCell: 5, shrubCover: { slope: 0.035, gully: 0.09, north: 0.04 },
+  shrubCell: 5, shrubCover: { slope: 0.035, gully: 0.15, north: 0.04 },
   /** within 2 km of the Terrace half the cover (fuel cutting; the woodland rule keeps 10 % of its trees there: the scrub
    *  regrows from its rootstock, C) */
   shrubNearCapital: 0.5,
@@ -142,7 +142,21 @@ export class PlainGround {
       const gr = texture(groundTex, p.add(GROUND.half).div(GROUND.cell).add(0.5).div(GROUND.n));
       const allowed = mix(float(1), smoothstep(0.4, 0.6, gr.w), gIn);
       const trample = gr.z.mul(gIn);
-      const pathD = mix(float(99), length(gr.xy.mul(255).sub(128).div(10)), gIn);
+      // distance to the nearest worn path: each of the 4 surrounding samples names its nearest path point q and (by its
+      // vector) the path's normal; the pixel's distance to that line, the least of the four. Filtering the vectors instead
+      // drew false paths on the midline between two paths (their vectors cancel; after-run of D-190). A sample with no path
+      // within 12.7 m (a clamped component) counts as none
+      const fg = p.add(GROUND.half).div(GROUND.cell), g0 = floor(fg), pathMin = float(99).toVar();
+      for (let i = 0; i <= 1; i++) for (let j = 0; j <= 1; j++) {
+        const t = clamp(g0.add(vec2(i, j)), 0, GROUND.n - 1), s = textureLoad(groundTex, ivec2(int(t.x), int(t.y)));
+        const v = s.xy.mul(255).sub(128).div(10), vl = length(v);
+        const q = t.mul(GROUND.cell).sub(GROUND.half).add(vec2(v.x, v.y.negate())); // grid (east, north) -> world (x, z = -north)
+        const nrm = vec2(v.x, v.y.negate()).div(vl.max(1e-3));
+        const dLine = mix(length(p.sub(q)), abs(dot(p.sub(q), nrm)), smoothstep(0.2, 0.5, vl));
+        const none = step(12.6, max(abs(v.x), abs(v.y)));
+        pathMin.assign(min(pathMin, mix(dLine, float(99), none)));
+      }
+      const pathD = mix(float(99), pathMin, gIn);
       // --- land use at the plot seed (nearest zone texel) and at this pixel (bilinear, for the far fade)
       const tc = clamp(floor(seed.add(H).div(C)), 0, N - 1);
       const z = textureLoad(zoneTex, ivec2(int(tc.x), int(tc.y)));
@@ -197,7 +211,7 @@ export class PlainGround {
       alb = mix(alb, packedAlb, tr);
       const pxD = fwidth(pathD).max(1e-4), hw = PATH_W / 2;
       const pathCov = clamp(min(float(hw), pathD.add(pxD.mul(0.5))).sub(max(float(-hw), pathD.sub(pxD.mul(0.5)))).max(0).div(pxD), 0, 1);
-      alb = mix(alb, packed.mul(1.08), pathCov.mul(0.8));
+      alb = mix(alb, packed.mul(1.05), pathCov.mul(0.5)); // a trodden line, not a road (after-run: at 0.8 the fan of paths read as roads)
 
       // --- the hills (terrainDetail.ts maps: near ring 4 m, mid ring 16 m; beyond them the geometric normal alone)
       const detAt = (tex: THREE.DataTexture, R: { half: number; cell: number; n: number }) => texture(tex, p.add(R.half).div(R.cell).add(0.5).div(R.n));
@@ -218,10 +232,13 @@ export class PlainGround {
       const sb = sy.div(bedT), fb = fract(sb), bedI = floor(sb);
       const fwY = fwidth(sy).max(1e-4);
       const bedVis = float(1).sub(smoothstep(0.25, 0.6, fwY.div(bedT))), pkgVis = float(1).sub(smoothstep(0.2, 0.5, fwY.div(HILL.pkg)));
+      const cliffV = mix(float(HILL.cliffShare), cliff, pkgVis); // a package under ~2 px: its mean (no aliasing bands far off)
       // rock (C): slopes over ~21-40 deg, convex ground, cliff packages, broken by 20-80 m noise; gullies keep their fill
       const n1 = mx_noise_float(P3.mul(0.045)), n2 = mx_noise_float(P3.mul(0.013).add(3.3));
-      const rockRaw = smoothstep(0.3, 0.75, slope).mul(1.15).add(cvx.mul(0.45).mul(smoothstep(0.15, 0.4, slope)))
-        .add(cliff.mul(smoothstep(0.28, 0.55, slope)).mul(0.45).mul(pkgVis.mul(0.6).add(0.4))).add(n1.mul(0.25)).add(n2.mul(0.2)).sub(gully.mul(0.6)).sub(0.04);
+      // (after-run of D-190: with the noise at 0.25 + 0.2 the rock read as 20-80 m blobs, a camouflage over the dunes; the
+      // cliff packages now carry the rock, so it lies in bands along the contours as bedded limestone does)
+      const rockRaw = smoothstep(0.3, 0.75, slope).add(cvx.mul(0.45).mul(smoothstep(0.15, 0.4, slope)))
+        .add(cliffV.mul(smoothstep(0.25, 0.5, slope)).mul(0.75)).add(n1.mul(0.12)).add(n2.mul(0.12)).sub(gully.mul(0.6)).sub(0.08);
       const rock = smoothstep(0.35, 0.65, rockRaw).mul(hillOn);
       // scree (C): concave middle slopes below the rock and the gully beds; soil and herbs on the rest
       const n3 = mx_noise_float(P3.mul(0.07).add(7.1));
@@ -229,13 +246,14 @@ export class PlainGround {
       const bedTone = float(1).add(unitN(pcgN(bedI.add(16384).toUint())).mul(2).sub(1).mul(0.08).mul(bedVis));
       const weather = smoothstep(-0.3, 0.5, mx_noise_float(P3.mul(0.11).add(1.7)).add(n1.mul(0.4)));
       const recess = float(1).sub(smoothstep(0.0, 0.2, fb)).mul(bedVis).mul(cliff.mul(0.6).add(0.4)); // the shadowed foot of a ledge
-      const rockAlb = mix(linA(HILL.rock), linA(HILL.rockDark), weather.mul(0.7)).mul(bedTone).mul(float(1).sub(recess.mul(0.35))).mul(float(1).add(pkgVis.mul(hp.sub(0.5)).mul(0.12)));
+      // cliff-forming beds weather darker and hold shadow in their joints (C); the benches between them lighter
+      const rockAlb = mix(linA(HILL.rock), linA(HILL.rockDark), weather.mul(0.5)).mul(bedTone).mul(float(1).sub(recess.mul(0.35))).mul(mix(float(1.06), float(0.8), cliffV));
       const screeAlb = linA(HILL.scree).mul(float(1).add(mx_noise_float(P3.mul(1.7)).mul(0.1).mul(near)));
       const steepSoil = smoothstep(0.25, 0.6, slope).mul(hillOn).mul(0.55); // herbs thin out on steep colluvium
       alb = mix(alb, mix(linA(HILL.slopeSoil), soil, 0.3), steepSoil);
       alb = mix(alb, screeAlb, scree.mul(0.8));
       alb = mix(alb, rockAlb, rock);
-      alb = alb.mul(float(1).sub(gully.mul(0.12).mul(hillOn))).mul(float(1).add(cvx.mul(0.05).mul(hillOn))); // gullies hold shade and moisture
+      alb = alb.mul(float(1).sub(gully.mul(0.28).mul(hillOn))).mul(float(1).add(cvx.mul(0.05).mul(hillOn))); // gullies hold shade and moisture
       // relief below the DEM (bump only; the heights are never moved): ledges, outcrop masses, the gullies' cut (C)
       const fadeFine = float(1).sub(smoothstep(0.5, 2.0, fw)), fadeMid = float(1).sub(smoothstep(4.0, 16.0, fw));
       // a bed's profile up the slope: a short riser at its base (the offset climbs over the first 15 %), then a long tread

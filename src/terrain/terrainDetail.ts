@@ -105,7 +105,12 @@ export interface Detail { near: DetailMap; mid: DetailMap }
 const plainRing = (r: RingLike): RingLike => ({ h: r.h, n: r.n, cell: r.cell, half: r.half });
 /** both rings' maps: off the main thread in the browser (detail_worker.ts, started with the plain's build and awaited when
  *  the terrain material is made), in place in node */
+const started = new WeakMap<Terrain, Promise<Detail>>();
+/** the same bake, started once per terrain (world.ts starts it before the town builds; the plain awaits it) */
 export function bakeTerrainDetail(terrain: Terrain): Promise<Detail> {
+  let p = started.get(terrain); if (!p) { p = bakeNow(terrain); started.set(terrain, p); } return p;
+}
+function bakeNow(terrain: Terrain): Promise<Detail> {
   const job = { near: plainRing(terrain.near), mid: plainRing(terrain.mid) };
   const inPlace = (): Detail => ({ near: bakeDetail(job.near, DETAIL_RING.near), mid: bakeDetail(job.mid, DETAIL_RING.mid) });
   if (typeof Worker === 'undefined' || typeof window === 'undefined') return Promise.resolve(inPlace());

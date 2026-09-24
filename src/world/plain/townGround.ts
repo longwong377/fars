@@ -104,7 +104,7 @@ export function buildTownGround(plan: TownPlan | null): GroundMap {
     for (const w of plan.water) for (let i = 1; i < w.pts.length; i++) seg(w.pts[i - 1], w.pts[i], 20, (k, d) => { if (d < w.width / 2 + 12) allowed[k] = 0; });
     for (const r of desireLines(plan)) { runs++;
       seg(r.a, r.b, VEC_RANGE, (k, d, px, py) => { if (d < best[k]) { best[k] = d; vx[k] = px; vy[k] = py; } });
-      seg(r.a, r.b, 14, (k, d) => { trample[k] = Math.max(trample[k], r.w * (1 - sstep(1, 14, d))); }); }
+      seg(r.a, r.b, 7, (k, d) => { trample[k] = Math.max(trample[k], r.w * (1 - sstep(1, 6, d))); }); } // (was ±14 m: broad bands)
   }
   const data = new Uint8Array(N * 4), enc = (v: number) => Math.round(128 + Math.max(-VEC_RANGE, Math.min(VEC_RANGE, v)) * 10);
   for (let k = 0; k < N; k++) { data[k * 4] = enc(vx[k]); data[k * 4 + 1] = enc(vy[k]); data[k * 4 + 2] = Math.round(Math.min(1, trample[k]) * 255); data[k * 4 + 3] = allowed[k] ? 255 : 0; }
@@ -119,6 +119,20 @@ export function groundAt(g: GroundMap, e: number, nn: number): [number, number, 
   const c0 = Math.min(g.n - 2, Math.floor(fx)), r0 = Math.min(g.n - 2, Math.floor(fy)), tx = fx - c0, ty = fy - r0;
   const s = (ch: number) => { const a = (r: number, c: number) => g.data[(r * g.n + c) * 4 + ch] / 255;
     return (a(r0, c0) * (1 - tx) + a(r0, c0 + 1) * tx) * (1 - ty) + (a(r0 + 1, c0) * (1 - tx) + a(r0 + 1, c0 + 1) * tx) * ty; };
-  const dx = (s(0) * 255 - 128) / 10, dy = (s(1) * 255 - 128) / 10;
-  return [Math.hypot(dx, dy), s(2), s(3)];
+  return [pathDistance(g, e, nn), s(2), s(3)];
+}
+/** distance (m) to the nearest worn path as the shader reconstructs it (terrainPlain.ts): each of the 4 surrounding
+ *  samples names its nearest path point and the path's normal; the least distance to those lines (99: none within reach) */
+export function pathDistance(g: GroundMap, e: number, nn: number): number {
+  const fx = (e + g.half) / g.cell, fy = (-nn + g.half) / g.cell, c0 = Math.floor(fx), r0 = Math.floor(fy); let best = 99;
+  for (let i = 0; i <= 1; i++) for (let j = 0; j <= 1; j++) {
+    const c = Math.min(g.n - 1, Math.max(0, c0 + i)), r = Math.min(g.n - 1, Math.max(0, r0 + j)), k = (r * g.n + c) * 4;
+    const vx = (g.data[k] - 128) / 10, vy = (g.data[k + 1] - 128) / 10, vl = Math.hypot(vx, vy);
+    if (Math.max(Math.abs(vx), Math.abs(vy)) >= 12.6) continue;
+    const qe = -g.half + c * g.cell + vx, qn = -(-g.half + r * g.cell) + vy, de = e - qe, dn = nn - qn;
+    const t = Math.min(1, Math.max(0, (vl - 0.2) / 0.3)), w = t * t * (3 - 2 * t);
+    const dLine = vl > 1e-3 ? Math.abs(de * vx + dn * vy) / vl : 0;
+    best = Math.min(best, Math.hypot(de, dn) * (1 - w) + dLine * w);
+  }
+  return best;
 }
