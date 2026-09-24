@@ -11,7 +11,7 @@
 import { PLAIN, feature, pointInPolygon, settlementZones } from './data';
 import { CROP_ROWS, CropRow, PLOT_OFFSET_DAYS } from './seasonal';
 import type { Terrain } from '../../terrain/heightfield';
-import { groundAt, TERRACE_BOX, APPROACH_BOX, type GroundMap } from './townGround';
+import { groundAt, TERRACE_BOX, type GroundMap } from './townGround';
 
 // ---------------------------------------------------------------- hash (mirrored in TSL: terrainPlain.ts)
 /** PCG hash (pcg-random.org via three's TSL `hash`): u32 -> u32 */
@@ -125,9 +125,9 @@ export function buildZones(inp: ZoneInputs): ZoneMap {
     const i = r * n + c, x = -half + (c + 0.5) * cell, y = half - (r + 0.5) * cell;
     const a = asl[i], s = slope[i];
     // the Terrace and its foot: before D-190 a 660 m square (the settlement zones covered the rest); with the town's ground
-    // map, the Terrace + 150 m and the people's walkable approach (its per-pixel mask cuts the sites, roads and water out)
-    const terrace = inp.ground ? (Math.hypot(Math.max(TERRACE_BOX.e0 - x, 0, x - TERRACE_BOX.e1), Math.max(TERRACE_BOX.n0 - y, 0, y - TERRACE_BOX.n1)) < 150
-      || (x > APPROACH_BOX.e0 - 20 && x < APPROACH_BOX.e1 + 20 && y > APPROACH_BOX.n0 - 20 && y < APPROACH_BOX.n1 + 20)) : Math.abs(x - 110) < 330 && Math.abs(y) < 330;
+    // map, the Terrace + 150 m (its per-pixel mask cuts the approach, the sites, roads, water, camp and facilities out)
+    const terrace = inp.ground ? Math.hypot(Math.max(TERRACE_BOX.e0 - x, 0, x - TERRACE_BOX.e1), Math.max(TERRACE_BOX.n0 - y, 0, y - TERRACE_BOX.n1)) < 150
+      : Math.abs(x - 110) < 330 && Math.abs(y) < 330;
     const nearNR = x > nr.x_range[0] - 300 && x < nr.x_range[1] + 300 && y > nr.face_y - 350 && y < nr.face_y + 50;
     // the town's open ground: irrigated plots (the Kuh-e Rahmat canal, C), only where the ground map says where its sites are
     const town = !!excl[i] && !!inp.ground && Math.max(Math.abs(x), Math.abs(y)) < inp.ground.half - 2 * cell;

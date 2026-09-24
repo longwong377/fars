@@ -13,13 +13,15 @@
 //    edges, the roads. Bare packed earth, the herb layer grazed and trodden off (C).
 //  - A: field allowed 1 / 0: the town's open ground between its quarters is cultivated (irrigated plots on the Kuh-e
 //    Rahmat canal's water, settlement.json canal_kuh_e_rahmat, B existence / C extent), but never inside or within 30 m of
-//    a built site, within 15 m of a road or water piece, on the walkable approach, or within 150 m of the Terrace.
+//    a built site, within 15 m of a road or water piece, within 70 m of the approach line (town place to stair foot),
+//    within 150 m of the Terrace, on the court's camp ground or at a facility the population works at.
 // All C (reconstruction), built from the town plan as built.
 import { siteExits, type TownPlan } from '../settlement/plan';
 import { TownWalk } from '../settlement/walk';
 import { toLocal, type P2 } from '../settlement/site';
 import placesJson from '../../data/people_places.json';
 import townJson from '../../data/town.json';
+import courtJson from '../../data/court.json';
 
 export const GROUND = { half: 2048, cell: 4, n: 1025 } as const;
 /** the Terrace footprint (settlement.json / footprints.json terrace, grid m) and the people's walkable grid round it (D-024) */
@@ -30,6 +32,7 @@ const VEC_RANGE = 12.7; // m, per component
 export interface GroundMap { data: Uint8Array; n: number; half: number; cell: number; runs: number }
 
 const boxDist = (e: number, n: number, b: { e0: number; e1: number; n0: number; n1: number }) => Math.hypot(Math.max(b.e0 - e, 0, e - b.e1), Math.max(b.n0 - n, 0, n - b.n1));
+const segDist = (e: number, n: number, a: P2, b: P2) => { const dx = b[0] - a[0], dy = b[1] - a[1], t = Math.min(1, Math.max(0, ((e - a[0]) * dx + (n - a[1]) * dy) / (dx * dx + dy * dy || 1))); return Math.hypot(a[0] + t * dx - e, a[1] + t * dy - n); };
 const sstep = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 /** the extra nodes popgeo gives the lane graph (people/popgeo.ts: the stair foot, the town place and the facilities) */
@@ -70,13 +73,22 @@ export function buildTownGround(plan: TownPlan | null): GroundMap {
     const c0 = Math.max(0, idx(e0)), c1 = Math.min(n - 1, idx(e1)), r0 = Math.max(0, idx(-n1)), r1 = Math.min(n - 1, idx(-n0)); // row r = world z = -north
     for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) f(r * n + c, -half + c * cell, -(-half + r * cell));
   };
-  // the Terrace and its approach
+  // the Terrace's foot, and the approach from the W: the line from the town place to the stair foot (people_places.json;
+  // the walkable grid's axis, D-024) is kept open ±70 m, trodden along its middle (C)
+  const ex = laneExtras(), stair = ex[0], townPl = ex[1];
   each(APPROACH_BOX.e0 - 120, TERRACE_BOX.e1 + 160, APPROACH_BOX.n0 - 160, APPROACH_BOX.n1 + 160, (k, e, nn) => {
-    const dT = boxDist(e, nn, TERRACE_BOX), dA = boxDist(e, nn, APPROACH_BOX);
-    const t = Math.max(0.8 * (1 - sstep(20, 110, dT)), 0.2 * (1 - sstep(0, 60, dA)));
-    trample[k] = Math.max(trample[k], t);
-    if (dT < 150 || dA < 20) allowed[k] = 0;
+    const dT = boxDist(e, nn, TERRACE_BOX), dA = stair && townPl ? segDist(e, nn, stair, townPl) : 1e9;
+    trample[k] = Math.max(trample[k], 0.8 * (1 - sstep(20, 110, dT)) * (1 - sstep(200, 300, e)), 0.4 * (1 - sstep(8, 70, dA))); // not up the mountain behind the E edge
+    if (dT < 150 || dA < 70) allowed[k] = 0;
   });
+  // the court's camp below the Terrace (court.json camp: open ground, tents not built) and the facilities the population
+  // works at in the near ring (town.json: stores, mill, brewery, brickyard, clay pit; positions C): trodden, not tilled
+  const camp = (courtJson as any).camp as { c: P2; r: number };
+  each(camp.c[0] - camp.r - 60, camp.c[0] + camp.r + 60, camp.c[1] - camp.r - 60, camp.c[1] + camp.r + 60, (k, e, nn) => {
+    const d = Math.hypot(e - camp.c[0], nn - camp.c[1]); trample[k] = Math.max(trample[k], 0.45 * (1 - sstep(camp.r * 0.6, camp.r + 50, d))); if (d < camp.r + 30) allowed[k] = 0; });
+  for (const f of (townJson as any).facilities as { id: string; at: P2 }[]) { if (/^(crown_fields|garden_pw|mountain|offering_place|river|outside|station)$/.test(f.id)) continue;
+    each(f.at[0] - 70, f.at[0] + 70, f.at[1] - 70, f.at[1] + 70, (k, e, nn) => { const d = Math.hypot(e - f.at[0], nn - f.at[1]);
+      trample[k] = Math.max(trample[k], 0.5 * (1 - sstep(25, 65, d))); if (d < 50) allowed[k] = 0; }); }
   let runs = 0;
   if (plan) {
     for (const s of plan.sites) { const hw = s.W / 2, hh = s.H / 2, R = Math.hypot(hw, hh) + 60, [ce, cn] = s.frame.c;

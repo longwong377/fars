@@ -31,14 +31,17 @@ const hash2N = (ix: any, iy: any, salt: number | any) => pcgN(ix.add(pcgN(iy.add
 const unitN = (h: any) => h.shiftRight(8).toFloat().mul(1 / 16777216);
 const cellUN = (c: any) => c.add(32768).toUint(); // c is already floor()ed
 
-/** the hills (D-190, C unless noted): limestone (the Terrace is partly cut from Kuh-e Rahmat's own bedrock: IR-PERS, B) */
+/** the hills (D-190, C unless noted): limestone (the Terrace is partly cut from Kuh-e Rahmat's own bedrock: KR-BEDROCK, B) */
 export const HILL = {
   /** sRGB albedo: weathered grey limestone, its darker weathered patches, fresh scree, colluvial soil on the slopes (C) */
-  rock: [0.50, 0.48, 0.45], rockDark: [0.36, 0.35, 0.33], scree: [0.58, 0.55, 0.50], slopeSoil: [0.46, 0.40, 0.32],
+  rock: [0.50, 0.48, 0.45], rockDark: [0.36, 0.35, 0.33], scree: [0.58, 0.55, 0.50], slopeSoil: [0.47, 0.43, 0.37],
   /** bedding: packages of beds (m) of which ~45 % form cliffs; beds 0.6-2.2 m; a gentle dip (C) */
   pkg: 12, cliffShare: 0.45, bed: [0.6, 1.6], dip: 0.05, dipDir: 0.52,
   /** shrubs: 5 m cells, crowns 0.6-1.6 m radius; cover on open slopes, in gullies, on shaded (north-facing) slopes (C) */
   shrubCell: 5, shrubCover: { slope: 0.035, gully: 0.09, north: 0.04 },
+  /** within 2 km of the Terrace half the cover (fuel cutting; the woodland rule keeps 10 % of its trees there: the scrub
+   *  regrows from its rootstock, C) */
+  shrubNearCapital: 0.5,
 } as const;
 
 export interface PlainGroundState { day: any; meanIrr: any; meanRain: any; meanOrch: any; oak: any }
@@ -71,7 +74,7 @@ export class PlainGround {
     this.detNear = dataTex(a.data, a.n); this.detMid = dataTex(b.data, b.n); this.dn = { half: a.half, cell: a.cell, n: a.n }; this.dm = { half: b.half, cell: b.cell, n: b.n };
     const g = zones.ground; this.groundTex = g ? dataTex(g.data, g.n) : dataTex(new Uint8Array([255, 255, 0, 255]), 1);
     this.material = surfaceMaterial('earth', { vertexColors: true, variant: 'plain', modify: (L: Layer) => this.modify(L) });
-    this.material.userData = { tier: 'C', src: 'RECON;SUMNER1986;IR-FOODAG;SAEIDI2021;IR-PERS;COP-DEM', note: 'plain surface: loam and seasonal herbs; fields (plots C, crop calendar B/C, rain-fed crop/fallow by block C), orchard floors and woodland canopy from plain.json zones (C); the town\'s trampled ground, worn paths and garden plots (C); the hills: limestone rock, bedding, gullies from the DEM\'s drainage, scree and shrubs (lithology B, the rest C)' };
+    this.material.userData = { tier: 'C', src: 'RECON;SUMNER1986;IR-FOODAG;SAEIDI2021;KR-BEDROCK;MD1988;GLO30-SPEC;COP-DEM', note: 'plain surface: loam and seasonal herbs; fields (plots C, crop calendar B/C, rain-fed crop/fallow by block C), orchard floors and woodland canopy from plain.json zones (C); the town\'s trampled ground, worn paths and garden plots (C); the hills: limestone rock, bedding, gullies from the DEM\'s drainage, scree and shrubs (lithology B, the rest C)' };
   }
   /** date → uniforms (called when the day changes) */
   setDay(doy: number) {
@@ -217,12 +220,12 @@ export class PlainGround {
       const bedVis = float(1).sub(smoothstep(0.25, 0.6, fwY.div(bedT))), pkgVis = float(1).sub(smoothstep(0.2, 0.5, fwY.div(HILL.pkg)));
       // rock (C): slopes over ~21-40 deg, convex ground, cliff packages, broken by 20-80 m noise; gullies keep their fill
       const n1 = mx_noise_float(P3.mul(0.045)), n2 = mx_noise_float(P3.mul(0.013).add(3.3));
-      const rockRaw = smoothstep(0.38, 0.85, slope).mul(1.1).add(cvx.mul(0.45).mul(smoothstep(0.15, 0.4, slope)))
-        .add(cliff.mul(smoothstep(0.28, 0.55, slope)).mul(0.45).mul(pkgVis.mul(0.6).add(0.4))).add(n1.mul(0.25)).add(n2.mul(0.2)).sub(gully.mul(0.6)).sub(0.12);
+      const rockRaw = smoothstep(0.3, 0.75, slope).mul(1.15).add(cvx.mul(0.45).mul(smoothstep(0.15, 0.4, slope)))
+        .add(cliff.mul(smoothstep(0.28, 0.55, slope)).mul(0.45).mul(pkgVis.mul(0.6).add(0.4))).add(n1.mul(0.25)).add(n2.mul(0.2)).sub(gully.mul(0.6)).sub(0.04);
       const rock = smoothstep(0.35, 0.65, rockRaw).mul(hillOn);
       // scree (C): concave middle slopes below the rock and the gully beds; soil and herbs on the rest
       const n3 = mx_noise_float(P3.mul(0.07).add(7.1));
-      const scree = clamp(smoothstep(0.22, 0.5, slope).mul(float(0.45).sub(cvx.mul(0.6)).add(n3.mul(0.35))).add(gully.mul(0.5)), 0, 1).mul(float(1).sub(rock)).mul(hillOn);
+      const scree = clamp(smoothstep(0.18, 0.45, slope).mul(float(0.6).sub(cvx.mul(0.6)).add(n3.mul(0.35))).add(gully.mul(0.5)), 0, 1).mul(float(1).sub(rock)).mul(hillOn);
       const bedTone = float(1).add(unitN(pcgN(bedI.add(16384).toUint())).mul(2).sub(1).mul(0.08).mul(bedVis));
       const weather = smoothstep(-0.3, 0.5, mx_noise_float(P3.mul(0.11).add(1.7)).add(n1.mul(0.4)));
       const recess = float(1).sub(smoothstep(0.0, 0.2, fb)).mul(bedVis).mul(cliff.mul(0.6).add(0.4)); // the shadowed foot of a ledge
@@ -235,7 +238,9 @@ export class PlainGround {
       alb = alb.mul(float(1).sub(gully.mul(0.12).mul(hillOn))).mul(float(1).add(cvx.mul(0.05).mul(hillOn))); // gullies hold shade and moisture
       // relief below the DEM (bump only; the heights are never moved): ledges, outcrop masses, the gullies' cut (C)
       const fadeFine = float(1).sub(smoothstep(0.5, 2.0, fw)), fadeMid = float(1).sub(smoothstep(4.0, 16.0, fw));
-      const ledge = fb.mul(bedT).mul(0.45).mul(bedVis).mul(rock);
+      // a bed's profile up the slope: a short riser at its base (the offset climbs over the first 15 %), then a long tread
+      // leaning back (it falls again to the next bed): continuous at the bed joints
+      const ledge = smoothstep(0.0, 0.15, fb).sub(fb).mul(bedT).mul(0.6).mul(bedVis).mul(rock);
       const masses = mx_noise_float(P3.mul(0.08)).mul(2.0).mul(fadeMid).add(mx_noise_float(P3.mul(0.4).add(2.2)).mul(0.5).mul(fadeFine)).mul(rock);
       const cut = gully.mul(1.4).mul(hillOn).negate();
 
@@ -261,7 +266,8 @@ export class PlainGround {
       // cells, crowns 0.6-1.6 m; more in the gullies and on north-facing slopes (world z = -north: facing north is nw.z < 0)
       const north = smoothstep(0.05, 0.4, nw.z.negate());
       const shrubCover = float(HILL.shrubCover.slope).add(gully.mul(HILL.shrubCover.gully)).add(north.mul(HILL.shrubCover.north))
-        .mul(smoothstep(0.08, 0.2, slope)).mul(float(1).sub(rock.mul(0.85))).mul(float(1).sub(M)).mul(float(1).sub(trample));
+        .mul(smoothstep(0.08, 0.2, slope)).mul(float(1).sub(rock.mul(0.85))).mul(float(1).sub(M)).mul(float(1).sub(trample))
+        .mul(mix(float(HILL.shrubNearCapital), float(1), smoothstep(2000, 10000, length(p)))); // cut for fuel near the capital (C, as the woodland rule)
       const sq = p.div(HILL.shrubCell), scl = floor(sq), dotS = float(0).toVar();
       for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
         const c = scl.add(vec2(i, j)), a = cellUN(c.x), b = cellUN(c.y);
