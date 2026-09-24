@@ -2341,7 +2341,7 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
     - the never-performed claims (M-06 chant, M-10 pipes, M-11, M-12) cannot be cited;
     - every mode and instrument is tiered;
     - a year-sample sweep of the schedule, with every kind of person present (magus, guard and herder included) and the court resident, yields only sourced, permitted performances, and all four gig kinds occur;
-    - nothing outside music.ts/world.ts calls `.perform(`;
+    - nothing outside music.ts and musicDirector.ts calls `.perform(`;
     - no instrument is on the blocklist.
 - **Tuning corrections (review B-M7):**
   - Each mode is now its octave species. The Babylonian names follow Kilmer's equation with the Greek species (search extracts; Kilmer NOT SEEN): išartu Dorian, kitmu Hypodorian, embūbu Phrygian, pītu Hypophrygian, nīd qabli Lydian, nīš gabarî Hypolydian, qablītu Mixolydian. The extracts disagree on the order of the cycle (Q-300).
@@ -2365,7 +2365,7 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
     - through its walls, −52 to −55 dB;
     - on a doorway's axis, 0 dB;
     - off a doorway's axis at ~22 m, −16 to −19 dB with a ~2.1 kHz low-pass;
-    - from the plain below the terrace edge, shadowed 4-20 dB (test).
+    - from the plain 90 m out and 12 m below the terrace edge (with its 1 m parapet): −9.7 dB with a 2.7 kHz low-pass at 15 m in from the edge, −13.2 dB at 45 m in, 0 dB at the parapet itself.
 - **Cost (measured in node, on a loaded shared 4-core box; expect roughly half on the target machine):**
   - A query costs 85-105 µs on average: ±60 m random pairs on the Terrace, or all 111 on-map people to a listener at the querns.
   - The engine re-queries 3 routed sources a frame (round robin), about 0.3 ms.

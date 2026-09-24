@@ -7,7 +7,7 @@
 //  - the schedule (src/audio/performers.ts), swept over a year's sample of days with every kind of performer present and
 //    the court resident, yields a gig without claims, a performance the runtime rules refuse, anything at an offering,
 //    or an instrument other than the court harp;
-//  - anything outside the music system and the world's controller calls `.perform(` (music must come from the schedule);
+//  - anything outside the music system and its director (the schedule's player) calls `.perform(`;
 //  - an instrument's name is on the anachronism blocklist's music clichés.
 // Run: npm run lint:music (part of npm run lint:all).
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -56,7 +56,7 @@ for (let d = 0; d < 360; d += 9) for (let m = 0; m < 24 * 60; m += 2) {
 }
 for (const k of ['quern_song', 'mason_song', 'court_supper', 'court_night']) if (!kinds.has(k)) bad.push(`schedule: ${k} never occurred in the sweep`);
 // who may start a performance
-const allowed = new Set(['src/audio/music.ts', 'src/world/world.ts']);
+const allowed = new Set(['src/audio/music.ts', 'src/audio/musicDirector.ts']); // the system itself and the schedule's player
 const walk = (dir: string): string[] => readdirSync(dir).flatMap(f => { const p = join(dir, f); return statSync(p).isDirectory() ? walk(p) : /\.tsx?$/.test(f) ? [p] : []; });
 for (const f of walk('src')) { const rel = f.split('\\').join('/'); if (/\.perform\(/.test(readFileSync(f, 'utf8')) && !allowed.has(rel)) bad.push(`${rel}: calls .perform( outside the scheduled music`); }
 
