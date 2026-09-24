@@ -268,3 +268,22 @@ sequence day 25 11:00: apadana-enter-court (sun; exposure 0.52), apadana-enter-d
 16:00 sun on the face 17° (was 41°), tachara-s-stair 09:30 19°, apadana-e-stair-raking (new) 10:00 22°; lance-bearers day 25
 16:00 at 4.8 m / 37° and 2.8 m / 30° off the face; scribe at 1.0 m seated eye height, 2.6 m from the desk.
 **Tests:** tsc clean; lint:all OK; targeted suites pass except the timing test.
+
+## People's look (branch look-people-s6, head 8a720b4, D-189) — merged in session 6
+**Still broken, unverified or placeholder:** court robes still read vivid in crowd-court-forecourt-w at high (red p90 0.93 →
+0.76, blue p50 0.85 → 0.67; the robes render dark, sRGB 0.2–0.3 in sun against 0.5 for the ground, where the tone curve
+keeps saturation high: exposure plus the court palette); faces: D-155's skin work reaches every LOD, but a face is < 16 px
+beyond ~10 m at 960×540 (micro-shadows and a stronger hair highlight added; no LOD0 court face seen); hair and beards still
+alpha-tested shells (Q-361), the long beard boxy; skirts are tubes skinned to the legs (no cloth sim, hem folds only in
+shading); far "white pins" not re-rendered in their own view; impostor lighting not matched to skinned lighting; every
+colour number C (Q-360); a hole at the side of the court foreground worker's tunic; WebGL2 not checked; the performances
+CPU test fails under load (baseline too).
+**Changed:** src/people/looks.ts DYES (CIELAB strong/weak, fading susceptibility; madder, kermes, purple, woad, weld,
+green, brown, undyed, Susa turquoise and ochre; availability B, colours C), per-person dye strength, fading by garment age,
+value/chroma jitter; rank kept (mean chroma court 30.4, women 22.3, workers 11.5); humanMaterial DRAPE: sun-bleaching,
+hem soil (court 0.21, workers 0.45), folded and fitted hems, joint wrinkles, micro-shadows, hair highlight 0.04 → 0.09,
+hat height ±12 %; impostors carry the far body's mean shaded albedo.
+**Measured:** main-garment saturation p50/p90 Persian 0.64/0.82 → 0.52/0.65, guards 0.61/0.82 → 0.46/0.60, women
+0.48/0.82 → 0.35/0.57; distinct main colours per 300 people 4–6 → 299–300; impostor vs skinned ΔE mean/worst 2.43/13.8 →
+0.82/2.46; court-forecourt-w pixels with saturation > 0.8 1.0 % → 0.2 %; triangles unchanged (court-forecourt-w 11.33 →
+11.27 M). Tests: people_look.test.ts 10 pass; people suites 83/84 (the timing test); lint:all OK.
