@@ -9,6 +9,9 @@
 //   --dist: also write the figure as it covers the screen from that distance (1080 px, 70° vertical field of view), so the
 //           balance of paint and carving can be judged at register distance (`_d<m>` files, shown 4× enlarged)
 //   --bare: stone only (no paint), to judge the carving alone
+//   --panel: the Apadana audience panel as planned (planAudience), each figure at the LOD the game picks from --dist m (or
+//            --lod), rasterised per pixel as the GPU draws it, with the paint film's brush and loss noise (--nonoise: off);
+//            --mmpx (default 4) mm per pixel, --crop in metres along the façade / up from its foot; `_screen` = at --dist
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 import PC from '../src/data/polychromy.json';
@@ -16,11 +19,12 @@ import { FIGURE_KINDS, figureDef } from '../src/arch/relief_figures';
 import { rasterize, rtinErrors, extractLod, Field, LodMesh, STONE_SRGB } from '../src/arch/relief_field';
 import { RELIEF_LODS } from '../src/arch/reliefs';
 
-const args = process.argv.slice(2);
+const args = process.argv.slice(2), LOD_GIVEN = args.includes('--lod');
 const opt = (k: string, d: string) => { const i = args.indexOf(k); return i >= 0 ? args.splice(i, 2)[1] : d; };
 const flag = (k: string) => { const i = args.indexOf(k); if (i >= 0) { args.splice(i, 1); return true; } return false; };
 const N = +opt('--n', '513'), LOD = +opt('--lod', '0'), OUT = opt('--out', 'shots/relief_kinds'), [SAZ, SALT] = opt('--sun', '150,22').split(',').map(Number);
 const DEPTH = +opt('--depth', '0.045'), H = +opt('--height', '0.78'), PX = +opt('--px', '420'), SHEET = flag('--sheet'), CROP = opt('--crop', ''), DIST = +opt('--dist', '0'), BARE = flag('--bare');
+const PANEL = flag('--panel'), NONOISE = flag('--nonoise');
 const kinds = args.length ? args : Object.keys(FIGURE_KINDS);
 mkdirSync(OUT, { recursive: true });
 const FILM = (PC as any).paint.film.v;
@@ -59,7 +63,7 @@ function rasteriseLod(f: Field, lod: LodMesh) {
 
 function render(kind: string, seed: number) {
   const def = figureDef(kind, seed); const t0 = performance.now();
-  const f = rasterize(def, N); const t1 = performance.now();
+  const f = rasterize(def, N, RELIEF_LODS[LOD].pre); const t1 = performance.now();
   const err = rtinErrors(f); const t2 = performance.now();
   // the error bounds and normal smoothing the game uses (reliefs.ts RELIEF_LODS), so the preview shows what is drawn
   const lod = extractLod(f, err, RELIEF_LODS[LOD].err, RELIEF_LODS[LOD].grad);
@@ -109,8 +113,100 @@ function render(kind: string, seed: number) {
   return { rgb: enc(lin), W, Hh };
 }
 
+// ---------------- --panel: the Apadana audience panel as placed (planAudience), every figure at its in-game LOD ----------------
+/** gradient noise in [0, 1] (2-D Perlin; the relief material's mx_noise_float in world metres, same scale, not the same field) */
+function noise01(x: number, y: number) {
+  const hash = (i: number, j: number) => { let h = (i * 374761393 + j * 668265263) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+  const gr = (i: number, j: number, dx: number, dy: number) => { const a = hash(i, j) * Math.PI * 2; return Math.cos(a) * dx + Math.sin(a) * dy; };
+  const i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j, u = fx * fx * fx * (fx * (fx * 6 - 15) + 10), w = fy * fy * fy * (fy * (fy * 6 - 15) + 10);
+  const a = gr(i, j, fx, fy), b = gr(i + 1, j, fx - 1, fy), c = gr(i, j + 1, fx, fy - 1), d = gr(i + 1, j + 1, fx - 1, fy - 1);
+  return 0.5 + 0.5 * Math.max(-1, Math.min(1, 1.4 * (a + (b - a) * u + (c - a) * w + (a - b - c + d) * u * w)));
+}
+/** The audience panel (reliefs.ts planAudience) rasterised as the GPU draws it: each figure's LOD mesh (the LOD the game picks
+ *  for a camera DIST m in front of the panel centre at eye height, or --lod), placed in metres, triangles interpolated per
+ *  pixel (vertex normals, colours, coverage, gilding), a z-buffer; then the raking sun with heightfield shadows, the sky, and
+ *  the relief material's paint film with its brush-scale thickness and flaked losses (materials.ts paintedStoneMaterial:
+ *  same frequencies and thresholds, a stand-in noise). Window --crop a0,y0,a1,y1 in metres (along the façade, up from its foot). */
+async function renderPanel() {
+  const { planAudience, reliefLodMesh, lodGrid } = await import('../src/arch/reliefs');
+  const { kindBounds } = await import('../src/arch/relief_figures');
+  const { v } = await import('../src/arch/spec');
+  const R = v<any>('apadana', 'r_registers'), CV = v<any>('apadana', 'r_relief_carving'), figH = R.height * CV.figure_fill, D0 = v<number>('apadana', 'r_relief_depth');
+  const LS = (PC as any).paint.loss.v, FL = FILM, MM = +opt('--mmpx', '4') / 1000, AUTO = DIST > 0 && !LOD_GIVEN;
+  const [a0, y0, a1, y1] = CROP ? CROP.split(',').map(Number) : [-4.9, 0, 4.9, 3.1];
+  const W = Math.round((a1 - a0) / MM), Hh = Math.round((y1 - y0) / MM), np = W * Hh;
+  const hm = new Float32Array(np).fill(-1), nm = new Float32Array(np * 3), cm = new Float32Array(np * 3), pm = new Float32Array(np), gm = new Float32Array(np);
+  const cam = [0, 1.6, DIST || 6], plan = planAudience(), used: string[] = [];
+  let tris = 0;
+  for (const p of plan.figures) {
+    const b = kindBounds(p.kind, p.variant), S = figH * p.scale, D = p.depth ?? D0, sx = p.facing < 0 ? -1 : 1;
+    const cx = p.along + sx * ((b[0] + b[2]) / 2) * S, cy = p.y + ((b[1] + b[3]) / 2) * S, r = (Math.hypot(b[2] - b[0], b[3] - b[1]) / 2) * S;
+    const dist = Math.max(0, Math.hypot(cam[0] - cx, cam[1] - cy, cam[2]) - r);
+    const lod = AUTO ? Math.max(p.minLod ?? 0, RELIEF_LODS.findIndex(x => dist < x.dist)) : LOD, n = lodGrid(Math.max(b[2] - b[0], b[3] - b[1]) * S, lod);
+    const m = reliefLodMesh(p.kind, p.variant, n, lod); tris += m.tris; used.push(`${p.kind}:${p.variant} L${lod} n${n} ${m.tris}`);
+    const P = m.pos, G = m.grad, X = (i: number) => (p.along + sx * P[i * 3] * S - a0) / MM - 0.5, Y = (i: number) => (y1 - (p.y + P[i * 3 + 1] * S)) / MM - 0.5;
+    for (let t = 0; t < m.index.length; t += 3) {
+      const ia = m.index[t], ib = m.index[t + 1], ic = m.index[t + 2], ax = X(ia), ay = Y(ia), bx = X(ib), by = Y(ib), qx = X(ic), qy = Y(ic);
+      const den = (by - qy) * (ax - qx) + (qx - bx) * (ay - qy); if (Math.abs(den) < 1e-12) continue;
+      for (let j = Math.max(0, Math.ceil(Math.min(ay, by, qy))); j <= Math.min(Hh - 1, Math.floor(Math.max(ay, by, qy))); j++)
+        for (let i = Math.max(0, Math.ceil(Math.min(ax, bx, qx))); i <= Math.min(W - 1, Math.floor(Math.max(ax, bx, qx))); i++) {
+          const w1 = ((by - qy) * (i - qx) + (qx - bx) * (j - qy)) / den, w2 = ((qy - ay) * (i - qx) + (ax - qx) * (j - qy)) / den, w3 = 1 - w1 - w2;
+          if (w1 < -1e-7 || w2 < -1e-7 || w3 < -1e-7) continue;
+          const h = (w1 * P[ia * 3 + 2] + w2 * P[ib * 3 + 2] + w3 * P[ic * 3 + 2]) * D - CV.embed, g = j * W + i;
+          if (h <= hm[g]) continue;
+          hm[g] = h;
+          const gx = w1 * G[ia * 2] + w2 * G[ib * 2] + w3 * G[ic * 2], gy = w1 * G[ia * 2 + 1] + w2 * G[ib * 2 + 1] + w3 * G[ic * 2 + 1];
+          nm[g * 3] = (-gx * sx * D) / S; nm[g * 3 + 1] = (-gy * D) / S; nm[g * 3 + 2] = 1;
+          for (let k = 0; k < 3; k++) cm[g * 3 + k] = w1 * m.col[ia * 3 + k] + w2 * m.col[ib * 3 + k] + w3 * m.col[ic * 3 + k];
+          pm[g] = w1 * m.paint[ia] + w2 * m.paint[ib] + w3 * m.paint[ic]; gm[g] = w1 * m.gilt[ia] + w2 * m.gilt[ib] + w3 * m.gilt[ic];
+        }
+    }
+  }
+  // the wall face (h = 0) wherever the relief lies behind it
+  const az = (SAZ * Math.PI) / 180, alt = (SALT * Math.PI) / 180, L = [Math.cos(alt) * Math.cos(az), Math.cos(alt) * Math.sin(az), Math.sin(alt)];
+  const stone = STONE_SRGB.map(s2l), goldF0 = [1.0, 0.71, 0.29], lin = new Float32Array(np * 3), hz = Math.hypot(L[0], L[1]), dz = (L[2] / hz) * MM;
+  // the material fades its noise to the mean where the period is under ~3 px (materials.ts paintedStoneMaterial, D-204): the
+  // pixel footprint |fwidth(p)| of a wall seen square-on from DIST m at 1080 px / 70°
+  const footM = DIST > 0 ? (Math.SQRT2 * 2 * DIST * Math.tan((35 * Math.PI) / 180)) / 1080 : 0;
+  const aaNoise = (x: number, y: number, freq: number, off: number) => { if (NONOISE) return 0.5; const t = Math.min(1, Math.max(0, (footM * freq - 0.2) / 0.25)), w = t * t * (3 - 2 * t); return noise01(x * freq + off, y * freq + off * 0.3) * (1 - w) + 0.5 * w; };
+  for (let j = 0; j < Hh; j++) for (let i = 0; i < W; i++) {
+    const g = j * W + i, on = hm[g] > 0, wa = a0 + (i + 0.5) * MM, wy = y1 - (j + 0.5) * MM;
+    let nx = 0, ny = 0, nz = 1; if (on) { nx = nm[g * 3]; ny = nm[g * 3 + 1]; nz = 1; }
+    const nl = Math.hypot(nx, ny, nz); nx /= nl; ny /= nl; nz /= nl;
+    let lit = 1, x = i, y = j, z = Math.max(0, hm[g]) + 0.0002;
+    for (let s = 0; s < 600; s++) { x += L[0] / hz; y -= L[1] / hz; z += dz; if (x < 0 || y < 0 || x >= W - 1 || y >= Hh - 1 || z > 0.09) break; if (hm[Math.round(y) * W + Math.round(x)] > z) { lit = 0; break; } }
+    const ndl = Math.max(0, nx * L[0] + ny * L[1] + nz * L[2]), sky = 0.25 * (0.5 + 0.5 * nz);
+    const cov = BARE || !on ? 0 : pm[g];
+    const thick = aaNoise(wa, wy, FL.brush_freq, 0) * (1 - FL.thickness_min) + FL.thickness_min;
+    const lossF = aaNoise(wa, wy, LS.freq, 17.3) + (1 - cov) * LS.wear_bias;
+    const kept = 1 - Math.min(1, Math.max(0, (lossF - (LS.level - LS.soft)) / (2 * LS.soft))) ** 2 * (3 - 2 * Math.min(1, Math.max(0, (lossF - (LS.level - LS.soft)) / (2 * LS.soft))));
+    const gilt = BARE || !on ? 0 : Math.min(1, gm[g]) * Math.min(1, Math.max(0, (cov - 0.05) / 0.3)) * kept;
+    const film = Math.min(1, cov) * (1 - Math.exp(-FL.hiding * thick)) * kept * (1 - gilt);
+    for (let k = 0; k < 3; k++) {
+      const alb = stone[k] * (1 - film) + (on ? cm[g * 3 + k] : stone[k]) * film;
+      let c = alb * (2.6 * ndl * lit + sky);
+      if (gilt > 0) { const hl = Math.hypot(L[0], L[1], L[2] + 1), ndh = Math.max(0, (nx * L[0] + ny * L[1] + nz * (L[2] + 1)) / hl); c = c * (1 - gilt) + goldF0[k] * (Math.pow(ndh, 24) * 6 * lit + 0.35 * (0.5 + 0.5 * ny) + 0.12) * gilt; }
+      lin[g * 3 + k] = c;
+    }
+  }
+  const enc = (a: Float32Array) => { const o = new Uint8Array(a.length); for (let q = 0; q < a.length; q++) o[q] = l2s(a[q]); return o; };
+  const tag = AUTO ? `d${DIST}` : `lod${LOD}`, name = `${OUT}/audience_${tag}${BARE ? '_bare' : ''}.png`;
+  writeFileSync(name, png(W, Hh, enc(lin)));
+  if (DIST > 0) { // as it covers the screen from DIST m (1080 px over 70°), box-filtered, shown ×SCREEN_UP
+    const pxPerM = 1080 / (2 * DIST * Math.tan((35 * Math.PI) / 180)), w2 = Math.max(4, Math.round((a1 - a0) * pxPerM)), h2 = Math.max(4, Math.round((y1 - y0) * pxPerM)), small = new Float32Array(w2 * h2 * 3), cnt = new Float32Array(w2 * h2), UP = +opt('--up', '2');
+    // each screen pixel averages the source pixels it covers (at least the one under its centre: from nearer than the source's resolution)
+    for (let y2 = 0; y2 < h2; y2++) for (let x2 = 0; x2 < w2; x2++) { const q = y2 * w2 + x2, ya = Math.floor((y2 / h2) * Hh), yb = Math.max(ya + 1, Math.floor(((y2 + 1) / h2) * Hh)), xa = Math.floor((x2 / w2) * W), xb = Math.max(xa + 1, Math.floor(((x2 + 1) / w2) * W));
+      for (let py = ya; py < Math.min(Hh, yb); py++) for (let px = xa; px < Math.min(W, xb); px++) { cnt[q]++; for (let k = 0; k < 3; k++) small[q * 3 + k] += lin[(py * W + px) * 3 + k]; } }
+    const up = new Float32Array(w2 * UP * h2 * UP * 3);
+    for (let yy = 0; yy < h2 * UP; yy++) for (let xx = 0; xx < w2 * UP; xx++) { const q = Math.floor(yy / UP) * w2 + Math.floor(xx / UP); for (let k = 0; k < 3; k++) up[(yy * w2 * UP + xx) * 3 + k] = small[q * 3 + k] / Math.max(1, cnt[q]); }
+    writeFileSync(name.replace('.png', '_screen.png'), png(w2 * UP, h2 * UP, enc(up)));
+  }
+  console.log(`${name}  ${plan.figures.length} figures, ${tris} triangles\n  ${used.join('\n  ')}`);
+}
+
 const tiles: { rgb: Uint8Array; W: number; Hh: number }[] = [];
-for (const k of kinds) { const [kind, s] = k.split(':'); if (!FIGURE_KINDS[kind.replace('~rough', '')]) { console.error('unknown kind ' + kind); continue; } tiles.push(render(kind, +(s ?? 1))); }
+if (PANEL) await renderPanel();
+else for (const k of kinds) { const [kind, s] = k.split(':'); if (!FIGURE_KINDS[kind.replace('~rough', '')]) { console.error('unknown kind ' + kind); continue; } tiles.push(render(kind, +(s ?? 1))); }
 if (SHEET && tiles.length > 1) { // contact sheet (tiles of the first tile's size)
   const TW = tiles[0].W, TH = Math.max(...tiles.map(t => t.Hh)), cols = Math.min(6, tiles.length), rows = Math.ceil(tiles.length / cols), W = TW * cols, Hh = TH * rows, rgb = new Uint8Array(W * Hh * 3);
   tiles.forEach((t, k) => { const ox = (k % cols) * TW, oy = Math.floor(k / cols) * TH; for (let y = 0; y < Math.min(t.Hh, TH); y++) for (let x = 0; x < Math.min(t.W, TW); x++) for (let c = 0; c < 3; c++) rgb[((oy + y) * W + ox + x) * 3 + c] = t.rgb[(y * t.W + x) * 3 + c]; });

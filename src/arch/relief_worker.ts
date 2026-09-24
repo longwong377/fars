@@ -3,12 +3,12 @@
 import { figureDef } from './relief_figures';
 import { rasterize, rtinErrors, extractLod } from './relief_field';
 
-export interface ReliefJob { id: number; kind: string; seed: number; n: number; err: number; grad: number }
+export interface ReliefJob { id: number; kind: string; seed: number; n: number; err: number; grad: number; pre?: boolean }
 const ctx = self as any;
 ctx.onmessage = (e: MessageEvent<ReliefJob>) => {
   const j = e.data;
   try {
-    const f = rasterize(figureDef(j.kind, j.seed), j.n), m = extractLod(f, rtinErrors(f), j.err, j.grad);
-    ctx.postMessage({ id: j.id, mesh: m }, [m.pos.buffer, m.grad.buffer, m.col.buffer, m.paint.buffer, m.index.buffer]);
+    const f = rasterize(figureDef(j.kind, j.seed), j.n, !!j.pre), m = extractLod(f, rtinErrors(f), j.err, j.grad);
+    ctx.postMessage({ id: j.id, mesh: m }, [m.pos.buffer, m.grad.buffer, m.col.buffer, m.paint.buffer, m.gilt.buffer, m.index.buffer]);
   } catch (err) { ctx.postMessage({ id: j.id, error: String(err) }); }
 };

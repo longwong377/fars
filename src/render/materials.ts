@@ -623,14 +623,18 @@ export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
   const p = positionWorld;
   const S = layer(d, lin(d.albedo));
   const pig = attribute('color', 'vec3'), cov = attribute('paint', 'float'), gilt = attribute('gilt', 'float');
-  const n01 = (x: any) => mx_noise_float(x).mul(0.5).add(0.5);
-  const thick = n01(p.mul(F.brush_freq)).mul(1 - F.thickness_min).add(F.thickness_min);
+  // the paint's noise fields are faded to their mean where their period falls under ~3 pixels (D-204): the ~7 mm losses and the
+  // pigment grain, point-sampled per pixel from a few metres away, turned every painted surface into salt-and-pepper speckle
+  // and broke the paint edge along each outline into dots. The pixel footprint is |fwidth(world position)| in metres
+  const foot = fwidth(p).length();
+  const n01 = (x: any, freq: number) => mix(mx_noise_float(x).mul(0.5).add(0.5), float(0.5), smoothstep(0.2, 0.45, foot.mul(freq)));
+  const thick = n01(p.mul(F.brush_freq), F.brush_freq).mul(1 - F.thickness_min).add(F.thickness_min);
   const opacity = float(1).sub(exp(thick.mul(-F.hiding)));
-  const lossField = n01(p.mul(LS.freq)).add(float(1).sub(cov).mul(LS.wear_bias));
+  const lossField = n01(p.mul(LS.freq), LS.freq).add(float(1).sub(cov).mul(LS.wear_bias));
   const kept = float(1).sub(smoothstep(LS.level - LS.soft, LS.level + LS.soft, lossField));
   const leaf = clamp(gilt, 0, 1).mul(smoothstep(0.05, 0.35, cov)).mul(kept); // gold leaf where it is not lost
   const film = clamp(cov, 0, 1).mul(opacity).mul(kept).mul(float(1).sub(leaf));
-  const grain = float(1).add(mx_noise_float(p.mul(F.grain_freq)).mul(F.grain_amp));
+  const grain = float(1).add(mx_noise_float(p.mul(F.grain_freq)).mul(F.grain_amp).mul(float(1).sub(smoothstep(0.2, 0.45, foot.mul(F.grain_freq)))));
   const gold = vec3(G.f0[0], G.f0[1], G.f0[2]).mul(float(1).add(mx_noise_float(p.mul(G.grain_freq)).mul(G.grain_amp)));
   const L: Layer = { alb: mix(mix(S.alb, pig.mul(grain), film), gold, leaf), rough: mix(mix(S.rough, float(F.roughness), film), float(G.roughness), leaf), height: (S.height ?? float(0)).add(film.add(leaf).mul(F.relief)) };
   class GiltLighting extends (THREE as any).PhysicalLightingModel {
@@ -644,7 +648,7 @@ export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
   finish(m, L, d);
   m.metalnessNode = leaf;
   (m as any).setupLightingModel = () => new GiltLighting();
-  m.userData = { tier: 'C', note: 'carved limestone (joint-free) with a matte mineral paint film: pigments B (RELIEFS_AND_COLOUR §3a), colour values, film and wear C (src/data/polychromy.json, D-030); gilding drawn as gold leaf (metal, D-151): gilding on the reliefs B (Iranica "Persepolis": traces of gold; Nagel 2010 "color and gilding"), the technique and the gilded zones C (Q-231)' };
+  m.userData = { tier: 'C', note: 'carved limestone (joint-free) with a matte mineral paint film: pigments B (RELIEFS_AND_COLOUR §3a), colour values, film and wear C (src/data/polychromy.json, D-030); gilding drawn as gold leaf (metal, D-151): gilding on the reliefs B (Iranica "Persepolis": traces of gold; Nagel 2010 "color and gilding"), the technique and the gilded zones C (Q-231); the brush, loss and grain noise of the film fade to their mean where a period falls under ~3 px (D-204)' };
   cache.set(key, m);
   return m;
 }

@@ -559,6 +559,50 @@ function incenseBurner(fr: Frame): Mass[] { // tall incense stand before the kin
   return [M([fr.poly([[-0.06, 0], [0.06, 0], [0.02, 0.05], [0.012, 0.4], [0.05, 0.45], [0.05, 0.5], [-0.05, 0.5], [-0.05, 0.45], [-0.012, 0.4], [-0.02, 0.05]]), fr.spoly([[-0.045, 0.5], [0.045, 0.5], [0.02, 0.6], [0, 0.63], [-0.02, 0.6]], 3)],
     { amp: 0.7, colour: P.yellowOchre, round: 0.012, groove: 0.08, detail: fr.det((x, y) => (y > 0.5 ? pleats(y, 0.02, 0.1) : flutes(x, 0.012, 0.1))) })];
 }
+/** a mass moved up by dy (field units): its shapes, detail and paint functions */
+function liftMass(m: Mass, dy: number): Mass {
+  const sh = (q: SDF): SDF => ({ f: (x, y) => q.f(x, y - dy), b: [q.b[0], q.b[1] + dy, q.b[2], q.b[3] + dy], pv: q.pv ? q.pv.map((v, i) => (i & 1 ? v + dy : v)) : undefined });
+  const col = m.colour, det = m.detail;
+  return { ...m, add: m.add.map(sh), sub: m.sub?.map(sh), clip: m.clip ? sh(m.clip) : undefined, colour: typeof col === 'function' ? (x: number, y: number) => col(x, y - dy) : col, detail: det ? (x: number, y: number, t: number) => det(x, y - dy, t) : undefined };
+}
+/** height of one canopy segment's band (fringe tips to the top moulding) in segment lengths (the canopy kind's unit =
+ *  one segment; SITE_SPEC apadana.r_audience_panel.canopy.rel_height, C; tests/reliefs.test.ts checks they agree) */
+export const CANOPY_H = 0.3;
+/** One segment of the canopy (baldachin) over the audience scene (D-204). The canopy is RECOLLECTION of the Treasury
+ *  audience reliefs (Tilia 1972; NOT SEEN, C): its edge drawn as a horizontal band across the top of the panel: from the top
+ *  a plain moulding, a strip of rosettes, a frieze of lions walking, and a fringe hanging below in tassels. Rows, sizes and
+ *  paint are C. The pattern repeats with the segment (rosettes 1/12, lions 1/3, tassels 1/32 of it), so segments laid end
+ *  to end meet seamlessly; the bands run past the segment ends and the grid cuts them (bounds). Kept cheap to mesh (every
+ *  outline is refined at L0-L2): the rosettes are carved as bosses with painted petals, the tassels as one scalloped band
+ *  painted in alternating colours, so the carved outline is the moulding, the lions and the scallops */
+function canopy(fr: Frame): Mass[] {
+  const out: Mass[] = [], X0 = -0.52, X1 = 0.52, band = (y0: number, y1: number) => fr.poly([[X0, y0], [X1, y0], [X1, y1], [X0, y1]]);
+  out.push(M([band(0.276, 0.3)], { amp: 0.52, colour: P.yellowOchre, round: 0.008, edge: 0.55, detail: fr.det((x, y) => (y > 0.29 ? 0.06 : 0)) }));
+  // the rows stand within 0.1 of the relief depth of each other, so only the band's outline, the lions and the bosses are
+  // refined beyond L1 (a step between rows along the whole width cost ~1 k triangles per row edge at L2)
+  // the rosette strip: a red ground; blue twelve-petalled rosettes painted on carved bosses, a raised yellow centre
+  out.push(M([band(0.212, 0.273)], { amp: 0.44, colour: P.redOchre, round: 0.006, edge: 0.8 }));
+  const rc = (x: number) => x - Math.floor(x * 12 + 0.5) / 12;
+  const petals = fr.col((x, y) => { const u = rc(x), v = y - 0.2425, r = Math.hypot(u, v), a = Math.atan2(v, u); return r <= 0.0105 ? P.yellowOchre : Math.abs(Math.cos(6 * a)) > 0.45 ? P.egyptianBlue : P.redOchre; });
+  const bosses: SDF[] = [], eyes: SDF[] = [];
+  for (let k = -6; k <= 6; k++) { bosses.push(fr.circ(k / 12, 0.2425, 0.025)); eyes.push(fr.circ(k / 12, 0.2425, 0.009)); }
+  out.push(M(bosses, { amp: 0.56, lift: 0.08, colour: petals, round: 0.012, edge: 0.5, dome: 0.4, domeW: 0.02 }));
+  out.push(M(eyes, { amp: 0.64, lift: 0.06, colour: P.yellowOchre, round: 0.006 }));
+  out.push(M([band(0.2, 0.209)], { amp: 0.5, colour: P.yellowOchre, round: 0.003, edge: 0.8 }));
+  // the lion frieze: a blue ground, three lions per segment walking toward the segment's +x (the planner mirrors the right
+  // half so they walk toward the king), painted yellow (C: woven or embroidered, not the bare stone of the carved animals)
+  out.push(M([band(0.092, 0.197)], { amp: 0.42, colour: P.egyptianBlue, round: 0.006, edge: 0.8 }));
+  for (const cx of [-1 / 3, 0, 1 / 3]) { // quadruped() stands its feet on the field's y = 0: built there, lifted onto the ground line
+    const sc = 0.2, q = quadruped(new Frame(cx, 0, 0, sc), SPECIES.lion);
+    for (const m of q.masses) out.push(liftMass({ ...m, colour: m.colour === STONE ? P.yellowOchre : m.colour, amp: 0.42 + m.amp * 0.4, lift: (m.lift ?? 0) + 0.08, round: (m.round ?? 0.018) * sc, grooveW: (m.grooveW ?? 0.006) * sc, domeW: (m.domeW ?? 0.08) * sc, groove: 0 }, 0.1));
+  }
+  // the fringe: a hem and a band of tassels with a scalloped lower edge, painted red and blue by turns, strands as fine flutes
+  out.push(M([band(0.076, 0.09)], { amp: 0.5, colour: P.yellowOchre, round: 0.004, edge: 0.8 }));
+  const lower: number[][] = [];
+  for (let k = -17; k <= 16; k++) { const x = (k + 0.5) / 32; lower.push([x - 0.0156, 0.04], [x - 0.009, 0.018], [x, 0.01], [x + 0.009, 0.018]); }
+  out.push(M([fr.poly([[X1, 0.078], [X0, 0.078], ...lower])], { amp: 0.46, colour: fr.col(x => (Math.floor(x * 32 + 64) % 2 ? P.egyptianBlue : P.cinnabar)), round: 0.006, edge: 0.55, detail: fr.det(x => flutes(x, 0.0078, 0.1)) }));
+  return out;
+}
 /** the attendants' scale relative to the king in composite royal groups (SITE_SPEC global.r_jamb_relief.attendant_scale, C;
  *  this module runs in workers and cannot read the spec, tests/reliefs.test.ts checks they agree) */
 export const ATTENDANT_SCALE = 0.78;
@@ -629,9 +673,9 @@ export const FIGURE_KINDS: Record<string, KindInfo> = {
   usher: K('B', 'RELIEF-R;IR-APAD', 'person', 0.62, 'usher leading a delegation by the hand (B: "each led by the hand by a Persian or Median usher"); which dress leads which delegation NOT FOUND (alternating, C); staff C'),
   delegate: K('B', 'RELIEF-R;MATCULT-R;IR-APAD', 'person', 0.62, 'delegation member with gifts (per-delegation gifts and tiers in DELEGATIONS; dress per delegation NOT SEEN, C)'),
   servant: K('B', 'SI-ARCH;ISAC-PA;WP-EXT;FARROKH', 'person', 0.6, 'stair servant climbing with a kid, a wineskin, a covered dish or a bowl; Persian/Median dress alternating (Tachara/Hadish stair rows: B)'),
-  king: K('B', 'RELIEF-R;IR-APAD;MATCULT-R', 'person', 1.1, 'king enthroned with footstool (audience relief, Tilia 1972 via Iranica: B); red/purple robe with blue hem (IR-CLOTH: B); crown form, sceptre and flower C'),
-  crown_prince: K('B', 'RELIEF-R;IR-APAD', 'person', 0.62, 'crown prince standing behind the throne (B); dress C'),
-  official: K('C', 'RELIEF-R;RECON', 'person', 0.62, 'official before the king (attendants B; gesture NOT SEEN, C)'),
+  king: K('B', 'RELIEF-R;IR-APAD;MATCULT-R;TREAS-AUD', 'person', 1.1, 'king enthroned with footstool (audience relief, Tilia 1972 via Iranica: B); a long staff in the right hand, its foot on the ground before the footstool, and a lotus in the left (TREAS-AUD, B; the staff slanting forward is RECOLLECTION, C); red/purple robe with blue hem (IR-CLOTH: B); crown form C'),
+  crown_prince: K('B', 'RELIEF-R;IR-APAD;TREAS-AUD', 'person', 0.62, 'crown prince standing behind the throne, a lotus in his hand (TREAS-AUD, B); dress C'),
+  official: K('B', 'RELIEF-R;TREAS-AUD', 'person', 0.62, 'the Median official before the king, bowing, his right hand raised before his mouth (TREAS-AUD, B); the lean, the dress colours and the drawing C'),
   king_walking: K('B', 'WP-EXT;ISAC-PA;SI-ARCH', 'person', 0.62, 'king walking with attendants (door-jamb reliefs of the Tachara, Harem, Tripylon: B); staff C'),
   attendant: K('B', 'WP-EXT;ISAC-PA;SI-ARCH', 'person', 0.62, 'attendant with parasol, fly-whisk, towel or perfume flask (Tachara / Harem jambs: B); forms C'),
   lance_bearer: K('B', 'WP-EXT;ISAC-PA', 'person', 0.62, 'lance-bearer with a wicker shield (Tachara W rooms: B); shield form C'),
@@ -654,7 +698,9 @@ export const FIGURE_KINDS: Record<string, KindInfo> = {
   palm: K('B', 'IR-PERS;SI-ARCH;COMMONS-TRIP', 'plant', 0.5, 'palm beside the seated sphinxes (Tripylon central panel, B); form C'),
   winged_disc: K('B', 'IR-PERS;SI-ARCH;COMMONS-TRIP;RELIEF-R', 'emblem', 1.3, 'winged disc (Tripylon panel, B); feather colours after the pigments of the Hall of 100 Columns winged figure (Lerner 2024, B), mapping C'),
   sphinx: K('B', 'IR-PERS;SI-ARCH;COMMONS-TRIP', 'emblem', 0.8, 'seated winged sphinx (Tripylon panel, B); human head with crown, wing form C'),
-  incense_burner: K('C', 'MATCULT-R', 'plant', 0.2, 'tall incense stand before the king (NS, C)'),
+  incense_burner: K('B', 'TREAS-AUD;MATCULT-R', 'plant', 0.2, 'tall incense stand before the king: two stand between the king and the official on the Treasury audience relief (TREAS-AUD, B); form C'),
+  weapon_bearer: K('B', 'TREAS-AUD;RELIEF-R', 'person', 0.62, 'the royal weapon-bearer behind the throne on the audience relief: a Mede with a battle-axe and a bow case (TREAS-AUD: "a Mede with battle-axe and quiver", B); the axe held upright, the case at the hip and the dress C'),
+  canopy: K('C', 'TREAS-AUD;RECON', 'ornament', 1.0, 'the canopy (baldachin) over the audience scene, its edge a band across the top of the panel: moulding, rosette strip, lion frieze and fringe of tassels. RECOLLECTION of the Treasury audience reliefs (Tilia 1972), NOT SEEN, verify (C); rows, sizes and paint C; unit = one segment'),
   king_worship: K('B', 'NR-ACHAEMENICA;NR-IRANICA;WP-NR', 'person', 0.62, 'the king on the stepped podium of the Naqsh-e Rustam tomb reliefs, right hand raised toward the fire altar, the bow in his left hand resting on the ground (B); crown and robe paint C (as the Persepolis king, IR-CLOTH)'),
   winged_figure: K('B', 'NR-ACHAEMENICA;NR-IRANICA;WP-NR', 'emblem', 1.3, 'the figure rising from the winged ring above the king (Naqsh-e Rustam tombs, B): bust with a raised hand and a ring (C) over the winged disc of the Tripylon panel (form C)'),
   fire_altar: K('B', 'NR-ACHAEMENICA;NR-IRANICA;WP-NR', 'emblem', 0.45, 'stepped fire altar with flames before the king (Naqsh-e Rustam tombs, B); proportions and paint C'),
@@ -685,7 +731,18 @@ export function figureDef(kind: string, seed: number): FigureDef {
     case 'persian': return withProps(persianDress({}), [['lotus', 'near']]);
     case 'mede': return withProps(medianDress({ kandys: rng.chance(0.5) }), [['lotus', 'near']]);
     case 'crown_prince': return withProps(persianDress({ garment: P.purple, garment2: P.egyptianBlue, near: { elbow: [0.035, 0.57], hand: [0.105, 0.62] } }), [['lotus', 'near']]);
-    case 'official': { const arms = { near: { elbow: [0.045, 0.6], hand: [0.08, 0.74] } as Arm }; return withProps(rng.chance(0.5) ? persianDress(arms) : medianDress(arms), []); }
+    case 'official': { // the Median official bowing before the king, his right hand raised before his mouth (TREAS-AUD, B): the
+      // whole figure leans 4° forward from the feet (C); the far hand hangs at the side
+      const lf = new Frame(0, 0, -0.07), b = human(lf, medianDress({ kandys: true, near: { elbow: [0.06, 0.62], hand: [0.085, 0.74] }, far: { elbow: [0.0, 0.56], hand: [0.03, 0.47] } }));
+      return { masses: b.masses, incisions: b.incisions };
+    }
+    case 'weapon_bearer': { // a Mede with a battle-axe held upright in the near hand and a bow case at the hip (TREAS-AUD, B; C)
+      const h = medianDress({ gorytos: true, near: { elbow: [0.045, 0.57], hand: [0.105, 0.6] }, far: { elbow: [0.0, 0.56], hand: [0.03, 0.47] } });
+      const hx = 0.105, hy = 0.6, haft = M([fr.seg(hx, hy - 0.2, hx, hy + 0.26, 0.0055)], { amp: 0.84, lift: 0.12, colour: P.yellowOchre, round: 0.006 });
+      const blade = M([fr.poly([[hx, hy + 0.2], [hx + 0.055, hy + 0.17], [hx + 0.065, hy + 0.215], [hx + 0.055, hy + 0.26], [hx, hy + 0.235]])], { amp: 0.86, lift: 0.12, colour: P.white, round: 0.005, groove: 0.06 });
+      const butt = M([fr.poly([[hx, hy + 0.205], [hx - 0.03, hy + 0.215], [hx - 0.034, hy + 0.23], [hx, hy + 0.232]])], { amp: 0.84, lift: 0.1, colour: P.white, round: 0.004 });
+      return human(fr, h, { front: [haft, blade, butt] });
+    }
     case 'usher': { // leads the delegate behind him by the hand: the far (rear) arm reaches back; staff in the near hand (C)
       const d = DELEGATIONS[seed % DELEGATIONS.length], h = (d.usher === 'persian' ? persianDress : medianDress)({ near: { elbow: [0.045, 0.56], hand: [0.105, 0.62] }, far: { elbow: [-0.08, 0.56], hand: [-0.2, 0.55] } });
       return withProps(h, [['staff', 'near']]);
@@ -705,8 +762,11 @@ export function figureDef(kind: string, seed: number): FigureDef {
     }
     case 'king': { // enthroned: royal robe red/purple with a blue hem (B); crown, sceptre and flower (C)
       const kf = new Frame(0.02, 0);
-      const h: Human = { dress: 'royal', head: 'crown', beard: 'long', garment: P.purple, garment2: P.egyptianBlue, seated: true, royal: true, near: { elbow: [0.05, 0.57], hand: [0.14, 0.6] }, far: { elbow: [0.02, 0.58], hand: [0.1, 0.66] } };
-      const b = human(kf, h, { front: prop(kf, 'sceptre', 0.14, 0.6, P.gold), farArm: prop(kf, 'lotus', 0.1, 0.66, P.gold) });
+      const h: Human = { dress: 'royal', head: 'crown', beard: 'long', garment: P.purple, garment2: P.egyptianBlue, seated: true, royal: true, near: { elbow: [0.065, 0.57], hand: [0.16, 0.6] }, far: { elbow: [0.02, 0.58], hand: [0.1, 0.66] } };
+      // the long staff in the right (near) hand, slanting forward to the ground before the footstool, gilded, a knob at the top
+      // (TREAS-AUD: staff and lotus, B; the slant RECOLLECTION, C; D-204: was a short sceptre)
+      const staff = [M([kf.seg(0.33, 0.005, 0.103, 0.8, 0.0065)], { amp: 0.86, lift: 0.12, colour: P.gold, round: 0.006, groove: 0.06 }), M([kf.circ(0.1, 0.81, 0.012)], { amp: 0.9, lift: 0.1, colour: P.gold, round: 0.008 })];
+      const b = human(kf, h, { front: staff, farArm: prop(kf, 'lotus', 0.1, 0.66, P.gold) });
       const robe = b.masses.find(m => m.colour === P.purple && !m.paintOnly); if (robe) robe.colour = kf.col((x, y) => (y < 0.08 || (x > 0.19 && y < 0.37) ? P.egyptianBlue : P.purple));
       return { masses: [...throne(new Frame(0, 0)), ...b.masses], incisions: b.incisions };
     }
@@ -784,6 +844,7 @@ export function figureDef(kind: string, seed: number): FigureDef {
     case 'rosette': return { masses: rosette(fr), bounds: [-0.52, -0.02, 0.52, 1.02] };
     case 'winged_disc': return { masses: wingedDisc(fr) };
     case 'incense_burner': return { masses: incenseBurner(fr) };
+    case 'canopy': return { masses: canopy(fr), bounds: [-0.5, 0, 0.5, CANOPY_H] };
     default: {
       const sp = SPECIES[kind]; if (sp) { const q = quadruped(fr, sp); return { masses: q.masses, incisions: q.incisions }; }
       throw new Error(`unknown relief figure kind ${kind}`);

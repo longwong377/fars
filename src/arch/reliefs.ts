@@ -23,11 +23,16 @@ export const RELIEF_META = { tier: 'C', src: 'RELIEF-R;MATCULT-R;IR-APAD', place
  *  L0 only at arm's length, where a 1.6 mm cell is ~1 px. */
 export const RELIEF_LODS = [
   // L0 grid up to 1025² (D-048): the Phase 4 door-jamb figures are 1.6–3.4 m tall, and at 513² a 2.2 m king had 5 mm cells
-  // (≈ 4 px at arm's length); figures under 0.82 m (every Apadana register figure) are unaffected
-  { cell: 0.0016, maxN: 1025, err: 0.03, grad: 1, dist: 1.2 },
-  { cell: 0.0032, maxN: 257, err: 0.06, grad: 1, dist: 4 },
-  { cell: 0.0064, maxN: 129, err: 0.12, grad: 1, dist: 14 },
-  { cell: 0.0128, maxN: 65, err: 0.3, grad: 1, dist: Infinity },
+  // (≈ 4 px at arm's length); figures under 0.82 m (every Apadana register figure) are unaffected.
+  // D-204: L2/L3 prefilter the surface detail (`pre`, relief_field.rasterize) instead of dropping it, and L2 takes its
+  // normals over ±2 cells (Sobel; ±1 cell drew the error-driven triangles as a lattice of light and shade). Measured and
+  // rejected (tools/relief_budget.ts): L2's grid cap 257² (the audience figures' 14 mm cells → 7 mm: +19 % triangles before
+  // the panel at 6 m, +34 % at 2 m), L3's cap 129² (far meshes +76 %), an L2 error bound of 0.07–0.08 (the broad folds only
+  // faintly in the mesh, +40 k triangles at 6 m)
+  { cell: 0.0016, maxN: 1025, err: 0.03, grad: 1, dist: 1.2, pre: false },
+  { cell: 0.0032, maxN: 257, err: 0.06, grad: 1, dist: 4, pre: false },
+  { cell: 0.0064, maxN: 129, err: 0.12, grad: 2, dist: 14, pre: true },
+  { cell: 0.0128, maxN: 65, err: 0.3, grad: 1, dist: Infinity, pre: true },
 ];
 /** rosettes: carved within ROSETTE_NEAR, a 40-triangle boss within ROSETTE_FAR, not drawn beyond (≤ 1.5 px) */
 export const ROSETTE_NEAR = 2.0, ROSETTE_FAR = 40;
@@ -57,7 +62,7 @@ const boundsOf = (kind: string, seed: number) => { const k = kind + '|' + seed; 
 export function reliefLodMesh(kind: string, seed: number, n: number, lod: number): LodMesh {
   const key = `${kind}|${seed}|${n}|${lod}`; let m = meshCache.get(key); if (m) return m;
   const t0 = performance.now();
-  const f = rasterize(defOf(kind, seed), n); m = extractLod(f, rtinErrors(f), RELIEF_LODS[lod].err, RELIEF_LODS[lod].grad, PIGMENT.stone);
+  const f = rasterize(defOf(kind, seed), n, RELIEF_LODS[lod].pre); m = extractLod(f, rtinErrors(f), RELIEF_LODS[lod].err, RELIEF_LODS[lod].grad, PIGMENT.stone);
   genStats.generated++; genStats.ms += performance.now() - t0;
   meshCache.set(key, m); return m;
 }
@@ -77,7 +82,7 @@ class WorkerPool {
   }
   request(key: string, kind: string, seed: number, n: number, lod: number) {
     if (this.pending.has(key) || meshCache.has(key)) return;
-    this.pending.add(key); this.queue.push({ key, job: { kind, seed, n, err: RELIEF_LODS[lod].err, grad: RELIEF_LODS[lod].grad } }); this.pump();
+    this.pending.add(key); this.queue.push({ key, job: { kind, seed, n, err: RELIEF_LODS[lod].err, grad: RELIEF_LODS[lod].grad, pre: RELIEF_LODS[lod].pre } }); this.pump();
   }
   /** jobs are served nearest-first: the caller re-sorts by priority before pumping */
   prioritise(prio: (key: string) => number) { this.queue.sort((a, b) => prio(a.key) - prio(b.key)); }
@@ -114,7 +119,9 @@ export function lodGeometry(m: LodMesh, mirror: boolean): THREE.BufferGeometry {
 
 // ---------------- relief sets ----------------
 /** one carved figure on a wall: origin on the wall face at the figure's ground line, unit along-wall / up / out-of-wall axes */
-export interface ReliefItem { kind: string; seed: number; o: THREE.Vector3; X: THREE.Vector3; Y: THREE.Vector3; Z: THREE.Vector3; S: number; D: number; mirror: boolean; meta?: Record<string, unknown> }
+export interface ReliefItem { kind: string; seed: number; o: THREE.Vector3; X: THREE.Vector3; Y: THREE.Vector3; Z: THREE.Vector3; S: number; D: number; mirror: boolean; meta?: Record<string, unknown>;
+  /** finest LOD this item is ever drawn at (D-204: the audience canopy, above head height, is never at arm's length) */
+  minLod?: number }
 export interface RosetteItem { o: THREE.Vector3; X: THREE.Vector3; Y: THREE.Vector3; Z: THREE.Vector3; S: number; D: number }
 const liveSets = new Set<ReliefSet>();
 let reliefMat: THREE.MeshStandardNodeMaterial | null = null;
@@ -209,7 +216,7 @@ export class ReliefSet extends THREE.Group {
       bm.setGeometrySize(Math.ceil((bm._maxVertexCount + vc) * 1.5), Math.ceil((bm._maxIndexCount + ic) * 1.5));
   }
   private wanted(i: number, d: number) {
-    const cur = this.level[i]; let l = RELIEF_LODS.findIndex(x => d < x.dist);
+    const cur = this.level[i]; let l = Math.max(this.items[i].minLod ?? 0, RELIEF_LODS.findIndex(x => d < x.dist));
     if (cur >= 0 && l > cur && d < RELIEF_LODS[cur].dist * HYST) l = cur; // hysteresis: keep the finer level a little longer
     return l;
   }
@@ -400,7 +407,7 @@ export function registerItems(spec: RegisterSpec): { items: ReliefItem[]; rosett
 export interface Facade { id: 'N' | 'E'; origin: [number, number]; along: [number, number]; normal: [number, number]; length: number; y0: number; height: number }
 export interface Span { a0: number; a1: number; type: 'flight' | 'landing'; rise: 1 | -1 }
 /** kind, seed (variant), along-façade position (m), base height above the façade foot (m), facing, scale (× register figure height) */
-export interface Placement { kind: string; variant: number; along: number; y: number; facing: 1 | -1; scale: number; depth?: number }
+export interface Placement { kind: string; variant: number; along: number; y: number; facing: 1 | -1; scale: number; depth?: number; minLod?: number }
 export interface StairGeom { spans: Span[]; riser: number; tread: number; parapet: number; podium: number }
 
 /** Plan the reliefs on one façade from the stair spans (all dimensions from SITE_SPEC via the terrace manifest).
@@ -461,15 +468,35 @@ export function planFacade(f: Facade, g: StairGeom): { figures: Placement[]; ros
   }
   return { figures: out, rosettes: ros };
 }
-/** the audience panel at the centre of each façade (Tilia 1972 via Iranica: still in place in 467, B): the king enthroned,
- *  the crown prince behind him, an official before him, incense stands between (NS, C); guards flanking the panel */
+/** The audience panel at the centre of each façade (D-204; SITE_SPEC apadana.r_audience_panel). The Treasury audience reliefs
+ *  stood here in 467 (Tilia 1972 via Iranica, B). The composition follows them: TREAS-AUD (search extract) for the figures
+ *  (B); their order and spacing, the canopy and the sizes are RECOLLECTION of the reliefs, NOT SEEN (C). Viewer's left to
+ *  right: a Persian guard, the Mede weapon-bearer (axe, bow case), the beardless attendant with a towel, the crown prince with
+ *  a lotus, the king enthroned facing right (staff, lotus, footstool), two incense burners, the Median official bowing with
+ *  his hand before his mouth, a Persian guard with a spear; the canopy's band across the top. Standing figures are
+ *  figure_of_panel of the panel height; the seated king at the same scale reaches their heads (hierarchic scale, C). The
+ *  group is centred on the panel. The guards flanking the panel outside it are kept (C). */
 export function planAudience(): { figures: Placement[]; rosettes: { a: number; y: number }[] } {
   const AP = v<any>('apadana', 'r_audience_panel'), R = v<any>('apadana', 'r_registers'), CV = v<any>('apadana', 'r_relief_carving'), figH = R.height * CV.figure_fill;
-  const k = (AP.height / figH) * 0.92, Dp = v('apadana', 'r_relief_depth') * CV.panel_depth_factor, out: Placement[] = [], ros: { a: number; y: number }[] = [];
-  out.push({ kind: 'king', variant: 0, along: -0.7, y: R.bottom, facing: 1, scale: k, depth: Dp });
-  out.push({ kind: 'crown_prince', variant: 1, along: -2.0, y: R.bottom, facing: 1, scale: k * 0.97, depth: Dp });
-  out.push({ kind: 'official', variant: 2, along: 1.55, y: R.bottom, facing: -1, scale: k * 0.95, depth: Dp });
-  for (const x of [0.55, 0.95]) out.push({ kind: 'incense_burner', variant: 0, along: x, y: R.bottom, facing: 1, scale: k * 0.55, depth: Dp });
+  const S = AP.height * AP.figure_of_panel, Dp = v('apadana', 'r_relief_depth') * CV.panel_depth_factor, out: Placement[] = [], ros: { a: number; y: number }[] = [];
+  // positions relative to the king's origin (m): the file behind him, then the burners and the official's side before him
+  const f = AP.file * S, bS = (AP.burner_of_figure * S) / defBounds(defOf('incense_burner', 0))[3];
+  const scene: [string, number, number, 1 | -1, number][] = [ // kind, seed, along (m, from the king), facing, figure height (m)
+    ['guard', 0, -0.48 - 3 * f, 1, S], ['weapon_bearer', 0, -0.48 - 2 * f, 1, S], ['attendant', 2, -0.48 - f, 1, S], ['crown_prince', 1, -0.48, 1, S],
+    ['king', 0, 0, 1, S],
+    ['incense_burner', 0, 0.44 * S, 1, bS], ['incense_burner', 0, 0.63 * S, 1, bS],
+    ['official', 0, 0.85 * S, -1, S], ['guard', 1, 0.85 * S + f + 0.05, -1, S],
+  ];
+  // centre the group's drawn extent on the panel
+  let lo = Infinity, hi = -Infinity;
+  for (const [kind, seed, a, facing, h] of scene) { const bb = boundsOf(kind, seed); for (const x of [bb[0], bb[2]]) { const w = a + facing * x * h; lo = Math.min(lo, w); hi = Math.max(hi, w); } }
+  const a0 = -(lo + hi) / 2;
+  for (const [kind, seed, a, facing, h] of scene) out.push({ kind, variant: seed, along: a0 + a, y: R.bottom, facing, scale: h / figH, depth: Dp });
+  // the canopy: equal segments across the panel, its top top_gap under the panel's top border; the lions walk toward the middle.
+  // It hangs above head height (from 2.1 m over the façade foot), so it is never drawn at L0 (1.5 mm cells, ~150 k triangles a
+  // segment); L1 gives it 6 mm cells
+  const C = AP.canopy, Ls = AP.width / C.segments, top = R.bottom + AP.height - C.top_gap;
+  for (let i = 0; i < C.segments; i++) { const a = -AP.width / 2 + (i + 0.5) * Ls; out.push({ kind: 'canopy', variant: 0, along: a, y: top - C.rel_height * Ls, facing: a < 0 ? 1 : -1, scale: Ls / figH, depth: Dp, minLod: 1 }); }
   for (const s of [-1, 1]) for (let i = 0; i < 2; i++) out.push({ kind: 'guard', variant: i, along: s * (AP.width / 2 + 0.5 + i * 0.7), y: R.bottom, facing: (s > 0 ? -1 : 1) as 1 | -1, scale: 1.35 });
   for (let x = -AP.width / 2; x <= AP.width / 2; x += v<any>('apadana', 'r_rosette').pitch) ros.push({ a: x, y: R.bottom - 0.08 }, { a: x, y: R.bottom + AP.height });
   return { figures: out, rosettes: ros };
@@ -480,7 +507,7 @@ export function facadeItems(f: Facade, plan: { figures: Placement[]; rosettes: {
   const R = v<any>('apadana', 'r_registers'), CV = v<any>('apadana', 'r_relief_carving'), figH = R.height * CV.figure_fill, D = v('apadana', 'r_relief_depth'), RS = v<any>('apadana', 'r_rosette');
   const at = (a: number, y: number) => new THREE.Vector3(f.origin[0] + f.along[0] * a, f.y0 + y, -(f.origin[1] + f.along[1] * a));
   return {
-    items: plan.figures.map(p => ({ kind: p.kind, seed: p.variant, o: at(p.along, p.y), X, Y, Z, S: figH * p.scale, D: p.depth ?? D, mirror: p.facing < 0 })),
+    items: plan.figures.map(p => ({ kind: p.kind, seed: p.variant, o: at(p.along, p.y), X, Y, Z, S: figH * p.scale, D: p.depth ?? D, mirror: p.facing < 0, ...(p.minLod ? { minLod: p.minLod } : {}) })),
     rosettes: plan.rosettes.map(r => ({ o: at(r.a, r.y - RS.diameter / 2), X, Y, Z, S: RS.diameter, D: D * 0.6 })),
   };
 }

@@ -214,8 +214,15 @@ function blur2(a: Float32Array, nx: number, ny: number, r: number) {
 /** finest surface-detail period used by the figures (curls, cascade pleats), figure units: detail is band-limited to grids
  *  with at least 2.5 cells per period, and incisions narrower than a cell are widened (with proportionally less depth) */
 export const DETAIL_PERIOD = 0.0125;
+/** deepest cut-back of the background at the foot of an outline, relief-depth units (behind the wall face; D-204) */
+export const FOOT_CUT = 0.5;
+/** RTIN error given to the silhouette's grid points (relief-depth units): above the L2 bound of reliefs.ts RELIEF_LODS
+ *  (0.12), so the outline is cell-exact at L0–L2; below L3's (0.3), where a cell is ≲ 1 px (D-204) */
+export const SILHOUETTE_ERROR = 0.2;
+/** how far (cells) a background vertex of a LOD mesh looks for the carved point whose paint it takes (D-204) */
+export const FOOT_REACH = 3;
 /** Sample a figure on an n×n grid (n = 2^k + 1) covering its bounds (square, figure units). Heights in depth units, soft-clamped to ≤ 1. */
-export function rasterize(def: FigureDef, n: number): Field {
+export function rasterize(def: FigureDef, n: number, prefilter = false): Field {
   const [bx0, by0, bx1, by1] = figureBounds(def);
   const E = Math.max(bx1 - bx0, by1 - by0), cell = E / (n - 1);
   const x0 = (bx0 + bx1) / 2 - E / 2, y0 = by0; // ground line kept at the bottom of the grid
@@ -224,10 +231,18 @@ export function rasterize(def: FigureDef, n: number): Field {
   const pal = (c: C3) => { let i = palRef.get(c); if (i !== undefined) return i; const k = c.join(','); i = palIdx.get(k);
     if (i === undefined) { i = palette.length; palette.push(c); palIdx.set(k, i); if (i > 255) throw new Error('relief palette overflow'); } palRef.set(c, i); return i; };
   const ix = (x: number) => Math.round((x - x0) / cell), iy = (y: number) => Math.round((y - y0) / cell);
-  const fine = cell <= DETAIL_PERIOD / 2.5;
+  // surface detail (D-204): point-sampled where the grid resolves the finest period (≥ 2.5 cells) and the LOD asks for no
+  // prefilter (L0, L1); otherwise prefiltered, averaged over a K×K lattice spanning ±1 cell (a box two cells wide: periods under two cells, which would
+  // alias, average away, broad folds survive), instead of being dropped as it was (D-019), which left every figure seen
+  // beyond 4 m, and every large one (audience panel, jambs) nearer, a flat pad
+  const fine = !prefilter && cell <= DETAIL_PERIOD / 2.5, K = fine ? 1 : 4, SUB = Array.from({ length: K }, (_, k) => (K === 1 ? 0 : ((k + 0.5) / K - 0.5) * 2 * cell));
+  const detailAt = (fn: (x: number, y: number, t: number) => number, x: number, y: number, t: number) => {
+    if (K === 1) return fn(x, y, t);
+    let s = 0; for (const dy of SUB) for (const dx of SUB) s += fn(x + dx, y + dy, t); return s / (K * K);
+  };
   for (const m of def.masses) {
     const w = m.round ?? 0.02, e0 = m.edge ?? 0.45, gw = m.grooveW ?? 0.006, k = m.smooth ?? 0;
-    const band = m.paintOnly ? 0 : Math.max(w, gw) + k + 2 * cell, Mg = band + cell;
+    const band = m.paintOnly ? 0 : Math.max(w, gw) + k + 2 * cell, Mg = band + cell, half = cell / 2;
     let b: Box = [Infinity, Infinity, -Infinity, -Infinity];
     for (const s of m.add) b = [Math.min(b[0], s.b[0]), Math.min(b[1], s.b[1]), Math.max(b[2], s.b[2]), Math.max(b[3], s.b[3])];
     if (m.clip) b = [Math.max(b[0], m.clip.b[0]), Math.max(b[1], m.clip.b[1]), Math.min(b[2], m.clip.b[2]), Math.min(b[3], m.clip.b[3])];
@@ -253,15 +268,23 @@ export function rasterize(def: FigureDef, n: number): Field {
       const y = y0 + j * cell, row = (j - j0) * nx - i0;
       for (let i = i0; i <= i1; i++) {
         const d = buf[row + i], g = j * n + i;
-        if (d < 0) {
-          const x = x0 + i * cell;
-          if (m.paintOnly) { if (h[g] > 0) col[g] = cfn ? pal(cfn(x, y)) : cst!; continue; }
-          const t = -d, s1 = Math.min(1, t / w);
+        if (m.paintOnly) { if (d < 0 && h[g] > 0) col[g] = cfn ? pal(cfn(x0 + i * cell, y)) : cst!; continue; }
+        if (d < half) {
+          // the cut-back step is anti-aliased (D-204): the mass covers a grid point by clamp(½ − d/cell), so the step is a
+          // one-cell ramp centred on the true outline and its normals follow the outline's direction. Point-sampled
+          // (D-019), a coarse grid staircased the outline and the central-difference normals at the stair corners flipped
+          // between the axes: dark and bright dots all round every figure seen from a few metres
+          const x = x0 + i * cell, cv = Math.min(1, 0.5 - d / cell);
+          const t = Math.max(0, -d), s1 = Math.min(1, t / w);
           let p = e0 + (1 - e0) * Math.sqrt(1 - (1 - s1) * (1 - s1));
           if (dm) { const s2 = Math.min(1, Math.max(0, (dm[row + i] - 0.5) * 2)); p *= 1 - dome * (1 - s2) * (1 - s2); }
           let v = Math.max(m.amp * p, h[g] + lift * p);
-          if (fine && m.detail) v += m.detail(x, y, t) * sstep(0, w * 0.9, t);
-          h[g] = Math.max(0.02, v); col[g] = cfn ? pal(cfn(x, y)) : cst!;
+          if (m.detail && t > 0) v += detailAt(m.detail, x, y, t) * sstep(0, w * 0.9, t);
+          v = Math.max(0.02, v);
+          h[g] = cv >= 1 ? v : h[g] + (v - h[g]) * cv;
+          // a point outside the outline takes the mass's paint only where nothing else lies (the foot of the step is painted
+          // like its face; D-204)
+          if (d < 0 || col[g] === BG) col[g] = cfn ? pal(cfn(x, y)) : cst!;
         } else if (groove > 0 && d < gw && h[g] > 0) {
           const q = 1 - d / gw; h[g] = Math.max(0.02, h[g] - groove * q * q);
         }
@@ -281,6 +304,18 @@ export function rasterize(def: FigureDef, n: number): Field {
   }
   // soft clamp to the relief depth: linear to 0.85, then a tanh knee to 1
   for (let i = 0; i < h.length; i++) { const v = h[i]; if (v > 0.85) h[i] = 0.85 + 0.15 * Math.tanh((v - 0.85) / 0.15); }
+  // the background at the foot of every outline is cut back below the wall face by as much as the step rises above it
+  // (D-204): the step's triangles then cross the wall face at mid-height, where the linear interpolation of a one-cell step
+  // is a straight line whichever way the RTIN splits the cell. With the foot on the background plane (just behind the face,
+  // r_relief_carving.embed) the visible silhouette was the step's foot contour, which zigzags by up to a cell between
+  // the two diagonals: a toothed edge on every straight outline. The cut-back lies behind the wall face (never drawn)
+  const FOOT = FOOT_CUT;
+  for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
+    const g = j * n + i; if (h[g] !== 0) continue;
+    let nb = 0;
+    for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) { const ii = i + di, jj = j + dj; if (ii >= 0 && jj >= 0 && ii < n && jj < n && h[jj * n + ii] > nb) nb = h[jj * n + ii]; }
+    if (nb > 0) h[g] = -Math.min(FOOT, nb);
+  }
   return { n, x0, y0, cell, h, col, palette };
 }
 
@@ -305,15 +340,20 @@ function rtinCoords(n: number): Uint16Array {
  *  paint boundaries are refined at the finest LOD only: above the L0 bound of reliefs.ts RELIEF_LODS (0.03), below L1's
  *  (0.06). D-151: it was 0.02, under every in-game bound since D-048, so no paint edge was ever refined and painted bands
  *  and patterns blurred across the coarse triangles of flat stone) */
-export function rtinErrors(f: Field, colourEdgeError = 0.04): Float32Array {
+export function rtinErrors(f: Field, colourEdgeError = 0.04, silhouetteError = SILHOUETTE_ERROR): Float32Array {
   const { n, h, col } = f, tile = n - 1, numTri = tile * tile * 2 - 2, numParent = numTri - tile * tile, coords = rtinCoords(n);
   const err = new Float32Array(n * n);
+  // the silhouette (D-204): every grid point of the cut-back foot (h < 0) is refined, so the outline is drawn in single
+  // cells at every LOD it applies to. Error-driven alone, a triangle whose hypotenuse runs along a straight outline has no
+  // error at its midpoint, so it was never split and its legs crossed the step at 45°: a toothed edge 2–4 cells deep
   if (colourEdgeError > 0) for (let j = 1; j < n - 1; j++) for (let i = 1; i < n - 1; i++) { const g = j * n + i, c = col[g];
     if (c !== col[g - 1] || c !== col[g + 1] || c !== col[g - n] || c !== col[g + n]) err[g] = colourEdgeError; }
+  if (silhouetteError > 0) for (let g = 0; g < n * n; g++) if (h[g] < 0) err[g] = Math.max(err[g], silhouetteError);
   for (let i = numTri - 1; i >= 0; i--) {
     const k = i * 4, ax = coords[k], ay = coords[k + 1], bx = coords[k + 2], by = coords[k + 3];
     const mx = (ax + bx) >> 1, my = (ay + by) >> 1, cx = mx + my - ay, cy = my + ax - mx;
-    const mid = my * n + mx, e = Math.abs((h[ay * n + ax] + h[by * n + bx]) / 2 - h[mid]);
+    // heights clamped at the wall face: the foot cut-back (behind the face) adds no error of its own (D-204)
+    const mid = my * n + mx, e = Math.abs((Math.max(0, h[ay * n + ax]) + Math.max(0, h[by * n + bx])) / 2 - Math.max(0, h[mid]));
     let v = Math.max(err[mid], e);
     if (i < numParent) v = Math.max(v, err[((ay + cy) >> 1) * n + ((ax + cx) >> 1)], err[((by + cy) >> 1) * n + ((bx + cx) >> 1)]);
     err[mid] = v;
@@ -333,14 +373,14 @@ function paintCoverage(f: Field, verts: Int32Array, nv: number): Float32Array {
   const painted = palette.map((c, i) => i !== BG && !(c[0] === STONE_SRGB[0] && c[1] === STONE_SRGB[1] && c[2] === STONE_SRGB[2]));
   if (!painted.some(Boolean)) return out;
   const sat = new Float64Array((n + 1) * (n + 1)), W = n + 1;
-  for (let j = 0; j < n; j++) { let row = 0; for (let i = 0; i < n; i++) { row += h[j * n + i]; sat[(j + 1) * W + i + 1] = sat[j * W + i + 1] + row; } }
+  for (let j = 0; j < n; j++) { let row = 0; for (let i = 0; i < n; i++) { row += Math.max(0, h[j * n + i]); sat[(j + 1) * W + i + 1] = sat[j * W + i + 1] + row; } }
   // a worn outline vertex tints triangles about one cell wide: scale the wear so a coarse LOD does not show more of it
   const r = Math.max(1, Math.round(WEAR.radius / cell)), amount = WEAR.max * Math.min(1, WEAR.radius / cell);
   for (let v = 0; v < nv; v++) {
     const g = verts[v]; if (!painted[col[g]]) continue;
     const i = g % n, j = (g - i) / n, i0 = Math.max(0, i - r), i1 = Math.min(n - 1, i + r), j0 = Math.max(0, j - r), j1 = Math.min(n - 1, j + r);
     const mean = (sat[(j1 + 1) * W + i1 + 1] - sat[j0 * W + i1 + 1] - sat[(j1 + 1) * W + i0] + sat[j0 * W + i0]) / ((i1 - i0 + 1) * (j1 - j0 + 1));
-    const t = Math.min(1, Math.max(0, (h[g] - mean - WEAR.conv0) / (WEAR.conv1 - WEAR.conv0)));
+    const t = Math.min(1, Math.max(0, (Math.max(0, h[g]) - mean - WEAR.conv0) / (WEAR.conv1 - WEAR.conv0)));
     out[v] = 1 - amount * t * t * (3 - 2 * t);
   }
   return out;
@@ -368,22 +408,41 @@ export function extractLod(f: Field, err: Float32Array, maxError: number, gradSt
   const pos = new Float32Array(nv * 3), grad = new Float32Array(nv * 2), cl = new Float32Array(nv * 3);
   const s = Math.max(1, gradStep); let maxH = 0;
   const lin = palette.map(c => c.map(srgbToLinear)), bgl = bgColour.map(srgbToLinear);
+  // paint source per vertex (D-204): a background vertex at the foot of an outline takes the paint (colour, coverage, gilding)
+  // of its highest carved neighbour, so the step's face is painted to its foot and the stone begins where the step meets the
+  // wall face (the background plane lies r_relief_carving.embed behind it). It took the stone's colour and no paint, so every
+  // step triangle faded from the pigment to bare stone across a whole cell, and the material's losses (thresholded on the
+  // coverage) broke that fade into a fuzzy, speckled fringe round every figure
+  const src = new Int32Array(nv);
   for (let v = 0; v < nv; v++) {
-    const g = vlist[v], i = g % n, j = (g - i) / n;
+    const g = vlist[v]; src[v] = g; if (col[g] !== BG) continue;
+    // the nearest carved point within FOOT_REACH cells, the highest among equals (a coarse LOD's step triangles reach a few
+    // cells out from the outline)
+    const i = g % n, j = (g - i) / n; let best = -1, bd = Infinity, bh = 0;
+    for (let dj = -FOOT_REACH; dj <= FOOT_REACH; dj++) for (let di = -FOOT_REACH; di <= FOOT_REACH; di++) {
+      const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii > max || jj > max) continue; const q = jj * n + ii; if (col[q] === BG || h[q] <= 0) continue;
+      const dd = di * di + dj * dj; if (dd < bd || (dd === bd && h[q] > bh)) { bd = dd; bh = h[q]; best = q; } }
+    if (best >= 0) src[v] = best;
+  }
+  for (let v = 0; v < nv; v++) {
+    const g = vlist[v], i = g % n, j = (g - i) / n, gc = src[v];
     pos[v * 3] = x0 + i * cell; pos[v * 3 + 1] = y0 + j * cell; pos[v * 3 + 2] = h[g]; if (h[g] > maxH) maxH = h[g];
     const il = Math.max(0, i - s), ir = Math.min(max, i + s), jd = Math.max(0, j - s), ju = Math.min(max, j + s);
-    grad[v * 2] = (h[j * n + ir] - h[j * n + il]) / ((ir - il) * cell);
-    grad[v * 2 + 1] = (h[ju * n + i] - h[jd * n + i]) / ((ju - jd) * cell);
-    // colour: the vertex's own paint, or (at the foot of an outline) the stone background
-    const c = col[g] === BG ? bgl : lin[col[g]]; cl[v * 3] = c[0]; cl[v * 3 + 1] = c[1]; cl[v * 3 + 2] = c[2];
+    // Sobel (central differences smoothed 1-2-1 across them; D-204): the normals of the two vertex rows of a one-cell step
+    // then agree along the outline, where plain central differences alternated with the RTIN diagonals (a sawtooth of light
+    // and shade along every outline on the side away from the sun)
+    grad[v * 2] = (h[jd * n + ir] + 2 * h[j * n + ir] + h[ju * n + ir] - h[jd * n + il] - 2 * h[j * n + il] - h[ju * n + il]) / (4 * (ir - il) * cell);
+    grad[v * 2 + 1] = (h[ju * n + il] + 2 * h[ju * n + i] + h[ju * n + ir] - h[jd * n + il] - 2 * h[jd * n + i] - h[jd * n + ir]) / (4 * (ju - jd) * cell);
+    // colour: the vertex's own paint, or its source's (the foot of an outline); the stone where no mass is near
+    const c = col[gc] === BG ? bgl : lin[col[gc]]; cl[v * 3] = c[0]; cl[v * 3 + 1] = c[1]; cl[v * 3 + 2] = c[2];
   }
   const index = tris.slice(0, nt);
   // gilding (D-151): 1 on vertices of a gilded mass (their colour is the gilt key), 0 elsewhere
   const gilt = new Float32Array(nv), gk = palette.findIndex(c => c[0] === GILT_SRGB[0] && c[1] === GILT_SRGB[1] && c[2] === GILT_SRGB[2]);
-  if (gk > 0) for (let v = 0; v < nv; v++) if (col[vlist[v]] === gk) gilt[v] = 1;
+  if (gk > 0) for (let v = 0; v < nv; v++) if (col[src[v]] === gk) gilt[v] = 1;
   for (let t = 0; t < nt; t += 3) { // counter-clockwise seen from +z (out of the wall)
     const a = index[t] * 3, b = index[t + 1] * 3, c = index[t + 2] * 3;
     if ((pos[b] - pos[a]) * (pos[c + 1] - pos[a + 1]) - (pos[b + 1] - pos[a + 1]) * (pos[c] - pos[a]) < 0) { const q = index[t + 1]; index[t + 1] = index[t + 2]; index[t + 2] = q; }
   }
-  return { pos, grad, col: cl, paint: paintCoverage(f, vlist, nv), gilt, index, tris: nt / 3, verts: nv, maxH };
+  return { pos, grad, col: cl, paint: paintCoverage(f, src, nv), gilt, index, tris: nt / 3, verts: nv, maxH };
 }

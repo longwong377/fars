@@ -1,6 +1,13 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Audience panel and the carved edge (D-204; the user's "fill the gaps").** The panel's composition after the Treasury
+  audience reliefs is RECOLLECTION, NOT SEEN (the figures B via TREAS-AUD; order, sizes, canopy and paint C). **Not rendered
+  in a browser** (node previews only: `shots/d204/`). Weak: at L2 (4-14 m) folds are faint and the royal robe's pattern and
+  faces blotchy; at L3 / far meshes outlines are still 2-4-cell wedges; the canopy's painted petals never show (it is never
+  at L0); a hairline may show at canopy segment seams (not measured); no undercut. **Over budget by more than 10 %** in front
+  of the panel at 2 m (+33.5 %) and 4 m (+24.2 %): nine figures and a canopy where there were five (walk worst +4.5 %, far
+  −15.6 %). The contact shadows (half-resolution SSS) along relief steps were not changed or measured.
 - **Now view (D-201; stretch, out-of-world, off by default; key N).** Built as a transform of the 467 parts from
   `src/data/now_view.json`. **Everything in it is recollection, NOT SEEN, tier C** (no survey, no photograph of the ruin);
   which 13 Apadana columns and which 2 Gate columns stand are the weakest claims. **Never rendered** (node tests only:

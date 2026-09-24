@@ -5,9 +5,12 @@ import { buildTerrace } from '../src/arch/terrace';
 import { buildReliefs, apadanaFacades, buildPhase4Reliefs } from '../src/arch/decor';
 import { phase4Programmes } from '../src/arch/relief_programmes';
 import { ATTENDANT_SCALE, ROUGH, baseKind } from '../src/arch/relief_figures';
-import { RELIEF_KINDS, FIGURE_KINDS, DELEGATIONS, ReliefSet, RELIEF_LODS, reliefLodMesh, lodGeometry, lodGrid, updateReliefs, buildRegister, planFacade, planAudience, genStats, RELIEF_META } from '../src/arch/reliefs';
-import { kindBounds, figureDef } from '../src/arch/relief_figures';
-import { rasterize } from '../src/arch/relief_field';
+import { RELIEF_KINDS, FIGURE_KINDS, DELEGATIONS, ReliefSet, RELIEF_LODS, reliefLodMesh, lodGeometry, lodGrid, updateReliefs, buildRegister, planFacade, planAudience, facadeItems, genStats, RELIEF_META, PIGMENT } from '../src/arch/reliefs';
+import type { Placement } from '../src/arch/reliefs';
+import { kindBounds, figureDef, CANOPY_H } from '../src/arch/relief_figures';
+import { rasterize, rtinErrors, extractLod, poly } from '../src/arch/relief_field';
+import type { FigureDef } from '../src/arch/relief_field';
+import { srgbToLinear } from '../src/core/colour';
 import { v } from '../src/arch/spec';
 import sources from '../src/data/sources.json';
 
@@ -212,5 +215,88 @@ describe('Phase 4 relief programmes (D-049)', () => {
     const ts = sets.find(s => s.name === 'relief:tachara-stair')!; expect(ts.stats.byLod.reduce((a, b) => a + b, 0)).toBeGreaterThan(0); expect(ts.stats.proxies).toBeGreaterThan(0);
     expect(set.stats.farChunks).toBe(set.stats.chunks); expect(set.stats.farDraws).toBe(1);
     expect(ts.stats.farDraws).toBe(ts.stats.farChunks); expect(ts.stats.farChunks).toBeLessThan(ts.stats.chunks); // partly near: one draw per far chunk
+  });
+});
+
+// ---------------- D-204: the audience panel recomposed; the carved edge (anti-aliased, cut back, refined, painted to its foot) ----------------
+describe('the audience panel (D-204)', () => {
+  const AP = v<any>('apadana', 'r_audience_panel'), figH = R.height * CV.figure_fill, plan = planAudience();
+  const scene = plan.figures.filter(p => Math.abs(p.along) < AP.width / 2 && p.kind !== 'canopy');
+  it('the Treasury audience composition, left to right, centred within the panel', () => {
+    expect(scene.map(p => p.kind)).toEqual(['guard', 'weapon_bearer', 'attendant', 'crown_prince', 'king', 'incense_burner', 'incense_burner', 'official', 'guard']);
+    expect(scene.find(p => p.kind === 'attendant')!.variant % 4, 'the attendant carries the towel').toBe(2);
+    expect(scene.map(p => p.facing)).toEqual([1, 1, 1, 1, 1, 1, 1, -1, -1]);
+    for (const p of scene) {
+      const b = kindBounds(p.kind, p.variant), S = figH * p.scale;
+      for (const x of [b[0], b[2]]) expect(Math.abs(p.along + p.facing * x * S), `${p.kind} within the panel`).toBeLessThanOrEqual(AP.width / 2);
+      expect(p.y).toBe(R.bottom);
+    }
+  });
+  it('hierarchic scale: standing figures fill figure_of_panel of the height, the seated king reaches their heads, the canopy above them', () => {
+    const top = (p: Placement) => p.y + kindBounds(p.kind, p.variant)[3] * figH * p.scale;
+    const standing = scene.filter(p => ['guard', 'weapon_bearer', 'attendant', 'crown_prince', 'official'].includes(p.kind)), king = scene.find(p => p.kind === 'king')!;
+    for (const p of standing) expect((top(p) - R.bottom) / AP.height, p.kind).toBeGreaterThan(AP.figure_of_panel * 0.85); // a headband stands lower than tall headgear
+    const headLine = Math.max(...standing.map(top));
+    expect(headLine - R.bottom).toBeLessThanOrEqual(AP.figure_of_panel * AP.height * 1.01); // a spear tip or crown may pass the unit height by a little
+    expect(Math.abs(top(king) - headLine) / (headLine - R.bottom), 'the king\'s crown at the standing figures\' heads').toBeLessThan(0.05);
+    const can = plan.figures.filter(p => p.kind === 'canopy'), Ls = AP.width / AP.canopy.segments;
+    expect(can.length).toBe(AP.canopy.segments);
+    expect(CANOPY_H).toBe(AP.canopy.rel_height);
+    for (const c of can) {
+      expect(c.y, 'the canopy above the heads').toBeGreaterThan(headLine);
+      expect(c.y + CANOPY_H * figH * c.scale, 'the canopy under the panel\'s top').toBeLessThanOrEqual(R.bottom + AP.height + 1e-6);
+      expect(figH * c.scale).toBeCloseTo(Ls, 9); expect(c.minLod).toBe(1);
+    }
+    const xs = can.map(c => c.along).sort((a, b) => a - b);
+    expect(xs[0] - Ls / 2).toBeCloseTo(-AP.width / 2, 9); expect(xs[xs.length - 1] + Ls / 2).toBeCloseTo(AP.width / 2, 9);
+  });
+  it('the canopy segments tile: the band meets itself across the segment ends', () => {
+    const f = rasterize(figureDef('canopy', 0), 257), n = f.n; let worst = 0;
+    for (let j = 0; j < n; j++) { const a = f.h[j * n], b = f.h[j * n + n - 1]; if (a > 0 || b > 0) worst = Math.max(worst, Math.abs(a - b)); }
+    expect(worst, 'height mismatch at the seam (relief-depth units)').toBeLessThan(0.03);
+  });
+  it('a canopy item is never drawn at L0', () => {
+    const it = facadeItems(apadanaFacades(manifest)[0], plan).items.find(i => i.kind === 'canopy')!;
+    const rs = new ReliefSet([it]); updateReliefs(it.o.clone().addScaledVector(it.Z, 0.3), 1e9);
+    expect(rs.stats.byLod[0]).toBe(0); expect(rs.stats.byLod[1]).toBeGreaterThan(0); rs.dispose();
+  });
+});
+
+describe('the carved edge (D-204)', () => {
+  // a plain rectangle whose right edge falls between grid points, meshed at the L2 grid and error bound
+  const rect: FigureDef = { masses: [{ add: [poly([[-0.2, 0.1], [0.2123, 0.1], [0.2123, 0.9], [-0.2, 0.9]])], amp: 0.6, round: 0.03, edge: 0.5, colour: PIGMENT.cinnabar }], bounds: [-0.5, 0, 0.5, 1] };
+  const f = rasterize(rect, 129, true), L2 = RELIEF_LODS[2], m = extractLod(f, rtinErrors(f), L2.err, L2.grad);
+  const col = Math.round((0.2123 - f.x0) / f.cell) * f.cell + f.x0;
+  const near = (x: number) => { const out: number[] = []; for (let q = 0; q < m.verts; q++) if (Math.abs(m.pos[q * 3] - x) < f.cell * 0.5 && m.pos[q * 3 + 1] > 0.2 && m.pos[q * 3 + 1] < 0.8) out.push(q); return out; };
+  it('the step is anti-aliased: the height of the outline column rises smoothly as the outline moves across it', () => {
+    const i = Math.round((0.2123 - f.x0) / f.cell), j = Math.round((0.5 - f.y0) / f.cell), x = f.x0 + i * f.cell, hs: number[] = [];
+    for (let k = -4; k <= 4; k++) {
+      const e = x + (k / 10) * f.cell, g = rasterize({ ...rect, masses: [{ ...rect.masses[0], add: [poly([[-0.2, 0.1], [e, 0.1], [e, 0.9], [-0.2, 0.9]])] }] }, 129, true);
+      hs.push(g.h[j * g.n + i]);
+    }
+    for (let k = 1; k < hs.length; k++) { expect(hs[k], `outline at +${k - 4}/10 cell`).toBeGreaterThan(hs[k - 1]); expect(hs[k] - hs[k - 1]).toBeLessThan(0.35 * (hs[hs.length - 1] - hs[0])); }
+  });
+  it('the background at the foot is cut back below the wall face, and every grid row of the outline is in the mesh (straight silhouette)', () => {
+    let feet = 0; for (let q = 0; q < m.verts; q++) if (m.pos[q * 3 + 2] < 0) feet++;
+    expect(feet).toBeGreaterThan(100);
+    const rows = new Set(near(col + f.cell).filter(q => m.pos[q * 3 + 2] < 0).map(q => Math.round(m.pos[q * 3 + 1] / f.cell)));
+    expect(rows.size, 'a cut-back foot vertex on every row between y 0.2 and 0.8').toBeGreaterThanOrEqual(Math.floor(0.6 / f.cell) - 1);
+  });
+  it('the normals along a straight outline agree (no sawtooth of light and shade)', () => {
+    const g = near(col).map(q => m.grad[q * 2]);
+    const mean = g.reduce((a, b) => a + b, 0) / g.length, sd = Math.sqrt(g.reduce((a, b) => a + (b - mean) ** 2, 0) / g.length);
+    expect(Math.abs(mean)).toBeGreaterThan(1);
+    expect(sd / Math.abs(mean), 'spread of the outline normals').toBeLessThan(0.05);
+  });
+  it('the step is painted to its foot: the background vertices of a LOD mesh take the paint of the carving beside them', () => {
+    let feet = 0, painted = 0; const red = PIGMENT.cinnabar.map(srgbToLinear);
+    for (let q = 0; q < m.verts; q++) if (m.pos[q * 3 + 2] <= 0) { feet++; if (m.paint[q] > 0 && Math.abs(m.col[q * 3] - red[0]) < 1e-6) painted++; }
+    expect(painted / feet).toBeGreaterThan(0.95);
+  });
+  it('surface detail survives the coarse LODs, prefiltered (it was dropped beyond 4 m)', () => {
+    const def = figureDef('persian', 0), bare: FigureDef = { ...def, masses: def.masses.map(q => ({ ...q, detail: undefined })) };
+    const a = rasterize(def, 129, true), b = rasterize(bare, 129, true); let d2 = 0, k = 0;
+    for (let q = 0; q < a.h.length; q++) if (a.h[q] > 0 && b.h[q] > 0) { d2 += (a.h[q] - b.h[q]) ** 2; k++; }
+    expect(Math.sqrt(d2 / k), 'RMS of the detail at the L2 grid (relief-depth units)').toBeGreaterThan(0.015);
   });
 });

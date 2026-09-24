@@ -1189,12 +1189,20 @@
   "r_audience_panel": {
    "v": {
     "width": 6.2,
-    "height": 2.6
+    "height": 2.6,
+    "figure_of_panel": 0.68,
+    "file": 0.38,
+    "burner_of_figure": 0.46,
+    "canopy": {
+     "segments": 4,
+     "rel_height": 0.3,
+     "top_gap": 0.03
+    }
    },
    "u": "m",
-   "src": "RECON",
+   "src": "TREAS-AUD;RECON",
    "tier": "C",
-   "note": "audience panel size (C; the Treasury audience reliefs' dimensions were not obtained)"
+   "note": "audience panel at the centre of the N and E stair facades (D-204). Size C (the Treasury audience reliefs' dimensions were not obtained). Composition after the two Treasury audience reliefs, which stood here in 467 (TREAS-AUD, search extract, B for the reading of the figures; the arrangement as used here is RECOLLECTION of Tilia 1972 and the Tehran and in-situ reliefs, NOT SEEN, verify): the king enthroned on a throne with footstool, facing the viewer's right, a long staff in the right hand and a lotus in the left; behind him the crown prince with a lotus, a beardless attendant with a towel, a Mede weapon-bearer (axe, bow case) and a Persian guard; before him two incense burners and a Median official bowing, hand before his mouth, with a Persian guard with a spear behind him; above them a canopy (baldachin), its edge a band across the top of the panel (moulding, rosettes, lions, fringe: C). Sizes C: a standing figure incl. headgear is figure_of_panel x height (hierarchic scale: the seated king's crown at the standing figures' heads); figures in file every `file` x the figure height; the incense burners burner_of_figure x the figure height; the canopy in `segments` equal carved segments across the width, rel_height x a segment high, its top top_gap m under the panel's top border"
   },
   "r_crenellation": {
    "v": {
