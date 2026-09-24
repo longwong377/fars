@@ -60,6 +60,9 @@ export const IN_PLACE_RATE = 4.2;
 export const PATH_REACH = 9;
 
 const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
+/** |(x, y, z)|: Math.hypot costs ~100 ns a call in node 22 against ~20 ns for this, and the pool and the impostors take
+ *  one per candidate each frame (~7,000 in the busiest views; session 6) */
+const len3 = (x: number, y: number, z: number) => Math.sqrt(x * x + y * y + z * z);
 const rad = (deg: number) => (deg * Math.PI) / 180;
 /** world yaw for a grid heading (deg clockwise from grid north); the rig faces +Z in bind pose */
 export const yawOf = (headingDeg: number) => Math.PI - rad(headingDeg);
@@ -302,8 +305,8 @@ export class Crowd {
     const cand = (d: number, a: Agent | null, vp: ViewPerson | null, id: number) => { let c = this.cands[nc]; if (!c) this.cands[nc] = c = { d, a, vp, id, rank: d }; else { c.d = d; c.a = a; c.vp = vp; c.id = id; c.rank = d; } nc++; };
     // every detailed agent on the map within the impostor range (beyond ATTACH_R they are impostors: the Terrace seen
     // from the town)
-    for (const a of sim.visibleAgents([cx, cn], IMP_R)) cand(Math.hypot(a.pos[0] - cx, a.y + 1 - cam.y, a.pos[1] - cn), a, null, a.id);
-    for (const o of view.query([cx, cn], IMP_R, this.vpBuf)) { const a = o.agent >= 0 ? sim.agents[o.agent] : null; if (a && !a.offmap) continue; cand(Math.hypot(o.e - cx, o.y + 1 - cam.y, o.n - cn), a, o, a ? a.id : 1e7 + o.pid); }
+    for (const a of sim.visibleAgents([cx, cn], IMP_R)) cand(len3(a.pos[0] - cx, a.y + 1 - cam.y, a.pos[1] - cn), a, null, a.id);
+    for (const o of view.query([cx, cn], IMP_R, this.vpBuf)) { const a = o.agent >= 0 ? sim.agents[o.agent] : null; if (a && !a.offmap) continue; cand(len3(o.e - cx, o.y + 1 - cam.y, o.n - cn), a, o, a ? a.id : 1e7 + o.pid); }
     const C = this.cands; C.length = Math.max(C.length, nc); const order = this.orderBuf.length >= nc ? this.orderBuf : (this.orderBuf = new Int32Array(Math.max(1024, nc * 2)));
     // rank: distance, people out of view counted OUT_OF_VIEW m farther (the pool's bodies go to the people seen; the
     // nearest behind the camera keep theirs, so turning round finds them drawn)
@@ -395,7 +398,7 @@ export class Crowd {
     for (const o of src) {
       if (o.agent >= 0 || !o.place || !SHARED_ACTS.has(o.act) || (o.moving && !ACTIVITIES[o.act].moving)) continue; // stepping aside is a walk
       const P = this.popPerf(o.pid, o.act, o.why); if (!P.work) continue;
-      const near = Math.hypot(o.e - cam.x, o.y + 0.9 - cam.y, -o.n - cam.z) < THINGS_DIST;
+      const near = len3(o.e - cam.x, o.y + 0.9 - cam.y, -o.n - cam.z) < THINGS_DIST;
       for (const w of P.work) { if (!w.shared) continue; const key = this.popKey(w, o), g = S.get(key), a = A.get(key);
         const fr: [number, number, number, number] = [o.e, o.y, -o.n, yawOf(o.heading)];
         if (!g) S.set(key, { pid: o.pid, b: fr, at: w.at, kind: w.kind, group: w.shared === 'group', own: a && a.pid === o.pid ? fr : null, near });
@@ -465,7 +468,7 @@ export class Crowd {
       const pr = p.prevRoot, r = p.root;
       if (p.drawnFrame === this.frame - 1) { pr[0] = r[0]; pr[1] = r[1]; pr[2] = r[2]; pr[3] = r[3]; } else { pr[0] = x; pr[1] = y; pr[2] = z; pr[3] = yaw; }
       r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
-      const d = Math.hypot(x - cam.x, y + 0.9 - cam.y, z - cam.z); p.dist = d;
+      const d = len3(x - cam.x, y + 0.9 - cam.y, z - cam.z); p.dist = d;
       p.shown = d < LOD_DIST[3];
       if (!p.shown) continue;
       const reach = p.perf?.animals || p.perf?.work?.length ? 4 : 1.3; // a performance's things and animals spread a few metres
@@ -519,7 +522,7 @@ export class Crowd {
       if (!L) { if (made >= cap) { pending++; return; } made++;
         const inp = a ? { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed } : this.view!.lookInput(pid); const look = lookFor(this.humans.A, inp as LookInput, this.seed);
         const ch = a ? null : this.view!.childStature(pid); L = { packed: CrowdImpostors.pack(look.col), dress: look.dress, scale: (ch ?? look.stature) / (imp.atlas.refStature[look.dress] || 1.65), seed: inp.seed }; this.impLooks.set(key, L); }
-      if (pf) { const d3 = Math.hypot(x - cam.x, y + 0.9 - cam.y, z - cam.z), P = pf === 2 || d3 < THINGS_DIST ? this.popPerf(pid, vp!.act, vp!.why, L.seed) : null;
+      if (pf) { const d3 = len3(x - cam.x, y + 0.9 - cam.y, z - cam.z), P = pf === 2 || d3 < THINGS_DIST ? this.popPerf(pid, vp!.act, vp!.why, L.seed) : null;
         if (P) { const q = this.impP, k = L.seed, b = q.base, r = q.root; b[0] = x; b[1] = y; b[2] = z; b[3] = yaw;
           if (PATHED.has(P.anim)) { const o = workRoot(P.anim as WorkAnim, time + k % 100, (k % 1000) / 159); if (o) { const c = Math.cos(yaw), sn = Math.sin(yaw); x += c * o[0] + sn * o[1]; z += -sn * o[0] + c * o[1]; yaw += o[2]; } }
           r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
@@ -529,7 +532,7 @@ export class Crowd {
       if (ACTIVITIES[act].placeholder && !moving) placeholders++; // shown standing (idle), counted as the skinned are
       const ph = a ? a.gait : ((this.impPhase.get(key) ?? (pid % 628) / 100) + (moving ? (vp!.speed || 1.2) * dt / 0.72 * Math.PI : ACTIVITIES[act].moving ? IN_PLACE_RATE * dt : 0)); if (!a) this.impPhase.set(key, ph);
       imp.push(x, y, z, yaw, rowOf(L.dress, frameOf(moving && !ACTIVITIES[act].moving ? 'walk' : anim, ph)), L.scale, null, L.packed); this.drawnKeys?.add(key);
-      const dd = Math.hypot(x - cam.x, z - cam.z); bands[dd < 600 ? 0 : dd < 1500 ? 1 : dd < 3000 ? 2 : 3]++; if (moving) walkers++;
+      const dd = Math.sqrt((x - cam.x) ** 2 + (z - cam.z) ** 2); bands[dd < 600 ? 0 : dd < 1500 ? 1 : dd < 3000 ? 2 : 3]++; if (moving) walkers++;
     };
     for (let i = 0; i < this.nImp; i++) { const e = this.impList[i]; one(e.vp ? e.vp.pid : -1, e.a, e.vp, e.x, e.y, e.z, e.yaw, true); }
     for (const p of this.persons.values()) if (!p.shown && (p.agent || p.pid >= 0) && p.dist >= LOD_DIST[3] && p.drawnFrame !== this.frame) { const r = p.root; if (r[0] || r[2]) one(p.pid, p.agent, p.vp, r[0], r[1], r[2], r[3], false); }
