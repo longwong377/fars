@@ -189,7 +189,8 @@ export function invariants(P: Population, pid: number, d: number, segs: Seg[], p
   if (babies.length && !segs.some(s => s.act === 'offmap') && !(prev ?? []).some(s => s.act === 'offmap')) {
     const mo = Math.min(...babies.map(c => monthsOld(P, c, d))), capN = nightGapMax(mo), capD = IC.day_feed_every_h[1] + 0.4;
     const wake = segs.find(s => s.t0 > 2 && s.act !== 'sleep')?.t0 ?? 6, bed = [...segs].reverse().find(s => s.act !== 'sleep' && s.t1 < 24)?.t1 ?? 21;
-    const fs: [number, number][] = []; if (prev) for (const s of prev) if (FEED.test(s.why)) fs.push([s.t0 - 24, s.t1 - 24]);
+    const fs: [number, number][] = []; const had = d > 0 && babies.every(c => P.nurslings(pid, d - 1).includes(c)); // (yesterday's feeds count when the baby was hers yesterday: a wet-nursed baby comes to her on a day)
+    if (prev && had) for (const s of prev) if (FEED.test(s.why)) fs.push([s.t0 - 24, s.t1 - 24]);
     for (const s of segs) if (FEED.test(s.why)) fs.push([s.t0, s.t1]);
     for (let i = 1; i < fs.length; i++) { const a = fs[i - 1][1], b = fs[i][0]; if (b < 0) continue; const m = (a + b) / 2, day = m >= wake && m <= bed, cap = day ? capD : capN;
       if (b - a > cap + 1e-6) out.push({ kind: 'feed', note: `${(b - a).toFixed(2)} h between feeds ${a.toFixed(2)}-${b.toFixed(2)} (${day ? 'day' : 'night'}, cap ${cap} h, ${mo.toFixed(1)} months)` }); }
