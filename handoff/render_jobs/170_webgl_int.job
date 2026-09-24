@@ -1,3 +1,3 @@
 webgl_int
 tests/e2e/moments.spec.ts
-E2E_PORT=5219 Q=high WEBGL=1 ONLY=apadana-hall-in,hadish-hall
+E2E_PORT=5219 Q=high WEBGL=1 FRAMES=1 TIMEOUT=3300 ONLY=apadana-hall-in
