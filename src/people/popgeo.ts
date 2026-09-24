@@ -462,7 +462,10 @@ export class PopGeo {
   /** the walked route between two spots (grid polyline with cumulative lengths); null when there is none, undefined when
    *  the Terrace search budget of this step is spent (ask again) */
   route(a: Spot, b: Spot): Route | null | undefined {
-    const key = `${a.e.toFixed(1)},${a.n.toFixed(1)}>${b.e.toFixed(1)},${b.n.toFixed(1)}`, hit = this.cache.get(key);
+    // (keyed to the centimetre, and the route made to end exactly at its spot: a route cached for a spot 0.1-0.3 m away was
+    // reused, and a walker arrived beside the place it walked to; D-186, found by the popview test once the guards' days
+    // took more of them into the forecourt)
+    const key = `${a.e.toFixed(2)},${a.n.toFixed(2)}>${b.e.toFixed(2)},${b.n.toFixed(2)}`, hit = this.cache.get(key);
     if (hit !== undefined) { this.stats.cacheHits++; return hit; }
     const t0 = performance.now(); let pts: P2[] | null | undefined;
     const A: P2 = [a.e, a.n], B: P2 = [b.e, b.n];
@@ -472,6 +475,7 @@ export class PopGeo {
     else pts = this.groundRoute(A, B);
     if (pts === undefined) return undefined;
     this.stats.routes++; this.stats.routeMs += performance.now() - t0; if (!pts) this.stats.routeFails++;
+    if (pts && pts.length >= 2) { pts = pts.slice(); pts[0] = A; pts[pts.length - 1] = B; }
     const r = pts ? toRoute(pts) : null; if (this.cache.size > 40_000) this.cache.clear(); this.cache.set(key, r); return r;
   }
   private terraceRoute(A: P2, aa: string, B: P2, ba: string): P2[] | null | undefined {
