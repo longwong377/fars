@@ -182,3 +182,23 @@ basis; Q-288 rewritten (Kent's rules vs the stone differ in 56 of 1,040 words, c
 Elamite/Babylonian panels in the edition's lines without word spaces (tools/build_cun_lines.py; 20 versions match).
 **Tests:** tsc clean; 116/116 targeted; lint:all OK; full vitest 635 passed, 1 skipped, 1 failed (performances timing,
 passes alone).
+
+## Simulation round-6 fixes (branch sim-r7, head c897f64, D-186) — merged in session 6
+**Broken, placeholder or unverified first:** cold-weather dress only on near crowd figures (far impostors keep everyday
+dress; the Persian robe and the guards' dress have no cold piece, Q-338; below 8 °C (C) plans say "dressed against the
+cold"); the drill rule rests on memory (XEN-CYR 1.2.9–12 not read in the text: RECOLLECTION, NOT SEEN; rate C); the 60×
+frame cost in the soak 22.1 ms mean / 540 ms p99 against 11.7 / 218 on D-175's run (machine shared with a full vitest run;
+not gated, not verified as a regression); src/people/popgeo.ts route cache now keyed to the centimetre (it reused routes
+for spots 0.1–0.3 m away); a storm day can still hold 7–8 h at the hearth; "weighing silver and goods" performed as inspect.
+**Round-6 findings → done:** S1 hide receiving tied to the carriers' arrival and yesterday's slaughter count, two
+storekeepers (E-12; PF 58–60), 0.2 h + 0.015 h per hide + 0.15 h recording: 35 person-hours over 37 deliveries (was
+5,943), none without a delivery; silver payments (E-05) weighed by one weigher for 2 h; the rest by trade. S2 guards' days
+off: water duty and town errands read, drill, river, kit, heat sleep; after 2 h at the hearth to the court/quarters;
+longest hearth stretch median 2.0 h, p90 2.9, max 4.3 (was 5.3, 10.1, 15.6). S3 family visits on 70 % of married guards'
+present days (was 36.6 %), never 4 days running without the town except storms (was up to 26). S4 feed gaps: babies under
+2 months with a daytime gap over 4 h 2 of 15,034 baby-days (was 4.4 %). Minor: baking no earlier than 1.2 h before sunrise;
+lambs only months 10–2; the traveller unloads and waters before the ration queue; the foreman's cord and straightedge;
+the sample header prints rain, storm and dust hours.
+**Checks:** tsc clean; people_days_r7 12/12; people/sim/court/popview suites 142/142; full vitest 693 passed, 1 skipped;
+lint:all OK; botcheck 97/97. **Soak PASS all 8 gates** (22dc891; variety worst 0.019; populationVariety worst 0.067;
+events 14–20 kinds/week; plansWellFormed 15,462,938 person-days, 0 issues; visibleChange 51/51). Round-7 input pick 131.
