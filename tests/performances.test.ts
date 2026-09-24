@@ -374,7 +374,7 @@ describe('population people perform too (the D-142 × D-143 merge)', () => {
   }, 120_000);
   it('no shared work object moves when the camera turns, the field of view changes or the drawn set changes (performers culled, turned to impostors, leaving, arriving, stepping aside, the LOD caps): each within 3 cm of where it first stood (session 6)', () => {
     const crowd = makeCrowd(), frame = () => (crowd as any).frame as number;
-    crowd.imp = { begin() { this.count = 0; }, end() {}, count: 0, atlas: { refStature: {} }, push() { this.count++; } } as any; crowd.drawnKeys = new Set();
+    crowd.imp = { begin() { this.count = 0; }, end() {}, count: 0, atlas: { refStature: {} }, packLook: () => new Float32Array(6), push() { this.count++; } } as any; crowd.drawnKeys = new Set();
     const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0);
     const look = (deg: number, fov: number) => { const r = deg * Math.PI / 180; cam.fov = fov; cam.updateProjectionMatrix(); cam.lookAt(Math.sin(r) * 10, 1.4, -Math.cos(r) * 10); cam.updateMatrixWorld(); };
     const TH = 'threshing and winnowing on the village floor (E-43)', DR = 'threshing: driving the animals round over the sheaves on the village floor (E-43)', HA = 'hauling a drum up the ramp to column 3', BI = 'the dead are carried out of the settlement (E-71)';
@@ -419,7 +419,7 @@ describe('population people perform too (the D-142 × D-143 merge)', () => {
     const V = [vpOf(1, -2, 12, 'carry_bier', 'the dead are carried out of the settlement (E-71)', { place: 'outside', hh: 3 }), vpOf(2, 2, 14, 'patrol', 'walking the round of the Terrace', { place: 'terrace_round' })];
     const P = V.map(v => [crowd.attachPop(v.pid), v] as const), th: number[][] = [[], []];
     // and a guard on his round drawn as an impostor (beyond the pool): his walk frames run
-    const rows = new Set<number>(); crowd.imp = { begin() {}, end() {}, count: 0, atlas: { refStature: {} }, push(_x: number, _y: number, _z: number, _yaw: number, row: number) { rows.add(row); } } as any;
+    const rows = new Set<number>(); crowd.imp = { begin() {}, end() {}, count: 0, atlas: { refStature: {} }, packLook: () => new Float32Array(6), push(_x: number, _y: number, _z: number, _yaw: number, row: number) { rows.add(row); } } as any;
     const g = vpOf(3, 5, 700, 'patrol', 'walking the round of the Terrace', { place: 'terrace_round' }); (crowd as any).impList = [{ vp: g, a: null, d: 700, x: g.e, y: 0, z: -g.n, yaw: yawOf(g.heading) }]; (crowd as any).nImp = 1;
     for (let f = 0; f < 31; f++) { for (const [p, v] of P) { p.vp = v; p.vpFrame = frame() + 1; } crowd.update(1 + f / 30, cam.position, null, cam);
       P.forEach(([p], i) => th[i].push(p.rig.pose.rot.l_thigh?.[0] ?? 0)); }
@@ -432,7 +432,7 @@ describe('population people perform too (the D-142 × D-143 merge)', () => {
   }, 120_000);
   it('impostors within THINGS_DIST bring their work objects and animals, the ploughman on his furrow (as the skinned do); beyond it, only the body; the skinned ploughman\'s root (his capsule) is on the furrow', () => {
     const crowd = makeCrowd(); const pushed: number[][] = [];
-    crowd.imp = { begin() { this.count = 0; pushed.length = 0; }, end() {}, count: 0, atlas: { refStature: {} }, push(x: number, y: number, z: number, yaw: number) { pushed.push([x, y, z, yaw]); this.count++; } } as any;
+    crowd.imp = { begin() { this.count = 0; pushed.length = 0; }, end() {}, count: 0, atlas: { refStature: {} }, packLook: () => new Float32Array(6), push(x: number, y: number, z: number, yaw: number) { pushed.push([x, y, z, yaw]); this.count++; } } as any;
     const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0); cam.lookAt(0, 1.2, -10); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
     const V = [vpOf(20, 0, 150, 'plough', 'ploughing and sowing the field'), vpOf(21, 20, 200, 'reap', 'reaping the barley'), vpOf(22, -10, THINGS_DIST + 60, 'reap', 'reaping the barley'),
       vpOf(23, -20, 300, 'thresh', 'threshing and winnowing on the village floor (E-43)', { place: 'threshing:v9' })];

@@ -55,6 +55,7 @@ citing a plate. Source keys shared with PEOPLE.md are defined there.
 | Textiles in treasury workshops | treasury personnel probably include textile handlers (Baratkama dossier) | HENK2023 (SX) | C | |
 | Wool, linen | the base fabrics | NS | C | **Silk: reject** (one low-quality extract says so; no evidence) |
 | Dyes | madder red, indigo or woad, kermes, murex purple (royal) | NS | C | verify |
+| Dyes in the Achaemenid world | madder (Rubia tinctorum) and indigotin identified by chromatography on the Pazyryk textiles, c. 400 BCE; the Pazyryk carpet's insect red placed in the steppe, not the Iranian plateau; red, yellow and blue the working palette | Sci. Rep. 11 (2021), "X-ray microscopy reveals the outstanding craftsmanship of Siberian Iron Age textile dyers" (https://www.nature.com/articles/s41598-021-84747-z; search extract, SX) | B | the palette of D-189 (looks.ts DYES); colours in CIELAB are C (Q-360) |
 
 ## Footwear and jewellery
 | item | description | source | tier | note |

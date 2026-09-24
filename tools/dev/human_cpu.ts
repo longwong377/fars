@@ -3,7 +3,7 @@
 // material), the same MaterialX Perlin noise (ported bit-exactly from three's MaterialXNoise), the same lighting model
 // (wrapped diffuse, two GGX lobes, Kajiya–Kay, sheen, the sky-reflection proxy) and three's AgX tone mapping.
 // It is a verification aid: the browser render is the judgement (screenshots find problems; tests measure).
-import { SKIN, EYE, IRIS, LASH, HAIR, REF_TONE, SAG_MAX } from '../../src/people/humanMaterial';
+import { SKIN, EYE, IRIS, LASH, HAIR, REF_TONE, SAG_MAX, DRAPE } from '../../src/people/humanMaterial';
 import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS } from '../../src/people/humanFormat';
 
 export type V3 = [number, number, number];
@@ -57,14 +57,24 @@ export function sample(T: Tex, u: number, v: number, out: number[] = [0, 0, 0, 0
   return out;
 }
 
-/** interpolated fragment inputs (the material's varyings plus uv and view-space position/normal) */
+/** the skirt's hem folds (D-189; the material's vertex stage and its shading): displacement (m) along the radial
+ *  direction at skirt parameter t (0 waist … 1 hem), angle th, for the wear texel's z (amplitude mm + phase) and fit, at a
+ *  camera distance camD; fit = 0 gives the fold field alone (the shading height) */
+export function skirtFold(t: number, th: number, ampPh: number, fit: number, camD: number) {
+  const amp = Math.floor(ampPh) * 0.001, ph = (ampPh - Math.floor(ampPh)) * Math.PI * 2;
+  const low = Math.sin(th * DRAPE.foldLow[0] + ph) * 0.55 + Math.sin(th * DRAPE.foldLow[1] + ph * 1.7 + 1) * 0.45;
+  const high = (Math.sin(th * DRAPE.foldHigh[0] + ph * 2.3) * 0.6 + Math.sin(th * DRAPE.foldHigh[1] + ph * 3.1 + 2) * 0.4) * (1 - sstep(DRAPE.highNear[0], DRAPE.highNear[1], camD));
+  return t * t * (fit + amp * (0.6 + low * 0.7 + high * 0.6));
+}
+/** interpolated fragment inputs (the material's varyings plus uv and view-space position/normal); ext = [slack, cut-line
+ *  ramp, bind normal y, the garment's fading susceptibility]; wear = [garment age, joint bend, fold amp + phase, hem soil] */
 export interface Frag {
-  color: V3; hair: V3; mat: [number, number, number, number]; bind: V3; aux: [number, number, number, number]; ext: [number, number];
-  uv: [number, number]; posV: V3; nrmV: V3;
+  color: V3; hair: V3; mat: [number, number, number, number]; bind: V3; aux: [number, number, number, number]; ext: number[];
+  wear?: number[]; uv: [number, number]; posV: V3; nrmV: V3;
 }
 /** what the surface stage produces (the material's colorNode, roughness, metalness, height, masks and lighting inputs) */
 export interface Surf {
-  alb: V3; rough: number; metal: number; h: number; ao: number; keep: boolean; f0: number;
+  alb: V3; rough: number; metal: number; h: number; ao: number; keep: boolean; f0: number; micro: number; microK: number;
   wrap: V3; trans: V3; roughB: number; lobeB: number; kHair: number; hairTilt: number; sheenCol: V3; sheenRough: number; specOcc: number; roughEnv: number; envMask: number;
 }
 /** the surface stage for one fragment (fw = metres per pixel on the surface, as length(fwidth(P)); nb = the bind-space
@@ -142,13 +152,18 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const cx = fract((P[0] + P[2] * 0.7) * 22) - 0.5, cy = fract(P[1] * 22) - 0.5, rose = (1 - sstep(0.18, 0.26, Math.hypot(cx, cy))) * pat0 * is(m, MAT.cloth_main);
   let clothAlb = f.color.map(c => c * (1 + n3 * 0.05 + n1 * 0.035)) as V3;
   clothAlb = mix3(clothAlb, f.hair, rose);
+  const upF = sstep(-0.25, 0.75, f.ext[2] ?? 0) * sstep(0.66, 0.8, f.aux[0]) * (n3 * 0.3 + 0.85);
+  const W4 = f.wear ?? [0, 0, 0, 0], fadeAmt = clamp(W4[0] * (f.ext[3] ?? 0) * upF * DRAPE.fade, 0, 0.8), cLum = clothAlb[0] * 0.2126 + clothAlb[1] * 0.7152 + clothAlb[2] * 0.0722;
+  clothAlb = mix3(clothAlb, clothAlb.map(c => Math.min(0.8, mix(cLum, c, 0.4) * 1.25 + 0.012)) as V3, fadeAmt);
   const ax = Math.abs(nb[0]), az = Math.abs(nb[2]), sH = (P[0] * az + P[2] * ax) / (ax + az + 1e-4);
   const fq = mix(700, 1500, isLinen);
   const weaveH = Math.sin(P[1] * fq * Math.PI * 2) * Math.sin(sH * fq * Math.PI * 2) * mix(0.00012, 0.00006, isLinen) * band(fq);
   const thB = Math.atan2(P[0], P[2] - 0.02), sideS = sstep(0.35, 0.9, Math.abs(Math.sin(thB)));
   const pleatT = Math.abs(fract(thB * 26 / (Math.PI * 2) + P[1] * 9 * Math.sign(thB) * sideS) - 0.5) * 2;
   const pleatH = (pleatT - 0.5) * 0.003 * is(prm, 1) * band(21);
-  const clothH = n2 * mix(0.003, 0.0012, is(prm, 4)) + n1 * mix(0.00025, 0.00012, isLinen) + weaveH + pleatH;
+  const foldH = skirtFold(U[1], Math.atan2(P[0], P[2] - 0.02), W4[2], 0, Math.hypot(...f.posV)) * f.aux[1] * kCloth;
+  const wrinkleH = Math.sin(P[1] * DRAPE.wrinkleF * Math.PI * 2 + n2 * 3) * DRAPE.wrinkle * W4[1] * band(DRAPE.wrinkleF);
+  const clothH = n2 * mix(0.003, 0.0012, is(prm, 4)) + n1 * mix(0.00025, 0.00012, isLinen) + weaveH + pleatH + foldH + wrinkleH;
   // felt, leather, metal, wood, wicker
   const feltAlb = f.color.map(c => c * (1 + n3 * 0.1 + n1 * 0.05)) as V3;
   const seam = Math.exp(-((P[0] / 0.0022) ** 2)) * 0.00045 * is(prm, 0);
@@ -168,7 +183,10 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const where = Math.max(low, arms * zHands, front * zFront, load * zLoad * 0.8);
   const grimeMask = grime * where * (kCloth + kSkin * Math.max(feet * 0.65 + 0.35, arms * zHands) + kLeather * 0.8 + kFelt * 0.3) * (u3 * 0.6 + 0.7);
   alb = mix3(alb, grimeCol, grimeMask * 0.35);
-  const rough = Math.min(1, kSkin * (SKIN.roughSheen - oil * 0.08 + n1 * 0.06 * band(SKIN.pores[0][0])) + kEye * mix(0.1, 0.035, irisM) + kHair * 0.5 + kTeeth * 0.25 + kMouth * 0.3 + kLeather * 0.55 + kFelt * 0.95 + kMetal * 0.32 + kLash * 0.6 + kWood * 0.55 + kWicker * 0.85 + kCloth * mix(0.92, 0.8, isLinen) + grimeMask * 0.2);
+  const hemBand = Math.max(1 - sstep(0.03, 0.3, P[1]), f.aux[1] * kCloth * sstep(0.72, 1, U[1]) * 0.7);
+  const soilMask = clamp(W4[3] * hemBand * (kCloth + kLeather * 0.8 + kSkin * feet * 0.6) * (u2 * 0.8 + 0.6) * DRAPE.soil, 0, 0.75);
+  alb = mix3(alb, DRAPE.dust, soilMask);
+  const rough = Math.min(1, soilMask * 0.15 + kSkin * (SKIN.roughSheen - oil * 0.08 + n1 * 0.06 * band(SKIN.pores[0][0])) + kEye * mix(0.1, 0.035, irisM) + kHair * 0.5 + kTeeth * 0.25 + kMouth * 0.3 + kLeather * 0.55 + kFelt * 0.95 + kMetal * 0.32 + kLash * 0.6 + kWood * 0.55 + kWicker * 0.85 + kCloth * mix(0.92, 0.8, isLinen) + grimeMask * 0.2);
   const f0 = 0.04 - kSkin * (0.04 - SKIN.f0) - kEye * (0.04 - EYE.f0) + kHair * 0.006;
   const ao = mix(1, f.aux[0], 0.85 - kEye * 0.45) * mix(1, curls * 0.45 + 0.55, kHair);
   const h = hairH * kHair + skinH * kSkin + clothH * kCloth + feltH * kFelt + leatherH * kLeather;
@@ -185,7 +203,7 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const clumpC = Math.abs(fract(along * mix(LASH.clumps, LASH.clumps * 0.6, e2) + n1 * 0.35) - 0.5) * 2, lashW = ((1 - tl) * Math.sqrt(Math.max(0, 1 - tl)) * 0.8 + 0.1) * mix(1, 0.7, e2);
   const lashCut = Math.max(lashW <= clumpC ? 1 : 0, 0.9 <= tl ? 1 : 0);
   const keep = 1 - kHair * Math.max(edgeCut, silCut) - kLash * lashCut > 0.5;
-  return { alb, rough, metal: kMetal, h, ao, keep, f0, wrap, trans, roughB: SKIN.roughOil, lobeB: kSkin * mix(SKIN.oilLobe[0], SKIN.oilLobe[1], oil), kHair, hairTilt: mix((curls - 0.5) * 1.6, Math.cos(lockPh) * 0.33, lockZone * kCourt),
+  return { alb, rough, metal: kMetal, h, ao, keep, f0, micro: f.aux[0], microK: (kSkin + kCloth + kFelt + kLeather + kHair * 0.5) * DRAPE.micro, wrap, trans, roughB: SKIN.roughOil, lobeB: kSkin * mix(SKIN.oilLobe[0], SKIN.oilLobe[1], oil), kHair, hairTilt: mix((curls - 0.5) * 1.6, Math.cos(lockPh) * 0.33, lockZone * kCourt),
     sheenCol: sheenBase.map(c => c * sheenK) as V3, sheenRough: kCloth * mix(0.55, 0.35, isLinen) + kFelt * 0.7 + (1 - kCloth - kFelt) * 0.5,
     specOcc: mix(1, f.aux[0], kSkin * 0.5) * mix(1, curls * 0.6 + 0.4, kHair),
     roughEnv: kSkin * 0.45 + kEye * 0.04 + kHair * 0.5 + kTeeth * 0.3 + kMouth * 0.3 + kLeather * 0.55 + kMetal * 0.32 + kWood * 0.6 + kWicker * 0.8 + (kCloth + kFelt + kLash) * 0.9,
@@ -211,8 +229,8 @@ export function shade(s: Surf, N: V3, V: V3, env: Env): V3 {
   for (const Lt of env.lights) {
     const L = Lt.dirV, lc = Lt.color.map(c => c * Lt.shadow) as V3; const ndl = dot3(N, L), nl = clamp(ndl);
     const H = norm3([L[0] + V[0], L[1] + V[1], L[2] + V[2]]), vh = clamp(dot3(V, H)), nh = clamp(dot3(N, H)), nv = clamp(dot3(N, V));
-    const F = schlick(s.f0, 1, vh);
-    for (let i = 0; i < 3; i++) { const w = s.wrap[i]; const prof = clamp((ndl + w) / (w + 1)) ** (w + 1); out[i] += lc[i] * prof * diffC[i] / Math.PI * (1 - F); }
+    const F = schlick(s.f0, 1, vh), ms = mix(1, clamp(Math.abs(ndl) + 2 * s.micro * s.micro - 1), s.microK);
+    for (let i = 0; i < 3; i++) { const w = s.wrap[i]; const prof = clamp((ndl + w) / (w + 1)) ** (w + 1); out[i] += lc[i] * prof * diffC[i] / Math.PI * (1 - F) * ms; }
     const back = clamp((-ndl + 0.25) / 1.25); for (let i = 0; i < 3; i++) out[i] += lc[i] * diffC[i] * s.trans[i] * back * back / Math.PI;
     const sa = ggx(f0, roughAA, N, L, V), sb = ggx(f0, s.roughB, N, L, V);
     let spec = mix3(sa, sb, s.lobeB);
@@ -224,7 +242,7 @@ export function shade(s: Surf, N: V3, V: V3, env: Env): V3 {
       spec = mix3(spec, kkS, s.kHair);
     }
     const invA = 1 / s.sheenRough, sin2 = Math.max(1 - nh * nh, 0.0078125), Dc = (2 + invA) * sin2 ** (0.5 * invA) / (2 * Math.PI), Vn = clamp(1 / (Math.max(nl + nv - nl * nv, 0.001) * 4));
-    for (let i = 0; i < 3; i++) out[i] += lc[i] * nl * (spec[i] * s.specOcc + s.sheenCol[i] * Dc * Vn);
+    for (let i = 0; i < 3; i++) out[i] += lc[i] * nl * (spec[i] * s.specOcc * ms + s.sheenCol[i] * Dc * Vn);
   }
   // indirect: Lambert on the irradiance, the sky-reflection proxy, then AO (three's ambientOcclusion)
   const irr = env.irradiance(N), nv = clamp(dot3(N, V));

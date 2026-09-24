@@ -18,13 +18,16 @@ import { unpackNormal } from '../../src/people/outfits';
 import { SkySystem } from '../../src/sky/skySystem';
 import { WorldClock } from '../../src/core/clock';
 import { decodePNG, encodePNG } from '../humans/png';
-import { surface, shade, agx, toSRGB8, makeTex, dot3, norm3, cross3, SAG_MAX, type V3, type Frag, type Env, type Tex } from './human_cpu';
+import { surface, shade, agx, toSRGB8, makeTex, dot3, norm3, cross3, SAG_MAX, skirtFold, type V3, type Frag, type Env, type Tex } from './human_cpu';
+import { wearTexel } from '../../src/people/looks';
 
 const arg = (k: string, d: string) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : d; };
 const view = process.argv[2] ?? 'macro-0';
 const LINEUPS: Record<string, any[]> = {
   men: [{ dress: 'persian', sex: 'm', role: 'official', seed: 11 }, { dress: 'guard', sex: 'm', role: 'guard', seed: 12 }, { dress: 'median', sex: 'm', role: 'guard', seed: 13 }, { dress: 'worker', sex: 'm', role: 'mason', seed: 14 }],
   mixed: [{ dress: 'woman', sex: 'f', role: 'grinder', seed: 21 }, { dress: 'woman', sex: 'f', role: 'baker', seed: 22 }, { dress: 'child', sex: 'm', role: 'child', seed: 23 }, { dress: 'worker', sex: 'm', role: 'porter', seed: 24 }],
+  // walking (D-189: the skirts' hem folds, fit and joint wrinkles in motion)
+  walk: [{ dress: 'persian', sex: 'm', role: 'official', seed: 41, anim: 'walk' }, { dress: 'woman', sex: 'f', role: 'baker', seed: 42, anim: 'walk' }, { dress: 'worker', sex: 'm', role: 'porter', seed: 43, anim: 'walk' }, { dress: 'guard', sex: 'm', role: 'guard', seed: 44, anim: 'walk' }],
   extra: [{ dress: 'median', sex: 'm', role: 'official', seed: 31 }, { dress: 'persian', sex: 'm', role: 'official', seed: 36 }, { dress: 'worker', sex: 'm', role: 'porter', seed: 34, anim: 'sit' }, { dress: 'worker', sex: 'm', role: 'mason', seed: 31 }],
 };
 const lineup = LINEUPS[arg('lineup', 'men')], W = +arg('w', '960'), H = +arg('h', '540'), SS = +arg('ss', '1'), hour = +arg('hour', '10'), day = +arg('day', '25');
@@ -41,7 +44,7 @@ const skinTex: Tex | null = skinPng.width === 2 * skinPng.height ? makeTex(skinP
 if (!skinTex) log('skin.png is not the 2:1 atlas yet: skin drawn with a flat reference albedo');
 const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
 
-interface Person { look: PersonLook; x: number; anim: AnimId; pal: Float32Array; C: CostumeLOD; Cs: CostumeLOD; pos: Float32Array; nrm: Float32Array; posS: Float32Array; vis: Uint8Array; visS: Uint8Array }
+interface Person { look: PersonLook; x: number; anim: AnimId; pal: Float32Array; C: CostumeLOD; Cs: CostumeLOD; pos: Float32Array; nrm: Float32Array; posS: Float32Array; vis: Uint8Array; visS: Uint8Array; bend: Float32Array }
 // camera first (the eyes look at it)
 function camFor(): { eye: V3; target: V3 } {
   if (view.startsWith('cam=')) { const [e, t] = view.slice(4).split(':').map(s => s.split(',').map(Number) as V3); return { eye: e, target: t }; }
@@ -63,9 +66,15 @@ const people: Person[] = lineup.map((sp, i) => {
   rig.setPose(inp); rig.solve(inp, pal, 0);
   const C = O.costumes[COSTUME_OF[look.dress]][0], Cs = O.costumes[COSTUME_OF[look.dress]][2];
   const skin = (Cc: CostumeLOD) => {
-    const n = Cc.tid.length, pos = new Float32Array(n * 3), nrm = new Float32Array(n * 3), vis = new Uint8Array(n); const base = look.variant * O.NV * 4;
+    const n = Cc.tid.length, pos = new Float32Array(n * 3), nrm = new Float32Array(n * 3), vis = new Uint8Array(n), bend = new Float32Array(n); const base = look.variant * O.NV * 4;
+    const wt = wearTexel(look.wear), camD = Math.hypot(cam.eye[0] - x, cam.eye[1], cam.eye[2]);
     for (let k = 0; k < n; k++) {
-      const t = Cc.tid[k], bx = O.source[base + t * 4], by = O.source[base + t * 4 + 1], bz = O.source[base + t * 4 + 2], nb = unpackNormal(O.source[base + t * 4 + 3]);
+      const t = Cc.tid[k], nb = unpackNormal(O.source[base + t * 4 + 3]); let bx = O.source[base + t * 4], by = O.source[base + t * 4 + 1], bz = O.source[base + t * 4 + 2];
+      const clsK = Cc.hmat[k * 4], clothK = clsK >= 1 && clsK <= 3;
+      // the skirt's hem folds and fit (the material's vertex stage, D-189)
+      if (clothK && Cc.hext[k * 4 + 2] > 127) { const d = skirtFold(Cc.uv[k * 2 + 1], Math.atan2(bx, bz - 0.02), wt[2], wt[1], camD), rl = Math.hypot(bx, bz - 0.02) || 1; bx += bx / rl * d; bz += (bz - 0.02) / rl * d; void by; }
+      if (clothK && Cc.hext[k * 4 + 2] <= 127) { const oa = Cc.skinIndex[k * 4] * 12, ob = Cc.skinIndex[k * 4 + 1] * 12, ya = norm3([pal[oa + 1], pal[oa + 5], pal[oa + 9]]), yb = norm3([pal[ob + 1], pal[ob + 5], pal[ob + 9]]);
+        const mixW = Math.min(1, 4 * (Cc.skinWeight[k * 4] / 255) * (Cc.skinWeight[k * 4 + 1] / 255)); bend[k] = Math.min(1, Math.max(0, (1 - dot3(ya, yb)) * 2)) * mixW; }
       let px = 0, py = 0, pz = 0, nx = 0, ny = 0, nz = 0;
       for (let j = 0; j < 4; j++) { const w = Cc.skinWeight[k * 4 + j] / 255; if (!w) continue; const o = Cc.skinIndex[k * 4 + j] * 12;
         px += w * (pal[o] * bx + pal[o + 1] * by + pal[o + 2] * bz + pal[o + 3]); py += w * (pal[o + 4] * bx + pal[o + 5] * by + pal[o + 6] * bz + pal[o + 7]); pz += w * (pal[o + 8] * bx + pal[o + 9] * by + pal[o + 10] * bz + pal[o + 11]);
@@ -76,10 +85,10 @@ const people: Person[] = lineup.map((sp, i) => {
       pos[k * 3] = x + px * s; pos[k * 3 + 1] = py * s; pos[k * 3 + 2] = pz * s; nrm[k * 3] = nx / l; nrm[k * 3 + 1] = ny / l; nrm[k * 3 + 2] = nz / l;
       vis[k] = (Math.floor(look.mask / 2 ** Cc.hmat[k * 4 + 2]) % 2) ? 1 : 0;
     }
-    return { pos, nrm, vis };
+    return { pos, nrm, vis, bend };
   };
   const a = skin(C), sh = skin(Cs);
-  return { look, x, anim, pal, C, Cs, pos: a.pos, nrm: a.nrm, posS: sh.pos, visS: sh.vis, vis: a.vis };
+  return { look, x, anim, pal, C, Cs, pos: a.pos, nrm: a.nrm, posS: sh.pos, visS: sh.vis, vis: a.vis, bend: a.bend };
 });
 log(`people posed: ${people.map(p => `${p.look.variantId} ${p.look.dress} [${p.look.pieces.join(' ')}]`).join('; ')}`);
 
@@ -124,15 +133,17 @@ function vary(p: Person, k: number, out: Frag) {
   const C = p.C, L = p.look, cls = C.hmat[k * 4], slot = C.hmat[k * 4 + 1];
   const col = [null, L.col.skin, L.col.main, L.col.second, L.col.trim, L.col.hair, L.col.leather, null, L.col.felt][slot] as V3 | null;
   out.color = col ? [...col] as V3 : [0, 0, 0]; out.hair = (cls >= 1 && cls <= 3 ? [...L.col.trim] : [...L.col.hair]) as V3;
-  out.mat = [cls, C.hmat[k * 4 + 3], L.pattern, L.grime]; out.aux = [C.hext[k * 4] / 255, C.hext[k * 4 + 2] / 255, L.stubble, L.grimeLevel]; out.ext = [C.hext[k * 4 + 1] / 255, C.hext[k * 4 + 3] / 255];
-  const base = L.variant * O.NV * 4, t = C.tid[k]; out.bind = [O.source[base + t * 4], O.source[base + t * 4 + 1], O.source[base + t * 4 + 2]]; out.uv = [C.uv[k * 2], C.uv[k * 2 + 1]];
+  out.mat = [cls, C.hmat[k * 4 + 3], L.pattern, L.grime]; out.aux = [C.hext[k * 4] / 255, C.hext[k * 4 + 2] / 255, L.stubble, L.grimeLevel];
+  const base = L.variant * O.NV * 4, t = C.tid[k], clothK = cls >= 1 && cls <= 3, kF = clothK ? L.wear.k[slot === 2 ? 0 : slot === 3 ? 1 : 2] : 0;
+  out.ext = [C.hext[k * 4 + 1] / 255, C.hext[k * 4 + 3] / 255, unpackNormal(O.source[base + t * 4 + 3])[1], slot >= 2 && slot <= 4 ? kF : 0];
+  const wt = wearTexel(L.wear); out.wear = [wt[0], p.bend[k], wt[2], wt[3]]; out.bind = [O.source[base + t * 4], O.source[base + t * 4 + 1], O.source[base + t * 4 + 2]]; out.uv = [C.uv[k * 2], C.uv[k * 2 + 1]];
   out.posV = toView(p.pos, k * 3); out.nrmV = dirView([p.nrm[k * 3], p.nrm[k * 3 + 1], p.nrm[k * 3 + 2]]); return out;
 }
-const blank = (): Frag => ({ color: [0, 0, 0], hair: [0, 0, 0], mat: [0, 0, 0, 0], bind: [0, 0, 0], aux: [0, 0, 0, 0], ext: [0, 0], uv: [0, 0], posV: [0, 0, 0], nrmV: [0, 0, 1] });
+const blank = (): Frag => ({ color: [0, 0, 0], hair: [0, 0, 0], mat: [0, 0, 0, 0], bind: [0, 0, 0], aux: [0, 0, 0, 0], ext: [0, 0, 0, 0], wear: [0, 0, 0, 0], uv: [0, 0], posV: [0, 0, 0], nrmV: [0, 0, 1] });
 const lerpFrag = (F: Frag[], w: [number, number, number], out: Frag) => {
   const L = (a: number, b: number, c: number) => a * w[0] + b * w[1] + c * w[2];
-  for (const key of ['color', 'hair', 'mat', 'bind', 'aux', 'ext', 'uv', 'posV', 'nrmV'] as const) { const o = out[key] as number[]; for (let i = 0; i < o.length; i++) o[i] = L((F[0][key] as number[])[i], (F[1][key] as number[])[i], (F[2][key] as number[])[i]); }
-  out.mat[0] = F[0].mat[0]; out.mat[1] = F[0].mat[1]; out.mat[2] = F[0].mat[2]; return out;
+  for (const key of ['color', 'hair', 'mat', 'bind', 'aux', 'ext', 'wear', 'uv', 'posV', 'nrmV'] as const) { const o = out[key] as number[]; for (let i = 0; i < o.length; i++) o[i] = L((F[0][key] as number[])[i], (F[1][key] as number[])[i], (F[2][key] as number[])[i]); }
+  out.mat[0] = F[0].mat[0]; out.mat[1] = F[0].mat[1]; out.mat[2] = F[0].mat[2]; out.wear![2] = F[0].wear![2]; return out;
 };
 // projected vertices per person
 const PV = people.map(p => { const n = p.C.tid.length, a = new Float32Array(n * 3); for (let k = 0; k < n; k++) { const v = toView(p.pos, k * 3); const q = v[2] < -0.01 ? proj(v) : [NaN, NaN, NaN]; a[k * 3] = q[0]; a[k * 3 + 1] = q[1]; a[k * 3 + 2] = q[2]; } return a; });
