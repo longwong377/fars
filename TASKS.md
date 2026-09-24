@@ -86,4 +86,11 @@
 - [~] Session 6: writing on objects (D-179, branch p8-writing-s6): seal impressions, tablets, leather, door sealing, F3/layer/lint done; PT text placeholder (B18, NEEDS #15); browser render not looked at
 - [ ] Court in full assembly (B12): simulate the court-resident population on the Terrace; moment + soak --court
 - [ ] Full high-quality pass (handoff/render_jobs, 050/051 first), §8.2 rubric, Phase 3+4 / 5 / 6+7 reviews; look fix list (plain and Naqsh read as CG)
+## Session 6 (ended; HANDOFF.md)
+- [x] Merged: crowd at scale (D-143), sim rounds 5–7 (D-175, D-186, D-191, D-193), court in full assembly (D-182), Phase 8 layer/music/occlusion/writing/carving/voices (D-167, D-168, D-176..D-179, D-184, D-185, D-192)
+- [x] Phase 8 gate PASSED (review round 3); majors M1, M2, M6 fixed
+- [x] Lead render fixes: probe denoise and bake leak (D-180), floor blotches (D-181), G-buffer blending (D-183)
+- [x] §8.2 rubric pass 1 (FAIL) → look workstreams merged: bugs and framing (D-187), surfaces and light (D-188), people (D-189), landscape (D-190)
+- [~] Phase 5 shadow review: rounds 6 and 7 FAIL; round-7 fixes and year-wide invariants merged (D-191); round 8 input pick 149
+- [ ] Render pass 2 (handoff/render_jobs/2*.job) and rubric pass 2; outdoor AO; Phase 3/4, 5, 6/7 reviews; bench; walkthrough e2e
 ## Phase 9 — Polish, optimisation, FINAL_REPORT.md

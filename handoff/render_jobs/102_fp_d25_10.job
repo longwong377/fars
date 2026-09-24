@@ -1,3 +1,0 @@
-fp_d25_10
-tests/e2e/moments.spec.ts
-E2E_PORT=5203 Q=high ONLY=scribe-at-work,scribe-room-ne,harem-portico,hall100-site

@@ -1,3 +1,0 @@
-fp_fire2
-tests/e2e/moments.spec.ts
-E2E_PORT=5217 Q=high ONLY=brazier-close

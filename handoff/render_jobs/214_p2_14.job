@@ -1,0 +1,3 @@
+p2_14
+tests/e2e/moments.spec.ts
+E2E_PORT=5294 Q=high ONLY=apadana-e-stair-raking,scribe-at-work,scribe-room-ne TIMEOUT=2900 PW_TIMEOUT=2900

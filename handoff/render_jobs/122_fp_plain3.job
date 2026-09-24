@@ -1,3 +1,0 @@
-fp_plain3
-tests/e2e/plain.spec.ts
-E2E_PORT=5216 Q=high ONLY=pulvar-bank-april,field-may,field-august,garden-paradise

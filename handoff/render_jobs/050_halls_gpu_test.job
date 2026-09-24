@@ -1,3 +1,0 @@
-halls_gpu_test
-tests/e2e/moments.spec.ts
-E2E_PORT=5222 Q=test ONLY=apadana-hall-in,hadish-hall

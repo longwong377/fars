@@ -1,3 +1,0 @@
-fp_night
-tests/e2e/moments.spec.ts
-E2E_PORT=5205 Q=high ONLY=night-terrace,night-milkyway

@@ -1,3 +1,0 @@
-fp_tach
-tests/e2e/moments.spec.ts
-E2E_PORT=5204 Q=high ONLY=tachara-s-stair,tachara-lance-bearers,tachara-lance-bearer-close,tripylon-n-stair,stair-climb-pm
