@@ -72,7 +72,7 @@ describe('a toddler\'s day varies for real (D-140)', () => {
     expect(days).toBeGreaterThan(5); expect(out, 'outings on storm and dust days').toBeGreaterThan(100);
   }, 180_000);
   it('a toddler taken to a kinswoman\'s house stays while she is at home, and the host is at home throughout every visit', () => {
-    // (was 41397's morning visit on day 3; since D-160 the small child's sleep is a pure draw of its own and her days no longer
+    // (was 41397's morning visit on day 3; since D-175 the small child's sleep is a pure draw of its own and her days no longer
     // hold a visit, so the property that visit guarded, a visit not cut to one plan segment of the host's, is asserted over
     // the sample: visits of more than half an hour exist, and in every one the host is at home throughout)
     let visits = 0, long = 0;

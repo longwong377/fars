@@ -19,7 +19,7 @@ describe('children (N1, D-082)', () => {
     const wakeMed: number[] = [];
     for (const d of [45, 183, 305]) {
       let n = 0, work = 0, play = 0; const wakes: number[] = []; const sun = P.cal.ctx(d).sun;
-      for (let pid = 0; pid < P.persons.length; pid += 5) { const p = P.persons[pid]; if (p.sex !== 'f' || p.age < 9 || p.age > 13 || (p.zone !== 'town' && p.zone !== 'plain') || !P.present(pid, d) || P.sick(pid, d) || P.mourning(pid, d)) continue;
+      for (let pid = 0; pid < P.persons.length; pid += 5) { const p = P.persons[pid]; if (p.sex !== 'f' || P.ageOn(pid, d) < 9 || P.ageOn(pid, d) > 13 || (p.zone !== 'town' && p.zone !== 'plain') || !P.present(pid, d) || P.sick(pid, d) || P.mourning(pid, d)) continue;
         const segs: Seg[] = P.plan(pid, d); n++; const home = P.households[P.home(pid, d)].home;
         for (const s of segs) { const h = s.t1 - s.t0; if (isWork(s)) work += h; else if (s.act === 'play') play += h; }
         wakes.push(segs.find(s => s.act !== 'sleep' && s.t0 > 2)!.t0);
@@ -50,8 +50,8 @@ describe('the bereaved household (N2, D-083)', () => {
     let nursed = 0, kept = 0;
     for (const p of P.persons) { if (p.moved === 'nursed') { nursed++; const N = P.persons[p.nurse];
         expect(N.sex).toBe('f'); expect(P.childrenOf(p.nurse).some((k: number) => P.persons[k].age === 0)).toBe(true);
-        const d = Math.min(353, p.marry + 3); if (!P.present(p.id, d) || !P.present(p.nurse, d) || P.sick(p.id, d)) continue;
-        const segs: Seg[] = P.plan(p.id, d); expect(segs.filter(s => /nursed/.test(s.why)).length, `${p.id}`).toBeGreaterThanOrEqual(p.age === 0 ? 4 : 2); // a child of one nurses less often
+        const d = Math.min(353, p.marry + 3); if (!P.present(p.id, d) || !P.present(p.nurse, d) || P.sick(p.id, d) || P.ageOn(p.id, d) >= 2) continue; // (weaned at two, on its age on the day: D-175)
+        const segs: Seg[] = P.plan(p.id, d); expect(segs.filter(s => /nursed/.test(s.why)).length, `${p.id}`).toBeGreaterThanOrEqual(P.ageOn(p.id, d) === 0 ? 4 : 2); // a child of one nurses less often (its age on the day: D-175)
         expect(P.plan(p.nurse, d).some((s: Seg) => /wet-nurses/.test(s.why))).toBe(true); } }
     for (const H of P.households) { if (H.keeper === undefined) continue; kept++;
       const d = Math.min(353, H.keeperFrom + 4); if (!P.present(H.keeper, d) || P.sick(H.keeper, d) || P.mourning(H.keeper, d)) continue;

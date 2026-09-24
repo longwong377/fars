@@ -1,5 +1,7 @@
-// Phase 5 shadow review round 5 (REVIEWS/shadow_phase5_r5.md, reviewer A; REVIEWS/shadow_phase5_r5_b.md, reviewer B; D-160 …
-// D-162): each test fails on the round-5 code (7a09285) and holds the fix.
+// Phase 5 shadow review round 5 (REVIEWS/shadow_phase5_r5.md, reviewer A; REVIEWS/shadow_phase5_r5_b.md, reviewer B; D-175):
+// one or more tests for each finding, written against what the reviewers measured on the round-5 code (7a09285). They were
+// not each re-run against 7a09285 (the WIP was finished in session 6 without that check); the numbers the reviewers give
+// for 7a09285 fail every gate here.
 //  A S1 / B S1 rain sheltered in the open field; A S3 / B S2 the planners read the age at the start of the year; A S2 minding
 //  written without the little one; A S6 / B S3 the camp's flour came from no stock; A S4 / B S4 a guard's gap meal beside his
 //  breakfast; A S5 / B S5 the evening lane in the heat and the dust; A S7 / B S5 home hours blind to standing and light;
@@ -9,6 +11,7 @@ import { readFileSync } from 'node:fs';
 import * as A from 'astronomy-engine';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, Env, INITIAL_STOCK } from '../src/people/sim';
+import { pickSample } from '../tools/shadow_days';
 import { Seg, segAt, nameFor, THIN_NAME_POOL } from '../src/people/population';
 import { checkDay, MINDING } from '../src/people/planCheck';
 import { sunTimes, rainSpells, rainHours, CAL } from '../src/people/calendar';
@@ -232,4 +235,51 @@ describe('S7 (B): the detailed tier\'s words', () => {
     while (s.t < 16 * 24 + 12) { s.step(20); if (a.task && whys[whys.length - 1] !== a.task.why) whys.push(a.task.why); }
     const i = whys.findIndex(w => /load/.test(w)); expect(i).toBeGreaterThanOrEqual(0); expect(whys[i]).not.toMatch(/the next load/);
   }, 120_000);
+});
+
+describe('session 6 additions (D-175): the minor findings behind the 4s', () => {
+  it('nobody goes to the well in the dark of the morning: every morning draw begins at first light (sunrise - 0.45 h) or later (A: #123 drew water 77 min before sunrise)', () => {
+    let n = 0; for (const d of [21, 101, 181, 261, 341]) { const { rise } = P.cal.ctx(d).sun;
+      for (let pid = d % 3; pid < P.persons.length; pid += 3) { if (!resident(pid, d)) continue;
+        for (const s of P.plan(pid, d) as Seg[]) if (s.act === 'draw_water' && s.t0 < 12) { n++; expect(s.t0, `${pid} d${d} ${s.why}`).toBeGreaterThanOrEqual(rise - 0.45 - 1e-6); } } }
+    expect(n).toBeGreaterThan(10_000);
+  }, 300_000);
+  it('a little one fed with the house\'s minder at the household\'s hour is not fed again at the mother\'s later meal (no two meals within an hour)', () => {
+    let n = 0; for (const d of [21, 101, 181, 261, 341]) for (let pid = d % 2; pid < P.persons.length; pid += 2) { const p = P.persons[pid]; if (p.job !== 'child' || !resident(pid, d)) continue; const a = P.ageOn(pid, d); if (a < 1 || a > 4) continue; n++;
+      const e = (P.plan(pid, d) as Seg[]).filter(s => s.act === 'eat' && !/nursed|softened/.test(s.why));
+      for (let i = 1; i < e.length; i++) if (e[i].why !== e[i - 1].why) expect(e[i].t0 - e[i - 1].t1, `${pid} d${d} ${e[i - 1].why} / ${e[i].why}`).toBeGreaterThanOrEqual(1 - 1e-6); }
+    expect(n).toBeGreaterThan(10_000);
+  }, 300_000);
+  it('a town house\'s servant eats the morning bread with the house and kneads, washes, fetches fuel and runs its errand once a day at most', () => {
+    let n = 0; for (const d of [21, 101, 181, 261, 341]) for (let pid = 0; pid < P.persons.length; pid++) { const p = P.persons[pid]; if (p.job !== 'servant' || !resident(pid, d) || P.sick(pid, d) || p.work.startsWith('estate:')) continue;
+      if (P.membersOn(P.home(pid, d), d).some((x: number) => P.persons[x].job === 'steward')) continue; n++; const segs: Seg[] = P.plan(pid, d);
+      expect(segs.some(s => /before leaving/.test(s.why)), `${pid} d${d}`).toBe(false);
+      // (spells counted as runs: the meal safety net's bread may split one spell in two)
+      const runs = segs.filter(s => s.act !== 'eat').filter((s, i, xs) => i === 0 || xs[i - 1].why !== s.why);
+      for (const w of ['kneading the household’s dough', 'washing the household’s clothes at the water', 'gathering dung and brushwood for the house', 'on an errand for the household in the lane']) expect(runs.filter(s => s.why === w).length, `${pid} d${d} ${w}`).toBeLessThanOrEqual(1); }
+    expect(n).toBeGreaterThan(200);
+  }, 300_000);
+  it('some sons of ten or more of the town\'s scribes, storekeepers and craftsmen practise the father\'s work at home; an old woman\'s "little grinding" is once a day', () => {
+    let learn = 0, elders = 0; for (const d of [21, 101, 181, 261, 341]) for (let pid = 0; pid < P.persons.length; pid++) { const p = P.persons[pid]; if (!resident(pid, d)) continue;
+      if (p.job === 'child' && p.sex === 'm' && P.ageOn(pid, d) >= 10 && (P.plan(pid, d) as Seg[]).some(s => /as his father taught him|father’s craft in the house|tallies and the signs/.test(s.why))) learn++;
+      if (p.job === 'elder' && p.sex === 'f') { elders++; expect((P.plan(pid, d) as Seg[]).filter(s => /a little grinding/.test(s.why)).length, `${pid} d${d}`).toBeLessThanOrEqual(1); } }
+    expect(learn).toBeGreaterThan(50); expect(elders).toBeGreaterThan(3000);
+  }, 300_000);
+  it('the detailed tier walks at 0.7 of its pace while the dust is in the air (W-03), and at its own pace otherwise', () => {
+    let dd = -1; for (let d = 0; d < 354 && dd < 0; d++) if (sim.cal.ctx(d).wx.dustH) dd = d; expect(dd).toBeGreaterThanOrEqual(0);
+    const s = new PeopleSim(1, nav(), env); const dh = s.cal.ctx(dd).wx.dustH!; s.jumpTo(dd * 24 + (dh[0] + dh[1]) / 2); expect(s.dustF()).toBe(0.7);
+    s.jumpTo(dd * 24 + Math.max(0.1, dh[0] - 1)); expect(s.dustF()).toBe(1);
+  }, 120_000);
+  it('every village of the plain holds 150-3,000 people all year (PLAIN.md §4; B S8 and A\'s recurrence table: v_35 held 8,491, more than the town)', () => {
+    for (const d of [0, 101, 353]) { const n = new Map<string, number>(); for (let pid = 0; pid < P.persons.length; pid++) { if (!P.present(pid, d)) continue; const H = P.households[P.home(pid, d)]; if (H.zone === 'plain') n.set(H.q, (n.get(H.q) ?? 0) + 1); }
+      expect(n.size).toBe(39); for (const [q, k] of n) { expect(k, `${q} d${d}`).toBeLessThanOrEqual(3000); expect(k, `${q} d${d}`).toBeGreaterThanOrEqual(150); } }
+  }, 120_000);
+  it('the round-6 pick (seed 1, pick seed 113) holds the cases both round-5 reviewers asked for, each on a day that shows it', () => {
+    const S = pickSample(P, sim, 113); expect(S.detailed.length + S.population.length).toBe(20);
+    expect(S.detailed.some(x => /leader of ten/.test(x.stratum))).toBe(true);
+    for (const re of [/rain in daylight/, /birthday/, /under four months/, /herder/, /traveller or a messenger/, /grain heap/]) expect(S.population.some(x => re.test(x.stratum)), `${re}`).toBe(true);
+    const bb = S.population.find(x => /under four months/.test(x.stratum))!; expect(P.ageDays(bb.pid, bb.day)).toBeLessThan(120);
+    const ch = S.population.find(x => /birthday/.test(x.stratum))!; expect([1, 5, 8]).toContain(P.ageOn(ch.pid, ch.day)); expect(P.ageOn(ch.pid, ch.day)).toBe(P.persons[ch.pid].age + 1);
+    const vg = S.population.find(x => /grain heap/.test(x.stratum))!; expect(P.vigilMan(P.home(vg.pid, vg.day), vg.day)).toBe(vg.pid);
+  }, 300_000);
 });
