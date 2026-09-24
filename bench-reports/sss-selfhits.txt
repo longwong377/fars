@@ -1,0 +1,10 @@
+ground, sun 20°/0°: three 0.083 %, patched 0.000 % of 9600 lit pixels
+ground, sun 20°/90°: three 0.000 %, patched 0.000 % of 9600 lit pixels
+ground, sun 20°/180°: three 0.000 %, patched 0.000 % of 9600 lit pixels
+ground, sun 45°/0°: three 0.073 %, patched 0.000 % of 9600 lit pixels
+ground, sun 45°/90°: three 0.000 %, patched 0.000 % of 9600 lit pixels
+ground, sun 45°/180°: three 0.000 %, patched 0.000 % of 9600 lit pixels
+ground, sun 70°/0°: three 0.104 %, patched 0.000 % of 9600 lit pixels
+ground, sun 70°/90°: three 0.000 %, patched 0.000 % of 9600 lit pixels
+ground, sun 70°/180°: three 0.000 %, patched 0.000 % of 9600 lit pixels
+ground + wall 8 m ahead, the sun beyond it: three 79, patched 70 pixels at the wall's foot

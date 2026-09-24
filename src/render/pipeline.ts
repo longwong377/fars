@@ -62,6 +62,14 @@ export const SSR_MAX_ROUGHNESS = 0.5, SSR_MAX_DISTANCE = 30, SSR_THICKNESS = 0.3
  *  plinth or a step nosing without its contact shadow */
 export const SSS_MAX_DISTANCE = 0.6, SSS_THICKNESS = 0.06;
 
+/** the SSR blur mip for a reflection (D-188): the glossy cone (half-angle ≈ α = roughness², GGX) spans dHit · α at a hit
+ *  dHit metres away, i.e. dHit · α / (viewDist · pxAngle) pixels on screen; mip i of the half-resolution blur chain averages
+ *  ~2^(i+1) pixels. CPU mirror of the composite's lookup below (tests/surfaces_s6.test.ts) */
+export function ssrBlurLod(dHit: number, rough: number, viewDist: number, pxAngle: number, mips: number): number {
+  const foot = (dHit * rough * rough) / (Math.max(viewDist, 0.1) * pxAngle);
+  return Math.min(mips, Math.max(0, Math.log2(Math.max(foot, 1)) - 1));
+}
+
 export class Pipeline {
   rp: THREE.RenderPipeline | null = null;
   readonly flash = uniform(0); // lightning flash (additive)

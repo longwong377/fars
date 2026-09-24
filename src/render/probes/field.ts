@@ -37,7 +37,13 @@ export const REACH = 12;
  *  neither side reaches it, the plain bilinear fraction stands. Probes without reach data (0: the bake's intermediate
  *  fields) never snap. The shader (runtime.ts) does the same with step()s. */
 export function reachFrac(f: number, lo0: number, lo1: number, hi0: number, hi1: number, t = 0.5): number {
-  const ok = (r: number, d: number) => (r >= d ? 1 : 0);
+  // D-188: the reach test is a steep ramp (over 2 × REACH_SOFT of the spacing below the distance), not a step: round a column (an obstacle
+  // inside a cell) the step snapped the lookup from one side to the other at a point, and the irradiance jumped ×3–8
+  // within 1° of arc on the Hadish column bases (the "polygon facets" of the §8.2 rubric); walls are ≥ 0.5 spacing
+  // thicker than the band, so nothing reaches through them
+  // (one-sided, so a probe always reaches its own position (d = 0) and a reach of 1, the bake's cap, the whole cell: the
+  // fraction stays 0 and 1 at the cell's faces, continuous with the next cell)
+  const ok = (r: number, d: number) => sstep(d - 2 * REACH_SOFT, d, r);
   const lo = ok(lo0, f) * (1 - t) + ok(lo1, f) * t, hi = ok(hi0, 1 - f) * (1 - t) + ok(hi1, 1 - f) * t;
   const loOnly = lo * (1 - hi), hiOnly = hi * (1 - lo);
   return f * (1 - loOnly - hiOnly) + hiOnly;
@@ -45,6 +51,8 @@ export function reachFrac(f: number, lo0: number, lo1: number, hi0: number, hi1:
 /** the interpolated validity below which the field gives way to the plain skylight: only where every neighbour is inside a
  *  solid and was not reached by the dilation (bake.ts; dilated probes weigh 0.02) */
 export const VALID_LO = 0.002, VALID_HI = 0.01;
+/** half-width of the reach test's ramp, as a fraction of the probe spacing (D-188: 0.08 × 2 m = 16 cm) */
+export const REACH_SOFT = 0.08;
 
 export interface ProbeVolume {
   building: string;

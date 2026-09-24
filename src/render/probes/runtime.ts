@@ -13,7 +13,7 @@
 import * as THREE from 'three/webgpu';
 import { HemisphereLightNode } from 'three/webgpu';
 import { uniform, texture, vec2, vec3, float, mix, max, min, clamp, floor, smoothstep, step, normalWorld, positionWorld, dot } from 'three/tsl';
-import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, volumeAt, openAmbientMean, VALID_LO, VALID_HI, ATLAS_BANDS, PROBE_STRIDE } from './field';
+import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, volumeAt, openAmbientMean, VALID_LO, VALID_HI, REACH_SOFT, ATLAS_BANDS, PROBE_STRIDE } from './field';
 import { SURFACES } from '../materials';
 import { srgbToLinear, lum, sceneFromParts, TraceScene } from './trace';
 import type { Part } from '../../arch/parts';
@@ -145,7 +145,9 @@ export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any, directSk
   // probes reaches q is left out (field.ts reachFrac: a wall thinner than the spacing lies between them)
   const r00 = at(uA, vv, 3), r10 = at(uA.add(1), vv, 3), r01 = at(uA, vv.add(1), 3), r11 = at(uA.add(1), vv.add(1), 3);
   const snap = (f: any, lo0: any, lo1: any, hi0: any, hi1: any, t: any) => {
-    const g = float(1).sub(f), lo = mix(step(f, lo0), step(f, lo1), t), hi = mix(step(g, hi0), step(g, hi1), t);
+    // D-188: a steep ramp, not a step (field.ts reachFrac, REACH_SOFT)
+    const ok = (r: any, d: any) => smoothstep(d.sub(2 * REACH_SOFT), d, r);
+    const g = float(1).sub(f), lo = mix(ok(lo0, f), ok(lo1, f), t), hi = mix(ok(hi0, g), ok(hi1, g), t);
     const loOnly = lo.mul(float(1).sub(hi)), hiOnly = hi.mul(float(1).sub(lo));
     return f.mul(float(1).sub(loOnly).sub(hiOnly)).add(hiOnly);
   };
