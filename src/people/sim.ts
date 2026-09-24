@@ -19,7 +19,7 @@ import type { NavGrid, P2 } from './navgrid';
 import { ACTIVITIES, ActivityId } from './activities';
 import type { Dress } from './body';
 import { EventCalendar, sunTimes as sunT } from './calendar';
-import { Population, Seg, segAt, GUARD_POSTS, SliceSeat, TERRACE_ABSTRACT, TOWN_SITES } from './population';
+import { Population, Seg, segAt, GUARD_POSTS, SliceSeat, TERRACE_ABSTRACT, TOWN_SITES, HEARTHS } from './population';
 import { hall100Layout, colPlace } from './construction';
 import { PlayerMemory, Encounter } from './memory';
 import { COURT_PLACES } from './court'; // D-182 hook
@@ -268,7 +268,7 @@ export class PeopleSim {
       case 'patrol': { // a round of the posts (S3): each plan block is a round of its own, its order drawn from where he starts
         const leader = this.pop.persons[a.pid]?.rank === 1; const key = `${Math.floor(this.t / 24)}:${seg.t0.toFixed(4)}`;
         if (a.roundKey !== key || !a.round) { a.roundKey = key; a.round = this.roundFor(a, leader, rng); }
-        const backToHearth = () => { const nx = segAt(this.planOf(a, Math.floor(this.t / 24)), Math.min(23.999, seg.t1 + 1e-3)).place; const hp = PLACES[nx]?.kind === 'hearth' ? nx : 'garrison_hearth_m'; a.post = undefined; a.round = [];
+        const backToHearth = () => { const nx = segAt(this.planOf(a, Math.floor(this.t / 24)), Math.min(23.999, seg.t1 + 1e-3)).place; const hp = PLACES[nx]?.kind === 'hearth' ? nx : HEARTHS[(this.pop.persons[a.pid]?.file ?? 1) % 3]; // (his own file's hearth: S7 of reviewer A, r7) a.post = undefined; a.round = [];
           return this.task('rest', hp, this.here(a, hp, 2.6, rng), end, 'back from the round, within call of the posts'); };
         if (!a.round.length) { // the round is done: the leader goes back to the hearth; a patrol man starts another round
           if (leader) return backToHearth();

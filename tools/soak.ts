@@ -127,12 +127,12 @@ export function runSoak(days = 354, dt = 60, seed = 1, log = (s: string) => cons
     // the detailed agents' variety is measured by what they actually did (part a); their plans are checked here like anyone's
     const pid = ids[k], p = P.persons[pid], agent = p.agent >= 0;
     const sig = new Uint8Array(days * B); const codes = new Map<string, number>(); const present: number[] = [];
-    let runKey = '', runStart = 0, runEnd = 0, maxRun = 0, maxKey = '', prevLast: string | null = null, prevD = -9;
+    let runKey = '', runStart = 0, runEnd = 0, maxRun = 0, maxKey = '', prevLast: string | null = null, prevD = -9, prevSegs: Seg[] | null = null;
     for (let d = 0; d < days; d++) {
       if (!P.present(pid, d)) { runKey = ''; continue; } present.push(d);
       const segs = P.plan(pid, d); plans++;
-      for (const x of checkPlan(P, pid, d, segs, prevD === d - 1 ? prevLast : null)) { planIssues[x.kind] = (planIssues[x.kind] ?? 0) + 1; if (planExamples.length < 30) planExamples.push(`${pid} ${p.job} ${p.sex}${p.age} day ${d}: ${x.kind}: ${x.note}`); }
-      prevLast = segs[segs.length - 1].place; prevD = d;
+      for (const x of checkPlan(P, pid, d, segs, prevD === d - 1 ? prevLast : null, prevD === d - 1 ? prevSegs : null)) { planIssues[x.kind] = (planIssues[x.kind] ?? 0) + 1; if (planIssues[x.kind] <= 5 && planExamples.length < 60) planExamples.push(`${pid} ${p.job} ${p.sex}${p.age} day ${d}: ${x.kind}: ${x.note}`); }
+      prevLast = segs[segs.length - 1].place; prevD = d; prevSegs = segs;
       let prev = 0; for (const s of segs) { if (s.t0 < prev - 1e-6 || s.t1 < s.t0 - 1e-9) { if (popBad.length < 20) popBad.push(`${pid} ${p.job} day ${d}: segments out of order at ${s.t0}`); break; } prev = s.t1;
         if (!ACTIVITIES[s.act] && popBad.length < 20) popBad.push(`${pid} ${p.job}: unknown activity ${s.act}`);
         if (s.where === 'road' && s.t1 - s.t0 > 3.1 && p.zone !== 'transient' && popBad.length < 20) popBad.push(`${pid} ${p.job} day ${d}: a ${(s.t1 - s.t0).toFixed(1)} h walk (${s.why})`);
@@ -184,7 +184,7 @@ export function runSoak(days = 354, dt = 60, seed = 1, log = (s: string) => cons
     eventKinds: [...new Set(weeks.flatMap(s => [...(s ?? [])]))].sort(), otherEventKinds: [...other].sort(),
     stuck: stuck.slice(0, 10), populationStuck: popStuck.slice(0, 10), sacks, sliceStock: { ...sim.stock }, campFlows: { ...sim.flows }, stores, shortfalls: cal.shortfalls.length, collapse, harvestFactor: +cal.harvestFactor.toFixed(3),
     life: lifeCounts, construction, renderedActivities: rendered, badRendered, planProblems: popBad,
-    planChecks: { personDays: plans, issues: planIssues, examples: planExamples, daysChecked, dayIssues, dayExamples, note: 'planCheck.ts: no_sleep, reason, meals, teleport on every person-day; apart (a person in two places) and alone (a child under ten at night) on every third day for everyone' },
+    planChecks: { personDays: plans, issues: planIssues, examples: planExamples, daysChecked, dayIssues, dayExamples, note: 'planCheck.ts: no_sleep, reason, meals, teleport and the D-191 invariants (weather, light, wait, label, feed, dress) on every person-day; apart (a person in two places) and alone (a child under ten at night) on every third day for everyone' },
     season, frameCost: cost };
 }
 

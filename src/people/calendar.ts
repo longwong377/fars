@@ -276,7 +276,10 @@ export class EventCalendar {
     for (const id of ['E-40', 'E-41', 'E-42', 'E-43', 'E-44', 'E-45', 'E-46', 'E-50']) {
       const row = ROW[id]; if (!monthsOk(row, month)) continue;
       if (id === 'E-40' && !ctx.firstRain && !(month === 8 && dom > 15) && month !== 9) continue; // CE-20: sowing waits for the first autumn rains (irrigated land is sown by mid-Arahsamnu regardless, C)
-      if ((id === 'E-40' || id === 'E-44') && wx.wet) continue;
+      // (a wet day with a dry working morning of four and a half hours keeps its ploughing and sowing until the rain: the
+      // rule for field work is the rain's hours, W-01, not the rain day; S5 of reviewer A, S10 of reviewer B, r7: a day with
+      // rain from 15:00 lost its seven dry hours. The rain then sends them home: Planner.workBlock; C)
+      if ((id === 'E-40' || id === 'E-44') && wx.wet && rainHours(wx, sun.rise + 0.5, sun.rise + 5) > 0) continue;
       if (id === 'E-50' && !(dom >= 5 && dom <= 25)) continue;
       if (row.day_window && (d < row.day_window[0] || d > row.day_window[1])) continue; // the harvest windows (Q-140)
       ctx.agri.add(id); E(row.rule.hours?.[0] ?? 7, id, row.name, 'plain');

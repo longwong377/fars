@@ -24,6 +24,7 @@ import type { Population, Person, Household, Seg, Where, Job } from './populatio
 import type { ActivityId } from './activities';
 import { u01, salt, HStream, poisson } from './hash';
 import { REGNAL_DAYS } from './calendar';
+import { dustWear, coldWear, wetHours, OPEN_PLACE } from './population'; // (functions only, called after both modules have loaded)
 
 export const COURT = courtData as any;
 type P2 = [number, number];
@@ -201,7 +202,9 @@ class CourtDay {
   fill(until: number, opts: Opt[]) {
     let last = -1; if (this.lastEat >= 0) until = Math.min(until, this.lastEat + 7.2);
     while (this.t < until - 0.25) {
-      const ws = opts.map((o, i) => (i === last ? o[3] * 0.3 : o[3]) * (this.rainy(this.t) && whereOf(o[0]) !== 'terrace' ? 0.3 : 1)); let u = this.r.next() * ws.reduce((a, b) => a + b, 0), k = 0;
+      const e = this.t + 1.6, dh = this.C.wx.dustH, out = (o: Opt) => OPEN_PLACE.test(o[0]) || o[0] === 'court_camp'; // (D-191, planCheck (a)-(b): out of doors only while dry, at leisure out of the dust, work that needs light in the light)
+      const bar = (o: Opt) => out(o) && (wetHours(this.C.wx, this.t, e) > 0 || (!!dh && dh[0] < e && dh[1] > this.t && /^(talk|gamble|play|rest|spin)$/.test(o[1])) || (/^(wash|train|gamble|craft|spin)$/.test(o[1]) && (this.t < this.sun.rise - 0.4 || e > this.sun.set + 0.4)));
+      const ws = opts.map((o, i) => bar(o) ? 0 : (i === last ? o[3] * 0.3 : o[3]) * (this.rainy(this.t) && whereOf(o[0]) !== 'terrace' ? 0.3 : 1)); let u = this.r.next() * ws.reduce((a, b) => a + b, 0), k = 0;
       for (; k < opts.length - 1; k++) { u -= ws[k]; if (u <= 0) break; } last = k; const o = opts[k];
       const t1 = Math.min(until, this.t + walkHours(this.cur, o[0]) + this.r.range(0.5, 1.5)); if (t1 - this.t < 0.3) break;
       this.at(t1, o[0], o[1], o[2], o[4]);
@@ -232,6 +235,7 @@ class CourtDay {
       case 'nobles': this.noble(); break;
     }
     if (this.t < 24) this.add(24, this.cur, 'sleep', 'asleep');
+    dustWear(this.segs, this.C.wx); coldWear(this.segs, this.C.wx); // (the weather's dress, as the population's: D-191)
     void p; return this.segs;
   }
   // ---------------------------------------------------------------- common days
