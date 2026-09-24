@@ -1,6 +1,20 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Session 6 (2026-09-24; ended — read this block and HANDOFF.md first).** Base 272bf70 (the session-5 handoff). All
+  session-5 bundles and every session-6 workstream are merged; the per-workstream entries below give the detail.
+  - **Gates:** Phase 8 **PASSED** at review round 3 (REVIEWS/phase8_r3.md; open majors: voices unheard (H8), music visuals
+    placeholder (B20), tablets' text placeholder (B18)). Phase 5: soak passes all 8 gates on the final sim; the §13.11
+    shadow review has NOT passed (round 6: A 1/20, B 3/20 below 4; round 7: A 2/20, B 1/20; round-7 fixes and year-wide
+    invariants merged, D-191; round 8 next). §8.2 rubric first pass FAILED (light 2, materials 1, scale 2, detail 2,
+    people 2, atmosphere 2; REVIEWS/rubric_s6_pass1.md); the four look workstreams' fixes (D-187..D-190) are merged but
+    **not re-scored**; render pass 2 was part-way at handoff (shots not kept). Phases 3/4, 6/7: reviews not run.
+  - **Rendering bugs found and fixed at high:** effect quads overwrote the G-buffer (three blends only `output`): black
+    boxes and streaks round braziers, 1–2 km bars on the sunrise horizon (D-183); white blotches on the Hadish floor
+    (occlusion fit flipped by roughness mottling, D-181); probe Monte Carlo noise and a wall leak in the bake (D-180).
+  - **Still open in the look:** outdoor contact AO (D-188), hair/beards as shells, skirts as tubes, vivid court robes,
+    DEM-smooth skylines, the dawn-horizon comb, a black doorway reveal (B23).
+  - **Not heard or seen on a GPU:** music, occlusion, incised signs, clay tablets, re-rendered voices.
 - **Session 6, court workstream (branch court-s6, D-182; merged by the lead).** With the court setting the
   court in residence is simulated and drawn (9,310 people, C; the Terrace 4,448 at 10:00 and 2,295 at 02:00 on day 30).
   **Not rendered in a browser yet** (node counts only). **PLACEHOLDER:** delegates' dress (generic Median riding dress),

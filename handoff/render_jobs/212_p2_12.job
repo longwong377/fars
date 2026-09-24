@@ -1,0 +1,3 @@
+p2_12
+tests/e2e/moments.spec.ts
+E2E_PORT=5292 Q=high ONLY=reliefs-raking,stair-climb-pm,tachara-lance-bearers TIMEOUT=2900 PW_TIMEOUT=2900

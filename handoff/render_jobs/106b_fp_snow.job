@@ -1,3 +1,0 @@
-fp_snow
-tests/e2e/moments.spec.ts
-E2E_PORT=5218 Q=high ONLY=snow-terrace

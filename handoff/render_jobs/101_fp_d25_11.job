@@ -1,3 +1,0 @@
-fp_d25_11
-tests/e2e/moments.spec.ts
-E2E_PORT=5202 Q=high ONLY=apadana-enter,apadana-enter-portico,apadana-hall-in,apadana-hall-axis,hadish-hall

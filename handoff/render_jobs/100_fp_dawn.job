@@ -1,3 +1,0 @@
-fp_dawn
-tests/e2e/moments.spec.ts
-E2E_PORT=5201 Q=high ONLY=dawn-stair-top,dawn-stair-top-nw,dawn-glow-e,dawn-sunrise,dawn-sunrise-nw

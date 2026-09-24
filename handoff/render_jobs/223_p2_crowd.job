@@ -1,0 +1,3 @@
+p2_crowd
+tests/e2e/crowd_scale.spec.ts
+E2E_PORT=5283 Q=high ONLY=court-forecourt-w,court-apadana-n TIMEOUT=2900 PW_TIMEOUT=2900

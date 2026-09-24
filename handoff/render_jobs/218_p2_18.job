@@ -1,0 +1,3 @@
+p2_18
+tests/e2e/moments.spec.ts
+E2E_PORT=5298 Q=high ONLY=tachara-s-stair,hall100-site TIMEOUT=2900 PW_TIMEOUT=2900

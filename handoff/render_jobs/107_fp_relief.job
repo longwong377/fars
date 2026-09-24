@@ -1,3 +1,0 @@
-fp_relief
-tests/e2e/moments.spec.ts
-E2E_PORT=5208 Q=high ONLY=reliefs-raking,stair-climb

@@ -1,0 +1,3 @@
+p2_13
+tests/e2e/moments.spec.ts
+E2E_PORT=5293 Q=high ONLY=tachara-lance-bearer-close,tripylon-n-stair TIMEOUT=2900 PW_TIMEOUT=2900
