@@ -221,3 +221,25 @@ research/voice_acceptance.json; tests/voice_acceptance.test.ts ties the report t
 (197–244); child 280.4 → 244.2 (212–263); median range 1.29 → 6.44 st (≥ 3); clips ≥ 2 st 31 % → 100 %; questions rising
 17 % → 100 %; statements falling 24 % → 99 %; greetings 28 % → 100 %; commands 15 % → 97 %; vowel frames in the
 Hillenbrand space 88–96 % → 86–97 % (≥ 85 %). Clips +132 KB (+8.4 %). Tests 125 passed (8 files); lint:all OK.
+
+## Landscape look (branch look-land-s6, head 426c0bc, D-190) — merged in session 6
+**Broken, unverified or placeholder:** the final look is not rendered (both browser runs used; the after run showed false
+bright paths along midlines and rock reading as 20–80 m camouflage blobs; both fixed in c10ac78, checked in node only: 0
+false-path samples of 10,012; rock in contour bands on a CPU preview); the paths from the stair read like roads (toned
+down in c10ac78, unrendered); dawn moments not re-rendered; people do not follow the drawn paths; far fields may shimmer
+in motion (1-px streaks in a still; TRAA only); hills are shading only (no heights moved: skylines are still the DEM's 30 m
+forms); all look values C; plain build 3.8 → 6.5 s (bake 2.7 s in a worker; the early start not measured).
+**Bugs found, not fixed:** bug 8 (black blobs on the hills) = woodland trees near the capital drawn as mid-ring impostors
+(`plain-trees-mid`, src/world/trees), dark and twiggy at 0.6–1.5 km; bug 9 (bright comb on the dawn horizon) is not in the
+plain: its shape and place match the town's hearth-smoke plumes (src/world/settlement/haze.ts; not verified).
+**Why the plain read as a lawn:** all ground within ~400 m of the Terrace foot was the natural herb layer (the D-040 660 m
+square and settlement zones kept free of fields); beyond, plots faded to one colour by the pixel's length along the view
+(no plot survived past ~250 m).
+**Changed (0 draws/triangles added, no heights moved):** src/terrain/terrainDetail.ts + detail_worker.ts (flow over the
+DEM with a wobble within its stated error, gullies by the Montgomery & Dietrich 1988 channel-head rule, curvature, slope;
+limestone rock bands, scree, soil, sparse shrubs: lithology B, cover C); src/world/plain/townGround.ts (trodden earth,
+42 worn paths, irrigated town plots; fields no longer under sites outside the zones); plots fade by the pixel's width
+across the view; rain-fed land alternates crop/fallow by 800 m district (70 %/10 %, mean 40 % kept).
+**Measured:** draws/triangles unchanged in stair-noon-plain, village-p22; rahmat-west-pm +1 draw. Flatness near ground
+0.039 → 0.065, mid 0.089 → 0.115; Kuh-e Rahmat fine detail 0.063 → 0.087. Tests: landscape.test.ts (10) and the plain,
+terrain, settlement, trees suites pass; tsc clean; lint:all OK; the 144 kB terrain WGSL passes naga validation.
