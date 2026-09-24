@@ -26,6 +26,11 @@
 //  - dress:    (f) out of doors in the dust (not eating) or in the cold (below outfits.COLD_C for more than a quarter of an
 //              hour) without the dress for it, asleep and carried children too; or the dress worn for more than half an
 //              hour out of the weather it is for
+//  - stage:    (g) more than STAGE_CAP_H of a day on the move on foot (the road, a band coming down from the hills, a flock
+//              moved on): a stage is what a family with its old and its little ones walks between camps (shadow review r8,
+//              44216: 10 h 45 min from the hill camp to the first camp in the plain; C)
+//  - flock:    (h) a herding man of a transhumant band (16–55, in the plain, not ill) whose day never touches the flock
+//              (its fold, its grazing, its watch; shadow review r8, 44216: a day of donkeys and tents)
 import type { ActivityId } from './activities';
 import type { Population, Seg } from './population';
 import { segAt, OPEN_PLACE, OPEN_WHY, outdoors, wetHours, monthsOld, nightGapMax, heatStretch, WET_OK_FLOCK, backFromOk, NIGHT_FEED } from './population';
@@ -54,7 +59,7 @@ export function reasonOk(act: ActivityId, why: string) {
   v = true; for (const [re, acts] of RULES) if (re.test(why)) { v = acts.includes(act); break; }
   if (reasonCache.size < 200000) reasonCache.set(k, v); return v;
 }
-export type PlanIssue = 'no_sleep' | 'reason' | 'meals' | 'teleport' | 'apart' | 'alone' | 'minding' | 'weather' | 'light' | 'wait' | 'label' | 'feed' | 'dress';
+export type PlanIssue = 'no_sleep' | 'reason' | 'meals' | 'teleport' | 'apart' | 'alone' | 'minding' | 'weather' | 'light' | 'wait' | 'label' | 'feed' | 'dress' | 'stage' | 'flock';
 /** a reason that says the person has a little one with them (the minder's words: Population.mindDay) */
 export const MINDING = /^(minding (the little|her little|his little)|carrying (the little|her little|his little)|(out to the lane|home) with (the little|her little|his little))/;
 /** the issues of one person's plan on one day; `prevLast` is where yesterday's plan ended */
@@ -195,5 +200,19 @@ export function invariants(P: Population, pid: number, d: number, segs: Seg[], p
     for (let i = 1; i < fs.length; i++) { const a = fs[i - 1][1], b = fs[i][0]; if (b < 0) continue; const m = (a + b) / 2, day = m >= wake && m <= bed, cap = day ? capD : capN;
       if (b - a > cap + 1e-6) out.push({ kind: 'feed', note: `${(b - a).toFixed(2)} h between feeds ${a.toFixed(2)}-${b.toFixed(2)} (${day ? 'day' : 'night'}, cap ${cap} h, ${mo.toFixed(1)} months)` }); }
   }
+  // (g) the day's stage on foot
+  // (walking on the road, and the off-map road and descent; a flock grazing as it goes is the herdsman's day, not a march)
+  let moving = 0; for (const s of segs) if ((s.where === 'road' && (s.act === 'walk' || s.act === 'herd')) || (s.act === 'offmap' && MOVING_OFF.test(s.why))) moving += s.t1 - s.t0;
+  if (moving > STAGE_CAP_H && !STAGE_OK.test(P.persons[pid].job)) out.push({ kind: 'stage', note: `${moving.toFixed(2)} h on the move on foot` });
+  // (h) a herding man and the flock
+  const pp = P.persons[pid], age = P.ageOn(pid, d);
+  if (pp.job === 'herder' && pp.sex === 'm' && age >= 16 && age <= 55 && !segs.some(s => s.act === 'lie_ill') && segs.some(s => s.where === 'plain')
+    && !segs.some(s => /^(flock:|route:)/.test(s.place) || /flock/.test(s.why)) && !(prev ?? []).some(s => s.t1 > 20 && /^flock:/.test(s.place)))
+    out.push({ kind: 'flock', note: 'a herding man whose day never touches the flock' });
   return out;
 }
+/** (g) the cap on a day's stage on foot (C: a family's stage with its old and little ones, and a day's road walk) */
+export const STAGE_CAP_H = 7;
+const MOVING_OFF = /^(coming down from the hills|on the road)/;
+/** jobs whose day on the road is longer by rule: couriers ride, drovers go on (C) */
+const STAGE_OK = /^(courier|messenger)$/;

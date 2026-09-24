@@ -133,7 +133,9 @@ export function transfers(seed: number) {
 }
 /** transhumant bands passing (E-49): herding families of 5–40 people (C; D-150), 2–4 days in the plain (C) */
 export function transhumantBands(seed: number) {
-  return rateSchedule(seed, 'E-49').map((x, i) => ({ i, day: x.day, hour: x.hour, size: 5 + Math.floor(u01(seed, salt('band'), i) * 36), stay: 2 + Math.floor(u01(seed, salt('bstay'), i) * 3) }));
+  // the band reaches the plain in the morning (08:00–11:00): a flock is moved in the cool hours and lies up through the heat
+  // (lives.json herders; shadow review r8, 44216: a band came down from 05:17 and reached its first camp at 16:01; C)
+  return rateSchedule(seed, 'E-49').map((x, i) => ({ i, day: x.day, hour: 8 + (3 * (x.hour - HOURS.pastoral[0])) / (HOURS.pastoral[1] - HOURS.pastoral[0]), size: 5 + Math.floor(u01(seed, salt('band'), i) * 36), stay: 2 + Math.floor(u01(seed, salt('bstay'), i) * 3) }));
 }
 /** the drive of tax animals and 'the sheep of the king' to Susa (E-13); away 50–70 days (552 km at a flock's pace, C) */
 export function flockDrives(seed: number) {

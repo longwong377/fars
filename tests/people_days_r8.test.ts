@@ -127,7 +127,9 @@ describe('minor findings', () => {
         expect(s.why).not.toMatch(/practice ground below the Terrace/); } }
   }, 300_000);
   it('B S11: a herder child under seven rides after the midday halt on a moving day (44627 on Addaru 3, day 328)', () => {
-    const g: Seg[] = P.plan(44627, 327); expect(P.ageOn(44627, 327)).toBeLessThan(7); expect(g.some(s => s.where === 'road' && s.t0 >= 11.9 && /riding/.test(s.why))).toBe(true);
+    // (D-196: on this arrival day the families now reach the first camp before midday; the child walks ≤ 4.5 h in all)
+    const g: Seg[] = P.plan(44627, 327); expect(P.ageOn(44627, 327)).toBeLessThan(7);
+    expect(g.filter(s => s.where === 'road' && s.act === 'walk').reduce((a, s) => a + s.t1 - s.t0, 0)).toBeLessThanOrEqual(4.5);
     expect(g.filter(s => s.where === 'road' && s.t0 >= 11.9).every(s => s.act !== 'walk')).toBe(true);
   }, 120_000);
 });
