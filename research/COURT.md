@@ -149,4 +149,4 @@ their tent (not drawn); the others stand before its door. Every form, size and p
 Measured (seed 1, plans; tests/court_fill.test.ts): town at 02:00 21,270 / 21,677 (days 30 / 90; w 20,000, range
 13,000-30,000), at 10:30 18,588 / 18,561; plain 41,136-41,311 (w 42,000, range 33,000-49,000); the Terrace unchanged
 (4,912 at 10:30 on day 30). The whole court 25,817 people (9,310 before). They arrive with the court (day 0) and leave on
-its leave day (E-26), striking the tents.
+its leave day (E-26), striking the tents. The year soak with the court (`npx tsx tools/soak.ts 354 60 1 --court`, 76,238 people) passes all 8 gates (D-199).

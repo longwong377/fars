@@ -3628,7 +3628,7 @@ Population with the court 76,238 (court 25,817: the D-182 court 9,310, the king'
   the year). tools/dev/court_variety.ts over 30 days: every court person passes (worst: the followers and the town's
   soldiers 0.023, the king 0). Frame cost at 60 fps with the court: 0.095 ms mean, 0.114 p99, 78 ms max, midnight 3.8 ms
   (without: 0.093, 0.130, 71, 2.3); at 60× 14.5 ms mean, 352 p99 (without: 14.8, 378).
-- The year soak with the court (`npx tsx tools/soak.ts 354 60 1 --court`): running at the time of this commit (the population part at about 100 s per 1,000 people on this loaded box: ~2.2 h); its result is added below when it ends
+- The year soak with the court (`npx tsx tools/soak.ts 354 60 1 --court`): **PASSES all 8 gates** (seed 1; 94 min 36 s on this loaded box: population 5,603 s, 17,994,855 person-days of plan checks, 72,565 people measured): plans well formed 0 issues and 0 day issues; variety (the worst detailed agent 0.020) and population variety (0 failing; the worst a farmer at 0.089) pass; events 14-20 kinds a week; nothing stuck; stocks, rendered honesty and visible change pass. Frame cost at 60 fps 0.106 ms mean, 0.109 p99, 79 ms max, midnight 3.1 ms; at 60× 14.4 ms mean, 388 p99 (bench-reports/soak-2026-09-24T22-24-16-715Z.json, not committed)
 
 **Tests.** New `tests/court_fill.test.ts` (12): the delegations' data, pieces, dyes, gifts and sources; each people's look;
 the parties' gifts and dress; the king one person only with the setting, his dress; his audience days against his bearers'
