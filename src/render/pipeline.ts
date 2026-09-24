@@ -61,6 +61,8 @@ export const SSGI_CONTACT_THICKNESS = 0.8;
 export const SSR_MAX_ROUGHNESS = 0.5, SSR_MAX_DISTANCE = 30, SSR_THICKNESS = 0.3;
 /** the screen-space reflection's radiance is capped at this many times display white (D-188: no single-texel sparkles) */
 export const SSR_CAP = 2;
+/** the hit distance a missed ray's blur assumes (m, D-188) */
+export const SSR_MISS_D = 8;
 /** sun contact shadows (D-157): screen-space rays toward the sun, 0.6 m long, against depth samples 6 cm thick; they darken
  *  only the pixel's share of direct sun (estimated as below), where the shadow map's texels and bias (6 cm, D-146) leave a
  *  plinth or a step nosing without its contact shadow */
@@ -207,7 +209,10 @@ export class Pipeline {
       // chain averages ~2^(i+1) pixels. The hit distance is the unblurred pass's at the pixel (or, where that ray missed,
       // the mean over a mip-2 neighbourhood: misses count 0 there, so it errs toward less blur)
       const mips = S._blurRenderTarget.texture.mipmaps.length - 1, blurTex = S._blurRenderTarget.texture;
-      const dHit = max(S._textureNode.a, (passTexture as any)(S, blurTex).level(2).a);
+      // where the pixel's own ray missed (a ray leaving through a doorway: the SSR has nothing to hit), the lookup takes a
+      // hit ≥ 8 m off, so the blur fills the miss from the hits round it instead of leaving a sharp-edged hole (run 1,
+      // hadish-hall: the reflected doorway was a blurred frame round a hard dark rectangle)
+      const base = S._textureNode.a, dHit = mix(max((passTexture as any)(S, blurTex).level(2).a, SSR_MISS_D), base, step(1e-3, base));
       const footPx = dHit.mul(rough.mul(rough)).div(length(pView).max(0.1).mul(this.pxAngle));
       // (never sharper than the node's own roughness rule, r² × mips)
       const lod = clamp(max(log2(footPx.max(1)).sub(1), rough.mul(rough).mul(mips)), 0, mips);
