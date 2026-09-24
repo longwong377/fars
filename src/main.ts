@@ -183,7 +183,9 @@ async function boot() {
     advanceWorld: (seconds: number, dt = 1) => { const steps = Math.round(seconds / dt); for (let i = 0; i < steps; i++) { clock.t += dt / 86400; simStep(dt, false); } },
     /** walkable-grid path for bots, avoiding people who are standing still (grid coords) */
     navPath: (from: [number, number], to: [number, number]) => { const P = (world as any).people; if (!P) return null;
-      const still = P.sim.agents.filter((a: any) => !a.offmap && !a.walking).map((a: any) => a.pos); return P.nav.findPathAvoiding(from, to, still, 0.9); },
+      const still = P.sim.agents.filter((a: any) => !a.offmap && !a.walking).map((a: any) => a.pos);
+      for (const o of P.view?.visible ?? []) if (!o.moving && o.agent < 0) still.push([o.e, o.n]); // the population's people standing (solid too, D-143)
+      return P.nav.findPathAvoiding(from, to, still, 0.9); },
     address: () => world.address?.(camera) ?? null,
     /** people rendering: crowd stats (draws, triangles, people per LOD, CPU ms of posing) */
     humans: () => { const P = (world as any).people; return P ? { ...P.crowd.stats(), load: P.humans.ms, NV: P.humans.O.NV, sourceMB: +(P.humans.O.source.byteLength / 1e6).toFixed(1), capacity: P.humans.gpu.capacity } : null; },

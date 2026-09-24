@@ -13,7 +13,7 @@ export interface WorldBuild {
   applySettings?(s: Settings): void;
   audio?: { unlock(): void };
   fire?: FireSystem; wvfx?: WeatherVfx; flash?(): number;
-  people?: { sim: PeopleSim; crowd: Crowd; nav: NavGrid; humans: HumanSystem };
+  people?: { sim: PeopleSim; crowd: Crowd; nav: NavGrid; humans: HumanSystem; view: PopView; geo: PopGeo; probe(renderer: THREE.WebGPURenderer): Promise<VisibleCount> };
   /** address the nearest person in front of the camera (§9.4); returns what was said (out-of-world subtitle) or null */
   address?(camera: THREE.Camera): Subtitle | { gesture: string } | null;
   lastSubtitle?: Subtitle | null;
@@ -53,7 +53,13 @@ import { QUALITY } from '../core/settings';
 import { v } from '../arch/spec';
 import { NavGrid } from '../people/navgrid';
 import { PeopleSim, Env } from '../people/sim';
-import { Crowd } from '../people/crowd';
+import { Crowd, PATH_REACH } from '../people/crowd';
+import { PopGeo } from '../people/popgeo';
+import { PopView } from '../people/popview';
+import { bakeImpostors, CrowdImpostors } from '../people/impostors';
+import { countVisible, type VisibleCount } from '../people/crowdprobe';
+import { propGeometry } from '../people/props';
+import { villageCompounds } from './plain/villages';
 import { loadHumans, type HumanSystem } from '../people/humans';
 import { ACTIVITIES } from '../people/activities';
 import { Speech, Subtitle, RecordingBackend, FormantBackend } from '../audio/speech';
@@ -161,6 +167,23 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // people's bodies (D-090): MakeHuman-derived variants in period dress, instanced per costume and LOD, pooled (D-093)
   const humans = await humansP;
   const crowd = new Crowd(sim, seed, humans); root.add(crowd.group);
+  // the whole population drawn (D-143): everyone out of doors near the camera, placed in the built world (popgeo.ts: the
+  // Terrace grid, the town's lanes and houses, the plain's villages), the nearest in the skinned pool, the rest as
+  // impostors baked from the same bodies (impostors.ts)
+  const geo = new PopGeo({ pop: sim.pop, nav, town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n), seed,
+    villages: plain.data.villages, compounds: vi => villageCompounds(plain.data.villages[vi], terrain, seed), canals: plain.data.canals.map(c => c.pts) });
+  const view = new PopView(sim, geo, seed); crowd.view = view;
+  let impMs = 0;
+  { const t = performance.now(), pg = (k: string) => { const g = propGeometry(k)!, n = g.getAttribute('position').count; return { pos: g.getAttribute('position').array as Float32Array, idx: g.index ? g.index.array : Array.from({ length: n }, (_, i) => i) }; };
+    crowd.imp = new CrowdImpostors(bakeImpostors(humans.A, humans.O, { jar: pg('jar'), sack: pg('sack') })); crowd.group.add(crowd.imp.mesh); impMs = performance.now() - t; }
+  // the population's people nearest the player are solid too (brief §6: player collision with crowds): 48 capsules
+  // follow the nearest of them within 20 m, where the crowd draws them (the view's spot and the cycle's own path: the
+  // ploughman up to PATH_REACH from his spot along the furrow; D-142 × D-143). Their animals are not solid (C)
+  const popBodies = Array.from({ length: 48 }, () => { const b = phys.world.createRigidBody(phys.R.RigidBodyDesc.kinematicPositionBased().setTranslation(0, -1000, 0)); phys.world.createCollider(phys.R.ColliderDesc.capsule(0.55, 0.25).setTranslation(0, 0.8, 0), b); return b; });
+  const syncPopBodies = () => { const pp = playerAt;
+    const near = pp ? view.query([pp.x, -pp.z], 20 + PATH_REACH).filter(o => o.agent < 0).map(o => { const r = crowd.rootOf(o.pid); const x = r ? r[0] : o.e, y = r ? r[1] : o.y, z = r ? r[2] : -o.n; return { x, y, z, d: Math.hypot(x - pp.x, z - pp.z) }; })
+      .filter(q => q.d < 20).sort((a, b) => a.d - b.d) : [];
+    popBodies.forEach((b, i) => { const q = near[i]; b.setNextKinematicTranslation(q ? { x: q.x, y: q.y, z: q.z } : { x: 0, y: -1000, z: 0 }); }); };
   // the Hall of 100 Columns follows the simulation's construction state (Phase 5; replaces the static hall columns)
   const building = present('hall100') ? new ConstructionView(arch.group, () => sim.construction) : null; if (building) root.add(building.group);
   // people are solid to the player: a kinematic capsule each (brief §6: player collision with crowds)
@@ -221,21 +244,28 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const surfaceAt = (y: number, groundY: number) => (y > -1 ? 'stone' : Math.abs(y - groundY) < 0.3 ? 'earth' : 'stone') as 'stone' | 'earth';
   const syncBodies = () => sim.agents.forEach((a, i) => bodies[i].setNextKinematicTranslation(a.offmap ? { x: 0, y: -1000, z: 0 } : { x: a.pos[0], y: a.y, z: -a.pos[1] }));
   let lodT = 0;
-  // dev overlay: the abstract population, and the Terrace workforce it simulates but nobody renders yet (D-024), recounted
-  // every ten game minutes
+  // dev overlay: the population and the people drawn of it. The view's counts come with every update (cheap); the crowd's
+  // counts and flags are this frame's (the [PLACEHOLDER] and NOT DRAWN flags must not lag, nor stay stale in a frozen
+  // world); only the places not built are recounted every ten game minutes
   let popAt = -1, popTxt = '';
-  const popLine = () => { if (Math.abs(sim.t - popAt) > 1 / 6) { popAt = sim.t; const n = sim.abstractOnTerrace().total; popTxt = `population ${sim.pop.persons.length} simulated (abstract) · ${n} more on the Terrace NOT RENDERED [PLACEHOLDER: D-024]`; } return popTxt; };
+  // (placeholder activities: none since D-142; flagged PLACEHOLDER here only if one ever reaches a drawn person again)
+  const over = (n: number) => n ? ` (${n} over the cap, NOT DRAWN)` : '';
+  const popLine = () => { const V = view.stats, I = crowd.impPerf, st = crowd.stats(), ph = st.placeholderActs + I.placeholders;
+    if (Math.abs(sim.t - popAt) > 1 / 6) { popAt = sim.t; popTxt = `places not built: ${V.unresolved}`; }
+    return `population ${sim.pop.persons.length} simulated · out of doors near: ${V.visible} (${V.walking} walking) of ${V.candidates} kept, drawn ${st.perf.drawn.reduce((a, b) => a + b, 0)} skinned + ${I.drawn} impostors [D-143] · ${popTxt} · activities with no performance, shown standing: ${st.placeholderActs} skinned + ${I.placeholders} impostors${ph ? ' [PLACEHOLDER]' : ''} · props ${st.props}${over(st.propsDropped)} · work objects ${st.things.instances}${over(st.things.dropped)}, animals ${st.animals.instances}${over(st.animals.dropped)} [D-142] · pop-ins ${I.popins}`; };
   const simulate = (dt: number, clock: any) => {
     const target = clock.t * 24;
     if (!simStarted) { sim.jumpTo(target); simStarted = true; }
     else { const ds = (target - sim.t) * 3600; if (ds < -1 || ds > 900) sim.jumpTo(target); else if (ds > 0) sim.step(ds); }
     if (playerAt) sim.player = [playerAt.x, -playerAt.z];
     // doors (D-051): swing, schedules, people opening closed doors as they pass; before the next physics step
-    doors.player = playerAt; doors.people = sim.agents.filter(a => !a.offmap).map(a => a.pos as [number, number]); doors.update(dt, clock.localHour);
+    doors.player = playerAt; doors.people = sim.agents.filter(a => !a.offmap).map(a => a.pos as [number, number]);
+    for (const o of view.visible) if (o.moving && o.agent < 0 && o.e > -80 && o.e < 280 && o.n > -250 && o.n < 250) doors.people.push([o.e, o.n]); // the population's walkers on the Terrace open doors too
+    doors.update(dt, clock.localHour);
     // simulation LOD (D-017): at the Phase 3/4 population everyone on the Terrace walks real routes; the radius shrinks
     // when Phase 5 brings thousands. Re-checked every few seconds so anyone left abstract (no route yet) is promoted.
     if ((lodT += dt) > 3) { lodT = 0; sim.updateLod(sim.player ?? [0, 0], LOD_RADIUS); }
-    syncBodies();
+    syncBodies(); syncPopBodies();
   };
   const address = (camera: THREE.Camera) => {
     const cp = camera.position, fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
@@ -274,7 +304,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   }, settlement ? indexTown(settlement.plan as any) : null);
   const court = settings?.courtCalendar === 'seasonal';
   let mapItems: MapItem[] | null = null; // out-of-world map layers (translation layer), built on first use
-  return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav, humans }, address, plain, doors, get lastSubtitle() { return lastSubtitle; }, get lastSpoken() { return lastSpoken; },
+  return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav, humans, view, geo, probe: (r: THREE.WebGPURenderer) => countVisible(r, crowd) }, address, plain, doors, get lastSubtitle() { return lastSubtitle; }, get lastSpoken() { return lastSpoken; },
     building,
     /** visitor mode: where the player may stand (blocked moves go back to the last allowed point), the interact key, the
      *  log (translation layer chronicle only). `night`: outside the Terrace's hours (C: the sun below 6°) */
@@ -299,12 +329,15 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     },
     audio: { unlock: () => { audio.unlock(); if (settings) audio.setVolumes(settings.volume); }, state: () => ({ ctx: audio.ctx?.state ?? 'none', space: audio.currentSpace, sampleRate: audio.ctx?.sampleRate }) } as any,
     applySettings: (s: Settings) => audio.setVolumes(s.volume),
-    settle: (camera: THREE.Camera) => settleReliefs(camera.position),
+    // a test render (renderOnce): the carved reliefs' detail, and the population around the camera placed now without the
+    // per-update budgets (the frozen clock never lets the budgeted view catch up: D-143), their impostor looks unrationed
+    settle: (camera: THREE.Camera) => { view.settle(sim.t, [camera.position.x, -camera.position.z]); crowd.settleLooks(); return settleReliefs(camera.position); },
     update(dt: number, ctx: any) {
       time += dt;
       updateReliefs(ctx.camera.position, dt === 0 ? 50 : 4); // carved-relief LOD (D-019); dt 0 = a test render
       doors.view(ctx.camera.position);
       { const pp = ctx.player.position; playerAt = new THREE.Vector3(pp.x, pp.y, pp.z); }
+      view.update(sim.t, [ctx.camera.position.x, -ctx.camera.position.z]); // the population out of doors near the camera (D-143)
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
       settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, skyLight: ctx.skyLight, cond: ctx.cond, player: ctx.player });
       fire.setSkyLight(ctx.skyLight);
@@ -358,5 +391,5 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         ...director.lines(),
         `occlusion (C, Maekawa; Q-304): ${audio.occlStats.tracked} sources tracked, ${audio.occlStats.queries} re-queried this frame in ${audio.occlStats.ms.toFixed(2)} ms · field ${occl.w}×${occl.h} cells built in ${occMs.toFixed(0)} ms · town and plain buildings not occluders`];
     },
-    summary: () => `${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest, ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''} · ${plain.summary()}` } as WorldBuild;
+    summary: () => `${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest + ${crowd.impPerf.drawn} impostors (baked in ${impMs.toFixed(0)} ms), ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms, view ${view.stats.evalMs.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''} · ${plain.summary()}` } as WorldBuild;
 }
