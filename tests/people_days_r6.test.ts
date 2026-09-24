@@ -136,7 +136,12 @@ describe('S4 (A, B): meals', () => {
     let n = 0; for (const d of [21, 61, 101, 133, 181, 221, 261, 301, 341]) for (const pid of P.garrison) { if (!P.present(pid, d)) continue; n++;
       const eats = (P.plan(pid, d) as Seg[]).filter(s => s.act === 'eat'); for (let i = 1; i < eats.length; i++) expect(eats[i].t0 - eats[i - 1].t1, `${pid} d${d} ${eats[i - 1].why} / ${eats[i].why}`).toBeGreaterThanOrEqual(1 - 1e-6); }
     expect(n).toBeGreaterThan(800);
-    const g: Seg[] = P.plan(sim.agents[9].pid, 132); expect(g.some(s => s.act === 'eat' && /the midday meal with his family/.test(s.why))).toBe(true);
+    // (#9's day 132 no longer holds a visit since D-186's visits by the day's draw; the rule is checked on his visits that span
+    // his family's midday meal over days 120-160)
+    let spans = 0; for (let d = 120; d < 160; d++) { const pid = sim.agents[9].pid; if (!P.present(pid, d)) continue; const g: Seg[] = P.plan(pid, d), fam = P.households[P.home(pid, d)], FH = P.hday(fam.id, d);
+      const at = g.filter(s => s.place === fam.home); if (!at.length || at[0].t0 > FH.noon - 0.3 || at[at.length - 1].t1 < FH.noon + FH.nLen + 0.3) continue; spans++;
+      expect(g.some(s => s.act === 'eat' && /the midday meal with his family/.test(s.why)), `d${d}`).toBe(true); }
+    expect(spans).toBeGreaterThan(2);
   }, 120_000);
   it('the safety net\'s bread and water never lands within an hour of another meal (every 7th person, five days)', () => {
     let n = 0; for (const d of [21, 101, 181, 261, 341]) for (let pid = d % 7; pid < P.persons.length; pid += 7) { if (!P.present(pid, d) || P.ageOn(pid, d) < 2) continue;
@@ -160,7 +165,7 @@ describe('S5 (A, B): the lane in the heat and the dust', () => {
       for (let pid = d % 6; pid < P.persons.length; pid += 6) { if (!resident(pid, d)) continue;
         for (const s of P.plan(pid, d) as Seg[]) { const o = Math.min(s.t1, dh[1]) - Math.max(s.t0, dh[0]);
           if (s.place.startsWith('lane:') && ['talk', 'gamble', 'exchange', 'play', 'spin', 'rest'].includes(s.act)) expect(o, `${pid} d${d} ${s.why} ${s.t0.toFixed(2)}`).toBeLessThanOrEqual(0.3);
-          if (o > 0.05 && (s.where === 'road' || /^(field:|well:|canal:|pasture:)/.test(s.place)) && s.act !== 'sleep' && s.act !== 'eat') { /* (unwrapped to eat) */ expect(s.wear, `${pid} d${d} ${s.why}`).toBe('the face wrapped against the dust'); wrapped++; } } } }
+          if (o > 0.05 && (s.where === 'road' || /^(field:|well:|canal:|pasture:)/.test(s.place)) && s.act !== 'sleep' && s.act !== 'eat') { /* (unwrapped to eat) */ expect(s.wear, `${pid} d${d} ${s.why}`).toMatch(/^the face wrapped against the dust/); /* (and 'dressed against the cold' on a cold dust day: D-186) */ wrapped++; } } } }
     expect(days).toBeGreaterThan(3); expect(wrapped).toBeGreaterThan(500);
   }, 300_000);
 });
