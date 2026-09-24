@@ -287,3 +287,29 @@ hat height ±12 %; impostors carry the far body's mean shaded albedo.
 0.48/0.82 → 0.35/0.57; distinct main colours per 300 people 4–6 → 299–300; impostor vs skinned ΔE mean/worst 2.43/13.8 →
 0.82/2.46; court-forecourt-w pixels with saturation > 0.8 1.0 % → 0.2 %; triangles unchanged (court-forecourt-w 11.33 →
 11.27 M). Tests: people_look.test.ts 10 pass; people suites 83/84 (the timing test); lint:all OK.
+
+## Surfaces and outdoor light (branch look-surf-s6, head 6493e3b, D-188) — merged in session 6
+**Still broken, unverified or placeholder:** outdoor contact AO not fixed (post=aonear at the harem portico's column feet and
+wall–floor junction ≈ 0.8+, frame p1 ≈ 0.75; a separate 0.8 m contact thickness changed nothing and was reverted; cause not
+found); the dark speckle on ground and walls is gone but which change removed it is unknown (patched contact-shadow node
+src/render/sss.ts and band-limited ground chips went in together); not rendered: court-assembly and crowd views, the
+Treasury's painted walls, the Gate walls, the trodden paths in a framed view; values C except 'light grey' stone, earthen
+plaster and the Treasury's paint (B); ceiling build-up and cedar colour C (Q-351); ground flatness barely moved (harem court
+0.058 → 0.054; most of the old value was speckle); a floor reflection ray exiting through a doorway is filled by blurring its
+neighbours (C); D-187's probe reach ramp changed so a probe always reaches its own position (lead to check); one test
+threshold changed: the D-158 red-floor tint ratio 2× → 1.5× (a brighter cedar ceiling returns more of the floor's red from
+above; measured 1.7×, written into the test).
+**Q-028:** the green paint is attested only for the Treasury walls: they use `mudbrick_painted` (B/C); every other mud-brick
+wall takes earthen plaster, buff sRGB 0.64/0.55/0.43 at the same lightness (27.8 %).
+**Fixes:** shade was lit right (shaded limestone 0.16 of a sun-facing face, 2.6 stops); the stone albedo was the cause:
+limestone 15.5 % (N4.6) → N7 42 % ('light grey', Iranica, B; Q-350), cedar 5 % → 18 %; Tripylon stone in shade display 39 →
+67, harem column 57 → 89, harem soffit 15/5/2 → 53/29/13. Mud-plaster float arcs, hairline cracks, run-off (none under
+roofs), wall-foot splash; floor-edge dust; band-limited ground chips; a stone-dust yard at the Hall of 100 Columns driven by
+the construction sim; a 1 m trodden-ground map from 47 doorways (0.67 ha). SSR blur follows the glossy lobe's width at the hit
+distance (mip 0.6 → 4.6 at 5 m), quality 0.3 → 0.5 at high, capped at 2× white: Hadish floor p99 neighbour step 1.95 → 0.19,
+pixels > 50 % step 6.5 % → 0.2 %; no red dots or white sparkles. Column "facets" were the probe lookup (×7.6 jump within 1°;
+×4.9 after D-187; ×1.5 now: a probe inside a solid now reaches its own position; walls still don't leak). Merlons 12 mm
+chamfer (68 → 132 triangles). Ceilings: beams, joists, reed matting (render geometry only).
+**Cost:** ceilings +6 draws, 46,752 triangles; merlons ~+25 k triangles; frames at high 407–663 draws, 5.3–10.5 M triangles
+(hall100-site 10.48 M). Probes rebuilt twice; nav rebuilt. Tests: tsc clean; touched suites pass incl. surfaces_s6.test.ts;
+lint:all OK.
