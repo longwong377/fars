@@ -310,7 +310,10 @@ export class EventCalendar {
       ops.push({ t: h, f: () => { const q = b.boy ? 10 : 5; S.grain -= Math.min(S.grain, q / 10); S.beer -= Math.min(S.beer, q / 10); E(h, 'E-04', `mother's ration issued for the birth of a ${b.boy ? 'boy' : 'girl'}`, pop.groups[b.group]?.issuePlace ?? 'store_town'); } }); }
     // --- construction: the labour actually present today (the same availability rule the day plans use)
     const cr = pop.buildCredit(d, ctx);
-    const bev: BuildEvent[] = this.construction.step(d, { ...cr, frost: wx.frost, wet: wx.wet && wx.rainH > 3, storm: wx.storm });
+    // (a storm keeps the whole day's work off the site only when it leaves the gangs no working day: Population.workSpan; one
+    // that comes on after a dry morning stops the work where it begins: A S3, B S2 of shadow review r8)
+    const ww = pop.workWindow(ctx), off = pop.rainedOff(ctx), stIn = !!wx.stormH && wx.stormH[0] < ww[1] && wx.stormH[1] > ww[0], stLate = stIn && wx.stormH![0] > ww[0] + 0.25 && wx.stormH![1] >= ww[1] - 0.25;
+    const bev: BuildEvent[] = this.construction.step(d, { ...cr, frost: wx.frost, wet: wx.wet && wx.rainH > 3, storm: off && stIn, stormAt: off && stIn ? Math.max(ww[0], wx.stormH![0]) : stLate ? wx.stormH![0] : undefined });
     if (cr.stone + cr.labour + cr.brick > 0) E(sun.rise + 0.5, 'E-60', `the gangs at work on the Hall of a Hundred Columns (${Math.round(cr.stone + cr.labour + cr.brick)} man-days)`, 'worksite');
     for (const b of bev) E(b.hour, 'E-61', b.text, b.place);
     // the work camp's daily bread (IR-PET: daily issues exist, B; its use for the gangs is C)

@@ -89,8 +89,10 @@ export function pickSample(P: any, sim: PeopleSim, pickSeed: number): Pick {
   const outdoor = ids.filter(i => { const p = P.persons[i]; return p.agent < 0 && p.sex === 'm' && p.age >= 15 && ['farmer', 'gardener', 'shepherd'].includes(p.job); });
   for (let k = 0; k < 5000 && rainDays.length; k++) { const d = rainDays[pick.int(0, rainDays.length - 1)], pid = outdoor[pick.int(0, outdoor.length - 1)];
     if (taken.has(pid) || !P.present(pid, d) || !resident(pid, d) || P.sick(pid, d)) continue; taken.add(pid); addP(pid, d, 'a man who works in the open, on a day with rain in daylight'); break; }
-  drawFrom(ids.filter(i => P.persons[i].job === 'child' && P.persons[i].agent < 0 && P.persons[i].bday >= 0 && [0, 4, 7].includes(P.persons[i].age)), 1, 'a child past a birthday that moves it across an age rule (1, 5 or 8 on the day)', addP, same,
-    (pid, d) => resident(pid, d) && d >= P.persons[pid].bday);
+  // (born before the year: a baby born this year keeps a stray `bday` and is 0 on both sides of it, so it crosses no age rule:
+  // S1 of reviewer A, S7 of reviewer B, round 8, a baby of 2 months drawn for the stratum; and it is a year older on the day)
+  drawFrom(ids.filter(i => P.persons[i].job === 'child' && P.persons[i].agent < 0 && P.persons[i].born < 0 && P.persons[i].bday >= 0 && [0, 4, 7].includes(P.persons[i].age)), 1, 'a child past a birthday that moves it across an age rule (1, 5 or 8 on the day)', addP, same,
+    (pid, d) => resident(pid, d) && d >= P.persons[pid].bday && P.ageOn(pid, d) === P.persons[pid].age + 1);
   drawFrom(ids.filter(i => P.persons[i].job === 'child' && P.persons[i].agent < 0 && (P.persons[i].born >= 0 || P.persons[i].age === 0)), 1, 'a baby under four months', addP, same,
     (pid, d) => resident(pid, d) && P.ageDays(pid, d) >= 0 && P.ageDays(pid, d) < 120);
   drawFrom(ids.filter(i => P.persons[i].job === 'herder'), 1, 'a transhumant herder', addP, same);
