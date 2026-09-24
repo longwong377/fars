@@ -528,7 +528,7 @@ export class Population {
   /** the children a woman nurses on a day: her own of two or under at home, and a motherless one she wet-nurses */
   nurslings(pid: number, d: number) {
     const own = this.childrenOf(pid).filter(c => { const q = this.persons[c]; return this.ageOn(c, d) <= 1 && this.present(c, d) && d >= q.born && this.home(c, d) === this.home(pid, d); });
-    const fos = (this.nursedBy.get(pid) ?? []).filter(c => d >= this.persons[c].marry && this.present(c, d) && this.home(c, d) === this.home(pid, d)); return [...own, ...fos]; }
+    const fos = (this.nursedBy.get(pid) ?? []).filter(c => d >= this.persons[c].marry && this.ageOn(c, d) <= 1 && this.present(c, d) && this.home(c, d) === this.home(pid, d)); return [...own, ...fos]; } // (weaned at two, as her own: D-175)
   /** a household whose mother dies (C, Q-142). Her nursing child goes to a wet nurse: a woman of the kin or the quarter
    *  who is nursing her own (wet-nursing is an institution of Mesopotamian law, CH-194: A for Old Babylonia, an analogy
    *  here). When no other woman is left in the house, a kinswoman with no child of her own (an unmarried daughter of a kin
@@ -1331,7 +1331,7 @@ class Planner {
       const nx = segs[i + 1], pv = segs[i - 1];
       if (s.act === 'carry_jar_head') s.carry = 'a jar of water on the head';
       else if (s.act === 'carry_bread') s.carry = /water/.test(w) ? 'bread in a basket and a water jar' : 'bread in a basket';
-      else if (s.act === 'carry_sack') s.carry = /sheaves/.test(w) ? 'sheaves' : /fuel|dung|brushwood/.test(w) ? 'dung cakes and brushwood' : /grain/.test(w) ? 'a sack of grain' : /ration/.test(w) ? 'the ration in a sack' : /barley/.test(w) ? 'a measure of barley' : 'a load';
+      else if (s.act === 'carry_sack') s.carry = /sheaves/.test(w) ? 'sheaves' : /fuel|dung|brushwood/.test(w) ? 'dung cakes and brushwood' : /grain/.test(w) ? 'a sack of grain' : /ration/.test(w) ? 'the ration in a sack' : /sacks? of barley/.test(w) ? 'a sack of barley' : /barley/.test(w) ? 'a measure of barley' : /flour/.test(w) ? 'a sack of flour' : /straw/.test(w) ? 'a load of straw' : 'a load';
       else if (s.act === 'carry_jar') s.carry = /oil/.test(w) ? 'a small jar of oil' : /water/.test(w) ? 'a water jar' : 'a jar';
       else if (s.act === 'draw_water') s.carry = 'a water jar';
       else if (p.job === 'guard' && (s.act === 'stand_guard' || s.act === 'patrol')) s.carry = arms;
@@ -1388,7 +1388,7 @@ class Planner {
       else { const n = r.int(IC.toddler_day_feeds[0], IC.toddler_day_feeds[1]); for (let k = 0; k < n; k++) times.push([lerp(wake + 0.3, bed - 0.5, (k + r.next()) / n), false]); } }
     times.sort((a, b) => a[0] - b[0]);
     const babies = kids.filter(c => this.ageOf(c) === 0), olds = kids.filter(c => this.ageOf(c) > 0), fos = kids.some(c => P.persons[c].nurse === this.pid);
-    const what0 = babies.length === 2 && P.persons[babies[0]].twin === babies[1] ? 'nursing the twins' : fos ? (kids.length > 1 ? 'nursing her baby and the motherless child she wet-nurses' : 'nursing the motherless child she wet-nurses')
+    const what0 = babies.length === 2 && P.persons[babies[0]].twin === babies[1] ? 'nursing the twins' : fos ? (kids.length > 1 ? (kids.some(c => P.persons[c].nurse === this.pid && this.ageOf(c) === 0) ? 'nursing the motherless baby she wet-nurses and her little one' : 'nursing her baby and the motherless child she wet-nurses') : 'nursing the motherless child she wet-nurses')
       : babies.length && olds.length ? 'nursing the baby and the little one' : babies.length ? 'nursing the baby' : 'nursing the little one';
     // a little one of one who stays at home with the house's minder through her working absences (Population.mindDay, the
     // same rule: S2 of shadow review r5) is nursed before she goes and when she is back, not at the field or the workshop
@@ -1403,7 +1403,7 @@ class Planner {
     const todAt = new Set(Array.from({ length: nTod }, (_, k) => dayIdx[Math.min(dayIdx.length - 1, Math.floor((k + 0.5) * dayIdx.length / Math.max(1, nTod)))]));
     const babyOnly = babies.length === 2 && P.persons[babies[0]].twin === babies[1] ? 'nursing the twins' : 'nursing the baby';
     for (let fi = 0; fi < times.length; fi++) { let [t, night] = times[fi]; const len = lerp(IC.feed_h[0], IC.feed_h[1], r.next());
-      let what = what0; if (babies.length && olds.length && !night && !todAt.has(fi) && !fos) what = babyOnly;
+      let what = what0; if (babies.length && olds.length && !night && !todAt.has(fi)) what = babyOnly; // (a wet-nursed little one's too: 27246, 21 months, had six day feeds beside the nurse's baby)
       if (!night && olds.some(c => away(c, t))) { if (!babies.length) continue; what = babyOnly; }
       let s = segAt(segs, t); if (s.act === 'eat') { t = s.t1 + 0.02; s = segAt(segs, t); if (s.act === 'eat' || t >= 24) continue; } // after her meal
       // at the well she draws first and nurses at home (S5): a feed never takes the place of the water (or of the bread); a
@@ -1521,13 +1521,21 @@ class Planner {
     if (na) { const wk = this.P.walkH(na.place, this.home, this.d, na.where, this.homeW); this.add(Math.max(0.2, wakeT - wk), na.place, 'sleep', 'asleep by the grain heap on the threshing floor, guarding it', na.where);
       if (!fetch) this.go(this.home, this.homeW, 'home from the threshing floor at first light'); } // (the one who fetches the water goes from the floor to the well)
     else this.atHome(wakeT, 'sleep', 'asleep');
-    if (fetch) this.well(this.t + 0.2, withHouse ? 'fetching the day’s water' : 'fetching the day’s water before work');
+    // the well is not gone to in the dark: a woman up before first light (about 0.45 h before sunrise at 30° N) works at the
+    // quern first and draws the water once it is light (S1 minor of shadow review r5: #123's water drawn 77 min before
+    // sunrise; C)
+    // (a waterer who must leave before first light does not go then: the water pass draws the house's jars in their hours
+    // at home, the evening water; D-137's jar before work only when it is light. Measured before: 1,005 of 19,336 morning
+    // draws, every third person on five days, began before first light, builders and camp women among them)
+    const firstLight = this.sun.rise - 0.45, fetchNow = fetch && this.t >= firstLight - 1e-9, wellLater = fetch && !fetchNow && woman;
+    if (fetchNow) this.well(this.t + 0.2, withHouse ? 'fetching the day’s water' : 'fetching the day’s water before work');
     if (woman) {
-      const tEnd = withHouse ? H.breakfast : until - early;
+      const tEnd0 = withHouse ? H.breakfast : until - early, tEnd = wellLater ? tEnd0 - fetchH : tEnd0;
       // the bake first, from the flour ground yesterday afternoon for today's bread; then the day's grinding (D-137)
       if (bakes) { const k = Math.min(H.kneadH, Math.max(0.15, (tEnd - this.t) * 0.35)); this.atHome(this.t + k, 'knead', 'kneading the dough'); this.atHome(Math.max(this.t + 0.3, Math.min(tEnd, this.t + H.bakeH)), 'bake', 'baking the flat bread'); }
       if (tEnd - this.t > 0.25) this.atHome(Math.min(tEnd, this.t + grind), 'grind', 'grinding the household’s flour at the quern');
-      if (tEnd - this.t > 0.6 && this.hh.zone !== 'terrace' && !this.C.wx.wet && this.adult()) this.well(this.t + 0.25, 'fetching water');
+      if (wellLater && tEnd >= firstLight) { if (this.t < firstLight) this.atHome(firstLight, 'rest', 'at home'); this.well(this.t + 0.2, withHouse ? 'fetching the day’s water' : 'fetching the day’s water before work'); }
+      if (tEnd - this.t > 0.6 && this.t >= firstLight && this.hh.zone !== 'terrace' && !this.C.wx.wet && this.adult()) this.well(this.t + 0.25, 'fetching water');
     }
     if (withHouse) { if (this.t < H.breakfast) { if (p.sex === 'm' && this.adult() && this.homeW !== 'terrace' && H.breakfast - this.t > 0.6) this.homeHours(H.breakfast, 'at home'); else this.atHome(H.breakfast, ...this.idle()); } this.atHome(this.t + H.bLen, 'eat', H.bakeAM ? 'breakfast with the household: the new bread' : 'breakfast with the household'); }
     else { if (this.t < until - early) this.atHome(until - early, ...this.idle()); this.atHome(this.t + early, 'eat', this.P.breakfasters(this.hh.id, this.d, this.pid) ? 'bread and water before leaving (the household eats later)' : 'bread and water before leaving'); }
@@ -1857,7 +1865,7 @@ class Planner {
     const mAll = minderPid === undefined ? null : minderPid === elder ? eAll : P.plan(minderPid, d);
     const minderWhy = minderPid === undefined ? '' : minderPid === elder ? `with the grandparent while ${rel} works` : `with a kinswoman while ${rel} works`;
     // the feeds that are this child's: all of them when it is the youngest she nurses, and a wet-nursed child's always
-    const myFeeds = lactating && this.age === 1 && (m === nurseNow || !P.nurslings(m, d).some(c => c !== this.pid && this.ageOf(c) === 0));
+    const myFeeds = lactating && this.age === 1 && !P.nurslings(m, d).some(c => c !== this.pid && this.ageOf(c) === 0);
     // on some days the small ones are taken outside the door to play with the neighbours' children, or to a neighbour's or
     // a kinswoman's house in the same lane while the mother works at home; not in rain, and not while a storm or the dust is
     // in the air (W-02, W-03): by the weather's own hours, so a morning before the dust rises and an evening after a storm
@@ -1907,7 +1915,12 @@ class Planner {
     const keptCuts = workBlocks.flatMap(([a, b]) => { const k = keptWalk((a + b) / 2); return k ? [a + k.wk, b - k.wk] : []; });
     const cuts = [...new Set([...keptCuts, ...mySp.flatMap(s => [s.t0, s.t1]), ...ms.map(s => s.t1), ...(ss ? ss.map(s => s.t1) : []), ...(es ? es.map(s => s.t1) : []), ...(mAll ? mAll.map(s => s.t1) : []), ...outWs.flatMap(o => [o.h0, o.h1, o.h0 + o.wk, o.h1 - o.wk]), ...napW, ...napAM.filter(x => x > 0), bedtime, wakeT, ...workBlocks.flat()])].filter(x => x > 0 && x <= 24).sort((a, b) => a - b);
     let t0 = 0;
-    const put = (t1: number, place: string, a: ActivityId, why: string, where: Where, w: number) => { if (t1 <= this.t + 1e-4) return; const prev = this.segs[this.segs.length - 1];
+    const put = (t1: number, place: string, a0: ActivityId, why0: string, where: Where, w: number) => { if (t1 <= this.t + 1e-4) return; const prev = this.segs[this.segs.length - 1];
+      // fed already: a little one who has had its meal with the house's minder (the household's hour) sits by the one it is
+      // with at her own later meal, and is not fed a second time (day 341: "a meal with the elder sister", then "a meal with
+      // the household" as the mother came in from the canal)
+      let a = a0, why = why0; if (a === 'eat' && !/nursed|softened bread/.test(why) && this.segs.some(s => s.act === 'eat' && !/nursed|softened bread/.test(s.why) && s.why !== why + taken && s.t1 > this.t - 1 && s.t0 < this.t + 1e-6)) {
+        const other = w === this.p.mother ? 'the mother' : w === m ? rel : 'the one minding it'; a = 'play'; why = this.age < 2 ? `on ${other}’s knee at ${w === this.p.mother || w === m ? 'her' : 'the'} meal, fed already` : `beside ${other} at the meal, fed already`; }
       if (prev && t1 - this.t < 0.03 && prev.place === place && (prev.with ?? -1) === w && t1 < 24) { prev.t1 = t1; this.t = t1; return; } const last = this.segs[this.segs.length - 1]; this.add(t1, place, a, why + taken, where, !!last && ((last.with ?? -1) !== w || last.why !== why + taken)); const L0 = this.segs[this.segs.length - 1]; if (w >= 0) L0.with = w; else delete L0.with; };
     for (const t1 of cuts) {
       if (t1 <= t0) continue; const mid = (t0 + t1) / 2; const M = segAt(ms, mid); t0 = t1;
@@ -1924,7 +1937,7 @@ class Planner {
         const kw0 = keptWalk(mid); if (kw0 && (mid < kw0.a + kw0.wk || mid > kw0.b - kw0.wk)) { const back = mid > kw0.b - kw0.wk; put(t1, `road:${baseW}`, this.age >= 2 ? 'walk' : 'rest', back ? 'fetched home along the lane' : 'taken along the lane to the kinswoman’s house', 'road', -1); continue; }
         const a: ActivityId = G.act === 'sleep' || (napping && G.where !== 'road') ? 'sleep' : G.where === 'road' ? (this.age >= 2 ? 'walk' : 'rest') : G.act === 'eat' ? 'eat' : 'play';
         put(t1, G.place, a, a === 'sleep' ? `a midday sleep, ${minderWhy}` : a === 'rest' ? `carried, ${minderWhy}` : minderWhy, G.where, minderPid); continue; }
-      if (this.age === 1 && lactating && nursing(M) && (myFeeds || /little one/.test(M.why))) { put(t1, M.place, 'eat', `nursed by ${rel}`, M.where, m); continue; }
+      if (this.age === 1 && lactating && nursing(M) && (myFeeds || (m === nurseNow ? /motherless child/ : /little one/).test(M.why))) { put(t1, M.place, 'eat', `nursed by ${rel}`, M.where, m); continue; }
       if (M.place !== base && M.act !== 'lie_ill') {
         const a: ActivityId = M.act === 'eat' ? 'eat' : moving ? (this.age >= 2 ? 'walk' : 'rest') : napping ? 'sleep' : 'play';
         const ctx = /^(at a |visiting |a mourning visit|visiting kin)/.test(M.why) ? `, ${M.why}` : '';
@@ -2274,6 +2287,8 @@ class Planner {
     // a man servant of the house fetches its fuel from beyond the town (S6 of reviewer B: the scribe's son of 13 made the
     // far fuel run while the house's man servant carried food to "the estate workers")
     const manservant = mem.some(x => P.persons[x].job === 'servant' && P.persons[x].sex === 'm' && this.ageOf(x) >= 14 && !P.sick(x, d));
+    // (and where a servant is the house's waterer, the children do not fetch its water too: the house drew water four times before noon)
+    const servWater = this.hd.waterer >= 0 && P.persons[this.hd.waterer].job === 'servant';
     const wantH = (girl ? CW.girl_h : CW.boy_h)[band] * lerp(0.8, 1.2, r.next()) * (C.season === 'winter' ? CW.winter_factor : 1);
     let work = 0;
     const ms = m >= 0 ? P.plan(m, d) : null;
@@ -2307,20 +2322,26 @@ class Planner {
     }
     const eve = Math.min(this.sun.set - 0.3, H.supper - 0.1);
     /** one piece of the day's work, chosen from what the child's age, sex, house and weather allow; false when none fits */
-    const done: Record<string, number> = {}, cap: Record<string, number> = { water: 2, fuel: plain ? 2 : 1, errand: 1, birds: 1, dung: 1, grind: 1, spin: 3 };
+    const done: Record<string, number> = {}, cap: Record<string, number> = { water: 2, fuel: plain ? 2 : 1, errand: 1, birds: 1, dung: 1, grind: 1, spin: 3, learn: 2 };
+    // a son of ten or more of a scribe's, a storekeeper's or a craftsman's house of the town practises his father's work at
+    // home on the days he is not at it beside him (the signs on a clay tablet; the craft): a trade was learnt in the house
+    // from the father (C; S6 of reviewer B, r5: "no hour with his father's craft" for a scribe's son of 13)
+    const learnJob = !girl && age >= 10 && this.hh.zone === 'town' ? mem.map(x => P.persons[x]).find(x => x.id !== this.pid && x.sex === 'm' && !x.kin && this.ageOf(x.id) >= age + 16 && ['craftsman', 'scribe', 'storekeeper'].includes(x.job))?.job : undefined;
+    const learnAt: [ActivityId, string] | null = !learnJob || trade ? null : learnJob === 'craftsman' ? ['craft', 'working at his father’s craft in the house, learning it'] : ['write_tablet', learnJob === 'scribe' ? 'practising the signs on a clay tablet, as his father taught him' : 'practising the tallies and the signs on a clay tablet'];
     // (minding the little ones is no chore of its own any more: it is the minder's spells, written from the little ones'
     // side, S2 r5; every piece of work ends by `until`, where her next spell with them begins)
     const doWork = (until: number): boolean => {
       if (until - this.t < 0.3) return false;
       const lim = until, wet = inside || this.rainIn(this.t, this.t + 1) > 0.2, out = !wet, wellTrip = 2 * P.walkH(this.home, `well:${q}`, d, W, W) + 0.35;
-      const w: Record<'water' | 'fuel' | 'grind' | 'spin' | 'errand' | 'birds' | 'dung', number> = {
-        water: out && age >= 7 && until - this.t > wellTrip ? (girl ? 1.2 : 0.7) : 0, fuel: out && age >= 8 && !manservant && until - this.t > 1.2 + 2 * P.walkH(this.home, plain ? `outside:${q}` : 'outside', d, W, W) ? (plain ? 1 : 0.6) : 0,
+      const w: Record<'water' | 'fuel' | 'grind' | 'spin' | 'errand' | 'birds' | 'dung' | 'learn', number> = { learn: learnAt ? 1.2 : 0,
+        water: out && age >= 7 && !servWater && until - this.t > wellTrip ? (girl ? 1.2 : 0.7) : 0, fuel: out && age >= 8 && !manservant && until - this.t > 1.2 + 2 * P.walkH(this.home, plain ? `outside:${q}` : 'outside', d, W, W) ? (plain ? 1 : 0.6) : 0,
         grind: girl && age >= 10 && !H.women.includes(this.pid) ? 1 : 0, spin: girl && age >= 8 ? (age >= 10 ? 1.4 : 0.6) : 0, errand: out && age >= 6 && until - this.t > 0.8 ? 0.6 : 0,
         birds: plain && out && age >= 6 && age <= 11 && d >= CW.bird_days[0] && d < CW.bird_days[1] && until - this.t > 1.5 ? 1 : 0, dung: plain && girl && age >= 9 && out ? 0.5 : 0 };
       for (const k of Object.keys(w) as (keyof typeof w)[]) if ((done[k] ?? 0) >= cap[k]) w[k] = 0;
       if (!Object.values(w).some(x => x > 0)) return false;
       const k = this.choose(w); const t0 = this.t; done[k] = (done[k] ?? 0) + 1;
-      if (k === 'water') this.well(this.t + r.range(0.15, 0.3), age < 9 ? 'fetching water with a small jar' : 'fetching water for the household');
+      if (k === 'learn') this.atHome(Math.min(lim, this.t + r.range(0.6, 1.4)), learnAt![0], learnAt![1]);
+      else if (k === 'water') this.well(this.t + r.range(0.15, 0.3), age < 9 ? 'fetching water with a small jar' : 'fetching water for the household');
       else if (k === 'fuel') { const o = plain ? `outside:${q}` : 'outside'; this.go(o, W, 'out for fuel'); this.add(Math.max(this.t + 0.4, Math.min(until - P.walkH(o, this.home, d, W, W), this.t + r.range(0.7, 1.4))), o, 'gather', 'gathering dung and brushwood for the fire', W); this.go(this.home, W, 'carrying the fuel home', 'carry_sack'); }
       else if (k === 'grind') this.atHome(Math.min(lim, this.t + r.range(0.4, 1)), 'grind', 'grinding beside the mother at the quern');
       else if (k === 'spin') { if (age >= 10 && out && lim - this.t > 0.8 && r.chance(0.4)) { this.go(l, W); this.add(Math.max(this.t + 0.4, Math.min(lim - P.walkH(l, this.home, d, W, W), this.t + r.range(0.6, 1.4))), l, 'spin', 'spinning with the women outside the door', W); this.go(this.home, W); }
@@ -2365,10 +2386,15 @@ class Planner {
         const pc = mine.find(x => x.t1 > this.t + 0.01), start = pc ? Math.max(this.t, pc.t0) : until, end = Math.min(until, start);
         if (end > this.t + 1e-4) { if (end - this.t > 0.2) filler(pc && pc.t0 < until ? end - 0.15 : end); if (this.t < end - 1e-6) { home(); this.atHome(end, ...this.idle()); } }
         if (!pc || pc.t0 >= until - 0.01) break;
-        home(); for (let i = 0; i < mine.length; i++) { const x = mine[i]; if (x.t1 <= this.t + 1e-6) continue; if (x.t0 >= until || x.t0 > this.t + 1e-4) break;
+        home(); for (let i = 0; i < mine.length; i++) { const x = mine[i]; if (x.t1 <= this.t + 1e-6) continue;
+          // (the walk home from the lane with them is taken with the outing even when `until` falls at its start: the soak's
+          // "apart" on day 341, a minder at home while her little ones still walked back along the lane)
+          const cont = Math.abs(x.t0 - this.t) < 1e-4 && ((this.cur ?? this.home) !== this.home || this.segs[this.segs.length - 1]?.where === 'road'); // (and the lane after the walk out to it: 2792 on day 163)
+          if (!cont && (x.t0 >= until || x.t0 > this.t + 1e-4)) break;
           // (a walk with them is taken whole, to where it leads)
           // (an outing to the lane with them is taken whole, to the walk home: `until` falls only in a piece at home)
-          const out = x.where === 'road' || x.place !== this.home; this.add(out ? x.t1 : Math.min(x.t1, until), x.place, x.act, x.why, x.where, true); if (x.where === 'road' && mine[i + 1]) { this.cur = mine[i + 1].place; this.curW = mine[i + 1].where; }
+          const out = x.where === 'road' || x.place !== this.home; if (!out && until <= this.t + 1e-6) break; // (a piece at home past `until` waits for the next fill)
+          this.add(out ? x.t1 : Math.min(x.t1, until), x.place, x.act, x.why, x.where, true); if (x.where === 'road' && mine[i + 1]) { this.cur = mine[i + 1].place; this.curW = mine[i + 1].where; }
           if (x.t1 > until && !out) break; }
         work += this.t - start; }
     };
@@ -2404,7 +2430,8 @@ class Planner {
           irrigate: 'opening the runnels beside his father', inspect: 'beside his father at the storehouse, learning the measures', pick_fruit: 'picking beside his father', dig_canal: 'clearing the channel beside his father', carry_sack: 'helping his father carry the load' };
         const [a, why]: [ActivityId, string] = road ? ['walk', s.t0 < 12 && this.segs.every(x => x.with !== fa) ? 'walking to his father’s work with him' : 'walking with his father'] : s.act === 'eat' ? ['eat', 'the midday meal with his father'] : learn[s.act] ? [s.act, learn[s.act]] : ['rest', 'with his father at his work'];
         this.add(s.t1, road ? s.place : s.place, a, why, s.where, true); this.segs[this.segs.length - 1].with = fa!; }
-      void fh; work += 3; this.noonAtHome(); half(eve, 1);
+      void fh; this.cur = this.home; this.curW = W; // (the run ends as the father comes home: 4296's walk home and back)
+      work += 3; this.noonAtHome(); half(eve, 1);
     } else if (herds) { // ---- the household's animals: out through the cool of the day with bread (C)
       const pa = `pasture:${q}`, hot = C.wx.tmax >= 30;
       this.go(pa, 'plain', 'taking the animals out'); const t1 = hot ? Math.max(this.t + 1.5, 11) : Math.max(this.t + 2, Math.min(eve - 0.5, 14.5 + 1.5 * r.next()));
@@ -2773,19 +2800,25 @@ class Planner {
     this.evening(Math.max(this.t, this.sun.set - 1.2)); return this.finish();
   }
   private servant(): Seg[] {
-    const r = this.r, p = this.p, P = this.P, W = this.homeW; this.morning(this.rise() + 0.5);
+    const r = this.r, p = this.p, P = this.P, W = this.homeW;
     // an estate's servants do the estate's work; a town house's (an official's, a scribe's, a storekeeper's) do the house's:
     // its fuel from beyond the town, its water, its errands in the lane, its bread, spinning and washing, the courtyard,
     // waiting on the master (S6 of reviewer B, r5: a scribe's man servant stood at the house "carrying food to the estate
     // workers" and "watering the garden beds" while the son of 13 walked 1.5 h for fuel; C)
     const estate = p.work.startsWith('estate:') || P.membersOn(this.hh.id, this.d).some(x => P.persons[x].job === 'steward');
+    // a town house's servant eats the morning bread with the house (was: "bread and water before leaving" for a man who does
+    // not leave); the house's water is his when he is its waterer (the water pass draws its jars: no third trip of his own)
+    this.morning(this.rise() + 0.5, !estate); const waterer = this.hd.waterer === this.pid;
     const tasks: [string, ActivityId, string][] = estate ? (p.sex === 'f' ? [['home', 'grind', 'grinding for the estate household'], ['home', 'knead', 'kneading dough'], ['home', 'bake', 'baking for the estate'], ['well', 'draw_water', 'drawing water for the estate']]
         : [['home', 'carry_jar', 'carrying jars in the estate stores'], ['home', 'carry_bread', 'carrying food to the estate workers'], ['home', 'talk', 'waiting on the household'], ['well', 'draw_water', 'watering the garden beds by hand']])
-      : p.sex === 'f' ? [['home', 'grind', 'grinding for the household'], ...(this.hd.bake ? [['home', 'knead', 'kneading the household’s dough'] as [string, ActivityId, string]] : []), ['home', 'spin', 'spinning for the household'], ['well', 'draw_water', 'drawing water for the house'], ...(this.C.wx.wet ? [] : [['wash', 'wash', 'washing the household’s clothes at the water'] as [string, ActivityId, string]])]
-      : [...(this.C.wx.wet ? [] : [['fuel', 'gather', 'gathering dung and brushwood for the house'] as [string, ActivityId, string], ['errand', 'exchange', 'on an errand for the household in the lane'] as [string, ActivityId, string]]), ['well', 'draw_water', 'drawing water for the house'], ['home', 'talk', 'waiting on the master'], ['home', 'craft', 'mending the house’s tools and baskets'], ['home', 'clean', 'sweeping the courtyard and the roof']];
+      : p.sex === 'f' ? [['home', 'grind', 'grinding for the household'], ...(this.hd.bake ? [['home', 'knead', 'kneading the household’s dough'] as [string, ActivityId, string]] : []), ['home', 'spin', 'spinning for the household'], ...(waterer ? [] : [['well', 'draw_water', 'drawing water for the house'] as [string, ActivityId, string]]), ...(this.C.wx.wet ? [] : [['wash', 'wash', 'washing the household’s clothes at the water'] as [string, ActivityId, string]])]
+      : [...(this.C.wx.wet ? [] : [['fuel', 'gather', 'gathering dung and brushwood for the house'] as [string, ActivityId, string], ['errand', 'exchange', 'on an errand for the household in the lane'] as [string, ActivityId, string]]), ...(waterer ? [] : [['well', 'draw_water', 'drawing water for the house'] as [string, ActivityId, string]]), ['home', 'talk', 'waiting on the master'], ['home', 'craft', 'mending the house’s tools and baskets'], ['home', 'clean', 'sweeping the courtyard and the roof']];
     let ate = false, fuel = 0;
     let last = ''; while (this.t < 17) { if (!ate && this.t > 11.7) { ate = true; this.atHome(this.t + 0.5, 'eat', 'the midday meal with the household'); continue; }
-      let [k, a, why] = r.pick(tasks); if (why === last || (k === 'fuel' && fuel)) [k, a, why] = r.pick(tasks); last = why; // one task, then another
+      // one task, then another; in a town house the dough, the washing, the fuel and the errand once a day (was: a servant
+      // kneading the household's dough three times and washing twice in a day)
+      const spent = (x: [string, ActivityId, string]) => x[2] === last || (!estate && ['knead', 'wash', 'gather', 'exchange', 'clean'].includes(x[1]) && this.segs.some(s => s.why === x[2])) || (x[0] === 'fuel' && (fuel > 0 || (!ate && this.t > 9.5))); // (the fuel run, 2-3 h, not across the midday meal)
+      const left = tasks.filter(x => !spent(x)); let [k, a, why] = left.length ? r.pick(left) : r.pick(tasks); last = why;
       const lim = Math.min(17, ate ? 99 : Math.max(this.t + 0.3, 12));
       if (k === 'well') this.well(this.t + 0.5, why);
       else if (k === 'wash') { const c = `canal:${this.hh.q}`; this.go(c, W, 'to the water with the washing', 'carry_sack'); this.add(this.t + r.range(0.8, 1.5), c, 'wash', why, W); this.go(this.home, W, 'carrying the washing home', 'carry_sack'); }
@@ -2814,7 +2847,8 @@ class Planner {
       const k = this.choose(w); const t1 = Math.min(until, this.t + r.range(E.spell_h[0], E.spell_h[1]));
       if (k === 'lane') { this.go(l, W); this.add(Math.max(this.t + 0.3, t1), l, 'talk', 'sitting and talking in the lane', W); this.go(this.home, W); }
       else if (k === 'visit') { const v = this.visitTarget(); if (v && v.place !== lastVisit) { lastVisit = v.place; this.go(v.place, v.where, 'visiting'); this.add(Math.max(this.t + 0.3, t1), v.place, 'talk', `visiting ${v.name}`, v.where); this.go(this.home, W); } else this.atHome(t1, 'talk', 'with the household'); }
-      else if (k === 'work') { const g = r.chance(0.5); this.atHome(p.sex === 'f' && g ? Math.min(t1, this.t + r.range(0.35, 0.7)) : t1, p.sex === 'f' ? (g ? 'grind' : 'spin') : 'craft', p.sex === 'f' ? (g ? 'light work: a little grinding' : 'light work: spinning') : 'mending baskets and tools'); }
+      else if (k === 'work') { // (a little grinding once a day at most, 0.35-0.7 h: the saddle quern is heavy work; the rest of her light work is the spindle: the quibble on 33598, shadow review r5; C)
+        const g = r.chance(0.5) && !this.segs.some(s => s.act === 'grind'); this.atHome(p.sex === 'f' && g ? Math.min(t1, this.t + r.range(0.35, 0.7)) : t1, p.sex === 'f' ? (g ? 'grind' : 'spin') : 'craft', p.sex === 'f' ? (g ? 'light work: a little grinding' : 'light work: spinning') : 'mending baskets and tools'); }
       else if (k === 'children') this.atHome(t1, 'talk', 'with the household'); // (not "minding the grandchildren": the little ones' plans say who has them, S2 r5)
       else if (k === 'fields') { const f = harvest && C.agri.has('E-43') ? `threshing:${this.hh.q}` : this.field(this.hh.id);
         this.go(f, 'plain', 'out to the crop'); this.add(Math.max(this.t + 0.3, t1), f, 'rest', f.startsWith('threshing') ? 'sitting by the threshing floor, watching the grain' : 'sitting out by the crop, keeping the birds off', 'plain'); this.go(this.home, W); }
@@ -2842,7 +2876,7 @@ class Planner {
       const until = T.sheaves ? T.late : Math.max(this.t + 1, T.late);
       this.homeHours(until, C.wx.tmax >= 30 ? 'resting through the heat' : 'at home');
       if (T.sheaves) this.errand(`threshing:${this.hh.q}`, 'plain', 'carry_sack', 'carrying sheaves to the threshing floor with the household (E-43)', 1.2, this.home, this.homeW);
-      else { const HA = L.homemaker.harvest_afternoon; const k = this.choose({ grind: HA.grind, weave: HA.weave, lane: wetSoon(1.3) ? 0 : HA.lane });
+      else { const HA = L.homemaker.harvest_afternoon; const dh = C.wx.dustH, k = this.choose({ grind: HA.grind, weave: HA.weave, lane: wetSoon(1.3) || (dh && dh[0] < this.t + 1.3 && dh[1] > this.t) ? 0 : HA.lane }); // (not in the dust, W-03: S5 r5)
         const lim = this.hd.supper - 0.15;
         if (k === 'lane' && lim - this.t > 0.8) { const l = `lane:${this.hh.q}`; this.go(l, this.homeW); this.add(Math.min(lim - 0.1, this.t + r.range(0.6, 1.3)), l, 'talk', 'with the women in the lane', this.homeW); this.go(this.home, this.homeW); }
         else if (lim - this.t > 0.4) this.atHome(Math.min(lim, this.t + r.range(0.8, 1.6)), k === 'weave' ? 'spin' : 'grind', k === 'weave' ? 'spinning' : 'grinding the household’s flour'); }

@@ -211,7 +211,7 @@ export class PeopleSim {
   /** start the next hidden leg in the town; false when none is left */
   private nextLeg(a: Agent): boolean {
     const to = a.legs?.shift(); if (!to) return false; const d = Math.hypot(to[0] - a.pos[0], to[1] - a.pos[1]); if (d < 0.4) return this.nextLeg(a);
-    a.path = null; a.walking = true; a.travel = { from: [...a.pos] as P2, to: [...to] as P2, t0: this.t, t1: this.t + d / a.speed * H_PER_S }; return true;
+    a.path = null; a.walking = true; a.travel = { from: [...a.pos] as P2, to: [...to] as P2, t0: this.t, t1: this.t + d / (a.speed * this.dustF()) * H_PER_S }; return true;
   }
   /** the person's plan for a day (cached per agent) */
   planOf(a: Agent, day: number): Seg[] {
@@ -274,7 +274,7 @@ export class PeopleSim {
           a.round = this.roundFor(a, false, rng); }
         const nxt = a.round[0];
         const manned = this.agents.some(o => o !== a && o.post === nxt && o.task?.act === 'stand_guard'); const spot = this.nav.snap(PLACES[nxt].at[0] + 1.5, PLACES[nxt].at[1] - 1.5, 3) ?? PLACES[nxt].at;
-        const walk = Math.hypot(spot[0] - a.pos[0], spot[1] - a.pos[1]) * ABSTRACT_DETOUR / a.speed * H_PER_S; // the stop counts from the arrival
+        const walk = Math.hypot(spot[0] - a.pos[0], spot[1] - a.pos[1]) * ABSTRACT_DETOUR / (a.speed * this.dustF()) * H_PER_S; // the stop counts from the arrival
         const stop = manned ? (leader ? rng.range(0.03, 0.08) : rng.range(0.02, 0.05)) : rng.range(0.005, 0.02);
         // a leader does not set off for a post he cannot reach before his round's time is up: he goes back to the hearth
         // instead (S10, r4: a leg cut off half-way and turned back)
@@ -413,12 +413,15 @@ export class PeopleSim {
     else if (task.off && wasOff) { // already in the town: on along the legs (the whole way from the edge, else straight on to the last)
       const L0 = task.legs ?? []; const atEdge = Math.hypot(a.pos[0] - PLACES.town.at[0], a.pos[1] - PLACES.town.at[1]) < 1;
       a.legs = atEdge ? L0.slice() : L0.length ? [L0[L0.length - 1]] : []; a.path = null; a.walking = false; this.nextLeg(a); }
-    else if (dist > 0.4 && a.lod === 'abstract') { a.path = null; a.walking = true; a.travel = { from: [...a.pos] as P2, to: [...task.spot] as P2, t0: this.t, t1: this.t + dist * ABSTRACT_DETOUR / (a.speed * (a.carry ? 0.8 : 1)) * H_PER_S }; }
+    else if (dist > 0.4 && a.lod === 'abstract') { a.path = null; a.walking = true; a.travel = { from: [...a.pos] as P2, to: [...task.spot] as P2, t0: this.t, t1: this.t + dist * ABSTRACT_DETOUR / (a.speed * (a.carry ? 0.8 : 1) * this.dustF()) * H_PER_S }; }
     else if (dist > 0.4) { const r = this.routeTo(a, task.spot); if (r === undefined) { a.path = null; a.walking = false; a.waitRoute = true; } else { a.path = r; a.pathI = 1; a.walking = !!a.path; if (!a.path) a.pos = [...task.spot] as P2; } }
     else { a.path = null; a.walking = false; }
     if (!task.off && !a.walking && task.act !== 'stand_guard') this.socialise(a);
   }
 
+  /** the walking pace in the dust (W-03, EVENTS.md: "travel and deliveries slow (× 0.7)"; C): 0.7 while the day's dust is in
+   *  the air (DayWx.dustH), else 1 (S5 of shadow review r5: the porter's walks took the same time on a dust day) */
+  dustF() { const day = Math.floor(this.t / 24), h = this.t - day * 24, dh = this.cal.ctx(day).wx.dustH; return dh && h >= dh[0] && h < dh[1] ? 0.7 : 1; }
   /** advance by dt game seconds */
   step(dt: number) {
     if (dt <= 0) return;
@@ -443,7 +446,7 @@ export class PeopleSim {
       }
       a.lod = want;
       if (want === 'abstract' && a.path && a.task) { const rem = a.path.slice(a.pathI); let d = 0, p = a.pos; for (const q of rem) { d += Math.hypot(q[0] - p[0], q[1] - p[1]); p = q; }
-        a.path = null; a.travel = { from: [...a.pos] as P2, to: [...a.task.spot] as P2, t0: this.t, t1: this.t + d / a.speed * H_PER_S }; a.walking = true; }
+        a.path = null; a.travel = { from: [...a.pos] as P2, to: [...a.task.spot] as P2, t0: this.t, t1: this.t + d / (a.speed * this.dustF()) * H_PER_S }; a.walking = true; }
     }
   }
   /** jump to a new time: everyone is placed where their plan puts them (continuity after time skips, loads) */
@@ -488,7 +491,7 @@ export class PeopleSim {
         a.heading = Math.atan2(tr.to[0] - tr.from[0], tr.to[1] - tr.from[1]) * 180 / Math.PI; a.gait += a.speed * dt / 0.72 * Math.PI; budget = 0; break;
       }
       if (a.walking && a.path) {
-        const sp = a.speed * (a.carry ? 0.8 : 1);
+        const sp = a.speed * (a.carry ? 0.8 : 1) * this.dustF();
         while (budget > 0 && a.pathI < a.path.length) {
           const tgt = a.path[a.pathI], de = tgt[0] - a.pos[0], dn = tgt[1] - a.pos[1], d = Math.hypot(de, dn);
           const step = sp * budget;
