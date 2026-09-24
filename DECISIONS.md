@@ -2794,7 +2794,9 @@ are schematic; no browser render has been looked at (node previews of the height
   blending (`BlendMode(MaterialBlending)`), so a zero with alpha 0 leaves the G-buffer as it was. Opaque materials have no
   blending and are unaffected; transparent materials that write real G-buffer values now blend them.
 - **Rendered after the change** (dawn-glow-e, quality high, WebGPU, shots/surf-dawn-glow-e-B.png): the flame sits clean
-  on the brazier; no box, no streaks.
+  on the brazier; no box, no streaks. The same fault drew 1–2 km wide solid yellow, red and black bars on the horizon in
+  `dawn-sunrise` / `dawn-sunrise-nw` at high (distant effect quads; absent at quality test, which has no composite): gone in
+  the re-render after the change.
 - **Not verified:** a render after the change (dbg job queued: B and env0 of hadish-hall at test).
 
 ## D-182 The court in residence: simulated, drawn, measured (session 6, court workstream; B11, B12, B13)
