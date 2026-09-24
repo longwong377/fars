@@ -12,6 +12,7 @@ import popData from '../data/population.json';
 import townData from '../data/town.json';
 import livesData from '../data/lives.json';
 import namesData from '../data/names.json';
+import namesRecalled from '../data/names_recalled.json';
 import plotsData from '../data/town_plots.json';
 import { u01, salt, HStream } from './hash';
 import { dateOf, REGNAL_DAYS, travellerParties, transfers, transhumantBands, flockDrives, DayCtx, EventCalendar, eventRow, rainHours, rainSpells } from './calendar';
@@ -1230,14 +1231,20 @@ export class Population {
 }
 
 // ------------------------------------------------------------------ names (attested only, matched to origin; brief §9.1)
-const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n of (namesData as any).names) { if (n.notable || n.reading_uncertain) continue; const k = `${n.sex}:${n.origin_guess}`; (m.get(k) ?? m.set(k, []).get(k)!).push(n.name); }
+/** the licensed evidence (names.json, A) and the names recalled from the published literature where it holds none for a sex or
+ *  origin (names_recalled.json, C: NOT SEEN; D-202) */
+export const ALL_NAMES: any[] = [...(namesData as any).names, ...(namesRecalled as any).names];
+const NAME_POOLS = (() => { const m = new Map<string, string[]>(); for (const n of ALL_NAMES) { if (n.notable || n.reading_uncertain) continue; const k = `${n.sex}:${n.origin_guess}`; (m.get(k) ?? m.set(k, []).get(k)!).push(n.name); }
   // attested outside names.json, in the project's research: Herdkama "the Egyptian", chief of a team of 100 labourers in a
   // Treasury text (research/PEOPLE.md, PT-WAGE: SX, C; the name looks Iranian, the label is Egyptian: kept as given)
   (m.get('m:Egyptian') ?? m.set('m:Egyptian', []).get('m:Egyptian')!).push('Herdkama');
   return m; })();
 /** every attested name of each sex (not the notable, not the uncertain readings), of whatever origin */
-const NAME_ALL: Record<string, string[]> = { m: [], f: [] }; for (const n of (namesData as any).names) if (!n.notable && !n.reading_uncertain && NAME_ALL[n.sex]) NAME_ALL[n.sex].push(n.name);
-const ORIGIN_POOL: Record<string, string> = { Persian: 'Iranian', Median: 'Iranian', Elamite: 'Elamite', Babylonian: 'Babylonian', Syrian: 'West Semitic', Egyptian: 'Egyptian', Indian: 'Indian' };
+const NAME_ALL: Record<string, string[]> = { m: [], f: [] }; for (const n of ALL_NAMES) if (!n.notable && !n.reading_uncertain && NAME_ALL[n.sex]) NAME_ALL[n.sex].push(n.name);
+// (D-202: Bactrians and Sogdians speak Iranian languages; Ionians draw on the Greek names, Carians, Lydians and Lycians on their
+// own; Thracians and Cappadocians, with no names recalled, on all the names of their sex, as foreign workers in the tablets do)
+const ORIGIN_POOL: Record<string, string> = { Persian: 'Iranian', Median: 'Iranian', Bactrian: 'Iranian', Sogdian: 'Iranian', Elamite: 'Elamite', Babylonian: 'Babylonian', Syrian: 'West Semitic', Egyptian: 'Egyptian', Indian: 'Indian',
+  Ionian: 'Greek', Carian: 'Carian', Lydian: 'Lydian', Lycian: 'Lycian', Thracian: '-', Cappadocian: '-' };
 /** a pool smaller than this is thin (S9 of shadow review r5): 241 of 242 Egyptian men were Muzraaya ("the Egyptian") */
 export const THIN_NAME_POOL = 8;
 /** an attested name for an unnamed person of the population, or null when their origin has no attested names in the pool.
@@ -1252,7 +1259,7 @@ export function nameFor(seed: number, p: Person): string | null {
   const og = ORIGIN_POOL[p.origin]; if (!og) return null; const own = NAME_POOLS.get(`${p.sex}:${og}`) ?? [], u = u01(seed, S.name, p.id);
   if (own.length >= THIN_NAME_POOL) return own[Math.floor(u * own.length)];
   const share = own.length / THIN_NAME_POOL; if (u < share) return own[Math.floor(u / share * own.length)];
-  // (no attested names of that sex to speak of: unnamed. The licensed evidence read holds no woman's name, D-193)
+  // (no attested names of that sex to speak of: unnamed. D-193's licensed evidence holds no woman's name; D-202 adds recalled ones)
   const all = NAME_ALL[p.sex] ?? []; return all.length >= THIN_NAME_POOL ? all[Math.floor(u01(seed, S.name, p.id, 1) * all.length)] : null;
 }
 

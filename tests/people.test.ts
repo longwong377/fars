@@ -62,7 +62,7 @@ describe('roster', () => {
   it('135 detailed people (the garrison of 100 in ten files and the 35 of the slice: D-021, D-023); names are attested or honestly unnamed; every person has home, household, job, ration and ties', () => {
     const sim = new PeopleSim(1, nav, env);
     expect(sim.agents.length).toBe(135); expect(sim.agents.filter(a => a.role === 'guard').length).toBe(100);
-    const pool = new Set((JSON.parse(readFileSync('src/data/names.json', 'utf8')).names as any[]).map(n => n.name));
+    const pool = new Set([...(JSON.parse(readFileSync('src/data/names.json', 'utf8')).names as any[]), ...(JSON.parse(readFileSync('src/data/names_recalled.json', 'utf8')).names as any[])].map(n => n.name)); // (D-202)
     for (const a of sim.agents) {
       if (a.name) expect(pool.has(a.name), a.name).toBe(true); else expect(a.nameNote).toMatch(/unnamed/);
       expect(a.home in PLACES).toBe(true); expect(a.ration.qaPerMonth).toBeGreaterThan(0); expect(a.ties.length).toBeGreaterThan(0); expect(a.langs.length).toBeGreaterThan(0);

@@ -219,8 +219,8 @@ describe('S9 (A), S8 (B): names', () => {
     for (const p of P.persons) { if (p.origin !== 'Egyptian' || p.agent >= 0) continue; const n = nameFor(1, p); if (p.sex === 'm') { men++; if (n) c.set(n, (c.get(n) ?? 0) + 1); } else { women++; if (n) named++; } }
     // (D-193: the licensed evidence holds no woman's name, so women are unnamed; the Babylonian men's own pool is empty and
     // they draw from all the attested men's names, D-175's rule)
-    const fPool = (namesData as any).names.filter((n: any) => n.sex === 'f' && !n.notable && !n.reading_uncertain).length;
-    expect(men).toBeGreaterThan(200); expect(Math.max(...c.values()) / men).toBeLessThan(0.25); expect(named).toBe(fPool >= THIN_NAME_POOL ? women : 0);
+    // (D-202: women's names recalled from the published literature, C, so every Egyptian woman is named again)
+    expect(men).toBeGreaterThan(200); expect(Math.max(...c.values()) / men).toBeLessThan(0.25); expect(named).toBe(women);
     const bab = new Set(P.persons.filter((p: any) => p.origin === 'Babylonian' && p.sex === 'm' && p.agent < 0).map((p: any) => nameFor(1, p))); expect(bab.size).toBeGreaterThanOrEqual(THIN_NAME_POOL);
   });
 });

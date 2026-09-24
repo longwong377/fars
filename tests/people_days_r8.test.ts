@@ -12,6 +12,7 @@ import { type Seg, wetHours, dayStorm, nameFor } from '../src/people/population'
 import { checkPlan, invariants, WAIT_CAP_H } from '../src/people/planCheck';
 import { WeatherSystem } from '../src/weather/weatherState';
 import namesData from '../src/data/names.json';
+import namesRecalled from '../src/data/names_recalled.json';
 
 const W = new WeatherSystem(1);
 const env = (t: number): Env => { const d = Math.floor(t / 24), c = W.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
@@ -143,9 +144,12 @@ describe('D-193: the names from licensed evidence only (D-192, Q-294)', () => {
       if (n.source === 'CDLI') expect(n.texts.every((t: string) => / \(P\d+\)$/.test(t)), n.name).toBe(true); }
     expect(JSON.stringify(N.names)).not.toMatch(/EWB|ALP-MEGA/);
   });
-  it('women are honestly unnamed (no woman\'s name in the licensed evidence read); the named detailed agents carry their texts', () => {
-    for (const a of sim.agents) { if (!a.name) continue; expect(a.nameNote, a.name).toMatch(/^attested (PF|PT) \d+/); }
-    expect(P.persons.filter((p: any) => p.sex === 'f' && p.agent < 0).slice(0, 2000).every((p: any) => nameFor(1, p) === null)).toBe(true);
-    expect(sim.agents.filter(a => a.sex === 'f').every(a => a.name === null)).toBe(true);
+  it('D-202: the licensed evidence holds no woman\'s name, so women draw on names recalled from the published literature (C, each with its attestation); the named detailed agents carry their texts or the recalled attestation', () => {
+    for (const a of sim.agents) { if (!a.name) continue; expect(a.nameNote, a.name).toMatch(/^(attested (PF|PT) \d+|recalled attestation \(C, not seen\): .+)/); }
+    const R = (namesRecalled as any).names; for (const n of R) { expect(n.attestation, n.name).toBeTruthy(); expect(n.tier, n.name).toMatch(/^C /); expect(n.source).toBe('RECOLLECTION'); }
+    expect((namesData as any).names.some((n: any) => n.sex === 'f')).toBe(false); // (names.json itself stays the licensed evidence)
+    const women = P.persons.filter((p: any) => p.sex === 'f' && p.agent < 0).slice(0, 2000), rec = new Set(R.map((n: any) => n.name));
+    expect(women.every((p: any) => { const n = nameFor(1, p); return n === null || rec.has(n); })).toBe(true);
+    expect(women.filter((p: any) => nameFor(1, p)).length / women.length).toBeGreaterThan(0.95);
   });
 });

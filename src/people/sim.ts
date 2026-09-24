@@ -13,6 +13,7 @@
 // Treasury store; the calendar keeps the town's stores.
 import placesData from '../data/people_places.json';
 import namesData from '../data/names.json';
+import namesRecalled from '../data/names_recalled.json';
 import livesData from '../data/lives.json';
 import { Rng } from '../core/rng';
 import type { NavGrid, P2 } from './navgrid';
@@ -92,11 +93,12 @@ export const sunTimes = sunT;
 const FAM = (livesData as any).familiarity;
 
 /** name pools from names.json (attested only; brief §9.1). Origins with no attested names give `null` (honestly unnamed). */
-const NAMES = (namesData as any).names.filter((n: any) => !n.notable && !n.reading_uncertain) as { name: string; sex: string; origin_guess: string; tier: string; texts: string[] }[];
+const NAMES = [...(namesData as any).names, ...(namesRecalled as any).names].filter((n: any) => !n.notable && !n.reading_uncertain) as { name: string; sex: string; origin_guess: string; tier: string; texts?: string[]; attestation?: string }[];
 function pickName(rng: Rng, sex: 'm' | 'f', origins: string[], used: Set<string>) {
   const pool = NAMES.filter(n => n.sex === sex && origins.includes(n.origin_guess) && !used.has(n.name));
   if (!pool.length) return null;
-  const n = rng.pick(pool); used.add(n.name); return { name: n.name, tier: n.tier.startsWith('A') ? 'A' : 'B', note: `attested ${n.texts.slice(0, 2).join(', ')}` }; // (every name cites its texts: D-193)
+  const n = rng.pick(pool); used.add(n.name); return n.texts ? { name: n.name, tier: n.tier.startsWith('A') ? 'A' : 'B', note: `attested ${n.texts.slice(0, 2).join(', ')}` } // (every name cites its texts: D-193)
+    : { name: n.name, tier: 'C', note: `recalled attestation (C, not seen): ${n.attestation}` }; // (D-202)
 }
 /** posts where a stranger is stopped and questioned (the gates and stair heads; the Treasury door) */
 const CHECK_POSTS = new Set(['post_stair_n', 'post_stair_s', 'post_gate_w1', 'post_gate_w2', 'post_gate_s1', 'post_gate_s2', 'post_treas_1', 'post_treas_2']);

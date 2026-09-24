@@ -1,0 +1,669 @@
+{
+ "_meta": {
+  "purpose": "Names recalled from the published literature where the licensed evidence read (names.json: 67 PF texts via CDLI) holds none for a sex or origin (session 7, D-202; the user: \"fill the gaps to the best of your educated ability\"). Brief §9.1 still binds: every name here is attested in the source named (none invented or composed from elements); the forms are normalised, not transliterations.",
+  "tier": "C: recalled, NOT SEEN; each attestation to be verified against the source (upgrade to A/B when read). Names are facts: nothing of any publication is bundled.",
+  "notable": "royal women are kept out of the everyday pools (notable)"
+ },
+ "names": [
+  {
+   "name": "Irdabama",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "PF (Elamite fIr-da-ba-ma): a woman with her own estates and workforce; Brosius 1996, Henkelman 2010",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Phaidyme",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "Herodotus 3.68-69: daughter of Otanes",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Parmys",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "Herodotus 3.88, 7.78: daughter of Bardiya",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Artaynte",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "Herodotus 9.108-113",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Artazostre",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "Herodotus 6.43: daughter of Darius, wife of Mardonius",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Sandauke",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "Plutarch, Themistocles 13: sister of Xerxes",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Amytis",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "Ctesias (FGrH 688 F13-14): daughter of Xerxes",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Rhodogune",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "Ctesias (FGrH 688): daughter of Xerxes",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Roxane",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "Ctesias (FGrH 688 F15): sister of Teritouchmes, 5th c.",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Mandane",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "Herodotus 1.107: a Median woman, mother of Cyrus",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Kassandane",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "Herodotus 2.1, 3.2: wife of Cyrus",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Atossa",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "Herodotus 3.68 etc.; PF Udusana: queen",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
+  },
+  {
+   "name": "Amestris",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "Herodotus 7.61, 9.109-112: queen of Xerxes",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
+  },
+  {
+   "name": "Artystone",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "Herodotus 3.88; PF Irtašduna: queen",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
+  },
+  {
+   "name": "Radušnamuya",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "PF: a royal woman (Brosius 1996)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "reading_uncertain": true
+  },
+  {
+   "name": "Nupta",
+   "sex": "f",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE (e.g. the Egibi and Murašû archives)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Qudāšu",
+   "sex": "f",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE (e.g. the Egibi and Murašû archives)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Ina-Esagil-banât",
+   "sex": "f",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE (e.g. the Egibi and Murašû archives)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Ina-Esagil-rāmât",
+   "sex": "f",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE (e.g. the Egibi and Murašû archives)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Kabtâ",
+   "sex": "f",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE (e.g. the Egibi and Murašû archives)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Busasa",
+   "sex": "f",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE (e.g. the Egibi and Murašû archives)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Ḫibtâ",
+   "sex": "f",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE (e.g. the Egibi and Murašû archives)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Amtia",
+   "sex": "f",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE (e.g. the Egibi and Murašû archives)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Gagâ",
+   "sex": "f",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE (e.g. the Egibi and Murašû archives)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Tabluṭu",
+   "sex": "f",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE (e.g. the Egibi and Murašû archives)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Nanâ-ittija",
+   "sex": "f",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE (e.g. the Egibi and Murašû archives)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Mibṭaḥiah",
+   "sex": "f",
+   "origin_guess": "West Semitic",
+   "attestation": "Elephantine Aramaic papyri, 5th c. BCE (Cowley 1923; TAD B)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Yehoyishma",
+   "sex": "f",
+   "origin_guess": "West Semitic",
+   "attestation": "Elephantine Aramaic papyri, 5th c. BCE (Cowley 1923; TAD B)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Abihi",
+   "sex": "f",
+   "origin_guess": "West Semitic",
+   "attestation": "Elephantine Aramaic papyri, 5th c. BCE (Cowley 1923; TAD B)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Tadiaset",
+   "sex": "f",
+   "origin_guess": "Egyptian",
+   "attestation": "Late Period Egyptian (Ta-di-Aset, \"she whom Isis gave\"), common in 26th-27th dynasty documents",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Nesmut",
+   "sex": "f",
+   "origin_guess": "Egyptian",
+   "attestation": "Late Period Egyptian",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Tanetamun",
+   "sex": "f",
+   "origin_guess": "Egyptian",
+   "attestation": "Late Period Egyptian",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Tapamet",
+   "sex": "f",
+   "origin_guess": "Egyptian",
+   "attestation": "Elephantine Aramaic papyri: Tamet/Tapamet, an Egyptian woman, 5th c. BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Philis",
+   "sex": "f",
+   "origin_guess": "Greek",
+   "attestation": "grave stele of Philis daughter of Kleomenes, Thasos, c. 450 BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Archidike",
+   "sex": "f",
+   "origin_guess": "Greek",
+   "attestation": "Herodotus 2.135: a woman of Naucratis",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Mandrokles",
+   "sex": "m",
+   "origin_guess": "Greek",
+   "attestation": "Herodotus 4.87-88: the Samian who bridged the Bosporus for Darius",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Telephanes",
+   "sex": "m",
+   "origin_guess": "Greek",
+   "attestation": "Pliny, NH 34.68: a Phocaean sculptor who worked for Darius and Xerxes",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Theodoros",
+   "sex": "m",
+   "origin_guess": "Greek",
+   "attestation": "Herodotus 1.51, 3.41: a Samian craftsman",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Koes",
+   "sex": "m",
+   "origin_guess": "Greek",
+   "attestation": "Herodotus 4.97: of Mytilene",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Laodamas",
+   "sex": "m",
+   "origin_guess": "Greek",
+   "attestation": "Herodotus 4.138: of Phocaea",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Aiakes",
+   "sex": "m",
+   "origin_guess": "Greek",
+   "attestation": "Herodotus 4.138: of Samos",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Strattis",
+   "sex": "m",
+   "origin_guess": "Greek",
+   "attestation": "Herodotus 4.138: of Chios",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Hippoklos",
+   "sex": "m",
+   "origin_guess": "Greek",
+   "attestation": "Herodotus 4.138: of Lampsakos",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Herophantos",
+   "sex": "m",
+   "origin_guess": "Greek",
+   "attestation": "Herodotus 4.138: of Parion",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Metrodoros",
+   "sex": "m",
+   "origin_guess": "Greek",
+   "attestation": "Herodotus 4.138: of Prokonnesos",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Ariston",
+   "sex": "m",
+   "origin_guess": "Greek",
+   "attestation": "Herodotus 4.138: of Byzantium",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Daphnis",
+   "sex": "m",
+   "origin_guess": "Greek",
+   "attestation": "Herodotus 4.138: of Abydos",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Skylax",
+   "sex": "m",
+   "origin_guess": "Carian",
+   "attestation": "Herodotus 4.44: of Karyanda",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Pixodaros",
+   "sex": "m",
+   "origin_guess": "Carian",
+   "attestation": "Herodotus 5.118: son of Mausolos, of Kindya",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Herakleides",
+   "sex": "m",
+   "origin_guess": "Carian",
+   "attestation": "Herodotus 5.121: son of Ibanollis, of Mylasa",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Ibanollis",
+   "sex": "m",
+   "origin_guess": "Carian",
+   "attestation": "Herodotus 5.37, 5.121: of Mylasa",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Pythios",
+   "sex": "m",
+   "origin_guess": "Lydian",
+   "attestation": "Herodotus 7.27-29: son of Atys, of Kelainai",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Paktyes",
+   "sex": "m",
+   "origin_guess": "Lydian",
+   "attestation": "Herodotus 1.153-161",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Myrsos",
+   "sex": "m",
+   "origin_guess": "Lydian",
+   "attestation": "Herodotus 3.122: son of Gyges",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Atys",
+   "sex": "m",
+   "origin_guess": "Lydian",
+   "attestation": "Herodotus 1.34, 7.27",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Kybernis",
+   "sex": "m",
+   "origin_guess": "Lycian",
+   "attestation": "Herodotus 7.98: son of Kossikas, Lycian commander",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Kossikas",
+   "sex": "m",
+   "origin_guess": "Lycian",
+   "attestation": "Herodotus 7.98",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Kuprlli",
+   "sex": "m",
+   "origin_guess": "Lycian",
+   "attestation": "Lycian dynast named on coins, c. 480-440 BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Padiaset",
+   "sex": "m",
+   "origin_guess": "Egyptian",
+   "attestation": "Late Period Egyptian personal name, common in 26th-27th dynasty documents",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Djedhor",
+   "sex": "m",
+   "origin_guess": "Egyptian",
+   "attestation": "Late Period Egyptian personal name, common in 26th-27th dynasty documents",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Ankhhor",
+   "sex": "m",
+   "origin_guess": "Egyptian",
+   "attestation": "Late Period Egyptian personal name, common in 26th-27th dynasty documents",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Horwedja",
+   "sex": "m",
+   "origin_guess": "Egyptian",
+   "attestation": "Late Period Egyptian personal name, common in 26th-27th dynasty documents",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Psamtek",
+   "sex": "m",
+   "origin_guess": "Egyptian",
+   "attestation": "Late Period Egyptian personal name, common in 26th-27th dynasty documents",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Bēl-iddin",
+   "sex": "m",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Nabû-zēr-ukīn",
+   "sex": "m",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Marduk-šum-iddin",
+   "sex": "m",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Iddin-Nabû",
+   "sex": "m",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Šamaš-iddin",
+   "sex": "m",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Bēl-ēṭir",
+   "sex": "m",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Nabû-bullissu",
+   "sex": "m",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Rēmūt",
+   "sex": "m",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Zababa-iddin",
+   "sex": "m",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Balāṭu",
+   "sex": "m",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Nergal-ušēzib",
+   "sex": "m",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Itti-Marduk-balāṭu",
+   "sex": "m",
+   "origin_guess": "Babylonian",
+   "attestation": "Neo-Babylonian legal and administrative archives, 6th-5th c. BCE",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Mahseiah",
+   "sex": "m",
+   "origin_guess": "West Semitic",
+   "attestation": "Elephantine Aramaic papyri, 5th c. BCE (Cowley 1923; TAD B)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Anani",
+   "sex": "m",
+   "origin_guess": "West Semitic",
+   "attestation": "Elephantine Aramaic papyri, 5th c. BCE (Cowley 1923; TAD B)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Jedaniah",
+   "sex": "m",
+   "origin_guess": "West Semitic",
+   "attestation": "Elephantine Aramaic papyri, 5th c. BCE (Cowley 1923; TAD B)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Hosea",
+   "sex": "m",
+   "origin_guess": "West Semitic",
+   "attestation": "Elephantine Aramaic papyri, 5th c. BCE (Cowley 1923; TAD B)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Haggai",
+   "sex": "m",
+   "origin_guess": "West Semitic",
+   "attestation": "Elephantine Aramaic papyri, 5th c. BCE (Cowley 1923; TAD B)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Zakkur",
+   "sex": "m",
+   "origin_guess": "West Semitic",
+   "attestation": "Elephantine Aramaic papyri, 5th c. BCE (Cowley 1923; TAD B)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "Natan",
+   "sex": "m",
+   "origin_guess": "West Semitic",
+   "attestation": "Elephantine Aramaic papyri, 5th c. BCE (Cowley 1923; TAD B)",
+   "source": "RECOLLECTION",
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  }
+ ]
+}
