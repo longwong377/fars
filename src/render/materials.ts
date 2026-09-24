@@ -136,6 +136,8 @@ export interface SurfaceDef {
   debris?: boolean;
   /** trodden paths from the doorways (TRAFFIC, D-188) */
   traffic?: boolean;
+  /** a coarser scatter of stones (D-188): Worley cells of `size` m, `cover` as chips, their albedo */
+  pebbles?: { cover: number; size: number; albedo: [number, number, number] };
 }
 /** neutral grey of luminous reflectance Y (linear) as the sRGB triple the surface table uses */
 function grey(Y: number): [number, number, number] { const v = linearToSrgb(Y); return [v, v, v]; }
@@ -198,7 +200,7 @@ export const SURFACES: Record<string, SurfaceDef> = {
   earth: { albedo: [0.47, 0.39, 0.29], roughness: 0.95, porosity: 0.9, noiseScale: 0.4, noiseAmp: 0.14, bump: { amp: 0.02, freq: 0.9 }, chips: { cover: 0.06, size: 0.35, albedo: [0.55, 0.53, 0.49] }, herbs: 1, micro: { amp: 0.0005, freq: 70, alb: 0.08 }, tier: 'C', note: 'plain surface: loam, stones and a seasonal herb layer (C); fields Phase 7' },
   // the open courts of the Terrace: no source found for their surface (OPEN_QUESTIONS Q-027). Compacted fill with
   // limestone dressing chips over the levelled platform (C)
-  court_fill: { albedo: [0.50, 0.46, 0.39], roughness: 0.9, porosity: 0.7, noiseScale: 0.5, noiseAmp: 0.1, tone: { sd: 0.1, chroma: 0.015 }, macro: { sd: 0.08, chroma: 0.015 }, debris: true, traffic: true, bump: { amp: 0.004, freq: 2.5 }, chips: { cover: 0.12, size: 0.06, albedo: [0.64, 0.62, 0.57] }, micro: { amp: 0.0004, freq: 70, alb: 0.06 }, tier: 'C', note: 'Terrace open court: compacted fill with limestone chips (surface unknown, Q-027: C)' },
+  court_fill: { albedo: [0.50, 0.46, 0.39], roughness: 0.9, porosity: 0.7, noiseScale: 0.5, noiseAmp: 0.1, tone: { sd: 0.1, chroma: 0.015 }, macro: { sd: 0.08, chroma: 0.015 }, debris: true, traffic: true, pebbles: { cover: 0.07, size: 0.45, albedo: [0.66, 0.64, 0.59] }, bump: { amp: 0.004, freq: 2.5 }, chips: { cover: 0.12, size: 0.06, albedo: [0.64, 0.62, 0.57] }, micro: { amp: 0.0004, freq: 70, alb: 0.06 }, tier: 'C', note: 'Terrace open court: compacted fill with limestone chips (surface unknown, Q-027: C)' },
   terrace: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.13, tone: { sd: 0.065, chroma: 0.01 }, foot: 1, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, top: 'court_fill', micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'Terrace platform: dressed limestone retaining walls, dry-laid with hairline joints (Q-071); open court surface C (Q-027)' },
   scaffold: { albedo: [0.45, 0.35, 0.24], roughness: 0.85, porosity: 0.5, noiseScale: 3, noiseAmp: 0.1, tier: 'C', note: 'timber scaffold poles' },
   rubble: { albedo: LIMESTONE, roughness: 0.9, porosity: 0.5, noiseScale: 2, noiseAmp: 0.2, bump: { amp: 0.01, freq: 3 }, micro: { amp: 0.0015, freq: 32, alb: 0.06 }, tier: 'C', note: 'stone chips: the Terrace limestone (albedo as `limestone`, D-188)' },
@@ -441,6 +443,20 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     // 8.7 cm over a 2.5 cm chip on the earth, near-vertical bump normals, so every light chip rendered as a dark ring (session 3)
     if (height) height = height.add(chip.mul(near).mul(d.chips.size * d.chips.cover * 0.6));
     if (debris) alb = mix(alb, lin(LIMESTONE).mul(1.05), debris.mul(0.3)); // limestone dust over the yard
+  }
+  if (d.pebbles) { // D-188: a second, coarser scatter (stones and spalls 4–8 cm; the chips above are 1–2 cm and give way to
+    // their mean beyond ~2 m at 540 rows): the texture of the fill at 3–20 m; denser in the masons' yard, fewer where trodden
+    const P = d.pebbles, pq = p.xz.div(P.size).add(vec2(17.7, 3.1)), w2 = mx_worley_noise_float(pq);
+    let pc: any = clamp(float(1).add(mx_noise_float(p.xz.div(11).add(vec2(2.4, 7.7))).mul(0.8)), 0.3, 1.7).mul(P.cover);
+    if (debris) pc = pc.mul(float(1).add(debris.mul(3))).min(0.4);
+    if (trod) pc = pc.mul(float(1).sub(trod.mul(0.8)));
+    const nearP = float(1).sub(smoothstep(0.25, 0.6, fwidth(pq).length()));
+    const meanP = float(1).sub(exp(pc.mul(1.25).mul(pc.mul(1.25)).mul(-Math.PI)));
+    const peb = mix(meanP, float(1).sub(smoothstep(pc.mul(0.8), pc.mul(1.5), w2)), nearP).mul(smoothstep(0.4, 0.8, n.y));
+    const tone = float(0.85).add(mx_noise_float(pq.mul(1.7)).mul(0.25)); // stone to stone
+    alb = mix(alb, color(new THREE.Color().setRGB(...P.albedo, THREE.SRGBColorSpace)).mul(tone), peb);
+    rough = mix(rough, float(0.75), peb);
+    if (height) height = height.add(peb.mul(nearP).mul(P.size * P.cover * 0.5));
   }
   if (trod) { // compacted: a little darker and warmer (fines and dirt worked in), smoother (C)
     alb = alb.mul(vec3(float(1).sub(trod.mul(0.08)), float(1).sub(trod.mul(0.1)), float(1).sub(trod.mul(0.13))));
