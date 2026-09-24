@@ -24,7 +24,7 @@ const COURT: Scene[] = [
   { n: 'court-from-hillside', hour: 10, v: [290, -20, 1.6, az(270), -8], note: 'court setting, day 0 10:00: the Terrace from the hillside above it' },
 ];
 test('crowd scale: the population drawn, measured', async ({ page }, info) => {
-  test.setTimeout(1_700_000);
+  test.setTimeout(+(process.env.TIMEOUT ?? 1700) * 1000);
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 300)); });
   const q = process.env.Q ?? 'high', only = process.env.ONLY?.split(','), out: Record<string, any> = {};
   const f = 'shots/crowd-scale.json'; mkdirSync('shots', { recursive: true }); const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {};
