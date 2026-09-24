@@ -18,6 +18,7 @@
 // posts are generated here from court.json's lines; sim.ts adds them to PLACES) and the court's camp below the Terrace
 // (popgeo.ts `court_camp`; tents NOT BUILT). Every rule of a day is C.
 import courtData from '../data/court.json';
+import livesData from '../data/lives.json';
 import placesData from '../data/people_places.json';
 import townData from '../data/town.json';
 import type { Population, Person, Household, Seg, Where, Job } from './population';
@@ -433,9 +434,16 @@ class CourtDay {
     const gifts = pa.petition ? undefined : `gifts for the king: ${pa.gift}`;
     const campOpts: Opt[] = [[CA, 'rest', 'resting at the camp', 2], [CA, 'talk', 'talking with the party at the camp', 2], [CA, 'tend_animals', 'seeing to the party’s animals', 1], [CA, 'exchange', 'exchanging goods in kind at the camp', 0.6], [CA, 'wash', 'washing clothes at the camp', 0.4]];
     if (d === pa.day) { // arriving
-      const h = lerp(9.5, 15.5, pr(1)); this.add(h - 1, '-', 'offmap', `on the road to the court (${pa.origin} party)`, undefined, 'away');
+      // (the night at the last station on the road and a day's stage from it, as the road station's parties: D-196's planCheck
+      // (g) found the party "on the road" from midnight, 15 h on foot; the court setting only; C)
+      const h = lerp(9.5, 15.5, pr(1)), ST = (livesData as any).travellers_stay.stage_h as [number, number], go = Math.max(this.sun.rise - 0.5, h - 1 - lerp(ST[0], ST[1], pr(8)));
+      if (go > 1) { this.add(Math.min(go - 0.4, this.sun.rise + 0.3), '-', 'sleep', `asleep at the last station on the road to the court (${pa.origin} party)`, undefined, 'away');
+        if (go - 0.4 - this.t > 0.05) this.add(go - 0.4, '-', 'offmap', `the morning at the last station on the road to the court (${pa.origin} party)`, undefined, 'away'); this.add(go, '-', 'eat', 'a meal at the last station before the road', undefined, 'away'); }
+      this.add(h - 1, '-', 'offmap', `on the road to the court (${pa.origin} party)`, undefined, 'away');
       this.add(h, 'road:arrival', 'walk', 'on the road to the court', undefined, 'road'); this.cur = CA;
-      this.add(this.t + 0.6, CA, 'tend_animals', 'unloading the party’s animals at the camp'); this.fill(Math.max(this.t + 0.5, lerp(18.2, 19, pr(2))), campOpts);
+      this.add(this.t + 0.6, CA, 'tend_animals', 'unloading the party’s animals at the camp');
+      if (this.lastEat >= 0 && this.t - this.lastEat > 3) this.meal(CA, 0.5, 'a meal at the camp after the road'); // (the road's food since the station's meal)
+      this.fill(Math.max(this.t + 0.5, lerp(18.2, 19, pr(2))), campOpts);
       this.meal(CA, 0.6, 'the evening meal at the camp'); this.fill(lerp(20.8, 21.6, pr(3)), campOpts); this.night(); return; }
     this.morning(lerp(this.sun.rise - 0.5, this.sun.rise + 0.3, pr(4)) + r.range(-0.1, 0.1)); this.meal(CA, 0.4, 'breakfast at the camp');
     if (d === pa.leave) { this.add(this.t + lerp(0.5, 1, pr(5)), CA, 'tend_animals', 'loading the animals to go home'); this.add(this.t + lerp(1, 2, pr(6)), 'road:departure', 'walk', 'on the road home from the court', undefined, 'road'); this.add(24, '-', 'offmap', 'gone home', undefined, 'away'); return; }
