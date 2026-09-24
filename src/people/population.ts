@@ -812,6 +812,37 @@ export class Population {
     return out;
   }
   private mindCache = new Map<number, MindDay>();
+  /** the hides of yesterday's slaughter that reach the Treasury today (E-12, CE-07: PF 58-60, A for Darius' reign): how many
+   *  (the slaughter events' own counts; 0 when nothing was slaughtered or the flock was too low to slaughter) */
+  hidesOn(d: number): number { if (d < 1) return 0; this.cal.ctx(d); return (this.cal.days[d - 1]?.events ?? []).filter(e => e.id === 'E-12').reduce((a, e) => a + (e.n ?? 0), 0); }
+  private payCache = new Map<number, { t: number; sh: number; weigher: number; group: string }[]>();
+  /** the day's silver payments at the Treasury (E-05) and the weigher who weighs out each: E-05 has one weigher at a payment
+   *  (C), for the two hours the Treasury door is doubled (E-81); which weigher, by the day's draw among those at work (C).
+   *  Was: every weigher weighed out silver all day at the desk on any payment day (r6, with S1) */
+  payWeighers(d: number): { t: number; sh: number; weigher: number; group: string }[] {
+    const c = this.payCache.get(d); if (c) return c; if (this.payCache.size > 400) this.payCache.clear();
+    const C = this.cal.ctx(d), ws = this.persons.filter(q => q.job === 'treasury' && q.sub === 'weigher' && q.agent < 0 && this.present(q.id, d) && !this.sick(q.id, d) && !this.mourning(q.id, d) && !this.draftedOn(q.id, d, C)).map(q => q.id);
+    const ev = C.events.filter(e => e.id === 'E-05'), out: { t: number; sh: number; weigher: number; group: string }[] = [];
+    C.payments.forEach((x, i) => { if (!ws.length) return; const e = ev.find(y => Math.abs(y.t - (d * 24 + x.t)) < 1e-6); const w = ws.map(y => [u01(this.seed, S.assign, 9800 + y, d * 8 + i), y]).sort((a, b) => a[0] - b[0])[0][1];
+      out.push({ t: x.t, sh: e?.n ?? 0, weigher: w, group: this.groups[x.group]?.label ?? 'a work group' }); });
+    this.payCache.set(d, out); return out;
+  }
+  private hideCache = new Map<number, { t0: number; t1: number; n: number; receivers: number[] } | null>();
+  /** the day's hide delivery at the Treasury store, as the carriers' own plans have it (they reach the store and set the
+   *  hides down: `t0`-`t1`), its size, and the two storekeepers who receive them (E-12 names two hide receivers in the PF
+   *  texts: A for the number; which storekeepers, C, by the day's draw among those at work). null when no hides come
+   *  (S1 of shadow review r6: "receiving hides" was drawn for any half-day on or after a slaughter, 5,943 person-hours a year,
+   *  47 % of them on days with no delivery) */
+  hideDelivery(d: number): { t0: number; t1: number; n: number; receivers: number[] } | null {
+    if (this.hideCache.has(d)) return this.hideCache.get(d)!; if (this.hideCache.size > 400) this.hideCache.clear();
+    const n = this.hidesOn(d); let out: { t0: number; t1: number; n: number; receivers: number[] } | null = null;
+    if (n > 0) { let t0 = 99, t1 = -1;
+      for (const c of this.shepherds) { if (this.persons[c].sub !== 'hides' || !this.present(c, d)) continue; for (const s of this.plan(c, d)) if (/^delivering hides/.test(s.why)) { t0 = Math.min(t0, s.t0); t1 = Math.max(t1, s.t1); } }
+      if (t1 > t0) { const keepers = this.persons.filter(q => q.job === 'treasury' && q.sub === 'storekeeper' && q.work === 'treasury_store' && q.agent < 0 && this.present(q.id, d) && !this.sick(q.id, d) && !this.mourning(q.id, d) && !this.draftedOn(q.id, d, this.cal.ctx(d)) && !(this.gaveBirth(q.id, d) >= 0 && this.gaveBirth(q.id, d) <= this.postpartumDays(q.id))).map(q => q.id);
+        const pick = keepers.map(x => [u01(this.seed, S.assign, 9700 + x, d), x]).sort((a, b) => a[0] - b[0]).slice(0, 2).map(x => x[1]);
+        out = { t0, t1, n, receivers: pick }; } }
+    this.hideCache.set(d, out); return out;
+  }
   /** the man of a threshing household who sits up by its grain heap tonight and sleeps beside it on the floor (S2, r4): on
    *  about one threshing day in ten (the household's draw, the same that sends its men with grain to the town, C) one of its
    *  men of sixteen or more, by turns night by night; not on a storm day, not a man who is ill or in mourning, nor one who
@@ -2473,14 +2504,21 @@ class Planner {
     const lastSp = mine.length ? mine[mine.length - 1].t1 : -1; if (lastSp > this.t) fill(lastSp, end => spell(end));
     this.evening(Math.max(this.t, 15)); return this.finish();
   }
-  private terraceWorker(place: string, act: ActivityId, why: string, pm?: [string, ActivityId, string]): Seg[] {
+  private terraceWorker(place: string, act: ActivityId, why: string, pm?: [string, ActivityId, string], ins: [number, number, string, ActivityId, string][] = []): Seg[] {
     const P = this.P, C = this.C; if (C.wx.storm) return this.homeDay('storm');
     const [w0, w1] = P.workWindow(C); this.morning(w0 - P.walkH(this.home, 'stair_foot', this.d, this.homeW, 'terrace') - 0.05); this.go('stair_foot', 'terrace', 'going to the Terrace');
     const issue = C.issue.get(this.p.group); if (issue !== undefined) { this.add(Math.max(this.t, issue), 'stair_foot', 'queue', 'waiting for the ration issue', 'terrace'); this.dispute('stair_foot', 'terrace'); this.add(this.t + 0.3 + this.r.next(), 'stair_foot', 'queue', 'in the ration queue', 'terrace'); }
     // (work inside the Treasury and the closed palaces is under a roof: no rain shelter, no heat rest in the shade; S1 r5)
     const open = (x: string) => !/^(treasury_|palaces)/.test(x);
-    if (pm && (pm[0] !== place || pm[1] !== act) && this.t < 12 && !C.heatRest) { this.workBlock(place, 'terrace', act, why, Math.max(w0, this.t), 12.6, open(place), 'work_hearth', 12, undefined, { snap: true }); [place, act, why] = pm; } // a different task after the midday meal
-    this.workBlock(place, 'terrace', act, why, Math.max(w0, this.t), w1, open(place), 'work_hearth');
+    // a block of the day's work with the inserted tasks tied to their hours (the hides' receiving: S1 r6) cut into it
+    const wb = (pl: string, a: ActivityId, y: string, t0: number, t1: number, snap: boolean) => {
+      for (const [a0, a1, ipl, iact, iwhy] of ins) { if (a0 < this.t - 1e-6 || a0 >= t1 || a1 <= this.t) continue;
+        if (a0 > this.t + 0.02) this.workBlock(pl, 'terrace', a, y, Math.max(t0, this.t), a0, open(pl), 'work_hearth');
+        if ((this.cur ?? '') !== ipl && this.segs[this.segs.length - 1]?.place !== ipl) this.go(ipl, 'terrace');
+        this.add(Math.max(this.t + 0.05, a1), ipl, iact, iwhy, 'terrace'); if (ipl !== pl) this.go(pl, 'terrace'); }
+      if (t1 > this.t + 0.02) this.workBlock(pl, 'terrace', a, y, Math.max(t0, this.t), t1, open(pl), 'work_hearth', 12, undefined, snap ? { snap: true } : {}); };
+    if (pm && (pm[0] !== place || pm[1] !== act) && this.t < 12 && !C.heatRest) { wb(place, act, why, Math.max(w0, this.t), 12.6, true); [place, act, why] = pm; } // a different task after the midday meal
+    wb(place, act, why, Math.max(w0, this.t), w1, false);
     this.endOfWork('work_hearth', 'terrace', issue !== undefined); return this.finish();
   }
   /** the porters of the Terrace depot who have no detailed agent (lives.json job_tasks.terrace_porter) */
@@ -2542,12 +2580,27 @@ class Planner {
   private treasuryWorker(): Seg[] {
     const p = this.p, C = this.C;
     if (p.work === 'treasury_inside' || p.work === 'treasury_store') { // inside the Treasury on the Terrace (abstract: no detailed agent yet)
-      const task = (): [string, ActivityId, string] => { const k = this.choose(L.job_tasks.treasury_staff.v as Record<'main' | 'receive' | 'carry', number>);
-        if (k === 'receive') return ['treasury_store', 'inspect', C.slaughter.length || this.P.cal.days[this.d - 1]?.slaughter.length ? 'receiving hides at the treasury store (CE-07)' : 'receiving goods at the Treasury store'];
+      // each half-day one of the staff's own tasks by trade (lives.json job_tasks.treasury_staff; C): a shiner shines the
+      // metal; a weigher weighs, and records what he weighed; a storekeeper keeps the store (the seals on the jars and sacks,
+      // stacking what the porters carry up, recording what came in and went out); anyone may carry between the store and the
+      // halls. Receiving is no draw any more: the hides are received by the day's two hide receivers at the carriers' own
+      // hour (Population.hideDelivery; E-12, CE-07), for as long as counting and recording that many hides takes (S1 r6)
+      const TS = L.job_tasks.treasury_staff;
+      const task = (): [string, ActivityId, string] => {
+        const k = this.choose((p.sub === 'shiner' ? TS.shiner : p.sub === 'weigher' ? TS.weigher : TS.storekeeper) as Record<string, number>);
         if (k === 'carry') return ['treasury_inside', 'carry_sack', 'carrying goods between the store and the halls'];
-        return [p.sub === 'shiner' ? 'treasury_inside' : 'treasury_store', p.sub === 'shiner' ? 'polish_metal' : 'inspect', p.sub === 'shiner' ? 'shining gold and silver in the Treasury' : p.sub === 'weigher' ? 'weighing silver and goods' : 'keeping the Treasury stores']; };
-      if (p.sub === 'weigher' && C.payments.length) return this.terraceWorker('treasury_desk', 'inspect', 'weighing out silver at the Treasury (E-05)', task());
-      const [pl, act, why] = task(); return this.terraceWorker(pl, act, why, task());
+        if (k === 'shine') return ['treasury_inside', 'polish_metal', 'shining gold and silver in the Treasury'];
+        if (k === 'weigh') return ['treasury_store', 'inspect', 'weighing silver and goods on the balance'];
+        if (k === 'record') return ['treasury_store', 'write_tablet', p.sub === 'weigher' ? 'recording the weights on a tablet' : 'recording what came into the store and what went out'];
+        if (k === 'stack') return ['treasury_store', 'carry_sack', 'stacking the goods the porters carry up from the stair foot'];
+        return ['treasury_store', 'inspect', 'going over the store: the seals on the jars and sacks'];
+      };
+      const HD = this.P.hideDelivery(this.d), ins: [number, number, string, ActivityId, string][] = [];
+      if (HD && HD.receivers.includes(this.pid)) { const c1 = HD.t0 + Math.min(HD.t1 - HD.t0, 0.2 + 0.015 * HD.n);
+        ins.push([HD.t0, c1, 'treasury_store', 'inspect', `receiving the ${HD.n} hides of yesterday’s slaughter from the carriers and counting them (E-12, CE-07)`], [c1, c1 + 0.15, 'treasury_store', 'write_tablet', `recording the ${HD.n} hides received for the workshops (CE-07)`]); }
+      for (const x of this.P.payWeighers(this.d)) if (x.weigher === this.pid && !ins.some(y => y[0] < x.t + 2 && y[1] > x.t)) ins.push([x.t, x.t + 2, 'treasury_desk', 'inspect', `weighing out ${x.sh} shekels of silver on the balance for ${x.group}, in lieu of rations (E-05)`]);
+      ins.sort((a, b) => a[0] - b[0]);
+      const [pl, act, why] = task(); return this.terraceWorker(pl, act, why, task(), ins);
     }
     const act: ActivityId = p.sub === 'shiner' ? 'polish_metal' : p.sub === 'wood' ? 'work_wood' : p.sub === 'textile' ? 'weave' : 'carry_sack';
     const why = p.sub === 'handler' ? 'handling treasury supplies' : `treasury workshop: ${p.sub === 'shiner' ? 'shining gold and silver' : p.sub === 'wood' ? 'working wood' : 'textiles'}`;
@@ -2677,7 +2730,7 @@ class Planner {
     const drive = P.drives.find(x => d >= x.day && d <= x.day + x.away && (p.id % 3 === 0));
     if (drive) { const out = d - drive.day < drive.away / 2; this.add(this.sun.rise, 'camp:road', 'sleep', 'asleep in camp on the road', 'away'); this.add(this.sun.set, out ? 'road:susa' : 'road:home', 'herd', out ? 'driving the king’s sheep to Susa (E-13)' : 'returning from Susa', 'away'); this.add(this.t + 0.6, 'camp:road', 'eat', 'a meal in camp', 'away'); this.add(24, 'camp:road', 'sleep', 'asleep', 'away'); return this.segs; }
     if (C.slaughter.length && p.id % 4 === 0) return this.dayWork('stockyard', 'town', 'slaughter', 'slaughtering small cattle at the stockyard (E-12)', Math.min(...C.slaughter), Math.min(...C.slaughter) + 3);
-    if (p.sub === 'hides' && P.cal.days[d - 1]?.slaughter.length) { this.morning(8); this.go('stockyard', 'town'); this.add(this.t + 0.5, 'stockyard', 'carry_sack', 'loading the hides', 'town'); this.go('treasury_store', 'terrace', 'carrying the hides to the treasury (CE-07)'); this.add(this.t + 0.5, 'treasury_store', 'talk', 'delivering hides to the treasury', 'terrace'); this.go(this.home, this.homeW); this.evening(this.t); return this.finish(); }
+    if (p.sub === 'hides' && P.hidesOn(d) > 0) { this.morning(8); this.go('stockyard', 'town'); this.add(this.t + 0.5, 'stockyard', 'carry_sack', 'loading the hides', 'town'); this.go('treasury_store', 'terrace', `carrying the ${P.hidesOn(d)} hides of yesterday’s slaughter to the treasury (CE-07)`); this.add(this.t + Math.min(0.6, 0.25 + 0.02 * P.hidesOn(d)), 'treasury_store', 'talk', `delivering hides to the treasury: setting them down to be counted`, 'terrace'); this.go(this.home, this.homeW); this.evening(this.t); return this.finish(); }
     if ([12, 1, 2].includes(C.month) && !C.wx.wet && u01(P.seed, S.shear, p.id, d) < 0.08) return this.dayWork('stockyard', 'town', 'shear', 'shearing the state flock (E-47)', 7, 15);
     if (C.wx.storm) return this.homeDay('storm: the flock kept in');
     const lamb = [10, 11, 12].includes(C.month) && this.r.chance(0.3);
