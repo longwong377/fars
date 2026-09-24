@@ -7,8 +7,8 @@
 // relief system (D-069: bearers, the king with his bow, the fire altar, the winged figure, the moon, the side-panel guards;
 // programme B, drawing C); the Neo-Elamite relief's figures stay schematic silhouettes (PLACEHOLDER). The DNa and DNb panels carry the Old Persian text of the
 // standard edition (ARIo Q007152 / Q007153, Schmitt 2009, CC0; session 3), incised like the Terrace inscriptions with
-// the published sign sequence and its lineation (D-177: 60 lines each, research/OP_SIGNS.md); a sign lost in the corpus ("+")
-// is left uncut at a sign's width (nothing invented, no gap closed); the Elamite and Babylonian versions are not carved
+// the published sign-by-sign edition and its lineation (ARIo in CATF, CC0; D-184: 60 lines each, research/OP_SIGNS.md);
+// the editor's restorations carved (C), a stretch lost and not restored left as uncut blanks (nothing invented, no gap closed); the Elamite and Babylonian versions are not carved
 // (not in the corpus read; Q-290).
 //
 // Frame: the cliff face is the line grid y = cliff.face_y (world z = -face_y), along grid x; "depth" d > 0 goes into the
@@ -301,12 +301,12 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
       const quad = box(a.w + 0.1, a.h + 0.1, 0.001); onFace(f, quad, a.x0 + a.w / 2, a.yTop - a.h - 0.05, a.d - 0.01);
       const pick = new THREE.Mesh(quad, pickMat); pick.layers.set(INSCRIPTION_PICK_LAYER); pick.name = `inscription:${a.id}:op:pick`;
       pick.userData = { tier: 'C', inscription: a.id, version: 'op', pickFar: 80 }; texts.add(pick);
-      textInfo.push(`${a.id}: ${L.signs.length} signs, glyph ${(fit.glyph * 100).toFixed(1)} cm, ${L.lines} lines`);
+      textInfo.push(`${a.id}: ${L.signs.length} signs, glyph ${(fit.glyph * 100).toFixed(1)} cm, ${L.lines} lines${fit.fits ? '' : ' (DOES NOT FIT the field at the smallest glyph)'}`);
     }
   }
   if (carved.length) {
     const tm = new THREE.Mesh(mergeGeometries(carved.map(g => g.index ? g.toNonIndexed() : g))!, inscMat); tm.name = 'nr-inscriptions-carved'; tm.receiveShadow = true;
-    tm.userData = { carved: carvedSigns, tier: 'B/C', src: 'ARIO;OP-TRANSLIT;NOTO;LIVIUS-NR', placeholder: true, note: `DNa, DNb Old Persian (text A: ARIo Q007152/Q007153, CC0). DNa ${opSignsNote('DNa')}. DNb ${opSignsNote('DNb')}. Incised in the dressed field, V-section at 45° (C, D-177); panel position C. NOT carved [PLACEHOLDER, Q-290]: the Elamite and Babylonian versions of DNa and DNb (not in the corpus read) and the captions DNc, DNd, DNe — ${textInfo.join('; ')}` };
+    tm.userData = { carved: carvedSigns, tier: 'B/C', src: 'ARIO-CATF;ARIO;NOTO;LIVIUS-NR', placeholder: true, note: `DNa, DNb Old Persian (text A: ARIo Q007152/Q007153, CC0). DNa ${opSignsNote('DNa')}. DNb ${opSignsNote('DNb')}. Incised in the dressed field, V-section at 45° (C, D-177); panel position C. NOT carved [PLACEHOLDER, Q-290]: the Elamite and Babylonian versions of DNa and DNb (not in the corpus read) and the captions DNc, DNd, DNe — ${textInfo.join('; ')}` };
     texts.add(tm); tris += tm.geometry.getAttribute('position').count / 3;
   }
   group.add(texts);

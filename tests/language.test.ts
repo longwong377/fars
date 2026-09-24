@@ -221,8 +221,8 @@ describe('language lint: every source that can reach the canvas', () => {
   /** data strings in a non-Latin script, and where they may be: the in-world fields (period scripts, checked above) and
    *  out-of-world notes (source titles, the Greek of a citation). A new one fails until it is classed. */
   const SCRIPT_FIELDS: { file: RegExp; key: RegExp; world: boolean; why: string }[] = [
-    { file: /^src\/data\/inscriptions\.json$/, key: /^\.\w+\.(el|bab)_cuneiform$/, world: true, why: 'the carved Elamite and Babylonian text (cuneiform only, checked above and at the font below)' },
-    { file: /^src\/data\/inscriptions\.json$/, key: /^\.\w+\.op_(cuneiform|signs|words)(\.\d+)*(\.\w+)?$/, world: false, why: 'the Old Persian sign data the carving converts (the carved result is checked at the font below)' },
+    { file: /^src\/data\/inscriptions\.json$/, key: /^\.\w+\.(el|bab)_(cuneiform|lines\.\d+)$/, world: true, why: 'the carved Elamite and Babylonian text, running and in the edition\'s lines (cuneiform only, checked above and read back from the carved meshes below)' },
+    { file: /^src\/data\/inscriptions\.json$/, key: /^\.\w+\.op_(cuneiform|signs|words)(\.\d+)*(\.\w+)?(\.\d+)?$/, world: false, why: 'the Old Persian sign data the carving converts (the carved result is checked at the font below)' },
     { file: /^src\/data\/writing\.json$/, key: /^\.texts\.\w+\.(op|el|bab)_cuneiform$/, world: true, why: 'the seal inscriptions impressed in clay (writing.ts; captured at the font and checked below)' },
     { file: /^src\/data\/geo\/footprints\.json$/, key: /^\.\w+\.osm_name$/, world: false, why: 'OpenStreetMap names of the ruins (modern Persian): provenance of the footprints only; no source file reads osm_name (checked)' },
     { file: /^src\/data\/sources\.json$/, key: /^\.[\w-]+\.(access|cite)$/, world: false, why: 'citations (the Greek of Od. 1.123): dev overlay and translation layer only' },

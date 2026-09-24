@@ -111,14 +111,15 @@ describe('the signs are cut into the stone, not raised on it (M6)', () => {
     expect(checked).toBeGreaterThan(20);
   });
   it('the cut depths are millimetres, stated in each panel\'s note (C)', () => {
+    expect(g.userData.note, 'every carved text fits its field in its own lines').not.toMatch(/DOES NOT FIT/);
     for (const m of carved()) { expect(m.userData.depth, m.name).toBeGreaterThan(0.0015); expect(m.userData.depth, m.name).toBeLessThan(0.015); expect(m.userData.note, m.name).toMatch(/V-section at 45°, deepest [\d.]+ mm/); }
     console.log(g.userData.note);
   });
   it('the dev overlay says what the Old Persian signs rest on: the published sign sequence, word for word (B)', () => {
     for (const m of carved().filter(q => q.userData.version === 'op')) {
       expect(m.userData.note, m.name).not.toMatch(/signs by Kent rules — C/);
-      expect(m.userData.note, m.name).toMatch(/the published sign-by-sign transliteration .* word for word, \d+ word groups \(B\)/);
-      expect(m.userData.tier, m.name).toBe('B'); expect(m.userData.src, m.name).toMatch(/OP-TRANSLIT/);
+      expect(m.userData.note, m.name).toMatch(/the published sign-by-sign edition \(ORACC ARIo in CATF.*\d+ words sign for sign with their dividers \(A\)/);
+      expect(m.userData.tier, m.name).toBe('B'); expect(m.userData.src, m.name).toMatch(/ARIO-CATF/);
     }
   });
   it('the programme\'s gaps are flagged: every copy standing in 467 and not carved is listed, with why, in the dev overlay data (A-M5)', () => {
