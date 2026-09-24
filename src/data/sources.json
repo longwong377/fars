@@ -843,5 +843,20 @@
   "cite": "W. F. M. Henkelman, ‘“Consumed before the King”. The Table of Darius, that of Irdabama and Irtaštuna, and that of his Satrap, Karkiš’, in B. Jacobs and R. Rollinger (eds), Der Achämenidenhof (2010) 667-775 (PF 0701: 126,100 qa of flour ‘consumed before the king’; the king’s table redistributed to family, courtiers and guards)",
   "url": "http://www.achemenet.com/pdf/news/W.HENKELMAN_310308_Consumed%20before%20the%20King.pdf",
   "access": "search-extract only (achemenet and academia blocked, B6; session 6). Darius-era evidence, B; its use for 467 C"
+ },
+ "KR-BEDROCK": {
+  "cite": "The Terrace 'partly carved from the bedrock of Kuh-e Rahmat and partly built from immense limestone blocks' (ad-hoc-news travel feature); 'light-coloured limestone was extracted from Kuh-e Rahmat ... for construction at Persepolis', Majdabad the main quarry (OrigIran, after the petrography study 'Role of petrography in durability of limestone used in construction of Persepolis complex', ResearchGate 332943589)",
+  "url": "https://www.ad-hoc-news.de/unterhaltung/reisen/persepolis-stone-terraces-of-the-achaemenid-kings/70146843; https://origiran.com/stone-iranian-stone-history/",
+  "access": "search extracts only (session 6, D-190): the lithology of Kuh-e Rahmat's face behind the Terrace as limestone, B; bedding, dip and cliff bands NOT SEEN (C)"
+ },
+ "MD1988": {
+  "cite": "D. R. Montgomery and W. E. Dietrich, 'Where do channels begin?', Nature 336 (1988) 232-234: channel heads where drainage area x slope^2 exceeds a threshold",
+  "url": "https://doi.org/10.1038/336232a0",
+  "access": "not seen in this project (recollection of a standard result): the form of the rule B, the thresholds used (D-190) C"
+ },
+ "GLO30-SPEC": {
+  "cite": "Copernicus DEM product handbook (Airbus/ESA): GLO-30 absolute vertical accuracy < 4 m (LE90); relative vertical accuracy < 2 m where slope <= 20 %, < 4 m where slope > 20 %",
+  "url": "https://spacedata.copernicus.eu/collections/copernicus-digital-elevation-model",
+  "access": "not seen in this project (recollection of the published specification): B"
  }
 }

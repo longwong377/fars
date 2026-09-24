@@ -175,3 +175,23 @@ Vineyards (crop row 6): head-trained stocks of about half a metre of old wood al
 | Banks | wet mud film at today's waterline, a damp band above it; bare silt between today's water and the spring flood line (none in April, widest in September); a riparian sward above the flood line | reconstruction | - | C |
 | Water | ripples as band-limited noise advected at the flow speed (wavelengths 2.4-0.17 m), faded by the pixel footprint; body absorbs with the local depth (dark green in mid-channel, the bed in the shallows); turbid flood water an opaque silty brown; Fresnel sky | reconstruction (`src/world/plain/waterShade.ts`) | - | C |
 
+
+## 12. The hills, the town's ground and the plain at a distance (session 6, D-190)
+**Read this first: what is weak.** Nothing below is observed. The lithology of Kuh-e Rahmat as limestone is B (search
+extracts: the Terrace is partly cut from its bedrock); its bedding, dip, cliff bands, the share of bare rock, scree and
+soil, and the shrub cover are C, set by a CPU mirror of the shader, not measured on photographs. The gullies stand where
+the DEM's own drainage converges, but on a 30 m DEM resampled to 4/16 m that is the larger ravines only, and the flow is
+routed over the DEM plus a perturbation within its stated error. The worn paths are a choice of which desire lines wear
+(C); the population does not route along them (src/people is not changed).
+
+| Item | Value | Source | Access | Tier |
+|---|---|---|---|---|
+| Kuh-e Rahmat's rock | limestone; the Terrace "partly carved from the bedrock of Kuh-e Rahmat"; "light-coloured limestone was extracted from Kuh-e Rahmat" | KR-BEDROCK | SX | B |
+| Bedding | packages of 12 m, ~45 % cliff-forming; beds 0.6-2.2 m; dip 0.05 (2.9°) toward grid bearing ~120°; a 9 m warp at ~2 km | reconstruction | - | C |
+| Rock, scree, soil | rock on slopes over ~17-37° (DEM slope at 4 m), on convex spurs and in cliff packages, broken by 20-80 m noise; scree on concave middle slopes and gully beds; colluvial soil and the herb layer on the gentler ground. rock carried by the cliff packages, so it lies in contour bands. CPU mirror, Kuh-e Rahmat E of the Terrace, slopes > 14°: 30 % rock, 22 % scree | reconstruction | - | C |
+| Gullies | channel heads where A·S² exceeds 150-1,500 m² (near ring, 4 m) or 2,500-25,000 m² (mid ring, 16 m), slope > 0.12; D8 over the DEM + fBm of 1.5 m (near) / 3 m (mid); 3.7 % (near) / 6.4 % (mid) of the massif's slopes > 14° | MD1988 (form of the rule); GLO30-SPEC (the perturbation within the DEM's relative error); COP-DEM | NS / FT | B rule / C thresholds |
+| Shrubs | pistachio-almond scrub and Artemisia (pollen, B); 5 m cells, crowns 0.6-1.6 m; 3.5 % cover on open slopes, +15 % in gullies, +4 % on north-facing slopes; none on rock, fields or trodden ground; half within 2 km of the Terrace (fuel cutting, as the woodland rule) | SAEIDI2021 | SX | B species / C cover |
+| The town's open ground | irrigated plots between the built sites (the Kuh-e Rahmat canal's water); none within 30 m of a site, 15 m of a road or water piece, 70 m of the approach line, 150 m of the Terrace, on the court's camp or at a facility | settlement.json canal_kuh_e_rahmat; reconstruction | SX | B canal / C fields |
+| Trodden ground | the Terrace foot (to ~110 m, not up the mountain), the approach line, the quarters and 55 m round, the roads, the court's camp, the facilities | reconstruction | - | C |
+| Worn paths | 1.8 m desire lines (the distance rebuilt per pixel from the 4 surrounding samples' nearest lines): each site's lane mouth to its three nearest sites, to the stair foot; each facility to its two nearest sites and the stair; only runs clear of every site (the population's open-ground runs are straight wherever clear, D-143) | reconstruction | - | C |
+| Rain-fed rotation | crop and fallow years by 800 m district: 70 % of plots barley in a crop year, 10 % in a fallow year (mean 40 %, the data's mix) | fields_rainfed (mix); reconstruction (by block) | - | C |
