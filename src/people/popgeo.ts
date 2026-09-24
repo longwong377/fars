@@ -13,6 +13,7 @@ import type { Population } from './population';
 import { TERRACE_ABSTRACT } from './population';
 import { NAV, type NavGrid, type P2 } from './navgrid';
 import { PLACES } from './sim';
+import { COURT_CAMP } from './court';
 import { sunTimes } from './calendar';
 import { hall100Layout } from './construction';
 import { footprint } from '../arch/spec';
@@ -275,13 +276,15 @@ export class PopGeo {
       case 'training': return this.outside(pid, q, day, 120, 200, 'practice ground outside the quarter (C)');
       case 'field': case 'threshing': case 'vineyard': case 'orchard': return this.plainPlace(pid, head, tail, day);
       case 'camp': case 'route': return this.band(pid, head, tail);
+      case 'court_camp': return this.openNear(COURT_CAMP.c, COURT_CAMP.r, pid, place, 'the court’s camp below the Terrace (court setting; tents NOT BUILT: shown in the open; C)'); // D-182
       default: return this.none(place, 'no rule');
     }
   }
   /** a Terrace spot: spread over the place (its span, a ring round a hearth, the abstract places' areas) on walkable cells
    *  that see the place's anchor in a straight line (so the way to it needs no search; up to 8 draws, else the anchor) */
   private terrace(pid: number, place: string): Spot {
-    const anchor = place === 'palaces' ? `palaces:${['apadana', 'tachara', 'hadish'][Math.floor(this.hash(pid, 'palaces', 12) * 3)]}` : place;
+    // (a court guard post hangs from its line's centre, so the posts of one file share their routes: court.ts, D-182)
+    const anchor = place === 'palaces' ? `palaces:${['apadana', 'tachara', 'hadish'][Math.floor(this.hash(pid, 'palaces', 12) * 3)]}` : (PLACES[place] as { anchor?: string } | undefined)?.anchor ?? place;
     const P = PLACES[place], A = this.abs[anchor], ap = this.anchorPt(anchor); if (!ap) return this.none(place, 'no walkable anchor');
     let s: P2 | null = null, face: P2 | null = null;
     for (let t = 0; t < 8 && !s; t++) { let e: number, n: number;

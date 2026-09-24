@@ -706,9 +706,10 @@ export class Crowd {
       if (best < rc.far && best > rc.near) {
         const proxy = new THREE.Mesh(); proxy.name = `person:${p.agent ? p.agent.id : p.key}`;
         const pp = !p.agent && p.pid >= 0 && this.view ? this.view.pop.persons[p.pid] : null;
-        const who = p.agent ? `${p.agent.name ?? 'unnamed'} (${p.agent.role}, ${p.agent.origin})` : pp ? `${this.view!.pop.nameOf(p.pid) ?? 'unnamed'} (${pp.job}, ${pp.origin}; population person ${p.pid}: ${p.vp?.what ?? ''})` : `extra ${p.key}`;
+        const court = pp ? this.view!.pop.court : null, courtRole = court?.roleOf(p.pid) ?? null; // D-182: the court's people say who they are
+        const who = p.agent ? `${p.agent.name ?? 'unnamed'} (${p.agent.role}, ${p.agent.origin})` : pp ? `${this.view!.pop.nameOf(p.pid) ?? 'unnamed'} (${courtRole ?? pp.job}, ${pp.origin}; population person ${p.pid}: ${p.vp?.what ?? ''})` : `extra ${p.key}`;
         const act = p.act ? `; doing ${p.act}${p.actPlaceholder ? ' — PLACEHOLDER: no performance for this activity (abstract-only), a standing pose is shown' : p.perf ? ` (${p.perf.tier}: ${p.perf.note})` : ''}` : '';
-        proxy.userData = { tier: 'C', src: 'RECON', placeholder: p.actPlaceholder, note: `${who}; ${p.look.dress} dress${act}; ${p.look.note}` };
+        proxy.userData = { tier: 'C', src: 'RECON', placeholder: p.actPlaceholder || !!court?.placeholder(p.pid), note: `${who}; ${p.look.dress} dress${act}; ${p.look.note}` };
         out.push({ distance: best, point: ray.at(best, new THREE.Vector3()), object: proxy } as THREE.Intersection);
       }
     }
