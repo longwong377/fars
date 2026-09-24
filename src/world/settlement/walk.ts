@@ -186,6 +186,15 @@ export class TownWalk {
     for (const i of bySite.get(-1) ?? []) { const near = N.map((p, j) => [Math.hypot(p[0] - N[i][0], p[1] - N[i][1]), j]).filter(q => q[1] !== i && q[0] <= 2500).sort((a, b) => a[0] - b[0]);
       let n = 0; for (const [, j] of near) { if (n >= 8) break; if (this.clear(N[i], N[j])) { link(i, j); n++; } } }
   }
+  /** the lane graph's runs over open ground: between two sites, or from an extra node (the Terrace stair foot, the
+   *  facilities, the roads' vertices). These straight runs are what people walk between the quarters; the plain draws
+   *  them as worn paths (D-190). Read-only: builds the graph on first use exactly as routing does */
+  openRuns(): { a: P2; b: P2; extra: boolean }[] {
+    if (!this.links) this.build(); const out: { a: P2; b: P2; extra: boolean }[] = [];
+    this.links!.forEach((ls, i) => { for (const [j] of ls) { if (j <= i) continue; const si = this.nodeSite[i], sj = this.nodeSite[j];
+      if (si === sj && si >= 0) continue; out.push({ a: this.nodes[i], b: this.nodes[j], extra: si < 0 || sj < 0 }); } });
+    return out;
+  }
   /** node indices within r of p, nearest first */
   nearNodes(p: P2, r: number): number[] {
     if (!this.links) this.build(); const C = 300, out: [number, number][] = [];

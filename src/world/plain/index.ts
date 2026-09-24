@@ -26,6 +26,9 @@ import { buildNaqsh } from './naqsh';
 import { buildQuarries } from './quarries';
 import { doyOf, riverState, marginState } from './seasonal';
 import { riparianMargins } from './riparian';
+import { buildTownGround } from './townGround';
+import { bakeTerrainDetail } from '../../terrain/terrainDetail';
+import type { TownPlan } from '../settlement/plan';
 
 /** r3: 3-D tree radius; maxNear: 3-D trees at most; lod0R: full-detail radius (LOD0, at most MAX_LOD0 trees); rMid: the
  *  mid ring of per-tree impostors (orchards, woodland) ends here; maxMid: its instances at most (D-120). r3 is 0.9x the
@@ -50,17 +53,22 @@ export interface PlainBuild {
   update(dt: number, ctx: any): void;
   stats(): Record<string, number>; summary(): string;
 }
-export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Physics | null, opts: { quality: Quality; seed: number; fetchJson?: (p: string) => Promise<any> }): Promise<PlainBuild> {
+export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Physics | null, opts: { quality: Quality; seed: number; fetchJson?: (p: string) => Promise<any>; town?: TownPlan | null }): Promise<PlainBuild> {
   const t0 = performance.now(), Q = PLAIN_QUALITY[opts.quality] ?? PLAIN_QUALITY.high;
   const group = new THREE.Group(); group.name = 'plain';
   group.userData = tag(feature('fields_irrigated_pulvar'), 'the Marvdasht plain, 467 BCE (plain.json)');
+  const detailP = bakeTerrainDetail(terrain); // the hills' landform maps, off the main thread while the rest builds (D-190)
   const rivers = await loadRivers(opts.fetchJson);
   const canals = buildCanals(terrain, rivers.rivers, opts.seed);
   const villages = placeVillages(terrain, rivers.rivers, canals, opts.seed);
-  const zones = buildZones({ terrain, rivers: rivers.rivers.map(r => ({ x: r.x, y: r.y, halfCorridor: r.carveRadius.mid + 24 })), villages: villages.map(v => ({ x: v.x, y: v.y, r: v.r })) });
+  // the town's used ground (D-190): only with the town as built (?notown and the plain tests keep the D-040 boundary)
+  const townGround = opts.town ? buildTownGround(opts.town) : null;
+  const zones = buildZones({ terrain, rivers: rivers.rivers.map(r => ({ x: r.x, y: r.y, halfCorridor: r.carveRadius.mid + 24 })), villages: villages.map(v => ({ x: v.x, y: v.y, r: v.r })), ground: townGround,
+    sites: opts.town?.sites.map(s => ({ c: s.frame.c as [number, number], theta: s.frame.theta, W: s.W, H: s.H })) });
   const tGen = performance.now() - t0;
   // terrain: the plain's field / crop / woodland layer on the existing chunks (no new draw calls)
-  const ground = new PlainGround(zones); ground.treeR.value = Q.rMid; // the painted canopy gives way to the mid-ring impostors
+  const tDet = performance.now(), detail = await detailP, detailWaitMs = performance.now() - tDet;
+  const ground = new PlainGround(zones, detail); ground.treeR.value = Q.rMid; // the painted canopy gives way to the mid-ring impostors
   const terrainGroup = scene.getObjectByName('terrain');
   terrainGroup?.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).material = ground.material; });
   if (terrainGroup) terrainGroup.userData.note = `${terrainGroup.userData.note}; fields, crops, orchard floors and woodland canopy from plain.json zones (C)`;
@@ -178,7 +186,8 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const stats = () => ({ canals: canals.length, villages: villages.length, compounds: vb.compounds, villageTris: vb.tris, riverTris: rv.stats().tris, lineTrees: lineTrees.length, orchardPlots: plots.length,
     nearTrees: lod0.count() + lod1s.count() + lod1n.count(), lod0Trees: lod0.count(), shadowTrees: lod0.count() + lod1s.count(), nearTreeTris: lod0.tris() + lod1s.tris() + lod1n.tris(), nearR: Math.round(nearR.value),
     midTrees: midCount, orchardRows: orch.userData.rows, treeKitMs: Math.round(kit.buildMs), treeBakeMs: Math.round(kit.bakeMs), treeBakes: kit.bakes,
-    crops: crops.count(), margins: margins.count(), naqshTris: nr.tris, genMs: Math.round(tGen), buildMs: Math.round(tBuild) });
+    crops: crops.count(), margins: margins.count(), naqshTris: nr.tris, genMs: Math.round(tGen), buildMs: Math.round(tBuild),
+    detailMs: Math.round(detail.near.ms + detail.mid.ms), detailWaitMs: Math.round(detailWaitMs), townPaths: townGround?.runs ?? 0 });
   return { group, data: { rivers, canals, villages, zones }, update, stats,
     summary: () => { const s = stats(); return `plain: ${s.villages} villages (${s.compounds} compounds), ${s.canals} canals, ${s.lineTrees} river/canal trees, ${s.orchardPlots} orchard plots, near trees ${s.nearTrees} (LOD0 ${s.lod0Trees}), mid-ring impostors ${s.midTrees}, crop tufts ${s.crops}, built in ${s.buildMs} ms`; } };
 }

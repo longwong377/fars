@@ -13,10 +13,10 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (0 signs); lost stretches blank (C)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
    "op_lines": "A (the edition's lines)",
-   "el_lines": "A (the edition's lines, ARIo CATF; no word spaces)",
-   "bab_lines": "A (the edition's lines, ARIo CATF; no word spaces)"
+   "el_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)",
+   "bab_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)"
   },
   "op_signs": [
    "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a : ha-ya : i-ma-a-ma : ba-u-mi-i-ma : a",
@@ -547,7 +547,7 @@
    "𒌝𒁇𒊒𒍝𒈾𒈾𒌝𒁹𒁹𒁹𒁹𒎙𒀸𒈬𒊒𒌦𒄭𒊌𒆪𒊍𒍝",
    "𒋡𒎕𒃻𒋾𒉌𒋡𒁹𒁕𒊑𒅀𒈠𒌋𒅖𒁹𒁹𒁹𒁹𒎙𒁹𒃻𒀝",
    "𒊑𒁹𒄩𒋡𒎙𒉡𒅖𒅆𒅀𒈾𒀭𒊑𒁹𒅅𒊺𒅕𒅖𒃻",
-   "𒁹𒁹𒁹𒁹𒎙𒍝𒌋𒈪𒅔𒀭𒌋𒊏𒈦𒁕𒈾𒄭𒀸𒂊𒂖𒈪𒅖𒃻",
+   "𒁹𒁹𒁹𒁹𒎙𒍝𒌋𒈪𒅔𒀭𒌋𒊏𒈦𒁕𒄭𒀸𒂊𒂖𒈪𒅖𒃻",
    "𒁕𒀀𒄷𒅖𒁹𒌑𒄷𒌓𒁕𒅕𒊺𒆠𒁕𒀀𒂊𒋼𒅆𒅖",
    "𒉌𒈾𒄷𒌓𒌇𒀸𒉺𒅕𒃻𒄭𒈠𒀊𒉺𒁹𒌑𒄷𒌓𒁕",
    "𒊏𒆪𒌓𒁕𒀊𒉺𒁹𒀜𒁕𒁕𒄷𒌓𒌨𒁕𒀊𒉺𒃻𒊩𒁇",
@@ -558,6 +558,12 @@
    "𒀊𒉺𒁹𒌑𒄷𒌓𒁕𒊏𒆪𒌓𒁕𒀊𒉺𒁹𒀜𒁕𒁕",
    "𒄷𒌓𒌨𒁕𒄷𒁁𒁕𒀭𒌋𒊏𒈦𒁕𒉡𒅖𒄀𒅖𒉌"
   ],
+  "el_marks": {
+   "omitted": 1,
+   "excess": 0,
+   "restored": 12,
+   "paren": 4
+  },
   "bab_lines": [
    "𒀭𒃲𒌑𒀭𒀀𒄷𒊒𒈠𒊍𒁕𒀪𒃻𒆕𒋡𒊒",
    "𒀀𒂵𒀪𒀉𒁷𒉡𒃻𒀭𒂊𒀭𒉡𒌑𒌅𒀉𒁷𒉡",
@@ -579,7 +585,13 @@
    "𒀀𒈾𒆪𒇷𒄑𒀫𒀭𒉌𒌋𒃻𒀀𒈾𒈗𒌑𒋾𒅀𒌋𒆳𒆳𒎌𒅀",
    "𒌋𒃻𒀀𒈾𒆪𒂊𒁍𒍑𒋗𒌋𒃻𒀜𒌑𒀀𒄿𒁍𒍑𒋗",
    "𒌌𒇻𒌑𒌝𒈠𒀭𒀀𒄷𒊒𒈠𒊍𒁕𒀪𒇷𒄑𒀫"
-  ]
+  ],
+  "bab_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 14,
+   "paren": 0
+  }
  },
  "XPb": {
   "ario": "Q007210",
@@ -594,10 +606,10 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (0 signs); lost stretches blank (C)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
    "op_lines": "A (the edition's lines)",
-   "el_lines": "A (the edition's lines, ARIo CATF; no word spaces)",
-   "bab_lines": "A (the edition's lines, ARIo CATF; no word spaces)"
+   "el_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)",
+   "bab_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)"
   },
   "op_signs": [
    "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a",
@@ -1024,6 +1036,12 @@
    "𒌦𒉡𒅖𒄀𒅖𒉌𒀭𒈾𒀊𒉿𒁁𒄭𒁕𒋡𒆪𒌓",
    "𒁕𒀸𒋢𒌦𒈬𒈨𒆪𒌓𒁕𒀊𒉺𒄷𒌓𒁕𒊏"
   ],
+  "el_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 5,
+   "paren": 4
+  },
   "bab_lines": [
    "𒀭𒃲𒌑𒀭𒀀𒄷𒊒𒈠𒊍𒁕𒀪",
    "𒃻𒆕𒋡𒊒𒀀𒂵𒀀𒀉𒁷𒉡",
@@ -1044,7 +1062,13 @@
    "𒀭𒀀𒄷𒊒𒈠𒊍𒁕𒀪𒀀𒈾𒆪",
    "𒇷𒄑𒀫𒀭𒉌𒀉𒋾𒀭𒎌",
    "𒀀𒈾𒈗𒌑𒋾𒅀𒌋𒀀𒈾𒃻𒂊𒁍𒍑𒋗"
-  ]
+  ],
+  "bab_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 0,
+   "paren": 0
+  }
  },
  "XPc": {
   "ario": "Q007211",
@@ -1059,10 +1083,10 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (0 signs); lost stretches blank (C)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
    "op_lines": "A (the edition's lines)",
-   "el_lines": "A (the edition's lines, ARIo CATF; no word spaces)",
-   "bab_lines": "A (the edition's lines, ARIo CATF; no word spaces)"
+   "el_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)",
+   "bab_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)"
   },
   "op_signs": [
    "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a : ha-ya : i-ma-a-ma : ba-u-mi-i-ma :",
@@ -1505,6 +1529,12 @@
    "𒁹𒀜𒁕𒁕𒁹𒁕𒊑𒅀𒈠𒌋𒅖𒁹𒁹𒁹𒁹𒎙𒄷𒌓𒌨𒁕𒄷𒁁",
    "𒋼𒀭𒌋𒊏𒈦𒁕𒉡𒅖𒄀𒅖𒉌𒀭𒈾𒀊𒉿𒁁𒄿𒁕𒋡"
   ],
+  "el_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 0,
+   "paren": 6
+  },
   "bab_lines": [
    "𒀭𒊏𒁍𒌑𒀭𒀀𒄷𒌨𒈠𒊍𒁕𒀪𒃻𒀭𒂊𒅁𒉡𒌑",
    "𒅇𒅕𒍢𒁴𒀀𒂵𒀀𒋫𒅁𒉡𒌑𒃻𒌦𒎌𒅁𒉡𒌑𒃻𒁺𒌦𒄣",
@@ -1519,7 +1549,13 @@
    "𒇷𒄑𒀫𒀭𒉌𒀉𒋾𒀭𒎌𒂵𒀊𒁉𒅇𒃻𒀀𒈾𒆪𒂊𒁍𒍑𒋗",
    "𒅇𒃻𒁹𒁕𒀀𒊑𒅀𒀀𒈲𒈗𒀜𒌑𒀀𒀜𒌅𒌑𒀀𒄿𒁍𒍑𒋗",
    "𒅇𒀀𒂵𒋗𒌑𒀭𒀀𒄷𒌨𒈠𒊍𒁕𒀪𒇷𒄑𒀫𒀉𒋾𒀭𒎌𒂵𒀊𒁉"
-  ]
+  ],
+  "bab_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 0,
+   "paren": 0
+  }
  },
  "XPd": {
   "ario": "Q007212",
@@ -1534,10 +1570,10 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (14 signs); lost stretches blank (C)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
    "op_lines": "A (the edition's lines)",
-   "el_lines": "A (the edition's lines, ARIo CATF; no word spaces)",
-   "bab_lines": "A (the edition's lines, ARIo CATF; no word spaces)"
+   "el_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)",
+   "bab_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)"
   },
   "op_signs": [
    "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a : ha-ya : i",
@@ -1913,12 +1949,18 @@
    "𒈾𒁹𒁹𒁹𒁹𒎙𒆠𒅕𒅕𒊺𒅅𒆠𒅁𒅔𒈾𒎕𒊏𒈠𒁕𒊏𒌝𒁹𒌑",
    "𒁹𒅅𒊺𒅕𒃻𒁹𒁹𒁹𒁹𒎙𒅕𒃻𒅕𒊏𒁹𒁹𒁹𒁹𒎙𒁹𒁹𒁹𒁹𒎙𒅁𒅔𒈾𒁹𒁹𒁹𒁹𒎙𒀸𒁕",
    "𒀀𒌑𒅖𒁁𒈾𒁇𒊒𒍝𒈾𒈾𒌝𒁹𒁹𒁹𒁹𒎙𒀸𒈬𒊒𒌦𒄭𒊌𒆪𒊍𒍝𒋡",
-   "𒎕𒃻𒀜𒋾𒉌𒋡𒄩𒋼𒁹𒁕𒊑𒅀𒈠𒌋𒅖𒁹𒁹𒁹𒁹𒎙𒃻𒀝𒊑",
+   "𒎕𒃻𒀜𒋾𒉌𒋡𒄩𒋼𒁹𒁕𒊑𒅀𒈠𒌋𒅖𒁹𒁹𒁹𒁹𒎙𒃻𒀝",
    "𒁹𒄩𒀝𒋡𒎙𒉡𒅆𒅀𒈾𒀭𒊑𒁹𒅅𒊺𒅕𒃻𒁹𒁹𒁹𒁹𒎙𒅕𒃻",
    "𒅕𒊏𒍝𒌋𒈪𒅔𒀭𒌋𒊏𒈦𒁕𒈾𒄭𒀸𒌌𒄭𒎌𒁹𒌑𒄷",
    "𒌓𒁕𒁹𒌑𒀭𒌋𒊏𒈦𒁕𒌦𒉡𒅖𒄀𒅖𒉌𒀭𒈾𒀊𒉿𒁁",
    "𒄿𒁕𒋡𒆪𒌓𒁕𒀸𒋢𒌦𒈬𒈨𒆪𒌓𒁕𒀊𒉺𒄷𒌓𒁕𒊏"
   ],
+  "el_marks": {
+   "omitted": 1,
+   "excess": 0,
+   "restored": 10,
+   "paren": 6
+  },
   "bab_lines": [
    "𒀭𒃲𒌑𒀭𒀀𒄷𒊒𒈠𒊍𒁕𒀪𒃻𒆕𒋡𒊒𒀀𒂵𒀀𒀉𒁷𒉡",
    "𒃻𒀭𒂊𒀭𒉡𒋾𒀉𒁷𒉡𒃻𒇽𒂁𒋾𒀉𒁷𒉡",
@@ -1931,7 +1973,13 @@
    "𒃮𒁉𒈠𒆷𒂊𒁍𒍑𒋗𒄿𒈾𒄑𒈪𒃻𒀭𒀀𒄷𒊒𒈠𒊍𒁕𒀪",
    "𒂊𒋼𒁍𒍑𒀀𒈾𒆪𒀭𒀀𒄷𒊒𒈠𒊍𒁕𒀪𒇷𒀫𒀭𒉌",
    "𒀉𒋾𒀭𒎌𒌋𒀀𒈾𒈗𒌑𒋾𒅀𒌋𒀀𒈾𒃻𒂊𒁍𒍑𒋗"
-  ]
+  ],
+  "bab_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 5,
+   "paren": 0
+  }
  },
  "XPe": {
   "ario": "Q007213",
@@ -1946,10 +1994,10 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (0 signs); lost stretches blank (C)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
    "op_lines": "A (the edition's lines)",
-   "el_lines": "A (the edition's lines, ARIo CATF; no word spaces)",
-   "bab_lines": "A (the edition's lines, ARIo CATF; no word spaces)"
+   "el_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)",
+   "bab_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)"
   },
   "op_signs": [
    "xa-ša-ya-a-ra-ša-a : xa-ša-a-ya-θa-i-ya : va-za-ra",
@@ -2011,12 +2059,24 @@
    "𒊑𒅀𒈠𒌋𒅖𒁹𒁹𒁹𒁹𒎙𒁹𒃻𒀝",
    "𒊑𒁹𒄩𒀝𒋡𒎙𒉡𒅆𒅀"
   ],
+  "el_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 0,
+   "paren": 0
+  },
   "bab_lines": [
    "𒁹𒄭𒅆𒀪𒅈𒅆𒈗",
    "𒃲𒌑𒈗𒈗𒎌𒀀",
    "𒁹𒁕𒀀𒊑𒅀𒀀𒈲𒈗",
    "𒁹𒀀𒄩𒈠𒀭𒎙𒅆𒀪"
-  ]
+  ],
+  "bab_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 0,
+   "paren": 0
+  }
  },
  "DPh": {
   "ario": "Q007164",
@@ -2031,10 +2091,10 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (0 signs); lost stretches blank (C)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
    "op_lines": "A (the edition's lines)",
-   "el_lines": "A (the edition's lines, ARIo CATF; no word spaces)",
-   "bab_lines": "A (the edition's lines, ARIo CATF; no word spaces)"
+   "el_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)",
+   "bab_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)"
   },
   "op_signs": [
    "da-a-ra-ya-va-u-ša : XŠ : va-za-ra-ka : XŠ : XŠ-ya-na-a-ma : XŠ",
@@ -2280,6 +2340,12 @@
    "𒀭𒌋𒊏𒈦𒁕𒁹𒌑𒁺𒉡𒅖𒁕𒀝𒋡𒅕𒃻𒊏𒀭𒈾𒀊𒉼𒈾",
    "𒁹𒌑𒀭𒌋𒊏𒈦𒁕𒌦𒉡𒅖𒄀𒅖𒉌𒆪𒌓𒁕𒀸𒌌𒄭𒎌𒈪"
   ],
+  "el_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 0,
+   "paren": 2
+  },
   "bab_lines": [
    "𒁹𒁕𒀀𒊑𒅀𒈲𒈗𒃲𒌑𒈗𒈗𒎌𒈗𒆳𒆳𒎌𒀀",
    "𒁹𒍑𒋫𒊍𒉺𒁹𒀀𒄩𒈠𒎙𒅆𒀪𒁹𒁕𒀀𒊑𒅀",
@@ -2289,7 +2355,13 @@
    "𒆳𒊓𒌓𒁕𒃻𒀭𒀀𒄷𒌨𒈠𒊍𒁕𒀪𒀉𒁲𒉡",
    "𒃻𒊏𒁍𒌑𒀠𒆷𒀭𒎌𒀭𒀀𒄷𒌨𒈠𒊍𒁕𒀪",
    "𒁹𒆪𒇷𒄑𒀫𒀭𒉌𒀉𒋾𒀭𒎌𒌋𒀀𒈾𒂍𒅀"
-  ]
+  ],
+  "bab_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 0,
+   "paren": 0
+  }
  },
  "DNa": {
   "ario": "Q007152",
@@ -2304,7 +2376,7 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (24 signs); lost stretches blank (C)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
    "op_lines": "A (the edition's lines)"
   },
   "op_signs": [
@@ -3559,7 +3631,7 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (89 signs); lost stretches blank (C)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
    "op_lines": "A (the edition's lines)"
   },
   "op_signs": [
@@ -5166,10 +5238,10 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (0 signs); lost stretches blank (C)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
    "op_lines": "A (the edition's lines)",
-   "el_lines": "A (the edition's lines, ARIo CATF; no word spaces)",
-   "bab_lines": "A (the edition's lines, ARIo CATF; no word spaces)"
+   "el_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)",
+   "bab_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)"
   },
   "op_signs": [
    "da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya :",
@@ -5260,6 +5332,12 @@
    "𒊑𒁹𒄩𒀝𒋡𒎙𒉡𒅆𒅀𒀝𒋡",
    "𒄭𒀸𒁕𒄑𒍝𒊏𒌝𒄷𒌓𒌨𒁕"
   ],
+  "el_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 0,
+   "paren": 0
+  },
   "bab_lines": [
    "𒁹𒁕𒊑𒅀𒀀𒈲𒈗𒃲𒌑",
    "𒈗𒈗𒎌𒈗𒆳𒆳𒎌",
@@ -5267,7 +5345,13 @@
    "𒀀𒁹𒍑𒋫𒊍𒉺",
    "𒁹𒀀𒄩𒈠𒀭𒉌𒅖𒅆𒀪",
    "𒃻𒂍𒀀𒂵𒀀𒄿𒁍𒍑"
-  ]
+  ],
+  "bab_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 0,
+   "paren": 0
+  }
  },
  "DPb": {
   "ario": "Q007158",
@@ -5282,10 +5366,10 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (5 signs); lost stretches blank (C)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
    "op_lines": "A (the edition's lines)",
-   "el_lines": "A (the edition's lines, ARIo CATF; no word spaces)",
-   "bab_lines": "A (the edition's lines, ARIo CATF; no word spaces)"
+   "el_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)",
+   "bab_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)"
   },
   "op_signs": [
    "da-a-ra-ya-va-u-ša : XŠ : va-za-ra-ka : vi-i-ša",
@@ -5332,12 +5416,24 @@
    "𒁕𒀾𒁀𒁹𒃻𒀝𒊑𒁹",
    "𒄩𒀝𒋡𒎙𒉡𒅆𒅀"
   ],
+  "el_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 0,
+   "paren": 0
+  },
   "bab_lines": [
    "𒁹𒁕𒊑𒅀𒀀𒈲",
    "𒈗𒃲𒌑𒀀",
    "𒁹𒍑𒋫𒊍𒉺",
    "𒁹𒀀𒄩𒈠𒀭𒎙𒅆𒀪"
-  ]
+  ],
+  "bab_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 10,
+   "paren": 0
+  }
  },
  "DPc": {
   "ario": "Q007159",
@@ -5352,10 +5448,10 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (0 signs); lost stretches blank (C)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
    "op_lines": "A (the edition's lines)",
-   "el_lines": "A (the edition's lines, ARIo CATF; no word spaces)",
-   "bab_lines": "A (the edition's lines, ARIo CATF; no word spaces)"
+   "el_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)",
+   "bab_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)"
   },
   "op_signs": [
    "a-ra-da-sa-ta-a-na : a-θa-ga-i-na : da-a-ra-ya-va-ha-u-ša : XŠ-ha-ya-a : vi-i-θa-i-ya-a : ka-ra-ta"
@@ -5396,9 +5492,21 @@
   "el_lines": [
    "𒄯𒁕𒅖𒁕𒈾𒀸𒄯𒎌𒅔𒈾𒁹𒁕𒊑𒅀𒈠𒌋𒅖𒁹𒁹𒁹𒁹𒎙𒀸𒌌𒄭𒎌𒂊𒈠𒄷𒌓𒌇𒋡"
   ],
+  "el_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 2,
+   "paren": 4
+  },
   "bab_lines": [
    "𒆪𒁍𒌨𒊑𒂊𒎎𒂵𒆷𒆷𒄿𒈾𒁉𒀉𒁹𒁕𒊑𒅀𒀀𒈲𒊬𒊑𒅁𒋗𒀪"
-  ]
+  ],
+  "bab_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 0,
+   "paren": 0
+  }
  },
  "DPd": {
   "ario": "Q007160",
@@ -5413,7 +5521,7 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (13 signs); lost stretches blank (C)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
    "op_lines": "A (the edition's lines)"
   },
   "op_signs": [
@@ -5895,7 +6003,7 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (1 signs); lost stretches blank (C)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
    "op_lines": "A (the edition's lines)"
   },
   "op_signs": [
@@ -6420,8 +6528,8 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "C (Kent orthographic rules)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
-   "el_lines": "A (the edition's lines, ARIo CATF; no word spaces)"
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
+   "el_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)"
   },
   "el_lines": [
    "𒁹𒌑𒁹𒁕𒊑𒅀𒈠𒌋𒅖𒁹𒁹𒁹𒁹𒎙𒅕𒃻𒅕",
@@ -6448,7 +6556,13 @@
    "𒈥𒌇𒄭𒆪𒌓𒁕𒃻𒊩𒄑𒋡𒀜𒄭𒅅𒋡",
    "𒍯𒉺𒋡𒄷𒁁𒀀𒉡𒆥𒉌𒂗𒀊𒉺𒁹𒇽",
    "𒎌𒅕𒊏𒄩𒊑𒅅𒋡𒂖𒈠𒎙𒊏"
-  ]
+  ],
+  "el_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 0,
+   "paren": 1
+  }
  },
  "DPg": {
   "ario": "Q007163",
@@ -6463,8 +6577,8 @@
    "text": "A (standard edition, via CC0 mirror)",
    "op_signs": "C (Kent orthographic rules)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)",
-   "bab_lines": "A (the edition's lines, ARIo CATF; no word spaces)"
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
+   "bab_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)"
   },
   "bab_lines": [
    "𒀭𒌋𒊒𒈠𒊍𒁕𒊏𒁉𒃻𒊏𒁍𒌑𒀸𒌋𒅗𒄭𒀭𒎌𒃮𒁉",
@@ -6491,6 +6605,12 @@
    "𒂊𒁍𒍑𒃮𒁉𒀸𒄑𒈪𒃻𒀭𒌑𒊒𒈠𒊍𒁕",
    "𒂊𒋼𒁍𒍑𒀀𒈾𒆪𒀭𒌑𒊒𒈠𒊍𒁕𒇷𒄑𒍮𒌨",
    "𒀉𒋾𒀭𒎌𒃮𒁉𒀀𒈾𒁹𒆪𒌋𒀀𒈾𒃻𒀀𒈾𒆪𒀀𒊏𒈬"
-  ]
+  ],
+  "bab_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 7,
+   "paren": 0
+  }
  }
 }

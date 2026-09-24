@@ -1,7 +1,9 @@
 {
  "_meta": {
   "tool": "tools/build_speech.py",
-  "synth": "eSpeak-NG 1.51",
+  "synth": "eSpeak-NG 1.52.0",
+  "engine": "lib",
+  "engine_note": "libespeak-ng via ctypes from PyPI espeakng-loader",
   "voices": {
    "m1": "man, low",
    "m2": "man, mid",
@@ -9,6 +11,88 @@
    "f1": "woman",
    "f2": "older woman",
    "c1": "child"
+  },
+  "voice_params": {
+   "m1": {
+    "variant": "m1",
+    "pitch": 74,
+    "range": 50,
+    "speed": 140,
+    "target_f0_hz": 118,
+    "target_source": "H95 men mean - 0.6 SD"
+   },
+   "m2": {
+    "variant": "m3",
+    "pitch": 78,
+    "range": 50,
+    "speed": 150,
+    "target_f0_hz": 135,
+    "target_source": "H95 men mean + 0.2 SD"
+   },
+   "m3": {
+    "variant": "m7",
+    "pitch": 70,
+    "range": 50,
+    "speed": 125,
+    "target_f0_hz": 125,
+    "target_source": "H95 men; sim ages 50-55: Hollien & Shipp 1972, near the 40s minimum"
+   },
+   "f1": {
+    "variant": "f2",
+    "pitch": 66,
+    "range": 50,
+    "speed": 150,
+    "target_f0_hz": 220,
+    "target_source": "H95 women mean"
+   },
+   "f2": {
+    "variant": "f4",
+    "pitch": 66,
+    "range": 50,
+    "speed": 135,
+    "target_f0_hz": 205,
+    "target_source": "H95 women - 0.7 SD; Stoicheff 1981: lower after the menopause"
+   },
+   "c1": {
+    "variant": "f5",
+    "pitch": 70,
+    "range": 50,
+    "speed": 160,
+    "target_f0_hz": 250,
+    "target_source": "H95 children (10-12 y) + 0.5 SD: the sim children are 6-10 (voiceFor)"
+   }
+  },
+  "utterance": {
+   "statement": {
+    "punctuation": ".",
+    "range_add": 0,
+    "final_lowering_st": 2.0
+   },
+   "greeting": {
+    "punctuation": ".",
+    "range_add": 15,
+    "final_lowering_st": 2.0
+   },
+   "command": {
+    "punctuation": "!",
+    "range_add": 15,
+    "final_lowering_st": 0
+   },
+   "question": {
+    "punctuation": "?",
+    "range_add": 30,
+    "final_lowering_st": 0
+   },
+   "list": {
+    "punctuation": ",",
+    "range_add": 0,
+    "final_lowering_st": 0
+   }
+  },
+  "final_lowering": {
+   "span": 0.35,
+   "max_s": 0.5,
+   "method": "Praat Manipulation, overlap-add (parselmouth)"
   },
   "approximations": {
    "ʕ": "ɣ",
@@ -46,442 +130,628 @@
    "bab.remark.babbanu",
    "bab.reply.sulmu"
   ],
-  "stamped": "lines and sha256 added retrospectively (D-167): the clips were built at ee4b644 and no build input has changed since"
+  "decision": "D-185 (pitch, stress, contour; library engine), after D-107 and D-167"
  },
  "lines": {
   "op.pious.baga_vazrka": {
    "lang": "op",
    "ipa": "baɡa wazr̩ka auramazdaː",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "baga wazr-ka auRamazda:"
+   "stressed": "ˈbaɡa ˈwazr̩ka auraˈmazdaː",
+   "mnemonic": "'baga 'wazr-ka auRa'mazda:",
+   "input": "[['baga 'wazr-ka auRa'mazda:]]."
   },
   "op.farewell.auramazda_patu": {
    "lang": "op",
    "ipa": "auramazdaː paːtu",
    "intonation": null,
+   "utterance": "greeting",
    "base": "fa",
-   "mnemonic": "auRamazda: pa:tu"
+   "stressed": "auraˈmazdaː ˈpaːtu",
+   "mnemonic": "auRa'mazda: 'pa:tu",
+   "input": "[[auRa'mazda: 'pa:tu]]."
   },
   "op.remark.parsa_uvaspa": {
    "lang": "op",
    "ipa": "paːrsa uwaspaː umartijaː",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "pa:Rsa uwaspa: umaRtija:"
+   "stressed": "ˈpaːrsa uˈwaspaː uˈmartijaː",
+   "mnemonic": "'pa:Rsa u'waspa: u'maRtija:",
+   "input": "[['pa:Rsa u'waspa: u'maRtija:]]."
   },
   "op.pious.vasna_auramazdaha": {
    "lang": "op",
    "ipa": "waʃnaː auramazdaːha",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "waSna: auRamazda:ha"
+   "stressed": "ˈwaʃnaː auramazˈdaːha",
+   "mnemonic": "'waSna: auRamaz'da:ha",
+   "input": "[['waSna: auRamaz'da:ha]]."
   },
   "op.farewell.dargam_jiva": {
    "lang": "op",
    "ipa": "darɡam d͡ʒiːwaː",
    "intonation": null,
+   "utterance": "greeting",
    "base": "fa",
-   "mnemonic": "daRgam dZi:wa:"
+   "stressed": "ˈdarɡam ˈd͡ʒiːwaː",
+   "mnemonic": "'daRgam 'dZi:wa:",
+   "input": "[['daRgam 'dZi:wa:]]."
   },
   "op.affirm.hasiyam": {
    "lang": "op",
    "ipa": "haʃijam",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "haSijam"
+   "stressed": "ˈhaʃijam",
+   "mnemonic": "'haSijam",
+   "input": "[['haSijam]]."
   },
   "op.refuse.nai": {
    "lang": "op",
    "ipa": "nai",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "nai"
+   "stressed": "ˈnai",
+   "mnemonic": "'nai",
+   "input": "[['nai]]."
   },
   "op.refuse.ma": {
    "lang": "op",
    "ipa": "maː",
    "intonation": "fall",
+   "utterance": "command",
    "base": "fa",
-   "mnemonic": "ma:"
+   "stressed": "ˈmaː",
+   "mnemonic": "'ma:",
+   "input": "[['ma:]]!"
   },
   "op.call_workers.paraita": {
    "lang": "op",
    "ipa": "paraitaː",
    "intonation": null,
+   "utterance": "command",
    "base": "fa",
-   "mnemonic": "paRaita:"
+   "stressed": "paˈraitaː",
+   "mnemonic": "pa'Raita:",
+   "input": "[[pa'Raita:]]!"
   },
   "op.identify.adam_rstika": {
    "lang": "op",
    "ipa": "adam r̩ʃtika",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "adam r-Stika"
+   "stressed": "ˈadam ˈr̩ʃtika",
+   "mnemonic": "'adam 'r-Stika",
+   "input": "[['adam 'r-Stika]]."
   },
   "op.remark.vasai_naibam": {
    "lang": "op",
    "ipa": "wasai naibam",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "wasai naibam"
+   "stressed": "ˈwasai ˈnaibam",
+   "mnemonic": "'wasai 'naibam",
+   "input": "[['wasai 'naibam]]."
   },
   "op.count.aiva": {
    "lang": "op",
    "ipa": "aiwam",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "aiwam"
+   "stressed": "ˈaiwam",
+   "mnemonic": "'aiwam",
+   "input": "[['aiwam]]."
   },
   "el.pious.nap_irsarra": {
    "lang": "el",
    "ipa": "nap irʃarra uramasda",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "nap iRSaRRa uRamasda"
+   "stressed": "ˈnap ˈirʃarra ˈuramasda",
+   "mnemonic": "'nap 'iRSaRRa 'uRamasda",
+   "input": "[['nap 'iRSaRRa 'uRamasda]]."
   },
   "el.farewell.uramasda_nuskisni": {
    "lang": "el",
    "ipa": "uramasda nuʃkiʃni",
    "intonation": null,
+   "utterance": "greeting",
    "base": "fa",
-   "mnemonic": "uRamasda nuSkiSni"
+   "stressed": "ˈuramasda ˈnuʃkiʃni",
+   "mnemonic": "'uRamasda 'nuSkiSni",
+   "input": "[['uRamasda 'nuSkiSni]]."
   },
   "el.ask_document.halmi": {
    "lang": "el",
    "ipa": "halmi",
    "intonation": "rise",
+   "utterance": "question",
    "base": "fa",
-   "mnemonic": "halmi"
+   "stressed": "ˈhalmi",
+   "mnemonic": "'halmi",
+   "input": "[['halmi]]?"
   },
   "el.call_workers.kurtas": {
    "lang": "el",
    "ipa": "kurtaʃ",
    "intonation": null,
+   "utterance": "command",
    "base": "fa",
-   "mnemonic": "kuRtaS"
+   "stressed": "ˈkurtaʃ",
+   "mnemonic": "'kuRtaS",
+   "input": "[['kuRtaS]]!"
   },
   "el.ration.gal": {
    "lang": "el",
    "ipa": "ɡal",
    "intonation": null,
+   "utterance": "command",
    "base": "fa",
-   "mnemonic": "gal"
+   "stressed": "ˈɡal",
+   "mnemonic": "'gal",
+   "input": "[['gal]]!"
   },
   "el.ration.kurtas_gal": {
    "lang": "el",
    "ipa": "kurtaʃ ɡal",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "kuRtaS gal"
+   "stressed": "ˈkurtaʃ ˈɡal",
+   "mnemonic": "'kuRtaS 'gal",
+   "input": "[['kuRtaS 'gal]]."
   },
   "el.remark.dusda": {
    "lang": "el",
    "ipa": "duʃda",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "duSda"
+   "stressed": "ˈduʃda",
+   "mnemonic": "'duSda",
+   "input": "[['duSda]]."
   },
   "el.identify.hutlak": {
    "lang": "el",
    "ipa": "hutlak",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "hutlak"
+   "stressed": "ˈhutlak",
+   "mnemonic": "'hutlak",
+   "input": "[['hutlak]]."
   },
   "el.identify.ullira": {
    "lang": "el",
    "ipa": "ullira",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "ulliRa"
+   "stressed": "ˈullira",
+   "mnemonic": "'ulliRa",
+   "input": "[['ulliRa]]."
   },
   "el.refuse.inni": {
    "lang": "el",
    "ipa": "inni",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "inni"
+   "stressed": "ˈinni",
+   "mnemonic": "'inni",
+   "input": "[['inni]]."
   },
   "el.refuse.anu": {
    "lang": "el",
    "ipa": "anu",
    "intonation": null,
+   "utterance": "command",
    "base": "fa",
-   "mnemonic": "anu"
+   "stressed": "ˈanu",
+   "mnemonic": "'anu",
+   "input": "[['anu]]!"
   },
   "el.count.kir": {
    "lang": "el",
    "ipa": "kir",
    "intonation": null,
+   "utterance": "statement",
    "base": "fa",
-   "mnemonic": "kiR"
+   "stressed": "ˈkir",
+   "mnemonic": "'kiR",
+   "input": "[['kiR]]."
   },
   "arc.greet.slm": {
    "lang": "arc",
    "ipa": "ʃəlaːm",
    "intonation": null,
+   "utterance": "greeting",
    "base": "ar",
-   "mnemonic": "S@la:m"
+   "stressed": "ʃəˈlaːm",
+   "mnemonic": "S@'la:m",
+   "input": "[[S@'la:m]]."
   },
   "arc.greet.slm_mra": {
    "lang": "arc",
    "ipa": "ʃəlaːm maːreːʔ",
    "intonation": null,
+   "utterance": "greeting",
    "base": "ar",
-   "mnemonic": "S@la:m ma:Re:?"
+   "stressed": "ʃəˈlaːm maːˈreːʔ",
+   "mnemonic": "S@'la:m ma:'Re:?",
+   "input": "[[S@'la:m ma:'Re:?]]."
   },
   "arc.reply.slm": {
    "lang": "arc",
    "ipa": "ʃəlaːm",
    "intonation": null,
+   "utterance": "greeting",
    "base": "ar",
-   "mnemonic": "S@la:m"
+   "stressed": "ʃəˈlaːm",
+   "mnemonic": "S@'la:m",
+   "input": "[[S@'la:m]]."
   },
   "arc.count.hd_trn_tlt": {
    "lang": "arc",
    "ipa": "ħad təreːn təlaːt",
    "intonation": "level",
+   "utterance": "list",
    "base": "ar",
-   "mnemonic": "Had t@Re:n t@la:t"
+   "stressed": "ˈħad təˈreːn təˈlaːt",
+   "mnemonic": "'Had t@'Re:n t@'la:t",
+   "input": "[['Had]], [[t@'Re:n]], [[t@'la:t]],"
   },
   "arc.offer.lhm": {
    "lang": "arc",
    "ipa": "laħm",
    "intonation": null,
+   "utterance": "statement",
    "base": "ar",
-   "mnemonic": "laHm"
+   "stressed": "ˈlaħm",
+   "mnemonic": "'laHm",
+   "input": "[['laHm]]."
   },
   "arc.identify.spr": {
    "lang": "arc",
    "ipa": "saːpeːr",
    "intonation": null,
+   "utterance": "statement",
    "base": "ar",
-   "mnemonic": "sa:pe:R"
+   "stressed": "saːˈpeːr",
+   "mnemonic": "sa:'pe:R",
+   "input": "[[sa:'pe:R]]."
   },
   "arc.identify.igra": {
    "lang": "arc",
    "ipa": "ʔiɡɡəraː",
    "intonation": null,
+   "utterance": "statement",
    "base": "ar",
-   "mnemonic": "?igg@Ra:"
+   "stressed": "ʔiɡɡəˈraː",
+   "mnemonic": "?igg@'Ra:",
+   "input": "[[?igg@'Ra:]]."
   },
   "arc.greet.slm_lyk": {
    "lang": "arc",
    "ipa": "ʃəlaːm ʕalajk",
    "intonation": null,
+   "utterance": "greeting",
    "base": "ar",
-   "mnemonic": "S@la:m Qalajk"
+   "stressed": "ʃəˈlaːm ʕaˈlajk",
+   "mnemonic": "S@'la:m Qa'lajk",
+   "input": "[[S@'la:m Qa'lajk]]."
   },
   "arc.greet.slm_ahy": {
    "lang": "arc",
    "ipa": "ʃəlaːm ʔaħiː",
    "intonation": null,
+   "utterance": "greeting",
    "base": "ar",
-   "mnemonic": "S@la:m ?aHi:"
+   "stressed": "ʃəˈlaːm ʔaˈħiː",
+   "mnemonic": "S@'la:m ?a'Hi:",
+   "input": "[[S@'la:m ?a'Hi:]]."
   },
   "arc.greet.slma_kla": {
    "lang": "arc",
    "ipa": "ʃəlaːmaː kullaː",
    "intonation": null,
+   "utterance": "greeting",
    "base": "ar",
-   "mnemonic": "S@la:ma: kulla:"
+   "stressed": "ʃəlaːˈmaː kuˈllaː",
+   "mnemonic": "S@la:'ma: ku'lla:",
+   "input": "[[S@la:'ma: ku'lla:]]."
   },
   "arc.reply.slm_lyk": {
    "lang": "arc",
    "ipa": "ʃəlaːm ʕalajk",
    "intonation": null,
+   "utterance": "greeting",
    "base": "ar",
-   "mnemonic": "S@la:m Qalajk"
+   "stressed": "ʃəˈlaːm ʕaˈlajk",
+   "mnemonic": "S@'la:m Qa'lajk",
+   "input": "[[S@'la:m Qa'lajk]]."
   },
   "arc.farewell.slm": {
    "lang": "arc",
    "ipa": "ʃəlaːm",
    "intonation": null,
+   "utterance": "greeting",
    "base": "ar",
-   "mnemonic": "S@la:m"
+   "stressed": "ʃəˈlaːm",
+   "mnemonic": "S@'la:m",
+   "input": "[[S@'la:m]]."
   },
   "arc.affirm.yssyba": {
    "lang": "arc",
    "ipa": "jasˤsˤiːbaː",
    "intonation": null,
+   "utterance": "command",
    "base": "ar",
-   "mnemonic": "jassi:ba:"
+   "stressed": "jasˤsˤiːˈbaː",
+   "mnemonic": "jassi:'ba:",
+   "input": "[[jassi:'ba:]]!"
   },
   "arc.affirm.tb": {
    "lang": "arc",
    "ipa": "tˤaːb",
    "intonation": null,
+   "utterance": "statement",
    "base": "ar",
-   "mnemonic": "ta:b"
+   "stressed": "ˈtˤaːb",
+   "mnemonic": "'ta:b",
+   "input": "[['ta:b]]."
   },
   "arc.refuse.la": {
    "lang": "arc",
    "ipa": "laː",
    "intonation": null,
+   "utterance": "statement",
    "base": "ar",
-   "mnemonic": "la:"
+   "stressed": "ˈlaː",
+   "mnemonic": "'la:",
+   "input": "[['la:]]."
   },
   "arc.call_workers.osparna": {
    "lang": "arc",
    "ipa": "ʔosparnaː",
    "intonation": null,
+   "utterance": "command",
    "base": "ar",
-   "mnemonic": "?ospaRna:"
+   "stressed": "ʔosparˈnaː",
+   "mnemonic": "?ospaR'na:",
+   "input": "[[?ospaR'na:]]!"
   },
   "arc.call_workers.sbqw": {
    "lang": "arc",
    "ipa": "ʃəbuquː",
    "intonation": null,
+   "utterance": "command",
    "base": "ar",
-   "mnemonic": "S@buqu:"
+   "stressed": "ʃəbuˈquː",
+   "mnemonic": "S@bu'qu:",
+   "input": "[[S@bu'qu:]]!"
   },
   "arc.call_workers.azl": {
    "lang": "arc",
    "ipa": "ʔeːzel",
    "intonation": null,
+   "utterance": "command",
    "base": "ar",
-   "mnemonic": "?e:zel"
+   "stressed": "ʔeːˈzel",
+   "mnemonic": "?e:'zel",
+   "input": "[[?e:'zel]]!"
   },
   "arc.count.hd_trn_tlt_arb": {
    "lang": "arc",
    "ipa": "ħad təreːn təlaːt ʔarbaʕ",
    "intonation": "level",
+   "utterance": "list",
    "base": "ar",
-   "mnemonic": "Had t@Re:n t@la:t ?aRbaQ"
+   "stressed": "ˈħad təˈreːn təˈlaːt ʔarˈbaʕ",
+   "mnemonic": "'Had t@'Re:n t@'la:t ?aR'baQ",
+   "input": "[['Had]], [[t@'Re:n]], [[t@'la:t]], [[?aR'baQ]],"
   },
   "arc.ration.wheat_salt_wine_oil": {
    "lang": "arc",
    "ipa": "ħintˤiːn məlaħ ħamar məʃaħ",
    "intonation": null,
+   "utterance": "statement",
    "base": "ar",
-   "mnemonic": "Hinti:n m@laH HamaR m@SaH"
+   "stressed": "ħinˈtˤiːn məˈlaħ ħaˈmar məˈʃaħ",
+   "mnemonic": "Hin'ti:n m@'laH Ha'maR m@'SaH",
+   "input": "[[Hin'ti:n m@'laH Ha'maR m@'SaH]]."
   },
   "arc.ration.npqta": {
    "lang": "arc",
    "ipa": "nipqətaː",
    "intonation": null,
+   "utterance": "statement",
    "base": "ar",
-   "mnemonic": "nipq@ta:"
+   "stressed": "nipqəˈtaː",
+   "mnemonic": "nipq@'ta:",
+   "input": "[[nipq@'ta:]]."
   },
   "arc.ask_document.igra": {
    "lang": "arc",
    "ipa": "ʔiɡɡəraː",
    "intonation": "rise",
+   "utterance": "question",
    "base": "ar",
-   "mnemonic": "?igg@Ra:"
+   "stressed": "ʔiɡɡəˈraː",
+   "mnemonic": "?igg@'Ra:",
+   "input": "[[?igg@'Ra:]]?"
   },
   "grc.greet.khaire_xeine": {
    "lang": "grc",
    "ipa": "ˈkʰaire ˈkseːne",
    "intonation": null,
+   "utterance": "greeting",
    "base": "grc",
-   "mnemonic": "'khaIRe 'kse:ne"
+   "stressed": "ˈkʰaire ˈkseːne",
+   "mnemonic": "'khaIRe 'kse:ne",
+   "input": "[['khaIRe 'kse:ne]]."
   },
   "grc.greet.khaire": {
    "lang": "grc",
    "ipa": "ˈkʰaire",
    "intonation": null,
+   "utterance": "greeting",
    "base": "grc",
-   "mnemonic": "'khaIRe"
+   "stressed": "ˈkʰaire",
+   "mnemonic": "'khaIRe",
+   "input": "[['khaIRe]]."
   },
   "grc.reply.khaire": {
    "lang": "grc",
    "ipa": "ˈkʰaire",
    "intonation": null,
+   "utterance": "greeting",
    "base": "grc",
-   "mnemonic": "'khaIRe"
+   "stressed": "ˈkʰaire",
+   "mnemonic": "'khaIRe",
+   "input": "[['khaIRe]]."
   },
   "grc.reply.ouk_oida": {
    "lang": "grc",
    "ipa": "oːk ˈoida",
    "intonation": null,
+   "utterance": "greeting",
    "base": "grc",
-   "mnemonic": "o:k 'oIda"
+   "stressed": "oːk ˈoida",
+   "mnemonic": "o:k 'oIda",
+   "input": "[[o:k 'oIda]]."
   },
   "grc.reply.tharsee": {
    "lang": "grc",
    "ipa": "ˈtʰarsee",
    "intonation": null,
+   "utterance": "greeting",
    "base": "grc",
-   "mnemonic": "'thaRsee"
+   "stressed": "ˈtʰarsee",
+   "mnemonic": "'thaRsee",
+   "input": "[['thaRsee]]."
   },
   "grc.affirm.nai": {
    "lang": "grc",
    "ipa": "ˈnai",
    "intonation": null,
+   "utterance": "statement",
    "base": "grc",
-   "mnemonic": "'naI"
+   "stressed": "ˈnai",
+   "mnemonic": "'naI",
+   "input": "[['naI]]."
   },
   "grc.farewell.ithi_khairon": {
    "lang": "grc",
    "ipa": "ˈitʰi ˈkʰairɔːn",
    "intonation": null,
+   "utterance": "greeting",
    "base": "grc",
-   "mnemonic": "'ithi 'khaIRO:n"
+   "stressed": "ˈitʰi ˈkʰairɔːn",
+   "mnemonic": "'ithi 'khaIRO:n",
+   "input": "[['ithi 'khaIRO:n]]."
   },
   "grc.pious.o_zeu": {
    "lang": "grc",
    "ipa": "ɔː ˈzdeu",
    "intonation": null,
+   "utterance": "command",
    "base": "grc",
-   "mnemonic": "O: 'zdeU"
+   "stressed": "ɔː ˈzdeu",
+   "mnemonic": "O: 'zdeU",
+   "input": "[[O: 'zdeU]]!"
   },
   "grc.refuse.ou": {
    "lang": "grc",
    "ipa": "ˈoː",
    "intonation": null,
+   "utterance": "statement",
    "base": "grc",
-   "mnemonic": "'o:"
+   "stressed": "ˈoː",
+   "mnemonic": "'o:",
+   "input": "[['o:]]."
   },
   "grc.call_workers.age": {
    "lang": "grc",
    "ipa": "ˈaɡe",
    "intonation": null,
+   "utterance": "command",
    "base": "grc",
-   "mnemonic": "'age"
+   "stressed": "ˈaɡe",
+   "mnemonic": "'age",
+   "input": "[['age]]!"
   },
   "grc.call_workers.phere": {
    "lang": "grc",
    "ipa": "ˈpʰere",
    "intonation": null,
+   "utterance": "command",
    "base": "grc",
-   "mnemonic": "'pheRe"
+   "stressed": "ˈpʰere",
+   "mnemonic": "'pheRe",
+   "input": "[['pheRe]]!"
   },
   "grc.count.eis_duo_treis": {
    "lang": "grc",
    "ipa": "ˈeːs ˈdyo ˈtreːs",
    "intonation": "level",
+   "utterance": "list",
    "base": "grc",
-   "mnemonic": "'e:s 'dyo 'tRe:s"
+   "stressed": "ˈeːs ˈdyo ˈtreːs",
+   "mnemonic": "'e:s 'dyo 'tRe:s",
+   "input": "[['e:s]], [['dyo]], [['tRe:s]],"
   },
   "grc.remark.kalos": {
    "lang": "grc",
    "ipa": "kaˈlɔːs",
    "intonation": null,
+   "utterance": "statement",
    "base": "grc",
-   "mnemonic": "ka'lO:s"
+   "stressed": "kaˈlɔːs",
+   "mnemonic": "ka'lO:s",
+   "input": "[[ka'lO:s]]."
   },
   "grc.ration.dos_moi_sitia": {
    "lang": "grc",
    "ipa": "ˈdos moi siˈtia",
    "intonation": null,
+   "utterance": "statement",
    "base": "grc",
-   "mnemonic": "'dos moI si'tia"
+   "stressed": "ˈdos moi siˈtia",
+   "mnemonic": "'dos moI si'tia",
+   "input": "[['dos moI si'tia]]."
   },
   "grc.offer.artos": {
    "lang": "grc",
    "ipa": "ˈartos",
    "intonation": null,
+   "utterance": "statement",
    "base": "grc",
-   "mnemonic": "'aRtos"
+   "stressed": "ˈartos",
+   "mnemonic": "'aRtos",
+   "input": "[['aRtos]]."
   },
   "grc.identify.iones": {
    "lang": "grc",
    "ipa": "ˈiɔːnes",
    "intonation": null,
+   "utterance": "statement",
    "base": "grc",
-   "mnemonic": "'iO:nes"
+   "stressed": "ˈiɔːnes",
+   "mnemonic": "'iO:nes",
+   "input": "[['iO:nes]]."
   }
  },
  "clips": {
@@ -490,2604 +760,2976 @@
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "63c9995526dec3e1bfedc39156c83643e539af8e60e14753ec722454134a972f"
+   "sha256": "e80c9224570f9d2164f5d395347b1cc1c9f1a3f73d9f13c355d6d5a368155283",
+   "seconds": 2.011
   },
   "op.pious.baga_vazrka|m2": {
    "url": "voices/op.pious.baga_vazrka.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "f8a5fa30cfd403fb1d858bc662610fabc188dbc8e8009691dcad7b4f6e189130"
+   "sha256": "90fbb82b57ddb2725c1a64a9ecb514db520fe97e370579f594f8a43c920ed942",
+   "seconds": 1.863
   },
   "op.pious.baga_vazrka|m3": {
    "url": "voices/op.pious.baga_vazrka.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "d4335a6820f81119ac55963ea5a9931a77d651d827fe7b6cfaa8802540f7ac2c"
+   "sha256": "de24b763b4111a3f31a5ef35dff1750f911646bb83183e8173d3422e70cf0f25",
+   "seconds": 2.26
   },
   "op.pious.baga_vazrka|f1": {
    "url": "voices/op.pious.baga_vazrka.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "69133088a67912e8d492f016b05f4c5486c6ae70ec3000c0ca7f08fe6287b5ba"
+   "sha256": "489222c4b4395b1bd9213415875e937a973dce3b595341f14e2e0baf533d7c14",
+   "seconds": 2.048
   },
   "op.pious.baga_vazrka|f2": {
    "url": "voices/op.pious.baga_vazrka.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "df106db2eaa5e9db47acb707544f9db0bfe3fd8ecb92e2f57de1c60ba6e774f8"
+   "sha256": "c8d55648a20017d0def956dc60a3cbcf5f16b067ad9898435f7f899a35cda6a2",
+   "seconds": 2.256
   },
   "op.pious.baga_vazrka|c1": {
    "url": "voices/op.pious.baga_vazrka.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "f4c116c1fb7acb21be0fb3acb9c1385a788e66469c97ce3750a4adecf334d247"
+   "sha256": "cb8db3b2e8ec352018b027a3600f0b795ee61bf8cf7a526046b02991746456e8",
+   "seconds": 1.908
   },
   "op.farewell.auramazda_patu|m1": {
    "url": "voices/op.farewell.auramazda_patu.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "d5fe892ca68eefb3e60b027b621a4b7da2c5ece2730517c97a486bfeba579c0a"
+   "sha256": "2089daa608b4dc913480e7e836c84881ffdfa6183b4902b5764f3f4144e8140d",
+   "seconds": 1.504
   },
   "op.farewell.auramazda_patu|m2": {
    "url": "voices/op.farewell.auramazda_patu.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "c4680d95bc93235b07106b034b5344bfcb7a61367404763c12dd64c93ea353de"
+   "sha256": "7bcba2485f20bed09a8b81efed03e161933a0e8349fbdad80ef1e02706c57022",
+   "seconds": 1.389
   },
   "op.farewell.auramazda_patu|m3": {
    "url": "voices/op.farewell.auramazda_patu.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "549477afc8d191f09651d1c124c2f952cb17160699fa0a236f0d714f7021963b"
+   "sha256": "0c89ddfbffaeb99a8645969392660727e484fcd3993f99207ec45f57b848b1dc",
+   "seconds": 1.675
   },
   "op.farewell.auramazda_patu|f1": {
    "url": "voices/op.farewell.auramazda_patu.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "e7c26639fb797632ad7e7ec38382a14dafc912221693e8b42cb5f240be2c44a7"
+   "sha256": "a5b9da1c5ea5ddcc3dce30ebff20cea50af832ddfd21fb041e73f1a82b2f871d",
+   "seconds": 1.56
   },
   "op.farewell.auramazda_patu|f2": {
    "url": "voices/op.farewell.auramazda_patu.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "207bcfe08db32687747909b61d563de70536de075b4369234e718e1a4268360f"
+   "sha256": "da0fdb33243dc1009c8c10190c055a7f22d0627c9d39cce807606014ee956ac1",
+   "seconds": 1.717
   },
   "op.farewell.auramazda_patu|c1": {
    "url": "voices/op.farewell.auramazda_patu.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "5cdc693610d529267eaee13ec31098c91612b449a2afd93f29955d3d65ea19b0"
+   "sha256": "0e4bf92e0826153383795a141b77ad1e37742ed82d8d03d35bae324da4b093a7",
+   "seconds": 1.461
   },
   "op.remark.parsa_uvaspa|m1": {
    "url": "voices/op.remark.parsa_uvaspa.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "cb89dc17cf8465bea3d58947d99fbd9f616e2f69ba709d09aab64241fcf582c4"
+   "sha256": "8f1a409a03bd130fc5a76176980a3b75fcb7730452eaa0f60a2928b954ba6bba",
+   "seconds": 1.991
   },
   "op.remark.parsa_uvaspa|m2": {
    "url": "voices/op.remark.parsa_uvaspa.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "18074567024c3cc2aafd01aa4adf23369c1c3552eee81f6492ed648bf9907250"
+   "sha256": "53ead78bf47a7066cb53486f0a39c6f1695cd878714cf746be29fb290db547e6",
+   "seconds": 1.836
   },
   "op.remark.parsa_uvaspa|m3": {
    "url": "voices/op.remark.parsa_uvaspa.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "61f634d537abe49ecc37b57c2d6c8f41a2ae14a03c94c7d1ac9a5cef551b9101"
+   "sha256": "b9ccfa9e69a91215daf9d0cfddc14120bb7825fe2d6e851c5a825407df3ca345",
+   "seconds": 2.24
   },
   "op.remark.parsa_uvaspa|f1": {
    "url": "voices/op.remark.parsa_uvaspa.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "ef2f83daa7466a73ca31d1c33b3b42654effe464535b62a1acda20551c3fb0af"
+   "sha256": "71cb893ab8cc07f88e0f44197b4661b7bc3de52a4157a5dba5f105814e3a6127",
+   "seconds": 2.02
   },
   "op.remark.parsa_uvaspa|f2": {
    "url": "voices/op.remark.parsa_uvaspa.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "3746c1bc997f449a9d1996069924ba596302f13bbd5940b865c9466d34e1c39c"
+   "sha256": "cbeaa6618d4d7cca9079f72e74b85f2a6d513ca2e2d66f93e5704ba340f8e01f",
+   "seconds": 2.22
   },
   "op.remark.parsa_uvaspa|c1": {
    "url": "voices/op.remark.parsa_uvaspa.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "049dd4e4675f80d122f3a8726f0a75efcb8b5119ac2bc177852b1d2935abd5f4"
+   "sha256": "2d398eb7a0c2a9674ce011394857844aab47ac987b03f5bea3672f96283c175b",
+   "seconds": 1.898
   },
   "op.pious.vasna_auramazdaha|m1": {
    "url": "voices/op.pious.vasna_auramazdaha.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "f553cccec6952f8022c360ca3d635b319e103c7ba273cfe0115b8c2a4b3f0b62"
+   "sha256": "cf725119e68e7721dc0bcbe044d1908293e96e03c47af6b404bf3b71d450d52e",
+   "seconds": 1.641
   },
   "op.pious.vasna_auramazdaha|m2": {
    "url": "voices/op.pious.vasna_auramazdaha.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "256b70cdeb3b26c8ea8bbeaa12c87300d9c6e9aaaae2b7b69cc9d3336c6fc826"
+   "sha256": "fc24cd097f06e4a0fd459a50b89fe996116ae7094c5fd827336ae8b464d1f70b",
+   "seconds": 1.539
   },
   "op.pious.vasna_auramazdaha|m3": {
    "url": "voices/op.pious.vasna_auramazdaha.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "e2b1775091fb8a1f9318e108995048bff784a99426815da966d4d46a81d35a72"
+   "sha256": "57d66e7f79c279133298fd3f22161783db14cfa06360c0b83fb4c3833633569b",
+   "seconds": 1.845
   },
   "op.pious.vasna_auramazdaha|f1": {
    "url": "voices/op.pious.vasna_auramazdaha.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "7c5ec64ecd998cab51bd2ecee4cb376c61148c265dc5365fd0478a0c9fb3aacf"
+   "sha256": "a2e10ec84d1a561d43d3147f1d1436fe6d9dc16df0b808202f35208e641a1ba5",
+   "seconds": 1.697
   },
   "op.pious.vasna_auramazdaha|f2": {
    "url": "voices/op.pious.vasna_auramazdaha.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "d96f79e79e152edcbf3715856bde61cc7a565062932750d4596be5c2b89f89ac"
+   "sha256": "53dff97bc1ede883cdca2c7753e07e1321f9f5e919633e1ecc2e82bf5f66c18c",
+   "seconds": 1.842
   },
   "op.pious.vasna_auramazdaha|c1": {
    "url": "voices/op.pious.vasna_auramazdaha.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "760fe1c00fe02e4bcfaef732ef322317ddf3953ab02dbf5d32cd768788388e7f"
+   "sha256": "85165041a01f77e6e951df7e44e597396d78c69ad1b1b6f3fd2f26f1c9b92b6b",
+   "seconds": 1.587
   },
   "op.farewell.dargam_jiva|m1": {
    "url": "voices/op.farewell.dargam_jiva.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "79cbf551c8924654b443cd83e637d14ad7ab10074fe300a1d95e1af852943e4c"
+   "sha256": "72cf09b4b903516fae74e792142c61aa78d8e64e8c165180bba1b220bb0e0f7e",
+   "seconds": 1.229
   },
   "op.farewell.dargam_jiva|m2": {
    "url": "voices/op.farewell.dargam_jiva.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "c21d076cb30ff700bd958117b2c4745ee229d7829207ebe168be3e875cb58c87"
+   "sha256": "c651d48ce5e4e5120557d7a0b62a490e78a82e1b4dbf15397b69b90cb37bc3a5",
+   "seconds": 1.113
   },
   "op.farewell.dargam_jiva|m3": {
    "url": "voices/op.farewell.dargam_jiva.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "3bc9c68dee7d69853a6bd124ef2ee6e681ece6b710fdc90f61f4cfeb365647ce"
+   "sha256": "371aa627a03a75b34184a86b9743f64505c773c549dcc7c2e0d4600fae02da9a",
+   "seconds": 1.376
   },
   "op.farewell.dargam_jiva|f1": {
    "url": "voices/op.farewell.dargam_jiva.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "ad32c3f7a99f9e56fb3fcc9a6eac6f55f8cab62b141e5087c56f96bd3602108a"
+   "sha256": "71ec775e7e78bbde0b210ee6f59842603135ebf6c051a532da556ca3f21d8752",
+   "seconds": 1.306
   },
   "op.farewell.dargam_jiva|f2": {
    "url": "voices/op.farewell.dargam_jiva.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "5805cb143a64b927bfd60413d3a383674eadc922013672fff50ed6f5ff86d346"
+   "sha256": "7c4dc0fdab76dbab758d94e8798e6d10fe530075071aed9ddb38a920a26a9a9b",
+   "seconds": 1.457
   },
   "op.farewell.dargam_jiva|c1": {
    "url": "voices/op.farewell.dargam_jiva.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "f83797b102c90356143041bacd0e60a74d8bf9d8777f25bb39c19b2139cee39e"
+   "sha256": "705a21e1257acb49f75e4a63cfa6a25c8d1737b15636a19e095371ac1bcb99ba",
+   "seconds": 1.235
   },
   "op.affirm.hasiyam|m1": {
    "url": "voices/op.affirm.hasiyam.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "25a6306dc36d4071d34117cbc91e6a9a24e901649b3e12e93c5d0fd0abb72304"
+   "sha256": "f816e9828368d0fa08aee08156fae8a4fb01421faaf5cdfa92907d679a2cf902",
+   "seconds": 0.778
   },
   "op.affirm.hasiyam|m2": {
    "url": "voices/op.affirm.hasiyam.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "031b73c0f99bb1a9f4e74ba55fe538cb3794ac9a478d62d6375a6d7b4a810cd9"
+   "sha256": "9d402ab4f6493e4598a34ed5fbaaffd0f149f90a4b15cdc99a7ed50fd72101be",
+   "seconds": 0.729
   },
   "op.affirm.hasiyam|m3": {
    "url": "voices/op.affirm.hasiyam.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "5bda57ebcaeb14b3dd4c6eee569bd0f25306ae8d817be0fece19759d1e63fbe7"
+   "sha256": "4798703ec69cb2358cf7f63a77d77d0d900cde508ef6f90d56b774d44a16ae51",
+   "seconds": 0.861
   },
   "op.affirm.hasiyam|f1": {
    "url": "voices/op.affirm.hasiyam.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "af1ceeae7546266f7a7ce7e52784b843d5f5f0137be588ad0ee7a2e027d820c1"
+   "sha256": "bfcd4be03c674b608423cb322513dff0c1fe98116fb3b7bb4423adf2b467446c",
+   "seconds": 0.853
   },
   "op.affirm.hasiyam|f2": {
    "url": "voices/op.affirm.hasiyam.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "873d0ed43a2a6739728e4428160fc5943677da019e450a305ba9fba45742edf1"
+   "sha256": "2bfc9b395ef142a2c7ec8f5c9382b901d55ace3c890ebf2529f5bca118465bf0",
+   "seconds": 0.948
   },
   "op.affirm.hasiyam|c1": {
    "url": "voices/op.affirm.hasiyam.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "9d2cc75bbe2939a3745475ccf3d509ec85852c2163c04df1c3bd6668f3e48b22"
+   "sha256": "2bee27da0e0ba56148cf4d8e8a63587021ba8c270ecbc2fed7f52b91ee8a3996",
+   "seconds": 0.789
   },
   "op.refuse.nai|m1": {
    "url": "voices/op.refuse.nai.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "165bb57effc2e22cb0c39f9257ffdee558b2898e1774b80c6e66eae9c89af523"
+   "sha256": "4c38e157922e3b72cfe4447fbd8e2a12e5de3258bf16b29bc62301090db79d9e",
+   "seconds": 0.501
   },
   "op.refuse.nai|m2": {
    "url": "voices/op.refuse.nai.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "157e596eefa1109bd8c068604beb8eb9ef3245d668e46c17a1b7ab8c217bd3cd"
+   "sha256": "c443b0b8c401fd19b21bcbb360cae7a24c8152224a241b4fc3dee8e266ae77c9",
+   "seconds": 0.464
   },
   "op.refuse.nai|m3": {
    "url": "voices/op.refuse.nai.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "9f3768c0905b53ec79e26b816fca89d00902fd55b01f8d4ba57e84d9a8ca08a1"
+   "sha256": "c813aaa2126d61949540274362fcca5f90253375fb4772ecd5a849c2ffb0d6b2",
+   "seconds": 0.574
   },
   "op.refuse.nai|f1": {
    "url": "voices/op.refuse.nai.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "9dff743cc1aad618b20bac5ff79c64ba7d2c1ed2f69ce49e9a06806be32c6664"
+   "sha256": "e0deca8933d154cd794f3b52672711544f44d687136c9ccf432d331a8bf9c523",
+   "seconds": 0.631
   },
   "op.refuse.nai|f2": {
    "url": "voices/op.refuse.nai.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "73fb9d7b900fd0459de80e36695ef51c4e104b33d3467deff396cd032b41d79b"
+   "sha256": "23d48d4ab162822806cb565ff0f44f4dc17b095022ff2e48de26805e4c842ec5",
+   "seconds": 0.716
   },
   "op.refuse.nai|c1": {
    "url": "voices/op.refuse.nai.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "a69a6a400d79813db1b23d1598c909c58a5de3336c499aa4abc7d8dba762634a"
+   "sha256": "7faf52609d2e4f3c1055d732c9754c1f89b70fe941028ca74aaaecd1fb937c9a",
+   "seconds": 0.604
   },
   "op.refuse.ma|m1": {
    "url": "voices/op.refuse.ma.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "976d918439912ecaad0788df268053178bca402afa52dc450db6100ad7a40eb1"
+   "sha256": "a1360e538a6e116c8e3649c2c3ead8cd773285399647c38fc95d8a3d812024d8",
+   "seconds": 0.567
   },
   "op.refuse.ma|m2": {
    "url": "voices/op.refuse.ma.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "29e4e8e547350b148a45a3d70d351c164561c8001c24cfec12b4731e13fa7477"
+   "sha256": "dae96dd856835943dc166e756e8c4a8e2cf201005e8e907622b7c5d86f7b53af",
+   "seconds": 0.484
   },
   "op.refuse.ma|m3": {
    "url": "voices/op.refuse.ma.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "4b1151d5bbba3fa16b845844712e2d45aa338a16e854db4015b1e23d8bf6a897"
+   "sha256": "97c7d962408ec9211ed641206e9fabbb73de579c09743718fa5be751e7949f85",
+   "seconds": 0.646
   },
   "op.refuse.ma|f1": {
    "url": "voices/op.refuse.ma.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "268732e8d9980c0830517653f7cf9c65254bfc4df0a9a0966567646305964da7"
+   "sha256": "d976dfdf44162432fed524995460213153f039b0abbfd469e4fbe5361108a757",
+   "seconds": 0.728
   },
   "op.refuse.ma|f2": {
    "url": "voices/op.refuse.ma.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "65b7ca847b2982f826ed37c51d044cff4c3ebc4c110cee267f9f07fef51e876a"
+   "sha256": "4c5fba16ae90094b7b4d3d8c88740fcc84d176d48f38b5f4b330500b83e58c05",
+   "seconds": 0.797
   },
   "op.refuse.ma|c1": {
    "url": "voices/op.refuse.ma.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "e47fd1d08d92b450b412d71341782127ac270cdf1d2cf506763044e3c0fa081b"
+   "sha256": "3f7a4d2591a0a151b40a8f31214b7d31eae89f380324f33329d37a893a900218",
+   "seconds": 0.682
   },
   "op.call_workers.paraita|m1": {
    "url": "voices/op.call_workers.paraita.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "0435b81f3357eb88c33dbaebcbc1e52f3e4b28df54430aed5dc6edc428850bf4"
+   "sha256": "3af43e13bb8522d4970f7e3fb72d0da2375fb5bcb5632d1e3456003895319f00",
+   "seconds": 0.895
   },
   "op.call_workers.paraita|m2": {
    "url": "voices/op.call_workers.paraita.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "2e597e244603b46f370247dc70ba3332156f28d963ef93e899c592e3f6732c45"
+   "sha256": "da748b9bd6e0ec4c0a9710505c58ace9e4035ef5b889d07f1ef8fecf0766b242",
+   "seconds": 0.839
   },
   "op.call_workers.paraita|m3": {
    "url": "voices/op.call_workers.paraita.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "f73e7c63c03c64bfce83a82333cd8ed6fa2e65853d3eb1a01e063486b55a3ba0"
+   "sha256": "a24bd1479244f0fade65920478d97f158ba57464c0e0be9f1deb3833f1f42e62",
+   "seconds": 1.004
   },
   "op.call_workers.paraita|f1": {
    "url": "voices/op.call_workers.paraita.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "829dbb113f44faca57e5ad7fd52253fdd2573d5d00acab7262fee7df4dabc3b2"
+   "sha256": "1fd3ec91a925b579935d3115d6ae60105fd8590b14d072fc32f015d8548c866e",
+   "seconds": 1.003
   },
   "op.call_workers.paraita|f2": {
    "url": "voices/op.call_workers.paraita.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "22cc4dd7f937a80d2a0d77d0610cb88489b061be38a3ef5cc4581ada62283347"
+   "sha256": "e784ef3cee8d37076b4e3dbfea6364c984b514d3ff8eb0f0f90d238e7867bd89",
+   "seconds": 1.097
   },
   "op.call_workers.paraita|c1": {
    "url": "voices/op.call_workers.paraita.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "b0c5464178755635e879b2a0248506ce76b11ef15ee2b7c3397c1f550302dd03"
+   "sha256": "043283dbc26a20aa8775303d6f47f5ce641b7116827585050a5455e2aa300f42",
+   "seconds": 0.941
   },
   "op.identify.adam_rstika|m1": {
    "url": "voices/op.identify.adam_rstika.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "5125d2fa198b8f983b909f36f40b8b107f556fcf3ceb5973a67ea608ae70367a"
+   "sha256": "5ec2a75d765b39100265d90dd4fb63063322a0c96fa55dcd5e1eeaf3916c6cdc",
+   "seconds": 1.168
   },
   "op.identify.adam_rstika|m2": {
    "url": "voices/op.identify.adam_rstika.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "e9763d8f3f1d7d7e63e7c794a6644acef3ba2524d10281f1a95fd33a76cb02d6"
+   "sha256": "4936c5ab3a12148107b09d6f40d62d23bf9a66bdf02f0b6990e25963e45776f9",
+   "seconds": 1.072
   },
   "op.identify.adam_rstika|m3": {
    "url": "voices/op.identify.adam_rstika.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "be4cb8fe418669cc536047f69ec2a44a0197ec34188fb746e9b748d15aad141b"
+   "sha256": "84af1a6595292c7a09fd88465821a74a6dc3bf0b9af80cf2d1ed2ddd1428eaf1",
+   "seconds": 1.312
   },
   "op.identify.adam_rstika|f1": {
    "url": "voices/op.identify.adam_rstika.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "a4ff31a086d71a6ac4b07ece2418d024da94315b0aa224905a39ea5720a4a1a8"
+   "sha256": "38d0efdebfea70ec58bb3c2fbb83b4006b0cf47311b052aa9c748cc7e8a038c5",
+   "seconds": 1.257
   },
   "op.identify.adam_rstika|f2": {
    "url": "voices/op.identify.adam_rstika.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "20af085b01f47236c3635fecc862c036eed4afaa06cd530df3557044f691a37b"
+   "sha256": "80e037178791b9b3b0049609789ceada66778692e26db79a2ac5535d1aef4924",
+   "seconds": 1.407
   },
   "op.identify.adam_rstika|c1": {
    "url": "voices/op.identify.adam_rstika.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "98e143ba9bf1f0b07506f7f4ae5aa7c9d4b5278ca719df5c5a2d6916e2f25be7"
+   "sha256": "e8c6e25e395eb69acfee0ec7fb7f2b646aca23b24a472eaa25639c00c7b6b4fe",
+   "seconds": 1.191
   },
   "op.remark.vasai_naibam|m1": {
    "url": "voices/op.remark.vasai_naibam.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "4a93df4b94784248a528eb87b7c5ea618d77cef96e40fd753326aa8bd90aeb3f"
+   "sha256": "acee0a26aa615e2270574dc476c672e2bc91f4f2616c3eb2d1168399891ca440",
+   "seconds": 1.204
   },
   "op.remark.vasai_naibam|m2": {
    "url": "voices/op.remark.vasai_naibam.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "d2ebd0750296e97c8354d9678c82a2f38437de732f15c8bc6ff2aafff5c88089"
+   "sha256": "54b3a18f564ea9f1e1e082cad7da44c96eeab018745d832b5ae200d9d7ce31c5",
+   "seconds": 1.119
   },
   "op.remark.vasai_naibam|m3": {
    "url": "voices/op.remark.vasai_naibam.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "f94424f480bef35eca543ffe6218dd43d51c50dd42e8915974799348d4d800af"
+   "sha256": "c66d476f14cf3f8f6003d4252890c367df5c94812dbb952a2d9d6f9823e87bf8",
+   "seconds": 1.371
   },
   "op.remark.vasai_naibam|f1": {
    "url": "voices/op.remark.vasai_naibam.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "9e65040286634dd9cf19d4c266afd7cde368156947bb64ca8e61ced0db4353a7"
+   "sha256": "7c7a93f146da9f55be15f13b559e7a81900eae3dbbc25787e3041f2502836512",
+   "seconds": 1.271
   },
   "op.remark.vasai_naibam|f2": {
    "url": "voices/op.remark.vasai_naibam.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "d21c68104c3c15948729deb8c8039c5fd476d19d5fd345c859acd9ac701fb16f"
+   "sha256": "7713ba3a14f80cdc10d083f0c407e4993a177600565254e63c872f02c2ecca4f",
+   "seconds": 1.404
   },
   "op.remark.vasai_naibam|c1": {
    "url": "voices/op.remark.vasai_naibam.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "d391fabab926c19854fffca65619ed7ce8b0e18089ea5262707cb5699d675533"
+   "sha256": "a58ab8cdcfcb4f245bc15e0ceaff4de8c49133b00338faa4d9ac145976e3e5ec",
+   "seconds": 1.229
   },
   "op.count.aiva|m1": {
    "url": "voices/op.count.aiva.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "1c21bfce451d22a7a6a5483f406bc11ee9b115b7b3ce5f27bc0ef7f9ec2dc45f"
+   "sha256": "632ee9c9acf977e4cc7c200a0b8192c1a0aab19846f91c8dde396162dec37a1f",
+   "seconds": 0.611
   },
   "op.count.aiva|m2": {
    "url": "voices/op.count.aiva.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "b2a97ff2746250bd35a692939a412238fae174c712f75870ddcec32b56edbb6b"
+   "sha256": "67b5ce2cd2a60179315eaeaf8e17e86cd1e8d4d0eaa303670bec5825476ef0b8",
+   "seconds": 0.578
   },
   "op.count.aiva|m3": {
    "url": "voices/op.count.aiva.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "1125eec8c1d12ba73c9864a8f1ffb266968f1b811bf7c52b33243f1a04d823c4"
+   "sha256": "ef6be126be1a8fc9b5ed67b082d27a7c36ccf8ffa84b944da13cbfc2e0ab688f",
+   "seconds": 0.678
   },
   "op.count.aiva|f1": {
    "url": "voices/op.count.aiva.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "a5cba9b5c10ccbf2047e44d5298b3a4ab4f5bba3dd7ae85c46f4d6995f55215c"
+   "sha256": "cd9d485844493220489063dbe84075d9038a3f99b03d302fa3406e862da3ae27",
+   "seconds": 0.709
   },
   "op.count.aiva|f2": {
    "url": "voices/op.count.aiva.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "5b78504bbf6b121e7e11ab08027837b7b517c5d8e40d4cf7915b50fbb9a8ccf2"
+   "sha256": "70c4143ba50dc46ecd21467e63a420ed373335ca88494488ce57bdd6ec8ecee4",
+   "seconds": 0.772
   },
   "op.count.aiva|c1": {
    "url": "voices/op.count.aiva.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "da3231fa7865414a55c23e04151ddf03a37363446242ffcddaff4a9837e61857"
+   "sha256": "a4d0674e7c134e6020b30891459b7a551433ed00d5080138cc5277894a2a48b1",
+   "seconds": 0.695
   },
   "el.pious.nap_irsarra|m1": {
    "url": "voices/el.pious.nap_irsarra.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "0be52ae95b8bf8dfa24b3477beac609bc41c1ad4de055a93011316f83b41ca99"
+   "sha256": "c910d95ff340b8bec112efa9610f77a5c2eefc649785216aa11fed9bf26f214d",
+   "seconds": 1.814
   },
   "el.pious.nap_irsarra|m2": {
    "url": "voices/el.pious.nap_irsarra.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "b7ca8b297876059fe5da2b6251fc9b8355621c4a6875477ac73fad9ccda9be8e"
+   "sha256": "20feeca9c78fb6621c0c3efdaac56d0d744d806382f7c4caee93c70c78e00a47",
+   "seconds": 1.671
   },
   "el.pious.nap_irsarra|m3": {
    "url": "voices/el.pious.nap_irsarra.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "4516511e60a064dc6a9813ce3354cbc461a3ba081ac3a2229d54362088848fb1"
+   "sha256": "465f2412e2ff75e7032fba2cf4d1ab426188fbb192d502ae05a3562bacc1086d",
+   "seconds": 2.041
   },
   "el.pious.nap_irsarra|f1": {
    "url": "voices/el.pious.nap_irsarra.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "6c4e1140111d4bfba3611ea1209c99e217e236300a2aec30a99b365f4bbf578d"
+   "sha256": "ce1100889df2c06835a0f2414b674fac2ad74e2f0494c9307f3ac4d0a91bb5f4",
+   "seconds": 1.861
   },
   "el.pious.nap_irsarra|f2": {
    "url": "voices/el.pious.nap_irsarra.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "d639bd2866b0f39af3cd704553de8db2b6a724bc932909c5d501261efa30e0b9"
+   "sha256": "0c69d7509aa3e08ecce729f290550f14acdd4bdbe88226e92fff46a6e4fa221c",
+   "seconds": 2.046
   },
   "el.pious.nap_irsarra|c1": {
    "url": "voices/el.pious.nap_irsarra.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "ccd05c43d7fa259e315cc5befe27e8f47c0882111460f2f99158e56f91827fee"
+   "sha256": "ba57dfe678fb1e3a63ab0b9044a946f576dda7809c519383066b763fa234b64c",
+   "seconds": 1.75
   },
   "el.farewell.uramasda_nuskisni|m1": {
    "url": "voices/el.farewell.uramasda_nuskisni.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "3d970b4d2dc507c7952bf25dde08ca4c06f5167e5d2fb391c9c78af8e42a539d"
+   "sha256": "5e72956e1585b0c493378b95996561dd3589cb8c0e7337af56a635d79cc5c5ee",
+   "seconds": 1.633
   },
   "el.farewell.uramasda_nuskisni|m2": {
    "url": "voices/el.farewell.uramasda_nuskisni.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "11d9032f6531c05554ddafd2320b9740f3373572a9d8c90a10f045faa4f2ff56"
+   "sha256": "7631895b4773c921e7a5edfb07f9f21a5f0b4e314bee847068f223f9a578f1fc",
+   "seconds": 1.531
   },
   "el.farewell.uramasda_nuskisni|m3": {
    "url": "voices/el.farewell.uramasda_nuskisni.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "d693b948b53a3fe8f0d78b5fbad99e3891b43ef3d6075f3c7344b5f6931db309"
+   "sha256": "2c0803dda9fbca9cb707c3068ae04908e5a440637aae57d76a0e16a2651eb7ee",
+   "seconds": 1.856
   },
   "el.farewell.uramasda_nuskisni|f1": {
    "url": "voices/el.farewell.uramasda_nuskisni.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "f91324187ca5cf38ab6023961a06e390b799f12982541f3a99aa1c5f494ad603"
+   "sha256": "7a79522d5e28854fa586ba58d9e0deb1c8c7f894293299e0907bd1d3b3d5b10c",
+   "seconds": 1.698
   },
   "el.farewell.uramasda_nuskisni|f2": {
    "url": "voices/el.farewell.uramasda_nuskisni.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "fa2ed2749cd6ed70f478a1b7bbae2ab55aa8707b3f951cf016944a0aa3ac0aba"
+   "sha256": "eabed412b04b5da05eb8f69cd67d2599216e921bbef051ba0fad49d8590edb1e",
+   "seconds": 1.85
   },
   "el.farewell.uramasda_nuskisni|c1": {
    "url": "voices/el.farewell.uramasda_nuskisni.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "9756f729ff16ad3e2b3cb9de9dbc7a6563b1a1a47264f70495bbd12f7085ef6f"
+   "sha256": "e96532ff8afad00f534d9c6a5cab7a0ba2f6801fb0790fbbb3f51d6b309c056a",
+   "seconds": 1.599
   },
   "el.ask_document.halmi|m1": {
    "url": "voices/el.ask_document.halmi.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "b47d33c0a1eb47d2ea3f58548b2a0fbdad6ad85600390a364998b397c10d8dab"
+   "sha256": "a7e45bf5c652fd28dbf40c2f85d903ce2822e874c76fa623bcf781737c0d801e",
+   "seconds": 0.677
   },
   "el.ask_document.halmi|m2": {
    "url": "voices/el.ask_document.halmi.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "9d983e5613f8c934e4f54c44cdda1a4ea5220dbb6e30696033c0e306c6daa54d"
+   "sha256": "2287de970618800462cc8125c1051839e783bb97e66c0889b95de4ac9ee3e4c0",
+   "seconds": 0.628
   },
   "el.ask_document.halmi|m3": {
    "url": "voices/el.ask_document.halmi.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "3f30baa248b6b5a9d24b44af7d40f873cd9edc3a9b2bc7e1531bdc76e9265e3f"
+   "sha256": "3675fbf18dee7d2656f96b374d1a1dac44dc3591aab4f70820156c9d5ffeaba1",
+   "seconds": 0.769
   },
   "el.ask_document.halmi|f1": {
    "url": "voices/el.ask_document.halmi.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "3fa16094ec4369b739480bd2210aed3b2fcb0c56316f62cdd4804c2306866653"
+   "sha256": "c183befe129f6fa4b7d0f5b4c96105951cede74bc232a0b3a32f3b0a20b86c81",
+   "seconds": 0.797
   },
   "el.ask_document.halmi|f2": {
    "url": "voices/el.ask_document.halmi.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "10fc60225d955dcbc6ae8d480b156d7ba51e76b1ed9857c0785548dc758edd8a"
+   "sha256": "302f8dd0f469754fa58c7ca470cc599496f0d8e4dfdf64ee2aec4c0164e1bf8d",
+   "seconds": 0.909
   },
   "el.ask_document.halmi|c1": {
    "url": "voices/el.ask_document.halmi.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "5b4a33bc8b2603951c236576ae799284eecc087819c0efef5b6d7953d715c4e7"
+   "sha256": "5424ae0eebbe9d273486506002b077077d296cf01d13a6f84eeeebdaf0938869",
+   "seconds": 0.757
   },
   "el.call_workers.kurtas|m1": {
    "url": "voices/el.call_workers.kurtas.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "1015f69aeadaa5eda547c364dfc346c8d5bfe0d0db9990496300851cb3189633"
+   "sha256": "54282e5db6dee7a88c9de0083e6676b6452dd67a75032c281a5320fee0663ad9",
+   "seconds": 0.769
   },
   "el.call_workers.kurtas|m2": {
    "url": "voices/el.call_workers.kurtas.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "2e731444d679b2cd69a1963bad4941a42e12b56ea9314d625bfd50d3ea4b619a"
+   "sha256": "40e411f7775ca205fa98f9185e186dbb05b91f7a89771577105ae8753ee7d9bd",
+   "seconds": 0.71
   },
   "el.call_workers.kurtas|m3": {
    "url": "voices/el.call_workers.kurtas.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "15bdc5cbe8635a5aea31e37d97685a5d5295d8be54d887cdbec5024c436843e0"
+   "sha256": "053c94f1c91989ced7cda7c21627d0a93535bae6798bc3842d43bd5c178d657f",
+   "seconds": 0.848
   },
   "el.call_workers.kurtas|f1": {
    "url": "voices/el.call_workers.kurtas.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "9a691e11ac0d2e52279a068896583ba5be9368c5973b6c0c85142259e152292d"
+   "sha256": "43e1e91d0d6f9c9557e13296a5a24f501e8b34c352b9b993357adc16025149fd",
+   "seconds": 0.873
   },
   "el.call_workers.kurtas|f2": {
    "url": "voices/el.call_workers.kurtas.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "ab32d725ac904abbe39e192cd13cfe0d0e66880f381b13e4b99deec8de53887a"
+   "sha256": "857bd31646657349930857374eede2d76d0689025c78d08e2ee84a82b0d8e953",
+   "seconds": 0.965
   },
   "el.call_workers.kurtas|c1": {
    "url": "voices/el.call_workers.kurtas.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "5ce0bbb7f3a7ffd0c8fa7c22184c94f7319aadd41a629cc50732c0a31c351c18"
+   "sha256": "d6768e1baa4982e3b0d3e71f158a438b2e990ae1465da83ed29a9077629490e5",
+   "seconds": 0.832
   },
   "el.ration.gal|m1": {
    "url": "voices/el.ration.gal.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "e5d7963a17454c763c3ca33c906f1bd643002ebccd2c7e958bf309e8589f9040"
+   "sha256": "eca9d3dfe7d06b7c4b2f4fe934d9615691410ff9d02d6e80d8b607eff5ac1eda",
+   "seconds": 0.492
   },
   "el.ration.gal|m2": {
    "url": "voices/el.ration.gal.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "27fc8a5100139e1954b407e130558e341e05f1af9bde09fcf034c629e74792a5"
+   "sha256": "d6bf9bf30e76e44f26d256e01ead1118f8116e1f740695f73ad789ee66ec3401",
+   "seconds": 0.431
   },
   "el.ration.gal|m3": {
    "url": "voices/el.ration.gal.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "f45d24fc9476e74857cfdce5599aa4d3bf66d520f08b1610c27a0c37681cc313"
+   "sha256": "ef41bcb11f627c9cd016d87e6b41f82a4b992c60a68db4a9c2eb60b22e047d0a",
+   "seconds": 0.556
   },
   "el.ration.gal|f1": {
    "url": "voices/el.ration.gal.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "4e6cbf132fdc6e589b1e6fee28a93911c5fdbd9b57fe5d04ea7dcb4ec7f09225"
+   "sha256": "b1eea9e0ef098f730bfe45180a3e1e500fc011a0d4c041be8bfb2d44a099ffe8",
+   "seconds": 0.611
   },
   "el.ration.gal|f2": {
    "url": "voices/el.ration.gal.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "70221582b50e1bc35b7d5f59d6909edeb763bc58d08a9c9876e222b17883e75a"
+   "sha256": "6f1ef43fb1749042bba0c1fdee8101b74dc246cb9570e3834f7580d6c92af73c",
+   "seconds": 0.792
   },
   "el.ration.gal|c1": {
    "url": "voices/el.ration.gal.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "9e90e6d8050a501eae6bd7aa728b29219d4c47ae10f38aa598f001671db0a428"
+   "sha256": "b4db73820c83c11c303c26bd2b36aeda4aa294324c9bfa242796863deb21a903",
+   "seconds": 0.6
   },
   "el.ration.kurtas_gal|m1": {
    "url": "voices/el.ration.kurtas_gal.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "7598c51bc9d25558ae813e812271dc1ce13c8c0bbfa2ebb3408afc3cfcf5433a"
+   "sha256": "471826420b6cf43fbf1a7eb932982f64bcb5c34d7fba887aae1b6b7a0eae30f5",
+   "seconds": 1.142
   },
   "el.ration.kurtas_gal|m2": {
    "url": "voices/el.ration.kurtas_gal.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "6754349ab2ffd5589f31f306155782f3de3e057dac56577e302d4539cd0d8389"
+   "sha256": "20fe4bc4ca44e247ddff0c75af0bc50371d80d7850178020aa0c4cdbeaa1ef3a",
+   "seconds": 1.035
   },
   "el.ration.kurtas_gal|m3": {
    "url": "voices/el.ration.kurtas_gal.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "66033cc1fa191f767bf93384a43b36166d125079a83157e5978b99a8c2c1926b"
+   "sha256": "2c2a4e3d1d3e31bcf62e6b66f9a2978ec978b201ae09ee0d64c762874044155d",
+   "seconds": 1.269
   },
   "el.ration.kurtas_gal|f1": {
    "url": "voices/el.ration.kurtas_gal.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "fe5007fe0ebff188da12252fc2b62330d6de5fa308acc54d308ad63deeb33c18"
+   "sha256": "75498491730a2a7161968d0a29d75b7a833e3c7679a417bb2168f85a066e0918",
+   "seconds": 1.244
   },
   "el.ration.kurtas_gal|f2": {
    "url": "voices/el.ration.kurtas_gal.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "844b7900b8287db6d087d5123e856d3cebd095c4281bf1527af9f741a6a71fcc"
+   "sha256": "8ea2a72e9f6a763cfb953be8a21e23a733d8b482021ab3cb190118f2d5b374a8",
+   "seconds": 1.453
   },
   "el.ration.kurtas_gal|c1": {
    "url": "voices/el.ration.kurtas_gal.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "47aaf73f2e300888fb029e99886ce85fb46a2c85a4fb4b710d12ea4f1a32f1a1"
+   "sha256": "926bcfc1bf2f61700ff84b77e94238bccc7fc8e491fbba689bf943fa76413d1b",
+   "seconds": 1.184
   },
   "el.remark.dusda|m1": {
    "url": "voices/el.remark.dusda.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "e9ea38d780b029eecf6ab0dc35fe2d3b573fe09d4ca4fb25349715e271946e00"
+   "sha256": "9b3c4ece7e9255370a93395921017abd6e6e17ac7ed962a300fa0e2aefbcd530",
+   "seconds": 0.636
   },
   "el.remark.dusda|m2": {
    "url": "voices/el.remark.dusda.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "351631c15edfc315e1f5d8d48f9085274b018a3519cefb6d993cd5e771c5d1a3"
+   "sha256": "44be861b11ad866149b9f791c339e3136b6bd0a61fa63459bd16e902e8b4424a",
+   "seconds": 0.595
   },
   "el.remark.dusda|m3": {
    "url": "voices/el.remark.dusda.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "3def680d069603ffdfc8fedd2e7bf8b7bcd88f96d95d79792eded110d427569b"
+   "sha256": "099c9c69e494d762a9a57bb31d3c323c53b4e1ac299d8f02dfde2ec623b266c4",
+   "seconds": 0.709
   },
   "el.remark.dusda|f1": {
    "url": "voices/el.remark.dusda.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "0bbee344ac73c98878ddac4cc29a1a166b3c8942d5a9365f0246daa75c2ca763"
+   "sha256": "8e588f4dabda17d26d4773c77ce290d13b9606197185336a1dc32e0b16e93628",
+   "seconds": 0.762
   },
   "el.remark.dusda|f2": {
    "url": "voices/el.remark.dusda.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "b0723bca38d8eb0ba3cca14bea8e1462f63e1e843a57324aaec00aeaebcb8996"
+   "sha256": "60673b257440ede612d94d640185287bbe0c4ebb4eb8caad9ef2a21c52830f62",
+   "seconds": 0.847
   },
   "el.remark.dusda|c1": {
    "url": "voices/el.remark.dusda.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "2b6e4d8df74320aecd1b05136e82e6255f8177418c4097555dfccb3d39beb433"
+   "sha256": "f268ec1d77bc3060b49631a5f5953947c49e65df869008604d9868b4be738c46",
+   "seconds": 0.72
   },
   "el.identify.hutlak|m1": {
    "url": "voices/el.identify.hutlak.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "f3873a1e53eb1da93ba96185e6c1b7304cb4ac212c5ef963196a2cae4ede7f51"
+   "sha256": "fef7c5faad47f049d1f933f80dcbc7fa5faad6c403c7a378aee0792afe5d1f7e",
+   "seconds": 0.698
   },
   "el.identify.hutlak|m2": {
    "url": "voices/el.identify.hutlak.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "a4bb7c20087023f9dd2388bab50d2e18282c9f98b4e0734f694de2c5d08902c3"
+   "sha256": "a51302c487b133b7217d49c6f0b3dbad8dee7165f5f77930abd2907cacfaadd4",
+   "seconds": 0.64
   },
   "el.identify.hutlak|m3": {
    "url": "voices/el.identify.hutlak.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "9b2c9a4ba64b3a2c2c7cc6900458598a4fbda0f80b3db2033a306a8b0a8459f4"
+   "sha256": "6da05d16660e7c2a929d1fa6802c857cbb5d37aaacd992a5f6054ae782b974e3",
+   "seconds": 0.758
   },
   "el.identify.hutlak|f1": {
    "url": "voices/el.identify.hutlak.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "8d1b9512469aa07a345dee4420b401fc2df44c52934e6e412e4de9be85f86767"
+   "sha256": "1d0d205273439fc3965c8d30fa2863963cf370e63d6103639bb3cdd8caf04fa3",
+   "seconds": 0.764
   },
   "el.identify.hutlak|f2": {
    "url": "voices/el.identify.hutlak.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "da129cada65959cdc4651f0d9ffd91ccff1a2b2d98d544e8f8b8c510770daee4"
+   "sha256": "97609e632984c7e82877fcef8c21856bd336de5dbf0eebe7f49bf3986168af1a",
+   "seconds": 0.847
   },
   "el.identify.hutlak|c1": {
    "url": "voices/el.identify.hutlak.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "3136ffbdaa122204d560519b442d7a4454565032403f645b8d6a49027e8f2d83"
+   "sha256": "f19833caa28d3044e88f4579f885ae6152689cbb25fbbb01bbda3842fe468988",
+   "seconds": 0.725
   },
   "el.identify.ullira|m1": {
    "url": "voices/el.identify.ullira.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "4feb72a37033087eca5f15da86e9da0e4c55c197c09b01fbd582ddb40402d9be"
+   "sha256": "ef91d2616dba8aae07a70c399ffcf92f2e058e5c63fb4988acab639d61e14d70",
+   "seconds": 0.837
   },
   "el.identify.ullira|m2": {
    "url": "voices/el.identify.ullira.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "da4faae718b4f879692c7c881558482b36c378afade7fb864a2e3cb0f92c2958"
+   "sha256": "49cb4d454e0a4e3bada756b9d30140e32f74968e0fa86f258663e4409e450b12",
+   "seconds": 0.766
   },
   "el.identify.ullira|m3": {
    "url": "voices/el.identify.ullira.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "7ac3d6c131cbd4b3a39ed45e2ba7982e4c39cb2f4a297c58a7806900a65efdf1"
+   "sha256": "b28679a9279ceaa8f5ee7c281f576e00384846ef8bea242c6db443066a7a9f83",
+   "seconds": 0.951
   },
   "el.identify.ullira|f1": {
    "url": "voices/el.identify.ullira.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "bb5ff0f2c4d420315025925a70e5afc7d4ea000a6e16db10a3ae7317d1529e19"
+   "sha256": "4c736107d81b0473c63fc90b80747121dcf271efdb6268bf6a11af2274a2da40",
+   "seconds": 0.957
   },
   "el.identify.ullira|f2": {
    "url": "voices/el.identify.ullira.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "d32a6f5f79decd0ed8b9d41956bde710a7315b0541b1a415c7d484eb043eb004"
+   "sha256": "a3838f678d5c54c9194b3ea1793fdbcaf6bbe22efe735f756b8633cc589bd98b",
+   "seconds": 1.078
   },
   "el.identify.ullira|c1": {
    "url": "voices/el.identify.ullira.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "0d8f7371b7f4395ecc32c16271fcfdc16f9bafb45033192023d251a45104681d"
+   "sha256": "395e9a3faa38c68fb774ad160ef8aa4efcf111ff78af89e80c088683d01ed33b",
+   "seconds": 0.908
   },
   "el.refuse.inni|m1": {
    "url": "voices/el.refuse.inni.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "5deedf74e1e442b2defe8fcab6ec122dbccd05dac7436dec4573376bf260e237"
+   "sha256": "5491adfccbf852d15b64b7bfd7fedf60399d5fae12506c5d275bc3f6bef6aa4e",
+   "seconds": 0.623
   },
   "el.refuse.inni|m2": {
    "url": "voices/el.refuse.inni.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "999a8cf02e6bc6e860ec9c4a7e2e0e01d35083ee0f5706da843d0a7c3bd5d30d"
+   "sha256": "abaf0bb723acc769b9510ba4fe04a389c1d43e5e42705e3c6cac0966e89b2df7",
+   "seconds": 0.581
   },
   "el.refuse.inni|m3": {
    "url": "voices/el.refuse.inni.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "75e21621b57172f9763359327dea29a2b110ae99b80257617325c7d0b43a588e"
+   "sha256": "4e1ecad03b6a4d4c0fcba6727a3cd5e4ee656b0008d52d33caeddc0a9f0327f7",
+   "seconds": 0.7
   },
   "el.refuse.inni|f1": {
    "url": "voices/el.refuse.inni.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "ec5054cce30a2930c923ac31cc8a7035556eeb9c6a2d943e9e940f96f3ce3125"
+   "sha256": "b3d4fb93c874d94472ec98a9cbebe5f22769e70a874ec8efe759ea817a1c1ee7",
+   "seconds": 0.753
   },
   "el.refuse.inni|f2": {
    "url": "voices/el.refuse.inni.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "dbc157d4df7a64a0ef4aa969912f0c5594dadc028983424e22075af4c1920bb6"
+   "sha256": "92fd51cbc990e08edb655f0da39c5f5d38989ecdac57a7570cf536ef9d77f31b",
+   "seconds": 0.847
   },
   "el.refuse.inni|c1": {
    "url": "voices/el.refuse.inni.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "05344823338f52415eab9d35faa5b93d843d0bc809191bd7ca255f3489fd5db3"
+   "sha256": "69777622f6c37d56d4ffc55a00b9e2d186f6396b16bbf9e24f1ba6bfe065e0ed",
+   "seconds": 0.708
   },
   "el.refuse.anu|m1": {
    "url": "voices/el.refuse.anu.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "27d55ab9ffe4b08f1337352161da82c6680fea510fcbe8a3cd7622e0b01d9d79"
+   "sha256": "8fbfa323933ec24eb1d79f918140f56a249a5fcb7688edcee8975482cbe1f430",
+   "seconds": 0.471
   },
   "el.refuse.anu|m2": {
    "url": "voices/el.refuse.anu.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "1b2e361eac053763695351025b381fe8e30485c3790739a8ff38a7d92d3171ef"
+   "sha256": "83e7c6b02f06f3db09e8fdb05ee5f714134e86b0073a788d96065c4b2d3e9e67",
+   "seconds": 0.441
   },
   "el.refuse.anu|m3": {
    "url": "voices/el.refuse.anu.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "8d598fc4a1a6b3945fb787fca7558083652dd475f909c435401b6ce283cdc1dd"
+   "sha256": "9ba72513c3878a532592e87574ea2b32ca81b3031ef410a8733c4404de11da4d",
+   "seconds": 0.537
   },
   "el.refuse.anu|f1": {
    "url": "voices/el.refuse.anu.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "dcbdabfd0e8876f5d206c3b1ce7d05ef75007b2bf9687d6589650a50ecdbed33"
+   "sha256": "d1fc8b53a17fb79960678ad21be0f7290211cbb5b83ea854cdbbe9699be8e07c",
+   "seconds": 0.605
   },
   "el.refuse.anu|f2": {
    "url": "voices/el.refuse.anu.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "a2967a57d16dcad84d9798b4edcf3f7587861293e9bcf6f83d97506fb66fb3fb"
+   "sha256": "6d5801c095c68d39aae854a52b7c9cb79e82cdeaba6afaddbd54509935c5cbd5",
+   "seconds": 0.658
   },
   "el.refuse.anu|c1": {
    "url": "voices/el.refuse.anu.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "2b979d0fac65633c92fe66c012de432188c6718380b62f8a2cce16ccd2c18c89"
+   "sha256": "860c44b16118f62cb139ddde1d5b23e5f36de6981f03c6a32255f69ef64c828b",
+   "seconds": 0.564
   },
   "el.count.kir|m1": {
    "url": "voices/el.count.kir.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "4d2b61cca0286f9159882bda8fbebab8d3cfb9afa2fc02226171da6593e167ca"
+   "sha256": "da9f63fd52d7701fc2e33947bdb7b2640197dd29423d504c3ac5b0d76a525bc4",
+   "seconds": 0.506
   },
   "el.count.kir|m2": {
    "url": "voices/el.count.kir.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "01da13714b2d6148d806a61819d35183c560f30741c3bbebda5f4ba7f99235a9"
+   "sha256": "139270a06c4a73e4665e3a2df47f47cbb841db2baf5b3dd8011abb8c80e06254",
+   "seconds": 0.45
   },
   "el.count.kir|m3": {
    "url": "voices/el.count.kir.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "9bc16f251e677022a6bf65ef1e9ee72b9f6209e444e8705c5d08ab6cccfa856b"
+   "sha256": "897bf748e07d70fbc606007202e7f1e40e9303774e89e5e94ed8ffd2793fa7a2",
+   "seconds": 0.564
   },
   "el.count.kir|f1": {
    "url": "voices/el.count.kir.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "bbedcb1af539f889e1418fb0d228383124d52c431bc3ea473e157e0f3f4b3620"
+   "sha256": "b59a218d2a92a4091cafffce403dbfb5785c560a8dbbb28e6b45c569bc4f27eb",
+   "seconds": 0.644
   },
   "el.count.kir|f2": {
    "url": "voices/el.count.kir.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "c8cbc6fe0995681b41c5b908575b7bec0c8ad7390ec20c4d722b2c418c836ddb"
+   "sha256": "24006c7bd399bf2a09115f31e4173d984ad30fb110b061cf2560b6f56b92527d",
+   "seconds": 0.722
   },
   "el.count.kir|c1": {
    "url": "voices/el.count.kir.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "d1631ff8c711ce0eb647af04431d8766da7bd1ad5bd862aa55d4294d7e16275b"
+   "sha256": "eec0e99ba32ac4df4c8936593b926bec7e9a6320c06b6cb5cbf50285f7bf6270",
+   "seconds": 0.621
   },
   "arc.greet.slm|m1": {
    "url": "voices/arc.greet.slm.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "10734d6f1f05bdfce41ed5246659e09a0366395f7d124c4bd45020fa880ab407"
+   "sha256": "3819fbc7b957137196dc4ad85c23bda429b421b934665d393122d2a8255f2b92",
+   "seconds": 0.912
   },
   "arc.greet.slm|m2": {
    "url": "voices/arc.greet.slm.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "f68bc9233b8641dbba5a4691e91d013691fb9d5a73c46b935cde9f14c9ab33ee"
+   "sha256": "1bf644c75b921fbcd54528fcbf2f282be42e9aa1a067894d778752c42d15888f",
+   "seconds": 0.795
   },
   "arc.greet.slm|m3": {
    "url": "voices/arc.greet.slm.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "55bbeec4bb37a0162fe3e3db33155ad14364f7f3bde5aaa0bbd94453f8824c20"
+   "sha256": "8eb8b439a5814be7619c93a6b7dede48e975408c870fdb5074229a5572e0f252",
+   "seconds": 1.023
   },
   "arc.greet.slm|f1": {
    "url": "voices/arc.greet.slm.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "47e8c10a3359dc346ed05c6eee085c2cba95e8f9617d581f798334d4323f5a73"
+   "sha256": "58cad23bf43a08e767727d91591ee151513ec38708f5bfa6adb1ec09dd967857",
+   "seconds": 0.922
   },
   "arc.greet.slm|f2": {
    "url": "voices/arc.greet.slm.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "8c32df818b60a434ff47799595e7c5b344926816c55ff4fa9ab9aecd1e1db9ef"
+   "sha256": "ded873cb67bd64d9bb00ad2323b84f68ac8717430740276bdf0407082f16a229",
+   "seconds": 1.229
   },
   "arc.greet.slm|c1": {
    "url": "voices/arc.greet.slm.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "57383c24502b34180756d863a3b9896283164249f4dbd1d6b319e2c97892c374"
+   "sha256": "25bd8f509e54f462ba98ac58aa7115c0a81be1402f5277644438ea0e97fb701c",
+   "seconds": 1.001
   },
   "arc.greet.slm_mra|m1": {
    "url": "voices/arc.greet.slm_mra.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "5608fdf28e4ee38d98d20914d3974549a73a146e59ce5933a60a6b3842cfed42"
+   "sha256": "258ed643a95f64ccda9e3bba7b20092ace637952e6c5727f93b7e553b2462195",
+   "seconds": 1.466
   },
   "arc.greet.slm_mra|m2": {
    "url": "voices/arc.greet.slm_mra.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "898a6ab281e445809dad7b1721f6bfd009c1996ea6406d0084bbcf6359536c21"
+   "sha256": "ad216682c664c76e915884ca875a2c14752f4353409feb09996890e676db5b72",
+   "seconds": 1.292
   },
   "arc.greet.slm_mra|m3": {
    "url": "voices/arc.greet.slm_mra.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "fdf1b7cac4a72fa0770e8d80a15b749e0b44d701c5cbb84379f94ba53a2fa6d3"
+   "sha256": "7274ddb6a1705f8ef9ffad075307df7ed2333fa83bc72c1795526a2069a48167",
+   "seconds": 1.656
   },
   "arc.greet.slm_mra|f1": {
    "url": "voices/arc.greet.slm_mra.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "c45800b9212d6237152807508a2fcfcc7f631c743c60a69e62e5fa6018c8c4d8"
+   "sha256": "4ca2a6647d83a4cc2cc9e6db62159b01431626cf6b9d671d92ebc071f9df38cc",
+   "seconds": 1.569
   },
   "arc.greet.slm_mra|f2": {
    "url": "voices/arc.greet.slm_mra.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "e1783951b1a945c2dd7e43e82e0db5e640f4a1a7fe3023e3bf8b3ce3aa039a69"
+   "sha256": "32117d6172d20f16dcef91e1216ee1241757e018ab3fb0f53083a48eb5306f60",
+   "seconds": 1.849
   },
   "arc.greet.slm_mra|c1": {
    "url": "voices/arc.greet.slm_mra.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "82ce1a87ae33896efd2a4d3bbb65fa81c7ebbf7c2429061354c90d007f04eeaa"
+   "sha256": "4a5710a67055ed4e6e296045c0dfb826c8fb2a17966221f0a93f2c051c7e1144",
+   "seconds": 1.465
   },
   "arc.reply.slm|m1": {
    "url": "voices/arc.reply.slm.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "908bb047d19092a45d789e9937f4ef13e5ca115858eaa7308ddc9bc72f368f53"
+   "sha256": "ebcb97b5fa32d79c43c56529236a47b9eb7fcbae607996b0f544742a8fd7f08f",
+   "seconds": 0.912
   },
   "arc.reply.slm|m2": {
    "url": "voices/arc.reply.slm.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "e1105674413b3471b91702130d3e6e20550dae98ca47c45e0ea0c03a178aaec4"
+   "sha256": "e081bf704cd8b38164e5b683b6780b6653ffb87d714647e4ff4d332fddfb501d",
+   "seconds": 0.795
   },
   "arc.reply.slm|m3": {
    "url": "voices/arc.reply.slm.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "ea417d48ebf844dcd06244fde628d6da38ad23d3017994a3c799442430555dda"
+   "sha256": "05571f3b4a20e872bc0ccbc8dfaf0a793fb9628c6eafe9d76c0ac38fd8615a0d",
+   "seconds": 1.025
   },
   "arc.reply.slm|f1": {
    "url": "voices/arc.reply.slm.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "5a906dc6482cbc2ecbff95b2257ac79a9e90e9589245fafbdc2880cc496b3930"
+   "sha256": "593770987f6bd7cf46704452998c42b234a395e80a3e9865a0fe6d31662a9fb0",
+   "seconds": 0.922
   },
   "arc.reply.slm|f2": {
    "url": "voices/arc.reply.slm.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "0e06655e3d1ec7bc7c93819e7b72ecf45084f841098b2402a8933d6bdb0bffdd"
+   "sha256": "ed175b849a07d933302bdc5013a2464e5df81c3779233ac0c9760da70b9a8463",
+   "seconds": 1.234
   },
   "arc.reply.slm|c1": {
    "url": "voices/arc.reply.slm.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "4e76fc219f5daf4c60dd9e198216337c9f738b895cc2f33f36f39e020f7c191e"
+   "sha256": "037afd106ec6a3db4cea3d022814f7e7db05cc034cf33ded96c64fa7c8d0274c",
+   "seconds": 0.996
   },
   "arc.count.hd_trn_tlt|m1": {
    "url": "voices/arc.count.hd_trn_tlt.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "e2053181d01ef9bc35c0272f2784c78ccab28bd458f33dbe61583aaac3cf0fd7"
+   "sha256": "dde66204c5b75bbbb48125ad993b63a7cc71fca562e2550aff346e5e4fbea4b1",
+   "seconds": 2.554
   },
   "arc.count.hd_trn_tlt|m2": {
    "url": "voices/arc.count.hd_trn_tlt.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "c42090501c52a0c8bb92d7997c4d17ce381a739efe32d71f5ee5001c8412e610"
+   "sha256": "0523141388d5594c3a4685da23e9038bc956a4ab85e3b318c965941390a25656",
+   "seconds": 2.264
   },
   "arc.count.hd_trn_tlt|m3": {
    "url": "voices/arc.count.hd_trn_tlt.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "8ef3397300cd1bf86af0931ec51bc508b5a2f4747c86916ecd752f1f3ee53bf0"
+   "sha256": "edbe2de2a95f7a221c327da5b470e415604f5316803568baa91dc6ec467f1008",
+   "seconds": 2.888
   },
   "arc.count.hd_trn_tlt|f1": {
    "url": "voices/arc.count.hd_trn_tlt.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "f8713ea74388debd2252fb8288b88b594b17e0d81655e9f4780ce4b5fbd9ed73"
+   "sha256": "76b143bbd70a40a1a3efa75fba1656ec859bef218f0375dc72a40505a1207e75",
+   "seconds": 2.543
   },
   "arc.count.hd_trn_tlt|f2": {
    "url": "voices/arc.count.hd_trn_tlt.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "d8bb4d7a41eb4ce5d341a779d3ccdd64341b6df9df0feb0bee85a5317816466b"
+   "sha256": "671f80419c8967b450c42ed6e4091ba550af162cdb06492e6e7d84414b7cd8df",
+   "seconds": 3.131
   },
   "arc.count.hd_trn_tlt|c1": {
    "url": "voices/arc.count.hd_trn_tlt.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "8333de790d9661eb497479b1cc64948fd58d50f53072e1f0df1c639a42844a55"
+   "sha256": "bf7f722f291590561fee4827719853f856e689cf2a98acb6ee870cdb9977205c",
+   "seconds": 2.356
   },
   "arc.offer.lhm|m1": {
    "url": "voices/arc.offer.lhm.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "7e0d2c48e7b3e9a70830a994b83224d07032dc80555fda227fdef2c208e3e7e7"
+   "sha256": "230f459e158714cfeee50e886a28acf4f0f3556934ee3f633a44d837f2ba7ab8",
+   "seconds": 0.629
   },
   "arc.offer.lhm|m2": {
    "url": "voices/arc.offer.lhm.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "140e578e0f8d8080be12486235294bd8d08debf04c82177de70efc8b2843d753"
+   "sha256": "4f782df178ccc1ec544a37e9c124d3af64b5586dad889f00632524cd871628f8",
+   "seconds": 0.583
   },
   "arc.offer.lhm|m3": {
    "url": "voices/arc.offer.lhm.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "8dfc51d3aa2bf1f9b2642f8e9a37cdc7939719c3fe15955c7896350b1c43e39a"
+   "sha256": "fbe0ad9c8a654ef89cf71ddb67872d894ec47c2d1d7dcf552484ca42f2571b36",
+   "seconds": 0.673
   },
   "arc.offer.lhm|f1": {
    "url": "voices/arc.offer.lhm.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "a98a3532971873ef0fe015440256484e982346443452e4008fb2632431c8d79f"
+   "sha256": "36a327749faa51cbec781b20a6e2f385d030c491d0c2ab3ee832c4e90d018d84",
+   "seconds": 0.623
   },
   "arc.offer.lhm|f2": {
    "url": "voices/arc.offer.lhm.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "c891285cce07e97df772881ff5f857941eb38f4037a4944dc8827bba1d0a76ae"
+   "sha256": "d1145309b8a176bfe7d72dd64a19e169924afb84da32b2b7a8700c5b412ed518",
+   "seconds": 0.822
   },
   "arc.offer.lhm|c1": {
    "url": "voices/arc.offer.lhm.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "d38438bf6a3ade8a25f00b5caa71482e6dac8229bc4b73b69135095d2c133a2a"
+   "sha256": "48d67ffb976e08db5bdea55f4d0f850c5e5ceaaf5325eecae54895e44bcdeaf3",
+   "seconds": 0.731
   },
   "arc.identify.spr|m1": {
    "url": "voices/arc.identify.spr.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "89c5944bed3a7690b16dbe8f82ea99374073cf780259e5ea835d5d2fa80ab73e"
+   "sha256": "c17bfbe6ed3d5dbc2178ab991c81a7b385c20dda385523f8f0cb70d3ed9de469",
+   "seconds": 1.018
   },
   "arc.identify.spr|m2": {
    "url": "voices/arc.identify.spr.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "f1bc723ee1d025f6b351c824e31e53fdb21035c98740f59fb0c53b6fb5204dc2"
+   "sha256": "3b986410d0af839478d8722375c260f90d3d4259a6f5cf7f8b657e2e2cd80796",
+   "seconds": 0.909
   },
   "arc.identify.spr|m3": {
    "url": "voices/arc.identify.spr.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "d3c3c7ae6e26268915c0da4544bf85fa39fd3c58d913055e845c90960052c2f5"
+   "sha256": "2950125ba5926cc65a0d6b739fcdbde60bf321b6ef46d97d8ffdcaeef42c4631",
+   "seconds": 1.151
   },
   "arc.identify.spr|f1": {
    "url": "voices/arc.identify.spr.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "1cccba6e0e29d601665bea2314765dd6df4a4437f79a3b04d3e95a4fc467aab3"
+   "sha256": "55c21fdc1772958075e993c94f745ffc53b02837a7872ec7e1b423823042202c",
+   "seconds": 1.077
   },
   "arc.identify.spr|f2": {
    "url": "voices/arc.identify.spr.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "322ed5461d4664c11743e26fa9225b8f03b191c16d5251e01292011fc13c7cf3"
+   "sha256": "c8fa03c99cfdc36e5f28224fd44b1d1988d8f97afd4fc3f98c235ef90e9034ff",
+   "seconds": 1.281
   },
   "arc.identify.spr|c1": {
    "url": "voices/arc.identify.spr.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "aec7c0ff726ca8eb55442f622753a0541e8007c6d9e215431a89846cb3adb4cc"
+   "sha256": "efa7893bbc6ebf3563458007ba8c1f29f075ba0034212ba7ffca49c9213d0aea",
+   "seconds": 1.073
   },
   "arc.identify.igra|m1": {
    "url": "voices/arc.identify.igra.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "767d84b50e699082fa64bbbcaf07c3ed4769ed98a73495f88d4f4548513da85a"
+   "sha256": "7ee7424df0802268611f3d9aacd196175b036439269f19f4bc9ba6b5a0a65421",
+   "seconds": 1.033
   },
   "arc.identify.igra|m2": {
    "url": "voices/arc.identify.igra.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "ea23df6b24e43ff640c62610b21c25656f1f516265f6b6b7939169e78a00b171"
+   "sha256": "773ecb6d3b4d0b50d5473a0af9eee057faf5c35e628f1354cc3b1cc73b591d0b",
+   "seconds": 0.922
   },
   "arc.identify.igra|m3": {
    "url": "voices/arc.identify.igra.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "4d1d92f36022736bb49b4b835fd76e3c447e971599dabdc380fbf9ee92143ad2"
+   "sha256": "4d7109e1752d208f1a64778d569c3986d617c0072dd7520ac5661bc3edd1a976",
+   "seconds": 1.148
   },
   "arc.identify.igra|f1": {
    "url": "voices/arc.identify.igra.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "a13f7ac55abe0ec25d6ebb95d44b242766abafe2c31f2ff65999a5d2abccf8ea"
+   "sha256": "74c7eb4976eff12623e7b4eb7027bc6df8ca3bc5d050c336d09f892b8f100f5f",
+   "seconds": 1.18
   },
   "arc.identify.igra|f2": {
    "url": "voices/arc.identify.igra.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "50a50e9823e5633ab85cb79a844900e412ede3dcb96fa87398477bebdc785686"
+   "sha256": "e5052b73e532858107a10dca283b61bd8abf371ffaf8c27ed8acf52335417500",
+   "seconds": 1.288
   },
   "arc.identify.igra|c1": {
    "url": "voices/arc.identify.igra.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "a1ee571a7b75859961d273d4f51b8897c348dda1564a927c1f2d59d8a607f5ff"
+   "sha256": "d398a6ef7cb3ac64af59d34fe0120dff975a3c36d3658d15b43c883bb5f57187",
+   "seconds": 1.11
   },
   "arc.greet.slm_lyk|m1": {
    "url": "voices/arc.greet.slm_lyk.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "008547ac66c07134fc60f423e296cfa7aa4ae8390cbc7f8c7885a3bc93929276"
+   "sha256": "dbea45cadcff79b76b3ad7a69718eb58a0664b7c9d72e0a176c244a990c4b3f6",
+   "seconds": 1.268
   },
   "arc.greet.slm_lyk|m2": {
    "url": "voices/arc.greet.slm_lyk.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "ba2a11daeb8fe7e8584ed66469b4f61897a889611d1da377f9c9133fdee93dc1"
+   "sha256": "f7fb3a28ad1b55fce74f3cddb03f2060873bb9c18960e1d5bc5af1394d0bda92",
+   "seconds": 1.143
   },
   "arc.greet.slm_lyk|m3": {
    "url": "voices/arc.greet.slm_lyk.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "a244338de8d1ad8031871b1a515a3b146ad46d6e076555f8d17fb7568c718467"
+   "sha256": "d5eb6b1fad7d6a79f711d4707b3622aab8678e38d64f2a76ff93570fe1f6efc5",
+   "seconds": 1.42
   },
   "arc.greet.slm_lyk|f1": {
    "url": "voices/arc.greet.slm_lyk.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "a733366364a2d2e36adb242f395e486f163a4c6847c07e451925b7522708a928"
+   "sha256": "1e1638d2c5ad853e7a8b5695a521a514eea7aa4c0f3d973016fe7f6d16e7cc15",
+   "seconds": 1.251
   },
   "arc.greet.slm_lyk|f2": {
    "url": "voices/arc.greet.slm_lyk.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "8a95303723302bcc6fef1afe2e6adc5387eefc5eab033ca2ab3b3345004ee538"
+   "sha256": "773ccf18bfe39de170e7db34ce2aabee9740196ea46e34a957e3e2208f9f5ccc",
+   "seconds": 1.441
   },
   "arc.greet.slm_lyk|c1": {
    "url": "voices/arc.greet.slm_lyk.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "f04b67468d688cd057673267e7123aa22e85b9485fc74e2d80cff16a72006419"
+   "sha256": "cb71fdd77e05a36d69fac311b309686a309b571f15aea14b6febb4ae20eaf2af",
+   "seconds": 1.252
   },
   "arc.greet.slm_ahy|m1": {
    "url": "voices/arc.greet.slm_ahy.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "bc6b697b74250c0bfc7c621edb7a642fa3b010c4cf418dd1efc6353fb035dd48"
+   "sha256": "c50b0f90fe665f89a30014e8dc1b4c69f3649df70a224264d014cc3f929bdba7",
+   "seconds": 1.541
   },
   "arc.greet.slm_ahy|m2": {
    "url": "voices/arc.greet.slm_ahy.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "0490b4cac428677f630c45a68f9e78ea596d1302e1d054c2dc6cfedc58a3a821"
+   "sha256": "4e61f2610e9ba8015052f3414e7c301a375d066e1bbe953ec15bd054925f0311",
+   "seconds": 1.357
   },
   "arc.greet.slm_ahy|m3": {
    "url": "voices/arc.greet.slm_ahy.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "87a95d281078aacb44a80880e4a0fce6eae1b00b1f9ae0fec0ff135aa84141f1"
+   "sha256": "1dbda4bc46ba560322cbb98741ebc60c0d14d220df06a8730a365bb347581185",
+   "seconds": 1.738
   },
   "arc.greet.slm_ahy|f1": {
    "url": "voices/arc.greet.slm_ahy.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "88c0f7da1c58c52e8587c412fe190f072802a47915a5bfb392810c61cdaa0df2"
+   "sha256": "102ebbf2775f495d68a0f50756c9952c91ce1e87083403c77389b9985b8c2abc",
+   "seconds": 1.646
   },
   "arc.greet.slm_ahy|f2": {
    "url": "voices/arc.greet.slm_ahy.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "fda5563211e85207c34028980ac9c7724a7395ad6e283f405644ff757c025b84"
+   "sha256": "8cc5a2f101306f0a11feee63af637c901b6d141c8b1714c18cd54f102250e846",
+   "seconds": 1.836
   },
   "arc.greet.slm_ahy|c1": {
    "url": "voices/arc.greet.slm_ahy.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "414986ad26cd85b4a679e257cefe42d6c30077178f9e3bee7c2e36e3256f2ce6"
+   "sha256": "13c8b3c4a1e97e74b0e7307c56bfa23fab56c7f828debef3ceb35176e3eded3a",
+   "seconds": 1.542
   },
   "arc.greet.slma_kla|m1": {
    "url": "voices/arc.greet.slma_kla.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "273f78069eccaf3cbcfe6843b8a935d8a30ce8273f83747f1220715666e1fecb"
+   "sha256": "e424a9c6c330a7f767fa558e6d9398defdd3026fb271fe3ab4f0d51466a66497",
+   "seconds": 1.642
   },
   "arc.greet.slma_kla|m2": {
    "url": "voices/arc.greet.slma_kla.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "09233d2d31e4955d3196fb88d5c8b8124812cdd0aeee942f5bffb8b2077e5d6a"
+   "sha256": "9ddc4144a48f9b98bb4e9a92b4b8afa45f4349872784c08abe3d77b84710f7ac",
+   "seconds": 1.45
   },
   "arc.greet.slma_kla|m3": {
    "url": "voices/arc.greet.slma_kla.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "2dca8d151af8385230d12906f3f8d52b9cfd55ecff3fb821ed0a6a7f384b8d28"
+   "sha256": "ab772c26c10952ed83493b5b24c53bac4bd71cc7ec8fc6f02b3750812f07de41",
+   "seconds": 1.853
   },
   "arc.greet.slma_kla|f1": {
    "url": "voices/arc.greet.slma_kla.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "cdadbaf4dd205182f45888235f9d69627965286f29dc1b64fa8f4f9e7b360d2d"
+   "sha256": "890a5a20c24725c7b84a4bf4388edb7ee3e99842cbb9be43f7151bfe77bdb29f",
+   "seconds": 1.732
   },
   "arc.greet.slma_kla|f2": {
    "url": "voices/arc.greet.slma_kla.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "f3ab71968eac3651de9bc01dfeb3b66dc0da889a4f7f1aeb753cc67460899133"
+   "sha256": "dd8db3536351404b9f0727970eaa1ff83b7aa0484177931aa1d3b23b015a19c9",
+   "seconds": 1.922
   },
   "arc.greet.slma_kla|c1": {
    "url": "voices/arc.greet.slma_kla.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "e54f380a54cd5bae20146ccb82aa37a17e3433f1fffa24d6d2f6e734495502ab"
+   "sha256": "10380f0e79b1d66bada69839391acd3638917c8a5ac150a8a64a5f7c04169dbb",
+   "seconds": 1.751
   },
   "arc.reply.slm_lyk|m1": {
    "url": "voices/arc.reply.slm_lyk.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "42ef755c5b04450381a4665786b8e8238c80437776056b814e9f81c8717985a5"
+   "sha256": "534124391a1f102490925005473f87aa9e1907a412b48272c044de23d506e477",
+   "seconds": 1.267
   },
   "arc.reply.slm_lyk|m2": {
    "url": "voices/arc.reply.slm_lyk.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "ee2a7253a35005949cce5ff98e74289a7d7d4ac3fa555a6eb76231551f80cf54"
+   "sha256": "07532607aac8bd83fd0fb8d5a6ba82a8944faad75191a49fc90340444628303b",
+   "seconds": 1.143
   },
   "arc.reply.slm_lyk|m3": {
    "url": "voices/arc.reply.slm_lyk.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "ddb44140a5908e3a0d77c647dc613101141aec344737c26dde779ebe55bed4d8"
+   "sha256": "7f6318ca9c9de800eb97289282366d18dca5526975b354c5a72beb904001fb40",
+   "seconds": 1.42
   },
   "arc.reply.slm_lyk|f1": {
    "url": "voices/arc.reply.slm_lyk.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "a2040687864a362cb12b4f828eeb9950c857848a1097968815946d5ea67e7476"
+   "sha256": "2ba24090ff04d51554648b17fc25a4a5fe767c84bd262ebf66564f2706e204a9",
+   "seconds": 1.251
   },
   "arc.reply.slm_lyk|f2": {
    "url": "voices/arc.reply.slm_lyk.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "42357aec33e8c5ca036d817feb38c75ff2e1d6303379ecc6993aace35aa0cce1"
+   "sha256": "eb7d0a7a8989a3d3d3501c56605bdf91fc53fa256379e169892590b21f35efd2",
+   "seconds": 1.437
   },
   "arc.reply.slm_lyk|c1": {
    "url": "voices/arc.reply.slm_lyk.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "7ae06b446e6c7f4f79ee320a1cea5d5628a2def7e67542c8e2dc38488dadee05"
+   "sha256": "935754f6c7d765f4d358bef077ac82691c3ebfbe962536b3aa9bd72d00d19e23",
+   "seconds": 1.252
   },
   "arc.farewell.slm|m1": {
    "url": "voices/arc.farewell.slm.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "27ad3818d17ffa198f6eac5d2654a002d3a50fbd97b99a1a0c2c1232f38db229"
+   "sha256": "1d6ae68a8da6141284df8523468a7984d063e5c98e5135d34186bd74de7978fd",
+   "seconds": 0.913
   },
   "arc.farewell.slm|m2": {
    "url": "voices/arc.farewell.slm.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "f57bc60d6a3fe639cb54bc82bf17193e92174d95a6d48cfaacbe2179581bced5"
+   "sha256": "2189304545ddfb141ea7b445f9a8fde654fb65f008aca4027cdbc8e2ab6edccf",
+   "seconds": 0.796
   },
   "arc.farewell.slm|m3": {
    "url": "voices/arc.farewell.slm.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "a294771bbf9273c648c665382698364323e5b62e6d9c4bfc9b5dd1e9bb18cf1e"
+   "sha256": "8338592145018565cd9fea8b6110dbf7ad908d2a65a9971ed52213e2cf39023c",
+   "seconds": 1.022
   },
   "arc.farewell.slm|f1": {
    "url": "voices/arc.farewell.slm.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "0bf6264545eaa08fd10090dc02663c4025602baf1cbe5f3233d889c76cd67e7f"
+   "sha256": "768986723cf54acf3bfb316647c8934e3a0484fdeae908349bea13e8812cddcd",
+   "seconds": 0.922
   },
   "arc.farewell.slm|f2": {
    "url": "voices/arc.farewell.slm.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "210600bb98a905d7dd7d2ea2edd9a4fde977e30773bedacd40a27498232eb234"
+   "sha256": "1db6d511ccdb7fbad193a10a37870a63c4c976579919f8c4b80ac7f0e992dff8",
+   "seconds": 1.229
   },
   "arc.farewell.slm|c1": {
    "url": "voices/arc.farewell.slm.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "2d1fad16f13b84d361c45766cd3cf2879643d8e38baac1705000b6f58beb9c0b"
+   "sha256": "39680493147846f951a42a703f76d0df0109a2637dbd9cd023999ed148b5e553",
+   "seconds": 0.996
   },
   "arc.affirm.yssyba|m1": {
    "url": "voices/arc.affirm.yssyba.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "4351c3ab6aac9d102d22c717e85fc1bf2f76eefbaabde86d29ff8d1e5e314821"
+   "sha256": "8a7b97ca02dfef464d909d132b4fd217162b16aa6cd35e5cd53d621217c08109",
+   "seconds": 1.185
   },
   "arc.affirm.yssyba|m2": {
    "url": "voices/arc.affirm.yssyba.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "c6953069c8a83f442b083462db26c4882975c19a07f69e1adcc1581f41f69573"
+   "sha256": "be1e286e1654d9b504a82c97b3004c82fe2ee4de983fdc869f27520060439569",
+   "seconds": 1.069
   },
   "arc.affirm.yssyba|m3": {
    "url": "voices/arc.affirm.yssyba.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "f37270db03eee0514fd9e99dab80645d422b0af0b9cfe626ba80de4913bd31d7"
+   "sha256": "6547ad9ef3f9e64abf4b476880ba0cf6ca018915590551634f612e6ac505918a",
+   "seconds": 1.329
   },
   "arc.affirm.yssyba|f1": {
    "url": "voices/arc.affirm.yssyba.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "e181f70cb748e1500d4294e46d8b7ed9742e27c6437ad8a8f87c44c65b7ecbb9"
+   "sha256": "a45ffba1f111d871228f453c13363e2261ec95af530e55e2a708cea7c8635246",
+   "seconds": 1.315
   },
   "arc.affirm.yssyba|f2": {
    "url": "voices/arc.affirm.yssyba.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "bfa0459af559ce7ac3a26e5a81a92e657df2526c39c4420778b66321c5b911b5"
+   "sha256": "3cadc545ead6b872216fdeeac18d843bd435c3233948699f6145e0145d57a748",
+   "seconds": 1.443
   },
   "arc.affirm.yssyba|c1": {
    "url": "voices/arc.affirm.yssyba.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "4aad698a4b4a58edf8892fe4c63c097f3cbdff4ccc4de54839eff201e6f86053"
+   "sha256": "f0d64298093e8f1b610534ee7219a5a58c26b518cc82454ad92af98d905aba12",
+   "seconds": 1.23
   },
   "arc.affirm.tb|m1": {
    "url": "voices/arc.affirm.tb.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "aff38be3746f5a8cc8a17e010df8d1c6f80b3be88e70a2f345c18e460635a77d"
+   "sha256": "484ba5d27c3d2cee109c99c3cb52933def05801d6ed79286ec4e22cd5e18fb53",
+   "seconds": 0.674
   },
   "arc.affirm.tb|m2": {
    "url": "voices/arc.affirm.tb.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "feedfc57745ce32dec2b2b892a8da097a97dbca8ec5c4b3fcf6ce7d877129123"
+   "sha256": "65b64e59fc0952e3ef241e522140c194d68b3977737827cf47a25d95915f1c23",
+   "seconds": 0.594
   },
   "arc.affirm.tb|m3": {
    "url": "voices/arc.affirm.tb.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "a28639be215373146c158c590ba426918f1e34e5321efb35f49a7d375ef24222"
+   "sha256": "915d314e5932e7cc0fb9c247a87bae487cb0b2cb84bb25121a2e61f080fa8c4d",
+   "seconds": 0.75
   },
   "arc.affirm.tb|f1": {
    "url": "voices/arc.affirm.tb.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "ebbf171eb6891c56db053e785f091f4dc8498348437534d6d49b69cbf2ae9a49"
+   "sha256": "b4b9a23e0b26e6365d845e2f65ecea49fe00c8684bf5e4ffe48af0c30c2715ad",
+   "seconds": 0.746
   },
   "arc.affirm.tb|f2": {
    "url": "voices/arc.affirm.tb.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "37753860e8c0f49d4a0763b056f04088022e66e42b5cfd298d1ce727fdbc6f42"
+   "sha256": "7a88fe58c64d59b10017482c3b1107768e178444249561ec36cc6d27b5d9a9db",
+   "seconds": 0.888
   },
   "arc.affirm.tb|c1": {
    "url": "voices/arc.affirm.tb.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "8f908352d965a2f2ce3d881b656db5c9d3585904fa0c1a6ad256512fe7501a5c"
+   "sha256": "2586fe16e6bd83815ecdf9a50ceab36eb6fdb496be2bd32997e2ca6f0347065d",
+   "seconds": 0.753
   },
   "arc.refuse.la|m1": {
    "url": "voices/arc.refuse.la.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "e0b8979237e054f69a6dcf0a1f610cba4ece89460b57f165f3293a06b0794673"
+   "sha256": "a91d6f336b6c18799d9a0748266def3f28b401fc01cc71ec9cb6519e401b838d",
+   "seconds": 0.678
   },
   "arc.refuse.la|m2": {
    "url": "voices/arc.refuse.la.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "f43f012d5ae650c204fb7868e0e234a16c7bf73d604364cf9fa44e34b5062da3"
+   "sha256": "3e1157a7d57d01bab59f76c1e881009e5ee95b4a94508c15702bbd0ef8a431d7",
+   "seconds": 0.576
   },
   "arc.refuse.la|m3": {
    "url": "voices/arc.refuse.la.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "805d1685a0a94502d9f6515cb64a02e0aedd57a83e7f393901affe326730d86d"
+   "sha256": "2cde7df63b81684a10861ea6c0a22e8e22d0784544bd09356c44167ee6fc459b",
+   "seconds": 0.768
   },
   "arc.refuse.la|f1": {
    "url": "voices/arc.refuse.la.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "332bf935a2072a4b59b9056844e42b7c42bc98ffe33ae44405a94e860889aefc"
+   "sha256": "876b6440a9645b31358f753f3ffdd3fda2b1e745ef6e5ee0e57e1afdf037e4b9",
+   "seconds": 0.834
   },
   "arc.refuse.la|f2": {
    "url": "voices/arc.refuse.la.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "948836227c55ef79f64ece3c8d1131c72c3e55a807fdc143708cecbc1b07d1f7"
+   "sha256": "74c1467fbea8d255521efaf9c210d417f69cf1dc72823f2b4df09103ab9d7834",
+   "seconds": 0.939
   },
   "arc.refuse.la|c1": {
    "url": "voices/arc.refuse.la.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "56674073caeae2d8b9ba259ae29e4b39d24ca87a55101efdb39318ea4e5ae797"
+   "sha256": "ed982f3a12b359094c1a42c2a8cbd8b348506a1d184ec691eed5b9836f1ec535",
+   "seconds": 0.784
   },
   "arc.call_workers.osparna|m1": {
    "url": "voices/arc.call_workers.osparna.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "9dfca2579343da4939eb19aa6780db265c620ca1e8dc0fb7f3b05f4cbba3af2e"
+   "sha256": "985b9c4b5b02e8c7436ecd1998d768548d431626d7d83f70c3de6ce31dea84b1",
+   "seconds": 1.079
   },
   "arc.call_workers.osparna|m2": {
    "url": "voices/arc.call_workers.osparna.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "8d639eea1cd6a91fae6d6a244e0edc8617f1bd58d7026e1720ee699502be6521"
+   "sha256": "9827a26d9173c268397ed5534cb3d763bb7124dfd9f07307f4b1931d066b7c37",
+   "seconds": 0.951
   },
   "arc.call_workers.osparna|m3": {
    "url": "voices/arc.call_workers.osparna.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "abc0d385d4394e4c9e3d1d7dfe7497520beb7369d29c28a56dc774aacaaa49e4"
+   "sha256": "af8e85536d172301c1ac1349e1af50e9bf998b9b18a05885ce48c6a6170c8f96",
+   "seconds": 1.209
   },
   "arc.call_workers.osparna|f1": {
    "url": "voices/arc.call_workers.osparna.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "99662609ef174a9ba0fa0c8b789ae91aa101ff090aa29963d9a70f5fd5e028a3"
+   "sha256": "264e57c0db374a45f6fbdc0424701eddb22a571f5580391ad68c897e521b853d",
+   "seconds": 1.206
   },
   "arc.call_workers.osparna|f2": {
    "url": "voices/arc.call_workers.osparna.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "d8e66626408a4a33c451ecf6b2dc0b627cb2419f900050777e489b9f46ed1199"
+   "sha256": "1f876201c2120a1d0596b07f1b6dbd36c8475df5abb3573c3c673481e170d9a1",
+   "seconds": 1.336
   },
   "arc.call_workers.osparna|c1": {
    "url": "voices/arc.call_workers.osparna.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "3e65475bbcccf647b36ad902fab6f48cc6c13d0effbeb8bf93df6008cd8b544b"
+   "sha256": "662ef6e4b2d605cdf9bc04d5f296d39443117f97c511c4608fd7b6d9fd3dcfde",
+   "seconds": 1.143
   },
   "arc.call_workers.sbqw|m1": {
    "url": "voices/arc.call_workers.sbqw.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "ca0e5b56a19f1fd03af01ef5ba8e7f994d06dfba077a8b69161c8bc00a8d2909"
+   "sha256": "8655b6889bf26972094d0eb1c5ac40f718de2f1444bc27d0cd54fa37518b25c7",
+   "seconds": 1.012
   },
   "arc.call_workers.sbqw|m2": {
    "url": "voices/arc.call_workers.sbqw.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "75fd88a1fe7814f01c27f360df3363f78dd8fea93fc7d133214fea6f8782752a"
+   "sha256": "12052cb34e2cb35667f20027c04b7400ed28f39ea820cc0e53f1b3196af71ee7",
+   "seconds": 0.91
   },
   "arc.call_workers.sbqw|m3": {
    "url": "voices/arc.call_workers.sbqw.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "0c9c4b928cf81fa19d7c34584b7e93f24fd50f48593bc8f73d2ef430d9bb7c69"
+   "sha256": "2ca6e49e11e7b6d7e33802529378ce807aa482b09ad2c6809670df439560fe11",
+   "seconds": 1.141
   },
   "arc.call_workers.sbqw|f1": {
    "url": "voices/arc.call_workers.sbqw.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "b72d1139f3fc492d1d84817055889cfcaa6c8091e2749af0978dc6128c9e2946"
+   "sha256": "ed2ecc009fd34b5c068e3466679d8caede16aca8727e85679c7c5c8a16e2d41a",
+   "seconds": 1.111
   },
   "arc.call_workers.sbqw|f2": {
    "url": "voices/arc.call_workers.sbqw.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "186e9d5d0f4eca524d2976688e89b5ad133aa799fcdbaa3b01a88825ef995474"
+   "sha256": "13a39f91658a08ffc92414710aab3f9966ab05358ad5dc8ff88b58107ed2d91d",
+   "seconds": 1.244
   },
   "arc.call_workers.sbqw|c1": {
    "url": "voices/arc.call_workers.sbqw.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "a56ebde4b228d97883f716b8bd3940550ab940db3c907143595db62cfe244608"
+   "sha256": "3f52b44aed45df08dcbf2ca789af94ae0c5284f995fe5f534fe62927e0f6d5d9",
+   "seconds": 1.072
   },
   "arc.call_workers.azl|m1": {
    "url": "voices/arc.call_workers.azl.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "aa15d9a2e10493026116bebb09d7c05debdec8f41bc495bbf54f42d1a7d6ad6a"
+   "sha256": "38084ce679f8494e7474139fd5ab6b22af94a2b425b6f27ed7cfc595e1eff73e",
+   "seconds": 0.751
   },
   "arc.call_workers.azl|m2": {
    "url": "voices/arc.call_workers.azl.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "f9f1d8c5d315f025a5ce64cbe784fac62a22fc22eca2f95bc0263bb4f0746f6e"
+   "sha256": "1840eb5be0a0ab918e1b6fe912bd9b09289068dab6577accf78feec3303ee60a",
+   "seconds": 0.686
   },
   "arc.call_workers.azl|m3": {
    "url": "voices/arc.call_workers.azl.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "16d53f193ca57a36849e390f47d164c90ee4555f49070fb486221bdc94486b00"
+   "sha256": "6b739052e91df88b833d8004efa95f9fd7cf7ba687c7dcf2a6d292560a07cc85",
+   "seconds": 0.838
   },
   "arc.call_workers.azl|f1": {
    "url": "voices/arc.call_workers.azl.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "46998aee4edf0f0d9f69d6139896161f5ed37096e3a3af6753d4b427f89d10f6"
+   "sha256": "5857d1c80c12de3782c8c09487d85931ef57125a5602f92b1941180be6129327",
+   "seconds": 0.825
   },
   "arc.call_workers.azl|f2": {
    "url": "voices/arc.call_workers.azl.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "7f15f23cba25d083fb17a58ecbbcd2e02828a8e90f463a3b2ebf326ca43cfd92"
+   "sha256": "e7d6df22cd3732aeeb685c44f587e6769cc17dc14bdf1ce58ca691d5b3c0015d",
+   "seconds": 1.007
   },
   "arc.call_workers.azl|c1": {
    "url": "voices/arc.call_workers.azl.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "4235e2105ee720ec70b34d818b4355d29c6be773a19b955468102b487c6ed613"
+   "sha256": "a55f313c4cdb3906047ef94a09760782d65e052166e07d301d7bdfa72b5c5c3c",
+   "seconds": 0.781
   },
   "arc.count.hd_trn_tlt_arb|m1": {
    "url": "voices/arc.count.hd_trn_tlt_arb.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "ad534cbab6ecd2ae8b67d3b871d4d9f9f6429691623ca085fd05594689d4af76"
+   "sha256": "d5b9741350452cd8d8a234d05645bb6f606d28e22ccf3404e8f85c88a97f50b6",
+   "seconds": 3.389
   },
   "arc.count.hd_trn_tlt_arb|m2": {
    "url": "voices/arc.count.hd_trn_tlt_arb.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "3f0cdac66b99cca29bbde999375473a6cfd977c5534678590426e59eef8bdd6c"
+   "sha256": "220b6968193ab565079ab7a5414b37318e2d6da307302542e2c0a8093cf66475",
+   "seconds": 3.013
   },
   "arc.count.hd_trn_tlt_arb|m3": {
    "url": "voices/arc.count.hd_trn_tlt_arb.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "b5e470e18d855387cc9466383c0a50f3532e6fad0d12a74c45aaf945228dd840"
+   "sha256": "33c5697f75fd5d1da946e31a1f90ba1ba8e9ce524e84c25b86f405ce73dd0b59",
+   "seconds": 3.838
   },
   "arc.count.hd_trn_tlt_arb|f1": {
    "url": "voices/arc.count.hd_trn_tlt_arb.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "2a5afa547d8fede155a19425739ba664dffa1a133aa71294073fde188fffff32"
+   "sha256": "2f6af974db25dc27ab9723e9eceee08ab868cc6dfa641f3de76bcaddfcb67c0d",
+   "seconds": 3.357
   },
   "arc.count.hd_trn_tlt_arb|f2": {
    "url": "voices/arc.count.hd_trn_tlt_arb.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "5bac2a4c17d8c2721e6a983ffb3ff7447470babce30b673bb274f49f6f80c87e"
+   "sha256": "cab42ba2a30dc0cc9b82e9c0a63aeff4001cd5b0ac3c3c88c18cc9774c1f637f",
+   "seconds": 4.063
   },
   "arc.count.hd_trn_tlt_arb|c1": {
    "url": "voices/arc.count.hd_trn_tlt_arb.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "940a8db3c75a6cbf1a803af5cd65a798a1423a51f22c5fc4a995331705f700eb"
+   "sha256": "325b7018a295a225e643b3e83fd8c3da9c53da8ed36ba369a220b1f4a12ca851",
+   "seconds": 3.132
   },
   "arc.ration.wheat_salt_wine_oil|m1": {
    "url": "voices/arc.ration.wheat_salt_wine_oil.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "4eb63855e66dd177669c4fa90eafaddc6b409bd7bb8be3780bb19916d1a92272"
+   "sha256": "4d32d60058b06b88954fe88f396396f368ca3dca58018e9bb89edac93aedaf1e",
+   "seconds": 2.464
   },
   "arc.ration.wheat_salt_wine_oil|m2": {
    "url": "voices/arc.ration.wheat_salt_wine_oil.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "15ca2e0ba34bd12241bc7e8d20f7278e8f5f990a80100d86d0a59e2b77c82709"
+   "sha256": "1bef352360a2a66f4132638ab751c72c4ca51afee68cbc6fafb54d5bd762ba88",
+   "seconds": 2.26
   },
   "arc.ration.wheat_salt_wine_oil|m3": {
    "url": "voices/arc.ration.wheat_salt_wine_oil.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "9c5efdc2c60682863d0dcb5a0c6c78ba656fcb74289d2dc22bcfb0a89ea10611"
+   "sha256": "da56dbd82928c2f5db61a1c1ab133ddd2711acc58e300392ec5b2a5caace73b2",
+   "seconds": 2.745
   },
   "arc.ration.wheat_salt_wine_oil|f1": {
    "url": "voices/arc.ration.wheat_salt_wine_oil.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "f24417459967c68268c1be2f6dbb6056e1a61bd17855d6f9344352f5e8d63049"
+   "sha256": "d500b354469fdb3c60d4120aeeb9af329ea930b2246db87bc3c5eccbed55d8b4",
+   "seconds": 2.348
   },
   "arc.ration.wheat_salt_wine_oil|f2": {
    "url": "voices/arc.ration.wheat_salt_wine_oil.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "da552c61f0c53eea98492abad82c3dd8969aab88be5e8a9e403e953ef43ef938"
+   "sha256": "70a99359ed25f5eb5048481b28bd5e71d38b20391a0ce9bc7ff911ba43501bdd",
+   "seconds": 2.606
   },
   "arc.ration.wheat_salt_wine_oil|c1": {
    "url": "voices/arc.ration.wheat_salt_wine_oil.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "9ed5c84c99caa81dd9b9c27a21811807b23f001449f293fd795e263e619684e6"
+   "sha256": "ab72759d4b970ef86b18a5334ec0b608d3c3915351877ec01846e2984739c79c",
+   "seconds": 2.349
   },
   "arc.ration.npqta|m1": {
    "url": "voices/arc.ration.npqta.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "2c1ae77ebb888b18f5d25ceb79428feb75099a73c536d1aef54cde5972cf8c5a"
+   "sha256": "1ae31177b8c42fb54c431b94f266325716207dfc4961acdf3f08765bbb7c30c7",
+   "seconds": 1.085
   },
   "arc.ration.npqta|m2": {
    "url": "voices/arc.ration.npqta.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "24327d140b15ec4868d17942737fd0c53c7d23c9e385fae1639f3434e6d11830"
+   "sha256": "cb739684087c496417273a01e4751998eef4f198fe72edf028b80ed5a24bba96",
+   "seconds": 0.965
   },
   "arc.ration.npqta|m3": {
    "url": "voices/arc.ration.npqta.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "5226caf3c643e93255fec59bbf65fe0e3b6baa64495c605329cac743bbe3bd5a"
+   "sha256": "20fa0d70c00f4fb71115ae6da6783215d8c12913751ebcf38831c81933fff2a7",
+   "seconds": 1.2
   },
   "arc.ration.npqta|f1": {
    "url": "voices/arc.ration.npqta.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "456eedfacc1f16eb729a14eaca7871d671c734aac6d8f739bbe0f855c6798cd8"
+   "sha256": "0fe0adaa60f47d283bcd1497c082d88a177172a9df7c48a50c1506023752993a",
+   "seconds": 1.208
   },
   "arc.ration.npqta|f2": {
    "url": "voices/arc.ration.npqta.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "1dfefd5aa55ae752095bc4245e9fc9992fb99674f6a344e5d33699d6c579604c"
+   "sha256": "fb2bbf812a8169b03c988502740c7c126998d5407d8f58a18857b318c73fa501",
+   "seconds": 1.332
   },
   "arc.ration.npqta|c1": {
    "url": "voices/arc.ration.npqta.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "49358f1eda03d6108a69936412f98a88c63d84676c77958b2a1b8c3550810f4a"
+   "sha256": "9714bda5e5c7c7e1a9e2be1686c8f5f095005797db9925573733683554836de7",
+   "seconds": 1.145
   },
   "arc.ask_document.igra|m1": {
    "url": "voices/arc.ask_document.igra.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "e3cd0f1ece00b6f7bb807206905e67e8b6c692160cae9bf82e04853cec873439"
+   "sha256": "d60bdee09ebdded21f629eff575fd013251a9cfa97cdd9a77de101773917e8a4",
+   "seconds": 1.025
   },
   "arc.ask_document.igra|m2": {
    "url": "voices/arc.ask_document.igra.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "7b3970453940244120b67dcd755a7bf2a7d06f5a2150fe8ae9a895a91381c692"
+   "sha256": "d1560f9cf1c04e294b8a824c5b53f68119b53e1e8ab87dc45cfa3d08b0db0f4d",
+   "seconds": 0.916
   },
   "arc.ask_document.igra|m3": {
    "url": "voices/arc.ask_document.igra.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "8fbf4f466deb9c9b399f891c3a18ba1356e3bb91bab3b47ed87be075238d1d5b"
+   "sha256": "dda461caf4b2d6b79a0fa3d2d601334bebccd05ec081c9adebd9a6a28182ddf1",
+   "seconds": 1.149
   },
   "arc.ask_document.igra|f1": {
    "url": "voices/arc.ask_document.igra.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "b634f96d8eaccd3dd03e69a1074e20b00af98184f4de42eefb90a64eb882ed01"
+   "sha256": "30da15a2778ad9b832dcba2b476eccc3f91a8e4781c6679d897554f3da5ecd26",
+   "seconds": 1.178
   },
   "arc.ask_document.igra|f2": {
    "url": "voices/arc.ask_document.igra.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "b6dc6ef6275475c04413b481902e15392d87ed501409821b2d9660c4f677209b"
+   "sha256": "802cc478fb7fa053d45abfe261d22b2a62417b664b741548dbb6f924be4efe5e",
+   "seconds": 1.286
   },
   "arc.ask_document.igra|c1": {
    "url": "voices/arc.ask_document.igra.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "c6310cb58ab8c3c7b55a9ca9c921a1d5be46625a463b385343793b55e807f892"
+   "sha256": "e54256ecfb11b62b3bf3469688f38875e0323daa07295815005604ad7285082f",
+   "seconds": 1.11
   },
   "grc.greet.khaire_xeine|m1": {
    "url": "voices/grc.greet.khaire_xeine.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "5fe0cce3ef7bbe04b5bc6ee07702e5b4c41158dc146d5a862546d25a7e3dea44"
+   "sha256": "11ffffd8b93671c8b6304d0088e5444a6302684cd24505b311d8425ccfe46a24",
+   "seconds": 1.206
   },
   "grc.greet.khaire_xeine|m2": {
    "url": "voices/grc.greet.khaire_xeine.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "35d4c1f1a9a12b5a1caae56c0076b65f1a196d7d3fa97e8a797531eeead00811"
+   "sha256": "1d8a101fa02594f920df535daf858aefb96bc5af3b5dca76888beaeb16ce2b0b",
+   "seconds": 1.109
   },
   "grc.greet.khaire_xeine|m3": {
    "url": "voices/grc.greet.khaire_xeine.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "2a1444e58fb3354a458bfbfaa09eac5c7a4e3d32de7e534ff7b0e659ee2abe01"
+   "sha256": "58a8af6ebde512ae1a1830ea439bff41004693032565f0edb13a6662edd4e4cb",
+   "seconds": 1.353
   },
   "grc.greet.khaire_xeine|f1": {
    "url": "voices/grc.greet.khaire_xeine.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "cfea064acf00bcc78d87ec339b307a6b568fde4686dd1c9d2d4b1d125d293042"
+   "sha256": "5114eb8f41065d29d8149dfe32217c9319037105dc548aa70d2baac7b5d474ab",
+   "seconds": 1.302
   },
   "grc.greet.khaire_xeine|f2": {
    "url": "voices/grc.greet.khaire_xeine.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "65f587fa01e28b5b4d6559072d652a4e0d5ef08a48ec8ff1faec8af2548b609a"
+   "sha256": "113650ec214805bdff7662da23ac951e562fb01cd0caac2562ae8d72cac8606a",
+   "seconds": 1.455
   },
   "grc.greet.khaire_xeine|c1": {
    "url": "voices/grc.greet.khaire_xeine.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "0ee882e09551155c87858a6eadac590d36ae665be552e7859acda3c4dde6a912"
+   "sha256": "912916290f04f41e9ccd8bbd3c58e390dfb73ea2063df7c962dcbf9764138abd",
+   "seconds": 1.228
   },
   "grc.greet.khaire|m1": {
    "url": "voices/grc.greet.khaire.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "497f9c6b42893bfe8f2c55043b5b901425ea299774452b5b5dc261f9eb078b8a"
+   "sha256": "0c055c7ca7a817665da20141e3b8511b5dbeafaa2c0fb82d21f7b11b91ce4f1e",
+   "seconds": 0.629
   },
   "grc.greet.khaire|m2": {
    "url": "voices/grc.greet.khaire.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "b3355d9dc87edc985a2124537cbbb79c50575856f48fa9bf67c1eba1f8263122"
+   "sha256": "f58c38cc453bc9d7a27a49b62321d88d9fd25914ffcfe65bfc5fb89a7d79e631",
+   "seconds": 0.582
   },
   "grc.greet.khaire|m3": {
    "url": "voices/grc.greet.khaire.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "3070900216eba38443d2bf87e7367a77f1c122a666f28c4d4ec30a7917b0fa7e"
+   "sha256": "600f184f315a654814e24570529dbde015f88e10d65780f09916bc0b62767746",
+   "seconds": 0.697
   },
   "grc.greet.khaire|f1": {
    "url": "voices/grc.greet.khaire.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "6483beac2e349bf6d905605ded1c667385381ce6bb173b96e6e40684b8869c8c"
+   "sha256": "b9e668ab9630f2102a6d0c726927fe02fc021a841f897a7086c4ad81e8d6a6bc",
+   "seconds": 0.757
   },
   "grc.greet.khaire|f2": {
    "url": "voices/grc.greet.khaire.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "84da6db3ae2ac8091ef0bdb3e155ca6a6a7fcbed180ce942cb4e961d61aa5fb2"
+   "sha256": "42b9c46c8dc906650587fc1d959367f1b389d88c5fbbc5f5d411255259da420b",
+   "seconds": 0.864
   },
   "grc.greet.khaire|c1": {
    "url": "voices/grc.greet.khaire.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "a8125eec6f5b6d10c8aedb4811751393930e53a0731d5664f530ebd569c1a9ad"
+   "sha256": "133e042cbb39592e21da147c7f3c4299c24f61f5904d56eee9451287a96b8eb6",
+   "seconds": 0.729
   },
   "grc.reply.khaire|m1": {
    "url": "voices/grc.reply.khaire.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "d2a2fdda3c2b47d3c3e4a1d0a1d1531a01229c5678485fa56d1429ebf2a83f9a"
+   "sha256": "4aa6690aa563c1d28e87be1c667016a005bcb8bb9dad3727792f2d6266535a92",
+   "seconds": 0.638
   },
   "grc.reply.khaire|m2": {
    "url": "voices/grc.reply.khaire.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "bfd4e39a2bb20ea98127fc17cf7c6940eac66f88f17cef5d7b45d4ca2a7ccacd"
+   "sha256": "cdf409cfaeda088f3846409ff3740ef91f65dbb2627bab5935486fa4f7103336",
+   "seconds": 0.582
   },
   "grc.reply.khaire|m3": {
    "url": "voices/grc.reply.khaire.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "277f5f2fc29a35ecb17049707cd1610ae87b6ba02a4ecdac61b1307d7fceea63"
+   "sha256": "c5b08f97d4d49e03c10f068ec815fa554b1410f02a7b8884f83408ad31c205bc",
+   "seconds": 0.699
   },
   "grc.reply.khaire|f1": {
    "url": "voices/grc.reply.khaire.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "7df7158aef2435073a6a360ceb917d6724070c3cc89055724b72fc88bd8afabf"
+   "sha256": "016b078fd3a7e5347f1cb495f546bf752071ea13915972680fab31540022a14a",
+   "seconds": 0.757
   },
   "grc.reply.khaire|f2": {
    "url": "voices/grc.reply.khaire.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "06e58a7d5a18d56930dc63e9bd3da17de7905d1bf078f59844a97d3155df98b9"
+   "sha256": "bfd255957cd883d763f826899bb403909441d49cdcba20769f589781e6ba456a",
+   "seconds": 0.865
   },
   "grc.reply.khaire|c1": {
    "url": "voices/grc.reply.khaire.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "4d7eee0bb5518e62f4f9b5a79bce063bda5e2715a35e1825153ddbc4f5672f42"
+   "sha256": "4715ec37f10236e15d2eecaba6346f0be949b4fce77a7bd79e6bea25c182ef00",
+   "seconds": 0.729
   },
   "grc.reply.ouk_oida|m1": {
    "url": "voices/grc.reply.ouk_oida.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "0a9201a093a57b5da205bcea8cf5372708145120d08d2f3bb54a5de2fca858aa"
+   "sha256": "4d70764fcbd3d611eef5488f5d74bd7d592173cc70ff01b86cfaee41d076a175",
+   "seconds": 0.831
   },
   "grc.reply.ouk_oida|m2": {
    "url": "voices/grc.reply.ouk_oida.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "03f63b8453131a4c340f31d267c40720e74f5c3a0465f502ec8c664989767b4d"
+   "sha256": "2702c6c61a0d4202a5b322dc84be56bd60b697aff6d92b288169383004aa0059",
+   "seconds": 0.761
   },
   "grc.reply.ouk_oida|m3": {
    "url": "voices/grc.reply.ouk_oida.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "9033645f0a8c87ae0c969755c1e6b6b5a8e4d6964ab7888e45d6c74d77223982"
+   "sha256": "92862f20a6d447bd8f69286db4c57c0fe245e1fb86dd2623e5bf4fa9f0d5c7e3",
+   "seconds": 0.929
   },
   "grc.reply.ouk_oida|f1": {
    "url": "voices/grc.reply.ouk_oida.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "213b7c9d5bddd646e0cb654c5aaa002c05a1c4fb91bc338bea1114482e3322fe"
+   "sha256": "f67538a8b9f723f5b1097d3e0a942efaabbb5071d71af645fc4421e8ac369292",
+   "seconds": 0.932
   },
   "grc.reply.ouk_oida|f2": {
    "url": "voices/grc.reply.ouk_oida.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "07dfe098dbaf6fac6965359ff77f2ae18210554c5a216b3d8b17b2855dee0be3"
+   "sha256": "f62688885eed4eaf972091baf7e8d6b313b80e1368fcb4b23d34176e9c564d6d",
+   "seconds": 1.05
   },
   "grc.reply.ouk_oida|c1": {
    "url": "voices/grc.reply.ouk_oida.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "74ea4c9b35c2a5592af51520d44494227b186d6163425f02d765b6d51f4c0849"
+   "sha256": "d4b0146348f34e15383a896129afbc10b1e151b2a8f9698c122d63d1b6dd8aad",
+   "seconds": 0.879
   },
   "grc.reply.tharsee|m1": {
    "url": "voices/grc.reply.tharsee.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "15a6202b2ff773237af46bc5e9e1189696392ecc0e4c2473032190289573a344"
+   "sha256": "44fe1afa86cffe1d72c706f2be6dad6ff8d108e783707ffb772e1a28315329d5",
+   "seconds": 0.751
   },
   "grc.reply.tharsee|m2": {
    "url": "voices/grc.reply.tharsee.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "85f07177bd25c24713ebafa5a58df5cac1bf7f139e86f69742eaca58a7204b54"
+   "sha256": "57fad040c53677b48e5b973e012a09a136955153f442c24c2f63055174db2e06",
+   "seconds": 0.691
   },
   "grc.reply.tharsee|m3": {
    "url": "voices/grc.reply.tharsee.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "b205c51eba54af350324d154a47a28a3e63228e2340af32a3e9bc5a63d1a489e"
+   "sha256": "8e12a34dff6c3261d289fdcc8d1d65705274e3beb720e0b2a6fd1fbb6d70dded",
+   "seconds": 0.828
   },
   "grc.reply.tharsee|f1": {
    "url": "voices/grc.reply.tharsee.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "fe563eb875f626e5a40dab7bdd39855a718a2490d6b9bc4f94a4c12d86ed4db7"
+   "sha256": "e0b0d0de343bb318fb823d915304e9572cce8b38c98106f7c4f8ba8f7f7bc14a",
+   "seconds": 0.859
   },
   "grc.reply.tharsee|f2": {
    "url": "voices/grc.reply.tharsee.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "8923d2fb0bff277731bba419349db70e894cd241f8440f87a29fc1c5f2cdc9af"
+   "sha256": "f77e835221382c3853e21938d2ce37f1f8b205e4d13637f6adbbbe5ae8bafc98",
+   "seconds": 0.952
   },
   "grc.reply.tharsee|c1": {
    "url": "voices/grc.reply.tharsee.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "b31847a4abc9975b873ca4adaa0380a7af46eea0a629c1ab1e6f6886344c8870"
+   "sha256": "92a1fce8aaa080ea54f7536abe4df96f37907d298594158e8bef66ed1bf8283d",
+   "seconds": 0.823
   },
   "grc.affirm.nai|m1": {
    "url": "voices/grc.affirm.nai.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "42ac2967ac5388b354832d5bc91c752f608c4bc54a3c9f4f8a13f596db2a648c"
+   "sha256": "feccbd0768045bb2e64739595307bea2682f2473b33991e9eedaac81821cb7d4",
+   "seconds": 0.439
   },
   "grc.affirm.nai|m2": {
    "url": "voices/grc.affirm.nai.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "bd8e99411ceb6441a975aef8aa0d01f23a95bb5bbd79745a6cab5ea21ecbc5c0"
+   "sha256": "e5046d80ee78f4b7edf9762057a2b1cda2a40acda34325cb9b440d93327ea8cd",
+   "seconds": 0.368
   },
   "grc.affirm.nai|m3": {
    "url": "voices/grc.affirm.nai.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "156d53df76e0a617b6e08f1ea8f0a10e086016b19afbfd8def015d7ee76dc417"
+   "sha256": "107e4d2a7da7846924d993ef62071957ad79aca31d2151d6a463d13f341a4591",
+   "seconds": 0.488
   },
   "grc.affirm.nai|f1": {
    "url": "voices/grc.affirm.nai.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "ff0e04c497713ef092f7eb77dc543a988b859c4a36dac87e90276c71781737b4"
+   "sha256": "07452fc342d332965d5706a07dc0e4cd75161c765139b1ca5f1f9878a7bb518c",
+   "seconds": 0.595
   },
   "grc.affirm.nai|f2": {
    "url": "voices/grc.affirm.nai.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "da1680100f7241296fbf47db46708fb99a0100ae949dcd614c8dbd79059577be"
+   "sha256": "85b30817bad88fbefacefe19f4c8c4123b441403fc35488173053d98b7b5a718",
+   "seconds": 0.731
   },
   "grc.affirm.nai|c1": {
    "url": "voices/grc.affirm.nai.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "e3ca19224a8686aa5dc2e756ef0dbc270fa0a5c774a2a57e8df3ae55ec8ef043"
+   "sha256": "4be6d104026e2faffd3013e75813b64eaa88bb95f64cb4b7489e51bb4fef89e5",
+   "seconds": 0.563
   },
   "grc.farewell.ithi_khairon|m1": {
    "url": "voices/grc.farewell.ithi_khairon.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "5b6009f8795219a2dd47b616a1c37e0778936edb69ab87dc2eae1296ac9fbd07"
+   "sha256": "2943ab6aab1682df6c6dd28d04387b0dd1540f90eb2d02d3124ad9acbdfbef9e",
+   "seconds": 1.299
   },
   "grc.farewell.ithi_khairon|m2": {
    "url": "voices/grc.farewell.ithi_khairon.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "4a4b3cf9c87856e5443484ca9c3fb34d8f6af2f15df1eb8e71fc23a6d4f85757"
+   "sha256": "ebdf03418f958fc268c80fa2291b9d516121a37456d8a6dcabd12679b7738582",
+   "seconds": 1.193
   },
   "grc.farewell.ithi_khairon|m3": {
    "url": "voices/grc.farewell.ithi_khairon.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "831bae24775977b2e5837a96583b038c0b4e8258f4100f0d4ebdbe95a25d0bdc"
+   "sha256": "d40755e37ca0255e7f496a61a5afce8975ed2a48dcb8e051ab99da4920c0c6c7",
+   "seconds": 1.446
   },
   "grc.farewell.ithi_khairon|f1": {
    "url": "voices/grc.farewell.ithi_khairon.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "78d7546480f3e7b545bacc286f53857c7da0e15225898c753e8916ba0e7e5ee6"
+   "sha256": "ad9bceb987fc55ff2e25b9eeddbc95fa79d13d10107a3f07c63a5dcf24bfeeda",
+   "seconds": 1.274
   },
   "grc.farewell.ithi_khairon|f2": {
    "url": "voices/grc.farewell.ithi_khairon.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "de4cfac734f552ae14867c8a1992a0d3471d1e62a897a5db7f0c69c66acde23d"
+   "sha256": "78a62ee838bba111fc6cb44fc11aa65739e6dad1a6113c763c08857e493290f3",
+   "seconds": 1.509
   },
   "grc.farewell.ithi_khairon|c1": {
    "url": "voices/grc.farewell.ithi_khairon.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "ee4f5aa6e6e85f63451b756215517b3a430f5b3f61b2e6bf5f88ced719ee40cd"
+   "sha256": "430326257657e89aa788ea5a5dfb71c30fa2d796cd2c80783b25c57abf603c44",
+   "seconds": 1.28
   },
   "grc.pious.o_zeu|m1": {
    "url": "voices/grc.pious.o_zeu.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "9ef988590e04abf6a319dddef8c8e2171e887a245f1196d22ace0b0562ff640f"
+   "sha256": "0504e2a7ce8792525076d7e2b0bc3b1a4f76f98889bfacce93af1268065be99b",
+   "seconds": 0.761
   },
   "grc.pious.o_zeu|m2": {
    "url": "voices/grc.pious.o_zeu.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "11a4f946556d4349d7db1a67f483bce8f0ac307f8ca9f249607eb99155e0c00e"
+   "sha256": "3db0ba252688677b0f581524abbd022b26f3c2e5dbd9b1d5196deecc0af94f6d",
+   "seconds": 0.699
   },
   "grc.pious.o_zeu|m3": {
    "url": "voices/grc.pious.o_zeu.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "155f33f868b05a3aa249c38249f8dba6ebcb75b0b1dac6e9dcf4490e01466024"
+   "sha256": "68f5d7d50e962c8ac54a418188d9d766ccab326f2194f4544403b110c6cdea2d",
+   "seconds": 0.857
   },
   "grc.pious.o_zeu|f1": {
    "url": "voices/grc.pious.o_zeu.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "b9dd91c5cf7bfc98a5efc48e505c32b97b67b31bb84982d9d30d5df3a2c1638e"
+   "sha256": "7dbaef489fced7356fd555b7d3e8321f972951d25f5162443b5db6559b4ce5d0",
+   "seconds": 0.893
   },
   "grc.pious.o_zeu|f2": {
    "url": "voices/grc.pious.o_zeu.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "6884b1e1af122543a35cc76780de9c1524d2ad98cd0a01ef3f75501e8a547585"
+   "sha256": "f2782ff542cfdafe40133baa124b30cfbd0650f6769970257912cf50674b235d",
+   "seconds": 1.027
   },
   "grc.pious.o_zeu|c1": {
    "url": "voices/grc.pious.o_zeu.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "4997a5b093ecc8cf0d3d52e1f1a4ab0ad8442265312bd2a38cc293a3c182334e"
+   "sha256": "4e7286b7c6d2e92e44f8df8bb5b618ffcf5f2262e2cec429fcc5c5b4fc0bd0ce",
+   "seconds": 0.843
   },
   "grc.refuse.ou|m1": {
    "url": "voices/grc.refuse.ou.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "c4a16208f77824a162f9884063e18afb95bf0d801429be70ff3b159f99392387"
+   "sha256": "239493aa535edfd929eb88b49f2cbcf2e928e5df54784243baefd0eba6fe63e3",
+   "seconds": 0.366
   },
   "grc.refuse.ou|m2": {
    "url": "voices/grc.refuse.ou.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "258f63ccd3c86e28da15e6538748a7f80141bcd3ad9a2e07065ecc68474e7165"
+   "sha256": "a5c879ddb5796ba1c6babb3100972a3f3f4b24406c9d02725ca1ac7b931fe39f",
+   "seconds": 0.313
   },
   "grc.refuse.ou|m3": {
    "url": "voices/grc.refuse.ou.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "b68318f9c0e341254b6bab585fae7e48aee42a6d12df97d0a30f15b443429d12"
+   "sha256": "7892d96936710b43ea4e56da99a2b5c5eb13d3af262b5596d35c1feb0a9974d4",
+   "seconds": 0.415
   },
   "grc.refuse.ou|f1": {
    "url": "voices/grc.refuse.ou.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "12bd37c4188386d9c43385413b29dfdd25662d9fe71c50f994087b8ef8ac8527"
+   "sha256": "63da8996a4fd49d88974bff837a462b1d0686ef4143e7072f4c07dc9860cd3b5",
+   "seconds": 0.524
   },
   "grc.refuse.ou|f2": {
    "url": "voices/grc.refuse.ou.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "91d96684d37513710400985c4ab7532dcf0f7c9606f3537ac4bcd6c9828263f9"
+   "sha256": "6814b6bbe0da2b34ff0b967f40266d78e761551743bbffd263ca04167fd207cb",
+   "seconds": 0.642
   },
   "grc.refuse.ou|c1": {
    "url": "voices/grc.refuse.ou.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "744e75b0b52cb546cf0eb0364d7b6f67342aae67a40bc0bc17d12528c37f401c"
+   "sha256": "8bf9fc59187184092706d2c8fbb76534c5e9f6ed9a6d68ce73821d0084726bf3",
+   "seconds": 0.695
   },
   "grc.call_workers.age|m1": {
    "url": "voices/grc.call_workers.age.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "af14cc25637ddf80ca99d61547de614d2860565632eef8f9fa45d287e3680363"
+   "sha256": "30a535f5dc95e1f9fe684f4534d715ecf45926f35bce29fc7c9cc3eda5adb0a6",
+   "seconds": 0.435
   },
   "grc.call_workers.age|m2": {
    "url": "voices/grc.call_workers.age.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "2219d9ae99b12126e25afbfee8fc195561cee86191b6b4babece8b45ac7716d3"
+   "sha256": "facdb780b6dcc35a79e747b714d0df1280403e2d4b9b188e3e0466df26d1c357",
+   "seconds": 0.389
   },
   "grc.call_workers.age|m3": {
    "url": "voices/grc.call_workers.age.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "2ca72acd5108a689d00a0953d1d351625fe7096068b5630cbd5feac4d57e941f"
+   "sha256": "13f975ab4a842c6d3501b1d94e0810f5a1779b53c13b10fede11693fc234cfb1",
+   "seconds": 0.473
   },
   "grc.call_workers.age|f1": {
    "url": "voices/grc.call_workers.age.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "0b401250a5a252f587e599cf78e71f21864a620963dd3d21c70e33e2abd86018"
+   "sha256": "e948e5182afea5b3ea0f331ea7eb8ba62b8cf9f99f566e75a5896b86f07ffdb2",
+   "seconds": 0.562
   },
   "grc.call_workers.age|f2": {
    "url": "voices/grc.call_workers.age.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "5b9859ea4a20f2697a067d1b7657b7faf0b27b515edb0b6f239c6d0b87509583"
+   "sha256": "6ce9eada38d18a26f0e5f3f1a8d99233cba8879678106c2ed522ac7b6d3c0fe2",
+   "seconds": 0.628
   },
   "grc.call_workers.age|c1": {
    "url": "voices/grc.call_workers.age.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "af25433afda21784bca931a453e46b207a1cff8c91bdeb8fbac85bbe7a889150"
+   "sha256": "7cf6df0d6c8c11200caef3e6ae14f9c4f72db5e140822ba7b7a062222c51afd5",
+   "seconds": 0.539
   },
   "grc.call_workers.phere|m1": {
    "url": "voices/grc.call_workers.phere.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "c1ced36a0d7f3a15dcbda0cd881fa2aa7f1f5d9538e7e84e5a296c22eb12124a"
+   "sha256": "8876bc8fe7bf2c8a6c51bfb841ce38350d3470e0f6dfa3a6d82794b26a68b662",
+   "seconds": 0.509
   },
   "grc.call_workers.phere|m2": {
    "url": "voices/grc.call_workers.phere.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "aca4861aeb16c6ade93853c155d0942ca0d5c316897e1a563ce53b47239d62f1"
+   "sha256": "41f20eac2c1028d3403ab6a1eccf32778e27f6db032bc98ad9dd72a72ed6191a",
+   "seconds": 0.479
   },
   "grc.call_workers.phere|m3": {
    "url": "voices/grc.call_workers.phere.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "e6324bd9d89c3a83eb166961740d1e2000a2e162d9a6e7c1dd40b467cb7d4b2e"
+   "sha256": "5a9da36b1b5555ecbac381d18e377d0db440823e38d5925e83b5e86984dab867",
+   "seconds": 0.559
   },
   "grc.call_workers.phere|f1": {
    "url": "voices/grc.call_workers.phere.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "1086967120c1b931901860d979217a925393b1f9c8e14502f01ca36f384d6cf3"
+   "sha256": "8be55f92beee466bd21527b5776d5b2b275d53ab2e929d7aa6924603bcc964e9",
+   "seconds": 0.63
   },
   "grc.call_workers.phere|f2": {
    "url": "voices/grc.call_workers.phere.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "1fd2322573cffe9889d61f60cb21b0b2e86cd76b9eff04e8e9dd6f5675ee2d18"
+   "sha256": "28e520c4b5ab69a29e208a7109f3348127bed528b972e4ef4dae7b3b0a94ae75",
+   "seconds": 0.688
   },
   "grc.call_workers.phere|c1": {
    "url": "voices/grc.call_workers.phere.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "e747bf6e2abf10537f4195e09c9deb52fbd192d255f1e48f4bf1adb9bd5ce97a"
+   "sha256": "22b06be0718ffc6532acc9a1d0bef85568a550770ad0851254400d35f917e8dc",
+   "seconds": 0.606
   },
   "grc.count.eis_duo_treis|m1": {
    "url": "voices/grc.count.eis_duo_treis.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "fd94adc592bf16f885b5b78796d9aee603a155ce272bbc8fbb1465c60c29c635"
+   "sha256": "0c3e32e5e4ce035f3b26dc692a21aefde6092c88b80673789b64f9f6301fe793",
+   "seconds": 1.893
   },
   "grc.count.eis_duo_treis|m2": {
    "url": "voices/grc.count.eis_duo_treis.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "2f0237eaed652bfe51e59f784084b579e300ceab22d6919bd059368737b9f1c6"
+   "sha256": "4404b9c8ffbf823e0f2b75a212861439794bd29ad1ba08193a6eac43d710877d",
+   "seconds": 1.692
   },
   "grc.count.eis_duo_treis|m3": {
    "url": "voices/grc.count.eis_duo_treis.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "3c1ebcef9d9747ef780eebd0b3b04d658ad432f0751c00ca83d03e1e8ee930dc"
+   "sha256": "59afdf06df0616d447ff011472fce08d90cd436be40f0fed2c15da409dc83583",
+   "seconds": 2.181
   },
   "grc.count.eis_duo_treis|f1": {
    "url": "voices/grc.count.eis_duo_treis.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "ce20e139e6cc8c8ad578280b35fa655cc7eb88b131447f5f38761be8bbfbd6c7"
+   "sha256": "573bc7fd8b06ef01c651e1179e3b7fa28731eeafc2b3c0684fe4bab8851a0c68",
+   "seconds": 1.876
   },
   "grc.count.eis_duo_treis|f2": {
    "url": "voices/grc.count.eis_duo_treis.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "be6561d4af86d729add15f29a2bab0a3d9f07abcae433f22d1926119113d6c0b"
+   "sha256": "b891ea5e83f2c40d7e24ab86c69ebcd5a8cd15e21394e0da9478f487a102feb2",
+   "seconds": 2.33
   },
   "grc.count.eis_duo_treis|c1": {
    "url": "voices/grc.count.eis_duo_treis.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "44c41ac4537b66c84d7ea68a7b788575c095eb26fabe12fc96d10b5ec69f387b"
+   "sha256": "39db13150f477447dcd4dc915a4df07f87ee94853ec5859501224a55b75c07fe",
+   "seconds": 1.743
   },
   "grc.remark.kalos|m1": {
    "url": "voices/grc.remark.kalos.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "c8892479c1443f736dfe15ffc2c105fec8df50550c2509d583621e8b56ee80a7"
+   "sha256": "f1270c47811ad7c3738bc8ebb680100c88edf183f40b244d887e06f121a45aa4",
+   "seconds": 0.711
   },
   "grc.remark.kalos|m2": {
    "url": "voices/grc.remark.kalos.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "ca16a92d8ad05bfd5bd48791f61096f103377e69dc036d6bb78c49f3d73a78c8"
+   "sha256": "f020b5ee905b679d0967d1b291b869ade3ec3664a324cbfbef707cf086320b80",
+   "seconds": 0.643
   },
   "grc.remark.kalos|m3": {
    "url": "voices/grc.remark.kalos.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "6c4507944a9f2835b98c1d3dc590178f7f5d70f8cae3580f06a80d5e14610aae"
+   "sha256": "601556d0660c57cdbe457a920885b5b3d7e4a85c4ad3b492e8d5d81dedc89958",
+   "seconds": 0.8
   },
   "grc.remark.kalos|f1": {
    "url": "voices/grc.remark.kalos.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "5f66124f87f1aa04aa3c5a237f90e00ab2570846017f8949efe3667a3cd595b7"
+   "sha256": "255591024f03621875f1bdc724e47d10e8ce05eafcf28f27f14152acffd3bf65",
+   "seconds": 0.785
   },
   "grc.remark.kalos|f2": {
    "url": "voices/grc.remark.kalos.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "ed05bb713f2e30c8e4c5f9621919777f172d5229418be8f564ec408897ee97df"
+   "sha256": "9f45d42ef71973a6b06743da088faf21bcb765e0c741d0fea6fd46af25bffcb6",
+   "seconds": 0.886
   },
   "grc.remark.kalos|c1": {
    "url": "voices/grc.remark.kalos.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "581a76f7666fb00cee9f1a7d04a36ae3e3bfe172a2c66e051adfe2e4ff75c5b2"
+   "sha256": "e64d7a0b12ead4617ecce3621a7f481fb70b4d7a5a2334f191200a7f5cdb4e66",
+   "seconds": 0.888
   },
   "grc.ration.dos_moi_sitia|m1": {
    "url": "voices/grc.ration.dos_moi_sitia.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "4ae6dd35c7246ccdf2a608c1d292560e9571a1af4215928a6634a1b8b7e3602f"
+   "sha256": "a505884669b5f91016a3afb36ee3f86ea0ca258e4007e3d370c974cb637cd709",
+   "seconds": 1.272
   },
   "grc.ration.dos_moi_sitia|m2": {
    "url": "voices/grc.ration.dos_moi_sitia.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "5d3391b5294790fbc82fe0b5b081e392735dbb1be46998863fce619444feddc1"
+   "sha256": "6486b71056b6a103fbf39a695ae5269ca519aa3435ac58a84fe9a944c0b98160",
+   "seconds": 1.166
   },
   "grc.ration.dos_moi_sitia|m3": {
    "url": "voices/grc.ration.dos_moi_sitia.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "07c6071a079df3cc018708859516a08c6652fcaba1e35591a9041529e3e91f21"
+   "sha256": "17c57f2e5b22b347e45d2c4a0c7fcb023797d360b1dbfc25960ffb86d9ce0aec",
+   "seconds": 1.419
   },
   "grc.ration.dos_moi_sitia|f1": {
    "url": "voices/grc.ration.dos_moi_sitia.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "98f606fabd138ae04c2e1512ef5733e2b0e904ce5d2db32af4b31bc26eaf3cac"
+   "sha256": "d4b6958ac3d052f487a6dd8d7291f23be5b4254cf231536c295daf3330e59fd7",
+   "seconds": 1.328
   },
   "grc.ration.dos_moi_sitia|f2": {
    "url": "voices/grc.ration.dos_moi_sitia.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "be07a205ecba8cfbc5aedae740966981ec08e9410da09ae23f75e1ebb6aaf8d3"
+   "sha256": "1962399cbcbde06310a32c011504fe09b82d6b6e91412af30a6d00eed6d434fc",
+   "seconds": 1.45
   },
   "grc.ration.dos_moi_sitia|c1": {
    "url": "voices/grc.ration.dos_moi_sitia.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "2811b10b428d0fac64c19694bd8188db2d1dc9803433497dfe1d5483b48ba520"
+   "sha256": "fc28ebbd1a3afd84b11eac7fa48375bce14a84784060f14f2f6ba9582b3d9f89",
+   "seconds": 1.256
   },
   "grc.offer.artos|m1": {
    "url": "voices/grc.offer.artos.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "16995d3ac39d1deecc4883ce6b1c68e5ae130f1c19fb03224707fe2e3d9be2dc"
+   "sha256": "36583df9773f41ad59c69b9c770816e47799d836d461b422cefbf01578264bc3",
+   "seconds": 0.623
   },
   "grc.offer.artos|m2": {
    "url": "voices/grc.offer.artos.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "61a59641d98c80e0eee74c7b66a9978e8f1d03e3cfeda36f51ead730380593e7"
+   "sha256": "2e9efa44dacfbafe172e20a2fd5048f9f4f6c0bec82fac39497cb9285470e102",
+   "seconds": 0.578
   },
   "grc.offer.artos|m3": {
    "url": "voices/grc.offer.artos.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "ffcdfb3442caab63fd1ca51981d4a8b1f3d231e89feaae8cbad5235b50dc1d25"
+   "sha256": "e3f3f58d39f2b27b4ed74b4004068584b354bf3667f06b0387f77641252d5fed",
+   "seconds": 0.687
   },
   "grc.offer.artos|f1": {
    "url": "voices/grc.offer.artos.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "fbcb724aedb3dbabf9df564930c48fa611077c284ce15afe379a76a3733ebea2"
+   "sha256": "3e54d74d5d932fcb604663d98dcfd0fc011bf37f3759d967a973e4ce6cb1f65d",
+   "seconds": 0.623
   },
   "grc.offer.artos|f2": {
    "url": "voices/grc.offer.artos.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "7a655064afcc0454b26524203ae6a11c98c235084ab2cb321125efd850bd8590"
+   "sha256": "b585f6ad76aab107621c7eb664f6ab7e808fed9e6eab7a1b11a22b8f24bbd8fa",
+   "seconds": 0.712
   },
   "grc.offer.artos|c1": {
    "url": "voices/grc.offer.artos.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "08f36926e6c7e6cf9638e97eff57a525c5d100cfbb382e61b941de9e5f1ef53d"
+   "sha256": "caf8879161447409caf204d3e7ef3f6f8a213e177c90b1109f398882015182b9",
+   "seconds": 0.71
   },
   "grc.identify.iones|m1": {
    "url": "voices/grc.identify.iones.m1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, low",
-   "sha256": "b7f7816748e17169ba78827d9acdedbeeb8177a76938dc23740fa70d3473d8d0"
+   "sha256": "6f962e2fff60b963a5d4c67812c738a85dac2e8eab18520674c8daaefd0aab4b",
+   "seconds": 0.623
   },
   "grc.identify.iones|m2": {
    "url": "voices/grc.identify.iones.m2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "man, mid",
-   "sha256": "5077959aa2faece1a0490dce1aed11f71cb3c171c973a57ae7b675cfe3eb9592"
+   "sha256": "261576d14693244486d1ed807a2771c50c0e109451faba37bdaaaeaca0c50d0f",
+   "seconds": 0.581
   },
   "grc.identify.iones|m3": {
    "url": "voices/grc.identify.iones.m3.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "old man",
-   "sha256": "017a49343952e7ee788dc2023a311b75e661714a826fc54ba785690ff7706df6"
+   "sha256": "f2ddb3261e8c8ebd7d4b6a7927c63f5b96b2b5b2c02732946dc8cd20faaa1fb2",
+   "seconds": 0.69
   },
   "grc.identify.iones|f1": {
    "url": "voices/grc.identify.iones.f1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "woman",
-   "sha256": "143fd6498e0ba4aa72875dd4b6639c88f811932aab5749b4b4dc510d0bac0ca5"
+   "sha256": "4f8d7d42741e118dea949d4c5041796f22fe0276aed5875c5d2237f207712dc8",
+   "seconds": 0.674
   },
   "grc.identify.iones|f2": {
    "url": "voices/grc.identify.iones.f2.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "older woman",
-   "sha256": "8285f573c9c8efd8b11a3f8cb1ca2ada8d783e902a689f6353698632d548b8bb"
+   "sha256": "ef12197db9b5d27a90958a54015c805261c401669e0f2c8fd42cb3c14728f6f5",
+   "seconds": 0.669
   },
   "grc.identify.iones|c1": {
    "url": "voices/grc.identify.iones.c1.ogg",
    "tier": "C",
    "backend": "espeak-ng",
    "voice": "child",
-   "sha256": "6bdc43162c2f7fb5158bde68cbceead2084d6a3c03e8df61efa53bd66d593316"
+   "sha256": "3ecea59b3d43847bfd297e00a40b48adcd0f4d4020a26338d34ab1cdfd2f5678",
+   "seconds": 0.714
   }
  }
 }
