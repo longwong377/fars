@@ -207,6 +207,9 @@ async function boot() {
     /** doors (D-051): list, work the door faced (as E does), or set one by id */
     doors: () => world.doors?.list() ?? [], useDoor: () => world.doors?.use(camera) ?? null, setDoor: (id: string, open: boolean) => world.doors?.toggle(id, open) ?? null,
     resetFalls: () => { player.maxFall = 0; },
+    /** camera rig (D-187): the eye carried over from an earlier view (its exposure), `seconds` of adaptation since; null =
+     *  adapted (the frozen test default) */
+    carryEye: (from: number | null, seconds = 0) => { adaptHold = from && from > 0 ? { from, seconds } : null; },
     exposureInfo: () => ({ exposure: renderer.toneMappingExposure, meterEV: meterGain, meterLn, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, gain: sky.gain, lux: sky.lux, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],
     /** people: summary rows (out-of-world; for tests and the dev overlay) */
@@ -288,6 +291,9 @@ async function boot() {
     world.simulate?.(dt, clock);
   }
   let exposure = 1, adaptT = 0, skyVis = -1, rayVis = 1, probeVis = { eye: 1, w: 0 };
+  /** frozen test renders adapt fully every frame; a camera-rig sequence may instead carry the eye over from an earlier view:
+   *  `from` = the exposure the eye had there, `seconds` since (adaptExposure's time constants), D-187 */
+  let adaptHold: { from: number; seconds: number } | null = null;
   const upRay = new THREE.Raycaster(); const archGroup = world.root.getObjectByName('architecture');
   function skyVisibility() {
     if (!archGroup) return 1; let open = 0; const dirs = [[0, 1, 0], [0.5, 0.85, 0], [-0.5, 0.85, 0], [0, 0.85, 0.5], [0, 0.85, -0.5], [0.35, 0.6, 0.35], [-0.35, 0.6, -0.35], [0.35, 0.6, -0.35], [-0.35, 0.6, 0.35]];
@@ -338,7 +344,7 @@ async function boot() {
     const lawE = KEY / target, lawSum = sunE + sky.hemi.intensity * 0.8 + sky.moonLight.intensity * 0.3;
     meterGain = meterEV(meterLn, target, KEY, sky.lux * Math.min(1, lawE / Math.max(lawSum, 1e-12)));
     const metered = target * Math.pow(2, meterGain);
-    exposure = TEST ? metered : adaptExposure(exposure, metered, dt); // dark adaptation is slower than light adaptation
+    exposure = TEST ? (adaptHold ? adaptExposure(adaptHold.from, metered, adaptHold.seconds) : metered) : adaptExposure(exposure, metered, dt); // dark adaptation is slower than light adaptation
     if (P.get('xp')) exposure = +P.get('xp')!; // debug: a fixed exposure (diagnostic renders)
     renderer.toneMappingExposure = exposure;
     pipeline.setExposure(exposure / X_MAX, exposure); // bloom threshold in display terms once the exposure leaves the outdoor range; saturation cap
