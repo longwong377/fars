@@ -27,7 +27,7 @@ const VIEWS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'garden-paradise', day: 25, hour: 10, w: 'clear', v: [-2475.4, 2365.5, 1.6, 290, 2] },
 ];
 test('plain', async ({ page }, info) => {
-  test.setTimeout(840_000);
+  test.setTimeout(+(process.env.TIMEOUT ?? 840) * 1000);
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(m.text().slice(0, 300)); });
   const only = process.env.ONLY?.split(','), Q = process.env.Q ?? 'test';
   const run = VIEWS.filter(s => (only ? only.includes(s.n) : s.budget));
