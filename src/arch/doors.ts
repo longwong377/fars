@@ -15,6 +15,8 @@ import type { Part, DoorLeafData, DoorState } from './parts';
 import type { Physics } from '../player/physics';
 import { v } from './spec';
 import { surfaceMaterial } from '../render/materials';
+import { INSCRIPTION_PICK_LAYER } from './decor';
+import { clayMaterial, sealingLumpGeometry, writtenMeta } from '../world/writing';
 
 type RB = ReturnType<Physics['world']['createRigidBody']>;
 const LEAF = () => v<any>('global', 'r_door_leaf'), SEAL = () => v<any>('global', 'r_door_sealing'), SCHED = () => v<any>('global', 'r_door_schedule');
@@ -143,7 +145,11 @@ export class DoorSystem {
     const S = SEAL(), clay = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(S.clay_srgb[0], S.clay_srgb[1], S.clay_srgb[2], THREE.SRGBColorSpace), roughness: 0.92 });
     const bronze = bronzeMaterial();
     const timber = surfaceMaterial('timber');
-    const sealMeta = { tier: 'C', src: 'MATCULT-R;RECON', placeholder: false, note: 'clay sealing over a cord wound between knobs on the door fastening, impressed with a seal (sealing practice B; the peg-and-cord door sealing C, Q-089); clay colour C' };
+    // the knobs and the cord carry no writing; the lump carries the rolled seal impression (writing.ts, writing.json
+    // objects.door_sealing, D-179): its record says whether the seal's inscription was actually impressed (describe)
+    const sealMeta = { tier: 'C', src: 'MATCULT-R;RECON', placeholder: false, note: 'bronze knobs and a cord wound between them on the door fastening, under a clay sealing (sealing practice B; the peg-and-cord door sealing C, Q-089)' };
+    const sealClay = clayMaterial(S.clay_srgb as [number, number, number], 0.92), lumpGeo = sealingLumpGeometry(S.lump as [number, number, number]);
+    const pickMat = new THREE.MeshBasicNodeMaterial({ visible: false });
     for (const door of this.doors.values()) {
       if (door.leaves.length !== 2) continue;
       const canSeal = door.base === 'sealed' || door.base === 'scheduled_sealed', canBar = door.base === 'locked' || door.base === 'scheduled_locked';
@@ -157,8 +163,11 @@ export class DoorSystem {
         for (const k of [ka, kb]) { const knob = new THREE.Mesh(new THREE.SphereGeometry(S.knob_r, 10, 6), bronze); knob.position.copy(k).addScaledVector(out, S.knob_r * 0.5); knob.userData = sealMeta; objs.push(knob); }
         const mid = ka.clone().add(kb).multiplyScalar(0.5).addScaledVector(out, S.knob_r), len = ka.distanceTo(kb);
         const cord = new THREE.Mesh(new THREE.CylinderGeometry(S.cord_r, S.cord_r, len, 6).rotateZ(Math.PI / 2), clay); cord.position.copy(mid); cord.lookAt(mid.clone().add(new THREE.Vector3().subVectors(kb, ka).cross(new THREE.Vector3(0, 1, 0)))); cord.userData = sealMeta; objs.push(cord);
-        const lump = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), clay); lump.scale.set(S.lump[0] / 2, S.lump[1] / 2, S.lump[2] / 2); lump.position.copy(mid).addScaledVector(out, S.lump[2] / 4);
-        lump.lookAt(lump.position.clone().add(out)); lump.userData = sealMeta; lump.name = `door-sealing:${door.id}`; objs.push(lump);
+        const lump = new THREE.Mesh(lumpGeo, sealClay); lump.position.copy(mid).addScaledVector(out, S.lump[2] / 4);
+        lump.lookAt(lump.position.clone().add(out)); lump.userData = writtenMeta('door_sealing', `door ${door.id}`); lump.name = `door-sealing:${door.id}`; objs.push(lump);
+        // the translation layer's pick box over the sealing (INSCRIPTION_PICK_LAYER, never rendered)
+        const pk = new THREE.Mesh(new THREE.BoxGeometry(S.lump[0] * 1.6, S.lump[1] * 1.6, S.lump[2] * 2), pickMat); pk.position.copy(lump.position); pk.quaternion.copy(lump.quaternion);
+        pk.layers.set(INSCRIPTION_PICK_LAYER); pk.name = `writing:door_sealing:${door.id}:pick`; pk.userData = { ...writtenMeta('door_sealing', ''), inscription: 'writing:door_sealing', version: 'writing', pickFar: 3 }; objs.push(pk);
       } else {
         const pa = face(a, 0), pb = face(b, 0), mid = pa.clone().add(pb).multiplyScalar(0.5), inn = new THREE.Vector3(-o[0], 0, o[1]);
         const bar = new THREE.Mesh(new THREE.BoxGeometry(pa.distanceTo(pb), S.bar[1], S.bar[0]), timber); bar.position.copy(mid).addScaledVector(inn, S.bar[0] / 2);
