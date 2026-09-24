@@ -138,7 +138,7 @@ test('moments', async ({ page }, info) => {
     if (only && !only.includes(s.n)) continue;
     const state = stateOf(s);
     if (state !== loaded) { eyeAt.clear();
-      await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=${s.day}&hour=${s.hour}&weather=${s.w}${s.court ? '&court=seasonal' : ''}${WEBGL ? '&webgl=1' : ''}`);
+      await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=${s.day}&hour=${s.hour}&weather=${s.w}${s.court ? '&court=seasonal' : ''}${WEBGL ? '&webgl=1' : ''}${process.env.URLX ?? ''}`); // URLX: extra query for debug runs (e.g. &shaftdbg=1)
       await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 600_000 });
       // the world is frozen in test mode: stop the animation loop, so the screenshot does not wait behind its frames under
       // SwiftShader (minutes each; the Phase 4 render helper found this, tests/e2e/lib/p4views.ts)
@@ -157,11 +157,11 @@ test('moments', async ({ page }, info) => {
     await page.evaluate((on) => (window as any).__parsa.nowView?.(on), !!s.now); // the Now view (D-201): the ruin today
     await page.evaluate(([v, f]) => (window as any).__parsa.view(...v, f), [s.v, fov] as const);
     for (let i = 0; i < (process.env.FRAMES ? +process.env.FRAMES : s.frames ?? 8); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
-    const png = await page.screenshot({ path: `shots/moment-${s.n}-${proj}.png` });
+    const png = await page.screenshot({ path: `shots/moment-${s.n}${process.env.TAG ? '-' + process.env.TAG : ''}-${proj}.png` }); // TAG: debug runs keep the moment's own image
     // §8.3 luminance (display-referred sRGB luma): whole frame; appended to shots/moments-lum.json
     const lum = await lumStats(page, png); const exp = await page.evaluate(() => (window as any).__parsa.exposureInfo()); eyeAt.set(s.n, exp.exposure);
     mkdirSync('shots', { recursive: true }); const f = 'shots/moments-lum.json'; const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {};
-    all[`${s.n}|${process.env.Q ?? 'test'}|${proj}`] = { lum, exposure: +exp.exposure.toFixed(3), meterEV: +(exp.meterEV ?? 0).toFixed(2), sunAlt: +exp.sunAlt.toFixed(1), fov: fov ?? 'game', ...(s.carry ? { carry: s.carry } : {}) }; writeFileSync(f, JSON.stringify(all, null, 1));
+    all[`${s.n}${process.env.TAG ? '-' + process.env.TAG : ''}|${process.env.Q ?? 'test'}|${proj}`] = { lum, exposure: +exp.exposure.toFixed(3), meterEV: +(exp.meterEV ?? 0).toFixed(2), sunAlt: +exp.sunAlt.toFixed(1), fov: fov ?? 'game', ...(s.carry ? { carry: s.carry } : {}) }; writeFileSync(f, JSON.stringify(all, null, 1));
     console.log(s.n, JSON.stringify(lum), 'backend', await page.evaluate(() => (window as any).__parsa.backend));
   }
   console.log(errs.slice(0, 5).join('\n'));
