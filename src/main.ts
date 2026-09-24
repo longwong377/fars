@@ -177,6 +177,8 @@ async function boot() {
     playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, maxFall: player.maxFall, yaw: input.yaw, ground: phys.castRayDown(player.position.x, player.position.z, player.position.y + 0.5, player.collider) ?? terrain.heightAt(player.position.x, player.position.z) }),
     stats: () => ({ reliefs: reliefStats(), backend, drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, terrain: tmesh.stats(), frameMs: lastFrameMs, heap: (performance as any).memory?.usedJSHeapSize ?? null }),
     renderOnce: async () => { await frame(0, { render: false }); await world.settle?.(camera); await frame(0); },
+    /** a frame without rendering: the camera placed (view), the world updated (picks after a view or setTime; D-187) */
+    tick: async () => { await frame(0, { render: false }); },
     /** deterministic fixed-step simulation without rendering (walkthrough bots, soak); returns max frame sim time */
     simulate: (seconds: number, dt = 1 / 30) => { const steps = Math.round(seconds / dt); for (let i = 0; i < steps; i++) simStep(dt); },
     /** advance world time (and everything simulated) by game seconds in fixed steps, regardless of clock.scale (tests) */

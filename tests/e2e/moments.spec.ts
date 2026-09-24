@@ -15,12 +15,13 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // E into the glow over Kuh-e Rahmat are kept for comparison
   // re-posed (D-187, rubric fix 5): the W views from the landing's edge held only the plain (the landing's W edge has no
   // parapet, and the lower flights' parapets lie 10 m below it, hidden by the edge at any pitch that keeps the horizon);
-  // now from the head of the N upper flight, 4.5 m down it (grid (−36.4, 140.5)), looking SSW across the top landing: the
-  // flight's W parapet and merlons in the lower right, the landing and the S upper flight's parapet running away on the
-  // left, the Terrace's W edge between them and the plain beyond on the right. Old poses: (−39.6, 122.45, 1.6, 251, −4)
-  // and (−40.2, 122.45, 1.6, 251, −12)
-  { n: 'dawn-stair-top', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 140.5, 1.6, 196, -8] },
-  { n: 'dawn-sunrise', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 140.5, 1.6, 196, -8] },
+  // now from the N end of the top landing (grid (−36.4, 135.5)) looking WNW (grid 300°): the N upper flight's W parapet
+  // and merlons run from the frame's centre down to the right, the landing's floor at the bottom left, the plain and the
+  // Earth's shadow (anti-sun, grid ≈ 272°) beyond, the horizon at the upper third. (A first try, from 4.5 m down the N
+  // flight looking SSW, looked back UP the flight at the landing's edge: no plain; quality-test render, D-187.) Old
+  // poses: (−39.6, 122.45, 1.6, 251, −4) and (−40.2, 122.45, 1.6, 251, −12)
+  { n: 'dawn-stair-top', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 135.5, 1.6, 281, -8] },
+  { n: 'dawn-sunrise', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 135.5, 1.6, 281, -8] },
   { n: 'dawn-sunrise-nw', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 134.8, 1.6, 311, -8] }, // from the N end of the top landing: the N upper flight descending on the right, the plain to the NW
   { n: 'dawn-stair-top-nw', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 134.8, 1.6, 311, -8] }, // the pre-sunrise moment from the head of the N upper flight: the stair descending, the plain to the NW (session 4)
   { n: 'dawn-glow-e', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 122.45, 1.6, 79, 6] },
@@ -40,12 +41,13 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // portico facing two blank walls)
   // §1.1 "entering the Apadana from bright sun" as a sequence (D-187, rubric fix 5): the N stair's top landing and the
   // whole portico lie in the building's shade at 11:00 (the sun at 72° from the SSE; tests/e2e ray check), so the sunlit
-  // court is 4 m beyond the stair's foot. 1 court: in the sun at the stair's foot, the portico's shade and the doorway
-  // ahead (adapted to the sun); 2 apadana-enter: the old view, on the landing; 3 portico: adapted to the portico;
+  // court is 3 m beyond the stair's foot. 1 court: in the sun 16 m out from the stair's façade, the sunlit pavement in the
+  // lower third, the stair, the portico's shade and the top of the doorway above it (adapted to the sun; from 7 m out the
+  // façade filled the frame, quality-test render); 2 apadana-enter: the old view, on the landing; 3 portico: adapted to the portico;
   // 4 door: on the threshold (the wall's outer face is y 30.67) with the eye the portico gave it: the hall a dark void;
   // 5 hall: 8 m on (≈6 s at walking pace), the eye still opening (dark adaptation τ 3 s, exposure.ts); 6 apadana-hall-axis
   // (below), adapted. And the look back out: from inside toward the sunlit court (hall-out)
-  { n: 'apadana-enter-court', day: 25, hour: 11, w: 'clear', v: [1.9, 66, 1.6, 161, 8], fov: IN },
+  { n: 'apadana-enter-court', day: 25, hour: 11, w: 'clear', v: [1.9, 75, 1.6, 161, 2], fov: IN },
   { n: 'apadana-enter', day: 25, hour: 11, w: 'clear', v: [1.9, 58, 1.6, 161, 4], fov: IN },
   { n: 'apadana-enter-portico', day: 25, hour: 11, w: 'clear', v: [1.9, 36, 1.6, 161, 2], fov: IN }, // the old view, in the portico
   { n: 'apadana-enter-door', day: 25, hour: 11, w: 'clear', v: [1.9, 31.0, 1.6, 161, 2], fov: IN, carry: ['apadana-enter-portico', 0] },
@@ -55,11 +57,13 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // beams close overhead, the far doorway the one bright thing low in the frame (session 4 reframe)
   { n: 'apadana-hall-in', day: 25, hour: 11, w: 'clear', v: [10.55, 12.4, 1.6, 170, 20], fov: 50 },
   { n: 'apadana-hall-axis', day: 25, hour: 11, w: 'clear', v: [1.9, 12, 1.6, 161, 6], fov: IN }, // the old view: 18 m inside the N doorway, along the axis
-  // 4.5 m off the Apadana N stair façade, looking E along it: the low WNW sun grazes the procession. Re-timed (D-187): on
-  // day 60 at 18:18 the sun met the façade at 41° (not raking); day 25 at 16:00 (az 271°, alt 32°) at 17°
-  // (asin(cos alt · cos(az − 341°)), src/sky/ephemeris.ts), the whole façade in sun (ray check); shares its state with
-  // stair-climb-pm. Old: day 60, 18.3
-  { n: 'reliefs-raking', day: 25, hour: 16, w: 'clear', v: [-30, 63.5, 1.6, 83, -3] },
+  // the Apadana N stair façade (y 59.05) in raking light. Re-timed and re-posed (D-187): on day 60 at 18:18 the sun met
+  // the façade at 41° (not raking); on day 25 at 16:00 (az 271°, alt 32°) at 17° (asin(cos alt · cos(az − 341°)),
+  // src/sky/ephemeris.ts), the whole façade in sun (ray check); shares its state with stair-climb-pm. The old camera looked
+  // E along the façade with that sun behind it (flat light, quality-test render); now from the N court 8 m out, looking
+  // WSW along the façade toward the light (the sun 57° right of the view, out of frame), the carving's shadows falling
+  // toward the camera. Old: day 60, 18.3, (−30, 63.5, 1.6, 83, −3)
+  { n: 'reliefs-raking', day: 25, hour: 16, w: 'clear', v: [8, 67, 1.6, 216, -3] },
   // the E-facing Apadana stair façade (x 72.19) at 10:00: the sun (az 111°, alt 61°) meets it at 22° from the SSE, high:
   // the carving's shadows fall north and down; from the E court 8 m out, looking NW along the façade's middle (D-187)
   { n: 'apadana-e-stair-raking', day: 25, hour: 10, w: 'clear', v: [80, -14, 1.6, 300, 0] },
@@ -67,9 +71,10 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // (186.8, −83.2), so the door's light falls across him as a side key (session 4 reframe; the old view from the NE corner
   // saw him as a silhouette against the door)
   // re-posed (D-187, rubric fix 5): half the old frame was empty floor. Now at seated eye height (1.0 m: a second scribe on
-  // the floor across the desk), 1.4 m from him at his front right (the desk faces grid E), looking WNW at the scribe, the
-  // unfinished tablet and the drying board, the S doorway's light on him from the left. Old: (183.2, −83.9, 1.6, 60, −20)
-  { n: 'scribe-at-work', day: 25, hour: 10, w: 'clear', v: [188.2, -84.0, 1.0, 280, -15], fov: 50 },
+  // the floor across the desk), 2.6 m from the desk at his front right (the desk faces grid E), looking W at the scribe,
+  // the unfinished tablet and the drying board, the S doorway's light on him from the left (a first try 1.4 m away had
+  // him fill the frame, quality-test render). Old: (183.2, −83.9, 1.6, 60, −20)
+  { n: 'scribe-at-work', day: 25, hour: 10, w: 'clear', v: [189.4, -84.2, 1.0, 269, -12], fov: 50 },
   { n: 'scribe-room-ne', day: 25, hour: 10, w: 'clear', v: [190.9, -82.0, 1.7, 235, -15], fov: 50 }, // the old view from the NE corner
   { n: 'stair-climb', day: 25, hour: 8.5, w: 'clear', v: [-43.9, 128, 1.6, 341, 12] },
   { n: 'stair-climb-pm', day: 25, hour: 16, w: 'clear', v: [-43.9, 128, 1.6, 341, 12] }, // the W-facing stair in the afternoon sun (the morning view is in the Terrace's shadow); shares its state with tripylon-n-stair
