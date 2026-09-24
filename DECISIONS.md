@@ -2791,3 +2791,144 @@ are schematic; no browser render has been looked at (node previews of the height
   blending and are unaffected; transparent materials that write real G-buffer values now blend them.
 - **Rendered after the change** (dawn-glow-e, quality high, WebGPU, shots/surf-dawn-glow-e-B.png): the flame sits clean
   on the brazier; no box, no streaks.
+
+## D-185 The voices re-rendered through libespeak-ng with norm pitch, word stress and a contour per utterance type; the machine pitch and contour thresholds met, machine phone recovery not improved, the human rating still open (Phase 8 r2 review M3; B17(b), Q-287; session 6, voice workstream)
+- **Why:** D-167 measured the §10 voices and did not accept them:
+  - the men's median F0 was 83 Hz against Hillenbrand et al. 1995's 131 ± 22 (about 2 SD low);
+  - every clip was nearly monotone (F0 5–95 % range 0.6–1.5 semitones).
+
+  Review r2 M3 found that the named fix, a re-render through the library, was never tried.
+- **The library build path (tools/build_speech.py, `--engine auto|lib|cmd`).**
+  - `lib`: libespeak-ng through ctypes. From speak_lib.h it uses `espeak_Initialize` (synchronous), a synth callback, and `espeak_SetPhonemeTrace` for the IPA round trip, as `espeak-ng -q --ipa` does.
+  - The library and its data come from PyPI `espeakng-loader` 0.2.4, which ships libespeak-ng **1.52.0**.
+  - `cmd`: the espeak-ng command, as before, kept as the fallback. `auto` takes the library when it imports, else the command.
+  - **Not exercised:** the command path's new `-P` (pitch range) and `--path` flags. No espeak-ng command is installed here.
+  - 1.51 → 1.52: the IPA round trip was re-run over all 62 rendered lines: 0 mismatches.
+  - **Reproducible:** a rebuild is byte-identical (built twice, manifests compared). Two sources of randomness were fixed:
+    - libsndfile gave each Ogg stream a random serial number. The serial now comes from the clip's name, with the page CRCs recomputed.
+    - eSpeak's breath noise was random in the women's and child voices. Now `espeak_ng_SetRandSeed(1)` and `srand(1)` run per clip.
+- **What was wrong, measured before any fix** (scratch scripts using tools/voice_acceptance.py's measure):
+  - **Pitch.** eSpeak's 0–99 pitch parameter maps onto each variant's own Hz range. The old settings (38/48/30, 62/55, 82) put the men at 79–97 Hz.
+  - **Monotony.** Raising the pitch alone changed nothing: the range stayed at 0.9–1.8 st, with no final fall on a `.`. The cause is stress:
+    - the mnemonics carried a stress mark only where the lexicon IPA has one (Greek);
+    - eSpeak gives an unstressed phoneme string no accent, so its tune has no nucleus;
+    - with stress marks, the same line had a 5.5 st range and a −2.9 st final fall.
+- **The fixes (all C):**
+  1. **Stress.** `markStress` (speech.ts) puts a stress mark on the syllable the formant voice already stresses: the lexicon's ˈ where it has one, else STRESS_RULES (op penult-weight, el initial, arc final).
+     - The formant voice and the eSpeak build now share one function, `wordStress`. The formant output is unchanged, and the speech tests pass.
+     - Unaccented Greek words stay unaccented. They are clitics (οὐκ, μοι), and the Greek IPA carries the edition's accent.
+     - The line's IPA is unchanged. The manifest records the stressed form, and the test checks it against the current lines.
+  2. **Pitch.** Each voice class has a target median F0 inside published norms. Its eSpeak pitch parameter was set by measurement to meet that target (VOICES; the manifest records target and source). The norms:
+     - Hillenbrand et al. 1995 (vowdata, recomputed from the file): men 131.2 ± 22.0 Hz, women 220.4 ± 23.2, children aged 10–12 236.9 ± 25.9.
+     - Age trends: Hollien & Shipp 1972 (JSHR 15:155): men's F0 falls from the 20s to the 40s and rises from the 60s. Stoicheff 1981 (JSHR 24:437): women's F0 falls in the 50s, after the menopause.
+     - Both age studies were read in their abstracts only. The proxy refuses their hosts, so no decade values are quoted.
+
+     | class | variant | pitch | target |
+     |---|---|---|---|
+     | m1 man, low | m1 | 74 | 118 Hz |
+     | m2 man, mid | m3 | 78 | 135 Hz |
+     | m3 old man | m7 | 70 | 125 Hz (the sim's old men are 50–55) |
+     | f1 woman | f2 | 66 | 220 Hz |
+     | f2 older woman | f4 | 66 | 205 Hz (Stoicheff: lower after the menopause) |
+     | c1 child | f5 | 70 | 250 Hz (the sim's children are 6–10, younger than H95's) |
+
+     - Every class uses range 50, eSpeak's default.
+     - Range 60 was also built. It gave a median range of 7.4 st, further from the natural control's 5.7, and was dropped.
+  3. **Contour by utterance type.** `utterance_type` assigns each line one of five types, and each type has its own eSpeak clause and range:
+
+     | type | which lines | clause | range |
+     |---|---|---|---|
+     | question | intonation `rise` | `?` | +30 |
+     | list | intonation `level` (counting) | `[[word]],` per word | +0 |
+     | greeting | intents greet, reply, farewell | `.` | +15 |
+     | command | call_workers, or a gloss ending in "!" | `!` | +15 |
+     | statement | all others | `.` | +0 |
+
+     - A list ends in continuation rises: the counting is not closed.
+     - The IPA and the phones are unchanged. Only the clause punctuation around the `[[…]]` changes, and the manifest records the eSpeak input.
+  4. **Final lowering on statements and greetings.** eSpeak's statement tune ends on a nearly level low tail. A word stressed on its first syllable (hutlak, haʃijam, aiwam) falls inside that syllable and then stays level: only 85 % of statements ended falling. Three approaches were measured on the nine hardest lines × four voices:
+     - eSpeak's other statement tunes s2–s7: 53–67 % end falling;
+     - a wider range: +20 gives 75 %; +39 gives 92 %, but at a 7.5 st range;
+     - **Praat PSOLA final lowering** (parselmouth: Manipulation, overlap-add, formants kept): the last 35 % of the voiced span, at most 0.5 s, is lowered linearly to 2 st below eSpeak's contour. 100 % end falling. **Chosen.**
+
+     The source for final lowering in declaratives is Liberman & Pierrehumbert 1984. For these languages it is C.
+  5. **Echo removal: tried, not adopted.** eSpeak's f2, f4 and f5 variants add an echo (130–140 ms at 10–15 %), and the world reverberates each space again at runtime (§11).
+     - Built without it (`REMOVE_ECHO`, a temporary overlay of the engine data), the contour thresholds still pass.
+     - But machine phone recovery of the woman's voice got worse. An allosaurus ablation over m1 + f1 on all 62 lines gave mean phone error 0.745 with the echo and 0.793 without, and clips beating their shuffled control fell from 53 % to 44 %.
+     - The other changes did not move it: the same ablation without final lowering scored 0.795 (still no echo), and with the old punctuation 0.793.
+     - Intelligibility wins (§10), so the echo stays. The double reverberation is logged in Q-287.
+- **The measurement (tools/voice_acceptance.py → research/voice_acceptance.json; tests/voice_acceptance.test.ts).** D-167's measurement was ad hoc (a scratch venv); it is now a tool.
+  - **Praat** (parselmouth 0.4.7 / Praat 6.1.38): autocorrelation pitch at 10 ms with a pitch range per group (men 60–300 Hz, women 100–500, children 120–600), and Burg formants.
+  - **Per clip:**
+    - F0 median;
+    - F0 5–95 % range in semitones;
+    - the nuclear movement: the end against the peak and the trough of the second half;
+    - the share of loud voiced frames inside the H95 F1/F2 hull, as in D-167.
+  - **Natural control:** whisper's jfk.flac, cut at its pauses: median 5.66 st over 5 phrases.
+  - **Thresholds (D-185, set here; the human rating stays the acceptance):**
+    - **T1:** each class's median F0 within its H95 group mean ± 1 SD.
+    - **T2:** median range ≥ 3 st, and ≥ 80 % of clips ≥ 2 st. Conversational F0 SD is typically 2–4 st (search extract; Traunmüller & Eriksson 1995 could not be reached). A 1–3-word line is one phrase, so 3 st is a floor well under the control's 5.7.
+    - **T3:** every question ends rising (≥ +1 st above the trough before it), and ≥ 90 % of statements, greetings and commands end falling (≥ 1 st below the peak).
+    - **T4:** a median of ≥ 85 % of frames inside the vowel space.
+  - The test checks that the report measured exactly the shipped clips (by sha256) and used these thresholds, then recomputes every threshold from the per-clip numbers.
+  - **T3 was redefined after the first full render.** It is stated here so it is not hidden.
+    - The first definition fitted a line to the last 30 % of the voiced frames. It missed the fall of a word stressed on its first syllable (hutlak m2: 145 → 111 Hz inside "hut", then level at about 110).
+    - The nuclear measure replaced it before the final render. Both are reported.
+    - Under the old slope measure the final clips give: statements 99 %, greetings 99 %, commands 94 % ending falling, questions 92 % ending rising (11 of 12).
+- **Before → after** (all 372 clips, same tool; before = the clips at 6e2dc2c):
+
+  | | before | after | threshold |
+  |---|---|---|---|
+  | m1 man, low | 78.8 Hz (z −2.38) | 114.8 Hz (z −0.75) | 109.2–153.2 |
+  | m2 man, mid | 97.0 (−1.56) | 133.2 (+0.09) | 109.2–153.2 |
+  | m3 old man | 83.6 (−2.16) | 120.6 (−0.48) | 109.2–153.2 |
+  | f1 woman | 209.4 (−0.47) | 216.5 (−0.17) | 197.2–243.6 |
+  | f2 older woman | 181.4 (−1.68) | 203.9 (−0.71) | 197.2–243.6 |
+  | c1 child | 280.4 (+1.70) | 244.2 (+0.28) | 211.5–262.5 |
+  | F0 range, median (p10–p90) | 1.29 st (0.59–5.64) | 6.44 st (4.67–8.76) | ≥ 3 |
+  | clips ≥ 2 st | 31 % | 100 % | ≥ 80 % |
+  | questions ending rising | 17 % | 100 % | 100 % |
+  | statements ending falling | 24 % | 99 % | ≥ 90 % |
+  | greetings ending falling | 28 % | 100 % | ≥ 90 % |
+  | commands ending falling | 15 % | 97 % | ≥ 90 % |
+  | vowel frames inside H95 (class medians) | 88–96 % | 86–97 % | ≥ 85 % |
+
+  - Lists (counting) end in a continuation rise in 94 % of clips. Lists are reported, not gated.
+  - The m3 range (8.45 st) and the f1 range (7.5) are the widest, above the natural control. No upper threshold is set; whether they sound sing-song is for the listener.
+  - T4 fell slightly for m3 (86 %) and c1 (87 %).
+- **Machine phone recovery (D-167's approach 2), re-run.** It did **not** improve.
+  - D-167's script was not kept. tools/dev/voice_phones.py re-implements it: allosaurus universal model, inventory pes / arb / ell, phone error rate by semi-global alignment against the line's IPA and against its phones shuffled (10 draws).
+  - All 372 clips, before → after. Each cell gives the median error, the median shuffled error, and the share of clips beating their shuffle:
+
+    | language | before | after |
+    |---|---|---|
+    | Aramaic | 0.50 / 0.69 / 73 % | 0.60 / 0.71 / 67 % |
+    | Elamite | 0.81 / 0.83 / 50 % | 0.80 / 0.80 / 54 % |
+    | Old Persian | 0.80 / 0.83 / 67 % | 0.84 / 0.86 / 51 % |
+    | Greek | 0.83 / 0.86 / 34 % | 1.00 / 1.00 / 28 % |
+
+  - The instrument is noisy. Greek's IPA and input did not change between the "old" and "stress" ablation configurations, yet its median moved 0.83 → 0.89. The m1 + f1 ablation over all 62 lines moved as follows:
+
+    | configuration | mean error | beating the shuffle |
+    |---|---|---|
+    | old settings on 1.52 | 0.745 | 57 % |
+    | + pitch | 0.709 | 58 % |
+    | + stress | 0.759 | 53 % |
+    | + pitch + stress | 0.755 | 56 % |
+    | full, no echo | 0.793 | 44 % |
+    | full, with echo (what ships) | 0.745 | 53 % |
+
+  - Read together: the pitch and contour fixes neither help nor clearly hurt what a machine recovers; removing the echo did hurt, and it was kept. The recovery stays weak and far from natural speech (D-167: 0.22–0.33).
+- **Size:**
+  - The clips grow from 1,579,883 to 1,712,079 bytes (+132 KB, +8.4 %). The echo-free build was 1,584 KB.
+  - The manifest grows from 94.5 to 110 KB, and the report adds 148 KB.
+  - All 372 clip blobs are new, so the repository history grows by about 1.7 MB.
+- **Not done, not verified:**
+  - **Nobody has listened** (H8 open). PSOLA artefacts, the naturalness of the new contours and intelligibility are unrated.
+  - The command engine path is untested.
+  - The Babylonian formant-only lines and the crowd murmur are unchanged. The formant voice keeps its own 115/205/275 Hz bases (speech.ts voiceBase).
+- **Build dependencies (tools only, nothing ships):**
+  - espeakng-loader (libespeak-ng, GPL-3), praat-parselmouth (GPL-3), numpy, scipy, soundfile.
+  - For tools/dev/voice_phones.py only: allosaurus and torch.
+  - Measurement inputs sit in data/raw/ (gitignored) and are fetched when missing.
+  - SOURCES.md and ASSET_LEDGER are updated.
