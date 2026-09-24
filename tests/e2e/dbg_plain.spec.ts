@@ -1,11 +1,11 @@
 import { test } from '@playwright/test';
 // debug: which layer draws the grey ground discs under the orchard trees of village P22 (each shot hides one layer)
 test('plain layer debug', async ({ page }, info) => {
-  test.skip(info.project.name !== 'webgpu'); test.setTimeout(840_000);
-  await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=0&hour=16&weather=clear`);
+  test.skip(info.project.name !== 'webgpu'); test.setTimeout(+(process.env.TIMEOUT ?? 840) * 1000);
+  await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=${process.env.DAY ?? 0}&hour=${process.env.HOUR ?? 16}&weather=clear`); // VIEW=x,y,z,az,pitch DAY HOUR TAG: another view
   await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 600_000 });
   await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
-  const v: [number, number, number, number, number] = [-973, 3287, 1.6, 341, 1];
+  const v = (process.env.VIEW ? process.env.VIEW.split(',').map(Number) : [-973, 3287, 1.6, 341, 1]) as [number, number, number, number, number];
   await page.evaluate(v => (window as any).__parsa.view(...v), v); await page.evaluate(() => (window as any).__parsa.renderOnce()); await page.evaluate(v => (window as any).__parsa.view(...v), v);
   const names = await page.evaluate(() => { const p = (window as any).__parsa.world.root.getObjectByName('plain'); return p.children.map((c: any) => `${c.name}:${c.type}:${c.visible}`); });
   console.log('plain children', JSON.stringify(names));
@@ -15,6 +15,6 @@ test('plain layer debug', async ({ page }, info) => {
   for (const [tag, hide] of sets) {
     await page.evaluate(h => { const p = (window as any).__parsa.world.root.getObjectByName('plain'); p.traverse((o: any) => { if (o.userData.__dbgHidden) { o.visible = true; delete o.userData.__dbgHidden; } }); p.traverse((o: any) => { if (h.includes(o.name)) { o.visible = false; o.userData.__dbgHidden = true; } }); }, hide);
     for (let i = 0; i < 6; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
-    await page.screenshot({ path: `shots/dbg-plain-${tag}.png` });
+    await page.screenshot({ path: `shots/dbg-plain${process.env.TAG ? '-' + process.env.TAG : ''}-${tag}.png` });
   }
 });
