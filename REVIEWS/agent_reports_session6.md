@@ -313,3 +313,25 @@ chamfer (68 → 132 triangles). Ceilings: beams, joists, reed matting (render ge
 **Cost:** ceilings +6 draws, 46,752 triangles; merlons ~+25 k triangles; frames at high 407–663 draws, 5.3–10.5 M triangles
 (hall100-site 10.48 M). Probes rebuilt twice; nav rebuilt. Tests: tsc clean; touched suites pass incl. surfaces_s6.test.ts;
 lint:all OK.
+
+## Simulation round 7 fixes, invariants and names (branch sim-r8, head 99d8a4b, D-191, D-193) — merged at handoff
+**Broken or not verified:** no woman is named any more (the licensed evidence read has no woman's name; abbamuš is a title);
+men's pools 101 names (27 Iranian, 3 Elamite, 65 without a telling element; origins C from memory of Mayrhofer and
+Tavernier, NOT SEEN); Babylonian names from ORACC not added (oracc.org refused; HBTIN Hellenistic; CDLI has 28 Achaemenid
+texts, mostly royal; Q-294); one EWB page reference left in src/people/speech_lines.ts; the checks read plans, not what is
+drawn (dust wrap not drawn; far impostors keep everyday dress in the cold, Q-338); exceptions in the checks C (Q-341);
+"with the household" corrected by `Population.relabel`, not planned right; court checked over its first 30 days only; soak
+population checks 3,742 → 5,716 s; two CPU timing tests fail under load (pass alone, 33/33).
+**Invariants, every person-day (15,462,938), before → after:** weather 140,956 → 0; light 818,120 → 0; waits 146,380 → 0;
+labels 2,207,896 → 0; feeds 124,497 → 0; dress 1,947,211 → 0 (src/people/planCheck.ts `invariants()`, counted by the soak).
+**Blocking round-7 findings fixed:** the roof chore not taken with rain or storm within 1.5 h, stops where rain begins, "mending
+the roof where the rain came through" after the first rain; out-of-doors house spells move indoors in rain/storm, play and
+rest indoors in dust; the ration queue: Terrace workers work until the issue opens, then queue 0.2–0.55 h (Q-340). Also: A
+S3–S7 and B S2–S11; the population view's spot memory keyed by day (a day-150 lane spot was used on day 25, 9 m off).
+**Names (D-193):** removed the 484 EWB-only names and EWB lemmas/pages/etymologies on the 99 CDLI names; kept each CDLI name
+with its PF text id and P-number (A), plus Babiruš (PF 1288) and Hiduš (PF 0596) (B); tools/names_licensed.py; a test checks
+every name cites a PF/PT text from a source with a recorded licence.
+**Checks:** tsc clean; people_days_r8 17/17 (with r6, r7 61/61); full vitest 743 passed, 1 skipped, 2 timing failures; lint:all
+OK; botcheck 97/97. **Soak PASS all 8 gates** (on 7911264): variety worst 0.020; populationVariety 43,245 measured, worst
+0.089; events 14–20 kinds/week; stuck none; stocks sacks 0–282; renderedHonest pass; plansWellFormed 15,462,938
+person-days and 118 checked days, 0 issues; visibleChange 51/51. Round-8 input pick 149 committed, not scored.

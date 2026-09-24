@@ -91,6 +91,6 @@
 - [x] Phase 8 gate PASSED (review round 3); majors M1, M2, M6 fixed
 - [x] Lead render fixes: probe denoise and bake leak (D-180), floor blotches (D-181), G-buffer blending (D-183)
 - [x] §8.2 rubric pass 1 (FAIL) → look workstreams merged: bugs and framing (D-187), surfaces and light (D-188), people (D-189), landscape (D-190)
-- [~] Phase 5 shadow review: rounds 6 and 7 FAIL; round-7 fixes and year-wide invariants merged (D-191); round 8 input pick 149
+- [~] Phase 5 shadow review: rounds 6 and 7 FAIL; round-7 fixes and year-wide invariants merged (D-191), final soak passes; round 8 input pick 149 NOT scored; women unnamed after the licence re-sourcing (D-193)
 - [ ] Render pass 2 (handoff/render_jobs/2*.job) and rubric pass 2; outdoor AO; Phase 3/4, 5, 6/7 reviews; bench; walkthrough e2e
 ## Phase 9 — Polish, optimisation, FINAL_REPORT.md

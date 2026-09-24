@@ -15,6 +15,9 @@
   - **Still open in the look:** outdoor contact AO (D-188), hair/beards as shells, skirts as tubes, vivid court robes,
     DEM-smooth skylines, the dawn-horizon comb, a black doorway reveal (B23).
   - **Not heard or seen on a GPU:** music, occlusion, incised signs, clay tablets, re-rendered voices.
+  - **Sim round 8 merged at handoff (D-191, D-193):** year-wide invariants 3.4 M flagged person-days → 0; final soak passes all
+    8 gates; round-8 input (pick 149) not scored. **Every woman is now unnamed**: names come from licensed evidence only and
+    the licensed texts read contain no woman's name (D-193, Q-294).
 - **Session 6, court workstream (branch court-s6, D-182; merged by the lead).** With the court setting the
   court in residence is simulated and drawn (9,310 people, C; the Terrace 4,448 at 10:00 and 2,295 at 02:00 on day 30).
   **Not rendered in a browser yet** (node counts only). **PLACEHOLDER:** delegates' dress (generic Median riding dress),

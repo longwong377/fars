@@ -20,7 +20,6 @@ praat-parselmouth soundfile` (D-185).
   music visuals, M5 tablets' text remain). Phase 5: the soak passes all 8 gates; the shadow review has NOT passed (round 7:
   A 2/20 below 4, B 1/20). Phases 3/4 and 6/7: independent reviews not run. §8.2 rubric first pass FAILED (light 2,
   materials 1, scale 2, detail 2, people 2, atmosphere 2); fixes merged, **not yet re-scored**.
-- SIM STATUS: see the "Sim round 8" line at the end of this file.
 
 ## What is broken, unverified or placeholder (read first)
 1. **Photorealism is the big gap.** Rubric pass 1 (REVIEWS/rubric_s6_pass1.md) scored every category 1–2 of 5 (pass = 4).
@@ -88,5 +87,18 @@ praat-parselmouth soundfile` (D-185).
 - Effect materials must use `colourOnly()`; small indoor objects must receive shadows.
 - Removing old agent worktrees is refused by the permission classifier: leave them.
 
-## Sim round 8
-PENDING (filled in at handoff).
+## Sim round 8 (merged at handoff, 99d8a4b; D-191, D-193)
+- Round-7 findings fixed; six year-wide invariants (weather, light, waits, labels, feeds, dress) in planCheck, run on every
+  person-day by the soak: 3.4 M flagged person-days before → 0. **Final soak PASSES all 8 gates**
+  (bench-reports/soak-2026-09-24T17-17-36-507Z.json in the agent's worktree; populationVariety worst 0.089;
+  plansWellFormed 15,462,938 person-days, 0 issues). Round-8 input `REVIEWS/shadow_days_input_seed1_pick149.txt`
+  generated on the final code, **NOT scored** (next session, step 3).
+- **Regression, honest:** names are re-sourced from licensed evidence only (D-193: the EWB name base has no licence, D-192),
+  and the licensed texts read contain no woman's name: **every woman is unnamed**; the men's pools are 101 names (27 Iranian,
+  3 Elamite, 65 without a telling element; origin guesses C from memory, NOT SEEN). Babylonian names from ORACC were not
+  reachable (Q-294). A licensed source of women's names (e.g. PF women's ration texts with named recipients via CDLI, or the
+  PFA publications) would restore them.
+- Other tails: the dust wrap is not drawn, far impostors keep everyday dress in the cold (Q-338); weather exceptions in the
+  checks are C (Q-341); "with the household" is corrected by a relabel pass, not planned right; the court swept over 30 days
+  only; the soak's population checks now take ~95 min; one EWB page reference remains in src/people/speech_lines.ts
+  (a citation, not data; decide under D-192).
