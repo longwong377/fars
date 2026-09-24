@@ -1,4 +1,4 @@
-// What a carved panel carries (D-165): the one path from src/data/inscriptions.json to carved characters, used by every
+// What a carved panel carries (D-177): the one path from src/data/inscriptions.json to carved characters, used by every
 // carving (decor.ts, the Terrace; world/plain/naqsh.ts, Naqsh-e Rustam) and by the tests. Old Persian is the stored sign
 // sequence (op_signs, built by tools/build_op_signs.ts from ARIo's words, Kent's rules and Kent's transliteration), never
 // re-derived here; Elamite and Babylonian are the ATF converted sign by sign (tools/build_inscriptions.py).

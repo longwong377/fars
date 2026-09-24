@@ -1,4 +1,4 @@
-// Incised inscriptions (D-166). A carved sign is cut into the stone: its outline (the font's glyph, Noto Sans Old Persian or
+// Incised inscriptions (D-177). A carved sign is cut into the stone: its outline (the font's glyph, Noto Sans Old Persian or
 // Noto Sans Cuneiform) is the edge of a cut whose walls fall at 45° to the face, so the depth at any point of the sign is its
 // distance to the sign's edge (a V-section: shallow in a wedge's tail, deepest in its head, nothing outside the outline).
 // That depth field is rasterised once per sign into an atlas (tier C: the section and the wall angle are not measured; the

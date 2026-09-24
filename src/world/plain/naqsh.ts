@@ -6,10 +6,10 @@
 // width, recess, column and door sizes and the figures' drawing are reconstruction (C). The tomb reliefs are carved by the
 // relief system (D-069: bearers, the king with his bow, the fire altar, the winged figure, the moon, the side-panel guards;
 // programme B, drawing C); the Neo-Elamite relief's figures stay schematic silhouettes (PLACEHOLDER). The DNa and DNb panels carry the Old Persian text of the
-// standard edition (ARIo Q007152 / Q007153, Schmitt 2009, CC0; session 3), incised like the Terrace inscriptions (D-166) with
-// the stored sign sequence and Kent's lineation (D-165: 60 lines each); a sign lost in the edition ("x", "a-x", "x-di-i-y")
+// standard edition (ARIo Q007152 / Q007153, Schmitt 2009, CC0; session 3), incised like the Terrace inscriptions with
+// the published sign sequence and its lineation (D-177: 60 lines each, research/OP_SIGNS.md); a sign lost in the corpus ("+")
 // is left uncut at a sign's width (nothing invented, no gap closed); the Elamite and Babylonian versions are not carved
-// (not in the corpus mirror).
+// (not in the corpus read; Q-290).
 //
 // Frame: the cliff face is the line grid y = cliff.face_y (world z = -face_y), along grid x; "depth" d > 0 goes into the
 // rock (grid north). The ground at the face is the ancient foot level exported by tools/build_terrain.py (the heightfield
@@ -21,7 +21,7 @@ import { curvatureDrop } from '../../terrain/heightfield';
 import { SURFACES, surfaceMaterial, incisedMaterial } from '../../render/materials';
 import { PLAIN, feature, tag } from './data';
 import type { Physics } from '../../player/physics';
-import { fitBlocks, carvedBlockGeometry, inscriptionAtlas, INSCRIPTION_PICK_LAYER, type Block } from '../../arch/decor';
+import { fitBlocks, carvedBlockGeometry, inscriptionAtlas, opSignsNote, INSCRIPTION_PICK_LAYER, type Block } from '../../arch/decor';
 import { panelText } from '../../arch/inscription_text';
 import { ReliefSet, type ReliefItem } from '../../arch/reliefs';
 /** the largest sign height the tomb panels allow (m): their lines are fitted to the field below it (C) */
@@ -275,7 +275,7 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   rock.side = THREE.DoubleSide; // the cliff's top and end returns are seen from both sides
   const facades = tombs.map(t => ({ t, fc: tombFacade(f, t.x, t.inscribed, t.id) }));
   const texts = new THREE.Group(); texts.name = 'nr-inscriptions'; const carved: THREE.BufferGeometry[] = [], textInfo: string[] = [], carvedSigns: { id: string; ver: 'op'; signs: string }[] = [];
-  const inscMat = incisedMaterial('nr_dressed', inscriptionAtlas('op')); // cut into the dressed field (D-166)
+  const inscMat = incisedMaterial('nr_dressed', inscriptionAtlas('op')); // cut into the dressed field (D-177)
   const pickMat = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide, visible: false });
   const cliff = new THREE.Mesh(mergeGeometries([cliffGeometry(f, holes, xa, xb, H), cliffTop(f, terrain, xa, xb, H, holes), endCaps(f, xa, xb, H, holes), ...facades.map(q => q.fc.front)].map(g => g.index ? g.toNonIndexed() : g))!, rock);
   cliff.name = 'nr-cliff'; cliff.castShadow = cliff.receiveShadow = true;
@@ -306,7 +306,7 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   }
   if (carved.length) {
     const tm = new THREE.Mesh(mergeGeometries(carved.map(g => g.index ? g.toNonIndexed() : g))!, inscMat); tm.name = 'nr-inscriptions-carved'; tm.receiveShadow = true;
-    tm.userData = { carved: carvedSigns, tier: 'B/C', src: 'ARIO;LIVIUS-KENT;NOTO;LIVIUS-NR', note: `DNa, DNb Old Persian (text A: ARIo Q007152/Q007153, CC0; signs D-165: ARIo's words by Kent's rules, checked against Kent's transliteration, B where they agree (research/OP_SIGNS.md); Kent's 60 lines each (B); incised in the dressed field, V-section at 45° (C, D-166); signs lost in the edition left uncut; panel position C; Elamite and Babylonian versions not carved) — ${textInfo.join('; ')}` };
+    tm.userData = { carved: carvedSigns, tier: 'B/C', src: 'ARIO;OP-TRANSLIT;NOTO;LIVIUS-NR', placeholder: true, note: `DNa, DNb Old Persian (text A: ARIo Q007152/Q007153, CC0). DNa ${opSignsNote('DNa')}. DNb ${opSignsNote('DNb')}. Incised in the dressed field, V-section at 45° (C, D-177); panel position C. NOT carved [PLACEHOLDER, Q-290]: the Elamite and Babylonian versions of DNa and DNb (not in the corpus read) and the captions DNc, DNd, DNe — ${textInfo.join('; ')}` };
     texts.add(tm); tris += tm.geometry.getAttribute('position').count / 3;
   }
   group.add(texts);

@@ -6,7 +6,7 @@
 //     transliteration are scanned for modern words. Any new field on a line fails until it is classed here.
 //  2. carved inscription text (src/data/inscriptions.json → src/arch/inscription_text.ts panelText, the one path decor.ts
 //     and naqsh.ts carve): the rendered strings must be period script only; the transliterations and sign sequences that
-//     generate them are scanned for modern words; no unmapped signs. (Their spelling: tests/lang.test.ts, D-165.)
+//     generate them are scanned for modern words; no unmapped signs. (Their spelling: tests/lang.test.ts, D-177.)
 //  3. lexicon native-script fields (future tablets/labels): period script of the right block only.
 //  4. any other text: every source file (src/ui included) that renders text is registered as in-world or out-of-world
 //     (DOM), none mixes the two, out-of-world files make no textures; data JSON strings in non-Latin scripts only in

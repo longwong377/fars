@@ -1,4 +1,4 @@
-// The incised-sign shading (D-166; geometry and depth atlas: src/arch/carving.ts). Each carved sign is a quad on the stone
+// The incised-sign shading (D-177; geometry and depth atlas: src/arch/carving.ts). Each carved sign is a quad on the stone
 // face; its atlas cell holds the depth of the cut at every point (a V-section, walls at 45°). Per pixel:
 //  - the view ray enters the face at the quad and is marched into the depth field (parallax occlusion: 16 steps and a
 //    linear refinement), so the cut's far wall shows and its near wall hides as the eye moves, as in a real incision;

@@ -368,7 +368,7 @@
    "u": "m",
    "src": "RECON",
    "tier": "C",
-   "note": "carved signs are incised into the host stone (D-166): each sign's outline is the edge of a cut whose walls fall at wall_angle_deg to the face (a V-section: the depth at a point is its distance to the sign's edge, deepest in a wedge's head), drawn in the host stone's own material; no measured section or depth was read (Schmidt 1953 NOT SEEN), so the angle and hence the depth are C. The sign quads lie lift m off the face. Several versions or texts in one field share one glyph height, the largest <= the field's glyph_max at which every line of the inscription's own lineation fits and the whole fits the field (never below glyph_min: C); lines gap_ratio x glyph apart; blocks block_sep apart"
+   "note": "carved signs are incised into the host stone (D-177): each sign's outline is the edge of a cut whose walls fall at wall_angle_deg to the face (a V-section: the depth at a point is its distance to the sign's edge, deepest in a wedge's head), drawn in the host stone's own material; no measured section or depth was read (Schmidt 1953 NOT SEEN), so the angle and hence the depth are C. The sign quads lie lift m off the face. Several versions or texts in one field share one glyph height, the largest <= the field's glyph_max at which every line of the inscription's own lineation fits and the whole fits the field (never below glyph_min: C); lines gap_ratio x glyph apart; blocks block_sep apart"
   },
   "r_stair_inscription": {
    "v": {
@@ -383,7 +383,7 @@
    "u": "m",
    "src": "SI-ARCH;ISAC-PA;LIVIUS-AI;RECON",
    "tier": "C",
-   "note": "the central-facade inscriptions of the Tachara S stair (XPc) and the Hadish W stair (XPd): trilingual (XPc 'Translations into Elamite and Babylonian', LIVIUS-AI B; XPd 'OP/El/Ak', hadish.stair_w_reliefs B); the three versions side by side between the guards, Old Persian first (arrangement and order C, NOT SEEN), in the field from the panel top down to bottom_margin above the central ground"
+   "note": "the central-facade inscriptions of the Tachara S stair (XPc) and the Hadish W stair (XPd): trilingual (XPc 'Translations into Elamite and Babylonian', LIVIUS-AI B; XPd 'OP/El/Ak', hadish.stair_w_reliefs B); the three versions side by side between the guards, Old Persian first (arrangement and order C, NOT SEEN), in the field from the panel top down to bottom_margin above the central ground. Which copies these are (D-177, src/data/royal_inscriptions.json): XPc here is the copy 'on the south wall of the terrace on which the palace is built' (LIVIUS-AI, B; the field C); its copies on the eastern and western pillars of the S portico are NOT carved (no anta face identified in the model, Q-290). XPd here is the copy 'beside the stairs of the Palace of Xerxes' (B; which stair C); its copies on the two pillars of the N portico are NOT carved (Q-290)"
   }
  },
  "terrace": {
@@ -802,7 +802,7 @@
    "u": "",
    "src": "ISAC-PA;LANG-R",
    "tier": "B",
-   "note": "search extract; LANGUAGES.md: 'inscribed in the walls', 'on the upper part of each doorway jamb' (B). Read as one trilingual above each colossus (D-166, Q-282): the earlier assignment of one version per colossus (OP, El, Bab, OP) is withdrawn; column order C"
+   "note": "search extract; LANGUAGES.md: 'inscribed in the walls', 'on the upper part of each doorway jamb' (B). Read as one trilingual above each colossus (D-177, Q-289): the earlier assignment of one version per colossus (OP, El, Bab, OP) is withdrawn; column order C"
   },
   "r_inscription_panel": {
    "v": {
@@ -825,7 +825,7 @@
    "u": "m",
    "src": "RECON",
    "tier": "C",
-   "note": "inscription panel above each colossus (C): all three versions of XPa side by side (\"Next to the Old Persian text are Babylonian and Elamite translations\", LIVIUS-AI, B), in the order OP, El, Bab (C), each in its own lines (Kent's for the OP), so the panel spans the colossus' length (width 5.0 m = r_colossus.length, C; it was 3.2 m for one version per colossus, D-166), in a field margin m inside the panel; the panel is a limestone face slab_proud m in front of the wall above the colossus, slab_depth deep (the model's wall there is mud brick; the stone jamb that carries the text is C: its extent NOT SEEN)"
+   "note": "inscription panel above each colossus (C): all three versions of XPa side by side (\"Next to the Old Persian text are Babylonian and Elamite translations\", LIVIUS-AI, B), in the order OP, El, Bab (C), each in its own lines (Kent's for the OP), so the panel spans the colossus' length (width 5.0 m = r_colossus.length, C; it was 3.2 m for one version per colossus, D-177), in a field margin m inside the panel; the panel is a limestone face slab_proud m in front of the wall above the colossus, slab_depth deep (the model's wall there is mud brick; the stone jamb that carries the text is C: its extent NOT SEEN)"
   },
   "r_colossus_plinth": {
    "v": 1.2,
@@ -1671,7 +1671,7 @@
       "whisk"
      ],
      "tier": "B",
-     "note": "king with attendants on the main doorway (WP-EXT, B); a parasol- and a fly-whisk-bearer (C, as on the Harem S door); DPa carved above the figures on both reveals, the three versions stacked (DPa \"above figures of the king and attendants\", LIVIUS-AI B; which doorway and the stacking C, D-166)",
+     "note": "king with attendants on the main doorway (WP-EXT, B); a parasol- and a fly-whisk-bearer (C, as on the Harem S door); DPa carved above the figures on both reveals, the three versions stacked (DPa \"above figures of the king and attendants\", LIVIUS-AI B; which doorway and the stacking C, D-177)",
      "inscription": "DPa"
     },
     "N_W": {
@@ -3192,7 +3192,7 @@
       "towel"
      ],
      "tier": "B",
-     "note": "king with parasol- and towel-bearers, labelled \"Darius the king\" (FARROKH/SI-ARCH, B); DPb carved above the figures on both reveals (DPb \"in four lines above the portrait of Xerxes on the reliefs of his Palace\", LIVIUS-AI B; the \"labelled Darius the king\" of this row read as DPb: C; the three versions stacked as XPe, C; D-166)",
+     "note": "king with parasol- and towel-bearers, labelled \"Darius the king\" (FARROKH/SI-ARCH, B); DPb carved above the figures on both reveals (DPb \"in four lines above the portrait of Xerxes on the reliefs of his Palace\", LIVIUS-AI B; the \"labelled Darius the king\" of this row read as DPb: C; the three versions stacked as XPe, C; D-177)",
      "inscription": "DPb"
     },
     "N_E": {

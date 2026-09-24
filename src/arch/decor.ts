@@ -10,6 +10,7 @@ import { buildAtlas, layoutText, carvedGeometry, layoutMaxDepth, type Atlas, typ
 import type { Manifest, Doorway, Part, Box, Pt } from './parts';
 import { phase4Programmes, InscriptionPlacement } from './relief_programmes';
 import inscriptions from '../data/inscriptions.json';
+import programme from '../data/royal_inscriptions.json';
 import { surfaceMaterial, incisedMaterial } from '../render/materials';
 
 const up = new THREE.Vector3(0, 1, 0);
@@ -118,7 +119,7 @@ function crenellationGeometry(w: number, h: number, steps: number, depth: number
   const g = new THREE.ExtrudeGeometry(new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y))), { depth, bevelEnabled: false }); g.deleteAttribute('uv'); return g;
 }
 
-// ---------- carved inscriptions: the published text (D-165), incised into the stone (D-166) ----------
+// ---------- carved inscriptions: the published text (D-177), incised into the stone (D-177) ----------
 const fonts: Record<string, opentype.Font> = {};
 const atlases: Partial<Record<'op' | 'cun', Atlas>> = {};
 export async function loadInscriptionFonts(fetcher: (path: string) => Promise<ArrayBuffer>) {
@@ -169,13 +170,20 @@ export function hostFace(parts: Part[], o: Pt, y: number, n: Pt, reach = 0.6): {
  *  × `height` its size; `surface`: the host's SURFACES key when the host is not a part (a slab, the Terrace wall) */
 export interface CarvedField { texts: { id: string; ver: Version }[]; arrangement: 'columns' | 'stack'; origin: Pt; along: Pt; normal: Pt; yTop: number; width: number; height: number; glyphMax: number; where: string; tier: string; surface?: string; snap?: boolean }
 const VER_NAME: Record<Version, string> = { op: 'Old Persian', el: 'Elamite', bab: 'Babylonian' };
-/** the dev-overlay note of one carved version: what the text and the signs rest on (D-165), and the carving (D-166) */
+/** what the Old Persian signs of a text rest on (D-177), for the dev-overlay notes (decor.ts, naqsh.ts) */
+export function opSignsNote(id: string): string {
+  const t = (inscriptions as any)[id], w = (t.op_words as any[]).filter(r => r.signs), n = (k: string) => w.filter(r => r.cmp === k).length;
+  const fixed = w.filter(r => r.read).length, lost = String(t.op_signs.join(' ')).split(/[\s:-]+/).filter(s => s === 'x').length;
+  return t.op_lined ? `signs: the published sign-by-sign transliteration (Kent's convention; data/corpus/op_translit.json, D-176) word for word, ${w.length} word groups (B)${fixed ? `, ${fixed} with a slip of the copy corrected (op_sign_decisions.json)` : ''}; Schmitt's reading differs in ${n('reading')}, by a written glide in ${n('glide')}, by a logogram in ${n('logogram')} (research/OP_SIGNS.md, Q-288)${lost ? `; ${lost} signs lost in the corpus left uncut [PLACEHOLDER]` : ''}; lines the corpus's (B)`
+    : `signs: Kent's rules on ARIo's words (C: no corpus copy); lines C`;
+}
+/** copies and versions of an inscription standing in 467 that the build does not carve (src/data/royal_inscriptions.json) */
+const missingOf = (id: string) => (programme.missing as any[]).filter(m => String(m.id).split(/,\s*/).includes(id));
+/** the dev-overlay note of one carved version: what the text and the signs rest on (D-177), and the carving */
 function versionNote(id: string, ver: Version, glyph: number, depth: number, where: string, surface: string): string {
-  const t = (inscriptions as any)[id], signs = ver === 'op'
-    ? (() => { const w = t.op_words as any[]; const agree = w.filter(r => r.basis === 'rule=kent').length, kent = w.filter(r => r.basis === 'kent').length, rule = w.length - agree - kent;
-      return t.op_lined ? `signs: ARIo's words by Kent's rules = Kent's transliteration for ${agree} of ${w.length} words (B); Kent's spelling ${kent}, the rule's ${rule} (research/OP_SIGNS.md); lines Kent's (B)` : `signs: ARIo's words by Kent's rules (C: no graphemic witness read); lines C`; })()
-    : `signs: ATF → OSL (B); lines C (flowed: no lineation read)`;
-  return `${id} ${VER_NAME[ver]} (text A: ARIo ${t.ario}, Schmitt 2009); ${signs}; incised in ${surface}, V-section at 45°, deepest ${(depth * 1000).toFixed(1)} mm, signs ${(glyph * 100).toFixed(1)} cm (C); ${where}`;
+  const t = (inscriptions as any)[id], signs = ver === 'op' ? opSignsNote(id) : `signs: ATF → OSL (B); lines C (flowed: no lineation read)`;
+  const miss = missingOf(id).map(m => m.what);
+  return `${id} ${VER_NAME[ver]} (text A: ARIo ${t.ario}, Schmitt 2009); ${signs}; incised in ${surface}, V-section at 45°, deepest ${(depth * 1000).toFixed(1)} mm, signs ${(glyph * 100).toFixed(1)} cm (C); ${where}${miss.length ? `; NOT carved (Q-290): ${miss.join('; ')}` : ''}`;
 }
 /** carve one field into group `g` (one mesh and one pick rectangle per version) */
 function carveField(g: THREE.Group, parts: Part[], F: CarvedField, report: string[]) {
@@ -188,7 +196,7 @@ function carveField(g: THREE.Group, parts: Part[], F: CarvedField, report: strin
   const o = gw(F.origin[0], F.origin[1]).addScaledVector(Z, off).addScaledVector(X, -F.width / 2); o.y = F.yTop;
   for (const p of fit.parts) {
     const A = inscriptionAtlas(p.block.text.font), geo = carvedBlockGeometry(p.block, p.layout, p.dx, p.dy), depth = layoutMaxDepth(A, p.layout);
-    const meta = { tier: p.block.ver === 'op' && (inscriptions as any)[p.block.id].op_lined ? 'B' : 'C', src: 'ARIO;LIVIUS-KENT;OSL;NOTO;LANG-R', inscription: p.block.id, version: p.block.ver, host: surface, glyph: fit.glyph, depth,
+    const meta = { tier: p.block.ver === 'op' && (inscriptions as any)[p.block.id].op_lined ? 'B' : 'C', src: p.block.ver === 'op' ? 'ARIO;OP-TRANSLIT;NOTO;LANG-R' : 'ARIO;OSL;NOTO;LANG-R', inscription: p.block.id, version: p.block.ver, host: surface, glyph: fit.glyph, depth,
       note: versionNote(p.block.id, p.block.ver, fit.glyph, depth, `${F.where} (placement ${F.tier})`, surface) };
     const mesh = new THREE.Mesh(geo, incisedMaterial(surface, A)); mesh.matrixAutoUpdate = false; mesh.matrix.makeBasis(X, up, Z).setPosition(o);
     mesh.receiveShadow = true; mesh.castShadow = false; mesh.userData = { ...meta, carved: [{ id: p.block.id, ver: p.block.ver, signs: geo.userData.signs }] }; mesh.name = `inscription:${p.block.id}:${p.block.ver}`; g.add(mesh);
@@ -201,14 +209,14 @@ function carveField(g: THREE.Group, parts: Part[], F: CarvedField, report: strin
     report.push(`${p.block.id}:${p.block.ver} ${p.layout.signs.length} signs, ${p.layout.lines} lines, glyph ${(fit.glyph * 100).toFixed(1)} cm, deepest ${(depth * 1000).toFixed(1)} mm, on ${surface}${host ? ` (${host.kind}, face ${(host.d * 100).toFixed(1)} cm from the field line)` : ''}`);
   }
 }
-/** the carved inscriptions of the Terrace (D-166 for what stands where; texts D-165): XPa on the Gate, XPb on the Apadana
+/** the carved inscriptions of the Terrace (D-177: what stands where, the texts and the carving; src/data/royal_inscriptions.json): XPa on the Gate, XPb on the Apadana
  *  stairs, the stair-facade and door-jamb texts of the Phase 4 programmes (XPc, XPd, XPe, DPa, DPb: relief_programmes.ts),
  *  DPc on the Tachara window cornices and DPd-DPg on the Terrace south wall. g.userData.report lists every carved version */
 export function buildInscriptions(m: Manifest, parts: Part[], extra: InscriptionPlacement[] = []): THREE.Group {
   const g = new THREE.Group(); g.name = 'inscriptions'; const report: string[] = [];
   const all = (id: string, vers: Version[] = ['op', 'el', 'bab']) => vers.map(ver => ({ id, ver }));
   // XPa above each colossus of the Gate of All Nations, on the doorway reveal: all three versions side by side on a stone
-  // face in front of the wall above the colossus (gate_nations.r_inscription_panel, inscription_placement; D-166)
+  // face in front of the wall above the colossus (gate_nations.r_inscription_panel, inscription_placement; D-177)
   if (present('gate_nations') && m.gate_nations) {
     const P = v<any>('gate_nations', 'r_inscription_panel'), K = v<any>('gate_nations', 'r_colossus');
     const cols = parts.filter(p => p.building === 'gate_nations' && p.kind === 'colossus') as Box[];
@@ -283,7 +291,10 @@ export function buildInscriptions(m: Manifest, parts: Part[], extra: Inscription
       }
     }
   }
-  g.userData = { tier: 'B/C', note: `carved inscriptions (D-165 text and signs, D-166 carving and placement):\n${report.join('\n')}`, report };
+  // the programme's gaps (Phase 8 review A-M5): every copy standing in 467 that is not carved, flagged
+  const missing = (programme.missing as any[]).map(m => `${m.id}: ${m.what} (${m.why})`);
+  const summary = `royal inscriptions: ${report.length} versions carved; ${missing.length} copies or versions standing in 467 NOT carved [PLACEHOLDER: Q-290, src/data/royal_inscriptions.json]`;
+  g.userData = { tier: 'B/C', placeholder: missing.length > 0, summary, missing, note: `carved inscriptions (D-177: text and signs, carving and placement):\n${report.join('\n')}\nNOT carved (Q-290):\n${missing.join('\n')}`, report };
   return g;
 }
 /** layer of the inscriptions' invisible pick rectangles (no camera renders it) */

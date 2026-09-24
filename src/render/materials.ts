@@ -466,7 +466,7 @@ export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
   return m;
 }
 
-/** Incised signs (D-166; src/render/incision.ts): the host stone's own surface (the same world-space layer and weather as the
+/** Incised signs (D-177; src/render/incision.ts): the host stone's own surface (the same world-space layer and weather as the
  *  face they are cut into, so the cut is the stone, not a dark inlay), its normal replaced inside the cut by the cut's wall
  *  normal, its skylight occluded with depth, and the uncut face discarded (the host mesh shows there). A small depth bias
  *  keeps the quads in front of the face they lie on. `surface` is the host's SURFACES key */
@@ -478,7 +478,7 @@ export function incisedMaterial(surface: string, atlas: Atlas): THREE.MeshStanda
   const I = incisionNodes(atlas);
   m.normalNode = I.normalView; m.aoNode = I.ao; m.opacityNode = I.mask; m.alphaTest = 0.5;
   m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -4;
-  m.userData = { tier: 'C', note: `incised signs in ${surface} (D-166): the stone's own surface; V-section, walls at 45° (C)` };
+  m.userData = { tier: 'C', note: `incised signs in ${surface} (D-177): the stone's own surface; V-section, walls at 45° (C)` };
   cache.set(key, m);
   return m;
 }

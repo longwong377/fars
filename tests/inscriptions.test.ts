@@ -1,4 +1,4 @@
-// The royal inscriptions on the Terrace (Phase 8 review lens A, M5 and M6; D-166): which texts stand where in 467, in all
+// The royal inscriptions on the Terrace (Phase 8 review lens A, M5 and M6; D-177; src/data/royal_inscriptions.json): which texts stand where in 467, in all
 // their versions, and how they are carved (incised into the host stone, not raised on it).
 import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'fs';
@@ -8,6 +8,7 @@ import { loadInscriptionFonts, buildInscriptions, buildPhase4Reliefs, inscriptio
 import { atlasDepthEm } from '../src/arch/carving';
 import { v } from '../src/arch/spec';
 import { INSCRIPTION_INFO } from '../src/ui/translation';
+import programme from '../src/data/royal_inscriptions.json';
 import chronology from '../src/data/chronology.json';
 import { installProbeLight } from '../src/render/probes/runtime';
 
@@ -21,15 +22,11 @@ const count = (id: string, ver: string) => carved().filter(m => m.name === `insc
 
 describe('the royal inscriptions standing on the Terrace in 467 are carved, in all their versions (M5)', () => {
   it('each text is carved as often and in as many versions as its placement row says', () => {
-    const want: [string, string, number][] = [
-      ['XPa', 'op', 4], ['XPa', 'el', 4], ['XPa', 'bab', 4], // one trilingual above each colossus (Q-282)
-      ['XPb', 'op', 2], ['XPb', 'el', 2], ['XPb', 'bab', 2], // N and E stairs; OP on one panel, Bab and El on another
-      ['XPc', 'op', 1], ['XPc', 'el', 1], ['XPc', 'bab', 1], ['XPd', 'op', 1], ['XPd', 'el', 1], ['XPd', 'bab', 1],
-      ['XPe', 'op', 4], ['XPe', 'el', 4], ['XPe', 'bab', 4],
-      ['DPa', 'op', 2], ['DPa', 'el', 2], ['DPa', 'bab', 2], ['DPb', 'op', 2], ['DPb', 'el', 2], ['DPb', 'bab', 2],
-      ['DPc', 'op', 4], ['DPc', 'el', 4], ['DPc', 'bab', 4], // every window frame the model has
-      ['DPd', 'op', 1], ['DPe', 'op', 1], ['DPf', 'el', 1], ['DPg', 'bab', 1],
-    ];
+    // the programme's carved rows (src/data/royal_inscriptions.json; XPa: one trilingual above each colossus, Q-289)
+    const want: [string, string, number][] = (programme.carved as any[]).filter(c => !c.id.startsWith('DN')).flatMap(c => Object.entries(c.versions as Record<string, number>).map(([ver, n]) => [c.id, ver, n] as [string, string, number]));
+    expect(want.length).toBe(28);
+    // nothing carved that the programme does not list
+    for (const m of carved()) expect(want.some(([id, ver]) => m.name === `inscription:${id}:${ver}`), m.name).toBe(true);
     for (const [id, ver, n] of want) expect(count(id, ver), `${id} ${ver}`).toBe(n);
     for (const m of carved()) expect(g.getObjectByName(m.name + ':pick'), m.name).toBeTruthy();
   });
@@ -91,15 +88,50 @@ describe('the signs are cut into the stone, not raised on it (M6)', () => {
       }
     }
   });
+  it('the cut is lit as a cut, not as a raised sign: with a low sun on one side the far wall of each stroke is lit and the near wall shaded (incision.ts\'s wall normal, from the atlas)', () => {
+    // incision.ts: n = normalize(T·∂d/∂x + B·∂d/∂y + N), d = the depth INTO the stone; a raised sign (height h OUT of the
+    // stone, n = (−∂h/∂x, …)) would tilt the other way and light the near wall instead. Sun low from −x: L = (−0.8, 0, 0.6)
+    const L = [-0.8, 0, 0.6];
+    let checked = 0;
+    for (const font of ['op', 'cun'] as const) {
+      const A = inscriptionAtlas(font);
+      for (const [ch, c] of [...A.cells].slice(0, 30)) {
+        if (!c.w) continue;
+        // along the row through the cell's middle: the first and last cut texels are a stroke's near (−x) and far (+x) walls
+        const y = c.oy + (Math.floor(c.h / 2) + 0.5) / A.tpe, xs: number[] = [];
+        for (let k = 1; k < c.w - 1; k++) { const x = c.ox + (k + 0.5) / A.tpe; if (atlasDepthEm(A, ch, x, y) > (2 * A.maxDepthEm) / 255) xs.push(x); }
+        if (xs.length < 6) continue;
+        const e = 1 / A.tpe, depth = (x: number, yy = y) => atlasDepthEm(A, ch, x, yy);
+        const lit = (x: number) => { const gx = (depth(x + e) - depth(x - e)) / (2 * e), gy = (depth(x, y + e) - depth(x, y - e)) / (2 * e); return (gx * L[0] + gy * L[1] + L[2]) / Math.hypot(gx, gy, 1); };
+        expect(lit(xs[xs.length - 1] - e), `${font} ${ch}: the wall facing the sun (the stroke's far side) is lit more than the near wall`).toBeGreaterThan(lit(xs[0] + e));
+        expect(depth(xs[0]), `${font} ${ch}: the cut deepens inward from its edge`).toBeGreaterThan(depth(xs[0] - 2 * e));
+        checked++;
+      }
+    }
+    expect(checked).toBeGreaterThan(20);
+  });
   it('the cut depths are millimetres, stated in each panel\'s note (C)', () => {
     for (const m of carved()) { expect(m.userData.depth, m.name).toBeGreaterThan(0.0015); expect(m.userData.depth, m.name).toBeLessThan(0.015); expect(m.userData.note, m.name).toMatch(/V-section at 45°, deepest [\d.]+ mm/); }
     console.log(g.userData.note);
   });
-  it("the dev overlay says what the Old Persian signs rest on (no 'Kent rules — C' label for a text with Kent's copy)", () => {
+  it('the dev overlay says what the Old Persian signs rest on: the published sign sequence, word for word (B)', () => {
     for (const m of carved().filter(q => q.userData.version === 'op')) {
       expect(m.userData.note, m.name).not.toMatch(/signs by Kent rules — C/);
-      if (m.userData.inscription !== 'DPc') { expect(m.userData.note, m.name).toMatch(/= Kent's transliteration for \d+ of \d+ words \(B\)/); expect(m.userData.tier, m.name).toBe('B'); }
+      expect(m.userData.note, m.name).toMatch(/the published sign-by-sign transliteration .* word for word, \d+ word groups \(B\)/);
+      expect(m.userData.tier, m.name).toBe('B'); expect(m.userData.src, m.name).toMatch(/OP-TRANSLIT/);
     }
+  });
+  it('the programme\'s gaps are flagged: every copy standing in 467 and not carved is listed, with why, in the dev overlay data (A-M5)', () => {
+    const miss = programme.missing as any[];
+    expect(miss.length).toBeGreaterThanOrEqual(10);
+    for (const m of miss) { expect(m.why.length, m.id).toBeGreaterThan(20); expect(m.q, m.id).toBe('Q-290'); }
+    expect(g.userData.placeholder).toBe(true); expect(g.userData.missing.length).toBe(miss.length);
+    expect(g.userData.summary).toMatch(/NOT carved \[PLACEHOLDER: Q-290/);
+    // a carved text with copies not carved says so on its panels (XPc: the portico pillars; XPd: the N portico; DPb: the garment)
+    for (const id of ['XPc', 'XPd', 'DPb']) for (const m of carved().filter(q => q.userData.inscription === id)) expect(m.userData.note, m.name).toMatch(/NOT carved \(Q-290\)/);
+    // every id the layer can name is in the programme (carved, missing or hidden)
+    const ids = new Set([...programme.carved, ...programme.missing, ...programme.hidden].flatMap((r: any) => String(r.id).split(/,\s*/)));
+    for (const id of Object.keys(INSCRIPTION_INFO)) expect(ids.has(id), id).toBe(true);
   });
 });
 

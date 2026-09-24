@@ -119,6 +119,10 @@ export function inscriptionReading(id: string, version = 'op'): InscriptionReadi
     words.push({ w, gloss: g?.gloss ?? null, how, tier: g?.tier, src: g?.src });
   }
   if (v !== 'op') notes.push(`Version split of the ARIo running text: ${t.tier?.version_split ?? 'C'}.`);
+  else if (t.op_lined) { // what is carved is the published sign sequence (D-177); say where Schmitt's words shown here read otherwise
+    const rows = (t.op_words as any[]) ?? [], n = (k: string) => rows.filter(r => r.cmp === k).length;
+    notes.push(`The stone's signs as carved: the published sign-by-sign transliteration (Kent's convention, D-177). Schmitt's reading shown above differs from it in ${n('reading')} words; ${n('corpus-only')} carved words it does not read; ${n('ario-only')} of its words are not carved (research/OP_SIGNS.md, Q-288).`);
+  }
   const sources = [...new Set(words.flatMap(w => w.src ?? []))].sort();
   return { id, version: v, title: info.title, where: info.where, carved: info.carved, versionName: VERSION_NAME[v],
     translitSource: `Transliteration of the ${VERSION_NAME[v]} version${v === 'op' ? ' (normalised)' : ' (ATF)'}: ARIo, Schmitt 2009, in ORACC (MOCCI; CC0), text ${t.ario}.`,
