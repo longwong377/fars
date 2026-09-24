@@ -243,3 +243,28 @@ across the view; rain-fed land alternates crop/fallow by 800 m district (70 %/10
 **Measured:** draws/triangles unchanged in stair-noon-plain, village-p22; rahmat-west-pm +1 draw. Flatness near ground
 0.039 → 0.065, mid 0.089 → 0.115; Kuh-e Rahmat fine detail 0.063 → 0.087. Tests: landscape.test.ts (10) and the plain,
 terrain, settlement, trees suites pass; tsc clean; lint:all OK; the 144 kB terrain WGSL passes naga validation.
+
+## Look bugs and framing (branch look-bugs-s6, head 2a04ce5, D-187) — merged in session 6
+**Broken, unverified or placeholder:** bug 5 floor dots and sparkles not fixed (absent from the scene pass: the SSR at half
+resolution with ~3-texel steps hits thin column bases (dark dots) and scatters single texels of the ~1000× brighter
+doorway (white sparkles); in pipeline.ts, left to the surfaces workstream; three suggested changes in D-187); bug 8 the pale
+comb on the dawn horizon not identified (not the town's smoke plumes (hidden: streaks stay), not the plain's trees or
+villages; guess: the town's garden-tree impostors `settlement:trees:far`); bug 7 black blobs on the dawn hill no longer
+reproduce, cause unknown; bug 6 the jar explained (a shoulder jar held by the raised right hand hides the head from his
+right), not rendered; views only at quality test: tachara-lance-bearers, apadana-e-stair-raking, tachara-s-stair,
+apadana-enter; dawn-stair-top / dawn-sunrise pitch set to −5° by calculation (dawn-sunrise not rendered); the S reveal of
+the W2 doorway is still black (probes store a one-sided linear fit, clamped: BLOCKERS B23, three approaches tried); the
+performances CPU test fails at load 8–9 as on the base commit.
+**Fixed:** lance-bearer close-up black (the S reveal faces away from every opening; the probes' fit clamps to 0): views
+now on the N reveal's figure, black pixels 57.1 % → 2.1 % at high; camera in a column (0.93 m from its axis) re-posed ≥
+1.2 m clear, black 28.7 % → 1.2 % (test); scribe-room fringe / red line / specks: probe lookups stepped off along the bumped
+normal and the wall test switched abruptly → the geometric normal and a 0.2 m blend (fringe gone at high; red line ~6 px
+left); black brazier stands: fully metallic with no sky reflection → the bronze surface with sky specular; the head-carried
+jar floated 9–12 cm above the crown → a 2 cm pad; the pose's head tilt away from a shoulder jar was overwritten (anim.ts).
+**Framing:** dawn views from (−36.4, 135.5) looking 281° with the N flight's parapet and merlons in the foreground; entry
+sequence day 25 11:00: apadana-enter-court (sun; exposure 0.52), apadana-enter-door (threshold; 25.3), apadana-enter-hall
+(6 s adaptation later; 136; fully adapted ~350), apadana-hall-out (looking back out) with a new test API
+`__parsa.carryEye(exposure, s)`; raking light from the ephemeris with ray checks: reliefs-raking Apadana N stair day 25
+16:00 sun on the face 17° (was 41°), tachara-s-stair 09:30 19°, apadana-e-stair-raking (new) 10:00 22°; lance-bearers day 25
+16:00 at 4.8 m / 37° and 2.8 m / 30° off the face; scribe at 1.0 m seated eye height, 2.6 m from the desk.
+**Tests:** tsc clean; lint:all OK; targeted suites pass except the timing test.
