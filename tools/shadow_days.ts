@@ -44,7 +44,10 @@ export function julian(d: number) {
 /** the day's line: the regnal day, the Babylonian date, the Julian date, the sun (local solar time) */
 export function dayLine(sim: PeopleSim, W: WeatherSystem, d: number) {
   const { month, dom } = dateOf(d), C = sim.cal.ctx(d), c = W.conditions(d, 12), w = W.days[d];
-  return `day ${d + 1} of the regnal year · ${MONTHS[month - 1].bab} ${dom} (${julian(d)}) · sunrise ${hm(C.sun.rise)}, sunset ${hm(C.sun.set)} · weather: ${w.tmin.toFixed(0)}–${w.tmax.toFixed(0)} °C, cloud ${(c.cloud * 100).toFixed(0)} %, ${w.wet ? (w.snow ? 'snow' : 'rain') + ` ${w.precipMm.toFixed(1)} mm` : 'dry'}, wind ${c.windMs.toFixed(0)} m/s${w.dust ? ', dust' : ''}`;
+  return `day ${d + 1} of the regnal year · ${MONTHS[month - 1].bab} ${dom} (${julian(d)}) · sunrise ${hm(C.sun.rise)}, sunset ${hm(C.sun.set)} · weather: ${w.tmin.toFixed(0)}–${w.tmax.toFixed(0)} °C, cloud ${(c.cloud * 100).toFixed(0)} %, ${w.wet ? (w.snow ? 'snow' : 'rain') + ` ${w.precipMm.toFixed(1)} mm` : 'dry'}, wind ${c.windMs.toFixed(0)} m/s${w.dust ? ', dust' : ''}`
+    // the hours the planners obey (the calendar's day: rain > 0.25 = shelter, lightning or rain > 0.7 = storm, dust > 0.25;
+    // S6 of reviewer A / S8 of reviewer B, r6: a storm 05:45-13:30 was printed as "rain")
+    + (C.wx.rain ? ` · rain ${hm(C.wx.rain[0])}–${hm(C.wx.rain[1])}` : '') + (C.wx.stormH ? ` · storm ${hm(C.wx.stormH[0])}–${hm(C.wx.stormH[1])}` : '') + (C.wx.dustH ? ` · dust in the air ${hm(C.wx.dustH[0])}–${hm(C.wx.dustH[1])}` : '');
 }
 /** age on the day (the year's birthdays counted); months for the under-threes */
 export const ageStr = (P: any, pid: number, d: number) => { const p = P.persons[pid], a = P.ageOn(pid, d);

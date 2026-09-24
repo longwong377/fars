@@ -311,6 +311,21 @@ export const BUILT: Dress[] = ['persian', 'median', 'worker', 'woman', 'child'];
  *  always part of that costume) */
 export const pieceBit = (dress: Dress, id: string) => { const i = COSTUMES[COSTUME_OF[dress]].opt.indexOf(id); return i < 0 ? 0 : i + 1; };
 
+/** dress for the cold (brief §9.2 "people cover up in cold"; S5 of shadow review r6, recurring from r3 S10): below
+ *  COLD_C the pieces each dress already has for it go on, drawn by the crowd's existing piece mask: the Median dress's
+ *  kandys, the sleeved coat (B: IR-CAND; worn against the cold, C), a working man's trousers and cap, a woman's mantle over
+ *  head and shoulders (her hair then under it), a child's shoes. The Persian robe and the guards' dress have no such piece
+ *  (nothing is added). The threshold is C. Returns the bits to set and the bits to clear */
+export const COLD_C = 8;
+const coldCache = new Map<Dress, [number, number]>();
+export function coldBits(dress: Dress): [number, number] {
+  let c = coldCache.get(dress); if (c) return c; const b = (id: string) => { const k = pieceBit(dress, id); return k ? 1 << k : 0; };
+  const on = dress === 'median' ? b('kandys') : dress === 'worker' ? b('work_trousers') | b('cap_soft') : dress === 'woman' ? b('headcloth') : dress === 'child' ? b('shoes') : 0;
+  const off = dress === 'woman' ? b('hair') | b('hair_bob') : 0; c = [on, off]; coldCache.set(dress, c); return c;
+}
+/** a person's piece mask for the air's temperature (°C) */
+export function weatherMask(dress: Dress, mask: number, tempC: number): number { if (!(tempC < COLD_C)) return mask; const [on, off] = coldBits(dress); return (mask | on) & ~off; }
+
 // ------------------------------------------------------------------------------------------------ piece builders
 const W = (b: HBone, w = 1): [number, number] => [HB[b], w];
 interface Lib { A: HumanAssets; ref: HumanVariant; J: (b: HBone) => V3 }
