@@ -75,7 +75,7 @@ export interface Frag {
 /** what the surface stage produces (the material's colorNode, roughness, metalness, height, masks and lighting inputs) */
 export interface Surf {
   alb: V3; rough: number; metal: number; h: number; ao: number; keep: boolean; f0: number; micro: number; microK: number;
-  wrap: V3; trans: V3; roughB: number; lobeB: number; kHair: number; hairTilt: number; sheenCol: V3; sheenRough: number; specOcc: number; roughEnv: number; envMask: number;
+  wrap: V3; trans: V3; roughB: number; lobeB: number; kHair: number; kkEdge: number; hairTilt: number; sheenCol: V3; sheenRough: number; specOcc: number; roughEnv: number; envMask: number;
 }
 /** the surface stage for one fragment (fw = metres per pixel on the surface, as length(fwidth(P)); nb = the bind-space
  *  facet normal from dFdx/dFdy of P; silh = 1 − |n_geom · v|) */
@@ -203,7 +203,7 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const clumpC = Math.abs(fract(along * mix(LASH.clumps, LASH.clumps * 0.6, e2) + n1 * 0.35) - 0.5) * 2, lashW = ((1 - tl) * Math.sqrt(Math.max(0, 1 - tl)) * 0.8 + 0.1) * mix(1, 0.7, e2);
   const lashCut = Math.max(lashW <= clumpC ? 1 : 0, 0.9 <= tl ? 1 : 0);
   const keep = 1 - kHair * Math.max(edgeCut, silCut) - kLash * lashCut > 0.5;
-  return { alb, rough, metal: kMetal, h, ao, keep, f0, micro: f.aux[0], microK: (kSkin + kCloth + kFelt + kLeather + kHair * 0.5) * DRAPE.micro, wrap, trans, roughB: SKIN.roughOil, lobeB: kSkin * mix(SKIN.oilLobe[0], SKIN.oilLobe[1], oil), kHair, hairTilt: mix((curls - 0.5) * 1.6, Math.cos(lockPh) * 0.33, lockZone * kCourt),
+  return { alb, rough, metal: kMetal, h, ao, keep, f0, micro: f.aux[0], microK: (kSkin + kCloth + kFelt + kLeather + kHair * 0.5) * DRAPE.micro, wrap, trans, roughB: SKIN.roughOil, lobeB: kSkin * mix(SKIN.oilLobe[0], SKIN.oilLobe[1], oil), kHair, kkEdge: sstep(0.3, 1, e2), hairTilt: mix((curls - 0.5) * 1.6, Math.cos(lockPh) * 0.33, lockZone * kCourt),
     sheenCol: sheenBase.map(c => c * sheenK) as V3, sheenRough: kCloth * mix(0.55, 0.35, isLinen) + kFelt * 0.7 + (1 - kCloth - kFelt) * 0.5,
     specOcc: mix(1, f.aux[0], kSkin * 0.5) * mix(1, curls * 0.6 + 0.4, kHair),
     roughEnv: kSkin * 0.45 + kEye * 0.04 + kHair * 0.5 + kTeeth * 0.3 + kMouth * 0.3 + kLeather * 0.55 + kMetal * 0.32 + kWood * 0.6 + kWicker * 0.8 + (kCloth + kFelt + kLash) * 0.9,
@@ -238,7 +238,7 @@ export function shade(s: Surf, N: V3, V: V3, env: Env): V3 {
       const down: V3 = [-env.upV[0], -env.upV[1], -env.upV[2]]; const t0 = norm3([down[0] - N[0] * dot3(N, down) + 1e-3, down[1] - N[1] * dot3(N, down), down[2] - N[2] * dot3(N, down)]), b0 = cross3(N, t0);
       const T = norm3([t0[0] + b0[0] * s.hairTilt, t0[1] + b0[1] * s.hairTilt, t0[2] + b0[2] * s.hairTilt]);
       const kk = (shift: number, e: number) => { const ts = norm3([T[0] + N[0] * shift, T[1] + N[1] * shift, T[2] + N[2] * shift]), t = dot3(ts, H); return sstep(-1, 0, t) * Math.sqrt(clamp(1 - t * t)) ** e; };
-      const k1 = kk(-0.08, 80) * HAIR.kk[0], k2 = kk(0.1, 14) * HAIR.kk[1]; const kkS: V3 = s.alb.map(c => k1 + Math.min(1, c * 6) * k2) as V3;
+      const k1 = kk(-0.08, 80) * HAIR.kk[0] * s.kkEdge, k2 = kk(0.1, 14) * HAIR.kk[1]; const kkS: V3 = s.alb.map(c => k1 + Math.min(1, c * 6) * k2) as V3;
       spec = mix3(spec, kkS, s.kHair);
     }
     const invA = 1 / s.sheenRough, sin2 = Math.max(1 - nh * nh, 0.0078125), Dc = (2 + invA) * sin2 ** (0.5 * invA) / (2 * Math.PI), Vn = clamp(1 / (Math.max(nl + nv - nl * nv, 0.001) * 4));

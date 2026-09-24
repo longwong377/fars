@@ -128,7 +128,7 @@ class HumanLightingModel extends THREE.PhysicalLightingModel {
     const t0 = down.sub(N.mul(N.dot(down))).add(cameraViewMatrix.mul(vec4(0.001, 0, 0, 0)).xyz).normalize(), b0 = N.cross(t0);
     const T = t0.add(b0.mul(S.hairTilt)).normalize();
     const kk = (shift: number, e: number) => { const ts = T.add(N.mul(shift)).normalize(), th = ts.dot(H); return smoothstep(-1, 0, th).mul(pow(float(1).sub(th.mul(th)).clamp(0, 1).sqrt(), e)); };
-    const kkSpec = vec3(kk(-0.08, 80).mul(HAIR.kk[0])).add(diffuseColor.rgb.mul(6).clamp(0, 1).mul(kk(0.1, 14).mul(HAIR.kk[1])));
+    const kkSpec = vec3(kk(-0.08, 80).mul(HAIR.kk[0]).mul(S.kkEdge)).add(diffuseColor.rgb.mul(6).clamp(0, 1).mul(kk(0.1, 14).mul(HAIR.kk[1])));
     spec = mix(spec, kkSpec, S.kHair);
     // cloth and felt: a sheen lobe (Charlie distribution, Neubelt visibility)
     const invA = float(1).div(S.sheenRough), sin2 = float(1).sub(dotNH.mul(dotNH)).max(0.0078125);
@@ -433,7 +433,8 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       wrap: skinWrap.mul(kSkin).add(vec3(kHair.mul(0.25).add(kFelt.mul(0.1)).add(kCloth.mul(0.05)))),
       trans: vec3(...SKIN.transTint).mul(transl.mul(kSkin).mul(SKIN.trans)),
       roughB: float(SKIN.roughOil), lobeB: kSkin.mul(mix(SKIN.oilLobe[0], SKIN.oilLobe[1], oil)),
-      kHair, hairTilt: mix(curls.sub(0.5).mul(1.6), cos(lockPh).mul(0.33), lockZone.mul(kCourt)), // along the locks' waves
+      // the primary strand highlight fades toward a shell's frayed edge (D-189: at the moustache's cut line it read as frost)
+      kkEdge: smoothstep(0.3, 1, e2), kHair, hairTilt: mix(curls.sub(0.5).mul(1.6), cos(lockPh).mul(0.33), lockZone.mul(kCourt)), // along the locks' waves
       sheenCol: mix(vec3(1), clothAlb.mul(2).min(1), 0.5).mul(kCloth.mul(mix(0.22, 0.14, isLinen)).add(kFelt.mul(0.25))),
       sheenRough: kCloth.mul(mix(0.55, 0.35, isLinen)).add(kFelt.mul(0.7)).add(float(1).sub(kCloth).sub(kFelt).mul(0.5)),
       specOcc: mix(float(1), vAux.x, kSkin.mul(0.5)).mul(mix(float(1), curls.mul(0.6).add(0.4), kHair)),

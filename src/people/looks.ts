@@ -39,7 +39,7 @@ export const DYES: Record<string, { strong: Lab; weak: Lab; fade: number; tier: 
   madder: { strong: [40, 38, 28], weak: [52, 28, 26], fade: 0.5, tier: 'B', note: 'red: royal robe red or purple (IR-CLOTH); madder on wool (Pazyryk, B) with alum, colour C' },
   kermes: { strong: [34, 42, 16], weak: [48, 32, 14], fade: 0.45, tier: 'C', note: 'insect red, costlier than madder (MATERIAL_CULTURE NS, C)' },
   purple: { strong: [31, 20, -12], weak: [46, 15, -8], fade: 0.4, tier: 'B', note: 'purple robe/kandys (IR-CLOTH, IR-CAND); murex or red over indigo C' },
-  woad: { strong: [34, -3, -21], weak: [56, -6, -14], fade: 0.3, tier: 'C', note: 'woad/indigo blue (indigotin at Pazyryk, B; colour C)' },
+  woad: { strong: [34, -3, -21], weak: [50, -6, -16], fade: 0.3, tier: 'C', note: 'woad/indigo blue (indigotin at Pazyryk, B; colour C)' },
   weld: { strong: [70, 0, 50], weak: [76, -2, 36], fade: 0.9, tier: 'C', note: 'weld yellow (NOT SEEN; fugitive)' },
   green: { strong: [45, -17, 18], weak: [60, -11, 15], fade: 0.7, tier: 'C', note: 'green (weld over woad, NOT SEEN; the yellow fades first)' },
   wool: { strong: [74, 1, 12], weak: [60, 2, 10], fade: 0.1, tier: 'C', note: 'undyed wool, clean cream to worn and dingy' },
