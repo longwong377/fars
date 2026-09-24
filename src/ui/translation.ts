@@ -17,6 +17,7 @@ import { FOOTPRINTS, present } from '../arch/spec';
 import { INSCRIPTION_PICK_LAYER } from '../arch/decor';
 import { LANG_NAMES, type LangId } from '../lang/lexicon';
 import { LINE_BY_ID } from '../people/speech_lines';
+import { WRITING } from '../world/writing';
 
 export interface SubtitleLike { lang: string; translit: string; gloss: string; tier: string; speakerId?: number; lineId?: string }
 export interface ChronicleEvent { t: number; kind: string; text: string; place: string; tier?: string }
@@ -129,6 +130,25 @@ export function inscriptionReading(id: string, version = 'op'): InscriptionReadi
     words, covered: words.filter(w => w.gloss).length, sources, translation: TRANSLATION_STATUS, notes };
 }
 
+/** What the layer shows for a written object (writing.json, D-179): what it is, the text's id and source and its
+ *  transliteration, the seal and how much of it is attested; NO translation (B17a), and a placeholder said as such. */
+export function writingReading(objectId: string): { title: string; lines: string[] } | null {
+  const O = WRITING.objects[objectId]; if (!O) return null;
+  const lines: string[] = [];
+  const textLines = (tid: string) => { const T = WRITING.texts[tid];
+    lines.push(`Text ${tid}: ARIo ${T.ario} (Schmitt 2009, in ORACC; CC0). ${T.ident}.`);
+    lines.push(`Old Persian (normalised transliteration): ${T.op_translit}`);
+    if (T.el_atf) lines.push(`Elamite (ATF): ${T.el_atf}`);
+    if (T.bab_atf) lines.push(`Babylonian (ATF): ${T.bab_atf}`); };
+  if (O.placeholder) lines.push(`No text shown: placeholder. ${O.placeholder_why ?? ''}`);
+  else if (O.text) textLines(O.text);
+  else if (O.why_no_text) lines.push(`No text visible: ${String(O.why_no_text)}.`);
+  if (O.seal) { const S = WRITING.seals[O.seal]; lines.push(`Sealed with ${O.seal} (tier ${S.tier}). ${S.attested}. Wording: ${S.wording}. Design: ${S.design}.`); if (S.text !== O.text) textLines(S.text); }
+  lines.push(`Tier ${O.tier}; sources ${O.src.join(', ')}.`);
+  lines.push(TRANSLATION_STATUS);
+  return { title: `${O.what} (translation layer)`, lines };
+}
+
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; }
 
 export class TranslationLayer {
@@ -165,7 +185,7 @@ export class TranslationLayer {
       this.lastPick = ctx.now; this.ray.setFromCamera(new THREE.Vector2(0, 0), ctx.camera); this.ray.far = 80;
       const groups = (Array.isArray(ctx.inscriptions) ? ctx.inscriptions : [ctx.inscriptions]).filter((g): g is THREE.Object3D => !!g);
       // within reading distance: 15 m on the Terrace; panels that stand high on a cliff (Naqsh-e Rustam) set their own
-      const hit = this.ray.intersectObjects(groups, true).find(h => h.distance <= (h.object.userData.pickFar ?? 15));
+      const hit = this.ray.intersectObjects(groups, true).find(h => h.distance <= (h.object.userData.pickFar ?? 15) && h.object.visible);
       // the pick carries the panel's inscription and version (decor.ts, naqsh.ts: userData, and the name inscription:<id>:<ver>)
       this.picked = hit ? { id: String(hit.object.userData.inscription ?? hit.object.name.split(':')[1]), version: String(hit.object.userData.version ?? hit.object.name.split(':')[2] ?? 'op') } : null;
     }
@@ -191,6 +211,7 @@ export class TranslationLayer {
   }
 
   private inscriptionView(id: string, version: string): HTMLElement[] {
+    if (id.startsWith('writing:')) { const w = writingReading(id.slice(8)); return w ? [el('div', 'tl-title', w.title), ...w.lines.map(l => el('div', 'small', l))] : [el('div', '', id)]; }
     const r = inscriptionReading(id, version); if (!r) return [el('div', '', id)];
     const inter = el('div', 'tl-inter');
     for (const w of r.words) { const cell = el('span', 'tl-w'); cell.append(el('span', 'tl-wo', w.w), el('span', 'tl-wg', w.gloss ? (w.how === 'stem' ? `${w.gloss} (stem)` : w.gloss) : '·')); inter.append(cell); }

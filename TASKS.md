@@ -65,6 +65,7 @@
 ## Phase 8 — Language, speech, music, translation layer, map, Now view, photo mode
 - [~] Translation layer: subtitles, inscriptions (transliteration + glosses; translations need NEEDS #14), map (M; Z: town and plain scales), chronicle (J; visitor log)
 - [x] Lexicons in five languages (Babylonian, Ionic Greek new), 73 lines, 372 voice clips (D-105..D-109); listening test open (H8)
+- [~] Music in the world from performers only (quern songs, Ionian masons' songs, court supper/night music with the setting; D-178, lint:music) and audio occlusion (D-178, Q-304): node-tested, unheard in a browser; PLACEHOLDER visuals (no harp model, no playing/singing animation, no court dress); no magus's chant and no herders' pipes (B20)
 ## Session 4 (ended; HANDOFF.md)
 - [x] Interiors adapt (D-141); shadow bias (D-146); dome cover (D-145); detail at 1 m (D-147); block tone (D-148)
 - [x] Probe leaks through thin walls (D-152); ground bounce in the hemisphere light (D-153); herb layer (D-154); probe tints above/below (D-158); frame meter (D-159)
@@ -79,6 +80,7 @@
 - [~] Crowd merge D-143 (s5_crowd-merge-s5-fixr1.bundle: merged, fixed, reviewed; last fix round WIP)
 - [~] Sim round-5 fixes (s5_sim-r5.bundle, WIP) → soak → shadow round 6 on an unseen pick seed
 - [~] Phase 8 fixes: layer (s5_p8-layer.bundle, done + WIP tail), carving (s5_p8-carving.bundle, WIP; licence check); music/occlusion and writing on objects not started
+- [~] Session 6: writing on objects (D-179, branch p8-writing-s6): seal impressions, tablets, leather, door sealing, F3/layer/lint done; PT text placeholder (B18, NEEDS #15); browser render not looked at
 - [ ] Court in full assembly (B12): simulate the court-resident population on the Terrace; moment + soak --court
 - [ ] Full high-quality pass (handoff/render_jobs, 050/051 first), §8.2 rubric, Phase 3+4 / 5 / 6+7 reviews; look fix list (plain and Naqsh read as CG)
 ## Phase 9 — Polish, optimisation, FINAL_REPORT.md

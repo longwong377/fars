@@ -1,0 +1,174 @@
+{
+ "_meta": {
+  "what": "texts written or impressed on objects in the world (tablets, sealings, leather); only published texts, as the ancient text in standard transliteration and its sign sequence; no translation (B17a)",
+  "built_by": "tools/build_writing.py from data/corpus/ario.jsonl (ARIo, Schmitt 2009, CC0) and data/corpus/osl.asl (ORACC OSL)",
+  "decision": "D-179"
+ },
+ "texts": {
+  "SDa": {
+   "kind": "seal_inscription",
+   "ario": "Q007203",
+   "ario_raw": "adam Dārayava.uš xšāyaθiya DIŠ.u₂ DIŠ.da-ri-ia-ma-u-iš DIŠ.EŠŠANA ana-ku {m}da-ri-ia₂-muš LUGAL GAL-u₂",
+   "ident": "B: ARIo Q007203 by content = SDa (trilingual royal-name seal formula of Darius I)",
+   "op_translit": "adam Dārayava.uš xšāyaθiya",
+   "op_signs": [
+    "a",
+    "da",
+    "ma",
+    "|",
+    "da",
+    "a",
+    "ra",
+    "ya",
+    "va",
+    "u",
+    "ša",
+    "|",
+    "xa",
+    "ša",
+    "a",
+    "ya",
+    "θa",
+    "i",
+    "ya"
+   ],
+   "op_cuneiform": "𐎠𐎭𐎶𐏐𐎭𐎠𐎼𐎹𐎺𐎢𐏁𐏐𐎧𐏁𐎠𐎹𐎰𐎡𐎹",
+   "el_atf": "DIŠ.u₂ DIŠ.da-ri-ia-ma-u-iš DIŠ.EŠŠANA",
+   "el_cuneiform": "𒁹𒌑 𒁹𒁕𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙",
+   "el_unmapped": [],
+   "bab_atf": "ana-ku {m}da-ri-ia₂-muš LUGAL GAL-u₂",
+   "bab_cuneiform": "𒁹𒆪 𒁹𒁕𒊑𒐊𒈲 𒈗 𒃲𒌑",
+   "bab_unmapped": [],
+   "tier": {
+    "text": "A (ARIo standard edition, CC0)",
+    "op_signs": "B (standard spelling of attested words, checked against the carved XP texts)",
+    "el_bab_signs": "B (ATF indices -> OSL)",
+    "version_split": "B (by content; each piece occurs verbatim in the ARIo text)",
+    "identification": "B: ARIo Q007203 by content = SDa (trilingual royal-name seal formula of Darius I)"
+   }
+  },
+  "XSeal": {
+   "kind": "seal_inscription",
+   "ario": "Q009270",
+   "ario_raw": "adam Xšayaṛšā xšāyaθiya",
+   "ident": "B: ARIo Q009270 by content = an Old Persian royal-name seal inscription of Xerxes",
+   "op_translit": "adam Xšayaṛšā xšāyaθiya",
+   "op_signs": [
+    "a",
+    "da",
+    "ma",
+    "|",
+    "xa",
+    "ša",
+    "ya",
+    "a",
+    "ra",
+    "ša",
+    "a",
+    "|",
+    "xa",
+    "ša",
+    "a",
+    "ya",
+    "θa",
+    "i",
+    "ya"
+   ],
+   "op_cuneiform": "𐎠𐎭𐎶𐏐𐎧𐏁𐎹𐎠𐎼𐏁𐎠𐏐𐎧𐏁𐎠𐎹𐎰𐎡𐎹",
+   "tier": {
+    "text": "A (ARIo standard edition, CC0)",
+    "op_signs": "B (standard spelling of attested words, checked against the carved XP texts)",
+    "el_bab_signs": "B (ATF indices -> OSL)",
+    "version_split": "B (by content; each piece occurs verbatim in the ARIo text)",
+    "identification": "B: ARIo Q009270 by content = an Old Persian royal-name seal inscription of Xerxes"
+   }
+  }
+ },
+ "seals": {
+  "PTS-treasurer-Darius": {
+   "text": "SDa",
+   "tier": "C",
+   "placeholder": false,
+   "attested": "B: a royal seal with a trilingual royal-name inscription of Darius was still used under Xerxes and was at the disposal of the chief of the Treasury (search extracts of Iranica, Persepolis Administrative Archives / Persepolis Elamite Tablets: WRITING-SX, IR-TREAS)",
+   "wording": "C: the exact wording on that seal is not reachable here; the SDa formula (the same royal-name formula, ARIo Q007203) stands for it (Q-320)",
+   "design": "C reconstruction: the royal hero holding two rampant lions (the royal seals of Darius and Xerxes show the king victorious over animals or monsters: WRITING-SX, B), a trilingual inscription panel, ground and border lines; no licensed image of the seal was available (B6)",
+   "height_mm": 26,
+   "roll_mm": 62,
+   "src": [
+    "WRITING-SX",
+    "IR-TREAS",
+    "ARIO",
+    "OSL",
+    "NOTO",
+    "RECON"
+   ]
+  },
+  "PTS-Xerxes-hero": {
+   "text": "XSeal",
+   "tier": "C",
+   "placeholder": false,
+   "attested": "B: a Treasury seal impression \"Hero Triumphant with Xerxes Inscription\" (ISAC Photographic Archives, Contents of the Treasury, caption seen as a search extract: ISAC-FINDS); Treasury sealings share seals with the Treasury tablets (WRITING-SX)",
+   "wording": "C: the inscription of that seal is not reachable here; ARIo Q009270 (an Old Persian royal-name formula of Xerxes) stands for it (Q-320)",
+   "design": "C reconstruction: the royal hero stabbing a rampant lion, an Old Persian inscription panel, ground and border lines",
+   "height_mm": 24,
+   "roll_mm": 58,
+   "src": [
+    "ISAC-FINDS",
+    "WRITING-SX",
+    "ARIO",
+    "NOTO",
+    "RECON"
+   ]
+  }
+ },
+ "objects": {
+  "pt_letter": {
+   "what": "Persepolis Treasury letter-order tablet (PT type), Elamite, being written and filed in the Treasury scribes' room; carried by scribes (prop \"tablet\")",
+   "text": null,
+   "placeholder": true,
+   "placeholder_why": "no Persepolis Treasury text is reachable (Cameron OIP 65 and JNES 1958/1965 on blocked hosts, B6; the CDLI dump carries no PT text): the faces carry wedge impressions in lines with NO readable text (no sign sequence is invented); BLOCKERS B18, NEEDS #4",
+   "seal": "PTS-treasurer-Darius",
+   "sealed_on": "left edge (C, SITE_SPEC treasury.r_scribes_room)",
+   "cord_hole": "B: holes and remnants of cords at a corner of the Treasury tablets indicate they were tied to leather scrolls (Cameron's inference, via WRITING-SX)",
+   "tier": "C",
+   "src": [
+    "IR-TREAS",
+    "IR-PET",
+    "WRITING-SX",
+    "MATCULT-R",
+    "RECON"
+   ]
+  },
+  "leather_scroll": {
+   "what": "a rolled Aramaic document on leather, tied with a cord and sealed with a clay bulla; the text is inside the roll and not shown",
+   "text": null,
+   "placeholder": false,
+   "text_visible": false,
+   "why_no_text": "no leather document from Persepolis survives; the Aramaic letters on leather (Arshama, Egypt) are only the type (B/C); nothing is written where it could be seen",
+   "seal": "PTS-treasurer-Darius",
+   "tier": "C",
+   "attested": "B: Aramaic on parchment at Persepolis (Fortification texts on Aramaic scribes and parchment, IR-PET/WRITING-SX); Treasury tablets were tied to leather scrolls with an Aramaic duplicate (Cameron's inference, WRITING-SX); leather letters with a bulla (Arshama letters: type, HALMI-SX)",
+   "src": [
+    "WRITING-SX",
+    "IR-PET",
+    "HALMI-SX",
+    "ARSHAMA-BOD",
+    "RECON"
+   ]
+  },
+  "door_sealing": {
+   "what": "clay sealing over the cord between the knobs of a sealed Treasury door, with a rolled seal impression",
+   "text": "XSeal",
+   "seal": "PTS-Xerxes-hero",
+   "placeholder": false,
+   "tier": "C",
+   "src": [
+    "MATCULT-R",
+    "ISAC-FINDS",
+    "WRITING-SX",
+    "ARIO",
+    "RECON"
+   ]
+  }
+ }
+}

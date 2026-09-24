@@ -2,6 +2,9 @@
 // convolution reverb whose impulse response is generated from each space's dimensions and materials (Sabine RT60),
 // and zone-based reverb switching. All sources are procedural (no recordings needed; CC0 by construction).
 export type Channel = 'ambience' | 'voices' | 'music' | 'effects';
+/** occlusion of one source at the listener (src/audio/occlusion.ts; D-178): dB ≤ 0, low-pass cutoff, the path taken */
+export interface Occlusion { gainDb: number; cutoffHz: number; path: string }
+interface Routed { lp: BiquadFilterNode; g: GainNode; ends: number; last: Occlusion | null; ch: Channel }
 export interface Space { id: string; volume: number; surface: number; alpha: number } // m³, m², mean absorption
 /** Sabine: RT60 = 0.161 V / (S·ᾱ) (s). */
 export const rt60 = (s: Space) => (0.161 * s.volume) / (s.surface * s.alpha);
@@ -45,13 +48,48 @@ export class AudioEngine {
     let ir = this.irCache.get(s.id); if (!ir) { ir = this.makeIR(s); this.irCache.set(s.id, ir); }
     this.conv.buffer = ir; this.currentSpace = s.id; this.wet.gain.setTargetAtTime(wetLevel, this.ctx.currentTime, 0.3);
   }
+  /** occlusion by the built geometry (world coordinates of source and listener); null = none (tests, no architecture) */
+  occluder: ((src: { x: number; y: number; z: number }, lis: { x: number; y: number; z: number }) => Occlusion) | null = null;
+  private routed = new Map<PannerNode, Routed>(); private rr: PannerNode[] = []; private rrI = 0;
+  private listenerPos = { x: 0, y: 0, z: 0 };
+  /** occlusion cost and state for the dev overlay and the budget (queries run in the last update, its time) */
+  readonly occlStats = { tracked: 0, queries: 0, ms: 0 };
+  /** connect a spatial source's panner to a channel through its occlusion (panner → low-pass → gain → channel). The
+   *  panner's own position is the source's; `ends` (context time) lets one-shots and finished clips be dropped. */
+  route(pan: PannerNode, ch: Channel, ends = Infinity): GainNode {
+    const c = this.ctx!, lp = c.createBiquadFilter(), g = c.createGain(); lp.type = 'lowpass'; lp.Q.value = 0.5; lp.frequency.value = 20000;
+    pan.connect(lp); lp.connect(g); g.connect(this.ch[ch]);
+    const r: Routed = { lp, g, ends, last: null, ch }; this.routed.set(pan, r); this.rr.push(pan);
+    this.applyOcclusion(pan, r, true); // the first value at once (a one-shot is never heard unoccluded)
+    return g;
+  }
+  /** a routed source is finished: disconnect its occlusion nodes */
+  release(pan: PannerNode) { const r = this.routed.get(pan); if (!r) return; try { r.g.disconnect(); r.lp.disconnect(); } catch { /* gone */ } this.routed.delete(pan); }
+  /** the occlusion last applied to a routed source (dev overlay) */
+  occlusionOf(pan: PannerNode | null | undefined): Occlusion | null { return pan ? this.routed.get(pan)?.last ?? null : null; }
+  private applyOcclusion(pan: PannerNode, r: Routed, now: boolean) {
+    if (!this.occluder || !this.ctx) return;
+    const o = this.occluder({ x: pan.positionX.value, y: pan.positionY.value, z: pan.positionZ.value }, this.listenerPos); r.last = o; this.occlStats.queries++;
+    const t = this.ctx.currentTime, gain = 10 ** (o.gainDb / 20), fc = Math.min(o.cutoffHz, this.ctx.sampleRate * 0.45);
+    if (now) { r.g.gain.value = gain; r.lp.frequency.value = fc; } else { r.g.gain.setTargetAtTime(gain, t, 0.12); r.lp.frequency.setTargetAtTime(fc, t, 0.12); }
+  }
+  /** re-query the occlusion of up to `budget` routed sources (round robin), and drop finished ones. Call once per frame
+   *  after setListener. Measured cost per query ~0.1 ms (tests/occlusion.test.ts), so the default budget is ~0.4 ms */
+  updateOcclusion(budget = 4) {
+    if (!this.ctx) return; const t0 = performance.now(), now = this.ctx.currentTime; this.occlStats.queries = 0;
+    if (this.rr.length !== this.routed.size) { this.rr = [...this.routed.keys()]; this.rrI = 0; }
+    for (const [pan, r] of this.routed) if (now > r.ends + 0.5) this.release(pan);
+    if (this.rr.length !== this.routed.size) { this.rr = [...this.routed.keys()]; this.rrI = 0; }
+    for (let k = 0; k < Math.min(budget, this.rr.length); k++) { this.rrI = (this.rrI + 1) % this.rr.length; const pan = this.rr[this.rrI], r = this.routed.get(pan); if (r) this.applyOcclusion(pan, r, false); }
+    this.occlStats.tracked = this.routed.size; this.occlStats.ms = performance.now() - t0;
+  }
   /** HRTF panner at a world position (listener updated each frame) */
   panner(x: number, y: number, z: number, ref = 4, max = 400): PannerNode {
     const p = this.ctx!.createPanner(); p.panningModel = 'HRTF'; p.distanceModel = 'inverse'; p.refDistance = ref; p.maxDistance = max; p.rolloffFactor = 1;
     p.positionX.value = x; p.positionY.value = y; p.positionZ.value = z; return p;
   }
   setListener(pos: { x: number; y: number; z: number }, fwd: { x: number; y: number; z: number }) {
-    if (!this.ctx) return; const l = this.ctx.listener, t = this.ctx.currentTime;
+    if (!this.ctx) return; const l = this.ctx.listener, t = this.ctx.currentTime; this.listenerPos = { x: pos.x, y: pos.y, z: pos.z };
     if (l.positionX) { l.positionX.setTargetAtTime(pos.x, t, 0.02); l.positionY.setTargetAtTime(pos.y, t, 0.02); l.positionZ.setTargetAtTime(pos.z, t, 0.02);
       l.forwardX.setTargetAtTime(fwd.x, t, 0.02); l.forwardY.setTargetAtTime(fwd.y, t, 0.02); l.forwardZ.setTargetAtTime(fwd.z, t, 0.02); l.upX.value = 0; l.upY.value = 1; l.upZ.value = 0; }
     else (l as any).setPosition(pos.x, pos.y, pos.z);

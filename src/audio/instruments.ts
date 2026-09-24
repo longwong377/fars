@@ -12,7 +12,7 @@
 //  - clappers: short band-passed noise bursts.
 import { Rng } from '../core/rng';
 
-export type InstrumentId = 'harp' | 'lyre' | 'lute' | 'double_pipe' | 'frame_drum' | 'clappers';
+export type InstrumentId = 'harp' | 'lyre' | 'lute' | 'double_pipe' | 'frame_drum' | 'clappers' | 'voice';
 export interface InstrumentInfo { id: InstrumentId; name: string; strings?: number; range: [number, number]; tier: string; src: string; note: string }
 export const INSTRUMENTS: Record<InstrumentId, InstrumentInfo> = {
   harp: { id: 'harp', name: 'vertical angular harp', strings: 9, range: [150, 700], tier: 'B type / C sound', src: 'SOUND-R', note: 'vertical and horizontal angular harps on Elamite reliefs (Kul-e Farah, Madaktu); 9 strings per UET VII 74 (heptatonic + 2 octave strings)' },
@@ -21,7 +21,12 @@ export const INSTRUMENTS: Record<InstrumentId, InstrumentInfo> = {
   double_pipe: { id: 'double_pipe', name: 'double pipe (reed)', range: [220, 900], tier: 'B/C', src: 'SOUND-R', note: 'aulos-type double pipe in Achaemenid depictions (extract); never at sacrifice (Herodotus 1.132)' },
   frame_drum: { id: 'frame_drum', name: 'frame drum', range: [70, 160], tier: 'C', src: 'SOUND-R', note: 'Mesopotamian standard; no Achaemenid-specific source seen' },
   clappers: { id: 'clappers', name: 'clappers', range: [1000, 3000], tier: 'C', src: 'SOUND-R', note: 'Mesopotamian standard; no Achaemenid-specific source seen' },
+  // the human voice, singing a vocalise without words (src/audio/song.ts; SOUNDSCAPE §8 M-01, M-02, M-07, M-15). The range is the
+  // register's (VOICE_RANGE); `strings` = the notes of the mode it uses (C)
+  voice: { id: 'voice', name: 'voice (vocalise, no words)', strings: 9, range: [110, 700], tier: 'B singing (M-01, M-02) / C sound', src: 'SOUND-R', note: 'singing is reported at the court (Heracleides) and for Greek trades (Athenaeus 14); no text survives, so no words are sung' },
 };
+/** comfortable singing ranges by register (Hz, C) */
+export const VOICE_RANGE: Record<'f' | 'm', [number, number]> = { f: [196, 660], m: [110, 350] };
 
 /** RBJ biquad (peaking / lowpass / bandpass), direct form I, in place */
 function biquad(x: Float32Array, sr: number, type: 'peak' | 'lp' | 'bp', f: number, q: number, gainDb = 0) {

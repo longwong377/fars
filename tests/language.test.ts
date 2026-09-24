@@ -8,6 +8,10 @@
 //     and naqsh.ts carve): the rendered strings must be period script only; the transliterations and sign sequences that
 //     generate them are scanned for modern words; no unmapped signs. (Their spelling: tests/lang.test.ts, D-177.)
 //  3. lexicon native-script fields (future tablets/labels): period script of the right block only.
+//  3b. writing on objects (src/data/writing.json → src/world/writing.ts, D-179): the seal inscriptions impressed in clay,
+//     captured at the font while the writing atlas bakes, are exactly the data's sign sequences; their transliterations
+//     are scanned for modern words; a written object without a published text must be flagged (placeholder or hidden).
+//     Any source file that turns characters into font outlines (charToGlyph, getPath, ...) must be a registered site.
 //  4. any other text: every source file (src/ui included) that renders text is registered as in-world or out-of-world
 //     (DOM), none mixes the two, out-of-world files make no textures; data JSON strings in non-Latin scripts only in
 //     registered fields; no SVG text; every shipped image registered as checked; the carved signs, captured at the font
@@ -29,12 +33,15 @@ import { panelText } from '../src/arch/inscription_text';
 import { buildProfile, pseudoPhrase, murmurLangFor, murmurSource } from '../src/audio/murmur';
 import { tokenizeIpa } from '../src/audio/phonemes';
 import { createHash } from 'node:crypto';
+import opentype from 'opentype.js';
 import { buildTerrace } from '../src/arch/terrace';
 import { loadInscriptionFonts, buildInscriptions, buildPhase4Reliefs } from '../src/arch/decor';
 import { buildNaqsh } from '../src/world/plain/naqsh';
 import { loadTerrain, loadRiversFile } from './plainLib';
 import { Rng } from '../src/core/rng';
 import inscriptions from '../src/data/inscriptions.json';
+import writingData from '../src/data/writing.json';
+import { loadWritingFonts, rebakeWritingAtlas } from '../src/world/writing';
 
 /** Line fields that never reach the world (subtitle layer, dev overlay, selection logic). */
 const LINE_OUT_OF_WORLD = new Set(['id', 'lang', 'intent', 'intonation', 'roles', 'gloss', 'phraseTier', 'usageTier', 'src', 'note']);
@@ -173,9 +180,12 @@ describe('language lint: every source that can reach the canvas', () => {
    *  below: what they render is captured at the font) */
   const IN_WORLD_TEXT_SITES: Record<string, string> = {
     'src/arch/decor.ts': 'carved inscriptions from inscriptions.json (panelText: op_signs / *_cuneiform), captured and checked below',
-    'src/arch/carving.ts': 'the carving itself (layoutText / carvedGeometry of the lines it is given; no text of its own)',
+    'src/arch/carving.ts': 'the carving itself (glyph outlines → depth atlas; layoutText / carvedGeometry of the lines it is given; no text of its own)',
     'src/world/plain/naqsh.ts': 'DNa/DNb Old Persian from inscriptions.json (panelText op_signs), captured and checked below',
+    'src/world/writing.ts': 'writing on objects (D-179): seal inscriptions from writing.json impressed in clay (glyph outlines → height field), captured and checked below',
   };
+  /** font glyph APIs: a file that turns characters into outlines draws text into the world, whatever it does with them */
+  const GLYPH = /\b(charToGlyph|stringToGlyphs|getPath|forEachGlyph)\(/;
   /** files that write text into the page (DOM), never into the canvas: out-of-world by construction (the DOM overlays
    *  the canvas; the translation layer, the menus and the dev overlay are all DOM). Each must stay out of the scene:
    *  none of them may turn a canvas into a texture (checked). */
@@ -196,6 +206,7 @@ describe('language lint: every source that can reach the canvas', () => {
       const src = readFileSync(join(root, f), 'utf8');
       const t3 = TEXT_3D.test(src), ct = CANVAS_TEXT.test(src), dom = DOM_TEXT.test(src), tex = TEXTURE.test(src);
       if (t3) expect(IN_WORLD_TEXT_SITES[f], `${f} renders text geometry in the world but is not registered`).toBeTruthy();
+      if (GLYPH.test(src)) expect(IN_WORLD_TEXT_SITES[f], `${f} draws font glyphs (outlines) but is not registered as an in-world text site`).toBeTruthy();
       if (ct) expect(IN_WORLD_TEXT_SITES[f] ?? OUT_OF_WORLD_TEXT_SITES[f], `${f} draws canvas text but is not registered`).toBeTruthy();
       // a canvas with text that becomes a texture is in the world: only a registered in-world site may do both
       if (ct && tex) expect(IN_WORLD_TEXT_SITES[f], `${f} draws text on a canvas and makes textures`).toBeTruthy();
@@ -212,6 +223,7 @@ describe('language lint: every source that can reach the canvas', () => {
   const SCRIPT_FIELDS: { file: RegExp; key: RegExp; world: boolean; why: string }[] = [
     { file: /^src\/data\/inscriptions\.json$/, key: /^\.\w+\.(el|bab)_cuneiform$/, world: true, why: 'the carved Elamite and Babylonian text (cuneiform only, checked above and at the font below)' },
     { file: /^src\/data\/inscriptions\.json$/, key: /^\.\w+\.op_(cuneiform|signs|words)(\.\d+)*(\.\w+)?$/, world: false, why: 'the Old Persian sign data the carving converts (the carved result is checked at the font below)' },
+    { file: /^src\/data\/writing\.json$/, key: /^\.texts\.\w+\.(op|el|bab)_cuneiform$/, world: true, why: 'the seal inscriptions impressed in clay (writing.ts; captured at the font and checked below)' },
     { file: /^src\/data\/geo\/footprints\.json$/, key: /^\.\w+\.osm_name$/, world: false, why: 'OpenStreetMap names of the ruins (modern Persian): provenance of the footprints only; no source file reads osm_name (checked)' },
     { file: /^src\/data\/sources\.json$/, key: /^\.[\w-]+\.(access|cite)$/, world: false, why: 'citations (the Greek of Od. 1.123): dev overlay and translation layer only' },
     { file: /^src\/data\/names\.json$/, key: /^\.names\.\d+\.origin_basis$/, world: false, why: 'etymology notes (Old Iranian reconstructions in scholarly transliteration: ϑ, β): dev overlay only' },
@@ -282,6 +294,30 @@ describe('language lint: the carved signs are the inscription data\'s sign seque
     expect(seen.get('DPf.el') ?? 0).toBeGreaterThan(0); expect(seen.get('DPg.bab') ?? 0).toBeGreaterThan(0);
     console.log(`carved and checked: ${meshes} meshes, ${signs} signs; ${[...seen].map(([k, n]) => `${k}×${n}`).join(' ')}`);
   }, 180_000);
+});
+
+describe('language lint: writing on objects (tablets, sealings, leather; D-179)', () => {
+  const W = writingData as any;
+  it('the transliterations of the written texts contain no modern word, and every written object names a text or is flagged', () => {
+    for (const [id, t] of Object.entries<any>(W.texts)) for (const f of ['op_translit', 'el_atf', 'bab_atf']) if (t[f]) expect(findModernWords(t[f]), `${id}.${f}`).toEqual([]);
+    for (const [id, o] of Object.entries<any>(W.objects)) expect(o.text ? !!W.texts[o.text] : o.placeholder === true || o.text_visible === false, id).toBe(true);
+  });
+  it('what the clay shows (captured at the font while the atlas bakes) is exactly the seal texts\' sign sequences, period script only', async () => {
+    const captured: string[] = [];
+    const proto = (opentype as any).Font.prototype, orig = proto.charToGlyph;
+    proto.charToGlyph = function (ch: string) { captured.push(ch); return orig.call(this, ch); };
+    try {
+      await loadWritingFonts(async p => { const b = readFileSync('public/' + p); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer; });
+      rebakeWritingAtlas();
+    } finally { proto.charToGlyph = orig; }
+    const stream = captured.join('');
+    expect(stream.length, 'signs drawn').toBeGreaterThan(0);
+    expect(nonPeriodChars(stream, ['oldPersian', 'cuneiform'])).toEqual([]);
+    const texts = Object.fromEntries(Object.entries<any>(W.texts).map(([k, t]) => [k, (t.op_cuneiform + (t.el_cuneiform ?? '') + (t.bab_cuneiform ?? '')).replace(/\s+/g, '')]));
+    let pos = 0; const seen = new Set<string>();
+    while (pos < stream.length) { const hit = Object.entries(texts).find(([, t]) => stream.startsWith(t, pos)); expect(hit, `after ${pos} code units the clay shows something that is not a whole seal text`).toBeTruthy(); seen.add(hit![0]); pos += hit![1].length; }
+    for (const s of Object.values<any>(W.seals)) expect(seen.has(s.text), `seal text ${s.text} impressed`).toBe(true);
+  });
 });
 
 describe('language lint: audio that plays in the world', () => {

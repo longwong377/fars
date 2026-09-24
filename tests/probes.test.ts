@@ -9,6 +9,7 @@ import { buildTerrace } from '../src/arch/terrace';
 import { v as specV } from '../src/arch/spec';
 import { SURFACES } from '../src/render/materials';
 import { TraceScene, sceneFromParts } from '../src/render/probes/trace';
+import { smoothBounce } from '../src/render/probes/bake';
 import { BAKE, BakeOptions, bakeAll, sunSet, surfaceTable, albedoFn, probeVolumes, yearSunSamples } from '../src/render/probes/bake';
 import { REACH, reachFrac, TINT_DOWN } from '../src/render/probes/field';
 import { ProbeField, ProbeVolume, PROBE_STRIDE, sampleField, fieldVisibility, evalSample, openField, atlasData, encodeField, decodeField, probeIndex, volumeWeight, gridExtent } from '../src/render/probes/field';
@@ -70,6 +71,26 @@ describe('ray tracer against parts', () => {
     const s = scene([col]), x = (col as any).c[0], z = -(col as any).c[1], o = (col as any).order;
     const h = s.intersect(x - 10, (col as any).y0 + o.baseH + 3, z, 1, 0, 0)!; expect(h.t).toBeCloseTo(10 - o.shaftD / 2, 5); // the shaft
     expect(s.occluded(x, (col as any).y0 + o.height + 0.1, z, 0, 1, 0)).toBe(false); // nothing above the capital
+  });
+});
+
+describe('bounce denoise (D-180)', () => {
+  // a 10 x 1 x 10 grid of noisy pass results with a wall between columns 4 and 5 (reach 0 across it)
+  const vol: ProbeVolume = { building: 't', origin: [0, 0, 0], spacing: [2, 2.5, 2], dims: [10, 1, 10], roof: [0, 18, 0, 18], full: 2, yLo: [-1, 0], yHi: [8, 9], offset: 0 };
+  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const rows = Array.from({ length: 100 }, (_, i) => { const left = i % 10 < 5; return Array.from({ length: 16 }, () => (left ? 1 : 10) * (0.5 + rnd())); });
+  const reach = Array.from({ length: 100 }, (_, i) => { const ix = i % 10; return [ix === 4 ? 0.5 : 1, ix === 5 ? 0.5 : 1, 1, 1]; });
+  const reachY = rows.map(() => [1, 1]);
+  const out = smoothBounce([vol], rows, () => true, reach, reachY);
+  const sd = (a: number[]) => { const m = a.reduce((x, y) => x + y, 0) / a.length; return Math.sqrt(a.reduce((x, y) => x + (y - m) ** 2, 0) / a.length); };
+  it('reduces the noise of a uniform region and keeps its mean', () => {
+    const inner = (r: number[][]) => r.filter((_, i) => i % 10 >= 1 && i % 10 <= 3 && i >= 10 && i < 90).map(x => x[0]);
+    expect(sd(inner(out))).toBeLessThan(0.6 * sd(inner(rows)));
+    const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length;
+    expect(mean(inner(out))).toBeCloseTo(mean(inner(rows)), 0);
+  });
+  it('never mixes light across a wall', () => {
+    for (let i = 0; i < 100; i++) { if (i % 10 === 4) expect(out[i][0]).toBeLessThan(1.6); if (i % 10 === 5) expect(out[i][0]).toBeGreaterThan(4); }
   });
 });
 

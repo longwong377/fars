@@ -12,7 +12,7 @@ import { buildTerrace } from '../src/arch/terrace';
 import { memberMaterials } from '../src/arch/sculpt';
 import { SPEC } from '../src/arch/spec';
 import { SURFACES } from '../src/render/materials';
-import { BAKE, BakeContext, probeVolumes, probePositions, probeSky, probeBounce, probeReach, BOUNCE_W, traceScene, surfaceTable, sunSet, yearSunSamples, sphereDirs, fieldOf, SKY_SLOTS, bounceSlots, assemble, albedoFn, dilate, DILATED } from '../src/render/probes/bake';
+import { BAKE, BakeContext, probeVolumes, probePositions, probeSky, probeBounce, probeReach, probeReachY, smoothBounce, BOUNCE_W, traceScene, surfaceTable, sunSet, yearSunSamples, sphereDirs, fieldOf, SKY_SLOTS, bounceSlots, assemble, albedoFn, dilate, DILATED } from '../src/render/probes/bake';
 import { encodeField, PROBE_STRIDE, ProbeVolume, fieldVisibility, ProbeField } from '../src/render/probes/field';
 
 const T0 = Date.now();
@@ -63,20 +63,22 @@ const toF32 = (f: ProbeField) => Buffer.from(f.data.buffer, f.data.byteOffset, f
 const workers = Math.max(1, Math.min(+(process.env.WORKERS ?? cpus().length), 8));
 const dir = mkdtempSync(join(tmpdir(), 'probes-'));
 console.log(`probe volumes: ${vols.map(v => `${v.building} ${v.dims.join('×')}`).join(', ')} = ${pos.length} probes, ${BAKE.skyDirs} sky + ${BAKE.rays} bounce rays each, ${workers} workers`);
+// reach along the grid axes (D-152) and between layers: which neighbours each probe sees (4 + 2 rays a probe: in-process)
+const reachCtx = context(), reach = pos.map(p => probeReach(reachCtx, p[0], p[1], p[2]));
+const reachY = vols.flatMap(v => pos.slice(v.offset, v.offset + v.dims[0] * v.dims[1] * v.dims[2]).map(p => probeReachY(reachCtx, p[0], p[1], p[2], v.spacing[1])));
+console.log(`reach (D-152): ${reach.filter(r => r.some(v => v < 1)).length} probes with a solid within one spacing`);
 let t = Date.now();
 const sky = await runPass(0, dir, workers);
-{ const f = fieldOf(vols, sky, SKY_SLOTS, BAKE); dilate(vols, f.data); writeFileSync(join(dir, 'sky.f32'), toF32(f)); }
+{ const f = fieldOf(vols, sky, SKY_SLOTS, BAKE, reach); dilate(vols, f.data); writeFileSync(join(dir, 'sky.f32'), toF32(f)); }
 console.log(`pass 0 (sky, validity): ${((Date.now() - t) / 1000).toFixed(1)} s, ${sky.filter(r => !r[4]).length} probes inside solids`); t = Date.now();
-const b1 = await runPass(1, dir, workers);
-{ const f = fieldOf(vols, b1, bounceSlots(i => sky[i][4]), BAKE); dilate(vols, f.data); writeFileSync(join(dir, 'b1.f32'), toF32(f)); }
+const valid = (i: number) => !!sky[i][4];
+const b1 = smoothBounce(vols, await runPass(1, dir, workers), valid, reach, reachY); // bounce noise (D-180)
+{ const f = fieldOf(vols, b1, bounceSlots(i => sky[i][4]), BAKE, reach); dilate(vols, f.data); writeFileSync(join(dir, 'b1.f32'), toF32(f)); }
 console.log(`pass 1 (first bounce): ${((Date.now() - t) / 1000).toFixed(1)} s`); t = Date.now();
-const b2 = await runPass(2, dir, workers);
+const b2 = smoothBounce(vols, await runPass(2, dir, workers), valid, reach, reachY);
 console.log(`pass 2 (second bounce): ${((Date.now() - t) / 1000).toFixed(1)} s`);
 rmSync(dir, { recursive: true, force: true });
 
-t = Date.now();
-const reachCtx = context(), reach = pos.map(p => probeReach(reachCtx, p[0], p[1], p[2])); // 4 rays a probe: in-process
-console.log(`reach (D-152): ${((Date.now() - t) / 1000).toFixed(1)} s, ${reach.filter(r => r.some(v => v < 1)).length} probes with a solid within one spacing`);
 const data = assemble(sky, b1, b2, reach), filled = dilate(vols, data);
 console.log(`dilated into ${filled} probes inside solids (weight ${DILATED})`);
 const hash = createHash('sha1').update(JSON.stringify(parts)).digest('hex').slice(0, 16);

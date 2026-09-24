@@ -179,3 +179,16 @@ Fetched through raw GitHub content (the only reachable host for files); nothing 
 | allosaurus with its universal phone model `uni2005` | PyPI; model from its GitHub release | GPL-3.0 (tool and model) | voice acceptance: universal phone recognition (B17); a measurement tool, not bundled |
 | openai/whisper test clip `tests/jfk.flac` and `tests/test_transcribe.py` | openai/whisper | MIT repository; the clip is a 1961 US-government speech | natural-speech control for the recognisers (the test file asserts "my fellow americans", "your country"); not bundled |
 
+
+## Writing on objects (session 6, writing workstream; D-179, research/WRITING_ON_OBJECTS.md)
+Only GitHub raw content was reachable; every scholarly host tried (ISAC, archive.org, JSTOR, academia.edu, otgateway.com,
+center-for-decipherment.ch, oracc.museum.upenn.edu, livius.org) answered 403 at the proxy (B6).
+
+| key / what | access | used for |
+|---|---|---|
+| ARIO (existing): ARIo Q007203 (SDa, trilingual royal-name seal formula of Darius) and Q009270 (Old Persian royal-name seal formula of Xerxes), from `data/corpus/ario.jsonl` | FT (CC0) | the two seal inscriptions impressed in clay (writing.json) |
+| OSL (existing) | FT | Elamite and Babylonian ATF → signs, as for the carved inscriptions |
+| CDLI dump (cdli-gh/data `cdliatf_unblocked.atf`, fetched again; 86.9 MB) | FT | searched for Persepolis Treasury texts: none (only PF 1–60, 400–406 and BM 108963, JNES 77); the PF texts are not used (dated 509–493, archived elsewhere) |
+| WRITING-SX (new): search summaries of Iranica "Persepolis Elamite Tablets", "Persepolis Administrative Archives ii" and "Documents" | SX; page attribution uncertain | PT date range and the Xerxes years 19–20 peak; the royal seal with a trilingual Darius inscription used under Xerxes by the chief of the Treasury; royal seal iconography; shared seals between Treasury tablets and sealings; cord holes at a corner of the PT tablets (Cameron's leather-scroll inference); Aramaic scribes on clay and parchment |
+| ISAC-FINDS (existing): "Contents of the Treasury" caption "Hero Triumphant with Xerxes Inscription" | SX | the Xerxes hero seal of the door sealings (design and wording C) |
+| Seen as titles only, not keyed: Garrison, Jones and Stolper, "Achaemenid Elamite Administrative Tablets, 4: BM 108963", JNES 77 (2018) 1–14; Garrison 1991, "Seals and the Elite at Persepolis"; Bowman 1970, OIP 91; Cameron 1948, OIP 65; "PT 005 – the new edition of Persepolis Treasury Tablets" | — | leads for B18 |

@@ -349,6 +349,8 @@ export class SpeechHandle {
     src.onended = () => { this.playing = false; this.ended = true; try { pan.disconnect(); } catch { /* already */ } this.onEnded?.(); };
   }
   get position() { return this.pos; }
+  /** the panner once playing (the dev overlay reads its occlusion) */
+  get panner() { return this.pan; }
   setPosition(p: Vec3) {
     this.pos = p; const pan = this.pan; if (!pan) return; const t = pan.context.currentTime;
     pan.positionX.setTargetAtTime(p.x, t, 0.05); pan.positionY.setTargetAtTime(p.y, t, 0.05); pan.positionZ.setTargetAtTime(p.z, t, 0.05);
@@ -396,7 +398,7 @@ export class Speech {
       const c = e.ctx, src = c.createBufferSource(); src.buffer = r.buf;
       const g = c.createGain(); g.gain.value = opts.gain ?? 1;
       const p = handle.position, pan = e.panner(p.x, p.y, p.z, 1.5, 80);
-      src.connect(g); g.connect(pan); pan.connect(e.ch.voices);
+      src.connect(g); g.connect(pan); e.route(pan, 'voices', c.currentTime + (opts.delay ?? 0) + r.buf.duration); // occluded by the built geometry (D-178)
       handle.duration = r.buf.duration; handle.backend = r.backend;
       handle.attach(src, pan);
       src.start(c.currentTime + (opts.delay ?? 0));

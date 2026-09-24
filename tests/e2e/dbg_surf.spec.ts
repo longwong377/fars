@@ -36,7 +36,7 @@ test('surfaces A/B', async ({ page }) => {
   // ONLY=view[@frames][:V1+V2],… (per-view frame count and variants; defaults FRAMES, VARIANTS)
   const only = (process.env.ONLY ?? 'apadana-hall-in').split(',').map(x => x.split(':')), FRAMES = +(process.env.FRAMES ?? 6), Q = process.env.Q ?? 'high';
   const first = VIEWS[only[0][0].split('@')[0]];
-  await page.goto(`/?test&quality=${Q}&day=${first.day}&hour=${first.hour}&weather=clear`);
+  await page.goto(`/?test&quality=${Q}&day=${first.day}&hour=${first.hour}&weather=clear${process.env.URLX ?? ''}`); // URLX: extra query, e.g. &envdbg=occ
   await page.waitForFunction(() => (window as any).__parsa?.ready === true || (window as any).__parsa?.error, null, { timeout: 600_000 });
   await page.evaluate(() => (window as any).__parsa?.renderer?.setAnimationLoop(null));
   const err = await page.evaluate(() => (window as any).__parsa.error); if (err) throw new Error(err);

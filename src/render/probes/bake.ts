@@ -264,6 +264,45 @@ export function probeReach(ctx: BakeContext, x: number, y: number, z: number): n
   }
   return out;
 }
+/** the vertical reach of a probe (up, down) as a fraction of its volume's layer spacing: 1 when the probe above / below
+ *  is in sight (a beam or a capital between two layers blocks it) */
+export function probeReachY(ctx: BakeContext, x: number, y: number, z: number, layer = ctx.o.layer): number[] {
+  if (ctx.scene.inside(x, y, z, -PROBE_CLEAR)) return [0, 0];
+  return [1, -1].map(dy => { const h = ctx.scene.intersect(x, y, z, 1e-9, dy, 1e-9, 1e-4, layer * 1.001); return h ? Math.min(1, h.t / layer) : 1; });
+}
+/** Bake-time denoising of a bounce pass (session 6, D-180). A probe deep in a hall sees the sunlit floor at the doorways
+ *  in a few of its bounce rays, and each hit's sun is two year-sampled shadow rays: the estimate is Monte Carlo noise
+ *  (neighbouring probes 2 m apart, each in the other's sight, differed 3.5x in the sun channel at the 90th percentile of
+ *  the Apadana's inner hall; rendered as orange blotches). Interreflected light varies slowly (it comes from large
+ *  surfaces), so each valid probe's pass result is averaged with those of its six face neighbours that it can see and
+ *  that can see it (reach 1 both ways: never across a wall, a beam or a capital), the probe itself weighted `centre`.
+ *  `rows` are probeBounce results (BOUNCE_W values: the L1 channels and the tint sums, all linear in the rays, so a mean
+ *  is again a pass result). The direct sky (pass 0) is exact to 4,096 directions and keeps its sight-line structure: it
+ *  is not filtered. */
+export function smoothBounce(vols: ProbeVolume[], rows: number[][], valid: (i: number) => boolean, reach: number[][], reachY: number[][], centre = 2, passes = 1): number[][] {
+  let cur = rows;
+  for (let p = 0; p < passes; p++) {
+    const next = cur.map(r => r.slice());
+    for (const v of vols) {
+      const [nx, ny, nz] = v.dims, idx = (x: number, y: number, z: number) => probeIndex(v, x, y, z);
+      for (let iy = 0; iy < ny; iy++) for (let iz = 0; iz < nz; iz++) for (let ix = 0; ix < nx; ix++) {
+        const i = idx(ix, iy, iz); if (!valid(i)) continue;
+        const acc = cur[i].map(a => a * centre); let w = centre;
+        const take = (j: number) => { if (!valid(j)) return; const r = cur[j]; for (let k = 0; k < acc.length; k++) acc[k] += r[k]; w++; };
+        const R = reach[i], Y = reachY[i];
+        if (ix + 1 < nx && R[0] >= 1 && reach[idx(ix + 1, iy, iz)][1] >= 1) take(idx(ix + 1, iy, iz));
+        if (ix > 0 && R[1] >= 1 && reach[idx(ix - 1, iy, iz)][0] >= 1) take(idx(ix - 1, iy, iz));
+        if (iz + 1 < nz && R[2] >= 1 && reach[idx(ix, iy, iz + 1)][3] >= 1) take(idx(ix, iy, iz + 1));
+        if (iz > 0 && R[3] >= 1 && reach[idx(ix, iy, iz - 1)][2] >= 1) take(idx(ix, iy, iz - 1));
+        if (iy + 1 < ny && Y[0] >= 1 && reachY[idx(ix, iy + 1, iz)][1] >= 1) take(idx(ix, iy + 1, iz));
+        if (iy > 0 && Y[1] >= 1 && reachY[idx(ix, iy - 1, iz)][0] >= 1) take(idx(ix, iy - 1, iz));
+        next[i] = acc.map(a => a / w);
+      }
+    }
+    cur = next;
+  }
+  return cur;
+}
 /** the three passes over a list of probe positions, in-process (tests; the tool farms the same calls out to workers).
  *  Returns the finished field data (PROBE_STRIDE values per probe); `reach` (probeReach per probe) fills slots 12–15. */
 export function assemble(sky: number[][], b1: number[][], b2: number[][], reach?: number[][]): Float32Array {
@@ -309,10 +348,12 @@ export function dilate(vols: ProbeVolume[], d: Float32Array, passes = 3): number
   }
   return filled;
 }
-/** field from per-probe pass results (for the lookups of the next pass) */
-export function fieldOf(vols: ProbeVolume[], values: number[][], slots: (r: number[], i: number) => number[], o: BakeOptions): ProbeField {
+/** field from per-probe pass results (for the lookups of the next pass). With `reach` (probeReach per probe) the lookups
+ *  at the bounce rays' hit points snap as the final field's do (D-152): without it a hit on a wall's inner face read the
+ *  sunlit probes outside the wall, and a closed room's probes beside its walls carried light (session 6, D-180). */
+export function fieldOf(vols: ProbeVolume[], values: number[][], slots: (r: number[], i: number) => number[], o: BakeOptions, reach?: number[][]): ProbeField {
   const n = values.length, data = new Float32Array(n * PROBE_STRIDE);
-  values.forEach((r, i) => { const s = slots(r, i); data.set(s, i * PROBE_STRIDE); });
+  values.forEach((r, i) => { const s = slots(r, i); data.set(s, i * PROBE_STRIDE); if (reach) for (let k = 0; k < 4; k++) data[i * PROBE_STRIDE + REACH + k] = reach[i][k]; });
   return { volumes: vols, data, count: n, normalBias: o.normalBias, tier: 'C', note: 'bake intermediate' };
 }
 /** every probe position of the volumes, in data order */
@@ -332,11 +373,13 @@ export const bounceSlots = (valid: (i: number) => number) => (r: number[], i: nu
 export function bakeAll(scene: TraceScene, vols: ProbeVolume[], sun: SunSet, plain: RGB, o: BakeOptions = BAKE): ProbeField {
   const ctx: BakeContext = { scene, dirs: sphereDirs(o.rays), skyDirs: sphereDirs(o.skyDirs), sun, o, plain };
   const pos = probePositions(vols);
-  const sky = pos.map(p => probeSky(ctx, ...p));
-  ctx.sky = fieldOf(vols, sky, SKY_SLOTS, o); dilate(vols, ctx.sky.data);
-  const b1 = pos.map((p, i) => probeBounce(ctx, ...p, 1, i));
-  ctx.bounce1 = fieldOf(vols, b1, bounceSlots(i => sky[i][4]), o); dilate(vols, ctx.bounce1.data);
-  const b2 = pos.map((p, i) => probeBounce(ctx, ...p, 2, i));
-  const data = assemble(sky, b1, b2, pos.map(p => probeReach(ctx, ...p))); dilate(vols, data);
+  const reach = pos.map(p => probeReach(ctx, ...p));
+  const sky = pos.map(p => probeSky(ctx, ...p)), valid = (i: number) => !!sky[i][4];
+  ctx.sky = fieldOf(vols, sky, SKY_SLOTS, o, reach); dilate(vols, ctx.sky.data);
+  const reachY = vols.flatMap(v => pos.slice(v.offset, v.offset + v.dims[0] * v.dims[1] * v.dims[2]).map(p => probeReachY(ctx, ...p, v.spacing[1])));
+  const b1 = smoothBounce(vols, pos.map((p, i) => probeBounce(ctx, ...p, 1, i)), valid, reach, reachY);
+  ctx.bounce1 = fieldOf(vols, b1, bounceSlots(i => sky[i][4]), o, reach); dilate(vols, ctx.bounce1.data);
+  const b2 = smoothBounce(vols, pos.map((p, i) => probeBounce(ctx, ...p, 2, i)), valid, reach, reachY);
+  const data = assemble(sky, b1, b2, reach); dilate(vols, data);
   return { volumes: vols, data, count: pos.length, normalBias: o.normalBias, tier: 'C', note: 'baked light probes (D-110)' };
 }
