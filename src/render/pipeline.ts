@@ -146,8 +146,8 @@ export class Pipeline {
       const pWorld = this.camWorld.mul(vec4(pView, 1)).xyz;
       // D-187: the probe lookup stands off along the surface's geometric normal, as the materials' does (their bumped
       // normal moved it across the probes' reach steps: speckle), here the normal of the depth buffer (where it disagrees
-      // with the G-buffer's by more than 60°, at a depth edge, the G-buffer's)
-      const nDv = pView.dFdx().cross(pView.dFdy()).normalize(), nDs = nDv.mul(step(0, dot(nDv, pView.negate())).mul(2).sub(1));
+      // with the G-buffer's by more than 60°, at a depth edge, the G-buffer's; a degenerate cross product never becomes NaN)
+      const nDv = pView.dFdx().cross(pView.dFdy()).add(vec3(0, 0, 1e-15)).normalize(), nDs = nDv.mul(step(0, dot(nDv, pView.negate())).mul(2).sub(1));
       const nGW = this.camWorld.mul(vec4(nDs, 0)).xyz.normalize(), geoOK = step(0.5, dot(nGW, nW));
       const nOff = mix(nW, nGW, geoOK);
       const P = probeAmbient(pWorld, nW, this.hemiSky, probeSun, hemiIrr, false, nOff);
