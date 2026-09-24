@@ -1408,8 +1408,12 @@ class Planner {
     const tq = this.C.wx.tempQ; if (!tq?.length || Math.min(...tq) >= COLD_C) return;
     const open = (s: Seg) => s.where === 'road' || s.where === 'plain' && !s.place.startsWith('h:') || /^(lane:|well:|field:|canal:|pasture:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_|training:|flock:|route:|water:)/.test(s.place);
     const tAt = (h: number) => tq[Math.max(0, Math.min(95, Math.floor(h * 4)))];
-    for (const s of segs) { if (!open(s) || s.act === 'sleep') continue; const mid = (s.t0 + s.t1) / 2; if (Math.min(tAt(s.t0 + 0.01), tAt(mid)) >= COLD_C) continue;
-      s.wear = s.wear ? `${s.wear}, and dressed against the cold` : 'dressed against the cold'; }
+    const add = (s: Seg) => { s.wear = s.wear ? `${s.wear}, and dressed against the cold` : 'dressed against the cold'; };
+    // (a long part of the day is cut where the air crosses the threshold: the cloak comes off as the morning warms)
+    for (let i = 0; i < segs.length; i++) { const s = segs[i]; if (!open(s) || s.act === 'sleep') continue;
+      const c0 = tAt(s.t0 + 0.01) < COLD_C; let tc = -1; for (let q = Math.floor(s.t0 * 4) + 1; q * 0.25 < s.t1 - 0.25; q++) if ((tq[Math.min(95, q)] < COLD_C) !== c0) { tc = q * 0.25; break; }
+      if (tc < 0 || s.t1 - s.t0 < 0.75 || s.where === 'road' || s.with !== undefined) { if (c0 || tAt((s.t0 + s.t1) / 2) < COLD_C) add(s); continue; }
+      const b: Seg = { ...s, t0: tc }; s.t1 = tc; segs.splice(i + 1, 0, b); if (c0) add(s); }
   }
   /** replace [t, t+len] of the plan with (act, why) at the place the person is then; a moment on the road moves to the
    *  arrival; returns the start used, or -1 */
@@ -2684,8 +2688,12 @@ class Planner {
       if (HD && HD.receivers.includes(this.pid)) { const c1 = HD.t0 + Math.min(HD.t1 - HD.t0, 0.2 + 0.015 * HD.n);
         ins.push([HD.t0, c1, 'treasury_store', 'inspect', `receiving the ${HD.n} hides of yesterday’s slaughter from the carriers and counting them (E-12, CE-07)`], [c1, c1 + 0.15, 'treasury_store', 'write_tablet', `recording the ${HD.n} hides received for the workshops (CE-07)`]); }
       for (const x of this.P.payWeighers(this.d)) if (x.weigher === this.pid && !ins.some(y => y[0] < x.t + 2 && y[1] > x.t)) ins.push([x.t, x.t + 2, 'treasury_desk', 'inspect', `weighing out ${x.sh} shekels of silver on the balance for ${x.group}, in lieu of rations (E-05)`]);
+      // and a spell of another of the trade's tasks in the middle of the morning (a builder's check of the pick-131 sample: a
+      // storekeeper stacked goods 5.7 h without a pause on a heat day; C)
+      const [pl, act, why] = task(), pm = task(), alt = task(), ua = u01(this.P.seed, S.assign, 9990 + this.pid, this.d);
+      if (alt[2] !== why) { const a0 = 8.4 + 0.9 * ua, a1 = a0 + 0.8 + 0.7 * u01(this.P.seed, S.assign, 9991 + this.pid, this.d); if (!ins.some(y => y[0] < a1 + 0.1 && y[1] > a0 - 0.1)) ins.push([a0, a1, ...alt]); }
       ins.sort((a, b) => a[0] - b[0]);
-      const [pl, act, why] = task(); return this.terraceWorker(pl, act, why, task(), ins);
+      return this.terraceWorker(pl, act, why, pm, ins);
     }
     const act: ActivityId = p.sub === 'shiner' ? 'polish_metal' : p.sub === 'wood' ? 'work_wood' : p.sub === 'textile' ? 'weave' : 'carry_sack';
     const why = p.sub === 'handler' ? 'handling treasury supplies' : `treasury workshop: ${p.sub === 'shiner' ? 'shining gold and silver' : p.sub === 'wood' ? 'working wood' : 'textiles'}`;
@@ -3071,12 +3079,19 @@ class Planner {
     this.go(pl, wh, 'on the day’s business'); this.add(this.t + 1.5 + r.next(), pl, a, why, wh); if (a === 'queue') this.go('station', 'town', 'carrying the rations back to the station', 'carry_sack'); else this.go('station', 'town');
     // the rest of the morning and the afternoon, each its own (C): rest (a sleep in the heat), mending the gear, the
     // animals to water at the river, knucklebones, or the town's lanes
-    const spell = (until: number) => { if (this.t >= until - 0.3) return; const V = L.travellers_stay.spell; const x = this.choose({ rest: V.rest, gear: V.gear, animals: this.C.wx.wet ? 0 : V.animals, gamble: V.gamble, lane: this.C.wx.wet ? 0 : V.lane });
-      if (x === 'gear') this.add(until, 'station', 'craft', 'mending harness, bags and sandals for the road', 'town');
-      else if (x === 'animals') { this.go('river', 'town', 'taking the animals to water'); this.add(this.t + 1.2, 'river', 'tend_animals', 'watering the animals at the river', 'town'); this.go('station', 'town'); }
-      else if (x === 'gamble') this.add(until, 'station', 'gamble', 'knucklebones at the station', 'town');
-      else if (x === 'lane') { this.go('lane:q_lt_e', 'town', 'into the town'); this.add(this.t + 1.2, 'lane:q_lt_e', 'talk', 'talking with townspeople in the lanes', 'town'); this.go('station', 'town'); }
-      else this.add(until, 'station', this.C.heatRest && this.t > 11 ? 'sleep' : 'rest', this.C.heatRest && this.t > 11 ? 'sleeping through the heat' : 'resting at the station lodging', 'town');
+    // the hours between the day's business, in spells of an hour or so (was one block to the meal: a traveller rested 4 h and
+    // slept 4.4 h in a day, found in a builder's check of the pick-131 sample; D-186): a sleep through the heat of an E-64
+    // day only in its hours, the animals and the lanes once a day each (lives.json travellers_stay.spell; C)
+    let watered = false, walked = false;
+    const spell = (until: number) => { for (let g = 0; g < 12 && this.t < until - 0.3; g++) { const V = L.travellers_stay.spell;
+      if (this.C.heatRest && this.t >= 11.8 && this.t < 15 && !this.segs.some(x => /through the heat/.test(x.why))) { this.add(Math.min(until, 15 + 0.4 * r.next()), 'station', 'sleep', 'sleeping through the heat', 'town'); continue; }
+      const x = this.choose({ rest: V.rest, gear: V.gear, animals: this.C.wx.wet || watered || until - this.t < 2 ? 0 : V.animals, gamble: V.gamble, lane: this.C.wx.wet || walked || until - this.t < 1.8 ? 0 : V.lane });
+      const e = Math.min(until, this.t + r.range(0.6, 1.4));
+      if (x === 'gear') this.add(e, 'station', 'craft', 'mending harness, bags and sandals for the road', 'town');
+      else if (x === 'animals') { watered = true; this.go('river', 'town', 'taking the animals to water'); this.add(this.t + 0.8, 'river', 'tend_animals', 'watering the animals at the river', 'town'); this.go('station', 'town'); }
+      else if (x === 'gamble') this.add(e, 'station', 'gamble', 'knucklebones at the station', 'town');
+      else if (x === 'lane') { walked = true; this.go('lane:q_lt_e', 'town', 'into the town'); this.add(this.t + 1, 'lane:q_lt_e', 'talk', 'talking with townspeople in the lanes', 'town'); this.go('station', 'town'); }
+      else this.add(Math.min(e, this.t + 0.8), 'station', 'rest', 'resting at the station lodging', 'town'); }
       if (this.t < until) this.add(until, 'station', 'rest', 'resting at the station lodging', 'town'); };
     spell(12.3); this.add(this.t + 0.5 + 0.02 * pa.size, 'station', 'eat', 'the midday meal with the party', 'town');
     // the party's men share out the stay's errands: a second one in the afternoon (C)
