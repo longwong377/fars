@@ -19,9 +19,10 @@ const unit = (a: Pt): Pt => { const l = Math.hypot(a[0], a[1]) || 1; return [a[0
 const rightOf = (n: Pt): Pt => [-n[1], n[0]];
 const dot = (a: Pt, b: Pt) => a[0] * b[0] + a[1] * b[1];
 
-/** a carved inscription panel: `version` alone, or `versions` stacked top to bottom from yTop (glyph, line gap and the gap
- *  between versions default to global.r_stair_relief's panel values) */
-export interface InscriptionPlacement { id: string; version: 'op' | 'el' | 'bab'; origin: Pt; along: Pt; normal: Pt; yTop: number; width: number; versions?: ('op' | 'el' | 'bab')[]; glyph?: number; lineGap?: number; gap?: number; flat?: boolean }
+/** a carved inscription field (decor.ts carveField): `version` alone, or `versions` side by side ('columns') or top to bottom
+ *  ('stack') in the field of width × height below yTop, centred on `origin` (the face line, grid); `glyph` the largest sign
+ *  height (default global.r_stair_relief.glyph); the carving fits one sign height to the field (global.r_inscription_carving) */
+export interface InscriptionPlacement { id: string; version: 'op' | 'el' | 'bab'; origin: Pt; along: Pt; normal: Pt; yTop: number; width: number; versions?: ('op' | 'el' | 'bab')[]; glyph?: number; height?: number; arrangement?: 'columns' | 'stack'; where?: string; tier?: string }
 export interface ProgrammeSet { name: string; building: string; items: ReliefItem[]; inscriptions: InscriptionPlacement[] }
 type Tagged = { programme: string; tier: string; where: string };
 
@@ -85,7 +86,9 @@ function tacharaStair(): ProgrammeSet | null {
     if (!isFlight(F0)) { // central landing: guards flanking XPc (B); count and size C
       const L = F0 as any, c: Pt = [(L.x[0] + L.x[1]) / 2, L.y[0]], n: Pt = [0, -1], S = SR.central_register * carving().figure_fill;
       antithetic(out, c, n, SR.central_ground, (_s, i) => ['guard', i], SR.guards_per_side, S, SR.panel_width / 2, { programme: 'Persian guards flanking XPc', tier: 'B', where: 'Tachara S stair central façade' });
-      ins.push({ id: 'XPc', version: 'op', origin: c, along: rightOf(n), normal: n, yTop: L.z - SR.central_ground, width: SR.panel_width }); // hung from the landing top
+      const SI = v<any>('global', 'r_stair_inscription'), yTop = L.z - SR.central_ground; // hung from the landing top
+      ins.push({ id: 'XPc', version: SI.versions[0], versions: SI.versions, arrangement: SI.arrangement, origin: c, along: rightOf(n), normal: n, yTop, width: SR.panel_width, height: yTop - SR.central_ground - SI.bottom_margin,
+        where: 'Tachara S stair, central facade, between the guards (the three versions side by side)', tier: 'B (the facade) / C (the arrangement)' });
       continue;
     }
     const F = flightFace(F0, [0, Z.y_facade - F0.foot[1]]);
@@ -111,7 +114,9 @@ function hadishStairs(): ProgrammeSet | null {
     if (side === 'W' && upper.length) { // the divider's outer face is the lower flights' inner edge (terrace.ts lane divider)
       const f = lower[0], slope = (f.z1 - f.z0) / (f.steps * f.tread), c: Pt = [f.foot[0] + Math.sign(upper[0].foot[0] - f.foot[0]) * f.width / 2, cy];
       antithetic(out, c, outer, SR.central_ground, (_s, i) => ['guard', i + 4], SR.guards_per_side / 2, S, SR.panel_width / 2, { programme: 'Persian guards flanking XPd', tier: 'B', where: 'Hadish W stair central façade (position C)' }, slope);
-      ins.push({ id: 'XPd', version: 'op', origin: c, along: rightOf(outer), normal: outer, yTop: SR.central_ground + SR.central_register + SR.panel_width / 2 * slope, width: SR.panel_width });
+      const SI = v<any>('global', 'r_stair_inscription'), yTop = SR.central_ground + SR.central_register + SR.panel_width / 2 * slope;
+      ins.push({ id: 'XPd', version: SI.versions[0], versions: SI.versions, arrangement: SI.arrangement, origin: c, along: rightOf(outer), normal: outer, yTop, width: SR.panel_width, height: yTop - SR.central_ground - SI.bottom_margin,
+        where: 'Hadish W stair, central facade, between the guards (the three versions side by side)', tier: 'B (the facade) / C (position, arrangement)' });
     }
     // wings: Persian guards. W stair: on the platform face beside the stair zone, walking toward the stair (C); E stair: on
     // the outer (N and S) faces of the end landings where they stand clear of the platform ('South Facade of South Wing', B)
@@ -167,11 +172,13 @@ function jambFaces(d: Doorway) {
 }
 /** an inscription carved on a reveal above its figures (global.r_jamb_inscription): the versions stacked from near the
  *  reveal top, reading left to right as one faces the reveal */
-function jambInscription(face: ReturnType<typeof jambFaces>[number], id: string): InscriptionPlacement {
-  const JI = v<any>('global', 'r_jamb_inscription'), JR = v<any>('global', 'r_jamb_relief');
-  return { id, version: JI.versions[0], versions: JI.versions, origin: face.c, along: rightOf(face.n), normal: face.n,
-    yTop: face.y0 + face.H - JI.top_margin - JI.glyph, width: (face.L - 2 * JR.margin) * JI.width_of_reveal, glyph: JI.glyph, lineGap: JI.line_gap, gap: JI.version_gap, flat: !!JI.flat };
+function jambInscription(face: ReturnType<typeof jambFaces>[number], id: string, figTop: number, where: string, tier: string): InscriptionPlacement {
+  const JI = v<any>('global', 'r_jamb_inscription'), JR = v<any>('global', 'r_jamb_relief'), yTop = face.y0 + face.H - JI.top_margin;
+  return { id, version: JI.versions[0], versions: JI.versions, arrangement: 'stack', origin: face.c, along: rightOf(face.n), normal: face.n,
+    yTop, width: (face.L - 2 * JR.margin) * JI.width_of_reveal, height: yTop - figTop - JI.version_gap, glyph: JI.glyph, where, tier };
 }
+/** the top of the figures carved on one reveal (their drawn extent) */
+const figuresTop = (items: ReliefItem[]) => Math.max(...items.map(i => i.o.y + i.S * kindBounds(baseKind(i.kind), i.seed)[3]));
 /** a door-jamb programme on one reveal (global.r_jamb_relief): figures walk into the hall (toward d.n), the leader at the
  *  inner end; `rough` = blocked-out variant (relief_state_467) */
 function jamb(out: ReliefItem[], d: Doorway, face: ReturnType<typeof jambFaces>[number], P: any, jambIndex: number, rough: string, tier: string, building: string) {
@@ -231,7 +238,8 @@ function jambProgrammes(doorways: Doorway[]): ProgrammeSet[] {
       // Hall of 100 Columns: one programme per wall (N1/N2 share N, …)
       const P = prog[d.door] ?? prog[d.door.replace(/\d+$/, '')];
       if (!P || P.programme === 'plain') continue;
-      jambFaces(d).forEach((f, i) => { jamb(out, d, f, P, i, rough, P.tier ?? 'C', b); if (P.inscription) ins.push(jambInscription(f, P.inscription)); });
+      jambFaces(d).forEach((f, i) => { const n0 = out.length; jamb(out, d, f, P, i, rough, P.tier ?? 'C', b);
+        if (P.inscription) ins.push(jambInscription(f, P.inscription, figuresTop(out.slice(n0)), `${b}:${d.door} doorway, reveal ${i}, above the figures (the three versions stacked)`, 'B (the doorway) / C (the stacking)')); });
     }
     if (out.length) sets.push({ name: `relief:${b}-jambs`, building: b, items: out, inscriptions: ins });
   }

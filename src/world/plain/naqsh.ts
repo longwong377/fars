@@ -6,9 +6,10 @@
 // width, recess, column and door sizes and the figures' drawing are reconstruction (C). The tomb reliefs are carved by the
 // relief system (D-069: bearers, the king with his bow, the fire altar, the winged figure, the moon, the side-panel guards;
 // programme B, drawing C); the Neo-Elamite relief's figures stay schematic silhouettes (PLACEHOLDER). The DNa and DNb panels carry the Old Persian text of the
-// standard edition (ARIo Q007152 / Q007153, Schmitt 2009, CC0; session 3), carved like the Terrace inscriptions (glyph
-// outlines, sign forms by Kent's rules, C); modern lacunae ("x") are left out; the Elamite and Babylonian versions are
-// not carved (not in the corpus mirror).
+// standard edition (ARIo Q007152 / Q007153, Schmitt 2009, CC0; session 3), incised like the Terrace inscriptions (D-166) with
+// the stored sign sequence and Kent's lineation (D-165: 60 lines each); a sign lost in the edition ("x", "a-x", "x-di-i-y")
+// is left uncut at a sign's width (nothing invented, no gap closed); the Elamite and Babylonian versions are not carved
+// (not in the corpus mirror).
 //
 // Frame: the cliff face is the line grid y = cliff.face_y (world z = -face_y), along grid x; "depth" d > 0 goes into the
 // rock (grid north). The ground at the face is the ancient foot level exported by tools/build_terrain.py (the heightfield
@@ -17,26 +18,14 @@ import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import type { Terrain } from '../../terrain/heightfield';
 import { curvatureDrop } from '../../terrain/heightfield';
-import { SURFACES, surfaceMaterial } from '../../render/materials';
+import { SURFACES, surfaceMaterial, incisedMaterial } from '../../render/materials';
 import { PLAIN, feature, tag } from './data';
 import type { Physics } from '../../player/physics';
-import { textPanelGeometry, INSCRIPTION_PICK_LAYER } from '../../arch/decor';
+import { fitBlocks, carvedBlockGeometry, inscriptionAtlas, INSCRIPTION_PICK_LAYER, type Block } from '../../arch/decor';
+import { panelText } from '../../arch/inscription_text';
 import { ReliefSet, type ReliefItem } from '../../arch/reliefs';
-import { toCuneiform } from '../../lang/oldPersian';
-import inscriptions from '../../data/inscriptions.json';
-
-/** Old Persian of an inscription for carving: the edition's transliteration without its modern lacunae (tokens "x" and
- *  damaged sign groups written with hyphens); in 467 those words were there, but are not known */
-export function carvableTranslit(id: string): string {
-  return String((inscriptions as any)[id].op_translit).split(/\s+/).filter(w => w && w !== 'x' && !w.includes('-')).join(' ');
-}
-/** carve `text` (cuneiform) into a w × h area: the glyph height is fitted so the whole text fills the area */
-function fitText(text: string, w: number, h: number) {
-  let g = Math.sqrt((w * h) / ([...text].length * 1.6)), best = textPanelGeometry('op', text, w, g, g * 0.45, true);
-  for (let k = 0; k < 4 && Math.abs(best.height - h) > 0.04 * h; k++) { best.geo.dispose(); g *= Math.sqrt(h / best.height) * 0.99; best = textPanelGeometry('op', text, w, g, g * 0.45, true); }
-  while (best.height > h) { best.geo.dispose(); g *= 0.97; best = textPanelGeometry('op', text, w, g, g * 0.45, true); }
-  return { ...best, glyphH: g };
-}
+/** the largest sign height the tomb panels allow (m): their lines are fitted to the field below it (C) */
+const NR_GLYPH_MAX = 0.08;
 
 SURFACES.nr_rock = { albedo: [0.56, 0.52, 0.46], roughness: 0.9, porosity: 0.3, noiseScale: 0.35, noiseAmp: 0.09, bump: { amp: 0.03, freq: 0.6 }, streaks: { amp: 0.15, freq: 0.8 }, tier: 'C', note: 'Naqsh-e Rustam cliff: buff-grey limestone with vertical weathering streaks (albedo and streaks C, D-144)' };
 SURFACES.nr_dressed = { albedo: [0.55, 0.52, 0.47], roughness: 0.75, porosity: 0.3, noiseScale: 1.1, noiseAmp: 0.07, bump: { amp: 0.002, freq: 4 }, tier: 'C', note: 'dressed limestone of the rock-cut façades (albedo C)' };
@@ -286,7 +275,7 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   rock.side = THREE.DoubleSide; // the cliff's top and end returns are seen from both sides
   const facades = tombs.map(t => ({ t, fc: tombFacade(f, t.x, t.inscribed, t.id) }));
   const texts = new THREE.Group(); texts.name = 'nr-inscriptions'; const carved: THREE.BufferGeometry[] = [], textInfo: string[] = [];
-  const inscMat = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(0.22, 0.21, 0.2, THREE.SRGBColorSpace), roughness: 0.95 }); // as the Terrace inscriptions (decor.ts)
+  const inscMat = incisedMaterial('nr_dressed', inscriptionAtlas('op')); // cut into the dressed field (D-166)
   const pickMat = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide, visible: false });
   const cliff = new THREE.Mesh(mergeGeometries([cliffGeometry(f, holes, xa, xb, H), cliffTop(f, terrain, xa, xb, H, holes), endCaps(f, xa, xb, H, holes), ...facades.map(q => q.fc.front)].map(g => g.index ? g.toNonIndexed() : g))!, rock);
   cliff.name = 'nr-cliff'; cliff.castShadow = cliff.receiveShadow = true;
@@ -304,18 +293,19 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
     if (fc.panels.length) { const pm = new THREE.Mesh(mergeGeometries(fc.panels)!, dressed); pm.name = t.id + '-inscription-panels'; pm.userData = { tier: 'C', src: 'LIVIUS-NR', note: 'DNa/DNb inscription panels: dressed fields (position and size C)', placeholder: false }; group.add(pm); }
     // the carved Old Persian text of DNa and DNb (one mesh), with pick rectangles for the translation layer
     for (const a of fc.texts) {
-      const cun = toCuneiform(carvableTranslit(a.id)), fit = fitText(cun, a.w, a.h);
-      // text geometry: x 0…w along the face, first baseline at y 0 (glyphs rise ~glyphH above it), z out of the panel
-      carved.push(onFace(f, fit.geo, a.x0, a.yTop - fit.glyphH * 1.1, a.d));
+      const block: Block = { id: a.id, ver: 'op', text: panelText(a.id, 'op')! }, fit = fitBlocks([block], 'stack', a.w, a.h, NR_GLYPH_MAX), L = fit.parts[0].layout;
+      // text geometry: x 0…w along the face, the block's top at y 0, lines going down, z out of the panel (the signs' quads
+      // lie on the dressed face; the shader cuts them in)
+      carved.push(onFace(f, carvedBlockGeometry(block, L), a.x0, a.yTop, a.d));
       const quad = box(a.w + 0.1, a.h + 0.1, 0.001); onFace(f, quad, a.x0 + a.w / 2, a.yTop - a.h - 0.05, a.d - 0.01);
       const pick = new THREE.Mesh(quad, pickMat); pick.layers.set(INSCRIPTION_PICK_LAYER); pick.name = `inscription:${a.id}:op:pick`;
       pick.userData = { tier: 'C', inscription: a.id, version: 'op', pickFar: 80 }; texts.add(pick);
-      textInfo.push(`${a.id}: ${[...cun].length} signs, glyph ${(fit.glyphH * 100).toFixed(1)} cm, ${fit.lines} lines`);
+      textInfo.push(`${a.id}: ${L.signs.length} signs, glyph ${(fit.glyph * 100).toFixed(1)} cm, ${L.lines} lines`);
     }
   }
   if (carved.length) {
     const tm = new THREE.Mesh(mergeGeometries(carved.map(g => g.index ? g.toNonIndexed() : g))!, inscMat); tm.name = 'nr-inscriptions-carved'; tm.receiveShadow = true;
-    tm.userData = { tier: 'C', src: 'ARIO;NOTO;LIVIUS-NR', note: `DNa, DNb Old Persian (text A: ARIo Q007152/Q007153, CC0; sign forms by Kent's rules C; layout in the panel C; modern lacunae left out; Elamite and Babylonian versions not carved) — ${textInfo.join('; ')}` };
+    tm.userData = { tier: 'B/C', src: 'ARIO;LIVIUS-KENT;NOTO;LIVIUS-NR', note: `DNa, DNb Old Persian (text A: ARIo Q007152/Q007153, CC0; signs D-165: ARIo's words by Kent's rules, checked against Kent's transliteration, B where they agree (research/OP_SIGNS.md); Kent's 60 lines each (B); incised in the dressed field, V-section at 45° (C, D-166); signs lost in the edition left uncut; panel position C; Elamite and Babylonian versions not carved) — ${textInfo.join('; ')}` };
     texts.add(tm); tris += tm.geometry.getAttribute('position').count / 3;
   }
   group.add(texts);

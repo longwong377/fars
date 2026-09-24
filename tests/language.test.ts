@@ -4,8 +4,9 @@
 // What is in-world, and how each is checked:
 //  1. speech lines (src/people/speech_lines.ts): the only in-world field is `words` (lexicon ids); the heard IPA and its
 //     transliteration are scanned for modern words. Any new field on a line fails until it is classed here.
-//  2. carved inscription text (src/data/inscriptions.json → src/arch/decor.ts): the rendered strings must be period
-//     script only; the transliterations that generate them are scanned for modern words; no unmapped signs.
+//  2. carved inscription text (src/data/inscriptions.json → src/arch/inscription_text.ts panelText, the one path decor.ts
+//     and naqsh.ts carve): the rendered strings must be period script only; the transliterations and sign sequences that
+//     generate them are scanned for modern words; no unmapped signs. (Their spelling: tests/lang.test.ts, D-165.)
 //  3. lexicon native-script fields (future tablets/labels): period script of the right block only.
 //  4. any other in-world text: source files that call a text-rendering API must be registered here and use no literals.
 //  5. crowd murmur: generated pseudo-words are scanned for modern words.
@@ -17,7 +18,7 @@ import { LINE_DEFS, LINES } from '../src/people/speech_lines';
 import { findModernWords, nonPeriodChars, romanisedWords, MODERN_WORDS, PERIOD_SCRIPTS } from '../src/lang/modern';
 import { allLexEntries, lexEntry, citationForm, LANG_IDS, LEXICON, type LangId } from '../src/lang/lexicon';
 import sources from '../src/data/sources.json';
-import { toCuneiform } from '../src/lang/oldPersian';
+import { panelText } from '../src/arch/inscription_text';
 import { buildProfile, pseudoPhrase, murmurLangFor } from '../src/audio/murmur';
 import { Rng } from '../src/core/rng';
 import inscriptions from '../src/data/inscriptions.json';
@@ -97,12 +98,11 @@ describe('language lint: speech lines', () => {
 describe('language lint: inscriptions and scripts rendered in the world', () => {
   const ins = inscriptions as Record<string, any>;
   const texts = Object.entries(ins).filter(([k]) => k !== '_meta');
-  it('carved text is period script only (what src/arch/decor.ts renders)', () => {
+  it('carved text is period script only (what src/arch/decor.ts and naqsh.ts carve: panelText)', () => {
     expect(texts.length).toBeGreaterThan(0);
     for (const [id, t] of texts) {
-      expect(nonPeriodChars(toCuneiform(t.op_translit), ['oldPersian']), `${id} OP`).toEqual([]);
-      expect(nonPeriodChars(t.el_cuneiform, ['cuneiform']), `${id} El`).toEqual([]);
-      expect(nonPeriodChars(t.bab_cuneiform, ['cuneiform']), `${id} Bab`).toEqual([]);
+      for (const ver of ['op', 'el', 'bab'] as const) { const p = panelText(id, ver); if (p) expect(nonPeriodChars(p.lines.join(' '), [ver === 'op' ? 'oldPersian' : 'cuneiform']), `${id} ${ver}`).toEqual([]); }
+      if (t.op_translit) expect(panelText(id, 'op'), `${id}: an Old Persian text without a carved sign sequence`).toBeTruthy();
       expect(t.el_unmapped, `${id} El unmapped signs`).toEqual([]);
       expect(t.bab_unmapped, `${id} Bab unmapped signs`).toEqual([]);
     }
@@ -141,10 +141,11 @@ describe('language lint: inscriptions and scripts rendered in the world', () => 
 describe('language lint: other in-world text', () => {
   /** files allowed to draw text into the 3D world, with what they draw (checked above) */
   const IN_WORLD_TEXT_SITES: Record<string, string> = {
-    'src/arch/decor.ts': 'carved inscriptions from inscriptions.json (toCuneiform / *_cuneiform), checked above',
-    'src/world/plain/naqsh.ts': 'DNa/DNb Old Persian from inscriptions.json (toCuneiform of the edition text minus lacunae), checked above',
+    'src/arch/decor.ts': 'carved inscriptions from inscriptions.json (panelText: op_signs / *_cuneiform), checked above',
+    'src/arch/carving.ts': 'the carving itself (layoutText / carvedGeometry of the lines it is given; no text of its own)',
+    'src/world/plain/naqsh.ts': 'DNa/DNb Old Persian from inscriptions.json (panelText op_signs), checked above',
   };
-  const TEXT_API = /\b(fillText|strokeText|TextGeometry|textPanelGeometry|CSS2DObject|CSS3DObject|SpriteText|TroikaText)\b/;
+  const TEXT_API = /\b(fillText|strokeText|TextGeometry|textPanelGeometry|layoutText|carvedGeometry|carvedBlockGeometry|CSS2DObject|CSS3DObject|SpriteText|TroikaText)\b/;
   const walk = (d: string): string[] => readdirSync(d).flatMap(f => { const p = join(d, f); return statSync(p).isDirectory() ? walk(p) : p.endsWith('.ts') ? [p] : []; });
   const root = join(__dirname, '..');
   it('only registered files render text in-world, and never from a string literal', () => {
@@ -153,8 +154,8 @@ describe('language lint: other in-world text', () => {
       const src = readFileSync(join(root, f), 'utf8');
       if (!TEXT_API.test(src)) continue;
       expect(IN_WORLD_TEXT_SITES[f], `${f} renders text in-world but is not registered in the language lint`).toBeTruthy();
-      // the text argument: 1st for canvas fillText/strokeText, 2nd for textPanelGeometry(fontKey, text, …)
-      expect(/\b(fillText|strokeText)\(\s*['"`]/.test(src) || /\btextPanelGeometry\(\s*[^,()]+,\s*['"`]/.test(src), `${f} passes a string literal to a text API`).toBe(false);
+      // the text argument: 1st for canvas fillText/strokeText, 2nd for layoutText(font, lines, …) (a literal or an array of them)
+      expect(/\b(fillText|strokeText)\(\s*['"`]/.test(src) || /\blayoutText\(\s*[^,()]+,\s*[\['"`]/.test(src), `${f} passes a string literal to a text API`).toBe(false);
     }
   });
 });

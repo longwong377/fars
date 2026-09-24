@@ -1,0 +1,7 @@
+{
+ "_meta": "Overrides of the class decisions of tools/build_op_signs.ts (D-165): where the rule spelling of the ARIo word and Kent's transliteration (Livius copy) differ and the class rule would carve the wrong one. Each entry: text, the ARIo word (unit), Kent's word as the copy prints it, what is carved and why. Every entry must match a difference (the build fails on an unused one).",
+ "decisions": [
+  { "id": "DNb", "ario": "uvṛštika", "kent": "uvârštika", "carve": "kent",
+    "why": "a compound (hu- + ṛštika): the second member's initial ṛ is written a-r, as in Xšaya-ṛšā (xa-ša-ya-a-ra-ša-a) and in ṛštika itself (a-ra-ša-ta-i-ka); Schmitt's uvṛštika does not show the a sign, the rule speller cannot see the compound, Kent's uvārštika (u-va-a-ra-ša-ta-i-ka) does" }
+ ]
+}

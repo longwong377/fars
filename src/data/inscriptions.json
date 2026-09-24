@@ -11,10 +11,630 @@
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",
-   "op_signs": "C (Kent orthographic rules)",
+   "op_signs": "B where the rule spelling of the ARIo word and Kent's transliteration agree, else as op_words.basis (D-165)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)"
-  }
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (Kent's lineation via the Livius copy)"
+  },
+  "op_signs": [
+   "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a : ha-ya : i-ma-a-ma : ba-u-mi-i-ma : a",
+   "da-a : ha-ya : a-va-ma : a-sa-ma-a-na-ma : a-da-a : ha-ya : ma-ra-ta-i-ya-ma :",
+   "a-da-a : ha-ya : ša-i-ya-a-ta-i-ma : a-da-a : ma-ra-ta-i-ya-ha-ya-a : ha-ya",
+   ": xa-ša-ya-a-ra-ša-a-ma : xa-ša-a-ya-θa-i-ya-ma : a-ku-u-na-u-ša : a-i-va-ma :",
+   "pa-ru-u-na-a-ma : xa-ša-a-ya-θa-i-ya-ma : a-i-va-ma : pa-ru-u-na-a-ma : fa-ra-ma",
+   "a-ta-a-ra-ma : a-da-ma : xa-ša-ya-a-ra-ša-a : xa-ša-a-ya-θa-i-ya : va-za-ra-ka :",
+   "xa-ša-a-ya-θa-i-ya : xa-ša-a-ya-θa-i-ya-a-na-a-ma : xa-ša-a-ya-θa-i-ya : da-ha-ya",
+   "u-na-a-ma : pa-ru-u-va : za-na-a-na-a-ma : xa-ša-a-ya-θa-i-ya : a-ha-ya-a-ya",
+   "a : ba-u-mi-i-ya-a : va-za-ra-ka-a-ya-a : du-u-ra-i-ya : a-pa-i-ya : da-a",
+   "ra-ya-va-ha-u-ša : xa-ša-a-ya-θa-i-ya-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i",
+   "ya : θa-a-ta-i-ya : xa-ša-ya-a-ra-ša-a : xa-ša-a-ya-θa-i-ya : va-ša-na-a :",
+   "a-u-ra-ma-za-da-a-ha-a : i-ma-ma : du-u-va-ra-θa-i-ma : vi-i-sa-da-ha-ya-u-ma",
+   ": a-da-ma : a-ku-u-na-va-ma : va-sa-i-ya : a-na-i-ya-ša-ca-i-ya : na-i-ba-ma",
+   ": ka-ra-ta-ma : a-na-a : pa-a-ra-sa-a : ta-ya : a-da-ma : a-ku-u-na-va-ma :",
+   "u-ta-ma-i-ya : ta-ya : pa-i-ta-a : a-ku-u-na-u-ša : ta-ya-pa-ta-i-ya : ka",
+   "ra-ta-ma : va-i-na-ta-i-ya : na-i-ba-ma : a-va : vi-i-sa-ma : va-ša-na-a : a",
+   "u-ra-ma-za-da-a-ha-a : a-ku-u-ma-a : θa-a-ta-i-ya : xa-ša-ya-a-ra-ša-a :",
+   "xa-ša-a-ya-θa-i-ya : ma-a-ma : a-u-ra-ma-za-da-a : pa-a-tu-u-va : u-ta-ma-i",
+   "ya : xa-ša-ça-ma : u-ta-a : ta-ya : ma-na-a : ka-ra-ta-ma : u-ta-a : ta-ya-ma-i",
+   "ya : pa-i-ça : ka-ra-ta-ma : a-va-ša-ca-i-ya : a-u-ra-ma-za-da-a : pa-a-tu-u-va"
+  ],
+  "op_words": [
+   {
+    "ario": "baga",
+    "signs": "ba-ga",
+    "kent": "baga",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imām",
+    "signs": "i-ma-a-ma",
+    "kent": "imâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "būmim",
+    "signs": "ba-u-mi-i-ma",
+    "kent": "bûmim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "avam",
+    "signs": "a-va-ma",
+    "kent": "avam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "asmānam",
+    "signs": "a-sa-ma-a-na-ma",
+    "kent": "asmânam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiyam",
+    "signs": "ma-ra-ta-i-ya-ma",
+    "kent": "martiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "šiyātim",
+    "signs": "ša-i-ya-a-ta-i-ma",
+    "kent": "šiyâtim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiyahyā",
+    "signs": "ma-ra-ta-i-ya-ha-ya-a",
+    "kent": "martiyahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Xšayaṛšām",
+    "signs": "xa-ša-ya-a-ra-ša-a-ma",
+    "kent": "Xšhayâršâm",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "kent": "xšâyathiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunau̯š",
+    "signs": "a-ku-u-na-u-ša",
+    "kent": "akunauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ai̯vam",
+    "signs": "a-i-va-ma",
+    "kent": "aivam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "parūnām",
+    "signs": "pa-ru-u-na-a-ma",
+    "kent": "parûnâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "kent": "xšâyathiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ai̯vam",
+    "signs": "a-i-va-ma",
+    "kent": "aivam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "parūnām",
+    "signs": "pa-ru-u-na-a-ma",
+    "kent": "parûnâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "framātāram",
+    "signs": "fa-ra-ma-a-ta-a-ra-ma",
+    "kent": "framâtâram",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "kent": "Xšayâršâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "kent": "xšâyathiyânâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dahyunām",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "kent": "dahyûnâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "paruzanānām",
+    "signs": "pa-ru-u-va : za-na-a-na-a-ma",
+    "kent": "paruv zanânâm",
+    "basis": "kent",
+    "class": "GLIDE",
+    "why": "a written glide (i/y/v) the normalised transcription does not carry"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ahyāyā",
+    "signs": "a-ha-ya-a-ya-a",
+    "kent": "ahyâyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "būmiyā",
+    "signs": "ba-u-mi-i-ya-a",
+    "kent": "bûmiyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛkāyā",
+    "signs": "va-za-ra-ka-a-ya-a",
+    "kent": "vazrakâyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dūrai̯",
+    "signs": "du-u-ra-i-ya",
+    "kent": "dûraiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "api",
+    "signs": "a-pa-i-ya",
+    "kent": "apiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "kent": "Dârayavahauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "signs": "xa-ša-a-ya-θa-i-ya-ha-ya-a",
+    "kent": "xšâyathiyahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "puça",
+    "signs": "pa-u-ça",
+    "kent": "puça",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "kent": "Hâxâmanišiya",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": "thâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "kent": "Xšayâršâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vašnā",
+    "signs": "va-ša-na-a",
+    "kent": "vašnâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "kent": "Auramazdâhâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imam",
+    "signs": "i-ma-ma",
+    "kent": "imam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "duvarθim",
+    "signs": "du-u-va-ra-θa-i-ma",
+    "kent": "duvarthim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Visadahyum",
+    "signs": "vi-i-sa-da-ha-ya-u-ma",
+    "kent": "visadahyum",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "kent": "akunavam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vasai̯",
+    "signs": "va-sa-i-ya",
+    "kent": "vasiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "aniyašci",
+    "signs": "a-na-i-ya-ša-ca-i-ya",
+    "kent": "aniyašciy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nai̯bam",
+    "signs": "na-i-ba-ma",
+    "kent": "naibam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "kent": "kartam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "anā",
+    "signs": "a-na-a",
+    "kent": "anâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Pārsā",
+    "signs": "pa-a-ra-sa-a",
+    "kent": "Pârsâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "kent": "akunavam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utamai̯",
+    "signs": "u-ta-ma-i-ya",
+    "kent": "utamaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pitā",
+    "signs": "pa-i-ta-a",
+    "kent": "pitâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunau̯š",
+    "signs": "a-ku-u-na-u-ša",
+    "kent": "akunauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayapati",
+    "signs": "ta-ya-pa-ta-i-ya",
+    "kent": "tyapatiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "kent": "kartam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vai̯natai̯",
+    "signs": "va-i-na-ta-i-ya",
+    "kent": "vainataiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nai̯bam",
+    "signs": "na-i-ba-ma",
+    "kent": "naibam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ava",
+    "signs": "a-va",
+    "kent": "ava",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "visam",
+    "signs": "vi-i-sa-ma",
+    "kent": "visam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vašnā",
+    "signs": "va-ša-na-a",
+    "kent": "vašnâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "kent": "Auramazdâhâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akumā",
+    "signs": "a-ku-u-ma-a",
+    "kent": "akumâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": "thâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "kent": "Xšayâršâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mām",
+    "signs": "ma-a-ma",
+    "kent": "mâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pātu",
+    "signs": "pa-a-tu-u-va",
+    "kent": "pâtuv",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utamai̯",
+    "signs": "u-ta-ma-i-ya",
+    "kent": "utamaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšaçam",
+    "signs": "xa-ša-ça-ma",
+    "kent": "xšaçam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "manā",
+    "signs": "ma-na-a",
+    "kent": "manâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "kent": "kartam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayamai̯",
+    "signs": "ta-ya-ma-i-ya",
+    "kent": "tyamaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "piça",
+    "signs": "pa-i-ça",
+    "kent": "piça",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "kent": "kartam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "avašci",
+    "signs": "a-va-ša-ca-i-ya",
+    "kent": "avašciy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pātu",
+    "signs": "pa-a-tu-u-va",
+    "kent": "pâtuv",
+    "basis": "rule=kent"
+   }
+  ],
+  "op_lined": true
  },
  "XPb": {
   "ario": "Q007210",
@@ -27,10 +647,496 @@
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",
-   "op_signs": "C (Kent orthographic rules)",
+   "op_signs": "B where the rule spelling of the ARIo word and Kent's transliteration agree, else as op_words.basis (D-165)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)"
-  }
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (Kent's lineation via the Livius copy)"
+  },
+  "op_signs": [
+   "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a",
+   ": ha-ya : i-ma-a-ma : ba-u-mi-i-ma :",
+   "a-da-a : ha-ya : a-va-ma : a-sa-ma-a",
+   "na-ma : a-da-a : ha-ya : ma-ra-ta-i-ya",
+   "ma : a-da-a : ha-ya : ša-i-ya-a-ta-i",
+   "ma : a-da-a : ma-ra-ta-i-ya-ha-ya-a :",
+   "ha-ya : xa-ša-ya-a-ra-ša-a-ma : xa-ša-a",
+   "ya-θa-i-ya-ma : a-ku-u-na-u-ša : a-i",
+   "va-ma : pa-ru-u-na-a-ma : xa-ša-a-ya-θa",
+   "i-ya-ma : a-i-va-ma : pa-ru-u-na-a-ma",
+   ": fa-ra-ma-a-ta-a-ra-ma : a-da-ma : xa",
+   "ša-ya-a-ra-ša-a : xa-ša-a-ya-θa-i-ya :",
+   "va-za-ra-ka : xa-ša-a-ya-θa-i-ya : xa-ša",
+   "a-ya-θa-i-ya-a-na-a-ma : xa-ša-a-ya-θa",
+   "i-ya : da-ha-ya-u-na-a-ma : pa-ru-u-va",
+   "za-na-a-na-a-ma : xa-ša-a-ya-θa-i-ya :",
+   "a-ha-i-ya-a-ya-a : ba-u-mi-i-ya-a :",
+   "va-za-ra-ka-a-ya-a : du-u-ra-i-ya : a",
+   "pa-i-ya : da-a-ra-ya-va-ha-u-ša : xa-ša",
+   "a-ya-θa-i-ya-ha-ya-a : pa-u-ça : ha-xa",
+   "a-ma-na-i-ša-i-ya : θa-a-ta-i-ya : xa",
+   "ša-ya-a-ra-ša-a : xa-ša-a-ya-θa-i-ya :",
+   "va-za-ra-ka : ta-ya : ma-na-a : ka-ra-ta",
+   "ma : i-da-a : u-ta-a : ta-ya-ma-i-ya",
+   ": a-pa-ta-ra-ma : ka-ra-ta-ma : a-va : vi",
+   "i-sa-ma : va-ša-na-a : a-u-ra-ma-za-da-a",
+   "ha : a-ku-u-na-va-ma : ma-a-ma : a-u-ra",
+   "ma-za-da-a : pa-a-tu-u-va : ha-da-a : ba",
+   "ga-i-ba-i-ša : u-ta-a-ma-i-ya : xa-ša-ça",
+   "ma : u-ta-a : ta-ya-ma-i-ya : ka-ra-ta-ma"
+  ],
+  "op_words": [
+   {
+    "ario": "baga",
+    "signs": "ba-ga",
+    "kent": "baga",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imām",
+    "signs": "i-ma-a-ma",
+    "kent": "imâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "būmim",
+    "signs": "ba-u-mi-i-ma",
+    "kent": "bûmim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "avam",
+    "signs": "a-va-ma",
+    "kent": "avam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "asmānam",
+    "signs": "a-sa-ma-a-na-ma",
+    "kent": "asmânam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiyam",
+    "signs": "ma-ra-ta-i-ya-ma",
+    "kent": "martiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "šiyātim",
+    "signs": "ša-i-ya-a-ta-i-ma",
+    "kent": "shiyâtim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiyahyā",
+    "signs": "ma-ra-ta-i-ya-ha-ya-a",
+    "kent": "martiyahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Xšayaṛšām",
+    "signs": "xa-ša-ya-a-ra-ša-a-ma",
+    "kent": "Xšayâršâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "kent": "xšâyathiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunau̯š",
+    "signs": "a-ku-u-na-u-ša",
+    "kent": "akunaush",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ai̯vam",
+    "signs": "a-i-va-ma",
+    "kent": "aivam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "parūnām",
+    "signs": "pa-ru-u-na-a-ma",
+    "kent": "parûnâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "kent": "xšâyathiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ai̯vam",
+    "signs": "a-i-va-ma",
+    "kent": "aivam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "parūnām",
+    "signs": "pa-ru-u-na-a-ma",
+    "kent": "parûnâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "framātāram",
+    "signs": "fa-ra-ma-a-ta-a-ra-ma",
+    "kent": "framâtâram",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "kent": "Xshayârshâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "kent": "xshâyathiyânâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dahyunām",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "kent": "dahyûnâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "paruzanānām",
+    "signs": "pa-ru-u-va-za-na-a-na-a-ma",
+    "kent": "paruvzanânâm",
+    "basis": "kent",
+    "class": "GLIDE",
+    "why": "a written glide (i/y/v) the normalised transcription does not carry"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ahyāyā",
+    "signs": "a-ha-i-ya-a-ya-a",
+    "kent": "ahiyâyâ",
+    "basis": "kent",
+    "class": "GLIDE",
+    "why": "a written glide (i/y/v) the normalised transcription does not carry"
+   },
+   {
+    "ario": "būmiyā",
+    "signs": "ba-u-mi-i-ya-a",
+    "kent": "bûmiyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛkāyā",
+    "signs": "va-za-ra-ka-a-ya-a",
+    "kent": "vazrakâyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dūrai̯",
+    "signs": "du-u-ra-i-ya",
+    "kent": "dûraiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "api",
+    "signs": "a-pa-i-ya",
+    "kent": "apiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "kent": "Dârayavahaush",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "signs": "xa-ša-a-ya-θa-i-ya-ha-ya-a",
+    "kent": "xshâiyathiyahyâ",
+    "basis": "rule",
+    "class": "GLIDE-slip",
+    "why": "the copy spells xšāyaθiyahyā so only here and by the rule 4× elsewhere: a slip of the copy"
+   },
+   {
+    "ario": "puça",
+    "signs": "pa-u-ça",
+    "kent": "puça",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "kent": "Haxâmanišiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": "thâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "kent": "Xshayârshâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "manā",
+    "signs": "ma-na-a",
+    "kent": "manâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "kent": "kartam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "idā",
+    "signs": "i-da-a",
+    "kent": "idâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayamai̯",
+    "signs": "ta-ya-ma-i-ya",
+    "kent": "tyamaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "apataram",
+    "signs": "a-pa-ta-ra-ma",
+    "kent": "apataram",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "kent": "kartam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ava",
+    "signs": "a-va",
+    "kent": "ava",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "visam",
+    "signs": "vi-i-sa-ma",
+    "kent": "visam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vašnā",
+    "signs": "va-ša-na-a",
+    "kent": "vashnâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdāha",
+    "signs": "a-u-ra-ma-za-da-a-ha",
+    "kent": "Auramazdâha",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "kent": "akunavam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mām",
+    "signs": "ma-a-ma",
+    "kent": "mâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pātu",
+    "signs": "pa-a-tu-u-va",
+    "kent": "pâtuv",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hadā",
+    "signs": "ha-da-a",
+    "kent": "hadâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "bagai̯biš",
+    "signs": "ba-ga-i-ba-i-ša",
+    "kent": "bagaibish",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utāmai̯",
+    "signs": "u-ta-a-ma-i-ya",
+    "kent": "utâmaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšaçam",
+    "signs": "xa-ša-ça-ma",
+    "kent": "xshaçam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayamai̯",
+    "signs": "ta-ya-ma-i-ya",
+    "kent": "tyamaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "kent": "kartam",
+    "basis": "rule=kent"
+   }
+  ],
+  "op_lined": true
  },
  "XPc": {
   "ario": "Q007211",
@@ -43,10 +1149,543 @@
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",
-   "op_signs": "C (Kent orthographic rules)",
+   "op_signs": "B where the rule spelling of the ARIo word and Kent's transliteration agree, else as op_words.basis (D-165)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)"
-  }
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (Kent's lineation via the Livius copy)"
+  },
+  "op_signs": [
+   "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a : ha-ya : i-ma-a-ma : ba-u-mi-i-ma :",
+   "a-da-a : ha-ya : a-va-ma : a-sa-ma-a-na-ma : a-da-a : ha-ya : ma-ra-ta-i",
+   "ya-ma : a-da-a : ha-ya : ša-i-ya-a-ta-i-ma : a-da-a : ma-ra-ta-i-ya-ha-ya-a",
+   ": ha-ya : xa-ša-ya-a-ra-ša-a-ma : XŠ-ma : a-ku-u-na-u-ša : a-i-va-ma : pa",
+   "ru-u-na-a-ma : XŠ-ma : a-i-va-ma : pa-ru-u-na-a-ma : fa-ra-ma-a-ta-a-ra-ma",
+   ": a-da-ma : xa-ša-ya-a-ra-ša-a : XŠ : va-za-ra-ka : XŠ : XŠ-a-na-a-ma : XŠ :",
+   "da-ha-ya-u-na-a-ma : pa-ru-u-va : za-na-a-na-a-ma : XŠ : a-ha-ya-a-ya-a : ba",
+   "u-mi-i-ya-a : va-za-ra-ka-a-ya-a : du-u-ra-i-ya : a-pa-i-ya : da-a-ra-ya-va",
+   "ha-u-ša : XŠ-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya : θa-a-ta-i-ya : xa",
+   "ša-ya-a-ra-ša-a : XŠ : va-za-ra-ka : va-ša-na-a : a-u-ra-ha-ya-ma-a-za-da-ha : i",
+   "ma : ha-di-i-ša : da-a-ra-ya-va-u-ša : XŠ : a-ku-u-na-u-ša : ha-ya : ma-na-a :",
+   "pa-i-ta-a : ma-a-ma : a-u-ra-ma-za-da-a : pa-a-tu-u-va : ha-da-a : ba-ga",
+   "i-ba-i-ša : u-ta-a : ta-ya-ma-i-ya : ka-ra-ta-ma : u-ta-a : ta-ya-ma-i-ya :",
+   "pa-i-ça : da-a-ra-ya-va-ha-u-ša : XŠ-ha-ya-a : ka-ra-ta-ma : a-va-ša-ca-i-ya",
+   ": a-u-ra-ma-za-da-a : pa-a-tu-u-va : ha-da-a : ba-ga-i-ba-i-ša"
+  ],
+  "op_words": [
+   {
+    "ario": "baga",
+    "signs": "ba-ga",
+    "kent": "baga",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imām",
+    "signs": "i-ma-a-ma",
+    "kent": "imâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "būmim",
+    "signs": "ba-u-mi-i-ma",
+    "kent": "bûmim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "avam",
+    "signs": "a-va-ma",
+    "kent": "avam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "asmānam",
+    "signs": "a-sa-ma-a-na-ma",
+    "kent": "asmânam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiyam",
+    "signs": "ma-ra-ta-i-ya-ma",
+    "kent": "martiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "šiyātim",
+    "signs": "ša-i-ya-a-ta-i-ma",
+    "kent": "šiyâtim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiyahyā",
+    "signs": "ma-ra-ta-i-ya-ha-ya-a",
+    "kent": "martiyahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Xšayaṛšām",
+    "signs": "xa-ša-ya-a-ra-ša-a-ma",
+    "kent": "Xšayâršâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "signs": "XŠ-ma",
+    "kent": "XŠm",
+    "basis": "kent",
+    "class": "LOGO",
+    "why": "a logogram in Kent (ARIo writes the word out)"
+   },
+   {
+    "ario": "akunau̯š",
+    "signs": "a-ku-u-na-u-ša",
+    "kent": "akunauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ai̯vam",
+    "signs": "a-i-va-ma",
+    "kent": "aivam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "parūnām",
+    "signs": "pa-ru-u-na-a-ma",
+    "kent": "parunâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "signs": "XŠ-ma",
+    "kent": "XŠm",
+    "basis": "kent",
+    "class": "LOGO",
+    "why": "a logogram in Kent (ARIo writes the word out)"
+   },
+   {
+    "ario": "ai̯vam",
+    "signs": "a-i-va-ma",
+    "kent": "aivam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "parūnām",
+    "signs": "pa-ru-u-na-a-ma",
+    "kent": "parûnâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "framātāram",
+    "signs": "fa-ra-ma-a-ta-a-ra-ma",
+    "kent": "framâtâram",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "kent": "Xšayâršâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "XŠ",
+    "kent": "XŠ",
+    "basis": "kent",
+    "class": "LOGO",
+    "why": "a logogram in Kent (ARIo writes the word out)"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "XŠ",
+    "kent": "XŠ",
+    "basis": "kent",
+    "class": "LOGO",
+    "why": "a logogram in Kent (ARIo writes the word out)"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "signs": "XŠ-a-na-a-ma",
+    "kent": "XŠânâm",
+    "basis": "kent",
+    "class": "LOGO",
+    "why": "a logogram in Kent (ARIo writes the word out)"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "XŠ",
+    "kent": "XŠ",
+    "basis": "kent",
+    "class": "LOGO",
+    "why": "a logogram in Kent (ARIo writes the word out)"
+   },
+   {
+    "ario": "dahyunām",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "kent": "dahyûnâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "paru",
+    "signs": "pa-ru-u-va",
+    "kent": "paruv",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "zanānām",
+    "signs": "za-na-a-na-a-ma",
+    "kent": "zanânâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "XŠ",
+    "kent": "XŠ",
+    "basis": "kent",
+    "class": "LOGO",
+    "why": "a logogram in Kent (ARIo writes the word out)"
+   },
+   {
+    "ario": "ahyāyā",
+    "signs": "a-ha-ya-a-ya-a",
+    "kent": "ahyâyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "būmiyā",
+    "signs": "ba-u-mi-i-ya-a",
+    "kent": "bumiyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛkāyā",
+    "signs": "va-za-ra-ka-a-ya-a",
+    "kent": "vazrakâyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dūrai̯",
+    "signs": "du-u-ra-i-ya",
+    "kent": "dûraiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "api",
+    "signs": "a-pa-i-ya",
+    "kent": "apiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "kent": "Dârayavahauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "signs": "XŠ-ha-ya-a",
+    "kent": "XŠhyâ",
+    "basis": "kent",
+    "class": "LOGO",
+    "why": "a logogram in Kent (ARIo writes the word out)"
+   },
+   {
+    "ario": "puça",
+    "signs": "pa-u-ça",
+    "kent": "puça",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "kent": "Haxâmanišiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": "thâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "kent": "Xšayâršâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "XŠ",
+    "kent": "XŠ",
+    "basis": "kent",
+    "class": "LOGO",
+    "why": "a logogram in Kent (ARIo writes the word out)"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vašnā",
+    "signs": "va-ša-na-a",
+    "kent": "vašnâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.urahya-Māzdaha",
+    "signs": "a-u-ra-ha-ya-ma-a-za-da-ha",
+    "kent": "Aurahya Mazdâha",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "ima",
+    "signs": "i-ma",
+    "kent": "ima",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hadiš",
+    "signs": "ha-di-i-ša",
+    "kent": "hadiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "Dârayavauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "XŠ",
+    "kent": "XŠ",
+    "basis": "kent",
+    "class": "LOGO",
+    "why": "a logogram in Kent (ARIo writes the word out)"
+   },
+   {
+    "ario": "akunau̯š",
+    "signs": "a-ku-u-na-u-ša",
+    "kent": "akunauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "manā",
+    "signs": "ma-na-a",
+    "kent": "manâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pitā",
+    "signs": "pa-i-ta-a",
+    "kent": "pitâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mām",
+    "signs": "ma-a-ma",
+    "kent": "mâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pātu",
+    "signs": "pa-a-tu-u-va",
+    "kent": "pâtuv",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hadā",
+    "signs": "ha-da-a",
+    "kent": "hadâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "bagai̯biš",
+    "signs": "ba-ga-i-ba-i-ša",
+    "kent": "bagaibiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "upâ",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "tayamai̯",
+    "signs": "ta-ya-ma-i-ya",
+    "kent": "tyamaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "kent": "kartam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayamai̯",
+    "signs": "ta-ya-ma-i-ya",
+    "kent": "tyamaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "piça",
+    "signs": "pa-i-ça",
+    "kent": "piça",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "kent": "Dârayavahauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "signs": "XŠ-ha-ya-a",
+    "kent": "XŠhyâ",
+    "basis": "kent",
+    "class": "LOGO",
+    "why": "a logogram in Kent (ARIo writes the word out)"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "kent": "kartam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "avašci",
+    "signs": "a-va-ša-ca-i-ya",
+    "kent": "avašciy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pātu",
+    "signs": "pa-a-tu-u-va",
+    "kent": "pâtuv",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hadā",
+    "signs": "ha-da-a",
+    "kent": "hadâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "bagai̯biš",
+    "signs": "ba-ga-i-ba-i-ša",
+    "kent": "bagaibiš",
+    "basis": "rule=kent"
+   }
+  ],
+  "op_lined": true
  },
  "XPd": {
   "ario": "Q007212",
@@ -59,10 +1698,441 @@
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",
-   "op_signs": "C (Kent orthographic rules)",
+   "op_signs": "B where the rule spelling of the ARIo word and Kent's transliteration agree, else as op_words.basis (D-165)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)"
-  }
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (Kent's lineation via the Livius copy)"
+  },
+  "op_signs": [
+   "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a : ha-ya : i",
+   "ma-a-ma : ba-u-mi-i-ma : a-da-a : ha-ya : a-va-ma",
+   ": a-sa-ma-a-na-ma : a-da-a : ha-ya : ma-ra-ta-i-ya",
+   "ma : a-da-a : ha-ya : ša-i-ya-a-ta-i-ma : a-da-a : ma-ra",
+   "ta-i-ya-ha-ya-a : ha-ya : xa-ša-ya-a-ra-ša-a-ma : xa",
+   "ša-a-ya-θa-i-ya-ma : a-ku-u-na-u-ša : a-i-va-ma : pa-ru",
+   "u-na-a-ma : xa-ša-a-ya-θa-i-ya-ma : a-i-va-ma : pa-ru-u",
+   "na-a-ma : fa-ra-ma-a-ta-a-ra-ma : a-da-ma : xa-ša-ya-a-ra-ša",
+   "a : xa-ša-a-ya-θa-i-ya : va-za-ra-ka : xa-ša-a-ya-θa-i-ya :",
+   "xa-ša-a-ya-θa-i-ya-a-na-a-ma : xa-ša-a-ya-θa-i-ya : da-ha-ya",
+   "u-na-a-ma : pa-ru-u-va-za-na-a-na-a-ma : xa-ša-a-ya-θa-i-ya",
+   ": a-ha-i-ya-a-ya-a : ba-u-mi-i-ya-a : va-za-ra-ka-a-ya-a",
+   ": du-u-ra-i-ya : a-pa-i-ya : da-a-ra-ya-va-ha-u-ša : xa-ša",
+   "a-ya-θa-i-ya-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya :",
+   "θa-a-ta-i-ya : xa-ša-ya-a-ra-ša-a : xa-ša-a-ya-θa-i-ya : va",
+   "za-ra-ka : va-ša-na-a : a-u-ra-ma-za-da-a-ha : i-ma : ha-di",
+   "i-ša : a-da-ma : a-ku-u-na-va-ma : ma-a-ma : a-u-ra-ma-za",
+   "da-a : pa-a-tu-u-va : ha-da-a : ba-ga-i-ba-i-ša : u-ta-ma",
+   "i-ya : xa-ša-ça-ma : u-ta-a : ta-ya-ma-i-ya : ka-ra-ta-ma"
+  ],
+  "op_words": [
+   {
+    "ario": "baga",
+    "signs": "ba-ga",
+    "kent": "baga",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imām",
+    "signs": "i-ma-a-ma",
+    "kent": "imâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "būmim",
+    "signs": "ba-u-mi-i-ma",
+    "kent": "bûmim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "avam",
+    "signs": "a-va-ma",
+    "kent": "avam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "asmānam",
+    "signs": "a-sa-ma-a-na-ma",
+    "kent": "asmânam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiyam",
+    "signs": "ma-ra-ta-i-ya-ma",
+    "kent": "martiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "šiyātim",
+    "signs": "ša-i-ya-a-ta-i-ma",
+    "kent": "šiyâtim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiyahyā",
+    "signs": "ma-ra-ta-i-ya-ha-ya-a",
+    "kent": "martiyahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Xšayaṛšām",
+    "signs": "xa-ša-ya-a-ra-ša-a-ma",
+    "kent": "Xšayâršâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "kent": "xšâyathiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunau̯š",
+    "signs": "a-ku-u-na-u-ša",
+    "kent": "akunauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ai̯vam",
+    "signs": "a-i-va-ma",
+    "kent": "aivam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "parūnām",
+    "signs": "pa-ru-u-na-a-ma",
+    "kent": "parûnâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "kent": "xšâyathiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ai̯vam",
+    "signs": "a-i-va-ma",
+    "kent": "aivam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "parūnām",
+    "signs": "pa-ru-u-na-a-ma",
+    "kent": "parûnâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "framātāram",
+    "signs": "fa-ra-ma-a-ta-a-ra-ma",
+    "kent": "framâtâram",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "kent": "Xšayâršâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "kent": "xšâyathiyânâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dahyunām",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "kent": "dahyûnâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "paruzanānām",
+    "signs": "pa-ru-u-va-za-na-a-na-a-ma",
+    "kent": "paruvzanânâm",
+    "basis": "kent",
+    "class": "GLIDE",
+    "why": "a written glide (i/y/v) the normalised transcription does not carry"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ahyāyā",
+    "signs": "a-ha-i-ya-a-ya-a",
+    "kent": "ahiyâyâ",
+    "basis": "kent",
+    "class": "GLIDE",
+    "why": "a written glide (i/y/v) the normalised transcription does not carry"
+   },
+   {
+    "ario": "būmiyā",
+    "signs": "ba-u-mi-i-ya-a",
+    "kent": "bûmiyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛkāyā",
+    "signs": "va-za-ra-ka-a-ya-a",
+    "kent": "vazrakâyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dūrai̯",
+    "signs": "du-u-ra-i-ya",
+    "kent": "dûraiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "api",
+    "signs": "a-pa-i-ya",
+    "kent": "apiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "kent": "Dârayavahauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "signs": "xa-ša-a-ya-θa-i-ya-ha-ya-a",
+    "kent": "xšâyathiyahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "puça",
+    "signs": "pa-u-ça",
+    "kent": "puça",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "kent": "Haxâmanišiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": "thâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "kent": "Xšayâršâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vašnā",
+    "signs": "va-ša-na-a",
+    "kent": "vašnâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdāha",
+    "signs": "a-u-ra-ma-za-da-a-ha",
+    "kent": "Auramazdâha",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ima",
+    "signs": "i-ma",
+    "kent": "ima",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hadiš",
+    "signs": "ha-di-i-ša",
+    "kent": "hadiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "kent": "akunavam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mām",
+    "signs": "ma-a-ma",
+    "kent": "mâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pātu",
+    "signs": "pa-a-tu-u-va",
+    "kent": "pâtuv",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hadā",
+    "signs": "ha-da-a",
+    "kent": "hadâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "bagai̯biš",
+    "signs": "ba-ga-i-ba-i-ša",
+    "kent": "bagaibiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utamai̯",
+    "signs": "u-ta-ma-i-ya",
+    "kent": "utamaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšaçam",
+    "signs": "xa-ša-ça-ma",
+    "kent": "xšaçam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayamai̯",
+    "signs": "ta-ya-ma-i-ya",
+    "kent": "tyamaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "kent": "kartam",
+    "basis": "rule=kent"
+   }
+  ],
+  "op_lined": true
  },
  "XPe": {
   "ario": "Q007213",
@@ -75,10 +2145,74 @@
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",
-   "op_signs": "C (Kent orthographic rules)",
+   "op_signs": "B where the rule spelling of the ARIo word and Kent's transliteration agree, else as op_words.basis (D-165)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)"
-  }
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (Kent's lineation via the Livius copy)"
+  },
+  "op_signs": [
+   "xa-ša-ya-a-ra-ša-a : xa-ša-a-ya-θa-i-ya : va-za-ra",
+   "ka : xa-ša-a-ya-θa-i-ya : xa-ša-a-ya-θa-i-ya-a",
+   "na-a-ma : da-a-ra-ya-va-ha-u-ša : xa-ša-a-ya-θa",
+   "i-ya-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya :"
+  ],
+  "op_words": [
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "kent": "Xšayâršâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "kent": "xšâyathiyânâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "kent": "Dârayavahauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "signs": "xa-ša-a-ya-θa-i-ya-ha-ya-a",
+    "kent": "xšâyathiyahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "puça",
+    "signs": "pa-u-ça",
+    "kent": "puça",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "kent": "Haxâmanišiya",
+    "basis": "rule=kent"
+   }
+  ],
+  "op_lined": true
  },
  "DPh": {
   "ario": "Q007164",
@@ -91,10 +2225,281 @@
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",
-   "op_signs": "C (Kent orthographic rules)",
+   "op_signs": "C (Kent's rules on the ARIo word; no graphemic witness read, D-165)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)"
-  }
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "C (no lineation read)"
+  },
+  "op_signs": [
+   "da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya : va-za-ra-ka : xa-ša-a-ya-θa-i-ya : xa-ša-a-ya-θa-i-ya-a-na-a-ma : xa-ša-a-ya-θa-i-ya : da-ha-ya-u-na-a-ma : vi-i-ša-ta-a-sa-pa-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya : θa-a-ta-i-ya : da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya : i-ma : xa-ša-ça-ma : ta-ya : a-da-ma : da-a-ra-ya-a-mi-i-ya : ha-ca-a : sa-ka-i-ba-i-ša : ta-ya-i-ya : pa-ra : sa-u-ga-da-ma : a-ma-ta : ya-a-ta-a : a : ku-u-ša-a : ha-ca-a : ha-i-da-u-va : a-ma-ta : ya-a-ta-a : a : sa-pa-ra-da-a : ta-ya-ma-i-ya : a-u-ra-ma-za-da-a : fa-ra-a-ba-ra : ha-ya : ma-θa-i-ša-ta : ba-ga-a-na-a-ma : ma-a-ma : a-u-ra-ma-za-da-a : pa-a-tu-u-va : u-ta-a-ma-i-ya : vi-i-θa-ma"
+  ],
+  "op_words": [
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "dahyūnām",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "Vištāspahyā",
+    "signs": "vi-i-ša-ta-a-sa-pa-ha-ya-a",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "puça",
+    "signs": "pa-u-ça",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "ima",
+    "signs": "i-ma",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "xšaçam",
+    "signs": "xa-ša-ça-ma",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "dārayāmi",
+    "signs": "da-a-ra-ya-a-mi-i-ya",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "hacā",
+    "signs": "ha-ca-a",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "Sakai̯biš",
+    "signs": "sa-ka-i-ba-i-ša",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "tayai̯",
+    "signs": "ta-ya-i-ya",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "para",
+    "signs": "pa-ra",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "Sugdam",
+    "signs": "sa-u-ga-da-ma",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "amata",
+    "signs": "a-ma-ta",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "yātā",
+    "signs": "ya-a-ta-a",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "ā",
+    "signs": "a",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "Kūšā",
+    "signs": "ku-u-ša-a",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "hacā",
+    "signs": "ha-ca-a",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "Hindau̯",
+    "signs": "ha-i-da-u-va",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "amata",
+    "signs": "a-ma-ta",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "yātā",
+    "signs": "ya-a-ta-a",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "ā",
+    "signs": "a",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "Spardā",
+    "signs": "sa-pa-ra-da-a",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "tayamai̯",
+    "signs": "ta-ya-ma-i-ya",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "frābara",
+    "signs": "fa-ra-a-ba-ra",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "maθišta",
+    "signs": "ma-θa-i-ša-ta",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "bagānām",
+    "signs": "ba-ga-a-na-a-ma",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "mām",
+    "signs": "ma-a-ma",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "pātu",
+    "signs": "pa-a-tu-u-va",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "utāmai̯",
+    "signs": "u-ta-a-ma-i-ya",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "viθam",
+    "signs": "vi-i-θa-ma",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   }
+  ],
+  "op_lined": false
  },
  "DNa": {
   "ario": "Q007152",
@@ -107,10 +2512,1465 @@
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",
-   "op_signs": "C (Kent orthographic rules)",
+   "op_signs": "B where the rule spelling of the ARIo word and Kent's transliteration agree, else as op_words.basis (D-165)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)"
-  }
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (Kent's lineation via the Livius copy)"
+  },
+  "op_signs": [
+   "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a : ha-ya : i-ma",
+   "a-ma : ba-u-mi-i-ma : a-da-a : ha-ya : a-va-ma : a-sa-ma",
+   "a-na-ma : a-da-a : ha-ya : ma-ra-ta-i-ya-ma : a-da-a : ha",
+   "ya : ša-i-ya-a-ta-i-ma : a-da-a : ma-ra-ta-i-ya-ha-ya-a",
+   ": ha-ya : da-a-ra-ya-va-u-ma : xa-ša-a-ya-θa-i-ya-ma : a-ku",
+   "u-na-u-ša : a-i-va-ma : pa-ru-u-va-na-a-ma : xa-ša-a-ya-θa",
+   "i-ya-ma : a-i-va-ma : pa-ru-u-va-na-a-ma : fa-ra-ma-a-ta-a",
+   "ra-ma : a-da-ma : da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya : va",
+   "za-ra-ka : xa-ša-a-ya-θa-i-ya : xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+   ": xa-ša-a-ya-θa-i-ya : da-ha-ya-u-na-a-ma : vi-i-sa-pa-za-na-a",
+   "na-a-ma : xa-ša-a-ya-θa-i-ya : a-ha-ya-a-ya-a : ba-u-mi-i",
+   "ya-a : va-za-ra-ka-a-ya-a : du-u-ra-i-a-pa-i-ya : vi-i-ša-ta-a-sa",
+   "pa-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya : pa-a-ra-sa : pa",
+   "a-ra-sa-ha-ya-a : pa-u-ça : a-ra-i-ya : a-ra-i-ya : ca-i",
+   "ça : θa-a-ta-i-ya : da-a-ra-ya-va-u-ša : xa-ša-a-ya",
+   "θa-i-ya : va-ša-na-a : a-u-ra-ma-za-da-a-ha-a : i-ma-a :",
+   "da-ha-ya-a-va : ta-ya-a : a-da-ma : a-ga-ra-ba-a-ya-ma :",
+   "a-pa-ta-ra-ma : ha-ca-a : pa-a-ra-sa-a : a-da-ma-ša-a-ma :",
+   "pa-ta-i-ya-xa-ša-ya-i-ya : ma-na-a : ba-a-ji-i-ma : a-ba-ra",
+   "ha : ta-ya-ša-a-ma : ha-ca-a-ma : a-θa-ha-ya : a-va : a",
+   "ku-u-na-va : da-a-ta-ma : ta-ya : ma-na-a : a-va-di-i-ša :",
+   "a-da-a-ra-ya : ma-a-da : u-va-ja : pa-ra-θa-va : ha-ra-i",
+   "va : ba-a-xa-ta-ra-i-ša : sa-u-gu-u-da : u-va-a-ra-za-mi",
+   "i-ša : za-ra-ka : ha-ra-u-va-ta-i-ša : θa-ta-gu-u-ša : ga",
+   "da-a-ra : ha-i-du-u-ša : sa-ka-a : ha-u-ma-va-ra-ga-a : sa",
+   "ka-a : ta-i-ga-ra-xa-u-da-a : ba-a-ba-i-ru-u-ša : a",
+   "θa-u-ra-a : a-ra-ba-a-ya : mu-u-da-ra-a-ya : a-ra-mi-i-na",
+   ": ka-ta-pa-tu-u-ka : sa-pa-ra-da : ya-u-na : sa-ka-a : ta-ya-i-ya : pa",
+   "ra-da-ra-ya : sa-ku-u-da-ra : ya-u-na-a : ta-ka-ba-ra-a : pa-u-ta-a-ya",
+   "a : ku-u-ša-i-ya-a : ma-ca-i-ya-a : ka-ra-ka-a : θa-a-ta-i-ya : da",
+   "a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya : a-u-ra-ma-za-da-a : ya-θa",
+   "a : a-va-i-na : i-ma-a-ma : ba-u-mi-i-ma : ya-u-da-ta-i-ma :",
+   "pa-sa-a-va-di-i-ma : ma-na-a : fa-ra-a-ba-ra : ma-a-ma : xa-ša-a",
+   "ya-θa-i-ya-ma : a-ku-u-na-u-ša : a-da-ma : xa-ša-a-ya-θa-i-ya",
+   ": a-mi-i-ya : va-ša-na-a : a-u-ra-ma-za-da-a-ha-a : a",
+   "da-ma-ša-i-ma : ga-a-θa-va-a : na-i-ya-ša-a-da-ya-ma : ta-ya-ša-a",
+   "ma : a-da-ma : a-θa-ha-ma : a-va : a-ku-u-na-va : ya-θa-a : ma-a-ma :",
+   "ka-a-ma : a-ha : ya-di-i-pa-ta-i-ya : ma-na-i-ya-a-ha-i-ya",
+   ": ca-i-ya-a-ka-ra-ma : a-va-a : da-ha-ya-a-va",
+   ": ta-ya-a : da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya",
+   ": a-da-a-ra-ya : pa-ta-i-ka-ra-a : di-i-di-i-ya : ta-ya-i-ya : ga",
+   "a-θa-u-ma : ba-ra-ta-i-ya : a-da-a : xa-ša-na-a-sa-a-ha-ya :",
+   "a-da-ta-i-ya : a-za-da-a : ba-va-a-ta-i-ya : pa-a-ra-sa-ha-ya-a :",
+   "ma-ra-ta-i-ya-ha-ya-a : du-u-ra-i-ya : a-ra-ša-ta-i-ša : pa",
+   "ra-a-ga-ma-ta-a : a-da-ta-i-ya : a-za-da-a : ba-va-a-ta-i",
+   "ya : pa-a-ra-sa : ma-ra-ta-i-ya : du-u-ra-i-ya : ha-ca-a : pa-a",
+   "ra-sa-a : pa-ra-ta-ra-ma : pa-ta-i-ya-ja-ta-a : θa-a-ta-i-ya : da-a",
+   "ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya : a-i-ta : ta-ya : ka-ra-ta",
+   "ma : a-va : vi-i-sa-ma : va-ša-na-a : a-u-ra-ma-za-da-a-ha-a : a-ku",
+   "u-na-va-ma : a-u-ra-ma-za-da-a-ma-i-ya : u-pa-sa-ta-a-ma : a-ba",
+   "ra : ya-a-ta-a : ka-ra-ta-ma : a-ku-u-na-va-ma : ma-a-ma : a",
+   "u-ra-ma-za-da-a : pa-a-tu-u-va : ha-ca-a : ga-sa-ta-a : u-ta-a-ma",
+   "i-ya : vi-i-θa-ma : u-ta-a : i-ma-a-ma : da-ha-ya-a-u-ma : a-i-ta : a-da",
+   "ma : a-u-ra-ma-za-da-a-ma : ja-di-i-ya-a-mi-i-ya : a-i-ta-ma",
+   "i-ya : a-u-ra-ma-za-da-a : da-da-a-tu-u-va :",
+   "ma-ra-ta-i-ya-a : ha-ya-a : a-u-ra-ma-za-da-a-ha",
+   "a : fa-ra-ma-a-na-a : ha-u-va-ta-i-ya : ga-sa",
+   "ta-a : ma-a : θa-da-ya pa-θa-i-ma :",
+   "ta-ya-a-ma : ra-a-sa-ta-a-ma : ma-a",
+   ": a-va-ra-da : ma-a : sa-ta-ba-va"
+  ],
+  "op_words": [
+   {
+    "ario": "baga",
+    "signs": "ba-ga",
+    "kent": "baga",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imām",
+    "signs": "i-ma-a-ma",
+    "kent": "imâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "būmim",
+    "signs": "ba-u-mi-i-ma",
+    "kent": "bumâm",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "avam",
+    "signs": "a-va-ma",
+    "kent": "avam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "asmānam",
+    "signs": "a-sa-ma-a-na-ma",
+    "kent": "asmânam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiyam",
+    "signs": "ma-ra-ta-i-ya-ma",
+    "kent": "martiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "šiyātim",
+    "signs": "ša-i-ya-a-ta-i-ma",
+    "kent": "šiyâtim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "adâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiyahyā",
+    "signs": "ma-ra-ta-i-ya-ha-ya-a",
+    "kent": "martiyahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.um",
+    "signs": "da-a-ra-ya-va-u-ma",
+    "kent": "Dârayavaum",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "kent": "xšâyathiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunau̯š",
+    "signs": "a-ku-u-na-u-ša",
+    "kent": "akunauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ai̯vam",
+    "signs": "a-i-va-ma",
+    "kent": "aivam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "parūnām",
+    "signs": "pa-ru-u-va-na-a-ma",
+    "kent": "parûvnâm",
+    "basis": "kent",
+    "class": "GLIDE",
+    "why": "a written glide (i/y/v) the normalised transcription does not carry"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "kent": "xšâyathiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ai̯vam",
+    "signs": "a-i-va-ma",
+    "kent": "aivam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "parūnām",
+    "signs": "pa-ru-u-va-na-a-ma",
+    "kent": "parûvnâm",
+    "basis": "kent",
+    "class": "GLIDE",
+    "why": "a written glide (i/y/v) the normalised transcription does not carry"
+   },
+   {
+    "ario": "framātāram",
+    "signs": "fa-ra-ma-a-ta-a-ra-ma",
+    "kent": "framâtâram",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "Dârayavauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "kent": "xšâyathiyânâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dahyunām",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "kent": "dahyûnâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vispazanānām",
+    "signs": "vi-i-sa-pa-za-na-a-na-a-ma",
+    "kent": "vispazanânâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ahyāyā",
+    "signs": "a-ha-ya-a-ya-a",
+    "kent": "ahyâyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "būmiyā",
+    "signs": "ba-u-mi-i-ya-a",
+    "kent": "bûmiyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛkāyā",
+    "signs": "va-za-ra-ka-a-ya-a",
+    "kent": "vazrakâyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dūrai̯ api",
+    "signs": "du-u-ra-i-a-pa-i-ya",
+    "kent": "dûraiapiy",
+    "basis": "kent",
+    "class": "GLIDE",
+    "why": "a written glide (i/y/v) the normalised transcription does not carry"
+   },
+   {
+    "ario": "Vištāspahyā",
+    "signs": "vi-i-ša-ta-a-sa-pa-ha-ya-a",
+    "kent": "Vištâspahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "puça",
+    "signs": "pa-u-ça",
+    "kent": "puça",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "kent": "Haxâmanišiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Pārsa",
+    "signs": "pa-a-ra-sa",
+    "kent": "Pârsa",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Pārsahyā",
+    "signs": "pa-a-ra-sa-ha-ya-a",
+    "kent": "Pârsahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "puça",
+    "signs": "pa-u-ça",
+    "kent": "puça",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Ariya",
+    "signs": "a-ra-i-ya",
+    "kent": "Ariya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Ariyaciça",
+    "signs": "a-ra-i-ya : ca-i-ça",
+    "kent": "Ariya ciça",
+    "basis": "kent",
+    "class": "GLIDE",
+    "why": "the same signs, divided as in Kent"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": "thâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "Dârayavauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vašnā",
+    "signs": "va-ša-na-a",
+    "kent": "vašnâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "kent": "Auramazdâhâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imā",
+    "signs": "i-ma-a",
+    "kent": "imâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dahyāva",
+    "signs": "da-ha-ya-a-va",
+    "kent": "dahyâva",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayā",
+    "signs": "ta-ya-a",
+    "kent": "tyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "agṛbāyam",
+    "signs": "a-ga-ra-ba-a-ya-ma",
+    "kent": "agarbâyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "apataram",
+    "signs": "a-pa-ta-ra-ma",
+    "kent": "apataram",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hacā",
+    "signs": "ha-ca-a",
+    "kent": "hacâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Pārsā",
+    "signs": "pa-a-ra-sa-a",
+    "kent": "Pârsâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adamšām",
+    "signs": "a-da-ma-ša-a-ma",
+    "kent": "adamšâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "patiyaxšayai̯",
+    "signs": "pa-ta-i-ya-xa-ša-ya-i-ya",
+    "kent": "patiyaxšayaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "manā",
+    "signs": "ma-na-a",
+    "kent": "manâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "bājim",
+    "signs": "ba-a-ji-i-ma",
+    "kent": "bâjim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "abaraha",
+    "signs": "a-ba-ra-ha",
+    "kent": "abaraha",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayašām",
+    "signs": "ta-ya-ša-a-ma",
+    "kent": "tvašâm",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "hacāma",
+    "signs": "ha-ca-a-ma",
+    "kent": "hacâma",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "aθanhya",
+    "signs": "a-θa-ha-ya",
+    "kent": "athahya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ava",
+    "signs": "a-va",
+    "kent": "ava",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunava",
+    "signs": "a-ku-u-na-va",
+    "kent": "akunava",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dātam",
+    "signs": "da-a-ta-ma",
+    "kent": "dâtam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "manā",
+    "signs": "ma-na-a",
+    "kent": "manâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "avadiš",
+    "signs": "a-va-di-i-ša",
+    "kent": "avadiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adāraya",
+    "signs": "a-da-a-ra-ya",
+    "kent": "adâraiya",
+    "basis": "rule",
+    "class": "GLIDE-slip",
+    "why": "the copy spells adāraya so only here and by the rule 1× elsewhere: a slip of the copy"
+   },
+   {
+    "ario": "Māda",
+    "signs": "ma-a-da",
+    "kent": "Mâda",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Ūja",
+    "signs": "u-va-ja",
+    "kent": "Ûvja",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Parθava",
+    "signs": "pa-ra-θa-va",
+    "kent": "Parthava",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Harai̯va",
+    "signs": "ha-ra-i-va",
+    "kent": "Haraiva",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Bāxtriš",
+    "signs": "ba-a-xa-ta-ra-i-ša",
+    "kent": "Bâxtriš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Suguda",
+    "signs": "sa-u-gu-u-da",
+    "kent": "Suguda",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Uvārazmiš",
+    "signs": "u-va-a-ra-za-mi-i-ša",
+    "kent": "Uvârazmiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Zranka",
+    "signs": "za-ra-ka",
+    "kent": "Zraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Hara.uvatiš",
+    "signs": "ha-ra-u-va-ta-i-ša",
+    "kent": "Harauvatiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Θataguš",
+    "signs": "θa-ta-gu-u-ša",
+    "kent": "Thataguš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Gandāra",
+    "signs": "ga-da-a-ra",
+    "kent": "Gadâra",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Hinduš",
+    "signs": "ha-i-du-u-ša",
+    "kent": "Hiduš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Sakā",
+    "signs": "sa-ka-a",
+    "kent": "Sakâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Hau̯mavargā",
+    "signs": "ha-u-ma-va-ra-ga-a",
+    "kent": "haumavargâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Sakā",
+    "signs": "sa-ka-a",
+    "kent": "Sakâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tigraxau̯dā",
+    "signs": "ta-i-ga-ra-xa-u-da-a",
+    "kent": "tigraxaudâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Bābiruš",
+    "signs": "ba-a-ba-i-ru-u-ša",
+    "kent": "Bâbiruš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Aθurā",
+    "signs": "a-θa-u-ra-a",
+    "kent": "Athurâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Arbāya",
+    "signs": "a-ra-ba-a-ya",
+    "kent": "Arabâya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Mudrāya",
+    "signs": "mu-u-da-ra-a-ya",
+    "kent": "Mudrâya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Armina",
+    "signs": "a-ra-mi-i-na",
+    "kent": "Armina",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Katpatuka",
+    "signs": "ka-ta-pa-tu-u-ka",
+    "kent": "Katpatuka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Sparda",
+    "signs": "sa-pa-ra-da",
+    "kent": "Sparda",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Yau̯na",
+    "signs": "ya-u-na",
+    "kent": "Yauna",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Sakā",
+    "signs": "sa-ka-a",
+    "kent": "Sakâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayai̯",
+    "signs": "ta-ya-i-ya",
+    "kent": "tyaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "paradraya",
+    "signs": "pa-ra-da-ra-ya",
+    "kent": "paradraya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Skudra",
+    "signs": "sa-ku-u-da-ra",
+    "kent": "Skudra",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Yau̯nā",
+    "signs": "ya-u-na-a",
+    "kent": "Yaunâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "takabarā",
+    "signs": "ta-ka-ba-ra-a",
+    "kent": "takabarâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Putāyā",
+    "signs": "pa-u-ta-a-ya-a",
+    "kent": "Putâyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Kūšiyā",
+    "signs": "ku-u-ša-i-ya-a",
+    "kent": "Kûšiyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Maciyā",
+    "signs": "ma-ca-i-ya-a",
+    "kent": "Maciyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Kṛkā",
+    "signs": "ka-ra-ka-a",
+    "kent": "Karkâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": "thâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "Dârayavauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yaθā",
+    "signs": "ya-θa-a",
+    "kent": "yathâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "avai̯na",
+    "signs": "a-va-i-na",
+    "kent": "avaina",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imām",
+    "signs": "i-ma-a-ma",
+    "kent": "imâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "būmim",
+    "signs": "ba-u-mi-i-ma",
+    "kent": "bûmim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yau̯dantī̆m",
+    "signs": "ya-u-da-ta-i-ma",
+    "kent": "yaudatim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pasāvadim",
+    "signs": "pa-sa-a-va-di-i-ma",
+    "kent": "pasâvadim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "manā",
+    "signs": "ma-na-a",
+    "kent": "manâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "frābara",
+    "signs": "fa-ra-a-ba-ra",
+    "kent": "frâbara",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mām",
+    "signs": "ma-a-ma",
+    "kent": "mâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "kent": "xšâyathiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunau̯š",
+    "signs": "a-ku-u-na-u-ša",
+    "kent": "akunauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ami",
+    "signs": "a-mi-i-ya",
+    "kent": "amiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vašnā",
+    "signs": "va-ša-na-a",
+    "kent": "vašnâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "kent": "Auramazdâhâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adamšim",
+    "signs": "a-da-ma-ša-i-ma",
+    "kent": "adamšim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "gāθavā",
+    "signs": "ga-a-θa-va-a",
+    "kent": "gâthavâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "niyašādayam",
+    "signs": "na-i-ya-ša-a-da-ya-ma",
+    "kent": "niyašâdayam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayašām",
+    "signs": "ta-ya-ša-a-ma",
+    "kent": "tyašâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "aθanham",
+    "signs": "a-θa-ha-ma",
+    "kent": "athaham",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ava",
+    "signs": "a-va",
+    "kent": "ava",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunava",
+    "signs": "a-ku-u-na-va",
+    "kent": "akunava",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yaθā",
+    "signs": "ya-θa-a",
+    "kent": "yathâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mām",
+    "signs": "ma-a-ma",
+    "kent": "mâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kāma",
+    "signs": "ka-a-ma",
+    "kent": "kâma",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "āha",
+    "signs": "a-ha",
+    "kent": "âha",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yadipati",
+    "signs": "ya-di-i-pa-ta-i-ya",
+    "kent": "yadipatiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "maniyāhai̯",
+    "signs": "ma-na-i-ya-a-ha-i-ya",
+    "kent": "maniyâhaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ciyākaram",
+    "signs": "ca-i-ya-a-ka-ra-ma",
+    "kent": "ciyakaram",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "avā",
+    "signs": "a-va-a",
+    "kent": "avâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dahyāva",
+    "signs": "da-ha-ya-a-va",
+    "kent": "dahyâva",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayā",
+    "signs": "ta-ya-a",
+    "kent": "tyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "Dârayavauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adāraya",
+    "signs": "a-da-a-ra-ya",
+    "kent": "adâraya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "patikarā",
+    "signs": "pa-ta-i-ka-ra-a",
+    "kent": "patikarâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dīdi",
+    "signs": "di-i-di-i-ya",
+    "kent": "dîdiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayai̯",
+    "signs": "ta-ya-i-ya",
+    "kent": "tyaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "gāθum",
+    "signs": "ga-a-θa-u-ma",
+    "kent": "gâthun",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "baranti",
+    "signs": "ba-ra-ta-i-ya",
+    "kent": "baratiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adā",
+    "signs": "a-da-a",
+    "kent": "avadâ",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "xšnāsāhi",
+    "signs": "xa-ša-na-a-sa-a-ha-ya",
+    "kent": "xšnâsâhy",
+    "basis": "kent",
+    "class": "GLIDE",
+    "why": "a written glide (i/y/v) the normalised transcription does not carry"
+   },
+   {
+    "ario": "adatai̯",
+    "signs": "a-da-ta-i-ya",
+    "kent": "adataiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "azdā",
+    "signs": "a-za-da-a",
+    "kent": "azdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "bavāti",
+    "signs": "ba-va-a-ta-i-ya",
+    "kent": "bavâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Pārsahyā",
+    "signs": "pa-a-ra-sa-ha-ya-a",
+    "kent": "Pârsahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiyahyā",
+    "signs": "ma-ra-ta-i-ya-ha-ya-a",
+    "kent": "martiyahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dūrai̯",
+    "signs": "du-u-ra-i-ya",
+    "kent": "dûraiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ṛštiš",
+    "signs": "a-ra-ša-ta-i-ša",
+    "kent": "arštiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "parāgmatā",
+    "signs": "pa-ra-a-ga-ma-ta-a",
+    "kent": "parâgmatâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adatai̯",
+    "signs": "a-da-ta-i-ya",
+    "kent": "adataiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "azdā",
+    "signs": "a-za-da-a",
+    "kent": "azdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "bavāti",
+    "signs": "ba-va-a-ta-i-ya",
+    "kent": "bavâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Pārsa",
+    "signs": "pa-a-ra-sa",
+    "kent": "Pârsa",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiya",
+    "signs": "ma-ra-ta-i-ya",
+    "kent": "martiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dūrai̯",
+    "signs": "du-u-ra-i-ya",
+    "kent": "dûrayapiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "hacā",
+    "signs": "ha-ca-a",
+    "kent": "hacâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Pārsā",
+    "signs": "pa-a-ra-sa-a",
+    "kent": "Pârsâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "parataram",
+    "signs": "pa-ra-ta-ra-ma",
+    "kent": "partaram",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "patiyajatā",
+    "signs": "pa-ta-i-ya-ja-ta-a",
+    "kent": "patiyajatâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": "thâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "Dârayavauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ai̯ta",
+    "signs": "a-i-ta",
+    "kent": "aita",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "kent": "kartam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ava",
+    "signs": "a-va",
+    "kent": "ava",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "visam",
+    "signs": "vi-i-sa-ma",
+    "kent": "visam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vašnā",
+    "signs": "va-ša-na-a",
+    "kent": "vašnâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "kent": "Auramazdâhâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "kent": "akunavam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdāmai̯",
+    "signs": "a-u-ra-ma-za-da-a-ma-i-ya",
+    "kent": "Auramazdâ(ma)iy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "upastām",
+    "signs": "u-pa-sa-ta-a-ma",
+    "kent": "upastâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "abara",
+    "signs": "a-ba-ra",
+    "kent": "abara",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yātā",
+    "signs": "ya-a-ta-a",
+    "kent": "yâtâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "kent": "kartam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "kent": "akunavam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mām",
+    "signs": "ma-a-ma",
+    "kent": "mâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pātu",
+    "signs": "pa-a-tu-u-va",
+    "kent": "pâtuv",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hacā",
+    "signs": "ha-ca-a",
+    "kent": "hacâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "gastā",
+    "signs": "ga-sa-ta-a",
+    "kent": "gastâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utāmai̯",
+    "signs": "u-ta-a-ma-i-ya",
+    "kent": "utâmaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "viθam",
+    "signs": "vi-i-θa-ma",
+    "kent": "vitham",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imām",
+    "signs": "i-ma-a-ma",
+    "kent": "imâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dahyāu̯m",
+    "signs": "da-ha-ya-a-u-ma",
+    "kent": "dahyâum",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ai̯ta",
+    "signs": "a-i-ta",
+    "kent": "aita",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdām",
+    "signs": "a-u-ra-ma-za-da-a-ma",
+    "kent": "Auramazdâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "jadiyāmi",
+    "signs": "ja-di-i-ya-a-mi-i-ya",
+    "kent": "jadiyâmiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ai̯tamai̯",
+    "signs": "a-i-ta-ma-i-ya",
+    "kent": "aitamaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dadātu",
+    "signs": "da-da-a-tu-u-va",
+    "kent": "dadâtuv",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiyā",
+    "signs": "ma-ra-ta-i-ya-a",
+    "kent": "martiyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hayā",
+    "signs": "ha-ya-a",
+    "kent": "hyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "kent": "Auramazdâhâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "framānā",
+    "signs": "fa-ra-ma-a-na-a",
+    "kent": "framânâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hau̯tai̯",
+    "signs": "ha-u-va-ta-i-ya",
+    "kent": "hauvtaiy",
+    "basis": "kent",
+    "class": "GLIDE",
+    "why": "a written glide (i/y/v) the normalised transcription does not carry"
+   },
+   {
+    "ario": "gastā",
+    "signs": "ga-sa-ta-a",
+    "kent": "gastâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mā",
+    "signs": "ma-a",
+    "kent": "mâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θadaya",
+    "signs": "θa-da-ya",
+    "kent": "thadaya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "paθī̆m",
+    "signs": "pa-θa-i-ma",
+    "kent": "pathim",
+    "basis": "rule=kent",
+    "div": false
+   },
+   {
+    "ario": "tayām",
+    "signs": "ta-ya-a-ma",
+    "kent": "tyâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "rāstām",
+    "signs": "ra-a-sa-ta-a-ma",
+    "kent": "râstâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mā",
+    "signs": "ma-a",
+    "kent": "mâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "avarada",
+    "signs": "a-va-ra-da",
+    "kent": "avarada",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mā",
+    "signs": "ma-a",
+    "kent": "mâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "stabava",
+    "signs": "sa-ta-ba-va",
+    "kent": "stabava",
+    "basis": "rule=kent"
+   }
+  ],
+  "op_lined": true
  },
  "DNb": {
   "ario": "Q007153",
@@ -120,6 +3980,3330 @@
   "el_unmapped": [],
   "bab_atf": "",
   "bab_cuneiform": "",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "B where the rule spelling of the ARIo word and Kent's transliteration agree, else as op_words.basis (D-165)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (Kent's lineation via the Livius copy)"
+  },
+  "op_signs": [
+   "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a : ha-ya : a-da-da-a : i",
+   "ma : fa-ra-ša-ma : ta-ya : va-i-na-ta-i-ya : ha-ya : a-da-da-a : ša-i",
+   "ya-a-ta-i-ma : ma-ra-ta-i-ya-ha-ya-a : ha-ya : xa-ra-θa-u-ma : u-ta",
+   "a : a-ru-u-va-sa-ta-ma : u-pa-ra-i-ya : da-a-ra-ya-va-u-ma : xa-ša-a",
+   "ya-θa-i-ya-ma : na-i-ya-sa-ya : θa-a-ta-i-ya : da-a-ra-ya-va-u-ša : xa-ša-a-ya",
+   "θa-i-ya : va-ša-na-a : a-u-ra-ma-za-da-a-ha-a : a-va-a-ka-ra-ma : a",
+   "mi-i-ya : ta-ya : ra-a-sa-ta-ma : da-u-ša-ta-a : a-mi-i-ya : mi-i-θa : na",
+   "i-ya : da-u-ša-ta-a : a-mi-i-ya : na-i-ma-a : ka-a-ma : ta-ya : sa-ka-u-θa",
+   "i-ša : tu-u-nu-u-va-ta-ha-ya-a : ra-a-di-i-ya : mi-i-θa : ka-ra-i-ya-i-ša",
+   ": na-i-ma-a : a-va : ka-a-ma : ta-ya : tu-u-nu-u-va-a : sa-ka-u-θa-i-ša : ra",
+   "a-di-i-ya : mi-i-θa : ka-ra-i-ya-i-ša : ta-ya : ra-a-sa-ta-ma : a-va : ma-a-ma :",
+   "ka-a-ma : ma-ra-ta-i-ya-ma : da-ra-u-ja-na-ma : na-i-ya : da-u-ša-ta-a : a-mi",
+   "i-ya : na-i-ya : ma-na-u-vi-i-ša : a-mi-i-ya : ya-ca-i-ma-i-ya : pa-ra-ta-na",
+   "ya-a : ba-va-ta-i-ya : da-ra-ša-ma : da-a-ra-ya-a-mi-i-ya : ma-na-ha-a :",
+   "u-va-i-pa-ša-i-ya-ha-ya-a : da-ra-ša-ma : xa-ša-ya-ma-na : a-mi-i-ya :",
+   "ma-ra-ta-i-ya : ha-ya : ha-ta-xa-ša-ta-i-ya : a-nu-u-di-i-ma : ha-ka-ra-ta",
+   "ha-ya-a : a-va-θa-a : pa-ra-i-ba-ra-a-mi-i-ya : ha-ya : vi",
+   "i-na-a-θa-ya-ta-i-ya : a-nu-u-di-i-ma : vi-i-na-sa-ta-ha-ya-a : a-va-θa",
+   "a : pa-ra-sa-a-mi-i-ya : na-i-ma-a : ka-a-ma : ta-ya : ma-ra-ta-i-ya",
+   ": vi-i-na-a-θa-ya-i-ša : na-i-pa-ta-i-ma-a : a-va : ka-a-ma : ya-di-i",
+   "ya : vi-i-na-a-θa-ya-i-ša : na-i-ya : fa-ra-θa-i-ya-i-ša : ma-ra-ta-i-ya :",
+   "ta-ya : pa-ra-i-ya : ma-ra-ta-i-ya-ma : θa-a-ta-i-ya : a-va : ma-a-ma :",
+   "na-i-ya : va-ra-na-va-a-ta-i-ya : ya-a-ta-a : u-ba-a-na-a-ma : ha-du-u",
+   "ga-a-ma : a-xa-ša-na-va-i-ya : ma-ra-ta-i-ya : ta-ya : ku-u-na-u",
+   "ta-i-ya : ya-di-i-va-a : a-ba-ra-ta-i-ya : a-nu-u-va : ta-u-ma-na",
+   "i-ša-i-ya : a-va-na-a : xa-ša-nu-u-ta : ba-va-a-mi-i-ya : u-ta-a : ma-a-ma : va-sa",
+   "i-ya : ka-a-ma : u-ta-a : u-θa-du-u-ša : a-mi-i-ya : u-ta-a : va-sa-i-ya : da-da-a-mi-i-ya : a-ga-ra-i-ya-a-na-a-ma : ma-ra-ta-i-ya-a-na-a-ma : a-va-a-ka-ra-ma",
+   "ca-i-ma-i-ya : u-ša-i-ya : u-ta-a : fa-ra-ma-a-na-a : ya-θa-a-ma-i",
+   "ya : ta-ya : ka-ra-ta-ma : va-i-na-a-ha-ya : ya-di-i-va-a a-xa-ša-na-va",
+   "a-ha-ya : u-ta-a : vi-i-θa-i-ya-a : u-ta-a : sa-pa-a-ya-ta",
+   "i-ya-a-ya-a : a-i-ta-ma-i-ya : a-ru-u-va-sa-ta-ma :",
+   "u-pa-ra-i-ya : ma-na-ša-ca-a : u-ša-i-ca-a : i-ma : pa-ta-i-ma-i",
+   "ya : a-ru-u-va-sa-ta-ma : ta-ya-ma-i-ya : ta-nu-u-ša : ta-a-va-ya",
+   "ta-i-ya : ha-ma-ra-na-ka-ra : a-mi-i-ya : u-ša-ha-ma-ra-na-ka-ra : ha-ka-ra",
+   "ma-ma-i-ya : u-ša-i-ya-a : ga-a-θa-va-a : ha-i-ša-ta-ta-i-ya : ya-ca-i-ya :",
+   "va-i-na-a-mi-i-ya : ha-mi-i-ça-i-ya-ma : ya-ca-i-ya : na-i-ya : va-i-na-a",
+   "mi-i-ya : u-ta-a : u-ša-i-ba-i-ya-a : u-ta-a : fa-ra-ma-a-na-a-ya-a",
+   ": a-da-ka-i-ya : fa-ra-ta-ra : ma-na-i-ya-i-ya : a-fa-u-va-a-ya-a : ya",
+   "di-i-ya : va-i-na-a-mi-i-ya : ha-mi-i-ça-i-ya-ma : ya-θa-a : ya-di-i-ya :",
+   "na-i-ya : va-i-na-a-mi-i-ya : ya-u-ma-i-na-i-ša : a-mi-i-ya : u",
+   "ta-a : da-sa-ta-i-ba-i-ya-a : u-ta-a : pa-a-da-i-ba-i-ya-a : a-sa-ba-a",
+   "ra : u-va-sa-ba-a-ra : a-mi-i-ya : θa-nu-u-va-na-i-ya : u-θa",
+   "nu-u-va-na-i-ya : a-mi-i-ya : u-ta-a : pa-sa-ta-i-ša : u-ta-a",
+   ": a-sa-ba-a-ra : a-ra-ša-ta-i-ka : a-mi-i-ya : u-va-a-ra-ša-ta-i-ka :",
+   "u-ta-a : pa-sa-ta-i-ša : u-ta-a : a-sa-ba-a-ra : i-ma-a : u-va-na-ra-a",
+   ": ta-ya-a : a-u-ra-ma-za-da-a : u-pa-ra-i-ya : ma-a-ma : na-i-ya-sa-ya : u-ta-a",
+   "di-i-ša : a-ta-a-va-ya-ma : ba-ra-ta-na-i-ya : va-ša-na-a : a-u-ra-ma-za-da-a-ha",
+   "a : ta-ya-ma-i-ya : ka-ra-ta-ma : i-ma-i-ba-i-ša : u-va-na-ra-i-ba-i-ša : a-ku-u",
+   "na-va-ma : ta-ya-a : ma-a-ma : a-u-ra-ma-za-da-a : u-pa-ra-i-ya : na-i-ya-sa-ya",
+   ": ma-ra-i-ka-a : da-ra-ša-ma : a-za-da-a : ku-u-ša-u-va-a : ca-i-ya-a-ka-ra-ma",
+   ": a-ha-i-ya : ca-i-ya-a-ka-ra-ma-ta-i-ya : u-va-na-ra-a : ca-i-ya-a-ka-ra",
+   "ma-ta-i-ya : pa-ra-i-ya-na-ma : ma-a-ta-i-ya : a-va : va-ha-i-ša-ta-ma :",
+   "θa-da-ya : ta-ya-ta-i-ya : ga-u-ša-a-ya-a : θa-ha-ya-a-ta-i-ya : a-va-ša",
+   "ca-i-ya : a-xa-ša-nu-u-di-i-ya : ta-ya : pa-ra-ta-ra : θa-ha-ya-a",
+   "ta-i-ya : ma-ra-i-ka-a : ma-a-ta-i-ya : a-va : na-i-ba-ma : θa-da-ya : ta",
+   "ya : x : x : ku-u-na-va-a-ta-i-ya : ta-ya : sa-ka-u-θa-i-ša : ku-u-na-va-a-ta-i-ya",
+   ": a-va-ša-ca-i-ya : di-i-di-i-ya : ma-ra-i-ka-a : x : ma-a :",
+   "pa-ta-i-ya-a-ta-ya : a-x : ma-a-pa-ta-i-ya : ša-i-ya-a-ta-i-ya",
+   "a : a-ya-a-u-ma-i-na-i-ša : ba-va-a-ha-i-ya : x-di-i-ya",
+   ": ma-a : ra-xa-θa-tu-u-va : x-i-ya :"
+  ],
+  "op_words": [
+   {
+    "ario": "baga",
+    "signs": "ba-ga",
+    "kent": "baga",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adadā",
+    "signs": "a-da-da-a",
+    "kent": "adadâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ima",
+    "signs": "i-ma",
+    "kent": "ima",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "frašam",
+    "signs": "fa-ra-ša-ma",
+    "kent": "frašam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vai̯natai̯",
+    "signs": "va-i-na-ta-i-ya",
+    "kent": "vainataiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adadā",
+    "signs": "a-da-da-a",
+    "kent": "adadâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "šiyātim",
+    "signs": "ša-i-ya-a-ta-i-ma",
+    "kent": "šiyâtim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiyahyā",
+    "signs": "ma-ra-ta-i-ya-ha-ya-a",
+    "kent": "martiyahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xraθum",
+    "signs": "xa-ra-θa-u-ma",
+    "kent": "xrathum",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "aruvastam",
+    "signs": "a-ru-u-va-sa-ta-ma",
+    "kent": "aruvastam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "upari",
+    "signs": "u-pa-ra-i-ya",
+    "kent": "upariy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.um",
+    "signs": "da-a-ra-ya-va-u-ma",
+    "kent": "Dârayavaum",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "kent": "xšâyathiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "niyasaya",
+    "signs": "na-i-ya-sa-ya",
+    "kent": "nîyasaya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": "thâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "Dârayavauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vašnā",
+    "signs": "va-ša-na-a",
+    "kent": "vašnâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "kent": "Auramazdâha",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "avākaram",
+    "signs": "a-va-a-ka-ra-ma",
+    "kent": "avâkaram",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ami",
+    "signs": "a-mi-i-ya",
+    "kent": "amiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "rāstam",
+    "signs": "ra-a-sa-ta-ma",
+    "kent": "râstam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dau̯štā",
+    "signs": "da-u-ša-ta-a",
+    "kent": "dauštâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ami",
+    "signs": "a-mi-i-ya",
+    "kent": "amiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "miθa",
+    "signs": "mi-i-θa",
+    "kent": "mitha",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nai̯",
+    "signs": "na-i-ya",
+    "kent": "naiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dau̯štā",
+    "signs": "da-u-ša-ta-a",
+    "kent": "dauštâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ami",
+    "signs": "a-mi-i-ya",
+    "kent": "amiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nai̯mā",
+    "signs": "na-i-ma-a",
+    "kent": "naimâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kāma",
+    "signs": "ka-a-ma",
+    "kent": "kâma",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "skau̯θai̯š",
+    "signs": "sa-ka-u-θa-i-ša",
+    "kent": "skauthiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tunuvantahyā",
+    "signs": "tu-u-nu-u-va-ta-ha-ya-a",
+    "kent": "tunuvatahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "rādī",
+    "signs": "ra-a-di-i-ya",
+    "kent": "râdiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "miθa",
+    "signs": "mi-i-θa",
+    "kent": "mitha",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kariyai̯š",
+    "signs": "ka-ra-i-ya-i-ša",
+    "kent": "kariyaiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nai̯mā",
+    "signs": "na-i-ma-a",
+    "kent": "naimâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ava",
+    "signs": "a-va",
+    "kent": "ava",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kāma",
+    "signs": "ka-a-ma",
+    "kent": "kâma",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tunuvā",
+    "signs": "tu-u-nu-u-va-a",
+    "kent": "tunuvâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "skau̯θai̯š",
+    "signs": "sa-ka-u-θa-i-ša",
+    "kent": "skauthaiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "rādī",
+    "signs": "ra-a-di-i-ya",
+    "kent": "râdiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "miθa",
+    "signs": "mi-i-θa",
+    "kent": "mitha",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kariyai̯š",
+    "signs": "ka-ra-i-ya-i-ša",
+    "kent": "kariyaiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "rāstam",
+    "signs": "ra-a-sa-ta-ma",
+    "kent": "râstam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ava",
+    "signs": "a-va",
+    "kent": "ava",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mām",
+    "signs": "ma-a-ma",
+    "kent": "mâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kāma",
+    "signs": "ka-a-ma",
+    "kent": "kâma",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiyam",
+    "signs": "ma-ra-ta-i-ya-ma",
+    "kent": "martiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "drau̯janam",
+    "signs": "da-ra-u-ja-na-ma",
+    "kent": "draujanam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nai̯",
+    "signs": "na-i-ya",
+    "kent": "naiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dau̯štā",
+    "signs": "da-u-ša-ta-a",
+    "kent": "dauštâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ami",
+    "signs": "a-mi-i-ya",
+    "kent": "amiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nai̯",
+    "signs": "na-i-ya",
+    "kent": "naiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mana.uvīš",
+    "signs": "ma-na-u-vi-i-ša",
+    "kent": "manauviš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ami",
+    "signs": "a-mi-i-ya",
+    "kent": "amiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yacimai̯",
+    "signs": "ya-ca-i-ma-i-ya",
+    "kent": "tyâmaiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "pṛtanayā",
+    "signs": "pa-ra-ta-na-ya-a",
+    "kent": "dartanayâ",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "bavati",
+    "signs": "ba-va-ta-i-ya",
+    "kent": "bavatiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dṛšam",
+    "signs": "da-ra-ša-ma",
+    "kent": "daršam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dārayāmi",
+    "signs": "da-a-ra-ya-a-mi-i-ya",
+    "kent": "dârayâmiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "manahā",
+    "signs": "ma-na-ha-a",
+    "kent": "manahâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "uvai̯pašiyahyā",
+    "signs": "u-va-i-pa-ša-i-ya-ha-ya-a",
+    "kent": "uvaipašiyahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dṛšam",
+    "signs": "da-ra-ša-ma",
+    "kent": "daršam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšayamna",
+    "signs": "xa-ša-ya-ma-na",
+    "kent": "xšayamna",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ami",
+    "signs": "a-mi-i-ya",
+    "kent": "amiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiya",
+    "signs": "ma-ra-ta-i-ya",
+    "kent": "martiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hantaxšatai̯",
+    "signs": "ha-ta-xa-ša-ta-i-ya",
+    "kent": "hataxšataiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "anudim",
+    "signs": "a-nu-u-di-i-ma",
+    "kent": "anudim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hankṛtahyā",
+    "signs": "ha-ka-ra-ta-ha-ya-a",
+    "kent": "hakartahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "avaθā",
+    "signs": "a-va-θa-a",
+    "kent": "avathâdim",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "paribarāmi",
+    "signs": "pa-ra-i-ba-ra-a-mi-i-ya",
+    "kent": "paribarâmiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vināθayati",
+    "signs": "vi-i-na-a-θa-ya-ta-i-ya",
+    "kent": "vinâithayatiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "anudim",
+    "signs": "a-nu-u-di-i-ma",
+    "kent": "anudim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vinastahyā",
+    "signs": "vi-i-na-sa-ta-ha-ya-a",
+    "kent": "vinastahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "avaθā",
+    "signs": "a-va-θa-a",
+    "kent": "avathâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pṛsāmi",
+    "signs": "pa-ra-sa-a-mi-i-ya",
+    "kent": "parsâmiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nai̯mā",
+    "signs": "na-i-ma-a",
+    "kent": "naimâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kāma",
+    "signs": "ka-a-ma",
+    "kent": "kâma",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiya",
+    "signs": "ma-ra-ta-i-ya",
+    "kent": "martiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vināθayai̯š",
+    "signs": "vi-i-na-a-θa-ya-i-ša",
+    "kent": "vinâthayais",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "nai̯patimā",
+    "signs": "na-i-pa-ta-i-ma-a",
+    "kent": "naipatimâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ava",
+    "signs": "a-va",
+    "kent": "ava",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kāma",
+    "signs": "ka-a-ma",
+    "kent": "kâma",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yadi",
+    "signs": "ya-di-i-ya",
+    "kent": "yadiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vināθayai̯š",
+    "signs": "vi-i-na-a-θa-ya-i-ša",
+    "kent": "vinâthayaiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nai̯",
+    "signs": "na-i-ya",
+    "kent": "naiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "fraθiyai̯š",
+    "signs": "fa-ra-θa-i-ya-i-ša",
+    "kent": "frathiyaiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "martiya",
+    "signs": "ma-ra-ta-i-ya",
+    "kent": "martiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pari",
+    "signs": "pa-ra-i-ya",
+    "kent": "patiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "martiyam",
+    "signs": "ma-ra-ta-i-ya-ma",
+    "kent": "martiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": "thâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ava",
+    "signs": "a-va",
+    "kent": "ava",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mām",
+    "signs": "ma-a-ma",
+    "kent": "mâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nai̯",
+    "signs": "na-i-ya",
+    "kent": "naiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vṛnavātai̯",
+    "signs": "va-ra-na-va-a-ta-i-ya",
+    "kent": "varnavataiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "yātā",
+    "signs": "ya-a-ta-a",
+    "kent": "yâtâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ubānām",
+    "signs": "u-ba-a-na-a-ma",
+    "kent": "uradanâm",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "handugām",
+    "signs": "ha-du-u-ga-a-ma",
+    "kent": "hadugâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "āxšnavai̯",
+    "signs": "a-xa-ša-na-va-i-ya",
+    "kent": "âxšnautiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "martiya",
+    "signs": "ma-ra-ta-i-ya",
+    "kent": "martiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kunau̯ti",
+    "signs": "ku-u-na-u-ta-i-ya",
+    "kent": "kunautiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yadivā",
+    "signs": "ya-di-i-va-a",
+    "kent": "yadivâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ābarati",
+    "signs": "a-ba-ra-ta-i-ya",
+    "kent": "âbaratiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "anu",
+    "signs": "a-nu-u-va",
+    "kent": "anuv",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tau̯manīšai̯",
+    "signs": "ta-u-ma-na-i-ša-i-ya",
+    "kent": "taumanišaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "avanā",
+    "signs": "a-va-na-a",
+    "kent": null,
+    "basis": "rule",
+    "class": "READ"
+   },
+   {
+    "ario": "xšnuta",
+    "signs": "xa-ša-nu-u-ta",
+    "kent": "xšnuta",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "bavāmi",
+    "signs": "ba-va-a-mi-i-ya",
+    "kent": "amiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mām",
+    "signs": "ma-a-ma",
+    "kent": "mâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vasai̯",
+    "signs": "va-sa-i-ya",
+    "kent": "vasiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kāma",
+    "signs": "ka-a-ma",
+    "kent": "kâma",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "uθanduš",
+    "signs": "u-θa-du-u-ša",
+    "kent": "uxšnauš",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "ami",
+    "signs": "a-mi-i-ya",
+    "kent": "amiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": null,
+    "basis": "rule",
+    "class": "READ"
+   },
+   {
+    "ario": "vasai̯",
+    "signs": "va-sa-i-ya",
+    "kent": null,
+    "basis": "rule",
+    "class": "READ"
+   },
+   {
+    "ario": "dadāmi",
+    "signs": "da-da-a-mi-i-ya",
+    "kent": null,
+    "basis": "rule",
+    "class": "READ"
+   },
+   {
+    "ario": "agriyānām",
+    "signs": "a-ga-ra-i-ya-a-na-a-ma",
+    "kent": null,
+    "basis": "rule",
+    "class": "READ"
+   },
+   {
+    "ario": "martiyānām",
+    "signs": "ma-ra-ta-i-ya-a-na-a-ma",
+    "kent": null,
+    "basis": "rule",
+    "class": "READ"
+   },
+   {
+    "ario": "avākaram-ci-mai̯",
+    "signs": "a-va-a-ka-ra-ma-ca-i-ma-i-ya",
+    "kent": "avâkaramcamaiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "ušī",
+    "signs": "u-ša-i-ya",
+    "kent": "ušîy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "framānā",
+    "signs": "fa-ra-ma-a-na-a",
+    "kent": "framânâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yaθāmai̯",
+    "signs": "ya-θa-a-ma-i-ya",
+    "kent": "yathâmaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "kent": "kartam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vai̯nāhi",
+    "signs": "va-i-na-a-ha-ya",
+    "kent": "vainâhy",
+    "basis": "kent",
+    "class": "GLIDE",
+    "why": "a written glide (i/y/v) the normalised transcription does not carry"
+   },
+   {
+    "ario": "yadivā",
+    "signs": "ya-di-i-va-a",
+    "kent": "yadivâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "āxšnavāhai̯",
+    "signs": "a-xa-ša-na-va-a-ha-ya",
+    "kent": "âxšnavâhy",
+    "basis": "kent",
+    "div": false,
+    "class": "GLIDE",
+    "why": "a written glide (i/y/v) the normalised transcription does not carry"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "viθiyā",
+    "signs": "vi-i-θa-i-ya-a",
+    "kent": "vithiyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "uta",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "spāyantiyāyā",
+    "signs": "sa-pa-a-ya-ta-i-ya-a-ya-a",
+    "kent": "spâthmaidayâ",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "ai̯tamai̯",
+    "signs": "a-i-ta-ma-i-ya",
+    "kent": "aitamaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "aruvastam",
+    "signs": "a-ru-u-va-sa-ta-ma",
+    "kent": "aruvastam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "upari",
+    "signs": "u-pa-ra-i-ya",
+    "kent": "upariy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "manašcā",
+    "signs": "ma-na-ša-ca-a",
+    "kent": "manašcâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ušīcā",
+    "signs": "u-ša-i-ca-a",
+    "kent": "ušîcâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imapatimai̯",
+    "signs": "i-ma : pa-ta-i-ma-i-ya",
+    "kent": "ima patimaiy",
+    "basis": "kent",
+    "class": "GLIDE",
+    "why": "the same signs, divided as in Kent"
+   },
+   {
+    "ario": "aruvastam",
+    "signs": "a-ru-u-va-sa-ta-ma",
+    "kent": "aruvastam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayamai̯",
+    "signs": "ta-ya-ma-i-ya",
+    "kent": "tyamaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tanūš",
+    "signs": "ta-nu-u-ša",
+    "kent": "tanûš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tāvayati",
+    "signs": "ta-a-va-ya-ta-i-ya",
+    "kent": "tâvayatiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hamaranakara",
+    "signs": "ha-ma-ra-na-ka-ra",
+    "kent": "hamaranakara",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ami",
+    "signs": "a-mi-i-ya",
+    "kent": "amiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ušhamaranakara",
+    "signs": "u-ša-ha-ma-ra-na-ka-ra",
+    "kent": "ušhamaranakara",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hakarammai̯",
+    "signs": "ha-ka-ra-ma-ma-i-ya",
+    "kent": "hakaramciy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "ušiyā",
+    "signs": "u-ša-i-ya-a",
+    "kent": "ušîyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "gāθavā",
+    "signs": "ga-a-θa-va-a",
+    "kent": "gâthavâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hištanti",
+    "signs": "ha-i-ša-ta-ta-i-ya",
+    "kent": "vainâtaiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "yaci",
+    "signs": "ya-ca-i-ya",
+    "kent": "yaciy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vai̯nāmi",
+    "signs": "va-i-na-a-mi-i-ya",
+    "kent": "vainâmiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hamiçiyam",
+    "signs": "ha-mi-i-ça-i-ya-ma",
+    "kent": "hamiçiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yaci",
+    "signs": "ya-ca-i-ya",
+    "kent": "yaciy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nai̯",
+    "signs": "na-i-ya",
+    "kent": "naiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vai̯nāmi",
+    "signs": "va-i-na-a-mi-i-ya",
+    "kent": "vainâmiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ušībiyā",
+    "signs": "u-ša-i-ba-i-ya-a",
+    "kent": "ušîbiyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "framānāyā",
+    "signs": "fa-ra-ma-a-na-a-ya-a",
+    "kent": "framânâyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adakai̯",
+    "signs": "a-da-ka-i-ya",
+    "kent": "adakaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "fratara",
+    "signs": "fa-ra-ta-ra",
+    "kent": "fratara",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "maniyai̯",
+    "signs": "ma-na-i-ya-i-ya",
+    "kent": "maniyaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "afuvāyā",
+    "signs": "a-fa-u-va-a-ya-a",
+    "kent": "aruvâyâ",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "yadi",
+    "signs": "ya-di-i-ya",
+    "kent": "yadiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vai̯nāmi",
+    "signs": "va-i-na-a-mi-i-ya",
+    "kent": "vainâmiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hamiçiyam",
+    "signs": "ha-mi-i-ça-i-ya-ma",
+    "kent": "hamiçiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yaθā",
+    "signs": "ya-θa-a",
+    "kent": "yathâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yadi",
+    "signs": "ya-di-i-ya",
+    "kent": "yadiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nai̯",
+    "signs": "na-i-ya",
+    "kent": "naiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vai̯nāmi",
+    "signs": "va-i-na-a-mi-i-ya",
+    "kent": "vainâmiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ya.u̯mai̯niš",
+    "signs": "ya-u-ma-i-na-i-ša",
+    "kent": "yâumainiš",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "ami",
+    "signs": "a-mi-i-ya",
+    "kent": "amiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dastai̯biyā",
+    "signs": "da-sa-ta-i-ba-i-ya-a",
+    "kent": "dastaibiyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pādai̯biyā",
+    "signs": "pa-a-da-i-ba-i-ya-a",
+    "kent": "pâdaibiyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "asabāra",
+    "signs": "a-sa-ba-a-ra",
+    "kent": "asabâra",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "uvasabāra",
+    "signs": "u-va-sa-ba-a-ra",
+    "kent": "uvâsabâra",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "ami",
+    "signs": "a-mi-i-ya",
+    "kent": "amiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θanuvaniya",
+    "signs": "θa-nu-u-va-na-i-ya",
+    "kent": "thanuvaniya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "uθanuvaniya",
+    "signs": "u-θa-nu-u-va-na-i-ya",
+    "kent": "uthanuvaniya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ami",
+    "signs": "a-mi-i-ya",
+    "kent": "amiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pastiš",
+    "signs": "pa-sa-ta-i-ša",
+    "kent": "pastiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "asabāra",
+    "signs": "a-sa-ba-a-ra",
+    "kent": "asabâra",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ṛštika",
+    "signs": "a-ra-ša-ta-i-ka",
+    "kent": "ârštika",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ami",
+    "signs": "a-mi-i-ya",
+    "kent": "amiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "uvṛštika",
+    "signs": "u-va-a-ra-ša-ta-i-ka",
+    "kent": "uvârštika",
+    "basis": "kent",
+    "class": "READ",
+    "why": "override: a compound (hu- + ṛštika): the second member's initial ṛ is written a-r, as in Xšaya-ṛšā (xa-ša-ya-a-ra-ša-a) and in ṛštika itself (a-ra-ša-ta-i-ka); Schmitt's uvṛštika does not show the a sign, the rule speller cannot see the compound, Kent's uvārštika (u-va-a-ra-ša-ta-i-ka) does"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pastiš",
+    "signs": "pa-sa-ta-i-ša",
+    "kent": "pastiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "asabāra",
+    "signs": "a-sa-ba-a-ra",
+    "kent": "asabâra",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imā",
+    "signs": "i-ma-a",
+    "kent": "utâ",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "ūnarā",
+    "signs": "u-va-na-ra-a",
+    "kent": "ûvnarâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayā",
+    "signs": "ta-ya-a",
+    "kent": "tyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "upari",
+    "signs": "u-pa-ra-i-ya",
+    "kent": "upariy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mām",
+    "signs": "ma-a-ma",
+    "kent": "mâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "niyasaya",
+    "signs": "na-i-ya-sa-ya",
+    "kent": "nîyasaya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utādiš",
+    "signs": "u-ta-a-di-i-ša",
+    "kent": "utâdiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "atāvayam",
+    "signs": "a-ta-a-va-ya-ma",
+    "kent": "atâvayam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "bartanai̯",
+    "signs": "ba-ra-ta-na-i-ya",
+    "kent": "bartanaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vašnā",
+    "signs": "va-ša-na-a",
+    "kent": "vašnâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "kent": "Auramazdâhâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayamai̯",
+    "signs": "ta-ya-ma-i-ya",
+    "kent": "tyamaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "kent": "kartam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imai̯biš",
+    "signs": "i-ma-i-ba-i-ša",
+    "kent": "imaibiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ūnarai̯biš",
+    "signs": "u-va-na-ra-i-ba-i-ša",
+    "kent": "ûvnaraibiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "kent": "akunavam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayā",
+    "signs": "ta-ya-a",
+    "kent": "tyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mām",
+    "signs": "ma-a-ma",
+    "kent": "mâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "upari",
+    "signs": "u-pa-ra-i-ya",
+    "kent": "upariy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "niyasaya",
+    "signs": "na-i-ya-sa-ya",
+    "kent": "nîyasaya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "marikā",
+    "signs": "ma-ra-i-ka-a",
+    "kent": "marîkâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dṛšam",
+    "signs": "da-ra-ša-ma",
+    "kent": "daršam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "azdā",
+    "signs": "a-za-da-a",
+    "kent": "azdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kušuvā",
+    "signs": "ku-u-ša-u-va-a",
+    "kent": "kušuvâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ciyākaram",
+    "signs": "ca-i-ya-a-ka-ra-ma",
+    "kent": "ciyâkaram",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ahi",
+    "signs": "a-ha-i-ya",
+    "kent": "amiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "ciyākaramtai̯",
+    "signs": "ca-i-ya-a-ka-ra-ma-ta-i-ya",
+    "kent": "ciyâkaramcamaiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "ūnarā",
+    "signs": "u-va-na-ra-a",
+    "kent": "ûvnarâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ciyākaramtai̯",
+    "signs": "ca-i-ya-a-ka-ra-ma-ta-i-ya",
+    "kent": "ciyâkaramcamaiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "parīyanam",
+    "signs": "pa-ra-i-ya-na-ma",
+    "kent": "pariyanam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mātai̯",
+    "signs": "ma-a-ta-i-ya",
+    "kent": "mâtaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ava",
+    "signs": "a-va",
+    "kent": null,
+    "basis": "rule",
+    "class": "READ"
+   },
+   {
+    "ario": "vahištam",
+    "signs": "va-ha-i-ša-ta-ma",
+    "kent": "duruxtam",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "θadaya",
+    "signs": "θa-da-ya",
+    "kent": "thadaya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayatai̯",
+    "signs": "ta-ya-ta-i-ya",
+    "kent": "tyataiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "gau̯šāyā",
+    "signs": "ga-u-ša-a-ya-a",
+    "kent": "gaušâyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θanhyāti",
+    "signs": "θa-ha-ya-a-ta-i-ya",
+    "kent": "xšnnutam",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "avašci",
+    "signs": "a-va-ša-ca-i-ya",
+    "kent": "avašciy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "āxšnudi",
+    "signs": "a-xa-ša-nu-u-di-i-ya",
+    "kent": "âxšnudiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "paratar",
+    "signs": "pa-ra-ta-ra",
+    "kent": "partamtaiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "θanhyāti",
+    "signs": "θa-ha-ya-a-ta-i-ya",
+    "kent": "astiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "marikā",
+    "signs": "ma-ra-i-ka-a",
+    "kent": "marîkâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mātai̯",
+    "signs": "ma-a-ta-i-ya",
+    "kent": "mâtaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ava",
+    "signs": "a-va",
+    "kent": "avašciy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "nai̯bam",
+    "signs": "na-i-ba-ma",
+    "kent": null,
+    "basis": "rule",
+    "class": "READ"
+   },
+   {
+    "ario": "θadaya",
+    "signs": "θa-da-ya",
+    "kent": null,
+    "basis": "rule",
+    "class": "READ"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "duruxtam",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "x",
+    "signs": "x",
+    "kent": null,
+    "basis": "rule",
+    "class": "READ"
+   },
+   {
+    "ario": "x",
+    "signs": "x",
+    "kent": null,
+    "basis": "rule",
+    "class": "READ"
+   },
+   {
+    "ario": "kunavāti",
+    "signs": "ku-u-na-va-a-ta-i-ya",
+    "kent": "kunavâtaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "kent": "tya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "skau̯θai̯š",
+    "signs": "sa-ka-u-θa-i-ša",
+    "kent": "kartam",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "kunavāti",
+    "signs": "ku-u-na-va-a-ta-i-ya",
+    "kent": "astîy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "avašci",
+    "signs": "a-va-ša-ca-i-ya",
+    "kent": "avašciy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dīdi",
+    "signs": "di-i-di-i-ya",
+    "kent": "dîdiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "marikā",
+    "signs": "ma-ra-i-ka-a",
+    "kent": "yaciy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "x",
+    "signs": "x",
+    "kent": "nipištam",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "mā",
+    "signs": "ma-a",
+    "kent": "mâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "patiyātaya",
+    "signs": "pa-ta-i-ya-a-ta-ya",
+    "kent": "taiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "a-x",
+    "signs": "a-x",
+    "kent": "dâtâ",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "māpati",
+    "signs": "ma-a-pa-ta-i-ya",
+    "kent": "mâ",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "šiyātiyā",
+    "signs": "ša-i-ya-a-ta-i-ya-a",
+    "kent": "++++++âtiyâ",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "ayā.umai̯niš",
+    "signs": "a-ya-a-u-ma-i-na-i-ša",
+    "kent": "ayâu(ma)iniš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "bavāhi",
+    "signs": "ba-va-a-ha-i-ya",
+    "kent": "bavâtiy",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "x-di-i-y",
+    "signs": "x-di-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "mā",
+    "signs": "ma-a",
+    "kent": "mâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "raxθantu",
+    "signs": "ra-xa-θa-tu-u-va",
+    "kent": "raxthatuv",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "x-i-y",
+    "signs": "x-i-ya",
+    "kent": "+++++++++++++++ina",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   }
+  ],
+  "op_lined": true
+ },
+ "DPa": {
+  "ario": "Q007157",
+  "op_translit": "Dārayava.uš xšāyaθiya vazṛka xšāyaθiya xšāyaθiyānām xšāyaθiya dahyunām Vištāspahyā puça Haxāmanišiya haya imam tacaram akunau̯š",
+  "el_atf": "{DIŠ}da-ri-ia-ma-u-iš {DIŠ}EŠŠANA ir-ša₂ ir-ra {DIŠ}EŠŠANA {DIŠ}EŠŠANA-ip-in-na {DIŠ}EŠŠANA {DIŠ}da-a-u₂-iš-pe₃-na {DIŠ}mi-is₂-pa₂-za-na aš₂-pe₃-na {DIŠ}mi-iš-ta₂-as₂-pa₂ {DIŠ}ša₂-ak ri {DIŠ}ha-ak-ka₄-man-nu-ši-ia ak-ka₄ hi {AŠ}ta₂-iz-za-ra-um hu-ut-taš-ta₂",
+  "el_cuneiform": "𒁹𒁕𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒅕𒃻 𒅕𒊏 𒁹𒁹𒁹𒁹𒎙 𒁹𒁹𒁹𒁹𒎙𒅁𒅔𒈾 𒁹𒁹𒁹𒁹𒎙 𒁹𒁕𒀀𒌑𒅖𒁁𒈾 𒁹𒈪𒅖𒁀𒍝𒈾 𒀾𒁁𒈾 𒁹𒈪𒅖𒁕𒀾𒁀 𒁹𒃻𒀝 𒊑 𒁹𒄩𒀝𒋡𒎙𒉡𒅆𒅀 𒀝𒋡 𒄭 𒀸𒁕𒄑𒍝𒊏𒌝 𒄷𒌓𒌨𒁕",
+  "el_unmapped": [],
+  "bab_atf": "{m}da-ri-ia-a-muš LUGAL GAL-u₂ LUGAL LUGAL.MEŠ LUGAL KUR.KUR.MEŠ ša₂ nap-ha-ri li-ša₂-nu gab-bi A {m}uš-ta-as-pa {m}a-ha-ma-an-ni-iš-ši-ʾ ša₂ E₂ a-ga-a i-pu-uš",
+  "bab_cuneiform": "𒁹𒁕𒊑𒅀𒀀𒈲 𒈗 𒃲𒌑 𒈗 𒈗𒎌 𒈗 𒆳𒆳𒎌 𒃻 𒀮𒄩𒊑 𒇷𒃻𒉡 𒃮𒁉 𒀀 𒁹𒍑𒋫𒊍𒉺 𒁹𒀀𒄩𒈠𒀭𒉌𒅖𒅆𒀪 𒃻 𒂍 𒀀𒂵𒀀 𒄿𒁍𒍑",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "B where the rule spelling of the ARIo word and Kent's transliteration agree, else as op_words.basis (D-165)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (Kent's lineation via the Livius copy)"
+  },
+  "op_signs": [
+   "da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya :",
+   "va-za-ra-ka : xa-ša-a-ya-θa-i-ya : xa-ša-a",
+   "ya-θa-i-ya-a-na-a-ma : xa-ša-a-ya-θa-i-ya :",
+   "da-ha-ya-u-na-a-ma : vi-i-ša-ta-a-sa-pa-ha-ya",
+   "a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya : ha",
+   "ya : i-ma-ma : ta-ca-ra-ma : a-ku-u-na-u-ša"
+  ],
+  "op_words": [
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "da-a-ra-ya-va-u-ša",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xa-ša-a-ya-tha-i-ya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "va-za-ra-ka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xa-ša-a-ya-tha-i-ya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "kent": "xa-ša-a-ya-tha-i-ya-a-na-a-ma",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xa-ša-a-ya-tha-i-ya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dahyunām",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "kent": "da-ha-ya-u-na-a-ma",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Vištāspahyā",
+    "signs": "vi-i-ša-ta-a-sa-pa-ha-ya-a",
+    "kent": "vi-i-ša-ta-a-sa-pa-ha-ya-a",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "puça",
+    "signs": "pa-u-ça",
+    "kent": "pa-u-ça",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "kent": "ha-xa-a-ma-na-i-ša-i-ya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "haya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imam",
+    "signs": "i-ma-ma",
+    "kent": "i-ma-ma",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tacaram",
+    "signs": "ta-ca-ra-ma",
+    "kent": "ta-ça-ra-ma",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "akunau̯š",
+    "signs": "a-ku-u-na-u-ša",
+    "kent": "a-ku-u-na-u-ša",
+    "basis": "rule=kent"
+   }
+  ],
+  "op_lined": true
+ },
+ "DPb": {
+  "ario": "Q007158",
+  "op_translit": "Dārayava.uš xšāyaθiya vazṛka Vištāspahyā puça Haxāmanišiya",
+  "el_atf": "{DIŠ}da-ri-ia-ma-u-iš {DIŠ}EŠŠANA ir-ša₂-ir-ra {DIŠ}mi-iš ta₂-as₂-pa₂ {DIŠ}ša₂-ak-ri {DIŠ}ha-ak-ka₄-man-nu-ši-ia",
+  "el_cuneiform": "𒁹𒁕𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒅕𒃻𒅕𒊏 𒁹𒈪𒅖 𒁕𒀾𒁀 𒁹𒃻𒀝𒊑 𒁹𒄩𒀝𒋡𒎙𒉡𒅆𒅀",
+  "el_unmapped": [],
+  "bab_atf": "{m}da-ri-ia-a-muš LUGAL GAL-u₂ A {m}uš-ta-as-pa {m}a-ha-ma-an-niš-ši-ʾ",
+  "bab_cuneiform": "𒁹𒁕𒊑𒅀𒀀𒈲 𒈗 𒃲𒌑 𒀀 𒁹𒍑𒋫𒊍𒉺 𒁹𒀀𒄩𒈠𒀭𒎙𒅆𒀪",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "B where the rule spelling of the ARIo word and Kent's transliteration agree, else as op_words.basis (D-165)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (Kent's lineation via the Livius copy)"
+  },
+  "op_signs": [
+   "da-a-ra-ya-va-u-ša : xa-ša-a-ya",
+   "θa-i-ya : va-za-ra-ka : vi-i-ša",
+   "ta-a-sa-pa-ha-ya-a : pa-u-ça",
+   ": ha-xa-a-ma-na-i-ša-i-ya :"
+  ],
+  "op_words": [
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "Dârayavauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Vištāspahyā",
+    "signs": "vi-i-ša-ta-a-sa-pa-ha-ya-a",
+    "kent": "Vištâspahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "puça",
+    "signs": "pa-u-ça",
+    "kent": "puça",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "kent": "Haxâmanišiya",
+    "basis": "rule=kent"
+   }
+  ],
+  "op_lined": true
+ },
+ "DPc": {
+  "ario": "Q007159",
+  "op_translit": "ardastāna aθangai̯na Dārayavahau̯š xšāyaθiyahyā viθiyā kṛta",
+  "el_atf": "har-da-is₂-ta₂-na {AŠ}mur.MEŠ-in-na {DIŠ}da-ri-ia-ma-u-iš {DIŠ}EŠŠANA {AŠ}ul-hi.MEŠ-e-ma hu-ut-tuk-ka₄",
+  "el_cuneiform": "𒄯𒁕𒅖𒁕𒈾 𒀸𒄯𒎌𒅔𒈾 𒁹𒁕𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒀸𒌌𒄭𒎌𒂊𒈠 𒄷𒌓𒌇𒋡",
+  "el_unmapped": [],
+  "bab_atf": "ku-bu-ur-ri-e {NA₄}ga-la-la i-na bi-it {m}da-ri-ia-a-muš šar-ri ep-šu-ʾ",
+  "bab_cuneiform": "𒆪𒁍𒌨𒊑𒂊 𒎎𒂵𒆷𒆷 𒄿𒈾 𒁉𒀉 𒁹𒁕𒊑𒅀𒀀𒈲 𒊬𒊑 𒅁𒋗𒀪",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "C (Kent's rules on the ARIo word; no graphemic witness read, D-165)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "C (no lineation read)"
+  },
+  "op_signs": [
+   "a-ra-da-sa-ta-a-na : a-θa-ga-i-na : da-a-ra-ya-va-ha-u-ša : xa-ša-a-ya-θa-i-ya-ha-ya-a : vi-i-θa-i-ya-a : ka-ra-ta"
+  ],
+  "op_words": [
+   {
+    "ario": "ardastāna",
+    "signs": "a-ra-da-sa-ta-a-na",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "aθangai̯na",
+    "signs": "a-θa-ga-i-na",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "signs": "xa-ša-a-ya-θa-i-ya-ha-ya-a",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "viθiyā",
+    "signs": "vi-i-θa-i-ya-a",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   },
+   {
+    "ario": "kṛta",
+    "signs": "ka-ra-ta",
+    "kent": null,
+    "basis": "rule (no Kent copy)"
+   }
+  ],
+  "op_lined": false
+ },
+ "DPd": {
+  "ario": "Q007160",
+  "op_translit": "A.uramazdā vazṛka haya maθišta bagānām hau̯ Dārayava.um xšāyaθiyam adadā hau̯šai̯ xšaçam frābara vašnā A.uramazdāhā Dārayava.uš xšāyaθiya θāti Dārayava.uš xšāyaθiya iyam dahyāu̯š Pārsa tayām manā A.uramazdā frābara hayā nai̯bā uvaspā umartiyā vašnā A.uramazdāhā manacā Dārayavahau̯š xšāyaθiyahyā hacā aniyanā nai̯ tṛsanti θāti Dārayava.uš xšāyaθiya manā A.uramazdā upastām baratu hadā visai̯biš bagai̯biš utā imām dahyāu̯m A.uramazdā pātu hacā hai̯nāyā hacā dušiyārā hacā drau̯gā abi imām dahyāu̯m mā ājamiyā mā hai̯nā mā dušiyāram mā drau̯ga ai̯ta adam yānam jadiyāmi A.uramazdām hadā visai̯biš bagai̯biš ai̯tamai̯ yānam A.uramazdā dadātu hadā visai̯biš bagai̯biš",
+  "el_atf": "",
+  "el_cuneiform": "",
+  "el_unmapped": [],
+  "bab_atf": "",
+  "bab_cuneiform": "",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "B where the rule spelling of the ARIo word and Kent's transliteration agree, else as op_words.basis (D-165)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (Kent's lineation via the Livius copy)"
+  },
+  "op_signs": [
+   "a-u-ra-ma-za-da-a : va-za-ra-ka : ha-ya : ma-θa-i-ša-ta : ba-ga",
+   "a-na-a-ma : ha-u-va : da-a-ra-ya-va-u-ma : xa-ša-a-ya-θa-i",
+   "ya-ma : a-da-da-a : ha-u-ša-i-ya : xa-ša-ça-ma : fa-ra-a-ba",
+   "ra : va-ša-na-a : a-u-ra-ma-za-da-a-ha-a : da-a-ra-ya-va-u",
+   "ša : xa-ša-a-ya-θa-i-ya : θa-a-ta-i-ya : da-a-ra-ya-va-u-ša :",
+   "xa-ša-a-ya-θa-i-ya : i-ya-ma : da-ha-ya-a-u-ša : pa-a-ra",
+   "sa : ta-ya-a-ma : ma-na-a : a-u-ra-ma-za-da-a : fa-ra-a-ba",
+   "ra : ha-ya-a : na-i-ba-a : u-va-sa-pa-a : u-ma-ra-ta-i",
+   "ya-a : va-ša-na-a : a-u-ra-ma-za-da-a-ha-a : ma-na-ca",
+   "a : da-a-ra-ya-va-ha-u-ša : xa-ša-a-ya-θa-i-ya-ha-ya",
+   "a : ha-ca-a : a-na-i-ya-na-a : na-i-ya : ta-ra-sa-ta",
+   "i-ya : θa-a-ta-i-ya : da-a-ra-ya-va-u-ša : xa-ša-a-ya",
+   "θa-i-ya : ma-na-a : a-u-ra-ma-za-da-a : u-pa-sa-ta-a-ma :",
+   "ba-ra-tu-u-va : ha-da-a : vi-i-sa-i-ba-i-ša : ba-ga-i",
+   "ba-i-ša : u-ta-a : i-ma-a-ma : da-ha-ya-a-u-ma : a-u-ra",
+   "ma-za-da-a : pa-a-tu-u-va : ha-ca-a : ha-i-na-a-ya",
+   "a : ha-ca-a : du-u-ša-i-ya-a-ra-a : ha-ca-a : da-ra",
+   "u-ga-a : a-ba-i-ya : i-ma-a-ma : da-ha-ya-a-u-ma : ma-a",
+   ": a-ja-mi-i-ya-a : ma-a : ha-i-na-a : ma-a : du-u-ša",
+   "i-ya-a-ra-ma : ma-a : da-ra-u-ga : a-i-ta : a-da-ma :",
+   "ya-a-na-ma : ja-di-i-ya-a-mi-i-ya : a-u-ra-ma-za-da",
+   "a-ma : ha-da-a : vi-i-sa-i-ba-i-ša : ba-ga-i-ba-i-ša : a",
+   "i-ta-ma-i-ya : ya-a-na-ma : a-u-ra-ma-za-da-a : da-da-a-tu",
+   "u-va : ha-da-a vi-i-sa-i-ba-i-ša : ba-ga-i-ba-i-ša :"
+  ],
+  "op_words": [
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "kent": "hya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "maθišta",
+    "signs": "ma-θa-i-ša-ta",
+    "kent": "mathišta",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "bagānām",
+    "signs": "ba-ga-a-na-a-ma",
+    "kent": "bagânâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hau̯",
+    "signs": "ha-u-va",
+    "kent": "hauv",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.um",
+    "signs": "da-a-ra-ya-va-u-ma",
+    "kent": "Dârayavaum",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "kent": "xšâyathiyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adadā",
+    "signs": "a-da-da-a",
+    "kent": "adadâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hau̯šai̯",
+    "signs": "ha-u-ša-i-ya",
+    "kent": "haušaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšaçam",
+    "signs": "xa-ša-ça-ma",
+    "kent": "xšaçam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "frābara",
+    "signs": "fa-ra-a-ba-ra",
+    "kent": "frâbara",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vašnā",
+    "signs": "va-ša-na-a",
+    "kent": "vašnâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "kent": "Auramazdâhâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "Dârayavauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": "thâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "Dârayavauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "iyam",
+    "signs": "i-ya-ma",
+    "kent": "iyam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dahyāu̯š",
+    "signs": "da-ha-ya-a-u-ša",
+    "kent": "dahyâuš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Pārsa",
+    "signs": "pa-a-ra-sa",
+    "kent": "Pârsa",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayām",
+    "signs": "ta-ya-a-ma",
+    "kent": "tyâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "manā",
+    "signs": "ma-na-a",
+    "kent": "manâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "frābara",
+    "signs": "fa-ra-a-ba-ra",
+    "kent": "frâbara",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hayā",
+    "signs": "ha-ya-a",
+    "kent": "hyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nai̯bā",
+    "signs": "na-i-ba-a",
+    "kent": "naibâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "uvaspā",
+    "signs": "u-va-sa-pa-a",
+    "kent": "uvaspâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "umartiyā",
+    "signs": "u-ma-ra-ta-i-ya-a",
+    "kent": "umartiyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vašnā",
+    "signs": "va-ša-na-a",
+    "kent": "vašnâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "kent": "Auramazdâhâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "manacā",
+    "signs": "ma-na-ca-a",
+    "kent": "manacâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "kent": "Dârayavahauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "signs": "xa-ša-a-ya-θa-i-ya-ha-ya-a",
+    "kent": "xšâyathiyahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hacā",
+    "signs": "ha-ca-a",
+    "kent": "hacâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "aniyanā",
+    "signs": "a-na-i-ya-na-a",
+    "kent": "aniyanâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nai̯",
+    "signs": "na-i-ya",
+    "kent": "naiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tṛsanti",
+    "signs": "ta-ra-sa-ta-i-ya",
+    "kent": "tarsatiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": "thâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "Dârayavauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "manā",
+    "signs": "ma-na-a",
+    "kent": "manâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "upastām",
+    "signs": "u-pa-sa-ta-a-ma",
+    "kent": "upastâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "baratu",
+    "signs": "ba-ra-tu-u-va",
+    "kent": "baratuv",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hadā",
+    "signs": "ha-da-a",
+    "kent": "hadâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "visai̯biš",
+    "signs": "vi-i-sa-i-ba-i-ša",
+    "kent": "vithaibiš",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "bagai̯biš",
+    "signs": "ba-ga-i-ba-i-ša",
+    "kent": "bagaibiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imām",
+    "signs": "i-ma-a-ma",
+    "kent": "imâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dahyāu̯m",
+    "signs": "da-ha-ya-a-u-ma",
+    "kent": "dahyâum",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazda",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "pātu",
+    "signs": "pa-a-tu-u-va",
+    "kent": "pâtuv",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hacā",
+    "signs": "ha-ca-a",
+    "kent": "hacâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hai̯nāyā",
+    "signs": "ha-i-na-a-ya-a",
+    "kent": "hainâyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hacā",
+    "signs": "ha-ca-a",
+    "kent": "hacâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dušiyārā",
+    "signs": "du-u-ša-i-ya-a-ra-a",
+    "kent": "dušiyârâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hacā",
+    "signs": "ha-ca-a",
+    "kent": "hacâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "drau̯gā",
+    "signs": "da-ra-u-ga-a",
+    "kent": "draugâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "abi",
+    "signs": "a-ba-i-ya",
+    "kent": "abiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imām",
+    "signs": "i-ma-a-ma",
+    "kent": "imâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dahyāu̯m",
+    "signs": "da-ha-ya-a-u-ma",
+    "kent": "dahyâum",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mā",
+    "signs": "ma-a",
+    "kent": "mâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ājamiyā",
+    "signs": "a-ja-mi-i-ya-a",
+    "kent": "âjamiyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mā",
+    "signs": "ma-a",
+    "kent": "mâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hai̯nā",
+    "signs": "ha-i-na-a",
+    "kent": "hainâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mā",
+    "signs": "ma-a",
+    "kent": "mâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dušiyāram",
+    "signs": "du-u-ša-i-ya-a-ra-ma",
+    "kent": "dušiyâram",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mā",
+    "signs": "ma-a",
+    "kent": "mâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "drau̯ga",
+    "signs": "da-ra-u-ga",
+    "kent": "drauga",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ai̯ta",
+    "signs": "a-i-ta",
+    "kent": "aita",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yānam",
+    "signs": "ya-a-na-ma",
+    "kent": "yânam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "jadiyāmi",
+    "signs": "ja-di-i-ya-a-mi-i-ya",
+    "kent": "jadiyâmiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdām",
+    "signs": "a-u-ra-ma-za-da-a-ma",
+    "kent": "Auramazdâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hadā",
+    "signs": "ha-da-a",
+    "kent": "hadâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "visai̯biš",
+    "signs": "vi-i-sa-i-ba-i-ša",
+    "kent": "vithaibiš",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "bagai̯biš",
+    "signs": "ba-ga-i-ba-i-ša",
+    "kent": "bagaibiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ai̯tamai̯",
+    "signs": "a-i-ta-ma-i-ya",
+    "kent": "aitamaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yānam",
+    "signs": "ya-a-na-ma",
+    "kent": "yânam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "kent": "Auramazdâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dadātu",
+    "signs": "da-da-a-tu-u-va",
+    "kent": "dadâtuv",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hadā",
+    "signs": "ha-da-a",
+    "kent": "hadâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "visai̯biš",
+    "signs": "vi-i-sa-i-ba-i-ša",
+    "kent": "vithaibiš",
+    "basis": "rule",
+    "div": false,
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "bagai̯biš",
+    "signs": "ba-ga-i-ba-i-ša",
+    "kent": "bagaibiš",
+    "basis": "rule=kent"
+   }
+  ],
+  "op_lined": true
+ },
+ "DPe": {
+  "ario": "Q007161",
+  "op_translit": "adam Dārayava.uš xšāyaθiya vazṛka xšāyaθiya xšāyaθiyānām xšāyaθiya dahyunām tayai̯šām parūnām Vištāspahyā puça Haxāmanišiya θāti Dārayava.uš xšāyaθiya vašnā A.uramazdāhā imā dahyāva tayā adam adarši hadā anā Pārsā kārā tayā hacāma atṛsa manā bājim abara Ūja Māda Bābiruš Arbāya Aθurā Mudrāya Armina Katpatuka Sparda Yau̯nā tayai̯ uškahyā utā tayai̯ drayahyā utā dahyāva tayā para draya Asagarta Parθava Zranka Harai̯va Bāxtriš Suguda Uvārazmiy Θataguš Hara.uvatiš Hinduš Gandāra Sakā Maka θāti Dārayava.uš xšāyaθiya yadi avaθā maniyāhai̯ hacā aniyanā mā tṛsam imam Pārsam kāram pādi yadi kāra Pārsa pāta ahati hayā duvai̯štam šiyātiš axšatā hau̯ci au̯rā nirsāti abi imām viθam",
+  "el_atf": "",
+  "el_cuneiform": "",
+  "el_unmapped": [],
+  "bab_atf": "",
+  "bab_cuneiform": "",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "B where the rule spelling of the ARIo word and Kent's transliteration agree, else as op_words.basis (D-165)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (Kent's lineation via the Livius copy)"
+  },
+  "op_signs": [
+   "a-da-ma : da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya : va-za",
+   "ra-ka : xa-ša-a-ya-θa-i-ya : xa-ša-a-ya-θa-i-ya-a-na-a",
+   "ma : xa-ša-a-ya-θa-i-ya : da-ha-ya-u-na-a-ma : ta-ya-i",
+   "ša-a-ma : pa-ru-u-na-a-ma : vi-i-ša-ta-a-sa-pa-ha-ya-a :",
+   "pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya : θa-a-ta-i-ya : da-a-ra",
+   "ya-va-u-ša : xa-ša-a-ya-θa-i-ya : va-ša-na-a : a-u-ra-ma",
+   "za-da-a-ha-a : i-ma-a : da-ha-ya-a-va : ta-ya-a : a-da-ma",
+   ": a-da-ra-ša-i-ya : ha-da-a : a-na-a : pa-a-ra-sa-a : ka-a",
+   "ra-a : ta-ya-a : ha-ca-a-ma : a-ta-ra-sa : ma-na-a : ba-a-ji",
+   "i-ma : a-ba-ra : u-va-ja : ma-a-da : ba-a-ba-i-ru-u",
+   "ša : a-ra-ba-a-ya : a-θa-u-ra-a : mu-u-da-ra-a",
+   "ya : a-ra-mi-i-na : ka-ta-pa-tu-u-ka : sa-pa-ra-da : ya",
+   "u-na-a : ta-ya-i-ya : u-ša-ka-ha-ya-a : u-ta-a : ta-ya",
+   "i-ya : da-ra-ya-ha-ya-a : u-ta-a : da-ha-ya-a-va : ta",
+   "ya-a : pa-ra : da-ra-ya : a-sa-ga-ra-ta : pa-ra-θa-va : za-ra",
+   "ka : ha-ra-i-va : ba-a-xa-ta-ra-i-ša : sa-u-gu-u-da : u-va",
+   "a-ra-za-mi-i-ya : θa-ta-gu-u-ša : ha-ra-u-va-ta-i-ša : ha",
+   "i-du-u-ša : ga-da-a-ra : sa-ka-a : ma-ka : θa-a-ta-i-ya",
+   ": da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya : ya-di-i-ya",
+   ": a-va-θa-a : ma-na-i-ya-a-ha-i-ya : ha-ca-a : a-na-i-ya",
+   "na-a : ma-a : ta-ra-sa-ma : i-ma-ma : pa-a-ra-sa-ma : ka-a-ra-ma : pa-a-di-i",
+   "ya : ya-di-i-ya : ka-a-ra : pa-a-ra-sa : pa-a-ta : a-ha-ta-i-ya : ha-ya-a :",
+   "du-u-va-i-ša-ta-ma : ša-i-ya-a-ta-i-ša : a-xa-ša-ta-a : ha-u-va-ca-i",
+   "ya : a-u-ra-a : na-i-ra-sa-a-ta-i-ya : a-ba-i-ya : i-ma-a-ma : vi-i-θa-ma"
+  ],
+  "op_words": [
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "Dârayavauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "kent": "vazraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "kent": "xšâyathiyânâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathya",
+    "basis": "rule",
+    "class": "GLIDE-slip",
+    "why": "the copy spells xšāyaθiya so only here and by the rule 39× elsewhere: a slip of the copy"
+   },
+   {
+    "ario": "dahyunām",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "kent": "dahyûnâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayai̯šām",
+    "signs": "ta-ya-i-ša-a-ma",
+    "kent": "tyaišâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "parūnām",
+    "signs": "pa-ru-u-na-a-ma",
+    "kent": "parûnâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Vištāspahyā",
+    "signs": "vi-i-ša-ta-a-sa-pa-ha-ya-a",
+    "kent": "Vištâspahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "puça",
+    "signs": "pa-u-ça",
+    "kent": "puça",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "kent": "Haxâmanišiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": "thâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "Dârayavauš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "vašnā",
+    "signs": "va-ša-na-a",
+    "kent": "vašnâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "kent": "Auramazdâhâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imā",
+    "signs": "i-ma-a",
+    "kent": "imâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dahyāva",
+    "signs": "da-ha-ya-a-va",
+    "kent": "dahyâva",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayā",
+    "signs": "ta-ya-a",
+    "kent": "tyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "kent": "adam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "adarši",
+    "signs": "a-da-ra-ša-i-ya",
+    "kent": "adaršiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hadā",
+    "signs": "ha-da-a",
+    "kent": "hadâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "anā",
+    "signs": "a-na-a",
+    "kent": "anâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Pārsā",
+    "signs": "pa-a-ra-sa-a",
+    "kent": "Pârsâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kārā",
+    "signs": "ka-a-ra-a",
+    "kent": "kârâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayā",
+    "signs": "ta-ya-a",
+    "kent": "tyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hacāma",
+    "signs": "ha-ca-a-ma",
+    "kent": "hacâma",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "atṛsa",
+    "signs": "a-ta-ra-sa",
+    "kent": "atarsa",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "manā",
+    "signs": "ma-na-a",
+    "kent": "manâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "bājim",
+    "signs": "ba-a-ji-i-ma",
+    "kent": "bâjim",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "abara",
+    "signs": "a-ba-ra",
+    "kent": "abara",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Ūja",
+    "signs": "u-va-ja",
+    "kent": "Ûvja",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Māda",
+    "signs": "ma-a-da",
+    "kent": "Mâda",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Bābiruš",
+    "signs": "ba-a-ba-i-ru-u-ša",
+    "kent": "Bâbiruš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Arbāya",
+    "signs": "a-ra-ba-a-ya",
+    "kent": "Arabâya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Aθurā",
+    "signs": "a-θa-u-ra-a",
+    "kent": "Athurâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Mudrāya",
+    "signs": "mu-u-da-ra-a-ya",
+    "kent": "Mudrâyâ",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "Armina",
+    "signs": "a-ra-mi-i-na",
+    "kent": "Armina",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Katpatuka",
+    "signs": "ka-ta-pa-tu-u-ka",
+    "kent": "Katpatuka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Sparda",
+    "signs": "sa-pa-ra-da",
+    "kent": "Sparda",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Yau̯nā",
+    "signs": "ya-u-na-a",
+    "kent": "Yaunâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayai̯",
+    "signs": "ta-ya-i-ya",
+    "kent": "tyaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "uškahyā",
+    "signs": "u-ša-ka-ha-ya-a",
+    "kent": "uškahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayai̯",
+    "signs": "ta-ya-i-ya",
+    "kent": "tyaiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "drayahyā",
+    "signs": "da-ra-ya-ha-ya-a",
+    "kent": "drayahyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "kent": "utâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "dahyāva",
+    "signs": "da-ha-ya-a-va",
+    "kent": "dahyâva",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tayā",
+    "signs": "ta-ya-a",
+    "kent": "tyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "para",
+    "signs": "pa-ra",
+    "kent": "para",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "draya",
+    "signs": "da-ra-ya",
+    "kent": "draya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Asagarta",
+    "signs": "a-sa-ga-ra-ta",
+    "kent": "Asagarta",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Parθava",
+    "signs": "pa-ra-θa-va",
+    "kent": "Parthava",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Zranka",
+    "signs": "za-ra-ka",
+    "kent": "Zraka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Harai̯va",
+    "signs": "ha-ra-i-va",
+    "kent": "Haraiva",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Bāxtriš",
+    "signs": "ba-a-xa-ta-ra-i-ša",
+    "kent": "Bâxtriš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Suguda",
+    "signs": "sa-u-gu-u-da",
+    "kent": "Suguda",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Uvārazmiy",
+    "signs": "u-va-a-ra-za-mi-i-ya",
+    "kent": "Uvârazmîy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Θataguš",
+    "signs": "θa-ta-gu-u-ša",
+    "kent": "Thataguš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Hara.uvatiš",
+    "signs": "ha-ra-u-va-ta-i-ša",
+    "kent": "Harauvatiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Hinduš",
+    "signs": "ha-i-du-u-ša",
+    "kent": "Hiduš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Gandāra",
+    "signs": "ga-da-a-ra",
+    "kent": "Gadâra",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Sakā",
+    "signs": "sa-ka-a",
+    "kent": "Sakâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Maka",
+    "signs": "ma-ka",
+    "kent": "Maka",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "kent": "thâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "kent": "Darayavauš",
+    "basis": "rule",
+    "class": "READ",
+    "why": "Schmitt's reading"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "kent": "xšâyathiya",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yadi",
+    "signs": "ya-di-i-ya",
+    "kent": "yadiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "avaθā",
+    "signs": "a-va-θa-a",
+    "kent": "avathâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "maniyāhai̯",
+    "signs": "ma-na-i-ya-a-ha-i-ya",
+    "kent": "maniyâhay",
+    "basis": "rule",
+    "class": "GLIDE-slip",
+    "why": "the copy spells maniyāhai̯ so only here and by the rule 1× elsewhere: a slip of the copy"
+   },
+   {
+    "ario": "hacā",
+    "signs": "ha-ca-a",
+    "kent": "hacâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "aniyanā",
+    "signs": "a-na-i-ya-na-a",
+    "kent": "aniyanâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "mā",
+    "signs": "ma-a",
+    "kent": "mâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "tṛsam",
+    "signs": "ta-ra-sa-ma",
+    "kent": "tarsam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imam",
+    "signs": "i-ma-ma",
+    "kent": "imam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Pārsam",
+    "signs": "pa-a-ra-sa-ma",
+    "kent": "Pârsam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kāram",
+    "signs": "ka-a-ra-ma",
+    "kent": "kâram",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pādi",
+    "signs": "pa-a-di-i-ya",
+    "kent": "pâdiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "yadi",
+    "signs": "ya-di-i-ya",
+    "kent": "yadiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "kāra",
+    "signs": "ka-a-ra",
+    "kent": "kâra",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "Pārsa",
+    "signs": "pa-a-ra-sa",
+    "kent": "Pârsa",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "pāta",
+    "signs": "pa-a-ta",
+    "kent": "pâta",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "ahati",
+    "signs": "a-ha-ta-i-ya",
+    "kent": "ahatiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hayā",
+    "signs": "ha-ya-a",
+    "kent": "hyâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "duvai̯štam",
+    "signs": "du-u-va-i-ša-ta-ma",
+    "kent": "duvaištam",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "šiyātiš",
+    "signs": "ša-i-ya-a-ta-i-ša",
+    "kent": "šiyâtiš",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "axšatā",
+    "signs": "a-xa-ša-ta-a",
+    "kent": "axšatâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "hau̯ci",
+    "signs": "ha-u-va-ca-i-ya",
+    "kent": "hauvciy",
+    "basis": "kent",
+    "class": "GLIDE",
+    "why": "a written glide (i/y/v) the normalised transcription does not carry"
+   },
+   {
+    "ario": "au̯rā",
+    "signs": "a-u-ra-a",
+    "kent": "Aurâ",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "nirsāti",
+    "signs": "na-i-ra-sa-a-ta-i-ya",
+    "kent": "nirasâtiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "abi",
+    "signs": "a-ba-i-ya",
+    "kent": "abiy",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "imām",
+    "signs": "i-ma-a-ma",
+    "kent": "imâm",
+    "basis": "rule=kent"
+   },
+   {
+    "ario": "viθam",
+    "signs": "vi-i-θa-ma",
+    "kent": "vitham",
+    "basis": "rule=kent"
+   }
+  ],
+  "op_lined": true
+ },
+ "DPf": {
+  "ario": "Q007162",
+  "op_translit": "",
+  "el_atf": "{DIŠ}u₂ {DIŠ}da-ri-ia-ma-u-iš {DIŠ}EŠŠANA ir-ša₂-ir ra {DIŠ}EŠŠANA {DIŠ}EŠŠANA-ip-in-na {DIŠ}EŠŠANA {DIŠ}da-a-u₂-iš-pe₃-na {DIŠ}EŠŠANA {AŠ}mu ru-un hi uk-ku-ra-ir-ra {DIŠ}mi iš-ta₂-as₂-pa₂ {DIŠ}ša₂-ak-ri {DIŠ}ha-ak ka₄-man-nu-ši-ia a-ak {DIŠ}da-ri-ia ma-u-iš {DIŠ}EŠŠANA na-an-ri {GIŠ}ka₄-at hi ma mu-ur {AŠ}hal-mar-raš₂ hi ku-ši-ka₄ ap-pu-ka₄ hi-ma {AŠ}hal-mar-raš₂ in-ni ku-ši-ik za-u-mi-in {d}u-ra-mas da-na hi {AŠ}hal-mar-raš₂ {DIŠ}u₂ ku-ši ia a-ak {d}u-ra-mas-da hi zi₂ la tuk-mi-ni-na {d}na-ap mar-pe₃-ip ta₂ i-ta₂-ka₄ ap-pa hi {AŠ}hal-mar-raš₂ ku-ši-ka₄ a-ak {DIŠ}u₂ ku-ši-ia ku-ut ta₂ ku-ši-ia tar-ma a-ak ši-iš-ni ku-ut-ta₂ šil-la-ak hi zi₂-la sa-ap {DIŠ}u₂ tuk-man-na a-ak {DIŠ}da-ri-ia ma-u-iš {DIŠ}EŠŠANA na-an-ri {DIŠ}u₂ {d}u-ra mas-da u₂-un nu-iš-ki₂-iš-ni {d}na-ap mar-pe₃-ip-ta₂ i-ta₂-ka₄ a-ak ku-ut-ta₂ {AŠ}hal mar-raš₂ hi ku-ut-ta₂ ša₂-rak {GIŠ}ka₄-at hi ik-ka₄ kap₀-pa-ka₄ hu-pe₃ a-nu kin-ni-en ap-pa {DIŠ}LU₂ MEŠ-ir-ra ha-ri-ik-ka₄ el-ma-man-ra",
+  "el_cuneiform": "𒁹𒌑 𒁹𒁕𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒅕𒃻𒅕 𒊏 𒁹𒁹𒁹𒁹𒎙 𒁹𒁹𒁹𒁹𒎙𒅁𒅔𒈾 𒁹𒁹𒁹𒁹𒎙 𒁹𒁕𒀀𒌑𒅖𒁁𒈾 𒁹𒁹𒁹𒁹𒎙 𒀸𒈬 𒊒𒌦 𒄭 𒊌𒆪𒊏𒅕𒊏 𒁹𒈪 𒅖𒁕𒀾𒁀 𒁹𒃻𒀝𒊑 𒁹𒄩𒀝 𒋡𒎙𒉡𒅆𒅀 𒀀𒀝 𒁹𒁕𒊑𒅀 𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒈾𒀭𒊑 𒄑𒋡𒀜 𒄭 𒈠 𒈬𒌨 𒀸𒄬𒈥𒌇 𒄭 𒆪𒅆𒋡 𒀊𒁍𒋡 𒄭𒈠 𒀸𒄬𒈥𒌇 𒅔𒉌 𒆪𒅆𒅅 𒍝𒌋𒈪𒅔 𒀭𒌋𒊏𒈦 𒁕𒈾 𒄭 𒀸𒄬𒈥𒌇 𒁹𒌑 𒆪𒅆 𒅀 𒀀𒀝 𒀭𒌋𒊏𒈦𒁕 𒄭 𒍢 𒆷 𒌇𒈪𒉌𒈾 𒀭𒈾𒀊 𒈥𒁁𒅁 𒁕 𒄿𒁕𒋡 𒀊𒉺 𒄭 𒀸𒄬𒈥𒌇 𒆪𒅆𒋡 𒀀𒀝 𒁹𒌑 𒆪𒅆𒅀 𒆪𒌓 𒁕 𒆪𒅆𒅀 𒋻𒈠 𒀀𒀝 𒅆𒅖𒉌 𒆪𒌓𒁕 𒋻𒆷𒀝 𒄭 𒍢𒆷 𒊓𒀊 𒁹𒌑 𒌇𒎙𒈾 𒀀𒀝 𒁹𒁕𒊑𒅀 𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒈾𒀭𒊑 𒁹𒌑 𒀭𒌋𒊏 𒈦𒁕 𒌑𒌦 𒉡𒅖𒄀𒅖𒉌 𒀭𒈾𒀊 𒈥𒁁𒅁𒁕 𒄿𒁕𒋡 𒀀𒀝 𒆪𒌓𒁕 𒀸𒄬 𒈥𒌇 𒄭 𒆪𒌓𒁕 𒃻𒊩 𒄑𒋡𒀜 𒄭 𒅅𒋡 𒍯𒉺𒋡 𒄷𒁁 𒀀𒉡 𒆥𒉌𒂗 𒀊𒉺 𒁹𒇽 𒎌𒅕𒊏 𒄩𒊑𒅅𒋡 𒂖𒈠𒎙𒊏",
+  "el_unmapped": [],
+  "bab_atf": "",
+  "bab_cuneiform": "",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "C (Kent orthographic rules)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)"
+  }
+ },
+ "DPg": {
+  "ario": "Q007163",
+  "op_translit": "",
+  "el_atf": "",
+  "el_cuneiform": "",
+  "el_unmapped": [],
+  "bab_atf": "{d}u-ru-ma-az-da ra-bi ša₂ ra-bu-u₂ ina muh-hi DINGIR.MEŠ gab-bi ša₂ AN-e u KI-tim ib-nu-u₂ UN.MEŠ ib-nu-u₂ ša₂ dum-qi₂ gab-bi id-din-nu-ma UN.MEŠ ina lib₃-bi bal-ṭu-ʾ ša₂ a-na {m}da-a-ri-ia-muš LUGAL ib-nu-u₂ u a-na {m}da-a-ri-ia-muš LUGAL LUGAL-u₂-tu id-din-nu ina qaq-qar a-ga-a rap-ša₂-a-tum ša₂ KUR.KUR.MEŠ ma-di-e-tum ina lib₃-bi-šu₂ KUR par-su KUR ma-da-a-a u KUR.KUR.MEŠ ša₂-ni-ti-ma li-ša₂-nu ša₂-ni-tum ša₂ KUR.MEŠ u ma-a-tum ša₂ a-ha-na-a-a a-ga-a ša₂ {ID₂}mar-ra-tum u a-hu-ul-lu-a-a ul-li-i ša₂ {ID₂}mar-ra-tum ša₂ a-ha-na-a-a a-ga-a ša₂ qaq-qar ṣu-ma-ma-i-tum u a-hu-ul-lu-a-a ul-li-i ša₂ qaq-qar ṣu-ma-ma-i-tum {m}da-a-ri-ia-muš LUGAL i-qab-bi ina GIŠ.MI ša₂ {d}u₂-ru-ma-az-da a-ga-an-ni-tum KUR.KUR.MEŠ ša₂ a-ga-a i-pu-ša₂-ʾ ša₂ a-kan-na ib-šu₂ KUR par-su KUR ma-da-a-a u KUR.KUR.MEŠ ša₂-ni-ti-ma li-ša₂-nu ša₂-ni-tum ša₂ KUR.MEŠ u ma-a-tum ša₂ a-ha-na-a-a a-ga-a ša₂ {ID₂}mar-ra-tum u a-hu-ul-lu-a-a ul-li-i ša₂ {ID₂}mar-ra-tum u a-ha-na-a-a a-ga-a ša₂ qaq-qar ṣu-ma-ma-i-tum u a-hu-ul-lu-a-a ul-li-i ša₂ qaq-qar ṣu-ma-ma-i-tum lib₃-bu-u₂ ša₂ a-na-ku ṭe₃-e-me aš-ku-un-nu-uš-šu₂-nu ša₂ a-na-ku e-pu-uš gab-bi ina GIŠ.MI ša₂ {d}u₂-ru-ma-az-da e-te-pu-uš a-na-ku {d}u₂-ru-ma-az-da li-iṣ-ṣu-ur it-ti DINGIR.MEŠ gab-bi a-na ana-ku u a-na ša₂ a-na-ku a-ra-mu",
+  "bab_cuneiform": "𒀭𒌋𒊒𒈠𒊍𒁕 𒊏𒁉 𒃻 𒊏𒁍𒌑 𒀸 𒌋𒅗𒄭 𒀭𒎌 𒃮𒁉 𒃻 𒀭𒂊 𒌋 𒆠𒁴 𒅁𒉡𒌑 𒌦𒎌 𒅁𒉡𒌑 𒃻 𒌈𒆠 𒃮𒁉 𒀉𒁷𒉡𒈠 𒌦𒎌 𒀸 𒊮𒁉 𒁄𒂅𒀪 𒃻 𒀀𒈾 𒁹𒁕𒀀𒊑𒅀𒈲 𒈗 𒅁𒉡𒌑 𒌋 𒀀𒈾 𒁹𒁕𒀀𒊑𒅀𒈲 𒈗 𒈗𒌑𒌅 𒀉𒁷𒉡 𒀸 𒆕𒃼 𒀀𒂵𒀀 𒊐𒃻𒀀𒌈 𒃻 𒆳𒆳𒎌 𒈠𒁲𒂊𒌈 𒀸 𒊮𒁉𒋙 𒆳 𒌓𒋢 𒆳 𒈠𒁕𒀀𒀀 𒌋 𒆳𒆳𒎌 𒃻𒉌𒋾𒈠 𒇷𒃻𒉡 𒃻𒉌𒌈 𒃻 𒆳𒎌 𒌋 𒈠𒀀𒌈 𒃻 𒀀𒄩𒈾𒀀𒀀 𒀀𒂵𒀀 𒃻 𒀀𒇉𒈥𒊏𒌈 𒌋 𒀀𒄷𒌌𒇻𒀀𒀀 𒌌𒇷𒄿 𒃻 𒀀𒇉𒈥𒊏𒌈 𒃻 𒀀𒄩𒈾𒀀𒀀 𒀀𒂵𒀀 𒃻 𒆕𒃼 𒍮𒈠𒈠𒄿𒌈 𒌋 𒀀𒄷𒌌𒇻𒀀𒀀 𒌌𒇷𒄿 𒃻 𒆕𒃼 𒍮𒈠𒈠𒄿𒌈 𒁹𒁕𒀀𒊑𒅀𒈲 𒈗 𒄿𒃮𒁉 𒀸 𒄑𒈪 𒃻 𒀭𒌑𒊒𒈠𒊍𒁕 𒀀𒂵𒀭𒉌𒌈 𒆳𒆳𒎌 𒃻 𒀀𒂵𒀀 𒄿𒁍𒃻𒀪 𒃻 𒀀𒃶𒈾 𒅁𒋙 𒆳 𒌓𒋢 𒆳 𒈠𒁕𒀀𒀀 𒌋 𒆳𒆳𒎌 𒃻𒉌𒋾𒈠 𒇷𒃻𒉡 𒃻𒉌𒌈 𒃻 𒆳𒎌 𒌋 𒈠𒀀𒌈 𒃻 𒀀𒄩𒈾𒀀𒀀 𒀀𒂵𒀀 𒃻 𒀀𒇉𒈥𒊏𒌈 𒌋 𒀀𒄷𒌌𒇻𒀀𒀀 𒌌𒇷𒄿 𒃻 𒀀𒇉𒈥𒊏𒌈 𒌋 𒀀𒄩𒈾𒀀𒀀 𒀀𒂵𒀀 𒃻 𒆕𒃼 𒍮𒈠𒈠𒄿𒌈 𒌋 𒀀𒄷𒌌𒇻𒀀𒀀 𒌌𒇷𒄿 𒃻 𒆕𒃼 𒍮𒈠𒈠𒄿𒌈 𒊮𒁍𒌑 𒃻 𒀀𒈾𒆪 𒉈𒂊𒈨 𒀸𒆪𒌦𒉡𒍑𒋙𒉡 𒃻 𒀀𒈾𒆪 𒂊𒁍𒍑 𒃮𒁉 𒀸 𒄑𒈪 𒃻 𒀭𒌑𒊒𒈠𒊍𒁕 𒂊𒋼𒁍𒍑 𒀀𒈾𒆪 𒀭𒌑𒊒𒈠𒊍𒁕 𒇷𒄑𒍮𒌨 𒀉𒋾 𒀭𒎌 𒃮𒁉 𒀀𒈾 𒁹𒆪 𒌋 𒀀𒈾 𒃻 𒀀𒈾𒆪 𒀀𒊏𒈬",
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",

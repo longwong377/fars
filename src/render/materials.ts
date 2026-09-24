@@ -16,6 +16,8 @@ import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise
 import PC from '../data/polychromy.json';
 import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
 import { SkySpecularNode } from './envmap';
+import { incisionNodes } from './incision';
+import type { Atlas } from '../arch/carving';
 
 export const WEATHER = { wetness: uniform(0), snow: uniform(0), puddles: uniform(0) };
 /** seasonal ground cover (0..1): green = living herb layer, dry = standing straw/stubble (set per frame from the date; season.ts) */
@@ -457,6 +459,23 @@ export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
   m.metalnessNode = leaf;
   (m as any).setupLightingModel = () => new GiltLighting();
   m.userData = { tier: 'C', note: 'carved limestone (joint-free) with a matte mineral paint film: pigments B (RELIEFS_AND_COLOUR §3a), colour values, film and wear C (src/data/polychromy.json, D-030); gilding drawn as gold leaf (metal, D-151): gilding on the reliefs B (Iranica "Persepolis": traces of gold; Nagel 2010 "color and gilding"), the technique and the gilded zones C (Q-231)' };
+  cache.set(key, m);
+  return m;
+}
+
+/** Incised signs (D-166; src/render/incision.ts): the host stone's own surface (the same world-space layer and weather as the
+ *  face they are cut into, so the cut is the stone, not a dark inlay), its normal replaced inside the cut by the cut's wall
+ *  normal, its skylight occluded with depth, and the uncut face discarded (the host mesh shows there). A small depth bias
+ *  keeps the quads in front of the face they lie on. `surface` is the host's SURFACES key */
+export function incisedMaterial(surface: string, atlas: Atlas): THREE.MeshStandardNodeMaterial {
+  const key = `incised:${surface}:${atlas.tex.uuid}`; const hit = cache.get(key); if (hit) return hit;
+  const d = SURFACES[surface] ?? SURFACES.limestone;
+  const m = new SurfaceNodeMaterial();
+  finish(m, layer(d, lin(d.albedo)), d);
+  const I = incisionNodes(atlas);
+  m.normalNode = I.normalView; m.aoNode = I.ao; m.opacityNode = I.mask; m.alphaTest = 0.5;
+  m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -4;
+  m.userData = { tier: 'C', note: `incised signs in ${surface} (D-166): the stone's own surface; V-section, walls at 45° (C)` };
   cache.set(key, m);
   return m;
 }

@@ -20,17 +20,24 @@ export interface TranslationContext {
   mapLayers?: () => MapItem[];
 }
 
-const INSCRIPTION_INFO: Record<string, { title: string; where: string }> = {
-  XPa: { title: 'XPa — Xerxes, Gate of All Nations', where: 'carved above the doorway colossi of the Gate (version per colossus: C)' },
-  XPb: { title: 'XPb — Xerxes, Apadana', where: 'beside the audience panels of the Apadana stairs (placement C)' },
-  XPc: { title: 'XPc — Xerxes, Tachara', where: 'between the guards of the central façade of the Tachara S stair (placement C)' },
+export const INSCRIPTION_INFO: Record<string, { title: string; where: string }> = {
+  XPa: { title: 'XPa — Xerxes, Gate of All Nations', where: 'carved above each doorway colossus of the Gate, the Old Persian, Elamite and Babylonian side by side (order C)' },
+  XPb: { title: 'XPb — Xerxes, Apadana', where: 'beside the audience panels of the Apadana stairs: the Old Persian on one panel, the Babylonian and Elamite on another (sides C)' },
+  XPc: { title: 'XPc — Xerxes, Tachara', where: 'between the guards of the central façade of the Tachara S stair, three versions side by side (arrangement C)' },
   DNa: { title: 'DNa — Darius I, his tomb at Naqsh-e Rustam', where: 'upper register, behind the king (panel position C; Old Persian version only)' },
   DNb: { title: 'DNb — Darius I, his tomb at Naqsh-e Rustam', where: 'façade, between the columns left of the door (panel position C; Old Persian version only; modern lacunae shown as x)' },
-  XPd: { title: 'XPd — Xerxes, Hadish', where: 'between the guards of the central façade of the Hadish W stair (placement C)' },
+  XPd: { title: 'XPd — Xerxes, Hadish', where: 'between the guards of the central façade of the Hadish W stair, three versions side by side (placement C)' },
   DPh: { title: 'DPh — Darius I, the foundation plates of the Apadana', where: 'a gold and a silver plate in a stone box sealed under this corner of the hall since its foundation, unseen (corners: the NE and SE boxes, Q-016; box and depth C)' },
   XPe: { title: 'XPe — Xerxes, Hadish', where: 'above the king and his attendants on the reveals of the Hadish E and W doorways (versions stacked; order and size C)' },
+  DPa: { title: 'DPa — Darius I, Tachara', where: 'above the king and his attendants on the reveals of the Tachara S doorway (which doorway and the stacking C)' },
+  DPb: { title: 'DPb — Darius I', where: 'above the king on the reveals of the Hadish NW doorway (the doorway and the stacking C)' },
+  DPc: { title: 'DPc — Darius I, Tachara window frames', where: 'on the cornice of a Tachara window frame, portico side (which windows and the stacking C)' },
+  DPd: { title: 'DPd — Darius I, Terrace south wall', where: 'the Terrace south wall, Old Persian (position along the wall C)' },
+  DPe: { title: 'DPe — Darius I, Terrace south wall', where: 'the Terrace south wall, Old Persian (position along the wall C)' },
+  DPf: { title: 'DPf — Darius I, Terrace south wall', where: 'the Terrace south wall, Elamite (position along the wall C)' },
+  DPg: { title: 'DPg — Darius I, Terrace south wall', where: 'the Terrace south wall, Babylonian (position along the wall C)' },
 };
-const LANG_NAME: Record<string, string> = { op: 'Old Persian', el: 'Elamite', arc: 'Aramaic', bab: 'Babylonian' };
+const LANG_NAME: Record<string, string> = { op: 'Old Persian', el: 'Elamite', arc: 'Aramaic', bab: 'Babylonian', grc: 'Greek' };
 import { MAP_ZOOMS, MapItem, MapStyle, P2 } from './mapLayers';
 const GLOSS = new Map<string, { gloss: string; tier: string }>((opLexicon as any[]).map(e => [e.form, { gloss: e.gloss, tier: e.tier }]));
 
@@ -70,10 +77,10 @@ export class TranslationLayer {
       const groups = (Array.isArray(ctx.inscriptions) ? ctx.inscriptions : [ctx.inscriptions]).filter((g): g is THREE.Object3D => !!g);
       // within reading distance: 15 m on the Terrace; panels that stand high on a cliff (Naqsh-e Rustam) set their own
       const hit = this.ray.intersectObjects(groups, true).find(h => h.distance <= (h.object.userData.pickFar ?? 15));
-      this.picked = hit ? (hit.object.name.split(':')[1] ?? null) : null;
+      this.picked = hit ? hit.object.name.split(':').slice(1, 3).join(':') || null : null; // id:version (a panel carries one version)
     }
     this.insc.hidden = !this.picked;
-    if (this.picked) this.insc.replaceChildren(...this.inscriptionView(this.picked));
+    if (this.picked) { const [id, ver] = this.picked.split(':'); this.insc.replaceChildren(...this.inscriptionView(id, ver)); }
     // panels
     this.panel.hidden = this.mode === 'none';
     if (this.mode === 'map') {
@@ -93,9 +100,13 @@ export class TranslationLayer {
     }
   }
 
-  private inscriptionView(id: string): HTMLElement[] {
+  private inscriptionView(id: string, ver = 'op'): HTMLElement[] {
     const t = (inscriptions as any)[id]; const info = INSCRIPTION_INFO[id] ?? { title: id, where: '' };
     if (!t) return [el('div', '', id)];
+    // an Elamite or Babylonian panel shows its own version: the edition's ATF transliteration (no word glosses: the lexicon
+    // glosses here are Old Persian)
+    if ((ver === 'el' || ver === 'bab') && t[`${ver}_atf`]) return [el('div', 'tl-title', `${info.title} (${LANG_NAME[ver]})`), el('div', 'small', `${info.where}. Transliteration of the ${LANG_NAME[ver]} version: ARIo (Schmitt 2009; CC0).`),
+      el('div', 'tl-inter', t[`${ver}_atf`]), el('div', 'small', `No word glosses for the ${LANG_NAME[ver]} version in this build. A published English translation is not available in this build (NEEDS_FROM_ME #14).`)];
     const words = String(t.op_translit).split(/\s+/);
     const inter = el('div', 'tl-inter');
     let covered = 0;

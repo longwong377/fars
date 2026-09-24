@@ -48,20 +48,32 @@ def atf_to_cun(atf):
     return ' '.join(out), missing
 def main():
     texts = {json.loads(l)['id_text']: json.loads(l)['raw_text'] for l in open('data/corpus/ario.jsonl', encoding='utf8')}
-    IDS = {'XPa': 'Q007209', 'XPb': 'Q007210', 'XPc': 'Q007211', 'XPd': 'Q007212', 'XPe': 'Q007213', 'DPh': 'Q007164', 'DNa': 'Q007152', 'DNb': 'Q007153'}  # DNa/DNb: Darius I's tomb, Naqsh-e Rustam (identified by content: DNa 'Ariyaciça', 'gāθum', 'patikarā'; DNb 'ima frašam ... upari Dārayava.um')
+    IDS = {'XPa': 'Q007209', 'XPb': 'Q007210', 'XPc': 'Q007211', 'XPd': 'Q007212', 'XPe': 'Q007213', 'DPh': 'Q007164', 'DNa': 'Q007152', 'DNb': 'Q007153',
+           # Darius' texts on the Terrace (D-165; identified by content, ARIo order DPa..DPg = Q007157..Q007163): DPa 'haya imam tacaram
+           # akunau̯š' (Q007147 is an OP-only copy of the same text; the trilingual is used), DPb the titulary without 'xšāyaθiyānām',
+           # DPc 'ardastāna aθangai̯na', DPd 'iyam dahyāu̯š Pārsa', DPe the list of lands, DPf the Elamite and DPg the Babylonian
+           # companion texts of the Terrace south wall
+           'DPa': 'Q007157', 'DPb': 'Q007158', 'DPc': 'Q007159', 'DPd': 'Q007160', 'DPe': 'Q007161', 'DPf': 'Q007162', 'DPg': 'Q007163'}  # DNa/DNb: Darius I's tomb, Naqsh-e Rustam (identified by content: DNa 'Ariyaciça', 'gāθum', 'patikarā'; DNb 'ima frašam ... upari Dārayava.um')
     res = {}
     for sig, q in IDS.items():
         raw = texts[q]
         # split versions: OP runs until the first Elamite token (determinative braces); Babylonian begins at the second 'a-na-ku' block? use the ARIo convention:
         m = re.search(r'\{', raw)
+        # texts in one language only (DPd, DPe: Old Persian; DPf: Elamite; DPg: Babylonian), and DPc, whose Elamite opens with
+        # a word without a determinative (har-da-is₂-ta₂-na, the loan of OP ardastāna): its OP ends before the first ATF
+        # (hyphenated) token
+        if sig in ('DPf', 'DPg'): m = re.match('', raw)
+        elif sig == 'DPc': m = re.search(r'\S+-\S+', raw)
         op = raw[:m.start()].strip() if m else raw
         rest = raw[m.start():] if m else ''
         # Babylonian versions of Xerxes texts open with 'DINGIR GAL₂' / '{d}u₂-ra-ma-az-da' patterns; split at the first occurrence of ' DINGIR ' or 'AN GAL'
         # texts that do not open with a god line start their Babylonian with the king's name under the Babylonian person determinative {m}
         # (Elamite writes {DIŠ}): XPe (Xerxes' titulary) and DPh (the Apadana foundation plates, ARIo Q007164; Q007148 is DH,
         # the same wording from Hamadan). The fallback is per text so the other entries stay byte-identical.
-        SPLIT = {'XPe': r'\{m\}hi-ši-ʾ-ar-ši', 'DPh': r'\{m\}'}
-        b = re.search(SPLIT[sig], rest) if sig in SPLIT else re.search(r'\bDINGIR\b|\bAN GAL\b|\bil-lu\b', rest)
+        # DPa and DPb (Darius' titulary) as DPh; DPc's Babylonian begins after the Elamite verb hu-ut-tuk-ka₄ ('made'), with
+        # ku-bu-ur-ri-e (C: the split of the running text); DPf is Elamite and DPg Babylonian throughout
+        SPLIT = {'XPe': r'\{m\}hi-ši-ʾ-ar-ši', 'DPh': r'\{m\}', 'DPa': r'\{m\}', 'DPb': r'\{m\}', 'DPc': r'ku-bu-ur-ri-e', 'DPg': r'^'}
+        b = None if sig == 'DPf' else re.search(SPLIT[sig], rest) if sig in SPLIT else re.search(r'\bDINGIR\b|\bAN GAL\b|\bil-lu\b', rest)
         el, bab = (rest[:b.start()].strip(), rest[b.start():].strip()) if b else (rest.strip(), '')
         elc, elm = atf_to_cun(el); bac, bam = atf_to_cun(bab)
         res[sig] = {'ario': q, 'op_translit': op, 'el_atf': el, 'el_cuneiform': elc, 'el_unmapped': sorted(set(elm)), 'bab_atf': bab, 'bab_cuneiform': bac, 'bab_unmapped': sorted(set(bam)),
