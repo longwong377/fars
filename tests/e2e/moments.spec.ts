@@ -56,7 +56,9 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'harem-portico', day: 25, hour: 10, w: 'clear', v: [114, -114, 1.6, 161, 4], fov: IN },
 ];
 test('moments', async ({ page }, info) => {
-  test.setTimeout(1_380_000); // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run)
+  // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run). TIMEOUT (s) and FRAMES
+  // override it and the per-view frame count (session 5: WebGL2 at high under SwiftShader did not finish 8 frames of one view in 23 min)
+  test.setTimeout(+(process.env.TIMEOUT ?? 1380) * 1000);
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
   const only = process.env.ONLY?.split(',');
   // WEBGL=1 forces the WebGL2 backend inside the webgpu project (the render queue runs one project): shots are suffixed
@@ -78,7 +80,7 @@ test('moments', async ({ page }, info) => {
     }
     const fov = process.env.FOV === 'game' ? undefined : s.fov ?? OUT;
     await page.evaluate(([v, f]) => (window as any).__parsa.view(...v, f), [s.v, fov] as const);
-    for (let i = 0; i < (s.frames ?? 8); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
+    for (let i = 0; i < (process.env.FRAMES ? +process.env.FRAMES : s.frames ?? 8); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
     const png = await page.screenshot({ path: `shots/moment-${s.n}-${proj}.png` });
     // §8.3 luminance (display-referred sRGB luma): whole frame; appended to shots/moments-lum.json
     const lum = await lumStats(page, png); const exp = await page.evaluate(() => (window as any).__parsa.exposureInfo());
