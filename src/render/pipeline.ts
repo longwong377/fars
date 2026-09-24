@@ -142,10 +142,13 @@ export class Pipeline {
     const vel = scenePass.getTextureNode('velocity'), dif = scenePass.getTextureNode('diffuseColor');
     const nrm = sample((uv: any) => unpackRGBToNormal(nrmTex.sample(uv).rgb));
     let composite: any;
+    const V = this.debugView ?? new URLSearchParams(location.search).get('post') ?? ''; // debug: orig = unpatched three node; scene | ao | aonear | gi | probe | plain | direct | ssr | env | sss = debug views
+    // `…-raw` (e.g. aonear-raw): the debug value written to the canvas as it is — no air light, bloom, exposure or tone map —
+    // so a screenshot reads it back as value × 255 (the AgX inversion of the tone-mapped views was too coarse near white)
+    const raw = V.includes('raw');
     if (quality === 'medium') {
       composite = col; // TRAA only: GTAO's shader module fails to compile under SwiftShader (logged D-009); medium keeps AA without AO
     } else {
-      const V = this.debugView ?? new URLSearchParams(location.search).get('post') ?? ''; // debug: orig = unpatched three node; scene | ao | aonear | gi | probe | plain | direct | ssr | env | sss = debug views
       // world-space normal from the view-space normal (camera rotation), for the hemisphere-light weight
       this.camWorld = uniform(camera.matrixWorld);
       const nV = unpackRGBToNormal(nrmTex.rgb), nW = this.camWorld.mul(vec4(nV, 0)).xyz.normalize();
@@ -242,8 +245,9 @@ export class Pipeline {
         : V.includes('ssr') ? ssrRefl : V.includes('env') ? envSpec : V.includes('sss') ? (this.sssDebug ?? vec3(1)) : litR;
       composite = vec4(chosen, col.a);
     }
-    composite = addAirLight(composite, dep, camera, this.sun); // D-156 (item 15): sunlit dust in the halls' air, before TRAA — src/render/airlight.ts
+    if (!raw) composite = addAirLight(composite, dep, camera, this.sun); // D-156 (item 15): sunlit dust in the halls' air, before TRAA — src/render/airlight.ts
     let out: any = traa(composite, dep, vel, camera);
+    if (raw) { this.rp = new THREE.RenderPipeline(renderer, out); (this.rp as any).outputColorTransform = false; return; }
     const bin = vec4(min(out.rgb, vec3(float(BLOOM_SAT).div(this.expAbs.max(1e-6)))), float(1)); // sensor-like saturation (display terms)
     const b = bloom(bin, BLOOM_STRENGTH, BLOOM_RADIUS, BLOOM_THRESHOLD); this.bloomNode = b;
     // frame meter (D-159): the TRAA output before exposure, averaged into a tiny float target each frame; its sample

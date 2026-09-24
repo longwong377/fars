@@ -19,3 +19,13 @@ describe('smoke sky radiance', () => {
     expect(c.toArray()).toEqual([0.2, 0.3, 0.4]);
   });
 });
+
+describe('town smoke plumes from emission (session 7: the dawn "comb")', () => {
+  it("a household hearth's plume is a faint wisp; ovens and kilns are the visible ones; a charcoal brazier hardly smokes", async () => {
+    const { plumeTau } = await import('../src/world/settlement/haze');
+    const op = (k: string) => 1 - Math.exp(-plumeTau(k));
+    expect(op('hearth')).toBeGreaterThan(0.015); expect(op('hearth')).toBeLessThan(0.05); // was ~0.38 for every plume
+    expect(op('oven')).toBeGreaterThan(3 * op('hearth')); expect(op('kiln')).toBeGreaterThan(3 * op('hearth'));
+    expect(op('oven')).toBeLessThan(0.2); expect(op('brazier')).toBeLessThan(0.005);
+  });
+});

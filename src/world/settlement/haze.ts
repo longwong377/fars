@@ -14,6 +14,19 @@ import { Rng } from '../../core/rng';
 interface Puff { site: string; base: THREE.Vector3; size: number; h: number; ph: number }
 /** debug (?smokedbg): the haze puffs drawn solid blue and the plumes solid red, to see where they are */
 const SMOKE_DBG = typeof location !== 'undefined' && new URLSearchParams(location.search).has('smokedbg');
+/** Optical depth across a smoke plume at the roof hole (0.6 m wide, rising ~1 m/s in still air), from its source's
+ *  particle emission (session 7, the dawn "comb": every hearth's ribbon was drawn at opacity ~0.38, so from the Terrace
+ *  hundreds of thin pale columns stood in a row over the town). τ = k · Q / (u · w): k the smoke's mass extinction
+ *  ~4 m²/g at 550 nm (fresh wood smoke), Q = fuel burnt × the particle emission factor, u the rise speed, w the width.
+ *  Hearth: ~1.5 kg of wood an hour at ~10 g/kg → τ ≈ 0.03 (a faint wisp; many of them make the town's haze, the puffs
+ *  above); bread oven while firing ~5 kg/h at ~15 g/kg → 0.14; updraft pottery kiln ~30 kg/h at ~10 g/kg through a stack
+ *  twice as wide and twice as fast → 0.14; a charcoal brazier ~0.5 kg/h at ~2 g/kg → 0.002. All C: the magnitudes are recollection of the
+ *  biomass-burning literature (e.g. Reid et al. 2005 on smoke optics; household-stove emission factors), NOT SEEN. */
+export function plumeTau(kind: string): number {
+  const K = 4, W0 = 0.6, U = 1; // m²/g, m, m/s
+  const Q: Record<string, number> = { hearth: 1.5 * 10, oven: 5 * 15, kiln: (30 * 10) / 4, brazier: 0.5 * 2 }; // g/h (the kiln: per the hearth's width and speed; its stack is 2× wider and 2× faster)
+  return (K * (Q[kind] ?? 15)) / 3600 / (U * W0);
+}
 export class TownHaze {
   readonly group = new THREE.Group();
   private mesh: THREE.InstancedMesh; private alpha: THREE.InstancedBufferAttribute; private puffs: Puff[] = [];
@@ -27,7 +40,7 @@ export class TownHaze {
   // hole about 0.6 m wide, widens to ~7 m as it climbs, bends downwind and spreads under the evening inversion (heights,
   // widths and opacity C; the brief's moment "smoke rising from the town at dusk as lamps are lit")
   private plumes: THREE.Mesh | null = null; private plumeFires: number[] = []; private plumeA: THREE.InstancedBufferAttribute | null = null;
-  private uWind = uniform(new THREE.Vector2(0, 0)); private uTop = uniform(22);
+  private uWind = uniform(new THREE.Vector2(0, 0)); private uTop = uniform(22); private plumeTau: number[] = [];
   constructor(plan: TownPlan, H: (e: number, n: number) => number, private fire: FireSystem, _idx: { site: string; kind: FireKind }[]) {
     this.group.name = 'settlement:haze';
     for (const s of plan.sites) { if (s.meta.kind !== 'quarter' && s.id !== 'official' && s.id !== 'waystation') continue;
@@ -57,7 +70,7 @@ export class TownHaze {
     const base = new THREE.PlaneGeometry(1, 1, 1, 8).translate(0, 0.5, 0); // x −0.5…0.5, y 0…1
     const g = new THREE.InstancedBufferGeometry(); g.index = base.index; for (const k of ['position', 'uv'] as const) g.setAttribute(k, base.getAttribute(k));
     const at = new Float32Array(n * 4); // base x, y, z, seed
-    this.plumeFires.forEach((fi, k) => { const f = this.fire.fires[fi]; at.set([f.pos.x, f.pos.y + 2.5, f.pos.z, f.seed], k * 4); }); // leaves the roof / court ~2.5 m up
+    this.plumeFires.forEach((fi, k) => { const f = this.fire.fires[fi]; at.set([f.pos.x, f.pos.y + 2.5, f.pos.z, f.seed], k * 4); this.plumeTau[k] = plumeTau(f.kind); }); // leaves the roof / court ~2.5 m up
     g.setAttribute('pbase', new THREE.InstancedBufferAttribute(at, 4)); this.plumeA = new THREE.InstancedBufferAttribute(new Float32Array(n), 1); g.setAttribute('palpha', this.plumeA);
     g.instanceCount = n;
     const pb = attribute('pbase', 'vec4'), pa = attribute('palpha', 'float'), pg = positionGeometry, y = pg.y; // 0…1 up the plume
@@ -105,7 +118,10 @@ export class TownHaze {
     this.mesh.instanceMatrix.needsUpdate = true; this.alpha.needsUpdate = true; this.mesh.visible = this.maxA > 0.003;
     if (this.plumes && this.plumeA) { // each plume follows its fire; still evening air lets it rise higher before it spreads
       this.uWind.value.set(wx * Math.min(1, windMs / 5), wz * Math.min(1, windMs / 5)); this.uTop.value = 12 + 16 * windK * (evening > 1 ? 1 : 0.7);
-      let any = false; this.plumeFires.forEach((fi, k) => { const a = this.fire.fires[fi].lit ? 0.3 * windK + 0.08 : 0; this.plumeA!.array[k] = a; if (a > 0) any = true; });
+      // the plume's opacity at the roof hole from its smoke's optical depth (plumeTau), diluted by the wind that carries it
+      // off (the column's mass per metre falls as 1 / the speed; a buoyant rise of ~1 m/s in still air)
+      const u = Math.max(1, windMs);
+      let any = false; this.plumeFires.forEach((fi, k) => { const a = this.fire.fires[fi].lit ? 1 - Math.exp(-this.plumeTau[k] / u) : 0; this.plumeA!.array[k] = a; if (a > 0) any = true; });
       this.plumeA.needsUpdate = true; this.plumes.visible = any;
     }
   }
