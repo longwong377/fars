@@ -19,6 +19,7 @@ import { srgbToLinear, lum, sceneFromParts, TraceScene } from './trace';
 import type { Part } from '../../arch/parts';
 import { SPEC } from '../../arch/spec';
 import { EYE_SKY } from '../../sky/aerial';
+import { setRoofBoxes } from './roofs';
 
 let FIELD: ProbeField | null = null;
 /** atlas bands: S channel, U channel, tint above + validity, reach, tint below (field.ts atlasData) */
@@ -54,7 +55,7 @@ export async function loadProbes(base = '/'): Promise<ProbeField | null> {
   return FIELD;
 }
 export function setProbeField(F: ProbeField | null) {
-  FIELD = F; ATLAS = null; if (!F) return;
+  FIELD = F; ATLAS = null; setRoofBoxes(F ? F.volumes.map(v => ({ x0: v.roof[0], x1: v.roof[1], z0: v.roof[2], z1: v.roof[3], yLo: v.yLo[0], yHi: v.yHi[0] })) : []); if (!F) return;
   const A = atlasData(F), band = A.width * A.height * 4, all = new Float32Array(band * BANDS);
   A.textures.forEach((t, i) => all.set(t, i * band));
   const d = new THREE.DataTexture(encodeField(all), A.width, A.height * BANDS, THREE.RGBAFormat, THREE.HalfFloatType);
