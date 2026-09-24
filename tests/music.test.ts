@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { MESOPOTAMIAN_MODES, GREEK_MODES, scaleFreqs, cents, ratio, stepPattern, SPECIES_PATTERN } from '../src/audio/tuning';
-import { INSTRUMENTS, PLUCK, pluck, pipeNote, drum } from '../src/audio/instruments';
-import { compose, render, MusicSystem, Performance } from '../src/audio/music';
+import { INSTRUMENTS, PLUCK, VOICE_RANGE, pluck, pipeNote, drum } from '../src/audio/instruments';
+import { compose, render, MusicSystem, Performance, refusal } from '../src/audio/music';
+import { sing } from '../src/audio/song';
+import { MUSIC_CLAIMS, NOT_PERFORMED } from '../src/audio/musicClaims';
 import { Rng } from '../src/core/rng';
 import block from '../src/data/blocklist.json';
 
@@ -98,13 +100,52 @@ describe('composition: generative, seeded, varied', () => {
 });
 
 describe('evidence rules at runtime', () => {
-  const engine: any = { ctx: { sampleRate: 8000, currentTime: 0, createBuffer: () => ({ copyToChannel() {}, duration: 1 }), createBufferSource: () => ({ connect() {}, start() {}, stop() {} }) }, unlocked: true, panner: () => ({ connect() {}, positionX: {}, positionY: {}, positionZ: {} }), ch: { music: {} } };
+  const routed: any[] = [];
+  const engine: any = { ctx: { sampleRate: 8000, currentTime: 0, createBuffer: () => ({ copyToChannel() {}, duration: 1 }), createBufferSource: () => ({ connect() {}, start() {}, stop() {} }), createGain: () => ({ connect() {}, gain: { value: 1, setTargetAtTime() {} } }) },
+    unlocked: true, panner: () => ({ connect() {}, positionX: {}, positionY: {}, positionZ: {} }), ch: { music: {} }, route: (pan: any, ch: string) => { routed.push([pan, ch]); } };
+  const C = ['M-04', 'M-17'];
   it('no instrument at an offering (Herodotus 1.132); court music only with the court resident; never without a position', () => {
     const m = new MusicSystem(engine, () => false);
-    expect(m.perform({ id: 'a', instrument: 'double_pipe', tradition: 'mesopotamian', context: 'offering', seed: 1 }, { x: 0, y: 0, z: 0 }, 2)).toBe(false);
-    expect(m.perform({ id: 'b', instrument: 'harp', tradition: 'mesopotamian', context: 'court', seed: 1 }, { x: 0, y: 0, z: 0 }, 2)).toBe(false);
-    expect(m.perform({ id: 'c', instrument: 'harp', tradition: 'mesopotamian', context: 'leisure', seed: 1 }, { x: NaN, y: 0, z: 0 }, 2)).toBe(false);
-    expect(m.perform({ id: 'd', instrument: 'harp', tradition: 'mesopotamian', context: 'leisure', seed: 1 }, { x: 1, y: 0, z: 2 }, 2)).toBe(true);
-    expect(new MusicSystem(engine, () => true).perform({ id: 'e', instrument: 'harp', tradition: 'mesopotamian', context: 'court', seed: 1 }, { x: 0, y: 0, z: 0 }, 2)).toBe(true);
+    expect(m.perform({ id: 'a', instrument: 'double_pipe', tradition: 'mesopotamian', context: 'offering', seed: 1, claims: C }, { x: 0, y: 0, z: 0 }, 2)).toBe(false);
+    expect(m.perform({ id: 'a2', instrument: 'voice', tradition: 'mesopotamian', context: 'offering', seed: 1, claims: C }, { x: 0, y: 0, z: 0 }, 2)).toBe(false); // no chant either (M-06)
+    expect(m.perform({ id: 'b', instrument: 'harp', tradition: 'mesopotamian', context: 'court', seed: 1, claims: ['M-01'] }, { x: 0, y: 0, z: 0 }, 2)).toBe(false);
+    expect(m.perform({ id: 'c', instrument: 'harp', tradition: 'mesopotamian', context: 'leisure', seed: 1, claims: C }, { x: NaN, y: 0, z: 0 }, 2)).toBe(false);
+    expect(m.perform({ id: 'd', instrument: 'harp', tradition: 'mesopotamian', context: 'leisure', seed: 1, claims: C }, { x: 1, y: 0, z: 2 }, 2)).toBe(true);
+    expect(new MusicSystem(engine, () => true).perform({ id: 'e', instrument: 'harp', tradition: 'mesopotamian', context: 'court', seed: 1, claims: ['M-01', 'M-04'] }, { x: 0, y: 0, z: 0 }, 2)).toBe(true);
+  });
+  it('no music without a tiered source: a performance citing no claim, or an unknown one, is refused', () => {
+    const m = new MusicSystem(engine, () => true);
+    expect(refusal({ id: 'x', instrument: 'harp', tradition: 'mesopotamian', context: 'work', seed: 1 }, true)).toMatch(/no tiered source/);
+    expect(m.perform({ id: 'x', instrument: 'harp', tradition: 'mesopotamian', context: 'work', seed: 1 }, { x: 0, y: 0, z: 0 }, 2)).toBe(false);
+    expect(m.perform({ id: 'y', instrument: 'harp', tradition: 'mesopotamian', context: 'work', seed: 1, claims: ['M-99'] }, { x: 0, y: 0, z: 0 }, 2)).toBe(false);
+    for (const id of NOT_PERFORMED) expect(MUSIC_CLAIMS[id], id).toBeUndefined(); // the chant, herders' pipes and the rejected claims cannot be cited
+  });
+  it('what plays goes through the occlusion (engine.route on the music channel)', () => { expect(routed.length).toBeGreaterThan(0); expect(routed.every(r => r[1] === 'music')).toBe(true); });
+});
+
+describe('singing (vocalise, no words; M-01, M-02, M-07, M-15)', () => {
+  it('a sung note sounds at its pitch within 10 cents (vibrato averaged), female and male', () => {
+    for (const [reg, f] of [['f', 330], ['m', 165]] as const) {
+      const x = sing([{ t: 0, dur: 1.2, f, vel: 1, phrase: 0 }], SR, { register: reg, seed: 3 });
+      const got = f0(x, f * 0.7, f * 1.4, 0.35, 0.6, false); expect(Math.abs(cents(f, got)), `${reg} ${f} → ${got.toFixed(1)}`).toBeLessThan(10);
+    }
+  });
+  it('a composed song keeps to its mode and its register, and a chorus is louder in the tutti phrases than the lead alone', () => {
+    const p: Performance = { id: 'v', instrument: 'voice', tradition: 'mesopotamian', context: 'court', register: 'f', voices: 4, seed: 5, claims: ['M-01'] };
+    const ev = compose(p, 20); expect(ev.length).toBeGreaterThan(8);
+    for (const e of ev) { expect(e.f).toBeGreaterThanOrEqual(VOICE_RANGE.f[0] * 0.99); expect(e.f).toBeLessThanOrEqual(VOICE_RANGE.f[1]); }
+    expect(new Set(ev.map(e => e.phrase)).size).toBeGreaterThan(1);
+  });
+  it('an ensemble shares its melody: harp and voice with one pieceSeed and tonic play the same degrees (heterophony)', () => {
+    const base = { tradition: 'mesopotamian' as const, context: 'court' as const, pieceSeed: 42, tonic: 220, modeId: 'meso1', tempo: 80, claims: ['M-01'] };
+    const h = compose({ ...base, id: 'h', instrument: 'harp', seed: 1 }, 15), v = compose({ ...base, id: 'v', instrument: 'voice', register: 'f', seed: 2 }, 15);
+    const deg = (e: { f: number }) => Math.round(((cents(220, e.f) % 1200) + 1200) % 1200);
+    expect(h.slice(0, 6).map(deg)).toEqual(v.slice(0, 6).map(deg));
+  });
+  it('cost: a 30 s chorus of four voices renders in under 1.5 s in node (the main-thread hitch when a court piece starts)', () => {
+    const p: Performance = { id: 'c', instrument: 'voice', tradition: 'mesopotamian', context: 'court', register: 'f', voices: 4, seed: 9, claims: ['M-01'] };
+    const t0 = performance.now(); const x = render(p, compose(p, 30), 22050); const ms = performance.now() - t0;
+    console.log(`singing: 30 s, 4 voices at 22.05 kHz rendered in ${ms.toFixed(0)} ms`);
+    expect(x.length).toBeGreaterThan(22050 * 20); expect(ms).toBeLessThan(1500);
   });
 });

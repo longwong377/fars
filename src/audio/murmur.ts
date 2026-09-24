@@ -178,7 +178,7 @@ export class Murmur {
         const pan = e.panner(t.pos.x, t.pos.y, t.pos.z, 1.5, 60);
         const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2400; lp.Q.value = 0.5;
         const gain = c.createGain(); gain.gain.value = this.level;
-        lp.connect(gain); gain.connect(pan); pan.connect(e.ch.voices);
+        lp.connect(gain); gain.connect(pan); e.route(pan, 'voices'); // occluded by the built geometry (D-178)
         const vr = new Rng(t.seed ?? 0, `murmur-voice:${t.id}`);
         s = { talker: t, pan, lp, gain, src: null, busyUntil: 0, nextAt: now + vr.next() * 2, rate: 0.93 + vr.next() * 0.14, key };
         this.slots.set(t.id, s);
@@ -200,7 +200,7 @@ export class Murmur {
   private retire(id: string | number, s: Slot, now: number) {
     s.gain.gain.setTargetAtTime(0, now, 0.1);
     const src = s.src; if (src) try { src.stop(now + 0.5); } catch { /* not started */ }
-    setTimeout(() => { try { s.pan.disconnect(); } catch { /* already */ } }, 700);
+    setTimeout(() => { try { s.pan.disconnect(); } catch { /* already */ } this.e.release(s.pan); }, 700);
     this.slots.delete(id);
   }
   /** for the dev overlay (F3): live voices per language and which ones use a fallback profile */

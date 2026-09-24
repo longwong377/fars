@@ -396,7 +396,7 @@ export class Speech {
       const c = e.ctx, src = c.createBufferSource(); src.buffer = r.buf;
       const g = c.createGain(); g.gain.value = opts.gain ?? 1;
       const p = handle.position, pan = e.panner(p.x, p.y, p.z, 1.5, 80);
-      src.connect(g); g.connect(pan); pan.connect(e.ch.voices);
+      src.connect(g); g.connect(pan); e.route(pan, 'voices', c.currentTime + (opts.delay ?? 0) + r.buf.duration); // occluded by the built geometry (D-178)
       handle.duration = r.buf.duration; handle.backend = r.backend;
       handle.attach(src, pan);
       src.start(c.currentTime + (opts.delay ?? 0));
