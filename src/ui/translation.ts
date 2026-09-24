@@ -2,10 +2,13 @@
 //  - subtitles for speech: the line as it is heard (romanised: lexicon.ts spokenForm), the English gloss, the language,
 //    the tier and the line's source;
 //  - inscriptions: look at a carved text (≤ 15 m, centre of view) to see the transliteration OF THE VERSION LOOKED AT
-//    (Old Persian, Elamite or Babylonian; ARIo, CC0) and an interlinear gloss for the words that version's lexicon
-//    covers (each gloss sourced there). No published English translation is shown: the only one the project has read
-//    (Livius.org) is "All rights reserved" on its own pages, which §12 does not allow (D-167, BLOCKERS B17, NEEDS #14);
-//    nothing is paraphrased from memory;
+//    (Old Persian, Elamite or Babylonian; ARIo, CC0), an interlinear gloss for the words that version's lexicon covers
+//    (each gloss sourced there), and an English translation of that version made BY THE PROJECT from the ARIo edition
+//    (src/data/translations.json, tier C, labelled as such everywhere it is shown: D-198). No published English
+//    translation is shown: the only one the project has read (Livius.org) is "All rights reserved" on its own pages,
+//    which §12 does not allow (D-167, BLOCKERS B17, NEEDS #14); nothing is paraphrased from a published translation;
+//  - written objects (tablets, sealings): the text's id, transliteration and the project's English (the seal texts from
+//    ARIo; the Treasury memoranda RECONSTRUCTED on the published formulary, C, said so first: D-198);
 //  - the map (key M) and the chronicle (key J): out-of-world panels; the world itself keeps no map, compass or waypoint.
 import * as THREE from 'three/webgpu';
 import type { Settings } from '../core/settings';
@@ -13,6 +16,7 @@ import inscriptions from '../data/inscriptions.json';
 import opLexicon from '../../research/LEXICON/old_persian.json';
 import elLexicon from '../../research/LEXICON/elamite.json';
 import babLexicon from '../../research/LEXICON/babylonian.json';
+import translations from '../data/translations.json';
 import { FOOTPRINTS, present } from '../arch/spec';
 import { INSCRIPTION_PICK_LAYER } from '../arch/decor';
 import { LANG_NAMES, type LangId } from '../lang/lexicon';
@@ -49,8 +53,17 @@ export const INSCRIPTION_INFO: Record<string, { title: string; where: string; ca
 };
 const VERSION_NAME: Record<string, string> = { op: 'Old Persian', el: 'Elamite', bab: 'Babylonian' };
 const LEX_FILE: Record<string, string> = { op: 'old_persian.json', el: 'elamite.json', bab: 'babylonian.json' };
-/** why no translation is shown (D-167): the project's own finding, with where it is logged */
-export const TRANSLATION_STATUS = 'No published English translation is shown. The one this project has read, Livius.org\'s (J. Lendering, after Kent and Lecoq; read through the Electronic-Old-Persian-Library scrape), carries "All content copyright © 1995–2024 Livius.org. All rights reserved." on its own pages; the scrape\'s CC-BY-NC cannot relicense it. §12 allows, for this personal, non-commercial use, any licence that permits that use with credit (CC0, CC-BY, CC-BY-NC, and also CC-BY-SA: D-192); "All rights reserved" permits none. A translation under such a licence, or in the public domain, is needed (NEEDS_FROM_ME #14; BLOCKERS B17). Nothing is paraphrased from memory.';
+/** the label every project translation carries where it is shown (tier C, D-198) */
+export const PROJECT_TRANSLATION_LABEL: string = (translations as any)._meta.label;
+/** the marks the project's English uses (translations.json _meta.marks) */
+const MARKS = Object.entries((translations as any)._meta.marks as Record<string, string>).map(([k, v]) => `${k} ${v}`).join('; ');
+/** why the English shown is the project's own and no published translation (D-167, D-198): the finding, and where logged */
+export const TRANSLATION_STATUS = 'The English shown is the project\'s own translation from the ARIo edition (tier C; D-198): no published English translation is shown. The one this project has read, Livius.org\'s (J. Lendering, after Kent and Lecoq; read through the Electronic-Old-Persian-Library scrape), carries "All content copyright © 1995–2024 Livius.org. All rights reserved." on its own pages; the scrape\'s CC-BY-NC cannot relicense it. §12 allows, for this personal, non-commercial use, any licence that permits that use with credit (CC0, CC-BY, CC-BY-NC, and also CC-BY-SA: D-192); "All rights reserved" permits none. A published translation under such a licence, or in the public domain, would replace or check the project\'s (NEEDS_FROM_ME #14; BLOCKERS B17). Nothing is paraphrased from a published translation.';
+export interface ProjectTranslation { en: string; tier: 'C'; label: string; notes: string[]; edition_restored_words: string[] }
+/** the project's English of one version of a text (inscriptions and seal texts), or null when there is none */
+export function projectTranslation(id: string, version: string): ProjectTranslation | null {
+  return ((translations as any).texts[id]?.[version] as ProjectTranslation | undefined) ?? null;
+}
 import { MAP_ZOOMS, MapItem, MapStyle, P2 } from './mapLayers';
 
 /** English names for the map and the chronicle (out-of-world; the conventional modern names, not period ones) */
@@ -98,6 +111,8 @@ export interface InscriptionWord { w: string; gloss: string | null; how: 'form' 
 export interface InscriptionReading {
   id: string; version: 'op' | 'el' | 'bab'; title: string; where: string; carved: string; versionName: string;
   translitSource: string; words: InscriptionWord[]; covered: number; sources: string[]; translation: string; notes: string[];
+  /** the project's English of this version (tier C, labelled), or null (the version is not in the corpus mirror) */
+  english: ProjectTranslation | null;
 }
 /** What the layer shows for a panel: the transliteration of the version looked at, and the glosses its lexicon has. */
 export function inscriptionReading(id: string, version = 'op'): InscriptionReading | null {
@@ -105,8 +120,8 @@ export function inscriptionReading(id: string, version = 'op'): InscriptionReadi
   const info = INSCRIPTION_INFO[id] ?? { title: id, where: '', carved: '' };
   const v = (['op', 'el', 'bab'].includes(version) ? version : 'op') as 'op' | 'el' | 'bab';
   const text = String(v === 'op' ? t.op_translit : v === 'el' ? t.el_atf : t.bab_atf).trim();
-  if (!text) return { id, version: v, title: info.title, where: info.where, carved: info.carved, versionName: VERSION_NAME[v], translitSource: '', words: [], covered: 0, sources: [], translation: TRANSLATION_STATUS,
-    notes: [`The ${VERSION_NAME[v]} version of ${id} is not in the corpus mirror read (ARIo via SLAB-NLP/Akk): unavailable.`] };
+  if (!text) return { id, version: v, title: info.title, where: info.where, carved: info.carved, versionName: VERSION_NAME[v], translitSource: '', words: [], covered: 0, sources: [], translation: TRANSLATION_STATUS, english: null,
+    notes: [`The ${VERSION_NAME[v]} version of ${id} is not in the corpus mirror read (ARIo via SLAB-NLP/Akk): unavailable, and not translated.`] };
   const G = GLOSS[v], words: InscriptionWord[] = [], notes: string[] = [];
   for (const w of text.split(/\s+/)) {
     let g: GlossRow | undefined, how: InscriptionWord['how'] = null;
@@ -132,25 +147,37 @@ export function inscriptionReading(id: string, version = 'op'): InscriptionReadi
   const sources = [...new Set(words.flatMap(w => w.src ?? []))].sort();
   return { id, version: v, title: info.title, where: info.where, carved: info.carved, versionName: VERSION_NAME[v],
     translitSource: `Transliteration of the ${VERSION_NAME[v]} version${v === 'op' ? ' (normalised)' : ' (ATF)'}: ARIo, Schmitt 2009, in ORACC (MOCCI; CC0), text ${t.ario}.`,
-    words, covered: words.filter(w => w.gloss).length, sources, translation: TRANSLATION_STATUS, notes };
+    words, covered: words.filter(w => w.gloss).length, sources, translation: TRANSLATION_STATUS, notes, english: projectTranslation(id, v) };
 }
 
-/** What the layer shows for a written object (writing.json, D-179): what it is, the text's id and source and its
- *  transliteration, the seal and how much of it is attested; NO translation (B17a), and a placeholder said as such. */
+/** What the layer shows for a written object (writing.json, D-179, D-198): what it is; for a Treasury tablet FIRST that its
+ *  text is reconstructed and not a surviving text (C), then the text's lines in transliteration, the words' sources and
+ *  the project's English; for a seal text its id, ARIo source, transliteration per version and the project's English
+ *  (C, labelled); a placeholder said as such. */
 export function writingReading(objectId: string): { title: string; lines: string[] } | null {
   const O = WRITING.objects[objectId]; if (!O) return null;
   const lines: string[] = [];
+  const en = (tid: string, v: string) => { const t = projectTranslation(tid, v); return t ? ` — English (project translation, C): “${t.en}”` : ''; };
   const textLines = (tid: string) => { const T = WRITING.texts[tid];
     lines.push(`Text ${tid}: ARIo ${T.ario} (Schmitt 2009, in ORACC; CC0). ${T.ident}.`);
-    lines.push(`Old Persian (normalised transliteration): ${T.op_translit}`);
-    if (T.el_atf) lines.push(`Elamite (ATF): ${T.el_atf}`);
-    if (T.bab_atf) lines.push(`Babylonian (ATF): ${T.bab_atf}`); };
+    lines.push(`Old Persian (normalised transliteration): ${T.op_translit}${en(tid, 'op')}`);
+    if (T.el_atf) lines.push(`Elamite (ATF): ${T.el_atf}${en(tid, 'el')}`);
+    if (T.bab_atf) lines.push(`Babylonian (ATF): ${T.bab_atf}${en(tid, 'bab')}`);
+    lines.push(`${PROJECT_TRANSLATION_LABEL} (tier C).`); };
+  const reconLines = (rid: string) => { const R = WRITING.recon_texts[rid];
+    lines.push(`RECONSTRUCTED TEXT ${rid}: ${R.label}. No Persepolis Treasury text could be read for this build (BLOCKERS B18); this memorandum is composed by the project on the Treasury tablets' published formulary (silver paid to named groups of workers as rations), with every word from the sourced Elamite lexicon, every name from the Fortification texts (PF via CDLI) and nothing invented (D-198).`);
+    lines.push(`Date: ${R.date.king} year ${R.date.regnal_year}${R.date.months ? `, month${R.date.months.length > 1 ? 's' : ''} ${R.date.months.join(' and ')}` : ''} (${R.date.bce}); ${R.date.written}.`);
+    R.lines_atf.forEach((l, i) => lines.push(`Line ${i + 1} (Elamite, ATF): ${l}`));
+    lines.push(`Words: ${R.words.map(w => `${w.w} = ${w.kind === 'numeral' ? 'numeral' : w.gloss.split(/[;:(]/)[0].trim()} [${w.tier.split(' ')[0]}]`).join('; ')}.`);
+    lines.push(`English (${R.english_label}): “${R.english}”`);
+    for (const n of R.notes) lines.push(n); };
   if (O.placeholder) lines.push(`No text shown: placeholder. ${O.placeholder_why ?? ''}`);
+  else if (O.recon) reconLines(O.recon);
   else if (O.text) textLines(O.text);
   else if (O.why_no_text) lines.push(`No text visible: ${String(O.why_no_text)}.`);
   if (O.seal) { const S = WRITING.seals[O.seal]; lines.push(`Sealed with ${O.seal} (tier ${S.tier}). ${S.attested}. Wording: ${S.wording}. Design: ${S.design}.`); if (S.text !== O.text) textLines(S.text); }
   lines.push(`Tier ${O.tier}; sources ${O.src.join(', ')}.`);
-  lines.push(TRANSLATION_STATUS);
+  if (!O.recon) lines.push(TRANSLATION_STATUS);
   return { title: `${O.what} (translation layer)`, lines };
 }
 
@@ -220,7 +247,9 @@ export class TranslationLayer {
     const r = inscriptionReading(id, version); if (!r) return [el('div', '', id)];
     const inter = el('div', 'tl-inter');
     for (const w of r.words) { const cell = el('span', 'tl-w'); cell.append(el('span', 'tl-wo', w.w), el('span', 'tl-wg', w.gloss ? (w.how === 'stem' ? `${w.gloss} (stem)` : w.gloss) : '·')); inter.append(cell); }
-    return [el('div', 'tl-title', `${r.title} · ${r.versionName} version`), el('div', 'small', `${r.where}. Carved: ${r.carved}.`), el('div', 'small', r.translitSource), inter,
+    const E = r.english, english = E ? [el('div', 'tl-en-label', `English of the ${r.versionName} version — ${E.label} (tier ${E.tier})`), el('div', 'tl-en', `“${E.en}”`),
+      el('div', 'small', `Marks: ${MARKS}.${E.edition_restored_words.length ? ` Words with signs restored or lost in the edition: ${E.edition_restored_words.join(', ')}.` : ''}`), ...E.notes.map(n => el('div', 'small', n))] : [];
+    return [el('div', 'tl-title', `${r.title} · ${r.versionName} version`), el('div', 'small', `${r.where}. Carved: ${r.carved}.`), ...english, el('div', 'small', r.translitSource), inter,
       el('div', 'small', r.words.length ? `Word glosses from the project lexicon (research/LEXICON/${LEX_FILE[r.version]}) for ${r.covered} of ${r.words.length} words; “·” = not in the lexicon; “(stem)” = the stem's gloss for an inflected form. Sources of these glosses: ${r.sources.join(', ') || 'none'} (src/data/sources.json).` : ''),
       ...r.notes.map(n => el('div', 'small', n)), el('div', 'small', r.translation)];
   }

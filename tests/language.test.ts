@@ -8,9 +8,10 @@
 //     and naqsh.ts carve): the rendered strings must be period script only; the transliterations and sign sequences that
 //     generate them are scanned for modern words; no unmapped signs. (Their spelling: tests/lang.test.ts, D-177.)
 //  3. lexicon native-script fields (future tablets/labels): period script of the right block only.
-//  3b. writing on objects (src/data/writing.json → src/world/writing.ts, D-179): the seal inscriptions impressed in clay,
-//     captured at the font while the writing atlas bakes, are exactly the data's sign sequences; their transliterations
-//     are scanned for modern words; a written object without a published text must be flagged (placeholder or hidden).
+//  3b. writing on objects (src/data/writing.json → src/world/writing.ts, D-179, D-198): the seal inscriptions and the
+//     Treasury tablets' reconstructed memoranda impressed in clay, captured at the font while the writing atlas bakes, are
+//     exactly the data's sign sequences; their transliterations are scanned for modern words; a written object without a
+//     published text must be flagged (placeholder, hidden, or a reconstructed text labelled as not surviving, C).
 //     Any source file that turns characters into font outlines (charToGlyph, getPath, ...) must be a registered site.
 //  4. any other text: every source file (src/ui included) that renders text is registered as in-world or out-of-world
 //     (DOM), none mixes the two, out-of-world files make no textures; data JSON strings in non-Latin scripts only in
@@ -224,6 +225,7 @@ describe('language lint: every source that can reach the canvas', () => {
     { file: /^src\/data\/inscriptions\.json$/, key: /^\.\w+\.(el|bab)_(cuneiform|lines\.\d+)$/, world: true, why: 'the carved Elamite and Babylonian text, running and in the edition\'s lines (cuneiform only, checked above and read back from the carved meshes below)' },
     { file: /^src\/data\/inscriptions\.json$/, key: /^\.\w+\.op_(cuneiform|signs|words)(\.\d+)*(\.\w+)?(\.\d+)?$/, world: false, why: 'the Old Persian sign data the carving converts (the carved result is checked at the font below)' },
     { file: /^src\/data\/writing\.json$/, key: /^\.texts\.\w+\.(op|el|bab)_cuneiform$/, world: true, why: 'the seal inscriptions impressed in clay (writing.ts; captured at the font and checked below)' },
+    { file: /^src\/data\/writing\.json$/, key: /^\.recon_texts\.[\w-]+\.(el_cuneiform|lines_cuneiform\.\d+)$/, world: true, why: 'the Treasury tablets\' reconstructed memoranda impressed in clay (writing.ts; D-198; captured at the font and checked below)' },
     { file: /^src\/data\/geo\/footprints\.json$/, key: /^\.\w+\.osm_name$/, world: false, why: 'OpenStreetMap names of the ruins (modern Persian): provenance of the footprints only; no source file reads osm_name (checked)' },
     { file: /^src\/data\/sources\.json$/, key: /^\.[\w-]+\.(access|cite)$/, world: false, why: 'citations (the Greek of Od. 1.123): dev overlay and translation layer only' },
     { file: /^src\/data\/names\.json$/, key: /^\.names\.\d+\.origin_basis$/, world: false, why: 'etymology notes (Old Iranian reconstructions in scholarly transliteration: ϑ, β): dev overlay only' },
@@ -300,9 +302,13 @@ describe('language lint: writing on objects (tablets, sealings, leather; D-179)'
   const W = writingData as any;
   it('the transliterations of the written texts contain no modern word, and every written object names a text or is flagged', () => {
     for (const [id, t] of Object.entries<any>(W.texts)) for (const f of ['op_translit', 'el_atf', 'bab_atf']) if (t[f]) expect(findModernWords(t[f]), `${id}.${f}`).toEqual([]);
-    for (const [id, o] of Object.entries<any>(W.objects)) expect(o.text ? !!W.texts[o.text] : o.placeholder === true || o.text_visible === false, id).toBe(true);
+    for (const [id, t] of Object.entries<any>(W.recon_texts)) for (const l of [t.el_atf, ...t.lines_atf]) expect(findModernWords(l), `${id}: ${l}`).toEqual([]);
+    // a published text; or a reconstructed one that says, in its data, that it is not a surviving text (C); or a flag
+    for (const [id, o] of Object.entries<any>(W.objects)) expect(o.text ? !!W.texts[o.text]
+      : o.recon ? W.recon_texts[o.recon]?.reconstructed === true && /not a surviving text \(C\)/.test(W.recon_texts[o.recon].label) && o.reconstructed === true
+      : o.placeholder === true || o.text_visible === false, id).toBe(true);
   });
-  it('what the clay shows (captured at the font while the atlas bakes) is exactly the seal texts\' sign sequences, period script only', async () => {
+  it('what the clay shows (captured at the font while the atlas bakes) is exactly the seal texts\' and the reconstructed tablet texts\' sign sequences, period script only', async () => {
     const captured: string[] = [];
     const proto = (opentype as any).Font.prototype, orig = proto.charToGlyph;
     proto.charToGlyph = function (ch: string) { captured.push(ch); return orig.call(this, ch); };
@@ -313,10 +319,13 @@ describe('language lint: writing on objects (tablets, sealings, leather; D-179)'
     const stream = captured.join('');
     expect(stream.length, 'signs drawn').toBeGreaterThan(0);
     expect(nonPeriodChars(stream, ['oldPersian', 'cuneiform'])).toEqual([]);
-    const texts = Object.fromEntries(Object.entries<any>(W.texts).map(([k, t]) => [k, (t.op_cuneiform + (t.el_cuneiform ?? '') + (t.bab_cuneiform ?? '')).replace(/\s+/g, '')]));
+    const texts = Object.fromEntries([...Object.entries<any>(W.texts).map(([k, t]) => [k, (t.op_cuneiform + (t.el_cuneiform ?? '') + (t.bab_cuneiform ?? '')).replace(/\s+/g, '')]),
+      ...Object.entries<any>(W.recon_texts).map(([k, t]) => [k, (t.lines_cuneiform as string[]).join('').replace(/\s+/g, '')])] as [string, string][]);
+    for (const [k, t] of Object.entries<any>(W.recon_texts)) expect((t.lines_cuneiform as string[]).join(''), `${k}: the lines are the running text`).toBe(t.el_cuneiform);
     let pos = 0; const seen = new Set<string>();
-    while (pos < stream.length) { const hit = Object.entries(texts).find(([, t]) => stream.startsWith(t, pos)); expect(hit, `after ${pos} code units the clay shows something that is not a whole seal text`).toBeTruthy(); seen.add(hit![0]); pos += hit![1].length; }
+    while (pos < stream.length) { const hit = Object.entries(texts).find(([, t]) => stream.startsWith(t, pos)); expect(hit, `after ${pos} code units the clay shows something that is not a whole text of the data`).toBeTruthy(); seen.add(hit![0]); pos += hit![1].length; }
     for (const s of Object.values<any>(W.seals)) expect(seen.has(s.text), `seal text ${s.text} impressed`).toBe(true);
+    for (const o of Object.values<any>(W.objects)) if (o.recon) expect(seen.has(o.recon), `tablet text ${o.recon} impressed`).toBe(true);
   });
 });
 

@@ -214,3 +214,11 @@ egress proxy (B6). Greek claims about the Persian court are capped at B; their n
 | APA-RELIEF (new): the Apadana stair reliefs (Livius, ISAC pages) | SX | delegations led by ushers; guard files; nobles |
 | HENK2010 (new): Henkelman 2010 "Consumed before the King" | SX | PF 0701; the royal table redistributed to family, courtiers, guards |
 | ATH4, ATH4-HERACL, ATH12-HERACL, ATH13-PARM, KING2022, HDT (existing) | as keyed | the 15,000 claim; the dinner; the women; Parmenion's list; trips to the king |
+
+## Session 7 (2026-09-24): the project's translations and the reconstructed Treasury memoranda (D-198)
+| key | what | access | use |
+|---|---|---|---|
+| PROJ-TR (new) | the project's own English translations of the carved inscriptions and seal texts, per version, from the ARIo transliterations | made here (C) | translation layer only (src/data/translations.json); labelled "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953" |
+| CDLI-PF (existing) | re-read 2026-09-24 in the same dump (cdli-gh/data, cdliatf_unblocked.atf; 82 Elamite texts, of them the 67 PF): PAP "total" (PF 1, 6, 58), {an}ITI.MEŠ "month" (PF 6, 11, 15 …), ha-tu-ma "for a period" (PF 6), "{aš}be-ul 1(u) 9(diš@v)-na" (PF 59); no silver vocabulary, no tiriš, no shekel in any Elamite text of the dump | FT | the words of the reconstructed Treasury memoranda (writing.json recon_texts) and the lexicon entries PAP, ITI.MEŠ, hatuma |
+| ARIO (existing) | kur-ša-um "karša" in the Elamite of Darius' weight inscriptions (Q009254, Q009255, Q007204); KU₃.BABBAR "silver" in the Babylonian of DSf (Q007188) and the Artaxerxes silver dish (Q007257) | FT (CC0) | the lexicon entries karša (A) and KU₃.BABBAR (C as an Elamite word) |
+

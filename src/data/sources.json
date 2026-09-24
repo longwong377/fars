@@ -868,5 +868,10 @@
   "cite": "references/persepolis_diagram.jpg (guidebook plan of the present site, 0-75 m scale bar and N arrow: Museum, two capitals lying in the court, Monolithic Basin, Unfinished Gate House)",
   "url": "references/persepolis_diagram.jpg",
   "access": "supplied by the user; third-party, reference only (references/INDEX.md); positions read from it by two landmarks, about ±10 m"
+ },
+ "PROJ-TR": {
+  "cite": "English translations made by this project (PĀRSA, session 7, D-198) from the ARIo transliterations (R. Schmitt 2009, ORACC; CC0) of the carved inscriptions and seal texts, per version, with the repository lexicons; NOT a published translation; verify against Schmitt 2009 / Kent 1953 (src/data/translations.json, tools/build_translations.py)",
+  "url": "",
+  "access": "n/a (made here); tier C"
  }
 }

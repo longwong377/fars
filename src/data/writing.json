@@ -1,8 +1,8 @@
 {
  "_meta": {
-  "what": "texts written or impressed on objects in the world (tablets, sealings, leather); only published texts, as the ancient text in standard transliteration and its sign sequence; no translation (B17a)",
-  "built_by": "tools/build_writing.py from data/corpus/ario.jsonl (ARIo, Schmitt 2009, CC0) and data/corpus/osl.asl (ORACC OSL)",
-  "decision": "D-179"
+  "what": "texts written or impressed on objects in the world (tablets, sealings, leather): the published seal texts (texts, A) as the ancient text in standard transliteration and its sign sequence; and the Treasury memoranda RECONSTRUCTED by the project on the Treasury tablets' published formulary (recon_texts, C; not surviving texts; D-198). English renderings are the project's (C), shown only in the translation layer",
+  "built_by": "tools/build_writing.py from data/corpus/ario.jsonl (ARIo, Schmitt 2009, CC0), data/corpus/osl.asl (ORACC OSL), research/LEXICON/elamite.json and src/data/names.json",
+  "decision": "D-179; D-198 (the reconstructed Treasury memoranda)"
  },
  "texts": {
   "SDa": {
@@ -84,6 +84,707 @@
    }
   }
  },
+ "recon_texts": {
+  "PTR-1": {
+   "kind": "treasury_memorandum_reconstructed",
+   "label": "reconstructed on the Treasury tablets' published formulary — not a surviving text (C)",
+   "reconstructed": true,
+   "date": {
+    "regnal_year": 18,
+    "king": "Xerxes",
+    "months": [
+     11,
+     12
+    ],
+    "bce": "468/7 (the months: early 467)",
+    "written": "by the end of year 18 (C)"
+   },
+   "el_atf": "6(diš) kur-ša-um KU₃.BABBAR kur-min₂ {hal}ir-še-na-na {aš}ka₄-ap-nu-iš-ki-ma {hal}man-ma-ak-ka₄ a-ak {hal}ak-ka₄-ia-še du-iš-da {hal}kur-taš gal-li {aš}be-ul 1(u) 8(diš)-na {an}ITI.MEŠ {an}sa-mi-ia-maš a-ak {an}mi-ia-kan₂-na-iš-na PAP 2(diš) {an}ITI.MEŠ ha-tu-ma",
+   "lines_atf": [
+    "6(diš) kur-ša-um KU₃.BABBAR kur-min₂",
+    "{hal}ir-še-na-na {aš}ka₄-ap-nu-iš-ki-ma",
+    "{hal}man-ma-ak-ka₄ a-ak {hal}ak-ka₄-ia-še",
+    "du-iš-da {hal}kur-taš gal-li",
+    "{aš}be-ul 1(u) 8(diš)-na {an}ITI.MEŠ",
+    "{an}sa-mi-ia-maš a-ak",
+    "{an}mi-ia-kan₂-na-iš-na PAP 2(diš)",
+    "{an}ITI.MEŠ ha-tu-ma"
+   ],
+   "lines_cuneiform": [
+    "𒐋𒆳𒊭𒌝𒆬𒌓𒆳𒊩",
+    "𒄬𒅕𒊺𒈾𒈾𒀸𒋡𒀊𒉡𒅖𒆠𒈠",
+    "𒄬𒎙𒈠𒀝𒋡𒀀𒀝𒄬𒀝𒋡𒅀𒊺",
+    "𒁺𒅖𒁕𒄬𒆳𒌨𒃲𒇷",
+    "𒀸𒁁𒌌𒌋𒐍𒈾𒀭𒌗𒎌",
+    "𒀭𒊓𒈪𒅀𒈦𒀀𒀝",
+    "𒀭𒈪𒅀𒃷𒈾𒅖𒈾𒉽𒈫",
+    "𒀭𒌗𒎌𒄩𒌅𒈠"
+   ],
+   "el_cuneiform": "𒐋𒆳𒊭𒌝𒆬𒌓𒆳𒊩𒄬𒅕𒊺𒈾𒈾𒀸𒋡𒀊𒉡𒅖𒆠𒈠𒄬𒎙𒈠𒀝𒋡𒀀𒀝𒄬𒀝𒋡𒅀𒊺𒁺𒅖𒁕𒄬𒆳𒌨𒃲𒇷𒀸𒁁𒌌𒌋𒐍𒈾𒀭𒌗𒎌𒀭𒊓𒈪𒅀𒈦𒀀𒀝𒀭𒈪𒅀𒃷𒈾𒅖𒈾𒉽𒈫𒀭𒌗𒎌𒄩𒌅𒈠",
+   "words": [
+    {
+     "w": "6(diš)",
+     "kind": "numeral",
+     "gloss": "numeral (PF notation)",
+     "tier": "A (notation)",
+     "src": [
+      "CDLI-PF"
+     ]
+    },
+    {
+     "w": "kur-ša-um",
+     "kind": "word",
+     "lex": "karša",
+     "gloss": "karša, a weight (of silver) = the Old Persian kṛšā ('120 karša' on Darius' weight stones); the Treasury's silver is reckoned in karša and shekels",
+     "tier": "A",
+     "src": [
+      "ARIO",
+      "IR-TREAS",
+      "PT-WAGE"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "KU₃.BABBAR",
+     "kind": "word",
+     "lex": "KU₃.BABBAR",
+     "gloss": "silver (Sumerian logogram)",
+     "tier": "C",
+     "src": [
+      "ARIO",
+      "CDLI-PF",
+      "RECON"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "kur-min₂",
+     "kind": "word",
+     "lex": "kurmin",
+     "gloss": "allocation; 'X kurmin PN-na' = X supplied by PN (lit. at the disposal of PN)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{hal}ir-še-na-na",
+     "kind": "name",
+     "name": "Iršena",
+     "gloss": "Iršena (a personal name; -na: of, by (after kurmin))",
+     "tier": "A (name form, PF via CDLI) / C (this person)",
+     "src": [
+      "CDLI-PF"
+     ],
+     "attested_in": [
+      "PF 405 (P383091)",
+      "PF 406 (P383092)",
+      "PF 54 (P382740)"
+     ]
+    },
+    {
+     "w": "{aš}ka₄-ap-nu-iš-ki-ma",
+     "kind": "word",
+     "lex": "kapnuški",
+     "gloss": "treasury ('kapnuškima' in/to the treasury)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{hal}man-ma-ak-ka₄",
+     "kind": "name",
+     "name": "Manmakka",
+     "gloss": "Manmakka (a personal name; the name alone)",
+     "tier": "A (name form, PF via CDLI) / C (this person)",
+     "src": [
+      "CDLI-PF"
+     ],
+     "attested_in": [
+      "PF 6 (P382692)",
+      "PF 54 (P382740)"
+     ]
+    },
+    {
+     "w": "a-ak",
+     "kind": "word",
+     "lex": "ak",
+     "gloss": "and",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{hal}ak-ka₄-ia-še",
+     "kind": "word",
+     "lex": "akkayaše",
+     "gloss": "his companion(s), his colleague(s)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "du-iš-da",
+     "kind": "word",
+     "lex": "dušda",
+     "gloss": "(he) received (it)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{hal}kur-taš",
+     "kind": "word",
+     "lex": "kurtaš",
+     "gloss": "workers, labourers of the royal economy (ration recipients; over 16,000 in the royal sector)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF",
+      "IR-PET"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "gal-li",
+     "kind": "word",
+     "lex": "gal",
+     "gloss": "ration(s), food allocation ('kurtaš galli' rations of workers)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{aš}be-ul",
+     "kind": "word",
+     "lex": "beul",
+     "gloss": "year ('beul 22-na' in the 22nd year)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry (the determinative as written in PF)"
+    },
+    {
+     "w": "1(u) 8(diš)-na",
+     "kind": "numeral",
+     "gloss": "numeral (PF notation)",
+     "tier": "A (notation)",
+     "src": [
+      "CDLI-PF"
+     ]
+    },
+    {
+     "w": "{an}ITI.MEŠ",
+     "kind": "word",
+     "lex": "ITI.MEŠ",
+     "gloss": "month (logogram, with the divine determinative) before a month name: '{an}ITI.MEŠ {an}ha-du-kan₂-nu-ia-na' first month",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{an}sa-mi-ia-maš",
+     "kind": "word",
+     "lex": "Samiyamaš",
+     "gloss": "month 11 (= Šabatu)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "a-ak",
+     "kind": "word",
+     "lex": "ak",
+     "gloss": "and",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{an}mi-ia-kan₂-na-iš-na",
+     "kind": "word",
+     "lex": "Miyakannaš",
+     "gloss": "month 12 (= Addaru; OP Viyax(a)na)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF",
+      "WP-CAL"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "PAP",
+     "kind": "word",
+     "lex": "PAP",
+     "gloss": "total (Sumerian logogram): 'PAP 3 ITI.MEŠ hatuma' for a total period of three months (Hallock)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "2(diš)",
+     "kind": "numeral",
+     "gloss": "numeral (PF notation)",
+     "tier": "A (notation)",
+     "src": [
+      "CDLI-PF"
+     ]
+    },
+    {
+     "w": "{an}ITI.MEŠ",
+     "kind": "word",
+     "lex": "ITI.MEŠ",
+     "gloss": "month (logogram, with the divine determinative) before a month name: '{an}ITI.MEŠ {an}ha-du-kan₂-nu-ia-na' first month",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "ha-tu-ma",
+     "kind": "word",
+     "lex": "hatuma",
+     "gloss": "for a period (of): 'PAP 3 ITI.MEŠ hatuma' for a total period of three months (Hallock)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    }
+   ],
+   "english": "6 karša of silver, at the disposal of Iršena, in the treasury: Manmakka and his companions received (it), (as) rations (of) workers. 18th year (of Xerxes), the eleventh and the twelfth month: in total a period of two months.",
+   "english_label": "the project's English rendering of its own reconstruction (C)",
+   "tier": {
+    "text": "C (reconstructed on the Treasury tablets' published formulary — not a surviving text (C))",
+    "words": "A/B per word (lexicon, PF via CDLI; ARIo for karša); KU₃.BABBAR \"silver\" C as an Elamite word",
+    "names": "A as names (PF via CDLI); the persons of 467 are the project's (C)",
+    "signs": "B (ATF indices → OSL, as for the carved texts)",
+    "date": "C (chosen to fit every day of the simulated year: D-198)",
+    "layout": "C (lines, no word spaces, sign height)"
+   },
+   "notes": [
+    "A memorandum, not a letter-order: the letter-order's address (\"Tell PN, the treasurer: PN says …\", Elamite tiriš) and its command to pay are not written, because the address verb and the imperative are not sourced here (tiriš was removed with the EWB data, D-192); the receipt formulary of the Fortification texts (amount, kurmin PN-na \"at the disposal of\", the receivers, dušda \"received\", the date) is kept word for word.",
+    "Silver in lieu of rations: \"(as) rations (of) workers\" (kurtaš galli, PF 50) stands for it; the rate per head and the ration it replaces are not written (their Elamite words are not sourced).",
+    "The amount in karša only (the shekel is not sourced); 6 karša for a group over two months is C (PEOPLE.md §3c)."
+   ],
+   "src": [
+    "CDLI-PF",
+    "ARIO",
+    "IR-TREAS",
+    "IR-PET",
+    "OSL",
+    "RECON"
+   ]
+  },
+  "PTR-2": {
+   "kind": "treasury_memorandum_reconstructed",
+   "label": "reconstructed on the Treasury tablets' published formulary — not a surviving text (C)",
+   "reconstructed": true,
+   "date": {
+    "regnal_year": 19,
+    "king": "Xerxes",
+    "months": [
+     1
+    ],
+    "bce": "467 (1 Nisannu = 17 April 467)",
+    "written": "in the first month of year 19 (C)"
+   },
+   "el_atf": "3(diš) 1/2(diš) kur-ša-um KU₃.BABBAR kur-min₂ {hal}ir-še-na-na {aš}ka₄-ap-nu-iš-ki-ma {hal}ba-ka₄-du-iš-da a-ak {hal}kar-ki-iš du-iš-da {hal}kur-taš gal-li {an}ITI.MEŠ {an}ha-du-kan₂-nu-ia-na {aš}be-ul 1(u) 9(diš@v)-na",
+   "lines_atf": [
+    "3(diš) 1/2(diš) kur-ša-um KU₃.BABBAR",
+    "kur-min₂ {hal}ir-še-na-na",
+    "{aš}ka₄-ap-nu-iš-ki-ma",
+    "{hal}ba-ka₄-du-iš-da a-ak",
+    "{hal}kar-ki-iš du-iš-da",
+    "{hal}kur-taš gal-li",
+    "{an}ITI.MEŠ {an}ha-du-kan₂-nu-ia-na",
+    "{aš}be-ul 1(u) 9(diš@v)-na"
+   ],
+   "lines_cuneiform": [
+    "𒐈𒈦𒆳𒊭𒌝𒆬𒌓",
+    "𒆳𒊩𒄬𒅕𒊺𒈾𒈾",
+    "𒀸𒋡𒀊𒉡𒅖𒆠𒈠",
+    "𒄬𒁀𒋡𒁺𒅖𒁕𒀀𒀝",
+    "𒄬𒋼𒀀𒆠𒅖𒁺𒅖𒁕",
+    "𒄬𒆳𒌨𒃲𒇷",
+    "𒀭𒌗𒎌𒀭𒄩𒁺𒃷𒉡𒅀𒈾",
+    "𒀸𒁁𒌌𒌋𒑉𒈾"
+   ],
+   "el_cuneiform": "𒐈𒈦𒆳𒊭𒌝𒆬𒌓𒆳𒊩𒄬𒅕𒊺𒈾𒈾𒀸𒋡𒀊𒉡𒅖𒆠𒈠𒄬𒁀𒋡𒁺𒅖𒁕𒀀𒀝𒄬𒋼𒀀𒆠𒅖𒁺𒅖𒁕𒄬𒆳𒌨𒃲𒇷𒀭𒌗𒎌𒀭𒄩𒁺𒃷𒉡𒅀𒈾𒀸𒁁𒌌𒌋𒑉𒈾",
+   "words": [
+    {
+     "w": "3(diš) 1/2(diš)",
+     "kind": "numeral",
+     "gloss": "numeral (PF notation)",
+     "tier": "A (notation)",
+     "src": [
+      "CDLI-PF"
+     ]
+    },
+    {
+     "w": "kur-ša-um",
+     "kind": "word",
+     "lex": "karša",
+     "gloss": "karša, a weight (of silver) = the Old Persian kṛšā ('120 karša' on Darius' weight stones); the Treasury's silver is reckoned in karša and shekels",
+     "tier": "A",
+     "src": [
+      "ARIO",
+      "IR-TREAS",
+      "PT-WAGE"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "KU₃.BABBAR",
+     "kind": "word",
+     "lex": "KU₃.BABBAR",
+     "gloss": "silver (Sumerian logogram)",
+     "tier": "C",
+     "src": [
+      "ARIO",
+      "CDLI-PF",
+      "RECON"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "kur-min₂",
+     "kind": "word",
+     "lex": "kurmin",
+     "gloss": "allocation; 'X kurmin PN-na' = X supplied by PN (lit. at the disposal of PN)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{hal}ir-še-na-na",
+     "kind": "name",
+     "name": "Iršena",
+     "gloss": "Iršena (a personal name; -na: of, by (after kurmin))",
+     "tier": "A (name form, PF via CDLI) / C (this person)",
+     "src": [
+      "CDLI-PF"
+     ],
+     "attested_in": [
+      "PF 405 (P383091)",
+      "PF 406 (P383092)",
+      "PF 54 (P382740)"
+     ]
+    },
+    {
+     "w": "{aš}ka₄-ap-nu-iš-ki-ma",
+     "kind": "word",
+     "lex": "kapnuški",
+     "gloss": "treasury ('kapnuškima' in/to the treasury)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{hal}ba-ka₄-du-iš-da",
+     "kind": "name",
+     "name": "Bakadušda",
+     "gloss": "Bakadušda (a personal name; the name alone)",
+     "tier": "A (name form, PF via CDLI) / C (this person)",
+     "src": [
+      "CDLI-PF"
+     ],
+     "attested_in": [
+      "PF 8 (P382694)",
+      "PF 12 (P382698)",
+      "PF 13 (P382699)",
+      "PF 55 (P382741)"
+     ]
+    },
+    {
+     "w": "a-ak",
+     "kind": "word",
+     "lex": "ak",
+     "gloss": "and",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{hal}kar-ki-iš",
+     "kind": "name",
+     "name": "Karkiš",
+     "gloss": "Karkiš (a personal name; the name alone)",
+     "tier": "A (name form, PF via CDLI) / C (this person)",
+     "src": [
+      "CDLI-PF"
+     ],
+     "attested_in": [
+      "PF 10 (P382696)",
+      "PF 13 (P382699)",
+      "PF 22 (P382708)",
+      "PF 23 (P382709)"
+     ]
+    },
+    {
+     "w": "du-iš-da",
+     "kind": "word",
+     "lex": "dušda",
+     "gloss": "(he) received (it)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{hal}kur-taš",
+     "kind": "word",
+     "lex": "kurtaš",
+     "gloss": "workers, labourers of the royal economy (ration recipients; over 16,000 in the royal sector)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF",
+      "IR-PET"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "gal-li",
+     "kind": "word",
+     "lex": "gal",
+     "gloss": "ration(s), food allocation ('kurtaš galli' rations of workers)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{an}ITI.MEŠ",
+     "kind": "word",
+     "lex": "ITI.MEŠ",
+     "gloss": "month (logogram, with the divine determinative) before a month name: '{an}ITI.MEŠ {an}ha-du-kan₂-nu-ia-na' first month",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{an}ha-du-kan₂-nu-ia-na",
+     "kind": "word",
+     "lex": "Hadukannaš",
+     "gloss": "month 1 (= OP Adukanaiša, Bab. Nisannu)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF",
+      "WP-CAL"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{aš}be-ul",
+     "kind": "word",
+     "lex": "beul",
+     "gloss": "year ('beul 22-na' in the 22nd year)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry (the determinative as written in PF)"
+    },
+    {
+     "w": "1(u) 9(diš@v)-na",
+     "kind": "numeral",
+     "gloss": "numeral (PF notation)",
+     "tier": "A (notation)",
+     "src": [
+      "CDLI-PF"
+     ]
+    }
+   ],
+   "english": "3½ karša of silver, at the disposal of Iršena, in the treasury: Bakadušda and Karkiš received (it), (as) rations (of) workers. First month, 19th year (of Xerxes).",
+   "english_label": "the project's English rendering of its own reconstruction (C)",
+   "tier": {
+    "text": "C (reconstructed on the Treasury tablets' published formulary — not a surviving text (C))",
+    "words": "A/B per word (lexicon, PF via CDLI; ARIo for karša); KU₃.BABBAR \"silver\" C as an Elamite word",
+    "names": "A as names (PF via CDLI); the persons of 467 are the project's (C)",
+    "signs": "B (ATF indices → OSL, as for the carved texts)",
+    "date": "C (chosen to fit every day of the simulated year: D-198)",
+    "layout": "C (lines, no word spaces, sign height)"
+   },
+   "notes": [
+    "\"Bakadušda and Karkiš received (it)\" is the wording of PF 13 (P382699), with the same two names; \"19th year\" is spelled as in PF 59 (P382745).",
+    "Dated to the first month because the world opens on its first day and runs through the year: a fresh tablet of a later month would stand in the room before it was written (D-198).",
+    "As PTR-1: a memorandum, the amount in karša, the rations it stands for not itemised."
+   ],
+   "src": [
+    "CDLI-PF",
+    "ARIO",
+    "IR-TREAS",
+    "IR-PET",
+    "OSL",
+    "RECON"
+   ]
+  },
+  "PTR-3": {
+   "kind": "treasury_memorandum_reconstructed_unfinished",
+   "label": "reconstructed on the Treasury tablets' published formulary — not a surviving text (C)",
+   "reconstructed": true,
+   "date": {
+    "regnal_year": 19,
+    "king": "Xerxes",
+    "months": null,
+    "bce": "467/6",
+    "written": "being written; the date line is not yet reached"
+   },
+   "el_atf": "2(diš) kur-ša-um KU₃.BABBAR kur-min₂ {hal}ir-še-na-na {aš}ka₄-ap-nu-iš-ki-ma {hal}ir-ti-ma",
+   "lines_atf": [
+    "2(diš) kur-ša-um KU₃.BABBAR",
+    "kur-min₂ {hal}ir-še-na-na",
+    "{aš}ka₄-ap-nu-iš-ki-ma",
+    "{hal}ir-ti-ma"
+   ],
+   "lines_cuneiform": [
+    "𒈫𒆳𒊭𒌝𒆬𒌓",
+    "𒆳𒊩𒄬𒅕𒊺𒈾𒈾",
+    "𒀸𒋡𒀊𒉡𒅖𒆠𒈠",
+    "𒄬𒅕𒋾𒈠"
+   ],
+   "el_cuneiform": "𒈫𒆳𒊭𒌝𒆬𒌓𒆳𒊩𒄬𒅕𒊺𒈾𒈾𒀸𒋡𒀊𒉡𒅖𒆠𒈠𒄬𒅕𒋾𒈠",
+   "words": [
+    {
+     "w": "2(diš)",
+     "kind": "numeral",
+     "gloss": "numeral (PF notation)",
+     "tier": "A (notation)",
+     "src": [
+      "CDLI-PF"
+     ]
+    },
+    {
+     "w": "kur-ša-um",
+     "kind": "word",
+     "lex": "karša",
+     "gloss": "karša, a weight (of silver) = the Old Persian kṛšā ('120 karša' on Darius' weight stones); the Treasury's silver is reckoned in karša and shekels",
+     "tier": "A",
+     "src": [
+      "ARIO",
+      "IR-TREAS",
+      "PT-WAGE"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "KU₃.BABBAR",
+     "kind": "word",
+     "lex": "KU₃.BABBAR",
+     "gloss": "silver (Sumerian logogram)",
+     "tier": "C",
+     "src": [
+      "ARIO",
+      "CDLI-PF",
+      "RECON"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "kur-min₂",
+     "kind": "word",
+     "lex": "kurmin",
+     "gloss": "allocation; 'X kurmin PN-na' = X supplied by PN (lit. at the disposal of PN)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{hal}ir-še-na-na",
+     "kind": "name",
+     "name": "Iršena",
+     "gloss": "Iršena (a personal name; -na: of, by (after kurmin))",
+     "tier": "A (name form, PF via CDLI) / C (this person)",
+     "src": [
+      "CDLI-PF"
+     ],
+     "attested_in": [
+      "PF 405 (P383091)",
+      "PF 406 (P383092)",
+      "PF 54 (P382740)"
+     ]
+    },
+    {
+     "w": "{aš}ka₄-ap-nu-iš-ki-ma",
+     "kind": "word",
+     "lex": "kapnuški",
+     "gloss": "treasury ('kapnuškima' in/to the treasury)",
+     "tier": "A",
+     "src": [
+      "CDLI-PF"
+     ],
+     "spelling": "as in the lexicon entry"
+    },
+    {
+     "w": "{hal}ir-ti-ma",
+     "kind": "name",
+     "name": "Irtima",
+     "gloss": "Irtima (a personal name; the name alone)",
+     "tier": "A (name form, PF via CDLI) / C (this person)",
+     "src": [
+      "CDLI-PF"
+     ],
+     "attested_in": [
+      "PF 59 (P382745)",
+      "PF 60 (P382746)"
+     ]
+    }
+   ],
+   "english": "2 karša of silver, at the disposal of Iršena, in the treasury: Irtima … (the scribe has written no further).",
+   "english_label": "the project's English rendering of its own reconstruction (C)",
+   "tier": {
+    "text": "C (reconstructed on the Treasury tablets' published formulary — not a surviving text (C))",
+    "words": "A/B per word (lexicon, PF via CDLI; ARIo for karša); KU₃.BABBAR \"silver\" C as an Elamite word",
+    "names": "A as names (PF via CDLI); the persons of 467 are the project's (C)",
+    "signs": "B (ATF indices → OSL, as for the carved texts)",
+    "date": "C (chosen to fit every day of the simulated year: D-198)",
+    "layout": "C (lines, no word spaces, sign height)"
+   },
+   "notes": [
+    "Unfinished: only the impressed signs are data; nothing of the rest is supplied."
+   ],
+   "src": [
+    "CDLI-PF",
+    "ARIO",
+    "IR-TREAS",
+    "IR-PET",
+    "OSL",
+    "RECON"
+   ]
+  }
+ },
  "seals": {
   "PTS-treasurer-Darius": {
    "text": "SDa",
@@ -123,28 +824,74 @@
  },
  "objects": {
   "pt_letter": {
-   "what": "Persepolis Treasury letter-order tablet (PT type), Elamite, being written and filed in the Treasury scribes' room; carried by scribes (prop \"tablet\")",
+   "what": "Persepolis Treasury tablet (PT type), Elamite, filed on the benches of the Treasury scribes' room; carried by scribes (prop \"tablet\"). Every filed tablet shows the same text (one face of the writing atlas: an economy of the build)",
    "text": null,
-   "placeholder": true,
-   "placeholder_why": "no Persepolis Treasury text is reachable (Cameron OIP 65 and JNES 1958/1965 on blocked hosts, B6; the CDLI dump carries no PT text): the faces carry wedge impressions in lines with NO readable text (no sign sequence is invented); BLOCKERS B18, NEEDS #4",
+   "recon": "PTR-1",
+   "placeholder": false,
+   "reconstructed": true,
+   "recon_why": "no Persepolis Treasury text is reachable (Cameron OIP 65 and JNES 1958/1965 on blocked hosts, B6; the CDLI dump carries no PT text): the text is RECONSTRUCTED by the project on the published formulary, every word, name and numeral from the sourced lexicon, names and PF notation (D-198); BLOCKERS B18, NEEDS #15",
    "seal": "PTS-treasurer-Darius",
    "sealed_on": "left edge (C, SITE_SPEC treasury.r_scribes_room)",
    "cord_hole": "B: holes and remnants of cords at a corner of the Treasury tablets indicate they were tied to leather scrolls (Cameron's inference, via WRITING-SX)",
+   "reverse": "uninscribed (C: the memoranda fit the obverse)",
    "tier": "C",
    "src": [
     "IR-TREAS",
     "IR-PET",
     "WRITING-SX",
     "MATCULT-R",
+    "CDLI-PF",
     "RECON"
    ]
+  },
+  "pt_letter_fresh": {
+   "what": "Persepolis Treasury tablet (PT type), Elamite, fresh, drying on the board by the scribe's desk, written and sealed on the left edge",
+   "text": null,
+   "recon": "PTR-2",
+   "placeholder": false,
+   "reconstructed": true,
+   "recon_why": "no Persepolis Treasury text is reachable (Cameron OIP 65 and JNES 1958/1965 on blocked hosts, B6; the CDLI dump carries no PT text): the text is RECONSTRUCTED by the project on the published formulary, every word, name and numeral from the sourced lexicon, names and PF notation (D-198); BLOCKERS B18, NEEDS #15",
+   "seal": "PTS-treasurer-Darius",
+   "sealed_on": "left edge (C, SITE_SPEC treasury.r_scribes_room)",
+   "cord_hole": "B: holes and remnants of cords at a corner of the Treasury tablets indicate they were tied to leather scrolls (Cameron's inference, via WRITING-SX)",
+   "reverse": "uninscribed (C: the memoranda fit the obverse)",
+   "tier": "C",
+   "src": [
+    "IR-TREAS",
+    "IR-PET",
+    "WRITING-SX",
+    "MATCULT-R",
+    "CDLI-PF",
+    "RECON"
+   ]
+  },
+  "pt_letter_unfinished": {
+   "seal": null,
+   "sealed_on": "not yet sealed",
+   "cord_hole": "B: holes and remnants of cords at a corner of the Treasury tablets indicate they were tied to leather scrolls (Cameron's inference, via WRITING-SX)",
+   "reverse": "uninscribed (C: the memoranda fit the obverse)",
+   "tier": "C",
+   "src": [
+    "IR-TREAS",
+    "IR-PET",
+    "WRITING-SX",
+    "MATCULT-R",
+    "CDLI-PF",
+    "RECON"
+   ],
+   "what": "Persepolis Treasury tablet (PT type), Elamite, being written: four lines so far, the last one short, not yet sealed",
+   "text": null,
+   "recon": "PTR-3",
+   "placeholder": false,
+   "reconstructed": true,
+   "recon_why": "no Persepolis Treasury text is reachable (Cameron OIP 65 and JNES 1958/1965 on blocked hosts, B6; the CDLI dump carries no PT text): the text is RECONSTRUCTED by the project on the published formulary, every word, name and numeral from the sourced lexicon, names and PF notation (D-198); BLOCKERS B18, NEEDS #15"
   },
   "leather_scroll": {
    "what": "a rolled Aramaic document on leather, tied with a cord and sealed with a clay bulla; the text is inside the roll and not shown",
    "text": null,
    "placeholder": false,
    "text_visible": false,
-   "why_no_text": "no leather document from Persepolis survives; the Aramaic letters on leather (Arshama, Egypt) are only the type (B/C); nothing is written where it could be seen",
+   "why_no_text": "no leather document from Persepolis survives; the Aramaic letters on leather (Arshama, Egypt) are only the type (B/C); nothing is written where it could be seen. Not reconstructed (D-198): the Aramaic lexicon has no sourced word for the Treasury's own formulary (fortress byrtʾ, segan sgnʾ, \"this\" znh, \"before\" qdm are not in it), so no text is composed",
    "seal": "PTS-treasurer-Darius",
    "tier": "C",
    "attested": "B: Aramaic on parchment at Persepolis (Fortification texts on Aramaic scribes and parchment, IR-PET/WRITING-SX); Treasury tablets were tied to leather scrolls with an Aramaic duplicate (Cameron's inference, WRITING-SX); leather letters with a bulla (Arshama letters: type, HALMI-SX)",

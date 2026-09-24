@@ -1229,5 +1229,94 @@
   "tier_ipa": "C",
   "tier_script": "B",
   "note": "Cf. Parsa (XPa Elamite)."
+ },
+ {
+  "form": "karša",
+  "transliteration": "kur-ša-um",
+  "script": "𒆳𒊭𒌝",
+  "gloss": "karša, a weight (of silver) = the Old Persian kṛšā ('120 karša' on Darius' weight stones); the Treasury's silver is reckoned in karša and shekels",
+  "pos": "noun (unit of weight)",
+  "ipa": "–",
+  "attested": "ARIo Elamite versions of Darius' weight inscriptions: Q009254 \"CXX kṛšayā … 120 kur-ša-um\"; Q009255 \"60 kur-ša-um\"; Q007204 \"II kur-ša-um\" (the OP kṛšā in the same texts)",
+  "source": "form: ARIo (Schmitt 2009, ORACC; CC0) via data/corpus/ario.jsonl; sense by the Old Persian of the same texts; the unit in Treasury payments: IR-TREAS / PT-WAGE (search extracts: '3 karša 2½ shekels')",
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "src": [
+   "ARIO",
+   "IR-TREAS",
+   "PT-WAGE"
+  ],
+  "note": "Added D-198 for the reconstructed Treasury memoranda. The shekel's Elamite spelling is not sourced here, so the reconstructed amounts are written in karša and halves only. No IPA is given (written, never spoken, in the build)."
+ },
+ {
+  "form": "KU₃.BABBAR",
+  "transliteration": "KU₃.BABBAR",
+  "script": "𒆬𒌓",
+  "gloss": "silver (Sumerian logogram)",
+  "pos": "noun (logogram)",
+  "ipa": "–",
+  "attested": "the logogram in ARIo: the Babylonian of DSf (Q007188) \"KU₃.GI KU₃.BABBAR\" (gold, silver) and the Artaxerxes silver dish (Q007257) \"ka-a-su KU₃.BABBAR\"; NOT in any Elamite text read here",
+  "source": "logogram and sense: ARIo (Schmitt 2009, ORACC; CC0) via data/corpus/ario.jsonl (Babylonian versions); its use in Achaemenid Elamite administrative texts (the Treasury tablets' silver) is a reconstruction (the Elamite scribes write Sumerograms for commodities: ŠE.BAR, ZI₃.DA, GEŠTIN, UDU.NITA₂ in PF, A)",
+  "tier": "C",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "src": [
+   "ARIO",
+   "CDLI-PF",
+   "RECON"
+  ],
+  "note": "Added D-198. C as an Elamite word: the sign pair is attested (A) in the Babylonian versions only; whether the Treasury scribes wrote exactly KU₃.BABBAR (with or without MEŠ) is not verified (Cameron 1948 not seen, B18)."
+ },
+ {
+  "form": "PAP",
+  "transliteration": "PAP",
+  "script": "𒉽",
+  "gloss": "total (Sumerian logogram): 'PAP 3 ITI.MEŠ hatuma' for a total period of three months (Hallock)",
+  "pos": "noun (logogram)",
+  "ipa": "–",
+  "attested": "PF 1 (P382687) \"PAP hi ŠE.BAR.MEŠ\" (this total of grain); PF 6 (P382692) \"PAP 3(diš) {an}ITI.MEŠ ha-tu-ma\"; PF 58 (P382744) \"PAP 1(u) 7(diš) UDU.NITA₂.MEŠ\"",
+  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read (re-read 2026-09-24, D-198)",
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "src": [
+   "CDLI-PF"
+  ],
+  "note": "Added D-198. No IPA (a logogram)."
+ },
+ {
+  "form": "ITI.MEŠ",
+  "transliteration": "{an}ITI.MEŠ",
+  "script": "𒀭𒌗𒎌",
+  "gloss": "month (logogram, with the divine determinative) before a month name: '{an}ITI.MEŠ {an}ha-du-kan₂-nu-ia-na' first month",
+  "pos": "noun (logogram)",
+  "ipa": "–",
+  "attested": "PF 11 (P382697) \"{an}ITI.MEŠ {an}ha-du-kan₂-nu-ia-na\" (first month); PF 6, 15, 60, 403, 405, 406",
+  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read (re-read 2026-09-24, D-198)",
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "src": [
+   "CDLI-PF"
+  ],
+  "note": "Added D-198. No IPA (a logogram)."
+ },
+ {
+  "form": "hatuma",
+  "transliteration": "ha-tu-ma",
+  "script": "𒄩𒌅𒈠",
+  "gloss": "for a period (of): 'PAP 3 ITI.MEŠ hatuma' for a total period of three months (Hallock)",
+  "pos": "noun + locative (Hallock: 'for a period')",
+  "ipa": "–",
+  "attested": "PF 6 (P382692) \"PAP 3(diš) {an}ITI.MEŠ ha-tu-ma\" (for a total period of three months)",
+  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read (re-read 2026-09-24, D-198)",
+  "tier": "A",
+  "tier_ipa": "C",
+  "tier_script": "B",
+  "src": [
+   "CDLI-PF"
+  ],
+  "note": "Added D-198. No IPA given (written only in the build)."
  }
 ]
