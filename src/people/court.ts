@@ -58,6 +58,7 @@ export const COURT_CAMP: { c: P2; r: number; note: string } = { c: COURT.camp.c,
 // ------------------------------------------------------------------ places: where they are and how far apart
 const FAC: Record<string, P2> = Object.fromEntries((townData as any).facilities.map((f: any) => [f.id, f.at as P2]));
 const XY = new Map<string, P2>([...((placesData as any).places as CourtPlace[]), ...COURT_PLACES].map(p => [p.id, p.at]));
+const ANCHOR = new Map(COURT_PLACES.filter(p => p.anchor).map(p => [p.id, p.anchor!]));
 const TOWN_PLACES = new Set(['court_camp', 'royal_store', 'stockyard', 'terrace_edge']);
 const whereOf = (pl: string): Where => pl === '-' ? 'away' : TOWN_PLACES.has(pl) ? 'town' : 'terrace';
 const xyOf = (pl: string): P2 => pl === 'court_camp' ? COURT_CAMP.c : FAC[pl] ?? XY.get(pl) ?? [0, 0];
@@ -161,6 +162,15 @@ export class CourtResidents {
     return m.sleep;
   }
   plan(pid: number, d: number): Seg[] { return new CourtDay(this, pid, d).build(); }
+  /** the pairs of Terrace route anchors (popgeo.ts) the court's people walk between on these days: a post hangs from its
+   *  line, a place off the Terrace is reached by the stair ('@stair'). The population view searches them up front */
+  anchorPairs(days: number[]): [string, string][] {
+    const anc = (pl: string) => whereOf(pl) !== 'terrace' ? '@stair' : ANCHOR.get(pl) ?? pl, out = new Map<string, [string, string]>();
+    for (const d of days) for (let pid = this.first; pid < this.end; pid++) { if (!this.pop.present(pid, d)) continue; let last: string | null = null;
+      for (const s of this.pop.plan(pid, d)) { if (s.where === 'road' || s.where === 'away') continue; const a = anc(s.place);
+        if (last !== null && last !== a) { const k = last < a ? `${last}>${a}` : `${a}>${last}`; if (!out.has(k)) out.set(k, last < a ? [last, a] : [a, last]); } last = a; } }
+    return [...out.values()];
+  }
 }
 
 // ------------------------------------------------------------------ one person's day

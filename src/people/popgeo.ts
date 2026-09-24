@@ -454,6 +454,10 @@ export class PopGeo {
       const pa = this.anchorPt(A), pb = this.anchorPt(B); p = pa && pb ? this.nav.findPath(pa, pb) : null; this.navCore.set(key, p); }
     return p && (A < B ? p : p.slice().reverse());
   }
+  /** search the core routes between these pairs of anchors now (the court's walks, D-182: some 130 pairs a day that are
+   *  new to the cache at once; at one search per update the first walks of a morning outran their routes and their
+   *  people appeared at the far end: pop-in). Returns the searches made */
+  warmCore(pairs: [string, string][]): number { const b = this.navBudget; let n = 0; for (const [a, c] of pairs) { this.navBudget = 1; if (this.core(a, c) !== undefined && this.navBudget === 0) n++; } this.navBudget = b; return n; }
   private anchorPt(a: string): P2 | null { if (a === '@stair') return this.stair; const A = this.abs[a], P = PLACES[a]; const c = A ? A.c : P?.at; return c ? this.nav.snap(c[0], c[1], 8) : null; }
   /** the walked route between two spots (grid polyline with cumulative lengths); null when there is none, undefined when
    *  the Terrace search budget of this step is spent (ask again) */
