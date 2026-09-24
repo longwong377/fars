@@ -75,6 +75,8 @@ export interface Phone {
   glide?: boolean;
   /** aspirated stop (ʰ; Greek φ θ χ = pʰ tʰ kʰ): a longer voiceless release before the next sound */
   aspirated?: boolean;
+  /** index of the phone's first character in the NFC-normalised IPA string (where a stress mark would go) */
+  pos?: number;
 }
 
 const MODIFIERS = new Set(['ː', 'ˤ', '̩', '͡', 'ˈ', 'ˌ', 'ʰ']);
@@ -92,7 +94,7 @@ export function tokenizeIpa(ipa: string): Phone[] {
   const out: Phone[] = [];
   let word = 0, stress: 0 | 1 | 2 = 0;
   for (let i = 0; i < s.length; i++) {
-    let ch = s[i];
+    let ch = s[i]; const pos = i;
     if (ch === ' ' || ch === '.' || ch === '​') { if (ch === ' ' && out.length) word++; continue; }
     if (ch === 'ˈ') { stress = 1; continue; }
     if (ch === 'ˌ') { stress = 2; continue; }
@@ -102,7 +104,7 @@ export function tokenizeIpa(ipa: string): Phone[] {
     ch = ALIASES[ch] ?? ch;
     const def = PHONES[ch];
     if (!def) throw new IpaError(`IPA symbol ${JSON.stringify(ch)} (U+${ch.codePointAt(0)!.toString(16).toUpperCase().padStart(4, '0')}) is not mapped, in "${ipa}"`, ch);
-    const p: Phone = { sym: ch, def, long: false, syllabic: def.manner === 'vowel', pharyngealised: false, stressMark: stress, word };
+    const p: Phone = { sym: ch, def, long: false, syllabic: def.manner === 'vowel', pharyngealised: false, stressMark: stress, word, pos };
     stress = 0;
     // trailing modifiers
     while (i + 1 < s.length && (s[i + 1] === 'ː' || s[i + 1] === 'ˤ' || s[i + 1] === '̩' || s[i + 1] === 'ʰ')) {
