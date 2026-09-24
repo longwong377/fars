@@ -80,6 +80,7 @@
 - [~] Crowd merge D-143 (s5_crowd-merge-s5-fixr1.bundle: merged, fixed, reviewed; last fix round WIP)
 - [~] Sim round-5 fixes (s5_sim-r5.bundle, WIP) → soak → shadow round 6 on an unseen pick seed
 - [~] Phase 8 fixes: layer (s5_p8-layer.bundle, done + WIP tail), carving (s5_p8-carving.bundle, WIP; licence check); music/occlusion and writing on objects not started
+- [~] Session 6: writing on objects (D-179, branch p8-writing-s6): seal impressions, tablets, leather, door sealing, F3/layer/lint done; PT text placeholder (B18, NEEDS #15); browser render not looked at
 - [ ] Court in full assembly (B12): simulate the court-resident population on the Terrace; moment + soak --court
 - [ ] Full high-quality pass (handoff/render_jobs, 050/051 first), §8.2 rubric, Phase 3+4 / 5 / 6+7 reviews; look fix list (plain and Naqsh read as CG)
 ## Phase 9 — Polish, optimisation, FINAL_REPORT.md

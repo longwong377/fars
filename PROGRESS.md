@@ -7,6 +7,13 @@
   node chain, mix). **PLACEHOLDER:** no harp model, no playing or singing animation (the speech jaw stands in), and court
   women in working dress. **Missing:** the magus's chant (text unattested; living religion: B20, Q-301) and herders' pipes
   (herders not rendered: Q-302). Occlusion leaves out the town's and the plain's buildings.
+- **Session 6, writing on objects (D-179, branch p8-writing-s6; review A-M4).** PLACEHOLDER: the Elamite on every tablet
+  (scribes' room, carried prop) is wedge impressions with no readable text: no Persepolis Treasury text is reachable (B18,
+  NEEDS #15); flagged in writing.json, F3 and the translation layer. The only real texts in clay are two ARIo seal
+  inscriptions (SDa; Q009270) rolled on the tablets' left edge, the leather scrolls' bullae and the Treasury door sealings;
+  which wording stood on which Treasury seal is C (Q-320) and the seal figures are schematic C. Leather scrolls: rolled and
+  sealed, their Aramaic inside, none rendered. The door sealing no longer claims an impression it lacks. Not rendered in a
+  browser yet (node previews of the relief only).
 - **Session 5 (2026-09-23/24; ended — read this block and HANDOFF.md first).** Base 2f6dbaa (the session-4 handoff).
   - **Nothing from the session-5 agents is merged.** Their work is in `handoff/branches/s5_*.bundle` (crowd merge with a
     WIP fix round; sim round-5 fixes WIP; Phase 8 carving WIP; Phase 8 layer done + a WIP tail). HANDOFF.md says how to

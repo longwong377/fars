@@ -5,6 +5,8 @@ import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { v } from '../arch/spec';
 import { Rng } from '../core/rng';
+import { INSCRIPTION_PICK_LAYER } from '../arch/decor';
+import { ptTabletGeometry, bullaGeometry, clayMaterial, writtenMeta } from './writing';
 
 const lathe = (pts: [number, number][], seg = 16) => new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), seg);
 const strip = (g: THREE.BufferGeometry) => { const n = g.index ? g.toNonIndexed() : g; for (const k of Object.keys(n.attributes)) if (k !== 'position' && k !== 'normal') n.deleteAttribute(k); return n; };
@@ -60,9 +62,10 @@ export function buildScribesRoom(room: number[], shelves: number[][], seed = 1):
   const R = v<any>('treasury', 'r_scribes_room'), SR = v<any>('treasury', 'scribes_room'), rng = new Rng(seed, 'scribes-room');
   const [tw, th, tt] = R.tablet as number[], fl = room[4];
   const mat = (rgb: [number, number, number], rough: number) => new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...rgb, THREE.SRGBColorSpace), roughness: rough, metalness: 0 });
-  // a PT letter: a rectangular tablet with rounded edges, lying on its face (x = width, z = height, y = thickness)
-  const tabletGeo = new THREE.BoxGeometry(tw, tt, th, 2, 1, 2); { const p = tabletGeo.getAttribute('position') as THREE.BufferAttribute;
-    for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i), y = p.getY(i); p.setY(i, y * (1 - 0.35 * ((x / (tw / 2)) ** 2 + (z / (th / 2)) ** 2) / 2)); } tabletGeo.computeVertexNormals(); }
+  // a PT letter: a rectangular tablet with pillowed faces, lying on its face (x = width, z = height, y = thickness); the
+  // writing and the seal roll are impressed relief from the writing atlas (writing.ts, D-179): the filed tablets are
+  // written on both faces, the fresh ones partly (one is being written); the Elamite text is a PLACEHOLDER (B18)
+  const tabletGeo = ptTabletGeometry('full', 1), freshGeo = ptTabletGeometry('full', 0), partGeo = ptTabletGeometry('part', 0);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), one = new THREE.Vector3(1, 1, 1);
   const filed: THREE.Matrix4[] = [], fresh: THREE.Matrix4[] = [];
   // filed tablets: stood on edge in two rows along each bench, a few gaps (C); baked-dry clay
@@ -83,9 +86,27 @@ export function buildScribesRoom(room: number[], shelves: number[][], seed = 1):
   for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) { if (rng.chance(0.2)) continue;
     const u = (i - 1.5) * (bw / 4), w = (j - 1) * (bd / 3), e = bc[0] + right[0] * u + fwd[0] * w, nn = bc[1] + right[1] * u + fwd[1] * w;
     fresh.push(m4.clone().compose(new THREE.Vector3(e, fl + 0.03 + tt / 2, -nn), q.setFromAxisAngle(up, hd + rng.range(-0.1, 0.1)), one)); }
-  const dry = new THREE.InstancedMesh(tabletGeo, mat([0.66, 0.55, 0.42], 0.9), filed.length); filed.forEach((mm, i) => dry.setMatrixAt(i, mm));
-  const wet = new THREE.InstancedMesh(tabletGeo, mat([0.47, 0.38, 0.29], 0.55), fresh.length); fresh.forEach((mm, i) => wet.setMatrixAt(i, mm));
-  for (const [im, name] of [[dry, 'scribes:tablets_filed'], [wet, 'scribes:tablets_fresh']] as const) { im.castShadow = true; im.receiveShadow = true; im.name = name; im.computeBoundingSphere(); group.add(im); }
+  const dry = new THREE.InstancedMesh(tabletGeo, clayMaterial([0.66, 0.55, 0.42], 0.9), filed.length); filed.forEach((mm, i) => dry.setMatrixAt(i, mm));
+  const wet = new THREE.InstancedMesh(freshGeo, clayMaterial([0.47, 0.38, 0.29], 0.55), fresh.length); fresh.forEach((mm, i) => wet.setMatrixAt(i, mm));
+  for (const [im, name] of [[dry, 'scribes:tablets_filed'], [wet, 'scribes:tablets_fresh']] as const) { im.castShadow = true; im.receiveShadow = true; im.name = name; im.computeBoundingSphere(); im.userData = writtenMeta('pt_letter', name === 'scribes:tablets_fresh' ? 'fresh tablets drying, written and sealed on the left edge' : 'filed tablets, written and sealed'); group.add(im); }
+  // the tablet being written: six lines on the obverse, the last broken off where the scribe stopped; on the floor in front
+  // of the desk, to the scribe's right (C)
+  const part = new THREE.Mesh(partGeo, wet.material as THREE.Material), pc = [dx + right[0] * 0.25 + fwd[0] * 0.32, dy + right[1] * 0.25 + fwd[1] * 0.32];
+  part.position.set(pc[0], fl + tt / 2, -pc[1]); part.rotation.y = hd + 0.3; part.name = 'scribes:tablet_unfinished'; part.userData = writtenMeta('pt_letter', 'a tablet being written: six lines so far, not yet sealed', { unsealed: true }); group.add(part);
+  // Aramaic documents on leather, rolled, tied and sealed with a clay bulla, lying by the drying board (B: Treasury tablets
+  // were tied to leather scrolls with an Aramaic duplicate, Cameron's inference; number and place C). Their text is inside.
+  const S = 3, scrollAt: THREE.Matrix4[] = [];
+  for (let i = 0; i < S; i++) { const u = -0.1 + i * 0.09, w = bd / 2 + 0.12 + rng.range(0, 0.04), e = bc[0] + right[0] * u + fwd[0] * w, nn = bc[1] + right[1] * u + fwd[1] * w;
+    scrollAt.push(m4.clone().compose(new THREE.Vector3(e, fl, -nn), q.setFromAxisAngle(up, hd + rng.range(-0.25, 0.25)), one)); }
+  const leather = new THREE.InstancedMesh(scrollGeometry(), new THREE.MeshStandardNodeMaterial({ vertexColors: true, roughness: 0.75, metalness: 0 }), S);
+  const bullae = new THREE.InstancedMesh(bullaGeometry(0.011).translate(0, 2 * SCROLL_R, 0), clayMaterial([0.52, 0.41, 0.31], 0.85), S);
+  scrollAt.forEach((mm, i) => { leather.setMatrixAt(i, mm); bullae.setMatrixAt(i, mm); });
+  for (const [im, name] of [[leather, 'scribes:leather_scrolls'], [bullae, 'scribes:bullae']] as const) { im.castShadow = true; im.receiveShadow = true; im.name = name; im.computeBoundingSphere(); im.userData = writtenMeta('leather_scroll', name === 'scribes:bullae' ? 'clay bulla on the tie of a leather scroll, rolled with the treasurer\'s seal' : 'rolled leather document, tied'); group.add(im); }
+  // pick boxes for the translation layer (INSCRIPTION_PICK_LAYER, never rendered): the drying board, the benches, the scrolls
+  const pick = (w: number, h: number, d: number, at: THREE.Vector3, rotY: number, id: string) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), PICK_MAT); b.position.copy(at); b.rotation.y = rotY; b.layers.set(INSCRIPTION_PICK_LAYER); b.name = `writing:${id}:pick`; b.userData = { ...writtenMeta(id, ''), inscription: `writing:${id}`, version: 'writing', pickFar: 4 }; group.add(b); };
+  pick(bw, 0.08, bd, new THREE.Vector3(bc[0], fl + 0.04, -bc[1]), hd, 'pt_letter');
+  for (const [cx, cy, sx, sy, top] of shelves) pick(sx, th + 0.04, sy, new THREE.Vector3(cx, top + th / 2, -cy), 0, 'pt_letter');
+  { const e = bc[0] + fwd[0] * (bd / 2 + 0.14), nn = bc[1] + fwd[1] * (bd / 2 + 0.14); pick(0.36, 0.08, 0.2, new THREE.Vector3(e, fl + 0.04, -nn), hd, 'leather_scroll'); }
   // the clay: a lump kept moist under a cloth, in front-left of the scribe
   const lc = [dx - right[0] * 0.45 + fwd[0] * 0.3, dy - right[1] * 0.45 + fwd[1] * 0.3];
   const lump = new THREE.Mesh(new THREE.SphereGeometry(R.clay_lump, 12, 8).scale(1.2, 0.6, 1), mat([0.45, 0.36, 0.27], 0.5));
@@ -99,7 +120,19 @@ export function buildScribesRoom(room: number[], shelves: number[][], seed = 1):
   baskets.name = 'scribes:baskets'; baskets.castShadow = true; baskets.receiveShadow = true; baskets.computeBoundingSphere(); group.add(baskets);
   // every piece takes and casts sun shadows (the board, the clay and its cloth did not receive them: under the roof they
   // were lit by the full sun, and glowed white at the room's exposure; session 4)
-  group.traverse(o => { if ((o as THREE.Mesh).isMesh) { o.castShadow = true; o.receiveShadow = true; } });
-  group.traverse(o => { if ((o as THREE.Mesh).isMesh) o.userData = { tier: 'C', src: 'IR-TREAS;MATCULT-R', note: 'scribes\' room of the Treasury (PT find-spot "a northeastern room", B): tablets, drying board, clay, baskets (types B; forms, sizes, number and arrangement C)' }; });
+  group.traverse(o => { if ((o as THREE.Mesh).isMesh && !o.layers.isEnabled(INSCRIPTION_PICK_LAYER)) { o.castShadow = true; o.receiveShadow = true; } });
+  group.traverse(o => { if ((o as THREE.Mesh).isMesh && !o.userData.tier) o.userData = { tier: 'C', src: 'IR-TREAS;MATCULT-R', note: 'scribes\' room of the Treasury (PT find-spot "a northeastern room", B): drying board, clay, baskets (types B; forms, sizes, number and arrangement C)' }; });
   return group;
+}
+
+const PICK_MAT = new THREE.MeshBasicNodeMaterial({ visible: false });
+const SCROLL_R = 0.013;
+/** a rolled leather document 0.12 m long lying along x, tied near both ends with a cord; the bulla sits on the middle tie
+ *  (bullaGeometry, placed on top). Vertex colours: leather and cord (C) */
+function scrollGeometry(): THREE.BufferGeometry {
+  const col = (g: THREE.BufferGeometry, rgb: [number, number, number]) => { const n = g.index ? g.toNonIndexed() : g; n.deleteAttribute('uv'); const c = new THREE.Color().setRGB(...rgb, THREE.SRGBColorSpace), a = new Float32Array(n.getAttribute('position').count * 3); for (let i = 0; i < a.length; i += 3) a.set([c.r, c.g, c.b], i); n.setAttribute('color', new THREE.BufferAttribute(a, 3)); return n; };
+  const roll = new THREE.CylinderGeometry(SCROLL_R, SCROLL_R, 0.12, 14, 1).rotateZ(Math.PI / 2).translate(0, SCROLL_R, 0);
+  const lip = new THREE.CylinderGeometry(SCROLL_R * 1.06, SCROLL_R * 1.06, 0.004, 14, 1, true).rotateZ(Math.PI / 2).translate(0.052, SCROLL_R, 0); // the outer edge of the rolled sheet
+  const ties = [-0.035, 0, 0.035].map(x => new THREE.TorusGeometry(SCROLL_R * 1.04, 0.0016, 4, 14).rotateY(Math.PI / 2).translate(x, SCROLL_R, 0));
+  return mergeGeometries([col(roll, [0.62, 0.5, 0.36]), col(lip, [0.58, 0.46, 0.33]), ...ties.map(t => col(t, [0.55, 0.48, 0.36]))])!;
 }

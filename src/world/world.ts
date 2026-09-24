@@ -32,6 +32,7 @@ import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Relie
 import { updateReliefs, settleReliefs } from '../arch/reliefs';
 import { FireSystem } from './fire';
 import { buildTreasuryGoods, buildScribesRoom } from './furnish';
+import { loadWritingFonts } from './writing';
 import { buildPlain } from './plain';
 import { ConstructionView } from './construction';
 import { Visitor } from './visitor/controller';
@@ -118,6 +119,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   root.add(arch.group);
+  // the seal inscriptions impressed in clay (door sealings, tablets) are drawn from the period-script fonts: loaded before
+  // the first clay object bakes the writing atlas (writing.ts, D-179)
+  await loadWritingFonts(async p => (await fetch('/' + p)).arrayBuffer());
   const doors = new DoorSystem(parts, phys); root.add(doors.group); // D-051
   { // stale probes still light the halls, but say so (the unit test tests/probes.test.ts fails on the same condition)
     const pf = await probesP, h = pf?.partsHash;
