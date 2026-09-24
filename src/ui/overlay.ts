@@ -11,7 +11,9 @@ export class DevOverlay {
     const info = renderer.info;
     const mem = (performance as any).memory ? `${((performance as any).memory.usedJSHeapSize / 1048576).toFixed(0)} MB JS heap` : 'n/a';
     this.ray.setFromCamera(new THREE.Vector2(0, 0), camera); this.ray.far = 400;
-    const hits = this.ray.intersectObjects(scene.children, true).filter(h => h.object.visible && (h.object as any).isMesh);
+    // what is drawn: the object and every ancestor visible (the Now view hides whole groups, D-201)
+    const shown = (o: THREE.Object3D | null) => { for (; o; o = o.parent) if (!o.visible) return false; return true; };
+    const hits = this.ray.intersectObjects(scene.children, true).filter(h => shown(h.object) && (h.object as any).isMesh);
     let tierLine = 'looking at: (nothing within 400 m)';
     if (hits[0]) {
       let o: THREE.Object3D | null = hits[0].object; while (o && !o.userData?.tier) o = o.parent;

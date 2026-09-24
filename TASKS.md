@@ -66,7 +66,7 @@
 - [~] Translation layer: subtitles, inscriptions (transliteration + glosses; translations need NEEDS #14), map (M; Z: town and plain scales), chronicle (J; visitor log)
 - [~] Lexicons in five languages (Babylonian, Ionic Greek new), 73 lines, 372 voice clips (D-105..D-109); voices re-rendered (D-185): the machine pitch and contour thresholds met, machine phone recovery not improved, the Babylonian formant voice and the murmur not re-tuned; the §10 human rating (listening test H8) open; bundled lexical sources' licences checked, EWB data removed (D-192)
 - [~] Writing on objects (D-179): tablets with wedge relief (text PLACEHOLDER, B18), rolled seals with ARIo seal texts, sealed leather scrolls; carved Old Persian = the CC0 ARIo sign-by-sign edition, 0 differences (D-184; round-2 C1 fixed, round 3 PASS), incised; Elamite and Babylonian in the edition's lines, omissions not carved, restorations tiered C (D-184)
-- [ ] Now view (stretch, §14 Phase 8)
+- [~] Now view (stretch, §14 Phase 8): first version (D-201): the ruin today as a transform of the same parts (src/data/now_view.json, src/arch/now.ts, src/world/nowview.ts), key N / Settings, off by default; tier C, RECOLLECTION NOT SEEN (verify against Schmidt 1953 and dated photographs); node-tested only, never rendered; damage, graffiti, the rock tombs and the modern plain not modelled
 - [ ] Photo mode (stretch, §14 Phase 8)
 - [~] Music in the world from performers only (quern songs, Ionian masons' songs, court supper/night music with the setting; D-178, lint:music) and audio occlusion (D-178, Q-304): node-tested, unheard in a browser; PLACEHOLDER visuals (no harp model, no playing/singing animation, no court dress); no magus's chant and no herders' pipes (B20)
 ## Session 4 (ended; HANDOFF.md)

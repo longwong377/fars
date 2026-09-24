@@ -20,7 +20,7 @@ import { srgbToLinear, lum, sceneFromParts, TraceScene } from './trace';
 import type { Part } from '../../arch/parts';
 import { SPEC } from '../../arch/spec';
 import { EYE_SKY } from '../../sky/aerial';
-import { setRoofBoxes } from './roofs';
+import { setRoofBoxes, ROOFS_PRESENT, roofsPresent } from './roofs';
 
 let FIELD: ProbeField | null = null;
 /** atlas bands: S channel, U channel, tint above + validity, reach, tint below (field.ts atlasData) */
@@ -94,7 +94,7 @@ export function probeSkyVisibility(p: { x: number; y: number; z: number }, fallb
  *  probe field's weight at p (0 outside the volumes, 1 inside, fading across their edges). The interior exposure uses
  *  `eye` where w > 0 (D-141). */
 export function probeEyeVisibility(p: { x: number; y: number; z: number }): { eye: number; w: number } {
-  if (!FIELD) return { eye: 1, w: 0 };
+  if (!FIELD || !roofsPresent()) return { eye: 1, w: 0 }; // no roofs (the Now view, D-201): no probe volumes
   const S = Math.max(current.S, 1e-4), U = current.U, r = fieldVisibility(FIELD, p.x, p.y, p.z, S, U, RHO_OPEN);
   if (r.w <= 0) return { eye: 1, w: 0 };
   const d = current.sun, sunlit = U > 0 && !(OCC?.occluded(p.x, p.y, p.z, d.x, d.y, d.z, 0.05, 2000) ?? false) ? EYE_SKY.sunVisibilityAt(p.x, p.y, p.z) : 0;
@@ -105,7 +105,7 @@ export function probeEyeVisibility(p: { x: number; y: number; z: number }): { ey
 /** the horizontal diagonal (m) of the roofed footprint of the probe volume containing p (the hall around the eye), or 0
  *  outside every volume: how far that enclosure's air reaches along a view ray (aerial.ts Air.setInterior, session 5) */
 export function probeVolumeExtent(p: { x: number; y: number; z: number }): number {
-  const v = FIELD ? volumeAt(FIELD, p.x, p.y, p.z) : null;
+  const v = FIELD && roofsPresent() ? volumeAt(FIELD, p.x, p.y, p.z) : null;
   return v ? Math.hypot(v.roof[1] - v.roof[0], v.roof[3] - v.roof[2]) : 0;
 }
 
@@ -170,7 +170,7 @@ export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any, directSk
   const tr = mix(s4.x, s2.x, up).mul(inv), tb = mix(s4.y, s2.y, up).mul(inv), fb = clamp(s2.z.mul(inv), 0, 1);
   const tint = vec3(tr, max(float(1).sub(tr.mul(0.2126)).sub(tb.mul(0.0722)).div(0.7152), 0), tb);
   const E = directSky ? S.mul(eS).mul(float(1).sub(fb)) : S.mul(mix(vec3(1, 1, 1), tint, fb)).mul(eS).add(U.mul(tint).mul(eU));
-  const w = fade.mul(smoothstep(VALID_LO, VALID_HI, val));
+  const w = fade.mul(smoothstep(VALID_LO, VALID_HI, val)).mul(ROOFS_PRESENT); // 0 in the Now view (no roofs, D-201)
   return { E: mix(hemi, E, w), w };
 }
 

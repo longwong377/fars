@@ -12,7 +12,7 @@ const ALBEDO: Record<Material, [number, number, number]> = {
   limestone: [0.62, 0.6, 0.56], limestone_dark: [0.28, 0.28, 0.28], mudbrick: [0.66, 0.56, 0.44], mudbrick_painted: [0.58, 0.57, 0.45], plaster: [0.8, 0.76, 0.68],
   plaster_red: [0.5, 0.16, 0.12], bronze: [0.55, 0.4, 0.22],
   timber: [0.36, 0.27, 0.19], glazed: [0.2, 0.4, 0.55], earth: [0.5, 0.42, 0.32], scaffold: [0.45, 0.35, 0.24], rubble: [0.55, 0.52, 0.48],
-  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56],
+  court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56], steel: [0.3, 0.3, 0.31],
 };
 import { surfaceMaterial } from '../render/materials';
 import { pointInPoly } from './parts';
@@ -317,7 +317,9 @@ export interface BuiltArch { group: THREE.Group; triangles: number; colliders: n
 /** opts.dynamicDoors: door leaves (parts with `door`, D-051) get no static collider, because the world's door system
  *  (doors.ts) gives each a kinematic one that follows its swing. Without it (walkable-grid build, offline bots) a leaf is a
  *  static collider in its walkable-grid pose. Leaves are never drawn here: the door system draws them. */
-export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?: boolean } = {}): BuiltArch {
+/** opts.colossusFront: the colossi's fore-part length (m) to carve with, instead of measuring it against these parts' walls
+ *  (the Now view, D-201: the walls are gone, the carving is not) */
+export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?: boolean; colossusFront?: number } = {}): BuiltArch {
   const group = new THREE.Group(); group.name = 'architecture';
   const byKey = new Map<string, { geos: THREE.BufferGeometry[]; plain: THREE.BufferGeometry[]; parts: Part[] }>();
   const index = new PartIndex(parts), bstats: BevelStats = { edges: 0, bevelled: 0, trisFlat: 0, trisBevelled: 0 };
@@ -388,7 +390,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     }
   }
   if (colossi.length) {
-    const fr = colossusFrontProjections(parts as Box[]); const front = fr.reduce((a, b) => a + b, 0) / fr.length;
+    const fr = opts.colossusFront === undefined ? colossusFrontProjections(parts as Box[]) : []; const front = opts.colossusFront ?? fr.reduce((a, b) => a + b, 0) / fr.length;
     setColossusFront(front);
     const idx = sculptIndex(); if (idx && Math.abs(idx.params.colossusFront - front) > 0.05) console.warn(`sculpt: colossi were generated for a ${idx.params.colossusFront.toFixed(2)} m fore-part, the layout gives ${front.toFixed(2)} m (rerun npx tsx tools/build_sculpt.ts)`);
     for (const p of colossi) {

@@ -18,6 +18,8 @@ h2 { font-weight: normal; letter-spacing: 0.12em; font-size: 18px; margin: 18px 
 #overlay .tA { color: #8fe38f; } #overlay .tB { color: #f0d060; } #overlay .tC { color: #ff9a6a; }
 .cb #overlay .tA { color: #56b4e9; } .cb #overlay .tB { color: #e69f00; } .cb #overlay .tC { color: #cc79a7; }
 .crosshair { position: fixed; left: 50%; top: 50%; width: 3px; height: 3px; margin: -1px; background: rgba(255,255,255,0.35); border-radius: 50%; pointer-events: none; }
+/* the Now view's caption (out-of-world, D-201) */
+.now-caption { position: fixed; left: 50%; top: 10px; transform: translateX(-50%); max-width: min(760px, calc(100vw - 32px)); box-sizing: border-box; background: rgba(0,0,0,0.6); border: 1px solid var(--line); padding: 5px 12px; font-size: 13px; color: var(--fg); text-align: center; pointer-events: none; }
 .subtitle { position: fixed; bottom: 7vh; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.55); padding: 4px 12px; pointer-events: none; }
 @media (max-width: 600px) { .row { grid-template-columns: 1fr; } .title h1 { font-size: 30px; } }
 /* translation layer (out-of-world) */
