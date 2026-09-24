@@ -71,4 +71,14 @@
 - [x] Camera rig: page reuse per world state, photographic lenses, reframed moments, WebGL2 forcing, no aiming dot
 - [~] Photoreal triage (REVIEWS/prelim_photoreal_triage.md): merged D-149 plain, D-150 sim, D-151 carving, D-155 faces, D-156 atmosphere, D-157 surfaces — all unrendered at high; crowd D-143 NOT merged (handoff/branches/crowd_D143.bundle)
 - [ ] Smoke render (new shaders), crowd bundle merge, soak on the final sim, full high-quality pass (handoff/render_jobs/), §8.2 rubric, independent Phase 3–8 reviews (handoff/review_briefs.md), shadow review round 5 (input generated), bench × 4
+## Session 5 (ended; HANDOFF.md)
+- [x] Baseline (tsc, vitest, lint:all, bot 97/97); soak on the D-150 code passes all 8 gates
+- [x] Smoke renders at test and high on WebGPU; effect-material compile failure fixed (D-174); WebGL2 at test renders
+- [~] Indoor aerial perspective and no-rain-under-roofs fixes (D-174): node-tested, unrendered; Hadish floor blotches undiagnosed
+- [x] Shadow review round 5 (two reviewers): FAILED; Phase 8 review (two lenses): FAILED
+- [~] Crowd merge D-143 (s5_crowd-merge-s5-fixr1.bundle: merged, fixed, reviewed; last fix round WIP)
+- [~] Sim round-5 fixes (s5_sim-r5.bundle, WIP) → soak → shadow round 6 on an unseen pick seed
+- [~] Phase 8 fixes: layer (s5_p8-layer.bundle, done + WIP tail), carving (s5_p8-carving.bundle, WIP; licence check); music/occlusion and writing on objects not started
+- [ ] Court in full assembly (B12): simulate the court-resident population on the Terrace; moment + soak --court
+- [ ] Full high-quality pass (handoff/render_jobs, 050/051 first), §8.2 rubric, Phase 3+4 / 5 / 6+7 reviews; look fix list (plain and Naqsh read as CG)
 ## Phase 9 — Polish, optimisation, FINAL_REPORT.md
