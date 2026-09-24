@@ -8,22 +8,26 @@ export interface Settings {
   keys: Record<string, string>;
   volume: { master: number; ambience: number; voices: number; music: number; effects: number };
   subtitleSize: number; lightningWarning: boolean; colourBlindUI: boolean; timeScale: number; devOverlay: boolean;
+  /** the Now view (brief §1.1 stretch, out-of-world, D-201): the ruin as it stands today. Off by default and never restored
+   *  from storage: every visit starts in 467 BCE */
+  nowView: boolean;
 }
 export const DEFAULT_KEYS: Record<string, string> = {
   forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD', run: 'ShiftLeft', interact: 'KeyE', pause: 'Escape', overlay: 'F3',
   map: 'KeyM', mapZoom: 'KeyZ', chronicle: 'KeyJ', // translation layer only (out-of-world)
+  nowView: 'KeyN', // the Now view (out-of-world, D-201)
 };
 export const DEFAULT_SETTINGS: Settings = {
   quality: 'high', forceWebGL: false, playerMode: 'observer', courtCalendar: 'evidence', translation: false, fov: 70, headBob: true,
   mouseSensitivity: 1, invertY: false, keys: { ...DEFAULT_KEYS },
   volume: { master: 0.9, ambience: 1, voices: 1, music: 1, effects: 1 }, subtitleSize: 1, lightningWarning: true, colourBlindUI: false,
-  timeScale: 1, devOverlay: false,
+  timeScale: 1, devOverlay: false, nowView: false,
 };
 const KEY = 'parsa.settings.v1';
 export function loadSettings(): Settings {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) { const s = JSON.parse(raw); return { ...DEFAULT_SETTINGS, ...s, keys: { ...DEFAULT_KEYS, ...(s.keys ?? {}) }, volume: { ...DEFAULT_SETTINGS.volume, ...(s.volume ?? {}) } }; }
+    if (raw) { const s = JSON.parse(raw); return { ...DEFAULT_SETTINGS, ...s, nowView: false, keys: { ...DEFAULT_KEYS, ...(s.keys ?? {}) }, volume: { ...DEFAULT_SETTINGS.volume, ...(s.volume ?? {}) } }; }
   } catch { /* storage unavailable */ }
   return structuredClone(DEFAULT_SETTINGS);
 }

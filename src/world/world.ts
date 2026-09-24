@@ -23,6 +23,8 @@ export interface WorldBuild {
   settlement?: Settlement | null;
   /** working timber doors (D-051): E opens/closes the door faced; state saved with the world (main.ts, core/save.ts) */
   doors?: DoorSystem;
+  /** the Now view (D-201; out-of-world, off by default): the ruin as it stands today; `keepBodies` is set by main (the player) */
+  nowView?: NowView;
 }
 import { buildTerrace } from '../arch/terrace';
 import { setTraffic } from '../render/materials';
@@ -37,6 +39,7 @@ import { loadWritingFonts } from './writing';
 import { buildPlain } from './plain';
 import { bakeTerrainDetail } from '../terrain/terrainDetail';
 import { ConstructionView } from './construction';
+import { NowView } from './nowview';
 import { Visitor } from './visitor/controller';
 import { indexTown } from './visitor/access';
 import livesJson from '../data/lives.json';
@@ -190,12 +193,18 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     popBodies.forEach((b, i) => { const q = near[i]; b.setNextKinematicTranslation(q ? { x: q.x, y: q.y, z: q.z } : { x: 0, y: -1000, z: 0 }); }); };
   // the Hall of 100 Columns follows the simulation's construction state (Phase 5; replaces the static hall columns)
   const building = present('hall100') ? new ConstructionView(arch.group, () => sim.construction) : null; if (building) root.add(building.group);
+  // the Now view (D-201): built on first use; keeps the carving, the weather and the birds, hides the rest of 467
+  const nowView = new NowView({ root, parts, phys, keep: [reliefs, p4.group, insc, wvfx.group, shafts.group, birds.group],
+    hideWithin: [reliefs.getObjectByName('crenellations'), insc.getObjectByName('apadana-foundation-deposits')] });
   // people are solid to the player: a kinematic capsule each (brief §6: player collision with crowds)
   const R = phys.R; const bodies = sim.agents.map(() => { const b = phys.world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(0, -1000, 0)); phys.world.createCollider(R.ColliderDesc.capsule(0.55, 0.25).setTranslation(0, 0.8, 0), b); return b; });
   const ms = performance.now() - t0;
   (root.userData as any).manifest = manifest;
   let time = 0; let lastFlash = 0;
   const audio = new AudioEngine(); const sound = new Soundscape(audio);
+  // the Now view has no people of 467: their voices, music and effects are muted while it is on (the wind stays)
+  const vols = (v: Settings['volume']) => (nowView.active ? { ...v, voices: 0, music: 0, effects: 0 } : v);
+  nowView.onChange = () => { if (settings) audio.setVolumes(vols(settings.volume)); };
   crowd.onHit = (kind, pos) => sound.strike(kind, pos);
   // speech + crowd murmur (D-011): murmur from everyone whose activity sounds as talk; lines only from the lexicons
   // voices: eSpeak-NG clips pre-rendered from the lexicon IPA (tools/build_speech.py) first, the formant synthesiser for anything missing
@@ -331,8 +340,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       sim.updateLod([0, 0], 1e9); syncBodies(); // back to full detail (re-routes anyone mid-journey)
       return { hours: toHours - from, ms: performance.now() - t0 };
     },
-    audio: { unlock: () => { audio.unlock(); if (settings) audio.setVolumes(settings.volume); }, state: () => ({ ctx: audio.ctx?.state ?? 'none', space: audio.currentSpace, sampleRate: audio.ctx?.sampleRate }) } as any,
-    applySettings: (s: Settings) => audio.setVolumes(s.volume),
+    nowView,
+    audio: { unlock: () => { audio.unlock(); if (settings) audio.setVolumes(vols(settings.volume)); }, state: () => ({ ctx: audio.ctx?.state ?? 'none', space: audio.currentSpace, sampleRate: audio.ctx?.sampleRate }) } as any,
+    applySettings: (s: Settings) => { nowView.set(!!s.nowView); audio.setVolumes(vols(s.volume)); },
     // a test render (renderOnce): the carved reliefs' detail, and the population around the camera placed now without the
     // per-update budgets (the frozen clock never lets the budgeted view catch up: D-143), their impostor looks unrationed
     settle: (camera: THREE.Camera) => { view.settle(sim.t, [camera.position.x, -camera.position.z]); crowd.settleLooks(); return settleReliefs(camera.position); },
@@ -348,6 +358,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time, ctx.clock.localHour);
       plain.update(dt, ctx);
       building?.sync(); // cheap unless a column changed state
+      nowView.update(); // the Now view: colliders the town streams in meanwhile stay off
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
       { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
@@ -395,5 +406,5 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         ...director.lines(),
         `occlusion (C, Maekawa; Q-304): ${audio.occlStats.tracked} sources tracked, ${audio.occlStats.queries} re-queried this frame in ${audio.occlStats.ms.toFixed(2)} ms · field ${occl.w}×${occl.h} cells built in ${occMs.toFixed(0)} ms · town and plain buildings not occluders`];
     },
-    summary: () => `${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest + ${crowd.impPerf.drawn} impostors (baked in ${impMs.toFixed(0)} ms), ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms, view ${view.stats.evalMs.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''} · ${plain.summary()} · ${insc.userData.summary ?? ''}` } as WorldBuild;
+    summary: () => `${nowView.active ? nowView.summary() + ' · ' : ''}${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest + ${crowd.impPerf.drawn} impostors (baked in ${impMs.toFixed(0)} ms), ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms, view ${view.stats.evalMs.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''} · ${plain.summary()} · ${insc.userData.summary ?? ''}` } as WorldBuild;
 }

@@ -119,7 +119,10 @@ export interface RosetteItem { o: THREE.Vector3; X: THREE.Vector3; Y: THREE.Vect
 const liveSets = new Set<ReliefSet>();
 let reliefMat: THREE.MeshStandardNodeMaterial | null = null;
 /** carved limestone with a matte mineral paint film (D-030): no masonry joints, paint coverage per vertex */
-const paintMaterial = () => (reliefMat ??= paintedStoneMaterial());
+const paintMaterial = () => reliefOverride ?? (reliefMat ??= paintedStoneMaterial());
+/** the Now view (D-201): relief meshes made while it is on (streamed LODs) take this material, bare weathered stone */
+let reliefOverride: THREE.MeshStandardNodeMaterial | null = null;
+export function setReliefMaterialOverride(m: THREE.MeshStandardNodeMaterial | null) { reliefOverride = m; }
 const carving = () => v<any>('apadana', 'r_relief_carving');
 let proxyMat: THREE.MeshBasicNodeMaterial | null = null;
 /** shadow proxies (D-048) write nothing in the view passes (no colour, no depth) and are drawn into the shadow maps with

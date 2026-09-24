@@ -20,6 +20,7 @@ import { shadowsSeePeople } from './people/humanGPU';
 import { Shell } from './ui/shell';
 import { DevOverlay } from './ui/overlay';
 import { TranslationLayer } from './ui/translation';
+import { NOW_CAPTION } from './arch/now';
 import { PLACES } from './people/sim';
 import { buildWorld, WorldBuild } from './world/world';
 import { reliefStats } from './arch/reliefs';
@@ -106,10 +107,15 @@ async function boot() {
   const input = new Input(canvas, () => settings);
   input.yaw = SPAWN.yaw;
   input.onInteract = () => { // E: in visitor mode the halmi / the errand's business first; the door faced within reach (D-051), else the nearest person in front
+    if (settings.nowView) return; // the Now view (D-201): no doors, no people of 467
     if (settings.playerMode === 'visitor') { const pp = player.position, v = (world as any).visitor?.interact({ x: pp.x, z: pp.z }, sky.state.sunAlt < 6, clock.t * 24); if (v) { console.info('[visitor]', v); return; } }
     const d = world.doors?.use(camera); if (d) { console.info('[door]', JSON.stringify(d)); return; }
     const r = world.address?.(camera); if (r) console.info('[translation layer]', JSON.stringify(r)); };
-  const tl = new TranslationLayer(() => settings); input.onAction = a => tl.toggle(a);
+  const tl = new TranslationLayer(() => settings);
+  // the Now view (D-201; out-of-world, off by default): key N or Settings; the camera and the player stay where they are
+  if (world.nowView) world.nowView.o.keepBodies = () => [player.body];
+  const setNow = (on: boolean) => { settings.nowView = on; world.nowView?.set(on); world.applySettings?.(settings); shell.nowCaption(on ? NOW_CAPTION : null); };
+  input.onAction = a => { if (a === 'nowView') setNow(!settings.nowView); else tl.toggle(a); };
   let lastSub: any = null, lastSubAt = -1e9; const inscGroup = [world.root.getObjectByName('inscriptions') ?? null, world.root.getObjectByName('nr-inscriptions') ?? null,
     world.root.getObjectByName('treasury_scribes_room') ?? null, world.root.getObjectByName('doors') ?? null]; // the last two: writing on objects (D-179)
   const body = makePlayerBody((world as any).people?.crowd); scene.add(body);
@@ -139,7 +145,7 @@ async function boot() {
     start: () => { shell.playing(); input.lock(); world.audio?.unlock(); },
     resume: () => { shell.playing(); input.lock(); },
     save: () => writeSave(state()), load: () => restore(readSave() as any),
-    applySettings: (s: Settings) => { camera.fov = s.fov; camera.updateProjectionMatrix(); clock.scale = s.timeScale; world.applySettings?.(s); saveSettings(s); },
+    applySettings: (s: Settings) => { camera.fov = s.fov; camera.updateProjectionMatrix(); clock.scale = s.timeScale; world.applySettings?.(s); shell.nowCaption(s.nowView ? NOW_CAPTION : null); saveSettings(s); },
     getTime: () => ({ day: clock.dayIndex, hour: clock.localHour, label: clock.label() }),
     setTime: (d: number, h: number) => clock.set(d, h),
     getWeather: () => weather.override, setWeather: (w: string) => { weather.override = w as WeatherOverride; },
@@ -207,6 +213,8 @@ async function boot() {
         P.crowd.addExtra(`load${i}`, { id: -1000 - i, dress: d, sex: d === 'woman' ? 'f' : 'm', role: d === 'guard' ? 'guard' : d === 'child' ? 'child' : 'porter', seed: 7000 + i, x: e, y: groundAt(e, no), z: -no, yaw: a * 3, anim: anims[i % anims.length] }); }
       return n; },
     /** doors (D-051): list, work the door faced (as E does), or set one by id */
+    /** the Now view (D-201): switch it (as key N does) and read its summary */
+    nowView: (on?: boolean) => { if (on !== undefined) setNow(on); return world.nowView?.summary() ?? null; },
     doors: () => world.doors?.list() ?? [], useDoor: () => world.doors?.use(camera) ?? null, setDoor: (id: string, open: boolean) => world.doors?.toggle(id, open) ?? null,
     resetFalls: () => { player.maxFall = 0; },
     /** camera rig (D-187): the eye carried over from an earlier view (its exposure), `seconds` of adaptation since; null =
@@ -285,7 +293,7 @@ async function boot() {
     if (botInput.yawDeg !== undefined) { input.yaw = -((botInput.yawDeg - 341) * Math.PI) / 180; input.pitch = ((botInput.pitchDeg ?? 0) * Math.PI) / 180; }
     phys.updateTerrain(terrain, player.position);
     player.update(dt, { ...ax, yaw: input.yaw, pitch: input.pitch });
-    if (settings.playerMode === 'visitor' && (world as any).visitor) { // guards stop the visitor where they would have (D-100 … D-104)
+    if (settings.playerMode === 'visitor' && !settings.nowView && (world as any).visitor) { // guards stop the visitor where they would have (D-100 … D-104)
       const pp = player.position, r = (world as any).visitor.update({ x: pp.x, z: pp.z, yaw: input.yaw }, sky.state.sunAlt < 6, clock.t * 24);
       if (r.blocked) player.teleport(r.x, player.feetY, r.z);
     }
@@ -299,7 +307,8 @@ async function boot() {
   const upRay = new THREE.Raycaster(); const archGroup = world.root.getObjectByName('architecture');
   function skyVisibility() {
     if (!archGroup) return 1; let open = 0; const dirs = [[0, 1, 0], [0.5, 0.85, 0], [-0.5, 0.85, 0], [0, 0.85, 0.5], [0, 0.85, -0.5], [0.35, 0.6, 0.35], [-0.35, 0.6, -0.35], [0.35, 0.6, -0.35], [-0.35, 0.6, 0.35]];
-    for (const d of dirs) { upRay.set(camera.position, new THREE.Vector3(d[0], d[1], d[2]).normalize()); upRay.far = 60; if (upRay.intersectObject(archGroup, true).length === 0) open++; }
+    const arch = settings.nowView ? (world.nowView?.group ?? archGroup) : archGroup; // the Now view: its own stone, no roofs (D-201)
+    for (const d of dirs) { upRay.set(camera.position, new THREE.Vector3(d[0], d[1], d[2]).normalize()); upRay.far = 60; if (upRay.intersectObject(arch, true).length === 0) open++; }
     return open / dirs.length;
   }
   let prev = performance.now();
@@ -372,7 +381,7 @@ async function boot() {
     }
     { const sub = (world as any).lastSubtitle ?? null; if (sub && sub !== lastSub) { lastSub = sub; lastSubAt = now / 1000; }
       const P = (world as any).people; const hm = (t: number) => { const d = Math.floor(t / 24), h = t - d * 24; return `day ${d + 1}, ${Math.floor(h)}:${String(Math.floor((h % 1) * 60)).padStart(2, '0')}`; };
-      tl.update({ camera, inscriptions: inscGroup, subtitle: sub, subtitleAt: lastSubAt, now: now / 1000, player: { e: camera.position.x, n: -camera.position.z, yawDeg: -(input.yaw * 180) / Math.PI },
+      tl.update({ camera, inscriptions: inscGroup, subtitle: settings.nowView ? null : sub, subtitleAt: lastSubAt, now: now / 1000, player: { e: camera.position.x, n: -camera.position.z, yawDeg: -(input.yaw * 180) / Math.PI },
         events: settings.playerMode === 'visitor' ? [...(P?.sim.events ?? []), ...(((world as any).visitor?.log() ?? []) as any[]).map(l => ({ t: l.t, kind: 'visitor', text: 'You: ' + l.text, place: '' }))].sort((a, b) => a.t - b.t) : (P?.sim.events ?? []),
         timeLabel: hm, places: PLACES as any, mapLayers: (world as any).mapLayers }); }
     overlay.update(renderer, scene, camera, [

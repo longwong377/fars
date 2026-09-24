@@ -858,5 +858,15 @@
   "cite": "Copernicus DEM product handbook (Airbus/ESA): GLO-30 absolute vertical accuracy < 4 m (LE90); relative vertical accuracy < 2 m where slope <= 20 %, < 4 m where slope > 20 %",
   "url": "https://spacedata.copernicus.eu/collections/copernicus-digital-elevation-model",
   "access": "not seen in this project (recollection of the published specification): B"
+ },
+ "NOW-RECOLL": {
+  "cite": "The Now view (D-201): the builder's recollection of Persepolis as it stands today (published photographs, plans and descriptions remembered; none looked at in this project)",
+  "url": "",
+  "access": "RECOLLECTION, NOT SEEN: unverified; to be checked against Schmidt 1953 (SCHMIDT1953), Tilia 1972/1978 and dated photographs of the site (NEEDS_FROM_ME #13)"
+ },
+ "REF-DIAGRAM": {
+  "cite": "references/persepolis_diagram.jpg (guidebook plan of the present site, 0-75 m scale bar and N arrow: Museum, two capitals lying in the court, Monolithic Basin, Unfinished Gate House)",
+  "url": "references/persepolis_diagram.jpg",
+  "access": "supplied by the user; third-party, reference only (references/INDEX.md); positions read from it by two landmarks, about ±10 m"
  }
 }

@@ -37,6 +37,15 @@ export class Shell {
   // the aiming dot is out-of-world UI: shown only with the translation layer on (whose inscription picks use it), never in
   // ?test captures (brief §1.1, §6: no in-world HUD; session 4)
   playing() { this.mode = 'playing'; const dot = this.settings.translation && !new URLSearchParams(location.search).has('test'); root().replaceChildren(...(dot ? [el('div', { className: 'crosshair' })] : [])); }
+  /** the Now view's caption (out-of-world, English; D-201): what the view is and its tier, while it is on (not in ?test
+   *  captures). Its own element, so the menus redrawing the shell leave it alone */
+  nowCaption(text: string | null) {
+    let e = document.getElementById('now-caption');
+    const show = !!text && !new URLSearchParams(location.search).has('test');
+    if (!show) { e?.remove(); return; }
+    if (!e) { e = el('div', { id: 'now-caption', className: 'now-caption' }); document.body.append(e); }
+    e.textContent = text;
+  }
   pause() {
     this.mode = 'paused';
     const t = this.hooks.getTime();
@@ -88,6 +97,7 @@ export class Shell {
       sel('Player mode', s.playerMode, [['observer', 'Observer'], ['visitor', 'Visitor (sealed travel authorisation)']], v => { s.playerMode = v as any; }),
       sel('Court calendar', s.courtCalendar, [['evidence', 'Evidence-strict: king absent (default)'], ['seasonal', 'Seasonal pattern: court in residence in spring (C)']], v => { s.courtCalendar = v as any; }),
       check('Translation layer (subtitles, inscriptions, map, chronicle)', s.translation, v => { s.translation = v; }),
+      check('Now view: the ruin as it stands today (from memory of the site, tier C; key N)', s.nowView, v => { s.nowView = v; }),
       el('h2', {}, 'Display'),
       sel('Quality', s.quality, [['low', 'Low'], ['medium', 'Medium'], ['high', 'High'], ['ultra', 'Ultra (full target)']], v => { s.quality = v as any; }),
       check('Force WebGL2 (reload)', s.forceWebGL, v => { s.forceWebGL = v; }),

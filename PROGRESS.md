@@ -1,6 +1,13 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Now view (D-201; stretch, out-of-world, off by default; key N).** Built as a transform of the 467 parts from
+  `src/data/now_view.json`. **Everything in it is recollection, NOT SEEN, tier C** (no survey, no photograph of the ruin);
+  which 13 Apadana columns and which 2 Gate columns stand are the weakest claims. **Never rendered** (node tests only:
+  tests/now_view.test.ts). **PLACEHOLDER:** capital fragments and fallen capitals as blocks, the museum hall's walls, roof
+  and columns, the E stair shelter's form, damage/graffiti on the colossi and reliefs (the carved models are intact), the
+  audience panels (467 ones kept), the plain (bare terrain, still with the 467 ground cover). Not shown: the rock tombs,
+  the Unfinished Gate, fallen drums, visitor infrastructure.
 - **Session 6 (2026-09-24; ended — read this block and HANDOFF.md first).** Base 272bf70 (the session-5 handoff). All
   session-5 bundles and every session-6 workstream are merged; the per-workstream entries below give the detail.
   - **Gates:** Phase 8 **PASSED** at review round 3 (REVIEWS/phase8_r3.md; open majors: voices unheard (H8), music visuals
