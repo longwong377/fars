@@ -25,6 +25,7 @@ export interface WorldBuild {
   doors?: DoorSystem;
 }
 import { buildTerrace } from '../arch/terrace';
+import { setTraffic } from '../render/materials';
 import { buildMeshes } from '../arch/meshes';
 import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/runtime';
 import { loadSculpt } from '../arch/sculpt';
@@ -124,6 +125,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const probesP = loadProbes('/'); // baked light probes of the roofed halls (D-110): must be in before the first frame builds the shaders
   const { parts, manifest, doorways } = buildTerrace();
   setProbeOccluders(parts); // the eye adaptation's direct-sun test inside the probe volumes (D-113)
+  setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   root.add(arch.group);

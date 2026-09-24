@@ -2,7 +2,7 @@
 // albedos against the evidence they are read from, the Treasury's painted walls, the ceiling timbers, the SSR blur's
 // footprint, and the sun contact shadows' self-hits on a CPU mirror of the screen-space march.
 import { describe, it, expect } from 'vitest';
-import { SURFACES, atY } from '../src/render/materials';
+import { SURFACES, atY, trafficMap, TRAFFIC } from '../src/render/materials';
 import { munsellY, srgbToLinear } from '../src/core/colour';
 import { buildTerrace } from '../src/arch/terrace';
 import { ceilingTimbers, CEILING } from '../src/arch/ceilings';
@@ -109,5 +109,19 @@ describe('merlons (D-188)', () => {
     // a chamfer adds faces whose normals are neither axis-aligned nor in the extrusion plane
     const n = g.getAttribute('normal'); let diag = 0; for (let i = 0; i < n.count; i++) if (Math.abs(n.getZ(i)) > 0.3 && Math.abs(n.getZ(i)) < 0.95) diag++;
     expect(diag).toBeGreaterThan(0);
+  });
+});
+
+describe('trodden ground (D-188)', () => {
+  it('a fan out of each doorway and paths between the doorways of neighbouring buildings, nothing elsewhere', () => {
+    const { doorways } = buildTerrace(), m = trafficMap(doorways as any), { N, x0, y0, cell } = TRAFFIC;
+    const at = (x: number, y: number) => m[Math.floor((y - y0) / cell) * N + Math.floor((x - x0) / cell)];
+    const gw = doorways.find(d => d.id === 'gate_nations:W')!;
+    expect(at(gw.c[0] - 2 * gw.n[0], gw.c[1] - 2 * gw.n[1])).toBeGreaterThan(0.6); // 2 m out of the Gate's W doorway
+    expect(at(gw.c[0] - 30, gw.c[1] + 30)).toBeLessThan(0.05);
+    let on = 0; for (const v of m) if (v > 0.3) on++;
+    const ha = (on * cell * cell) / 1e4; // hectares trodden
+    expect(ha).toBeGreaterThan(0.3); expect(ha).toBeLessThan(4);
+    mkdirSync('bench-reports', { recursive: true }); writeFileSync('bench-reports/traffic.txt', `trodden (> 0.3) ${ha.toFixed(2)} ha from ${doorways.length} doorways\n`);
   });
 });

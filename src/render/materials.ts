@@ -12,7 +12,7 @@
 // the part's base height and, for hall floors, the floor's box) a splash and dust band at the foot of walls and traffic
 // wear along the floors' axes; indirect specular from the sky environment (envmap.ts) on the smoother surfaces.
 import * as THREE from 'three/webgpu';
-import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4 } from 'three/tsl';
+import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture } from 'three/tsl';
 import PC from '../data/polychromy.json';
 import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
 import { SkySpecularNode } from './envmap';
@@ -27,6 +27,42 @@ export const SEASON = { green: uniform(0.8), dry: uniform(0.1) };
  *  `rect` = the yard (world x0, z0, x1, z1), `amount` = how much is being dressed there (0 none … 1), `work` = a block
  *  being carved (world x, z, radius, 0/1). Stone chips 4× denser and a film of limestone dust (C: dressing on site is B,
  *  the yard's place and the waste's spread C) */
+/** trodden ground on the courts (D-188, C): a 1 m map over the Terrace (grid x −100…300, y −200…200) of how much the fill
+ *  is walked: a fan out of every doorway (its width, fading over ~10 m) and paths ~2.5 m wide from each doorway to the two
+ *  nearest doorways of other buildings (the courts are open: people cross them door to door). Built by setTraffic() from
+ *  the Terrace's doorways (world.ts); 0 until then */
+export const TRAFFIC = { N: 400, x0: -100, y0: -200, cell: 1, tex: null as any };
+{
+  const t = new THREE.DataTexture(new Uint8Array(TRAFFIC.N * TRAFFIC.N), TRAFFIC.N, TRAFFIC.N, THREE.RedFormat, THREE.UnsignedByteType);
+  t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.needsUpdate = true; TRAFFIC.tex = t;
+}
+/** the trodden-ground map from the doorways (grid centres c, outward normals n, widths); returns the map (0…1) */
+export function trafficMap(doorways: { building: string; c: [number, number]; n: [number, number]; width: number }[]): Float32Array {
+  const { N, x0, y0, cell } = TRAFFIC, m = new Float32Array(N * N);
+  const stamp = (ax: number, ay: number, bx: number, by: number, w0: number, w1: number, s0: number, fade: number) => {
+    const L = Math.hypot(bx - ax, by - ay); if (L < 1e-3) return;
+    const ux = (bx - ax) / L, uy = (by - ay) / L, pad = Math.max(w0, w1);
+    const ix0 = Math.max(0, Math.floor((Math.min(ax, bx) - pad - x0) / cell)), ix1 = Math.min(N - 1, Math.ceil((Math.max(ax, bx) + pad - x0) / cell));
+    const iy0 = Math.max(0, Math.floor((Math.min(ay, by) - pad - y0) / cell)), iy1 = Math.min(N - 1, Math.ceil((Math.max(ay, by) + pad - y0) / cell));
+    for (let iy = iy0; iy <= iy1; iy++) for (let ix = ix0; ix <= ix1; ix++) {
+      const px = x0 + (ix + 0.5) * cell - ax, py = y0 + (iy + 0.5) * cell - ay, s = px * ux + py * uy; if (s < 0 || s > L) continue;
+      const d = Math.abs(px * uy - py * ux), w = w0 + (w1 - w0) * (s / L), a = s0 * Math.exp(-s / fade) * Math.max(0, 1 - (d / w) ** 2);
+      const k = iy * N + ix; m[k] = 1 - (1 - m[k]) * (1 - a);
+    }
+  };
+  for (const d of doorways) for (const sg of [1, -1]) // a fan either side of the doorway, widening from its width
+    stamp(d.c[0], d.c[1], d.c[0] + sg * d.n[0] * 12, d.c[1] + sg * d.n[1] * 12, d.width * 0.6, d.width * 1.4, 0.9, 7);
+  for (const d of doorways) {
+    const near = doorways.filter(e => e.building !== d.building).map(e => ({ e, L: Math.hypot(e.c[0] - d.c[0], e.c[1] - d.c[1]) })).filter(q => q.L < 90).sort((a, b) => a.L - b.L).slice(0, 2);
+    for (const { e } of near) stamp(d.c[0], d.c[1], e.c[0], e.c[1], 1.3, 1.3, 0.55, 1e9);
+  }
+  return m;
+}
+export function setTraffic(doorways: Parameters<typeof trafficMap>[0]) {
+  const m = trafficMap(doorways), img = TRAFFIC.tex.image.data as Uint8Array;
+  for (let i = 0; i < m.length; i++) img[i] = Math.round(255 * Math.min(1, m[i]));
+  TRAFFIC.tex.needsUpdate = true;
+}
 export const DEBRIS = { rect: uniform(new THREE.Vector4(0, 0, 0, 0)), amount: uniform(0), work: uniform(new THREE.Vector4(0, 0, 1, 0)) };
 /** A/B switch for measurements (D-157; window.__parsaSurf.surf): 1 = the session-4 triage surfaces; 0 = no broad tone, no
  *  wall-foot band or floor wear, block tone at the old ±8 %, no worn arrises or block tilt (the varied coursing stays) */
@@ -98,6 +134,8 @@ export interface SurfaceDef {
   macro?: { sd: number; chroma?: number };
   /** the masons' yard's dressing waste reaches this surface (DEBRIS, D-188) */
   debris?: boolean;
+  /** trodden paths from the doorways (TRAFFIC, D-188) */
+  traffic?: boolean;
 }
 /** neutral grey of luminous reflectance Y (linear) as the sRGB triple the surface table uses */
 function grey(Y: number): [number, number, number] { const v = linearToSrgb(Y); return [v, v, v]; }
@@ -160,7 +198,7 @@ export const SURFACES: Record<string, SurfaceDef> = {
   earth: { albedo: [0.47, 0.39, 0.29], roughness: 0.95, porosity: 0.9, noiseScale: 0.4, noiseAmp: 0.14, bump: { amp: 0.02, freq: 0.9 }, chips: { cover: 0.06, size: 0.35, albedo: [0.55, 0.53, 0.49] }, herbs: 1, micro: { amp: 0.0005, freq: 70, alb: 0.08 }, tier: 'C', note: 'plain surface: loam, stones and a seasonal herb layer (C); fields Phase 7' },
   // the open courts of the Terrace: no source found for their surface (OPEN_QUESTIONS Q-027). Compacted fill with
   // limestone dressing chips over the levelled platform (C)
-  court_fill: { albedo: [0.50, 0.46, 0.39], roughness: 0.9, porosity: 0.7, noiseScale: 0.5, noiseAmp: 0.1, tone: { sd: 0.08, chroma: 0.015 }, macro: { sd: 0.07, chroma: 0.015 }, debris: true, bump: { amp: 0.004, freq: 2.5 }, chips: { cover: 0.12, size: 0.06, albedo: [0.64, 0.62, 0.57] }, micro: { amp: 0.0004, freq: 70, alb: 0.06 }, tier: 'C', note: 'Terrace open court: compacted fill with limestone chips (surface unknown, Q-027: C)' },
+  court_fill: { albedo: [0.50, 0.46, 0.39], roughness: 0.9, porosity: 0.7, noiseScale: 0.5, noiseAmp: 0.1, tone: { sd: 0.1, chroma: 0.015 }, macro: { sd: 0.08, chroma: 0.015 }, debris: true, traffic: true, bump: { amp: 0.004, freq: 2.5 }, chips: { cover: 0.12, size: 0.06, albedo: [0.64, 0.62, 0.57] }, micro: { amp: 0.0004, freq: 70, alb: 0.06 }, tier: 'C', note: 'Terrace open court: compacted fill with limestone chips (surface unknown, Q-027: C)' },
   terrace: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.13, tone: { sd: 0.065, chroma: 0.01 }, foot: 1, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, top: 'court_fill', micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'Terrace platform: dressed limestone retaining walls, dry-laid with hairline joints (Q-071); open court surface C (Q-027)' },
   scaffold: { albedo: [0.45, 0.35, 0.24], roughness: 0.85, porosity: 0.5, noiseScale: 3, noiseAmp: 0.1, tier: 'C', note: 'timber scaffold poles' },
   rubble: { albedo: LIMESTONE, roughness: 0.9, porosity: 0.5, noiseScale: 2, noiseAmp: 0.2, bump: { amp: 0.01, freq: 3 }, micro: { amp: 0.0015, freq: 32, alb: 0.06 }, tier: 'C', note: 'stone chips: the Terrace limestone (albedo as `limestone`, D-188)' },
@@ -378,6 +416,13 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const work = float(1).sub(smoothstep(Wk.z.mul(0.4), Wk.z, vec2(x.sub(Wk.x), z.sub(Wk.y)).length().sub(rag))).mul(Wk.w);
     debris = max(inX.mul(inZ).mul(DEBRIS.amount).mul(0.7), work).clamp(0, 1);
   }
+  // trodden ground (D-188): compacted fill along the doorway fans and door-to-door paths, ragged at the edges
+  let trod: any = null;
+  if (d.traffic) {
+    const T = TRAFFIC, tuv = vec2(p.x.sub(T.x0).div(T.cell * T.N), p.z.negate().sub(T.y0).div(T.cell * T.N));
+    const raw = texture(T.tex, tuv).r;
+    trod = smoothstep(0.08, 0.7, raw.add(mx_noise_float(p.xz.div(1.1).add(vec2(8.8, 2.2))).mul(0.25))).mul(smoothstep(0.7, 0.9, n.y)).mul(SURF_AB);
+  }
   if (d.chips) { // scattered stones/chips: cells of a Worley field below a threshold, raised and lighter
     const cq = p.xz.div(d.chips.size), w = mx_worley_noise_float(cq);
     // D-188: the density varies over ~7 m (thin and thick spreads, ×0.35…1.7), and where a cell spans under ~3 px the chips
@@ -385,6 +430,7 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     // court was a regular sparkle of aliased chips, one "stamp" repeated over the whole ground (§8.2 rubric fix 10)
     let cv: any = clamp(float(1).add(mx_noise_float(p.xz.div(7).add(vec2(4.2, 9.9))).mul(0.9)), 0.35, 1.7).mul(d.chips.cover);
     if (debris) cv = cv.mul(float(1).add(debris.mul(3))).min(0.45);
+    if (trod) cv = cv.mul(float(1).sub(trod.mul(0.7))); // the chips trodden in
     const near = float(1).sub(smoothstep(0.25, 0.6, fwidth(cq).length()));
     const mean = float(1).sub(exp(cv.mul(1.25).mul(cv.mul(1.25)).mul(-Math.PI)));
     const chipN = float(1).sub(smoothstep(cv.mul(0.9), cv.mul(1.6), w)); // (reversed smoothstep edges are undefined in WGSL)
@@ -395,6 +441,10 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     // 8.7 cm over a 2.5 cm chip on the earth, near-vertical bump normals, so every light chip rendered as a dark ring (session 3)
     if (height) height = height.add(chip.mul(near).mul(d.chips.size * d.chips.cover * 0.6));
     if (debris) alb = mix(alb, lin(LIMESTONE).mul(1.05), debris.mul(0.3)); // limestone dust over the yard
+  }
+  if (trod) { // compacted: a little darker and warmer (fines and dirt worked in), smoother (C)
+    alb = alb.mul(vec3(float(1).sub(trod.mul(0.08)), float(1).sub(trod.mul(0.1)), float(1).sub(trod.mul(0.13))));
+    rough = rough.sub(trod.mul(0.12));
   }
   if (d.streaks) { // vertical weathering streaks: noise fast across the face, slow down it (C)
     const f = d.streaks.freq, q = vec3(p.x.mul(f), p.y.mul(f * 0.08), p.z.mul(f));
