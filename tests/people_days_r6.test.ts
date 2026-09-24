@@ -160,7 +160,7 @@ describe('S5 (A, B): the lane in the heat and the dust', () => {
       for (let pid = d % 6; pid < P.persons.length; pid += 6) { if (!resident(pid, d)) continue;
         for (const s of P.plan(pid, d) as Seg[]) { const o = Math.min(s.t1, dh[1]) - Math.max(s.t0, dh[0]);
           if (s.place.startsWith('lane:') && ['talk', 'gamble', 'exchange', 'play', 'spin', 'rest'].includes(s.act)) expect(o, `${pid} d${d} ${s.why} ${s.t0.toFixed(2)}`).toBeLessThanOrEqual(0.3);
-          if (o > 0.05 && (s.where === 'road' || /^(field:|well:|canal:|pasture:)/.test(s.place)) && s.act !== 'sleep') { expect(s.wear, `${pid} d${d} ${s.why}`).toBe('the face wrapped against the dust'); wrapped++; } } } }
+          if (o > 0.05 && (s.where === 'road' || /^(field:|well:|canal:|pasture:)/.test(s.place)) && s.act !== 'sleep' && s.act !== 'eat') { /* (unwrapped to eat) */ expect(s.wear, `${pid} d${d} ${s.why}`).toBe('the face wrapped against the dust'); wrapped++; } } } }
     expect(days).toBeGreaterThan(3); expect(wrapped).toBeGreaterThan(500);
   }, 300_000);
 });

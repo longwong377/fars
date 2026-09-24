@@ -1354,7 +1354,7 @@ class Planner {
   private dustVeil(segs: Seg[]) {
     const dh = this.C.wx.dustH; if (!dh) return;
     const open = (s: Seg) => s.where === 'road' || /^(lane:|well:|field:|canal:|pasture:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_)/.test(s.place);
-    for (const s of segs) if (open(s) && s.act !== 'sleep' && Math.min(s.t1, dh[1]) - Math.max(s.t0, dh[0]) > 0.05) s.wear = 'the face wrapped against the dust';
+    for (const s of segs) if (open(s) && s.act !== 'sleep' && s.act !== 'eat' && Math.min(s.t1, dh[1]) - Math.max(s.t0, dh[0]) > 0.05) s.wear = 'the face wrapped against the dust';
   }
   /** replace [t, t+len] of the plan with (act, why) at the place the person is then; a moment on the road moves to the
    *  arrival; returns the start used, or -1 */
@@ -2253,9 +2253,12 @@ class Planner {
       const ms = P.plan(m, d); if (ms.some(s => s.where === 'terrace')) return follow(ms, true);
     }
     // younger children go with their mother when she goes out: the ration queue, kin, the harvest (lives.json children)
-    // (from nine a child has its own day, at the harvest too: see `reaps` below)
+    // (from nine a child has its own day, at the harvest too: see `reaps` below). From seven, the age of the chores
+    // (children.chores.from_age), a child goes along for the whole day only to the queue and the whole household's field
+    // days, not to a visit to kin: a girl of eight was at her mother's side all day, from a morning's visit (D-175; both
+    // round-5 reviewers scored the boy of eight kept at his mother's side a 4)
     if (m >= 0 && age <= 8 && p.agent < 0 && !own) { const ms = P.plan(m, d);
-      const outing = ms.some(s => s.act === 'queue' || s.act === 'reap' || s.act === 'thresh' || s.act === 'pick_fruit' || (s.act === 'talk' && s.place.startsWith('h:') && s.place !== this.home));
+      const outing = ms.some(s => s.act === 'queue' || s.act === 'reap' || s.act === 'thresh' || s.act === 'pick_fruit' || (age < L.children.chores.from_age && s.act === 'talk' && s.place.startsWith('h:') && s.place !== this.home));
       if (outing && r.chance(L.children.with_mother_on_her_outings)) return follow(ms, false);
       if (age < L.children.minded_until_age && !this.C.wx.storm) { // the mother's working hours away from home (2 h or more)
         const blocks: [number, number][] = []; let a0 = -1; for (const s of ms) { if (s.place !== this.home) { if (a0 < 0) a0 = s.t0; } else if (a0 >= 0) { if (s.t0 - a0 >= 2) blocks.push([a0, s.t0]); a0 = -1; } }
@@ -3037,7 +3040,7 @@ class Planner {
     let lastO = '';
     const spell = (until: number, opts: [ActivityId, string, string, number][]) => { for (let g = 0; g < 8 && this.t < until - 0.3; g++) { const pickO = () => { const tot = opts.reduce((s, o) => s + o[3], 0); let x = r.next() * tot, o = opts[0]; for (const y of opts) { if (x < y[3]) { o = y; break; } x -= y[3]; } return o; };
       let o = pickO(); if (o[1] === lastO && opts.length > 1) o = pickO(); lastO = o[1]; // not the same again straight away
-      at(Math.min(until, this.t + lerp(0.6, 1.5, r.next())), o[2] === 'fold' ? fold : o[2] === 'stream' ? stream : camp, o[0], o[1]); } if (this.t < until) at(until, camp, role === 'little' || role === 'child' ? 'play' : 'rest', role === 'little' ? 'playing by the tent near the mother' : role === 'child' ? 'playing by the tents' : 'resting by the tent'); };
+      at(Math.min(until, this.t + (o[0] === 'draw_water' ? lerp(0.25, 0.5, r.next()) : lerp(0.6, 1.5, r.next()))), o[2] === 'fold' ? fold : o[2] === 'stream' ? stream : camp, o[0], o[1]); } if (this.t < until) at(until, camp, role === 'little' || role === 'child' ? 'play' : 'rest', role === 'little' ? 'playing by the tent near the mother' : role === 'child' ? 'playing by the tents' : 'resting by the tent'); };
     const am: [ActivityId, string, string, number][] = role === 'man' || role === 'youth' ? [['tend_animals', 'seeing to the donkeys’ sores and the lame sheep', 'fold', 2], ['craft', 'mending the saddlebags, the ropes and the tent pegs', 'camp', 2], ['talk', 'talking with the men of the band by the tents', 'camp', 1]]
       : role === 'woman' ? [[B.milk ? 'cook' : 'bake', B.milk ? 'churning the milk in a skin for butter and setting the curds' : 'baking flat bread on the embers', 'camp', 2], ['weave', 'weaving at the ground loom by the tent', 'camp', 2], ['spin', 'spinning wool by the tent', 'camp', 1.5], ['draw_water', 'fetching water from the stream for the tent', 'stream', 1]]
       : role === 'girl' ? [['draw_water', 'fetching water from the stream for the tent', 'stream', 1], ['spin', 'spinning wool beside the women', 'camp', 1.5], ['gather', 'gathering brushwood for the fire', 'camp', 1], ['rest', 'minding the little ones by the tent', 'camp', 1]]
