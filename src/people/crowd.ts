@@ -15,7 +15,9 @@
 // within it beyond the caps); the far body simplified to a fifth (meshoptimizer) to LOD_DIST[3] (when the simplifier ran; otherwise the far body); impostors beyond
 // it and beyond the pool (one instanced draw, impostors.ts). Each costume × LOD is one instanced draw (humanGPU.ts). Poses are refreshed every frame near the
 // camera and less often further away; root motion is per frame for everyone (instanced root attribute).
-// Face: blinks, the jaw while speaking or eating, eyes and head turned to a nearby stranger.
+// Face: blinks, the jaw while speaking, eating or singing, eyes and head turned to a nearby stranger.
+// Playing (D-200): the music director has a performer play or sing (setPlaying): the playing performance (playing.ts) is
+// given in place of the plan's for as long as it is kept alive, and a singer's jaw and breath follow the piece's notes.
 import * as THREE from 'three/webgpu';
 import { attribute, positionLocal, float, abs, min } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -29,6 +31,7 @@ import { HB } from './humanFormat';
 import { PERSON_TEXELS, FLAG_HIDE_HEAD } from './humanMaterial';
 import { nearCascadesOnly } from './humanGPU';
 import { propGeometry, propUnionGeometry, paintedBox, PROP_NOTES, PROPS, PROP_CLASSES, propSlot, placeProp, interleave } from './props';
+import { PLAYING, singFace, type PlayKind } from './playing';
 import { PIECES, pieceBit, COSTUME_OF, weatherMask, type Dress } from './outfits';
 import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim } from './workAnims';
 import { IK_Q } from './poseKit';
@@ -292,6 +295,20 @@ export class Crowd {
   removeExtras() { for (const [k, p] of this.persons) if (p.extra) { this.freeSlot(p.slot); this.persons.delete(k); } }
   /** a person is speaking (address → speech line): the jaw moves for `seconds` */
   speaking(agentId: number, seconds: number, now: number) { const p = this.byAgent.get(agentId); if (p) p.speakUntil = now + seconds; }
+  /** who plays or sings now (D-200), by person key (a detailed agent `a<id>`, a person of the population `p<pid>`, an
+   *  extra by its own key): kept by the key, so a performer attached while the piece plays is shown playing at once */
+  private plays = new Map<string, { kind: PlayKind; until: number; song: Float32Array | null; t0: number; open: number }>();
+  /** the key of a performer (the music director names them by agent, population id or extra key) */
+  static keyOf(who: { agentId?: number; pid?: number; extra?: string }) { return who.extra ?? (who.agentId != null ? `a${who.agentId}` : `p${who.pid}`); }
+  /** a performer plays or sings for `seconds` from `now` (kept alive by calling again). `notes`: the sung notes of a piece
+   *  starting now, as [start, end] pairs (s): the jaw and the breath follow them (playing.ts singFace) */
+  setPlaying(key: string, kind: PlayKind, seconds: number, now: number, notes?: ArrayLike<number>) {
+    let pl = this.plays.get(key); if (!pl || pl.kind !== kind) { pl = { kind, until: 0, song: null, t0: now, open: 0.14 }; this.plays.set(key, pl); }
+    pl.until = now + seconds;
+    if (notes) { pl.song = Float32Array.from(notes); pl.t0 = now; let h = 0; for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) | 0; pl.open = 0.11 + 0.05 * (((h >>> 0) % 97) / 97); }
+  }
+  /** what a person is playing now (dev overlay, tests), or null */
+  playingOf(key: string): PlayKind | null { const pl = this.plays.get(key); return pl && this.now < pl.until ? pl.kind : null; }
   private now = 0;
   /** agents that were off the map (in the town) at the last update: coming on the map within 50 m in view is a pop-in
    *  (§13.8), as in the Phase 3 crowd; attaching or changing LOD at a distance is not */
@@ -362,6 +379,13 @@ export class Crowd {
    *  and `vp.why`; stepping aside on arriving at a place is a walk); an extra's from its spec */
   private resolve(p: Person) {
     const a = p.agent, e = p.extra, vp = !a && !e ? p.vp : null;
+    // playing or singing (D-200): the playing performance in place of the plan's, while it is kept alive and the performer
+    // is not on the move (a singer at work keeps the work: no cycle of its own)
+    const pl = this.plays.get(p.key);
+    if (pl && this.now < pl.until && PLAYING[pl.kind].anim && !(vp && vp.moving) && !(a && a.walking)) {
+      const k = `play:${pl.kind}`; if (p.act !== k) { p.act = k; p.why = ''; p.perf = { ...PLAYING[pl.kind], variant: -1 } as Performance & { variant: number }; p.actPlaceholder = false; }
+      p.anim = p.perf!.anim; return;
+    }
     let act: ActivityId | undefined, why: string;
     if (a) { act = this.sim!.performance(a).act; why = a.task?.why ?? ''; }
     else if (vp) { act = vp.moving && !ACTIVITIES[vp.act].moving ? 'walk' : vp.act; why = vp.why; }
@@ -449,6 +473,7 @@ export class Crowd {
     this.impPerf.feedMs = performance.now() - tf;
     const gpu = this.humans.gpu; gpu.begin();
     for (const c of this.carried) c.mesh.count = 0; this.propsDropped = 0;
+    if ((this.frame & 63) === 0) for (const [k, pl] of this.plays) if (time > pl.until + 5) this.plays.delete(k);
     this.things.begin(); this.animals.begin(time); this.shared.clear();
     // order by distance for the full-detail cap
     const list = this.list; list.length = 0;
@@ -617,6 +642,13 @@ export class Crowd {
       if (talking) f.jaw = Math.max(0, 0.15 * Math.abs(Math.sin(time * 10.5 + p.slot)) * (0.6 + 0.4 * Math.sin(time * 3.1 + p.slot)) - (anim === 'talk' && Math.sin(time * 0.8 + p.slot) < 0 ? 0.1 : 0));
       if (anim === 'eat') f.jaw = 0.06 * (0.5 + 0.5 * Math.sin(time * 9 + p.slot));
     } else f.blink = anim === 'sleep' ? 1 : 0;
+    // singing (D-200): the jaw opens on the sung notes, the chest draws breath before each phrase; a piper's lips close on
+    // the reed
+    const pl = this.plays.get(p.key);
+    if (pl && time < pl.until) {
+      if (pl.song) { const sf = singFace(pl.song, time - pl.t0, pl.open); if (lod < 2) f.jaw = sf.jaw; const c = po.rot.chest ?? [0, 0, 0]; po.rot.chest = [c[0] - 0.05 * sf.breath, c[1], c[2]]; }
+      else if (pl.kind === 'reed_pipe' || pl.kind === 'double_pipe') f.jaw = 0.02;
+    }
     // hands: the cycle's grip, else what they hold
     p.rig.grip = po.grip ?? (prop1 ? PROPS[prop1]?.grip : undefined) ?? (anim === 'guard' || anim === 'guard_walk' ? [0.5, 1] : [0, 0]);
     p.rig.pose = po; p.rig.plant = PLANTED.has(anim); p.rig.seat = SEATED.has(anim);

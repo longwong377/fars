@@ -2,7 +2,8 @@
 // variant), posed by crowd.update at several phases of the cycle, with its carried props, work objects and animals,
 // rasterised orthographically from a 3/4 view and from the side. Writes shots/perf_preview_<name>.png (a contact sheet:
 // rows = performances, columns = phases). Screenshots find problems; tests/performances.test.ts measures.
-// Run: npx tsx tools/dev/perf_preview.ts [act[:variant],…|all] [phases=4] [--far] [--top]
+// Run: npx tsx tools/dev/perf_preview.ts [act[:variant],…|all|play] [phases=4] [--far] [--top]
+//   'play': the playing performances (D-200: playing.ts), each performer an extra kept playing (crowd.setPlaying)
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 import { decodeHumanAssets, meshoptSimplify } from '../../src/people/humanAssets';
@@ -11,6 +12,7 @@ import { HumanGPU } from '../../src/people/humanGPU';
 import { Crowd } from '../../src/people/crowd';
 import { skinPoint, PALETTE_STRIDE } from '../../src/people/humanRig';
 import { ACTIVITIES, type ActivityId } from '../../src/people/activities';
+import { PLAYING, type PlayKind } from '../../src/people/playing';
 import { MAT } from '../../src/people/humanFormat';
 import { PROP_CLASSES } from '../../src/people/props';
 import { workGeometry } from '../../src/people/workObjects';
@@ -32,7 +34,7 @@ const opt = (k: string, d: number) => { const a = process.argv.find(x => x.start
 const HALF = opt('half', 1.3), ZY = opt('zy', 0.85);
 const NPH = +(args[1] ?? 4), PH_STEP = +(args[2] ?? 1.37);
 /** stations: [label, act, why, dress, sex, role, group size] */
-type Station = { label: string; act: ActivityId; why: string; dress: Dress; sex: 'm' | 'f'; role: string; n?: number };
+type Station = { label: string; act: ActivityId; why: string; dress: Dress; sex: 'm' | 'f'; role: string; n?: number; play?: PlayKind };
 const WHY: Record<string, string[]> = {
   haul: ['hauling a drum up the ramp', 'building up the earth ramp', 'carrying dried bricks from the stacks to the wall'],
   gather: ['gathering dung and brushwood for the fire', 'shaping dung cakes and setting them on the wall to dry'],
@@ -51,7 +53,8 @@ for (const act of Object.keys(ACTIVITIES) as ActivityId[]) {
   for (const why of WHY[act] ?? ['']) all.push({ label: `${act}${why ? ':' + why.split(' ').slice(0, 2).join('_') : ''}`, act, why, dress: act === 'offer' ? 'median' : act === 'train' ? 'child' : f ? 'woman' : 'worker', sex: f ? 'f' : 'm', role: act === 'train' ? 'child' : 'mason', n: act === 'carry_bier' ? 4 : act === 'haul' && !why.includes('ramp') && !why.includes('brick') ? 3 : undefined });
 }
 const want = args[0] && args[0] !== 'all' ? args[0].split(',') : null;
-const stations = want ? all.filter(s => want.some(w => s.label.startsWith(w))) : all;
+const plays: Station[] = (Object.keys(PLAYING) as PlayKind[]).filter(k => PLAYING[k].anim).map(k => ({ label: `play:${k}`, act: 'rest', why: '', dress: k === 'reed_pipe' ? 'worker' : 'woman', sex: k === 'reed_pipe' ? 'm' : 'f', role: 'musician', play: k }));
+const stations = args[0] === 'play' ? plays : want ? [...all, ...plays].filter(s => want.some(w => s.label.startsWith(w))) : all;
 
 type Tri = { p: Float32Array; c: Float32Array }; // flat list: 9 floats per triangle, 3 per colour
 function collect(crowd: Crowd): Tri {
@@ -128,7 +131,8 @@ for (let s0 = 0; s0 < stations.length; s0 += PER) {
     const n = st.n ?? 1;
     for (let i = 0; i < n; i++) {
       const x = st.act === 'carry_bier' ? (i % 2 ? -0.46 : 0.46) : 0, z = st.act === 'carry_bier' ? (i < 2 ? 1.0 : -1.0) : st.act === 'haul' ? -i * 1.1 : 0;
-      crowd.addExtra(`s${i}`, { id: i, sex: st.sex, role: st.role, dress: st.dress, seed: 300 + i * 37, x, y: 0, z, yaw: 0, act: st.act, why: st.why, group: 'g', look: null, variant: st.act === 'carry_bier' && x < 0 ? 0 : undefined } as any);
+      crowd.addExtra(`s${i}`, { id: i, sex: st.sex, role: st.role, dress: st.dress, seed: 300 + i * 37, x, y: 0, z, yaw: 0, act: st.play ? undefined : st.act, why: st.why, group: 'g', look: null, variant: st.act === 'carry_bier' && x < 0 ? 0 : undefined } as any);
+      if (st.play) crowd.setPlaying(`s${i}`, st.play, 1e9, 0);
     }
     const cam = new THREE.PerspectiveCamera(60, 1, 0.1, 1000); cam.position.set(4, 3, 8); cam.lookAt(0, 0.8, 0); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
     const P0 = crowd.persons.get('s0')!;

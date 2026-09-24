@@ -13,6 +13,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { HB } from './humanFormat';
 import type { Pose } from './anim';
 import { ptTabletGeometry } from '../world/writing';
+import { HARP_V, HARP_H, LYRE, FRAME_DRUM, DOUBLE_PIPE, REED_PIPE, MOUTH, harpVString, harpHString, lyreString } from './instrumentForms';
 
 const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
 type RGB = [number, number, number];
@@ -34,6 +35,7 @@ function rod(a: [number, number, number], b: [number, number, number], r0: numbe
 const box = (w: number, h: number, d: number, x = 0, y = 0, z = 0) => new THREE.BoxGeometry(w, h, d).translate(x, y, z);
 const WOOD: RGB = [0.45, 0.33, 0.21], WOOD_D: RGB = [0.36, 0.26, 0.16], IRON: RGB = [0.3, 0.29, 0.28], BRONZE: RGB = [0.62, 0.45, 0.26], MUD: RGB = [0.56, 0.47, 0.36], STRAW: RGB = [0.72, 0.62, 0.38];
 const merge = (gs: THREE.BufferGeometry[]) => mergeGeometries(gs)!;
+const GUT: RGB = [0.86, 0.8, 0.64], CANE: RGB = [0.74, 0.66, 0.42];
 
 export const PROP_NOTES: Record<string, { tier: 'A' | 'B' | 'C'; note: string }> = {
   spear: { tier: 'B', note: 'long spear with a pomegranate-shaped butt counterweight, silver for the ordinary guards (Herodotus via IR-IMM; SUSA-ARCH); shaft length and blade C' },
@@ -68,6 +70,14 @@ export const PROP_NOTES: Record<string, { tier: 'A' | 'B' | 'C'; note: string }>
   ladle: { tier: 'C', note: 'wooden ladle (C)' },
   stick: { tier: 'C', note: 'brushwood stick for the fire (C)' },
   lead: { tier: 'C', note: 'lead rope of an animal brought to the offering place (C)' },
+  // ------------------------------------------------ instruments (D-200; instrumentForms.ts; SOUNDSCAPE §8)
+  harp_v: { tier: 'C', note: 'vertical angular harp: the type is B (seven played by the Elamite royal orchestra on the Madaktu relief of Ashurbanipal, 653 BCE, BM 124802, via extracts of Alvarez-Mon 2017: M-19); the form after extracts of harp-history summaries: soundbox upright against the player and leaning forward, strings vertical from a rod at its foot, 21 strings, navel to a head above the head (M-20). Sizes, wood, the plain soundbox (the relief\'s incised figure on its side is not modelled) and gut strings C; the music uses nine of the strings (the tuning texts\' nine-string cycle, M-04; Q-390). NOT SEEN: no image of the relief could be opened (B6)' },
+  harp_h: { tier: 'C', note: 'horizontal angular harp: one at Madaktu (M-19, B type); held level under the left arm and struck with a plectrum, 7-9 strings (the Assyrian horizontal harp, Cheng 2012 via extracts: M-21). The plain rising string arm and the fan of 9 strings are C (the Assyrian forearm finial is not given to it). Modelled and animated; no performer plays it here (no source for who did at Persepolis)' },
+  plectrum: { tier: 'C', note: 'plectrum stick for the horizontal harp or the lyre (the horizontal harp is struck with one: M-21; form C)' },
+  lyre: { tier: 'C', note: 'round-bodied lyre with two arms and a yoke, nine strings (among the instruments of Achaemenid depictions per an extract, source not seen: SOUND-R); every part of the form C. Modelled and animated; no performer plays it here' },
+  frame_drum: { tier: 'C', note: 'hand-held frame drum, a membrane on a wooden hoop 0.36 m across (a drum is played at Madaktu: M-19; the frame drum is the Mesopotamian standard: SOUND-R); size C. Modelled and animated; no performer plays it here' },
+  double_pipe: { tier: 'C', note: 'double pipe of two cane pipes diverging from the mouth (two played at Madaktu: M-19, B type; never at a sacrifice, Herodotus 1.132: M-05); length and splay C. Modelled and animated; no performer plays it here' },
+  reed_pipe: { tier: 'C', note: 'a herder\'s single cane pipe with a cut reed and five finger-holes, 0.3 m (herdsmen playing pipes: Iliad 18.525-526, read, M-18; the shepherd\'s reed pipe of Mesopotamia, a maker\'s site: M-10). Every part of the form C; nothing specific to Fars is attested' },
 };
 
 /** geometry of a kind; the Phase 3 kinds keep their old origins (spear: at the butt; others: at the grip) */
@@ -137,6 +147,33 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
     case 'ladle': return merge([paint(rod([0, 0, -0.08], [0, 0, 0.36], 0.011, 0.011, 4), WOOD, 0, 0.7), paint(new THREE.SphereGeometry(0.045, 6, 3, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).translate(0, 0.02, 0.4), WOOD_D, 0, 0.7)]);
     case 'stick': return paint(rod([0, 0, -0.15], [0, 0, 0.55], 0.012, 0.008, 4), [0.4, 0.3, 0.2], 0, 0.9);
     case 'lead': return paint(rod([0, 0, 0], [0, -0.1, 0.65], 0.007, 0.007, 3), [0.6, 0.52, 0.36], 0, 0.95);
+    // ------------------------------------------------ instruments (their own frames: instrumentForms.ts)
+    case 'harp_v': { const H = HARP_V, g: THREE.BufferGeometry[] = [];
+      g.push(paint(box(H.boxW, H.boxLen, H.boxD, 0, H.boxLen / 2 - 0.03, 0).rotateX(H.lean), WOOD, 0, 0.6)); // soundbox, leaning over the strings
+      g.push(paint(rod([0, 0, -H.rodBack], [0, 0, H.rodLen], H.rodR, H.rodR * 0.8, 5, true), WOOD_D, 0, 0.6)); // the string rod through its foot
+      for (let i = 0; i < H.strings; i++) { const s = harpVString(i); g.push(paint(rod(s.foot, s.head, 0.0012, 0.0012, 3), GUT, 0, 0.5)); }
+      return merge(g); }
+    case 'harp_h': { const H = HARP_H, g: THREE.BufferGeometry[] = [paint(box(H.boxW, H.boxH, H.boxLen, 0, 0, H.boxLen / 2), WOOD, 0, 0.6), paint(rod(H.armFoot, H.armTop, H.armR, H.armR * 0.8, 5, true), WOOD_D, 0, 0.6)];
+      for (let i = 0; i < H.strings; i++) { const s = harpHString(i); g.push(paint(rod(s.foot, s.head, 0.0012, 0.0012, 3), GUT, 0, 0.5)); }
+      return merge(g); }
+    case 'plectrum': return paint(rod([0, 0, -0.03], [0, 0, 0.13], 0.005, 0.003, 4, true), [0.7, 0.62, 0.48], 0, 0.6);
+    case 'lyre': { const L = LYRE; // the round body: a disc in the X-Z plane (its faces toward ±Y), its foot at the origin
+      const g: THREE.BufferGeometry[] = [paint(new THREE.CylinderGeometry(L.r, L.r, L.thick, 12).translate(0, 0, L.r), WOOD, 0, 0.6)];
+      for (const s of [-1, 1]) g.push(paint(rod([s * L.arm[0][0], 0, L.arm[0][1]], [s * L.arm[1][0], 0, L.arm[1][1]], 0.014, 0.011, 4, true), WOOD_D, 0, 0.6));
+      g.push(paint(rod([-0.16, 0, L.yokeZ], [0.16, 0, L.yokeZ + 0.02], 0.012, 0.012, 4, true), WOOD_D, 0, 0.6));
+      g.push(paint(box(0.14, 0.012, 0.012, 0, L.face - 0.006, L.bridgeZ), WOOD_D, 0, 0.6)); // the bridge
+      for (let i = 0; i < L.strings; i++) { const s = lyreString(i); g.push(paint(rod(s.foot, s.head, 0.0011, 0.0011, 3), GUT, 0, 0.5)); }
+      return merge(g); }
+    case 'frame_drum': { const F = FRAME_DRUM; // hoop (open cylinder along Z) and the membrane on its +Z face
+      return merge([paint(new THREE.CylinderGeometry(F.r, F.r, F.depth, 16, 1, true).rotateX(Math.PI / 2).translate(0, 0, -F.depth / 2), WOOD, 0, 0.6),
+        paint(new THREE.CircleGeometry(F.r * 0.995, 16).translate(0, 0, 0.001), [0.78, 0.7, 0.55], 0, 0.8), paint(new THREE.CircleGeometry(F.r * 0.995, 16).rotateY(Math.PI).translate(0, 0, -F.depth + 0.001), [0.7, 0.62, 0.48], 0, 0.8)]); }
+    case 'double_pipe': { const P = DOUBLE_PIPE, g: THREE.BufferGeometry[] = [];
+      for (const s of [-1, 1]) { const e: [number, number, number] = [s * Math.sin(P.splay / 2) * P.len, 0, Math.cos(P.splay / 2) * P.len];
+        g.push(paint(rod([0, 0, 0.005], e, P.r * 0.8, P.r, 5), CANE, 0, 0.55)); g.push(paint(rod([0, 0, -0.012], [0, 0, 0.012], P.r * 0.7, P.r * 0.8, 4, true), [0.62, 0.55, 0.36], 0, 0.7)); }
+      return merge(g); }
+    case 'reed_pipe': { const P = REED_PIPE, g: THREE.BufferGeometry[] = [paint(rod([0, 0, -0.005], [0, 0, P.len], P.r, P.r, 6), CANE, 0, 0.55)];
+      for (let i = 0; i < P.holes; i++) g.push(paint(box(0.007, 0.002, 0.007, 0, P.r + 0.0005, P.hole0 + i * P.holeStep), [0.2, 0.16, 0.1], 0, 0.9)); // the finger-holes, dark, on top
+      return merge(g); }
     default: return null;
   }
 }
@@ -145,7 +182,7 @@ export const PROP_KINDS = ['spear', 'sack', 'jar', 'tablet', 'mallet', 'basket']
 /** how a prop is held: legacy (the Phase 3 placements), one hand (axis toward the cycle's tip or along the fist),
  *  two hands (the axis threads rear → front grip), mid (between the palms), hang (below the hand, turning), hip, palm,
  *  at (placed by the cycle), bow, arrow */
-type Rule = 'legacy' | 'one' | 'two' | 'mid' | 'hang' | 'hip' | 'palm' | 'at' | 'bow' | 'arrow';
+type Rule = 'legacy' | 'one' | 'two' | 'mid' | 'hang' | 'hip' | 'palm' | 'at' | 'bow' | 'arrow' | 'inst' | 'mouth';
 export interface PropSpec { geom: string; rule: Rule; hand?: 'l' | 'r'; front?: 'l' | 'r'; roll?: 'up' | 'palm' | 'away' | 'down'; up?: number; grip?: [number, number] }
 /** every prop an activity can name (activities.ts); geometry is shared between kinds that are held differently */
 export const PROPS: Record<string, PropSpec> = {
@@ -162,11 +199,17 @@ export const PROPS: Record<string, PropSpec> = {
   awl: { geom: 'awl', rule: 'one', hand: 'r', roll: 'up' }, ladle: { geom: 'ladle', rule: 'one', hand: 'r', roll: 'up' }, stick: { geom: 'stick', rule: 'one', hand: 'r', roll: 'up' },
   lead: { geom: 'lead', rule: 'one', hand: 'r', roll: 'up' }, jar_both: { geom: 'jar', rule: 'mid' }, sack_both: { geom: 'sack', rule: 'mid' },
   basket_hip: { geom: 'basket', rule: 'hip', hand: 'l' }, basket_both: { geom: 'basket', rule: 'mid' }, basket_lap: { geom: 'basket', rule: 'palm', hand: 'l' },
+  // instruments (D-200)
+  harp_v: { geom: 'harp_v', rule: 'inst' }, harp_h: { geom: 'harp_h', rule: 'inst' }, lyre: { geom: 'lyre', rule: 'inst' }, frame_drum: { geom: 'frame_drum', rule: 'inst' },
+  plectrum: { geom: 'plectrum', rule: 'one', hand: 'r', roll: 'up' }, double_pipe: { geom: 'double_pipe', rule: 'mouth' }, reed_pipe: { geom: 'reed_pipe', rule: 'mouth' },
 };
 /** the two carried-prop meshes: small objects (with the Phase 3 set) and long tools. Every kind of a class is in one union */
 export const PROP_CLASSES: string[][] = [
   ['spear', 'sack', 'jar', 'tablet', 'mallet', 'basket', 'sickle', 'spindle', 'distaff', 'trowel', 'brick', 'knife', 'cloth', 'wisp', 'bowl', 'rag', 'awl', 'arrow', 'lead', 'ladle', 'stick'],
   ['hoe', 'fork', 'goad', 'staff', 'broom', 'mould', 'rope', 'adze', 'bow', 'beater', 'paddle'],
+  // instruments (D-200): a class of their own, so the everyday props do not carry the harps' strings (one more draw only
+  // where someone plays)
+  ['harp_v', 'harp_h', 'lyre', 'frame_drum', 'double_pipe', 'reed_pipe', 'plectrum'],
 ];
 /** class and index in the class of a prop kind */
 export function propSlot(kind: string): [number, number] | null {
@@ -263,6 +306,12 @@ export function placeProp(kind: string, R: RigView, po: Pose, s: number, time: n
     case 'hang': { const g = gripPoint(R, P.hand ?? 'r').multiplyScalar(s); out.makeRotationY((time * 21) % (2 * Math.PI)).setPosition(g); if (param) param.v = po.aux ?? 0.4; return true; }
     case 'hip': { const g = gripPoint(R, 'l').multiplyScalar(s).add(new V(0.03, -0.1, 0)); out.makeRotationZ(0.15).setPosition(g); return true; }
     case 'at': { const a = po.at; if (!a) return false; out.makeRotationY(a[3]).setPosition(a[0] * s, a[1] * s, a[2] * s); return true; }
+    case 'inst': { const f = po.inst; if (!f) return false; // the cycle frames the instrument (reference-body units, scaled)
+      frame(new V(f[0][0] * s, f[0][1] * s, f[0][2] * s), new V(...f[1]), new V(...f[2]), out); return true; }
+    case 'mouth': { // at the lips on the solved head; along the line to the hands' midpoint (the fingers are on the pipe)
+      const m = bone(R, HB.head).add(axis(R, HB.head, MOUTH[0], MOUTH[1], MOUTH[2])).multiplyScalar(s);
+      const h = gripPoint(R, 'l').add(gripPoint(R, 'r')).multiplyScalar(0.5 * s), z = h.sub(m); if (z.lengthSq() < 1e-6) z.set(0, -0.7, 0.7);
+      frame(m, z, new V(0, 1, 0), out); return true; }
     case 'bow': case 'arrow': {
       const L = gripPoint(R, 'l').multiplyScalar(s), Rr = gripPoint(R, 'r').multiplyScalar(s), d = L.clone().sub(Rr);
       // the bow: gripped by the left hand, its axis along the line to the drawing hand (the arrow's line), limbs upright;

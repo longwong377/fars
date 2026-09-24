@@ -6,7 +6,7 @@
 //    instrument for the 'offering' context (the chant is speech, src/audio/speech.ts);
 //  - court music (singing and playing at the king's supper; the women's night watch "singing and playing": Heracleides
 //    via Athenaeus, B for the court in general) only when the court is resident (the out-of-world court setting, D-003);
-//  - work songs and herders' pipes are C and used sparingly (the caller decides who plays and when).
+//  - work songs and herders' pipes are C and used sparingly (the caller decides who plays and when: performers.ts).
 // Composition (C throughout): phrases walk the mode stepwise with occasional fourth/fifth leaps and close on the first
 // or fifth degree; plucked strings add string-pair dyads (fourths/fifths) at phrase ends, as the string-pair tuning
 // texts suggest (C); a seeded motif is stated, varied and restated.
@@ -70,9 +70,9 @@ export function compose(p: Performance, seconds: number): NoteEv[] {
     phrase.push(rng.chance(0.6) ? 0 : Math.min(top, 4));
     const rh = rng.pick(rhythms);
     phrase.forEach((deg, i) => {
-      const len = rh[i % rh.length] * beat, last = i === phrase.length - 1;
-      const note: NoteEv = { t: t + rng.range(-0.015, 0.015), dur: last ? beat * 2.5 : len * 1.8, f: freqs[deg], vel: rng.range(0.7, 1) * (i === 0 ? 1 : 0.9), drone, phrase: phraseN };
-      if (last && p.instrument !== 'double_pipe' && p.instrument !== 'lute' && p.instrument !== 'voice') { const pair = deg + (deg + 4 <= top ? 4 : -3); if (pair >= 0 && pair <= top) note.dyad = freqs[pair]; } // string pair (C)
+      const len = rh[i % rh.length] * beat, last = i === phrase.length - 1; // (a single cane sounds one note at a time: no overlap)
+      const note: NoteEv = { t: t + rng.range(-0.015, 0.015), dur: p.instrument === 'reed_pipe' ? (last ? beat * 2 : len) * 0.97 : last ? beat * 2.5 : len * 1.8, f: freqs[deg], vel: rng.range(0.7, 1) * (i === 0 ? 1 : 0.9), drone, phrase: phraseN };
+      if (last && p.instrument !== 'double_pipe' && p.instrument !== 'reed_pipe' && p.instrument !== 'lute' && p.instrument !== 'voice') { const pair = deg + (deg + 4 <= top ? 4 : -3); if (pair >= 0 && pair <= top) note.dyad = freqs[pair]; } // string pair (C)
       ev.push(note); t += last ? beat * 2 : len;
     });
     t += beat * rng.range(0.5, 1.5); phraseN++; // breath between phrases
@@ -89,7 +89,7 @@ export function render(p: Performance, events: NoteEv[], sr: number): Float32Arr
   for (const e of events) {
     if (e.stroke === 'clap') add(clap(sr, rng, e.vel), e.t);
     else if (e.stroke) add(drum(e.f, e.stroke, sr, rng, e.vel), e.t);
-    else if (p.instrument === 'double_pipe') add(pipeNote(e.f, e.dur, sr, rng, e.drone ?? null, e.vel), e.t);
+    else if (p.instrument === 'double_pipe' || p.instrument === 'reed_pipe') add(pipeNote(e.f, e.dur, sr, rng, e.drone ?? null, e.vel), e.t);
     else { const o = PLUCK[p.instrument as 'harp' | 'lyre' | 'lute']; add(pluck(e.f, Math.max(e.dur, o.t60 * 0.8), sr, o, rng, e.vel), e.t);
       if (e.dyad) add(pluck(e.dyad, o.t60 * 0.8, sr, o, rng, e.vel * 0.8), e.t + 0.03); }
   }

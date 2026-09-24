@@ -804,6 +804,26 @@
   "url": "https://www.doublepipes.info/lets-shed-some-light-on-ancient-near-eastern-doublepipes/",
   "access": "search-extract only (session 6); a maker’s site, max tier C"
  },
+ "HOM-IL": {
+  "cite": "Homer, Iliad, tr. A. T. Murray (Perseus Digital Library, canonical-greekLit tlg0012.tlg001.perseus-eng3): 18.525-526, on the shield of Achilles, the herds come to the watering place 'and two herdsmen followed with them playing upon pipes' (Greek syrinx); 10.13, 'the sound of flutes and pipes' in the Trojan camp",
+  "url": "https://raw.githubusercontent.com/PerseusDL/canonical-greekLit/master/data/tlg0012/tlg001/tlg0012.tlg001.perseus-eng3.xml",
+  "access": "downloaded; 10.13 and 18.525-526 read (session 7, D-200). Greek epic (8th-7th c. BCE): pastoral piping in the Greek world, max tier B; C for Fars"
+ },
+ "ALVAREZMON-MADAKTU": {
+  "cite": "J. Alvarez-Mon, 'The Elamite Royal Orchestra from Madaktu (653 BC)', 2017 (Abstracta Iranica 38-40 notice; academia.edu and Macquarie University listings): the relief of Ashurbanipal from Nineveh, SW Palace room XXXIII, slabs 5-6 (BM 124802): 26 members, 11 instrumentalists (seven vertical harps, one horizontal harp, two double pipes, a drum) and 15 clapping and singing; fifteen women and children at the rear wail and clap",
+  "url": "https://journals.openedition.org/abstractairanica/49133",
+  "access": "search-extract only (session 7, D-200; the hosts openedition, britishmuseum.org and biblioiranica are blocked, B6). The relief itself NOT SEEN"
+ },
+ "HARP-ANGULAR-SX": {
+  "cite": "Search extracts of harp-history summaries (Wikipedia 'Angular harp', Encyclopaedia Iranica 'Harp', harphistory.info): on a vertical angular harp the soundbox is vertical, resting against the player or leaning forward, the strings roughly vertical, the neck projecting at the bottom; 15-25 strings, usually 21; the harp reaches from the player's navel to about a head's length above the head; the Madaktu harps are the oldest vertical harps on the Assyrian reliefs",
+  "url": "https://www.iranicaonline.org/articles/harp/",
+  "access": "search-extract only (session 7, D-200; hosts blocked, B6)"
+ },
+ "CHENG-HARP": {
+  "cite": "J. Cheng, 'The Horizontal Forearm Harp: Assyria's National Instrument', Iraq 2012: a horizontal harp of seven to nine strings, usually with a forearm finial, the most often depicted instrument on the Neo-Assyrian reliefs; played with a plectrum; the soundbox held under the left arm (search extracts)",
+  "url": "https://www.cambridge.org/core/journals/iraq/article/horizontal-forearm-harp-assyrias-national-instrument1/20D9704230D99C0E59165E9658E8D3EF",
+  "access": "search-extract only (session 7, D-200; cambridge.org blocked, B6)"
+ },
  "IR-HERACL": {
   "cite": "‘Heracleides of Cyme’, Encyclopaedia Iranica online (Heracleides’ Persika via Athenaeus: the thousand ‘apple-bearers’ (mēlophoroi), Persians of rank drawn from the ‘Immortals’; the three hundred women; the king’s dinner)",
   "url": "https://www.iranicaonline.org/articles/heracleides-of-cyme/",

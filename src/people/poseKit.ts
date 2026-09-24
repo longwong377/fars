@@ -149,6 +149,12 @@ export function stance(p: Pose, T: Trunk, o: { w?: number; zl?: number; zr?: num
   legIK(p, T, 'l', [w + (o.xl ?? 0), ANKLE_Y, o.zl ?? -0.007], [0.15, 0, 1], out);
   legIK(p, T, 'r', [-w + (o.xr ?? 0), ANKLE_Y, o.zr ?? -0.007], [-0.15, 0, 1], -out);
 }
+/** the head bone's position and world rotation (character space) from the trunk and the neck and head channels */
+export function headOf(p: Pose, T: Trunk): { t: V3; R: M3 } {
+  const n = p.rot.neck ?? ZERO, h = p.rot.head ?? ZERO;
+  const Rn = mul(T.chestR, euler(n[0], n[1], n[2])), N = add(T.chestT, app(T.chestR, sub(NOM.neck_01, NOM.spine_03)));
+  return { t: add(N, app(Rn, sub(NOM.head, NOM.neck_01))), R: mul(Rn, euler(h[0], h[1], h[2])) };
+}
 /** forward kinematics of an arm after IK (tests, tools): wrist position */
 export function wristOf(p: Pose, T: Trunk, side: 'l' | 'r'): V3 {
   const K = SIDE[side], S = shoulder(T, side), Lu = p.rot[K.upper] ?? ZERO, Lf = p.rot[K.fore] ?? ZERO;

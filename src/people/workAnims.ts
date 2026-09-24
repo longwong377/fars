@@ -8,12 +8,15 @@
 // Tempo and forms are reconstructions (C): no ancient source describes these motions; tools and their sizes are
 // in props.ts with their tiers. PLACEHOLDER quality in the sense of anim.ts: hand-authored cycles, not motion capture.
 import type { Pose, E3 } from './anim';
-import { trunk, gripIK, legIK, stance, kneeOf, hip, ANKLE_Y, NOM, HS, v3, app, type Trunk } from './poseKit';
+import { trunk, gripIK, legIK, stance, kneeOf, hip, headOf, ANKLE_Y, NOM, HS, v3, app, type Trunk } from './poseKit';
+import { HARP_V, LYRE, DOUBLE_PIPE, MOUTH, harpVString, harpHString, lyreString } from './instrumentForms';
 
 type V3 = [number, number, number];
 export const WORK_ANIMS = ['hoe', 'irrigate', 'reap', 'bind', 'winnow', 'drive', 'plough', 'herd', 'groom', 'fodder', 'shear', 'butcher',
   'hold', 'hold_sack', 'hold_lead', 'sweep', 'weave', 'spin', 'gather', 'pat', 'stir', 'mould', 'lay', 'haul', 'pass', 'polish', 'adze',
-  'pick', 'tread', 'stoke', 'mend', 'bier_l', 'bier_r', 'wash', 'archery', 'cook'] as const;
+  'pick', 'tread', 'stoke', 'mend', 'bier_l', 'bier_r', 'wash', 'archery', 'cook',
+  // playing and singing (D-200)
+  'harp_v', 'harp_h', 'lyre', 'frame_drum', 'double_pipe', 'reed_pipe', 'sing'] as const;
 export type WorkAnim = typeof WORK_ANIMS[number];
 /** how each cycle meets the ground (humanRig: planted feet, or the body resting on the ground) and whether it moves the
  *  performer's root along a path of its own (the ploughman along the furrow, the thresher turning with his team) */
@@ -26,6 +29,8 @@ export const WORK_META: Record<WorkAnim, { ground: 'feet' | 'seat'; path?: boole
   polish: { ground: 'seat', aside: true }, adze: { ground: 'feet' }, pick: { ground: 'feet' }, tread: { ground: 'feet' }, stoke: { ground: 'feet', aside: true },
   mend: { ground: 'seat', aside: true }, bier_l: { ground: 'feet' }, bier_r: { ground: 'feet' },
   wash: { ground: 'seat', aside: true }, archery: { ground: 'feet', path: true }, cook: { ground: 'feet', aside: true },
+  harp_v: { ground: 'feet' }, harp_h: { ground: 'feet' }, lyre: { ground: 'feet' }, frame_drum: { ground: 'feet' }, double_pipe: { ground: 'feet' },
+  reed_pipe: { ground: 'seat', aside: true }, sing: { ground: 'feet' },
 };
 
 const S = Math.sin, C = Math.cos, PI = Math.PI;
@@ -496,6 +501,110 @@ function cook(t: number, k: number): Pose {
   p.grip = [0.2, 1]; p.show = [feed < 0.3, feed >= 0.3 && q > 0.36 && q < 0.6]; p.tip = [[0, 0.32, 0.58], [0, 0.1, 0.62]]; return p;
 }
 
+// ================================================================================================= playing (D-200)
+// The playing cycles: the instrument is framed against the body (Pose.inst, props.ts rule 'inst') or found at the lips
+// (rule 'mouth'), and the hands are put on its strings, face or pipe from the same numbers (instrumentForms.ts), so a
+// plucking hand is at a string. The strokes run on their own clock (C): they are not synchronised with the notes the
+// music engine renders (the engine's piece is rendered in a worker; a stroke every 0.4-0.9 s reads as playing).
+// Grips: the fingers close as a string is plucked or a hole stopped (the rig has one curl per hand: no finger of its own).
+type IFrame = { o: V3; X: V3; Y: V3; Z: V3 };
+/** an instrument's frame from its origin, main axis and up reference (as props.ts `frame`: X = Y × Z) */
+export function iframe(o: V3, z: V3, y: V3): IFrame { const Z = v3.nrm(z), Y = v3.nrm(v3.sub(y, v3.scl(Z, v3.dot(y, Z)))); return { o, X: v3.crs(Y, Z), Y, Z }; }
+/** a point of the instrument's own frame in character space */
+export const iat = (F: IFrame, l: V3): V3 => v3.add(F.o, v3.add(v3.scl(F.X, l[0]), v3.add(v3.scl(F.Y, l[1]), v3.scl(F.Z, l[2]))));
+const holdInst = (p: Pose, F: IFrame) => { p.inst = [F.o, F.Z, F.Y]; };
+/** a seeded pick in [0, 1) for stroke n of a hand */
+const pickU = (n: number, k: number, salt: number) => fr(Math.sin(n * 12.9898 + k * 78.233 + salt * 37.719) * 43758.5453);
+/** a hand's strokes: every `P` s a new string of [lo, hi] (fractional while the hand moves to it in the first 35 % of the
+ *  stroke), then the pluck (0 → 1 → 0 between 40 and 62 %) */
+function strokes(t: number, k: number, P: number, off: number, lo: number, hi: number, salt: number) {
+  const x = t / P + off + k * 0.37, n = Math.floor(x), u = x - n, s = (m: number) => lo + Math.floor(pickU(m, k, salt) * (hi - lo + 1));
+  const a = s(n - 1), b = s(n); return { str: a + (b - a) * sm(u / 0.35), pluck: win(u, 0.4, 0.62, 0.06), u };
+}
+/** where the vertical harp's (fractional) string `si` is plucked (local frame): at 0.26 m above the rod, or lower on the
+ *  short strings (two thirds of their height) */
+export function harpVPluck(si: number): V3 {
+  const n = HARP_V.strings, i0 = Math.max(0, Math.min(n - 1, Math.floor(si))), i1 = Math.min(n - 1, i0 + 1), w = si - i0, A = harpVString(i0), B = harpVString(i1);
+  const z = A.foot[2] * (1 - w) + B.foot[2] * w, top = A.head[1] * (1 - w) + B.head[1] * w;
+  return [0, Math.min(0.26, 0.65 * top), z];
+}
+/** the vertical angular harp, standing (the Madaktu harpists stand or walk: M-19): the soundbox against the chest on the
+ *  left, the rod forward at the navel; the fingers of both hands pluck from either side of the strings, alternately (the
+ *  right among the longer strings, the left among the shorter: C) */
+export const HARP_V_HOLD: [V3, V3, V3] = [[0.15, 0.97, 0.18], [0.03, 0, 1], [0.14, 1, 0]]; // the soundbox beside the head, its top leaning a little out
+function harpV(t: number, k: number): Pose {
+  const p = blank(), T = body(p, { hp: 0.02, sp: 0.03, ch: 0.02, drop: -0.01, hy: 0.03 * wob(t * 0.2, k) }, t, k);
+  stance(p, T, { w: 0.13, zl: 0.03, zr: -0.03, out: 0.15 });
+  const o = HARP_V_HOLD[0], F = iframe([o[0] + 0.008 * wob(t * 0.3, k + 1), o[1], o[2]], HARP_V_HOLD[1], HARP_V_HOLD[2]); holdInst(p, F);
+  const at = (si: number, side: 1 | -1, pull: number) => { const l = harpVPluck(si); return iat(F, [side * (0.05 + 0.018 * pull), l[1], l[2]]); };
+  const R = strokes(t, k, 0.9, 0, 2, 10, 1), L = strokes(t, k, 0.9, 0.5, 0, 9, 2);
+  grip(p, T, 'r', at(R.str, -1, R.pluck), [-0.8, -1, -0.2], 0.2); grip(p, T, 'l', at(L.str, 1, L.pluck), [0.8, -1, -0.2], -0.2);
+  look(p, T, iat(F, [0, 0.25, 0.16])); p.grip = [0.35 + 0.45 * L.pluck, 0.35 + 0.45 * R.pluck]; return p;
+}
+/** the horizontal angular harp, standing: the soundbox level under the left forearm, pointing forward; the right hand
+ *  strikes across the strings near their feet with a plectrum (M-21), the left hand's fingers on the strings from the far
+ *  side (stopping them: C) */
+function harpH(t: number, k: number): Pose {
+  const p = blank(), T = body(p, { hp: 0.02, sp: 0.03, ch: 0.02, drop: -0.01, hy: 0.03 * wob(t * 0.2, k) }, t, k);
+  stance(p, T, { w: 0.13, zl: 0.03, zr: -0.03, out: 0.15 });
+  const F = iframe([0.15, 0.98, -0.1], [-0.15, 0.1, 1], [0, 1, 0]); holdInst(p, F); // the rear end behind the elbow
+  const S = strokes(t, k, 0.6, 0, 0, 6, 3), zz = 0.3 + 0.02 * S.str; // across the strings nearest the player
+  const fist: V3 = [-0.11 + 0.07 * S.pluck, 0.12, zz];
+  grip(p, T, 'r', iat(F, fist), [-0.8, -1, -0.2], 0.4);
+  p.tip = [null, iat(F, [fist[0] + 0.13, 0.11, zz + 0.01])];
+  const Ls = strokes(t, k, 1.2, 0.3, 0, 5, 4), st = harpHString(Math.round(Ls.str)), lp = v3.add(st.foot, v3.scl(v3.sub(st.head, st.foot), 0.35));
+  grip(p, T, 'l', iat(F, [0.055, lp[1], lp[2]]), [0.9, -1, -0.3], -0.3);
+  look(p, T, iat(F, [0, 0.12, 0.4])); p.grip = [0.4 + 0.35 * Ls.pluck, 0.9]; return p;
+}
+/** the lyre, standing: held slanting out from the chest, its face forward; the right hand strikes across the strings over
+ *  the bridge with a plectrum, the left hand's fingers touch the strings from behind (C) */
+function lyre(t: number, k: number): Pose {
+  const p = blank(), T = body(p, { hp: 0.02, sp: 0.03, ch: 0.02, drop: -0.01, hy: 0.03 * wob(t * 0.2, k) }, t, k);
+  stance(p, T, { w: 0.13, zl: 0.03, zr: -0.03, out: 0.15 });
+  const F = iframe([-0.02, 0.9, 0.18], [0.35, 1, 0.25], [-0.2, 0, 1]); holdInst(p, F);
+  const S = strokes(t, k, 0.7, 0, 0, 4, 5), x = -LYRE.span * 1.5 + 3 * LYRE.span * S.pluck;
+  grip(p, T, 'r', iat(F, [x - 0.03, LYRE.face + 0.05, 0.12]), [-0.8, -1, -0.2], 0.3);
+  p.tip = [null, iat(F, [x + 0.02, LYRE.face, 0.17])];
+  const Ls = strokes(t, k, 1.4, 0.3, 0, LYRE.strings - 1, 6), ls = lyreString(Math.round(Ls.str));
+  grip(p, T, 'l', iat(F, [ls.foot[0] * 1.1, LYRE.face - 0.06, 0.4]), [0.9, -1, -0.3], -0.4);
+  look(p, T, iat(F, [0, 0.05, 0.25])); p.grip = [0.4 + 0.35 * Ls.pluck, 0.9]; return p;
+}
+/** the frame drum, standing: held upright by its hoop in the left hand, the face turned to the right; the right hand
+ *  strikes the middle (the low stroke) or the rim near the player (the high stroke) in a seeded pattern (C) */
+function frameDrum(t: number, k: number): Pose {
+  const p = blank(), T = body(p, { hp: 0.02, sp: 0.03, ch: 0.02, drop: -0.01, hy: 0.03 * wob(t * 0.2, k) }, t, k);
+  stance(p, T, { w: 0.13, zl: 0.03, zr: -0.03, out: 0.15 });
+  const F = iframe([0.1, 1.15, 0.3], [-0.7, 0.1, 0.7], [0, 1, 0]); holdInst(p, F);
+  grip(p, T, 'l', iat(F, [-0.12, -0.12, -0.035]), [0.9, -1, -0.3], -0.3);
+  const B = 0.36, x = t / B + k * 0.37, n = Math.floor(x), u = x - n, pat = Math.floor(pickU(Math.floor(n / 4), k, 7) * 4), beat = n % 4;
+  const rim = (beat + pat) % 3 !== 0, rest = (beat + pat) % 4 === 3, hitW = rest ? 0 : win(u, 0.0, 0.18, 0.05);
+  const face: V3 = rim ? [-0.13, 0.06, 0.03] : [0, 0.02, 0.035];
+  grip(p, T, 'r', iat(F, [face[0], face[1], face[2] + 0.08 * (1 - hitW)]), [-0.8, -1, -0.2], 0.9);
+  look(p, T, iat(F, [0, 0, 0.1])); p.grip = [0.85, 0.2]; return p;
+}
+/** pipes at the lips: the double pipe standing (one cane in each hand), the herder's single pipe sitting on the ground
+ *  (both hands on the one cane); the fingers stop and open the holes (the grip changes with each note, C). The head is
+ *  set, not turned to look (the pipe is at the lips) */
+function pipes(t: number, k: number, double: boolean): Pose {
+  const p = blank(), T = double ? body(p, { hp: 0.02, sp: 0.02, ch: 0.02, drop: -0.01, hy: 0.03 * wob(t * 0.2, k) }, t, k) : sitBody(p, t, k, 0.12);
+  if (double) stance(p, T, { w: 0.13, zl: 0.03, zr: -0.03, out: 0.15 });
+  p.rot.neck = [0.12, 0.05 * wob(t * 0.15, k), 0]; p.rot.head = [double ? 0.02 : 0.1, 0, 0];
+  const H = headOf(p, T), M = v3.add(H.t, app(H.R, MOUTH)), D = v3.nrm(app(H.R, double ? [0, -0.6, 0.8] : [0, -0.72, 0.7])), side = app(H.R, [1, 0, 0]);
+  if (double) { const d = 0.21, lat = d * Math.tan(DOUBLE_PIPE.splay / 2);
+    grip(p, T, 'l', v3.add(v3.add(M, v3.scl(D, d)), v3.scl(side, lat)), [0.9, -1, -0.2], -0.2); grip(p, T, 'r', v3.add(v3.add(M, v3.scl(D, d)), v3.scl(side, -lat)), [-0.9, -1, -0.2], 0.2); }
+  else { grip(p, T, 'l', v3.add(M, v3.scl(D, 0.15)), [0.9, -1, -0.2], -0.3); grip(p, T, 'r', v3.add(M, v3.scl(D, 0.24)), [-0.9, -1, -0.2], 0.3); }
+  const n = Math.floor(t / 0.45 + k * 0.37); p.grip = [0.45 + 0.35 * pickU(n, k, 8), 0.45 + 0.35 * pickU(n, k, 9)];
+  return p;
+}
+/** singing, standing: the hands loosely joined low in front, the head a little raised; the breath and the jaw follow the
+ *  sung phrases in the crowd (crowd.ts: the notes of the piece) */
+function sing(t: number, k: number): Pose {
+  const p = blank(), T = body(p, { hp: 0.0, sp: -0.02, ch: -0.02, drop: -0.01, hy: 0.04 * wob(t * 0.15, k) }, t, k);
+  stance(p, T, { w: 0.12, zl: 0.02, zr: -0.02, out: 0.14 });
+  grip(p, T, 'r', [-0.03, 0.93, 0.16], [-0.8, -1, -0.2], 0.9); grip(p, T, 'l', [0.035, 0.94, 0.15], [0.8, -1, -0.2], -0.9);
+  look(p, T, [0.4 * wob(t * 0.1, k + 3), 1.7, 5]); p.grip = [0.4, 0.4]; return p;
+}
+
 /** a work cycle's pose. `ph`: the gait phase for walking cycles (bearers); `k`: per-person seed */
 export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
   switch (id) {
@@ -535,6 +644,13 @@ export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
     case 'wash': return wash(t, k);
     case 'archery': return archery(t, k);
     case 'cook': return cook(t, k);
+    case 'harp_v': return harpV(t, k);
+    case 'harp_h': return harpH(t, k);
+    case 'lyre': return lyre(t, k);
+    case 'frame_drum': return frameDrum(t, k);
+    case 'double_pipe': return pipes(t, k, true);
+    case 'reed_pipe': return pipes(t, k, false);
+    case 'sing': return sing(t, k);
   }
 }
 /** the root path of a path cycle at time t (called every frame by the crowd, also between pose refreshes) */

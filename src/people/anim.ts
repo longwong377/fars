@@ -32,6 +32,9 @@ export interface Pose { rot: Partial<Record<BoneName, E3>>; hips: E3; /** strike
   ip?: number;
   /** a second prop parameter: the spindle's drop below the hand (m) */
   aux?: number;
+  /** an instrument held against the body (props.ts rule 'inst'): its frame in character space (reference body): origin,
+   *  main axis (+Z of instrumentForms.ts) and up reference (+Y) */
+  inst?: [E3, E3, E3];
 }
 
 const S = Math.sin, C = Math.cos, PI = Math.PI;

@@ -12,15 +12,21 @@ export const MUSIC_CLAIMS: Record<string, MusicClaim> = {
   'M-07': { id: 'M-07', tier: 'C', src: ['ATH14-WORK'], short: 'Greek work songs by trade, the millstone song among them (Athenaeus 14.618-619); B for Greece, C at Persepolis' },
   'M-08': { id: 'M-08', tier: 'B', src: ['IR-PET'], short: 'Ionians among the stonecutters of Persepolis' },
   'M-09': { id: 'M-09', tier: 'B', src: ['IR-WOMEN'], short: "women's work groups with rations at Persepolis" },
+  'M-10': { id: 'M-10', tier: 'C', src: ['DOUBLEPIPES-INFO'], short: "shepherds played the reed pipe, a rudimentary form of the Sumerian gi-di double pipe (a maker's site, extract)" },
   'M-13': { id: 'M-13', tier: 'C', src: ['KILMER-SPECIES'], short: "Babylonian tuning names equated with Greek octave species (Kilmer, via extracts; Q-300)" },
   'M-14': { id: 'M-14', tier: 'B', src: ['SEP-PHILOLAUS'], short: "Philolaus' diatonic: tones of 9:8 and a remainder of 256:243" },
   'M-15': { id: 'M-15', tier: 'C', src: [], short: 'no song text is attested: every song is a vocalise without words' },
   'M-16': { id: 'M-16', tier: 'C', src: [], short: 'the court is resident only under the out-of-world setting (D-003, B9)' },
   'M-17': { id: 'M-17', tier: 'C', src: [], short: 'composition: seeded motif, cadences, harp dyads, heterophony' },
+  'M-18': { id: 'M-18', tier: 'B', src: ['HOM-IL'], short: "'two herdsmen followed with them playing upon pipes' (Iliad 18.525-526, read): pastoral piping in the Greek world; C for Fars" },
+  'M-19': { id: 'M-19', tier: 'B', src: ['ALVAREZMON-MADAKTU'], short: 'the Elamite royal orchestra at Madaktu (653 BCE): seven vertical harps, a horizontal harp, two double pipes, a drum, fifteen clapping and singing; standing and walking (extracts; relief NOT SEEN)' },
+  'M-20': { id: 'M-20', tier: 'B', src: ['HARP-ANGULAR-SX'], short: 'the vertical angular harp: soundbox upright or leaning forward against the player, strings vertical from a rod at its foot, usually 21 strings, navel to above the head (extracts)' },
+  'M-21': { id: 'M-21', tier: 'B', src: ['CHENG-HARP'], short: 'the horizontal harp: 7-9 strings, held level under the left arm, struck with a plectrum (Cheng 2012, extracts)' },
 };
-/** claims that are recorded but must never be performed (M-06 the magus's chant: no attested text; M-10 herders' pipes:
- *  no rendered herder; M-11, M-12 not Achaemenid or rejected) */
-export const NOT_PERFORMED = ['M-06', 'M-10', 'M-11', 'M-12'];
+/** claims that are recorded but must never be performed (M-06 the magus's chant: no attested text, a living religion's
+ *  rite: D-200 keeps it silent; M-11, M-12 not Achaemenid or rejected). M-10 (herders' pipes) is performed since D-200:
+ *  the transhumant bands' herders are drawn by the population view */
+export const NOT_PERFORMED = ['M-06', 'M-11', 'M-12'];
 export const knownClaim = (id: string) => id in MUSIC_CLAIMS;
 /** the weakest tier among a performance's claims (C < B < A) */
 export function tierOf(ids: string[]): string {

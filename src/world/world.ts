@@ -72,7 +72,8 @@ import { Murmur, Talker } from '../audio/murmur';
 import { OcclusionField } from '../audio/occlusion';
 import { MusicSystem } from '../audio/music';
 import { MusicDirector } from '../audio/musicDirector';
-import type { PerformerAgent } from '../audio/performers';
+import type { PerformerAgent, PopPerformer } from '../audio/performers';
+import { h32 } from '../people/hash';
 import { yawOf } from '../people/crowd';
 import { pickLine, voiceFor, voiceKeyFor, type ResolvedLine } from '../people/speech_lines';
 import { Conversations, addressIntents, speak, type SpeakerLike } from '../people/exchanges';
@@ -252,8 +253,15 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const director = new MusicDirector(music, audio, {
     addExtra: (key, x) => { crowd.addExtra(key, { id: -7000 - (x.seed % 1000), dress: 'woman', sex: x.sex, role: 'musician', seed: x.seed, x: x.e, y: x.y, z: -x.n, yaw: yawOf(x.heading), anim: x.anim } as any); },
     removeExtra: key => crowd.detach(key),
-    singing: (id, sec) => crowd.speaking(id, sec, time),
+    // what a performer is seen doing (D-200: the playing performance, the singers' jaw and breath on the piece's notes)
+    play: (who, kind, sec, notes) => crowd.setPlaying(Crowd.keyOf(who), kind, sec, time, notes),
   });
+  // the population's people who may play (D-200): the herders of the transhumant bands out of doors near the view
+  const popPerformers: PopPerformer[] = [];
+  const bandPeople = (day: number) => { popPerformers.length = 0;
+    for (const o of view.visible) if (o.agent < 0 && (o.place.startsWith('camp:band') || o.place.startsWith('route:band'))) { const q = view.pop.persons[o.pid];
+      popPerformers.push({ pid: o.pid, sex: q.sex, age: view.pop.ageOn(o.pid, day), act: o.act, why: o.why, place: o.place, e: o.e, n: o.n, y: o.y, moving: o.moving, seed: h32(seed, o.pid) }); }
+    return popPerformers; };
   const surfaceAt = (y: number, groundY: number) => (y > -1 ? 'stone' : Math.abs(y - groundY) < 0.3 ? 'earth' : 'stone') as 'stone' | 'earth';
   const syncBodies = () => sim.agents.forEach((a, i) => bodies[i].setNextKinematicTranslation(a.offmap ? { x: 0, y: -1000, z: 0 } : { x: a.pos[0], y: a.y, z: -a.pos[1] }));
   let lodT = 0;
@@ -372,7 +380,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
           if (time - leavesAt > 0.5) { leavesAt = time; syncLeaves(); occCache.clear(); }
           const day = Math.floor(sim.t / 24), C = sim.cal.ctx(day);
           director.update(dt, sim.agents as unknown as PerformerAgent[], { t: sim.t, seed, courtToday: C.court, courtYesterday: courtOn(day - 1), sun: C.sun, foul: C.wx.storm || ctx.cond.rain > 0.3,
-            courtHall: hadishRoom ? { cx: hadishRoom.cx, cy: hadishRoom.cy, sx: hadishRoom.sx, sy: hadishRoom.sy, fl: hadishRoom.fl } : null }, cam.position);
+            courtHall: hadishRoom ? { cx: hadishRoom.cx, cy: hadishRoom.cy, sx: hadishRoom.sx, sy: hadishRoom.sy, fl: hadishRoom.fl } : null }, cam.position, bandPeople(day));
           audio.updateOcclusion(3); // ~0.1 ms per query measured in node (D-178): about 0.3 ms a frame
         }
         const jdn = ctx.clock.jdn, b = babylonianDate(jdn); void b;
