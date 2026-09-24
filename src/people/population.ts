@@ -411,6 +411,11 @@ export class Population {
     for (let i = 0; i < V.unlocated_n; i++) { const r = this.rng(-9000 - i); const dist = lerp(V.unlocated_dist_km[0], V.unlocated_dist_km[1], r.next()) * 1000, ang = r.range(0, 2 * Math.PI); vil.push({ id: `v_${String(i + 1).padStart(2, '0')}`, xy: [Math.cos(ang) * dist, Math.sin(ang) * dist], w: 0 }); }
     const order = vil.map((_, i) => i).sort((a, b) => u01(this.seed, S.gen, 777, a) - u01(this.seed, S.gen, 777, b));
     order.forEach((vi, rank) => (vil[vi].w = 1 / Math.pow(rank + 1, V.rank_size_exponent)));
+    // no site above the research's 3,000 people (PLAIN.md §4; town.json villages.site_people): the largest ranks are capped and
+    // their excess goes to the others in proportion to their rank weights (D-175; was 8,491 in the largest village)
+    { const cap = (V.site_people.v[1] - 60) / plainW; /* (less a household, as a village fills until it passes its target, and the year's net growth, about 1 %) */ for (let it = 0; it < 20; it++) { const ws = vil.reduce((s, x) => s + x.w, 0); const over = vil.filter(x => x.w / ws > cap + 1e-9); if (!over.length) break;
+      const free = vil.filter(x => x.w / ws < cap - 1e-9), fs = free.reduce((s, x) => s + x.w, 0), ex = over.reduce((s, x) => s + x.w - cap * ws, 0);
+      for (const x of over) x.w = cap * ws; for (const x of free) x.w += ex * x.w / fs; } }
     const wsum = vil.reduce((s, x) => s + x.w, 0);
     let hi = 0;
     for (const v of vil) { this.quarters[v.id] = { id: v.id, xy: v.xy, kind: 'village', women: [], farmers: [] };
