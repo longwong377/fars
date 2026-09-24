@@ -14,7 +14,7 @@ export type PoseBone = typeof POSE_BONES[number];
 type BoneName = PoseBone;
 
 export type AnimId = 'idle' | 'walk' | 'carry_shoulder' | 'carry_head' | 'carry_front' | 'guard' | 'guard_walk' | 'chisel' | 'grind' | 'knead'
-  | 'bake' | 'draw_water' | 'write' | 'eat' | 'sleep' | 'talk' | 'sit' | 'dice' | 'inspect' | 'play' | WorkAnim;
+  | 'bake' | 'draw_water' | 'write' | 'eat' | 'sleep' | 'talk' | 'sit' | 'dice' | 'inspect' | 'play' | 'enthroned' | WorkAnim;
 export type E3 = [number, number, number];
 export interface Pose { rot: Partial<Record<BoneName, E3>>; hips: E3; /** strike/impact event this frame (for tool sounds) */ hit?: boolean;
   /** the performer's root moved along a path of the cycle's own (m, m, rad in the performer's frame: the ploughman along
@@ -57,6 +57,8 @@ function sitCross(p: Pose) {
   r.l_thigh = [-1.45, 0, 0.75]; r.r_thigh = [-1.45, 0, -0.75]; r.l_shin = [2.35, 0, 0]; r.r_shin = [2.35, 0, 0]; r.l_foot = [-0.4, 0, 0]; r.r_foot = [-0.4, 0, 0];
 }
 
+/** D-199: the enthroned pose's pelvis offset from standing (m: down, back; C, measured against the throne's seat) */
+export const ENTHRONED = { drop: -0.3, back: -0.12 } as const;
 /** pose for an animation at time t (s); `ph` = gait phase (radians) for moving anims; `k` = per-person seed */
 export function pose(id: AnimId, t: number, ph: number, k: number): Pose {
   if (WORK.has(id)) return workPose(id as WorkAnim, t, ph, k);
@@ -124,6 +126,16 @@ export function pose(id: AnimId, t: number, ph: number, k: number): Pose {
       if (id === 'dice') { const q = fr(t * 0.2 + k), th = q < 0.15 ? S(q / 0.15 * PI) : 0; p.hit = q > 0.14 && q < 0.16; r.spine = [0.35, 0, 0]; r.r_upper = [-0.9 - 0.4 * th, 0, -0.1]; r.r_fore = [-0.6 + 0.4 * th, 0, 0]; r.head = [0.3, 0, 0]; }
       break;
     }
+    // D-199 (court setting): the king on the throne at an audience, as the Treasury audience relief carves him: upright,
+    // the thighs level, the shins down to the footstool, the staff in the right hand and the lotus in the left; still
+    // (breathing only). Not planted and not seated on the ground: the throne (workObjects 'throne') is built to this pose
+    // (ENTHRONED: the seat under the buttocks, the footstool under the soles, measured on the rig: tests/court_king.test.ts)
+    case 'enthroned': {
+      p.hips = [0, ENTHRONED.drop, ENTHRONED.back]; r.hips = [0, 0, 0];
+      r.l_thigh = [-1.52, 0, 0.05]; r.r_thigh = [-1.52, 0, -0.05]; r.l_shin = [1.42, 0, 0]; r.r_shin = [1.42, 0, 0]; r.l_foot = [0.1, 0, 0]; r.r_foot = [0.1, 0, 0];
+      r.spine = [0.02, 0, 0]; r.r_upper = [-0.45, 0, -0.12]; r.r_fore = [-0.95, 0, 0.1]; r.l_upper = [-0.3, 0, 0.12]; r.l_fore = [-1.35, 0, -0.1];
+      r.head = [0.02, 0, 0]; break;
+    }
     case 'sleep': { p.hips = [0, -0.83, 0]; r.hips = [-PI / 2, 0, 0]; r.l_upper = [0, 0, 0.1]; r.r_upper = [0, 0, -0.1]; r.head = [0.2, 0.2, 0]; r.chest = [breath * 0.6, 0, 0]; r.l_shin = [0.2, 0, 0]; r.r_shin = [0.1, 0, 0]; break; }
     case 'talk': {
       const g = Math.max(0, wob(t * 1.3, k)); p.hips = [0.015 * wob(t * 0.5, k), 0, 0];
@@ -137,4 +149,4 @@ export function pose(id: AnimId, t: number, ph: number, k: number): Pose {
   return p;
 }
 const WORK = new Set<string>(WORK_ANIMS);
-export const ANIMS: AnimId[] = ['idle', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'chisel', 'grind', 'knead', 'bake', 'draw_water', 'write', 'eat', 'sleep', 'talk', 'sit', 'dice', 'inspect', 'play', ...WORK_ANIMS];
+export const ANIMS: AnimId[] = ['idle', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'chisel', 'grind', 'knead', 'bake', 'draw_water', 'write', 'eat', 'sleep', 'talk', 'sit', 'dice', 'inspect', 'play', 'enthroned', ...WORK_ANIMS];

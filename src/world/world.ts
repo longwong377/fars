@@ -77,6 +77,8 @@ import { sunTimes } from '../people/calendar';
 import { Rng } from '../core/rng';
 import type { WeatherSystem } from '../weather/weatherState';
 import placesJson from '../data/people_places.json';
+import { CourtCampTents } from './courtCamps';
+import { CAMPS } from '../people/camps';
 const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
 /** longest absence simulated step by step on load (C: a month runs in about a second at the Phase 3 population) */
 export const CATCHUP_MAX_DAYS = 30;
@@ -155,7 +157,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const shafts = new RainShafts(terrain); root.add(shafts.group); // distant rain cells approaching on the wind
   void QUALITY;
   // Phase 7: the Marvdasht plain (src/world/plain; plain.json): rivers, canals, fields, orchards, villages, Naqsh-e Rustam
-  const plain = await buildPlain(scene, terrain, phys, { quality: q, seed, town: settlement?.plan ?? null }); root.add(plain.group);
+  const plain = await buildPlain(scene, terrain, phys, { quality: q, seed, town: settlement?.plan ?? null,
+    camps: settings?.courtCalendar === 'seasonal' ? CAMPS.filter(c => c.id !== 'court').map(c => ({ c: c.c, r: c.r })) : [] }); root.add(plain.group); // (D-199: the retinue's camps on trodden ground)
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
   const nav = await NavGrid.load(async p => (await fetch('/' + p)).arrayBuffer());
   // visible birds (§5.5): swallows over the courts in season, raptors over the slope, sparrows on the court floors
@@ -168,6 +171,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // 'Court calendar = seasonal pattern' is on (D-003)
   const sim = new PeopleSim(seed, nav, env, { court: settings?.courtCalendar === 'seasonal' }); let simStarted = false;
   sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
+  // D-199: the court's camps (court setting only): the tents of the court's camp and of the retinue's camps (camps.ts)
+  const campTents = sim.pop.court ? new CourtCampTents(sim.pop.court.tents, (e, n) => terrain.heightAt(e, -n), phys) : null; if (campTents) root.add(campTents.group);
   // people's bodies (D-090): MakeHuman-derived variants in period dress, instanced per costume and LOD, pooled (D-093)
   const humans = await humansP;
   const crowd = new Crowd(sim, seed, humans); root.add(crowd.group);
@@ -344,6 +349,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       view.update(sim.t, [ctx.camera.position.x, -ctx.camera.position.z]); // the population out of doors near the camera (D-143)
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
       settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, skyLight: ctx.skyLight, cond: ctx.cond, player: ctx.player });
+      campTents?.update(ctx.player.position.x, ctx.player.position.z); // D-199
       fire.setSkyLight(ctx.skyLight);
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time, ctx.clock.localHour);
       plain.update(dt, ctx);
@@ -395,5 +401,5 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         ...director.lines(),
         `occlusion (C, Maekawa; Q-304): ${audio.occlStats.tracked} sources tracked, ${audio.occlStats.queries} re-queried this frame in ${audio.occlStats.ms.toFixed(2)} ms · field ${occl.w}×${occl.h} cells built in ${occMs.toFixed(0)} ms · town and plain buildings not occluders`];
     },
-    summary: () => `${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest + ${crowd.impPerf.drawn} impostors (baked in ${impMs.toFixed(0)} ms), ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms, view ${view.stats.evalMs.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''} · ${plain.summary()} · ${insc.userData.summary ?? ''}` } as WorldBuild;
+    summary: () => `${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest + ${crowd.impPerf.drawn} impostors (baked in ${impMs.toFixed(0)} ms), ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms, view ${view.stats.evalMs.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''}${campTents ? ` · court camps ${campTents.info.tents} tents, ${(campTents.info.tris / 1e3).toFixed(1)} k tris in ${campTents.info.meshes} meshes (D-199, C)` : ''} · ${plain.summary()} · ${insc.userData.summary ?? ''}` } as WorldBuild;
 }

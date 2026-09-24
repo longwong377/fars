@@ -21,12 +21,15 @@ export type ActivityId =
   | 'queue' | 'exchange' | 'lie_ill'
   // the abstract population's work (performed since D-142)
   | 'haul' | 'mould_brick' | 'lay_brick' | 'polish_metal' | 'work_wood' | 'weave' | 'spin' | 'gather' | 'brew' | 'tend_animals' | 'herd' | 'shear' | 'slaughter'
-  | 'offer' | 'clean' | 'garden_work' | 'field_work' | 'irrigate' | 'plough' | 'reap' | 'thresh' | 'dig_canal' | 'pick_fruit' | 'craft' | 'carry_bier' | 'wash' | 'train' | 'cook';
+  | 'offer' | 'clean' | 'garden_work' | 'field_work' | 'irrigate' | 'plough' | 'reap' | 'thresh' | 'dig_canal' | 'pick_fruit' | 'craft' | 'carry_bier' | 'wash' | 'train' | 'cook'
+  // the king and his attendants (court setting only, D-199)
+  | 'royal_walk' | 'enthroned' | 'bear_parasol' | 'attend_parasol' | 'bear_whisk' | 'attend_whisk';
 
 /** props an activity can put in the hands (props.ts PROPS) */
 export type PropKind = 'spear' | 'sack' | 'jar' | 'jar_head' | 'tablet' | 'mallet' | 'basket' | 'bread'
   | 'hoe' | 'sickle' | 'fork' | 'goad' | 'staff' | 'broom' | 'spindle' | 'distaff' | 'trowel' | 'mould' | 'brick' | 'brick_l' | 'rope' | 'adze' | 'bow' | 'arrow'
-  | 'knife' | 'beater' | 'paddle' | 'cloth' | 'wisp' | 'bowl' | 'rag' | 'awl' | 'ladle' | 'stick' | 'lead' | 'jar_both' | 'sack_both' | 'basket_hip' | 'basket_both' | 'basket_lap';
+  | 'knife' | 'beater' | 'paddle' | 'cloth' | 'wisp' | 'bowl' | 'rag' | 'awl' | 'ladle' | 'stick' | 'lead' | 'jar_both' | 'sack_both' | 'basket_hip' | 'basket_both' | 'basket_lap'
+  | 'sceptre' | 'lotus' | 'parasol' | 'whisk' | 'towel';
 /** sounds a performance makes (soundscape.ts strike kinds; 'murmur' and 'footsteps' are layers, 'fire' the fire's own) */
 export type SoundKind = 'chisel' | 'quern' | 'fire' | 'murmur' | 'footsteps' | 'dice' | 'water' | 'hoe' | 'sickle' | 'loom' | 'trowel' | 'adze' | 'mould' | 'wash' | 'broom' | 'bow' | 'bleat';
 /** a thing at the place (workObjects.ts), in the performer's frame (m: right −x / left +x, ahead +z; yaw rad). `follow`:
@@ -161,6 +164,13 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     note: 'boys of households of standing learning to shoot with the bow (HDT 1.136, a Greek claim: B; XEN-CYR 1.2.15; Q-146): shooting at a straw target at 22 m (C). Riding is not performed yet (D-142)' },
   cook: { anim: 'cook', prop: 'ladle', prop2: 'stick', sound: 'fire', tier: 'C', work: [{ kind: 'hearth_pot', at: [0, 0, 0.58] }, { kind: 'brushwood', at: [-0.75, 0, 0.12] }],
     note: 'at dusk the hearth fire is lit and the evening meal warmed: squatting at the hearth, stirring the pot, feeding sticks under it (§9.2; C). The fire itself is the settlement’s hearth' },
+  // D-199 (court setting only): the king as the door-jamb and audience reliefs show him, and the two attendants behind him
+  royal_walk: { anim: 'walk', moving: true, prop: 'sceptre', prop2: 'lotus', sound: 'footsteps', tier: 'B', note: 'the king walking, the long staff in his right hand and a lotus in his left (door-jamb reliefs of the Tachara and the Hadish, HADISH-JAMB: B); the gait and the pace C' },
+  enthroned: { anim: 'enthroned', prop: 'sceptre', prop2: 'lotus', tier: 'B', work: [{ kind: 'throne', at: [0, 0, 0] }], note: 'the king enthroned at an audience, staff and lotus in his hands, his feet on the footstool (the Treasury audience relief, TREAS-AUD: B); where the throne stood in the Apadana and the hours C; the king does not move or speak (brief §1.1 restraint)' },
+  bear_parasol: { anim: 'guard_walk', moving: true, prop: 'parasol', sound: 'footsteps', tier: 'B', note: 'an attendant walking behind the king holding the parasol over him (door-jamb reliefs: B); the parasol’s size and cloth C; the two are not held in step (each walks the view’s own route: C)' },
+  attend_parasol: { anim: 'guard', prop: 'parasol', tier: 'C', note: 'the parasol bearer standing by while the king sits (C: indoors the reliefs show a canopy, not the parasol)' },
+  bear_whisk: { anim: 'walk', moving: true, prop: 'whisk', prop2: 'towel', sound: 'footsteps', tier: 'B', note: 'a beardless attendant walking behind the king with a fly-whisk and a towel (door-jamb reliefs: B)' },
+  attend_whisk: { anim: 'idle', prop: 'whisk', prop2: 'towel', tier: 'B', note: 'the fly-whisk and towel bearer standing behind the throne (the Treasury audience relief: a beardless attendant with a towel behind the king, TREAS-AUD: B)' },
 };
 /** the placeholders (none since D-142; tests pin this list as empty, and the lint fails if one is added back) */
 export const ABSTRACT_PLACEHOLDERS = (Object.keys(ACTIVITIES) as ActivityId[]).filter(k => ACTIVITIES[k].abstractOnly || ACTIVITIES[k].placeholder);

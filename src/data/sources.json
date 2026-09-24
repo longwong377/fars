@@ -858,5 +858,25 @@
   "cite": "Copernicus DEM product handbook (Airbus/ESA): GLO-30 absolute vertical accuracy < 4 m (LE90); relative vertical accuracy < 2 m where slope <= 20 %, < 4 m where slope > 20 %",
   "url": "https://spacedata.copernicus.eu/collections/copernicus-digital-elevation-model",
   "access": "not seen in this project (recollection of the published specification): B"
+ },
+ "WALSER1966": {
+  "cite": "G. Walser, Die Völkerschaften auf den Reliefs von Persepolis (Teheraner Forschungen 2, Berlin 1966): the identification and numbering of the 23 delegations of the Apadana stairs",
+  "url": "https://www.worldcat.org/search?q=Walser+V%C3%B6lkerschaften+Reliefs+Persepolis",
+  "access": "NOT SEEN in this project (recollection of the standard identifications): every delegation's identification and dress detail taken from it is to be verified against its plates (NEEDS_FROM_ME); capped at B for the carved forms, C where marked"
+ },
+ "DB-SKUNXA": {
+  "cite": "Bisitun relief of Darius I (DB): the captive Skunkha, 'the Saka', with the tall pointed cap; the pointed-cap Saka (Old Persian Sakā tigraxaudā) in the royal lists of peoples (DNa, XPh)",
+  "url": "https://www.livius.org/sources/content/behistun-persian-text/",
+  "access": "NOT SEEN this session (recollection of the relief and the lists): the name A as a royal text, the form of the cap B"
+ },
+ "HADISH-JAMB": {
+  "cite": "Door-jamb reliefs of the Tachara (Darius I), the Hadish (Xerxes I) and the Tripylon: the king walking, followed by an attendant holding a parasol over him and another with a fly-whisk and a towel; the king with a long staff in the right hand and a lotus flower in the left (the Hall of a Hundred Columns' later jambs repeat the scene)",
+  "url": "https://www.livius.org/articles/place/persepolis/persepolis-photos/",
+  "access": "NOT SEEN this session (recollection of the reliefs and of photographs): the scene B (an image of royal ceremony, not a record of a day), sizes and colours C"
+ },
+ "XEN-CYR-8": {
+  "cite": "Xenophon, Cyropaedia 8.3.13-14: the king going out in procession, in a purple tunic shot with white, a purple mantle, the tiara upright, his hands outside his sleeves, the spearmen and the bodyguard about him (a claim about Cyrus, written two generations after 467)",
+  "url": "https://www.perseus.tufts.edu/hopper/text?doc=Perseus:text:1999.01.0204:book=8:chapter=3",
+  "access": "the text is in the project's XEN-CYR download (FT); this passage recalled, not re-read this session: a Greek claim, max tier B, used only for 'the king is escorted' (C for 467)"
  }
 }

@@ -24,6 +24,7 @@ import { h32, salt } from './hash';
 import type { P2 } from './navgrid';
 import type { LookInput } from './looks';
 import type { Dress } from './body';
+import delegationsData from '../data/delegations.json';
 
 export interface ViewPerson {
   pid: number; e: number; n: number; y: number; heading: number;
@@ -35,7 +36,7 @@ export interface ViewPerson {
    *  the bier: crowd.ts placeThings) */
   place: string;
   /** a carried thing the crowd can draw (props.ts kinds), or null; `carryNote` is the plan's own words */
-  prop: 'sack' | 'jar' | 'jar_head' | 'basket' | 'tablet' | 'spear' | null; carryNote: string | null;
+  prop: 'sack' | 'jar' | 'jar_head' | 'basket' | 'tablet' | 'spear' | 'bowl' | 'cloth' | null; carryNote: string | null;
   /** walking pace (m/s) of the current walk (0 standing): the crowd's gait follows it */
   speed: number;
   /** how the person came to be out of doors: 1 = through a door (from a room or house), 2 = on the move from beyond the
@@ -86,11 +87,14 @@ export const MAX_PACE = 1.8;
 export function propOf(act: ActivityId, carry: string | null): ViewPerson['prop'] {
   const P = ACTIVITIES[act].prop; if (P) return P === 'bread' ? 'basket' : P as ViewPerson['prop'];
   if (!carry) return null; const c = carry.toLowerCase();
+  if (c.startsWith('gifts for the king: ')) { const g = GIFT_PROP.get(carry.slice(20)); if (g) return g; } // D-199: a delegation's own gifts (delegations.json)
   if (/jar/.test(c) && /head|water/.test(c)) return 'jar_head'; if (/\bjar\b|jug/.test(c)) return 'jar';
   if (/sack|grain|flour/.test(c)) return 'sack'; if (/basket|bread|loaves|dung cakes|fruit|figs/.test(c)) return 'basket';
   if (/tablet|letter/.test(c)) return 'tablet'; if (/spear/.test(c)) return 'spear';
   return null;
 }
+/** D-199: the prop each delegation's gift is carried as (delegations.json: the carved gifts as the prop system allows) */
+const GIFT_PROP = new Map<string, ViewPerson['prop']>(((delegationsData as any).peoples as { gifts: [string, string][] }[]).flatMap(d => d.gifts.map(([t, k]) => [t, k as ViewPerson['prop']] as [string, ViewPerson['prop']])));
 /** the dress a person of the population wears (C: by job, sex and age; the detailed agents' roster rules, sim.ts) */
 export function dressOf(job: string, sex: 'm' | 'f', age: number, persian: boolean): Dress {
   if (age < 12) return 'child'; if (sex === 'f') return 'woman';
@@ -128,7 +132,7 @@ export class PopView {
     const homeOf = new Map<number, P2>();
     for (const H of P.households) { let xy: P2 | null = null;
       if (H.zone === 'town') xy = H.xy; else if (H.zone === 'plain') { const m = this.geo.villageOf(H.id); xy = m ? (() => { const v = (this.geo as any).villages[m.vi]; return [v.x, v.y] as P2; })() : null; }
-      else if (H.zone === 'terrace') xy = TER; else xy = H.home === 'station' ? [-1450, 395] : [-3000, 0];
+      else if (H.zone === 'terrace') xy = H.home === 'court_camp' || H.home.startsWith('rcamp:') ? H.xy : TER; /* D-199: the court's camps */ else xy = H.home === 'station' ? [-1450, 395] : [-3000, 0];
       if (xy) homeOf.set(H.id, xy); }
     for (const p of P.persons) { const h = homeOf.get(p.hh) ?? homeOf.get(p.hh2); if (h) { A[p.id * 4] = h[0]; A[p.id * 4 + 1] = h[1]; }
       const terraceWork = p.zone === 'terrace' || ['builder', 'porter', 'camp', 'caretaker', 'guard'].includes(p.job) || p.work === 'treasury_inside' || p.work === 'treasury_store' || p.work === 'treasury_desk';
@@ -363,8 +367,9 @@ export class PopView {
   lookInput(pid: number): LookInput {
     const p = this.pop.persons[pid];
     if (p.agent >= 0) { const a = this.sim.agents[p.agent]; return { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed }; }
-    const day = Math.floor(this.sim.t / 24), age = this.pop.ageOn(pid, day), dress = dressOf(p.job, p.sex, age, p.persian);
-    return { id: 100000 + pid, sex: p.sex, role: roleOf(p.job, p.sub), dress, origin: p.origin, seed: h32(this.seed, salt('look'), pid) % 1000000000, age: age < 12 ? 'child' : age >= 58 ? 'elder' : 'adult' };
+    const day = Math.floor(this.sim.t / 24), age = this.pop.ageOn(pid, day), cl = this.pop.court?.lookOf(pid) ?? null, dress = (cl?.dress as Dress | undefined) ?? dressOf(p.job, p.sex, age, p.persian);
+    return { id: 100000 + pid, sex: p.sex, role: roleOf(p.job, p.sub), dress, origin: p.origin, seed: h32(this.seed, salt('look'), pid) % 1000000000, age: age < 12 ? 'child' : age >= 58 ? 'elder' : 'adult',
+      ...(cl ? { delegation: cl.delegation, pieces: cl.pieces, beardless: cl.beardless, stature: cl.stature } : {}) }; // (D-199: the court setting's delegations, king and attendants)
   }
   /** a child's standing height by age (m; C: a modern growth-chart median, the body is the child variant scaled) */
   childStature(pid: number): number | null { const age = this.pop.ageOn(pid, Math.floor(this.sim.t / 24)); if (age >= 12) return null; return CHILD_H[Math.max(0, Math.min(11, age))]; }

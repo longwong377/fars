@@ -18,8 +18,8 @@
 import type { HumanAssets, HumanVariant } from './humanAssets';
 import { HB, PART, MAT, EYE_UNIT, SKIN_CURV_MAX, type HBone } from './humanFormat';
 
-export type Dress = 'persian' | 'guard' | 'median' | 'worker' | 'woman' | 'child';
-export const DRESSES: Dress[] = ['persian', 'guard', 'median', 'worker', 'woman', 'child'];
+export type Dress = 'persian' | 'guard' | 'median' | 'worker' | 'woman' | 'child' | 'envoy' | 'envoy_short' | 'envoy_bare' | 'king';
+export const DRESSES: Dress[] = ['persian', 'guard', 'median', 'worker', 'woman', 'child', 'envoy', 'envoy_short', 'envoy_bare', 'king'];
 /** colour slots of the per-person data (texel index in the person texture); 0 = fixed by material class/param */
 export const COL = { fixed: 0, skin: 1, main: 2, second: 3, trim: 4, hair: 5, leather: 6, felt: 8 } as const;
 export type ColSlot = typeof COL[keyof typeof COL];
@@ -294,24 +294,39 @@ export const PIECES: Record<string, PieceMeta> = {
   akinaka: { id: 'akinaka', label: 'short sword (akinakes) at the right thigh', tier: 'B', src: 'ISAC-FINDS', note: 'scabbard hung at the right thigh with a lobed top and a chape (scabbard tips in the Treasury); proportions C' },
   kandys: { id: 'kandys', label: 'kandys: sleeved coat over the shoulders, sleeves empty', tier: 'B', src: 'IR-CAND', note: 'Median dress: full-length sleeved coat slung over the shoulders with empty sleeves hanging; cut, length and colour C; follows the shoulders and hips, not the arms' },
   gorytos: { id: 'gorytos', label: 'bow case (gorytos) at the left hip', tier: 'C', src: 'RECON', note: 'Median guards on the reliefs (MATERIAL_CULTURE: NOT SEEN, C)' },
+  // D-199 (court setting only): the delegations' headgear on the Apadana reliefs and the king's crown
+  cap_pointed: { id: 'cap_pointed', label: 'tall pointed felt cap', tier: 'B', src: 'APA-RELIEF;DB-SKUNXA', note: 'the “pointed-cap Saka” (Old Persian Sakā tigraxaudā, the royal lists: A for the name) on the Apadana E stair and the Bisitun relief (B for the form); height 0.26 m, lean and felt C; ear flaps not modelled' },
+  cap_low: { id: 'cap_low', label: 'low rounded cap / wrapped headcloth', tier: 'C', src: 'APA-RELIEF;WALSER1966', note: 'the rounded or conical caps of the lowland delegations (Babylonians, Assyrians/Syrians, Lydians, Cilicians) on the Apadana reliefs (B for “a cap”; recollection of the plates, NOT SEEN: the tassels and lappets are not modelled; C form)' },
+  crown: { id: 'crown', label: 'the king’s tall crown with a dentate rim', tier: 'B', src: 'APA-RELIEF;TREAS-AUD;HADISH-JAMB', note: 'the king’s tall cylindrical headdress on the Treasury audience relief and the palace door jambs (B); the dentate (crenellated) rim, height 0.2 m, the gold band and the cloth under it C' },
   body: { id: 'body', label: 'MakeHuman body (variant)', tier: 'C', src: 'RECON', note: 'MakeHuman CC0 base mesh with macro/face morphs; skin albedo procedural (D-020)' },
 };
 
 // costume composition: pieces per dress; `opt` = optional per person (a bit in the person's piece mask)
 export interface CostumeDef { dress: Dress; always: string[]; opt: string[] }
 export const COSTUMES: Record<Dress, CostumeDef> = {
-  persian: { dress: 'persian', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque', 'quiver', 'bow'] },
+  persian: { dress: 'persian', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque', 'quiver', 'bow', 'crown'] },
   // guards wear the Persian costume (the same mesh) with the bow and quiver bits always set: one draw fewer per LOD and cascade
   guard: { dress: 'guard', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'quiver', 'bow'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque'] },
+  // D-199, court setting only: the king wears the Persian costume's mesh with the crown bit set (as the guards, above)
+  king: { dress: 'king', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'crown'], opt: ['hair', 'bun', 'beard_long'] },
+  // D-199, court setting only: the delegations' own dress (the Apadana reliefs, research/COURT.md, src/data/delegations.json)
+  // in three costumes: the long sleeved garment of the lowland peoples, the knee-length tunic of the others (trousers and
+  // boots optional) and the bare-chested wrap to the knee (the Indians), each people with its own headgear and footwear
+  // from the optional pieces. Their meshes are drawn only when delegates are in view (a costume with no instances is not
+  // drawn). Not one costume with every piece optional: that one kept the whole body under its garments (52,444
+  // triangles at full detail against the 42,000 budget; the knee-length one with an optional tunic 43,049)
+  envoy: { dress: 'envoy', always: ['tunic_upper', 'dress_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_low', 'headband', 'fillet', 'torque'] },
+  envoy_short: { dress: 'envoy_short', always: ['tunic_upper', 'tunic_skirt', 'belt'], opt: ['trousers', 'shoes', 'boots', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_pointed', 'cap_low', 'headband', 'akinaka'] },
+  envoy_bare: { dress: 'envoy_bare', always: ['tunic_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'headband'] },
   median: { dress: 'median', always: ['tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos', 'kandys'] },
   worker: { dress: 'worker', always: ['work_upper', 'work_skirt', 'belt'], opt: ['hair', 'beard_long', 'beard_short', 'work_trousers', 'shoes', 'headband', 'cap_soft'] },
   woman: { dress: 'woman', always: ['dress_upper', 'dress_skirt', 'belt'], opt: ['hair', 'hair_bob', 'headcloth', 'shoes'] },
   child: { dress: 'child', always: ['child_upper', 'child_skirt'], opt: ['hair', 'shoes'] },
 };
 /** the built costume (one instanced mesh per LOD) a dress is drawn with */
-export const COSTUME_OF: Record<Dress, Dress> = { persian: 'persian', guard: 'persian', median: 'median', worker: 'worker', woman: 'woman', child: 'child' };
+export const COSTUME_OF: Record<Dress, Dress> = { persian: 'persian', guard: 'persian', median: 'median', worker: 'worker', woman: 'woman', child: 'child', envoy: 'envoy', envoy_short: 'envoy_short', envoy_bare: 'envoy_bare', king: 'persian' };
 /** the costumes that are built */
-export const BUILT: Dress[] = ['persian', 'median', 'worker', 'woman', 'child'];
+export const BUILT: Dress[] = ['persian', 'median', 'worker', 'woman', 'child', 'envoy', 'envoy_short', 'envoy_bare'];
 /** bit of a piece in the mask of the costume a dress is drawn with (bit 0 = always present; 0 also for pieces that are
  *  always part of that costume) */
 export const pieceBit = (dress: Dress, id: string) => { const i = COSTUMES[COSTUME_OF[dress]].opt.indexOf(id); return i < 0 ? 0 : i + 1; };
@@ -610,6 +625,42 @@ function headBand(L: Lib, key: string, lod: number, o: { dy: number; w: number; 
     radius: (c, t, th) => { const r = headRim(c, headRingFrame(c, o.dy, 0.15), 0.01, cache); return rimAt(r, th) + (o.gap ?? 0.006) + (o.twisted ? 0.003 * Math.sin(th * 30 + t * 3) : 0.0012 * Math.sin(th * 7 + 0.7) * Math.sin(Math.PI * t) + 0.0007 * Math.sin(th * 19 + t * 5)) + o.t * Math.sin(Math.PI * t); },
     weights: () => [W('head', 1)], mat: MAT.cloth_trim, col: o.col, prm: o.twisted ? 3 : 0 });
 }
+/** D-199: the tall pointed felt cap of the Saka (Sakā tigraxaudā): a cone from a rim fitted to the head (as the fluted
+ *  hat's) to a point 0.26 m above it, leaning back a little and drooping at the tip (B form, C sizes) */
+function pointedCap(L: Lib, key: string, lod: number) {
+  const T = TESS[lod], segs = Math.max(8, Math.round(T.hs * 0.6)), rings = Math.max(3, Math.round(T.ring * 0.5)), H = 0.26;
+  const cache = { v: null as HumanVariant | null, r: [] as number[] };
+  return tubeGeo(L.A, key, { segs, rings, lining: 0.004, capEnd: true,
+    frame: (c, t) => { const F = headRingFrame(c, 0.035, 0.18); return { ...F, o: add(add(F.o, scl(F.w, -0.012 + (H + 0.012) * t)), scl(F.u, -0.045 * t * t)) }; },
+    radius: (c, t, th) => { const r = headRim(c, headRingFrame(c, 0.035, 0.18), 0.008, cache); return (rimAt(r, th) + 0.008) * (1 - 0.97 * Math.pow(t, 1.15)) + 0.004 * Math.sin(th * 5 + t * 3) * (1 - t); },
+    weights: () => [W('head', 1)], mat: MAT.felt, col: COL.felt, prm: 0 });
+}
+/** D-199: a low rounded cap or wrapped cloth cap (the lowland delegations' caps on the Apadana reliefs: C form): 0.1 m, the
+ *  sides drawn in toward a rounded top, in the second garment colour */
+function lowCap(L: Lib, key: string, lod: number) {
+  const T = TESS[lod], segs = Math.max(8, Math.round(T.hs * 0.6)), rings = Math.max(2, Math.round(T.ring * 0.35)), H = 0.1;
+  const cache = { v: null as HumanVariant | null, r: [] as number[] };
+  return tubeGeo(L.A, key, { segs, rings, lining: 0.004, capEnd: true, capLift: 0.01,
+    frame: (c, t) => { const F = headRingFrame(c, 0.035, 0.12); return { ...F, o: add(F.o, scl(F.w, -0.012 + (H + 0.012) * t)) }; },
+    radius: (c, t, th) => { const r = headRim(c, headRingFrame(c, 0.035, 0.12), 0.008, cache); return (rimAt(r, th) + 0.009) * (1 - 0.35 * sstep(0.35, 1, t)) + 0.002 * Math.sin(th * 9 + t * 5); },
+    weights: () => [W('head', 1)], mat: MAT.cloth_second, col: COL.second, prm: 0 });
+}
+/** D-199: the king's crown: a tall cylinder fitted to the head, flaring a little, its rim cut into steps (the dentate
+ *  top: C) with a gold band at the brow (the band C) */
+function crownGeo(L: Lib, key: string, lod: number) {
+  const segs = lod === 0 ? 36 : lod === 1 ? 12 : 6, rings = lod === 0 ? 5 : 2, H = 0.2, teeth = 12; // (the court setting's king only: lean at the far LODs, which every Persian-dress person carries collapsed)
+  const cache = { v: null as HumanVariant | null, r: [] as number[] };
+  const F0 = (c: Ctx) => headRingFrame(c, 0.045, 0.1);
+  const body = tubeGeo(L.A, `${key}_body`, { segs, rings, lining: 0.004, capEnd: true,
+    frame: (c, t) => { const F = F0(c); return { ...F, o: add(F.o, scl(F.w, -0.012 + (H + 0.012) * t)) }; },
+    // the dentate rim: in the top eighth the gaps between the teeth are drawn in (a notch seen against the sky; C)
+    radius: (c, t, th) => { const r = headRim(c, F0(c), 0.008, cache), tooth = Math.cos(th * teeth) > 0 ? 1 : 0; return rimAt(r, th) + 0.007 + 0.014 * t - (1 - tooth) * 0.018 * sstep(0.86, 0.9, t); },
+    weights: () => [W('head', 1)], mat: MAT.felt, col: COL.felt, prm: 1 });
+  if (lod > 0) return body; // (the band only close up)
+  const band = headBand(L, `${key}_band`, lod, { dy: 0.05, w: 0.03, t: 0.004, twisted: false, col: COL.fixed, gap: 0.009 });
+  band.mat.fill(MAT.metal); band.prm.fill(METAL.gold);
+  return merge(key, [body, band]);
+}
 /** soft felt cap: shell over the cranium, ears and nape, domed on top (Median dress, C) */
 function softCap(L: Lib, key: string, lod: number) {
   const { A, ref, J } = L; const eyeY = ref.eyeY, h = J('head'), jaw = J('jaw');
@@ -805,6 +856,9 @@ function buildPiece(L: Lib, id: string, lod: number): Geo {
     case 'fillet': return headBand(L, `${id}@${lod}`, lod, { dy: 0.04, w: 0.022, t: 0.006, twisted: true, col: COL.trim });
     case 'headband': return headBand(L, `${id}@${lod}`, lod, { dy: 0.045, w: 0.02, t: 0.002, twisted: false, col: COL.second, gap: 0.0045 });
     case 'cap_soft': return softCap(L, `${id}@${lod}`, lod);
+    case 'cap_pointed': return pointedCap(L, `${id}@${lod}`, lod);
+    case 'cap_low': return lowCap(L, `${id}@${lod}`, lod);
+    case 'crown': return crownGeo(L, `${id}@${lod}`, lod);
     case 'torque': return torqueGeo(L, `${id}@${lod}`, lod);
     case 'quiver': return quiverGeo(L, `${id}@${lod}`, lod);
     case 'kandys': return kandysGeo(L, `${id}@${lod}`, lod);

@@ -525,7 +525,7 @@ export class Crowd {
       const key = a ? -1 - a.id : pid; let L = this.impLooks.get(key);
       if (!L) { if (made >= cap) { pending++; return; } made++;
         const inp = a ? { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed } : this.view!.lookInput(pid); const look = lookFor(this.humans.A, inp as LookInput, this.seed);
-        const ch = a ? null : this.view!.childStature(pid); L = { packed: imp.packLook(look), dress: look.dress, scale: (ch ?? look.stature) / (imp.atlas.refStature[look.dress] || 1.65), seed: inp.seed }; this.impLooks.set(key, L); }
+        const ch = a ? null : this.view!.childStature(pid); L = { packed: imp.packLook(look), dress: look.far ?? look.dress /* D-199 */, scale: (ch ?? look.stature) / (imp.atlas.refStature[look.far ?? look.dress] || 1.65), seed: inp.seed }; this.impLooks.set(key, L); }
       if (pf) { const d3 = len3(x - cam.x, y + 0.9 - cam.y, z - cam.z), P = pf === 2 || d3 < THINGS_DIST ? this.popPerf(pid, vp!.act, vp!.why, L.seed) : null;
         if (P) { const q = this.impP, k = L.seed, b = q.base, r = q.root; b[0] = x; b[1] = y; b[2] = z; b[3] = yaw;
           if (PATHED.has(P.anim)) { const o = workRoot(P.anim as WorkAnim, time + k % 100, (k % 1000) / 159); if (o) { const c = Math.cos(yaw), sn = Math.sin(yaw); x += c * o[0] + sn * o[1]; z += -sn * o[0] + c * o[1]; yaw += o[2]; } }
@@ -640,7 +640,7 @@ export class Crowd {
   private asideCache = new Map<string, number>();
   private asideBits(dress: Dress, anim: AnimId) {
     const k = dress + (anim === 'sleep' ? ':s' : ''); let b = this.asideCache.get(k);
-    if (b === undefined) { b = 0; for (const id of ['kandys', 'quiver', 'bow', 'gorytos', 'akinaka', ...(anim === 'sleep' ? ['hat_fluted', 'fillet', 'cap_soft', 'headband'] : [])]) { const bit = pieceBit(dress, id); if (bit) b |= 1 << bit; } this.asideCache.set(k, b); }
+    if (b === undefined) { b = 0; for (const id of ['kandys', 'quiver', 'bow', 'gorytos', 'akinaka', ...(anim === 'sleep' ? ['hat_fluted', 'fillet', 'cap_soft', 'headband', 'cap_pointed', 'cap_low', 'crown'] : [])]) { const bit = pieceBit(dress, id); if (bit) b |= 1 << bit; } this.asideCache.set(k, b); }
     return b;
   }
   /** people culled from view still make their tool sounds (detailed agents and the population's people, D-143) */

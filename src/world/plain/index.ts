@@ -53,7 +53,7 @@ export interface PlainBuild {
   update(dt: number, ctx: any): void;
   stats(): Record<string, number>; summary(): string;
 }
-export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Physics | null, opts: { quality: Quality; seed: number; fetchJson?: (p: string) => Promise<any>; town?: TownPlan | null }): Promise<PlainBuild> {
+export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Physics | null, opts: { quality: Quality; seed: number; fetchJson?: (p: string) => Promise<any>; town?: TownPlan | null; /** the court setting's retinue camps (D-199): trodden ground */ camps?: { c: [number, number]; r: number }[] }): Promise<PlainBuild> {
   const t0 = performance.now(), Q = PLAIN_QUALITY[opts.quality] ?? PLAIN_QUALITY.high;
   const group = new THREE.Group(); group.name = 'plain';
   group.userData = tag(feature('fields_irrigated_pulvar'), 'the Marvdasht plain, 467 BCE (plain.json)');
@@ -62,7 +62,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const canals = buildCanals(terrain, rivers.rivers, opts.seed);
   const villages = placeVillages(terrain, rivers.rivers, canals, opts.seed);
   // the town's used ground (D-190): only with the town as built (?notown and the plain tests keep the D-040 boundary)
-  const townGround = opts.town ? buildTownGround(opts.town) : null;
+  const townGround = opts.town ? buildTownGround(opts.town, opts.camps ?? []) : null;
   const zones = buildZones({ terrain, rivers: rivers.rivers.map(r => ({ x: r.x, y: r.y, halfCorridor: r.carveRadius.mid + 24 })), villages: villages.map(v => ({ x: v.x, y: v.y, r: v.r })), ground: townGround,
     sites: opts.town?.sites.map(s => ({ c: s.frame.c as [number, number], theta: s.frame.theta, W: s.W, H: s.H })) });
   const tGen = performance.now() - t0;

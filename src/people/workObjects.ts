@@ -14,7 +14,7 @@ import { nearCascadesOnly } from './humanGPU';
 
 export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field' | 'jar' | 'mortar_tub' | 'brick_course' | 'beam' | 'loom' | 'dung_cakes' | 'vat' | 'fodder'
   | 'fleece' | 'butchery' | 'hides' | 'basket_meat' | 'threshing_floor' | 'stooks' | 'sheaves' | 'sheaf' | 'grain_heap' | 'spoil' | 'basket_fruit' | 'press' | 'brushwood'
-  | 'pigment_slab' | 'bier' | 'wash_stone' | 'drying_rack' | 'target' | 'hearth_pot' | 'ard';
+  | 'pigment_slab' | 'bier' | 'wash_stone' | 'drying_rack' | 'target' | 'hearth_pot' | 'ard' | 'throne';
 type RGB = [number, number, number];
 const MUD: RGB = [0.5, 0.41, 0.31], MUD_WET: RGB = [0.36, 0.29, 0.22], BRICK: RGB = [0.62, 0.53, 0.4], STRAW: RGB = [0.72, 0.62, 0.38], STRAW_D: RGB = [0.62, 0.52, 0.3],
   WOOD: RGB = [0.45, 0.33, 0.21], WOOD_D: RGB = [0.34, 0.25, 0.16], STONE: RGB = [0.55, 0.54, 0.52], LIME: RGB = [0.66, 0.64, 0.6], POT: RGB = [0.62, 0.44, 0.3], WOOL: RGB = [0.8, 0.76, 0.66],
@@ -66,6 +66,7 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   target: { tier: 'C', note: 'a straw butt with a hide face on a post, for archery practice (C)' },
   hearth_pot: { tier: 'C', note: 'three hearth stones, ash and embers, a cooking pot on them (C; the fire is the settlement’s own)' },
   ard: { tier: 'C', note: 'a wooden ard with a stilt, a sole with a share and a beam to the yoke (the scratch plough of the ancient Near East: type B; form C)' },
+  throne: { tier: 'B', note: 'the king’s throne and footstool at an audience (court setting, D-199): a high-backed chair on turned legs with lion’s-paw feet, and a footstool, as the Treasury audience relief carves them (TREAS-AUD, B); gilded wood and the sizes C: the seat 0.525 m and the footstool 0.105 m high, fitted to the enthroned pose measured on the rig (anim ENTHRONED); where it stood in the Apadana is not known (C)' },
 };
 
 export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
@@ -128,6 +129,17 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       for (const z of [-0.85, -0.3, 0.3, 0.85]) g.push(P(box(0.66, 0.04, 0.09, 0, y - 0.05, z), WOOD_D));
       g.push(P(box(0.5, 0.02, 1.8, 0, y - 0.01, 0), WOOD));
       g.push(P(new THREE.CapsuleGeometry(0.16, 1.35, 3, 7).rotateX(Math.PI / 2).scale(1.05, 0.7, 1).translate(0, y + 0.12, 0), LINEN, 1));
+      return merge(g); }
+    case 'throne': { // origin under the seated king's root: the seat behind (z −0.22 … 0.22), the footstool in front (C)
+      const GILT: RGB = [0.72, 0.56, 0.3], seatY = 0.525, g: THREE.BufferGeometry[] = [];
+      g.push(paint(box(0.62, 0.05, 0.46, 0, seatY - 0.09, 0), GILT, 0.8, 0.4));
+      g.push(paint(box(0.6, 0.045, 0.43, 0, seatY - 0.04, 0), [0.45, 0.16, 0.14], 0, 0.95)); // a cushion (C), its top the seat
+      g.push(paint(box(0.6, 0.82, 0.045, 0, seatY - 0.04, -0.245), GILT, 0.8, 0.4));
+      for (const x of [-0.29, 0.29]) g.push(paint(rod([x, seatY + 0.78, -0.245], [x, seatY + 0.86, -0.245], 0.024, 0.012, 6, true), GILT, 0.8, 0.35)); // finials (C)
+      for (const x of [-0.27, 0.27]) for (const z of [-0.2, 0.2]) { g.push(paint(rod([x, 0.07, z], [x, seatY - 0.09, z], 0.022, 0.026, 6), GILT, 0.8, 0.4));
+        g.push(paint(lathe([[0.045, 0], [0.05, 0.03], [0.03, 0.07], [0, 0.075]], 6).translate(x, 0, z), GILT, 0.8, 0.45)); } // lion's-paw feet as turned bases (C)
+      g.push(paint(box(0.56, 0.085, 0.36, 0, 0.02, 0.37), GILT, 0.8, 0.4)); // the footstool, on four low feet
+      for (const x of [-0.25, 0.25]) for (const z of [0.21, 0.53]) g.push(paint(box(0.05, 0.02, 0.05, x, 0, z), GILT, 0.8, 0.45));
       return merge(g); }
     case 'wash_stone': return merge([P(box(0.55, 0.14, 0.42, 0, -0.02, 0), STONE, 0.6), P(mound(0.18, 0.08, 7, 0.45, -0.1), [0.55, 0.5, 0.42], 1)]);
     case 'drying_rack': { const g: THREE.BufferGeometry[] = []; for (const x of [-0.95, 0.95]) g.push(P(rod([x, 0, 0], [x, 1.6, 0], 0.03, 0.025, 5), WOOD_D));

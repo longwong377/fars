@@ -68,6 +68,12 @@ export const PROP_NOTES: Record<string, { tier: 'A' | 'B' | 'C'; note: string }>
   ladle: { tier: 'C', note: 'wooden ladle (C)' },
   stick: { tier: 'C', note: 'brushwood stick for the fire (C)' },
   lead: { tier: 'C', note: 'lead rope of an animal brought to the offering place (C)' },
+  // D-199 (court setting): the king's and his attendants' things as the door-jamb and audience reliefs carve them
+  sceptre: { tier: 'B', note: 'the king’s long staff, held upright in the right hand (door-jamb and audience reliefs, HADISH-JAMB, TREAS-AUD: B; 1.7 m, gilded wood with a knob: C)' },
+  lotus: { tier: 'B', note: 'a lotus flower on its stem in the king’s left hand (the same reliefs: B; size and colour C)' },
+  parasol: { tier: 'B', note: 'the parasol held over the king by an attendant (door-jamb reliefs, HADISH-JAMB: B); a pole of 2 m and a canopy 1.2 m across with a fringe, cloth over ribs: C' },
+  whisk: { tier: 'B', note: 'the fly-whisk held behind the king by an attendant (door-jamb reliefs: B); a short handle and a horsehair tuft, C' },
+  towel: { tier: 'B', note: 'the towel or napkin the fly-whisk bearer carries (door-jamb and Treasury audience reliefs: B); folded linen over the hand, C' },
 };
 
 /** geometry of a kind; the Phase 3 kinds keep their old origins (spear: at the butt; others: at the grip) */
@@ -137,6 +143,16 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
     case 'ladle': return merge([paint(rod([0, 0, -0.08], [0, 0, 0.36], 0.011, 0.011, 4), WOOD, 0, 0.7), paint(new THREE.SphereGeometry(0.045, 6, 3, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).translate(0, 0.02, 0.4), WOOD_D, 0, 0.7)]);
     case 'stick': return paint(rod([0, 0, -0.15], [0, 0, 0.55], 0.012, 0.008, 4), [0.4, 0.3, 0.2], 0, 0.9);
     case 'lead': return paint(rod([0, 0, 0], [0, -0.1, 0.65], 0.007, 0.007, 3), [0.6, 0.52, 0.36], 0, 0.95);
+    // D-199: held upright (rule 'one', `up`): +Z up from the fist; the staff's foot below the hand, the knob above
+    case 'sceptre': return merge([paint(rod([0, 0, -0.75], [0, 0, 0.9], 0.013, 0.012, 5), [0.62, 0.48, 0.26], 0.7, 0.4), paint(new THREE.SphereGeometry(0.03, 6, 4).translate(0, 0, 0.93), [0.75, 0.6, 0.32], 0.9, 0.3)]);
+    case 'lotus': { const g = [paint(rod([0, 0, -0.04], [0, 0, 0.2], 0.004, 0.004, 3), [0.3, 0.42, 0.2], 0, 0.8)];
+      for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2; g.push(paint(new THREE.ConeGeometry(0.018, 0.06, 3).rotateX(Math.PI / 2).rotateY(0).translate(Math.cos(a) * 0.012, Math.sin(a) * 0.012, 0.23), [0.82, 0.8, 0.72], 0, 0.8)); }
+      return merge(g); }
+    case 'parasol': return merge([paint(rod([0, 0, -0.3], [0, 0, 1.75], 0.016, 0.014, 5), [0.45, 0.33, 0.21], 0, 0.7),
+      paint(new THREE.ConeGeometry(0.6, 0.18, 12, 1, true).rotateX(Math.PI / 2).translate(0, 0, 1.66), [0.62, 0.2, 0.2], 0, 0.9),
+      paint(new THREE.CylinderGeometry(0.6, 0.6, 0.07, 12, 1, true).rotateX(Math.PI / 2).translate(0, 0, 1.54), [0.75, 0.62, 0.36], 0, 0.9)]);
+    case 'whisk': return merge([paint(rod([0, 0, -0.08], [0, 0, 0.26], 0.012, 0.011, 5), [0.62, 0.48, 0.26], 0.7, 0.4), paint(rod([0, 0, 0.26], [0, 0, 0.62], 0.02, 0.05, 6), [0.82, 0.8, 0.74], 0, 1)]);
+    case 'towel': return paint(box(0.08, 0.02, 0.34, 0, 0, -0.12), [0.8, 0.77, 0.7], 0, 1);
     default: return null;
   }
 }
@@ -162,11 +178,14 @@ export const PROPS: Record<string, PropSpec> = {
   awl: { geom: 'awl', rule: 'one', hand: 'r', roll: 'up' }, ladle: { geom: 'ladle', rule: 'one', hand: 'r', roll: 'up' }, stick: { geom: 'stick', rule: 'one', hand: 'r', roll: 'up' },
   lead: { geom: 'lead', rule: 'one', hand: 'r', roll: 'up' }, jar_both: { geom: 'jar', rule: 'mid' }, sack_both: { geom: 'sack', rule: 'mid' },
   basket_hip: { geom: 'basket', rule: 'hip', hand: 'l' }, basket_both: { geom: 'basket', rule: 'mid' }, basket_lap: { geom: 'basket', rule: 'palm', hand: 'l' },
+  sceptre: { geom: 'sceptre', rule: 'one', hand: 'r', roll: 'up', up: 1 }, lotus: { geom: 'lotus', rule: 'one', hand: 'l', roll: 'up', up: 1 },
+  parasol: { geom: 'parasol', rule: 'one', hand: 'r', roll: 'up', up: 1 }, whisk: { geom: 'whisk', rule: 'one', hand: 'r', roll: 'up', up: 1 }, towel: { geom: 'towel', rule: 'one', hand: 'l', roll: 'down' },
 };
 /** the two carried-prop meshes: small objects (with the Phase 3 set) and long tools. Every kind of a class is in one union */
 export const PROP_CLASSES: string[][] = [
   ['spear', 'sack', 'jar', 'tablet', 'mallet', 'basket', 'sickle', 'spindle', 'distaff', 'trowel', 'brick', 'knife', 'cloth', 'wisp', 'bowl', 'rag', 'awl', 'arrow', 'lead', 'ladle', 'stick'],
-  ['hoe', 'fork', 'goad', 'staff', 'broom', 'mould', 'rope', 'adze', 'bow', 'beater', 'paddle'],
+  // (D-199: the king's and his attendants' things join the long tools' union: the small objects' is at its budget)
+  ['hoe', 'fork', 'goad', 'staff', 'broom', 'mould', 'rope', 'adze', 'bow', 'beater', 'paddle', 'sceptre', 'parasol', 'lotus', 'whisk', 'towel'],
 ];
 /** class and index in the class of a prop kind */
 export function propSlot(kind: string): [number, number] | null {
