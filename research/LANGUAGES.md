@@ -97,6 +97,10 @@ y \ piça \ kartam \ avašciy \ Auramazdâ \ pâtuv
 > [11-17] King Xerxes says: by the favor of Ahuramazda this Gate of All Nations I built. Much else that is beautiful was built in this Persepolis (Pârsâ), which I built and my father built. Whatever has been built and seems beautiful - all that we built by the favor of Ahuramazda.
 > [17-20] King Xerxes says: may Ahuramazda preserve me, my kingdom, what has been built by me, and what has been built by my father. That, indeed, may Ahuramazda preserve.
 
+(Licence, D-167: the Livius pages end "All content copyright © 1995–2024 Livius.org. All rights reserved."; the scrape's
+CC-BY-NC does not cover them. The translation is quoted here only as the research record the glosses were checked against;
+it is not shown in the app, which shows no translation until a licensed one is supplied: NEEDS #14, BLOCKERS B17.)
+
 **Schmitt/ARIo normalisation (Q007209), verbatim:** *baga vazṛka A.uramazdā haya imām būmim adā haya avam asmānam adā haya martiyam adā
 haya šiyātim adā martiyahyā haya Xšayaṛšām xšāyaθiyam akunau̯š ai̯vam parūnām xšāyaθiyam ai̯vam parūnām framātāram adam Xšayaṛšā
 xšāyaθiya vazṛka xšāyaθiya xšāyaθiyānām xšāyaθiya dahyunām paruzanānām xšāyaθiya ahyāyā būmiyā vazṛkāyā dūrai̯ api Dārayavahau̯š
@@ -139,11 +143,15 @@ Verified against `UnicodeData.txt` (unicode-org/icu, GitHub raw).
 |---|---|---|---|---|---|
 | `old_persian.json` | 116 | ARIo DB, DSf, DNa, DNb, XPa, XPh (A); glosses from the Livius translations, else DB context (B) | OP signs by Kent's rules (C) | 12 | eSpeak `fa` base |
 | `elamite.json` | 78 | Hallock PF texts with his translations via CDLI (A); EWB senses; ARIo Elamite versions (B) | cuneiform from ATF via OSL (B) | 12 | eSpeak `fa` base |
-| `aramaic.json` | 99 | Aramaic of Ezra (OSHB, verse refs) + Strong's (B); Elephantine/Arshama formulas (SX, B); Daniel-only forms marked | Imperial Aramaic letters (B) | 22 | eSpeak `ar` base |
+| `aramaic.json` | 99 | Aramaic of Ezra (OSHB, verse refs) + Strong's (B); Elephantine/Arshama formulas (SX, B); Daniel-only forms marked. Since D-167 every entry that cited only a Strong's number carries its OSHB verses (42 entries; 12 of them Daniel only, marked `daniel_only`); myn "water" and śʿryn "barley" stay C and, like every tier-C entry, no longer feed the murmur | Imperial Aramaic letters (B) | 22 | eSpeak `ar` base |
 | `babylonian.json` | 71 | Babylonian versions of the royal inscriptions and the Cyrus Cylinder in ARIo (A); NB royal inscriptions (RIBo) and an LB letter (CAMS) for everyday words, mostly logograms (B) | cuneiform from ATF via OSL (B) | 11 | formant synthesiser (no eSpeak voice) |
 | `greek.json` | 82 | Herodotus, Greek text (A); Od. 1.123 for χαῖρε (B); LSJ gloss check | Ionic capitals, no accents or breathings (B/C) | 16 | eSpeak `grc` |
 
-Pronunciation (IPA) is reconstructed for every entry (C). Every line's usage in a spoken situation is C. Every entry cites
+Pronunciation (IPA) is reconstructed for every entry (C). Every line's usage in a spoken situation is C. Since D-168 every
+line is said in some scripted situation (src/people/exchanges.ts: 15 situations between people, the stranger's address
+chain, the guards' stops in visitor mode; a test enumerates them over the real roster). Subtitles show the heard form: Old
+Persian stems voiced in an attested inflected form show that form (`spoken`: nai̯bam, uvaspā, umartiyā, ai̯vam, hašiyam),
+Aramaic the romanised IPA (šəlām, not the skeleton šlm). Every entry cites
 source keys (`src`), and the language lint fails an entry without them. Findings that corrected earlier entries:
 - Old Persian "water" is attested (DB apiyā; Q-130).
 - Elamite halmi and dušda are read in Hallock PF 15 and PF 2 (Q-131).

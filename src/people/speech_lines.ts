@@ -11,12 +11,14 @@
 //  * every line carries tiers: the phrase (A = verbatim word sequence in a published text, B = excerpt of one, C = composed
 //    from lexicon words), the usage (spoken, in this situation: always C or at best B) and the words' own lexicon tiers.
 //    Pronunciation (IPA) is reconstructed for every entry (lexicon tier_ipa C), so every line is tier C overall.
-import { lexEntry, LangId, LexEntry, isSpeakable, citationForm, worstTier } from '../lang/lexicon';
+import { lexEntry, LangId, LexEntry, isSpeakable, spokenForm, worstTier } from '../lang/lexicon';
 import type { SpeakableLine, Intonation, VoiceParams } from '../audio/speech';
 import { Rng, hashString } from '../core/rng';
 
 export type Intent = 'greet' | 'reply' | 'farewell' | 'pious' | 'remark' | 'call_workers' | 'count' | 'offer' | 'identify' | 'ask_document'
-  | 'affirm' | 'refuse' | 'ration';
+  | 'affirm' | 'refuse' | 'ration'
+  /** naming someone who arrives (D-168) */
+  | 'announce';
 
 export interface LineDef {
   id: string; lang: LangId; intent: Intent;
@@ -85,8 +87,9 @@ export const LINE_DEFS: LineDef[] = [
     note: 'excerpt of the PF phrase without its suffix (-li)' },
   { id: 'el.remark.dusda', lang: 'el', intent: 'remark', words: ['el:dušda'], roles: ['scribe', 'porter'],
     gloss: '(He) received (it).', phraseTier: 'C', usageTier: 'C', src: 'PF 2, 8 (CDLI): du-iš-da', note: 'the receipt formula of the tablets, said aloud at a delivery (C)' },
-  { id: 'el.identify.hutlak', lang: 'el', intent: 'identify', words: ['el:hutlak'], roles: ['courier'],
-    gloss: '(A) messenger.', phraseTier: 'C', usageTier: 'C', src: 'PF 45 (CDLI P382731): hu-ut-lak', note: 'one-word self-identification (C)' },
+  { id: 'el.identify.hutlak', lang: 'el', intent: 'announce', words: ['el:hutlak'], roles: ['porter', 'official', 'scribe', 'foreman'],
+    gloss: '(A) messenger.', phraseTier: 'C', usageTier: 'C', src: 'PF 45 (CDLI P382731): hu-ut-lak',
+    note: 'one word naming a messenger who comes up to the Terrace (the id keeps its first intent, self-identification: the roster\'s couriers speak Old Persian and Aramaic, not Elamite, so the Elamite speakers who see him say it; D-168; C)' },
   { id: 'el.identify.ullira', lang: 'el', intent: 'identify', words: ['el:ullira'], roles: ['porter'],
     gloss: '(The) deliverer.', phraseTier: 'C', usageTier: 'C', src: 'PF 54; EWB 2:1221', note: 'one-word self-identification (C)' },
   { id: 'el.refuse.inni', lang: 'el', intent: 'refuse', words: ['el:inni'],
@@ -100,15 +103,15 @@ export const LINE_DEFS: LineDef[] = [
     gloss: 'Greetings. (lit. "peace")', phraseTier: 'B', usageTier: 'C', src: 'letter openings "šlm PN" (Elephantine, Arshama letters; lexicon arc:šlm)',
     note: 'the written greeting word; its spoken use as a greeting is inferred (C)' },
   { id: 'arc.greet.slm_mra', lang: 'arc', intent: 'greet', words: ['arc:šlm', 'arc:mrʾ'],
-    gloss: 'Greetings, lord.', phraseTier: 'C', usageTier: 'C', src: 'lexicon arc:šlm, arc:mrʾ',
+    gloss: 'Greetings, lord.', phraseTier: 'C', usageTier: 'C', src: 'lexicon arc:šlm (Ezra 4:17, 5:7), arc:mrʾ (Daniel only: Dan 2:47, 4:16)',
     note: 'composed; letters address superiors as mrʾy "my lord", but that suffixed form has no lexicon entry (gap Q-024), so the bare noun is used' },
   { id: 'arc.reply.slm', lang: 'arc', intent: 'reply', words: ['arc:šlm'],
     gloss: 'Greetings. (lit. "peace")', phraseTier: 'B', usageTier: 'C', src: 'letter formula (lexicon arc:šlm)', note: 'returning the greeting (C)' },
   { id: 'arc.count.hd_trn_tlt', lang: 'arc', intent: 'count', words: ['arc:ḥd', 'arc:trn', 'arc:tlt'], intonation: 'level', roles: ['porter', 'scribe', 'official', 'foreman'],
     gloss: 'One, two, three.', phraseTier: 'C', usageTier: 'C', src: 'lexicon arc:ḥd, arc:trn, arc:tlt (Biblical Aramaic numerals)',
     note: 'counting sacks or jars aloud (C)' },
-  { id: 'arc.offer.lhm', lang: 'arc', intent: 'offer', words: ['arc:lḥm'], roles: ['baker', 'grinder'],
-    gloss: 'Bread.', phraseTier: 'C', usageTier: 'C', src: 'lexicon arc:lḥm', note: 'offering or naming bread (C)' },
+  { id: 'arc.offer.lhm', lang: 'arc', intent: 'offer', words: ['arc:lḥm'], roles: ['baker', 'grinder', 'mason'],
+    gloss: 'Bread.', phraseTier: 'C', usageTier: 'C', src: 'lexicon arc:lḥm (Daniel only: Dan 5:1, "feast")', note: 'offering or naming bread: at the oven, or passed round at the gang\'s midday meal at the site (D-080; C)' },
   { id: 'arc.identify.spr', lang: 'arc', intent: 'identify', words: ['arc:spr'], roles: ['scribe'],
     gloss: '(I am a) scribe.', phraseTier: 'C', usageTier: 'C', src: 'lexicon arc:spr', note: 'one-word self-identification (C)' },
   { id: 'arc.identify.igra', lang: 'arc', intent: 'identify', words: ['arc:ʾgrh'], roles: ['courier'],
@@ -172,8 +175,8 @@ export const LINE_DEFS: LineDef[] = [
     gloss: 'One.', phraseTier: 'C', usageTier: 'C', src: 'XPa Babylonian (ARIo Q007209): iš-ten', note: 'the only number written out in the texts read; others are numerals' },
   { id: 'bab.ration.kurummatu', lang: 'bab', intent: 'ration', words: ['bab:kurummatu'], roles: ['scribe', 'official'],
     gloss: 'Rations.', phraseTier: 'C', usageTier: 'C', src: 'LB letter (ORACC CAMS P348888): KURUM₆.HI.A', note: 'the LB word for food allocations, read from a logogram (B word, C usage)' },
-  { id: 'bab.offer.akalu', lang: 'bab', intent: 'offer', words: ['bab:akalu'], roles: ['baker', 'grinder'],
-    gloss: 'Bread.', phraseTier: 'C', usageTier: 'C', src: 'RIBo (ORACC Q005471): NINDA', note: 'reading of the logogram NINDA (B); offering bread (C)' },
+  { id: 'bab.offer.akalu', lang: 'bab', intent: 'offer', words: ['bab:akalu'], roles: ['baker', 'grinder', 'mason'],
+    gloss: 'Bread.', phraseTier: 'C', usageTier: 'C', src: 'RIBo (ORACC Q005471): NINDA', note: 'reading of the logogram NINDA (B); offering bread, or passing it round at the gang\'s meal (C)' },
   // ---------------- Greek (5th-c. Ionic): Herodotus' Ionic prose, one Homeric greeting (D-106)
   { id: 'grc.greet.khaire_xeine', lang: 'grc', intent: 'greet', words: ['grc:khaire', 'grc:xeine'],
     gloss: 'Greetings, stranger.', phraseTier: 'A', usageTier: 'C', src: 'Hom. Od. 1.123: χαῖρε, ξεῖνε', note: 'verbatim in Ionic epic; greeting a stranger in 467 (C)' },
@@ -203,8 +206,8 @@ export const LINE_DEFS: LineDef[] = [
     gloss: 'Well (done).', phraseTier: 'C', usageTier: 'C', src: 'Hdt 1.32.5: καλῶς', note: 'said of a finished surface (C)' },
   { id: 'grc.ration.dos_moi_sitia', lang: 'grc', intent: 'ration', words: ['grc:dos', 'grc:moi', 'grc:sitia'], roles: ['mason', 'porter'],
     gloss: 'Give me (my) provisions.', phraseTier: 'C', usageTier: 'C', src: 'Hdt 3.140.5 "μοι δὸς"; σιτία Hdt 1.94.4', note: 'composed; the ration queue (C)' },
-  { id: 'grc.offer.artos', lang: 'grc', intent: 'offer', words: ['grc:artos'], roles: ['baker', 'grinder'],
-    gloss: 'Bread.', phraseTier: 'C', usageTier: 'C', src: 'Hdt 8.137.3: ἄρτος', note: 'offering or naming bread (C)' },
+  { id: 'grc.offer.artos', lang: 'grc', intent: 'offer', words: ['grc:artos'], roles: ['baker', 'grinder', 'mason'],
+    gloss: 'Bread.', phraseTier: 'C', usageTier: 'C', src: 'Hdt 8.137.3: ἄρτος', note: 'offering or naming bread, or passing it round at the gang\'s meal (C)' },
   { id: 'grc.identify.iones', lang: 'grc', intent: 'identify', words: ['grc:Iōnes'], roles: ['mason'],
     gloss: '(We are) Ionians.', phraseTier: 'C', usageTier: 'C', src: 'Hdt 1.28.1: Ἴωνες', note: 'the stone-cutters of DSf were "Yaunā and Sardians"; self-identification (C)' },
 ];
@@ -247,7 +250,7 @@ export function resolveLine(def: LineDef): ResolvedLine {
   return {
     id: def.id, lang: def.lang, intonation: def.intonation, def, entries,
     ipa: entries.map(e => e.ipa!).join(' '),
-    translit: entries.map(citationForm).join(' '),
+    translit: entries.map(spokenForm).join(' '),
     gloss: def.gloss,
     tier: worstTier(words, def.phraseTier, ipa, def.usageTier),
     tierParts: { words, phrase: def.phraseTier, ipa, usage: def.usageTier },
@@ -277,12 +280,22 @@ export const SPEECH_LANGS: Record<string, { lang: LangId; tier: 'B' | 'C'; note:
  * gesture only. Deterministic for a given seed.
  */
 export function pickLine(q: { langs: readonly string[]; intent: Intent; role?: string; seed?: number }): { line: ResolvedLine; via: string } | null {
-  const rng = new Rng(q.seed ?? 1, `line:${q.intent}`);
+  const c = candidateLines(q); if (!c) return null;
+  return { line: new Rng(q.seed ?? 1, `line:${q.intent}`).pick(c.lines), via: c.via };
+}
+/** Every line pickLine could return for this query (the candidates of the first of the speaker's languages that has any);
+ *  the reachability test enumerates these. */
+export function candidateLines(q: { langs: readonly string[]; intent: Intent; role?: string }): { lines: ResolvedLine[]; via: string } | null {
   for (const label of q.langs) {
     const m = SPEECH_LANGS[label]; if (!m) continue;
     const cands = LINES.filter(l => l.lang === m.lang && l.def.intent === q.intent && (!l.def.roles || (q.role != null && l.def.roles.includes(q.role))));
-    if (cands.length) return { line: rng.pick(cands), via: label };
+    if (cands.length) return { lines: cands, via: label };
   }
+  return null;
+}
+/** The first intent of a chain that has a line (e.g. greet, else a blessing: Old Persian has no attested greeting). */
+export function pickLineChain(q: { langs: readonly string[]; intents: readonly Intent[]; role?: string; seed?: number }): { line: ResolvedLine; via: string; intent: Intent } | null {
+  for (const intent of q.intents) { const p = pickLine({ ...q, intent }); if (p) return { ...p, intent }; }
   return null;
 }
 

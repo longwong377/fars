@@ -16,7 +16,7 @@
 import type { AudioEngine } from './engine';
 import { FormantBackend, Vec3, VoiceParams, Intonation, clipToBuffer } from './speech';
 import { tokenizeIpa, syllabify, Phone } from './phonemes';
-import { LEXICON, LangId, LANG_IDS, isSpeakable } from '../lang/lexicon';
+import { LEXICON, LangId, LANG_IDS, murmurEligible, type LexEntry } from '../lang/lexicon';
 import { findModernWords } from '../lang/modern';
 import { Rng } from '../core/rng';
 
@@ -35,11 +35,13 @@ const bump = (m: Counts, k: string) => m.set(k, (m.get(k) ?? 0) + 1);
 
 const RATE: Record<LangId, number> = { op: 1.0, el: 1.05, arc: 1.1, bab: 1.05, grc: 1.05 };
 
+/** the lexicon entries whose sounds are counted for a language's murmur: attested words only (tier A/B; a tier-C
+ *  reconstruction such as Aramaic myn "water" is not evidence of the language's sounds: review A-M7, D-167) */
+export function murmurSource(lang: LangId): LexEntry[] { return LEXICON[lang].filter(murmurEligible); }
 export function buildProfile(lang: LangId): LangProfile {
-  const pr: LangProfile = { lang, tier: 'C', source: `research/LEXICON (${lang}) phonotactics, counted`, initialOnsets: new Map(), medialOnsets: new Map(), nuclei: new Map(),
+  const pr: LangProfile = { lang, tier: 'C', source: `research/LEXICON (${lang}) phonotactics of the attested entries, counted`, initialOnsets: new Map(), medialOnsets: new Map(), nuclei: new Map(),
     medialCodas: new Map(), finalCodas: new Map(), sylPerWord: [], rate: RATE[lang] };
-  for (const e of LEXICON[lang]) {
-    if (!isSpeakable(e)) continue;
+  for (const e of murmurSource(lang)) {
     const phones = tokenizeIpa(e.ipa!);
     const words = new Map<number, Phone[]>();
     for (const p of phones) { if (!words.has(p.word)) words.set(p.word, []); words.get(p.word)!.push(p); }
@@ -83,7 +85,13 @@ export function pseudoWord(p: LangProfile, r: Rng, maxSyl = 4): string {
 
 export function pseudoPhrase(p: LangProfile, r: Rng): { ipa: string; intonation: Intonation } {
   const n = 2 + Math.floor(r.next() * 4);
-  const words: string[] = []; for (let i = 0; i < n; i++) words.push(pseudoWord(p, r));
+  // the synthesiser runs words together, so two neighbours joined must not spell a modern word either (review A-M1)
+  const words: string[] = [];
+  for (let i = 0; i < n; i++) {
+    let w = pseudoWord(p, r);
+    for (let k = 0; k < 20 && i > 0 && findModernWords(words[i - 1] + w, { ipa: true }).length; k++) w = pseudoWord(p, r);
+    words.push(w);
+  }
   const x = r.next();
   return { ipa: words.join(' '), intonation: x < 0.15 ? 'rise' : x < 0.3 ? 'level' : 'fall' };
 }

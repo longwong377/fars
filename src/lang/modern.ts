@@ -30,6 +30,11 @@ put keep let begin end start finish stop try call name word words speak talk tel
 book letter paper pen table chair bed room floor roof window street market shop town village farm field river sea mountain
 tree flower grass bird dog cat cow sheep goat pig chicken fish meat milk egg eggs salt oil rice wheat barley apple
 fine nice bad best better worse worst sure ready done okay alright wow oh ah uh um hmm ha haha lol
+set met bet get let net pet wet vet jet map cap tap nap lap gap sap bus gun sun fun run bun sad mad dad bad had mom mum
+hat sat fat bat rat cat mat pat cup bag box car top pop pot hot cold kid kids pan pin tip fix mix mud mug nut pad pal
+pit rag rib rip rob rot rub rug sip sob sum tag tax tie toe toy tub van wax web win zip hit hug kiss lock pick sick kick
+luck duck rock sock song ring wing sing thing wrong strong bank tank silk desk disk mask task gift lift soft fast past
+rest nest list mist fist cost lost dust trust rust bed leg arm hand foot head eye ear nose face hair
 new old same different other another each every all both either neither none nothing something anything everything
 someone anyone everyone nobody somebody anybody everybody
 test testing tested sample example demo dummy placeholder lorem ipsum dolor amet todo fixme tbd xxx foo bar baz qux
@@ -42,6 +47,9 @@ merci mersi khoda hafez khodahafez khodafez baleh bale balle nah chetori chetor 
 lotfan befarmayid befarma agha khanom jan joon doost dust pedar madar baradar khahar pesar dokhtar khane khaneh
 shahr darvaze darvazeh sang shah padeshah padshah soltan nan ab abe gusht chai chay sib
 man shoma ishan anha inja anja koja kojast chi chera kei kheili kheyli dige hast nist ast budan
+bia biya boro bere bede bedeh bedin bash bashe basham bashid kar kardan kon bokon bekon nakon bego begu bebin bebakhshid
+bebakhshin begir beshin bishin berim biyam miram miam mikham mikhay khosh khoshgel khoshamadid dastet ghorban yek panj
+shesh haft hasht dah bale areh ageh inam unam ino uno
 ciao grazie prego buongiorno buonasera hola adios gracias amigo amiga senor senora bonjour bonsoir bonne nuit oui non
 monsieur madame danke bitte guten tag hallo tschuss ja nein herr frau privet spasibo da nyet
 `;

@@ -7,15 +7,17 @@
   "pos": "noun",
   "ipa": "ʃəlaːm",
   "strongs": "H8001",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); Elephantine letter formula 'šlm + PN' and 'may the gods seek after your welfare' (search extract: ResearchGate 'Hi Aḥuṭab: Aramaic Letter Ostraca from Elephantine'; Bodleian Arshama Letters vol. 3)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); Elephantine letter formula 'šlm + PN' and 'may the gods seek after your welfare' (search extract: ResearchGate 'Hi Aḥuṭab: Aramaic Letter Ostraca from Elephantine'; Bodleian Arshama Letters vol. 3); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS",
    "ELEPH-OST",
    "ARSHAMA-BOD"
-  ]
+  ],
+  "attested": "Ezra 4:17, Ezra 5:7 (OSHB, Aramaic; 2× outside Daniel; Daniel 2×; written šlm, šlmkwn, šlmʾ)"
  },
  {
   "form": "šʾl",
@@ -25,15 +27,17 @@
   "pos": "verb",
   "ipa": "ʃəʔeːl",
   "strongs": "H7593",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); Elephantine letter formula 'šlm + PN' and 'may the gods seek after your welfare' (search extract: ResearchGate 'Hi Aḥuṭab: Aramaic Letter Ostraca from Elephantine'; Bodleian Arshama Letters vol. 3)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); Elephantine letter formula 'šlm + PN' and 'may the gods seek after your welfare' (search extract: ResearchGate 'Hi Aḥuṭab: Aramaic Letter Ostraca from Elephantine'; Bodleian Arshama Letters vol. 3); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS",
    "ELEPH-OST",
    "ARSHAMA-BOD"
-  ]
+  ],
+  "attested": "Ezra 5:9, Ezra 5:10, Ezra 7:21 (OSHB, Aramaic; 3× outside Daniel; Daniel 3×; written yšʾlnkwn, šʾl, šʾlnʾ)"
  },
  {
   "form": "mrʾ",
@@ -43,13 +47,16 @@
   "pos": "noun",
   "ipa": "maːreːʔ",
   "strongs": "H4756",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Dan 2:47, Dan 4:16, Dan 4:21, Dan 5:23 … (OSHB, Aramaic; Daniel only, later than Ezra; 6×; written mry, mrʾ, mrʾy, wmrʾ)",
+  "daniel_only": true
  },
  {
   "form": "brk",
@@ -59,13 +66,16 @@
   "pos": "verb",
   "ipa": "bərak",
   "strongs": "H1289",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Dan 2:19, Dan 2:20, Dan 3:28, Dan 4:31 … (OSHB, Aramaic; Daniel only, later than Ezra; 5×; written brk, brkt, bryk, mbrk)",
+  "daniel_only": true
  },
  {
   "form": "mlk",
@@ -75,13 +85,15 @@
   "pos": "noun",
   "ipa": "malk / malkaː",
   "strongs": "H4430",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:8, Ezra 4:11, Ezra 4:12, Ezra 4:13 … (OSHB, Aramaic; 45× outside Daniel; Daniel 135×; written lmlk, lmlkʾ, mlk, mlkh)"
  },
  {
   "form": "lḥm",
@@ -91,13 +103,16 @@
   "pos": "noun",
   "ipa": "laħm",
   "strongs": "H3900",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Dan 5:1 (OSHB, Aramaic; Daniel only, later than Ezra; 1×; written lḥm)",
+  "daniel_only": true
  },
  {
   "form": "byt",
@@ -107,13 +122,15 @@
   "pos": "noun",
   "ipa": "bajt",
   "strongs": "H1005",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:24, Ezra 5:2, Ezra 5:3, Ezra 5:8 … (OSHB, Aramaic; 35× outside Daniel; Daniel 9×; written bbyt, bbyty, byt, byth)"
  },
  {
   "form": "ʾlh",
@@ -123,13 +140,15 @@
   "pos": "noun",
   "ipa": "ʔɛlaːh",
   "strongs": "H426",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:24, Ezra 5:1, Ezra 5:2, Ezra 5:5, Jer 10:11 … (OSHB, Aramaic; 44× outside Daniel; Daniel 53×; written bʾlhh, lʾlh, lʾlhhwn, lʾlhk)"
  },
  {
   "form": "ʾnš",
@@ -139,13 +158,15 @@
   "pos": "noun",
   "ipa": "ʔɛnaːʃ",
   "strongs": "H606",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:11, Ezra 6:11 (OSHB, Aramaic; 2× outside Daniel; Daniel 25×; written kʾnš, wʾnš, ʾnwšʾ, ʾnš)"
  },
  {
   "form": "br",
@@ -155,13 +176,15 @@
   "pos": "noun",
   "ipa": "bar",
   "strongs": "H1247",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 5:1, Ezra 5:2, Ezra 6:14 (OSHB, Aramaic; 4× outside Daniel; Daniel 4×; written br, brh, kbr, lbr)"
  },
  {
   "form": "ywm",
@@ -171,13 +194,15 @@
   "pos": "noun",
   "ipa": "joːm",
   "strongs": "H3118",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:15, Ezra 4:19, Ezra 6:9, Ezra 6:15 … (OSHB, Aramaic; 5× outside Daniel; Daniel 11×; written bywm, bywmʾ, wbywmy, wbywmyhwn)"
  },
  {
   "form": "yrḥ",
@@ -187,13 +212,15 @@
   "pos": "noun",
   "ipa": "jəraħ",
   "strongs": "H3393",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 6:15 (OSHB, Aramaic; 1× outside Daniel; Daniel 1×; written lyrḥ, yrḥyn)"
  },
  {
   "form": "šnh",
@@ -203,13 +230,15 @@
   "pos": "noun",
   "ipa": "ʃənaː",
   "strongs": "H8140",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:24, Ezra 5:11, Ezra 5:13, Ezra 6:3 … (OSHB, Aramaic; 5× outside Daniel; Daniel 2×; written bšnt, šnt, šnyn)"
  },
  {
   "form": "ḥmr",
@@ -219,13 +248,15 @@
   "pos": "noun",
   "ipa": "ħamar",
   "strongs": "H2562",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 6:9, Ezra 7:22 (OSHB, Aramaic; 2× outside Daniel; Daniel 4×; written ḥmr, ḥmrʾ)"
  },
  {
   "form": "ksp",
@@ -235,13 +266,15 @@
   "pos": "noun",
   "ipa": "kəsap",
   "strongs": "H3702",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 5:14, Ezra 6:5, Ezra 7:15, Ezra 7:16 … (OSHB, Aramaic; 7× outside Daniel; Daniel 6×; written bkspʾ, ksp, kspʾ, wkspʾ)"
  },
  {
   "form": "dhb",
@@ -251,13 +284,15 @@
   "pos": "noun",
   "ipa": "dəhab",
   "strongs": "H1722",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 5:14, Ezra 6:5, Ezra 7:15, Ezra 7:16 … (OSHB, Aramaic; 5× outside Daniel; Daniel 18×; written dhb, dhbh, dhbʾ, wdhb)"
  },
  {
   "form": "qryh",
@@ -267,13 +302,15 @@
   "pos": "noun",
   "ipa": "qirjaː",
   "strongs": "H7149",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:10, Ezra 4:12, Ezra 4:13, Ezra 4:15 … (OSHB, Aramaic; 9× outside Daniel; written bqryh, qrytʾ, qryʾ, wqrytʾ)"
  },
  {
   "form": "trʿ",
@@ -283,13 +320,16 @@
   "pos": "noun",
   "ipa": "təraʕ",
   "strongs": "H8651",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Dan 2:49, Dan 3:26 (OSHB, Aramaic; Daniel only, later than Ezra; 2×; written btrʿ, ltrʿ)",
+  "daniel_only": true
  },
  {
   "form": "ʾgrh",
@@ -299,13 +339,15 @@
   "pos": "noun",
   "ipa": "ʔiɡɡəraː",
   "strongs": "H104",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:8, Ezra 4:11, Ezra 5:6 (OSHB, Aramaic; 3× outside Daniel; written ʾgrh, ʾgrtʾ)"
  },
  {
   "form": "dt",
@@ -315,13 +357,15 @@
   "pos": "noun",
   "ipa": "daːt",
   "strongs": "H1882",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 7:12, Ezra 7:14, Ezra 7:21, Ezra 7:25 … (OSHB, Aramaic; 6× outside Daniel; Daniel 8×; written bdt, dt, dtkwn, dty)"
  },
  {
   "form": "spr",
@@ -331,13 +375,15 @@
   "pos": "noun",
   "ipa": "saːpeːr",
   "strongs": "H5613",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:8, Ezra 4:9, Ezra 4:17, Ezra 4:23 … (OSHB, Aramaic; 6× outside Daniel; written spr, sprʾ)"
  },
  {
   "form": "ktb",
@@ -347,13 +393,15 @@
   "pos": "verb",
   "ipa": "kətab",
   "strongs": "H3790",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:8, Ezra 5:7, Ezra 5:10, Ezra 6:2 (OSHB, Aramaic; 4× outside Daniel; Daniel 4×; written ktb, ktbh, ktbw, ktyb)"
  },
  {
   "form": "ḥtm",
@@ -363,13 +411,16 @@
   "pos": "verb",
   "ipa": "ħatam",
   "strongs": "H2857",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Dan 6:18 (OSHB, Aramaic; Daniel only, later than Ezra; 1×; written wḥtmh)",
+  "daniel_only": true
  },
  {
   "form": "ʿzqh",
@@ -379,13 +430,16 @@
   "pos": "noun",
   "ipa": "ʕizqaː",
   "strongs": "H5824",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Dan 6:18 (OSHB, Aramaic; Daniel only, later than Ezra; 2×; written bʿzqth, wbʿzqt)",
+  "daniel_only": true
  },
  {
   "form": "ʾḥšdrpn",
@@ -395,13 +449,16 @@
   "pos": "noun",
   "ipa": "ʔaħaʃdarpan",
   "strongs": "H324",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Dan 3:2, Dan 3:3, Dan 3:27, Dan 6:2 … (OSHB, Aramaic; Daniel only, later than Ezra; 9×; written lʾḥšdrpnyʾ, wʾḥšdrpnyʾ, ʾḥšdrpnyʾ)",
+  "daniel_only": true
  },
  {
   "form": "mdynh",
@@ -411,13 +468,15 @@
   "pos": "noun",
   "ipa": "mədiːnaː",
   "strongs": "H4083",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:15, Ezra 5:8, Ezra 6:2, Ezra 7:16 (OSHB, Aramaic; 4× outside Daniel; Daniel 7×; written bmdynt, mdynt, mdynth, mdyntʾ)"
  },
  {
   "form": "ʿbd",
@@ -427,13 +486,15 @@
   "pos": "noun",
   "ipa": "ʕabad",
   "strongs": "H5649",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:11, Ezra 5:11 (OSHB, Aramaic; 2× outside Daniel; Daniel 6×; written lʿbdk, lʿbdwhy, lʿbdyk, ʿbd)"
  },
  {
   "form": "gnz",
@@ -443,13 +504,15 @@
   "pos": "noun",
   "ipa": "ɡənaz",
   "strongs": "H1596",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 5:17, Ezra 6:1, Ezra 7:20 (OSHB, Aramaic; 3× outside Daniel; written gnzy, gnzyʾ)"
  },
  {
   "form": "gdbr",
@@ -459,13 +522,16 @@
   "pos": "noun",
   "ipa": "ɡədaːbar",
   "strongs": "H1411",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Dan 3:2, Dan 3:3 (OSHB, Aramaic; Daniel only, later than Ezra; 2×; written gdbryʾ)",
+  "daniel_only": true
  },
  {
   "form": "ḥnṭh",
@@ -475,13 +541,15 @@
   "pos": "noun",
   "ipa": "ħintˤaː",
   "strongs": "H2591",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 6:9, Ezra 7:22 (OSHB, Aramaic; 2× outside Daniel; written ḥnṭyn)"
  },
  {
   "form": "mšḥ",
@@ -491,13 +559,15 @@
   "pos": "noun",
   "ipa": "məʃaħ",
   "strongs": "H4887",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 6:9, Ezra 7:22 (OSHB, Aramaic; 2× outside Daniel; written mšḥ, wmšḥ)"
  },
  {
   "form": "mlḥ",
@@ -507,13 +577,15 @@
   "pos": "noun",
   "ipa": "məlaħ",
   "strongs": "H4416",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:14, Ezra 6:9, Ezra 7:22 (OSHB, Aramaic; 3× outside Daniel; written mlḥ, wmlḥ)"
  },
  {
   "form": "nhr",
@@ -523,13 +595,15 @@
   "pos": "noun",
   "ipa": "nəhar",
   "strongs": "H5103",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:10, Ezra 4:11, Ezra 4:16, Ezra 4:17 … (OSHB, Aramaic; 14× outside Daniel; Daniel 1×; written nhr, nhrh, nhrʾ)"
  },
  {
   "form": "šmyn",
@@ -539,13 +613,15 @@
   "pos": "noun",
   "ipa": "ʃəmajin",
   "strongs": "H8065",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 5:11, Ezra 5:12, Ezra 6:9, Ezra 6:10, Jer 10:11 … (OSHB, Aramaic; 10× outside Daniel; Daniel 28×; written bšmyʾ, lšmyʾ, šmyʾ)"
  },
  {
   "form": "ʾrʿ",
@@ -555,13 +631,15 @@
   "pos": "noun",
   "ipa": "ʔaraʕ",
   "strongs": "H772",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 5:11, Jer 10:11 (OSHB, Aramaic; 2× outside Daniel; Daniel 20×; written bʾrʿʾ, mʾrʿʾ, wbʾrʿʾ, wʾrʿʾ)"
  },
  {
   "form": "ʾkl",
@@ -571,13 +649,16 @@
   "pos": "verb",
   "ipa": "ʔakal",
   "strongs": "H399",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Dan 3:8, Dan 4:30, Dan 6:25, Dan 7:5 … (OSHB, Aramaic; Daniel only, later than Ezra; 7×; written wtʾkl, wʾklw, yʾkl, ʾklh)",
+  "daniel_only": true
  },
  {
   "form": "šty",
@@ -587,13 +668,16 @@
   "pos": "verb",
   "ipa": "ʃətaː",
   "strongs": "H8355",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Dan 5:1, Dan 5:2, Dan 5:3, Dan 5:4 … (OSHB, Aramaic; Daniel only, later than Ezra; 5×; written wyštwn, wʾštyw, šth, štyn)",
+  "daniel_only": true
  },
  {
   "form": "ḥd",
@@ -603,13 +687,15 @@
   "pos": "numeral",
   "ipa": "ħad",
   "strongs": "H2298",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:8, Ezra 5:13, Ezra 6:2, Ezra 6:3 (OSHB, Aramaic; 4× outside Daniel; Daniel 10×; written kḥdh, ḥd, ḥdh)"
  },
  {
   "form": "trn",
@@ -619,13 +705,15 @@
   "pos": "numeral",
   "ipa": "təreːn",
   "strongs": "H8648",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 4:24, Ezra 6:17 (OSHB, Aramaic; 2× outside Daniel; Daniel 2×; written trtyn, try, wtrtyn)"
  },
  {
   "form": "tlt",
@@ -635,13 +723,15 @@
   "pos": "numeral",
   "ipa": "təlaːt",
   "strongs": "H8532",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Ezra 6:4, Ezra 6:15 (OSHB, Aramaic; 2× outside Daniel; Daniel 9×; written tlt, tlth, tlthwn, tltʾ)"
  },
  {
   "form": "ṣpr",
@@ -651,13 +741,16 @@
   "pos": "noun",
   "ipa": "sˤəpar",
   "strongs": "H6853",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Dan 4:9, Dan 4:11, Dan 4:18, Dan 4:30 (OSHB, Aramaic; Daniel only, later than Ezra; 4×; written kṣpryn, wṣpryʾ, ṣpry)",
+  "daniel_only": true
  },
  {
   "form": "ʾryh",
@@ -667,13 +760,16 @@
   "pos": "noun",
   "ipa": "ʔarjeː",
   "strongs": "H744",
-  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA)",
+  "source": "Strong's Concise Dictionary (1894), Aramaic entries (Biblical Aramaic of Ezra/Daniel), JSON ed. openscriptures/strongs (GitHub, CC-BY-SA); attestation: Open Scriptures Hebrew Bible (WLC with lemma and morphology, CC BY 4.0), Aramaic words by Strong's lemma (D-167)",
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
+   "OSHB",
    "STRONGS"
-  ]
+  ],
+  "attested": "Dan 6:8, Dan 6:13, Dan 6:17, Dan 6:20 … (OSHB, Aramaic; Daniel only, later than Ezra; 10×; written kʾryh, ʾrywtʾ)",
+  "daniel_only": true
  },
  {
   "form": "myn",
@@ -689,7 +785,8 @@
   "tier_script": "B",
   "src": [
    "RECON"
-  ]
+  ],
+  "note": "No Aramaic occurrence found in the OSHB text of Ezra, Daniel, Jer 10:11 or Gen 31:47 (D-167): tier C, kept out of the murmur."
  },
  {
   "form": "śʿryn",
@@ -705,7 +802,8 @@
   "tier_script": "B",
   "src": [
    "RECON"
-  ]
+  ],
+  "note": "No Aramaic occurrence found in the OSHB text of Ezra, Daniel, Jer 10:11 or Gen 31:47 (D-167): tier C, kept out of the murmur."
  },
  {
   "form": "šlmʾ",

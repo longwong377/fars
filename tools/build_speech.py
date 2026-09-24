@@ -15,10 +15,12 @@ with varied voices, ages and sexes; post-processed; spatialised" — spatialisat
 - Voices (C): six classes (two men, an old man, two women, a child) = eSpeak variants + pitch + speed.
 - Post-processing: trim silence, 80 Hz high-pass, peak-normalise to -3 dBFS, 10 ms fades; Ogg Opus mono 24 kHz at
   libsndfile compression level COMPRESSION (≈ 28 kb/s, down from ≈ 37 kb/s in D-055, to keep the bundle small; D-107).
-- Output: public/voices/<lineId>.<voiceKey>.ogg + public/voices/manifest.json (lineId|voiceKey -> url, tier, backend).
+- Output: public/voices/<lineId>.<voiceKey>.ogg + public/voices/manifest.json (lineId|voiceKey -> url, tier, backend,
+  sha256 of the file; `lines`: lineId -> the IPA, intonation, base voice and eSpeak mnemonic each clip voices, which the
+  language lint compares with the current lines, so stale or swapped audio fails; D-167).
 eSpeak-NG is GPL-3; it is a build tool here and none of its code ships. Its output audio carries no licence of its own
 (ASSET_LEDGER.md). Run: python3 tools/build_speech.py   (needs espeak-ng and python soundfile)"""
-import json, subprocess, os, sys, tempfile, glob
+import json, subprocess, os, sys, tempfile, glob, hashlib
 import numpy as np, soundfile as sf
 from scipy import signal
 
@@ -63,10 +65,12 @@ def norm(s: str, base: str) -> str:
 def main():
     lines = json.loads(subprocess.run(['npx', 'tsx', 'tools/speech_lines_json.ts'], capture_output=True, text=True, check=True).stdout)
     os.makedirs('public/voices', exist_ok=True)
-    manifest, problems, skipped = {}, [], {}
+    manifest, problems, skipped, voiced = {}, [], {}, {}
     for L in lines:
         if L['lang'] in FORMANT_ONLY: skipped[L['id']] = L['lang']; continue
         base = BASE[L['lang']]; mn = to_mnemonic(L['ipa'], base)
+        # what each clip voices, so the language lint can fail on stale or swapped audio (D-167)
+        voiced[L['id']] = {'lang': L['lang'], 'ipa': L['ipa'], 'intonation': L['intonation'], 'base': base, 'mnemonic': mn}
         back = espeak_ipa(mn, base)
         if norm(back, base) != norm(L['ipa'], base): problems.append(f"{L['id']}: lexicon /{L['ipa']}/ -> [[{mn}]] -> espeak /{back}/")
         text = f'[[{mn}]]' + ('?' if L['intonation'] == 'rise' else '.')
@@ -82,7 +86,8 @@ def main():
             f = int(0.01 * sr); x[:f] *= np.linspace(0, 1, f); x[-f:] *= np.linspace(1, 0, f)
             path = f"public/voices/{L['id']}.{key}.ogg"
             sf.write(path, x.astype('float32'), sr, format='OGG', subtype='OPUS', **({} if COMPRESSION is None else {'compression_level': COMPRESSION}))
-            manifest[f"{L['id']}|{key}"] = {'url': path.replace('public/', ''), 'tier': 'C', 'backend': 'espeak-ng', 'voice': note}
+            with open(path, 'rb') as fh: sha = hashlib.sha256(fh.read()).hexdigest()
+            manifest[f"{L['id']}|{key}"] = {'url': path.replace('public/', ''), 'tier': 'C', 'backend': 'espeak-ng', 'voice': note, 'sha256': sha}
     # clips of lines that no longer exist (or moved to the formant backend) are removed, so the bundle holds only what plays
     keep = {'public/' + m['url'] for m in manifest.values()}
     stale = [p for p in glob.glob('public/voices/*.ogg') if p not in keep]
@@ -91,7 +96,7 @@ def main():
             'voices': {k: v[3] for k, v in VOICES.items()}, 'approximations': APPROX, 'approximations_by_base': APPROX_BY_BASE, 'base_voices': BASE,
             'opus_compression_level': COMPRESSION, 'formant_only': FORMANT_ONLY, 'formant_only_lines': sorted(skipped)}
     with open('public/voices/manifest.json', 'w') as fh:
-        json.dump({'_meta': meta, 'clips': manifest}, fh, indent=1, ensure_ascii=False)
+        json.dump({'_meta': meta, 'lines': voiced, 'clips': manifest}, fh, indent=1, ensure_ascii=False)
     total = sum(os.path.getsize('public/' + m['url']) for m in manifest.values())
     print(f'{len(manifest)} clips, {total / 1024:.0f} KB; {len(skipped)} lines formant-only ({", ".join(sorted(set(skipped.values())))}); {len(stale)} stale clips removed')
     if problems: print('ROUND-TRIP MISMATCHES:\n  ' + '\n  '.join(problems)); sys.exit(1)

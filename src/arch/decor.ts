@@ -191,7 +191,7 @@ function carveField(g: THREE.Group, parts: Part[], F: CarvedField, report: strin
     const meta = { tier: p.block.ver === 'op' && (inscriptions as any)[p.block.id].op_lined ? 'B' : 'C', src: 'ARIO;LIVIUS-KENT;OSL;NOTO;LANG-R', inscription: p.block.id, version: p.block.ver, host: surface, glyph: fit.glyph, depth,
       note: versionNote(p.block.id, p.block.ver, fit.glyph, depth, `${F.where} (placement ${F.tier})`, surface) };
     const mesh = new THREE.Mesh(geo, incisedMaterial(surface, A)); mesh.matrixAutoUpdate = false; mesh.matrix.makeBasis(X, up, Z).setPosition(o);
-    mesh.receiveShadow = true; mesh.castShadow = false; mesh.userData = meta; mesh.name = `inscription:${p.block.id}:${p.block.ver}`; g.add(mesh);
+    mesh.receiveShadow = true; mesh.castShadow = false; mesh.userData = { ...meta, carved: [{ id: p.block.id, ver: p.block.ver, signs: geo.userData.signs }] }; mesh.name = `inscription:${p.block.id}:${p.block.ver}`; g.add(mesh);
     // pick rectangle over the block (the carved mesh is only the signs, so a look between wedges would miss); on
     // INSCRIPTION_PICK_LAYER, which no camera renders; the translation layer raycasts that layer only
     const pad = 0.05, w = p.layout.width, h = p.layout.height;

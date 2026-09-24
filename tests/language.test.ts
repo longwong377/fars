@@ -8,18 +8,31 @@
 //     and naqsh.ts carve): the rendered strings must be period script only; the transliterations and sign sequences that
 //     generate them are scanned for modern words; no unmapped signs. (Their spelling: tests/lang.test.ts, D-165.)
 //  3. lexicon native-script fields (future tablets/labels): period script of the right block only.
-//  4. any other in-world text: source files that call a text-rendering API must be registered here and use no literals.
-//  5. crowd murmur: generated pseudo-words are scanned for modern words.
+//  4. any other text: every source file (src/ui included) that renders text is registered as in-world or out-of-world
+//     (DOM), none mixes the two, out-of-world files make no textures; data JSON strings in non-Latin scripts only in
+//     registered fields; no SVG text; every shipped image registered as checked; the carved signs, captured at the font
+//     while the carving code runs, are exactly the inscription data's sign sequence.
+//  5. crowd murmur: generated pseudo-words, alone and run together, are scanned (20,000 phrases per language) against
+//     the modern-word list, which includes the modern Persian and English words the Phase 8 review heard; only attested
+//     entries feed its phonotactics.
+//  6. audio: every clip belongs to a current line, the manifest records the IPA it voices (compared with the line), the
+//     file's hash and a plausible length per phone (D-167).
 // Out-of-world (excluded): gloss, note, src, ids, tiers, intent, roles — the translation layer, subtitles and dev overlay.
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { LINE_DEFS, LINES } from '../src/people/speech_lines';
 import { findModernWords, nonPeriodChars, romanisedWords, MODERN_WORDS, PERIOD_SCRIPTS } from '../src/lang/modern';
-import { allLexEntries, lexEntry, citationForm, LANG_IDS, LEXICON, type LangId } from '../src/lang/lexicon';
+import { allLexEntries, lexEntry, spokenForm, LANG_IDS, LEXICON, murmurEligible, type LangId } from '../src/lang/lexicon';
 import sources from '../src/data/sources.json';
 import { panelText } from '../src/arch/inscription_text';
-import { buildProfile, pseudoPhrase, murmurLangFor } from '../src/audio/murmur';
+import { buildProfile, pseudoPhrase, murmurLangFor, murmurSource } from '../src/audio/murmur';
+import { tokenizeIpa } from '../src/audio/phonemes';
+import { createHash } from 'node:crypto';
+import { buildTerrace } from '../src/arch/terrace';
+import { loadInscriptionFonts, buildInscriptions, buildPhase4Reliefs } from '../src/arch/decor';
+import { buildNaqsh } from '../src/world/plain/naqsh';
+import { loadTerrain, loadRiversFile } from './plainLib';
 import { Rng } from '../src/core/rng';
 import inscriptions from '../src/data/inscriptions.json';
 
@@ -33,6 +46,7 @@ const LINE_IN_WORLD = new Set(['words']);
  */
 const LEXICON_HOMOGRAPHS: Record<string, { words: string[]; why: string }> = {
   'el:hi': { words: ['hi'], why: 'Elamite demonstrative "this" (XPa, XPd)' },
+  'el:nap': { words: ['nap'], why: 'Elamite nap "god" (XPa Elamite 1: {d}na-ap)' },
   'arc:br': { words: ['bar'], why: 'Aramaic "son" (bar)' },
   'arc:ḥd': { words: ['had'], why: 'Aramaic "one" (ḥad)' },
   'arc:mrʾ': { words: ['mr'], why: 'consonantal spelling mrʾ "lord"' },
@@ -82,8 +96,24 @@ describe('language lint: speech lines', () => {
       const allow = new Set(l.def.words.flatMap(w => LEXICON_HOMOGRAPHS[w]?.words ?? []));
       expect(findModernWords(l.ipa, { ipa: true, allow }), `${l.id} ipa "${l.ipa}"`).toEqual([]);
       expect(findModernWords(l.translit, { allow }), `${l.id} translit "${l.translit}"`).toEqual([]);
-      for (const e of l.entries) expect(l.translit.split(' ')).toContain(citationForm(e));
+      for (const e of l.entries) expect(l.translit.split(' ')).toContain(spokenForm(e));
     }
+  });
+  /** consonant skeleton of a romanised form or of IPA: vowels, length, stress, glottals, aspiration and gemination
+   *  dropped; v/w, y/j and the Greek romanisation (kh ph th x z) folded */
+  const skeleton = (s: string, lang: string, ipa: boolean) => {
+    let t = s.normalize('NFC').toLowerCase();
+    if (!ipa && lang === 'grc') t = t.replace(/kh/g, 'k').replace(/ph/g, 'p').replace(/th/g, 't').replace(/x/g, 'ks').replace(/z/g, 'zd');
+    t = t.replace(/t͡ʃ/g, 'c').replace(/d͡ʒ/g, 'j').replace(/ʃ/g, 's').replace(/ħ/g, 'h').replace(/χ/g, 'x').replace(/ɡ/g, 'g').replace(/ʒ/g, 'z');
+    t = t.normalize('NFD').replace(/\p{M}/gu, '');
+    t = ipa ? t.replace(/y/g, 'u') : t.replace(/v/g, 'w').replace(/y/g, 'j');
+    if (!ipa && lang === 'bab') t = t.replace(/h/g, 'x');
+    return t.replace(/[ʔʕʾʿˤʰːˈˌ'’\-.\s]/g, '').replace(/[aeiouəɛɔɪʊ]/g, '').replace(/(.)\1+/g, '$1');
+  };
+  it('the subtitle shows the form that is heard: each word\'s consonants are those of its IPA (an inflected form, not the stem)', () => {
+    for (const l of LINES) for (const e of l.entries) expect(skeleton(spokenForm(e), e.lang, false), `${l.id} ${e.id}: shown "${spokenForm(e)}", heard /${e.ipa}/`).toBe(skeleton(e.ipa!, e.lang, true));
+    // the check has teeth: the stem the subtitle used to show is not what is heard
+    const naiba = lexEntry('op:naiba-')!; expect(skeleton(naiba.form.replace(/-$/, ''), 'op', false)).not.toBe(skeleton(naiba.ipa!, 'op', true));
   });
   it('Old Persian lines are short (≤ 3 words) and every line is tiered and glossed for the subtitle layer', () => {
     for (const l of LINES) {
@@ -138,34 +168,164 @@ describe('language lint: inscriptions and scripts rendered in the world', () => 
   });
 });
 
-describe('language lint: other in-world text', () => {
-  /** files allowed to draw text into the 3D world, with what they draw (checked above) */
+describe('language lint: every source that can reach the canvas', () => {
+  /** files allowed to draw text into the 3D world, with what they draw (the carved text itself is checked glyph by glyph
+   *  below: what they render is captured at the font) */
   const IN_WORLD_TEXT_SITES: Record<string, string> = {
-    'src/arch/decor.ts': 'carved inscriptions from inscriptions.json (panelText: op_signs / *_cuneiform), checked above',
+    'src/arch/decor.ts': 'carved inscriptions from inscriptions.json (panelText: op_signs / *_cuneiform), captured and checked below',
     'src/arch/carving.ts': 'the carving itself (layoutText / carvedGeometry of the lines it is given; no text of its own)',
-    'src/world/plain/naqsh.ts': 'DNa/DNb Old Persian from inscriptions.json (panelText op_signs), checked above',
+    'src/world/plain/naqsh.ts': 'DNa/DNb Old Persian from inscriptions.json (panelText op_signs), captured and checked below',
   };
-  const TEXT_API = /\b(fillText|strokeText|TextGeometry|textPanelGeometry|layoutText|carvedGeometry|carvedBlockGeometry|CSS2DObject|CSS3DObject|SpriteText|TroikaText)\b/;
-  const walk = (d: string): string[] => readdirSync(d).flatMap(f => { const p = join(d, f); return statSync(p).isDirectory() ? walk(p) : p.endsWith('.ts') ? [p] : []; });
+  /** files that write text into the page (DOM), never into the canvas: out-of-world by construction (the DOM overlays
+   *  the canvas; the translation layer, the menus and the dev overlay are all DOM). Each must stay out of the scene:
+   *  none of them may turn a canvas into a texture (checked). */
+  const OUT_OF_WORLD_TEXT_SITES: Record<string, string> = {
+    'src/ui/translation.ts': 'translation layer: subtitles, inscription readings, map (a DOM canvas), chronicle; off by default',
+    'src/ui/shell.ts': 'title screen, menus and settings', 'src/ui/overlay.ts': 'dev overlay (F3)',
+    'src/world/bench.ts': 'bench mode report (?bench)', 'src/main.ts': 'the boot-failure message',
+  };
+  const TEXT_3D = /\b(TextGeometry|textPanelGeometry|layoutText|carvedGeometry|carvedBlockGeometry|CSS2DObject|CSS3DObject|SpriteText|TroikaText)\b/;
+  const CANVAS_TEXT = /\b(fillText|strokeText)\b/;
+  const DOM_TEXT = /\b(textContent|innerHTML|innerText|outerHTML|createTextNode|insertAdjacentHTML|insertAdjacentText)\b|document\.write\(|\bel\('[a-z0-9]+',\s*'[^']*',\s*[`'"]/;
+  const TEXTURE = /\b(CanvasTexture|VideoTexture|DataTexture)\b|new\s+THREE\.Texture\(|\bTextureLoader\b|ImageBitmapLoader/;
+  const walk = (d: string, ext: RegExp): string[] => readdirSync(d).flatMap(f => { const p = join(d, f); return statSync(p).isDirectory() ? walk(p, ext) : ext.test(p) ? [p] : []; });
   const root = join(__dirname, '..');
-  it('only registered files render text in-world, and never from a string literal', () => {
-    const files = walk(join(root, 'src')).map(p => relative(root, p).split('\\').join('/')).filter(p => !p.startsWith('src/ui/'));
-    for (const f of files) {
+  const rel = (p: string) => relative(root, p).split('\\').join('/');
+  it('every source file (src/ui included) that renders text is registered, in-world or out-of-world, and none mixes the two', () => {
+    for (const f of walk(join(root, 'src'), /\.(ts|js|mjs)$/).map(rel)) {
       const src = readFileSync(join(root, f), 'utf8');
-      if (!TEXT_API.test(src)) continue;
-      expect(IN_WORLD_TEXT_SITES[f], `${f} renders text in-world but is not registered in the language lint`).toBeTruthy();
-      // the text argument: 1st for canvas fillText/strokeText, 2nd for layoutText(font, lines, …) (a literal or an array of them)
-      expect(/\b(fillText|strokeText)\(\s*['"`]/.test(src) || /\blayoutText\(\s*[^,()]+,\s*[\['"`]/.test(src), `${f} passes a string literal to a text API`).toBe(false);
+      const t3 = TEXT_3D.test(src), ct = CANVAS_TEXT.test(src), dom = DOM_TEXT.test(src), tex = TEXTURE.test(src);
+      if (t3) expect(IN_WORLD_TEXT_SITES[f], `${f} renders text geometry in the world but is not registered`).toBeTruthy();
+      if (ct) expect(IN_WORLD_TEXT_SITES[f] ?? OUT_OF_WORLD_TEXT_SITES[f], `${f} draws canvas text but is not registered`).toBeTruthy();
+      // a canvas with text that becomes a texture is in the world: only a registered in-world site may do both
+      if (ct && tex) expect(IN_WORLD_TEXT_SITES[f], `${f} draws text on a canvas and makes textures`).toBeTruthy();
+      if (dom) expect(OUT_OF_WORLD_TEXT_SITES[f], `${f} writes DOM text but is not registered as out-of-world`).toBeTruthy();
+      if (OUT_OF_WORLD_TEXT_SITES[f]) expect(tex, `${f} is out-of-world but creates a texture (its text could reach the scene)`).toBe(false);
+      if (/<svg\b|<text\b/.test(src)) expect(OUT_OF_WORLD_TEXT_SITES[f], `${f} holds SVG markup (a data-URL texture?)`).toBeTruthy();
+      if (IN_WORLD_TEXT_SITES[f]) // the text argument: 1st for canvas fillText/strokeText, 2nd for layoutText(font, lines, …) / textPanelGeometry(fontKey, text, …)
+        expect(/\b(fillText|strokeText)\(\s*['"`]/.test(src) || /\b(layoutText|textPanelGeometry)\(\s*[^,()]+,\s*[\['"`]/.test(src), `${f} passes a string literal to a text API`).toBe(false);
     }
+    for (const f of [...Object.keys(IN_WORLD_TEXT_SITES), ...Object.keys(OUT_OF_WORLD_TEXT_SITES)]) expect(statSync(join(root, f)).isFile(), `stale registry entry ${f}`).toBe(true);
+  });
+  /** data strings in a non-Latin script, and where they may be: the in-world fields (period scripts, checked above) and
+   *  out-of-world notes (source titles, the Greek of a citation). A new one fails until it is classed. */
+  const SCRIPT_FIELDS: { file: RegExp; key: RegExp; world: boolean; why: string }[] = [
+    { file: /^src\/data\/inscriptions\.json$/, key: /^\.\w+\.(el|bab)_cuneiform$/, world: true, why: 'the carved Elamite and Babylonian text (cuneiform only, checked above and at the font below)' },
+    { file: /^src\/data\/inscriptions\.json$/, key: /^\.\w+\.op_(cuneiform|signs|words)(\.\d+)*(\.\w+)?$/, world: false, why: 'the Old Persian sign data the carving converts (the carved result is checked at the font below)' },
+    { file: /^src\/data\/geo\/footprints\.json$/, key: /^\.\w+\.osm_name$/, world: false, why: 'OpenStreetMap names of the ruins (modern Persian): provenance of the footprints only; no source file reads osm_name (checked)' },
+    { file: /^src\/data\/sources\.json$/, key: /^\.[\w-]+\.(access|cite)$/, world: false, why: 'citations (the Greek of Od. 1.123): dev overlay and translation layer only' },
+    { file: /^src\/data\/names\.json$/, key: /^\.names\.\d+\.origin_basis$/, world: false, why: 'etymology notes (Old Iranian reconstructions in scholarly transliteration: ϑ, β): dev overlay only' },
+  ];
+  /** a non-Latin script: two or more letters of a modern or period script in a row, or any letter of one outside the
+   *  Greek letters that transliteration and IPA use singly (θ Θ ϑ δ χ γ β ε φ: xšāyaθiya, Θūravāhara, bagaδušta) */
+  const NON_LATIN = /[\u0400-\u04ff\u0590-\u05ff\u0600-\u06ff\u0750-\u077f\u08a0-\u08ff\u0900-\u0dff\u1f00-\u1fff\u3040-\u30ff\u4e00-\u9fff\uac00-\ud7af\ufb50-\ufdff\ufe70-\ufeff\u{10840}-\u{1085f}\u{103a0}-\u{103df}\u{12000}-\u{1254f}]|[\u0370-\u03ff]{2}|[\u0370-\u0397\u0399-\u03b1\u03b6\u03b7\u03b9-\u03c5\u03c8-\u03d0\u03d2-\u03ff]/u;
+  it('data files (src/data, public): strings in a non-Latin script appear only in registered fields; the in-world ones are period script', () => {
+    const files = [...walk(join(root, 'src/data'), /\.json$/), ...walk(join(root, 'public'), /\.json$/)].map(rel).filter(f => f !== 'public/voices/manifest.json');
+    const found: string[] = [];
+    const visit = (f: string, v: unknown, key: string) => {
+      if (typeof v === 'string') { if (NON_LATIN.test(v)) { const reg = SCRIPT_FIELDS.find(r => r.file.test(f) && r.key.test(key)); if (!reg) found.push(`${f}${key}: "${v.slice(0, 40)}"`);
+        else if (reg.world) expect(nonPeriodChars(v, ['oldPersian', 'cuneiform']), `${f}${key}`).toEqual([]); } return; }
+      if (Array.isArray(v)) v.forEach((x, i) => visit(f, x, `${key}.${i}`)); else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) visit(f, x, `${key}.${k}`);
+    };
+    for (const f of files) visit(f, JSON.parse(readFileSync(join(root, f), 'utf8')), '');
+    expect(found, 'non-Latin script in unregistered data fields').toEqual([]);
+    for (const f of walk(join(root, 'src'), /\.ts$/)) expect(/\bosm_name\b/.test(readFileSync(f, 'utf8')), `${rel(f)} reads the modern OSM names`).toBe(false);
+  });
+  it('the voice manifest carries no text but ids, IPA and notes (its IPA is checked against the lines below)', () => {
+    const man = JSON.parse(readFileSync(join(root, 'public/voices/manifest.json'), 'utf8'));
+    for (const [id, v] of Object.entries<any>(man.lines ?? {})) expect(findModernWords(v.ipa, { ipa: true, allow: new Set(LINES.find(l => l.id === id)?.def.words.flatMap(w => LEXICON_HOMOGRAPHS[w]?.words ?? []) ?? []) }), id).toEqual([]);
+  });
+  it('SVG and CSS: no SVG text anywhere; generated CSS content only in the out-of-world stylesheet; no stylesheet outside src/ui', () => {
+    for (const f of [...walk(join(root, 'public'), /\.svg$/), ...walk(join(root, 'src'), /\.svg$/)].map(rel)) expect(/<text\b|<tspan\b|<foreignObject\b/.test(readFileSync(join(root, f), 'utf8')), `${f} has SVG text`).toBe(false);
+    for (const f of walk(join(root, 'src'), /\.css$/).map(rel)) {
+      expect(f.startsWith('src/ui/'), `${f}: a stylesheet outside the out-of-world UI`).toBe(true);
+      const css = readFileSync(join(root, f), 'utf8'); for (const m of css.matchAll(/content\s*:\s*(['"])(.*?)\1/g)) expect(findModernWords(m[2]).length === 0 || f.startsWith('src/ui/')).toBe(true);
+    }
+  });
+  /** raster images shipped with the app, each looked at: none carries text (fail-closed: a new image must be added here) */
+  const RASTERS: Record<string, string> = {
+    'public/generated/humans/skin.png': 'skin albedo tile (viewed: no text; Phase 8 lens-A review)',
+    'public/generated/humans/eye.png': 'MakeHuman eye texture, no longer sampled (viewed: no text)',
+    'public/generated/humans/hair.png': 'hair strand texture (viewed: no text)',
+    'public/favicon.svg': 'browser tab icon (out of the world; checked above for SVG text)',
+  };
+  it('every raster or vector image shipped is registered as looked at and free of text', () => {
+    const imgs = walk(join(root, 'public'), /\.(png|jpe?g|webp|gif|avif|bmp|ktx2|basis|svg|ico)$/i).map(rel);
+    for (const f of imgs) expect(RASTERS[f], `${f}: an image nobody has checked for text`).toBeTruthy();
+    for (const f of Object.keys(RASTERS)) expect(imgs, `stale image entry ${f}`).toContain(f);
+  });
+});
+
+describe('language lint: the carved signs are the inscription data\'s sign sequence', () => {
+  it('what the carving code cuts (Terrace and Naqsh-e Rustam, read back from each carved mesh) is exactly the data\'s signs', async () => {
+    await loadInscriptionFonts(async p => { const b = readFileSync('public/' + p); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer; });
+    const { manifest, parts, doorways } = buildTerrace(); const p4 = buildPhase4Reliefs(doorways);
+    const roots = [buildInscriptions(manifest, parts, p4.inscriptions), buildNaqsh(loadTerrain(), loadRiversFile().nrAncientFootAsl).group];
+    const squash = (s: string) => s.replace(/\s+/g, ''); // a lost sign (no-break space) is left uncut: not in the cut sequence
+    const seen = new Map<string, number>(); let meshes = 0, signs = 0;
+    for (const r of roots) r.traverse((o: any) => {
+      if (!o.isMesh || !o.geometry?.getAttribute('carveUV')) return;
+      meshes++;
+      const list = o.userData.carved as { id: string; ver: 'op' | 'el' | 'bab'; signs: string }[];
+      expect(list?.length, `${o.name}: a carved mesh must say what it cuts`).toBeGreaterThan(0);
+      // a mesh's quads are its blocks' signs, one quad per sign
+      expect(o.geometry.getAttribute('carveUV').count, o.name).toBe((o.geometry.index ? 4 : 6) * list.reduce((n, c) => n + [...c.signs].length, 0));
+      for (const c of list) {
+        const want = panelText(c.id, c.ver); expect(want, `${o.name}: ${c.id} ${c.ver} has no text`).toBeTruthy();
+        expect(c.signs, `${o.name}: ${c.id} ${c.ver} carved signs differ from the data's`).toBe(squash(want!.lines.join('')));
+        expect(nonPeriodChars(c.signs, [c.ver === 'op' ? 'oldPersian' : 'cuneiform']), `${c.id} ${c.ver}`).toEqual([]);
+        seen.set(`${c.id}.${c.ver}`, (seen.get(`${c.id}.${c.ver}`) ?? 0) + 1); signs += [...c.signs].length;
+      }
+    });
+    for (const id of ['XPa', 'XPb', 'XPc', 'XPd', 'XPe', 'DPa', 'DPb', 'DPc', 'DPd', 'DPe', 'DNa', 'DNb']) expect(seen.get(`${id}.op`) ?? 0, `${id} Old Persian carved`).toBeGreaterThan(0);
+    for (const id of ['XPa', 'XPb', 'XPc', 'XPd', 'XPe', 'DPa', 'DPb', 'DPc']) for (const v of ['el', 'bab']) expect(seen.get(`${id}.${v}`) ?? 0, `${id} ${v} carved`).toBeGreaterThan(0);
+    expect(seen.get('DPf.el') ?? 0).toBeGreaterThan(0); expect(seen.get('DPg.bab') ?? 0).toBeGreaterThan(0);
+    console.log(`carved and checked: ${meshes} meshes, ${signs} signs; ${[...seen].map(([k, n]) => `${k}×${n}`).join(' ')}`);
+  }, 180_000);
+});
+
+describe('language lint: audio that plays in the world', () => {
+  const man = JSON.parse(readFileSync('public/voices/manifest.json', 'utf8'));
+  /** seconds of an Ogg Opus file: the last page's granule position less the pre-skip, at 48 kHz */
+  const oggSeconds = (b: Buffer) => { const last = b.lastIndexOf('OggS'), head = b.indexOf('OpusHead'); return (Number(b.readBigInt64LE(last + 6)) - b.readUInt16LE(head + 10)) / 48000; };
+  it('every clip belongs to a current line and voices that line\'s IPA and intonation (stale or swapped audio fails)', () => {
+    expect(man.lines, 'the manifest says what each line\'s clips voice').toBeTruthy();
+    for (const [key, c] of Object.entries<any>(man.clips)) {
+      const id = key.split('|')[0], L = LINES.find(l => l.id === id); expect(L, `${key}: no such line`).toBeTruthy();
+      const v = man.lines[id]; expect(v, `${id}: the manifest does not say what its clips voice`).toBeTruthy();
+      expect(v.ipa, `${key}: the clip voices /${v.ipa}/, the line is /${L!.ipa}/ (re-run tools/build_speech.py)`).toBe(L!.ipa);
+      expect(v.intonation ?? null, key).toBe(L!.intonation ?? null); expect(v.lang, key).toBe(L!.lang);
+      expect(['espeak-ng', 'recording'], key).toContain(c.backend);
+      if (c.backend === 'recording') { expect(c.source, `${key}: a recording must name its source`).toBeTruthy(); expect(c.licence, `${key}: and its licence`).toBeTruthy(); }
+      const buf = readFileSync('public/' + c.url);
+      expect(createHash('sha256').update(buf).digest('hex'), `${key}: the file is not the one the manifest records`).toBe(c.sha256);
+      const perPhone = oggSeconds(buf) / tokenizeIpa(L!.ipa).length; // a clip in another language or a silent file fails here
+      expect(perPhone, `${key} s per phone`).toBeGreaterThan(0.05); expect(perPhone, `${key} s per phone`).toBeLessThan(0.8);
+    }
+    const onDisk = readdirSync('public/voices').filter(f => f.endsWith('.ogg')).map(f => 'voices/' + f).sort();
+    expect(onDisk, 'clips on disk = clips in the manifest').toEqual(Object.values<any>(man.clips).map(c => c.url).sort());
   });
 });
 
 describe('language lint: crowd murmur', () => {
-  it('pseudo-phrases in every language contain no modern word (2,000 phrases per language)', () => {
+  it('pseudo-phrases in every language contain no modern word, alone or run together (20,000 phrases per language)', () => {
     for (const lang of LANG_IDS) {
       const p = buildProfile(lang), r = new Rng(7, `lint:${lang}`);
-      for (let i = 0; i < 2000; i++) { const ph = pseudoPhrase(p, r); expect(findModernWords(ph.ipa, { ipa: true }), `${lang}: ${ph.ipa}`).toEqual([]); }
+      for (let i = 0; i < 20000; i++) {
+        const ph = pseudoPhrase(p, r), w = ph.ipa.split(' ');
+        const bad = [...findModernWords(ph.ipa, { ipa: true }), ...w.slice(1).flatMap((x, k) => findModernWords(w[k] + x, { ipa: true }))];
+        if (bad.length) expect(bad, `${lang}: ${ph.ipa}`).toEqual([]);
+      }
     }
+  });
+  it('the modern-word list holds the modern Persian and English words the Phase 8 review heard in the murmur', () => {
+    for (const w of ['bia', 'boro', 'bede', 'bash', 'kar', 'set', 'met', 'bet', 'map', 'bus', 'gun', 'sad', 'mad', 'dad']) expect(MODERN_WORDS.has(w), w).toBe(true);
+    expect(findModernWords('baːʃ', { ipa: true })).toContain('bash'); expect(findModernWords('kaːr', { ipa: true })).toContain('kar');
+  });
+  it('murmur sounds come only from attested entries: no tier-C reconstruction (Aramaic myn "water") feeds it', () => {
+    for (const lang of LANG_IDS) for (const e of murmurSource(lang)) expect(murmurEligible(e), e.id).toBe(true);
+    expect(murmurSource('arc').map(e => e.form)).not.toContain('myn');
+    expect(lexEntry('arc:myn')!.tier[0]).toBe('C');
   });
   it('languages without a lexicon fall back to the Aramaic profile and are flagged C; Babylonian and Greek use their own', () => {
     for (const l of ['Egyptian', 'Lydian', 'unknown']) { const m = murmurLangFor(l); expect(m.lang).toBe('arc'); expect(m.fallback).toBe(true); expect(m.tier).toBe('C'); }

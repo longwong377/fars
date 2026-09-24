@@ -143,6 +143,7 @@ export function carvedGeometry(A: Atlas, L: Layout, dx = 0, dy = 0, lift = 0.000
   g.setAttribute('carveUV', new THREE.Float32BufferAttribute(uvs, 2)); g.setAttribute('carveEm', new THREE.Float32BufferAttribute(ems, 1));
   g.setAttribute('carveT', new THREE.Float32BufferAttribute(T, 3)); g.setAttribute('carveB', new THREE.Float32BufferAttribute(B, 3));
   g.setIndex(idx); g.computeBoundingBox(); g.computeBoundingSphere();
+  g.userData.signs = L.signs.map(s => s.ch).join(''); // what is cut, sign by sign (the language lint compares it with the data)
   return g;
 }
 /** the deepest cut of a layout (m) */

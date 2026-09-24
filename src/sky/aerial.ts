@@ -106,6 +106,13 @@ export class Air {
   /** the terrain horizon's sun visibility at the eye (D-156), and how much of J is direct sunlight scattered (1 with the
    *  sun up, 0 once it has set: the twilight glow in the haze is skylight, which the terrain does not shadow) */
   readonly vEye = uniform(1); readonly sunUp = uniform(1);
+  /** the air around an eye inside a roofed hall (session 5): the first `dIn` metres of every view ray lie inside the
+   *  enclosure the eye stands in, and that air is lit by the interior's own light, `airEye` of the open air's (the probes'
+   *  eye illuminance, the same value the interior exposure adapts to, D-141); beyond it, the open air's J. Outside the
+   *  probe volumes airEye = 1 and dIn = 0. Without this the halls filled with a white veil: the outdoor horizon radiance
+   *  scattered by 30–60 m of air (0.3–0.5 %) and the eye's interior gain (~500×) made it brighter than the columns
+   *  (first render of D-156 indoors, WebGL2 at quality test, apadana-hall-in mean luma 154) */
+  readonly airEye = uniform(1); readonly dIn = uniform(0);
   /** J(θ): the calibrated dome 1.5° above the horizon where the scattering angle is θ, u = √(θ/π) (RGBA half float) */
   readonly jTex: THREE.DataTexture;
   readonly jData = new Float32Array(J_N * 3);
@@ -121,6 +128,14 @@ export class Air {
     const o = this.optics = airOptics(s);
     this.betaR.value.set(o.betaR[0], o.betaR[1], o.betaR[2]); this.betaM.value.set(o.betaM[0], o.betaM[1], o.betaM[2]);
     this.betaMist.value = o.betaMist; this.betaPrecip.value = o.betaPrecip;
+  }
+  /** the eye's enclosure (main.ts, every frame): `airEye` = the interior's light relative to the open air (1 outdoors), `dIn`
+   *  = how far the enclosure reaches along a view ray (m; 0 outdoors) */
+  setInterior(airEye: number, dIn: number) { this.airEye.value = Math.max(0, Math.min(1, airEye)); this.dIn.value = Math.max(0, dIn); }
+  /** CPU mirror of the fog node's in-scatter weight on J for a path of optical depth `tau` (one channel) and length `d` */
+  inscatterWeight(tau: number, d: number): number {
+    const T = Math.exp(-tau), Tin = Math.exp(-tau * Math.min(1, this.dIn.value / Math.max(d, 1e-3)));
+    return (1 - Tin) * this.airEye.value + (Tin - T);
   }
   /** fill the in-scatter table from a dome function (world direction → calibrated radiance) and the sun's unit direction;
    *  `amb` = the ambient source radiance (RGB), capped per channel at the table's minimum (it cannot exceed J). Entry i
@@ -174,7 +189,10 @@ export class Air {
       const f = mix(float(0.5).sub(tg.div(12)), float(1).sub(exp(tb.negate()).mul(tb.add(1))).div(tb.mul(float(1).sub(exp(tb.negate())))), big);
       const vp = sunVis ? sunVis(p) : float(1), veff = mix(this.vEye, vp, clamp(f, 0, 1));
       const Jeff = jA.add(jSun.mul(float(1).sub(this.sunUp.mul(float(1).sub(veff)))));
-      return vec4(output.rgb.mul(T).add(Jeff.mul(vec3(1).sub(T))), output.a);
+      // the enclosure's share of the path: its first dIn metres (the optical depth is linear in distance over a hall's size)
+      const fin = clamp(this.dIn.div(max(length(p.sub(c)), 1e-3)), 0, 1), Tin = exp(tau.mul(fin).negate());
+      const w = vec3(1).sub(Tin).mul(this.airEye).add(Tin.sub(T));
+      return vec4(output.rgb.mul(T).add(Jeff.mul(w)), output.a);
     })();
   }
 }

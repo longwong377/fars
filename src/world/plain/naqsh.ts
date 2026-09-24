@@ -274,7 +274,7 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   const rock = surfaceMaterial('nr_rock'), dressed = surfaceMaterial('nr_dressed');
   rock.side = THREE.DoubleSide; // the cliff's top and end returns are seen from both sides
   const facades = tombs.map(t => ({ t, fc: tombFacade(f, t.x, t.inscribed, t.id) }));
-  const texts = new THREE.Group(); texts.name = 'nr-inscriptions'; const carved: THREE.BufferGeometry[] = [], textInfo: string[] = [];
+  const texts = new THREE.Group(); texts.name = 'nr-inscriptions'; const carved: THREE.BufferGeometry[] = [], textInfo: string[] = [], carvedSigns: { id: string; ver: 'op'; signs: string }[] = [];
   const inscMat = incisedMaterial('nr_dressed', inscriptionAtlas('op')); // cut into the dressed field (D-166)
   const pickMat = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide, visible: false });
   const cliff = new THREE.Mesh(mergeGeometries([cliffGeometry(f, holes, xa, xb, H), cliffTop(f, terrain, xa, xb, H, holes), endCaps(f, xa, xb, H, holes), ...facades.map(q => q.fc.front)].map(g => g.index ? g.toNonIndexed() : g))!, rock);
@@ -296,7 +296,8 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
       const block: Block = { id: a.id, ver: 'op', text: panelText(a.id, 'op')! }, fit = fitBlocks([block], 'stack', a.w, a.h, NR_GLYPH_MAX), L = fit.parts[0].layout;
       // text geometry: x 0…w along the face, the block's top at y 0, lines going down, z out of the panel (the signs' quads
       // lie on the dressed face; the shader cuts them in)
-      carved.push(onFace(f, carvedBlockGeometry(block, L), a.x0, a.yTop, a.d));
+      const cg = carvedBlockGeometry(block, L); carvedSigns.push({ id: a.id, ver: 'op', signs: cg.userData.signs });
+      carved.push(onFace(f, cg, a.x0, a.yTop, a.d));
       const quad = box(a.w + 0.1, a.h + 0.1, 0.001); onFace(f, quad, a.x0 + a.w / 2, a.yTop - a.h - 0.05, a.d - 0.01);
       const pick = new THREE.Mesh(quad, pickMat); pick.layers.set(INSCRIPTION_PICK_LAYER); pick.name = `inscription:${a.id}:op:pick`;
       pick.userData = { tier: 'C', inscription: a.id, version: 'op', pickFar: 80 }; texts.add(pick);
@@ -305,7 +306,7 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   }
   if (carved.length) {
     const tm = new THREE.Mesh(mergeGeometries(carved.map(g => g.index ? g.toNonIndexed() : g))!, inscMat); tm.name = 'nr-inscriptions-carved'; tm.receiveShadow = true;
-    tm.userData = { tier: 'B/C', src: 'ARIO;LIVIUS-KENT;NOTO;LIVIUS-NR', note: `DNa, DNb Old Persian (text A: ARIo Q007152/Q007153, CC0; signs D-165: ARIo's words by Kent's rules, checked against Kent's transliteration, B where they agree (research/OP_SIGNS.md); Kent's 60 lines each (B); incised in the dressed field, V-section at 45° (C, D-166); signs lost in the edition left uncut; panel position C; Elamite and Babylonian versions not carved) — ${textInfo.join('; ')}` };
+    tm.userData = { carved: carvedSigns, tier: 'B/C', src: 'ARIO;LIVIUS-KENT;NOTO;LIVIUS-NR', note: `DNa, DNb Old Persian (text A: ARIo Q007152/Q007153, CC0; signs D-165: ARIo's words by Kent's rules, checked against Kent's transliteration, B where they agree (research/OP_SIGNS.md); Kent's 60 lines each (B); incised in the dressed field, V-section at 45° (C, D-166); signs lost in the edition left uncut; panel position C; Elamite and Babylonian versions not carved) — ${textInfo.join('; ')}` };
     texts.add(tm); tris += tm.geometry.getAttribute('position').count / 3;
   }
   group.add(texts);
