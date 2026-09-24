@@ -52,7 +52,8 @@ Total 9,310 people with seed 1 (5,080 resident, ~4,230 visitors over the season)
 
 ## 3. Numbers against population.json (measured from the plans; `npx tsx tools/dev/court_count.ts`)
 Terrace, court resident: w 5,000 by day (range 3,000-8,000), w 2,500 by night (1,500-4,000). With the court (seed 1):
-see D-182 for the table by hour; at 10:00 4,150-4,680 (0.83-0.94 of w), at 02:00 2,294 (0.92 of w). The Terrace
+day 30 by hour 00 2,294 · 06 3,198 · 08 4,385 · 10 4,448 · 12 4,255 · 14 3,652 · 16 3,229 · 18 2,788 · 20 2,427 ·
+22 2,096; at 10:00 on days 0 / 60 / 100 4,149 / 4,584 / 4,680 (0.83-0.94 of w); at 02:00 2,295 (0.92 of w). The Terrace
 without the court at 10:00: 677-957.
 
 ## 4. Conflicts and open questions (research/OPEN_QUESTIONS.md Q-330 to Q-336)

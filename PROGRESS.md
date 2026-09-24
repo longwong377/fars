@@ -1,6 +1,12 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Session 6, court workstream (branch court-s6, D-182; not merged by this workstream).** With the court setting the
+  court in residence is simulated and drawn (9,310 people, C; the Terrace 4,448 at 10:00 and 2,295 at 02:00 on day 30).
+  **Not rendered in a browser yet** (node counts only). **PLACEHOLDER:** delegates' dress (generic Median riding dress),
+  the court camp's tents (people drawn in the open), the spearmen's apple-shaped butts, the royal women's night music.
+  **Not simulated:** the retinue in the town (+13,000) and the plain (+5,000); the king (B9). The court's views: the
+  hillside is over 12 M triangles on the world alone (B13).
 - **Session 6, music and occlusion workstream (branch p8-music-s6, D-178; not merged by this workstream).** Music now plays
   only from performers: quern songs, Ionian masons' songs, and the court's supper and night music when the court setting
   is on. Audio occlusion now uses the built geometry. **Unverified:** it has not been heard in a browser (worker render,
