@@ -2544,6 +2544,77 @@ the CPU and is not representative. The node figures below are the reference.
   - no licensed translation (B17(a));
   - the carving's sign spelling belongs to the carving workstream (review C1).
 
+## D-176 The Old Persian transliteration corpus may be stored: the ancient text is public domain, the transliteration a mechanical rendering of it (licence; lead decision, session 6, carving workstream)
+- **The question.** The session-5 carving work (`p8-carving`, WIP a56a128) read Kent-style Old Persian transliterations from the Electronic-Old-Persian-Library/Old-Persian-Dataset scrape of the Livius.org pages and stored them as `data/corpus/livius_op.json`. D-167 found that every Livius page is "All content copyright © 1995–2024 Livius.org. All rights reserved." and that the repository's CC-BY-NC cannot relicense Livius' own text. HANDOFF item 7 asked for this licence check before the carving could be merged.
+- **Decision (the lead's, binding for the workstream):** the corpus may be stored for this personal, non-commercial project, on three conditions:
+  - (a) only the transliteration lines are stored: no Livius translation, commentary, notes or page formatting;
+  - (b) the file is `data/corpus/op_translit.json`, and its `_meta` states the basis: the ancient text (public domain); the transliteration convention (Kent 1953 / Lecoq 1997); the retrieval from the Electronic-Old-Persian-Library/Old-Persian-Dataset repository (CC-BY-NC), which scraped the Livius.org pages, whose presentation and translations are "All rights reserved" and are not stored;
+  - (c) an ASSET_LEDGER.md row records exactly this.
+- **Why.**
+  - The Old Persian royal inscriptions are ancient texts: public domain.
+  - A sign-by-sign transliteration in Kent's standard convention is a mechanical rendering of that text. Every letter but the inherent *a* stands for one sign on the stone, *â* after a consonant is the sign *a*, a logogram is written XŠ, DH and so on, and "\" is the word divider. It records what is on the stone, not an author's expression. Livius' authored content is the translation, the notes and the presentation, and none of that is stored.
+  - The repository that scraped the pages is CC-BY-NC, which USE (personal, non-commercial) allows.
+  - Translations stay blocked (B17(a)): none is added, and the translation layer's `TRANSLATION_STATUS` is unchanged.
+- **Done:**
+  - `data/corpus/livius_op.json` → `data/corpus/op_translit.json`, with the `_meta` of (b);
+  - kept per text: `lines` (the transliteration), `file` (the scraped page read) and `sha256` (its hash at retrieval, provenance);
+  - checked: the XPa hash re-computed from a fresh fetch (2026-09-24) equals the stored one;
+  - checked: every token of every line is a transliterated word, a divider, a lost-sign mark "+" or a restored "(…)"; no English word; tested in tests/lang.test.ts ("the corpus holds transliteration lines only");
+  - added DPc (one line, fetched 2026-09-24, same repository). The session-5 extract lacked it, so the window-cornice text had been spelled by rule only;
+  - ASSET_LEDGER row "Old Persian transliteration corpus"; source key `OP-TRANSLIT` (src/data/sources.json, research/SOURCES.md), which replaces the unregistered `LIVIUS-KENT` the WIP cited;
+  - the extraction script the WIP's `_meta` named (tools/extract_livius_op.py) was never committed. The session-6 `_meta` no longer cites it. The one line added (DPc) was taken from the fetched page by a line match and checked by the same token test.
+
+## D-177 The carved inscriptions: the published sign sequence word for word, incised into the host stone, the royal programme as data with its gaps flagged (Phase 8 review A-C1 / B-C1, A-M5, A-M6, A-M2 / B-M1; session 6, carving workstream; finishes the session-5 WIP a56a128, whose D-165/D-166 were never written)
+- **What is carved (review C1, both lenses).** Before, the world carved `toCuneiform(op_translit)`, a letter-by-letter spelling of Schmitt's *normalised* transcription (ARIo). The reviews measured 179 of 832 words (22 %) misspelled, Xerxes' name among them. The session-5 WIP spelled Schmitt's words by Kent's rules and checked them against Kent's transliteration. Where the two differed, it carved Schmitt's reading by rule (the READ class). That still carved signs no edition prints: for example DPd *visai̯biš* by rule (vi-i-sa-…) where the stone and Kent have vi-θa-i-ba-i-ša.
+  - **Decision:** the world carves the published sign sequence itself: the sign-by-sign transliteration in Kent's convention (data/corpus/op_translit.json, D-176), word by word, with its word division and its lines. `tools/build_op_signs.ts` writes `op_signs` from the corpus through `corpusWords` / `corpusSignLines` (src/lang/oldPersian.ts); nothing is re-derived at runtime.
+  - **Slips of the copy.** The corpus is a scraped copy with typing slips: "Xšhayâršâm", "gâthun", "upâ" for utâ, the logogram typed "xšhyâ". They are corrected ONLY by the 17 listed decisions in data/corpus/op_sign_decisions.json. Each carries one of three kinds of evidence, which the build and tests/lang.test.ts both verify:
+    - `ario`: the corrected signs are exactly Kent's rules on Schmitt's reading of the same word, so the two editions agree and only the copy differs (15 corrections);
+    - `copy`: the corrected word stands so spelled elsewhere in the corpus (DPc XŠhyā);
+    - `convention`: the copy's form cannot occur in Kent's convention (DNb "xšnnutam", a doubled letter).
+  - **Where the editions read differently, the corpus is carved.** Words Kent reads and Schmitt does not are carved (5); words only Schmitt reads are not (11, all in DNb). Schmitt's edition is compared only, word by word (research/OP_SIGNS.md): 74 of 1034 aligned word groups are carved otherwise than Kent's rules on Schmitt's word would spell them:
+    - 14 differ by a written glide (*paruv-zanānām*, *ahiyāyā*, *xšnāsāhy*);
+    - 12 by a logogram (XPc, DPc);
+    - 48 by a reading, 39 of them in DNb, where Kent's 1953 text of §§ 8–11 predates the XPl duplicate that Schmitt uses.
+    All are logged in Q-288. The translation layer still shows Schmitt's words (ARIo is the text it glosses) and says in how many words they differ from the carved signs.
+  - **Lost signs.** Signs the corpus marks lost ("+", 26 in DNb) are carved as uncut blanks one sign wide. In 467 the stone was complete, so this is a PLACEHOLDER (flagged in the Naqsh-e Rustam note): nothing is invented. Schmitt's restorations at those points are not in Kent's sign sequence.
+  - **Measured** (tests/lang.test.ts, re-derived from the corpus and read back from the shipped panelText):
+    - 1043 corpus words in 1039 divided groups across the 12 carved Old Persian texts (XPa–XPe, DPa–DPe, DNa, DNb), 0 mismatches;
+    - Xerxes' name xa-ša-ya-a-ra-ša-a on every Xerxes text (14 occurrences);
+    - the corpus's line count kept for every text;
+    - the letter-by-letter spelling carved before would differ in 249 of 1027 words.
+  - The language lint (tests/language.test.ts) reads back the signs each carved mesh cuts (`carvedGeometry` records them) and requires them to equal the data's sequence, one quad per sign, for every panel on the Terrace and at Naqsh-e Rustam.
+  - Tier: signs B. Kent's print and Schmitt's own sign-by-sign edition were not read, so a slip the copy shares with no other evidence cannot be seen (Q-288).
+- **Incised, not raised (A-M6).** Kept from the WIP (src/arch/carving.ts, src/render/incision.ts):
+  - each sign's outline, from the Noto font glyph, is the edge of a V-section cut with walls at 45° (C: Schmidt 1953 not seen). Depth at a point = its distance to the edge, stored per sign in a depth atlas;
+  - each sign is a quad lying 0.5 mm off the host face. The shader marches the view ray into the depth field (16 steps plus a refinement), lights the cut's wall by the normal from the depth gradient, in the host stone's own material, and occludes skylight with depth (≤ 30 %). The uncut face shows where the entry point is uncut;
+  - nothing stands proud (tested: quads within 1 mm of the host face, snapped panels on their box face, depths 1.5–15 mm);
+  - new test: the wall normal the shader uses lights the far wall of each stroke under a low sun and shades the near one, the opposite of a raised sign (> 20 signs of both scripts);
+  - `tools/incision_preview.ts` renders the same march in node for a raking-light look. A first preview of XPa shows cut wedges lit correctly, with fine stepped banding on the walls (the 8-bit depth atlas and 1-texel gradients).
+  - Not done: the stone mesh itself is not cut, so a sign seen edge-on leaves no notch in the silhouette, and the sun's shadow map does not resolve the walls. No GPU render yet (the lead runs those).
+- **Placement (SITE_SPEC; LANGUAGES.md §2).** Unchanged from the WIP except the notes. Each carved copy, its location and tier is a row of `src/data/royal_inscriptions.json` `carved`:
+  - XPa above each of the 4 colossi, trilingual (Q-289);
+  - XPb on the Apadana N and E stairs, the Old Persian on one panel, the Babylonian and Elamite on another;
+  - XPc: the copy "on the south wall of the terrace on which the palace is built" = the Tachara S stair façade;
+  - XPd beside the Hadish W stair;
+  - XPe on the Hadish E/W doorway reveals, 12 of the published 14;
+  - DPa on the Tachara S doorway;
+  - DPb, the four-line copy, on the Hadish NW doorway;
+  - DPc on the Tachara window cornices;
+  - DPd–DPg on the Terrace south wall;
+  - DNa and DNb on the tomb.
+  Each is B for the building or wall and C for the exact field. tests/inscriptions.test.ts counts every carved copy from that file and fails on any carved text it does not list.
+- **The programme's gaps (A-M5)** are rows of `missing` in the same file, each with why, all Q-290:
+  - the XPc copies on the Tachara S portico's E and W pillars, and the XPd copies on the Hadish N portico's two pillars (the model has no anta face identified; not placed on a guessed face);
+  - DPb's one-line copy on Darius' garment;
+  - XPk (Xerxes' garment);
+  - XPg (glazed bricks and plaque);
+  - XPj and XPm (column bases);
+  - the Elamite and Babylonian versions of DNa and DNb (not in the corpus read);
+  - the tomb captions DNc, DNd and DNe.
+  Texts not visible in 467 are listed as `hidden`: DPh sealed plates, XPf, XPh, XPl; the door knobs DPi and XPi belong to props.
+  - In the dev overlay (F3), the inscriptions group carries `placeholder: true`, the missing list and a summary line, which also appears in the world summary. The panels of XPc, XPd and DPb and the Naqsh-e Rustam text name their uncarved copies or versions.
+- **The layer (A-M2 / B-M1).** D-168 (layer workstream) had fixed M2: a panel shows the transliteration of its own version. The merge keeps that and adds the carving's texts to `INSCRIPTION_INFO`, which now says which versions are carved (XPb, XPc, XPd are carved trilingual; DNa and DNb are Old Persian only).
+- **Records.** OPEN_QUESTIONS Q-288 (edition differences and copy slips), Q-289 (XPa per colossus, the WIP's Q-282), Q-290 (the programme's gaps), Q-291 (the lexicon's Mudrāya entry, the WIP's Q-283). Source key OP-TRANSLIT.
 ## D-180 Light probes: bake-time bounce denoise and wall-aware intermediate fields (session 6, lead)
 - **Found:** the first session-6 renders of `apadana-hall-in` (quality test, WebGPU and WebGL2 alike) show orange-brown
   blotches over the dark ceiling and the far columns. Measured on the baked field: in the Apadana's inner hall (probes ≥ 6 m

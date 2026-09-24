@@ -11,10 +11,626 @@
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",
-   "op_signs": "C (Kent orthographic rules)",
+   "op_signs": "B (the published sign-by-sign transliteration, Kent's convention, data/corpus/op_translit.json; slips of the copy corrected only as listed in op_sign_decisions.json; D-177)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)"
-  }
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (the corpus lineation)"
+  },
+  "op_signs": [
+   "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a : ha-ya : i-ma-a-ma : ba-u-mi-i-ma : a",
+   "da-a : ha-ya : a-va-ma : a-sa-ma-a-na-ma : a-da-a : ha-ya : ma-ra-ta-i-ya-ma :",
+   "a-da-a : ha-ya : ša-i-ya-a-ta-i-ma : a-da-a : ma-ra-ta-i-ya-ha-ya-a : ha-ya",
+   ": xa-ša-ya-a-ra-ša-a-ma : xa-ša-a-ya-θa-i-ya-ma : a-ku-u-na-u-ša : a-i-va-ma :",
+   "pa-ru-u-na-a-ma : xa-ša-a-ya-θa-i-ya-ma : a-i-va-ma : pa-ru-u-na-a-ma : fa-ra-ma",
+   "a-ta-a-ra-ma : a-da-ma : xa-ša-ya-a-ra-ša-a : xa-ša-a-ya-θa-i-ya : va-za-ra-ka :",
+   "xa-ša-a-ya-θa-i-ya : xa-ša-a-ya-θa-i-ya-a-na-a-ma : xa-ša-a-ya-θa-i-ya : da-ha-ya",
+   "u-na-a-ma : pa-ru-u-va : za-na-a-na-a-ma : xa-ša-a-ya-θa-i-ya : a-ha-ya-a-ya",
+   "a : ba-u-mi-i-ya-a : va-za-ra-ka-a-ya-a : du-u-ra-i-ya : a-pa-i-ya : da-a",
+   "ra-ya-va-ha-u-ša : xa-ša-a-ya-θa-i-ya-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša",
+   "i-ya : θa-a-ta-i-ya : xa-ša-ya-a-ra-ša-a : xa-ša-a-ya-θa-i-ya : va-ša-na-a :",
+   "a-u-ra-ma-za-da-a-ha-a : i-ma-ma : du-u-va-ra-θa-i-ma : vi-i-sa-da-ha-ya-u-ma",
+   ": a-da-ma : a-ku-u-na-va-ma : va-sa-i-ya : a-na-i-ya-ša-ca-i-ya : na-i-ba-ma",
+   ": ka-ra-ta-ma : a-na-a : pa-a-ra-sa-a : ta-ya : a-da-ma : a-ku-u-na-va-ma :",
+   "u-ta-ma-i-ya : ta-ya : pa-i-ta-a : a-ku-u-na-u-ša : ta-ya-pa-ta-i-ya : ka",
+   "ra-ta-ma : va-i-na-ta-i-ya : na-i-ba-ma : a-va : vi-i-sa-ma : va-ša-na-a : a",
+   "u-ra-ma-za-da-a-ha-a : a-ku-u-ma-a : θa-a-ta-i-ya : xa-ša-ya-a-ra-ša-a :",
+   "xa-ša-a-ya-θa-i-ya : ma-a-ma : a-u-ra-ma-za-da-a : pa-a-tu-u-va : u-ta-ma-i",
+   "ya : xa-ša-ça-ma : u-ta-a : ta-ya : ma-na-a : ka-ra-ta-ma : u-ta-a : ta-ya-ma-i",
+   "ya : pa-i-ça : ka-ra-ta-ma : a-va-ša-ca-i-ya : a-u-ra-ma-za-da-a : pa-a-tu-u-va"
+  ],
+  "op_words": [
+   {
+    "ario": "baga",
+    "copy": "baga",
+    "signs": "ba-ga",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "imām",
+    "copy": "imâm",
+    "signs": "i-ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "būmim",
+    "copy": "bûmim",
+    "signs": "ba-u-mi-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "a|dâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "avam",
+    "copy": "avam",
+    "signs": "a-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "asmānam",
+    "copy": "asmânam",
+    "signs": "a-sa-ma-a-na-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiyam",
+    "copy": "martiyam",
+    "signs": "ma-ra-ta-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "šiyātim",
+    "copy": "šiyâtim",
+    "signs": "ša-i-ya-a-ta-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiyahyā",
+    "copy": "martiyahyâ",
+    "signs": "ma-ra-ta-i-ya-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšām",
+    "copy": "Xšhayâršâm",
+    "signs": "xa-ša-ya-a-ra-ša-a-ma",
+    "cmp": "same",
+    "read": "Xšayâršâm"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "copy": "xšâyathiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunau̯š",
+    "copy": "akunauš",
+    "signs": "a-ku-u-na-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "ai̯vam",
+    "copy": "aivam",
+    "signs": "a-i-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "parūnām",
+    "copy": "parûnâm",
+    "signs": "pa-ru-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "copy": "xšâyathiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "ai̯vam",
+    "copy": "aivam",
+    "signs": "a-i-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "parūnām",
+    "copy": "parûnâm",
+    "signs": "pa-ru-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "framātāram",
+    "copy": "fram|âtâram",
+    "signs": "fa-ra-ma-a-ta-a-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "copy": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "copy": "Xšayâršâ",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "copy": "xšâyathiyânâm",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "dahyunām",
+    "copy": "dahy|ûnâm",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "paruzanānām",
+    "copy": "paruv zanânâm",
+    "signs": "pa-ru-u-va : za-na-a-na-a-ma",
+    "cmp": "glide"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ahyāyā",
+    "copy": "ahyây|â",
+    "signs": "a-ha-ya-a-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "būmiyā",
+    "copy": "bûmiyâ",
+    "signs": "ba-u-mi-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛkāyā",
+    "copy": "vazrakâyâ",
+    "signs": "va-za-ra-ka-a-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dūrai̯",
+    "copy": "dûraiy",
+    "signs": "du-u-ra-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "api",
+    "copy": "apiy",
+    "signs": "a-pa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "copy": "Dâ|rayavahauš",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "copy": "xšâyathiyahyâ",
+    "signs": "xa-ša-a-ya-θa-i-ya-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "puça",
+    "copy": "puça",
+    "signs": "pa-u-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "copy": "Hâxâmaniš|iya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "cmp": "same",
+    "read": "Haxâmaniš|iya"
+   },
+   {
+    "ario": "θāti",
+    "copy": "thâtiy",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "copy": "Xšayâršâ",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnā",
+    "copy": "vašnâ",
+    "signs": "va-ša-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "copy": "Auramazdâhâ",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "imam",
+    "copy": "imam",
+    "signs": "i-ma-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "duvarθim",
+    "copy": "duvarthim",
+    "signs": "du-u-va-ra-θa-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "Visadahyum",
+    "copy": "visadahyum",
+    "signs": "vi-i-sa-da-ha-ya-u-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "copy": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunavam",
+    "copy": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "vasai̯",
+    "copy": "vasiy",
+    "signs": "va-sa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "aniyašci",
+    "copy": "aniyašciy",
+    "signs": "a-na-i-ya-ša-ca-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯bam",
+    "copy": "naibam",
+    "signs": "na-i-ba-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛtam",
+    "copy": "kartam",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "anā",
+    "copy": "anâ",
+    "signs": "a-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Pārsā",
+    "copy": "Pârsâ",
+    "signs": "pa-a-ra-sa-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "copy": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunavam",
+    "copy": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "utamai̯",
+    "copy": "utamaiy",
+    "signs": "u-ta-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "pitā",
+    "copy": "pitâ",
+    "signs": "pa-i-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunau̯š",
+    "copy": "akunauš",
+    "signs": "a-ku-u-na-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayapati",
+    "copy": "tyapatiy",
+    "signs": "ta-ya-pa-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛtam",
+    "copy": "ka|rtam",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "vai̯natai̯",
+    "copy": "vainataiy",
+    "signs": "va-i-na-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯bam",
+    "copy": "naibam",
+    "signs": "na-i-ba-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "ava",
+    "copy": "ava",
+    "signs": "a-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "visam",
+    "copy": "visam",
+    "signs": "vi-i-sa-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnā",
+    "copy": "vašnâ",
+    "signs": "va-ša-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "copy": "A|uramazdâhâ",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "akumā",
+    "copy": "akumâ",
+    "signs": "a-ku-u-ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "θāti",
+    "copy": "thâtiy",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "copy": "Xšayâršâ",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "mām",
+    "copy": "mâm",
+    "signs": "ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "pātu",
+    "copy": "pâtuv",
+    "signs": "pa-a-tu-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "utamai̯",
+    "copy": "utamai|y",
+    "signs": "u-ta-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšaçam",
+    "copy": "xšaçam",
+    "signs": "xa-ša-ça-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "manā",
+    "copy": "manâ",
+    "signs": "ma-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛtam",
+    "copy": "kartam",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayamai̯",
+    "copy": "tyamai|y",
+    "signs": "ta-ya-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "piça",
+    "copy": "piça",
+    "signs": "pa-i-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛtam",
+    "copy": "kartam",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "avašci",
+    "copy": "avašciy",
+    "signs": "a-va-ša-ca-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "pātu",
+    "copy": "pâtuv",
+    "signs": "pa-a-tu-u-va",
+    "cmp": "same"
+   }
+  ],
+  "op_lined": true
  },
  "XPb": {
   "ario": "Q007210",
@@ -27,10 +643,491 @@
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",
-   "op_signs": "C (Kent orthographic rules)",
+   "op_signs": "B (the published sign-by-sign transliteration, Kent's convention, data/corpus/op_translit.json; slips of the copy corrected only as listed in op_sign_decisions.json; D-177)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)"
-  }
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (the corpus lineation)"
+  },
+  "op_signs": [
+   "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a",
+   ": ha-ya : i-ma-a-ma : ba-u-mi-i-ma :",
+   "a-da-a : ha-ya : a-va-ma : a-sa-ma-a",
+   "na-ma : a-da-a : ha-ya : ma-ra-ta-i-ya",
+   "ma : a-da-a : ha-ya : ša-i-ya-a-ta-i",
+   "ma : a-da-a : ma-ra-ta-i-ya-ha-ya-a :",
+   "ha-ya : xa-ša-ya-a-ra-ša-a-ma : xa-ša-a",
+   "ya-θa-i-ya-ma : a-ku-u-na-u-ša : a-i",
+   "va-ma : pa-ru-u-na-a-ma : xa-ša-a-ya-θa",
+   "i-ya-ma : a-i-va-ma : pa-ru-u-na-a-ma",
+   ": fa-ra-ma-a-ta-a-ra-ma : a-da-ma : xa",
+   "ša-ya-a-ra-ša-a : xa-ša-a-ya-θa-i-ya :",
+   "va-za-ra-ka : xa-ša-a-ya-θa-i-ya : xa-ša",
+   "a-ya-θa-i-ya-a-na-a-ma : xa-ša-a-ya-θa",
+   "i-ya : da-ha-ya-u-na-a-ma : pa-ru-u-va",
+   "za-na-a-na-a-ma : xa-ša-a-ya-θa-i-ya :",
+   "a-ha-i-ya-a-ya-a : ba-u-mi-i-ya-a :",
+   "va-za-ra-ka-a-ya-a : du-u-ra-i-ya : a",
+   "pa-i-ya : da-a-ra-ya-va-ha-u-ša : xa-ša",
+   "a-ya-θa-i-ya-ha-ya-a : pa-u-ça : ha-xa",
+   "a-ma-na-i-ša-i-ya : θa-a-ta-i-ya : xa",
+   "ša-ya-a-ra-ša-a : xa-ša-a-ya-θa-i-ya :",
+   "va-za-ra-ka : ta-ya : ma-na-a : ka-ra-ta",
+   "ma : i-da-a : u-ta-a : ta-ya-ma-i-ya",
+   ": a-pa-ta-ra-ma : ka-ra-ta-ma : a-va : vi",
+   "i-sa-ma : va-ša-na-a : a-u-ra-ma-za-da-a",
+   "ha : a-ku-u-na-va-ma : ma-a-ma : a-u-ra",
+   "ma-za-da-a : pa-a-tu-u-va : ha-da-a : ba",
+   "ga-i-ba-i-ša : u-ta-a-ma-i-ya : xa-ša-ça",
+   "ma : u-ta-a : ta-ya-ma-i-ya : ka-ra-ta-ma"
+  ],
+  "op_words": [
+   {
+    "ario": "baga",
+    "copy": "baga",
+    "signs": "ba-ga",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "imām",
+    "copy": "imâm",
+    "signs": "i-ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "būmim",
+    "copy": "bûmim",
+    "signs": "ba-u-mi-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "avam",
+    "copy": "avam",
+    "signs": "a-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "asmānam",
+    "copy": "asmâ|nam",
+    "signs": "a-sa-ma-a-na-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiyam",
+    "copy": "martiya|m",
+    "signs": "ma-ra-ta-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "šiyātim",
+    "copy": "shiyâti|m",
+    "signs": "ša-i-ya-a-ta-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiyahyā",
+    "copy": "martiyahyâ",
+    "signs": "ma-ra-ta-i-ya-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšām",
+    "copy": "Xšayâršâm",
+    "signs": "xa-ša-ya-a-ra-ša-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "copy": "xšâ|yathiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunau̯š",
+    "copy": "akunaush",
+    "signs": "a-ku-u-na-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "ai̯vam",
+    "copy": "ai|vam",
+    "signs": "a-i-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "parūnām",
+    "copy": "parûnâm",
+    "signs": "pa-ru-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "copy": "xšâyath|iyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "ai̯vam",
+    "copy": "aivam",
+    "signs": "a-i-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "parūnām",
+    "copy": "parûnâm",
+    "signs": "pa-ru-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "framātāram",
+    "copy": "framâtâram",
+    "signs": "fa-ra-ma-a-ta-a-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "copy": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "copy": "X|shayârshâ",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "copy": "xsh|âyathiyânâm",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyath|iya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "dahyunām",
+    "copy": "dahyûnâm",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "paruzanānām",
+    "copy": "paruv|zanânâm",
+    "signs": "pa-ru-u-va-za-na-a-na-a-ma",
+    "cmp": "glide"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ahyāyā",
+    "copy": "ahiyâyâ",
+    "signs": "a-ha-i-ya-a-ya-a",
+    "cmp": "glide"
+   },
+   {
+    "ario": "būmiyā",
+    "copy": "bûmiyâ",
+    "signs": "ba-u-mi-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛkāyā",
+    "copy": "vazrakâyâ",
+    "signs": "va-za-ra-ka-a-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dūrai̯",
+    "copy": "dûraiy",
+    "signs": "du-u-ra-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "api",
+    "copy": "a|piy",
+    "signs": "a-pa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "copy": "Dârayavahaush",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "copy": "xsh|âiyathiyahyâ",
+    "signs": "xa-ša-a-ya-θa-i-ya-ha-ya-a",
+    "cmp": "same",
+    "read": "xsh|âyathiyahyâ"
+   },
+   {
+    "ario": "puça",
+    "copy": "puça",
+    "signs": "pa-u-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "copy": "Hax|âmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "θāti",
+    "copy": "thâtiy",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "copy": "X|shayârshâ",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "manā",
+    "copy": "manâ",
+    "signs": "ma-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛtam",
+    "copy": "karta|m",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "idā",
+    "copy": "idâ",
+    "signs": "i-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayamai̯",
+    "copy": "tyamaiy",
+    "signs": "ta-ya-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "apataram",
+    "copy": "apataram",
+    "signs": "a-pa-ta-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛtam",
+    "copy": "kartam",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "ava",
+    "copy": "ava",
+    "signs": "a-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "visam",
+    "copy": "v|isam",
+    "signs": "vi-i-sa-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnā",
+    "copy": "vashnâ",
+    "signs": "va-ša-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāha",
+    "copy": "Auramazdâ|ha",
+    "signs": "a-u-ra-ma-za-da-a-ha",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunavam",
+    "copy": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "mām",
+    "copy": "mâm",
+    "signs": "ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Aura|mazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "pātu",
+    "copy": "pâtuv",
+    "signs": "pa-a-tu-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "hadā",
+    "copy": "hadâ",
+    "signs": "ha-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "bagai̯biš",
+    "copy": "ba|gaibish",
+    "signs": "ba-ga-i-ba-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "utāmai̯",
+    "copy": "utâmaiy",
+    "signs": "u-ta-a-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšaçam",
+    "copy": "xshaça|m",
+    "signs": "xa-ša-ça-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayamai̯",
+    "copy": "tyamaiy",
+    "signs": "ta-ya-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛtam",
+    "copy": "kartam",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   }
+  ],
+  "op_lined": true
  },
  "XPc": {
   "ario": "Q007211",
@@ -43,10 +1140,518 @@
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",
-   "op_signs": "C (Kent orthographic rules)",
+   "op_signs": "B (the published sign-by-sign transliteration, Kent's convention, data/corpus/op_translit.json; slips of the copy corrected only as listed in op_sign_decisions.json; D-177)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)"
-  }
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (the corpus lineation)"
+  },
+  "op_signs": [
+   "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a : ha-ya : i-ma-a-ma : ba-u-mi-i-ma :",
+   "a-da-a : ha-ya : a-va-ma : a-sa-ma-a-na-ma : a-da-a : ha-ya : ma-ra-ta-i",
+   "ya-ma : a-da-a : ha-ya : ša-i-ya-a-ta-i-ma : a-da-a : ma-ra-ta-i-ya-ha-ya-a",
+   ": ha-ya : xa-ša-ya-a-ra-ša-a-ma : XŠ-ma : a-ku-u-na-u-ša : a-i-va-ma : pa",
+   "ru-u-na-a-ma : XŠ-ma : a-i-va-ma : pa-ru-u-na-a-ma : fa-ra-ma-a-ta-a-ra-ma",
+   ": a-da-ma : xa-ša-ya-a-ra-ša-a : XŠ : va-za-ra-ka : XŠ : XŠ-a-na-a-ma : XŠ :",
+   "da-ha-ya-u-na-a-ma : pa-ru-u-va : za-na-a-na-a-ma : XŠ : a-ha-ya-a-ya-a : ba",
+   "u-mi-i-ya-a : va-za-ra-ka-a-ya-a : du-u-ra-i-ya : a-pa-i-ya : da-a-ra-ya-va",
+   "ha-u-ša : XŠ-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya : θa-a-ta-i-ya : xa",
+   "ša-ya-a-ra-ša-a : XŠ : va-za-ra-ka : va-ša-na-a : a-u-ra-ha-ya ma-za-da-a-ha : i",
+   "ma : ha-di-i-ša : da-a-ra-ya-va-u-ša : XŠ : a-ku-u-na-u-ša : ha-ya : ma-na-a :",
+   "pa-i-ta-a : ma-a-ma : a-u-ra-ma-za-da-a : pa-a-tu-u-va : ha-da-a : ba-ga",
+   "i-ba-i-ša : u-ta-a : ta-ya-ma-i-ya : ka-ra-ta-ma : u-ta-a : ta-ya-ma-i-ya :",
+   "pa-i-ça : da-a-ra-ya-va-ha-u-ša : XŠ-ha-ya-a : ka-ra-ta-ma : a-va-ša-ca-i-ya",
+   ": a-u-ra-ma-za-da-a : pa-a-tu-u-va : ha-da-a : ba-ga-i-ba-i-ša"
+  ],
+  "op_words": [
+   {
+    "ario": "baga",
+    "copy": "baga",
+    "signs": "ba-ga",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "imām",
+    "copy": "imâm",
+    "signs": "i-ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "būmim",
+    "copy": "bûmim",
+    "signs": "ba-u-mi-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "avam",
+    "copy": "avam",
+    "signs": "a-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "asmānam",
+    "copy": "asmânam",
+    "signs": "a-sa-ma-a-na-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiyam",
+    "copy": "marti|yam",
+    "signs": "ma-ra-ta-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "šiyātim",
+    "copy": "šiyâtim",
+    "signs": "ša-i-ya-a-ta-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiyahyā",
+    "copy": "martiyahyâ",
+    "signs": "ma-ra-ta-i-ya-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšām",
+    "copy": "Xšayâršâm",
+    "signs": "xa-ša-ya-a-ra-ša-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "copy": "XŠm",
+    "signs": "XŠ-ma",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "akunau̯š",
+    "copy": "akunauš",
+    "signs": "a-ku-u-na-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "ai̯vam",
+    "copy": "aivam",
+    "signs": "a-i-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "parūnām",
+    "copy": "pa|runâm",
+    "signs": "pa-ru-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "copy": "XŠm",
+    "signs": "XŠ-ma",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "ai̯vam",
+    "copy": "aivam",
+    "signs": "a-i-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "parūnām",
+    "copy": "parûnâm",
+    "signs": "pa-ru-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "framātāram",
+    "copy": "framâtâram",
+    "signs": "fa-ra-ma-a-ta-a-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "copy": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "copy": "Xšayâršâ",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "XŠ",
+    "signs": "XŠ",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "XŠ",
+    "signs": "XŠ",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "copy": "XŠânâm",
+    "signs": "XŠ-a-na-a-ma",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "XŠ",
+    "signs": "XŠ",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "dahyunām",
+    "copy": "dahyûnâm",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "paru",
+    "copy": "paruv",
+    "signs": "pa-ru-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "zanānām",
+    "copy": "zanânâm",
+    "signs": "za-na-a-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "XŠ",
+    "signs": "XŠ",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "ahyāyā",
+    "copy": "ahyâyâ",
+    "signs": "a-ha-ya-a-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "būmiyā",
+    "copy": "b|umiyâ",
+    "signs": "ba-u-mi-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛkāyā",
+    "copy": "vazrakâyâ",
+    "signs": "va-za-ra-ka-a-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dūrai̯",
+    "copy": "dûraiy",
+    "signs": "du-u-ra-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "api",
+    "copy": "apiy",
+    "signs": "a-pa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "copy": "Dârayava|hauš",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "copy": "XŠhyâ",
+    "signs": "XŠ-ha-ya-a",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "puça",
+    "copy": "puça",
+    "signs": "pa-u-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "copy": "Haxâmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "θāti",
+    "copy": "thâtiy",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "copy": "X|šayâršâ",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "XŠ",
+    "signs": "XŠ",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnā",
+    "copy": "vašnâ",
+    "signs": "va-ša-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.urahya-Māzdaha",
+    "copy": "Aurahya Mazdâha",
+    "signs": "a-u-ra-ha-ya ma-za-da-a-ha",
+    "cmp": "reading"
+   },
+   {
+    "ario": "ima",
+    "copy": "i|ma",
+    "signs": "i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "hadiš",
+    "copy": "hadiš",
+    "signs": "ha-di-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "copy": "Dârayavauš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "XŠ",
+    "signs": "XŠ",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "akunau̯š",
+    "copy": "akunauš",
+    "signs": "a-ku-u-na-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "manā",
+    "copy": "manâ",
+    "signs": "ma-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "pitā",
+    "copy": "pitâ",
+    "signs": "pa-i-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "mām",
+    "copy": "mâm",
+    "signs": "ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "pātu",
+    "copy": "pâtuv",
+    "signs": "pa-a-tu-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "hadā",
+    "copy": "hadâ",
+    "signs": "ha-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "bagai̯biš",
+    "copy": "baga|ibiš",
+    "signs": "ba-ga-i-ba-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "upâ",
+    "signs": "u-ta-a",
+    "cmp": "same",
+    "read": "utâ"
+   },
+   {
+    "ario": "tayamai̯",
+    "copy": "tyamaiy",
+    "signs": "ta-ya-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛtam",
+    "copy": "kartam",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayamai̯",
+    "copy": "tyamaiy",
+    "signs": "ta-ya-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "piça",
+    "copy": "piça",
+    "signs": "pa-i-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "copy": "Dârayavahauš",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "copy": "XŠhyâ",
+    "signs": "XŠ-ha-ya-a",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "kṛtam",
+    "copy": "kartam",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "avašci",
+    "copy": "avašciy",
+    "signs": "a-va-ša-ca-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "pātu",
+    "copy": "pâtuv",
+    "signs": "pa-a-tu-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "hadā",
+    "copy": "hadâ",
+    "signs": "ha-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "bagai̯biš",
+    "copy": "bagaibiš",
+    "signs": "ba-ga-i-ba-i-ša",
+    "cmp": "same"
+   }
+  ],
+  "op_lined": true
  },
  "XPd": {
   "ario": "Q007212",
@@ -59,10 +1664,437 @@
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",
-   "op_signs": "C (Kent orthographic rules)",
+   "op_signs": "B (the published sign-by-sign transliteration, Kent's convention, data/corpus/op_translit.json; slips of the copy corrected only as listed in op_sign_decisions.json; D-177)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)"
-  }
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (the corpus lineation)"
+  },
+  "op_signs": [
+   "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a : ha-ya : i",
+   "ma-a-ma : ba-u-mi-i-ma : a-da-a : ha-ya : a-va-ma",
+   ": a-sa-ma-a-na-ma : a-da-a : ha-ya : ma-ra-ta-i-ya",
+   "ma : a-da-a : ha-ya : ša-i-ya-a-ta-i-ma : a-da-a : ma-ra",
+   "ta-i-ya-ha-ya-a : ha-ya : xa-ša-ya-a-ra-ša-a-ma : xa",
+   "ša-a-ya-θa-i-ya-ma : a-ku-u-na-u-ša : a-i-va-ma : pa-ru",
+   "u-na-a-ma : xa-ša-a-ya-θa-i-ya-ma : a-i-va-ma : pa-ru-u",
+   "na-a-ma : fa-ra-ma-a-ta-a-ra-ma : a-da-ma : xa-ša-ya-a-ra-ša",
+   "a : xa-ša-a-ya-θa-i-ya : va-za-ra-ka : xa-ša-a-ya-θa-i-ya :",
+   "xa-ša-a-ya-θa-i-ya-a-na-a-ma : xa-ša-a-ya-θa-i-ya : da-ha-ya",
+   "u-na-a-ma : pa-ru-u-va-za-na-a-na-a-ma : xa-ša-a-ya-θa-i-ya",
+   ": a-ha-i-ya-a-ya-a : ba-u-mi-i-ya-a : va-za-ra-ka-a-ya-a",
+   ": du-u-ra-i-ya : a-pa-i-ya : da-a-ra-ya-va-ha-u-ša : xa-ša",
+   "a-ya-θa-i-ya-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya :",
+   "θa-a-ta-i-ya : xa-ša-ya-a-ra-ša-a : xa-ša-a-ya-θa-i-ya : va",
+   "za-ra-ka : va-ša-na-a : a-u-ra-ma-za-da-a-ha : i-ma : ha-di",
+   "i-ša : a-da-ma : a-ku-u-na-va-ma : ma-a-ma : a-u-ra-ma-za",
+   "da-a : pa-a-tu-u-va : ha-da-a : ba-ga-i-ba-i-ša : u-ta-ma",
+   "i-ya : xa-ša-ça-ma : u-ta-a : ta-ya-ma-i-ya : ka-ra-ta-ma"
+  ],
+  "op_words": [
+   {
+    "ario": "baga",
+    "copy": "baga",
+    "signs": "ba-ga",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "imām",
+    "copy": "i|mâm",
+    "signs": "i-ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "būmim",
+    "copy": "bûmim",
+    "signs": "ba-u-mi-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "avam",
+    "copy": "avam",
+    "signs": "a-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "asmānam",
+    "copy": "asmânam",
+    "signs": "a-sa-ma-a-na-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiyam",
+    "copy": "martiya|m",
+    "signs": "ma-ra-ta-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "šiyātim",
+    "copy": "šiyâtim",
+    "signs": "ša-i-ya-a-ta-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiyahyā",
+    "copy": "mar|tiyahyâ",
+    "signs": "ma-ra-ta-i-ya-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšām",
+    "copy": "Xšayâršâm",
+    "signs": "xa-ša-ya-a-ra-ša-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "copy": "x|šâyathiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunau̯š",
+    "copy": "akunauš",
+    "signs": "a-ku-u-na-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "ai̯vam",
+    "copy": "aivam",
+    "signs": "a-i-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "parūnām",
+    "copy": "par|ûnâm",
+    "signs": "pa-ru-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "copy": "xšâyathiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "ai̯vam",
+    "copy": "aivam",
+    "signs": "a-i-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "parūnām",
+    "copy": "parû|nâm",
+    "signs": "pa-ru-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "framātāram",
+    "copy": "framâtâram",
+    "signs": "fa-ra-ma-a-ta-a-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "copy": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "copy": "Xšayârš|â",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "copy": "xšâyathiyânâm",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "dahyunām",
+    "copy": "dahy|ûnâm",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "paruzanānām",
+    "copy": "paruvzanânâm",
+    "signs": "pa-ru-u-va-za-na-a-na-a-ma",
+    "cmp": "glide"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ahyāyā",
+    "copy": "ahiyâyâ",
+    "signs": "a-ha-i-ya-a-ya-a",
+    "cmp": "glide"
+   },
+   {
+    "ario": "būmiyā",
+    "copy": "bûmiyâ",
+    "signs": "ba-u-mi-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛkāyā",
+    "copy": "vazrakâyâ",
+    "signs": "va-za-ra-ka-a-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dūrai̯",
+    "copy": "dûraiy",
+    "signs": "du-u-ra-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "api",
+    "copy": "apiy",
+    "signs": "a-pa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "copy": "Dârayavahauš",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "copy": "xš|âyathiyahyâ",
+    "signs": "xa-ša-a-ya-θa-i-ya-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "puça",
+    "copy": "puça",
+    "signs": "pa-u-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "copy": "Haxâmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "θāti",
+    "copy": "thâtiy",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "copy": "Xšayâršâ",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "va|zraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnā",
+    "copy": "vašnâ",
+    "signs": "va-ša-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāha",
+    "copy": "Auramazdâha",
+    "signs": "a-u-ra-ma-za-da-a-ha",
+    "cmp": "same"
+   },
+   {
+    "ario": "ima",
+    "copy": "ima",
+    "signs": "i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "hadiš",
+    "copy": "had|iš",
+    "signs": "ha-di-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "copy": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunavam",
+    "copy": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "mām",
+    "copy": "mâm",
+    "signs": "ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramaz|dâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "pātu",
+    "copy": "pâtuv",
+    "signs": "pa-a-tu-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "hadā",
+    "copy": "hadâ",
+    "signs": "ha-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "bagai̯biš",
+    "copy": "bagaibiš",
+    "signs": "ba-ga-i-ba-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "utamai̯",
+    "copy": "utama|iy",
+    "signs": "u-ta-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšaçam",
+    "copy": "xšaçam",
+    "signs": "xa-ša-ça-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayamai̯",
+    "copy": "tyamaiy",
+    "signs": "ta-ya-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛtam",
+    "copy": "kartam",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   }
+  ],
+  "op_lined": true
  },
  "XPe": {
   "ario": "Q007213",
@@ -75,10 +2107,74 @@
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",
-   "op_signs": "C (Kent orthographic rules)",
+   "op_signs": "B (the published sign-by-sign transliteration, Kent's convention, data/corpus/op_translit.json; slips of the copy corrected only as listed in op_sign_decisions.json; D-177)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)"
-  }
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (the corpus lineation)"
+  },
+  "op_signs": [
+   "xa-ša-ya-a-ra-ša-a : xa-ša-a-ya-θa-i-ya : va-za-ra",
+   "ka : xa-ša-a-ya-θa-i-ya : xa-ša-a-ya-θa-i-ya-a",
+   "na-a-ma : da-a-ra-ya-va-ha-u-ša : xa-ša-a-ya-θa",
+   "i-ya-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya :"
+  ],
+  "op_words": [
+   {
+    "ario": "Xšayaṛšā",
+    "copy": "Xšayâršâ",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazra|ka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "copy": "xšâyathiyâ|nâm",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "copy": "Dârayavahauš",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "copy": "xšâyath|iyahyâ",
+    "signs": "xa-ša-a-ya-θa-i-ya-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "puça",
+    "copy": "puça",
+    "signs": "pa-u-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "copy": "Haxâmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "cmp": "same"
+   }
+  ],
+  "op_lined": true
  },
  "DPh": {
   "ario": "Q007164",
@@ -91,10 +2187,325 @@
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",
-   "op_signs": "C (Kent orthographic rules)",
+   "op_signs": "C (Kent's rules on the ARIo words: the corpus has no copy of this text; not carved)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)"
-  }
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "C (no lineation read)"
+  },
+  "op_signs": [
+   "da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya : va-za-ra-ka : xa-ša-a-ya-θa-i-ya : xa-ša-a-ya-θa-i-ya-a-na-a-ma : xa-ša-a-ya-θa-i-ya : da-ha-ya-u-na-a-ma : vi-i-ša-ta-a-sa-pa-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya : θa-a-ta-i-ya : da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya : i-ma : xa-ša-ça-ma : ta-ya : a-da-ma : da-a-ra-ya-a-mi-i-ya : ha-ca-a : sa-ka-i-ba-i-ša : ta-ya-i-ya : pa-ra : sa-u-ga-da-ma : a-ma-ta : ya-a-ta-a : a : ku-u-ša-a : ha-ca-a : ha-i-da-u-va : a-ma-ta : ya-a-ta-a : a : sa-pa-ra-da-a : ta-ya-ma-i-ya : a-u-ra-ma-za-da-a : fa-ra-a-ba-ra : ha-ya : ma-θa-i-ša-ta : ba-ga-a-na-a-ma : ma-a-ma : a-u-ra-ma-za-da-a : pa-a-tu-u-va : u-ta-a-ma-i-ya : vi-i-θa-ma"
+  ],
+  "op_words": [
+   {
+    "ario": "Dārayava.uš",
+    "copy": null,
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": null,
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": null,
+    "signs": "va-za-ra-ka",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": null,
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "copy": null,
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": null,
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "dahyūnām",
+    "copy": null,
+    "signs": "da-ha-ya-u-na-a-ma",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "Vištāspahyā",
+    "copy": null,
+    "signs": "vi-i-ša-ta-a-sa-pa-ha-ya-a",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "puça",
+    "copy": null,
+    "signs": "pa-u-ça",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "copy": null,
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "θāti",
+    "copy": null,
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "copy": null,
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": null,
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "ima",
+    "copy": null,
+    "signs": "i-ma",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "xšaçam",
+    "copy": null,
+    "signs": "xa-ša-ça-ma",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "taya",
+    "copy": null,
+    "signs": "ta-ya",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "adam",
+    "copy": null,
+    "signs": "a-da-ma",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "dārayāmi",
+    "copy": null,
+    "signs": "da-a-ra-ya-a-mi-i-ya",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "hacā",
+    "copy": null,
+    "signs": "ha-ca-a",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "Sakai̯biš",
+    "copy": null,
+    "signs": "sa-ka-i-ba-i-ša",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "tayai̯",
+    "copy": null,
+    "signs": "ta-ya-i-ya",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "para",
+    "copy": null,
+    "signs": "pa-ra",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "Sugdam",
+    "copy": null,
+    "signs": "sa-u-ga-da-ma",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "amata",
+    "copy": null,
+    "signs": "a-ma-ta",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "yātā",
+    "copy": null,
+    "signs": "ya-a-ta-a",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "ā",
+    "copy": null,
+    "signs": "a",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "Kūšā",
+    "copy": null,
+    "signs": "ku-u-ša-a",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "hacā",
+    "copy": null,
+    "signs": "ha-ca-a",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "Hindau̯",
+    "copy": null,
+    "signs": "ha-i-da-u-va",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "amata",
+    "copy": null,
+    "signs": "a-ma-ta",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "yātā",
+    "copy": null,
+    "signs": "ya-a-ta-a",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "ā",
+    "copy": null,
+    "signs": "a",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "Spardā",
+    "copy": null,
+    "signs": "sa-pa-ra-da-a",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "tayamai̯",
+    "copy": null,
+    "signs": "ta-ya-ma-i-ya",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": null,
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "frābara",
+    "copy": null,
+    "signs": "fa-ra-a-ba-ra",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "haya",
+    "copy": null,
+    "signs": "ha-ya",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "maθišta",
+    "copy": null,
+    "signs": "ma-θa-i-ša-ta",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "bagānām",
+    "copy": null,
+    "signs": "ba-ga-a-na-a-ma",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "mām",
+    "copy": null,
+    "signs": "ma-a-ma",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": null,
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "pātu",
+    "copy": null,
+    "signs": "pa-a-tu-u-va",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "utāmai̯",
+    "copy": null,
+    "signs": "u-ta-a-ma-i-ya",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   },
+   {
+    "ario": "viθam",
+    "copy": null,
+    "signs": "vi-i-θa-ma",
+    "cmp": "ario-only",
+    "basis": "rule (no corpus copy)"
+   }
+  ],
+  "op_lined": false
  },
  "DNa": {
   "ario": "Q007152",
@@ -107,10 +2518,1455 @@
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",
-   "op_signs": "C (Kent orthographic rules)",
+   "op_signs": "B (the published sign-by-sign transliteration, Kent's convention, data/corpus/op_translit.json; slips of the copy corrected only as listed in op_sign_decisions.json; D-177)",
    "el_bab_signs": "B (ATF indices → OSL)",
-   "version_split": "C (heuristic split of the ARIo running text)"
-  }
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (the corpus lineation)"
+  },
+  "op_signs": [
+   "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a : ha-ya : i-ma",
+   "a-ma : ba-u-mi-i-ma : a-da-a : ha-ya : a-va-ma : a-sa-ma",
+   "a-na-ma : a-da-a : ha-ya : ma-ra-ta-i-ya-ma : a-da-a : ha",
+   "ya : ša-i-ya-a-ta-i-ma : a-da-a : ma-ra-ta-i-ya-ha-ya-a",
+   ": ha-ya : da-a-ra-ya-va-u-ma : xa-ša-a-ya-θa-i-ya-ma : a-ku",
+   "u-na-u-ša : a-i-va-ma : pa-ru-u-va-na-a-ma : xa-ša-a-ya-θa",
+   "i-ya-ma : a-i-va-ma : pa-ru-u-va-na-a-ma : fa-ra-ma-a-ta-a",
+   "ra-ma : a-da-ma : da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya : va",
+   "za-ra-ka : xa-ša-a-ya-θa-i-ya : xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+   ": xa-ša-a-ya-θa-i-ya : da-ha-ya-u-na-a-ma : vi-i-sa-pa-za-na-a",
+   "na-a-ma : xa-ša-a-ya-θa-i-ya : a-ha-ya-a-ya-a : ba-u-mi-i",
+   "ya-a : va-za-ra-ka-a-ya-a : du-u-ra-i-a-pa-i-ya : vi-i-ša-ta-a-sa",
+   "pa-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya : pa-a-ra-sa : pa",
+   "a-ra-sa-ha-ya-a : pa-u-ça : a-ra-i-ya : a-ra-i-ya : ca-i",
+   "ça : θa-a-ta-i-ya : da-a-ra-ya-va-u-ša : xa-ša-a-ya",
+   "θa-i-ya : va-ša-na-a : a-u-ra-ma-za-da-a-ha-a : i-ma-a :",
+   "da-ha-ya-a-va : ta-ya-a : a-da-ma : a-ga-ra-ba-a-ya-ma :",
+   "a-pa-ta-ra-ma : ha-ca-a : pa-a-ra-sa-a : a-da-ma-ša-a-ma :",
+   "pa-ta-i-ya-xa-ša-ya-i-ya : ma-na-a : ba-a-ji-i-ma : a-ba-ra",
+   "ha : ta-ya-ša-a-ma : ha-ca-a-ma : a-θa-ha-ya : a-va : a",
+   "ku-u-na-va : da-a-ta-ma : ta-ya : ma-na-a : a-va-di-i-ša :",
+   "a-da-a-ra-ya : ma-a-da : u-va-ja : pa-ra-θa-va : ha-ra-i",
+   "va : ba-a-xa-ta-ra-i-ša : sa-u-gu-u-da : u-va-a-ra-za-mi",
+   "i-ša : za-ra-ka : ha-ra-u-va-ta-i-ša : θa-ta-gu-u-ša : ga",
+   "da-a-ra : ha-i-du-u-ša : sa-ka-a : ha-u-ma-va-ra-ga-a : sa",
+   "ka-a : ta-i-ga-ra-xa-u-da-a : ba-a-ba-i-ru-u-ša : a",
+   "θa-u-ra-a : a-ra-ba-a-ya : mu-u-da-ra-a-ya : a-ra-mi-i-na",
+   ": ka-ta-pa-tu-u-ka : sa-pa-ra-da : ya-u-na : sa-ka-a : ta-ya-i-ya : pa",
+   "ra-da-ra-ya : sa-ku-u-da-ra : ya-u-na-a : ta-ka-ba-ra-a : pa-u-ta-a-ya",
+   "a : ku-u-ša-i-ya-a : ma-ca-i-ya-a : ka-ra-ka-a : θa-a-ta-i-ya : da",
+   "a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya : a-u-ra-ma-za-da-a : ya-θa",
+   "a : a-va-i-na : i-ma-a-ma : ba-u-mi-i-ma : ya-u-da-ta-i-ma :",
+   "pa-sa-a-va-di-i-ma : ma-na-a : fa-ra-a-ba-ra : ma-a-ma : xa-ša-a",
+   "ya-θa-i-ya-ma : a-ku-u-na-u-ša : a-da-ma : xa-ša-a-ya-θa-i-ya",
+   ": a-mi-i-ya : va-ša-na-a : a-u-ra-ma-za-da-a-ha-a : a",
+   "da-ma-ša-i-ma : ga-a-θa-va-a : na-i-ya-ša-a-da-ya-ma : ta-ya-ša-a",
+   "ma : a-da-ma : a-θa-ha-ma : a-va : a-ku-u-na-va : ya-θa-a : ma-a-ma :",
+   "ka-a-ma : a-ha : ya-di-i-pa-ta-i-ya : ma-na-i-ya-a-ha-i-ya : ta",
+   "ya : ca-i-ya-ka-ra-ma : a-ha : a-va-a : da-ha-ya-a-va",
+   ": ta-ya-a : da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya",
+   ": a-da-a-ra-ya : pa-ta-i-ka-ra-a : di-i-di-i-ya : ta-ya-i-ya : ga",
+   "a-θa-u-ma : ba-ra-ta-i-ya : a-va-da-a : xa-ša-na-a-sa-a-ha-ya :",
+   "a-da-ta-i-ya : a-za-da-a : ba-va-a-ta-i-ya : pa-a-ra-sa-ha-ya-a :",
+   "ma-ra-ta-i-ya-ha-ya-a : du-u-ra-i-ya : a-ra-ša-ta-i-ša : pa",
+   "ra-a-ga-ma-ta-a : a-da-ta-i-ya : a-za-da-a : ba-va-a-ta-i",
+   "ya : pa-a-ra-sa : ma-ra-ta-i-ya : du-u-ra-ya-pa-i-ya : ha-ca-a : pa-a",
+   "ra-sa-a : pa-ra-ta-ra-ma : pa-ta-i-ya-ja-ta-a : θa-a-ta-i-ya : da-a",
+   "ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya : a-i-ta : ta-ya : ka-ra-ta",
+   "ma : a-va : vi-i-sa-ma : va-ša-na-a : a-u-ra-ma-za-da-a-ha-a : a-ku",
+   "u-na-va-ma : a-u-ra-ma-za-da-a-ma-i-ya : u-pa-sa-ta-a-ma : a-ba",
+   "ra : ya-a-ta-a : ka-ra-ta-ma : a-ku-u-na-va-ma : ma-a-ma : a",
+   "u-ra-ma-za-da-a : pa-a-tu-u-va : ha-ca-a : ga-sa-ta-a : u-ta-a-ma",
+   "i-ya : vi-i-θa-ma : u-ta-a : i-ma-a-ma : da-ha-ya-a-u-ma : a-i-ta : a-da",
+   "ma : a-u-ra-ma-za-da-a-ma : ja-di-i-ya-a-mi-i-ya : a-i-ta-ma",
+   "i-ya : a-u-ra-ma-za-da-a : da-da-a-tu-u-va :",
+   "ma-ra-ta-i-ya-a : ha-ya-a : a-u-ra-ma-za-da-a-ha",
+   "a : fa-ra-ma-a-na-a : ha-u-va-ta-i-ya : ga-sa",
+   "ta-a : ma-a : θa-da-ya pa-θa-i-ma :",
+   "ta-ya-a-ma : ra-a-sa-ta-a-ma : ma-a",
+   ": a-va-ra-da : ma-a : sa-ta-ba-va"
+  ],
+  "op_words": [
+   {
+    "ario": "baga",
+    "copy": "baga",
+    "signs": "ba-ga",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "imām",
+    "copy": "im|âm",
+    "signs": "i-ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "būmim",
+    "copy": "bumâm",
+    "signs": "ba-u-mi-i-ma",
+    "cmp": "same",
+    "read": "bûmim"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "avam",
+    "copy": "avam",
+    "signs": "a-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "asmānam",
+    "copy": "asm|ânam",
+    "signs": "a-sa-ma-a-na-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiyam",
+    "copy": "martiyam",
+    "signs": "ma-ra-ta-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "h|ya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "šiyātim",
+    "copy": "šiyâtim",
+    "signs": "ša-i-ya-a-ta-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "adâ",
+    "signs": "a-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiyahyā",
+    "copy": "martiyahyâ",
+    "signs": "ma-ra-ta-i-ya-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.um",
+    "copy": "Dârayavaum",
+    "signs": "da-a-ra-ya-va-u-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "copy": "xšâyathiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunau̯š",
+    "copy": "ak|unauš",
+    "signs": "a-ku-u-na-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "ai̯vam",
+    "copy": "aivam",
+    "signs": "a-i-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "parūnām",
+    "copy": "parûvnâm",
+    "signs": "pa-ru-u-va-na-a-ma",
+    "cmp": "glide"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "copy": "xšâyath|iyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "ai̯vam",
+    "copy": "aivam",
+    "signs": "a-i-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "parūnām",
+    "copy": "parûvnâm",
+    "signs": "pa-ru-u-va-na-a-ma",
+    "cmp": "glide"
+   },
+   {
+    "ario": "framātāram",
+    "copy": "framâtâ|ram",
+    "signs": "fa-ra-ma-a-ta-a-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "copy": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "copy": "Dârayavauš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "va|zraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "copy": "xšâyathiyânâm",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "dahyunām",
+    "copy": "dahyûnâm",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "vispazanānām",
+    "copy": "vispazanâ|nâm",
+    "signs": "vi-i-sa-pa-za-na-a-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ahyāyā",
+    "copy": "ahyâyâ",
+    "signs": "a-ha-ya-a-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "būmiyā",
+    "copy": "bûmi|yâ",
+    "signs": "ba-u-mi-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛkāyā",
+    "copy": "vazrakâyâ",
+    "signs": "va-za-ra-ka-a-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dūrai̯ api",
+    "copy": "dûraiapiy",
+    "signs": "du-u-ra-i-a-pa-i-ya",
+    "cmp": "glide"
+   },
+   {
+    "ario": "Vištāspahyā",
+    "copy": "Vištâs|pahyâ",
+    "signs": "vi-i-ša-ta-a-sa-pa-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "puça",
+    "copy": "puça",
+    "signs": "pa-u-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "copy": "Haxâmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Pārsa",
+    "copy": "Pârsa",
+    "signs": "pa-a-ra-sa",
+    "cmp": "same"
+   },
+   {
+    "ario": "Pārsahyā",
+    "copy": "P|ârsahyâ",
+    "signs": "pa-a-ra-sa-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "puça",
+    "copy": "puça",
+    "signs": "pa-u-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "Ariya",
+    "copy": "Ariya",
+    "signs": "a-ra-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Ariyaciça",
+    "copy": "Ariya ci|ça",
+    "signs": "a-ra-i-ya : ca-i-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "θāti",
+    "copy": "thâtiy",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "copy": "Dârayavauš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâya|thiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnā",
+    "copy": "vašnâ",
+    "signs": "va-ša-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "copy": "Auramazdâhâ",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "imā",
+    "copy": "imâ",
+    "signs": "i-ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dahyāva",
+    "copy": "dahyâva",
+    "signs": "da-ha-ya-a-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayā",
+    "copy": "tyâ",
+    "signs": "ta-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "copy": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "agṛbāyam",
+    "copy": "agarbâyam",
+    "signs": "a-ga-ra-ba-a-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "apataram",
+    "copy": "apataram",
+    "signs": "a-pa-ta-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "hacā",
+    "copy": "hacâ",
+    "signs": "ha-ca-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Pārsā",
+    "copy": "Pârsâ",
+    "signs": "pa-a-ra-sa-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "adamšām",
+    "copy": "adamšâm",
+    "signs": "a-da-ma-ša-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "patiyaxšayai̯",
+    "copy": "patiyaxšayaiy",
+    "signs": "pa-ta-i-ya-xa-ša-ya-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "manā",
+    "copy": "manâ",
+    "signs": "ma-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "bājim",
+    "copy": "bâjim",
+    "signs": "ba-a-ji-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "abaraha",
+    "copy": "abara|ha",
+    "signs": "a-ba-ra-ha",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayašām",
+    "copy": "tvašâm",
+    "signs": "ta-ya-ša-a-ma",
+    "cmp": "same",
+    "read": "tyašâm"
+   },
+   {
+    "ario": "hacāma",
+    "copy": "hacâma",
+    "signs": "ha-ca-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "aθanhya",
+    "copy": "athahya",
+    "signs": "a-θa-ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ava",
+    "copy": "ava",
+    "signs": "a-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunava",
+    "copy": "a|kunava",
+    "signs": "a-ku-u-na-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "dātam",
+    "copy": "dâtam",
+    "signs": "da-a-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "manā",
+    "copy": "manâ",
+    "signs": "ma-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "avadiš",
+    "copy": "avadiš",
+    "signs": "a-va-di-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "adāraya",
+    "copy": "adâraiya",
+    "signs": "a-da-a-ra-ya",
+    "cmp": "same",
+    "read": "adâraya"
+   },
+   {
+    "ario": "Māda",
+    "copy": "Mâda",
+    "signs": "ma-a-da",
+    "cmp": "same"
+   },
+   {
+    "ario": "Ūja",
+    "copy": "Ûvja",
+    "signs": "u-va-ja",
+    "cmp": "same"
+   },
+   {
+    "ario": "Parθava",
+    "copy": "Parthava",
+    "signs": "pa-ra-θa-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "Harai̯va",
+    "copy": "Harai|va",
+    "signs": "ha-ra-i-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "Bāxtriš",
+    "copy": "Bâxtriš",
+    "signs": "ba-a-xa-ta-ra-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "Suguda",
+    "copy": "Suguda",
+    "signs": "sa-u-gu-u-da",
+    "cmp": "same"
+   },
+   {
+    "ario": "Uvārazmiš",
+    "copy": "Uvârazm|iš",
+    "signs": "u-va-a-ra-za-mi-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "Zranka",
+    "copy": "Zraka",
+    "signs": "za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "Hara.uvatiš",
+    "copy": "Harauvatiš",
+    "signs": "ha-ra-u-va-ta-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "Θataguš",
+    "copy": "Thataguš",
+    "signs": "θa-ta-gu-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "Gandāra",
+    "copy": "Ga|dâra",
+    "signs": "ga-da-a-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "Hinduš",
+    "copy": "Hiduš",
+    "signs": "ha-i-du-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "Sakā",
+    "copy": "Sakâ",
+    "signs": "sa-ka-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Hau̯mavargā",
+    "copy": "haumavargâ",
+    "signs": "ha-u-ma-va-ra-ga-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Sakā",
+    "copy": "Sa|kâ",
+    "signs": "sa-ka-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "tigraxau̯dā",
+    "copy": "tigraxaudâ",
+    "signs": "ta-i-ga-ra-xa-u-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Bābiruš",
+    "copy": "Bâbiruš",
+    "signs": "ba-a-ba-i-ru-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "Aθurā",
+    "copy": "A|thurâ",
+    "signs": "a-θa-u-ra-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Arbāya",
+    "copy": "Arabâya",
+    "signs": "a-ra-ba-a-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Mudrāya",
+    "copy": "Mudrâya",
+    "signs": "mu-u-da-ra-a-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Armina",
+    "copy": "Armina",
+    "signs": "a-ra-mi-i-na",
+    "cmp": "same"
+   },
+   {
+    "ario": "Katpatuka",
+    "copy": "Katpatuka",
+    "signs": "ka-ta-pa-tu-u-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "Sparda",
+    "copy": "Sparda",
+    "signs": "sa-pa-ra-da",
+    "cmp": "same"
+   },
+   {
+    "ario": "Yau̯na",
+    "copy": "Yauna",
+    "signs": "ya-u-na",
+    "cmp": "same"
+   },
+   {
+    "ario": "Sakā",
+    "copy": "Sakâ",
+    "signs": "sa-ka-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayai̯",
+    "copy": "tyaiy",
+    "signs": "ta-ya-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "paradraya",
+    "copy": "pa|radraya",
+    "signs": "pa-ra-da-ra-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Skudra",
+    "copy": "Skudra",
+    "signs": "sa-ku-u-da-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "Yau̯nā",
+    "copy": "Yaunâ",
+    "signs": "ya-u-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "takabarā",
+    "copy": "takabarâ",
+    "signs": "ta-ka-ba-ra-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Putāyā",
+    "copy": "Putây|â",
+    "signs": "pa-u-ta-a-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Kūšiyā",
+    "copy": "Kûšiyâ",
+    "signs": "ku-u-ša-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Maciyā",
+    "copy": "Maciyâ",
+    "signs": "ma-ca-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Kṛkā",
+    "copy": "Karkâ",
+    "signs": "ka-ra-ka-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "θāti",
+    "copy": "thâtiy",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "copy": "D|ârayavauš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "yaθā",
+    "copy": "yath|â",
+    "signs": "ya-θa-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "avai̯na",
+    "copy": "avaina",
+    "signs": "a-va-i-na",
+    "cmp": "same"
+   },
+   {
+    "ario": "imām",
+    "copy": "imâm",
+    "signs": "i-ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "būmim",
+    "copy": "bûmim",
+    "signs": "ba-u-mi-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "yau̯dantī̆m",
+    "copy": "yaudatim",
+    "signs": "ya-u-da-ta-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "pasāvadim",
+    "copy": "pasâvadim",
+    "signs": "pa-sa-a-va-di-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "manā",
+    "copy": "manâ",
+    "signs": "ma-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "frābara",
+    "copy": "frâbara",
+    "signs": "fa-ra-a-ba-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "mām",
+    "copy": "mâm",
+    "signs": "ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "copy": "xšâ|yathiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunau̯š",
+    "copy": "akunauš",
+    "signs": "a-ku-u-na-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "copy": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ami",
+    "copy": "amiy",
+    "signs": "a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnā",
+    "copy": "vašnâ",
+    "signs": "va-ša-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "copy": "Auramazdâhâ",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "adamšim",
+    "copy": "a|damšim",
+    "signs": "a-da-ma-ša-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "gāθavā",
+    "copy": "gâthavâ",
+    "signs": "ga-a-θa-va-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "niyašādayam",
+    "copy": "niyašâdayam",
+    "signs": "na-i-ya-ša-a-da-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayašām",
+    "copy": "tyašâ|m",
+    "signs": "ta-ya-ša-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "copy": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "aθanham",
+    "copy": "athaham",
+    "signs": "a-θa-ha-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "ava",
+    "copy": "ava",
+    "signs": "a-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunava",
+    "copy": "akunava",
+    "signs": "a-ku-u-na-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "yaθā",
+    "copy": "yathâ",
+    "signs": "ya-θa-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "mām",
+    "copy": "mâm",
+    "signs": "ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "kāma",
+    "copy": "kâma",
+    "signs": "ka-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "āha",
+    "copy": "âha",
+    "signs": "a-ha",
+    "cmp": "same"
+   },
+   {
+    "ario": "yadipati",
+    "copy": "yadipatiy",
+    "signs": "ya-di-i-pa-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "maniyāhai̯",
+    "copy": "maniyâhaiy",
+    "signs": "ma-na-i-ya-a-ha-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": null,
+    "copy": "t|ya",
+    "signs": "ta-ya",
+    "cmp": "corpus-only"
+   },
+   {
+    "ario": "ciyākaram",
+    "copy": "ciyakaram",
+    "signs": "ca-i-ya-ka-ra-ma",
+    "cmp": "reading"
+   },
+   {
+    "ario": null,
+    "copy": "âha",
+    "signs": "a-ha",
+    "cmp": "corpus-only"
+   },
+   {
+    "ario": "avā",
+    "copy": "avâ",
+    "signs": "a-va-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dahyāva",
+    "copy": "dahyâva",
+    "signs": "da-ha-ya-a-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayā",
+    "copy": "tyâ",
+    "signs": "ta-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "copy": "Dârayavauš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "adāraya",
+    "copy": "adâraya",
+    "signs": "a-da-a-ra-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "patikarā",
+    "copy": "patikarâ",
+    "signs": "pa-ta-i-ka-ra-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dīdi",
+    "copy": "dîdiy",
+    "signs": "di-i-di-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayai̯",
+    "copy": "tyaiy",
+    "signs": "ta-ya-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "gāθum",
+    "copy": "g|âthun",
+    "signs": "ga-a-θa-u-ma",
+    "cmp": "same",
+    "read": "g|âthum"
+   },
+   {
+    "ario": "baranti",
+    "copy": "baratiy",
+    "signs": "ba-ra-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "adā",
+    "copy": "avadâ",
+    "signs": "a-va-da-a",
+    "cmp": "reading"
+   },
+   {
+    "ario": "xšnāsāhi",
+    "copy": "xšnâsâhy",
+    "signs": "xa-ša-na-a-sa-a-ha-ya",
+    "cmp": "glide"
+   },
+   {
+    "ario": "adatai̯",
+    "copy": "adataiy",
+    "signs": "a-da-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "azdā",
+    "copy": "azdâ",
+    "signs": "a-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "bavāti",
+    "copy": "bavâtiy",
+    "signs": "ba-va-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Pārsahyā",
+    "copy": "Pârsahyâ",
+    "signs": "pa-a-ra-sa-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiyahyā",
+    "copy": "martiyahyâ",
+    "signs": "ma-ra-ta-i-ya-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dūrai̯",
+    "copy": "dûraiy",
+    "signs": "du-u-ra-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ṛštiš",
+    "copy": "arštiš",
+    "signs": "a-ra-ša-ta-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "parāgmatā",
+    "copy": "pa|râgmatâ",
+    "signs": "pa-ra-a-ga-ma-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "adatai̯",
+    "copy": "adataiy",
+    "signs": "a-da-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "azdā",
+    "copy": "azdâ",
+    "signs": "a-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "bavāti",
+    "copy": "bavâti|y",
+    "signs": "ba-va-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Pārsa",
+    "copy": "Pârsa",
+    "signs": "pa-a-ra-sa",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiya",
+    "copy": "martiya",
+    "signs": "ma-ra-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "dūrai̯",
+    "copy": "dûrayapiy",
+    "signs": "du-u-ra-ya-pa-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "hacā",
+    "copy": "hacâ",
+    "signs": "ha-ca-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Pārsā",
+    "copy": "Pâ|rsâ",
+    "signs": "pa-a-ra-sa-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "parataram",
+    "copy": "partaram",
+    "signs": "pa-ra-ta-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "patiyajatā",
+    "copy": "patiyajatâ",
+    "signs": "pa-ta-i-ya-ja-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "θāti",
+    "copy": "thâtiy",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "copy": "Dâ|rayavauš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ai̯ta",
+    "copy": "aita",
+    "signs": "a-i-ta",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛtam",
+    "copy": "karta|m",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "ava",
+    "copy": "ava",
+    "signs": "a-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "visam",
+    "copy": "visam",
+    "signs": "vi-i-sa-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnā",
+    "copy": "vašnâ",
+    "signs": "va-ša-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "copy": "Auramazdâhâ",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunavam",
+    "copy": "ak|unavam",
+    "signs": "a-ku-u-na-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāmai̯",
+    "copy": "Auramazdâ(ma)iy",
+    "signs": "a-u-ra-ma-za-da-a-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "upastām",
+    "copy": "upastâm",
+    "signs": "u-pa-sa-ta-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "abara",
+    "copy": "aba|ra",
+    "signs": "a-ba-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "yātā",
+    "copy": "yâtâ",
+    "signs": "ya-a-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛtam",
+    "copy": "kartam",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunavam",
+    "copy": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "mām",
+    "copy": "mâm",
+    "signs": "ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "A|uramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "pātu",
+    "copy": "pâtuv",
+    "signs": "pa-a-tu-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "hacā",
+    "copy": "hacâ",
+    "signs": "ha-ca-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "gastā",
+    "copy": "gastâ",
+    "signs": "ga-sa-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "utāmai̯",
+    "copy": "utâma|iy",
+    "signs": "u-ta-a-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "viθam",
+    "copy": "vitham",
+    "signs": "vi-i-θa-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "imām",
+    "copy": "imâm",
+    "signs": "i-ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "dahyāu̯m",
+    "copy": "dahyâum",
+    "signs": "da-ha-ya-a-u-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "ai̯ta",
+    "copy": "aita",
+    "signs": "a-i-ta",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "copy": "ada|m",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdām",
+    "copy": "Auramazdâm",
+    "signs": "a-u-ra-ma-za-da-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "jadiyāmi",
+    "copy": "jadiyâmiy",
+    "signs": "ja-di-i-ya-a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ai̯tamai̯",
+    "copy": "aitama|iy",
+    "signs": "a-i-ta-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dadātu",
+    "copy": "dadâtuv",
+    "signs": "da-da-a-tu-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiyā",
+    "copy": "martiyâ",
+    "signs": "ma-ra-ta-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "hayā",
+    "copy": "hyâ",
+    "signs": "ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "copy": "Auramazdâh|â",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "framānā",
+    "copy": "framânâ",
+    "signs": "fa-ra-ma-a-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "hau̯tai̯",
+    "copy": "hauvtaiy",
+    "signs": "ha-u-va-ta-i-ya",
+    "cmp": "glide"
+   },
+   {
+    "ario": "gastā",
+    "copy": "gas|tâ",
+    "signs": "ga-sa-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "mā",
+    "copy": "mâ",
+    "signs": "ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "θadaya",
+    "copy": "thadaya",
+    "signs": "θa-da-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "paθī̆m",
+    "copy": "pathim",
+    "signs": "pa-θa-i-ma",
+    "cmp": "same",
+    "div": false
+   },
+   {
+    "ario": "tayām",
+    "copy": "tyâm",
+    "signs": "ta-ya-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "rāstām",
+    "copy": "râstâm",
+    "signs": "ra-a-sa-ta-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "mā",
+    "copy": "mâ",
+    "signs": "ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "avarada",
+    "copy": "avarada",
+    "signs": "a-va-ra-da",
+    "cmp": "same"
+   },
+   {
+    "ario": "mā",
+    "copy": "mâ",
+    "signs": "ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "stabava",
+    "copy": "stabava",
+    "signs": "sa-ta-ba-va",
+    "cmp": "same"
+   }
+  ],
+  "op_lined": true
  },
  "DNb": {
   "ario": "Q007153",
@@ -120,6 +3976,3236 @@
   "el_unmapped": [],
   "bab_atf": "",
   "bab_cuneiform": "",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "B (the published sign-by-sign transliteration, Kent's convention, data/corpus/op_translit.json; slips of the copy corrected only as listed in op_sign_decisions.json; D-177)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (the corpus lineation)"
+  },
+  "op_signs": [
+   "ba-ga : va-za-ra-ka : a-u-ra-ma-za-da-a : ha-ya : a-da-da-a : i",
+   "ma : fa-ra-ša-ma : ta-ya : va-i-na-ta-i-ya : ha-ya : a-da-da-a : ša-i",
+   "ya-a-ta-i-ma : ma-ra-ta-i-ya-ha-ya-a : ha-ya : xa-ra-θa-u-ma : u-ta",
+   "a : a-ru-u-va-sa-ta-ma : u-pa-ra-i-ya : da-a-ra-ya-va-u-ma : xa-ša-a",
+   "ya-θa-i-ya-ma : na-i-ya-sa-ya : θa-a-ta-i-ya : da-a-ra-ya-va-u-ša : xa-ša-a-ya",
+   "θa-i-ya : va-ša-na-a : a-u-ra-ma-za-da-a-ha : a-va-a-ka-ra-ma : a",
+   "mi-i-ya : ta-ya : ra-a-sa-ta-ma : da-u-ša-ta-a : a-mi-i-ya : mi-i-θa : na",
+   "i-ya : da-u-ša-ta-a : a-mi-i-ya : na-i-ma-a : ka-a-ma : ta-ya : sa-ka-u-θa",
+   "i-ša : tu-u-nu-u-va-ta-ha-ya-a : ra-a-di-i-ya : mi-i-θa : ka-ra-i-ya-i-ša",
+   ": na-i-ma-a : a-va : ka-a-ma : ta-ya : tu-u-nu-u-va-a : sa-ka-u-θa-i-ša : ra",
+   "a-di-i-ya : mi-i-θa : ka-ra-i-ya-i-ša : ta-ya : ra-a-sa-ta-ma : a-va : ma-a-ma :",
+   "ka-a-ma : ma-ra-ta-i-ya-ma : da-ra-u-ja-na-ma : na-i-ya : da-u-ša-ta-a : a-mi",
+   "i-ya : na-i-ya : ma-na-u-vi-i-ša : a-mi-i-ya : ta-ya-a-ma-i-ya : da-ra-ta-na",
+   "ya-a : ba-va-ta-i-ya : da-ra-ša-ma : da-a-ra-ya-a-mi-i-ya : ma-na-ha-a :",
+   "u-va-i-pa-ša-i-ya-ha-ya-a : da-ra-ša-ma : xa-ša-ya-ma-na : a-mi-i-ya :",
+   "ma-ra-ta-i-ya : ha-ya : ha-ta-xa-ša-ta-i-ya : a-nu-u-di-i-ma : ha-ka-ra-ta",
+   "ha-ya-a : a-va-θa-a-di-i-ma : pa-ra-i-ba-ra-a-mi-i-ya : ha-ya : vi",
+   "i-na-a-θa-ya-ta-i-ya : a-nu-u-di-i-ma : vi-i-na-sa-ta-ha-ya-a : a-va-θa",
+   "a : pa-ra-sa-a-mi-i-ya : na-i-ma-a : ka-a-ma : ta-ya : ma-ra-ta-i-ya",
+   ": vi-i-na-a-θa-ya-i-ša : na-i-pa-ta-i-ma-a : a-va : ka-a-ma : ya-di-i",
+   "ya : vi-i-na-a-θa-ya-i-ša : na-i-ya : fa-ra-θa-i-ya-i-ša : ma-ra-ta-i-ya :",
+   "ta-ya : pa-ta-i-ya : ma-ra-ta-i-ya-ma : θa-a-ta-i-ya : a-va : ma-a-ma :",
+   "na-i-ya : va-ra-na-va-ta-i-ya : ya-a-ta-a : u-ra-da-na-a-ma : ha-du-u",
+   "ga-a-ma : a-xa-ša-na-u-ta-i-ya : ma-ra-ta-i-ya : ta-ya : ku-u-na-u",
+   "ta-i-ya : ya-di-i-va-a : a-ba-ra-ta-i-ya : a-nu-u-va : ta-u-ma-na",
+   "i-ša-i-ya : xa-ša-nu-u-ta : a-mi-i-ya : u-ta-a : ma-a-ma : va-sa",
+   "i-ya : ka-a-ma : u-ta-a : u-xa-ša-na-u-ša : a-mi-i-ya : a-va-a-ka-ra-ma",
+   "ca-ma-i-ya : u-ša-i-ya : u-ta-a : fa-ra-ma-a-na-a : ya-θa-a-ma-i",
+   "ya : ta-ya : ka-ra-ta-ma : va-i-na-a-ha-ya : ya-di-i-va-a a-xa-ša-na-va",
+   "a-ha-ya : u-ta-a : vi-i-θa-i-ya-a : u-ta-a : sa-pa-a-θa-ma",
+   "i-da-ya-a : a-i-ta-ma-i-ya : a-ru-u-va-sa-ta-ma :",
+   "u-pa-ra-i-ya : ma-na-ša-ca-a : u-ša-i-ca-a : i-ma : pa-ta-i-ma-i",
+   "ya : a-ru-u-va-sa-ta-ma : ta-ya-ma-i-ya : ta-nu-u-ša : ta-a-va-ya",
+   "ta-i-ya : ha-ma-ra-na-ka-ra : a-mi-i-ya : u-ša-ha-ma-ra-na-ka-ra : ha-ka-ra",
+   "ma-ca-i-ya : u-ša-i-ya-a : ga-a-θa-va-a : va-i-na-a-ta-i-ya : ya-ca-i-ya :",
+   "va-i-na-a-mi-i-ya : ha-mi-i-ça-i-ya-ma : ya-ca-i-ya : na-i-ya : va-i-na-a",
+   "mi-i-ya : u-ta-a : u-ša-i-ba-i-ya-a : u-ta-a : fa-ra-ma-a-na-a-ya-a",
+   ": a-da-ka-i-ya : fa-ra-ta-ra : ma-na-i-ya-i-ya : a-ru-u-va-a-ya-a : ya",
+   "di-i-ya : va-i-na-a-mi-i-ya : ha-mi-i-ça-i-ya-ma : ya-θa-a : ya-di-i-ya :",
+   "na-i-ya : va-i-na-a-mi-i-ya : ya-a-u-ma-i-na-i-ša : a-mi-i-ya : u",
+   "ta-a : da-sa-ta-i-ba-i-ya-a : u-ta-a : pa-a-da-i-ba-i-ya-a : a-sa-ba-a",
+   "ra : u-va-a-sa-ba-a-ra : a-mi-i-ya : θa-nu-u-va-na-i-ya : u-θa",
+   "nu-u-va-na-i-ya : a-mi-i-ya : u-ta-a : pa-sa-ta-i-ša : u-ta-a",
+   ": a-sa-ba-a-ra : a-ra-ša-ta-i-ka : a-mi-i-ya : u-va-a-ra-ša-ta-i-ka :",
+   "u-ta-a : pa-sa-ta-i-ša : u-ta-a : a-sa-ba-a-ra : u-ta-a : u-va-na-ra-a",
+   ": ta-ya-a : a-u-ra-ma-za-da-a : u-pa-ra-i-ya : ma-a-ma : na-i-ya-sa-ya : u-ta-a",
+   "di-i-ša : a-ta-a-va-ya-ma : ba-ra-ta-na-i-ya : va-ša-na-a : a-u-ra-ma-za-da-a-ha",
+   "a : ta-ya-ma-i-ya : ka-ra-ta-ma : i-ma-i-ba-i-ša : u-va-na-ra-i-ba-i-ša : a-ku-u",
+   "na-va-ma : ta-ya-a : ma-a-ma : a-u-ra-ma-za-da-a : u-pa-ra-i-ya : na-i-ya-sa-ya",
+   ": ma-ra-i-ka-a : da-ra-ša-ma : a-za-da-a : ku-u-ša-u-va-a : ca-i-ya-a-ka-ra-ma",
+   ": a-mi-i-ya : ca-i-ya-a-ka-ra-ma-ca-ma-i-ya : u-va-na-ra-a : ca-i-ya-a-ka-ra",
+   "ma-ca-ma-i-ya : pa-ra-i-ya-na-ma : ma-a-ta-i-ya : du-u-ru-u-xa-ta-ma :",
+   "θa-da-ya : ta-ya-ta-i-ya : ga-u-ša-a-ya-a : xa-ša-nu-u-ta-ma : a-va-ša",
+   "ca-i-ya : a-xa-ša-nu-u-di-i-ya : ta-ya : pa-ra-ta-ma-ta-i-ya : a-sa-ta-i",
+   "ya : ma-ra-i-ka-a : ma-a-ta-i-ya : a-va-ša-ca-i-ya : du-u-ru-u-xa-ta",
+   "ma : ku-u-na-va-a-ta-i-ya : ta-ya : ma-na-a : ka-ra-ta-ma : a-sa-ta-i-ya",
+   ": a-va-ša-ca-i-ya : di-i-di-i-ya : ya-ca-i-ya : na-i-pa-i-ša-ta-ma : ma-a :",
+   "ta-i-ya : da-a-ta-a : x-x-x-x-x : ma-a : x-x-x-x-x-x-a-ta-i-ya",
+   "a : a-ya-a-u-ma-i-na-i-ša : ba-va-a-ta-i-ya : ma-ra-i-ka-a : xa-ša-a-ya-θa-i-ya",
+   ": ma-a : ra-xa-θa-tu-u-va : x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-i-na :"
+  ],
+  "op_words": [
+   {
+    "ario": "baga",
+    "copy": "baga",
+    "signs": "ba-ga",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "adadā",
+    "copy": "adadâ",
+    "signs": "a-da-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "ima",
+    "copy": "i|ma",
+    "signs": "i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "frašam",
+    "copy": "frašam",
+    "signs": "fa-ra-ša-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vai̯natai̯",
+    "copy": "vainataiy",
+    "signs": "va-i-na-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "adadā",
+    "copy": "adadâ",
+    "signs": "a-da-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "šiyātim",
+    "copy": "ši|yâtim",
+    "signs": "ša-i-ya-a-ta-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiyahyā",
+    "copy": "martiyahyâ",
+    "signs": "ma-ra-ta-i-ya-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "xraθum",
+    "copy": "xrathum",
+    "signs": "xa-ra-θa-u-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "ut|â",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "aruvastam",
+    "copy": "aruvastam",
+    "signs": "a-ru-u-va-sa-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "upari",
+    "copy": "upariy",
+    "signs": "u-pa-ra-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.um",
+    "copy": "Dârayavaum",
+    "signs": "da-a-ra-ya-va-u-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "copy": "xšâ|yathiyam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "niyasaya",
+    "copy": "nîyasaya",
+    "signs": "na-i-ya-sa-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "θāti",
+    "copy": "thâtiy",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "copy": "Dârayavauš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâya|thiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnā",
+    "copy": "vašnâ",
+    "signs": "va-ša-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "copy": "Auramazdâha",
+    "signs": "a-u-ra-ma-za-da-a-ha",
+    "cmp": "reading"
+   },
+   {
+    "ario": "avākaram",
+    "copy": "avâkaram",
+    "signs": "a-va-a-ka-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "ami",
+    "copy": "a|miy",
+    "signs": "a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "rāstam",
+    "copy": "râstam",
+    "signs": "ra-a-sa-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "dau̯štā",
+    "copy": "dauštâ",
+    "signs": "da-u-ša-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "ami",
+    "copy": "amiy",
+    "signs": "a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "miθa",
+    "copy": "mitha",
+    "signs": "mi-i-θa",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯",
+    "copy": "na|iy",
+    "signs": "na-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "dau̯štā",
+    "copy": "dauštâ",
+    "signs": "da-u-ša-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "ami",
+    "copy": "amiy",
+    "signs": "a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯mā",
+    "copy": "naimâ",
+    "signs": "na-i-ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "kāma",
+    "copy": "kâma",
+    "signs": "ka-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "skau̯θai̯š",
+    "copy": "skauth|iš",
+    "signs": "sa-ka-u-θa-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "tunuvantahyā",
+    "copy": "tunuvatahyâ",
+    "signs": "tu-u-nu-u-va-ta-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "rādī",
+    "copy": "râdiy",
+    "signs": "ra-a-di-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "miθa",
+    "copy": "mitha",
+    "signs": "mi-i-θa",
+    "cmp": "same"
+   },
+   {
+    "ario": "kariyai̯š",
+    "copy": "kariyaiš",
+    "signs": "ka-ra-i-ya-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯mā",
+    "copy": "naimâ",
+    "signs": "na-i-ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "ava",
+    "copy": "ava",
+    "signs": "a-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "kāma",
+    "copy": "kâma",
+    "signs": "ka-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "tunuvā",
+    "copy": "tunuvâ",
+    "signs": "tu-u-nu-u-va-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "skau̯θai̯š",
+    "copy": "skauthaiš",
+    "signs": "sa-ka-u-θa-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "rādī",
+    "copy": "r|âdiy",
+    "signs": "ra-a-di-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "miθa",
+    "copy": "mitha",
+    "signs": "mi-i-θa",
+    "cmp": "same"
+   },
+   {
+    "ario": "kariyai̯š",
+    "copy": "kariyaiš",
+    "signs": "ka-ra-i-ya-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "rāstam",
+    "copy": "râstam",
+    "signs": "ra-a-sa-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "ava",
+    "copy": "ava",
+    "signs": "a-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "mām",
+    "copy": "mâm",
+    "signs": "ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "kāma",
+    "copy": "kâma",
+    "signs": "ka-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiyam",
+    "copy": "martiyam",
+    "signs": "ma-ra-ta-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "drau̯janam",
+    "copy": "draujanam",
+    "signs": "da-ra-u-ja-na-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯",
+    "copy": "naiy",
+    "signs": "na-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "dau̯štā",
+    "copy": "dauštâ",
+    "signs": "da-u-ša-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "ami",
+    "copy": "am|iy",
+    "signs": "a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯",
+    "copy": "naiy",
+    "signs": "na-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "mana.uvīš",
+    "copy": "manauviš",
+    "signs": "ma-na-u-vi-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "ami",
+    "copy": "amiy",
+    "signs": "a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "yacimai̯",
+    "copy": "tyâmaiy",
+    "signs": "ta-ya-a-ma-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "pṛtanayā",
+    "copy": "dartana|yâ",
+    "signs": "da-ra-ta-na-ya-a",
+    "cmp": "reading"
+   },
+   {
+    "ario": "bavati",
+    "copy": "bavatiy",
+    "signs": "ba-va-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "dṛšam",
+    "copy": "daršam",
+    "signs": "da-ra-ša-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "dārayāmi",
+    "copy": "dârayâmiy",
+    "signs": "da-a-ra-ya-a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "manahā",
+    "copy": "manahâ",
+    "signs": "ma-na-ha-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "uvai̯pašiyahyā",
+    "copy": "uvaipašiyahyâ",
+    "signs": "u-va-i-pa-ša-i-ya-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dṛšam",
+    "copy": "daršam",
+    "signs": "da-ra-ša-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšayamna",
+    "copy": "xšayamna",
+    "signs": "xa-ša-ya-ma-na",
+    "cmp": "same"
+   },
+   {
+    "ario": "ami",
+    "copy": "amiy",
+    "signs": "a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiya",
+    "copy": "martiya",
+    "signs": "ma-ra-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "hantaxšatai̯",
+    "copy": "hataxšataiy",
+    "signs": "ha-ta-xa-ša-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "anudim",
+    "copy": "anudim",
+    "signs": "a-nu-u-di-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "hankṛtahyā",
+    "copy": "hakarta|hyâ",
+    "signs": "ha-ka-ra-ta-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "avaθā",
+    "copy": "avathâdim",
+    "signs": "a-va-θa-a-di-i-ma",
+    "cmp": "reading"
+   },
+   {
+    "ario": "paribarāmi",
+    "copy": "paribarâmiy",
+    "signs": "pa-ra-i-ba-ra-a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vināθayati",
+    "copy": "v|inâithayatiy",
+    "signs": "vi-i-na-a-θa-ya-ta-i-ya",
+    "cmp": "same",
+    "read": "v|inâthayatiy"
+   },
+   {
+    "ario": "anudim",
+    "copy": "anudim",
+    "signs": "a-nu-u-di-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "vinastahyā",
+    "copy": "vinastahyâ",
+    "signs": "vi-i-na-sa-ta-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "avaθā",
+    "copy": "avath|â",
+    "signs": "a-va-θa-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "pṛsāmi",
+    "copy": "parsâmiy",
+    "signs": "pa-ra-sa-a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯mā",
+    "copy": "naimâ",
+    "signs": "na-i-ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "kāma",
+    "copy": "kâma",
+    "signs": "ka-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiya",
+    "copy": "martiya",
+    "signs": "ma-ra-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vināθayai̯š",
+    "copy": "vinâthayais",
+    "signs": "vi-i-na-a-θa-ya-i-ša",
+    "cmp": "same",
+    "read": "vinâthayaiš"
+   },
+   {
+    "ario": "nai̯patimā",
+    "copy": "naipatimâ",
+    "signs": "na-i-pa-ta-i-ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "ava",
+    "copy": "ava",
+    "signs": "a-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "kāma",
+    "copy": "kâma",
+    "signs": "ka-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "yadi",
+    "copy": "yadi|y",
+    "signs": "ya-di-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vināθayai̯š",
+    "copy": "vinâthayaiš",
+    "signs": "vi-i-na-a-θa-ya-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯",
+    "copy": "naiy",
+    "signs": "na-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "fraθiyai̯š",
+    "copy": "frathiyaiš",
+    "signs": "fa-ra-θa-i-ya-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "martiya",
+    "copy": "martiya",
+    "signs": "ma-ra-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "pari",
+    "copy": "patiy",
+    "signs": "pa-ta-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "martiyam",
+    "copy": "martiyam",
+    "signs": "ma-ra-ta-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "θāti",
+    "copy": "thâtiy",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ava",
+    "copy": "ava",
+    "signs": "a-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "mām",
+    "copy": "mâm",
+    "signs": "ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯",
+    "copy": "naiy",
+    "signs": "na-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vṛnavātai̯",
+    "copy": "varnavataiy",
+    "signs": "va-ra-na-va-ta-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "yātā",
+    "copy": "yâtâ",
+    "signs": "ya-a-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "ubānām",
+    "copy": "uradanâm",
+    "signs": "u-ra-da-na-a-ma",
+    "cmp": "reading"
+   },
+   {
+    "ario": "handugām",
+    "copy": "hadu|gâm",
+    "signs": "ha-du-u-ga-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "āxšnavai̯",
+    "copy": "âxšnautiy",
+    "signs": "a-xa-ša-na-u-ta-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "martiya",
+    "copy": "martiya",
+    "signs": "ma-ra-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "kunau̯ti",
+    "copy": "kunau|tiy",
+    "signs": "ku-u-na-u-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "yadivā",
+    "copy": "yadivâ",
+    "signs": "ya-di-i-va-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "ābarati",
+    "copy": "âbaratiy",
+    "signs": "a-ba-ra-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "anu",
+    "copy": "anuv",
+    "signs": "a-nu-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "tau̯manīšai̯",
+    "copy": "tauman|išaiy",
+    "signs": "ta-u-ma-na-i-ša-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "avanā",
+    "copy": null,
+    "signs": null,
+    "cmp": "ario-only"
+   },
+   {
+    "ario": "xšnuta",
+    "copy": "xšnuta",
+    "signs": "xa-ša-nu-u-ta",
+    "cmp": "same"
+   },
+   {
+    "ario": "bavāmi",
+    "copy": "amiy",
+    "signs": "a-mi-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "mām",
+    "copy": "mâm",
+    "signs": "ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "vasai̯",
+    "copy": "vas|iy",
+    "signs": "va-sa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "kāma",
+    "copy": "kâma",
+    "signs": "ka-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "uθanduš",
+    "copy": "uxšnauš",
+    "signs": "u-xa-ša-na-u-ša",
+    "cmp": "reading"
+   },
+   {
+    "ario": "ami",
+    "copy": "amiy",
+    "signs": "a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": null,
+    "signs": null,
+    "cmp": "ario-only"
+   },
+   {
+    "ario": "vasai̯",
+    "copy": null,
+    "signs": null,
+    "cmp": "ario-only"
+   },
+   {
+    "ario": "dadāmi",
+    "copy": null,
+    "signs": null,
+    "cmp": "ario-only"
+   },
+   {
+    "ario": "agriyānām",
+    "copy": null,
+    "signs": null,
+    "cmp": "ario-only"
+   },
+   {
+    "ario": "martiyānām",
+    "copy": null,
+    "signs": null,
+    "cmp": "ario-only"
+   },
+   {
+    "ario": "avākaram-ci-mai̯",
+    "copy": "avâkaram|camaiy",
+    "signs": "a-va-a-ka-ra-ma-ca-ma-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "ušī",
+    "copy": "ušîy",
+    "signs": "u-ša-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "framānā",
+    "copy": "framânâ",
+    "signs": "fa-ra-ma-a-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "yaθāmai̯",
+    "copy": "yathâmai|y",
+    "signs": "ya-θa-a-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛtam",
+    "copy": "kartam",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "vai̯nāhi",
+    "copy": "vainâhy",
+    "signs": "va-i-na-a-ha-ya",
+    "cmp": "glide"
+   },
+   {
+    "ario": "yadivā",
+    "copy": "yadivâ",
+    "signs": "ya-di-i-va-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "āxšnavāhai̯",
+    "copy": "âxšnav|âhy",
+    "signs": "a-xa-ša-na-va-a-ha-ya",
+    "cmp": "glide",
+    "div": false
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "viθiyā",
+    "copy": "vithiyâ",
+    "signs": "vi-i-θa-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "uta",
+    "signs": "u-ta-a",
+    "cmp": "same",
+    "read": "utâ"
+   },
+   {
+    "ario": "spāyantiyāyā",
+    "copy": "spâthma|idayâ",
+    "signs": "sa-pa-a-θa-ma-i-da-ya-a",
+    "cmp": "reading"
+   },
+   {
+    "ario": "ai̯tamai̯",
+    "copy": "aitamaiy",
+    "signs": "a-i-ta-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "aruvastam",
+    "copy": "aruvastam",
+    "signs": "a-ru-u-va-sa-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "upari",
+    "copy": "upariy",
+    "signs": "u-pa-ra-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "manašcā",
+    "copy": "manašcâ",
+    "signs": "ma-na-ša-ca-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "ušīcā",
+    "copy": "ušîcâ",
+    "signs": "u-ša-i-ca-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "imapatimai̯",
+    "copy": "ima patimai|y",
+    "signs": "i-ma : pa-ta-i-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "aruvastam",
+    "copy": "aruvastam",
+    "signs": "a-ru-u-va-sa-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayamai̯",
+    "copy": "tyamaiy",
+    "signs": "ta-ya-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "tanūš",
+    "copy": "tanûš",
+    "signs": "ta-nu-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "tāvayati",
+    "copy": "tâvaya|tiy",
+    "signs": "ta-a-va-ya-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "hamaranakara",
+    "copy": "hamaranakara",
+    "signs": "ha-ma-ra-na-ka-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "ami",
+    "copy": "amiy",
+    "signs": "a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ušhamaranakara",
+    "copy": "ušhamaranakara",
+    "signs": "u-ša-ha-ma-ra-na-ka-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "hakarammai̯",
+    "copy": "hakara|mciy",
+    "signs": "ha-ka-ra-ma-ca-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "ušiyā",
+    "copy": "ušîyâ",
+    "signs": "u-ša-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "gāθavā",
+    "copy": "gâthavâ",
+    "signs": "ga-a-θa-va-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "hištanti",
+    "copy": "vainâtaiy",
+    "signs": "va-i-na-a-ta-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "yaci",
+    "copy": "yaciy",
+    "signs": "ya-ca-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vai̯nāmi",
+    "copy": "vainâmiy",
+    "signs": "va-i-na-a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "hamiçiyam",
+    "copy": "hamiçiyam",
+    "signs": "ha-mi-i-ça-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "yaci",
+    "copy": "yaciy",
+    "signs": "ya-ca-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯",
+    "copy": "naiy",
+    "signs": "na-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vai̯nāmi",
+    "copy": "vainâ|miy",
+    "signs": "va-i-na-a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "ušībiyā",
+    "copy": "ušîbiyâ",
+    "signs": "u-ša-i-ba-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "framānāyā",
+    "copy": "framânâyâ",
+    "signs": "fa-ra-ma-a-na-a-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "adakai̯",
+    "copy": "adakaiy",
+    "signs": "a-da-ka-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "fratara",
+    "copy": "fratara",
+    "signs": "fa-ra-ta-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "maniyai̯",
+    "copy": "maniyaiy",
+    "signs": "ma-na-i-ya-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "afuvāyā",
+    "copy": "aruvâyâ",
+    "signs": "a-ru-u-va-a-ya-a",
+    "cmp": "reading"
+   },
+   {
+    "ario": "yadi",
+    "copy": "ya|diy",
+    "signs": "ya-di-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vai̯nāmi",
+    "copy": "vainâmiy",
+    "signs": "va-i-na-a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "hamiçiyam",
+    "copy": "hamiçiyam",
+    "signs": "ha-mi-i-ça-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "yaθā",
+    "copy": "yathâ",
+    "signs": "ya-θa-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "yadi",
+    "copy": "yadiy",
+    "signs": "ya-di-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯",
+    "copy": "naiy",
+    "signs": "na-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vai̯nāmi",
+    "copy": "vainâmiy",
+    "signs": "va-i-na-a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ya.u̯mai̯niš",
+    "copy": "yâumainiš",
+    "signs": "ya-a-u-ma-i-na-i-ša",
+    "cmp": "reading"
+   },
+   {
+    "ario": "ami",
+    "copy": "amiy",
+    "signs": "a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "u|tâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dastai̯biyā",
+    "copy": "dastaibiyâ",
+    "signs": "da-sa-ta-i-ba-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "pādai̯biyā",
+    "copy": "pâdaibiyâ",
+    "signs": "pa-a-da-i-ba-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "asabāra",
+    "copy": "asabâ|ra",
+    "signs": "a-sa-ba-a-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "uvasabāra",
+    "copy": "uvâsabâra",
+    "signs": "u-va-a-sa-ba-a-ra",
+    "cmp": "reading"
+   },
+   {
+    "ario": "ami",
+    "copy": "amiy",
+    "signs": "a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "θanuvaniya",
+    "copy": "thanuvaniya",
+    "signs": "θa-nu-u-va-na-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "uθanuvaniya",
+    "copy": "utha|nuvaniya",
+    "signs": "u-θa-nu-u-va-na-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ami",
+    "copy": "amiy",
+    "signs": "a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "pastiš",
+    "copy": "pastiš",
+    "signs": "pa-sa-ta-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "asabāra",
+    "copy": "asabâra",
+    "signs": "a-sa-ba-a-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "ṛštika",
+    "copy": "ârštika",
+    "signs": "a-ra-ša-ta-i-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "ami",
+    "copy": "amiy",
+    "signs": "a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "uvṛštika",
+    "copy": "uvârštika",
+    "signs": "u-va-a-ra-ša-ta-i-ka",
+    "cmp": "reading"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "pastiš",
+    "copy": "pastiš",
+    "signs": "pa-sa-ta-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "asabāra",
+    "copy": "asabâra",
+    "signs": "a-sa-ba-a-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "imā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "reading"
+   },
+   {
+    "ario": "ūnarā",
+    "copy": "ûvnarâ",
+    "signs": "u-va-na-ra-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayā",
+    "copy": "tyâ",
+    "signs": "ta-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "upari",
+    "copy": "upariy",
+    "signs": "u-pa-ra-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "mām",
+    "copy": "mâm",
+    "signs": "ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "niyasaya",
+    "copy": "nîyasaya",
+    "signs": "na-i-ya-sa-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "utādiš",
+    "copy": "utâ|diš",
+    "signs": "u-ta-a-di-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "atāvayam",
+    "copy": "atâvayam",
+    "signs": "a-ta-a-va-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "bartanai̯",
+    "copy": "bartanaiy",
+    "signs": "ba-ra-ta-na-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnā",
+    "copy": "vašnâ",
+    "signs": "va-ša-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "copy": "Auramazdâh|â",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayamai̯",
+    "copy": "tyamaiy",
+    "signs": "ta-ya-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛtam",
+    "copy": "kartam",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "imai̯biš",
+    "copy": "imaibiš",
+    "signs": "i-ma-i-ba-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "ūnarai̯biš",
+    "copy": "ûvnaraibiš",
+    "signs": "u-va-na-ra-i-ba-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunavam",
+    "copy": "aku|navam",
+    "signs": "a-ku-u-na-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayā",
+    "copy": "tyâ",
+    "signs": "ta-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "mām",
+    "copy": "mâm",
+    "signs": "ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "upari",
+    "copy": "upariy",
+    "signs": "u-pa-ra-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "niyasaya",
+    "copy": "nîyasaya",
+    "signs": "na-i-ya-sa-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "marikā",
+    "copy": "marîkâ",
+    "signs": "ma-ra-i-ka-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dṛšam",
+    "copy": "daršam",
+    "signs": "da-ra-ša-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "azdā",
+    "copy": "azdâ",
+    "signs": "a-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "kušuvā",
+    "copy": "kušuvâ",
+    "signs": "ku-u-ša-u-va-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "ciyākaram",
+    "copy": "ciyâkaram",
+    "signs": "ca-i-ya-a-ka-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "ahi",
+    "copy": "amiy",
+    "signs": "a-mi-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "ciyākaramtai̯",
+    "copy": "ciyâkaramcamaiy",
+    "signs": "ca-i-ya-a-ka-ra-ma-ca-ma-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "ūnarā",
+    "copy": "ûvnarâ",
+    "signs": "u-va-na-ra-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "ciyākaramtai̯",
+    "copy": "ciyâkara|mcamaiy",
+    "signs": "ca-i-ya-a-ka-ra-ma-ca-ma-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "parīyanam",
+    "copy": "pariyanam",
+    "signs": "pa-ra-i-ya-na-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "mātai̯",
+    "copy": "mâtaiy",
+    "signs": "ma-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ava",
+    "copy": null,
+    "signs": null,
+    "cmp": "ario-only"
+   },
+   {
+    "ario": "vahištam",
+    "copy": "duruxtam",
+    "signs": "du-u-ru-u-xa-ta-ma",
+    "cmp": "reading"
+   },
+   {
+    "ario": "θadaya",
+    "copy": "thadaya",
+    "signs": "θa-da-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayatai̯",
+    "copy": "tyataiy",
+    "signs": "ta-ya-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "gau̯šāyā",
+    "copy": "gaušâyâ",
+    "signs": "ga-u-ša-a-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "θanhyāti",
+    "copy": "xšnnutam",
+    "signs": "xa-ša-nu-u-ta-ma",
+    "cmp": "reading",
+    "read": "xšnutam"
+   },
+   {
+    "ario": "avašci",
+    "copy": "avaš|ciy",
+    "signs": "a-va-ša-ca-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "āxšnudi",
+    "copy": "âxšnudiy",
+    "signs": "a-xa-ša-nu-u-di-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "paratar",
+    "copy": "partamtaiy",
+    "signs": "pa-ra-ta-ma-ta-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "θanhyāti",
+    "copy": "asti|y",
+    "signs": "a-sa-ta-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "marikā",
+    "copy": "marîkâ",
+    "signs": "ma-ra-i-ka-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "mātai̯",
+    "copy": "mâtaiy",
+    "signs": "ma-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ava",
+    "copy": "avašciy",
+    "signs": "a-va-ša-ca-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "nai̯bam",
+    "copy": null,
+    "signs": null,
+    "cmp": "ario-only"
+   },
+   {
+    "ario": "θadaya",
+    "copy": null,
+    "signs": null,
+    "cmp": "ario-only"
+   },
+   {
+    "ario": "taya",
+    "copy": "duruxta|m",
+    "signs": "du-u-ru-u-xa-ta-ma",
+    "cmp": "reading"
+   },
+   {
+    "ario": "x",
+    "copy": null,
+    "signs": null,
+    "cmp": "ario-only"
+   },
+   {
+    "ario": "x",
+    "copy": null,
+    "signs": null,
+    "cmp": "ario-only"
+   },
+   {
+    "ario": "kunavāti",
+    "copy": "kunavâtaiy",
+    "signs": "ku-u-na-va-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "copy": "tya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": null,
+    "copy": "manâ",
+    "signs": "ma-na-a",
+    "cmp": "corpus-only"
+   },
+   {
+    "ario": "skau̯θai̯š",
+    "copy": "kartam",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "reading"
+   },
+   {
+    "ario": "kunavāti",
+    "copy": "astîy",
+    "signs": "a-sa-ta-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "avašci",
+    "copy": "avašciy",
+    "signs": "a-va-ša-ca-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "dīdi",
+    "copy": "dîdiy",
+    "signs": "di-i-di-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "marikā",
+    "copy": "yaciy",
+    "signs": "ya-ca-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "x",
+    "copy": "nipištam",
+    "signs": "na-i-pa-i-ša-ta-ma",
+    "cmp": "reading"
+   },
+   {
+    "ario": "mā",
+    "copy": "mâ",
+    "signs": "ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "patiyātaya",
+    "copy": "taiy",
+    "signs": "ta-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "a-x",
+    "copy": "dâtâ",
+    "signs": "da-a-ta-a",
+    "cmp": "reading"
+   },
+   {
+    "ario": null,
+    "copy": "+++++",
+    "signs": "x-x-x-x-x",
+    "cmp": "corpus-only"
+   },
+   {
+    "ario": "māpati",
+    "copy": "mâ",
+    "signs": "ma-a",
+    "cmp": "reading"
+   },
+   {
+    "ario": "šiyātiyā",
+    "copy": "++++++âtiy|â",
+    "signs": "x-x-x-x-x-x-a-ta-i-ya-a",
+    "cmp": "reading"
+   },
+   {
+    "ario": "ayā.umai̯niš",
+    "copy": "ayâu(ma)iniš",
+    "signs": "a-ya-a-u-ma-i-na-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "bavāhi",
+    "copy": "bavâtiy",
+    "signs": "ba-va-a-ta-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": null,
+    "copy": "marîkâ",
+    "signs": "ma-ra-i-ka-a",
+    "cmp": "corpus-only"
+   },
+   {
+    "ario": "x-di-i-y",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "reading"
+   },
+   {
+    "ario": "mā",
+    "copy": "mâ",
+    "signs": "ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "raxθantu",
+    "copy": "raxthatuv",
+    "signs": "ra-xa-θa-tu-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "x-i-y",
+    "copy": "+++++++++++++++ina",
+    "signs": "x-x-x-x-x-x-x-x-x-x-x-x-x-x-x-i-na",
+    "cmp": "reading"
+   }
+  ],
+  "op_lined": true
+ },
+ "DPa": {
+  "ario": "Q007157",
+  "op_translit": "Dārayava.uš xšāyaθiya vazṛka xšāyaθiya xšāyaθiyānām xšāyaθiya dahyunām Vištāspahyā puça Haxāmanišiya haya imam tacaram akunau̯š",
+  "el_atf": "{DIŠ}da-ri-ia-ma-u-iš {DIŠ}EŠŠANA ir-ša₂ ir-ra {DIŠ}EŠŠANA {DIŠ}EŠŠANA-ip-in-na {DIŠ}EŠŠANA {DIŠ}da-a-u₂-iš-pe₃-na {DIŠ}mi-is₂-pa₂-za-na aš₂-pe₃-na {DIŠ}mi-iš-ta₂-as₂-pa₂ {DIŠ}ša₂-ak ri {DIŠ}ha-ak-ka₄-man-nu-ši-ia ak-ka₄ hi {AŠ}ta₂-iz-za-ra-um hu-ut-taš-ta₂",
+  "el_cuneiform": "𒁹𒁕𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒅕𒃻 𒅕𒊏 𒁹𒁹𒁹𒁹𒎙 𒁹𒁹𒁹𒁹𒎙𒅁𒅔𒈾 𒁹𒁹𒁹𒁹𒎙 𒁹𒁕𒀀𒌑𒅖𒁁𒈾 𒁹𒈪𒅖𒁀𒍝𒈾 𒀾𒁁𒈾 𒁹𒈪𒅖𒁕𒀾𒁀 𒁹𒃻𒀝 𒊑 𒁹𒄩𒀝𒋡𒎙𒉡𒅆𒅀 𒀝𒋡 𒄭 𒀸𒁕𒄑𒍝𒊏𒌝 𒄷𒌓𒌨𒁕",
+  "el_unmapped": [],
+  "bab_atf": "{m}da-ri-ia-a-muš LUGAL GAL-u₂ LUGAL LUGAL.MEŠ LUGAL KUR.KUR.MEŠ ša₂ nap-ha-ri li-ša₂-nu gab-bi A {m}uš-ta-as-pa {m}a-ha-ma-an-ni-iš-ši-ʾ ša₂ E₂ a-ga-a i-pu-uš",
+  "bab_cuneiform": "𒁹𒁕𒊑𒅀𒀀𒈲 𒈗 𒃲𒌑 𒈗 𒈗𒎌 𒈗 𒆳𒆳𒎌 𒃻 𒀮𒄩𒊑 𒇷𒃻𒉡 𒃮𒁉 𒀀 𒁹𒍑𒋫𒊍𒉺 𒁹𒀀𒄩𒈠𒀭𒉌𒅖𒅆𒀪 𒃻 𒂍 𒀀𒂵𒀀 𒄿𒁍𒍑",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "B (the published sign-by-sign transliteration, Kent's convention, data/corpus/op_translit.json; slips of the copy corrected only as listed in op_sign_decisions.json; D-177)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (the corpus lineation)"
+  },
+  "op_signs": [
+   "da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya :",
+   "va-za-ra-ka : xa-ša-a-ya-θa-i-ya : xa-ša-a",
+   "ya-θa-i-ya-a-na-a-ma : xa-ša-a-ya-θa-i-ya :",
+   "da-ha-ya-u-na-a-ma : vi-i-ša-ta-a-sa-pa-ha-ya",
+   "a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya : ha",
+   "ya : i-ma-ma : ta-ça-ra-ma : a-ku-u-na-u-ša"
+  ],
+  "op_words": [
+   {
+    "ario": "Dārayava.uš",
+    "copy": "da-a-ra-ya-va-u-ša",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xa-ša-a-ya-tha-i-ya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "va-za-ra-ka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xa-ša-a-ya-tha-i-ya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "copy": "xa-ša-a|ya-tha-i-ya-a-na-a-ma",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xa-ša-a-ya-tha-i-ya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "dahyunām",
+    "copy": "da-ha-ya-u-na-a-ma",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "Vištāspahyā",
+    "copy": "vi-i-ša-ta-a-sa-pa-ha-ya|a",
+    "signs": "vi-i-ša-ta-a-sa-pa-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "puça",
+    "copy": "pa-u-ça",
+    "signs": "pa-u-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "copy": "ha-xa-a-ma-na-i-ša-i-ya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "ha|ya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "imam",
+    "copy": "i-ma-ma",
+    "signs": "i-ma-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "tacaram",
+    "copy": "ta-ça-ra-ma",
+    "signs": "ta-ça-ra-ma",
+    "cmp": "reading"
+   },
+   {
+    "ario": "akunau̯š",
+    "copy": "a-ku-u-na-u-ša",
+    "signs": "a-ku-u-na-u-ša",
+    "cmp": "same"
+   }
+  ],
+  "op_lined": true
+ },
+ "DPb": {
+  "ario": "Q007158",
+  "op_translit": "Dārayava.uš xšāyaθiya vazṛka Vištāspahyā puça Haxāmanišiya",
+  "el_atf": "{DIŠ}da-ri-ia-ma-u-iš {DIŠ}EŠŠANA ir-ša₂-ir-ra {DIŠ}mi-iš ta₂-as₂-pa₂ {DIŠ}ša₂-ak-ri {DIŠ}ha-ak-ka₄-man-nu-ši-ia",
+  "el_cuneiform": "𒁹𒁕𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒅕𒃻𒅕𒊏 𒁹𒈪𒅖 𒁕𒀾𒁀 𒁹𒃻𒀝𒊑 𒁹𒄩𒀝𒋡𒎙𒉡𒅆𒅀",
+  "el_unmapped": [],
+  "bab_atf": "{m}da-ri-ia-a-muš LUGAL GAL-u₂ A {m}uš-ta-as-pa {m}a-ha-ma-an-niš-ši-ʾ",
+  "bab_cuneiform": "𒁹𒁕𒊑𒅀𒀀𒈲 𒈗 𒃲𒌑 𒀀 𒁹𒍑𒋫𒊍𒉺 𒁹𒀀𒄩𒈠𒀭𒎙𒅆𒀪",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "B (the published sign-by-sign transliteration, Kent's convention, data/corpus/op_translit.json; slips of the copy corrected only as listed in op_sign_decisions.json; D-177)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (the corpus lineation)"
+  },
+  "op_signs": [
+   "da-a-ra-ya-va-u-ša : xa-ša-a-ya",
+   "θa-i-ya : va-za-ra-ka : vi-i-ša",
+   "ta-a-sa-pa-ha-ya-a : pa-u-ça",
+   ": ha-xa-a-ma-na-i-ša-i-ya :"
+  ],
+  "op_words": [
+   {
+    "ario": "Dārayava.uš",
+    "copy": "Dârayavauš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâya|thiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "Vištāspahyā",
+    "copy": "Viš|tâspahyâ",
+    "signs": "vi-i-ša-ta-a-sa-pa-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "puça",
+    "copy": "puça",
+    "signs": "pa-u-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "copy": "Haxâmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "cmp": "same"
+   }
+  ],
+  "op_lined": true
+ },
+ "DPc": {
+  "ario": "Q007159",
+  "op_translit": "ardastāna aθangai̯na Dārayavahau̯š xšāyaθiyahyā viθiyā kṛta",
+  "el_atf": "har-da-is₂-ta₂-na {AŠ}mur.MEŠ-in-na {DIŠ}da-ri-ia-ma-u-iš {DIŠ}EŠŠANA {AŠ}ul-hi.MEŠ-e-ma hu-ut-tuk-ka₄",
+  "el_cuneiform": "𒄯𒁕𒅖𒁕𒈾 𒀸𒄯𒎌𒅔𒈾 𒁹𒁕𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒀸𒌌𒄭𒎌𒂊𒈠 𒄷𒌓𒌇𒋡",
+  "el_unmapped": [],
+  "bab_atf": "ku-bu-ur-ri-e {NA₄}ga-la-la i-na bi-it {m}da-ri-ia-a-muš šar-ri ep-šu-ʾ",
+  "bab_cuneiform": "𒆪𒁍𒌨𒊑𒂊 𒎎𒂵𒆷𒆷 𒄿𒈾 𒁉𒀉 𒁹𒁕𒊑𒅀𒀀𒈲 𒊬𒊑 𒅁𒋗𒀪",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "B (the published sign-by-sign transliteration, Kent's convention, data/corpus/op_translit.json; slips of the copy corrected only as listed in op_sign_decisions.json; D-177)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (the corpus lineation)"
+  },
+  "op_signs": [
+   "a-ra-da-sa-ta-a-na : a-θa-ga-i-na : da-a-ra-ya-va-ha-u-ša : XŠ-ha-ya-a : vi-i-θa-i-ya-a : ka-ra-ta"
+  ],
+  "op_words": [
+   {
+    "ario": "ardastāna",
+    "copy": "ardastâna",
+    "signs": "a-ra-da-sa-ta-a-na",
+    "cmp": "same"
+   },
+   {
+    "ario": "aθangai̯na",
+    "copy": "athagaina",
+    "signs": "a-θa-ga-i-na",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "copy": "Dârayavauš",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "cmp": "same",
+    "read": "Dârayavahauš"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "copy": "xšhyâ",
+    "signs": "XŠ-ha-ya-a",
+    "cmp": "logogram",
+    "read": "XŠhyâ"
+   },
+   {
+    "ario": "viθiyā",
+    "copy": "vithiyâ",
+    "signs": "vi-i-θa-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛta",
+    "copy": "karta",
+    "signs": "ka-ra-ta",
+    "cmp": "same"
+   }
+  ],
+  "op_lined": true
+ },
+ "DPd": {
+  "ario": "Q007160",
+  "op_translit": "A.uramazdā vazṛka haya maθišta bagānām hau̯ Dārayava.um xšāyaθiyam adadā hau̯šai̯ xšaçam frābara vašnā A.uramazdāhā Dārayava.uš xšāyaθiya θāti Dārayava.uš xšāyaθiya iyam dahyāu̯š Pārsa tayām manā A.uramazdā frābara hayā nai̯bā uvaspā umartiyā vašnā A.uramazdāhā manacā Dārayavahau̯š xšāyaθiyahyā hacā aniyanā nai̯ tṛsanti θāti Dārayava.uš xšāyaθiya manā A.uramazdā upastām baratu hadā visai̯biš bagai̯biš utā imām dahyāu̯m A.uramazdā pātu hacā hai̯nāyā hacā dušiyārā hacā drau̯gā abi imām dahyāu̯m mā ājamiyā mā hai̯nā mā dušiyāram mā drau̯ga ai̯ta adam yānam jadiyāmi A.uramazdām hadā visai̯biš bagai̯biš ai̯tamai̯ yānam A.uramazdā dadātu hadā visai̯biš bagai̯biš",
+  "el_atf": "",
+  "el_cuneiform": "",
+  "el_unmapped": [],
+  "bab_atf": "",
+  "bab_cuneiform": "",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "B (the published sign-by-sign transliteration, Kent's convention, data/corpus/op_translit.json; slips of the copy corrected only as listed in op_sign_decisions.json; D-177)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (the corpus lineation)"
+  },
+  "op_signs": [
+   "a-u-ra-ma-za-da-a : va-za-ra-ka : ha-ya : ma-θa-i-ša-ta : ba-ga",
+   "a-na-a-ma : ha-u-va : da-a-ra-ya-va-u-ma : xa-ša-a-ya-θa-i",
+   "ya-ma : a-da-da-a : ha-u-ša-i-ya : xa-ša-ça-ma : fa-ra-a-ba",
+   "ra : va-ša-na-a : a-u-ra-ma-za-da-a-ha-a : da-a-ra-ya-va-u",
+   "ša : xa-ša-a-ya-θa-i-ya : θa-a-ta-i-ya : da-a-ra-ya-va-u-ša :",
+   "xa-ša-a-ya-θa-i-ya : i-ya-ma : da-ha-ya-a-u-ša : pa-a-ra",
+   "sa : ta-ya-a-ma : ma-na-a : a-u-ra-ma-za-da-a : fa-ra-a-ba",
+   "ra : ha-ya-a : na-i-ba-a : u-va-sa-pa-a : u-ma-ra-ta-i",
+   "ya-a : va-ša-na-a : a-u-ra-ma-za-da-a-ha-a : ma-na-ca",
+   "a : da-a-ra-ya-va-ha-u-ša : xa-ša-a-ya-θa-i-ya-ha-ya",
+   "a : ha-ca-a : a-na-i-ya-na-a : na-i-ya : ta-ra-sa-ta",
+   "i-ya : θa-a-ta-i-ya : da-a-ra-ya-va-u-ša : xa-ša-a-ya",
+   "θa-i-ya : ma-na-a : a-u-ra-ma-za-da-a : u-pa-sa-ta-a-ma :",
+   "ba-ra-tu-u-va : ha-da-a : vi-i-θa-i-ba-i-ša : ba-ga-i",
+   "ba-i-ša : u-ta-a : i-ma-a-ma : da-ha-ya-a-u-ma : a-u-ra",
+   "ma-za-da-a : pa-a-tu-u-va : ha-ca-a : ha-i-na-a-ya",
+   "a : ha-ca-a : du-u-ša-i-ya-a-ra-a : ha-ca-a : da-ra",
+   "u-ga-a : a-ba-i-ya : i-ma-a-ma : da-ha-ya-a-u-ma : ma-a",
+   ": a-ja-mi-i-ya-a : ma-a : ha-i-na-a : ma-a : du-u-ša",
+   "i-ya-a-ra-ma : ma-a : da-ra-u-ga : a-i-ta : a-da-ma :",
+   "ya-a-na-ma : ja-di-i-ya-a-mi-i-ya : a-u-ra-ma-za-da",
+   "a-ma : ha-da-a : vi-i-θa-i-ba-i-ša : ba-ga-i-ba-i-ša : a",
+   "i-ta-ma-i-ya : ya-a-na-ma : a-u-ra-ma-za-da-a : da-da-a-tu",
+   "u-va : ha-da-a vi-i-θa-i-ba-i-ša : ba-ga-i-ba-i-ša :"
+  ],
+  "op_words": [
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vazraka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "copy": "hya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "maθišta",
+    "copy": "mathišta",
+    "signs": "ma-θa-i-ša-ta",
+    "cmp": "same"
+   },
+   {
+    "ario": "bagānām",
+    "copy": "bag|ânâm",
+    "signs": "ba-ga-a-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "hau̯",
+    "copy": "hauv",
+    "signs": "ha-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.um",
+    "copy": "Dârayavaum",
+    "signs": "da-a-ra-ya-va-u-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyam",
+    "copy": "xšâyathi|yam",
+    "signs": "xa-ša-a-ya-θa-i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adadā",
+    "copy": "adadâ",
+    "signs": "a-da-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "hau̯šai̯",
+    "copy": "haušaiy",
+    "signs": "ha-u-ša-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšaçam",
+    "copy": "xšaçam",
+    "signs": "xa-ša-ça-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "frābara",
+    "copy": "frâba|ra",
+    "signs": "fa-ra-a-ba-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnā",
+    "copy": "vašnâ",
+    "signs": "va-ša-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "copy": "Auramazdâhâ",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "copy": "Dârayavau|š",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "θāti",
+    "copy": "thâtiy",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "copy": "Dârayavauš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "iyam",
+    "copy": "iyam",
+    "signs": "i-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "dahyāu̯š",
+    "copy": "dahyâuš",
+    "signs": "da-ha-ya-a-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "Pārsa",
+    "copy": "Pâr|sa",
+    "signs": "pa-a-ra-sa",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayām",
+    "copy": "tyâm",
+    "signs": "ta-ya-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "manā",
+    "copy": "manâ",
+    "signs": "ma-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "frābara",
+    "copy": "frâba|ra",
+    "signs": "fa-ra-a-ba-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "hayā",
+    "copy": "hyâ",
+    "signs": "ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯bā",
+    "copy": "naibâ",
+    "signs": "na-i-ba-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "uvaspā",
+    "copy": "uvaspâ",
+    "signs": "u-va-sa-pa-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "umartiyā",
+    "copy": "umarti|yâ",
+    "signs": "u-ma-ra-ta-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnā",
+    "copy": "vašnâ",
+    "signs": "va-ša-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "copy": "Auramazdâhâ",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "manacā",
+    "copy": "manac|â",
+    "signs": "ma-na-ca-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "copy": "Dârayavahauš",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "copy": "xšâyathiyahy|â",
+    "signs": "xa-ša-a-ya-θa-i-ya-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "hacā",
+    "copy": "hacâ",
+    "signs": "ha-ca-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "aniyanā",
+    "copy": "aniyanâ",
+    "signs": "a-na-i-ya-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯",
+    "copy": "naiy",
+    "signs": "na-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "tṛsanti",
+    "copy": "tarsat|iy",
+    "signs": "ta-ra-sa-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "θāti",
+    "copy": "thâtiy",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "copy": "Dârayavauš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâya|thiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "manā",
+    "copy": "manâ",
+    "signs": "ma-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "upastām",
+    "copy": "upastâm",
+    "signs": "u-pa-sa-ta-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "baratu",
+    "copy": "baratuv",
+    "signs": "ba-ra-tu-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "hadā",
+    "copy": "hadâ",
+    "signs": "ha-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "visai̯biš",
+    "copy": "vithaibiš",
+    "signs": "vi-i-θa-i-ba-i-ša",
+    "cmp": "reading"
+   },
+   {
+    "ario": "bagai̯biš",
+    "copy": "bagai|biš",
+    "signs": "ba-ga-i-ba-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "imām",
+    "copy": "imâm",
+    "signs": "i-ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "dahyāu̯m",
+    "copy": "dahyâum",
+    "signs": "da-ha-ya-a-u-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Aura|mazda",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same",
+    "read": "Aura|mazdâ"
+   },
+   {
+    "ario": "pātu",
+    "copy": "pâtuv",
+    "signs": "pa-a-tu-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "hacā",
+    "copy": "hacâ",
+    "signs": "ha-ca-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "hai̯nāyā",
+    "copy": "hainây|â",
+    "signs": "ha-i-na-a-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "hacā",
+    "copy": "hacâ",
+    "signs": "ha-ca-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dušiyārā",
+    "copy": "dušiyârâ",
+    "signs": "du-u-ša-i-ya-a-ra-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "hacā",
+    "copy": "hacâ",
+    "signs": "ha-ca-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "drau̯gā",
+    "copy": "dra|ugâ",
+    "signs": "da-ra-u-ga-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "abi",
+    "copy": "abiy",
+    "signs": "a-ba-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "imām",
+    "copy": "imâm",
+    "signs": "i-ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "dahyāu̯m",
+    "copy": "dahyâum",
+    "signs": "da-ha-ya-a-u-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "mā",
+    "copy": "mâ",
+    "signs": "ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "ājamiyā",
+    "copy": "âjamiyâ",
+    "signs": "a-ja-mi-i-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "mā",
+    "copy": "mâ",
+    "signs": "ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "hai̯nā",
+    "copy": "hainâ",
+    "signs": "ha-i-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "mā",
+    "copy": "mâ",
+    "signs": "ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dušiyāram",
+    "copy": "duš|iyâram",
+    "signs": "du-u-ša-i-ya-a-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "mā",
+    "copy": "mâ",
+    "signs": "ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "drau̯ga",
+    "copy": "drauga",
+    "signs": "da-ra-u-ga",
+    "cmp": "same"
+   },
+   {
+    "ario": "ai̯ta",
+    "copy": "aita",
+    "signs": "a-i-ta",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "copy": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "yānam",
+    "copy": "yânam",
+    "signs": "ya-a-na-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "jadiyāmi",
+    "copy": "jadiyâmiy",
+    "signs": "ja-di-i-ya-a-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdām",
+    "copy": "Auramazd|âm",
+    "signs": "a-u-ra-ma-za-da-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "hadā",
+    "copy": "hadâ",
+    "signs": "ha-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "visai̯biš",
+    "copy": "vithaibiš",
+    "signs": "vi-i-θa-i-ba-i-ša",
+    "cmp": "reading"
+   },
+   {
+    "ario": "bagai̯biš",
+    "copy": "bagaibiš",
+    "signs": "ba-ga-i-ba-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "ai̯tamai̯",
+    "copy": "a|itamaiy",
+    "signs": "a-i-ta-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "yānam",
+    "copy": "yânam",
+    "signs": "ya-a-na-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "copy": "Auramazdâ",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dadātu",
+    "copy": "dadât|uv",
+    "signs": "da-da-a-tu-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "hadā",
+    "copy": "hadâ",
+    "signs": "ha-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "visai̯biš",
+    "copy": "vithaibiš",
+    "signs": "vi-i-θa-i-ba-i-ša",
+    "cmp": "reading",
+    "div": false
+   },
+   {
+    "ario": "bagai̯biš",
+    "copy": "bagaibiš",
+    "signs": "ba-ga-i-ba-i-ša",
+    "cmp": "same"
+   }
+  ],
+  "op_lined": true
+ },
+ "DPe": {
+  "ario": "Q007161",
+  "op_translit": "adam Dārayava.uš xšāyaθiya vazṛka xšāyaθiya xšāyaθiyānām xšāyaθiya dahyunām tayai̯šām parūnām Vištāspahyā puça Haxāmanišiya θāti Dārayava.uš xšāyaθiya vašnā A.uramazdāhā imā dahyāva tayā adam adarši hadā anā Pārsā kārā tayā hacāma atṛsa manā bājim abara Ūja Māda Bābiruš Arbāya Aθurā Mudrāya Armina Katpatuka Sparda Yau̯nā tayai̯ uškahyā utā tayai̯ drayahyā utā dahyāva tayā para draya Asagarta Parθava Zranka Harai̯va Bāxtriš Suguda Uvārazmiy Θataguš Hara.uvatiš Hinduš Gandāra Sakā Maka θāti Dārayava.uš xšāyaθiya yadi avaθā maniyāhai̯ hacā aniyanā mā tṛsam imam Pārsam kāram pādi yadi kāra Pārsa pāta ahati hayā duvai̯štam šiyātiš axšatā hau̯ci au̯rā nirsāti abi imām viθam",
+  "el_atf": "",
+  "el_cuneiform": "",
+  "el_unmapped": [],
+  "bab_atf": "",
+  "bab_cuneiform": "",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "B (the published sign-by-sign transliteration, Kent's convention, data/corpus/op_translit.json; slips of the copy corrected only as listed in op_sign_decisions.json; D-177)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)",
+   "op_lines": "B (the corpus lineation)"
+  },
+  "op_signs": [
+   "a-da-ma : da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya : va-za",
+   "ra-ka : xa-ša-a-ya-θa-i-ya : xa-ša-a-ya-θa-i-ya-a-na-a",
+   "ma : xa-ša-a-ya-θa-i-ya : da-ha-ya-u-na-a-ma : ta-ya-i",
+   "ša-a-ma : pa-ru-u-na-a-ma : vi-i-ša-ta-a-sa-pa-ha-ya-a :",
+   "pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya : θa-a-ta-i-ya : da-a-ra",
+   "ya-va-u-ša : xa-ša-a-ya-θa-i-ya : va-ša-na-a : a-u-ra-ma",
+   "za-da-a-ha-a : i-ma-a : da-ha-ya-a-va : ta-ya-a : a-da-ma",
+   ": a-da-ra-ša-i-ya : ha-da-a : a-na-a : pa-a-ra-sa-a : ka-a",
+   "ra-a : ta-ya-a : ha-ca-a-ma : a-ta-ra-sa : ma-na-a : ba-a-ji",
+   "i-ma : a-ba-ra : u-va-ja : ma-a-da : ba-a-ba-i-ru-u",
+   "ša : a-ra-ba-a-ya : a-θa-u-ra-a : mu-u-da-ra-a-ya",
+   "a : a-ra-mi-i-na : ka-ta-pa-tu-u-ka : sa-pa-ra-da : ya",
+   "u-na-a : ta-ya-i-ya : u-ša-ka-ha-ya-a : u-ta-a : ta-ya",
+   "i-ya : da-ra-ya-ha-ya-a : u-ta-a : da-ha-ya-a-va : ta",
+   "ya-a : pa-ra : da-ra-ya : a-sa-ga-ra-ta : pa-ra-θa-va : za-ra",
+   "ka : ha-ra-i-va : ba-a-xa-ta-ra-i-ša : sa-u-gu-u-da : u-va",
+   "a-ra-za-mi-i-ya : θa-ta-gu-u-ša : ha-ra-u-va-ta-i-ša : ha",
+   "i-du-u-ša : ga-da-a-ra : sa-ka-a : ma-ka : θa-a-ta-i-ya",
+   ": da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya : ya-di-i-ya",
+   ": a-va-θa-a : ma-na-i-ya-a-ha-ya : ha-ca-a : a-na-i-ya",
+   "na-a : ma-a : ta-ra-sa-ma : i-ma-ma : pa-a-ra-sa-ma : ka-a-ra-ma : pa-a-di-i",
+   "ya : ya-di-i-ya : ka-a-ra : pa-a-ra-sa : pa-a-ta : a-ha-ta-i-ya : ha-ya-a :",
+   "du-u-va-i-ša-ta-ma : ša-i-ya-a-ta-i-ša : a-xa-ša-ta-a : ha-u-va-ca-i",
+   "ya : a-u-ra-a : na-i-ra-sa-a-ta-i-ya : a-ba-i-ya : i-ma-a-ma : vi-i-θa-ma"
+  ],
+  "op_words": [
+   {
+    "ario": "adam",
+    "copy": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "copy": "Dârayavauš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "copy": "vaz|raka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "copy": "xšâyathiyânâ|m",
+    "signs": "xa-ša-a-ya-θa-i-ya-a-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same",
+    "read": "xšâyathiya"
+   },
+   {
+    "ario": "dahyunām",
+    "copy": "dahyûnâm",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayai̯šām",
+    "copy": "tyai|šâm",
+    "signs": "ta-ya-i-ša-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "parūnām",
+    "copy": "parûnâm",
+    "signs": "pa-ru-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "Vištāspahyā",
+    "copy": "Vištâspahyâ",
+    "signs": "vi-i-ša-ta-a-sa-pa-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "puça",
+    "copy": "puça",
+    "signs": "pa-u-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "copy": "Haxâmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "θāti",
+    "copy": "thâtiy",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "copy": "Dâra|yavauš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnā",
+    "copy": "vašnâ",
+    "signs": "va-ša-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāhā",
+    "copy": "Aurama|zdâhâ",
+    "signs": "a-u-ra-ma-za-da-a-ha-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "imā",
+    "copy": "imâ",
+    "signs": "i-ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dahyāva",
+    "copy": "dahyâva",
+    "signs": "da-ha-ya-a-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayā",
+    "copy": "tyâ",
+    "signs": "ta-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "copy": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adarši",
+    "copy": "adaršiy",
+    "signs": "a-da-ra-ša-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "hadā",
+    "copy": "hadâ",
+    "signs": "ha-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "anā",
+    "copy": "anâ",
+    "signs": "a-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Pārsā",
+    "copy": "Pârsâ",
+    "signs": "pa-a-ra-sa-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "kārā",
+    "copy": "kâ|râ",
+    "signs": "ka-a-ra-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayā",
+    "copy": "tyâ",
+    "signs": "ta-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "hacāma",
+    "copy": "hacâma",
+    "signs": "ha-ca-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "atṛsa",
+    "copy": "atarsa",
+    "signs": "a-ta-ra-sa",
+    "cmp": "same"
+   },
+   {
+    "ario": "manā",
+    "copy": "manâ",
+    "signs": "ma-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "bājim",
+    "copy": "bâj|im",
+    "signs": "ba-a-ji-i-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "abara",
+    "copy": "abara",
+    "signs": "a-ba-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "Ūja",
+    "copy": "Ûvja",
+    "signs": "u-va-ja",
+    "cmp": "same"
+   },
+   {
+    "ario": "Māda",
+    "copy": "Mâda",
+    "signs": "ma-a-da",
+    "cmp": "same"
+   },
+   {
+    "ario": "Bābiruš",
+    "copy": "Bâbiru|š",
+    "signs": "ba-a-ba-i-ru-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "Arbāya",
+    "copy": "Arabâya",
+    "signs": "a-ra-ba-a-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Aθurā",
+    "copy": "Athurâ",
+    "signs": "a-θa-u-ra-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Mudrāya",
+    "copy": "Mudrây|â",
+    "signs": "mu-u-da-ra-a-ya-a",
+    "cmp": "reading"
+   },
+   {
+    "ario": "Armina",
+    "copy": "Armina",
+    "signs": "a-ra-mi-i-na",
+    "cmp": "same"
+   },
+   {
+    "ario": "Katpatuka",
+    "copy": "Katpatuka",
+    "signs": "ka-ta-pa-tu-u-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "Sparda",
+    "copy": "Sparda",
+    "signs": "sa-pa-ra-da",
+    "cmp": "same"
+   },
+   {
+    "ario": "Yau̯nā",
+    "copy": "Ya|unâ",
+    "signs": "ya-u-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayai̯",
+    "copy": "tyaiy",
+    "signs": "ta-ya-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "uškahyā",
+    "copy": "uškahyâ",
+    "signs": "u-ša-ka-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayai̯",
+    "copy": "tya|iy",
+    "signs": "ta-ya-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "drayahyā",
+    "copy": "drayahyâ",
+    "signs": "da-ra-ya-ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "copy": "utâ",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "dahyāva",
+    "copy": "dahyâva",
+    "signs": "da-ha-ya-a-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "tayā",
+    "copy": "t|yâ",
+    "signs": "ta-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "para",
+    "copy": "para",
+    "signs": "pa-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "draya",
+    "copy": "draya",
+    "signs": "da-ra-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Asagarta",
+    "copy": "Asagarta",
+    "signs": "a-sa-ga-ra-ta",
+    "cmp": "same"
+   },
+   {
+    "ario": "Parθava",
+    "copy": "Parthava",
+    "signs": "pa-ra-θa-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "Zranka",
+    "copy": "Zra|ka",
+    "signs": "za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "Harai̯va",
+    "copy": "Haraiva",
+    "signs": "ha-ra-i-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "Bāxtriš",
+    "copy": "Bâxtriš",
+    "signs": "ba-a-xa-ta-ra-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "Suguda",
+    "copy": "Suguda",
+    "signs": "sa-u-gu-u-da",
+    "cmp": "same"
+   },
+   {
+    "ario": "Uvārazmiy",
+    "copy": "Uv|ârazmîy",
+    "signs": "u-va-a-ra-za-mi-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Θataguš",
+    "copy": "Thataguš",
+    "signs": "θa-ta-gu-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "Hara.uvatiš",
+    "copy": "Harauvatiš",
+    "signs": "ha-ra-u-va-ta-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "Hinduš",
+    "copy": "H|iduš",
+    "signs": "ha-i-du-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "Gandāra",
+    "copy": "Gadâra",
+    "signs": "ga-da-a-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "Sakā",
+    "copy": "Sakâ",
+    "signs": "sa-ka-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Maka",
+    "copy": "Maka",
+    "signs": "ma-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "θāti",
+    "copy": "thâtiy",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "copy": "Darayavauš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same",
+    "read": "Dârayavauš"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "copy": "xšâyathiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "yadi",
+    "copy": "yadiy",
+    "signs": "ya-di-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "avaθā",
+    "copy": "avathâ",
+    "signs": "a-va-θa-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "maniyāhai̯",
+    "copy": "maniyâhay",
+    "signs": "ma-na-i-ya-a-ha-ya",
+    "cmp": "glide"
+   },
+   {
+    "ario": "hacā",
+    "copy": "hacâ",
+    "signs": "ha-ca-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "aniyanā",
+    "copy": "aniya|nâ",
+    "signs": "a-na-i-ya-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "mā",
+    "copy": "mâ",
+    "signs": "ma-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "tṛsam",
+    "copy": "tarsam",
+    "signs": "ta-ra-sa-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "imam",
+    "copy": "imam",
+    "signs": "i-ma-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "Pārsam",
+    "copy": "Pârsam",
+    "signs": "pa-a-ra-sa-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "kāram",
+    "copy": "kâram",
+    "signs": "ka-a-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "pādi",
+    "copy": "pâdi|y",
+    "signs": "pa-a-di-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "yadi",
+    "copy": "yadiy",
+    "signs": "ya-di-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "kāra",
+    "copy": "kâra",
+    "signs": "ka-a-ra",
+    "cmp": "same"
+   },
+   {
+    "ario": "Pārsa",
+    "copy": "Pârsa",
+    "signs": "pa-a-ra-sa",
+    "cmp": "same"
+   },
+   {
+    "ario": "pāta",
+    "copy": "pâta",
+    "signs": "pa-a-ta",
+    "cmp": "same"
+   },
+   {
+    "ario": "ahati",
+    "copy": "ahatiy",
+    "signs": "a-ha-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "hayā",
+    "copy": "hyâ",
+    "signs": "ha-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "duvai̯štam",
+    "copy": "duvaištam",
+    "signs": "du-u-va-i-ša-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "šiyātiš",
+    "copy": "šiyâtiš",
+    "signs": "ša-i-ya-a-ta-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "axšatā",
+    "copy": "axšatâ",
+    "signs": "a-xa-ša-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "hau̯ci",
+    "copy": "hauvci|y",
+    "signs": "ha-u-va-ca-i-ya",
+    "cmp": "glide"
+   },
+   {
+    "ario": "au̯rā",
+    "copy": "Aurâ",
+    "signs": "a-u-ra-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "nirsāti",
+    "copy": "nirasâtiy",
+    "signs": "na-i-ra-sa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "abi",
+    "copy": "abiy",
+    "signs": "a-ba-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "imām",
+    "copy": "imâm",
+    "signs": "i-ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "viθam",
+    "copy": "vitham",
+    "signs": "vi-i-θa-ma",
+    "cmp": "same"
+   }
+  ],
+  "op_lined": true
+ },
+ "DPf": {
+  "ario": "Q007162",
+  "op_translit": "",
+  "el_atf": "{DIŠ}u₂ {DIŠ}da-ri-ia-ma-u-iš {DIŠ}EŠŠANA ir-ša₂-ir ra {DIŠ}EŠŠANA {DIŠ}EŠŠANA-ip-in-na {DIŠ}EŠŠANA {DIŠ}da-a-u₂-iš-pe₃-na {DIŠ}EŠŠANA {AŠ}mu ru-un hi uk-ku-ra-ir-ra {DIŠ}mi iš-ta₂-as₂-pa₂ {DIŠ}ša₂-ak-ri {DIŠ}ha-ak ka₄-man-nu-ši-ia a-ak {DIŠ}da-ri-ia ma-u-iš {DIŠ}EŠŠANA na-an-ri {GIŠ}ka₄-at hi ma mu-ur {AŠ}hal-mar-raš₂ hi ku-ši-ka₄ ap-pu-ka₄ hi-ma {AŠ}hal-mar-raš₂ in-ni ku-ši-ik za-u-mi-in {d}u-ra-mas da-na hi {AŠ}hal-mar-raš₂ {DIŠ}u₂ ku-ši ia a-ak {d}u-ra-mas-da hi zi₂ la tuk-mi-ni-na {d}na-ap mar-pe₃-ip ta₂ i-ta₂-ka₄ ap-pa hi {AŠ}hal-mar-raš₂ ku-ši-ka₄ a-ak {DIŠ}u₂ ku-ši-ia ku-ut ta₂ ku-ši-ia tar-ma a-ak ši-iš-ni ku-ut-ta₂ šil-la-ak hi zi₂-la sa-ap {DIŠ}u₂ tuk-man-na a-ak {DIŠ}da-ri-ia ma-u-iš {DIŠ}EŠŠANA na-an-ri {DIŠ}u₂ {d}u-ra mas-da u₂-un nu-iš-ki₂-iš-ni {d}na-ap mar-pe₃-ip-ta₂ i-ta₂-ka₄ a-ak ku-ut-ta₂ {AŠ}hal mar-raš₂ hi ku-ut-ta₂ ša₂-rak {GIŠ}ka₄-at hi ik-ka₄ kap₀-pa-ka₄ hu-pe₃ a-nu kin-ni-en ap-pa {DIŠ}LU₂ MEŠ-ir-ra ha-ri-ik-ka₄ el-ma-man-ra",
+  "el_cuneiform": "𒁹𒌑 𒁹𒁕𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒅕𒃻𒅕 𒊏 𒁹𒁹𒁹𒁹𒎙 𒁹𒁹𒁹𒁹𒎙𒅁𒅔𒈾 𒁹𒁹𒁹𒁹𒎙 𒁹𒁕𒀀𒌑𒅖𒁁𒈾 𒁹𒁹𒁹𒁹𒎙 𒀸𒈬 𒊒𒌦 𒄭 𒊌𒆪𒊏𒅕𒊏 𒁹𒈪 𒅖𒁕𒀾𒁀 𒁹𒃻𒀝𒊑 𒁹𒄩𒀝 𒋡𒎙𒉡𒅆𒅀 𒀀𒀝 𒁹𒁕𒊑𒅀 𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒈾𒀭𒊑 𒄑𒋡𒀜 𒄭 𒈠 𒈬𒌨 𒀸𒄬𒈥𒌇 𒄭 𒆪𒅆𒋡 𒀊𒁍𒋡 𒄭𒈠 𒀸𒄬𒈥𒌇 𒅔𒉌 𒆪𒅆𒅅 𒍝𒌋𒈪𒅔 𒀭𒌋𒊏𒈦 𒁕𒈾 𒄭 𒀸𒄬𒈥𒌇 𒁹𒌑 𒆪𒅆 𒅀 𒀀𒀝 𒀭𒌋𒊏𒈦𒁕 𒄭 𒍢 𒆷 𒌇𒈪𒉌𒈾 𒀭𒈾𒀊 𒈥𒁁𒅁 𒁕 𒄿𒁕𒋡 𒀊𒉺 𒄭 𒀸𒄬𒈥𒌇 𒆪𒅆𒋡 𒀀𒀝 𒁹𒌑 𒆪𒅆𒅀 𒆪𒌓 𒁕 𒆪𒅆𒅀 𒋻𒈠 𒀀𒀝 𒅆𒅖𒉌 𒆪𒌓𒁕 𒋻𒆷𒀝 𒄭 𒍢𒆷 𒊓𒀊 𒁹𒌑 𒌇𒎙𒈾 𒀀𒀝 𒁹𒁕𒊑𒅀 𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒈾𒀭𒊑 𒁹𒌑 𒀭𒌋𒊏 𒈦𒁕 𒌑𒌦 𒉡𒅖𒄀𒅖𒉌 𒀭𒈾𒀊 𒈥𒁁𒅁𒁕 𒄿𒁕𒋡 𒀀𒀝 𒆪𒌓𒁕 𒀸𒄬 𒈥𒌇 𒄭 𒆪𒌓𒁕 𒃻𒊩 𒄑𒋡𒀜 𒄭 𒅅𒋡 𒍯𒉺𒋡 𒄷𒁁 𒀀𒉡 𒆥𒉌𒂗 𒀊𒉺 𒁹𒇽 𒎌𒅕𒊏 𒄩𒊑𒅅𒋡 𒂖𒈠𒎙𒊏",
+  "el_unmapped": [],
+  "bab_atf": "",
+  "bab_cuneiform": "",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "C (Kent orthographic rules)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "C (heuristic split of the ARIo running text)"
+  }
+ },
+ "DPg": {
+  "ario": "Q007163",
+  "op_translit": "",
+  "el_atf": "",
+  "el_cuneiform": "",
+  "el_unmapped": [],
+  "bab_atf": "{d}u-ru-ma-az-da ra-bi ša₂ ra-bu-u₂ ina muh-hi DINGIR.MEŠ gab-bi ša₂ AN-e u KI-tim ib-nu-u₂ UN.MEŠ ib-nu-u₂ ša₂ dum-qi₂ gab-bi id-din-nu-ma UN.MEŠ ina lib₃-bi bal-ṭu-ʾ ša₂ a-na {m}da-a-ri-ia-muš LUGAL ib-nu-u₂ u a-na {m}da-a-ri-ia-muš LUGAL LUGAL-u₂-tu id-din-nu ina qaq-qar a-ga-a rap-ša₂-a-tum ša₂ KUR.KUR.MEŠ ma-di-e-tum ina lib₃-bi-šu₂ KUR par-su KUR ma-da-a-a u KUR.KUR.MEŠ ša₂-ni-ti-ma li-ša₂-nu ša₂-ni-tum ša₂ KUR.MEŠ u ma-a-tum ša₂ a-ha-na-a-a a-ga-a ša₂ {ID₂}mar-ra-tum u a-hu-ul-lu-a-a ul-li-i ša₂ {ID₂}mar-ra-tum ša₂ a-ha-na-a-a a-ga-a ša₂ qaq-qar ṣu-ma-ma-i-tum u a-hu-ul-lu-a-a ul-li-i ša₂ qaq-qar ṣu-ma-ma-i-tum {m}da-a-ri-ia-muš LUGAL i-qab-bi ina GIŠ.MI ša₂ {d}u₂-ru-ma-az-da a-ga-an-ni-tum KUR.KUR.MEŠ ša₂ a-ga-a i-pu-ša₂-ʾ ša₂ a-kan-na ib-šu₂ KUR par-su KUR ma-da-a-a u KUR.KUR.MEŠ ša₂-ni-ti-ma li-ša₂-nu ša₂-ni-tum ša₂ KUR.MEŠ u ma-a-tum ša₂ a-ha-na-a-a a-ga-a ša₂ {ID₂}mar-ra-tum u a-hu-ul-lu-a-a ul-li-i ša₂ {ID₂}mar-ra-tum u a-ha-na-a-a a-ga-a ša₂ qaq-qar ṣu-ma-ma-i-tum u a-hu-ul-lu-a-a ul-li-i ša₂ qaq-qar ṣu-ma-ma-i-tum lib₃-bu-u₂ ša₂ a-na-ku ṭe₃-e-me aš-ku-un-nu-uš-šu₂-nu ša₂ a-na-ku e-pu-uš gab-bi ina GIŠ.MI ša₂ {d}u₂-ru-ma-az-da e-te-pu-uš a-na-ku {d}u₂-ru-ma-az-da li-iṣ-ṣu-ur it-ti DINGIR.MEŠ gab-bi a-na ana-ku u a-na ša₂ a-na-ku a-ra-mu",
+  "bab_cuneiform": "𒀭𒌋𒊒𒈠𒊍𒁕 𒊏𒁉 𒃻 𒊏𒁍𒌑 𒀸 𒌋𒅗𒄭 𒀭𒎌 𒃮𒁉 𒃻 𒀭𒂊 𒌋 𒆠𒁴 𒅁𒉡𒌑 𒌦𒎌 𒅁𒉡𒌑 𒃻 𒌈𒆠 𒃮𒁉 𒀉𒁷𒉡𒈠 𒌦𒎌 𒀸 𒊮𒁉 𒁄𒂅𒀪 𒃻 𒀀𒈾 𒁹𒁕𒀀𒊑𒅀𒈲 𒈗 𒅁𒉡𒌑 𒌋 𒀀𒈾 𒁹𒁕𒀀𒊑𒅀𒈲 𒈗 𒈗𒌑𒌅 𒀉𒁷𒉡 𒀸 𒆕𒃼 𒀀𒂵𒀀 𒊐𒃻𒀀𒌈 𒃻 𒆳𒆳𒎌 𒈠𒁲𒂊𒌈 𒀸 𒊮𒁉𒋙 𒆳 𒌓𒋢 𒆳 𒈠𒁕𒀀𒀀 𒌋 𒆳𒆳𒎌 𒃻𒉌𒋾𒈠 𒇷𒃻𒉡 𒃻𒉌𒌈 𒃻 𒆳𒎌 𒌋 𒈠𒀀𒌈 𒃻 𒀀𒄩𒈾𒀀𒀀 𒀀𒂵𒀀 𒃻 𒀀𒇉𒈥𒊏𒌈 𒌋 𒀀𒄷𒌌𒇻𒀀𒀀 𒌌𒇷𒄿 𒃻 𒀀𒇉𒈥𒊏𒌈 𒃻 𒀀𒄩𒈾𒀀𒀀 𒀀𒂵𒀀 𒃻 𒆕𒃼 𒍮𒈠𒈠𒄿𒌈 𒌋 𒀀𒄷𒌌𒇻𒀀𒀀 𒌌𒇷𒄿 𒃻 𒆕𒃼 𒍮𒈠𒈠𒄿𒌈 𒁹𒁕𒀀𒊑𒅀𒈲 𒈗 𒄿𒃮𒁉 𒀸 𒄑𒈪 𒃻 𒀭𒌑𒊒𒈠𒊍𒁕 𒀀𒂵𒀭𒉌𒌈 𒆳𒆳𒎌 𒃻 𒀀𒂵𒀀 𒄿𒁍𒃻𒀪 𒃻 𒀀𒃶𒈾 𒅁𒋙 𒆳 𒌓𒋢 𒆳 𒈠𒁕𒀀𒀀 𒌋 𒆳𒆳𒎌 𒃻𒉌𒋾𒈠 𒇷𒃻𒉡 𒃻𒉌𒌈 𒃻 𒆳𒎌 𒌋 𒈠𒀀𒌈 𒃻 𒀀𒄩𒈾𒀀𒀀 𒀀𒂵𒀀 𒃻 𒀀𒇉𒈥𒊏𒌈 𒌋 𒀀𒄷𒌌𒇻𒀀𒀀 𒌌𒇷𒄿 𒃻 𒀀𒇉𒈥𒊏𒌈 𒌋 𒀀𒄩𒈾𒀀𒀀 𒀀𒂵𒀀 𒃻 𒆕𒃼 𒍮𒈠𒈠𒄿𒌈 𒌋 𒀀𒄷𒌌𒇻𒀀𒀀 𒌌𒇷𒄿 𒃻 𒆕𒃼 𒍮𒈠𒈠𒄿𒌈 𒊮𒁍𒌑 𒃻 𒀀𒈾𒆪 𒉈𒂊𒈨 𒀸𒆪𒌦𒉡𒍑𒋙𒉡 𒃻 𒀀𒈾𒆪 𒂊𒁍𒍑 𒃮𒁉 𒀸 𒄑𒈪 𒃻 𒀭𒌑𒊒𒈠𒊍𒁕 𒂊𒋼𒁍𒍑 𒀀𒈾𒆪 𒀭𒌑𒊒𒈠𒊍𒁕 𒇷𒄑𒍮𒌨 𒀉𒋾 𒀭𒎌 𒃮𒁉 𒀀𒈾 𒁹𒆪 𒌋 𒀀𒈾 𒃻 𒀀𒈾𒆪 𒀀𒊏𒈬",
   "bab_unmapped": [],
   "tier": {
    "text": "A (standard edition, via CC0 mirror)",

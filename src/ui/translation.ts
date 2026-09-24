@@ -28,16 +28,24 @@ export interface TranslationContext {
   mapLayers?: () => MapItem[];
 }
 
-const ONLY_OP = 'Old Persian only here: the trilingual\'s Elamite and Babylonian versions are in the edition but not carved in this build';
-const INSCRIPTION_INFO: Record<string, { title: string; where: string; carved: string }> = {
-  XPa: { title: 'XPa — Xerxes, Gate of All Nations', where: 'carved above the doorway colossi of the Gate (version per colossus: C)', carved: 'Old Persian, Elamite and Babylonian, one version per colossus (assignment C)' },
-  XPb: { title: 'XPb — Xerxes, Apadana', where: 'beside the audience panels of the Apadana stairs (placement C)', carved: ONLY_OP },
-  XPc: { title: 'XPc — Xerxes, Tachara', where: 'between the guards of the central façade of the Tachara S stair (placement C)', carved: ONLY_OP },
-  DNa: { title: 'DNa — Darius I, his tomb at Naqsh-e Rustam', where: 'upper register, behind the king (panel position C)', carved: 'Old Persian version only (the Elamite and Babylonian versions are not in the corpus mirror)' },
-  DNb: { title: 'DNb — Darius I, his tomb at Naqsh-e Rustam', where: 'façade, between the columns left of the door (panel position C; modern lacunae shown as x)', carved: 'Old Persian version only (the Elamite and Babylonian versions are not in the corpus mirror)' },
-  XPd: { title: 'XPd — Xerxes, Hadish', where: 'between the guards of the central façade of the Hadish W stair (placement C)', carved: ONLY_OP },
-  DPh: { title: 'DPh — Darius I, the foundation plates of the Apadana', where: 'a gold and a silver plate in a stone box sealed under this corner of the hall since its foundation, unseen (corners: the NE and SE boxes, Q-016; box and depth C)', carved: 'Old Persian, Elamite and Babylonian on each plate (data, not carved geometry)' },
-  XPe: { title: 'XPe — Xerxes, Hadish', where: 'above the king and his attendants on the reveals of the Hadish E and W doorways (versions stacked; order and size C)', carved: 'Old Persian, Elamite and Babylonian, stacked' },
+const ALL3 = 'Old Persian, Elamite and Babylonian';
+/** what each inscription is, where it stands and which versions are carved there (the placement tiers: SITE_SPEC rows) */
+export const INSCRIPTION_INFO: Record<string, { title: string; where: string; carved: string }> = {
+  XPa: { title: 'XPa — Xerxes, Gate of All Nations', where: 'carved above each doorway colossus of the Gate (one trilingual per colossus, B; the order of the columns C)', carved: `${ALL3} side by side` },
+  XPb: { title: 'XPb — Xerxes, Apadana', where: 'beside the audience panels of the Apadana N and E stairs: the Old Persian on one panel, the Babylonian and Elamite on another (B; sides and size C)', carved: `${ALL3}, on two panels` },
+  XPc: { title: 'XPc — Xerxes, Tachara', where: 'between the guards of the central façade of the Tachara S stair (B; the arrangement C)', carved: `${ALL3} side by side` },
+  DNa: { title: 'DNa — Darius I, his tomb at Naqsh-e Rustam', where: 'upper register, behind the king (panel position C)', carved: 'Old Persian version only (the Elamite and Babylonian versions are not carved in this build: research/OPEN_QUESTIONS.md Q-290)' },
+  DNb: { title: 'DNb — Darius I, his tomb at Naqsh-e Rustam', where: 'façade, between the columns left of the door (panel position C; signs lost in the edition left uncut)', carved: 'Old Persian version only (the Elamite and Babylonian versions are not carved in this build: research/OPEN_QUESTIONS.md Q-290)' },
+  XPd: { title: 'XPd — Xerxes, Hadish', where: 'between the guards of the central façade of the Hadish W stair (B; position and arrangement C)', carved: `${ALL3} side by side` },
+  DPh: { title: 'DPh — Darius I, the foundation plates of the Apadana', where: 'a gold and a silver plate in a stone box sealed under this corner of the hall since its foundation, unseen (corners: the NE and SE boxes, Q-016; box and depth C)', carved: `${ALL3} on each plate (data, not carved geometry)` },
+  XPe: { title: 'XPe — Xerxes, Hadish', where: 'above the king and his attendants on the reveals of the Hadish E and W doorways (versions stacked; order and size C)', carved: `${ALL3}, stacked` },
+  DPa: { title: 'DPa — Darius I, Tachara', where: 'above the king and his attendants on the reveals of the Tachara S doorway (B; which doorway and the stacking C)', carved: `${ALL3}, stacked` },
+  DPb: { title: 'DPb — Darius I', where: 'above the king on the reveals of the Hadish NW doorway (the doorway and the stacking C)', carved: `${ALL3}, stacked` },
+  DPc: { title: 'DPc — Darius I, Tachara window frames', where: 'on the cornice of a Tachara window frame, portico side (B; which windows and the stacking C)', carved: `${ALL3}, stacked` },
+  DPd: { title: 'DPd — Darius I, Terrace south wall', where: 'the Terrace south wall (B; position along the wall C)', carved: 'Old Persian (a text of its own: DPd has no other version)' },
+  DPe: { title: 'DPe — Darius I, Terrace south wall', where: 'the Terrace south wall (B; position along the wall C)', carved: 'Old Persian (a text of its own)' },
+  DPf: { title: 'DPf — Darius I, Terrace south wall', where: 'the Terrace south wall (B; position along the wall C)', carved: 'Elamite (a text of its own)' },
+  DPg: { title: 'DPg — Darius I, Terrace south wall', where: 'the Terrace south wall (B; position along the wall C)', carved: 'Babylonian (a text of its own)' },
 };
 const VERSION_NAME: Record<string, string> = { op: 'Old Persian', el: 'Elamite', bab: 'Babylonian' };
 const LEX_FILE: Record<string, string> = { op: 'old_persian.json', el: 'elamite.json', bab: 'babylonian.json' };
@@ -112,6 +120,10 @@ export function inscriptionReading(id: string, version = 'op'): InscriptionReadi
     words.push({ w, gloss: g?.gloss ?? null, how, tier: g?.tier, src: g?.src });
   }
   if (v !== 'op') notes.push(`Version split of the ARIo running text: ${t.tier?.version_split ?? 'C'}.`);
+  else if (t.op_lined) { // what is carved is the published sign sequence (D-177); say where Schmitt's words shown here read otherwise
+    const rows = (t.op_words as any[]) ?? [], n = (k: string) => rows.filter(r => r.cmp === k).length;
+    notes.push(`The stone's signs as carved: the published sign-by-sign transliteration (Kent's convention, D-177). Schmitt's reading shown above differs from it in ${n('reading')} words; ${n('corpus-only')} carved words it does not read; ${n('ario-only')} of its words are not carved (research/OP_SIGNS.md, Q-288).`);
+  }
   const sources = [...new Set(words.flatMap(w => w.src ?? []))].sort();
   return { id, version: v, title: info.title, where: info.where, carved: info.carved, versionName: VERSION_NAME[v],
     translitSource: `Transliteration of the ${VERSION_NAME[v]} version${v === 'op' ? ' (normalised)' : ' (ATF)'}: ARIo, Schmitt 2009, in ORACC (MOCCI; CC0), text ${t.ario}.`,

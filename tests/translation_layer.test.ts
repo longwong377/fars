@@ -51,8 +51,11 @@ describe('translation layer', () => {
     for (const r of [op, elv, bab]) expect(r.covered).toBeGreaterThan(20);
     // a version the corpus mirror does not hold is flagged as unavailable, never filled from another version
     const dna = TL.inscriptionReading('DNa', 'el')!; expect(dna.words).toEqual([]); expect(dna.notes.join(' ')).toMatch(/not in the corpus mirror/);
-    // XPb is carved in Old Persian only, and the layer says so
-    expect(TL.inscriptionReading('XPb', 'op')!.carved).toMatch(/Old Persian only/);
+    // the layer says which versions are carved: XPb in all three (two panels), DNa in Old Persian only (Q-290)
+    expect(TL.inscriptionReading('XPb', 'op')!.carved).toMatch(/Old Persian, Elamite and Babylonian/);
+    expect(TL.inscriptionReading('DNa', 'op')!.carved).toMatch(/Old Persian version only/);
+    // and where Schmitt's words it shows differ from the carved sign sequence (D-177)
+    expect(TL.inscriptionReading('DNb', 'op')!.notes.join(' ')).toMatch(/differs from it in \d+ words/);
   });
   it('shows no translation it may not show, and says why (Livius is all rights reserved; D-167, B17)', () => {
     const r = TL.inscriptionReading('XPa', 'op')!;

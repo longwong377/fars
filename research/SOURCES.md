@@ -115,6 +115,7 @@ wiktionary and theswissbay were refused by the egress proxy (2026-09-23).
 | key | cite (short) | access | used for |
 |---|---|---|---|
 | LIVIUS-AI | Livius, Achaemenid Royal Inscriptions pages (scrape on GitHub, Electronic-Old-Persian-Library) | FT | OP glosses (DSf, DNa, DNb, XPh, DZc, XPa). Licence (D-167): each page says "All content copyright © 1995–2024 Livius.org. All rights reserved."; the scrape repository's CC-BY-NC cannot relicense it, so no translation is shown (B17) |
+| OP-TRANSLIT | Old Persian royal inscriptions, sign-by-sign transliteration in Kent's convention (Kent 1953 / Lecoq 1997), `data/corpus/op_translit.json` | FT (transliteration lines only) | the carved Old Persian sign sequence of every carved text (D-176 licence: the ancient text is public domain, the transliteration a mechanical rendering; retrieved from the Electronic-Old-Persian-Library scrape (CC-BY-NC) of the Livius pages, whose translations and presentation are not stored; D-177 carving; research/OP_SIGNS.md) |
 | EIEOL-OI | UT Austin EIEOL, Old Iranian Online | SX (earlier FT via a GitHub copy) | key for existing OP gloss sources |
 | KENT-OCR | Kent 1953 lexicon lines, OCR quoted in sfmqrb/rishe | SX | key for existing OP gloss sources |
 | OP-SX | ResearchGate on *bandaka*; EIEOL base-form dictionary (dargam, jīvā-) | SX | OP bandaka, dargam, jīvā |

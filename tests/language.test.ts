@@ -4,8 +4,9 @@
 // What is in-world, and how each is checked:
 //  1. speech lines (src/people/speech_lines.ts): the only in-world field is `words` (lexicon ids); the heard IPA and its
 //     transliteration are scanned for modern words. Any new field on a line fails until it is classed here.
-//  2. carved inscription text (src/data/inscriptions.json → src/arch/decor.ts): the rendered strings must be period
-//     script only; the transliterations that generate them are scanned for modern words; no unmapped signs.
+//  2. carved inscription text (src/data/inscriptions.json → src/arch/inscription_text.ts panelText, the one path decor.ts
+//     and naqsh.ts carve): the rendered strings must be period script only; the transliterations and sign sequences that
+//     generate them are scanned for modern words; no unmapped signs. (Their spelling: tests/lang.test.ts, D-177.)
 //  3. lexicon native-script fields (future tablets/labels): period script of the right block only.
 //  3b. writing on objects (src/data/writing.json → src/world/writing.ts, D-179): the seal inscriptions impressed in clay,
 //     captured at the font while the writing atlas bakes, are exactly the data's sign sequences; their transliterations
@@ -28,15 +29,14 @@ import { LINE_DEFS, LINES } from '../src/people/speech_lines';
 import { findModernWords, nonPeriodChars, romanisedWords, MODERN_WORDS, PERIOD_SCRIPTS } from '../src/lang/modern';
 import { allLexEntries, lexEntry, spokenForm, LANG_IDS, LEXICON, murmurEligible, type LangId } from '../src/lang/lexicon';
 import sources from '../src/data/sources.json';
-import { toCuneiform } from '../src/lang/oldPersian';
+import { panelText } from '../src/arch/inscription_text';
 import { buildProfile, pseudoPhrase, murmurLangFor, murmurSource } from '../src/audio/murmur';
-import * as oldPersian from '../src/lang/oldPersian';
 import { tokenizeIpa } from '../src/audio/phonemes';
 import { createHash } from 'node:crypto';
 import opentype from 'opentype.js';
 import { buildTerrace } from '../src/arch/terrace';
 import { loadInscriptionFonts, buildInscriptions, buildPhase4Reliefs } from '../src/arch/decor';
-import { buildNaqsh, carvableTranslit } from '../src/world/plain/naqsh';
+import { buildNaqsh } from '../src/world/plain/naqsh';
 import { loadTerrain, loadRiversFile } from './plainLib';
 import { Rng } from '../src/core/rng';
 import inscriptions from '../src/data/inscriptions.json';
@@ -135,12 +135,11 @@ describe('language lint: speech lines', () => {
 describe('language lint: inscriptions and scripts rendered in the world', () => {
   const ins = inscriptions as Record<string, any>;
   const texts = Object.entries(ins).filter(([k]) => k !== '_meta');
-  it('carved text is period script only (what src/arch/decor.ts renders)', () => {
+  it('carved text is period script only (what src/arch/decor.ts and naqsh.ts carve: panelText)', () => {
     expect(texts.length).toBeGreaterThan(0);
     for (const [id, t] of texts) {
-      expect(nonPeriodChars(toCuneiform(t.op_translit), ['oldPersian']), `${id} OP`).toEqual([]);
-      expect(nonPeriodChars(t.el_cuneiform, ['cuneiform']), `${id} El`).toEqual([]);
-      expect(nonPeriodChars(t.bab_cuneiform, ['cuneiform']), `${id} Bab`).toEqual([]);
+      for (const ver of ['op', 'el', 'bab'] as const) { const p = panelText(id, ver); if (p) expect(nonPeriodChars(p.lines.join(' '), [ver === 'op' ? 'oldPersian' : 'cuneiform']), `${id} ${ver}`).toEqual([]); }
+      if (t.op_translit) expect(panelText(id, 'op'), `${id}: an Old Persian text without a carved sign sequence`).toBeTruthy();
       expect(t.el_unmapped, `${id} El unmapped signs`).toEqual([]);
       expect(t.bab_unmapped, `${id} Bab unmapped signs`).toEqual([]);
     }
@@ -180,8 +179,9 @@ describe('language lint: every source that can reach the canvas', () => {
   /** files allowed to draw text into the 3D world, with what they draw (the carved text itself is checked glyph by glyph
    *  below: what they render is captured at the font) */
   const IN_WORLD_TEXT_SITES: Record<string, string> = {
-    'src/arch/decor.ts': 'carved inscriptions from inscriptions.json (Old Persian signs, *_cuneiform), captured and checked below',
-    'src/world/plain/naqsh.ts': 'DNa/DNb Old Persian from inscriptions.json, captured and checked below',
+    'src/arch/decor.ts': 'carved inscriptions from inscriptions.json (panelText: op_signs / *_cuneiform), captured and checked below',
+    'src/arch/carving.ts': 'the carving itself (glyph outlines → depth atlas; layoutText / carvedGeometry of the lines it is given; no text of its own)',
+    'src/world/plain/naqsh.ts': 'DNa/DNb Old Persian from inscriptions.json (panelText op_signs), captured and checked below',
     'src/world/writing.ts': 'writing on objects (D-179): seal inscriptions from writing.json impressed in clay (glyph outlines → height field), captured and checked below',
   };
   /** font glyph APIs: a file that turns characters into outlines draws text into the world, whatever it does with them */
@@ -194,7 +194,7 @@ describe('language lint: every source that can reach the canvas', () => {
     'src/ui/shell.ts': 'title screen, menus and settings', 'src/ui/overlay.ts': 'dev overlay (F3)',
     'src/world/bench.ts': 'bench mode report (?bench)', 'src/main.ts': 'the boot-failure message',
   };
-  const TEXT_3D = /\b(TextGeometry|textPanelGeometry|CSS2DObject|CSS3DObject|SpriteText|TroikaText)\b/;
+  const TEXT_3D = /\b(TextGeometry|textPanelGeometry|layoutText|carvedGeometry|carvedBlockGeometry|CSS2DObject|CSS3DObject|SpriteText|TroikaText)\b/;
   const CANVAS_TEXT = /\b(fillText|strokeText)\b/;
   const DOM_TEXT = /\b(textContent|innerHTML|innerText|outerHTML|createTextNode|insertAdjacentHTML|insertAdjacentText)\b|document\.write\(|\bel\('[a-z0-9]+',\s*'[^']*',\s*[`'"]/;
   const TEXTURE = /\b(CanvasTexture|VideoTexture|DataTexture)\b|new\s+THREE\.Texture\(|\bTextureLoader\b|ImageBitmapLoader/;
@@ -213,8 +213,8 @@ describe('language lint: every source that can reach the canvas', () => {
       if (dom) expect(OUT_OF_WORLD_TEXT_SITES[f], `${f} writes DOM text but is not registered as out-of-world`).toBeTruthy();
       if (OUT_OF_WORLD_TEXT_SITES[f]) expect(tex, `${f} is out-of-world but creates a texture (its text could reach the scene)`).toBe(false);
       if (/<svg\b|<text\b/.test(src)) expect(OUT_OF_WORLD_TEXT_SITES[f], `${f} holds SVG markup (a data-URL texture?)`).toBeTruthy();
-      if (IN_WORLD_TEXT_SITES[f]) // the text argument: 1st for canvas fillText/strokeText, 2nd for textPanelGeometry(fontKey, text, …)
-        expect(/\b(fillText|strokeText)\(\s*['"`]/.test(src) || /\btextPanelGeometry\(\s*[^,()]+,\s*['"`]/.test(src), `${f} passes a string literal to a text API`).toBe(false);
+      if (IN_WORLD_TEXT_SITES[f]) // the text argument: 1st for canvas fillText/strokeText, 2nd for layoutText(font, lines, …) / textPanelGeometry(fontKey, text, …)
+        expect(/\b(fillText|strokeText)\(\s*['"`]/.test(src) || /\b(layoutText|textPanelGeometry)\(\s*[^,()]+,\s*[\['"`]/.test(src), `${f} passes a string literal to a text API`).toBe(false);
     }
     for (const f of [...Object.keys(IN_WORLD_TEXT_SITES), ...Object.keys(OUT_OF_WORLD_TEXT_SITES)]) expect(statSync(join(root, f)).isFile(), `stale registry entry ${f}`).toBe(true);
   });
@@ -269,45 +269,31 @@ describe('language lint: every source that can reach the canvas', () => {
 });
 
 describe('language lint: the carved signs are the inscription data\'s sign sequence', () => {
-  it('what the carving code renders (Terrace and Naqsh-e Rustam, captured at the font) is exactly the data\'s signs', async () => {
-    const captured: string[] = [];
-    const proto = (opentype as any).Font.prototype, orig = proto.charToGlyph;
-    proto.charToGlyph = function (ch: string) { captured.push(ch); return orig.call(this, ch); };
-    try {
-      await loadInscriptionFonts(async p => { const b = readFileSync('public/' + p); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer; });
-      const { manifest, parts, doorways } = buildTerrace(); const p4 = buildPhase4Reliefs(doorways);
-      buildInscriptions(manifest, parts, p4.inscriptions);
-      buildNaqsh(loadTerrain(), loadRiversFile().nrAncientFootAsl);
-    } finally { proto.charToGlyph = orig; }
-    const ins = inscriptions as Record<string, any>, OP = oldPersian as any, squash = (s: string) => s.replace(/\s+/g, '');
-    // the data's Old Persian sign sequence: `op_signs` (sign-by-sign, with the project's converter) where the data has
-    // it, else what the data implies today (the rule speller over the edition text; DNa/DNb without their lacunae)
-    const opOf = (id: string) => squash(ins[id].op_signs && typeof OP.carvedLines === 'function' ? OP.carvedLines(ins[id].op_signs).join('') : toCuneiform(['DNa', 'DNb'].includes(id) ? carvableTranslit(id) : ins[id].op_translit));
-    const inBlock = (ch: string, a: number, b: number) => { const c = ch.codePointAt(0)!; return c >= a && c <= b; };
-    const opStream = captured.filter(c => inBlock(c, 0x103a0, 0x103df)).join(''), cunStream = captured.filter(c => inBlock(c, 0x12000, 0x1254f)).join('');
-    /** the stream must be a concatenation of whole expected texts (each panel draws one text, maybe several times) */
-    const parse = (stream: string, texts: Record<string, string>) => {
-      const seen = new Map<string, number>(); let pos = 0;
-      while (pos < stream.length) {
-        const hit = Object.entries(texts).filter(([, t]) => t && stream.startsWith(t, pos)).sort((a, b) => b[1].length - a[1].length)[0];
-        if (!hit) { const best = Object.entries(texts).map(([k, t]) => { let n = 0; while (n < t.length && stream[pos + n] === t[n]) n++; return [k, n] as const; }).sort((a, b) => b[1] - a[1])[0];
-          let q = pos + best[1]; if (/[\udc00-\udfff]/.test(stream[q] ?? '')) q--; // back to the start of the sign (astral: two code units)
-          return { ok: false, seen, at: `after ${[...stream.slice(0, pos)].length} signs: nearest ${best[0]}, which agrees for ${[...stream.slice(pos, q)].length} signs; then carved ${[...stream.slice(q)].slice(0, 4).map(c => 'U+' + c.codePointAt(0)!.toString(16)).join(' ')}` }; }
-        seen.set(hit[0], (seen.get(hit[0]) ?? 0) + 1); pos += hit[1].length;
+  it('what the carving code cuts (Terrace and Naqsh-e Rustam, read back from each carved mesh) is exactly the data\'s signs', async () => {
+    await loadInscriptionFonts(async p => { const b = readFileSync('public/' + p); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer; });
+    const { manifest, parts, doorways } = buildTerrace(); const p4 = buildPhase4Reliefs(doorways);
+    const roots = [buildInscriptions(manifest, parts, p4.inscriptions), buildNaqsh(loadTerrain(), loadRiversFile().nrAncientFootAsl).group];
+    const squash = (s: string) => s.replace(/\s+/g, ''); // a lost sign (no-break space) is left uncut: not in the cut sequence
+    const seen = new Map<string, number>(); let meshes = 0, signs = 0;
+    for (const r of roots) r.traverse((o: any) => {
+      if (!o.isMesh || !o.geometry?.getAttribute('carveUV')) return;
+      meshes++;
+      const list = o.userData.carved as { id: string; ver: 'op' | 'el' | 'bab'; signs: string }[];
+      expect(list?.length, `${o.name}: a carved mesh must say what it cuts`).toBeGreaterThan(0);
+      // a mesh's quads are its blocks' signs, one quad per sign
+      expect(o.geometry.getAttribute('carveUV').count, o.name).toBe((o.geometry.index ? 4 : 6) * list.reduce((n, c) => n + [...c.signs].length, 0));
+      for (const c of list) {
+        const want = panelText(c.id, c.ver); expect(want, `${o.name}: ${c.id} ${c.ver} has no text`).toBeTruthy();
+        expect(c.signs, `${o.name}: ${c.id} ${c.ver} carved signs differ from the data's`).toBe(squash(want!.lines.join('')));
+        expect(nonPeriodChars(c.signs, [c.ver === 'op' ? 'oldPersian' : 'cuneiform']), `${c.id} ${c.ver}`).toEqual([]);
+        seen.set(`${c.id}.${c.ver}`, (seen.get(`${c.id}.${c.ver}`) ?? 0) + 1); signs += [...c.signs].length;
       }
-      return { ok: true, seen, at: '' };
-    };
-    const OP_CARVED = ['XPa', 'XPb', 'XPc', 'XPd', 'XPe', 'DNa', 'DNb'];
-    const op = parse(opStream, Object.fromEntries(OP_CARVED.map(id => [id, opOf(id)])));
-    expect(op.ok, `carved Old Persian is not the data's sign sequence (${op.at})`).toBe(true);
-    for (const id of OP_CARVED) expect(op.seen.get(id) ?? 0, `${id} Old Persian carved`).toBeGreaterThan(0);
-    const cunTexts: Record<string, string> = {};
-    for (const id of ['XPa', 'XPe']) for (const v of ['el', 'bab']) cunTexts[`${id}.${v}`] = squash(ins[id][`${v}_cuneiform`]);
-    const cun = parse(cunStream, cunTexts);
-    expect(cun.ok, `carved Elamite/Babylonian is not the data's sign sequence (${cun.at})`).toBe(true);
-    for (const k of Object.keys(cunTexts)) expect(cun.seen.get(k) ?? 0, k).toBeGreaterThan(0);
-    console.log(`carved and checked: Old Persian ${[...op.seen].map(([k, n]) => `${k}×${n}`).join(' ')} (${[...opStream].length} signs drawn); cuneiform ${[...cun.seen].map(([k, n]) => `${k}×${n}`).join(' ')}; sign source: ${OP_CARVED.map(id => `${id} ${ins[id].op_signs && typeof OP.carvedLines === 'function' ? 'op_signs' : 'rule speller'}`).join(', ')}`);
-  }, 120_000);
+    });
+    for (const id of ['XPa', 'XPb', 'XPc', 'XPd', 'XPe', 'DPa', 'DPb', 'DPc', 'DPd', 'DPe', 'DNa', 'DNb']) expect(seen.get(`${id}.op`) ?? 0, `${id} Old Persian carved`).toBeGreaterThan(0);
+    for (const id of ['XPa', 'XPb', 'XPc', 'XPd', 'XPe', 'DPa', 'DPb', 'DPc']) for (const v of ['el', 'bab']) expect(seen.get(`${id}.${v}`) ?? 0, `${id} ${v} carved`).toBeGreaterThan(0);
+    expect(seen.get('DPf.el') ?? 0).toBeGreaterThan(0); expect(seen.get('DPg.bab') ?? 0).toBeGreaterThan(0);
+    console.log(`carved and checked: ${meshes} meshes, ${signs} signs; ${[...seen].map(([k, n]) => `${k}×${n}`).join(' ')}`);
+  }, 180_000);
 });
 
 describe('language lint: writing on objects (tablets, sealings, leather; D-179)', () => {

@@ -1,15 +1,17 @@
-// Decoration layer: reliefs (reliefs.ts), crenellations, audience panels and carved inscriptions (real font outlines).
+// Decoration layer: reliefs (reliefs.ts), crenellations, audience panels and the carved inscriptions (incised: carving.ts).
 import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import opentype from 'opentype.js';
 import { v, present } from './spec';
 import { Rng } from '../core/rng';
 import { planFacade, planAudience, facadeItems, ReliefSet, ReliefItem, RosetteItem, Facade, StairGeom } from './reliefs';
-import { toCuneiform } from '../lang/oldPersian';
-import type { Manifest, Doorway, Part, Box } from './parts';
+import { panelText, inscriptionIds, type PanelText, type Version } from './inscription_text';
+import { buildAtlas, layoutText, carvedGeometry, layoutMaxDepth, type Atlas, type Layout } from './carving';
+import type { Manifest, Doorway, Part, Box, Pt } from './parts';
 import { phase4Programmes, InscriptionPlacement } from './relief_programmes';
 import inscriptions from '../data/inscriptions.json';
-import { surfaceMaterial } from '../render/materials';
+import programme from '../data/royal_inscriptions.json';
+import { surfaceMaterial, incisedMaterial } from '../render/materials';
 
 const up = new THREE.Vector3(0, 1, 0);
 const gw = (e: number, n: number) => new THREE.Vector3(e, 0, -n); // grid → world (direction or point at y=0)
@@ -117,37 +119,184 @@ function crenellationGeometry(w: number, h: number, steps: number, depth: number
   const g = new THREE.ExtrudeGeometry(new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y))), { depth, bevelEnabled: false }); g.deleteAttribute('uv'); return g;
 }
 
-// ---------- carved inscriptions from glyph outlines ----------
+// ---------- carved inscriptions: the published text (D-177), incised into the stone (D-177) ----------
 const fonts: Record<string, opentype.Font> = {};
+const atlases: Partial<Record<'op' | 'cun', Atlas>> = {};
 export async function loadInscriptionFonts(fetcher: (path: string) => Promise<ArrayBuffer>) {
-  for (const [k, f] of [['op', 'NotoSansOldPersian-Regular.ttf'], ['cun', 'NotoSansCuneiform-Regular.ttf']]) fonts[k] = opentype.parse(await fetcher(`fonts/${f}`));
+  for (const [k, f] of [['op', 'NotoSansOldPersian-Regular.ttf'], ['cun', 'NotoSansCuneiform-Regular.ttf']]) if (!fonts[k]) fonts[k] = opentype.parse(await fetcher(`fonts/${f}`));
 }
-/** Build carved-text geometry: glyphs as shallow bevelled extrusions (incised look), laid out in lines filling a panel. */
-/** `flat`: the sign faces only (no extrusion or bevel, curves at 1 segment): ~1/10 of the triangles, for text seen from
- *  metres away (the Naqsh-e Rustam panels, 15–25 m up), where an incision reads as a dark stroke */
-export function textPanelGeometry(fontKey: 'op' | 'cun', text: string, width: number, glyphH: number, lineGap: number, flat = false): { geo: THREE.BufferGeometry; lines: number; height: number } {
-  const font = fonts[fontKey]; if (!font) throw new Error('inscription fonts not loaded');
-  const unitsPerEm = font.unitsPerEm, scale = glyphH / unitsPerEm * 1.25;
-  const shapes: THREE.Shape[] = []; let x = 0, y = 0, lines = 1;
-  for (const ch of [...text]) {
-    const glyph = font.charToGlyph(ch); const adv = (glyph.advanceWidth ?? unitsPerEm) * scale;
-    if (ch === ' ' || x + adv > width) { if (ch !== ' ' || x + adv > width) { x = 0; y -= glyphH + lineGap; lines++; } if (ch === ' ') continue; }
-    const path = glyph.getPath(x / scale, 0, unitsPerEm);
-    // convert opentype path commands (y down) to THREE shapes (y up)
-    let cur: THREE.Shape | null = null;
-    for (const c of path.commands as any[]) {
-      if (c.type === 'M') { cur = new THREE.Shape(); cur.moveTo(c.x * scale, -c.y * scale + y); shapes.push(cur); }
-      else if (c.type === 'L') cur!.lineTo(c.x * scale, -c.y * scale + y);
-      else if (c.type === 'Q') cur!.quadraticCurveTo(c.x1 * scale, -c.y1 * scale + y, c.x * scale, -c.y * scale + y);
-      else if (c.type === 'C') cur!.bezierCurveTo(c.x1 * scale, -c.y1 * scale + y, c.x2 * scale, -c.y2 * scale + y, c.x * scale, -c.y * scale + y);
-    }
-    x += adv;
+export function inscriptionFont(font: 'op' | 'cun'): opentype.Font { const f = fonts[font]; if (!f) throw new Error('inscription fonts not loaded'); return f; }
+/** the depth atlas of a script: every sign that any inscription carves in it (carving.ts), built once */
+export function inscriptionAtlas(font: 'op' | 'cun'): Atlas {
+  const hit = atlases[font]; if (hit) return hit;
+  const chars = new Set<string>();
+  for (const id of inscriptionIds()) for (const ver of ['op', 'el', 'bab'] as Version[]) { const t = panelText(id, ver); if (t && t.font === font) for (const l of t.lines) for (const ch of l) chars.add(ch); }
+  return (atlases[font] = buildAtlas(inscriptionFont(font), chars, font === 'op' ? 96 : 64));
+}
+export interface Block { id: string; ver: Version; text: PanelText }
+export interface Fitted { glyph: number; parts: { block: Block; layout: Layout; dx: number; dy: number }[]; width: number; height: number }
+/** one glyph height for blocks side by side ('columns') or top to bottom ('stack') in a field width × height (m): the largest
+ *  <= glyphMax at which every line of an inscription's own lineation fits its column and the whole fits the field
+ *  (global.r_inscription_carving; never below glyph_min) */
+export function fitBlocks(blocks: Block[], arrangement: 'columns' | 'stack', width: number, height: number, glyphMax: number): Fitted {
+  const RC = v<any>('global', 'r_inscription_carving'), n = blocks.length, sep = RC.block_sep, colW = arrangement === 'columns' ? (width - (n - 1) * sep) / n : width;
+  const lay = (g: number) => blocks.map(b => layoutText(inscriptionFont(b.text.font), b.text.lines, g, g * RC.gap_ratio, colW, b.text.lined));
+  const fits = (g: number) => { const L = lay(g); const h = arrangement === 'columns' ? Math.max(...L.map(l => l.height)) : L.reduce((s, l) => s + l.height, 0) + (n - 1) * sep; return L.every(l => l.width <= colW + 1e-6) && h <= height + 1e-6; };
+  let g = glyphMax;
+  if (!fits(g)) { let lo = RC.glyph_min, hi = glyphMax; for (let k = 0; k < 22; k++) { const mid = (lo + hi) / 2; if (fits(mid)) lo = mid; else hi = mid; } g = lo; }
+  const L = lay(g); let y = 0;
+  const parts = L.map((layout, i) => { const p = arrangement === 'columns' ? { block: blocks[i], layout, dx: i * (colW + sep), dy: 0 } : { block: blocks[i], layout, dx: 0, dy: y }; y -= layout.height + sep; return p; });
+  return { glyph: g, parts, width: arrangement === 'columns' ? width : Math.max(...L.map(l => l.width)), height: arrangement === 'columns' ? Math.max(...L.map(l => l.height)) : -y - sep };
+}
+/** the carved signs of one block as geometry in panel space (carving.ts), for callers that place it themselves (naqsh.ts) */
+export function carvedBlockGeometry(block: Block, layout: Layout, dx = 0, dy = 0): THREE.BufferGeometry {
+  return carvedGeometry(inscriptionAtlas(block.text.font), layout, dx, dy, v<any>('global', 'r_inscription_carving').lift);
+}
+/** the face of the architecture a panel is carved on: the box whose face, with outward normal `n` (grid, axis-aligned),
+ *  lies nearest the point `o` (grid) at height y, within `reach` m along n; its signed offset from o and its material */
+export function hostFace(parts: Part[], o: Pt, y: number, n: Pt, reach = 0.6): { d: number; material: string; kind: string } | null {
+  const ax = Math.abs(n[0]) > 0.5 ? 0 : 1, lat = 1 - ax, s = Math.sign(n[ax]);
+  let best: { d: number; material: string; kind: string } | null = null;
+  for (const p of parts) {
+    if (p.type !== 'box' || (p as Box).rot) continue;
+    const b = p as Box; if (y < b.y0 - 1e-6 || y > b.y1 + 1e-6 || Math.abs(o[lat] - b.c[lat]) > b.size[lat] / 2 + 1e-6) continue;
+    const d = (b.c[ax] + (s * b.size[ax]) / 2 - o[ax]) * s;
+    if (Math.abs(d) <= reach && (!best || Math.abs(d) < Math.abs(best.d))) best = { d, material: b.material, kind: b.kind };
   }
-  const geo = flat ? new THREE.ShapeGeometry(shapes, 1).translate(0, 0, 0.003) : new THREE.ExtrudeGeometry(shapes, { depth: 0.004, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.0025, bevelSegments: 1, curveSegments: 3 });
-  geo.deleteAttribute('uv');
-  return { geo, lines, height: lines * (glyphH + lineGap) };
+  return best;
 }
-
+/** a carved field: the texts (id × versions) in one arrangement on a face. `origin`: the field's centre on the face line
+ *  (grid; `snap` moves it onto the nearest box face of the architecture and takes that box's stone), `yTop` its top, `width`
+ *  × `height` its size; `surface`: the host's SURFACES key when the host is not a part (a slab, the Terrace wall) */
+export interface CarvedField { texts: { id: string; ver: Version }[]; arrangement: 'columns' | 'stack'; origin: Pt; along: Pt; normal: Pt; yTop: number; width: number; height: number; glyphMax: number; where: string; tier: string; surface?: string; snap?: boolean }
+const VER_NAME: Record<Version, string> = { op: 'Old Persian', el: 'Elamite', bab: 'Babylonian' };
+/** what the Old Persian signs of a text rest on (D-177), for the dev-overlay notes (decor.ts, naqsh.ts) */
+export function opSignsNote(id: string): string {
+  const t = (inscriptions as any)[id], w = (t.op_words as any[]).filter(r => r.signs), n = (k: string) => w.filter(r => r.cmp === k).length;
+  const fixed = w.filter(r => r.read).length, lost = String(t.op_signs.join(' ')).split(/[\s:-]+/).filter(s => s === 'x').length;
+  return t.op_lined ? `signs: the published sign-by-sign transliteration (Kent's convention; data/corpus/op_translit.json, D-176) word for word, ${w.length} word groups (B)${fixed ? `, ${fixed} with a slip of the copy corrected (op_sign_decisions.json)` : ''}; Schmitt's reading differs in ${n('reading')}, by a written glide in ${n('glide')}, by a logogram in ${n('logogram')} (research/OP_SIGNS.md, Q-288)${lost ? `; ${lost} signs lost in the corpus left uncut [PLACEHOLDER]` : ''}; lines the corpus's (B)`
+    : `signs: Kent's rules on ARIo's words (C: no corpus copy); lines C`;
+}
+/** copies and versions of an inscription standing in 467 that the build does not carve (src/data/royal_inscriptions.json) */
+const missingOf = (id: string) => (programme.missing as any[]).filter(m => String(m.id).split(/,\s*/).includes(id));
+/** the dev-overlay note of one carved version: what the text and the signs rest on (D-177), and the carving */
+function versionNote(id: string, ver: Version, glyph: number, depth: number, where: string, surface: string): string {
+  const t = (inscriptions as any)[id], signs = ver === 'op' ? opSignsNote(id) : `signs: ATF → OSL (B); lines C (flowed: no lineation read)`;
+  const miss = missingOf(id).map(m => m.what);
+  return `${id} ${VER_NAME[ver]} (text A: ARIo ${t.ario}, Schmitt 2009); ${signs}; incised in ${surface}, V-section at 45°, deepest ${(depth * 1000).toFixed(1)} mm, signs ${(glyph * 100).toFixed(1)} cm (C); ${where}${miss.length ? `; NOT carved (Q-290): ${miss.join('; ')}` : ''}`;
+}
+/** carve one field into group `g` (one mesh and one pick rectangle per version) */
+function carveField(g: THREE.Group, parts: Part[], F: CarvedField, report: string[]) {
+  const blocks: Block[] = F.texts.map(t => ({ id: t.id, ver: t.ver, text: panelText(t.id, t.ver)! })).filter(b => b.text);
+  if (!blocks.length) return;
+  const host = F.snap === false ? null : hostFace(parts, F.origin, F.yTop - F.height / 2, F.normal);
+  const surface = F.surface ?? host?.material ?? 'limestone', off = host && !F.surface ? host.d : 0;
+  const fit = fitBlocks(blocks, F.arrangement, F.width, F.height, F.glyphMax);
+  const X = gw(F.along[0], F.along[1]), Z = gw(F.normal[0], F.normal[1]);
+  const o = gw(F.origin[0], F.origin[1]).addScaledVector(Z, off).addScaledVector(X, -F.width / 2); o.y = F.yTop;
+  for (const p of fit.parts) {
+    const A = inscriptionAtlas(p.block.text.font), geo = carvedBlockGeometry(p.block, p.layout, p.dx, p.dy), depth = layoutMaxDepth(A, p.layout);
+    const meta = { tier: p.block.ver === 'op' && (inscriptions as any)[p.block.id].op_lined ? 'B' : 'C', src: p.block.ver === 'op' ? 'ARIO;OP-TRANSLIT;NOTO;LANG-R' : 'ARIO;OSL;NOTO;LANG-R', inscription: p.block.id, version: p.block.ver, host: surface, glyph: fit.glyph, depth,
+      note: versionNote(p.block.id, p.block.ver, fit.glyph, depth, `${F.where} (placement ${F.tier})`, surface) };
+    const mesh = new THREE.Mesh(geo, incisedMaterial(surface, A)); mesh.matrixAutoUpdate = false; mesh.matrix.makeBasis(X, up, Z).setPosition(o);
+    mesh.receiveShadow = true; mesh.castShadow = false; mesh.userData = { ...meta, carved: [{ id: p.block.id, ver: p.block.ver, signs: geo.userData.signs }] }; mesh.name = `inscription:${p.block.id}:${p.block.ver}`; g.add(mesh);
+    // pick rectangle over the block (the carved mesh is only the signs, so a look between wedges would miss); on
+    // INSCRIPTION_PICK_LAYER, which no camera renders; the translation layer raycasts that layer only
+    const pad = 0.05, w = p.layout.width, h = p.layout.height;
+    const quad = new THREE.PlaneGeometry(w + 2 * pad, h + 2 * pad).translate(p.dx + w / 2, p.dy - h / 2, 0.002);
+    const pick = new THREE.Mesh(quad, pickMat); pick.matrixAutoUpdate = false; pick.matrix.copy(mesh.matrix); pick.layers.set(INSCRIPTION_PICK_LAYER);
+    pick.name = `inscription:${p.block.id}:${p.block.ver}:pick`; pick.userData = meta; g.add(pick);
+    report.push(`${p.block.id}:${p.block.ver} ${p.layout.signs.length} signs, ${p.layout.lines} lines, glyph ${(fit.glyph * 100).toFixed(1)} cm, deepest ${(depth * 1000).toFixed(1)} mm, on ${surface}${host ? ` (${host.kind}, face ${(host.d * 100).toFixed(1)} cm from the field line)` : ''}`);
+  }
+}
+/** the carved inscriptions of the Terrace (D-177: what stands where, the texts and the carving; src/data/royal_inscriptions.json): XPa on the Gate, XPb on the Apadana
+ *  stairs, the stair-facade and door-jamb texts of the Phase 4 programmes (XPc, XPd, XPe, DPa, DPb: relief_programmes.ts),
+ *  DPc on the Tachara window cornices and DPd-DPg on the Terrace south wall. g.userData.report lists every carved version */
+export function buildInscriptions(m: Manifest, parts: Part[], extra: InscriptionPlacement[] = []): THREE.Group {
+  const g = new THREE.Group(); g.name = 'inscriptions'; const report: string[] = [];
+  const all = (id: string, vers: Version[] = ['op', 'el', 'bab']) => vers.map(ver => ({ id, ver }));
+  // XPa above each colossus of the Gate of All Nations, on the doorway reveal: all three versions side by side on a stone
+  // face in front of the wall above the colossus (gate_nations.r_inscription_panel, inscription_placement; D-177)
+  if (present('gate_nations') && m.gate_nations) {
+    const P = v<any>('gate_nations', 'r_inscription_panel'), K = v<any>('gate_nations', 'r_colossus');
+    const cols = parts.filter(p => p.building === 'gate_nations' && p.kind === 'colossus') as Box[];
+    const doorAxisN = (parts.find(p => p.building === 'gate_nations' && p.kind === 'floor') as Box).c[1];
+    const slabMat = surfaceMaterial(P.slab_surface);
+    cols.forEach(c => {
+      const facingN = c.c[1] > doorAxisN ? -1 : 1, revealN = c.c[1] + facingN * (c.size[1] / 2); // the colossus' inner face = the doorway reveal
+      const yTop = v<number>('gate_nations', 'r_colossus_plinth') + K.height + P.above_colossus + P.height, n: Pt = [0, facingN];
+      const wall = hostFace(parts, [c.c[0], revealN], yTop - P.height / 2, n) ?? { d: 0 };
+      const faceN = revealN + facingN * (wall.d + P.slab_proud); // the slab's face
+      const slab = new THREE.Mesh(new THREE.BoxGeometry(P.width, P.height, P.slab_depth), slabMat);
+      slab.position.set(c.c[0], yTop - P.height / 2, -(faceN - facingN * P.slab_depth / 2)); slab.castShadow = slab.receiveShadow = true;
+      slab.name = 'inscription-slab:XPa'; slab.userData = { tier: 'C', src: 'ISAC-PA;LANG-R;RECON', note: `stone face above the colossus carrying XPa (${P.width} × ${P.height} m, ${P.slab_proud * 100} cm in front of the wall; the stone jamb's extent C)` };
+      g.add(slab);
+      carveField(g, parts, { texts: [...all('XPa')], arrangement: P.arrangement, origin: [c.c[0], faceN], along: [facingN > 0 ? -1 : 1, 0], normal: n, yTop: yTop - P.margin,
+        width: P.width - 2 * P.margin, height: P.height - 2 * P.margin, glyphMax: P.glyph_height, where: 'above a doorway colossus of the Gate of All Nations, the three versions side by side', tier: 'B (above each colossus) / C (the columns)', surface: P.slab_surface, snap: false }, report);
+    });
+  }
+  // XPb beside the audience panels on the Apadana N and E stair facades: OP on one panel, Babylonian and Elamite on another
+  if (present('apadana') && m.apadana) {
+    const AP = v<any>('apadana', 'r_audience_panel'), R = v<any>('apadana', 'r_registers'), X = v<any>('apadana', 'r_xpb_panels');
+    for (const f of apadanaFacades(m)) for (const [side, texts] of [[X.op_side, all('XPb', ['op'])], [X.elbab_side, all('XPb', X.elbab_order)]] as const) {
+      const a = side * (AP.width / 2 + X.offset), o: Pt = [f.origin[0] + f.along[0] * a, f.origin[1] + f.along[1] * a];
+      carveField(g, parts, { texts: [...texts], arrangement: 'stack', origin: o, along: f.along as Pt, normal: f.normal as Pt, yTop: R.bottom + X.top, width: X.width, height: X.top,
+        glyphMax: X.glyph_max, where: `Apadana ${f.id} stair facade, ${texts.length > 1 ? 'the Babylonian above the Elamite' : 'the Old Persian'} beside the audience panel`, tier: 'B (the panels) / C (sides, size)' }, report);
+    }
+  }
+  // the Phase 4 central facades and door jambs (relief_programmes.ts): XPc (Tachara S stair), XPd (Hadish W stair), XPe
+  // (Hadish E, W doorways), DPa (Tachara S doorway), DPb (Hadish NW doorway)
+  for (const p of extra) {
+    if (!(inscriptions as any)[p.id]) continue;
+    carveField(g, parts, { texts: (p.versions ?? [p.version]).map(ver => ({ id: p.id, ver })), arrangement: p.arrangement ?? 'stack', origin: p.origin, along: p.along, normal: p.normal, yTop: p.yTop,
+      width: p.width, height: p.height ?? 3, glyphMax: p.glyph ?? v<any>('global', 'r_stair_relief').glyph, where: p.where ?? p.id, tier: p.tier ?? 'C' }, report);
+  }
+  // DPc on the cornices of the Tachara windows (tachara.r_window_inscription): the front face of each frame's cornice (the top
+  // block of the sill-lintel-cornice stack that shares the window's centre) on the side the row names
+  if (present('tachara')) {
+    const WI = v<any>('tachara', 'r_window_inscription'), n = WI.normal as Pt, ax = Math.abs(n[0]) > 0.5 ? 0 : 1;
+    const frames = parts.filter(p => p.building === 'tachara' && p.kind === 'window_frame' && p.type === 'box') as Box[], stacks = new Map<string, Box[]>();
+    for (const b of frames) { const k = `${b.c[0].toFixed(2)},${b.c[1].toFixed(2)}`; (stacks.get(k) ?? stacks.set(k, []).get(k)!).push(b); }
+    for (const st of stacks.values()) {
+      if (st.length < 3) continue; // a jamb
+      const b = st.reduce((q, x) => (x.y1 > q.y1 ? x : q));
+      if (b.size[ax] > b.size[1 - ax]) continue; // the frame does not stand in a wall across n
+      const o: Pt = ax === 1 ? [b.c[0], b.c[1] + (n[1] * b.size[1]) / 2] : [b.c[0] + (n[0] * b.size[0]) / 2, b.c[1]];
+      carveField(g, parts, { texts: WI.versions.map((ver: Version) => ({ id: WI.inscription, ver })), arrangement: WI.arrangement, origin: o, along: [-n[1], n[0]], normal: n, yTop: b.y1 - WI.margin,
+        width: b.size[1 - ax] - 2 * WI.margin, height: b.y1 - b.y0 - 2 * WI.margin, glyphMax: WI.glyph_max, where: 'the cornice of a Tachara window frame, portico side, the three versions stacked',
+        tier: 'B (window cornices) / C (which windows, face, stacking)', surface: b.material, snap: false }, report);
+    }
+  }
+  // DPd-DPg on the Terrace south wall (terrace.r_south_wall_inscriptions)
+  {
+    const S = v<any>('terrace', 'r_south_wall_inscriptions'), plat = parts.find(p => p.building === 'terrace' && p.type === 'prism') as any;
+    if (plat?.polygon) {
+      const poly = plat.polygon as Pt[], cx = poly.reduce((q, p) => q + p[0], 0) / poly.length, cy = poly.reduce((q, p) => q + p[1], 0) / poly.length;
+      let best: { a: Pt; b: Pt; n: Pt; y: number } | null = null;
+      for (let i = 0; i < poly.length; i++) {
+        const a = poly[i], b = poly[(i + 1) % poly.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < S.texts.length * (S.panel_width + S.gap)) continue;
+        let n: Pt = [(b[1] - a[1]) / L, -(b[0] - a[0]) / L]; const mid: Pt = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; if ((mid[0] - cx) * n[0] + (mid[1] - cy) * n[1] < 0) n = [-n[0], -n[1]];
+        if (n[1] < -0.95 && (!best || mid[1] < best.y)) best = { a, b, n, y: mid[1] };
+      }
+      if (best) {
+        const { a, b, n } = best, L = Math.hypot(b[0] - a[0], b[1] - a[1]), along: Pt = [-n[1], n[0]], mid: Pt = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+        const total = S.texts.length * S.panel_width + (S.texts.length - 1) * S.gap; void L;
+        const blockOf = (id: string): Block => { const t = (inscriptions as any)[id], ver: Version = t.op_translit ? 'op' : t.el_atf ? 'el' : 'bab'; return { id, ver, text: panelText(id, ver)! }; };
+        const glyph = Math.min(...S.texts.map((id: string) => fitBlocks([blockOf(id)], 'stack', S.panel_width, S.height, S.glyph_max).glyph)); // one sign size for the four
+        S.texts.forEach((id: string, i: number) => {
+          const ver = blockOf(id).ver, off = -total / 2 + S.panel_width / 2 + i * (S.panel_width + S.gap), o: Pt = [mid[0] + along[0] * off, mid[1] + along[1] * off];
+          carveField(g, parts, { texts: [{ id, ver }], arrangement: 'stack', origin: o, along, normal: n, yTop: -S.top_below_court, width: S.panel_width, height: S.height, glyphMax: glyph,
+            where: 'the Terrace south wall', tier: 'B (the south wall) / C (position, size, order)', surface: 'terrace', snap: false }, report);
+        });
+      }
+    }
+  }
+  // the programme's gaps (Phase 8 review A-M5): every copy standing in 467 that is not carved, flagged
+  const missing = (programme.missing as any[]).map(m => `${m.id}: ${m.what} (${m.why})`);
+  const summary = `royal inscriptions: ${report.length} versions carved; ${missing.length} copies or versions standing in 467 NOT carved [PLACEHOLDER: Q-290, src/data/royal_inscriptions.json]`;
+  g.userData = { tier: 'B/C', placeholder: missing.length > 0, summary, missing, note: `carved inscriptions (D-177: text and signs, carving and placement):\n${report.join('\n')}\nNOT carved (Q-290):\n${missing.join('\n')}`, report };
+  return g;
+}
 /** layer of the inscriptions' invisible pick rectangles (no camera renders it) */
 export const INSCRIPTION_PICK_LAYER = 5;
 const pickMat = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide, visible: false });
@@ -182,64 +331,6 @@ export function buildFoundationDeposits(m: Manifest): THREE.Group {
     const size = wt + 2, quad = new THREE.Mesh(new THREE.PlaneGeometry(size, size).rotateX(-Math.PI / 2), pickMat);
     quad.position.set(e + sx * 1, floor + 0.02, -(n + sy * 1)); quad.layers.set(INSCRIPTION_PICK_LAYER); quad.name = `inscription:${F.inscription}:deposit:${corner}:pick`;
     quad.userData = { ...meta, inscription: F.inscription, version: 'op', pickFar: 8 }; g.add(quad);
-  }
-  return g;
-}
-export function buildInscriptions(m: Manifest, parts: any[], extra: InscriptionPlacement[] = []): THREE.Group {
-  const g = new THREE.Group(); g.name = 'inscriptions';
-  const inscMat = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(0.22, 0.21, 0.2, THREE.SRGBColorSpace), roughness: 0.95 });
-  const panelMeta = (id: string, ver: string) => ({ tier: ver === 'op' ? 'C' : 'B', src: 'ARIO;OSL;NOTO;LANG-R', note: `${id} (${ver === 'op' ? 'Old Persian, signs by Kent rules — C' : ver === 'el' ? 'Elamite, ATF→OSL signs' : 'Babylonian, ATF→OSL signs'}); text: ARIo (Schmitt 2009); placement C`, inscription: id, version: ver });
-  const place = (geo: THREE.BufferGeometry, meta: any, originGrid: [number, number], alongGrid: [number, number], normalGrid: [number, number], yTop: number, width: number) => {
-    const X = gw(alongGrid[0], alongGrid[1]), Z = gw(normalGrid[0], normalGrid[1]);
-    const o = gw(originGrid[0], originGrid[1]).addScaledVector(X, -width / 2); o.y = yTop;
-    const mesh = new THREE.Mesh(geo, inscMat); mesh.matrixAutoUpdate = false; mesh.matrix.makeBasis(X, up, Z).setPosition(o.addScaledVector(Z, 0.002)); mesh.userData = meta; mesh.name = `inscription:${meta.inscription}:${meta.version}`; g.add(mesh);
-    // pick rectangle over the whole panel (the carved mesh is only the signs, so a look between wedges would miss); on
-    // INSCRIPTION_PICK_LAYER, which no camera renders; the translation layer raycasts that layer only
-    geo.computeBoundingBox(); const bb = geo.boundingBox!, pad = 0.05;
-    const quad = new THREE.PlaneGeometry(bb.max.x - bb.min.x + 2 * pad, bb.max.y - bb.min.y + 2 * pad).translate((bb.min.x + bb.max.x) / 2, (bb.min.y + bb.max.y) / 2, bb.max.z + 0.001);
-    const pick = new THREE.Mesh(quad, pickMat); pick.matrixAutoUpdate = false; pick.matrix.copy(mesh.matrix); pick.layers.set(INSCRIPTION_PICK_LAYER);
-    pick.name = `inscription:${meta.inscription}:${meta.version}:pick`; pick.userData = meta; g.add(pick);
-  };
-  // XPa above each colossus of the Gate of All Nations, on the door reveals (versions OP / El / Bab / OP — assignment C)
-  if (present('gate_nations') && m.gate_nations) {
-    const P = v<any>('gate_nations', 'r_inscription_panel'), K = v<any>('gate_nations', 'r_colossus');
-    const cols = parts.filter(p => p.building === 'gate_nations' && p.kind === 'colossus');
-    const texts: Record<string, string> = { op: toCuneiform((inscriptions as any).XPa.op_translit), el: (inscriptions as any).XPa.el_cuneiform, bab: (inscriptions as any).XPa.bab_cuneiform };
-    const vers = ['op', 'el', 'bab', 'op'];
-    cols.forEach((c: any, i: number) => {
-      const ver = vers[i % 4]; const { geo } = textPanelGeometry(ver === 'op' ? 'op' : 'cun', texts[ver], P.width, P.glyph_height, P.line_gap);
-      // reveal face: the colossus stands against the reveal; the panel faces into the doorway (toward the door axis)
-      const doorAxisN = (m.gate_nations as any) && (parts.find((p: any) => p.building === 'gate_nations' && p.kind === 'floor') as any).c[1];
-      const facingN = c.c[1] > doorAxisN ? -1 : 1; // panel on the reveal, normal pointing to the door axis
-      const revealN = c.c[1] + facingN * (c.size[1] / 2); // the colossus' inner face = the doorway reveal
-      // reading direction (viewer's left → right) for a panel whose normal is ±grid-north
-      place(geo, panelMeta('XPa', ver), [c.c[0], revealN + facingN * 0.01], [facingN > 0 ? -1 : 1, 0], [0, facingN], v('gate_nations', 'r_colossus_plinth') + K.height + P.above_colossus + P.height, P.width);
-    });
-  }
-  // XPb beside the audience panels on the Apadana N and E stair façades (placement C: 'flanks the reliefs')
-  if (present('apadana') && m.apadana) {
-    const AP = v<any>('apadana', 'r_audience_panel'), R = v<any>('apadana', 'r_registers');
-    const text = toCuneiform((inscriptions as any).XPb.op_translit);
-    for (const f of apadanaFacades(m)) {
-      const { geo } = textPanelGeometry('op', text, 2.2, 0.06, 0.03);
-      for (const s of [1]) {
-        const a = s * (AP.width / 2 + 2.6), o: [number, number] = [f.origin[0] + f.along[0] * a + f.normal[0] * 0.01, f.origin[1] + f.along[1] * a + f.normal[1] * 0.01];
-        place(geo, panelMeta('XPb', 'op'), o, f.along as any, f.normal as any, R.bottom + 2.45, 2.2);
-      }
-    }
-  }
-  // Phase 4 central façades (D-049): XPc on the Tachara S stair, XPd on the Hadish W stair (Old Persian; placement C),
-  const SR = v<any>('global', 'r_stair_relief');
-  // and the door-jamb inscriptions (D-066: XPe on the Hadish E and W doorways, the three versions stacked)
-  for (const p of extra) {
-    const t = (inscriptions as any)[p.id]; if (!t) continue;
-    let y = p.yTop;
-    for (const ver of p.versions ?? [p.version]) {
-      const text = ver === 'op' ? toCuneiform(t.op_translit) : ver === 'el' ? t.el_cuneiform : t.bab_cuneiform; if (!text) continue;
-      const glyph = p.glyph ?? SR.glyph, { geo, height } = textPanelGeometry(ver === 'op' ? 'op' : 'cun', text, p.width, glyph, p.lineGap ?? SR.line_gap, !!p.flat);
-      place(geo, panelMeta(p.id, ver), [p.origin[0] + p.normal[0] * 0.01, p.origin[1] + p.normal[1] * 0.01], p.along, p.normal, y, p.width);
-      y -= height + (p.gap ?? 0);
-    }
   }
   return g;
 }
