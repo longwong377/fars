@@ -454,6 +454,10 @@ export class Crowd {
       else { p.shown = false; continue; }
       const b = p.base; b[0] = x; b[1] = y; b[2] = z; b[3] = yaw;
       this.resolve(p);
+      // the walking phase of a person of the population: at their pace on the way; in place at a standing spot where the
+      // performance is a moving one (the bearers, a guard's round: IN_PLACE_RATE). Advanced for the culled too, so the
+      // footsteps they sound (soundsOnly) and the pose on turning back keep time
+      if (!a && vp && !p.extra) { if (vp.moving) p.gaitPh += (vp.speed || 1.2) * dt / 0.72 * Math.PI; else if (ACTIVITIES[p.act as ActivityId]?.moving) p.gaitPh += IN_PLACE_RATE * dt; }
       // a cycle with a path of its own (the ploughman on the furrow, the thresher turning with his team, the archer
       // side-on): the root follows it every frame, between pose refreshes too
       p.path = PATHED.has(p.anim) ? workRoot(p.anim as WorkAnim, this.cycleT(p, time), p.animK) : null;
@@ -472,9 +476,6 @@ export class Crowd {
     const tp = performance.now(); let posed = 0, walled = 0; const drawn = [0, 0, 0, 0]; const has3 = this.humans.gpu.costumes.has('worker@3');
     for (let i = 0; i < list.length; i++) {
       const p = list[i], d = p.dist;
-      // the walking phase of a person of the population: at their pace on the way; in place at a standing spot where the
-      // performance is a moving one (the bearers, a guard's round: IN_PLACE_RATE)
-      if (!p.agent && p.vp) { if (p.vp.moving) p.gaitPh += (p.vp.speed || 1.2) * dt / 0.72 * Math.PI; else if (ACTIVITIES[p.act as ActivityId]?.moving) p.gaitPh += IN_PLACE_RATE * dt; }
       // a person in a walled court or yard the camera is outside of and below the walls of is hidden (but through the street
       // door): the farthest body, no shadow, not counted against the full and mid caps (they go to the people seen)
       const hid = !p.agent && p.vpFrame === this.frame && !!p.vp && this.walledOff(p.vp, cam.y); if (hid) walled++;

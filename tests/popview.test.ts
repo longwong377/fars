@@ -6,7 +6,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 import { NavGrid } from '../src/people/navgrid';
-import { PeopleSim, type Env } from '../src/people/sim';
+import { PeopleSim, PLACES, type Env } from '../src/people/sim';
 import { segAt } from '../src/people/population';
 import { WeatherSystem } from '../src/weather/weatherState';
 import { buildTownPlan, type TownPlan } from '../src/world/settlement/plan';
@@ -275,6 +275,43 @@ describe('crowd fed by the population view (D-143)', () => {
     doors = crowd.impPerf.doorEntries;
     note('m08', `walk: ${frames} frames over ${(legs as Route[]).reduce((a, r) => a + r.len, 0).toFixed(0)} m; pop-ins ${pops.length} ${JSON.stringify(pops.slice(0, 5))}; came out of doors within 50 m: ${doors}; view ${JSON.stringify(view.stats)}`);
     expect(pops).toEqual([]);
+  }, 900_000);
+  it('the population\'s shared work objects (the worksite\'s column drums, a village threshing floor) stay put when the camera turns and the field of view changes, and over five minutes at 1× (session 6)', () => {
+    const SH = ['drum_sledge', 'threshing_floor', 'bier'], lines: string[] = [];
+    const scene = (label: string, S: PeopleSim, V: PopView, t0: number, e: number, n: number) => {
+      let t = t0; S.jumpTo(t); V.settle(t, [e, n]); const crowd = makeCrowd(S, V); crowd.drawnKeys = new Set();
+      const inst = () => { const out: { k: string; v: THREE.Vector3 }[] = []; const M = new THREE.Matrix4();
+        for (const k of SH) { const m = crowd.group.getObjectByName(`work:${k}`) as THREE.InstancedMesh | undefined; for (let i = 0; i < (m?.count ?? 0); i++) { m!.getMatrixAt(i, M); out.push({ k, v: new THREE.Vector3().setFromMatrixPosition(M) }); } }
+        return out; };
+      // 1. turning twice round (30° steps), the field of view 70° then 30°: the same objects at the same places
+      let ref: { k: string; v: THREE.Vector3 }[] | null = null, worstTurn = 0, frame = 0; const drawnSets = new Set<string>();
+      for (let h = 0; h < 720; h += 30) { const cam = camAt(e, n, h % 360); cam.fov = h < 360 ? 70 : 30; cam.updateProjectionMatrix();
+        crowd.update(1 + frame++ / 30, cam.position, cam.position, cam); drawnSets.add([...crowd.drawnKeys].sort((a, b) => a - b).join(',')); const P = inst(); ref ??= P;
+        expect(P.length, `${label}, heading ${h % 360}: shared objects`).toBe(ref.length);
+        for (const p of P) { const dm = Math.min(...ref.filter(r => r.k === p.k).map(r => r.v.distanceTo(p.v))); worstTurn = Math.max(worstTurn, dm); expect(dm, `${label}, heading ${h % 360}: a ${p.k} moved`).toBeLessThan(0.03); } }
+      expect(ref!.length, `${label}: shared work objects drawn`).toBeGreaterThan(0); expect(drawnSets.size, `${label}: the drawn set changed as the camera turned`).toBeGreaterThan(5);
+      // 2. five minutes at 1× (the view and the crowd each second, the camera turning): a place's object present in two
+      // successive seconds does not move; a bier passes to another bearer only when its bearer leaves (counted)
+      type An = { pid: number; b: number[]; at: number[]; group: boolean };
+      let prev = new Map<string, An>(), worstTime = 0, placeKeys = 0, appeared = 0, gone = 0, bierPasses = 0;
+      for (let s = 0; s < 300; s++) { t += 1 / 3600; S.step(1); V.update(t, [e, n]); const cam = camAt(e, n, (s * 7) % 360);
+        crowd.update(1 + frame++ / 30, cam.position, cam.position, cam);
+        const now = new Map<string, An>([...((crowd as any).anchors as Map<string, An>)].map(([k, a]) => [k, { pid: a.pid, b: [...a.b], at: [...a.at], group: a.group }]));
+        for (const [k, a] of now) { const o = prev.get(k); if (!o) { appeared++; continue; }
+          const dm = Math.hypot(a.b[0] - o.b[0], a.b[1] - o.b[1], a.b[2] - o.b[2]) + Math.abs(a.b[3] - o.b[3]);
+          if (a.group) { if (a.pid !== o.pid) bierPasses++; else expect(dm, `${label}: ${k}: the bier moved under its bearer`).toBeLessThan(0.03); continue; }
+          placeKeys++; worstTime = Math.max(worstTime, dm); expect(dm, `${label}, second ${s}: ${k} moved (anchor p${o.pid} → p${a.pid})`).toBeLessThan(0.03); }
+        for (const k of prev.keys()) if (!now.has(k)) gone++; prev = now; }
+      expect(placeKeys, `${label}: place objects followed over time`).toBeGreaterThan(0);
+      lines.push(`${label}: shared work objects ${ref!.length} (${SH.map(k => `${k} ${ref!.filter(r => r.k === k).length}`).join(', ')}); turning 24 views (${drawnSets.size} drawn sets): worst move ${worstTurn.toFixed(4)} m; 300 s at 1×: ${placeKeys} place-object seconds, worst move ${worstTime.toFixed(4)} m, keys appeared ${appeared}, gone ${gone}, bier passed to another bearer ${bierPasses}`); };
+    // a fresh simulation (the shared one does not go back in time): a village threshing floor at dawn in the threshing season
+    // (day 45, v_masumabad), then the column drums unloaded at the worksite (day 70, 06:00); a probe of the plans found both
+    const S2 = new PeopleSim(1, nav, env), canals = buildCanals(terrain, loadRiversFile().rivers, 1);
+    const G2 = new PopGeo({ pop: S2.pop, nav, town: plan, ground: (e, n) => terrain.heightAt(e, -n), villages, compounds: vi => villageCompounds(villages[vi], terrain, 1), canals: canals.map(c => c.pts), seed: 1 });
+    const V2 = new PopView(S2, G2, 1), sp = G2.spot(7040, 'threshing:v_masumabad', 'thresh', 45, 6.5); expect(sp.ok, sp.what).toBe(true);
+    scene('threshing floor of v_masumabad, day 45 06:30', S2, V2, 45 * 24 + 6.5, sp.e + 12, sp.n);
+    const ws = PLACES.worksite.at; scene('the worksite (drums unloaded), day 70 06:00', S2, V2, 70 * 24 + 6, ws[0] + 10, ws[1]);
+    note('m10', lines.join('\n'));
   }, 900_000);
   it('costs: the view and the pool per frame at 1× and 60× time (node; re-run alone under load)', () => {
     const d = 25; let t = d * 24 + 10; sim.jumpTo(t); view.settle(t, [40, 70]); const crowd = makeCrowd(), cam = camAt(40, 70, 122); crowd.looksPerFrame = 300;
