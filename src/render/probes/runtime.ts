@@ -151,8 +151,9 @@ export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any, directSk
   // D-152: the reach of the lower layer's four corner probes (texel centres: unfiltered); a side of the cell none of whose
   // probes reaches q is left out (field.ts reachFrac: a wall thinner than the spacing lies between them)
   const r00 = at(uA, vv, 3), r10 = at(uA.add(1), vv, 3), r01 = at(uA, vv.add(1), 3), r11 = at(uA.add(1), vv.add(1), 3);
-  // field.ts reachOk: 1 where the reach clears the point, a ramp over REACH_SOFT short of it (D-187), 0 without reach
-  const ok = (r: any, d: any) => clamp(r.sub(d).div(REACH_SOFT).add(1), 0, 1).mul(step(1e-4, r));
+  // field.ts reachOk: 1 where the reach clears the point, a ramp over REACH_SOFT short of it (D-187); a probe always
+  // reaches its own position (D-188: continuous at the cell faces)
+  const ok = (r: any, d: any) => clamp(r.sub(d).div(REACH_SOFT).add(1), 0, 1);
   const snap = (f: any, lo0: any, lo1: any, hi0: any, hi1: any, t: any) => {
     const g = float(1).sub(f), lo = mix(ok(lo0, f), ok(lo1, f), t), hi = mix(ok(hi0, g), ok(hi1, g), t);
     const loOnly = lo.mul(float(1).sub(hi)), hiOnly = hi.mul(float(1).sub(lo));

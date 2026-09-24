@@ -112,11 +112,17 @@ export function buildStairCrenellations(parts: Part[]): THREE.InstancedMesh | nu
   mesh.userData = { tier: 'C', src: 'IR-PERS;SI-ARCH;RECON', note: `four-stepped merlons on the stair parapets of ${CR.buildings.join(', ')} (motif B on the Apadana stairs; here by the Persepolis stair convention, size C; D-065)` };
   return mesh;
 }
-function crenellationGeometry(w: number, h: number, steps: number, depth: number) {
+/** the merlons' chamfer (m, C) */
+export const CREN_BEVEL = 0.012;
+export function crenellationGeometry(w: number, h: number, steps: number, depth: number) {
   const pts: number[][] = []; const sw = w / 2 / steps, sh = h / steps;
   pts.push([-w / 2, 0]); for (let i = 0; i < steps; i++) { pts.push([-w / 2 + i * sw, (i + 1) * sh]); pts.push([-w / 2 + (i + 1) * sw, (i + 1) * sh]); }
   for (let i = steps - 1; i >= 0; i--) { pts.push([w / 2 - (i + 1) * sw, (i + 1) * sh]); pts.push([w / 2 - i * sw, (i + 1) * sh]); } pts.push([w / 2, 0]);
-  const g = new THREE.ExtrudeGeometry(new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y))), { depth, bevelEnabled: false }); g.deleteAttribute('uv'); return g;
+  // D-188: a 12 mm chamfer on every arris (the merlons were stacks of perfectly sharp boxes, §8.2 rubric fix 4), inside the
+  // same outline (bevelOffset −size); the chamfer along the foot draws the joint on which the merlon sits on its coping
+  const B = CREN_BEVEL;
+  const g = new THREE.ExtrudeGeometry(new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y))), { depth: depth - 2 * B, bevelEnabled: true, bevelThickness: B, bevelSize: B, bevelOffset: -B, bevelSegments: 1 });
+  g.translate(0, 0, B); g.deleteAttribute('uv'); return g;
 }
 
 // ---------- carved inscriptions: the published text (D-177), incised into the stone (D-177) ----------

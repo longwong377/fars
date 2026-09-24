@@ -134,7 +134,7 @@ describe('light probes: synthetic room', () => {
     // 0.8 m outside it (x −11.8), in sunlit open ground: without the reach test the floor at the wall's foot mixes them
     const vol = { ...roomVolume(), origin: [-15.8, 0.25, -15.8] as [number, number, number] };
     const F = bake(room(0), vol), F0: ProbeField = { ...F, data: F.data.slice() };
-    for (let i = 0; i < F0.count; i++) for (let k = 0; k < 4; k++) F0.data[i * PROBE_STRIDE + REACH + k] = 0; // no reach data
+    for (let i = 0; i < F0.count; i++) for (let k = 0; k < 4; k++) F0.data[i * PROBE_STRIDE + REACH + k] = 1; // no reach test: every probe reaches (D-188: a reach of 0 now snaps within 0.16 of the spacing of its probe)
     const i0 = probeIndex(vol, 2, 0, 8), i1 = probeIndex(vol, 3, 0, 8); // x −11.8 (outside), x −9.8 (inside)
     expect(F.data[i0 * PROBE_STRIDE + REACH]).toBeCloseTo(0.4, 2); // +x: the wall's outer face 0.8 m away
     expect(F.data[i1 * PROBE_STRIDE + REACH + 1]).toBeCloseTo(0.1, 2); // −x: the inner face 0.2 m away
@@ -146,6 +146,12 @@ describe('light probes: synthetic room', () => {
     // the fraction rule itself: a side none of whose probes reaches the point is left out, else plain bilinear
     expect(reachFrac(0.95, 0.4, 0.4, 0.1, 0.1)).toBe(1); expect(reachFrac(0.05, 0.1, 0, 0.4, 0.4, 0)).toBe(0);
     expect(reachFrac(0.5, 1, 1, 1, 1)).toBe(0.5); expect(reachFrac(0.5, 0, 0, 0, 0)).toBe(0.5);
+    // D-188: continuous — at the cell's faces the fraction is 0 and 1 whatever the reach, and a reach just short of the
+    // distance counts in part (a ramp over 2 × REACH_SOFT), so the fraction moves without a step round a column
+    for (const t of [0, 0.3, 1]) { expect(reachFrac(0, 0.2, 0.7, 0, 0.4, t)).toBe(0); expect(reachFrac(1, 0.2, 0.7, 0, 0.4, t)).toBe(1); }
+    let prev = reachFrac(0.5, 0.6, 0.6, 0.1, 0.1), maxStep = 0;
+    for (let f = 0.501; f <= 0.7; f += 0.001) { const x = reachFrac(f, 0.6, 0.6, 0.1, 0.1); maxStep = Math.max(maxStep, Math.abs(x - prev)); prev = x; }
+    expect(maxStep).toBeLessThan(0.05);
     // beside a doorway: of the far (low) side, only the corner in line with the opening (lo0, at t = 0) reaches the point;
     // at the jamb's side (t = 1) the far side is left out, in front of the opening (t = 0) the lookup blends as before
     expect(reachFrac(0.9, 1, 0.3, 0.2, 0.2, 1)).toBe(1); expect(reachFrac(0.9, 1, 0.3, 0.2, 0.2, 0)).toBeCloseTo(0.9, 9);
@@ -160,9 +166,12 @@ describe('light probes: synthetic room', () => {
       return { up: smp.s[8], upB: smp.s[9], down: smp.s[TINT_DOWN], downB: smp.s[TINT_DOWN + 1] }; // red, blue relative to luminance 1
     };
     const grey = tints('limestone'), red = tints('plaster_red');
-    // measured: limestone floor up/down red 1.45/1.10 (the timber ceiling is brown), red floor 1.80/1.85
+    // measured: limestone floor up/down red 1.65/1.12 (the timber ceiling is brown), red floor 2.07/1.83. D-188: the cedar
+    // ceiling (Y 18 %, was a 5 % dark wood) returns more of the floor's red into the light from above, a second bounce: the
+    // floor's red now shows 1.7× more from below than from above (2.3× under the dark ceiling); the method's claim is the
+    // asymmetry, whose size follows the ceiling's albedo
     expect(red.down).toBeGreaterThan(1.6); // from below: the red floor (with the doorway's view of the plain and the wall feet)
-    expect(red.down - grey.down).toBeGreaterThan(2 * (red.up - grey.up)); // the floor's red reaches the ceiling, not itself
+    expect(red.down - grey.down).toBeGreaterThan(1.5 * (red.up - grey.up)); // the floor's red reaches the ceiling, not itself
     expect(grey.downB - red.downB).toBeGreaterThan(2 * (grey.upB - red.upB)); // and takes the blue out of it, not out of the floor's own light
   });
   it('the weight is 1 inside the roofed space and 0 beyond the grid', () => {

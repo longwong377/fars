@@ -30,11 +30,11 @@
 // reflectance of each pixel; where a ray hits, it replaces the sky environment the material reflected (the composite
 // re-evaluates that term with the material's own lookup and specular occlusion).
 import * as THREE from 'three/webgpu';
-import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2, metalness, roughness, Fn, dot, normalize, luminance, smoothstep, pmremTexture, EnvironmentBRDF, reflect, step } from 'three/tsl';
+import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2, metalness, roughness, Fn, dot, normalize, luminance, smoothstep, pmremTexture, EnvironmentBRDF, reflect, step, passTexture, log2, length } from 'three/tsl';
 import { ssgi } from './ssgi';
 import { ssgi as ssgiOrig } from 'three/addons/tsl/display/SSGINode.js';
 import { ssr } from 'three/addons/tsl/display/SSRNode.js';
-import { sss } from 'three/addons/tsl/display/SSSNode.js';
+import { sss } from './sss';
 import { traa } from 'three/addons/tsl/display/TRAANode.js';
 import { meterNode } from './meter';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
@@ -57,10 +57,22 @@ export const SSGI_THICKNESS = 0.25, SSGI_CONTACT_RADIUS = 1.2, SSGI_CONTACT_STEP
 /** SSR (D-157): surfaces below this roughness reflect (fading out over the last 0.1), rays reach 30 m from the reflecting
  *  plane, depth samples 0.3 m thick */
 export const SSR_MAX_ROUGHNESS = 0.5, SSR_MAX_DISTANCE = 30, SSR_THICKNESS = 0.3;
+/** the screen-space reflection's radiance is capped at this many times display white (D-188: no single-texel sparkles) */
+export const SSR_CAP = 2;
+/** the hit distance a missed ray's blur assumes (m, D-188) */
+export const SSR_MISS_D = 8;
 /** sun contact shadows (D-157): screen-space rays toward the sun, 0.6 m long, against depth samples 6 cm thick; they darken
  *  only the pixel's share of direct sun (estimated as below), where the shadow map's texels and bias (6 cm, D-146) leave a
  *  plinth or a step nosing without its contact shadow */
 export const SSS_MAX_DISTANCE = 0.6, SSS_THICKNESS = 0.06;
+
+/** the SSR blur mip for a reflection (D-188): the glossy cone (half-angle ≈ α = roughness², GGX) spans dHit · α at a hit
+ *  dHit metres away, i.e. dHit · α / (viewDist · pxAngle) pixels on screen; mip i of the half-resolution blur chain averages
+ *  ~2^(i+1) pixels. CPU mirror of the composite's lookup below (tests/surfaces_s6.test.ts) */
+export function ssrBlurLod(dHit: number, rough: number, viewDist: number, pxAngle: number, mips: number): number {
+  const foot = (dHit * rough * rough) / (Math.max(viewDist, 0.1) * pxAngle);
+  return Math.min(mips, Math.max(0, Math.log2(Math.max(foot, 1)) - 1, rough * rough * mips));
+}
 
 export class Pipeline {
   rp: THREE.RenderPipeline | null = null;
@@ -88,6 +100,8 @@ export class Pipeline {
   readonly ab = { ssr: uniform(1), giDirect: uniform(1), contact: uniform(1), sss: uniform(1) };
   /** the sun as the composite's contact-shadow estimate sees it: direction toward the sun (world) and colour × intensity */
   private sunDirW = uniform(new THREE.Vector3(0, 1, 0)); private sunE = uniform(new THREE.Color(0, 0, 0));
+  /** the angle one pixel spans at the centre of the frame (rad; the SSR blur's footprint, D-188) */
+  private pxAngle = uniform(0.0015);
   constructor(private renderer: THREE.WebGPURenderer, private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, readonly quality: Quality, private hemi?: THREE.HemisphereLight) {
     installProbeLight(renderer); // before any material is built
     // the sun: the shadow-casting directional light (SkySystem.sun); the sky dome (SkySystem.sky) for the environment
@@ -176,7 +190,7 @@ export class Pipeline {
       // split-sum reflectance already contains: divided out
       const fres = float(1).sub(dotNV.mul(dotNV)).max(0.05);
       const S: any = ssr(col, dep, nrm, { metalnessNode: specY.div(fres).mul(gate).mul(this.ab.ssr), roughnessNode: rough, camera } as any);
-      S.maxDistance.value = SSR_MAX_DISTANCE; S.thickness.value = SSR_THICKNESS; S.quality.value = quality === 'ultra' ? 0.5 : 0.3;
+      S.maxDistance.value = SSR_MAX_DISTANCE; S.thickness.value = SSR_THICKNESS; S.quality.value = 0.5; // D-188: 0.5 at high too (0.3 stepped ~3 texels and hit the thin column bases only sporadically: dark dots, D-187)
       S.resolutionScale = quality === 'ultra' ? 1 : 0.5; // half resolution at high: the reflections of these surfaces are blurred anyway
       // the sky environment the material reflected (the same lookup and specular occlusion as SkySpecularNode: the
       // dominant direction, the probe field's visibility through the cone fit), removed where a ray hits, by the node's own
@@ -186,8 +200,27 @@ export class Pipeline {
       const RwOff = this.camWorld.mul(vec4(mix(reflect(vV.negate(), mix(nV, nDs, geoOK)), mix(nV, nDs, geoOK), r4).normalize(), 0)).xyz; // D-187
       const envOcc = specularOcclusion(skyEnv.occlusion ? skyEnv.occlusion(pWorld, nW, Rw, RwOff) : float(1), dotNV, rough);
       const envSpec = spec.mul((pmremTexture as any)(skyEnv.target.texture, Rw, rough)).mul(envOcc).mul(skyEnv.intensity);
-      const hit = clamp(S.a.mul(50), 0, 1), fall = float(1).sub(clamp(S.a.mul(dotNV).div(SSR_MAX_DISTANCE), 0, 1));
-      const ssrAdd = S.rgb.mul(spec.div(specY)).sub(envSpec.mul(hit).mul(fall.mul(fall))).mul(gate).mul(this.ab.ssr);
+      // the blur (D-188): SSRNode picks its blur mip from the roughness alone (lod = r² × 5: 0.6 at the red floors'
+      // 0.35, ~1.5 half-resolution texels), so the floors mirrored doorways and columns sharp over their whole length.
+      // A glossy lobe's footprint grows with the distance to what it reflects: a cone of half-angle ≈ α = r² (GGX) spans
+      // d·α at the hit, i.e. d·α / (distance to the floor × the pixel's angle) pixels; mip i of the half-resolution blur
+      // chain averages ~2^(i+1) pixels. The hit distance is the unblurred pass's at the pixel (or, where that ray missed,
+      // the mean over a mip-2 neighbourhood: misses count 0 there, so it errs toward less blur)
+      const mips = S._blurRenderTarget.texture.mipmaps.length - 1, blurTex = S._blurRenderTarget.texture;
+      // where the pixel's own ray missed (a ray leaving through a doorway: the SSR has nothing to hit), the lookup takes a
+      // hit ≥ 8 m off, so the blur fills the miss from the hits round it instead of leaving a sharp-edged hole (run 1,
+      // hadish-hall: the reflected doorway was a blurred frame round a hard dark rectangle)
+      const base = S._textureNode.a, dHit = mix(max((passTexture as any)(S, blurTex).level(2).a, SSR_MISS_D), base, step(1e-3, base));
+      const footPx = dHit.mul(rough.mul(rough)).div(length(pView).max(0.1).mul(this.pxAngle));
+      // (never sharper than the node's own roughness rule, r² × mips)
+      const lod = clamp(max(log2(footPx.max(1)).sub(1), rough.mul(rough).mul(mips)), 0, mips);
+      const Sb: any = (passTexture as any)(S, blurTex).level(lod);
+      const hit = clamp(Sb.a.mul(50), 0, 1), fall = float(1).sub(clamp(Sb.a.mul(dotNV).div(SSR_MAX_DISTANCE), 0, 1));
+      // the reflection's own radiance capped at SSR_CAP × display white at the current exposure (D-187's bug 6, D-188): a
+      // single half-resolution texel of a reflected sunlit doorway (~1000× the hall) outshone its neighbours through TRAA
+      // as a white sparkle; a reflection brighter than white shows white either way
+      const ssrRefl = min(Sb.rgb.mul(spec.div(specY)), vec3(float(SSR_CAP).div(this.expAbs.max(1e-6))));
+      const ssrAdd = ssrRefl.sub(envSpec.mul(hit).mul(fall.mul(fall))).mul(gate).mul(this.ab.ssr);
       // ---- sun contact shadows (D-157) --------------------------------------------------------------------------------
       // the pixel's share of direct sun: its direct light (scene − skylight) bounded by the unshadowed Lambert sun term
       // albedo · E_sun · max(0, n·l) / π, so a pixel the shadow map already darkens loses nothing more
@@ -206,7 +239,7 @@ export class Pipeline {
       // node build run away and crash the page (session-2 bisect)
       const chosen = V.includes('scene') ? col.rgb : V.includes('aonear') ? vec3(aoNear) : V.includes('ao') ? vec3(ao) : V.includes('gi') ? bounce
         : V.includes('probe') ? vec3(w, aoNear, aoFull) : V.includes('plain') ? col.rgb.mul(aoFull).add(dif.rgb.mul(bounce)) : V.includes('direct') ? colDirect
-        : V.includes('ssr') ? S.rgb.mul(spec.div(specY)) : V.includes('env') ? envSpec : V.includes('sss') ? (this.sssDebug ?? vec3(1)) : litR;
+        : V.includes('ssr') ? ssrRefl : V.includes('env') ? envSpec : V.includes('sss') ? (this.sssDebug ?? vec3(1)) : litR;
       composite = vec4(chosen, col.a);
     }
     composite = addAirLight(composite, dep, camera, this.sun); // D-156 (item 15): sunlit dust in the halls' air, before TRAA — src/render/airlight.ts
@@ -244,6 +277,7 @@ export class Pipeline {
       this.sunDirW.value.subVectors(this.sun.position, this.sun.target.position).normalize();
       this.sunE.value.copy(this.sun.color).multiplyScalar(this.sun.visible ? this.sun.intensity : 0);
     }
+    { const H = this.renderer.getDrawingBufferSize(new THREE.Vector2()).y || 540; this.pxAngle.value = 2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) / H; }
     this.env?.update(this.hemi); // the sky environment, re-captured when the sun or the light has changed (D-157)
     if (!this.built) this.build();
     if (this.rp) this.rp.render(); else this.renderer.render(scene, camera);

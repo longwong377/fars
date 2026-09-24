@@ -34,13 +34,13 @@ export const REACH = 12;
  *  corners, 1 at the "1" corners). Each side reaches the point by the reach test of its two corners blended by t (so the
  *  corner nearer the point counts: beside a doorway, the probe in line with the opening does not light the wall's foot
  *  behind its jamb). A side that does not reach the point is left out (the point snaps to the other side); if both or
- *  neither side reaches it, the plain bilinear fraction stands. Probes without reach data (0: the bake's intermediate
- *  fields) never snap. The shader (runtime.ts) does the same arithmetic.
+ *  neither side reaches it, the plain bilinear fraction stands.
+ *  The shader (runtime.ts) does the same arithmetic.
  *  D-187: the reach test ramps over REACH_SOFT of the spacing instead of switching at the reach. A hard switch gave the
  *  lighting a step (up to 3× across a line on the Hadish floor beside the column bases, tests/e2e renders) wherever the
  *  lookup point crossed a probe's reach, and every sub-degree tilt of a bumped normal moved the lookup point across it:
  *  dark and light speckle along those lines (the session-6 rubric's floor fireflies). Unchanged where the reach clears
- *  the point (r ≥ d) or falls short by more than the ramp; a probe without reach data (0) never reaches. */
+ *  the point (r ≥ d) or falls short by more than the ramp. */
 export function reachFrac(f: number, lo0: number, lo1: number, hi0: number, hi1: number, t = 0.5): number {
   const ok = reachOk;
   const lo = ok(lo0, f) * (1 - t) + ok(lo1, f) * t, hi = ok(hi0, 1 - f) * (1 - t) + ok(hi1, 1 - f) * t;
@@ -50,8 +50,10 @@ export function reachFrac(f: number, lo0: number, lo1: number, hi0: number, hi1:
 /** width of the reach test's ramp, as a fraction of the probe spacing (D-187; C): 0.1 = 0.2 m at the 2 m grids */
 export const REACH_SOFT = 0.1;
 /** does a probe whose free reach is r (fraction of the spacing) reach a point d away (1 yes, 0 no, a ramp over REACH_SOFT
- *  short of it); r = 0 (no reach data, or inside a solid) never reaches */
-export const reachOk = (r: number, d: number) => (r > 1e-4 ? Math.min(1, Math.max(0, (r - d) / REACH_SOFT + 1)) : 0);
+ *  short of it). D-188: a probe always reaches its own position (d = 0), also with r = 0 (inside a solid, or no reach
+ *  data): with "r = 0 never reaches" (D-187) the fraction jumped at the cell's face next to such a probe (the next cell
+ *  gives 0 or 1 there), and the probes inside the column bases drew a ×4.9 step within 1° of arc round a Hadish base */
+export const reachOk = (r: number, d: number) => Math.min(1, Math.max(0, (r - d) / REACH_SOFT + 1));
 /** the interpolated validity below which the field gives way to the plain skylight: only where every neighbour is inside a
  *  solid and was not reached by the dilation (bake.ts; dilated probes weigh 0.02) */
 export const VALID_LO = 0.002, VALID_HI = 0.01;

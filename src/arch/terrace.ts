@@ -597,6 +597,10 @@ export function buildTerrace(): BuildResult {
     const bench = (c: Pt, size: [number, number]) => { parts.push(box(b, 'bench', 'mudbrick', 'C', rs, c, size, fl, fl + RB.height, { solid: true, note: 'scribes\' room bench for filed tablets (C)' })); shelves.push([c[0], c[1], size[0], size[1], fl + RB.height]); };
     bench([(rx0 + RB.depth + RB.gap + rx1 - RB.gap) / 2, nIn - RB.depth / 2], [rx1 - RB.gap - (rx0 + RB.depth + RB.gap), RB.depth]); // N wall
     bench([rx0 + RB.depth / 2, (iwN + RB.gap + nIn) / 2], [RB.depth, nIn - iwN - RB.gap], ); // W wall, from the N wall to the gap by the S wall
+    // the Treasury's mud-brick walls carry the greyish yellow-green clay paint (Schmidt via Stein et al. 2016: clay-based
+    // paint on the Treasury walls, B; its colour from the Pasargadae/Persepolis earthen-plaster fragments, C). Elsewhere
+    // the walls take the evidenced default, mud plaster (D-188, Q-028); benches keep the plain mud plaster (C)
+    for (const p of parts) if (p.building === b && p.material === 'mudbrick' && p.kind !== 'bench') p.material = 'mudbrick_painted';
     manifest.treasury = { room: [hcx, hcy, hsx, hsy, fl, ord.height], hall99Columns: pts.length, columnHeight: ord.height, northWallY: Math.max(...poly.map(q => q[1])), doors: DR.length, benches: benches as any,
       scribesRoom: [(rx0 + rx1) / 2, (iwN + nIn) / 2, rx1 - rx0, nIn - iwN, fl, NH.clear] as any, scribesShelves: shelves as any };
   }

@@ -19,8 +19,12 @@ const VIEWS: Record<string, { day: number; hour: number; v: [number, number, num
   'harem-portico': { day: 25, hour: 10, v: [114, -114, 1.6, 161, 4], fov: IN },
   'apadana-north-nr': { day: 0, hour: 9, v: [1.9, 40, 1.6, 341, 1] },
   'stair-foot-east': { day: 0, hour: 9, v: [-60, 122, 1.6, 71, 10] },
-  'stair-climb-pm': { day: 25, hour: 16, v: [-43.9, 128, 1.6, 341, 12] },
+  'stair-climb-pm': { day: 25, hour: 16, v: [-43.9, 128, 1.6, 341, 12], fov: 40 },
   'dawn-glow-e': { day: 0, hour: 5.40, v: [-36.4, 122.45, 1.6, 79, 6] },
+  // D-188: the moments.spec views of the session-6 rubric (same camera, date and hour)
+  'tripylon-n-stair': { day: 25, hour: 16, v: [82, -38, 1.6, 161, 6], fov: 40 },
+  'hall100-site': { day: 25, hour: 9.5, v: [146, 45, 1.6, 161, 4], fov: 40 },
+  'apadana-hall-axis': { day: 25, hour: 11, v: [1.9, 12, 1.6, 161, 6], fov: IN },
 };
 const SET: Record<string, Record<string, number | boolean>> = {
   B: { surf: 1, env: 1, ssr: 1, sss: 1, giDirect: 1, contact: 1, bevels: true },
@@ -29,6 +33,7 @@ const SET: Record<string, Record<string, number | boolean>> = {
   // one term off: B − env0 = the sky specular the materials add, B − ssr0 = the screen-space reflections
   env0: { surf: 1, env: 0, ssr: 1, sss: 1, giDirect: 1, contact: 1, bevels: true },
   ssr0: { surf: 1, env: 1, ssr: 0, sss: 1, giDirect: 1, contact: 1, bevels: true },
+  sss0: { surf: 1, env: 1, ssr: 1, sss: 0, giDirect: 1, contact: 1, bevels: true }, // D-188: B without the sun contact shadows
 };
 test('surfaces A/B', async ({ page }) => {
   test.setTimeout(+(process.env.TIMEOUT ?? 1380) * 1000);
