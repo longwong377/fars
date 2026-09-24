@@ -1,14 +1,15 @@
 // Old Persian cuneiform (U+103A0 block): sign names, Kent's orthographic rules and the carved sign sequence.
 //
 // Three inputs, one sign inventory (sign names as Kent prints them: a i u ka ku ga gu xa ca ja ji ta tu da di du θa pa ba fa
-// na nu ma mi mu ya va vi ra ru la sa za ša ça ha; logograms XŠ DH¹ DH² BG BU AM¹ AM² AMha; "x" = a sign lost in the edition):
-//  - `spellKent(word)`: a Kent-style transliteration (Kent 1953 as printed by Livius: θātiy, pātuv, Xšayāršā, Gadāra, XŠm),
-//    which is graphemic: every letter but the inherent a stands for a sign, unwritten nasals are left out, final -y/-v are
-//    written, ṛ is written ar;
+// na nu ma mi mu ya va vi ra ru la sa za ša ça ha; logograms XŠ DH¹ DH² BG BU AM¹ AM² AMha; "x" = a lost sign):
+//  - `spellKent(word)` / `corpusWords(lines)`: the published sign-by-sign transliteration in Kent's convention (Kent 1953 /
+//    Lecoq 1997; data/corpus/op_translit.json, D-176: θātiy, pātuv, Xšayāršā, Gadāra, XŠm), which is graphemic: every letter
+//    but the inherent a stands for a sign. This is what the world carves (D-177);
 //  - `spellNormalised(word)`: a normalised transcription (Schmitt 2009, ORACC ARIo: θāti, pātu, Xšayaṛšā, Gandāra), which
-//    is phonological; Kent's orthographic rules turn it into signs (below);
-//  - `parseSigns(line)`: a sign-by-sign transliteration ("ba-ga : va-za-ra-ka"), the form src/data/inscriptions.json stores
-//    for every carved Old Persian line (op_signs), built by tools/build_op_signs.ts from the two above (D-165).
+//    is phonological; Kent's orthographic rules turn it into signs (below). Used to compare the two editions word by word and
+//    for DPh, which has no corpus copy and is not carved;
+//  - `parseSigns(line)`: a sign-by-sign line ("ba-ga : va-za-ra-ka"), the form src/data/inscriptions.json stores for every
+//    carved Old Persian line (op_signs), built by tools/build_op_signs.ts (D-177).
 // Everything carved goes through `signsToCuneiform`; the world never re-derives a spelling at runtime.
 export const SIGN: Record<string, number> = {
   a: 0x103a0, i: 0x103a1, u: 0x103a2, ka: 0x103a3, ku: 0x103a4, ga: 0x103a5, gu: 0x103a6, xa: 0x103a7, ca: 0x103a8, ja: 0x103a9, ji: 0x103aa,
@@ -105,6 +106,66 @@ export function spellNormalised(word: string): string[] {
 }
 const signName = (p: string) => { const q = p.normalize('NFC'); if (q in SIGN) return q; if (q.length === 1 && CONS[q]) return q + 'a'; throw new Error(`not a sign name: ${p}`); };
 const isSignName = (p: string) => { try { signName(p); return true; } catch { return false; } };
+
+/** one word of the transliteration corpus (data/corpus/op_translit.json) as the stone divides it: `copy` the word as the
+ *  corpus prints it (pieces joined by "|" where a line of the inscription breaks it), `read` the word spelled (= copy, or a
+ *  listed correction of a slip of the copy), its signs, the line it starts on, the sign indices where later lines begin,
+ *  whether a divider stands before it and whether that divider ends the previous line */
+export interface CorpusWord { copy: string; read: string; signs: string[]; line: number; breaks: number[]; divBefore: boolean; divAtEnd: boolean }
+/** a sign-by-sign piece ("da-a-ra-ya-va-u-ša", DPa is printed so) → sign names ("tha" = θa) */
+const signPiece = (p: string) => p.split('-').filter(Boolean).map(s => (s === 'tha' ? 'θa' : s));
+const isSignText = (p: string) => /^([a-zθšç]+-)+/.test(p);
+/** the corpus lines of one inscription → its words, in order, with the signs of each (Kent's convention: spellKentParts; a
+ *  sign-by-sign print taken sign by sign). "\" is a divider; a word runs on across a line end unless a divider stands there
+ *  (a run-on hyphen may mark it); two words separated by a space only have no divider between them on the stone ("Aurahya
+ *  Mazdâha"). `fix(copy)` may return the corrected reading of a slip of the copy (same "|" pieces). `trailing`: the text ends
+ *  with a divider. Shared by tools/build_op_signs.ts (which writes op_signs) and the tests (which re-derive them) */
+export function corpusWords(lines: string[], fix: (copy: string) => string | null = () => null): CorpusWord[] & { trailing?: boolean } {
+  const out: CorpusWord[] & { trailing?: boolean } = []; let pieces: string[] = [], line0 = 0, div = false, pendingDiv = false, divEnd = false, atEnd = false;
+  const toks = lines.join(' ').split(/[\s\\]+/).filter(Boolean), signText = toks.filter(isSignText).length > toks.length / 2;
+  const close = () => {
+    if (!pieces.length) return;
+    const copy = pieces.join('|'), read = fix(copy) ?? copy, rp = read.split('|');
+    if (rp.length !== pieces.length) throw new Error(`correction of "${copy}" must keep its ${pieces.length} line pieces`);
+    let signs: string[], breaks: number[] = [];
+    if (signText) { const groups = rp.map(signPiece); groups.slice(0, -1).reduce((n, g) => { breaks.push(n + g.length); return n + g.length; }, 0); signs = groups.flat(); }
+    else ({ signs, breaks } = spellKentParts(rp));
+    for (const s of signs) if (s !== LOST && !(s in SIGN)) throw new Error(`no Old Persian sign ${s} in "${read}"`);
+    out.push({ copy, read, signs, line: line0, breaks, divBefore: div, divAtEnd: atEnd });
+    pieces = [];
+  };
+  lines.forEach((raw, li) => {
+    const line = raw.trim().replace(/-$/, ''); // the run-on hyphen (XPa, and DPa's sign groups)
+    line.split('\\').forEach((seg, si) => {
+      if (si > 0) { close(); pendingDiv = true; divEnd = false; }
+      seg.trim().split(/\s+/).filter(Boolean).forEach((p, pi) => {
+        if (pi > 0) { close(); pendingDiv = false; divEnd = false; } // a space without a divider
+        if (!pieces.length) { line0 = li; div = pendingDiv; atEnd = divEnd && li > 0; pendingDiv = true; divEnd = false; }
+        pieces.push(p);
+      });
+    });
+    if (/\\\s*$/.test(line)) { close(); pendingDiv = true; divEnd = true; }
+  });
+  close();
+  out.trailing = pendingDiv && divEnd;
+  return out;
+}
+/** corpus words → the carved lines, sign by sign ("ba-ga : va-za-ra-ka : a-u-ra-"): a divider before each word that has one
+ *  (at the end of the previous line where the corpus puts it there), a word broken across lines broken at the same sign */
+export function corpusSignLines(words: CorpusWord[] & { trailing?: boolean }): string[] {
+  const lines: string[][] = [[]]; let cur = words.length ? words[0].line : 0;
+  words.forEach((w, i) => {
+    const div = i > 0 && w.divBefore;
+    if (div && w.divAtEnd && cur < w.line) lines[lines.length - 1].push(':');
+    while (cur < w.line) { lines.push([]); cur++; }
+    if (div && !(w.divAtEnd && lines[lines.length - 1].length === 0 && lines.length > 1 && lines[lines.length - 2].at(-1) === ':')) lines[lines.length - 1].push(':');
+    let from = 0;
+    for (const b of w.breaks) if (b > from && b < w.signs.length) { lines[lines.length - 1].push(w.signs.slice(from, b).join('-')); lines.push([]); cur++; from = b; }
+    lines[lines.length - 1].push(w.signs.slice(from).join('-'));
+  });
+  if (words.trailing) lines[lines.length - 1].push(':');
+  return lines.map(l => l.join(' ')).filter(Boolean);
+}
 
 /** a sign-by-sign line ("ba-ga : va-za-ra-ka : a-u-ra-") → sign names and dividers (":"); a group without a divider after it
  *  continues on the next line */

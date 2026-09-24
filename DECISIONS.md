@@ -2316,3 +2316,23 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - the voice acceptance (B17(b));
   - no licensed translation (B17(a));
   - the carving's sign spelling belongs to the carving workstream (review C1).
+
+## D-176 The Old Persian transliteration corpus may be stored: the ancient text is public domain, the transliteration a mechanical rendering of it (licence; lead decision, session 6, carving workstream)
+- **The question.** The session-5 carving work (`p8-carving`, WIP a56a128) read Kent-style Old Persian transliterations from the Electronic-Old-Persian-Library/Old-Persian-Dataset scrape of the Livius.org pages and stored them as `data/corpus/livius_op.json`. D-167 found that every Livius page is "All content copyright © 1995–2024 Livius.org. All rights reserved." and that the repository's CC-BY-NC cannot relicense Livius' own text. HANDOFF item 7 asked for this licence check before the carving could be merged.
+- **Decision (the lead's, binding for the workstream):** the corpus may be stored for this personal, non-commercial project, on three conditions:
+  - (a) only the transliteration lines are stored: no Livius translation, commentary, notes or page formatting;
+  - (b) the file is `data/corpus/op_translit.json`, and its `_meta` states the basis: the ancient text (public domain); the transliteration convention (Kent 1953 / Lecoq 1997); the retrieval from the Electronic-Old-Persian-Library/Old-Persian-Dataset repository (CC-BY-NC), which scraped the Livius.org pages, whose presentation and translations are "All rights reserved" and are not stored;
+  - (c) an ASSET_LEDGER.md row records exactly this.
+- **Why.**
+  - The Old Persian royal inscriptions are ancient texts: public domain.
+  - A sign-by-sign transliteration in Kent's standard convention is a mechanical rendering of that text. Every letter but the inherent *a* stands for one sign on the stone, *â* after a consonant is the sign *a*, a logogram is written XŠ, DH and so on, and "\" is the word divider. It records what is on the stone, not an author's expression. Livius' authored content is the translation, the notes and the presentation, and none of that is stored.
+  - The repository that scraped the pages is CC-BY-NC, which USE (personal, non-commercial) allows.
+  - Translations stay blocked (B17(a)): none is added, and the translation layer's `TRANSLATION_STATUS` is unchanged.
+- **Done:**
+  - `data/corpus/livius_op.json` → `data/corpus/op_translit.json`, with the `_meta` of (b);
+  - kept per text: `lines` (the transliteration), `file` (the scraped page read) and `sha256` (its hash at retrieval, provenance);
+  - checked: the XPa hash re-computed from a fresh fetch (2026-09-24) equals the stored one;
+  - checked: every token of every line is a transliterated word, a divider, a lost-sign mark "+" or a restored "(…)"; no English word; tested in tests/lang.test.ts ("the corpus holds transliteration lines only");
+  - added DPc (one line, fetched 2026-09-24, same repository). The session-5 extract lacked it, so the window-cornice text had been spelled by rule only;
+  - ASSET_LEDGER row "Old Persian transliteration corpus"; source key `OP-TRANSLIT` (src/data/sources.json, research/SOURCES.md), which replaces the unregistered `LIVIUS-KENT` the WIP cited;
+  - the extraction script the WIP's `_meta` named (tools/extract_livius_op.py) was never committed. The session-6 `_meta` no longer cites it. The one line added (DPc) was taken from the fetched page by a line match and checked by the same token test.

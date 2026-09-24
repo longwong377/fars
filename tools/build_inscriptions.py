@@ -49,7 +49,7 @@ def atf_to_cun(atf):
 def main():
     texts = {json.loads(l)['id_text']: json.loads(l)['raw_text'] for l in open('data/corpus/ario.jsonl', encoding='utf8')}
     IDS = {'XPa': 'Q007209', 'XPb': 'Q007210', 'XPc': 'Q007211', 'XPd': 'Q007212', 'XPe': 'Q007213', 'DPh': 'Q007164', 'DNa': 'Q007152', 'DNb': 'Q007153',
-           # Darius' texts on the Terrace (D-165; identified by content, ARIo order DPa..DPg = Q007157..Q007163): DPa 'haya imam tacaram
+           # Darius' texts on the Terrace (D-177; identified by content, ARIo order DPa..DPg = Q007157..Q007163): DPa 'haya imam tacaram
            # akunau̯š' (Q007147 is an OP-only copy of the same text; the trilingual is used), DPb the titulary without 'xšāyaθiyānām',
            # DPc 'ardastāna aθangai̯na', DPd 'iyam dahyāu̯š Pārsa', DPe the list of lands, DPf the Elamite and DPg the Babylonian
            # companion texts of the Terrace south wall
