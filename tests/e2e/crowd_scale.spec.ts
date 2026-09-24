@@ -22,6 +22,10 @@ const DAY25: Scene[] = [
 const COURT: Scene[] = [
   { n: 'court-forecourt', hour: 10, v: [20, 80, 1.6, az(135), -2], note: 'court setting, day 0 10:00 (the court in residence, D-003): the Apadana forecourt' },
   { n: 'court-from-hillside', hour: 10, v: [290, -20, 1.6, az(270), -8], note: 'court setting, day 0 10:00: the Terrace from the hillside above it' },
+  // the views on the Terrace with the most people visible with the court resident (D-182; tools/dev/court_scan.ts, node
+  // sightlines: 741 and 709 of the drawn)
+  { n: 'court-forecourt-w', hour: 10, v: [-35, 85, 1.6, az(90), -2], note: 'court setting, day 0 10:00: from the W end of the forecourt looking E across the files of the king’s spearmen on the way from the Gate to the Apadana (D-182)' },
+  { n: 'court-apadana-n', hour: 10, v: [0, 55, 1.6, az(337.5), -2], note: 'court setting, day 0 10:00: from the foot of the Apadana’s N façade looking NNW over the forecourt to the Gate (D-182)' },
 ];
 test('crowd scale: the population drawn, measured', async ({ page }, info) => {
   test.setTimeout(+(process.env.TIMEOUT ?? 1700) * 1000);
