@@ -9,7 +9,7 @@
 //  - events: distinct event kinds per week, counted over the research taxonomy only (events_calendar.json `kind`);
 //    the floor is 8 (EVENTS.md §10, D-021; raised from D-017's 6).
 //  - stability: nobody stuck (the same task > 30 h for detailed agents; the same (place, activity) > 30 h in a plan);
-//    the slice's sacks stay in [0, 5000]; every store stays within its bounds (calendar.ts STORE_BOUNDS) and no ration
+//    the slice's sacks (the Treasury's, and the work camp's barley and flour) stay in [0, 5000]; every store stays within its bounds (calendar.ts STORE_BOUNDS) and no ration
 //    group goes short two issues running (CE-03 collapse).
 //  - rendered honesty: no detailed agent on the Terrace ever performs an activity outside PeopleSim.EMITS or a placeholder.
 //  - plans well formed (planCheck.ts): every person-day of every plan (the detailed agents' plans too) is checked for a
@@ -83,7 +83,8 @@ export function runSoak(days = 354, dt = 60, seed = 1, log = (s: string) => cons
         if (tk !== lastTask[i]) { lastTask[i] = tk; lastChange[i] = sim.t; }
         else if (sim.t - lastChange[i] > SOAK_GATES.STUCK_HOURS && !stuck.some(s => s.id === a.id)) stuck.push({ id: a.id, role: a.role, act: task?.act ?? '-', hours: +(sim.t - lastChange[i]).toFixed(1) });
       });
-      sacks = { min: Math.min(sacks.min, sim.stock.depot, sim.stock.store), max: Math.max(sacks.max, sim.stock.depot, sim.stock.store) };
+      // every stock of the slice's goods, the camp's barley and flour too (S6 of shadow review r5)
+      const sv = Object.values(sim.stock); sacks = { min: Math.min(sacks.min, ...sv), max: Math.max(sacks.max, ...sv) };
     }
     if (d % 30 === 29) log(`  detailed agents: day ${d + 1}: ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   }
@@ -181,7 +182,7 @@ export function runSoak(days = 354, dt = 60, seed = 1, log = (s: string) => cons
     infants: { measured: newborn.n, note: 'under one year: reported, not gated (their mothers are gated)', wouldFail: newborn.rawFailing, meanShare: newborn.rawShares.length ? +(newborn.rawShares.reduce((a, b) => a + b, 0) / newborn.rawShares.length).toFixed(3) : null, worstShare: newborn.rawShares.length ? +Math.max(...newborn.rawShares).toFixed(3) : null }, populationWorst: [...popStats].sort((a, b) => b.share - a.share).slice(0, 10).map(s => ({ ...s, share: +s.share.toFixed(3) })),
     kindsPerWeek: { min: Math.min(...kindsPerWeek), max: Math.max(...kindsPerWeek), mean: +(kindsPerWeek.reduce((a, b) => a + b, 0) / kindsPerWeek.length).toFixed(2), floor: SOAK_GATES.MIN_EVENT_KINDS_WEEK },
     eventKinds: [...new Set(weeks.flatMap(s => [...(s ?? [])]))].sort(), otherEventKinds: [...other].sort(),
-    stuck: stuck.slice(0, 10), populationStuck: popStuck.slice(0, 10), sacks, stores, shortfalls: cal.shortfalls.length, collapse, harvestFactor: +cal.harvestFactor.toFixed(3),
+    stuck: stuck.slice(0, 10), populationStuck: popStuck.slice(0, 10), sacks, sliceStock: { ...sim.stock }, campFlows: { ...sim.flows }, stores, shortfalls: cal.shortfalls.length, collapse, harvestFactor: +cal.harvestFactor.toFixed(3),
     life: lifeCounts, construction, renderedActivities: rendered, badRendered, planProblems: popBad,
     planChecks: { personDays: plans, issues: planIssues, examples: planExamples, daysChecked, dayIssues, dayExamples, note: 'planCheck.ts: no_sleep, reason, meals, teleport on every person-day; apart (a person in two places) and alone (a child under ten at night) on every third day for everyone' },
     season, frameCost: cost };

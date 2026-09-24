@@ -74,7 +74,7 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   rest: { anim: 'sit', tier: 'C', note: 'sitting and resting' },
   gamble: { anim: 'dice', sound: 'dice', tier: 'C', note: 'throwing knucklebones (astragali are common finds of the period: B object, C scene)' },
   inspect: { anim: 'inspect', tier: 'C', note: 'official looking over work, hands clasped (C)' },
-  shelter: { anim: 'idle', tier: 'C', note: 'waiting out rain under a roof' },
+  shelter: { anim: 'idle', tier: 'C', note: 'waiting out rain under a roof (the Gate’s, a hut’s); in the open only a passing shower, the cloak drawn over the head: a longer rain sends people home (S1 of shadow review r5)' },
   play: { anim: 'play', tier: 'C', note: 'children playing (C)' },
   offmap: { anim: 'idle', tier: 'C', note: 'in the town (not rendered until the settlement exists, Phase 6)' },
   // Phase 5 (D-021): performed with existing poses

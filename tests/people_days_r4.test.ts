@@ -71,14 +71,15 @@ describe('a toddler\'s day varies for real (D-140)', () => {
           for (const [a, b] of keepIn) expect(s.t1 <= a + 1e-6 || s.t0 >= b - 1e-6, `${pid} d${d} ${s.t0.toFixed(2)}-${s.t1.toFixed(2)} ${s.why} in [${a}, ${b}]`).toBe(true); } } }
     expect(days).toBeGreaterThan(5); expect(out, 'outings on storm and dust days').toBeGreaterThan(100);
   }, 180_000);
-  it('a toddler taken to a kinswoman\'s house stays while she is at home (41397, day 3), and the host is at home throughout every visit', () => {
-    const segs: Seg[] = P.plan(41397, 3); const v = segs.find(s => /kinswoman’s house/.test(s.why) && s.t0 < 11);
-    expect(v, 'the morning visit to the kinswoman on day 3').toBeTruthy(); expect(v!.t1 - v!.t0).toBeGreaterThan(0.5);
-    let visits = 0;
+  it('a toddler taken to a kinswoman\'s house stays while she is at home, and the host is at home throughout every visit', () => {
+    // (was 41397's morning visit on day 3; since D-175 the small child's sleep is a pure draw of its own and her days no longer
+    // hold a visit, so the property that visit guarded, a visit not cut to one plan segment of the host's, is asserted over
+    // the sample: visits of more than half an hour exist, and in every one the host is at home throughout)
+    let visits = 0, long = 0;
     for (let pid = 0; pid < P.persons.length; pid += 5) { const p = P.persons[pid]; if (p.job !== 'child' || p.age < 1 || p.age > 4) continue;
-      for (const d of [20, 110, 230]) { if (!P.present(pid, d)) continue; for (const s of P.plan(pid, d) as Seg[]) { if (!/neighbour’s house with|kinswoman’s house in the lane/.test(s.why) || s.with === undefined) continue; visits++;
+      for (const d of [20, 110, 230]) { if (!P.present(pid, d)) continue; for (const s of P.plan(pid, d) as Seg[]) { if (!/neighbour’s house with|kinswoman’s house in the lane/.test(s.why) || s.with === undefined) continue; visits++; if (/kinswoman/.test(s.why) && s.t1 - s.t0 > 0.5) long++;
         const hp: Seg[] = P.plan(s.with, d); for (const t of [s.t0 + 0.01, (s.t0 + s.t1) / 2, s.t1 - 0.01]) { const g = segAt(hp, t); expect(g.place, `${pid} d${d} host ${s.with} at ${t.toFixed(2)}`).toBe(s.place); expect(g.act).not.toBe('sleep'); } } } }
-    expect(visits).toBeGreaterThan(50);
+    expect(visits).toBeGreaterThan(50); expect(long).toBeGreaterThan(5);
   }, 180_000);
   it('toddlers present a few weeks or less: none is a near-copy of itself at the soak\'s gate', () => {
     let n = 0, worst = 0;

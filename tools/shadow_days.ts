@@ -5,7 +5,9 @@
 //  - 6 detailed Terrace agents: 3 guards and 3 of the others (masons and their foreman, porters, scribes, bakers and
 //    grinders, children, couriers, officials), each stepped through its day in a sim of its own (below);
 //  - 14 people of the population (their day plans): 2 who work on the Terrace (builders, work-camp women, the Terrace's
-//    porters, the Treasury's staff, the palace caretakers), 3 other townspeople, and 9 drawn from everyone.
+//    porters, the Treasury's staff, the palace caretakers), 3 other townspeople, the six cases round 5 asked to see (a
+//    man at work in the open on a rain day, a child past a birthday, a baby under four months, a herder, a traveller or
+//    messenger, a vigil night: pickSample), and the rest (3) drawn from everyone.
 // Each person's day is a day of the year (1-354) on which the person is alive and here (tools/shadow_pick.ts).
 // Independence (S12): each detailed agent is stepped in a fresh simulation that jumps straight to the start of its day, and
 // the population's plans come from a simulation that was never stepped, so no person's day depends on which other days
@@ -21,7 +23,7 @@ import { PeopleSim, Env } from '../src/people/sim';
 import { WeatherSystem } from '../src/weather/weatherState';
 import { Rng } from '../src/core/rng';
 import { ACTIVITIES } from '../src/people/activities';
-import { dateOf, MONTHS, REGNAL_DAYS } from '../src/people/calendar';
+import { dateOf, MONTHS, REGNAL_DAYS, rainHours } from '../src/people/calendar';
 import { presentDay } from './shadow_pick';
 
 /** the placeholder flag (D-024): an activity simulated but with no performance */
@@ -48,29 +50,52 @@ export function dayLine(sim: PeopleSim, W: WeatherSystem, d: number) {
 export const ageStr = (P: any, pid: number, d: number) => { const p = P.persons[pid], a = P.ageOn(pid, d);
   if (a >= 3) return `${a}`; const born = p.born >= 0 ? p.born : (p.bday >= 0 ? p.bday - 354 * (p.age + 1) : -Math.round(354 * (p.age + 0.5)));
   const mo = Math.max(0, Math.floor((d - born) / 29.5)); return mo < 24 ? `${mo} months` : `${a}`; };
-const members = (P: any, h: number, d: number) => P.membersOn(h, d).map((x: number) => `${x} ${P.persons[x].job} ${P.persons[x].sex}${ageStr(P, x, d)}`).join(', ');
+// (a member who is ill today is marked: S8 of reviewer B, r5: a mother's sickness was invisible in her child's day)
+const members = (P: any, h: number, d: number) => P.membersOn(h, d).map((x: number) => `${x} ${P.persons[x].job} ${P.persons[x].sex}${ageStr(P, x, d)}${P.sick(x, d) ? ' (ill today)' : ''}`).join(', ');
 
 /** a population person who works on the Terrace (the gangs, the work camp, the Terrace porters, the Treasury's staff inside,
  *  the palace caretakers) and one of the town's households */
 export const terraceWorker = (p: any) => p.agent < 0 && (p.job === 'builder' || p.job === 'camp' || (p.job === 'porter' && p.sub === 'terrace') || p.work === 'treasury_inside' || p.work === 'treasury_store' || p.job === 'caretaker');
 export const townsperson = (P: any, p: any) => p.agent < 0 && P.households[p.hh]?.zone === 'town' && !terraceWorker(p);
 export interface Pick { detailed: { id: number; day: number; stratum: string }[]; population: { pid: number; day: number; stratum: string }[] }
-/** the stratified draw (seeded): 3 guards and 3 other detailed agents; 2 Terrace workers, 3 townspeople and 9 of everyone.
- *  Days 0-353 (printed 1-354); each re-drawn until the person is alive and here */
+/** the stratified draw (seeded). Detailed: 3 guards (one of them a leader of ten) and 3 other detailed agents. Population:
+ *  2 Terrace workers, 3 townspeople, and, as both round-5 reviewers asked for the next round (REVIEWS/shadow_phase5_r5.md
+ *  "minimum before a re-review" 4; shadow_phase5_r5_b.md 5), one of each of the cases round 5 could not test: a man who works
+ *  in the open on a day with at least an hour of rain in daylight, a child who has had a birthday this year that moves it
+ *  across an age rule (1, 5 or 8 on the day), a baby under four months, a transhumant herder, a traveller or a messenger of
+ *  the road station, and a man sitting up by the grain heap on a threshing night; then 3 of everyone. Days 0-353 (printed
+ *  1-354); each draw is re-drawn until the person is alive and here, and on the day the stratum names (D-175) */
 export function pickSample(P: any, sim: PeopleSim, pickSeed: number): Pick {
   const pick = new Rng(pickSeed, 'shadow-pick'), anyDay = () => pick.int(0, REGNAL_DAYS - 1);
   const out: Pick = { detailed: [], population: [] }; const taken = new Set<number>();
-  const drawFrom = (pool: number[], n: number, stratum: string, into: (x: number, d: number, s: string) => void, pidOf: (x: number) => number) => {
+  const drawFrom = (pool: number[], n: number, stratum: string, into: (x: number, d: number, s: string) => void, pidOf: (x: number) => number, dayOk: (pid: number, d: number) => boolean = () => true) => {
+    if (!pool.length) return;
     for (let k = 0, got = 0; got < n && k < 5000; k++) { const x = pool[pick.int(0, pool.length - 1)]; const pid = pidOf(x); if (taken.has(pid)) continue;
-      const d = presentDay(P, pid, anyDay); if (d < 0) continue; taken.add(pid); into(x, d, stratum); got++; } };
+      const d = presentDay(P, pid, anyDay); if (d < 0 || !dayOk(pid, d)) continue; taken.add(pid); into(x, d, stratum); got++; } };
   const guards = sim.agents.filter(a => a.role === 'guard').map(a => a.id), others = sim.agents.filter(a => a.role !== 'guard').map(a => a.id);
+  const leaders = guards.filter(id => P.persons[sim.agents[id].pid]?.rank === 1);
   const addA = (x: number, d: number, s: string) => out.detailed.push({ id: x, day: d, stratum: s }), pidA = (x: number) => sim.agents[x].pid;
-  drawFrom(guards, 3, 'detailed: a guard', addA, pidA); drawFrom(others, 3, 'detailed: not a guard', addA, pidA);
+  drawFrom(leaders, 1, 'detailed: a guard, a leader of ten', addA, pidA); drawFrom(guards, 2, 'detailed: a guard', addA, pidA); drawFrom(others, 3, 'detailed: not a guard', addA, pidA);
   const ids = P.persons.map((_: any, i: number) => i) as number[];
   const addP = (x: number, d: number, s: string) => out.population.push({ pid: x, day: d, stratum: s }), same = (x: number) => x;
+  const resident = (pid: number, d: number) => ['town', 'plain'].includes(P.households[P.home(pid, d)]?.zone);
   drawFrom(ids.filter(i => terraceWorker(P.persons[i])), 2, 'a Terrace worker of the population', addP, same);
   drawFrom(ids.filter(i => townsperson(P, P.persons[i])), 3, 'a townsperson', addP, same);
-  drawFrom(ids.filter(i => P.persons[i].agent < 0), 9, 'anyone', addP, same);
+  // (the conditioned strata draw the day first from the days that qualify, then the person)
+  const rainDays = Array.from({ length: REGNAL_DAYS }, (_, d) => d).filter(d => { const C = P.cal.ctx(d); return rainHours(C.wx, C.sun.rise, C.sun.set) >= 1; });
+  const outdoor = ids.filter(i => { const p = P.persons[i]; return p.agent < 0 && p.sex === 'm' && p.age >= 15 && ['farmer', 'gardener', 'shepherd'].includes(p.job); });
+  for (let k = 0; k < 5000 && rainDays.length; k++) { const d = rainDays[pick.int(0, rainDays.length - 1)], pid = outdoor[pick.int(0, outdoor.length - 1)];
+    if (taken.has(pid) || !P.present(pid, d) || !resident(pid, d) || P.sick(pid, d)) continue; taken.add(pid); addP(pid, d, 'a man who works in the open, on a day with rain in daylight'); break; }
+  drawFrom(ids.filter(i => P.persons[i].job === 'child' && P.persons[i].agent < 0 && P.persons[i].bday >= 0 && [0, 4, 7].includes(P.persons[i].age)), 1, 'a child past a birthday that moves it across an age rule (1, 5 or 8 on the day)', addP, same,
+    (pid, d) => resident(pid, d) && d >= P.persons[pid].bday);
+  drawFrom(ids.filter(i => P.persons[i].job === 'child' && P.persons[i].agent < 0 && (P.persons[i].born >= 0 || P.persons[i].age === 0)), 1, 'a baby under four months', addP, same,
+    (pid, d) => resident(pid, d) && P.ageDays(pid, d) >= 0 && P.ageDays(pid, d) < 120);
+  drawFrom(ids.filter(i => P.persons[i].job === 'herder'), 1, 'a transhumant herder', addP, same);
+  drawFrom(ids.filter(i => P.persons[i].agent < 0 && (P.persons[i].job === 'traveller' || P.persons[i].job === 'messenger')), 1, 'a traveller or a messenger of the road station', addP, same);
+  const threshDays = Array.from({ length: REGNAL_DAYS }, (_, d) => d).filter(d => P.cal.ctx(d).agri.has('E-43')), plainH = P.households.filter((H: any) => H.zone === 'plain').map((H: any) => H.id) as number[];
+  for (let k = 0; k < 20000 && threshDays.length; k++) { const d = threshDays[pick.int(0, threshDays.length - 1)], h = plainH[pick.int(0, plainH.length - 1)], pid = P.vigilMan(h, d);
+    if (pid < 0 || taken.has(pid)) continue; taken.add(pid); addP(pid, d, 'a man sitting up by the grain heap on a threshing night'); break; }
+  drawFrom(ids.filter(i => P.persons[i].agent < 0), 20 - out.detailed.length - out.population.length, 'anyone', addP, same);
   return out;
 }
 
@@ -92,7 +117,7 @@ export function detailedDay(seed: number, id: number, d: number): { head: string
     // plain (hidden, doing what the plan says)
     const tk = a.task, act = sim.performance(a).act, toPost = a.walking && act === 'patrol' && tk?.act === 'stand_guard';
     const held = a.carry ? LOAD[a.carry] ?? a.carry : tk?.holds;
-    const s = `${act}${ph(act)}${toPost ? ' (the armed walk to his own post, not a round)' : ''} ${a.walking ? '→' : '@'} ${tk?.place ?? '-'} — ${tk?.why ?? ''}${held ? ` [carrying ${held}]` : ''}${a.sick ? ' [sick]' : ''}${a.offmap ? ' [off the Terrace: not drawn]' : ''}`;
+    const s = `${act}${ph(act)}${toPost ? ' (the armed walk to his own post, not a round)' : ''} ${a.walking ? '→' : '@'} ${tk?.place ?? '-'} — ${tk?.why ?? ''}${held ? ` [carrying ${held}]` : ''}${tk?.wears ? ` [${tk.wears}]` : ''}${a.sick ? ' [sick]' : ''}${a.offmap ? ' [off the Terrace: not drawn]' : ''}`;
     if (s !== last) { log.push(`${hm(t - d * 24)}  ${s}`); last = s; }
   }
   return { head, log };
@@ -102,7 +127,7 @@ export function populationDay(sim: PeopleSim, W: WeatherSystem, pid: number, d: 
   const P: any = sim.pop, p = P.persons[pid], H = P.households[P.home(pid, d)];
   const head = [`## Person ${pid}: ${P.nameOf(pid) ?? '(unnamed)'} — ${p.job}${p.sub ? ` (${p.sub})` : ''}, ${p.sex === 'm' ? 'male' : 'female'}, age ${ageStr(P, pid, d)}, ${p.origin}, zone ${p.zone}`,
     `${dayLine(sim, W, d)} · household ${H.id} (${H.zone}${H.q ? ` ${H.q}` : ''}, ${P.membersOn(H.id, d).length} people: ${members(P, H.id, d)})${P.sick(pid, d) ? ' · SICK today' : ''}`];
-  const log = (P.plan(pid, d) as any[]).map(s => `${hm(s.t0)}–${hm(s.t1)}  ${s.act}${ph(s.act)} @ ${s.place} (${s.where}) — ${s.why}${s.with !== undefined ? ` [with ${s.with}]` : ''}${s.carry ? ` [carrying ${s.carry}]` : ''}${s.ev ? ` {${s.ev}}` : ''}`);
+  const log = (P.plan(pid, d) as any[]).map(s => `${hm(s.t0)}–${hm(s.t1)}  ${s.act}${ph(s.act)} @ ${s.place} (${s.where}) — ${s.why}${s.with !== undefined ? ` [with ${s.with}]` : ''}${s.carry ? ` [carrying ${s.carry}]` : ''}${s.wear ? ` [${s.wear}]` : ''}${s.ev ? ` {${s.ev}}` : ''}`);
   return { head, log };
 }
 

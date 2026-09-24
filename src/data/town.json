@@ -46,6 +46,7 @@
     "unlocated_n": 35,
     "unlocated_dist_km": [3, 22],
     "rank_size_exponent": 1.0,
+    "site_people": { "v": [150, 3000], "tier": "C", "src": "SUMNER1986;RECON", "note": "research/PLAIN.md §4: the unlocated secure sites hold 150-3,000 people each (total <= 44,000). The rank-size rule is kept, with no site above 3,000: the excess of the largest ranks goes to the others in proportion to their rank weights (was: v_35 8,491 people, more than the town, and v_14 4,247; shadow review r4 S9, r5 B S8; D-175)" },
     "tier": "C", "src": "SUMNER1986;RECON",
     "note": "Sumner: 39 secure + 18 possible Achaemenid sites, 675 ha, <= 44,000 people in a five-level hierarchy (B). Only the 39 secure sites are populated (4 located + 35 unlocated with an abstract distance from the Terrace); sizes follow a rank-size rule scaled to the plain working total in population.json (C)"
   }
