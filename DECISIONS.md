@@ -2698,4 +2698,8 @@ are schematic; no browser render has been looked at (node previews of the height
   light off the hall's own surfaces, not sky radiance. Measured on the CPU: the Hadish floor's visibility falls ~13 %
   (0.0249 → 0.0217 at 10 m); the Apadana's by 20–100 %. Matte stone indoors now gets less grazing sky specular than the
   fit's ≈ vis (C). Test: tests/envocc.test.ts.
-- **Not verified:** a render after the change (dbg job queued: B and env0 of hadish-hall at test).
+- **Rendered after the change** (hadish-hall, quality test, WebGPU, shots/surf-hadish-hall-{B,env0}.png): the blotches
+  are gone. The environment now adds a smooth pale sheen 10–25 m ahead toward the bright E doorway, broken by the
+  columns' shadows in the probe visibility (frame mean 70 with it, 63 without; before 71/62). It is the doorway's
+  reflection in a polished floor, broad at roughness 0.35; whether it is too strong (it reads a little as mist on the
+  floor) is for the §8.2 reviewer. At high, SSR replaces it where a ray hits.
