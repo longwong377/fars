@@ -221,3 +221,95 @@ research/voice_acceptance.json; tests/voice_acceptance.test.ts ties the report t
 (197–244); child 280.4 → 244.2 (212–263); median range 1.29 → 6.44 st (≥ 3); clips ≥ 2 st 31 % → 100 %; questions rising
 17 % → 100 %; statements falling 24 % → 99 %; greetings 28 % → 100 %; commands 15 % → 97 %; vowel frames in the
 Hillenbrand space 88–96 % → 86–97 % (≥ 85 %). Clips +132 KB (+8.4 %). Tests 125 passed (8 files); lint:all OK.
+
+## Landscape look (branch look-land-s6, head 426c0bc, D-190) — merged in session 6
+**Broken, unverified or placeholder:** the final look is not rendered (both browser runs used; the after run showed false
+bright paths along midlines and rock reading as 20–80 m camouflage blobs; both fixed in c10ac78, checked in node only: 0
+false-path samples of 10,012; rock in contour bands on a CPU preview); the paths from the stair read like roads (toned
+down in c10ac78, unrendered); dawn moments not re-rendered; people do not follow the drawn paths; far fields may shimmer
+in motion (1-px streaks in a still; TRAA only); hills are shading only (no heights moved: skylines are still the DEM's 30 m
+forms); all look values C; plain build 3.8 → 6.5 s (bake 2.7 s in a worker; the early start not measured).
+**Bugs found, not fixed:** bug 8 (black blobs on the hills) = woodland trees near the capital drawn as mid-ring impostors
+(`plain-trees-mid`, src/world/trees), dark and twiggy at 0.6–1.5 km; bug 9 (bright comb on the dawn horizon) is not in the
+plain: its shape and place match the town's hearth-smoke plumes (src/world/settlement/haze.ts; not verified).
+**Why the plain read as a lawn:** all ground within ~400 m of the Terrace foot was the natural herb layer (the D-040 660 m
+square and settlement zones kept free of fields); beyond, plots faded to one colour by the pixel's length along the view
+(no plot survived past ~250 m).
+**Changed (0 draws/triangles added, no heights moved):** src/terrain/terrainDetail.ts + detail_worker.ts (flow over the
+DEM with a wobble within its stated error, gullies by the Montgomery & Dietrich 1988 channel-head rule, curvature, slope;
+limestone rock bands, scree, soil, sparse shrubs: lithology B, cover C); src/world/plain/townGround.ts (trodden earth,
+42 worn paths, irrigated town plots; fields no longer under sites outside the zones); plots fade by the pixel's width
+across the view; rain-fed land alternates crop/fallow by 800 m district (70 %/10 %, mean 40 % kept).
+**Measured:** draws/triangles unchanged in stair-noon-plain, village-p22; rahmat-west-pm +1 draw. Flatness near ground
+0.039 → 0.065, mid 0.089 → 0.115; Kuh-e Rahmat fine detail 0.063 → 0.087. Tests: landscape.test.ts (10) and the plain,
+terrain, settlement, trees suites pass; tsc clean; lint:all OK; the 144 kB terrain WGSL passes naga validation.
+
+## Look bugs and framing (branch look-bugs-s6, head 2a04ce5, D-187) — merged in session 6
+**Broken, unverified or placeholder:** bug 5 floor dots and sparkles not fixed (absent from the scene pass: the SSR at half
+resolution with ~3-texel steps hits thin column bases (dark dots) and scatters single texels of the ~1000× brighter
+doorway (white sparkles); in pipeline.ts, left to the surfaces workstream; three suggested changes in D-187); bug 8 the pale
+comb on the dawn horizon not identified (not the town's smoke plumes (hidden: streaks stay), not the plain's trees or
+villages; guess: the town's garden-tree impostors `settlement:trees:far`); bug 7 black blobs on the dawn hill no longer
+reproduce, cause unknown; bug 6 the jar explained (a shoulder jar held by the raised right hand hides the head from his
+right), not rendered; views only at quality test: tachara-lance-bearers, apadana-e-stair-raking, tachara-s-stair,
+apadana-enter; dawn-stair-top / dawn-sunrise pitch set to −5° by calculation (dawn-sunrise not rendered); the S reveal of
+the W2 doorway is still black (probes store a one-sided linear fit, clamped: BLOCKERS B23, three approaches tried); the
+performances CPU test fails at load 8–9 as on the base commit.
+**Fixed:** lance-bearer close-up black (the S reveal faces away from every opening; the probes' fit clamps to 0): views
+now on the N reveal's figure, black pixels 57.1 % → 2.1 % at high; camera in a column (0.93 m from its axis) re-posed ≥
+1.2 m clear, black 28.7 % → 1.2 % (test); scribe-room fringe / red line / specks: probe lookups stepped off along the bumped
+normal and the wall test switched abruptly → the geometric normal and a 0.2 m blend (fringe gone at high; red line ~6 px
+left); black brazier stands: fully metallic with no sky reflection → the bronze surface with sky specular; the head-carried
+jar floated 9–12 cm above the crown → a 2 cm pad; the pose's head tilt away from a shoulder jar was overwritten (anim.ts).
+**Framing:** dawn views from (−36.4, 135.5) looking 281° with the N flight's parapet and merlons in the foreground; entry
+sequence day 25 11:00: apadana-enter-court (sun; exposure 0.52), apadana-enter-door (threshold; 25.3), apadana-enter-hall
+(6 s adaptation later; 136; fully adapted ~350), apadana-hall-out (looking back out) with a new test API
+`__parsa.carryEye(exposure, s)`; raking light from the ephemeris with ray checks: reliefs-raking Apadana N stair day 25
+16:00 sun on the face 17° (was 41°), tachara-s-stair 09:30 19°, apadana-e-stair-raking (new) 10:00 22°; lance-bearers day 25
+16:00 at 4.8 m / 37° and 2.8 m / 30° off the face; scribe at 1.0 m seated eye height, 2.6 m from the desk.
+**Tests:** tsc clean; lint:all OK; targeted suites pass except the timing test.
+
+## People's look (branch look-people-s6, head 8a720b4, D-189) — merged in session 6
+**Still broken, unverified or placeholder:** court robes still read vivid in crowd-court-forecourt-w at high (red p90 0.93 →
+0.76, blue p50 0.85 → 0.67; the robes render dark, sRGB 0.2–0.3 in sun against 0.5 for the ground, where the tone curve
+keeps saturation high: exposure plus the court palette); faces: D-155's skin work reaches every LOD, but a face is < 16 px
+beyond ~10 m at 960×540 (micro-shadows and a stronger hair highlight added; no LOD0 court face seen); hair and beards still
+alpha-tested shells (Q-361), the long beard boxy; skirts are tubes skinned to the legs (no cloth sim, hem folds only in
+shading); far "white pins" not re-rendered in their own view; impostor lighting not matched to skinned lighting; every
+colour number C (Q-360); a hole at the side of the court foreground worker's tunic; WebGL2 not checked; the performances
+CPU test fails under load (baseline too).
+**Changed:** src/people/looks.ts DYES (CIELAB strong/weak, fading susceptibility; madder, kermes, purple, woad, weld,
+green, brown, undyed, Susa turquoise and ochre; availability B, colours C), per-person dye strength, fading by garment age,
+value/chroma jitter; rank kept (mean chroma court 30.4, women 22.3, workers 11.5); humanMaterial DRAPE: sun-bleaching,
+hem soil (court 0.21, workers 0.45), folded and fitted hems, joint wrinkles, micro-shadows, hair highlight 0.04 → 0.09,
+hat height ±12 %; impostors carry the far body's mean shaded albedo.
+**Measured:** main-garment saturation p50/p90 Persian 0.64/0.82 → 0.52/0.65, guards 0.61/0.82 → 0.46/0.60, women
+0.48/0.82 → 0.35/0.57; distinct main colours per 300 people 4–6 → 299–300; impostor vs skinned ΔE mean/worst 2.43/13.8 →
+0.82/2.46; court-forecourt-w pixels with saturation > 0.8 1.0 % → 0.2 %; triangles unchanged (court-forecourt-w 11.33 →
+11.27 M). Tests: people_look.test.ts 10 pass; people suites 83/84 (the timing test); lint:all OK.
+
+## Surfaces and outdoor light (branch look-surf-s6, head 6493e3b, D-188) — merged in session 6
+**Still broken, unverified or placeholder:** outdoor contact AO not fixed (post=aonear at the harem portico's column feet and
+wall–floor junction ≈ 0.8+, frame p1 ≈ 0.75; a separate 0.8 m contact thickness changed nothing and was reverted; cause not
+found); the dark speckle on ground and walls is gone but which change removed it is unknown (patched contact-shadow node
+src/render/sss.ts and band-limited ground chips went in together); not rendered: court-assembly and crowd views, the
+Treasury's painted walls, the Gate walls, the trodden paths in a framed view; values C except 'light grey' stone, earthen
+plaster and the Treasury's paint (B); ceiling build-up and cedar colour C (Q-351); ground flatness barely moved (harem court
+0.058 → 0.054; most of the old value was speckle); a floor reflection ray exiting through a doorway is filled by blurring its
+neighbours (C); D-187's probe reach ramp changed so a probe always reaches its own position (lead to check); one test
+threshold changed: the D-158 red-floor tint ratio 2× → 1.5× (a brighter cedar ceiling returns more of the floor's red from
+above; measured 1.7×, written into the test).
+**Q-028:** the green paint is attested only for the Treasury walls: they use `mudbrick_painted` (B/C); every other mud-brick
+wall takes earthen plaster, buff sRGB 0.64/0.55/0.43 at the same lightness (27.8 %).
+**Fixes:** shade was lit right (shaded limestone 0.16 of a sun-facing face, 2.6 stops); the stone albedo was the cause:
+limestone 15.5 % (N4.6) → N7 42 % ('light grey', Iranica, B; Q-350), cedar 5 % → 18 %; Tripylon stone in shade display 39 →
+67, harem column 57 → 89, harem soffit 15/5/2 → 53/29/13. Mud-plaster float arcs, hairline cracks, run-off (none under
+roofs), wall-foot splash; floor-edge dust; band-limited ground chips; a stone-dust yard at the Hall of 100 Columns driven by
+the construction sim; a 1 m trodden-ground map from 47 doorways (0.67 ha). SSR blur follows the glossy lobe's width at the hit
+distance (mip 0.6 → 4.6 at 5 m), quality 0.3 → 0.5 at high, capped at 2× white: Hadish floor p99 neighbour step 1.95 → 0.19,
+pixels > 50 % step 6.5 % → 0.2 %; no red dots or white sparkles. Column "facets" were the probe lookup (×7.6 jump within 1°;
+×4.9 after D-187; ×1.5 now: a probe inside a solid now reaches its own position; walls still don't leak). Merlons 12 mm
+chamfer (68 → 132 triangles). Ceilings: beams, joists, reed matting (render geometry only).
+**Cost:** ceilings +6 draws, 46,752 triangles; merlons ~+25 k triangles; frames at high 407–663 draws, 5.3–10.5 M triangles
+(hall100-site 10.48 M). Probes rebuilt twice; nav rebuilt. Tests: tsc clean; touched suites pass incl. surfaces_s6.test.ts;
+lint:all OK.

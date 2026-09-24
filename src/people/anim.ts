@@ -77,7 +77,11 @@ export function pose(id: AnimId, t: number, ph: number, k: number): Pose {
       if (id === 'carry_head') { r.l_upper = [-2.9, 0, 0.35]; r.l_fore = [-0.9, 0, 0]; r.neck = [0, 0, 0]; r.spine = [-0.03, 0, 0]; }
       if (id === 'carry_front') { r.l_upper = [-0.5, 0, 0.1]; r.r_upper = [-0.5, 0, -0.1]; r.l_fore = [-1.2, 0, -0.3]; r.r_fore = [-1.2, 0, 0.3]; }
       if (id === 'guard_walk') { r.r_upper = [-0.25, 0, -0.1]; r.r_fore = [-1.25, 0, 0]; }
-      r.head = [0.04 * S(2 * ph), 0.2 * wob(t * 0.4, k), 0]; break;
+      r.head = [0.04 * S(2 * ph), 0.2 * wob(t * 0.4, k), 0];
+      // the shoulder jar's bearer holds the head turned and tilted away from the jar (D-187: this line used to overwrite
+      // the carry_shoulder head above, and the upright head sat hidden behind the jar from the bearer's right)
+      if (id === 'carry_shoulder') r.head = [0.04 * S(2 * ph), 0.1 + 0.1 * wob(t * 0.4, k), -0.12];
+      break;
     }
     case 'guard': {
       p.hips = [0.01 * wob(t * 0.2, k), 0, 0];

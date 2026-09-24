@@ -31,7 +31,7 @@ const {
   Fn, attribute, texture, uv, vec2, vec3, vec4, float, int, ivec2, mix, step, abs, max, min, floor, clamp, dot, normalize, exp2, smoothstep, sin, cos,
   varyingProperty, normalLocal, positionPrevious, positionView, normalView, normalViewGeometry, positionViewDirection, sign, mx_noise_float, diffuseColor,
   diffuseContribution, specularColor, specularColorBlended, specularF90, metalness, roughness, mod, fract, length, sqrt, atan, exp, pow, cross,
-  cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert,
+  cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition,
 } = TSL as any; // TSL's typings do not follow mixed float/vec3 arithmetic; the graph is checked when it builds
 import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS } from './humanFormat';
 
@@ -58,13 +58,22 @@ export interface HumanTextures {
   skin: THREE.Texture; eye: THREE.Texture;
 }
 /** person texel layout: 0 [variant, piece mask, look flags (LOOK_BITS), grime], 1 [skin tone, stubble], 2 main, 3 second,
- *  4 trim, 5 hair, 6 leather, 7 [grime brightness, scale, 0, flags], 8 felt/headgear, 9 reserved.
+ *  4 trim (w: the garment's fading susceptibility, D-189), 5 hair, 6 leather, 7 [grime brightness, scale, hat height (D-189), flags],
+ *  8 felt/headgear, 9 wear [garment age, fit (m), fold amplitude (mm) + phase, hem soil] (looks.wearTexel, D-189).
  *  stubble (1.w): 0 none, 0..1 shaven stubble, 2 = bearded (the skin under the beard reads as roots) */
 export const PERSON_TEXELS = 10;
 /** reference skin tone the baked albedo was authored for (sRGB; tools/humans/skin.ts REF_TONE) */
 export const REF_TONE: [number, number, number] = [0.72, 0.53, 0.42];
 /** drape: a slack cloth vertex drops this far (m) when its main bone is horizontal (wide sleeves, seated skirts; C) */
 export const SAG_MAX = 0.1;
+/** Cloth wear and drape (D-189, C). Skirts: the hem is folded per person (two low orders round the hem at every LOD, two
+ *  higher orders near the camera, where the 40-segment tube can carry them) and fitted (ease at the hem), growing with
+ *  the square of the way down the skirt. Fading: sun-bleaching on up-facing cloth (the garment's age × its dye's
+ *  susceptibility). Hem soil: dust toward the ground. Joint wrinkles: rings across a sleeve or trouser leg where it bends
+ *  (the two bones' relative rotation where the skin weights mix). Micro-shadowing: the baked cavity also darkens the
+ *  direct light (after Chan 2018's micro-shadows), so eye sockets, the nose's underside and cloth folds read in sun. */
+export const DRAPE = { foldLow: [2, 3] as [number, number], foldHigh: [7, 10] as [number, number], highNear: [15, 24] as [number, number],
+  fade: 0.6, soil: 0.55, dust: [0.34, 0.28, 0.2] as RGB, wrinkle: 0.0014, wrinkleF: 26, micro: 1, hatH: 0.154 };
 /** person flags (texel 7 w): 1 = hide the head (the player's own body, seen from inside it) */
 export const FLAG_HIDE_HEAD = 1;
 
@@ -92,7 +101,7 @@ export const IRIS: RGB[] = [[0.04, 0.02, 0.009], [0.062, 0.032, 0.013], [0.095, 
 /** lash strips (MakeHuman helper UVs span u 0.704–0.762 along both lids): clumps along the lid, tapering to the tip */
 export const LASH = { u0: 0.704, u1: 0.762, clumps: 72 };
 /** hair: the court dressing's curl rows (m; the relief convention, C for real hair); curl bump heights (m) */
-export const HAIR = { row: 0.008, bump: 0.0011, bumpStraight: 0.0008, kk: [0.04, 0.025] as [number, number] };
+export const HAIR = { row: 0.008, bump: 0.0011, bumpStraight: 0.0008, kk: [0.09, 0.06] as [number, number] };
 
 class HumanLightingModel extends THREE.PhysicalLightingModel {
   constructor(private S: Record<string, any>) { super(); }
@@ -104,7 +113,9 @@ class HumanLightingModel extends THREE.PhysicalLightingModel {
     const F = F_Schlick({ f0: specularColor, f90: specularF90, dotVH });
     // diffuse: wrapped per channel (w = 0 is Lambert); the skin's wrap widens with curvature, red furthest (SSS, C)
     const w = S.wrap; const prof = ndl.add(w).div(w.add(1)).clamp().pow(w.add(1));
-    const diffuse = lightColor.mul(prof).mul(BRDF_Lambert({ diffuseColor: diffuseContribution })).mul(F.oneMinus());
+    // micro-shadow: the cavity's visibility cone narrows the lit range, clamp(|n·l| + 2·ao² − 1) (Chan 2018; C)
+    const ms = mix(float(1), abs(ndl).add(S.micro.mul(S.micro).mul(2)).sub(1).clamp(0, 1), S.microK);
+    const diffuse = lightColor.mul(prof).mul(BRDF_Lambert({ diffuseColor: diffuseContribution })).mul(F.oneMinus()).mul(ms);
     // thin parts lit from behind (ears, nostril wings, lids): red transmission
     const back = ndl.negate().add(0.25).div(1.25).clamp();
     const trans = lightColor.mul(diffuseContribution).mul(S.trans).mul(back.mul(back)).mul(1 / Math.PI);
@@ -117,7 +128,7 @@ class HumanLightingModel extends THREE.PhysicalLightingModel {
     const t0 = down.sub(N.mul(N.dot(down))).add(cameraViewMatrix.mul(vec4(0.001, 0, 0, 0)).xyz).normalize(), b0 = N.cross(t0);
     const T = t0.add(b0.mul(S.hairTilt)).normalize();
     const kk = (shift: number, e: number) => { const ts = T.add(N.mul(shift)).normalize(), th = ts.dot(H); return smoothstep(-1, 0, th).mul(pow(float(1).sub(th.mul(th)).clamp(0, 1).sqrt(), e)); };
-    const kkSpec = vec3(kk(-0.08, 80).mul(HAIR.kk[0])).add(diffuseColor.rgb.mul(6).clamp(0, 1).mul(kk(0.1, 14).mul(HAIR.kk[1])));
+    const kkSpec = vec3(kk(-0.08, 80).mul(HAIR.kk[0]).mul(S.kkEdge)).add(diffuseColor.rgb.mul(6).clamp(0, 1).mul(kk(0.1, 14).mul(HAIR.kk[1])));
     spec = mix(spec, kkSpec, S.kHair);
     // cloth and felt: a sheen lobe (Charlie distribution, Neubelt visibility)
     const invA = float(1).div(S.sheenRough), sin2 = float(1).sub(dotNH.mul(dotNH)).max(0.0078125);
@@ -126,7 +137,7 @@ class HumanLightingModel extends THREE.PhysicalLightingModel {
     const sheen = S.sheenCol.mul(Dc).mul(Vn);
     const irr = lightColor.mul(dotNL);
     reflectedLight.directDiffuse.addAssign(diffuse.add(trans));
-    reflectedLight.directSpecular.addAssign(irr.mul(spec).mul(S.specOcc).mul((this as any).multiScatteringCompensation ?? 1).add(irr.mul(sheen)));
+    reflectedLight.directSpecular.addAssign(irr.mul(spec).mul(S.specOcc).mul(ms).mul((this as any).multiScatteringCompensation ?? 1).add(irr.mul(sheen)));
   }
   indirect(builder: any) {
     this.indirectDiffuse(builder); this.indirectSpecular(builder);
@@ -180,8 +191,22 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       return r;
     };
     const vColor = varyingProperty('vec3', 'vHumanColor'), vHair = varyingProperty('vec3', 'vHumanCol2'), vMat = varyingProperty('vec4', 'vHumanMat'), vBind = varyingProperty('vec3', 'vHumanBind'), vAux = varyingProperty('vec4', 'vHumanAux'), vExt = varyingProperty('vec4', 'vHumanExt');
+    const vWear = varyingProperty('vec4', 'vHumanWear');
     this.positionNode = Fn((builder: any) => {
-      const s = src.toVar(), bind = s.xyz, nB = decodeN(s.w);
+      const s = src.toVar(), nB = decodeN(s.w);
+      // skirts (hext.z, D-189): the hem folded and fitted per person, in bind space before skinning (the lining moves
+      // with the outer layer: both are displaced along the same radial direction, away from the skirt's axis)
+      const wear = row(9), ampPh = wear.z, amp = floor(ampPh).mul(0.001), ph = fract(ampPh).mul(TAU);
+      const skirtV = hext.z.mul(step(0.5, hmat.x)).mul(step(hmat.x, 3.5)), tS = attribute('uv', 'vec2').y, thS = atan(s.x, s.z.sub(0.02)); // θ about the skirt's axis from the bind position (the tube's uv seam would crease the shading)
+      const rad = normalize(vec2(s.x, s.z.sub(0.02)).add(vec2(0, 1e-5)));
+      const camD = length(root.xyz.sub(cameraPosition));
+      const low = sin(thS.mul(DRAPE.foldLow[0]).add(ph)).mul(0.55).add(sin(thS.mul(DRAPE.foldLow[1]).add(ph.mul(1.7)).add(1)).mul(0.45));
+      const high = sin(thS.mul(DRAPE.foldHigh[0]).add(ph.mul(2.3))).mul(0.6).add(sin(thS.mul(DRAPE.foldHigh[1]).add(ph.mul(3.1)).add(2)).mul(0.4))
+        .mul(float(1).sub(smoothstep(DRAPE.highNear[0], DRAPE.highNear[1], camD)));
+      const dS = tS.mul(tS).mul(wear.y.add(amp.mul(low.mul(0.7).add(high.mul(0.6)).add(0.6)))).mul(skirtV);
+      // the fluted hat (felt, class parameter 1; a tube whose uv.y runs rim → crown) taller or lower per person (D-189)
+      const hatV = is(hmat.x, MAT.felt).mul(is(hmat.w, 1)), hatDy = tS.mul(DRAPE.hatH).mul(person7.z).mul(hatV);
+      const bind = s.xyz.add(vec3(rad.x, hatDy, rad.y).mul(vec3(dS, 1, dS)));
       const R = skinned(boneTex);
       const p = toWorld(vec3(dot(R[0], vec4(bind, 1)), dot(R[1], vec4(bind, 1)), dot(R[2], vec4(bind, 1))), root).toVar();
       const n = rotN(normalize(vec3(dot(R[0].xyz, nB), dot(R[1].xyz, nB), dot(R[2].xyz, nB))), root);
@@ -209,13 +234,22 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       }
       // per-vertex colour from the person row (slot 0 = fixed colours chosen in the fragment)
       const colSlot = hmat.y;
-      vColor.assign(perTex.load(ivec2(int(max(colSlot, 1)), int(slot))).rgb.mul(step(0.5, colSlot)));
+      const colT = perTex.load(ivec2(int(max(colSlot, 1)), int(slot))).toVar();
+      vColor.assign(colT.rgb.mul(step(0.5, colSlot)));
       // second colour: the trim colour on cloth (pattern motifs), the hair colour elsewhere (brows, stubble, lashes)
       const clothC = step(0.5, hmat.x).mul(step(hmat.x, 3.5));
       vHair.assign(mix(row(5).rgb, row(4).rgb, clothC));
       vMat.assign(vec4(hmat.x, hmat.w, person0.z, person0.w));
-      vBind.assign(bind);
-      vAux.assign(vec4(hext.x, hext.z, row(1).w, row(7).x)); vExt.assign(vec4(hext.y, hext.w, 0, 0));
+      vBind.assign(s.xyz);
+      // the garment's fading susceptibility (its colour texel's w) and the bind normal's up component (D-189)
+      const kFade = colT.w.mul(clothC);
+      vAux.assign(vec4(hext.x, hext.z, row(1).w, row(7).x)); vExt.assign(vec4(hext.y, hext.w, nB.y, kFade));
+      // joint wrinkles: how much the two main bones of a mixed-weight cloth vertex are turned against each other
+      const bA = int(si.x).mul(3), bB = int(si.y).mul(3);
+      const yA = vec3(boneTex.load(ivec2(bA, int(slot))).y, boneTex.load(ivec2(bA.add(1), int(slot))).y, boneTex.load(ivec2(bA.add(2), int(slot))).y);
+      const yB = vec3(boneTex.load(ivec2(bB, int(slot))).y, boneTex.load(ivec2(bB.add(1), int(slot))).y, boneTex.load(ivec2(bB.add(2), int(slot))).y);
+      const mixW = sw.x.mul(sw.y).mul(4).clamp(0, 1), bend = float(1).sub(dot(normalize(yA), normalize(yB))).mul(2).clamp(0, 1).mul(mixW).mul(clothC).mul(float(1).sub(skirtV));
+      vWear.assign(vec4(wear.x, bend, ampPh, wear.w));
       return p;
     })();
 
@@ -322,6 +356,12 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const trimCol = vHair; // motif colour = the person's trim colour (C)
     let clothAlb: any = vColor.mul(float(1).add(n3.mul(0.05)).add(n1.mul(0.035)));
     clothAlb = mix(clothAlb, trimCol, rose);
+    // sun-bleaching (D-189): up-facing outer cloth of an old garment fades toward a paler, greyer colour, by the dye's
+    // susceptibility (weld fast, indigo slowly); linings (cavity 150/255) and the undersides keep their dye
+    const upF = smoothstep(-0.25, 0.75, vExt.z).mul(smoothstep(0.66, 0.8, vAux.x)).mul(n3.mul(0.3).add(0.85));
+    const fadeAmt = vWear.x.mul(vExt.w).mul(upF).mul(DRAPE.fade).clamp(0, 0.8);
+    const cLum = dot(clothAlb, vec3(0.2126, 0.7152, 0.0722));
+    clothAlb = mix(clothAlb, mix(vec3(cLum), clothAlb, 0.4).mul(1.25).add(0.012).min(0.8), fadeAmt);
     const nb = normalize(cross(P.dFdx(), P.dFdy()).add(vec3(0, 1e-9, 0))), ax = abs(nb.x), az = abs(nb.z);
     const sH = P.x.mul(az).add(P.z.mul(ax)).div(ax.add(az).add(1e-4)); // horizontal coordinate on the garment
     const fq = mix(700, 1500, isLinen); // threads per metre: coarse wool, fine linen (C)
@@ -333,7 +373,15 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const pleatT = abs(fract(thB.mul(26 / TAU).add(P.y.mul(9).mul(sign(thB)).mul(sideS))).sub(0.5)).mul(2);
     const pleatH = pleatT.sub(0.5).mul(0.003).mul(is(prm, 1)).mul(band(21));
     // (a head-cloth, prm 4, takes shallower drape folds: on the head the vertical fold noise read as lumps)
-    const clothH = n2.mul(mix(0.003, 0.0012, is(prm, 4))).add(n1.mul(mix(0.00025, 0.00012, isLinen))).add(weaveH).add(pleatH); // linen is smoother than wool
+    // the skirt's hem folds as shading too (the same field the vertex stage displaced; the vertex normal does not follow)
+    const skirtF = vAux.y.mul(kCloth), tU = U.y, thU = atan(P.x, P.z.sub(0.02)), phF = fract(vWear.z).mul(TAU), ampF = floor(vWear.z).mul(0.001);
+    const lowF = sin(thU.mul(DRAPE.foldLow[0]).add(phF)).mul(0.55).add(sin(thU.mul(DRAPE.foldLow[1]).add(phF.mul(1.7)).add(1)).mul(0.45));
+    const highF = sin(thU.mul(DRAPE.foldHigh[0]).add(phF.mul(2.3))).mul(0.6).add(sin(thU.mul(DRAPE.foldHigh[1]).add(phF.mul(3.1)).add(2)).mul(0.4))
+      .mul(float(1).sub(smoothstep(DRAPE.highNear[0], DRAPE.highNear[1], length(positionView))));
+    const foldH = tU.mul(tU).mul(ampF).mul(lowF.mul(0.7).add(highF.mul(0.6)).add(0.6)).mul(skirtF);
+    // joint wrinkles: rings across the limb where it bends (bind pose: limbs roughly along Y)
+    const wrinkleH = sin(P.y.mul(DRAPE.wrinkleF * TAU).add(n2.mul(3))).mul(DRAPE.wrinkle).mul(vWear.y).mul(band(DRAPE.wrinkleF));
+    const clothH = n2.mul(mix(0.003, 0.0012, is(prm, 4))).add(n1.mul(mix(0.00025, 0.00012, isLinen))).add(weaveH).add(pleatH).add(foldH).add(wrinkleH); // linen is smoother than wool
 
     // ---- felt, leather, metal, wood, wicker
     const feltAlb = vColor.mul(float(1).add(n3.mul(0.1)).add(n1.mul(0.05)));
@@ -359,10 +407,15 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const where = low.max(arms.mul(zHands)).max(front.mul(zFront)).max(load.mul(zLoad).mul(0.8));
     const grimeMask = grime.mul(where).mul(kCloth.add(kSkin.mul(feet.mul(0.65).add(0.35).max(arms.mul(zHands)))).add(kLeather.mul(0.8)).add(kFelt.mul(0.3))).mul(u3.mul(0.6).add(0.7));
     alb = mix(alb, grimeCol, grimeMask.mul(0.35));
+    // hem soil (D-189): dust toward the ground on everyone who walks outdoors, strongest in the last hand's breadth of a
+    // skirt; patchy
+    const hemBand = float(1).sub(smoothstep(0.03, 0.3, P.y)).max(vAux.y.mul(kCloth).mul(smoothstep(0.72, 1, U.y)).mul(0.7));
+    const soilMask = vWear.w.mul(hemBand).mul(kCloth.add(kLeather.mul(0.8)).add(kSkin.mul(feet).mul(0.6))).mul(u2.mul(0.8).add(0.6)).mul(DRAPE.soil).clamp(0, 0.75);
+    alb = mix(alb, vec3(...DRAPE.dust), soilMask);
     this.colorNode = alb;
     // roughness: skin broad lobe (the oily lobe is separate), eyes wet, cloth by fibre, dust makes things matte
-    this.roughnessNode = kSkin.mul(float(SKIN.roughSheen).sub(oil.mul(0.08)).add(n1.mul(0.06).mul(band(SKIN.pores[0][0])))).add(kEye.mul(mix(0.1, 0.035, irisM))).add(kHair.mul(0.5)).add(kTeeth.mul(0.25)).add(kMouth.mul(0.3))
-      .add(kLeather.mul(0.55)).add(kFelt.mul(0.95)).add(kMetal.mul(0.32)).add(kLash.mul(0.6)).add(kWood.mul(0.55)).add(kWicker.mul(0.85)).add(kCloth.mul(mix(0.92, 0.8, isLinen))).add(grimeMask.mul(0.2)).min(1);
+    this.roughnessNode = soilMask.mul(0.15).add(kSkin.mul(float(SKIN.roughSheen).sub(oil.mul(0.08)).add(n1.mul(0.06).mul(band(SKIN.pores[0][0])))).add(kEye.mul(mix(0.1, 0.035, irisM))).add(kHair.mul(0.5)).add(kTeeth.mul(0.25)).add(kMouth.mul(0.3))
+      .add(kLeather.mul(0.55)).add(kFelt.mul(0.95)).add(kMetal.mul(0.32)).add(kLash.mul(0.6)).add(kWood.mul(0.55)).add(kWicker.mul(0.85)).add(kCloth.mul(mix(0.92, 0.8, isLinen))).add(grimeMask.mul(0.2))).min(1);
     this.metalnessNode = kMetal;
     // specular F0 (dielectrics): skin 0.028, cornea 0.025, hair cuticle 0.046, others 0.04 (setupSpecular)
     this.f0Node = float(0.04).sub(kSkin.mul(0.04 - SKIN.f0)).sub(kEye.mul(0.04 - EYE.f0)).add(kHair.mul(0.006));
@@ -375,10 +428,13 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const curv = e2.mul(SKIN_CURV_MAX);
     const skinWrap = vec3(...SKIN.scatter).mul(curv).min(SKIN.wrapMax).add(vec3(...SKIN.wrapBase));
     this.S = {
+      // micro-shadowing of the direct light by the baked cavity (D-189): skin, cloth, felt, leather fully, hair half; not the eyeball
+      micro: vAux.x, microK: kSkin.add(kCloth).add(kFelt).add(kLeather).add(kHair.mul(0.5)).mul(DRAPE.micro),
       wrap: skinWrap.mul(kSkin).add(vec3(kHair.mul(0.25).add(kFelt.mul(0.1)).add(kCloth.mul(0.05)))),
       trans: vec3(...SKIN.transTint).mul(transl.mul(kSkin).mul(SKIN.trans)),
       roughB: float(SKIN.roughOil), lobeB: kSkin.mul(mix(SKIN.oilLobe[0], SKIN.oilLobe[1], oil)),
-      kHair, hairTilt: mix(curls.sub(0.5).mul(1.6), cos(lockPh).mul(0.33), lockZone.mul(kCourt)), // along the locks' waves
+      // the primary strand highlight fades toward a shell's frayed edge (D-189: at the moustache's cut line it read as frost)
+      kkEdge: smoothstep(0.3, 1, e2), kHair, hairTilt: mix(curls.sub(0.5).mul(1.6), cos(lockPh).mul(0.33), lockZone.mul(kCourt)), // along the locks' waves
       sheenCol: mix(vec3(1), clothAlb.mul(2).min(1), 0.5).mul(kCloth.mul(mix(0.22, 0.14, isLinen)).add(kFelt.mul(0.25))),
       sheenRough: kCloth.mul(mix(0.55, 0.35, isLinen)).add(kFelt.mul(0.7)).add(float(1).sub(kCloth).sub(kFelt).mul(0.5)),
       specOcc: mix(float(1), vAux.x, kSkin.mul(0.5)).mul(mix(float(1), curls.mul(0.6).add(0.4), kHair)),

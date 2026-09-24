@@ -1,0 +1,11 @@
+gate_nations roof at 18.50 m (33.0 × 34.9 m): 2 beams, 171 joists
+apadana roof at 22.50 m (71.1 × 71.1 m): 6 beams, 749 joists
+apadana roof at 22.50 m (71.1 × 21.3 m): 6 beams, 224 joists
+apadana roof at 22.50 m (27.8 × 71.1 m): 2 beams, 321 joists
+apadana roof at 22.50 m (27.9 × 71.1 m): 2 beams, 321 joists
+tachara roof at 10.60 m (29.8 × 41.0 m): 9 beams, 378 joists
+hadish roof at 16.00 m (32.6 × 42.6 m): 12 beams, 420 joists
+treasury roof at 6.30 m (46.0 × 54.4 m): 9 beams, 810 joists
+treasury roof at 4.80 m (69.7 × 5.9 m): 0 beams, 127 joists
+harem roof at 7.00 m (20.1 × 27.3 m): 7 beams, 320 joists
+total 3896 boxes, 46752 triangles

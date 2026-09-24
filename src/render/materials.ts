@@ -12,7 +12,7 @@
 // the part's base height and, for hall floors, the floor's box) a splash and dust band at the foot of walls and traffic
 // wear along the floors' axes; indirect specular from the sky environment (envmap.ts) on the smoother surfaces.
 import * as THREE from 'three/webgpu';
-import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4 } from 'three/tsl';
+import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture } from 'three/tsl';
 import PC from '../data/polychromy.json';
 import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
 import { SkySpecularNode } from './envmap';
@@ -23,6 +23,47 @@ import { roofedNode } from './probes/roofs';
 export const WEATHER = { wetness: uniform(0), snow: uniform(0), puddles: uniform(0) };
 /** seasonal ground cover (0..1): green = living herb layer, dry = standing straw/stubble (set per frame from the date; season.ts) */
 export const SEASON = { green: uniform(0.8), dry: uniform(0.1) };
+/** the masons' yard's dressing waste on the court fill (D-188; set by the construction view, src/world/construction.ts):
+ *  `rect` = the yard (world x0, z0, x1, z1), `amount` = how much is being dressed there (0 none … 1), `work` = a block
+ *  being carved (world x, z, radius, 0/1). Stone chips 4× denser and a film of limestone dust (C: dressing on site is B,
+ *  the yard's place and the waste's spread C) */
+/** trodden ground on the courts (D-188, C): a 1 m map over the Terrace (grid x −100…300, y −200…200) of how much the fill
+ *  is walked: a fan out of every doorway (its width, fading over ~10 m) and paths ~2.5 m wide from each doorway to the two
+ *  nearest doorways of other buildings (the courts are open: people cross them door to door). Built by setTraffic() from
+ *  the Terrace's doorways (world.ts); 0 until then */
+export const TRAFFIC = { N: 400, x0: -100, y0: -200, cell: 1, tex: null as any };
+{
+  const t = new THREE.DataTexture(new Uint8Array(TRAFFIC.N * TRAFFIC.N), TRAFFIC.N, TRAFFIC.N, THREE.RedFormat, THREE.UnsignedByteType);
+  t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.needsUpdate = true; TRAFFIC.tex = t;
+}
+/** the trodden-ground map from the doorways (grid centres c, outward normals n, widths); returns the map (0…1) */
+export function trafficMap(doorways: { building: string; c: [number, number]; n: [number, number]; width: number }[]): Float32Array {
+  const { N, x0, y0, cell } = TRAFFIC, m = new Float32Array(N * N);
+  const stamp = (ax: number, ay: number, bx: number, by: number, w0: number, w1: number, s0: number, fade: number) => {
+    const L = Math.hypot(bx - ax, by - ay); if (L < 1e-3) return;
+    const ux = (bx - ax) / L, uy = (by - ay) / L, pad = Math.max(w0, w1);
+    const ix0 = Math.max(0, Math.floor((Math.min(ax, bx) - pad - x0) / cell)), ix1 = Math.min(N - 1, Math.ceil((Math.max(ax, bx) + pad - x0) / cell));
+    const iy0 = Math.max(0, Math.floor((Math.min(ay, by) - pad - y0) / cell)), iy1 = Math.min(N - 1, Math.ceil((Math.max(ay, by) + pad - y0) / cell));
+    for (let iy = iy0; iy <= iy1; iy++) for (let ix = ix0; ix <= ix1; ix++) {
+      const px = x0 + (ix + 0.5) * cell - ax, py = y0 + (iy + 0.5) * cell - ay, s = px * ux + py * uy; if (s < 0 || s > L) continue;
+      const d = Math.abs(px * uy - py * ux), w = w0 + (w1 - w0) * (s / L), a = s0 * Math.exp(-s / fade) * Math.max(0, 1 - (d / w) ** 2);
+      const k = iy * N + ix; m[k] = 1 - (1 - m[k]) * (1 - a);
+    }
+  };
+  for (const d of doorways) for (const sg of [1, -1]) // a fan either side of the doorway, widening from its width
+    stamp(d.c[0], d.c[1], d.c[0] + sg * d.n[0] * 12, d.c[1] + sg * d.n[1] * 12, d.width * 0.6, d.width * 1.4, 0.9, 7);
+  for (const d of doorways) {
+    const near = doorways.filter(e => e.building !== d.building).map(e => ({ e, L: Math.hypot(e.c[0] - d.c[0], e.c[1] - d.c[1]) })).filter(q => q.L < 90).sort((a, b) => a.L - b.L).slice(0, 2);
+    for (const { e } of near) stamp(d.c[0], d.c[1], e.c[0], e.c[1], 1.3, 1.3, 0.55, 1e9);
+  }
+  return m;
+}
+export function setTraffic(doorways: Parameters<typeof trafficMap>[0]) {
+  const m = trafficMap(doorways), img = TRAFFIC.tex.image.data as Uint8Array;
+  for (let i = 0; i < m.length; i++) img[i] = Math.round(255 * Math.min(1, m[i]));
+  TRAFFIC.tex.needsUpdate = true;
+}
+export const DEBRIS = { rect: uniform(new THREE.Vector4(0, 0, 0, 0)), amount: uniform(0), work: uniform(new THREE.Vector4(0, 0, 1, 0)) };
 /** A/B switch for measurements (D-157; window.__parsaSurf.surf): 1 = the session-4 triage surfaces; 0 = no broad tone, no
  *  wall-foot band or floor wear, block tone at the old ±8 %, no worn arrises or block tilt (the varied coursing stays) */
 export const SURF_AB = uniform(1);
@@ -48,6 +89,11 @@ export interface SurfaceDef {
   bump?: { amp: number; freq: number };
   /** use another surface on up-facing faces (e.g. the Terrace platform: ashlar retaining walls, fill on top) */
   top?: string;
+  /** use another surface on down-facing faces (the roofs: reed matting on the ceiling, D-188) */
+  under?: string;
+  /** a plaited reed mat (D-188, C): reeds `reed` m wide, woven in squares of `cell` m whose reeds alternate between the two
+   *  axes; each reed a rounded ridge `amp` m high with its own tone (±6 %) */
+  weave?: { reed: number; cell: number; amp: number };
   /** scattered chips / stones: fraction of area and their albedo */
   chips?: { cover: number; size: number; albedo: [number, number, number] };
   /** vertical weathering streaks on rock faces (run-off, varnish): albedo darkened by up to `amp` in bands `1/freq` m
@@ -79,9 +125,32 @@ export interface SurfaceDef {
   /** run-off streaks below the top of exposed stone (arch meshes: the part's top height is a vertex attribute): the albedo
    *  darker by up to this fraction in vertical streaks ~10:1, strongest just under the coping and gone ~3 m down (D-157, C) */
   runoff?: number;
+  /** plaster work (D-188, C): `float` = the arcs of float and trowel passes (strength, 1 = ±2.5 % albedo, ±6 % roughness,
+   *  a 0.25 mm ridge, arcs ~5 cm apart round centres ~0.45 m apart); `cracks` = hairline shrinkage cracks (1.2 mm, ~55 %
+   *  darker, a polygon network of ~0.3 m cells over about a third of the wall, in patches) */
+  plasterWork?: { float?: number; cracks?: number };
+  /** ground only (D-188, C): a broad tone at 30 and 12 m (1σ of the albedo factor) and a chroma shift, so a court or a
+   *  field of fill is not one flat plane; the chips' density varies with it (more stones where the fill is thin) */
+  macro?: { sd: number; chroma?: number };
+  /** the masons' yard's dressing waste reaches this surface (DEBRIS, D-188) */
+  debris?: boolean;
+  /** trodden paths from the doorways (TRAFFIC, D-188) */
+  traffic?: boolean;
+  /** a coarser scatter of stones (D-188): Worley cells of `size` m, `cover` as chips, their albedo */
+  pebbles?: { cover: number; size: number; albedo: [number, number, number] };
 }
 /** neutral grey of luminous reflectance Y (linear) as the sRGB triple the surface table uses */
 function grey(Y: number): [number, number, number] { const v = linearToSrgb(Y); return [v, v, v]; }
+/** the sRGB triple with luminous reflectance Y (linear) and the chromaticity of the sRGB triple `hue` (D-188) */
+export function atY(Y: number, hue: [number, number, number]): [number, number, number] {
+  const l = hue.map(srgbToLinear), y = 0.2126 * l[0] + 0.7152 * l[1] + 0.0722 * l[2];
+  return l.map(c => +linearToSrgb((c * Y) / y).toFixed(4)) as [number, number, number];
+}
+/** the Terrace's local limestone: 'bright/light grey' (Iranica "Persepolis", search extract: B). 'Light grey' = N7 on the
+ *  GSA rock-colour chart, the same reading of a colour name as D-031's N3 for the 'dark grey' Majdabad stone → luminous
+ *  reflectance 42 % (ASTM D1535); the slight warmth of the old value kept (C). Was sRGB 0.44/0.43/0.40 (Y 15.5 %, N4.6:
+ *  'medium grey'), under which dressed stone in open shade rendered charcoal (§8.2 rubric fix 2, D-188) */
+const LIMESTONE: [number, number, number] = atY(munsellY(7), [0.44, 0.43, 0.40]);
 /** hairline ashlar joints (D-029): width 0.8 mm (C: anathyrosis gives tight contact bands, Q-071); a joint that fine is a
  *  shadowed slot, its albedo 60 % darker. D-157: courses 0.8–1.3 m high, blocks 1.15–3.45 m long (2.3 m ± 50 %), a
  *  bond offset per course (the pattern is C: the Terrace walls' polygonal layout is not modelled, Q-071); each joint's
@@ -90,37 +159,51 @@ function grey(Y: number): [number, number, number] { const v = linearToSrgb(Y); 
  *  a ±3 % warm/cool split and tilted by up to ±0.43° */
 const HAIRLINE: Joints = { course: 1.05, block: 2.3, width: 0.0008, dark: 0.6, vary: { course: [0.8, 1.3], jitter: 1.0 }, lip: 0.005, lipDark: 0.25, warmCool: 0.03, tilt: 0.0075 };
 export const SURFACES: Record<string, SurfaceDef> = {
-  // Persepolis grey limestone, freshly dressed (C until colour research lands): mid-grey, slightly warm. Ashlar dry-laid
+  // Persepolis light grey limestone, freshly dressed (LIMESTONE above: stone B, N7 C). Ashlar dry-laid
   // without mortar (SITE_SPEC terrace.wall_material, B: 'dry-laid'; Grand Stair 'dry-jointed', B) and, by the Achaemenid
   // practice of anathyrosis (recollection, C; Q-071), fitted to hairline joints: 0.8 mm (C), not a sunk mortar groove
-  limestone: { albedo: [0.44, 0.43, 0.40], roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.13, tone: { sd: 0.065, chroma: 0.01 }, foot: 1, wear: { alb: 0.05, rough: 0.2 }, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'dressed grey limestone, dry-laid ashlar with hairline joints (B dry-laid; joint width C, Q-071); albedo C pending calibration photo (NEEDS #13)' },
+  limestone: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.13, tone: { sd: 0.065, chroma: 0.01 }, foot: 1, wear: { alb: 0.05, rough: 0.2 }, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'dressed light grey limestone (Iranica, B), dry-laid ashlar with hairline joints (B dry-laid; joint width C, Q-071); albedo N7 = 42 % C (D-188) pending calibration photo (NEEDS #13)' },
   // carved members (column bases, shafts and capitals, colossi, relief figures): the same stone with no masonry joints drawn
   // (the block layout of carved members is unknown; a joint may cross a carving only as a hairline) and a finer, rubbed
   // finish (D-029, C)
-  limestone_carved: { albedo: [0.44, 0.43, 0.40], roughness: 0.55, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.1, tone: { sd: 0.06, chroma: 0.01 }, bump: { amp: 0.0004, freq: 14 }, micro: { amp: 0.00012, freq: 130, alb: 0.03 }, tier: 'C', note: 'carved limestone (columns, colossi, reliefs): joint-free rubbed finish (D-029, C); albedo C pending calibration photo (NEEDS #13)' },
+  limestone_carved: { albedo: LIMESTONE, roughness: 0.55, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.1, tone: { sd: 0.06, chroma: 0.01 }, bump: { amp: 0.0004, freq: 14 }, micro: { amp: 0.00012, freq: 130, alb: 0.03 }, tier: 'C', note: 'carved light grey limestone (columns, colossi, reliefs): joint-free rubbed finish (D-029, C); albedo N7 C (D-188) pending calibration photo (NEEDS #13)' },
   // polished dark grey limestone of the door and window frames: 'dark grey limestone from Majdabad' (RELIEFS_AND_COLOUR §4,
   // Iranica via search extract: B). 'Dark grey' = N3 on the GSA rock-colour chart → luminous reflectance 6.4 % (ASTM D1535):
   // albedo C (D-031). Was 0.013 (sRGB 0.12), i.e. black. Whether frames carried the whitish finishing coat is Q-072
   limestone_dark: { albedo: grey(munsellY(3)), roughness: 0.18, porosity: 0.1, noiseScale: 2, noiseAmp: 0.05, tone: { sd: 0.05, chroma: 0.006 }, foot: 0.5, micro: { amp: 0.00003, freq: 160, alb: 0.02 }, tier: 'B/C', note: 'polished dark grey limestone (door/window frames): stone B (Majdabad dark grey, Iranica); albedo N3 = 6.4 % C (D-031); whitish finishing coat? (Q-072)' },
-  // mud plaster on mud brick, coated with a greyish yellow-green clay paint: attested at Pasargadae and, per Schmidt, on
-  // the Treasury walls (Stein et al. 2016, npj Herit. Sci., search extract: B for the coating); tone and extent C
-  mudbrick: { albedo: [0.58, 0.57, 0.45], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, bump: { amp: 0.004, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster with greyish yellow-green clay paint (Pasargadae; Treasury walls per Schmidt, via Stein et al. 2016: B); tone and extent C' },
+  // mud plaster on mud brick (D-188, Q-028): the evidenced default finish of the palace walls. Earthen plaster fragments
+  // are reported from Persepolis and Pasargadae (Stein et al. 2016, npj Herit. Sci., search extract: B); the local loam
+  // with straw, finished fine: a light buff (sRGB 0.64/0.55/0.43, L* 60, the town render's hue lightened as a fine clay
+  // finish dries, C). The greyish yellow-green clay paint is attested only for the Treasury (Schmidt) and at
+  // Pasargadae: `mudbrick_painted` below, used by the Treasury alone
+  mudbrick: { albedo: [0.64, 0.55, 0.43], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, runoff: 0.1, plasterWork: { float: 1, cracks: 1 }, bump: { amp: 0.004, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster on mud brick: earthen plaster B (Stein et al. 2016, search extract); its tone C (D-188). The green clay paint is not extended beyond the Treasury (Q-028)' },
+  // the Treasury's walls: mud plaster coated with a greyish yellow-green clay paint, attested at Pasargadae and, per
+  // Schmidt, on the Treasury walls (Stein et al. 2016, npj Herit. Sci., search extract: B for the coating); tone C
+  mudbrick_painted: { albedo: [0.58, 0.57, 0.45], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, runoff: 0.1, plasterWork: { float: 1, cracks: 1 }, bump: { amp: 0.004, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'Treasury walls: mud plaster with a greyish yellow-green clay paint (Treasury walls per Schmidt; Pasargadae: via Stein et al. 2016, B); tone C; extent to other buildings open (Q-028)' },
   plaster: { albedo: [0.78, 0.74, 0.66], roughness: 0.85, porosity: 0.7, noiseScale: 0.8, noiseAmp: 0.08, roughVar: 0.1, tone: { sd: 0.09, chroma: 0.015, patch: 0.05 }, foot: 1, bump: { amp: 0.0022, freq: 2.4 }, micro: { amp: 0.00025, freq: 70, alb: 0.03 }, tier: 'C', note: 'lime/gypsum plaster' },
   // albedo (C, session 4): a hematite-like reflectance (~4–7 % below 580 nm rising to 30–50 % above 620 nm) integrated
   // with CIE 1931 / D65 gives linear ≈ (0.25–0.53, 0.034–0.085, 0.036–0.059), R/G 6–7.5; the old (0.48, 0.14, 0.10) sRGB
   // was R/G 11 (too little green and blue: the floors rendered as carpet red). Pigment B, value C
   plaster_red: { albedo: [0.56, 0.23, 0.20], roughness: 0.35, porosity: 0.3, noiseScale: 0.9, noiseAmp: 0.07, roughVar: 0.35, tone: { sd: 0.06, chroma: 0.012, patch: -0.04 }, wear: { alb: 0.05, rough: 0.3 }, bump: { amp: 0.0006, freq: 4 }, micro: { amp: 0.0001, freq: 85, alb: 0.03 }, tier: 'B', note: 'lime-plaster floor with two hematite-rich paint coats, deep red over white (Stein et al. 2016; flooring-plaster study 2022, Treasury/Edifice C/Tachara: search extracts, B); polish C' },
   bronze: { albedo: [0.55, 0.38, 0.2], roughness: 0.35, porosity: 0.0, noiseScale: 3, noiseAmp: 0.08, metal: 1, tier: 'C', note: 'bronze fittings' },
-  timber: { albedo: [0.32, 0.23, 0.15], roughness: 0.75, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, bump: { amp: 0.002, freq: 5 }, micro: { amp: 0.0003, freq: 60, alb: 0.06 }, tier: 'C', note: 'cedar/timber beams' },
+  // cedar (SITE_SPEC gate_nations.roof 'cedar beams', C; cedar from Lebanon for the Susa palace, DSf: A there): heartwood
+  // light brown to reddish, darkened over 20–50 years under a roof: CIELAB L* 50, a* 9, b* 22 (C, D-188). Was sRGB
+  // 0.32/0.23/0.15 (Y 5 %: a dark stained wood), under which the portico soffits rendered near-black
+  timber: { albedo: [0.57, 0.44, 0.32], roughness: 0.75, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, bump: { amp: 0.002, freq: 5 }, micro: { amp: 0.0003, freq: 60, alb: 0.06 }, tier: 'C', note: 'cedar beams (roof: SITE_SPEC, C); tone C (D-188)' },
+  // the roofs: cedar (sides, top) with reed matting on the ceiling between the joists (D-188: cedar beams and an earth roof,
+  // SITE_SPEC C; matting under the earth is the region's flat-roof build-up, RECOLLECTION, C). Reed, aged under the roof
+  // and a little smoked: sRGB 0.55/0.47/0.33 (C)
+  roof_timber: { albedo: [0.57, 0.44, 0.32], roughness: 0.75, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, bump: { amp: 0.002, freq: 5 }, micro: { amp: 0.0003, freq: 60, alb: 0.06 }, under: 'matting', tier: 'C', note: 'roof: cedar beams (SITE_SPEC, C) with reed matting on the ceiling (C, D-188)' },
+  matting: { albedo: [0.55, 0.47, 0.33], roughness: 0.9, porosity: 0.8, noiseScale: 1, noiseAmp: 0.1, tone: { sd: 0.06, chroma: 0.01 }, weave: { reed: 0.012, cell: 0.09, amp: 0.0015 }, tier: 'C', note: 'reed matting under the roof earth (C, D-188)' },
   glazed: { albedo: [0.12, 0.33, 0.48], roughness: 0.25, porosity: 0.05, noiseScale: 3, noiseAmp: 0.06, foot: 0.5, tier: 'C', note: 'glazed brick' },
   // open ground on the plain: loam with stones and a seasonal herb layer (C; fields and crops are Phase 7)
   earth: { albedo: [0.47, 0.39, 0.29], roughness: 0.95, porosity: 0.9, noiseScale: 0.4, noiseAmp: 0.14, bump: { amp: 0.02, freq: 0.9 }, chips: { cover: 0.06, size: 0.35, albedo: [0.55, 0.53, 0.49] }, herbs: 1, micro: { amp: 0.0005, freq: 70, alb: 0.08 }, tier: 'C', note: 'plain surface: loam, stones and a seasonal herb layer (C); fields Phase 7' },
   // the open courts of the Terrace: no source found for their surface (OPEN_QUESTIONS Q-027). Compacted fill with
   // limestone dressing chips over the levelled platform (C)
-  court_fill: { albedo: [0.50, 0.46, 0.39], roughness: 0.9, porosity: 0.7, noiseScale: 0.5, noiseAmp: 0.1, tone: { sd: 0.08, chroma: 0.015 }, bump: { amp: 0.004, freq: 2.5 }, chips: { cover: 0.12, size: 0.06, albedo: [0.64, 0.62, 0.57] }, micro: { amp: 0.0004, freq: 70, alb: 0.06 }, tier: 'C', note: 'Terrace open court: compacted fill with limestone chips (surface unknown, Q-027: C)' },
-  terrace: { albedo: [0.44, 0.43, 0.40], roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.13, tone: { sd: 0.065, chroma: 0.01 }, foot: 1, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, top: 'court_fill', micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'Terrace platform: dressed limestone retaining walls, dry-laid with hairline joints (Q-071); open court surface C (Q-027)' },
+  court_fill: { albedo: [0.50, 0.46, 0.39], roughness: 0.9, porosity: 0.7, noiseScale: 0.5, noiseAmp: 0.1, tone: { sd: 0.1, chroma: 0.015 }, macro: { sd: 0.08, chroma: 0.015 }, debris: true, traffic: true, pebbles: { cover: 0.07, size: 0.45, albedo: [0.66, 0.64, 0.59] }, bump: { amp: 0.004, freq: 2.5 }, chips: { cover: 0.12, size: 0.06, albedo: [0.64, 0.62, 0.57] }, micro: { amp: 0.0004, freq: 70, alb: 0.06 }, tier: 'C', note: 'Terrace open court: compacted fill with limestone chips (surface unknown, Q-027: C)' },
+  terrace: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.13, tone: { sd: 0.065, chroma: 0.01 }, foot: 1, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, top: 'court_fill', micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'Terrace platform: dressed limestone retaining walls, dry-laid with hairline joints (Q-071); open court surface C (Q-027)' },
   scaffold: { albedo: [0.45, 0.35, 0.24], roughness: 0.85, porosity: 0.5, noiseScale: 3, noiseAmp: 0.1, tier: 'C', note: 'timber scaffold poles' },
-  rubble: { albedo: [0.5, 0.48, 0.44], roughness: 0.9, porosity: 0.5, noiseScale: 2, noiseAmp: 0.2, bump: { amp: 0.01, freq: 3 }, micro: { amp: 0.0015, freq: 32, alb: 0.06 }, tier: 'C', note: 'stone chips' },
+  rubble: { albedo: LIMESTONE, roughness: 0.9, porosity: 0.5, noiseScale: 2, noiseAmp: 0.2, bump: { amp: 0.01, freq: 3 }, micro: { amp: 0.0015, freq: 32, alb: 0.06 }, tier: 'C', note: 'stone chips: the Terrace limestone (albedo as `limestone`, D-188)' },
 };
 
 /** shading normal from a procedural height field (view space; surface-gradient method, Mikkelsen 2010) */
@@ -228,6 +311,47 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     height = (height ?? float(0)).add(mx_noise_float(p.mul(d.micro.freq)).mul(d.micro.amp).mul(fade));
     alb = alb.mul(float(1).add(mx_noise_float(p.mul(d.micro.freq * 1.9).add(7.3)).mul(d.micro.alb ?? 0.04).mul(fade)));
   }
+  if (d.plasterWork) { // plaster work (D-188, C): float arcs and hairline shrinkage cracks, band-limited by the pixel footprint
+    const PW = d.plasterWork, fp = fwidth(p).length().max(1e-6);
+    if (PW.float) {
+      // a float swept in arcs: rings ~5 cm apart round the centres of 0.45 m cells (3-D cells: any wall plane cuts them in
+      // circles), shown in patches (a pass here and there, not a pattern over the whole wall)
+      const F1 = mx_worley_noise_vec2(p.div(0.45).add(vec3(5.3, 1.7, 9.1)), 1).x.max(0).sqrt().mul(0.45);
+      const ring = abs(fract(F1.div(0.05)).mul(2).sub(1)); // 0 on an arc's ridge … 1 between
+      const vis = float(1).sub(smoothstep(0.12, 0.3, fp.div(0.05))).mul(smoothstep(-0.1, 0.35, mx_noise_float(p.div(1.3).add(vec3(2.2, 8.4, 0.6))))).mul(PW.float).mul(SURF_AB);
+      const r0 = ring.sub(0.5).mul(vis);
+      alb = alb.mul(float(1).add(r0.mul(0.05)));
+      rough = rough.mul(float(1).add(r0.mul(0.12)));
+      height = (height ?? float(0)).add(float(1).sub(ring).mul(0.00025).mul(vis));
+    }
+    if (PW.cracks) {
+      // shrinkage cracks along the borders of ~0.3 m cells (distance to the border ≈ (F2 − F1)/2), 1.2 mm wide: a sub-pixel
+      // crack box-filters to a faint line with distance (bandCover), never aliasing
+      const W = mx_worley_noise_vec2(p.div(0.3).add(vec3(13.1, 4.9, 7.3)), 1);
+      const dB = W.y.max(0).sqrt().sub(W.x.max(0).sqrt()).mul(0.15);
+      const where = smoothstep(0.15, 0.45, mx_noise_float(p.div(1.8).add(vec3(7.7, 3.1, 1.9))));
+      const crack = bandCover(dB, fwidth(dB).max(1e-6), 0.0006).mul(where).mul(PW.cracks).mul(SURF_AB);
+      alb = alb.mul(float(1).sub(crack.mul(0.55)));
+      rough = mix(rough, float(1), crack);
+      height = (height ?? float(0)).sub(crack.mul(0.0008).mul(float(1).sub(smoothstep(0.3, 0.8, fp.div(0.0024)))));
+    }
+  }
+  if (d.weave) { // plaited reed mat (D-188, C), band-limited: where a reed spans under ~3 px only the cells' tone remains
+    const W = d.weave, q = p.xz, cell = floor(q.div(W.cell)), alt = fract(cell.x.add(cell.y).mul(0.5)).mul(2); // 0 | 1
+    const u = mix(q.x, q.y, alt), other = mix(cell.y, cell.x, alt);
+    const r = fract(u.div(W.reed)), ridge = float(1).sub(r.mul(2).sub(1).mul(r.mul(2).sub(1)));
+    const vis = float(1).sub(smoothstep(0.15, 0.35, fwidth(u).div(W.reed)));
+    const tone = hash12(floor(u.div(W.reed)).add(alt.mul(517.3)), other).sub(0.5);
+    const cellTone = hash12(cell.x.add(3.1), cell.y.add(8.7)).sub(0.5);
+    alb = alb.mul(float(1).add(tone.mul(0.12).mul(vis)).sub(float(1).sub(ridge).mul(0.1).mul(vis)).add(cellTone.mul(0.06)));
+    height = (height ?? float(0)).add(ridge.mul(W.amp).mul(vis));
+  }
+  if (d.macro) { // ground: broad tone at 30 and 12 m, and a faint chroma shift (D-188, C)
+    const q = p.xz;
+    const m = mx_noise_float(q.div(30).add(vec2(3.3, 7.1))).add(mx_noise_float(q.div(12).add(vec2(9.4, 1.2))).mul(0.6)).mul(d.macro.sd / (MX_NOISE_SD * Math.hypot(1, 0.6))).mul(SURF_AB);
+    const c = mx_noise_float(q.div(22).add(vec2(5.5, 2.8))).mul((d.macro.chroma ?? 0) / MX_NOISE_SD).mul(SURF_AB);
+    alb = alb.mul(vec3(float(1).add(m).add(c), float(1).add(m), float(1).add(m).sub(c))).max(0);
+  }
   if (d.joints && d.joints.vary) { // varied ashlar (D-157): hairline joints with worn arrises, per-block tone and tilt
     const J = d.joints, vert = float(1).sub(smoothstep(0.3, 0.7, abs(n.y))), flat = smoothstep(0.7, 0.9, n.y);
     // vertical faces: courses up the wall, blocks along the face's own horizontal axis (rotated walls keep their lengths)
@@ -286,14 +410,57 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     }
     rough = mix(rough, float(1), line);
   }
+  // the masons' yard (D-188): 0…1 inside the yard (soft 1.5 m edges, ragged) and round a block in work
+  let debris: any = null;
+  if (d.debris) {
+    const R = DEBRIS.rect, Wk = DEBRIS.work, x = p.x, z = p.z, rag = mx_noise_float(p.xz.div(2.3).add(vec2(1.7, 6.2))).mul(1.2);
+    const inX = smoothstep(0, 1.5, min(x.sub(R.x), R.z.sub(x)).add(rag)), inZ = smoothstep(0, 1.5, min(z.sub(R.y), R.w.sub(z)).add(rag));
+    const work = float(1).sub(smoothstep(Wk.z.mul(0.4), Wk.z, vec2(x.sub(Wk.x), z.sub(Wk.y)).length().sub(rag))).mul(Wk.w);
+    debris = max(inX.mul(inZ).mul(DEBRIS.amount).mul(0.7), work).clamp(0, 1);
+  }
+  // trodden ground (D-188): compacted fill along the doorway fans and door-to-door paths, ragged at the edges
+  let trod: any = null;
+  if (d.traffic) {
+    const T = TRAFFIC, tuv = vec2(p.x.sub(T.x0).div(T.cell * T.N), p.z.negate().sub(T.y0).div(T.cell * T.N));
+    const raw = texture(T.tex, tuv).r;
+    trod = smoothstep(0.08, 0.7, raw.add(mx_noise_float(p.xz.div(1.1).add(vec2(8.8, 2.2))).mul(0.25))).mul(smoothstep(0.7, 0.9, n.y)).mul(SURF_AB);
+  }
   if (d.chips) { // scattered stones/chips: cells of a Worley field below a threshold, raised and lighter
-    const w = mx_worley_noise_float(p.xz.div(d.chips.size));
-    const chip = float(1).sub(smoothstep(d.chips.cover * 0.9, d.chips.cover * 1.6, w)).mul(smoothstep(0.4, 0.8, n.y)); // (reversed smoothstep edges are undefined in WGSL)
+    const cq = p.xz.div(d.chips.size), w = mx_worley_noise_float(cq);
+    // D-188: the density varies over ~7 m (thin and thick spreads, ×0.35…1.7), and where a cell spans under ~3 px the chips
+    // give way to their mean cover (Poisson cells: 1 − exp(−π r²) inside the threshold radius r ≈ 1.25 × cover): the far
+    // court was a regular sparkle of aliased chips, one "stamp" repeated over the whole ground (§8.2 rubric fix 10)
+    let cv: any = clamp(float(1).add(mx_noise_float(p.xz.div(7).add(vec2(4.2, 9.9))).mul(0.9)), 0.35, 1.7).mul(d.chips.cover);
+    if (debris) cv = cv.mul(float(1).add(debris.mul(3))).min(0.45);
+    if (trod) cv = cv.mul(float(1).sub(trod.mul(0.7))); // the chips trodden in
+    const near = float(1).sub(smoothstep(0.25, 0.6, fwidth(cq).length()));
+    const mean = float(1).sub(exp(cv.mul(1.25).mul(cv.mul(1.25)).mul(-Math.PI)));
+    const chipN = float(1).sub(smoothstep(cv.mul(0.9), cv.mul(1.6), w)); // (reversed smoothstep edges are undefined in WGSL)
+    const chip = mix(mean, chipN, near).mul(smoothstep(0.4, 0.8, n.y));
     alb = mix(alb, color(new THREE.Color().setRGB(...d.chips.albedo, THREE.SRGBColorSpace)).mul(float(1).add(mott)), chip);
     rough = mix(rough, float(0.7), chip);
     // raised by about the chip's own radius (≈ cover × size in cell units; a pebble's proportions). It was size × 0.25:
     // 8.7 cm over a 2.5 cm chip on the earth, near-vertical bump normals, so every light chip rendered as a dark ring (session 3)
-    if (height) height = height.add(chip.mul(d.chips.size * d.chips.cover * 0.6));
+    if (height) height = height.add(chip.mul(near).mul(d.chips.size * d.chips.cover * 0.6));
+    if (debris) alb = mix(alb, lin(LIMESTONE).mul(1.05), debris.mul(0.3)); // limestone dust over the yard
+  }
+  if (d.pebbles) { // D-188: a second, coarser scatter (stones and spalls 4–8 cm; the chips above are 1–2 cm and give way to
+    // their mean beyond ~2 m at 540 rows): the texture of the fill at 3–20 m; denser in the masons' yard, fewer where trodden
+    const P = d.pebbles, pq = p.xz.div(P.size).add(vec2(17.7, 3.1)), w2 = mx_worley_noise_float(pq);
+    let pc: any = clamp(float(1).add(mx_noise_float(p.xz.div(11).add(vec2(2.4, 7.7))).mul(0.8)), 0.3, 1.7).mul(P.cover);
+    if (debris) pc = pc.mul(float(1).add(debris.mul(3))).min(0.4);
+    if (trod) pc = pc.mul(float(1).sub(trod.mul(0.8)));
+    const nearP = float(1).sub(smoothstep(0.25, 0.6, fwidth(pq).length()));
+    const meanP = float(1).sub(exp(pc.mul(1.25).mul(pc.mul(1.25)).mul(-Math.PI)));
+    const peb = mix(meanP, float(1).sub(smoothstep(pc.mul(0.8), pc.mul(1.5), w2)), nearP).mul(smoothstep(0.4, 0.8, n.y));
+    const tone = float(0.85).add(mx_noise_float(pq.mul(1.7)).mul(0.25)); // stone to stone
+    alb = mix(alb, color(new THREE.Color().setRGB(...P.albedo, THREE.SRGBColorSpace)).mul(tone), peb);
+    rough = mix(rough, float(0.75), peb);
+    if (height) height = height.add(peb.mul(nearP).mul(P.size * P.cover * 0.5));
+  }
+  if (trod) { // compacted: a little darker and warmer (fines and dirt worked in), smoother (C)
+    alb = alb.mul(vec3(float(1).sub(trod.mul(0.08)), float(1).sub(trod.mul(0.1)), float(1).sub(trod.mul(0.13))));
+    rough = rough.sub(trod.mul(0.12));
   }
   if (d.streaks) { // vertical weathering streaks: noise fast across the face, slow down it (C)
     const f = d.streaks.freq, q = vec3(p.x.mul(f), p.y.mul(f * 0.08), p.z.mul(f));
@@ -330,14 +497,16 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const strength = clamp(float(0.75).add(mx_noise_float(along.mul(0.35).add(vec3(9.3, 0, 4.1))).mul(1.2)), 0.25, 1.15); // patchy along the wall
     const band = float(1).sub(smoothstep(top.sub(0.1), top.add(0.05), h)).mul(float(0.6).add(float(1).sub(smoothstep(0, top, h)).mul(0.4)))
       .mul(step(-0.01, h)).mul(vert).mul(strength).mul(d.foot).mul(SURF_AB);
-    alb = mix(alb, DIRT, band.mul(0.2)).mul(float(1).sub(band.mul(0.05)));
+    // D-188: 25 % toward the earth and 12 % darker at the foot (was 20 % and 5 %: on the buff mud plaster, the earth's own
+    // hue, the band did not read): rain splash and rising damp darken a plastered foot more than it tints it (C)
+    alb = mix(alb, DIRT, band.mul(0.25)).mul(float(1).sub(band.mul(0.12)));
     rough = mix(rough, float(0.95), band.mul(0.5));
   }
   if (arch && d.runoff) { // run-off below the tops of exposed stone (D-157, C): streaks fast across the face, slow down it
     const below = attribute('ytop', 'float').sub(p.y), vert = float(1).sub(smoothstep(0.3, 0.7, abs(n.y)));
     const q = vec3(p.x.mul(2.2), p.y.mul(0.2), p.z.mul(2.2));
     const st = smoothstep(0.15, 0.65, mx_noise_float(q.add(vec3(4.1, 0.3, 7.9))).mul(0.5).add(0.5).add(mx_noise_float(q.mul(2.7)).mul(0.15)));
-    const fade = float(1).sub(smoothstep(0.2, 3, below)).mul(step(0, below));
+    const fade = float(1).sub(smoothstep(0.2, 3, below)).mul(step(0, below)).mul(float(1).sub(roofedNode())); // no rain under the roofs (D-188)
     alb = alb.mul(float(1).sub(st.mul(fade).mul(vert).mul(d.runoff).mul(SURF_AB)));
   }
   if (arch && d.wear) { // traffic wear along the axes of hall and portico floors (D-157, C). pbox = (cx, cz, ±hx, hz): hx > 0
@@ -353,6 +522,13 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const wear = max(alongX, alongZ).mul(float(0.7).add(mx_noise_float(p.mul(0.65).add(vec3(2.7, 0, 8.1))).mul(0.6))).clamp(0, 1).mul(up).mul(has).mul(SURF_AB);
     alb = alb.mul(float(1).sub(wear.mul(d.wear.alb)));
     rough = rough.mul(float(1).sub(wear.mul(d.wear.rough)));
+    // dust along the walls (D-188, C): a swept floor keeps a film of dust and grit within ~0.4 m of its edges, where the
+    // broom does not reach, thicker in the corners, patchy; the floor's box edges are its walls
+    const edge = min(hx.sub(dx), hz.sub(dz)).max(0), corner = float(1).sub(smoothstep(0.2, 1.2, max(hx.sub(dx), hz.sub(dz))));
+    const dust = float(1).sub(smoothstep(0.04, 0.45, edge)).mul(float(0.6).add(corner.mul(0.4)))
+      .mul(smoothstep(-0.35, 0.25, mx_noise_float(p.mul(1.7).add(vec3(6.1, 0, 3.3))))).mul(up).mul(has).mul(SURF_AB);
+    alb = mix(alb, DIRT, dust.mul(0.3));
+    rough = mix(rough, float(0.9), dust.mul(0.7));
   }
   return { alb, rough, height, tilt };
 }
@@ -387,6 +563,10 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   if (d.top && SURFACES[d.top]) { // up-facing faces use another surface (sharp transition at the arris)
     const T = layer(SURFACES[d.top], lin(SURFACES[d.top].albedo), !!opts.arch); const t = smoothstep(0.7, 0.9, n.y);
     L = { alb: mix(L.alb, T.alb, t), rough: mix(L.rough, T.rough, t), height: L.height && T.height ? mix(L.height, T.height, t) : (L.height ?? T.height), tilt: L.tilt ? L.tilt.mul(float(1).sub(t)) : undefined };
+  }
+  if (d.under && SURFACES[d.under]) { // down-facing faces use another surface (the ceiling's matting, D-188)
+    const U = layer(SURFACES[d.under], lin(SURFACES[d.under].albedo), !!opts.arch); const t = smoothstep(0.7, 0.9, n.y.negate());
+    L = { alb: mix(L.alb, U.alb, t), rough: mix(L.rough, U.rough, t), height: L.height && U.height ? mix(L.height, U.height, t) : (L.height ?? U.height), tilt: L.tilt ? L.tilt.mul(float(1).sub(t)) : undefined };
   }
   if (opts.modify) L = opts.modify(L, d); // e.g. fields, crops and woodland over the plain's earth (src/world/plain/terrainPlain.ts)
   finish(m, L, d);

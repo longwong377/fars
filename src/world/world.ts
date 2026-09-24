@@ -25,6 +25,7 @@ export interface WorldBuild {
   doors?: DoorSystem;
 }
 import { buildTerrace } from '../arch/terrace';
+import { setTraffic } from '../render/materials';
 import { buildMeshes } from '../arch/meshes';
 import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/runtime';
 import { loadSculpt } from '../arch/sculpt';
@@ -34,6 +35,7 @@ import { FireSystem } from './fire';
 import { buildTreasuryGoods, buildScribesRoom } from './furnish';
 import { loadWritingFonts } from './writing';
 import { buildPlain } from './plain';
+import { bakeTerrainDetail } from '../terrain/terrainDetail';
 import { ConstructionView } from './construction';
 import { Visitor } from './visitor/controller';
 import { indexTown } from './visitor/access';
@@ -114,6 +116,7 @@ function placeFires(fire: FireSystem, m: any, parts: any[]) {
   if (m.treasury && TN) for (const s of [-1, 1]) fire.add('torch', gw(TN.at[0] + s * (TN.width / 2 + 0.6), TN.at[1] + 0.3, 2.4), { ...C, note: 'torch at the Treasury N doorway, street side (C)' });
 }
 export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Terrain, settings?: Settings, weather?: WeatherSystem, seed = 1): Promise<WorldBuild> {
+  void bakeTerrainDetail(terrain); // the hills' landform maps in a worker while the Terrace and the town build (D-190)
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
   const t0 = performance.now();
   // people's bodies (D-090): loading and costume fitting (a worker) run while the architecture is built
@@ -122,6 +125,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const probesP = loadProbes('/'); // baked light probes of the roofed halls (D-110): must be in before the first frame builds the shaders
   const { parts, manifest, doorways } = buildTerrace();
   setProbeOccluders(parts); // the eye adaptation's direct-sun test inside the probe volumes (D-113)
+  setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
   root.add(arch.group);
@@ -151,7 +155,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const shafts = new RainShafts(terrain); root.add(shafts.group); // distant rain cells approaching on the wind
   void QUALITY;
   // Phase 7: the Marvdasht plain (src/world/plain; plain.json): rivers, canals, fields, orchards, villages, Naqsh-e Rustam
-  const plain = await buildPlain(scene, terrain, phys, { quality: q, seed }); root.add(plain.group);
+  const plain = await buildPlain(scene, terrain, phys, { quality: q, seed, town: settlement?.plan ?? null }); root.add(plain.group);
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
   const nav = await NavGrid.load(async p => (await fetch('/' + p)).arrayBuffer());
   // visible birds (§5.5): swallows over the courts in season, raptors over the slope, sparrows on the court floors

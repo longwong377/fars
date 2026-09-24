@@ -4,4 +4,4 @@ limestone: tone 1σ 6.2 % (mean 0.999), in 4×5 m windows 5.0 %; old mottling 2.
 terrace: tone 1σ 6.2 % (mean 1.001), in 4×5 m windows 4.8 %; old mottling 2.0 %
 limestone_carved: tone 1σ 5.7 % (mean 1.000), in 4×5 m windows 4.6 %; old mottling 1.7 %
 plaster_red: tone 1σ 5.9 % (mean 0.991), in 4×5 m windows 4.8 %; old mottling 1.2 %
-court_fill: tone 1σ 7.6 % (mean 1.001), in 4×5 m windows 5.9 %; old mottling 1.7 %
+court_fill: tone 1σ 9.5 % (mean 1.001), in 4×5 m windows 7.4 %; old mottling 1.7 %

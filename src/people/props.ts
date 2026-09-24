@@ -228,7 +228,10 @@ export function placeProp(kind: string, R: RigView, po: Pose, s: number, time: n
         case 'spear': { const h = palm0(R, 'r'); pos = new V(h.x, 0, h.z).multiplyScalar(s); pos.y = 0; break; } // upright, butt on the ground by the right hand
         case 'sack': { pos = bone(R, HB.upperarm_r).multiplyScalar(s).add(new V(0.02, 0.13, -0.02)); rot.makeRotationZ(0.3); break; }
         case 'jar': { pos = palm0(R, 'r').multiplyScalar(s).add(new V(0, -0.45, 0.08)); break; }
-        case 'jar_head': { pos = bone(R, HB.head).multiplyScalar(s).add(new V(0, 0.25, 0.02)); sc = 0.8; break; }
+        // on a head pad on the crown (D-187): the crown stands 0.132–0.158 m above the head bone over the body variants
+        // (humans.json; 0.145 × scale taken), the pad ~2 cm (C); along the head's own up axis, so the jar tilts with the
+        // head. Before: 0.25 m straight up from the bone, which left the jar floating 9–12 cm above the crown
+        case 'jar_head': { pos = bone(R, HB.head).multiplyScalar(s).add(axis(R, HB.head, 0, 1, 0).multiplyScalar(0.145 * s + 0.02)); sc = 0.8; break; }
         case 'tablet': { pos = palm0(R, 'l').multiplyScalar(s).add(new V(0, 0.02, 0.03)); break; }
         case 'mallet': { pos = palm0(R, 'r').multiplyScalar(s); const w = R.wr, o = HB.hand_r * 9; rot = new THREE.Matrix4().set(w[o], w[o + 1], w[o + 2], 0, w[o + 3], w[o + 4], w[o + 5], 0, w[o + 6], w[o + 7], w[o + 8], 0, 0, 0, 0, 1); break; }
         default: { pos = palm0(R, 'l').add(palm0(R, 'r')).multiplyScalar(0.5 * s).add(new V(0, 0.05, 0)); break; }

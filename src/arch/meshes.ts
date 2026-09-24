@@ -9,13 +9,14 @@ export { cutWall } from './parts';
 
 /** Greybox materials (Phase 2): flat albedos from pigment/stone references are Phase 3; these are neutral and tagged C. */
 const ALBEDO: Record<Material, [number, number, number]> = {
-  limestone: [0.62, 0.6, 0.56], limestone_dark: [0.28, 0.28, 0.28], mudbrick: [0.66, 0.56, 0.44], plaster: [0.8, 0.76, 0.68],
+  limestone: [0.62, 0.6, 0.56], limestone_dark: [0.28, 0.28, 0.28], mudbrick: [0.66, 0.56, 0.44], mudbrick_painted: [0.58, 0.57, 0.45], plaster: [0.8, 0.76, 0.68],
   plaster_red: [0.5, 0.16, 0.12], bronze: [0.55, 0.4, 0.22],
   timber: [0.36, 0.27, 0.19], glazed: [0.2, 0.4, 0.55], earth: [0.5, 0.42, 0.32], scaffold: [0.45, 0.35, 0.24], rubble: [0.55, 0.52, 0.48],
   court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56],
 };
 import { surfaceMaterial } from '../render/materials';
 import { pointInPoly } from './parts';
+import { ceilingTimbers } from './ceilings';
 const matCache = new Map<string, THREE.MeshStandardNodeMaterial>();
 /** flat greybox material (plan-overlay tests, tools); the world uses procedural surfaces (render/materials.ts) */
 export function flatMaterial(m: Material) {
@@ -31,7 +32,9 @@ export let carvedMaterial: (m: Material) => THREE.Material = m => surfaceMateria
 /** the merged part meshes' material: the surface's architecture variant, which reads the per-vertex part attributes
  *  (`y0`, `pbox`: the wall-foot band and floor wear, D-157) */
 let archMaterial: (m: Material) => THREE.Material = m => surfaceMaterial(m, { arch: true });
+let flatMode = false;
 export function useFlatMaterials(flat: boolean) {
+  flatMode = flat;
   material = flat ? flatMaterial : (m => surfaceMaterial(m)); carvedMaterial = flat ? flatMaterial : (m => surfaceMaterial(CARVED[m] ?? m));
   archMaterial = flat ? flatMaterial : (m => surfaceMaterial(m, { arch: true }));
 }
@@ -69,7 +72,7 @@ export function boxGeometry(b: Box): THREE.BufferGeometry {
 /** chamfer / rounding size (m) and whether its normals are rounded, per material; none for the rest (timber, floors, fill) */
 export const BEVEL: Partial<Record<Material, { r: number; round: boolean }>> = {
   limestone: { r: 0.01, round: false }, limestone_dark: { r: 0.008, round: false }, terrace: { r: 0.01, round: false }, glazed: { r: 0.005, round: false },
-  mudbrick: { r: 0.03, round: true }, plaster: { r: 0.03, round: true },
+  mudbrick: { r: 0.03, round: true }, mudbrick_painted: { r: 0.03, round: true }, plaster: { r: 0.03, round: true },
 };
 /** kinds never bevelled (thin finishes, moving leaves, roofs, sculpture boxes) */
 const NO_BEVEL = new Set(['floor_finish', 'roof', 'door_leaf', 'colossus']);
@@ -346,12 +349,20 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     const key = `${p.building}|${p.material}|${p.tier}|${p.placeholder ? 1 : 0}`;
     if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(rg); e.plain.push(plain); e.parts.push(p);
   }
+  // the timber ceilings under the roofs (D-188): render geometry only, merged per building (no colliders, no bevels)
+  for (const p of ceilingTimbers(parts)) {
+    const g = boxGeometry(p); for (const k of Object.keys(g.attributes)) if (k !== 'position' && k !== 'normal') g.deleteAttribute(k);
+    partAttributes(g, p, index);
+    const key = `${p.building}|${p.material}|${p.tier}|0|ceiling`;
+    if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(g); e.plain.push(g.clone()); e.parts.push(p);
+  }
   let tris = 0;
   for (const [key, { geos, plain, parts: ps }] of byKey) {
-    const [building, mat, tier, ph] = key.split('|');
+    const [building, mat, tier, ph, extra] = key.split('|');
     const g = mergeGeometries(geos)!; tris += g.getAttribute('position').count / 3;
     const roof = ps.every(p => p.kind === 'roof');
-    const m = new THREE.Mesh(g, roof ? roofMaterial(archMaterial(mat as Material)) : archMaterial(mat as Material)); m.castShadow = m.receiveShadow = true; m.name = `${building}:${mat}`;
+    // a timber roof takes the roof surface: cedar with reed matting on its underside, the ceiling (D-188)
+    const m = new THREE.Mesh(g, roof ? roofMaterial(mat === 'timber' && !flatMode ? surfaceMaterial('roof_timber', { arch: true }) : archMaterial(mat as Material)) : archMaterial(mat as Material)); m.castShadow = m.receiveShadow = true; m.name = `${building}:${mat}${extra ? ':' + extra : ''}`;
     if (opts.dynamicDoors) bevelSwap.push({ mesh: m, bevelled: g, plain: mergeGeometries(plain)! }); // the world's build only
     m.userData = { tier, src: [...new Set(ps.map(p => p.src))].join(';'), placeholder: ph === '1', note: `greybox (Phase 2): ${[...new Set(ps.map(p => p.kind))].join(', ')}`, building };
     group.add(m);

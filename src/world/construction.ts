@@ -14,7 +14,7 @@ import * as THREE from 'three/webgpu';
 import { InstancedLOD, carvedMaterial } from '../arch/meshes';
 import { columnMeshesByMaterial, toGeometry, srow, capitalAlone } from '../arch/sculpt';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { surfaceMaterial } from '../render/materials';
+import { surfaceMaterial, DEBRIS } from '../render/materials';
 import { BUILD } from '../people/construction';
 import placesJson from '../data/people_places.json';
 import { order } from '../arch/orders';
@@ -81,7 +81,11 @@ export class ConstructionView {
     for (const o of [...this.yard.children]) { o.removeFromParent(); (o as THREE.Mesh).geometry?.dispose(); }
     const o = this.ord, r = o.shaftD / 2, dh = BUILD.drumH.v, y = this.floor, shaftH = o.height - o.baseH - o.capitalH;
     const yardPl = (placesJson as any).places.find((q: any) => q.id === 'worksite'), capPl = (placesJson as any).places.find((q: any) => q.id === 'worksite_capital');
-    const [[ex0, ny0]] = yardPl.span as [number, number][]; const [cx, cy] = capPl.at as [number, number];
+    const [[ex0, ny0], [ex1, ny1]] = yardPl.span as [number, number][]; const [cx, cy] = capPl.at as [number, number];
+    // the dressing waste on the yard's ground (D-188): the whole yard while it holds work (drums dressed there since the
+    // season began), and round the capital block while it is carved (C)
+    DEBRIS.rect.value.set(ex0, -ny1, ex1, -ny0); DEBRIS.amount.value = site.waiting + site.dressed + site.capitalsReady > 0 || site.capitalInWork ? 1 : 0.5;
+    DEBRIS.work.value.set(cx, -cy, 3.5, site.capitalInWork ? 1 : 0);
     const rough: THREE.BufferGeometry[] = [], dressed: THREE.BufferGeometry[] = [], timber: THREE.BufferGeometry[] = [];
     const cyl = (rad: number, h: number, e: number, n: number, seg = 20) => new THREE.CylinderGeometry(rad, rad, h, seg).translate(e, y + h / 2, -n);
     const pitch = 2 * r + 0.6, perRow = Math.max(1, Math.floor((cx - 6 - ex0) / pitch));

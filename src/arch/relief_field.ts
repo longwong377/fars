@@ -13,7 +13,7 @@ export type C3 = [number, number, number];
 export type Box = [number, number, number, number];
 /** the unpainted carved limestone (sRGB) = src/render/materials.ts SURFACES.limestone_carved.albedo (tests/polychromy.test.ts
  *  checks they agree; this module runs in workers, so it cannot import the renderer's materials) */
-export const STONE_SRGB: C3 = [0.44, 0.43, 0.4];
+export const STONE_SRGB: C3 = [0.6949, 0.6797, 0.6343]; // light grey limestone, N7 (D-188; was 0.44/0.43/0.40)
 /** the colour key of gilding (gold leaf, D-151): a mass drawn in this colour is gilded, and its vertices carry `gilt` = 1 so
  *  the relief material shades them as gold metal (src/data/polychromy.json pigment.gilt: its Lab row is the tone the
  *  leaf shows where it is lost or seen by a renderer without the metal path) */

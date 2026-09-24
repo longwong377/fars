@@ -3,6 +3,7 @@
 // that drifts with the wind. Fires are lit at dusk and put out after the night (C schedule until NPCs light them, Phase 5).
 import * as THREE from 'three/webgpu';
 import { colourOnly } from '../render/fx';
+import { surfaceMaterial } from '../render/materials';
 import { uniform, uv, vec3, vec4, float, mx_noise_float, time, attribute, smoothstep, mix, length, vec2, max, positionWorld, cameraPosition, normalize, dot, pow } from 'three/tsl';
 import { Rng } from '../core/rng';
 
@@ -81,7 +82,10 @@ export class FireSystem {
     const hearth = new THREE.TorusGeometry(0.45, 0.12, 5, 10).rotateX(Math.PI / 2).translate(0, 0.1, 0);
     const oven = new THREE.SphereGeometry(0.6, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2);
     const kinds: Record<string, { g: THREE.BufferGeometry; m: THREE.Material }> = {
-      brazier: mk(brz, 0x8a6a3a, 0.4, 1), torch: mk(torch, 0x5a4028, 0.8), hearth: mk(hearth, 0x7a7266, 0.9), oven: mk(oven, 0x9a7a58, 0.95),
+      // the bronze of the braziers is the fittings' surface (materials.ts SURFACES.bronze), whose specular reads the sky
+      // environment (D-157): a plain metal material here reflected nothing but the sun's highlight, and a stand in shade
+      // rendered as a pure-black cut-out (session-6 rubric, apadana-enter; D-187)
+      brazier: { g: brz, m: surfaceMaterial('bronze') }, torch: mk(torch, 0x5a4028, 0.8), hearth: mk(hearth, 0x7a7266, 0.9), oven: mk(oven, 0x9a7a58, 0.95),
     };
     for (const [k, v] of Object.entries(kinds)) {
       const list = this.bodies.filter(b => b.kind === k); if (!list.length) continue;

@@ -44,6 +44,9 @@ export interface Geo {
   si: Uint8Array; sw: Uint8Array; uv: Float32Array;
   /** material class (MAT), colour slot (COL), class parameter, sleeve/drape slack 0..255 (the shader sags it), cavity AO 0..255 */
   mat: Uint8Array; col: Uint8Array; prm: Uint8Array; slack: Uint8Array; ao: Uint8Array;
+  /** garments' spare byte (hext.z; the body uses it for the beard region): 255 on a skirt tube, whose hem the material
+   *  folds and fits per person (D-189) */
+  aux: Uint8Array;
   /** 0 at a shell's cut line … 255 a ramp inside it (hair and beard edges are frayed in the shader) */
   edge: Uint8Array;
   /** bind positions for one variant (n × 3) */
@@ -52,7 +55,7 @@ export interface Geo {
 export interface Ctx { A: HumanAssets; v: HumanVariant; J(b: HBone): V3; /** positions of pieces already placed for this variant */ placed: Map<string, Float32Array>; }
 
 function newGeo(key: string, n: number, index: number[], place: (c: Ctx) => Float32Array): Geo {
-  return { key, n, index, si: new Uint8Array(n * 4), sw: new Uint8Array(n * 4), uv: new Float32Array(n * 2), mat: new Uint8Array(n), col: new Uint8Array(n), prm: new Uint8Array(n), slack: new Uint8Array(n), ao: new Uint8Array(n).fill(255), edge: new Uint8Array(n).fill(255), place };
+  return { key, n, index, si: new Uint8Array(n * 4), sw: new Uint8Array(n * 4), uv: new Float32Array(n * 2), mat: new Uint8Array(n), col: new Uint8Array(n), prm: new Uint8Array(n), slack: new Uint8Array(n), aux: new Uint8Array(n), ao: new Uint8Array(n).fill(255), edge: new Uint8Array(n).fill(255), place };
 }
 /** pack up to 4 (bone, weight) pairs as bytes summing to 255 */
 function setW(g: Geo, i: number, list: [number, number][]) {
@@ -159,6 +162,8 @@ interface TubeOpts {
   support?: { parts: number[]; slab: number; running?: 'max' };
   weights: (t: number, th: number) => [number, number][];
   mat: number; col: number; prm?: number; slack?: (t: number, th: number) => number;
+  /** the spare byte (Geo.aux), 0..1 */
+  aux?: (t: number, th: number) => number;
   /** lining thickness (m, or per (t, θ)): adds an inner layer with reversed winding and closes the rim at t = 1 (and t = 0 if closeTop) */
   lining?: number | ((t: number, th: number) => number); closeTop?: boolean;
   /** raise the end pole along the axis (a domed top), m */
@@ -223,7 +228,7 @@ function tubeGeo(A: HumanAssets, key: string, o: TubeOpts): Geo {
   const g = newGeo(key, n, idx, place);
   for (let layer = 0; layer < layers; layer++) for (let k = 0; k <= R; k++) for (let j = 0; j < cols; j++) {
     const i = vid(layer, k, j), t = tOf(k, R), th = thOf(j); setW(g, i, o.weights(t, th)); g.uv[i * 2] = j / S; g.uv[i * 2 + 1] = t;
-    if (o.slack) g.slack[i] = Math.round(255 * clamp(o.slack(t, th))); if (layer === 1) g.ao[i] = 150; }
+    if (o.slack) g.slack[i] = Math.round(255 * clamp(o.slack(t, th))); if (o.aux) g.aux[i] = Math.round(255 * clamp(o.aux(t, th))); if (layer === 1) g.ao[i] = 150; }
   if (pS >= 0) { setW(g, pS, o.weights(tOf(0, R), 0)); g.uv.set([0.5, 0], pS * 2); }
   if (pE >= 0) { setW(g, pE, o.weights(tOf(R, R), 0)); g.uv.set([0.5, 1], pE * 2); }
   setMat(g, o.mat, o.col, o.prm ?? 0);
@@ -376,6 +381,7 @@ function skirtTube(L: Lib, key: string, lod: number, o: { top: number; hem: (c: 
     // slack (D-155): the rings are skinned to both thighs, so when they turn horizontal (seated, kneeling) the cloth between
     // the knees was stretched flat into a disc; the lower and middle (front and back) cloth now drops under gravity
     slack: (t, th) => sstep(0.3, 0.85, t) * (0.35 + 0.65 * Math.abs(Math.cos(th))),
+    aux: () => 1, // a skirt: the material folds its hem and fits it per person (D-189)
     mat: MAT.cloth_main, col: o.col ?? COL.main, prm: o.pleats > 20 ? 1 : 0,
   });
 }
@@ -411,7 +417,7 @@ function merge(key: string, gs: Geo[]): Geo {
   const n = gs.reduce((a, g) => a + g.n, 0); const idx: number[] = []; let off = 0;
   for (const g of gs) { for (const i of g.index) idx.push(i + off); off += g.n; }
   const out = newGeo(key, n, idx, (c: Ctx) => { const o = new Float32Array(n * 3); let k = 0; for (const g of gs) { o.set(g.place(c), k * 3); k += g.n; } return o; });
-  off = 0; for (const g of gs) { out.si.set(g.si, off * 4); out.sw.set(g.sw, off * 4); out.uv.set(g.uv, off * 2); out.mat.set(g.mat, off); out.edge.set(g.edge, off); out.col.set(g.col, off); out.prm.set(g.prm, off); out.slack.set(g.slack, off); out.ao.set(g.ao, off); off += g.n; }
+  off = 0; for (const g of gs) { out.si.set(g.si, off * 4); out.sw.set(g.sw, off * 4); out.uv.set(g.uv, off * 2); out.mat.set(g.mat, off); out.edge.set(g.edge, off); out.col.set(g.col, off); out.prm.set(g.prm, off); out.slack.set(g.slack, off); out.aux.set(g.aux, off); out.ao.set(g.ao, off); off += g.n; }
   return out;
 }
 /** band around the body at a height, fitted over whatever is placed there already (belts) */
@@ -839,7 +845,7 @@ function coverage(L: Lib, dress: Dress): Uint8Array {
 // ------------------------------------------------------------------------------------------------ assembly
 export interface CostumeLOD {
   dress: Dress; lod: number;
-  /** vertex attributes (tid = index into the vertex source; hmat = class, colour slot, piece bit, param; hext = ao, slack, 0, 0) */
+  /** vertex attributes (tid = index into the vertex source; hmat = class, colour slot, piece bit, param; hext = ao, slack, skirt flag (D-189), cut-line ramp) */
   tid: Float32Array; skinIndex: Uint8Array; skinWeight: Uint8Array; uv: Float32Array; hmat: Uint8Array; hext: Uint8Array;
   /** reference-variant bind position and normal (the geometry's position/normal attributes; bounds and raycasts) */
   refPos: Float32Array; refNrm: Float32Array;
@@ -943,7 +949,7 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
           const pt = A.part[i]; const mat = pt === PART.eye ? MAT.eye : pt === PART.teeth ? MAT.teeth : pt === PART.tongue ? MAT.mouth : pt === PART.lash ? MAT.lash : MAT.skin;
           out.hmat[k * 4] = mat; out.hmat[k * 4 + 1] = mat === MAT.lash ? COL.hair : mat === MAT.skin ? COL.skin : COL.fixed; out.hext[k * 4] = Math.round(255 * A.ao[i]); out.hext[k * 4 + 1] = extras.hy[i]; out.hext[k * 4 + 2] = Math.round(255 * beardV[i]); out.hext[k * 4 + 3] = extras.hw[i]; }
         else { const g = q.g!, i = q.i; for (let j = 0; j < 4; j++) { out.skinIndex[k * 4 + j] = g.si[i * 4 + j]; out.skinWeight[k * 4 + j] = g.sw[i * 4 + j]; } out.uv[k * 2] = g.uv[i * 2]; out.uv[k * 2 + 1] = g.uv[i * 2 + 1];
-          out.hmat[k * 4] = g.mat[i]; out.hmat[k * 4 + 1] = g.col[i]; out.hmat[k * 4 + 2] = q.bit; out.hmat[k * 4 + 3] = g.prm[i]; out.hext[k * 4] = g.ao[i]; out.hext[k * 4 + 1] = g.slack[i]; out.hext[k * 4 + 3] = g.edge[i]; }
+          out.hmat[k * 4] = g.mat[i]; out.hmat[k * 4 + 1] = g.col[i]; out.hmat[k * 4 + 2] = q.bit; out.hmat[k * 4 + 3] = g.prm[i]; out.hext[k * 4] = g.ao[i]; out.hext[k * 4 + 1] = g.slack[i]; out.hext[k * 4 + 2] = g.aux[i]; out.hext[k * 4 + 3] = g.edge[i]; }
       }
       costumes[d].push(out);
       // the farthest costume: the far one simplified (index-only, meshoptimizer; pieces are separate components, so hidden

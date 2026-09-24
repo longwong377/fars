@@ -11,6 +11,7 @@
 import { PLAIN, feature, pointInPolygon, settlementZones } from './data';
 import { CROP_ROWS, CropRow, PLOT_OFFSET_DAYS } from './seasonal';
 import type { Terrain } from '../../terrain/heightfield';
+import { groundAt, TERRACE_BOX, type GroundMap } from './townGround';
 
 // ---------------------------------------------------------------- hash (mirrored in TSL: terrainPlain.ts)
 /** PCG hash (pcg-random.org via three's TSL `hash`): u32 -> u32 */
@@ -27,7 +28,7 @@ export const cellU = (c: number) => (Math.floor(c) + 32768) >>> 0;
 
 export const DISTRICT = 800;
 /** salts (shared with the shader) */
-export const SALT = { dx: 11, dz: 12, angle: 21, width: 22, length: 23, plotSalt: 24, px: 31, pz: 32, crop: 41, offset: 42, tree: 51, tx: 52, tz: 53, tsize: 54 } as const;
+export const SALT = { dx: 11, dz: 12, angle: 21, width: 22, length: 23, plotSalt: 24, rotation: 25, px: 31, pz: 32, crop: 41, offset: 42, tree: 51, tx: 52, tz: 53, tsize: 54 } as const;
 export const STRIP = { w: [22, 30], l: [90, 120] } as const; // width 22-52 m, length 90-210 m (C)
 
 export interface Plot {
@@ -67,8 +68,15 @@ export function plotAt(x: number, z: number): Plot {
 
 // ---------------------------------------------------------------- land-use zones
 export const ZONE = { half: 40960, cell: 64, n: 1280 } as const;
-export interface ZoneMap { data: Uint8Array; n: number; half: number; cell: number }
-export interface ZoneInputs { terrain: Terrain; rivers: { x: Float64Array; y: Float64Array; halfCorridor: number }[]; villages: { x: number; y: number; r: number }[]; seed?: number }
+/** `ground`: the town's used ground (townGround.ts): where it says no field, no plot is cultivated (tested per pixel in
+ *  the shader and per point here) */
+export interface ZoneMap { data: Uint8Array; n: number; half: number; cell: number; ground?: GroundMap | null }
+/** `ground` (D-190): with the town's ground map, the settlement zones' open ground between the built sites is cultivated
+ *  (irrigated plots); without it the zones stay natural ground (the D-040 boundary, used by tests that build no town) */
+export interface ZoneInputs { terrain: Terrain; rivers: { x: Float64Array; y: Float64Array; halfCorridor: number }[]; villages: { x: number; y: number; r: number }[]; seed?: number; ground?: GroundMap | null;
+  /** the town's built sites (grid centre, frame angle, size): no field under or within 40 m of one, wherever it stands
+   *  (the way-station at the Kur crossing lies outside every settlement zone, D-190) */
+  sites?: { c: [number, number]; theta: number; W: number; H: number }[] }
 
 /** fill a polygon (grid coords) into a mask of the zone grid (scanline, even-odd) */
 function fillPolygon(mask: Uint8Array, poly: readonly (readonly number[])[], value: number) {
@@ -116,12 +124,17 @@ export function buildZones(inp: ZoneInputs): ZoneMap {
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
     const i = r * n + c, x = -half + (c + 0.5) * cell, y = half - (r + 0.5) * cell;
     const a = asl[i], s = slope[i];
-    const terrace = Math.abs(x - 110) < 330 && Math.abs(y) < 330; // the Terrace and its foot (the settlement zones cover the rest)
+    // the Terrace and its foot: before D-190 a 660 m square (the settlement zones covered the rest); with the town's ground
+    // map, the Terrace + 150 m (its per-pixel mask cuts the approach, the sites, roads, water, camp and facilities out)
+    const terrace = inp.ground ? Math.hypot(Math.max(TERRACE_BOX.e0 - x, 0, x - TERRACE_BOX.e1), Math.max(TERRACE_BOX.n0 - y, 0, y - TERRACE_BOX.n1)) < 150
+      : Math.abs(x - 110) < 330 && Math.abs(y) < 330;
     const nearNR = x > nr.x_range[0] - 300 && x < nr.x_range[1] + 300 && y > nr.face_y - 350 && y < nr.face_y + 50;
-    const blocked = excl[i] || terrace || nearNR;
+    // the town's open ground: irrigated plots (the Kuh-e Rahmat canal, C), only where the ground map says where its sites are
+    const town = !!excl[i] && !!inp.ground && Math.max(Math.abs(x), Math.abs(y)) < inp.ground.half - 2 * cell;
+    const blocked = (excl[i] && !town) || terrace || nearNR;
     const plain = s < 0.06;
     let R = 0, G = 0;
-    if (!blocked && plain && irr[i]) R = 255;
+    if (!blocked && plain && (irr[i] || town)) R = 255;
     else if (!blocked && a < rf.max_asl_m && s < rf.max_slope) G = 255;
     let A = 0;
     if (a > wl.min_asl_m && s > wl.min_slope) {
@@ -135,6 +148,16 @@ export function buildZones(inp: ZoneInputs): ZoneMap {
     }
     out[i * 4] = R; out[i * 4 + 1] = G; out[i * 4 + 2] = 0; out[i * 4 + 3] = A;
     void orch;
+  }
+  // the town's built sites, wherever they stand: natural ground under them and 40 m round (rows = -grid north)
+  for (const st of inp.sites ?? []) {
+    const hw = st.W / 2 + 40, hh = st.H / 2 + 40, R = Math.hypot(hw, hh), cs = Math.cos(st.theta), sn = Math.sin(st.theta);
+    for (let r = Math.max(0, Math.floor((half - st.c[1] - R) / cell)); r <= Math.min(n - 1, Math.ceil((half - st.c[1] + R) / cell)); r++)
+      for (let c = Math.max(0, Math.floor((st.c[0] + half - R) / cell)); c <= Math.min(n - 1, Math.ceil((st.c[0] + half + R) / cell)); c++) {
+        const de = -half + (c + 0.5) * cell - st.c[0], dn = half - (r + 0.5) * cell - st.c[1];
+        // the texel's own half-diagonal is added so a texel that touches the box is cleared
+        if (Math.abs(de * cs + dn * sn) < hw + cell * 0.71 && Math.abs(-de * sn + dn * cs) < hh + cell * 0.71) { const i = r * n + c; out[i * 4] = 0; out[i * 4 + 1] = 0; out[i * 4 + 2] = 0; }
+      }
   }
   // river corridors: no fields where the corridor mesh lies (and a strip of rough pasture along the banks)
   for (const rv of inp.rivers) {
@@ -155,12 +178,12 @@ export function buildZones(inp: ZoneInputs): ZoneMap {
     for (let dr = -rr; dr <= rr; dr++) for (let dc = -rr; dc <= rr; dc++) {
       const r = Math.floor(cy) + dr, c = Math.floor(cx) + dc; if (r < 0 || c < 0 || r >= n || c >= n) continue;
       const x = -half + (c + 0.5) * cell, y = half - (r + 0.5) * cell, d = Math.hypot(x - v.x, y - v.y), i = r * n + c;
-      if (excl[i] || slope[i] > 0.06) continue;
+      if (excl[i] || slope[i] > 0.06) continue; // (a village never lies in a settlement zone)
       if (d < R0) { out[i * 4] = 0; out[i * 4 + 1] = 0; out[i * 4 + 2] = 0; }
       else if (d < R1) { out[i * 4] = 0; out[i * 4 + 1] = 0; out[i * 4 + 2] = 255; }
     }
   }
-  return { data: out, n, half, cell };
+  return { data: out, n, half, cell, ground: inp.ground ?? null };
 }
 /** zone texel at world (x, z): [irrigated, rainfed, orchard, woodland] 0..255, nearest texel */
 export function zoneAt(z: ZoneMap, x: number, wz: number): [number, number, number, number] {
@@ -173,6 +196,11 @@ export function zoneAt(z: ZoneMap, x: number, wz: number): [number, number, numb
 /** cumulative crop thresholds of the irrigated mix: barley 0.5, wheat 0.15, emmer/spelt 0.1, sesame 0.05, fallow 0.2 */
 export const IRR_STEPS = [0.5, 0.65, 0.75, 0.8];
 export const RAINFED_BARLEY = 0.4; // fields_rainfed: barley 40 %, fallow/grazing 60 %
+/** dry farming alternates crop and fallow years by block (C, D-190): half the districts are in their crop year (70 % of
+ *  plots barley), half in fallow (10 %); the mean is the data's 40 %. From the Terrace the plain then reads as large
+ *  blocks of green and of weedy fallow, as a dry-farmed plain does, not as one mean colour */
+export const ROTATION = { crop: 0.7, fallow: 0.1 } as const;
+export const rainfedThreshold = (dc: [number, number]) => (unit(hash2(cellU(dc[0]), cellU(dc[1]), SALT.rotation)) < 0.5 ? ROTATION.crop : ROTATION.fallow);
 export const VINE_SHARE = 0.3; // orchards_gardens: 30 % of orchard plots are vineyards
 export function checkMixes() { // the thresholds above are the data's mixes (tests)
   const m = feature('fields_irrigated_pulvar').crop_mix, k = feature('fields_irrigated_kur').crop_mix, rf = feature('fields_rainfed').rule.crop_mix;
@@ -189,7 +217,8 @@ export function landUseAt(zm: ZoneMap, x: number, z: number): PlotUse {
   let use: LandUse = 'natural', idx = 7;
   if (B > 127) { use = 'orchard'; idx = hc >= 1 - VINE_SHARE ? 6 : 5; }
   else if (R > 127) { use = 'irrigated'; idx = IRR_STEPS.reduce((k, t) => k + (hc >= t ? 1 : 0), 0); }
-  else if (G > 127) { use = 'rainfed'; idx = hc >= RAINFED_BARLEY ? 4 : 0; }
+  else if (G > 127) { use = 'rainfed'; idx = hc >= rainfedThreshold(plot.dc) ? 4 : 0; }
+  if (use !== 'natural' && zm.ground) { const g = groundAt(zm.ground, x, -z); if (g[2] < 0.5) { use = 'natural'; idx = 7; } }
   return { use, row: CROP_ROWS[idx], rowIndex: idx, offsetDays, plot };
 }
 export { pointInPolygon };
