@@ -68,7 +68,7 @@
 - [~] Writing on objects (D-179): tablets with wedge relief (text PLACEHOLDER, B18), rolled seals with ARIo seal texts, sealed leather scrolls; carved Old Persian = the CC0 ARIo sign-by-sign edition, 0 differences (D-184; round-2 C1 fixed, round 3 PASS), incised; Elamite and Babylonian in the edition's lines, omissions not carved, restorations tiered C (D-184)
 - [ ] Now view (stretch, §14 Phase 8)
 - [ ] Photo mode (stretch, §14 Phase 8)
-- [~] Music in the world from performers only (quern songs, Ionian masons' songs, court supper/night music with the setting; D-178, lint:music) and audio occlusion (D-178, Q-304): node-tested, unheard in a browser; PLACEHOLDER visuals (no harp model, no playing/singing animation, no court dress); no magus's chant and no herders' pipes (B20)
+- [~] Music in the world from performers only (quern songs, Ionian masons' songs, court supper/night music with the setting; D-178, lint:music) and audio occlusion (D-178, Q-304): node-tested, unheard in a browser; since D-200 the instruments are modelled and played (vertical harp for the court, playing and singing cycles, the singers' jaw and breath on the notes) and the herders of the bands pipe (C); still PLACEHOLDER: court dress; no magus's chant, deliberately (B20a, D-200)
 ## Session 4 (ended; HANDOFF.md)
 - [x] Interiors adapt (D-141); shadow bias (D-146); dome cover (D-145); detail at 1 m (D-147); block tone (D-148)
 - [x] Probe leaks through thin walls (D-152); ground bounce in the hemisphere light (D-153); herb layer (D-154); probe tints above/below (D-158); frame meter (D-159)

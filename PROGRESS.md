@@ -24,6 +24,13 @@
   the court camp's tents (people drawn in the open), the spearmen's apple-shaped butts, the royal women's night music.
   **Not simulated:** the retinue in the town (+13,000) and the plain (+5,000); the king (B9). The court's views: the
   hillside is over 12 M triangles on the world alone (B13).
+- **Session 7, instruments and the herders' pipe (D-200; nothing seen or heard in a browser).** Filled from B20: a vertical
+  angular harp (21 strings, navel to above the head, after search extracts of the Madaktu relief and harp histories: C in
+  every size), horizontal harp, lyre, frame drum and double pipe modelled with playing cycles (the last four played by
+  nobody: no source for who played them here); the court harpists stand and pluck, the singers' jaw and breath follow the
+  notes; a man of a transhumant band plays a cane reed pipe by the evening fire or at the midday halt (C; Iliad 18.525-526
+  read, M-18). **Still PLACEHOLDER:** the court women's dress. **Deliberately missing:** the magus's chant (no attested text;
+  no wordless contour either: D-200).
 - **Session 6, music and occlusion workstream (branch p8-music-s6, D-178; merged by the lead, 02f0947).** Music now plays
   only from performers: quern songs, Ionian masons' songs, and the court's supper and night music when the court setting
   is on. Audio occlusion now uses the built geometry. **Unverified:** it has not been heard in a browser (worker render,

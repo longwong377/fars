@@ -5,20 +5,24 @@
 //  - strings: Karplus–Strong waveguide (delay line + loss filter), a first-order allpass for the fractional delay so the
 //    pitch lands on the tuning (tested to ±3 cents), an excitation shaped by the plucking finger or plectrum, and a
 //    two-resonance body filter (soundbox);
-//  - double pipe: reed + cylindrical bore waveguide (Smith/STK clarinet model: a cylindrical bore closed at the reed
+//  - double pipe (and the herder's single reed pipe, D-200): reed + cylindrical bore waveguide (Smith/STK clarinet model: a cylindrical bore closed at the reed
 //    end, as the aulos-type pipe is usually reconstructed, C), with bore losses in the loop and a fractional bore length
 //    (pitch within ±2 cents), breath noise and a drone pipe;
 //  - frame drum: modal membrane (ideal circular-membrane mode ratios), struck centre ('dum') or rim ('tek');
 //  - clappers: short band-passed noise bursts.
 import { Rng } from '../core/rng';
 
-export type InstrumentId = 'harp' | 'lyre' | 'lute' | 'double_pipe' | 'frame_drum' | 'clappers' | 'voice';
+export type InstrumentId = 'harp' | 'lyre' | 'lute' | 'double_pipe' | 'reed_pipe' | 'frame_drum' | 'clappers' | 'voice';
 export interface InstrumentInfo { id: InstrumentId; name: string; strings?: number; range: [number, number]; tier: string; src: string; note: string }
 export const INSTRUMENTS: Record<InstrumentId, InstrumentInfo> = {
   harp: { id: 'harp', name: 'vertical angular harp', strings: 9, range: [150, 700], tier: 'B type / C sound', src: 'SOUND-R', note: 'vertical and horizontal angular harps on Elamite reliefs (Kul-e Farah, Madaktu); 9 strings per UET VII 74 (heptatonic + 2 octave strings)' },
   lyre: { id: 'lyre', name: 'round-bodied lyre', strings: 9, range: [180, 800], tier: 'B/C', src: 'SOUND-R', note: 'among five instruments in Achaemenid depictions (extract; source not seen)' },
   lute: { id: 'lute', name: 'long-necked lute', range: [110, 600], tier: 'B/C', src: 'SOUND-R', note: 'lutes in Elamite art from c. 1300 BCE; in Achaemenid depictions (extract)' },
   double_pipe: { id: 'double_pipe', name: 'double pipe (reed)', range: [220, 900], tier: 'B/C', src: 'SOUND-R', note: 'aulos-type double pipe in Achaemenid depictions (extract); never at sacrifice (Herodotus 1.132)' },
+  // the herder's single cane pipe (D-200; SOUNDSCAPE §8 M-10, M-18): the double pipe's reed-bore model without the drone
+  // pipe; five finger-holes and the open end give the six lowest notes of a mode and its octave (7 'strings'); 300-880 Hz,
+  // the bore model's stable range (C)
+  reed_pipe: { id: 'reed_pipe', name: 'reed pipe (single cane)', strings: 7, range: [300, 880], tier: 'C', src: 'HOM-IL', note: 'herdsmen playing pipes: Iliad 18.525-526 (read; the Greek syrinx); the shepherd’s reed pipe of Mesopotamia (a maker’s site, M-10); the form and sound C' },
   frame_drum: { id: 'frame_drum', name: 'frame drum', range: [70, 160], tier: 'C', src: 'SOUND-R', note: 'Mesopotamian standard; no Achaemenid-specific source seen' },
   clappers: { id: 'clappers', name: 'clappers', range: [1000, 3000], tier: 'C', src: 'SOUND-R', note: 'Mesopotamian standard; no Achaemenid-specific source seen' },
   // the human voice, singing a vocalise without words (src/audio/song.ts; SOUNDSCAPE §8 M-01, M-02, M-07, M-15). The range is the
