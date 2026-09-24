@@ -1,0 +1,484 @@
+{
+ "_meta": {
+  "what": "the project's own English translations of the carved inscriptions and the seal texts, per version, from the ARIo transliterations (D-198)",
+  "tier": "C",
+  "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+  "by": "the project (session 7, D-198), from the ARIo edition (Schmitt 2009, ORACC; CC0) as stored in src/data/inscriptions.json and writing.json, with the repository lexicons; no published translation used",
+  "marks": {
+   "( )": "words added for English sense",
+   "[ ]": "words whose signs are mostly restored by the editor after later damage (on the stone in 467)",
+   "⟨ ⟩": "words the edition supplies that the engraver omitted (never on the stone)",
+   "(?)": "uncertain rendering",
+   "…": "signs lost, not restored"
+  },
+  "verify_against": [
+   "R. Schmitt, Die altpersischen Inschriften der Achaimeniden (2009)",
+   "R. G. Kent, Old Persian (2nd ed. 1953)"
+  ],
+  "built_by": "tools/build_translations.py",
+  "src": [
+   "PROJ-TR",
+   "ARIO",
+   "ARIO-CATF"
+  ]
+ },
+ "texts": {
+  "XPa": {
+   "op": {
+    "en": "Ahuramazda is a great god, who created this earth, who created that sky, who created man, who created well-being for man, who made Xerxes king, one king of many, one commander of many. I am Xerxes, the great king, king of kings, king of the lands of many peoples, king on this great earth far and wide, the son of Darius the king, an Achaemenid. Xerxes the king says: By the will of Ahuramazda I made this gateway, All-Lands (Visadahyu). Much other fine work was done in this Pārsa, which I did and which my father did. Whatever work is seen to be fine, all that we did by the will of Ahuramazda. Xerxes the king says: May Ahuramazda protect me and my kingdom, and what was done by me and what was done by my father: that too may Ahuramazda protect.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [
+     "Visadahyu \"All-Lands\" (Elamite Missadahuiš, Babylonian Uispidāʾi) is the gateway's own name."
+    ],
+    "edition_restored_words": []
+   },
+   "el": {
+    "en": "Ahuramazda is a great god, who created this earth, who created that heaven, who created man, who created well-being (šiyatiš) for man, who made Xerxes king, one king of many, one commander of many. I am Xerxes, the great king, king of kings, king of the lands of many peoples, king on this earth, the great, the far-reaching (?), the son of Darius the king, an Achaemenid. Xerxes the king says: By the will of Ahuramazda I made this (gateway) All-Lands (Missadahuiš). Much other fine (work) was made in this Parsa, which I made and which my father made. What was made and is seen as fine, all that we made by the will of Ahuramazda. Xerxes the king says: May Ahuramazda protect me, and my kingdom, and what I made and what my father made: that too may Ahuramazda protect.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": [
+     "[ir-še-ki",
+     "ta₂-a-e-te",
+     "ši]-iš",
+     "nu-[iš-ki₂-iš-ni]"
+    ]
+   },
+   "bab": {
+    "en": "Ahuramazda is a great god, who gave this earth, who gave that heaven, who gave mankind, who gave good fortune to mankind, who made Xerxes king, one among many kings, one among many commanders. I am Xerxes, the great king, king of kings, king of the lands of all tongues, king of this great, far-reaching earth, the son of Darius the king, an Achaemenid. Xerxes the king says: Under the protection (lit. the shadow) of Ahuramazda I made this gate, whose name is Uispidāʾi (All-Lands). And many other fine (works) were made in this land Parsa, which I made and which my father made; and whatever works are seen as fine, all of them we made under the protection of Ahuramazda. Xerxes the king says: May Ahuramazda protect me, and my kingship and my lands, and what I made and what my father made: those too may Ahuramazda protect.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [
+     "The Babylonian says \"gave\" (iddinu) where the Old Persian says \"created\" (adā)."
+    ],
+    "edition_restored_words": [
+     "[dingir",
+     "gal-u₂",
+     "{d]}a-hu-ru-ma-az-da-ʾ",
+     "{diš}a-ha-[ma-an-ni]-iš-ši-ʾ",
+     "[a-na-ku",
+     "e-pu-uš]-šu",
+     "[i]-pu-uš-šu"
+    ]
+   }
+  },
+  "XPb": {
+   "op": {
+    "en": "Ahuramazda is a great god, who created this earth, who created that sky, who created man, who created well-being for man, who made Xerxes king, one king of many, one commander of many. I am Xerxes, the great king, king of kings, king of the lands of many peoples, king on this great earth far and wide, the son of Darius the king, an Achaemenid. Xerxes the great king says: What was done by me here, and what was done by me further off, all that I did by the will of Ahuramazda. May Ahuramazda protect me with the gods, and my kingdom, and what was done by me.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   },
+   "el": {
+    "en": "Ahuramazda is a great god, who created this earth, who created that heaven, who created man, who created well-being (šiyatiš) for man, who made Xerxes king, one king of many, one commander of many. I am Xerxes, the great king, king of kings, king of the lands of many peoples, king on this earth, the great, the far-reaching (?), the son of Darius the king, an Achaemenid. Xerxes the great king says: What I made here (?), and what I made further off (?), all that I made by the will of Ahuramazda. May Ahuramazda protect me with the gods, and (my) kingdom, and what I made.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [
+     "\"here\" and \"further off\" render the Elamite words (AŠ)ma-at-ta₂ and (AŠ)me-ša₂-me-ra-ka₄-ta₂ by the sense of the Old Persian idā and apataram (?)."
+    ],
+    "edition_restored_words": [
+     "{DIŠ}[EŠŠANA",
+     "{AŠ]}da-a-u₂-iš-[pe₃]-na",
+     "{[DIŠ]}EŠŠANA",
+     "{[AŠ]}mu-ru-un"
+    ]
+   },
+   "bab": {
+    "en": "Ahuramazda is a great god, who gave this earth, who gave that heaven, who gave mankind, who gave good fortune to the people, who gave kingship to Xerxes, one king over many kings, one commander over many. I am Xerxes, the great king, king of kings, king of the lands of all tongues, king of this great, far-reaching earth, the son of Darius the king, an Achaemenid. Xerxes the great king says: Under the protection of Ahuramazda I built this house. May Ahuramazda protect me with the gods, and my kingship, and what I have made.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   }
+  },
+  "XPc": {
+   "op": {
+    "en": "Ahuramazda is a great god, who created this earth, who created that sky, who created man, who created well-being for man, who made Xerxes king, one king of many, one commander of many. I am Xerxes, the great king, king of kings, king of the lands of many peoples, king on this great earth far and wide, the son of Darius the king, an Achaemenid. Xerxes the great king says: By the will of Ahuramazda, this palace (hadiš) Darius the king built, he who was my father. May Ahuramazda protect me with the gods, and what was done by me, and what was done by my father Darius the king: that too may Ahuramazda protect with the gods.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [
+     "The god's name is written as two words here (A.urahya-Māzdaha)."
+    ],
+    "edition_restored_words": []
+   },
+   "el": {
+    "en": "Ahuramazda is a great god, who created this earth, who created that heaven, who created man, who created well-being (šiyatiš) for man, who made Xerxes king, one king of many, one commander of many. I am Xerxes, the great king, king of kings, king of the lands, of the many peoples (?), king on this earth, the great, the far-reaching (?), the son of Darius the king, an Achaemenid. Xerxes the great king says: By the will of Ahuramazda this palace Darius the king made, he who (was) my father. May Ahuramazda protect me together with the gods, and what I made and what my father Darius the king made: that too may Ahuramazda protect together with the gods.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [
+     "The titulary's \"of the many peoples\" renders ir-še-ik-ki-ip-in-na … da-na-iš-pe₃-na (?)."
+    ],
+    "edition_restored_words": []
+   },
+   "bab": {
+    "en": "The great god Ahuramazda, who created heaven and created this earth, who created the people, who gave good fortune to the people, who made Xerxes king, king over many kings, who alone gives orders to the whole of all the lands (?). I am Xerxes, the great king, king of kings, king of the lands of all tongues, king of this great, wide earth, the son of Darius the king, an Achaemenid. Xerxes the great king says: Under the protection of Ahuramazda, this house Darius the king, my own father, built. May Ahuramazda protect me with all the gods, and what I have made, and what Darius the king, my own father, made; and that too may Ahuramazda protect with all the gods.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   }
+  },
+  "XPd": {
+   "op": {
+    "en": "Ahuramazda is a great god, who created this earth, who created that sky, who created man, who created well-being for man, who made Xerxes king, one king of many, one commander of many. I am Xerxes, the great king, king of kings, king of the lands of many peoples, king on this great earth far and wide, the son of Darius the king, an Achaemenid. Xerxes the great king says: By the will of Ahuramazda I built this palace (hadiš). May Ahuramazda protect me with the gods, and my kingdom, and what was done by me.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": [
+     "A.uramazdā (3 of 7 signs)",
+     "būmim (2 of 5 signs)",
+     "xšāyaθiya (1 of 7 signs)",
+     "xšāyaθiyānām (4 of 11 signs)",
+     "dahyunām (1 of 7 signs)",
+     "ahyāyā (2 of 7 signs)",
+     "xšāyaθiyahyā (1 of 10 signs)"
+    ]
+   },
+   "el": {
+    "en": "Ahuramazda is a great god, who created this earth, who created that heaven, who created man, who created well-being (šiyatiš) for man, who made Xerxes king, one king of many, one commander of many. I am Xerxes, the great king, king of kings, king of the lands of many peoples, king on this earth, the great, the far-reaching (?), the son of Darius the king, an Achaemenid. Xerxes the great king says: By the will of Ahuramazda I made this palace. May Ahuramazda protect me together with the gods, and (my) kingdom, and what I made.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": [
+     "par₂-ru-za-na-na-[um",
+     "{DIŠ}EŠŠANA",
+     "{AŠ]}mu-ru-un",
+     "{[DIŠ}da-ri]-ia-ma-u-iš",
+     "[na-an]-ri",
+     "{d}na-ap-pi-[pe₃]"
+    ]
+   },
+   "bab": {
+    "en": "Ahuramazda is a great god, who gave this earth, who gave that heaven, who gave mankind, who gave good fortune to the people, who gave kingship to Xerxes, one king over many kings, one commander over many. I am Xerxes, the great king, king of kings, king of the lands of all tongues, king of this great, far-reaching earth, the son of Darius the king, an Achaemenid. Xerxes the great king says: What I made here and what I made in another place, all of it, as much as I made, I made under the protection of Ahuramazda. May Ahuramazda protect me with the gods, and my kingship, and what I have made.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": [
+     "lugal-u₂-[ti-ia",
+     "u",
+     "a-na]"
+    ]
+   }
+  },
+  "XPe": {
+   "op": {
+    "en": "Xerxes, the great king, king of kings, the son of Darius the king, an Achaemenid.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   },
+   "el": {
+    "en": "Xerxes, the great king, king of kings, the son of Darius the king, an Achaemenid.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   },
+   "bab": {
+    "en": "Xerxes, the great king, king of kings, the son of Darius the king, an Achaemenid.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   }
+  },
+  "DPh": {
+   "op": {
+    "en": "Darius, the great king, king of kings, king of the lands, the son of Hystaspes, an Achaemenid. Darius the king says: This is the kingdom which I hold: from the Scythians who are beyond Sogdiana, from there as far as Kush; from India, from there as far as Sardis; (the kingdom) which Ahuramazda, the greatest of the gods, granted to me. May Ahuramazda protect me and my royal house.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   },
+   "el": {
+    "en": "Darius, the great king, king of kings, king of the lands, the son of Hystaspes, an Achaemenid. Darius the king says: The kingdom which I hold: from the Scythians, those beyond (?) Sogdiana, as far as Kush; from India as far as Sardis; which Ahuramazda gave me, he who is the greatest of the gods. May Ahuramazda protect me and my house.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   },
+   "bab": {
+    "en": "Darius, the great king, king of kings, king of the lands, the son of Hystaspes, an Achaemenid. Darius the king says: This kingship which I hold, from the land of the Gimirri (the Scythians) who are across (from) Sogdiana as far as Kush, from India as far as Sardis, which Ahuramazda gave (me), he who is greater than the gods: may Ahuramazda protect me with the gods, and my house.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [
+     "The Babylonian names the northern peoples Gimirri, where the Old Persian has Sakā (the Scythians)."
+    ],
+    "edition_restored_words": []
+   }
+  },
+  "DNa": {
+   "op": {
+    "en": "Ahuramazda is a great god, who created this earth, who created that sky, who created man, who created well-being for man, who made Darius king, one king of many, one commander of many. I am Darius, the great king, king of kings, king of the lands of all peoples, king on this great earth far and wide, the son of Hystaspes, an Achaemenid, a Persian, the son of a Persian, an Aryan, of Aryan stock. Darius the king says: By the will of Ahuramazda these are the lands which I seized outside Persia; I ruled over them; they brought me tribute; what was said to them by me, that they did; my law, that held them firm: Media, Elam, Parthia, Aria, Bactria, Sogdiana, Chorasmia, Drangiana, Arachosia, Sattagydia, Gandhara, India, the haoma-(?) Scythians, the Scythians with pointed caps, Babylonia, Assyria, Arabia, Egypt, Armenia, Cappadocia, Sardis, Ionia, the Scythians who are across the sea, Skudra, the Ionians who wear the petasos (?), the Libyans, the Kushites, the men of Maka, the Carians. Darius the king says: When Ahuramazda saw this earth in turmoil, he then granted it to me; he made me king; I am king. By the will of Ahuramazda I set it in its place; what I said to them, that they did, as was my wish. If now you should think: \"How many are those lands which Darius the king held?\", look at the figures who bear the throne; then you will know, then it will become known to you: the spear of the Persian man has gone far; then it will become known to you: the Persian man has fought battles far from Persia. Darius the king says: What has been done, all that I did by the will of Ahuramazda. Ahuramazda brought me help until I had done the work. May Ahuramazda protect me from harm, and my royal house, and this land. This I ask of Ahuramazda; this may Ahuramazda give me. O man, let the command of Ahuramazda not seem repugnant to you; do not leave the right path; do not be violent (?).",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [
+     "The peoples' names are given in their usual English forms; \"haoma-(?)\" renders Hau̯mavargā and \"who wear the petasos (?)\" renders takabarā, both of uncertain sense."
+    ],
+    "edition_restored_words": [
+     "xšāyaθiya (1 of 7 signs)",
+     "agṛbāyam (1 of 7 signs)",
+     "abaraha (1 of 4 signs)",
+     "akunava (1 of 5 signs)",
+     "Uvārazmiš (1 of 8 signs)",
+     "Bābiruš (1 of 7 signs)",
+     "Armina (2 of 5 signs)",
+     "paradraya (1 of 5 signs)",
+     "Putāyā (1 of 6 signs)",
+     "yau̯dantī̆m (2 of 6 signs)",
+     "xšāyaθiyam (1 of 8 signs)",
+     "xšāyaθiya (2 of 7 signs)",
+     "tayašām (2 of 5 signs)",
+     "yaθā (2 of 3 signs)",
+     "maniyāhai̯ (1 of 7 signs)",
+     "avā (1 of 3 signs)",
+     "Dārayava.uš (1 of 7 signs)",
+     "tayai̯ (1 of 4 signs)",
+     "ṛštiš (1 of 6 signs)"
+    ]
+   }
+  },
+  "DNb": {
+   "op": {
+    "en": "Ahuramazda is a great god, who created this excellent (work) which is seen, who created well-being for man, who bestowed wisdom and vigour upon Darius the king. Darius the king says: By the will of Ahuramazda I am of such a kind that I am a friend to what is right; I am no friend to what is wrong. It is not my wish that the weak man should be wronged because of the strong; nor is it my wish that the strong man should be wronged because of the weak. What is right, that is my wish. To the man who follows the Lie I am no friend. I am not hot-tempered. Whatever rises in me in a dispute I hold firmly by my mind; I am firmly in command of myself. The man who works together (with me), as his work together deserves, so I care for him; the one who does harm, as his harm deserves, so I punish him. It is not my wish that a man should do harm; nor is it my wish, if he does harm, that he should go unpunished. What a man says against a man does not convince me until I have heard the account of both. What a man does or brings according to his powers, ⟨by that⟩ I am satisfied, and it is much my wish, and I am well pleased, ⟨and I give much to loyal men⟩. Of such a kind are my understanding and my command: when you see or hear what has been done by me, both in the palace and in the war camp, this is my vigour, over and above my mind and understanding. This moreover is my vigour: as far as my body has the strength, as a fighter I am a good fighter. Once my understanding stands in its place, whether I see a rebel or do not see one, by understanding and by command I then think myself above panic, when I see a rebel as when I do not see one. I am practised (?) both with hands and with feet. As a horseman I am a good horseman; as a bowman I am a good bowman, both on foot and on horseback; as a spearman I am a good spearman, both on foot and on horseback. These are the skills which Ahuramazda bestowed upon me, and I had the strength to bear them. By the will of Ahuramazda, what was done by me I did with these skills which Ahuramazda bestowed upon me. Young man, make it well known [of what kind] you are, of what kind your skills, of what kind your conduct. Let [that] not seem [best] to you which [is said] in your ears; listen also to what is said [beyond it]. Young man, let not [that] [seem] [good] to you [which] … does; what [the weak man] [does], look at that too. Young man, … do not … (?) … [nor] in well-being (?) become unpractised (?) … let them not … (?) …",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [
+     "The end of the text is damaged; the edition leaves several words unread (…).",
+     "Words in ⟨ ⟩ are in the edition (restored from the parallel text) but were never cut on the stone."
+    ],
+    "edition_restored_words": [
+     "vai̯natai̯ (1 of 6 signs)",
+     "Dārayava.um (2 of 7 signs)",
+     "dau̯štā (2 of 5 signs)",
+     "nai̯ (1 of 3 signs)",
+     "nai̯mā (2 of 4 signs)",
+     "tunuvā (1 of 6 signs)",
+     "dau̯štā (1 of 5 signs)",
+     "ami (2 of 4 signs)",
+     "yacimai̯ (2 of 6 signs)",
+     "pṛtanayā (1 of 6 signs)",
+     "uvai̯pašiyahyā (1 of 10 signs)",
+     "dṛšam (1 of 4 signs)",
+     "hankṛtahyā (1 of 7 signs)",
+     "vināθayati (1 of 9 signs)",
+     "vinastahyā (2 of 8 signs)",
+     "avaθā (2 of 4 signs)",
+     "avanā (in the edition, not on the stone)",
+     "uθanduš (2 of 5 signs)",
+     "utā (in the edition, not on the stone)",
+     "vasai̯ (in the edition, not on the stone)",
+     "dadāmi (in the edition, not on the stone)",
+     "agriyānām (in the edition, not on the stone)",
+     "martiyānām (in the edition, not on the stone)",
+     "utā (1 of 3 signs)",
+     "yadivā (1 of 5 signs)",
+     "manašcā (1 of 5 signs)",
+     "ušīcā (2 of 5 signs)",
+     "tāvayati (1 of 7 signs)",
+     "ami (1 of 4 signs)",
+     "gāθavā (1 of 5 signs)",
+     "vai̯nāmi (1 of 7 signs)",
+     "bartanai̯ (2 of 6 signs)",
+     "azdā (1 of 4 signs)",
+     "ciyākaram (4 of 7 signs)",
+     "ūnarā (2 of 5 signs)",
+     "ciyākaramtai̯ (2 of 11 signs)",
+     "ava (2 of 2 signs)",
+     "vahištam (3 of 5 signs)",
+     "θanhyāti (6 of 7 signs)",
+     "paratar (3 of 4 signs)",
+     "θanhyāti (3 of 7 signs)",
+     "marikā (2 of 5 signs)",
+     "nai̯bam (4 of 4 signs)",
+     "θadaya (3 of 3 signs)",
+     "taya (2 of 2 signs)",
+     "x (lost, not restored)",
+     "x (lost, not restored)",
+     "kunavāti (1 of 8 signs)",
+     "skau̯θai̯š (6 of 6 signs)",
+     "kunavāti (4 of 8 signs)",
+     "x (lost, not restored)",
+     "patiyātaya (1 of 7 signs)",
+     "a-x (lost, not restored)",
+     "māpati (3 of 6 signs)",
+     "šiyātiyā (1 of 8 signs)",
+     "x-di-i-y (lost, not restored)",
+     "x-i-y (lost, not restored)"
+    ]
+   }
+  },
+  "DPa": {
+   "op": {
+    "en": "Darius, the great king, king of kings, king of the lands, the son of Hystaspes, an Achaemenid, who built this palace (tacara).",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   },
+   "el": {
+    "en": "Darius, the great king, king of kings, king of the lands, (king) of all peoples (?), the son of Hystaspes, an Achaemenid, who made this palace (taccara).",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   },
+   "bab": {
+    "en": "Darius, the great king, king of kings, king of the lands of all tongues, the son of Hystaspes, an Achaemenid, who built this house.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   }
+  },
+  "DPb": {
+   "op": {
+    "en": "Darius, the great king, the son of Hystaspes, an Achaemenid.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": [
+     "Dārayava.uš (3 of 7 signs)",
+     "Vištāspahyā (2 of 10 signs)"
+    ]
+   },
+   "el": {
+    "en": "Darius, the great king, the son of Hystaspes, an Achaemenid.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   },
+   "bab": {
+    "en": "Darius, the great king, the son of Hystaspes, an Achaemenid.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": [
+     "{[diš}da]-ri-ia-a-muš",
+     "[lugal",
+     "gal]-u₂",
+     "{[diš}uš]-ta-as-pa",
+     "{[diš}a-ha-ma]-an-niš-ši-ʾ"
+    ]
+   }
+  },
+  "DPc": {
+   "op": {
+    "en": "A window frame (?) of stone, made in the house of Darius the king.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   },
+   "el": {
+    "en": "A window frame (?) (hardastana) of stone (?), made in the house of Darius the king.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": [
+     "[har]-da-is₂-[ta₂]-na"
+    ]
+   },
+   "bab": {
+    "en": "Window frames (?) (kuburrû) of stone, made in the house of Darius the king.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   }
+  },
+  "DPd": {
+   "op": {
+    "en": "Great Ahuramazda, the greatest of the gods: he made Darius king; he granted him the kingdom. By the will of Ahuramazda Darius is king. Darius the king says: This land Persia which Ahuramazda granted to me, which is fine, rich in good horses and in good men, by the will of Ahuramazda and of me, Darius the king, does not fear any other. Darius the king says: May Ahuramazda bring me help with all the gods; and may Ahuramazda protect this land from an (enemy) army, from a bad year, from the Lie. May no army, no bad year, no Lie come upon this land. This I ask of Ahuramazda as a favour, with all the gods; [this] favour may Ahuramazda grant me, [with] all the gods.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": [
+     "ai̯tamai̯ (4 of 6 signs)",
+     "yānam (1 of 4 signs)",
+     "A.uramazdā (1 of 7 signs)",
+     "dadātu (1 of 6 signs)",
+     "hadā (3 of 3 signs)",
+     "visai̯biš (3 of 7 signs)"
+    ]
+   }
+  },
+  "DPe": {
+   "op": {
+    "en": "I am Darius, the great king, king of kings, king of the lands, of these many (lands), the son of Hystaspes, an Achaemenid. Darius the king says: By the will of Ahuramazda these are the lands which I held with this Persian army, which were afraid of me and brought me tribute: Elam, Media, Babylonia, Arabia, Assyria, Egypt, Armenia, Cappadocia, Sardis, the Ionians who are of the mainland and those who are of the sea, and the lands which are across the sea: Sagartia, Parthia, Drangiana, Aria, Bactria, Sogdiana, Chorasmia, Sattagydia, Arachosia, India, Gandhara, the Scythians, Maka. Darius the king says: If you should think thus, \"May I not fear another\", protect this Persian people. If the Persian people is protected, well-being, unbroken for the longest time, will come down by Ahura (?) upon this house.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": [
+     "duvai̯štam (1 of 7 signs)"
+    ]
+   }
+  },
+  "DPf": {
+   "el": {
+    "en": "I am Darius, the great king, king of kings, king of the lands, king on this earth, the son of Hystaspes, an Achaemenid. And Darius the king says: On this place (?) this fortress was built; before (it), no fortress had been built here. By the will of Ahuramazda I built this fortress. And Ahuramazda so wished (?), together with all the gods, that this fortress should be built. And I built it, and built it complete (?), fine and strong (?), just as I wished. And Darius the king says: May Ahuramazda protect me together with all the gods, and this fortress too, and also what was set up (?) on this place: may it not (be overthrown?) (?) as the hostile (?) man intends (?).",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [
+     "An Elamite text of its own, with no Old Persian or Babylonian version: several of its words are of uncertain sense (the marks (?)), and the last clause is rendered by the context."
+    ],
+    "edition_restored_words": []
+   }
+  },
+  "DPg": {
+   "bab": {
+    "en": "Ahuramazda is great, who is greatest over all the gods, who created heaven and earth, who created the people, who gave all good fortune, (by which) the people live in it (the earth); who made Darius king and gave to Darius the king the kingship over this wide earth, in which are many lands: Persia, Media and the other lands of other tongues, of mountains and of plain, of this side of the Bitter River (the sea) and of that side of the Bitter River, of this side of the thirsty land (the desert) and of that side of the thirsty land. Darius the king says: Under the protection of Ahuramazda, these are the lands which did this (work), which were here (?): Persia, Media and the other lands of other tongues, of mountains and of plain, of this side of the Bitter River and of that side of the Bitter River, of this side of the thirsty land and of that side of the thirsty land, according to the order that I laid on them. What I did, all of it I did under the protection of Ahuramazda. May Ahuramazda protect me with all the gods, me and what I love (?).",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [
+     "A Babylonian text of its own, with no Old Persian or Elamite version."
+    ],
+    "edition_restored_words": [
+     "[ša₂",
+     "a]-na-ku",
+     "{d}u₂-[ru]-ma-az-da",
+     "{d}u₂-ru-ma-[az-da",
+     "li-iṣ]-ṣu-ur"
+    ]
+   }
+  },
+  "SDa": {
+   "op": {
+    "en": "I am Darius the king.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [
+     "A seal inscription; the three versions stand together on the seal (writing.json)."
+    ],
+    "edition_restored_words": []
+   },
+   "el": {
+    "en": "I (am) Darius the king.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   },
+   "bab": {
+    "en": "I am Darius, the great king.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   }
+  },
+  "XSeal": {
+   "op": {
+    "en": "I am Xerxes the king.",
+    "tier": "C",
+    "label": "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953",
+    "notes": [],
+    "edition_restored_words": []
+   }
+  }
+ }
+}

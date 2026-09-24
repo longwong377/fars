@@ -3511,3 +3511,53 @@ checks: probe field, sun ephemeris, ray tests against the parts, rig and prop pl
 - **Invariants (planCheck, swept year-wide, in the soak's plansWellFormed):** (g) `stage`: more than `STAGE_CAP_H` = 7 h on foot in a day (road walking and the off-map road and descent; a grazing flock is not a march); couriers exempt. (h) `flock`: a herding man of a band, 16–55, in the plain and not ill, whose day (or last night's watch) never touches the flock. Sweep (herders and travellers every day, 1 in 40 of everyone else; 392,137 person-days): before 353 herder + 655 traveller person-days over 7 h; after 0 and 0.
 - **Tests:** tests/people_days_r9.test.ts (44216's day; the year-wide sweep of every band and party; parties sleep at the last station); tests/people_days_r8.test.ts B S11 now asserts the small child's total walk ≤ 4.5 h (the premise, a 6 h 45 min arrival-day walk, is gone).
 - **Open (the reviewers' other findings, to the sim workstream):** A S1 / B S7 the age-rule pick draws newborns (tool); A S2 / B S3 a sick small child taken to the mother's work or the lane in the cold, a sick guard always nursed in the garrison; A S3 / B S2 a storm or rain anywhere in the day cancels the builders' whole day; A S4 the porters' afternoon waits for a caravan that came in the morning; A S6 winnowing in the calm morning; A S7 / B S8 "after dark" before dusk; A S8 roofed doorkeepers stop at noon on heat days; A S9 Treasury women of every trade spin at home; B S4 13–15-year-olds play 3–4 h; B S5 homemakers' rest; B S6 long siestas.
+
+## D-198 Filling B17a and B18 on the user's instruction: the project's own English translations of the inscriptions, and Treasury memoranda reconstructed on the published formulary (session 7; BLOCKERS B17, B18; NEEDS #14, #15)
+- **Read first: what is unverified or reconstructed.**
+  - **The tablets' texts are RECONSTRUCTIONS, not surviving texts (C).** No Persepolis Treasury text has been read. The three memoranda on the scribes' room tablets (writing.json `recon_texts` PTR-1..3) are the project's compositions in the receipt formulary of the Fortification texts, from sourced words only. They are labelled "reconstructed on the Treasury tablets' published formulary — not a surviving text (C)" in the data, in F3 (`[RECONSTRUCTED TEXT, C]`, the note) and first in the translation layer.
+  - **The English translations are the project's, unchecked (C).** 33 renderings of the 15 carved texts (every version the corpus mirror holds) and 4 of the two seal texts, made from the ARIo transliterations. None has been compared with a published translation (none may be shown or was consulted: D-167, B6). The least secure: DPf (an Elamite text of its own), the damaged end of DNb, DPg's "which were here", and the Elamite of XPb's "here … further off".
+  - Nothing of this has been rendered in a browser (node bake and probe only; the shared render queue was busy).
+- **Instruction.** The user: "Fill the gaps to the best of your educated ability." The lead gave this workstream B17a (translations) and B18 (the tablets' text).
+- **Translations (B17a).**
+  - `tools/build_translations.py` holds the English renderings and writes `src/data/translations.json`. Each version is translated from its own words, not from the Old Persian: the Babylonian "gave" (iddinu) where the Old Persian "created" (adā); Uispidāʾi, Missadahuiš, Gimirri kept.
+  - Style: literal and plain. No published translation's wording. The test fails on Kent's or Livius' formulae ("A great god is Ahuramazda", "yonder sky", "one lord of many", …).
+  - Marks: ( ) added for sense; [ ] mostly restored by the editor (on the stone in 467); ⟨ ⟩ supplied by the editor but never cut (DNb); (?) uncertain; … lost. For each version, the words with restored or lost signs are listed from the edition itself: `op_words` for the Old Persian, the CATF lines for the Elamite and Babylonian.
+  - The layer (`translation.ts`) shows, for the version looked at: the English, the label "Translation by the project from the ARIo edition; not a published translation; verify against Schmitt 2009 / Kent 1953" with "tier C", the marks and the restored words. The transliteration, word glosses and notes stay as before.
+  - `TRANSLATION_STATUS` now says the English is the project's and why no published translation is shown. A version the mirror lacks (DNa/DNb Elamite and Babylonian) has no English and says so.
+  - The seal texts SDa and XSeal get their English in the written-object reading.
+  - New source key PROJ-TR; ASSET_LEDGER and SOURCES rows added.
+- **Treasury tablets (B18). The tension with §10 ("only published texts"), and how it is resolved.** A surviving PT text is the right thing for the scene, and none is reachable. Before this, the tablets carried wedges with no text. The user asked for the gap to be filled. It is filled by a reconstruction that:
+  - (a) is labelled as not surviving everywhere it appears;
+  - (b) keeps the formulary strictly, with no invented vocabulary;
+  - (c) leaves B18 open, with the upgrade path (Q-362).
+  - **The strict formulary, and how it is enforced.** Every word is a lexicon word. `tools/build_writing.py` checks its spelling against the entry's transliteration or its quoted attestation, and stops otherwise; `tests/writing.test.ts` checks the same independently. Every name is in names.json (PF via CDLI, A as names). Every numeral follows the PF notation. Signs: the words' ATF → OSL (B).
+  - **Five lexicon entries were added from corpora already in the repository:**
+    - karša kur-ša-um: ARIo, the Elamite of Darius' weight stones (A);
+    - KU₃.BABBAR "silver": the logogram is attested in ARIo's Babylonian; **C as an Elamite word**;
+    - PAP "total", {an}ITI.MEŠ "month", ha-tu-ma "for a period": Hallock PF via CDLI (A). The dump was re-fetched and all its 82 Elamite texts were read.
+  - **Texts.**
+    - PTR-1, the filed tablets: 6 karša of silver at the disposal of Iršena in the treasury, received by Manmakka and his companions as rations of workers; year 18, months 11–12.
+    - PTR-2, the fresh tablets: 3½ karša; Bakadušda and Karkiš received it (PF 13's own wording and names); year 19, month 1 ("19th year" spelled as in PF 59).
+    - PTR-3, the tablet being written: four lines, breaking off after the first receiver; undated.
+    - The project's English for each is in the data and the layer (C).
+  - **Dates (C).** The world runs from 1 Nisannu of year 19 through the year, and the tablets are static. Each date is chosen so that no tablet stands in the room before it was written: the archive is of year 18, the fresh tablets of the first month of year 19. A fresh tablet looks stale late in the year; that is accepted (all props are static).
+  - **Not written, because not sourced:**
+    - the letter-order form: tiriš "tell" was removed with the EWB data (D-192), and the imperative is not sourced;
+    - the shekel: amounts are in karša and halves;
+    - the per-head rate, and the ration the silver replaces.
+    The texts are memoranda (receipts), a PT document type (IR-PET, SX). The rate of 6 karša for a group over two months is C (PEOPLE.md §3c).
+  - **Build.**
+    - writing.ts: the placeholder wedges are gone. `impressTablet` sinks the Noto cuneiform outlines of each text's lines 0.5 mm into its obverse. It uses one sign height per text, the largest ≤ 4 mm that fits (4.0 mm), a line pitch of 1.4 × that height, and no word spaces.
+    - Atlas regions: `rev` became `obv_fresh` (the fresh tablets' own text). The reverses are uninscribed plain clay.
+    - `ptTabletGeometry` has a 'fresh' variant. Objects are `pt_letter` (filed), `pt_letter_fresh` and `pt_letter_unfinished` (a new pick box).
+    - `writtenMeta`/`describe` carry `reconstructed` and say "RECONSTRUCTED TEXT … impressed / NOT impressed (fonts not loaded)". F3 shows `[RECONSTRUCTED TEXT, C]`.
+    - The language lint registers the new cuneiform fields as in-world. It now requires the clay's captured sign stream to be whole texts of the data, seal texts and reconstructions alike, and every reconstruction to be impressed.
+  - **Measured (node, tools/dev/tablet_layout_probe.ts).**
+    - Bake 0.6–0.9 s (was ≈ 1 s with the wedges); 215 signs drawn in all.
+    - Relief RMS in the written band 0.15–0.19 mm, below it 0.02–0.03 mm.
+    - Lines end by 78 mm of the 90 mm face; the text ends by 49 mm of 65.
+    - Draws and triangles of the scribes' room are unchanged (9 draws; the new pick box is not drawn).
+- **Aramaic (chert, leather): left as they were.** Bowman's ritual formula needs byrtʾ "fortress", sgnʾ "segan", znh "this", qdm/lyd "before", the vessel names and the verb "used". None is in the Aramaic lexicon (ʿbd there is the noun "servant"). The leather scrolls stay rolled with their text unseen, and the chert sets stay uninscribed; `why_no_text` says so.
+- **Records.** BLOCKERS B17 (a) and B18 (what stands in, what upgrades it); NEEDS #14, #15; OPEN_QUESTIONS Q-284 and Q-321 updated, Q-362 (the PT texts) and Q-363 (the translations) new; research/WRITING_ON_OBJECTS.md §7; ASSET_LEDGER; SOURCES; PROGRESS.
+- **Tests.** tests/writing.test.ts (the reconstruction checks, impression and records, the layer's reading), tests/translation_layer.test.ts (every version translated, labelled C, marks, no published wording, the panel), tests/language.test.ts (lint).
+- **Tier:** translations C; reconstructed texts C (words A/B, silver C; names A as names; signs B; dates and layout C).

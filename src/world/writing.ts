@@ -7,20 +7,31 @@
 //  - rolled cylinder-seal impressions: the figures (C reconstructions of attested seal types) and the seal INSCRIPTIONS,
 //    whose signs are the published texts' sign sequences (ARIo, CC0), drawn from the Noto font outlines at the font
 //    (the language lint captures them there and compares them with the data);
-//  - the Treasury letter-order tablets' Elamite text: NOT reachable (BLOCKERS B18): the faces carry wedge impressions laid
-//    out in lines but no readable text and no sign of any text (a placeholder, flagged in data and in the dev overlay).
-// The atlas is baked once, on first use. Without the fonts (node tests that do not load them) the seal inscriptions are
-// left out, and every object that would carry them says so (placeholder: true through `describe`).
+//  - the Treasury tablets' Elamite text: no Persepolis Treasury text is reachable (BLOCKERS B18), so the tablets carry
+//    memoranda RECONSTRUCTED by the project on the Treasury tablets' published formulary (writing.json recon_texts, tier C,
+//    D-198): every word from the sourced Elamite lexicon, every name from names.json, the signs the words' own ATF → OSL;
+//    impressed sign by sign from the same font outlines, sunk into the clay (a stylus impression), and labelled
+//    "reconstructed … not a surviving text (C)" in data, the dev overlay (F3) and the translation layer.
+// The atlas is baked once, on first use. Without the fonts (node tests that do not load them) no sign is drawn, and every
+// object that would carry signs says so (placeholder: true through `describe`).
 import * as THREE from 'three/webgpu';
 import opentype from 'opentype.js';
 import { v } from '../arch/spec';
 import { Rng } from '../core/rng';
 import writingJson from '../data/writing.json';
 
+/** a Treasury memorandum reconstructed by the project on the published formulary (D-198): NOT a surviving text (C) */
+export interface ReconText {
+  kind: string; label: string; reconstructed: true; date: { regnal_year: number; king: string; months: number[] | null; bce: string; written: string };
+  el_atf: string; lines_atf: string[]; lines_cuneiform: string[]; el_cuneiform: string;
+  words: { w: string; kind: 'word' | 'name' | 'numeral'; lex?: string; name?: string; gloss: string; tier: string; src: string[] }[];
+  english: string; english_label: string; tier: Record<string, string>; notes: string[]; src: string[];
+}
 export const WRITING = writingJson as any as {
   texts: Record<string, { ario: string; op_translit: string; op_signs: string[]; op_cuneiform: string; el_atf?: string; el_cuneiform?: string; bab_atf?: string; bab_cuneiform?: string; tier: Record<string, string>; ident: string }>;
+  recon_texts: Record<string, ReconText>;
   seals: Record<string, { text: string; tier: string; placeholder: boolean; attested: string; wording: string; design: string; height_mm: number; roll_mm: number; src: string[] }>;
-  objects: Record<string, { what: string; text: string | null; seal?: string; placeholder: boolean; placeholder_why?: string; tier: string; src: string[]; [k: string]: unknown }>;
+  objects: Record<string, { what: string; text: string | null; recon?: string; reconstructed?: boolean; recon_why?: string; seal?: string | null; placeholder: boolean; placeholder_why?: string; tier: string; src: string[]; [k: string]: unknown }>;
 };
 
 // ------------------------------------------------------------------------------------------------ fonts
@@ -34,12 +45,13 @@ export const writingFontsLoaded = () => !!fonts.op && !!fonts.cun;
 // ------------------------------------------------------------------------------------------------ the atlas
 export const ATLAS = 1024;
 export interface Region { x: number; y: number; w: number; h: number; mm: number }
-/** atlas regions (pixels) and their scale (mm per pixel). Tablet faces 90 × 65 mm at 0.2 mm/px; the sealed left edge
- *  65 × 25 mm at 0.115 mm/px; the door sealing's face 110 × 80 mm at 0.2 mm/px; a patch of plain clay. */
+/** atlas regions (pixels) and their scale (mm per pixel). Tablet faces 90 × 65 mm at 0.2 mm/px (the filed tablets'
+ *  obverse, the fresh tablets' obverse, the unfinished tablet's obverse; the reverses are uninscribed: plain clay); the
+ *  sealed left edge 65 × 25 mm at 0.115 mm/px; the door sealing's face 110 × 80 mm at 0.2 mm/px; a patch of plain clay. */
 export const REGIONS = {
   obv_full: { x: 0, y: 0, w: 450, h: 325, mm: 0.2 },
   obv_part: { x: 450, y: 0, w: 450, h: 325, mm: 0.2 },
-  rev: { x: 0, y: 325, w: 450, h: 325, mm: 0.2 },
+  obv_fresh: { x: 0, y: 325, w: 450, h: 325, mm: 0.2 },
   edge_seal: { x: 450, y: 325, w: 565, h: 217, mm: 0.115 },
   door_face: { x: 450, y: 542, w: 550, h: 400, mm: 0.2 },
   plain: { x: 0, y: 650, w: 64, h: 64, mm: 0.5 },
@@ -48,7 +60,8 @@ export type RegionId = keyof typeof REGIONS;
 
 export interface WritingAtlas {
   texture: THREE.DataTexture; height: Float32Array;
-  /** what the bake put into the clay: which seal texts (ids) had their signs drawn, and the signs in drawing order */
+  /** what the bake put into the clay: which texts (seal texts and reconstructed tablet texts, ids) had their signs drawn,
+   *  and the signs in drawing order */
   baked: { glyphs: boolean; texts: string[]; signs: string; seals: string[] };
 }
 let atlas: WritingAtlas | null = null;
@@ -167,40 +180,21 @@ function reliefPolys(H: Float32Array, r: Region, polys: Pt[][], depth: number, s
   }
 }
 
-// ------------------------------------------------------------------------------------------------ wedges (placeholder text)
-/** one stylus impression: a triangular head (deepest near the apex where the stylus corner went in) and a tail groove.
- *  (u, t) the head's back centre, angle 0 = pointing +u (a horizontal wedge), π/2 = pointing +t (a vertical one) */
-function wedge(H: Float32Array, r: Region, u: number, t: number, ang: number, W: number, L: number, tail: number, d: number) {
-  const ca = Math.cos(ang), sa = Math.sin(ang), A = L + tail, hw = W / 2 + 0.2; // the rotated rectangle a ∈ [0, A], b ∈ [−hw, hw]
-  const xs = [0, A].flatMap(a => [-hw, hw].map(b => u + a * ca - b * sa)), ys = [0, A].flatMap(a => [-hw, hw].map(b => t + a * sa + b * ca));
-  paintField(H, r, [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)], (pu, pt) => {
-    const a = (pu - u) * ca + (pt - t) * sa, b = -(pu - u) * sa + (pt - t) * ca;
-    let depth = 0;
-    if (a >= 0 && a <= L) { const half = (W / 2) * (1 - a / L); if (Math.abs(b) < half) { const edge = Math.min(half - Math.abs(b), a, L - a) / (0.3 * W); depth = d * Math.min(1, edge) * (1 - 0.35 * a / L); } }
-    if (a > L * 0.4 && a < L + tail) { const tw = W * 0.16, s = 1 - Math.abs(b) / tw; if (s > 0) depth = Math.max(depth, d * 0.45 * s * (1 - Math.max(0, a - L) / tail)); }
-    return -depth;
-  });
+// ------------------------------------------------------------------------------------------------ the tablets' text
+/** the Treasury memorandum `id` (writing.json recon_texts, RECONSTRUCTED, C: D-198) impressed into a tablet face: its
+ *  scribal lines as in the data, the signs the font's outlines sunk into the clay (a stylus impression leaves the wedge
+ *  as a hollow), no word spaces (C), one sign height for the whole text, the largest ≤ 4 mm at which the longest line
+ *  fits between the margins (Achaemenid Elamite tablets, sign height c. 3-4 mm: C). Draws nothing without the fonts. */
+function impressTablet(H: Float32Array, r: Region, id: string, baked: WritingAtlas['baked']) {
+  const T = WRITING.recon_texts[id]; if (!T || !writingFontsLoaded()) return;
+  const Wmm = r.w * r.mm, Hmm = r.h * r.mm, left = 5.2, right = 3.2, top = 4.4, font = fonts.cun!;
+  const lineWidth = (line: string, gh: number) => { const sc = (gh / font.unitsPerEm) * 1.25; return [...line].reduce((w, ch) => w + (font.glyphs.get(font.charToGlyphIndex(ch)).advanceWidth ?? font.unitsPerEm) * sc, 0); };
+  let gh = 4.0; while (gh > 1.6 && (T.lines_cuneiform.some(l => lineWidth(l, gh) > Wmm - left - right) || top + T.lines_cuneiform.length * gh * 1.4 > Hmm - 3)) gh -= 0.05;
+  const polys: Pt[][] = []; let base = top + gh;
+  for (const line of T.lines_cuneiform) { const lay = glyphPolys('cun', line, left, base, Wmm - left - right + 1e-3, gh, 0); polys.push(...lay.polys); baked.signs += lay.drawn; base = lay.bottom + gh * 1.4; } // (a line too long for the face would wrap: it never is, measured in the tests)
+  reliefPolys(H, r, polys, -0.5, 0.1);
+  if (!baked.texts.includes(id)) baked.texts.push(id);
 }
-/** lines of wedge impressions over a tablet face: the look of an Elamite text with NO text in it (placeholder, B18). Line
- *  pitch and wedge size C (Achaemenid Elamite tablets, sign height c. 3-4 mm: C); no ruling lines (C, Q-321) */
-function placeholderLines(H: Float32Array, r: Region, rng: Rng, lines: number, lastFraction = 1, marginL = 3.5) {
-  const Wmm = r.w * r.mm, pitch = 4.6, top = 4.2;
-  for (let li = 0; li < lines; li++) {
-    const t = top + li * pitch, end = (li === lines - 1 ? lastFraction : 1) * (Wmm - 3.5 - marginL) + marginL;
-    let u = marginL + rng.range(0, 0.6);
-    while (u < end - 2) {
-      const n = rng.int(1, 4), w0 = u; // a cluster of 1-4 impressions
-      for (let k = 0; k < n; k++) {
-        const kind = rng.next();
-        if (kind < 0.55) { wedge(H, r, u, t + rng.range(-0.6, 0.6), rng.range(-0.08, 0.08), 1.6, 1.9, rng.range(0.4, 1.6), 0.55); u += rng.range(1.2, 2.4); }
-        else if (kind < 0.85) { wedge(H, r, u + 0.5, t - 1.6, Math.PI / 2 + rng.range(-0.06, 0.06), 1.5, 1.7, rng.range(0.8, 1.6), 0.55); u += rng.range(0.9, 1.5); }
-        else { wedge(H, r, u, t - 0.6, Math.PI / 4, 1.4, 1.4, 0.3, 0.5); u += rng.range(1.0, 1.4); }
-      }
-      u = Math.max(u, w0 + 1.5) + rng.range(0.6, 1.4);
-    }
-  }
-}
-
 // ------------------------------------------------------------------------------------------------ seals
 /** signed distances (mm) of simple shapes for the seal figures */
 const sdCircle = (x: number, y: number, cx: number, cy: number, rr: number) => Math.hypot(x - cx, y - cy) - rr;
@@ -283,13 +277,13 @@ function bake(H: Float32Array, baked: WritingAtlas['baked']) {
     const k = [rng.range(0.05, 0.12), rng.range(0.05, 0.12), rng.range(0, 6), rng.range(0, 6)];
     paintField(H, r, null, (u, t) => 0.05 * Math.sin(u * k[0] + k[2]) * Math.cos(t * k[1] + k[3])); };
   const R = REGIONS;
-  // tablet obverse, fully written (filed tablets): 13 lines; the cord hole at the upper left corner (B)
-  placeholderLines(H, R.obv_full, rng, 13, 0.55);
-  // the tablet being written: 6 lines, the last one broken off where the scribe stopped
-  placeholderLines(H, R.obv_part, rng, 6, 0.4);
-  // the reverse: the text runs on for 5 lines, then blank (C)
-  placeholderLines(H, R.rev, rng, 5, 0.3);
-  for (const r of [R.obv_full, R.obv_part]) paintField(H, r, [0.8, 0.8, 5, 5], (u, t) => { const d = Math.hypot(u - 2.6, t - 2.6); return d < 1.05 ? -1.4 * Math.sqrt(1 - (d / 1.05) ** 2) : 0; }); // the cord hole
+  // the tablets' obverses: the reconstructed memoranda (C, D-198) of the filed tablets, the fresh ones and the one being
+  // written (four lines so far); the reverses are uninscribed (plain clay: the memoranda fit the obverse, C); the cord hole
+  // at the upper left corner (B)
+  impressTablet(H, R.obv_full, (WRITING.objects.pt_letter.recon as string), baked);
+  impressTablet(H, R.obv_fresh, (WRITING.objects.pt_letter_fresh.recon as string), baked);
+  impressTablet(H, R.obv_part, (WRITING.objects.pt_letter_unfinished.recon as string), baked);
+  for (const r of [R.obv_full, R.obv_fresh, R.obv_part]) paintField(H, r, [0.8, 0.8, 5, 5], (u, t) => { const d = Math.hypot(u - 2.6, t - 2.6); return d < 1.05 ? -1.4 * Math.sqrt(1 - (d / 1.05) ** 2) : 0; }); // the cord hole
   // the left edge: the treasurer's seal rolled over its whole length (C: sealed on the left edge, SITE_SPEC)
   rollSeal(H, R.edge_seal, 'PTS-treasurer-Darius', 0.8, 0, R.edge_seal.w * R.edge_seal.mm - 1.6, 9, baked);
   // the door sealing's face: the Xerxes hero seal rolled once across the middle of the lump (C)
@@ -319,10 +313,11 @@ export function reliefRms(id: RegionId, box?: [number, number, number, number]):
 const uvRect = (id: RegionId, s: number, t: number): [number, number] => { const r = REGIONS[id]; return [(r.x + Math.min(1, Math.max(0, s)) * r.w) / ATLAS, (r.y + Math.min(1, Math.max(0, t)) * r.h) / ATLAS]; };
 /** tablet dimensions (m): width along the lines, height across them, thickness (SITE_SPEC treasury.r_scribes_room.tablet, C) */
 export const tabletSize = () => v<any>('treasury', 'r_scribes_room').tablet as [number, number, number];
-/** a PT letter-order tablet (x = width, z = height, y = thickness), pillowed faces and rounded edges; UVs into the atlas:
- *  +y the obverse (full or partly written), −y the reverse, −x the sealed left edge, the other edges plain clay.
+/** a PT tablet (x = width, z = height, y = thickness), pillowed faces and rounded edges; UVs into the atlas: +y the
+ *  obverse (the filed tablets' text, the fresh tablets' text, or the unfinished tablet's four lines), −y the reverse
+ *  (uninscribed: plain clay), −x the sealed left edge (not on the unfinished tablet), the other edges plain clay.
  *  `lod` 0: close view (the drying board, 464 triangles); 1: the filed rows (76); 2: the carried prop (12, a plain block with rounded edges, no UVs needed). */
-export function ptTabletGeometry(variant: 'full' | 'part' = 'full', lod: 0 | 1 | 2 = 0): THREE.BufferGeometry {
+export function ptTabletGeometry(variant: 'full' | 'fresh' | 'part' = 'full', lod: 0 | 1 | 2 = 0): THREE.BufferGeometry {
   const [tw, th, tt] = tabletSize(), seg = [[10, 2, 8], [4, 1, 3], [1, 1, 1]][lod];
   const g = new THREE.BoxGeometry(tw, tt, th, seg[0], seg[1], seg[2]);
   const p = g.getAttribute('position') as THREE.BufferAttribute, uv = g.getAttribute('uv') as THREE.BufferAttribute;
@@ -330,7 +325,8 @@ export function ptTabletGeometry(variant: 'full' | 'part' = 'full', lod: 0 | 1 |
   for (let gi = 0; gi < groups.length; gi++) for (let i = groups[gi].start; i < groups[gi].start + groups[gi].count; i++) {
     const vi = (g.index!.array as ArrayLike<number>)[i], x = p.getX(vi), y = p.getY(vi), z = p.getZ(vi);
     const s = x / tw + 0.5, t = z / th + 0.5, e = y / tt + 0.5;
-    const [a, b] = gi === 2 ? uvRect(variant === 'full' ? 'obv_full' : 'obv_part', s, t) : gi === 3 ? uvRect(variant === 'full' ? 'rev' : 'plain', 1 - s, t) : gi === 1 && variant === 'full' ? uvRect('edge_seal', t, 1 - e) : uvRect('plain', (gi === 0 ? t : s) * 0.9 + 0.05, e * 0.9 + 0.05);
+    const obv: RegionId = variant === 'full' ? 'obv_full' : variant === 'fresh' ? 'obv_fresh' : 'obv_part';
+    const [a, b] = gi === 2 ? uvRect(obv, s, t) : gi === 3 ? uvRect('plain', 1 - s, t) : gi === 1 && variant !== 'part' ? uvRect('edge_seal', t, 1 - e) : uvRect('plain', (gi === 0 ? t : s) * 0.9 + 0.05, e * 0.9 + 0.05);
     uv.setXY(vi, a, b);
   }
   for (let i = 0; i < p.count; i++) { // pillow the faces and round the edges (C)
@@ -370,14 +366,17 @@ export function bullaGeometry(r: number): THREE.BufferGeometry {
 }
 
 // ------------------------------------------------------------------------------------------------ dev overlay
-/** the dev overlay's record for a written object (writing.json objects.<id>): tier, text id, seal and sources; placeholder
- *  when the object's text is not a published text, or when the seal's inscription was not baked (no fonts). `unsealed`:
- *  an object of the type that has not been sealed yet (the tablet being written) */
+/** the dev overlay's record for a written object (writing.json objects.<id>): tier, text id, seal and sources; a
+ *  reconstructed text (the Treasury memoranda, C, D-198) says so in every record ("RECONSTRUCTED … not a surviving text");
+ *  placeholder when the object's text is not there to see: a placeholder text, or signs (the tablet's text, the seal's
+ *  inscription) that the bake did not impress (no fonts). `unsealed`: an object of the type not sealed yet */
 export function writtenMeta(id: string, what: string, opts: { unsealed?: boolean } = {}): Record<string, unknown> {
-  const O = WRITING.objects[id], seal = O.seal && !opts.unsealed ? WRITING.seals[O.seal] : null;
-  const base = { tier: O.tier, src: O.src.join(';'), writing: id, text: O.text ?? '—', seal: (seal && O.seal) || '—' };
-  return { ...base, placeholder: O.placeholder || (!!seal && !writingFontsLoaded()), note: `${what ? what + ': ' : ''}${O.what}${O.placeholder ? ' [placeholder text, B18]' : ''} (whether a seal inscription is impressed: the live record, F3)`,
-    describe: () => { const baked = writingAtlas().baked, sealOk = !seal || baked.texts.includes(seal.text);
-      return { placeholder: O.placeholder || !sealOk,
-        note: `${what ? what + ': ' : ''}${O.what}. ${O.placeholder ? `PLACEHOLDER TEXT: ${O.placeholder_why} ` : O.text ? `Text ${O.text} (ARIo ${WRITING.texts[O.text].ario}). ` : `${String(O.why_no_text ?? '')} `}${seal ? `Seal ${O.seal} (${seal.tier}): inscription ${seal.text} (ARIo ${WRITING.texts[seal.text].ario}) ${sealOk ? 'impressed' : 'NOT impressed (fonts not loaded)'}; design C.` : ''}` }; } };
+  const O = WRITING.objects[id], seal = O.seal && !opts.unsealed ? WRITING.seals[O.seal] : null, R = O.recon ? WRITING.recon_texts[O.recon] : null;
+  const base = { tier: O.tier, src: O.src.join(';'), writing: id, text: O.text ?? O.recon ?? '—', seal: (seal && O.seal) || '—', reconstructed: !!R };
+  const reconNote = (impressed: boolean) => R ? `RECONSTRUCTED TEXT ${O.recon} (${R.label}; ${R.date.king} year ${R.date.regnal_year}${R.date.months ? `, month${R.date.months.length > 1 ? 's' : ''} ${R.date.months.join(' and ')}` : ', undated so far'}): ${impressed ? 'impressed' : 'NOT impressed (fonts not loaded)'}. ${O.recon_why ?? ''} ` : '';
+  return { ...base, placeholder: O.placeholder || ((!!seal || !!R) && !writingFontsLoaded()),
+    note: `${what ? what + ': ' : ''}${O.what}${O.placeholder ? ' [placeholder text, B18]' : R ? ` [RECONSTRUCTED text ${O.recon}, C: not a surviving text, D-198]` : ''} (whether the signs are impressed: the live record, F3)`,
+    describe: () => { const baked = writingAtlas().baked, sealOk = !seal || baked.texts.includes(seal.text), textOk = !R || baked.texts.includes(O.recon!);
+      return { placeholder: O.placeholder || !sealOk || !textOk, reconstructed: !!R,
+        note: `${what ? what + ': ' : ''}${O.what}. ${O.placeholder ? `PLACEHOLDER TEXT: ${O.placeholder_why} ` : R ? reconNote(textOk) : O.text ? `Text ${O.text} (ARIo ${WRITING.texts[O.text].ario}). ` : `${String(O.why_no_text ?? '')} `}${seal ? `Seal ${O.seal} (${seal.tier}): inscription ${seal.text} (ARIo ${WRITING.texts[seal.text].ario}) ${sealOk ? 'impressed' : 'NOT impressed (fonts not loaded)'}; design C.` : ''}` }; } };
 }

@@ -63,9 +63,10 @@ export function buildScribesRoom(room: number[], shelves: number[][], seed = 1):
   const [tw, th, tt] = R.tablet as number[], fl = room[4];
   const mat = (rgb: [number, number, number], rough: number) => new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...rgb, THREE.SRGBColorSpace), roughness: rough, metalness: 0 });
   // a PT letter: a rectangular tablet with pillowed faces, lying on its face (x = width, z = height, y = thickness); the
-  // writing and the seal roll are impressed relief from the writing atlas (writing.ts, D-179): the filed tablets are
-  // written on both faces, the fresh ones partly (one is being written); the Elamite text is a PLACEHOLDER (B18)
-  const tabletGeo = ptTabletGeometry('full', 1), freshGeo = ptTabletGeometry('full', 0), partGeo = ptTabletGeometry('part', 0);
+  // writing and the seal roll are impressed relief from the writing atlas (writing.ts, D-179): the filed tablets and the
+  // fresh ones each carry a memorandum on the obverse, one is being written; the Elamite texts are RECONSTRUCTED by the
+  // project on the Treasury tablets' published formulary, not surviving texts (C; writing.json recon_texts, D-198, B18)
+  const tabletGeo = ptTabletGeometry('full', 1), freshGeo = ptTabletGeometry('fresh', 0), partGeo = ptTabletGeometry('part', 0);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), one = new THREE.Vector3(1, 1, 1);
   const filed: THREE.Matrix4[] = [], fresh: THREE.Matrix4[] = [];
   // filed tablets: stood on edge in two rows along each bench, a few gaps (C); baked-dry clay
@@ -88,11 +89,11 @@ export function buildScribesRoom(room: number[], shelves: number[][], seed = 1):
     fresh.push(m4.clone().compose(new THREE.Vector3(e, fl + 0.03 + tt / 2, -nn), q.setFromAxisAngle(up, hd + rng.range(-0.1, 0.1)), one)); }
   const dry = new THREE.InstancedMesh(tabletGeo, clayMaterial([0.66, 0.55, 0.42], 0.9), filed.length); filed.forEach((mm, i) => dry.setMatrixAt(i, mm));
   const wet = new THREE.InstancedMesh(freshGeo, clayMaterial([0.47, 0.38, 0.29], 0.55), fresh.length); fresh.forEach((mm, i) => wet.setMatrixAt(i, mm));
-  for (const [im, name] of [[dry, 'scribes:tablets_filed'], [wet, 'scribes:tablets_fresh']] as const) { im.castShadow = true; im.receiveShadow = true; im.name = name; im.computeBoundingSphere(); im.userData = writtenMeta('pt_letter', name === 'scribes:tablets_fresh' ? 'fresh tablets drying, written and sealed on the left edge' : 'filed tablets, written and sealed'); group.add(im); }
-  // the tablet being written: six lines on the obverse, the last broken off where the scribe stopped; on the floor in front
-  // of the desk, to the scribe's right (C)
+  for (const [im, name] of [[dry, 'scribes:tablets_filed'], [wet, 'scribes:tablets_fresh']] as const) { im.castShadow = true; im.receiveShadow = true; im.name = name; im.computeBoundingSphere(); im.userData = name === 'scribes:tablets_fresh' ? writtenMeta('pt_letter_fresh', 'fresh tablets drying, written and sealed on the left edge') : writtenMeta('pt_letter', 'filed tablets, written and sealed'); group.add(im); }
+  // the tablet being written: four lines on the obverse, the last one short where the scribe stopped; on the floor in
+  // front of the desk, to the scribe's right (C)
   const part = new THREE.Mesh(partGeo, wet.material as THREE.Material), pc = [dx + right[0] * 0.25 + fwd[0] * 0.32, dy + right[1] * 0.25 + fwd[1] * 0.32];
-  part.position.set(pc[0], fl + tt / 2, -pc[1]); part.rotation.y = hd + 0.3; part.name = 'scribes:tablet_unfinished'; part.userData = writtenMeta('pt_letter', 'a tablet being written: six lines so far, not yet sealed', { unsealed: true }); group.add(part);
+  part.position.set(pc[0], fl + tt / 2, -pc[1]); part.rotation.y = hd + 0.3; part.name = 'scribes:tablet_unfinished'; part.userData = writtenMeta('pt_letter_unfinished', 'a tablet being written: four lines so far, not yet sealed', { unsealed: true }); group.add(part);
   // Aramaic documents on leather, rolled, tied and sealed with a clay bulla, lying by the drying board (B: Treasury tablets
   // were tied to leather scrolls with an Aramaic duplicate, Cameron's inference; number and place C). Their text is inside.
   const S = 3, scrollAt: THREE.Matrix4[] = [];
@@ -104,7 +105,8 @@ export function buildScribesRoom(room: number[], shelves: number[][], seed = 1):
   for (const [im, name] of [[leather, 'scribes:leather_scrolls'], [bullae, 'scribes:bullae']] as const) { im.castShadow = true; im.receiveShadow = true; im.name = name; im.computeBoundingSphere(); im.userData = writtenMeta('leather_scroll', name === 'scribes:bullae' ? 'clay bulla on the tie of a leather scroll, rolled with the treasurer\'s seal' : 'rolled leather document, tied'); group.add(im); }
   // pick boxes for the translation layer (INSCRIPTION_PICK_LAYER, never rendered): the drying board, the benches, the scrolls
   const pick = (w: number, h: number, d: number, at: THREE.Vector3, rotY: number, id: string) => { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), PICK_MAT); b.position.copy(at); b.rotation.y = rotY; b.layers.set(INSCRIPTION_PICK_LAYER); b.name = `writing:${id}:pick`; b.userData = { ...writtenMeta(id, ''), inscription: `writing:${id}`, version: 'writing', pickFar: 4 }; group.add(b); };
-  pick(bw, 0.08, bd, new THREE.Vector3(bc[0], fl + 0.04, -bc[1]), hd, 'pt_letter');
+  pick(bw, 0.08, bd, new THREE.Vector3(bc[0], fl + 0.04, -bc[1]), hd, 'pt_letter_fresh');
+  { const e = pc[0], nn = pc[1]; pick(tw + 0.03, 0.06, th + 0.03, new THREE.Vector3(e, fl + 0.03, -nn), hd + 0.3, 'pt_letter_unfinished'); }
   for (const [cx, cy, sx, sy, top] of shelves) pick(sx, th + 0.04, sy, new THREE.Vector3(cx, top + th / 2, -cy), 0, 'pt_letter');
   { const e = bc[0] + fwd[0] * (bd / 2 + 0.14), nn = bc[1] + fwd[1] * (bd / 2 + 0.14); pick(0.36, 0.08, 0.2, new THREE.Vector3(e, fl + 0.04, -nn), hd, 'leather_scroll'); }
   // the clay: a lump kept moist under a cloth, in front-left of the scribe

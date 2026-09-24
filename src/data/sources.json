@@ -858,5 +858,10 @@
   "cite": "Copernicus DEM product handbook (Airbus/ESA): GLO-30 absolute vertical accuracy < 4 m (LE90); relative vertical accuracy < 2 m where slope <= 20 %, < 4 m where slope > 20 %",
   "url": "https://spacedata.copernicus.eu/collections/copernicus-digital-elevation-model",
   "access": "not seen in this project (recollection of the published specification): B"
+ },
+ "PROJ-TR": {
+  "cite": "English translations made by this project (PĀRSA, session 7, D-198) from the ARIo transliterations (R. Schmitt 2009, ORACC; CC0) of the carved inscriptions and seal texts, per version, with the repository lexicons; NOT a published translation; verify against Schmitt 2009 / Kent 1953 (src/data/translations.json, tools/build_translations.py)",
+  "url": "",
+  "access": "n/a (made here); tier C"
  }
 }

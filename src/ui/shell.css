@@ -26,6 +26,7 @@ h2 { font-weight: normal; letter-spacing: 0.12em; font-size: 18px; margin: 18px 
 .tl-orig { font-style: italic; color: var(--accent); } .tl-gloss { margin-top: 2px; } .tl-meta { font-size: 11px; color: var(--muted); }
 .tl-insc { position: fixed; right: 12px; top: 12px; width: min(520px, calc(100vw - 24px)); max-height: 70vh; overflow: auto; background: var(--bg); border: 1px solid var(--line); padding: 10px 14px; font-size: calc(13px * var(--tl-scale)); }
 .tl-title { color: var(--accent); margin-bottom: 4px; } .tl-inter { display: flex; flex-wrap: wrap; gap: 4px 10px; margin: 8px 0; }
+.tl-en { margin: 8px 0 4px; line-height: 1.4; } .tl-en-label { font-size: 11px; color: var(--accent); }
 .tl-w { display: inline-flex; flex-direction: column; } .tl-wo { font-style: italic; } .tl-wg { font-size: 11px; color: var(--muted); }
 .tl-panel { position: fixed; inset: 4vh 4vw; background: var(--bg); border: 1px solid var(--line); padding: 14px 18px; overflow: auto; pointer-events: auto; }
 .tl-map { width: min(80vh, 100%); height: auto; display: block; margin: 6px auto; } .tl-chron .row { display: block; }

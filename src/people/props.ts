@@ -39,7 +39,7 @@ export const PROP_NOTES: Record<string, { tier: 'A' | 'B' | 'C'; note: string }>
   spear: { tier: 'B', note: 'long spear with a pomegranate-shaped butt counterweight, silver for the ordinary guards (Herodotus via IR-IMM; SUSA-ARCH); shaft length and blade C' },
   sack: { tier: 'B', note: 'sack on the shoulder (porters on the tribute reliefs carry skins and bags)' },
   jar: { tier: 'C', note: 'storage/water jar, plain buff ware (C)' },
-  tablet: { tier: 'C', note: 'PT letter-order tablet at its carried LOD: the scribes\' room tablet (writing.json objects.pt_letter; form and size SITE_SPEC treasury.r_scribes_room, C) as a coarse form with no relief at this size; its Elamite text is a PLACEHOLDER everywhere (no Persepolis Treasury text reachable, BLOCKERS B18); clay tablets as such A' },
+  tablet: { tier: 'C', note: 'PT tablet (memorandum) at its carried LOD: the scribes\' room tablet (writing.json objects.pt_letter; form and size SITE_SPEC treasury.r_scribes_room, C) as a coarse form with no relief at this size; the text the scribes\' room tablets carry is RECONSTRUCTED by the project on the Treasury tablets\' published formulary, not a surviving text (C; writing.json recon_texts, D-198; the PT texts themselves unreachable, BLOCKERS B18); clay tablets as such A' },
   mallet: { tier: 'C', note: 'wooden mallet (NOT SEEN, C)' },
   basket: { tier: 'C', note: 'basket (C)' },
   hoe: { tier: 'C', note: 'hoe: an iron blade on a 1.25 m wooden handle (iron field tools are usual in the period; form NOT SEEN, C)' },
