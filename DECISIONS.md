@@ -2250,7 +2250,11 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - The eSpeak voices are nearly monotone.
 
   Fixing the pitch and the contour needs a re-render. build_speech.py calls the espeak-ng command, which is absent here. PyPI's espeakng-loader installs libespeak-ng 1.52.0 and its data, so a library build path exists, but it was not built here. Logged in BLOCKERS B17(b) and Q-287 (after Q-138); a human listening test (H8) remains.
-- **Tests:** tests/language.test.ts has 23 tests (was 15), including audio, the canvas sources, the carved signs and the murmur at 20,000 phrases per language.
+- **Tests:** tests/language.test.ts has 24 tests (was 15). The new ones cover audio, the canvas sources, the carved signs, the murmur at 20,000 phrases per language, and the shown form equalling the heard form (D-168).
+- **Not changed here:**
+  - A-minor 10: Egyptian and Lydian speakers still murmur with the Aramaic inventory, flagged C (Q-025). No lexicon exists, and none is invented.
+  - A-minor 11 (share-alike sources): what the app bundles from Strong's (openscriptures JSON, CC-BY-SA; the 1894 dictionary itself is public domain by date) and from Perseus (CC BY-SA) is single words and short glosses. Whether §12 needs more than the ledger's credit for that is for the lead.
+  - B-minor 6: the calendar's E-31 text ("a named mountain") belongs to the simulation's calendar.
 
 ## D-168 Every scripted line is said somewhere; the layer reads the version looked at; subtitles as heard (Phase 8 review A-C2, B-M3, A-M2 / B-M1, minors; session 5, layer workstream)
 - **Before:** `pickLine` had two callers (greet/reply when addressed; the guard's ask/affirm/refuse in visitor mode). 28 of 73 lines, and 144 of 372 clips, could be heard. In observer mode no Old Persian was spoken: Persians greeted in Aramaic, and Persian porters and women only nodded.
@@ -2290,7 +2294,7 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - Old Persian glosses also match ARIo's spelling (A.uramazdā, nai̯bam) and stems with an ending, shown "(stem)"; a bare stem never matches (*api* "also" is not *api-* "water").
   - Old Persian coverage: XPa 27 → 46 of 98, XPb 22 → 36 of 74, DNa 46 → 66 of 228, DNb 47 → 57 of 282. With the Elamite and Babylonian versions, 625 of 1,730 words in all.
   - XPb, XPc and XPd say "Old Persian only here" (A-M5).
-  - Subtitles show the heard form: the attested inflected Old Persian (`spoken` in old_persian.json: nai̯bam, uvaspā, umartiyā, ai̯vam, hašiyam) and Aramaic as romanised IPA (šəlām) (A-minor 4, B-minor 1). They also show the language by name (Greek (Ionic), no longer "grc": A-minor 5, B-minor 2) and the line's source (B-minor 3).
+  - Subtitles show the heard form: the attested inflected Old Persian (`spoken` in old_persian.json: nai̯bam, uvaspā, umartiyā, ai̯vam, hašiyam) and Aramaic as romanised IPA (šəlām) (A-minor 4, B-minor 1). The lint checks that every shown word has its IPA's consonants; the old stem *naiba* would fail. They also show the language by name (Greek (Ionic), no longer "grc": A-minor 5, B-minor 2) and the line's source (B-minor 3).
   - Chronicle rows show their tier and readable place names; map footprints carry their English names (B-minor 6).
   - tests/translation_layer.test.ts checks that the layer is off by default, and hidden and textless when off (B-minor 7).
 - **PROGRESS-facing corrections** (for the lead; this workstream does not edit PROGRESS):

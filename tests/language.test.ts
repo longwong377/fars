@@ -100,6 +100,22 @@ describe('language lint: speech lines', () => {
       for (const e of l.entries) expect(l.translit.split(' ')).toContain(spokenForm(e));
     }
   });
+  /** consonant skeleton of a romanised form or of IPA: vowels, length, stress, glottals, aspiration and gemination
+   *  dropped; v/w, y/j and the Greek romanisation (kh ph th x z) folded */
+  const skeleton = (s: string, lang: string, ipa: boolean) => {
+    let t = s.normalize('NFC').toLowerCase();
+    if (!ipa && lang === 'grc') t = t.replace(/kh/g, 'k').replace(/ph/g, 'p').replace(/th/g, 't').replace(/x/g, 'ks').replace(/z/g, 'zd');
+    t = t.replace(/t͡ʃ/g, 'c').replace(/d͡ʒ/g, 'j').replace(/ʃ/g, 's').replace(/ħ/g, 'h').replace(/χ/g, 'x').replace(/ɡ/g, 'g').replace(/ʒ/g, 'z');
+    t = t.normalize('NFD').replace(/\p{M}/gu, '');
+    t = ipa ? t.replace(/y/g, 'u') : t.replace(/v/g, 'w').replace(/y/g, 'j');
+    if (!ipa && lang === 'bab') t = t.replace(/h/g, 'x');
+    return t.replace(/[ʔʕʾʿˤʰːˈˌ'’\-.\s]/g, '').replace(/[aeiouəɛɔɪʊ]/g, '').replace(/(.)\1+/g, '$1');
+  };
+  it('the subtitle shows the form that is heard: each word\'s consonants are those of its IPA (an inflected form, not the stem)', () => {
+    for (const l of LINES) for (const e of l.entries) expect(skeleton(spokenForm(e), e.lang, false), `${l.id} ${e.id}: shown "${spokenForm(e)}", heard /${e.ipa}/`).toBe(skeleton(e.ipa!, e.lang, true));
+    // the check has teeth: the stem the subtitle used to show is not what is heard
+    const naiba = lexEntry('op:naiba-')!; expect(skeleton(naiba.form.replace(/-$/, ''), 'op', false)).not.toBe(skeleton(naiba.ipa!, 'op', true));
+  });
   it('Old Persian lines are short (≤ 3 words) and every line is tiered and glossed for the subtitle layer', () => {
     for (const l of LINES) {
       if (l.lang === 'op') expect(l.def.words.length, l.id).toBeLessThanOrEqual(3);

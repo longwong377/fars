@@ -300,8 +300,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         murmur.update(dt, talkers, cam.position); speech.update();
         { // scripted exchanges between the people near the listener, one turn after another
           const day = Math.floor(sim.t / 24), h = sim.t - day * 24, st = sunTimes(day);
-          const x = conversations.update(time, sim.agents as unknown as SpeakerLike[], [cam.position.x, -cam.position.z], { t: sim.t, night: h < st.rise || h > st.set }, convRng);
-          if (x && !convQueue.length) { convQueue = x.utterances.map(u => ({ speaker: u.speaker, to: u.to, line: u.line, situation: x.situation.id })); convNextAt = time; }
+          const x = convQueue.length ? null : conversations.update(time, sim.agents as unknown as SpeakerLike[], [cam.position.x, -cam.position.z], { t: sim.t, night: h < st.rise || h > st.set }, convRng);
+          if (x) { convQueue = x.utterances.map(u => ({ speaker: u.speaker, to: u.to, line: u.line, situation: x.situation.id })); convNextAt = time; }
           if (convQueue.length && time >= convNextAt) {
             const u = convQueue.shift()!, sp = u.speaker as any, to = u.to as any;
             if (!sp.walking) sp.heading = Math.atan2(to.pos[0] - sp.pos[0], to.pos[1] - sp.pos[1]) * 180 / Math.PI; // turns to the one addressed
