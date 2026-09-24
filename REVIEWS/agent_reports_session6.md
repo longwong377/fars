@@ -133,3 +133,33 @@ five-day watch cycle at 21 stretches of 10 ceremonial posts. Present day 0 (Q-33
 hillside 2,305–3,699 visible. B11's ≥ 300 met by node estimate. Pop-in 0 over 1,811 frames / 633 m after route warm-up.
 **Tests:** tsc clean; full vitest 625 passed, 1 skipped; new tests/court.test.ts (7), court_view.test.ts (3); lint:all OK;
 botcheck 97/97. Q-330..Q-336.
+
+## Simulation round-5 fixes (branch sim-s6, head be174b0, D-175) — merged in session 6
+**Still broken, placeholder or unverified (read first)**
+- The dust veil is not drawn: plans and tasks say "the face wrapped against the dust" (`Seg.wear` / `Task.wears`); the
+  renderer ignores it (a new attribute with no performance behind it).
+- The camp's flour piles up at the ovens: 479 sacks carried over the year, 203 kneaded, 282 left at year end (inside the
+  stock gate; the kneading rate is C, Q-296).
+- Two working values rest on memory, not a source read: the saddle-quern rate ~1 kg/h (Q-296), apprenticeship at home (Q-298).
+- The new tests were written against the reviewers' measured numbers, not run against the round-5 code (7a09285).
+- The village cap re-sorts the plain: households fall in different villages (named people keep their ids; kin and
+  neighbour links rebuilt).
+- Two tests fail under load (performances CPU budget; people.test determinism 300 s timeout); both pass when quieter.
+**Each round-5 finding → done:** rain in the open field (no field work started into rain covering half the window; morning
+showers waited out; rain during work sends people home within 0.5 h; Terrace work shelters under the Gate; the Treasury's
+and palaces' inside work roofed; test: no shelter in the open over 0.5 h on rain days, was ~40,100 person-days/yr); the
+start-of-year age (age on the day everywhere; infants in days; no child planned as an infant after its first birthday, was
+up to 1,446); minding without the little one (planned from the little one's side, one schedule `mindDay`, `planCheck`
+minding check); the camp's flour (barley depot → querns → ovens, every sack from one stock into another; the stock gate
+covers all stocks); the guard's second breakfast (no meal within an hour of another); the lane in heat and dust (under 1 %
+of men 2 h in the lane 13–17 h on 38–41 °C days, was 5–5.8 %; walking 0.7× in dust); home hours blind to standing and
+light; the servant's estate day and the scribe's son; labels; names (no name covers more than a quarter of Egyptian men,
+was 229 of 230); the sun (apparent sun, h0 −0.833°, within 1.5 min of astronomy-engine); villages capped at 3,000 (291–2,966,
+was 219–8,491); pick coverage (leader of ten, rain-day field worker, child past a birthday, baby under four months, herder,
+traveller, man by the grain heap).
+**Soak (branch, on 499a55e): PASS all 8 gates** (bench-reports/soak-2026-09-24T04-33-22-283Z.json in the agent's worktree):
+variety worst 0.019; populationVariety 43,245 measured, worst 0.067; events 14–20 kinds/week; stuck none; stocks sacks
+0–283, no shortfall; renderedHonest pass; plansWellFormed 15,462,938 person-days, 0 issues, 118 checked days, 0 issues;
+visibleChange 51/51 weeks. (The first run on d3d2dc1 failed plansWellFormed with 30 issues; fixed.)
+**Tests:** tsc clean; people_days_r6 32/32; people and sim suites 108/108; full vitest 557 passed, 1 skipped; lint:all OK;
+botcheck 97/97. Round-6 input REVIEWS/shadow_days_input_seed1_pick113.txt (not scored). Q-296..Q-299.
