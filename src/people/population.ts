@@ -1535,10 +1535,12 @@ class Planner {
    *  of under 45 min (S9 of reviewer B, r7: "sleeping through the heat of the day" for 40 min) is a short sleep or a rest
    *  in the heat; "before leaving" for bread eaten an hour or more before the person leaves is bread and water */
   private words(segs: Seg[]) {
+    // (words of the heat on a spell outside the day's hot hours, 10:30-18:00: a rest after six in the evening, 8 in the soak of
+    // 302ed5f); then "through the heat" by its stretch, decided for all spells at once (one short stretch in the soak of 3a823c4)
+    for (const s of segs) if (/\bthe heat\b|\bin the heat\b/.test(s.why) && !(s.t1 > 10.5 && s.t0 < 18)) s.why = s.act === 'sleep' ? 'a short sleep' : 'resting at home';
+    const short = segs.map((s, i) => /through the heat/.test(s.why) && heatStretch(segs, i) < 0.75);
     for (let i = 0; i < segs.length; i++) { const s = segs[i];
-      if (/through the heat/.test(s.why) && heatStretch(segs, i) < 0.75) s.why = /^sleeping through the heat/.test(s.why) ? 'a short sleep in the heat of the day' + s.why.replace(/^sleeping through the heat( of the day)?/, '') : s.why.replace(/ through the heat( of the day)?/, ' in the heat of the day');
-      // (words of the heat on a spell outside the day's hot hours, 10:30-18:00: a rest after six in the evening, 8 in the soak of 302ed5f)
-      if (/\bthe heat\b|\bin the heat\b/.test(s.why) && !(s.t1 > 10.5 && s.t0 < 18)) s.why = s.act === 'sleep' ? 'a short sleep' : 'resting at home';
+      if (short[i]) s.why = /^sleeping through the heat/.test(s.why) ? 'a short sleep in the heat of the day' + s.why.replace(/^sleeping through the heat( of the day)?/, '') : s.why.replace(/ through the heat( of the day)?/, ' in the heat of the day');
       if (/^(nursing|stopping to nurse).* in the night$/.test(s.why)) s.why = this.nightWords(s.why.replace(/ in the night$/, ''), (s.t0 + s.t1) / 2);
       if (/back from/.test(s.why) && !backFromOk(segs, i)) s.why = s.why.replace(/, back from [^,]*/, '');
       if (/before leaving/.test(s.why)) { let ok = false; for (let j = i + 1; j < segs.length && segs[j].t0 < s.t1 + 0.75; j++) if (segs[j].where === 'road' || segs[j].place !== s.place) { ok = true; break; } if (!ok) s.why = s.why.replace(/ before leaving/, ''); } }
