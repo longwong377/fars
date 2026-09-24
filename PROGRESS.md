@@ -16,7 +16,11 @@
     project's own records (Livius CC-BY-NC translations recorded as read, yet reported unavailable). Major: 45 of 73 lines never heard; no music in the
     world; tablets blank, no Aramaic leather; most Terrace inscriptions missing; signs raised, not cut; lint blind to audio and murmur; no audio occlusion.
     Fixes: four workstreams (D-165..D-173).
-  - Running: crowd merge D-143 (workflow), soak on the D-150 code, WebGL2 interior render.
+  - **Soak on the D-150 final code PASSES all 8 gates** (bench-reports/soak-2026-09-24T00-01-47-708Z.json): 15,454,999 person-days, 0 plan issues,
+    worst population near-copy share 0.094 (limit 0.10), 14–20 event kinds a week (floor 8), stores in bounds, construction advanced 51 of 51 weeks.
+  - **WebGL2 at quality high: not rendered.** The forced-WebGL2 job timed out inside the first view's 8 frames (23 min, no error logged). Re-queued
+    at quality test, then high with 1 frame and a longer timeout.
+  - Running: crowd merge D-143 (workflow), sim round-5 fixes, four Phase 8 workstreams.
 - **Session 4 (2026-09-23; ended — read this block and HANDOFF.md first).** Base was be6db72 (the session-3 handoff). Done and pushed:
   - **Soak passes all 8 gates again** (D-140, sim agent). Worst population variety 0.094 (thin margin, unchanged).
   - **Shadow review round 4 FAILED** (REVIEWS/shadow_phase5_r4.md, pick seed 89): 1 of 20 below 4 (a farming man idle at home all day). The sim agent is fixing the round-4 findings (D-150); round 5 (pick seed 97) follows its merge.
