@@ -36,7 +36,7 @@ For fauna, modern Fars distributions are used as a proxy for 467 BCE (C unless s
 | **CBS 10996** (Neo-Babylonian, c. 700 BCE, Nippur) lists fourteen string-pair intervals on a 7-string (+2 octave) system. Kilmer read it as **heptatonic** (ascending). Dumbrill argues the system is **descending** | musicircle.net / Dumbrill "The case for CBS 10996" (search extracts) | B |
 | **UET VII 126** (Ur): string names. Read as evidence for simultaneous **7- and 9-string** (heptatonic / enneatonic) practice | same | B |
 | **UET VII 74**: nine strings, string 8 tuned with string 1 and string 9 with string 2 → octaves → a **seven-note** scale | same | B |
-| → **Design rule:** tune a 9-string harp or lyre heptatonically, with strings 8–9 an octave above 1–2. Use the Kilmer/Dumbrill mode cycle (*išartum*, *kitmum*, *embūbum*, *pītum*, *nīš gabarîm*, *nīd qablim*, *qablītum*). Mode names come from general knowledge and were **not** seen in extracts | – | C |
+| → **Design rule:** tune a 9-string harp or lyre heptatonically, with strings 8–9 an octave above 1–2. The mode names and their scales are now taken from Kilmer's equation with the Greek octave species (§8 M-13, search extract, session 6). The order of the tuning cycle differs between extracts (Q-300) | §8 M-13 | C |
 
 ## 4. Birds (Marvdasht plain, Kur/Pulvar, Kuh-e Rahmat)
 
@@ -78,9 +78,37 @@ seasonality near Persepolis is inferred (C).
 | **Kur** flows to Bakhtegan/Tashk lakes | Wikipedia "Kor River" (extract) | B |
 | → On the terrace the rivers are **not audible** (they are several km away). Near water, expect the sound of flow in spring (Mar–May) and silence or trickle in late summer. Terrace drains and cisterns carry rain in winter storms | inference | C |
 
+## 8. Music in the world: every claim the code makes (session 6, D-178)
+
+Each row has an id. The code cites these ids (`src/audio/performers.ts` `MUSIC_CLAIMS`, `src/audio/tuning.ts`,
+`src/audio/instruments.ts`), and `npm run lint:music` fails if a performance cites an id that is missing here or has no
+tier. Access: session 6 had web search extracts only (the scholarly hosts, attalus.org, iranicaonline.org and wikipedia
+are blocked, B6). Rows marked "read" were read in full from Perseus in session 3 (§1).
+
+| id | claim | source (key) | tier | what the code does with it |
+|---|---|---|---|---|
+| M-01 | At the king's supper "his concubines sing and play to him; and one of them leads, and then all the rest sing in concert". The verb for playing is given in extracts as playing on harps (Greek *psallein*, plucking strings) | Heracleides via Athenaeus 4.145c (ATH4-HERACL): English read (§1); the harp reading via extract only | B (a 4th-c. Greek report about the court in general, not about 467 or Persepolis) | court supper music: women's voices (a lead, then all together) with angular harps, only while the court is resident |
+| M-02 | The women "sleep all day, that they may watch all night; and they pass the whole night in singing and playing, with lights burning" ("play on harps" in an extract) | Heracleides via Athenaeus 12.514b (ATH12-HERACL): read (§1) | B | court night music: a harp and a voice at intervals through the night, while the court is resident |
+| M-03 | Among Darius III's household taken at Damascus: "329 concubines of the king skilled in music", with garland-makers, cooks and wine-strainers | Parmenion's letter, Athenaeus 13.608a (ATH13-PARM), extract | B for the institution (a large staff of women musicians at court, 333 BCE); C for 467 | court musicians are women (the ensemble size, 4, is C) |
+| M-04 | Angular harps (vertical and horizontal) in Iran, on the Neo-Elamite reliefs of Kul-e Farah and Madaktu. A 9-string harp is tuned heptatonically, with strings 8 and 9 an octave above 1 and 2 (§3) | SOUND-R §2 and §3 (extracts) | B (type); C (size, timbre) | the only instrument that plays in the world: the court harp (`INSTRUMENTS.harp`) |
+| M-05 | Persian sacrifice has no music: no *aulos* (pipe) | Herodotus 1.132 (HDT), read | B | `MusicSystem.perform` refuses any performance in the `offering` context |
+| M-06 | "a Magus comes near and chants over it the song of the birth of the gods". The text of this "theogony" does not survive. Most scholars take it for an Avestan hymn like a Yašt | Herodotus 1.132 (HDT), read; IR-YASHT, extract | B (that a chant was sung); the words are unattested | **not performed.** No text is attested, the Avestan liturgy is that of a living religion and is not to be staged, and the lan offerings are in the town, where people are not rendered. Logged as BLOCKERS B20 and Q-301 |
+| M-07 | Greek work songs by trade: the millstone song (*himaios*) "men used to sing while grinding corn", the loom song, the spinners' *ioulos*, and the reapers' *Lityerses* | Athenaeus 14.618c-619b (ATH14-WORK), extract | B for Greece; C for anyone at Persepolis | the quern song of the work-camp women and the song of an Ionian mason at the block. Both are C and sparing, and are sung without words |
+| M-08 | Ionians (*Yaunā*) among the craftsmen and stonecutters of Persepolis | research/PEOPLE.md §2 (IR-PET, SX) | B | Ionian masons sing in a Greek mode (M-14) |
+| M-09 | Women's work groups (grinding, baking) with rations, maternity rations included | research/PEOPLE.md; the Terrace roster in src/people/sim.ts | B for the groups; C for the work camp | the quern song's singers are simulated women at their querns |
+| M-10 | Shepherds played the reed pipe, a rudimentary form of the Sumerian *ge-di* double pipe | DOUBLEPIPES-INFO, extract (a maker's site) | C | **not played.** The herders of the plain are simulated only in the abstract and are not rendered (D-024), so a pipe would be a sound without a player (Q-302) |
+| M-11 | An early Iranian ensemble appears on a seal impression: a four-stringed harp, a drum, a double pipe, and a singer with his hand at his cheek. The extract gives no date. It is probably the Chalcolithic Chogha Mish sealing (recalled, NOT SEEN) | Iranica "Music history i." (extract) | C for any Achaemenid use | not used (not Achaemenid) |
+| M-12 | "reliefs and artifacts depict musicians ... at Persepolis ... in processional scenes" | Grokipedia (extract) | rejected | not used. It conflicts with the relief inventory (RELIEFS_AND_COLOUR.md has no musicians on the Terrace reliefs): Q-303 |
+| M-13 | Kilmer equates the seven Babylonian tunings with the Greek octave species: *išartu* Dorian, *kitmu* Hypodorian, *embūbu* Phrygian, *pītu* Hypophrygian, *nīd qabli* Lydian, *nīš gabarî* Hypolydian, *qablītu* Mixolydian. The tunings are made by alternating fourths and fifths, which is Pythagorean tuning. One extract lists the cycle in a different order (išartum, kitmum, nīš gabarî, pītum, qablītum, nīd qablim, embūbum) | KILMER-SPECIES (extracts of Crickmore 2008, Dumbrill); Kilmer NOT SEEN | B- (system); C (names to scales, from extracts) | `tuning.ts`: each Mesopotamian mode is the Pythagorean diatonic rotated to its Greek species. The ids `meso1..7` follow the name order of this row. The conflict is Q-300 |
+| M-14 | Philolaus (fl. c. 420 BCE): the fourth is two tones of 9:8 plus a remainder of 256:243, and the fifth is three tones plus the same remainder (fragment 6a) | SEP-PHILOLAUS, extract | B (the ratios as a 5th-c. Greek system) | `GREEK_MODES` (Dorian E-species, Phrygian D, Lydian C) on these ratios. The species names are attested only later (Aristoxenus, Cleonides), so the names are C for 467 |
+| M-15 | No text of any Achaemenid, Mesopotamian or Greek song is attested for these settings | – | – | every song is a vocalise on open vowels, with no words. This keeps the language rule (§10): no invented words in any language. C |
+| M-16 | The court is resident only under the out-of-world setting (D-003, BLOCKERS B9) | DECISIONS D-003 | C (setting) | court music plays only when `court` is on and the day falls in the resident months of `calendar.ts` |
+| M-17 | Composition: a seeded motif, stepwise with fourth and fifth leaps, cadences on the 1st or 5th degree, harp dyads on string pairs, and voice and harp in heterophony | design (D-045, D-178) | C | `music.ts` `compose` |
+
 ## Sources (this file)
 1. Perseus `canonical-greekLit` on GitHub: Herodotus (Godley) `tlg0016.tlg001.perseus-eng2.xml`; Athenaeus (Yonge) `tlg0008.tlg001.perseus-eng2.xml`. **Read.**
 2. Wikipedia "Achaemenid music" and Iranica "Music history i." (extracts).
 3. Kilmer/Dumbrill tuning texts: musicircle.net, archive.org Dumbrill PDFs, Penn Museum *Expedition* (extracts).
 4. Birds: Wikipedia (See-see partridge, List of birds of Iran, Bakhtegan Lake), Birds of the World, Fatbirder, Bamu pages (extracts).
 5. Mammals: *J. Threatened Taxa* Fars checklist; Frontiers 2025 Bamu study; Wikipedia "Wildlife of Iran" (extracts).
+6. Music (§8, session 6): search extracts of Athenaeus 4, 12, 13 and 14 (attalus.org), Iranica "Yašts" and "Music history i.", SEP "Philolaus", Crickmore/Dumbrill on Kilmer, doublepipes.info. None of these hosts could be opened (B6).
