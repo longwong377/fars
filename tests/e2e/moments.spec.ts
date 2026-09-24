@@ -9,7 +9,7 @@ const IN = 46, OUT = 40;
 // carry: [view, s] = the eye carried over from an earlier view of the same world state, adapted for s seconds since (the
 // frozen test world otherwise adapts every frame fully; __parsa.carryEye, D-187): the entry sequence steps from the sun
 // into the dark with the eye it had outside
-const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, number, number, number, number]; fov?: number; frames?: number; court?: boolean; carry?: [string, number] }[] = [
+const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, number, number, number, number]; fov?: number; frames?: number; court?: boolean; carry?: [string, number]; now?: boolean }[] = [
   // dawn before sunrise (D-118): day 0 (17 Apr 467 BCE) 05:24, the sun 2.9° below the horizon (sunrise ~05:35): the
   // Earth's shadow and the antitwilight arch over the W plain, no sun shadows; the old slot (05:51, sun +2.5°) and a view
   // E into the glow over Kuh-e Rahmat are kept for comparison
@@ -32,6 +32,9 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // W of the Gate's W façade (x −16.4), looking E along the doorway's axis (y 124.6): the 18.5 m wall and the 10 m doorway
   // with its colossi, the guards at their feet and the braziers (pitch 15° at the photographic 40°: the wall top at +35°)
   { n: 'gate-dusk', day: 0, hour: 19.25, w: 'clear', v: [-40, 124.6, 1.6, 90, 15] },
+  // the Now view (D-201, stretch, out of world): the same spots as the ruin stands today (C, recollection)
+  { n: 'now-stair-top', day: 25, hour: 10, w: 'clear', v: [-36.4, 122.45, 1.6, 79, 6], now: true },
+  { n: 'now-apadana', day: 25, hour: 10, w: 'clear', v: [1.9, 75, 1.6, 161, 8], now: true },
   { n: 'night-terrace', day: 5, hour: 22.5, w: 'clear', v: [0, 92, 1.6, 161, 6] },
   // moonless pre-dawn (day 1 = 18 Apr 467 BCE, the moon a thin crescent set in the evening): the Milky Way from Cygnus to
   // Sagittarius over the SE, seen from the Grand Stair top (D-047)
@@ -151,6 +154,7 @@ test('moments', async ({ page }, info) => {
         eyeAt.set(fromN, await page.evaluate(() => (window as any).__parsa.exposureInfo().exposure)); }
       await page.evaluate(([x, t]) => (window as any).__parsa.carryEye(x, t), [eyeAt.get(fromN)!, secs] as const);
     } else await page.evaluate(() => (window as any).__parsa.carryEye?.(null));
+    await page.evaluate((on) => (window as any).__parsa.nowView?.(on), !!s.now); // the Now view (D-201): the ruin today
     await page.evaluate(([v, f]) => (window as any).__parsa.view(...v, f), [s.v, fov] as const);
     for (let i = 0; i < (process.env.FRAMES ? +process.env.FRAMES : s.frames ?? 8); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
     const png = await page.screenshot({ path: `shots/moment-${s.n}-${proj}.png` });
