@@ -117,7 +117,13 @@ export class Pipeline {
     // MRT: metalness rides in the diffuse colour's alpha and roughness in the normal's (SSR, D-157); materials without a
     // PBR model (sky, stars, clouds) write 0 and 1, decided when each material's shader is built
     const pbr = (node: any, other: number) => Fn(([], builder: any) => (builder.material?.isMeshStandardNodeMaterial ? node : float(other)))();
-    scenePass.setMRT(mrt({ output, diffuseColor: vec4(diffuseColor.rgb, pbr(metalness, 0)), normal: vec4(packNormalToRGB(normalView), pbr(roughness, 1)), velocity }));
+    const gbuf: any = mrt({ output, diffuseColor: vec4(diffuseColor.rgb, pbr(metalness, 0)), normal: vec4(packNormalToRGB(normalView), pbr(roughness, 1)), velocity });
+    // the G-buffer outputs blend as the material does (D-183). three blends only `output` by default: every other
+    // attachment was written unblended, so the effect materials' zeros (fx.ts colourOnly) replaced the albedo, the normal
+    // and roughness (0: a mirror) and the velocity over each flame and smoke quad, and the SSR drew black boxes and
+    // streaks round the braziers. Opaque materials have no blending, so nothing changes for them.
+    for (const n of ['diffuseColor', 'normal', 'velocity']) gbuf.setBlendMode(n, new (THREE as any).BlendMode((THREE as any).MaterialBlending));
+    scenePass.setMRT(gbuf);
     const col = scenePass.getTextureNode('output'), dep = scenePass.getTextureNode('depth'), nrmTex = scenePass.getTextureNode('normal');
     const vel = scenePass.getTextureNode('velocity'), dif = scenePass.getTextureNode('diffuseColor');
     const nrm = sample((uv: any) => unpackRGBToNormal(nrmTex.sample(uv).rgb));
@@ -163,11 +169,7 @@ export class Pipeline {
       // SSRNode (mirror mode) weights a hit by `metalnessNode` × its own Fresnel term sin²θ = 1 − (n·v)², which the
       // split-sum reflectance already contains: divided out
       const fres = float(1).sub(dotNV.mul(dotNV)).max(0.05);
-      // the colour the rays fetch is capped at BLOOM_SAT × display white (D-183): a brazier flame (HDR, no depth) times the
-      // SSR weights overflowed the node's half-float target, and the Inf became NaN in TRAA: black streaks on the surfaces
-      // that reflected the flame (dawn-glow-e at high, session 6). A reflection brighter than that saturates anyway.
-      const colSSR = vec4(min(col.rgb, vec3(float(BLOOM_SAT).div(this.expAbs.max(1e-6)))), col.a);
-      const S: any = ssr(colSSR, dep, nrm, { metalnessNode: specY.div(fres).mul(gate).mul(this.ab.ssr), roughnessNode: rough, camera } as any);
+      const S: any = ssr(col, dep, nrm, { metalnessNode: specY.div(fres).mul(gate).mul(this.ab.ssr), roughnessNode: rough, camera } as any);
       S.maxDistance.value = SSR_MAX_DISTANCE; S.thickness.value = SSR_THICKNESS; S.quality.value = quality === 'ultra' ? 0.5 : 0.3;
       S.resolutionScale = quality === 'ultra' ? 1 : 0.5; // half resolution at high: the reflections of these surfaces are blurred anyway
       // the sky environment the material reflected (the same lookup and specular occlusion as SkySpecularNode: the

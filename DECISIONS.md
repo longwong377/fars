@@ -2704,12 +2704,18 @@ are schematic; no browser render has been looked at (node previews of the height
   reflection in a polished floor, broad at roughness 0.35; whether it is too strong (it reads a little as mist on the
   floor) is for the §8.2 reviewer. At high, SSR replaces it where a ray hits.
 
-## D-183 SSR fetches a capped colour (session 6, lead)
+## D-183 The G-buffer attachments blend as the material does (session 6, lead)
 - **Found:** `dawn-glow-e` at high (session 6): black streaks in half-resolution runs around the brazier flame. dbg_surf
   (shots/surf-dawn-glow-e-{B,post-scene,post-sss,post-ssr}.png): absent from the scene pass (`post=scene`); they sit where
   the SSR debug view reflects the flame.
-- **Cause (inferred, C):** the flame (additive, HDR, no depth) is in the colour the SSR rays fetch; its radiance times the
-  node's weights overflows the half-float SSR target, and the Inf turns into NaN in TRAA's neighbourhood clamp: black.
-- **Changed:** the colour given to the SSR node is capped at BLOOM_SAT × display white (the glare input's sensor cap, 16×
-  white after exposure); a reflection brighter than that saturates anyway.
+- **First try (wrong premise, reverted):** capping the colour the SSR rays fetch, on the guess that the flame's HDR
+  overflowed the half-float SSR target. The render after it showed the WHOLE flame quad black.
+- **Cause:** three's MRTNode gives every output except `output` NoBlending (`getBlendMode` falls back to `_noBlending`),
+  so the effect materials' zeros (fx.ts `colourOnly`, session 4) were written unblended into the albedo, the packed normal
+  with roughness in its alpha (0: a mirror), the metalness and the velocity over each flame and smoke quad. The composite
+  then treated the quad as a black mirror facing nowhere: SSR and the environment term drew the streaks (and, with the
+  cap, a black box). Session 4's "pale rectangle" round the flames was the same fault with the flame's own colour.
+- **Changed (pipeline.ts):** the scene pass's `diffuseColor`, `normal` and `velocity` outputs take the material's
+  blending (`BlendMode(MaterialBlending)`), so a zero with alpha 0 leaves the G-buffer as it was. Opaque materials have no
+  blending and are unaffected; transparent materials that write real G-buffer values now blend them.
 - **Not verified:** a render after the change (queued).
