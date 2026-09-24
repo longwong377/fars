@@ -562,7 +562,7 @@ export class PeopleSim {
   }
   /** every activity a detailed agent can perform in the rendered world (for the activity lint); off the Terrace an agent
    *  is hidden and takes the population's activity, which may be an abstract-only placeholder (activities.ts) */
-  static readonly EMITS: ActivityId[] = ['walk', 'carry_sack', 'carry_jar_head', 'carry_bread', 'stand_guard', 'patrol', 'dress_stone', 'grind', 'knead', 'bake', 'draw_water', 'write_tablet', 'eat', 'sleep', 'talk', 'rest', 'gamble', 'inspect', 'shelter', 'play', 'queue', 'lie_ill', 'offmap'];
+  static readonly EMITS: ActivityId[] = ['craft', 'walk', 'carry_sack', 'carry_jar_head', 'carry_bread', 'stand_guard', 'patrol', 'dress_stone', 'grind', 'knead', 'bake', 'draw_water', 'write_tablet', 'eat', 'sleep', 'talk', 'rest', 'gamble', 'inspect', 'shelter', 'play', 'queue', 'lie_ill', 'offmap'];
   /** a bounded set of the detailed people for the renderer: on the Terrace (not off-map), within `radius` of `centre`,
    *  nearest first, at most `max` (crowd pooling will draw these; D-024) */
   visibleAgents(centre: P2, radius: number, max = Infinity): Agent[] {

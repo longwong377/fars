@@ -16,6 +16,7 @@ import plotsData from '../data/town_plots.json';
 import { u01, salt, HStream } from './hash';
 import { dateOf, REGNAL_DAYS, travellerParties, transfers, transhumantBands, flockDrives, DayCtx, EventCalendar, eventRow, rainHours, rainSpells } from './calendar';
 import { colPlace } from './construction';
+import { COLD_C } from './outfits';
 import { CourtResidents } from './court'; // D-182 hook (court.ts): the court in residence, only with the court setting
 import type { ActivityId } from './activities';
 
@@ -815,6 +816,9 @@ export class Population {
   /** the hides of yesterday's slaughter that reach the Treasury today (E-12, CE-07: PF 58-60, A for Darius' reign): how many
    *  (the slaughter events' own counts; 0 when nothing was slaughtered or the flock was too low to slaughter) */
   hidesOn(d: number): number { if (d < 1) return 0; this.cal.ctx(d); return (this.cal.days[d - 1]?.events ?? []).filter(e => e.id === 'E-12').reduce((a, e) => a + (e.n ?? 0), 0); }
+  /** whether an off-watch guard goes down to his family (or, with no family, to the town or the river) today when his free
+   *  time allows it: a day's draw `p` (0.7 with a family: C), never three days running without (S3 of shadow review r6) */
+  guardVisits(pid: number, d: number, p = 0.7) { const w = (x: number) => u01(this.seed, S.assign, 9950 + pid, x) < p; return w(d) || (!w(d - 1) && !w(d - 2)); }
   private payCache = new Map<number, { t: number; sh: number; weigher: number; group: string }[]>();
   /** the day's silver payments at the Treasury (E-05) and the weigher who weighs out each: E-05 has one weigher at a payment
    *  (C), for the two hours the Treasury door is doubled (E-81); which weigher, by the day's draw among those at work (C).
@@ -1253,11 +1257,12 @@ class Planner {
     const segs = this.build0(); const P = this.P;
     if (!P.present(this.pid, this.d) || this.p.job === 'traveller') return segs;
     // a band's people (S4): their mothers nurse on demand like any; their days need no water, fire or field passes
-    if (this.p.job === 'herder') { if (this.p.sex === 'f' && this.age >= 14) this.nurse(segs); if (this.age >= 2) this.meals(segs); this.joinSlivers(segs); this.tidy(segs); this.carries(segs); this.dustVeil(segs); return segs; }
+    if (this.p.job === 'herder') { if (this.p.sex === 'f' && this.age >= 14) this.nurse(segs); if (this.age >= 2) this.meals(segs); this.joinSlivers(segs); this.tidy(segs); this.carries(segs); this.dustVeil(segs); this.coldWear(segs); return segs; }
     if (this.p.sex === 'f' && this.age >= 14) this.nurse(segs);
     this.fieldBite(segs); this.water(segs); this.homeStops(segs); this.fire(segs);
     if (this.age >= 2) this.meals(segs);
-    this.joinSlivers(segs); this.tidy(segs); this.carries(segs); this.dustVeil(segs);
+    if (this.p.sex === 'f' && this.age >= 14) this.feedGaps(segs);
+    this.joinSlivers(segs); this.tidy(segs); this.carries(segs); this.dustVeil(segs); this.coldWear(segs);
     return segs;
   }
   /** the post-passes cut spells by arithmetic, and a cut can leave a remainder of a second or less (a float residue: 0.32 s
@@ -1362,7 +1367,7 @@ class Planner {
   private carries(segs: Seg[]) {
     const p = this.p, T = this.hd?.task ?? null;
     const arms = p.origin === 'Persian' ? 'a spear and a wicker shield' : 'a spear, a bow case and a short sword';
-    const kit = p.job === 'builder' ? (p.sub === 'stone' ? 'his chisels and mallet in a bag' : p.sub === 'brick' ? (segs.some(s => s.act === 'mould_brick') ? 'a mattock and a brick mould' : 'a trowel and a basket for the mortar') : 'a mattock and a carrying basket') : null; // (the layer's trowel: S8 quibble of r5)
+    const kit = p.job === 'builder' ? (p.sub === 'stone' ? (segs.some(s => /cord and straightedge|overseeing the squad/.test(s.why)) ? 'a measuring cord and a straightedge' : 'his chisels and mallet in a bag') : p.sub === 'brick' ? (segs.some(s => s.act === 'mould_brick') ? 'a mattock and a brick mould' : 'a trowel and a basket for the mortar') : 'a mattock and a carrying basket') : null; // (the layer's trowel: S8 quibble of r5)
     const farm = !T ? null : T.kind === 'reap' ? 'a sickle' : T.kind === 'thresh' ? 'a winnowing fork' : T.kind === 'plough' ? 'the plough and the yoke, driving the oxen' : T.kind === 'canal' ? 'a mattock and a basket'
       : T.kind === 'turn' ? 'a mattock for the water channels' : T.kind === 'field' ? 'a hoe' : T.kind === 'vintage' || T.kind === 'fruit' ? 'an empty basket' : T.kind === 'other' ? T.tool ?? null : null;
     const works = !!T && segs.some(s => s.place === T.place && (s.act === T.act || /^(reap|thresh|plough|field_work|dig_canal|irrigate|pick_fruit)$/.test(s.act)));
@@ -1394,6 +1399,17 @@ class Planner {
     const dh = this.C.wx.dustH; if (!dh) return;
     const open = (s: Seg) => s.where === 'road' || /^(lane:|well:|field:|canal:|pasture:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_)/.test(s.place);
     for (const s of segs) if (open(s) && s.act !== 'sleep' && s.act !== 'eat' && Math.min(s.t1, dh[1]) - Math.max(s.t0, dh[0]) > 0.05) s.wear = 'the face wrapped against the dust';
+  }
+  /** dressed against the cold out of doors (brief §9.2; S5 of shadow review r6): where the air is below outfits.COLD_C (8 °C;
+   *  C) in the part of the day spent outside, the plan says so, and the crowd draws the dress's own pieces for it
+   *  (outfits.weatherMask: the Median kandys, a working man's trousers and cap, a woman's mantle over the head, a child's
+   *  shoes; the Persian robe unchanged). Joined with the dust's wrap when both */
+  private coldWear(segs: Seg[]) {
+    const tq = this.C.wx.tempQ; if (!tq?.length || Math.min(...tq) >= COLD_C) return;
+    const open = (s: Seg) => s.where === 'road' || s.where === 'plain' && !s.place.startsWith('h:') || /^(lane:|well:|field:|canal:|pasture:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_|training:|flock:|route:|water:)/.test(s.place);
+    const tAt = (h: number) => tq[Math.max(0, Math.min(95, Math.floor(h * 4)))];
+    for (const s of segs) { if (!open(s) || s.act === 'sleep') continue; const mid = (s.t0 + s.t1) / 2; if (Math.min(tAt(s.t0 + 0.01), tAt(mid)) >= COLD_C) continue;
+      s.wear = s.wear ? `${s.wear}, and dressed against the cold` : 'dressed against the cold'; }
   }
   /** replace [t, t+len] of the plan with (act, why) at the place the person is then; a moment on the road moves to the
    *  arrival; returns the start used, or -1 */
@@ -1454,6 +1470,25 @@ class Planner {
       if (s.act === 'sleep') { this.insertAt(segs, t, len, 'rest', what); continue; } // woken from a daytime sleep
       const work = !['talk', 'rest', 'queue', 'gamble', 'exchange', 'play'].includes(s.act);
       this.insertAt(segs, t, len, 'rest', work ? `stopping to ${what.replace('nursing', 'nurse')}` : what); }
+  }
+  /** after the other passes (the water, the fire, the bread), which can take a feed's place */
+  private feedGaps(segs: Seg[]) {
+    const P = this.P, d = this.d, IC = L.infant_care, kids = P.nurslings(this.pid, d); if (!kids.some(c => this.ageOf(c) === 0) || kids.some(c => P.persons[c].born === d)) return;
+    const r = new HStream(P.seed, S.nurse, this.pid, d * 7 + 3), babies = kids.filter(c => this.ageOf(c) === 0), babyOnly = babies.length === 2 && P.persons[babies[0]].twin === babies[1] ? 'nursing the twins' : 'nursing the baby';
+    const wake = segs.find(s => s.t0 > 2 && s.act !== 'sleep')?.t0 ?? 6, bed = [...segs].reverse().find(s => s.act !== 'sleep' && s.t1 < 24)?.t1 ?? 21;
+    // no daytime gap between a baby's feeds longer than the planner's own rule allows (infant_care.day_feed_every_h, its
+    // longest 2.8 h, and 0.4 h of slack): a feed that fell on her meal, the water or the bread and found no place after it
+    // is given in the gap, where she is (S4 of shadow review r6: 4 h 46 min unfed by day at one month, 4.4 % of the days
+    // of babies under two months; C)
+    for (let k = 0; k < 6; k++) {
+      const fs = segs.filter(x => /nurs/.test(x.why) && x.t1 > wake && x.t0 < bed).map(x => [x.t0, x.t1] as [number, number]); const pts: [number, number][] = [[wake, wake], ...fs, [bed, bed]];
+      let ga = -1, gb = -1; for (let i = 0; i + 1 < pts.length; i++) { const a = pts[i][1], b = pts[i + 1][0]; if (b - a > IC.day_feed_every_h[1] + 0.4 && (ga < 0 || b - a > gb - ga)) { ga = a; gb = b; } }
+      if (ga < 0) break; let done = false;
+      for (const off of Array.from({ length: 21 }, (_, i) => (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.12)) { if (Math.abs(off) > (gb - ga) / 2 - 0.3) continue; const t = (ga + gb) / 2 + off, x = segAt(segs, t);
+        if (x.where === 'road' || ['eat', 'draw_water', 'knead', 'bake', 'offmap'].includes(x.act) || x.t1 - t < 0.2) continue; // (a daytime sleep: woken to nurse, as in nurse())
+        const work = !['talk', 'rest', 'queue', 'gamble', 'exchange', 'play', 'sleep'].includes(x.act), what = babyOnly;
+        if (this.insertAt(segs, t, lerp(IC.feed_h[0], IC.feed_h[1], r.next()), x.act === 'lie_ill' ? 'lie_ill' : 'rest', x.act === 'lie_ill' ? `lying ill, ${what}` : work ? `stopping to ${what.replace('nursing', 'nurse')}` : what) >= 0) { done = true; break; } }
+      if (!done) break; }
   }
   /** a safety net under the day's meals (lives.json meals): no one awake goes more than ~6.5 h without food; a gap is
    *  filled with bread and water where the person is then (not on watch, not on the road) */
@@ -1559,7 +1594,7 @@ class Planner {
     const fetch = this.pid === H.waterer && (!woman || !withHouse) && this.homeW !== 'terrace' && !this.C.wx.wet && this.hh.zone !== 'terrace';
     const fetchH = fetch ? 2 * this.P.walkH(this.home, `well:${this.hh.q}`, this.d, this.homeW, this.homeW) + 0.25 : 0;
     const need = 0.05 + fetchH + (withHouse ? 0 : early) + (woman ? Math.min(grind, 1.6) + (bakes ? H.kneadH + H.bakeH : 0) + H.slack : 0);
-    const wakeT = Math.min(this.rise(), Math.max(this.sun.rise - (bakes ? 2.1 : 1.6), (withHouse ? H.breakfast : until) - need));
+    const wakeT = Math.min(this.rise(), Math.max(this.sun.rise - (bakes ? Math.min(2.1, 1.2 + grind) : 1.6), (withHouse ? H.breakfast : until) - need));
     // a night by the grain heap (S2): the day begins asleep on the threshing floor, and he walks home at first light
     const na = this.segs.length ? null : this.P.nightAway(this.pid, this.d);
     if (na) { const wk = this.P.walkH(na.place, this.home, this.d, na.where, this.homeW); this.add(Math.max(0.2, wakeT - wk), na.place, 'sleep', 'asleep by the grain heap on the threshing floor, guarding it', na.where);
@@ -1576,8 +1611,12 @@ class Planner {
     if (woman) {
       const tEnd0 = withHouse ? H.breakfast : until - early, tEnd = wellLater ? tEnd0 - fetchH : tEnd0;
       // the bake first, from the flour ground yesterday afternoon for today's bread; then the day's grinding (D-137)
+      // (the oven is not lit in the dark of the night: a baker up earlier than 1.2 h before sunrise grinds first, by feel at the
+      // quern, and bakes from then; S5 of reviewer B, r6: kneading at 03:24 and baking until 04:29, sunrise 05:19; C)
+      let g0 = 0; if (bakes && this.t < this.sun.rise - 1.2 && tEnd - this.t > 0.45) { g0 = Math.min(grind, this.sun.rise - 1.2 - this.t, Math.max(0, tEnd - this.t - 0.6)); if (g0 > 0.1) this.atHome(this.t + g0, 'grind', 'grinding the household’s flour at the quern'); else g0 = 0;
+        if (this.t < this.sun.rise - 1.2 && tEnd - (this.sun.rise - 1.2) > 0.35) this.atHome(this.sun.rise - 1.2, 'rest', 'at home'); }
       if (bakes) { const k = Math.min(H.kneadH, Math.max(0.15, (tEnd - this.t) * 0.35)); this.atHome(this.t + k, 'knead', 'kneading the dough'); this.atHome(Math.max(this.t + 0.3, Math.min(tEnd, this.t + H.bakeH)), 'bake', 'baking the flat bread'); }
-      if (tEnd - this.t > 0.25) this.atHome(Math.min(tEnd, this.t + grind), 'grind', 'grinding the household’s flour at the quern');
+      if (tEnd - this.t > 0.25 && grind - g0 > 0.1) this.atHome(Math.min(tEnd, this.t + grind - g0), 'grind', 'grinding the household’s flour at the quern');
       if (wellLater && tEnd >= firstLight) { if (this.t < firstLight) this.atHome(firstLight, 'rest', 'at home'); this.well(this.t + 0.2, withHouse ? 'fetching the day’s water' : 'fetching the day’s water before work'); }
       if (tEnd - this.t > 0.6 && this.t >= firstLight && this.hh.zone !== 'terrace' && !this.C.wx.wet && this.adult()) this.well(this.t + 0.25, 'fetching water');
     }
@@ -2093,9 +2132,41 @@ class Planner {
     // a man's own hour: the early risers are up well before the watch (trait); the file's evening meal follows the sun (C)
     const up = (h: number) => h - lerp(0, 0.45, p.trait) - 0.2 * u01(P.seed, S.assign, 5300 + this.pid, d);
     const eve = this.sun.set - 0.35 + 0.5 * u01(P.seed, S.assign, 5400 + p.file, d);
-    const leisure = (t1: number) => { while (this.t < t1 - 0.2) { const u = r.next(); const dt = Math.min(t1 - this.t, r.range(0.5, 1.5));
-      if (u < 0.35) this.add(this.t + dt, hearth, 'gamble', 'knucklebones at the hearth', 'terrace'); else if (u < 0.7) this.add(this.t + dt, hearth, 'talk', p.rank === 1 && u > 0.55 ? 'with the men of his file: tomorrow’s posts, a man’s ration' : 'off watch at the hearth', 'terrace');
-      else if (u < 0.8 && C.wx.rainH < 1 && this.t > 7 && this.t < 18) this.add(this.t + Math.min(dt, 0.6), 'forecourt', 'talk', 'talking with men of another file in the court', 'terrace'); else this.add(this.t + dt, hearth, 'rest', 'resting', 'terrace'); }
+    /** off-watch time (S2 of shadow review r6: was a draw of knucklebones, talk, rest and a turn in the court, 10-15 h at one
+     *  hearth on one guard-day in ten). The day's duties and occupations first, each once, when the hour, the light and the
+     *  weather allow (lives.json guard_off_day; C unless named): the file's water from the Terrace's water point
+     *  (water_duty), an errand in the town for the file (town_errand: a strap or a spear shaft at the craftsmen's quarter),
+     *  practice with the bow and the spear at the practice ground below the Terrace (drill: XEN-CYR 1.2.9-12, the young men
+     *  who keep guard by night practise shooting and the javelin by day, a Greek claim: B; RECOLLECTION, NOT SEEN, verify),
+     *  the arms and kit seen to in the quarters (twice at most), his clothes washed at the river (not in winter), a sleep
+     *  through the heat of an E-64 day; between them the hearth's knucklebones, talk and rest, and after two hours at the
+     *  hearth a turn in the court with men of another file */
+    const dayU = (k: number) => u01(P.seed, S.assign, 9900 + k * 211 + this.pid, d);
+    const GO = L.guard_off_day;
+    let water = p.rank === 0 && dayU(1) < GO.water_duty, errand = dayU(2) < GO.town_errand, drill = dayU(3) < GO.drill, river = C.season !== 'winter' && dayU(4) < GO.river, kit = 0, hearthRun = 0;
+    let awayEnd = -9; // (a while at the hearth between two trips down: no errand and the river back to back)
+    const away = (t1: number, pl: string, act: ActivityId, why: string, h: number, there: string, back = 'back up to the garrison') => {
+      const wk = P.walkH('garrison_sleep', pl, d, 'terrace', 'town'); this.add(this.t + wk, 'road:town', 'walk', there, 'road');
+      this.add(Math.max(this.t + 0.3, Math.min(t1 - wk, this.t + h)), pl, act, why, 'town'); this.add(this.t + wk, 'road:terrace', 'walk', back, 'road'); hearthRun = 0; awayEnd = this.t; };
+    // (the time at the hearth so far, on watch between rounds and at meals too: the trailing stretch of the plan)
+    const tail = () => { let h = 0; for (let i = this.segs.length - 1; i >= 0; i--) { const x = this.segs[i]; if (!/^garrison_hearth/.test(x.place) || x.act === 'sleep') break; h += x.t1 - x.t0; } return h; };
+    const leisure = (t1: number) => { while (this.t < t1 - 0.2) { hearthRun = tail();
+      const room = t1 - this.t, light = this.t > this.sun.rise - 0.2 && this.t < this.sun.set - 0.4, wetNow = this.rainIn(this.t, this.t + 1.5) > 0.1 || C.wx.storm, dust = !!C.wx.dustH && C.wx.dustH[0] < this.t + 1.5 && C.wx.dustH[1] > this.t;
+      const hot = C.heatRest && this.t >= 11.8 && this.t < 15.2;
+      if (hot && room > 1.2 && !this.segs.some(x => /through the heat/.test(x.why))) { this.add(Math.min(t1, 15.2 + 0.3 * r.next()), 'garrison_sleep', 'sleep', 'sleeping through the heat of the day in the quarters (E-64)', 'terrace'); hearthRun = 0; continue; }
+      if (water && light && !wetNow && room > 0.7) { water = false; this.add(this.t + r.range(0.3, 0.45), 'water', 'draw_water', 'drawing water for his file’s hearth, his turn of the fatigue duty', 'terrace'); this.add(this.t + 0.1, hearth, 'carry_jar_head', 'carrying the water jar to the hearth', 'terrace'); hearthRun = 0; continue; }
+      const wk = (pl: string) => P.walkH('garrison_sleep', pl, d, 'terrace', 'town'), rested = this.t - awayEnd >= 0.75;
+      if (rested && drill && light && !wetNow && !dust && !hot && this.t >= 6.5 && room > 2 * wk('training:q_lt_e') + 1.2) { drill = false; away(t1, 'training:q_lt_e', 'train', p.rank === 1 ? 'the men of his file at the bow and the spear, the leader of ten setting the marks' : 'practising with the bow and the spear with men of his file (XEN-CYR 1.2.12)', r.range(1, 1.6), 'down to the practice ground below the Terrace'); continue; }
+      if (rested && errand && light && !C.wx.storm && !dust && this.t >= 7 && room > 2 * wk('craft_zone') + 0.8) { errand = false; away(t1, 'craft_zone', 'exchange', r.chance(0.5) ? 'an errand for his file at the craftsmen’s quarter: a new shield strap, a spear shaft to be mended' : 'an errand for his file in the town: oil for the lamps, a pot for the hearth', r.range(0.6, 1.2), 'down to the town on an errand for his file'); continue; }
+      if (rested && river && light && !wetNow && !dust && !hot && this.t >= 7 && room > 2 * wk('river') + 1.2) { river = false; away(t1, 'river', 'wash', 'washing his clothes at the river', r.range(1, 1.8), 'down to the river'); continue; }
+      if (kit < 2 && light && hearthRun >= 0.8 && room > 0.7 && (hearthRun >= 1.5 || r.chance(0.55))) { kit++; this.add(Math.min(t1, this.t + r.range(0.5, 1.1)), 'garrison_sleep', 'craft', kit === 1 ? 'seeing to his arms and kit in the quarters: the spear shaft oiled, the shield’s leather rim sewn' : 'mending his sandals and his belt in the quarters', 'terrace'); hearthRun = 0; continue; }
+      if (hearthRun >= 2 && light && !wetNow && room > 0.6) { this.add(this.t + Math.min(room, r.range(0.4, 0.9)), 'forecourt', 'talk', 'talking with men of another file in the court', 'terrace'); hearthRun = 0; continue; }
+      // (in the dark or the rain, after a long spell by the fire, a while lying down in the quarters)
+      if (hearthRun >= 2.2 && room > 0.6) { this.add(this.t + Math.min(room, r.range(0.5, 1.1)), 'garrison_sleep', 'rest', wetNow ? 'lying down in the quarters out of the rain' : 'lying down in the quarters', 'terrace'); hearthRun = 0; continue; }
+      const u = r.next(), dt = Math.min(room, r.range(0.5, 1.3));
+      if (u < 0.33) this.add(this.t + dt, hearth, 'gamble', 'knucklebones at the hearth', 'terrace'); else if (u < 0.68) this.add(this.t + dt, hearth, 'talk', p.rank === 1 && u > 0.55 ? 'with the men of his file: tomorrow’s posts, a man’s ration' : 'off watch at the hearth', 'terrace');
+      else if (u < 0.78 && light && !wetNow && this.t > 7 && this.t < 18) { this.add(this.t + Math.min(dt, 0.6), 'forecourt', 'talk', 'talking with men of another file in the court', 'terrace'); hearthRun = 0; continue; } else this.add(this.t + dt, hearth, 'rest', 'resting', 'terrace');
+      hearthRun += dt; }
       if (this.t < t1) this.add(t1, hearth, 'rest', 'resting', 'terrace'); };
     // duties drawn for today: the Treasury door doubled (E-81) and the garrison's ration carried up from the depot
     const jobs: [number, number, string, ActivityId, string][] = [];
@@ -2103,10 +2174,17 @@ class Planner {
     const issueH = C.issue.get(p.group); if (issueH !== undefined && ph >= 3 && p.idx % 3 === 1) jobs.push([issueH, issueH + 2, G.issuePlace, 'carry_sack', 'carrying the garrison’s ration up from the Terrace depot']);
     jobs.sort((a, b) => a[0] - b[0]);
     /** free time between now and t1: duties first; otherwise a visit to the family in the town, or the hearth */
+    /** family visits (S3 of shadow review r6: 12-37 % of watch days, up to 26 days without going down): a man whose wife
+     *  and children live in the town goes down to them in a free stretch of daylight that holds the walk both ways and 1.5 h
+     *  with them, on most days (Population.guardVisits: a day's draw, never three days running without one), after the day's
+     *  duties; not in a storm or through rain. C (Q-060: nothing on Achaemenid garrison leave; the families' 20-30 min walk
+     *  is the town plan's) */
+    const wantVisit = !!fam && P.guardVisits(this.pid, d); let visited = false;
     const free = (t1: number, visitChance: number, visitEnd?: number) => {
       const mine = jobs.filter(j => j[0] >= this.t && j[1] <= t1);
-      if (!mine.length && fam && t1 - this.t > 3.5 && !C.wx.storm && this.rainIn(this.t, t1) < 1 && r.chance(visitChance)) {
-        const h = P.walkH('garrison_sleep', fam.home, d, 'terrace', 'town'); leisure(this.t + 0.3);
+      const hv = fam ? P.walkH('garrison_sleep', fam.home, d, 'terrace', 'town') : 0, tv0 = visitEnd ?? t1;
+      if (!mine.length && fam && !visited && (wantVisit || r.chance(visitChance * 0.3)) && Math.min(tv0, this.sun.set + 0.5) - Math.max(this.t, this.sun.rise) - 2 * hv >= 1.5 && !C.wx.storm && this.rainIn(this.t, t1) < 1) {
+        visited = true; const h = hv; leisure(Math.max(this.t + 0.3, Math.min(this.sun.rise, tv0 - 2 * h - 1.5)));
         // (before the afternoon watch he stays for the family's meal and comes up just in time to ready himself: the meal
         // relief on watch can come as late as 21:00, and the soak found 8.2 h between meals: D-175)
         const tv = visitEnd ?? t1; this.add(this.t + h, 'road:town', 'walk', 'down to the town', 'road'); const back = tv - h;
@@ -2119,11 +2197,13 @@ class Planner {
         if (back - this.t > 1.2) this.add(back - 0.6, fam.home, r.chance(0.5) ? 'rest' : 'talk', 'with his family', 'town');
         const late = back - this.t > 0.35 && back - lastEat() >= 2.5; this.add(back, fam.home, late ? 'eat' : 'talk', late ? 'a meal with his family before going back up' : 'with his family', 'town'); this.add(tv, 'road:terrace', 'walk', 'back up to the garrison', 'road'); return;
       }
-      if (!mine.length && !fam && t1 - this.t > 3 && !C.wx.storm && !C.wx.wet && !C.wx.dust && this.t > 7 && this.t < 16 && r.chance(visitChance + 0.25)) {
-        // a man with no family in the town: down to the town's lanes and market, or to the river to wash his clothes (C)
-        const river = C.season !== 'winter' && r.chance(0.4); const pl = river ? 'river' : 'lane:q_lt_e'; const h = P.walkH('garrison_sleep', pl, d, 'terrace', 'town'); leisure(this.t + 0.2);
+      if (!mine.length && !fam && !visited && t1 - Math.max(this.t, 7) > 3 && !C.wx.storm && !C.wx.wet && !C.wx.dust && this.t < 16 && P.guardVisits(this.pid, d, 0.55)) {
+        // a man with no family in the town: down to the town's lanes and market, or to the river to wash his clothes (C); from
+        // the morning's first hour, not only when his free time happens to begin after it (S2 of r6: no trip at all on a
+        // night-watch day from Nisanu to Abu, when breakfast ends before 07:00)
+        visited = true; const riv = C.season !== 'winter' && r.chance(0.4); const pl = riv ? 'river' : 'lane:q_lt_e'; const h = P.walkH('garrison_sleep', pl, d, 'terrace', 'town'); leisure(Math.max(this.t + 0.2, 7)); if (riv) river = false;
         this.add(this.t + h, 'road:town', 'walk', river ? 'down to the river' : 'down to the town', 'road'); const back = t1 - h;
-        this.add(Math.max(this.t + 0.5, Math.min(back, this.t + r.range(1, 2.2))), pl, river ? 'wash' : r.chance(0.5) ? 'exchange' : 'talk', river ? 'washing his clothes at the river' : 'in the town’s lanes: a little trade, the talk of the market', 'town');
+        this.add(Math.max(this.t + 0.5, Math.min(back, this.t + r.range(1, 2.2))), pl, riv ? 'wash' : r.chance(0.5) ? 'exchange' : 'talk', riv ? 'washing his clothes at the river' : 'in the town’s lanes: a little trade, the talk of the market', 'town');
         this.add(this.t + h, 'road:terrace', 'walk', 'back up to the garrison', 'road'); leisure(t1); return;
       }
       for (const j of mine) { leisure(j[0]); this.add(j[1], j[2], j[3], j[4], 'terrace'); }
@@ -2141,7 +2221,10 @@ class Planner {
     }
     if (me && me.watch === 2) { // watch C, 22–06 (tomorrow's plan holds the rest of it)
       if (!tailC) this.add(Math.max(this.t, up(this.sun.rise + 0.6)), 'garrison_sleep', 'sleep', 'asleep in the garrison quarters', 'terrace');
-      meal(tailC ? 'a meal' : 'breakfast'); free(Math.min(19, eve - 0.3), 0.35); meal('a meal before the night watch'); this.add(21.6 - 0.25 * u01(P.seed, S.assign, 5600 + this.pid, d), 'garrison_sleep', 'sleep', 'a short sleep before the night watch', 'terrace');
+      // the afternoon's sleep before the night watch (A's S2 of r6: only a 2-h sleep before eight hours at a post; C)
+      meal(tailC ? 'a meal' : 'breakfast'); const s0 = 13 + 0.5 * u01(P.seed, S.assign, 5700 + this.pid, d); free(s0, 0.35); meal('the midday meal');
+      this.add(Math.max(this.t + 1.5, s0 + 2.3 + 0.9 * u01(P.seed, S.assign, 5800 + this.pid, d)), 'garrison_sleep', 'sleep', 'sleeping in the afternoon before the night watch', 'terrace');
+      free(Math.min(19.3, eve - 0.3), 0.35); meal('a meal before the night watch'); this.add(21.6 - 0.25 * u01(P.seed, S.assign, 5600 + this.pid, d), 'garrison_sleep', 'sleep', 'a short sleep before the night watch', 'terrace');
       this.add(22, hearth, 'talk', 'readying for the night watch', 'terrace'); watch(me, 24, d); return this.segs;
     }
     // off duty (phase 3: after the night watch; phase 4: a whole day off)
@@ -2968,8 +3051,9 @@ class Planner {
   /** a party with a halmi: arrival, the days of its stay, departure (E-21); each day of the stay has its own business (C) */
   private traveller(): Seg[] {
     const P = this.P, p = this.p, d = this.d, r = this.r; const pa = P.parties[p.idx]; const k = d - p.arrive;
-    if (d === p.arrive) { this.add(Math.max(0.5, pa.hour - 2.5), '-', 'offmap', `on the road from ${pa.route}, not yet in the plain`, 'away'); this.add(Math.max(this.t + 0.5, pa.hour - 0.5), 'road:arrival', 'walk', `on the road from ${pa.route}`, 'road'); this.add(pa.hour, 'station', 'walk', 'arriving at the road station', 'town'); this.add(this.t + 0.6, 'station', 'queue', 'showing the halmi and drawing travel rations (E-21)', 'town');
-      this.add(this.t + 0.8, 'station', 'tend_animals', 'unloading and watering the animals', 'town'); this.add(Math.max(this.t, this.sun.set), 'station', 'rest', 'resting after the road', 'town'); this.add(this.t + 0.6, 'station', 'eat', 'evening meal', 'town'); this.add(24, 'station', 'sleep', 'asleep at the station lodging', 'town'); return this.segs; }
+    if (d === p.arrive) { this.add(Math.max(0.5, pa.hour - 2.5), '-', 'offmap', `on the road from ${pa.route}, not yet in the plain`, 'away'); this.add(Math.max(this.t + 0.5, pa.hour - 0.1), 'road:arrival', 'walk', `on the road from ${pa.route}`, 'road'); this.add(Math.max(this.t + 0.05, pa.hour), 'station', 'walk', 'arriving at the road station', 'town');
+      // the loads off and the animals watered first, then the halmi shown and the rations drawn (S7 of reviewer B, r6; C)
+      this.add(this.t + 0.8, 'station', 'tend_animals', 'unloading and watering the animals', 'town'); this.add(this.t + 0.6, 'station', 'queue', 'showing the halmi and drawing travel rations (E-21)', 'town'); this.add(Math.max(this.t, this.sun.set), 'station', 'rest', 'resting after the road', 'town'); this.add(this.t + 0.6, 'station', 'eat', 'evening meal', 'town'); this.add(24, 'station', 'sleep', 'asleep at the station lodging', 'town'); return this.segs; }
     const pu = (k: number) => u01(P.seed, S.assign, 9500 + p.idx, d, k); const wakeP = this.sun.rise - 0.4 + 0.7 * pu(1);
     this.add(wakeP - 0.25 * r.next(), 'station', 'sleep', 'asleep at the station lodging', 'town'); this.add(wakeP, 'station', 'rest', 'up at the station lodging', 'town');
     this.add(wakeP + lerp(0.25, 0.5, pu(2)) + 0.02 * pa.size, 'station', 'eat', 'breakfast with the party', 'town');
@@ -3113,7 +3197,7 @@ class Planner {
     const am: [ActivityId, string, string, number][] = role === 'man' || role === 'youth' ? [['tend_animals', 'seeing to the donkeys’ sores and the lame sheep', 'fold', 2], ['craft', 'mending the saddlebags, the ropes and the tent pegs', 'camp', 2], ['talk', 'talking with the men of the band by the tents', 'camp', 1]]
       : role === 'woman' ? [[B.milk ? 'cook' : 'bake', B.milk ? 'churning the milk in a skin for butter and setting the curds' : 'baking flat bread on the embers', 'camp', 2], ['weave', 'weaving at the ground loom by the tent', 'camp', 2], ['spin', 'spinning wool by the tent', 'camp', 1.5], ['draw_water', 'fetching water from the stream for the tent', 'stream', 1]]
       : role === 'girl' ? [['draw_water', 'fetching water from the stream for the tent', 'stream', 1], ['spin', 'spinning wool beside the women', 'camp', 1.5], ['gather', 'gathering brushwood for the fire', 'camp', 1], ['rest', 'minding the little ones by the tent', 'camp', 1]]
-      : role === 'child' ? [['play', 'playing by the tents with the other children', 'camp', 3], ['gather', 'gathering dry brush for the fire', 'camp', this.age >= 7 ? 1 : 0], ['play', 'playing by the stream with the other children', 'stream', 1], ['draw_water', 'fetching water from the stream with a small jar', 'stream', this.age >= 7 ? 0.7 : 0], ['tend_animals', 'with the lambs and the kids by the fold', 'fold', 0.8]]
+      : role === 'child' ? [['play', 'playing by the tents with the other children', 'camp', 3], ['gather', 'gathering dry brush for the fire', 'camp', this.age >= 7 ? 1 : 0], ['play', 'playing by the stream with the other children', 'stream', 1], ['draw_water', 'fetching water from the stream with a small jar', 'stream', this.age >= 7 ? 0.7 : 0], ['tend_animals', [10, 11, 12, 1, 2].includes(this.C.month) ? 'with the lambs and the kids by the fold' : 'with the ewes and goats kept back at the fold, the lame and the weak', 'fold', 0.8]]
       : role === 'little' ? [['play', 'playing by the tent near the mother', 'camp', 1]] : [['rest', 'sitting by the tent in the sun', 'camp', 1], ['talk', 'talking with the old people of the band', 'camp', 1], ['rest', 'minding the little ones by the tent', 'camp', 1]];
     if (watched) at(this.t + lerp(2.5, 3.5, r.next()), camp, 'sleep', 'sleeping in the tent after the night watch');
     spell(B.haltA, am); noonMeal();

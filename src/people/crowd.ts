@@ -29,7 +29,7 @@ import { HB } from './humanFormat';
 import { PERSON_TEXELS, FLAG_HIDE_HEAD } from './humanMaterial';
 import { nearCascadesOnly } from './humanGPU';
 import { propGeometry, propUnionGeometry, paintedBox, PROP_NOTES, PROPS, PROP_CLASSES, propSlot, placeProp, interleave } from './props';
-import { PIECES, pieceBit, COSTUME_OF, type Dress } from './outfits';
+import { PIECES, pieceBit, COSTUME_OF, weatherMask, type Dress } from './outfits';
 import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim } from './workAnims';
 import { IK_Q } from './poseKit';
 import { WorkObjects, WORK_NOTES, type WorkKind } from './workObjects';
@@ -430,6 +430,8 @@ export class Crowd {
     const t0 = performance.now(); this.now = time; const dt = Math.max(0, Math.min(0.5, time - this.lastTime)); this.lastTime = time;
     if (camera) { this.lastCamera = camera; camera.updateMatrixWorld(); this.pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); this.frustum.setFromProjectionMatrix(this.pm); this.wide.copy(this.frustum); for (const pl of this.wide.planes) pl.constant += 3; }
     this.frame++;
+    // the air's temperature now (the sim's weather; once a frame), for the dress of the cold
+    if (this.sim && (this.frame & 31) === 1) { try { this.airC = this.sim.env(this.sim.t).tempC; } catch { this.airC = 20; } }
     const S = this.sim?.stock;
     if (S && (S.depot !== this.lastStock.depot || S.store !== this.lastStock.store)) {
       const nd = this.pileLayout(0, 200, [PLACES.stair_foot.at[0] - 3, PLACES.stair_foot.at[1] - 2.5], S.depot);
@@ -585,7 +587,9 @@ export class Crowd {
       p.lastHit = !!po.hit;
     } else po = pose(anim, time + p.t0, time * 4.2, p.animK);
     // coats, weapons on the back and hats are laid aside while seated, crouched or asleep (they would pass through the ground; C)
-    const mask = ASIDE.has(anim) ? p.look.mask & ~this.asideBits(p.look.dress, anim) : p.look.mask;
+    // dressed for the cold (outfits.weatherMask: S5 of shadow review r6), then coats, weapons and hats laid aside
+    const m0 = weatherMask(p.look.dress, p.look.mask, this.airC);
+    const mask = ASIDE.has(anim) ? m0 & ~this.asideBits(p.look.dress, anim) : m0;
     if (mask !== p.mask) { p.mask = mask; this.humans.gpu.person[p.slot * PERSON_TEXELS * 4 + 1] = mask; this.humans.gpu.markPersonDirty(); }
     // glance: the player within 7 m turns heads (clamped) and eyes. How much follows the simulation's memory of the
     // player (sim.greeting: none → a stranger's glance; nod / recognise → the head turns fully and nods once, within 4 m)
@@ -629,6 +633,8 @@ export class Crowd {
     const dx = w[0] - p.root[0], dy = w[1] - p.root[1], dz = w[2] - p.root[2], c = Math.cos(p.root[3]), s = Math.sin(p.root[3]), k = 1 / p.look.scale, o = p.lookC;
     o[0] = (c * dx - s * dz) * k; o[1] = dy * k; o[2] = (s * dx + c * dz) * k; return o;
   }
+  /** the air's temperature (°C) the crowd dresses for */
+  airC = 20;
   private asideCache = new Map<string, number>();
   private asideBits(dress: Dress, anim: AnimId) {
     const k = dress + (anim === 'sleep' ? ':s' : ''); let b = this.asideCache.get(k);
