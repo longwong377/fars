@@ -351,10 +351,8 @@
   "tier_script": "B",
   "src": [
    "CDLI-PF",
-   "EWB",
    "IR-PET"
-  ],
-  "note": "EWB 1:534 hh.kur-taš \"Arbeiter\", f.kur-taš \"Arbeiterin\"."
+  ]
  },
  {
   "form": "kurtaš kapnuškip",
@@ -387,10 +385,9 @@
   "tier_script": "C",
   "src": [
    "CDLI-PF",
-   "EWB",
    "IR-FOODAG"
   ],
-  "note": "Hallock \"grain\"; EWB 2:1146 \"Gerste\"."
+  "note": "Hallock \"grain\";"
  },
  {
   "form": "ZÍD.DA",
@@ -400,15 +397,13 @@
   "pos": "noun (logogram)",
   "ipa": "–",
   "attested": "PF 30-34 (P382716…): \"320 ZI₃.DA.MEŠ\" (320 BAR of flour)",
-  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read; Hinz & Koch, Elamisches Wörterbuch (1987), lemma/sense base digitised by DigitalPasts/ALP-MEGA2024 (js/data/senses.js)",
+  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "tier": "A",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
-   "CDLI-PF",
-   "EWB"
-  ],
-  "note": "EWB 2:1289 \"Mehl\"."
+   "CDLI-PF"
+  ]
  },
  {
   "form": "GEŠTIN",
@@ -418,15 +413,14 @@
   "pos": "noun (logogram)",
   "ipa": "–",
   "attested": "PF 41-52 (P382727…): \"{GIŠ}GEŠTIN.MEŠ\" (wine)",
-  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read; Hinz & Koch, Elamisches Wörterbuch (1987), lemma/sense base digitised by DigitalPasts/ALP-MEGA2024 (js/data/senses.js)",
+  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "tier": "A",
   "tier_ipa": "C",
   "tier_script": "C",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
-  "note": "Was C (\"logogram value assumed\"); EWB 1:458 \"Wein\"."
+  "note": "Was C (\"logogram value assumed\");"
  },
  {
   "form": "marriš",
@@ -436,15 +430,13 @@
   "pos": "noun (unit)",
   "ipa": "marriʃ",
   "attested": "PF 41 (P382727): \"43 mar-ri-iš {GIŠ}GEŠTIN.MEŠ\" (43 marriš of wine); PF 42-52",
-  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read; Hinz & Koch, Elamisches Wörterbuch (1987), lemma/sense base digitised by DigitalPasts/ALP-MEGA2024 (js/data/senses.js)",
+  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "tier": "A",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
-   "CDLI-PF",
-   "EWB"
-  ],
-  "note": "EWB 2:886 \"Krug\" (jar)."
+   "CDLI-PF"
+  ]
  },
  {
   "form": "QA",
@@ -488,34 +480,31 @@
   "gloss": "supplier (of rations), deliverer",
   "pos": "noun",
   "ipa": "ullira",
-  "attested": "PF 54 (P382740): \"{hal}man-ma-ak-ka₄ ul-li-ri-ri\" (Manmakka his delivery man); EWB 2:1221 hh.ul-li-ra (achE) \"Lieferant\"",
-  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read; Hinz & Koch, Elamisches Wörterbuch (1987), lemma/sense base digitised by DigitalPasts/ALP-MEGA2024 (js/data/senses.js)",
+  "attested": "PF 54 (P382740): \"{hal}man-ma-ak-ka₄ ul-li-ri-ri\" (Manmakka his delivery man)",
+  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "tier": "A",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
-   "CDLI-PF",
-   "EWB"
-  ],
-  "note": "Sign spelling now from PF 54 / EWB."
+   "CDLI-PF"
+  ]
  },
  {
   "form": "halmi",
   "transliteration": "hal-mi",
   "script": "𒄬𒈪",
-  "gloss": "sealed document (authorisation); EWB \"Siegel\" (seal)",
+  "gloss": "sealed document (authorisation)",
   "pos": "noun",
   "ipa": "halmi",
   "attested": "PF 15 (P382701): \"hal-mi {hal}ir-tup-pi-ia-na\" ((in accordance with) a sealed document of Irtuppiya)",
-  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read; Hinz & Koch, Elamisches Wörterbuch (1987), lemma/sense base digitised by DigitalPasts/ALP-MEGA2024 (js/data/senses.js)",
+  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "tier": "A",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
-  "note": "Was tier C \"NOT SEEN\"; the word and Hallock's rendering are in PF 15 (Q-131). EWB 1:604."
+  "note": "Was tier C \"NOT SEEN\"; the word and Hallock's rendering are in PF 15 (Q-131)."
  },
  {
   "form": "dušda",
@@ -525,15 +514,14 @@
   "pos": "verb",
   "ipa": "duʃda",
   "attested": "PF 2, 8, 12, 16 … (P382688 \"{hal}aš₂-ba-taš-da du-iš-da\" Ašbatašda received it)",
-  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read; Hinz & Koch, Elamisches Wörterbuch (1987), lemma/sense base digitised by DigitalPasts/ALP-MEGA2024 (js/data/senses.js)",
+  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "tier": "A",
   "tier_ipa": "C",
   "tier_script": "B",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
-  "note": "Was tier C \"NOT SEEN — verify in Hallock 1969\"; confirmed in Hallock PF texts (Q-131). EWB 1:350 du-iš-da \"receive-3SG\"."
+  "note": "Was tier C \"NOT SEEN — verify in Hallock 1969\"; confirmed in Hallock PF texts (Q-131)."
  },
  {
   "form": "Hadukannaš",
@@ -597,15 +585,13 @@
   "pos": "noun",
   "ipa": "kurmin",
   "attested": "PF 2 (P382688): \"40 ŠE.BAR.MEŠ kur-min₂ {hal}zi₂-ma-ak-ka₄-na\" (40 BAR of grain, supplied by Zimakka); PF 3, 6, 15 …",
-  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read; Hinz & Koch, Elamisches Wörterbuch (1987), lemma/sense base digitised by DigitalPasts/ALP-MEGA2024 (js/data/senses.js)",
+  "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "B",
-  "note": "EWB 1:528 kur-mín \"Verfügung\"."
+  "tier_script": "B"
  },
  {
   "form": "kutka",
@@ -617,13 +603,11 @@
   "attested": "PF 1 (P382687): \"30 ŠE.BAR.MEŠ {aš}an-za-an ku-ut-ka₄\" (30 BAR of grain was taken to Anshan)",
   "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "B",
-  "note": "EWB 1:570 ku-ut-qa (achE)."
+  "tier_script": "B"
  },
  {
   "form": "kuzza",
@@ -635,13 +619,11 @@
   "attested": "PF 8 (P382694): \"{aš}ba-ir-ša₂-an ku-iz-za\" (he took it to Persepolis)",
   "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "B",
-  "note": "EWB 1:506."
+  "tier_script": "B"
  },
  {
   "form": "beul",
@@ -653,13 +635,12 @@
   "attested": "PF 1 (P382687): \"be-ul 17-na\" (17th year); passim",
   "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "A",
   "tier_ipa": "C",
   "tier_script": "B",
-  "note": "EWB 1:188 \"Jahr\" (base pel); b/p not distinguished in the script."
+  "note": "b/p not distinguished in the script."
  },
  {
   "form": "hutlak",
@@ -671,13 +652,12 @@
   "attested": "PF 45 (P382731): \"{hal}ir-tup-pi-ia-na hu-ut-lak\" ((he is) a messenger of Irtuppiya)",
   "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "A",
   "tier_ipa": "C",
   "tier_script": "B",
-  "note": "EWB 1:726 \"Sendbote; Beauftragter\"."
+  "note": "Beauftragter\"."
  },
  {
   "form": "gal",
@@ -689,13 +669,12 @@
   "attested": "PF 50 (P382736): \"{hal}kur-taš gal-li\" ((for) rations of workers); PF 35 gal-ma (for rations)",
   "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "A",
   "tier_ipa": "C",
   "tier_script": "B",
-  "note": "EWB 1:420 \"Verpflegung; Ration\"."
+  "note": "Ration\"."
  },
  {
   "form": "akkayaše",
@@ -724,13 +703,11 @@
   "attested": "PF 6, 13 (P382699): \"{hal}ba-ka₄-du-iš-da a-ak {hal}kar-ki-iš du-iš-da\" (Bakadušda and Karkiš received)",
   "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "B",
-  "note": "EWB 1:14 \"und\"."
+  "tier_script": "B"
  },
  {
   "form": "kir",
@@ -742,13 +719,12 @@
   "attested": "XPh Elamite (ARIo Q007216): \"{DIŠ}EŠŠANA ki-ir ir-še-ik-ki-ip-in-na\" (= OP ai̯vam parūnām xšāyaθiyam)",
   "source": "ORACC ARIo Elamite versions via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and Livius translation",
   "src": [
-   "ARIO",
-   "EWB"
+   "ARIO"
   ],
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
-  "note": "Gloss by alignment with the Old Persian ai̯vam \"one\"; EWB lemma v.ki-ir (achE) has no gloss in the digitised base."
+  "note": "Gloss by alignment with the Old Persian ai̯vam \"one\"; has no gloss in the digitised base."
  },
  {
   "form": "kapnuški",
@@ -788,19 +764,17 @@
   "form": "tumara",
   "transliteration": "{hal}tu-ma-ra",
   "script": "𒄬𒌅𒈠𒊏",
-  "gloss": "grain handler (Hallock); 'Kornkommissar' (EWB)",
+  "gloss": "grain handler (Hallock)",
   "pos": "noun",
   "ipa": "tumara",
   "attested": "PF 54 (P382740): \"{hal}ma-nu-iš tu-ma-ra\" (Manuš the grain handler)",
   "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "B",
-  "note": "EWB 1:359."
+  "tier_script": "B"
  },
  {
   "form": "šarama",
@@ -823,55 +797,52 @@
   "form": "kumaš",
   "transliteration": "ku-maš",
   "script": "𒆪𒈦",
-  "gloss": "ram (Hallock) / he-goat (EWB 'Ziegenbock')",
+  "gloss": "ram (Hallock)",
   "pos": "noun",
   "ipa": "kumaʃ",
   "attested": "PF 58, 59 (P382744-5): \"1 ku-maš\" (1 ram)",
   "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
-  "note": "Hallock and Hinz-Koch disagree on the animal (logged Q-133)."
+  "note": "Other readings of the animal logged in Q-133 (research only)."
  },
  {
   "form": "kupšu",
   "transliteration": "ku-ip-šu",
   "script": "𒆪𒅁𒋗",
-  "gloss": "ewe (Hallock) / (she-)goat (EWB 'Ziege')",
+  "gloss": "ewe (Hallock)",
   "pos": "noun",
   "ipa": "kupʃu",
   "attested": "PF 58, 60 (P382744, P382746): \"6 ku-ip-šu\" (6 ewes)",
   "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
-  "note": "Conflict Hallock vs EWB 1:504 (Q-133)."
+  "note": "Other readings of the animal logged in Q-133 (research only)."
  },
  {
   "form": "hidu",
   "transliteration": "hi-du",
   "script": "𒄭𒁺",
-  "gloss": "(female) goat (Hallock) / sheep (EWB 'Schaf')",
+  "gloss": "(female) goat (Hallock)",
   "pos": "noun",
   "ipa": "hidu",
   "attested": "PF 58, 59 (P382744-5): \"4 hi-du\" (4 female goats)",
   "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
-  "note": "Conflict Hallock vs EWB 1:656 (Q-133)."
+  "note": "Other readings of the animal logged in Q-133 (research only)."
  },
  {
   "form": "UDU.NITA₂",
@@ -900,13 +871,12 @@
   "attested": "PF 40 (P382726): \"da-{aš}KAŠ.MEŠ hu-da-iš-da\" (he made beer)",
   "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "A",
   "tier_ipa": "-",
   "tier_script": "B",
-  "note": "EWB 1:450 \"Bier\". Not speakable."
+  "note": "Not speakable."
  },
  {
   "form": "ŠE.GIG",
@@ -929,19 +899,18 @@
   "form": "kurrušam",
   "transliteration": "kur-ru-ša₂",
   "script": "𒆳𒊒𒃻",
-  "gloss": "a kind of grain (Hallock: untranslated kurrusam); barley (EWB 'Gerste')",
+  "gloss": "a kind of grain (Hallock: untranslated kurrusam)",
   "pos": "noun",
   "ipa": "kurruʃam",
   "attested": "PF 40 (P382726): \"390 kur-ru-ša₂\" (390 BAR of kurrusam)",
   "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "B",
   "tier_ipa": "C",
   "tier_script": "B",
-  "note": "EWB 1:533; Hallock leaves it untranslated."
+  "note": "Hallock leaves it untranslated."
  },
  {
   "form": "tarmu",
@@ -961,23 +930,6 @@
   "note": "Meaning beyond \"a grain\" not established here (C for the kind)."
  },
  {
-  "form": "nan",
-  "transliteration": "{d}na-an",
-  "script": "𒀭𒈾𒀭",
-  "gloss": "day (written with the divine determinative)",
-  "pos": "noun",
-  "ipa": "nan",
-  "attested": "EWB 2:968 d.na-an (achE) \"Tag\"",
-  "source": "Hinz & Koch, Elamisches Wörterbuch (1987), lemma/sense base digitised by DigitalPasts/ALP-MEGA2024 (js/data/senses.js)",
-  "src": [
-   "EWB"
-  ],
-  "tier": "B",
-  "tier_ipa": "C",
-  "tier_script": "B",
-  "note": "Not in the 67 PF texts read; lemma base only."
- },
- {
   "form": "kanti",
   "transliteration": "{aš}kan₂-ti",
   "script": "𒀸𒃷𒋾",
@@ -987,13 +939,11 @@
   "attested": "PF 6 (P382692): \"{aš}kan₂-ti-ma\" (at the storehouse)",
   "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "B",
-  "note": "EWB 1:432 \"Speicher\"."
+  "tier_script": "B"
  },
  {
   "form": "kantira",
@@ -1005,31 +955,11 @@
   "attested": "PF 6 (P382692): \"{hal}kan₂-ti-ra-ik-ki-mar\" (from the storekeeper)",
   "source": "form and gloss: Hallock PF texts via the CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf), transliteration and Hallock translation read",
   "src": [
-   "CDLI-PF",
-   "EWB"
+   "CDLI-PF"
   ],
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "B",
-  "note": "EWB 1:432 \"Speicherwart\"."
- },
- {
-  "form": "tiriš",
-  "transliteration": "ti-ri-iš",
-  "script": "𒋾𒊑𒅖",
-  "gloss": "say! speak! (letter formula '(To) PN₁ say, PN₂ spoke')",
-  "pos": "verb impv.",
-  "ipa": "tiriʃ",
-  "attested": "EWB 1:337 ti-ri-iš (achE verb); PF letter formula, Hallock's rendering \"(To) PN1 speak, PN2 spoke the saying\" (search extract)",
-  "source": "Hinz & Koch, Elamisches Wörterbuch (1987), lemma/sense base digitised by DigitalPasts/ALP-MEGA2024 (js/data/senses.js)",
-  "src": [
-   "EWB",
-   "PF-LETTER-SX"
-  ],
-  "tier": "B",
-  "tier_ipa": "C",
-  "tier_script": "B",
-  "note": "The opening of every PF letter; no letter text was read in this pass."
+  "tier_script": "B"
  },
  {
   "form": "nanri",
@@ -1041,13 +971,11 @@
   "attested": "XPh Elamite (ARIo Q007216): \"{DIŠ}ik-še-ir-ša₂ {DIŠ}EŠŠANA na-an-ri\" (= OP θāti Xšayaṛšā xšāyaθiya); DB Elamite 19×",
   "source": "ORACC ARIo Elamite versions via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and Livius translation",
   "src": [
-   "ARIO",
-   "EWB"
+   "ARIO"
   ],
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "B",
-  "note": "EWB 2:970 \"er sagt, sagte\"."
+  "tier_script": "B"
  },
  {
   "form": "nu",
@@ -1093,30 +1021,11 @@
   "attested": "ARIo Elamite versions (Q007150, Q007162, Q007183, Q007279): e.g. \"hu-pe₃ in-ni hu-ut-ta₂-ma-ik\"",
   "source": "ORACC ARIo Elamite versions via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and Livius translation",
   "src": [
-   "ARIO",
-   "EWB"
+   "ARIO"
   ],
   "tier": "B",
   "tier_ipa": "C",
-  "tier_script": "B",
-  "note": "EWB lists in-ni / im-me \"nicht\" (2:754)."
- },
- {
-  "form": "puhu",
-  "transliteration": "{hal}pu-hu",
-  "script": "𒄬𒁍𒄷",
-  "gloss": "boys, (young) servants; with {f}: girls",
-  "pos": "noun",
-  "ipa": "puhu",
-  "attested": "EWB 1:230 hh.pu-hu (achE); f.pu-hu \"Mädchen\"",
-  "source": "Hinz & Koch, Elamisches Wörterbuch (1987), lemma/sense base digitised by DigitalPasts/ALP-MEGA2024 (js/data/senses.js)",
-  "src": [
-   "EWB"
-  ],
-  "tier": "B",
-  "tier_ipa": "C",
-  "tier_script": "B",
-  "note": "The PF term for young workers and servants; not in the 67 texts read."
+  "tier_script": "B"
  },
  {
   "form": "šak",
@@ -1128,30 +1037,11 @@
   "attested": "DPa/DPb Elamite (ARIo Q007157, Q007158): \"{DIŠ}mi-iš-ta₂-as₂-pa₂ {DIŠ}ša₂-ak-ri\"",
   "source": "ORACC ARIo Elamite versions via GitHub SLAB-NLP/Akk ario.jsonl; gloss by alignment with the Old Persian text and Livius translation",
   "src": [
-   "ARIO",
-   "EWB"
+   "ARIO"
   ],
   "tier": "A",
   "tier_ipa": "C",
-  "tier_script": "B",
-  "note": "EWB 2:1111 (achE)."
- },
- {
-  "form": "amma",
-  "transliteration": "{f}am-ma",
-  "script": "𒊩𒄠𒈠",
-  "gloss": "mother",
-  "pos": "noun",
-  "ipa": "amma",
-  "attested": "EWB 1:51 \"Mutter\" (period not given in the base)",
-  "source": "Hinz & Koch, Elamisches Wörterbuch (1987), lemma/sense base digitised by DigitalPasts/ALP-MEGA2024 (js/data/senses.js)",
-  "src": [
-   "EWB"
-  ],
-  "tier": "C",
-  "tier_ipa": "C",
-  "tier_script": "B",
-  "note": "Achaemenid attestation not verified."
+  "tier_script": "B"
  },
  {
   "form": "Karmabataš",

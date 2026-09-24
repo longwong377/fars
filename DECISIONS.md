@@ -2966,6 +2966,16 @@ The year soak with the court was not run (another agent runs the default year so
   - With every version in its own lines, XPc and XPd no longer fitted three columns in the 2.4 m stair field at the 2 cm floor. Their arrangement becomes stacked, the Old Persian above the Elamite and the Babylonian, as the published description of the XPc pillar copies has it (C for this copy; SITE_SPEC `r_stair_inscription`). The signs are now 2.9 and 2.8 cm.
   - A new check fails if any carved field does not fit at the smallest sign.
 - **Records.** Q-288 is rewritten (what the edition marks, how it is carved, the 56 classed words); D-176 and D-177 are marked superseded in their sign basis; research/OP_SIGNS.md is regenerated; PROGRESS states the new measure.
+- **Extended to the Elamite and Babylonian (Phase 8 review round 3 M1, session 6).** The rule "as the stone stood in 467" had been applied to the Old Persian only. `tools/build_cun_lines.py` now builds each carved Elamite and Babylonian version from the edition's CATF lines, applying the same marks:
+  - the scribe's omissions (<…>) are NOT carved: XPa El {d}u-ra-mas-da-<na> and XPd El sza2-ak-<ri>, the 2 signs the review found;
+  - the engraver's extras (<<…>>) would be carved; there are none in these versions;
+  - restorations ([…], 65 signs: XPa El 12 and Bab 14, XPb El 5, XPd El 10 and Bab 5, DPb Bab 10, DPc El 2, DPg Bab 7) are carved, counted in `el_marks` / `bab_marks`, and tiered C in each panel's F3 note. The panel tier is B/C where there are any;
+  - the CATF's parentheses (27 signs in 7 versions) are carved as the running text writes them and tiered C (Q-293).
+
+  The build stops unless the carved lines equal the ARIo running text less exactly the omitted signs. `version_split` becomes A (verified). The translation layer's reading notes the omissions and restorations.
+
+  tests/lang.test.ts counts the marks straight from the CATF lines, with its own counter: all 20 carved versions are in the edition's lines without word spaces; omitted 2, restored 65, both equal to the build's counts; the carved text is the running text less exactly the omitted signs.
+
 ## D-186 The round-6 shadow review's findings (session 6, sim agent)
 - **Why:** shadow review round 6 on pick 113 failed with two independent reviewers (`REVIEWS/shadow_phase5_r6.md`, A: 1 of 20 below 4; `REVIEWS/shadow_phase5_r6_b.md`, B: 3 of 20). Blocking: the Treasury's "receiving hides" with no delivery behind it (1888); off-watch guards in a 10-15 h hearth loop (#10, #75); married guards seldom with their families (#75). Each finding below is fixed at the rule that made it, or logged. New rules are C unless named. Open questions: Q-060 updated, Q-337 and Q-338 new. Days are the code's 0-based indices; seed 1.
 - **Broken or placeholder first:**
@@ -3149,3 +3159,29 @@ The year soak with the court was not run (another agent runs the default year so
   - For tools/dev/voice_phones.py only: allosaurus and torch.
   - Measurement inputs sit in data/raw/ (gitignored) and are fetched when missing.
   - SOURCES.md and ASSET_LEDGER are updated.
+
+## D-192 Licences under USE = personal, non-commercial: any licence that permits that use with credit is allowed, CC BY-SA included; every bundled lexical source's licence checked; the unlicensed EWB data removed from the lexicon (Phase 8 review round 3 M6; lead decision, session 6, carving workstream)
+- **The finding (REVIEWS/phase8_r3.md M6).** The app bundles lexicon words and glosses from Strong's (CC BY-SA), Perseus (CC BY-SA), ORACC RIBo, CAMS and HBTIN ("licences not checked"), and the EWB sense base ("no licence file"). Meanwhile the translation layer told every user that §12 allows "only CC0, CC-BY or CC-BY-NC". D-167 had deferred the share-alike question, and no decision existed.
+- **Decision (lead, binding).** §12 says that for USE = personal, non-commercial "CC0, CC-BY and CC-BY-NC are fine". It lists licences that are fine; it does not forbid other licences that permit this use.
+  - CC BY-SA permits personal, non-commercial use with attribution. Share-alike binds only redistribution of adaptations; if the project were redistributed, those parts would carry BY-SA. So CC BY-SA sources are ALLOWED, with credit in ASSET_LEDGER.
+  - Any other licence or terms that permit this use with credit are allowed too, for example CDLI's terms of use.
+  - A source whose licence cannot be established is NOT assumed to be usable. Its data is replaced from a licensed source, or removed and the gap logged.
+- **The layer's text corrected.** `TRANSLATION_STATUS` (src/ui/translation.ts) now states the rule: any licence that permits this use with credit, CC-BY-SA included (D-192); "All rights reserved" permits none. Tested (tests/translation_layer.test.ts).
+- **Every bundled lexical source, checked 2026-09-24.** The evidence is recorded in src/data/sources.json, and the ASSET_LEDGER lexicon row names each licence:
+
+  | Source (key) | Licence | Evidence |
+  |---|---|---|
+  | ORACC ARIo (ARIO, ARIO-CATF) | CC0 | oracc/catf README: "Canonical ATF version of Oracc data which is permitted to be released under CC0" (read) |
+  | ORACC RIBo (RIBO) | CC BY-SA 3.0 | the project's statement "The annotated edition is released under the Creative Commons Attribution Share-Alike license 3.0" (search extracts; oracc.org does not answer here) |
+  | ORACC HBTIN (HBTIN) | CC BY-SA 3.0 | "created by Philippe Clancier for the AHRC-funded GKAB Project in 2008 and released under the Creative Commons Attribution Share-Alike license 3.0" (search extract) |
+  | ORACC CAMS (CAMS-ORACC) | CC BY-SA | "files from the Corpus of Ancient Mesopotamian Scholarship are released under a Creative Commons Attribution Share-Alike license" (Cambridge repository record, search extract) |
+  | SLAB-NLP/Akk mirror of the three above | MIT (the mirror's code only) | its LICENSE (read); it cannot relicense ORACC data, so the projects' own licences apply |
+  | Hallock PF texts via CDLI (CDLI-PF) | CDLI terms of use: free re-use with mention of CDLI | "Text in the pages of CDLI may be freely copied, aggregated and re-used according to common and fair academic practice" (search extract of cdli.earth/terms-of-use; the dump's README states none) |
+  | Open Scriptures Hebrew Bible (OSHB) | CC BY 4.0 (lemma and morphology); text public domain | morphhb README (read) |
+  | Strong's JSON (STRONGS) | CC-BY-SA | the file's header "Copyright 2010, Open Scriptures. CC-BY-SA." (read) |
+  | Perseus Herodotus, Homer, LSJ (HDT-GRC, HOM-OD, LSJ) | CC BY-SA 4.0 | PerseusDL/canonical-greekLit and PerseusDL/lexica READMEs (read) |
+  | Livius.org translations (LIVIUS-AI) | all rights reserved | the pages' footer. Only single-word meanings aligned with them are used (facts), and no sentence is bundled (D-167) |
+  | EWB sense base (EWB; DigitalPasts/ALP-MEGA2024) | **not established** | no LICENSE file, and none in the README (read); GitHub API not enabled; web search found none |
+
+- **EWB removed from the lexicon.** In research/LEXICON/elamite.json, 4 entries whose form rests on EWB alone are removed: *nan* "day", *puhu* "boys, servants", *amma* "mother" and *tiriš* "speak", which none of the 73 lines uses. From 27 other entries I stripped EWB's glosses, German renderings and page references. What remains rests on Hallock via CDLI, or on ARIo.
+- **Still open (Q-294, for the lead).** src/data/names.json draws 484 of its 583 personal names (the Elamite pools) from the same EWB base, and it had no ledger row. It now has one, with the licence stated as not established. Removing those names belongs to the population workstream, and the soak's name-variety gates depend on them. They should be replaced from a licensed source or removed; this workstream did not do it.
