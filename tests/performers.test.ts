@@ -122,11 +122,13 @@ describe('the music director (world glue): plays what the schedule says, where t
   });
   it('places the court musicians while the court plays and takes them away after', () => {
     const e = mkEngine(), placed = new Set<string>();
-    const d = new MusicDirector(new MusicSystem(e, () => true), e, { addExtra: k => placed.add(k), removeExtra: k => placed.delete(k), singing() {} });
+    const ms = new MusicSystem(e, () => true);
+    const d = new MusicDirector(ms, e, { addExtra: k => placed.add(k), removeExtra: k => placed.delete(k), singing() {} });
     const on = { courtToday: true, courtYesterday: true };
     let t = -1; for (let m = 19 * 60; m < 21 * 60 && t < 0; m++) if (musicAt([], ctx(m / 60, on)).some(g => g.kind === 'court_supper')) t = m / 60;
     expect(t).toBeGreaterThan(0);
     d.update(1, [], ctx(t, on), { x: 22, y: 7.6, z: 159.5 }); expect(placed.size).toBe(6);
+    expect(ms.playing).toHaveLength(3); // two harps and the chorus, started together
     d.update(1, [], ctx(12, on), { x: 22, y: 7.6, z: 159.5 }); expect(placed.size).toBe(0);
   });
 });

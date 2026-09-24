@@ -30,20 +30,22 @@ export class MusicDirector {
   update(dt: number, agents: readonly PerformerAgent[], ctx: MusicCtx, listener: { x: number; y: number; z: number }) {
     if ((this.since += dt) >= 0.25) { this.since = 0; this.gigs = musicAt(agents, ctx); this.syncExtras(); }
     const positions = new Map<string, { x: number; y: number; z: number }>();
-    for (const g of this.gigs) for (const p of soundingParts(g)) {
-      const a = p.agentId != null ? agents[p.agentId] : null;
-      // a simulated performer is followed where they are now (at the mouth height the schedule gave)
-      const w = a ? { x: a.pos[0], y: p.pos.y, z: -a.pos[1] } : { x: p.pos.e, y: p.pos.y, z: -p.pos.n };
-      positions.set(p.perf!.id, w);
-      const near = Math.hypot(w.x - listener.x, w.y - listener.y, w.z - listener.z) < EARSHOT_M;
-      if (near && !this.music.isPlaying(p.perf!.id)) {
-        const k = (this.seg.get(p.perf!.id) ?? -1) + 1; this.seg.set(p.perf!.id, k);
-        this.music.perform({ ...p.perf!, seed: p.perf!.seed + 7919 * k, pieceSeed: p.perf!.pieceSeed != null ? p.perf!.pieceSeed + 7919 * k : undefined }, w, PIECE_S);
+    for (const g of this.gigs) {
+      const parts = soundingParts(g);
+      const where = parts.map(p => { const a = p.agentId != null ? agents[p.agentId] : null;
+        // a simulated performer is followed where they are now (at the mouth height the schedule gave)
+        return { p, a, w: a ? { x: a.pos[0], y: p.pos.y, z: -a.pos[1] } : { x: p.pos.e, y: p.pos.y, z: -p.pos.n } }; });
+      for (const x of where) positions.set(x.p.perf!.id, x.w);
+      const near = where.some(x => Math.hypot(x.w.x - listener.x, x.w.y - listener.y, x.w.z - listener.z) < EARSHOT_M);
+      // an ensemble starts and renews all its parts together, so they keep one melody in time (heterophony)
+      if (near && where.some(x => !this.music.isPlaying(x.p.perf!.id))) {
+        const k = (this.seg.get(g.id) ?? -1) + 1; this.seg.set(g.id, k);
+        for (const { p, w } of where) { const pf = p.perf!; this.music.perform({ ...pf, seed: pf.seed + 7919 * k, pieceSeed: pf.pieceSeed != null ? pf.pieceSeed + 7919 * k : undefined }, w, PIECE_S); }
       }
-      if (a && p.perf!.instrument === 'voice' && this.music.isPlaying(p.perf!.id)) this.hooks.singing(a.id, 0.5);
+      for (const { p, a } of where) if (a && p.perf!.instrument === 'voice' && this.music.isPlaying(p.perf!.id)) this.hooks.singing(a.id, 0.5);
     }
     this.music.update(positions); // stops what is no longer scheduled (with a fade)
-    if (this.seg.size > 500) for (const id of [...this.seg.keys()]) if (!positions.has(id)) this.seg.delete(id);
+    if (this.seg.size > 500) { const live = new Set(this.gigs.map(g => g.id)); for (const id of [...this.seg.keys()]) if (!live.has(id)) this.seg.delete(id); }
   }
   private syncExtras() {
     const want = new Map<string, Gig['parts'][number]>();
