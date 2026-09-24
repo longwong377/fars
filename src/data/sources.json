@@ -803,5 +803,45 @@
   "cite": "‘Let’s shed some light on ancient Near Eastern doublepipes!’, The Workshop of Dionysus (the Sumerian ge-di double pipe; its rudimentary form played by shepherds)",
   "url": "https://www.doublepipes.info/lets-shed-some-light-on-ancient-near-eastern-doublepipes/",
   "access": "search-extract only (session 6); a maker’s site, max tier C"
+ },
+ "IR-HERACL": {
+  "cite": "‘Heracleides of Cyme’, Encyclopaedia Iranica online (Heracleides’ Persika via Athenaeus: the thousand ‘apple-bearers’ (mēlophoroi), Persians of rank drawn from the ‘Immortals’; the three hundred women; the king’s dinner)",
+  "url": "https://www.iranicaonline.org/articles/heracleides-of-cyme/",
+  "access": "search-extract only (host blocked, B6; session 6, court workstream). Greek claims about the court of Artaxerxes II, max tier B"
+ },
+ "IR-IMM": {
+  "cite": "‘Immortals’, Encyclopaedia Iranica online (Herodotus 7.41 and 7.83: ten thousand picked Persians, a thousand with golden pomegranates on the spear butts, nine thousand with silver)",
+  "url": "https://www.iranicaonline.org/articles/immortals/",
+  "access": "search-extract only (host blocked, B6); Herodotus itself is read in full (HDT). Greek claim, max tier B"
+ },
+ "IR-COURT": {
+  "cite": "‘Courts and courtiers i. In the Median and Achaemenid periods’, Encyclopaedia Iranica online (the chiliarch as chief of the court and commander of the thousand; eunuchs; the steward of the royal household; the king dining with his ‘table-companions’)",
+  "url": "https://www.iranicaonline.org/articles/courts-and-courtiers-i/",
+  "access": "search-extract only (host blocked, B6; session 6)"
+ },
+ "IR-CHIL": {
+  "cite": "‘Chiliarch’, Encyclopaedia Iranica online, and the search summary of ‘Hazarapatiš in the Achaemenid Empire: a commander or usher?’ (the hazarapatiš commands the thousand and screens visitors before an audience; the eisangeleus announces them)",
+  "url": "https://www.iranicaonline.org/articles/chiliarch/",
+  "access": "search-extract only (host blocked, B6; session 6)"
+ },
+ "IR-HAREM": {
+  "cite": "‘Harem i. In ancient Iran’, Encyclopaedia Iranica online (Parmenion’s letter: 329 royal concubines skilled in music; royal women at court)",
+  "url": "https://www.iranicaonline.org/articles/harem-i/",
+  "access": "search-extract only (host blocked, B6; session 6). Greek claims, max tier B"
+ },
+ "TREAS-AUD": {
+  "cite": "The Treasury (and Hall of a Hundred Columns) audience relief: the enthroned king and crown prince; behind them a beardless attendant with a towel, a Mede with battle-axe and quiver, two Persian guards; before them two incense burners and a Median official bowing, hand before the mouth (search summaries of Iranica ‘Persepolis’ and ‘Proskynesis’ (achaemenica.org))",
+  "url": "https://achaemenica.org/articles/proskynesis",
+  "access": "search-extract only (session 6). The relief is A; the reading of the figures B"
+ },
+ "APA-RELIEF": {
+  "cite": "The Apadana N and E stairway reliefs: twenty-three delegations in their own dress bringing gifts, each led by the hand by a Persian or Median usher; files of Persian and Susian guards; Persian and Median nobles (Livius Apadana stair pages; ISAC ‘The Apadana’; search summaries)",
+  "url": "https://www.livius.org/articles/place/persepolis/persepolis-photos/persepolis-apadana-east-stairs/",
+  "access": "search-extract only (session 6). The reliefs are A as images; whether they show a real annual procession is debated (brief §2)"
+ },
+ "HENK2010": {
+  "cite": "W. F. M. Henkelman, ‘“Consumed before the King”. The Table of Darius, that of Irdabama and Irtaštuna, and that of his Satrap, Karkiš’, in B. Jacobs and R. Rollinger (eds), Der Achämenidenhof (2010) 667-775 (PF 0701: 126,100 qa of flour ‘consumed before the king’; the king’s table redistributed to family, courtiers and guards)",
+  "url": "http://www.achemenet.com/pdf/news/W.HENKELMAN_310308_Consumed%20before%20the%20King.pdf",
+  "access": "search-extract only (achemenet and academia blocked, B6; session 6). Darius-era evidence, B; its use for 467 C"
  }
 }

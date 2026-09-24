@@ -1,0 +1,84 @@
+{
+  "_meta": {
+    "title": "The court in residence at Persepolis (setting 'Court calendar = seasonal pattern' only; D-003, D-182): who, how many, where on the Terrace, and the rules of their days",
+    "doc": "research/COURT.md; DECISIONS D-182; BLOCKERS B12",
+    "tiers": "A attested / B inferred (Greek claims about the Persian court are capped at B; search extracts are capped at B) / C reconstructed. EVERY count below is C: a derivation to meet population.json zones.terrace.court_resident (w 5,000 by day, 2,500 by night), sized in the proportions the sources give where they give any. Every place is C.",
+    "setting": "The court exists ONLY with the out-of-world setting (court=seasonal). Court ABSENT is the default and the evidence-strict state (Q-005, B9). With the setting, the court is resident from day 0 (1 Nisannu) through day 116 and leaves on day 117 (E-26, month 4 day 29). E-25 ('the court arrives', day 0 09:00) stands for an arrival before the year's window: E-27's journeys to the king in months 12 and 1 need the king in residence by then (Q-330).",
+    "king": "The king himself is NOT modelled as a person (B9: no evidence places Xerxes at Persepolis in 467; seclusion: brief 9.1). His household, guard, table and audiences are; the audience itself happens out of sight (Q-335).",
+    "placeholders": [
+      "delegation dress by people is NOT BUILT: petitioners and delegates wear the generic Median riding dress (dressOf 'traveller')",
+      "the court's camp below the Terrace has NO TENTS built: its people are drawn in the open, asleep too",
+      "the royal guard's golden-apple spear butts are not modelled apart from the ordinary spear prop",
+      "music of the royal women at night (ATH12-HERACL) is not performed: they are shown awake with the lamps"
+    ]
+  },
+  "resident": { "first_day": 0, "last_day": 116, "leave_day": 117, "tier": "C", "src": "RECON;KING2022", "note": "months 1-4 under the setting (population.json default_court_state); the leave day is E-26's" },
+  "camp": { "c": [-300, 380], "r": 130, "tier": "C", "src": "RECON", "note": "the court's lodging below the Terrace on open ground NW of its foot, between the approach road and the north official complex. The retinue 'lodged or camped' in the town (population.json town court_resident, C); where is not known (Q-333). Tents are NOT BUILT" },
+  "groups": [
+    { "id": "royal_guard", "label": "the king's spearmen (the thousand 'apple-bearers', mēlophoroi)", "n": 1000, "job": "guard", "sex": "m", "age": [20, 45], "origins": [["Persian", 0.5], ["Median", 0.5]], "sleep": "court_guard_quarters",
+      "tier": "C", "src": "HDT;ATH12-HERACL;IR-HERACL;IR-IMM;APA-RELIEF", "note": "HDT 7.41 (a claim about Xerxes' army on the march): a thousand spearmen with golden pomegranates on the spear butts inside nine thousand with silver ones; HDT 7.83: the Ten Thousand 'Immortals'. Heracleides of Cyme (via Athenaeus 12.514b-c; SX): a thousand 'apple-bearers', Persians of rank chosen from the Ten Thousand, guard the king. Both B as claims; the thousand in residence at Persepolis in 467 is C. Persian and Median dress alternate as on the Apadana and Tripylon reliefs (B). Organised as ten hundreds of ten files of ten (HDT 7.81 decimal units, B claim) on the garrison's five-day watch cycle (D-023, C); sleeping in the garrison quarters with the Terrace garrison (capacity unknown: Q-331)" },
+    { "id": "women", "label": "the women of the king's household", "n": 300, "job": "homemaker", "sex": "f", "age": [16, 45], "origins": [["Persian", 0.7], ["Median", 0.15], ["Elamite", 0.15]], "sleep": "court_harem",
+      "tier": "C", "src": "ATH12-HERACL;ATH13-PARM;IR-HAREM", "note": "Heracleides (via Athenaeus 12.514b; a claim about Artaxerxes II): three hundred women who sleep by day and keep watch at night with singing and lamps; Parmenion's letter (Athenaeus 13.608a; Darius III's baggage at Damascus, 333): 329 concubines skilled in music. Both B as claims; 300 in 467 is C. Secluded in the building Herzfeld called the Harem (the name and use are debated: Q-334), never out on the Terrace (C)" },
+    { "id": "attendants", "label": "attendants of the royal household (eunuchs and women servants)", "n": 200, "job": "steward", "jobF": "servant", "sexF": 0.4, "age": [16, 55], "origins": [["Persian", 0.4], ["Elamite", 0.3], ["Babylonian", 0.15], ["Egyptian", 0.15]], "sleep": "court_harem_s",
+      "tier": "C", "src": "TREAS-AUD;IR-COURT;RECON", "note": "the Treasury audience relief shows a beardless attendant (read as a eunuch) with a towel behind the throne (SX, B); eunuchs at court (IR-COURT, SX, B). The men wear the Persian robe as on the reliefs; the number is C" },
+    { "id": "palace", "label": "palace servants: sweepers, water carriers, keepers of the halls", "n": 700, "job": "servant", "sexF": 0.25, "age": [15, 55], "origins": [["Persian", 0.3], ["Elamite", 0.4], ["Babylonian", 0.15], ["Syrian", 0.15]], "sleep_split": [["court_harem_s", 0.25], ["court_tachara", 0.25], ["court_camp", 0.5]],
+      "tier": "C", "src": "RECON", "note": "no count is known; the Terrace's halls kept by a staff that also serves when the court is away (the palace caretakers, population.json) grows with the court (C)" },
+    { "id": "table", "label": "the king's table: cooks, bakers, wine and water staff, servers", "n": 800, "job": "servant", "sexF": 0.2, "age": [15, 55], "origins": [["Persian", 0.35], ["Elamite", 0.35], ["Babylonian", 0.15], ["Egyptian", 0.15]],
+      "roles": [["cook", 0.43], ["baker", 0.21], ["wine", 0.13], ["water", 0.09], ["server", 0.14]], "sleep_split": [["court_kitchen", 0.43], ["court_camp", 0.57]],
+      "tier": "C", "src": "ATH4;ATH4-HERACL;ATH13-PARM;HENK2010;IR-ADMIN", "note": "the proportions follow Parmenion's list (B claim, Darius III): 277 cooks, 29 pot boilers, 13 dairy cooks, 17 drink makers, 70 wine strainers, 40 perfumers, 46 garland weavers; the Greek claims that the king's table fed 15,000 a day (Ctesias and Dinon via Athenaeus 4.146c; SX) and Heracleides' account of the royal dinner (Athenaeus 4.145-146) are claims (B); PF 0701, 126,100 qa of flour 'consumed before the king' (Darius, SX, B). The royal kitchens are NOT located on the Terrace: placed on the open ground W of the Hadish and S of the Tachara (C, Q-332)" },
+    { "id": "porters", "label": "the supply line: porters carrying up from the royal stores", "n": 450, "job": "porter", "sex": "m", "age": [16, 50], "origins": [["Elamite", 0.5], ["Persian", 0.3], ["Babylonian", 0.2]], "sleep": "court_camp",
+      "tier": "C", "src": "IR-ADMIN;RECON", "note": "the royal stores that receive grain, wine and figs (PF, Darius era, B) supply the table; the porters and their loads are C" },
+    { "id": "butchers", "label": "butchers of the royal table at the stockyard", "n": 60, "job": "servant", "sex": "m", "age": [18, 50], "origins": [["Persian", 0.5], ["Elamite", 0.5]], "sleep": "court_camp",
+      "tier": "C", "src": "ATH4;CDLI-PF;RECON", "note": "slaughter at the stockyard is attested (PF 58-60, A, Darius era); 'a thousand animals slaughtered for the king every day' is a Greek claim (Athenaeus 4.145e; SX, B) and is NOT the rate used: the count of butchers is C" },
+    { "id": "officials", "label": "officials, secretaries and ushers of the court", "n": 320, "job": "official", "sex": "m", "age": [25, 60], "origins": [["Persian", 0.6], ["Elamite", 0.2], ["Babylonian", 0.2]], "roles": [["secretary", 0.4], ["usher", 0.2], ["official", 0.4]], "sleep": "court_camp",
+      "tier": "C", "src": "IR-CHIL;IR-COURT;TREAS-AUD;RECON", "note": "the hazarapatiš ('chiliarch') commands the thousand and screens visitors before an audience; an usher (Greek eisangeleus) announces them (IR-CHIL, SX, B). Ushers lead delegates by the hand on the Apadana reliefs (B). Secretaries: the Elamite and Aramaic chancery (LANGUAGES, B). The Tripylon as the officials' place is C (its use is debated)" },
+    { "id": "nobles", "label": "Persians of rank in attendance (the king's table-companions among them)", "n": 550, "job": "steward", "sex": "m", "age": [20, 65], "origins": [["Persian", 0.8], ["Median", 0.2]], "sleep": "court_camp",
+      "tier": "C", "src": "IR-COURT;ATH4-HERACL;APA-RELIEF", "note": "'table-companions' (homotrapezoi) as a court title (SX, B); Persian and Median nobles in the Apadana processions (B imagery); the number in attendance is C" }
+  ],
+  "visitors": {
+    "label": "petitioners and gift-bearing delegations waiting on the king",
+    "parties_per_day": 5, "first_arrival": 0, "last_arrival": 106, "size": [2, 24], "petitioner_share": 0.35, "petitioner_size": [1, 3], "stay_days": [5, 14],
+    "origins": ["Lydian", "Ionian", "Babylonian", "Syrian", "Egyptian", "Elamite", "Median", "Armenian", "Cappadocian", "Bactrian", "Arachosian", "Indian", "Sogdian", "Arab", "Cilician", "Scythian"],
+    "gifts": ["a silver vessel", "a gold bowl", "a jar of wine", "a folded garment", "skins of oil", "a bundle of cloth", "a pair of armlets", "a sack of spice"],
+    "tier": "C", "src": "APA-RELIEF;KING2022;HDT;RECON",
+    "note": "the Apadana reliefs show 23 delegations in their own dress bringing gifts, each led by an usher (B for the types). Whether they show a real annual procession is debated (brief section 2): NO procession is staged. Parties come on their own days (C), wait at the Gate and in the forecourt, and are led up to the Apadana on the day of their audience; petitioners come in ones and twos (C). 'Trips to the king' at the New Year (KING2022, Darius era, B for the pattern) and gifts of the peoples (HDT 3.97, claim) support their presence, not their numbers (C)"
+  },
+  "places": [
+    { "id": "court_guard_quarters", "kind": "sleep", "at": [215.5, 45], "span": [[187.5, -60], [216, 115]], "tier": "C", "note": "the royal guard's sleeping places in the garrison quarters beside the Terrace garrison (Schmidt's garrison quarters B; their capacity is not known: Q-331)" },
+    { "id": "court_guard_mess", "kind": "idle", "at": [150, 142], "span": [[126, 130], [176, 155]], "tier": "C", "note": "the court N of the unfinished gate where the guards eat what is carried out to them from the king's table (Heracleides via Athenaeus 4.145: the food goes out to the court for the bodyguard: B claim; the court C)" },
+    { "id": "court_kitchen", "kind": "work", "at": [-30, -164], "span": [[-44, -176], [-16, -152]], "tier": "C", "note": "the royal kitchens: NOT LOCATED on the Terrace (Q-332); placed on the open ground W of the Hadish (C)" },
+    { "id": "court_bakehouse", "kind": "work", "at": [-30, -134], "span": [[-44, -144], [-16, -124]], "tier": "C", "note": "the bakers of the king's table beside the kitchens (C)" },
+    { "id": "court_table_store", "kind": "store", "at": [-36, -114], "span": [[-44, -118], [-28, -110]], "tier": "C", "note": "where the porters set down the sacks and jars for the king's table (C)" },
+    { "id": "court_cistern", "kind": "water", "at": [-48, -150], "tier": "C", "note": "water for the kitchens (the Terrace's cisterns and drains are known, B; this draw point is C)" },
+    { "id": "court_hadish", "kind": "idle", "at": [26, -126], "span": [[2, -132], [46, -112]], "tier": "C", "note": "the Hadish (Xerxes' palace, XPe: A): where the king's table is served (C); the king is not shown" },
+    { "id": "court_harem", "kind": "idle", "at": [115, -100], "span": [[102, -126], [128, -78]], "tier": "C", "note": "the courts of the building Herzfeld called the Harem (name and use debated: Q-334): the royal women's quarter (C)" },
+    { "id": "court_harem_s", "kind": "idle", "at": [60, -198], "span": [[6, -204], [128, -190]], "tier": "C", "note": "the S wing of the 'Harem': the household's attendants and servants (C)" },
+    { "id": "court_tachara", "kind": "idle", "at": [-20, -92], "span": [[-28, -96], [-12, -88]], "tier": "C", "note": "the Tachara (Darius' palace): kept by the palace servants, some of whom sleep here (C)" },
+    { "id": "court_tripylon", "kind": "desk", "at": [80, -90], "span": [[72, -98], [88, -84]], "tier": "C", "note": "the Tripylon: the court's officials and secretaries (its use is debated: C)" },
+    { "id": "court_apadana_e", "kind": "idle", "at": [88, 0], "span": [[74, -46], [102, 46]], "tier": "C", "note": "the court E of the Apadana, below its E stair: nobles and officials waiting (C)" },
+    { "id": "court_portico", "kind": "shelter", "at": [0, 35], "span": [[-26, 32], [34, 36]], "tier": "C", "note": "the Apadana N portico: shelter from rain and sun for those waiting (C)" }
+  ],
+  "guard_lines": [
+    { "id": "cg_stair_s", "a": [-37, 113.5], "b": [-22, 113.5], "n": 10, "heading": 0, "night": true, "what": "the head of the Grand Stair, S file" },
+    { "id": "cg_stair_n", "a": [-37, 131.5], "b": [-22, 131.5], "n": 10, "heading": 180, "night": true, "what": "the head of the Grand Stair, N file" },
+    { "id": "cg_gate_s", "a": [-9, 114], "b": [9, 114], "n": 10, "heading": 0, "night": true, "what": "inside the Gate of All Nations, S file" },
+    { "id": "cg_gate_n", "a": [-9, 134.5], "b": [9, 134.5], "n": 10, "heading": 180, "night": false, "what": "inside the Gate of All Nations, N file" },
+    { "id": "cg_way_w", "a": [-6, 99], "b": [-6, 65], "n": 20, "heading": 90, "night": false, "what": "the way from the Gate to the Apadana, W file" },
+    { "id": "cg_way_e", "a": [6, 99], "b": [6, 65], "n": 20, "heading": 270, "night": false, "what": "the way from the Gate to the Apadana, E file" },
+    { "id": "cg_apa_nw", "a": [-36, 62], "b": [-12, 62], "n": 10, "heading": 0, "night": false, "what": "before the Apadana's N façade, W" },
+    { "id": "cg_apa_ne", "a": [16, 62], "b": [40, 62], "n": 10, "heading": 0, "night": false, "what": "before the Apadana's N façade, E" },
+    { "id": "cg_apa_e", "a": [74, -36], "b": [74, 36], "n": 20, "heading": 90, "night": false, "what": "below the Apadana's E stair" },
+    { "id": "cg_tripylon", "a": [70, -59], "b": [92, -59], "n": 10, "heading": 0, "night": true, "what": "before the Tripylon's N stair" },
+    { "id": "cg_tachara", "a": [-32, -104.5], "b": [-12, -104.5], "n": 10, "heading": 180, "night": true, "what": "below the Tachara's S stair" },
+    { "id": "cg_hadish", "a": [2, -105], "b": [48, -105], "n": 20, "heading": 0, "night": true, "what": "the N court of the Hadish" },
+    { "id": "cg_harem", "a": [93, -104], "b": [93, -124], "n": 10, "heading": 270, "night": true, "what": "outside the W entrance of the 'Harem'" },
+    { "id": "cg_road_s", "a": [22, 118], "b": [60, 118], "n": 20, "heading": 0, "night": false, "what": "the road E from the Gate, S file" },
+    { "id": "cg_road_n", "a": [22, 131], "b": [60, 131], "n": 20, "heading": 180, "night": false, "what": "the road E from the Gate, N file" }
+  ],
+  "guard_lines_note": "Ceremonial posts (C): files of ten standing where the reliefs put guards (stairways, gates, façades: B for the motif) and along the processional ways; a file holds one stretch of ten posts for a watch and moves to another the next time (C). By night only the stair head, the Gate, the palaces and the Tripylon are held (C); the rest of the night watch waits within call at the guards' court",
+  "day": {
+    "walk_ms": 1.25, "detour": 1.3, "climb_h": 0.17, "min_walk_h": 0.05,
+    "guard_meal_break_h": 0.45, "guard_break_first_h": 2.2, "guard_break_step_h": 0.55,
+    "tier": "C", "src": "RECON", "note": "walking at 1.25 m/s over 1.3 × the straight line, +10 min to climb to the Terrace (as lives.json walk_ms); each man at a post is relieved once in his watch for a meal, two of a file of ten at a time (C)"
+  }
+}

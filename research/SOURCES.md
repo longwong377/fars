@@ -192,3 +192,19 @@ center-for-decipherment.ch, oracc.museum.upenn.edu, livius.org) answered 403 at 
 | WRITING-SX (new): search summaries of Iranica "Persepolis Elamite Tablets", "Persepolis Administrative Archives ii" and "Documents" | SX; page attribution uncertain | PT date range and the Xerxes years 19–20 peak; the royal seal with a trilingual Darius inscription used under Xerxes by the chief of the Treasury; royal seal iconography; shared seals between Treasury tablets and sealings; cord holes at a corner of the PT tablets (Cameron's leather-scroll inference); Aramaic scribes on clay and parchment |
 | ISAC-FINDS (existing): "Contents of the Treasury" caption "Hero Triumphant with Xerxes Inscription" | SX | the Xerxes hero seal of the door sealings (design and wording C) |
 | Seen as titles only, not keyed: Garrison, Jones and Stolper, "Achaemenid Elamite Administrative Tablets, 4: BM 108963", JNES 77 (2018) 1–14; Garrison 1991, "Seals and the Elite at Persepolis"; Bowman 1970, OIP 91; Cameron 1948, OIP 65; "PT 005 – the new edition of Persepolis Treasury Tablets" | — | leads for B18 |
+
+## The court in residence (session 6, court workstream; D-182, research/COURT.md): 8 keys added to `src/data/sources.json`
+Web search summaries only: attalus.org, iranicaonline.org, achemenet.com and isac.uchicago.edu were refused by the
+egress proxy (B6). Greek claims about the Persian court are capped at B; their numbers are for other kings.
+
+| key / what | access | used for |
+|---|---|---|
+| IR-HERACL (new): Iranica "Heracleides of Cyme" | SX | the thousand apple-bearers; the 300 women; the king's dinner |
+| IR-IMM (new): Iranica "Immortals" (HDT 7.41, 7.83; HDT itself FT) | SX | the thousand with golden pomegranates, the Ten Thousand |
+| IR-COURT (new): Iranica "Courts and courtiers i" | SX | chiliarch, eunuchs, steward, table-companions |
+| IR-CHIL (new): Iranica "Chiliarch" + "Hazarapatiš: commander or usher?" | SX | the screening of visitors, the usher |
+| IR-HAREM (new): Iranica "Harem i" | SX | Parmenion's 329 concubines; royal women at court |
+| TREAS-AUD (new): the Treasury audience relief (Iranica "Persepolis", achaemenica.org "Proskynesis") | SX | attendants' Persian robe; the audience's figures |
+| APA-RELIEF (new): the Apadana stair reliefs (Livius, ISAC pages) | SX | delegations led by ushers; guard files; nobles |
+| HENK2010 (new): Henkelman 2010 "Consumed before the King" | SX | PF 0701; the royal table redistributed to family, courtiers, guards |
+| ATH4, ATH4-HERACL, ATH12-HERACL, ATH13-PARM, KING2022, HDT (existing) | as keyed | the 15,000 claim; the dinner; the women; Parmenion's list; trips to the king |

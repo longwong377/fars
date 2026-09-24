@@ -6,7 +6,7 @@ import { lumStats } from './lib/lum';
 // at 16:9) indoors and in courts, 40° (≈ 28 mm) for the wider outdoor views. FOV=game renders at the player's setting (70°,
 // a 14 mm lens: for judging first-person presence).
 const IN = 46, OUT = 40;
-const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, number, number, number, number]; fov?: number; frames?: number }[] = [
+const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, number, number, number, number]; fov?: number; frames?: number; court?: boolean }[] = [
   // dawn before sunrise (D-118): day 0 (17 Apr 467 BCE) 05:24, the sun 2.9° below the horizon (sunrise ~05:35): the
   // Earth's shadow and the antitwilight arch over the W plain, no sun shadows; the old slot (05:51, sun +2.5°) and a view
   // E into the glow over Kuh-e Rahmat are kept for comparison
@@ -54,6 +54,12 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'hall100-site', day: 25, hour: 9.5, w: 'clear', v: [146, 45, 1.6, 161, 4] },
   { n: 'tripylon-n-stair', day: 25, hour: 16, w: 'clear', v: [82, -38, 1.6, 161, 6] },
   { n: 'harem-portico', day: 25, hour: 10, w: 'clear', v: [114, -114, 1.6, 161, 4], fov: IN },
+  // §1.1 "the court in full assembly on the Terrace" (D-182): ONLY with the court setting (?court=seasonal, C; the default
+  // is the court absent, B9). Day 30 (17 May 467 BCE), 10:00, a day well inside the resident season: from the W end of the
+  // forecourt looking E across the files of the king's spearmen lining the way from the Gate to the Apadana, petitioners
+  // and delegations waiting, nobles by the Apadana; the view the node scan found with the most people visible on the
+  // Terrace (tools/dev/court_scan.ts). The king is not shown (B9); delegation dress is a placeholder (D-182)
+  { n: 'court-assembly', day: 30, hour: 10, w: 'clear', v: [-35, 85, 1.6, 71, -2], fov: IN, court: true },
 ];
 test('moments', async ({ page }, info) => {
   // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run). TIMEOUT (s) and FRAMES
@@ -69,9 +75,9 @@ test('moments', async ({ page }, info) => {
   let loaded = '';
   for (const s of SHOTS) {
     if (only && !only.includes(s.n)) continue;
-    const state = `${s.day}|${s.hour}|${s.w}`;
+    const state = `${s.day}|${s.hour}|${s.w}|${s.court ? 'court' : ''}`;
     if (state !== loaded) {
-      await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=${s.day}&hour=${s.hour}&weather=${s.w}${WEBGL ? '&webgl=1' : ''}`);
+      await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=${s.day}&hour=${s.hour}&weather=${s.w}${s.court ? '&court=seasonal' : ''}${WEBGL ? '&webgl=1' : ''}`);
       await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 600_000 });
       // the world is frozen in test mode: stop the animation loop, so the screenshot does not wait behind its frames under
       // SwiftShader (minutes each; the Phase 4 render helper found this, tests/e2e/lib/p4views.ts)

@@ -2791,3 +2791,103 @@ are schematic; no browser render has been looked at (node previews of the height
   blending and are unaffected; transparent materials that write real G-buffer values now blend them.
 - **Rendered after the change** (dawn-glow-e, quality high, WebGPU, shots/surf-dawn-glow-e-B.png): the flame sits clean
   on the brazier; no box, no streaks.
+- **Not verified:** a render after the change (dbg job queued: B and env0 of hadish-hall at test).
+
+## D-182 The court in residence: simulated, drawn, measured (session 6, court workstream; B11, B12, B13)
+**Read first — broken, unverified, placeholder.**
+- **Not rendered.** No browser frame of the court has been made or looked at: every visible count and triangle figure
+  below is node (the 2.5-D sightlines, the crowd's own main-pass counts). The lead renders `crowd_scale.spec.ts` (COURT:
+  4 views now) and `moments.spec.ts` `court-assembly`.
+- **Placeholders:** delegates and petitioners wear the generic Median riding dress (delegation dress by people is not
+  built; the overlay flags them `placeholder`); the court's camp has no tents (its people are drawn in the open, asleep
+  too); the royal guard's apple-shaped butts are the ordinary spear; the royal women's night music (Heracleides) is not
+  performed. The king is not a person (B9); audiences happen out of sight (Q-335).
+- **Not simulated:** the town's +13,000 retinue and the plain's +5,000 (population.json court_resident); only the
+  ~1,900 court people lodged in the court's camp count toward the town. The court's food does not draw on the calendar's
+  stores (calendar.ts, another workstream).
+- **The 30-day court soak fails two gates, the same way the 30-day soak without the court fails them** (see Result):
+  the variety gate is calibrated for the year; over 30 days the same non-court people fail (builders, treasury workers,
+  children, the detailed child agent at 0.149). Every court person passes. The year soak with the court was not run.
+- **Frame budget:** the hillside view is over 12 M on the world alone (12.04 M, B13); the new Terrace views' world
+  baselines are unmeasured.
+
+**What.** With the setting 'Court calendar = seasonal pattern' (?court=seasonal; D-003) the court's people are persons of
+the Population (population.ts `court`, generated after everyone else so the court-absent population is untouched),
+with households, attested names by origin, and day plans that are pure functions of (seed, person, day) and the
+calendar's day (weather, sun, sickness). New modules `src/people/court.ts`, `src/data/court.json`; research
+`research/COURT.md`; Q-330 to Q-336. Hooks, each marked `D-182`: population.ts (import, the `court` field, generation
+after `housePlots`, plan dispatch), sim.ts (court places into PLACES), popgeo.ts (a post hangs from its line's anchor;
+`court_camp`; `warmCore`), popview.ts (the court's routes searched when the view is built), crowd.ts (overlay: court
+role, placeholder flag).
+
+**Who (all counts C; sources in court.json and COURT.md).** 9,310 people with seed 1: the king's thousand spearmen
+(HDT 7.41, Heracleides via Athenaeus 12.514: B claims) as ten hundreds of ten files on the garrison's five-day watch
+cycle (D-023) at 21 generated stretches of ten ceremonial posts (stair head, Gate, the way to the Apadana, its N and E
+façades, the road E from the Gate, Tripylon, Tachara, Hadish, the 'Harem'), moved on by seven stretches a day, 8
+stretches by night, each man relieved once for a meal carried out to the guards' court (Heracleides, claim); 300 women
+of the royal household secluded in the 'Harem' (Q-334) with 200 attendants; 700 palace servants; 800 of the king's
+table in Parmenion's proportions (cooks, bakers, wine, water, servers; kitchens not located, Q-332); 450 porters from
+the royal stores; 60 butchers at the stockyard; 320 officials, secretaries and ushers; 550 Persians of rank; 537
+parties of petitioners and gift-bearing delegations (4,230 people) arriving on their own days (5 a day, stays of 5-14
+days), waiting at the Gate and in the forecourt and led up to the Apadana by an usher on one day, the audience out of
+sight — **no procession is staged** (brief §2). Resident from day 0 (Q-330) to day 116; on day 117 (E-26) they leave by
+the road and are away.
+
+**People on the Terrace by hour (plans, seed 1, day 30; `tools/dev/court_count.ts`)**, target w 5,000 by day (3,000-8,000),
+w 2,500 by night (1,500-4,000): 00 2,294 · 02 2,295 · 04 2,295 · 06 3,198 · 08 4,385 · **10 4,448** · 12 4,255 · 14 3,652 ·
+16 3,229 · 18 2,788 · 20 2,427 · 22 2,096. At 10:00 on days 0 / 60 / 100: 4,149 / 4,584 / 4,680. Without the court
+(day 30): 10:00 758, 02:00 101. At 10:00 on day 30: the spearmen 911, women 294, attendants 194, palace servants 629,
+table 695, porters 78 (most are on the stair road or at the royal stores), butchers 4, officials 266, nobles 364,
+visitors 248, everyone else 765. Tested: day and night within 20 % of w and inside the range (tests/court.test.ts).
+
+**Visible and drawn (node; tests/court_view.test.ts, bench-reports/court-view.json).** A scan of the sightlines
+(`tools/dev/court_scan.ts`: 1,034 viewpoints on the Terrace every 5 m × 16 headings) finds the most visible from the W
+end of the forecourt looking E (day 0: 741) and from the foot of the Apadana's N façade looking NNW (day 30: 1,012); a
+coarse scan with the hillside finds [330, 20] looking W (3,191 on day 30). With the crowd (drawn in view / visible by
+sightline / skinned full-mid-far-farthest / impostors / people main-pass triangles / props): **court-forecourt** (the
+old COURT scene, looking SE) 2,182 / 171 / 30-100-102-168 / 1,841 / 1.95 M / 0.09 M; **court-from-hillside** 9,750 /
+2,305 / 0-74-0-326 / 9,465 / 0.53 M / 0.18 M; **court-forecourt-w** 2,177 / **745** / 50-100-250-0 / 1,915 / 2.96 M /
+0.13 M (day 30: 2,435 / 878 / 3.02 M); **court-apadana-n** 3,356 / 1,025 / 50-100-250-0 / 2,980 / 2.98 M / 0.16 M;
+**hillside best** (day 30) 10,603 / 3,699 / 0-0-0-400 / 10,256 / 0.21 M / 0.13 M. Missing (simulated out of doors in view
+but not drawn): 0 in every view; placeholder performances 0. The brief's floor (≥ 300 visible in a court day in the
+forecourt) is met on the Terrace by the node estimate (745; asserted ≥ 300); the browser's depth probe is the lead's.
+
+**Triangles (B13).** Node main pass only (shadow passes not counted). Adding the browser's world-without-people frames
+of B13 where they exist: court-forecourt 8.02 + 1.95 + 0.09 + 0.03 ≈ 10.1 M (under 12 M); court-from-hillside 12.04 +
+0.53 + 0.18 + 0.08 ≈ 12.8 M (over: the world alone is 12.04 M). The new Terrace views carry ~3.1 M of people (the full
+cap of 50 at full detail is ~1.5 M of it); they are under 12 M if their world is under ~8.9 M (unmeasured). No LOD
+change was made: the people are not what puts the hillside over, and the forecourt views are under if their world is
+like the old forecourt's. Proposals if the browser shows them over: the mid cap (100) to 50 in views with more than
+1,000 people drawn (−0.2 M), or the mid body only to 60 m (LOD_DIST[1] 90 → 60).
+
+**Pop-in.** The court's walks need ~150 Terrace core routes a day that are new to the route cache at once (34 anchors;
+all searched in 6.6-8 s on this loaded 4-core box); at one search per update the first walks of a morning outran their
+routes and their people appeared at the far end: 3 pop-ins on a 1× walk up the stair, through the Gate and the forecourt
+to the guards' court. `PopGeo.warmCore` + `CourtResidents.anchorPairs`: the view searches them when it is built with the
+court setting (a one-time cost, `view.stats.warmMs`; none without the court). After: 0 pop-ins in 1,811 frames over
+633 m (day 30 from 07:40).
+
+**Plans (checks).** Every court person-day of days 0-6: contiguous 0-24 h, registered activities with performances (no
+placeholder), ≥ 4 h asleep, reasons consistent, meals (≥ 2 for adults awake 10 h, gaps ≤ 8 h, first food within 4.5 h),
+no teleport, walks under 3.1 h, the day checks: 0 issues (31,674 person-days in tools/dev/court_count.ts over 7 days).
+The spearmen hold their posts by the rota: ≥ 90 % of the expected men on the watch's stretches, ≥ 78 % standing at their
+own post at any hour (two of each file of ten away at their meal at most), none at another's (tested day 10 at 10:00
+and 18:00, day 11 at 02:00, day 60 at 09:00).
+
+**Result (`npm run soak -- 30 60 1 --court`; the flag existed in tools/soak.ts; 30 days, everyone measured: 59,707
+people, 47,689 measured, 1,441,831 person-days of plan checks).** Passes: events (16-20 kinds a week, floor 8), stuck
+(none), stocks (every store within bounds, no collapse, sacks 0-215), rendered honesty, **plans well formed (0 issues;
+the day checks on 10 days: 0)**, visible change (5 of 5 weeks). Fails: variety (the detailed child agent 0.149) and
+population variety (88 people at or over 0.10: children 44, treasury 37, builders 3, one homemaker, groom, shepherd and
+farmer). **The 30-day soak without the court fails the same two gates with the same people** (88: children 44, treasury
+37, builders 4, homemaker, shepherd, farmer; the detailed child 0.149): the variety gate is set for the year (the year
+soak passes, D-021); over 30 days, days of the same kind recur. The court changed one non-court person's result (a groom
+of the road station, 0.085 → 0.106: the court's couriers, E-20). **Every court person passes** (`tools/dev/court_variety.ts`
+over 30 days: worst per group spearmen 0.016, women 0.009, attendants 0.009, palace 0.018, table 0.014, porters 0.011,
+butchers 0.007, officials 0.007, nobles 0.007, visitors 0). Cost with the court: build 0.8 s; step() at 60 fps 0.069 ms
+mean, 0.099 ms p99, 34 ms max, midnight frame 4.0 ms; at 60× 11.7 ms mean, 220 ms p99 (without the court 12.7 / 225).
+The year soak with the court was not run (another agent runs the default year soak).
+
+**Checks run.** `npx tsc --noEmit` clean; `npx vitest run --maxWorkers=1` 67 files passed, 1 skipped (625 tests passed,
+1 skipped; 1,145 s), with tests/court.test.ts (7) and tests/court_view.test.ts (3); `npm run lint:all` OK;
+`npx tsx tools/dev/botcheck.ts` 97 of 97 legs.

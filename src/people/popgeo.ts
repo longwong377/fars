@@ -13,6 +13,7 @@ import type { Population } from './population';
 import { TERRACE_ABSTRACT } from './population';
 import { NAV, type NavGrid, type P2 } from './navgrid';
 import { PLACES } from './sim';
+import { COURT_CAMP } from './court';
 import { sunTimes } from './calendar';
 import { hall100Layout } from './construction';
 import { footprint } from '../arch/spec';
@@ -275,13 +276,15 @@ export class PopGeo {
       case 'training': return this.outside(pid, q, day, 120, 200, 'practice ground outside the quarter (C)');
       case 'field': case 'threshing': case 'vineyard': case 'orchard': return this.plainPlace(pid, head, tail, day);
       case 'camp': case 'route': return this.band(pid, head, tail);
+      case 'court_camp': return this.openNear(COURT_CAMP.c, COURT_CAMP.r, pid, place, 'the court’s camp below the Terrace (court setting; tents NOT BUILT: shown in the open; C)'); // D-182
       default: return this.none(place, 'no rule');
     }
   }
   /** a Terrace spot: spread over the place (its span, a ring round a hearth, the abstract places' areas) on walkable cells
    *  that see the place's anchor in a straight line (so the way to it needs no search; up to 8 draws, else the anchor) */
   private terrace(pid: number, place: string): Spot {
-    const anchor = place === 'palaces' ? `palaces:${['apadana', 'tachara', 'hadish'][Math.floor(this.hash(pid, 'palaces', 12) * 3)]}` : place;
+    // (a court guard post hangs from its line's centre, so the posts of one file share their routes: court.ts, D-182)
+    const anchor = place === 'palaces' ? `palaces:${['apadana', 'tachara', 'hadish'][Math.floor(this.hash(pid, 'palaces', 12) * 3)]}` : (PLACES[place] as { anchor?: string } | undefined)?.anchor ?? place;
     const P = PLACES[place], A = this.abs[anchor], ap = this.anchorPt(anchor); if (!ap) return this.none(place, 'no walkable anchor');
     let s: P2 | null = null, face: P2 | null = null;
     for (let t = 0; t < 8 && !s; t++) { let e: number, n: number;
@@ -451,6 +454,10 @@ export class PopGeo {
       const pa = this.anchorPt(A), pb = this.anchorPt(B); p = pa && pb ? this.nav.findPath(pa, pb) : null; this.navCore.set(key, p); }
     return p && (A < B ? p : p.slice().reverse());
   }
+  /** search the core routes between these pairs of anchors now (the court's walks, D-182: some 130 pairs a day that are
+   *  new to the cache at once; at one search per update the first walks of a morning outran their routes and their
+   *  people appeared at the far end: pop-in). Returns the searches made */
+  warmCore(pairs: [string, string][]): number { const b = this.navBudget; let n = 0; for (const [a, c] of pairs) { this.navBudget = 1; if (this.core(a, c) !== undefined && this.navBudget === 0) n++; } this.navBudget = b; return n; }
   private anchorPt(a: string): P2 | null { if (a === '@stair') return this.stair; const A = this.abs[a], P = PLACES[a]; const c = A ? A.c : P?.at; return c ? this.nav.snap(c[0], c[1], 8) : null; }
   /** the walked route between two spots (grid polyline with cumulative lengths); null when there is none, undefined when
    *  the Terrace search budget of this step is spent (ask again) */

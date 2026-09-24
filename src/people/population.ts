@@ -16,6 +16,7 @@ import plotsData from '../data/town_plots.json';
 import { u01, salt, HStream } from './hash';
 import { dateOf, REGNAL_DAYS, travellerParties, transfers, transhumantBands, flockDrives, DayCtx, EventCalendar, eventRow } from './calendar';
 import { colPlace } from './construction';
+import { CourtResidents } from './court'; // D-182 hook (court.ts): the court in residence, only with the court setting
 import type { ActivityId } from './activities';
 
 const POPD = popData as any, T = townData as any, L = livesData as any;
@@ -127,6 +128,8 @@ export class Population {
   readonly drives: ReturnType<typeof flockDrives>;
   readonly quarters: Record<string, { id: string; xy: [number, number]; kind: string; women: number[]; farmers: number[] }> = {};
   readonly bySeat = new Map<number, number>();
+  /** D-182 hook: the court in residence (court.ts), generated after everyone else, only with the court setting; else null */
+  court: CourtResidents | null = null;
   cal!: EventCalendar;
   private lifeByDay: { births: number[]; deaths: number[]; marriages: number[] }[] = [];
   private bdayByDay: number[][] = [];
@@ -144,6 +147,7 @@ export class Population {
     for (const s of opts.slice ?? []) { const pid = this.bySeat.get(s.agent); if (pid !== undefined) this.persons[pid].nm = s.name ?? null; }
     this.precomputeLife();
     this.housePlots();
+    if (opts.court) this.court = new CourtResidents(this); // D-182 hook
   }
   attach(cal: EventCalendar) { this.cal = cal; }
   /** the plot a household lives in (town households: always; others: none) */
@@ -899,7 +903,7 @@ export class Population {
    *  returned segments as read-only */
   plan(pid: number, day: number): Seg[] { const c = this.planCache.get(day)?.get(pid); if (c) return c;
     if (this.planCount >= 20000) { this.planCache.clear(); this.planCount = 0; }
-    const v = new Planner(this, pid, day).build(); let m = this.planCache.get(day); if (!m) { m = new Map(); this.planCache.set(day, m); } m.set(pid, v); this.planCount++; return v; }
+    const v = this.court?.owns(pid) ? this.court.plan(pid, day) /* D-182 hook */ : new Planner(this, pid, day).build(); let m = this.planCache.get(day); if (!m) { m = new Map(); this.planCache.set(day, m); } m.set(pid, v); this.planCount++; return v; }
 }
 
 // ------------------------------------------------------------------ names (attested only, matched to origin; brief §9.1)
