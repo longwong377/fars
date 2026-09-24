@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { MESOPOTAMIAN_MODES, GREEK_MODES, scaleFreqs, cents, ratio } from '../src/audio/tuning';
+import { MESOPOTAMIAN_MODES, GREEK_MODES, scaleFreqs, cents, ratio, stepPattern, SPECIES_PATTERN } from '../src/audio/tuning';
 import { INSTRUMENTS, PLUCK, pluck, pipeNote, drum } from '../src/audio/instruments';
 import { compose, render, MusicSystem, Performance } from '../src/audio/music';
 import { Rng } from '../src/core/rng';
@@ -31,6 +31,28 @@ describe('tunings (brief §11: no equal temperament; Mesopotamian heptatonic; Gr
   it('seven distinct Mesopotamian modes, ascending within the octave', () => {
     expect(MESOPOTAMIAN_MODES).toHaveLength(7); expect(new Set(MESOPOTAMIAN_MODES.map(m => m.steps.map(ratio).join())).size).toBe(7);
     for (const m of MESOPOTAMIAN_MODES) for (let i = 1; i < 7; i++) { expect(ratio(m.steps[i])).toBeGreaterThan(ratio(m.steps[i - 1])); expect(ratio(m.steps[i])).toBeLessThan(2); }
+  });
+});
+
+describe('tunings: the species of each mode (review B-M7; SOUNDSCAPE §8 M-13, M-14)', () => {
+  it('each mode has the tone/limma pattern of its octave species: two limmas a fourth or fifth apart, five 9:8 tones', () => {
+    for (const m of [...MESOPOTAMIAN_MODES, ...GREEK_MODES]) {
+      const pat = stepPattern(m);
+      expect(pat, m.id).toBe(SPECIES_PATTERN[m.species]);
+      expect([...pat].filter(c => c === 'S').length).toBe(2);
+    }
+  });
+  it('Greek modes: Dorian is the E species (limma first), Phrygian D, Lydian C (the old labels were rotations 1 and 2 of Dorian)', () => {
+    const g = Object.fromEntries(GREEK_MODES.map(m => [m.id, stepPattern(m)]));
+    expect(g).toEqual({ dorian: 'STTTSTT', phrygian: 'TSTTTST', lydian: 'TTSTTTS' });
+  });
+  it("Kilmer's equation: išartum Dorian, kitmum Hypodorian, embūbum Phrygian, pītum Hypophrygian, nīd qablim Lydian, qablītum Mixolydian, nīš gabarîm Hypolydian", () => {
+    expect(Object.fromEntries(MESOPOTAMIAN_MODES.map(m => [m.name, m.species]))).toEqual({ 'išartum': 'Dorian', 'kitmum': 'Hypodorian', 'embūbum': 'Phrygian', 'pītum': 'Hypophrygian', 'nīd qablim': 'Lydian', 'qablītum': 'Mixolydian', 'nīš gabarîm': 'Hypolydian' });
+    for (const m of [...MESOPOTAMIAN_MODES, ...GREEK_MODES]) { expect(m.claims.length, m.id).toBeGreaterThan(0); expect(m.tier).toMatch(/[ABC]/); }
+  });
+  it('the Pythagorean third is 407.8 cents, not 400 (fifths 3:2 exactly, 702.0 cents)', () => {
+    const m = MESOPOTAMIAN_MODES.find(x => x.species === 'Lydian')!;
+    expect(1200 * Math.log2(ratio(m.steps[2]))).toBeCloseTo(407.82, 1); expect(1200 * Math.log2(ratio(m.steps[4]))).toBeCloseTo(701.96, 1);
   });
 });
 
