@@ -195,7 +195,10 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // and a little smoked: sRGB 0.55/0.47/0.33 (C)
   roof_timber: { albedo: [0.57, 0.44, 0.32], roughness: 0.75, porosity: 0.5, noiseScale: 4, noiseAmp: 0.15, bump: { amp: 0.002, freq: 5 }, micro: { amp: 0.0003, freq: 60, alb: 0.06 }, under: 'matting', tier: 'C', note: 'roof: cedar beams (SITE_SPEC, C) with reed matting on the ceiling (C, D-188)' },
   matting: { albedo: [0.55, 0.47, 0.33], roughness: 0.9, porosity: 0.8, noiseScale: 1, noiseAmp: 0.1, tone: { sd: 0.06, chroma: 0.01 }, weave: { reed: 0.012, cell: 0.09, amp: 0.0015 }, tier: 'C', note: 'reed matting under the roof earth (C, D-188)' },
-  glazed: { albedo: [0.12, 0.33, 0.48], roughness: 0.25, porosity: 0.05, noiseScale: 3, noiseAmp: 0.06, foot: 0.5, tier: 'C', note: 'glazed brick' },
+  // glazed brick (session 7: the frieze read as one flat blue slab): laid in courses with thin dark joints, each brick's glaze
+  // its own tone (firing and glaze thickness). Brick 0.33 × 0.09 m face and 8 mm joints: the Achaemenid glazed bricks of
+  // Susa are of this order (RECOLLECTION, NOT SEEN: C); colour and placement C (SITE_SPEC r_frieze)
+  glazed: { albedo: [0.12, 0.33, 0.48], roughness: 0.25, porosity: 0.05, noiseScale: 3, noiseAmp: 0.06, foot: 0.5, joints: { course: 0.09, block: 0.33, width: 0.008, dark: 0.45 }, blockTone: 0.09, tier: 'C', note: 'glazed brick in courses (brick size C, recollection of the Susa bricks; colour and placement C)' },
   // open ground on the plain: loam with stones and a seasonal herb layer (C; fields and crops are Phase 7)
   earth: { albedo: [0.47, 0.39, 0.29], roughness: 0.95, porosity: 0.9, noiseScale: 0.4, noiseAmp: 0.14, bump: { amp: 0.02, freq: 0.9 }, chips: { cover: 0.06, size: 0.35, albedo: [0.55, 0.53, 0.49] }, herbs: 1, micro: { amp: 0.0005, freq: 70, alb: 0.08 }, tier: 'C', note: 'plain surface: loam, stones and a seasonal herb layer (C); fields Phase 7' },
   // the open courts of the Terrace: no source found for their surface (OPEN_QUESTIONS Q-027). Compacted fill with
