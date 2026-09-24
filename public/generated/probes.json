@@ -16,16 +16,16 @@
   "skyRays": 2,
   "sunSkyRatio": 3
  },
- "partsHash": "5a7f090cd6a48f11",
+ "partsHash": "8acd7f25259576ca",
  "built": "2026-09-24",
  "note": "baked light probes of the roofed buildings: sky through the openings, one and two bounces of sun and sky, year-averaged sun (D-110, D-111; model C)",
  "hallCentreVisibility": {
-  "gate_nations": 0.0321,
-  "apadana": 0.0069,
-  "tachara": 0.003,
-  "hadish": 0.015,
+  "gate_nations": 0.0361,
+  "apadana": 0.0075,
+  "tachara": 0.0034,
+  "hadish": 0.0185,
   "treasury": 0.0004,
-  "harem": 0.0081
+  "harem": 0.0089
  },
  "volumes": [
   {
