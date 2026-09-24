@@ -17,7 +17,7 @@
 // angle (Fresnel ≈ 0.4) turned a 0.3 % sky visibility into a uniform blue sheen brighter than its own diffuse light.
 import * as THREE from 'three/webgpu';
 import { LightingNode } from 'three/webgpu';
-import { pmremTexture, positionViewDirection, normalView, roughness, cameraWorldMatrix, isolate, positionWorld, normalWorld, cameraPosition, normalize, vec4, mix, smoothstep, dot, uniform, float, clamp, pow, exp2 } from 'three/tsl';
+import { pmremTexture, positionViewDirection, normalView, roughness, cameraWorldMatrix, isolate, positionWorld, normalWorld, cameraPosition, normalize, vec3, vec4, mix, smoothstep, dot, uniform, float, clamp, pow, exp2 } from 'three/tsl';
 
 /** cube face size of the captured environment (px): a texel spans 1.4°, finer than the GGX lobe of the most polished
  *  surface in the scene at its prefiltered level (roughness 0.18) */
@@ -60,6 +60,7 @@ export const specularOcclusion = (vis: any, dotNV: any, rough: any) =>
 
 /** Indirect specular from the sky environment, and no irradiance (EnvironmentNode adds both). The lookup mirrors three's
  *  EnvironmentNode: the reflected view vector bent toward the normal by roughness⁴, the prefiltered level by roughness. */
+const ENV_DEBUG = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('envdbg') : null;
 export class SkySpecularNode extends LightingNode {
   static get type() { return 'SkySpecularNode'; }
   setup(builder: any): any {
@@ -70,6 +71,8 @@ export class SkySpecularNode extends LightingNode {
     const radiance: any = isolate(env.context({ getUV: () => dirWorld, getTextureLevel: () => roughness }));
     const vis = skyEnv.occlusion ? skyEnv.occlusion(positionWorld, normalWorld, dirWorld) : float(1);
     const occ = specularOcclusion(vis, dot(normalView, positionViewDirection), roughness);
+    // debug (?envdbg=occ, chosen when the shader is built): the sky visibility (red) and the occlusion (green) as radiance
+    if (ENV_DEBUG === 'occ') { builder.context.radiance.addAssign(vec3(vis, occ, 0).mul(0.05)); return undefined; }
     builder.context.radiance.addAssign(radiance.mul(occ).mul(skyEnv.intensity));
     return undefined;
   }
