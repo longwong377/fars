@@ -59,6 +59,7 @@ export function writingAtlas(force = false): WritingAtlas {
   const baked: WritingAtlas['baked'] = { glyphs: writingFontsLoaded(), texts: [], signs: '', seals: [] };
   bake(height, baked);
   const data = atlas?.texture.image.data as Uint8Array | undefined ?? new Uint8Array(ATLAS * ATLAS * 4);
+  for (let k = 0; k < data.length; k += 4) { data[k] = 128; data[k + 1] = 128; data[k + 2] = 255; data[k + 3] = 255; } // flat outside the regions (the mips blend across their borders)
   for (const r of Object.values(REGIONS)) normals(height, data, r);
   if (atlas) { atlas.baked = baked; atlas.texture.needsUpdate = true; return atlas; }
   const texture = new THREE.DataTexture(data, ATLAS, ATLAS, THREE.RGBAFormat, THREE.UnsignedByteType);
