@@ -9,6 +9,8 @@ import popData from '../data/population.json';
 import { u01, poisson, salt } from './hash';
 import { Construction, BuildEvent, StoneTasks } from './construction';
 import type { Population } from './population';
+import * as Astro from 'astronomy-engine';
+import { LATITUDE_N, LONGITUDE_E } from '../core/calendar';
 
 export const CAL = calData as any;
 export const POP = popData as any;
@@ -25,13 +27,25 @@ export function dateOf(day: number) {
 export type Season = 'spring' | 'summer' | 'autumn' | 'winter';
 export function seasonOf(month: number): Season { for (const s of ['spring', 'summer', 'autumn', 'winter'] as Season[]) if (POP.seasons[s].months.includes(month)) return s; return 'spring'; }
 
-const LAT = 29.935 * Math.PI / 180;
-/** sunrise/sunset in local solar hours for a day of the regnal year (day 0 = 17 Apr Julian ≈ 12 Apr Gregorian-equiv.; C, ±5 min) */
+const LAT = LATITUDE_N * Math.PI / 180;
+/** the apparent sun's altitude at rise and set: 34′ of refraction and the 16′ semi-diameter (h0 = −0.833°, the standard
+ *  value; Meeus, Astronomical Algorithms ch. 15: B) */
+export const SUN_H0_DEG = -0.833;
+const sunCache = new Map<number, { rise: number; set: number }>();
+/** sunrise/sunset in local apparent solar hours (noon = 12) for a day of the regnal year (day 0 = 1 Nisanu = 17 Apr 467 BCE
+ *  Julian, JDN 1550958: events_calendar.json months[0]). The sun's declination of date at local noon comes from the sky's
+ *  own ephemeris (astronomy-engine, VSOP87-class, precession and nutation of date: the obliquity of 467 BCE, about 23.75°,
+ *  is in it), and the hour angle of the apparent sun at h0 = −0.833° (S10 of shadow review r5: was the sun's centre on the
+ *  horizon, with today's obliquity in a cosine declination: sunrise 3-6 min late and sunset 4-7 min early). B */
 export function sunTimes(day: number): { rise: number; set: number } {
-  const doy = 102 + day; const dec = -23.44 * Math.PI / 180 * Math.cos(2 * Math.PI * (doy + 10) / 365);
-  const h = Math.acos(Math.max(-1, Math.min(1, -Math.tan(LAT) * Math.tan(dec)))) * 12 / Math.PI;
-  return { rise: 12 - h, set: 12 + h };
+  const k = Math.round(day * 1000); const c = sunCache.get(k); if (c) return c;
+  const jd = CAL.months[0].jdn + day - 0.5 + (12 - LONGITUDE_E / 15) / 24; // local noon, in UT
+  const eq = Astro.Equator(Astro.Body.Sun, Astro.MakeTime(jd - 2451545.0), SUN_OBSERVER, true, true);
+  const dec = eq.dec * Math.PI / 180, h0 = SUN_H0_DEG * Math.PI / 180;
+  const h = Math.acos(Math.max(-1, Math.min(1, (Math.sin(h0) - Math.sin(LAT) * Math.sin(dec)) / (Math.cos(LAT) * Math.cos(dec))))) * 12 / Math.PI;
+  const r = { rise: 12 - h, set: 12 + h }; if (sunCache.size < 4096) sunCache.set(k, r); return r;
 }
+const SUN_OBSERVER = new Astro.Observer(LATITUDE_N, LONGITUDE_E, 0);
 
 // ------------------------------------------------------------------ weather of a day, as the people feel it
 export interface EnvLike { rain: number; lightning: boolean; tempC: number; dust?: number; windMs?: number }
@@ -39,19 +53,37 @@ export interface DayWx { wet: boolean; rain: [number, number] | null; rainH: num
   /** the hours the dust is in the air (dust > 0.25; W-03), or null: a dust day is a day whose dust rises above 0.5 */
   dustH: [number, number] | null;
   /** mean wind (m/s) of the morning (07-11) and of the afternoon (14-18): winnowing needs a wind (E-43) */
-  windAM: number; windPM: number }
+  windAM: number; windPM: number;
+  /** the day's 96 quarter-hours: 1 where it rains (rain > 0.25, the shelter rule), else 0. `rain` is the span from the first
+   *  to the last of them and may hold dry spells; this says when it actually rains (S1 of shadow review r5) */
+  rainQ: number[] }
 /** sampled from the hourly weather: rain > 0.25 = people shelter (the Phase 3 rule); lightning or rain > 0.7 = storm */
+/** hours of rain (the shelter rule's quarter-hours) between t0 and t1 of a day */
+export function rainHours(wx: DayWx, t0: number, t1: number): number {
+  if (!wx.rain || t1 <= t0) return 0; let h = 0; const a = Math.max(0, t0), b = Math.min(24, t1);
+  for (let q = Math.max(0, Math.floor(a * 4)); q < 96 && q * 0.25 < b; q++) if (wx.rainQ[q]) h += Math.max(0, Math.min(b, q * 0.25 + 0.25) - Math.max(a, q * 0.25));
+  return h;
+}
+/** the day's spells of rain: runs of rainy quarter-hours, with dry gaps shorter than `gap` hours joined into the spell
+ *  (rain on and off is one wet spell), as [start, end] hours */
+export function rainSpells(wx: DayWx, gap = 0.5): [number, number][] {
+  const out: [number, number][] = []; if (!wx.rain) return out;
+  for (let q = 0; q < 96; q++) { if (!wx.rainQ[q]) continue; const a = q * 0.25; let e = q; while (e + 1 < 96 && wx.rainQ[e + 1]) e++; const b = e * 0.25 + 0.25;
+    const L = out[out.length - 1]; if (L && a - L[1] < gap - 1e-9) L[1] = b; else out.push([a, b]); q = e; }
+  return out;
+}
 export function dayWx(env: (t: number) => EnvLike, day: number): DayWx {
-  let r0 = -1, r1 = -1, s0 = -1, s1 = -1, d0 = -1, d1 = -1, rainH = 0, tmax = -99, tmin = 99, dust = 0, wa = 0, na = 0, wp = 0, np = 0;
+  let r0 = -1, r1 = -1, s0 = -1, s1 = -1, d0 = -1, d1 = -1, rainH = 0, tmax = -99, tmin = 99, dust = 0, wa = 0, na = 0, wp = 0, np = 0; const rainQ: number[] = [];
   for (let q = 0; q < 96; q++) {
     const h = q * 0.25 + 0.125, e = env(day * 24 + h);
+    rainQ.push(e.rain > 0.25 ? 1 : 0);
     if (e.rain > 0.25) { if (r0 < 0) r0 = h - 0.125; r1 = h + 0.125; rainH += 0.25; }
     if (e.lightning || e.rain > 0.7) { if (s0 < 0) s0 = h - 0.125; s1 = h + 0.125; }
     if ((e.dust ?? 0) > 0.25) { if (d0 < 0) d0 = h - 0.125; d1 = h + 0.125; }
     tmax = Math.max(tmax, e.tempC); tmin = Math.min(tmin, e.tempC); dust = Math.max(dust, e.dust ?? 0);
     if (h >= 7 && h < 11) { wa += e.windMs ?? 0; na++; } else if (h >= 14 && h < 18) { wp += e.windMs ?? 0; np++; }
   }
-  return { wet: rainH >= 0.5, rain: r0 >= 0 ? [r0, r1] : null, rainH, storm: s0 >= 0, stormH: s0 >= 0 ? [s0, s1] : null, dust: dust > 0.5, dustH: dust > 0.5 && d0 >= 0 ? [d0, d1] : null, frost: tmin < 0, hot: tmax > 33, tmax, tmin, windAM: na ? wa / na : 0, windPM: np ? wp / np : 0 };
+  return { wet: rainH >= 0.5, rain: r0 >= 0 ? [r0, r1] : null, rainH, storm: s0 >= 0, stormH: s0 >= 0 ? [s0, s1] : null, dust: dust > 0.5, dustH: dust > 0.5 && d0 >= 0 ? [d0, d1] : null, frost: tmin < 0, hot: tmax > 33, tmax, tmin, windAM: na ? wa / na : 0, windPM: np ? wp / np : 0, rainQ };
 }
 
 // ------------------------------------------------------------------ pure schedules (also used to create transients)

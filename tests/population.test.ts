@@ -72,7 +72,7 @@ describe('households, meals and sleep (shadow review, §13.11)', () => {
   }, 120_000);
   it('an infant is nursed on demand, by night too', () => {
     const P = sim.pop; let n = 0;
-    for (const p of P.persons) { if (p.age !== 0 || p.born >= 0 || p.zone === 'transient') continue; const d = 40; const m = p.mother; if (!P.present(p.id, d) || P.sick(p.id, d) || m < 0 || !P.present(m, d) || P.sick(m, d) || P.home(m, d) !== P.home(p.id, d)) continue;
+    for (const p of P.persons) { const d = 40; if (P.ageOn(p.id, d) !== 0 || p.born >= 0 || p.zone === 'transient') continue; // (the age on the day: D-160) const m = p.mother; if (!P.present(p.id, d) || P.sick(p.id, d) || m < 0 || !P.present(m, d) || P.sick(m, d) || P.home(m, d) !== P.home(p.id, d)) continue;
       const feeds = P.plan(p.id, d).filter(s => s.act === 'eat'); expect(feeds.length, `${p.id}`).toBeGreaterThanOrEqual(6); expect(feeds.some(s => s.t0 < 5 || s.t0 > 21), `${p.id} fed at night`).toBe(true); if (++n >= 40) break; }
     expect(n).toBeGreaterThan(10);
   }, 60_000);

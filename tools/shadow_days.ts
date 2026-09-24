@@ -48,7 +48,8 @@ export function dayLine(sim: PeopleSim, W: WeatherSystem, d: number) {
 export const ageStr = (P: any, pid: number, d: number) => { const p = P.persons[pid], a = P.ageOn(pid, d);
   if (a >= 3) return `${a}`; const born = p.born >= 0 ? p.born : (p.bday >= 0 ? p.bday - 354 * (p.age + 1) : -Math.round(354 * (p.age + 0.5)));
   const mo = Math.max(0, Math.floor((d - born) / 29.5)); return mo < 24 ? `${mo} months` : `${a}`; };
-const members = (P: any, h: number, d: number) => P.membersOn(h, d).map((x: number) => `${x} ${P.persons[x].job} ${P.persons[x].sex}${ageStr(P, x, d)}`).join(', ');
+// (a member who is ill today is marked: S8 of reviewer B, r5: a mother's sickness was invisible in her child's day)
+const members = (P: any, h: number, d: number) => P.membersOn(h, d).map((x: number) => `${x} ${P.persons[x].job} ${P.persons[x].sex}${ageStr(P, x, d)}${P.sick(x, d) ? ' (ill today)' : ''}`).join(', ');
 
 /** a population person who works on the Terrace (the gangs, the work camp, the Terrace porters, the Treasury's staff inside,
  *  the palace caretakers) and one of the town's households */
@@ -92,7 +93,7 @@ export function detailedDay(seed: number, id: number, d: number): { head: string
     // plain (hidden, doing what the plan says)
     const tk = a.task, act = sim.performance(a).act, toPost = a.walking && act === 'patrol' && tk?.act === 'stand_guard';
     const held = a.carry ? LOAD[a.carry] ?? a.carry : tk?.holds;
-    const s = `${act}${ph(act)}${toPost ? ' (the armed walk to his own post, not a round)' : ''} ${a.walking ? '→' : '@'} ${tk?.place ?? '-'} — ${tk?.why ?? ''}${held ? ` [carrying ${held}]` : ''}${a.sick ? ' [sick]' : ''}${a.offmap ? ' [off the Terrace: not drawn]' : ''}`;
+    const s = `${act}${ph(act)}${toPost ? ' (the armed walk to his own post, not a round)' : ''} ${a.walking ? '→' : '@'} ${tk?.place ?? '-'} — ${tk?.why ?? ''}${held ? ` [carrying ${held}]` : ''}${tk?.wears ? ` [${tk.wears}]` : ''}${a.sick ? ' [sick]' : ''}${a.offmap ? ' [off the Terrace: not drawn]' : ''}`;
     if (s !== last) { log.push(`${hm(t - d * 24)}  ${s}`); last = s; }
   }
   return { head, log };
@@ -102,7 +103,7 @@ export function populationDay(sim: PeopleSim, W: WeatherSystem, pid: number, d: 
   const P: any = sim.pop, p = P.persons[pid], H = P.households[P.home(pid, d)];
   const head = [`## Person ${pid}: ${P.nameOf(pid) ?? '(unnamed)'} — ${p.job}${p.sub ? ` (${p.sub})` : ''}, ${p.sex === 'm' ? 'male' : 'female'}, age ${ageStr(P, pid, d)}, ${p.origin}, zone ${p.zone}`,
     `${dayLine(sim, W, d)} · household ${H.id} (${H.zone}${H.q ? ` ${H.q}` : ''}, ${P.membersOn(H.id, d).length} people: ${members(P, H.id, d)})${P.sick(pid, d) ? ' · SICK today' : ''}`];
-  const log = (P.plan(pid, d) as any[]).map(s => `${hm(s.t0)}–${hm(s.t1)}  ${s.act}${ph(s.act)} @ ${s.place} (${s.where}) — ${s.why}${s.with !== undefined ? ` [with ${s.with}]` : ''}${s.carry ? ` [carrying ${s.carry}]` : ''}${s.ev ? ` {${s.ev}}` : ''}`);
+  const log = (P.plan(pid, d) as any[]).map(s => `${hm(s.t0)}–${hm(s.t1)}  ${s.act}${ph(s.act)} @ ${s.place} (${s.where}) — ${s.why}${s.with !== undefined ? ` [with ${s.with}]` : ''}${s.carry ? ` [carrying ${s.carry}]` : ''}${s.wear ? ` [${s.wear}]` : ''}${s.ev ? ` {${s.ev}}` : ''}`);
   return { head, log };
 }
 

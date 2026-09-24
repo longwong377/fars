@@ -42,6 +42,8 @@ export interface Task { act: ActivityId; place: string; spot: P2; heading: numbe
   /** what the plan says the person carries in this block (population.ts Seg.carry: tools, arms, a letter); the physical
    *  load the renderer shows is Agent.carry */
   holds?: string;
+  /** how the plan says the person is dressed against the weather (population.ts Seg.wear: W-03's wrapped face); not drawn yet */
+  wears?: string;
   /** off the Terrace: where the hidden person goes on from the town edge (the lane exit of the house's quarter, then its
    *  street door: town_plots.json), travelled abstractly at walking pace (D-081) */
   legs?: P2[] }
@@ -54,6 +56,13 @@ export interface Agent {
   // dynamic state
   pos: P2; y: number; heading: number; task: Task | null; path: P2[] | null; pathI: number; walking: boolean;
   carry: null | 'sack' | 'jar' | 'jar_head' | 'basket'; hunger: number; fatigue: number; sick: boolean;
+  /** a porter's day of his last load (the first of the day is not "the next"); a baker's kneading block that has drawn its
+   *  flour (S6, S7 r5) */
+  loadDay?: number; kneadKey?: string;
+  /** a camp woman found no sack to carry on her last carrying block (S6 r5) */
+  emptyCarry?: boolean;
+  /** where a camp woman's sack in hand is going (its stock) */
+  sackTo?: 'querns' | 'oven';
   day: number; decisions: number; metPlayer: number; lastMetDay: number; gait: number; offmap: boolean; relieved: boolean;
   /** end of the current watch (a guard stays at the post until relieved) */
   watchEnd?: number;
@@ -73,6 +82,10 @@ export interface SimEvent { t: number; kind: string; text: string; place: string
 export interface SimOpts { /** the out-of-world setting 'Court calendar = seasonal pattern' (D-003); default false (court ABSENT) */ court?: boolean }
 
 const H_PER_S = 1 / 3600;
+/** the slice's goods at the start (C): the Treasury's sacks at the depot and in its store; the camp's barley at the depot
+ *  and at the querns, its ground flour and the ovens' flour (sacks of 3 BAR) */
+export const INITIAL_STOCK = { depot: 30, store: 120, grain: 8, querns: 10, flour: 2, oven: 6 };
+const CW = (livesData as any).camp_women_needed;
 /** sunrise/sunset in local solar hours for a day of the regnal year (see calendar.ts) */
 export const sunTimes = sunT;
 const FAM = (livesData as any).familiarity;
@@ -90,7 +103,14 @@ const CHECK_POSTS = new Set(['post_stair_n', 'post_stair_s', 'post_gate_w1', 'po
 export class PeopleSim {
   readonly agents: Agent[] = [];
   readonly events: SimEvent[] = [];
-  stock = { depot: 30, store: 120 };
+  /** the slice's goods (§9.5 "goods are physical objects"): the Treasury's sacks at the depot and in its store, and the work
+   *  camp's (S6 of shadow review r5, S3 of reviewer B): its barley at the depot (`grain`) and at the querns (`querns`), the
+   *  flour ground at the querns (`flour`) and the flour at the ovens (`oven`); every carried sack is taken from one and added
+   *  to another, grinding turns barley into flour, kneading draws on the ovens' flour (lives.json camp_women_needed; C) */
+  stock = { ...INITIAL_STOCK };
+  /** what moved between the camp's stocks, counted (the stock test: nothing from nowhere) */
+  flows = { grainIn: 0, grainUp: 0, ground: 0, flourToOven: 0, kneaded: 0 };
+  private lastGrainDay = -1;
   t = 0; // sim hours since the start of the regnal year (clock.t × 24)
   player: P2 | null = null;
   /** everyone (the abstract tier) and the year's calendar, stores and construction */
@@ -208,14 +228,14 @@ export class PeopleSim {
     const seg = segAt(this.planOf(a, day), hour);
     const end = Math.max(day * 24 + seg.t1, this.t + 1 / 120);
     // what the plan says is carried, where the sim does not carry it physically (Agent.carry: the sack, the jar, the basket)
-    const T0 = this.decide0(a, seg, end, rng); if (seg.carry && !T0.holds && (T0.off || !/^(carry_|draw_water)/.test(seg.act))) T0.holds = seg.carry; return T0;
+    const T0 = this.decide0(a, seg, end, rng); if (seg.carry && !T0.holds && (T0.off || !/^(carry_|draw_water)/.test(seg.act))) T0.holds = seg.carry; if (seg.wear) T0.wears = seg.wear; return T0;
   }
   private decide0(a: Agent, seg: Seg, end: number, rng: Rng): Task {
     const day = Math.floor(this.t / 24);
     a.sick = seg.act === 'lie_ill';
     // a guard whose watch has ended keeps the post until the relief arrives (at most ~36 minutes)
     if (a.role === 'guard' && a.task?.act === 'stand_guard' && a.post && GUARD_POSTS.includes(a.post) && !a.relieved && a.watchEnd !== undefined && this.t < a.watchEnd + 0.6 && seg.place !== a.post)
-      return this.task('stand_guard', a.post, PLACES[a.post].at, Math.min(a.watchEnd + 0.6, this.t + 0.1), 'waiting to be relieved', PLACES[a.post].heading);
+      return this.task('stand_guard', a.post, PLACES[a.post].at, Math.min(a.watchEnd + 0.6, this.t + 0.1), /relieved at the post/.test(seg.why) ? 'waiting for the patrol man to stand in while he eats' : 'waiting to be relieved', PLACES[a.post].heading); // (S7 of reviewer B r5)
     if (seg.where !== 'terrace' || !(seg.place in PLACES || seg.place === 'terrace_round')) {
       const T: Task = { act: seg.act, place: seg.place, spot: PLACES.town.at, heading: null, until: end, why: seg.why, off: true };
       const h = this.houseOf(a, day);
@@ -230,7 +250,13 @@ export class PeopleSim {
   private onTerrace(a: Agent, seg: Seg, end: number, rng: Rng): Task {
     const pl = seg.place, act = seg.act, why = seg.why; const chunk = (lo: number, hi: number) => Math.min(end, this.t + rng.range(lo, hi));
     // carried goods are set down when the next task is not carrying
-    if (a.role !== 'porter' && a.carry && !((a.carry === 'jar_head' && act === 'carry_jar_head') || (a.carry === 'basket' && act === 'carry_bread') || (a.carry === 'sack' && act === 'carry_sack'))) a.carry = null;
+    if (a.role !== 'porter' && a.carry && !((a.carry === 'jar_head' && act === 'carry_jar_head') || (a.carry === 'basket' && act === 'carry_bread') || (a.carry === 'sack' && act === 'carry_sack'))) {
+      // a camp woman's sack still in her hands when the carrying block ends is set down where it was going (it is a few steps
+      // at most): into that stock, not out of the world (S6 r5)
+      if (a.carry === 'sack' && a.sackTo) { this.stock[a.sackTo] += 1; if (a.sackTo === 'oven') this.flows.flourToOven++; else this.flows.grainUp++; }
+      a.carry = null; a.sackTo = undefined; }
+    // (no sack to set down when there was none to carry: she comes to the place empty-handed)
+    if (act === 'rest' && a.emptyCarry && /^setting the (flour|sack of barley) down/.test(why)) { a.emptyCarry = false; return this.task('rest', pl, this.here(a, pl, 2, rng), end, pl === 'oven' ? 'at the ovens: no flour ground yet to bring' : 'by the querns: no barley at the depot to bring'); }
     switch (act) {
       case 'sleep': return this.task('sleep', pl, a.role === 'guard' && pl === 'garrison_sleep' ? a.slot : this.here(a, pl, 2, rng), end, why);
       case 'lie_ill': return this.task('lie_ill', pl, a.role === 'guard' ? a.slot : this.here(a, pl, 2, rng), end, why);
@@ -262,10 +288,16 @@ export class PeopleSim {
           if (this.nearP(a, pl, 6)) { a.carry = 'sack'; return this.task('carry_sack', 'garrison_hearth_m', this.here(a, 'garrison_hearth_m', 3, rng), Math.min(end, this.t + 0.01), why); }
           return this.task('rest', pl, this.here(a, pl, 3, rng), Math.min(end, this.t + 0.01), 'going down for the next sack');
         }
-        // a camp woman carrying a sack of flour from the depot up to the querns (the plan's place is where it goes)
-        if (a.carry === 'sack') { if (this.nearP(a, pl, 3)) { a.carry = null; return this.task('rest', pl, this.here(a, pl, 2, rng), end, 'set the sack down'); } return this.task('carry_sack', pl, this.here(a, pl, 2, rng), this.t + 0.01, why); }
-        if (this.nearP(a, 'stair_foot', 6)) { a.carry = 'sack'; return this.task('carry_sack', pl, this.here(a, pl, 2, rng), this.t + 0.01, why); }
-        return this.task('rest', 'stair_foot', this.here(a, 'stair_foot', 3, rng), this.t + 0.01, 'going down to the depot for flour');
+        // a camp woman: a sack of barley from the camp's grain at the depot up to the querns, or a sack of the flour ground at
+        // the querns to the ovens (the plan's place is where it goes); a sack is taken from one stock and added to the other
+        // when it is set down, and she waits when there is none to take (S6 of shadow review r5; was a sack of flour from no
+        // stock set down into none)
+        const fl = /flour/.test(why), from = fl ? 'querns' : 'stair_foot', src = fl ? 'flour' : 'grain', dst = fl ? 'oven' : 'querns';
+        if (a.carry === 'sack') { if (this.nearP(a, pl, 3)) { a.carry = null; a.sackTo = undefined; this.stock[dst] += 1; if (fl) this.flows.flourToOven++; else this.flows.grainUp++;
+          return this.task('rest', pl, this.here(a, pl, 2, rng), end, fl ? 'setting the flour down by the ovens' : 'setting the sack of barley down by the querns'); } return this.task('carry_sack', pl, this.here(a, pl, 2, rng), this.t + 0.01, why); }
+        if (this.nearP(a, from, 6)) { if (this.stock[src] >= 1) { this.stock[src] -= 1; a.carry = 'sack'; a.sackTo = dst; a.emptyCarry = false; return this.task('carry_sack', pl, this.here(a, pl, 2, rng), this.t + 0.01, why); }
+          a.emptyCarry = true; return this.task('rest', from, this.here(a, from, 3, rng), Math.min(end, this.t + 0.05), fl ? 'waiting at the querns for a sack of flour to be ground' : 'waiting at the depot for the camp’s barley'); }
+        return this.task('rest', from, this.here(a, from, 3, rng), this.t + 0.01, fl ? 'going to the querns for the flour' : 'going down to the depot for barley');
       }
       case 'carry_bread': { // fetch the basket at the oven, carry it to the plan's place, set it down there
         if (a.carry === 'basket') { if (this.nearP(a, pl, 3)) { a.carry = null; return this.task('talk', pl, this.here(a, pl, 2, rng), end, 'handing out the bread'); } return this.task('carry_bread', pl, this.here(a, pl, 2, rng), this.t + 0.01, why); }
@@ -295,14 +327,21 @@ export class PeopleSim {
       case 'porter': {
         if (!(pl === 'stair_foot' && act === 'rest')) break;
         if (a.carry === 'sack') return this.task('rest', 'treasury_store', this.here(a, 'treasury_store', 3, rng), this.t + 0.03, 'set the sack down');
-        if (this.stock.depot > 0 && this.nearP(a, 'stair_foot', 6)) { this.stock.depot--; a.carry = 'sack'; return this.task('carry_sack', 'treasury_store', this.here(a, 'treasury_store', 3, rng), this.t + 0.02, 'carrying a sack to the Treasury store'); }
-        if (this.stock.depot > 0) return this.task('rest', 'stair_foot', this.here(a, 'stair_foot', 3, rng), this.t + 0.02, 'going for the next load');
+        if (this.stock.depot > 0 && this.nearP(a, 'stair_foot', 6)) { this.stock.depot--; a.carry = 'sack'; a.loadDay = Math.floor(this.t / 24); return this.task('carry_sack', 'treasury_store', this.here(a, 'treasury_store', 3, rng), this.t + 0.02, 'carrying a sack to the Treasury store'); }
+        if (this.stock.depot > 0) return this.task('rest', 'stair_foot', this.here(a, 'stair_foot', 3, rng), this.t + 0.02, a.loadDay === Math.floor(this.t / 24) ? 'going for the next load' : 'going down to the depot for a load'); // (S7 of reviewer B r5: "the next load" for the first)
         return this.task(rng.chance(0.5) ? 'rest' : 'talk', 'stair_foot', this.here(a, 'stair_foot', 3.5, rng), chunk(0.2, 0.5), 'waiting for a caravan');
       }
       case 'baker': case 'grinder': {
-        if (act === 'knead') return this.task('knead', 'oven', this.nav.snap(PLACES.oven.at[0] - 1.5 - a.id % 2, PLACES.oven.at[1] - 1.2, 2) ?? PLACES.oven.at, end, why, 45);
+        if (act === 'knead') { // the dough for the gang from the ovens' flour, once for each kneading block (S6 r5)
+          const key = `${Math.floor(this.t / 24)}:${seg.t0.toFixed(4)}`;
+          if (a.kneadKey !== key) { if (this.stock.oven < CW.knead_sacks - 1e-9) return this.task('rest', 'oven', this.here(a, 'oven', 1.5, rng), Math.min(end, this.t + 0.1), 'waiting at the ovens for flour');
+            a.kneadKey = key; this.stock.oven -= CW.knead_sacks; this.flows.kneaded += CW.knead_sacks; }
+          return this.task('knead', 'oven', this.nav.snap(PLACES.oven.at[0] - 1.5 - a.id % 2, PLACES.oven.at[1] - 1.2, 2) ?? PLACES.oven.at, end, why, 45); }
         if (act === 'bake') return this.task('bake', 'oven', this.nav.snap(PLACES.oven.at[0] + (a.id % 2 ? 1 : -1), PLACES.oven.at[1] - 1.0, 2) ?? PLACES.oven.at, end, why, 0);
-        if (act === 'grind') return this.task('grind', 'querns', a.slot, chunk(0.4, 0.9), why, 90);
+        if (act === 'grind') { // the querns' barley ground into flour as she grinds (lives.json grind_h_per_sack; S6 r5)
+          const until = chunk(0.4, 0.9), use = (until - this.t) / CW.grind_h_per_sack;
+          if (this.stock.querns < use) return this.task('rest', 'querns', a.slot, Math.min(end, this.t + 0.2), 'waiting at her quern for barley');
+          this.stock.querns -= use; this.stock.flour += use; this.flows.ground += use; return this.task('grind', 'querns', a.slot, until, why, 90); }
         if (act === 'draw_water') return this.task('draw_water', 'water', this.here(a, 'water', 1.5, rng), end, why);
         if (act === 'carry_jar_head') {
           if (a.carry !== 'jar_head') return this.task('rest', 'work_hearth', this.here(a, 'work_hearth', 2, rng), end, 'at the work camp');
@@ -410,7 +449,7 @@ export class PeopleSim {
   /** jump to a new time: everyone is placed where their plan puts them (continuity after time skips, loads) */
   jumpTo(tHours: number) {
     this.t = tHours; this.evT = tHours < this.evT ? tHours - 24 : Math.max(this.evT, tHours - 24); this.events$();
-    for (const a of this.agents) { a.carry = null; a.relieved = true; this.begin(a, this.decide(a), true); }
+    for (const a of this.agents) { if (a.carry === 'sack' && a.sackTo) this.stock[a.sackTo] += 1; a.carry = null; a.sackTo = undefined; a.relieved = true; this.begin(a, this.decide(a), true); } // (a camp sack in hand is set down at its place: S6 r5)
   }
   private events$() {
     const day = Math.floor(this.t / 24), hour = this.t - day * 24;
@@ -418,6 +457,10 @@ export class PeopleSim {
     // the calendar's events (rations, deliveries, couriers, offerings, construction, life …) enter the chronicle as time passes
     if (this.evT < 0) this.evT = this.t - 1e-9;
     if (this.t > this.evT) { for (const e of this.cal.eventsBetween(this.evT, this.t)) this.log(e.kind, e.text, e.place, e.id, e.t, e.tier); this.evT = this.t; }
+    // the camp's barley sent up from the storehouse to the depot in the morning when the depot is low (lives.json
+    // camp_women_needed.camp_grain_up; C)
+    if (day !== this.lastGrainDay && hour >= 6.5) { this.lastGrainDay = day;
+      if (this.stock.grain < 12) { const n = new Rng(this.seed, `camp-grain:${day}`).int(CW.camp_grain_up[0], CW.camp_grain_up[1]); this.stock.grain += n; this.flows.grainIn += n; this.log('delivery', `${n} sacks of barley for the work camp brought up to the stair foot`, 'stair_foot'); } }
     // goods for the Treasury carried up from the stair foot (C): 1–2 loads a day around mid-morning; weather holds them up
     if (day !== this.lastCaravanDay && hour >= 9) {
       const bad = (h: number) => (C.wx.stormH && h >= C.wx.stormH[0] && h <= C.wx.stormH[1]) || (C.wx.rain && h >= C.wx.rain[0] && h <= C.wx.rain[1]);
@@ -534,14 +577,14 @@ export class PeopleSim {
   static readonly ABSTRACT_TERRACE_PLACES = TERRACE_ABSTRACT;
 
   save() {
-    return { t: this.t, stock: { ...this.stock }, lastCaravanDay: this.lastCaravanDay, memory: this.memory.snapshot(), relations: this.pop.relationsSnapshot(),
-      agents: this.agents.map(a => ({ id: a.id, pos: a.pos, task: a.task, carry: a.carry, hunger: a.hunger, fatigue: a.fatigue, sick: a.sick, day: a.day, decisions: a.decisions, metPlayer: a.metPlayer, lastMetDay: a.lastMetDay, offmap: a.offmap, relieved: a.relieved, heading: a.heading, lod: a.lod, travel: a.travel, post: a.post, watchEnd: a.watchEnd })) };
+    return { t: this.t, stock: { ...this.stock }, flows: { ...this.flows }, lastGrainDay: this.lastGrainDay, lastCaravanDay: this.lastCaravanDay, memory: this.memory.snapshot(), relations: this.pop.relationsSnapshot(),
+      agents: this.agents.map(a => ({ id: a.id, pos: a.pos, task: a.task, carry: a.carry, hunger: a.hunger, fatigue: a.fatigue, sick: a.sick, day: a.day, decisions: a.decisions, metPlayer: a.metPlayer, lastMetDay: a.lastMetDay, offmap: a.offmap, relieved: a.relieved, heading: a.heading, lod: a.lod, travel: a.travel, post: a.post, watchEnd: a.watchEnd, sackTo: a.sackTo })) };
   }
   load(s: any) {
-    if (!s?.agents) return; this.t = s.t; this.stock = { ...s.stock }; this.lastCaravanDay = s.lastCaravanDay;
+    if (!s?.agents) return; this.t = s.t; this.stock = { ...INITIAL_STOCK, ...s.stock }; this.lastCaravanDay = s.lastCaravanDay; if (s.flows) this.flows = { ...s.flows }; if (s.lastGrainDay !== undefined) this.lastGrainDay = s.lastGrainDay;
     this.cal.ctx(Math.floor(s.t / 24)); // the calendar is deterministic: recompute to the saved day, then restore what the detailed people changed
     if (s.relations) this.pop.relationsRestore(s.relations); this.memory.restore(s.memory); this.evT = s.t; this.planCache.clear();
-    for (const x of s.agents) { const a = this.agents[x.id]; if (!a) continue; Object.assign(a, { pos: x.pos, task: x.task, carry: x.carry, hunger: x.hunger, fatigue: x.fatigue, sick: x.sick, day: x.day, decisions: x.decisions, metPlayer: x.metPlayer, lastMetDay: x.lastMetDay, offmap: x.offmap, relieved: x.relieved, heading: x.heading, post: x.post, watchEnd: x.watchEnd });
+    for (const x of s.agents) { const a = this.agents[x.id]; if (!a) continue; Object.assign(a, { pos: x.pos, task: x.task, carry: x.carry, hunger: x.hunger, fatigue: x.fatigue, sick: x.sick, day: x.day, decisions: x.decisions, metPlayer: x.metPlayer, lastMetDay: x.lastMetDay, offmap: x.offmap, relieved: x.relieved, heading: x.heading, post: x.post, watchEnd: x.watchEnd, sackTo: x.sackTo });
       a.lod = x.lod ?? a.lod; a.path = null; a.walking = false; a.travel = null; this.ground(a); if (a.task && !a.task.off && Math.hypot(a.pos[0] - a.task.spot[0], a.pos[1] - a.task.spot[1]) > 0.4) this.begin(a, a.task, false); }
   }
   static activityOk(id: string) { return id in ACTIVITIES; }
