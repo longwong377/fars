@@ -242,7 +242,7 @@
  "EWB": {
   "cite": "W. Hinz & H. Koch, Elamisches Wörterbuch (1987), lemma and sense base digitised by DANES-ALP (DigitalPasts/ALP-MEGA2024, commit 3160b20, js/data/senses.js)",
   "url": "https://github.com/DigitalPasts/ALP-MEGA2024",
-  "access": "downloaded 2024; NOT BUNDLED in the lexicon since D-192: the DANES-ALP repository states no licence (no LICENSE file; its README has none; re-checked 2026-09-24), so the four lexicon entries resting on it alone were removed and its glosses and page references stripped from the others (Q-294). src/data/names.json still draws Elamite personal names from it (Q-294, for the lead)"
+  "access": "downloaded 2024; NOT BUNDLED in the lexicon since D-192: the DANES-ALP repository states no licence (no LICENSE file; its README has none; re-checked 2026-09-24), so the four lexicon entries resting on it alone were removed and its glosses and page references stripped from the others (Q-294). its 484 personal names were removed from src/data/names.json too (D-193, Q-294): nothing of it is bundled"
  },
  "IR-PET": {
   "cite": "M. A. Dandamayev, 'Persepolis Elamite Tablets', Encyclopaedia Iranica",

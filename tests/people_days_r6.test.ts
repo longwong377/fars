@@ -13,6 +13,7 @@ import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, Env, INITIAL_STOCK } from '../src/people/sim';
 import { pickSample } from '../tools/shadow_days';
 import { Seg, segAt, nameFor, THIN_NAME_POOL } from '../src/people/population';
+import namesData from '../src/data/names.json';
 import { checkDay, checkPlan, MINDING } from '../src/people/planCheck';
 import { sunTimes, rainSpells, rainHours, CAL } from '../src/people/calendar';
 import { LATITUDE_N, LONGITUDE_E } from '../src/core/calendar';
@@ -216,8 +217,11 @@ describe('S9 (A), S8 (B): names', () => {
   it('no attested name goes to more than a quarter of the Egyptian men; Egyptian women are named; a pool of eight or more stays its own', () => {
     const c = new Map<string, number>(); let men = 0, women = 0, named = 0;
     for (const p of P.persons) { if (p.origin !== 'Egyptian' || p.agent >= 0) continue; const n = nameFor(1, p); if (p.sex === 'm') { men++; if (n) c.set(n, (c.get(n) ?? 0) + 1); } else { women++; if (n) named++; } }
-    expect(men).toBeGreaterThan(200); expect(Math.max(...c.values()) / men).toBeLessThan(0.25); expect(named).toBe(women);
-    const bab = new Set(P.persons.filter((p: any) => p.origin === 'Babylonian' && p.sex === 'm' && p.agent < 0).map((p: any) => nameFor(1, p))); expect(bab.size).toBeGreaterThanOrEqual(THIN_NAME_POOL); expect(bab.size).toBeLessThanOrEqual(16);
+    // (D-193: the licensed evidence holds no woman's name, so women are unnamed; the Babylonian men's own pool is empty and
+    // they draw from all the attested men's names, D-175's rule)
+    const fPool = (namesData as any).names.filter((n: any) => n.sex === 'f' && !n.notable && !n.reading_uncertain).length;
+    expect(men).toBeGreaterThan(200); expect(Math.max(...c.values()) / men).toBeLessThan(0.25); expect(named).toBe(fPool >= THIN_NAME_POOL ? women : 0);
+    const bab = new Set(P.persons.filter((p: any) => p.origin === 'Babylonian' && p.sex === 'm' && p.agent < 0).map((p: any) => nameFor(1, p))); expect(bab.size).toBeGreaterThanOrEqual(THIN_NAME_POOL);
   });
 });
 

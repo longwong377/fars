@@ -176,8 +176,10 @@ export class PopView {
   private spotAt(s: PS, P: DayPlan, i: number): Spot {
     const place = this.strings[P.place[i]], act = ACTS[P.act[i]], h = (this.segT0(P, i) + P.t1[i]) / 2, sun = sunTimes(P.day), dark = h < sun.rise - 0.25 || h > sun.set + 0.6;
     const indoor = act === 'sleep' || act === 'lie_ill' || act === 'offmap' || (dark && act === 'rest');
-    const key = P.place[i] * 2 + (indoor ? 1 : 0); let sp = s.spots.get(key);
-    if (!sp) { sp = this.geo.spot(s.pid, place, act, P.day, h); s.spots.set(key, sp); }
+    // (keyed by the day too: a spot depends on the day, the home and the age with it; a lane's spot memoised on day 150 was
+    // used on day 25, 9 m away, when the person had turned twelve in between: D-191)
+    const key = (P.day * 4194304 + P.place[i]) * 2 + (indoor ? 1 : 0); let sp = s.spots.get(key);
+    if (!sp) { sp = this.geo.spot(s.pid, place, act, P.day, h); if (s.spots.size >= 64) s.spots.clear(); s.spots.set(key, sp); }
     return sp;
   }
   private pace(pid: number) { return 1.1 + 0.3 * (h32(this.seed, S.pace, pid) / 4294967296); }

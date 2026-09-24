@@ -8,9 +8,10 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, Env } from '../src/people/sim';
-import { type Seg, wetHours, dayStorm } from '../src/people/population';
+import { type Seg, wetHours, dayStorm, nameFor } from '../src/people/population';
 import { checkPlan, invariants, WAIT_CAP_H } from '../src/people/planCheck';
 import { WeatherSystem } from '../src/weather/weatherState';
+import namesData from '../src/data/names.json';
 
 const W = new WeatherSystem(1);
 const env = (t: number): Env => { const d = Math.floor(t / 24), c = W.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
@@ -37,15 +38,16 @@ describe('S1 (A, B): the roof in the weather', () => {
 
 describe('S2 (A): the ration issue', () => {
   it('year-wide: on its issue day a Terrace worker queues at the depot after the issue opens, for no more than WAIT_CAP_H, and works before it (was 9,083 person-days, a mean 1.98 h and at most 5.40 h idle before the issue)', () => {
-    let n = 0, worked = 0;
+    let n = 0, worked = 0, early = 0;
     for (let d = 0; d < 354; d++) { const C = P.cal.ctx(d); if (!C.issue.size) continue;
       for (const pid of P.persons.filter((p: any, i: number) => ['builder', 'porter', 'camp', 'treasury', 'caretaker'].includes(p.job) && i % 4 === d % 4).map((p: any) => p.id)) {
         const h = C.issue.get(P.persons[pid].group); if (h === undefined || !P.present(pid, d)) continue; const segs: Seg[] = P.plan(pid, d);
         const q = segs.filter(s => s.act === 'queue' && /ration/.test(s.why)); if (!q.length) continue; n++;
         let run = 0, prevEnd = -1; for (const s of q) { run = Math.abs(s.t0 - prevEnd) < 1e-6 ? run + s.t1 - s.t0 : s.t1 - s.t0; prevEnd = s.t1; expect(run, `${pid} d${d}`).toBeLessThanOrEqual(WAIT_CAP_H + 1e-6); }
         expect(q[0].t0, `${pid} d${d} issue ${h.toFixed(2)}`).toBeGreaterThanOrEqual(h - 0.25); // (a few minutes early at the depot)
+        const up = segs.find(s => s.where === 'terrace'); if (!up || h - up.t0 < 0.75) continue; early++; // (on the Terrace an hour or so before the issue opens: at work until then)
         if (segs.some(s => s.where === 'terrace' && s.t1 <= q[0].t0 + 1e-6 && !['queue', 'eat', 'rest', 'walk', 'shelter'].includes(s.act))) worked++; } }
-    expect(n).toBeGreaterThan(1500); expect(worked / n).toBeGreaterThan(0.8);
+    expect(n).toBeGreaterThan(1500); expect(early).toBeGreaterThan(300); expect(worked / early).toBeGreaterThan(0.9);
   }, 600_000);
   it('#114 Akšer (person 1287) on Ululu 3 (day 151) carries loads before the queue, and 2036 on Duzu 5 (day 94) goes to the store for the issue hour, not at first light', () => {
     const d = 150, h = P.cal.ctx(d).issue.get(P.persons[1287].group); const g: Seg[] = P.plan(1287, d);
@@ -128,4 +130,20 @@ describe('minor findings', () => {
     const g: Seg[] = P.plan(44627, 327); expect(P.ageOn(44627, 327)).toBeLessThan(7); expect(g.some(s => s.where === 'road' && s.t0 >= 11.9 && /riding/.test(s.why))).toBe(true);
     expect(g.filter(s => s.where === 'road' && s.t0 >= 11.9).every(s => s.act !== 'walk')).toBe(true);
   }, 120_000);
+});
+
+describe('D-193: the names from licensed evidence only (D-192, Q-294)', () => {
+  it('every name in names.json cites a PF or PT text from a source whose licence is recorded; none rests on EWB', () => {
+    const N = namesData as any, lic = new Map((N._meta.source as any[]).map(x => [x.id, x.licence]));
+    expect(N.names.length).toBeGreaterThan(90);
+    for (const n of N.names) { expect(n.source, n.name).not.toBe('EWB'); expect(n.ewb, n.name).toBeUndefined(); expect(lic.get(n.source), `${n.name}: ${n.source}`).toBeTruthy();
+      expect(n.texts.length, n.name).toBeGreaterThan(0); for (const t of n.texts) expect(t, n.name).toMatch(/^(PF|PT) \d+( \(P\d+\))?$/);
+      if (n.source === 'CDLI') expect(n.texts.every((t: string) => / \(P\d+\)$/.test(t)), n.name).toBe(true); }
+    expect(JSON.stringify(N.names)).not.toMatch(/EWB|ALP-MEGA/);
+  });
+  it('women are honestly unnamed (no woman\'s name in the licensed evidence read); the named detailed agents carry their texts', () => {
+    for (const a of sim.agents) { if (!a.name) continue; expect(a.nameNote, a.name).toMatch(/^attested (PF|PT) \d+/); }
+    expect(P.persons.filter((p: any) => p.sex === 'f' && p.agent < 0).slice(0, 2000).every((p: any) => nameFor(1, p) === null)).toBe(true);
+    expect(sim.agents.filter(a => a.sex === 'f').every(a => a.name === null)).toBe(true);
+  });
 });

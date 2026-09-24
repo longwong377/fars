@@ -2,6 +2,8 @@
 """Build /home/user/fars/src/data/names.json from
  (1) CDLI ATF dump (cdli-gh/data, cdliatf_unblocked.atf): Hallock PF texts with {hal}/{munus} names  -> tier A
  (2) EWB lemma base (DigitalPasts/ALP-MEGA2024, PN-EWB-EJSmith.csv + senses.js refs): achE hh./f. PNs -> tier B
+SUPERSEDED IN PART (D-193): the EWB base states no licence (D-192, Q-294). Run tools/names_licensed.py after this script:
+it drops the EWB names and fields and guesses the origins again from the spellings.
 """
 import csv, json, re, unicodedata, collections, sys
 

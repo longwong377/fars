@@ -203,7 +203,7 @@ class CourtDay {
     let last = -1; if (this.lastEat >= 0) until = Math.min(until, this.lastEat + 7.2);
     while (this.t < until - 0.25) {
       const e = this.t + 1.6, dh = this.C.wx.dustH, out = (o: Opt) => OPEN_PLACE.test(o[0]) || o[0] === 'court_camp'; // (D-191, planCheck (a)-(b): out of doors only while dry, at leisure out of the dust, work that needs light in the light)
-      const bar = (o: Opt) => out(o) && (wetHours(this.C.wx, this.t, e) > 0 || (!!dh && dh[0] < e && dh[1] > this.t && /^(talk|gamble|play|rest|spin)$/.test(o[1])) || (/^(wash|train|gamble|craft|spin)$/.test(o[1]) && (this.t < this.sun.rise - 0.4 || e > this.sun.set + 0.4)));
+      const bar = (o: Opt) => /out of the rain/.test(o[2]) ? wetHours(this.C.wx, this.t, e) === 0 : out(o) && (wetHours(this.C.wx, this.t, e) > 0 || (!!dh && dh[0] < e && dh[1] > this.t && /^(talk|gamble|play|rest|spin)$/.test(o[1])) || (/^(wash|train|gamble|craft|spin)$/.test(o[1]) && (this.t < this.sun.rise - 0.4 || e > this.sun.set + 0.4)));
       const ws = opts.map((o, i) => bar(o) ? 0 : (i === last ? o[3] * 0.3 : o[3]) * (this.rainy(this.t) && whereOf(o[0]) !== 'terrace' ? 0.3 : 1)); let u = this.r.next() * ws.reduce((a, b) => a + b, 0), k = 0;
       for (; k < opts.length - 1; k++) { u -= ws[k]; if (u <= 0) break; } last = k; const o = opts[k];
       const t1 = Math.min(until, this.t + walkHours(this.cur, o[0]) + this.r.range(0.5, 1.5)); if (t1 - this.t < 0.3) break;
@@ -211,7 +211,10 @@ class CourtDay {
     }
   }
   rainy(t: number) { const w = this.C.wx.rain as [number, number] | null; return !!w && t >= w[0] - 0.5 && t < w[1]; }
-  meal(place: string, len: number, why: string) { this.at(this.t + len, place, 'eat', why); }
+  meal(place: string, len: number, why: string) {
+    // (not out in the rain: under the stockyard's shed, or the Gate's roof on the Terrace: D-191, planCheck (a); C)
+    if (OPEN_PLACE.test(place) && wetHours(this.C.wx, this.t, this.t + len + 0.3) > 0) { if (place === 'stockyard') why += ', under the stockyard’s shed, out of the rain'; else { place = 'gate_hall'; why = why.replace(/ at the stair foot| in the forecourt/, '') + ' under the Gate’s roof, out of the rain'; } }
+    this.at(this.t + len, place, 'eat', why); }
   /** sleep at the person's sleeping place from now to 24 (walking there first) */
   night(why = 'asleep') { this.go(this.m.sleep); this.add(24, this.m.sleep, 'sleep', why); }
   /** asleep until `wake` where the day starts */
@@ -362,7 +365,7 @@ class CourtDay {
       : role === 'baker' ? [[B, 'knead', 'kneading dough for the king’s bread', 2.5], [B, 'bake', 'baking the king’s bread', 2.5], [ST, 'rest', 'fetching flour from the table store', 0.4]]
       : role === 'wine' ? [[ST, 'inspect', 'minding the wine jars in the table store', 1.5], [HD, 'inspect', 'standing by with the wine in the Hadish', 1.5], [K, 'rest', 'resting between tasks', 0.6]]
       : role === 'water' ? [['court_cistern', 'draw_water', 'drawing water for the kitchens', 3], [K, 'rest', 'resting between tasks', 0.6]]
-      : [[K, 'rest', 'waiting at the kitchens for the dishes', 1.5], [HD, 'inspect', 'standing in attendance at the table in the Hadish', 2], ['court_guard_mess', 'inspect', 'seeing the guards’ food shared out', 0.6]];
+      : [[K, 'carry_jar', 'helping at the kitchens between the meals, carrying in the water', 1.5], /* (not an hour idle at the kitchens: D-191, planCheck (c); C) */ [HD, 'inspect', 'standing in attendance at the table in the Hadish', 2], ['court_guard_mess', 'inspect', 'seeing the guards’ food shared out', 0.6]];
     const trip = () => { // the carrying part of the job, now and then (C)
       if (role === 'wine') { this.go(ST); this.go(HD, 'carrying wine to the king’s table', 'carry_jar', 'a jar of wine'); }
       else if (role === 'water') { this.go('court_cistern'); this.add(this.t + 0.2, 'court_cistern', 'draw_water', 'drawing water for the kitchens'); this.go(K, 'carrying water to the kitchens', 'carry_jar_head', 'a water jar'); }
@@ -392,7 +395,7 @@ class CourtDay {
     this.morning(r.range(4.6, 5.4)); this.meal(this.m.sleep, 0.3, 'breakfast at the camp');
     if (dayOff) { const o: Opt[] = [[this.m.sleep, 'rest', 'resting at the camp', 3], [this.m.sleep, 'talk', 'talking at the camp', 2], [this.m.sleep, 'craft', 'mending baskets and ropes', 1]];
       this.fill(r.range(12, 13), o); this.meal(this.m.sleep, 0.5, 'the midday meal at the camp'); this.fill(r.range(18.5, 19.5), o); this.meal(this.m.sleep, 0.5, 'the evening meal at the camp'); this.night(); return; }
-    this.go(SY, 'going to the stockyard'); const o: Opt[] = [[SY, 'slaughter', 'slaughtering sheep and goats for the king’s table', 3], [SY, 'rest', 'resting at the stockyard', 0.6]];
+    this.go(SY, 'going to the stockyard'); const o: Opt[] = [[SY, 'slaughter', 'slaughtering sheep and goats for the king’s table', 3], [SY, 'slaughter', 'slaughtering sheep and goats for the king’s table under the stockyard’s shed, out of the rain', 3], [SY, 'rest', 'resting at the stockyard', 0.6], [SY, 'rest', 'resting under the stockyard’s shed, out of the rain', 0.6]];
     this.fill(r.range(8.5, 9.5), o);
     if (r.chance(0.5)) { this.go('court_kitchen', 'carrying meat up to the king’s kitchens', 'carry_bread', 'baskets of meat'); this.add(this.t + 0.2, 'court_kitchen', 'rest', 'handing the meat over at the kitchens'); this.go(SY, 'going back to the stockyard'); }
     this.fill(r.range(11.8, 12.6), o); this.meal(SY, 0.5, 'the midday meal at the stockyard'); this.fill(r.range(15.5, 16.5), o); this.go(this.m.sleep, 'going back to the camp');

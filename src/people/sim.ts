@@ -96,7 +96,7 @@ const NAMES = (namesData as any).names.filter((n: any) => !n.notable && !n.readi
 function pickName(rng: Rng, sex: 'm' | 'f', origins: string[], used: Set<string>) {
   const pool = NAMES.filter(n => n.sex === sex && origins.includes(n.origin_guess) && !used.has(n.name));
   if (!pool.length) return null;
-  const n = rng.pick(pool); used.add(n.name); return { name: n.name, tier: n.tier.startsWith('A') ? 'A' : 'B', note: n.texts?.length ? `attested ${n.texts.slice(0, 2).join(', ')}` : 'attested in the Achaemenid Elamite name lexicon (EWB)' };
+  const n = rng.pick(pool); used.add(n.name); return { name: n.name, tier: n.tier.startsWith('A') ? 'A' : 'B', note: `attested ${n.texts.slice(0, 2).join(', ')}` }; // (every name cites its texts: D-193)
 }
 /** posts where a stranger is stopped and questioned (the gates and stair heads; the Treasury door) */
 const CHECK_POSTS = new Set(['post_stair_n', 'post_stair_s', 'post_gate_w1', 'post_gate_w2', 'post_gate_s1', 'post_gate_s2', 'post_treas_1', 'post_treas_2']);

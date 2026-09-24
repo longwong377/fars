@@ -102,12 +102,13 @@ export const WEATHER_TOL_H = 0.25;
 /** (a) out in the rain or the storm by rule: on the road (going home out of it, a courier: W-01), the watch kept at the post
  *  and on the round, the flock not left, a shelter taken, off the map */
 const WET_OK = (s: Seg) => s.where === 'road' || s.act === 'stand_guard' || s.act === 'patrol' || s.act === 'shelter' || s.act === 'offmap'
-  || ((s.act === 'herd' || s.act === 'tend_animals') && /^(flock:|pasture:|route:|road:)/.test(s.place)) || (/^(eat|rest)$/.test(s.act) && WET_OK_FLOCK.test(s.place)) || /waiting out the shower|the cloak drawn over|out of the rain|keeping watch over/.test(s.why);
+  || ((s.act === 'herd' || s.act === 'tend_animals') && /^(flock:|pasture:|route:|road:)/.test(s.place)) || (s.act === 'eat' && s.place.startsWith('post_')) || (/^(eat|rest)$/.test(s.act) && WET_OK_FLOCK.test(s.place)) || /waiting out the shower|the cloak drawn over|out of the rain|keeping watch over/.test(s.why);
 /** (a) the dust: work goes on in it (W-03), and so does the rest that belongs to a working day out there (the midday rest at
  *  the field edge); leisure out of doors does not: talk, play, games, spinning and trade in the lane, at the well, in the
  *  court or the courtyard, and rest or sleep in the lane or the courtyard */
-const DUST_IDLE = (s: Seg) => (/^(talk|play|gamble|spin|exchange)$/.test(s.act) && (/^(lane:|well:|forecourt|canal:|river|water)/.test(s.place) || OPEN_WHY.test(s.why)))
-  || (/^(rest|sleep)$/.test(s.act) && (s.place.startsWith('lane:') || OPEN_WHY.test(s.why)));
+const DUST_IDLE = (s: Seg) => !/^a dispute/.test(s.why) // (a quarrel at the well is part of the errand there)
+  && ((/^(talk|play|gamble|spin|exchange)$/.test(s.act) && (/^(lane:|well:|forecourt|canal:|river|water)/.test(s.place) || OPEN_WHY.test(s.why)))
+    || (/^(rest|sleep)$/.test(s.act) && (s.place.startsWith('lane:') || OPEN_WHY.test(s.why))));
 /** (b) out-of-doors work that needs daylight */
 export const LIGHT_ACTS = new Set<ActivityId>(['herd', 'tend_animals', 'field_work', 'reap', 'thresh', 'plough', 'dig_canal', 'irrigate', 'pick_fruit', 'garden_work', 'gather', 'craft',
   'write_tablet', 'dress_stone', 'mould_brick', 'lay_brick', 'haul', 'shear', 'slaughter', 'wash', 'gamble', 'exchange', 'spin', 'weave', 'polish_metal', 'work_wood', 'clean', 'train', 'inspect']);
@@ -118,8 +119,10 @@ const NIGHT_WORK = /night turn|in the night, by turns|at lambing/;
 /** (c) the longest idle wait, and the waits that are part of the work (the porter standing by at the depot for the next
  *  load: the detailed tier turns it into carries while the depot holds stock, sim.ts) */
 export const WAIT_CAP_H = 0.75;
-const WAITING = /^waiting (for|at|while|out|until)\b|queue/;
-const WAIT_OK = /^waiting at the depot for loads|^waiting out the shower/;
+const WAITING = /^waiting (for|at|while|out|until)\b/; // (and the queue itself: act 'queue')
+// (and a delegation's turn at the Gate and in the Apadana: the audience's own procedure, the usher leading each party in
+// turn, TREAS-AUD and the Apadana reliefs; the court setting only; C)
+const WAIT_OK = /^waiting at the depot for loads|^waiting out the shower|waiting (in the forecourt )?to be (called|let through|heard|led before the king)|their party shown to the guards/;
 const over = (a: number, b: number, w: [number, number] | null) => (w ? Math.max(0, Math.min(b, w[1]) - Math.max(a, w[0])) : 0);
 /** hours of [a, b] below outfits.COLD_C (the day's quarter-hour temperatures) */
 function coldHours(wx: DayWx, a: number, b: number) {
@@ -171,7 +174,7 @@ export function invariants(P: Population, pid: number, d: number, segs: Seg[], p
     const cw = /cold/.test(s.wear ?? '');
     if (open && cold) { const c = coldHours(wx, s.t0, s.t1);
       if (!cw && c > 0.25) out.push({ kind: 'dress', note: `in the cold ${c.toFixed(2)} h undressed for it: ${n(s)}` });
-      if (cw && len - c > 0.5) out.push({ kind: 'dress', note: `dressed against the cold ${(len - c).toFixed(2)} h out of it: ${n(s)}` }); }
+      if (cw && len - c > 0.5 && !(s.where === 'road' && len <= 1)) out.push({ kind: 'dress', note: `dressed against the cold ${(len - c).toFixed(2)} h out of it: ${n(s)}` }); } // (a cloak put on for a walk is not taken off on the way: a walk of an hour or less)
     else if (cw && !cold) out.push({ kind: 'dress', note: `dressed against the cold on a day with none: ${n(s)}` });
   }
   // (d) the labels that name the household: "with the household" has someone of it there, and "kept for the late-comer"
