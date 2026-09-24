@@ -12,13 +12,16 @@ state: nothing places Xerxes at Persepolis in 467 (Q-005, B9).
 - **Every count is C.** The sources give claims about other kings (Artaxerxes II, Darius III) or about the army on the
   march; the numbers here are sized to meet population.json's court-resident Terrace values (a setting, C) in the
   proportions the sources suggest.
-- **The king is not a person in the simulation.** His audience happens out of sight (Q-335).
-- **Placeholders:** delegation dress by people is not built (delegates wear the generic Median riding dress); the court's
-  camp has no tents (its people are drawn in the open, asleep too); the golden/silver apple butts are the ordinary spear
-  prop; the women's night music (Heracleides) is not performed.
-- **Not simulated:** the town's +13,000 retinue and the plain's +5,000 (population.json town and plain court_resident);
-  only the ~1,900 court people who lodge in the court's camp count toward the town. The court's food does not draw on the
-  calendar's stores (calendar.ts, another workstream).
+- **D-199 filled four gaps, all reconstructions, none seen in a browser** (section 5): the delegations' dress (the
+  Apadana reliefs: form B, colours C; the identifications and every detail are **recollections of Walser 1966 and Schmidt
+  1953, NOT SEEN**, to be verified against the plates); the king as a person (B9, Q-335: C presence, B dress); the camps'
+  tents (C); the retinue in the town and on the plain (Q-333: C).
+- **Placeholders still:** the golden/silver apple butts are the ordinary spear prop; the women's night music (Heracleides)
+  is not performed; the delegations' animals, chariots and carried lioness, and some peoples' mantles, shawls and tassels
+  are not modelled (delegations.json notes); the king's bearers walk their own routes at his hour, not locked in step
+  behind him; the paths through the camps are straight lines.
+- **Not done:** the court's food does not draw on the calendar's stores (calendar.ts, another workstream); the retinue's
+  animals (horses, mules, camels) are tended but not drawn beyond what `tend_animals` shows.
 
 ## 1. Sources (keys in `src/data/sources.json`)
 | key | what | access | tier |
@@ -65,3 +68,85 @@ without the court at 10:00: 677-957.
 - Q-335 the king's audience: where, how often, and whether the king should be shown (B9);
 - Q-336 the guard's numbers: HDT 7.41's thousand is the army on the march, Heracleides' thousand is Artaxerxes II's
   court; 1,000-2,000 at Persepolis is population.json's C range; 1,000 used.
+
+## 5. D-199: the delegations' dress, the king, the camps' tents, the retinue (court setting only)
+**Read first.** Nothing here was rendered in a browser; every count is C; the identifications of the delegations and
+every detail of their dress are recollections of Walser 1966 (WALSER1966) and of Schmidt 1953's plates (SCHMIDT1953),
+**NOT SEEN** this session: verify against the plates before raising any row.
+
+### 5a. The 23 delegations (`src/data/delegations.json`; looks.ts `lookFor` with `delegation`)
+Walser's numbering of the E stair (recollection). Costumes: `envoy` = long sleeved garment to the ankle, girt;
+`envoy_short` = knee-length sleeved tunic, girt; `envoy_bare` = wrap to the knee, bare above; `median` = the Median riding
+dress; outfits.ts COSTUMES. New pieces: `cap_pointed` (the Saka's tall pointed cap, B), `cap_low` (a low rounded cap, C).
+Colours from the D-189 natural dyes (C). Gifts carried as the prop system allows (bowl, jar, cloth, basket, sack, spear);
+the animals and chariots are not shown.
+
+| relief | people | dress (B form unless noted) | gifts carried |
+|---|---|---|---|
+| I | Medes | Median dress: soft cap, tunic, trousers, boots, akinakes | jug, bowls, a set of clothes |
+| II | Elamites | long girt garment (close to the Persian robe: C), fillet | bows, daggers (bundle) |
+| III | Armenians | Median-type dress | the griffin-handled amphora |
+| IV | Arians | Median-type dress, the cap's chin wrap not modelled | bowls, a skin |
+| V | Babylonians | long garment, low conical cap (tassel and shawl not modelled: C) | cups, cloth |
+| VI | Lydians | long garment (mantle not modelled), cap drawn low (C) | amphorae, bowls, armlets |
+| VII | Arachosians | Median-type dress (C: the cap is read by some as a headcloth) | vessels, a skin |
+| VIII | Assyrians/Syrians | long garment, band round the hair (C) | cloth, bowls |
+| IX | Cappadocians | Median-type dress, the shoulder-pinned mantle drawn as the kandys (C) | a set of clothes |
+| X | Egyptians | the row is largely lost: a long linen garment, shaven (C) | calcite vessels, linen (Treasury finds stand in: C) |
+| XI | Scythians (Sakā tigraxaudā) | tall pointed cap, knee tunic, trousers, boots, akinakes | armlets, clothes |
+| XII | Ionians | long tunic (mantle not modelled), bareheaded | cloth, bowls, skeins of wool |
+| XIII | Bactrians | knee tunic, trousers, boots, band round the hair | bowls |
+| XIV | Gandharans | short tunic (cloak not modelled), band round the hair | spears, a shield (bundle) |
+| XV | Parthians | Median-type dress | vessels |
+| XVI | Sagartians | Median-type riding dress | clothes |
+| XVII | Sogdians (disputed: a second Saka group; Q-370) | Median-type dress, akinakes | axes and swords (bundle) |
+| XVIII | Indians | bare above the waist, wrap to the knee, band round the hair | baskets (the yoke not modelled), a jar |
+| XIX | Thracians (Skudra) | tunic, boots, low cap (HDT 7.75: fox-skin caps, B claim; cloak not modelled) | spears, a shield |
+| XX | Arabs | long girt garment (HDT 7.69, B claim), band round the hair | cloth |
+| XXI | Cilicians (disputed: Walser's Drangianians; Q-370) | knee tunic, low cap (C) | bowls, cloth |
+| XXII | Libyans | long garment (drawn closed, C), bareheaded | a spear |
+| XXIII | Kushites | long wrapped garment, short hair | a tusk (on the shoulder), a lidded jar |
+
+Parties of petitioners and delegations are now of these 23 peoples (court.json visitors.origins); a party's gift is its
+people's; the men wear their people's dress, the women the woman's dress (no evidence for them: C). The far impostors use
+the nearest silhouette's row (long garment: the woman's; knee tunic: the Median; bare: the working man's).
+
+### 5b. The king (court.json `king`; court.ts `kingDay`, `bearerDay`, `escortDay`)
+| what | how | tier |
+|---|---|---|
+| presence | only with the setting: nothing places Xerxes at Persepolis in 467 (Q-005) | C |
+| dress | the Persian robe in purple (or red), the tall crown with a dentate rim, the long squared beard, the staff in the right hand and the lotus in the left | B (reliefs: HADISH-JAMB, TREAS-AUD, IR-CLOTH); crown's rim, colours, sizes C |
+| his day | inside the Hadish, not drawn (a hidden place: popgeo.ts), except on audience mornings (41-44 % of resident days: 52 of 117 with seed 1): from about 08:30 he walks to the Apadana (royal_walk), sits enthroned on the throne with a footstool for about two hours (enthroned; the throne fitted to the pose on the rig: seat 0.52-0.53 m, soles 0.10-0.11 m on the bodies his look can take), and walks back | B for the audience scene and the throne; the hall (the Hall of 100 Columns is a building site in 467), the frequency and the hours C |
+| attendants | a parasol bearer and a fly-whisk and towel bearer (beardless, Persian robe, fillet) walk behind him and stand by the throne | B (door jambs; Treasury relief: the towel bearer behind the throne) |
+| escort | four spearmen (Persian and Median dress) walk before him and stand by the throne | C (Xenophon Cyr. 8.3, a claim about Cyrus: B) |
+| audiences | each party is led before him on one of his audience mornings within its stay (531 of 537 with seed 1; 6 had none): queue in the hall, stand before the throne, the gifts presented | B for the usher leading each party (reliefs); C for the procedure |
+| restraint | no procession is staged, he never speaks or reacts, he is never placed for the visitor; the visitor may not enter the Apadana or the Hadish (access.json: closed) | brief 1.1, 2 |
+
+### 5c. The camps' tents (court.json `camps`; camps.ts; world/courtCamps.ts)
+Eight camps: the court's own below the Terrace, four of the retinue in the town (N, W, NW, SW of Persepolis West) and three
+on the plain (the horse lines toward the river, the supply trains by the royal road W, the soldiers S). A household of ten
+lodges in a tent: ridge tents of undyed wool or linen (the servants, the table, the soldiers, the followers), black
+goat-hair tents (porters, butchers, grooms, baggage, herdsmen, supply trains), larger peaked tents of dyed cloth (nobles,
+officials); the parties' tents reused as parties come and go. 1,946 tents with seed 1 sleeping up to 21,182. Laid out in
+lines facing the camp's axis, 3 m apart, 6 m lanes; checked against the built world (campCheck.ts): no tent on a town
+plot, tree, prop, road or water piece, a canal, a river or in a village, none over another, the ground under each within
+2.1 % of level. The retinue's camps stand on fields in the D-190 land use: with the setting their discs are trodden, not
+tilled (townGround.ts `camps`: a camp pitched on fallow ground, C). People asleep, ill or resting in the dark are inside
+their tent (not drawn); the others stand before its door. Every form, size and place C (Q-333).
+
+### 5d. The retinue (court.json `retinue`; court.ts `retinueDay`)
+| group | n | zone and camp | the day (C) |
+|---|---|---|---|
+| servants of the Persians of rank | 3,900 | town (the four camps) | sweeping out the tents, water, washing, mending, kneading, now and then flour from the royal stores, the evening meal cooked |
+| grooms | 2,300 | town | the horse lines, fodder, bridles |
+| muleteers, camel drivers, carters | 2,100 | town | the baggage animals, pack saddles, loads from the royal stores |
+| craftsmen and sellers following the court | 1,900 | town | the camp's benches, trading |
+| soldiers quartered in the town | 1,300 | town | drill at the mark, the camp's watch, gear |
+| herdsmen of the royal herds | 1,800 | plain (horse lines) | the horses at pasture and the mules |
+| drivers of the supply trains | 1,600 | plain (royal road) | the pack animals, sacks, loads to the royal stores |
+| soldiers camped on the plain | 1,600 | plain (S) | drill, the watch, gear |
+
+Measured (seed 1, plans; tests/court_fill.test.ts): town at 02:00 21,270 / 21,677 (days 30 / 90; w 20,000, range
+13,000-30,000), at 10:30 18,588 / 18,561; plain 41,136-41,311 (w 42,000, range 33,000-49,000); the Terrace unchanged
+(4,912 at 10:30 on day 30). The whole court 25,817 people (9,310 before). They arrive with the court (day 0) and leave on
+its leave day (E-26), striking the tents. The year soak with the court (`npx tsx tools/soak.ts 354 60 1 --court`, 76,238 people) passes all 8 gates (D-199).

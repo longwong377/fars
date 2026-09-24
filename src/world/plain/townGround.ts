@@ -64,7 +64,9 @@ export function desireLines(plan: TownPlan): { a: P2; b: P2; w: number }[] {
   return out;
 }
 
-export function buildTownGround(plan: TownPlan | null): GroundMap {
+/** `camps`: the court setting's retinue camps (court.json camps, D-199): their ground trodden and not tilled, as the court's
+ *  own camp's (C: a camp pitched on fallow ground) */
+export function buildTownGround(plan: TownPlan | null, camps: { c: P2; r: number }[] = []): GroundMap {
   const { n, half, cell } = GROUND, N = n * n;
   const vx = new Float32Array(N).fill(VEC_RANGE), vy = new Float32Array(N).fill(VEC_RANGE), best = new Float32Array(N).fill(1e9);
   const trample = new Float32Array(N), allowed = new Float32Array(N).fill(1);
@@ -86,6 +88,8 @@ export function buildTownGround(plan: TownPlan | null): GroundMap {
   const camp = (courtJson as any).camp as { c: P2; r: number };
   each(camp.c[0] - camp.r - 60, camp.c[0] + camp.r + 60, camp.c[1] - camp.r - 60, camp.c[1] + camp.r + 60, (k, e, nn) => {
     const d = Math.hypot(e - camp.c[0], nn - camp.c[1]); trample[k] = Math.max(trample[k], 0.45 * (1 - sstep(camp.r * 0.6, camp.r + 50, d))); if (d < camp.r + 30) allowed[k] = 0; });
+  for (const cp of camps) each(cp.c[0] - cp.r - 60, cp.c[0] + cp.r + 60, cp.c[1] - cp.r - 60, cp.c[1] + cp.r + 60, (k, e, nn) => { // D-199
+    const d = Math.hypot(e - cp.c[0], nn - cp.c[1]); trample[k] = Math.max(trample[k], 0.45 * (1 - sstep(cp.r * 0.6, cp.r + 50, d))); if (d < cp.r + 30) allowed[k] = 0; });
   for (const f of (townJson as any).facilities as { id: string; at: P2 }[]) { if (/^(crown_fields|garden_pw|mountain|offering_place|river|outside|station)$/.test(f.id)) continue;
     each(f.at[0] - 70, f.at[0] + 70, f.at[1] - 70, f.at[1] + 70, (k, e, nn) => { const d = Math.hypot(e - f.at[0], nn - f.at[1]);
       trample[k] = Math.max(trample[k], 0.5 * (1 - sstep(25, 65, d))); if (d < 50) allowed[k] = 0; }); }

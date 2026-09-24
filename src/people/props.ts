@@ -78,6 +78,12 @@ export const PROP_NOTES: Record<string, { tier: 'A' | 'B' | 'C'; note: string }>
   frame_drum: { tier: 'C', note: 'hand-held frame drum, a membrane on a wooden hoop 0.36 m across (a drum is played at Madaktu: M-19; the frame drum is the Mesopotamian standard: SOUND-R); size C. Modelled and animated; no performer plays it here' },
   double_pipe: { tier: 'C', note: 'double pipe of two cane pipes diverging from the mouth (two played at Madaktu: M-19, B type; never at a sacrifice, Herodotus 1.132: M-05); length and splay C. Modelled and animated; no performer plays it here' },
   reed_pipe: { tier: 'C', note: 'a herder\'s single cane pipe with a cut reed and five finger-holes, 0.3 m (herdsmen playing pipes: Iliad 18.525-526, read, M-18; the shepherd\'s reed pipe of Mesopotamia, a maker\'s site: M-10). Every part of the form C; nothing specific to Fars is attested' },
+  // D-199 (court setting): the king's and his attendants' things as the door-jamb and audience reliefs carve them
+  sceptre: { tier: 'B', note: 'the king’s long staff, held upright in the right hand (door-jamb and audience reliefs, HADISH-JAMB, TREAS-AUD: B; 1.7 m, gilded wood with a knob: C)' },
+  lotus: { tier: 'B', note: 'a lotus flower on its stem in the king’s left hand (the same reliefs: B; size and colour C)' },
+  parasol: { tier: 'B', note: 'the parasol held over the king by an attendant (door-jamb reliefs, HADISH-JAMB: B); a pole of 2 m and a canopy 1.2 m across with a fringe, cloth over ribs: C' },
+  whisk: { tier: 'B', note: 'the fly-whisk held behind the king by an attendant (door-jamb reliefs: B); a short handle and a horsehair tuft, C' },
+  towel: { tier: 'B', note: 'the towel or napkin the fly-whisk bearer carries (door-jamb and Treasury audience reliefs: B); folded linen over the hand, C' },
 };
 
 /** geometry of a kind; the Phase 3 kinds keep their old origins (spear: at the butt; others: at the grip) */
@@ -174,6 +180,16 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
     case 'reed_pipe': { const P = REED_PIPE, g: THREE.BufferGeometry[] = [paint(rod([0, 0, -0.005], [0, 0, P.len], P.r, P.r, 6), CANE, 0, 0.55)];
       for (let i = 0; i < P.holes; i++) g.push(paint(box(0.007, 0.002, 0.007, 0, P.r + 0.0005, P.hole0 + i * P.holeStep), [0.2, 0.16, 0.1], 0, 0.9)); // the finger-holes, dark, on top
       return merge(g); }
+    // D-199: held upright (rule 'one', `up`): +Z up from the fist; the staff's foot below the hand, the knob above
+    case 'sceptre': return merge([paint(rod([0, 0, -0.75], [0, 0, 0.9], 0.013, 0.012, 5), [0.62, 0.48, 0.26], 0.7, 0.4), paint(new THREE.SphereGeometry(0.03, 6, 4).translate(0, 0, 0.93), [0.75, 0.6, 0.32], 0.9, 0.3)]);
+    case 'lotus': { const g = [paint(rod([0, 0, -0.04], [0, 0, 0.2], 0.004, 0.004, 3), [0.3, 0.42, 0.2], 0, 0.8)];
+      for (let i = 0; i < 5; i++) { const a = (i / 5) * Math.PI * 2; g.push(paint(new THREE.ConeGeometry(0.018, 0.06, 3).rotateX(Math.PI / 2).rotateY(0).translate(Math.cos(a) * 0.012, Math.sin(a) * 0.012, 0.23), [0.82, 0.8, 0.72], 0, 0.8)); }
+      return merge(g); }
+    case 'parasol': return merge([paint(rod([0, 0, -0.3], [0, 0, 1.75], 0.016, 0.014, 5), [0.45, 0.33, 0.21], 0, 0.7),
+      paint(new THREE.ConeGeometry(0.6, 0.18, 12, 1, true).rotateX(Math.PI / 2).translate(0, 0, 1.66), [0.62, 0.2, 0.2], 0, 0.9),
+      paint(new THREE.CylinderGeometry(0.6, 0.6, 0.07, 12, 1, true).rotateX(Math.PI / 2).translate(0, 0, 1.54), [0.75, 0.62, 0.36], 0, 0.9)]);
+    case 'whisk': return merge([paint(rod([0, 0, -0.08], [0, 0, 0.26], 0.012, 0.011, 5), [0.62, 0.48, 0.26], 0.7, 0.4), paint(rod([0, 0, 0.26], [0, 0, 0.62], 0.02, 0.05, 6), [0.82, 0.8, 0.74], 0, 1)]);
+    case 'towel': return paint(box(0.08, 0.02, 0.34, 0, 0, -0.12), [0.8, 0.77, 0.7], 0, 1);
     default: return null;
   }
 }
@@ -202,11 +218,14 @@ export const PROPS: Record<string, PropSpec> = {
   // instruments (D-200)
   harp_v: { geom: 'harp_v', rule: 'inst' }, harp_h: { geom: 'harp_h', rule: 'inst' }, lyre: { geom: 'lyre', rule: 'inst' }, frame_drum: { geom: 'frame_drum', rule: 'inst' },
   plectrum: { geom: 'plectrum', rule: 'one', hand: 'r', roll: 'up' }, double_pipe: { geom: 'double_pipe', rule: 'mouth' }, reed_pipe: { geom: 'reed_pipe', rule: 'mouth' },
+  sceptre: { geom: 'sceptre', rule: 'one', hand: 'r', roll: 'up', up: 1 }, lotus: { geom: 'lotus', rule: 'one', hand: 'l', roll: 'up', up: 1 },
+  parasol: { geom: 'parasol', rule: 'one', hand: 'r', roll: 'up', up: 1 }, whisk: { geom: 'whisk', rule: 'one', hand: 'r', roll: 'up', up: 1 }, towel: { geom: 'towel', rule: 'one', hand: 'l', roll: 'down' },
 };
 /** the two carried-prop meshes: small objects (with the Phase 3 set) and long tools. Every kind of a class is in one union */
 export const PROP_CLASSES: string[][] = [
   ['spear', 'sack', 'jar', 'tablet', 'mallet', 'basket', 'sickle', 'spindle', 'distaff', 'trowel', 'brick', 'knife', 'cloth', 'wisp', 'bowl', 'rag', 'awl', 'arrow', 'lead', 'ladle', 'stick'],
-  ['hoe', 'fork', 'goad', 'staff', 'broom', 'mould', 'rope', 'adze', 'bow', 'beater', 'paddle'],
+  // (D-199: the king's and his attendants' things join the long tools' union: the small objects' is at its budget)
+  ['hoe', 'fork', 'goad', 'staff', 'broom', 'mould', 'rope', 'adze', 'bow', 'beater', 'paddle', 'sceptre', 'parasol', 'lotus', 'whisk', 'towel'],
   // instruments (D-200): a class of their own, so the everyday props do not carry the harps' strings (one more draw only
   // where someone plays)
   ['harp_v', 'harp_h', 'lyre', 'frame_drum', 'double_pipe', 'reed_pipe', 'plectrum'],

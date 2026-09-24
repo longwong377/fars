@@ -14,6 +14,7 @@ import { TERRACE_ABSTRACT } from './population';
 import { NAV, type NavGrid, type P2 } from './navgrid';
 import { PLACES } from './sim';
 import { COURT_CAMP } from './court';
+import { campOfPlace, beforeDoor, type Tent } from './camps';
 import { sunTimes } from './calendar';
 import { hall100Layout } from './construction';
 import { footprint } from '../arch/spec';
@@ -276,7 +277,7 @@ export class PopGeo {
       case 'training': return this.outside(pid, q, day, 120, 200, 'practice ground outside the quarter (C)');
       case 'field': case 'threshing': case 'vineyard': case 'orchard': return this.plainPlace(pid, head, tail, day);
       case 'camp': case 'route': return this.band(pid, head, tail);
-      case 'court_camp': return this.openNear(COURT_CAMP.c, COURT_CAMP.r, pid, place, 'the court’s camp below the Terrace (court setting; tents NOT BUILT: shown in the open; C)'); // D-182
+      case 'court_camp': case 'rcamp': return this.camp(pid, place, indoor); // D-182, D-199: the court's camps, at a tent of the household
       default: return this.none(place, 'no rule');
     }
   }
@@ -298,7 +299,19 @@ export class PopGeo {
       const q: P2 | null = this.nav.walkable(e, n) ? [e, n] : this.nav.snap(e, n, 4); if (q && (Math.hypot(q[0] - ap[0], q[1] - ap[1]) < 0.3 || this.nav.lineClear(q, ap))) s = q; }
     s ??= ap;
     const hd = face ? headingOf(face[0] - s[0], face[1] - s[1]) : P?.heading ?? this.hash(pid, place, 15) * 360;
-    return this.sp(s[0], s[1], true, hd, 'nav', `Terrace: ${place}`, { anchor });
+    return this.sp(s[0], s[1], !(P as { hidden?: boolean } | undefined)?.hidden /* D-199: the king's rooms are not drawn */, hd, 'nav', `Terrace: ${place}`, { anchor });
+  }
+  /** D-199: a court camp (camps.ts): inside the household's tent (asleep, ill, resting in the dark: not drawn) or out before its
+   *  door; someone of the court without a tent there (a guard visiting) before one of its tents */
+  private campTents = new Map<string, Tent[]>();
+  private camp(pid: number, place: string, indoor: boolean): Spot {
+    const def = campOfPlace(place), K = this.pop.court; if (!def) return this.none(place, 'no such camp');
+    let t = K?.tentOf(pid) ?? null; if (t && t.camp !== def.id) t = null;
+    if (!t && K) { let list = this.campTents.get(def.id); if (!list) this.campTents.set(def.id, list = K.tents.filter(x => x.camp === def.id)); if (list.length) { t = list[Math.floor(this.hash(pid, place, 21) * list.length)]; indoor = false; } }
+    if (!t) return this.openNear(def.id === 'court' ? COURT_CAMP.c : def.c, def.r, pid, place, `${def.label} (court setting, C)`);
+    if (indoor) return this.sp(t.e, t.n, false, t.heading, 'open', `inside a ${t.kind} tent of ${def.label} (camps.ts: C)`);
+    const [e, n] = beforeDoor(t, 0.8 + 2.4 * this.hash(pid, place, 22), (this.hash(pid, place, 23) - 0.5) * t.w * 0.9);
+    return this.sp(e, n, true, t.heading + 180 + (this.hash(pid, place, 24) - 0.5) * 140, 'open', `before a ${t.kind} tent of ${def.label} (camps.ts: C)`);
   }
   private home(pid: number, hh: number, act: ActivityId, indoor: boolean, day: number): Spot {
     const H = this.pop.households[hh]; if (!H) return this.none('h', 'no household');

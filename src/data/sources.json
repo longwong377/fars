@@ -893,5 +893,25 @@
   "cite": "English translations made by this project (PĀRSA, session 7, D-198) from the ARIo transliterations (R. Schmitt 2009, ORACC; CC0) of the carved inscriptions and seal texts, per version, with the repository lexicons; NOT a published translation; verify against Schmitt 2009 / Kent 1953 (src/data/translations.json, tools/build_translations.py)",
   "url": "",
   "access": "n/a (made here); tier C"
+ },
+ "WALSER1966": {
+  "cite": "G. Walser, Die Völkerschaften auf den Reliefs von Persepolis (Teheraner Forschungen 2, Berlin 1966): the identification and numbering of the 23 delegations of the Apadana stairs",
+  "url": "https://www.worldcat.org/search?q=Walser+V%C3%B6lkerschaften+Reliefs+Persepolis",
+  "access": "NOT SEEN in this project (recollection of the standard identifications): every delegation's identification and dress detail taken from it is to be verified against its plates (NEEDS_FROM_ME); capped at B for the carved forms, C where marked"
+ },
+ "DB-SKUNXA": {
+  "cite": "Bisitun relief of Darius I (DB): the captive Skunkha, 'the Saka', with the tall pointed cap; the pointed-cap Saka (Old Persian Sakā tigraxaudā) in the royal lists of peoples (DNa, XPh)",
+  "url": "https://www.livius.org/sources/content/behistun-persian-text/",
+  "access": "NOT SEEN this session (recollection of the relief and the lists): the name A as a royal text, the form of the cap B"
+ },
+ "HADISH-JAMB": {
+  "cite": "Door-jamb reliefs of the Tachara (Darius I), the Hadish (Xerxes I) and the Tripylon: the king walking, followed by an attendant holding a parasol over him and another with a fly-whisk and a towel; the king with a long staff in the right hand and a lotus flower in the left (the Hall of a Hundred Columns' later jambs repeat the scene)",
+  "url": "https://www.livius.org/articles/place/persepolis/persepolis-photos/",
+  "access": "NOT SEEN this session (recollection of the reliefs and of photographs): the scene B (an image of royal ceremony, not a record of a day), sizes and colours C"
+ },
+ "XEN-CYR-8": {
+  "cite": "Xenophon, Cyropaedia 8.3.13-16: the king goes out in procession wearing his tiara upright, a purple tunic shot with white, scarlet trousers and a purple mantle, his hands outside his sleeves; lancers lead and fall in on either side of his chariot, spearmen follow (a claim about Cyrus, written two generations after 467)",
+  "url": "https://www.perseus.tufts.edu/hopper/text?doc=Perseus:text:1999.01.0204:book=8:chapter=3",
+  "access": "read this session in the Perseus English (Miller) text, the project's XEN-CYR download (FT): a Greek claim, max tier B; used for 'the king is escorted by his spearmen' (C for 467)"
  }
 }

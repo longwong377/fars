@@ -1,5 +1,5 @@
 // The soak's variety gate (tools/soak.ts: < 10 % of pairs of days near-copies, a near-copy agreeing in ≥ 90 % of the 48
-// half-hour buckets) for the court's people only (D-182). Usage: npx tsx tools/dev/court_variety.ts [days=30] [seed=1]
+// half-hour buckets) for the court's people only (D-182; D-199: the king's people and the retinue by group). Usage: npx tsx tools/dev/court_variety.ts [days=30] [seed=1]
 import { readFileSync } from 'node:fs';
 import { NavGrid } from '../../src/people/navgrid';
 import { PeopleSim, type Env } from '../../src/people/sim';
@@ -18,7 +18,7 @@ for (let pid = K.first; pid < K.end; pid++) {
     for (let b = 0; b < 48; b++) { const s = segAt(segs, b * 0.5 + 0.5 - 1e-6); const k = `${s.place}|${s.act}`; let c = codes.get(k); if (c === undefined) { c = codes.size; codes.set(k, c); } row.push(c); } sig.push(row); }
   if (sig.length < 2) continue; let pairs = 0, near = 0;
   for (let x = 0; x < sig.length; x++) for (let y = x + 1; y < sig.length; y++) { let diff = 0; for (let b = 0; b < 48; b++) if (sig[x][b] !== sig[y][b]) diff++; pairs++; if (diff <= 4) near++; }
-  const share = near / pairs, g = K.member(pid)!.g; const G = (byG[g] ??= { n: 0, worst: 0, worstPid: -1, failing: 0, mean: 0 }); G.n++; G.mean += share; if (share > G.worst) { G.worst = share; G.worstPid = pid; } if (share >= 0.1) G.failing++;
+  const share = near / pairs, m = K.member(pid)!, g = m.g === 'retinue' || m.g === 'king' ? `${m.g}:${m.role}` : m.g; /* (D-199: the retinue's groups and the king's people apart) */ const G = (byG[g] ??= { n: 0, worst: 0, worstPid: -1, failing: 0, mean: 0 }); G.n++; G.mean += share; if (share > G.worst) { G.worst = share; G.worstPid = pid; } if (share >= 0.1) G.failing++;
 }
 for (const g of Object.values(byG)) g.mean = +(g.mean / g.n).toFixed(4);
 console.log(JSON.stringify(byG, null, 1));

@@ -34,6 +34,15 @@
   - **Sim round 8 merged at handoff (D-191, D-193):** year-wide invariants 3.4 M flagged person-days → 0; final soak passes all
     8 gates; round-8 input (pick 149) not scored. **Every woman is now unnamed**: names come from licensed evidence only and
     the licensed texts read contain no woman's name (D-193, Q-294).
+- **Session 7, court fill (D-199; the user: "fill the gaps"; court setting only, the default stays court-absent).**
+  **Not rendered in a browser** (node only). Filled, all reconstructions: the delegations' dress from the Apadana reliefs
+  (23 peoples; form B, colours C; **the identifications and details are recollections of Walser 1966 / Schmidt 1953, NOT
+  SEEN**: NEEDS #16, Q-370); the king as a person (B9, Q-335: Xerxes in the reliefs' dress with parasol and fly-whisk
+  bearers and four spearmen, enthroned in the Apadana on ~2 mornings in 5, otherwise unseen in the Hadish); 1,946 tents in
+  eight camps (C); the retinue simulated in the town (11,500) and on the plain (5,000): town 21,270 at night / 18,588 by
+  day, plain 41,136 against w 20,000 / 42,000. **Still placeholder:** the delegations' animals and chariots, some mantles
+  and tassels, the bearers not locked in step behind the king, straight paths through the camps, the spearmen's
+  apple-shaped butts, the women's night music.
 - **Session 6, court workstream (branch court-s6, D-182; merged by the lead).** With the court setting the
   court in residence is simulated and drawn (9,310 people, C; the Terrace 4,448 at 10:00 and 2,295 at 02:00 on day 30).
   **Not rendered in a browser yet** (node counts only). **PLACEHOLDER:** delegates' dress (generic Median riding dress),

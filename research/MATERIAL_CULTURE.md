@@ -35,6 +35,20 @@ citing a plate. Source keys shared with PEOPLE.md are defined there.
 | Women: workers | no imagery. Reconstruct as the ordinary tunic with a mantle or headcloth | reconstruction | C | label C in the overlay. D-155: the cloth covers the head and the back of the neck, ends a little below the shoulders, and hangs down the front of the chest and the back (Q-249) |
 | Children | no imagery; smaller tunics | reconstruction | C | |
 
+## Delegation dress and the king's ceremonial dress (D-199; court setting only)
+**Read first:** the identifications of the Apadana's 23 delegations and every detail below are recollections of Walser
+1966 (WALSER1966) and of Schmidt 1953's plates and of photographs of the E stair, **NOT SEEN** this session: verify against
+the plates (NEEDS_FROM_ME #1, #16). The full table is `src/data/delegations.json` and research/COURT.md section 5a.
+| item | description | source | tier | note |
+|---|---|---|---|---|
+| The delegations' dress | 23 peoples in their own dress on the Apadana N and E stairs, each led by the hand by an usher: the Median riding dress (Medes, Armenians, Arians, Arachosians, Cappadocians, Parthians, Sagartians, Sogdians), long girt garments (Elamites, Babylonians, Lydians, Assyrians, Egyptians, Ionians, Arabs, Libyans, Kushites), knee-length tunics with trousers and boots or bare legs (Scythians, Bactrians, Gandharans, Thracians, Cilicians), a wrap to the knee and bare above (Indians) | APA-RELIEF (SX); WALSER1966, SCHMIDT1953 (NOT SEEN) | B form / C detail | delegations.json; costumes envoy, envoy_short, envoy_bare, median (outfits.ts) |
+| Headgear by people | the Saka's tall pointed cap (Old Persian Sakā tigraxaudā, "pointed-cap Saka", in the royal lists: A for the name); Median soft caps; low caps of the lowland peoples (tassels and lappets not modelled); bands round the hair (Elamites' fillet, Bactrians, Gandharans, Indians, Arabs); bareheaded Ionians and Libyans | APA-RELIEF; DB-SKUNXA (NOT SEEN) | B (the pointed cap) / C | pieces cap_pointed, cap_low, headband, fillet, cap_soft |
+| The delegations' gifts | vessels (the Armenians' griffin-handled amphora), bowls, armlets, cloth and garments, weapons, skins, baskets on a yoke (Indians), a tusk (Kushites); animals (horses, camels, bulls, rams, a lioness with cubs, an okapi) and chariots | APA-RELIEF, APAD-ANIM (SX) | B | carried as the prop system allows (bowl, jar, cloth, basket, sack, spear); the animals and chariots are NOT shown |
+| Colours of the delegations' dress | the reliefs' paint is mostly lost | RELIEFS_AND_COLOUR | C | the D-189 natural dyes chosen per people for plausibility (delegations.json dyes), not from evidence |
+| The king's ceremonial dress | the Persian court robe, the tall cylindrical crown, the long squared beard, a long staff in the right hand and a lotus flower in the left; a parasol held over him by an attendant, a fly-whisk and towel carried behind him by another (beardless) | HADISH-JAMB (door jambs of the Tachara, Hadish, Tripylon; NOT SEEN this session), TREAS-AUD (SX) | B | robe purple or red (IR-CLOTH, B; the dye C); the crown's dentate rim, the gold band, sizes C; costume king (the Persian mesh + the crown piece) |
+| The throne and footstool | a high-backed chair with lion's-paw feet and a footstool (Treasury audience relief) | TREAS-AUD (SX) | B | work object 'throne': gilded wood and sizes C, fitted to the enthroned pose on the rig (seat 0.525 m, footstool 0.105 m) |
+| Tents of the court's camps | Persian tents in the field (Herodotus 9.70: Mardonius' tent; 9.80: tents adorned with gold and silver in the Persian camp; 7.119: on the march a tent for Xerxes while the army camped in the open air: claims about an army, B, read this session); forms by analogy: a ridge tent of undyed wool or linen on two poles and a ridge pole, the black goat-hair tent of Iranian and Near-Eastern herders (ethnographic), a larger peaked tent of dyed cloth for Persians of rank | HDT (FT; claims) | B (tents) / C (forms, sizes, colours, lines) | camps.ts TENT_KINDS; world/courtCamps.ts |
+
 ## Hair and beards (D-155)
 | item | description | source | tier | note |
 |---|---|---|---|---|

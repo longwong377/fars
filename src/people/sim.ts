@@ -23,7 +23,7 @@ import { EventCalendar, sunTimes as sunT } from './calendar';
 import { Population, Seg, segAt, GUARD_POSTS, SliceSeat, TERRACE_ABSTRACT, TOWN_SITES, HEARTHS } from './population';
 import { hall100Layout, colPlace } from './construction';
 import { PlayerMemory, Encounter } from './memory';
-import { COURT_PLACES } from './court'; // D-182 hook
+import { COURT_PLACES, COURT_PRIVATE } from './court'; // D-182 hook (D-199: the king's rooms)
 
 export type Role = 'guard' | 'mason' | 'foreman' | 'porter' | 'scribe' | 'baker' | 'grinder' | 'child' | 'courier' | 'official';
 export interface Place { id: string; kind: string; at: P2; heading?: number; span?: [P2, P2]; tier: string; note: string; /** a column's centre (generated work places) */ c?: P2 }
@@ -36,7 +36,7 @@ const GENERATED: Place[] = [
     const at: P2 = ns ? [d.at[0] - 2.2, d.at[1] + iny * 2.2] : [d.at[0] + inx * 2.2, d.at[1] - 2.2];
     return { id: `h100_door_${d.id}`, kind: 'work', at, heading: ns ? (iny < 0 ? 180 : 0) : (inx > 0 ? 90 : 270), tier: 'C', note: `inside doorway ${d.id} of the Hall of a Hundred Columns, where its reliefs are carved (door reliefs BRIT-H100 B; progress C)` }; }),
 ];
-export const PLACES: Record<string, Place> = Object.fromEntries([...(placesData as any).places as Place[], ...GENERATED, ...COURT_PLACES /* D-182 hook: the court's places (court.ts) */].map((p: Place) => [p.id, p]));
+export const PLACES: Record<string, Place> = Object.fromEntries([...(placesData as any).places as Place[], ...GENERATED, ...COURT_PLACES /* D-182 hook: the court's places (court.ts) */, ...COURT_PRIVATE].map((p: Place) => [p.id, p]));
 
 export interface Env { rain: number; lightning: boolean; windMs: number; tempC: number; dust?: number }
 /** `off`: the task is off the rendered Terrace (in the town, on the road, in the plain): the person is hidden */

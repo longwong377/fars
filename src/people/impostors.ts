@@ -109,8 +109,8 @@ export function slotOf(cls: number, col: number): number {
 }
 /** the most common pieces of each dress (looks.ts rates: the look that stands for all at impostor distance, C) */
 export function typicalMask(dress: Dress): number {
-  const on: Record<Dress, string[]> = { persian: ['bun', 'beard_long', 'hat_fluted'], guard: ['bun', 'beard_long', 'hat_fluted'], median: ['bun', 'beard_long', 'cap_soft'], worker: ['beard_short', 'shoes'], woman: ['headcloth', 'shoes'], child: ['hair'] };
-  let m = 1; for (const id of COSTUMES[dress].always) m |= (1 << pieceBit(dress, id)) & ~1; for (const id of on[dress]) m |= 1 << pieceBit(dress, id); return m;
+  const on: Partial<Record<Dress, string[]>> = { persian: ['bun', 'beard_long', 'hat_fluted'], guard: ['bun', 'beard_long', 'hat_fluted'], median: ['bun', 'beard_long', 'cap_soft'], worker: ['beard_short', 'shoes'], woman: ['headcloth', 'shoes'], child: ['hair'] }; // (the court setting's dresses have none: they use their far row's, D-199)
+  let m = 1; for (const id of COSTUMES[dress].always) m |= (1 << pieceBit(dress, id)) & ~1; for (const id of on[dress] ?? []) m |= 1 << pieceBit(dress, id); return m;
 }
 /** a reference body per dress: the variant nearest the mean stature of its sex and age (looks.ts STATURE) */
 function refVariant(A: HumanAssets, dress: Dress) {
@@ -275,6 +275,6 @@ export class CrowdImpostors {
   /** the packed colours of a look (cache them per person) */
   static pack(col: PersonLook['col']): Float32Array { return Float32Array.of(packRGB(col.main), packRGB(col.second), packRGB(col.trim), packRGB(col.skin), packRGB(col.hair), packRGB(col.leather)); }
   /** the packed colours of a look as the skinned material shows them on average (farColours, D-189) */
-  packLook(look: PersonLook): Float32Array { const [m, s, t] = farColours(look, this.atlas.cloth?.[look.dress]); const c = look.col;
+  packLook(look: PersonLook): Float32Array { const [m, s, t] = farColours(look, this.atlas.cloth?.[look.far ?? look.dress]) /* D-199: a dress without a row of its own uses its far row's */; const c = look.col;
     return Float32Array.of(packRGB(m), packRGB(s), packRGB(t), packRGB(c.skin), packRGB(c.hair), packRGB(c.leather)); }
 }
