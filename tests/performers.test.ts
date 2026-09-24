@@ -4,7 +4,8 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { musicAt, soundingParts, QUERN_P, BLOCK_H, type PerformerAgent, type MusicCtx, type Gig } from '../src/audio/performers';
 import { MUSIC_CLAIMS } from '../src/audio/musicClaims';
-import { refusal } from '../src/audio/music';
+import { refusal, MusicSystem } from '../src/audio/music';
+import { MusicDirector, EARSHOT_M } from '../src/audio/musicDirector';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim } from '../src/people/sim';
 
@@ -99,4 +100,33 @@ describe('music schedule on the simulation (the Terrace work camp)', () => {
     }
     expect(grinding).toBeGreaterThan(0); expect(singers.size).toBeGreaterThan(0);
   }, 120_000);
+});
+
+describe('the music director (world glue): plays what the schedule says, where the performer is', () => {
+  const mkEngine = () => ({ ctx: { sampleRate: 8000, currentTime: 0, createBuffer: (_c: number, n: number, sr: number) => ({ copyToChannel() {}, duration: n / sr }), createBufferSource: () => ({ connect() {}, start() {}, stop() {} }), createGain: () => ({ connect() {}, gain: { value: 1, setTargetAtTime() {} } }) },
+    unlocked: true, panner: (x: number, y: number, z: number) => ({ connect() {}, positionX: { value: x }, positionY: { value: y }, positionZ: { value: z } }), ch: { music: {} }, route() {}, occlusionOf: () => ({ gainDb: -12, cutoffHz: 2100, path: 'doorway test' }) } as any);
+  it("starts the quern song near the listener, moves the singer's jaw, stops it when the stretch ends; nothing out of earshot", () => {
+    const e = mkEngine(), ms = new MusicSystem(e, () => false), jaw: number[] = [];
+    const d = new MusicDirector(ms, e, { addExtra() {}, removeExtra() {}, singing: id => jaw.push(id) });
+    const women = [grinder(1), grinder(2)];
+    let t = -1; for (let m = 7 * 60; m < 18 * 60 && t < 0; m++) if (musicAt(women, ctx(m / 60)).length) t = m / 60;
+    expect(t).toBeGreaterThan(0);
+    const lis = { x: 11, y: 1.6, z: -20 };
+    d.update(1, women, ctx(t), lis);
+    expect(ms.playing).toHaveLength(1); expect(jaw.length).toBeGreaterThan(0);
+    expect(d.lines().join('\n')).toMatch(/music heard: quern_song .* tier C \[M-07.*occlusion -12\.0 dB.*PLACEHOLDER/);
+    let t2 = t; while (musicAt(women, ctx(t2)).length) t2 += 1 / 60;
+    d.update(1, women, ctx(t2), lis); expect(ms.playing).toHaveLength(0);
+    const far = new MusicDirector(new MusicSystem(e, () => false), e, { addExtra() {}, removeExtra() {}, singing() {} });
+    far.update(1, women, ctx(t), { x: 11 + EARSHOT_M + 10, y: 1.6, z: -20 }); expect(far.lines().join()).toMatch(/scheduled \(out of earshot\)/);
+  });
+  it('places the court musicians while the court plays and takes them away after', () => {
+    const e = mkEngine(), placed = new Set<string>();
+    const d = new MusicDirector(new MusicSystem(e, () => true), e, { addExtra: k => placed.add(k), removeExtra: k => placed.delete(k), singing() {} });
+    const on = { courtToday: true, courtYesterday: true };
+    let t = -1; for (let m = 19 * 60; m < 21 * 60 && t < 0; m++) if (musicAt([], ctx(m / 60, on)).some(g => g.kind === 'court_supper')) t = m / 60;
+    expect(t).toBeGreaterThan(0);
+    d.update(1, [], ctx(t, on), { x: 22, y: 7.6, z: 159.5 }); expect(placed.size).toBe(6);
+    d.update(1, [], ctx(12, on), { x: 22, y: 7.6, z: 159.5 }); expect(placed.size).toBe(0);
+  });
 });
