@@ -12,9 +12,9 @@
 // Data3DTexture: r186 binds that through a 2-D view on WebGPU (validation error, black frame; HANDOFF gotchas).
 import * as THREE from 'three/webgpu';
 import { HemisphereLightNode } from 'three/webgpu';
-import { uniform, texture, vec2, vec3, float, mix, max, min, clamp, floor, smoothstep, step, normalWorld, positionWorld, dot } from 'three/tsl';
+import { uniform, texture, vec2, vec3, float, mix, max, min, clamp, floor, smoothstep, step, normalWorld, positionWorld, dot, length } from 'three/tsl';
 import { geometricNormalWorld } from '../envmap';
-import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, volumeAt, openAmbientMean, VALID_LO, VALID_HI, ATLAS_BANDS, PROBE_STRIDE, REACH_SOFT } from './field';
+import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, volumeAt, openAmbientMean, VALID_LO, VALID_HI, ATLAS_BANDS, PROBE_STRIDE, REACH_SOFT, L1_FLOOR, L1_ONESIDED } from './field';
 import { SURFACES } from '../materials';
 import { srgbToLinear, lum, sceneFromParts, TraceScene } from './trace';
 import type { Part } from '../../arch/parts';
@@ -164,7 +164,9 @@ export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any, directSk
   const s0 = mix(at(uAS, vS, 0), at(uBS, vS, 0), fy), s1 = mix(at(uAS, vS, 1), at(uBS, vS, 1), fy), s2 = mix(at(uAS, vS, 2), at(uBS, vS, 2), fy);
   const s4 = mix(at(uAS, vS, 4), at(uBS, vS, 4), fy);
   const val = s2.w, inv = float(1).div(max(val, 1e-4));
-  const eS = max(s0.x.add(dot(s0.yzw, n)).mul(inv), 0), eU = max(s1.x.add(dot(s1.yzw, n)).mul(inv), 0);
+  // (the interreflection floor of a one-sided field: field.ts l1Eval, B23)
+  const l1 = (s: any) => { const ap = max(s.x, 0); return max(max(s.x.add(dot(s.yzw, n)), 0), ap.mul(L1_FLOOR).mul(smoothstep(L1_ONESIDED[0], L1_ONESIDED[1], length(s.yzw).div(max(ap, 1e-12))))).mul(inv); };
+  const eS = l1(s0), eU = l1(s1);
   // D-158: the tint of the light from above (up-facing) and from below (down-facing), blended by the normal
   const up = n.y.mul(0.5).add(0.5);
   const tr = mix(s4.x, s2.x, up).mul(inv), tb = mix(s4.y, s2.y, up).mul(inv), fb = clamp(s2.z.mul(inv), 0, 1);

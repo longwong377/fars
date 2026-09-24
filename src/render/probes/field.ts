@@ -135,7 +135,18 @@ export function sampleField(F: ProbeField, x: number, y: number, z: number, nx =
 /** irradiance for normal n from a sample, per unit S and U (luminance; tint and fb are colour only):
  *  [sky part E_S, sun part E_U] */
 export function evalSample(s: Float64Array, nx: number, ny: number, nz: number): [number, number] {
-  return [Math.max(0, s[0] + s[1] * nx + s[2] * ny + s[3] * nz), Math.max(0, s[4] + s[5] * nx + s[6] * ny + s[7] * nz)];
+  return [l1Eval(s[0], s[1], s[2], s[3], nx, ny, nz), l1Eval(s[4], s[5], s[6], s[7], nx, ny, nz)];
+}
+/** The interreflection floor of the L1 probe irradiance (session 7, B23). An L1 fit a + b·n of light that enters a hall from
+ *  one side has |b| > a, so a face turned away from every opening comes out negative and is clamped to exactly 0: black at
+ *  any exposure (the Tachara's W2 doorway reveal). In a real room that face is lit by the room's own lit surfaces: a floor
+ *  of L1_FLOOR × a (a = the direction-mean irradiance), active only where the field is strongly one-sided (|b|/a above
+ *  L1_ONESIDED, from 1: the open sky's cosine distribution has |b|/a = 1 and is untouched). κ 0.25 puts such a face ~3.5 stops
+ *  under the hall's lit faces (C: the order of a room's interreflected share with walls of albedo 0.3–0.4) */
+export const L1_FLOOR = 0.25, L1_ONESIDED: [number, number] = [1.0, 1.4];
+export function l1Eval(a: number, bx: number, by: number, bz: number, nx: number, ny: number, nz: number): number {
+  const e = a + bx * nx + by * ny + bz * nz, bl = Math.hypot(bx, by, bz), ap = Math.max(a, 0);
+  return Math.max(0, e, L1_FLOOR * ap * sstep(L1_ONESIDED[0], L1_ONESIDED[1], bl / Math.max(ap, 1e-12)));
 }
 
 /** the open-field reference the probes are compared with: a surface of normal n on open, level, sunlit ground of
