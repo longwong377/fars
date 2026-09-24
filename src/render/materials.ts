@@ -16,6 +16,7 @@ import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise
 import PC from '../data/polychromy.json';
 import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
 import { SkySpecularNode } from './envmap';
+import { roofedNode } from './probes/roofs';
 
 export const WEATHER = { wetness: uniform(0), snow: uniform(0), puddles: uniform(0) };
 /** seasonal ground cover (0..1): green = living herb layer, dry = standing straw/stubble (set per frame from the date; season.ts) */
@@ -397,12 +398,14 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   let alb = L.alb;
   // weather: wet darkening (porous surfaces up to ~45% darker), gloss; puddles on near-horizontal surfaces; snow cover
   const up = smoothstep(0.75, 0.95, n.y);
-  const wet = WEATHER.wetness.mul(float(0.55).add(up.mul(0.45)));
+  // nothing is wet, puddled or snowed on under the halls' roofs (session 5: probes/roofs.ts)
+  const open = float(1).sub(roofedNode());
+  const wet = WEATHER.wetness.mul(float(0.55).add(up.mul(0.45))).mul(open);
   alb = alb.mul(float(1).sub(wet.mul(d.porosity * 0.5)));
   // puddles: only in the low spots of a broad noise field (≈15% of flat area at full puddle state), never a uniform sheen
-  const puddle = up.mul(WEATHER.puddles).mul(smoothstep(0.68, 0.74, mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5)));
+  const puddle = up.mul(WEATHER.puddles).mul(open).mul(smoothstep(0.68, 0.74, mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5)));
   // snow: zero when snow = 0 (noise only modulates coverage, never adds snow on its own)
-  const snowMask = clamp(up.mul(WEATHER.snow).mul(float(1.6).sub(mx_noise_float(p.mul(0.8)).add(1).mul(0.3))), 0, 1);
+  const snowMask = clamp(up.mul(WEATHER.snow).mul(open).mul(float(1.6).sub(mx_noise_float(p.mul(0.8)).add(1).mul(0.3))), 0, 1);
   m.colorNode = mix(alb, vec3(0.92, 0.93, 0.96), snowMask);
   m.roughnessNode = mix(mix(L.rough, L.rough.mul(0.45), wet), float(0.05), puddle).max(float(0.04)).mul(float(1).sub(snowMask.mul(0.1))).add(snowMask.mul(0.1));
   m.metalnessNode = float(d.metal ?? 0);

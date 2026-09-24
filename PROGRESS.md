@@ -1,6 +1,37 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Session 5 (2026-09-23/24; ended — read this block and HANDOFF.md first).** Base 2f6dbaa (the session-4 handoff).
+  - **Nothing from the session-5 agents is merged.** Their work is in `handoff/branches/s5_*.bundle` (crowd merge with a
+    WIP fix round; sim round-5 fixes WIP; Phase 8 carving WIP; Phase 8 layer done + a WIP tail). HANDOFF.md says how to
+    take each one in. The Phase 8 music/occlusion and writing-on-objects workstreams never started.
+  - **Baseline on the pushed tree:** tsc clean; vitest 519 passed / 1 skipped at start (+ the session's new tests, passing);
+    lint:all OK; offline walkthrough bot 97/97 legs.
+  - **Soak on the D-150 final code PASSES all 8 gates** (bench-reports/soak-2026-09-24T00-01-47-708Z.json): 15,454,999
+    person-days, 0 plan issues, worst population near-copy share 0.094 (limit 0.10), 14–20 event kinds a week (floor 8),
+    stores in bounds, construction advanced 51 of 51 weeks.
+  - **Shadow review round 5 FAILED** (two independent reviewers, pick seed 97; REVIEWS/shadow_phase5_r5.md: 1 of 20 below
+    4; _b.md: 3 of 20 below 4). Shared blocking cause: outdoor field work starts into rain and people "shelter" for hours in
+    open fields (~20–40 k person-days a year). Also: planners use the start-of-year age (1,446 one-year-olds planned as
+    infants by day 341), children "mind" little ones who are elsewhere, the camp's flour is not real goods, a guard's second
+    breakfast, home hours blind to rank and heat, 229 of 230 Egyptian men named Muzraaya. Fixes: WIP (s5_sim-r5.bundle).
+  - **Phase 8 independent review FAILED** (REVIEWS/phase8.md, phase8_b.md). Critical: the carved Old Persian misspells 22 %
+    of the words against the published sign sequence (Kent's spelling rules missing; Xerxes' name in every Xerxes
+    inscription); the translation status is contradicted by the project's own records. Major: 45 of 73 lines never heard;
+    no music in the world; tablets blank, no Aramaic leather; most Terrace inscriptions missing; signs raised, not cut;
+    lint blind to audio and murmur; no audio occlusion. The layer workstream (bundle) found the Livius translations are
+    "All rights reserved": no translation can be shown (B17a); the voice acceptance was measured and not met (B17b).
+  - **First renders of the session-4 shaders on a GPU backend:** at quality test every effect material (flames, smoke, haze,
+    rain, snow) FAILED to compile on WebGPU (fixed, D-174). At quality high `stair-climb-pm` and `tripylon-n-stair` render
+    on WebGPU with **no shader error** (atmosphere D-156, surfaces D-157 and faces D-155 compile; clouds visible). WebGL2
+    at quality test renders; **at high it timed out** (8 frames of one view > 23 min, no error).
+  - **Found in those renders and fixed in node only (D-174, unrendered):** the aerial perspective filled the halls with a
+    white veil (outdoor horizon light scattered by the hall's air, raised by the interior exposure ×509); rain fell inside
+    the halls and wetted/puddled their floors. **Not diagnosed:** white blotches on the Hadish's red floor (WebGL2, test).
+  - **Look, as rendered at high:** the plain views read as CG — the Naqsh-e Rustam cliff is a smooth sheet with vertical
+    streaks and flat tomb façades, the Ka'ba-ye Zartosht a white box, the village walls flat boxes; the Tripylon stair's
+    relief figures read as flat painted cut-outs; stair-climb-pm's stair is dark and flat. The full moment pass, the §8.2
+    rubric and the Phase 3+4 / 5 / 6+7 reviews did **not** run.
 - **Session 4 (2026-09-23; ended — read this block and HANDOFF.md first).** Base was be6db72 (the session-3 handoff). Done and pushed:
   - **Soak passes all 8 gates again** (D-140, sim agent). Worst population variety 0.094 (thin margin, unchanged).
   - **Shadow review round 4 FAILED** (REVIEWS/shadow_phase5_r4.md, pick seed 89): 1 of 20 below 4 (a farming man idle at home all day). The sim agent is fixing the round-4 findings (D-150); round 5 (pick seed 97) follows its merge.

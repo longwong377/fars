@@ -1,0 +1,3 @@
+halls_gl_test
+tests/e2e/moments.spec.ts
+E2E_PORT=5223 Q=test WEBGL=1 ONLY=apadana-hall-in,hadish-hall
