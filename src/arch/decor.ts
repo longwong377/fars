@@ -179,11 +179,18 @@ export function opSignsNote(id: string): string {
     + `${sum('restored') ? `; ${sum('restored')} signs lost since and restored by the editor, carved (C)` : ''}${lostRuns ? `; ${lostRuns} stretches lost and not restored, left uncut [PLACEHOLDER]` : ''}`
     + `; Kent's rules on Schmitt's normalised words would spell ${n('glide')} otherwise by a glide, ${n('logogram')} by a logogram, ${n('engraver') + n('reading')} otherwise (research/OP_SIGNS.md, Q-288); lines the edition's (A)`;
 }
+/** what the Elamite or Babylonian signs of a text rest on (D-184): the edition's lines and signs, its marks applied as for the
+ *  Old Persian; restorations counted and tiered C */
+function cunSignsNote(t: any, ver: Version): string {
+  const m = t[`${ver}_marks`];
+  if (!t[`${ver}_lines`] || !m) return 'signs: ATF → OSL (B); lines C (flowed: no lineation read), no word spaces';
+  return `signs: the edition's sign line (ARIo in CATF, CC0) → OSL, in its lines, no word spaces (A)${m.omitted ? `; ${m.omitted} sign${m.omitted > 1 ? 's' : ''} the scribe omitted, not carved` : ''}${m.excess ? `; ${m.excess} extra signs cut, carved` : ''}${m.restored ? `; ${m.restored} signs lost since and restored by the editor, carved (C)` : ''}${m.paren ? `; ${m.paren} signs in the edition's parentheses, carved (C, Q-293)` : ''}`;
+}
 /** copies and versions of an inscription standing in 467 that the build does not carve (src/data/royal_inscriptions.json) */
 const missingOf = (id: string) => (programme.missing as any[]).filter(m => String(m.id).split(/,\s*/).includes(id));
 /** the dev-overlay note of one carved version: what the text and the signs rest on (D-177), and the carving */
 function versionNote(id: string, ver: Version, glyph: number, depth: number, where: string, surface: string): string {
-  const t = (inscriptions as any)[id], signs = ver === 'op' ? opSignsNote(id) : `signs: ATF → OSL (B); ${t[`${ver}_lines`] ? `lines the edition's (A: ARIo CATF), no word spaces` : 'lines C (flowed: no lineation read), no word spaces'}`;
+  const t = (inscriptions as any)[id], signs = ver === 'op' ? opSignsNote(id) : cunSignsNote(t, ver);
   const miss = missingOf(id).map(m => m.what);
   return `${id} ${VER_NAME[ver]} (text A: ARIo ${t.ario}, Schmitt 2009); ${signs}; incised in ${surface}, V-section at 45°, deepest ${(depth * 1000).toFixed(1)} mm, signs ${(glyph * 100).toFixed(1)} cm (C); ${where}${miss.length ? `; NOT carved (Q-290): ${miss.join('; ')}` : ''}`;
 }
@@ -198,7 +205,8 @@ function carveField(g: THREE.Group, parts: Part[], F: CarvedField, report: strin
   const o = gw(F.origin[0], F.origin[1]).addScaledVector(Z, off).addScaledVector(X, -F.width / 2); o.y = F.yTop;
   for (const p of fit.parts) {
     const A = inscriptionAtlas(p.block.text.font), geo = carvedBlockGeometry(p.block, p.layout, p.dx, p.dy), depth = layoutMaxDepth(A, p.layout);
-    const meta = { tier: p.block.ver === 'op' && (inscriptions as any)[p.block.id].op_lined ? 'B' : 'C', src: p.block.ver === 'op' ? 'ARIO-CATF;ARIO;NOTO;LANG-R' : 'ARIO-CATF;ARIO;OSL;NOTO;LANG-R', inscription: p.block.id, version: p.block.ver, host: surface, glyph: fit.glyph, depth,
+    const T = (inscriptions as any)[p.block.id], mk = p.block.ver === 'op' ? null : T[`${p.block.ver}_marks`];
+    const meta = { tier: p.block.ver === 'op' ? (T.op_lined ? 'B' : 'C') : mk ? (mk.restored || mk.paren ? 'B/C' : 'B') : 'C', src: p.block.ver === 'op' ? 'ARIO-CATF;ARIO;NOTO;LANG-R' : 'ARIO-CATF;ARIO;OSL;NOTO;LANG-R', inscription: p.block.id, version: p.block.ver, host: surface, glyph: fit.glyph, depth,
       note: versionNote(p.block.id, p.block.ver, fit.glyph, depth, `${F.where} (placement ${F.tier})`, surface) };
     const mesh = new THREE.Mesh(geo, incisedMaterial(surface, A)); mesh.matrixAutoUpdate = false; mesh.matrix.makeBasis(X, up, Z).setPosition(o);
     mesh.receiveShadow = true; mesh.castShadow = false; mesh.userData = { ...meta, carved: [{ id: p.block.id, ver: p.block.ver, signs: geo.userData.signs }] }; mesh.name = `inscription:${p.block.id}:${p.block.ver}`; g.add(mesh);
