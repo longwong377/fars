@@ -2,7 +2,10 @@
 //  wind (filtered noise ∝ wind speed, column whistle inside colonnades), rain on stone, thunder, fire crackle at each lit
 //  fire, birds by season/time (see-see partridge & chukar on the slope, hoopoe, bee-eater Apr–Sep, swallows, sparrows,
 //  jackals at dusk/night), masons' chisels at the Hall of 100 Columns site during working hours, footsteps by surface.
-// No music plays unless someone in the world is playing (none yet). Tiers: species B/C (SOUND-R), sound designs C.
+// No music here: music plays only where someone in the world is playing (src/audio/performers.ts, D-178). Every point
+// source (work strikes, fires, the generic chisels) goes through the engine's occlusion (engine.route; D-178); birds
+// (in the air about the listener), wind and rain are not point sources and are not occluded. Tiers: species B/C
+// (SOUND-R), sound designs C.
 import { AudioEngine, Space } from './engine';
 import { Rng } from '../core/rng';
 
@@ -63,7 +66,7 @@ function tone(e: AudioEngine, out: AudioNode, t: number, dur: number, type: Osci
 /** the work sounds of the activity performances (D-142; all procedural, C). Returns false for other kinds */
 export function workStrike(e: AudioEngine, kind: string, pos: { x: number; y: number; z: number }, rng: Rng): boolean {
   const c = e.ctx; if (!c) return false; const t = c.currentTime, j = rng.next();
-  const at = (h: number, ref: number, max: number) => { const p = e.panner(pos.x, pos.y + h, pos.z, ref, max); p.connect(e.ch.effects); return p; };
+  const at = (h: number, ref: number, max: number) => { const p = e.panner(pos.x, pos.y + h, pos.z, ref, max); e.route(p, 'effects', t + 1.5); return p; };
   switch (kind) {
     case 'hoe': { const p = at(0.1, 3, 120); burst(e, p, t, 0.12, 'brown', 'lowpass', 420, 200, 0.7, 0.07); tone(e, p, t, 0.08, 'sine', 95 + 20 * j, 60, 0.05); return true; } // blade into soil
     case 'sickle': { const p = at(0.4, 2, 50); burst(e, p, t, 0.16, 'white', 'bandpass', 3200, 1600, 1.2, 0.02); return true; } // cutting stalks
@@ -119,15 +122,15 @@ export class Soundscape {
     if (workStrike(e, kind, pos, this.rng)) return;
     if (kind === 'chisel') { // iron/bronze chisel on limestone (C)
       const p = e.panner(pos.x, pos.y + 1, pos.z, 3, 300), o = c.createOscillator(), g = c.createGain(); o.type = 'triangle'; o.frequency.value = 2200 + this.rng.next() * 900;
-      g.gain.setValueAtTime(0.05, t); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.06); o.connect(g); g.connect(p); p.connect(e.ch.effects); o.start(t); o.stop(t + 0.08);
+      g.gain.setValueAtTime(0.05, t); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.06); o.connect(g); g.connect(p); e.route(p, 'effects', t + 0.6); o.start(t); o.stop(t + 0.08);
     } else if (kind === 'quern') { // stone rubbing on stone: band-passed brown noise swell
       const p = e.panner(pos.x, pos.y + 0.4, pos.z, 2, 60), s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain(); s.buffer = e.noiseBuffer(0.7, 'brown'); f.type = 'bandpass'; f.frequency.value = 420; f.Q.value = 0.8;
-      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + 0.25); g.gain.linearRampToValueAtTime(0.0001, t + 0.65); s.connect(f); f.connect(g); g.connect(p); p.connect(e.ch.effects); s.start(t);
+      g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.05, t + 0.25); g.gain.linearRampToValueAtTime(0.0001, t + 0.65); s.connect(f); f.connect(g); g.connect(p); e.route(p, 'effects', t + 1.2); s.start(t);
     } else if (kind === 'dice') { // knucklebones on a hard floor: two or three clicks
       const p = e.panner(pos.x, pos.y + 0.2, pos.z, 1.5, 40);
       for (let i = 0; i < 3; i++) { const o = c.createOscillator(), g = c.createGain(), tt = t + i * (0.06 + this.rng.next() * 0.05); o.type = 'square'; o.frequency.value = 1400 + this.rng.next() * 600;
         g.gain.setValueAtTime(0.03, tt); g.gain.exponentialRampToValueAtTime(0.0003, tt + 0.02); o.connect(g); g.connect(p); o.start(tt); o.stop(tt + 0.03); }
-      p.connect(e.ch.effects);
+      e.route(p, 'effects', t + 0.8);
     }
   }
   footstep(surface: 'stone' | 'earth' | 'plaster', run: boolean) {
@@ -162,7 +165,7 @@ export class Soundscape {
       const d = Math.hypot(f.pos.x - ctx.listener.x, f.pos.y - ctx.listener.y, f.pos.z - ctx.listener.z);
       let n = this.fireNodes.get(f.id);
       if (f.lit && d < 40 && !n) { const s = c.createBufferSource(); s.buffer = e.noiseBuffer(3, 'pink'); s.loop = true; const lf = c.createBiquadFilter(); lf.type = 'lowpass'; lf.frequency.value = 900;
-        const g = c.createGain(); g.gain.value = 0; const pan = e.panner(f.pos.x, f.pos.y, f.pos.z, 1.5, 60); s.connect(lf); lf.connect(g); g.connect(pan); pan.connect(e.ch.effects); s.start(); n = { gain: g, pan }; this.fireNodes.set(f.id, n); }
+        const g = c.createGain(); g.gain.value = 0; const pan = e.panner(f.pos.x, f.pos.y, f.pos.z, 1.5, 60); s.connect(lf); lf.connect(g); g.connect(pan); e.route(pan, 'effects'); s.start(); n = { gain: g, pan }; this.fireNodes.set(f.id, n); }
       if (n) { n.gain.gain.setTargetAtTime(f.lit && d < 40 ? 0.08 * (0.7 + 0.3 * Math.random()) : 0, t, 0.05); if (this.rng.next() < dt * 6 && f.lit && d < 25) { // crackle pops
           const s = c.createBufferSource(); s.buffer = e.noiseBuffer(0.02, 'white'); const g = c.createGain(); g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.03); s.connect(g); g.connect(n.pan); s.start(t); } }
     }
@@ -171,7 +174,7 @@ export class Soundscape {
       this.nextChisel = 0.35 + this.rng.next() * 0.6;
       const p = e.panner(ctx.worksite.x + (this.rng.next() - 0.5) * 30, ctx.worksite.y + 1, ctx.worksite.z + (this.rng.next() - 0.5) * 30, 3, 300);
       const o = c.createOscillator(), g = c.createGain(); o.type = 'triangle'; o.frequency.value = 2200 + this.rng.next() * 900;
-      g.gain.setValueAtTime(0.05, t); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.06); o.connect(g); g.connect(p); p.connect(e.ch.effects); o.start(t); o.stop(t + 0.08);
+      g.gain.setValueAtTime(0.05, t); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.06); o.connect(g); g.connect(p); e.route(p, 'effects', t + 0.6); o.start(t); o.stop(t + 0.08);
     }
     // footsteps from the player's gait phase (two per stride)
     const stepIdx = Math.floor(ctx.stepPhase / Math.PI); if (stepIdx !== this.nextStep) { if (this.nextStep !== 0) this.footstep(ctx.surface, ctx.running); this.nextStep = stepIdx; }

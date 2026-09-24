@@ -753,5 +753,45 @@
   "cite": "General dendrology of the species' habit (height, crown shape and width, crown base, trunk, stems, leaf form), recalled by the builder from standard floras and tree guides; not consulted in this session",
   "url": "",
   "access": "recollection only (tier C)"
+ },
+ "ATH4-HERACL": {
+  "cite": "Heracleides of Cyme, Persika (FGrH 689 F2), quoted by Athenaeus, Deipnosophistae 4.145c-d (tr. Yonge, Perseus canonical-greekLit tlg0008.tlg001.perseus-eng2): the king’s supper, the concubines who sing and play",
+  "url": "https://www.attalus.org/old/athenaeus4.html",
+  "access": "English read in full from Perseus in session 3 (research/SOUNDSCAPE.md §1); the Greek verb (psallein, plucked strings) and the phrase ‘play on harps’ only via search extract (session 6). Greek claim, max tier B"
+ },
+ "ATH12-HERACL": {
+  "cite": "Heracleides of Cyme via Athenaeus, Deipnosophistae 12.514b: the three hundred women who watch all night singing and playing with lights burning",
+  "url": "https://www.attalus.org/old/athenaeus12a.html",
+  "access": "English read from Perseus in session 3 (SOUNDSCAPE §1); ‘on harps’ via search extract (session 6). Greek claim, max tier B"
+ },
+ "ATH13-PARM": {
+  "cite": "Parmenion’s letter to Alexander on the spoils of Damascus (333 BCE), quoted by Athenaeus, Deipnosophistae 13.608a: 329 royal concubines skilled in music, with garland-makers, cooks and wine-strainers",
+  "url": "https://www.attalus.org/old/athenaeus13d.html",
+  "access": "search-extract only (host blocked, B6). Greek claim about Darius III, max tier B"
+ },
+ "ATH14-WORK": {
+  "cite": "Athenaeus, Deipnosophistae 14.618c-619b: the Greek work songs by trade (the millstone song himaios sung while grinding, the loom song, the spinners’ ioulos, the reapers’ Lityerses)",
+  "url": "https://www.attalus.org/old/athenaeus14a.html",
+  "access": "search-extract only (host blocked, B6). Greek practice, B for Greece, C elsewhere"
+ },
+ "IR-YASHT": {
+  "cite": "‘Yašts’, Encyclopaedia Iranica (Herodotus 1.132’s ‘theogony’ read by most scholars as an Avestan hymn like a Yašt)",
+  "url": "https://www.iranicaonline.org/articles/yashts/",
+  "access": "search-extract only (host blocked, B6)"
+ },
+ "SEP-PHILOLAUS": {
+  "cite": "C. Huffman, ‘Philolaus’, Stanford Encyclopedia of Philosophy (fragment 6a: the fourth as two tones of 9:8 and a remainder of 256:243; Huffman 1993: 145-165)",
+  "url": "https://plato.stanford.edu/entries/philolaus/",
+  "access": "search-extract only (session 6)"
+ },
+ "KILMER-SPECIES": {
+  "cite": "A. D. Kilmer’s equation of the seven Babylonian tunings with the Greek octave species (išartu Dorian, kitmu Hypodorian, embūbu Phrygian, pītu Hypophrygian, nīd qabli Lydian, nīš gabarî Hypolydian, qablītu Mixolydian), as reported by search extracts of Crickmore (ICONEA 2008), Dumbrill and a tuning fan page",
+  "url": "https://musicircle.net/wp-content/uploads/2018/08/Crickmore-Iconea20081.pdf",
+  "access": "search-extract only (session 6); Kilmer’s own publication NOT SEEN"
+ },
+ "DOUBLEPIPES-INFO": {
+  "cite": "‘Let’s shed some light on ancient Near Eastern doublepipes!’, The Workshop of Dionysus (the Sumerian ge-di double pipe; its rudimentary form played by shepherds)",
+  "url": "https://www.doublepipes.info/lets-shed-some-light-on-ancient-near-eastern-doublepipes/",
+  "access": "search-extract only (session 6); a maker’s site, max tier C"
  }
 }

@@ -2341,3 +2341,72 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   passes with a 10× margin.
 - **Not done:** more rays (4× rays and 8× sun rays would cost ~15× the bake time); a render at high after the re-bake
   (queued in the full pass).
+
+## D-178 Music in the world from performers only; audio occlusion by the built geometry; speech and music tiers in the dev overlay (Phase 8 review A-M3 / B-M2, B-M5, B-M7; session 6, music workstream, branch p8-music-s6)
+- **Read first: what is placeholder, unverified or missing.**
+  - **Nothing here has been heard or rendered in a browser** (no browser runs in this workstream). These are unverified: the worker render path (`music_worker.ts` via Vite `new URL(..., import.meta.url)`), the Web Audio node chain, the court extras' facing (grid heading 180° through `yawOf`), and the whole mix by ear.
+  - **Visual PLACEHOLDERS, flagged in F3:**
+    - singers keep their work pose and move the speech jaw (there is no singing mouth shape);
+    - the court women sit in the working women's dress (no court dress), with no harp model and no playing animation.
+  - **Not done (BLOCKERS B20):**
+    - no magus's chant: its text is unattested, and it would be the liturgy of a living religion (Q-301);
+    - no herders' pipes: herders are not rendered (Q-302);
+    - lyre, lute, double pipe, frame drum and clappers exist as DSP, but no performer is scheduled for them (no source seen for who played them here).
+  - **Occlusion ignores** the town and plain buildings, columns, roofs as horizontal barriers, people, and chains through more than one doorway. Birds, wind and rain are not occluded.
+- **Music (what plays, where and when; research/SOUNDSCAPE.md §8 M-01..M-17; `src/audio/performers.ts`, pure and deterministic from the world seed):**
+  - **Quern song (tier C; claims M-07, M-09, M-13, M-15, M-17).** A simulated woman kneeling at a quern ('grind') sings in daylight in fair weather. In about 30 % of the twenty-minute stretches at a quern place, one woman sings for 3-6 minutes. Tuning: a Babylonian mode. The basis is the Greek millstone song (Athenaeus 14.618) as an analogy.
+  - **Mason's song (C; M-07, M-08, M-14, M-15, M-17).** An Ionian stonecutter dressing a block ('dress_stone') sings in 12.5 % of his stretches, in a Greek mode (Dorian, Phrygian or Lydian). Syrians, Egyptians, Babylonians, the Lydian and the Elamites do not sing: no source was seen for them.
+  - **Court at supper (practice B, everything else C; M-01, M-03, M-04, M-13, M-16, M-17).** Only when the court is resident (the out-of-world setting, D-003/B9, resident months of calendar.ts). From 0.5 to 2.5 h after sunset in the Hadish hall (which hall the king dined in is C): four women sing (one leads, then all on alternate phrases) and two play angular harps, in 3-minute pieces with 1.5-minute pauses. Harps and voices share one melody (heterophony, C).
+  - **Night watch (practice B; M-02).** After supper until 0.5 h before sunrise, in half the half-hour blocks one woman sings with one harp.
+  - **Nothing at any offering**: the runtime refuses the `offering` context for voices too. **No instrument except the court harp.** **No soldiers', street, herders' or foreign music** beyond the Ionians' songs.
+- **Songs have no words** (M-15): no song text is attested for any of these settings. Singing is a vocalise on open vowels, sung by the speech synthesiser's own source-filter voice (song.ts: Rosenberg pulse and Klatt resonators, portamento, a late vibrato, one vowel per phrase, formant tuning for high notes). So §10 holds with no new lexicon entries. A sung note measures within 10 cents of its pitch.
+- **Evidence rules in code:**
+  - `MusicSystem.perform` refuses a performance that cites no claim or an unknown one (src/audio/musicClaims.ts), anything at an offering, and court music without the court.
+  - `npm run lint:music` (now in lint:all) checks:
+    - every claim the code cites is a SOUNDSCAPE §8 row with the same tier and known source keys;
+    - the never-performed claims (M-06 chant, M-10 pipes, M-11, M-12) cannot be cited;
+    - every mode and instrument is tiered;
+    - a year-sample sweep of the schedule, with every kind of person present (magus, guard and herder included) and the court resident, yields only sourced, permitted performances, and all four gig kinds occur;
+    - nothing outside music.ts and musicDirector.ts calls `.perform(`;
+    - no instrument is on the blocklist.
+- **Tuning corrections (review B-M7):**
+  - Each mode is now its octave species. The Babylonian names follow Kilmer's equation with the Greek species (search extracts; Kilmer NOT SEEN): išartu Dorian, kitmu Hypodorian, embūbu Phrygian, pītu Hypophrygian, nīd qabli Lydian, nīš gabarî Hypolydian, qablītu Mixolydian. The extracts disagree on the order of the cycle (Q-300).
+  - The Greek Phrygian and Lydian were wrong: they were rotations 1 and 2 of Dorian (the F and G species). Now they are the D and C species, on Philolaus' ratios (M-14, SEP extract).
+  - Tests check each mode's tone/limma pattern.
+- **World glue (src/audio/musicDirector.ts; world.ts, a small block):**
+  - The schedule is re-read 4 times a second. A piece (40 s) starts at the performer's position when the listener is within 120 m, follows the performer, and is renewed with a new seed while the stretch lasts, so no two pieces are the same.
+  - A piece fades out over 1.5 s when the stretch ends or the performer stops.
+  - The court musicians are placed as seated extras (`crowd.addExtra`) while their music lasts, and removed after.
+  - Pieces render in a Web Worker. A 30 s four-voice chorus costs about 0.5 s of synthesis in node, which would stall a frame on the main thread. Voices render at 22.05 kHz.
+- **Occlusion (src/audio/occlusion.ts; Q-304; all C):**
+  - **The field.** The Terrace's solid parts (walls, towers, curtain walls, parapets, door, niche and window frames, facades, platforms, floors, stair masses) are rasterised into a 0.5 m plan grid. Each cell holds two height intervals, so lintels, sills and windows leave their openings free. The field is 641 × 952 cells and builds in about 70-270 ms in node (load-dependent); it is built once at world load.
+  - **Door leaves** are dynamic lines at their current swing, re-read every 0.5 s. A closed leaf costs 22 dB and a 1.2 kHz low-pass.
+  - **The query:**
+    - the direct path is marched in 0.25 m steps; the source's and listener's own first half metre is skipped;
+    - if it is blocked, the energy of three kinds of path is summed: up to 6 doorway paths (least detour first, each leg allowed one edge; pruned when 15 dB below the best), one over-the-top path (a band over the blocked stretch at its highest top; not when either end is under a roof), and transmission (−55 dB, 300 Hz);
+    - each diffracted path costs Maekawa's A = 10·log10(3 + 20N) at 500 Hz (capped at 25 dB) plus the extra spreading of the longer path;
+    - the low-pass is the dominant path's: 2000 + 9c/(40δ) Hz, where diffraction costs 6 dB more than at 500 Hz.
+  - **Applied to** speech, murmur, music, fires, tool strikes and the generic chisels: `engine.route` sits between the panner and the channel (panner → low-pass → gain → channel).
+  - **Measured on the Hadish:**
+    - through its walls, −52 to −55 dB;
+    - on a doorway's axis, 0 dB;
+    - off a doorway's axis at ~22 m, −16 to −19 dB with a ~2.1 kHz low-pass;
+    - from the plain 90 m out and 12 m below the terrace edge (with its 1 m parapet): −9.7 dB with a 2.7 kHz low-pass at 15 m in from the edge, −13.2 dB at 45 m in, 0 dB at the parapet itself.
+- **Cost (measured in node, on a loaded shared 4-core box; expect roughly half on the target machine):**
+  - A query costs 85-105 µs on average: ±60 m random pairs on the Terrace, or all 111 on-map people to a listener at the querns.
+  - The engine re-queries 3 routed sources a frame (round robin), about 0.3 ms.
+  - One-shots query once when they start. Answers are cached per metre of source and listener for 0.5 s.
+  - The schedule costs 45-115 µs per read at 4 Hz, which is negligible.
+  - F3 shows the re-queries per frame and their ms.
+- **Dev overlay (F3; review "speech/music tiers never visible"):** `world.soundLines()` gives the lines that main.ts shows:
+  - the last line spoken, with its tiers and its occlusion;
+  - each scheduled or heard performance: kind, performer, instrument (×voices), mode with its species and tier, gig tier, claim ids, occlusion (dB, Hz, path) and the PLACEHOLDER note;
+  - the occlusion budget.
+- **Alternatives rejected:**
+  - a chant from lexicon words, or an intoned vowel at the lan (both would stage an unattested rite: B20);
+  - pipes from invisible herders;
+  - rendering on the main thread (0.5 s stall);
+  - the nav grid as the occluder (it marks terrace drops, eroded cells and fires as walls);
+  - ray casts against the Rapier colliders (they cannot run in the pure node tests, and would cost more per query);
+  - a fixed attenuation per wall (a doorway would then be all or nothing).
+- **PROGRESS-facing:** the Phase 8 music and occlusion items are started, but with the placeholders above. TASKS Phase 8 has a music/occlusion line.

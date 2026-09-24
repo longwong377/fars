@@ -1,6 +1,12 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Session 6, music and occlusion workstream (branch p8-music-s6, D-178; not merged by this workstream).** Music now plays
+  only from performers: quern songs, Ionian masons' songs, and the court's supper and night music when the court setting
+  is on. Audio occlusion now uses the built geometry. **Unverified:** it has not been heard in a browser (worker render,
+  node chain, mix). **PLACEHOLDER:** no harp model, no playing or singing animation (the speech jaw stands in), and court
+  women in working dress. **Missing:** the magus's chant (text unattested; living religion: B20, Q-301) and herders' pipes
+  (herders not rendered: Q-302). Occlusion leaves out the town's and the plain's buildings.
 - **Session 5 (2026-09-23/24; ended — read this block and HANDOFF.md first).** Base 2f6dbaa (the session-4 handoff).
   - **Nothing from the session-5 agents is merged.** Their work is in `handoff/branches/s5_*.bundle` (crowd merge with a
     WIP fix round; sim round-5 fixes WIP; Phase 8 carving WIP; Phase 8 layer done + a WIP tail). HANDOFF.md says how to

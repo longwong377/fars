@@ -65,6 +65,7 @@
 ## Phase 8 — Language, speech, music, translation layer, map, Now view, photo mode
 - [~] Translation layer: subtitles, inscriptions (transliteration + glosses; translations need NEEDS #14), map (M; Z: town and plain scales), chronicle (J; visitor log)
 - [x] Lexicons in five languages (Babylonian, Ionic Greek new), 73 lines, 372 voice clips (D-105..D-109); listening test open (H8)
+- [~] Music in the world from performers only (quern songs, Ionian masons' songs, court supper/night music with the setting; D-178, lint:music) and audio occlusion (D-178, Q-304): node-tested, unheard in a browser; PLACEHOLDER visuals (no harp model, no playing/singing animation, no court dress); no magus's chant and no herders' pipes (B20)
 ## Session 4 (ended; HANDOFF.md)
 - [x] Interiors adapt (D-141); shadow bias (D-146); dome cover (D-145); detail at 1 m (D-147); block tone (D-148)
 - [x] Probe leaks through thin walls (D-152); ground bounce in the hemisphere light (D-153); herb layer (D-154); probe tints above/below (D-158); frame meter (D-159)
