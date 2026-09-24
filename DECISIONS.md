@@ -2703,3 +2703,13 @@ are schematic; no browser render has been looked at (node previews of the height
   columns' shadows in the probe visibility (frame mean 70 with it, 63 without; before 71/62). It is the doorway's
   reflection in a polished floor, broad at roughness 0.35; whether it is too strong (it reads a little as mist on the
   floor) is for the §8.2 reviewer. At high, SSR replaces it where a ray hits.
+
+## D-183 SSR fetches a capped colour (session 6, lead)
+- **Found:** `dawn-glow-e` at high (session 6): black streaks in half-resolution runs around the brazier flame. dbg_surf
+  (shots/surf-dawn-glow-e-{B,post-scene,post-sss,post-ssr}.png): absent from the scene pass (`post=scene`); they sit where
+  the SSR debug view reflects the flame.
+- **Cause (inferred, C):** the flame (additive, HDR, no depth) is in the colour the SSR rays fetch; its radiance times the
+  node's weights overflows the half-float SSR target, and the Inf turns into NaN in TRAA's neighbourhood clamp: black.
+- **Changed:** the colour given to the SSR node is capped at BLOOM_SAT × display white (the glare input's sensor cap, 16×
+  white after exposure); a reflection brighter than that saturates anyway.
+- **Not verified:** a render after the change (queued).

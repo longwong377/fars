@@ -163,7 +163,11 @@ export class Pipeline {
       // SSRNode (mirror mode) weights a hit by `metalnessNode` × its own Fresnel term sin²θ = 1 − (n·v)², which the
       // split-sum reflectance already contains: divided out
       const fres = float(1).sub(dotNV.mul(dotNV)).max(0.05);
-      const S: any = ssr(col, dep, nrm, { metalnessNode: specY.div(fres).mul(gate).mul(this.ab.ssr), roughnessNode: rough, camera } as any);
+      // the colour the rays fetch is capped at BLOOM_SAT × display white (D-183): a brazier flame (HDR, no depth) times the
+      // SSR weights overflowed the node's half-float target, and the Inf became NaN in TRAA: black streaks on the surfaces
+      // that reflected the flame (dawn-glow-e at high, session 6). A reflection brighter than that saturates anyway.
+      const colSSR = vec4(min(col.rgb, vec3(float(BLOOM_SAT).div(this.expAbs.max(1e-6)))), col.a);
+      const S: any = ssr(colSSR, dep, nrm, { metalnessNode: specY.div(fres).mul(gate).mul(this.ab.ssr), roughnessNode: rough, camera } as any);
       S.maxDistance.value = SSR_MAX_DISTANCE; S.thickness.value = SSR_THICKNESS; S.quality.value = quality === 'ultra' ? 0.5 : 0.3;
       S.resolutionScale = quality === 'ultra' ? 1 : 0.5; // half resolution at high: the reflections of these surfaces are blurred anyway
       // the sky environment the material reflected (the same lookup and specular occlusion as SkySpecularNode: the
