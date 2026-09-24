@@ -163,3 +163,22 @@ variety worst 0.019; populationVariety 43,245 measured, worst 0.067; events 14�
 visibleChange 51/51 weeks. (The first run on d3d2dc1 failed plansWellFormed with 30 issues; fixed.)
 **Tests:** tsc clean; people_days_r6 32/32; people and sim suites 108/108; full vitest 557 passed, 1 skipped; lint:all OK;
 botcheck 97/97. Round-6 input REVIEWS/shadow_days_input_seed1_pick113.txt (not scored). Q-296..Q-299.
+
+## Carving fix after the Phase 8 re-review (branch p8-carving-r2, head 01a3c24, D-184) — merged in session 6
+**Still placeholder, broken or unverified:** no GPU render (incised signs, new Elamite/Babylonian lineation, the stacked
+XPc/XPd panels are node-verified only); 146 carved OP signs are the editor's restorations of damage since antiquity (C;
+carved because the stone was whole in 467; counted in each panel's F3 note: XPd 14, DNa 24, DNb 89, DPb 5, DPd 13, DPe 1);
+DNb's 6 lost, unrestored stretches carved as 3 uncut blanks each (count unknown, C); XPc and XPd now stacked (OP above
+Elamite above Babylonian, C: three columns no longer fitted the 2.4 m field; site_spec `r_stair_inscription` changed; a
+check fails if a carved field does not fit); the Q-290 list (10 copies not carved) unchanged.
+**Before/after:** before, against ario.catf, differing spans XPa 2, XPd 1, DNa 9, DNb 45, DPa 1, DPb 2, DPd 4, DPe 2; after,
+a test with its own parser compares every carved text sign by sign (dividers and logograms): 5,276 signs and 1,029
+dividers in 12 texts, 0 differences, empty EXCEPTIONS list. Named cases carved as the stone has them (XPa ha-a-xa; DNa
+a-da-a-ra-i-ya; DPb logogram XŠ; DNa without the omitted ma; DPe sa-u-gu-da). Engraver's extra signs carved (6 + 1
+divider); omitted signs not carved (43); restorations carved.
+**Records:** data/corpus/ario_catf.json (166,028 B, CC0, ASSET_LEDGER, source key ARIO-CATF) via tools/extract_ario_catf.py;
+op_translit.json and op_sign_decisions.json deleted with their ledger row and key; D-176/D-177 superseded in their sign
+basis; Q-288 rewritten (Kent's rules vs the stone differ in 56 of 1,040 words, classed); PROGRESS carving entry rewritten.
+Elamite/Babylonian panels in the edition's lines without word spaces (tools/build_cun_lines.py; 20 versions match).
+**Tests:** tsc clean; 116/116 targeted; lint:all OK; full vitest 635 passed, 1 skipped, 1 failed (performances timing,
+passes alone).
