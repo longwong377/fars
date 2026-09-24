@@ -5,7 +5,7 @@ import { lumStats } from './lib/lum';
 // brazier fixes in the views the rubric flagged (floor speckle, black stands) and the new entry views; optional pipeline
 // debug views (post=<name>); the scribes' room at 10:00 through setTime. Load T (quality test, day 25 10:00, other hours through setTime): the re-posed camera-rig
 // views (composition only), what the black blobs on the dawn hills and the pale comb on the dawn horizon are (picks,
-// objects hidden and shown). Debug spec: runs only with DBG=1. LOADS=H,T picks the loads; FRAMES_H / FRAMES_T frames.
+// objects hidden and shown). Debug spec: runs only with DBG=1. LOADS=H,T picks the loads; FRAMES_H frames at high.
 type View = { n: string; day: number; hour: number; v: [number, number, number, number, number]; fov?: number; post?: string; carry?: [string, number]; frames?: number };
 const IN = 46;
 const H: View[] = [
@@ -53,12 +53,16 @@ test('look bugs (D-187)', async ({ page }) => {
     await load(page, 'high', 25, 11);
     const FH = +(process.env.FRAMES_H ?? 3);
     for (const s of H) await shoot(page, s, 'high', s.frames ?? FH);
-    // the pipeline's SSR alone on the hall axis (the white floor sparkles): post=ssr, then back to the image
-    if (process.env.POST_SSR) { await page.evaluate(() => (window as any).__parsaSurf.post('ssr')); await shoot(page, H[1], 'post-ssr', 2); await page.evaluate(() => (window as any).__parsaSurf.post('')); }
+    // pipeline debug views (POST=view:post,…; default: the Hadish floor's scene pass, i.e. before the composite, and the SSR
+    // alone on the hall axis, the white sparkles), then back to the image
+    for (const vp of (process.env.POST ?? 'hadish-hall:scene,apadana-hall-axis:ssr').split(',').filter(Boolean)) {
+      const [vn, pv] = vp.split(':'), s = H.find(q => q.n === vn)!;
+      await page.evaluate(v => (window as any).__parsaSurf.post(v), pv); await shoot(page, s, `post-${pv}`, 2); await page.evaluate(() => (window as any).__parsaSurf.post(''));
+    }
   }
   if (loads.includes('T')) {
     await load(page, 'test', 25, 10);
-    const FT = +(process.env.FRAMES_T ?? 2);
+    const FT = 1; // quality test: MSAA, no temporal accumulation, no meter: one frame per view
     for (const s of T) await shoot(page, s, 'test', FT);
     // the black blobs on the NW hill at 05:24: what is under them, and do they go with the jackals (active 18:36–05:48)?
     const nw = T.find(s => s.n === 'dawn-stair-top-nw')!;
@@ -78,7 +82,7 @@ test('look bugs (D-187)', async ({ page }) => {
     const region = { x0: 0.85, y0: 0.27, x1: 0.97, y1: 0.33 };
     for (const name of ['wildlife-jackals', 'wildlife-birds']) {
       await page.evaluate(n => { const p = (window as any).__parsa, sc = p.world.root.parent ?? p.world.root, o = sc.getObjectByName(n); if (o) o.visible = false; }, name);
-      for (let i = 0; i < 2; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
+      await page.evaluate(() => (window as any).__parsa.renderOnce());
       const png = await page.screenshot({ path: `shots/dbg-look-dawn-nw-no-${name}.png` });
       out[`dawn-nw|no-${name}`] = { region: await lumStats(page, png, region) }; console.log('no', name, JSON.stringify(out[`dawn-nw|no-${name}`])); save();
       await page.evaluate(n => { const p = (window as any).__parsa, sc = p.world.root.parent ?? p.world.root, o = sc.getObjectByName(n); if (o) o.visible = true; }, name);
@@ -89,7 +93,7 @@ test('look bugs (D-187)', async ({ page }) => {
     await page.evaluate(([v, f]) => (window as any).__parsa.view(...v, f), [sr.v, sr.fov ?? 40] as const);
     for (const hide of ['', 'settlement:smoke-plumes', 'settlement:haze']) {
       if (hide) await page.evaluate(n => { const p = (window as any).__parsa, sc = p.world.root.parent ?? p.world.root; sc.traverse((o: any) => { if (o.name === n) o.visible = false; }); }, hide);
-      for (let i = 0; i < 2; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
+      await page.evaluate(() => (window as any).__parsa.renderOnce());
       const png = await page.screenshot({ path: `shots/dbg-look-dawn-comb-${hide ? 'no-' + hide.replace(':', '_') : 'all'}.png` });
       out[`dawn-comb|${hide || 'all'}`] = { region: await lumStats(page, png, rc) }; console.log('comb', hide || 'all', JSON.stringify(out[`dawn-comb|${hide || 'all'}`])); save();
     }
