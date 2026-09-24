@@ -2195,7 +2195,7 @@ class Planner {
         if (withNoon && this.t <= fnoon + 0.05) { if (this.t < fnoon) this.add(fnoon, fam.home, 'talk', 'with his family', 'town'); this.add(this.t + FH.nLen, fam.home, 'eat', 'the midday meal with his family', 'town'); }
         if (back - this.t > 1.5 && r.chance(0.5) && !(C.wx.dustH && C.wx.dustH[0] < back && C.wx.dustH[1] > this.t)) this.add(Math.min(back - 0.8, this.t + r.range(0.5, 1)), `lane:${fam.q}`, r.chance(0.5) ? 'exchange' : 'talk', 'in the lane of his family’s quarter', 'town');
         if (back - this.t > 1.2) this.add(back - 0.6, fam.home, r.chance(0.5) ? 'rest' : 'talk', 'with his family', 'town');
-        const late = back - this.t > 0.35 && back - lastEat() >= 2.5; this.add(back, fam.home, late ? 'eat' : 'talk', late ? 'a meal with his family before going back up' : 'with his family', 'town'); this.add(tv, 'road:terrace', 'walk', 'back up to the garrison', 'road'); return;
+        const late = back - this.t > 0.35 && back - lastEat() >= 2.5; this.add(back, fam.home, late ? 'eat' : 'talk', late ? 'a meal with his family before going back up' : 'with his family', 'town'); this.add(tv, 'road:terrace', 'walk', 'back up to the garrison', 'road'); awayEnd = this.t; return;
       }
       if (!mine.length && !fam && !visited && t1 - Math.max(this.t, 7) > 3 && !C.wx.storm && !C.wx.wet && !C.wx.dust && this.t < 16 && P.guardVisits(this.pid, d, 0.55)) {
         // a man with no family in the town: down to the town's lanes and market, or to the river to wash his clothes (C); from
@@ -2204,7 +2204,7 @@ class Planner {
         visited = true; const riv = C.season !== 'winter' && r.chance(0.4); const pl = riv ? 'river' : 'lane:q_lt_e'; const h = P.walkH('garrison_sleep', pl, d, 'terrace', 'town'); leisure(Math.max(this.t + 0.2, 7)); if (riv) river = false;
         this.add(this.t + h, 'road:town', 'walk', river ? 'down to the river' : 'down to the town', 'road'); const back = t1 - h;
         this.add(Math.max(this.t + 0.5, Math.min(back, this.t + r.range(1, 2.2))), pl, riv ? 'wash' : r.chance(0.5) ? 'exchange' : 'talk', riv ? 'washing his clothes at the river' : 'in the town’s lanes: a little trade, the talk of the market', 'town');
-        this.add(this.t + h, 'road:terrace', 'walk', 'back up to the garrison', 'road'); leisure(t1); return;
+        this.add(this.t + h, 'road:terrace', 'walk', 'back up to the garrison', 'road'); awayEnd = this.t; leisure(t1); return;
       }
       for (const j of mine) { leisure(j[0]); this.add(j[1], j[2], j[3], j[4], 'terrace'); }
       leisure(t1);
@@ -2230,7 +2230,9 @@ class Planner {
     // off duty (phase 3: after the night watch; phase 4: a whole day off)
     if (!tailC) this.add(up(this.sun.rise + 0.9), 'garrison_sleep', 'sleep', 'asleep in the garrison quarters', 'terrace');
     meal(tailC ? 'a meal' : 'breakfast');
-    free(12 + 0.6 * u01(P.seed, S.assign, 5500 + this.pid, d), ph === 4 ? L.guard_off_day.family_visit : 0); meal('midday meal');
+    // a whole day off with the family: one long visit over their midday meal (was cut at noon for the hearth's meal)
+    if (ph === 4 && wantVisit && !jobs.length) free(Math.min(20.5, eve), 1);
+    else { free(12 + 0.6 * u01(P.seed, S.assign, 5500 + this.pid, d), ph === 4 ? L.guard_off_day.family_visit : 0); meal('midday meal'); }
     free(Math.min(20.5, eve), ph === 3 ? 0.5 : 0.2); meal('evening meal'); leisure(Math.min(22, this.sun.set + lerp(1.2, 2.3, 1 - p.trait))); return this.finish();
   }
   /** one of several real alternatives, by weight (lives.json job_tasks) */
