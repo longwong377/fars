@@ -88,7 +88,7 @@ function tacharaStair(): ProgrammeSet | null {
       antithetic(out, c, n, SR.central_ground, (_s, i) => ['guard', i], SR.guards_per_side, S, SR.panel_width / 2, { programme: 'Persian guards flanking XPc', tier: 'B', where: 'Tachara S stair central façade' });
       const SI = v<any>('global', 'r_stair_inscription'), yTop = L.z - SR.central_ground; // hung from the landing top
       ins.push({ id: 'XPc', version: SI.versions[0], versions: SI.versions, arrangement: SI.arrangement, origin: c, along: rightOf(n), normal: n, yTop, width: SR.panel_width, height: yTop - SR.central_ground - SI.bottom_margin,
-        where: 'Tachara S stair, central facade, between the guards (the three versions side by side)', tier: 'B (the facade) / C (the arrangement)' });
+        where: 'Tachara S stair, central facade, between the guards (the three versions stacked, D-184)', tier: 'B (the facade) / C (the arrangement)' });
       continue;
     }
     const F = flightFace(F0, [0, Z.y_facade - F0.foot[1]]);
@@ -116,7 +116,7 @@ function hadishStairs(): ProgrammeSet | null {
       antithetic(out, c, outer, SR.central_ground, (_s, i) => ['guard', i + 4], SR.guards_per_side / 2, S, SR.panel_width / 2, { programme: 'Persian guards flanking XPd', tier: 'B', where: 'Hadish W stair central façade (position C)' }, slope);
       const SI = v<any>('global', 'r_stair_inscription'), yTop = SR.central_ground + SR.central_register + SR.panel_width / 2 * slope;
       ins.push({ id: 'XPd', version: SI.versions[0], versions: SI.versions, arrangement: SI.arrangement, origin: c, along: rightOf(outer), normal: outer, yTop, width: SR.panel_width, height: yTop - SR.central_ground - SI.bottom_margin,
-        where: 'Hadish W stair, central facade, between the guards (the three versions side by side)', tier: 'B (the facade) / C (position, arrangement)' });
+        where: 'Hadish W stair, central facade, between the guards (the three versions stacked, D-184)', tier: 'B (the facade) / C (position, arrangement)' });
     }
     // wings: Persian guards. W stair: on the platform face beside the stair zone, walking toward the stair (C); E stair: on
     // the outer (N and S) faces of the end landings where they stand clear of the platform ('South Facade of South Wing', B)

@@ -2,14 +2,15 @@
 //
 // Three inputs, one sign inventory (sign names as Kent prints them: a i u ka ku ga gu xa ca ja ji ta tu da di du θa pa ba fa
 // na nu ma mi mu ya va vi ra ru la sa za ša ça ha; logograms XŠ DH¹ DH² BG BU AM¹ AM² AMha; "x" = a lost sign):
-//  - `spellKent(word)` / `corpusWords(lines)`: the published sign-by-sign transliteration in Kent's convention (Kent 1953 /
-//    Lecoq 1997; data/corpus/op_translit.json, D-176: θātiy, pātuv, Xšayāršā, Gadāra, XŠm), which is graphemic: every letter
-//    but the inherent a stands for a sign. This is what the world carves (D-177);
+//  - `catfWords(lines)`: the published sign-by-sign edition itself, ORACC ARIo in CATF (Schmitt 2009, CC0;
+//    data/corpus/ario_catf.json, D-184): the stone's signs as edited, with the engraver's extra signs (<<…>>, carved), the signs
+//    he omitted (<…>, NOT carved) and the editor's restorations of later damage ([…], carved, C). This is what the world carves;
 //  - `spellNormalised(word)`: a normalised transcription (Schmitt 2009, ORACC ARIo: θāti, pātu, Xšayaṛšā, Gandāra), which
-//    is phonological; Kent's orthographic rules turn it into signs (below). Used to compare the two editions word by word and
-//    for DPh, which has no corpus copy and is not carved;
+//    is phonological; Kent's orthographic rules turn it into signs (below). Used to compare, word by word, what the stone has
+//    with what the rules predict (research/OP_SIGNS.md), and for the lexicon;
+//  - `spellKent(word)`: a Kent-style transliteration (θātiy, pātuv, Xšayāršā, XŠm), for the lexicon's sign spellings;
 //  - `parseSigns(line)`: a sign-by-sign line ("ba-ga : va-za-ra-ka"), the form src/data/inscriptions.json stores for every
-//    carved Old Persian line (op_signs), built by tools/build_op_signs.ts (D-177).
+//    carved Old Persian line (op_signs), built by tools/build_op_signs.ts (D-184).
 // Everything carved goes through `signsToCuneiform`; the world never re-derives a spelling at runtime.
 export const SIGN: Record<string, number> = {
   a: 0x103a0, i: 0x103a1, u: 0x103a2, ka: 0x103a3, ku: 0x103a4, ga: 0x103a5, gu: 0x103a6, xa: 0x103a7, ca: 0x103a8, ja: 0x103a9, ji: 0x103aa,
@@ -107,61 +108,88 @@ export function spellNormalised(word: string): string[] {
 const signName = (p: string) => { const q = p.normalize('NFC'); if (q in SIGN) return q; if (q.length === 1 && CONS[q]) return q + 'a'; throw new Error(`not a sign name: ${p}`); };
 const isSignName = (p: string) => { try { signName(p); return true; } catch { return false; } };
 
-/** one word of the transliteration corpus (data/corpus/op_translit.json) as the stone divides it: `copy` the word as the
- *  corpus prints it (pieces joined by "|" where a line of the inscription breaks it), `read` the word spelled (= copy, or a
- *  listed correction of a slip of the copy), its signs, the line it starts on, the sign indices where later lines begin,
- *  whether a divider stands before it and whether that divider ends the previous line */
-export interface CorpusWord { copy: string; read: string; signs: string[]; line: number; breaks: number[]; divBefore: boolean; divAtEnd: boolean }
-/** a sign-by-sign piece ("da-a-ra-ya-va-u-ša", DPa is printed so) → sign names ("tha" = θa) */
-const signPiece = (p: string) => p.split('-').filter(Boolean).map(s => (s === 'tha' ? 'θa' : s));
-const isSignText = (p: string) => /^([a-zθšç]+-)+/.test(p);
-/** the corpus lines of one inscription → its words, in order, with the signs of each (Kent's convention: spellKentParts; a
- *  sign-by-sign print taken sign by sign). "\" is a divider; a word runs on across a line end unless a divider stands there
- *  (a run-on hyphen may mark it); two words separated by a space only have no divider between them on the stone ("Aurahya
- *  Mazdâha"). `fix(copy)` may return the corrected reading of a slip of the copy (same "|" pieces). `trailing`: the text ends
- *  with a divider. Shared by tools/build_op_signs.ts (which writes op_signs) and the tests (which re-derive them) */
-export function corpusWords(lines: string[], fix: (copy: string) => string | null = () => null): CorpusWord[] & { trailing?: boolean } {
-  const out: CorpusWord[] & { trailing?: boolean } = []; let pieces: string[] = [], line0 = 0, div = false, pendingDiv = false, divEnd = false, atEnd = false;
-  const toks = lines.join(' ').split(/[\s\\]+/).filter(Boolean), signText = toks.filter(isSignText).length > toks.length / 2;
-  const close = () => {
-    if (!pieces.length) return;
-    const copy = pieces.join('|'), read = fix(copy) ?? copy, rp = read.split('|');
-    if (rp.length !== pieces.length) throw new Error(`correction of "${copy}" must keep its ${pieces.length} line pieces`);
-    let signs: string[], breaks: number[] = [];
-    if (signText) { const groups = rp.map(signPiece); groups.slice(0, -1).reduce((n, g) => { breaks.push(n + g.length); return n + g.length; }, 0); signs = groups.flat(); }
-    else ({ signs, breaks } = spellKentParts(rp));
-    for (const s of signs) if (s !== LOST && !(s in SIGN)) throw new Error(`no Old Persian sign ${s} in "${read}"`);
-    out.push({ copy, read, signs, line: line0, breaks, divBefore: div, divAtEnd: atEnd });
-    pieces = [];
-  };
-  lines.forEach((raw, li) => {
-    const line = raw.trim().replace(/-$/, ''); // the run-on hyphen (XPa, and DPa's sign groups)
-    line.split('\\').forEach((seg, si) => {
-      if (si > 0) { close(); pendingDiv = true; divEnd = false; }
-      seg.trim().split(/\s+/).filter(Boolean).forEach((p, pi) => {
-        if (pi > 0) { close(); pendingDiv = false; divEnd = false; } // a space without a divider
-        if (!pieces.length) { line0 = li; div = pendingDiv; atEnd = divEnd && li > 0; pendingDiv = true; divEnd = false; }
-        pieces.push(p);
-      });
-    });
-    if (/\\\s*$/.test(line)) { close(); pendingDiv = true; divEnd = true; }
-  });
-  close();
-  out.trailing = pendingDiv && divEnd;
-  return out;
+/** ARIo's CATF sign names (data/corpus/ario_catf.json, D-184) → sign names: a consonant letter is its Ca sign, the Ci / Cu
+ *  signs are written out (mi, di, vi, ji, ku, gu, tu, du, nu, mu, ru), `disz` is ma, `munus` fa, `sz` ša and `xsz` the
+ *  logogram XŠ (written _%peo xsz_) */
+const CATF_SIGN: Record<string, string> = { disz: 'ma', munus: 'fa', sz: 'ša', xsz: 'XŠ', a: 'a', i: 'i', u: 'u' };
+export function catfSign(t: string): string {
+  if (t in CATF_SIGN) return CATF_SIGN[t];
+  if (t in SIGN) return t;
+  if (CONS[t] && t + 'a' in SIGN) return t + 'a';
+  throw new Error(`unknown ARIo sign "${t}"`);
 }
-/** corpus words → the carved lines, sign by sign ("ba-ga : va-za-ra-ka : a-u-ra-"): a divider before each word that has one
- *  (at the end of the previous line where the corpus puts it there), a word broken across lines broken at the same sign */
-export function corpusSignLines(words: CorpusWord[] & { trailing?: boolean }): string[] {
+/** signs carved where the edition has "[...]" (lost, not restored: how many is not known): blanks of this many signs (C) */
+export const LOST_RUN = 3;
+/** one carved sign of the edition, with the edition's mark on it: restored (in […]: lost since antiquity, restored by the
+ *  editor; the stone was whole in 467, so it is carved, tier C) or excess (<<…>>: an extra sign the engraver cut, carved as
+ *  the stone has it) */
+export interface EdSign { s: string; restored?: boolean; excess?: boolean }
+/** one word of the edition as the stone divides it: its signs, the line it starts on, the sign indices where later lines
+ *  begin, whether a divider stands before it (at the end of the previous line when `divAtEnd`), and the signs the engraver
+ *  omitted (<…>: supplied by the editor, NOT on the stone, NOT carved), by name */
+export interface EdWord { signs: EdSign[]; line: number; breaks: number[]; divBefore: boolean; divAtEnd: boolean; omitted: string[]; lost?: boolean }
+/** the Old Persian lines of the CATF edition ("12. a-u-r-disz-z-d-a-h-a : i-disz-disz : …") → its words, in order. A word
+ *  runs on across a line end marked "-;" / "-"; ":" is the word divider (an omitted one, <:>, is not carved; an extra one cut
+ *  inside a word, <<:>>, is); "[...]" a lost stretch (LOST_RUN blanks); the damage marks #, ?, ! are dropped (the sign is read).
+ *  Throws on any sign name it does not know */
+export function catfWords(lines: string[]): EdWord[] & { trailing?: boolean } {
+  const out: EdWord[] & { trailing?: boolean } = [];
+  // the edition's bracket states run on across pieces and lines: […] restored, <…> supplied (omitted by the engraver),
+  // <<…>> extra (cut by the engraver)
+  let cur: EdWord | null = null, pendingDiv = false, divAtEnd = false, restored = false, omit = false, excess = false, line = 0, pendingOmit: string[] = [];
+  const word = (): EdWord => {
+    if (!cur) { cur = { signs: [], line, breaks: [], divBefore: pendingDiv && out.length > 0, divAtEnd: pendingDiv && divAtEnd, omitted: pendingOmit }; out.push(cur); pendingDiv = false; divAtEnd = false; pendingOmit = []; }
+    return cur;
+  };
+  const sign = (t: string) => {
+    if (!t) return;
+    if (omit) { (cur ? (cur as EdWord).omitted : pendingOmit).push(catfSign(t)); return; } // not on the stone: noted on the word it falls in, or the next
+    const e: EdSign = { s: catfSign(t) }; if (restored) e.restored = true; if (excess) e.excess = true; word().signs.push(e);
+  };
+  const divider = () => { if (omit) return; cur = null; pendingDiv = true; divAtEnd = false; }; // an omitted divider is not carved
+  lines.forEach((raw, li) => {
+    line = li;
+    let l = raw.replace(/^\d+'?\.\s*/, '').replace(/_%peo\s+/g, '').replace(/_/g, '').replace(/[#?!]/g, '').trim();
+    const runOn = /-;?\s*$/.test(l); l = l.replace(/-;?\s*$/, '').replace(/;\s*$/, '').trim();
+    const cont = /^-/.test(l); l = l.replace(/^-/, '');
+    if (!cont) cur = null; else if (cur) (cur as EdWord).breaks.push((cur as EdWord).signs.length); // a new line starts a new word unless the edition marks the run-on
+    const parts = l.split(/\s+/).filter(Boolean);
+    parts.forEach((p, pi) => {
+      let i = 0, tok = '';
+      const flush = () => { sign(tok); tok = ''; };
+      while (i < p.length) {
+        if (p.startsWith('<<', i)) { flush(); excess = true; i += 2; continue; }
+        if (p.startsWith('>>', i)) { flush(); excess = false; i += 2; continue; }
+        if (p.startsWith('...', i)) { flush(); if (!omit) { const w = word(); for (let k = 0; k < LOST_RUN; k++) w.signs.push({ s: LOST }); w.lost = true; } i += 3; continue; }
+        const c = p[i++];
+        if (c === '<') { flush(); omit = true; } else if (c === '>') { flush(); omit = false; }
+        else if (c === '[') { flush(); restored = true; } else if (c === ']') { flush(); restored = false; }
+        else if (c === '-') flush();
+        else if (c === ':') { flush(); divider(); }
+        else tok += c;
+      }
+      flush();
+      if (!(runOn && pi === parts.length - 1)) cur = null; // a space ends a word, divider or not; a run-on line's last word goes on
+    });
+    if (!runOn) { if (pendingDiv) divAtEnd = true; cur = null; }
+  });
+  if (pendingOmit.length && out.length) out[out.length - 1].omitted.push(...pendingOmit);
+  const words = out.filter(w => w.signs.length) as EdWord[] & { trailing?: boolean };
+  words.trailing = pendingDiv; // the text ends with a divider
+  return words;
+}
+/** edition words → the carved lines, sign by sign ("ba-ga : va-za-ra-ka : a-u-ra-"): a divider before each word that has one
+ *  (at the end of the previous line where the edition puts it there), a word broken across lines broken at the same sign */
+export function edSignLines(words: EdWord[] & { trailing?: boolean }): string[] {
   const lines: string[][] = [[]]; let cur = words.length ? words[0].line : 0;
   words.forEach((w, i) => {
-    const div = i > 0 && w.divBefore;
+    const div = i > 0 && w.divBefore, names = w.signs.map(x => x.s);
     if (div && w.divAtEnd && cur < w.line) lines[lines.length - 1].push(':');
     while (cur < w.line) { lines.push([]); cur++; }
     if (div && !(w.divAtEnd && lines[lines.length - 1].length === 0 && lines.length > 1 && lines[lines.length - 2].at(-1) === ':')) lines[lines.length - 1].push(':');
     let from = 0;
-    for (const b of w.breaks) if (b > from && b < w.signs.length) { lines[lines.length - 1].push(w.signs.slice(from, b).join('-')); lines.push([]); cur++; from = b; }
-    lines[lines.length - 1].push(w.signs.slice(from).join('-'));
+    for (const b of w.breaks) if (b > from && b < names.length) { lines[lines.length - 1].push(names.slice(from, b).join('-')); lines.push([]); cur++; from = b; }
+    lines[lines.length - 1].push(names.slice(from).join('-'));
   });
   if (words.trailing) lines[lines.length - 1].push(':');
   return lines.map(l => l.join(' ')).filter(Boolean);

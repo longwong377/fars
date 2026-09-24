@@ -54,8 +54,8 @@ describe('translation layer', () => {
     // the layer says which versions are carved: XPb in all three (two panels), DNa in Old Persian only (Q-290)
     expect(TL.inscriptionReading('XPb', 'op')!.carved).toMatch(/Old Persian, Elamite and Babylonian/);
     expect(TL.inscriptionReading('DNa', 'op')!.carved).toMatch(/Old Persian version only/);
-    // and where Schmitt's words it shows differ from the carved sign sequence (D-177)
-    expect(TL.inscriptionReading('DNb', 'op')!.notes.join(' ')).toMatch(/differs from it in \d+ words/);
+    // and what the stone has that Schmitt's normalised words do not show: the engraver's omissions are not carved (D-184)
+    expect(TL.inscriptionReading('DNb', 'op')!.notes.join(' ')).toMatch(/[1-9]\d* signs he omitted .* are not \(\d+ whole words/);
   });
   it('shows no translation it may not show, and says why (Livius is all rights reserved; D-167, B17)', () => {
     const r = TL.inscriptionReading('XPa', 'op')!;

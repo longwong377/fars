@@ -594,10 +594,10 @@
   "url": "https://github.com/Electronic-Old-Persian-Library/Old-Persian-Dataset/tree/main/textdata/web_scraping",
   "access": "read in full via the scraped GitHub copy (FT); re-read 2026-09-23 (D-167): every page ends 'All content copyright © 1995–2024 Livius.org. All rights reserved.', so the scrape repository's CC-BY-NC does not cover this text and no Livius translation is shown or shipped; only single-word glosses aligned with these translations are used (facts); livius.org itself blocked (B6); BLOCKERS B17"
  },
- "OP-TRANSLIT": {
-  "cite": "Old Persian royal inscriptions, sign-by-sign transliteration in Kent's convention (R. G. Kent, Old Persian, 1953; P. Lecoq 1997): data/corpus/op_translit.json, transliteration lines only (D-176)",
-  "url": "https://github.com/Electronic-Old-Persian-Library/Old-Persian-Dataset/tree/main/textdata/web_scraping",
-  "access": "read in full via the scrape (CC-BY-NC repository) of the Livius.org pages, 2026-09-24; only the transliteration lines are stored (the ancient text is public domain and the transliteration a mechanical rendering of it, D-176); Livius' translations, notes and presentation are not stored (all rights reserved, B17)"
+ "ARIO-CATF": {
+  "cite": "R. Schmitt 2009, Die altpersischen Inschriften der Achaimeniden, as ORACC ARIo in Canonical ATF: sign by sign with the edition's lines and marks (oracc/catf ario.catf); the carved Old Persian sign sequence and the Elamite/Babylonian lineation (D-184)",
+  "url": "https://github.com/oracc/catf",
+  "access": "downloaded (raw GitHub, 2026-09-24; 166,028 bytes, sha256 eb8de252…); CC0 ('Canonical ATF version of Oracc data which is permitted to be released under CC0'); the carved texts' lines kept in data/corpus/ario_catf.json"
  },
  "EIEOL-OI": {
   "cite": "J. Harvey, W. P. Lehmann, J. Slocum, Old Iranian Online (UT Austin EIEOL), lessons 7-10 and base-form dictionary",

@@ -134,7 +134,7 @@ export function inscriptionAtlas(font: 'op' | 'cun'): Atlas {
   return (atlases[font] = buildAtlas(inscriptionFont(font), chars, font === 'op' ? 96 : 64));
 }
 export interface Block { id: string; ver: Version; text: PanelText }
-export interface Fitted { glyph: number; parts: { block: Block; layout: Layout; dx: number; dy: number }[]; width: number; height: number }
+export interface Fitted { glyph: number; fits: boolean; parts: { block: Block; layout: Layout; dx: number; dy: number }[]; width: number; height: number }
 /** one glyph height for blocks side by side ('columns') or top to bottom ('stack') in a field width × height (m): the largest
  *  <= glyphMax at which every line of an inscription's own lineation fits its column and the whole fits the field
  *  (global.r_inscription_carving; never below glyph_min) */
@@ -144,9 +144,9 @@ export function fitBlocks(blocks: Block[], arrangement: 'columns' | 'stack', wid
   const fits = (g: number) => { const L = lay(g); const h = arrangement === 'columns' ? Math.max(...L.map(l => l.height)) : L.reduce((s, l) => s + l.height, 0) + (n - 1) * sep; return L.every(l => l.width <= colW + 1e-6) && h <= height + 1e-6; };
   let g = glyphMax;
   if (!fits(g)) { let lo = RC.glyph_min, hi = glyphMax; for (let k = 0; k < 22; k++) { const mid = (lo + hi) / 2; if (fits(mid)) lo = mid; else hi = mid; } g = lo; }
-  const L = lay(g); let y = 0;
+  const L = lay(g); let y = 0; const fitted = fits(g);
   const parts = L.map((layout, i) => { const p = arrangement === 'columns' ? { block: blocks[i], layout, dx: i * (colW + sep), dy: 0 } : { block: blocks[i], layout, dx: 0, dy: y }; y -= layout.height + sep; return p; });
-  return { glyph: g, parts, width: arrangement === 'columns' ? width : Math.max(...L.map(l => l.width)), height: arrangement === 'columns' ? Math.max(...L.map(l => l.height)) : -y - sep };
+  return { glyph: g, fits: fitted, parts, width: arrangement === 'columns' ? width : Math.max(...L.map(l => l.width)), height: arrangement === 'columns' ? Math.max(...L.map(l => l.height)) : -y - sep };
 }
 /** the carved signs of one block as geometry in panel space (carving.ts), for callers that place it themselves (naqsh.ts) */
 export function carvedBlockGeometry(block: Block, layout: Layout, dx = 0, dy = 0): THREE.BufferGeometry {
@@ -173,15 +173,17 @@ const VER_NAME: Record<Version, string> = { op: 'Old Persian', el: 'Elamite', ba
 /** what the Old Persian signs of a text rest on (D-177), for the dev-overlay notes (decor.ts, naqsh.ts) */
 export function opSignsNote(id: string): string {
   const t = (inscriptions as any)[id], w = (t.op_words as any[]).filter(r => r.signs), n = (k: string) => w.filter(r => r.cmp === k).length;
-  const fixed = w.filter(r => r.read).length, lost = String(t.op_signs.join(' ')).split(/[\s:-]+/).filter(s => s === 'x').length;
-  return t.op_lined ? `signs: the published sign-by-sign transliteration (Kent's convention; data/corpus/op_translit.json, D-176) word for word, ${w.length} word groups (B)${fixed ? `, ${fixed} with a slip of the copy corrected (op_sign_decisions.json)` : ''}; Schmitt's reading differs in ${n('reading')}, by a written glide in ${n('glide')}, by a logogram in ${n('logogram')} (research/OP_SIGNS.md, Q-288)${lost ? `; ${lost} signs lost in the corpus left uncut [PLACEHOLDER]` : ''}; lines the corpus's (B)`
-    : `signs: Kent's rules on ARIo's words (C: no corpus copy); lines C`;
+  const sum = (k: string) => w.reduce((q, r) => q + (Array.isArray(r[k]) ? r[k].length : typeof r[k] === 'number' ? r[k] : 0), 0), lostRuns = w.filter(r => r.lost).length;
+  return `signs: the published sign-by-sign edition (ORACC ARIo in CATF, Schmitt 2009, CC0; data/corpus/ario_catf.json, D-184), ${w.length} words sign for sign with their dividers (A)`
+    + `${sum('excess') ? `; ${sum('excess')} extra signs the engraver cut, carved` : ''}${sum('omitted') ? `; ${sum('omitted')} signs the engraver omitted, not carved` : ''}`
+    + `${sum('restored') ? `; ${sum('restored')} signs lost since and restored by the editor, carved (C)` : ''}${lostRuns ? `; ${lostRuns} stretches lost and not restored, left uncut [PLACEHOLDER]` : ''}`
+    + `; Kent's rules on Schmitt's normalised words would spell ${n('glide')} otherwise by a glide, ${n('logogram')} by a logogram, ${n('engraver') + n('reading')} otherwise (research/OP_SIGNS.md, Q-288); lines the edition's (A)`;
 }
 /** copies and versions of an inscription standing in 467 that the build does not carve (src/data/royal_inscriptions.json) */
 const missingOf = (id: string) => (programme.missing as any[]).filter(m => String(m.id).split(/,\s*/).includes(id));
 /** the dev-overlay note of one carved version: what the text and the signs rest on (D-177), and the carving */
 function versionNote(id: string, ver: Version, glyph: number, depth: number, where: string, surface: string): string {
-  const t = (inscriptions as any)[id], signs = ver === 'op' ? opSignsNote(id) : `signs: ATF → OSL (B); lines C (flowed: no lineation read)`;
+  const t = (inscriptions as any)[id], signs = ver === 'op' ? opSignsNote(id) : `signs: ATF → OSL (B); ${t[`${ver}_lines`] ? `lines the edition's (A: ARIo CATF), no word spaces` : 'lines C (flowed: no lineation read), no word spaces'}`;
   const miss = missingOf(id).map(m => m.what);
   return `${id} ${VER_NAME[ver]} (text A: ARIo ${t.ario}, Schmitt 2009); ${signs}; incised in ${surface}, V-section at 45°, deepest ${(depth * 1000).toFixed(1)} mm, signs ${(glyph * 100).toFixed(1)} cm (C); ${where}${miss.length ? `; NOT carved (Q-290): ${miss.join('; ')}` : ''}`;
 }
@@ -196,7 +198,7 @@ function carveField(g: THREE.Group, parts: Part[], F: CarvedField, report: strin
   const o = gw(F.origin[0], F.origin[1]).addScaledVector(Z, off).addScaledVector(X, -F.width / 2); o.y = F.yTop;
   for (const p of fit.parts) {
     const A = inscriptionAtlas(p.block.text.font), geo = carvedBlockGeometry(p.block, p.layout, p.dx, p.dy), depth = layoutMaxDepth(A, p.layout);
-    const meta = { tier: p.block.ver === 'op' && (inscriptions as any)[p.block.id].op_lined ? 'B' : 'C', src: p.block.ver === 'op' ? 'ARIO;OP-TRANSLIT;NOTO;LANG-R' : 'ARIO;OSL;NOTO;LANG-R', inscription: p.block.id, version: p.block.ver, host: surface, glyph: fit.glyph, depth,
+    const meta = { tier: p.block.ver === 'op' && (inscriptions as any)[p.block.id].op_lined ? 'B' : 'C', src: p.block.ver === 'op' ? 'ARIO-CATF;ARIO;NOTO;LANG-R' : 'ARIO-CATF;ARIO;OSL;NOTO;LANG-R', inscription: p.block.id, version: p.block.ver, host: surface, glyph: fit.glyph, depth,
       note: versionNote(p.block.id, p.block.ver, fit.glyph, depth, `${F.where} (placement ${F.tier})`, surface) };
     const mesh = new THREE.Mesh(geo, incisedMaterial(surface, A)); mesh.matrixAutoUpdate = false; mesh.matrix.makeBasis(X, up, Z).setPosition(o);
     mesh.receiveShadow = true; mesh.castShadow = false; mesh.userData = { ...meta, carved: [{ id: p.block.id, ver: p.block.ver, signs: geo.userData.signs }] }; mesh.name = `inscription:${p.block.id}:${p.block.ver}`; g.add(mesh);
@@ -206,7 +208,7 @@ function carveField(g: THREE.Group, parts: Part[], F: CarvedField, report: strin
     const quad = new THREE.PlaneGeometry(w + 2 * pad, h + 2 * pad).translate(p.dx + w / 2, p.dy - h / 2, 0.002);
     const pick = new THREE.Mesh(quad, pickMat); pick.matrixAutoUpdate = false; pick.matrix.copy(mesh.matrix); pick.layers.set(INSCRIPTION_PICK_LAYER);
     pick.name = `inscription:${p.block.id}:${p.block.ver}:pick`; pick.userData = meta; g.add(pick);
-    report.push(`${p.block.id}:${p.block.ver} ${p.layout.signs.length} signs, ${p.layout.lines} lines, glyph ${(fit.glyph * 100).toFixed(1)} cm, deepest ${(depth * 1000).toFixed(1)} mm, on ${surface}${host ? ` (${host.kind}, face ${(host.d * 100).toFixed(1)} cm from the field line)` : ''}`);
+    report.push(`${p.block.id}:${p.block.ver} ${p.layout.signs.length} signs, ${p.layout.lines} lines, glyph ${(fit.glyph * 100).toFixed(1)} cm${fit.fits ? '' : ' (DOES NOT FIT the field at the smallest glyph)'}, deepest ${(depth * 1000).toFixed(1)} mm, on ${surface}${host ? ` (${host.kind}, face ${(host.d * 100).toFixed(1)} cm from the field line)` : ''}`);
   }
 }
 /** the carved inscriptions of the Terrace (D-177: what stands where, the texts and the carving; src/data/royal_inscriptions.json): XPa on the Gate, XPb on the Apadana

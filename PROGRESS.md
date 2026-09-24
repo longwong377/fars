@@ -34,13 +34,16 @@
     no music in the world; tablets blank, no Aramaic leather; most Terrace inscriptions missing; signs raised, not cut;
     lint blind to audio and murmur; no audio occlusion. The layer workstream (bundle) found the Livius translations are
     "All rights reserved": no translation can be shown (B17a); the voice acceptance was measured and not met (B17b).
-  - **Phase 8 carving workstream, session 6 (branch `p8-carving-s6`; unmerged, no GPU render yet).** Still broken or placeholder:
-    no render of the incised signs on a GPU (node preview only: fine stepped banding on the cut walls); 10 copies or versions of
-    the royal programme not carved (XPc/XPd portico-pillar copies, DPb garment line, XPk, XPg, XPj/XPm, the El/Bab of DNa/DNb,
-    DNc-DNe; Q-290, flagged in F3); DNb's 26 signs lost in the corpus are uncut blanks; 48 words where Kent (carved) and Schmitt
-    (shown in the layer) read differently (Q-288). Done: every carved Old Persian word is the published sign sequence (1043
-    corpus words, 0 mismatches, 17 listed slips of the copy corrected; D-176 corpus licence, D-177); signs incised (V-cut in
-    the host stone, tested as a cut); the programme is src/data/royal_inscriptions.json.
+  - **Phase 8 carving workstream, session 6 (merged; round-2 fix D-184 on `p8-carving-r2`; no GPU render yet).** Still broken
+    or placeholder: no render of the incised signs on a GPU (node preview only: fine stepped banding on the cut walls); 10 copies
+    or versions of the royal programme not carved (XPc/XPd portico-pillar copies, DPb garment line, XPk, XPg, XPj/XPm, the El/Bab
+    of DNa/DNb, DNc-DNe; Q-290, flagged in F3); 146 carved Old Persian signs are the editor's restorations (C) and 6 unrestored
+    stretches of DNb are uncut blanks (PLACEHOLDER). True measure (D-184): the carved Old Persian equals the published CC0
+    sign-by-sign edition (ARIo in CATF) sign for sign, dividers and logograms included, 0 differences over 5,276 positions and
+    1,029 dividers in 12 texts (engraver's extra signs carved, his omissions not); the round-1 claim "0 mismatches" was
+    measured against a scraped copy and two of its corrections were against the stone (review round 2 C1). Elamite and
+    Babylonian carved in the edition's lines without word spaces. Signs incised (V-cut, tested as a cut); the programme is
+    src/data/royal_inscriptions.json.
   - **First renders of the session-4 shaders on a GPU backend:** at quality test every effect material (flames, smoke, haze,
     rain, snow) FAILED to compile on WebGPU (fixed, D-174). At quality high `stair-climb-pm` and `tripylon-n-stair` render
     on WebGPU with **no shader error** (atmosphere D-156, surfaces D-157 and faces D-155 compile; clouds visible). WebGL2

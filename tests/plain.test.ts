@@ -221,16 +221,16 @@ describe('the plain as built (headless): budgets, tiers, chronology', () => {
     expect(L.filter(i => i.style === 'village').length).toBe(P.data.villages.length);
     expect(L.filter(i => i.style === 'canal').length).toBeGreaterThanOrEqual(P.data.canals.length);
   });
-  it('the tomb of Darius carries DNa and DNb in Old Persian from the edition, incised, in Kent\'s 60 lines, its lost signs uncut (D-177)', () => {
+  it('the tomb of Darius carries DNa and DNb in Old Persian from the edition, incised, in the edition\'s 60 lines, its unrestored stretches uncut (D-184)', () => {
     const tm = P.group.getObjectByName('nr-inscriptions-carved') as THREE.Mesh; expect(tm).toBeTruthy();
     expect(tm.geometry.getAttribute('carveUV'), 'incised signs (D-177)').toBeTruthy(); expect((tm.material as any).opacityNode, 'the uncut face shows through').toBeTruthy();
     const note = String(tm.userData.note); console.log(note);
     for (const id of ['DNa', 'DNb']) {
       const m = note.match(new RegExp(`${id}: (\\d+) signs, glyph ([\\d.]+) cm, (\\d+) lines`)); expect(m, id).toBeTruthy();
       expect(+m![1], id).toBeGreaterThan(600); expect(+m![2], id).toBeGreaterThan(1.5); expect(+m![2], id).toBeLessThan(8); expect(+m![3], id).toBe(60);
-      const lines = panelText(id, 'op')!.lines; expect(lines.length, id).toBe(60);
-      // lost signs (the corpus's +) are blanks of a sign's width, not dropped: DNb has 26, DNa none
-      expect(lines.join('').split('').filter(ch => ch === '\u00a0').length, id).toBe(id === 'DNb' ? 26 : 0);
+      const lines = panelText(id, 'op')!.lines; expect(lines.length, id).toBe(60); expect(note, id).not.toMatch(/DOES NOT FIT/);
+      // stretches lost and not restored ([...] in the edition) are LOST_RUN blanks of a sign's width, not dropped: DNb has 6, DNa none
+      expect(lines.join('').split('').filter(ch => ch === '\u00a0').length, id).toBe(id === 'DNb' ? 6 * 3 : 0);
       expect(P.group.getObjectByName(`inscription:${id}:op:pick`), id).toBeTruthy();
     }
   });

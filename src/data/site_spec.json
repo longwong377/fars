@@ -377,13 +377,13 @@
      "el",
      "bab"
     ],
-    "arrangement": "columns",
+    "arrangement": "stack",
     "bottom_margin": 0.05
    },
    "u": "m",
    "src": "SI-ARCH;ISAC-PA;LIVIUS-AI;RECON",
    "tier": "C",
-   "note": "the central-facade inscriptions of the Tachara S stair (XPc) and the Hadish W stair (XPd): trilingual (XPc 'Translations into Elamite and Babylonian', LIVIUS-AI B; XPd 'OP/El/Ak', hadish.stair_w_reliefs B); the three versions side by side between the guards, Old Persian first (arrangement and order C, NOT SEEN), in the field from the panel top down to bottom_margin above the central ground. Which copies these are (D-177, src/data/royal_inscriptions.json): XPc here is the copy 'on the south wall of the terrace on which the palace is built' (LIVIUS-AI, B; the field C); its copies on the eastern and western pillars of the S portico are NOT carved (no anta face identified in the model, Q-290). XPd here is the copy 'beside the stairs of the Palace of Xerxes' (B; which stair C); its copies on the two pillars of the N portico are NOT carved (Q-290)"
+   "note": "the central-facade inscriptions of the Tachara S stair (XPc) and the Hadish W stair (XPd): trilingual (XPc 'Translations into Elamite and Babylonian', LIVIUS-AI B; XPd 'OP/El/Ak', hadish.stair_w_reliefs B); the three versions stacked between the guards, the Old Persian on top with the Elamite and the Babylonian below it, as the published description of the XPc pillar copies has them ('Translations into Elamite and Babylonian can be seen below the first Old Persian text', LIVIUS-AI B); for this copy the arrangement is C (NOT SEEN). Stacked since D-184: with the edition's own lines (Old Persian and, since D-184, Elamite and Babylonian) three columns side by side did not fit the 2.4 m field at the smallest sign, in the field from the panel top down to bottom_margin above the central ground. Which copies these are (D-177, src/data/royal_inscriptions.json): XPc here is the copy 'on the south wall of the terrace on which the palace is built' (LIVIUS-AI, B; the field C); its copies on the eastern and western pillars of the S portico are NOT carved (no anta face identified in the model, Q-290). XPd here is the copy 'beside the stairs of the Palace of Xerxes' (B; which stair C); its copies on the two pillars of the N portico are NOT carved (Q-290)"
   }
  },
  "terrace": {
