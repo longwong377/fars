@@ -13,7 +13,8 @@
 import * as THREE from 'three/webgpu';
 import { HemisphereLightNode } from 'three/webgpu';
 import { uniform, texture, vec2, vec3, float, mix, max, min, clamp, floor, smoothstep, step, normalWorld, positionWorld, dot } from 'three/tsl';
-import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, volumeAt, openAmbientMean, VALID_LO, VALID_HI, REACH_SOFT, ATLAS_BANDS, PROBE_STRIDE } from './field';
+import { geometricNormalWorld } from '../envmap';
+import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, volumeAt, openAmbientMean, VALID_LO, VALID_HI, ATLAS_BANDS, PROBE_STRIDE, REACH_SOFT } from './field';
 import { SURFACES } from '../materials';
 import { srgbToLinear, lum, sceneFromParts, TraceScene } from './trace';
 import type { Part } from '../../arch/parts';
@@ -115,9 +116,15 @@ const ramp = (a: number, b: number, x: any) => (b - a > 1e-3 ? smoothstep(a, b, 
  *  U = probeSun, hemi = the hemisphere light's irradiance for n (the fallback). Returns the irradiance and the field weight. */
 /** `directSky`: E is the sky seen directly only, S·E_S(n)·(1 − bounce fraction), untinted: what a mirror of the sky may
  *  reflect (the environment's specular occlusion, D-181); the bounced part is light off the hall's own surfaces */
-export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any, directSky = false): { E: any; w: any } {
+/** `off`: the direction the lookup point stands off the surface (default n). D-187: the materials pass the surface's
+ *  GEOMETRIC normal (and the sky specular the reflection about it), the post composite the normal of the depth buffer:
+ *  with the bumped shading normal, every sub-degree tilt of the micro-relief moved the lookup point by centimetres, across
+ *  a probe's reach (a step of up to 3×) or a cell, and the composite (its G-buffer normal quantised and filtered
+ *  differently) disagreed with the material there: speckle on the floors, ragged fringes at arrises. The irradiance is
+ *  still evaluated for the shading normal n. */
+export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any, directSky = false, off: any = n): { E: any; w: any } {
   if (!FIELD || !ATLAS || !FIELD.volumes.length) return { E: hemi, w: float(0) };
-  const q = p.add(n.mul(FIELD.normalBias)), W = ATLAS.width, H = ATLAS.height;
+  const q = p.add(off.mul(FIELD.normalBias)), W = ATLAS.width, H = ATLAS.height;
   // per volume (masked sums: the volumes do not overlap): the texel centre of the cell's low corner in q's two layers,
   // the fractions within the cell, and the fade
   let uA: any = float(0), uB: any = float(0), vv: any = float(0), fx: any = float(0), fy: any = float(0), fz: any = float(0), fade: any = float(0);
@@ -144,9 +151,10 @@ export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any, directSk
   // D-152: the reach of the lower layer's four corner probes (texel centres: unfiltered); a side of the cell none of whose
   // probes reaches q is left out (field.ts reachFrac: a wall thinner than the spacing lies between them)
   const r00 = at(uA, vv, 3), r10 = at(uA.add(1), vv, 3), r01 = at(uA, vv.add(1), 3), r11 = at(uA.add(1), vv.add(1), 3);
+  // field.ts reachOk: 1 where the reach clears the point, a ramp over REACH_SOFT short of it (D-187); a probe always
+  // reaches its own position (D-188: continuous at the cell faces)
+  const ok = (r: any, d: any) => clamp(r.sub(d).div(REACH_SOFT).add(1), 0, 1);
   const snap = (f: any, lo0: any, lo1: any, hi0: any, hi1: any, t: any) => {
-    // D-188: a steep ramp, not a step (field.ts reachFrac, REACH_SOFT)
-    const ok = (r: any, d: any) => smoothstep(d.sub(2 * REACH_SOFT), d, r);
     const g = float(1).sub(f), lo = mix(ok(lo0, f), ok(lo1, f), t), hi = mix(ok(hi0, g), ok(hi1, g), t);
     const loOnly = lo.mul(float(1).sub(hi)), hiOnly = hi.mul(float(1).sub(lo));
     return f.mul(float(1).sub(loOnly).sub(hiOnly)).add(hiOnly);
@@ -173,7 +181,7 @@ export class ProbeHemisphereLightNode extends HemisphereLightNode {
     const self = this as any;
     const dotNL = normalWorld.dot(self.lightDirectionNode);
     const hemi = mix(self.groundColorNode, self.colorNode, dotNL.mul(0.5).add(0.5));
-    const P = probeAmbient(positionWorld, normalWorld, self.colorNode, probeSun, hemi);
+    const P = probeAmbient(positionWorld, normalWorld, self.colorNode, probeSun, hemi, false, geometricNormalWorld()); // D-187
     // debug (?probedbg=w, chosen when the shader is built): the field weight as the irradiance colour (red = probes, green =
     // plain skylight), scaled to the sky's brightness
     const dbg = typeof location !== 'undefined' && new URLSearchParams(location.search).get('probedbg') === 'w';

@@ -186,3 +186,45 @@ describe('the letter-by-letter spelling the world carved before D-177 fails thes
     expect(wrong / words).toBeGreaterThan(0.15);
   });
 });
+
+describe('Elamite and Babylonian: the carved lines are the edition\'s, as the stone stood in 467 (D-184; round-3 review M1)', () => {
+  const EDX = (edition as any).texts as Record<string, Record<string, string[]>>;
+  /** the edition's marks counted straight from the CATF lines (independent of tools/build_cun_lines.py): signs inside <…>
+   *  (omitted by the scribe) or inside […] (restored), a sign being a reading between separators */
+  const count = (lines: string[], open: string, close: string) => {
+    let n = 0, depth = 0, tok = '';
+    const text = lines.map(l => l.replace(/^\d+'?\.\s*/, '').replace(/%[a-z]+\s*/g, '').replace(/_/g, '')).join(' ').replace(/<<[^>]*>>/g, m => m.replace(/[<>]/g, ''));
+    const flush = () => { if (tok && depth > 0 && !['x', '...'].includes(tok)) n++; tok = ''; };
+    for (const c of text) {
+      if (c === open) { flush(); depth++; } else if (c === close) { flush(); depth = Math.max(0, depth - 1); }
+      else if (/[\s\-.{}()]/.test(c)) flush(); else if (!/[#?!*<>[\]]/.test(c)) tok += c;
+    }
+    flush(); return n;
+  };
+  const carvedCun = Object.entries(INS).filter(([k]) => k !== '_meta').flatMap(([id, t]) => (['el', 'bab'] as const).filter(v => t[`${v}_cuneiform`]).map(v => [id, v] as const));
+  it('every carved Elamite and Babylonian version is in the edition\'s lines, without word spaces', () => {
+    expect(carvedCun.length).toBe(20);
+    for (const [id, v] of carvedCun) {
+      const p = panelText(id, v)!;
+      expect(p.lined, `${id} ${v}`).toBe(true); expect(p.lines.length, `${id} ${v}`).toBe(EDX[id][v].length);
+      expect(p.lines.join('').includes(' '), `${id} ${v}: word spaces`).toBe(false);
+    }
+  });
+  it('the signs the scribe omitted (<…>) are not carved, the restored ones ([…]) are counted (tier C): counted from the edition', () => {
+    let omitted = 0, restored = 0;
+    for (const [id, v] of carvedCun) {
+      const L = EDX[id][v], m = INS[id][`${v}_marks`], o = count(L, '<', '>'), r = count(L, '[', ']');
+      expect(m, `${id} ${v}`).toBeTruthy();
+      expect(m.omitted, `${id} ${v} omitted`).toBe(o); expect(m.restored, `${id} ${v} restored`).toBe(r);
+      // the carved lines are the running text (which includes the supplied signs) less exactly the omitted ones
+      const run = [...String(INS[id][`${v}_cuneiform`]).replace(/\s+/g, '')], cut = [...panelText(id, v)!.lines.join('')];
+      expect(run.length - cut.length, `${id} ${v}: signs dropped`).toBe(o);
+      omitted += o; restored += r;
+    }
+    expect(omitted).toBe(2); expect(restored).toBe(65);
+    // the two the round-3 review named: XPa El {d}u-ra-mas-da-<na> and XPd El sza2-ak-<ri>
+    expect(panelText('XPa', 'el')!.lines[10]).toContain('𒀭𒌋𒊏𒈦𒁕𒄭'); expect(panelText('XPa', 'el')!.lines[10]).not.toContain('𒁕𒈾𒄭');
+    expect(panelText('XPd', 'el')!.lines[7].endsWith('𒀝')).toBe(true);
+    expect(String(INS.XPa.tier.version_split)).toMatch(/^A/);
+  });
+});

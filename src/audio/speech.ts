@@ -15,7 +15,7 @@
 // and Elamite is unknown), a robotic source model. It is a PLACEHOLDER-QUALITY voice: intelligibility/naturalness have not
 // been rated by the reviewer yet (brief §10 acceptance).
 import type { AudioEngine } from './engine';
-import { tokenizeIpa, syllabify, Phone } from './phonemes';
+import { tokenizeIpa, syllabify, Phone, type Syllable } from './phonemes';
 import type { LangId } from '../lang/lexicon';
 
 export interface Vec3 { x: number; y: number; z: number }
@@ -76,6 +76,32 @@ function stressIndex(n: number, sylls: ReturnType<typeof syllabify>, rule: Stres
   return n - 3;
 }
 
+/** Each word's syllables and its stressed syllable: the lexicon's mark (ˈ) where there is one, else the language's rule
+ *  (C). Shared by the formant voice and the eSpeak build (markStress), so both put the accent on the same syllable. */
+function wordStress(phones: Phone[], rule: StressRule): Map<number, { syl: Syllable[]; si: number; marked: boolean }> {
+  const words = new Map<number, Phone[]>(), out = new Map<number, { syl: Syllable[]; si: number; marked: boolean }>();
+  for (const p of phones) { if (!words.has(p.word)) words.set(p.word, []); words.get(p.word)!.push(p); }
+  for (const [w, ps] of words) {
+    const syl = syllabify(ps); if (!syl.length) continue;
+    const marked = syl.findIndex(s => [...s.onset, s.nucleus].some(p => p.stressMark === 1));
+    out.set(w, { syl, si: marked >= 0 ? marked : stressIndex(syl.length, syl, rule), marked: marked >= 0 });
+  }
+  return out;
+}
+/** The IPA (NFC) with a primary stress mark before the stressed syllable of every word that has none, by the language's
+ *  rule (STRESS_RULES, C). For the pre-rendered voices (tools/build_speech.py, D-185): eSpeak-NG gives an unmarked
+ *  phoneme string no accent and so no intonation; the line's own IPA is unchanged. Greek IPA carries the edition's
+ *  accent, so an unmarked Greek word is a clitic (οὐκ, μοι) and stays unaccented. */
+export function markStress(ipa: string, lang: LangId): string {
+  const s = ipa.normalize('NFC'), at: number[] = [];
+  for (const { syl, si, marked } of wordStress(tokenizeIpa(s), STRESS_RULES[lang].rule).values()) {
+    if (marked || lang === 'grc') continue;
+    const first = syl[si].onset[0] ?? syl[si].nucleus; at.push(first.pos!);
+  }
+  let out = s; for (const i of at.sort((a, b) => b - a)) out = out.slice(0, i) + 'ˈ' + out.slice(i);
+  return out;
+}
+
 /**
  * Turn an IPA string into timed synthesis frames. Deterministic (no randomness here).
  * Throws IpaError for an unmapped symbol.
@@ -87,13 +113,9 @@ export function planUtterance(ipa: string, voice: VoiceParams, opts: { lang?: La
   const rate = Math.max(0.4, voice.rate);
   // stress + phrase-final syllable
   const stressed = new Set<Phone>(), finalSyl = new Set<Phone>();
-  const words = new Map<number, Phone[]>();
-  for (const p of phones) { if (!words.has(p.word)) words.set(p.word, []); words.get(p.word)!.push(p); }
+  const words = wordStress(phones, rule);
   const lastWord = Math.max(...words.keys());
-  for (const [w, ps] of words) {
-    const syl = syllabify(ps); if (!syl.length) continue;
-    const marked = syl.findIndex(s => [...s.onset, s.nucleus].some(p => p.stressMark === 1));
-    const si = marked >= 0 ? marked : stressIndex(syl.length, syl, rule);
+  for (const [w, { syl, si }] of words) {
     stressed.add(syl[si].nucleus);
     if (w === lastWord) { const s = syl[syl.length - 1]; for (const p of [s.nucleus, ...s.coda]) finalSyl.add(p); }
   }

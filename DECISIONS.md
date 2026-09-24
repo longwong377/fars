@@ -2797,7 +2797,6 @@ are schematic; no browser render has been looked at (node previews of the height
   on the brazier; no box, no streaks. The same fault drew 1–2 km wide solid yellow, red and black bars on the horizon in
   `dawn-sunrise` / `dawn-sunrise-nw` at high (distant effect quads; absent at quality test, which has no composite): gone in
   the re-render after the change.
-- **Not verified:** a render after the change (dbg job queued: B and env0 of hadish-hall at test).
 
 ## D-182 The court in residence: simulated, drawn, measured (session 6, court workstream; B11, B12, B13)
 **Read first — broken, unverified, placeholder.**
@@ -2967,6 +2966,16 @@ The year soak with the court was not run (another agent runs the default year so
   - With every version in its own lines, XPc and XPd no longer fitted three columns in the 2.4 m stair field at the 2 cm floor. Their arrangement becomes stacked, the Old Persian above the Elamite and the Babylonian, as the published description of the XPc pillar copies has it (C for this copy; SITE_SPEC `r_stair_inscription`). The signs are now 2.9 and 2.8 cm.
   - A new check fails if any carved field does not fit at the smallest sign.
 - **Records.** Q-288 is rewritten (what the edition marks, how it is carved, the 56 classed words); D-176 and D-177 are marked superseded in their sign basis; research/OP_SIGNS.md is regenerated; PROGRESS states the new measure.
+- **Extended to the Elamite and Babylonian (Phase 8 review round 3 M1, session 6).** The rule "as the stone stood in 467" had been applied to the Old Persian only. `tools/build_cun_lines.py` now builds each carved Elamite and Babylonian version from the edition's CATF lines, applying the same marks:
+  - the scribe's omissions (<…>) are NOT carved: XPa El {d}u-ra-mas-da-<na> and XPd El sza2-ak-<ri>, the 2 signs the review found;
+  - the engraver's extras (<<…>>) would be carved; there are none in these versions;
+  - restorations ([…], 65 signs: XPa El 12 and Bab 14, XPb El 5, XPd El 10 and Bab 5, DPb Bab 10, DPc El 2, DPg Bab 7) are carved, counted in `el_marks` / `bab_marks`, and tiered C in each panel's F3 note. The panel tier is B/C where there are any;
+  - the CATF's parentheses (27 signs in 7 versions) are carved as the running text writes them and tiered C (Q-293).
+
+  The build stops unless the carved lines equal the ARIo running text less exactly the omitted signs. `version_split` becomes A (verified). The translation layer's reading notes the omissions and restorations.
+
+  tests/lang.test.ts counts the marks straight from the CATF lines, with its own counter: all 20 carved versions are in the edition's lines without word spaces; omitted 2, restored 65, both equal to the build's counts; the carved text is the running text less exactly the omitted signs.
+
 ## D-186 The round-6 shadow review's findings (session 6, sim agent)
 - **Why:** shadow review round 6 on pick 113 failed with two independent reviewers (`REVIEWS/shadow_phase5_r6.md`, A: 1 of 20 below 4; `REVIEWS/shadow_phase5_r6_b.md`, B: 3 of 20). Blocking: the Treasury's "receiving hides" with no delivery behind it (1888); off-watch guards in a 10-15 h hearth loop (#10, #75); married guards seldom with their families (#75). Each finding below is fixed at the rule that made it, or logged. New rules are C unless named. Open questions: Q-060 updated, Q-337 and Q-338 new. Days are the code's 0-based indices; seed 1.
 - **Broken or placeholder first:**
@@ -3009,3 +3018,349 @@ The year soak with the court was not run (another agent runs the default year so
   - Run time 63 min wall (3,742 s for the population and its checks), alongside a full vitest run.
 - **Tests and checks (on 22dc891):** `npx tsc --noEmit` clean; `tests/people_days_r7.test.ts` 12 tests; the people, sim, court and population-view suites 142 of 142 (12 files); full `npx vitest run --maxWorkers=1` 693 passed, 1 skipped (71 files); `npm run lint:all` OK; `npx tsx tools/dev/botcheck.ts` 97 of 97. Two r6 tests follow the new rules (the dust wrap may read "…, and dressed against the cold"; #9's family meals are checked over days 120-160, since his day 132 no longer holds a visit).
 - **Round-7 input:** `REVIEWS/shadow_days_input_seed1_pick131.txt` (`npx tsx tools/shadow_days.ts 1 131`, on 22dc891), not scored.
+
+## D-185 The voices re-rendered through libespeak-ng with norm pitch, word stress and a contour per utterance type; the machine pitch and contour thresholds met, machine phone recovery not improved, the human rating still open (Phase 8 r2 review M3; B17(b), Q-287; session 6, voice workstream)
+- **Why:** D-167 measured the §10 voices and did not accept them:
+  - the men's median F0 was 83 Hz against Hillenbrand et al. 1995's 131 ± 22 (about 2 SD low);
+  - every clip was nearly monotone (F0 5–95 % range 0.6–1.5 semitones).
+
+  Review r2 M3 found that the named fix, a re-render through the library, was never tried.
+- **The library build path (tools/build_speech.py, `--engine auto|lib|cmd`).**
+  - `lib`: libespeak-ng through ctypes. From speak_lib.h it uses `espeak_Initialize` (synchronous), a synth callback, and `espeak_SetPhonemeTrace` for the IPA round trip, as `espeak-ng -q --ipa` does.
+  - The library and its data come from PyPI `espeakng-loader` 0.2.4, which ships libespeak-ng **1.52.0**.
+  - `cmd`: the espeak-ng command, as before, kept as the fallback. `auto` takes the library when it imports, else the command.
+  - **Not exercised:** the command path's new `-P` (pitch range) and `--path` flags. No espeak-ng command is installed here.
+  - 1.51 → 1.52: the IPA round trip was re-run over all 62 rendered lines: 0 mismatches.
+  - **Reproducible:** a rebuild is byte-identical (built twice, manifests compared). Two sources of randomness were fixed:
+    - libsndfile gave each Ogg stream a random serial number. The serial now comes from the clip's name, with the page CRCs recomputed.
+    - eSpeak's breath noise was random in the women's and child voices. Now `espeak_ng_SetRandSeed(1)` and `srand(1)` run per clip.
+- **What was wrong, measured before any fix** (scratch scripts using tools/voice_acceptance.py's measure):
+  - **Pitch.** eSpeak's 0–99 pitch parameter maps onto each variant's own Hz range. The old settings (38/48/30, 62/55, 82) put the men at 79–97 Hz.
+  - **Monotony.** Raising the pitch alone changed nothing: the range stayed at 0.9–1.8 st, with no final fall on a `.`. The cause is stress:
+    - the mnemonics carried a stress mark only where the lexicon IPA has one (Greek);
+    - eSpeak gives an unstressed phoneme string no accent, so its tune has no nucleus;
+    - with stress marks, the same line had a 5.5 st range and a −2.9 st final fall.
+- **The fixes (all C):**
+  1. **Stress.** `markStress` (speech.ts) puts a stress mark on the syllable the formant voice already stresses: the lexicon's ˈ where it has one, else STRESS_RULES (op penult-weight, el initial, arc final).
+     - The formant voice and the eSpeak build now share one function, `wordStress`. The formant output is unchanged, and the speech tests pass.
+     - Unaccented Greek words stay unaccented. They are clitics (οὐκ, μοι), and the Greek IPA carries the edition's accent.
+     - The line's IPA is unchanged. The manifest records the stressed form, and the test checks it against the current lines.
+  2. **Pitch.** Each voice class has a target median F0 inside published norms. Its eSpeak pitch parameter was set by measurement to meet that target (VOICES; the manifest records target and source). The norms:
+     - Hillenbrand et al. 1995 (vowdata, recomputed from the file): men 131.2 ± 22.0 Hz, women 220.4 ± 23.2, children aged 10–12 236.9 ± 25.9.
+     - Age trends: Hollien & Shipp 1972 (JSHR 15:155): men's F0 falls from the 20s to the 40s and rises from the 60s. Stoicheff 1981 (JSHR 24:437): women's F0 falls in the 50s, after the menopause.
+     - Both age studies were read in their abstracts only. The proxy refuses their hosts, so no decade values are quoted.
+
+     | class | variant | pitch | target |
+     |---|---|---|---|
+     | m1 man, low | m1 | 74 | 118 Hz |
+     | m2 man, mid | m3 | 78 | 135 Hz |
+     | m3 old man | m7 | 70 | 125 Hz (the sim's old men are 50–55) |
+     | f1 woman | f2 | 66 | 220 Hz |
+     | f2 older woman | f4 | 66 | 205 Hz (Stoicheff: lower after the menopause) |
+     | c1 child | f5 | 70 | 250 Hz (the sim's children are 6–10, younger than H95's) |
+
+     - Every class uses range 50, eSpeak's default.
+     - Range 60 was also built. It gave a median range of 7.4 st, further from the natural control's 5.7, and was dropped.
+  3. **Contour by utterance type.** `utterance_type` assigns each line one of five types, and each type has its own eSpeak clause and range:
+
+     | type | which lines | clause | range |
+     |---|---|---|---|
+     | question | intonation `rise` | `?` | +30 |
+     | list | intonation `level` (counting) | `[[word]],` per word | +0 |
+     | greeting | intents greet, reply, farewell | `.` | +15 |
+     | command | call_workers, or a gloss ending in "!" | `!` | +15 |
+     | statement | all others | `.` | +0 |
+
+     - A list ends in continuation rises: the counting is not closed.
+     - The IPA and the phones are unchanged. Only the clause punctuation around the `[[…]]` changes, and the manifest records the eSpeak input.
+  4. **Final lowering on statements and greetings.** eSpeak's statement tune ends on a nearly level low tail. A word stressed on its first syllable (hutlak, haʃijam, aiwam) falls inside that syllable and then stays level: only 85 % of statements ended falling. Three approaches were measured on the nine hardest lines × four voices:
+     - eSpeak's other statement tunes s2–s7: 53–67 % end falling;
+     - a wider range: +20 gives 75 %; +39 gives 92 %, but at a 7.5 st range;
+     - **Praat PSOLA final lowering** (parselmouth: Manipulation, overlap-add, formants kept): the last 35 % of the voiced span, at most 0.5 s, is lowered linearly to 2 st below eSpeak's contour. 100 % end falling. **Chosen.**
+
+     The source for final lowering in declaratives is Liberman & Pierrehumbert 1984. For these languages it is C.
+  5. **Echo removal: tried, not adopted.** eSpeak's f2, f4 and f5 variants add an echo (130–140 ms at 10–15 %), and the world reverberates each space again at runtime (§11).
+     - Built without it (`REMOVE_ECHO`, a temporary overlay of the engine data), the contour thresholds still pass.
+     - But machine phone recovery of the woman's voice got worse. An allosaurus ablation over m1 + f1 on all 62 lines gave mean phone error 0.745 with the echo and 0.793 without, and clips beating their shuffled control fell from 53 % to 44 %.
+     - The other changes did not move it: the same ablation without final lowering scored 0.795 (still no echo), and with the old punctuation 0.793.
+     - Intelligibility wins (§10), so the echo stays. The double reverberation is logged in Q-287.
+- **The measurement (tools/voice_acceptance.py → research/voice_acceptance.json; tests/voice_acceptance.test.ts).** D-167's measurement was ad hoc (a scratch venv); it is now a tool.
+  - **Praat** (parselmouth 0.4.7 / Praat 6.1.38): autocorrelation pitch at 10 ms with a pitch range per group (men 60–300 Hz, women 100–500, children 120–600), and Burg formants.
+  - **Per clip:**
+    - F0 median;
+    - F0 5–95 % range in semitones;
+    - the nuclear movement: the end against the peak and the trough of the second half;
+    - the share of loud voiced frames inside the H95 F1/F2 hull, as in D-167.
+  - **Natural control:** whisper's jfk.flac, cut at its pauses: median 5.66 st over 5 phrases.
+  - **Thresholds (D-185, set here; the human rating stays the acceptance):**
+    - **T1:** each class's median F0 within its H95 group mean ± 1 SD.
+    - **T2:** median range ≥ 3 st, and ≥ 80 % of clips ≥ 2 st. Conversational F0 SD is typically 2–4 st (search extract; Traunmüller & Eriksson 1995 could not be reached). A 1–3-word line is one phrase, so 3 st is a floor well under the control's 5.7.
+    - **T3:** every question ends rising (≥ +1 st above the trough before it), and ≥ 90 % of statements, greetings and commands end falling (≥ 1 st below the peak).
+    - **T4:** a median of ≥ 85 % of frames inside the vowel space.
+  - The test checks that the report measured exactly the shipped clips (by sha256) and used these thresholds, then recomputes every threshold from the per-clip numbers.
+  - **T3 was redefined after the first full render.** It is stated here so it is not hidden.
+    - The first definition fitted a line to the last 30 % of the voiced frames. It missed the fall of a word stressed on its first syllable (hutlak m2: 145 → 111 Hz inside "hut", then level at about 110).
+    - The nuclear measure replaced it before the final render. Both are reported.
+    - Under the old slope measure the final clips give: statements 99 %, greetings 99 %, commands 94 % ending falling, questions 92 % ending rising (11 of 12).
+- **Before → after** (all 372 clips, same tool; before = the clips at 6e2dc2c):
+
+  | | before | after | threshold |
+  |---|---|---|---|
+  | m1 man, low | 78.8 Hz (z −2.38) | 114.8 Hz (z −0.75) | 109.2–153.2 |
+  | m2 man, mid | 97.0 (−1.56) | 133.2 (+0.09) | 109.2–153.2 |
+  | m3 old man | 83.6 (−2.16) | 120.6 (−0.48) | 109.2–153.2 |
+  | f1 woman | 209.4 (−0.47) | 216.5 (−0.17) | 197.2–243.6 |
+  | f2 older woman | 181.4 (−1.68) | 203.9 (−0.71) | 197.2–243.6 |
+  | c1 child | 280.4 (+1.70) | 244.2 (+0.28) | 211.5–262.5 |
+  | F0 range, median (p10–p90) | 1.29 st (0.59–5.64) | 6.44 st (4.67–8.76) | ≥ 3 |
+  | clips ≥ 2 st | 31 % | 100 % | ≥ 80 % |
+  | questions ending rising | 17 % | 100 % | 100 % |
+  | statements ending falling | 24 % | 99 % | ≥ 90 % |
+  | greetings ending falling | 28 % | 100 % | ≥ 90 % |
+  | commands ending falling | 15 % | 97 % | ≥ 90 % |
+  | vowel frames inside H95 (class medians) | 88–96 % | 86–97 % | ≥ 85 % |
+
+  - Lists (counting) end in a continuation rise in 94 % of clips. Lists are reported, not gated.
+  - The m3 range (8.45 st) and the f1 range (7.5) are the widest, above the natural control. No upper threshold is set; whether they sound sing-song is for the listener.
+  - T4 fell slightly for m3 (86 %) and c1 (87 %).
+- **Machine phone recovery (D-167's approach 2), re-run.** It did **not** improve.
+  - D-167's script was not kept. tools/dev/voice_phones.py re-implements it: allosaurus universal model, inventory pes / arb / ell, phone error rate by semi-global alignment against the line's IPA and against its phones shuffled (10 draws).
+  - All 372 clips, before → after. Each cell gives the median error, the median shuffled error, and the share of clips beating their shuffle:
+
+    | language | before | after |
+    |---|---|---|
+    | Aramaic | 0.50 / 0.69 / 73 % | 0.60 / 0.71 / 67 % |
+    | Elamite | 0.81 / 0.83 / 50 % | 0.80 / 0.80 / 54 % |
+    | Old Persian | 0.80 / 0.83 / 67 % | 0.84 / 0.86 / 51 % |
+    | Greek | 0.83 / 0.86 / 34 % | 1.00 / 1.00 / 28 % |
+
+  - The instrument is noisy. Greek's IPA and input did not change between the "old" and "stress" ablation configurations, yet its median moved 0.83 → 0.89. The m1 + f1 ablation over all 62 lines moved as follows:
+
+    | configuration | mean error | beating the shuffle |
+    |---|---|---|
+    | old settings on 1.52 | 0.745 | 57 % |
+    | + pitch | 0.709 | 58 % |
+    | + stress | 0.759 | 53 % |
+    | + pitch + stress | 0.755 | 56 % |
+    | full, no echo | 0.793 | 44 % |
+    | full, with echo (what ships) | 0.745 | 53 % |
+
+  - Read together: the pitch and contour fixes neither help nor clearly hurt what a machine recovers; removing the echo did hurt, and it was kept. The recovery stays weak and far from natural speech (D-167: 0.22–0.33).
+- **Size:**
+  - The clips grow from 1,579,883 to 1,712,079 bytes (+132 KB, +8.4 %). The echo-free build was 1,584 KB.
+  - The manifest grows from 94.5 to 110 KB, and the report adds 148 KB.
+  - All 372 clip blobs are new, so the repository history grows by about 1.7 MB.
+- **Not done, not verified:**
+  - **Nobody has listened** (H8 open). PSOLA artefacts, the naturalness of the new contours and intelligibility are unrated.
+  - The command engine path is untested.
+  - The Babylonian formant-only lines and the crowd murmur are unchanged. The formant voice keeps its own 115/205/275 Hz bases (speech.ts voiceBase).
+- **Build dependencies (tools only, nothing ships):**
+  - espeakng-loader (libespeak-ng, GPL-3), praat-parselmouth (GPL-3), numpy, scipy, soundfile.
+  - For tools/dev/voice_phones.py only: allosaurus and torch.
+  - Measurement inputs sit in data/raw/ (gitignored) and are fetched when missing.
+  - SOURCES.md and ASSET_LEDGER are updated.
+
+## D-192 Licences under USE = personal, non-commercial: any licence that permits that use with credit is allowed, CC BY-SA included; every bundled lexical source's licence checked; the unlicensed EWB data removed from the lexicon (Phase 8 review round 3 M6; lead decision, session 6, carving workstream)
+- **The finding (REVIEWS/phase8_r3.md M6).** The app bundles lexicon words and glosses from Strong's (CC BY-SA), Perseus (CC BY-SA), ORACC RIBo, CAMS and HBTIN ("licences not checked"), and the EWB sense base ("no licence file"). Meanwhile the translation layer told every user that §12 allows "only CC0, CC-BY or CC-BY-NC". D-167 had deferred the share-alike question, and no decision existed.
+- **Decision (lead, binding).** §12 says that for USE = personal, non-commercial "CC0, CC-BY and CC-BY-NC are fine". It lists licences that are fine; it does not forbid other licences that permit this use.
+  - CC BY-SA permits personal, non-commercial use with attribution. Share-alike binds only redistribution of adaptations; if the project were redistributed, those parts would carry BY-SA. So CC BY-SA sources are ALLOWED, with credit in ASSET_LEDGER.
+  - Any other licence or terms that permit this use with credit are allowed too, for example CDLI's terms of use.
+  - A source whose licence cannot be established is NOT assumed to be usable. Its data is replaced from a licensed source, or removed and the gap logged.
+- **The layer's text corrected.** `TRANSLATION_STATUS` (src/ui/translation.ts) now states the rule: any licence that permits this use with credit, CC-BY-SA included (D-192); "All rights reserved" permits none. Tested (tests/translation_layer.test.ts).
+- **Every bundled lexical source, checked 2026-09-24.** The evidence is recorded in src/data/sources.json, and the ASSET_LEDGER lexicon row names each licence:
+
+  | Source (key) | Licence | Evidence |
+  |---|---|---|
+  | ORACC ARIo (ARIO, ARIO-CATF) | CC0 | oracc/catf README: "Canonical ATF version of Oracc data which is permitted to be released under CC0" (read) |
+  | ORACC RIBo (RIBO) | CC BY-SA 3.0 | the project's statement "The annotated edition is released under the Creative Commons Attribution Share-Alike license 3.0" (search extracts; oracc.org does not answer here) |
+  | ORACC HBTIN (HBTIN) | CC BY-SA 3.0 | "created by Philippe Clancier for the AHRC-funded GKAB Project in 2008 and released under the Creative Commons Attribution Share-Alike license 3.0" (search extract) |
+  | ORACC CAMS (CAMS-ORACC) | CC BY-SA | "files from the Corpus of Ancient Mesopotamian Scholarship are released under a Creative Commons Attribution Share-Alike license" (Cambridge repository record, search extract) |
+  | SLAB-NLP/Akk mirror of the three above | MIT (the mirror's code only) | its LICENSE (read); it cannot relicense ORACC data, so the projects' own licences apply |
+  | Hallock PF texts via CDLI (CDLI-PF) | CDLI terms of use: free re-use with mention of CDLI | "Text in the pages of CDLI may be freely copied, aggregated and re-used according to common and fair academic practice" (search extract of cdli.earth/terms-of-use; the dump's README states none) |
+  | Open Scriptures Hebrew Bible (OSHB) | CC BY 4.0 (lemma and morphology); text public domain | morphhb README (read) |
+  | Strong's JSON (STRONGS) | CC-BY-SA | the file's header "Copyright 2010, Open Scriptures. CC-BY-SA." (read) |
+  | Perseus Herodotus, Homer, LSJ (HDT-GRC, HOM-OD, LSJ) | CC BY-SA 4.0 | PerseusDL/canonical-greekLit and PerseusDL/lexica READMEs (read) |
+  | Livius.org translations (LIVIUS-AI) | all rights reserved | the pages' footer. Only single-word meanings aligned with them are used (facts), and no sentence is bundled (D-167) |
+  | EWB sense base (EWB; DigitalPasts/ALP-MEGA2024) | **not established** | no LICENSE file, and none in the README (read); GitHub API not enabled; web search found none |
+
+- **EWB removed from the lexicon.** In research/LEXICON/elamite.json, 4 entries whose form rests on EWB alone are removed: *nan* "day", *puhu* "boys, servants", *amma* "mother" and *tiriš* "speak", which none of the 73 lines uses. From 27 other entries I stripped EWB's glosses, German renderings and page references. What remains rests on Hallock via CDLI, or on ARIo.
+- **Still open (Q-294, for the lead).** src/data/names.json draws 484 of its 583 personal names (the Elamite pools) from the same EWB base, and it had no ledger row. It now has one, with the licence stated as not established. Removing those names belongs to the population workstream, and the soak's name-variety gates depend on them. They should be replaced from a licensed source or removed; this workstream did not do it.
+## D-190 The landscape below the DEM, the town's used ground and the plain at a distance (session 6, landscape agent; §8.2 rubric first pass fixes 8 and 9)
+- **Read first: what is weak, unverified or placeholder.**
+  - **The last look changes are not rendered.** Two browser runs were allowed: before (the branch head) and after (commit 18fd771). The after run showed two faults, fixed in c10ac78 and checked only in node: (1) false worn paths along the midline between two paths (the bilinear filter averaged opposite vectors), (2) the rock as 20-80 m noise blobs over the dunes. The retuned rock bands, darker gullies, more gully shrubs and subtler paths were judged on a CPU ray-marched preview of the Kuh-e Rahmat view (albedo x Lambert, no bump, no haze), not on a render.
+  - Every look value here is C and was set against CPU mirrors of the shader's masks and those two runs, not against photographs of Kuh-e Rahmat or the plain (B6: no reference photographs reachable; the rubric's reviewer judged by recollection).
+  - The dawn moments (fix 8's frames) were NOT re-rendered: the runs were stair-noon-plain, village-p22 and a new Kuh-e Rahmat view. Whether the plain reads at dawn is unverified.
+  - People are not routed along the worn paths. The paths are drawn where the population's open-ground runs go (straight wherever clear, D-143), for the pairs chosen here (each site's three nearest sites, the stair foot, the facilities); a person walking between two quarters that are not neighbours still crosses fields. Routing along tracks is src/people work (not touched).
+  - The far fade keeps a share of each plot's contrast along the view: in a still frame distant fields are horizontal streaks of plot tones, one pixel row each; in motion that is aliasing, resolved only by TRAA's jitter. No walkthrough judged it.
+  - The hill layer is shading only (albedo and bump normals). No height moves: silhouettes against the sky are the DEM's (smooth at 30 m), and the hills still read as rounded masses in frontal light (the after run at 16:00 had the sun behind the camera).
+  - Load: the plain's build rose from 3.8 s to 6.5 s in the after run (the detail bake, 2.7 s in a worker, was awaited for 2.8 s); c10ac78 starts the bake before the town builds, not measured.
+  - The terrain fragment shader is 144 kB of WGSL (three's node builder); it validates with naga (wgpu-native on SwiftShader's Vulkan; tools: pip `wgpu`), and the after run compiled it in Chromium (Tint) without error. SwiftShader frame time was not measured separately (the after run took 13.1 min for 3 views against 18.7 min before, under a different load).
+  - Found, not fixed: the "black blobs" on the hills (rubric bug 8) are the woodland rule's trees near the capital as mid-ring impostors (`plain-trees-mid`, 117 at the stair view): small, dark and twiggy at 0.6-1.5 km (visible in both runs' rahmat-west-pm). The bright comb on the dawn horizon (bug 9, the bugs agent's) is not in the plain: hiding the plain's impostors or villages leaves it (the lead's dbg-plain-sunrise shots); its shape and place (thin vertical streaks over the town W of the Terrace) match the town's hearth plumes (settlement/haze.ts), not verified.
+- **Problem (rubric fixes 8, 9):** from the Grand Stair the plain read as an empty lawn; the hills as smooth sand dunes.
+  - *Measured cause, plain:* the ground that fills the stair view's frame below the horizon lies within ~400 m of the Terrace foot, and all of it was the natural herb layer: a 660 m square round the Terrace and every settlement.json zone were kept free of fields (the D-040 boundary with Phase 6). Beyond, the plot pattern faded to its zone's mean by the pixel footprint's length, which at grazing angles is its along-view axis (~160 m per pixel at 1 km from the stair's 13.6 m eye): no plot survived beyond ~250 m.
+  - *Cause, hills:* the 30 m DEM (resampled to 4/16 m) carries the massif's form and nothing below it, and the ground layer drew the plain's loam and herbs on every slope.
+- **Decision (all C unless noted):**
+  - *The hills (src/terrain/terrainDetail.ts, detail_worker.ts; the terrain layer in src/world/plain/terrainPlain.ts):* per ring sample (near 4 m, mid 16 m), from the rings themselves: D8 drainage over the DEM plus a fractal perturbation within the DEM's relative error (1.5 m near, 3 m mid; GLO30-SPEC, B), gullies where A·S² passes 150-1,500 m² (near) / 2,500-25,000 m² (mid) on slopes > 0.12 (the form of the rule MD1988, B; thresholds C), thinned where the resampled facets send parallel threads; curvature; slope at full resolution. In the shader: limestone (KR-BEDROCK, B) rock on slopes over ~17-37°, on convex spurs and in cliff-forming bed packages (12 m, ~45 %; beds 0.6-2.2 m as riser + tread in the bump; dip 0.05 toward grid ~120°); scree on concave middle slopes and gully beds; colluvial soil with thinning herbs on the rest; gullies cut 1.4 m in the bump and darkened 28 %; shrubs (pistachio-almond and Artemisia, SAEIDI2021, B species) in 5 m cells at 3.5 % cover, +15 % in gullies, +4 % on north-facing slopes, half within 2 km of the Terrace (fuel cutting, as the woodland rule). Band-limited by the pixel footprint. CPU mirror on Kuh-e Rahmat's slopes > 14°: 30 % rock, 22 % scree, 1.6 % shrub cover near the capital.
+  - *The town's used ground (src/world/plain/townGround.ts; 4 m over the near ring):* trodden earth at the Terrace foot (to ~110 m, not up the mountain), along the approach line (people_places town → stair foot), in and round the quarters, on the roads, the court's camp (court.json) and the facilities; worn 1.8 m desire lines between each site's lane mouth and its three nearest sites and the stair foot, and from the facilities (42 runs; the lane graph's 1,442 runs drew a web); irrigated plots in the town's open ground between its built sites (settlement.json canal_kuh_e_rahmat, B existence; fields C), never within 30 m of a site, 15 m of a road or water piece, 70 m of the approach line, 150 m of the Terrace, on the camp or at a facility. Only with the town built (buildPlain's new `town` option from world.ts); `?notown` and the plain tests keep the D-040 boundary. The town's sites outside every settlement zone (the Kur way-station) now also clear the fields under them (they grew crops before).
+  - *The plain at a distance (terrainPlain.ts, fields.ts):* a plot keeps its own state while the footprint's minor axis spans < 6-20 m, and along the view keeps sqrt(40 m / major axis) of its contrast (the mean of k plots keeps 1/sqrt(k)); rain-fed land alternates crop and fallow years by 800 m district (70 % / 10 % barley, mean the data's 40 %), and the far mean follows the district's year, so blocks of green and of weedy fallow read at any distance.
+  - *Not changed:* terrain heights, the horizon map, the nav grid (nothing walkable moved: no rebuild needed); materials.ts, pipeline.ts, src/people, the Terrace surfaces; the plain's meshes (0 draw calls added).
+- **Measured (quality high, WebGPU/SwiftShader, 960×540; before = the branch head 3091a4b+spec view, after = 18fd771; shots in the worktree's shots/, the before run's in the scratchpad copy):**
+
+  | view | frame calls / tris, before | after | plain adds, before → after |
+  |---|---|---|---|
+  | stair-noon-plain | 356 / 5.463 M | 356 / 5.463 M | +12 / 0.881 M → same |
+  | village-p22 | 149 / 4.689 M | 149 / 4.689 M | +40 / 2.560 M → same |
+  | rahmat-west-pm (new) | 397 / 5.488 M | 398 / 5.488 M | +10 / 0.797 M → +11 / 0.797 M |
+
+  - Flatness (linear Y σ/mean, the rubric's index; and the 9-px high-pass σ/mean): stair-noon-plain near ground 0.039 → 0.065 (high-pass 0.017 → 0.021), mid ground 0.089 → 0.115 (0.056 → 0.068); Kuh-e Rahmat 0.163 → 0.147 (high-pass 0.063 → 0.087); village-p22's far hills 0.274 → 0.257 (0.083 → 0.085); the plain in the Kuh-e Rahmat view 0.098 → 0.092. The frame means within 3 % (97.6 vs 95.1 luma at the stair).
+  - Before/after renders read: the stair view went from a uniform olive lawn to trodden ground at the foot, a fan of paths to the town (too strong, and false midline paths: fixed after, unrendered) and green irrigated plots from ~250 m; Kuh-e Rahmat from pale smooth dunes to grey rock mottling on the slopes, still rounded (retuned after, unrendered).
+- **Tests:** tests/landscape.test.ts (new, 10): the rings unchanged and the bake deterministic; Kuh-e Rahmat's gully share 1-15 % with convex and concave ground; gullies drain more than their neighbours across the slope; the desire lines; path continuity (25 of 51,627 samples outside the path, all at sharp junctions) and no false paths (0 of 10,012); no plot in or beside a site, on the Terrace or its approach, and 83 % of the town's open ground cultivated; trodden ground where expected; the rotation keeps the mix; the terrain material generates WGSL. tests/plain.test.ts, terrain.test.ts, plain_look.test.ts, shader_build.test.ts, settlement.test.ts, maplayers, trees, settlement_build, physics, horizonmap, wildlife pass; `npx tsc --noEmit` clean; `npm run lint:all` OK.
+- **Files:** src/terrain/terrainDetail.ts, detail_worker.ts (new); src/world/plain/townGround.ts (new), terrainPlain.ts, fields.ts, index.ts; src/world/settlement/walk.ts (`openRuns`, read-only, additive); src/world/world.ts (two lines); src/data/sources.json (KR-BEDROCK, MD1988, GLO30-SPEC); tests/landscape.test.ts; tests/e2e/plain.spec.ts (the rahmat-west-pm view); research/PLAIN.md §12.
+- Reversible: yes (buildPlain without `town` is the old ground; the hill layer is one block of the terrain layer).
+
+## D-187 The rubric's rendering bugs and camera framing (session 6, look-bugs workstream; REVIEWS/rubric_s6_pass1.md bugs 2–9 and fix 5)
+Bug numbers are the rubric's. Renders: two debug runs, each two page loads, WebGPU on SwiftShader, 960×540:
+`tests/e2e/dbg_look.spec.ts` (run 1: quality high for the pipeline-dependent views, quality test for composition and
+the diagnostics; shots `dbg-look-*`) and `tests/e2e/dbg_look2.spec.ts` (run 2: quality high, 2 frames per view, on the
+branch merged with claude/amazing-fermi-40ds7j e7da428; shots `dbg-look2-*`). Both write `shots/dbg-look.json`. Node
+checks: probe field, sun ephemeris, ray tests against the parts, rig and prop placement.
+- **Still broken or unverified (read first):**
+  - Floor dots and sparkles (bug 6) are NOT fixed: they come from the SSR in the post composite, which the surfaces
+    workstream owns (pipeline.ts; its fix 6 changes the floors' roughness and the SSR anyway). Diagnosis below.
+  - The pale comb on the dawn horizon (bug 9) is not identified for certain, and not changed.
+  - The black blobs on the dawn hill (bug 8) no longer appear at high after the landscape merge; the cause is unconfirmed.
+  - The head in the jar (bug 7) was not re-rendered (the crowd shot needs the court setting and a load of its own).
+  - Views re-posed but only rendered at quality test: tachara-lance-bearers, apadana-e-stair-raking, tachara-s-stair.
+    dawn-stair-top and dawn-sunrise: rendered at high at −8° pitch, then set to −5° by computation, not re-rendered;
+    dawn-sunrise itself (05:51) not rendered. apadana-enter (the brazier fix) rendered at quality test only.
+  - The S reveal of the W2 doorway stays black: logged as B23 (below).
+- **Bug 2, the black lance-bearer (tachara-lance-bearer-close).**
+  - *Cause, measured (node, the baked field):* the view looked at the S reveal of the Tachara W2 doorway, which faces grid
+    N, away from every opening of the hall (the S door and windows). The hall probes' L1 is strongly one-sided (a ≈ 1.4e-3,
+    |b| ≈ 2.5e-3 of the sky irradiance, pointing S), so a + b·n < 0 for a N-facing normal. At the reveal's lookup point
+    that outweighs the passage probe's small positive value (5.7e-5), and the clamp gives exactly 0 (skylight and sun
+    channels both 0 at five points up the reveal). No direct light reaches it, so the SSGI adds nothing: black at any
+    exposure. The figure's edges turn toward the S and E and catch light, hence the edge lines.
+  - *Approaches:* (1) clamp each probe's irradiance before interpolating: ~2.5× the probe texture reads in every lit
+    material, and the reveal would get ~4e-5 of the sky irradiance, still ~6 stops under the hall's lit faces and
+    near-black on screen; (2) a non-negative L1 reconstruction (Hazel's geometric form): it distorts the open-sky hemisphere
+    (+17 % facing up, 0.17 facing down where it should be 0), which the field must reproduce at the volume edges; (3) look
+    at the N reveal's lance-bearer (same programme, facing S, into the hall's light). Shipped (3); logged as **B23**.
+  - *Rendered (run 2, high):* the relief lit and whole. Pixels with linear Y < 0.001 fell from 57.1 % to 2.1 % (the wide
+    view: 28.7 % → 1.2 % at quality test). The white seam is absent from the new view. The old view was not re-rendered,
+    so the seam's own cause is not confirmed (probably the bumped normal's garbage at the leaf's silhouette pushing the
+    probe lookup off the volume: see bug 4).
+- **Bug 3, camera in a column (tachara-lance-bearers):** the camera stood 0.93 m from the axis of the hall column at grid
+  (−26.4, −80.75) (shaft 0.9 m) and looked at its shaft. Re-posed (below): ≥ 1.2 m clear of every column, which lies
+  outside the frame.
+- **Bug 4, light leaks in the scribes' room; and the specular side of bug 6.**
+  - *Cause:* every probe lookup stood off the surface along the BUMPED shading normal (q = p + n·0.9 m), and the reach
+    test switched hard at a probe's reach. Beside the Hadish column bases the probe irradiance changes by up to 3× within
+    5 cm along the reach lines (node scan; a 3° tilt of the normal already moves q across them). The micro-relief's normal
+    (screen-space derivatives of the bump height, garbage at silhouettes) moved q pixel by pixel. The composite (G-buffer
+    normal) disagreed with the material there, and (1 − AO) and the SSGI turned the disagreement into dots and lines;
+    the SSGI is fed scene − skylight as "direct" light. The sky specular's occlusion did the same along the reflected
+    ray. A rounded mud-brick arris sweeps q from the doorway passage into the room within 3 cm: with the bump noise it
+    gave a ragged white fringe.
+  - *Changed:* the materials offset q along the geometric normal (turned to the shading normal's side) and the sky
+    specular along the reflection about it; the composite uses the depth buffer's normal (the G-buffer's where they differ
+    by > 60°, and never a normalised zero vector). The irradiance is still evaluated for the shading normal. The reach
+    test ramps over 0.1 of the spacing (field.ts `reachOk`; the shader mirrors it). On the Hadish floor, pairs of points
+    5 cm apart that differ by > 1.5× fell from 158 to 66 of 76,560 (worst 2.24 → 1.93). The rest are probes inside the
+    column bases, whose reach is 0.
+  - *Rendered (run 1, high, the old poses):* the fringe on the arris is gone (a clean edge); the red line at the wall
+    foot is gone except ~6 px in the far corner. The "specks" at the doorway are now one continuous blue-white band: the
+    sky-lit threshold beyond the doorway, seen at the room's exposure (189).
+- **Bug 5, black stands (apadana-enter):** the brazier bodies (fire.ts) used a plain MeshStandardNodeMaterial with
+  metalness 1 and no environment, so in shade they reflected nothing. A metal's diffuse is 0, so the probes and
+  receiveShadow (on) could not help. They now use the bronze surface (SURFACES.bronze, which reflects the sky
+  environment, D-157). *Rendered (run 1, quality test):* dark bronze with highlights.
+- **Bug 6, floor dots (hadish-hall) and sparkles (apadana-hall-axis): diagnosed, not changed.**
+  - After the probe change the dots are unchanged, in the same pixels (run 1, high).
+  - The scene pass (`post=scene`) has no dots; they come from the composite. The mirror SSR runs at half resolution with
+    quality 0.3 (a ray-march step of ~3 texels). It hits the thin column-base tori only sporadically, and each hit replaces
+    the materials' grey sky sheen with the dark reflection of the base: isolated dark red dots among misses.
+  - In the hall-axis view the SSR alone (`post=ssr`) shows the reflected doorway's edge as a dithered line of single
+    texels, 1000× the hall's radiance: the white sparkles and squares.
+  - For the surfaces workstream (pipeline.ts, its fix 6 is on the same floors):
+    - more SSR steps at high (quality 0.5, as ultra);
+    - a roughness blur that covers the floors' 0.35 (the blur mip is r²·5 ≈ 0.6 now);
+    - the SSR source capped near display white at the current exposure, so a single-texel hit cannot outshine its
+      neighbours through TRAA.
+- **Bug 7, the head in the jar (crowd-court-forecourt-w):** not a head carry. The man carries a jar on the shoulder
+  (`carry_jar`, pose carry_shoulder). The jar hangs from the raised right hand, its centre 0.32 m right of the head and
+  its top 6 cm above the crown (node, three body variants), so from his right it hides the head.
+  - Found and changed on the way: the pose's turn and tilt of the head away from the jar were overwritten by the walking
+    head line (anim.ts).
+  - Also changed: the head-carried jar (`jar_head`) floated 9–12 cm above the crown. It now rests on a 2 cm pad on the
+    crown, 0.145 m × scale up the head's own axis: 0.7–3.3 cm above the crown over the variants (props.ts).
+  - Not rendered.
+- **Bug 8, black blobs on the NW hill at 05:24:** pure (0,0,0), not even aerial perspective, so probably a NaN or an
+  unlit, unfogged material.
+  - Ray test: the blob pixels lie on the hill 1.1–1.6 km N.
+  - Run 1 (quality test, the world loaded at day 25, the clock set to 05:24): no blobs. The jackals (active until
+    05:48) stood 700 m S, out of view; hiding the jackals or the birds changed nothing there.
+  - Run 2 (high, loaded at day 0 05:24, after the landscape merge): no pixel darker than 25 anywhere in the band. The
+    pick at the old blob pixel hits a river/canal-line tree impostor (`plain-trees-far`) 3.5 km out.
+  - The landscape agent (D-190) names the woodland's mid-ring impostors (`plain-trees-mid`) near the capital.
+  - Whether the merge or the probe/composite changes removed the blobs is not separated.
+- **Bug 9, the pale comb on the dawn horizon: not identified, not changed.**
+  - It is not the town's smoke plumes: with them hidden the streaks stay (run 1, quality test; the region's median luma
+    86 → 84).
+  - It is not the plain's trees or villages (the landscape agent's hiding test). Picks at six streak pixels hit only the
+    town's transparent haze sheets, 560 m out in front of them.
+  - The streaks hang pale under a dark line of crowns over the town. The remaining candidate is the town's garden-tree
+    impostors (`settlement:trees:far`, the same TreeKit as the plain's): pale trunks, sub-pixel at 500 m, drawn at full
+    pixel width by the alpha-tested, coverage-preserving impostor mips. Unconfirmed.
+- **Framing (fix 5), tests/e2e/moments.spec.ts.** Names are kept and the old poses are in comments. The views are now
+  grouped by world state (one page load each).
+  - **dawn-stair-top and dawn-sunrise:**
+    - Why the old poses failed: the landing's W edge has no parapet, and the lower flights' parapets lie 10 m below it,
+      hidden by the edge at any pitch that keeps the horizon.
+    - A first re-pose, 4.5 m down the N flight looking SSW, looked back up the flight at the landing's edge (run 1).
+    - Now: from the N end of the landing, (−36.4, 135.5), looking 281° true (WNW), toward the Earth's shadow. The N flight's
+      W parapet and merlons sit in the foreground (run 2 at −8°); −5° is computed to put the wall in the lower 40 %.
+  - **Entering the Apadana from bright sun,** day 25 11:00.
+    - At that hour the N stair's landing and the whole portico lie in the building's shade (ray check against the parts;
+      the court is in sun from y 62).
+    - The sequence:
+      - apadana-enter-court (1.9, 75): in the sun, the pavement in the lower third, the stair façade, the portico's
+        black shade; exposure 0.52.
+      - apadana-enter (the landing) and apadana-enter-portico (1.9, 36): adapted; exposure 25.3.
+      - apadana-enter-door (1.9, 31.0): on the threshold with the portico's eye; exposure 25.3: the hall a dark void,
+        the far doorway a slab of light.
+      - apadana-enter-hall (1.9, 23.0): 8 m on, the eye carried 6 s (τ 3 s toward more light); exposure 136: the hall
+        coming up out of the dark.
+      - apadana-hall-axis: adapted, ≈ 350.
+      - apadana-hall-out (1.9, 18, 341°): looking out through the doorway at the sunlit portico and court from the
+        adapted hall; exposure 266, 8.5 % of the frame clipped.
+    - `__parsa.carryEye(exposure, s)`: the frozen test world adapts fully every frame, so a view may carry an earlier
+      view's eye through `adaptExposure`'s time constants.
+    - All rendered at high (run 2).
+  - **Reliefs in raking light.** The angle the sun meets the face at = asin(cos alt · cos(az − façade normal)) (ephemeris):
+    - reliefs-raking (Apadana N stair, normal 341° true): day 25 16:00, sun az 271°, alt 32°: 17° (the old slot, day 60
+      18:18, was 41°). Its old camera looked E with that sun behind it (flat); now (8, 67) looking WSW (216° true) into
+      the light (rendered, high).
+    - tachara-s-stair (normal 161°): 09:30, az 104°, alt 55°: 19°. At 15:30 the sun was behind the face.
+    - New apadana-e-stair-raking (the E stair façade, x 72.19, normal 71°): (80, −14) looking 300° true, 10:00, az 111°,
+      alt 61°: 22°.
+    - Each face is in sun at that hour (ray check).
+    - The rubric's "W-facing stairs late afternoon" would be frontal light (46–57°), not raking.
+    - tripylon-n-stair (16:00: 17°) stays in the Apadana's shade and is unchanged.
+  - **tachara-lance-bearers** (−26.9, −86.0, 304°, −4°) **and tachara-lance-bearer-close** (−28.4, −84.6, 311°, −10°):
+    both on the N reveal's lance-bearer (1.8 m, x −30.08…−29.54 at the hall end of the passage), 4.8 m and 2.8 m away,
+    37° and 30° off its face; day 25 16:00, which shares a load with stair-climb-pm.
+  - **scribe-at-work:** (189.4, −84.2) at seated eye height (1.0 m), 2.6 m from the desk, looking W at the scribe, the
+    drying board and the clay, the benches of filed tablets behind, the doorway's light from the left (rendered, high). A
+    first try 1.4 m away had him fill the frame.
+- **Tests:**
+  - `npx tsc --noEmit` clean. `npm run lint:all` OK.
+  - vitest (`--maxWorkers=1`), all passed: probes, shader_build, envocc, occlusion, humans_runtime, exposure, surfaces,
+    performers, people, crenellation, reliefs, roofs.
+  - Fails on the base commit as on this branch, under load 8–9 on 4 cores (12.3 ms and 13–15 ms): performances "300
+    performers … CPU within budget" (ms[45] < 10). Timing: re-run alone on an idle box.
+- **Files:**
+  - src/render/probes/runtime.ts, field.ts, envmap.ts, pipeline.ts (+8 lines), src/world/fire.ts, src/people/props.ts,
+    anim.ts, src/main.ts (`carryEye`, `tick`).
+  - tests/e2e/moments.spec.ts, dbg_look.spec.ts, dbg_look2.spec.ts; BLOCKERS B23.
+  - No probe or nav rebuild needed: no geometry or SURFACES albedo changed.
