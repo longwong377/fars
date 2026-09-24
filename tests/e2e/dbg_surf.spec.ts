@@ -20,6 +20,7 @@ const VIEWS: Record<string, { day: number; hour: number; v: [number, number, num
   'apadana-north-nr': { day: 0, hour: 9, v: [1.9, 40, 1.6, 341, 1] },
   'stair-foot-east': { day: 0, hour: 9, v: [-60, 122, 1.6, 71, 10] },
   'stair-climb-pm': { day: 25, hour: 16, v: [-43.9, 128, 1.6, 341, 12] },
+  'dawn-glow-e': { day: 0, hour: 5.40, v: [-36.4, 122.45, 1.6, 79, 6] },
 };
 const SET: Record<string, Record<string, number | boolean>> = {
   B: { surf: 1, env: 1, ssr: 1, sss: 1, giDirect: 1, contact: 1, bevels: true },
@@ -30,7 +31,7 @@ const SET: Record<string, Record<string, number | boolean>> = {
   ssr0: { surf: 1, env: 1, ssr: 0, sss: 1, giDirect: 1, contact: 1, bevels: true },
 };
 test('surfaces A/B', async ({ page }) => {
-  test.setTimeout(1_380_000);
+  test.setTimeout(+(process.env.TIMEOUT ?? 1380) * 1000);
   const t0 = Date.now(), budget = +(process.env.BUDGET_S ?? 1150) * 1000; // stop starting new renders after ~19 min
   const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errs.push(m.text().slice(0, 300)); });
   // ONLY=view[@frames][:V1+V2],… (per-view frame count and variants; defaults FRAMES, VARIANTS)
