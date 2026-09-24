@@ -151,7 +151,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const shafts = new RainShafts(terrain); root.add(shafts.group); // distant rain cells approaching on the wind
   void QUALITY;
   // Phase 7: the Marvdasht plain (src/world/plain; plain.json): rivers, canals, fields, orchards, villages, Naqsh-e Rustam
-  const plain = await buildPlain(scene, terrain, phys, { quality: q, seed }); root.add(plain.group);
+  const plain = await buildPlain(scene, terrain, phys, { quality: q, seed, town: settlement?.plan ?? null }); root.add(plain.group);
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
   const nav = await NavGrid.load(async p => (await fetch('/' + p)).arrayBuffer());
   // visible birds (§5.5): swallows over the courts in season, raptors over the slope, sparrows on the court floors
