@@ -77,7 +77,7 @@ export interface PTask { kind: 'reap' | 'thresh' | 'vintage' | 'fruit' | 'plough
   opt?: string; tool?: string; helper?: boolean; carryHome?: string }
 /** a transhumant band's shared day (Population.bandDay; E-49, lives.json herders; C) */
 export interface BandDay { k: number; leave: number; hour: number; moving: boolean; camp0: number; camp1: number; wake: number; departF: number; depart: number; haltA: number; haltB: number;
-  arriveBag: number; arriveFlock: number; supper: number; w1: number; w2: number; w1end: number; baggage: number[]; grazers: number[]; milk: boolean; prev: BandDay | null }
+  arriveBag: number; arriveFlock: number; supper: number; setOut: number; bagHalt: number; w1: number; w2: number; w1end: number; baggage: number[]; grazers: number[]; milk: boolean; prev: BandDay | null }
 /** a household's day (lives.json meals, household_bread): who eats at home, bread, the shared meal times and lengths */
 /** a household's child-minding on a day (Population.mindDay): the minder, each little one's pieces with her (with = the
  *  minder) and the minder's own pieces, written from one schedule */
@@ -987,8 +987,13 @@ export class Population {
     const baggage: number[] = men.filter((x, i) => this.ageOn(x, d) >= 16 && ((i + d) % Math.round(1 / HB.baggage_men_share) === 0 || x === prev?.w1 || x === prev?.w2));
     const flockFolk = this.membersOn(this.bandHH[b], d).filter(x => this.persons[x].sex === 'm' && this.ageOn(x, d) >= 10 && this.ageOn(x, d) <= 55 && !baggage.includes(x)).sort((a, b2) => a - b2);
     const grazers = flockFolk.filter((x, i) => (i + d) % 2 === 0 || flockFolk.length === 1);
-    const r: BandDay = { k, leave, hour: band.hour, moving, camp0, camp1, wake, departF: wake + lerp(0.8, 1.2, u(2)), depart: wake + lerp(1.3, 1.9, u(3)), haltA, haltB,
-      arriveBag: Math.max(haltB + 0.8, Math.min(sun.set - 1.5, haltB + lerp(1.0, 2.0, u(6)))), arriveFlock: sun.set - lerp(0.4, 1.0, u(7)), supper: sun.set + lerp(0.3, 0.7, u(8)),
+    // the families with the donkeys walk at most HB.bag_stage_h in all (the old and the little ones with them: planCheck (g));
+    // on the long summer mornings they halt before the flock does (C)
+    const depart = wake + lerp(1.3, 1.9, u(3)), bagHalt = Math.min(haltA, depart + HB.bag_stage_h - 1.1);
+    const r: BandDay = { k, leave, hour: band.hour, moving, camp0, camp1, wake, departF: wake + lerp(0.8, 1.2, u(2)), depart, haltA, haltB, bagHalt,
+      arriveBag: Math.max(haltB + 0.5, Math.min(sun.set - 1.5, haltB + lerp(1.0, 2.0, u(6)), haltB + HB.bag_stage_h - (bagHalt - depart))), arriveFlock: sun.set - lerp(0.4, 1.0, u(7)), supper: sun.set + lerp(0.3, 0.7, u(8)),
+      // the arrival day's stage from the last camp in the hills (HB.hill_stage_h) and the families' walk on the plain to the first camp
+      setOut: band.hour - lerp(HB.hill_stage_h[0], HB.hill_stage_h[1], u(10)),
       w1, w2, w1end: lerp(HB.watch_end_h[0], HB.watch_end_h[1], u(9)), baggage, grazers, milk: (HB.milk_months as number[]).includes(C.month), prev };
     this.bandCache.set(key, r); return r;
   }
@@ -3306,7 +3311,12 @@ class Planner {
   /** a party with a halmi: arrival, the days of its stay, departure (E-21); each day of the stay has its own business (C) */
   private traveller(): Seg[] {
     const P = this.P, p = this.p, d = this.d, r = this.r; const pa = P.parties[p.idx]; const k = d - p.arrive;
-    if (d === p.arrive) { this.add(Math.max(0.5, pa.hour - 2.5), '-', 'offmap', `on the road from ${pa.route}, not yet in the plain`, 'away'); this.add(Math.max(this.t + 0.5, pa.hour - 0.1), 'road:arrival', 'walk', `on the road from ${pa.route}`, 'road'); this.add(Math.max(this.t + 0.05, pa.hour), 'station', 'walk', 'arriving at the road station', 'town');
+    if (d === p.arrive) { // the night at the last station on the road, then the day's stage (lives.json travellers_stay.stage_h; C: a day's
+      // stage between the road's stations; sweep r8 (g): the party was "on the road" from midnight, 15 h off the map)
+      const ST = (L.travellers_stay as any).stage_h as [number, number], go = Math.max(this.sun.rise - 0.5, pa.hour - 2.5 - lerp(ST[0], ST[1], u01(P.seed, 0x7a5e, p.idx)));
+      if (go > 1) { const up = Math.min(go - 0.4, this.sun.rise + 0.3); this.add(up, '-', 'sleep', `asleep at the last station on the road from ${pa.route}, not yet in the plain`, 'away');
+        if (go - 0.4 - this.t > 0.05) this.add(go - 0.4, '-', 'offmap', `the morning at the last station on the road from ${pa.route}, not yet in the plain`, 'away'); this.add(go, '-', 'eat', 'a meal at the last station before the road', 'away'); }
+      this.add(Math.max(this.t + 0.3, pa.hour - 2.5), '-', 'offmap', `on the road from ${pa.route}, not yet in the plain`, 'away'); this.add(Math.max(this.t + 0.5, pa.hour - 0.1), 'road:arrival', 'walk', `on the road from ${pa.route}`, 'road'); this.add(Math.max(this.t + 0.05, pa.hour), 'station', 'walk', 'arriving at the road station', 'town');
       // the loads off and the animals watered first, then the halmi shown and the rations drawn (S7 of reviewer B, r6; C)
       this.add(this.t + 0.8, 'station', 'tend_animals', 'unloading and watering the animals', 'town'); this.add(this.t + 0.6, 'station', 'queue', 'showing the halmi and drawing travel rations (E-21)', 'town'); this.add(Math.max(this.t, this.sun.set), 'station', 'rest', 'resting after the road', 'town'); this.add(this.t + 0.6, 'station', 'eat', 'evening meal', 'town'); this.add(24, 'station', 'sleep', 'asleep at the station lodging', 'town'); return this.segs; }
     const pu = (k: number) => u01(P.seed, S.assign, 9500 + p.idx, d, k); const wakeP = this.sun.rise - 0.4 + 0.7 * pu(1);
@@ -3377,8 +3387,11 @@ class Planner {
     const road = (t1: number, why: string, carry?: string) => { const ride = role === 'child' && this.age < 7 && this.t >= 11.9; at(t1, 'road:plain', role === 'little' || ride ? 'rest' : 'walk', ride ? 'riding on a donkey’s load for the rest of the stage' : why, 'road', carry); };
     const c0 = B.camp0, c1 = B.camp1, staff = 'a herdsman’s staff', bread = B.milk ? 'bread and milk' : 'bread and curds';
     // ---- the night before: asleep in the tent, or the watch with the flock by turns
-    if (B.k === 0) { const down = Math.max(0.8, B.hour - 2.5, this.lightStart()); /* (the flock comes down into the plain in the light: planCheck (b)) */ this.add(Math.min(down - 0.3, B.wake), '-', 'sleep', 'asleep in the last camp in the hills, not yet in the plain', 'away');
+    if (B.k === 0) { // (a stage of HB.hill_stage_h down from the last camp in the hills, set out in the light: planCheck (b), (g))
+      const setOut = Math.max(B.setOut, this.lightStart(), B.wake + 0.35), down = Math.max(setOut, B.hour - 2.5);
+      this.add(Math.min(setOut - 0.3, B.wake), '-', 'sleep', 'asleep in the last camp in the hills, not yet in the plain', 'away');
       this.add(this.t + 0.3, '-', 'eat', role === 'little' ? 'a meal with the mother before the road down' : `${bread} before the road down`, 'away'); if (role === 'little' && mom >= 0) this.segs[this.segs.length - 1].with = mom;
+      if (setOut - this.t > 0.05) this.add(setOut, '-', 'offmap', withFlock ? 'with the flock by the last camp in the hills, not yet in the plain' : 'striking the tents and loading the donkeys at the last camp in the hills, not yet in the plain', 'away');
       this.add(down, '-', 'offmap', 'coming down from the hills with the band, not yet in the plain', 'away'); }
     else if (watchedFirst) { at(prev!.w1end, fold(c0), 'herd', 'watching the flock with the dogs in the night, by turns', W, staff); at(B.wake, camp(c0), 'sleep', 'asleep in the tent after the first watch'); }
     else if (watchedSecond) { at(prev!.w1end, camp(c0), 'sleep', 'asleep in the tent'); at(B.wake - 0.1, fold(c0), 'herd', 'watching the flock with the dogs in the night, by turns', W, staff); }
@@ -3386,11 +3399,12 @@ class Planner {
     // ---- the day
     if (B.k === 0) { // coming down into the plain (E-49): the flock with the men, the families with the loaded donkeys
       const come = Math.max(this.t + 0.5, B.hour);
-      if (withFlock) { at(come, 'road:arrival', 'herd', 'coming down into the plain with the flock and the dogs (E-49)', W, staff); if (this.t < 12.2) { at(Math.max(this.t + 0.3, 12), route, 'herd', 'grazing the flock along the plain edge (E-49)', W, staff); at(this.t + 0.35, route, 'eat', 'a midday meal of bread and curds by the flock'); }
+      if (withFlock) { at(come, 'road:arrival', 'herd', 'coming down into the plain with the flock and the dogs (E-49)', W, staff); if (this.t < B.haltA) at(B.haltA, route, 'herd', 'grazing the flock along the plain edge (E-49)', W, staff); at(this.t + 0.35, route, 'eat', 'a midday meal of bread and curds by the flock');
+        if (B.haltB - this.t > 0.3) at(B.haltB, route, this.C.wx.tmax >= 30 ? 'sleep' : 'rest', this.C.wx.tmax >= 30 ? 'sleeping in the shade while the flock lies up through the heat' : 'resting while the flock lies up at midday');
         at(Math.max(this.t + 0.3, B.arriveFlock), route, 'herd', 'grazing the flock along the plain edge to the first camp (E-49)', W, staff); at(this.t + 0.5, fold(c1), 'tend_animals', 'watering the flock and folding it beside the tents'); }
       else { at(come, 'road:arrival', role === 'little' ? 'rest' : 'walk', role === 'little' ? 'riding on the donkey’s load beside the mother, coming down into the plain' : 'coming down into the plain with the loaded donkeys (E-49)', 'road');
-        if (this.t < 12.2) { road(Math.max(this.t + 0.3, 12), role === 'little' ? 'riding on the donkey’s load beside the mother' : 'walking beside the loaded donkeys along the plain edge'); at(this.t + 0.35, route, 'eat', role === 'little' ? 'bread and curds with the mother at the halt' : 'bread and curds at the halt'); }
-        road(Math.max(this.t + 0.3, Math.min(set - 1.3, B.arriveBag)), role === 'little' ? 'riding on the donkey’s load beside the mother' : 'walking on with the donkeys to the first camp'); this.atCamp(role, c1, B, true); }
+        // the first camp is at the plain's edge: the families reach it an hour or two after the plain, before the heat (C)
+        road(Math.max(this.t + 0.3, B.hour + lerp(0.8, 1.6, u01(P.seed, 0x5eed, b, d))), role === 'little' ? 'riding on the donkey’s load beside the mother' : 'walking on with the donkeys to the first camp'); this.atCamp(role, c1, B, true); }
       return this.herdEvening(role, c1, B);
     }
     const leaving = d === B.leave;
@@ -3419,10 +3433,10 @@ class Planner {
     if (role === 'man' || role === 'woman' || role === 'girl' || role === 'youth') at(Math.max(this.t + 0.3, B.depart), camp(c0), 'carry_sack', role === 'man' || role === 'woman' ? 'taking down the tents and loading the donkeys' : 'helping to load the donkeys');
     else at(Math.max(this.t + 0.2, B.depart), camp(c0), role === 'little' ? 'play' : 'rest', role === 'little' ? 'playing by the tent while it comes down' : role === 'child' ? 'waiting while the tents come down' : 'sitting by the tent while it comes down');
     if (role === 'child' && this.segs[this.segs.length - 1]?.why === 'waiting while the tents come down') { const w = this.segs[this.segs.length - 1]; if (w.t1 - w.t0 > 0.6) { const e = w.t1; w.t1 = w.t0 + 0.5; this.t = w.t1; at(e, camp(c0), 'carry_sack', 'helping to carry the tent poles and bundles to the donkeys'); } } // (not idle for most of an hour: planCheck (c))
-    const mid = (this.t + Math.min(out, B.haltA)) / 2;
+    const mid = (this.t + Math.min(out, B.bagHalt)) / 2;
     // (the stop is at water on the way, not at the halt: S10)
-    if (Math.min(out, B.haltA) - this.t > 1.5) { road(mid, who, role === 'man' || role === 'woman' ? 'the donkeys’ lead rope' : undefined); at(this.t + 0.15, `${route}:water`, role === 'little' ? 'play' : 'rest', role === 'little' ? 'down from the donkey for a moment at a short stop' : 'a short stop on the way to let the donkeys drink'); }
-    road(Math.min(out, B.haltA), who, role === 'man' || role === 'woman' ? 'the donkeys’ lead rope' : undefined);
+    if (Math.min(out, B.bagHalt) - this.t > 1.5) { road(mid, who, role === 'man' || role === 'woman' ? 'the donkeys’ lead rope' : undefined); at(this.t + 0.15, `${route}:water`, role === 'little' ? 'play' : 'rest', role === 'little' ? 'down from the donkey for a moment at a short stop' : 'a short stop on the way to let the donkeys drink'); }
+    road(Math.min(out, B.bagHalt), who, role === 'man' || role === 'woman' ? 'the donkeys’ lead rope' : undefined);
     at(this.t + 0.35, route, 'eat', role === 'little' ? (age === 1 && mom >= 0 ? 'nursed by the mother at the halt' : 'bread and curds with the mother at the halt') : 'bread and curds at the halt');
     if (leaving) { at(24, '-', 'offmap', 'gone on out of the plain with the band', 'away'); return this.segs; }
     if (B.haltB - this.t > 0.3) at(B.haltB, route, watched || role === 'little' || (role === 'child' && age < 7) ? 'sleep' : 'rest', watched ? 'sleeping at the halt after the night watch' : role === 'little' ? 'a midday sleep at the halt' : role === 'child' && age < 7 ? 'a sleep in the shade at the halt' : 'resting at the halt in the shade');
@@ -3438,7 +3452,12 @@ class Planner {
     if (role === 'man' || role === 'woman') at(this.t + 0.8, camp, 'carry_sack', role === 'man' ? 'unloading the donkeys and pitching the tents' : 'unloading the donkeys and pitching the tent');
     if (watched) at(this.t + lerp(2.8, 3.5, r.next()), camp, 'sleep', 'sleeping in the tent after the night watch');
     if (role === 'man') { if (this.t + 0.5 <= this.lightEnd()) at(this.t + 0.5, stream, 'tend_animals', 'watering the donkeys at the stream and hobbling them by the tents'); else at(this.t + 0.4, camp, 'tend_animals', 'hobbling the donkeys by the tents in the dusk');
-      at(Math.max(this.t + 0.4, Math.min(B.supper - 0.1, this.t + lerp(0.6, 1.2, r.next()))), camp, 'gather', 'gathering brushwood for the fire'); }
+      at(Math.max(this.t + 0.4, Math.min(B.supper - 0.1, this.t + lerp(0.6, 1.2, r.next()))), camp, 'gather', 'gathering brushwood for the fire');
+      // the men at the tents meet the flock as it comes in: water it, count it and fold it (shadow review r8, 44216: a herder's
+      // day without the flock; C). Until then: mending the gear, and a rest through the heat of the day
+      if (B.arriveFlock - this.t > 0.6) { if (this.C.wx.tmax >= 26 && this.t < 15) at(Math.min(B.arriveFlock - 0.6, 15.5), camp, this.C.wx.tmax >= 30 ? 'sleep' : 'rest', this.C.wx.tmax >= 30 ? 'a sleep in the tent through the heat of the day' : 'resting in the shade of the tent');
+        at(B.arriveFlock, camp, 'craft', 'mending the donkeys’ pack ropes and the tent cords'); }
+      if (B.arriveFlock + 0.3 < B.supper - 0.05) at(Math.min(B.supper - 0.05, Math.max(this.t, B.arriveFlock) + 0.45), fold, 'tend_animals', 'helping water, count and fold the flock as it comes in'); }
     else if (role === 'woman') { at(this.t + 0.35, stream, 'draw_water', 'fetching water from the stream for the tent'); at(this.t + lerp(0.5, 0.9, r.next()), camp, 'gather', 'gathering brushwood and dung for the fire');
       if (cookAt - this.t > 0.5) at(Math.min(cookAt, Math.max(this.t + 0.4, B.arriveFlock + 0.1)), camp, 'spin', 'spinning wool by the tent, the children about her');
       if (B.milk && B.arriveFlock + 0.2 < B.supper - 0.3) at(Math.min(B.supper - 0.3, Math.max(this.t, B.arriveFlock + 0.2) + 0.5), fold, 'tend_animals', 'milking the ewes and the goats as the flock comes in'); }
