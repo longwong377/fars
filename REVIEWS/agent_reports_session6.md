@@ -80,3 +80,26 @@ cost: `collect()` refilled all 7,692 outdoor people every update (4–5 ms), not
 object and is refilled only on change: 0.83–1.05 ms; view test 2.39–4.64 ms at 1×. Walking phase advances out of view.
 `Math.hypot` → sqrt in per-person loops. `crowd.stats().placeholderActs` 0 in the five busiest scenes.
 **Tests:** tsc clean; full suite 540 passed, 2 failed (the timing tests), 1 skipped; lint:all OK; botcheck 97/97.
+
+## Phase 8 carving (branch p8-carving-s6, head 519641d, D-176, D-177) — merged in session 6
+**Still broken, unverified or placeholder (read first)**
+- No GPU or e2e render of the incised signs: node preview only (tools/incision_preview.ts, XPa in OP and Elamite): wedges
+  cut in and lit as cuts, with fine stepped banding on the cut walls (8-bit depth atlas, one-texel gradients).
+- The stone mesh is not cut (a sign seen edge-on leaves no notch); the sun's shadow map does not resolve millimetre walls.
+- 10 copies or versions of the royal programme not carved (Q-290, flagged in F3 data): XPc and XPd pillar copies (no anta
+  face in the model); the DPb one-line copy and XPk (on royal garments: no garment surface on the procedural figures); XPg
+  (glazed bricks, not modelled); XPj, XPm (which column bases not established); the Elamite and Babylonian versions of DNa
+  and DNb and the tomb captions DNc–DNe (not in the corpus read).
+- DNb's 26 lost signs are cut as blank spaces one sign wide (the stone was complete in 467: placeholder).
+- 48 words where the two editions differ (Q-288): the world carves Kent's sign sequence; the translation layer shows
+  Schmitt's words (ARIo) and says how many differ (39 of the 48 in DNb).
+- 17 typing slips in the scraped corpus corrected in data/corpus/op_sign_decisions.json, each with evidence the tests check;
+  neither Kent's print nor Schmitt's sign-by-sign edition was read.
+**Done:** D-176 (corpus renamed data/corpus/op_translit.json, transliteration lines only, `_meta` basis, ASSET_LEDGER row,
+source key OP-TRANSLIT; a test checks no English); build_op_signs.ts carves the corpus itself (word division and lines);
+V-shaped incision, nothing proud (a test shows the wall normal lights the far wall of a stroke under a low sun); every
+carved mesh records its signs and the language lint requires them to equal the data; src/data/royal_inscriptions.json lists
+every copy standing in 467 (14 carved, 10 missing, hidden texts DPh, XPf, XPh, XPl). **Spelling check:** 1,043 corpus
+words across 12 carved OP texts, 0 mismatches; Xerxes' name xa-ša-ya-a-ra-ša-a in all 14 places.
+**Tests:** tsc clean; language/lang/inscriptions/translation/plain 85/85; lint:all OK; full vitest 618 passed, 1 failed
+(humans_runtime CPU timing, passes alone), 1 skipped.
