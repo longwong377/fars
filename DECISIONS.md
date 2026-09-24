@@ -3203,14 +3203,14 @@ The year soak with the court was not run (another agent runs the default year so
   - (f) `dress`: out of doors in the dust (not eating) or in the cold (below 8 °C for more than a quarter of an hour) without the dress for it, asleep and carried too; or the dress worn for more than half an hour out of that weather (a cloak put on for a walk of an hour or less is not counted).
 - **Counts, every person-day of the year (15,462,938; seed 1, court absent):**
 
-  | invariant | before (9213b2a's planner; sweep tools/dev, D-191) | after (the soak on this branch) |
+  | invariant | before (9213b2a's planner; a sweep of every person-day with these checks, scratch tool not kept) | after (`npm run soak` on 7911264) |
   |---|---|---|
-  | (a) weather | 140,956 (courtyard play and minding in rain 67,166; leisure in dust 45,331; meals out in the rain 12,778; the roof 7,843; other 7,838) | AFTER_A |
-  | (b) light | 818,120 (knucklebones in the lane after dusk 466,807; the house's animals let out before dawn 208,963; trade in the lane after dusk 141,358; the herders' flock 709) | AFTER_B |
-  | (c) wait | 146,380 (waiting for the morning bread 88,362; the ration issue 31,376; grain measured at the store 23,547; the courier at the station 2,924) | AFTER_C |
-  | (d) label | 2,207,896 ("with the household" alone 1,498,107; "through the heat" under 45 min 538,047; "before the rains" after them 80,328; "before leaving" 48,244; "kept for the late-comer" 41,441; other 1,729) | AFTER_D |
-  | (e) feed | 124,497 (night 120,248; day 4,249) | AFTER_E |
-  | (f) dress | 1,947,211 (cold, undressed 1,213,377; cold, dressed out of it 111,101; dust, unwrapped 268,173; dust, wrapped out of it 353,140) | AFTER_F |
+  | (a) weather | 140,956 (courtyard play and minding in rain 67,166; leisure in dust 45,331; meals out in the rain 12,778; the roof 7,843; other 7,838) | **0** |
+  | (b) light | 818,120 (knucklebones in the lane after dusk 466,807; the house's animals let out before dawn 208,963; trade in the lane after dusk 141,358; the herders' flock 709) | **0** |
+  | (c) wait | 146,380 (waiting for the morning bread 88,362; the ration issue 31,376; grain measured at the store 23,547; the courier at the station 2,924) | **0** |
+  | (d) label | 2,207,896 ("with the household" alone 1,498,107; "through the heat" under 45 min 538,047; "before the rains" after them 80,328; "before leaving" 48,244; "kept for the late-comer" 41,441; other 1,729) | **0** |
+  | (e) feed | 124,497 (night 120,248; day 4,249) | **0** |
+  | (f) dress | 1,947,211 (cold, undressed 1,213,377; cold, dressed out of it 111,101; dust, unwrapped 268,173; dust, wrapped out of it 353,140) | **0** |
 
   The "before" sweep used the invariants as first written. Two later definitions do not change its counts materially: people eating and resting by the flock in the weather (91 findings before), and a meal at a post during the watch.
 - **Fixed at their rules (`src/people/population.ts` unless named):**
@@ -3231,8 +3231,23 @@ The year soak with the court was not run (another agent runs the default year so
   - The court's free hours keep out of the rain, the dust (at leisure) and the dark (work). Its meals in the rain are under the Gate's roof or the stockyard's shed. Its servers help at the kitchens between the meals instead of waiting for an hour (`court.ts`).
   - Found on the way: `popview`'s spot memo was not keyed by the day, so a lane's spot from day 150 was used on day 25, 9 m away (the person had turned twelve in between). It is keyed by the day now.
 - **Logged, not changed:** A's note on 44293's "toward the hills" in autumn. The reviewers' S12 on walking times and places (checked, not a fault).
-- **Soak:** SOAK_LINE
-- **Tests and checks:** TESTS_LINE
+- **Soak (`npm run soak`, seed 1, 354 days, everyone, court absent; commit 7911264, which includes the merge of fcdd2c0): PASS, all eight gates.** Report `bench-reports/soak-2026-09-24T17-17-36-507Z.json` (not in git).
+  - variety (135 detailed agents): worst 0.020 (#128, a child).
+  - populationVariety (43,245 measured): none failing; worst 0.089 (29729, a farmer present 10 days). Infants (not gated): 0 of 3,526 would fail.
+  - events: 14-20 kinds a week (mean 16.84; floor 8), 23 kinds in the year.
+  - stuck: nobody.
+  - stocks: sacks 0-282; grain 9,724-71,155, flour 587-2,065; no shortfall, no collapse; harvest factor 0.945.
+  - renderedHonest: nothing unlisted or placeholder performed.
+  - plansWellFormed: 15,462,938 person-days with no issue of any kind, the six invariants included; 118 checked days with no issue.
+  - visibleChange: 51 of 51 weeks.
+  - The population's checks took 5,716 s (was 3,742 s on D-186's run), because the household check reads the household's plans. The 60x frame cost was 20.0 ms mean and 506 ms p99; it is not gated.
+  - Two earlier runs on this branch failed plansWellFormed only: 8 heat words after 18:00 on 302ed5f, and one short "through the heat" stretch on ebacf50. Both were fixed at the rule, in the words pass.
+- **Tests and checks (final code):**
+  - `npx tsc --noEmit` clean.
+  - `tests/people_days_r8.test.ts` has 17 tests. With r6 and r7 on 7911264: 61 of 61.
+  - Full `npx vitest run --maxWorkers=1` on ebacf50: 743 passed, 1 skipped, 2 failed. The 2 are CPU-timing tests (performances, popview costs) that fail under the soak's load; alone they pass (33 of 33 on 7911264).
+  - `npm run lint:all` OK. `npx tsx tools/dev/botcheck.ts` 97 of 97.
+  - Round-8 input: `REVIEWS/shadow_days_input_seed1_pick149.txt` (`npx tsx tools/shadow_days.ts 1 149` on 7911264; 618 lines; not scored).
 
 ## D-193 The personal names from licensed evidence only (D-192; Q-294; session 6, sim agent)
 - **Why:** D-192 rules that a source whose licence cannot be established is not usable. 484 of the 583 names in `src/data/names.json` rested on the EWB lemma base alone (DigitalPasts/ALP-MEGA2024, no licence stated). The 99 names read in the Hallock PF texts via CDLI carried EWB lemmas, pages and origin guesses read from EWB's etyma.
