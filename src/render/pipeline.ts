@@ -30,7 +30,7 @@
 // reflectance of each pixel; where a ray hits, it replaces the sky environment the material reflected (the composite
 // re-evaluates that term with the material's own lookup and specular occlusion).
 import * as THREE from 'three/webgpu';
-import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2, metalness, roughness, Fn, dot, normalize, luminance, smoothstep, pmremTexture, EnvironmentBRDF, reflect } from 'three/tsl';
+import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2, metalness, roughness, Fn, dot, normalize, luminance, smoothstep, pmremTexture, EnvironmentBRDF, reflect, step } from 'three/tsl';
 import { ssgi } from './ssgi';
 import { ssgi as ssgiOrig } from 'three/addons/tsl/display/SSGINode.js';
 import { ssr } from 'three/addons/tsl/display/SSRNode.js';
@@ -98,9 +98,9 @@ export class Pipeline {
     // L1 sky irradiance for the reflection direction, looked up 0.9 m out along it, against the open sky's (1 + r_y)/2;
     // 1 outside the volumes. Built into each material when its shader is built (the probes have loaded by then); the
     // materials and the composite turn it into an occlusion with envmap.specularOcclusion
-    skyEnv.occlusion = (p: any, _n: any, r: any) => {
+    skyEnv.occlusion = (p: any, _n: any, r: any, rOff?: any) => {
       const open = r.y.mul(0.5).add(0.5).max(0.05);
-      const P = probeAmbient(p, r, vec3(1, 1, 1), vec3(0, 0, 0), vec3(open, open, open), true); // direct sky only (D-181)
+      const P = probeAmbient(p, r, vec3(1, 1, 1), vec3(0, 0, 0), vec3(open, open, open), true, rOff ?? r); // direct sky only (D-181); rOff: D-187
       return clamp(luminance(P.E).div(open), 0, 1);
     };
     (globalThis as any).__parsaSurf = { ...((globalThis as any).__parsaSurf ?? {}), ...this.ab, env: skyEnv.intensity, envCaptures: () => skyEnv.captures, post: (v: string) => this.setDebugView(v) };
@@ -144,7 +144,13 @@ export class Pipeline {
       if (renderer.logarithmicDepthBuffer) d = viewZToPerspectiveDepth(logarithmicDepthToViewZ(d, near, far), near, far);
       const pView = getViewPosition(uv(), d, uniform(camera.projectionMatrixInverse));
       const pWorld = this.camWorld.mul(vec4(pView, 1)).xyz;
-      const P = probeAmbient(pWorld, nW, this.hemiSky, probeSun, hemiIrr);
+      // D-187: the probe lookup stands off along the surface's geometric normal, as the materials' does (their bumped
+      // normal moved it across the probes' reach steps: speckle), here the normal of the depth buffer (where it disagrees
+      // with the G-buffer's by more than 60°, at a depth edge, the G-buffer's)
+      const nDv = pView.dFdx().cross(pView.dFdy()).normalize(), nDs = nDv.mul(step(0, dot(nDv, pView.negate())).mul(2).sub(1));
+      const nGW = this.camWorld.mul(vec4(nDs, 0)).xyz.normalize(), geoOK = step(0.5, dot(nGW, nW));
+      const nOff = mix(nW, nGW, geoOK);
+      const P = probeAmbient(pWorld, nW, this.hemiSky, probeSun, hemiIrr, false, nOff);
       const w = P.w, sky = dif.rgb.mul(P.E).mul(1 / Math.PI);
       // the SSGI's input: the direct light only (D-157; ab.giDirect = 0: the whole scene, as in session 4)
       const colDirect = max(col.rgb.sub(sky.mul(this.ab.giDirect)), vec3(0));
@@ -177,7 +183,8 @@ export class Pipeline {
       // falloff (1 − plane distance / max distance)²; alpha = the hit's distance along the ray
       const r4 = rough.mul(rough).mul(rough).mul(rough);
       const Rw = this.camWorld.mul(vec4(mix(reflect(vV.negate(), nV), nV, r4).normalize(), 0)).xyz;
-      const envOcc = specularOcclusion(skyEnv.occlusion ? skyEnv.occlusion(pWorld, nW, Rw) : float(1), dotNV, rough);
+      const RwOff = this.camWorld.mul(vec4(mix(reflect(vV.negate(), mix(nV, nDs, geoOK)), mix(nV, nDs, geoOK), r4).normalize(), 0)).xyz; // D-187
+      const envOcc = specularOcclusion(skyEnv.occlusion ? skyEnv.occlusion(pWorld, nW, Rw, RwOff) : float(1), dotNV, rough);
       const envSpec = spec.mul((pmremTexture as any)(skyEnv.target.texture, Rw, rough)).mul(envOcc).mul(skyEnv.intensity);
       const hit = clamp(S.a.mul(50), 0, 1), fall = float(1).sub(clamp(S.a.mul(dotNV).div(SSR_MAX_DISTANCE), 0, 1));
       const ssrAdd = S.rgb.mul(spec.div(specY)).sub(envSpec.mul(hit).mul(fall.mul(fall))).mul(gate).mul(this.ab.ssr);

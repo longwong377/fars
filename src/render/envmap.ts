@@ -17,7 +17,7 @@
 // angle (Fresnel ≈ 0.4) turned a 0.3 % sky visibility into a uniform blue sheen brighter than its own diffuse light.
 import * as THREE from 'three/webgpu';
 import { LightingNode } from 'three/webgpu';
-import { pmremTexture, positionViewDirection, normalView, roughness, cameraWorldMatrix, isolate, positionWorld, normalWorld, cameraPosition, normalize, vec3, vec4, mix, smoothstep, dot, uniform, float, clamp, pow, exp2 } from 'three/tsl';
+import { pmremTexture, positionViewDirection, normalView, roughness, cameraWorldMatrix, cameraViewMatrix, isolate, positionWorld, normalWorld, normalWorldGeometry, step, cameraPosition, normalize, vec3, vec4, mix, smoothstep, dot, uniform, float, clamp, pow, exp2 } from 'three/tsl';
 
 /** cube face size of the captured environment (px): a texel spans 1.4°, finer than the GGX lobe of the most polished
  *  surface in the scene at its prefiltered level (roughness 0.18) */
@@ -43,12 +43,18 @@ function cubeUVTarget(size: number): THREE.RenderTarget {
  *  pipeline registers (probe field), and an intensity (1; 0 for A/B measurements, window.__parsaSurf.env) */
 export const skyEnv = {
   target: cubeUVTarget(ENV_CUBE),
-  /** (world position, world normal, world reflection direction) → the sky's visibility around the reflection (0..1: the
-   *  probe field's cosine-weighted sky irradiance for that direction over an open sky's) */
-  occlusion: null as null | ((p: any, n: any, r: any) => any),
+  /** (world position, world normal, world reflection direction[, the direction the lookup stands off along: the
+   *  reflection about the geometric normal, D-187]) → the sky's visibility around the reflection (0..1: the probe
+   *  field's cosine-weighted sky irradiance for that direction over an open sky's) */
+  occlusion: null as null | ((p: any, n: any, r: any, rOff?: any) => any),
   intensity: uniform(1),
   captures: 0,
 };
+
+/** TSL (materials): the surface's geometric (interpolated vertex) normal in world space, turned to the side the shading
+ *  normal faces (back faces of double-sided materials): the direction the probe lookups stand off along (D-187; the
+ *  bumped shading normal moved them across the probes' reach steps) */
+export const geometricNormalWorld = () => normalWorldGeometry.mul(step(0, dot(normalWorldGeometry, normalWorld)).mul(2).sub(1));
 
 /** Specular occlusion from an ambient visibility `vis` (Lagarde & de Rousiers 2014, Moving Frostbite to PBR §4.10.2: a
  *  fit of the visible fraction of the specular cone given a visibility cone): saturate((n·v + vis)^(2^(−16·roughness − 1))
@@ -82,7 +88,12 @@ export class SkySpecularNode extends LightingNode {
     const dirWorld = mix(refl, normalView, r2.mul(r2)).normalize().transformDirection(cameraWorldMatrix);
     const env: any = pmremTexture(skyEnv.target.texture);
     const radiance: any = isolate(env.context({ getUV: () => dirWorld, getTextureLevel: () => roughness }));
-    const vis = skyEnv.occlusion ? skyEnv.occlusion(positionWorld, normalWorld, dirWorld) : float(1);
+    // the lookup stands off along the reflection about the GEOMETRIC normal (D-187): the micro-relief's tilts moved it
+    // across the probes' reach steps, and the sky sheen of the red floors came and went pixel by pixel (the blue-white
+    // specks at the scribes' doorway, session-6 rubric)
+    const gV = geometricNormalWorld().transformDirection(cameraViewMatrix), reflG = positionViewDirection.negate().reflect(gV);
+    const offWorld = mix(reflG, gV, r2.mul(r2)).normalize().transformDirection(cameraWorldMatrix);
+    const vis = skyEnv.occlusion ? skyEnv.occlusion(positionWorld, normalWorld, dirWorld, offWorld) : float(1);
     const occ = specularOcclusion(vis, dot(normalView, positionViewDirection), roughness);
     // debug (?envdbg=occ, chosen when the shader is built): the sky visibility (red) and the occlusion (green) as radiance
     if (ENV_DEBUG === 'occ') { builder.context.radiance.addAssign(vec3(vis, occ, 0).mul(0.05)); return undefined; }
