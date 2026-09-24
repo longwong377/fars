@@ -16,12 +16,14 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // re-posed (D-187, rubric fix 5): the W views from the landing's edge held only the plain (the landing's W edge has no
   // parapet, and the lower flights' parapets lie 10 m below it, hidden by the edge at any pitch that keeps the horizon);
   // now from the N end of the top landing (grid (−36.4, 135.5)) looking WNW (grid 300°): the N upper flight's W parapet
-  // and merlons run from the frame's centre down to the right, the landing's floor at the bottom left, the plain and the
-  // Earth's shadow (anti-sun, grid ≈ 272°) beyond, the horizon at the upper third. (A first try, from 4.5 m down the N
-  // flight looking SSW, looked back UP the flight at the landing's edge: no plain; quality-test render, D-187.) Old
-  // poses: (−39.6, 122.45, 1.6, 251, −4) and (−40.2, 122.45, 1.6, 251, −12)
-  { n: 'dawn-stair-top', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 135.5, 1.6, 281, -8] },
-  { n: 'dawn-sunrise', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 135.5, 1.6, 281, -8] },
+  // and merlons across the lower part of the frame, the landing's floor at the bottom left, the plain and the
+  // Earth's shadow (anti-sun, grid ≈ 272°) beyond. (A first try, from 4.5 m down the N flight looking SSW, looked back UP
+  // the flight at the landing's edge: no plain; quality-test render, D-187.) Rendered at high at −8° pitch the parapet
+  // wall filled the lower half (its top at y ≈ 280 of 540, the horizon at y 165); −5° moves the frame 39 px: the wall's
+  // top to y ≈ 320 (the lower 40 %), its merlons rising past the horizon at y ≈ 204 (computed: not rendered at −5°).
+  // Old poses: (−39.6, 122.45, 1.6, 251, −4) and (−40.2, 122.45, 1.6, 251, −12)
+  { n: 'dawn-stair-top', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 135.5, 1.6, 281, -5] },
+  { n: 'dawn-sunrise', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 135.5, 1.6, 281, -5] },
   { n: 'dawn-sunrise-nw', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 134.8, 1.6, 311, -8] }, // from the N end of the top landing: the N upper flight descending on the right, the plain to the NW
   { n: 'dawn-stair-top-nw', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 134.8, 1.6, 311, -8] }, // the pre-sunrise moment from the head of the N upper flight: the stair descending, the plain to the NW (session 4)
   { n: 'dawn-glow-e', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 122.45, 1.6, 79, 6] },

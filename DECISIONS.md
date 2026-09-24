@@ -3217,3 +3217,150 @@ The year soak with the court was not run (another agent runs the default year so
 - **Tests:** tests/landscape.test.ts (new, 10): the rings unchanged and the bake deterministic; Kuh-e Rahmat's gully share 1-15 % with convex and concave ground; gullies drain more than their neighbours across the slope; the desire lines; path continuity (25 of 51,627 samples outside the path, all at sharp junctions) and no false paths (0 of 10,012); no plot in or beside a site, on the Terrace or its approach, and 83 % of the town's open ground cultivated; trodden ground where expected; the rotation keeps the mix; the terrain material generates WGSL. tests/plain.test.ts, terrain.test.ts, plain_look.test.ts, shader_build.test.ts, settlement.test.ts, maplayers, trees, settlement_build, physics, horizonmap, wildlife pass; `npx tsc --noEmit` clean; `npm run lint:all` OK.
 - **Files:** src/terrain/terrainDetail.ts, detail_worker.ts (new); src/world/plain/townGround.ts (new), terrainPlain.ts, fields.ts, index.ts; src/world/settlement/walk.ts (`openRuns`, read-only, additive); src/world/world.ts (two lines); src/data/sources.json (KR-BEDROCK, MD1988, GLO30-SPEC); tests/landscape.test.ts; tests/e2e/plain.spec.ts (the rahmat-west-pm view); research/PLAIN.md §12.
 - Reversible: yes (buildPlain without `town` is the old ground; the hill layer is one block of the terrain layer).
+
+## D-187 The rubric's rendering bugs and camera framing (session 6, look-bugs workstream; REVIEWS/rubric_s6_pass1.md bugs 2–9 and fix 5)
+Bug numbers are the rubric's. Renders: two debug runs, each two page loads, WebGPU on SwiftShader, 960×540:
+`tests/e2e/dbg_look.spec.ts` (run 1: quality high for the pipeline-dependent views, quality test for composition and
+the diagnostics; shots `dbg-look-*`) and `tests/e2e/dbg_look2.spec.ts` (run 2: quality high, 2 frames per view, on the
+branch merged with claude/amazing-fermi-40ds7j e7da428; shots `dbg-look2-*`). Both write `shots/dbg-look.json`. Node
+checks: probe field, sun ephemeris, ray tests against the parts, rig and prop placement.
+- **Still broken or unverified (read first):**
+  - Floor dots and sparkles (bug 6) are NOT fixed: they come from the SSR in the post composite, which the surfaces
+    workstream owns (pipeline.ts; its fix 6 changes the floors' roughness and the SSR anyway). Diagnosis below.
+  - The pale comb on the dawn horizon (bug 9) is not identified for certain, and not changed.
+  - The black blobs on the dawn hill (bug 8) no longer appear at high after the landscape merge; the cause is unconfirmed.
+  - The head in the jar (bug 7) was not re-rendered (the crowd shot needs the court setting and a load of its own).
+  - Views re-posed but only rendered at quality test: tachara-lance-bearers, apadana-e-stair-raking, tachara-s-stair.
+    dawn-stair-top and dawn-sunrise: rendered at high at −8° pitch, then set to −5° by computation, not re-rendered;
+    dawn-sunrise itself (05:51) not rendered. apadana-enter (the brazier fix) rendered at quality test only.
+  - The S reveal of the W2 doorway stays black: logged as B23 (below).
+- **Bug 2, the black lance-bearer (tachara-lance-bearer-close).**
+  - *Cause, measured (node, the baked field):* the view looked at the S reveal of the Tachara W2 doorway, which faces grid
+    N, away from every opening of the hall (the S door and windows). The hall probes' L1 is strongly one-sided (a ≈ 1.4e-3,
+    |b| ≈ 2.5e-3 of the sky irradiance, pointing S), so a + b·n < 0 for a N-facing normal. At the reveal's lookup point
+    that outweighs the passage probe's small positive value (5.7e-5), and the clamp gives exactly 0 (skylight and sun
+    channels both 0 at five points up the reveal). No direct light reaches it, so the SSGI adds nothing: black at any
+    exposure. The figure's edges turn toward the S and E and catch light, hence the edge lines.
+  - *Approaches:* (1) clamp each probe's irradiance before interpolating: ~2.5× the probe texture reads in every lit
+    material, and the reveal would get ~4e-5 of the sky irradiance, still ~6 stops under the hall's lit faces and
+    near-black on screen; (2) a non-negative L1 reconstruction (Hazel's geometric form): it distorts the open-sky hemisphere
+    (+17 % facing up, 0.17 facing down where it should be 0), which the field must reproduce at the volume edges; (3) look
+    at the N reveal's lance-bearer (same programme, facing S, into the hall's light). Shipped (3); logged as **B23**.
+  - *Rendered (run 2, high):* the relief lit and whole. Pixels with linear Y < 0.001 fell from 57.1 % to 2.1 % (the wide
+    view: 28.7 % → 1.2 % at quality test). The white seam is absent from the new view. The old view was not re-rendered,
+    so the seam's own cause is not confirmed (probably the bumped normal's garbage at the leaf's silhouette pushing the
+    probe lookup off the volume: see bug 4).
+- **Bug 3, camera in a column (tachara-lance-bearers):** the camera stood 0.93 m from the axis of the hall column at grid
+  (−26.4, −80.75) (shaft 0.9 m) and looked at its shaft. Re-posed (below): ≥ 1.2 m clear of every column, which lies
+  outside the frame.
+- **Bug 4, light leaks in the scribes' room; and the specular side of bug 6.**
+  - *Cause:* every probe lookup stood off the surface along the BUMPED shading normal (q = p + n·0.9 m), and the reach
+    test switched hard at a probe's reach. Beside the Hadish column bases the probe irradiance changes by up to 3× within
+    5 cm along the reach lines (node scan; a 3° tilt of the normal already moves q across them). The micro-relief's normal
+    (screen-space derivatives of the bump height, garbage at silhouettes) moved q pixel by pixel. The composite (G-buffer
+    normal) disagreed with the material there, and (1 − AO) and the SSGI turned the disagreement into dots and lines;
+    the SSGI is fed scene − skylight as "direct" light. The sky specular's occlusion did the same along the reflected
+    ray. A rounded mud-brick arris sweeps q from the doorway passage into the room within 3 cm: with the bump noise it
+    gave a ragged white fringe.
+  - *Changed:* the materials offset q along the geometric normal (turned to the shading normal's side) and the sky
+    specular along the reflection about it; the composite uses the depth buffer's normal (the G-buffer's where they differ
+    by > 60°, and never a normalised zero vector). The irradiance is still evaluated for the shading normal. The reach
+    test ramps over 0.1 of the spacing (field.ts `reachOk`; the shader mirrors it). On the Hadish floor, pairs of points
+    5 cm apart that differ by > 1.5× fell from 158 to 66 of 76,560 (worst 2.24 → 1.93). The rest are probes inside the
+    column bases, whose reach is 0.
+  - *Rendered (run 1, high, the old poses):* the fringe on the arris is gone (a clean edge); the red line at the wall
+    foot is gone except ~6 px in the far corner. The "specks" at the doorway are now one continuous blue-white band: the
+    sky-lit threshold beyond the doorway, seen at the room's exposure (189).
+- **Bug 5, black stands (apadana-enter):** the brazier bodies (fire.ts) used a plain MeshStandardNodeMaterial with
+  metalness 1 and no environment, so in shade they reflected nothing. A metal's diffuse is 0, so the probes and
+  receiveShadow (on) could not help. They now use the bronze surface (SURFACES.bronze, which reflects the sky
+  environment, D-157). *Rendered (run 1, quality test):* dark bronze with highlights.
+- **Bug 6, floor dots (hadish-hall) and sparkles (apadana-hall-axis): diagnosed, not changed.**
+  - After the probe change the dots are unchanged, in the same pixels (run 1, high).
+  - The scene pass (`post=scene`) has no dots; they come from the composite. The mirror SSR runs at half resolution with
+    quality 0.3 (a ray-march step of ~3 texels). It hits the thin column-base tori only sporadically, and each hit replaces
+    the materials' grey sky sheen with the dark reflection of the base: isolated dark red dots among misses.
+  - In the hall-axis view the SSR alone (`post=ssr`) shows the reflected doorway's edge as a dithered line of single
+    texels, 1000× the hall's radiance: the white sparkles and squares.
+  - For the surfaces workstream (pipeline.ts, its fix 6 is on the same floors):
+    - more SSR steps at high (quality 0.5, as ultra);
+    - a roughness blur that covers the floors' 0.35 (the blur mip is r²·5 ≈ 0.6 now);
+    - the SSR source capped near display white at the current exposure, so a single-texel hit cannot outshine its
+      neighbours through TRAA.
+- **Bug 7, the head in the jar (crowd-court-forecourt-w):** not a head carry. The man carries a jar on the shoulder
+  (`carry_jar`, pose carry_shoulder). The jar hangs from the raised right hand, its centre 0.32 m right of the head and
+  its top 6 cm above the crown (node, three body variants), so from his right it hides the head.
+  - Found and changed on the way: the pose's turn and tilt of the head away from the jar were overwritten by the walking
+    head line (anim.ts).
+  - Also changed: the head-carried jar (`jar_head`) floated 9–12 cm above the crown. It now rests on a 2 cm pad on the
+    crown, 0.145 m × scale up the head's own axis: 0.7–3.3 cm above the crown over the variants (props.ts).
+  - Not rendered.
+- **Bug 8, black blobs on the NW hill at 05:24:** pure (0,0,0), not even aerial perspective, so probably a NaN or an
+  unlit, unfogged material.
+  - Ray test: the blob pixels lie on the hill 1.1–1.6 km N.
+  - Run 1 (quality test, the world loaded at day 25, the clock set to 05:24): no blobs. The jackals (active until
+    05:48) stood 700 m S, out of view; hiding the jackals or the birds changed nothing there.
+  - Run 2 (high, loaded at day 0 05:24, after the landscape merge): no pixel darker than 25 anywhere in the band. The
+    pick at the old blob pixel hits a river/canal-line tree impostor (`plain-trees-far`) 3.5 km out.
+  - The landscape agent (D-190) names the woodland's mid-ring impostors (`plain-trees-mid`) near the capital.
+  - Whether the merge or the probe/composite changes removed the blobs is not separated.
+- **Bug 9, the pale comb on the dawn horizon: not identified, not changed.**
+  - It is not the town's smoke plumes: with them hidden the streaks stay (run 1, quality test; the region's median luma
+    86 → 84).
+  - It is not the plain's trees or villages (the landscape agent's hiding test). Picks at six streak pixels hit only the
+    town's transparent haze sheets, 560 m out in front of them.
+  - The streaks hang pale under a dark line of crowns over the town. The remaining candidate is the town's garden-tree
+    impostors (`settlement:trees:far`, the same TreeKit as the plain's): pale trunks, sub-pixel at 500 m, drawn at full
+    pixel width by the alpha-tested, coverage-preserving impostor mips. Unconfirmed.
+- **Framing (fix 5), tests/e2e/moments.spec.ts.** Names are kept and the old poses are in comments. The views are now
+  grouped by world state (one page load each).
+  - **dawn-stair-top and dawn-sunrise:**
+    - Why the old poses failed: the landing's W edge has no parapet, and the lower flights' parapets lie 10 m below it,
+      hidden by the edge at any pitch that keeps the horizon.
+    - A first re-pose, 4.5 m down the N flight looking SSW, looked back up the flight at the landing's edge (run 1).
+    - Now: from the N end of the landing, (−36.4, 135.5), looking 281° true (WNW), toward the Earth's shadow. The N flight's
+      W parapet and merlons sit in the foreground (run 2 at −8°); −5° is computed to put the wall in the lower 40 %.
+  - **Entering the Apadana from bright sun,** day 25 11:00.
+    - At that hour the N stair's landing and the whole portico lie in the building's shade (ray check against the parts;
+      the court is in sun from y 62).
+    - The sequence:
+      - apadana-enter-court (1.9, 75): in the sun, the pavement in the lower third, the stair façade, the portico's
+        black shade; exposure 0.52.
+      - apadana-enter (the landing) and apadana-enter-portico (1.9, 36): adapted; exposure 25.3.
+      - apadana-enter-door (1.9, 31.0): on the threshold with the portico's eye; exposure 25.3: the hall a dark void,
+        the far doorway a slab of light.
+      - apadana-enter-hall (1.9, 23.0): 8 m on, the eye carried 6 s (τ 3 s toward more light); exposure 136: the hall
+        coming up out of the dark.
+      - apadana-hall-axis: adapted, ≈ 350.
+      - apadana-hall-out (1.9, 18, 341°): looking out through the doorway at the sunlit portico and court from the
+        adapted hall; exposure 266, 8.5 % of the frame clipped.
+    - `__parsa.carryEye(exposure, s)`: the frozen test world adapts fully every frame, so a view may carry an earlier
+      view's eye through `adaptExposure`'s time constants.
+    - All rendered at high (run 2).
+  - **Reliefs in raking light.** The angle the sun meets the face at = asin(cos alt · cos(az − façade normal)) (ephemeris):
+    - reliefs-raking (Apadana N stair, normal 341° true): day 25 16:00, sun az 271°, alt 32°: 17° (the old slot, day 60
+      18:18, was 41°). Its old camera looked E with that sun behind it (flat); now (8, 67) looking WSW (216° true) into
+      the light (rendered, high).
+    - tachara-s-stair (normal 161°): 09:30, az 104°, alt 55°: 19°. At 15:30 the sun was behind the face.
+    - New apadana-e-stair-raking (the E stair façade, x 72.19, normal 71°): (80, −14) looking 300° true, 10:00, az 111°,
+      alt 61°: 22°.
+    - Each face is in sun at that hour (ray check).
+    - The rubric's "W-facing stairs late afternoon" would be frontal light (46–57°), not raking.
+    - tripylon-n-stair (16:00: 17°) stays in the Apadana's shade and is unchanged.
+  - **tachara-lance-bearers** (−26.9, −86.0, 304°, −4°) **and tachara-lance-bearer-close** (−28.4, −84.6, 311°, −10°):
+    both on the N reveal's lance-bearer (1.8 m, x −30.08…−29.54 at the hall end of the passage), 4.8 m and 2.8 m away,
+    37° and 30° off its face; day 25 16:00, which shares a load with stair-climb-pm.
+  - **scribe-at-work:** (189.4, −84.2) at seated eye height (1.0 m), 2.6 m from the desk, looking W at the scribe, the
+    drying board and the clay, the benches of filed tablets behind, the doorway's light from the left (rendered, high). A
+    first try 1.4 m away had him fill the frame.
+- **Tests:**
+  - `npx tsc --noEmit` clean. `npm run lint:all` OK.
+  - vitest (`--maxWorkers=1`), all passed: probes, shader_build, envocc, occlusion, humans_runtime, exposure, surfaces,
+    performers, people, crenellation, reliefs, roofs.
+  - Fails on the base commit as on this branch, under load 8–9 on 4 cores (12.3 ms and 13–15 ms): performances "300
+    performers … CPU within budget" (ms[45] < 10). Timing: re-run alone on an idle box.
+- **Files:**
+  - src/render/probes/runtime.ts, field.ts, envmap.ts, pipeline.ts (+8 lines), src/world/fire.ts, src/people/props.ts,
+    anim.ts, src/main.ts (`carryEye`, `tick`).
+  - tests/e2e/moments.spec.ts, dbg_look.spec.ts, dbg_look2.spec.ts; BLOCKERS B23.
+  - No probe or nav rebuild needed: no geometry or SURFACES albedo changed.
