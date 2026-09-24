@@ -4,7 +4,7 @@
 // work objects and animals within budget, the activity lint, the variant rules against the simulation's own reasons,
 // and the crowd's draw and triangle cost for a mixed crowd of performers.
 import { describe, it, expect, beforeAll } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 import { decodeHumanAssets, meshoptSimplify, type HumanAssets } from '../src/people/humanAssets';
 import { HB, PART } from '../src/people/humanFormat';
@@ -359,14 +359,59 @@ describe('population people perform too (the D-142 × D-143 merge)', () => {
       expect(drawn(1) || drawn(2), `look E ${e}: a thresher drawn`).toBe(true);
       expect(f.length, rows.at(-1)).toBe(1); expect(f[0].distanceTo(new THREE.Vector3(-14, 0, -20)), rows.at(-1)).toBeLessThan(1e-6); }
     expect(rows.filter(r => r.includes('p1 false')).length, 'some views leave p1 out').toBeGreaterThan(0);
-    // looking away from the floor and its performers: not drawn
-    look(0, -20, 70); step(); expect(drawn(1) || drawn(2)).toBe(false); expect(at('threshing_floor').length).toBe(0);
+    // looking away from the floor and its performers: the floor keeps its place (its performers are within THINGS_DIST);
+    // the instanced mesh's bounding sphere is out of the frustum, so the renderer culls it
+    look(0, -20, 70); step(); expect(drawn(1) || drawn(2)).toBe(false); expect(at('threshing_floor').length).toBe(1);
+    expect(at('threshing_floor')[0].distanceTo(new THREE.Vector3(-14, 0, -20))).toBeLessThan(1e-6);
+    { const m = crowd.group.getObjectByName('work:threshing_floor') as THREE.InstancedMesh, F = new THREE.Frustum().setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(cam.projectionMatrix, cam.matrixWorldInverse));
+      expect(F.intersectsSphere(m.boundingSphere!), 'culled by its bounds').toBe(false); }
     // the biers: one per household, at its lowest id bearer (the pole's side offset: 0.46 m)
     look(-30, 34, 70); step(); const B = at('bier');
     expect(B.length, 'two funerals at one place: two biers').toBe(2);
     expect(Math.min(...B.map(v => v.distanceTo(new THREE.Vector3(-30, 0, -30)))), 'household 5\'s bier at bearer p10').toBeLessThan(0.5);
     expect(Math.min(...B.map(v => v.distanceTo(new THREE.Vector3(-34, 0, -38)))), 'household 6\'s bier at bearer p12').toBeLessThan(0.5);
     console.log(rows.join('\n'));
+  }, 120_000);
+  it('no shared work object moves when the camera turns, the field of view changes or the drawn set changes (performers culled, turned to impostors, leaving, arriving, stepping aside, the LOD caps): each within 3 cm of where it first stood (session 6)', () => {
+    const crowd = makeCrowd(), frame = () => (crowd as any).frame as number;
+    crowd.imp = { begin() { this.count = 0; }, end() {}, count: 0, atlas: { refStature: {} }, push() { this.count++; } } as any; crowd.drawnKeys = new Set();
+    const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0);
+    const look = (deg: number, fov: number) => { const r = deg * Math.PI / 180; cam.fov = fov; cam.updateProjectionMatrix(); cam.lookAt(Math.sin(r) * 10, 1.4, -Math.cos(r) * 10); cam.updateMatrixWorld(); };
+    const TH = 'threshing and winnowing on the village floor (E-43)', DR = 'threshing: driving the animals round over the sheaves on the village floor (E-43)', HA = 'hauling a drum up the ramp to column 3', BI = 'the dead are carried out of the settlement (E-71)';
+    // a village floor's threshers spread over popgeo's 14 m disc; the hall site's haulers; the bearers of household 7's funeral
+    const floor = [vpOf(5, -6, 60, 'thresh', TH, { place: 'threshing:v2' }), vpOf(8, 4, 66, 'thresh', DR, { place: 'threshing:v2' }), vpOf(9, 10, 58, 'thresh', TH, { place: 'threshing:v2' }), vpOf(12, -2, 72, 'thresh', DR, { place: 'threshing:v2' })];
+    const drum = [vpOf(20, 30, 40, 'haul', HA, { place: 'hall100_site' }), vpOf(21, 36, 48, 'haul', HA, { place: 'hall100_site' }), vpOf(25, 26, 52, 'haul', HA, { place: 'hall100_site' })];
+    const bier = [vpOf(40, -40, 30, 'carry_bier', BI, { place: 'outside', hh: 7 }), vpOf(41, -44, 38, 'carry_bier', BI, { place: 'outside', hh: 7 }), vpOf(43, -36, 44, 'carry_bier', BI, { place: 'outside', hh: 7 })];
+    const skinned = new Map<number, ViewPerson>([...floor, ...drum, ...bier].map(v => [v.pid, v])), imps = new Map<number, ViewPerson>();
+    const at = (kind: string) => { const m = crowd.group.getObjectByName(`work:${kind}`) as THREE.InstancedMesh | undefined, M = new THREE.Matrix4();
+      return Array.from({ length: m?.count ?? 0 }, (_, i) => { m!.getMatrixAt(i, M); return new THREE.Vector3().setFromMatrixPosition(M); }); };
+    let t = 0; const drawnSets = new Set<string>(), anchorsHidden = new Set<number>();
+    const step = () => {
+      for (const p of [...crowd.persons.values()]) if (p.pid >= 0 && !skinned.has(p.pid)) crowd.detach(p.key);
+      for (const [pid, v] of skinned) { const p = crowd.attachPop(pid); p.vp = v; p.vpFrame = frame() + 1; }
+      (crowd as any).impList = [...imps.values()].map(v => ({ vp: v, a: null, d: Math.hypot(v.e, v.n), x: v.e, y: v.y, z: -v.n, yaw: yawOf(v.heading) })); (crowd as any).nImp = imps.size;
+      crowd.update(t += 0.1, cam.position, null, cam); const D = [...crowd.drawnKeys!].sort((a, b) => a - b); drawnSets.add(D.join(','));
+      for (const pid of [5, 20, 40]) if (!crowd.drawnKeys!.has(pid)) anchorsHidden.add(pid); };
+    const KINDS = ['threshing_floor', 'drum_sledge', 'bier'], first = new Map<string, THREE.Vector3>(), worst: Record<string, number> = {}; let frames = 0;
+    const check = (label: string) => { frames++; for (const k of KINDS) { const f = at(k); expect(f.length, `${label}: one ${k}`).toBe(1);
+      if (!first.has(k)) first.set(k, f[0].clone()); const d = f[0].distanceTo(first.get(k)!); worst[k] = Math.max(worst[k] ?? 0, d); expect(d, `${label}: the ${k} moved`).toBeLessThan(0.03); } };
+    // 1. the camera turns round twice, the field of view wide and narrow (30° steps: every performer leaves the view in turn)
+    for (let h = 0; h < 720; h += 30) { look(h, h < 360 ? 70 : 25); step(); check(`heading ${h % 360}, fov ${h < 360 ? 70 : 25}`); }
+    // 2. the drawn set changes: the floor's and the drum's anchors (p5, p20) drawn as impostors (out of the pool)
+    const turn = (label: string) => { for (const h of [0, 90, 200, 300]) { look(h, 55); step(); check(`${label}, heading ${h}`); } };
+    for (const pid of [5, 20]) { imps.set(pid, skinned.get(pid)!); skinned.delete(pid); } turn('anchors as impostors');
+    // they leave their places: the floor and the drum stay where they were
+    imps.clear(); turn('anchors gone');
+    // a thresher with a lower id arrives: steps aside on arriving (a walk: no anchor), then stands; a hauler with a lower id arrives
+    const p2 = vpOf(2, 6, 62, 'thresh', TH, { place: 'threshing:v2', moving: true, speed: 0.3 }); skinned.set(2, p2); turn('p2 stepping aside');
+    skinned.set(2, { ...p2, moving: false, speed: 0 }); skinned.set(1, vpOf(1, 33, 44, 'haul', HA, { place: 'hall100_site' })); turn('p2 standing, p1 hauling');
+    // the LOD caps change (every body at the farthest LOD), a bearer other than the anchor leaves and one with a lower id arrives
+    crowd.caps.full = 0; crowd.caps.mid = 0; crowd.caps.far = 0; skinned.delete(41); skinned.set(39, vpOf(39, -46, 36, 'carry_bier', BI, { place: 'outside', hh: 7 })); turn('caps 0, bearers changed');
+    expect(drawnSets.size, 'the drawn set changed').toBeGreaterThan(10); expect([...anchorsHidden].sort((a, b) => a - b), 'each anchor out of the drawn set at some frame').toEqual([5, 20, 40]);
+    // (by design, D-143 session 6: the bier is carried, so it passes to the lowest-id bearer remaining when its bearer leaves)
+    skinned.delete(40); look(270, 70); step(); const b = at('bier'); expect(b.length).toBe(1);
+    expect(b[0].distanceTo(new THREE.Vector3(-46, 0, -36)), 'the bier passes to bearer p39').toBeLessThan(0.5);
+    mkdirSync('bench-reports', { recursive: true }); writeFileSync('bench-reports/shared_objects_s6.json', JSON.stringify({ frames, drawnSets: drawnSets.size, worstMoveM: worst }, null, 1));
   }, 120_000);
   it('a moving performance at a standing spot of the plan walks in place (the bearers at the burial ground, a guard\'s round at his post), skinned and impostor', () => {
     const crowd = makeCrowd(), frame = () => (crowd as any).frame as number;

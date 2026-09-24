@@ -374,17 +374,36 @@ export class Crowd {
    *  view or not, skinned or an impostor, near or far, so it stays where it is when the camera turns, the field of view
    *  changes or the pool changes (the anchor is the view's, not the drawing's). It is drawn when any of its performers is
    *  drawn within THINGS_DIST (placeThings marks it); the objects' own bounding spheres cull it */
-  private anchors = new Map<string, { kind: WorkKind; pid: number; b: [number, number, number, number]; at: [number, number, number]; drawn: boolean }>();
-  private anchorSrc: ViewPerson[] = [];
-  private anchorPass(fed: boolean) {
-    const A = this.anchors; A.clear(); if (!this.view) return;
+  //  Session 6: the anchor is also kept from frame to frame while the object's key is in the view (the object's place still
+  //  has a performer), so it does not jump when the anchor's performer leaves or a performer with a lower id arrives or
+  //  steps aside on arriving (the WIP anchor moved up to 28 m then). A place's object (the floor, the drum) stays where it
+  //  was first anchored until nobody performs there; a group's object (the bier, carried: `follow`) goes with its anchor
+  //  bearer and passes to the lowest id remaining only when he leaves. A jump in time anchors afresh. It is drawn when any
+  //  performer of its key is within THINGS_DIST of the camera (by distance, not the frustum: turning the camera neither
+  //  moves nor hides it; the instanced mesh's bounding sphere culls it).
+  private anchors = new Map<string, { kind: WorkKind; pid: number; b: [number, number, number, number]; at: [number, number, number]; drawn: boolean; group: boolean; seen: number }>();
+  private anchorSrc: ViewPerson[] = []; private anchorJumps = -1;
+  /** per key this frame: the lowest id performing there, the anchor's own frame if he still performs there, anyone near */
+  private anchorScan = new Map<string, { pid: number; b: [number, number, number, number]; at: [number, number, number]; kind: WorkKind; group: boolean; own: [number, number, number, number] | null; near: boolean }>();
+  private anchorPass(fed: boolean, cam: THREE.Vector3) {
+    const A = this.anchors; if (!this.view) { A.clear(); return; }
+    if (this.view.jumps !== this.anchorJumps) { this.anchorJumps = this.view.jumps; A.clear(); } // a jump in time: anchored afresh
     let src: readonly ViewPerson[] = this.vpBuf;
-    if (!fed) { const L = this.anchorSrc; L.length = 0; for (const p of this.persons.values()) if (!p.agent && !p.extra && p.vp && p.vpFrame === this.frame) L.push(p.vp); src = L; } // no pool feed (tests): the attached
+    if (!fed) { const L = this.anchorSrc; L.length = 0; for (const p of this.persons.values()) if (!p.agent && !p.extra && p.vp && p.vpFrame === this.frame) L.push(p.vp); // no pool feed (tests): the attached and the impostors given
+      for (let i = 0; i < this.nImp; i++) { const v = this.impList[i].vp; if (v) L.push(v); } src = L; }
+    const S = this.anchorScan; S.clear();
     for (const o of src) {
       if (o.agent >= 0 || !o.place || !SHARED_ACTS.has(o.act) || (o.moving && !ACTIVITIES[o.act].moving)) continue; // stepping aside is a walk
       const P = this.popPerf(o.pid, o.act, o.why); if (!P.work) continue;
-      for (const w of P.work) { if (!w.shared) continue; const key = this.popKey(w, o), g = A.get(key);
-        if (!g || o.pid < g.pid) A.set(key, { kind: w.kind, pid: o.pid, b: [o.e, o.y, -o.n, yawOf(o.heading)], at: w.at, drawn: false }); } }
+      const near = Math.hypot(o.e - cam.x, o.y + 0.9 - cam.y, -o.n - cam.z) < THINGS_DIST;
+      for (const w of P.work) { if (!w.shared) continue; const key = this.popKey(w, o), g = S.get(key), a = A.get(key);
+        const fr: [number, number, number, number] = [o.e, o.y, -o.n, yawOf(o.heading)];
+        if (!g) S.set(key, { pid: o.pid, b: fr, at: w.at, kind: w.kind, group: w.shared === 'group', own: a && a.pid === o.pid ? fr : null, near });
+        else { if (o.pid < g.pid) { g.pid = o.pid; g.b = fr; g.at = w.at; } if (a && a.pid === o.pid) g.own = fr; if (near) g.near = true; } } }
+    for (const [key, a] of A) if (!S.has(key)) A.delete(key); // nobody performs there now
+    for (const [key, g] of S) { const a = A.get(key);
+      if (!a || (g.group && !g.own)) A.set(key, { kind: g.kind, pid: g.pid, b: g.b, at: g.at, drawn: g.near, group: g.group, seen: this.frame });
+      else { a.drawn = g.near; a.seen = this.frame; if (g.group && g.own) a.b = g.own; } } // the bier goes with its bearer
   }
   /** the key of a population person's shared work object: its kind and the plan's place (a group object: and the household) */
   private popKey(w: WorkSpec, o: ViewPerson) { return w.shared === 'group' ? `${w.kind}|pop:${o.place}|hh${o.hh}` : `${w.kind}|pop:${o.place}`; }
@@ -419,7 +438,7 @@ export class Crowd {
     this.camAt.copy(cam); const tf = performance.now(); this.drawnKeys?.clear();
     const fed = this.autoPool && !!this.view && !!this.sim;
     if (this.autoPool) { if (fed) this.feedPool(cam, camera); else this.autoPoolStep(cam, camera); }
-    this.anchorPass(fed);
+    this.anchorPass(fed, cam);
     this.impPerf.feedMs = performance.now() - tf;
     const gpu = this.humans.gpu; gpu.begin();
     for (const c of this.carried) c.mesh.count = 0; this.propsDropped = 0;
@@ -645,7 +664,7 @@ export class Crowd {
       // a performer drawn this frame, which changes as the camera turns). Q-196: the bearers do not walk together
       const pop = w.shared && !p.agent && !p.extra && p.vp?.place ? p.vp : null;
       if (pop) { const key = this.popKey(w, pop), g = this.anchors.get(key);
-        if (g) g.drawn = true; else this.anchors.set(key, { kind: w.kind, pid: p.pid, b: [b[0], b[1], b[2], b[3]], at: w.at, drawn: true }); // not among the view's people this frame: at this performer
+        if (g) g.drawn = true; else this.anchors.set(key, { kind: w.kind, pid: p.pid, b: [b[0], b[1], b[2], b[3]], at: w.at, drawn: true, group: w.shared === 'group', seen: this.frame }); // not among the view's people this frame: at this performer
         continue; }
       if (w.shared) { const key = `${w.kind}|${w.shared === 'place' ? (p.agent?.task?.place ?? p.extra?.group ?? p.key) : (p.extra?.group ?? `${p.agent?.task?.place ?? p.key}`)}`;
         const g = this.shared.get(key);
