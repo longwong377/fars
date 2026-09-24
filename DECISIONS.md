@@ -2316,3 +2316,28 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - the voice acceptance (B17(b));
   - no licensed translation (B17(a));
   - the carving's sign spelling belongs to the carving workstream (review C1).
+
+## D-180 Light probes: bake-time bounce denoise and wall-aware intermediate fields (session 6, lead)
+- **Found:** the first session-6 renders of `apadana-hall-in` (quality test, WebGPU and WebGL2 alike) show orange-brown
+  blotches over the dark ceiling and the far columns. Measured on the baked field: in the Apadana's inner hall (probes ≥ 6 m
+  inside the roof's edge, neighbours 2 m apart with each in the other's sight), the sun-bounce channel differed 3.5× between
+  neighbours at the 90th percentile (p99 26×), the Hadish 6.4× (p99 29×); the maps show per-probe salt-and-pepper speckle,
+  not structure. Cause: Monte Carlo noise. A deep probe sees the sunlit floor at the doorways in a few of its 1,024 bounce
+  rays, and each hit's sun is 2 year-sampled shadow rays.
+- **Found on the way:** the bake's intermediate fields (pass 0 sky, pass 1 bounce) carried no reach data (D-152), so the
+  lookups at bounce hits on a wall's inner face read the sunlit probes outside the wall. A closed synthetic room read 1.0e-3
+  of open ground at its centre; with reach in the intermediate fields, 9.4e-5.
+- **Changed (bake.ts, tools/build_probes.ts):** `fieldOf` takes the probes' reach, so every pass's lookups snap as the final
+  field's do. `smoothBounce` averages each valid probe's pass-1 and pass-2 results with those of its six face neighbours
+  that it sees and that see it (horizontal reach, and a new vertical reach `probeReachY`: never across a wall, beam or
+  capital), the probe itself weighted 2. The direct sky (pass 0, exact to 4,096 directions) keeps its sight-line
+  structure and is not filtered. Interreflected light comes from large surfaces and varies slowly, so a 2 m average is a
+  small bias against a large noise (C).
+- **Measured after the re-bake:** sun channel p90/p99 neighbour ratio Apadana 3.5/26 → 2.4/11, Hadish 6.4/29 → 2.6/6.2,
+  Treasury 13.5/33 → 5.9/15, Harem 5.9/22 → 2.8/4.2; the sky channel (bounce part only filtered) Apadana p90 4.0 → 3.0.
+  Hall-centre ambient / open field unchanged to ±5 % (Apadana 0.0068 → 0.0069, Hadish 0.0149 → 0.0150, Tachara 0.0028 →
+  0.0030, Harem 0.0076 → 0.0081). Bake 1,308 s with 3 workers on a loaded box. Tests: `bounce denoise (D-180)` in
+  tests/probes.test.ts (noise halves in a uniform region, the mean is kept, nothing crosses a wall); the closed room test
+  passes with a 10× margin.
+- **Not done:** more rays (4× rays and 8× sun rays would cost ~15× the bake time); a render at high after the re-bake
+  (queued in the full pass).
