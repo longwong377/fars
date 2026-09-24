@@ -349,6 +349,8 @@ export class SpeechHandle {
     src.onended = () => { this.playing = false; this.ended = true; try { pan.disconnect(); } catch { /* already */ } this.onEnded?.(); };
   }
   get position() { return this.pos; }
+  /** the panner once playing (the dev overlay reads its occlusion) */
+  get panner() { return this.pan; }
   setPosition(p: Vec3) {
     this.pos = p; const pan = this.pan; if (!pan) return; const t = pan.context.currentTime;
     pan.positionX.setTargetAtTime(p.x, t, 0.05); pan.positionY.setTargetAtTime(p.y, t, 0.05); pan.positionZ.setTargetAtTime(p.z, t, 0.05);

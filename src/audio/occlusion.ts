@@ -115,13 +115,15 @@ export class OcclusionField {
     const de = b.e - a.e, dn = b.n - a.n, dy = b.y - a.y, L = Math.hypot(de, dn), m = Math.max(1, Math.ceil(L / STEP));
     let thick = 0, edge: Trace['edge'] = null; const W = this.w, H = this.h, L0 = this.lo0, H0 = this.hi0, L1 = this.lo1, H1 = this.hi1;
     // the first and last half metre are the source's and listener's own places (a person against a wall is not behind it)
-    const skip = Math.min(m / 2, Math.ceil(0.5 / STEP));
-    for (let q = skip; q <= m - skip; q++) {
-      const t = q / m, e = a.e + de * t, n = a.n + dn * t, i = Math.floor((e - this.e0) / CELL), j = Math.floor((n - this.n0) / CELL);
-      if (i < 0 || j < 0 || i >= W || j >= H) continue;
-      const k = j * W + i, c = (a.y + dy * t) * 100;
+    const skip = Math.min(m / 2, Math.ceil(0.5 / STEP)), inv = 1 / CELL, step = L / m;
+    // incremental march in cell units (the hot loop of every query)
+    let fe = (a.e + (de * skip) / m - this.e0) * inv, fn = (a.n + (dn * skip) / m - this.n0) * inv, c = (a.y + (dy * skip) / m) * 100;
+    const dfe = (de / m) * inv, dfn = (dn / m) * inv, dc = (dy / m) * 100;
+    for (let q = skip; q <= m - skip; q++, fe += dfe, fn += dfn, c += dc) {
+      if (fe < 0 || fn < 0 || fe >= W || fn >= H) continue;
+      const k = (fn | 0) * W + (fe | 0);
       let top = NaN; if (c >= L0[k] && c <= H0[k]) top = H0[k]; else if (c >= L1[k] && c <= H1[k]) top = H1[k];
-      if (top === top) { thick += L / m; if (wantEdge) { if (!edge) edge = { e1: e, n1: n, e2: e, n2: n, top: top / 100 }; else { edge.e2 = e; edge.n2 = n; if (top / 100 > edge.top) edge.top = top / 100; } } }
+      if (top === top) { thick += step; if (wantEdge) { const e = this.e0 + fe * CELL, n = this.n0 + fn * CELL; if (!edge) edge = { e1: e, n1: n, e2: e, n2: n, top: top / 100 }; else { edge.e2 = e; edge.n2 = n; if (top / 100 > edge.top) edge.top = top / 100; } } }
     }
     this.stats.steps += m;
     let leafDb = 0;
@@ -168,13 +170,17 @@ export class OcclusionField {
       cand.push({ dw, D, delta, a1, a2 });
     }
     cand.sort((x, y) => x.delta - y.delta);
+    let best = Math.min(...paths.map(p => p.a));
     for (const c of cand.slice(0, MAX_DOORS)) {
+      // a path 15 dB below the best found adds under 0.2 dB: not worth its traces (the candidates come in detour order)
+      if (maekawa(c.delta) + 20 * Math.log10((c.a1 + c.a2) / d) > best + 15) break;
       const l1 = this.leg(S, c.D); if (!l1) continue; const l2 = this.leg(c.D, Lp); if (!l2) continue;
       const leaf = l1.leafDb + l2.leafDb, edgeDelta = l1.delta + l2.delta;
       paths.push({ a: maekawa(c.delta) + l1.a + l2.a + 20 * Math.log10((c.a1 + c.a2) / d) + leaf, fc: leaf > 0 ? 1200 : diffractionCutoff(c.delta + edgeDelta), name: `doorway ${c.dw.id}${edgeDelta > 0 ? ' and an edge' : ''}` });
+      best = Math.min(best, paths[paths.length - 1].a);
     }
-    let E = 0, best = paths[0]; for (const p of paths) { E += 10 ** (-p.a / 10); if (p.a < best.a) best = p; }
-    return { gainDb: 10 * Math.log10(E), cutoffHz: best.fc, path: best.name, direct: false };
+    let E = 0, top = paths[0]; for (const p of paths) { E += 10 ** (-p.a / 10); if (p.a < top.a) top = p; }
+    return { gainDb: 10 * Math.log10(E), cutoffHz: top.fc, path: top.name, direct: false };
   }
 }
 

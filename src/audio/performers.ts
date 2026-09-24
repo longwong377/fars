@@ -36,7 +36,7 @@ export interface MusicCtx {
 }
 /** one voice or instrument of a gig: a simulated person (agentId) or a court musician placed in the hall (extra) */
 /** `pos`: where the sound comes from (the mouth or the instrument); an extra is seated on the floor at `extra.floor` */
-export interface GigPart { key: string; agentId?: number; extra?: { sex: 'm' | 'f'; seed: number; yaw: number; anim: 'sit' | 'idle'; floor: number }; pos: { e: number; n: number; y: number }; perf: Performance | null }
+export interface GigPart { key: string; agentId?: number; extra?: { sex: 'm' | 'f'; seed: number; /** facing, grid degrees (0 north, 90 east) */ heading: number; anim: 'sit' | 'idle'; floor: number }; pos: { e: number; n: number; y: number }; perf: Performance | null }
 export interface Gig { id: string; kind: 'quern_song' | 'mason_song' | 'court_supper' | 'court_night'; place: string; parts: GigPart[]; claims: string[]; tier: string;
   /** hours (sim) when this stretch of playing ends */
   until: number;
@@ -107,9 +107,9 @@ function courtGig(c: MusicCtx, hall: NonNullable<MusicCtx['courtHall']>, kind: '
   // the women sit together in the north half of the hall, facing south (C)
   const at = (i: number, n: number, row: number) => ({ e: hall.cx + (i - (n - 1) / 2) * 1.3, n: hall.cy + 4 + row * 1.4, y: hall.fl + 0.9 });
   const parts: GigPart[] = [];
-  for (let i = 0; i < harps; i++) parts.push({ key: `court:harpist:${i}`, extra: { sex: 'f', seed: 7000 + i, yaw: Math.PI, anim: 'sit', floor: hall.fl }, pos: at(i, harps, 0),
+  for (let i = 0; i < harps; i++) parts.push({ key: `court:harpist:${i}`, extra: { sex: 'f', seed: 7000 + i, heading: 180, anim: 'sit', floor: hall.fl }, pos: at(i, harps, 0),
     perf: { id: `${key}:harp${i}`, instrument: 'harp', tradition: 'mesopotamian', context: 'court', modeId, pieceSeed, tonic, tempo, seed: r.int(0, 1e9), claims } });
-  for (let i = 0; i < singers; i++) parts.push({ key: `court:singer:${i}`, extra: { sex: 'f', seed: 7100 + i, yaw: Math.PI, anim: 'sit', floor: hall.fl }, pos: at(i, singers, 1),
+  for (let i = 0; i < singers; i++) parts.push({ key: `court:singer:${i}`, extra: { sex: 'f', seed: 7100 + i, heading: 180, anim: 'sit', floor: hall.fl }, pos: at(i, singers, 1),
     perf: i === 0 ? { id: `${key}:voices`, instrument: 'voice', register: 'f', voices: singers, tradition: 'mesopotamian', context: 'court', modeId, pieceSeed, tonic, tempo, seed: r.int(0, 1e9), claims } : null });
   return { id: key, kind, place: 'hadish', claims, tier: tierOf(claims), until, parts,
     visual: { placeholder: true, note: 'PLACEHOLDER: the court women sit in the working women’s dress (court dress not modelled), with no harp modelled and no playing animation' } };

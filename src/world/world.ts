@@ -57,6 +57,11 @@ import { loadHumans, type HumanSystem } from '../people/humans';
 import { ACTIVITIES } from '../people/activities';
 import { Speech, Subtitle, RecordingBackend, FormantBackend } from '../audio/speech';
 import { Murmur, Talker } from '../audio/murmur';
+import { OcclusionField } from '../audio/occlusion';
+import { MusicSystem } from '../audio/music';
+import { MusicDirector } from '../audio/musicDirector';
+import type { PerformerAgent } from '../audio/performers';
+import { yawOf } from '../people/crowd';
 import { pickLine, voiceFor, voiceKeyFor, type ResolvedLine } from '../people/speech_lines';
 import { Conversations, addressIntents, speak, type SpeakerLike } from '../people/exchanges';
 import { sunTimes } from '../people/calendar';
@@ -169,11 +174,11 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   /** the backend a line will play through for a voice class (the manifest's clip, else the formant synthesiser) */
   const clipBackend = (line: ResolvedLine, voiceKey: string) => ((voiceManifest.clips as Record<string, { backend?: string }>)[`${line.id}|${voiceKey}`]?.backend ?? 'formant');
   /** what was last said and why (dev overlay F3: the line's tiers and the situation that chose it; §3.2) */
-  let lastSpoken: { lineId: string; lang: string; tier: string; parts: string; situation: string; backend: string } | null = null;
+  let lastSpoken: { lineId: string; lang: string; tier: string; parts: string; situation: string; backend: string } | null = null; let lastHandle: { panner: PannerNode | null } | null = null;
   /** one person says one line where they stand (jaw, subtitle, overlay); resolves with the clip's length (s) */
   const sayAt = (a: any, line: ResolvedLine, situation: string): Promise<number> => {
     const vo = voiceFor({ seed: a.seed, sex: a.sex, role: a.role }), key = voiceKeyFor(vo);
-    const h = speech.say(line, vo, { x: a.pos[0], y: a.y + 1.55, z: -a.pos[1] }, { speakerId: a.id, voiceKey: key });
+    const h = speech.say(line, vo, { x: a.pos[0], y: a.y + 1.55, z: -a.pos[1] }, { speakerId: a.id, voiceKey: key }); lastHandle = h;
     crowd.speaking(a.id, 2.5, time); // the jaw moves while they speak
     const tp = line.tierParts; lastSpoken = { lineId: line.id, lang: line.lang, tier: line.tier, parts: `words ${tp.words}, phrase ${tp.phrase}, IPA ${tp.ipa}, usage ${tp.usage}`, situation, backend: clipBackend(line, key) };
     return h.ready.then(ok => { if (ok && Number.isFinite(h.duration)) { crowd.speaking(a.id, h.duration, time); return h.duration; } return 0; });
@@ -190,6 +195,25 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     for (const r of rooms) if (Math.abs(e - r.cx) < r.sx / 2 && Math.abs(n - r.cy) < r.sy / 2 && y > r.fl - 0.5 && y < r.fl + r.h) return r.id;
     return 'open';
   };
+  // audio occlusion (§11; D-178): the Terrace's solid parts in a 0.5 m field; doorways let sound through; the door
+  // leaves are re-read twice a second; the town's and the plain's buildings are not occluders (C)
+  const occT0 = performance.now(); const occl = new OcclusionField(parts, doorways, rooms); const occMs = performance.now() - occT0;
+  let leavesAt = -1;
+  const syncLeaves = () => { occl.leaves = [...doors.doors.values()].flatMap(d => d.leaves.map(l => { const az = d.az(l); return { a: l.pivot, b: [l.pivot[0] + l.len * Math.cos(az), l.pivot[1] + l.len * Math.sin(az)] as [number, number], y0: l.y0, y1: l.y0 + l.height }; })); };
+  // one-shots (tool strikes) ask at once when they start: answers are cached per metre of source and listener for half
+  // a second, so a busy worksite costs a few queries, not one per blow
+  const occCache = new Map<string, ReturnType<OcclusionField['query']>>();
+  audio.occluder = (src, lis) => { const k = `${Math.round(src.x)},${Math.round(src.y)},${Math.round(src.z)}|${Math.round(lis.x)},${Math.round(lis.y)},${Math.round(lis.z)}`;
+    let r = occCache.get(k); if (!r) { r = occl.query({ e: src.x, n: -src.z, y: src.y }, { e: lis.x, n: -lis.z, y: lis.y }); if (occCache.size > 512) occCache.clear(); occCache.set(k, r); } return r; };
+  // music (§11; D-178): only what a performer in the world sings or plays (src/audio/performers.ts), spatialised from them
+  const courtOn = (d: number) => d >= 0 && sim.cal.ctx(d).court;
+  const music = new MusicSystem(audio, () => courtOn(Math.floor(sim.t / 24)) || courtOn(Math.floor(sim.t / 24) - 1));
+  const hadishRoom = rooms.find(r => r.id === 'hadish') ?? null;
+  const director = new MusicDirector(music, audio, {
+    addExtra: (key, x) => { crowd.addExtra(key, { id: -7000 - (x.seed % 1000), dress: 'woman', sex: x.sex, role: 'musician', seed: x.seed, x: x.e, y: x.y, z: -x.n, yaw: yawOf(x.heading), anim: x.anim } as any); },
+    removeExtra: key => crowd.detach(key),
+    singing: (id, sec) => crowd.speaking(id, sec, time),
+  });
   const surfaceAt = (y: number, groundY: number) => (y > -1 ? 'stone' : Math.abs(y - groundY) < 0.3 ? 'earth' : 'stone') as 'stone' | 'earth';
   const syncBodies = () => sim.agents.forEach((a, i) => bodies[i].setNextKinematicTranslation(a.offmap ? { x: 0, y: -1000, z: 0 } : { x: a.pos[0], y: a.y, z: -a.pos[1] }));
   let lodT = 0;
@@ -292,6 +316,13 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       if (audio.ctx) {
         const cam = ctx.camera, fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);
         audio.setListener(cam.position, fwd);
+        { // music and occlusion (D-178)
+          if (time - leavesAt > 0.5) { leavesAt = time; syncLeaves(); occCache.clear(); }
+          const day = Math.floor(sim.t / 24), C = sim.cal.ctx(day);
+          director.update(dt, sim.agents as unknown as PerformerAgent[], { t: sim.t, seed, courtToday: C.court, courtYesterday: courtOn(day - 1), sun: C.sun, foul: C.wx.storm || ctx.cond.rain > 0.3,
+            courtHall: hadishRoom ? { cx: hadishRoom.cx, cy: hadishRoom.cy, sx: hadishRoom.sx, sy: hadishRoom.sy, fl: hadishRoom.fl } : null }, cam.position);
+          audio.updateOcclusion(3); // ~0.1 ms per query measured in node (D-178): about 0.3 ms a frame
+        }
         const jdn = ctx.clock.jdn, b = babylonianDate(jdn); void b;
         const month = ctx.cond.day.climMonth; const hour = ctx.clock.localHour;
         const p = ctx.player.position, feet = ctx.player.feetY;
@@ -316,5 +347,12 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       }
     },
     flash: () => lastFlash,
+    /** dev overlay (F3): what is heard, with tiers, claims, occlusion and placeholders (§3.2; D-178) */
+    soundLines: () => {
+      const o = audio.occlusionOf(lastHandle?.panner), s = lastSpoken;
+      return [s ? `speech heard: ${s.lineId} (${s.lang}) tier ${s.tier} [${s.parts}] · ${s.situation} · ${s.backend}${o ? ` · occlusion ${o.gainDb.toFixed(1)} dB, ${Math.round(o.cutoffHz)} Hz via ${o.path}` : ''}` : 'speech heard: none yet',
+        ...director.lines(),
+        `occlusion (C, Maekawa; Q-304): ${audio.occlStats.tracked} sources tracked, ${audio.occlStats.queries} re-queried this frame in ${audio.occlStats.ms.toFixed(2)} ms · field ${occl.w}×${occl.h} cells built in ${occMs.toFixed(0)} ms · town and plain buildings not occluders`];
+    },
     summary: () => `${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest, ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''} · ${plain.summary()}` } as WorldBuild;
 }
