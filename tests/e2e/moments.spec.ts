@@ -48,7 +48,10 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'rain-columns', day: 2, hour: 14, w: 'rain', v: [-20, 70, 1.6, 161, 4] },
   // §1.1 "rain moving across the plain toward the columns": day 12's rain episode reaches the Terrace at 06:01 from the
   // WSW (245°); at 05:40 its cell is ~6 km out over the plain (WeatherSystem.rainCell); seen from the Apadana W portico
-  { n: 'rain-approach', day: 299, hour: 11.1, w: 'auto', v: [-38, -5, 1.6, 232, 3] }, // a heavy cell (14 mm) 15 km SW over the plain, seen out of the Apadana W portico, 50 min before it arrives (D-060, D-064)
+  // session 7 re-time (11.1 → 11.45): at 11:06 the cell stood 14.9 km out (near edge 9 km); with the day's haze (V ≈ 30 km) the
+  // air passes ~10 % of the curtain's contrast there, and a ?shaftdbg=1 render showed the solid-red shafts as a faint pink:
+  // placed right, washed out by the air as the physics says. At 11:27 the cell is ~8.5 km out (near edge ~2.5 km, T ≈ 0.7)
+  { n: 'rain-approach', day: 299, hour: 11.45, w: 'auto', v: [-38, -5, 1.6, 232, 3] }, // a heavy cell (14 mm) 15 km SW over the plain, seen out of the Apadana W portico, 50 min before it arrives (D-060, D-064)
   // from the sunlit N court, 10 m out from the N portico's outer row (y 48), between its two axial columns (x −2.4, 6.2):
   // sunlit pavement, the portico's shade and the black doorway 27 m off (session 4 reframe; the old view stood in the
   // portico facing two blank walls)
