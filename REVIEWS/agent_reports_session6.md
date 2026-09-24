@@ -59,3 +59,24 @@ rolled impression (F3 says "NOT impressed" if fonts did not load); the carried t
 **Cost (node):** scribes' room 6 → 9 draws, ~13 k → 37,288 triangles; door lump 252 → 520 triangles; one 4 MB texture.
 **Tests:** tests/writing.test.ts 10 pass; lint:lang 26/26; full vitest 557 passed, 1 failed (performances timing test under
 load; passes alone), 1 skipped. Records: D-179, B18, NEEDS #15, Q-320..Q-322, research/WRITING_ON_OBJECTS.md, ASSET_LEDGER.
+
+## Crowd merge fix round (branch crowd-s6, head 2d3af09, D-143 merge addendum) — merged in session 6
+**Still broken or unverified (read first)**
+- Two CPU timing tests fail on the loaded box (load 7–13 on 4 cores); limits not lowered. The D-142 crowd-CPU test (300
+  performers, limit 10 ms) measured 10.6–16.7 ms; an A/B at the same load gave the pre-merge D-142 crowd.ts 16.7/14.8/11.7
+  ms and crowd-s6 14.2/15.1/10.6 ms (load, not the merge). The crowd half of the view-cost test (limit 12 ms) measured
+  8.0–12.9 ms. Both need a quiet machine. Lead re-run after the merge (load 7): 10.66 ms against 10.
+- No browser render of the merged crowd (tests/e2e/crowd_scale.spec.ts to run). B11–B13 stand; their numbers predate the merge.
+- A threshing floor or drum no longer jumps, but where it stands depends on history (anchored while anyone still performs
+  there; deterministic for the same history; C).
+- Not done: impostors use the base activity's animation, not the variant's; impostors within 60 m make no tool sounds; the
+  population's bearers are not a group (Q-196); the population's grinders have no quern.
+
+**Changed:** shared work objects keep their anchor while their place has a performer (a bier passes to the lowest id left
+only when its bearer leaves; a time jump re-anchors; drawn when any performer is within 400 m) — test: camera turns at fov
+70/25, anchors become impostors or leave, LOD caps to 0: every object within 3 cm (0 m measured over 44 frames, 16 drawn
+sets); real-data test (v_masumabad threshing floor, worksite drums): worst move 0.0000 m over 24 turns + 300 s. The view
+cost: `collect()` refilled all 7,692 outdoor people every update (4–5 ms), not slow plans; each person now keeps its view
+object and is refilled only on change: 0.83–1.05 ms; view test 2.39–4.64 ms at 1×. Walking phase advances out of view.
+`Math.hypot` → sqrt in per-person loops. `crowd.stats().placeholderActs` 0 in the five busiest scenes.
+**Tests:** tsc clean; full suite 540 passed, 2 failed (the timing tests), 1 skipped; lint:all OK; botcheck 97/97.
