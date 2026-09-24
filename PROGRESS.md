@@ -21,6 +21,13 @@
     no music in the world; tablets blank, no Aramaic leather; most Terrace inscriptions missing; signs raised, not cut;
     lint blind to audio and murmur; no audio occlusion. The layer workstream (bundle) found the Livius translations are
     "All rights reserved": no translation can be shown (B17a); the voice acceptance was measured and not met (B17b).
+  - **Phase 8 carving workstream, session 6 (branch `p8-carving-s6`; unmerged, no GPU render yet).** Still broken or placeholder:
+    no render of the incised signs on a GPU (node preview only: fine stepped banding on the cut walls); 10 copies or versions of
+    the royal programme not carved (XPc/XPd portico-pillar copies, DPb garment line, XPk, XPg, XPj/XPm, the El/Bab of DNa/DNb,
+    DNc-DNe; Q-290, flagged in F3); DNb's 26 signs lost in the corpus are uncut blanks; 48 words where Kent (carved) and Schmitt
+    (shown in the layer) read differently (Q-288). Done: every carved Old Persian word is the published sign sequence (1043
+    corpus words, 0 mismatches, 17 listed slips of the copy corrected; D-176 corpus licence, D-177); signs incised (V-cut in
+    the host stone, tested as a cut); the programme is src/data/royal_inscriptions.json.
   - **First renders of the session-4 shaders on a GPU backend:** at quality test every effect material (flames, smoke, haze,
     rain, snow) FAILED to compile on WebGPU (fixed, D-174). At quality high `stair-climb-pm` and `tripylon-n-stair` render
     on WebGPU with **no shader error** (atmosphere D-156, surfaces D-157 and faces D-155 compile; clouds visible). WebGL2
@@ -151,7 +158,7 @@
   - All carving is procedural (C, NEEDS #10). Figure counts and placements are C, and the ledges between tiers of throne-bearers are from recollection.
   - The Tachara was rebuilt from REF-PLAN (D-130 to D-134): walls ~1.5 m, side and N rooms, 8 framed doorways, 4 windows, 10 niches, a 4 × 3 hall grid. Wall IoU against the plan went from 0.16 to 0.84. The lance-bearers stand on the jambs of the W-room doorways (one per reveal, C), rendered once at quality test. The SW room is not on the walkable grid (its 0.95 m doorway; the visitor can walk in). The Hadish S doorway, the Apadana hall doorways and the Tripylon S stair are plain for lack of a programme.
   - Added later in session 3, not yet seen in a render:
-    - XPe is carved on the Hadish E and W doorway reveals: three versions stacked, flat signs (D-066);
+    - XPe is carved on the Hadish E and W doorway reveals: three versions stacked (flat signs in D-066; incised since D-177, branch p8-carving-s6);
     - 228 four-stepped merlons on the Grand Stair, Tachara, Hadish and Tripylon parapets (D-065, motif C on these stairs).
   - Unverified in a render: daylight through the windows, and walking through doors with people (doors are unit-tested only).
 - **Phase 6 (settlement; merged in session 3, D-041 to D-044):**
