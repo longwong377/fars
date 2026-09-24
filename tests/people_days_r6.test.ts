@@ -13,7 +13,7 @@ import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, Env, INITIAL_STOCK } from '../src/people/sim';
 import { pickSample } from '../tools/shadow_days';
 import { Seg, segAt, nameFor, THIN_NAME_POOL } from '../src/people/population';
-import { checkDay, MINDING } from '../src/people/planCheck';
+import { checkDay, checkPlan, MINDING } from '../src/people/planCheck';
 import { sunTimes, rainSpells, rainHours, CAL } from '../src/people/calendar';
 import { LATITUDE_N, LONGITUDE_E } from '../src/core/calendar';
 import { WeatherSystem } from '../src/weather/weatherState';
@@ -282,4 +282,17 @@ describe('session 6 additions (D-175): the minor findings behind the 4s', () => 
     const ch = S.population.find(x => /birthday/.test(x.stratum))!; expect([1, 5, 8]).toContain(P.ageOn(ch.pid, ch.day)); expect(P.ageOn(ch.pid, ch.day)).toBe(P.persons[ch.pid].age + 1);
     const vg = S.population.find(x => /grain heap/.test(x.stratum))!; expect(P.vigilMan(P.home(vg.pid, vg.day), vg.day)).toBe(vg.pid);
   }, 300_000);
+});
+
+describe('the soak on D-175\'s first full run (plansWellFormed failed: 4 meals, 1 teleport, 2 apart, 23 alone)', () => {
+  const lastPlace = (pid: number, d: number) => { const s: Seg[] = P.plan(pid, d - 1); return s[s.length - 1].place; };
+  it('guards before an afternoon watch who eat the family\'s midday meal get their bread at the post when no hearth moment is free: no 8 h between meals (days 109, 169, 199)', () => {
+    for (const d of [109, 169, 199]) for (const pid of P.garrison) { if (!P.present(pid, d)) continue; expect(checkPlan(P, pid, d, P.plan(pid, d), P.present(pid, d - 1) ? lastPlace(pid, d) : null).filter(x => x.kind === 'meals'), `${pid} d${d}`).toEqual([]); }
+  }, 120_000);
+  it('a child in mourning is not the house\'s minder (days 189, 192: the little ones were "with" a brother or sister who was mourning elsewhere in the house\'s day); orphans are fostered after a kinswoman has gone to keep another house (day 285: brothers of 11 and 8 alone at night); a kinswoman is not a little one\'s minder on the day she comes (day 12: a teleport)', () => {
+    for (const d of [189, 192, 285]) { const cache = new Map<number, Seg[]>(); const planOf = (x: number) => cache.get(x) ?? cache.set(x, P.plan(x, d)).get(x)!;
+      expect(checkDay(P, d, planOf).filter(x => ['apart', 'alone', 'minding'].includes(x.kind)).slice(0, 5).map(x => `${x.pid} d${d} ${x.kind} ${x.note}`)).toEqual([]); }
+    expect(P.home(15314, 285)).not.toBe(3794);
+    expect(checkPlan(P, 15081, 12, P.plan(15081, 12), lastPlace(15081, 12))).toEqual([]);
+  }, 600_000);
 });

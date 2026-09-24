@@ -522,6 +522,10 @@ export class Population {
     for (let i = 0; i < n0; i++) { const p = this.persons[i]; if (p.persian && p.age >= 16 && p.bday >= 0 && (p.zone === 'town' || p.zone === 'plain' || p.job === 'guard')) this.bdayByDay[p.bday].push(i); }
     this.foster();
     this.bereaved();
+    // again after the kinswomen have moved to keep bereaved houses: a daughter of 17 who went to keep her kin's house was
+    // the last grown-up of her own when both parents died later in the year, and her brothers of 11 and 8 were left alone
+    // (soak on D-175; household 3794). Children already moved are not moved again
+    this.foster();
   }
   /** the fostered nurslings of a wet nurse */
   private nursedBy = new Map<number, number[]>();
@@ -605,7 +609,7 @@ export class Population {
     const sLen = M.supper_h + 1.5 * M.per_eater_h * eaters + (winter ? M.winter_longer_h : 0) + (birthday >= 0 ? M.birthday_longer_h : 0);
     // the child-minder, the son who goes out to the field with the men, the child who carries the bread out (C)
     // (not a son or daughter of 12-13 of the plain who goes out to the harvest or the floor with the household today: S2 r5)
-    const kidsIn = mem.filter(x => { const q = this.persons[x]; return this.ageOn(x, d) >= 7 && this.ageOn(x, d) <= 13 && (q.job === 'child' || (q.job === 'farmer' && !(task?.all && this.ageOn(x, d) >= 12))) && !this.sick(x, d) && x !== keeper && q.agent < 0; }).sort((a, b) => this.ageOn(b, d) - this.ageOn(a, d) || a - b);
+    const kidsIn = mem.filter(x => { const q = this.persons[x]; return this.ageOn(x, d) >= 7 && this.ageOn(x, d) <= 13 && (q.job === 'child' || (q.job === 'farmer' && !(task?.all && this.ageOn(x, d) >= 12))) && !this.sick(x, d) && !this.mourning(x, d) && x !== keeper && q.agent < 0; }).sort((a, b) => this.ageOn(b, d) - this.ageOn(a, d) || a - b); // (not a child in mourning: its day is the mourning day, not child()'s, so it holds no minding: soak on D-175)
     const littles = mem.some(x => this.ageOn(x, d) <= 4 && this.persons[x].job === 'child');
     const minder = !littles ? -1 : kidsIn.find(x => this.persons[x].sex === 'f') ?? kidsIn.find(x => this.ageOn(x, d) >= 8) ?? -1;
     const fieldT = task && !task.all && (['plough', 'field', 'canal'].includes(task.kind) || (task.kind === 'other' && !!task.helper));
@@ -1445,8 +1449,13 @@ class Planner {
           for (const x of xs) if (ok(x) && Math.abs(x - at) < bd) { bd = Math.abs(x - at); best = x; } }
         return best; };
       let tt = this.p.job === 'guard' ? cand(true) : -1; if (tt < 0) tt = cand(false);
-      if (tt < 0) { tt = at; let i = segs.findIndex(s => tt < s.t1); while (i >= 0 && i < segs.length && segs[i].where === 'road') { tt = segs[i].t1; i++; } if (i >= 0 && i < segs.length && segs[i].act === 'sleep' && segs[i].t0 > wake) tt = segs[i].t0; if (!clearOf(tt)) return; }
-      const t = this.insertAt(segs, tt, 0.35, 'eat', 'bread and water', s => s.act === 'stand_guard' || s.act === 'patrol' || (s.act === 'sleep' && tt > s.t0 + 1e-6));
+      if (tt < 0) { tt = at; let i = segs.findIndex(s => tt < s.t1); while (i >= 0 && i < segs.length && segs[i].where === 'road') { tt = segs[i].t1; i++; } if (i >= 0 && i < segs.length && segs[i].act === 'sleep' && segs[i].t0 > wake) tt = segs[i].t0; if (!clearOf(tt)) tt = -2; }
+      let t = tt === -2 ? -1 : this.insertAt(segs, tt, 0.35, 'eat', 'bread and water', s => s.act === 'stand_guard' || s.act === 'patrol' || (s.act === 'sleep' && tt > s.t0 + 1e-6));
+      // a guard with no free moment in the gap eats the bread he carried up at his post, in the middle of the watch (as a man
+      // with no patrol to relieve him does: D-136); the soak on D-175 found 8.1-8.2 h between the family's midday meal before
+      // an afternoon watch and a meal relief at about 21:00
+      if (t < 0 && this.p.job === 'guard' && clearOf(at) && segs.some(s => s.act === 'stand_guard' && s.t0 <= at && s.t1 >= at + 0.3))
+        t = this.insertAt(segs, at, 0.25, 'eat', 'bread and water at the post, carried up from the hearth', s => s.act !== 'stand_guard');
       if (t < 0) return;
     }
   }
@@ -1773,7 +1782,8 @@ class Planner {
   private small(): Seg[] {
     const P = this.P, d = this.d, home = this.home, hid = P.home(this.pid, d); const mem = P.membersOn(hid, d); const U = L.children_under_five;
     const hk = P.keeperOn(hid, d);
-    const ok = (x: number) => x !== this.pid && mem.includes(x) && (this.ageOf(x) >= 12 || x === hk) && P.persons[x].job !== 'guard';
+    // (not a kinswoman on the day she comes to keep the house: her day begins in her own house; soak on D-175: a teleport)
+    const ok = (x: number) => x !== this.pid && mem.includes(x) && (this.ageOf(x) >= 12 || x === hk) && P.persons[x].job !== 'guard' && !(x === hk && P.persons[x].marry === d);
     const nurseNow = this.p.nurse !== undefined && d >= this.p.marry && ok(this.p.nurse) ? this.p.nurse : undefined;
     let m = this.p.mother >= 0 && ok(this.p.mother) ? this.p.mother : nurseNow ?? (hk >= 0 && ok(hk) ? hk : undefined) ?? mem.find(x => ok(x) && P.persons[x].sex === 'f' && this.ageOf(x) >= 14);
     if (m === undefined) m = mem.find(ok);
@@ -2058,11 +2068,13 @@ class Planner {
     const issueH = C.issue.get(p.group); if (issueH !== undefined && ph >= 3 && p.idx % 3 === 1) jobs.push([issueH, issueH + 2, G.issuePlace, 'carry_sack', 'carrying the garrison’s ration up from the Terrace depot']);
     jobs.sort((a, b) => a[0] - b[0]);
     /** free time between now and t1: duties first; otherwise a visit to the family in the town, or the hearth */
-    const free = (t1: number, visitChance: number) => {
+    const free = (t1: number, visitChance: number, visitEnd?: number) => {
       const mine = jobs.filter(j => j[0] >= this.t && j[1] <= t1);
       if (!mine.length && fam && t1 - this.t > 3.5 && !C.wx.storm && this.rainIn(this.t, t1) < 1 && r.chance(visitChance)) {
         const h = P.walkH('garrison_sleep', fam.home, d, 'terrace', 'town'); leisure(this.t + 0.3);
-        this.add(this.t + h, 'road:town', 'walk', 'down to the town', 'road'); const back = t1 - h;
+        // (before the afternoon watch he stays for the family's meal and comes up just in time to ready himself: the meal
+        // relief on watch can come as late as 21:00, and the soak found 8.2 h between meals: D-175)
+        const tv = visitEnd ?? t1; this.add(this.t + h, 'road:town', 'walk', 'down to the town', 'road'); const back = tv - h;
         const kinW = P.membersOn(fam.id, d).filter(x => x !== this.pid), wife = kinW.some(x => P.persons[x].sex === 'f' && this.ageOf(x) >= 14), kidsN = kinW.filter(x => this.ageOf(x) < 14).length, baby = kidsN === 1 && kinW.some(x => this.ageOf(x) === 0);
         // the family's midday meal with them when the visit spans it (S4 of shadow review r5: was bread and water there)
         const FH = P.hday(fam.id, d), fnoon = FH.noon, withNoon = fnoon > this.t + 0.2 && fnoon + FH.nLen < back - 0.3 && fnoon - lastEat() >= 2, talk1 = Math.min(back, this.t + r.range(1, 2));
@@ -2070,7 +2082,7 @@ class Planner {
         if (withNoon && this.t <= fnoon + 0.05) { if (this.t < fnoon) this.add(fnoon, fam.home, 'talk', 'with his family', 'town'); this.add(this.t + FH.nLen, fam.home, 'eat', 'the midday meal with his family', 'town'); }
         if (back - this.t > 1.5 && r.chance(0.5) && !(C.wx.dustH && C.wx.dustH[0] < back && C.wx.dustH[1] > this.t)) this.add(Math.min(back - 0.8, this.t + r.range(0.5, 1)), `lane:${fam.q}`, r.chance(0.5) ? 'exchange' : 'talk', 'in the lane of his family’s quarter', 'town');
         if (back - this.t > 1.2) this.add(back - 0.6, fam.home, r.chance(0.5) ? 'rest' : 'talk', 'with his family', 'town');
-        const late = back - this.t > 0.35 && back - lastEat() >= 2.5; this.add(back, fam.home, late ? 'eat' : 'talk', late ? 'a meal with his family before going back up' : 'with his family', 'town'); this.add(t1, 'road:terrace', 'walk', 'back up to the garrison', 'road'); return;
+        const late = back - this.t > 0.35 && back - lastEat() >= 2.5; this.add(back, fam.home, late ? 'eat' : 'talk', late ? 'a meal with his family before going back up' : 'with his family', 'town'); this.add(tv, 'road:terrace', 'walk', 'back up to the garrison', 'road'); return;
       }
       if (!mine.length && !fam && t1 - this.t > 3 && !C.wx.storm && !C.wx.wet && !C.wx.dust && this.t > 7 && this.t < 16 && r.chance(visitChance + 0.25)) {
         // a man with no family in the town: down to the town's lanes and market, or to the river to wash his clothes (C)
@@ -2090,7 +2102,7 @@ class Planner {
     }
     if (me && me.watch === 1) { // watch B, 14–22
       if (!tailC) this.add(Math.max(this.t, up(this.sun.rise + 0.7)), 'garrison_sleep', 'sleep', 'asleep in the garrison quarters', 'terrace');
-      meal('breakfast'); free(13.2 - 0.3 * u01(P.seed, S.assign, 5500 + this.pid, d), 0.3); meal('a meal before the watch'); this.add(14, hearth, 'talk', 'readying for the watch', 'terrace'); watch(me, 22, d); meal('a meal after the watch'); return this.finish();
+      meal('breakfast'); free(13.2 - 0.3 * u01(P.seed, S.assign, 5500 + this.pid, d), 0.3, 13.7 - 0.2 * u01(P.seed, S.assign, 5500 + this.pid, d)); meal('a meal before the watch'); this.add(14, hearth, 'talk', 'readying for the watch', 'terrace'); watch(me, 22, d); meal('a meal after the watch'); return this.finish();
     }
     if (me && me.watch === 2) { // watch C, 22–06 (tomorrow's plan holds the rest of it)
       if (!tailC) this.add(Math.max(this.t, up(this.sun.rise + 0.6)), 'garrison_sleep', 'sleep', 'asleep in the garrison quarters', 'terrace');
