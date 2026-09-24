@@ -62,7 +62,9 @@ export function dyeColour(key: string, s: number, f: number, dL = 0, dC = 1): RG
 export const TEXTILE: Record<string, { c: RGB; tier: 'B' | 'C'; note: string }> = Object.fromEntries(Object.entries(DYES).map(([k, d]) => [k, { c: dyeColour(k, 0.6, 0.15), tier: d.tier, note: d.note }]));
 /** the look's wear (D-189, C): garment age (fading), hem soil, fit (skirt ease at the hem, m), the hem's folds (amplitude m,
  *  phase 0..1), and each garment's fading susceptibility (main, second, trim: the dye's) */
-export interface Wear { fade: number; soil: number; fit: number; foldAmp: number; foldPhase: number; k: RGB }
+export interface Wear { fade: number; soil: number; fit: number; foldAmp: number; foldPhase: number; k: RGB;
+  /** the felt hat's height against the made one (fluted hat: ±12 %, hand-shaped felt; C) */
+  hat: number }
 /** dye strength, garment age and hem soil by dress (C): court dress wears stronger, newer dyes; everyone walks on dust */
 const WEAR_BY: Record<string, { s: [number, number]; f: [number, number]; soil: [number, number] }> = {
   persian: { s: [0.55, 1], f: [0, 0.3], soil: [0.12, 0.3] }, guard: { s: [0.5, 0.95], f: [0.05, 0.35], soil: [0.18, 0.35] },
@@ -198,7 +200,8 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   const WB = WEAR_BY[dress] ?? WEAR_BY.worker, sMain = rng.range(...WB.s), age = rng.range(...WB.f), soil = rng.range(...WB.soil);
   const garment = (k: string, s: number) => dyeColour(k, s, age, Math.max(-7, Math.min(7, 3 * rng.normal())), Math.max(0.8, Math.min(1.2, 1 + 0.1 * rng.normal())));
   col.main = garment(mainK, sMain); col.second = garment(secondK, sMain + rng.range(-0.25, 0.25)); col.trim = garment(trimK, sMain + rng.range(-0.2, 0.2));
-  const wear: Wear = { fade: age, soil, fit: rng.range(-0.004, 0.022), foldAmp: rng.range(0.012, 0.026), foldPhase: rng.next(), k: [DYES[mainK].fade, DYES[secondK].fade, DYES[trimK].fade] };
+  const wear: Wear = { fade: age, soil, fit: rng.range(-0.004, 0.022), foldAmp: rng.range(0.012, 0.026), foldPhase: rng.next(), k: [DYES[mainK].fade, DYES[secondK].fade, DYES[trimK].fade], hat: 0 };
+  wear.hat = rng.range(-0.12, 0.12);
   const hl = rng.range(0.85, 1.3); col.hair = col.hair.map(x => Math.min(0.2, x * hl)) as RGB;
   const tiers = pieces.map(id => `${id} ${PIECES[id]?.tier ?? 'C'}`).join(', ');
   const note = `body ${v.meta.id} (variant, C) × ${scale.toFixed(3)} → ${(v.height * scale).toFixed(2)} m (stature C, Q-066); ${tiers}; colours main ${mainK} (${TEXTILE[mainK].tier}), second ${secondK}, trim ${trimK}, dye strength ${sMain.toFixed(2)}, age ${age.toFixed(2)}, hem soil ${soil.toFixed(2)} (C, D-189)${pattern ? ', Susa-style rosettes (B)' : ''}; skin tone p ${toneP.toFixed(2)} for ${origin} (C, Q-240), hair ${['natural curls', 'court rows of curls', 'straight'][hairStyle]} (C), iris ${iris}; grime ${grimeWhat} (C)`;

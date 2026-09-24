@@ -20,6 +20,7 @@ import { WorldClock } from '../../src/core/clock';
 import { decodePNG, encodePNG } from '../humans/png';
 import { surface, shade, agx, toSRGB8, makeTex, dot3, norm3, cross3, SAG_MAX, skirtFold, type V3, type Frag, type Env, type Tex } from './human_cpu';
 import { wearTexel } from '../../src/people/looks';
+import { DRAPE } from '../../src/people/humanMaterial';
 
 const arg = (k: string, d: string) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : d; };
 const view = process.argv[2] ?? 'macro-0';
@@ -72,7 +73,8 @@ const people: Person[] = lineup.map((sp, i) => {
       const t = Cc.tid[k], nb = unpackNormal(O.source[base + t * 4 + 3]); let bx = O.source[base + t * 4], by = O.source[base + t * 4 + 1], bz = O.source[base + t * 4 + 2];
       const clsK = Cc.hmat[k * 4], clothK = clsK >= 1 && clsK <= 3;
       // the skirt's hem folds and fit (the material's vertex stage, D-189)
-      if (clothK && Cc.hext[k * 4 + 2] > 127) { const d = skirtFold(Cc.uv[k * 2 + 1], Math.atan2(bx, bz - 0.02), wt[2], wt[1], camD), rl = Math.hypot(bx, bz - 0.02) || 1; bx += bx / rl * d; bz += (bz - 0.02) / rl * d; void by; }
+      if (clothK && Cc.hext[k * 4 + 2] > 127) { const d = skirtFold(Cc.uv[k * 2 + 1], Math.atan2(bx, bz - 0.02), wt[2], wt[1], camD), rl = Math.hypot(bx, bz - 0.02) || 1; bx += bx / rl * d; bz += (bz - 0.02) / rl * d; }
+      if (clsK === MAT.felt && Cc.hmat[k * 4 + 3] === 1) by += Cc.uv[k * 2 + 1] * DRAPE.hatH * look.wear.hat; // the fluted hat's height (D-189)
       if (clothK && Cc.hext[k * 4 + 2] <= 127) { const oa = Cc.skinIndex[k * 4] * 12, ob = Cc.skinIndex[k * 4 + 1] * 12, ya = norm3([pal[oa + 1], pal[oa + 5], pal[oa + 9]]), yb = norm3([pal[ob + 1], pal[ob + 5], pal[ob + 9]]);
         const mixW = Math.min(1, 4 * (Cc.skinWeight[k * 4] / 255) * (Cc.skinWeight[k * 4 + 1] / 255)); bend[k] = Math.min(1, Math.max(0, (1 - dot3(ya, yb)) * 2)) * mixW; }
       let px = 0, py = 0, pz = 0, nx = 0, ny = 0, nz = 0;

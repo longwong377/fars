@@ -58,7 +58,7 @@ export interface HumanTextures {
   skin: THREE.Texture; eye: THREE.Texture;
 }
 /** person texel layout: 0 [variant, piece mask, look flags (LOOK_BITS), grime], 1 [skin tone, stubble], 2 main, 3 second,
- *  4 trim (w: the garment's fading susceptibility, D-189), 5 hair, 6 leather, 7 [grime brightness, scale, 0, flags],
+ *  4 trim (w: the garment's fading susceptibility, D-189), 5 hair, 6 leather, 7 [grime brightness, scale, hat height (D-189), flags],
  *  8 felt/headgear, 9 wear [garment age, fit (m), fold amplitude (mm) + phase, hem soil] (looks.wearTexel, D-189).
  *  stubble (1.w): 0 none, 0..1 shaven stubble, 2 = bearded (the skin under the beard reads as roots) */
 export const PERSON_TEXELS = 10;
@@ -73,7 +73,7 @@ export const SAG_MAX = 0.1;
  *  (the two bones' relative rotation where the skin weights mix). Micro-shadowing: the baked cavity also darkens the
  *  direct light (after Chan 2018's micro-shadows), so eye sockets, the nose's underside and cloth folds read in sun. */
 export const DRAPE = { foldLow: [2, 3] as [number, number], foldHigh: [7, 10] as [number, number], highNear: [15, 24] as [number, number],
-  fade: 0.6, soil: 0.55, dust: [0.34, 0.28, 0.2] as RGB, wrinkle: 0.0014, wrinkleF: 26, micro: 1 };
+  fade: 0.6, soil: 0.55, dust: [0.34, 0.28, 0.2] as RGB, wrinkle: 0.0014, wrinkleF: 26, micro: 1, hatH: 0.154 };
 /** person flags (texel 7 w): 1 = hide the head (the player's own body, seen from inside it) */
 export const FLAG_HIDE_HEAD = 1;
 
@@ -204,7 +204,9 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
       const high = sin(thS.mul(DRAPE.foldHigh[0]).add(ph.mul(2.3))).mul(0.6).add(sin(thS.mul(DRAPE.foldHigh[1]).add(ph.mul(3.1)).add(2)).mul(0.4))
         .mul(float(1).sub(smoothstep(DRAPE.highNear[0], DRAPE.highNear[1], camD)));
       const dS = tS.mul(tS).mul(wear.y.add(amp.mul(low.mul(0.7).add(high.mul(0.6)).add(0.6)))).mul(skirtV);
-      const bind = s.xyz.add(vec3(rad.x, 0, rad.y).mul(dS));
+      // the fluted hat (felt, class parameter 1; a tube whose uv.y runs rim → crown) taller or lower per person (D-189)
+      const hatV = is(hmat.x, MAT.felt).mul(is(hmat.w, 1)), hatDy = tS.mul(DRAPE.hatH).mul(person7.z).mul(hatV);
+      const bind = s.xyz.add(vec3(rad.x, hatDy, rad.y).mul(vec3(dS, 1, dS)));
       const R = skinned(boneTex);
       const p = toWorld(vec3(dot(R[0], vec4(bind, 1)), dot(R[1], vec4(bind, 1)), dot(R[2], vec4(bind, 1))), root).toVar();
       const n = rotN(normalize(vec3(dot(R[0].xyz, nB), dot(R[1].xyz, nB), dot(R[2].xyz, nB))), root);

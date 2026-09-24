@@ -65,6 +65,13 @@ describe('the palette (D-189): natural dyes, desaturated, value-varied, rank kep
     for (const Ls of [court, work, women]) for (const L of Ls) expect(L.wear.soil).toBeGreaterThanOrEqual(0.12);
     expect(soil(work)).toBeGreaterThan(soil(court) * 1.5);
   });
+  it('fluted hats differ in height per person (±12 %, within 2 cm) and the costume\'s hat is the tube the material scales', () => {
+    const hats = looksOf('persian', 'official', 'm', 200, 45000).map(L => L.wear.hat);
+    expect(Math.min(...hats)).toBeGreaterThanOrEqual(-0.12); expect(Math.max(...hats)).toBeLessThanOrEqual(0.12);
+    const sd = Math.sqrt(hats.reduce((a, h) => a + h * h, 0) / hats.length); expect(sd * DRAPE.hatH).toBeGreaterThan(0.008);
+    const C = O.costumes.persian[0]; let n = 0; for (let i = 0; i < C.tid.length; i++) if (C.hmat[i * 4] === MAT.felt && C.hmat[i * 4 + 3] === 1) { n++; expect(C.uv[i * 2 + 1]).toBeGreaterThanOrEqual(0); expect(C.uv[i * 2 + 1]).toBeLessThanOrEqual(1); }
+    expect(n).toBeGreaterThan(100);
+  });
   it('a look is deterministic, and the wear texel round-trips (fold amplitude in mm, phase kept off the integer edges)', () => {
     for (let s = 0; s < 50; s++) { const a = lookFor(A, { id: s, sex: 'm', role: 'official', dress: 'persian', seed: 500 + s }, 1), b = lookFor(A, { id: s, sex: 'm', role: 'official', dress: 'persian', seed: 500 + s }, 1);
       expect(a.col).toEqual(b.col); expect(a.wear).toEqual(b.wear);

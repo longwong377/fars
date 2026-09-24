@@ -248,7 +248,7 @@ export class Crowd {
     D.set([look.variant, look.mask, look.pattern, look.grime], o);
     const w = look.wear; // D-189: each garment's fading susceptibility in its colour texel's w; texel 9 the wear
     D.set([...c.skin, look.stubble], o + 4); D.set([...c.main, w?.k[0] ?? 0], o + 8); D.set([...c.second, w?.k[1] ?? 0], o + 12); D.set([...c.trim, w?.k[2] ?? 0], o + 16);
-    D.set([...c.hair, 0], o + 20); D.set([...c.leather, 0], o + 24); D.set([look.grimeLevel, look.scale, 0, flags], o + 28); D.set([...c.felt, 0], o + 32);
+    D.set([...c.hair, 0], o + 20); D.set([...c.leather, 0], o + 24); D.set([look.grimeLevel, look.scale, w?.hat ?? 0, flags], o + 28); D.set([...c.felt, 0], o + 32);
     D.set(w ? wearTexel(w) : [0, 0, 0, 0], o + 36);
     this.humans.gpu.markPersonDirty();
   }
