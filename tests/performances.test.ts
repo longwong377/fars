@@ -10,11 +10,11 @@ import { decodeHumanAssets, meshoptSimplify, type HumanAssets } from '../src/peo
 import { HB, PART } from '../src/people/humanFormat';
 import { RigSolver, PALETTE_STRIDE, PLANTED, skinPoint, type RigInput } from '../src/people/humanRig';
 import { ANIMS, pose, type AnimId, type Pose } from '../src/people/anim';
-import { WORK_ANIMS, WORK_META, ploughPath, FURROW, type WorkAnim } from '../src/people/workAnims';
+import { WORK_ANIMS, WORK_META, ploughPath, workRoot, FURROW, type WorkAnim } from '../src/people/workAnims';
 import { NOM, IK_STATS, trunk, gripIK, legIK, palmOf, ankleOf, shoulder, ANKLE_Y } from '../src/people/poseKit';
 import { buildOutfits, type OutfitBuild } from '../src/people/outfits';
 import { HumanGPU } from '../src/people/humanGPU';
-import { Crowd, CARRIED_MAX } from '../src/people/crowd';
+import { Crowd, CARRIED_MAX, THINGS_DIST, IN_PLACE_RATE, yawOf } from '../src/people/crowd';
 import { ACTIVITIES, ABSTRACT_PLACEHOLDERS, performanceFor, type ActivityId, type Performance } from '../src/people/activities';
 import { activityLint } from '../src/people/activityLint';
 import { PROPS, PROP_CLASSES, PROP_NOTES, propGeometry, propUnionGeometry, propSlot } from '../src/people/props';
@@ -285,7 +285,7 @@ describe('population people perform too (the D-142 × D-143 merge)', () => {
     return crowd;
   };
   const vpOf = (pid: number, e: number, n: number, act: ActivityId, why: string, o: Partial<ViewPerson> = {}): ViewPerson =>
-    ({ pid, e, n, y: 0, heading: 180, act, moving: false, why, place: '', prop: propOf(act, o.carryNote ?? null), carryNote: null, speed: 0, entry: 0, what: 'test', agent: -1, plot: 0, wall: 0, ...o });
+    ({ pid, e, n, y: 0, heading: 180, act, moving: false, why, place: '', prop: propOf(act, o.carryNote ?? null), carryNote: null, speed: 0, entry: 0, what: 'test', agent: -1, plot: 0, wall: 0, hh: -1, ...o });
   it('resolve() takes a population person\'s act and reason from the view (vp.act, vp.why): D-142\'s variant, props, work objects and animals; the plan\'s goods carried where the activity has no prop; no placeholder', () => {
     const crowd = makeCrowd(), frame = () => (crowd as any).frame as number;
     const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0); cam.lookAt(0, 1.2, -10); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
@@ -312,7 +312,7 @@ describe('population people perform too (the D-142 × D-143 merge)', () => {
     expect(get(2).anim).toBe('winnow'); expect(get(2).prop).toBe('fork');
     expect(get(3).anim).toBe('walk'); expect(get(3).prop).toBe('sack'); // the plan's goods, carried as D-142's prop
     expect(get(4).anim).toBe('pat'); expect(get(4).prop, 'a variant that leaves the prop out keeps the hands free').toBeNull();
-    expect(get(5).act).toBe('walk');
+    expect(get(5).act).toBe('walk'); expect(get(5).prop, 'stepping aside on arriving, the reaper carries the sickle he came to reap with').toBe('sickle');
     expect(get(6).anim).toBe('hoe'); expect(get(6).prop).toBe('hoe');
     // the props are D-142's instanced props (kind index per instance, per prop class)
     const meshes = crowd.group.children.filter(o => (o as THREE.InstancedMesh).isInstancedMesh && /^props:/.test(o.name)) as THREE.InstancedMesh[];
@@ -333,5 +333,81 @@ describe('population people perform too (the D-142 × D-143 merge)', () => {
     // removing the extras keeps the pool's population people (attached by population id)
     crowd.addExtra('x', { id: -5, sex: 'm', role: 'porter', dress: 'worker', seed: 5, x: 0, y: 0, z: -5, yaw: 0 }); crowd.removeExtras();
     expect(crowd.persons.size).toBe(6); expect(crowd.attachPop(3)).toBe(get(3));
+  }, 120_000);
+  it('a shared work object stays where it is when the camera turns or the field of view changes (anchored among the view\'s people, not those drawn); one bier per funeral (place and household)', () => {
+    const crowd = makeCrowd(), frame = () => (crowd as any).frame as number;
+    const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0);
+    const look = (e: number, n: number, fov: number) => { cam.fov = fov; cam.updateProjectionMatrix(); cam.lookAt(e, 1.2, -n); cam.updateMatrixWorld(); };
+    const V = [
+      vpOf(1, -14, 20, 'thresh', 'threshing and winnowing on the village floor (E-43)', { place: 'threshing:v1' }),
+      vpOf(2, 0, 20, 'thresh', 'threshing: driving the animals round over the sheaves on the village floor (E-43)', { place: 'threshing:v1' }),
+      // two funerals at the town's burial ground the same day: households 5 (two bearers) and 6
+      vpOf(10, -30, 30, 'carry_bier', 'the dead are carried out of the settlement (E-71)', { place: 'outside', hh: 5 }),
+      vpOf(11, -26, 34, 'carry_bier', 'the dead are carried out of the settlement (E-71)', { place: 'outside', hh: 5 }),
+      vpOf(12, -34, 38, 'carry_bier', 'the dead are carried out of the settlement (E-71)', { place: 'outside', hh: 6 }),
+    ];
+    const P = V.map(v => [crowd.attachPop(v.pid), v] as const);
+    const at = (kind: string) => { const m = crowd.group.getObjectByName(`work:${kind}`) as THREE.InstancedMesh | undefined, M = new THREE.Matrix4();
+      return Array.from({ length: m?.count ?? 0 }, (_, i) => { m!.getMatrixAt(i, M); return new THREE.Vector3().setFromMatrixPosition(M); }); };
+    let t = 0; const step = () => { for (const [p, v] of P) { p.vp = v; p.vpFrame = frame() + 1; } crowd.update(t += 0.1, cam.position, null, cam); };
+    const drawn = (pid: number) => crowd.persons.get(`p${pid}`)!.drawnFrame === frame();
+    // the floor stands at the lowest population id of the place (p1) in every view that draws a performer of it: p1 in
+    // view or not, the field of view wide or narrow (before the fix it jumped 14 m to p2 when p1 left the view)
+    const rows: string[] = [];
+    for (const [e, n, fov] of [[-14, 20, 70], [0, 20, 70], [20, 20, 70], [8, 20, 20], [0, 20, 70], [-14, 20, 20], [20, 20, 70]] as const) {
+      look(e, n, fov); step(); const f = at('threshing_floor'); rows.push(`look E ${e} fov ${fov}: p1 ${drawn(1)} p2 ${drawn(2)} floor ${f.map(v => `${v.x.toFixed(1)},${(-v.z).toFixed(1)}`)}`);
+      expect(drawn(1) || drawn(2), `look E ${e}: a thresher drawn`).toBe(true);
+      expect(f.length, rows.at(-1)).toBe(1); expect(f[0].distanceTo(new THREE.Vector3(-14, 0, -20)), rows.at(-1)).toBeLessThan(1e-6); }
+    expect(rows.filter(r => r.includes('p1 false')).length, 'some views leave p1 out').toBeGreaterThan(0);
+    // looking away from the floor and its performers: not drawn
+    look(0, -20, 70); step(); expect(drawn(1) || drawn(2)).toBe(false); expect(at('threshing_floor').length).toBe(0);
+    // the biers: one per household, at its lowest id bearer (the pole's side offset: 0.46 m)
+    look(-30, 34, 70); step(); const B = at('bier');
+    expect(B.length, 'two funerals at one place: two biers').toBe(2);
+    expect(Math.min(...B.map(v => v.distanceTo(new THREE.Vector3(-30, 0, -30)))), 'household 5\'s bier at bearer p10').toBeLessThan(0.5);
+    expect(Math.min(...B.map(v => v.distanceTo(new THREE.Vector3(-34, 0, -38)))), 'household 6\'s bier at bearer p12').toBeLessThan(0.5);
+    console.log(rows.join('\n'));
+  }, 120_000);
+  it('a moving performance at a standing spot of the plan walks in place (the bearers at the burial ground, a guard\'s round at his post), skinned and impostor', () => {
+    const crowd = makeCrowd(), frame = () => (crowd as any).frame as number;
+    const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0); cam.lookAt(0, 1.2, -10); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+    const V = [vpOf(1, -2, 12, 'carry_bier', 'the dead are carried out of the settlement (E-71)', { place: 'outside', hh: 3 }), vpOf(2, 2, 14, 'patrol', 'walking the round of the Terrace', { place: 'terrace_round' })];
+    const P = V.map(v => [crowd.attachPop(v.pid), v] as const), th: number[][] = [[], []];
+    // and a guard on his round drawn as an impostor (beyond the pool): his walk frames run
+    const rows = new Set<number>(); crowd.imp = { begin() {}, end() {}, count: 0, atlas: { refStature: {} }, push(_x: number, _y: number, _z: number, _yaw: number, row: number) { rows.add(row); } } as any;
+    const g = vpOf(3, 5, 700, 'patrol', 'walking the round of the Terrace', { place: 'terrace_round' }); (crowd as any).impList = [{ vp: g, a: null, d: 700, x: g.e, y: 0, z: -g.n, yaw: yawOf(g.heading) }]; (crowd as any).nImp = 1;
+    for (let f = 0; f < 31; f++) { for (const [p, v] of P) { p.vp = v; p.vpFrame = frame() + 1; } crowd.update(1 + f / 30, cam.position, null, cam);
+      P.forEach(([p], i) => th[i].push(p.rig.pose.rot.l_thigh?.[0] ?? 0)); }
+    expect(rows.size, 'the impostor guard\'s walk frames over a second').toBeGreaterThanOrEqual(3);
+    expect(['bier_l', 'bier_r']).toContain(P[0][0].anim); expect(P[1][0].anim).toBe('guard_walk');
+    for (const [i, x] of th.entries()) { const r = Math.max(...x) - Math.min(...x); expect(r, `${V[i].act}: the thigh swings over a second (it stood frozen mid-stride)`).toBeGreaterThan(0.3); }
+    // the phase runs at the extras' pace (time × 4.2)
+    const g0 = P[0][0].gaitPh; for (const [p, v] of P) { p.vp = v; p.vpFrame = frame() + 1; } crowd.update(2 + 0.4, cam.position, null, cam);
+    expect(P[0][0].gaitPh - g0).toBeCloseTo(IN_PLACE_RATE * 0.4, 6);
+  }, 120_000);
+  it('impostors within THINGS_DIST bring their work objects and animals, the ploughman on his furrow (as the skinned do); beyond it, only the body; the skinned ploughman\'s root (his capsule) is on the furrow', () => {
+    const crowd = makeCrowd(); const pushed: number[][] = [];
+    crowd.imp = { begin() { this.count = 0; pushed.length = 0; }, end() {}, count: 0, atlas: { refStature: {} }, push(x: number, y: number, z: number, yaw: number) { pushed.push([x, y, z, yaw]); this.count++; } } as any;
+    const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, 1.6, 0); cam.lookAt(0, 1.2, -10); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+    const V = [vpOf(20, 0, 150, 'plough', 'ploughing and sowing the field'), vpOf(21, 20, 200, 'reap', 'reaping the barley'), vpOf(22, -10, THINGS_DIST + 60, 'reap', 'reaping the barley'),
+      vpOf(23, -20, 300, 'thresh', 'threshing and winnowing on the village floor (E-43)', { place: 'threshing:v9' })];
+    (crowd as any).impList = V.map(v => ({ vp: v, a: null, d: Math.hypot(v.e, v.n), x: v.e, y: v.y, z: -v.n, yaw: yawOf(v.heading) })); (crowd as any).nImp = V.length;
+    const T = 3; crowd.update(T, cam.position, null, cam); const st = crowd.stats();
+    expect(pushed.length, 'every impostor in view drawn').toBe(4);
+    expect(st.animals.species.ox, 'the plough team').toBe(2); expect(st.things.kinds.ard).toBe(1);
+    expect(st.things.kinds.sheaves, 'the reaper within THINGS_DIST has his sheaves; the one beyond has none').toBe(1);
+    expect(st.things.kinds.threshing_floor, 'the floor of a place whose only performer in view is an impostor').toBe(1); expect(st.things.kinds.grain_heap).toBe(1);
+    // the ploughman impostor is on his furrow, where the skinned would be (the root: the view's spot plus workRoot)
+    const s = crowd.view!.lookInput(20).seed, o = workRoot('plough', T + s % 100, (s % 1000) / 159)!, yaw = yawOf(180), c = Math.cos(yaw), sn = Math.sin(yaw);
+    expect(Math.hypot(o[0], o[1])).toBeGreaterThan(0.5);
+    const want = [0 + c * o[0] + sn * o[1], -150 - sn * o[0] + c * o[1]]; const got = pushed.find(q => Math.hypot(q[0] - want[0], q[2] - want[1]) < 1e-6);
+    expect(got, `ploughman at ${want.map(x => x.toFixed(2))}; impostors at ${JSON.stringify(pushed.map(q => q.map(x => +x.toFixed(2))))}`).toBeTruthy();
+    expect(got![3]).toBeCloseTo(yaw + o[2], 9);
+    // a skinned ploughman of the population: where he is drawn (rootOf; world.ts puts his collision capsule there) is on his
+    // furrow as well, not at the view's spot
+    const pv = vpOf(30, 3, 12, 'plough', 'ploughing and sowing the field'), pp = crowd.attachPop(30); pp.vp = pv; pp.vpFrame = (crowd as any).frame + 1;
+    const T2 = T + 0.5; crowd.update(T2, cam.position, null, cam); const s2 = crowd.view!.lookInput(30).seed, o2 = workRoot('plough', T2 + s2 % 100, (s2 % 1000) / 159)!, R = crowd.rootOf(30)!;
+    expect(Math.hypot(R[0] - (3 + c * o2[0] + sn * o2[1]), R[2] - (-12 - sn * o2[0] + c * o2[1]))).toBeLessThan(1e-9); expect(Math.hypot(o2[0], o2[1])).toBeLessThan(9);
+    expect(crowd.rootOf(31), 'not in the pool').toBeNull();
   }, 120_000);
 });

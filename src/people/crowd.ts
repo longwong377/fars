@@ -20,7 +20,7 @@ import * as THREE from 'three/webgpu';
 import { attribute, positionLocal, float, abs, min } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { pose, type Pose } from './anim';
-import { ACTIVITIES, performanceFor, type ActivityId, type Performance } from './activities';
+import { ACTIVITIES, performanceFor, type ActivityId, type Performance, type WorkSpec } from './activities';
 import { PeopleSim, PLACES, type Agent } from './sim';
 import type { HumanSystem } from './humans';
 import { RigSolver, PALETTE_STRIDE, PLANTED, type RigInput, type FaceState } from './humanRig';
@@ -32,7 +32,7 @@ import { propGeometry, propUnionGeometry, paintedBox, PROP_NOTES, PROPS, PROP_CL
 import { PIECES, pieceBit, COSTUME_OF, type Dress } from './outfits';
 import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim } from './workAnims';
 import { IK_Q } from './poseKit';
-import { WorkObjects, WORK_NOTES } from './workObjects';
+import { WorkObjects, WORK_NOTES, type WorkKind } from './workObjects';
 import { Animals, animalsFor, ANIMAL_BUILD, grazeReach } from './animals';
 import type { PopView, ViewPerson } from './popview';
 import { CrowdImpostors, rowOf, frameOf } from './impostors';
@@ -44,6 +44,20 @@ const SEATED = new Set<AnimId>(['sit', 'write', 'eat', 'dice', 'sleep', 'grind',
 const ASIDE = new Set<AnimId>([...SEATED, ...(Object.keys(WORK_META) as WorkAnim[]).filter(k => WORK_META[k].aside)]);
 /** cycles that move the performer's root along a path of their own (the furrow, turning with the threshing team) */
 const PATHED = new Set<AnimId>((Object.keys(WORK_META) as WorkAnim[]).filter(k => WORK_META[k].path));
+/** an activity's performances: the base and its variants (a variant's unset fields are the base's) */
+const perfsOf = (P: Performance): Partial<Performance>[] => [P, ...(P.variants ?? []).map(v => ({ ...P, ...v }))];
+/** activities some performance of which has a work object shared by the performers of a place or a group (the threshing
+ *  floor, the drum on its sledge, the bier), has work objects or animals, or moves the performer along a path of its own */
+const SHARED_ACTS = new Set<string>(Object.entries(ACTIVITIES).filter(([, P]) => perfsOf(P).some(v => v.work?.some(w => w.shared))).map(([k]) => k));
+const THINGS_ACTS = new Set<string>(Object.entries(ACTIVITIES).filter(([, P]) => perfsOf(P).some(v => v.work?.length || v.animals)).map(([k]) => k));
+const PATH_ACTS = new Set<string>(Object.entries(ACTIVITIES).filter(([, P]) => perfsOf(P).some(v => v.anim && PATHED.has(v.anim))).map(([k]) => k));
+/** the gait phase (rad/s) of a moving performance given at a standing spot of the plan: the bearers' 1.5 h at the burial
+ *  ground, a guard's round at his post (the plans do not route them yet: Q-196). They walk in place at the pace the
+ *  performance sheet's extras use (time × 4.2, about 0.96 m/s), not frozen mid-stride */
+export const IN_PLACE_RATE = 4.2;
+/** the farthest a cycle's own path takes the performer from the view's spot (m): the ploughman at the furrow's end
+ *  (workAnims FURROW: 8 m + the headland turn), for the population's collision capsules (world.ts) */
+export const PATH_REACH = 9;
 
 const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
 const rad = (deg: number) => (deg * Math.PI) / 180;
@@ -110,7 +124,7 @@ export interface Person {
   lod?: number;
 }
 /** a person drawn as an impostor: their cached look (packed colours, dress row, stature scale) */
-interface ImpLook { packed: Float32Array; dress: Dress; scale: number }
+interface ImpLook { packed: Float32Array; dress: Dress; scale: number; seed: number }
 
 export class Crowd {
   readonly group = new THREE.Group();
@@ -354,6 +368,42 @@ export class Crowd {
   private lastTime = 0;
   /** shared work objects this frame: one per place (the threshing floor) or one per group (the bier, at its bearers' centre) */
   private shared = new Map<string, { kind: string; x: number; y: number; z: number; yaw: number; n: number; rank: number; one: THREE.Matrix4 }>();
+  /** the population's shared work objects this frame (D-142 × D-143): the threshing floor and the drum on its sledge once
+   *  per place of the plan, the bier once per place and household (one funeral: the men of the household in mourning carry
+   *  it). Each stands at the performer with the lowest population id among everyone the view places there this frame, in
+   *  view or not, skinned or an impostor, near or far, so it stays where it is when the camera turns, the field of view
+   *  changes or the pool changes (the anchor is the view's, not the drawing's). It is drawn when any of its performers is
+   *  drawn within THINGS_DIST (placeThings marks it); the objects' own bounding spheres cull it */
+  private anchors = new Map<string, { kind: WorkKind; pid: number; b: [number, number, number, number]; at: [number, number, number]; drawn: boolean }>();
+  private anchorSrc: ViewPerson[] = [];
+  private anchorPass(fed: boolean) {
+    const A = this.anchors; A.clear(); if (!this.view) return;
+    let src: readonly ViewPerson[] = this.vpBuf;
+    if (!fed) { const L = this.anchorSrc; L.length = 0; for (const p of this.persons.values()) if (!p.agent && !p.extra && p.vp && p.vpFrame === this.frame) L.push(p.vp); src = L; } // no pool feed (tests): the attached
+    for (const o of src) {
+      if (o.agent >= 0 || !o.place || !SHARED_ACTS.has(o.act) || (o.moving && !ACTIVITIES[o.act].moving)) continue; // stepping aside is a walk
+      const P = this.popPerf(o.pid, o.act, o.why); if (!P.work) continue;
+      for (const w of P.work) { if (!w.shared) continue; const key = this.popKey(w, o), g = A.get(key);
+        if (!g || o.pid < g.pid) A.set(key, { kind: w.kind, pid: o.pid, b: [o.e, o.y, -o.n, yawOf(o.heading)], at: w.at, drawn: false }); } }
+  }
+  /** the key of a population person's shared work object: its kind and the plan's place (a group object: and the household) */
+  private popKey(w: WorkSpec, o: ViewPerson) { return w.shared === 'group' ? `${w.kind}|pop:${o.place}|hh${o.hh}` : `${w.kind}|pop:${o.place}`; }
+  /** the performance a person of the population gives for an act and reason (cached per person): the one resolve() gives
+   *  them when attached (the same variant seed), for the anchors and the impostors' things */
+  private popPerfs = new Map<number, { act: string; why: string; perf: Performance }>();
+  private popPerf(pid: number, act: ActivityId, why: string, lookSeed?: number): Performance {
+    const c = this.popPerfs.get(pid); if (c && c.act === act && c.why === why) return c.perf;
+    const p = this.byPid.get(pid), s = p ? 0 : lookSeed ?? this.impLooks.get(pid)?.seed ?? this.view!.lookInput(pid).seed;
+    const perf = performanceFor(act, why, p ? Math.round(p.animK * 159) : Math.round(((s % 1000) / 159) * 159)); // newPerson's animK, resolve()'s seed
+    if (c) { c.act = act; c.why = why; c.perf = perf; } else { if (this.popPerfs.size > 60_000) this.popPerfs.clear(); this.popPerfs.set(pid, { act, why, perf }); }
+    return perf;
+  }
+  /** a thing at (x, y, z) in a frame [x, y, z, yaw] (world), turned by yaw */
+  private placeAt(fr: ArrayLike<number>, x: number, y: number, z: number, yaw: number, out: THREE.Matrix4) { const c = Math.cos(fr[3]), s = Math.sin(fr[3]);
+    _q.setFromAxisAngle(_up, fr[3] + yaw); return out.compose(_v.set(fr[0] + c * x + s * z, fr[1] + y, fr[2] - s * x + c * z), _q, _one); }
+  /** where a person of the population is drawn this frame (world x, y, z, yaw: the view's spot and the cycle's own path, the
+   *  ploughman on his furrow), or null when they are not in the pool (world.ts puts the collision capsules there) */
+  rootOf(pid: number): readonly [number, number, number, number] | null { const p = this.byPid.get(pid); return p && p.vpFrame === this.frame ? p.root : null; }
   update(time: number, cam: THREE.Vector3, playerPos: THREE.Vector3 | null, camera?: THREE.Camera) {
     const t0 = performance.now(); this.now = time; const dt = Math.max(0, Math.min(0.5, time - this.lastTime)); this.lastTime = time;
     if (camera) { this.lastCamera = camera; camera.updateMatrixWorld(); this.pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); this.frustum.setFromProjectionMatrix(this.pm); this.wide.copy(this.frustum); for (const pl of this.wide.planes) pl.constant += 3; }
@@ -367,7 +417,9 @@ export class Crowd {
     if (this.frame > 1 && this.camAt.distanceTo(cam) > 30) this.resetPopinProbe(); // the camera was moved, not walked (a teleport)
     this.camPlot = this.view ? this.view.geo.plotAt(cam.x, -cam.z) : 0;
     this.camAt.copy(cam); const tf = performance.now(); this.drawnKeys?.clear();
-    if (this.autoPool) { if (this.view && this.sim) this.feedPool(cam, camera); else this.autoPoolStep(cam, camera); }
+    const fed = this.autoPool && !!this.view && !!this.sim;
+    if (this.autoPool) { if (fed) this.feedPool(cam, camera); else this.autoPoolStep(cam, camera); }
+    this.anchorPass(fed);
     this.impPerf.feedMs = performance.now() - tf;
     const gpu = this.humans.gpu; gpu.begin();
     for (const c of this.carried) c.mesh.count = 0; this.propsDropped = 0;
@@ -401,7 +453,9 @@ export class Crowd {
     const tp = performance.now(); let posed = 0, walled = 0; const drawn = [0, 0, 0, 0]; const has3 = this.humans.gpu.costumes.has('worker@3');
     for (let i = 0; i < list.length; i++) {
       const p = list[i], d = p.dist;
-      if (!p.agent && p.vp && p.vp.moving) p.gaitPh += (p.vp.speed || 1.2) * dt / 0.72 * Math.PI;
+      // the walking phase of a person of the population: at their pace on the way; in place at a standing spot where the
+      // performance is a moving one (the bearers, a guard's round: IN_PLACE_RATE)
+      if (!p.agent && p.vp) { if (p.vp.moving) p.gaitPh += (p.vp.speed || 1.2) * dt / 0.72 * Math.PI; else if (ACTIVITIES[p.act as ActivityId]?.moving) p.gaitPh += IN_PLACE_RATE * dt; }
       // a person in a walled court or yard the camera is outside of and below the walls of is hidden (but through the street
       // door): the farthest body, no shadow, not counted against the full and mid caps (they go to the people seen)
       const hid = !p.agent && p.vpFrame === this.frame && !!p.vp && this.walledOff(p.vp, cam.y); if (hid) walled++;
@@ -416,9 +470,11 @@ export class Crowd {
       if (p.prop2) this.placeProp(p, p.prop2, p.propM2, p.ip[1]);
       if (p.perf && d < THINGS_DIST && (p.perf.work?.length || p.perf.animals)) this.placeThings(p, time, d, dt);
     }
-    for (const [, g] of this.shared) { if (g.n > 1) { _q.setFromAxisAngle(_up, g.yaw); _m.compose(_v.set(g.x / g.n, g.y / g.n, g.z / g.n), _q, _one); this.things.push(g.kind as any, _m); } else this.things.push(g.kind as any, g.one); }
-    IK_Q.passes = 4; gpu.end(true); this.things.end(); this.animals.end();
+    IK_Q.passes = 4; gpu.end(true);
     { const ti = performance.now(); this.drawImpostors(time); this.impPerf.impMs = performance.now() - ti; }
+    for (const [, g] of this.shared) { if (g.n > 1) { _q.setFromAxisAngle(_up, g.yaw); _m.compose(_v.set(g.x / g.n, g.y / g.n, g.z / g.n), _q, _one); this.things.push(g.kind as any, _m); } else this.things.push(g.kind as any, g.one); }
+    for (const g of this.anchors.values()) if (g.drawn) this.things.push(g.kind, this.placeAt(g.b, g.at[0], g.at[1], g.at[2], 0, _m));
+    this.things.end(); this.animals.end();
     for (const c of this.carried) { const im = c.mesh; im.visible = im.count > 0; if (!im.count) continue;
       im.instanceMatrix.needsUpdate = true; im.instanceMatrix.clearUpdateRanges(); im.instanceMatrix.addUpdateRange(0, im.count * 16);
       c.data.needsUpdate = true; c.data.clearUpdateRanges(); c.data.addUpdateRange(0, im.count * c.data.stride); }
@@ -429,25 +485,43 @@ export class Crowd {
   private lastT = 0;
   private drawImpostors(time: number) {
     const imp = this.imp; if (!imp) return; imp.begin(); const dt = Math.max(0, Math.min(0.5, time - this.lastT)); this.lastT = time;
-    let made = 0, pending = 0, walkers = 0, placeholders = 0; const bands = [0, 0, 0, 0];
-    const one = (pid: number, a: Agent | null, vp: ViewPerson | null, x: number, y: number, z: number, yaw: number) => {
-      if (!this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), 1.3))) return;
+    let made = 0, pending = 0, walkers = 0, placeholders = 0; const bands = [0, 0, 0, 0], cam = this.camAt;
+    const cap = this.lookBurst ? Infinity : this.looksPerFrame; this.lookBurst = false;
+    // `own`: a candidate of the pool not attached, at the view's spot (the attached beyond the farthest LOD come at their
+    // root, on their cycle's path already, and beyond THINGS_DIST)
+    const one = (pid: number, a: Agent | null, vp: ViewPerson | null, x: number, y: number, z: number, yaw: number, own: boolean) => {
+      // a person of the population whose performance moves them along a path of its own (the ploughman on his furrow) or
+      // brings work objects and animals: performed as resolve() and placeThings do for the skinned, so the things are there
+      // within THINGS_DIST whether the pool draws the person skinned or as an impostor, and nobody jumps between the two
+      const pf = own && !a && vp && !(vp.moving && !ACTIVITIES[vp.act].moving) ? (PATH_ACTS.has(vp.act) ? 2 : THINGS_ACTS.has(vp.act) ? 1 : 0) : 0;
+      if (!this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), pf === 2 ? PATH_REACH + 4 : pf ? 4 : 1.3))) return;
       const key = a ? -1 - a.id : pid; let L = this.impLooks.get(key);
-      if (!L) { if (made >= this.looksPerFrame) { pending++; return; } made++;
+      if (!L) { if (made >= cap) { pending++; return; } made++;
         const inp = a ? { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed } : this.view!.lookInput(pid); const look = lookFor(this.humans.A, inp as LookInput, this.seed);
-        const ch = a ? null : this.view!.childStature(pid); L = { packed: CrowdImpostors.pack(look.col), dress: look.dress, scale: (ch ?? look.stature) / (imp.atlas.refStature[look.dress] || 1.65) }; this.impLooks.set(key, L); }
+        const ch = a ? null : this.view!.childStature(pid); L = { packed: CrowdImpostors.pack(look.col), dress: look.dress, scale: (ch ?? look.stature) / (imp.atlas.refStature[look.dress] || 1.65), seed: inp.seed }; this.impLooks.set(key, L); }
+      if (pf) { const d3 = Math.hypot(x - cam.x, y + 0.9 - cam.y, z - cam.z), P = pf === 2 || d3 < THINGS_DIST ? this.popPerf(pid, vp!.act, vp!.why, L.seed) : null;
+        if (P) { const q = this.impP, k = L.seed, b = q.base, r = q.root; b[0] = x; b[1] = y; b[2] = z; b[3] = yaw;
+          if (PATHED.has(P.anim)) { const o = workRoot(P.anim as WorkAnim, time + k % 100, (k % 1000) / 159); if (o) { const c = Math.cos(yaw), sn = Math.sin(yaw); x += c * o[0] + sn * o[1]; z += -sn * o[0] + c * o[1]; yaw += o[2]; } }
+          r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
+          if (d3 < THINGS_DIST && (P.work?.length || P.animals)) { q.perf = P; q.anim = P.anim; q.animK = (k % 1000) / 159; q.animT = k % 100; q.vp = vp; q.pid = pid; q.key = `p${pid}`; this.placeThings(q, time, d3, dt); } }
+        if (!this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), 1.3))) return; } // the body out of view (its things in it)
       const act = a ? this.sim!.performance(a).act : vp!.act, anim = ACTIVITIES[act].anim, moving = a ? a.walking : vp!.moving;
       if (ACTIVITIES[act].placeholder && !moving) placeholders++; // shown standing (idle), counted as the skinned are
-      const ph = a ? a.gait : ((this.impPhase.get(key) ?? (pid % 628) / 100) + (moving ? (vp!.speed || 1.2) * dt / 0.72 * Math.PI : 0)); if (!a) this.impPhase.set(key, ph);
+      const ph = a ? a.gait : ((this.impPhase.get(key) ?? (pid % 628) / 100) + (moving ? (vp!.speed || 1.2) * dt / 0.72 * Math.PI : ACTIVITIES[act].moving ? IN_PLACE_RATE * dt : 0)); if (!a) this.impPhase.set(key, ph);
       imp.push(x, y, z, yaw, rowOf(L.dress, frameOf(moving && !ACTIVITIES[act].moving ? 'walk' : anim, ph)), L.scale, null, L.packed); this.drawnKeys?.add(key);
-      const dd = Math.hypot(x - this.camAt.x, z - this.camAt.z); bands[dd < 600 ? 0 : dd < 1500 ? 1 : dd < 3000 ? 2 : 3]++; if (moving) walkers++;
+      const dd = Math.hypot(x - cam.x, z - cam.z); bands[dd < 600 ? 0 : dd < 1500 ? 1 : dd < 3000 ? 2 : 3]++; if (moving) walkers++;
     };
-    for (let i = 0; i < this.nImp; i++) { const e = this.impList[i]; one(e.vp ? e.vp.pid : -1, e.a, e.vp, e.x, e.y, e.z, e.yaw); }
-    for (const p of this.persons.values()) if (!p.shown && (p.agent || p.pid >= 0) && p.dist >= LOD_DIST[3] && p.drawnFrame !== this.frame) { const r = p.root; if (r[0] || r[2]) one(p.pid, p.agent, p.vp, r[0], r[1], r[2], r[3]); }
+    for (let i = 0; i < this.nImp; i++) { const e = this.impList[i]; one(e.vp ? e.vp.pid : -1, e.a, e.vp, e.x, e.y, e.z, e.yaw, true); }
+    for (const p of this.persons.values()) if (!p.shown && (p.agent || p.pid >= 0) && p.dist >= LOD_DIST[3] && p.drawnFrame !== this.frame) { const r = p.root; if (r[0] || r[2]) one(p.pid, p.agent, p.vp, r[0], r[1], r[2], r[3], false); }
     imp.end(); this.impPerf.drawn = imp.count; this.impPerf.looksPending = pending; this.impPerf.bands = bands; this.impPerf.walking = walkers; this.impPerf.placeholders = placeholders;
     if (this.impLooks.size > 60_000) this.impLooks.clear(); if (this.impPhase.size > 60_000) this.impPhase.clear();
   }
   private impPhase = new Map<number, number>();
+  /** an impostor performing with things (drawImpostors → placeThings): the fields placeThings reads */
+  private impP = { perf: null, base: [0, 0, 0, 0], root: [0, 0, 0, 0], anim: 'idle', animK: 0, animT: 0, agent: null, extra: undefined, vp: null, pid: -1, key: '' } as unknown as Person;
+  /** the next update computes every impostor look it needs, not LOOKS_PER_FRAME (a settled test render: world.settle) */
+  settleLooks() { this.lookBurst = true; }
+  private lookBurst = false;
   /** the LOD caps in force: full-detail and mid-detail counts, the far body's reach and the shadow casters' (m). The
    *  constants by default; tests vary them to measure the triangle budget (D-143). The brief's floor: full ≥ 50 */
   caps = { full: MAX_FULL as number, mid: MAX_MID as number, far: LOD_DIST[2] as number, shadow: SHADOW_DIST as number };
@@ -476,11 +550,12 @@ export class Crowd {
       // the walking phase: a detailed agent's own, a person of the population's advanced by their pace (D-143)
       po = pose(anim, this.cycleT(p, time), a ? a.gait : p.pid >= 0 && !p.extra ? p.gaitPh : time * 4.2, p.animK);
       // what is carried besides the performance's own props: a detailed agent's load, or a person of the population's goods
-      // in the plan's words (popview propOf, D-143) where the plan's activity has no prop of its own (a variant that leaves
-      // the activity's prop out, prop: undefined, keeps the hands free)
+      // in the plan's words (popview propOf, D-143) where the activity performed has no prop of its own (a variant that
+      // leaves the activity's prop out, prop: undefined, keeps the hands free; stepping aside on arriving is a walk, and the
+      // walker carries the tool or goods of the act arrived for)
       const vp = !a && !p.extra ? p.vp : null;
       const load = a ? (a.carry === 'sack' ? 'sack' : a.carry === 'jar_head' ? 'jar_head' : a.carry === 'basket' ? 'basket' : undefined)
-        : vp && !ACTIVITIES[vp.act].prop ? vp.prop ?? undefined : undefined;
+        : vp && !ACTIVITIES[p.act as ActivityId]?.prop ? vp.prop ?? undefined : undefined;
       const want = P.prop ?? load;
       prop1 = want ? (want === 'bread' ? 'basket' : want) : null; prop2 = P.prop2 ?? null;
       if (po.hit && !p.lastHit && d < 60) this.onHit?.(P.sound ?? 'chisel', _v.set(p.root[0], p.root[1], p.root[2]).clone());
@@ -557,20 +632,20 @@ export class Crowd {
    *  or the performer's own path (`follow`); shared objects once per place or group; a flock bleats now and then */
   private placeThings(p: Person, time: number, d: number, dt: number) {
     const P = p.perf!, b = p.base, r = p.root;
-    const place = (fr: number[], x: number, y: number, z: number, yaw: number, out: THREE.Matrix4) => { const c = Math.cos(fr[3]), s = Math.sin(fr[3]);
-      _q.setFromAxisAngle(_up, fr[3] + yaw); return out.compose(_v.set(fr[0] + c * x + s * z, fr[1] + y, fr[2] - s * x + c * z), _q, _one); };
+    const place = (fr: number[], x: number, y: number, z: number, yaw: number, out: THREE.Matrix4) => this.placeAt(fr, x, y, z, yaw, out);
     const A0 = P.animals?.kind === 'beside' ? animalsFor(P.animals, 0, 0)[0] : null;
     for (const w of P.work ?? []) {
       const fr = w.follow ? r : b;
       if (w.kind === 'fodder' && A0) { const mz = grazeReach(A0.sp); this.things.push('fodder', place(fr, A0.x + Math.sin(A0.yaw) * mz, 0, A0.z + Math.cos(A0.yaw) * mz, 0, _m)); continue; } // under the muzzle
       // a person of the population (D-143): the view places each performer of a place on a spot of their own, not in a
-      // formation, so a shared object (the threshing floor, the drum, the bier) is keyed by the plan's place and drawn once,
-      // at the performer with the lowest population id among those drawn (not the performers' centroid: popgeo puts a
-      // funeral's bearers within 40 m of the town's burial ground, or 90-220 m out of a village each in a direction of
-      // their own; not the nearest performer, which changes as the camera moves). Q-196: the bearers do not walk together
-      const pop = w.shared && !p.agent && !p.extra && p.vp?.place ? p.vp.place : null;
-      if (pop) { const key = `${w.kind}|pop:${pop}`, g = this.shared.get(key);
-        if (!g || g.rank > p.pid) this.shared.set(key, { kind: w.kind, x: 0, y: 0, z: 0, yaw: 0, n: 1, rank: p.pid, one: place(fr, w.at[0], w.at[1], w.at[2], 0, g?.one ?? new THREE.Matrix4()) });
+      // formation, so a shared object (the threshing floor, the drum, the bier) is keyed by the plan's place (the bier: and
+      // the household) and drawn once, at the anchor the view's people give it this frame (anchorPass: the lowest
+      // population id among everyone placed there, drawn or not; not the performers' centroid: popgeo puts a funeral's
+      // bearers within 40 m of the town's burial ground, or 90-220 m out of a village each in a direction of their own; not
+      // a performer drawn this frame, which changes as the camera turns). Q-196: the bearers do not walk together
+      const pop = w.shared && !p.agent && !p.extra && p.vp?.place ? p.vp : null;
+      if (pop) { const key = this.popKey(w, pop), g = this.anchors.get(key);
+        if (g) g.drawn = true; else this.anchors.set(key, { kind: w.kind, pid: p.pid, b: [b[0], b[1], b[2], b[3]], at: w.at, drawn: true }); // not among the view's people this frame: at this performer
         continue; }
       if (w.shared) { const key = `${w.kind}|${w.shared === 'place' ? (p.agent?.task?.place ?? p.extra?.group ?? p.key) : (p.extra?.group ?? `${p.agent?.task?.place ?? p.key}`)}`;
         const g = this.shared.get(key);

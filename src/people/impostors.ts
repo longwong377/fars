@@ -96,7 +96,7 @@ export function bakeImpostors(A: HumanAssets, O: OutfitBuild, props?: { jar?: { 
           px += w * (pal[o] * bx + pal[o + 1] * by + pal[o + 2] * bz + pal[o + 3]); py += w * (pal[o + 4] * bx + pal[o + 5] * by + pal[o + 6] * bz + pal[o + 7]); pz += w * (pal[o + 8] * bx + pal[o + 9] * by + pal[o + 10] * bz + pal[o + 11]);
           qx += w * (pal[o] * n0[0] + pal[o + 1] * n0[1] + pal[o + 2] * n0[2]); qy += w * (pal[o + 4] * n0[0] + pal[o + 5] * n0[1] + pal[o + 6] * n0[2]); qz += w * (pal[o + 8] * n0[0] + pal[o + 9] * n0[1] + pal[o + 10] * n0[2]); }
         const ql = Math.hypot(qx, qy, qz) || 1; P[i * 3] = px; P[i * 3 + 1] = py; P[i * 3 + 2] = pz; N[i * 3] = qx / ql; N[i * 3 + 1] = qy / ql; N[i * 3 + 2] = qz / ql; }
-      // a carried prop drawn into the frame (the crowd's placement: crowd.ts propLocal)
+      // a carried prop drawn into the frame (the crowd's placement for these two: props.ts placeProp, its 'legacy' rule)
       const extra: { pos: Float32Array; idx: ArrayLike<number> } | null = F.prop === 'jar_head' && props?.jar ? xform(props.jar, rig.wt, HB.head, [0, 0.25, 0.02], 0.8) : F.prop === 'sack' && props?.sack ? xform(props.sack, rig.wt, HB.upperarm_r, [0.02, 0.13, -0.02], 1) : null;
       const row = di * FRAMES.length + fi;
       for (let vw = 0; vw < V; vw++) {
