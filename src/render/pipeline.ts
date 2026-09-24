@@ -54,8 +54,6 @@ export const BLOOM_RADIUS = 0.35;
 /** SSGI (D-157): thickness of a depth sample (m; it grows with the view distance beyond 8 m, ssgi.ts), and the contact AO's
  *  radius (m) with its own samples per side and slice (3 of 4 within 0.5 m) */
 export const SSGI_THICKNESS = 0.25, SSGI_CONTACT_RADIUS = 1.2, SSGI_CONTACT_STEPS = 4;
-/** the contact samples' own depth thickness (m, D-188): massive occluders within the contact radius */
-export const SSGI_CONTACT_THICKNESS = 0.8;
 /** SSR (D-157): surfaces below this roughness reflect (fading out over the last 0.1), rays reach 30 m from the reflecting
  *  plane, depth samples 0.3 m thick */
 export const SSR_MAX_ROUGHNESS = 0.5, SSR_MAX_DISTANCE = 30, SSR_THICKNESS = 0.3;
@@ -175,7 +173,7 @@ export class Pipeline {
       node.giIntensity.value = GI_SCALE;
       if (!V.includes('orig')) {
         node.thickness.value = SSGI_THICKNESS; node.useLinearThickness.value = true;
-        node.aoNearRadius.value = SSGI_CONTACT_RADIUS; node.nearSteps.value = SSGI_CONTACT_STEPS; node.nearThickness.value = SSGI_CONTACT_THICKNESS;
+        node.aoNearRadius.value = SSGI_CONTACT_RADIUS; node.nearSteps.value = SSGI_CONTACT_STEPS;
       }
       const aoTex = node.getAONode(), aoFull = aoTex.r, aoNear = V.includes('orig') ? aoTex.r : aoTex.g, bounce = node.getGINode().rgb;
       // sky pixels come out of the SSGI pass with AO 1 and GI 0 (patched node), so the composite leaves them unchanged

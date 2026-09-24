@@ -154,14 +154,6 @@ class SSGINode extends TempNode {
 		this.nearSteps = uniform( 4, 'uint' );
 
 		/**
-		 * PĀRSA (D-188): the depth samples' thickness (m) for the contact samples. With the main samples' 0.25 m (D-157: a
-		 * door leaf's halo on the wall a metre behind it) four samples a side covered only thin sectors of a column base or
-		 * a wall foot rising beside the pixel: the contact AO at column feet and wall–ground junctions stayed ~0.9 (render,
-		 * harem-portico post=aonear). Within the contact radius the occluders are massive (bases, walls, blocks, steps).
-		 */
-		this.nearThickness = uniform( 0.8, 'float' );
-
-		/**
 		 * PĀRSA (D-157): with useLinearThickness, the thickness grows as max(1, viewDistance / thicknessRef).
 		 *
 		 * @type {UniformNode<float>}
@@ -620,7 +612,7 @@ class SSGINode extends TempNode {
 		const nearSampling = Fn( ( [ directionIsRight, stepNear, viewPosition, slideDirTexelSize, initialRayStep, uvNode, viewDir, n ] ) => {
 
 			const NEAR_STEPS = this.nearSteps.toConst();
-			const THICKNESS = this.nearThickness.toConst(); // PĀRSA (D-188): the contact samples' own thickness
+			const THICKNESS = this.thickness.toConst();
 			const uvDirection = directionIsRight.select( vec2( 1, - 1 ), vec2( - 1, 1 ) );
 			const samplingDirection = directionIsRight.select( 1, - 1 );
 
