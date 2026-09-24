@@ -2316,3 +2316,48 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - the voice acceptance (B17(b));
   - no licensed translation (B17(a));
   - the carving's sign spelling belongs to the carving workstream (review C1).
+
+## D-179 Writing on objects: tablets, seal impressions and leather as relief in clay; only published texts; the PT text a placeholder (Phase 8 review A-M4; session 6, writing workstream)
+**Finding (REVIEWS/phase8.md M4):** the scribes' room tablets and the carried tablet were blank boxes, no leather document
+existed, and the door sealing was a smooth sphere whose F3 note said "impressed with a seal" with `placeholder: false`.
+
+**Decisions.**
+- **Texts: only published texts, stored as the ancient text.** `src/data/writing.json` (built by `tools/build_writing.py`)
+  holds the transliteration verbatim from ARIo (CC0) and the sign sequence: Old Persian sign by sign, converted by the
+  Unicode sign names (not through the runtime spelling rules); Elamite and Babylonian ATF through the ORACC Sign List as
+  for the carved inscriptions. No translation or commentary is stored or shown (B17a). A mechanical sign conversion of an
+  ancient text is the ancient text (licence: the edition's, here CC0).
+- **Which texts.** The right texts for the scribes' room in Xerxes year 19 are the Persepolis Treasury tablets (492–457;
+  most dated texts from Xerxes years 19–20). None is reachable (B18): the tablets carry wedge impressions in lines and no
+  readable text, flagged PLACEHOLDER everywhere; no sign sequence is invented. The Fortification texts that are reachable
+  (PF 1–60, 400–406) are not used: dated 509–493 and archived in the fortification, they would be anachronistic in a
+  scribe's hands in 467. The real text in clay is on the seals: SDa (ARIo Q007203, the trilingual royal-name formula of
+  Darius) on the treasurer's seal, and Q009270 (an Old Persian royal-name formula of Xerxes) on the Xerxes hero seal of the
+  door sealings; which wording stood on which Treasury seal is C (Q-320).
+- **Seals.** Two attested Treasury seals (B, WRITING-SX, ISAC-FINDS), each as a C composition (a hero with rampant lions, a
+  framed inscription panel, a ground line). Rolled impressions: the band pressed in, the design and the signs raised (a
+  seal cut in intaglio). Tablets are rolled along the left edge (SITE_SPEC, C); the tablet being written is not yet sealed.
+- **Relief, not paint.** One 1024² height field (mm) with regions for the tablet faces, the sealed edge, the door
+  sealing's face and plain clay, baked at load (`src/world/writing.ts`) into a tangent-space normal map on the clay
+  materials. Signs come from the Noto outlines (the carved inscriptions' fonts), rasterised with exact coverage; wedges
+  are modelled stylus impressions. Honesty is read from the bake: an object whose seal inscription was not impressed (no
+  fonts) says "NOT impressed" and placeholder in F3 (`describe`).
+- **Leather.** Three rolled Aramaic documents on leather, tied, with a clay bulla rolled with the treasurer's seal, by the
+  drying board (B: Cameron's inference that the PT tablets were tied to leather scrolls with an Aramaic duplicate; C:
+  objects, number, place). Their text is inside the roll: nothing Aramaic is rendered, because no Persepolis leather text
+  survives (the Arshama letters are the type only).
+- **Door sealing.** A lump flattened where the seal was rolled, with the Xerxes hero seal's impression; the knobs and the
+  cord no longer claim an impression. The carried tablet is the same tablet's form and size at its LOD (12 triangles).
+- **Layers and lint.** F3 shows each written object's tier, text id, seal id and sources. The translation layer shows the
+  object, the text and seal ids, ARIo numbers and transliterations, and the translation status, never a translation.
+  `lint:lang` captures the signs drawn at the font while the atlas bakes and requires them to be exactly the data's seal
+  texts, whole; scans the stored transliterations; requires any file that turns characters into font outlines to be a
+  registered in-world text site.
+
+**Measured.** Scribes' room 9 draws (was 6) and 37,288 triangles (was about 13 k); each door sealing 520 triangles (was
+252), same draws; one 4 MB texture; bake ≈ 1 s under tsx on the loaded box. Relief RMS: tablet obverse 0.09 mm, sealed
+edge 0.16 mm; the door sealing's inscription panel more than 3× a band-free corner (tests/writing.test.ts).
+
+**Not done / open.** The PT text (B18, NEEDS #15); the Aramaic chert texts (Bowman) on the store's chert sets; any
+Aramaic writing visible in the world (none reachable to place); PF/PFAT texts nowhere (not in the Treasury); seal figures
+are schematic; no browser render has been looked at (node previews of the height field only).
