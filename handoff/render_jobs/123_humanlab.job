@@ -1,0 +1,3 @@
+humanlab_faces
+tests/e2e/humanlab.spec.ts
+E2E_PORT=5221 Q=high TAG=s5 ONLY=men-full,mixed-full,face-persian,face-guard,face-woman,face-child

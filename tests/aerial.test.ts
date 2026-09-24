@@ -135,3 +135,34 @@ describe('the physical sky by day follows the haze without stalling a frame (D-1
     expect((sky as any).atmo.aerosolTau).toBeCloseTo(tauOf(0.9), 9);
   });
 });
+
+// Session 5: the first render of D-156 indoors (apadana-hall-in, WebGL2 at quality test) filled the hall with a white veil:
+// 30–60 m of air lit by the outdoor horizon, raised by the eye's interior gain (exposure 509). The air inside the enclosure
+// around the eye is lit by the interior's light (Air.setInterior: the probes' eye illuminance).
+describe('aerial perspective: the air inside a hall (session 5)', () => {
+  it('inside a dim hall the veil over 40 m is scaled by the interior light; outdoors and beyond the hall it is unchanged', async () => {
+    const { Air } = await import('../src/sky/aerial');
+    const air = new Air(), o = airOptics({ haze: 0.25 }), tau = (d: number) => opticalDepth(o, Z0 + 18, Z0 + 18, d)[1];
+    const open = air.inscatterWeight(tau(40), 40);
+    air.setInterior(0.003, 60); // the Apadana hall at midday: ~0.3 % of the open air's light at the eye
+    const inHall = air.inscatterWeight(tau(40), 40);
+    expect(inHall / open).toBeCloseTo(0.003, 4);
+    // the veil in display terms: the columns reflect ~0.3 % of open ground's light × albedo 0.4; the veil must stay below them
+    expect(inHall).toBeLessThan(0.1 * 0.003 * 0.4 * 10); // J ≈ the horizon ≈ open ground's radiance ×(1–3): conservative bound
+    // a far point through the doorway: the path beyond the hall is the open air's (weight within 1 % of outdoors minus the hall's share)
+    const far = 20000, wFar = air.inscatterWeight(tau(far), far), T60 = Math.exp(-tau(60));
+    air.setInterior(1, 0); const wOpen = air.inscatterWeight(tau(far), far);
+    expect(Math.abs(wFar - (wOpen - (1 - T60) * (1 - 0.003)))).toBeLessThan(1e-6);
+    expect(air.inscatterWeight(tau(40), 40)).toBeCloseTo(open, 9); // outdoors: as before
+  });
+  it('the eye\'s enclosure: the roofed footprint of the probe volume around the eye, 0 outside', async () => {
+    const { setProbeField, probeVolumeExtent } = await import('../src/render/probes/runtime');
+    const { decodeField } = await import('../src/render/probes/field');
+    const meta = JSON.parse(readFileSync('public/generated/probes.json', 'utf8')), bin = readFileSync('public/generated/probes.f16');
+    setProbeField({ volumes: meta.volumes, data: decodeField(new Uint16Array(bin.buffer, bin.byteOffset, bin.byteLength / 2)), count: meta.count, normalBias: meta.normalBias, tier: meta.tier, note: meta.note });
+    const apadana = probeVolumeExtent({ x: 10.55, y: 4.2, z: -12.4 }); // the apadana-hall-in camera (grid y 12.4 → z −12.4; the hall floor is ~2.6 m above the court)
+    expect(apadana).toBeGreaterThan(60); expect(apadana).toBeLessThan(160);
+    expect(probeVolumeExtent({ x: -60, y: 1.6, z: -122 })).toBe(0); // the Grand Stair top landing, in the open
+    setProbeField(null);
+  });
+});
