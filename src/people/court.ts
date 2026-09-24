@@ -620,7 +620,7 @@ class CourtDay {
       const Kd = K.kingDay(d), a0 = lerp(Kd.a0 + 0.1, Math.max(Kd.a0 + 0.2, Kd.a1 - 1.2), pr(12)); this.fill(a0 - 0.25, wait.map(o => [o[0], o[1], o[2], o[3], gifts] as Opt));
       this.go('court_audience', 'led up to the Apadana by an usher', 'walk', gifts); this.add(Math.min(Kd.a1 - 0.3, this.t + lerp(0.5, 0.9, pr(13))), 'court_audience', 'queue', pa.petition ? 'in the queue in the Apadana, waiting to be heard by the king' : 'in the queue in the Apadana with the gifts, waiting to be led before the king', gifts);
       this.go('court_audience_front', 'led before the king by the usher, the hand held (the reliefs, B)', 'walk', gifts);
-      this.add(this.t + lerp(0.1, 0.2, pr(19)), 'court_audience_front', 'inspect', pa.petition ? 'standing before the king to be heard, a hand raised before the mouth (the Treasury relief, B; the petition C)' : 'standing before the king while the gifts are presented (the reliefs, B; C)', gifts);
+      this.add(this.t + lerp(0.1, 0.2, pr(19)), 'court_audience_front', 'inspect', pa.petition ? 'standing before the king to be heard (the Treasury relief, B; the petition C; the bow with a hand before the mouth is not posed)' : 'standing before the king while the gifts are presented (the reliefs, B; C)', gifts);
       this.at(this.t + 0.3, 'court_audience', 'rest', pa.petition ? 'resting after the audience' : 'resting after the audience, the gifts handed over');
       this.go('forecourt', 'coming out of the Apadana'); this.meal('forecourt', 0.5, 'bread and water in the forecourt'); }
     else { this.fill(lerp(11.3, 12.3, pr(14)), wait); this.meal('forecourt', 0.5, 'bread and water in the forecourt'); this.fill(lerp(14.5, 16, pr(15)), wait); }

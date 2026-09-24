@@ -4,8 +4,10 @@
 // sleeps in which tent: court.ts), the population view (where a person stands at the camp: popgeo.ts) and the renderer
 // (world/courtCamps.ts) agree without sharing state.
 //
-// Evidence: that the court travelled with its tents and pitched them is a claim of the Greek authors (Herodotus 9.70 and
-// 9.82: the Persian camp's tents, Xerxes' own tent left to Mardonius: HDT, B claims about an army in the field); the
+// Evidence: Persian tents are a claim of the Greek authors about an army in the field (Herodotus 9.70: the tent of
+// Mardonius; 9.80: tents adorned with gold and silver in the Persian camp; 7.119: on the march a tent was made ready for
+// Xerxes while the army camped in the open air: HDT, B claims, read this session). That the retinue lodged in tents at
+// Persepolis is C (7.119 suggests many may have slept in the open); the
 // black goat-hair tent of the Iranian and Near-Eastern herders is an ethnographic analogue (C); the ridge tent of cloth on
 // two poles and a ridge pole is C. Sizes, lines, lanes, spacing and the camps' places are C. Nothing about a court camp at
 // Persepolis is known (Q-333).
@@ -17,7 +19,7 @@ export type TentKind = 'ridge' | 'black' | 'pavilion';
 export const TENT_KINDS: Record<TentKind, { w: number; d: number; h: number; sleeps: number; tier: 'C'; note: string }> = {
   ridge: { w: 4.6, d: 6.4, h: 2.3, sleeps: 10, tier: 'C', note: 'a ridge tent of undyed wool or linen cloth on two upright poles and a ridge pole, the walls pegged out low; sleeps about ten (C)' },
   black: { w: 8.6, d: 6.2, h: 1.9, sleeps: 12, tier: 'C', note: 'a black tent of woven goat hair on poles, low and wide with its long side to the front, which is open (the herders’ tent of Iran and the Near East: an ethnographic analogue, C)' },
-  pavilion: { w: 7.2, d: 7.2, h: 3.3, sleeps: 10, tier: 'C', note: 'a larger tent of dyed cloth with a peaked roof for Persians of rank and officials (the king’s own tent is a Greek claim, HDT 9.82, B; this form C)' },
+  pavilion: { w: 7.2, d: 7.2, h: 3.3, sleeps: 10, tier: 'C', note: 'a larger tent of dyed cloth with a peaked roof for Persians of rank and officials (tents adorned with gold and silver in the Persian camp, HDT 9.80: a claim, B; this form C)' },
 };
 export interface CampDef { id: string; zone: 'town' | 'plain'; c: P2; r: number; axis: number; label: string; tier: string; src: string; note: string }
 export interface Tent { camp: string; i: number; e: number; n: number; heading: number; kind: TentKind; w: number; d: number; h: number }

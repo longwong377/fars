@@ -598,7 +598,7 @@ export class Crowd {
     const f = p.face; f.look = null; f.eyeYaw = 0; f.eyePitch = 0; f.jaw = 0;
     const lookAt = p.extra?.look ?? null;
     if (lookAt) f.look = this.toChar(p, lookAt);
-    else if (playerPos && d < 7 && anim !== 'sleep') {
+    else if (playerPos && d < 7 && anim !== 'sleep' && !(p.pid >= 0 && p.pid === this.view?.pop.court?.king)) { // (D-199: the king does not turn to the visitor: brief §1.1)
       const dx = cam.x - p.root[0], dz = cam.z - p.root[2]; const cy = Math.cos(p.root[3]), sy = Math.sin(p.root[3]);
       const lx = cy * dx - sy * dz, lz = sy * dx + cy * dz; const yaw = Math.atan2(lx, lz);
       const greet = a ? (this.sim?.greeting?.(a.id) ?? 'none') : 'none';

@@ -3511,3 +3511,151 @@ checks: probe field, sun ephemeris, ray tests against the parts, rig and prop pl
 - **Invariants (planCheck, swept year-wide, in the soak's plansWellFormed):** (g) `stage`: more than `STAGE_CAP_H` = 7 h on foot in a day (road walking and the off-map road and descent; a grazing flock is not a march); couriers exempt. (h) `flock`: a herding man of a band, 16–55, in the plain and not ill, whose day (or last night's watch) never touches the flock. Sweep (herders and travellers every day, 1 in 40 of everyone else; 392,137 person-days): before 353 herder + 655 traveller person-days over 7 h; after 0 and 0.
 - **Tests:** tests/people_days_r9.test.ts (44216's day; the year-wide sweep of every band and party; parties sleep at the last station); tests/people_days_r8.test.ts B S11 now asserts the small child's total walk ≤ 4.5 h (the premise, a 6 h 45 min arrival-day walk, is gone).
 - **Open (the reviewers' other findings, to the sim workstream):** A S1 / B S7 the age-rule pick draws newborns (tool); A S2 / B S3 a sick small child taken to the mother's work or the lane in the cold, a sick guard always nursed in the garrison; A S3 / B S2 a storm or rain anywhere in the day cancels the builders' whole day; A S4 the porters' afternoon waits for a caravan that came in the morning; A S6 winnowing in the calm morning; A S7 / B S8 "after dark" before dusk; A S8 roofed doorkeepers stop at noon on heat days; A S9 Treasury women of every trade spin at home; B S4 13–15-year-olds play 3–4 h; B S5 homemakers' rest; B S6 long siestas.
+
+## D-199 The court setting's gaps filled: the delegations' dress, the king, the camps' tents, the retinue (session 7, court-fill agent; the user: "Fill the gaps to the best of your educated ability"; B9, B12, Q-333, Q-335)
+**Read first — reconstructed, unverified, placeholder.**
+- **Nothing here was rendered in a browser.** Every figure below is node: plans, the sightline counts of
+  tests/court_view.test.ts, the crowd's own triangle counts, the rig. The tents, the new headgear, the crown, the throne,
+  the parasol and the three new costumes have never been seen on a GPU (the lead renders `crowd_scale.spec.ts` COURT views
+  and `moments.spec.ts` `court-assembly`).
+- **The delegations' identifications and every detail of their dress are recollections** of Walser 1966 (WALSER1966) and
+  Schmidt 1953's plates (SCHMIDT1953), **NOT SEEN** this session: B for the carved forms only once checked against the plates
+  (NEEDS_FROM_ME #16). Two rows are disputed (XVII Sogdians or a second Saka group; XXI Cilicians, Walser's Drangianians:
+  Q-370); the Egyptian row is largely lost and its figure is C. Colours are C (the reliefs' paint is mostly lost; the
+  D-189 dyes chosen per people for plausibility). Read in full this session (Perseus): Herodotus' army list for the Saka's
+  pointed caps (7.64), the Arabs' girded mantles (7.69), the Thracians' fox-skin caps (7.75), the Egyptians shaven (2.36),
+  the Persian camp's tents (9.70, 9.80, 7.119: on the march the army camped in the open air), and Xenophon Cyr. 8.3.13-16
+  on the king's procession dress and the lancers about him: all Greek claims, B at most.
+- **The king is here only because the setting places the court here** (C; Q-005). The default world (no court) is unchanged
+  and still follows the evidence: no king, no court (B9).
+- **Every count, camp, tent and day rule is C** (Q-333). Tents for all is C: Herodotus 7.119 has the army on the march
+  camping in the open air while Xerxes had a tent.
+- **Still placeholder:** the delegations' animals (horses, camels, bulls, rams, the lioness, the okapi) and chariots; the
+  Babylonians' shawl and tassel, the Lydians', Ionians', Gandharans' and Thracians' mantles and cloaks (delegations.json
+  notes); gifts carried only as the prop system has them (bowl, jar, cloth, basket, sack, spear); the king's parasol and
+  fly-whisk bearers walk their own routes at his hour and are not locked in step behind him (the parasol is not held over
+  his head on the walk); paths through the camps are straight lines; the spearmen's apple-shaped butts; the royal women's
+  night music. Far away the delegates and the king are drawn by the nearest existing impostor row (long garment: the
+  woman's; knee tunic: the Median; bare: the working man's; the king: the Persian), and the enthroned king's impostor stands.
+- **The 30-day and year soaks' variety gates** fail as without the court (below): the 30-day failures are the same 91
+  people with and without the court; every court person passes.
+
+**1. The delegations' dress (B form from the reliefs, C colours).** `src/data/delegations.json`: the 23 peoples (Walser's
+numbering I-XXIII) with the costume, the optional pieces, the beard, the dyes and the gifts of each (table: research/COURT.md
+5a; MATERIAL_CULTURE "Delegation dress"). Three new costumes, each drawn only when delegates are in view: `envoy` (the long
+sleeved garment to the ankle, girt: Elamites, Babylonians, Lydians, Assyrians/Syrians, Egyptians, Ionians, Arabs, Libyans,
+Kushites), `envoy_short` (the knee-length tunic with trousers and boots optional: Scythians, Bactrians, Gandharans,
+Thracians, Cilicians) and `envoy_bare` (the wrap to the knee, bare above: Indians); the Median-dress peoples (Medes,
+Armenians, Arians, Arachosians, Cappadocians, Parthians, Sagartians, Sogdians) wear the existing Median costume. New pieces:
+`cap_pointed` (the Saka's tall pointed cap, B: APA-RELIEF, DB-SKUNXA, HDT 7.64) and `cap_low` (a low rounded cap, C). One
+costume with every piece optional was tried first and kept the whole body under its garments: 52,444 triangles at full
+detail against the 42,000 budget; with an optional tunic, 43,049: hence three. Visitors' parties are now of these 23 peoples
+(court.json visitors.origins), bring their own people's gifts (the gift's prop: popview.propOf), and their men wear their
+people's dress (court.ts `lookOf` → popview.lookInput → looks.ts `lookFor` with `delegation`); women wear the woman's dress
+(nothing for them: C). The overlay no longer flags delegates as placeholders; it names the people, the relief row and the
+tiers. Skin-tone means added for the new origins (the same cline, C, Q-240).
+
+**2. The king (B9, Q-335).** court.json `king`; court.ts `kingDay`, `bearerDay`, `escortDay`. Xerxes (named Xšayāršā as
+his inscriptions write it, A; 51 in 467 from HDT 7.2-3, C) wears the `king` dress: the Persian costume's mesh with a new
+`crown` piece (a tall cylinder with a dentate rim and a gold band close up: B form, C rim and sizes), a purple (or red) robe
+(IR-CLOTH, B; the dye C), the long squared beard; he carries a long staff and a lotus (new props `sceptre`, `lotus`: the
+door-jamb reliefs, HADISH-JAMB, B). His day: inside the Hadish (`court_king_private`, a place the population view never
+draws: popgeo.ts), except on audience mornings: about two in five (C; 52 of 117 resident days with seed 1, never while he
+is ill), when he walks from about 08:30 to the Apadana (`royal_walk`), sits enthroned for about two hours (`enthroned`: a
+new pose and a new `throne` work object with its footstool, the Treasury relief TREAS-AUD, B; the throne built to the pose
+measured on the rig: seat 0.519-0.530 m and soles 0.104-0.109 m on the bodies his look takes, at 0.525 / 0.105 m) and
+walks back. The Hall of a Hundred Columns is a building site in 467 (D-003), so the audience is in the Apadana (C); where
+the throne stood is C (on the hall's axis between the last two rows of columns, facing the N portico). His parasol bearer
+and his fly-whisk and towel bearer (beardless, in the Persian robe with a fillet: B) are with him in the palace (not drawn),
+walk behind him (`bear_parasol`, `bear_whisk`; props `parasol`, `whisk`, `towel`) leaving within 0.02 h of him, and stand
+by the throne (`attend_parasol`, `attend_whisk`); four spearmen of his escort (Persian and Median dress; Xenophon's
+lancers about the king, a claim, B; four C) wait in the Hadish's N court, walk before him and stand by the throne. Each
+party is led before him on one of his audience mornings within its stay (531 of 537 parties; 6 had none): queue in the
+hall (`court_audience`), stand before the throne while he sits (`court_audience_front`), rest, leave. **Restraint (brief
+§1.1, §2):** no procession, no speech, no reaction; he does not turn his head to the visitor (crowd.ts); the visitor may
+not enter the Apadana or the Hadish (access.json closed), so he can be seen only crossing the courts on those mornings or
+through a door. B9 updated: the setting shows him; the default does not.
+
+**3. The camps' tents (C).** `src/people/camps.ts` (layout: tents in lines across each camp's axis, 3 m apart, 6 m lanes,
+nearest the centre first; a pure function of the camp and its tents' kinds, shared by the simulation, the view and the
+renderer), `src/world/courtCamps.ts` (a merged mesh per camp with an owner per face for F3, a box collider per tent streamed
+within 150 m of the player), `src/people/campCheck.ts` (the check against the built world). Eight camps (court.json
+`camps`): the court's own below the Terrace (296 tents: its residents who do not sleep on the Terrace, and the parties,
+whose tents are reused as they come and go), four of the retinue in the town (N, W, NW, SW of Persepolis West: 285-290
+each) and three on the plain (horse lines 180, supply trains 160, soldiers 160): **1,946 tents** with seed 1, sleeping up
+to 21,182 (ridge cloth tents 998, black goat-hair tents 861, peaked tents of dyed cloth for nobles and officials 87). A
+household of ten has a tent; asleep, ill or resting in the dark its people are inside (not drawn), otherwise before its
+door. Checked (tests/court_fill.test.ts): no tent on a town plot, lane, square, tree, prop, midden, road or water piece, a
+plain canal or river, or in a village; none over another; the ground under each within 2.1 % of level. The camps' sites
+were searched on the D-190 land use: the ground round the town is almost all fields (natural ground only at the Terrace
+foot and far W), so with the setting the retinue's camp discs are trodden, not tilled (townGround.ts `camps`: a camp
+pitched on fallow ground, C); every tent then stands on natural ground.
+
+**4. The retinue (Q-333, B12; C).** court.json `retinue`: 11,500 in the town's four camps (the Persians of rank's servants
+3,900, grooms 2,300, baggage drivers 2,100, craftsmen and sellers 1,900, soldiers 1,300) and 5,000 on the plain (herdsmen
+of the royal herds 1,800, supply-train drivers 1,600, soldiers 1,600), in households of ten, arriving with the court and
+leaving on its leave day (E-26), striking the tents. Their days (court.ts `retinueDay`): the group's work at the camp
+(tents, water, washing, mending, kneading and cooking; horse lines and fodder; the baggage animals and pack saddles;
+benches and trade; drill and the camp's watch; the herds at pasture; the trains), errands to the royal stores for some,
+meals and leisure at the tents, a day off in seven. **Measured (seed 1, plans):** town at 02:00 21,270 / 21,677 (days 30 /
+90; w 20,000, range 13,000-30,000), at 10:30 18,588 / 18,561; plain 41,136-41,311 (w 42,000, range 33,000-49,000); the
+Terrace unchanged (4,912 at 10:30 on day 30, w 5,000). The full count is simulated: the soak carries it (below).
+Population with the court 76,238 (court 25,817: the D-182 court 9,310, the king's 7, the retinue 16,500); 59,731 before.
+
+**Costs (node; this 4-core box was loaded by other agents: timings are upper bounds).**
+- **Triangles and draws.** Tents: 29,762 triangles (15.3 a tent) in 8 meshes (≤ 8 draws and their shadow casts; a camp out
+  of the frustum is culled), 133-199 ms to build; 1,946 colliders streamed (none live unless the player is within 150 m of a
+  camp). People: the Persian costume carries the crown's triangles collapsed for everyone in Persian dress, the default
+  world too: +1,404 / +132 / +66 / +13 triangles per LOD (35,503 / 4,895 / 2,580 / 511: +4.1 / +2.8 / +2.6 / +2.6 %; the
+  crown lean beyond full detail for that reason). The three envoy costumes (35,701 / 5,297 / 2,470 / 489; 39,476 / 6,291 /
+  3,125 / 625; 37,549 / 6,214 / 2,173 / 435: within the 42,000 / 7,000 / 3,200 / 800 budgets) add up to 12 main and 6
+  shadow draws when delegates of all three are in view, none otherwise; vertex source +2,063 vertices (17.14 → 17.90 MB),
+  costume vertex buffers +84,459 vertices (~4.4 MB); the outfit build ~2.0 s before and after (noise). Props: the new
+  kinds join the long tools' union (502 → 572 triangles an instance, budget 700; the small objects' 986, budget 1,000). The
+  throne: one instanced work object (1 draw) while the king sits in view.
+- **The court's views** (tests/court_view.test.ts; D-182 numbers in brackets): court-forecourt people 2.16 M triangles
+  (1.95); court-forecourt-w 3.04 M (2.96), 715 visible (745); court-apadana-n 3.03 M (2.98), 11,103 simulated in view
+  (3,356: the N camp is in view); court-from-hillside 23,158 in view (9,750), 23,028 impostors (9,465), 0.50 M (0.53);
+  hillside-best (day 30) 24,297 in view, 17,537 visible by sightline, 0.22 M. Missing 0, placeholder performances 0; no
+  pop-in on the 634 m court walk (1,812 frames). The impostors on the hillside more than doubled: their GPU cost is
+  unmeasured (no browser).
+- **Simulation.** Build 0.5-0.9 s (0.66 without the court); the view's one-time route warm-up 6.7 s for 156 pairs (the
+  king's walks included, the retinue never comes up); a day's plans of the retinue 47-159 ms per 1,000 people. 30-day soak
+  with the court (`npx tsx tools/soak.ts 30 60 1 --court`): 8 min 25 s (population 489 s, 1,937,731 person-days checked;
+  without the court 6 min 46 s, 388 s, 1,299,357); plans well formed: **0 issues**; events, stuck, stocks, rendered honest,
+  visible change pass; variety (the detailed child agent, 0.207) and population variety fail, **the same 91 people with and
+  without the court** (children 64, treasury 20, shepherds 3, a homemaker, builder, groom and farmer: the gate is set for
+  the year). tools/dev/court_variety.ts over 30 days: every court person passes (worst: the followers and the town's
+  soldiers 0.023, the king 0). Frame cost at 60 fps with the court: 0.095 ms mean, 0.114 p99, 78 ms max, midnight 3.8 ms
+  (without: 0.093, 0.130, 71, 2.3); at 60× 14.5 ms mean, 352 p99 (without: 14.8, 378).
+- The year soak with the court (`npx tsx tools/soak.ts 354 60 1 --court`): running at the time of this commit (the population part at about 100 s per 1,000 people on this loaded box: ~2.2 h); its result is added below when it ends
+
+**Tests.** New `tests/court_fill.test.ts` (12): the delegations' data, pieces, dyes, gifts and sources; each people's look;
+the parties' gifts and dress; the king one person only with the setting, his dress; his audience days against his bearers'
+and escort's; each party led before him while he sits; the throne against the pose on the rig; every camp household in a
+tent; the tents against the built world; the tents drawn, their colliders, the people inside and before them; the
+retinue's groups; the town and plain against population.json (within 20 % of w and inside the range) and the Terrace; the
+retinue's plans (checkPlan over a week for every tenth, 11,550 person-days: 0 issues) and its leaving. Passing:
+tests/court.test.ts (7), tests/court_view.test.ts (3), tests/court_fill.test.ts (12), humans_runtime (18, alone: its
+CPU-budget test fails under a loaded box, as before), performances (21, alone, same), people_look, popview (its cost test
+alone), people, population, plain, performers, visitor_access, language; `npx tsc --noEmit` clean; `npm run lint:all` OK
+(chronology, language, activity 59 activities 0 placeholders, music). One fix on the way: a visitor's arrival day spent
+"on the road to the court" off the map counted as a 10-15 h stage on foot (planCheck (g), added after D-182): now "not yet
+at Persepolis ... at its last camp" (its stages are not simulated).
+
+**Files.** src/data/delegations.json (new), src/data/court.json (camps, king, retinue, private places, the throne's and
+audience's places, the 23 origins), src/data/sources.json (WALSER1966, DB-SKUNXA, HADISH-JAMB, XEN-CYR-8), src/people/court.ts,
+camps.ts (new), campCheck.ts (new), outfits.ts (cap_pointed, cap_low, crown; envoy, envoy_short, envoy_bare, king), looks.ts
+(delegation, pieces, beardless, stature; far rows), anim.ts (enthroned), activities.ts (6), props.ts (5), workObjects.ts
+(throne), popgeo.ts (camps, hidden places), popview.ts (look input, gifts' props, camp anchors), crowd.ts (far rows; no
+glance from the king), impostors.ts (far rows), sim.ts (the private place), src/world/courtCamps.ts (new), world.ts (tents,
+camp ground), plain/index.ts and townGround.ts (camp ground); tools/dev/court_zones.ts, court_camps_check.ts, court_cost.ts
+(new), court_variety.ts (by group). **population.ts is not touched.** Docs: research/COURT.md 5, MATERIAL_CULTURE,
+OPEN_QUESTIONS Q-333, Q-335, Q-370, PEOPLE (Xerxes), BLOCKERS B9, B12, NEEDS_FROM_ME #16, PROGRESS, TASKS.
+
+**Alternatives rejected.** One envoy costume with every piece optional (over budget, above); the delegates in the woman's
+costume (beards and caps would be added to every woman's mesh); the crown in its own costume (a fourth new costume and a
+second Persian-sized build for one man); the king at the throne standing (not attested; a seated pose and a throne built to
+it instead); the audience in the Hall of a Hundred Columns (a building site in 467); the king shown every day (restraint:
+two mornings in five, C); the retinue billeted in the town's houses (the house plots' capacity model is population.ts's, which another agent is editing; not modelled); tents drawn on
+standing crops (the camp ground made trodden instead); camps chosen for looks (sites searched for clear, level ground).

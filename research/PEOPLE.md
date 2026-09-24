@@ -50,7 +50,7 @@ Access column: `SX` = search extract (page not verified); `NS` = not seen (model
 ### 1c. Other people at Persepolis in 467
 | Who | Evidence | Tier |
 |---|---|---|
-| Xerxes | No text places him at Persepolis in yr 19 (CHRONOLOGY Q-005). Absent by default | — |
+| Xerxes | No text places him at Persepolis in yr 19 (CHRONOLOGY Q-005). Absent by default. D-199: with the court setting (C) he is a person, in the reliefs' ceremonial dress (B), giving audience in the Apadana on about two mornings in five and otherwise unseen in the Hadish (research/COURT.md 5b) | — |
 | Satrap/governor of Persis in 467 | **No name found.** Persis may have been administered directly (as under Parnakka), not as an ordinary satrapy (NS) | GAP |
 | Megabyzus, Artabanus and others | Not found in any PT extract. **Do not use** | — |
 
