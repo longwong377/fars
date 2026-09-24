@@ -57,7 +57,10 @@ import { loadHumans, type HumanSystem } from '../people/humans';
 import { ACTIVITIES } from '../people/activities';
 import { Speech, Subtitle, RecordingBackend, FormantBackend } from '../audio/speech';
 import { Murmur, Talker } from '../audio/murmur';
-import { pickLine, voiceFor, voiceKeyFor } from '../people/speech_lines';
+import { pickLine, voiceFor, voiceKeyFor, type ResolvedLine } from '../people/speech_lines';
+import { Conversations, addressIntents, speak, type SpeakerLike } from '../people/exchanges';
+import { sunTimes } from '../people/calendar';
+import { Rng } from '../core/rng';
 import type { WeatherSystem } from '../weather/weatherState';
 import placesJson from '../data/people_places.json';
 const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
@@ -163,6 +166,21 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const voiceManifest = await fetch('/voices/manifest.json').then(r => (r.ok ? r.json() : { clips: {} })).catch(() => ({ clips: {} }));
   const speech = new Speech(audio, [new RecordingBackend(Object.fromEntries(Object.entries(voiceManifest.clips as Record<string, { url: string; tier: string }>).map(([k, v]) => [k, { url: v.url, tier: v.tier }]))), new FormantBackend()]); const murmur = new Murmur(audio, { maxVoices: 10, radius: 40 });
   let lastSubtitle: Subtitle | null = null; speech.onSubtitle = (s: Subtitle) => { lastSubtitle = s; };
+  /** the backend a line will play through for a voice class (the manifest's clip, else the formant synthesiser) */
+  const clipBackend = (line: ResolvedLine, voiceKey: string) => ((voiceManifest.clips as Record<string, { backend?: string }>)[`${line.id}|${voiceKey}`]?.backend ?? 'formant');
+  /** what was last said and why (dev overlay F3: the line's tiers and the situation that chose it; §3.2) */
+  let lastSpoken: { lineId: string; lang: string; tier: string; parts: string; situation: string; backend: string } | null = null;
+  /** one person says one line where they stand (jaw, subtitle, overlay); resolves with the clip's length (s) */
+  const sayAt = (a: any, line: ResolvedLine, situation: string): Promise<number> => {
+    const vo = voiceFor({ seed: a.seed, sex: a.sex, role: a.role }), key = voiceKeyFor(vo);
+    const h = speech.say(line, vo, { x: a.pos[0], y: a.y + 1.55, z: -a.pos[1] }, { speakerId: a.id, voiceKey: key });
+    crowd.speaking(a.id, 2.5, time); // the jaw moves while they speak
+    const tp = line.tierParts; lastSpoken = { lineId: line.id, lang: line.lang, tier: line.tier, parts: `words ${tp.words}, phrase ${tp.phrase}, IPA ${tp.ipa}, usage ${tp.usage}`, situation, backend: clipBackend(line, key) };
+    return h.ready.then(ok => { if (ok && Number.isFinite(h.duration)) { crowd.speaking(a.id, h.duration, time); return h.duration; } return 0; });
+  };
+  // people speaking to each other near the listener (exchanges.ts situations; D-168): one exchange at a time, turn by turn
+  const conversations = new Conversations(); const convRng = new Rng(seed, 'conversations');
+  let convQueue: { speaker: any; to: any; line: ResolvedLine; situation: string }[] = [], convNextAt = 0;
   let playerAt: THREE.Vector3 | null = null;
   wvfx.onThunder = (delay, strength) => sound.thunder(delay, strength);
   // which acoustic space is the listener in: the roofed halls' measured boxes from the generator (manifest `room`)
@@ -199,12 +217,12 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     if (!best) return null;
     best.metPlayer++; sim.noteAddressed(best.id); best.heading = Math.atan2(cp.x - best.pos[0], -cp.z - best.pos[1]) * 180 / Math.PI; // turns to the stranger; remembered (§9.5)
     const day = Math.floor(sim.t / 24);
-    const pick = pickLine({ langs: best.langs, intent: best.metPlayer > 1 ? 'reply' : 'greet', role: best.role, seed: best.seed + day });
+    // the intents by how often they have met, in the person's own languages (exchanges.ts addressIntents; D-168)
+    const pick = speak(best as SpeakerLike, null, addressIntents(best as SpeakerLike, best.metPlayer), best.seed + day);
     if (!pick) return { gesture: 'nods (no attested line in their language)' };
     const vo = voiceFor({ seed: best.seed, sex: best.sex, role: best.role });
-    const h = speech.say(pick.line, vo, { x: best.pos[0], y: best.y + 1.55, z: -best.pos[1] }, { speakerId: best.id, voiceKey: voiceKeyFor(vo) });
-    crowd.speaking(best.id, 2.5, time); h.ready.then(() => { if (Number.isFinite(h.duration)) crowd.speaking(best.id, h.duration, time); }); // the jaw moves while they speak
-    return { lineId: pick.line.id, lang: pick.line.lang, translit: pick.line.translit, gloss: pick.line.gloss, tier: pick.line.tier, speakerId: best.id, backend: 'formant' } as Subtitle;
+    sayAt(best, pick.line, 'address:' + pick.intent);
+    return { lineId: pick.line.id, lang: pick.line.lang, translit: pick.line.translit, gloss: pick.line.gloss, tier: pick.line.tier, speakerId: best.id, backend: clipBackend(pick.line, voiceKeyFor(vo)) } as Subtitle;
   };
   // visitor mode (D-100 … D-104; src/world/visitor): the guards at their posts stop the visitor, ask for the halmi, give
   // an escort; the errand advances only through what the visitor does at real places. Applied only in visitor mode.
@@ -216,8 +234,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       const a = sim.agents[id]; if (!a) return false;
       crowd.speaking(id, 2.5, time); // he turns and speaks (the jaw moves; the gaze follows the visitor within reach)
       const pick = pickLine({ langs: a.langs, intent, role: a.role, seed: a.seed + Math.floor(sim.t) }); if (!pick) return false;
-      const vo = voiceFor({ seed: a.seed, sex: a.sex, role: a.role });
-      speech.say(pick.line, vo, { x: a.pos[0], y: a.y + 1.55, z: -a.pos[1] }, { speakerId: a.id, voiceKey: voiceKeyFor(vo) }); return true;
+      void sayAt(a, pick.line, 'visitor:' + intent); return true;
     },
     escort: at => {
       if (!at) { if (escortP) { crowd.detach('visitor-escort'); escortP = null; escortLast = null; } return; }
@@ -229,7 +246,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   }, settlement ? indexTown(settlement.plan as any) : null);
   const court = settings?.courtCalendar === 'seasonal';
   let mapItems: MapItem[] | null = null; // out-of-world map layers (translation layer), built on first use
-  return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav, humans }, address, plain, doors, get lastSubtitle() { return lastSubtitle; },
+  return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav, humans }, address, plain, doors, get lastSubtitle() { return lastSubtitle; }, get lastSpoken() { return lastSpoken; },
     building,
     /** visitor mode: where the player may stand (blocked moves go back to the last allowed point), the interact key, the
      *  log (translation layer chronicle only). `night`: outside the Terrace's hours (C: the sun below 6°) */
@@ -281,6 +298,17 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         const talkers: Talker[] = sim.agents.filter(ag => !ag.offmap && !ag.walking && ag.task && ACTIVITIES[ag.task.act]?.sound === 'murmur')
           .map(ag => ({ id: ag.id, pos: { x: ag.pos[0], y: ag.y + 1.55, z: -ag.pos[1] }, lang: ag.langs[0] ?? 'unknown', sex: ag.sex, child: ag.role === 'child', seed: ag.seed, group: ag.task!.place }));
         murmur.update(dt, talkers, cam.position); speech.update();
+        { // scripted exchanges between the people near the listener, one turn after another
+          const day = Math.floor(sim.t / 24), h = sim.t - day * 24, st = sunTimes(day);
+          const x = conversations.update(time, sim.agents as unknown as SpeakerLike[], [cam.position.x, -cam.position.z], { t: sim.t, night: h < st.rise || h > st.set }, convRng);
+          if (x && !convQueue.length) { convQueue = x.utterances.map(u => ({ speaker: u.speaker, to: u.to, line: u.line, situation: x.situation.id })); convNextAt = time; }
+          if (convQueue.length && time >= convNextAt) {
+            const u = convQueue.shift()!, sp = u.speaker as any, to = u.to as any;
+            if (!sp.walking) sp.heading = Math.atan2(to.pos[0] - sp.pos[0], to.pos[1] - sp.pos[1]) * 180 / Math.PI; // turns to the one addressed
+            convNextAt = time + 3; const t0 = time;
+            sayAt(sp, u.line, u.situation).then(d => { convNextAt = t0 + (d > 0 ? d + 0.6 : 1.2); });
+          }
+        }
         sound.update(dt, { hour, month, windMs: ctx.cond.windMs, rain: ctx.cond.rain, insideSpace: spaceAt(cam.position.x, cam.position.y, cam.position.z),
           nearColumns: spaceAt(cam.position.x, cam.position.y, cam.position.z) !== 'open', stepPhase: ctx.player.bobPhase, running: false,
           surface: surfaceAt(feet, terrain.heightAt(p.x, p.z)), fires: fire.fires, listener: cam.position,

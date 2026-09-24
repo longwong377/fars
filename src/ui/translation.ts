@@ -1,18 +1,25 @@
 // Translation layer (brief §9.4, §10; out-of-world, OFF by default; English allowed here only). When the setting is on:
-//  - subtitles for speech: the line in its own language (romanised as in the lexicon), the English gloss, language, tier;
-//  - inscriptions: look at a carved text (≤ 15 m, centre of view) to see its transliteration (ARIo, CC0) and an
-//    interlinear gloss for the words the project lexicon covers (each gloss sourced there). No published translation is
-//    reachable from this sandbox, so none is shown (NEEDS_FROM_ME #14) — nothing is paraphrased from memory;
+//  - subtitles for speech: the line as it is heard (romanised: lexicon.ts spokenForm), the English gloss, the language,
+//    the tier and the line's source;
+//  - inscriptions: look at a carved text (≤ 15 m, centre of view) to see the transliteration OF THE VERSION LOOKED AT
+//    (Old Persian, Elamite or Babylonian; ARIo, CC0) and an interlinear gloss for the words that version's lexicon
+//    covers (each gloss sourced there). No published English translation is shown: the only one the project has read
+//    (Livius.org) is "All rights reserved" on its own pages, which §12 does not allow (D-167, BLOCKERS B17, NEEDS #14);
+//    nothing is paraphrased from memory;
 //  - the map (key M) and the chronicle (key J): out-of-world panels; the world itself keeps no map, compass or waypoint.
 import * as THREE from 'three/webgpu';
 import type { Settings } from '../core/settings';
 import inscriptions from '../data/inscriptions.json';
 import opLexicon from '../../research/LEXICON/old_persian.json';
+import elLexicon from '../../research/LEXICON/elamite.json';
+import babLexicon from '../../research/LEXICON/babylonian.json';
 import { FOOTPRINTS, present } from '../arch/spec';
 import { INSCRIPTION_PICK_LAYER } from '../arch/decor';
+import { LANG_NAMES, type LangId } from '../lang/lexicon';
+import { LINE_BY_ID } from '../people/speech_lines';
 
-export interface SubtitleLike { lang: string; translit: string; gloss: string; tier: string; speakerId?: number }
-export interface ChronicleEvent { t: number; kind: string; text: string; place: string }
+export interface SubtitleLike { lang: string; translit: string; gloss: string; tier: string; speakerId?: number; lineId?: string }
+export interface ChronicleEvent { t: number; kind: string; text: string; place: string; tier?: string }
 export interface TranslationContext {
   camera: THREE.Camera; inscriptions: THREE.Object3D | (THREE.Object3D | null)[] | null; subtitle: SubtitleLike | null; subtitleAt: number; now: number;
   player: { e: number; n: number; yawDeg: number }; events: ChronicleEvent[]; timeLabel: (tHours: number) => string; places: Record<string, { at: [number, number] }>;
@@ -20,19 +27,79 @@ export interface TranslationContext {
   mapLayers?: () => MapItem[];
 }
 
-const INSCRIPTION_INFO: Record<string, { title: string; where: string }> = {
-  XPa: { title: 'XPa — Xerxes, Gate of All Nations', where: 'carved above the doorway colossi of the Gate (version per colossus: C)' },
-  XPb: { title: 'XPb — Xerxes, Apadana', where: 'beside the audience panels of the Apadana stairs (placement C)' },
-  XPc: { title: 'XPc — Xerxes, Tachara', where: 'between the guards of the central façade of the Tachara S stair (placement C)' },
-  DNa: { title: 'DNa — Darius I, his tomb at Naqsh-e Rustam', where: 'upper register, behind the king (panel position C; Old Persian version only)' },
-  DNb: { title: 'DNb — Darius I, his tomb at Naqsh-e Rustam', where: 'façade, between the columns left of the door (panel position C; Old Persian version only; modern lacunae shown as x)' },
-  XPd: { title: 'XPd — Xerxes, Hadish', where: 'between the guards of the central façade of the Hadish W stair (placement C)' },
-  DPh: { title: 'DPh — Darius I, the foundation plates of the Apadana', where: 'a gold and a silver plate in a stone box sealed under this corner of the hall since its foundation, unseen (corners: the NE and SE boxes, Q-016; box and depth C)' },
-  XPe: { title: 'XPe — Xerxes, Hadish', where: 'above the king and his attendants on the reveals of the Hadish E and W doorways (versions stacked; order and size C)' },
+const ONLY_OP = 'Old Persian only here: the trilingual\'s Elamite and Babylonian versions are in the edition but not carved in this build';
+const INSCRIPTION_INFO: Record<string, { title: string; where: string; carved: string }> = {
+  XPa: { title: 'XPa — Xerxes, Gate of All Nations', where: 'carved above the doorway colossi of the Gate (version per colossus: C)', carved: 'Old Persian, Elamite and Babylonian, one version per colossus (assignment C)' },
+  XPb: { title: 'XPb — Xerxes, Apadana', where: 'beside the audience panels of the Apadana stairs (placement C)', carved: ONLY_OP },
+  XPc: { title: 'XPc — Xerxes, Tachara', where: 'between the guards of the central façade of the Tachara S stair (placement C)', carved: ONLY_OP },
+  DNa: { title: 'DNa — Darius I, his tomb at Naqsh-e Rustam', where: 'upper register, behind the king (panel position C)', carved: 'Old Persian version only (the Elamite and Babylonian versions are not in the corpus mirror)' },
+  DNb: { title: 'DNb — Darius I, his tomb at Naqsh-e Rustam', where: 'façade, between the columns left of the door (panel position C; modern lacunae shown as x)', carved: 'Old Persian version only (the Elamite and Babylonian versions are not in the corpus mirror)' },
+  XPd: { title: 'XPd — Xerxes, Hadish', where: 'between the guards of the central façade of the Hadish W stair (placement C)', carved: ONLY_OP },
+  DPh: { title: 'DPh — Darius I, the foundation plates of the Apadana', where: 'a gold and a silver plate in a stone box sealed under this corner of the hall since its foundation, unseen (corners: the NE and SE boxes, Q-016; box and depth C)', carved: 'Old Persian, Elamite and Babylonian on each plate (data, not carved geometry)' },
+  XPe: { title: 'XPe — Xerxes, Hadish', where: 'above the king and his attendants on the reveals of the Hadish E and W doorways (versions stacked; order and size C)', carved: 'Old Persian, Elamite and Babylonian, stacked' },
 };
-const LANG_NAME: Record<string, string> = { op: 'Old Persian', el: 'Elamite', arc: 'Aramaic', bab: 'Babylonian' };
+const VERSION_NAME: Record<string, string> = { op: 'Old Persian', el: 'Elamite', bab: 'Babylonian' };
+const LEX_FILE: Record<string, string> = { op: 'old_persian.json', el: 'elamite.json', bab: 'babylonian.json' };
+/** why no translation is shown (D-167): the project's own finding, with where it is logged */
+export const TRANSLATION_STATUS = 'No published English translation is shown. The one this project has read, Livius.org\'s (J. Lendering, after Kent and Lecoq; read through the Electronic-Old-Persian-Library scrape), carries "All content copyright © 1995–2024 Livius.org. All rights reserved." on its own pages; the scrape\'s CC-BY-NC cannot relicense it, and §12 allows only CC0, CC-BY or CC-BY-NC here. A public-domain or CC-BY(-NC) translation is needed (NEEDS_FROM_ME #14; BLOCKERS B17). Nothing is paraphrased from memory.';
 import { MAP_ZOOMS, MapItem, MapStyle, P2 } from './mapLayers';
-const GLOSS = new Map<string, { gloss: string; tier: string }>((opLexicon as any[]).map(e => [e.form, { gloss: e.gloss, tier: e.tier }]));
+
+type GlossRow = { gloss: string; tier: string; src: string[]; form: string };
+/** Old Persian word keys: ARIo writes A.uramazdā and marks glides (nai̯); the lexicon writes Auramazdā, naiba- */
+const opKey = (w: string) => w.normalize('NFC').replace(/[.̯]/g, '').toLowerCase();
+/** cuneiform (ATF) word keys: as written, and without determinatives */
+const atfKeys = (w: string) => { const a = w.normalize('NFC').trim(); return [...new Set([a, a.replace(/\{[^}]*\}/g, '')])].filter(Boolean); };
+function glossIndex(lang: 'op' | 'el' | 'bab'): { exact: Map<string, GlossRow>; stems: [string, GlossRow][] } {
+  const rows = (lang === 'op' ? opLexicon : lang === 'el' ? elLexicon : babLexicon) as any[];
+  const exact = new Map<string, GlossRow>(), stems: [string, GlossRow][] = [];
+  for (const e of rows) {
+    if (String(e.form).startsWith('(')) continue; // absence entries
+    const g: GlossRow = { gloss: e.gloss, tier: String(e.tier), src: e.src ?? [], form: e.form };
+    if (lang === 'op') {
+      const f = String(e.form);
+      if (f.endsWith('-')) stems.push([opKey(f.slice(0, -1)), g]); else exact.set(opKey(f), g);
+      if (e.spoken) exact.set(opKey(e.spoken), g);
+    } else for (const alt of String(e.transliteration ?? '').split(/\s*\/\s*/)) for (const k of atfKeys(alt)) if (!exact.has(k)) exact.set(k, g);
+  }
+  stems.sort((a, b) => b[0].length - a[0].length);
+  return { exact, stems };
+}
+const GLOSS = { op: glossIndex('op'), el: glossIndex('el'), bab: glossIndex('bab') };
+/** Old Persian endings a stem may carry in the texts (letters only; a search aid, not a grammar: a stem match is shown
+ *  as such, with the stem's own gloss) */
+const OP_ENDING = /^[āaiīuūmšyhvnt]{0,5}$/;
+
+export interface InscriptionWord { w: string; gloss: string | null; how: 'form' | 'stem' | null; tier?: string; src?: string[] }
+export interface InscriptionReading {
+  id: string; version: 'op' | 'el' | 'bab'; title: string; where: string; carved: string; versionName: string;
+  translitSource: string; words: InscriptionWord[]; covered: number; sources: string[]; translation: string; notes: string[];
+}
+/** What the layer shows for a panel: the transliteration of the version looked at, and the glosses its lexicon has. */
+export function inscriptionReading(id: string, version = 'op'): InscriptionReading | null {
+  const t = (inscriptions as any)[id]; if (!t) return null;
+  const info = INSCRIPTION_INFO[id] ?? { title: id, where: '', carved: '' };
+  const v = (['op', 'el', 'bab'].includes(version) ? version : 'op') as 'op' | 'el' | 'bab';
+  const text = String(v === 'op' ? t.op_translit : v === 'el' ? t.el_atf : t.bab_atf).trim();
+  if (!text) return { id, version: v, title: info.title, where: info.where, carved: info.carved, versionName: VERSION_NAME[v], translitSource: '', words: [], covered: 0, sources: [], translation: TRANSLATION_STATUS,
+    notes: [`The ${VERSION_NAME[v]} version of ${id} is not in the corpus mirror read (ARIo via SLAB-NLP/Akk): unavailable.`] };
+  const G = GLOSS[v], words: InscriptionWord[] = [], notes: string[] = [];
+  for (const w of text.split(/\s+/)) {
+    let g: GlossRow | undefined, how: InscriptionWord['how'] = null;
+    if (v === 'op') {
+      const k = opKey(w); g = G.exact.get(k); if (g) how = 'form';
+      else {
+        const st = G.stems.find(([s]) => s.length >= 3 && k !== s && (k.startsWith(s) ? OP_ENDING.test(k.slice(s.length)) : /[aiu]$/.test(s) && k.startsWith(s.slice(0, -1)) && OP_ENDING.test(k.slice(s.length - 1))));
+        if (st) { g = st[1]; how = 'stem'; }
+      }
+    } else for (const k of atfKeys(w)) { g = G.exact.get(k); if (g) { how = 'form'; break; } }
+    words.push({ w, gloss: g?.gloss ?? null, how, tier: g?.tier, src: g?.src });
+  }
+  if (v !== 'op') notes.push(`Version split of the ARIo running text: ${t.tier?.version_split ?? 'C'}.`);
+  const sources = [...new Set(words.flatMap(w => w.src ?? []))].sort();
+  return { id, version: v, title: info.title, where: info.where, carved: info.carved, versionName: VERSION_NAME[v],
+    translitSource: `Transliteration of the ${VERSION_NAME[v]} version${v === 'op' ? ' (normalised)' : ' (ATF)'}: ARIo, Schmitt 2009, in ORACC (MOCCI; CC0), text ${t.ario}.`,
+    words, covered: words.filter(w => w.gloss).length, sources, translation: TRANSLATION_STATUS, notes };
+}
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', text = '') { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; }
 
@@ -44,7 +111,7 @@ export class TranslationLayer {
   private mapCanvas = document.createElement('canvas');
   private mode: 'none' | 'map' | 'chronicle' = 'none';
   private zoom = 0; private drawn = { zoom: -1, e: 0, n: 0, yaw: 0, t: 0 };
-  private ray = new THREE.Raycaster(); private lastPick = 0; private picked: string | null = null;
+  private ray = new THREE.Raycaster(); private lastPick = 0; private picked: { id: string; version: string } | null = null;
   constructor(private settings: () => Settings) {
     this.ray.layers.set(INSCRIPTION_PICK_LAYER); // the panels' pick rectangles, not the carved signs
     this.root.append(this.sub, this.insc, this.panel); document.body.append(this.root);
@@ -63,17 +130,19 @@ export class TranslationLayer {
     // subtitles: shown for 3 s + reading time
     const sb = ctx.subtitle, show = sb && ctx.now - ctx.subtitleAt < 3 + (sb.gloss.length + sb.translit.length) / 18;
     this.sub.hidden = !show;
-    if (show && sb) this.sub.replaceChildren(el('div', 'tl-orig', sb.translit), el('div', 'tl-gloss', `“${sb.gloss}”`), el('div', 'tl-meta', `${LANG_NAME[sb.lang] ?? sb.lang} · tier ${sb.tier}`));
+    if (show && sb) { const src = sb.lineId ? LINE_BY_ID.get(sb.lineId)?.def.src : undefined;
+      this.sub.replaceChildren(el('div', 'tl-orig', sb.translit), el('div', 'tl-gloss', `“${sb.gloss}”`), el('div', 'tl-meta', `${LANG_NAMES[sb.lang as LangId] ?? sb.lang} · tier ${sb.tier}${src ? ` · ${src}` : ''}`)); }
     // inscriptions under the crosshair
     if (ctx.now - this.lastPick > 0.25 && ctx.inscriptions) {
       this.lastPick = ctx.now; this.ray.setFromCamera(new THREE.Vector2(0, 0), ctx.camera); this.ray.far = 80;
       const groups = (Array.isArray(ctx.inscriptions) ? ctx.inscriptions : [ctx.inscriptions]).filter((g): g is THREE.Object3D => !!g);
       // within reading distance: 15 m on the Terrace; panels that stand high on a cliff (Naqsh-e Rustam) set their own
       const hit = this.ray.intersectObjects(groups, true).find(h => h.distance <= (h.object.userData.pickFar ?? 15));
-      this.picked = hit ? (hit.object.name.split(':')[1] ?? null) : null;
+      // the pick carries the panel's inscription and version (decor.ts, naqsh.ts: userData, and the name inscription:<id>:<ver>)
+      this.picked = hit ? { id: String(hit.object.userData.inscription ?? hit.object.name.split(':')[1]), version: String(hit.object.userData.version ?? hit.object.name.split(':')[2] ?? 'op') } : null;
     }
     this.insc.hidden = !this.picked;
-    if (this.picked) this.insc.replaceChildren(...this.inscriptionView(this.picked));
+    if (this.picked) this.insc.replaceChildren(...this.inscriptionView(this.picked.id, this.picked.version));
     // panels
     this.panel.hidden = this.mode === 'none';
     if (this.mode === 'map') {
@@ -93,15 +162,13 @@ export class TranslationLayer {
     }
   }
 
-  private inscriptionView(id: string): HTMLElement[] {
-    const t = (inscriptions as any)[id]; const info = INSCRIPTION_INFO[id] ?? { title: id, where: '' };
-    if (!t) return [el('div', '', id)];
-    const words = String(t.op_translit).split(/\s+/);
+  private inscriptionView(id: string, version: string): HTMLElement[] {
+    const r = inscriptionReading(id, version); if (!r) return [el('div', '', id)];
     const inter = el('div', 'tl-inter');
-    let covered = 0;
-    for (const w of words) { const g = GLOSS.get(w); if (g) covered++; const cell = el('span', 'tl-w'); cell.append(el('span', 'tl-wo', w), el('span', 'tl-wg', g ? g.gloss : '·')); inter.append(cell); }
-    return [el('div', 'tl-title', info.title), el('div', 'small', `${info.where}. Transliteration: ARIo (Schmitt 2009; CC0).`), inter,
-      el('div', 'small', `Word glosses from the project lexicon for ${covered} of ${words.length} words (each sourced in research/LEXICON/old_persian.json); “·” = not in the lexicon. A published English translation is not available in this build (NEEDS_FROM_ME #14).`)];
+    for (const w of r.words) { const cell = el('span', 'tl-w'); cell.append(el('span', 'tl-wo', w.w), el('span', 'tl-wg', w.gloss ? (w.how === 'stem' ? `${w.gloss} (stem)` : w.gloss) : '·')); inter.append(cell); }
+    return [el('div', 'tl-title', `${r.title} · ${r.versionName} version`), el('div', 'small', `${r.where}. Carved: ${r.carved}.`), el('div', 'small', r.translitSource), inter,
+      el('div', 'small', r.words.length ? `Word glosses from the project lexicon (research/LEXICON/${LEX_FILE[r.version]}) for ${r.covered} of ${r.words.length} words; “·” = not in the lexicon; “(stem)” = the stem's gloss for an inflected form. Sources of these glosses: ${r.sources.join(', ') || 'none'} (src/data/sources.json).` : ''),
+      ...r.notes.map(n => el('div', 'small', n)), el('div', 'small', r.translation)];
   }
 
   private metresPerPx() { const Z = MAP_ZOOMS[this.zoom]; return Z.half ? (2 * Z.half) / this.mapCanvas.width : 510 / this.mapCanvas.width; }

@@ -24,6 +24,10 @@ export interface LexEntry {
   /** keys into src/data/sources.json (out-of-world: dev overlay, translation layer) */
   src: string[];
   note: string;
+  /** the attested inflected form the IPA voices, when it differs from the citation form (`naiba-` is heard as nai̯bam) */
+  spoken: string | null;
+  /** Aramaic: the only attestation read is in Daniel (later than 467; LANGUAGES.md §6) */
+  danielOnly: boolean;
 }
 
 /**
@@ -42,7 +46,8 @@ function load(lang: LangId, rows: any[]): LexEntry[] {
   return rows.map(r => ({
     id: `${lang}:${r.form}`, lang, form: r.form, gloss: r.gloss, pos: r.pos, ipaRaw: r.ipa ?? null, ipa: cleanIpa(r.ipa),
     script: r.script ?? null, source: r.source, tier: String(r.tier), tierIpa: String(r.tier_ipa), tierScript: String(r.tier_script),
-    src: Array.isArray(r.src) ? r.src.map(String) : [], note: r.note ?? '',
+    src: Array.isArray(r.src) ? r.src.map(String) : [], note: r.note ?? '', spoken: r.spoken ?? null,
+    danielOnly: r.daniel_only === true || /\bDaniel only\b/.test(String(r.attested ?? '')),
   }));
 }
 
@@ -60,8 +65,34 @@ for (const l of Object.keys(LEXICON) as LangId[]) for (const e of LEXICON[l]) BY
 export function lexEntry(id: string): LexEntry | undefined { return BY_ID.get(id); }
 export function allLexEntries(): LexEntry[] { return [...BY_ID.values()]; }
 
-/** The citation form without the stem hyphen (`uvaspa-` → `uvaspa`), used as the transliteration in the subtitle layer. */
+/** The citation form without the stem hyphen (`uvaspa-` → `uvaspa`). */
 export function citationForm(e: LexEntry): string { return e.form.replace(/-$/, ''); }
+
+/** Aramaic IPA → the Semitist romanisation of what is heard (ʃ š, ħ ḥ, ʕ ʿ, ʔ ʾ, emphatics with a dot, long vowels with
+ *  a macron). The written skeleton (šlm) is not what is heard (/ʃəlaːm/), and the Tiberian vocalisation (ləḥem) is
+ *  later than the reconstructed Imperial Aramaic the IPA voices (laħm), so the subtitle shows this. */
+export function romaniseAramaicIpa(ipa: string): string {
+  let s = ipa.normalize('NFC').replace(/ˈ|ˌ/g, '');
+  for (const [a, b] of [['tˤ', 'ṭ'], ['sˤ', 'ṣ'], ['dˤ', 'ḍ'], ['aː', 'ā'], ['eː', 'ē'], ['iː', 'ī'], ['oː', 'ō'], ['uː', 'ū'], ['ʃ', 'š'], ['ħ', 'ḥ'], ['ʕ', 'ʿ'], ['ʔ', 'ʾ'],
+    ['ɡ', 'g'], ['j', 'y'], ['θ', 'ṯ'], ['ð', 'ḏ'], ['χ', 'ḵ'], ['ɣ', 'ḡ']] as const) s = s.split(a).join(b);
+  return s;
+}
+
+/**
+ * What the subtitle shows for a word: the form that is heard. Old Persian stems voiced in an attested inflected form show
+ * that form (`spoken`, from the text: naiba- → nai̯bam, XPa); Aramaic shows the romanised IPA; otherwise the citation form.
+ */
+export function spokenForm(e: LexEntry): string {
+  if (e.spoken) return e.spoken;
+  if (e.lang === 'arc' && e.ipa) return romaniseAramaicIpa(e.ipa);
+  return citationForm(e);
+}
+
+/**
+ * Entries whose sounds may feed the crowd murmur's phonotactics: speakable words attested in a text read (tier A or B).
+ * A tier-C entry is a reconstruction nobody has seen (Aramaic myn "water"): its sounds are not evidence (review A-M7).
+ */
+export function murmurEligible(e: LexEntry): boolean { return isSpeakable(e) && worstTier(e.tier) !== 'C'; }
 
 /**
  * Entries that stand for an absence ("(greetings / politeness formulas)", "(water)") or for a logogram without a
