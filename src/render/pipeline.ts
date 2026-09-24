@@ -30,11 +30,11 @@
 // reflectance of each pixel; where a ray hits, it replaces the sky environment the material reflected (the composite
 // re-evaluates that term with the material's own lookup and specular occlusion).
 import * as THREE from 'three/webgpu';
-import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2, metalness, roughness, Fn, dot, normalize, luminance, smoothstep, pmremTexture, EnvironmentBRDF, reflect } from 'three/tsl';
+import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2, metalness, roughness, Fn, dot, normalize, luminance, smoothstep, pmremTexture, EnvironmentBRDF, reflect, passTexture, log2, length } from 'three/tsl';
 import { ssgi } from './ssgi';
 import { ssgi as ssgiOrig } from 'three/addons/tsl/display/SSGINode.js';
 import { ssr } from 'three/addons/tsl/display/SSRNode.js';
-import { sss } from 'three/addons/tsl/display/SSSNode.js';
+import { sss } from './sss';
 import { traa } from 'three/addons/tsl/display/TRAANode.js';
 import { meterNode } from './meter';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
@@ -88,6 +88,8 @@ export class Pipeline {
   readonly ab = { ssr: uniform(1), giDirect: uniform(1), contact: uniform(1), sss: uniform(1) };
   /** the sun as the composite's contact-shadow estimate sees it: direction toward the sun (world) and colour × intensity */
   private sunDirW = uniform(new THREE.Vector3(0, 1, 0)); private sunE = uniform(new THREE.Color(0, 0, 0));
+  /** the angle one pixel spans at the centre of the frame (rad; the SSR blur's footprint, D-188) */
+  private pxAngle = uniform(0.0015);
   constructor(private renderer: THREE.WebGPURenderer, private scene: THREE.Scene, private camera: THREE.PerspectiveCamera, readonly quality: Quality, private hemi?: THREE.HemisphereLight) {
     installProbeLight(renderer); // before any material is built
     // the sun: the shadow-casting directional light (SkySystem.sun); the sky dome (SkySystem.sky) for the environment
@@ -179,8 +181,19 @@ export class Pipeline {
       const Rw = this.camWorld.mul(vec4(mix(reflect(vV.negate(), nV), nV, r4).normalize(), 0)).xyz;
       const envOcc = specularOcclusion(skyEnv.occlusion ? skyEnv.occlusion(pWorld, nW, Rw) : float(1), dotNV, rough);
       const envSpec = spec.mul((pmremTexture as any)(skyEnv.target.texture, Rw, rough)).mul(envOcc).mul(skyEnv.intensity);
-      const hit = clamp(S.a.mul(50), 0, 1), fall = float(1).sub(clamp(S.a.mul(dotNV).div(SSR_MAX_DISTANCE), 0, 1));
-      const ssrAdd = S.rgb.mul(spec.div(specY)).sub(envSpec.mul(hit).mul(fall.mul(fall))).mul(gate).mul(this.ab.ssr);
+      // the blur (D-188): SSRNode picks its blur mip from the roughness alone (lod = r² × 5: 0.6 at the red floors'
+      // 0.35, ~1.5 half-resolution texels), so the floors mirrored doorways and columns sharp over their whole length.
+      // A glossy lobe's footprint grows with the distance to what it reflects: a cone of half-angle ≈ α = r² (GGX) spans
+      // d·α at the hit, i.e. d·α / (distance to the floor × the pixel's angle) pixels; mip i of the half-resolution blur
+      // chain averages ~2^(i+1) pixels. The hit distance is the unblurred pass's at the pixel (or, where that ray missed,
+      // the mean over a mip-2 neighbourhood: misses count 0 there, so it errs toward less blur)
+      const mips = S._blurRenderTarget.texture.mipmaps.length - 1, blurTex = S._blurRenderTarget.texture;
+      const dHit = max(S._textureNode.a, (passTexture as any)(S, blurTex).level(2).a);
+      const footPx = dHit.mul(rough.mul(rough)).div(length(pView).max(0.1).mul(this.pxAngle));
+      const lod = clamp(log2(footPx.max(1)).sub(1), 0, mips);
+      const Sb: any = (passTexture as any)(S, blurTex).level(lod);
+      const hit = clamp(Sb.a.mul(50), 0, 1), fall = float(1).sub(clamp(Sb.a.mul(dotNV).div(SSR_MAX_DISTANCE), 0, 1));
+      const ssrAdd = Sb.rgb.mul(spec.div(specY)).sub(envSpec.mul(hit).mul(fall.mul(fall))).mul(gate).mul(this.ab.ssr);
       // ---- sun contact shadows (D-157) --------------------------------------------------------------------------------
       // the pixel's share of direct sun: its direct light (scene − skylight) bounded by the unshadowed Lambert sun term
       // albedo · E_sun · max(0, n·l) / π, so a pixel the shadow map already darkens loses nothing more
@@ -199,7 +212,7 @@ export class Pipeline {
       // node build run away and crash the page (session-2 bisect)
       const chosen = V.includes('scene') ? col.rgb : V.includes('aonear') ? vec3(aoNear) : V.includes('ao') ? vec3(ao) : V.includes('gi') ? bounce
         : V.includes('probe') ? vec3(w, aoNear, aoFull) : V.includes('plain') ? col.rgb.mul(aoFull).add(dif.rgb.mul(bounce)) : V.includes('direct') ? colDirect
-        : V.includes('ssr') ? S.rgb.mul(spec.div(specY)) : V.includes('env') ? envSpec : V.includes('sss') ? (this.sssDebug ?? vec3(1)) : litR;
+        : V.includes('ssr') ? Sb.rgb.mul(spec.div(specY)) : V.includes('env') ? envSpec : V.includes('sss') ? (this.sssDebug ?? vec3(1)) : litR;
       composite = vec4(chosen, col.a);
     }
     composite = addAirLight(composite, dep, camera, this.sun); // D-156 (item 15): sunlit dust in the halls' air, before TRAA — src/render/airlight.ts
@@ -237,6 +250,7 @@ export class Pipeline {
       this.sunDirW.value.subVectors(this.sun.position, this.sun.target.position).normalize();
       this.sunE.value.copy(this.sun.color).multiplyScalar(this.sun.visible ? this.sun.intensity : 0);
     }
+    { const H = this.renderer.getDrawingBufferSize(new THREE.Vector2()).y || 540; this.pxAngle.value = 2 * Math.tan(THREE.MathUtils.degToRad(this.camera.fov) / 2) / H; }
     this.env?.update(this.hemi); // the sky environment, re-captured when the sun or the light has changed (D-157)
     if (!this.built) this.build();
     if (this.rp) this.rp.render(); else this.renderer.render(scene, camera);
