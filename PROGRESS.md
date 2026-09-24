@@ -1,7 +1,7 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
-- **Session 6, music and occlusion workstream (branch p8-music-s6, D-178; not merged by this workstream).** Music now plays
+- **Session 6, music and occlusion workstream (branch p8-music-s6, D-178; merged by the lead, 02f0947).** Music now plays
   only from performers: quern songs, Ionian masons' songs, and the court's supper and night music when the court setting
   is on. Audio occlusion now uses the built geometry. **Unverified:** it has not been heard in a browser (worker render,
   node chain, mix). **PLACEHOLDER:** no harp model, no playing or singing animation (the speech jaw stands in), and court
@@ -118,7 +118,7 @@
   - **Nobody has listened to the voices.** The §10 intelligibility and naturalness acceptance is open (Q-138).
   - Every line's pronunciation and usage is C. Only 10 of the 73 lines are verbatim word sequences from a text.
   - No greeting is attested in Old Persian or Elamite; Persians greet in Aramaic. Babylonian has no eSpeak voice (it uses the placeholder formant synthesiser) and no attested greeting.
-  - The new intents (affirm, refuse, ration) are not yet called: visitor mode will use them.
+  - The affirm, refuse and ration intents are called (D-168: every scripted line is reachable through exchanges.ts and visitor mode).
 - **Carving (improved in session 3 by the stone agent, D-029 to D-032; still C):**
   - The sculpted columns and colossi (D-018) and the carved reliefs (D-019) are procedural reconstructions of the type, not measured carving (licensed scans: NEEDS #10).
   - Now fixed:
@@ -220,7 +220,7 @@
   - Measured: village-p22 plain adds +31 calls / +1.36 M at test (before +26 / +1.24 M); r3 silhouette area impostor/LOD1 0.90-1.06 and summer colour within 4/255 (DECISIONS D-120).
 - **Visitor mode (D-063; the e2e passes in the browser):**
   - Tested:
-    - the Gate guard stops the visitor and asks for the halmi (Elamite *halmi*);
+    - the Gate guard stops the visitor and asks, in Aramaic, for the halmi (the sealed travel document; the word is Elamite *halmi*);
     - E shows it and he is admitted;
     - the courts beyond need an escort, who comes after a 4-min wait;
     - the palaces stay closed;
@@ -281,5 +281,5 @@
 | 5 | Two-tier simulation of 46,590 people: events calendar, town life, rota, construction state, memory, persistence; soak PASSES (session 3); birds and jackals visible (D-054) | **Not passed:** activity coverage (25 placeholders), rendered floors, unrendered Terrace workforce, construction geometry, shadow review pending |
 | 6 | Settlement built (session 3): quarters, houses (1,456 homes / 7,830 people), workshops, gardens, Tol-e Ajori, roads; lints pass, layout sourced and tiered (C) | **Gate items met on paper (lints pass; layout sourced and tiered)**; smoke moment and people-to-houses link open |
 | 7 | Plain built (session 3): rivers, canals, fields, crop calendar, orchards, villages, quarries, Naqsh-e Rustam; horizon fixed (D-035); +8–21 draws | **Not passed:** last fixes unrendered, dawn vista weak, relief figures and DNa/DNb schematic or textless, review not run |
-| 8 | Translation layer (map now at town and plain scales; its e2e rerun pending); DNa/DNb carved; five lexicons, 73 lines, 372 voice clips (session 3) | **Not passed:** translations need NEEDS #14; voices not listened to; Now view and photo mode not started (stretch) |
+| 8 | Session 6: layer (every line reachable, the version looked at, lint over audio/data/carved signs: D-167, D-168), music from performers and audio occlusion (D-178), writing on objects (D-179), carved OP from a sign-by-sign edition, incised (D-176, D-177); five lexicons, 73 lines, 372 voice clips | **Not passed:** Phase 8 re-review FAIL (REVIEWS/phase8_r2.md: C1 carved spellings vs the CC0 ARIo edition, fix in progress); translations blocked by licence (B17a, NEEDS #14); voice acceptance measured and not met (B17b; re-render in progress); tablets' text placeholder (B18); music visuals placeholder, no chant or pipes (B20); nothing heard or seen on a GPU; Now view and photo mode not started (stretch) |
 | 9 | Not started | — |

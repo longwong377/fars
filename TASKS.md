@@ -64,7 +64,10 @@
 - [~] Plain look: dark specks fixed; grey domes fixed (D-121); species trees merged (D-120 … D-123, unrendered at high); NR tomb reliefs carved (D-069), NR cliff look open; dawn vista to re-judge after twilight (D-115 … D-119)
 ## Phase 8 — Language, speech, music, translation layer, map, Now view, photo mode
 - [~] Translation layer: subtitles, inscriptions (transliteration + glosses; translations need NEEDS #14), map (M; Z: town and plain scales), chronicle (J; visitor log)
-- [x] Lexicons in five languages (Babylonian, Ionic Greek new), 73 lines, 372 voice clips (D-105..D-109); listening test open (H8)
+- [~] Lexicons in five languages (Babylonian, Ionic Greek new), 73 lines, 372 voice clips (D-105..D-109); voice acceptance measured and NOT met (B17b, D-167; re-render session 6); listening test open (H8)
+- [~] Writing on objects (D-179): tablets with wedge relief (text PLACEHOLDER, B18), rolled seals with ARIo seal texts, sealed leather scrolls; carved OP from a sign-by-sign edition, incised (D-176, D-177; re-review C1 open)
+- [ ] Now view (stretch, §14 Phase 8)
+- [ ] Photo mode (stretch, §14 Phase 8)
 - [~] Music in the world from performers only (quern songs, Ionian masons' songs, court supper/night music with the setting; D-178, lint:music) and audio occlusion (D-178, Q-304): node-tested, unheard in a browser; PLACEHOLDER visuals (no harp model, no playing/singing animation, no court dress); no magus's chant and no herders' pipes (B20)
 ## Session 4 (ended; HANDOFF.md)
 - [x] Interiors adapt (D-141); shadow bias (D-146); dome cover (D-145); detail at 1 m (D-147); block tone (D-148)
