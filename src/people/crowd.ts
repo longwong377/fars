@@ -24,7 +24,7 @@ import { ACTIVITIES, performanceFor, type ActivityId, type Performance, type Wor
 import { PeopleSim, PLACES, type Agent } from './sim';
 import type { HumanSystem } from './humans';
 import { RigSolver, PALETTE_STRIDE, PLANTED, type RigInput, type FaceState } from './humanRig';
-import { lookFor, type PersonLook, type LookInput } from './looks';
+import { lookFor, wearTexel, type PersonLook, type LookInput } from './looks';
 import { HB } from './humanFormat';
 import { PERSON_TEXELS, FLAG_HIDE_HEAD } from './humanMaterial';
 import { nearCascadesOnly } from './humanGPU';
@@ -246,8 +246,10 @@ export class Crowd {
   writePerson(slot: number, look: PersonLook, flags = 0) {
     const D = this.humans.gpu.person, o = slot * PERSON_TEXELS * 4, c = look.col;
     D.set([look.variant, look.mask, look.pattern, look.grime], o);
-    D.set([...c.skin, look.stubble], o + 4); D.set([...c.main, 0], o + 8); D.set([...c.second, 0], o + 12); D.set([...c.trim, 0], o + 16);
-    D.set([...c.hair, 0], o + 20); D.set([...c.leather, 0], o + 24); D.set([look.grimeLevel, look.scale, 0, flags], o + 28); D.set([...c.felt, 0], o + 32);
+    const w = look.wear; // D-189: each garment's fading susceptibility in its colour texel's w; texel 9 the wear
+    D.set([...c.skin, look.stubble], o + 4); D.set([...c.main, w?.k[0] ?? 0], o + 8); D.set([...c.second, w?.k[1] ?? 0], o + 12); D.set([...c.trim, w?.k[2] ?? 0], o + 16);
+    D.set([...c.hair, 0], o + 20); D.set([...c.leather, 0], o + 24); D.set([look.grimeLevel, look.scale, w?.hat ?? 0, flags], o + 28); D.set([...c.felt, 0], o + 32);
+    D.set(w ? wearTexel(w) : [0, 0, 0, 0], o + 36);
     this.humans.gpu.markPersonDirty();
   }
   private newPerson(key: string, agent: Agent | null, look: PersonLook, seed: number): Person {
@@ -523,7 +525,7 @@ export class Crowd {
       const key = a ? -1 - a.id : pid; let L = this.impLooks.get(key);
       if (!L) { if (made >= cap) { pending++; return; } made++;
         const inp = a ? { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed } : this.view!.lookInput(pid); const look = lookFor(this.humans.A, inp as LookInput, this.seed);
-        const ch = a ? null : this.view!.childStature(pid); L = { packed: CrowdImpostors.pack(look.col), dress: look.dress, scale: (ch ?? look.stature) / (imp.atlas.refStature[look.dress] || 1.65), seed: inp.seed }; this.impLooks.set(key, L); }
+        const ch = a ? null : this.view!.childStature(pid); L = { packed: imp.packLook(look), dress: look.dress, scale: (ch ?? look.stature) / (imp.atlas.refStature[look.dress] || 1.65), seed: inp.seed }; this.impLooks.set(key, L); }
       if (pf) { const d3 = len3(x - cam.x, y + 0.9 - cam.y, z - cam.z), P = pf === 2 || d3 < THINGS_DIST ? this.popPerf(pid, vp!.act, vp!.why, L.seed) : null;
         if (P) { const q = this.impP, k = L.seed, b = q.base, r = q.root; b[0] = x; b[1] = y; b[2] = z; b[3] = yaw;
           if (PATHED.has(P.anim)) { const o = workRoot(P.anim as WorkAnim, time + k % 100, (k % 1000) / 159); if (o) { const c = Math.cos(yaw), sn = Math.sin(yaw); x += c * o[0] + sn * o[1]; z += -sn * o[0] + c * o[1]; yaw += o[2]; } }

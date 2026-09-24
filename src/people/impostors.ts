@@ -20,8 +20,9 @@ import type { HumanAssets } from './humanAssets';
 import { BUILT, COSTUMES, COSTUME_OF, pieceBit, unpackNormal, type OutfitBuild, type Dress, type CostumeLOD } from './outfits';
 import { RigSolver, PALETTE_STRIDE, PLANTED, type RigInput } from './humanRig';
 import { pose, type AnimId } from './anim';
-import { MAT, HB } from './humanFormat';
+import { MAT, HB, unpackLookBits } from './humanFormat';
 import type { PersonLook } from './looks';
+import { DRAPE } from './humanMaterial';
 
 /** atlas layout: 8 views round the person; one row per dress and frame; cells of CELL² texels over W × H metres */
 export const IMP = { views: 8, cell: 32, width: 1.6, height: 2.0, y0: -0.05 } as const;
@@ -52,7 +53,52 @@ export const rowOf = (dress: Dress, frame: number) => Math.max(0, IMP_DRESSES.in
 /** the fixed colour (wood, clay, the jar, wicker, metal, eyes: linear albedo, C) */
 export const FIXED: [number, number, number] = [0.25, 0.16, 0.1];
 /** weights: texture A (main, second, trim, coverage), B (skin, hair, leather + felt, fixed), N (normal, cavity AO) */
-export interface ImpostorAtlas { W: number; H: number; A: Level[]; B: Level[]; N: Level[]; refStature: Record<Dress, number>; ms: number; coverage: Float32Array }
+export interface ImpostorAtlas { W: number; H: number; A: Level[]; B: Level[]; N: Level[]; refStature: Record<Dress, number>; ms: number; coverage: Float32Array;
+  /** per dress, per garment colour (main, second, trim): the far body's area-weighted means of the material's per-fragment
+   *  weights (D-189), so an impostor's colour is the mean albedo the skinned person shows at the switch */
+  cloth: Record<Dress, ClothStats[]> }
+/** mean weights over a garment colour's surface: sun-bleaching (up-facing), hem soil, the trade's grime by grime zone
+ *  (LOOK_BITS grimeZone 0–3: hems only, + hands, + front, + loads) */
+export interface ClothStats { up: number; hem: number; where: [number, number, number, number] }
+const sst = (e0: number, e1: number, x: number) => { const t = Math.max(0, Math.min(1, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+/** the share of a patterned main garment the rosettes cover (the material's motif: a disc of radius ~0.22 per cell) */
+export const ROSE_SHARE = (() => { let s = 0; const n = 64; for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) { const r = Math.hypot((i + 0.5) / n - 0.5, (j + 0.5) / n - 0.5); s += 1 - sst(0.18, 0.26, r); } return s / (n * n); })();
+/** the material's weights for one garment vertex (humanMaterial: upF without its noise, hemBand, the grime's `low`) */
+export function clothWeights(x: number, y: number, z: number, nY: number, ao: number, skirt: number, t: number): ClothStats {
+  const low = 1 - sst(0.1, 0.9, y), arms = sst(0.15, 0.2, Math.abs(x)) * (1 - sst(1.02, 1.12, y));
+  const front = sst(0.02, 0.08, z) * sst(0.72, 0.8, y) * (1 - sst(1.2, 1.3, y)) * (1 - sst(0.14, 0.18, Math.abs(x)));
+  const load = sst(1.28, 1.36, y) * Math.max(sst(0.06, 0.1, Math.abs(x)), 1 - sst(-0.05, 0, z));
+  return { up: sst(-0.25, 0.75, nY) * sst(0.66, 0.8, ao), hem: Math.max(1 - sst(0.03, 0.3, y), skirt * sst(0.72, 1, t) * 0.7),
+    where: [low, Math.max(low, arms), Math.max(low, arms, front), Math.max(low, load * 0.8)] };
+}
+/** area-weighted means of clothWeights per colour slot over the costume's shown triangles (bind pose of one variant) */
+export function clothStatsOf(O: OutfitBuild, L: CostumeLOD, variant: number, mask: number): ClothStats[] {
+  const acc = [0, 1, 2].map(() => ({ up: 0, hem: 0, where: [0, 0, 0, 0], w: 0 })), I = L.index, base = variant * O.NV * 4;
+  const P = (i: number) => { const t = base + L.tid[i] * 4; return [O.source[t], O.source[t + 1], O.source[t + 2]]; };
+  for (let k = 0; k < I.length; k += 3) { const a = I[k], b = I[k + 1], c = I[k + 2], cls = L.hmat[a * 4], col = L.hmat[a * 4 + 1];
+    if (cls < MAT.cloth_main || cls > MAT.cloth_trim || !((mask >> L.hmat[a * 4 + 2]) & 1)) continue; const sl = col - 2; if (sl < 0 || sl > 2) continue;
+    const pa = P(a), pb = P(b), pc = P(c), e1 = [pb[0] - pa[0], pb[1] - pa[1], pb[2] - pa[2]], e2 = [pc[0] - pa[0], pc[1] - pa[1], pc[2] - pa[2]];
+    const area = 0.5 * Math.hypot(e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]); if (!area) continue;
+    for (const i of [a, b, c]) { const t = base + L.tid[i] * 4, n = unpackNormal(O.source[t + 3]);
+      const w = clothWeights(O.source[t], O.source[t + 1], O.source[t + 2], n[1], L.hext[i * 4] / 255, L.hext[i * 4 + 2] / 255, L.uv[i * 2 + 1]), q = acc[sl];
+      q.up += w.up * area; q.hem += w.hem * area; for (let z = 0; z < 4; z++) q.where[z] += w.where[z] * area; q.w += area; } }
+  return acc.map(q => q.w ? { up: q.up / q.w, hem: q.hem / q.w, where: q.where.map(x => x / q.w) as ClothStats['where'] } : { up: 0, hem: 0, where: [0, 0, 0, 0] as ClothStats['where'] });
+}
+/** a look's garment colours as the skinned material shows them on average (D-189): sun-bleaching of up-facing cloth, the
+ *  trade's grime toward the hem and hem soil, applied with the far body's mean weights (the material's mixes are linear
+ *  in their weights, and its noise factors average to 1) */
+export function farColours(look: PersonLook, st: ClothStats[] | undefined): [number, number, number][] {
+  const cols = [look.col.main, look.col.second, look.col.trim]; if (!st) return cols.map(c => [...c] as [number, number, number]);
+  const w = look.wear, g = look.grimeLevel, grimeCol = [g, g * 0.97, g * 0.9], bits = unpackLookBits(look.pattern);
+  return cols.map((c0, i) => { const S = st[i]; let c = [...c0];
+    if (i === 0 && bits.motif % 2) c = c.map((x, k) => x + (look.col.trim[k] - x) * ROSE_SHARE); // the rosettes in the trim colour
+    // (0.85: the mean of the material's noise factor on the up-facing weight)
+    const fade = Math.min(0.8, (w?.fade ?? 0) * (w?.k[i] ?? 0) * S.up * 0.85 * DRAPE.fade), lum = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    c = c.map(x => x + (Math.min(0.8, (lum + (x - lum) * 0.4) * 1.25 + 0.012) - x) * fade);
+    const gm = Math.min(1, look.grime * S.where[bits.grimeZone & 3]) * 0.35; c = c.map((x, k) => x + (grimeCol[k] - x) * gm);
+    const sm = Math.min(0.75, (w?.soil ?? 0) * S.hem * DRAPE.soil); c = c.map((x, k) => x + (DRAPE.dust[k] - x) * sm);
+    return c as [number, number, number]; });
+}
 type Level = { data: Uint8Array; width: number; height: number };
 
 /** a person's colour slot for a costume vertex: 0 main, 1 second, 2 trim, 3 skin, 4 hair, 5 leather/felt, 6 fixed */
@@ -126,10 +172,12 @@ export function bakeImpostors(A: HumanAssets, O: OutfitBuild, props?: { jar?: { 
       }
     });
   });
+  const cloth = {} as Record<Dress, ClothStats[]>;
+  for (const dress of IMP_DRESSES) { const L = farLod(O, dress); if (L) cloth[dress] = clothStatsOf(O, L, refVariant(A, dress).index, typicalMask(dress)); }
   const cover = new Float32Array(ROWS * V); for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) if (wA[(j * W + i) * 4 + 3] >= 0.5) cover[Math.floor(j / C) * V + Math.floor(i / C)]++;
   for (let k = 0; k < cover.length; k++) cover[k] /= C * C;
   const { A: LA, B: LB, N: LN } = mips(wA, wB, nN, W, H, cover);
-  return { W, H, A: LA, B: LB, N: LN, refStature, ms: performance.now() - t0, coverage: cover };
+  return { W, H, A: LA, B: LB, N: LN, refStature, ms: performance.now() - t0, coverage: cover, cloth };
 }
 /** prop geometry placed at a bone head (character space) with an offset and scale (no rotation: jar and sack are near round) */
 function xform(g: { pos: Float32Array; idx: ArrayLike<number> }, wt: Float64Array, bone: number, off: number[], s: number) {
@@ -226,4 +274,7 @@ export class CrowdImpostors {
   end() { const g = this.geo; g.instanceCount = this.count; this.mesh.visible = this.count > 0; if (this.count) { this.buf.needsUpdate = true; this.buf.clearUpdateRanges(); this.buf.addUpdateRange(0, this.count * IMP_STRIDE); } }
   /** the packed colours of a look (cache them per person) */
   static pack(col: PersonLook['col']): Float32Array { return Float32Array.of(packRGB(col.main), packRGB(col.second), packRGB(col.trim), packRGB(col.skin), packRGB(col.hair), packRGB(col.leather)); }
+  /** the packed colours of a look as the skinned material shows them on average (farColours, D-189) */
+  packLook(look: PersonLook): Float32Array { const [m, s, t] = farColours(look, this.atlas.cloth?.[look.dress]); const c = look.col;
+    return Float32Array.of(packRGB(m), packRGB(s), packRGB(t), packRGB(c.skin), packRGB(c.hair), packRGB(c.leather)); }
 }

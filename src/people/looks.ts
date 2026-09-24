@@ -13,20 +13,63 @@ type RGB = [number, number, number];
 const lin = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
 const L = (r: number, g: number, b: number): RGB => [lin(r), lin(g), lin(b)];
 
-/** dyed and undyed textiles (sRGB, C unless stated): madder red, woad/indigo blue, weld yellow, undyed wool, linen, brown,
- *  murex/kermes purple (costly), green (weld over woad), turquoise and yellow-brown from the Susa guard robes (B) */
-export const TEXTILE: Record<string, { c: RGB; tier: 'B' | 'C'; note: string }> = {
-  madder: { c: L(0.55, 0.15, 0.1), tier: 'B', note: 'red: royal robe red or purple (IR-CLOTH); madder dye C' },
-  purple: { c: L(0.36, 0.13, 0.28), tier: 'B', note: 'purple robe/kandys (IR-CLOTH, IR-CAND); on officials C' },
-  woad: { c: L(0.17, 0.22, 0.42), tier: 'C', note: 'woad/indigo blue (NOT SEEN)' },
-  weld: { c: L(0.74, 0.6, 0.24), tier: 'C', note: 'weld yellow (NOT SEEN)' },
-  green: { c: L(0.3, 0.38, 0.22), tier: 'C', note: 'green (weld over woad, NOT SEEN)' },
-  wool: { c: L(0.72, 0.66, 0.55), tier: 'C', note: 'undyed wool' },
-  linen: { c: L(0.83, 0.8, 0.72), tier: 'C', note: 'undyed linen' },
-  brown: { c: L(0.42, 0.31, 0.22), tier: 'C', note: 'brown (undyed dark wool or walnut dye)' },
-  grey: { c: L(0.5, 0.48, 0.44), tier: 'C', note: 'grey-brown undyed wool' },
-  turquoise: { c: L(0.24, 0.52, 0.5), tier: 'B', note: 'turquoise of the Susa guard robes (SUSA-ARCH)' },
-  ochre: { c: L(0.66, 0.5, 0.26), tier: 'B', note: 'yellow of the Susa guard robes (SUSA-ARCH)' },
+/** CIELAB (D65) → linear sRGB (clamped at 0) */
+export function labToLinear(Ls: number, a: number, b: number): RGB {
+  const fy = (Ls + 16) / 116, fx = fy + a / 500, fz = fy - b / 200, f = (t: number) => (t ** 3 > 0.008856 ? t ** 3 : (t - 16 / 116) / 7.787);
+  const X = 0.95047 * f(fx), Y = f(fy), Z = 1.08883 * f(fz);
+  return [3.2406 * X - 1.5372 * Y - 0.4986 * Z, -0.9689 * X + 1.8758 * Y + 0.0415 * Z, 0.0557 * X - 0.204 * Y + 1.057 * Z].map(v => Math.max(0, v)) as RGB;
+}
+type Lab = [number, number, number];
+/** Textiles by dye (D-189; C for every number unless stated). Each dye has a CIELAB colour for a strong and a weak dyeing
+ *  on wool (for undyed wool and linen: clean/bleached and dingy/unbleached), and a fading susceptibility in light (0 fast
+ *  … 1 fugitive). A person's garment lies between the two by the dye strength their rank affords, then fades toward the
+ *  sun-bleached undyed ground (FADED) by the garment's age × the dye's susceptibility, with a small value jitter.
+ *  - Which dyes: madder, insect red (kermes), indigo (woad) and yellows form the Iron Age working palette; madder and
+ *    indigotin are identified by chromatography on the Pazyryk textiles of c. 400 BCE (Sci. Rep. 11, 2021, search extract:
+ *    B for their availability in the Achaemenid world; that paper places the Pazyryk carpet's insect red in the steppe,
+ *    not the Iranian plateau). MATERIAL_CULTURE "Dyes" (madder, indigo or woad, kermes, murex purple) is NS (C).
+ *  - The colours: madder with alum on wool measures about a* 31, b* 29 (search extract of a colorimetric study, C for its
+ *    use here); the others are typical values for natural dyes on wool (reviewer and dyer knowledge, C, Q-360). Strong
+ *    madder is a brick red, not a pure red; woad a mid blue; weld a greenish yellow that fades fast (flavonoids are
+ *    fugitive in light), indigo is the fastest. The first palette (D-092) rendered as saturated primaries (rubric s6
+ *    pass 1: sRGB saturation p50 0.85 red, 0.88 blue in court-assembly).
+ *  - Red or purple for the royal robe and the kandys (IR-CLOTH, IR-CAND: B); the Susa guard robes' turquoise and ochre
+ *    (SUSA-ARCH: B for the glazed-brick colours, C for cloth). */
+export const DYES: Record<string, { strong: Lab; weak: Lab; fade: number; tier: 'B' | 'C'; note: string }> = {
+  madder: { strong: [40, 38, 28], weak: [52, 28, 26], fade: 0.5, tier: 'B', note: 'red: royal robe red or purple (IR-CLOTH); madder on wool (Pazyryk, B) with alum, colour C' },
+  kermes: { strong: [34, 42, 16], weak: [48, 32, 14], fade: 0.45, tier: 'C', note: 'insect red, costlier than madder (MATERIAL_CULTURE NS, C)' },
+  purple: { strong: [31, 20, -12], weak: [46, 15, -8], fade: 0.4, tier: 'B', note: 'purple robe/kandys (IR-CLOTH, IR-CAND); murex or red over indigo C' },
+  woad: { strong: [34, -3, -21], weak: [50, -6, -16], fade: 0.3, tier: 'C', note: 'woad/indigo blue (indigotin at Pazyryk, B; colour C)' },
+  weld: { strong: [70, 0, 50], weak: [76, -2, 36], fade: 0.9, tier: 'C', note: 'weld yellow (NOT SEEN; fugitive)' },
+  green: { strong: [45, -17, 18], weak: [60, -11, 15], fade: 0.7, tier: 'C', note: 'green (weld over woad, NOT SEEN; the yellow fades first)' },
+  wool: { strong: [74, 1, 12], weak: [60, 2, 10], fade: 0.1, tier: 'C', note: 'undyed wool, clean cream to worn and dingy' },
+  linen: { strong: [81, 0, 7], weak: [66, 1, 10], fade: 0.1, tier: 'C', note: 'linen, bleached to unbleached and worn' },
+  brown: { strong: [36, 7, 17], weak: [50, 6, 16], fade: 0.2, tier: 'C', note: 'brown (undyed dark wool or a tannin dye)' },
+  grey: { strong: [54, 1, 5], weak: [62, 1, 6], fade: 0.1, tier: 'C', note: 'grey-brown undyed wool' },
+  turquoise: { strong: [52, -22, -8], weak: [62, -16, -6], fade: 0.5, tier: 'B', note: 'turquoise of the Susa guard robes (SUSA-ARCH)' },
+  ochre: { strong: [60, 9, 38], weak: [68, 6, 28], fade: 0.4, tier: 'B', note: 'yellow of the Susa guard robes (SUSA-ARCH)' },
+};
+/** the sun-bleached undyed ground a dye fades toward (C) */
+export const FADED: Lab = [70, 2, 12];
+/** a garment's colour: dye strength s (0 weak … 1 strong), fading f (0 new … 1 old, × the dye's susceptibility), value
+ *  jitter dL (L* units) and chroma factor dC (one dye bath is not another) */
+export function dyeColour(key: string, s: number, f: number, dL = 0, dC = 1): RGB {
+  const D = DYES[key], t = Math.max(0, Math.min(1, s)), k = Math.max(0, Math.min(1, f)) * D.fade * 0.75;
+  const lab = [0, 1, 2].map(i => { const c = D.weak[i] + (D.strong[i] - D.weak[i]) * t; return c + (FADED[i] - c) * k; });
+  return labToLinear(lab[0] + dL, lab[1] * dC, lab[2] * dC);
+}
+/** mid colours per textile (linear; the dev overlay, the player's body and older callers) */
+export const TEXTILE: Record<string, { c: RGB; tier: 'B' | 'C'; note: string }> = Object.fromEntries(Object.entries(DYES).map(([k, d]) => [k, { c: dyeColour(k, 0.6, 0.15), tier: d.tier, note: d.note }]));
+/** the look's wear (D-189, C): garment age (fading), hem soil, fit (skirt ease at the hem, m), the hem's folds (amplitude m,
+ *  phase 0..1), and each garment's fading susceptibility (main, second, trim: the dye's) */
+export interface Wear { fade: number; soil: number; fit: number; foldAmp: number; foldPhase: number; k: RGB;
+  /** the felt hat's height against the made one (fluted hat: ±12 %, hand-shaped felt; C) */
+  hat: number }
+/** dye strength, garment age and hem soil by dress (C): court dress wears stronger, newer dyes; everyone walks on dust */
+const WEAR_BY: Record<string, { s: [number, number]; f: [number, number]; soil: [number, number] }> = {
+  persian: { s: [0.55, 1], f: [0, 0.3], soil: [0.12, 0.3] }, guard: { s: [0.5, 0.95], f: [0.05, 0.35], soil: [0.18, 0.35] },
+  median: { s: [0.45, 0.95], f: [0.05, 0.35], soil: [0.15, 0.35] }, woman: { s: [0.2, 0.8], f: [0.1, 0.5], soil: [0.2, 0.45] },
+  worker: { s: [0, 0.55], f: [0.15, 0.7], soil: [0.3, 0.6] }, child: { s: [0, 0.5], f: [0.2, 0.7], soil: [0.35, 0.6] },
 };
 const LEATHER: RGB[] = [L(0.36, 0.24, 0.15), L(0.45, 0.31, 0.2), L(0.28, 0.19, 0.13), L(0.52, 0.38, 0.25)];
 /** undyed felt, tan to dark brown (C; no cream or light tan: a pale fluted cylinder in sunlight read as a modern cook's hat) */
@@ -62,6 +105,8 @@ export interface PersonLook {
   dress: Dress; variant: number; variantId: string; scale: number; stature: number;
   mask: number; pieces: string[]; pattern: number; grime: number; grimeLevel: number; stubble: number;
   col: { skin: RGB; main: RGB; second: RGB; trim: RGB; hair: RGB; leather: RGB; felt: RGB };
+  /** fading, hem soil, fit and hem folds (D-189) */
+  wear: Wear;
   /** overlay summary: pieces with tiers, colour choices */
   note: string;
 }
@@ -108,7 +153,7 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   const hair = hairS.map(x => lin(x + (0.42 - x) * grey)) as RGB;
   let mainK: string, secondK: string, trimK: string, pattern = 0;
   switch (dress) {
-    case 'persian': mainK = rng.chance(0.08) ? 'purple' : pick(['madder', 'madder', 'woad', 'weld', 'linen', 'wool']); secondK = pick(['wool', 'linen']); trimK = pick(['weld', 'woad', 'madder']); break;
+    case 'persian': mainK = rng.chance(0.08) ? 'purple' : pick(['madder', 'madder', 'kermes', 'woad', 'weld', 'linen', 'wool']); secondK = pick(['wool', 'linen']); trimK = pick(['weld', 'woad', 'madder']); break;
     case 'guard': if (rng.chance(0.6)) { pattern = 1; mainK = pick(['ochre', 'brown', 'linen']); trimK = pick(['turquoise', 'ochre', 'brown'].filter(k => k !== mainK)); } else { mainK = pick(['madder', 'woad', 'weld']); trimK = pick(['weld', 'woad']); } secondK = 'wool'; break;
     case 'median': mainK = pick(['madder', 'woad', 'green', 'weld', 'brown']); secondK = pick(['brown', 'woad', 'madder', 'wool', 'grey']); trimK = pick(['purple', 'madder', 'woad', 'brown', 'purple']); break; // trim also colours the kandys (often purple, B)
     case 'woman': mainK = pick(['madder', 'woad', 'wool', 'weld', 'brown', 'linen']); secondK = pick(['linen', 'wool', 'woad', 'madder', 'grey']); trimK = pick(['weld', 'madder', 'woad']); break;
@@ -150,7 +195,18 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   const beardDensity = dress === 'worker' && hasBeard ? rng.int(0, 2) : 0;
   const lookBits = packLookBits({ motif: pattern, hairStyle, iris, wearsHair: on.has('hair') || on.has('hair_bob') ? 1 : 0,
     linen: (mainK === 'linen' ? 1 : 0) + (secondK === 'linen' ? 2 : 0) + (trimK === 'linen' ? 4 : 0), age: Math.floor(v.meta.ageYears / 10), beard: beardDensity, grimeZone: GRIME_ZONE[p.role] ?? 0 });
+  // D-189 (new draws last again): dye strength by rank, garment age (fading), a value jitter per garment, hem soil, the
+  // skirt's fit and hem folds, and a hair lightness spread (C); the colours above were the mid colour of each textile
+  const WB = WEAR_BY[dress] ?? WEAR_BY.worker, sMain = rng.range(...WB.s), age = rng.range(...WB.f), soil = rng.range(...WB.soil);
+  const garment = (k: string, s: number) => dyeColour(k, s, age, Math.max(-7, Math.min(7, 3 * rng.normal())), Math.max(0.8, Math.min(1.2, 1 + 0.1 * rng.normal())));
+  col.main = garment(mainK, sMain); col.second = garment(secondK, sMain + rng.range(-0.25, 0.25)); col.trim = garment(trimK, sMain + rng.range(-0.2, 0.2));
+  const wear: Wear = { fade: age, soil, fit: rng.range(-0.004, 0.022), foldAmp: rng.range(0.012, 0.026), foldPhase: rng.next(), k: [DYES[mainK].fade, DYES[secondK].fade, DYES[trimK].fade], hat: 0 };
+  wear.hat = rng.range(-0.12, 0.12);
+  const hl = rng.range(0.85, 1.3); col.hair = col.hair.map(x => Math.min(0.2, x * hl)) as RGB;
   const tiers = pieces.map(id => `${id} ${PIECES[id]?.tier ?? 'C'}`).join(', ');
-  const note = `body ${v.meta.id} (variant, C) × ${scale.toFixed(3)} → ${(v.height * scale).toFixed(2)} m (stature C, Q-066); ${tiers}; colours main ${mainK} (${TEXTILE[mainK].tier}), second ${secondK}, trim ${trimK}${pattern ? ', Susa-style rosettes (B)' : ''}; skin tone p ${toneP.toFixed(2)} for ${origin} (C, Q-240), hair ${['natural curls', 'court rows of curls', 'straight'][hairStyle]} (C), iris ${iris}; grime ${grimeWhat} (C)`;
-  return { dress, variant: v.index, variantId: v.meta.id, scale, stature: v.height * scale, mask, pieces, pattern: lookBits, grime, grimeLevel, stubble, col, note };
+  const note = `body ${v.meta.id} (variant, C) × ${scale.toFixed(3)} → ${(v.height * scale).toFixed(2)} m (stature C, Q-066); ${tiers}; colours main ${mainK} (${TEXTILE[mainK].tier}), second ${secondK}, trim ${trimK}, dye strength ${sMain.toFixed(2)}, age ${age.toFixed(2)}, hem soil ${soil.toFixed(2)} (C, D-189)${pattern ? ', Susa-style rosettes (B)' : ''}; skin tone p ${toneP.toFixed(2)} for ${origin} (C, Q-240), hair ${['natural curls', 'court rows of curls', 'straight'][hairStyle]} (C), iris ${iris}; grime ${grimeWhat} (C)`;
+  return { dress, variant: v.index, variantId: v.meta.id, scale, stature: v.height * scale, mask, pieces, pattern: lookBits, grime, grimeLevel, stubble, col, wear, note };
 }
+/** the person row's wear texel (humanMaterial PERSON_TEXELS, texel 9): [garment age, fit (m), fold amplitude (mm) + phase
+ *  (the fraction), hem soil] */
+export const wearTexel = (w: Wear): [number, number, number, number] => [w.fade, w.fit, Math.round(w.foldAmp * 1000) + Math.min(0.98, Math.max(0.02, w.foldPhase)), w.soil];
