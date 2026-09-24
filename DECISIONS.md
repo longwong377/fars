@@ -2718,4 +2718,5 @@ are schematic; no browser render has been looked at (node previews of the height
 - **Changed (pipeline.ts):** the scene pass's `diffuseColor`, `normal` and `velocity` outputs take the material's
   blending (`BlendMode(MaterialBlending)`), so a zero with alpha 0 leaves the G-buffer as it was. Opaque materials have no
   blending and are unaffected; transparent materials that write real G-buffer values now blend them.
-- **Not verified:** a render after the change (queued).
+- **Rendered after the change** (dawn-glow-e, quality high, WebGPU, shots/surf-dawn-glow-e-B.png): the flame sits clean
+  on the brazier; no box, no streaks.
