@@ -2169,3 +2169,138 @@ WMO CLINO 1991–2020 Shiraz 40848 (tier A, modern). Persepolis adjustment: Tmea
   - A farming man's winter day at home still holds about 4.5 h of rest, talk and knucklebones (C: "little field work in winter").
   - "stopping there a moment" is a generic label for a stop at a place other than home (197 in 34,898 person-days: potters, shepherds, millers, grooms).
   - S8 and S9 (Q-221, Q-222); the herders' evidence (Q-223, Barth unverified); the infant norms (Q-224, unverified); the vigil's frequency (Q-225).
+
+## D-167 The translation status established; the language lint sees audio, data and the carved signs; Aramaic citations; the voice acceptance measured (Phase 8 review B-C2, A-M1, A-M7, B-M4; session 5, layer workstream)
+- **The translation status (B-C2).** The records disagreed: PROGRESS, NEEDS #14 and the layer said no usable translation because the hosts are blocked, while sources.json (LIVIUS-AI), ASSET_LEDGER and D-108 recorded the Livius translations as read in full under CC-BY-NC.
+  - Re-read on 2026-09-23 through raw GitHub: the scrape (Electronic-Old-Persian-Library/Old-Persian-Dataset) is reachable. Its README and LICENSE-CC-BY-NC put the repository under CC-BY-NC. But every Livius page it copies (XPa, XPb, XPc, XPd, XPe, DNa, DNb, DPh re-read) ends "All content copyright © 1995–2024 Livius.org. All rights reserved."
+  - A repository's licence cannot relicense a third party's text, so the Livius translations are not CC-BY-NC, and §12 (CC0, CC-BY, CC-BY-NC) does not allow them in the build.
+  - **Decision:** no Livius translation is shown or shipped. The layer states the reason (translation.ts `TRANSLATION_STATUS`). The single-word glosses aligned with those translations stay; they are facts about word meaning, each sourced in the lexicon.
+  - **Records corrected:**
+    - the translation layer's text (translation.ts);
+    - NEEDS #14 (the reason is the licence, not the host; the list now names every carved text);
+    - sources.json LIVIUS-AI and its SITE_SPEC mirror;
+    - the ASSET_LEDGER lexicon row (it claimed the translations were CC-BY-NC);
+    - research/SOURCES.md;
+    - a licence note under the Livius quotation in LANGUAGES.md §3.
+    D-108's sentence "glosses come from the Livius translations" stays true. PROGRESS.md:233 ("translations need NEEDS #14") stays true, but its reason is the licence (the lead updates PROGRESS).
+  - **Other routes tried:**
+    - the dataset's own `eng_transcription_to_english` JSON: Kent-style English with no licence of its own;
+    - ORACC ARIo on GitHub (SLAB-NLP/Akk jsonl; oracc/catf `ario.catf`): no translations (0 `#tr` lines);
+    - oracc.museum.upenn.edu, oracc.org, livius.org and archive.org (for Tolman 1908, public domain by date): 403;
+    - a GitHub code search for a copy of Tolman: none.
+  - Logged: BLOCKERS B17(a), Q-284.
+- **The language lint's blind spots (A-M1), tests/language.test.ts:**
+  - **Audio.**
+    - `public/voices/manifest.json` now records, for each line, the IPA, intonation, base voice and eSpeak mnemonic its clips voice (`lines`), and for each clip its sha256. build_speech.py writes both from now on.
+    - The fields were stamped retrospectively: the clips were built at ee4b644, and `git log ee4b644..HEAD` over research/LEXICON, speech_lines.ts, lexicon.ts, build_speech.py, speech_lines_json.ts and phonemes.ts is empty (no lexicon IPA was changed in this workstream either).
+    - The lint fails any clip:
+      - of an unknown line;
+      - whose recorded IPA or intonation differs from the line's (stale audio);
+      - whose file hash differs (a swapped file);
+      - whose Ogg Opus length per phone is outside 0.05–0.8 s (another language, or silence);
+      - that is a recording without a source and a licence;
+      - that is on disk but not in the manifest.
+  - **Murmur.**
+    - The modern-word list gains the modern Persian and English words the review heard (bia, boro, bede, bash, kar, set, met, bet, map, bus, gun, sad, mad, dad …): 170 words, taking the list from 576 to 746.
+    - pseudoPhrase also rejects two neighbouring pseudo-words that run together into a modern word.
+    - The lint samples 20,000 phrases per language (was 2,000) and scans words alone and run together.
+    - Only attested entries (tier A/B) feed the phonotactics (`murmurEligible`, `murmurSource`).
+    - The one new ancient collision, Elamite *nap* "god", is an exemption tied to its lexicon entry.
+  - **Every source that can reach the canvas:**
+    - Every source file, src/ui included, that renders text is registered as in-world (3D text: decor.ts, naqsh.ts) or out-of-world (DOM: the layer, shell, overlay, bench, the boot error).
+    - A file that draws canvas text and also makes textures must be in-world. An out-of-world file may make no texture. SVG markup is allowed only out-of-world.
+    - Data JSON (src/data, public): a string in a non-Latin script must sit in a registered field: the carved cuneiform (checked as period script), the OP sign data, OpenStreetMap's modern Persian `osm_name` (no source reads it; checked), citations, etymology notes. Single Greek letters used in transliteration (θ Θ ϑ δ χ γ β ε φ) are not a script.
+    - No SVG anywhere may hold text. Stylesheets may live only in src/ui.
+    - Every shipped image is registered as checked and free of text (fail-closed).
+  - **The carved signs.**
+    - While the real carving code runs (buildInscriptions on the Terrace, buildNaqsh on the cliff), the test captures every glyph drawn, at the font (opentype `charToGlyph`).
+    - The Old Persian stream and the cuneiform stream must each be an exact concatenation of the inscription data's sign sequences: every carved panel equals one text, and every carved text appears.
+    - The data's Old Persian sequence is `op_signs` converted with oldPersian.ts `carvedLines`, where the data has them. This is the carving workstream's contract, read from its worktree. Where the data has none (this branch), it is what the data implies today: the rule speller over `op_translit`, and for DNa/DNb without their lacunae.
+    - A mutation (XPb carved with θātiy) fails with the position.
+    - It passes on this branch because the carving still follows the data; it becomes the real check once `op_signs` lands.
+    - Found on the way and passed to the lead for the carving workstream: the ORACC ARIo CATF on GitHub (oracc/catf `ario.catf`, CC0) holds the published sign-by-sign Old Persian with its lineation (e.g. `θ-a-t-i-y`).
+- **Aramaic attestations (A-M7).**
+  - The 42 entries that cited only a Strong's number now cite their verses, found by Strong's lemma among the Aramaic words (morph `A…`) of the OSHB (WLC with lemma and morphology, CC BY 4.0: Ezra, Daniel, Jer 10:11, Gen 31:47).
+  - The first four verses outside Daniel are given, with the written forms. `src` gains OSHB.
+  - 12 are attested only in Daniel and are marked `daniel_only` (mrʾ, brk, lḥm "feast", trʿ, ḥtm, ʿzqh, ʾḥšdrpn, gdbr, ʾkl, šty, ṣpr, ʾryh). The lines that use mrʾ and lḥm say so in their source.
+  - myn "water" and śʿryn "barley" have no occurrence. They stay C and, like every tier-C entry, no longer feed the murmur.
+- **The voice acceptance (B-M4; §3.5: measure, try at least three approaches).** Nobody can listen here. The measurements (scratch venv; tools not bundled, SOURCES.md) cover all 372 eSpeak clips and 74 formant renders (the 22 Babylonian line renders, 12 other lines, 40 murmur phrases):
+  1. **pocketsphinx 5**, US-English model, allphone. Phone error rate by semi-global alignment, on the eSpeak clips:
+     - 0.61–0.74 against their own IPA;
+     - 0.69–0.81 against their own phones shuffled;
+     - 0.76–0.82 for the clips played backwards.
+
+     Natural English control (openai/whisper `tests/jfk.flac`, the phrases its test asserts): 0.56–0.67 (chance 0.76–0.79).
+  2. **allosaurus**, universal phone model with per-language inventories (pes / arb / ell). On the eSpeak clips:
+     - 0.58 (Aramaic) to 0.81 (Old Persian), against chance 0.71–0.86;
+     - better than the shuffled control on 29–59 % of clips.
+
+     Natural English control: 0.22–0.33 (chance 0.53–0.61). Formant voice: 0.47–0.93 on small samples.
+  3. **Acoustics against Hillenbrand et al. 1995** (JASA 97: 3099; 1,668 tokens):
+     - 89–95 % of the eSpeak clips' voiced frames within 12 dB of the peak fall inside the H95 F1/F2 space of the same talker group (formant voice 76–89 %);
+     - F0 medians: men 83 Hz (H95 men 131 ± 22 Hz), women 184 Hz (220 ± 23), children 281 Hz (237 ± 25);
+     - F0 5–95 % range: 0.6–1.5 semitones for eSpeak, 5–6 for the formant voice.
+  4. **Spectrograms, viewed by this workstream:**
+     - eSpeak shows clear F1–F4, stop closures, frication and diphthong glides, with flat, steady formants and abrupt boundaries;
+     - the formant voice shows weak F2/F3 above about 1.5 kHz and buzzy harmonics.
+
+  **Verdict: NOT accepted.**
+  - Machines recover the phones only weakly, far from the natural control.
+  - The men's voices sit about 2 SD below the norm.
+  - The eSpeak voices are nearly monotone.
+
+  Fixing the pitch and the contour needs a re-render. build_speech.py calls the espeak-ng command, which is absent here. PyPI's espeakng-loader installs libespeak-ng 1.52.0 and its data, so a library build path exists, but it was not built here. Logged in BLOCKERS B17(b) and Q-287 (after Q-138); a human listening test (H8) remains.
+- **Tests:** tests/language.test.ts has 23 tests (was 15), including audio, the canvas sources, the carved signs and the murmur at 20,000 phrases per language.
+
+## D-168 Every scripted line is said somewhere; the layer reads the version looked at; subtitles as heard (Phase 8 review A-C2, B-M3, A-M2 / B-M1, minors; session 5, layer workstream)
+- **Before:** `pickLine` had two callers (greet/reply when addressed; the guard's ask/affirm/refuse in visitor mode). 28 of 73 lines, and 144 of 372 clips, could be heard. In observer mode no Old Persian was spoken: Persians greeted in Aramaic, and Persian porters and women only nodded.
+- **Situations (src/people/exchanges.ts; usage C; Q-286).** There are 15, each with its cast (role, origin, language), its conditions in the running sim (activity, place, distance), its turns (intent chains, chances, day/night) and a cooldown:
+  - greetings between people who know each other; partings; talk at rest; bread at meals;
+  - the ration issue at the depot (issuer: ration and count; the receiver's request, in his own tongue if need be; "received"; a blessing);
+  - the check at a gate, stair head or Treasury door (document; who he is; let through by day, turned back at night);
+  - a guard relieving another;
+  - a scribe and an official at work;
+  - a courier's letter at the Treasury;
+  - a courier announced by an Elamite speaker;
+  - the foreman's calls;
+  - the gang at a lift;
+  - an official's round;
+  - porters at the depot;
+  - a delivery to a scribe.
+- **Language choice (Q-285).** A speaker uses his own languages, in the sim's order, that the other also speaks. Compatriots use their own language first: Greek between Ionians, Babylonian between Babylonians, Old Persian between Persians and Medes. A compatriot pair falls back through the intent chain before switching language, so two Persians bless ("May Ahuramazda protect", "Live long!") instead of greeting in Aramaic.
+- **Line roles changed (out-of-world fields only; the audio is unchanged):**
+  - the three bread lines (Aramaic, Babylonian, Greek) also go to masons, passing bread at the gang's meal; the roster has no Aramaic-, Babylonian- or Greek-speaking baker;
+  - `el.identify.hutlak` becomes a new intent, `announce`, said by an Elamite speaker who sees a courier come up (the roster's couriers speak Old Persian and Aramaic). Its id is kept for the clip files.
+- **The stranger (observer mode, world.address):**
+  - first meeting: a greeting, or a blessing where the language has none; a guard on duty at a check post asks for the document;
+  - second: the person's work (a guard names himself a spearman in Old Persian; an official remarks in Old Persian; a scribe, courier, porter or Ionian names himself);
+  - later: an answer, a pious aside, a leave-taking.
+
+  Measured: a Persian grinder answers in Old Persian (before: a nod), and a guard says `op.identify.adam_rstika`.
+- **Reachability (tests/exchanges.test.ts, 8 tests):**
+  - Over the real roster, all 73 lines are reachable: 70 through people speaking to each other, and 3 only through the stranger's address (the self-identifications op.identify.adam_rstika, arc.identify.spr, grc.identify.iones).
+  - Running the sim for its first 8 days (abstract LOD, a look every 5 min), all 15 situations occur: meet 560,894, part 7,737, chat 269,118, meal 80,810, ration_issue 352, gate_check 64, relief 3,684, office 45, announce 17, letter 4, work_call 3,721, gang 44,864, round 46, depot 9,418, delivery 302 matches. Their turns can say 70 of the 73 lines; the other 3 are self-identifications said to the stranger.
+  - Each utterance is in a language the speaker has and the other shares (or the speaker's own, for the gestured request at the issue).
+- **In the world (world.ts):**
+  - A `Conversations` runner looks every 2.5 s among the people within 25 m of the listener and plays at most one exchange at a time (a 6 s gap; cooldowns per pair). The turns follow one another by the clips' lengths, and the speakers turn to each other. Subtitles follow.
+  - The dev overlay (F3) shows the last line heard, its tiers (words, phrase, IPA, usage), the situation or address that chose it, and the backend (A-minor 8).
+  - `address()` reports the backend from the manifest instead of always "formant" (B-minor 5).
+- **The translation layer (A-M2 / B-M1 and minors):**
+  - The pick carries the panel's version. The Elamite and Babylonian panels show their own ATF transliteration and their own lexicon's glosses; a version missing from the corpus mirror (DNa/DNb Elamite and Babylonian) is flagged unavailable.
+  - Old Persian glosses also match ARIo's spelling (A.uramazdā, nai̯bam) and stems with an ending, shown "(stem)"; a bare stem never matches (*api* "also" is not *api-* "water").
+  - Old Persian coverage: XPa 27 → 46 of 98, XPb 22 → 36 of 74, DNa 46 → 66 of 228, DNb 47 → 57 of 282. With the Elamite and Babylonian versions, 625 of 1,730 words in all.
+  - XPb, XPc and XPd say "Old Persian only here" (A-M5).
+  - Subtitles show the heard form: the attested inflected Old Persian (`spoken` in old_persian.json: nai̯bam, uvaspā, umartiyā, ai̯vam, hašiyam) and Aramaic as romanised IPA (šəlām) (A-minor 4, B-minor 1). They also show the language by name (Greek (Ionic), no longer "grc": A-minor 5, B-minor 2) and the line's source (B-minor 3).
+  - Chronicle rows show their tier and readable place names; map footprints carry their English names (B-minor 6).
+  - tests/translation_layer.test.ts checks that the layer is off by default, and hidden and textless when off (B-minor 7).
+- **PROGRESS-facing corrections** (for the lead; this workstream does not edit PROGRESS):
+  - PROGRESS.md:66/70 said "the new intents (affirm, refuse, ration) are not yet called: visitor mode will use them". Now all 14 intents are called, by the situations and the address chain.
+  - PROGRESS.md:172 said "the Gate guard … asks for the halmi (Elamite halmi)". Guards speak Old Persian and Aramaic, so they ask in Aramaic (`arc.ask_document.igra`, ʾiggərā "letter?"). The Elamite *halmi* is asked by officials and scribes (office, delivery, announce).
+  - Phase 8's "translations need NEEDS #14" holds, but for the licence (D-167).
+- **Still open:**
+  - usage of every line in every situation is C (Q-286);
+  - the in-group language choice is C (Q-285);
+  - no Egyptian or Lydian lines (Q-025);
+  - the voice acceptance (B17(b));
+  - no licensed translation (B17(a));
+  - the carving's sign spelling belongs to the carving workstream (review C1).

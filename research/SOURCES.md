@@ -114,7 +114,7 @@ wiktionary and theswissbay were refused by the egress proxy (2026-09-23).
 
 | key | cite (short) | access | used for |
 |---|---|---|---|
-| LIVIUS-AI | Livius, Achaemenid Royal Inscriptions pages (scrape on GitHub, Electronic-Old-Persian-Library) | FT | OP glosses (DSf, DNa, DNb, XPh, DZc, XPa) |
+| LIVIUS-AI | Livius, Achaemenid Royal Inscriptions pages (scrape on GitHub, Electronic-Old-Persian-Library) | FT | OP glosses (DSf, DNa, DNb, XPh, DZc, XPa). Licence (D-167): each page says "All content copyright © 1995–2024 Livius.org. All rights reserved."; the scrape repository's CC-BY-NC cannot relicense it, so no translation is shown (B17) |
 | EIEOL-OI | UT Austin EIEOL, Old Iranian Online | SX (earlier FT via a GitHub copy) | key for existing OP gloss sources |
 | KENT-OCR | Kent 1953 lexicon lines, OCR quoted in sfmqrb/rishe | SX | key for existing OP gloss sources |
 | OP-SX | ResearchGate on *bandaka*; EIEOL base-form dictionary (dargam, jīvā-) | SX | OP bandaka, dargam, jīvā |
@@ -163,3 +163,18 @@ to Pārsa (another site, a standard atmosphere); **C** = our choice.
 Not reached (would upgrade the tiers): Lee 2015 full text (measured heights and chromaticities of the dark segment and
 the arch vs solar depression); Rozenberg 1966 *Twilight*; Brown 1952; Spitschan et al. 2016 (measured outdoor
 illuminance vs solar elevation); CIE 191:2010 (mesopic photometry); ISO 2720 (meter calibration).
+
+## Phase 8 review fixes (session 5, layer workstream; D-167, D-168)
+Fetched through raw GitHub content (the only reachable host for files); nothing below is bundled with the app unless said.
+
+| what | where | licence | used for |
+|---|---|---|---|
+| Livius inscription pages, scraped (XPa–XPe, DNa, DNb, DPh re-read) | Electronic-Old-Persian-Library/Old-Persian-Dataset `textdata/web_scraping/*.txt`; repository `LICENSE-CC-BY-NC` read | the repository says CC-BY-NC; the pages it copies say "All rights reserved" (Livius.org) | the licence finding (D-167, B17); not bundled |
+| Dataset translations sample `textdata/eng_transcription_to_english/eng_transcription_to_english_001.json` | same repository | as above; the English follows Kent's style ("an Achaemenian"), source not named | checked: no licensed alternative there |
+| ORACC ARIo in CATF, sign by sign with the edition's line numbers (`ario.catf`, 166,028 bytes, sha256 prefix eb8de252) | oracc/catf `ario.catf` | CC0 (ORACC ARIo) | checked for translations: none (0 `#tr` lines); it holds the published Old Persian SIGN SEQUENCE (e.g. `θ-a-t-i-y`) and lineation that the carving workstream needs (reported to the lead) |
+| Open Scriptures Hebrew Bible, WLC with lemma and morphology: Ezra, Daniel, Jeremiah, Genesis XML | openscriptures/morphhb `wlc/*.xml`; README read | lemma and morphology CC BY 4.0; WLC text public domain | Aramaic verse citations for 42 Strong's-only lexicon entries (aramaic.json `attested`, key OSHB) |
+| Hillenbrand, Getty, Clark & Wheeler 1995 vowel measurements (`vowdata.csv`, 1,668 tokens) | compi1234/spchlab `data/hillenbrand/vowdata.csv` (a CSV rendering of the published vowdata.dat) | © J. Hillenbrand, redistributed with the paper's data; measurement reference only, not bundled | voice acceptance: F0 and F1/F2 norms (B17) |
+| pocketsphinx 5 with its bundled US-English acoustic model and CMU dictionary | PyPI (scratch venv) | BSD-2-Clause | voice acceptance: offline phone recognition (B17); a measurement tool, not bundled |
+| allosaurus with its universal phone model `uni2005` | PyPI; model from its GitHub release | GPL-3.0 (tool and model) | voice acceptance: universal phone recognition (B17); a measurement tool, not bundled |
+| openai/whisper test clip `tests/jfk.flac` and `tests/test_transcribe.py` | openai/whisper | MIT repository; the clip is a 1961 US-government speech | natural-speech control for the recognisers (the test file asserts "my fellow americans", "your country"); not bundled |
+

@@ -44,6 +44,22 @@ const LEX_FILE: Record<string, string> = { op: 'old_persian.json', el: 'elamite.
 export const TRANSLATION_STATUS = 'No published English translation is shown. The one this project has read, Livius.org\'s (J. Lendering, after Kent and Lecoq; read through the Electronic-Old-Persian-Library scrape), carries "All content copyright © 1995–2024 Livius.org. All rights reserved." on its own pages; the scrape\'s CC-BY-NC cannot relicense it, and §12 allows only CC0, CC-BY or CC-BY-NC here. A public-domain or CC-BY(-NC) translation is needed (NEEDS_FROM_ME #14; BLOCKERS B17). Nothing is paraphrased from memory.';
 import { MAP_ZOOMS, MapItem, MapStyle, P2 } from './mapLayers';
 
+/** English names for the map and the chronicle (out-of-world; the conventional modern names, not period ones) */
+const FOOTPRINT_LABEL: Record<string, string> = {
+  hall100: 'Hall of a Hundred Columns', gate_nations: 'Gate of All Nations', apadana: 'Apadana', tachara: 'Tachara (Palace of Darius)',
+  hadish: 'Hadish (Palace of Xerxes)', treasury: 'Treasury', harem: '"Harem" of Xerxes', tripylon: 'Tripylon', garrison: 'Garrison quarter',
+  grand_stair: 'Grand Stair', palace_h: 'Palace H', palace_a3: 'Palace A3', unfinished_gate: 'Unfinished Gate', tomb_a2: 'Rock tomb',
+};
+/** a readable name for a simulation place id (post_treas_1 → Treasury post 1) */
+export function placeLabel(id: string): string {
+  const P: [RegExp, (m: RegExpMatchArray) => string][] = [
+    [/^post_stair_([ns])$/, m => `${m[1] === 'n' ? 'north' : 'south'} stair post`], [/^post_gate_([ws])(\d)$/, m => `Gate post ${m[1].toUpperCase()}${m[2]}`],
+    [/^post_treas_(\d)$/, m => `Treasury post ${m[1]}`], [/^post_([a-z]+)_(\d)$/, m => `${m[1]} post ${m[2]}`], [/^post_apa_([we])$/, m => `Apadana post ${m[1].toUpperCase()}`],
+    [/^stair_foot$/, () => 'the depot at the stair foot'], [/^h:/, () => 'a house in the town'],
+  ];
+  for (const [re, f] of P) { const m = id.match(re); if (m) return f(m); }
+  return id.replace(/_/g, ' ');
+}
 type GlossRow = { gloss: string; tier: string; src: string[]; form: string };
 /** Old Persian word keys: ARIo writes A.uramazdā and marks glides (nai̯); the lexicon writes Auramazdā, naiba- */
 const opKey = (w: string) => w.normalize('NFC').replace(/[.̯]/g, '').toLowerCase();
@@ -157,7 +173,7 @@ export class TranslationLayer {
     } else this.drawn.zoom = -1;
     if (this.mode === 'chronicle') {
       const list = el('div', 'tl-chron');
-      for (const ev of ctx.events.slice(-40).reverse()) { const p = ctx.places[ev.place]; list.append(el('div', 'row', `${ctx.timeLabel(ev.t)} — ${ev.text}${p ? ` (${ev.place.replace(/_/g, ' ')})` : ''}`)); }
+      for (const ev of ctx.events.slice(-40).reverse()) { const p = ctx.places[ev.place]; list.append(el('div', 'row', `${ctx.timeLabel(ev.t)} — ${ev.text}${p ? ` (${placeLabel(ev.place)})` : ''}${ev.tier ? ` · tier ${ev.tier}` : ''}`)); }
       this.panel.replaceChildren(el('h2', '', 'Chronicle (translation layer)'), list.childElementCount ? list : el('p', 'small', 'Nothing noted yet.'), el('div', 'small', 'Events the simulation records. J closes.'));
     }
   }
@@ -186,7 +202,7 @@ export class TranslationLayer {
       const pk = PRESENT_KEY[k] ?? k; if (pk === '' || (k !== 'terrace' && !present(pk))) continue;
       c.beginPath(); (f as any).polygon.forEach(([e, n]: [number, number], i: number) => (i ? c.lineTo(px(e), py(n)) : c.moveTo(px(e), py(n)))); c.closePath();
       c.fillStyle = k === 'terrace' ? '#3a332a' : '#6b5e4a'; c.strokeStyle = '#c9a25e'; c.lineWidth = k === 'terrace' ? 2 : 1; c.fill(); c.stroke();
-      if (k !== 'terrace' && !Z.half) { const [ce, cn] = (f as any).centroid; c.fillStyle = '#eee3cf'; c.font = '13px Georgia'; c.textAlign = 'center'; c.fillText(k.replace(/_/g, ' '), px(ce), py(cn)); }
+      if (k !== 'terrace' && !Z.half) { const [ce, cn] = (f as any).centroid; c.fillStyle = '#eee3cf'; c.font = '13px Georgia'; c.textAlign = 'center'; c.fillText(FOOTPRINT_LABEL[k] ?? k.replace(/_/g, ' '), px(ce), py(cn)); }
     }
     if (Z.half) { c.fillStyle = '#eee3cf'; c.font = '13px Georgia'; c.textAlign = 'center'; c.fillText('Terrace', px(100), py(-10) - (Z.half > 5000 ? 8 : 0)); }
     // the visitor: position and facing

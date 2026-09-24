@@ -587,7 +587,7 @@
  "LIVIUS-AI": {
   "cite": "J. Lendering, Livius.org, 'Achaemenid Royal Inscriptions' pages (DSf, DNa, DNb, XPh, DZc, XPa-XPm …; translations after Kent/Lecoq)",
   "url": "https://github.com/Electronic-Old-Persian-Library/Old-Persian-Dataset/tree/main/textdata/web_scraping",
-  "access": "read in full via the scraped GitHub copy (FT; CC-BY-NC repository); livius.org itself blocked (B6)"
+  "access": "read in full via the scraped GitHub copy (FT); re-read 2026-09-23 (D-167): every page ends 'All content copyright © 1995–2024 Livius.org. All rights reserved.', so the scrape repository's CC-BY-NC does not cover this text and no Livius translation is shown or shipped; only single-word glosses aligned with these translations are used (facts); livius.org itself blocked (B6); BLOCKERS B17"
  },
  "EIEOL-OI": {
   "cite": "J. Harvey, W. P. Lehmann, J. Slocum, Old Iranian Online (UT Austin EIEOL), lessons 7-10 and base-form dictionary",
