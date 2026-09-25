@@ -1,8 +1,31 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
-- **Rain moment still does not land (session 7).** rain-approach: two faults fixed (the cell hidden inside 2.1 R; the mesh veiled at the far wall's distance), but from 8.5 km the 6 km cell fills the frame as a faint even greying with no edge or streaks. Needs a rework of the shaft model (visible streaks, a darker cloud base, a framing with the cell's edge in view); on the rubric pass-2 fix list.
+- **§8.2 rubric pass 2 FAILED (session 7; REVIEWS/rubric_s7_pass2.md).** Light 2, materials 1, scale 3, detail 2, people 2, weather 1, atmosphere 2; no §1.1 moment lands except the Apadana entry (partly). Twelve rendering bugs R1-R12. Workstreams running: light and material bugs (R3 black water, R4 fire falloff, R5 orange Gate at night, R7 leak, R10 SSR, R12, the night floodlight: D-216) and geometry bugs (R1 jar through the head, R2 relief blobs, R8 placeholder boxes, R9 stretched Naqsh cliff, R11 floating rod: D-217). Lead fixes, **not yet seen rendered**: the rain shafts rebuilt (R6: the camera stood inside a 12 km column mesh; now shafts 1-4 km across with σ from the rain rate, tests/rain_shafts.test.ts), far flames no narrower than 2 px with their light conserved (the town's 1,037 dusk fires vanished from Kuh-e Rahmat), the Tol-e Ajori glazed panels (half rendered black: winding against the normal), rig framing (nobody within 2.5 m of the lens; the slope view off the trees). The rain-columns moment times out at high (58 min) under load: re-queued at medium.
+- **Regression, open:** tests/exchanges.test.ts "delivery: expected 0" since merge 27e18f3 (D-197 + D-202): porters at the store never coincide with a recording scribe; sent to the sim workstream (D-211) to make the receipt scheduled rather than lucky.
 - **Session 7 (in progress).** Soak on the merged tree (sim r9 D-197, names D-202, court D-199; before the jar fix D-213 and the D-206/D-210/D-212 merges) PASSES all 8 gates: REVIEWS/soak/soak-2026-09-25T02-43-08-676Z.json (15,462,938 person-days, 0 plan issues). Shadow review round 9 FAILED (A and B: #76's water jar, fixed D-213); round 10 (pick 181) pending on the sim agent's final code. The D-207 gap fills (D-198..D-212) are node-verified only; render pass 2 incomplete (renders held twice for memory).
+- **Religious life (D-209; the user's direction D-207).** An open-air precinct 180 m S of the Terrace (two plinths after
+  Pasargadae, a stepped altar after the Naqsh-e Rustam reliefs: B forms; place and size C) with a fire kept on the altar; the
+  three magi in Median dress with the barsom and the cap's flaps over the mouth feed it at dawn and dusk, make the lan and the
+  offerings, and chant WITHOUT WORDS (M-06 performed wordless, M-22: C); about 180 households' sacrifices a year (Herodotus
+  1.132's form: the beast led, cut up, boiled, chanted over, the meat carried home; the killing never shown); funerals carry
+  the dead to a burial ground at the mountain's foot and bury them (1.140), exposure never shown; no household offerings
+  (argued out). **All C, never rendered in a browser, the chant never heard** (node tests: tests/religion.test.ts).
+  - **Weak:** no bier on the walk to the grave (Q-196); the myrtle wreath not modelled; the barsom is two rods; the
+    mouth-cover not looked at on any body; no village graves; no village sacrifices; the king's worship not staged.
+    Doubts Q-470 to Q-473.
+- **People's look (D-215; gap audit items 4, 21, 22, 26, 37).** Babies in arms (hip, back or front sling, arms, lap, nursed,
+  a mat or a basket cradle beside the mother) from the plans' own words; toddlers and a blind elder's guide hand in hand;
+  several kinds of children's play and toys left in a quarter of the courtyards; earrings and bracelets by rank, the wicker
+  shield for a share of the guards, golden apples and pomegranates at the spear butts, eye paint for the court; the court
+  women's dress (B20c closed); a few lame men and blind elders with a staff. **All C** (Herodotus 7.41/7.61 and Xenophon
+  Cyr. 1.3.2/8.1.41 read: B claims). **Never rendered in a browser** (node tests only: tests/people_children.test.ts).
+  - **Weak:** the carried child is a stiff prop (no skinned body), tinted to the carer's tone; no child, toy or shield on
+    impostors; the sling's straps are not fitted to the carer; a child taken to its carer's hand steps up to ~4 m when a walk
+    starts (the plans walk them on two routes: Q-439); the veil and the shield can be passed through by swinging limbs; the
+    court women's necklace is not modelled; toy wheels do not turn.
+  - **Cost:** one more instanced draw (the carried children, 900 triangles per instance) only where a child is carried; the
+    Persian costume 38,236/5,789/3,012/759 triangles (budgets 42,000/7,000/3,200/800); the long tools' prop union 698 of 700.
 - **Animals (D-210; gap audit items 5, 6, 10, 11, 15, 16, 17).** Added: dogs (with the herds, in the yards and as strays),
   and the animals that travel with their drivers and riders (the caravan's strings, Bactrian camels, E-06 donkey strings and
   ox carts, E-20 couriers). Also fowl and the state poultry yard, the paradise's deer and gazelle, the river's boar, crows and
@@ -17,6 +40,18 @@
     - Flies are heard but not seen. No bats, rats or storks.
   - **Crowd CPU gate:** performances.test (median < 10 ms) fails under machine load on both the base and this branch. It
     needs re-measuring.
+- **Royal inscriptions filled, glazed brick, paint, drains (D-214; gap audit items 27, 28, 29, 31; D-207).** **All placement C,
+  none of it rendered in a browser** (node tests only: tests/royal_fill, waterworks, paint_glaze). Carved now: XPc on the
+  Tachara's portico antae (cased in dark stone), XPd on the Hadish N portico's antae (free-standing piers: the model has no
+  portico side walls), DPb and XPk on the king's robe (signs 0.7 and 0.9 cm, each cut laid on the relief's folds), XPj and
+  XPm round 12 Hadish column-base drums, XPg on a plaque by the Apadana N doorway; the four texts newly in the corpus from the
+  same CC0 ARIo CATF. **Still not carved:** XPg on glazed bricks; DNa/DNb Elamite and Babylonian (not in ARIo); DNc–DNe (in
+  ARIo, not placed: the tomb's workstream). Glazed-brick rosette frieze on the Apadana towers (no figured panels: none
+  reported). Treasury shafts painted (Q-020's placeholder retired; the scheme C). Guards' robes patterned after Susa (+20 k
+  relief triangles at worst, within budget). 12 drain mouths with spouts, inlets and gutters; well-heads at the two water
+  points. **Weak / not done:** the Hadish piers and the kerbs are solid at runtime but not in the baked walkable grid or the
+  probes (not parts); the new antae, plaque and copies also show in the Now view (not reviewed against the ruin); the Hadish
+  apartments and S balcony (item 30) not built (they need parts, so a probe and grid re-bake). Cost: +27 draws, ~30 k tris.
 - **Palace furnishings and masons' marks (D-212; gap audit items 8 and 13; D-207).** **All C, none of it rendered in a
   browser** (node tests only). Sources second-hand: Roaf 1983's sculptors' marks via a search extract (the "double diamond"
   form NOT SEEN), Pasargadae's circle/cross/L via a search extract, the Pazyryk carpet, the Assurbanipal couch and Esther 1:6
@@ -85,7 +120,7 @@
   every size), horizontal harp, lyre, frame drum and double pipe modelled with playing cycles (the last four played by
   nobody: no source for who played them here); the court harpists stand and pluck, the singers' jaw and breath follow the
   notes; a man of a transhumant band plays a cane reed pipe by the evening fire or at the midday halt (C; Iliad 18.525-526
-  read, M-18). **Still PLACEHOLDER:** the court women's dress. **Deliberately missing:** the magus's chant (no attested text;
+  read, M-18). ~~**Still PLACEHOLDER:** the court women's dress.~~ Filled by D-215 (court robe, crown and veil; C). **Deliberately missing:** the magus's chant (no attested text;
   no wordless contour either: D-200).
 - **Session 6, music and occlusion workstream (branch p8-music-s6, D-178; merged by the lead, 02f0947).** Music now plays
   only from performers: quern songs, Ionian masons' songs, and the court's supper and night music when the court setting

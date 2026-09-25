@@ -12,7 +12,7 @@
 // the part's base height and, for hall floors, the floor's box) a splash and dust band at the foot of walls and traffic
 // wear along the floors' axes; indirect specular from the sky environment (envmap.ts) on the smoother surfaces.
 import * as THREE from 'three/webgpu';
-import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture } from 'three/tsl';
+import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture, positionGeometry, atan } from 'three/tsl';
 import PC from '../data/polychromy.json';
 import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
 import { SkySpecularNode } from './envmap';
@@ -669,5 +669,37 @@ export function incisedMaterial(surface: string, atlas: Atlas): THREE.MeshStanda
   m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -4;
   m.userData = { tier: 'C', note: `incised signs in ${surface} (D-177): the stone's own surface; V-section, walls at 45° (C)` };
   cache.set(key, m);
+  return m;
+}
+
+/** the paint of the Treasury's plastered timber shafts (D-214, gap audit item 29, Q-020; SITE_SPEC treasury.r_shaft_paint, C):
+ *  a ground, a lattice of lozenges `around` per turn and `lozenge_h` m tall drawn in lines `line_w` m wide, and a band `band_h`
+ *  m tall at the foot and at the head of the shaft, edged `edge_w` m in the line colour. Colours are linear-light RGB. The
+ *  pattern is in the column's own frame (positionGeometry: the axis vertical at x = z = 0, y from the foot of the base;
+ *  y0..y1 the shaft), so every instance is painted alike; the plaster's own tone stays under the film; edges are filtered
+ *  over the pixel footprint (fwidth), so the lattice does not shimmer at a distance */
+export interface ShaftPaint { ground: [number, number, number]; line: [number, number, number]; band: [number, number, number]; around: number; lozenge_h: number; line_w: number; band_h: number; edge_w: number; y0: number; y1: number; D: number }
+export function paintedShaftMaterial(P: ShaftPaint): THREE.MeshStandardNodeMaterial {
+  const d = SURFACES.plaster, plasterLin = d.albedo.map(srgbToLinear) as [number, number, number];
+  const m = surfaceMaterial('plaster', { variant: `shaft-paint:${JSON.stringify(P)}`, modify: (L: Layer) => {
+    const pg = positionGeometry, h = pg.y, u = atan(pg.z, pg.x).div(2 * Math.PI).add(0.5); // turns round the axis, 0..1
+    const W = (Math.PI * P.D) / P.around, k = Math.hypot(1 / W, 1 / P.lozenge_h), hw = float((P.line_w / 2) * k); // half a line, in lattice units
+    const a = u.mul(P.around), b = h.sub(P.y0 + P.band_h).div(P.lozenge_h);
+    const d1 = abs(fract(a.add(b).add(0.5)).sub(0.5)), d2 = abs(fract(a.sub(b).add(0.5)).sub(0.5));
+    const lineOf = (q: any) => { const f = fwidth(q).max(1e-4); return float(1).sub(smoothstep(hw.sub(f), hw.add(f), q)); };
+    const lattice = max(lineOf(d1), lineOf(d2));
+    // the bands at the foot and the head, and their inner edges in the line colour (filtered over the pixel footprint)
+    const aa = fwidth(h).max(1e-4), above = (y: number) => smoothstep(float(y).sub(aa), float(y).add(aa), h);
+    const fTop = P.y0 + P.band_h, hBot = P.y1 - P.band_h;
+    const band = max(float(1).sub(above(fTop)), above(hBot));
+    const edge = max(above(fTop).mul(float(1).sub(above(fTop + P.edge_w))), above(hBot - P.edge_w).mul(float(1).sub(above(hBot))));
+    const field = float(1).sub(band).sub(edge).max(0);
+    let paint: any = mix(vec3(...P.ground), vec3(...P.line), lattice.mul(field));
+    paint = mix(paint, vec3(...P.band), band); paint = mix(paint, vec3(...P.line), edge);
+    // the film over the plaster: the plaster's tone (its albedo against its mean) modulates the paint (float and brush marks)
+    const tone = L.alb.div(vec3(...plasterLin)).clamp(0.6, 1.4);
+    return { alb: paint.mul(tone), rough: L.rough.mul(0.9), height: L.height, tilt: L.tilt };
+  } });
+  m.userData = { tier: 'C', note: `the Treasury shafts' paint (D-214, Q-020): painted 'in bright colours' (B); the scheme after the Persepolis and Pasargadae painted plaster (Stein et al. 2016, B) and the red floors: a ground, a lattice of lozenges in the line colour (${P.around} per turn, ${P.lozenge_h} m tall), bands at the foot and the head (all C; treasury.r_shaft_paint)` };
   return m;
 }

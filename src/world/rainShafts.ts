@@ -19,19 +19,32 @@ import { opticalDepth, Z0, type AirOptics } from '../sky/aerial';
 
 /** debug (?shaftdbg=1|2|3): 1 = solid red at full strength; 2 = red, optical-depth term only; 3 = red, height fade only */
 const DBG = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('shaftdbg') : null;
-const SIGMA = 0.00025; // 1/m extinction at the core (C: a 4.4 km core radius → optical depth ~2 through the middle, ~0.86 opacity)
-interface Shaft { mesh: THREE.Mesh; radius: ReturnType<typeof uniform>; trans: ReturnType<typeof uniform>; off: [number, number]; scale: number }
+/** extinction at a shaft's core (1/m) for a rain rate in mm/h: σ ≈ 0.3 km⁻¹ · R^0.63 (the visibility-in-rain relation
+ *  after Marshall–Palmer drop sizes; 14 mm/h → 1.6 km⁻¹, visibility ~2 km inside the shaft; C). The old constant
+ *  0.00025 /m over a 6 km column (session 7) read as an even veil, never as a curtain (rubric pass 2, R6) */
+export function rainSigma(rateMmH: number) { return 0.0003 * Math.pow(Math.max(0.1, rateMmH), 0.63); }
+/** the rain rate a cell of this intensity carries in its shafts (mm/h; C: 2 mm/h at a light cell, 20 at the heaviest) */
+export const shaftRate = (intensity: number) => 2 + 18 * intensity;
+/** the shafts inside a cell of radius `R`: offsets (fractions of R) and core radii (fractions of R). A convective rain
+ *  area holds a few shafts 1–4 km across (C), not one column the size of the area */
+export function shaftLayout(count: number, seed = 3): { off: [number, number]; scale: number }[] {
+  const rng = new Rng(seed, 'rain-shafts'), out: { off: [number, number]; scale: number }[] = [];
+  for (let i = 0; i < count; i++) { const ang = rng.range(0, Math.PI * 2), dist = i === 0 ? 0 : rng.range(0.25, 0.75);
+    out.push({ off: [Math.cos(ang) * dist, Math.sin(ang) * dist], scale: i === 0 ? 0.28 : rng.range(0.12, 0.24) }); }
+  return out;
+}
+interface Shaft { mesh: THREE.Mesh; radius: ReturnType<typeof uniform>; trans: ReturnType<typeof uniform>; sigma: ReturnType<typeof uniform>; off: [number, number]; scale: number }
 
 export class RainShafts {
   readonly group = new THREE.Group();
   private shafts: Shaft[] = [];
   private uTint = uniform(new THREE.Color(0.55, 0.58, 0.63)); private uStrength = uniform(0); private uTime = uniform(0); private uSnow = uniform(0);
-  constructor(private terrain: Terrain, count = 5) {
+  constructor(private terrain: Terrain, count = 7) {
     this.group.name = 'rain-shafts';
     const geo = new THREE.CylinderGeometry(1, 1, 1, 40, 1, true).translate(0, 0.5, 0);
-    const rng = new Rng(3, 'rain-shafts');
+    const lay = shaftLayout(count);
     for (let i = 0; i < count; i++) {
-      const R = uniform(1000), TR = uniform(1);
+      const R = uniform(1000), TR = uniform(1), SG = uniform(0.001);
       // (no scene fog on the mesh: it would veil the curtain at the distance of the mesh's surface — seen from inside the 2R
       // mesh, the far wall 2–3 R off — not of the rain, which lies about the column's core. The contrast is scaled instead by
       // the air's transmittance to the core (TR, set per frame from the aerial optics), and what shows through is the sky
@@ -39,18 +52,17 @@ export class RainShafts {
       const m = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.FrontSide, fog: false }));
       const v = normalize(cameraPosition.sub(positionWorld)), n = normalWorld;
       const cosT = abs(dot(vec2(n.x, n.z), vec2(v.x, v.z)).div(max(length(vec2(v.x, v.z)), 1e-3)));
-      const tau = R.mul(SIGMA * Math.sqrt(Math.PI)).mul(exp(float(1).sub(cosT.mul(cosT)).mul(-4))); // Gaussian column, mesh at 2R
+      const tau = R.mul(SG).mul(Math.sqrt(Math.PI)).mul(exp(float(1).sub(cosT.mul(cosT)).mul(-4))); // Gaussian column, mesh at 2R
       const y01 = clamp(positionWorld.y.sub(this.baseY).div(max(this.topY.sub(this.baseY), 1)), 0, 1);
       const streak = mx_noise_float(vec3(positionWorld.x.mul(0.0015), positionWorld.y.mul(0.0004).add(this.uTime.mul(0.01)), positionWorld.z.mul(0.0015))).mul(0.15).add(0.9);
-      const fade = float(1).sub(smoothstep(0.4, 1.0, y01)).mul(smoothstep(0.0, 0.03, y01));
+      const fade = float(1).sub(smoothstep(0.8, 1.0, y01)) /* the curtain runs up into the cloud base (it faded out from 0.4 of the height) */.mul(smoothstep(0.0, 0.03, y01));
       m.colorNode = DBG ? color(1, 0, 0) : this.uTint;
       const optic = float(1).sub(exp(tau.negate().mul(float(1).sub(this.uSnow.mul(0.4)))));
       m.opacityNode = DBG === '1' ? this.uStrength : DBG === '2' ? optic : DBG === '3' ? fade : optic.mul(fade).mul(streak).mul(this.uStrength).mul(TR);
       const mesh = new THREE.Mesh(geo, m); mesh.frustumCulled = false; mesh.visible = false; mesh.castShadow = false; mesh.receiveShadow = false; mesh.renderOrder = 2;
       mesh.userData = { tier: 'C', src: 'RECON', note: 'rain cell shafts: position from the weather episode timing and the steering wind; optics C' };
       this.group.add(mesh);
-      const ang = rng.range(0, Math.PI * 2), dist = i === 0 ? 0 : rng.range(0.6, 1.4);
-      this.shafts.push({ mesh, radius: R, trans: TR, off: [Math.cos(ang) * dist, Math.sin(ang) * dist], scale: i === 0 ? 1 : rng.range(0.4, 0.8) });
+      this.shafts.push({ mesh, radius: R, trans: TR, sigma: SG, off: lay[i].off, scale: lay[i].scale });
     }
   }
   private baseY = uniform(-50); private topY = uniform(1500);
@@ -70,7 +82,7 @@ export class RainShafts {
     this.baseY.value = ground - 60; this.topY.value = camPos.y + CLOUD_BASE;
     for (const s of this.shafts) {
       const r = cell.radiusM * s.scale, x = cx + s.off[0] * cell.radiusM, z = cz + s.off[1] * cell.radiusM;
-      s.mesh.position.set(x, this.baseY.value, z); s.mesh.scale.set(2 * r, this.topY.value - this.baseY.value, 2 * r); s.radius.value = r;
+      s.mesh.position.set(x, this.baseY.value, z); s.mesh.scale.set(2 * r, this.topY.value - this.baseY.value, 2 * r); s.radius.value = r; s.sigma.value = rainSigma(shaftRate(cell.intensity));
       // inside the mesh's 2R cylinder the far wall is drawn (BackSide): a ray leaving the cylinder at angle θ to its normal passes
       // the axis at the same b = 2R·sin θ as one entering it, so the optical-depth term is the same (session 7: the cell was
       // hidden whenever its centre came within 2.1 R — at 11:27 on day 299 a 6 km cell 8.5 km out, the §1.1 rain moment)
@@ -81,7 +93,7 @@ export class RainShafts {
       const dCore = Math.max(0, Math.hypot(x - camPos.x, z - camPos.z));
       s.trans.value = air ? Math.exp(-opticalDepth(air, Z0 + 40, Z0 + 40, dCore)[1]) : 1;
     }
-    this.uStrength.value = cell.intensity; this.uSnow.value = cell.snow ? 1 : 0;
+    this.uStrength.value = 1; this.uSnow.value = cell.snow ? 1 : 0;
     this.uTint.value.copy(skyTint).multiplyScalar(cell.snow ? 1.05 : 0.35); // skyTint: the calibrated horizon radiance (D-060); a curtain under the thick cell cloud is well shaded (C)
     this.cellWorld.set(cx, cz, cell.radiusM, cell.intensity);
   }

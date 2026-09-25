@@ -9,6 +9,8 @@ export const MUSIC_CLAIMS: Record<string, MusicClaim> = {
   'M-03': { id: 'M-03', tier: 'B', src: ['ATH13-PARM'], short: "329 royal concubines skilled in music in Darius III's household (Parmenion via Athenaeus 13.608a)" },
   'M-04': { id: 'M-04', tier: 'B', src: ['SOUND-R'], short: 'angular harps in Iran (Neo-Elamite reliefs); 9 strings tuned heptatonically (UET VII 74)' },
   'M-05': { id: 'M-05', tier: 'B', src: ['HDT'], short: 'no pipe music at a Persian sacrifice (Herodotus 1.132)' },
+  // D-209 (the user's direction D-207): performed WORDLESS; the words are not attested and none are invented
+  'M-06': { id: 'M-06', tier: 'B', src: ['HDT'], short: "'a Magus comes near and chants over it the song of the birth of the gods' (Herodotus 1.132, read): that a chant was sung is B; performed wordless (C)" },
   'M-07': { id: 'M-07', tier: 'C', src: ['ATH14-WORK'], short: 'Greek work songs by trade, the millstone song among them (Athenaeus 14.618-619); B for Greece, C at Persepolis' },
   'M-08': { id: 'M-08', tier: 'B', src: ['IR-PET'], short: 'Ionians among the stonecutters of Persepolis' },
   'M-09': { id: 'M-09', tier: 'B', src: ['IR-WOMEN'], short: "women's work groups with rations at Persepolis" },
@@ -22,11 +24,13 @@ export const MUSIC_CLAIMS: Record<string, MusicClaim> = {
   'M-19': { id: 'M-19', tier: 'B', src: ['ALVAREZMON-MADAKTU'], short: 'the Elamite royal orchestra at Madaktu (653 BCE): seven vertical harps, a horizontal harp, two double pipes, a drum, fifteen clapping and singing; standing and walking (extracts; relief NOT SEEN)' },
   'M-20': { id: 'M-20', tier: 'B', src: ['HARP-ANGULAR-SX'], short: 'the vertical angular harp: soundbox upright or leaning forward against the player, strings vertical from a rod at its foot, usually 21 strings, navel to above the head (extracts)' },
   'M-21': { id: 'M-21', tier: 'B', src: ['CHENG-HARP'], short: 'the horizontal harp: 7-9 strings, held level under the left arm, struck with a plectrum (Cheng 2012, extracts)' },
+  'M-22': { id: 'M-22', tier: 'C', src: [], short: "the magus's chant as a low recitation on one tone with a rise and a fall, vowels only, damped by the mouth-cover (D-209: no Achaemenid chant survives; the plainest liturgical recitation, C)" },
 };
-/** claims that are recorded but must never be performed (M-06 the magus's chant: no attested text, a living religion's
- *  rite: D-200 keeps it silent; M-11, M-12 not Achaemenid or rejected). M-10 (herders' pipes) is performed since D-200:
- *  the transhumant bands' herders are drawn by the population view */
-export const NOT_PERFORMED = ['M-06', 'M-11', 'M-12'];
+/** claims that are recorded but must never be performed (M-11, M-12: not Achaemenid or rejected). M-06, the magus's chant,
+ *  kept silent by D-200, is performed since D-209 (the user's direction D-207): wordless, as a recitation (M-22), by a
+ *  magus at the fire and at offerings only. M-10 (herders' pipes) is performed since D-200: the transhumant bands'
+ *  herders are drawn by the population view */
+export const NOT_PERFORMED = ['M-11', 'M-12'];
 export const knownClaim = (id: string) => id in MUSIC_CLAIMS;
 /** the weakest tier among a performance's claims (C < B < A) */
 export function tierOf(ids: string[]): string {

@@ -22,7 +22,11 @@ const dot = (a: Pt, b: Pt) => a[0] * b[0] + a[1] * b[1];
 /** a carved inscription field (decor.ts carveField): `version` alone, or `versions` side by side ('columns') or top to bottom
  *  ('stack') in the field of width × height below yTop, centred on `origin` (the face line, grid); `glyph` the largest sign
  *  height (default global.r_stair_relief.glyph); the carving fits one sign height to the field (global.r_inscription_carving) */
-export interface InscriptionPlacement { id: string; version: 'op' | 'el' | 'bab'; origin: Pt; along: Pt; normal: Pt; yTop: number; width: number; versions?: ('op' | 'el' | 'bab')[]; glyph?: number; height?: number; arrangement?: 'columns' | 'stack'; where?: string; tier?: string }
+export interface InscriptionPlacement { id: string; version: 'op' | 'el' | 'bab'; origin: Pt; along: Pt; normal: Pt; yTop: number; width: number; versions?: ('op' | 'el' | 'bab')[]; glyph?: number; height?: number; arrangement?: 'columns' | 'stack'; where?: string; tier?: string;
+  /** D-214: a line carved on a relief figure's garment (global.r_garment_inscription): the figure (its kind, seed, frame as the
+   *  relief set places it) and the field in its own figure units; decor.ts lays each sign's cut on the carved robe */
+  garment?: GarmentPlacement }
+export interface GarmentPlacement { kind: string; seed: number; o: [number, number, number]; X: [number, number, number]; Z: [number, number, number]; S: number; D: number; mirror: boolean; fx: [number, number]; fy: [number, number]; oneLine: boolean; glyphMin: number; sample: number }
 export interface ProgrammeSet { name: string; building: string; items: ReliefItem[]; inscriptions: InscriptionPlacement[] }
 type Tagged = { programme: string; tier: string; where: string };
 
@@ -239,11 +243,29 @@ function jambProgrammes(doorways: Doorway[]): ProgrammeSet[] {
       const P = prog[d.door] ?? prog[d.door.replace(/\d+$/, '')];
       if (!P || P.programme === 'plain') continue;
       jambFaces(d).forEach((f, i) => { const n0 = out.length; jamb(out, d, f, P, i, rough, P.tier ?? 'C', b);
-        if (P.inscription) ins.push(jambInscription(f, P.inscription, figuresTop(out.slice(n0)), `${b}:${d.door} doorway, reveal ${i}, above the figures (the three versions stacked)`, 'B (the doorway) / C (the stacking)')); });
+        if (P.inscription) ins.push(jambInscription(f, P.inscription, figuresTop(out.slice(n0)), `${b}:${d.door} doorway, reveal ${i}, above the figures (the three versions stacked)`, 'B (the doorway) / C (the stacking)'));
+        // D-214: a line on the king's garment (DPb in the Tachara, XPk in the Hadish: global.r_garment_inscription)
+        for (const g of garmentCopies(`${b}:${d.door}`, i)) { const king = out.slice(n0).find(it => baseKind(it.kind) === 'king_attendants'); if (king) ins.push(garmentInscription(king, f, g)); } });
     }
     if (out.length) sets.push({ name: `relief:${b}-jambs`, building: b, items: out, inscriptions: ins });
   }
   return sets;
+}
+
+/** the garment copies carved on the king of this doorway's reveal (global.r_garment_inscription, D-214) */
+function garmentCopies(doorway: string, reveal: number): any[] {
+  return (v<any>('global', 'r_garment_inscription').copies as any[]).filter(c => c.doorway === doorway && c.reveal === reveal);
+}
+/** a line across the king's lower robe (the field in his figure units: fx forward, fy up; the relief places the figure
+ *  facing along X or, mirrored, against it), reading left to right as one faces the reveal */
+function garmentInscription(it: ReliefItem, face: ReturnType<typeof jambFaces>[number], copy: any): InscriptionPlacement {
+  const G = v<any>('global', 'r_garment_inscription'), sx = it.mirror ? -1 : 1, along = rightOf(face.n);
+  const a0 = it.S * sx * G.fx[0], a1 = it.S * sx * G.fx[1], lo = Math.min(a0, a1), hi = Math.max(a0, a1);
+  const at: Pt = [it.o.x + along[0] * (lo + hi) / 2, -it.o.z + along[1] * (lo + hi) / 2];
+  return { id: copy.id, version: copy.versions[0], versions: copy.versions, arrangement: 'stack', origin: at, along, normal: face.n, yTop: it.o.y + it.S * G.fy[1], width: hi - lo, height: it.S * (G.fy[1] - G.fy[0]),
+    glyph: G.glyph_max, where: `on the king's garment on reveal ${copy.reveal} of the ${copy.doorway.replace(':', ' ')} doorway: one line across the lower robe${copy.versions.length > 1 ? ' per version, stacked' : ''}`,
+    tier: 'B (a copy on the king\'s garment on a relief) / C (which relief, where on the robe)',
+    garment: { kind: it.kind, seed: it.seed, o: [it.o.x, it.o.y, it.o.z], X: [it.X.x, it.X.y, it.X.z], Z: [it.Z.x, it.Z.y, it.Z.z], S: it.S, D: it.D, mirror: it.mirror, fx: G.fx, fy: G.fy, oneLine: !!copy.one_line, glyphMin: G.glyph_min, sample: G.sample } };
 }
 
 /** every Phase 4 relief set (stairs and jambs), as relief items and inscription placements */

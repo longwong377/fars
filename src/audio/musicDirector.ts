@@ -1,7 +1,7 @@
 // Plays the music schedule in the world (D-178, D-200): what src/audio/performers.ts says is being sung or played now is
 // started at the performer's position when the listener is within earshot, follows the performer, is renewed with a new
 // piece (a new seed) while the stretch lasts, and fades when it ends or the performer stops. The court's musicians, whom
-// the simulation does not hold, are placed as standing extras while their music lasts (PLACEHOLDER dress). Every
+// the simulation does not hold, are placed as standing extras while their music lasts (the court women's dress: D-215). Every
 // performer is shown playing or singing (hooks.play: the playing performance of src/people/playing.ts, kept alive while the
 // gig lasts, near or far); a singer's jaw and breath follow the notes of the piece that sounds (the lead all of them, the
 // rest of a chorus the phrases they join). Browser-side glue only: the decisions are in performers.ts, the evidence rules
@@ -88,7 +88,7 @@ export class MusicDirector {
       const who = p.agentId != null ? `person ${p.agentId}` : p.pid != null ? `population person ${p.pid}` : 'court musician';
       out.push(`music ${i ? 'heard' : 'scheduled (out of earshot)'}: ${g.kind} · ${who} · ${INSTRUMENTS[pf.instrument].name}${pf.voices && pf.voices > 1 ? ` ×${pf.voices}` : ''}${p.play ? ` · seen: ${p.play}` : ''} · ${mode ? `${mode.name} (${mode.species}; ${mode.tier})` : ''} · tier ${g.tier} [${g.claims.join(', ')}]${occ ? ` · occlusion ${occ.gainDb.toFixed(1)} dB, ${Math.round(occ.cutoffHz)} Hz via ${occ.path}` : ''}${g.visual.placeholder ? ` · ${g.visual.note}` : ''}`);
     }
-    if (!out.length) out.push('music: nobody is playing or singing now (only performers make music: SOUNDSCAPE §8); the magus’s chant is not performed (no attested text: M-06, B20a)');
+    if (!out.length) out.push('music: nobody is playing or singing now (only performers make music: SOUNDSCAPE §8); the magus’s chant, when he chants, is wordless (M-06, M-22, D-209)');
     return out;
   }
 }

@@ -9,6 +9,9 @@ import { panelText, inscriptionIds, type PanelText, type Version } from './inscr
 import { buildAtlas, layoutText, carvedGeometry, layoutMaxDepth, type Atlas, type Layout } from './carving';
 import type { Manifest, Doorway, Part, Box, Pt } from './parts';
 import { phase4Programmes, InscriptionPlacement } from './relief_programmes';
+import { antaPlan, baseRingPlan, xpgPlaquePlan, type StonePiece, type RingField } from './royal_fill';
+import { rasterize, type Field } from './relief_field';
+import { figureDef } from './relief_figures';
 import inscriptions from '../data/inscriptions.json';
 import programme from '../data/royal_inscriptions.json';
 import { surfaceMaterial, incisedMaterial } from '../render/materials';
@@ -144,12 +147,14 @@ export interface Fitted { glyph: number; fits: boolean; parts: { block: Block; l
 /** one glyph height for blocks side by side ('columns') or top to bottom ('stack') in a field width × height (m): the largest
  *  <= glyphMax at which every line of an inscription's own lineation fits its column and the whole fits the field
  *  (global.r_inscription_carving; never below glyph_min) */
-export function fitBlocks(blocks: Block[], arrangement: 'columns' | 'stack', width: number, height: number, glyphMax: number): Fitted {
-  const RC = v<any>('global', 'r_inscription_carving'), n = blocks.length, sep = RC.block_sep, colW = arrangement === 'columns' ? (width - (n - 1) * sep) / n : width;
+export function fitBlocks(blocks: Block[], arrangement: 'columns' | 'stack', width: number, height: number, glyphMax: number, glyphMin?: number): Fitted {
+  const RC = v<any>('global', 'r_inscription_carving'), n = blocks.length, colW = arrangement === 'columns' ? (width - (n - 1) * RC.block_sep) / n : width;
+  // a field with its own smallest sign (a garment line, D-214) keeps its versions apart by at most twice its smallest sign
+  const gMin = glyphMin ?? RC.glyph_min, sep = glyphMin !== undefined ? Math.min(RC.block_sep, 2 * glyphMin) : RC.block_sep;
   const lay = (g: number) => blocks.map(b => layoutText(inscriptionFont(b.text.font), b.text.lines, g, g * RC.gap_ratio, colW, b.text.lined));
   const fits = (g: number) => { const L = lay(g); const h = arrangement === 'columns' ? Math.max(...L.map(l => l.height)) : L.reduce((s, l) => s + l.height, 0) + (n - 1) * sep; return L.every(l => l.width <= colW + 1e-6) && h <= height + 1e-6; };
   let g = glyphMax;
-  if (!fits(g)) { let lo = RC.glyph_min, hi = glyphMax; for (let k = 0; k < 22; k++) { const mid = (lo + hi) / 2; if (fits(mid)) lo = mid; else hi = mid; } g = lo; }
+  if (!fits(g)) { let lo = gMin, hi = glyphMax; for (let k = 0; k < 22; k++) { const mid = (lo + hi) / 2; if (fits(mid)) lo = mid; else hi = mid; } g = lo; }
   const L = lay(g); let y = 0; const fitted = fits(g);
   const parts = L.map((layout, i) => { const p = arrangement === 'columns' ? { block: blocks[i], layout, dx: i * (colW + sep), dy: 0 } : { block: blocks[i], layout, dx: 0, dy: y }; y -= layout.height + sep; return p; });
   return { glyph: g, fits: fitted, parts, width: arrangement === 'columns' ? width : Math.max(...L.map(l => l.width)), height: arrangement === 'columns' ? Math.max(...L.map(l => l.height)) : -y - sep };
@@ -174,7 +179,13 @@ export function hostFace(parts: Part[], o: Pt, y: number, n: Pt, reach = 0.6): {
 /** a carved field: the texts (id × versions) in one arrangement on a face. `origin`: the field's centre on the face line
  *  (grid; `snap` moves it onto the nearest box face of the architecture and takes that box's stone), `yTop` its top, `width`
  *  × `height` its size; `surface`: the host's SURFACES key when the host is not a part (a slab, the Terrace wall) */
-export interface CarvedField { texts: { id: string; ver: Version }[]; arrangement: 'columns' | 'stack'; origin: Pt; along: Pt; normal: Pt; yTop: number; width: number; height: number; glyphMax: number; where: string; tier: string; surface?: string; snap?: boolean }
+export interface CarvedField { texts: { id: string; ver: Version }[]; arrangement: 'columns' | 'stack'; origin: Pt; along: Pt; normal: Pt; yTop: number; width: number; height: number; glyphMax: number; where: string; tier: string; surface?: string; snap?: boolean;
+  /** D-214: the text's lines carved as one line (a garment line: the edition's lineation is another copy's) */
+  oneLine?: boolean; glyphMin?: number }
+/** the blocks of a field: each version's text, joined into one line where the copy is a single line (D-214) */
+function fieldBlocks(F: Pick<CarvedField, 'texts' | 'oneLine'>): Block[] {
+  return F.texts.map(t => ({ id: t.id, ver: t.ver, text: panelText(t.id, t.ver)! })).filter(b => b.text).map(b => (F.oneLine ? { ...b, text: { ...b.text, lines: [b.text.lines.join('')], lined: true } } : b));
+}
 const VER_NAME: Record<Version, string> = { op: 'Old Persian', el: 'Elamite', bab: 'Babylonian' };
 /** what the Old Persian signs of a text rest on (D-177), for the dev-overlay notes (decor.ts, naqsh.ts) */
 export function opSignsNote(id: string): string {
@@ -202,11 +213,11 @@ function versionNote(id: string, ver: Version, glyph: number, depth: number, whe
 }
 /** carve one field into group `g` (one mesh and one pick rectangle per version) */
 function carveField(g: THREE.Group, parts: Part[], F: CarvedField, report: string[]) {
-  const blocks: Block[] = F.texts.map(t => ({ id: t.id, ver: t.ver, text: panelText(t.id, t.ver)! })).filter(b => b.text);
+  const blocks = fieldBlocks(F);
   if (!blocks.length) return;
   const host = F.snap === false ? null : hostFace(parts, F.origin, F.yTop - F.height / 2, F.normal);
   const surface = F.surface ?? host?.material ?? 'limestone', off = host && !F.surface ? host.d : 0;
-  const fit = fitBlocks(blocks, F.arrangement, F.width, F.height, F.glyphMax);
+  const fit = fitBlocks(blocks, F.arrangement, F.width, F.height, F.glyphMax, F.glyphMin);
   const X = gw(F.along[0], F.along[1]), Z = gw(F.normal[0], F.normal[1]);
   const o = gw(F.origin[0], F.origin[1]).addScaledVector(Z, off).addScaledVector(X, -F.width / 2); o.y = F.yTop;
   for (const p of fit.parts) {
@@ -215,7 +226,7 @@ function carveField(g: THREE.Group, parts: Part[], F: CarvedField, report: strin
     const meta = { tier: p.block.ver === 'op' ? (T.op_lined ? 'B' : 'C') : mk ? (mk.restored || mk.paren ? 'B/C' : 'B') : 'C', src: p.block.ver === 'op' ? 'ARIO-CATF;ARIO;NOTO;LANG-R' : 'ARIO-CATF;ARIO;OSL;NOTO;LANG-R', inscription: p.block.id, version: p.block.ver, host: surface, glyph: fit.glyph, depth,
       note: versionNote(p.block.id, p.block.ver, fit.glyph, depth, `${F.where} (placement ${F.tier})`, surface) };
     const mesh = new THREE.Mesh(geo, incisedMaterial(surface, A)); mesh.matrixAutoUpdate = false; mesh.matrix.makeBasis(X, up, Z).setPosition(o);
-    mesh.receiveShadow = true; mesh.castShadow = false; mesh.userData = { ...meta, carved: [{ id: p.block.id, ver: p.block.ver, signs: geo.userData.signs }] }; mesh.name = `inscription:${p.block.id}:${p.block.ver}`; g.add(mesh);
+    mesh.receiveShadow = true; mesh.castShadow = false; mesh.userData = { ...meta, snapped: !!host && !F.surface, carved: [{ id: p.block.id, ver: p.block.ver, signs: geo.userData.signs }] }; mesh.name = `inscription:${p.block.id}:${p.block.ver}`; g.add(mesh);
     // pick rectangle over the block (the carved mesh is only the signs, so a look between wedges would miss); on
     // INSCRIPTION_PICK_LAYER, which no camera renders; the translation layer raycasts that layer only
     const pad = 0.05, w = p.layout.width, h = p.layout.height;
@@ -264,6 +275,7 @@ export function buildInscriptions(m: Manifest, parts: Part[], extra: Inscription
   // (Hadish E, W doorways), DPa (Tachara S doorway), DPb (Hadish NW doorway)
   for (const p of extra) {
     if (!(inscriptions as any)[p.id]) continue;
+    if (p.garment) { carveGarment(g, p, report); continue; } // D-214: DPb, XPk on the king's robe
     carveField(g, parts, { texts: (p.versions ?? [p.version]).map(ver => ({ id: p.id, ver })), arrangement: p.arrangement ?? 'stack', origin: p.origin, along: p.along, normal: p.normal, yTop: p.yTop,
       width: p.width, height: p.height ?? 3, glyphMax: p.glyph ?? v<any>('global', 'r_stair_relief').glyph, where: p.where ?? p.id, tier: p.tier ?? 'C' }, report);
   }
@@ -307,12 +319,119 @@ export function buildInscriptions(m: Manifest, parts: Part[], extra: Inscription
       }
     }
   }
+  // D-214 (gap audit items 27, 28; royal_fill.ts): the copies not carved before: XPc on the Tachara's portico antae and XPd
+  // on the Hadish N portico's antae (their stones: a casing, free-standing piers), XPj and XPm round the drums of the Hadish N
+  // portico's column bases, XPg on its plaque beside the Apadana's N doorway
+  const A = antaPlan(m), XG = xpgPlaquePlan(parts, m), stones: StonePiece[] = [...A.stones, ...(XG ? [XG.stone] : [])];
+  if (stones.length) g.add(stoneMesh(stones));
+  for (const f of [...A.fields, ...(XG ? [XG.field] : [])]) carveField(g, parts, { texts: f.versions.map(ver => ({ id: f.id, ver })), arrangement: f.arrangement, origin: f.origin, along: f.along, normal: f.normal,
+    yTop: f.yTop, width: f.width, height: f.height, glyphMax: f.glyphMax, where: f.where, tier: f.tier, surface: f.surface, snap: false }, report);
+  carveRings(g, baseRingPlan(parts), report);
   // the programme's gaps (Phase 8 review A-M5): every copy standing in 467 that is not carved, flagged
   const missing = (programme.missing as any[]).map(m => `${m.id}: ${m.what} (${m.why})`);
   const summary = `royal inscriptions: ${report.length} versions carved; ${missing.length} copies or versions standing in 467 NOT carved [PLACEHOLDER: Q-290, src/data/royal_inscriptions.json]`;
-  g.userData = { tier: 'B/C', placeholder: missing.length > 0, summary, missing, note: `carved inscriptions (D-177: text and signs, carving and placement):\n${report.join('\n')}\nNOT carved (Q-290):\n${missing.join('\n')}`, report };
+  g.userData = { tier: 'B/C', placeholder: missing.length > 0, summary, missing, note: `carved inscriptions (D-177: text and signs, carving and placement):\n${report.join('\n')}\nNOT carved (Q-290):\n${missing.join('\n')}`, report,
+    /** the stones carrying texts that are solid and not architecture parts (D-214: the Hadish antae): the world gives each a
+     *  collider and blocks the people's walkable grid round it */
+    solids: stones.filter(q => q.solid).map(q => ({ id: q.id, c: q.c, size: q.size, y0: q.y0, y1: q.y1 })) };
   return g;
 }
+/** the stones carrying texts that are not architecture parts (D-214), merged into one mesh per material */
+function stoneMesh(stones: StonePiece[]): THREE.Group {
+  const grp = new THREE.Group(); grp.name = 'inscription-stones';
+  const byMat = new Map<string, StonePiece[]>(); for (const q of stones) (byMat.get(q.material) ?? byMat.set(q.material, []).get(q.material)!).push(q);
+  for (const [mat, qs] of byMat) {
+    const geo = mergeGeometries(qs.map(q => { const b = new THREE.BoxGeometry(q.size[0], q.y1 - q.y0, q.size[1]); b.translate(q.c[0], (q.y0 + q.y1) / 2, -q.c[1]); b.deleteAttribute('uv'); return b; }))!;
+    const mesh = new THREE.Mesh(geo, surfaceMaterial(mat)); mesh.castShadow = mesh.receiveShadow = true; mesh.name = `inscription-stones:${mat}`;
+    mesh.userData = { tier: 'C', src: 'LIVIUS-AI;LANG-R;RECON', note: `stones carrying royal inscriptions that the architecture has no face for (D-214): ${qs.map(q => q.note).join('; ')}`, stones: qs.map(q => q.id) };
+    grp.add(mesh);
+  }
+  return grp;
+}
+/** the relief field of a figure, rasterised once per kind, seed and grid (the heights its LOD meshes are cut from) */
+const garmentFields = new Map<string, Field>();
+function figureField(kind: string, seed: number, n: number): Field {
+  const k = `${kind}|${seed}|${n}`; let f = garmentFields.get(k); if (!f) { f = rasterize(figureDef(kind, seed), n); garmentFields.set(k, f); } return f;
+}
+/** the relief height (depth units) at a point of a figure's frame, bilinear */
+export function fieldHeight(f: Field, fx: number, fy: number): number {
+  const u = Math.min(f.n - 1.001, Math.max(0, (fx - f.x0) / f.cell)), w = Math.min(f.n - 1.001, Math.max(0, (fy - f.y0) / f.cell)), i = Math.floor(u), j = Math.floor(w), a = u - i, b = w - j, n = f.n;
+  return (f.h[j * n + i] * (1 - a) + f.h[j * n + i + 1] * a) * (1 - b) + (f.h[(j + 1) * n + i] * (1 - a) + f.h[(j + 1) * n + i + 1] * a) * b;
+}
+/** the relief field under a garment line (D-214), for the tests: the same field the carving samples */
+export function garmentFieldOf(kind: string, seed: number, n: number): Field { return figureField(kind, seed, n); }
+/** a line on a relief figure's garment (D-214; relief_programmes.ts garmentInscription): the field is flat in the reveal's
+ *  plane, and each sign's cut lies flat at the highest point of the carved robe it covers (the relief field sampled at the
+ *  sign quad's corners, edge midpoints and centre), so no cut is buried in a fold and none stands more than the fold's
+ *  step off the robe */
+function carveGarment(g: THREE.Group, p: InscriptionPlacement, report: string[]) {
+  const G = p.garment!, blocks = fieldBlocks({ texts: (p.versions ?? [p.version]).map(ver => ({ id: p.id, ver })), oneLine: G.oneLine }); if (!blocks.length) return;
+  const fit = fitBlocks(blocks, 'stack', p.width, p.height ?? 0.1, p.glyph ?? 0.03, G.glyphMin);
+  const f = figureField(G.kind, G.seed, G.sample), sx = G.mirror ? -1 : 1, o = new THREE.Vector3(...G.o), X = new THREE.Vector3(...G.X), Z = new THREE.Vector3(...G.Z);
+  const left = Math.min(G.S * sx * G.fx[0], G.S * sx * G.fx[1]), org = o.clone().addScaledVector(X, left); org.y = p.yTop;
+  const emb = v<any>('apadana', 'r_relief_carving').embed, lift = v<any>('global', 'r_inscription_carving').lift;
+  const hAt = (px: number, py: number) => fieldHeight(f, (left + px) / (G.S * sx), (p.yTop + py - o.y) / G.S);
+  const matrix = new THREE.Matrix4().makeBasis(X, up, Z).setPosition(org);
+  for (const q of fit.parts) {
+    const A = inscriptionAtlas(q.block.text.font), geo = carvedBlockGeometry(q.block, q.layout, q.dx, q.dy), depth = layoutMaxDepth(A, q.layout), pos = geo.getAttribute('position') as THREE.BufferAttribute;
+    let zMin = Infinity, zMax = -Infinity;
+    for (let k = 0; k < pos.count; k += 4) { // one quad per sign (carving.ts): corners k..k+3
+      const x0 = pos.getX(k), y0 = pos.getY(k), x1 = pos.getX(k + 2), y1 = pos.getY(k + 2); let h = -Infinity;
+      for (const [a, b] of [[0, 0], [1, 0], [0, 1], [1, 1], [0.5, 0], [0.5, 1], [0, 0.5], [1, 0.5], [0.5, 0.5]]) h = Math.max(h, hAt(x0 + (x1 - x0) * a, y0 + (y1 - y0) * b));
+      const z = G.D * h - emb + lift; zMin = Math.min(zMin, z); zMax = Math.max(zMax, z);
+      for (let c = 0; c < 4; c++) pos.setZ(k + c, z);
+    }
+    pos.needsUpdate = true; geo.computeBoundingBox(); geo.computeBoundingSphere();
+    const T = (inscriptions as any)[q.block.id], mk = q.block.ver === 'op' ? null : T[`${q.block.ver}_marks`], edLines = panelText(q.block.id, q.block.ver)!.lines.length;
+    const meta = { tier: q.block.ver === 'op' ? (T.op_lined ? 'B' : 'C') : mk ? (mk.restored || mk.paren ? 'B/C' : 'B') : 'C', src: q.block.ver === 'op' ? 'ARIO-CATF;ARIO;NOTO;LANG-R' : 'ARIO-CATF;ARIO;OSL;NOTO;LANG-R', inscription: q.block.id, version: q.block.ver, host: 'limestone_carved', glyph: fit.glyph, depth, garment: true,
+      note: versionNote(q.block.id, q.block.ver, fit.glyph, depth, `${p.where} (placement ${p.tier}); each sign's cut laid on the carved robe (${(zMin * 1000).toFixed(0)} to ${(zMax * 1000).toFixed(0)} mm off the reveal: the relief's folds)${G.oneLine && edLines > 1 ? `; the edition's ${edLines} lines carved as the garment's one line (C, Q-429)` : ''}`, 'limestone_carved') };
+    const mesh = new THREE.Mesh(geo, incisedMaterial('limestone_carved', A)); mesh.matrixAutoUpdate = false; mesh.matrix.copy(matrix);
+    mesh.receiveShadow = true; mesh.castShadow = false; mesh.userData = { ...meta, carved: [{ id: q.block.id, ver: q.block.ver, signs: geo.userData.signs }] }; mesh.name = `inscription:${q.block.id}:${q.block.ver}`; g.add(mesh);
+    const pad = 0.03, w = q.layout.width, h = q.layout.height;
+    const pick = new THREE.Mesh(new THREE.PlaneGeometry(w + 2 * pad, h + 2 * pad).translate(q.dx + w / 2, q.dy - h / 2, zMax + 0.002), pickMat); pick.matrixAutoUpdate = false; pick.matrix.copy(matrix); pick.layers.set(INSCRIPTION_PICK_LAYER);
+    pick.name = `inscription:${q.block.id}:${q.block.ver}:pick`; pick.userData = meta; g.add(pick);
+    report.push(`${q.block.id}:${q.block.ver} ${q.layout.signs.length} signs, ${q.layout.lines} line, glyph ${(fit.glyph * 100).toFixed(1)} cm${fit.fits ? '' : ' (DOES NOT FIT the field at the smallest glyph)'}, deepest ${(depth * 1000).toFixed(1)} mm, on the king's garment (${p.where})`);
+  }
+}
+/** texts round column-base drums (D-214; royal_fill.ts baseRingPlan): each version one line, the lines stacked from the band's
+ *  top, centred on the side the row faces, the signs' quads bent onto the drum's (slightly conical) face and baked in world
+ *  space; one mesh per text and version for all its bases */
+function carveRings(g: THREE.Group, rings: RingField[], report: string[]) {
+  const lift = v<any>('global', 'r_inscription_carving').lift, byKey = new Map<string, { geos: THREE.BufferGeometry[]; carved: any[]; glyph: number[]; depth: number; where: string[]; tier: string }>();
+  for (const R of rings) {
+    const blocks = fieldBlocks({ texts: R.versions.map(ver => ({ id: R.id, ver })) }); if (!blocks.length) continue;
+    const rMid = (R.r0 + R.r1) / 2, fit = fitBlocks(blocks, 'stack', 2 * Math.PI * rMid * 0.94, R.bandTop - R.bandBottom, R.glyphMax);
+    const k = (R.r1 - R.r0) / R.hd, phiC = Math.atan2(R.facing[1], R.facing[0]);
+    for (const q of fit.parts) {
+      const A = inscriptionAtlas(q.block.text.font), geo = carvedBlockGeometry(q.block, q.layout, q.dx, q.dy), depth = layoutMaxDepth(A, q.layout);
+      const pos = geo.getAttribute('position') as THREE.BufferAttribute, nor = geo.getAttribute('normal') as THREE.BufferAttribute, T = geo.getAttribute('carveT') as THREE.BufferAttribute, B = geo.getAttribute('carveB') as THREE.BufferAttribute;
+      const nl = Math.hypot(1, k);
+      for (let i = 0; i < pos.count; i++) {
+        const h = R.bandTop + pos.getY(i), r = R.r0 + k * h + lift, phi = phiC + (pos.getX(i) - q.layout.width / 2) / r, c = Math.cos(phi), s = Math.sin(phi);
+        pos.setXYZ(i, R.c[0] + r * c, R.y0 + h, -(R.c[1] + r * s)); // grid → world
+        nor.setXYZ(i, c / nl, -k / nl, -s / nl); T.setXYZ(i, -s, 0, -c); B.setXYZ(i, (k * c) / nl, 1 / nl, (-k * s) / nl);
+      }
+      geo.computeBoundingBox(); geo.computeBoundingSphere();
+      const key = `${q.block.id}:${q.block.ver}`, e = byKey.get(key) ?? byKey.set(key, { geos: [], carved: [], glyph: [], depth: 0, where: [], tier: R.tier }).get(key)!;
+      e.geos.push(geo); e.carved.push({ id: q.block.id, ver: q.block.ver, signs: geo.userData.signs }); e.glyph.push(fit.glyph); e.depth = Math.max(e.depth, depth); e.where.push(R.where);
+      // the pick rectangle: in the tangent plane at the line's middle
+      const hm = R.bandTop + q.dy - q.layout.height / 2, rm = R.r0 + k * hm + 0.01, w = Math.min(q.layout.width, 1.2), n = new THREE.Vector3(Math.cos(phiC), 0, -Math.sin(phiC));
+      const pick = new THREE.Mesh(new THREE.PlaneGeometry(w + 0.1, q.layout.height + 0.1), pickMat); pick.matrixAutoUpdate = false;
+      pick.matrix.makeBasis(new THREE.Vector3(-Math.sin(phiC), 0, -Math.cos(phiC)), up, n).setPosition(R.c[0] + rm * Math.cos(phiC), R.y0 + hm, -(R.c[1] + rm * Math.sin(phiC)));
+      pick.layers.set(INSCRIPTION_PICK_LAYER); pick.name = `inscription:${q.block.id}:${q.block.ver}:pick`; pick.userData = { inscription: q.block.id, version: q.block.ver, tier: 'C' }; g.add(pick);
+      report.push(`${q.block.id}:${q.block.ver} ${q.layout.signs.length} signs, 1 line round a base drum (r ${rm.toFixed(2)} m), glyph ${(fit.glyph * 100).toFixed(1)} cm${fit.fits ? '' : ' (DOES NOT FIT the field at the smallest glyph)'}, deepest ${(depth * 1000).toFixed(1)} mm, on limestone_carved`);
+    }
+  }
+  for (const [key, e] of byKey) {
+    const [id, ver] = key.split(':') as [string, Version], A = inscriptionAtlas(panelText(id, ver)!.font), T = (inscriptions as any)[id], mk = ver === 'op' ? null : T[`${ver}_marks`];
+    const geo = mergeGeometries(e.geos)!; geo.userData = { signs: e.carved.map(c => c.signs).join('') };
+    const glyph = Math.min(...e.glyph), meta = { tier: ver === 'op' ? (T.op_lined ? 'B' : 'C') : mk ? (mk.restored || mk.paren ? 'B/C' : 'B') : 'C', src: ver === 'op' ? 'ARIO-CATF;ARIO;NOTO;LANG-R' : 'ARIO-CATF;ARIO;OSL;NOTO;LANG-R', inscription: id, version: ver, host: 'limestone_carved', glyph, depth: e.depth, ring: true, copies: e.carved.length,
+      note: versionNote(id, ver, glyph, e.depth, `${e.carved.length} copies, ${e.where[0].replace(/column \d+ \(from the W\)/, 'each column')} (placement ${e.tier}); the cut follows the drum's curve`, 'limestone_carved') };
+    const mesh = new THREE.Mesh(geo, incisedMaterial('limestone_carved', A)); mesh.matrixAutoUpdate = false; mesh.receiveShadow = true; mesh.castShadow = false;
+    mesh.userData = { ...meta, carved: e.carved }; mesh.name = `inscription:${id}:${ver}`; g.add(mesh);
+  }
+}
+
 /** layer of the inscriptions' invisible pick rectangles (no camera renders it) */
 export const INSCRIPTION_PICK_LAYER = 5;
 const pickMat = new THREE.MeshBasicNodeMaterial({ side: THREE.DoubleSide, visible: false });

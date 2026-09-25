@@ -4094,3 +4094,249 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
 - **Not taken on** from the audit's extra list: the Hadish apartments and S balcony (item 30), glazed bricks (28) and paint
   placeholders (29) are left for a later pass; the guards' shield and jewellery (21) are people-look work in another
   workstream.
+
+## D-214 The royal inscriptions' remaining copies, the Apadana's glazed brick, painted Treasury shafts and guards' robes, the Terrace's drains and cisterns (session 7; gap audit items 27, 28, 29, 31; D-207)
+- **Read first: all placement is C, and none of it has been seen rendered.** Node-side only: no browser render, no
+  screenshot, no probe or walkable-grid re-bake. The evidence behind the kinds is second-hand (B at best): the find-spots of
+  the inscriptions are Livius's descriptions read through the GitHub scrape (LANGUAGES.md §2); the Terrace's drains and
+  cistern are search extracts; the glazed-brick colours are Stein et al. 2016 via a search extract; the Susa friezes and robes
+  are **recollection**, NOT SEEN. Schmidt 1953 remains unreachable (B6) for every field, face, size and position.
+- **The texts (gap audit item 27, "never invent text").** XPg, XPj, XPk and XPm were in the ARIo mirror but not in the
+  carving corpus. They are now extracted from the same CC0 CATF file read before (byte-identical, sha256 eb8de252…), sign by
+  sign, by the D-184 pipeline (tools/extract_ario_catf.py, build_inscriptions.py, build_op_signs.ts, build_cun_lines.py); every
+  existing entry is unchanged. ARIo numbers the Xerxes texts in the sigla's order (XPa = Xerxes I 05 … XPg 11, XPj 14, XPk 15,
+  XPm 17), and each is confirmed by content. The project's own English (tier C, labelled, D-198) was added for each version.
+  XPg has only an Old Persian version in the edition. XPk's Elamite and Babylonian lines are mostly the editor's restorations
+  (carved, C, counted). DNc–DNe are also in ARIo (Q007154–Q007156, Old Persian) but belong to the tomb (naqsh.ts, the plain
+  workstream): not carved in this pass, recorded in royal_inscriptions.json `missing`.
+- **Where each copy stands (src/arch/royal_fill.ts; SITE_SPEC rows named; all C).**
+  - XPc on both antae of the Tachara S portico (tachara.r_anta_inscription): the S ends of the portico's side walls cased in
+    dark polished stone 2 m back and to the columns' height; the three versions stacked on the face turned to the portico
+    (glyph 4.0 cm). Q-420.
+  - XPd on both antae of the Hadish N portico (hadish.r_anta_inscription): the model has no side walls to that portico, so
+    the antae are free-standing dark-stone piers 2.3 m square in line with the hall's side walls and the front row, solid at
+    runtime (a collider each; the people's grid blocked round them at load). They are not architecture parts: the parts hash,
+    the baked walkable grid and the probes are unchanged (the baked grid does not know them; the runtime grid does). Q-421.
+  - DPb (Old Persian, the edition's two lines as one) across the lower robe of the king on reveal 0 of the Tachara S main
+    doorway, and XPk (three versions, one line each) on the king of the Hadish E doorway (global.r_garment_inscription). Each
+    sign's cut lies flat at the highest point of the carved robe it covers (the relief field sampled under it), so none is
+    buried and none stands more than a fold's step (≤ 12 mm, tested) off the robe. The signs are small: 0.7 cm (DPb) and
+    0.9 cm (XPk), cuts under a millimetre deep; a garment line has its own smallest sign (glyph_min 6 mm, C). Q-423, Q-429.
+  - XPj round the plain drums of the six front-row column bases of the Hadish N portico, XPm round the six back-row drums
+    (hadish.r_base_inscriptions): each version one line (the edition's own one-line texts), the three stacked, the cuts bent
+    onto the drum's slightly conical face and centred toward the court; one mesh per text and version for all six bases. The
+    Harem's bases, where most were found, are leaf-carved bells in this model with no plain field. Q-422.
+  - XPg on a plaque of dark stone on the Apadana hall's N wall inside the N portico, 2 m E of the main doorway's frame, at
+    reading height (apadana.r_xpg_plaque). Its glazed-brick copies are **not drawn**: glazed signs are moulded or painted in
+    the glaze, which the incised carving does not draw, and where the text bricks sat is not read (kept in `missing`). Q-424.
+  - The translation layer names every new copy (INSCRIPTION_INFO); the language lint reads every new carved mesh back sign by
+    sign against the corpus (passes).
+- **Glazed brick (item 28; src/arch/glazed.ts; apadana.r_glazed_frieze).** One band of rosettes between plain border courses
+  (11 courses of 9 cm), on every outer face of the Apadana's four corner towers, its top 0.9 m under the tower tops and above
+  the portico roofs; green ground, yellow rosettes, grey centres and dividing lines (the three glazes found at Persepolis, B;
+  their use C); 408 rosettes on 16 faces, one draw, 14.9 k triangles. **Kept out:** figured panels (archers, lions, bulls,
+  griffins): none is reported from Persepolis. Q-425.
+- **Paint (item 29).** The Treasury's plastered timber shafts (Q-020's placeholder) are painted after the Persepolis and
+  Pasargadae painted plaster and the red floors (treasury.r_shaft_paint): a red-ochre ground, a white lozenge lattice (8 per
+  turn, 0.5 m), Egyptian-blue bands at the foot and the head edged white; a TSL pattern in the column's own frame on the
+  plaster surface, filtered over the pixel footprint (render/materials.ts paintedShaftMaterial). Q-426. The Persian guards'
+  long robes on the reliefs carry white ringed dots in a staggered lattice and a yellow-ochre hem border after the Susa
+  glazed-brick guards (polychromy.json paint.robe_pattern; in polychromy.json so the relief worker does not load the whole
+  SITE_SPEC); every other garment stays plain (restraint: no pattern read for them). The pattern's paint edges add about
+  20 k triangles to the worst Apadana walk (935,681 → 956,201 of the 1.5 M budget, tools/relief_budget.ts); the jambs are
+  unchanged. Q-427.
+- **Drains and cisterns (item 31; src/arch/waterworks.ts; terrace.r_drains, terrace.r_cisterns).** On the W and S retaining
+  walls, on every open stretch of at least 18 m, a drain mouth every 40 m (none by the S wall's inscriptions, none whose court
+  side has a building within 3.5 m): the dark of the conduit in the wall face, a projecting stone spout, its sill 0.6 m over
+  the ground; 2.2 m in on the court an inlet slab over the shaft, fed by an open stone gutter 6 m long (limestone channels 25 cm
+  wide as in the Pasargadae garden, B analogy). 12 mouths (8 stretches skipped, each with its reason). Well-heads (a stone kerb
+  on a paving slab) over cisterns 1.2 m W of the people's two water points on the Terrace (the court cistern, the garrison
+  court), which the simulation already uses; the kerbs are solid and block the people's grid at load. The large cistern at
+  the E foot of the Kuh-e Rahmat is off the Terrace and its place is not read: not drawn. Two draws, ~2 k triangles. Q-428.
+- **Not taken on:** the Hadish apartments and S balcony (item 30): they are walls and floors, so they belong in the
+  architecture's parts, which would change the parts hash and need the light probes and the walkable grid re-baked
+  (tools/build_probes.ts, tools/build_nav.ts) — heavy runs this pass could not make on this machine; left for a pass that can
+  re-bake. The Now view (D-201) keeps the inscriptions group, so the new antae, piers, plaque and copies show there too
+  (not reviewed against the ruin); the frieze and the waterworks are hidden with the rest of 467.
+- **Cost** (node, tests): inscriptions +24 draws / 13.2 k triangles (tests/royal_fill.test.ts), glazed frieze 1 / 14.9 k,
+  waterworks 2 / ~2 k; the draw budget is ≤ 3,000 a frame (B13: 418–671 measured before). buildInscriptions ~0.13 s after
+  its atlases (the garment's relief field ~0.1 s once).
+
+## D-215 People's look: babies in arms, children's play and toys, ornaments by rank, the wicker shield and gilded butts, eye paint, the court women's dress, the lame and the blind (session 7; gap audit items 4, 21, 22, 26, 37; D-207)
+- **Read first: all C except where marked; nothing rendered in a browser** (node tests only: tests/people_children.test.ts,
+  numbers in bench-reports/people-children.json). What is weak or missing:
+  - The carried child is a small instanced prop (a stiff body: tunic, head, hair, four limbs; or a swaddled bundle), not a
+    skinned body: it does not move, its limbs do not grip, and at the hip or in the lap it can touch the carer's forearm.
+    Its skin takes the carer's tone (a tint), its hair and tunic are one colour.
+  - Impostors (beyond 600 m, or beyond the pool) carry no child, no toy and no shield (a speck).
+  - The sling is a band round the child and two straps rising to the carer's shoulders; the straps are not fitted to her body
+    and can pass inside it.
+  - Hand in hand: the view takes a child walking with someone (under four, or a child of the house leading a blind elder) to
+    their side when the two are within 4 m (a step of up to ~5 m when it starts: `view.kids.handJumpMax`, 3.96 m measured).
+    The plans walk them on two routes (Q-439); beyond 4 m each walks its own. The palms come within 5-10 cm (measured).
+  - The wicker shield is carried at the left side by the grip (the left arm down at the post); in other poses it follows the
+    forearm; it is laid aside when seated. Its form is NOT SEEN on the reliefs (Q-433).
+  - The veil hangs from under the crown over ±60° of the back to mid-thigh and is skinned to the head and spine: a walking
+    court woman's arms and legs can pass through its sides and hem. Far off (impostors) the court women are drawn with the
+    town women's row (a long dress and a headcloth), not a robe and veil.
+  - Toys in the yards are part of the settlement's merged mesh (no per-toy pick). Toy wheels do not turn.
+  - The children's toys joined the long tools' prop union (698 of its 700 triangles).
+- **Babies in arms (item 4).** Nothing in the simulation changes: `population.ts small()` already keeps every infant with the
+  one minding it and words how ("carried on the mother's back", "at her front", "in her lap", "nursed by the mother",
+  "lying on a mat beside her while she works", a toddler "carried by …"). The view (popview.ts) hides the child's own body
+  (D-143) and now gives it to the carer: `ViewPerson.babes` (at most two), from the child's `Seg.with` and its words
+  (babes.ts `babeMode`): hip, back sling, front sling (a twin), arms (a newborn carried, or nursed standing), nursed sitting,
+  lap, a reed mat beside her, or a basket cradle beside her when asleep at home. A child the view keeps indoors (asleep) is
+  drawn with a carer who is out of doors. Where the carer's arms work (the quern, the loom, a jar on the head) the child is
+  on her back; where they are free, the arms hold it (poseKit grip IK to hand targets in her pelvis or chest frame: babes.ts
+  HOLD, C). The child's size by age (0.5 m at birth, 0.75 m at one, then CHILD_H; C), swaddled under three months (Q-431).
+  - Measured (town, days 40 and 200, three hours): 1,147 children held or put down by a drawn carer, 4 whose carer was not
+    drawn (99.7 %); of 928 mothers of infants out of doors, 927 carry or have beside them a child (their own infant). By way:
+    mat 344, back 199, nurse 168, lap 167, hip 135, cradle 132, front 2. On the rig (two bodies, 12 cases): the child's centre
+    0.19-0.25 m from the pelvis or chest, the holding palm 0.10-0.23 m from it, never below the ground.
+  - Draws: one more instanced draw (the carried children's class, 900 triangles per instance) only where a child is carried.
+- **Toddlers by the hand; the blind led.** A child under four walking with someone (its plan's `with`) walks at their left
+  (right when she carries a child on the hip) hand in hand: the grown walker's arm held out low, the child's raised by the
+  difference in height (popview `handReach`, C: proportions of the body).
+- **Children's play (item 26).** `play` has variants by share, age and sex (activities.ts; `performanceFor` takes who
+  performs: a variant for boys or for an age range is passed over for others): tossing a leather ball (ball in the long
+  tools' union, placed between the palms and thrown up), running round in a circle 2.2 m across at 2 m/s (a path cycle),
+  knucklebones in the dust (the dice pose and five astragali: a work object), pulling a wheeled clay bull round by its cord
+  (a path cycle and a work object that follows), a boy's small bow (the archery cycle, a 0.6 m bow), a small child shaking a
+  clay rattle (sitting). Toys left in about one courtyard in four (26 %: 356 of 1,337 houses; a settlement fitting chosen by
+  the plot, no draw from the plan's random stream, so nothing else moves). Sources: astragali B object; toys by analogy
+  (SUSA-TOYS, RECOLLECTION, NOT SEEN; Q-436).
+- **Ornaments by rank, the shield, the butts, eye paint (item 21).** Read this session (the Perseus texts): Herodotus 7.41
+  (golden and silver pomegranates, the apples of gold of those nearest the king) and 7.61 (the Persians' wicker bucklers with
+  the quivers beneath); Xenophon Cyr. 1.3.2, 8.1.41, 8.8.20 (pencilled eyes, necklaces and bracelets of the Median court,
+  taken up by Cyrus's courtiers). Claims, B; everything placed by rank C (looks.ts JEWELS; new draws last, so every earlier
+  look is unchanged):
+  - gold ring earrings (18 mm hoops through the lobes found per body: outfits.ts `earLobes`) and gold wrist rings; bronze
+    ones for the town's women; working men and children none (MATERIAL_CULTURE: the workers' dress has no ornaments);
+  - the wicker shield (violin-shaped, 0.8 × 0.44 m) for 35 % of the Persian-dress guards, who keep the bow and quiver (as
+    Herodotus 7.61 has them together);
+  - spears: the king's spearmen (court setting) with golden apples at the butt, from their plan's own words ("spear with its
+    apple-shaped butt": court.ts); one Persian-dress guard in ten golden pomegranates; the rest silver (the prop as before);
+  - eye paint: a look flag (LOOK_BITS kohl); the lash strips' roots filled solid and near black (humanMaterial KOHL, mirrored
+    in tools/dev/human_cpu.ts): the king and the court women, half the Persian-dress nobles, a quarter of the town's women.
+  - Measured over 400 looks per dress: every share within 0.03 of the table; the hoops pass within 1.2 mm of the lobes on
+    every adult body; the bracelets 1.2-3.9 cm from the forearm's axis; the shield 1.5 cm or more outside the left hand.
+- **The court women's dress (item 22; BLOCKERS B20c closed).** A new dress `court_woman` drawn with the Persian costume's
+  mesh (as the guards and the king: no new mesh, no new draw): the many-folded robe belted at the front (IR-WOMEN: B), a gold
+  crenellated crown 7 cm high with ten merlons and a long veil from under it down the back (the Pazyryk women: B; forms,
+  sizes, colours C), gold earrings and bracelets, eye paint. Worn by the court's women (court.ts `lookOf`, group `women`)
+  and by the court musicians (world.ts extras; performers.ts no longer PLACEHOLDER). The necklace is not modelled. The veil
+  measured outside the robe everywhere (0 of 442 vertices inside).
+- **The lame and the blind (item 37, sparingly).** From the population's own ages and jobs, by a hash of the person (C):
+  0.6 % of men of 22-60 lame, 3 % of people of 60 and over blind (measured 0.66 % and 2.8 %); none among the guards and
+  couriers. The lame walk with a staff and a stiff right leg (a limping cycle); the blind feel the way with a staff held
+  forward, led by a child of the house when one walks within 4 m. No begging is shown.
+- **Budgets (measured):** triangles per costume (LOD 0/1/2/3) persian 38,236/5,789/3,012/759, median 36,931/5,432/2,906/742,
+  woman 32,318/5,357/2,410/672 (budgets 42,000/7,000/3,200/800). The farthest LOD keeps a piece whole where the simplifier would
+  remove it (an earring, a bracelet: D-205's rule that the far body draws what the look wears). Prop unions: small objects
+  986 (unchanged), long tools 698 (≤ 700), instruments and the gilded spears 874 (≤ 1,200), carried children 900 (≤ 1,000).
+- **Kept out, and why:** begging (no source); a chanted or spoken lullaby (no period text: language rule); tops (no evidence
+  found for the region); a necklace for the court women (not modelled: the robe's neckline is a shell and a necklace ring
+  there needs fitting; Q-435); the rouge and false hair of Cyr. 1.3.2 (not modelled).
+- **Alternatives rejected:** a skinned baby body (a new costume: draws, triangles, a rig for a baby); toys and babies in the
+  small objects' union (it is full: 986 of 1,000); the gilded butts by recolouring the spear per instance (needs a per-vertex
+  flag in every prop); the shield on the back (the reliefs are recalled holding it; Herodotus gives no place); changing the
+  plans so child and carer share a route (population.ts belongs to the sim workstream: Q-439).
+- **Tests changed:** performances (the planted-feet check skips the walking cycles, now flagged `gait` in WORK_META);
+  instruments (four prop classes); performers (the court women's gig is no longer PLACEHOLDER); popview (a hand-held child is
+  allowed its snap distance off its own route; the variant check passes who performs).
+- **Doubts:** Q-205 (updated), Q-430 to Q-439.
+
+## D-209 The religious life of 467 around Persepolis: an open-air precinct with a kept fire, the magi's day, households' sacrifices, funerals and a wordless chant (session 7; the user's direction D-207)
+- **Read first: all of it is reconstruction, and none of it has been seen.** Every place, size, hour, rate, gesture and sound
+  here is tier C, built on B forms (the Pasargadae plinths and the Naqsh-e Rustam altar from search extracts only; the relief
+  and Stronach 1978 NOT SEEN) and B claims (Herodotus 1.101, 1.131-132, 1.138, 1.140, 3.16, read this session in the Perseus
+  text: Greek reports, not Persian ones). **Nothing was rendered in a browser** (node tests only): the precinct, the fire, the
+  graves, the mouth-cover, the barsom, the new poses and the chant's sound are unverified by eye and ear. The chant is a
+  design (M-22) with no evidence for its sound at all. The killing of a sacrificial animal is never shown; exposure is never
+  shown. One line is kept: no liturgical words are invented (the chant is vowels only).
+- **What the evidence rules out, kept out:** a fire temple, shrine or statue (Herodotus 1.131: not their custom; none
+  excavated; temple cults date from Artaxerxes II and the Sasanians); an altar fire kindled for a sacrifice, libations and
+  music at a sacrifice (1.132: the meat is boiled on a pot's fire, the wine is set out in a bowl, no instrument plays).
+- **1. The precinct (src/world/settlement/precinct.ts; settlement.json `sacred_precinct`, rows `precinct_plinths` B and
+  `precinct_altar` C; chronology.json).** On the level bench at the foot of Kuh-e Rahmat 180 m S of the Terrace (centre grid
+  [255, -415]; measured on the terrain: under 8 % slope over the precinct, 9 m above the plain W of it; 330 m from the road
+  south, over 300 m from any built site and from the canal; the lan's old abstract place was 120 m up the steep slope E of
+  the Terrace). Why there: Herodotus puts sacrifice on the heights, and the one excavated precinct (Pasargadae) lies on open
+  ground below a rise at the plain's edge; this is the nearest open, level, untilled ground above the plain, clear of
+  everything built, with the mountain above it for the offerings "to a mountain" (E-31). Built: two white limestone plinths
+  on black borders (2.8 and 2.5 m square, 2 m high, 9 m apart centre to centre on a true N-S line, the S one with a monolithic
+  stair of eight 0.25 m steps: eight or nine in the extracts, Q-470); the fire plinth stands bare with the court away
+  (Stronach's reading, via extract: the king's platform and the fire's). East of them a stepped altar (a three-stepped foot,
+  a square shaft, a three-stepped top; 0.9 m across, 1.18 m high: the relief's form B, size C) with the kept fire on it, its
+  wood stacked beside and its ash heaped E. The fire (fire.ts `altar`, schedule `kept`) burns day and night, in rain too
+  (sheltered by the magi, C; Herodotus 3.16 "the Persians hold fire to be a god", read; Q-473). town.json `offering_place`
+  moved to the precinct; the ground there and at the burial ground is trodden and never tilled (townGround.ts).
+- **2. The burial ground (settlement.json `burial_ground_town`, row `burial_graves`).** 140 low earth mounds in loose rows,
+  some ringed with field stones, on dry untilled ground at the mountain's foot 1.1 km S of the Terrace, 250 m E of the lower
+  town (Herodotus 1.140: the body coated in wax and buried in the earth, B claim; no burial ground of 467 is located:
+  Q-472). town.json `outside` (the town's funerals) moved there from the open plain SW, which was fields. The villages keep
+  their own outskirts (no graves drawn there).
+- **3. The magi (population.ts `priest`).** The population's three magi (unchanged in number; the PF makuš with the lan
+  allocation, HENK2008 B) now wear the Median dress with the soft cap (popview `dressOf`; the Oxus plaques' man with the
+  barsom: B; the Magi a Median tribe, Herodotus 1.101, read) and carry the barsom (props.ts: two splayed rods of twigs,
+  12 triangles, in the small objects' union). At the fire and the offerings the cap's flaps are drawn over the mouth and
+  chin (outfits.ts `mouth_cover`, a new optional piece of the Median costume, appended so every earlier piece bit is
+  unchanged: "his chin is covered", OXUS-PLAQUE, B; the crowd sets its bit only while a performance `wear`s it:
+  activities.ts; the beard is hidden while the flaps are drawn over it; measured on the 20 body variants: 8-10 mm off the
+  face at its nearest, 5.4-6.2 cm at the hanging edge, no NaN). The duty magus (day % 3) feeds the fire before first light, makes the lan (barley set out before the fire,
+  wine in a bowl beside it, the barsom in hand), chants at the fire, and at dusk banks the fire and chants; the other two stand
+  at the fire at first light. Each makes the calendar's E-31 offerings (up the slope, or on the Pulvar bank, not in the
+  water: Herodotus 1.138) and E-32 (at the precinct; one in five with a sheep he kills himself, Herodotus 1.140 "the Magi
+  kill with their own hands", boils, chants over and carries home), and attends the households' sacrifices. Rain: the fire
+  is fed through it (planCheck's weather rule allows `tend_fire`); the rest waits for it or is put off.
+- **4. The households' sacrifices (E-34; Population.sacrificesOn, Planner.offeringDay; events_calendar.json E-34, and the
+  calendar's chronicle).** A town household that is Persian sacrifices about once a year (nine in ten households of
+  standing, two in five of the others: C): its eldest Persian or Median man who is free that day, of a trade that can leave
+  its work for a morning (gardener, craftsman, official, steward, scribe, servant, elder). He leads a sheep (a goat one time
+  in four) to the precinct, calls on the god (praying for the king and all the Persians: 1.132) with a magus standing by with
+  the barsom; the beast is cut limb from limb on its hide (the killing is not shown: the butchery of the joints is), the
+  meat boiled on a small fire and laid on soft grass (a new work object) while the magus chants over it, and he carries the
+  meat home. Each gets a magus free of his other hours (else it waits; it is put off by the rain or past 15:00). Both plans
+  keep the same absolute hours, so offerer and magus meet (measured: their chants start together).
+- **5. Funerals (E-71; Planner.mourningDay, Population.funeralOf).** The day after a death, at one morning hour (after the
+  rain): the men of the house carry the dead on a bier to the burial ground, to a grave of the household's own (popgeo
+  `burial`), dig the grave and lay the dead in the earth, and stand at it; the women who can leave the little ones (not a
+  mother of a child of four or under, not the keeper of a sick little one) follow and stand at the grave, head bowed (a new
+  `mourn` pose; no wailing is staged). A dead magus is only carried out to the hillside (the rest is never shown). The bier
+  is shown at the grave, not on the way (the plans do not route a shared object: Q-196).
+- **6. Household piety: not added, and why.** Herodotus 1.132 makes a magus necessary to any Persian sacrifice, which argues
+  against private offerings at the hearth; no Persian domestic cult of the period is attested. The house's fire is kept as
+  practice (lit at dusk, banked, relit before dawn: fire.ts 'home'), not as rite. The Babylonian and Elamite households'
+  domestic cults are an open question (Q-471).
+- **7. The chant (music.ts `recite`, `muffle`; performers.ts `magus_chant`; musicClaims: M-06 performable, M-22 new;
+  SOUNDSCAPE §8 "performed wordless (C)").** Lines of 7-15 even syllables (150-190 a minute) on one reciting tone (the
+  mode's third degree), rising to it and falling to the final, a breath between lines; a man's voice (110-350 Hz) singing
+  vowels only (one a line: no phones, no words), damped by the mouth-cover (a one-pole low-pass at 1.5 kHz). Sounded only
+  while a magus's plan says `chant` (at the fire, the lan, the offerings, a household's sacrifice); the director follows him
+  (world.ts passes the chanting magi with the herders). `refusal`: at an offering only this (a man, alone, a recitative,
+  citing M-06); an instrument (M-05), a woman, a chorus or a song is refused. The gig's tier is C. Closes BLOCKERS B20a and
+  Q-301 for the staging; the words stay unknown.
+- **Measured (seed 1, node, the year):** 3 magi; the lan made on 343 days, put off by the rain on 9 (the duty magus absent
+  or ill on the other 2); the fire tended 266 h and chanted at 206 h in the year; E-31 offerings 14 and E-32 22 segments (4
+  with a sheep); 179 households' sacrifices (46 with a goat); deaths 238 in the town and 1,222 in the villages (infants
+  among them). Household funerals the next day: town 229 (167 with the men carrying the dead to the burial ground and
+  burying it, 99 of them with women at the grave; 62 with no man of the house free, of which 24 have the women at the grave
+  "while the dead is buried": the neighbours who would carry are not simulated), villages 1,164 (1,078 with a burial at the
+  village's outskirts). No magus died this year (the hillside path is untested by the sim). planCheck over the year for the
+  magi and the offerers, and the funeral households' "with" checks: no issue.
+- **Cost (measured):** the precinct 25 props, 276 triangles and 96 for the ash, in two meshes (stone; the wood in the loam
+  batch); the burial ground 140 mounds (13,440 triangles in the existing refuse mesh: no new draw) and 174 field stones
+  (1,740 triangles, one mesh); one more fire (a flame instance; smoke from the shared pool, a point light only among the
+  nearest). The small objects' prop union 986 → 998 triangles (≤ 1,000); two more work-object kinds (the offering set, the
+  grass bed: a draw each, only where in view); the Median costume gains the mouth-cover piece (within its budgets:
+  tests/humans_runtime). Sim: sacrificesOn takes 8.5 ms once for the year's list, then 0.05 ms a day.
+- **Tests:** tests/religion.test.ts (new: the precinct's forms and place, the kept fire, the burial ground; the magi's days,
+  the sacrifices and the funerals over the year with planCheck; the places; the chant's form, wordlessness and refusal
+  rules). Changed: music (the chant allowed, all else at an offering refused), performers (wording), performances (the offer
+  performance and the new acts). lint:music (the chant in the sweep), lint:activity (a worn piece must exist).
+- **Weak / doubts:** Q-470 (steps), Q-471 (non-Persian household cult), Q-472 (where the precinct and the burial ground were),
+  Q-473 (a kept fire at all). The walk to the grave shows no bier; the offerer's myrtle wreath is not modelled; the barsom is
+  two rods; the mouth-cover's fit is by rule on each body's head hull (not looked at); villages have no drawn graves;
+  sacrifices in the villages (no magus there) are not simulated; the king's worship on the plinths (court setting, E-36)
+  is not staged.

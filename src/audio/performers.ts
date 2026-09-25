@@ -18,8 +18,11 @@
 //    pipe, sitting, in the evening by the band's fire (in two of five twenty-minute stretches, four to seven minutes) or
 //    at midday while the flock lies up (one in four); the same man of his band all day; not in foul weather. The herders
 //    are the population's people (popview.ts): `pop` is who the view places out of doors now.
-// Not here, on purpose: nothing at an offering (Herodotus 1.132: no pipes; the chant's text is not attested and the rite
-// is a living religion's: M-06, BLOCKERS B20, D-200 keeps it silent, not even a wordless contour); no soldiers', street or
+//  - the magus's chant (M-06, M-22, M-15, M-13; C, D-209, the user's direction D-207): a magus of the population chanting
+//    by his plan (at the fire at dawn and dusk, over the lan, an offering or a household's sacrifice) intones alone on one
+//    tone, vowels only, WITHOUT WORDS (the chant's words are not attested and none are invented), damped by the mouth-cover.
+// Not here, on purpose: no instrument and no other voice at an offering (Herodotus 1.132: no pipes, M-05; the magus alone
+// chants); no words for the chant (D-200 kept it silent; D-209 sounds it wordless); no soldiers', street or
 // foreign music beyond the Ionians' songs (no source seen); no lyre, frame drum or double pipe (modelled and animated,
 // D-200, but no source says who played them at Persepolis).
 import { Rng } from '../core/rng';
@@ -47,7 +50,7 @@ export interface PopPerformer { pid: number; sex: 'm' | 'f'; age: number; act: s
  *  placed in the hall (extra). `pos`: where the sound comes from (the mouth or the instrument); an extra stands on the
  *  floor at `extra.floor`. `play`: what the performer is seen doing (playing.ts) */
 export interface GigPart { key: string; agentId?: number; pid?: number; extra?: { sex: 'm' | 'f'; seed: number; /** facing, grid degrees (0 north, 90 east) */ heading: number; anim: 'sit' | 'idle'; floor: number }; pos: { e: number; n: number; y: number }; perf: Performance | null; play?: PlayKind }
-export interface Gig { id: string; kind: 'quern_song' | 'mason_song' | 'court_supper' | 'court_night' | 'herder_pipe'; place: string; parts: GigPart[]; claims: string[]; tier: string;
+export interface Gig { id: string; kind: 'quern_song' | 'mason_song' | 'court_supper' | 'court_night' | 'herder_pipe' | 'magus_chant'; place: string; parts: GigPart[]; claims: string[]; tier: string;
   /** hours (sim) when this stretch of playing ends */
   until: number;
   /** what you see: PLACEHOLDER when the playing or the instrument is not shown */
@@ -115,6 +118,17 @@ export function musicAt(agents: readonly PerformerAgent[], c: MusicCtx, pop: rea
           perf: { id: `${key}:p`, instrument: 'reed_pipe', tradition: 'mesopotamian', context: 'herding', modeId: MESOPOTAMIAN_MODES[r.int(0, 6)].id, tempo: r.range(58, 80), seed: r.int(0, 1e9), claims } }] });
     }
   }
+  // --- the magus's chant (D-209; M-06, M-22): a magus of the population whose plan says he chants now (at the fire at dawn
+  // and dusk, over an offering or a household's sacrifice), alone, without words, through the mouth-cover; for as long as he
+  // chants (his plan's segment: the director follows him and stops when he stops)
+  for (const o of pop) {
+    if (o.act !== 'chant' || o.moving || o.sex !== 'm') continue;
+    const key = `chant:${o.pid}:${block}`, r = new Rng(o.seed, `chant:${day}`), claims = ['M-06', 'M-22', 'M-15', 'M-13'];
+    out.push({ id: key, kind: 'magus_chant', place: o.place, claims, tier: tierOf(claims), until: (block + 1) * BLOCK_H,
+      visual: { placeholder: false, note: 'a magus chants standing with the barsom upright, the mouth under the cap\'s flaps: the words are not attested and none are sung (D-209: vowels only, intoned on one tone; C)' },
+      parts: [{ key: `${key}:v`, pid: o.pid, play: 'sing_work', pos: { e: o.e, n: o.n, y: o.y + 1.6 },
+        perf: { id: `${key}:v`, instrument: 'voice', register: 'm', tradition: 'mesopotamian', context: 'offering', style: 'recitative', modeId: MESOPOTAMIAN_MODES[r.int(0, 6)].id, tempo: r.range(150, 190), seed: r.int(0, 1e9), claims } }] });
+  }
   // --- the court (setting only)
   const hall = c.courtHall;
   if (hall) {
@@ -150,7 +164,7 @@ function courtGig(c: MusicCtx, hall: NonNullable<MusicCtx['courtHall']>, kind: '
   for (let i = 0; i < singers; i++) parts.push({ key: `court:singer:${i}`, extra: { sex: 'f', seed: 7100 + i, heading: 180, anim: 'idle', floor: hall.fl }, pos: at(i, singers, 1), play: 'sing',
     perf: i === 0 ? { id: `${key}:voices`, instrument: 'voice', register: 'f', voices: singers, tradition: 'mesopotamian', context: 'court', modeId, pieceSeed, tonic, tempo, seed: r.int(0, 1e9), claims } : null });
   return { id: key, kind, place: 'hadish', claims, tier: tierOf(claims), until, parts,
-    visual: { placeholder: true, note: 'PLACEHOLDER: the court women wear the working women’s dress (court dress not modelled: BLOCKERS B20c). The harps and the playing and singing are modelled (D-200, C)' } };
+    visual: { placeholder: false, note: 'the court women in the court dress (D-215, B20c closed): the many-folded robe belted at the front, the crenellated crown and the long veil down the back (IR-WOMEN, the Pazyryk women: B; cut, sizes and colours C), gold at the ears and wrists, the eyes lined (C). The harps and the playing and singing are modelled (D-200, C)' } };
 }
 /** the parts that sound (a chorus sings from its leader's place; the other singers only sit with her) */
 export const soundingParts = (g: Gig) => g.parts.filter(p => p.perf);

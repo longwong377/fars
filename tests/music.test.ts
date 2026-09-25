@@ -107,7 +107,11 @@ describe('evidence rules at runtime', () => {
   it('no instrument at an offering (Herodotus 1.132); court music only with the court resident; never without a position', () => {
     const m = new MusicSystem(engine, () => false);
     expect(m.perform({ id: 'a', instrument: 'double_pipe', tradition: 'mesopotamian', context: 'offering', seed: 1, claims: C }, { x: 0, y: 0, z: 0 }, 2)).toBe(false);
-    expect(m.perform({ id: 'a2', instrument: 'voice', tradition: 'mesopotamian', context: 'offering', seed: 1, claims: C }, { x: 0, y: 0, z: 0 }, 2)).toBe(false); // no chant either (M-06)
+    expect(m.perform({ id: 'a2', instrument: 'voice', tradition: 'mesopotamian', context: 'offering', seed: 1, claims: C }, { x: 0, y: 0, z: 0 }, 2)).toBe(false); // no song (only the magus's wordless chant, D-209)
+    // D-209: the magus's chant is the one voice at an offering: a man, alone, a recitative, citing M-06; anything else is refused
+    const chant = { id: 'ch', instrument: 'voice' as const, register: 'm' as const, style: 'recitative' as const, tradition: 'mesopotamian' as const, context: 'offering' as const, seed: 1, claims: ['M-06', 'M-22'] };
+    expect(refusal(chant, false)).toBeNull(); expect(m.perform(chant, { x: 0, y: 0, z: 0 }, 2)).toBe(true);
+    for (const bad of [{ ...chant, register: 'f' as const }, { ...chant, voices: 3 }, { ...chant, style: undefined }, { ...chant, claims: ['M-22'] }]) expect(refusal(bad, true), JSON.stringify(bad)).toMatch(/only a magus chants/);
     expect(m.perform({ id: 'b', instrument: 'harp', tradition: 'mesopotamian', context: 'court', seed: 1, claims: ['M-01'] }, { x: 0, y: 0, z: 0 }, 2)).toBe(false);
     expect(m.perform({ id: 'c', instrument: 'harp', tradition: 'mesopotamian', context: 'leisure', seed: 1, claims: C }, { x: NaN, y: 0, z: 0 }, 2)).toBe(false);
     expect(m.perform({ id: 'd', instrument: 'harp', tradition: 'mesopotamian', context: 'leisure', seed: 1, claims: C }, { x: 1, y: 0, z: 2 }, 2)).toBe(true);
@@ -118,7 +122,8 @@ describe('evidence rules at runtime', () => {
     expect(refusal({ id: 'x', instrument: 'harp', tradition: 'mesopotamian', context: 'work', seed: 1 }, true)).toMatch(/no tiered source/);
     expect(m.perform({ id: 'x', instrument: 'harp', tradition: 'mesopotamian', context: 'work', seed: 1 }, { x: 0, y: 0, z: 0 }, 2)).toBe(false);
     expect(m.perform({ id: 'y', instrument: 'harp', tradition: 'mesopotamian', context: 'work', seed: 1, claims: ['M-99'] }, { x: 0, y: 0, z: 0 }, 2)).toBe(false);
-    for (const id of NOT_PERFORMED) expect(MUSIC_CLAIMS[id], id).toBeUndefined(); // the chant, herders' pipes and the rejected claims cannot be cited
+    for (const id of NOT_PERFORMED) expect(MUSIC_CLAIMS[id], id).toBeUndefined(); // the rejected claims cannot be cited
+    expect(MUSIC_CLAIMS['M-06']?.tier).toBe('B'); expect(MUSIC_CLAIMS['M-22']?.tier).toBe('C'); // D-209: the chant is performed wordless
   });
   it('what plays goes through the occlusion (engine.route on the music channel)', () => { expect(routed.length).toBeGreaterThan(0); expect(routed.every(r => r[1] === 'music')).toBe(true); });
 });

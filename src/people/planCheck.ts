@@ -11,7 +11,7 @@
 //              (sampled days; S2 of shadow review r5)
 //  and the year-wide classes of fault (the invariants of D-191; shadow review r7: a roof plastered in a storm, a gang idle
 //  for hours before the ration issue; each class swept over every person-day, not found one instance at a time):
-//  - weather:  (a) out of doors through rain or a storm (more than WEATHER_TOL_H of it), or at leisure out of doors in the
+//  - weather:  (a) out of doors through rain or a storm (more than WEATHER_TOL_H of it; the magus keeping the fire excepted, D-209), or at leisure out of doors in the
 //              dust, unless the rule allows it (WET_OK: the road, the watch, the flock, shelter)
 //  - light:    (b) out-of-doors work that needs light (LIGHT_ACTS; play by the water) in the dark, before civil dawn or
 //              after dusk (sunrise - 0.45 h, sunset + 0.45 h), with no lamp, fire or moon in its reason
@@ -122,7 +122,7 @@ export function checkDay(P: Population, d: number, planOf: (pid: number) => Seg[
 export const WEATHER_TOL_H = 0.25;
 /** (a) out in the rain or the storm by rule: on the road (going home out of it, a courier: W-01), the watch kept at the post
  *  and on the round, the flock not left, a shelter taken, off the map */
-const WET_OK = (s: Seg) => s.where === 'road' || s.act === 'stand_guard' || s.act === 'patrol' || s.act === 'shelter' || s.act === 'offmap'
+const WET_OK = (s: Seg) => s.where === 'road' || s.act === 'stand_guard' || s.act === 'patrol' || s.act === 'shelter' || s.act === 'offmap' || s.act === 'tend_fire' /* D-209: the kept fire is fed and sheltered through the rain */
   || ((s.act === 'herd' || s.act === 'tend_animals') && /^(flock:|pasture:|route:|road:)/.test(s.place)) || (s.act === 'eat' && s.place.startsWith('post_')) || (/^(eat|rest)$/.test(s.act) && WET_OK_FLOCK.test(s.place)) || /waiting out the shower|the cloak drawn over|out of the rain|keeping watch over/.test(s.why);
 /** (a) the dust: work goes on in it (W-03), and so does the rest that belongs to a working day out there (the midday rest at
  *  the field edge); leisure out of doors does not: talk, play, games, spinning and trade in the lane, at the well, in the

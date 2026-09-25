@@ -7,11 +7,12 @@ import { surfaceMaterial } from '../render/materials';
 import { uniform, uv, vec3, vec4, float, mx_noise_float, time, attribute, smoothstep, mix, length, vec2, max, positionWorld, cameraPosition, normalize, dot, pow, step } from 'three/tsl';
 import { Rng } from '../core/rng';
 
-export type FireKind = 'torch' | 'brazier' | 'hearth' | 'oven' | 'lamp' | 'kiln';
+export type FireKind = 'torch' | 'brazier' | 'hearth' | 'oven' | 'lamp' | 'kiln' | 'altar';
 /** when a fire burns (C schedules): 'night' dusk to after sunrise (default); 'home' a domestic hearth, lit as the light
  *  goes for the evening meal and banked a few hours after dark, relit before dawn; 'bake' a bread oven, before dawn into
- *  the morning; 'day' a workshop fire (kiln, forge) in working hours. Needs the local hour (update's last argument). */
-export type FireSchedule = 'night' | 'home' | 'bake' | 'day';
+ *  the morning; 'day' a workshop fire (kiln, forge) in working hours; 'kept' a fire that is never let go out (D-209: the
+ *  precinct's altar, fed at dawn and dusk and sheltered in rain by the magi, C). Needs the local hour (update's last argument). */
+export type FireSchedule = 'night' | 'home' | 'bake' | 'day' | 'kept';
 export interface FireSource { id: string; kind: FireKind; pos: THREE.Vector3; lit: boolean; seed: number; tier: string; src: string; note: string; sched?: FireSchedule; group?: string }
 const SPEC: Record<FireKind, { flameH: number; flameW: number; power: number; range: number; smoke: number }> = {
   torch: { flameH: 0.45, flameW: 0.22, power: 1.2, range: 14, smoke: 0.2 },
@@ -20,6 +21,8 @@ const SPEC: Record<FireKind, { flameH: number; flameW: number; power: number; ra
   oven: { flameH: 0.25, flameW: 0.4, power: 0.8, range: 8, smoke: 1.2 },
   lamp: { flameH: 0.06, flameW: 0.03, power: 0.08, range: 3.5, smoke: 0.0 },
   kiln: { flameH: 0.35, flameW: 0.5, power: 1.4, range: 10, smoke: 1.6 },
+  // D-209: the kept fire on the precinct's stepped altar: a wood fire in the open, a little larger than a hearth's (C)
+  altar: { flameH: 0.6, flameW: 0.55, power: 1.9, range: 16, smoke: 1.1 },
 };
 /** smoke puffs come only from fires within this distance of the camera (the pool is shared; far smoke is the town haze) */
 export const SMOKE_RANGE = 300;
@@ -34,7 +37,7 @@ export function flameFootprint(w: number, d: number, pxPerRad: number): { k: num
   return { k, flux: 1 / (k * k) };
 }
 /** height of the flame's base above `base` (the floor, or a torch's bracket) */
-const LIFT: Record<FireKind, number> = { torch: 0.35, brazier: 1.02, hearth: 0.15, oven: 0.25, lamp: 0.05, kiln: 0.6 };
+const LIFT: Record<FireKind, number> = { torch: 0.35, brazier: 1.02, hearth: 0.15, oven: 0.25, lamp: 0.05, kiln: 0.6, altar: 0 };
 /** renderer candela per unit of a fire's `power` (session 3, perceptual at night; D-117 addendum: a lamp's 3.2 renderer cd
  *  is ~1 cd at the night gain) */
 export const FIRE_CD_PER_POWER = 40;
@@ -287,6 +290,7 @@ export function scheduleLit(sched: FireSchedule, hour: number, sunAlt: number, s
     case 'home': return pm ? sunAlt < 6 - 10 * j && sunAlt > -(16 + 20 * j) : sunAlt > -(8 + 8 * j) && sunAlt < 6 + 10 * j;
     case 'bake': return !pm ? sunAlt > -(12 + 6 * j) && sunAlt < 10 + 18 * j : j < 0.25 && sunAlt < 3 && sunAlt > -10;
     case 'day': return hour > 6.5 + j && hour < 16 + 1.5 * j && sunAlt > -2;
+    case 'kept': return true;
     default: return sunAlt < 4;
   }
 }

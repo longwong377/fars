@@ -60,11 +60,13 @@ export const LOOK_BITS = {
   age: [10, 3], // age decade (0-7) of the body variant: wrinkles
   beard: [13, 2], // beard density 0 dense … 2 sparse
   grimeZone: [15, 2], // where the work's dirt sits besides hems and feet: 0 none, 1 hands and forearms (stone), 2 the front and forearms (flour), 3 shoulders and upper back (loads)
+  kohl: [17, 1], // D-215: the eyes lined with eye paint (the lash strips' roots filled and darkened: the court, a share of the town's women; C)
 } as const satisfies Record<string, readonly [number, number]>;
 export type LookBits = { -readonly [K in keyof typeof LOOK_BITS]: number };
-export function packLookBits(b: LookBits): number {
+/** (D-215: `kohl` may be left out: 0) */
+export function packLookBits(b: Omit<LookBits, 'kohl'> & { kohl?: number }): number {
   let v = 0;
-  for (const k of Object.keys(LOOK_BITS) as (keyof LookBits)[]) { const [lo, n] = LOOK_BITS[k]; v += (Math.max(0, Math.min(2 ** n - 1, Math.round(b[k]))) * 2 ** lo); }
+  for (const k of Object.keys(LOOK_BITS) as (keyof LookBits)[]) { const [lo, n] = LOOK_BITS[k]; v += (Math.max(0, Math.min(2 ** n - 1, Math.round(b[k] ?? 0))) * 2 ** lo); }
   return v;
 }
 export function unpackLookBits(v: number): LookBits {

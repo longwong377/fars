@@ -32,6 +32,8 @@ import { buildMeshes } from '../arch/meshes';
 import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/runtime';
 import { loadSculpt } from '../arch/sculpt';
 import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Reliefs, buildStairCrenellations, buildFoundationDeposits } from '../arch/decor';
+import { buildWaterworks } from '../arch/waterworks';
+import { buildGlazedFrieze } from '../arch/glazed';
 import { updateReliefs, settleReliefs } from '../arch/reliefs';
 import { FireSystem } from './fire';
 import { buildTreasuryGoods, buildScribesRoom } from './furnish';
@@ -39,7 +41,6 @@ import { PalaceFurnishings } from './furnish_palaces';
 import { buildReliefMarks } from '../arch/marks';
 import { loadWritingFonts } from './writing';
 import { buildPlain } from './plain';
-import { woodlandTrees } from './plain/trees';
 import { bakeTerrainDetail } from '../terrain/terrainDetail';
 import { ConstructionView } from './construction';
 import { NowView } from './nowview';
@@ -154,6 +155,13 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const p4 = buildPhase4Reliefs(doorways); root.add(p4.group); // stair and door-jamb reliefs of the other palaces (D-049)
   const cren = buildStairCrenellations(parts); if (cren) root.add(cren); // stair-parapet merlons (D-065)
   const insc = buildInscriptions(manifest, parts, p4.inscriptions); root.add(insc);
+  // D-214: the stones carrying texts that are solid and not architecture parts (the Hadish N portico's antae): a collider each
+  const inscSolids = (insc.userData.solids ?? []) as { c: [number, number]; size: [number, number]; y0: number; y1: number }[];
+  for (const s of inscSolids) phys.addBox({ x: s.c[0], y: (s.y0 + s.y1) / 2, z: -s.c[1] }, { x: s.size[0] / 2, y: (s.y1 - s.y0) / 2, z: s.size[1] / 2 });
+  // D-214 (gap audit item 31): the Terrace's drain mouths, inlets and gutters and the cistern heads (all C); the kerbs are solid
+  const waterworks = buildWaterworks(parts, (e, n) => terrain.heightAt(e, -n)); root.add(waterworks.group);
+  const glaze = buildGlazedFrieze(parts); if (glaze) root.add(glaze); // D-214 (item 28): the Apadana towers' glazed-brick frieze (C)
+  for (const c of waterworks.colliders) phys.addBox({ x: c.c.x, y: c.c.y, z: c.c.z }, { x: c.half.x, y: c.half.y, z: c.half.z });
   insc.add(buildFoundationDeposits(manifest)); // the Apadana foundation deposits, sealed under the hall corners (D-068)
   if ((manifest.treasury as any)?.benches) root.add(buildTreasuryGoods((manifest.treasury as any).benches, seed)); // stored goods (types B, placement C)
   if ((manifest.treasury as any)?.scribesRoom) root.add(buildScribesRoom((manifest.treasury as any).scribesRoom, (manifest.treasury as any).scribesShelves, seed)); // the scribes' room (D-067)
@@ -187,6 +195,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const jackals = new Jackals(seed, terrain); root.add(jackals.mesh); // on the plain edge from dusk to dawn
   for (const f of fire.fires) nav.blockDisc(f.pos.x, -f.pos.z, f.kind === 'torch' ? 0 : 0.8);
   for (const [e, n, r] of palace.navDiscs()) nav.blockDisc(e, n, r); // the furnishings' standing pieces (both states with the court setting on)
+  for (const s of inscSolids) nav.blockDisc(s.c[0], s.c[1], Math.hypot(s.size[0], s.size[1]) / 2); // D-214: the Hadish antae
+  for (const [e, n, r] of waterworks.navDiscs) nav.blockDisc(e, n, r); // D-214: the cistern heads' kerbs
   const env = (t: number): Env => { if (!weather) return { rain: 0, lightning: false, windMs: 2, tempC: 18 }; const d = Math.floor(t / 24), c = weather.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
   // Phase 5 (D-021): the whole population and the year's calendar; the court is absent unless the out-of-world setting
   // 'Court calendar = seasonal pattern' is on (D-003)
@@ -287,15 +297,16 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const music = new MusicSystem(audio, () => courtOn(Math.floor(sim.t / 24)) || courtOn(Math.floor(sim.t / 24) - 1));
   const hadishRoom = rooms.find(r => r.id === 'hadish') ?? null;
   const director = new MusicDirector(music, audio, {
-    addExtra: (key, x) => { crowd.addExtra(key, { id: -7000 - (x.seed % 1000), dress: 'woman', sex: x.sex, role: 'musician', seed: x.seed, x: x.e, y: x.y, z: -x.n, yaw: yawOf(x.heading), anim: x.anim } as any); },
+    addExtra: (key, x) => { crowd.addExtra(key, { id: -7000 - (x.seed % 1000), dress: x.sex === 'f' ? 'court_woman' : 'persian', sex: x.sex, role: 'musician', seed: x.seed, x: x.e, y: x.y, z: -x.n, yaw: yawOf(x.heading), anim: x.anim } as any); },
     removeExtra: key => crowd.detach(key),
     // what a performer is seen doing (D-200: the playing performance, the singers' jaw and breath on the piece's notes)
     play: (who, kind, sec, notes) => crowd.setPlaying(Crowd.keyOf(who), kind, sec, time, notes),
   });
-  // the population's people who may play (D-200): the herders of the transhumant bands out of doors near the view
+  // the population's people who may play (D-200): the herders of the transhumant bands out of doors near the view, and the
+  // magi when they chant (D-209)
   const popPerformers: PopPerformer[] = [];
   const bandPeople = (day: number) => { popPerformers.length = 0;
-    for (const o of view.visible) if (o.agent < 0 && (o.place.startsWith('camp:band') || o.place.startsWith('route:band'))) { const q = view.pop.persons[o.pid];
+    for (const o of view.visible) if (o.agent < 0 && (o.place.startsWith('camp:band') || o.place.startsWith('route:band') || o.act === 'chant')) { const q = view.pop.persons[o.pid];
       popPerformers.push({ pid: o.pid, sex: q.sex, age: view.pop.ageOn(o.pid, day), act: o.act, why: o.why, place: o.place, e: o.e, n: o.n, y: o.y, moving: o.moving, seed: h32(seed, o.pid) }); }
     return popPerformers; };
   const surfaceAt = (y: number, groundY: number) => (y > -1 ? 'stone' : Math.abs(y - groundY) < 0.3 ? 'earth' : 'stone') as 'stone' | 'earth';
@@ -375,7 +386,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       log: () => visitor.s.log, state: () => visitor.s,
     },
     /** dev: the woodland trees within r m of grid (e, n), as [e, n, crown width] (camera-rig framing: the renders keep off them) */
-    treesNear: (e: number, n: number, r: number) => woodlandTrees((plain.data as any).zones, e, -n, r).map(t => [t.x, t.y, t.w]),
+    treesNear: (e: number, n: number, r: number) => [...plain.treesAround(e, n, r),
+      ...(settlement?.plan.trees ?? []).filter(t => Math.hypot(t.c[0] - e, t.c[1] - n) < r).map(t => [t.c[0], t.c[1], 2 * (t.size ?? 3)])],
     mapLayers: () => (mapItems ??= buildMapLayers({ town: settlement?.plan as any, plain: builtPlainOf(plain.data as any) })),
     saveState: () => ({ people: sim.save(), visitor: visitor.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } visitor.load(s?.visitor); },
     /** persistence (brief §9.5): simulate the time the world ran while the visitor was away, everyone in the abstract LOD

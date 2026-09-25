@@ -76,7 +76,7 @@ describe('translation layer', () => {
       if (!r.words.length) { expect(r.english, `${id} ${v}: no text, no translation`).toBeNull(); continue; }
       expect(r.english, `${id} ${v}`).toBeTruthy(); expect(r.english!.tier).toBe('C'); expect(r.english!.label).toBe(LABEL); expect(r.english!.en.length).toBeGreaterThan(20); n++;
     }
-    expect(n, 'versions translated (15 texts; the seal texts are in tests/writing.test.ts)').toBe(33);
+    expect(n, 'versions translated (19 texts; the seal texts are in tests/writing.test.ts)').toBe(43); // D-214: + XPg (1), XPj, XPk, XPm (3 each)
     // each version is translated from its own words: the Babylonian "gave" where the Old Persian "created"
     expect(TL.inscriptionReading('XPa', 'op')!.english!.en).toMatch(/^Ahuramazda is a great god, who created this earth/);
     expect(TL.inscriptionReading('XPa', 'bab')!.english!.en).toMatch(/^Ahuramazda is a great god, who gave this earth/);

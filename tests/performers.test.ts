@@ -62,7 +62,7 @@ describe('music schedule: the court', () => {
       expect(s.find(p => p.perf!.instrument === 'voice')!.perf!.voices).toBe(4); expect(g.parts).toHaveLength(6);
       expect(new Set(s.map(p => p.perf!.pieceSeed)).size).toBe(1); // one piece, shared
       for (const p of g.parts) { expect(Math.abs(p.pos.e - hall.cx)).toBeLessThan(hall.sx / 2); expect(Math.abs(p.pos.n - hall.cy)).toBeLessThan(hall.sy / 2); expect(p.extra?.floor).toBe(hall.fl); }
-      expect(g.visual.placeholder).toBe(true);
+      expect(g.visual.placeholder).toBe(false); expect(g.visual.note).toMatch(/crown/); // D-215: the court dress (B20c closed)
     }
     const night = sweep([], [22, 24], on).gigs.concat(sweep([], [0, 5.5], on).gigs).filter(g => g.kind === 'court_night'); expect(night.length).toBeGreaterThan(0);
     expect(sweep([], [0, 5.5], { courtToday: true, courtYesterday: false }).gigs).toHaveLength(0); // the night after a day without the court
@@ -76,10 +76,10 @@ describe('music schedule: evidence (brief §11; lint:music)', () => {
     for (const g of everything) { expect(g.claims.length).toBeGreaterThan(0); for (const c of g.claims) expect(MUSIC_CLAIMS[c], c).toBeTruthy(); expect(g.tier).toMatch(/^[ABC]/);
       for (const p of soundingParts(g)) expect(refusal(p.perf!, true, { x: p.pos.e, y: p.pos.y, z: -p.pos.n }), p.key).toBeNull(); }
   });
-  it('nothing is ever scheduled at an offering, and no instrument but the court harp plays (the herders\' pipe: its own tests)', () => {
+  it('nothing is ever scheduled at an offering by the Terrace\'s people, and no instrument but the court harp plays (the herders\' pipe and the magus\'s chant: their own tests)', () => {
     for (const g of everything) for (const p of soundingParts(g)) { expect(p.perf!.context).not.toBe('offering'); if (p.perf!.instrument !== 'voice') { expect(p.perf!.instrument).toBe('harp'); expect(p.perf!.context).toBe('court'); } }
   });
-  it('the magi at an offering never sing (the chant is not attested, M-06)', () => {
+  it('a magus holding an offering does not sing; he chants only when his plan says he chants (D-209: the population\'s magi, their own tests)', () => {
     const magi = [0, 1].map(i => ({ ...grinder(i), sex: 'm' as const, role: 'magus', task: { act: 'offer', place: 'offering_place' } }));
     expect(sweep(magi, [0, 24], {}, 4).gigs).toHaveLength(0);
   });

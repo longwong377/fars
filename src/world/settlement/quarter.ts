@@ -359,7 +359,12 @@ function fittingsFor(s: Site, p: Plot, rng: Rng, rf: number, rb: number, rl: num
   if (rng.chance(HOUSE.ovenShare)) F('oven', A1 - 0.1, B1 - 0.1, 1, 'bread oven (tannur, C)');
   const nj = rng.int(1, 3); for (let x = 0; x < nj; x++) F('jar', A0 + x * 0.55, B1 + 0.2, rng.range(0.8, 1.1), 'storage jar (ration grain, wine: PF units, B; form C)');
   if (cw >= 5 && cd >= 5 && rng.chance(HOUSE.courtTreeShare)) F('tree', (A0 + A1) / 2, (B0 + B1) / 2, rng.range(0.6, 0.9), 'courtyard tree (C)', { species: rng.pick(['pomegranate', 'fig', 'mulberry']) });
+  // D-215 (gap audit item 26): toys left in the courtyard of about one house in four, chosen by the plot (no draw from the
+  // plan's random stream, so nothing else in the town moves; C)
+  if ((((p.idx + 1) * 2654435761) >>> 0) % 100 < TOYS_SHARE) F('toys', A0 + 0.4, (B0 + B1) / 2 + 0.6, 1, 'toys left in the courtyard: a stitched leather ball, a clay animal on wheels, a clay rattle (balls, wheeled clay animals and rattles are known in the region and period: RECOLLECTION, NOT SEEN; C; D-215)');
 }
+/** D-215: the share (%) of houses with toys left in the courtyard (C) */
+export const TOYS_SHARE = 26;
 
 /** doors that open onto open ground not connected to the quarter's exits are moved (or the plot loses its capacity) */
 function fixDoors(s: Site) {

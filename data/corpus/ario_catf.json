@@ -633,6 +633,67 @@
     "23. e-te-pu-usz a-na-ku {d}u2-ru-ma-[az-da li-is,]-s,u#-ur#",
     "24. it-ti _dingir-mesz_ gab-bi a-na ana-ku u a-na sza2 a-na#-ku# a-ra-mu#"
    ]
+  },
+  "XPg": {
+   "q": "Q007215",
+   "name": "Xerxes I 11",
+   "op": [
+    "1. θ-a-t-i-y : x-sz-y-a-r-sz-a :",
+    "2. x-sz-a-y-θ-i-y : v-z-r-k : v-sz-;",
+    "3. -n-a : a-u-r-disz-z-d-a-h : v-s-i-;",
+    "4. -y : t-y : n-i-b-disz : a-ku-u-n-u-;",
+    "5. -sz : u-t-a : munus-r-a-disz-a-y-t-a :",
+    "6. d-a-r-y-v-u-[sz] : x-sz-a-y-θ-i-y",
+    "7. : h-y : disz-n-a : p-i-t-a : v-sz-;",
+    "8. -n-a-[c-i]-y : a-u-r-disz-z-d-a-h",
+    "9. : a-d-[disz] : a-b-i-y-j-a-v-y-disz",
+    "10. : a-b-i-y : a-v : k-r-t-disz :",
+    "11. u-t-a : munus-r-t-r-disz [:] a-ku-u-n-;",
+    "12. -v-disz [:] disz-a-disz : a-u-r-disz-z-d-a",
+    "13. : p-a-tu-u-v [: h-d]-a : b-g-i-;",
+    "14. -b-i-sz : u-t-disz-i-y : x-sz-ç-disz"
+   ],
+   "el": [],
+   "bab": []
+  },
+  "XPj": {
+   "q": "Q007218",
+   "name": "Xerxes I 14",
+   "op": [
+    "1. a-d-disz : x-sz-y-a-r-sz-a : _%peo xsz_ : v-z-r-k : _%peo xsz_ : _%peo xsz-_y-a-n-a-disz : _%peo xsz_ : d-h-y-u-n-a-disz : _%peo xsz_ : a-h-y-a-y-a : b-u-mi-i-[y]-a : d-a-r-y-v-h-u-sz : _%peo xsz-_y-h-y-a : p-u-ç : h-x-a-disz-n-i-sz-i-y : θ-a-t-i-y : x-sz-y-a-r-sz-a : _%peo xsz_ : i-disz-disz : t-c-r-disz : a-d-disz : a-ku-u-n-v-disz"
+   ],
+   "el": [
+    "1. _%elx {DISZ}u2 {DISZ}ik-sze-ir-sza2 {DISZ}ESZSZANA ir-sza2-ir-ra {DISZ}ESZSZANA {DISZ}ESZSZANA-ip-in-na {DISZ}ESZSZANA {DISZ}da-a-u2-isz-pe3-na {DISZ}ESZSZANA {ASZ}mu-ru-un hi uk-ku {DISZ}da-ri-ia-ma-u-isz {DISZ}ESZSZANA {DISZ}sza2-ak-ri {DISZ}ha-ak-ka4-man-nu-szi-ia na-an-ri {DISZ}ik-sze-ir-sza2 {DISZ}ESZSZANA hi {ASZ}ta2-[iz]-za-ra {DISZ}u2 hu-ut-ta2_"
+   ],
+   "bab": [
+    "1. _a-na-ku {disz}hi-szi-'-ar-szi _lugal gal-_u2 _lugal lugal-mesz lugal kur-kur-mesz lugal_ qaq-qa-ru a-ga-a _dumu_ {disz}da-ri-ia-musz _lugal_ {disz}a-ha-[ma-an]-ni-isz-szi-['] {disz}hi-szi-'-ar-szi _lugal_ i-qab-bi _e2_ ta-asz2-[sza2-ri a]-ga-a a-na-ku e-te-pu-us2-su_"
+   ]
+  },
+  "XPk": {
+   "q": "Q007219",
+   "name": "Xerxes I 15",
+   "op": [
+    "1. x-sz-y-[a]-r-sz-a : d-a-r-y-v-h-[u-sz : x-sz]-a-y-θ-i-y-h-y-a : p-u-ç : [h-x]-a-disz-n-i-[sz-i-y]"
+   ],
+   "el": [
+    "1. _%elx {DISZ}ik-sze-ir-sza2 {DISZ}[da-ri-ia-ma-u-isz {DISZ}ESZSZANA sza2-ak-ri ha-ak-ka4-man-nu-szi-ia]_"
+   ],
+   "bab": [
+    "1. _{[disz]}hi-szi-'-ar#-szi _[a?_ {disz]}da-a-ri-ia-[musz _lugal_ {disz}a-ha-man-nu-szi-ia]_"
+   ]
+  },
+  "XPm": {
+   "q": "Q007221",
+   "name": "Xerxes I 17",
+   "op": [
+    "1. θ-a-t-i-y : x-sz-y-a-r-sz-a : x-sz-a-y-θ-i-y : i-disz-disz : t-c-r-disz : a-d-disz : a-ku-u-[n-v-disz]"
+   ],
+   "el": [
+    "1. _%elx na-an-ri {DISZ}ik-sze-ir-sza2 {DISZ}[ESZSZANA hi ta2-iz-za-ra {DISZ}u2 hu-ut-ta2]_"
+   ],
+   "bab": [
+    "1. _{[disz}hi]-szi-'-ar-szi _lugal_ i-qab-bi _e2_ ta-asz2-sza2#-ri a-ga-a a-na#-ku e-te-pu-us2-su_"
+   ]
   }
  }
 }

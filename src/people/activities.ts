@@ -23,7 +23,9 @@ export type ActivityId =
   | 'haul' | 'mould_brick' | 'lay_brick' | 'polish_metal' | 'work_wood' | 'weave' | 'spin' | 'gather' | 'brew' | 'tend_animals' | 'herd' | 'shear' | 'slaughter'
   | 'offer' | 'clean' | 'garden_work' | 'field_work' | 'irrigate' | 'plough' | 'reap' | 'thresh' | 'dig_canal' | 'pick_fruit' | 'craft' | 'carry_bier' | 'wash' | 'train' | 'cook'
   // the king and his attendants (court setting only, D-199)
-  | 'royal_walk' | 'enthroned' | 'bear_parasol' | 'attend_parasol' | 'bear_whisk' | 'attend_whisk';
+  | 'royal_walk' | 'enthroned' | 'bear_parasol' | 'attend_parasol' | 'bear_whisk' | 'attend_whisk'
+  // the magi's fire, the households' sacrifices and the funerals (D-209)
+  | 'tend_fire' | 'chant' | 'sacrifice' | 'cut_offering' | 'bury' | 'mourn';
 
 /** props an activity can put in the hands (props.ts PROPS) */
 export type PropKind = 'spear' | 'sack' | 'jar' | 'jar_head' | 'tablet' | 'mallet' | 'basket' | 'bread'
@@ -31,7 +33,11 @@ export type PropKind = 'spear' | 'sack' | 'jar' | 'jar_head' | 'tablet' | 'malle
   | 'knife' | 'beater' | 'paddle' | 'cloth' | 'wisp' | 'bowl' | 'rag' | 'awl' | 'ladle' | 'stick' | 'lead' | 'jar_both' | 'sack_both' | 'basket_hip' | 'basket_both' | 'basket_lap'
   // instruments (D-200: played only in a playing performance, playing.ts)
   | 'harp_v' | 'harp_h' | 'plectrum' | 'lyre' | 'frame_drum' | 'double_pipe' | 'reed_pipe'
-  | 'sceptre' | 'lotus' | 'parasol' | 'whisk' | 'towel';
+  | 'sceptre' | 'lotus' | 'parasol' | 'whisk' | 'towel'
+  // D-215: the gilded spear butts (court) and children's toys
+  | 'spear_apple' | 'spear_gpom' | 'ball' | 'toy_bow' | 'rattle'
+  // D-209: the magus's barsom
+  | 'barsom';
 /** sounds a performance makes (soundscape.ts strike kinds; 'murmur' and 'footsteps' are layers, 'fire' the fire's own) */
 export type SoundKind = 'chisel' | 'quern' | 'fire' | 'murmur' | 'footsteps' | 'dice' | 'water' | 'hoe' | 'sickle' | 'loom' | 'trowel' | 'adze' | 'mould' | 'wash' | 'broom' | 'bow' | 'bleat';
 /** a thing at the place (workObjects.ts), in the performer's frame (m: right −x / left +x, ahead +z; yaw rad). `follow`:
@@ -54,18 +60,29 @@ export interface Performance {
   sound?: SoundKind;
   work?: WorkSpec[]; animals?: AnimalSpec;
   tier: 'B' | 'C'; note: string; placeholder?: boolean;
+  /** D-209: pieces of the performer's dress put on while performing (outfits.ts PIECES ids: the magus's mouth-cover at the
+   *  fire and the offerings); a dress without the piece shows nothing */
+  wear?: string[];
   /** simulated only in the abstract tier (never by a rendered agent); every one of these is also a placeholder */
   abstractOnly?: boolean;
   /** alternatives: the first whose `when` matches the plan's reason (a RegExp) or, for a number, a share of people (by
    *  seed) is performed instead; unset fields are taken from the base performance */
-  variants?: (Partial<Performance> & { when: RegExp | number; note: string })[];
+  variants?: (Partial<Performance> & { when: RegExp | number; note: string;
+    /** D-215: only for a performer of this sex or age range (years, inclusive); a variant that does not fit is passed over
+     *  (its share falls to the base). Without a performer given (extras, the lint) every variant fits */
+    sex?: 'm' | 'f'; ages?: [number, number] })[];
 }
+/** who performs (D-215: a variant may be only for boys, or only for small children) */
+export interface Performer { sex: 'm' | 'f'; age: number }
 
 const SHEEP: Species[] = ['sheep', 'sheep', 'goat'];
 export const ACTIVITIES: Record<ActivityId, Performance> = {
   walk: { anim: 'walk', moving: true, sound: 'footsteps', tier: 'C', note: 'walking',
     // D-210 (gap audit item 6): the animals that travel with the people who lead them (world/traffic.ts, the court's parties)
     variants: [
+      // D-209: a man of the town leading the beast for his sacrifice to the precinct (Herodotus 1.132: B claim; C)
+      { when: /leading a sheep/, animals: { kind: 'string', species: ['sheep'], n: 1, pace: 1.0 }, note: 'leading a sheep on a rope to the precinct for a sacrifice (Herodotus 1.132, a Greek claim: B; C)' },
+      { when: /leading a goat/, animals: { kind: 'string', species: ['goat'], n: 1, pace: 1.0 }, note: 'leading a goat on a rope to the precinct for a sacrifice (C)' },
       { when: /string of pack|pack train/, animals: { kind: 'string', species: ['donkey_pack', 'donkey_pack', 'mule_pack', 'donkey_pack', 'donkey_pack'], n: 5, pace: 1.0 },
         note: 'a driver leading a string of five pack animals nose to tail, donkeys and a mule with panniers and sacks (pack donkeys: POTTS2023, B; mules: population.json, C; strings of five, the loads and the pace C)' },
       { when: /unloaded string/, animals: { kind: 'string', species: ['donkey', 'donkey', 'mule', 'donkey', 'donkey'], n: 5, pace: 1.0 }, note: 'a driver leading his string back unladen (C)' },
@@ -81,7 +98,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
       note: 'loading or unloading the pack donkeys by the tents, a loaded donkey standing by (E-49 “herders, dogs and donkeys”; C)' }] },
   carry_jar: { anim: 'carry_shoulder', moving: true, prop: 'jar', sound: 'footsteps', tier: 'B', note: 'jar on the shoulder (tribute reliefs: B)' },
   carry_jar_head: { anim: 'carry_head', moving: true, prop: 'jar_head', sound: 'footsteps', tier: 'C', note: 'water jar carried on the head (C)' },
-  carry_bread: { anim: 'carry_front', moving: true, prop: 'basket', sound: 'footsteps', tier: 'C', note: 'basket of bread for the gang’s meal (C)' },
+  carry_bread: { anim: 'carry_front', moving: true, prop: 'basket', sound: 'footsteps', tier: 'C', note: 'basket of bread for the gang’s meal (C)',
+    variants: [{ when: /meat of the offering/, note: 'carrying the boiled meat of a sacrifice home in a basket (Herodotus 1.132 "the sacrificer carries away the flesh and uses it as he pleases", read, a Greek claim: B; C: D-209)' }] },
   stand_guard: { anim: 'guard', prop: 'spear', tier: 'B', note: 'spear upright, butt on the ground (guard files on the reliefs: B)' },
   patrol: { anim: 'guard_walk', moving: true, prop: 'spear', sound: 'footsteps', tier: 'C', note: 'guard walking a round (C)' },
   dress_stone: { anim: 'chisel', prop: 'mallet', sound: 'chisel', tier: 'B', note: 'dressing a block with mallet and chisel (tool marks on the stone: B)' },
@@ -97,7 +115,15 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   gamble: { anim: 'dice', sound: 'dice', tier: 'C', note: 'throwing knucklebones (astragali are common finds of the period: B object, C scene)' },
   inspect: { anim: 'inspect', tier: 'C', note: 'official looking over work, hands clasped (C)' },
   shelter: { anim: 'idle', tier: 'C', note: 'waiting out rain under a roof (the Gate’s, a hut’s); in the open only a passing shower, the cloak drawn over the head: a longer rain sends people home (S1 of shadow review r5)' },
-  play: { anim: 'play', tier: 'C', note: 'children playing (C)' },
+  play: { anim: 'play', tier: 'C', note: 'children playing: hopping and skipping about (C)',
+    // D-215 (gap audit item 26; D-207): the kinds of play, by share and age (all C: no Persepolis evidence either way)
+    variants: [
+      { when: 0.2, anim: 'ball', prop: 'ball', ages: [3, 13], note: 'tossing a leather ball up and catching it (balls known from Egypt and the Greek world: RECOLLECTION, NOT SEEN; C)' },
+      { when: 0.2, anim: 'chase', ages: [3, 12], note: 'running round after the other children (C)' },
+      { when: 0.2, anim: 'dice', sound: 'dice', work: [{ kind: 'knucklebones', at: [0, 0, 0.38] }], ages: [4, 13], note: 'knucklebones in the dust, sitting on the ground: astragali thrown and gathered (astragali are common finds: B object; the children’s game C)' },
+      { when: 0.15, anim: 'pull_toy', work: [{ kind: 'toy_wheeled', at: [0.12, 0, -0.62], follow: true }], ages: [1, 7], note: 'pulling a clay animal on wheels round by its cord (wheeled clay animals from Susa and Mesopotamia: RECOLLECTION, NOT SEEN; C)' },
+      { when: 0.15, anim: 'archery', prop: 'toy_bow', prop2: 'arrow', sound: 'bow', sex: 'm', ages: [5, 12], note: 'a boy shooting a small bow at nothing much (boys taught to shoot: HDT 1.136, a Greek claim, B; the toy bow C)' },
+      { when: 0.1, anim: 'rattle', prop: 'rattle', ages: [0, 3], note: 'a small child sitting on the ground shaking a clay rattle (clay rattles: RECOLLECTION, NOT SEEN; C)' }] },
   offmap: { anim: 'idle', tier: 'C', note: 'in the town (not rendered until the settlement exists, Phase 6)' },
   // Phase 5 (D-021): performed with existing poses
   queue: { anim: 'idle', tier: 'C', note: 'standing in the queue at a ration issue (E-01: the group queues and receives its grain; standing C)' },
@@ -152,11 +178,26 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     note: 'shearing the state flock (E-47, season C): kneeling at a sheep laid on its side, the fleece cut with a knife (shears are not attested in the research files: Q-192; plucking, recalled for Babylonian temple flocks in E-47, is NOT SEEN)' },
   slaughter: { anim: 'butcher', prop: 'knife', tier: 'B', animals: { kind: 'tethered', species: ['goat', 'sheep'] }, work: [{ kind: 'butchery', at: [0, 0, 0.62] }, { kind: 'hides', at: [-0.9, 0, 0.1] }, { kind: 'basket_meat', at: [0.42, 0, 0.22] }],
     note: 'slaughter of small cattle at the stockyard (PF 58-60: A; their hides went to the Treasury): shown only as the evidence has it and without spectacle: live animals tethered, a butcher cutting joints on a hide, the meat in a basket, the hides stacked. No killing, no blood' },
-  offer: { anim: 'hold', prop: 'jar_both', tier: 'B',
-    note: 'magi at the offering place with the commodities issued for the lan (grain, wine, beer; HENK2008: B), standing still with them. The rite itself is NOT attested and is not performed: no liturgy, gesture, raising or fire (HDT 1.132 is a Greek claim; Zoroastrianism is a living religion)',
+  // D-209 (D-207: the most probable reconstruction, shown as action, fire, offering and wordless chant; no words invented)
+  offer: { anim: 'barsom', prop: 'barsom', wear: ['mouth_cover'], tier: 'C', work: [{ kind: 'offering_set', at: [0, 0, 0.8] }],
+    note: 'a magus (makuš) at an offering: the barsom held upright before him, the mouth covered, the issued barley and wine set out on the ground before him (the lan and the offerings and their commodities: HENK2008, B; the barsom and the mouth-cover: the Oxus plaques, B; set out, not poured: Herodotus 1.132 "no libations", read, a Greek claim). The rite itself is not attested: what is shown is the most probable reconstruction (C, D-209), with no words',
     variants: [
-      { when: 0.25, anim: 'hold_sack', prop: 'sack_both', note: 'a magus with the issued grain, standing still (the rite not attested, not shown)' },
-      { when: 0.15, anim: 'hold_lead', prop: 'lead', animals: { kind: 'lead', species: ['sheep'] }, note: 'a magus with a sheep issued for an offering, on a lead, standing still (small cattle for offerings: HENK2008, B; the rite not shown)' }] },
+      { when: /a sheep issued/, anim: 'hold_lead', prop: 'lead', work: [], animals: { kind: 'lead', species: ['sheep'] }, note: 'a magus holding a sheep issued for an offering on its lead before the fire (small cattle for offerings: HENK2008, B; C)' },
+      { when: /standing by with the barsom/, work: [], note: 'a magus standing by with the barsom while a man of the town calls on the god over his beast (Herodotus 1.132: "no sacrifice can be offered without a Magus", read, a Greek claim: B; C)' }] },
+  tend_fire: { anim: 'feed_fire', prop: 'stick', wear: ['mouth_cover'], sound: 'fire', tier: 'C', work: [{ kind: 'brushwood', at: [0.75, 0, 0.1] }],
+    note: 'a magus feeding the kept fire on the precinct\'s altar with dry wood, the mouth covered (the mouth-cover: the Oxus plaques, B; that it keeps the breath from the fire is later Iranian practice, RECOLLECTION: C; the kept fire C: D-209)' },
+  chant: { anim: 'barsom', prop: 'barsom', wear: ['mouth_cover'], tier: 'C',
+    note: 'a magus chanting at the fire or over an offering, the barsom upright, the mouth covered: a low intoned line WITHOUT WORDS (Herodotus 1.132 "a Magus comes near and chants", read, a Greek claim: B; the words are not attested and none are invented: D-207, D-209; the sound is the music system\'s, M-06, C)' },
+  sacrifice: { anim: 'hold_lead', prop: 'lead', tier: 'B', animals: { kind: 'lead', species: ['sheep'] },
+    note: 'a man of a Persian household with the beast he has led to the precinct, calling on the god and praying for the king and all the Persians (Herodotus 1.132, read, a Greek claim: B; the myrtle wreath on his cap is not modelled; the rest C: D-209)',
+    variants: [
+      { when: /standing by while the magus chants/, anim: 'mourn', prop: undefined, animals: undefined, work: [{ kind: 'grass_bed', at: [0, 0, 0.9] }], note: 'standing by, head bowed, while the magus chants over the boiled meat laid on soft grass (Herodotus 1.132, a Greek claim: B; C)' },
+      { when: /goat/, animals: { kind: 'lead', species: ['goat'] }, note: 'the same with a goat (C)' }] },
+  cut_offering: { anim: 'butcher', prop: 'knife', tier: 'C', work: [{ kind: 'butchery', at: [0, 0, 0.62] }, { kind: 'basket_meat', at: [0.42, 0, 0.22] }],
+    note: 'the beast of a sacrifice cut limb from limb on its hide (Herodotus 1.132, read, a Greek claim: B); the killing itself is not shown: the performance is the butchery of the joints, without spectacle (D-142\'s rule; C: D-209)' },
+  bury: { anim: 'hoe', prop: 'hoe', sound: 'hoe', tier: 'C', work: [{ kind: 'spoil', at: [-1.1, 0, 0.4] }, { kind: 'bier', at: [1.1, 0, 0.6], shared: 'group' }],
+    note: 'the men of the house digging the grave with hoes and laying the dead, coated in wax and wrapped, in the earth, the bier set down beside (Herodotus 1.140, read, a Greek claim: B; the grave and the tools C: D-209). Nothing of the body is shown' },
+  mourn: { anim: 'mourn', tier: 'C', note: 'standing in mourning at the grave, the head bowed and the hands joined (C: the gestures of mourning at Persepolis are not attested; nothing more is staged: D-209)' },
   clean: { anim: 'sweep', prop: 'broom', sound: 'broom', tier: 'C', note: 'sweeping the closed palaces and the stalls with a twig broom (C)' },
   garden_work: { anim: 'hoe', prop: 'hoe', sound: 'hoe', tier: 'C', note: 'hoeing, weeding and digging dung into the garden beds (C)',
     variants: [
@@ -200,7 +241,9 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [{ when: 0.35, anim: 'ride', prop: undefined, prop2: undefined, sound: undefined, work: [], animals: { kind: 'mount', species: ['horse_saddle'], pace: 0 },
       note: 'a boy of a household of standing learning to ride (HDT 1.136 “taught to ride”, a Greek claim: B), sitting a standing horse on a saddle cloth, no stirrups (blocklist; D-210; C)' }] },
   cook: { anim: 'cook', prop: 'ladle', prop2: 'stick', sound: 'fire', tier: 'C', work: [{ kind: 'hearth_pot', at: [0, 0, 0.58] }, { kind: 'brushwood', at: [-0.75, 0, 0.12] }],
-    note: 'at dusk the hearth fire is lit and the evening meal warmed: squatting at the hearth, stirring the pot, feeding sticks under it (§9.2; C). The fire itself is the settlement’s hearth' },
+    note: 'at dusk the hearth fire is lit and the evening meal warmed: squatting at the hearth, stirring the pot, feeding sticks under it (§9.2; C). The fire itself is the settlement’s hearth',
+    variants: [{ when: /meat of the offering/, work: [{ kind: 'hearth_pot', at: [0, 0, 0.58] }, { kind: 'brushwood', at: [-0.75, 0, 0.12] }, { kind: 'grass_bed', at: [0.95, 0, 0.45] }],
+      note: 'boiling the meat of a sacrifice in a pot on a small fire of brushwood at the precinct, the soft grass laid ready beside (Herodotus 1.132 "after boiling the flesh, spreads the softest grass", read, a Greek claim: B; the fire is the pot\'s, not an altar fire: C, D-209)' }] },
   // D-199 (court setting only): the king as the door-jamb and audience reliefs show him, and the two attendants behind him
   royal_walk: { anim: 'walk', moving: true, prop: 'sceptre', prop2: 'lotus', sound: 'footsteps', tier: 'B', note: 'the king walking, the long staff in his right hand and a lotus in his left (door-jamb reliefs of the Tachara and the Hadish, HADISH-JAMB: B); the gait and the pace C' },
   enthroned: { anim: 'enthroned', prop: 'sceptre', prop2: 'lotus', tier: 'B', work: [{ kind: 'throne', at: [0, 0, 0] }], note: 'the king enthroned at an audience, staff and lotus in his hands, his feet on the footstool (the Treasury audience relief, TREAS-AUD: B); where the throne stood in the Apadana and the hours C; the king does not move or speak (brief §1.1 restraint)' },
@@ -216,12 +259,13 @@ export const ABSTRACT_PLACEHOLDERS = (Object.keys(ACTIVITIES) as ActivityId[]).f
 const share = (seed: number, act: string) => { let h = seed | 0; for (let i = 0; i < act.length; i++) h = Math.imul(h ^ act.charCodeAt(i), 0x5bd1e995) ^ (h >>> 15); return ((h >>> 0) % 10007) / 10007; };
 /** the performance a person gives of an activity: the first variant whose reason pattern matches `why`, or whose share
  *  covers the person; otherwise the base performance. Numeric shares are cumulative in the listed order */
-export function performanceFor(act: ActivityId, why = '', seed = 0, force?: number): Performance & { variant: number } {
+export function performanceFor(act: ActivityId, why = '', seed = 0, force?: number, who?: Performer): Performance & { variant: number } {
   const P = ACTIVITIES[act]; if (!P?.variants) return { ...P, variant: -1 };
-  if (force !== undefined) { const v = P.variants[force]; if (!v) return { ...P, variants: undefined, variant: -1 }; const { when: _w, variants: _v, ...rest } = v as any; return { ...P, variants: undefined, ...rest, variant: force }; }
+  const fits = (v: { sex?: 'm' | 'f'; ages?: [number, number] }) => !who || ((!v.sex || v.sex === who.sex) && (!v.ages || (who.age >= v.ages[0] && who.age <= v.ages[1])));
+  if (force !== undefined) { const v = P.variants[force]; if (!v) return { ...P, variants: undefined, variant: -1 }; const { when: _w, variants: _v, sex: _s, ages: _a, ...rest } = v as any; return { ...P, variants: undefined, ...rest, variant: force }; }
   let acc = 0; const u = share(seed, act);
   for (let i = 0; i < P.variants.length; i++) { const v = P.variants[i];
-    const hit = v.when instanceof RegExp ? v.when.test(why) : (u >= acc && u < acc + v.when); if (typeof v.when === 'number') acc += v.when;
-    if (hit) { const { when: _w, variants: _v, ...rest } = v as any; return { ...P, variants: undefined, ...rest, variant: i }; } }
+    const hit = (v.when instanceof RegExp ? v.when.test(why) : (u >= acc && u < acc + v.when)) && fits(v); if (typeof v.when === 'number') acc += v.when;
+    if (hit) { const { when: _w, variants: _v, sex: _s, ages: _a, ...rest } = v as any; return { ...P, variants: undefined, ...rest, variant: i }; } }
   return { ...P, variant: -1 };
 }

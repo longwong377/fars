@@ -934,6 +934,38 @@
    "date_range": "undated",
    "present_467": null,
    "chrono": "private_rock_tombs"
+  },
+  {
+   "id": "sacred_precinct",
+   "kind": "sacred_precinct",
+   "name": "open-air sacred precinct at the foot of Kuh-e Rahmat (reconstructed)",
+   "tier": "C",
+   "src": "PAS-PRECINCT;NR-ALTAR;HDT;HENK2008;RECON",
+   "note": "D-209: where the magi keep a fire and the lan and other offerings are made. Forms B (the Pasargadae plinths; the Naqsh-e Rustam stepped altar); place, size and use C. No temple, shrine or statue (Herodotus 1.131, read: not their custom; none excavated; temple cults from Artaxerxes II). Placed on the level bench (slope ~5 %) at the mountain's foot 180 m S of the Terrace, 10 m above the plain, clear of the town, roads and canal",
+   "date_range": "Achaemenid (reconstructed)",
+   "present_467": true,
+   "xy": [
+    255,
+    -415
+   ],
+   "unc_m": 1500,
+   "chrono": "sacred_precinct"
+  },
+  {
+   "id": "burial_ground_town",
+   "kind": "cemetery",
+   "name": "burial ground of the town (reconstructed)",
+   "tier": "C",
+   "src": "HDT;RECON",
+   "note": "D-209: the dead are coated in wax and buried in the earth (Herodotus 1.140, read, B claim). No burial ground of 467 is located (section 6): placed C on dry untilled ground at the foot of Kuh-e Rahmat, 1.1 km S of the Terrace and 250 m E of the lower town; low earth mounds, some with field stones. No exposure platform (not attested for 467; never shown)",
+   "date_range": "Achaemenid (reconstructed)",
+   "present_467": true,
+   "xy": [
+    60,
+    -1350
+   ],
+   "unc_m": 2000,
+   "chrono": "burial_ground_town"
   }
  ],
  "town_elements": [
@@ -1217,6 +1249,39 @@
     "takht_e_rustam"
    ],
    "note": "12.5 x 12.5 m base and two steps (B size); step height 1.1 m and set-back 1.0 m not retrieved (C); orientation C"
+  },
+  {
+   "id": "precinct_plinths",
+   "kind": "plinths",
+   "name": "two stone plinths of the sacred precinct",
+   "tier": "B",
+   "src": "PAS-PRECINCT;RECON",
+   "in_feature": [
+    "sacred_precinct"
+   ],
+   "note": "after the Pasargadae precinct (search extracts, B form): white limestone on black limestone borders, 2.8 and 2.5 m square, 2 m high, ~9 m apart, the S one with a monolithic stair (eight or nine steps: Q-470); orientation (true N-S), the stair's side and the border's size C"
+  },
+  {
+   "id": "precinct_altar",
+   "kind": "fire_altar",
+   "name": "stepped fire altar with the kept fire",
+   "tier": "C",
+   "src": "NR-ALTAR;HDT;RECON",
+   "in_feature": [
+    "sacred_precinct"
+   ],
+   "note": "form after the tomb reliefs at Naqsh-e Rustam (B: a stepped foot, a shaft, a stepped top); 0.9 m across, 1.18 m high, local limestone (C); the fire kept on it, its wood stacked by it and its ash heaped E (C)"
+  },
+  {
+   "id": "burial_graves",
+   "kind": "graves",
+   "name": "graves of the town's burial ground",
+   "tier": "C",
+   "src": "HDT;RECON",
+   "in_feature": [
+    "burial_ground_town"
+   ],
+   "note": "140 low earth mounds in loose rows over single graves (Herodotus 1.140: the body coated in wax and buried in the earth, B claim; the form of the graves C), some ringed with a few field stones (C)"
   }
  ]
 }

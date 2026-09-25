@@ -13,7 +13,7 @@ import { buildTownPlan, type TownPlan } from '../src/world/settlement/plan';
 import { TownWalk, siteMoves, openCode } from '../src/world/settlement/walk';
 import { ROOM, toLocal, type Site } from '../src/world/settlement/site';
 import { PopGeo, routeAt, type Spot, type Route } from '../src/people/popgeo';
-import { PopView, MIN_PACE, MAX_PACE, CHILD_H } from '../src/people/popview';
+import { PopView, MIN_PACE, MAX_PACE, CHILD_H, HAND_SNAP, handReach } from '../src/people/popview';
 import { buildCanals } from '../src/world/plain/canals';
 import { placeVillages, villageCompounds } from '../src/world/plain/villages';
 import { loadTerrain, loadRiversFile } from './plainLib';
@@ -117,7 +117,8 @@ describe('population view: the plans in the built world (D-143)', () => {
           if (!s.what.includes('leaves')) { if (Math.hypot(s.sepE - o.e, s.sepN - o.n) > 0.01) bad.push(`p${s.pid} at ${seg.place}: drawn ${Math.hypot(s.sepE - o.e, s.sepN - o.n).toFixed(2)} m off its place`);
             if (aside > 5.1) bad.push(`p${s.pid} at ${seg.place}: ${aside.toFixed(2)} m from its spot`); } }
         if (s.mode === 2 && s.route && seg.where === 'road') { walks++; const r: Route = s.route; let best = Infinity; const q = { e: 0, n: 0, heading: 0 };
-          for (let k = 0; k <= 200; k++) { routeAt(r, r.len * k / 200, q); best = Math.min(best, Math.hypot(q.e - o.e, q.n - o.n)); } if (best > r.len / 200 + 0.05) bad.push(`p${s.pid} walking ${best.toFixed(2)} m off its route`);
+          // (D-215: a small child walking hand in hand is at its carer's side, within HAND_SNAP of its own route)
+          for (let k = 0; k <= 200; k++) { routeAt(r, r.len * k / 200, q); best = Math.min(best, Math.hypot(q.e - o.e, q.n - o.n)); } if (best > r.len / 200 + 0.05 + (o.hand === 2 ? HAND_SNAP + handReach(1.44).gap : 0)) bad.push(`p${s.pid} walking ${best.toFixed(2)} m off its route`);
           routeAt(r, r.len, q); const end = Math.hypot(q.e - s.spot.e, q.n - s.spot.n); if (end > 0.05) bad.push(`p${s.pid}: route ends ${end.toFixed(2)} m from the place it walks to`);
           if (Math.abs(s.w1 - (d * 24 + seg.t1)) > 1e-6 && !(s.w1 > d * 24 + seg.t1)) bad.push(`p${s.pid}: walk ends at ${s.w1.toFixed(3)}, the plan's block at ${(d * 24 + seg.t1).toFixed(3)}`); } } }
     note('m03', `positions: ${stays} people at their places, ${walks} on their way; ${bad.length} off ${JSON.stringify(bad.slice(0, 5))}`);
@@ -245,7 +246,7 @@ describe('crowd fed by the population view (D-143)', () => {
       let popDrawn = 0, performing = 0, withThings = 0; const badResolve: string[] = [], fno = (crowd as any).frame as number;
       for (const p of crowd.persons.values()) { if (p.agent || p.pid < 0 || p.drawnFrame !== fno || !p.vp) continue; popDrawn++;
         const act = p.vp.moving && !ACTIVITIES[p.vp.act].moving ? 'walk' : p.vp.act;
-        if (p.act !== act || p.why !== p.vp.why || !p.perf || (p.perf as { variant?: number }).variant !== performanceFor(act, p.vp.why, Math.round(p.animK * 159)).variant) badResolve.push(`p${p.pid} ${p.act}/${act} "${p.why}"/"${p.vp.why}"`);
+        if (p.act !== act || p.why !== p.vp.why || !p.perf || (p.perf as { variant?: number }).variant !== performanceFor(act, p.vp.why, Math.round(p.animK * 159), undefined, { sex: sim.pop.persons[p.pid].sex, age: sim.pop.ageOn(p.pid, d) }).variant) badResolve.push(`p${p.pid} ${p.act}/${act} "${p.why}"/"${p.vp.why}"`);
         if (act !== 'walk' && act !== 'rest' && act !== 'talk') performing++; if (p.perf?.work?.length || p.perf?.animals) withThings++; }
       rows.push(`${name} (day ${d}, ${h} h; [${e}, ${n}] heading ${hd}°, pitch ${pitch}°): simulated in view ${simIn}, drawn in view ${inF} (skinned ${st.byLod.join('/')} full/mid/far/farthest, of them behind court walls ${st.impPerf.walled}, impostors ${st.impostors}); main-pass people triangles ${(st.triangles / 1e6).toFixed(2)} M; visible by sightline ${vis} (by distance ${vb.join('/')} <50/<200/<600/<1500/<5000 m; skinned ${kinds.slice(0, 4).join('/')}, impostors ${kinds[4]}); within 25 m ${near25}; placeholder acts drawn standing ${st.placeholderActs} skinned + ${st.impPerf.placeholders} impostors; missing ${missing.length} ${JSON.stringify(missing.slice(0, 3))}`
         + `; D-142 (merge): props ${st.props} in ${st.propDraws} draws (${(st.propTriangles / 1e6).toFixed(2)} M triangles submitted, over the cap ${st.propsDropped}), work objects ${st.things.instances} (${(st.things.triangles / 1e6).toFixed(2)} M), animals ${st.animals.instances} (${(st.animals.triangles / 1e6).toFixed(2)} M); population people performing ${performing} of ${popDrawn} skinned (with work objects or animals ${withThings})`);

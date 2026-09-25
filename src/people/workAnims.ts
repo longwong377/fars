@@ -16,11 +16,15 @@ export const WORK_ANIMS = ['hoe', 'irrigate', 'reap', 'bind', 'winnow', 'drive',
   'hold', 'hold_sack', 'hold_lead', 'sweep', 'weave', 'spin', 'gather', 'pat', 'stir', 'mould', 'lay', 'haul', 'pass', 'polish', 'adze',
   'pick', 'tread', 'stoke', 'mend', 'bier_l', 'bier_r', 'wash', 'archery', 'cook',
   // playing and singing (D-200)
-  'harp_v', 'harp_h', 'lyre', 'frame_drum', 'double_pipe', 'reed_pipe', 'sing'] as const;
+  'harp_v', 'harp_h', 'lyre', 'frame_drum', 'double_pipe', 'reed_pipe', 'sing',
+  // children's play (D-215: gap audit item 26) and the lame and the blind on the move (item 37)
+  'ball', 'chase', 'pull_toy', 'rattle', 'limp', 'feel',
+  // the magi and the dead (D-209): the barsom held before the fire, the kept fire fed, standing in mourning
+  'barsom', 'feed_fire', 'mourn'] as const;
 export type WorkAnim = typeof WORK_ANIMS[number];
 /** how each cycle meets the ground (humanRig: planted feet, or the body resting on the ground) and whether it moves the
  *  performer's root along a path of its own (the ploughman along the furrow, the thresher turning with his team) */
-export const WORK_META: Record<WorkAnim, { ground: 'feet' | 'seat'; path?: boolean; aside?: boolean }> = {
+export const WORK_META: Record<WorkAnim, { ground: 'feet' | 'seat'; path?: boolean; aside?: boolean; /** D-215: a walking or running cycle (its feet step, they are not planted) */ gait?: boolean }> = {
   hoe: { ground: 'feet' }, irrigate: { ground: 'feet' }, reap: { ground: 'feet' }, bind: { ground: 'feet' }, winnow: { ground: 'feet' },
   drive: { ground: 'feet', path: true }, plough: { ground: 'feet', path: true }, herd: { ground: 'feet' }, groom: { ground: 'feet' }, fodder: { ground: 'feet' },
   shear: { ground: 'seat', aside: true }, butcher: { ground: 'seat', aside: true }, hold: { ground: 'feet' }, hold_sack: { ground: 'feet' }, hold_lead: { ground: 'feet' },
@@ -31,7 +35,17 @@ export const WORK_META: Record<WorkAnim, { ground: 'feet' | 'seat'; path?: boole
   wash: { ground: 'seat', aside: true }, archery: { ground: 'feet', path: true }, cook: { ground: 'feet', aside: true },
   harp_v: { ground: 'feet' }, harp_h: { ground: 'feet' }, lyre: { ground: 'feet' }, frame_drum: { ground: 'feet' }, double_pipe: { ground: 'feet' },
   reed_pipe: { ground: 'seat', aside: true }, sing: { ground: 'feet' },
+  ball: { ground: 'feet' }, chase: { ground: 'feet', path: true, gait: true }, pull_toy: { ground: 'feet', path: true, gait: true }, rattle: { ground: 'seat' }, limp: { ground: 'feet', gait: true }, feel: { ground: 'feet', gait: true },
+  barsom: { ground: 'feet' }, feed_fire: { ground: 'feet' }, mourn: { ground: 'feet' },
 };
+/** D-215: the children's paths (C): running round after one another on a circle of 2.2 m at 2 m/s; walking round pulling
+ *  a toy on a circle of 1.5 m at 0.5 m/s. Both start at the view's spot and come back to it */
+export const PLAY_PATH = { chase: { r: 2.2, v: 2.0, cad: 1.45 }, pull_toy: { r: 1.5, v: 0.5, cad: 0.8 } } as const;
+/** the play path's offset at time t (performer's frame: x left, z ahead; yaw) */
+export function playPath(id: 'chase' | 'pull_toy', t: number, k: number): [number, number, number] {
+  const P = PLAY_PATH[id], th = (P.v / P.r) * t + 2 * PI * fr(k * 0.37);
+  return [P.r * Math.sin(th), P.r * (1 - Math.cos(th)), PI / 2 - th];
+}
 
 const S = Math.sin, C = Math.cos, PI = Math.PI;
 const fr = (x: number) => x - Math.floor(x);
@@ -476,6 +490,65 @@ function wash(t: number, k: number): Pose {
 }
 /** archery practice (train): stance side-on to the target (the shot goes along the performer's heading, +Z of the root:
  *  the body is turned by −90°), an arrow from the quiver, nocked, drawn to the cheek, loosed; ip = the draw */
+// ------------------------------------------------------------------------------------------------ D-215: play; the lame, the blind
+/** legs in a walking or running stride at phase ph (amplitude amp; `run`: a flight phase, the knees higher) */
+function stride(p: Pose, ph: number, amp: number, run = 0) {
+  const r = p.rot; r.l_thigh = [-amp * S(ph), 0, 0]; r.r_thigh = [amp * S(ph), 0, 0];
+  r.l_shin = [0.1 + (0.9 + run) * amp * Math.max(0, C(ph)) ** 1.5, 0, 0]; r.r_shin = [0.1 + (0.9 + run) * amp * Math.max(0, -C(ph)) ** 1.5, 0, 0];
+  r.l_foot = [-0.2 * S(ph), 0, 0]; r.r_foot = [0.2 * S(ph), 0, 0];
+}
+/** tossing a ball up and catching it (a child, standing): the ball's height above the hands is the second prop parameter */
+function ball(t: number, k: number): Pose {
+  const P = 1.9, q = fr(t / P + k * 0.21), p = blank(), up = S(PI * cl(q / 0.8)), crouch = win(q, 0.78, 1.02, 0.06);
+  const T = body(p, { hp: 0.05 + 0.15 * crouch, sp: -0.06 * up, ch: -0.05 * up, drop: -0.02 - 0.05 * crouch }, t, k);
+  stance(p, T, { w: 0.13, zl: 0.04, zr: -0.03, out: 0.2 });
+  const hy = q < 0.08 ? 1.05 + 1.6 * q : q < 0.72 ? 1.18 + 0.12 * up : 1.1, hz = 0.28;
+  grip(p, T, 'l', [0.08, hy, hz], [0.9, -0.8, -0.3], -0.6); grip(p, T, 'r', [-0.08, hy, hz], [-0.9, -0.8, -0.3], 0.6);
+  look(p, T, [0, 1.2 + 1.2 * up, 0.6], -0.2); p.grip = [0.3, 0.3];
+  p.aux = q < 0.8 ? 0.95 * S(PI * q / 0.8) : 0; p.at = [0, hy, hz, 0]; return p;
+}
+/** running round after the other children (the root on its circle: playPath) */
+function chase(t: number, k: number): Pose {
+  const P = PLAY_PATH.chase, ph = 2 * PI * P.cad * t + k, p = blank(); stride(p, ph, 0.62, 0.5);
+  body(p, { hp: 0.12, sp: 0.08, drop: -0.04 + 0.03 * Math.abs(S(ph)), hy: 0.1 * S(ph), hr: -0.06 }, t, k); // leaning into the turn
+  const r = p.rot; r.l_upper = [0.7 * S(ph), 0, 0.25]; r.r_upper = [-0.7 * S(ph), 0, -0.25]; r.l_fore = [-1.1, 0, 0]; r.r_fore = [-1.1, 0, 0];
+  r.head = [0.05, 0.25 * S(t * 0.9 + k), 0]; return p;
+}
+/** walking round pulling a wheeled toy on a cord (the root on its circle; the cord in the right hand, behind) */
+function pullToy(t: number, k: number): Pose {
+  const P = PLAY_PATH.pull_toy, ph = 2 * PI * P.cad * t + k, p = blank(); stride(p, ph, 0.3);
+  const T = body(p, { hp: 0.04, sp: 0.03, drop: -0.02 + 0.012 * C(2 * ph), hy: -0.12 }, t, k);
+  grip(p, T, 'r', [-0.16, 0.86, -0.12], [-0.8, -1, 0.2], 0.3);
+  const r = p.rot; r.l_upper = [0.25 * S(ph), 0, 0.08]; r.l_fore = [-0.3, 0, 0];
+  look(p, T, [-0.6, 0.1, -0.6]); p.grip = [0.2, 1]; return p;
+}
+/** a small child sitting on the ground shaking a clay rattle */
+function rattle(t: number, k: number): Pose {
+  const p = blank(), sh = S(2 * PI * t * 3.2 + k) * (fr(t / 3 + k) < 0.7 ? 1 : 0.15);
+  const T = sitBody(p, t, k, 0.1);
+  grip(p, T, 'r', [-0.12, 0.62 + 0.05 * sh, 0.3], [-0.9, -0.6, -0.3], 0.3 + 0.4 * sh); grip(p, T, 'l', [0.1, 0.35, 0.28], [0.9, -0.8, -0.3]);
+  look(p, T, [-0.1, 0.55, 0.35]); p.grip = [0.3, 1]; return p;
+}
+/** a lame man walking with a staff in his right hand: the right leg stiff and short in its step, the body dipping onto the
+ *  staff as the right foot takes his weight (gait phase ph from the walk; C) */
+function limp(t: number, ph: number, k: number): Pose {
+  const p = blank(), r = p.rot, dip = Math.max(0, -S(ph));
+  r.l_thigh = [-0.4 * S(ph), 0, 0]; r.r_thigh = [0.2 * S(ph), 0, -0.05]; r.l_shin = [0.1 + 0.36 * Math.max(0, C(ph)) ** 1.5, 0, 0]; r.r_shin = [0.05, 0, 0];
+  r.l_foot = [-0.2 * S(ph), 0, 0]; r.r_foot = [0.05, 0, 0];
+  const T = body(p, { hp: 0.08, sp: 0.06, drop: -0.03 - 0.04 * dip, side: -0.03 * dip, hr: 0.06 * dip, hy: 0.04 * S(ph) }, t, k);
+  const G: V3 = [-0.26, 1.18 - 0.04 * dip, 0.36 + 0.08 * S(ph)]; grip(p, T, 'r', G, [-0.8, -1, -0.2], 0.3);
+  r.l_upper = [0.2 * S(ph), 0, 0.08]; r.l_fore = [-0.3, 0, 0];
+  look(p, T, [0, 0.6, 5]); p.grip = [0.2, 1]; p.tip = [[-0.3, 0, 0.45 + 0.15 * S(ph)], null]; return p;
+}
+/** a blind elder walking slowly, the staff held forward and down in the right hand, its foot sweeping the ground ahead,
+ *  the left hand a little forward (gait phase ph; C) */
+function feel(t: number, ph: number, k: number): Pose {
+  const p = blank(); stride(p, ph, 0.22);
+  const T = body(p, { hp: 0.1, sp: 0.1, drop: -0.04, hy: 0.03 * S(ph) }, t, k);
+  const sw = S(t * 1.7 + k); grip(p, T, 'r', [-0.14, 1.0, 0.36], [-0.8, -1, -0.2], 0.3);
+  grip(p, T, 'l', [0.16, 0.98, 0.3], [0.8, -1, -0.2]);
+  look(p, T, [0, 1.5, 6], -0.25); p.grip = [0.3, 1]; p.tip = [[-0.14 + 0.35 * sw, 0, 1.0], null]; return p;
+}
 function archery(t: number, k: number): Pose {
   const P = 8, q = fr(t / P + k * 0.2), p = blank();
   // in the body frame the target lies along +X (the left); the root is turned −π/2 so +X becomes the heading
@@ -605,6 +678,33 @@ function sing(t: number, k: number): Pose {
   look(p, T, [0.4 * wob(t * 0.1, k + 3), 1.7, 5]); p.grip = [0.4, 0.4]; return p;
 }
 
+/** D-209: a magus standing with the barsom held upright before him in the right fist (a man in Median dress holding the
+ *  barsom on the Oxus plaques: B; how it is held here C), the left hand laid over the right wrist, the head a little bowed
+ *  toward the fire or the offering. At the offering and when he chants (the chant is the music system's: the jaw under the
+ *  mouth-cover) */
+function barsomPose(t: number, k: number): Pose {
+  const p = blank(), T = body(p, { hp: 0.02, sp: 0.05, ch: 0.02, drop: -0.01, hy: 0.02 * wob(t * 0.12, k) }, t, k);
+  stance(p, T, { w: 0.12, zl: 0.02, zr: -0.02, out: 0.14 });
+  grip(p, T, 'r', [-0.05, 1.1, 0.3], [-0.8, -1, -0.2], 1.2); grip(p, T, 'l', [0.02, 1.04, 0.27], [0.8, -1, -0.2], -0.9);
+  look(p, T, [0.1 * wob(t * 0.08, k + 2), 0.5, 2.6], 0.08); p.grip = [0.4, 1]; return p;
+}
+/** D-209: feeding the kept fire on the altar's top (about 1.2 m high, 0.9 m ahead): a stick taken from the bundle in the
+ *  crook of the left arm and laid on the fire, leaning in, then back (C) */
+function feedFire(t: number, k: number): Pose {
+  const P = 6, q = fr(t / P + k * 0.21), p = blank(), reach = win(q, 0.3, 0.62, 0.1);
+  const T = body(p, { hp: 0.05 + 0.14 * reach, sp: 0.05 + 0.12 * reach, drop: -0.01, hy: 0.03 * wob(t * 0.2, k) }, t, k);
+  stance(p, T, { w: 0.13, zl: 0.08, zr: -0.06, out: 0.14 });
+  const R = key(q, [[0, [-0.12, 0.98, 0.22]], [0.2, [0.06, 1.0, 0.24]], [0.45, [-0.02, 1.22, 0.62]], [0.6, [-0.02, 1.2, 0.64]], [0.8, [-0.14, 1.0, 0.25]]]);
+  grip(p, T, 'r', [R[0], R[1], R[2]], [-0.8, -0.9, -0.3], 0.6); grip(p, T, 'l', [0.14, 1.0, 0.2], [0.8, -1, -0.2], -0.8);
+  look(p, T, [0, 1.2, 0.9]); p.grip = [1, 1]; p.show = [q > 0.1 && q < 0.6, false]; return p;
+}
+/** D-209: standing in mourning at a grave: the head bowed, the hands joined low (C: no wailing or tearing is staged) */
+function mourn(t: number, k: number): Pose {
+  const p = blank(), T = body(p, { hp: 0.04, sp: 0.1, ch: 0.08, drop: -0.01, hy: 0.02 * wob(t * 0.1, k) }, t, k);
+  stance(p, T, { w: 0.12, zl: 0.02, zr: -0.02, out: 0.14 });
+  grip(p, T, 'r', [-0.03, 0.9, 0.14], [-0.8, -1, -0.2], 0.9); grip(p, T, 'l', [0.035, 0.91, 0.13], [0.8, -1, -0.2], -0.9);
+  look(p, T, [0.2 * wob(t * 0.07, k), 0, 2.2], 0.25); p.grip = [0.4, 0.4]; return p;
+}
 /** a work cycle's pose. `ph`: the gait phase for walking cycles (bearers); `k`: per-person seed */
 export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
   switch (id) {
@@ -651,6 +751,15 @@ export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
     case 'double_pipe': return pipes(t, k, true);
     case 'reed_pipe': return pipes(t, k, false);
     case 'sing': return sing(t, k);
+    case 'ball': return ball(t, k);
+    case 'chase': return chase(t, k);
+    case 'pull_toy': return pullToy(t, k);
+    case 'rattle': return rattle(t, k);
+    case 'limp': return limp(t, ph, k);
+    case 'feel': return feel(t, ph, k);
+    case 'barsom': return barsomPose(t, k);
+    case 'feed_fire': return feedFire(t, k);
+    case 'mourn': return mourn(t, k);
   }
 }
 /** the root path of a path cycle at time t (called every frame by the crowd, also between pose refreshes) */
@@ -658,6 +767,7 @@ export function workRoot(id: WorkAnim, t: number, k: number): [number, number, n
   if (id === 'plough') { const P = ploughPath(t, k); return [P.dx, P.dz, P.yaw]; }
   if (id === 'drive') return [0, 0, -2 * PI * fr(t / THRESH_TURN_S + k * 0.05)];
   if (id === 'archery') return [0, 0, -PI / 2];
+  if (id === 'chase' || id === 'pull_toy') return playPath(id, t, k);
   return null;
 }
 void (0 as unknown as E3);

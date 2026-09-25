@@ -73,7 +73,7 @@ export class Settlement {
     const groupBase = new Map<string, number>(); for (const [g, pts] of this.plan.groups) groupBase.set(g, Math.min(...pts.map(p => H(p[0], p[1]))));
     const propCol = new Map<string, SiteCol>();
     for (const p of this.plan.props) {
-      const cl = getC(p.group === 'takht' || p.group === 'hall_gohar' ? 'zone_dasht_e_gohar' : p.group === 'pavilion' ? 'zone_bagh_e_firuzi' : p.group, p.c);
+      const cl = getC(p.group === 'takht' || p.group === 'hall_gohar' ? 'zone_dasht_e_gohar' : p.group === 'pavilion' ? 'zone_bagh_e_firuzi' : p.group.startsWith('precinct') ? 'sacred_precinct' : p.group === 'grave_stone' ? 'burial_ground_town' : p.group, p.c);
       const b = B(cl, p.mat === 'stone' ? (p.group === 'takht' ? 'takht' : 'stone') : 'mud');
       const base = groupBase.get(p.group) ?? H(p.c[0], p.c[1]);
       const d = cl.desc.length; cl.desc.push({ tier: ROWS[p.row]?.tier ?? FEATURES[p.row]?.tier ?? 'C', src: ROWS[p.row]?.src ?? FEATURES[p.feature]?.src ?? 'RECON', note: p.note });
@@ -83,6 +83,8 @@ export class Settlement {
       if (p.collide) { let pc = propCol.get(p.group); if (!pc) { pc = { id: 'props:' + p.group, c: p.c, r: 60, boxes: [], live: null }; propCol.set(p.group, pc); this.cols.push(pc); }
         pc.boxes.push({ x: p.c[0], y: base + (p.y0 + p.y1) / 2, z: -p.c[1], hx: p.hu, hy: (p.y1 - p.y0) / 2, hz: p.hv, rot: p.theta }); }
     }
+    // D-209: the kept fire on the precinct's altar (the plan's fires: burning day and night, fed by the magi; C)
+    for (const f of this.plan.fires ?? []) { const base = groupBase.get(f.group) ?? H(f.c[0], f.c[1]); this.fire.add('altar', new THREE.Vector3(f.c[0], base + f.y, -f.c[1]), { tier: 'C', src: 'HDT;NR-ALTAR;RECON', note: f.note, sched: f.sched, group: 'sacred_precinct', body: false }); this.info.fires++; }
     phase('props');
     // trodden ground: lanes, squares, courts and floors of the quarters and compounds are bare packed earth, not the
     // plain's seasonal herb layer (gardens and orchards keep it). One receive-only mesh, 4 m tiles draped on the terrain.
@@ -101,8 +103,8 @@ export class Settlement {
     phase('ground');
     // middens, dung, bone pits: one refuse mesh (grime where work happens, brief 5.5)
     const refuse = new Batch(), rDesc: Desc[] = [];
-    for (const m of this.plan.middens) { const d = rDesc.length; rDesc.push({ tier: 'C', src: ROWS[m.row]?.src ?? 'RECON', note: `${m.kind === 'bone' ? 'pit of bone fragments (PW2017, B activity; form C)' : m.kind === 'dung' ? 'dung in an animal pen (C)' : 'midden: ash, sherds, bone and dung (C)'}` });
-      const c = lin(m.kind === 'bone' ? [0.62, 0.58, 0.5] : m.kind === 'dung' ? [0.3, 0.25, 0.18] : [0.36, 0.32, 0.27]);
+    for (const m of this.plan.middens) { const d = rDesc.length; rDesc.push({ tier: 'C', src: ROWS[m.row]?.src ?? 'RECON', note: `${m.kind === 'grave' ? 'a grave: the dead, coated in wax, buried in the earth under a low mound (Herodotus 1.140, read, a Greek claim: B; the burial ground, its place and the mounds C: D-209)' : m.kind === 'ash' && m.feature === 'sacred_precinct' ? 'ash of the kept fire raked out of the altar (C)' : m.kind === 'bone' ? 'pit of bone fragments (PW2017, B activity; form C)' : m.kind === 'dung' ? 'dung in an animal pen (C)' : 'midden: ash, sherds, bone and dung (C)'}` });
+      const c = lin(m.kind === 'grave' ? [0.47 - 0.1 * (0.42 - m.h), 0.41 - 0.08 * (0.42 - m.h), 0.32] : m.kind === 'bone' ? [0.62, 0.58, 0.5] : m.kind === 'dung' ? [0.3, 0.25, 0.18] : [0.36, 0.32, 0.27]);
       refuse.mound(m.c[0], m.c[1], m.r, m.h, c, H, d); }
     // finish meshes
     const mats: Record<string, THREE.Material> = {
@@ -211,6 +213,12 @@ export class Settlement {
         case 'anvil': mud.box(g[0], g[1], th, 0.22, 0.2, y - 0.05, y + 0.5, st, shade(st, 0.8), d); break;
         case 'bench': mud.box(g[0], g[1], th, 0.8, 0.25, y, y + 0.8, tim, tim, d); break;
         case 'knucklebones': for (let x = 0; x < 5; x++) mud.box(...at(x * 0.07 - 0.14, (x % 2) * 0.05), th + x, 0.018, 0.012, y, y + 0.02, lin(BONE), lin(BONE), d); break;
+        // D-215: a leather ball, a clay bull on wheels (wheels as flat discs, seen from above) and a clay rattle (C)
+        case 'toys': { const clay = lin([0.66, 0.47, 0.33]), hide = lin([0.55, 0.4, 0.26]);
+          mud.lathe(...at(-0.25, 0.1), y, [[0.001, 0], [0.035, 0.012], [0.05, 0.05], [0.035, 0.088], [0.001, 0.1]], 5, hide, d);
+          mud.box(...at(0.15, 0), th, 0.085, 0.05, y + 0.04, y + 0.11, clay, clay, d); mud.box(...at(0.25, 0), th, 0.03, 0.028, y + 0.08, y + 0.14, clay, clay, d);
+          for (const s2 of [-1, 1]) mud.box(...at(0.15, s2 * 0.055), th, 0.075, 0.006, y, y + 0.05, shade(clay, 0.8), clay, d);
+          mud.lathe(...at(0.05, -0.25), y, [[0.001, 0], [0.03, 0.02], [0.034, 0.04], [0.012, 0.07], [0.008, 0.12]], 5, clay, d); break; }
         case 'trough': mud.box(g[0], g[1], th, 0.7 * f.size, 0.28, y - 0.05, y + 0.5, st, st, d); col.boxes.push({ x: g[0], y: y + 0.25, z: -g[1], hx: 0.7 * f.size, hy: 0.3, hz: 0.28, rot: th }); break;
         case 'manger': mud.box(g[0], g[1], th, 0.9, 0.3, y - 0.05, y + 0.85, shade(mc, 0.85), mc, d); col.boxes.push({ x: g[0], y: y + 0.4, z: -g[1], hx: 0.9, hy: 0.45, hz: 0.3, rot: th }); break;
         case 'well': this.well(g, y, mud, d); col.boxes.push({ x: g[0], y: y + 0.35, z: -g[1], hx: 0.85, hy: 0.4, hz: 0.85, rot: 0 }); break;

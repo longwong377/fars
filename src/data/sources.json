@@ -948,5 +948,55 @@
   "cite": "Esther 1:6: at the king's feast in the palace garden of Susa, hangings of white, green and blue fastened with cords of fine linen and purple to silver rings and pillars of marble, and couches of gold and silver on a pavement (a late literary source on the Persian court)",
   "url": "https://www.sefaria.org/Esther.1.6",
   "access": "recollection of the text (NOT SEEN this session, D-212): late literary, C"
+ },
+ "SUSA-GLAZE": {
+  "cite": "The glazed-brick decoration of Darius I's palace at Susa (Louvre): friezes of archers in the court robe strewn with small rosettes or squares, lions, winged bulls and griffins, bands of rosettes and palmettes between plain border courses (Dieulafoy 1885-86; Mecquenem; Muscarella in The Royal City of Susa, 1992)",
+  "url": "",
+  "access": "RECOLLECTION (NOT SEEN this session, D-214): the layout and motifs are standard knowledge of the Susa bricks; tier C for any use at Persepolis"
+ },
+ "STEIN2016": {
+  "cite": "B. Stein, A. Nagel et al., 'Painted plaster and glazed brick fragments from Achaemenid Pasargadae and Persepolis, Iran', Heritage Science 4 (2016) (Freer Study Collection, Herzfeld fragments)",
+  "url": "https://www.nature.com/articles/s40494-016-0072-7",
+  "access": "search extract only (fetch blocked, B6), as summarised in research/RELIEFS_AND_COLOUR.md §5"
+ },
+ "TERRACE-DRAINS": {
+  "cite": "The drainage of the Persepolis Terrace: 'a system of water conduits and drains hewn out of the rock' (Iranica 'Persepolis', search extract); underground drains and tunnels cut through the rock beneath the platform, excavated by Schmidt; a large cistern at the E foot of the Kuh-e Rahmat (search-extract set of research/_extract_A.md, page not verified)",
+  "url": "research/_extract_A.md",
+  "access": "search extract only; Schmidt 1953 NOT SEEN (B6)"
+ },
+ "XEN-CYR-EYES": {
+  "cite": "Xenophon, Cyropaedia 1.3.2 (Astyages \"adorned with pencillings beneath his eyes, with rouge rubbed on his face, and with a wig of false hair: the common Median fashion ... the necklaces about their necks, and the bracelets on their wrists\"), 8.1.41 (Cyrus \"encouraged also the fashion of pencilling the eyes\"), 8.8.20 (\"beauty-doctors who pencil their eyes\"), tr. W. Miller",
+  "url": "https://raw.githubusercontent.com/PerseusDL/canonical-greekLit/master/data/tlg0032/tlg007/tlg0032.tlg007.perseus-eng2.xml",
+  "access": "downloaded and the passages read this session (D-215). Greek literature about the Persian court: claims, max tier B"
+ },
+ "HDT-7.41-61": {
+  "cite": "Herodotus 7.41 (of the ten thousand \"one thousand had golden pomegranates on their spear-shafts instead of a spike ... the nine thousand ... silver pomegranates ... those following nearest to Xerxes had apples of gold\") and 7.61 (the Persians \"for shields ... had wicker bucklers, with quivers hanging beneath them\"), tr. A. D. Godley",
+  "url": "https://raw.githubusercontent.com/PerseusDL/canonical-greekLit/master/data/tlg0016/tlg001/tlg0016.tlg001.perseus-eng2.xml",
+  "access": "downloaded and the passages read this session (D-215). Greek claims about the Persian army: max tier B"
+ },
+ "LACHISH-R": {
+  "cite": "The Lachish reliefs of Sennacherib's palace at Nineveh (British Museum, c. 700 BCE): deported families on the march, women carrying small children on the hip and shoulder",
+  "url": "https://www.britishmuseum.org/collection/term/BIOG135937",
+  "access": "recollection (NOT SEEN this session, D-215): an analogy for carrying children, C"
+ },
+ "SUSA-TOYS": {
+  "cite": "Wheeled animal figurines and rattles of fired clay from Susa and Mesopotamian sites (the Louvre's Oriental Antiquities; 3rd-1st millennium BCE)",
+  "url": "https://collections.louvre.fr/",
+  "access": "recollection (NOT SEEN this session, D-215): an analogy for toys, C"
+ },
+ "PAS-PRECINCT": {
+  "cite": "The sacred precinct at Pasargadae (D. Stronach, Pasargadae, Oxford 1978), via search extracts: UNESCO World Heritage nomination 1106 'Pasargadae'; Encyclopaedia Iranica 'Pasargadae' and 'Fire altars'; Smithsonian Learning Lab (Herzfeld archive) 'The two limestone plinths of the Sacred Precinct before excavation'",
+  "url": "https://whc.unesco.org/uploads/nominations/1106.pdf",
+  "access": "search-extract only (2026-09-25, D-209): two white limestone plinths over 2 m high on black limestone borders, some 9 m apart; the N 2.8 x 2.8 m, the S 2.5 x 2.5 m with a stair (eight steps in one extract, nine in another: Q-470); Stronach: platform for the king and for the fire; possibly Cyrus' reign. Iranica and pasargadae.info hosts blocked"
+ },
+ "NR-ALTAR": {
+  "cite": "The fire altar of the Achaemenid royal tomb reliefs at Naqsh-e Rustam (the king on a three-stepped platform before a fire altar, the winged figure above), via search extracts: Oxford 'cabinet' 'Tomb of Darius at Naqsh-e Rustam'; Wikipedia 'Naqsh-e Rostam'; Livius 'Naqs-e Rustam, Achaemenid tomb III'",
+  "url": "https://www.cabinet.ox.ac.uk/tomb-darius-naqsh-e-rustam-0",
+  "access": "search-extract only (2026-09-25, D-209): 'the king standing at left, facing a fire-altar at centre'; the altar's stepped form (foot, shaft, stepped top) is the relief's as generally described; its measures NOT SEEN"
+ },
+ "OXUS-PLAQUE": {
+  "cite": "Oxus Treasure, gold votive plaques of a man in Median dress holding a barsom (British Museum; BM Images 00024345001), via search extracts",
+  "url": "https://www.bmimages.com/preview.asp?image=00024345001",
+  "access": "search-extract only (2026-09-25, D-209): 'a male figure ... in so-called Median dress, wearing a belted tunic ..., hood ..., trousers, long boots and a soft cap with neck-guard. His chin is covered. He carries a barsom in his right hand'; identified as a priest because of the barsom. Achaemenid, 5th-4th c."
  }
 }

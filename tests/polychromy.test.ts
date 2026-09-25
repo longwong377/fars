@@ -123,9 +123,11 @@ describe('masonry joints and carved stone (D-029)', () => {
     expect(tr).toEqual(['treasury:columns:limestone', 'treasury:columns:plaster', 'treasury:columns:timber']);
     const byName = (n: string) => cols.find(o => o.name === n);
     expect(surf(byName('treasury:columns:limestone'))).toBe(SURFACES.limestone_carved.note);
-    expect(surf(byName('treasury:columns:plaster'))).toBe(SURFACES.plaster.note);
+    // the plastered shafts carry their paint since D-214 (the most probable scheme, C; Q-020), on the plaster surface
+    expect(surf(byName('treasury:columns:plaster'))).toMatch(/^the Treasury shafts' paint \(D-214, Q-020\)/);
     expect(surf(byName('treasury:columns:timber'))).toBe(SURFACES.timber.note);
-    expect(byName('treasury:columns:plaster').userData.placeholder).toBe(true); // the attested paint is not drawn yet
+    expect(byName('treasury:columns:plaster').userData.placeholder).toBe(false);
+    expect(byName('treasury:columns:plaster').userData.note).toMatch(/treasury\.r_shaft_paint/);
   });
 });
 
