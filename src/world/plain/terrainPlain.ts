@@ -113,7 +113,7 @@ export class PlainGround {
     this.detNear = dataTex(a.data, a.n); this.detMid = dataTex(b.data, b.n); this.dn = { half: a.half, cell: a.cell, n: a.n }; this.dm = { half: b.half, cell: b.cell, n: b.n };
     const g = zones.ground; this.groundTex = g ? dataTex(g.data, g.n) : dataTex(new Uint8Array([255, 255, 0, 255]), 1);
     this.material = surfaceMaterial('earth', { vertexColors: true, variant: 'plain', modify: (L: Layer) => this.modify(L) });
-    this.material.userData = { tier: 'C', src: 'RECON;SUMNER1986;IR-FOODAG;SAEIDI2021;KR-BEDROCK;MD1988;GLO30-SPEC;COP-DEM', note: 'plain surface: loam and seasonal herbs; fields (plots C, crop calendar B/C, rain-fed crop/fallow by block C), orchard floors and woodland canopy from plain.json zones (C); the town\'s trampled ground, worn paths and garden plots (C); the hills: limestone rock, bedding, gullies from the DEM\'s drainage, scree and shrubs (lithology B, the rest C)' };
+    this.material.userData = { tier: 'C', src: 'RECON;SUMNER1986;IR-FOODAG;SAEIDI2021;KR-BEDROCK;MD1988;GLO30-SPEC;COP-DEM', note: 'plain surface: loam and seasonal herbs; fields (plots C, crop calendar B/C, rain-fed crop/fallow by block C), orchard floors and woodland canopy from plain.json zones (C); the town\'s trampled ground, worn paths and garden plots (C); the hills: limestone rock, bedding, gullies from the DEM\'s drainage, scree and shrubs (lithology B, the rest C); D-223: cliff bands as riser and bench (a shading tilt), talus under the risers, aprons below steep ground, gravel fans at gully mouths, shrub crowns as 3-D spheres (no stretching on steep ground), irrigated fallow share by 800 m district (all C)' };
   }
   /** date → uniforms (called when the day changes) */
   setDay(doy: number) {
@@ -157,10 +157,11 @@ export class PlainGround {
       const cliff = step(unitN(pcgN(pkgI.add(8192).toUint())), HILL.cliffShare);
       const fwY = fwidth(sy).max(1e-4);
       // the riser: the top HILL.riser of a cliff package, its lower edge box-filtered over the pixel's span of sy; far off
-      // (the riser under ~1.5 px) its mean share
+      // its mean share: whole while the riser (4.2 m of sy) spans ~3 px, gone under ~1.4 px (with the rig's 40° lens at 540
+      // rows: to ~1.1 km on a face seen square-on, gone by ~2.3 km; twice that at 1080 rows)
       const wP = fwY.div(HILL.pkg).max(0.015), r0 = 1 - HILL.riser;
-      const riser = smoothstep(float(r0).sub(wP), float(r0).add(wP), pkgF).mul(cliff);
-      const riserVis = float(1).sub(smoothstep(0.1, 0.3, fwY.div(HILL.pkg * HILL.riser)));
+      const riser = smoothstep(float(r0).sub(wP), float(r0).add(wP), pkgF).mul(float(1).sub(smoothstep(float(1).sub(wP.mul(2)), float(1), pkgF))).mul(cliff); // (its top edge, where the next package's bench begins, softened over the pixel too)
+      const riserVis = float(1).sub(smoothstep(0.35, 0.7, fwY.div(HILL.pkg * HILL.riser)));
       const riserV = mix(float(HILL.cliffShare * HILL.riser), riser, riserVis);
       return { D, Dq, has, nw, slope, dh, sy, pkgI, pkgF, cliff, fwY, riser, riserV, riserVis, hillFar: has };
     };
@@ -396,9 +397,9 @@ export class PlainGround {
     // D-223: the cliff packages' riser and bench as a tilt of the shading normal (world space; materials.ts adds it to the
     // bumped normal). The DEM's 30 m surface holds a package's mean slope s; the riser stands at HILL.riserSteep × s (at most
     // HILL.riserMaxSlope) and the bench takes the rest so the package keeps s: sR·riser + sB·(1 − riser) = s. A tilt, not a
-    // bump: it needs no screen derivative, so the bands keep their light and shade while a riser spans ~1.5 px (to ~3 km
-    // at 1080p) and then give way to the mean normal. On rock in cliff packages over ~11-20 deg only, and not on the town's
-    // trodden ground or fields (no packages there: gentle ground)
+    // bump: it needs no screen derivative of a height, so the bands keep their light and shade as long as a riser spans a
+    // few pixels (hillBase riserVis) and then give way to the mean normal. In cliff packages on slopes over ~11-20 deg, inside the landform
+    // maps' rings (the fields and the trodden ground are gentler than that: no tilt there)
     const tiltFn = Fn(() => {
       const p = positionWorld.xz, Hb = hillBase(p), s = Hb.slope;
       const r = HILL.riser, sR = s.mul(HILL.riserSteep).min(HILL.riserMaxSlope), sB = s.sub(sR.mul(r)).max(0).div(1 - r);

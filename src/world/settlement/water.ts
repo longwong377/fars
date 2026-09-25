@@ -40,12 +40,12 @@ function geo(parts: { pos: number[]; nor: number[]; idx: number[]; wd?: [number,
 
 /** D-223 (rubric s7 pass 2 fix 9: from the Terrace the roads read as "straight radial beige streaks", uniform strips with
  *  ruled edges, like seams of a projected texture): an earth road as a worn track. Across it (attribute `lat`, m from the
- *  axis): a wheel-rut pair in each half (ruts 1.4 m apart, the gauge of a two-wheeled cart, C; the royal roads carried
- *  carts and wagons: B), darker and damper and pressed 3 cm in; the crown between them and the shoulders lighter, loose
- *  and dusty; the last ~1.5 m a ragged verge where the herb layer returns (its edge wanders by ±0.7 m along the road over
+ *  axis): a wheel-rut pair in each half (ruts 1.4 m apart, the gauge of a two-wheeled cart, C; wheeled traffic on the royal
+ *  roads: recollection, Q-526), darker and damper and pressed 3 cm in, the crown between them and the shoulders the road's own
+ *  loose, dusty tone; the last ~1.5 m a ragged verge where the herb layer returns (its edge wanders by ±0.7 m along the road over
  *  ~6 m, so the edge is no ruled line); broad patches along the road where it was widened round a soft spot or recently
- *  trodden (±8 % over ~40 m). Every term is box-filtered by the pixel's span of `lat` (a far road keeps its mean tone,
- *  never an aliased stripe). All C */
+ *  trodden (±8 % over ~40 m). The ruts give way to their mean share where a rut spans under ~2 px of `lat` (a far road keeps
+ *  its mean tone, never an aliased stripe); the verge is broad enough not to alias. All C */
 export const ROAD_TRACK = { gauge: 1.4, rutW: 0.35, rutDark: 0.14, verge: 1.5, edgeWander: 0.7, patch: 0.08 } as const;
 function roadMaterial() {
   return surfaceMaterial('road', { variant: 'track', modify: (L: Layer) => {
@@ -184,7 +184,7 @@ export function buildWaterAndRoads(plan: TownPlan, H: (e: number, n: number) => 
     flush(); void near; void farPts;
   }
   const rg = geo(rparts); const rm = new THREE.Mesh(rg, roadMat); rm.name = 'settlement:roads'; rm.receiveShadow = true; rm.matrixAutoUpdate = false;
-  rm.userData = { tier: 'C', src: 'LIVIUS-TR;PLEIADES-FARS;ROYALROAD-GIS;SUMNER1986;RECON', note: 'earth roads 6-8 m (settlement.json): to Naqsh-e Rustam, to Pasargadae up the Pulvar, the royal road W toward Susa, S to Tirazziš; courses C (Q-054); spur to the Tol-e Ajori gate C' };
+  rm.userData = { tier: 'C', src: 'LIVIUS-TR;PLEIADES-FARS;ROYALROAD-GIS;SUMNER1986;RECON', note: 'earth roads 6-8 m (settlement.json): to Naqsh-e Rustam, to Pasargadae up the Pulvar, the royal road W toward Susa, S to Tirazziš; courses C (Q-054); spur to the Tol-e Ajori gate C; worn as tracks: a cart-rut pair each side, a ragged herb verge (D-223, C)' };
   group.add(rm); tris += rg.index!.count / 3; meshes++;
   const update = (_cam: THREE.Vector3) => {};
   return { group, tris, meshes, update };
