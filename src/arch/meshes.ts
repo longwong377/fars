@@ -14,8 +14,17 @@ const ALBEDO: Record<Material, [number, number, number]> = {
   timber: [0.36, 0.27, 0.19], glazed: [0.2, 0.4, 0.55], earth: [0.5, 0.42, 0.32], scaffold: [0.45, 0.35, 0.24], rubble: [0.55, 0.52, 0.48],
   court_fill: [0.5, 0.46, 0.39], terrace: [0.62, 0.6, 0.56], steel: [0.3, 0.3, 0.31],
 };
-import { surfaceMaterial } from '../render/materials';
+import { surfaceMaterial, paintedShaftMaterial } from '../render/materials';
 import { pointInPoly } from './parts';
+import { v } from './spec';
+import { labToLinear } from '../core/colour';
+import PC from '../data/polychromy.json';
+/** the Treasury shafts' paint for an order (D-214, Q-020; SITE_SPEC treasury.r_shaft_paint: the pigments of
+ *  src/data/polychromy.json, the lattice and bands C) */
+function shaftPaint(o: ColumnOrder): THREE.Material {
+  const R = v<any>('treasury', 'r_shaft_paint'), pig = (k: string) => { const L = (PC as any).pigment[k].v; return labToLinear(L[0], L[1], L[2]); };
+  return paintedShaftMaterial({ ground: pig(R.ground), line: pig(R.line), band: pig(R.band), around: R.around, lozenge_h: R.lozenge_h, line_w: R.line_w, band_h: R.band_h, edge_w: R.edge_w, y0: o.baseH, y1: o.height - o.capitalH, D: o.shaftD });
+}
 import { ceilingTimbers } from './ceilings';
 const matCache = new Map<string, THREE.MeshStandardNodeMaterial>();
 /** flat greybox material (plan-overlay tests, tools); the world uses procedural surfaces (render/materials.ts) */
@@ -378,12 +387,13 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     const b = c.parts[0].building, split = L0.length > 1;
     for (const { material: mat, mesh } of L0) {
       const g0 = toGeometry(mesh), g1 = toGeometry(L1.find(x => x.material === mat)!.mesh);
-      const lod = new InstancedLOD([g0, g1], carvedMaterial(mat), at, SW.column, SW.hysteresis);
+      // the Treasury shafts were painted 'in bright colours' (B); colours not found: since D-214 the most probable scheme (C)
+      const painted = split && mat === 'plaster' && M.shaft === 'plaster';
+      const lod = new InstancedLOD([g0, g1], painted && !flatMode ? shaftPaint(c.order) : carvedMaterial(mat), at, SW.column, SW.hysteresis);
       const members = (['base', 'shaft', 'capital'] as const).filter(k => M[k] === mat).join(' + ');
-      const paintMissing = split && mat === 'plaster'; // the Treasury shafts were painted 'in bright colours' (B); colours not found
       lod.name = `${b}:columns${split ? ':' + mat : ''}`;
-      lod.userData = { tier: c.parts[0].tier, src: `${c.parts[0].src};RECON${split ? ';ISAC-PA' : ''}`, placeholder: paintMissing, building: b,
-        note: `column order ${c.order.id} (${c.order.base} base, ${c.order.capital} capital)${split ? `, ${members} in ${mat}` : ''}: dimensions SITE_SPEC; carving procedural sculpture, form C (D-018; scans would replace it, NEEDS #10)${c.built < 1 ? '; under construction: unfluted drums' : ''}${paintMissing ? '; PLACEHOLDER paint: shafts attested painted in bright colours (B), colours and pattern not found, shown as bare lime plaster (Q-020)' : ''}` };
+      lod.userData = { tier: c.parts[0].tier, src: `${c.parts[0].src};RECON${split ? ';ISAC-PA' : ''}${painted ? ';RELIEF-R;STEIN2016' : ''}`, placeholder: false, building: b,
+        note: `column order ${c.order.id} (${c.order.base} base, ${c.order.capital} capital)${split ? `, ${members} in ${mat}` : ''}: dimensions SITE_SPEC; carving procedural sculpture, form C (D-018; scans would replace it, NEEDS #10)${c.built < 1 ? '; under construction: unfluted drums' : ''}${painted ? '; the shafts painted in bright colours (B): colours and pattern not found, drawn in the most probable scheme after the Persepolis and Pasargadae painted plaster (red-ochre ground, white lozenge lattice, Egyptian-blue bands at foot and head: C; D-214, treasury.r_shaft_paint, Q-020)' : ''}` };
       lod.levels.forEach((im, k) => { im.name = `${lod.name}:lod${k}`; im.userData = lod.userData; });
       tris += (g0.index!.count / 3) * c.parts.length;
       group.add(lod);

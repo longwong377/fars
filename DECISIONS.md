@@ -4094,3 +4094,70 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
 - **Not taken on** from the audit's extra list: the Hadish apartments and S balcony (item 30), glazed bricks (28) and paint
   placeholders (29) are left for a later pass; the guards' shield and jewellery (21) are people-look work in another
   workstream.
+
+## D-214 The royal inscriptions' remaining copies, the Apadana's glazed brick, painted Treasury shafts and guards' robes, the Terrace's drains and cisterns (session 7; gap audit items 27, 28, 29, 31; D-207)
+- **Read first: all placement is C, and none of it has been seen rendered.** Node-side only: no browser render, no
+  screenshot, no probe or walkable-grid re-bake. The evidence behind the kinds is second-hand (B at best): the find-spots of
+  the inscriptions are Livius's descriptions read through the GitHub scrape (LANGUAGES.md §2); the Terrace's drains and
+  cistern are search extracts; the glazed-brick colours are Stein et al. 2016 via a search extract; the Susa friezes and robes
+  are **recollection**, NOT SEEN. Schmidt 1953 remains unreachable (B6) for every field, face, size and position.
+- **The texts (gap audit item 27, "never invent text").** XPg, XPj, XPk and XPm were in the ARIo mirror but not in the
+  carving corpus. They are now extracted from the same CC0 CATF file read before (byte-identical, sha256 eb8de252…), sign by
+  sign, by the D-184 pipeline (tools/extract_ario_catf.py, build_inscriptions.py, build_op_signs.ts, build_cun_lines.py); every
+  existing entry is unchanged. ARIo numbers the Xerxes texts in the sigla's order (XPa = Xerxes I 05 … XPg 11, XPj 14, XPk 15,
+  XPm 17), and each is confirmed by content. The project's own English (tier C, labelled, D-198) was added for each version.
+  XPg has only an Old Persian version in the edition. XPk's Elamite and Babylonian lines are mostly the editor's restorations
+  (carved, C, counted). DNc–DNe are also in ARIo (Q007154–Q007156, Old Persian) but belong to the tomb (naqsh.ts, the plain
+  workstream): not carved in this pass, recorded in royal_inscriptions.json `missing`.
+- **Where each copy stands (src/arch/royal_fill.ts; SITE_SPEC rows named; all C).**
+  - XPc on both antae of the Tachara S portico (tachara.r_anta_inscription): the S ends of the portico's side walls cased in
+    dark polished stone 2 m back and to the columns' height; the three versions stacked on the face turned to the portico
+    (glyph 4.0 cm). Q-420.
+  - XPd on both antae of the Hadish N portico (hadish.r_anta_inscription): the model has no side walls to that portico, so
+    the antae are free-standing dark-stone piers 2.3 m square in line with the hall's side walls and the front row, solid at
+    runtime (a collider each; the people's grid blocked round them at load). They are not architecture parts: the parts hash,
+    the baked walkable grid and the probes are unchanged (the baked grid does not know them; the runtime grid does). Q-421.
+  - DPb (Old Persian, the edition's two lines as one) across the lower robe of the king on reveal 0 of the Tachara S main
+    doorway, and XPk (three versions, one line each) on the king of the Hadish E doorway (global.r_garment_inscription). Each
+    sign's cut lies flat at the highest point of the carved robe it covers (the relief field sampled under it), so none is
+    buried and none stands more than a fold's step (≤ 12 mm, tested) off the robe. The signs are small: 0.7 cm (DPb) and
+    0.9 cm (XPk), cuts under a millimetre deep; a garment line has its own smallest sign (glyph_min 6 mm, C). Q-423, Q-429.
+  - XPj round the plain drums of the six front-row column bases of the Hadish N portico, XPm round the six back-row drums
+    (hadish.r_base_inscriptions): each version one line (the edition's own one-line texts), the three stacked, the cuts bent
+    onto the drum's slightly conical face and centred toward the court; one mesh per text and version for all six bases. The
+    Harem's bases, where most were found, are leaf-carved bells in this model with no plain field. Q-422.
+  - XPg on a plaque of dark stone on the Apadana hall's N wall inside the N portico, 2 m E of the main doorway's frame, at
+    reading height (apadana.r_xpg_plaque). Its glazed-brick copies are **not drawn**: glazed signs are moulded or painted in
+    the glaze, which the incised carving does not draw, and where the text bricks sat is not read (kept in `missing`). Q-424.
+  - The translation layer names every new copy (INSCRIPTION_INFO); the language lint reads every new carved mesh back sign by
+    sign against the corpus (passes).
+- **Glazed brick (item 28; src/arch/glazed.ts; apadana.r_glazed_frieze).** One band of rosettes between plain border courses
+  (11 courses of 9 cm), on every outer face of the Apadana's four corner towers, its top 0.9 m under the tower tops and above
+  the portico roofs; green ground, yellow rosettes, grey centres and dividing lines (the three glazes found at Persepolis, B;
+  their use C); 408 rosettes on 16 faces, one draw, 14.9 k triangles. **Kept out:** figured panels (archers, lions, bulls,
+  griffins): none is reported from Persepolis. Q-425.
+- **Paint (item 29).** The Treasury's plastered timber shafts (Q-020's placeholder) are painted after the Persepolis and
+  Pasargadae painted plaster and the red floors (treasury.r_shaft_paint): a red-ochre ground, a white lozenge lattice (8 per
+  turn, 0.5 m), Egyptian-blue bands at the foot and the head edged white; a TSL pattern in the column's own frame on the
+  plaster surface, filtered over the pixel footprint (render/materials.ts paintedShaftMaterial). Q-426. The Persian guards'
+  long robes on the reliefs carry white ringed dots in a staggered lattice and a yellow-ochre hem border after the Susa
+  glazed-brick guards (polychromy.json paint.robe_pattern; in polychromy.json so the relief worker does not load the whole
+  SITE_SPEC); every other garment stays plain (restraint: no pattern read for them). The pattern's paint edges add about
+  20 k triangles to the worst Apadana walk (935,681 → 956,201 of the 1.5 M budget, tools/relief_budget.ts); the jambs are
+  unchanged. Q-427.
+- **Drains and cisterns (item 31; src/arch/waterworks.ts; terrace.r_drains, terrace.r_cisterns).** On the W and S retaining
+  walls, on every open stretch of at least 18 m, a drain mouth every 40 m (none by the S wall's inscriptions, none whose court
+  side has a building within 3.5 m): the dark of the conduit in the wall face, a projecting stone spout, its sill 0.6 m over
+  the ground; 2.2 m in on the court an inlet slab over the shaft, fed by an open stone gutter 6 m long (limestone channels 25 cm
+  wide as in the Pasargadae garden, B analogy). 12 mouths (8 stretches skipped, each with its reason). Well-heads (a stone kerb
+  on a paving slab) over cisterns 1.2 m W of the people's two water points on the Terrace (the court cistern, the garrison
+  court), which the simulation already uses; the kerbs are solid and block the people's grid at load. The large cistern at
+  the E foot of the Kuh-e Rahmat is off the Terrace and its place is not read: not drawn. Two draws, ~2 k triangles. Q-428.
+- **Not taken on:** the Hadish apartments and S balcony (item 30): they are walls and floors, so they belong in the
+  architecture's parts, which would change the parts hash and need the light probes and the walkable grid re-baked
+  (tools/build_probes.ts, tools/build_nav.ts) — heavy runs this pass could not make on this machine; left for a pass that can
+  re-bake. The Now view (D-201) keeps the inscriptions group, so the new antae, piers, plaque and copies show there too
+  (not reviewed against the ruin); the frieze and the waterworks are hidden with the rest of 467.
+- **Cost** (node, tests): inscriptions +24 draws / 13.2 k triangles (tests/royal_fill.test.ts), glazed frieze 1 / 14.9 k,
+  waterworks 2 / ~2 k; the draw budget is ≤ 3,000 a frame (B13: 418–671 measured before). buildInscriptions ~0.13 s after
+  its atlases (the garment's relief field ~0.1 s once).

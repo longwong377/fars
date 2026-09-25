@@ -203,7 +203,7 @@ describe('Elamite and Babylonian: the carved lines are the edition\'s, as the st
   };
   const carvedCun = Object.entries(INS).filter(([k]) => k !== '_meta').flatMap(([id, t]) => (['el', 'bab'] as const).filter(v => t[`${v}_cuneiform`]).map(v => [id, v] as const));
   it('every carved Elamite and Babylonian version is in the edition\'s lines, without word spaces', () => {
-    expect(carvedCun.length).toBe(20);
+    expect(carvedCun.length).toBe(26); // D-214: + XPj, XPk, XPm (Elamite and Babylonian)
     for (const [id, v] of carvedCun) {
       const p = panelText(id, v)!;
       expect(p.lined, `${id} ${v}`).toBe(true); expect(p.lines.length, `${id} ${v}`).toBe(EDX[id][v].length);
@@ -221,7 +221,7 @@ describe('Elamite and Babylonian: the carved lines are the edition\'s, as the st
       expect(run.length - cut.length, `${id} ${v}: signs dropped`).toBe(o);
       omitted += o; restored += r;
     }
-    expect(omitted).toBe(2); expect(restored).toBe(65);
+    expect(omitted).toBe(2); expect(restored).toBe(115); // D-214: XPk's Elamite and Babylonian are mostly restored (18, 12)
     // the two the round-3 review named: XPa El {d}u-ra-mas-da-<na> and XPd El sza2-ak-<ri>
     expect(panelText('XPa', 'el')!.lines[10]).toContain('𒀭𒌋𒊏𒈦𒁕𒄭'); expect(panelText('XPa', 'el')!.lines[10]).not.toContain('𒁕𒈾𒄭');
     expect(panelText('XPd', 'el')!.lines[7].endsWith('𒀝')).toBe(true);

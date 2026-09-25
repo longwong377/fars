@@ -201,6 +201,30 @@ TR = {
          'of the thirsty land and of that side of the thirsty land, according to the order that I laid on them. What I did, all '
          'of it I did under the protection of Ahuramazda. May Ahuramazda protect me with all the gods, me and what I love (?).',
  },
+ # D-214 (gap audit items 27, 28): Xerxes' plaque text of the Apadana, his column-base texts and his garment line
+ 'XPg': {
+  'op': 'Xerxes the great king says: By the will of Ahuramazda, much that is good Darius the king, who (was) my father, did '
+        'and ordered; and by the will of Ahuramazda I added to that work and did more. May Ahuramazda protect me [together] '
+        'with the gods, and my kingdom.',
+ },
+ 'XPj': {
+  'op': 'I am Xerxes, the great king, king of kings, king of the lands, king on this earth, the son of Darius the king, an '
+        'Achaemenid. Xerxes the king says: This palace (tacara) I built.',
+  'el': 'I (am) Xerxes, the great king, king of kings, king of the lands (of the peoples), king on this earth, the son of Darius '
+        'the king, an Achaemenid. Xerxes the king says: This palace (taccara) I made.',
+  'bab': 'I am Xerxes, the great king, king of kings, king of the lands, king of this earth, the son of Darius the king, an '
+         'Achaemenid. Xerxes the king says: This house (taššaru) I built.',
+ },
+ 'XPk': {
+  'op': 'Xerxes, the son of Darius the king, [an Achaemenid].',
+  'el': 'Xerxes, [the son of Darius the king, an Achaemenid].',
+  'bab': 'Xerxes, [the son (?)] of Darius [the king, an Achaemenid].',
+ },
+ 'XPm': {
+  'op': 'Xerxes the king says: This palace (tacara) I built.',
+  'el': '(Thus) says Xerxes [the king: This palace (taccara) I made].',
+  'bab': 'Xerxes the king says: This house (taššaru) I built.',
+ },
  # the seal texts impressed in clay (writing.json texts)
  'SDa': {'op': 'I am Darius the king.', 'el': 'I (am) Darius the king.', 'bab': 'I am Darius, the great king.'},
  'XSeal': {'op': 'I am Xerxes the king.'},
@@ -217,6 +241,10 @@ NOTES = {
  ('DNb', 'op'): ['The end of the text is damaged; the edition leaves several words unread (…).', 'Words in ⟨ ⟩ are in the edition (restored from the parallel text) but were never cut on the stone.'],
  ('DPf', 'el'): ['An Elamite text of its own, with no Old Persian or Babylonian version: several of its words are of uncertain sense (the marks (?)), and the last clause is rendered by the context.'],
  ('DPg', 'bab'): ['A Babylonian text of its own, with no Old Persian or Elamite version.'],
+ ('XPg', 'op'): ['An Old Persian text only: the edition gives no Elamite or Babylonian version.'],
+ ('XPj', 'op'): ['Xerxes calls his palace tacara here, the word of Darius\' palace texts (DPa).'],
+ ('XPk', 'bab'): ['The sign for "son" (A) is read with doubt by the edition (a?).'],
+ ('XPm', 'op'): ['The same words as the last sentence of XPj.'],
  ('SDa', 'op'): ['A seal inscription; the three versions stand together on the seal (writing.json).'],
 }
 

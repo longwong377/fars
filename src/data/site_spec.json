@@ -604,6 +604,47 @@
    "src": "ROAF1983;IR-GREECE7;PAS-MARKS;MATCULT-R;RECON",
    "tier": "C",
    "note": "masons' and sculptors' marks (D-212, gap audit item 13). Attested: hundreds of sculptors' marks incised on the BACKGROUNDS of the Persepolis reliefs, each the mark of a sculptor or team labelling a figure or a group, e.g. the 'double diamond' mark in front of the spear blade of one archer and above the quiver of another (ROAF1983, search extract: B); marks on blocks at Persepolis and Susa that resemble Lydian letters (IR-GREECE7, MATCULT-R: B); at Pasargadae circles, crosses and L-shaped signs, as on the Lydian palace terraces at Sardis (PAS-MARKS, search extract: B). Only these four shapes are cut: the double lozenge (its exact form NOT SEEN: two lozenges joined point to point, C) and the circle, cross and L of Pasargadae (their use at Persepolis C). Which figure carries which mark, the size (5 cm on the reliefs, 9 cm on the drums), the stroke and the placement on the dressed drums' upper bedding faces are C. Incised as the inscriptions are (V-section, walls at 45 deg, D-177)"
+  },
+  "r_garment_inscription": {
+   "v": {
+    "copies": [
+     {
+      "id": "DPb",
+      "doorway": "tachara:S_main",
+      "reveal": 0,
+      "versions": [
+       "op"
+      ],
+      "one_line": true
+     },
+     {
+      "id": "XPk",
+      "doorway": "hadish:E",
+      "reveal": 0,
+      "versions": [
+       "op",
+       "el",
+       "bab"
+      ],
+      "one_line": true
+     }
+    ],
+    "fx": [
+     -0.11,
+     0.114
+    ],
+    "fy": [
+     0.07,
+     0.125
+    ],
+    "glyph_min": 0.006,
+    "glyph_max": 0.03,
+    "sample": 257
+   },
+   "u": "figure units (the king's frame: 1 = his height with the crown; x forward) / m / grid size",
+   "src": "LIVIUS-AI;LANG-R;ARIO-CATF;RECON",
+   "tier": "C",
+   "note": "D-214 (gap audit item 27): DPb 'on the garment of Darius on a relief in his Palace', one line (LIVIUS-AI via LANG-R, B; Old Persian only in that description), and XPk 'on Xerxes' garment on a relief' (B; LANG-R places it at the Hadish, with a query). Which reliefs is not read (Schmidt 1953 NOT SEEN): here the king on reveal 0 of the Tachara S main doorway (the Tachara's one king relief, B) for DPb and the king on reveal 0 of the Hadish E doorway (B relief; XPe above him) for XPk (C). The line runs across the lower robe just above the hem's lion strip (fx, fy: C); each sign's cut lies on the robe's own carved surface (the relief field sampled at `sample` points under it: each sign flat at the highest point it covers). The signs are small (glyph_min to glyph_max: C). XPk: every version the edition gives, stacked one line each (the description names Old Persian and Elamite only: Q-423); DPb's two edition lines are carved as the garment's one line (Q-429)"
   }
  },
  "terrace": {
@@ -691,6 +732,74 @@
    "src": "LIVIUS-AI;IR-PERS;ARIO;RECON",
    "tier": "B/C",
    "note": "Darius' four texts on the south retaining wall of the Terrace: DPd and DPe (Old Persian), DPf (Elamite), DPg (Babylonian), separate texts per language (LIVIUS-AI 'Terrace, Southern wall'; CHRONOLOGY terrace row; B; texts ARIo Q007160-Q007163, A). Placed side by side, W to E in that order, centred on the southernmost S-facing edge of the terrace outline, each panel_width m wide and height m high with its top top_below_court m below the court (position along the wall, height, size and order C, NOT SEEN: Schmidt 1953)"
+  },
+  "r_drains": {
+   "v": {
+    "edges": [
+     "W",
+     "S"
+    ],
+    "spacing": 40,
+    "min_edge": 18,
+    "end_clear": 4,
+    "clear": 3.5,
+    "mouth": {
+     "w": 0.32,
+     "h": 0.36,
+     "above_ground": 0.6,
+     "spout": 0.4,
+     "spout_w": 0.52,
+     "spout_h": 0.14
+    },
+    "inlet": {
+     "size": 0.8,
+     "hole": 0.26,
+     "back": 2.2,
+     "proud": 0.03
+    },
+    "channel": {
+     "length": 6,
+     "w_out": 0.52,
+     "w_in": 0.25,
+     "kerb": 0.07
+    }
+   },
+   "u": "m",
+   "src": "IR-PERS;TERRACE-DRAINS;PASARGADAE-CHANNELS;RECON",
+   "tier": "C",
+   "note": "D-214 (gap audit item 31): the Terrace's drains, 'a system of water conduits and drains hewn out of the rock' beneath the platform (IR-PERS and TERRACE-DRAINS, search extracts: B), their plan not read (Schmidt 1953 NOT SEEN). Drawn (C): along the W and S retaining walls where they face the plain, on every straight stretch at least min_edge m long, a drain mouth every `spacing` m (none within end_clear m of a corner, none whose inlet has a building part within `clear` m): a squared opening in the wall face with a projecting stone spout, its sill above_ground m over the ground below; `back` m in on the court, a stone inlet slab over the rock-cut shaft; along the edge an open stone gutter `length` m long leading to it (limestone channels 25 cm wide, as in the Pasargadae garden: PASARGADAE-CHANNELS, B analogy). Q-428"
+  },
+  "r_cisterns": {
+   "v": {
+    "heads": [
+     {
+      "at": [
+       -49.2,
+       -150.0
+      ],
+      "serves": "court_cistern"
+     },
+     {
+      "at": [
+       213.2,
+       106.0
+      ],
+      "serves": "water"
+     }
+    ],
+    "kerb": {
+     "r_out": 0.72,
+     "r_in": 0.46,
+     "h": 0.62
+    },
+    "slab": 1.9,
+    "slab_h": 0.08,
+    "segments": 20
+   },
+   "u": "m (grid)",
+   "src": "IR-PERS;TERRACE-DRAINS;RECON",
+   "tier": "C",
+   "note": "D-214 (gap audit item 31): cisterns fed by the rock-cut drains (TERRACE-DRAINS, search extracts: B), their heads not read. A well-head is drawn at each of the people's two water points on the Terrace (court.json court_cistern, people_places.json water: the points C), 1.2 m W of the spot where the water is drawn: a round stone kerb (r_out, r_in, h) on a square paving slab (`slab`). The large cistern cut at the E foot of the Kuh-e Rahmat behind the platform (search extract) is off the Terrace and its place is not read: not drawn. Q-428"
   }
  },
  "grand_stair": {
@@ -1530,6 +1639,59 @@
    "src": "LIVIUS-AI;RECON",
    "tier": "B/C",
    "note": "XPb on the N and E stair facades: the Old Persian on one panel and the Babylonian and Elamite on another (LIVIUS-AI photo captions 'East Stairs, Inscription XPb (Persian)' and '(Babylonian and Elamite)', B); each panel width m wide, its top at top m above the facade foot, centred offset m beyond the audience panel's edge (the session-2 position), OP on side op_side, Bab above El on elbab_side (sides, sizes and order C, NOT SEEN)"
+  },
+  "r_xpg_plaque": {
+   "v": {
+    "inscription": "XPg",
+    "side": 1,
+    "from_frame": 2.0,
+    "width": 1.2,
+    "height": 1.45,
+    "bottom": 1.3,
+    "depth": 0.12,
+    "proud": 0.06,
+    "margin": 0.08,
+    "glyph_max": 0.06,
+    "stone": "limestone_dark"
+   },
+   "u": "m (heights above the podium floor); side: +1 = grid east of the N doorway",
+   "src": "LIVIUS-AI;LANG-R;ARIO-CATF;RECON",
+   "tier": "C",
+   "note": "D-214 (gap audit item 28): XPg 'on an ornamental plaque and on many glazed bricks' of the Apadana (LIVIUS-AI via LANG-R, B; Old Persian only in the edition, A). Where the plaque stood is not read: set here in the outer face of the hall's N wall inside the N portico, beside the main doorway on its E side (`from_frame` m beyond the frame), at reading height (bottom), a width x height slab of the dark polished stone of the frames, `depth` thick and `proud` in front of the wall (C, after XPb set beside the approach; its material is not read: Q-424). Its copies on glazed bricks are not drawn (moulded or painted glaze signs; where the text bricks sat is not read: Q-424)"
+  },
+  "r_glazed_frieze": {
+   "v": {
+    "top_below": 0.9,
+    "courses": 11,
+    "course": 0.09,
+    "border_courses": 1,
+    "proud": 0.015,
+    "rosette_d": 0.62,
+    "pitch": 0.9,
+    "petals": 12,
+    "relief": 0.004,
+    "glaze": {
+     "ground": [
+      0.24,
+      0.46,
+      0.4
+     ],
+     "figure": [
+      0.86,
+      0.72,
+      0.3
+     ],
+     "line": [
+      0.56,
+      0.56,
+      0.53
+     ]
+    }
+   },
+   "u": "m / count / sRGB",
+   "src": "RELIEF-R;STEIN2016;SUSA-GLAZE;LIVIUS-AI;RECON",
+   "tier": "C",
+   "note": "D-214 (gap audit item 28): glazed brick at the Apadana (B: 'many glazed bricks' carried XPg, LIVIUS-AI; fragments from Persepolis have high-silica bodies with yellow (lead antimonate), grey and green (copper) glazes, colour fields separated by lines: STEIN2016 via RELIEF-R, B). Where they were set is not read. Drawn as Susa's glazed-brick friezes are laid out (SUSA-GLAZE, recollection: C): one band of rosettes between plain border courses, `courses` courses of `course` m, on every outer face of the four corner towers, its top `top_below` m under the tower top, above the portico roofs (C); ground green, rosettes yellow, centres and dividing lines grey (the colours found at Persepolis, B; their use C); rosette size, pitch and petal count C; the frieze `proud` of the wall, the rosettes `relief` m raised (moulded bricks: C). No figured panels (archers, lions, bulls): none is reported from Persepolis (kept out: D-214, Q-425)"
   }
  },
  "tachara": {
@@ -2788,6 +2950,32 @@
    "src": "LIVIUS-AI;ARIO;RECON",
    "tier": "B/C",
    "note": "DPc 'on the window corniches - as if the windows are speaking', in three languages (LIVIUS-AI, B; text ARIo Q007159, A): carved on the front face of the cornice of every window frame the model has (tachara plan_openings: 4, C), on the portico side (grid S, normal), the three versions stacked (C), margin m inside the face"
+  },
+  "r_anta_inscription": {
+   "v": {
+    "inscription": "XPc",
+    "walls": [
+     "portico_W",
+     "portico_E"
+    ],
+    "stone": "limestone_dark",
+    "length": 2.0,
+    "proud": 0.02,
+    "field_bottom": 1.0,
+    "field_top": 5.4,
+    "margin": 0.15,
+    "glyph_max": 0.07,
+    "versions": [
+     "op",
+     "el",
+     "bab"
+    ],
+    "arrangement": "stack"
+   },
+   "u": "m (heights above the Tachara floor)",
+   "src": "LIVIUS-AI;LANG-R;RECON",
+   "tier": "C",
+   "note": "D-214 (gap audit item 27): XPc's copies 'on the eastern pillar of the southern portico of Darius' Palace, added by Xerxes', repeated 'on the western pillar', the Old Persian with the Elamite and Babylonian below it (LIVIUS-AI via LANG-R, B). The model's portico side walls (plan_walls portico_W, portico_E) end at the S front: their S ends are the antae, cased here in the dark polished stone of the Tachara's frames for `length` m back from the front and to the columns' height (column_height), `proud` m beyond the wall's faces (stone antae as the Tachara's standing corner piers: C). XPc is carved on the face turned to the portico (C: the face read from the portico), from field_bottom to field_top above the floor and `margin` clear of the anta's edges, the three versions stacked (the description of the pillar copies, B; field, sizes and face C; Schmidt 1953 NOT SEEN: Q-420)"
   }
  },
  "hadish": {
@@ -3462,6 +3650,61 @@
    "src": "FARROKH;SI-ARCH;RECON",
    "tier": "B/C",
    "note": "jamb programme of the Hadish hall doorways"
+  },
+  "r_anta_inscription": {
+   "v": {
+    "inscription": "XPd",
+    "piers": [
+     [
+      6.85,
+      -136.5
+     ],
+     [
+      37.15,
+      -136.5
+     ]
+    ],
+    "size": 2.3,
+    "stone": "limestone_dark",
+    "field_bottom": 1.0,
+    "field_top": 5.4,
+    "margin": 0.15,
+    "glyph_max": 0.07,
+    "versions": [
+     "op",
+     "el",
+     "bab"
+    ],
+    "arrangement": "stack"
+   },
+   "u": "m (grid; heights above the Hadish floor)",
+   "src": "LIVIUS-AI;LANG-R;REF-PLAN;RECON",
+   "tier": "C",
+   "note": "D-214 (gap audit item 27): XPd 'on the two pillars that once carried the roof of the northern portico' (LIVIUS-AI via LANG-R, B). The model has no side walls to the N portico, so each anta is a free-standing stone pier (C): in line with the hall's W and E walls (their centre lines x 6.85 and 37.15; the walls 2.3 m thick = size) and with the portico's front row (portico_layout y -136.5), from the floor to the columns' height (column_height), in the dark polished stone of the frames (C). XPd is carved on the face turned to the portico, the three versions stacked as on the XPc pillars (C). The piers are solid (a collider each; the people's walkable grid blocked round them at load); they are not architecture parts, so the baked walkable grid and light probes are unchanged (Q-421)"
+  },
+  "r_base_inscriptions": {
+   "v": {
+    "rows": {
+     "XPj": -136.5,
+     "XPm": -140.5
+    },
+    "versions": [
+     "op",
+     "el",
+     "bab"
+    ],
+    "band_bottom": 0.04,
+    "band_top": 0.33,
+    "glyph_max": 0.05,
+    "facing": [
+     0,
+     1
+    ]
+   },
+   "u": "m (grid row y; band heights above the base foot)",
+   "src": "LIVIUS-AI;LANG-R;ARIO-CATF;RECON",
+   "tier": "C",
+   "note": "D-214 (gap audit item 27): XPj (Xerxes' titles and 'this palace I built') and XPm (the last sentence alone) on column bases 'found in the Queen's Quarters, but several may be from Palace of Xerxes' (LIVIUS-AI via LANG-R, B; at least five XPj bases). Carved here on the six plain drum bases of each row of the Hadish N portico (C: the Harem's bases are leaf-carved bells in this model, with no plain field; the front row XPj, the back row XPm: C): each version in one line round the drum, as the edition's one-line text (A), the three stacked from band_top down to band_bottom (above the base's foot, within its drum: sculpture.json base.plain), centred on the side facing `facing` (grid north, toward the court: C); the signs are cut into the drum's own curved face. Which bases, and whether XPm is a copy of its own or XPj's last line, are open (Q-422)"
   }
  },
  "hall100": {
@@ -4519,6 +4762,22 @@
    "src": "IR-TREAS;MATCULT-R;RECON",
    "tier": "C",
    "note": "furnishing of the scribes' room: a mud-brick bench along the N and W walls (gap = free wall at the corners and by the door) carrying filed tablets in rows (tablets_per_m per row, two rows); PT letters are rectangular tablets (MATERIAL_CULTURE, NOT SEEN: size C) sealed on the left edge; a board of fresh tablets drying by the desk, a lump of clay kept moist under a cloth, and reed baskets of tablets on the floor (all C: types from the archive practice, B; number and arrangement C)"
+  },
+  "r_shaft_paint": {
+   "v": {
+    "ground": "red_ochre",
+    "line": "white",
+    "band": "egyptian_blue",
+    "around": 8,
+    "lozenge_h": 0.5,
+    "line_w": 0.022,
+    "band_h": 0.22,
+    "edge_w": 0.03
+   },
+   "u": "pigment keys (src/data/polychromy.json) / count per turn / m",
+   "src": "ISAC-PA;RELIEF-R;STEIN2016;RECON",
+   "tier": "C",
+   "note": "D-214 (gap audit item 29; Q-020): the Treasury's plastered timber shafts were painted 'in bright colours' (ISAC-PA, RELIEF-R: B); their colours and pattern were not found. Filled (D-207, C) after the painted plaster of Persepolis and Pasargadae (STEIN2016 via RELIEF-R: red, blue, white and green paint films on lime plaster; at Pasargadae up to five layers forming a geometric design, B) and the red of the Terrace floors (hematite, B): a red-ochre ground with a lattice of white lozenges (`around` per turn, lozenge_h m tall, lines line_w m wide) and an Egyptian-blue band at the foot and at the head of each shaft (band_h), edged white (edge_w). Pattern, sizes and which colour goes where: C. Restrained: no figured motif, no gilding (Q-426)"
   }
  },
  "harem": {

@@ -27,6 +27,10 @@ engraver; omitted = signs the engraver left out (not carved); lostRuns = unresto
 | DPc | 6 | 33 | 0 | 0 | 0 | 0 | 5 | 0 | 1 | 0 | 0 | 0 | 0 | 0 | 6 |
 | DPd | 86 | 444 | 13 | 0 | 0 | 0 | 86 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 86 |
 | DPe | 95 | 461 | 1 | 0 | 1 | 0 | 92 | 2 | 0 | 1 | 0 | 0 | 0 | 0 | 95 |
+| XPg | 34 | 169 | 6 | 0 | 0 | 0 | 34 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 34 |
+| XPj | 22 | 97 | 1 | 0 | 0 | 0 | 15 | 0 | 7 | 0 | 0 | 0 | 0 | 0 | 22 |
+| XPk | 5 | 37 | 10 | 0 | 0 | 0 | 5 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 5 |
+| XPm | 7 | 35 | 3 | 0 | 0 | 0 | 7 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 7 |
 
 ## Every word where the stone is not simply Kent's rules on Schmitt's word, or that carries an edition mark
 
@@ -178,3 +182,20 @@ engraver; omitted = signs the engraver left out (not carved); lostRuns = unresto
 | DPe | maniyāhai̯ | ma-na-i-ya-a-ha-i-ya | ma-na-i-ya-a-ha-ya |  | glide |
 | DPe | duvai̯štam | du-u-va-i-ša-ta-ma | du-u-va-i-ša-ta-ma | 1 restored | same |
 | DPe | hau̯ci | ha-u-ca-i-ya | ha-u-va-ca-i-ya |  | glide |
+| XPg | Dārayava.uš | da-a-ra-ya-va-u-ša | da-a-ra-ya-va-u-ša | 1 restored | same |
+| XPg | vašnāci | va-ša-na-a-ca-i-ya | va-ša-na-a-ca-i-ya | 2 restored | same |
+| XPg | adam | a-da-ma | a-da-ma | 1 restored | same |
+| XPg | hadā | ha-da-a | ha-da-a | 2 restored | same |
+| XPj | xšāyaθiya | xa-ša-a-ya-θa-i-ya | XŠ |  | logogram |
+| XPj | xšāyaθiya | xa-ša-a-ya-θa-i-ya | XŠ |  | logogram |
+| XPj | xšāyaθiyānām | xa-ša-a-ya-θa-i-ya-a-na-a-ma | XŠ-ya-a-na-a-ma |  | logogram |
+| XPj | xšāyaθiya | xa-ša-a-ya-θa-i-ya | XŠ |  | logogram |
+| XPj | xšāyaθiya | xa-ša-a-ya-θa-i-ya | XŠ |  | logogram |
+| XPj | būmiyā | ba-u-mi-i-ya-a | ba-u-mi-i-ya-a | 1 restored | same |
+| XPj | xšāyaθiyahyā | xa-ša-a-ya-θa-i-ya-ha-ya-a | XŠ-ya-ha-ya-a |  | logogram |
+| XPj | xšāyaθiya | xa-ša-a-ya-θa-i-ya | XŠ |  | logogram |
+| XPk | Xšayaṛšā | xa-ša-ya-a-ra-ša-a | xa-ša-ya-a-ra-ša-a | 1 restored | same |
+| XPk | Dārayavahau̯š | da-a-ra-ya-va-ha-u-ša | da-a-ra-ya-va-ha-u-ša | 2 restored | same |
+| XPk | xšāyaθiyahyā | xa-ša-a-ya-θa-i-ya-ha-ya-a | xa-ša-a-ya-θa-i-ya-ha-ya-a | 2 restored | same |
+| XPk | Haxāmanišiya | ha-xa-a-ma-na-i-ša-i-ya | ha-xa-a-ma-na-i-ša-i-ya | 5 restored | same |
+| XPm | akunavam | a-ku-u-na-va-ma | a-ku-u-na-va-ma | 3 restored | same |
