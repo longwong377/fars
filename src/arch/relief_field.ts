@@ -364,7 +364,7 @@ export function rtinErrors(f: Field, colourEdgeError = 0.04, silhouetteError = S
 /** A LOD mesh in the figure's normalised frame: x, y in figure units, z = height in depth units (0..1);
  *  gradients (dh/dx, dh/dy in depth units per figure unit) for normals; linear-light colours; paint coverage per vertex
  *  (0 = bare stone: background, faces, animals; on painted masses 1 − wear at raised arrises, D-030). */
-export interface LodMesh { pos: Float32Array; grad: Float32Array; col: Float32Array; paint: Float32Array; gilt: Float32Array; index: Uint32Array; tris: number; verts: number; maxH: number }
+export interface LodMesh { pos: Float32Array; grad: Float32Array; col: Float32Array; paint: Float32Array; gilt: Float32Array; /** sky occlusion by the carving (0 open … 1 shut), D-217 */ ao: Float32Array; index: Uint32Array; tris: number; verts: number; maxH: number }
 
 /** paint coverage at grid points: 0 where the colour is bare stone; else 1 − WEAR.max · smoothstep(conv0, conv1, convexity),
  *  convexity = h − (mean h within WEAR.radius figure units, at least one cell) from a summed-area table */
@@ -386,6 +386,26 @@ function paintCoverage(f: Field, verts: Int32Array, nv: number): Float32Array {
   return out;
 }
 
+/** the carving's own occlusion of the sky (D-217; rubric s7 pass 2, R2: the figures read as flat cut-outs, with no dark
+ *  line at their contours): a horizon-based ambient occlusion from the heightfield, 8 directions out to AO_REACH figure
+ *  units, heights at a register figure's depth-to-height (AO_DEPTH_RATIO: r_relief_depth / the register figure, 0.045 /
+ *  0.78 m). A point at the foot of a step (the wall face beside a figure, the fold under an arm) sees less sky; the foot's
+ *  cut-back (h < 0, behind the wall face) is taken at the wall face, so the step's triangles darken toward the contour.
+ *  Returned as occlusion 0…1 per vertex; the material scales the sky light by 1 − AO_STRENGTH × it (C) */
+export const AO_REACH = 0.06, AO_DEPTH_RATIO = 0.058, AO_STRENGTH = 0.85;
+function carvingOcclusion(f: Field, verts: Int32Array, nv: number): Float32Array {
+  const { n, h, cell } = f, out = new Float32Array(nv), R = Math.max(2, Math.ceil(AO_REACH / cell)), stride = Math.max(1, Math.floor(R / 16));
+  const dirs = [[1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1]];
+  for (let v = 0; v < nv; v++) {
+    const g = verts[v], i = g % n, j = (g - i) / n, hv = Math.max(0, h[g]); let occ = 0;
+    for (const [dx, dy] of dirs) { const step = Math.hypot(dx, dy) * cell; let tmax = 0;
+      for (let r = 1; r <= R; r += stride) { const ii = i + dx * r, jj = j + dy * r; if (ii < 0 || jj < 0 || ii >= n || jj >= n) break;
+        const t = ((Math.max(0, h[jj * n + ii]) - hv) * AO_DEPTH_RATIO) / (r * step); if (t > tmax) tmax = t; }
+      occ += tmax / Math.sqrt(1 + tmax * tmax); }
+    out[v] = occ / dirs.length;
+  }
+  return out;
+}
 /** Extract a LOD: RTIN triangles with error ≤ maxError, background-only triangles dropped, vertices compacted.
  *  `gradStep` = central-difference half-width in cells (larger for coarse LODs → normals of the local average). */
 const scratch = new Map<number, { vid: Int32Array; vlist: Int32Array; tris: Uint32Array }>();
@@ -444,5 +464,5 @@ export function extractLod(f: Field, err: Float32Array, maxError: number, gradSt
     const a = index[t] * 3, b = index[t + 1] * 3, c = index[t + 2] * 3;
     if ((pos[b] - pos[a]) * (pos[c + 1] - pos[a + 1]) - (pos[b + 1] - pos[a + 1]) * (pos[c] - pos[a]) < 0) { const q = index[t + 1]; index[t + 1] = index[t + 2]; index[t + 2] = q; }
   }
-  return { pos, grad, col: cl, paint: paintCoverage(f, src, nv), gilt, index, tris: nt / 3, verts: nv, maxH };
+  return { pos, grad, col: cl, paint: paintCoverage(f, src, nv), gilt, ao: carvingOcclusion(f, vlist, nv), index, tris: nt / 3, verts: nv, maxH };
 }

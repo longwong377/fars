@@ -27,7 +27,7 @@ import { ReliefSet, type ReliefItem } from '../../arch/reliefs';
 /** the largest sign height the tomb panels allow (m): their lines are fitted to the field below it (C) */
 const NR_GLYPH_MAX = 0.08;
 
-SURFACES.nr_rock = { albedo: [0.56, 0.52, 0.46], roughness: 0.9, porosity: 0.3, noiseScale: 0.35, noiseAmp: 0.09, bump: { amp: 0.03, freq: 0.6 }, streaks: { amp: 0.15, freq: 0.8 }, tier: 'C', note: 'Naqsh-e Rustam cliff: buff-grey limestone with vertical weathering streaks (albedo and streaks C, D-144)' };
+SURFACES.nr_rock = { albedo: [0.56, 0.52, 0.46], roughness: 0.9, porosity: 0.3, noiseScale: 0.35, noiseAmp: 0.09, bump: { amp: 0.03, freq: 0.6 }, streaks: { amp: 0.12, freq: 0.5, stretch: 0.3 }, rockBlocks: { size: [6.5, 3.1, 40], tone: 0.07, bed: 0.03 }, tier: 'C', note: 'Naqsh-e Rustam cliff: buff-grey limestone, jointed blocks each with its own tone, bedding, run-off streaks 3× longer than wide (albedo, blocks and streaks C, D-144, D-217; was streaks stretched 12× down the face: a curtain)' };
 SURFACES.nr_dressed = { albedo: [0.55, 0.52, 0.47], roughness: 0.75, porosity: 0.3, noiseScale: 1.1, noiseAmp: 0.07, bump: { amp: 0.002, freq: 4 }, tier: 'C', note: 'dressed limestone of the rock-cut façades (albedo C)' };
 SURFACES.kaba_white = { albedo: [0.7, 0.68, 0.62], roughness: 0.6, porosity: 0.3, noiseScale: 1.2, noiseAmp: 0.06, joints: { course: 0.95, block: 1.9, width: 0.001, dark: 0.5 }, bump: { amp: 0.0015, freq: 5 }, tier: 'B/C', note: "Ka'ba-ye Zardosht: white limestone with dovetail-clamped blocks (B, search extract); tone C" };
 
@@ -173,13 +173,27 @@ let ridge: { x0: number; v: Float32Array } | null = null;
 const ridgeAt = (x: number) => { if (!ridge) return Infinity; const t = Math.min(Math.max((x - ridge.x0) / 5, 0), ridge.v.length - 1.001), i = Math.floor(t); return ridge.v[i] + (ridge.v[i + 1] - ridge.v[i]) * (t - i); };
 /** crest height above the ancient foot along the face */
 const crestH = (x: number, H: number) => Math.min(H + 7 * n1(x / 70) + 3 * n1(x / 17 + 2), Math.max(8, ridgeAt(x) + 3 + 2 * n1(x / 11)));
+const hash1 = (i: number, j = 0) => { const v = Math.sin(i * 127.1 + j * 311.7 + 0.5) * 43758.5453; return v - Math.floor(v); };
+/** the joint-bounded blocks of the rock face (D-217, C): the column (between vertical joints) and bed (between bedding
+ *  joints) a point of the face lies in, and the block's own offset out of the face (m) */
+export function faceBlock(x: number, h: number) {
+  const col = Math.floor((x + 4 * n1(x / 23) + 1.5 * n1(h / 17 + x / 50)) / 6.5);
+  const bed = Math.floor((h + 0.035 * x + 1.2 * n1(x / 19 + col)) / 3.1);
+  return { col, bed, off: (hash1(col) - 0.5) * 1.1 + (hash1(col, bed) - 0.5) * 0.45 };
+}
+const blockRelief = (x: number, h: number) => faceBlock(x, h).off;
 function faceDepth(x: number, h: number, H: number, holes: Hole[]) {
   let m = 0; for (const q of holes) { const dx = Math.max(q.x0 - x, 0, x - q.x1), dh = Math.max(q.h0 - h, 0, h - q.h1); m = Math.max(m, 1 - Math.min(1, Math.hypot(dx, dh) / DRESSED_BLEND)); }
   const top = crestH(x, H), u = Math.max(0, h) / top;
   // vertical jointing (buttresses and bays, ribs, fissures), faint sub-horizontal bedding, then blocks: oriented, not
   // isotropic noise. The bedding term was 0.9 m: under a low sun its ledges drew dark horizontal bands across the whole face
   // (session 3 and 4 renders), where the cliff reads as a sheer, vertically jointed face (D-144, C)
-  const rough = 2.6 * n1(x / 38 + 0.25 * n1(h / 23)) + 0.3 * n1(h / 5.5 + 0.4 * n1(x / 17)) + 0.8 * Math.abs(n1(x / 6 + 0.5 * n1(h / 11))) + 0.18 * Math.abs(n1(x / 2.1 + 0.9 * n1(h / 7) + 0.6 * n1(x / 9.3))) + 0.3 * n2(x / 2.3, h / 1.9);
+  // D-217 (rubric s7 pass 2, R9: "a vertically stretched curtain"): the ribs and fissures were smooth functions of x alone
+  // (periods 6 m and 2.1 m, |sin| cusps), continuous from the foot to the crest: under the raking afternoon sun they drew
+  // long smooth folds, a draped cloth. Now the face is broken into joint-bounded blocks: columns 4–10 m wide between
+  // irregular vertical joints, each column cut by bedding joints every ~2.3–4 m (dipping ~2°), every block standing proud
+  // or recessed by its own amount (a step across each joint), plus the buttresses and bays and the fine isotropic relief (C)
+  const rough = 2.6 * n1(x / 38 + 0.25 * n1(h / 23)) + 0.3 * n1(h / 5.5 + 0.4 * n1(x / 17)) + blockRelief(x, h) + 0.06 * Math.abs(n1(x / 2.1 + 0.9 * n1(h / 7) + 0.6 * n1(x / 9.3))) + 0.3 * n2(x / 2.3, h / 1.9);
   return (rough + 0.06 * Math.max(0, h) + 6 * u * u * u) * (1 - m); // + lean-back (~3.4 deg) and a rounded crest
 }
 function cliffGeometry(f: Face, holes: Hole[], xa: number, xb: number, H: number): THREE.BufferGeometry {

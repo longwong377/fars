@@ -36,7 +36,7 @@ test('plain', async ({ page }, info) => {
   const run = VIEWS.filter(s => (only ? only.includes(s.n) : s.budget));
   if (run.length === 0 || run.length > 4) throw new Error(`plain.spec: ${run.length} views selected; pick 1-4 with ONLY=`);
   const out: Record<string, any> = {};
-  await page.goto(`/?test&quality=${Q}&day=${run[0].day}&hour=${run[0].hour}&weather=clear`);
+  await page.goto(`/?test&quality=${Q}&day=${run[0].day}&hour=${run[0].hour}&weather=clear${process.env.URLX ?? ''}`); // URLX: extra query for debug runs (D-217)
   await page.waitForFunction(() => (window as any).__parsa?.ready === true || (window as any).__parsa?.error, null, { timeout: 600_000 });
   await page.evaluate(() => (window as any).__parsa?.renderer?.setAnimationLoop(null)); // frozen test world: no frames behind the screenshots
   const err = await page.evaluate(() => (window as any).__parsa.error); if (err) throw new Error(err);
@@ -50,7 +50,7 @@ test('plain', async ({ page }, info) => {
     // the eye stands on what is drawn (the heightfield alone is carved lower under the river corridor)
     await page.evaluate(() => (window as any).__parsa.renderOnce()); await page.evaluate(([v, f]) => (window as any).__parsa.view(...v, f), [s.v, fov] as const);
     for (let i = 0; i < (Q === 'test' ? 6 : 3); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
-    const png = await page.screenshot({ path: `shots/plain-${s.n}-${Q}-${info.project.name}.png` });
+    const png = await page.screenshot({ path: `shots/plain-${s.n}${process.env.TAG ? "-" + process.env.TAG : ""}-${Q}-${info.project.name}.png` });
     const withPlain = await page.evaluate(() => { const p = (window as any).__parsa; const st = p.stats(); return { drawCalls: st.drawCalls, triangles: st.triangles, terrainTris: st.terrain.tris, backend: st.backend, plain: p.world.plain?.stats() }; });
     await page.evaluate(() => { (window as any).__parsa.world.root.getObjectByName('plain').visible = false; });
     await page.evaluate(() => (window as any).__parsa.renderOnce());

@@ -340,6 +340,12 @@ export interface RigView { wt: ArrayLike<number>; wr: ArrayLike<number> }
 const V = THREE.Vector3;
 const bone = (R: RigView, b: number) => new V(R.wt[b * 3], R.wt[b * 3 + 1], R.wt[b * 3 + 2]);
 const axis = (R: RigView, b: number, x: number, y: number, z: number) => { const w = R.wr, o = b * 9; return new V(w[o] * x + w[o + 1] * y + w[o + 2] * z, w[o + 3] * x + w[o + 4] * y + w[o + 5] * z, w[o + 6] * x + w[o + 7] * y + w[o + 8] * z); };
+/** the jar borne on the shoulder (D-217, all C): the jar's size (× `scale`: 0.33–0.42 m tall, 0.23–0.29 m across the belly)
+ *  the one whose neck the carrier's raised hand reaches, its base on the top of the right shoulder (`lift` above the shoulder joint, `medial` toward the neck, reference
+ *  body; the flesh of the shoulder's top over the variants, tools/dev/jar_probe.ts), its axis to the raised hand's grip.
+ *  Before (legacy rule): hung 0.45 m below the raised palm, it stood beside the head at head height with the hand and
+ *  forearm inside it (rubric s7 pass 2, R1) */
+export const SHOULDER_JAR = { scale: [0.72, 0.92] as [number, number], lift: 0.09, medial: 0.005, palm: 0.085 };
 /** the palm of the Phase 3 placements (legacy) */
 const palm0 = (R: RigView, s: 'l' | 'r') => bone(R, HB[`hand_${s}`]).lerp(bone(R, HB[`middle_01_${s}`]), 0.75);
 /** where a closed hand holds a handle (unscaled character space): across the palm at the knuckles, a little in front */
@@ -364,7 +370,17 @@ export function placeProp(kind: string, R: RigView, po: Pose, s: number, time: n
       switch (k) {
         case 'spear': { const h = palm0(R, 'r'); pos = new V(h.x, 0, h.z).multiplyScalar(s); pos.y = 0; break; } // upright, butt on the ground by the right hand
         case 'sack': { pos = bone(R, HB.upperarm_r).multiplyScalar(s).add(new V(0.02, 0.13, -0.02)); rot.makeRotationZ(0.3); break; }
-        case 'jar': { pos = palm0(R, 'r').multiplyScalar(s).add(new V(0, -0.45, 0.08)); break; }
+        case 'jar': {
+          if (po.shoulder) { // borne on the right shoulder (D-217): the base on the shoulder's top, the axis to the raised hand, which holds the neck
+            const base = bone(R, HB.upperarm_r).add(new V(SHOULDER_JAR.medial, SHOULDER_JAR.lift, 0)).multiplyScalar(s);
+            const y = gripPoint(R, 'r').add(palmNormal(R, 'r').multiplyScalar(SHOULDER_JAR.palm)).multiplyScalar(s).sub(base), reach = y.length();
+            if (reach < 1e-3) y.set(0, 1, 0); y.normalize();
+            // the jar whose rim his hand reaches (the lip at 0.46 of the jar's height, the neck below it)
+            const k = Math.min(SHOULDER_JAR.scale[1], Math.max(SHOULDER_JAR.scale[0], reach / 0.46));
+            const x = new V(0, 0, 1).cross(y); if (x.lengthSq() < 1e-6) x.set(1, 0, 0); x.normalize(); const z = new V().crossVectors(x, y);
+            out.makeBasis(x.multiplyScalar(k), y.multiplyScalar(k), z.multiplyScalar(k)).setPosition(base); return true;
+          }
+          pos = palm0(R, 'r').multiplyScalar(s).add(new V(0, -0.45, 0.08)); break; }
         // on a head pad on the crown (D-187): the crown stands 0.132–0.158 m above the head bone over the body variants
         // (humans.json; 0.145 × scale taken), the pad ~2 cm (C); along the head's own up axis, so the jar tilts with the
         // head. Before: 0.25 m straight up from the bone, which left the jar floating 9–12 cm above the crown

@@ -8,7 +8,7 @@ import { ATTENDANT_SCALE, ROUGH, baseKind } from '../src/arch/relief_figures';
 import { RELIEF_KINDS, FIGURE_KINDS, DELEGATIONS, ReliefSet, RELIEF_LODS, reliefLodMesh, lodGeometry, lodGrid, updateReliefs, buildRegister, planFacade, planAudience, facadeItems, genStats, RELIEF_META, PIGMENT } from '../src/arch/reliefs';
 import type { Placement } from '../src/arch/reliefs';
 import { kindBounds, figureDef, CANOPY_H } from '../src/arch/relief_figures';
-import { rasterize, rtinErrors, extractLod, poly } from '../src/arch/relief_field';
+import { rasterize, rtinErrors, extractLod, poly, SILHOUETTE_ERROR } from '../src/arch/relief_field';
 import type { FigureDef } from '../src/arch/relief_field';
 import { srgbToLinear } from '../src/core/colour';
 import { v } from '../src/arch/spec';
@@ -298,5 +298,38 @@ describe('the carved edge (D-204)', () => {
     const a = rasterize(def, 129, true), b = rasterize(bare, 129, true); let d2 = 0, k = 0;
     for (let q = 0; q < a.h.length; q++) if (a.h[q] > 0 && b.h[q] > 0) { d2 += (a.h[q] - b.h[q]) ** 2; k++; }
     expect(Math.sqrt(d2 / k), 'RMS of the detail at the L2 grid (relief-depth units)').toBeGreaterThan(0.015);
+  });
+});
+
+describe('the far LODs keep the figure (D-217; rubric s7 pass 2, R2: animals drawn as grey clouds from 8-20 m)', () => {
+  it('every LOD keeps the outline cell-exact: its error bound is under the silhouette error', () => {
+    for (const [l, L] of RELIEF_LODS.entries()) expect(L.err, `L${l}`).toBeLessThan(SILHOUETTE_ERROR);
+  });
+  it('a large figure keeps at most 2× its band\'s cell at L2-L4 (the lion-and-bull, 3.26 m across, had 25 and 51 mm cells)', () => {
+    const man = buildTerrace().manifest, a = man.apadana as any, face = apadanaFacades(man)[0];
+    const items = facadeItems(face, planFacade(face, { spans: a.stairSpans, riser: a.stairRiser, tread: a.stairTread, parapet: a.parapet, podium: a.podium })).items;
+    const lb = items.find(q => q.kind === 'lion_bull')!, b = kindBounds('lion_bull', 0), ext = Math.max(b[2] - b[0], b[3] - b[1]) * lb.S;
+    expect(ext).toBeGreaterThan(3);
+    for (const l of [2, 3, 4]) expect(ext / (lodGrid(ext, l) - 1), `L${l}`).toBeLessThanOrEqual(2 * RELIEF_LODS[l].cell + 1e-9);
+  });
+  it('the lion-and-bull at L3 (14-28 m) is a figure, not a cloud: no triangle spans from behind the wall face to the top across more than a cell', () => {
+    // a triangle joining the foot's cut-back (behind the face) to the figure's top over several cells is a cloud piece: at L3
+    // before D-217 (error bound 0.3 over the silhouette's 0.2) the whole outline was made of them
+    const spansOf = (n: number, err: number) => { const f = rasterize(figureDef('lion_bull', 0), n, true), m = extractLod(f, rtinErrors(f), err, 1), cell = f.cell; let spans = 0;
+    for (let t = 0; t < m.index.length; t += 3) { const q = [0, 1, 2].map(k => m.index[t + k]), z = q.map(k => m.pos[k * 3 + 2]); if (Math.min(...z) >= -0.2 || Math.max(...z) <= 0.4) continue;
+      const xs = q.map(k => m.pos[k * 3]), ys = q.map(k => m.pos[k * 3 + 1]); if (Math.max(...xs) - Math.min(...xs) > 2.5 * cell || Math.max(...ys) - Math.min(...ys) > 2.5 * cell) spans++; }
+      return spans; };
+    const now = spansOf(lodGrid(3.26, 3), RELIEF_LODS[3].err), before = spansOf(65, 0.3);
+    console.log(`lion-and-bull L3: cloud triangles ${before} before D-217 (65², bound 0.3), ${now} now`);
+    expect(before).toBeGreaterThan(10); expect(now).toBe(0);
+  });
+  it('the carving shades its own contours: sky occlusion at the foot of a step, none on the open top', () => {
+    const rect: FigureDef = { masses: [{ add: [poly([[-0.2, 0.1], [0.2, 0.1], [0.2, 0.9], [-0.2, 0.9]])], amp: 0.6, round: 0.03, edge: 0.5, colour: PIGMENT.cinnabar }], bounds: [-0.5, 0, 0.5, 1] };
+    const f = rasterize(rect, 257, false), m = extractLod(f, rtinErrors(f), RELIEF_LODS[1].err, 1);
+    let foot = 0, top = 0, nf = 0, nt = 0;
+    for (let q = 0; q < m.verts; q++) { const x = m.pos[q * 3], y = m.pos[q * 3 + 1], z = m.pos[q * 3 + 2]; if (y < 0.3 || y > 0.7) continue;
+      if (z < 0 && Math.abs(Math.abs(x) - 0.2) < 0.01) { foot += m.ao[q]; nf++; } if (Math.abs(x) < 0.1 && z > 0.5) { top += m.ao[q]; nt++; } }
+    expect(nf).toBeGreaterThan(10); expect(nt).toBeGreaterThan(0);
+    expect(foot / nf, 'the foot of the contour').toBeGreaterThan(0.2); expect(top / nt, 'the open top').toBeLessThan(0.03);
   });
 });

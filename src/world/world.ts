@@ -27,6 +27,7 @@ export interface WorldBuild {
   nowView?: NowView;
 }
 import { buildTerrace } from '../arch/terrace';
+import type { Doorway } from '../arch/parts';
 import { setTraffic } from '../render/materials';
 import { buildMeshes } from '../arch/meshes';
 import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/runtime';
@@ -94,8 +95,20 @@ const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
 export const CATCHUP_MAX_DAYS = 30;
 /** full-detail simulation radius around the player (m); effectively everyone at the current population (C) */
 export const LOD_RADIUS = 1e9;
+/** does a wall torch's place lie in a doorway of the building (D-217)? Within its width (+0.5 m) along the wall and its
+ *  depth (+1 m) across it */
+export const inDoorway = (doorways: Doorway[], b: string, e: number, n: number) => doorways.some(d => d.building === b && Math.abs((e - d.c[0]) * d.u[0] + (n - d.c[1]) * d.u[1]) < d.width / 2 + 0.5 && Math.abs((e - d.c[0]) * d.n[0] + (n - d.c[1]) * d.n[1]) < d.depth / 2 + 1);
+/** the Apadana hall's wall torches (grid e, n, height; C): every 10 m along each wall from its middle, 2.6 m over the podium,
+ *  none in a doorway. D-217: the one at each wall's middle stood in the middle of the doorway there, 5.7 m over the floor
+ *  with nothing to hold it: the "floating rod" of rubric s7 pass 2 (R11) */
+export function apadanaTorches(m: any, doorways: Doorway[]): [number, number, number][] {
+  const a = m.apadana; if (!a) return []; const [cx, cy] = a.hallCentre, hs = a.hallInterior, pod = a.podium, out: [number, number, number][] = [];
+  for (let i = -2; i <= 2; i++) for (const [dx, dy] of [[-1, 0], [1, 0], [0, 1], [0, -1]]) { const e = cx + dx * (hs / 2 - 0.4) + (dy ? i * 10 : 0), n = cy + dy * (hs / 2 - 0.4) + (dx ? i * 10 : 0);
+    if (!inDoorway(doorways, 'apadana', e, n)) out.push([e, n, pod + 2.6]); }
+  return out;
+}
 /** Fire placements for the vertical slice (all C: fires/lamps are attested in general, positions are reconstruction). */
-function placeFires(fire: FireSystem, m: any, parts: any[]) {
+function placeFires(fire: FireSystem, m: any, parts: any[], doorways: Doorway[] = []) {
   const C = { tier: 'C', src: 'RECON', note: 'fire placement reconstructed (C)' };
   // Gate of All Nations: torches on the inner faces either side of each doorway
   const gfl = parts.find((p: any) => p.building === 'gate_nations' && p.kind === 'floor');
@@ -105,9 +118,9 @@ function placeFires(fire: FireSystem, m: any, parts: any[]) {
   fire.add('brazier', gw(-33.4, 128, 0), { ...C, note: 'brazier at the stair head, flanking the way to the Gate (type after the incense stands on the audience relief, B; place C)' });
   fire.add('brazier', gw(-33.4, 121, 0), { ...C, note: 'brazier at the stair head (C)' });
   // Apadana: braziers flanking the N stair central landing; torches along the hall walls (inside)
-  const a = m.apadana; if (a) { const [cx, cy] = a.hallCentre, hs = a.hallInterior, pod = a.podium;
+  const a = m.apadana; if (a) { const [cx] = a.hallCentre, pod = a.podium;
     for (const s of [-1, 1]) fire.add('brazier', gw(cx + s * 3, a.nStairEdge + 1.5, pod), C);
-    for (let i = -2; i <= 2; i++) for (const [dx, dy] of [[-1, 0], [1, 0], [0, 1], [0, -1]]) fire.add('torch', gw(cx + dx * (hs / 2 - 0.4) + (dy ? i * 10 : 0), cy + dy * (hs / 2 - 0.4) + (dx ? i * 10 : 0), pod + 2.6), C); }
+    for (const [e, n, y] of apadanaTorches(m, doorways)) fire.add('torch', gw(e, n, y), C); }
   // garrison hearths and the Hall of 100 Columns work-camp oven/hearth
   const gar = parts.find((p: any) => p.building === 'garrison' && p.kind === 'floor');
   if (gar) { const xs = gar.polygon.map((q: any) => q[0]), ys = gar.polygon.map((q: any) => q[1]); const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
@@ -168,7 +181,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // the palaces' furnishings (D-212, all C): stored with the court away, laid out for use while the court setting's court is here
   const palace = new PalaceFurnishings(parts, manifest, doorways, { court: settings?.courtCalendar === 'seasonal', phys }); root.add(palace.group);
   const q = settings?.quality ?? 'high';
-  const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q]); placeFires(fire, manifest, parts);
+  const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q]); placeFires(fire, manifest, parts, doorways);
   // Phase 6 settlement: its hearths, ovens and kilns join the fire system before it builds (?notown leaves it out, for A/B budgets)
   const noTown = typeof location !== 'undefined' && new URLSearchParams(location.search).has('notown');
   const settlement = noTown ? null : new Settlement(phys, terrain, fire, q); if (settlement) root.add(settlement.group);

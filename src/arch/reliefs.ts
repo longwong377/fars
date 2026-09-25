@@ -29,11 +29,24 @@ export const RELIEF_LODS = [
   // rejected (tools/relief_budget.ts): L2's grid cap 257² (the audience figures' 14 mm cells → 7 mm: +19 % triangles before
   // the panel at 6 m, +34 % at 2 m), L3's cap 129² (far meshes +76 %), an L2 error bound of 0.07–0.08 (the broad folds only
   // faintly in the mesh, +40 k triangles at 6 m)
+  // D-217 (rubric s7 pass 2, R2: the lion-and-bull and the other animals drawn as grey clouds from 8–20 m): (1) L3's error
+  // bound (0.3) was above the silhouette's (relief_field SILHOUETTE_ERROR 0.2), so from 14 m every outline was left to the
+  // error metric, and the foot cut-back half a relief-depth behind the wall face (D-204, which assumes a cell-exact outline)
+  // drew each figure as a cloud of triangles running from its top to behind the wall. L3 and L4 now stay under it (0.15):
+  // the outline is cell-exact at every LOD. (2) The grid caps made the large figures coarse where it matters: the
+  // lion-and-bull (3.26 m across) had 25 mm cells at L2 and 51 mm at L3 (its legs are 4–6 cm wide). The L2 and L3 caps are
+  // raised one step (257, 129): the normal figures (≤ 0.82 m) are not affected, the large ones keep ≤ 2× the band's cell
+  // (L1's cap stays 257: 513 doubled the audience panel's triangles at 2 m, 185 k → 379 k).
+  // (3) A fifth band, L4 (25.6 mm cells: ~1 px at 20 m at 1080 px over 70°) beyond 28 m, keeps the far chunks' triangles
+  // (the silhouette costs triangles along every outline). Measured: tools/relief_budget.ts, bench-reports/relief_budget_d217.txt
   { cell: 0.0016, maxN: 1025, err: 0.03, grad: 1, dist: 1.2, pre: false },
   { cell: 0.0032, maxN: 257, err: 0.06, grad: 1, dist: 4, pre: false },
-  { cell: 0.0064, maxN: 129, err: 0.12, grad: 2, dist: 14, pre: true },
-  { cell: 0.0128, maxN: 65, err: 0.3, grad: 1, dist: Infinity, pre: true },
+  { cell: 0.0064, maxN: 257, err: 0.12, grad: 2, dist: 14, pre: true },
+  { cell: 0.0128, maxN: 129, err: 0.15, grad: 1, dist: 28, pre: true },
+  { cell: 0.0256, maxN: 65, err: 0.15, grad: 1, dist: Infinity, pre: true },
 ];
+/** the coarsest LOD: generated for every figure when a set is built (its first appearance, the far set, parked instances) */
+export const RELIEF_COARSE = RELIEF_LODS.length - 1;
 /** rosettes: carved within ROSETTE_NEAR, a 40-triangle boss within ROSETTE_FAR, not drawn beyond (≤ 1.5 px) */
 export const ROSETTE_NEAR = 2.0, ROSETTE_FAR = 40;
 const HYST = 1.12; // a finer LOD is dropped only beyond HYST × its switch distance
@@ -44,6 +57,10 @@ const HYST = 1.12; // a finer LOD is dropped only beyond HYST × its switch dist
  *  within RELIEF_SHADOW_RANGE, through the chunk's merged L3 mesh drawn into the shadow maps only. When every chunk of a
  *  set is far, the whole set is one merged mesh (one draw) */
 export const RELIEF_CHUNK = 12, RELIEF_FAR = RELIEF_LODS[2].dist, RELIEF_SHADOW_RANGE = 8;
+/** far chunks nearer than this are merged at L3, farther ones at the coarsest LOD (D-217) */
+export const RELIEF_FARTHEST = RELIEF_LODS[3].dist;
+/** the LOD of a far chunk's merged mesh (and the shadow proxy's): L3 in the band RELIEF_FAR–RELIEF_FARTHEST, else coarsest */
+const FAR_LOD = 3;
 /** grid size (2^k + 1) for a figure whose larger extent on the stone is `extentM` metres, at LOD `lod` */
 export function lodGrid(extentM: number, lod: number) {
   const cells = extentM / RELIEF_LODS[lod].cell;
@@ -113,6 +130,7 @@ export function lodGeometry(m: LodMesh, mirror: boolean): THREE.BufferGeometry {
   g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
   g.setAttribute('color', new THREE.BufferAttribute(new Float32Array(m.col), 3)); g.setAttribute('paint', new THREE.BufferAttribute(new Float32Array(m.paint), 1));
   g.setAttribute('gilt', new THREE.BufferAttribute(new Float32Array(m.gilt ?? new Float32Array(nv)), 1)); // gold leaf (D-151)
+  g.setAttribute('ao', new THREE.BufferAttribute(new Float32Array(m.ao ?? new Float32Array(nv)), 1)); // the carving's sky occlusion (D-217)
   g.setIndex(new THREE.BufferAttribute(idx, 1));
   return g;
 }
@@ -136,7 +154,9 @@ let proxyMat: THREE.MeshBasicNodeMaterial | null = null;
  *  both faces, since a relief heightfield is an open surface */
 const shadowProxyMaterial = () => (proxyMat ??= Object.assign(new THREE.MeshBasicNodeMaterial({ colorWrite: false, depthWrite: false }), { shadowSide: THREE.DoubleSide }));
 /** a spatial chunk of a relief set: its figures, bounds (world, padded by each figure's radius), merged far mesh and proxy */
-interface Chunk { items: number[]; lo: THREE.Vector3; hi: THREE.Vector3; far: THREE.Mesh | null; proxy: THREE.Mesh | null; isFar: boolean; tris: number }
+interface Chunk { items: number[]; lo: THREE.Vector3; hi: THREE.Vector3;
+  /** merged meshes at FAR_LOD (with the shadow proxy) and at the coarsest LOD (D-217); the one shown while the chunk is far */
+  farN: THREE.Mesh | null; farC: THREE.Mesh | null; proxy: THREE.Mesh | null; isFar: boolean; shown: THREE.Mesh | null; trisN: number; trisC: number; tris: number }
 
 export class ReliefSet extends THREE.Group {
   readonly items: ReliefItem[]; readonly batch: THREE.BatchedMesh | null = null;
@@ -149,7 +169,7 @@ export class ReliefSet extends THREE.Group {
   private whole: THREE.Mesh | null = null;
   /** triangles and draw ranges currently submitted (before frustum culling): per-figure batch instances, merged far
    *  chunks, shadow proxies and the two rosette meshes */
-  stats = { tris: 0, byLod: [0, 0, 0, 0], rosetteTris: 0, pending: 0, farTris: 0, draws: 0, farChunks: 0, farDraws: 0, proxies: 0, chunks: 0 };
+  stats = { tris: 0, byLod: RELIEF_LODS.map(() => 0), rosetteTris: 0, pending: 0, farTris: 0, draws: 0, farChunks: 0, farDraws: 0, proxies: 0, chunks: 0 };
 
   /** hideBeyond (m): the set is not drawn (and its LOD work stops) while the camera is farther than this from its bounds;
    *  for sets seen only from kilometres away, where every figure is under a pixel (Naqsh-e Rustam, D-069) */
@@ -166,7 +186,7 @@ export class ReliefSet extends THREE.Group {
       const c = it.o.clone().addScaledVector(it.X, cx).addScaledVector(it.Y, cy), r = (Math.hypot(b[2] - b[0], b[3] - b[1]) / 2) * it.S;
       this.centres.set([c.x, c.y, c.z, r], i * 4);
       const k = [c.x, c.y, c.z].map(q => Math.floor(q / RELIEF_CHUNK)).join(',');
-      let ch = byKey.get(k); if (!ch) { ch = { items: [], lo: new THREE.Vector3(Infinity, Infinity, Infinity), hi: new THREE.Vector3(-Infinity, -Infinity, -Infinity), far: null, proxy: null, isFar: false, tris: 0 }; byKey.set(k, ch); this.chunks.push(ch); }
+      let ch = byKey.get(k); if (!ch) { ch = { items: [], lo: new THREE.Vector3(Infinity, Infinity, Infinity), hi: new THREE.Vector3(-Infinity, -Infinity, -Infinity), farN: null, farC: null, proxy: null, isFar: false, shown: null, trisN: 0, trisC: 0, tris: 0 }; byKey.set(k, ch); this.chunks.push(ch); }
       ch.items.push(i); this.chunkOf[i] = this.chunks.indexOf(ch);
       ch.lo.min(new THREE.Vector3(c.x - r, c.y - r, c.z - r)); ch.hi.max(new THREE.Vector3(c.x + r, c.y + r, c.z + r));
       this.bounds.expandByPoint(ch.lo).expandByPoint(ch.hi);
@@ -175,20 +195,21 @@ export class ReliefSet extends THREE.Group {
     // coarsest LOD of every figure: synchronously when there is no worker pool (node, tests), so the set is complete at
     // once; in the browser the workers generate it and figures appear as their meshes arrive (main thread stays free)
     const wp = workers(); let nv = 0, ni = 0; const seen = new Set<string>();
-    items.forEach((it, i) => { const k = this.key(i, 3, false); if (seen.has(k)) return; seen.add(k);
-      if (wp) { wp.request(k, it.kind, it.seed, this.grids[i][3], 3); nv += 600; ni += 3000; }
-      else { const m = reliefLodMesh(it.kind, it.seed, this.grids[i][3], 3); nv += m.verts; ni += m.index.length; } });
+    const C = RELIEF_COARSE;
+    items.forEach((it, i) => { const k = this.key(i, C, false); if (seen.has(k)) return; seen.add(k);
+      if (wp) { wp.request(k, it.kind, it.seed, this.grids[i][C], C); nv += 600; ni += 3000; }
+      else { const m = reliefLodMesh(it.kind, it.seed, this.grids[i][C], C); nv += m.verts; ni += m.index.length; } });
     if (n) {
       (this as any).batch = new THREE.BatchedMesh(n, Math.max(4096, nv * 3 + 200_000), Math.max(12288, ni * 3 + 600_000), paintMaterial());
       // no shadow from the batch (D-048): near chunks cast theirs through a merged coarse proxy
       const bm = this.batch!; bm.name = 'relief:figures'; bm.userData = { ...RELIEF_META }; bm.castShadow = false; bm.receiveShadow = true; bm.sortObjects = false; bm.perObjectFrustumCulled = true;
       let placeholder = -1;
       items.forEach((it, i) => {
-        const gid = this.geomId(i, 3);
-        if (gid === null && placeholder < 0) { const e = new THREE.BufferGeometry(); e.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3)); e.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1], 3)); e.setAttribute('color', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3)); e.setAttribute('paint', new THREE.Float32BufferAttribute([0, 0, 0], 1)); e.setAttribute('gilt', new THREE.Float32BufferAttribute([0, 0, 0], 1)); e.setIndex([0, 1, 2]); placeholder = bm.addGeometry(e); }
+        const gid = this.geomId(i, C);
+        if (gid === null && placeholder < 0) { const e = new THREE.BufferGeometry(); e.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3)); e.setAttribute('normal', new THREE.Float32BufferAttribute([0, 0, 1, 0, 0, 1, 0, 0, 1], 3)); e.setAttribute('color', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, 0, 0, 0, 0], 3)); e.setAttribute('paint', new THREE.Float32BufferAttribute([0, 0, 0], 1)); e.setAttribute('gilt', new THREE.Float32BufferAttribute([0, 0, 0], 1)); e.setAttribute('ao', new THREE.Float32BufferAttribute([0, 0, 0], 1)); e.setIndex([0, 1, 2]); placeholder = bm.addGeometry(e); }
         const id = bm.addInstance(gid ?? placeholder);
         bm.setMatrixAt(id, this.mats[i]); this.inst.push(id);
-        if (gid !== null) { this.level[i] = 3; this.shown[i] = 3; this.use(this.key(i, 3), 1); } else bm.setVisibleAt(id, false);
+        if (gid !== null) { this.level[i] = C; this.shown[i] = C; this.use(this.key(i, C), 1); } else bm.setVisibleAt(id, false);
       });
       bm.computeBoundingBox(); bm.computeBoundingSphere(); bm.frustumCulled = false; // per-instance culling does the work
       this.add(bm);
@@ -210,7 +231,7 @@ export class ReliefSet extends THREE.Group {
   /** free batch space: drop geometries no instance uses, repack, and grow if still short */
   private makeRoom(vc: number, ic: number) {
     const bm = this.batch! as any;
-    for (const [k, id] of this.geoIds) if ((this.geoUse.get(k) ?? 0) <= 0 && !k.includes('|3|')) { bm.deleteGeometry(id); this.geoIds.delete(k); this.geoUse.delete(k); }
+    for (const [k, id] of this.geoIds) if ((this.geoUse.get(k) ?? 0) <= 0 && !k.includes(`|${RELIEF_COARSE}|`)) { bm.deleteGeometry(id); this.geoIds.delete(k); this.geoUse.delete(k); }
     bm.optimize();
     if (bm._nextVertexStart + vc > bm._maxVertexCount || bm._nextIndexStart + ic > bm._maxIndexCount)
       bm.setGeometrySize(Math.ceil((bm._maxVertexCount + vc) * 1.5), Math.ceil((bm._maxIndexCount + ic) * 1.5));
@@ -220,42 +241,63 @@ export class ReliefSet extends THREE.Group {
     if (cur >= 0 && l > cur && d < RELIEF_LODS[cur].dist * HYST) l = cur; // hysteresis: keep the finer level a little longer
     return l;
   }
-  /** merge a chunk's figures at L3 into one mesh (far representation) and its shadow proxy; false while an L3 mesh is missing */
-  private buildFar(ch: Chunk): boolean {
-    for (const i of ch.items) if (!meshCache.has(this.key(i, 3, false))) return false;
-    const geos = ch.items.map(i => lodGeometry(meshCache.get(this.key(i, 3, false))!, this.items[i].mirror).applyMatrix4(this.mats[i]));
-    const g = mergeGeometries(geos)!; geos.forEach(q => q.dispose()); g.computeBoundingSphere();
-    ch.tris = g.index!.count / 3;
-    const meta = { ...RELIEF_META, note: 'far representation: the chunk\'s figures merged at the coarsest LOD (D-048); ' + RELIEF_META.note };
-    ch.far = new THREE.Mesh(g, paintMaterial()); ch.far.name = 'relief:far'; ch.far.userData = meta; ch.far.castShadow = false; ch.far.receiveShadow = true; ch.far.visible = false;
-    ch.proxy = new THREE.Mesh(g, shadowProxyMaterial()); ch.proxy.name = 'relief:shadow-proxy'; ch.proxy.userData = { ...meta, note: 'shadow proxy (D-048): drawn into the shadow maps only; ' + RELIEF_META.note }; ch.proxy.castShadow = true; ch.proxy.receiveShadow = false; ch.proxy.visible = false; ch.proxy.raycast = () => {}; // never picked
-    this.add(ch.far, ch.proxy);
+  /** is every figure of a chunk generated at a LOD? If not, and `request`, ask for the missing ones (workers, or synchronously
+   *  within the frame's budget) */
+  private chunkReady(ch: Chunk, lod: number, request: boolean, t0 = performance.now(), budgetMs = 0): boolean {
+    let ok = true; const wp = workers();
+    for (const i of ch.items) { const k = this.key(i, lod, false); if (meshCache.has(k)) continue; ok = false; if (!request) break;
+      const it = this.items[i];
+      if (wp) wp.request(k, it.kind, it.seed, this.grids[i][lod], lod);
+      else if (performance.now() - t0 < budgetMs) { reliefLodMesh(it.kind, it.seed, this.grids[i][lod], lod); ok = true; }
+      else this.dirty = true; }
+    if (!ok) for (const i of ch.items) if (!meshCache.has(this.key(i, lod, false))) return false;
     return true;
   }
-  /** far chunks (one merged mesh each) and shadow proxies for the camera position; the figures of a far chunk leave the batch */
-  private updateChunks(cam: THREE.Vector3) {
-    let far = 0, prox = 0;
+  /** merge a chunk's figures at a LOD into one mesh (far representation; at FAR_LOD also its shadow proxy) */
+  private buildFar(ch: Chunk, lod: number): THREE.Mesh {
+    const geos = ch.items.map(i => lodGeometry(meshCache.get(this.key(i, lod, false))!, this.items[i].mirror).applyMatrix4(this.mats[i]));
+    const g = mergeGeometries(geos)!; geos.forEach(q => q.dispose()); g.computeBoundingSphere();
+    const meta = { ...RELIEF_META, note: `far representation: the chunk's figures merged at L${lod} (D-048, D-217); ` + RELIEF_META.note };
+    const m = new THREE.Mesh(g, paintMaterial()); m.name = 'relief:far'; m.userData = meta; m.castShadow = false; m.receiveShadow = true; m.visible = false; this.add(m);
+    if (lod === FAR_LOD) { ch.farN = m; ch.trisN = g.index!.count / 3;
+      ch.proxy = new THREE.Mesh(g, shadowProxyMaterial()); ch.proxy.name = 'relief:shadow-proxy'; ch.proxy.userData = { ...meta, note: 'shadow proxy (D-048): drawn into the shadow maps only; ' + RELIEF_META.note }; ch.proxy.castShadow = true; ch.proxy.receiveShadow = false; ch.proxy.visible = false; ch.proxy.raycast = () => {}; // never picked
+      this.add(ch.proxy); }
+    else { ch.farC = m; ch.trisC = g.index!.count / 3; }
+    return m;
+  }
+  /** far chunks (one merged mesh each: L3 up to RELIEF_FARTHEST, the coarsest beyond) and shadow proxies for the camera
+   *  position; the figures of a far chunk leave the batch */
+  private updateChunks(cam: THREE.Vector3, t0: number, budgetMs: number) {
+    let far = 0, prox = 0, farC = 0, pending = 0;
     for (const ch of this.chunks) {
       const dx = Math.max(ch.lo.x - cam.x, 0, cam.x - ch.hi.x), dy = Math.max(ch.lo.y - cam.y, 0, cam.y - ch.hi.y), dz = Math.max(ch.lo.z - cam.z, 0, cam.z - ch.hi.z), d = Math.hypot(dx, dy, dz);
-      if (!ch.far) this.buildFar(ch);
-      const wantFar = ch.far !== null && d > RELIEF_FAR * (ch.isFar ? 1 : HYST);
-      // a hidden instance is parked on its L3 geometry, which is never deleted (BatchedMesh.deleteGeometry removes the
+      if (!ch.farC && this.chunkReady(ch, RELIEF_COARSE, false)) this.buildFar(ch, RELIEF_COARSE);
+      const wantFar = ch.farC !== null && d > RELIEF_FAR * (ch.isFar ? 1 : HYST);
+      // the L3 merge (the band's far mesh and the near chunks' shadow proxy): asked for once the chunk is within its band
+      const needN = d < RELIEF_FARTHEST * (ch.shown === ch.farN && ch.farN ? HYST : 1);
+      if (needN && !ch.farN) { if (this.chunkReady(ch, FAR_LOD, true, t0, budgetMs)) this.buildFar(ch, FAR_LOD); else pending++; }
+      // a hidden instance is parked on its coarsest geometry, which is never deleted (BatchedMesh.deleteGeometry removes the
       // instances that still reference a geometry)
-      if (wantFar && !ch.isFar) for (const i of ch.items) if (this.shown[i] >= 0) { this.use(this.key(i, this.shown[i]), -1); const g3 = this.geomId(i, 3); if (g3 !== null) this.batch!.setGeometryIdAt(this.inst[i], g3); this.batch!.setVisibleAt(this.inst[i], false); this.shown[i] = -1; }
+      if (wantFar && !ch.isFar) for (const i of ch.items) if (this.shown[i] >= 0) { this.use(this.key(i, this.shown[i]), -1); const gc = this.geomId(i, RELIEF_COARSE); if (gc !== null) this.batch!.setGeometryIdAt(this.inst[i], gc); this.batch!.setVisibleAt(this.inst[i], false); this.shown[i] = -1; }
       ch.isFar = wantFar;
-      if (ch.far) { ch.far.visible = wantFar; ch.proxy!.visible = d < RELIEF_SHADOW_RANGE; if (wantFar) far++; if (d < RELIEF_SHADOW_RANGE) prox++; }
+      const show = !wantFar ? null : needN && ch.farN ? ch.farN : ch.farC;
+      for (const m of [ch.farN, ch.farC]) if (m) m.visible = m === show;
+      ch.shown = show; ch.tris = show === ch.farN ? ch.trisN : show ? ch.trisC : 0;
+      if (ch.proxy) ch.proxy.visible = d < RELIEF_SHADOW_RANGE;
+      if (wantFar) { far++; if (show === ch.farC) farC++; } if (ch.proxy && d < RELIEF_SHADOW_RANGE) prox++;
     }
-    // every chunk far: the whole set as one mesh instead of one per chunk
-    const allFar = far === this.chunks.length && far > 0;
+    // every chunk far at the coarsest LOD: the whole set as one mesh instead of one per chunk
+    const allFar = farC === this.chunks.length && farC > 0;
     if (allFar && !this.whole) {
-      const g = mergeGeometries(this.chunks.map(ch => ch.far!.geometry))!; g.computeBoundingSphere();
+      const g = mergeGeometries(this.chunks.map(ch => ch.farC!.geometry))!; g.computeBoundingSphere();
       this.whole = new THREE.Mesh(g, paintMaterial()); this.whole.name = 'relief:far-set';
       this.whole.userData = { ...RELIEF_META, note: 'far representation: the whole set merged at the coarsest LOD while every chunk is far (D-048); ' + RELIEF_META.note };
       this.whole.castShadow = false; this.whole.receiveShadow = true; this.add(this.whole);
     }
     if (this.whole) this.whole.visible = allFar;
-    if (allFar) for (const ch of this.chunks) ch.far!.visible = false;
+    if (allFar) for (const ch of this.chunks) ch.farC!.visible = false;
     this.stats.farChunks = far; this.stats.farDraws = allFar ? 1 : far; this.stats.proxies = prox; this.stats.chunks = this.chunks.length;
+    return pending;
   }
   /** choose each figure's LOD for the camera position; request missing meshes (workers) or build them within budgetMs (sync) */
   update(cam: THREE.Vector3, budgetMs = 4) {
@@ -268,21 +310,21 @@ export class ReliefSet extends THREE.Group {
     const moved = cam.distanceToSquared(this.lastCam) > 0.04;
     if (!moved && !this.dirty) return;
     this.dirty = false; if (moved) this.lastCam.copy(cam);
-    this.updateChunks(cam);
-    const wp = workers(), t0 = performance.now(), dist = new Float32Array(this.items.length), c = this.centres;
+    const t0 = performance.now(), farPending = this.updateChunks(cam, t0, budgetMs);
+    const wp = workers(), dist = new Float32Array(this.items.length), c = this.centres;
     for (let i = 0; i < this.items.length; i++) dist[i] = Math.max(0, Math.hypot(cam.x - c[i * 4], cam.y - c[i * 4 + 1], cam.z - c[i * 4 + 2]) - c[i * 4 + 3]);
     const order = Array.from(dist.keys()).filter(i => !this.chunks[this.chunkOf[i]].isFar).sort((a, b) => dist[a] - dist[b]);
-    let pending = 0;
+    let pending = farPending;
     for (const i of order) {
       const want = this.wanted(i, dist[i]); this.level[i] = want;
       let show = want;
       if (!meshCache.has(this.key(i, want, false))) {
         const it = this.items[i];
-        if (wp) { wp.request(this.key(i, want, false), it.kind, it.seed, this.grids[i][want], want); pending++; if (this.shown[i] < 0 && want !== 3) wp.request(this.key(i, 3, false), it.kind, it.seed, this.grids[i][3], 3); }
+        if (wp) { wp.request(this.key(i, want, false), it.kind, it.seed, this.grids[i][want], want); pending++; if (this.shown[i] < 0 && want !== RELIEF_COARSE) wp.request(this.key(i, RELIEF_COARSE, false), it.kind, it.seed, this.grids[i][RELIEF_COARSE], RELIEF_COARSE); }
         else if (performance.now() - t0 < budgetMs) reliefLodMesh(it.kind, it.seed, this.grids[i][want], want);
         else { pending++; this.dirty = true; }
         if (!meshCache.has(this.key(i, want, false))) { // fall back to the nearest generated level (coarser first)
-          show = -1; for (let l = want + 1; l < 4 && show < 0; l++) if (meshCache.has(this.key(i, l, false))) show = l;
+          show = -1; for (let l = want + 1; l < RELIEF_LODS.length && show < 0; l++) if (meshCache.has(this.key(i, l, false))) show = l;
           for (let l = want - 1; l >= 0 && show < 0; l--) if (meshCache.has(this.key(i, l, false))) show = l;
         }
       }
@@ -298,7 +340,7 @@ export class ReliefSet extends THREE.Group {
     this.countTris();
   }
   private countTris() {
-    this.stats.byLod = [0, 0, 0, 0]; this.stats.tris = 0; let inBatch = 0;
+    this.stats.byLod = RELIEF_LODS.map(() => 0); this.stats.tris = 0; let inBatch = 0;
     for (let i = 0; i < this.items.length; i++) { if (this.shown[i] < 0) continue; inBatch++; const m = meshCache.get(this.key(i, this.shown[i], false)); if (m) { this.stats.byLod[this.shown[i]] += m.tris; this.stats.tris += m.tris; } }
     this.stats.farTris = this.chunks.reduce((s, ch) => s + (ch.isFar ? ch.tris : 0), 0);
     this.stats.tris += this.stats.farTris + this.stats.rosetteTris;
@@ -328,7 +370,7 @@ export class ReliefSet extends THREE.Group {
     near.count = kn; far.count = kf; near.instanceMatrix.needsUpdate = true; far.instanceMatrix.needsUpdate = true;
     this.stats.rosetteTris = kn * this.rosTris[0] + kf * this.rosTris[1];
   }
-  dispose() { liveSets.delete(this); this.batch?.dispose(); this.rosNear?.dispose(); this.rosFar?.dispose(); for (const ch of this.chunks) ch.far?.geometry.dispose(); this.whole?.geometry.dispose(); }
+  dispose() { liveSets.delete(this); this.batch?.dispose(); this.rosNear?.dispose(); this.rosFar?.dispose(); for (const ch of this.chunks) { ch.farN?.geometry.dispose(); ch.farC?.geometry.dispose(); } this.whole?.geometry.dispose(); }
 }
 
 /** the mid-range rosette: an octagonal painted boss (Egyptian blue, yellow-ochre centre), 40 triangles, same frame as the carved one */
@@ -340,7 +382,7 @@ function rosetteBoss(): THREE.BufferGeometry {
   for (let k = 0; k < 8; k++) idx.push(0, 1 + k, 1 + ((k + 1) % 8));
   for (let ring = 0; ring < 2; ring++) for (let k = 0; k < 8; k++) { const a = 1 + ring * 8 + k, b = 1 + ring * 8 + ((k + 1) % 8), c = a + 8, d = b + 8; idx.push(a, c, d, a, d, b); }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  g.setAttribute('paint', new THREE.Float32BufferAttribute(new Array(pos.length / 3).fill(1), 1)); g.setAttribute('gilt', new THREE.Float32BufferAttribute(new Array(pos.length / 3).fill(0), 1)); g.setIndex(idx); g.computeVertexNormals();
+  g.setAttribute('paint', new THREE.Float32BufferAttribute(new Array(pos.length / 3).fill(1), 1)); g.setAttribute('gilt', new THREE.Float32BufferAttribute(new Array(pos.length / 3).fill(0), 1)); g.setAttribute('ao', new THREE.Float32BufferAttribute(new Array(pos.length / 3).fill(0), 1)); g.setIndex(idx); g.computeVertexNormals();
   return g;
 }
 /** per-frame hook (world.update): LOD selection for every live relief set; budgetMs bounds main-thread generation when no Worker exists */
@@ -352,7 +394,7 @@ export async function settleReliefs(cam: THREE.Vector3, timeoutMs = 60_000) {
   const t0 = performance.now();
   for (;;) { for (const s of liveSets) { s.dirty = true; s.update(cam, 1e9); } if (reliefsPending() === 0 || performance.now() - t0 > timeoutMs) return; await new Promise(r => setTimeout(r, 30)); }
 }
-export function reliefStats() { const out = { sets: liveSets.size, tris: 0, byLod: [0, 0, 0, 0], farTris: 0, draws: 0, farChunks: 0, farDraws: 0, proxies: 0, chunks: 0, pending: reliefsPending(), generated: genStats.generated, workerJobs: genStats.workerJobs };
+export function reliefStats() { const out = { sets: liveSets.size, tris: 0, byLod: RELIEF_LODS.map(() => 0), farTris: 0, draws: 0, farChunks: 0, farDraws: 0, proxies: 0, chunks: 0, pending: reliefsPending(), generated: genStats.generated, workerJobs: genStats.workerJobs };
   for (const s of liveSets) { out.tris += s.stats.tris; out.farTris += s.stats.farTris; out.draws += s.stats.draws; out.farChunks += s.stats.farChunks; out.farDraws += s.stats.farDraws; out.proxies += s.stats.proxies; out.chunks += s.stats.chunks; s.stats.byLod.forEach((t, i) => (out.byLod[i] += t)); } return out; }
 
 // ---------------- generic register API (Phase 4 programmes) ----------------

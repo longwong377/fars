@@ -1505,15 +1505,15 @@
   "r_relief_carving": {
    "v": {
     "depth_min": 0.03,
-    "depth_max": 0.08,
+    "depth_max": 0.06,
     "figure_fill": 0.95,
-    "panel_depth_factor": 1.5,
+    "panel_depth_factor": 1.3333,
     "embed": 0.001
    },
    "u": "m",
    "src": "RECON",
    "tier": "C",
-   "note": "carved low relief (D-019): peak projection of any relief within depth_min..depth_max (the brief's ~3-8 cm low relief; NOT SEEN in a publication, verify on Schmidt 1953 plates / squeezes); register figures peak at r_relief_depth, large panels (audience, spandrel combats) at r_relief_depth x panel_depth_factor; a standing figure incl. headgear fills figure_fill of the register height; the relief base is set embed into the wall face"
+   "note": "carved low relief (D-019): peak projection of any relief within depth_min..depth_max (the brief's ~3-8 cm low relief; NOT SEEN in a publication, verify on Schmidt 1953 plates / squeezes); register figures peak at r_relief_depth, large panels (audience, spandrel combats) at r_relief_depth x panel_depth_factor (D-217: 1.5 -> 1.3333, 6.75 -> 6.0 cm, and depth_max 0.08 -> 0.06: the rubric review s7 pass 2 asks for 2-6 cm relief, reviewer knowledge C, inside the brief's 3-8 cm; Q-452); a standing figure incl. headgear fills figure_fill of the register height; the relief base is set embed into the wall face"
   },
   "r_audience_panel": {
    "v": {
