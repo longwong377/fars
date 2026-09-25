@@ -29,3 +29,17 @@ describe('town smoke plumes from emission (session 7: the dawn "comb")', () => {
     expect(op('oven')).toBeLessThan(0.2); expect(op('brazier')).toBeLessThan(0.005);
   });
 });
+
+import { flameFootprint, FLAME_MIN_PX } from '../src/world/fire';
+describe('far flames (render pass 2, the town at dusk from Kuh-e Rahmat)', () => {
+  const ppr = 540 / 2 / Math.tan((40 * Math.PI) / 360); // the settlement renders: 540 px, 40° vertical
+  it('keep their size near and grow to FLAME_MIN_PX far, with the light reaching the eye unchanged', () => {
+    const near = flameFootprint(0.6, 10, ppr); expect(near.k).toBe(1); expect(near.flux).toBe(1);
+    for (const d of [300, 1500, 4000]) {
+      const { k, flux } = flameFootprint(0.6, d, ppr), px = (0.6 / d) * ppr;
+      expect(k).toBeGreaterThan(1); expect((0.6 * k / d) * ppr).toBeCloseTo(FLAME_MIN_PX, 6);
+      expect(k * k * flux).toBeCloseTo(1, 9); // area x radiance conserved
+      expect(px).toBeLessThan(FLAME_MIN_PX);
+    }
+  });
+});

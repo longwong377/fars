@@ -23,6 +23,16 @@ const SPEC: Record<FireKind, { flameH: number; flameW: number; power: number; ra
 };
 /** smoke puffs come only from fires within this distance of the camera (the pool is shared; far smoke is the town haze) */
 export const SMOKE_RANGE = 300;
+/** a far flame is drawn no narrower than this many pixels, its brightness cut by the area ratio so that the light
+ *  reaching the eye is unchanged (render pass 2: from Kuh-e Rahmat at dusk the town's 1,037 lit fires were each under
+ *  a pixel wide and vanished; a real town seen from a hill at dusk shows as a scatter of points) */
+export const FLAME_MIN_PX = 2;
+/** the billboard's growth factor k (>= 1) and the flux factor 1 / k^2 for a flame `w` m wide at `d` m, with `pxPerRad`
+ *  pixels per radian at the view centre */
+export function flameFootprint(w: number, d: number, pxPerRad: number): { k: number; flux: number } {
+  const px = (w / Math.max(d, 1e-3)) * pxPerRad, k = Math.max(1, FLAME_MIN_PX / Math.max(px, 1e-6));
+  return { k, flux: 1 / (k * k) };
+}
 // ~1900 K blackbody (Planck, sRGB-normalised) — the colour temperature of wood/oil flames (C)
 const FIRE_RGB = new THREE.Color().setRGB(1.0, 0.52, 0.18);
 
@@ -60,6 +70,7 @@ export class FireSystem {
   private lightScale = 1;
   private rng = new Rng(1, 'fire');
   private uLit = uniform(1);
+  private flux!: THREE.InstancedBufferAttribute;
   constructor(maxLights: number) {
     this.group.name = 'fire';
     for (let i = 0; i < maxLights; i++) { const l = new THREE.PointLight(FIRE_RGB, 0, 20, 2); l.castShadow = false; this.lights.push(l); this.group.add(l); }
@@ -102,13 +113,14 @@ export class FireSystem {
     const plane = new THREE.PlaneGeometry(1, 1).translate(0, 0.5, 0);
     const seedAttr = new THREE.InstancedBufferAttribute(new Float32Array(n), 1); this.fires.forEach((f, i) => (seedAttr.array[i] = f.seed));
     plane.setAttribute('aSeed', seedAttr);
+    this.flux = new THREE.InstancedBufferAttribute(new Float32Array(n).fill(1), 1); plane.setAttribute('aFlux', this.flux);
     const m = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }));
     const u = uv(), seed = attribute('aSeed', 'float');
     const n1 = mx_noise_float(vec3(u.x.mul(3), u.y.mul(2.5).sub(time.mul(2.2)), seed)).mul(0.5).add(0.5);
     const shape = smoothstep(0.0, 0.5, length(vec2(u.x.sub(0.5).mul(2.0), u.y.sub(0.35).mul(1.1)))).oneMinus().mul(smoothstep(0.5, 1.0, u.y).oneMinus());
     const a = max(float(0), shape.mul(n1.mul(1.6)).sub(0.25)).mul(this.uLit);
     const hot = mix(vec3(1.0, 0.35, 0.05), vec3(1.0, 0.85, 0.5), smoothstep(0.2, 0.9, a));
-    m.colorNode = vec4(hot.mul(a.mul(3.0)), a); m.opacityNode = a;
+    m.colorNode = vec4(hot.mul(a.mul(3.0)).mul(attribute('aFlux', 'float')), a); m.opacityNode = a;
     this.flames = new THREE.InstancedMesh(plane, m, n); this.flames.frustumCulled = false; this.flames.renderOrder = 5;
     this.flames.userData = { tier: 'C', src: 'RECON', note: 'flame billboards (procedural); fire placements C unless noted' };
     this.group.add(this.flames);
@@ -133,14 +145,17 @@ export class FireSystem {
     const lit = sunAlt < 4;
     for (const f of this.fires) f.lit = (hour === undefined || !f.sched || f.sched === 'night' ? lit : scheduleLit(f.sched, hour, sunAlt, f.seed)) && !(rain > 0.6 && (f.kind === 'brazier' || f.kind === 'hearth'));
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
-    // flames: cylindrical billboards (yaw only) facing the camera
+    // flames: cylindrical billboards (yaw only) facing the camera, no narrower than FLAME_MIN_PX with their light conserved
+    const viewH = typeof innerHeight === 'number' ? innerHeight : 1080, fov = (camera as THREE.PerspectiveCamera).fov ?? 70;
+    const pxPerRad = viewH / 2 / Math.tan((fov * Math.PI) / 360);
     this.fires.forEach((f, i) => {
       const s = SPEC[f.kind]; const sc = f.lit ? 1 : 0;
       const flick = 0.85 + 0.15 * Math.sin(t * 13 + f.seed) * Math.sin(t * 7.3 + f.seed * 2);
+      const { k, flux } = flameFootprint(s.flameW, f.pos.distanceTo(camera.position), pxPerRad); this.flux.array[i] = flux;
       e.set(0, Math.atan2(camera.position.x - f.pos.x, camera.position.z - f.pos.z), 0); q.setFromEuler(e);
-      m4.compose(f.pos, q, new THREE.Vector3(s.flameW * sc, s.flameH * sc * flick, 1)); this.flames.setMatrixAt(i, m4);
+      m4.compose(f.pos, q, new THREE.Vector3(s.flameW * sc * k, s.flameH * sc * flick * k, 1)); this.flames.setMatrixAt(i, m4);
     });
-    this.flames.instanceMatrix.needsUpdate = true;
+    this.flames.instanceMatrix.needsUpdate = true; this.flux.needsUpdate = true;
     // lights to the nearest lit fires
     const lit_ = this.fires.filter(f => f.lit).map(f => ({ f, d: f.pos.distanceTo(camera.position) })).sort((a, b) => a.d - b.d);
     this.lights.forEach((l, i) => {
