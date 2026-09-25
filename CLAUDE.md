@@ -44,6 +44,8 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
 - **Render queue is the bottleneck** (one shared SwiftShader lock; a high view's test is ~8 min, but jobs wait ~50 min behind
   others). Run at most 3 agents that render at once; give each ≤ 2 browser runs and node-side previews/CPU mirrors first; the
   lead's full passes go in grouped jobs (views sharing day/hour/weather share a page load). Details: HANDOFF.md Tools.
+  Measured (session 8, tools/dev/load_probe.mjs): a persistent Chromium profile (GPU shader cache kept) does NOT speed loads
+  or frames measurably; load time is contention (35 s idle vs 244 s busy) and a high frame costs ~2.5–4 min (8 per view).
 - **Timing tests under load are not failures** until re-run alone on an idle box (performances, popview, humans_runtime,
   cloudnoise, long people_days runs). Never commit bench-reports/*.txt rewritten by a loaded test run.
 - **Reviewers use every reference** in `references/` paired to the moments (table in handoff/review_briefs.md), and say which
