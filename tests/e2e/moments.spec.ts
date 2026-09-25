@@ -1,4 +1,4 @@
-import { test } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { lumStats } from './lib/lum';
 // Camera-rig prototypes for §1.1 moments (fixed views; world state frozen via ?test&day&hour&weather).
@@ -219,4 +219,8 @@ test('moments', async ({ page }, info) => {
     }
   }
   console.log(errs.slice(0, 5).join('\n'));
+  // a WebGPU validation error means a material or pass stopped drawing (e.g. more than 16 sampled textures in a fragment
+  // stage: D-216's shadowed fire lights, D-226's first render): the frames are wrong, so the run fails (session 8)
+  const gpu = errs.filter(e => /sampled textures|Invalid (ShaderModule|RenderPipeline|BindGroup|CommandBuffer)|WebGPU validation|GPUValidationError/i.test(e));
+  expect(gpu, 'WebGPU validation errors: ' + gpu.slice(0, 3).join(' | ')).toEqual([]);
 });
