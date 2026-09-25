@@ -48,9 +48,12 @@ export function reliefShadowNode(p: any, L: any): any {
     const cell0 = cz.mul(int(D.gw)).add(cx).mul(int(SLOTS)).add(int(D.gridRow0 * AW)).toVar();
     const found = float(0).toVar(), u = float(0).toVar(), v = float(0).toVar(), w = float(0).toVar();
     const X = vec2(0, 0).toVar(), Z = vec2(0, 0).toVar(), rect = vec4(0, 0, 0, 0).toVar(), T = float(1).toVar(), hmax = float(0).toVar();
-    for (let k = 0; k < SLOTS; k++) {
+    // the slots fill in order, so the first empty one ends the list: a fragment far from any relief reads one texel
+    const more = float(1).toVar();
+    for (let k = 0; k < SLOTS; k++) If(more.greaterThan(0.5).and(found.lessThan(0.5)), () => {
       const idx = cell0.add(int(k)), id = textureLoad(A, ivec2(idx.mod(int(AW)), idx.div(int(AW)))).r.mul(255).add(0.5).floor();
-      If(found.lessThan(0.5).and(id.greaterThan(0.5)), () => {
+      If(id.lessThan(0.5), () => { more.assign(0); });
+      If(id.greaterThan(0.5), () => {
         const b = int(id).sub(int(1)).mul(int(4));
         const t0 = textureLoad(PT, ivec2(b, int(0))), t1 = textureLoad(PT, ivec2(b.add(int(1)), int(0))), t2 = textureLoad(PT, ivec2(b.add(int(2)), int(0))), t3 = textureLoad(PT, ivec2(b.add(int(3)), int(0)));
         const d = p.sub(t0.xyz), uu = d.x.mul(t1.x).add(d.z.mul(t1.y)), ww = d.x.mul(t1.z).add(d.z.mul(t1.w)), vv = d.y;
@@ -61,7 +64,7 @@ export function reliefShadowNode(p: any, L: any): any {
           found.assign(1); u.assign(uu); v.assign(vv); w.assign(ww); X.assign(t1.xy); Z.assign(t1.zw); rect.assign(t2); T.assign(t0.w); hmax.assign(t3.x);
         });
       });
-    }
+    });
     const vis = float(1).toVar();
     If(found.greaterThan(0.5), () => {
       const su = L.x.mul(X.x).add(L.z.mul(X.y)), sv = L.y, sw = L.x.mul(Z.x).add(L.z.mul(Z.y));
