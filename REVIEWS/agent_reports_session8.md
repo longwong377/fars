@@ -238,3 +238,27 @@ filled 35–80 % 07:00–16:30 (closed form), sacks, dung and straw heaps, trodd
 drain mouths and 20–60 m patches over ~40 % of the foot (Q-564); no stone heaps on the W plain (the quarry is E; Q-565);
 shader_build D-227 case; plain.spec fauna A/B and people counts. Renders (high): stair-noon-plain ground 40–200 m Ystd/Y 0.088 →
 0.104 (run 1) → 0.127 (run 2); stair-dawn-plain 430 draws, 7.55 M tris. D-227, B49, Q-560..Q-566.
+
+## D-228 the Phase 6+7 review's majors M2–M5 (merged: worktree-agent-a9cf83d120dcfc93c, f287c11)
+**Unverified first.** M2's new P22 figures are headless counts of every render pass (before the change the count matched the
+browser's D-190 figure exactly: +40 calls, 2.560 M); village-p22 not re-rendered; no on-screen check for trees popping in on a
+turn (geometric test only). The headless count does not model each cascade's own culling (an upper bound). The Sivand quarry is
+not built (no rock slope > 25 % within 100 m; Q-570); F3 had labelled Majdabad with Sivand's tier. New placeholder flag: every
+town plot's walls, roofs and street doors show [PLACEHOLDER]. Q-571: the tier rule applied to absent, unplaced rows too (the
+five later sites and the Frataraka complex now C, their dating evidence B).
+**M2:** the near 3-D tree sets were never culled (every tree within 225 m drawn, behind the camera too: 1,743 trees, 0.735 M;
+490 shadow casters into 3 cascades, 0.822 M). Now each tree is tested against the view widened by 8° (main pass: in view;
+shadow passes: casters whose shadow can reach the view; within 12 m always kept; re-cull after a 3° turn, 1 m move or 0.5° sun
+move): P22 40° lens 2.560 → 1.275 M (135 of 1,743 trees, 89 of 490 casters), 70° 2.571 → 1.414 M; other views 0.88–1.21 M,
+12–61 calls. plain.test asserts ≤ 150 calls and ≤ 2 M per frame at five views and two lenses with the sun and shadow passes
+(frameTriangles in tests/plainLib.ts); a test that the cull hides nothing visible. Found: the plain switched shadows on for the
+Naqsh-e Rustam relief figures (all 4 cascades): now left to the relief system's stand-ins (D-048).
+**M3:** tiers to C by "the lower of existence and position" (settlement.json pw_area_b_craft, frataraka_complex,
+precinct_plinths; town.json craft_zone; plain.json quarry_majdabad, qadamgah, steppe, woodland, dam_sang_e_dokhtar,
+bard_burideh and five absent sites), chronology rows too; quarries.ts names the hit site's own tier; lint_chrono now fails on a
+position uncertain by > 200 m not at C, a tier differing from its chronology row, a town element above its feature, a town.json
+quarter or facility not C (checked by reverting one).
+**M4:** each plot's F3 description placeholder: true (PLOT_PLACEHOLDER, build.ts); test in settlement_build; PROGRESS updated.
+**M5:** stale statements corrected against the code in PROGRESS.md, town.json _meta, PLAIN.md (lines 8, 84, 111), plain.json
+notes, SETTLEMENT.md (lines 13 and 63: both population figures sourced; the build 1,456 homes, room for 7,968, 7,776 people).
+D-228, Q-570, Q-571. Tests: 12 files, 132 tests; tsc; lint:all.
