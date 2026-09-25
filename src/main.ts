@@ -236,7 +236,7 @@ async function boot() {
       const hit = rc.intersectObjects(world.root.children, true).find(h => (h.object as THREE.Mesh).isMesh && (h.object as THREE.Mesh).visible && !((h.object as any).material?.transparent));
       if (!hit) return null; const m: any = (hit.object as THREE.Mesh).material, n = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : null;
       return { name: hit.object.name, parent: hit.object.parent?.name, mat: m?.constructor?.name, skySpec: !!m?.skySpecular, wetScale: !!m?.skySpecularScale, tier: m?.userData?.tier, note: String(m?.userData?.note ?? '').slice(0, 60), d: +hit.distance.toFixed(2), p: hit.point.toArray().map(v => +v.toFixed(2)), ny: n ? +n.y.toFixed(3) : null, roofed: roofedAt(hit.point.x, hit.point.y, hit.point.z) }; },
-    exposureInfo: () => ({ exposure: renderer.toneMappingExposure, meterEV: meterGain, meterLn, meterBright, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, gain: sky.gain, lux: sky.lux, toneMapping: renderer.toneMapping }),
+    exposureInfo: () => ({ exposure: renderer.toneMappingExposure, meterEV: meterGain, meterLn, meterBright, meterMean, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, gain: sky.gain, lux: sky.lux, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],
     /** people: summary rows (out-of-world; for tests and the dev overlay) */
     people: () => { const P = (world as any).people; if (!P) return null; return { t: P.sim.t, stock: P.sim.stock, events: P.sim.events.slice(-20),
@@ -301,7 +301,7 @@ async function boot() {
   let freeCam: null | { x: number; y: number; z: number; yaw: number; pitch: number } = null;
   /** debug (D-219): weather uniforms held at given values for before/after renders (__parsa.holdWeather) */
   let wxHold: { wetness?: number; snow?: number; cell?: number } | null = null;
-  let meterLn = NaN, meterBusy = false, meterT = 0, meterGain = 0, meterTex: Float32Array | null = null, meterBright = 0; // frame meter (D-159, D-224)
+  let meterLn = NaN, meterBusy = false, meterT = 0, meterGain = 0, meterTex: Float32Array | null = null, meterBright = 0, meterMean = 0; // frame meter (D-159, D-224)
   let botInput: { forward: number; right: number; run: boolean; yawDeg?: number; pitchDeg?: number } = { forward: 0, right: 0, run: false };
   let lastFrameMs = 0; let probeT = 0;
 
@@ -376,7 +376,7 @@ async function boot() {
     // D-224: when bright exterior is the centre-weighted majority of the frame (a portico looking out) the eye adapts to it,
     // down to the law's exposure in the open (meter.ts)
     const openX = exposureTarget(sunE, sky.hemi.intensity * 0.8, 1, sky.moonLight.intensity * 0.3, fireE, sky.fireScale);
-    { const m = meterEVFrame(meterTex, target, KEY, sky.lux * Math.min(1, lawE / Math.max(lawSum, 1e-12)), openX); meterGain = m.ev; meterBright = m.bright; }
+    { const m = meterEVFrame(meterTex, target, KEY, sky.lux * Math.min(1, lawE / Math.max(lawSum, 1e-12)), openX); meterGain = m.ev; meterBright = m.bright; meterMean = m.evMean; }
     const metered = target * Math.pow(2, meterGain);
     exposure = TEST ? (adaptHold ? adaptExposure(adaptHold.from, metered, adaptHold.seconds) : metered) : adaptExposure(exposure, metered, dt); // dark adaptation is slower than light adaptation
     if (P.get('xp')) exposure = +P.get('xp')!; // debug: a fixed exposure (diagnostic renders)

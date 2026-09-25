@@ -85,6 +85,8 @@ export class SkySystem {
   /** scale on the fires’ cast light (1 at night; ~4e-4 at dawn, −2.9°): their values are pre-exposed for night (exposure.ts) */
   fireScale = 1;
   private coverAt: [number, number] | null = null; private coverFactor = 1;
+  /** the zenith sun's max-normalised colour luminance for the current model (D-224: the sun's colour keeps it) */
+  private sunYZ: { tau: number; y: number } | null = null;
   state: SkyState = { sunDir: new THREE.Vector3(0, 1, 0), sunAlt: 45, moonDir: new THREE.Vector3(0, -1, 0), moonAlt: -10, moonFraction: 0, daylight: 1, nightFactor: 0 };
 
   readonly clouds: VolumetricClouds;
@@ -336,7 +338,13 @@ export class SkySystem {
     }
     this.atmoJd = jdUT;
     const A = this.atmo, sc = A.sunColorAt(OBSERVER_ALT, alt), scM = Math.max(sc[0], sc[1], sc[2]);
-    if (scM > 1e-6) this.sun.color.setRGB(Math.max(0, sc[0]) / scM, Math.max(0, sc[1]) / scM, Math.max(0, sc[2]) / scM); // reddened by the air mass (spectral transmittance)
+    // reddened by the air mass (spectral transmittance), at the luminance USNO's lux give (D-224): the colour carries the
+    // zenith sun's max-normalised luminance at every altitude (noon unchanged). Normalised by its largest channel, as
+    // before, a red low sun lost photometric light: half of it at +2.5° (Y 0.51 against 0.96), which the exposure law
+    // still counted (sunE), so sunlit ground and the far ranges at sunrise rendered at half their light
+    if (!this.sunYZ || this.sunYZ.tau !== A.aerosolTau) { const z = A.sunColorAt(OBSERVER_ALT, 90), m = Math.max(z[0], z[1], z[2]); this.sunYZ = { tau: A.aerosolTau, y: (0.2126 * z[0] + 0.7152 * z[1] + 0.0722 * z[2]) / m }; }
+    { const scY = 0.2126 * sc[0] + 0.7152 * sc[1] + 0.0722 * sc[2];
+      if (scM > 1e-6 && scY > 1e-9) { const f = this.sunYZ.y / scY; this.sun.color.setRGB(Math.max(0, sc[0]) * f, Math.max(0, sc[1]) * f, Math.max(0, sc[2]) * f); } }
     this.sun.intensity = G * sunI;
     this.sun.position.copy(camPos).addScaledVector(this.state.sunDir, 800);
     this.sun.target.position.copy(camPos);

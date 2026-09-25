@@ -76,11 +76,11 @@ export function brightShare(tex: ArrayLike<number>, lnT: number, w = METER_W, h 
 }
 /** the meter's gain in EV from the texels (D-159's mean meter with D-224's bright-majority rule); `outdoorExposure`: the
  *  law's exposure for the same light in the open (vis 1), the floor of the bright correction */
-export function meterEVFrame(tex: ArrayLike<number> | null, lawExposure: number, key: number, eyeLux: number, outdoorExposure?: number, w = METER_W, h = METER_H): { ev: number; bright: number } {
-  if (!tex || !(lawExposure > 0)) return { ev: 0, bright: 0 };
+export function meterEVFrame(tex: ArrayLike<number> | null, lawExposure: number, key: number, eyeLux: number, outdoorExposure?: number, w = METER_W, h = METER_H): { ev: number; bright: number; evMean: number } {
+  if (!tex || !(lawExposure > 0)) return { ev: 0, bright: 0, evMean: 0 };
   let s = 0, ws = 0;
   for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) { const v = tex[j * w + i]; if (!Number.isFinite(v)) continue; const wt = meterWeight(i, j, w, h); s += v * wt; ws += wt; }
-  if (!(ws > 0)) return { ev: 0, bright: 0 };
+  if (!(ws > 0)) return { ev: 0, bright: 0, evMean: 0 };
   const evMean = meterEV(s / ws, lawExposure, key, 1e9); // unfaded; the fade is applied once below
   const lnRef = Math.log((0.18 * (key / lawExposure)) / Math.PI);
   const { f, lnHi } = brightShare(tex, lnRef + BRIGHT_EV * Math.LN2, w, h);
@@ -92,5 +92,5 @@ export function meterEVFrame(tex: ArrayLike<number> | null, lawExposure: number,
     ev = evMean + (evB - evMean) * wB;
   }
   const tl = Math.min(1, Math.max(0, (Math.log10(Math.max(eyeLux, 1e-9)) - 1) / 1)), fade = tl * tl * (3 - 2 * tl);
-  return { ev: ev * fade, bright: f };
+  return { ev: ev * fade, bright: f, evMean: evMean * fade }; // evMean: D-159's correction alone (for the record)
 }

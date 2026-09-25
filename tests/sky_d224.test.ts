@@ -77,6 +77,19 @@ describe('overcast sky (D-224)', () => {
   });
 });
 
+describe('the low sun keeps its photometric light (D-224)', () => {
+  it('the sun colour\'s luminance is the zenith sun\'s at every altitude (USNO lux are photometric); noon unchanged', () => {
+    const sky = new SkySystem(new THREE.Scene(), 256, 'test'), ys: number[] = [];
+    for (const hour of [12, 7.5, 6.2, 5.85]) { // day 0: sun ≈ 69°, 22°, 6°, 2.5°
+      for (let i = 0; i < 2; i++) sky.update(new WorldClock(0, hour).jdUT, new THREE.Vector3(), 0.05, 0.25, { ms: 2, fromDeg: 270, tSeconds: 0 }, new THREE.Vector3(1, 0, 0));
+      const c = sky.sun.color; ys.push(Y([c.r, c.g, c.b]));
+      if (hour === 12) { expect(Math.max(c.r, c.g, c.b)).toBeGreaterThan(0.99); expect(Math.max(c.r, c.g, c.b)).toBeLessThan(1.01); }
+      if (hour === 5.85) { expect(sky.state.sunAlt).toBeGreaterThan(2); expect(sky.state.sunAlt).toBeLessThan(3); expect(c.r / c.b).toBeGreaterThan(8); } // still deep red
+    }
+    for (const y of ys) expect(y / ys[0]).toBeCloseTo(1, 2);
+  });
+});
+
 // ---- 2. the antisolar twilight (D-224) ---------------------------------------------------------------------------------
 // Observations (tier B/C): the antitwilight arch (Belt of Venus) is "a reddish band … above the antisolar horizon during
 // clear civil twilights, and immediately beneath it is the bluish-gray earth's shadow" (Lee 2015, Applied Optics 54(4)
