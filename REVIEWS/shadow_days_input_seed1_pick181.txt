@@ -302,23 +302,24 @@ day 250 of the regnal year · Kislimu 14 (22 Dec 467 BCE) · sunrise 06:54, suns
 07:37–07:51  play @ well:v_tukrash (plain) — playing near the mother [with 8334] [dressed against the cold]
 07:51–07:54  rest @ road:plain (road) — carried by the mother [with 8334] [dressed against the cold]
 07:54–08:18  eat @ h:2291 (plain) — a meal with the household [with 8334]
-08:18–08:21  rest @ road:plain (road) — carried by the mother [with 8334] [dressed against the cold]
-08:21–08:34  play @ well:v_tukrash (plain) — playing near the mother [with 8334] [dressed against the cold]
-08:34–08:37  rest @ road:plain (road) — carried by the mother [with 8334] [dressed against the cold]
-08:37–08:45  play @ h:2291 (plain) — playing at home near the mother [with 8334]
-08:45–08:48  rest @ road:plain (road) — carried by the elder brother [with 8335] [dressed against the cold]
-08:48–10:17  play @ canal:v_tukrash (plain) — taken along by the elder brother [with 8335] [dressed against the cold]
-10:17–10:20  rest @ road:plain (road) — carried by the elder brother [with 8335] [dressed against the cold]
-10:20–11:02  play @ lane:v_tukrash (plain) — taken along by the elder brother [with 8335] [dressed against the cold]
-11:02–11:05  rest @ road:plain (road) — carried by the elder brother [with 8335] [dressed against the cold]
-11:05–11:15  play @ h:2291 (plain) — playing at home near the mother [with 8334]
+08:18–08:45  play @ h:2291 (plain) — playing at home near the mother [with 8334]
+08:45–08:49  rest @ road:plain (road) — carried by the mother [with 8334] [dressed against the cold]
+08:49–10:03  play @ lane:v_tukrash (plain) — playing near the mother [with 8334] [dressed against the cold]
+10:03–10:06  rest @ road:plain (road) — carried by the mother [with 8334] [dressed against the cold]
+10:06–11:15  play @ h:2291 (plain) — playing at home near the mother [with 8334]
 11:15–11:27  eat @ h:2291 (plain) — nursed by the mother [with 8334]
-11:27–11:56  play @ h:2291 (plain) — playing at home near the mother [with 8334]
+11:27–11:30  rest @ road:plain (road) — carried by the mother [with 8334] [dressed against the cold]
+11:30–11:43  play @ well:v_tukrash (plain) — playing near the mother [with 8334] [dressed against the cold]
+11:43–11:46  rest @ road:plain (road) — carried by the mother [with 8334]
+11:46–11:56  play @ h:2291 (plain) — playing at home near the mother [with 8334]
 11:56–12:29  eat @ h:2291 (plain) — a meal with the household [with 8334]
-12:29–12:32  play @ h:2291 (plain) — playing at home near the mother [with 8334]
-12:32–14:31  sleep @ h:2291 (plain) — a midday sleep [with 8334]
-14:31–14:44  eat @ h:2291 (plain) — nursed by the mother [with 8334]
-14:44–15:07  rest @ h:2291 (plain) — carried on the mother’s back while she works [with 8334]
+12:29–12:32  rest @ road:plain (road) — carried by the mother [with 8334]
+12:32–14:08  sleep @ lane:v_tukrash (plain) — a midday sleep near the mother [with 8334]
+14:08–14:11  rest @ road:plain (road) — carried by the mother [with 8334]
+14:11–14:33  sleep @ h:2291 (plain) — a midday sleep [with 8334]
+14:33–14:47  eat @ h:2291 (plain) — nursed by the mother [with 8334]
+14:47–15:04  play @ h:2291 (plain) — playing at home near the mother [with 8334]
+15:04–15:07  rest @ h:2291 (plain) — carried on the mother’s back while she works [with 8334]
 15:07–15:10  rest @ road:plain (road) — carried by the elder brother [with 8335]
 15:10–15:53  play @ lane:v_tukrash (plain) — taken along by the elder brother [with 8335]
 15:53–15:56  rest @ road:plain (road) — carried by the elder brother [with 8335]
@@ -339,30 +340,34 @@ day 343 of the regnal year · Addaru 18 (25 Mar 466 BCE) · sunrise 05:57, sunse
 05:48–06:07  sleep @ h:4538 (plain) — asleep in the mother’s lap [with 18770]
 06:07–06:31  sleep @ h:4538 (plain) — asleep in the mother’s lap at the meal [with 18770]
 06:31–06:44  eat @ h:4538 (plain) — nursed by the mother [with 18770]
-06:44–07:59  rest @ h:4538 (plain) — in the mother’s lap [with 18770]
-07:59–09:05  sleep @ h:4538 (plain) — asleep in the mother’s lap [with 18770]
+06:44–06:47  rest @ road:plain (road) — carried on the mother’s back [with 18770] [dressed against the cold]
+06:47–07:00  rest @ well:v_09 (plain) — on the mother’s back while she works [with 18770] [dressed against the cold]
+07:00–07:03  rest @ road:plain (road) — carried on the mother’s back [with 18770] [dressed against the cold]
+07:03–07:59  rest @ h:4538 (plain) — in the mother’s lap [with 18770]
+07:59–07:59  sleep @ h:4538 (plain) — asleep in the mother’s lap [with 18770]
+07:59–09:05  sleep @ h:4538 (plain) — asleep on a mat beside the mother while she works [with 18770]
 09:05–09:16  eat @ h:4538 (plain) — nursed by the mother [with 18770]
-09:16–09:19  rest @ road:plain (road) — carried on the mother’s back [with 18770]
-09:19–09:32  rest @ well:v_09 (plain) — on the mother’s back while she works [with 18770]
-09:32–09:35  rest @ road:plain (road) — carried on the mother’s back [with 18770]
-09:35–10:30  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
-10:30–11:28  sleep @ h:4538 (plain) — asleep on a mat beside the mother while she works [with 18770]
+09:16–09:21  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
+09:21–10:30  rest @ h:4538 (plain) — in the mother’s lap [with 18770]
+10:30–10:43  sleep @ h:4538 (plain) — asleep in the mother’s lap [with 18770]
+10:43–11:28  sleep @ h:4538 (plain) — asleep on a mat beside the mother while she works [with 18770]
 11:28–11:43  eat @ h:4538 (plain) — nursed by the mother [with 18770]
 11:43–11:51  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
 11:51–12:24  rest @ h:4538 (plain) — in the mother’s lap at the meal [with 18770]
 12:24–12:58  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
 12:58–14:00  sleep @ h:4538 (plain) — asleep on a mat beside the mother while she works [with 18770]
 14:00–14:10  eat @ h:4538 (plain) — nursed by the mother [with 18770]
-14:10–15:25  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
-15:25–15:29  sleep @ h:4538 (plain) — asleep on a mat beside the mother while she works [with 18770]
-15:29–15:33  sleep @ road:plain (road) — asleep, carried on the mother’s back [with 18770] [the face wrapped against the dust]
-15:33–15:53  sleep @ well:v_09 (plain) — asleep on the mother’s back while she works [with 18770] [the face wrapped against the dust]
-15:53–15:56  sleep @ road:plain (road) — asleep, carried on the mother’s back [with 18770] [the face wrapped against the dust]
-15:56–16:10  eat @ h:4538 (plain) — nursed by the mother [with 18770]
-16:10–17:02  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
+14:10–14:31  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
+14:31–14:35  rest @ road:plain (road) — carried on the mother’s back [with 18770] [the face wrapped against the dust]
+14:35–14:55  rest @ well:v_09 (plain) — on the mother’s back while she works [with 18770] [the face wrapped against the dust]
+14:55–14:58  rest @ road:plain (road) — carried on the mother’s back [with 18770] [the face wrapped against the dust]
+14:58–15:25  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
+15:25–15:43  sleep @ h:4538 (plain) — asleep on a mat beside the mother while she works [with 18770]
+15:43–15:57  eat @ h:4538 (plain) — nursed by the mother [with 18770]
+15:57–17:02  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
 17:02–17:12  rest @ h:4538 (plain) — in the mother’s lap [with 18770]
-17:12–17:25  rest @ h:4538 (plain) — in the mother’s lap at the meal [with 18770]
-17:25–17:42  sleep @ h:4538 (plain) — asleep in the mother’s lap at the meal [with 18770]
+17:12–17:12  sleep @ h:4538 (plain) — asleep in the mother’s lap [with 18770]
+17:12–17:42  sleep @ h:4538 (plain) — asleep in the mother’s lap at the meal [with 18770]
 17:42–17:54  sleep @ h:4538 (plain) — asleep in the mother’s lap [with 18770]
 17:54–18:06  eat @ h:4538 (plain) — nursed by the mother [with 18770]
 18:06–19:20  rest @ h:4538 (plain) — in the mother’s lap [with 18770]
@@ -433,12 +438,14 @@ day 108 of the regnal year · Duzu 19 (2 Aug 467 BCE) · sunrise 05:08, sunset 1
 14:39–15:40  sleep @ h:3556 (plain) — sleeping through the heat of the day
 15:40–16:01  eat @ h:3556 (plain) — bread and water
 16:01–17:38  tend_animals @ h:3556 (plain) — seeing to the household’s animals
-17:38–18:52  craft @ h:3556 (plain) — mending the winnowing forks, the sieves and the sacks
+17:38–17:41  walk @ road:plain (road) — walking
+17:41–18:49  talk @ lane:v_03 (plain) — talking with the men of the lane
+18:49–18:52  walk @ road:plain (road) — walking
 18:52–19:17  eat @ h:3556 (plain) — the evening meal with the household
-19:17–19:44  talk @ h:3556 (plain) — with the household
-19:44–19:47  walk @ road:plain (road) — out to the threshing floor for the night
-19:47–21:26  rest @ threshing:v_03 (plain) — sitting up by the grain heap on the threshing floor, keeping watch over it
-21:26–24:00  sleep @ threshing:v_03 (plain) — asleep by the grain heap on the threshing floor, guarding it
+19:17–19:35  talk @ h:3556 (plain) — with the household
+19:35–19:38  walk @ road:plain (road) — out to the threshing floor for the night
+19:38–22:04  rest @ threshing:v_03 (plain) — sitting up by the grain heap on the threshing floor, keeping watch over it
+22:04–24:00  sleep @ threshing:v_03 (plain) — asleep by the grain heap on the threshing floor, guarding it
 
 ## Person 18579: Bakabada — child, male, age 8, Persian, zone plain
 day 255 of the regnal year · Kislimu 19 (27 Dec 467 BCE) · sunrise 06:54, sunset 17:05 · weather: -5–8 °C, cloud 13 %, dry, wind 1 m/s · household 4495 (plain v_09, 6 people: 18576 farmer m36, 18577 homemaker f32, 18578 child f11, 18579 child m8, 18580 child f5, 18581 child m2)
@@ -484,8 +491,7 @@ day 312 of the regnal year · Shabatu 17 (22 Feb 466 BCE) · sunrise 06:24, suns
 11:47–12:16  eat @ canal:v_rakkan (plain) — the midday meal: the bread and water he carried out in the morning
 12:16–15:00  dig_canal @ canal:v_rakkan (plain) — clearing the village canal {E-50}
 15:00–15:03  walk @ road:plain (road) — walking [carrying a mattock and a basket]
-15:03–16:15  craft @ h:2494 (plain) — mending tools and baskets
-16:15–16:22  rest @ h:2494 (plain) — at home
+15:03–16:22  rest @ h:2494 (plain) — at home
 16:22–17:03  eat @ h:2494 (plain) — the evening meal with the household
 17:03–17:06  walk @ road:plain (road) — visiting
 17:06–18:48  talk @ h:2566 (plain) — visiting Mikrašba
