@@ -214,3 +214,27 @@ start-on-atlas fix); robe edge profile 1/3/12 mm in: 8.8/11.7/20.7 → 19.6/22.6
 over 6 px then a 3 px near-black edge (geometry predicts 4–6 px); apadana-e-stair-raking: the bull's belly throws a band, luma
 110 → 44–63 over 10 px, blotches gone. Budgets: Apadana walk worst 1.091 → 1.112 M tris, Phase 4 jambs 1.444 → 1.450 M (budget
 1.5 M), draws unchanged. D-226, Q-550..Q-552, bench-reports/relief_budget_d226.txt.
+
+## D-227 the town and near plain at a distance (merged: worktree-agent-affb6da328ad32725, head ca8a9af)
+**Broken / unverified first.** (1) The town at dusk shows no points of fire and cannot from these cameras (B49): with the sim's
+fires and a 0.5 m height raster of every wall, roof and oven top (tests/town_glow.test.ts), day 20 19:00 has 886 lit fires,
+420 in the Terrace frame (0.45–1.7 km) and 594 in the Kuh-e Rahmat frame (0.8–2.0 km); flames in line of sight 0 and 0; their
+light on their own court walls sums to 0.03 / 0.30 of one fire's candela (a court wall hides 48–170 m of ground at 1–4° below
+the horizontal; hearths stand in court corners); method check: from 300 m above q_s1, 47 of 103 flames seen. No glow sprites
+drawn (staging). (2) The moments were not re-timed: day 20 19:00 (most fires lit) rendered smoke contrast +2.2 luma (D-220's
+18:48: +10.3), τ 0.113 vs 0.343 (the low evening fire smokes less than embers after a meal); both moments stay at day 14 18:48.
+(3) Fire light on the smoke layer is built but invisible at dusk (0.15 % of the layer's skylight at −5.7°, 3.9 % at −8.7°).
+(4) The approach track does not show in either render (crown 18 % paler; the far terrain LOD may bury the 6 cm ribbon;
+unverified). (5) Herb patches barely show (greenness p95 0.951 vs 0.929). (6) The stair-foot budget cut after run 2 (+22
+calls, +61 k tris incl. shadow cascades → node 8 calls, 19.3 k tris) is not rendered. (7) Run 1 showed no people on the plain,
+run 2 did (1,905 impostors, 225 skinned): not investigated. (8) House lamps not modelled (Q-560). (9) Sim artefact: nearly
+every household shares one bedtime, all 866 fires out within a minute at 19:16 (Q-566). (10) Full vitest (maxWorkers 1): 1025
+passed, 2 failed, neither in its code: people_days_r5 S12 timeout; writing.test "scribes' room draw calls 17 > 9" (D-221's
+furnishing; the lead fixed it by merging the static pieces).
+**Changed:** measurement tools tests/lib/townLos.ts, tests/town_glow.test.ts, tools/dev/town_glow_probe.ts; each quarter's smoke
+cell lit from below by lit candela × FIRE_ESCAPE_SR (1.0 sr, measured 0.98 over 148 hearths; Q-562) / footprint; the approach
+track (8 m, dusty crown) in the roads mesh; src/world/terraceFoot.ts: two tether lines 50–120 m W of the stair foot, 51 slots
+filled 35–80 % 07:00–16:30 (closed form), sacks, dung and straw heaps, trodden ground (C, Q-563); herb fans below the W and S
+drain mouths and 20–60 m patches over ~40 % of the foot (Q-564); no stone heaps on the W plain (the quarry is E; Q-565);
+shader_build D-227 case; plain.spec fauna A/B and people counts. Renders (high): stair-noon-plain ground 40–200 m Ystd/Y 0.088 →
+0.104 (run 1) → 0.127 (run 2); stair-dawn-plain 430 draws, 7.55 M tris. D-227, B49, Q-560..Q-566.
