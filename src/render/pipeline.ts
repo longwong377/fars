@@ -74,6 +74,11 @@ export function ssrBlurLod(dHit: number, rough: number, viewDist: number, pxAngl
   return Math.min(mips, Math.max(0, Math.log2(Math.max(foot, 1)) - 1, rough * rough * mips));
 }
 
+/** a material's reflection class for the SSR composite (D-216; written to the velocity target's z): 1 = it reflects the sky
+ *  environment (SkySpecularNode: a ray's hit replaces that), 0 = no environment (a hit adds), 2 = no screen-space
+ *  reflection (its own reflection model: userData.ssr === false, the water) */
+export function reflectionClass(m: any): 0 | 1 | 2 { return !m ? 0 : m.userData?.ssr === false ? 2 : m.skySpecular ? 1 : 0; }
+
 export class Pipeline {
   rp: THREE.RenderPipeline | null = null;
   readonly flash = uniform(0); // lightning flash (additive)
@@ -131,7 +136,16 @@ export class Pipeline {
     // MRT: metalness rides in the diffuse colour's alpha and roughness in the normal's (SSR, D-157); materials without a
     // PBR model (sky, stars, clouds) write 0 and 1, decided when each material's shader is built
     const pbr = (node: any, other: number) => Fn(([], builder: any) => (builder.material?.isMeshStandardNodeMaterial ? node : float(other)))();
-    const gbuf: any = mrt({ output, diffuseColor: vec4(diffuseColor.rgb, pbr(metalness, 0)), normal: vec4(packNormalToRGB(normalView), pbr(roughness, 1)), velocity });
+    // D-216: the velocity's spare z channel carries the material's reflection class for the SSR composite: 1 = it reflects
+    // the sky environment (SkySpecularNode, materials.ts `skySpecular`), so a ray's hit REPLACES that reflection; 0 = it
+    // reflects no environment (a hit adds to it); 2 = it takes no screen-space reflection (water, which draws its own
+    // Fresnel sky and far bank, waterShade.ts: userData.ssr = false). w stays 1, so the attachment blends as before.
+    // Before, the composite subtracted the sky environment wherever a ray hit, including on materials that never added
+    // it: the rivers and garden channels (roughness 0.04, no environment) went black or maroon where their rays hit the
+    // banks (render pass 2, R3)
+    const refl = Fn(([], builder: any) => float(reflectionClass(builder.material)))();
+    const gbuf: any = mrt({ output, diffuseColor: vec4(diffuseColor.rgb, pbr(metalness, 0)), normal: vec4(packNormalToRGB(normalView), pbr(roughness, 1)),
+      velocity: vec4(velocity as any, refl, 1) });
     // the G-buffer outputs blend as the material does (D-183). three blends only `output` by default: every other
     // attachment was written unblended, so the effect materials' zeros (fx.ts colourOnly) replaced the albedo, the normal
     // and roughness (0: a mirror) and the velocity over each flame and smoke quad, and the SSR drew black boxes and
@@ -188,7 +202,8 @@ export class Pipeline {
       const rough = nrmTex.a, metal = dif.a, F0 = mix(vec3(0.04, 0.04, 0.04), dif.rgb, metal);
       const spec: any = EnvironmentBRDF({ dotNV, specularColor: F0, specularF90: float(1), roughness: rough }), specY = luminance(spec).max(1e-4);
       const notSky = (renderer as any).reversedDepthBuffer && (renderer.backend as any).isWebGPUBackend ? smoothstep(0, 1e-9, dep.r) : float(1).sub(smoothstep(1 - 1e-7, 1, dep.r));
-      const gate = float(1).sub(smoothstep(SSR_MAX_ROUGHNESS - 0.1, SSR_MAX_ROUGHNESS, rough)).mul(notSky);
+      const envMat = step(0.5, vel.z).sub(step(1.5, vel.z)), ssrMat = float(1).sub(step(1.5, vel.z)); // the material's reflection class (D-216, above)
+      const gate = float(1).sub(smoothstep(SSR_MAX_ROUGHNESS - 0.1, SSR_MAX_ROUGHNESS, rough)).mul(notSky).mul(ssrMat);
       // SSRNode (mirror mode) weights a hit by `metalnessNode` × its own Fresnel term sin²θ = 1 − (n·v)², which the
       // split-sum reflectance already contains: divided out
       const fres = float(1).sub(dotNV.mul(dotNV)).max(0.05);
@@ -202,7 +217,7 @@ export class Pipeline {
       const Rw = this.camWorld.mul(vec4(mix(reflect(vV.negate(), nV), nV, r4).normalize(), 0)).xyz;
       const RwOff = this.camWorld.mul(vec4(mix(reflect(vV.negate(), mix(nV, nDs, geoOK)), mix(nV, nDs, geoOK), r4).normalize(), 0)).xyz; // D-187
       const envOcc = specularOcclusion(skyEnv.occlusion ? skyEnv.occlusion(pWorld, nW, Rw, RwOff) : float(1), dotNV, rough);
-      const envSpec = spec.mul((pmremTexture as any)(skyEnv.target.texture, Rw, rough)).mul(envOcc).mul(skyEnv.intensity);
+      const envSpec = spec.mul((pmremTexture as any)(skyEnv.target.texture, Rw, rough)).mul(envOcc).mul(skyEnv.intensity).mul(envMat);
       // the blur (D-188): SSRNode picks its blur mip from the roughness alone (lod = r² × 5: 0.6 at the red floors'
       // 0.35, ~1.5 half-resolution texels), so the floors mirrored doorways and columns sharp over their whole length.
       // A glossy lobe's footprint grows with the distance to what it reflects: a cone of half-angle ≈ α = r² (GGX) spans

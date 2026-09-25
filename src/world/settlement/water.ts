@@ -49,7 +49,8 @@ export function waterMaterial() {
   m.colorNode = waterBody(wd.x, float(0.15), mudBed.add(stoneBed.sub(mudBed).mul(wd.y)));
   m.emissiveNode = skyReflection(rip.n);
   m.roughnessNode = waterRoughness(rip.lost);
-  m.userData = { tier: 'C', note: 'still water (garden channels, pools, wells, canal), C' };
+  // its reflection is the Fresnel sky above, so it takes no screen-space reflection (the SSR composite, D-216)
+  m.userData = { tier: 'C', note: 'still water (garden channels, pools, wells, canal), C', ssr: false };
   return m;
 }
 

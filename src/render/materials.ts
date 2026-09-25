@@ -123,7 +123,9 @@ export interface SurfaceDef {
    *  (1 = the albedo 20 % toward the earth and ~5 % darker at the foot, fading out 0.2–0.45 m up) (D-157, C) */
   foot?: number;
   /** traffic wear on hall and portico floors (arch meshes: the floor's box is a vertex attribute): the albedo darker and
-   *  the roughness lower by these fractions along the floor's axes, where the doorways of these halls lie (D-157, C) */
+   *  the roughness lower by these fractions along the floor's axes, where the doorways of these halls lie (D-157, C).
+   *  A negative `rough` raises it: feet polish hard stone, but grit carried on feet scuffs a soft painted plaster coat
+   *  (D-216) */
   wear?: { alb: number; rough: number };
   /** run-off streaks below the top of exposed stone (arch meshes: the part's top height is a vertex attribute): the albedo
    *  darker by up to this fraction in vertical streaks ~10:1, strongest just under the coping and gone ~3 m down (D-157, C) */
@@ -187,7 +189,7 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // albedo (C, session 4): a hematite-like reflectance (~4–7 % below 580 nm rising to 30–50 % above 620 nm) integrated
   // with CIE 1931 / D65 gives linear ≈ (0.25–0.53, 0.034–0.085, 0.036–0.059), R/G 6–7.5; the old (0.48, 0.14, 0.10) sRGB
   // was R/G 11 (too little green and blue: the floors rendered as carpet red). Pigment B, value C
-  plaster_red: { albedo: [0.56, 0.23, 0.20], roughness: 0.35, porosity: 0.3, noiseScale: 0.9, noiseAmp: 0.07, roughVar: 0.35, tone: { sd: 0.06, chroma: 0.012, patch: -0.04 }, wear: { alb: 0.05, rough: 0.3 }, bump: { amp: 0.0006, freq: 4 }, micro: { amp: 0.0001, freq: 85, alb: 0.03 }, tier: 'B', note: 'lime-plaster floor with two hematite-rich paint coats, deep red over white (Stein et al. 2016; flooring-plaster study 2022, Treasury/Edifice C/Tachara: search extracts, B); polish C' },
+  plaster_red: { albedo: [0.56, 0.23, 0.20], roughness: 0.35, porosity: 0.3, noiseScale: 0.9, noiseAmp: 0.07, roughVar: 0.35, tone: { sd: 0.06, chroma: 0.012, patch: -0.04 }, wear: { alb: 0.05, rough: -0.3 }, bump: { amp: 0.0006, freq: 4 }, micro: { amp: 0.0001, freq: 85, alb: 0.03 }, tier: 'B', note: 'lime-plaster floor with two hematite-rich paint coats, deep red over white (Stein et al. 2016; flooring-plaster study 2022, Treasury/Edifice C/Tachara: search extracts, B); polish C; the traffic lanes scuffed duller, not polished (D-216, C)' },
   bronze: { albedo: [0.55, 0.38, 0.2], roughness: 0.35, porosity: 0.0, noiseScale: 3, noiseAmp: 0.08, metal: 1, tier: 'C', note: 'bronze fittings' },
   // cedar (SITE_SPEC gate_nations.roof 'cedar beams', C; cedar from Lebanon for the Susa palace, DSf: A there): heartwood
   // light brown to reddish, darkened over 20–50 years under a roof: CIELAB L* 50, a* 9, b* 22 (C, D-188). Was sRGB
@@ -538,7 +540,7 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const alongZ = exp(sq(dx.div(1.3)).negate()).mul(float(1).sub(smoothstep(hz.mul(0.6), hz, dz))).mul(keepZ);
     const wear = max(alongX, alongZ).mul(float(0.7).add(mx_noise_float(p.mul(0.65).add(vec3(2.7, 0, 8.1))).mul(0.6))).clamp(0, 1).mul(up).mul(has).mul(SURF_AB);
     alb = alb.mul(float(1).sub(wear.mul(d.wear.alb)));
-    rough = rough.mul(float(1).sub(wear.mul(d.wear.rough)));
+    rough = rough.mul(float(1).sub(wear.mul(d.wear.rough))).min(1);
     // dust along the walls (D-188, C): a swept floor keeps a film of dust and grit within ~0.4 m of its edges, where the
     // broom does not reach, thicker in the corners, patchy; the floor's box edges are its walls
     const edge = min(hx.sub(dx), hz.sub(dz)).max(0), corner = float(1).sub(smoothstep(0.2, 1.2, max(hx.sub(dx), hz.sub(dz))));
@@ -616,7 +618,7 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   // sky specular (D-157): the smoother surfaces reflect the sky environment (radiance only; envmap.ts)
   if (wantsSkySpecular(d)) {
     if (m instanceof SurfaceNodeMaterial) m.skySpecular = true;
-    else (m as any).setupEnvironment = () => new SkySpecularNode(); // (materials built elsewhere as plain standard ones)
+    else { (m as any).setupEnvironment = () => new SkySpecularNode(); (m as any).skySpecular = true; } // (materials built elsewhere as plain standard ones; the flag tells the SSR composite, D-216)
   }
 }
 

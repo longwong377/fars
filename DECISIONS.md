@@ -4504,3 +4504,120 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
 - **Tests:** tests/carry_props.test.ts, tests/work_blocks.test.ts, tests/fires_place.test.ts, four D-217 cases in
   tests/reliefs.test.ts. Full suite: 1 failure, tests/exchanges.test.ts "delivery: expected 0", the regression already open
   in PROGRESS (not touched here).
+
+## D-216 Render pass 2, light and material bugs: fire light and the eye, water under the SSR, the scribes' room probes, mirror floors (session 7; REVIEWS/rubric_s7_pass2.md R3, R4, R5, R7, R10, R12, fix 4)
+- **Read first: what is still broken or only partly fixed.**
+  - **Point lights cast no shadows** (fix 4, BLOCKERS B24): the braziers on the Apadana N stair's landing, hidden from the N
+    court behind its 1 m parapet, light the portico columns (correct) and ALSO the court floor N of the stair through the
+    façade (wrong). Room masks (below) stop light through hall walls only. Shadow-casting fire lights measured, not shipped.
+  - **The Gate at dusk (R5) still shows an evenly lit orange wall**, now at its physical level: the two stair-head braziers
+    17–25 m from the wall put ~20× the twilight skylight on it (fires-off render: wall Y 0.0001 against 0.0063 with them).
+    Whether a brazier gives ~30 cd (the session-3 perceptual value, D-117 addendum) is open: Q-440.
+  - **Red floors (R10):** the Hadish doorway streak is weaker (6.0× → 4.1× the floor beside it) but not gone, and the
+    scuffed lanes' noise makes it patchy. The polish itself is still C (Q-260, Q-441).
+  - **The river (R3)** is no longer black but reads as a dull brown band (sRGB ≈ 68/62/42): the April flood's silt body and
+    its Fresnel sky as modelled (waterShade.ts); not compared with a photograph.
+  - **The scribes' room (R7) at the final 0.5 m probe grid is NOT RENDERED** (the session ended; the render was stopped).
+    It is verified in node only; the rendered check is of the intermediate 1 m grid, which still left a patch at the jamb.
+  - Every render here is quality high on SwiftShader, 4–6 frames (dbg_light.spec), not the full 8-frame moments spec; the
+    moments were not re-rendered.
+- **Status per item:** R3 fixed, rendered and measured. R4 fixed, rendered and measured, unit test. R12 explained (the plain
+  at its physical level under the fire-adapted eye), rendered. R5 exposure fault fixed and rendered; the even orange wall
+  remains, physically consistent with the brazier's C intensity (Q-440). Fix 4 source found by measurement; wall leaks fixed
+  (room masks); the parapet leak onto the court is OPEN (B24). R7 fixed in node (0.5 m grid, test); rendered only at 1 m
+  (partly fixed there). R10 partly fixed (the lanes scuffed), rendered and measured; the doorway streak remains at 4.1×.
+- **R4, the brazier's light "has no falloff" (brazier-close).** Measured, not assumed:
+  - The point light itself was physical (decay 2, cut-off 48 m). With the fire lights switched off the floor is Y
+    0.0006–0.001 everywhere, so no probe, ambient or baked term lights it. The review's "2 m to 60 m" rows are 2.7–20 m of
+    floor, and along the frame's centre column the floor stays 3–5 m from one brazier or the other.
+  - The cause is the **exposure**. The eye's estimate of the fire light (`localIlluminance`) was power · 4 / (d² + 1); the
+    point light casts power · 40 / d². At brazier-close the eye counted 0.44 renderer lux where 3.7 fell, so the exposure
+    was 4.8 instead of 0.62: the fire-lit floor ~8× over, near the brazier in the tone curve's shoulder (5 % of the frame
+    clipped), and the inverse-square falloff compressed into it.
+  - **Changed (src/world/fire.ts):** `fireLight(kind)` is the one light model (candela = power × 40, decay 2, the cut-off
+    window, the flame's height). The point lights take their values from it and `localIlluminance` sums it as cast (mean
+    flicker 0.8, three's window mirrored in `pointAttenuation`, the same nearest-N assignment).
+  - **Measured (brazier-close, high):** exposure 4.80 → 0.62; clipped 5.0 % → 0 %; frame mean luma 121 → 62. Display Y of
+    the floor at 1, 2, 3, 4, 6, 8 m SW of the near brazier: before 0.94, 0.86, 0.66, 0.50, 0.40, 0.27 (1 m : 8 m = 3.4 : 1);
+    after 0.60, 0.44, 0.21, 0.12, 0.074, 0.036 (17 : 1 on the display; the scene-linear ratio is the light model's ~109 : 1).
+  - **Unit test** (tests/fire_light.test.ts, the review's proposal): floor luminance at 1 m against 8 m from the light model
+    on a moonless night, sky included: ≥ 30 : 1 (it is ~109 : 1), and falling by ≥ 1.9× per doubling out to 16 m. Also: the
+    eye's estimate equals the sum of the lights as cast; beside a brazier the floor at 2 m is exposed below 1.5× white.
+- **R12, the black rectangle (brazier-close, right third).** Picks: the terrain of the plain 60–275 m out below the landing's
+  W edge (and the stair's limestone at that edge): nothing is missing and nothing is culled. With the fires off it is Y
+  0.00004 against a sky of 0.013: the starlit plain (0.0005 lx) sits ~8 stops under the fire-adapted grey and AgX's toe
+  maps it to black, while the perceptual night dome and clouds (D-117) stayed visible above it. After the exposure fix the
+  eye is adapted to the brazier and the sky is dark too (plain 0.0006 → ~0, sky 0.0137 → 0.0004): no rectangle. That is
+  physically right for an eye beside a fire.
+- **R5, the Gate W face at sun −11° (gate-dusk).** There is no post-sunset sun or ambient leak and no emissive: with the fire
+  lights off the wall is Y 0.0001. It is lit by the two stair-head braziers 17–25 m away (fire scale 0.266 at this sky gain).
+  The same exposure fault made it glow: the fire-share cap (D-117) let the eye open to 20.35 because it counted a tenth of
+  the fire light. Now exposure 20.35 → 3.04; wall sRGB 111/71/39 (Y 0.083) → 33/12/1 (Y 0.0063); sky 73/84/100 → 13/19/28.
+  The skylight on the wall stays at its physical ratio to the sky (~1/5 of the sky's mean radiance before the tone curve)
+  and falls in AgX's toe.
+- **Fix 4, the "hidden floodlighting" of the Apadana at night (night-terrace).** What lights it, measured (lights switched
+  off by group, the same exposure 6):
+  - all fire lights off: court floor Y 0.0021, columns 0.0016;
+  - only the two braziers off (brazier-8/9 on the N stair's central landing, grid (−1.1, 53.5) and (4.9, 53.5), 1.37 m over
+    the podium, C placement): 0.0022 and 0.0024;
+  - only the fires inside the hall off (torch-16 and torch-20 on the hall's N wall, among the 12 lights in use): 0.0409 and
+    0.0759, unchanged.
+  - So the two landing braziers light the columns (~37× the moonlit level) from behind the parapet that hides them from the
+    court. Light on the columns is right for braziers there. Light on the court floor N of the stair (Y 0.041) is wrong: the
+    parapet and façade should shade it, and point lights cast no shadows (B24).
+  - **Changed (fire.ts `roomMask`, world.ts):** each fire light is confined to its side of the nearest hall's walls. A fire
+    inside a hall's interior (the manifest room box) lights that interior and 0.8 m into the walls; a fire outside lights
+    nothing inside the nearest hall within its cut-off. Before, the hall-wall torches lit the portico through the 5.3 m wall
+    and the stair-head braziers the Gate hall's floor. Light through the doorways between the two is left out (C). Tested
+    (fire_light.test.ts). The night-terrace render is unchanged by it (the leak lit only the columns' back faces).
+  - **Tried for the parapet:** shadow-casting fire lights (`?fireshadows=K`, the nearest K). With K = 12 the WebGPU
+    pipelines fail validation (17 sampled textures in the fragment stage against the limit of 16): the lit materials do not
+    draw (night-terrace mean luma 51 → 21). Not shipped; the diagnostic stays (off by default). B24.
+- **R3, water black or maroon (plain-pulvar-bank-april, plain-garden-paradise).** The SSR composite subtracted the sky
+  environment wherever a ray hit (a hit replaces the reflection the material added) on every smooth pixel. The water
+  materials never add that environment: they draw their own Fresnel sky and far bank (emissive, waterShade.ts) at roughness
+  0.04. So hit − environment went negative and was clamped: black, with the silt body's red left (sRGB 13/1/0). On the 25 cm
+  garden channels the half-resolution hits alternated with misses: the black and yellow chequer.
+  - **Changed (pipeline.ts `reflectionClass`, materials.ts, water.ts, rivers.ts):** the velocity target's spare z channel
+    carries each material's reflection class: 1, it reflects the sky environment (a hit replaces it); 0, none (a hit adds);
+    2, no SSR (`userData.ssr = false`: the water). w stays 1, so the attachment blends as before.
+  - **Measured (high):** Pulvar band sRGB median 13/1/0 → 68/62/42 (p10 7/0/0 → 66/59/40); garden channel luma p5 0 → 59,
+    median 51 → 94. Test: tests/reflections_s7.test.ts (the class of every surface and of the water; the composite never
+    darkens a pixel whose material reflected no environment).
+- **R7, the light leak at the scribes' room's wall foot (scribe-at-work, scribe-room-ne).** The scene pass alone (before the
+  SSGI, SSR and AO composite) already has the bright floor at the S wall's foot beside the doorway, so the cause is the light
+  probes. A node scan of the baked field: the up-facing floor 0.9 m E of the doorway's jamb, 0.1 m off the wall, read 18–30×
+  the floor 1.5 m into the room, where a ray-traced check gives 0 direct sky. The probe in line with the 1.1 m doorway (x
+  185, 0.1 m inside its E edge) sees out, and the 2 m grid spread its light a metre behind the jamb.
+  - **Three approaches (node, on the baked field):**
+    1. a "thick" reach (the axis ray and two rays 0.5 m to either side): the foot 29 → 11 × 10⁻³, but new jumps elsewhere
+       (a Tachara floor point 0 → 0.76 × 10⁻³, the scribes' room's W end 0.07 → 2.77);
+    2. at run time, a cell side reaches a point only if both its corners do: the foot 29 → 11, with new jumps (Tachara
+       1.3 → 50, Harem 0.9 → 10);
+    3. **a finer grid in this room** (BakeOptions.fine, treasury:1). Against a ray-traced check of the direct sky on the
+       floor behind the jamb (truth 0 from 0.4 m E of the jamb on): 2 m grid 15–27 × 10⁻³ at the wall foot; 1 m grid 0 from
+       0.9 m E of the jamb but 3.6–9.1 within it; 0.5 m grid 0.00–0.06 from 0.5 m E of the jamb.
+  - **Shipped (3) at 0.5 m** (984 → 15,252 probes, +0.4 MB of probe texture; bake 536 s, 3 workers): the foot at x 186
+    29.4 → 0.08 × 10⁻³ (the room 1.5 m in: 0.34). Every other volume's sky channel is unchanged to 1 %; the Harem's bounce
+    is reseeded by the shifted offsets (hall centre 0.0089 → 0.0093). Test (tests/probes.test.ts): the wall foot 0.5–1.9 m E
+    of the jamb is ≤ 2× the floor 1.5 m into the room.
+  - **Rendered at the intermediate 1 m grid only** (scribe-at-work, high): the wall-foot strip (y 330–400, x 190–240) Y
+    0.083 → 0.017, but the floor elsewhere fell too (0.0137 → 0.0018: the 2 m grid's door light had lit the whole room's
+    floor near the door), and a patch at the jamb foot stayed (0.18 → 0.08, 45× the floor). scribe-room-ne: the wall-foot
+    line's median 0.0069 → 0.0011 (floor 0.0079 → 0.0030), with a few red specks left near the camera (max 0.18). The 0.5 m
+    grid, which removes the jamb-foot patch in node, was not rendered.
+- **R10, SSR smears and mirror floors (hadish-hall, apadana-hall-axis).** The SSR adds what the glossy floor should reflect
+  (a split-sum weight and D-188's footprint blur), so the doorway streak's brightness is the red floor's gloss. The floor is
+  roughness 0.35 ± 35 %, and D-157's traffic wear LOWERED it by up to 30 % along the hall axes: a 0.25 mirror lane exactly
+  where these views look. Feet polish hard stone; grit carried on feet scuffs a soft painted lime-plaster coat.
+  - **Changed (materials.ts):** plaster_red's wear.rough is −0.3: the lanes go 0.35 → up to 0.455, so the SSR (fading out
+    over 0.4–0.5) falls away in them. Limestone treads still polish. Tier C (Q-441).
+  - **Measured (high):** the hadish-hall doorway streak (rows 370–520, x 420–540) 6.0× → 4.1× the floor beside it (Y 0.270
+    → 0.177; 1.0× without SSR). apadana-hall-axis: the white smear under the sweeper is gone (the region 1.3× → 1.0× the
+    floor beside it; p99 horizontal step 0.25 → 0.15).
+  - Not taken: a clear-coat layer and fading the SSR by roughness (the review's proposals). The SSR is already weighted by
+    the split-sum reflectance, and fading it would drop real glossy reflection.
+- **Renders (dbg_light.spec, quality high):** brazier-close (B, fires off, braziers off; after), night-terrace (B, hall fires
+  off, braziers off, all fires off; after; the shadow cost), gate-dusk (after: B, fires off), pulvar-bank-april and
+  garden-paradise (after), scribe-room-ne and scribe-at-work (after: B, the session-4 GI input, the scene pass; after the
+  re-bake), hadish-hall and apadana-hall-axis (after: B, SSR off). The before images are the pass-2 shots.
