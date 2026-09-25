@@ -4248,7 +4248,17 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
 - **Doubts:** Q-205 (updated), Q-430 to Q-439.
 
 ## D-217 Rubric s7 pass 2, the geometry and content bugs R1, R2, R8, R9, R11 (session 7; REVIEWS/rubric_s7_pass2.md)
+- **Status per item (read first).** R1 fixed, tested, rendered (humanlab carry shots, test quality); not re-rendered in the
+  crowd-court-forecourt-w view. R2 fixed, tested, rendered (apadana-e-stair-raking, high); apadana-enter-court,
+  reliefs-raking and snow-terrace not re-rendered. R8 identified; the masons' blocks fixed, tested, rendered (hall100-site,
+  high); the parapet kept, not a placeholder. R9 half fixed: the curtain is gone (rendered naqsh-200m, high), the moiré of
+  fine wavy lines is NOT fixed (below). R11 fixed, tested, rendered (dbg apadana-hall-out, high); apadana-enter-door not
+  re-rendered. The parts hash is not changed: no re-bake needed or done.
 - **Read first: what is still broken or weak.**
+  - R9: the fine wavy lines over the Naqsh face survive the bump band-limit (approach 1 of 3: not the cause). Next
+    suspects, not yet tried: the terrain horizon visibility's 'lines' atlas on the sun (a ?air=0 render was queued and
+    stopped at the session's end; plain.spec now takes URLX and TAG), then sun shadow acne on a face lit at grazing incidence
+    from a far cascade (?sbias, the normal bias per cascade). Open, not in BLOCKERS: fewer than three approaches tried.
   - R2: the relief animals now read as animals from 8–20 m (legs, heads, contour), but the carving itself is still the
     procedural low relief (C, RELIEF_META placeholder true; licensed scans NEEDS #10): the lion is a long tube rearing on the
     bull, the paint is still the mottled film, and a figure casts no shadow on the wall behind it beyond the screen-space
@@ -4310,6 +4320,8 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
   rock surface gets a tone per block and per bed (`rockBlocks`) and streaks 3× longer than wide (`streaks.stretch`); every
   surface's bump octaves are band-limited by the pixel footprint as the micro grain is (D-147), so no bump aliases at a
   distance. All C (Q-453).
+  Rendered after the change (naqsh-200m, high, shots/plain-naqsh-200m-s7g): the face reads as jointed blocks with ledges;
+  no vertical curtain; the fine wavy lines remain (see the top).
 - **R11, the floating rod (apadana-hall-out, apadana-enter-door).** Picked: `fire-body:torch` at grid (1.9, 24.8), 5.7 m
   over the floor, in the middle of the Apadana's N doorway. The hall's wall torches were set every 10 m from each wall's
   middle, so the one at the N (and S) wall's middle stood in the doorway with nothing to hold it. Torches whose place lies in
