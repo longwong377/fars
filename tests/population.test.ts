@@ -41,7 +41,7 @@ describe('population (D-021)', () => {
     }
   }, 60_000);
   it('the detailed agents are people of the population; on the Terrace their plans use only performable activities', () => {
-    const P = sim.pop; const pool = new Set((JSON.parse(readFileSync('src/data/names.json', 'utf8')).names as any[]).map(n => n.name));
+    const P = sim.pop; const pool = new Set([...(JSON.parse(readFileSync('src/data/names.json', 'utf8')).names as any[]), ...(JSON.parse(readFileSync('src/data/names_recalled.json', 'utf8')).names as any[])].map(n => n.name)); // (D-202: the recalled names too)
     expect(sim.agents.length).toBe(135); expect(sim.agents.filter(a => a.role === 'guard').length).toBe(100);
     for (const a of sim.agents) { const p = P.persons[a.pid]; expect(p.agent).toBe(a.id); if (a.name) expect(pool.has(a.name), a.name).toBe(true);
       for (let d = 0; d < 354; d += 11) for (const s of P.plan(a.pid, d)) if (s.where === 'terrace') { expect(PeopleSim.EMITS, `${a.role} ${s.act} (${s.why})`).toContain(s.act); expect(ACTIVITIES[s.act].placeholder ?? false).toBe(false); } }
