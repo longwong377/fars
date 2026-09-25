@@ -4,7 +4,7 @@
 import * as THREE from 'three/webgpu';
 import { colourOnly } from '../render/fx';
 import { surfaceMaterial } from '../render/materials';
-import { uniform, uv, vec3, vec4, float, mx_noise_float, time, attribute, smoothstep, mix, length, vec2, max, positionWorld, cameraPosition, normalize, dot, pow } from 'three/tsl';
+import { uniform, uv, vec3, vec4, float, mx_noise_float, time, attribute, smoothstep, mix, length, vec2, max, positionWorld, cameraPosition, normalize, dot, pow, step } from 'three/tsl';
 import { Rng } from '../core/rng';
 
 export type FireKind = 'torch' | 'brazier' | 'hearth' | 'oven' | 'lamp' | 'kiln';
@@ -32,6 +32,57 @@ export const FLAME_MIN_PX = 2;
 export function flameFootprint(w: number, d: number, pxPerRad: number): { k: number; flux: number } {
   const px = (w / Math.max(d, 1e-3)) * pxPerRad, k = Math.max(1, FLAME_MIN_PX / Math.max(px, 1e-6));
   return { k, flux: 1 / (k * k) };
+}
+/** height of the flame's base above `base` (the floor, or a torch's bracket) */
+const LIFT: Record<FireKind, number> = { torch: 0.35, brazier: 1.02, hearth: 0.15, oven: 0.25, lamp: 0.05, kiln: 0.6 };
+/** renderer candela per unit of a fire's `power` (session 3, perceptual at night; D-117 addendum: a lamp's 3.2 renderer cd
+ *  is ~1 cd at the night gain) */
+export const FIRE_CD_PER_POWER = 40;
+/** the light's mean flicker (update(): 0.8 + 0.2 × the mean of two sines) */
+export const FIRE_FLICKER_MEAN = 0.8;
+/** One light model for a fire (D-216): what its point light is (renderer candela at fire scale 1, physical inverse-square
+ *  decay, the cut-off window's distance) and where it stands above the fire's base. FireSystem.update sets its point
+ *  lights from it and localIlluminance (the eye's adaptation) sums it, so the eye adapts to the light that is actually
+ *  cast (render pass 2: the eye's estimate was power · 4 / (d² + 1), a tenth of the cast I / d², so a brazier-lit floor was
+ *  exposed ~8× too bright and its inverse-square falloff sat in the tone curve's shoulder). */
+export function fireLight(kind: FireKind) {
+  const s = SPEC[kind];
+  return { candela: s.power * FIRE_CD_PER_POWER, cutoff: s.range * 2.2, decay: 2, height: LIFT[kind] + s.flameH * 0.5 };
+}
+/** the distance attenuation three's point light applies (LightUtils getDistanceAttenuation: 1 / max(d^decay, 0.01) times
+ *  the window (1 − (d / cutoff)⁴)², Frostbite / Karis), mirrored on the CPU */
+export function pointAttenuation(d: number, cutoff: number, decay = 2): number {
+  const f = 1 / Math.max(Math.pow(d, decay), 0.01);
+  if (!(cutoff > 0)) return f;
+  const w = Math.min(1, Math.max(0, 1 - Math.pow(d / cutoff, 4)));
+  return f * w * w;
+}
+/** irradiance a fire's own light puts on the horizontal floor it stands on, `r` m from its foot (renderer units, fire scale
+ *  1, mean flicker): I · cos θ · attenuation(d) with the light `height` above the floor (D-216; tests/fire_light.test.ts) */
+export function fireFloorIrradiance(kind: FireKind, r: number, scale = 1): number {
+  const L = fireLight(kind), d = Math.hypot(r, L.height);
+  return L.candela * FIRE_FLICKER_MEAN * scale * (L.height / d) * pointAttenuation(d, L.cutoff, L.decay);
+}
+/** a roofed hall's interior, world coordinates (x0 < x1, z0 < z1; floor y0 to ceiling y1) */
+export interface RoomBox { x0: number; x1: number; z0: number; z1: number; y0: number; y1: number }
+/** how far a fire's light reaches into the thickness of its hall's walls (m): the reveals of the doorways and windows beside
+ *  a torch; the halls' walls are 1.7–5.3 m thick (SITE_SPEC), so their outer faces stay out of reach (D-216, C) */
+export const ROOM_MARGIN = 0.8;
+/** CPU mirror of roomMask: 1 where a light of mode `mode` confined to `r` reaches the point */
+export function roomMaskAt(r: RoomBox, mode: number, x: number, y: number, z: number): number {
+  const M = ROOM_MARGIN, inB = x > r.x0 - M && x < r.x1 + M && z > r.z0 - M && z < r.z1 + M && y > r.y0 - M && y < r.y1 + M ? 1 : 0;
+  return mode > 0 ? inB : mode < 0 ? 1 - inB : 1;
+}
+/** TSL: the point lights cast no shadows, so without this a torch inside a hall lit the portico through a 5 m wall, and a
+ *  brazier outside lit the hall's floor through it. The light is confined to its side of the hall's walls: a fire inside a
+ *  hall lights only its interior (and ROOM_MARGIN into the walls), a fire outside lights nothing inside the nearest hall.
+ *  Light through the doorways between the two is left out (C; D-216) */
+function roomMask(box: any, ys: any, mode: any) {
+  const p = positionWorld, M = ROOM_MARGIN;
+  const inB = step(box.x.sub(M), p.x).mul(step(p.x, box.y.add(M))).mul(step(box.z.sub(M), p.z)).mul(step(p.z, box.w.add(M)))
+    .mul(step(ys.x.sub(M), p.y)).mul(step(p.y, ys.y.add(M)));
+  const pos = max(mode, 0), neg = max(mode.negate(), 0);
+  return float(1).sub(pos).add(pos.mul(inB)).mul(float(1).sub(neg.mul(inB)));
 }
 // ~1900 K blackbody (Planck, sRGB-normalised) — the colour temperature of wood/oil flames (C)
 const FIRE_RGB = new THREE.Color().setRGB(1.0, 0.52, 0.18);
@@ -71,14 +122,39 @@ export class FireSystem {
   private rng = new Rng(1, 'fire');
   private uLit = uniform(1);
   private flux!: THREE.InstancedBufferAttribute;
-  constructor(maxLights: number) {
+  /** `shadowLights`: how many of the nearest fires' lights cast shadows (cube maps of `shadowMapSize`; 0 by default: D-216,
+   *  measured cost in BLOCKERS) */
+  constructor(maxLights: number, shadowLights = 0, shadowMapSize = 512) {
     this.group.name = 'fire';
-    for (let i = 0; i < maxLights; i++) { const l = new THREE.PointLight(FIRE_RGB, 0, 20, 2); l.castShadow = false; this.lights.push(l); this.group.add(l); }
+    for (let i = 0; i < maxLights; i++) {
+      const l = new THREE.PointLight(FIRE_RGB, 0, 20, 2); l.castShadow = i < shadowLights; this.lights.push(l); this.group.add(l);
+      if (l.castShadow) { l.shadow.mapSize.set(shadowMapSize, shadowMapSize); l.shadow.camera.near = 0.1; l.shadow.camera.far = 50; l.shadow.bias = -0.0005; (l.shadow as any).normalBias = 0.05; }
+      // the light confined to its side of a hall's walls (D-216, roomMask): the light's colour × intensity × the mask
+      const c = new THREE.Color(), box = uniform(new THREE.Vector4(0, 0, 0, 0)), ys = uniform(new THREE.Vector2(0, 0)), mode = uniform(0);
+      (l as any).colorNode = uniform(c).onRenderUpdate(() => c.copy(l.color).multiplyScalar(l.intensity)).mul(roomMask(box, ys, mode));
+      this.lightRoom.push({ box, ys, mode });
+    }
+  }
+  /** per light: the room box its light is confined to (world x0, x1, z0, z1; y0, y1) and the mode (+1 inside it only, −1
+   *  outside it only, 0 unconfined) */
+  private lightRoom: { box: any; ys: any; mode: any }[] = [];
+  /** the roofed halls' interiors (world boxes); set before build() (world.ts placeFires) */
+  private rooms: RoomBox[] = [];
+  setRooms(rooms: RoomBox[]) { this.rooms = rooms; }
+  /** the room a fire's light is confined to (D-216): the hall whose interior holds the fire (+1), else the nearest hall
+   *  interior within the light's cut-off (−1: its light stays out of it), else none */
+  roomOf(f: FireSource): { room: RoomBox | null; mode: 1 | -1 | 0 } {
+    const x = f.pos.x, z = f.pos.z, y = f.pos.y;
+    const inside = this.rooms.find(r => x > r.x0 && x < r.x1 && z > r.z0 && z < r.z1 && y > r.y0 - 0.5 && y < r.y1);
+    if (inside) return { room: inside, mode: 1 };
+    const cut = fireLight(f.kind).cutoff; let best: RoomBox | null = null, bd = cut;
+    for (const r of this.rooms) { const d = Math.hypot(Math.max(r.x0 - x, 0, x - r.x1), Math.max(r.z0 - z, 0, z - r.z1)); if (d < bd) { bd = d; best = r; } }
+    return best ? { room: best, mode: -1 } : { room: null, mode: 0 };
   }
   /** `base` = where the object stands (floor) or, for torches, the bracket point on the wall */
   /** `meta.body: false` = the caller draws the fire's body itself (the settlement merges its hearths and ovens) */
   add(kind: FireKind, base: THREE.Vector3, meta: { tier: string; src: string; note: string; sched?: FireSchedule; group?: string; body?: boolean }) {
-    const lift = { torch: 0.35, brazier: 1.02, hearth: 0.15, oven: 0.25, lamp: 0.05, kiln: 0.6 }[kind];
+    const lift = LIFT[kind];
     const { body, ...m } = meta;
     this.fires.push({ id: `${kind}-${this.fires.length}`, kind, pos: base.clone().add(new THREE.Vector3(0, lift, 0)), lit: false, seed: this.rng.next() * 100, ...m });
     if (body !== false) this.bodies.push({ kind, base: base.clone() });
@@ -156,14 +232,16 @@ export class FireSystem {
       m4.compose(f.pos, q, new THREE.Vector3(s.flameW * sc * k, s.flameH * sc * flick * k, 1)); this.flames.setMatrixAt(i, m4);
     });
     this.flames.instanceMatrix.needsUpdate = true; this.flux.needsUpdate = true;
-    // lights to the nearest lit fires
-    const lit_ = this.fires.filter(f => f.lit).map(f => ({ f, d: f.pos.distanceTo(camera.position) })).sort((a, b) => a.d - b.d);
+    // lights to the nearest lit fires (the fire light model, fireLight)
+    const lit_ = this.lightedFires(camera.position);
     this.lights.forEach((l, i) => {
-      const x = lit_[i]; if (!x || x.d > 90) { l.intensity = 0; l.visible = false; return; }
-      const s = SPEC[x.f.kind]; l.visible = true;
-      l.position.copy(x.f.pos).y += s.flameH * 0.5;
-      const flick = 0.8 + 0.2 * (Math.sin(t * 11 + x.f.seed) * 0.5 + Math.sin(t * 17.3 + x.f.seed * 3) * 0.5);
-      l.intensity = s.power * 40 * flick * this.lightScale; l.distance = s.range * 2.2;
+      const f = lit_[i]; if (!f) { l.intensity = 0; l.visible = false; return; }
+      const L = fireLight(f.kind); l.visible = true;
+      { const R = this.roomOf(f), u = this.lightRoom[i]; u.mode.value = R.mode;
+        if (R.room) { u.box.value.set(R.room.x0, R.room.x1, R.room.z0, R.room.z1); u.ys.value.set(R.room.y0, R.room.y1); } }
+      l.position.copy(f.pos).y += L.height - LIFT[f.kind];
+      const flick = 0.8 + 0.2 * (Math.sin(t * 11 + f.seed) * 0.5 + Math.sin(t * 17.3 + f.seed * 3) * 0.5);
+      l.intensity = L.candela * flick * this.lightScale; l.distance = L.cutoff; l.decay = L.decay;
     });
     // smoke
     const wr = ((windDirDeg + 180 - 341) * Math.PI) / 180; // wind blows FROM windDir; grid frame
@@ -185,8 +263,19 @@ export class FireSystem {
     }
     this.smoke.count = k; this.smoke.instanceMatrix.needsUpdate = true; this.smokeAlpha.needsUpdate = true; this.smokeGlow.needsUpdate = true;
   }
-  /** illuminance-like contribution of lit fires near a point (for eye adaptation) */
-  localIlluminance(p: THREE.Vector3) { let e = 0; for (const f of this.fires) { if (!f.lit) continue; const d2 = f.pos.distanceToSquared(p) + 1; e += SPEC[f.kind].power * 4 / d2; } return e * this.lightScale; }
+  /** the lit fires that get a point light for an eye at `p`: the nearest `lights.length` within 90 m */
+  private lightedFires(p: THREE.Vector3): FireSource[] {
+    return this.fires.filter(f => f.lit).map(f => ({ f, d: f.pos.distanceTo(p) })).sort((a, b) => a.d - b.d)
+      .slice(0, this.lights.length).filter(x => x.d <= 90).map(x => x.f);
+  }
+  /** illuminance at `p` (renderer units, on a surface facing each fire: the eye's adaptation) from the fires' cast light
+   *  as the point lights cast it (fireLight: the same candela, mean flicker, decay and cut-off window; D-216) */
+  localIlluminance(p: THREE.Vector3) {
+    let e = 0; const q = new THREE.Vector3();
+    for (const f of this.lightedFires(p)) { const L = fireLight(f.kind); q.copy(f.pos); q.y += L.height - LIFT[f.kind];
+      e += L.candela * FIRE_FLICKER_MEAN * pointAttenuation(q.distanceTo(p), L.cutoff, L.decay); }
+    return e * this.lightScale;
+  }
   stats() { return { fires: this.fires.length, lit: this.fires.filter(f => f.lit).length, smoke: this.smokeP.length }; }
 }
 

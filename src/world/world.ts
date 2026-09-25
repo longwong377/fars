@@ -160,7 +160,12 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // the palaces' furnishings (D-212, all C): stored with the court away, laid out for use while the court setting's court is here
   const palace = new PalaceFurnishings(parts, manifest, doorways, { court: settings?.courtCalendar === 'seasonal', phys }); root.add(palace.group);
   const q = settings?.quality ?? 'high';
-  const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q]); placeFires(fire, manifest, parts);
+  // ?fireshadows=K (diagnostic, D-216): the nearest K fire lights cast shadows
+  const fireShadows = typeof location !== 'undefined' ? +(new URLSearchParams(location.search).get('fireshadows') ?? 0) : 0;
+  const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q], fireShadows); placeFires(fire, manifest, parts);
+  // the halls' interiors: a fire's light stays on its side of their walls (D-216; manifest rooms [e, n, size e, size n, floor, height])
+  fire.setRooms(Object.values(manifest).map((m: any) => m?.room).filter((r: any) => Array.isArray(r))
+    .map(([cx, cy, sx, sy, fl, h]: number[]) => ({ x0: cx - sx / 2, x1: cx + sx / 2, z0: -cy - sy / 2, z1: -cy + sy / 2, y0: fl, y1: fl + h })));
   // Phase 6 settlement: its hearths, ovens and kilns join the fire system before it builds (?notown leaves it out, for A/B budgets)
   const noTown = typeof location !== 'undefined' && new URLSearchParams(location.search).has('notown');
   const settlement = noTown ? null : new Settlement(phys, terrain, fire, q); if (settlement) root.add(settlement.group);
