@@ -6,7 +6,8 @@
 //  - a tuning mode or an instrument has no tier or cites an unknown claim;
 //  - the schedule (src/audio/performers.ts), swept over a year's sample of days with every kind of performer present and
 //    the court resident, yields a gig without claims, a performance the runtime rules refuse, anything at an offering,
-//    or an instrument other than the court harp and the herders' reed pipe (D-200), or a herd pipe played by anyone but a
+//    or an instrument other than the court harp, the herders' reed pipe (D-200) and the women's frame drum at a wedding or a
+//    festival evening (D-211), or a drum beaten by anyone but a woman singing to it, or a herd pipe played by anyone but a
 //    man of 14-55 of a transhumant band;
 //  - anything outside the music system and its director (the schedule's player) calls `.perform(`;
 //  - an instrument's name is on the anachronism blocklist's music clichés.
@@ -45,8 +46,12 @@ const cast = [P(0, 'grinder', 'Persian', 'f', 'grind', 'querns'), P(1, 'grinder'
 // and a boy, a magus at the offering place, a village herder with the flock
 const Q = (pid: number, over: Partial<PopPerformer>): PopPerformer => ({ pid, sex: 'm', age: 30, act: 'talk', why: 'by the fire with the band', place: 'camp:band1:0', e: 0, n: 0, y: 0, moving: false, seed: pid, ...over });
 const popCast = [Q(100, {}), Q(101, {}), Q(102, { sex: 'f' }), Q(103, { age: 62 }), Q(104, { age: 9 }), Q(105, { act: 'rest', why: 'resting while the flock lies up at midday', place: 'route:band1:1' }),
-  Q(106, { act: 'offer', why: 'the lan', place: 'offering_place' }), Q(107, { act: 'herd', why: 'minding the household’s animals', place: 'plain' })];
-const pipers = new Set([100, 101, 105]);
+  Q(106, { act: 'offer', why: 'the lan', place: 'offering_place' }), Q(107, { act: 'herd', why: 'minding the household’s animals', place: 'plain' }),
+  // (D-211: women singing to the frame drum at a wedding's dusk and on a festival evening; a man and a girl beside them do not play)
+  Q(108, { sex: 'f', age: 30, why: 'singing and beating the frame drum for the bride with the women, in the courtyard', place: 'h:12' }), Q(109, { sex: 'f', age: 45, why: 'singing and beating the frame drum for the bride with the women, in the courtyard', place: 'h:12' }),
+  Q(110, { sex: 'f', age: 22, why: 'singing and clapping with the women of the lane to the frame drum, a festival evening', place: 'lane:q_1' }), Q(111, { sex: 'm', age: 30, why: 'at the wedding in the courtyard while the women sing and drum', place: 'h:12' }),
+  Q(112, { sex: 'f', age: 9, why: 'singing and clapping with the women of the lane to the frame drum', place: 'lane:q_1' })];
+const pipers = new Set([100, 101, 105]), drummers = new Set([108, 109, 110]);
 let gigs = 0; const kinds = new Set<string>();
 for (let d = 0; d < 360; d += 9) for (let m = 0; m < 24 * 60; m += 2) {
   const t = d * 24 + m / 60;
@@ -56,15 +61,15 @@ for (let d = 0; d < 360; d += 9) for (let m = 0; m < 24 * 60; m += 2) {
     for (const p of soundingParts(g)) {
       const why = refusal(p.perf!, true, { x: p.pos.e, y: p.pos.y, z: -p.pos.n }); if (why) bad.push(`gig ${g.id} ${p.key}: refused (${why})`);
       if (p.perf!.context === 'offering') bad.push(`gig ${g.id}: music at an offering`);
-      if (p.perf!.instrument !== 'voice' && !(p.perf!.instrument === 'harp' && p.perf!.context === 'court') && !(p.perf!.instrument === 'reed_pipe' && p.perf!.context === 'herding')) bad.push(`gig ${g.id}: ${p.perf!.instrument} (${p.perf!.context}) has no source`);
+      if (p.perf!.instrument !== 'voice' && !(p.perf!.instrument === 'harp' && p.perf!.context === 'court') && !(p.perf!.instrument === 'reed_pipe' && p.perf!.context === 'herding') && !(p.perf!.instrument === 'frame_drum' && p.perf!.context === 'leisure' && g.kind === 'women_drum')) bad.push(`gig ${g.id}: ${p.perf!.instrument} (${p.perf!.context}) has no source`);
       if (p.perf!.instrument === 'reed_pipe' && (p.pid == null || !pipers.has(p.pid))) bad.push(`gig ${g.id}: a pipe played by ${p.pid ?? p.agentId} (only band men of 14-55)`);
-      if (p.pid != null && !pipers.has(p.pid)) bad.push(`gig ${g.id}: population person ${p.pid} plays (no source)`);
+      if (p.pid != null && !(g.kind === 'herder_pipe' ? pipers : g.kind === 'women_drum' ? drummers : new Set<number>()).has(p.pid)) bad.push(`gig ${g.id}: population person ${p.pid} plays (no source)`);
       if (!p.play) bad.push(`gig ${g.id} ${p.key}: nothing shown playing (playing.ts)`);
       if (p.agentId != null && [4, 5, 6].includes(p.agentId)) bad.push(`gig ${g.id}: ${cast[p.agentId].role} plays (no source)`);
     }
   }
 }
-for (const k of ['quern_song', 'mason_song', 'court_supper', 'court_night', 'herder_pipe']) if (!kinds.has(k)) bad.push(`schedule: ${k} never occurred in the sweep`);
+for (const k of ['quern_song', 'mason_song', 'court_supper', 'court_night', 'herder_pipe', 'women_drum']) if (!kinds.has(k)) bad.push(`schedule: ${k} never occurred in the sweep`);
 // who may start a performance
 const allowed = new Set(['src/audio/music.ts', 'src/audio/musicDirector.ts']); // the system itself and the schedule's player
 const walk = (dir: string): string[] => readdirSync(dir).flatMap(f => { const p = join(dir, f); return statSync(p).isDirectory() ? walk(p) : /\.tsx?$/.test(f) ? [p] : []; });

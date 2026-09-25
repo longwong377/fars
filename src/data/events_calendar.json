@@ -278,13 +278,23 @@
       "default": true, "tier": "B", "src": "IR-ADMIN;HENK2008", "note": "gods and relative weight from SX (Humban's grain more than 3x Auramazdā's); rates C"
     },
     {
-      "id": "E-33", "kind": "feast", "name": "šip: large sacrificial feast connected with the crown",
-      "months": [], "rule": { "type": "never" },
-      "participants": [{ "role": "presiding high official", "count": 1 }, { "role": "priests", "count": [1, 5] }, { "role": "guests", "count": "C" }],
-      "place_kind": "attested at Pasargadae and Appištapdan, not at Persepolis",
-      "goods": [{ "item": "sheep", "qty": "C", "unit": "head" }, { "item": "grain", "qty": "C", "unit": "BAR" }, { "item": "wine", "qty": "C", "unit": "marriš" }],
-      "preconditions": ["a presiding high official is present (none attested in 467)"], "effects": [],
-      "default": false, "tier": "B", "src": "HENK2011", "note": "Darius-era (Parnakka, Ziššawiš; NN 2259); not scheduled by default"
+      "id": "E-33", "kind": "feast", "name": "šip: a sacrificial feast with the crown's goods, the meat shared out (two a year: the opening of the year, and Bāgayādiš)",
+      "months": [1, 7], "rule": { "type": "festival_days", "instances": [{ "month": 1, "dom": [8, 12], "festival": "the opening of the year" }, { "month": 7, "dom": [10, 15], "festival": "Bāgayādiš", "bagayadis": true }],
+        "sheep": [220, 360], "grain": [60, 120], "wine": [40, 90], "beer": [80, 180], "hours": [8, 12.5] },
+      "participants": [{ "role": "an official presiding (unnamed; C)", "count": 1 }, { "role": "magi (the rite: the religion workstream)", "count": [1, 5] }, { "role": "storekeepers issuing the goods", "count": [2, 4] }, { "role": "the heads of the town's and the near villages' households, who fetch their share", "count": "many" }],
+      "place_kind": "the offering place, open ground below the Terrace (C)",
+      "goods": [{ "item": "sheep and goats", "qty": [220, 360], "unit": "head (C)" }, { "item": "grain", "qty": [60, 120], "unit": "BAR (C)" }, { "item": "wine", "qty": [40, 90], "unit": "marriš, as the store allows (C)" }, { "item": "beer", "qty": [80, 180], "unit": "BAR, as the store allows (C)" }],
+      "preconditions": ["the flock keeps 400 head; wine and beer keep 60 each for the month's issues"], "effects": ["store.sheep, grain, wine, beer -= qty", "the hides to the Treasury", "a day off for the gangs and the town's work groups (E-38)"],
+      "performance": "the heads of the households come through the morning, stand at the edge while the animals are offered (the rite itself is the religion workstream's: E-30..E-34) and carry home their share of the meat; the households feast at home at midday, visit and gather in the lanes in their best clothes; women sing and beat the frame drum in the lanes at dusk (M-22, C)",
+      "default": true, "tier": "C", "src": "HENK2011;RECON", "note": "šip is attested as a large sacrificial feast with the crown's goods (NN 2259, Parnakka at Pasargadae, Ziššawiš at Appištapdan: B, Darius-era). At Persepolis in 467 the feast, its dates, its size and the sharing of the meat are C (D-207, D-211): the opening of the year after the Babylonian akītu of 1-11 Nisannu (B for Babylon, an analogy), and the festival of the month named Bāgayādiš, 'the worship of baga' (the name A; the festival behind it C). A Mithra feast is a late claim (Duris in Athenaeus 10.434e, RECOLLECTION, NOT SEEN): the name is kept out"
+    },
+    {
+      "id": "E-38", "kind": "festival", "name": "a festival day off for the gangs and the town's work groups",
+      "months": [1, 7], "rule": { "type": "with", "on": "E-33" },
+      "participants": [{ "role": "the builders' gangs, the work camp, the porters, the weavers, millers and brewers, the craftsmen, the gardeners and farmers, the households at home", "count": "all" }],
+      "place_kind": "home, the lanes, kin's houses, the offering place",
+      "goods": [], "preconditions": [], "effects": ["no work on the building site or in the town's workshops and fields; the watch, the flocks, the Treasury's desk, the stores, the station and the magi keep their duties (C)"],
+      "default": true, "tier": "C", "src": "RECON", "note": "Q-057: no rest days of the kurtaš are attested; festival days off after the Babylonian temple workers' feast days (analogy, C: D-211)"
     },
     {
       "id": "E-35", "kind": "feast", "name": "the king's birthday feast (tukta)",
@@ -477,21 +487,24 @@
       "months": "all", "rule": { "type": "per_1000_per_year", "mean": 1500, "range": [1000, 2000], "seasonal_weight": { "summer": 1.4, "winter": 1.2, "spring": 0.8, "autumn": 0.8 } },
       "participants": [{ "role": "the sick person", "count": 1 }, { "role": "a carer from the household", "count": [0, 1] }], "place_kind": "home",
       "goods": [], "preconditions": [], "effects": ["off work 1-7 days (C)", "the ration continues (CE-15)"],
+      "performance": "lying ill at home; on a longer illness a healer of the quarter calls with herbs and a poultice (the Babylonian asû as an analogy, B for Babylonia; C here: D-211)",
       "default": true, "tier": "C", "src": "RECON", "note": "no source"
     },
     {
-      "id": "E-73", "kind": "life_event", "name": "marriage (household change only; no rite shown)",
-      "months": "all", "rule": { "type": "per_1000_per_year", "mean": 9, "range": [8, 10] },
-      "participants": [{ "role": "the two households", "count": "C" }], "place_kind": "home", "goods": [],
-      "preconditions": [], "effects": ["one person moves household"],
-      "default": true, "tier": "C", "src": "RECON", "note": "no rite attested for commoners at Persepolis, so no ceremony is performed"
+      "id": "E-73", "kind": "life_event", "name": "marriage: the dowry carried to the groom's house, a feast with the kin of both houses, the bride's move",
+      "months": "all", "rule": { "type": "per_1000_per_year", "mean": 9, "range": [8, 10], "season": "about half at the turn of the year, round the spring equinox (C; Strabo 15.3.17, RECOLLECTION, NOT SEEN)" },
+      "participants": [{ "role": "the bride and the groom", "count": 2 }, { "role": "the two households", "count": "all" }, { "role": "the women of the bride's house carrying the dowry", "count": [1, 4] }],
+      "place_kind": "the bride's house, the lanes between, the groom's house (its courtyard)", "goods": [{ "item": "the dowry: bedding, cloth, a chest, jars, a quern stone and household goods", "qty": "C", "unit": "loads" }],
+      "preconditions": ["not on a festival day"], "effects": ["the bride (or the couple) moves household", "the two houses become kin"],
+      "performance": "late morning: the women of her house carry the dowry through the lanes to the groom's house, the bride with them; the feast with the kin of both houses in the groom's courtyard from midday into the evening (indoors in rain); at dusk the women sing and beat the frame drum and clap (M-22, wordless, C)",
+      "default": true, "tier": "C", "src": "ROTH1987;RECON", "note": "Neo-Babylonian marriage agreements list dowries, and the bride moves to her husband's household with them (ROTH1987: B for Babylonia). The ceremony at Persepolis is silent; the procession and the feast are the most probable reconstruction (D-207, D-211). Strabo 15.3.17 on Persians marrying at the spring equinox is recalled, NOT SEEN (R): the seasonal grouping is C"
     },
     {
       "id": "E-74", "kind": "dispute", "name": "small dispute (ration shortfall, queue, tool, water turn)",
       "months": "all", "rule": { "type": "per_1000_per_year", "mean": 100, "range": [50, 150], "multiplier_if": { "CE-03 short ration": 3, "CE-19 low river": 1.5 } },
       "participants": [{ "role": "disputants", "count": 2 }, { "role": "onlookers", "count": [0, 6] }, { "role": "group head or official (rare)", "count": [0, 1] }],
       "place_kind": "storehouse queue, work site, canal", "goods": [], "preconditions": [], "effects": ["relationship between the two agents worsens (C)"],
-      "default": true, "tier": "C", "src": "RECON", "note": "no PF or PT dispute text retrieved"
+      "performance": "raised voices at the place; now and then (the rarer escalation, C) the two go before an official at the town's gate with a witness each on a later morning, and the matter is settled by a pledge or a share of the ration (Babylonian judges at the gate: analogy B; D-211)", "default": true, "tier": "C", "src": "RECON", "note": "no PF or PT dispute text retrieved"
     },
     {
       "id": "E-80", "kind": "guard_shift", "name": "change of watch",

@@ -119,7 +119,10 @@ describe('event calendar', () => {
     for (let d = 0; d <= 60; d++) expect(JSON.stringify(b.cal.ctx(d).events)).toBe(JSON.stringify(a.cal.ctx(d).events));
     const ids = (cal: EventCalendar, n: number) => new Set(Array.from({ length: n }, (_, d) => cal.ctx(d).events.map(e => e.id)).flat());
     const absent = ids(a.cal, 354), present = ids(c.cal, 131);
-    for (const id of ['E-24', 'E-25', 'E-26', 'E-27', 'E-33', 'E-35', 'E-36']) expect(absent.has(id), id).toBe(false);
+    for (const id of ['E-24', 'E-25', 'E-26', 'E-27', 'E-35', 'E-36']) expect(absent.has(id), id).toBe(false);
+    // (D-211: the two šip feasts and their festival days off are in every year, court or none)
+    expect(absent.has('E-33')).toBe(true); expect(absent.has('E-38')).toBe(true);
+    expect(Array.from({ length: 354 }, (_, d) => a.cal.ctx(d).events.filter(e => e.id === 'E-33').length).reduce((x, y) => x + y, 0)).toBe(2);
     expect(present.has('E-25')).toBe(true); expect(present.has('E-26')).toBe(true);
     for (const s of a.cal.stockLog) for (const [k, bd] of Object.entries(STORE_BOUNDS)) { if (!bd) continue; const v = (s as any)[k]; expect(v, k).toBeGreaterThanOrEqual(bd[0]); expect(v, k).toBeLessThanOrEqual(bd[1]); }
   }, 60_000);

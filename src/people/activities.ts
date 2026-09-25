@@ -80,11 +80,18 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   gamble: { anim: 'dice', sound: 'dice', tier: 'C', note: 'throwing knucklebones (astragali are common finds of the period: B object, C scene)' },
   inspect: { anim: 'inspect', tier: 'C', note: 'official looking over work, hands clasped (C)' },
   shelter: { anim: 'idle', tier: 'C', note: 'waiting out rain under a roof (the Gate’s, a hut’s); in the open only a passing shower, the cloak drawn over the head: a longer rain sends people home (S1 of shadow review r5)' },
-  play: { anim: 'play', tier: 'C', note: 'children playing (C)' },
+  play: { anim: 'play', tier: 'C', note: 'children playing (C)',
+    // (D-211, gap audit item 26: the games are the plan's words; no toy is drawn yet)
+    variants: [
+      { when: /knucklebones/, note: 'knucklebones on the ground of the lane (astragali are common finds of the period: B object; the game C). No toy drawn' },
+      { when: /ball/, note: 'playing ball (a ball of leather or rag: C). No ball drawn' },
+      { when: /top/, note: 'a whipped top (tops are known in the Greek and Egyptian worlds: C here). No top drawn' },
+      { when: /clay animal on wheels/, note: 'pulling a clay animal on wheels (wheeled animal toys are known from Susa: C). No toy drawn' }] },
   offmap: { anim: 'idle', tier: 'C', note: 'in the town (not rendered until the settlement exists, Phase 6)' },
   // Phase 5 (D-021): performed with existing poses
   queue: { anim: 'idle', tier: 'C', note: 'standing in the queue at a ration issue (E-01: the group queues and receives its grain; standing C)' },
-  exchange: { anim: 'talk', prop: 'basket', sound: 'murmur', tier: 'C', note: 'exchanging goods in kind with a basket in hand (no coins: blocklist coins-everyday; C)' },
+  exchange: { anim: 'talk', prop: 'basket', sound: 'murmur', tier: 'C', note: 'exchanging goods in kind with a basket in hand (no coins: blocklist coins-everyday; C)',
+    variants: [{ when: /from a tray/, anim: 'sit', prop: 'basket_lap', note: 'a woman selling her wares from a tray at her door in the lane, for barley or oil in kind (D-211; lanes as working space: analogy, C)' }] },
   lie_ill: { anim: 'sleep', tier: 'C', note: 'lying ill on a mat at home (E-72 sickness; C)' },
   // ============================================ the abstract population's work (D-142; every motion C)
   haul: { anim: 'haul', prop: 'rope', tier: 'C', work: [{ kind: 'drum_sledge', at: [0, 0, 6.2], shared: 'place' }],
@@ -156,7 +163,9 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [
       { when: /kiln/, anim: 'stoke', prop: 'stick', prop2: undefined, sound: 'fire', work: [{ kind: 'brushwood', at: [-0.7, 0, 0.1] }], note: 'firing the kiln of the Persepolis West craft yard (kiln: PW2017, B; its firing C)' },
       { when: /pigment|colour/, anim: 'grind', prop: undefined, prop2: undefined, sound: 'quern', work: [{ kind: 'pigment_slab', at: [0, 0, 0.55] }], note: 'grinding pigments on a slab, Egyptian blue among them (PW-PIGMENT2021: B; the work C)' },
-      { when: /clay/, anim: 'hoe', prop: 'hoe', prop2: undefined, sound: 'hoe', work: [{ kind: 'spoil', at: [-1.1, 0, 0.4] }], note: 'digging clay by the river for the kiln (C)' }] },
+      { when: /clay/, anim: 'hoe', prop: 'hoe', prop2: undefined, sound: 'hoe', work: [{ kind: 'spoil', at: [-1.1, 0, 0.4] }], note: 'digging clay by the river for the kiln (C)' },
+      { when: /picking over the grain/, prop: undefined, prop2: 'basket_lap', note: 'picking over the grain on a tray in the lap on the doorstep: the stones and the chaff out (D-211; C)' },
+      { when: /mending clothes/, prop: 'awl', prop2: 'cloth', note: 'mending clothes on the doorstep, a needle of bone or bronze (C)' }] },
   carry_bier: { anim: 'bier_r', moving: true, sound: 'footsteps', tier: 'C', work: [{ kind: 'bier', at: [-0.46, 0, 0], shared: 'group', follow: true }],
     note: 'carrying the dead out of the settlement on a bier, four bearers (E-71; HDT 1.140 for burial in the earth: B claim). Exposure is never shown',
     variants: [{ when: 0.5, anim: 'bier_l', work: [{ kind: 'bier', at: [0.46, 0, 0], shared: 'group', follow: true }], note: 'a bearer with the bier’s pole on the left shoulder (C)' }] },

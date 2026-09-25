@@ -264,7 +264,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // the population's people who may play (D-200): the herders of the transhumant bands out of doors near the view
   const popPerformers: PopPerformer[] = [];
   const bandPeople = (day: number) => { popPerformers.length = 0;
-    for (const o of view.visible) if (o.agent < 0 && (o.place.startsWith('camp:band') || o.place.startsWith('route:band'))) { const q = view.pop.persons[o.pid];
+    for (const o of view.visible) if (o.agent < 0 && (o.place.startsWith('camp:band') || o.place.startsWith('route:band') || /frame drum/.test(o.why))) { const q = view.pop.persons[o.pid]; // (and the women's drum at a wedding or a festival evening: D-211)
       popPerformers.push({ pid: o.pid, sex: q.sex, age: view.pop.ageOn(o.pid, day), act: o.act, why: o.why, place: o.place, e: o.e, n: o.n, y: o.y, moving: o.moving, seed: h32(seed, o.pid) }); }
     return popPerformers; };
   const surfaceAt = (y: number, groundY: number) => (y > -1 ? 'stone' : Math.abs(y - groundY) < 0.3 ? 'earth' : 'stone') as 'stone' | 'earth';

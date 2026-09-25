@@ -46,6 +46,18 @@
 //  - siesta:   (l) from fourteen, more than HEAT_SLEEP_CAP_H asleep in the heat of the day (B S6)
 //  - roofed:   (m) work under a roof (the Treasury, the closed palaces' doors) stopped at the E-64 noon (A S8)
 //  - winnow:   (n) a farming man who threshed in the morning and is not on the floor in the afternoon's working wind (A S6)
+//  and the gap audit's fills and the round-9 reviewers' findings (D-211):
+//  - festival: (o) a festival day off (Population.festDay: E-33, E-38) that holds work: the Terrace, the building works, the
+//              fields, the workshops' trades
+//  - wedding:  (p) the bride, the groom or one of the two houses' people with a wedding day (Population.weddingOf) who is not at
+//              the house of the feast at the middle of the feast
+//  - bereaved: (q) a woman whose day speaks of the baby, the newborn or nursing with no living child of hers of one or under
+//              in the house and none she nurses (A S2 of r9: 705 mother-days "with the baby" after it had died)
+//  - water:    (r) a jar drawn at the well by one of the house whose jars they are not (Population.jarsOf: the waterer's, a girl
+//              helper's), more than their jars, or by a male of 12 or more while a woman who grinds for the house is at home and
+//              free to go (A S7 of r9)
+//  - label:    (d) also "the storm" with no thunder near (A S8 of r9: 14 of 18 "storm" days had no lightning), and a child's
+//              breakfast "the others of the house gone out" while one of them eats there (A S4 of r9)
 import type { ActivityId } from './activities';
 import type { Population, Seg } from './population';
 import { segAt, OPEN_PLACE, OPEN_WHY, outdoors, wetHours, monthsOld, nightGapMax, heatStretch, WET_OK_FLOCK, backFromOk, NIGHT_FEED, workSpan, DRY_WORK_H, weatherWord, weatherNear, HEAT_SLEEP, HEAT_SLEEP_CAP_H } from './population';
@@ -75,7 +87,7 @@ export function reasonOk(act: ActivityId, why: string) {
   if (reasonCache.size < 200000) reasonCache.set(k, v); return v;
 }
 export type PlanIssue = 'no_sleep' | 'reason' | 'meals' | 'teleport' | 'apart' | 'alone' | 'minding' | 'weather' | 'light' | 'wait' | 'label' | 'feed' | 'dress' | 'stage' | 'flock'
-  | 'sick' | 'weatherday' | 'teen' | 'siesta' | 'roofed' | 'winnow';
+  | 'sick' | 'weatherday' | 'teen' | 'siesta' | 'roofed' | 'winnow' | 'festival' | 'wedding' | 'bereaved' | 'water';
 /** a reason that says the person has a little one with them (the minder's words: Population.mindDay) */
 export const MINDING = /^(minding (the little|her little|his little)|carrying (the little|her little|his little)|(out to the lane|home) with (the little|her little|his little))/;
 /** the issues of one person's plan on one day; `prevLast` is where yesterday's plan ended */
@@ -158,7 +170,9 @@ export const LABELS: LabelRule[] = [
   ['the heat', /\bthe heat\b|\bin the heat\b/, (s, C) => (C.heatRest || C.wx.tmax >= 30) && s.t1 > 10.5 && s.t0 < 18],
   ['through the heat', /through the heat/, (s, C, segs, i) => heatStretch(segs, i) >= 0.75], // (the stretch: a sleep woken by a feed is one)
   // (a day kept at home for the storm: a storm in the day's light, W-02; otherwise a storm within an hour and a half)
-  ['the storm', /\bstorm\b/, (s, C) => /^(at home: storm|storm: )/.test(s.why) ? over(C.sun.rise - 0.5, C.sun.set + 0.5, C.wx.stormH) > 0 : over(s.t0 - 1.5, s.t1 + 1.5, C.wx.stormH) > 0],
+  // (a storm thunders: the heavy rain without lightning is "heavy rain", A S8 of shadow review r9)
+  ['the storm', /\bstorm\b/, (s, C) => /^(at home: storm|storm: )/.test(s.why) ? over(C.sun.rise - 0.5, C.sun.set + 0.5, C.wx.stormH) > 0 && over(C.sun.rise - 0.5, C.sun.set + 0.5, C.wx.thunderH) > 0 : over(s.t0 - 1.5, s.t1 + 1.5, C.wx.stormH) > 0 && over(s.t0 - 1.5, s.t1 + 1.5, C.wx.thunderH) > 0],
+  ['heavy rain', /\bheavy rain\b/, (s, C) => /^(at home: heavy rain|heavy rain: )/.test(s.why) ? over(C.sun.rise - 0.5, C.sun.set + 0.5, C.wx.stormH) > 0 : over(s.t0 - 1.5, s.t1 + 1.5, C.wx.stormH) > 0],
   ['the dust', /\bdust\b(?! cakes)/, (s, C) => over(s.t0 - 1.5, s.t1 + 1.5, C.wx.dustH) > 0],
   ['the cold', /\bthe cold\b|against the cold/, (s, C) => C.wx.tmin < COLD_C],
   ['in the night', /(?<!fallen ill) in the night\b/, (s, C) => { const m = (s.t0 + s.t1) / 2; return m < C.sun.rise || m > C.sun.set; }],
@@ -285,8 +299,32 @@ export function invariants(P: Population, pid: number, d: number, segs: Seg[], p
     if (T?.kind === 'thresh' && T.pm && wetHours(wx, T.pm[0], T.pm[1]) === 0 && sum(x => x.place.startsWith('threshing') && x.act === 'thresh' && x.t0 < 13) >= 1
       && !segs.some(x => x.place.startsWith('threshing') && x.act === 'thresh' && x.t1 > 14.5) && !segs.some(x => /grain heap|carrying grain to the storehouse/.test(x.why)))
       out.push({ kind: 'winnow', note: 'threshed in the morning and not on the floor in the afternoon’s wind' }); }
+  // ---- D-211 (the gap audit's fills and the round-9 reviewers' findings)
+  // (d) a child's breakfast "alone" while one of the house eats there (A S4 of r9)
+  { const b = segs.find(x => /^breakfast, the others of the house gone out/.test(x.why)); if (b) { const m = (b.t0 + b.t1) / 2;
+    if (P.membersOn(P.home(pid, d), d).some(x => x !== pid && P.ageOn(x, d) >= 5 && P.present(x, d) && P.plan(x, d).some(o => o.act === 'eat' && o.place === b.place && o.t0 <= m && o.t1 >= m))) out.push({ kind: 'label', note: `"the others of the house gone out" while one of them eats there: ${n(b)}` }); } }
+  // (o) a festival day off that holds work
+  if (C.festival && P.festDay(pid, d)) { const w = segs.find(x => x.where === 'terrace' || FEST_WORK.test(x.act)); if (w) out.push({ kind: 'festival', note: `work on a festival day off: ${n(w)}` }); }
+  // (p) the people of a wedding at the house of the feast at its middle
+  { const W = P.weddingOf(pid, d); if (W) { const WP = P.weddingPlan(W.w), m = (WP.feast[0] + WP.feast[1]) / 2, s0 = segAt(segs, m), T = P.households[W.w.to].home;
+    if (s0.place !== T) out.push({ kind: 'wedding', note: `the ${W.role === 'from' || W.role === 'to' ? `wedding’s ${W.role}-house` : W.role} at ${s0.place} (${s0.act}) at ${m.toFixed(2)}, the feast at ${T}` }); } }
+  // (q) the words of a baby with no baby
+  if (pp.sex === 'f' && age >= 14 && pp.job !== 'child') { const w = segs.find(x => BABY_WORDS.test(x.why) && !/motherless|wet nurse/.test(x.why));
+    if (w && !P.nurslings(pid, d).length && !P.childrenOf(pid).some(c => P.present(c, d) && P.ageOn(c, d) <= 1 && P.home(c, d) === P.home(pid, d))) out.push({ kind: 'bereaved', note: `the words of a baby with no living baby: ${n(w)}` }); }
+  // (r) the house's water
+  if ((Hh.zone === 'town' || Hh.zone === 'plain') && pp.job !== 'guard' && pp.job !== 'traveller' && pp.job !== 'herder') { const dr = segs.filter((x, i) => x.act === 'draw_water' && x.with === undefined && x.place.startsWith('well:') && !/estate|garden beds/.test(x.why)
+      && !(i > 0 && segs[i - 1].act === 'draw_water' && segs[i - 1].place === x.place && Math.abs(segs[i - 1].t1 - x.t0) < 1e-6)); // (one draw cut in two by the weather's dress is one jar)
+    if (dr.length) { const J = P.jarsOf(pid, d);
+      if (dr.length > J) out.push({ kind: 'water', note: `${dr.length} jars drawn, ${J} of the house's are this person's: ${n(dr[0])}` });
+      if (pp.sex === 'm' && age >= 12 && pp.job !== 'servant') { const hd = P.hday(Hh.id, d), keep = new Set(P.sickKeepers(Hh.id, d).values());
+        for (const x of dr) { const mid = (x.t0 + x.t1) / 2; const wmn = hd.women.find(y => y !== pid && !keep.has(y) && P.persons[y].agent < 0 && segAt(P.plan(y, d), mid).place === Hh.home && !/^(sleep|lie_ill)$/.test(segAt(P.plan(y, d), mid).act));
+          if (wmn !== undefined) { out.push({ kind: 'water', note: `a male of ${age} draws the house's water while ${wmn}, a woman of the house, is at home: ${n(x)}` }); break; } } } } }
   return out;
 }
+/** (o) work on a festival day off (the Terrace is checked by its place) */
+const FEST_WORK = /^(dress_stone|haul|lay_brick|mould_brick|reap|thresh|plough|field_work|dig_canal|irrigate|garden_work|pick_fruit|brew|polish_metal|work_wood|shear|slaughter|write_tablet)$/;
+/** (q) the words of a baby, a newborn, a feed */
+const BABY_WORDS = /\bthe baby\b|with the newborn|^nursing\b|stopping to nurse/;
 /** (g) the cap on a day's stage on foot (C: a family's stage with its old and little ones, and a day's road walk) */
 export const STAGE_CAP_H = 7;
 const MOVING_OFF = /^(coming down from the hills|on the road)/;

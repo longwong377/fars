@@ -58,7 +58,11 @@ export interface DayWx { wet: boolean; rain: [number, number] | null; rainH: num
    *  to the last of them and may hold dry spells; this says when it actually rains (S1 of shadow review r5) */
   rainQ: number[];
   /** the day's 96 quarter-hours' air temperature (°C): the dress of the cold (Planner.weatherWear, outfits.weatherMask) */
-  tempQ: number[] }
+  tempQ: number[];
+  /** the span of the quarter-hours with lightning, or null. `storm` and `stormH` are the heavy weather that stops the work
+   *  (lightning or rain > 0.7: the rule is kept); the words say "storm" only where it thunders, and "heavy rain" where it does
+   *  not (A S8 of shadow review r9: 14 of the year's 18 "storm" days had no lightning; D-211) */
+  thunderH: [number, number] | null }
 /** sampled from the hourly weather: rain > 0.25 = people shelter (the Phase 3 rule); lightning or rain > 0.7 = storm */
 /** hours of rain (the shelter rule's quarter-hours) between t0 and t1 of a day */
 export function rainHours(wx: DayWx, t0: number, t1: number): number {
@@ -75,17 +79,18 @@ export function rainSpells(wx: DayWx, gap = 0.5): [number, number][] {
   return out;
 }
 export function dayWx(env: (t: number) => EnvLike, day: number): DayWx {
-  let r0 = -1, r1 = -1, s0 = -1, s1 = -1, d0 = -1, d1 = -1, rainH = 0, tmax = -99, tmin = 99, dust = 0, wa = 0, na = 0, wp = 0, np = 0; const rainQ: number[] = [], tempQ: number[] = [];
+  let r0 = -1, r1 = -1, s0 = -1, s1 = -1, l0 = -1, l1 = -1, d0 = -1, d1 = -1, rainH = 0, tmax = -99, tmin = 99, dust = 0, wa = 0, na = 0, wp = 0, np = 0; const rainQ: number[] = [], tempQ: number[] = [];
   for (let q = 0; q < 96; q++) {
     const h = q * 0.25 + 0.125, e = env(day * 24 + h);
     rainQ.push(e.rain > 0.25 ? 1 : 0); tempQ.push(e.tempC);
     if (e.rain > 0.25) { if (r0 < 0) r0 = h - 0.125; r1 = h + 0.125; rainH += 0.25; }
     if (e.lightning || e.rain > 0.7) { if (s0 < 0) s0 = h - 0.125; s1 = h + 0.125; }
+    if (e.lightning) { if (l0 < 0) l0 = h - 0.125; l1 = h + 0.125; }
     if ((e.dust ?? 0) > 0.25) { if (d0 < 0) d0 = h - 0.125; d1 = h + 0.125; }
     tmax = Math.max(tmax, e.tempC); tmin = Math.min(tmin, e.tempC); dust = Math.max(dust, e.dust ?? 0);
     if (h >= 7 && h < 11) { wa += e.windMs ?? 0; na++; } else if (h >= 14 && h < 18) { wp += e.windMs ?? 0; np++; }
   }
-  return { wet: rainH >= 0.5, rain: r0 >= 0 ? [r0, r1] : null, rainH, storm: s0 >= 0, stormH: s0 >= 0 ? [s0, s1] : null, dust: dust > 0.5, dustH: dust > 0.5 && d0 >= 0 ? [d0, d1] : null, frost: tmin < 0, hot: tmax > 33, tmax, tmin, windAM: na ? wa / na : 0, windPM: np ? wp / np : 0, rainQ, tempQ };
+  return { wet: rainH >= 0.5, rain: r0 >= 0 ? [r0, r1] : null, rainH, storm: s0 >= 0, stormH: s0 >= 0 ? [s0, s1] : null, dust: dust > 0.5, dustH: dust > 0.5 && d0 >= 0 ? [d0, d1] : null, frost: tmin < 0, hot: tmax > 33, tmax, tmin, windAM: na ? wa / na : 0, windPM: np ? wp / np : 0, rainQ, tempQ, thunderH: l0 >= 0 ? [l0, l1] : null };
 }
 
 // ------------------------------------------------------------------ pure schedules (also used to create transients)
@@ -137,6 +142,23 @@ export function transhumantBands(seed: number) {
   // (lives.json herders; shadow review r8, 44216: a band came down from 05:17 and reached its first camp at 16:01; C)
   return rateSchedule(seed, 'E-49').map((x, i) => ({ i, day: x.day, hour: 8 + (3 * (x.hour - HOURS.pastoral[0])) / (HOURS.pastoral[1] - HOURS.pastoral[0]), size: 5 + Math.floor(u01(seed, salt('band'), i) * 36), stay: 2 + Math.floor(u01(seed, salt('bstay'), i) * 3) }));
 }
+/** the heavy weather's word for [a, b]: "storm" where it thunders then (within half an hour), "heavy rain" where it does not
+ *  (A S8 of shadow review r9; D-211) */
+export function stormWord(wx: DayWx, a = 0, b = 24): 'storm' | 'heavy rain' { const l = wx.thunderH; return l && a < l[1] + 0.5 && b > l[0] - 0.5 ? 'storm' : 'heavy rain'; }
+/** the festival days of the year (D-211; E-33, E-38; C): the šip at the offering place, and the day off for the town's work
+ *  groups and the Terrace's gangs. The dates are C: a šip at the opening of the year (the Babylonian akītu is held in the
+ *  first days of Nisannu: B for Babylon, an analogy here) and one on the festival of the seventh month, Bāgayādiš, "the
+ *  worship of baga" (the month's name is A; the festival behind it C) */
+export interface Festival { id: 'E-33'; k: number; day: number; name: string; bagayadis: boolean; sheep: [number, number]; grain: [number, number]; wine: [number, number]; beer: [number, number]; hours: [number, number] }
+const festCache = new Map<number, Festival[]>();
+export function festivals(seed: number): Festival[] {
+  const c = festCache.get(seed); if (c) return c; const R = ROW['E-33'].rule;
+  const out: Festival[] = (R.instances as any[]).map((x, k) => { const M = MONTHS[x.month - 1], dom = x.dom[0] + Math.floor(u01(seed, salt('E-33d'), k) * (x.dom[1] - x.dom[0] + 1));
+    return { id: 'E-33' as const, k, day: M.start + dom - 1, name: x.festival, bagayadis: !!x.bagayadis, sheep: R.sheep, grain: R.grain, wine: R.wine, beer: R.beer, hours: R.hours }; });
+  festCache.set(seed, out); return out;
+}
+/** the festival on a day, or null */
+export function festivalOn(seed: number, day: number): Festival | null { return festivals(seed).find(f => f.day === day) ?? null; }
 /** the drive of tax animals and 'the sheep of the king' to Susa (E-13); away 50–70 days (552 km at a flock's pace, C) */
 export function flockDrives(seed: number) {
   return rateSchedule(seed, 'E-13').map((x, i) => ({ i, day: x.day, hour: x.hour, away: 50 + Math.floor(u01(seed, salt('drive'), i) * 21) }));
@@ -152,6 +174,8 @@ export interface DayCtx {
   couriers: { t: number; treasury: boolean }[]; slaughter: number[]; milling: number[]; brewing: number[];
   offerings: { t: number; id: string; place: string; god?: string }[];
   agri: Set<string>; river: string; winter: boolean; brick: boolean; heatRest: boolean; firstRain: boolean;
+  /** a festival day (E-33, E-38; D-211): the šip at the offering place and the day off, or null */
+  festival: Festival | null;
   doubled: [number, number][]; disputes: Map<number, { t: number; other: number; place: string; why: string }>;
   short: Map<number, number>; build: StoneTasks; counts: Record<string, number>;
 }
@@ -209,7 +233,7 @@ export class EventCalendar {
     if (this.firstRainDay < 0 && month >= 7 && wx.wet) this.firstRainDay = d;
     const ctx: DayCtx = { day: d, month, dom, season, wx, sun, court, events: [], issue: new Map(), special: new Map(), wine: new Map(), maternity: new Map(), payments: [], deliveries: [], couriers: [],
       slaughter: [], milling: [], brewing: [], offerings: [], agri: new Set(), river: ROW['E-51'].rule.by_month[String(month)], winter: [9, 10, 11].includes(month), brick: [2, 3, 4, 5].includes(month) && !wx.wet,
-      heatRest: wx.hot, /* the midday rest follows the day's heat (E-64: Tmax > 33 °C), in whatever month it comes (D-086) */ firstRain: this.firstRainDay >= 0 && this.firstRainDay <= d, doubled: [], disputes: new Map(), short: new Map(), build: this.construction.stoneTasks(), counts: {} };
+      heatRest: wx.hot, /* the midday rest follows the day's heat (E-64: Tmax > 33 °C), in whatever month it comes (D-086) */ festival: festivalOn(seed, d), firstRain: this.firstRainDay >= 0 && this.firstRainDay <= d, doubled: [], disputes: new Map(), short: new Map(), build: this.construction.stoneTasks(), counts: {} };
     const ops: { t: number; f: () => void }[] = [];
     const E = (hour: number, id: string, text: string, place: string, n?: number) => { const row = ROW[id]; ctx.events.push({ t: d * 24 + hour, id, kind: row?.kind ?? id, text, place, tier: row?.tier ?? 'C', n }); };
     const monthDraw = (sa: string, g: number, lo: number, hi: number) => M.start + lo - 1 + Math.floor(u01(seed, salt(sa), g, month) * (hi - lo + 1));
@@ -272,6 +296,14 @@ export class EventCalendar {
       ctx.offerings.push({ t: x.hour, id, place, god });
       ops.push({ t: x.hour, f: () => { S.grain -= Math.min(S.grain, 1); if (id === 'E-32' && u01(seed, salt('E-32s'), d, x.k) < 0.2 && S.sheep > 150) S.sheep -= 1;
         E(x.hour, id, id === 'E-31' ? `a magus made the offering to a named ${place}` : `an offering for ${god} by a magus`, place); } }); }
+    // the šip (E-33) and the festival day (E-38; D-211, C): sheep and goats, grain for the bread, wine and beer issued from the
+    // stores at the offering place, the meat shared out to the households' heads and carried home. Wine and beer only as far
+    // as the stores allow (they keep a floor for the month's issues); the flock keeps its floor (STORE_BOUNDS)
+    if (ctx.festival) { const F = ctx.festival, fu = (k: number) => u01(seed, salt('E-33q'), F.k, k), q = (r: [number, number], k: number) => r[0] + (r[1] - r[0]) * fu(k);
+      E(sun.rise + 0.5, 'E-38', F.bagayadis ? 'the Bāgayādiš festival: a day off for the gangs and the town’s work groups (C)' : `a festival day at ${F.name}: a day off for the gangs and the town’s work groups (C)`, 'plain');
+      ops.push({ t: F.hours[0], f: () => { const n = Math.round(Math.min(q(F.sheep, 1), Math.max(0, S.sheep - 400))), g = q(F.grain, 2), w = S.wine >= q(F.wine, 3) + 60 ? q(F.wine, 3) : 0, b = S.beer >= q(F.beer, 4) + 60 ? q(F.beer, 4) : 0;
+        S.sheep -= n; S.hides += n; S.grain -= Math.min(S.grain, g); S.wine -= w; S.beer -= b;
+        E(F.hours[0], 'E-33', `šip at the offering place${F.bagayadis ? ' for Bāgayādiš' : ` at ${F.name}`}: ${n} sheep and goats, ${g.toFixed(0)} BAR of grain${w ? `, ${w.toFixed(0)} marriš of wine` : ''}${b ? `, ${b.toFixed(0)} BAR of beer` : ''} issued; the meat shared out to the households and carried home`, 'offering_place', n); } }); }
     // daily lan (E-30), change of watch (E-80), building work (E-60) and the seasonal round (E-40 … E-51)
     E(sun.rise + 0.2, 'E-30', 'the lan offering', 'offering_place'); ctx.offerings.push({ t: sun.rise + 0.2, id: 'E-30', place: 'offering_place' });
     for (const h of [6, 14, 22]) E(h, 'E-80', `change of watch at ${h}:00 on the Terrace`, 'post_gate_w1');
@@ -291,7 +323,7 @@ export class EventCalendar {
     if (d === 0 || ROW['E-51'].rule.by_month[String(dateOf(d - 1).month)] !== ctx.river) E(6, 'E-51', `the rivers are ${ctx.river}`, 'river');
     if (ctx.heatRest) E(12, 'E-64', 'midday rest in the heat on the building sites', 'worksite');
     if (wx.wet) E(wx.rain![0], 'W-01', 'rain: people shelter and outdoor work stops', 'plain');
-    if (wx.storm) E(wx.stormH![0], 'W-02', 'storm: all outdoor work stops; couriers still ride', 'plain');
+    if (wx.storm) E(wx.stormH![0], 'W-02', `${stormWord(wx, wx.stormH![0], wx.stormH![1])}: all outdoor work stops; couriers still ride`, 'plain');
     if (wx.dust) E(10, 'W-03', 'dust: faces covered, travel slow', 'plain');
     if (ctx.winter && (wx.frost || wx.wet)) E(7, 'E-62', 'frost or rain: no mud-brick, mortar or plaster work today', 'worksite');
     // court (setting only; E-25/26/27, CE-17/18)
