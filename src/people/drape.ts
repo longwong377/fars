@@ -163,3 +163,54 @@ export function clothHull(A: HumanAssets, v: HumanVariant): ClothHull {
 
   const out = { tgt, dir, beltTop }; CACHE.set(v, out); return out;
 }
+
+// ---------------------------------------------------------------------------------------------- D-225: the Persian robe
+// The court robe of the reliefs (MATERIAL_CULTURE "Persian court robe", IR-CAND: B) is not a cone: below the belt a stack
+// of vertical pleats hangs at the front centre, the cloth drawn up to the belt at the hips falls in diagonal folds that
+// run from the front at the waist back and down to the hem, the back hangs in a few broad folds and kicks out at the heel,
+// and the hem is higher in front. The pattern is B (the carved convention); every size and count below is C. It is baked
+// into the skirt tube's radius (outfits.ts `robeSkirt`), so it moves with the skinning (no cloth simulation): as the
+// thighs swing the folds swing with them; they do not lag or sway.
+/** the robe's pleats per LOD (LOD 0: 72 columns, the front denser; LOD 1: 24; LOD 2: 10; the far LOD is meshopt's) */
+export const ROBE = {
+  /** the front pleat stack: half-angle about the front (rad), how far it stands forward (m), grooves across it, their depth (m) */
+  panel: 0.3, panelOut: 0.016, panelPleats: 4, panelDepth: 0.008,
+  /** diagonal folds at the sides: angular frequency (folds per radian × 2π), how far back (rad) a fold runs from the waist
+   *  to the hem, amplitude at the waist and at the hem (m) */
+  sideN: 15.7, sideTwist: 1.0, sideAmp: [0.003, 0.02] as [number, number],
+  /** the back: broad hanging folds (angular frequency) and their amplitude at the hem (m); the kick-out at the heel (m) */
+  backN: 7, backAmp: 0.018, backKick: 0.02,
+  /** column density: θ(u) = 2πu − warp·sin 2πu (the front pleat stack gets 1/(1 − warp) the columns of a uniform tube) */
+  warp: 0.35,
+  /** the material's crease sharpening in each fold's valley (m) and the fine creases in the pleat stack (per pleat) */
+  crease: 0.0016, fine: 2,
+  segs: [72, 24, 10], rings: [14, 8, 4],
+};
+/** the robe skirt's baked pleat offset (m, radial) at the skirt parameter t (0 belt … 1 hem) and |θ| from the front
+ *  (0 front … π back), for a LOD (1 keeps the stack and the broad folds, 2 the stack's bulge only) */
+export function robePleat(absTh: number, t: number, lod: number): number {
+  const a = Math.min(Math.PI, Math.abs(absTh)), R = ROBE;
+  const pm = 1 - sstep(R.panel, R.panel + 0.12, a); // the front stack
+  const grooves = lod === 0 ? R.panelDepth * (Math.abs(Math.sin(Math.PI * (a / (2 * R.panel)) * R.panelPleats * 2)) - 0.64) : 0;
+  const stack = pm * (R.panelOut * sstep(0, 0.12, t) + grooves * sstep(0.02, 0.2, t));
+  const sideM = sstep(R.panel, R.panel + 0.15, a) * (1 - sstep(2.3, 2.7, a)), backM = sstep(2.3, 2.7, a);
+  const nS = lod === 0 ? R.sideN : lod === 1 ? 7 : 0, nB = lod === 0 ? R.backN : lod === 1 ? 4 : 0;
+  // rounded crests, sharp valleys (2|cos(φ/2)| − 1)
+  const side = nS ? (2 * Math.abs(Math.cos(((a - R.panel - t * R.sideTwist) * nS) / 2)) - 1) * (R.sideAmp[0] + (R.sideAmp[1] - R.sideAmp[0]) * t) : 0;
+  const back = nB ? (2 * Math.abs(Math.cos((a * nB) / 2)) - 1) * R.backAmp * t * t : 0;
+  return stack + side * sideM + back * backM + R.backKick * backM * sstep(0.45, 1, t);
+}
+/** the robe tube's column angle (see ROBE.warp) */
+export const robeTheta = (j: number, S: number) => { const u = j / S; return 2 * Math.PI * u - ROBE.warp * Math.sin(2 * Math.PI * u); };
+/** the robe's sleeves per LOD (outfits.ts robeSleeves; C): columns, rings (even: the lining takes every second), how far
+ *  up the front of the forearm the slanted opening is cut (share of the sleeve's length), the folds (count round, turn
+ *  over the length in rad, amplitude on the front and extra on the hanging back, m) */
+export const SLEEVE = { segs: [32, 10, 8], rings: [12, 4, 4], cut: 0.28, folds: 6, twist: 3.0, foldAmp: [0.004, 0.012] as [number, number] };
+/** the long beard of the court as the reliefs carve it (outfits.ts beardGeo, humanMaterial hair): stacked rows of spiral
+ *  curls down the hanging mass (B for the carved convention, MATERIAL_CULTURE "Court dressing of hair and beard"; real hair
+ *  C, Q-241), each row a roll (rowAmp m, geometry at full detail) with `around` curls round the mass (the material's
+ *  cells, about 2.2 cm); the curls of the beard over the cheeks and chin in rows of cheekRow m; spiral turns per curl */
+export const BEARD = { rows: 6, rowAmp: 0.0045, around: 14, cheekRow: 0.012, turns: 2 };
+/** a court beard's row profile at the mass tube's parameter t and θ from the front (−0.6 … 0.4; × BEARD.rowAmp m along the
+ *  normal, laid out by the material's vertex stage: outfits.ts stores 0.6 + this in the spare byte) */
+export const beardRow = (t: number, thFront: number) => (Math.pow(Math.sin(Math.PI * ((t * BEARD.rows) % 1)), 0.6) - 0.6) * sstep(0.04, 0.12, t) * sstep(-0.6, 0.2, Math.cos(thFront));

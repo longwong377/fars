@@ -68,7 +68,7 @@ export function clothWeights(x: number, y: number, z: number, nY: number, ao: nu
   const low = 1 - sst(0.1, 0.9, y), arms = sst(0.15, 0.2, Math.abs(x)) * (1 - sst(1.02, 1.12, y));
   const front = sst(0.02, 0.08, z) * sst(0.72, 0.8, y) * (1 - sst(1.2, 1.3, y)) * (1 - sst(0.14, 0.18, Math.abs(x)));
   const load = sst(1.28, 1.36, y) * Math.max(sst(0.06, 0.1, Math.abs(x)), 1 - sst(-0.05, 0, z));
-  return { up: sst(-0.25, 0.75, nY) * sst(0.66, 0.8, ao), hem: Math.max(1 - sst(0.03, 0.3, y), skirt * sst(0.72, 1, t) * 0.7),
+  return { up: sst(-0.25, 0.75, nY) * sst(0.66, 0.8, ao), hem: Math.max(1 - sst(0.03, 0.3, y), skirt * (sst(0.72, 1, t) * 0.7 + sst(DRAPE.hemEdge[0], 1, t) * DRAPE.hemEdge[1])), // (D-225: the hem's edge)
     where: [low, Math.max(low, arms), Math.max(low, arms, front), Math.max(low, load * 0.8)] };
 }
 /** area-weighted means of clothWeights per colour slot over the costume's shown triangles (bind pose of one variant) */

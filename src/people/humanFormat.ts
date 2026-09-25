@@ -41,6 +41,9 @@ export type MatId = typeof MAT[keyof typeof MAT];
 /** cloth class parameter (hmat.w) of the upper garments — tunic, robe, dress bodies: their uv.y is the height above the
  *  belt (m), where the material gathers the cloth (D-206) */
 export const PRM_UPPER = 5;
+/** D-225: cloth class parameter of the Persian court robe's skirt (its baked pleats: drape.ts ROBE; the material sharpens
+ *  their valleys and adds the fine creases the mesh cannot carry) */
+export const PRM_ROBE = 6;
 
 /** Per-vertex extras of BODY render vertices (D-155), in the bytes that garments use for other things (the material
  *  reads them by class): skin: hext.y = scalp-hair mask, hext.w = surface curvature (0..1 → 0..SKIN_CURV_MAX 1/m);

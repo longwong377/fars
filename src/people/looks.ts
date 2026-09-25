@@ -37,7 +37,7 @@ type Lab = [number, number, number];
  *  - Red or purple for the royal robe and the kandys (IR-CLOTH, IR-CAND: B); the Susa guard robes' turquoise and ochre
  *    (SUSA-ARCH: B for the glazed-brick colours, C for cloth). */
 export const DYES: Record<string, { strong: Lab; weak: Lab; fade: number; tier: 'B' | 'C'; note: string }> = {
-  madder: { strong: [40, 38, 28], weak: [52, 28, 26], fade: 0.5, tier: 'B', note: 'red: royal robe red or purple (IR-CLOTH); madder on wool (Pazyryk, B) with alum, colour C' },
+  madder: { strong: [40, 31, 29], weak: [52, 26, 24], fade: 0.5, tier: 'B', note: 'red: royal robe red or purple (IR-CLOTH); madder on wool (Pazyryk, B) with alum, colour C' },
   kermes: { strong: [34, 42, 16], weak: [48, 32, 14], fade: 0.45, tier: 'C', note: 'insect red, costlier than madder (MATERIAL_CULTURE NS, C)' },
   purple: { strong: [31, 20, -12], weak: [46, 15, -8], fade: 0.4, tier: 'B', note: 'purple robe/kandys (IR-CLOTH, IR-CAND); murex or red over indigo C' },
   woad: { strong: [34, -3, -21], weak: [50, -6, -16], fade: 0.3, tier: 'C', note: 'woad/indigo blue (indigotin at Pazyryk, B; colour C)' },
