@@ -125,7 +125,8 @@ const GIFT_PROP = new Map<string, ViewPerson['prop']>(((delegationsData as any).
 export function dressOf(job: string, sex: 'm' | 'f', age: number, persian: boolean): Dress {
   if (age < 12) return 'child'; if (sex === 'f') return 'woman';
   if (job === 'guard') return persian ? 'guard' : 'median';
-  if (job === 'official' || job === 'steward' || job === 'priest') return 'persian';
+  if (job === 'official' || job === 'steward') return 'persian';
+  if (job === 'priest') return 'median'; // D-209: the magi in Median dress with the soft cap (the Oxus plaques: B; the Median origin of the magi, Herodotus 1.101, a claim)
   if (job === 'scribe' || job === 'messenger' || job === 'traveller' || (job === 'treasury' && age >= 20)) return 'median';
   return 'worker';
 }

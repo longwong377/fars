@@ -18,7 +18,9 @@ export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field
   // D-210: the vehicles (gap audit items 16, 17) and the state poultry yard (item 11)
   | 'cart' | 'chariot' | 'wagon' | 'hurdles'
   // D-215: children's play (gap audit item 26)
-  | 'knucklebones' | 'toy_wheeled';
+  | 'knucklebones' | 'toy_wheeled'
+  // D-209: the lan set out before the fire, and the boiled meat of a sacrifice laid on soft grass
+  | 'offering_set' | 'grass_bed';
 type RGB = [number, number, number];
 const MUD: RGB = [0.5, 0.41, 0.31], MUD_WET: RGB = [0.36, 0.29, 0.22], BRICK: RGB = [0.62, 0.53, 0.4], STRAW: RGB = [0.72, 0.62, 0.38], STRAW_D: RGB = [0.62, 0.52, 0.3],
   WOOD: RGB = [0.45, 0.33, 0.21], WOOD_D: RGB = [0.34, 0.25, 0.16], STONE: RGB = [0.55, 0.54, 0.52], LIME: RGB = [0.66, 0.64, 0.6], POT: RGB = [0.62, 0.44, 0.3], WOOL: RGB = [0.8, 0.76, 0.66],
@@ -76,6 +78,8 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   hurdles: { tier: 'C', note: 'the state poultry yard: a ring of wattle hurdles and a low mud-brick coop (poultry and their fodder: PF 2034, IR-PET, B; where and how kept C)' },
   knucklebones: { tier: 'B', note: 'five knucklebones (astragali of sheep or goats) in the dust, thrown and gathered by children: astragali are common finds of the period (B object; the children’s game C)' },
   toy_wheeled: { tier: 'C', note: 'a fired-clay animal on four clay wheels on axles, pulled by a cord (wheeled clay animals from Susa and Mesopotamia, RECOLLECTION, NOT SEEN: C; the form, a humped bull, C). The wheels do not turn' },
+  offering_set: { tier: 'C', note: 'the lan set out before the fire: barley heaped on a cloth and wine in a clay bowl beside it (barley and wine issued for the lan: PF 1955, HENK2008, B; set out, not poured: Herodotus 1.132 "no libations", read, a Greek claim; the setting-out C: D-209)' },
+  grass_bed: { tier: 'B', note: 'the boiled meat of a sacrifice laid on soft grass, trefoil (Herodotus 1.132, read, a Greek claim: B; the grass and the pieces C: D-209)' },
   throne: { tier: 'B', note: 'the king’s throne and footstool at an audience (court setting, D-199): a high-backed chair on turned legs with lion’s-paw feet, and a footstool, as the Treasury audience relief carves them (TREAS-AUD, B); gilded wood and the sizes C: the seat 0.525 m and the footstool 0.105 m high, fitted to the enthroned pose measured on the rig (anim ENTHRONED); where it stood in the Apadana is not known (C)' },
 };
 
@@ -203,6 +207,10 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       for (let i = 0; i < 3; i++) g.push(P(lathe([[0, 0], [0.22, 0.02], [0.2, 0.1], [0, 0.1]], 7).translate(-2 + i * 2, 0, 2.5 - i), POT)); // water and grain dishes
       return merge(g); }
     // D-215: five astragali scattered in front of the player (C)
+    case 'offering_set': return merge([P(box(0.56, 0.008, 0.42), LINEN, 1), P(mound(0.15, 0.08, 8, -0.1, 0), [0.76, 0.66, 0.44], 1),
+      P(lathe([[0.001, 0], [0.06, 0.004], [0.085, 0.035], [0.09, 0.05], [0.082, 0.05], [0.07, 0.02], [0.001, 0.012]], 10).translate(0.15, 0.008, 0.03), POT, 0.8),
+      P(new THREE.CylinderGeometry(0.075, 0.075, 0.004, 10).translate(0.15, 0.045, 0.03), [0.28, 0.07, 0.09], 0.3)]);
+    case 'grass_bed': { const g = [P(box(0.95, 0.025, 0.62), [0.3, 0.44, 0.2], 1)]; for (let i = 0; i < 7; i++) g.push(P(mound(0.07 + 0.03 * Math.abs(jit(i)), 0.05, 6, 0.3 * jit(i, 2), 0.2 * jit(i, 3)).translate(0, 0.025, 0), [0.74, 0.62, 0.52], 0.7)); return merge(g); }
     case 'knucklebones': { const g: THREE.BufferGeometry[] = []; const BONE: RGB = [0.82, 0.76, 0.64];
       for (let i = 0; i < 5; i++) { const a = i * 2.4, r = 0.05 + 0.03 * (i % 3); g.push(P(box(0.024, 0.014, 0.017, 0, 0, 0).rotateY(a * 1.7).translate(Math.cos(a) * r, 0, Math.sin(a) * r), BONE, 0.7)); }
       return merge(g); }

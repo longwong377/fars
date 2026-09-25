@@ -112,7 +112,7 @@ export const GUARD_POSTS = ['post_stair_n', 'post_stair_s', 'post_gate_w1', 'pos
 export const HEARTHS = ['garrison_hearth_s', 'garrison_hearth_m', 'garrison_hearth_n'];
 const TERRACE_XY: [number, number] = [-52, 118.5];
 const S = { plan: salt('plan'), sick: salt('sick'), sickd: salt('sickd'), death: salt('death'), birth: salt('birth'), marry: salt('marry'), bday: salt('bday'), disp: salt('disp'),
-  dispo: salt('dispo'), assign: salt('assign'), shear: salt('shear'), carer: salt('carer'), gen: salt('gen'), mourn: salt('mourn'), dbl: salt('dbl'), fam: salt('fam'), draft: salt('draft'), name: salt('name'), nurse: salt('nurse'), kid: salt('kid'), band: salt('band') };
+  dispo: salt('dispo'), assign: salt('assign'), shear: salt('shear'), carer: salt('carer'), gen: salt('gen'), mourn: salt('mourn'), dbl: salt('dbl'), fam: salt('fam'), draft: salt('draft'), name: salt('name'), nurse: salt('nurse'), kid: salt('kid'), band: salt('band'), sac: salt('sacrifice'), fun: salt('funeral') };
 const AGE: [number, number, number][] = L.age_structure.v;
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 /** a feed or a spell while the household sleeps (Planner.nightWords): in the night, or at first light before getting up, or
@@ -126,6 +126,14 @@ const RATION_Q_H: [number, number] = [0.2, 0.55];
 /** a porter's round trip with a sack from the stair foot to the Treasury store and back (the detailed tier's walk: about 11
  *  min, shadow review r8 A S4; C) */
 const CARRY_H_PER_SACK = 0.2;
+/** D-209 (E-34): a household's animal sacrifice at the precinct (Herodotus 1.132, read, a Greek claim: B): the offerer leads the
+ *  beast there at `t` and calls on the god (0.25 h), the beast is killed and cut up (0.5 h), the meat boiled (1 h) and laid on
+ *  soft grass while the magus chants over it (0.25 h); then the offerer carries the meat home. The rate (a year's share of the
+ *  town's Persian households: nine in ten of standing, two in five of the others), the goats' share and the hours are C */
+export const SACRIFICE = { standing: 0.9, other: 0.4, goat: 0.25, pray: 0.25, cut: 0.5, boil: 1.0, chant: 0.25, h: 2.0 } as const;
+/** the trades whose man can leave his work for a morning to sacrifice (C): not a gang's, a group's or a watch's */
+export const OFFERER_JOBS = new Set(['gardener', 'craftsman', 'official', 'steward', 'scribe', 'servant', 'elder']);
+export interface Sacrifice { hh: number; offerer: number; magus: number; t: number; goat: boolean }
 /** the longest sleep in the heat of a day from fourteen (C; B S6 of shadow review r8), and the sleeps that are the heat's */
 export const HEAT_SLEEP_CAP_H = 2.5;
 export const HEAT_SLEEP = /^(sleeping (in the shade [a-z ]+ )?through the heat|sleeping through the heat of the day|a short sleep in the heat|sleeping in the heat)/;
@@ -1127,6 +1135,54 @@ export class Population {
   home(pid: number, d: number) { const p = this.persons[pid]; return d >= p.marry && p.hh2 >= 0 ? p.hh2 : p.hh; }
   /** days since a death in the household (mourning 1–3 days, C) */
   mourning(pid: number, d: number) { const H = this.households[this.home(pid, d)]; for (const x of H.deaths) if (x < d && d - x <= 1 + Math.floor(u01(this.seed, S.mourn, H.id, x) * 3)) return d - x; return 0; }
+  /** D-209 (E-71): the funeral of a household's dead, the day after the death (the day `mourning` is 1): when the dead are
+   *  carried out (hours; C: in the morning, after the rain when it rains), who died, and whether the dead is a magus (whose
+   *  body the magi lay out first, Herodotus 1.140, read, a Greek claim: carried out to the hillside and NOT shown) */
+  funeralOf(h: number, d: number, wx: DayCtx['wx'], sun: { rise: number; set: number }): { t: number; dead: number[]; magus: boolean } | null {
+    const H = this.households[h], x = d - 1; if (!H.deaths.includes(x)) return null;
+    const dead = (this.lifeByDay[x]?.deaths ?? []).filter(i => this.persons[i].hh === h || this.persons[i].hh2 === h);
+    let t = sun.rise + 1.8 + 1.4 * u01(this.seed, S.fun, h, x);
+    for (const [ra, rb] of wetSpells(wx)) if (ra < t + 2.2 && rb > t - 0.8) t = rb + 0.25; // (not through the rain: C)
+    return { t, dead, magus: dead.some(i => this.persons[i].job === 'priest') };
+  }
+  /** D-209 (E-34): the year's animal sacrifices of the town's Persian households, one day each (the rate C: SACRIFICE) */
+  private sacYear: { hh: number; day: number; u: number; goat: boolean }[] | null = null;
+  private sacCache = new Map<number, Sacrifice[]>();
+  /** D-209 (E-34; the form Herodotus 1.132, read, a Greek claim: B; who, how often, where and when C): the sacrifices made at
+   *  the precinct today. A household of the town that is Persian leads a sheep or a goat to the precinct about once a year
+   *  (SACRIFICE: nine in ten households of standing, two in five of the others; C): its eldest man who is here, well and
+   *  free that day, of a trade that can leave its work for a morning; "no sacrifice can be offered without a Magus" (1.132),
+   *  so a magus attends each, one who is free of the lan at dawn (the duty magus: day % 3), of the day's offerings (E-31,
+   *  E-32: the calendar's hour % 3) and of another sacrifice; when none is free the next one waits for him, and a sacrifice
+   *  that would run into the afternoon or the rain is put off (C). `wx`, `sun` and `offerings` are the day's (the calendar's
+   *  own, so its chronicle and the plans agree) */
+  sacrificesOn(d: number, wx: DayCtx['wx'], sun: { rise: number; set: number }, offerings: DayCtx['offerings']): Sacrifice[] {
+    const c = this.sacCache.get(d); if (c) return c; if (this.sacCache.size > 400) this.sacCache.clear();
+    if (!this.sacYear) { this.sacYear = [];
+      for (const H of this.households) { if (H.zone !== 'town' || !H.persian || H.members.some(x => this.persons[x].job === 'priest')) continue;
+        if (u01(this.seed, S.sac, H.id, 0) >= (this.standing(H.id, 0) ? SACRIFICE.standing : SACRIFICE.other)) continue;
+        this.sacYear.push({ hh: H.id, day: Math.floor(u01(this.seed, S.sac, H.id, 1) * REGNAL_DAYS), u: u01(this.seed, S.sac, H.id, 2), goat: u01(this.seed, S.sac, H.id, 3) < SACRIFICE.goat }); } }
+    const magi = this.priests.filter(m => this.present(m, d) && !this.sick(m, d) && !this.mourning(m, d)), out: Sacrifice[] = [];
+    // each magus's hours already taken: the duty magus's dawn at the fire, the offerings of the day that fall to him (C)
+    const busy = new Map<number, [number, number][]>(magi.map(m => [m, [] as [number, number][]]));
+    for (const m of magi) { const idx = this.persons[m].idx; if (idx === d % 3) busy.get(m)!.push([sun.rise - 1.5, sun.rise + 1.2], [sun.set - 1.6, 24]);
+      for (const o of offerings) if (o.id !== 'E-30' && Math.floor(o.t) % 3 === idx) busy.get(m)!.push(o.place === 'offering_place' ? [o.t - 0.8, o.t + 2.4] : [o.t - 1.8, o.t + 2.8]); }
+    const cand = this.sacYear.filter(s => s.day === d).map(s => ({ s, off: this.membersOn(s.hh, d).filter(x => { const q = this.persons[x];
+      return q.sex === 'm' && q.agent < 0 && (q.origin === 'Persian' || q.origin === 'Median') && OFFERER_JOBS.has(q.job) && this.ageOn(x, d) >= 18 && this.present(x, d) && !this.sick(x, d) && !this.mourning(x, d) && q.marry !== d && this.home(x, d) === s.hh && !this.keepsSick(x, d) && this.keeperOn(s.hh, d) !== x; })
+      .sort((a, b) => this.ageOn(b, d) - this.ageOn(a, d) || a - b)[0] })).filter(x => x.off !== undefined).sort((a, b) => a.s.u - b.s.u || a.s.hh - b.s.hh);
+    const wet = wetSpells(wx), clash = (a: number, b: number, L: [number, number][]) => L.some(([x, y]) => x < b && y > a);
+    for (const { s, off } of cand) {
+      let placed = false;
+      for (let t = sun.rise + 2.2 + 1.3 * s.u; !placed && t + SACRIFICE.h < Math.min(15, sun.set - 2.5); t += 0.5) {
+        if (clash(t - 0.7, t + SACRIFICE.h + 0.5, wet)) continue;
+        const m = magi.find(k => !clash(t - 0.6, t + SACRIFICE.h + 0.6, busy.get(k)!)); if (m === undefined) continue;
+        busy.get(m)!.push([t - 0.6, t + SACRIFICE.h + 0.6]); out.push({ hh: s.hh, offerer: off!, magus: m, t, goat: s.goat }); placed = true;
+      }
+    }
+    out.sort((a, b) => a.t - b.t || a.hh - b.hh); this.sacCache.set(d, out); return out;
+  }
+  /** the sacrifice this person makes today, as the offerer (D-209), or null */
+  offeringOf(pid: number, d: number): Sacrifice | null { return this.cal.ctx(d).sacrifices.find(s => s.offerer === pid) ?? null; }
   gaveBirth(pid: number, d: number) { const p = this.persons[pid]; if (p.sex !== 'f') return -1; const H = this.households[this.home(pid, d)]; for (const x of H.births) if (x <= d && d - x < 45) { for (const c of this.lifeByDay[x].births) if (this.persons[c].mother === pid) return d - x; } return -1; }
   postpartumDays(pid: number) { const [a, b] = L.postpartum_off_days.v; return a + Math.floor(u01(this.seed, S.birth, pid, 11) * (b - a + 1)); }
   /** the ones who keep the house's sick little ones (0-4) at home today, each little one's keeper (E-72 "the sick stay home";
@@ -1295,6 +1351,7 @@ export class Population {
     // the trees of a garden or an estate stand beside its beds (C). Was: `estate:<h>:trees` read "trees" as a plot number
     // (NaN: every walk to them and the rest of the day had NaN times) and `garden:<q>:trees` fell through to the Terrace
     if (place.endsWith(':trees')) { const b = this.pos(place.slice(0, -6), d); return [b[0] + 90, b[1] + 120]; }
+    if (place === 'offering_place:altar') return this.facilities.offering_place; // (D-209: the altar stands in the precinct)
     const k = place.indexOf(':'); if (k > 0) { const tail = place.slice(k + 1); if (place.startsWith('field:') || place.startsWith('estate:')) { const H = this.households[parseInt(tail, 10)]; const plot = +(tail.split(':')[1] ?? 0); return [H.xy[0] + 300 - plot * 150, H.xy[1] + 200 + plot * 120]; }
       if (this.quarters[tail]) return this.quarters[tail].xy; if (place.startsWith('ws:')) return [T.treasury_workshops.around[0] + (+tail - 1.5) * 150, T.treasury_workshops.around[1]]; }
     if (this.facilities[place]) return this.facilities[place]; if (place === 'ws_textile') return [-700, -1000];
@@ -1913,6 +1970,7 @@ class Planner {
     if (d === p.marry && !p.moved) return this.marriageDay();
     if (P.keeperOn(this.hh.id, d) === this.pid && p.job !== 'child' && p.job !== 'homemaker') return this.homemaker(); // she keeps the house of a dead mother (bereaved)
     if (this.drafted()) return this.draftDay();
+    { const sac = P.offeringOf(this.pid, d); if (sac) return this.offeringDay(sac); } // D-209: a household's sacrifice (E-34)
     switch (p.job) {
       case 'builder': return P.builderAvailable(this.pid, d, this.C) ? this.builder() : this.homeDay(this.C.winter && (p.squad + d) % 2 === 1 ? 'the gang works in halves in winter' : this.weatherOff('no work on the building site today', P.workWindow(this.C)));
       case 'camp': return this.campWoman();
@@ -2245,11 +2303,34 @@ class Planner {
     if (r.chance(0.5)) { const g = r.chance(0.5); this.atHome(this.t + 1, g ? 'grind' : 'spin', g ? 'a little grinding (off work after the birth)' : 'spinning (off work after the birth)'); }
     this.evening(Math.max(this.t, this.sun.set - 1)); return this.finish();
   }
+  /** a day of mourning (E-71, 1-3 days). D-209: on the first, the funeral (Population.funeralOf): the men of the house (seven
+   *  in ten of them) carry the dead out of the settlement on a bier to the burial ground, the women follow (four in five), all
+   *  at the funeral's hour; the dead, coated in wax at home (Herodotus 1.140, read, a Greek claim: B; not shown), is buried
+   *  in the earth: the men dig the grave and lay the dead in it while the women mourn at its side, then all stand at the
+   *  grave and go home (the burial ground, the grave and the gestures C: head bowed, hands joined; no wailing is staged).
+   *  A dead magus is carried out to the hillside and left, as the magi's dead are (1.140: "not buried before they have
+   *  been mangled by birds or dogs ... the way of the Magi"): the carrying out only, the rest is never shown */
   private mourningDay(): Seg[] {
     const x = this.P.mourning(this.pid, this.d); this.morning(this.rise() + 0.3, true);
-    if (x === 1 && this.p.sex === 'm' && this.adult() && this.r.chance(0.7)) { const out = this.hh.zone === 'plain' ? `outside:${this.hh.q}` : 'outside'; // out of their own settlement
-      for (const [ra, rb] of wetSpells(this.C.wx)) if (ra < this.t + 2 && rb > this.t) this.atHome(rb, 'talk', 'mourning with the household and visitors, waiting for the rain to pass'); // (not through the rain: C)
-      this.go(out, this.homeW, 'carrying the dead out of the settlement'); this.add(this.t + 1.5, out, 'carry_bier', 'the dead are carried out of the settlement (E-71)', this.homeW); this.go(this.home, this.homeW, 'returning home'); }
+    const f = x === 1 ? this.P.funeralOf(this.hh.id, this.d, this.C.wx, this.C.sun) : null, out = this.hh.zone === 'plain' ? `outside:${this.hh.q}` : 'outside'; // out of their own settlement
+    const mem = this.P.membersOn(this.hh.id, this.d), mother = mem.some(k => this.P.persons[k].mother === this.pid && this.ageOf(k) <= 4); // (she stays with her little ones)
+    // (and the one a sick little one stays beside when no woman keeps it, Planner.small: the first of the house of twelve or more)
+    const minder = mem.some(k => this.P.sick(k, this.d) && this.ageOf(k) <= 4) && mem.find(k => this.ageOf(k) >= 12 && this.P.persons[k].job !== 'guard' && !this.P.sick(k, this.d)) === this.pid;
+    const bearer = x === 1 && this.p.sex === 'm' && this.adult() && (this.r.chance(0.7) || !!f) && !this.P.keepsSick(this.pid, this.d) && !minder; // (every man of the house bears the dead to a funeral, but one keeping a sick little one: C)
+    const mourner = !!f && !bearer && !f.magus && this.p.sex === 'f' && this.ageOf(this.pid) >= 14 && !this.nursing && !mother && !minder && !this.P.keepsSick(this.pid, this.d) && u01(this.P.seed, S.fun, this.pid, this.d) < 0.8;
+    if (f && (bearer || mourner)) {
+      const to = f.magus ? 'mountain' : out, lv = f.t - this.P.walkH(this.home, to, this.d, this.homeW, this.homeW);
+      if (lv > this.t) this.atHome(lv, 'talk', 'mourning with the household and visitors');
+      if (f.magus) { this.go(to, this.homeW, 'carrying the dead magus out to the hillside, as the magi do (Herodotus 1.140)'); this.add(this.t + 0.2, to, 'carry_bier', 'the dead magus laid out on the hillside (Herodotus 1.140; what follows is not shown)', this.homeW); }
+      else if (bearer) { this.go(out, this.homeW, 'carrying the dead out of the settlement');
+        this.add(Math.max(this.t + 0.1, f.t + 0.25), out, 'carry_bier', 'the dead, coated in wax, carried on the bier to the grave (E-71; Herodotus 1.140)', this.homeW);
+        this.add(this.t + 0.9, out, 'bury', 'digging the grave and laying the dead in the earth (Herodotus 1.140)', this.homeW);
+        this.add(this.t + 0.2, out, 'mourn', 'standing at the grave with the household', this.homeW); }
+      else { this.go(out, this.homeW, 'following the dead out of the settlement'); this.add(Math.max(this.t + 0.3, f.t + 1.35), out, 'mourn', 'mourning at the grave while the dead is buried (E-71)', this.homeW); }
+      this.go(this.home, this.homeW, 'returning home'); }
+    else if (bearer) { // (a death with no funeral found: the household of a lodger; as before, C)
+      for (const [ra, rb] of wetSpells(this.C.wx)) if (ra < this.t + 2 && rb > this.t) this.atHome(rb, 'talk', 'mourning with the household and visitors'); // (not through the rain: C)
+      this.go(out, this.homeW, 'carrying the dead out of the settlement'); this.add(this.t + 1.2, out, 'carry_bier', 'the dead are carried out of the settlement (E-71)', this.homeW); this.go(this.home, this.homeW, 'returning home'); }
     this.atHome(Math.max(this.t, this.hd.noon), 'talk', 'mourning with the household and visitors'); this.noonAtHome('a meal with the household, in mourning'); this.atHome(Math.max(this.t, this.hd.supper), 'rest', 'mourning at home');
     this.atHome(this.t + this.hd.sLen, 'eat', 'the evening meal with the household, in mourning'); this.atHome(Math.max(this.t, this.bed()), 'rest', 'mourning at home'); return this.finish();
   }
@@ -3311,14 +3392,97 @@ class Planner {
       { refuge: 'stockyard', refugeW: 'town', toRefuge: 'bringing the flock in to the stockyard out of the rain', stay: ['tend_animals', 'with the flock in the fold at the stockyard, out of the rain'] });
     this.go('stockyard', 'town', 'bringing the flock in'); if (lamb) this.add(this.t + 1, 'stockyard', 'tend_animals', wetHours(this.C.wx, this.t, this.t + 1) > 0 ? 'with the ewes at lambing in the fold’s shelter, out of the rain (E-48)' : 'with the ewes at lambing (E-48)', 'town'); this.go(this.home, this.homeW); this.evening(this.t); return this.finish();
   }
+  /** D-209 (E-34): a man of a Persian household of the town sacrifices at the precinct, as Herodotus 1.132 describes a
+   *  Persian sacrifice (read; a Greek claim: B): he leads the beast to an open place and calls on the god (a myrtle wreath on
+   *  his cap: not modelled), praying for the king and all the Persians; the beast is killed and cut limb from limb (the
+   *  killing itself is not shown: the performance is the butchery of the joints, D-142's rule), the meat boiled and laid on
+   *  soft grass, a magus chants over it, and he carries the meat home "and uses it as he pleases". No altar and no fire for
+   *  the rite itself (1.132): the pot's fire is for the boiling (C). His household eats the meat at supper (not named here:
+   *  the household's meals are the household's plan). The morning at home before, the rest of the day as a day off */
+  private offeringDay(s: Sacrifice): Seg[] {
+    const beast = s.goat ? 'goat' : 'sheep', walk = this.P.walkH(this.home, 'offering_place', this.d, this.homeW, 'town');
+    this.morning(s.t - walk - 0.05);
+    this.go('offering_place', 'town', `leading a ${beast} to the precinct for a sacrifice`);
+    if (this.t < s.t) this.add(s.t, 'offering_place', 'sacrifice', `standing with the ${beast} at the precinct until the magus comes`, 'town');
+    this.add(s.t + SACRIFICE.pray, 'offering_place', 'sacrifice', `calling on the god over his ${beast}, the magus standing by with the barsom; he prays for the king and all the Persians (Herodotus 1.132)`, 'town');
+    this.add(this.t + SACRIFICE.cut, 'offering_place', 'cut_offering', `the ${beast} killed and cut limb from limb (Herodotus 1.132)`, 'town');
+    this.add(this.t + SACRIFICE.boil, 'offering_place', 'cook', 'boiling the meat of the offering on a small fire', 'town');
+    this.add(this.t + SACRIFICE.chant, 'offering_place', 'sacrifice', 'standing by while the magus chants over the meat laid on soft grass (Herodotus 1.132)', 'town');
+    this.go(this.home, this.homeW, 'carrying the meat of the offering home (Herodotus 1.132)', 'carry_bread');
+    if (this.t < this.hd.noon) this.homeHours(this.hd.noon, 'at home'); this.noonAtHome();
+    this.homeHours(Math.max(this.t, 15.5), 'at home'); this.evening(Math.max(this.t, this.sun.set - 1)); return this.finish();
+  }
+  /** a magus (makuš) of the PF texts (D-209; the lan and the offerings E-30 to E-32: HENK2008, B; everything they are shown
+   *  doing is C and said so). The three keep the fire on the precinct's altar by turns (the duty magus: day % 3): before
+   *  first light he feeds it, makes the lan (the day's barley set out before the fire, wine in a bowl beside it: set out,
+   *  not poured, Herodotus 1.132 "no libations", read, B claim) and chants at the fire without words (1.132: "a Magus comes
+   *  near and chants"; the words are not attested: D-207 keeps them out); at dusk he banks the fire for the night. The
+   *  others stand at the fire with him at dawn. Each makes the offerings the calendar gives him (E-31 to a mountain up the
+   *  slope or to the river on its bank, E-32 for a god at the precinct, a sheep killed with his own hand now and then:
+   *  Herodotus 1.140 "the Magi kill with their own hands every creature, except dogs and men"), and attends the households'
+   *  sacrifices that fall to him (Population.sacrificesOn). Not through the rain: the fire is fed through it (sheltered, C),
+   *  the rest waits for it to pass or is put off */
   private priest(): Seg[] {
-    const C = this.C, p = this.p; this.add(this.sun.rise - 0.6, this.home, 'sleep', 'asleep', this.homeW); this.go('offering_place', 'town', 'to the offering place');
-    if (p.idx === this.d % 3) this.add(this.sun.rise + 0.8, 'offering_place', 'offer', 'the lan (the regular offering; performance not attested)', 'town'); else this.add(this.sun.rise + 0.5, 'offering_place', 'talk', 'at the offering place', 'town');
+    const C = this.C, p = this.p, P = this.P, d = this.d, duty = p.idx === d % 3, wet = wetSpells(C.wx), ALT = 'offering_place:altar';
+    const rainy = (a: number, b: number) => wet.some(([x, y]) => x < b && y > a), after = (t: number) => { for (const [x, y] of wet) if (x < t + 0.8 && y > t) t = y + 0.1; return t; };
+    const walk = P.walkH(this.home, 'offering_place', d, this.homeW, 'town');
+    if (duty) {
+      this.atHome(this.sun.rise - 0.55 - walk, 'sleep', 'asleep'); this.go(ALT, 'town', 'to the fire before first light');
+      this.add(this.sun.rise - 0.3, ALT, 'tend_fire', 'feeding the kept fire before first light: wood laid on the embers, the mouth covered', 'town');
+      const lan = after(this.t);
+      if (lan < this.sun.rise + 3) {
+        if (lan > this.t + 0.02) this.add(lan, ALT, 'tend_fire', 'keeping the fire alight through the rain, sheltering it', 'town');
+        this.add(this.t + 0.5, 'offering_place', 'offer', 'the lan: the day’s barley set out on the ground before the fire and wine in a bowl beside it, the barsom in hand (PF lan, B; the rite C)', 'town');
+        this.add(this.t + 0.25, ALT, 'chant', 'chanting at the fire, the mouth covered, without words (Herodotus 1.132: a magus chants; the words are not attested)', 'town');
+      } else this.add(this.t + 0.3, ALT, 'tend_fire', 'keeping the fire alight through the rain, sheltering it; the lan put off', 'town');
+    } else {
+      this.atHome(this.sun.rise - 0.35 - walk, 'sleep', 'asleep'); this.go('offering_place', 'town', 'to the fire at first light');
+      this.add(this.sun.rise + 0.5, 'offering_place', rainy(this.t, this.sun.rise + 0.5) ? 'shelter' : 'talk', rainy(this.t, this.sun.rise + 0.5) ? 'with the magi at the fire, waiting out the shower under the cloak drawn over the head' : 'with the magi at the fire', 'town');
+    }
     this.go(this.home, this.homeW); this.atHome(this.t + 0.4, 'eat', 'breakfast');
     if (C.dom === 3 && p.idx === 0) { this.go('store_town', 'town'); this.add(this.t + 0.6, 'store_town', 'queue', 'drawing the monthly lan allocation', 'town'); this.go(this.home, this.homeW, 'carrying the allocation', 'carry_sack'); }
-    const off = C.offerings.filter(x => x.id !== 'E-30' && Math.floor(x.t) % 3 === p.idx);
-    for (const o of off) { this.go(o.place, 'town', 'going to make an offering'); this.add(this.t + 0.8, o.place, 'offer', o.id === 'E-31' ? `an offering to a named ${o.place}` : `an offering for ${o.god}`, 'town'); this.go(this.home, this.homeW); }
-    return this.homeRest();
+    // the day's engagements, in their hours: the calendar's offerings that fall to him and the households' sacrifices
+    const jobs: { t: number; f: () => void; place: string }[] = [];
+    for (const o of C.offerings.filter(x => x.id !== 'E-30' && Math.floor(x.t) % 3 === p.idx)) {
+      const far = o.place !== 'offering_place', span = o.sheep ? SACRIFICE.pray + SACRIFICE.cut + SACRIFICE.boil + SACRIFICE.chant : 0.8;
+      if (rainy(o.t - (far ? 1.2 : 0.4), o.t + span + (far ? 1.2 : 0.4))) continue; // (put off by the rain: C)
+      jobs.push({ t: o.t, place: o.place, f: () => {
+        if (o.id === 'E-31') { const mtn = o.place === 'mountain';
+          this.add(this.t + 0.6, o.place, 'offer', `an offering to a named ${o.place}: barley set out ${mtn ? 'on the slope' : 'on the bank, not in the water'}, the barsom in hand (PF 1955, B; the rite C)`, 'town');
+          this.add(this.t + 0.2, o.place, 'chant', `chanting over the offering to the ${o.place}, without words (C)`, 'town'); }
+        else if (o.sheep) {
+          this.add(this.t + SACRIFICE.pray, o.place, 'offer', `a sheep issued for an offering for ${o.god}, held on its lead before the fire (HENK2008: B)`, 'town');
+          this.add(this.t + SACRIFICE.cut, o.place, 'cut_offering', 'the sheep killed with his own hand and cut limb from limb (Herodotus 1.132, 1.140)', 'town');
+          this.add(this.t + SACRIFICE.boil, o.place, 'cook', 'boiling the meat of the offering on a small fire', 'town');
+          this.add(this.t + SACRIFICE.chant, o.place, 'chant', 'chanting over the meat laid on soft grass, without words (Herodotus 1.132)', 'town'); }
+        else { this.add(this.t + 0.6, o.place, 'offer', `an offering for ${o.god}: barley and wine set out before the fire, the barsom in hand (C)`, 'town');
+          this.add(this.t + 0.2, ALT, 'chant', `chanting at the fire for ${o.god}, without words (C)`, 'town'); }
+        this.go(this.home, this.homeW, o.sheep ? 'carrying the meat of the offering home' : 'walking', o.sheep ? 'carry_bread' : 'walk'); } });
+    }
+    for (const s of P.sacrificesOn(d, C.wx, C.sun, C.offerings).filter(x => x.magus === this.pid)) {
+      const who = nameFor(P.seed, P.persons[s.offerer]) ?? 'a man of the town', beast = s.goat ? 'goat' : 'sheep';
+      jobs.push({ t: s.t, place: 'offering_place', f: () => {
+        this.add(s.t + SACRIFICE.pray, 'offering_place', 'offer', `standing by with the barsom while ${who} calls on the god over his ${beast} (Herodotus 1.132)`, 'town');
+        this.add(this.t + SACRIFICE.cut + SACRIFICE.boil, 'offering_place', 'talk', `with ${who} while the ${beast} is cut up and its meat boiled`, 'town');
+        this.add(this.t + SACRIFICE.chant, 'offering_place', 'chant', 'chanting over the meat laid on soft grass, without words (Herodotus 1.132: no sacrifice without a magus)', 'town');
+        this.go(this.home, this.homeW); } });
+    }
+    jobs.sort((a, b) => a.t - b.t);
+    for (const j of jobs) {
+      const lv = j.t - P.walkH(this.cur ?? this.home, j.place, d, this.curW ?? this.homeW, 'town');
+      if (lv > this.hd.noon && this.t < this.hd.noon + 0.5) { if (this.t < this.hd.noon) this.homeHours(this.hd.noon, 'at home'); this.noonAtHome(); }
+      if (lv > this.t + 0.5) this.homeHours(lv, 'at home'); else if (lv > this.t) this.atHome(lv, 'rest', 'at home');
+      this.go(j.place, 'town', j.place === 'mountain' ? 'climbing the mountain with barley for the offering' : j.place === 'river' ? 'out to the river bank with barley for the offering' : 'to the precinct');
+      if (this.t < j.t) this.add(j.t, j.place, 'talk', 'with the magi at the precinct', 'town');
+      j.f();
+    }
+    if (this.t < this.hd.noon) this.homeHours(this.hd.noon, 'at home'); if (this.t < 15) this.noonAtHome();
+    if (!duty) { this.homeHours(Math.max(this.t, 15.5), 'at home'); this.evening(Math.max(this.t, this.sun.set - 1)); return this.finish(); }
+    // at dusk the duty magus banks the fire for the night and chants at it (the words not attested: without words)
+    const lv = this.sun.set - 0.55 - walk; if (lv > this.t + 0.5) this.homeHours(lv, 'at home'); else if (lv > this.t) this.atHome(lv, 'rest', 'at home');
+    this.go(ALT, 'town', 'to the fire to bank it for the night'); this.add(Math.max(this.t + 0.3, this.sun.set - 0.05), ALT, 'tend_fire', 'banking the kept fire at dusk: wood laid on for the night, the mouth covered', 'town');
+    if (!rainy(this.t, this.t + 0.25)) this.add(this.t + 0.2, ALT, 'chant', 'chanting at the fire at dusk, without words (C)', 'town');
+    this.go(this.home, this.homeW); this.evening(this.t); return this.finish();
   }
   private homeRest(): Seg[] { if (this.t < this.hd.noon) this.homeHours(this.hd.noon, 'at home'); this.noonAtHome(); this.homeHours(Math.max(this.t, 15.5), 'at home'); this.evening(Math.max(this.t, this.sun.set - 1)); return this.finish(); }
   private caretaker(): Seg[] {

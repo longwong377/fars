@@ -7,6 +7,7 @@ import { ANIMS } from './anim';
 import { PROPS, propGeometry } from './props';
 import { WORK_NOTES } from './workObjects';
 import { SPECIES } from './animals';
+import { PIECES } from './outfits';
 import { STRIKE_KINDS, LAYER_SOUNDS } from '../audio/soundscape';
 import type { Performance } from './activities';
 
@@ -22,6 +23,7 @@ export function activityLint(registry: Record<string, Performance>): string[] {
     if (P.sound && !sounds.has(P.sound)) bad.push(`${id}${where}: sound '${P.sound}' is not played by the soundscape`);
     for (const w of P.work ?? []) if (!WORK_NOTES[w.kind]) bad.push(`${id}${where}: work object '${w.kind}' does not exist`);
     for (const s of P.animals?.species ?? []) if (!SPECIES.includes(s)) bad.push(`${id}${where}: animal '${s}' does not exist`);
+    for (const k of P.wear ?? []) if (!PIECES[k]) bad.push(`${id}${where}: worn piece '${k}' does not exist (D-209)`);
     if (P.tier !== undefined && !['A', 'B', 'C'].includes(P.tier)) bad.push(`${id}${where}: bad tier ${P.tier}`);
     if (P.note !== undefined && P.note.trim().length < 4) bad.push(`${id}${where}: no note`);
   };

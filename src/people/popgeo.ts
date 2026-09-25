@@ -10,7 +10,8 @@
 // module's choice, deterministic per (person, place), so a person comes back to the same spot. Rules that are judgements
 // are named where they are made; the dev overlay prints `Spot.what`.
 import type { Population } from './population';
-import { TERRACE_ABSTRACT } from './population';
+import { TERRACE_ABSTRACT, SACRIFICE } from './population';
+import { PRECINCT, ALTAR_SPOT, BURIAL, precinctAt } from '../world/settlement/precinct';
 import { NAV, type NavGrid, type P2 } from './navgrid';
 import { PLACES } from './sim';
 import { COURT_CAMP } from './court';
@@ -257,7 +258,7 @@ export class PopGeo {
       case 'lane': return this.lane(pid, q, day);
       case 'well': return this.well(pid, q, day);
       case 'canal': return this.canal(pid, q, day);
-      case 'outside': return tail ? this.outside(pid, q, day, 90, 220, 'gathering ground outside') : this.openNear(FAC.outside, 40, pid, place, 'open ground where the dead are carried out (town.json outside, C)');
+      case 'outside': return tail ? this.outside(pid, q, day, 90, 220, 'gathering ground outside') : this.burial(pid, act, day);
       case 'garden': return this.garden(pid, q, day);
       case 'estate': { const x = this.housePlot(parseInt(q, 10), pid); if (!x || !this.plan) return this.none(place, 'estate plot not built'); return this.inPlot(this.plan.sites[x[0]], x[1], pid, place, indoor, 'town', undefined, 'estate: ') ?? this.none(place, 'estate plot empty'); }
       case 'ws': { const a = T.treasury_workshops.around, c: P2 = [a[0] + (+tail - 1.5) * 150, a[1]]; return this.workshop(pid, place, c, ['metal', 'wood', 'textile', 'pottery'], 12, indoor, 'treasury workshop: '); }
@@ -271,7 +272,8 @@ export class PopGeo {
       case 'mill': return this.openNear(FAC.mill, 14, pid, place, 'the mill: NOT BUILT, grinding in the open at its town.json place (C)', FAC.mill);
       case 'stockyard': return this.openNear(FAC.stockyard, 18, pid, place, 'the stockyard: NOT BUILT, open ground at its town.json place (C)', FAC.stockyard);
       case 'brickyard': return this.openNear(FAC.brickyard, 20, pid, place, 'the brickyard by the canal: NOT BUILT, open ground (C)');
-      case 'offering_place': case 'mountain': case 'river': case 'crown_fields': case 'clay_pit': return this.openNear(FAC[head], head === 'crown_fields' ? 120 : 20, pid, place, `${head} (town.json, open ground, C)`, FAC[head]);
+      case 'offering_place': return this.precinct(pid, tail, act, day, hour);
+      case 'mountain': case 'river': case 'crown_fields': case 'clay_pit': return this.openNear(FAC[head], head === 'crown_fields' ? 120 : 20, pid, place, `${head} (town.json, open ground, C)`, FAC[head]);
       case 'terrace_edge': return this.openNear(PLACES.town.at, 6, pid, place, 'the Terrace approach, W');
       case 'pasture': return this.pasture(pid, tail, day);
       case 'training': return this.outside(pid, q, day, 120, 200, 'practice ground outside the quarter (C)');
@@ -280,6 +282,30 @@ export class PopGeo {
       case 'court_camp': case 'rcamp': return this.camp(pid, place, indoor); // D-182, D-199: the court's camps, at a tent of the household
       default: return this.none(place, 'no rule');
     }
+  }
+  /** D-209: the sacred precinct (world/settlement/precinct.ts). By the altar (`offering_place:altar`): the magus tending the
+   *  fire or chanting at it, 1.3 m W of it, facing it. A household's sacrifice: its own patch of the open ground W of the
+   *  plinths (by household), the offerer beside the beast or the meat, the magus a step to his side, both facing it. The lan
+   *  and the magi's offerings: 2.2 m W of the altar, facing the fire, the offering set out between; the other magi on a
+   *  ring 3-5 m W of the altar (C) */
+  private precinct(pid: number, tail: string, act: ActivityId, day: number, hour: number): Spot {
+    const face = (a: P2, b: P2) => headingOf(b[0] - a[0], b[1] - a[1]), A = PRECINCT.altar;
+    if (tail === 'altar') { const [e, n] = ALTAR_SPOT.at; return this.sp(e, n, true, face(ALTAR_SPOT.at, ALTAR_SPOT.faceTo), 'open', 'the precinct: at the altar (D-209, C)'); }
+    const s = this.pop.cal?.ctx(day).sacrifices.find(x => (x.offerer === pid || x.magus === pid) && hour >= x.t - 1.5 && hour <= x.t + SACRIFICE.h + 0.2);
+    if (s) { const a = (-90 + (this.hash(s.hh, `sac${day}`, 1) - 0.5) * 110) * Math.PI / 180, r = 12 + 6 * this.hash(s.hh, `sac${day}`, 2); // (bearing from true north: the W side)
+      const X = precinctAt(r * Math.cos(a), r * Math.sin(a)), out = precinctAt((r + 1.1) * Math.cos(a), (r + 1.1) * Math.sin(a)), side = precinctAt(r * Math.cos(a) + 1.2 * Math.sin(a), r * Math.sin(a) - 1.2 * Math.cos(a));
+      const at = s.offerer === pid ? out : side; return this.sp(at[0], at[1], true, face(at, X), 'open', `the precinct: a household's sacrifice (${s.offerer === pid ? 'the offerer' : 'the magus'}; D-209, C)`); }
+    if (act === 'talk' || act === 'shelter') { const a = (-90 + (this.hash(pid, 'precinct', 3) - 0.5) * 120) * Math.PI / 180, r = 3 + 2 * this.hash(pid, 'precinct', 4);
+      const at = precinctAt(A.u + r * Math.cos(a), A.e + r * Math.sin(a)); return this.sp(at[0], at[1], true, face(at, precinctAt(A.u, A.e)), 'open', 'the precinct: with the magi by the fire (D-209, C)'); }
+    const at = precinctAt(A.u + (this.hash(pid, 'precinct', 5) - 0.5) * 0.8, A.e - 2.2); return this.sp(at[0], at[1], true, face(at, precinctAt(A.u, A.e)), 'open', 'the precinct: before the fire (D-209, C)');
+  }
+  /** D-209: the town's burial ground (world/settlement/precinct.ts BURIAL): a household's funeral at a grave of its own
+   *  (by household and day), the men round the grave digging and laying the dead in it, the women and the rest standing a
+   *  little back, all facing the grave (C) */
+  private burial(pid: number, act: ActivityId, day: number): Spot {
+    const h = this.pop.home(pid, day), g: P2 = [BURIAL.c[0] + (this.hash(h, `grave${day}`, 1) * 2 - 1) * (BURIAL.half[0] - 3), BURIAL.c[1] + (this.hash(h, `grave${day}`, 2) * 2 - 1) * (BURIAL.half[1] - 3)];
+    const a = this.hash(pid, `grave${day}`, 3) * Math.PI * 2, r = act === 'mourn' ? 2.4 + 1.8 * this.hash(pid, `grave${day}`, 4) : 1.0 + 0.9 * this.hash(pid, `grave${day}`, 4);
+    const e = g[0] + Math.cos(a) * r, n = g[1] + Math.sin(a) * r; return this.sp(e, n, true, headingOf(g[0] - e, g[1] - n), 'open', 'the burial ground: at a grave of the household (D-209, C)');
   }
   /** a Terrace spot: spread over the place (its span, a ring round a hearth, the abstract places' areas) on walkable cells
    *  that see the place's anchor in a straight line (so the way to it needs no search; up to 8 draws, else the anchor) */

@@ -150,7 +150,9 @@ export interface DayCtx {
   issue: Map<number, number>; special: Map<number, number>; wine: Map<number, number>; maternity: Map<number, number>;
   payments: { t: number; group: number }[]; deliveries: { t: number; id: string; qty: number; place: string }[];
   couriers: { t: number; treasury: boolean }[]; slaughter: number[]; milling: number[]; brewing: number[];
-  offerings: { t: number; id: string; place: string; god?: string }[];
+  offerings: { t: number; id: string; place: string; god?: string; /** D-209: an E-32 offering with a sheep (killed by the magus) */ sheep?: boolean }[];
+  /** D-209 (E-34): the households' animal sacrifices at the precinct today (Population.sacrificesOn) */
+  sacrifices: { hh: number; offerer: number; magus: number; t: number; goat: boolean }[];
   agri: Set<string>; river: string; winter: boolean; brick: boolean; heatRest: boolean; firstRain: boolean;
   doubled: [number, number][]; disputes: Map<number, { t: number; other: number; place: string; why: string }>;
   short: Map<number, number>; build: StoneTasks; counts: Record<string, number>;
@@ -208,7 +210,7 @@ export class EventCalendar {
     const court = this.court && month >= 1 && month <= 4; // resident Nisannu–Duzu under the setting (D-003)
     if (this.firstRainDay < 0 && month >= 7 && wx.wet) this.firstRainDay = d;
     const ctx: DayCtx = { day: d, month, dom, season, wx, sun, court, events: [], issue: new Map(), special: new Map(), wine: new Map(), maternity: new Map(), payments: [], deliveries: [], couriers: [],
-      slaughter: [], milling: [], brewing: [], offerings: [], agri: new Set(), river: ROW['E-51'].rule.by_month[String(month)], winter: [9, 10, 11].includes(month), brick: [2, 3, 4, 5].includes(month) && !wx.wet,
+      slaughter: [], milling: [], brewing: [], offerings: [], sacrifices: [], agri: new Set(), river: ROW['E-51'].rule.by_month[String(month)], winter: [9, 10, 11].includes(month), brick: [2, 3, 4, 5].includes(month) && !wx.wet,
       heatRest: wx.hot, /* the midday rest follows the day's heat (E-64: Tmax > 33 °C), in whatever month it comes (D-086) */ firstRain: this.firstRainDay >= 0 && this.firstRainDay <= d, doubled: [], disputes: new Map(), short: new Map(), build: this.construction.stoneTasks(), counts: {} };
     const ops: { t: number; f: () => void }[] = [];
     const E = (hour: number, id: string, text: string, place: string, n?: number) => { const row = ROW[id]; ctx.events.push({ t: d * 24 + hour, id, kind: row?.kind ?? id, text, place, tier: row?.tier ?? 'C', n }); };
@@ -269,11 +271,14 @@ export class EventCalendar {
     for (const id of ['E-31', 'E-32']) for (const x of this.inst(id, d)) { let god: string | undefined;
       if (id === 'E-32') { const tot = Object.values(GODS).reduce((a, b) => a + b, 0); let u = u01(seed, salt('god'), d, x.k) * tot; for (const [k, w] of Object.entries(GODS)) { u -= w; if (u <= 0) { god = k; break; } } }
       const place = id === 'E-31' ? (u01(seed, salt('mtn'), d, x.k) < 0.5 ? 'mountain' : 'river') : 'offering_place';
-      ctx.offerings.push({ t: x.hour, id, place, god });
-      ops.push({ t: x.hour, f: () => { S.grain -= Math.min(S.grain, 1); if (id === 'E-32' && u01(seed, salt('E-32s'), d, x.k) < 0.2 && S.sheep > 150) S.sheep -= 1;
+      const sheep = id === 'E-32' && u01(seed, salt('E-32s'), d, x.k) < 0.2; ctx.offerings.push({ t: x.hour, id, place, god, sheep });
+      ops.push({ t: x.hour, f: () => { S.grain -= Math.min(S.grain, 1); if (sheep && S.sheep > 150) S.sheep -= 1;
         E(x.hour, id, id === 'E-31' ? `a magus made the offering to a named ${place}` : `an offering for ${god} by a magus`, place); } }); }
     // daily lan (E-30), change of watch (E-80), building work (E-60) and the seasonal round (E-40 … E-51)
-    E(sun.rise + 0.2, 'E-30', 'the lan offering', 'offering_place'); ctx.offerings.push({ t: sun.rise + 0.2, id: 'E-30', place: 'offering_place' });
+    E(sun.rise + 0.2, 'E-30', 'the lan offering: barley and wine set out before the kept fire, a magus chanting without words (D-209)', 'offering_place'); ctx.offerings.push({ t: sun.rise + 0.2, id: 'E-30', place: 'offering_place' });
+    // the households' sacrifices at the precinct (E-34, D-209: HDT 1.132, B claim; who and when C)
+    ctx.sacrifices = pop.sacrificesOn(d, wx, sun, ctx.offerings);
+    for (const s of ctx.sacrifices) E(s.t, 'E-34', `a household of the town led a ${s.goat ? 'goat' : 'sheep'} to the precinct: the beast killed, its meat boiled and laid on grass while a magus chanted, then carried home`, 'offering_place');
     for (const h of [6, 14, 22]) E(h, 'E-80', `change of watch at ${h}:00 on the Terrace`, 'post_gate_w1');
     for (const id of ['E-40', 'E-41', 'E-42', 'E-43', 'E-44', 'E-45', 'E-46', 'E-50']) {
       const row = ROW[id]; if (!monthsOk(row, month)) continue;

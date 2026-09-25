@@ -890,6 +890,30 @@
    "basis": "plain feature (mountain); date natural; see research/PLAIN.md",
    "footprint": null,
    "zone": "plain"
+  },
+  {
+   "id": "sacred_precinct",
+   "name": "open-air sacred precinct at the foot of Kuh-e Rahmat (reconstructed)",
+   "builder": "reconstructed (D-209)",
+   "state": "present",
+   "present": true,
+   "tier": "C",
+   "src": "PAS-PRECINCT;NR-ALTAR;HDT;HENK2008;RECON",
+   "basis": "settlement feature (D-209, D-207 most probable reconstruction); see research/SETTLEMENT.md",
+   "footprint": null,
+   "zone": "settlement"
+  },
+  {
+   "id": "burial_ground_town",
+   "name": "burial ground of the town (reconstructed)",
+   "builder": "reconstructed (D-209)",
+   "state": "present",
+   "present": true,
+   "tier": "C",
+   "src": "HDT;RECON",
+   "basis": "settlement feature (D-209, D-207 most probable reconstruction); see research/SETTLEMENT.md",
+   "footprint": null,
+   "zone": "settlement"
   }
  ]
 }

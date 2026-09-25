@@ -337,6 +337,7 @@ export const PIECES: Record<string, PieceMeta> = {
   bracelets_b: { id: 'bracelets_b', label: 'bronze bracelets', tier: 'C', src: 'RECON', note: 'a bronze ring at each wrist: ordinary women\'s ornaments by analogy (D-207, C)' },
   shield: { id: 'shield', label: 'wicker shield on the left arm', tier: 'C', src: 'HDT-7.41-61;MATCULT-R', note: 'the Persians\' wicker bucklers (Herodotus 7.61, read: "for shields they had wicker bucklers", a claim, B); a violin-shaped wicker shield on the Persepolis stair guards (MATERIAL_CULTURE, NOT SEEN: verify from the Apadana and Tripylon photographs). Held by the grip at its centre in the left hand, 0.8 × 0.44 m, the side notches and the wicker C. Given to a share of the Persian-dress guards, who then carry no bow or quiver (C)' },
   crown_w: { id: 'crown_w', label: 'court woman\'s crenellated crown', tier: 'C', src: 'IR-WOMEN;PAZYRYK', note: 'a crenellated ("turreted") crown: the statuette of a high-ranking Persian woman from Egypt and the Pazyryk women (IR-WOMEN, search extract: B for a crown); a low gold band 7 cm high with ten merlons, C' },
+  mouth_cover: { id: 'mouth_cover', label: 'the cap\'s flaps drawn over the mouth and chin', tier: 'B', src: 'OXUS-PLAQUE', note: 'a magus in Median dress at the fire or an offering: the soft cap\'s flaps drawn over the mouth and chin (the Oxus plaques: a man holding the barsom, "his chin is covered", search extract: B; worn only then, and the fit, C: D-209)' },
   veil: { id: 'veil', label: 'court woman\'s long veil down the back', tier: 'C', src: 'IR-WOMEN;PAZYRYK', note: 'a long veil falling from under the crown down the back (the Pazyryk women: IR-WOMEN, search extract, B for the veil); to mid-thigh, over the shoulders and the robe, fine wool in the second colour: C' },
 };
 
@@ -361,7 +362,7 @@ export const COSTUMES: Record<Dress, CostumeDef> = {
   envoy: { dress: 'envoy', always: ['tunic_upper', 'dress_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_low', 'headband', 'fillet', 'torque'] },
   envoy_short: { dress: 'envoy_short', always: ['tunic_upper', 'tunic_skirt', 'belt'], opt: ['trousers', 'shoes', 'boots', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_pointed', 'cap_low', 'headband', 'akinaka'] },
   envoy_bare: { dress: 'envoy_bare', always: ['tunic_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'headband'] },
-  median: { dress: 'median', always: ['tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos', 'kandys', 'earrings', 'bracelets'] },
+  median: { dress: 'median', always: ['tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos', 'kandys', 'earrings', 'bracelets', 'mouth_cover'] },
   worker: { dress: 'worker', always: ['work_upper', 'work_skirt', 'belt'], opt: ['hair', 'beard_long', 'beard_short', 'work_trousers', 'shoes', 'headband', 'cap_soft'] },
   woman: { dress: 'woman', always: ['dress_upper', 'dress_skirt', 'belt'], opt: ['hair', 'hair_bob', 'headcloth', 'shoes', 'earrings_b', 'bracelets_b'] },
   child: { dress: 'child', always: ['child_upper', 'child_skirt'], opt: ['hair', 'shoes'] },
@@ -1078,6 +1079,17 @@ function veilGeo(L: Lib, key: string, lod: number) {
     mat: MAT.cloth_second, col: COL.second, prm: 4 });
 }
 
+/** D-209: the soft cap's flaps drawn over the mouth and chin, hanging from under the nose to below the chin and round to the
+ *  lappets (a man in Median dress with the barsom on the Oxus plaques: "his chin is covered", OXUS-PLAQUE: B; the fit C). A
+ *  magus wears it at the fire and the offerings (activities.ts `wear`; the crowd sets the bit only then) */
+function mouthCover(L: Lib, key: string, lod: number) {
+  const { noseI, chinI } = faceGeom(L), S = lod === 0 ? 18 : lod === 1 ? 8 : 5, R = lod === 0 ? 5 : lod === 1 ? 3 : 2;
+  const origin = (c: Ctx, t: number): V3 => [0, lerp(c.v.pos[noseI * 3 + 1] - 0.014, c.v.pos[chinI * 3 + 1] - 0.035, t), c.J('head')[2] + 0.008];
+  return tubeGeo(L.A, key, { segs: S, rings: R, lining: 0.003, arc: [-1.95, 1.95], frame: (c, t) => vertFrame(origin(c, t)),
+    support: { parts: [P.head, P.neck], slab: 0.008, running: 'max' }, radius: (c, t, th, sup) => sup(th) + 0.009 + 0.004 * t,
+    weights: () => [W('head', 1)], mat: MAT.felt, col: COL.felt, prm: 0 });
+}
+
 // ------------------------------------------------------------------------------------------------ piece factory
 function buildPiece(L: Lib, id: string, lod: number): Geo {
   const J = L.J;
@@ -1125,6 +1137,7 @@ function buildPiece(L: Lib, id: string, lod: number): Geo {
     case 'shield': return shieldGeo(L, `${id}@${lod}`, lod);
     case 'crown_w': return crownWGeo(L, `${id}@${lod}`, lod);
     case 'veil': return veilGeo(L, `${id}@${lod}`, lod);
+    case 'mouth_cover': return mouthCover(L, `${id}@${lod}`, lod);
   }
   void J;
   throw new Error('unknown piece ' + id);

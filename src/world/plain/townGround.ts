@@ -90,7 +90,7 @@ export function buildTownGround(plan: TownPlan | null, camps: { c: P2; r: number
     const d = Math.hypot(e - camp.c[0], nn - camp.c[1]); trample[k] = Math.max(trample[k], 0.45 * (1 - sstep(camp.r * 0.6, camp.r + 50, d))); if (d < camp.r + 30) allowed[k] = 0; });
   for (const cp of camps) each(cp.c[0] - cp.r - 60, cp.c[0] + cp.r + 60, cp.c[1] - cp.r - 60, cp.c[1] + cp.r + 60, (k, e, nn) => { // D-199
     const d = Math.hypot(e - cp.c[0], nn - cp.c[1]); trample[k] = Math.max(trample[k], 0.45 * (1 - sstep(cp.r * 0.6, cp.r + 50, d))); if (d < cp.r + 30) allowed[k] = 0; });
-  for (const f of (townJson as any).facilities as { id: string; at: P2 }[]) { if (/^(crown_fields|garden_pw|mountain|offering_place|river|outside|station)$/.test(f.id)) continue;
+  for (const f of (townJson as any).facilities as { id: string; at: P2 }[]) { if (/^(crown_fields|garden_pw|mountain|river|station)$/.test(f.id)) continue; // (D-209: the precinct and the burial ground are trodden, never tilled)
     each(f.at[0] - 70, f.at[0] + 70, f.at[1] - 70, f.at[1] + 70, (k, e, nn) => { const d = Math.hypot(e - f.at[0], nn - f.at[1]);
       trample[k] = Math.max(trample[k], 0.5 * (1 - sstep(25, 65, d))); if (d < 50) allowed[k] = 0; }); }
   let runs = 0;
