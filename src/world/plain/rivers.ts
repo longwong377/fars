@@ -201,6 +201,7 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
   const trees = smoothstep(-0.2, 0.4, mx_noise_float(vec3(sHit.div(16), side.mul(5.3).add(riW.mul(11.7)), 0.5))).mul(mix(float(0.85), float(0.5), isCanal));
   wm.emissiveNode = skyReflection(nW, riffle, { sin: sinB, trees, treeSin: sinT, blur: rip.lost.mul(1.1) }); // blur: ~2x the RMS of the slope lost below the pixel (lost adds amplitudes linearly)
   wm.roughnessNode = waterRoughness(rip.lost, riffle); wm.metalnessNode = float(0);
+  wm.userData.ssr = false; // the reflection above is the water's own: no screen-space reflection on top (the SSR composite, D-216)
   const water = new THREE.Mesh(wg, wm); water.name = 'river-water'; water.frustumCulled = false; water.receiveShadow = true;
   water.userData = tag(pul, 'river water: level and width from flow_by_month for the date (C); turbid Mar-May, clear in summer (C)');
   group.add(water);
