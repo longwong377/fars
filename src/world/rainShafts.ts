@@ -17,7 +17,8 @@ import { CLOUD_BASE } from '../sky/clouds';
 import { Rng } from '../core/rng';
 import { opticalDepth, Z0, type AirOptics } from '../sky/aerial';
 
-/** debug (?shaftdbg=1|2|3): 1 = solid red at full strength; 2 = red, optical-depth term only; 3 = red, height fade only */
+/** debug (?shaftdbg=1|2|3|4): 1 = solid red at full strength; 2 = red, optical-depth term only; 3 = red, height fade only;
+ *  4 = the real tint at full strength, and the live values logged (console.error, once a second) */
 const DBG = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('shaftdbg') : null;
 /** extinction at a shaft's core (1/m) for a rain rate in mm/h: σ ≈ 0.3 km⁻¹ · R^0.63 (the visibility-in-rain relation
  *  after Marshall–Palmer drop sizes; 14 mm/h → 1.6 km⁻¹, visibility ~2 km inside the shaft; C). The old constant
@@ -56,15 +57,16 @@ export class RainShafts {
       const y01 = clamp(positionWorld.y.sub(this.baseY).div(max(this.topY.sub(this.baseY), 1)), 0, 1);
       const streak = mx_noise_float(vec3(positionWorld.x.mul(0.0015), positionWorld.y.mul(0.0004).add(this.uTime.mul(0.01)), positionWorld.z.mul(0.0015))).mul(0.15).add(0.9);
       const fade = float(1).sub(smoothstep(0.8, 1.0, y01)) /* the curtain runs up into the cloud base (it faded out from 0.4 of the height) */.mul(smoothstep(0.0, 0.03, y01));
-      m.colorNode = DBG ? color(1, 0, 0) : this.uTint;
+      m.colorNode = DBG && DBG !== '4' ? color(1, 0, 0) : this.uTint;
       const optic = float(1).sub(exp(tau.negate().mul(float(1).sub(this.uSnow.mul(0.4)))));
-      m.opacityNode = DBG === '1' ? this.uStrength : DBG === '2' ? optic : DBG === '3' ? fade : optic.mul(fade).mul(streak).mul(this.uStrength).mul(TR);
+      m.opacityNode = DBG === '1' || DBG === '4' ? this.uStrength : DBG === '2' ? optic : DBG === '3' ? fade : optic.mul(fade).mul(streak).mul(this.uStrength).mul(TR);
       const mesh = new THREE.Mesh(geo, m); mesh.frustumCulled = false; mesh.visible = false; mesh.castShadow = false; mesh.receiveShadow = false; mesh.renderOrder = 2;
       mesh.userData = { tier: 'C', src: 'RECON', note: 'rain cell shafts: position from the weather episode timing and the steering wind; optics C' };
       this.group.add(mesh);
       this.shafts.push({ mesh, radius: R, trans: TR, sigma: SG, off: lay[i].off, scale: lay[i].scale });
     }
   }
+  private lastLog = -1e9;
   private baseY = uniform(-50); private topY = uniform(1500);
   /** the cell for the cloud layer (world x, world z, radius, strength; strength 0 = none): clouds.ts thickens the cloud above it */
   readonly cellWorld = new THREE.Vector4(0, 0, 1, 0);
@@ -96,5 +98,8 @@ export class RainShafts {
     this.uStrength.value = 1; this.uSnow.value = cell.snow ? 1 : 0;
     this.uTint.value.copy(skyTint).multiplyScalar(cell.snow ? 1.05 : 0.35); // skyTint: the calibrated horizon radiance (D-060); a curtain under the thick cell cloud is well shaded (C)
     this.cellWorld.set(cx, cz, cell.radiusM, cell.intensity);
+    if (DBG === '4' && (this.uTime.value as number) - this.lastLog > 1) { this.lastLog = this.uTime.value as number;
+      console.error('shaftdbg', JSON.stringify({ tint: this.uTint.value.toArray().map((x: number) => +x.toPrecision(3)), sky: skyTint.toArray().map(x => +x.toPrecision(3)), cam: camPos.toArray().map(Math.round),
+        shafts: this.shafts.map(s => ({ vis: s.mesh.visible, side: (s.mesh.material as THREE.Material).side, r: Math.round(s.radius.value as number), sg: +(s.sigma.value as number).toPrecision(3), tr: +(s.trans.value as number).toPrecision(3), pos: s.mesh.position.toArray().map(Math.round), h: Math.round(s.mesh.scale.y) })) })); }
   }
 }

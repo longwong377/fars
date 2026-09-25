@@ -123,7 +123,7 @@ test('moments', async ({ page }, info) => {
   // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run). TIMEOUT (s) and FRAMES
   // override it and the per-view frame count (session 5: WebGL2 at high under SwiftShader did not finish 8 frames of one view in 23 min)
   test.setTimeout(+(process.env.TIMEOUT ?? 1380) * 1000);
-  const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
+  const errs: string[] = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'error') { if (m.text().startsWith('shaftdbg')) console.log(m.text().slice(0, 3000)); else errs.push(m.text().slice(0, 200)); } });
   const only = process.env.ONLY?.split(',');
   // WEBGL=1 forces the WebGL2 backend inside the webgpu project (the render queue runs one project): shots are suffixed
   // -webgl2-forced and __parsa.backend is logged
