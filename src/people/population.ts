@@ -172,6 +172,14 @@ export function heatStretch(segs: Seg[], i: number) {
   for (let j = i + 1; j < segs.length && (heat(segs[j]) || gap(segs[j])); j++) if (heat(segs[j])) b = j;
   return segs[b].t1 - segs[a].t0;
 }
+/** the hour an open-air ration issue opens on a wet day (E-01; C): at the issue hour, or when the rain then has passed —
+ *  but not after dark. The issue waits for another day (null) when the rain would push it later than RATION_Q_H before
+ *  sunset (D-219). Was: pushed past every wet spell of the day, a camp woman's queue at 23:57 on a day of unbroken rain,
+ *  and a homemaker's hours at home after it ran past midnight (the rain-columns moment hung its first frame, HANDOFF 2a) */
+export function rainShiftedIssue(h: number, spells: [number, number][], sunset: number): number | null {
+  let x = h; for (const [ra, rb] of spells) if (ra < x + RATION_Q_H[1] && rb > x - 0.1) x = rb;
+  return x > h && x > sunset - RATION_Q_H[1] ? null : x;
+}
 /** with the flock (the pasture, the fold, the route): out in the weather by rule (planCheck (a)) */
 export const WET_OK_FLOCK = /^(flock:|pasture:|route:)/;
 /** the day's spells of weather that stop work out of doors: the rain's (rainSpells) and the storm's span, joined */
@@ -2260,7 +2268,7 @@ class Planner {
   private rationRun(): number | null {
     const g = this.p.group; if (g < 0) return null; let h = this.C.issue.get(g) ?? this.C.special.get(g); if (h === undefined || this.age < 8) return null;
     const G = this.P.groups[g]; const wq = G.zone === 'terrace' ? 'terrace' : 'town';
-    if (OPEN_PLACE.test(G.issuePlace)) for (const [ra, rb] of wetSpells(this.C.wx)) if (ra < h + RATION_Q_H[1] && rb > h - 0.1) h = rb; // (at the open depot the queue forms when the rain has passed)
+    if (OPEN_PLACE.test(G.issuePlace)) { const hs = rainShiftedIssue(h, wetSpells(this.C.wx), this.sun.set); if (hs === null) return null; h = hs; } // (at the open depot the queue forms when the rain has passed; not after dark: D-219)
     const leave = h - this.P.walkH(this.cur ?? this.home, G.issuePlace, this.d, this.curW ?? this.homeW, wq) - 0.08 * this.r.next();
     if (leave > this.hd.noon + 0.3 && this.t < this.hd.noon && (this.cur ?? this.home) === this.home) { if (this.adult() && this.homeW !== 'terrace' && this.hd.noon - this.t > 0.5) this.homeHours(this.hd.noon, 'at home'); this.noonAtHome(); }
     if (leave > this.t + 0.1 && (this.cur ?? this.home) === this.home) { if (this.adult() && this.homeW !== 'terrace' && leave - this.t > 0.5) this.homeHours(leave, 'at home'); else this.atHome(leave, ...this.idle()); }
@@ -2388,7 +2396,8 @@ class Planner {
     // the ration queue at the depot, at the issue hour or after the rain then (terraceRation)
     if (this.rationSlot && !this.rationQueued && where === 'terrace') { let [a, b] = this.rationSlot; const len = b - a;
       for (const [ra, rb] of wetSp) if (ra < b && rb > a) { a = rb; b = rb + len; }
-      if (a < t1 - len) { a = Math.max(a, this.t); slots.push([a, a + len, 'queue', 'in the ration queue at the depot', 'stair_foot', false]); this.rationQueued = true; } }
+      a = Math.max(a, this.t); // (the queue fits in the block, in daylight: D-219)
+      if (a < t1 - len && a + len <= this.sun.set) { slots.push([a, a + len, 'queue', 'in the ration queue at the depot', 'stair_foot', false]); this.rationQueued = true; } }
     if (outdoor) for (const [a0, b0] of wetSp) { const a = Math.max(this.t, a0), b = Math.min(t1, b0); if (b - a < 0.02) continue;
       if (where === 'terrace') { slots.push([a, b, 'shelter', 'sheltering from the rain under the Gate’s roof (W-01)', 'gate_hall', false]); continue; }
       if ((b0 - a0 >= 0.5 && b - a >= 0.2) || this.openShelter + (b - a) > 0.5) slots.push([a, b, 'shelter', '', place, true]);

@@ -14,7 +14,7 @@ import { skyCalibration, twilightWeight, TW_HI } from './horizon';
 import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, type SkyView, type SkyViewJob } from './atmosphere';
 import { sunNormalLux, skyLux, moonLux, elongationFromFraction, extinctionK, NIGHT_LUX, REN_PER_LUX_SUN, REN_PER_LUX_SKY } from './illuminance';
 import { skyGain, fireLightScale } from './exposure';
-import { CLOUD_BASE, CLOUD_TOP } from './clouds';
+import { CLOUD_BASE, CLOUD_TOP, cellShadowNode } from './clouds';
 import { localCoverageUniform, localWeatherFactor } from './cloudCover';
 import coverTable from '../data/cloud_cover_table.json';
 import { HorizonMap, HORIZON_LAYOUT, loadHorizonMap } from '../terrain/horizonMap';
@@ -30,11 +30,18 @@ const DOME = 60000;
 export const GROUND_RHO: [number, number, number] = [0.20, 0.15, 0.10];
 /** the share of that ground in direct sun (C: buildings, trees and relief shade the rest) */
 export const GROUND_SUNLIT = 0.85;
+/** fresh snow's albedo per channel (B: 0.8–0.9 for new snow, the textbook range; C: 0.82 as the mean of an old and a new
+ *  cover). The ground's reflectance under a snow cover s (weather 0..1) is mix(GROUND_RHO, SNOW_RHO, s): the skylight
+ *  from below, the clouds' base and the air's in-scatter all take it (D-219: the snow render's brown sky and brown fill) */
+export const SNOW_RHO: [number, number, number] = [0.82, 0.83, 0.86];
+export const groundRho = (snowCover: number): [number, number, number] => { const s = Math.min(1, Math.max(0, snowCover)); return [0, 1, 2].map(c => GROUND_RHO[c] + (SNOW_RHO[c] - GROUND_RHO[c]) * s) as [number, number, number]; };
 export class SkySystem {
   readonly sky = new SkyMesh();
   readonly sun = new THREE.DirectionalLight(0xffffff, 3);
   readonly moonLight = new THREE.DirectionalLight(0x9fb4ff, 0);
   readonly hemi = new THREE.HemisphereLight(0xbfd6ff, 0x6b5a45, 0.6);
+  /** the weather's snow cover on the ground (0..1; main.ts each frame): the ground's reflectance for the skylight from below (D-219) */
+  groundSnow = 0;
   readonly stars: THREE.Points;
   readonly moon: THREE.Mesh;
   private starData: Float32Array | null = null;
@@ -171,7 +178,7 @@ export class SkySystem {
     // have not yet been seen in a browser, D-156); main.ts's FogExp2 then draws, at its fixed density
     const off = typeof location !== 'undefined' && new URLSearchParams(location.search).get('air') === '0';
     if (!off) {
-      (this.sun as any).colorNode = uniform(sunC).onRenderUpdate(() => sunC.copy(this.sun.color).multiplyScalar(this.sun.intensity)).mul(horizonVisibility(sunA, this.uSunAlt, this.uSunDirW));
+      (this.sun as any).colorNode = uniform(sunC).onRenderUpdate(() => sunC.copy(this.sun.color).multiplyScalar(this.sun.intensity)).mul(horizonVisibility(sunA, this.uSunAlt, this.uSunDirW)).mul(cellShadowNode(positionWorld, this.uSunDirW)); // (the rain cell's cloud shades the plain under it: D-219)
       (this.moonLight as any).colorNode = uniform(moonC).onRenderUpdate(() => moonC.copy(this.moonLight.color).multiplyScalar(this.moonLight.intensity)).mul(horizonVisibility(moonA, this.uMoonAlt, this.uMoonDirW));
       // aerial perspective (D-156): three r186 uses scene.fogNode ahead of scene.fog (main.ts keeps its FogExp2 for the colour
       // that the rain shafts and the rivers read); the air's sun weighting reads the coarse horizon levels
@@ -356,7 +363,8 @@ export class SkySystem {
     // (the ground around the eye is sunlit only where the terrain horizon lets the sun through: D-156)
     { const I = Math.max(this.hemi.intensity, 1e-12), hc = this.hemi.color, sc = this.sun.color, mc = this.moonLight.color;
       const sunH = (this.sun.visible ? this.sun.intensity : 0) * sinA * GROUND_SUNLIT * vS, moonH = this.moonLight.intensity * sinM * GROUND_SUNLIT * vM;
-      this.hemi.groundColor.setRGB(GROUND_RHO[0] * (hc.r + (sc.r * sunH + mc.r * moonH) / I), GROUND_RHO[1] * (hc.g + (sc.g * sunH + mc.g * moonH) / I), GROUND_RHO[2] * (hc.b + (sc.b * sunH + mc.b * moonH) / I)); }
+      const rho = groundRho(this.groundSnow);
+      this.hemi.groundColor.setRGB(rho[0] * (hc.r + (sc.r * sunH + mc.r * moonH) / I), rho[1] * (hc.g + (sc.g * sunH + mc.g * moonH) / I), rho[2] * (hc.b + (sc.b * sunH + mc.b * moonH) / I)); }
     // volumetric clouds: cover, light, wind drift (the wind blows FROM windDir: clouds move the opposite way). Sunlight at
     // the cloud base and top: the spherical atmosphere's transmittance from those heights, so low sun lights the deck from
     // below, reddened, until the sun sets for the cloud (~1.3–2° below the ground's horizon at 1.5–3.6 km).

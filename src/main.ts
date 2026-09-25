@@ -29,6 +29,8 @@ import { installWebGPUCompat } from './render/compat';
 import { Pipeline } from './render/pipeline';
 import { probeEyeVisibility, probeVolumeExtent } from './render/probes/runtime';
 import { WEATHER, SEASON } from './render/materials';
+import { RAIN_CELL } from './sky/clouds';
+import { roofedAt } from './render/probes/roofs';
 import { seasonAt } from './world/season';
 import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
 installWebGPUCompat();
@@ -223,6 +225,17 @@ async function boot() {
     /** camera rig (D-187): the eye carried over from an earlier view (its exposure), `seconds` of adaptation since; null =
      *  adapted (the frozen test default) */
     carryEye: (from: number | null, seconds = 0) => { adaptHold = from && from > 0 ? { from, seconds } : null; },
+    /** debug (D-219): the weather's live state as the shaders see it, and what a screen point shows (ndc x, y in −1..1) */
+    weatherDbg: () => { const c = weather.conditions(clock.dayIndex, clock.localHour);
+      return { W: { wetness: WEATHER.wetness.value, snow: WEATHER.snow.value, puddles: WEATHER.puddles.value }, cell: (RAIN_CELL.value as THREE.Vector4).toArray().map(v => +v.toFixed(2)),
+        cond: { rain: c.rain, snowFall: c.snowFall, wetness: c.wetness, snowCover: c.snowCover, cloud: c.cloud, haze: c.haze }, override: weather.override,
+        horizon: sky.horizon.toArray().map(v => +v.toPrecision(4)), hemi: { sky: sky.hemi.color.toArray().map(v => +v.toPrecision(3)), ground: sky.hemi.groundColor.toArray().map(v => +v.toPrecision(3)), I: +sky.hemi.intensity.toPrecision(4) },
+        sunI: +sky.sun.intensity.toPrecision(4), env: !!(scene as any).environment || !!(scene as any).environmentNode, fogNode: !!(scene as any).fogNode }; },
+    holdWeather: (h: { wetness?: number; snow?: number; cell?: number } | null) => { wxHold = h; },
+    pickW: (nx: number, ny: number) => { const rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(nx, ny), camera);
+      const hit = rc.intersectObjects(world.root.children, true).find(h => (h.object as THREE.Mesh).isMesh && (h.object as THREE.Mesh).visible && !((h.object as any).material?.transparent));
+      if (!hit) return null; const m: any = (hit.object as THREE.Mesh).material, n = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : null;
+      return { name: hit.object.name, parent: hit.object.parent?.name, mat: m?.constructor?.name, skySpec: !!m?.skySpecular, wetScale: !!m?.skySpecularScale, tier: m?.userData?.tier, note: String(m?.userData?.note ?? '').slice(0, 60), d: +hit.distance.toFixed(2), p: hit.point.toArray().map(v => +v.toFixed(2)), ny: n ? +n.y.toFixed(3) : null, roofed: roofedAt(hit.point.x, hit.point.y, hit.point.z) }; },
     exposureInfo: () => ({ exposure: renderer.toneMappingExposure, meterEV: meterGain, meterLn, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, gain: sky.gain, lux: sky.lux, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],
     /** people: summary rows (out-of-world; for tests and the dev overlay) */
@@ -286,6 +299,8 @@ async function boot() {
   { const P = (world as any).people; if (P) P.crowd.onPopIn = (what: string, d: number) => api.popins.push({ what, d: +d.toFixed(1), t: clock.t }); }
   addEventListener('error', e => api.errors.push(String(e.message)));
   let freeCam: null | { x: number; y: number; z: number; yaw: number; pitch: number } = null;
+  /** debug (D-219): weather uniforms held at given values for before/after renders (__parsa.holdWeather) */
+  let wxHold: { wetness?: number; snow?: number; cell?: number } | null = null;
   let meterLn = NaN, meterBusy = false, meterT = 0, meterGain = 0; // frame meter (D-159)
   let botInput: { forward: number; right: number; run: boolean; yawDeg?: number; pitchDeg?: number } = { forward: 0, right: 0, run: false };
   let lastFrameMs = 0; let probeT = 0;
@@ -334,6 +349,7 @@ async function boot() {
       // keep the camera ahead of the torso when looking down
       body.position.x += Math.sin(input.yaw) * 0.12; body.position.z += Math.cos(input.yaw) * 0.12;
     }
+    sky.groundSnow = cond.snowCover; // the ground's reflectance under snow (D-219)
     sky.update(clock.jdUT, camera.position, cond.cloud, cond.haze, { ms: cond.windMs, fromDeg: cond.windDirDeg, tSeconds: (clock.t % 7) * 86400 }, viewDir.set(0, 0, -1).applyEuler(camera.rotation));
     if (P.get('hemi')) sky.hemi.intensity *= +P.get('hemi')!; if (P.has('noshadow')) sky.sun.castShadow = false;
     if (P.has('nosun')) sky.sun.intensity = 0; if (P.get('sbias')) sky.sun.shadow.bias = +P.get('sbias')!; // debug (diagnostic renders)
@@ -368,6 +384,7 @@ async function boot() {
     const t0 = performance.now(); if (opts.render !== false) renderer.info.reset();
     { const ss = seasonAt(clock.dayIndex); SEASON.green.value = ss.green; SEASON.dry.value = ss.dry; }
     WEATHER.wetness.value = cond.wetness; WEATHER.snow.value = cond.snowCover; WEATHER.puddles.value = Math.max(0, cond.wetness - 0.4) / 0.6;
+    if (wxHold) { if (wxHold.wetness !== undefined) { WEATHER.wetness.value = wxHold.wetness; WEATHER.puddles.value = Math.max(0, wxHold.wetness - 0.4) / 0.6; } if (wxHold.snow !== undefined) WEATHER.snow.value = wxHold.snow; if (wxHold.cell !== undefined) (RAIN_CELL.value as THREE.Vector4).w = wxHold.cell; } // debug holds (D-219: before/after measurements)
     pipeline.flash.value = world.flash?.() ?? 0;
     if (opts.render === false) return;
     // a frame rendered outside the renderer's animation loop (renderOnce, bench, bots) must advance the node frame itself:

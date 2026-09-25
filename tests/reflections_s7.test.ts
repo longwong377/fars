@@ -18,7 +18,7 @@ describe('reflection classes (R3)', () => {
   });
   it('smooth surface materials reflect the sky environment; plain standard materials reflect none', () => {
     for (const k of Object.keys(SURFACES)) {
-      const d = SURFACES[k], m = surfaceMaterial(k), spec = (d.metal ?? 0) > 0 || d.roughness < SKY_SPECULAR_MAX_ROUGHNESS;
+      const d = SURFACES[k], m = surfaceMaterial(k), spec = (d.metal ?? 0) > 0 || d.roughness < SKY_SPECULAR_MAX_ROUGHNESS || d.porosity >= 0.5; // (D-219: porous surfaces reflect the sky scaled by their wetness)
       expect(reflectionClass(m), k).toBe(spec ? 1 : 0);
     }
     expect(reflectionClass(new THREE.MeshStandardNodeMaterial({ roughness: 0.2 }))).toBe(0);
