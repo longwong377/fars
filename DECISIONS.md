@@ -4732,7 +4732,7 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
   `?fireocc=0` switches it off. Stale-bake guard: tests/fire_occ.test.ts checks the parts hash and the fire list.
 - **Measured (node):** the N court floor 6–14 m N of each landing brazier within 4 m of its line < 5 % lit (was 100 %), the
   landing round the brazier > 95 % lit. **Browser (high, WebGPU):** the shader compiles and brazier-close renders (fire-lit
-  floor with its falloff; no acne seen); the night-terrace comparison (B vs braziers0) timed out under load and is re-queued.
+  floor with its falloff; no acne seen); night-terrace (B vs braziers0, 2 frames each): the court floor in the frame's lower third (rows 360–540) gains 0.2–1.4 luma from the braziers (D-216: Y 0.041 with them, 0.002 without), while the portico columns and the merlon tips they see gain 15–43; B24 resolved.
 - **Weak:** 1.4° per texel (a 0.25 m step at 10 m) softened by PCF; no occlusion by people, props or the town; lights of the
   town's hearths still pass through their courtyard walls. Rerun the bake after any architecture change (with build_nav and
   build_probes).
