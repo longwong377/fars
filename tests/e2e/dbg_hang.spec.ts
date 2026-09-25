@@ -15,12 +15,13 @@ test('hang', async ({ page }) => {
   const cdp = await page.context().newCDPSession(page); await cdp.send('Debugger.enable');
   let paused: any = null; cdp.on('Debugger.paused', e => { paused = e; });
   for (let f = 0; f < 3; f++) {
-    await page.evaluate(() => { const w = window as any; w.__rDone = -1; const t = performance.now(); Promise.resolve(w.__parsa.renderOnce()).then(() => { w.__rDone = performance.now() - t; }); });
+    // not awaited: if the frame's synchronous part never returns, neither does this evaluate (session 7: it blocked 40 min)
+    let syncDone = false; const ev = page.evaluate(() => { const w = window as any; w.__rDone = -1; const t = performance.now(); return Promise.resolve(w.__parsa.renderOnce()).then(() => (w.__rDone = performance.now() - t)); }).then(r => { syncDone = true; return r; }, () => { syncDone = true; return -1; });
     const t0 = Date.now(); let done = -1;
     while (Date.now() - t0 < +(process.env.WAIT ?? 150) * 1000) {
-      const r = await Promise.race([page.evaluate(() => (window as any).__rDone), new Promise(res => setTimeout(() => res('busy'), 10_000))]);
-      if (typeof r === 'number' && r >= 0) { done = r; break; }
-      if (r === 'busy') console.log('main thread busy at', Math.round((Date.now() - t0) / 1000), 's');
+      await new Promise(r => setTimeout(r, 5000));
+      if (syncDone) { done = await ev; break; }
+      console.log('frame', f, 'not returned at', Math.round((Date.now() - t0) / 1000), 's');
     }
     if (done >= 0) { console.log('frame', f, 'ms', Math.round(done)); continue; }
     await cdp.send('Debugger.pause'); const t1 = Date.now(); while (!paused && Date.now() - t1 < 60_000) await new Promise(r => setTimeout(r, 500));
