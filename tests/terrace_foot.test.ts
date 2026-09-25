@@ -59,12 +59,16 @@ describe('the tether lines at the stair foot (D-227)', () => {
     expect(noon).toBeGreaterThan(8); expect(night).toBe(0); expect(dawn).toBe(0); expect(Math.min(...days)).toBeGreaterThan(3);
     expect(FOOT_LINES.length).toBe(2);
   });
-  it('costs at most 6 draw calls and well under 0.5 M triangles in the plain view (animals, loads, heaps; the approach track and herbs add none)', () => {
+  it('costs at most 10 draw calls (shadow passes counted) and well under 0.5 M triangles in the plain view (animals, loads, heaps; the approach track and herbs add none)', () => {
     const foot = new TerraceFoot(1, H), A = new Animals(); A.begin(0); const m4 = new THREE.Matrix4(), q = new THREE.Quaternion();
     foot.update(0, 11, 0, a => { m4.compose(new THREE.Vector3(a.e, H(a.e, a.n), -a.n), q, new THREE.Vector3(1, 1, 1)); A.push(a, m4); }); A.end();
     const st = A.stats(), heaps = heapsGeometry(footHeaps(1), H), load = loadGeometry(), loadsN = (foot as any).loads.count as number;
-    const tris = st.triangles + heaps.index!.count / 3 + (load.index!.count / 3) * loadsN, draws = st.draws + 1 + (loadsN ? 1 : 0);
+    // draws as the renderer counts them (render 2: each shadow-casting mesh is drawn again in the near shadow cascades; the
+    // animals' rig in 2 of them, measured: 22 calls for 4 species + 2 shadow-casting meshes = 4 × 3 + 2 × 5): species × 3, heaps
+    // and loads (no shadow) once each
+    expect((foot as any).loads.castShadow).toBe(false); expect(foot.group.getObjectByName('terrace-foot:heaps')!.castShadow).toBe(false);
+    const tris = st.triangles + heaps.index!.count / 3 + (load.index!.count / 3) * loadsN, draws = st.draws * 3 + 1 + (loadsN ? 1 : 0);
     console.log(`stair foot at 11:00: ${foot.occupied} animals (${st.draws} species draws, ${(st.triangles / 1e3).toFixed(1)} k tris), ${loadsN} loads, heaps ${heaps.index!.count / 3} tris; total ${draws} draws, ${(tris / 1e3).toFixed(1)} k tris`);
-    expect(draws).toBeLessThanOrEqual(6); expect(tris).toBeLessThan(0.5e6);
+    expect(draws).toBeLessThanOrEqual(10); expect(tris).toBeLessThan(0.5e6);
   });
 });
