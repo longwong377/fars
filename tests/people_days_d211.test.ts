@@ -6,14 +6,16 @@
 //  4 the healer's calls, the hearing before an official, the children's games (items 24-26);
 //  5 r9: the bereaved mother (A S2): (q) `bereaved`; the herders' camp in the rain (B S2 / A S10): (a) `weather`; the boys at
 //    the father's trade (A S5 / B S3); one errand to a house (A S6 / B S4); the breakfast "alone" (A S4): (d) `label`; the
-//    house's water (A S7): (r) `water`; "storm" only with thunder (A S8): (d); the travellers' rations and station (A S9).
+//    house's water (A S7): (r) `water`; "storm" only with thunder (A S8): (d); the travellers' rations and station (A S9);
+//  6 the receipts (the lead's bisect of exchanges.test): the caravan counted into the store by a scribe, each Treasury letter
+//    carried by one messenger to a scribe who is there: (s) `receipt`.
 // Days are 0-based indices (the reviews print 1-based regnal days).
 import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, Env } from '../src/people/sim';
 import { type Seg, segAt, wetHours, CAMP_OPEN } from '../src/people/population';
-import { checkPlan, invariants } from '../src/people/planCheck';
+import { checkPlan, invariants, receipts, LETTER_WHY } from '../src/people/planCheck';
 import { festivals, STORE_BOUNDS } from '../src/people/calendar';
 import { musicAt, drumSlot, type PopPerformer } from '../src/audio/performers';
 import { WeatherSystem } from '../src/weather/weatherState';
@@ -143,5 +145,15 @@ describe('5 (shadow review r9): the reviewers\' findings at their rules', () => 
       if (p.job === 'traveller') { const g: Seg[] = P.plan(pid, d); g.forEach((s, i) => { if (s.act === 'queue' && s.place === 'store_town') { q++; if (g[i + 1]?.where === 'road' && g[i + 1].act !== 'carry_sack') empty++; } if (s.place === 'station' && /at home/.test(s.why)) home++; }); } }
     expect(dup).toBe(0); expect(q).toBeGreaterThan(30); expect(empty).toBe(0); expect(home).toBe(0);
     for (let d = 0; d < 354; d++) { const C = P.cal.ctx(d); if (!C.wx.stormH || C.wx.thunderH) continue; for (let pid = 0; pid < P.persons.length; pid += 13) if (P.present(pid, d)) for (const s of P.plan(pid, d) as Seg[]) expect(s.why).not.toMatch(/\bstorm\b/); }
+  }, 900_000);
+  it('(s) receipts, all year: every Treasury letter reaches a scribe, one man carries it; the caravan is counted in by a scribe', () => {
+    let issues = 0, letters = 0, recv = 0, cvDays = 0; const ex: string[] = [];
+    for (let d = 0; d < 354; d++) { const planOf = (pid: number) => P.plan(pid, d) as Seg[];
+      for (const x of receipts(P, d, planOf)) { issues++; if (ex.length < 5) ex.push(`d${d} ${x.pid}: ${x.note}`); }
+      for (const m of P.messengers) if (P.present(m, d)) letters += planOf(m).filter(s => s.why === LETTER_WHY).length;
+      if (P.caravan(d)) { cvDays++; if (P.treasuryScribes.some((x: number) => P.present(x, d) && planOf(x).some(s => /caravan’s sacks/.test(s.why)))) recv++; } }
+    expect(ex, 'receipt issues').toEqual([]); expect(issues).toBe(0);
+    expect(letters).toBeGreaterThan(90); expect(letters).toBeLessThanOrEqual(115); // (115 Treasury letters a year for seed 1: one carrier each)
+    expect(recv / cvDays).toBeGreaterThan(0.95);
   }, 900_000);
 });

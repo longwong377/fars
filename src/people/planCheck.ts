@@ -87,7 +87,7 @@ export function reasonOk(act: ActivityId, why: string) {
   if (reasonCache.size < 200000) reasonCache.set(k, v); return v;
 }
 export type PlanIssue = 'no_sleep' | 'reason' | 'meals' | 'teleport' | 'apart' | 'alone' | 'minding' | 'weather' | 'light' | 'wait' | 'label' | 'feed' | 'dress' | 'stage' | 'flock'
-  | 'sick' | 'weatherday' | 'teen' | 'siesta' | 'roofed' | 'winnow' | 'festival' | 'wedding' | 'bereaved' | 'water';
+  | 'sick' | 'weatherday' | 'teen' | 'siesta' | 'roofed' | 'winnow' | 'festival' | 'wedding' | 'bereaved' | 'water' | 'receipt';
 /** a reason that says the person has a little one with them (the minder's words: Population.mindDay) */
 export const MINDING = /^(minding (the little|her little|his little)|carrying (the little|her little|his little)|(out to the lane|home) with (the little|her little|his little))/;
 /** the issues of one person's plan on one day; `prevLast` is where yesterday's plan ended */
@@ -126,6 +126,26 @@ export function checkDay(P: Population, d: number, planOf: (pid: number) => Seg[
       const ok = (s.with !== undefined && segAt(planOf(s.with), h).place === s.place) || P.membersOn(P.home(pid, d), d).some(x => x !== pid && P.persons[x].age >= 14 && segAt(planOf(x), h).place === s.place);
       if (!ok) { out.push({ kind: 'alone', pid, note: `${h}: at ${s.place} with no adult of the household` }); break; } }
   }
+  out.push(...receipts(P, d, planOf));
+  return out;
+}
+/** (s) receipts (E-06, E-20; the PF receipts "PN received"; D-211): a sealed letter taken up to the Treasury is handed to a
+ *  scribe at the desk or in the store (or an official at the desk), and by one messenger only; the day's caravan, when it
+ *  comes within the Treasury scribes' hours, is counted into the store by a scribe standing there while it is carried up */
+export const LETTER_WHY = 'delivering a sealed document';
+export function receipts(P: Population, d: number, planOf: (pid: number) => Seg[]): { kind: PlanIssue; pid: number; note: string }[] {
+  const out: { kind: PlanIssue; pid: number; note: string }[] = [];
+  const scr = P.treasuryScribes.filter(x => P.present(x, d)).map(x => planOf(x));
+  const at = (h: number, pl: string) => scr.some(ss => segAt(ss, h).place === pl);
+  const offs: Seg[][] = []; for (let i = 0; i < P.persons.length; i++) if (P.persons[i].job === 'official' && P.present(i, d)) offs.push(planOf(i));
+  const seen: [number, number, number][] = [];
+  for (const m of P.messengers) { if (!P.present(m, d)) continue;
+    for (const s of planOf(m)) { if (s.why !== LETTER_WHY) continue; const h = (s.t0 + s.t1) / 2;
+      if (!at(h, 'treasury_desk') && !at(h, 'treasury_store') && !offs.some(ss => segAt(ss, h).place === 'treasury_desk')) out.push({ kind: 'receipt', pid: m, note: `${h.toFixed(2)} a sealed letter brought to the Treasury with no scribe or official there to take it` });
+      const dup = seen.find(x => Math.abs(x[1] - s.t0) < 0.05); if (dup) out.push({ kind: 'receipt', pid: m, note: `${s.t0.toFixed(2)} the same hour's letter carried up by ${dup[0]} too` }); seen.push([m, s.t0, s.t1]); } }
+  const cv = P.caravan(d), done = P.caravanDone(d);
+  if (cv && done !== null && scr.length) { const desk = scr.flatMap(ss => ss.filter(x => x.place === 'treasury_desk')); const a = Math.min(...desk.map(x => x.t0)), b = Math.max(...desk.map(x => x.t1));
+    if (desk.length && cv.h > a + 0.3 && done < b - 0.3) { const h = (cv.h + done) / 2; if (!at(h, 'treasury_store')) out.push({ kind: 'receipt', pid: P.treasuryScribes[0], note: `${h.toFixed(2)} the caravan's sacks carried into the Treasury store with no scribe there counting them` }); } }
   return out;
 }
 

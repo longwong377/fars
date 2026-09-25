@@ -286,6 +286,10 @@ export class Population {
   private lifeByDay: { births: number[]; deaths: number[]; marriages: number[] }[] = [];
   private bdayByDay: number[][] = [];
   private shepherds: number[] = [];
+  /** the road station's messengers, in their order (idx: the day's duty alternates, messenger()) */
+  messengers: number[] = [];
+  /** the Treasury's two scribes (seats), who take the day's turns between them (scribe()) */
+  treasuryScribes: number[] = [];
   private facilities: Record<string, [number, number]> = {};
   private rotaCache = new Map<number, Map<number, { watch: 0 | 1 | 2; post: string | null; called: boolean }>>();
   private rel = new Map<number, [number, number][]>();
@@ -506,7 +510,7 @@ export class Population {
         const staff = !!seat || (terraceStaff < 100 && m < 4); if (staff) terraceStaff++;
         const origin = seat?.origin ?? this.persons[this.households[hh].members[0]]?.origin ?? 'Babylonian';
         const pid = this.person({ sex: 'm', age: this.ageIn(r, 18, 55), job: seat ? 'scribe' : 'treasury', sub: seat ? 'treasury' : staff ? (m % 2 ? 'weigher' : 'shiner') : craft, hh, origin, agent: seat?.agent ?? -1, work: seat ? 'treasury_desk' : staff ? 'treasury_inside' : ws });
-        this.join(g, pid, 0.7); if (seat) this.bySeat.set(seat.agent, pid); }
+        this.join(g, pid, 0.7); if (seat) { this.bySeat.set(seat.agent, pid); this.treasuryScribes.push(pid); } }
       for (let c = 0; c < mix.boys + mix.girls; c++) { const r = this.rng(-4800 - k * 100 - c);
         const c0 = this.childFor(hhs, c < mix.boys ? 'm' : 'f', 4, 15, r, g); if (c0 !== null && this.persons[c0].age >= 12) { this.persons[c0].job = 'treasury'; this.persons[c0].sub = craft; this.persons[c0].work = ws; } }
     }
@@ -537,7 +541,7 @@ export class Population {
     this.persons[this.shepherds[1]].sub = 'hides'; this.persons[this.shepherds[2]].sub = 'hides';
     const msgSeats = seatOf('courier'); const stG = this.group('men', 'the messengers of the road station', 'store_town', false, 'town');
     for (let i = 0; i < 8; i++) { const seat = msgSeats[i]; const r = this.rng(-6600 - i); const origin = seat?.origin ?? 'Persian'; const hh = this.hh(r.chance(0.5) ? 'q_pw_n' : 'q_pw_s', 'town', true);
-      const pid = this.person({ sex: 'm', age: this.ageIn(r, 18, 40), job: 'messenger', hh, origin, agent: seat?.agent ?? -1, idx: i, work: 'station' }); this.join(stG, pid); if (seat) this.bySeat.set(seat.agent, pid);
+      const pid = this.person({ sex: 'm', age: this.ageIn(r, 18, 40), job: 'messenger', hh, origin, agent: seat?.agent ?? -1, idx: i, work: 'station' }); this.join(stG, pid); this.messengers.push(pid); if (seat) this.bySeat.set(seat.agent, pid);
       if (r.chance(0.6)) { this.person({ sex: 'f', age: this.wifeAge(r, hh, 17, 36), job: 'homemaker', hh, origin }); this.kids(hh, r, origin); } }
     stateGroup('men', 'the palace caretakers and lamp keepers', 30, 'caretaker', '', 0.3, 'palaces', -6700);
     for (let i = 0; i < 3; i++) { const r = this.rng(-6800 - i); const hh = this.hh('q_north', 'town', true); const pid = this.person({ sex: 'm', age: this.ageIn(r, 30, 60), job: 'priest', hh, origin: 'Persian', idx: i, work: 'offering_place' });
@@ -1317,7 +1321,7 @@ export class Population {
   }
   /** the hour by which the day's caravan is carried up to the Treasury store by the slice's porters (about 12 min a sack up
    *  and back for each of six; C), or null with no caravan */
-  caravanDone(d: number) { const c = this.caravan(d); return c ? c.h + 0.3 + c.sacks * CARRY_H_PER_SACK / 6 : null; }
+  caravanDone(d: number) { const c = this.caravan(d); return c ? c.h + 0.2 + 0.3 + c.sacks * CARRY_H_PER_SACK / 6 : null; } // (+ 0.2: the sacks counted off the animals first, sim.ts porter; D-211)
   /** a detailed porter's hours at the depot (Planner.depotPorter; planCheck (c)): from an hour before the day's caravan (or
    *  before his group's ration issue there, when it is earlier) until the caravan is carried up; with no caravan the first
    *  1.5 h of the working day. [start, end] */
@@ -3457,18 +3461,45 @@ class Planner {
     const P = this.P, C = this.C, p = this.p; if (p.sub !== 'treasury') return this.scribeTown();
     const t0 = this.sun.rise + 1.3, t1 = 15.5; this.morning(t0 - P.walkH(this.home, 'stair_foot', this.d, this.homeW, 'terrace') - 0.05); this.go('stair_foot', 'terrace', 'going up to the Treasury');
     // the Terrace groups' ration issue is recorded and sealed at the depot (E-01 participants: a scribe seals the tablet)
-    const tIssue = [...C.issue.entries()].filter(([g]) => P.groups[g].issuePlace === 'stair_foot').map(([, h]) => h).sort((a, b) => a - b)[0];
-    const mine = tIssue !== undefined && (this.d + (p.id & 1)) % 2 === 0;
-    if (mine) { this.add(Math.max(this.t, tIssue), 'stair_foot', 'write_tablet', 'recording and sealing the ration issue at the depot', 'terrace'); this.add(this.t + 1.8, 'stair_foot', 'write_tablet', 'sealing the issue tablets', 'terrace'); }
-    const filing = C.events.some(e => e.id === 'E-15' && e.place === 'treasury_desk') && (p.id & 1) === 1;
+    const issues = [...C.issue.entries()].filter(([g]) => P.groups[g].issuePlace === 'stair_foot').map(([, h]) => h).sort((a, b) => a - b), tIssue = issues[0], lastIssue = issues[issues.length - 1];
+    // (the two take the day's turns by their seats, which alternate: their person ids need not; D-211, both had sealed at the
+    // depot on the same days and left the desk empty)
+    // (with the other away or ill, the one at the desk takes every turn)
+    const alt = (p.agent >= 0 ? p.agent : p.id) & 1, mate = P.treasuryScribes.find(x => x !== this.pid);
+    const alone = mate === undefined || !P.present(mate, this.d) || P.sick(mate, this.d), turnA = (this.d + alt) % 2 === 0 || alone, turnB = (this.d + alt) % 2 === 1 || alone;
+    const mine = tIssue !== undefined && turnA;
+    // (in rain the tablets are written under the Gate's roof: planCheck (a); the depot's issue itself waits out the rain,
+    // workBlock; D-211, exposed when the turns were set right)
+    if (mine) { const a = Math.max(this.t, tIssue), wet = wetHours(C.wx, this.t, a + 1.8) > 0, pl = wet ? 'gate_hall' : 'stair_foot';
+      if (wet) this.go('gate_hall', 'terrace', 'under the Gate’s roof out of the rain');
+      this.add(a, pl, 'write_tablet', wet ? 'recording the ration issue under the Gate’s roof, out of the rain' : 'recording and sealing the ration issue at the depot', 'terrace'); this.add(Math.max(this.t + 1.8, lastIssue + 0.9), pl, 'write_tablet', wet ? 'sealing the issue tablets under the Gate’s roof, out of the rain' : 'sealing the issue tablets', 'terrace'); } // (until the day's last group has had its issue: D-211, a later group's issue had had no scribe)
+    // the day's caravan received into the store (E-06; the PF receipts "PN received": the goods counted and the receipt
+    // recorded where they are set down): the scribe who is not sealing the issue stands in the store from the caravan's hour
+    // until its sacks are carried up (Population.caravan, caravanDone; the porters' carrying, sim.ts; D-211, the lead's
+    // bisect: the store's receipt had come about only by a porter walking past a writing scribe)
+    const cv = P.caravan(this.d), cvEnd = P.caravanDone(this.d), receiver = turnB && !mine && !!cv && cvEnd !== null && cvEnd < this.sun.set - 0.6 && cv.h > this.t + 0.2;
+    // more than one group's issue in the morning: the other scribe is at the depot too, one measuring out and recording,
+    // the other sealing, until the last group is done or the caravan calls him to the store (E-01; C; D-211)
+    if (!mine && !alone && issues.length >= 2) { const until = Math.min(lastIssue + 0.9, receiver ? cv!.h - 0.05 : 24, ...C.letters.filter(x => x.go + 1.3 > Math.max(this.t, tIssue)).map(x => x.go + 0.4)); // (back at the desk for a letter coming up)
+      if (until - Math.max(this.t, tIssue) >= 0.4 && wetHours(C.wx, Math.max(this.t, tIssue), until) === 0) { if (tIssue - 0.05 > this.t + 0.2) this.workBlock('treasury_desk', 'terrace', 'write_tablet', 'recording issues and payments', this.t, tIssue - 0.05, false, 'treasury_desk');
+        this.go('stair_foot', 'terrace', 'down to the depot for the issue'); this.add(until, 'stair_foot', 'write_tablet', 'recording the groups’ ration issue at the depot beside the scribe who seals it (E-01)', 'terrace'); } }
+    if (receiver) { if (this.t < cv!.h - 0.1) this.workBlock('treasury_desk', 'terrace', 'write_tablet', 'recording issues and payments', this.t, cv!.h - 0.05, false, 'treasury_desk');
+      this.go('treasury_store', 'terrace', 'to the store for the caravan');
+      this.workBlock('treasury_store', 'terrace', 'write_tablet', 'receiving the caravan’s sacks into the store: counting them and recording the receipt (E-06)', this.t, Math.max(this.t + 0.3, cvEnd! + 0.1), false, 'treasury_desk', Math.max(12, cvEnd! + 0.1)); }
+    const filing = !receiver && C.events.some(e => e.id === 'E-15' && e.place === 'treasury_desk') && alt === 1;
     if (filing) { this.add(Math.max(this.t, 10), 'treasury_desk', 'write_tablet', 'recording issues and payments', 'terrace'); this.add(this.t + 1.2, 'treasury_store', 'write_tablet', 'counting the stock and filing sealed receipts (E-15)', 'terrace'); }
     // the rest of the day (lives.json job_tasks.scribe): the desk; counting in the store; tablets to the official building; letters to the station
     const k = this.choose(L.job_tasks.scribe.v as Record<'desk' | 'store' | 'town' | 'letters', number>);
-    if (k === 'store' && this.t < 12) this.workBlock('treasury_store', 'terrace', 'write_tablet', 'counting and recording the goods in the Treasury store', this.t, Math.min(t1, this.t + 2.5), false, 'treasury_desk');
-    if ((k === 'town' || k === 'letters') && this.t < 13) { this.workBlock('treasury_desk', 'terrace', 'write_tablet', 'recording issues and payments', this.t, 11, false, 'treasury_desk');
+    if (k === 'store' && this.t < 12 && !receiver) this.workBlock('treasury_store', 'terrace', 'write_tablet', 'counting and recording the goods in the Treasury store', this.t, Math.min(t1, this.t + 2.5), false, 'treasury_desk');
+    if ((k === 'town' || k === 'letters') && this.t < 13 && !receiver) { this.workBlock('treasury_desk', 'terrace', 'write_tablet', 'recording issues and payments', this.t, 11, false, 'treasury_desk');
       if (k === 'town') this.errand('official_bldg', 'town', 'write_tablet', 'taking sealed tablets to the official building and copying there', 1.8, 'treasury_desk', 'terrace');
       else this.errand('station', 'town', 'talk', 'handing sealed letters to the road station', 1, 'treasury_desk', 'terrace'); }
-    this.workBlock('treasury_desk', 'terrace', 'write_tablet', C.payments.length ? 'recording silver payments at the Treasury' : 'recording issues and payments', Math.max(t0, this.t), t1, false, 'treasury_desk');
+    this.workBlock('treasury_desk', 'terrace', 'write_tablet', C.payments.length ? 'recording silver payments at the Treasury' : 'recording issues and payments', Math.max(t0, this.t), t1, false, 'treasury_desk', receiver ? Math.max(12, Math.min(this.t, 14)) : 12);
+    // a sealed letter of the road station due after the desk's hours (E-20; the guards are doubled for it: calendar.ts
+    // doubled, x.t + 0.8 … 1.8): one of the two, in turn, keeps the desk until it is brought up, received and recorded (C;
+    // D-211: a quarter of the Treasury letters had been "delivered" to an empty desk)
+    const late = turnB ? C.letters.filter(x => x.go + 1.3 > this.t).map(x => x.go) : [];
+    if (late.length) this.workBlock('treasury_desk', 'terrace', 'write_tablet', 'keeping the desk for a sealed letter from the road station, to receive and record it (E-20)', this.t, Math.min(this.sun.set - 0.1, Math.max(...late) + 1.3), false, 'treasury_desk');
     this.go(this.home, this.homeW); this.evening(this.t); return this.finish();
   }
   /** the town's scribes: the desk, and whatever the day brings, in turn among them (C): the ration issue at the storehouse
@@ -3483,7 +3514,7 @@ class Planner {
     C.deliveries.forEach((x, i) => { if ((x.place === 'store_town' || x.place === 'royal_store') && turn(store ? 2 : 4, i)) jobs.push([x.t, x.place, 'town', 'recording a delivery as it is measured in (E-06)', 1.2]); });
     if (C.milling.length && store && turn(2, 1)) jobs.push([9, 'mill', 'town', 'recording the grain sent to the mill and the flour counted back (E-07)', 1.5]);
     P.parties.forEach((x, i) => { if (x.day === d && !store && turn(3, i)) jobs.push([Math.max(8, Math.min(14, x.hour + 0.5)), 'station', 'town', 'recording a party’s halmi and its travel rations (E-21)', 1]); });
-    if (C.couriers.some(x => x.treasury) && !store && turn(3, 2)) jobs.push([Math.max(8, Math.min(13.5, C.couriers.find(x => x.treasury)!.t + 0.5)), 'treasury_desk', 'terrace', 'taking a sealed letter up to the Treasury (E-20)', 1.5]);
+    if (C.letters.length && !store && turn(3, 2)) jobs.push([Math.max(8, Math.min(13.5, C.letters[0].go + 0.5)), 'treasury_desk', 'terrace', 'taking a sealed letter up to the Treasury (E-20)', 1.5]);
     if (!jobs.length) { const k = this.choose(L.job_tasks.scribe.v as Record<'desk' | 'store' | 'town' | 'letters', number>);
       if (k === 'store') jobs.push([9 + this.r.range(0, 3), store ? 'royal_store' : 'store_town', 'town', 'counting the stock with the storekeeper', 2]);
       else if (k === 'town') jobs.push([9 + this.r.range(0, 3), 'treasury_desk', 'terrace', 'copying and checking tablets with the Treasury’s scribes', 2]);
@@ -3655,8 +3686,17 @@ class Planner {
       else if (k === 'horse') this.add(t1, 'station', 'tend_animals', 'seeing to his horse and its harness', 'town');
       else if (k === 'talk') this.add(t1, 'station', 'talk', 'talking with the grooms at the station', 'town');
       else this.add(Math.min(t1, this.t + 0.7), 'station', 'rest', 'waiting at the station for the relay', 'town'); } };
-    const letters = C.couriers.filter(x => x.t > this.t - 2).sort((a, b) => a.t - b.t);
-    for (const x of letters) { if (x.t > end) break; wait(x.t);
+    // each letter is carried by ONE of the men on duty (D-211: every man at the station had carried every letter, four men
+    // delivering one sealed document): the Treasury's letters by the day's man for the Terrace run (the first two of the
+    // station's roll, on alternate days: they are the two who are seen on the Terrace, sim.ts; C), the town's in turn among
+    // the others; a letter for the Treasury is taken up when the desk is open (the scribes' day from sunrise + 1.3 h:
+    // scribe(); a night letter waits at the station: calendar.ts letters)
+    const duty = P.messengers.filter(m => (this.d + P.persons[m].idx) % 2 === 0 && P.present(m, this.d) && !P.sick(m, this.d));
+    const runner = duty.find(m => P.persons[m].idx < 2), town = duty.length > 1 ? duty.filter(m => m !== runner) : duty;
+    const carrier = (treasury: boolean, j: number) => !duty.length || (treasury ? (runner ?? duty[(j + this.d) % duty.length]) : town[(j + this.d) % town.length]) === this.pid;
+    const letters = [...C.couriers.map((x, j) => ({ treasury: false, j, go: x.t })).filter(x => !C.couriers[x.j].treasury), ...C.letters.map(x => ({ treasury: true, j: x.j, go: x.go }))]
+      .filter(x => x.go > this.t - 2 && carrier(x.treasury, x.j)).sort((a, b) => a.go - b.go);
+    for (const x of letters) { if (x.go > end) break; wait(x.go);
       if (x.treasury) { this.go('stair_foot', 'terrace', 'carrying a sealed letter up to the Treasury'); this.add(this.t + 0.1, 'stair_foot', 'walk', 'climbing the stair', 'terrace'); this.add(this.t + 0.4, 'treasury_desk', 'talk', 'delivering a sealed document', 'terrace'); this.go('station', 'town', 'back to the station'); }
       else { this.go('official_bldg', 'town', 'carrying a letter'); this.add(this.t + 0.3, 'official_bldg', 'talk', 'handing a letter to an official', 'town'); this.go('station', 'town', 'back to the station'); } }
     wait(end);

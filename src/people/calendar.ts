@@ -171,7 +171,11 @@ export interface DayCtx {
   events: CalEvent[];
   issue: Map<number, number>; special: Map<number, number>; wine: Map<number, number>; maternity: Map<number, number>;
   payments: { t: number; group: number }[]; deliveries: { t: number; id: string; qty: number; place: string }[];
-  couriers: { t: number; treasury: boolean }[]; slaughter: number[]; milling: number[]; brewing: number[];
+  couriers: { t: number; treasury: boolean }[];
+  /** the sealed letters taken up to the Treasury today, at the hour the messenger sets out from the station (go; j: which
+   *  letter, for the turn of the men on duty): today's that come before sunset − 1.1 h, taken up once the desk is open
+   *  (sunrise + 1.3 h), and yesterday's that came later, kept at the station overnight (C; D-211) */
+  letters: { go: number; j: number }[]; slaughter: number[]; milling: number[]; brewing: number[];
   offerings: { t: number; id: string; place: string; god?: string }[];
   agri: Set<string>; river: string; winter: boolean; brick: boolean; heatRest: boolean; firstRain: boolean;
   /** a festival day (E-33, E-38; D-211): the šip at the offering place and the day off, or null */
@@ -231,7 +235,7 @@ export class EventCalendar {
     const pop = this.pop, S = this.stores, seed = this.seed;
     const court = this.court && month >= 1 && month <= 4; // resident Nisannu–Duzu under the setting (D-003)
     if (this.firstRainDay < 0 && month >= 7 && wx.wet) this.firstRainDay = d;
-    const ctx: DayCtx = { day: d, month, dom, season, wx, sun, court, events: [], issue: new Map(), special: new Map(), wine: new Map(), maternity: new Map(), payments: [], deliveries: [], couriers: [],
+    const ctx: DayCtx = { day: d, month, dom, season, wx, sun, court, events: [], issue: new Map(), special: new Map(), wine: new Map(), maternity: new Map(), payments: [], deliveries: [], couriers: [], letters: [],
       slaughter: [], milling: [], brewing: [], offerings: [], agri: new Set(), river: ROW['E-51'].rule.by_month[String(month)], winter: [9, 10, 11].includes(month), brick: [2, 3, 4, 5].includes(month) && !wx.wet,
       heatRest: wx.hot, /* the midday rest follows the day's heat (E-64: Tmax > 33 °C), in whatever month it comes (D-086) */ festival: festivalOn(seed, d), firstRain: this.firstRainDay >= 0 && this.firstRainDay <= d, doubled: [], disputes: new Map(), short: new Map(), build: this.construction.stoneTasks(), counts: {} };
     const ops: { t: number; f: () => void }[] = [];
@@ -284,8 +288,13 @@ export class EventCalendar {
       E(x.hour, 'E-12', `${n} head of small cattle slaughtered at the stockyard; the hides go to the treasury`, 'stockyard', n); } }); }
     for (const x of this.inst('E-13', d)) ops.push({ t: x.hour, f: () => { const n = Math.max(0, Math.round(S.sheep - 1200)); if (n < 20) return; S.sheep -= n; E(x.hour, 'E-13', `${n} tax animals and sheep of the king driven out on the road to Susa`, 'station', n); } });
     for (const x of this.inst('E-15', d)) ops.push({ t: x.hour, f: () => { const n = 1 + Math.floor(u01(seed, salt('E-15n'), d, x.k) * 10); S.tablets += n; E(x.hour, 'E-15', `${n} sealed tablets filed; stock counted`, u01(seed, salt('E-15p'), d, x.k) < 0.5 ? 'treasury_desk' : 'store_town', n); } });
-    for (const x of this.inst('E-20', d)) { const tr = u01(seed, salt('E-20t'), d, x.k) < 0.5; ctx.couriers.push({ t: x.hour, treasury: tr }); if (tr) ctx.doubled.push([x.hour + 0.8, x.hour + 1.8]);
+    for (const x of this.inst('E-20', d)) { const tr = u01(seed, salt('E-20t'), d, x.k) < 0.5; ctx.couriers.push({ t: x.hour, treasury: tr });
+      if (tr && x.hour < sun.set - 1.1) ctx.letters.push({ go: Math.max(x.hour, sun.rise + 1.3), j: x.k });
       E(x.hour, 'E-20', `an express courier ${u01(seed, salt('E-20d'), d, x.k) < 0.5 ? 'arrived at' : 'left'} the road station${tr ? ' with a sealed letter for the Treasury' : ''}`, 'station'); }
+    if (d > 0) { const set0 = sunTimes(d - 1).set; for (const x of this.inst('E-20', d - 1)) if (u01(seed, salt('E-20t'), d - 1, x.k) < 0.5 && x.hour >= set0 - 1.1) ctx.letters.push({ go: sun.rise + 1.3, j: 50 + x.k }); }
+    // (the Treasury door doubled while a letter is brought up: E-81)
+    // (letters waiting for the desk to open go up together, in one man's bag)
+    ctx.letters.sort((a, b) => a.go - b.go); ctx.letters = ctx.letters.filter((x, i, l) => i === 0 || x.go > l[i - 1].go + 1e-6); for (const x of ctx.letters) ctx.doubled.push([x.go + 0.8, x.go + 1.8]);
     for (const p of this.pop.parties) if (p.day === d) ops.push({ t: p.hour, f: () => { const fl = p.size * p.stay * 1.25 / 10, be = p.size * p.stay / 10; S.flour -= Math.min(S.flour, fl); S.beer -= Math.min(S.beer, be);
       E(p.hour, 'E-21', `a party of ${p.size} from ${p.route} showed its sealed halmi and drew travel rations`, 'station', p.size); } });
     for (const x of this.pop.transferList) if (x.day === d) ops.push({ t: x.hour, f: () => { S.flour -= Math.min(S.flour, x.size * 1.5 / 10); E(x.hour, 'E-23', `a work group of ${x.size} arrived to new quarters in the town`, 'store_town', x.size); } });
