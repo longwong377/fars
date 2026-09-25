@@ -3749,3 +3749,31 @@ second Persian-sized build for one man); the king at the throne standing (not at
 it instead); the audience in the Hall of a Hundred Columns (a building site in 467); the king shown every day (restraint:
 two mornings in five, C); the retinue billeted in the town's houses (the house plots' capacity model is population.ts's, which another agent is editing; not modelled); tents drawn on
 standing crops (the camp ground made trodden instead); camps chosen for looks (sites searched for clear, level ground).
+
+## D-205 The "bare-chested, bald, barefoot" scribe: every piece is drawn; what was really broken was the farthest body dropping thin pieces (session 7)
+- **Read first: not browser-verified.** Measured in node only (no Playwright). The browser image was compared with a node raster of the same camera, pixel for pixel; no new render was made.
+- **Report:** the camera-rig moment `scribe-at-work` (day 25, 10:00; eye (189.4, −84.2) at 1.0 m, azimuth 269° true, pitch −12°, fov 50) showed the scribe crouched at his tablets and seemingly bare-chested, bald and barefoot, in a short skirt with a red belt. The same was seen at quality test before the court merge (6dd8869).
+- **Who it is:** agent 120, the Babylonian scribe (population person 1517). He is a detailed agent in `median` dress, drawn with the `median` costume at LOD 0 (2.2 m away), body m02, performing `write_tablet` (anim `write`). His look's mask is 311 (always-worn pieces plus hair, bun, short beard, felt cap, kandys). The person row holds 55: the kandys is laid aside while he sits, as designed (crowd.ts ASIDE).
+- **Cause of the report: no piece is hidden.** The costume's index, the vertex piece bits (hmat.z), the mask in the person row and the material's hide test (mirrored in float32) all draw tunic, skirt, trousers, belt, boots, bun, short beard and felt cap. At the moment's camera (true azimuth → grid: yaw = −(az − 341°)), a CPU id raster lines up with the browser image. Where the image reads as skin, the raster has garments:
+  - torso and arms: the tunic, 8,591 px at 960×540;
+  - "bald head": the felt cap, 2,622 px;
+  - "bare feet": the boots, 2,565 px;
+  - the grey patches: the trousers, 3,190 px.
+  In the browser frame the lit torso (182, 118, 72) and the skirt lit by the same door light (194, 125, 81) have the same colour ratio: the tunic is the same weld cloth as the skirt. Three things make him read as bare, and all three are appearance, not visibility:
+  - a close-fitting shell in faded weld yellow under the red-floored room's warm light;
+  - a felt cap shell that follows the pinna (an ear-shaped cap reads as a bald head with an ear);
+  - boot shells that follow the toes.
+  A hull pass that bridges the pinna and the toes (lift each shell vertex along its smoothed normal clear of the body within R) was tried in node. It bridged the ear at LOD 1 and mostly at LOD 0, but it left the mid body's spiky toes at LOD 1 and ballooned the LOD 1 cap. **Rejected for now.** Logged as the next step for the look (not browser-checked either way).
+- **Real fault found by the sweep:** the farthest body (LOD 3, 90–600 m) is the far costume simplified by meshoptimizer as one mesh, with an error bound of 3 % of the whole figure (about 5 cm). That removed every thin piece entirely, so people there were drawn without pieces their look wears:
+  - the belt of every costume (0 or 2 of 96 triangles left);
+  - the guards' bow (0/72), fillet (0/96), torque (0/64), headband (0/96) and akinakes (0/50).
+- **Fix (outfits.ts buildOutfits):** the farthest LOD now simplifies the body and each piece on its own, using the index ranges recorded during assembly.
+  - Body: as before (FAR_KEEP 0.2, 3 % relative bound).
+  - Each piece: target 20 % but at least 4 triangles, with an absolute error bound of PIECE_ERR = 12 % of the piece's own extent (C). `meshoptSimplify` takes the optional absolute bound (`ErrorAbsolute`).
+  - LOD 3 triangles per costume, before → after: persian 511 → 592, median 563 → 637, worker 552 → 583, woman 451 → 556, child 363 → 367, envoy 489 → 550, envoy_short 625 → 687, envoy_bare 435 → 493 (sum +9 %). Every piece now keeps triangles, e.g. belt 8, bow 14, fillet 16, torque 8, headband 4–8, akinakes 10.
+- **Sweep (tests/people_pieces.test.ts; numbers in bench-reports/people-pieces.json):**
+  - (1) Every vertex of every built costume at LODs 0–3 carries its piece's bit (212,773 vertices). A piece is shown or hidden whole. Every piece has triangles at every LOD. This failed before the fix (persian@3: belt).
+  - (2) 380 looks: every dress, including guard, king and all 23 delegations. Each look × every LOD × plain, cold (weatherMask), seated (laid aside) and asleep masks gives 6,080 combinations. The pieces drawn equal the pieces worn, with 0 mismatches (LOD 3 mismatches before the fix).
+  - (3) Performers posed by the Crowd's own path: 4 each of scribe/write, mason/chisel, grinder/grind, baker/knead and bake, porter/carry_shoulder, and Persian- and Median-dress guards. Each is rasterised from 6 views at every LOD. Every garment worn is seen (hair excepted under a cap). Skin of the torso or sleeved arms stays ≤ 3 % of the upper garment's pixels at LOD 0–1 and ≤ 6 % at LOD 2–3. The worst case is 5.9 %: a porter at LOD 2 at 3.05 % and the simplified far bodies at 3.5–5.9 %, where the coarse shells let the body poke through. Nobody else has the scribe's reported fault.
+  - (4) The moment itself: the scribe is agent 120, median, LOD 0. Tunic > 5,000 px, cap, boots and trousers > 1,500 px each. Torso/upper-arm/thigh skin < 1 % of the tunic's pixels (17 px of chest at the neckline).
+- **Tests:** tests/people_pieces.test.ts (new); tests/humans*.test.ts, people_look, performances, court_view, popview and performers pass. tsc and lint:all are clean.
