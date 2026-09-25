@@ -47,6 +47,13 @@ describe('fire-light occlusion (D-222)', () => {
       expect(court / courtN, `brazier ${k}: court lit share`).toBeLessThan(0.05);
     }
   });
+  it('no false self-shadow on the open floor round a brazier (slope-scaled bias; brazier-close rendered rows of triangles)', () => {
+    for (const k of occ.fires.map((f, i) => [f, i] as const).filter(([f]) => f.kind === 'brazier' && Math.abs(f.pos[0] + 33.4) < 0.01).map(([, i]) => i)) {
+      const [lx, ly, lz] = occ.fires[k].pos, fy = ly - 1.37; let lit = 0, n = 0;
+      for (let dx = -3; dx <= 3; dx += 0.1) for (let dz = -3; dz <= 3; dz += 0.1) { if (Math.hypot(dx, dz) < 0.4) continue; n++; lit += occAt(occ, k, lx, ly, lz, lx + dx, fy, lz + dz, 0, 1, 0); }
+      expect(lit / n, `stair-head brazier ${k}: lit share of the floor within 3 m`).toBeGreaterThan(0.99);
+    }
+  });
   it('a fire inside a solid is left unoccluded, and an unknown light maps to no tile (lit everywhere)', () => {
     const solid: OccTracer = { intersect: () => ({ t: 0.1 }), inside: () => true };
     expect(bakeTile(solid, 0, 0, 0)).toBeNull();

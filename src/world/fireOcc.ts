@@ -8,7 +8,7 @@
 // Only the Terrace's fixed fires are baked; the town's hearths and anything that moves (people, props) cast no fire
 // shadow. The runtime multiplies each point light's colour by the lookup (fire.ts), after the room mask (D-216).
 import * as THREE from 'three/webgpu';
-import { float, vec2, ivec2, abs, floor, fract, clamp, length, step, positionWorld, normalWorld, max, mix, texture } from 'three/tsl';
+import { float, vec2, ivec2, abs, floor, fract, clamp, length, step, positionWorld, normalWorld, max, min, mix, texture } from 'three/tsl';
 
 /** texels along a tile's side (an octahedral map: ~1.4° per texel at 128) */
 export const OCC_TILE = 128;
@@ -20,6 +20,17 @@ export const OCC_FAR = 60;
 export const MID_CAP = 1;
 /** the shading point is moved this far along its normal before the lookup (m), and compared with this bias (m + × r) */
 export const OCC_NORMAL_OFFSET = 0.04, OCC_BIAS = 0.02, OCC_BIAS_R = 0.01;
+/** slope-scaled bias (session 8): a texel spans ~r·OCC_SLOPE across the ray, so on a surface the light grazes at angle θ from
+ *  its normal the surface's own distance varies by ~r·OCC_SLOPE·tan θ within one texel (and its PCF neighbour); without it the
+ *  open floor round a brazier (light 1.37 m up) was 11 % falsely shadowed in the octahedral texels' diamonds (brazier-close
+ *  render: rows of triangles). tan θ is capped (OCC_TAN_MAX) and the whole bias kept inside MID_CAP, so an occluder a few
+ *  decimetres in front of a surface still shades it */
+export const OCC_SLOPE = 0.06, OCC_TAN_MAX = 12, OCC_BIAS_MAX = 0.9;
+/** the depth bias (m) at distance r for a surface whose normal makes cos θ with the light direction */
+export function occBias(r: number, cosT: number): number {
+  const c = Math.max(Math.abs(cosT), 1e-3), tan = Math.min(Math.sqrt(Math.max(0, 1 - c * c)) / c, OCC_TAN_MAX);
+  return Math.min(OCC_BIAS + OCC_BIAS_R * r + OCC_SLOPE * r * tan, OCC_BIAS_MAX);
+}
 
 /** octahedral encoding (y up): unit direction → [0, 1]² */
 export function octEncode(x: number, y: number, z: number): [number, number] {
@@ -70,7 +81,8 @@ export function occAt(occ: FireOcc, tile: number, lx: number, ly: number, lz: nu
   const [s, t] = octEncode(x / r, y / r, z / r), T = occ.tile;
   const i = Math.min(T - 1, Math.max(0, Math.floor(s * T))), j = Math.min(T - 1, Math.max(0, Math.floor(t * T)));
   const d = occ.data[((Math.floor(tile / occ.cols) * T + j) * occ.cols * T) + (tile % occ.cols) * T + i];
-  return r - (OCC_BIAS + OCC_BIAS_R * r) <= d ? 1 : 0;
+  const cosT = nx || ny || nz ? (x * nx + y * ny + z * nz) / r : 1;
+  return r - occBias(r, cosT) <= d ? 1 : 0;
 }
 
 let OCC: FireOcc | null = null;
@@ -104,7 +116,8 @@ export function fireOccNode(lightPos: any, tile: any) {
   const fold = vec2(float(1).sub(abs(p.y)), float(1).sub(abs(p.x))).mul(sg);
   const lower = step(n.y, 0), q = mix(p, fold, lower).mul(0.5).add(0.5);
   const f = q.mul(T).sub(0.5), i0 = floor(f), w = fract(f);
-  const tx = floor(tile.mod(cols)).mul(T), ty = floor(tile.div(cols)).mul(T), bias = r.mul(OCC_BIAS_R).add(OCC_BIAS);
+  const c = max(abs(normalWorld.dot(n)), 1e-3), tanT = min(float(1).sub(c.mul(c)).max(0).sqrt().div(c), OCC_TAN_MAX);
+  const tx = floor(tile.mod(cols)).mul(T), ty = floor(tile.div(cols)).mul(T), bias = min(r.mul(OCC_BIAS_R).add(OCC_BIAS).add(r.mul(tanT).mul(OCC_SLOPE)), OCC_BIAS_MAX);
   const tap = (ox: number, oy: number) => {
     const c = clamp(i0.add(vec2(ox, oy)), 0, T - 1);
     const s = tex.load(ivec2(c.x.add(tx).toInt(), c.y.add(ty).toInt())).r;
