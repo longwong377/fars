@@ -2009,7 +2009,7 @@ class Planner {
       // (the moments tried: every 0.12 h out from the middle, and the nearest moment of each spell in the gap, so that a short
       // spell at home between the walks and the water is found: 1593 on day 297, 3.6 h unfed between the Treasury and supper)
       const tries = Array.from({ length: 31 }, (_, i) => mid + (i % 2 ? 1 : -1) * Math.ceil(i / 2) * 0.12);
-      for (const y of segs) if (y.t1 > lo && y.t0 < hi) tries.push(Math.min(Math.max(mid, y.t0 + 0.01, lo), y.t1 - 0.2, hi));
+      for (const y of segs) if (y.t1 > lo && y.t0 < hi) tries.push(Math.min(Math.max(mid, y.t0 + 0.01, lo), y.t1 - 0.21, hi)); // (0.21: a spell of 0.2 h and a hair was lost to the float in the test below; D-211, the soak's 1868 day 298)
       tries.sort((p, q) => Math.abs(p - mid) - Math.abs(q - mid));
       for (const t of tries) { if (t < lo || t > hi) continue; const x = segAt(segs, t);
         // (a band's mother on the move nurses as she walks beside the donkeys: a walk of the day's stage is split, C)
@@ -2212,7 +2212,7 @@ class Planner {
   private idle(): [ActivityId, string] { return this.home === 'station' ? ['rest', 'at the station lodging'] : this.age < 10 ? ['play', 'playing in the courtyard'] : ['rest', 'at home']; }
   private noonAtHome(why = 'the midday meal with the household') { const H = this.hd;
     if (this.segs.some(s => s.act === 'eat' && s.t0 >= H.noon - 1.2 && s.t0 < this.t)) return; // (eaten already: at home out of the rain, S1 r5)
-    if (this.t < H.noon - 0.05) this.idleUntil(H.noon); this.atHome(this.t + H.nLen, 'eat', why); }
+    if (this.t < H.noon - 0.05) this.idleUntil(H.noon); this.atHome(this.t + H.nLen, 'eat', this.t > 16 && /midday/.test(why) ? 'a meal with the household' : why); }
   /** evening at home and out: the household's supper together (lives.json meals), then the household's real options
    *  (lives.json evening) */
   private evening(from: number) {
@@ -3380,7 +3380,7 @@ class Planner {
       if (T!.carryHome) this.go(this.home, W, T!.carryHome, 'carry_sack'); else this.go(this.home, W, 'home from the field'); half(eve, 1);
     } else if (trade) { // ---- a day at his father's work, learning it beside him (S6 of reviewer B, r5; C)
       const fh = P.households[P.home(fa!, d)].home;
-      for (const s of trade) { if (s.t0 > this.t + 1e-4) this.atHome(s.t0, ...this.idle());
+      for (const s of trade) { if (s.t0 > this.t + 1e-4) { if (this.t < this.hd.noon + 0.5 && s.t0 > this.hd.noon + this.hd.nLen + 0.2) this.noonAtHome(); this.atHome(s.t0, ...this.idle()); } // (the midday meal at home before an afternoon at his father's work: D-211, the soak's "midday meal" at 17:06)
         const road = s.where === 'road', learn: Record<string, string> = { write_tablet: 'learning the signs beside his father, copying on a tablet', craft: 'helping his father at his craft, learning it', garden_work: 'working the beds beside his father',
           irrigate: 'opening the runnels beside his father', inspect: 'beside his father at the storehouse, learning the measures', pick_fruit: 'picking beside his father', dig_canal: 'clearing the channel beside his father', carry_sack: 'helping his father carry the load',
           weave: 'at his father’s loom, learning it', brew: 'helping at the brewing vats beside his father, learning it', tend_animals: 'helping his father with the horses, learning it',
