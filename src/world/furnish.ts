@@ -136,10 +136,10 @@ export function buildScribesRoom(room: number[], shelves: number[][], seed = 1):
   const mats = new THREE.InstancedMesh(new THREE.PlaneGeometry(mw, md).rotateX(-Math.PI / 2), mat([0.6, 0.52, 0.34], 0.95), seats.length);
   seats.forEach(([e, nn, h], i) => mats.setMatrixAt(i, m4.compose(new THREE.Vector3(e, fl + 0.006, -nn), q.setFromAxisAngle(up, -(h * Math.PI) / 180), one)));
   mats.name = 'scribes:mats'; group.add(tag(mats, 'reed mats to sit on at the desk (reed matting is the common floor covering of the region: B by analogy; one to each place C)'));
-  // the lamp: a clay saucer lamp with a pinched nozzle on the bench, unlit by day; the wall above it sooted by the evenings
+  // the lamp: a clay saucer lamp with a pinched nozzle on the bench (its flame and light: firePlaces.ts); the wall above it sooted
   const L = R.lamp, lampG = mergeGeometries([strip(lathe([[0, 0], [L.r * 0.7, 0], [L.r, 0.016], [L.r * 1.02, 0.03], [L.r * 0.9, 0.03], [L.r * 0.82, 0.016], [0, 0.012]], 14)), strip(new THREE.BoxGeometry(0.03, 0.012, 0.026).translate(L.r + 0.01, 0.024, 0))])!;
   const lamp = new THREE.Mesh(lampG, mat([0.6, 0.45, 0.32], 0.8)); lamp.position.set(L.at[0], bTop, -L.at[1]); lamp.rotation.y = -Math.PI / 2; lamp.name = 'scribes:lamp';
-  group.add(tag(lamp, 'a clay saucer lamp with a pinched nozzle (the lamp type of the Iron Age Near East: B by analogy); unlit by day. NOT LIT at dusk either: the fire-light model has no lamp light (placeholder)'));
+  group.add(tag(lamp, 'a clay saucer lamp with a pinched nozzle (the lamp type of the Iron Age Near East: B by analogy); lit through the working day as a fire of kind lamp (world firePlaces.ts, session 8; C)'));
   const sootMat = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(0.05, 0.045, 0.04, THREE.SRGBColorSpace), roughness: 0.95, metalness: 0 });
   sootMat.alphaHash = true; { const u = uv(), w = float(0.16).add(u.y.mul(0.34)), dx = u.x.sub(0.5).abs().div(w); sootMat.opacityNode = float(1).sub(dx.mul(2)).clamp(0, 1).mul(float(1).sub(u.y).clamp(0, 1)).mul(u.y.mul(8).clamp(0, 1)).mul(0.8); }
   const [sw, sh] = L.soot as number[], soot = new THREE.Mesh(new THREE.PlaneGeometry(sw, sh), sootMat);

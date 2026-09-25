@@ -30,6 +30,8 @@ describe('fire-light occlusion (D-222)', () => {
     expect(occ.tile).toBe(OCC_TILE);
     expect(occ.fires).toEqual(terraceFireLights(T.manifest, T.parts, T.doorways));
     expect(occ.data.length).toBe(occ.cols * occ.tile * occ.rows * occ.tile);
+    // the scribes' room lamp (session 8) is one of them, on the bench by its place in SITE_SPEC
+    expect(occ.fires.some(f => f.kind === 'lamp' && Math.hypot(f.pos[0] - 188.9, -f.pos[2] - -80.95) < 0.01)).toBe(true);
   });
   it('B24: the N stair braziers light their landing but not the N court floor behind the parapet', () => {
     const a: any = T.manifest.apadana, n0 = a.nStairEdge + 1.5;

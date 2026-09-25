@@ -41,7 +41,7 @@ describe('the scribes’ room at work (D-221)', () => {
       const m = by(n); expect(m, n).toBeTruthy(); expect(m!.userData.tier, n).toMatch(/^[ABC]$/); expect(String(m!.userData.note ?? m!.userData.what ?? ''), n).not.toBe(''); }
     expect((by('scribes:mats') as THREE.InstancedMesh).count).toBe(4);
     expect(by('scribes:soot')!.castShadow).toBe(false); expect(by('scribes:floor_stain')!.castShadow).toBe(false);
-    expect(String(by('scribes:lamp')!.userData.note)).toMatch(/NOT LIT/); // (the lamp is never lit: flagged)
+    expect(String(by('scribes:lamp')!.userData.note)).toMatch(/fire of kind lamp/); // (lit by the fire system: firePlaces.ts, session 8)
   });
   it('the Aramaic secretary writes in Aramaic at the desk; his son is his pupil there on most of the days he keeps it, with 0 plan issues over the year', () => {
     const P = sim.pop, [s1, s2] = P.treasuryScribes, ar = [s1, s2].find(s => P.persons[s].origin === 'Babylonian')!, pu = P.persons.filter(p => p.pupilOf !== undefined).map(p => p.id);
