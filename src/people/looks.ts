@@ -7,7 +7,7 @@
 import { Rng } from '../core/rng';
 import type { HumanAssets } from './humanAssets';
 import { COSTUMES, pieceBit, PIECES, type Dress } from './outfits';
-import { packLookBits } from './humanFormat';
+import { packLookBits, LOOK_BITS } from './humanFormat';
 import delegationsData from '../data/delegations.json';
 
 type RGB = [number, number, number];
@@ -72,7 +72,7 @@ export interface Wear { fade: number; soil: number; fit: number; foldAmp: number
 const WEAR_BY: Record<string, { s: [number, number]; f: [number, number]; soil: [number, number] }> = {
   persian: { s: [0.55, 1], f: [0, 0.3], soil: [0.12, 0.3] }, guard: { s: [0.5, 0.95], f: [0.05, 0.35], soil: [0.18, 0.35] },
   // D-199: the king's robe newest and strongest; the delegations' best clothes, but after the road (C)
-  king: { s: [0.9, 1], f: [0, 0.05], soil: [0.05, 0.12] }, envoy: { s: [0.4, 0.9], f: [0.05, 0.35], soil: [0.2, 0.4] },
+  king: { s: [0.9, 1], f: [0, 0.05], soil: [0.05, 0.12] }, court_woman: { s: [0.7, 1], f: [0, 0.2], soil: [0.04, 0.12] }, envoy: { s: [0.4, 0.9], f: [0.05, 0.35], soil: [0.2, 0.4] },
   envoy_short: { s: [0.4, 0.9], f: [0.05, 0.35], soil: [0.2, 0.4] }, envoy_bare: { s: [0.3, 0.8], f: [0.05, 0.4], soil: [0.2, 0.45] },
   median: { s: [0.45, 0.95], f: [0.05, 0.35], soil: [0.15, 0.35] }, woman: { s: [0.2, 0.8], f: [0.1, 0.5], soil: [0.2, 0.45] },
   worker: { s: [0, 0.55], f: [0.15, 0.7], soil: [0.3, 0.6] }, child: { s: [0, 0.5], f: [0.2, 0.7], soil: [0.35, 0.6] },
@@ -134,8 +134,20 @@ export interface LookInput { id: number; sex: 'm' | 'f'; role: string; dress: Dr
 export interface DelegationDef { id: string; origin: string; relief: string; dress: Dress; pieces: string[]; beard: 'long' | 'short' | 'none'; dyes: { main: string[]; second: string[]; trim: string[] }; gifts: [string, string][]; note: string }
 export const DELEGATIONS: DelegationDef[] = (delegationsData as any).peoples;
 export const DELEGATION_OF_ORIGIN: Record<string, DelegationDef> = Object.fromEntries(DELEGATIONS.map(d => [d.origin, d]));
+/** D-215 (gap audit item 21): the share of each dress wearing ear rings (`ear`), bracelets (`brace`), the wicker shield
+ *  (`shield`) and eye paint (`kohl`), by rank. The things: ring earrings on guards and nobles and bracelets (MATERIAL_CULTURE,
+ *  NOT SEEN, C); "the necklaces about their necks, and the bracelets on their wrists" and the "pencillings beneath his eyes"
+ *  of the Median court (Xenophon, Cyr. 1.3.2, read this session: a claim, B), the eye pencilling Cyrus's courtiers took up
+ *  (Cyr. 8.1.41, B); the Persians' wicker bucklers (Herodotus 7.61, read: B). Every share is C: gold for the court (the
+ *  king and the court women always), bronze for a share of the town's women; working men and children none (the workers'
+ *  dress has "no ornaments": MATERIAL_CULTURE); eye paint for the court and a share of the town's women (Mesopotamian eye
+ *  paint, Akkadian guḫlu: RECOLLECTION, NOT SEEN; C). Median dress: the guards' shares, else the base (scribes, couriers) */
+export const JEWELS: Partial<Record<Dress, { base: { ear: number; brace: number; shield?: number; kohl?: number }; guard?: { ear: number; brace: number; shield?: number; kohl?: number } }>> = {
+  persian: { base: { ear: 0.7, brace: 0.5, kohl: 0.5 } }, guard: { base: { ear: 0.6, brace: 0.25, shield: 0.35 } }, king: { base: { ear: 1, brace: 1, kohl: 1 } },
+  court_woman: { base: { ear: 1, brace: 1, kohl: 1 } }, median: { base: { ear: 0.1, brace: 0.1 }, guard: { ear: 0.5, brace: 0.2 } }, woman: { base: { ear: 0.5, brace: 0.35, kohl: 0.25 } },
+};
 /** the impostor row of each dress (PersonLook.far) */
-export const FAR_OF: Partial<Record<Dress, Dress>> = { envoy: 'woman', envoy_short: 'median', envoy_bare: 'worker', king: 'persian' };
+export const FAR_OF: Partial<Record<Dress, Dress>> = { envoy: 'woman', envoy_short: 'median', envoy_bare: 'worker', king: 'persian', court_woman: 'woman' };
 
 function pickVariant(A: HumanAssets, rng: Rng, sex: 'm' | 'f', group: 'adult' | 'elder' | 'child', target: number) {
   let cand = A.variants.filter(v => v.meta.group === group && (group === 'child' || v.meta.sex === sex));
@@ -186,6 +198,8 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
     case 'child': mainK = pick(['wool', 'linen', 'brown']); secondK = 'wool'; trimK = 'brown'; break;
     // D-199: the king's robe purple (or red), the colour the sources give the royal robe (IR-CLOTH, B; the dye C)
     case 'king': mainK = rng.chance(0.7) ? 'purple' : 'madder'; secondK = 'wool'; trimK = 'purple'; break;
+    // D-215: the court women's robe in the court's strong dyes, the veil fine wool or linen (C)
+    case 'court_woman': mainK = pick(['purple', 'madder', 'kermes', 'woad', 'madder']); secondK = pick(['linen', 'wool', 'weld', 'linen']); trimK = pick(['purple', 'weld', 'woad', 'madder']); break;
     default: mainK = pick(['wool', 'linen', 'brown', 'grey', 'wool']); secondK = pick(['brown', 'wool', 'grey']); trimK = pick(['brown', 'wool', 'madder']); break;
   }
   if (del) { mainK = pick(del.dyes.main); secondK = pick(del.dyes.second); trimK = pick(del.dyes.trim); } // D-199: the people's own palette (C)
@@ -230,7 +244,7 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   const hairStyle = on.has('hair_bob') ? 2 : court ? 1 : 0;
   const beardDensity = dress === 'worker' && hasBeard ? rng.int(0, 2) : 0;
   const lookBits = packLookBits({ motif: pattern, hairStyle, iris, wearsHair: on.has('hair') || on.has('hair_bob') ? 1 : 0,
-    linen: (mainK === 'linen' ? 1 : 0) + (secondK === 'linen' ? 2 : 0) + (trimK === 'linen' ? 4 : 0), age: Math.floor(v.meta.ageYears / 10), beard: beardDensity, grimeZone: GRIME_ZONE[p.role] ?? 0 });
+    linen: (mainK === 'linen' ? 1 : 0) + (secondK === 'linen' ? 2 : 0) + (trimK === 'linen' ? 4 : 0), age: Math.floor(v.meta.ageYears / 10), beard: beardDensity, grimeZone: GRIME_ZONE[p.role] ?? 0, kohl: 0 });
   // D-189 (new draws last again): dye strength by rank, garment age (fading), a value jitter per garment, hem soil, the
   // skirt's fit and hem folds, and a hair lightness spread (C); the colours above were the mid colour of each textile
   const WB = WEAR_BY[dress] ?? WEAR_BY.worker, sMain = rng.range(...WB.s), age = rng.range(...WB.f), soil = rng.range(...WB.soil);
@@ -239,10 +253,18 @@ export function lookFor(A: HumanAssets, p: LookInput, worldSeed: number): Person
   const wear: Wear = { fade: age, soil, fit: rng.range(-0.004, 0.022), foldAmp: rng.range(0.012, 0.026), foldPhase: rng.next(), k: [DYES[mainK].fade, DYES[secondK].fade, DYES[trimK].fade], hat: 0 };
   wear.hat = rng.range(-0.12, 0.12);
   const hl = rng.range(0.85, 1.3); col.hair = col.hair.map(x => Math.min(0.2, x * hl)) as RGB;
+  // D-215 (gap audit item 21; new draws last): ornaments by rank, the guards' wicker shield and eye paint for the court
+  // (the placement by rank is C; the things: JEWELS)
+  const J = JEWELS[dress], free = !p.pieces && !del, add = (id: string) => { if (COSTUMES[dress].opt.includes(id) && !pieces.includes(id)) { mask |= 1 << pieceBit(dress, id); pieces.push(id); } };
+  const shares = J ? (dress === 'median' ? (p.role === 'guard' ? J.guard! : J.base) : J.base) : null;
+  const uE = rng.next(), uB = rng.next(), uS = rng.next(), uK = rng.next();
+  if (shares && free) { if (uE < shares.ear) add(dress === 'woman' ? 'earrings_b' : 'earrings'); if (uB < shares.brace) add(dress === 'woman' ? 'bracelets_b' : 'bracelets'); if (uS < (shares.shield ?? 0)) add('shield'); }
+  const kohl = shares && (free || dress === 'king') && uK < (shares.kohl ?? 0) ? 1 : 0;
   const tiers = pieces.map(id => `${id} ${PIECES[id]?.tier ?? 'C'}`).join(', ');
   const delNote = del ? `; the ${del.id} of the Apadana reliefs (relief ${del.relief}; form B, colours C: D-199)` : dress === 'king' ? '; the king as the reliefs carve him (robe, crown, beard: B; colours C: D-199)' : '';
   const note = `body ${v.meta.id} (variant, C) × ${scale.toFixed(3)} → ${(v.height * scale).toFixed(2)} m (stature C, Q-066); ${tiers}; colours main ${mainK} (${TEXTILE[mainK].tier}), second ${secondK}, trim ${trimK}, dye strength ${sMain.toFixed(2)}, age ${age.toFixed(2)}, hem soil ${soil.toFixed(2)} (C, D-189)${pattern ? ', Susa-style rosettes (B)' : ''}; skin tone p ${toneP.toFixed(2)} for ${origin} (C, Q-240), hair ${['natural curls', 'court rows of curls', 'straight'][hairStyle]} (C), iris ${iris}; grime ${grimeWhat} (C)${delNote}`;
-  return { dress, ...(FAR_OF[dress] ? { far: FAR_OF[dress] } : {}), variant: v.index, variantId: v.meta.id, scale, stature: v.height * scale, mask, pieces, pattern: lookBits, grime, grimeLevel, stubble, col, wear, note };
+  return { dress, ...(FAR_OF[dress] ? { far: FAR_OF[dress] } : {}), variant: v.index, variantId: v.meta.id, scale, stature: v.height * scale, mask, pieces, pattern: lookBits + kohl * 2 ** LOOK_BITS.kohl[0], grime, grimeLevel, stubble, col, wear,
+    note: note + (kohl ? '; eyes lined with eye paint (the court\'s fashion: Xenophon, Cyr. 1.3.2, 8.1.41, read, a claim: B; who wears it C; D-215)' : '') };
 }
 /** the person row's wear texel (humanMaterial PERSON_TEXELS, texel 9): [garment age, fit (m), fold amplitude (mm) + phase
  *  (the fraction), hem soil] */

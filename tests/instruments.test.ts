@@ -51,7 +51,7 @@ describe('instrument forms (M-19, M-20, M-21; all sizes C)', () => {
   it('every instrument has geometry, a tier and a note naming its evidence; the instruments are a class of their own within budget', () => {
     for (const k of ['harp_v', 'harp_h', 'lyre', 'frame_drum', 'double_pipe', 'reed_pipe', 'plectrum']) {
       expect(propGeometry(PROPS[k].geom), k).not.toBeNull(); expect(['A', 'B', 'C']).toContain(PROP_NOTES[k].tier); expect(PROP_NOTES[k].note.length, k).toBeGreaterThan(40); }
-    expect(PROP_CLASSES).toHaveLength(3); expect(PROP_CLASSES[2]).toContain('harp_v');
+    expect(PROP_CLASSES).toHaveLength(4); expect(PROP_CLASSES[2]).toContain('harp_v'); // (D-215: a fourth class, the carried children)
     for (const k of PROP_CLASSES[2]) for (const c of [0, 1]) expect(PROP_CLASSES[c]).not.toContain(k);
     const tris = propUnionGeometry(2).getAttribute('position').count / 3; console.log(`instrument union: ${tris} triangles per instance`);
     expect(tris).toBeLessThanOrEqual(1200);

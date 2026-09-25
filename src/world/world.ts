@@ -42,7 +42,6 @@ import { PalaceFurnishings } from './furnish_palaces';
 import { buildReliefMarks } from '../arch/marks';
 import { loadWritingFonts } from './writing';
 import { buildPlain } from './plain';
-import { woodlandTrees } from './plain/trees';
 import { bakeTerrainDetail } from '../terrain/terrainDetail';
 import { ConstructionView } from './construction';
 import { NowView } from './nowview';
@@ -306,7 +305,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const music = new MusicSystem(audio, () => courtOn(Math.floor(sim.t / 24)) || courtOn(Math.floor(sim.t / 24) - 1));
   const hadishRoom = rooms.find(r => r.id === 'hadish') ?? null;
   const director = new MusicDirector(music, audio, {
-    addExtra: (key, x) => { crowd.addExtra(key, { id: -7000 - (x.seed % 1000), dress: 'woman', sex: x.sex, role: 'musician', seed: x.seed, x: x.e, y: x.y, z: -x.n, yaw: yawOf(x.heading), anim: x.anim } as any); },
+    addExtra: (key, x) => { crowd.addExtra(key, { id: -7000 - (x.seed % 1000), dress: x.sex === 'f' ? 'court_woman' : 'persian', sex: x.sex, role: 'musician', seed: x.seed, x: x.e, y: x.y, z: -x.n, yaw: yawOf(x.heading), anim: x.anim } as any); },
     removeExtra: key => crowd.detach(key),
     // what a performer is seen doing (D-200: the playing performance, the singers' jaw and breath on the piece's notes)
     play: (who, kind, sec, notes) => crowd.setPlaying(Crowd.keyOf(who), kind, sec, time, notes),
@@ -394,7 +393,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       log: () => visitor.s.log, state: () => visitor.s,
     },
     /** dev: the woodland trees within r m of grid (e, n), as [e, n, crown width] (camera-rig framing: the renders keep off them) */
-    treesNear: (e: number, n: number, r: number) => woodlandTrees((plain.data as any).zones, e, -n, r).map(t => [t.x, t.y, t.w]),
+    treesNear: (e: number, n: number, r: number) => [...plain.treesAround(e, n, r),
+      ...(settlement?.plan.trees ?? []).filter(t => Math.hypot(t.c[0] - e, t.c[1] - n) < r).map(t => [t.c[0], t.c[1], 2 * (t.size ?? 3)])],
     mapLayers: () => (mapItems ??= buildMapLayers({ town: settlement?.plan as any, plain: builtPlainOf(plain.data as any) })),
     saveState: () => ({ people: sim.save(), visitor: visitor.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } visitor.load(s?.visitor); },
     /** persistence (brief §9.5): simulate the time the world ran while the visitor was away, everyone in the abstract LOD

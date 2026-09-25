@@ -84,6 +84,18 @@ export const PROP_NOTES: Record<string, { tier: 'A' | 'B' | 'C'; note: string }>
   parasol: { tier: 'B', note: 'the parasol held over the king by an attendant (door-jamb reliefs, HADISH-JAMB: B); a pole of 2 m and a canopy 1.2 m across with a fringe, cloth over ribs: C' },
   whisk: { tier: 'B', note: 'the fly-whisk held behind the king by an attendant (door-jamb reliefs: B); a short handle and a horsehair tuft, C' },
   towel: { tier: 'B', note: 'the towel or napkin the fly-whisk bearer carries (door-jamb and Treasury audience reliefs: B); folded linen over the hand, C' },
+  // D-215 (gap audit items 21, 26, 4; D-207)
+  spear_apple: { tier: 'B', note: 'the spear of the king’s own spearmen with an apple of gold at the butt: “those following nearest to Xerxes had apples of gold” (Herodotus 7.41, read: a claim, B); the apple’s size and the gilding C' },
+  spear_gpom: { tier: 'B', note: 'a spear with a golden pomegranate at the butt: of the ten thousand “one thousand had golden pomegranates … the nine thousand silver” (Herodotus 7.41, read: B); given to one guard in ten of the Persian-dress files (C)' },
+  ball: { tier: 'C', note: 'a child’s stitched leather ball, 10 cm (balls of leather or linen stuffed with chaff or hair are known from Egypt and the Greek world: RECOLLECTION, NOT SEEN; none attested at Persepolis; C)' },
+  toy_bow: { tier: 'C', note: 'a boy’s small bow of the recurved form, 0.6 m (boys taught to shoot: HDT 1.136, a Greek claim, B; the toy C)' },
+  rattle: { tier: 'C', note: 'a hollow fired-clay rattle with pellets inside and a stub handle (clay rattles are known from Near Eastern and Iranian sites: RECOLLECTION, NOT SEEN; C)' },
+  babe: { tier: 'C', note: 'a baby of 3-12 months or a small child carried, in a little tunic, bare-legged (C; D-215: its size by age, its skin the carer’s tone)' },
+  babe_wrapped: { tier: 'C', note: 'a baby under three months swaddled in a cloth, the face showing (swaddling by analogy with Greek and Egyptian practice: C, Q-431)' },
+  babe_sling: { tier: 'C', note: 'a baby or small child in a cloth sling on the carer’s back or front, knotted over her shoulders (the plan’s “on her back”, “at her front”; the sling C)' },
+  babe_wrapped_sling: { tier: 'C', note: 'a swaddled baby in a cloth sling on the back (C)' },
+  babe_mat: { tier: 'C', note: 'a swaddled baby lying on a reed mat on the ground beside the one minding it (the plan: “lying on a mat beside her while she works”; C)' },
+  babe_cradle: { tier: 'C', note: 'a baby asleep in a shallow oval basket cradle on the ground at home (gap audit item 4; basketry is attested in the period, the cradle C)' },
 };
 
 /** geometry of a kind; the Phase 3 kinds keep their old origins (spear: at the butt; others: at the grip) */
@@ -133,9 +145,10 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
     case 'rope': { const g: THREE.BufferGeometry[] = []; const pts: [number, number, number][] = [[0, -0.55, -0.62], [0, -0.1, -0.42], [0, 0, -0.26], [0, 0, 0.3], [0, -0.06, 1.5], [0, -0.22, 3], [0, -0.5, 4.6]];
       for (let i = 0; i + 1 < pts.length; i++) g.push(paint(rod(pts[i], pts[i + 1], 0.013, 0.013, 4), [0.62, 0.54, 0.38], 0, 0.95)); return merge(g); }
     case 'adze': return merge([paint(rod([0, 0, -0.08], [0, 0, 0.36], 0.015, 0.017, 5), WOOD, 0, 0.7), paint(box(0.05, 0.12, 0.018, 0, -0.06, 0.36).rotateX(-0.25).translate(0, 0, 0.09), IRON, 0.6, 0.5)]);
-    case 'bow': { // grip at the origin; limbs ±Y (1.05 m), recurved tips toward +Z (the target); string at z −0.14, its middle drawn back by the parameter (m)
-      const g: THREE.BufferGeometry[] = []; const P = (u: number): [number, number, number] => { const y = 0.52 * u, a = Math.abs(u); return [0, y, 0.06 * a * a - 0.1 * a + (a > 0.8 ? 0.35 * (a - 0.8) : 0)]; };
-      for (let i = -5; i < 5; i++) g.push(paint(rod(P(i / 5), P((i + 1) / 5), 0.016 - 0.008 * Math.abs(i + 0.5) / 5, 0.016 - 0.008 * Math.abs(i + 1.5) / 5, 4), [0.3, 0.2, 0.12], 0, 0.6));
+    case 'bow': case 'toy_bow': { // grip at the origin; limbs ±Y (1.05 m; the toy 0.6 m), recurved tips toward +Z (the target); string at z −0.14, its middle drawn back by the parameter (m)
+      const toy = kind === 'toy_bow', half = toy ? 0.3 : 0.52, n = toy ? 3 : 5, sides = toy ? 3 : 4, th = toy ? 0.6 : 1;
+      const g: THREE.BufferGeometry[] = []; const P = (u: number): [number, number, number] => { const y = half * u, a = Math.abs(u); return [0, y, 0.06 * a * a - 0.1 * a + (a > 0.8 ? 0.35 * (a - 0.8) : 0)]; };
+      for (let i = -n; i < n; i++) g.push(paint(rod(P(i / n), P((i + 1) / n), (0.016 - 0.008 * Math.abs(i + 0.5) / n) * th, (0.016 - 0.008 * Math.abs(i + 1.5) / n) * th, sides), toy ? [0.42, 0.3, 0.18] : [0.3, 0.2, 0.12], 0, 0.6));
       const tip = P(1), bot = P(-1), mid: [number, number, number] = [0, 0, -0.14];
       g.push(paint(rod(tip, mid, 0.0025, 0.0025, 3), [0.82, 0.78, 0.66], 0, 0.8, (_x, y) => [0, 0, Math.abs(y) < 0.02 ? -1 : 0]));
       g.push(paint(rod(mid, bot, 0.0025, 0.0025, 3), [0.82, 0.78, 0.66], 0, 0.8, (_x, y) => [0, 0, Math.abs(y) < 0.02 ? -1 : 0]));
@@ -190,15 +203,56 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
       paint(new THREE.CylinderGeometry(0.6, 0.6, 0.07, 12, 1, true).rotateX(Math.PI / 2).translate(0, 0, 1.54), [0.75, 0.62, 0.36], 0, 0.9)]);
     case 'whisk': return merge([paint(rod([0, 0, -0.08], [0, 0, 0.26], 0.012, 0.011, 5), [0.62, 0.48, 0.26], 0.7, 0.4), paint(rod([0, 0, 0.26], [0, 0, 0.62], 0.02, 0.05, 6), [0.82, 0.8, 0.74], 0, 1)]);
     case 'towel': return paint(box(0.08, 0.02, 0.34, 0, 0, -0.12), [0.8, 0.77, 0.7], 0, 1);
+    // D-215: the royal spearmen's gilded butts (the ordinary spear's form, the butt gold: an apple, or a pomegranate with its crown)
+    case 'spear_apple': case 'spear_gpom': { const G: RGB = [0.9, 0.72, 0.36];
+      const parts = [paint(new THREE.CylinderGeometry(0.014, 0.016, 2.1, 6).translate(0, 1.13, 0), [0.45, 0.33, 0.21], 0, 0.7), paint(new THREE.CylinderGeometry(0.017, 0.014, 0.08, 6).translate(0, 2.21, 0), [0.62, 0.45, 0.26], 1, 0.4),
+        paint(new THREE.ConeGeometry(0.028, 0.26, 4).scale(1, 1, 0.35).translate(0, 2.38, 0), [0.62, 0.45, 0.26], 1, 0.35)];
+      if (kind === 'spear_apple') parts.push(paint(new THREE.SphereGeometry(0.048, 7, 5).scale(1, 0.88, 1).translate(0, 0.045, 0), G, 1, 0.3), paint(new THREE.CylinderGeometry(0.004, 0.006, 0.02, 4).translate(0, 0.093, 0), G, 1, 0.3));
+      else parts.push(paint(new THREE.SphereGeometry(0.045, 7, 5).translate(0, 0.05, 0), G, 1, 0.3), paint(new THREE.CylinderGeometry(0.012, 0.022, 0.03, 6).translate(0, 0.1, 0), G, 1, 0.3));
+      return merge(parts); }
+    // D-215: children's toys (gap audit item 26)
+    case 'ball': return paint(new THREE.SphereGeometry(0.05, 6, 4), [0.55, 0.4, 0.26], 0, 0.85);
+    case 'rattle': return merge([paint(new THREE.SphereGeometry(0.034, 5, 4).scale(1, 0.85, 1).translate(0, 0, 0.1), [0.66, 0.46, 0.32], 0, 0.9), paint(rod([0, 0, -0.03], [0, 0, 0.07], 0.012, 0.014, 3, true), [0.62, 0.43, 0.3], 0, 0.9)]);
+    // D-215: the carried child (gap audit item 4): its own frame, origin at its seat (the bottom), +Y up its spine, +Z its
+    // front; made at a reference length (babes.ts babeKind) and scaled per instance. Skin vertices carry metalness −1: the
+    // babes' material tints them by the carer's tone (the instance parameter)
+    case 'babe': return babeG(false);
+    case 'babe_wrapped': return babeG(true);
+    case 'babe_sling': return merge([babeG(false), slingG(false)]);
+    case 'babe_wrapped_sling': return merge([babeG(true), slingG(true)]);
+    case 'babe_mat': return merge([paint(box(0.5, 0.012, 0.8, 0, 0.006, 0), [0.68, 0.6, 0.4], 0, 0.95), babeG(true).rotateX(-Math.PI / 2).translate(0, 0.08, 0.26)]);
+    case 'babe_cradle': { const prof = [[0.16, 0.01], [0.2, 0.03], [0.225, 0.12], [0.24, 0.17]], inner = [...prof].reverse().map(([r, y]) => [r - 0.014, y + (y < 0.02 ? 0.01 : 0)]);
+      const lathe = (pts: number[][]) => new THREE.LatheGeometry(pts.map(([a, b]) => new THREE.Vector2(a, b)), 8).scale(1, 1, 1.65);
+      return merge([paint(lathe(prof), [0.62, 0.52, 0.32], 0, 0.9), paint(lathe(inner), [0.56, 0.47, 0.29], 0, 0.95), paint(box(0.3, 0.012, 0.52, 0, 0.012, 0), [0.8, 0.77, 0.7], 0, 1), babeG(true).rotateX(-Math.PI / 2).translate(0, 0.085, 0.24)]); }
     default: return null;
   }
+}
+/** the carried child's skin (sRGB; linear ≈ babes.ts BABE_SKIN) and cloth (C) */
+const BABE_SKIN_S: RGB = [0.63, 0.48, 0.4], BABE_CLOTH: RGB = [0.78, 0.74, 0.66], BABE_HAIR: RGB = [0.14, 0.1, 0.08], SLING: RGB = [0.56, 0.46, 0.36];
+/** the child (reference 0.7 m sitting astride: a tunic, bare legs and arms) or the swaddled baby (reference 0.55 m) */
+function babeG(wrapped: boolean): THREE.BufferGeometry {
+  const skin = (g: THREE.BufferGeometry) => paint(g, BABE_SKIN_S, -1, 0.7);
+  if (wrapped) return merge([paint(new THREE.SphereGeometry(1, 6, 4).scale(0.075, 0.2, 0.068).translate(0, 0.2, 0), BABE_CLOTH, 0, 0.95), skin(new THREE.SphereGeometry(0.052, 6, 4).translate(0, 0.44, 0.012)),
+    paint(new THREE.SphereGeometry(0.058, 6, 3, 0, Math.PI * 2, 0, Math.PI * 0.55).rotateX(-0.5).translate(0, 0.445, -0.006), BABE_CLOTH, 0, 0.95)]);
+  const g = [paint(new THREE.SphereGeometry(1, 6, 4).scale(0.08, 0.12, 0.065).translate(0, 0.13, 0), BABE_CLOTH, 0, 0.95), skin(new THREE.SphereGeometry(0.068, 6, 4).translate(0, 0.315, 0.01)),
+    paint(new THREE.SphereGeometry(0.071, 6, 3, 0, Math.PI * 2, 0, Math.PI * 0.45).rotateX(-0.35).translate(0, 0.318, 0), BABE_HAIR, 0, 0.8)];
+  for (const s of [1, -1]) g.push(skin(rod([0.045 * s, 0.035, 0.02], [0.1 * s, 0.01, 0.13], 0.03, 0.026, 4)), skin(rod([0.1 * s, 0.01, 0.13], [0.09 * s, -0.1, 0.15], 0.024, 0.02, 4)),
+    skin(rod([0.078 * s, 0.2, 0], [0.1 * s, 0.12, 0.06], 0.02, 0.018, 3)), skin(rod([0.1 * s, 0.12, 0.06], [0.06 * s, 0.1, 0.12], 0.017, 0.015, 3)));
+  return merge(g);
+}
+/** the sling: a cloth band round the child and two ends knotted over the carer's shoulders (C) */
+function slingG(wrapped: boolean): THREE.BufferGeometry {
+  const y = wrapped ? 0.2 : 0.11, top = wrapped ? 0.36 : 0.24, r = wrapped ? 0.088 : 0.098;
+  const g = [paint(new THREE.CylinderGeometry(r, r, 0.18, 8, 1, true).scale(1, 1, 0.85).translate(0, y, 0), SLING, 0, 1)];
+  for (const s of [1, -1]) g.push(paint(rod([0.07 * s, top, -0.03], [0.16 * s, top + 0.22, 0.2], 0.014, 0.012, 3), SLING, 0, 1));
+  return merge(g);
 }
 export const PROP_KINDS = ['spear', 'sack', 'jar', 'tablet', 'mallet', 'basket'] as const;
 
 /** how a prop is held: legacy (the Phase 3 placements), one hand (axis toward the cycle's tip or along the fist),
  *  two hands (the axis threads rear → front grip), mid (between the palms), hang (below the hand, turning), hip, palm,
  *  at (placed by the cycle), bow, arrow */
-type Rule = 'legacy' | 'one' | 'two' | 'mid' | 'hang' | 'hip' | 'palm' | 'at' | 'bow' | 'arrow' | 'inst' | 'mouth';
+type Rule = 'legacy' | 'one' | 'two' | 'mid' | 'hang' | 'hip' | 'palm' | 'at' | 'bow' | 'arrow' | 'inst' | 'mouth' | 'toss';
 export interface PropSpec { geom: string; rule: Rule; hand?: 'l' | 'r'; front?: 'l' | 'r'; roll?: 'up' | 'palm' | 'away' | 'down'; up?: number; grip?: [number, number] }
 /** every prop an activity can name (activities.ts); geometry is shared between kinds that are held differently */
 export const PROPS: Record<string, PropSpec> = {
@@ -220,16 +274,28 @@ export const PROPS: Record<string, PropSpec> = {
   plectrum: { geom: 'plectrum', rule: 'one', hand: 'r', roll: 'up' }, double_pipe: { geom: 'double_pipe', rule: 'mouth' }, reed_pipe: { geom: 'reed_pipe', rule: 'mouth' },
   sceptre: { geom: 'sceptre', rule: 'one', hand: 'r', roll: 'up', up: 1 }, lotus: { geom: 'lotus', rule: 'one', hand: 'l', roll: 'up', up: 1 },
   parasol: { geom: 'parasol', rule: 'one', hand: 'r', roll: 'up', up: 1 }, whisk: { geom: 'whisk', rule: 'one', hand: 'r', roll: 'up', up: 1 }, towel: { geom: 'towel', rule: 'one', hand: 'l', roll: 'down' },
+  // D-215: the gilded spear butts, the children's toys
+  spear_apple: { geom: 'spear_apple', rule: 'legacy', grip: [0.15, 1] }, spear_gpom: { geom: 'spear_gpom', rule: 'legacy', grip: [0.15, 1] },
+  ball: { geom: 'ball', rule: 'toss' }, toy_bow: { geom: 'toy_bow', rule: 'bow', hand: 'l' }, rattle: { geom: 'rattle', rule: 'one', hand: 'r', roll: 'up' },
 };
 /** the two carried-prop meshes: small objects (with the Phase 3 set) and long tools. Every kind of a class is in one union */
 export const PROP_CLASSES: string[][] = [
   ['spear', 'sack', 'jar', 'tablet', 'mallet', 'basket', 'sickle', 'spindle', 'distaff', 'trowel', 'brick', 'knife', 'cloth', 'wisp', 'bowl', 'rag', 'awl', 'arrow', 'lead', 'ladle', 'stick'],
   // (D-199: the king's and his attendants' things join the long tools' union: the small objects' is at its budget)
-  ['hoe', 'fork', 'goad', 'staff', 'broom', 'mould', 'rope', 'adze', 'bow', 'beater', 'paddle', 'sceptre', 'parasol', 'lotus', 'whisk', 'towel'],
+  ['hoe', 'fork', 'goad', 'staff', 'broom', 'mould', 'rope', 'adze', 'bow', 'beater', 'paddle', 'sceptre', 'parasol', 'lotus', 'whisk', 'towel',
+    // (D-215: the children's toys, small, in the long tools' union: the small objects' is full)
+    'ball', 'toy_bow', 'rattle'],
   // instruments (D-200): a class of their own, so the everyday props do not carry the harps' strings (one more draw only
   // where someone plays)
-  ['harp_v', 'harp_h', 'lyre', 'frame_drum', 'double_pipe', 'reed_pipe', 'plectrum'],
+  ['harp_v', 'harp_h', 'lyre', 'frame_drum', 'double_pipe', 'reed_pipe', 'plectrum',
+    // (D-215: the royal spearmen's gilded spears, court setting only: the court's things, drawn where the court is)
+    'spear_apple', 'spear_gpom'],
+  // D-215: the carried children (a class of their own: one draw more only where a child is carried; the skin tinted per
+  // instance by the carer's tone)
+  ['babe', 'babe_wrapped', 'babe_sling', 'babe_wrapped_sling', 'babe_mat', 'babe_cradle'],
 ];
+/** the class of the carried children (crowd.ts tints its skin) */
+export const BABE_CLASS = 3;
 /** class and index in the class of a prop kind */
 export function propSlot(kind: string): [number, number] | null {
   const g = PROPS[kind]?.geom ?? kind; for (let c = 0; c < PROP_CLASSES.length; c++) { const i = PROP_CLASSES[c].indexOf(g); if (i >= 0) return [c, i]; } return null;
@@ -291,7 +357,7 @@ export function placeProp(kind: string, R: RigView, po: Pose, s: number, time: n
   const tip = po.tip?.[slot] ?? null;
   switch (P.rule) {
     case 'legacy': {
-      const k = kind === 'bread' ? 'basket' : kind; let pos: THREE.Vector3; let rot = new THREE.Matrix4(); let sc = 1;
+      const k = kind === 'bread' ? 'basket' : kind.startsWith('spear') ? 'spear' : kind; let pos: THREE.Vector3; let rot = new THREE.Matrix4(); let sc = 1;
       switch (k) {
         case 'spear': { const h = palm0(R, 'r'); pos = new V(h.x, 0, h.z).multiplyScalar(s); pos.y = 0; break; } // upright, butt on the ground by the right hand
         case 'sack': { pos = bone(R, HB.upperarm_r).multiplyScalar(s).add(new V(0.02, 0.13, -0.02)); rot.makeRotationZ(0.3); break; }
@@ -338,6 +404,8 @@ export function placeProp(kind: string, R: RigView, po: Pose, s: number, time: n
       if (P.geom === 'jar') m.y -= 0.2; else if (P.geom === 'sack') m.add(z.clone().multiplyScalar(0.12)); else if (P.geom === 'basket') m.y -= 0.06; else if (P.geom === 'brick') m.y -= 0.03; else if (P.geom === 'beater' || P.geom === 'cloth') { /* between the hands */ }
       out.makeBasis(x, y, z).setPosition(m); return true;
     }
+    case 'toss': { // D-215: a ball between the palms, thrown up by the cycle's second parameter (m above the hands)
+      const m = gripPoint(R, 'l').add(gripPoint(R, 'r')).multiplyScalar(0.5 * s); m.y += po.aux ?? 0; out.makeTranslation(m.x, m.y, m.z); return true; }
     case 'hang': { const g = gripPoint(R, P.hand ?? 'r').multiplyScalar(s); out.makeRotationY((time * 21) % (2 * Math.PI)).setPosition(g); if (param) param.v = po.aux ?? 0.4; return true; }
     case 'hip': { const g = gripPoint(R, 'l').multiplyScalar(s).add(new V(0.03, -0.1, 0)); out.makeRotationZ(0.15).setPosition(g); return true; }
     case 'at': { const a = po.at; if (!a) return false; out.makeRotationY(a[3]).setPosition(a[0] * s, a[1] * s, a[2] * s); return true; }

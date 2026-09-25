@@ -31,7 +31,9 @@ export type PropKind = 'spear' | 'sack' | 'jar' | 'jar_head' | 'tablet' | 'malle
   | 'knife' | 'beater' | 'paddle' | 'cloth' | 'wisp' | 'bowl' | 'rag' | 'awl' | 'ladle' | 'stick' | 'lead' | 'jar_both' | 'sack_both' | 'basket_hip' | 'basket_both' | 'basket_lap'
   // instruments (D-200: played only in a playing performance, playing.ts)
   | 'harp_v' | 'harp_h' | 'plectrum' | 'lyre' | 'frame_drum' | 'double_pipe' | 'reed_pipe'
-  | 'sceptre' | 'lotus' | 'parasol' | 'whisk' | 'towel';
+  | 'sceptre' | 'lotus' | 'parasol' | 'whisk' | 'towel'
+  // D-215: the gilded spear butts (court) and children's toys
+  | 'spear_apple' | 'spear_gpom' | 'ball' | 'toy_bow' | 'rattle';
 /** sounds a performance makes (soundscape.ts strike kinds; 'murmur' and 'footsteps' are layers, 'fire' the fire's own) */
 export type SoundKind = 'chisel' | 'quern' | 'fire' | 'murmur' | 'footsteps' | 'dice' | 'water' | 'hoe' | 'sickle' | 'loom' | 'trowel' | 'adze' | 'mould' | 'wash' | 'broom' | 'bow' | 'bleat';
 /** a thing at the place (workObjects.ts), in the performer's frame (m: right −x / left +x, ahead +z; yaw rad). `follow`:
@@ -58,8 +60,13 @@ export interface Performance {
   abstractOnly?: boolean;
   /** alternatives: the first whose `when` matches the plan's reason (a RegExp) or, for a number, a share of people (by
    *  seed) is performed instead; unset fields are taken from the base performance */
-  variants?: (Partial<Performance> & { when: RegExp | number; note: string })[];
+  variants?: (Partial<Performance> & { when: RegExp | number; note: string;
+    /** D-215: only for a performer of this sex or age range (years, inclusive); a variant that does not fit is passed over
+     *  (its share falls to the base). Without a performer given (extras, the lint) every variant fits */
+    sex?: 'm' | 'f'; ages?: [number, number] })[];
 }
+/** who performs (D-215: a variant may be only for boys, or only for small children) */
+export interface Performer { sex: 'm' | 'f'; age: number }
 
 const SHEEP: Species[] = ['sheep', 'sheep', 'goat'];
 export const ACTIVITIES: Record<ActivityId, Performance> = {
@@ -97,7 +104,15 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   gamble: { anim: 'dice', sound: 'dice', tier: 'C', note: 'throwing knucklebones (astragali are common finds of the period: B object, C scene)' },
   inspect: { anim: 'inspect', tier: 'C', note: 'official looking over work, hands clasped (C)' },
   shelter: { anim: 'idle', tier: 'C', note: 'waiting out rain under a roof (the Gate’s, a hut’s); in the open only a passing shower, the cloak drawn over the head: a longer rain sends people home (S1 of shadow review r5)' },
-  play: { anim: 'play', tier: 'C', note: 'children playing (C)' },
+  play: { anim: 'play', tier: 'C', note: 'children playing: hopping and skipping about (C)',
+    // D-215 (gap audit item 26; D-207): the kinds of play, by share and age (all C: no Persepolis evidence either way)
+    variants: [
+      { when: 0.2, anim: 'ball', prop: 'ball', ages: [3, 13], note: 'tossing a leather ball up and catching it (balls known from Egypt and the Greek world: RECOLLECTION, NOT SEEN; C)' },
+      { when: 0.2, anim: 'chase', ages: [3, 12], note: 'running round after the other children (C)' },
+      { when: 0.2, anim: 'dice', sound: 'dice', work: [{ kind: 'knucklebones', at: [0, 0, 0.38] }], ages: [4, 13], note: 'knucklebones in the dust, sitting on the ground: astragali thrown and gathered (astragali are common finds: B object; the children’s game C)' },
+      { when: 0.15, anim: 'pull_toy', work: [{ kind: 'toy_wheeled', at: [0.12, 0, -0.62], follow: true }], ages: [1, 7], note: 'pulling a clay animal on wheels round by its cord (wheeled clay animals from Susa and Mesopotamia: RECOLLECTION, NOT SEEN; C)' },
+      { when: 0.15, anim: 'archery', prop: 'toy_bow', prop2: 'arrow', sound: 'bow', sex: 'm', ages: [5, 12], note: 'a boy shooting a small bow at nothing much (boys taught to shoot: HDT 1.136, a Greek claim, B; the toy bow C)' },
+      { when: 0.1, anim: 'rattle', prop: 'rattle', ages: [0, 3], note: 'a small child sitting on the ground shaking a clay rattle (clay rattles: RECOLLECTION, NOT SEEN; C)' }] },
   offmap: { anim: 'idle', tier: 'C', note: 'in the town (not rendered until the settlement exists, Phase 6)' },
   // Phase 5 (D-021): performed with existing poses
   queue: { anim: 'idle', tier: 'C', note: 'standing in the queue at a ration issue (E-01: the group queues and receives its grain; standing C)' },
@@ -216,12 +231,13 @@ export const ABSTRACT_PLACEHOLDERS = (Object.keys(ACTIVITIES) as ActivityId[]).f
 const share = (seed: number, act: string) => { let h = seed | 0; for (let i = 0; i < act.length; i++) h = Math.imul(h ^ act.charCodeAt(i), 0x5bd1e995) ^ (h >>> 15); return ((h >>> 0) % 10007) / 10007; };
 /** the performance a person gives of an activity: the first variant whose reason pattern matches `why`, or whose share
  *  covers the person; otherwise the base performance. Numeric shares are cumulative in the listed order */
-export function performanceFor(act: ActivityId, why = '', seed = 0, force?: number): Performance & { variant: number } {
+export function performanceFor(act: ActivityId, why = '', seed = 0, force?: number, who?: Performer): Performance & { variant: number } {
   const P = ACTIVITIES[act]; if (!P?.variants) return { ...P, variant: -1 };
-  if (force !== undefined) { const v = P.variants[force]; if (!v) return { ...P, variants: undefined, variant: -1 }; const { when: _w, variants: _v, ...rest } = v as any; return { ...P, variants: undefined, ...rest, variant: force }; }
+  const fits = (v: { sex?: 'm' | 'f'; ages?: [number, number] }) => !who || ((!v.sex || v.sex === who.sex) && (!v.ages || (who.age >= v.ages[0] && who.age <= v.ages[1])));
+  if (force !== undefined) { const v = P.variants[force]; if (!v) return { ...P, variants: undefined, variant: -1 }; const { when: _w, variants: _v, sex: _s, ages: _a, ...rest } = v as any; return { ...P, variants: undefined, ...rest, variant: force }; }
   let acc = 0; const u = share(seed, act);
   for (let i = 0; i < P.variants.length; i++) { const v = P.variants[i];
-    const hit = v.when instanceof RegExp ? v.when.test(why) : (u >= acc && u < acc + v.when); if (typeof v.when === 'number') acc += v.when;
-    if (hit) { const { when: _w, variants: _v, ...rest } = v as any; return { ...P, variants: undefined, ...rest, variant: i }; } }
+    const hit = (v.when instanceof RegExp ? v.when.test(why) : (u >= acc && u < acc + v.when)) && fits(v); if (typeof v.when === 'number') acc += v.when;
+    if (hit) { const { when: _w, variants: _v, sex: _s, ages: _a, ...rest } = v as any; return { ...P, variants: undefined, ...rest, variant: i }; } }
   return { ...P, variant: -1 };
 }

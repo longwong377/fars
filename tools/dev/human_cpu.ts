@@ -3,7 +3,7 @@
 // material), the same MaterialX Perlin noise (ported bit-exactly from three's MaterialXNoise), the same lighting model
 // (wrapped diffuse, two GGX lobes, Kajiya–Kay, sheen, the sky-reflection proxy) and three's AgX tone mapping.
 // It is a verification aid: the browser render is the judgement (screenshots find problems; tests measure).
-import { SKIN, EYE, IRIS, LASH, HAIR, REF_TONE, SAG_MAX, DRAPE } from '../../src/people/humanMaterial';
+import { SKIN, EYE, IRIS, LASH, HAIR, REF_TONE, SAG_MAX, DRAPE, KOHL } from '../../src/people/humanMaterial';
 import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER } from '../../src/people/humanFormat';
 
 export type V3 = [number, number, number];
@@ -144,7 +144,8 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const curls = mix(mix(natural, court, kCourt), straight, kStraight);
   const hairAlb = f.color.map(c => c * (curls * 0.75 + 0.42) * (u3 * 0.2 + 0.9)) as V3;
   const hairH = curls * mix(HAIR.bump, HAIR.bumpStraight, kStraight) * band(mix(200, 120, kCourt));
-  const lashAlb = f.hair.map(c => c * 0.45) as V3;
+  const kohlK = bits(pat, 'kohl') * (1 - sstep(KOHL.band * 0.7, KOHL.band * 1.3, e1)); // D-215
+  const lashAlb = f.hair.map((c, i) => mix(c * 0.45, KOHL.alb[i], kohlK)) as V3;
   // cloth
   const lb = bits(pat, 'linen');
   const isLinen = is(m, MAT.cloth_main) * mod(lb, 2) + is(m, MAT.cloth_second) * mod(Math.floor(lb / 2), 2) + is(m, MAT.cloth_trim) * Math.floor(lb / 4);
@@ -207,7 +208,7 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const silCut = curls + 0.3 <= (silh - 0.45) * 2.8 ? 1 : 0;
   const along = (U[0] - LASH.u0) / (LASH.u1 - LASH.u0), tl = e1;
   const clumpC = Math.abs(fract(along * mix(LASH.clumps, LASH.clumps * 0.6, e2) + n1 * 0.35) - 0.5) * 2, lashW = ((1 - tl) * Math.sqrt(Math.max(0, 1 - tl)) * 0.8 + 0.1) * mix(1, 0.7, e2);
-  const lashCut = Math.max(lashW <= clumpC ? 1 : 0, 0.9 <= tl ? 1 : 0);
+  const lashCut = Math.max(lashW <= clumpC ? 1 : 0, 0.9 <= tl ? 1 : 0) * (1 - bits(pat, 'kohl') * (tl <= KOHL.band ? 1 : 0));
   const keep = 1 - kHair * Math.max(edgeCut, silCut) - kLash * lashCut > 0.5;
   return { alb, rough, metal: kMetal, h, ao, keep, f0, micro: f.aux[0], microK: (kSkin + kCloth + kFelt + kLeather + kHair * 0.5) * DRAPE.micro, wrap, trans, roughB: SKIN.roughOil, lobeB: kSkin * mix(SKIN.oilLobe[0], SKIN.oilLobe[1], oil), kHair, kkEdge: sstep(0.3, 1, e2), hairTilt: mix((curls - 0.5) * 1.6, Math.cos(lockPh) * 0.33, lockZone * kCourt),
     sheenCol: sheenBase.map(c => c * sheenK) as V3, sheenRough: kCloth * mix(0.55, 0.35, isLinen) + kFelt * 0.7 + (1 - kCloth - kFelt) * 0.5,

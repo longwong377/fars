@@ -222,6 +222,7 @@ export class CourtResidents {
     if (m.g === 'visitor' && p.sex === 'm') { const del = DELEGATIONS_BY_ORIGIN.get(p.origin); return del ? { delegation: del.id } : null; }
     if (m.g === 'king' && m.role === 'king') return { dress: 'king', stature: 1.66 };
     if (m.g === 'king' && (m.role === 'parasol' || m.role === 'whisk')) return { dress: 'persian', pieces: ['bun', 'fillet'], beardless: true };
+    if (m.g === 'women') return { dress: 'court_woman' }; // D-215: the court women's dress (gap audit item 22, B20c)
     return null;
   }
   /** the court role of a person (dev overlay), or null */

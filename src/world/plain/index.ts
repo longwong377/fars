@@ -52,6 +52,8 @@ export interface PlainBuild {
   group: THREE.Group; data: { rivers: RiversData; canals: Canal[]; villages: Village[]; zones: ZoneMap };
   update(dt: number, ctx: any): void;
   stats(): Record<string, number>; summary(): string;
+  /** dev: every plain tree within R of grid (e, n), as [e, n, crown width] */
+  treesAround(e: number, n: number, R: number): number[][];
 }
 export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Physics | null, opts: { quality: Quality; seed: number; fetchJson?: (p: string) => Promise<any>; town?: TownPlan | null; /** the court setting's retinue camps (D-199): trodden ground */ camps?: { c: [number, number]; r: number }[] }): Promise<PlainBuild> {
   const t0 = performance.now(), Q = PLAIN_QUALITY[opts.quality] ?? PLAIN_QUALITY.high;
@@ -188,6 +190,14 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     midTrees: midCount, orchardRows: orch.userData.rows, treeKitMs: Math.round(kit.buildMs), treeBakeMs: Math.round(kit.bakeMs), treeBakes: kit.bakes,
     crops: crops.count(), margins: margins.count(), naqshTris: nr.tris, genMs: Math.round(tGen), buildMs: Math.round(tBuild),
     detailMs: Math.round(detail.near.ms + detail.mid.ms), detailWaitMs: Math.round(detailWaitMs), townPaths: townGround?.runs ?? 0 });
-  return { group, data: { rivers, canals, villages, zones }, update, stats,
+  /** every plain tree (lines, orchards, woodland) within R of grid (e, n), as [e, n, crown width] (dev: rig framing) */
+  const treesAround = (e: number, n: number, R: number): number[][] => {
+    const out: number[][] = [], add = (t: Tree) => { if (Math.hypot(t.x - e, t.y - n) < R) out.push([t.x, t.y, t.w]); };
+    for (const q of lineTrees) add(q.t);
+    for (const p of plots) if (Math.hypot(p.sx - e, p.sz + n) < R + 150) for (const t of treesOfPlot(p)) add(t);
+    for (const t of woodlandTrees(zones, e, -n, R)) add(t);
+    return out;
+  };
+  return { group, data: { rivers, canals, villages, zones }, update, stats, treesAround,
     summary: () => { const s = stats(); return `plain: ${s.villages} villages (${s.compounds} compounds), ${s.canals} canals, ${s.lineTrees} river/canal trees, ${s.orchardPlots} orchard plots, near trees ${s.nearTrees} (LOD0 ${s.lod0Trees}), mid-ring impostors ${s.midTrees}, crop tufts ${s.crops}, built in ${s.buildMs} ms`; } };
 }

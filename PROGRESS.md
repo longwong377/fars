@@ -1,8 +1,21 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
-- **Rain moment still does not land (session 7).** rain-approach: two faults fixed (the cell hidden inside 2.1 R; the mesh veiled at the far wall's distance), but from 8.5 km the 6 km cell fills the frame as a faint even greying with no edge or streaks. Needs a rework of the shaft model (visible streaks, a darker cloud base, a framing with the cell's edge in view); on the rubric pass-2 fix list.
+- **§8.2 rubric pass 2 FAILED (session 7; REVIEWS/rubric_s7_pass2.md).** Light 2, materials 1, scale 3, detail 2, people 2, weather 1, atmosphere 2; no §1.1 moment lands except the Apadana entry (partly). Twelve rendering bugs R1-R12. Workstreams running: light and material bugs (R3 black water, R4 fire falloff, R5 orange Gate at night, R7 leak, R10 SSR, R12, the night floodlight: D-216) and geometry bugs (R1 jar through the head, R2 relief blobs, R8 placeholder boxes, R9 stretched Naqsh cliff, R11 floating rod: D-217). Lead fixes, **not yet seen rendered**: the rain shafts rebuilt (R6: the camera stood inside a 12 km column mesh; now shafts 1-4 km across with σ from the rain rate, tests/rain_shafts.test.ts), far flames no narrower than 2 px with their light conserved (the town's 1,037 dusk fires vanished from Kuh-e Rahmat), the Tol-e Ajori glazed panels (half rendered black: winding against the normal), rig framing (nobody within 2.5 m of the lens; the slope view off the trees). The rain-columns moment times out at high (58 min) under load: re-queued at medium.
+- **Regression, open:** tests/exchanges.test.ts "delivery: expected 0" since merge 27e18f3 (D-197 + D-202): porters at the store never coincide with a recording scribe; sent to the sim workstream (D-211) to make the receipt scheduled rather than lucky.
 - **Session 7 (in progress).** Soak on the merged tree (sim r9 D-197, names D-202, court D-199; before the jar fix D-213 and the D-206/D-210/D-212 merges) PASSES all 8 gates: REVIEWS/soak/soak-2026-09-25T02-43-08-676Z.json (15,462,938 person-days, 0 plan issues). Shadow review round 9 FAILED (A and B: #76's water jar, fixed D-213); round 10 (pick 181) pending on the sim agent's final code. The D-207 gap fills (D-198..D-212) are node-verified only; render pass 2 incomplete (renders held twice for memory).
+- **People's look (D-215; gap audit items 4, 21, 22, 26, 37).** Babies in arms (hip, back or front sling, arms, lap, nursed,
+  a mat or a basket cradle beside the mother) from the plans' own words; toddlers and a blind elder's guide hand in hand;
+  several kinds of children's play and toys left in a quarter of the courtyards; earrings and bracelets by rank, the wicker
+  shield for a share of the guards, golden apples and pomegranates at the spear butts, eye paint for the court; the court
+  women's dress (B20c closed); a few lame men and blind elders with a staff. **All C** (Herodotus 7.41/7.61 and Xenophon
+  Cyr. 1.3.2/8.1.41 read: B claims). **Never rendered in a browser** (node tests only: tests/people_children.test.ts).
+  - **Weak:** the carried child is a stiff prop (no skinned body), tinted to the carer's tone; no child, toy or shield on
+    impostors; the sling's straps are not fitted to the carer; a child taken to its carer's hand steps up to ~4 m when a walk
+    starts (the plans walk them on two routes: Q-439); the veil and the shield can be passed through by swinging limbs; the
+    court women's necklace is not modelled; toy wheels do not turn.
+  - **Cost:** one more instanced draw (the carried children, 900 triangles per instance) only where a child is carried; the
+    Persian costume 38,236/5,789/3,012/759 triangles (budgets 42,000/7,000/3,200/800); the long tools' prop union 698 of 700.
 - **Animals (D-210; gap audit items 5, 6, 10, 11, 15, 16, 17).** Added: dogs (with the herds, in the yards and as strays),
   and the animals that travel with their drivers and riders (the caravan's strings, Bactrian camels, E-06 donkey strings and
   ox carts, E-20 couriers). Also fowl and the state poultry yard, the paradise's deer and gazelle, the river's boar, crows and
@@ -97,7 +110,7 @@
   every size), horizontal harp, lyre, frame drum and double pipe modelled with playing cycles (the last four played by
   nobody: no source for who played them here); the court harpists stand and pluck, the singers' jaw and breath follow the
   notes; a man of a transhumant band plays a cane reed pipe by the evening fire or at the midday halt (C; Iliad 18.525-526
-  read, M-18). **Still PLACEHOLDER:** the court women's dress. **Deliberately missing:** the magus's chant (no attested text;
+  read, M-18). ~~**Still PLACEHOLDER:** the court women's dress.~~ Filled by D-215 (court robe, crown and veil; C). **Deliberately missing:** the magus's chant (no attested text;
   no wordless contour either: D-200).
 - **Session 6, music and occlusion workstream (branch p8-music-s6, D-178; merged by the lead, 02f0947).** Music now plays
   only from performers: quern songs, Ionian masons' songs, and the court's supper and night music when the court setting
