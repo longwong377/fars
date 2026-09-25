@@ -173,6 +173,28 @@ function royalRobe(fr: Frame, field: C3, hem: number[][]): (x: number, y: number
   });
 }
 
+// ---------------- the guards' robe pattern (D-214, gap audit item 29) ----------------
+// The Persian guards' court robe patterned after the glazed-brick guards of Susa (SUSA-GLAZE, recollection: robes strewn with
+// small rosettes or squares in a lattice, with plain borders: C): paint only, a staggered lattice of small ringed dots in the
+// row's colour on the robe's own colour, and a plain border along the hem (src/data/polychromy.json paint.robe_pattern, all C).
+const RP = (PC as any).paint.robe_pattern.v, RP_PIG: Record<string, string> = { white: 'white', yellow_ochre: 'yellowOchre', egyptian_blue: 'egyptianBlue', cinnabar: 'cinnabar', red_ochre: 'redOchre' };
+/** the kinds whose long Persian robe carries the pattern */
+export const PATTERNED_KINDS: string[] = RP.kinds;
+function dotField(u: number, v: number, field: C3): C3 {
+  const p = RP.pitch, r = v / (p * 0.866), row = Math.floor(r), c = u / p + (row & 1 ? 0.5 : 0), col = Math.floor(c);
+  const d = Math.hypot((c - col - 0.5) * p, (r - row - 0.5) * p * 0.866);
+  return d < RP.dot || (d > RP.ring[0] && d < RP.ring[1]) ? P[RP_PIG[RP.colour]] : field;
+}
+/** the patterned robe's paint in frame `fr`: the lattice, and the plain border within hem_w of the polyline `hem` */
+function patternedRobe(fr: Frame, field: C3, hem: number[][] | null): (x: number, y: number) => C3 {
+  return fr.col((u, v) => {
+    if (hem) { let best = Infinity; for (let i = 0; i + 1 < hem.length; i++) { const [ax, ay] = hem[i], [bx, by] = hem[i + 1], ex = bx - ax, ey = by - ay, l2 = ex * ex + ey * ey;
+      const t = Math.min(1, Math.max(0, ((u - ax) * ex + (v - ay) * ey) / l2)); best = Math.min(best, Math.hypot(u - ax - ex * t, v - ay - ey * t)); }
+      if (best < RP.hem_w) return P[RP_PIG[RP.hem]]; }
+    return dotField(u, v, field);
+  });
+}
+
 // ---------------- the human figure ----------------
 export type Dress = 'persian' | 'median' | 'long' | 'short' | 'wrap' | 'royal';
 /** elbow and hand in local figure coords */
@@ -182,6 +204,8 @@ export interface Human {
   near: Arm; far: Arm | null; stride?: number; kandys?: boolean; akinakes?: boolean; gorytos?: boolean; quiver?: boolean; bow?: boolean; seated?: boolean;
   /** the royal robe: its field patterned, blue strips with red marching lions at the hem and the sleeves (royalRobe, B) */
   royal?: boolean;
+  /** D-214: the guards' robe, patterned after the Susa glazed-brick guards (patternedRobe, C) */
+  pattern?: boolean;
 }
 type Layer = 'back' | 'farArm' | 'body' | 'top' | 'front';
 
@@ -205,6 +229,7 @@ export function human(fr: Frame, h: Human, extra: Partial<Record<Layer, Mass[]>>
     // waist to the back hem, and the front cascade of vertical pleats with a stepped hem
     const hemF = 0.03, hemB = h.dress === 'long' ? 0.035 : 0.05;
     if (h.royal) robe = royalRobe(fr, g, [[-0.128 * st, hemB], [0.0, 0.04], [0.128 * st, hemF]]);
+    else if (h.pattern) robe = patternedRobe(fr, g, [[-0.128 * st, hemB], [0.0, 0.04], [0.128 * st, hemF]]);
     body.push(fr.spoly([[-0.062, 0.5], [-0.076, 0.36], [-0.098, 0.2], [-0.12 * st, hemB + 0.01], [-0.128 * st, hemB], [0.0, 0.04], [0.128 * st, hemF], [0.116 * st, 0.12], [0.088, 0.3], [0.07, 0.5]], 3));
     L.back.push(M([fr.poly([[-0.112 * st, 0.0], [-0.005, 0.0], [0.004, 0.012], [-0.015, 0.03], [-0.095 * st, 0.038]])], { amp: 0.4, colour: STONE, round: 0.012 }));
     L.front.push(M([fr.poly([[0.03, 0.0], [0.145 * st + 0.01, 0.0], [0.152 * st + 0.012, 0.012], [0.13 * st + 0.01, 0.027], [0.06, 0.034], [0.03, 0.036]])], { amp: 0.58, lift: 0.05, colour: STONE, round: 0.012 }));
@@ -250,7 +275,8 @@ export function human(fr: Frame, h: Human, extra: Partial<Record<Layer, Mass[]>>
     out.push(M(fr.strokeR([sh, [ex, ey], [hx, hy]], [0.03, 0.025, 0.018], 3), { amp, lift, colour: h.dress === 'wrap' ? STONE : robe, round: 0.016, groove: near ? 0.08 : 0 }));
     if (h.dress === 'persian' || h.dress === 'royal') {
       const low = Math.min(ey, hy) - 0.13, mx = (ex + hx) / 2;
-      const sleeve: Col = h.royal ? royalRobe(fr, g, [[ex - 0.044, ey - 0.05], [mx - 0.048, low], [mx - 0.01, low + 0.01], [hx - 0.035, hy - 0.06]]) : g; // the strip along the sleeve's hanging edge
+      const sleeve: Col = h.royal ? royalRobe(fr, g, [[ex - 0.044, ey - 0.05], [mx - 0.048, low], [mx - 0.01, low + 0.01], [hx - 0.035, hy - 0.06]]) // the strip along the sleeve's hanging edge
+        : h.pattern ? patternedRobe(fr, g, null) : g;
       out.push(M([fr.spoly([[ex - 0.028, ey + 0.02], [hx - 0.01, hy - 0.004], [hx - 0.035, hy - 0.06], [mx - 0.01, low + 0.01], [mx - 0.048, low], [ex - 0.044, ey - 0.05]], 4)],
         { amp: amp * 0.95, lift: lift * 0.9, colour: sleeve, round: 0.018, groove: near ? 0.1 : 0, detail: fr.det((x, y) => pleats(Math.sqrt((x - hx + 0.01) ** 2 + (y - hy - 0.02) ** 2), 0.012, 0.16)) }));
     } else if (h.dress !== 'wrap') out.push(M([fr.seg(hx - (hx - ex) * 0.12, hy - (hy - ey) * 0.12, hx - (hx - ex) * 0.2, hy - (hy - ey) * 0.2, 0.021)], { amp: 0.001, colour: g2, paintOnly: true })); // cuff
@@ -726,7 +752,7 @@ export function figureDef(kind: string, seed: number): FigureDef {
     return human(fr, h, { front, farArm });
   };
   switch (kind) {
-    case 'guard': return withProps(persianDress({ ...ARM_SPEAR, quiver: true, bow: true, headCol: rng.pick([P.yellowOchre, g2]) }), [['spear', 'near']], rng.chance(0.5) ? P.gold : P.white);
+    case 'guard': return withProps(persianDress({ ...ARM_SPEAR, quiver: true, bow: true, headCol: rng.pick([P.yellowOchre, g2]), pattern: PATTERNED_KINDS.includes('guard') }), [['spear', 'near']], rng.chance(0.5) ? P.gold : P.white);
     case 'mede_guard': return withProps(medianDress({ ...ARM_SPEAR, gorytos: true }), [['spear', 'near']], rng.chance(0.5) ? P.gold : P.white);
     case 'persian': return withProps(persianDress({}), [['lotus', 'near']]);
     case 'mede': return withProps(medianDress({ kandys: rng.chance(0.5) }), [['lotus', 'near']]);

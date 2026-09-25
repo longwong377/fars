@@ -948,5 +948,20 @@
   "cite": "Esther 1:6: at the king's feast in the palace garden of Susa, hangings of white, green and blue fastened with cords of fine linen and purple to silver rings and pillars of marble, and couches of gold and silver on a pavement (a late literary source on the Persian court)",
   "url": "https://www.sefaria.org/Esther.1.6",
   "access": "recollection of the text (NOT SEEN this session, D-212): late literary, C"
+ },
+ "SUSA-GLAZE": {
+  "cite": "The glazed-brick decoration of Darius I's palace at Susa (Louvre): friezes of archers in the court robe strewn with small rosettes or squares, lions, winged bulls and griffins, bands of rosettes and palmettes between plain border courses (Dieulafoy 1885-86; Mecquenem; Muscarella in The Royal City of Susa, 1992)",
+  "url": "",
+  "access": "RECOLLECTION (NOT SEEN this session, D-214): the layout and motifs are standard knowledge of the Susa bricks; tier C for any use at Persepolis"
+ },
+ "STEIN2016": {
+  "cite": "B. Stein, A. Nagel et al., 'Painted plaster and glazed brick fragments from Achaemenid Pasargadae and Persepolis, Iran', Heritage Science 4 (2016) (Freer Study Collection, Herzfeld fragments)",
+  "url": "https://www.nature.com/articles/s40494-016-0072-7",
+  "access": "search extract only (fetch blocked, B6), as summarised in research/RELIEFS_AND_COLOUR.md §5"
+ },
+ "TERRACE-DRAINS": {
+  "cite": "The drainage of the Persepolis Terrace: 'a system of water conduits and drains hewn out of the rock' (Iranica 'Persepolis', search extract); underground drains and tunnels cut through the rock beneath the platform, excavated by Schmidt; a large cistern at the E foot of the Kuh-e Rahmat (search-extract set of research/_extract_A.md, page not verified)",
+  "url": "research/_extract_A.md",
+  "access": "search extract only; Schmidt 1953 NOT SEEN (B6)"
  }
 }
