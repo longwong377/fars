@@ -17,6 +17,18 @@
     - Flies are heard but not seen. No bats, rats or storks.
   - **Crowd CPU gate:** performances.test (median < 10 ms) fails under machine load on both the base and this branch. It
     needs re-measuring.
+- **Royal inscriptions filled, glazed brick, paint, drains (D-214; gap audit items 27, 28, 29, 31; D-207).** **All placement C,
+  none of it rendered in a browser** (node tests only: tests/royal_fill, waterworks, paint_glaze). Carved now: XPc on the
+  Tachara's portico antae (cased in dark stone), XPd on the Hadish N portico's antae (free-standing piers: the model has no
+  portico side walls), DPb and XPk on the king's robe (signs 0.7 and 0.9 cm, each cut laid on the relief's folds), XPj and
+  XPm round 12 Hadish column-base drums, XPg on a plaque by the Apadana N doorway; the four texts newly in the corpus from the
+  same CC0 ARIo CATF. **Still not carved:** XPg on glazed bricks; DNa/DNb Elamite and Babylonian (not in ARIo); DNc–DNe (in
+  ARIo, not placed: the tomb's workstream). Glazed-brick rosette frieze on the Apadana towers (no figured panels: none
+  reported). Treasury shafts painted (Q-020's placeholder retired; the scheme C). Guards' robes patterned after Susa (+20 k
+  relief triangles at worst, within budget). 12 drain mouths with spouts, inlets and gutters; well-heads at the two water
+  points. **Weak / not done:** the Hadish piers and the kerbs are solid at runtime but not in the baked walkable grid or the
+  probes (not parts); the new antae, plaque and copies also show in the Now view (not reviewed against the ruin); the Hadish
+  apartments and S balcony (item 30) not built (they need parts, so a probe and grid re-bake). Cost: +27 draws, ~30 k tris.
 - **Palace furnishings and masons' marks (D-212; gap audit items 8 and 13; D-207).** **All C, none of it rendered in a
   browser** (node tests only). Sources second-hand: Roaf 1983's sculptors' marks via a search extract (the "double diamond"
   form NOT SEEN), Pasargadae's circle/cross/L via a search extract, the Pazyryk carpet, the Assurbanipal couch and Esther 1:6
