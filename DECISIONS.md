@@ -4846,7 +4846,8 @@ the head. The same cap for a lodger's household. Test: tests/religion.test.ts (e
   - **Under full cover the ground is still lit by a quarter-strength directional sun with sharp shadows** (D-115's
     session-3 cloud factors, C), so the overcast horizon is 0.7× the grey ground where the CIE overcast sky over albedo 0.2
     gives ~2× (Q-532: a physical partition is proposed there, not made: it changes every cloudy day's light).
-  - Browser renders: see "Rendered" below (two runs through the shared queue).
+  - **No rendered frame shows an overcast sky** (the snow frame has none in view): the overcast fix is measured in node
+    only. The portico, hall-out and dawn frames were rendered (below).
 - **1. The overcast sky (horizon.ts, skySystem.ts).** The dome, the fog colour, the air's in-scatter (terrain veil, far
   cloud, rain shafts) and the skylight's colour blend by the weather's cloud cover c toward the CIE standard overcast sky:
   - L(e) = L_z (1 + 2 sin e) / 3 (Moon & Spencer 1942; CIE 1955; ISO 15469 type 1: zenith 3× horizon, no azimuth), with
@@ -4891,21 +4892,33 @@ the head. The same cap for a lodger's household. Test: tests/religion.test.ts (e
   22°, 6° and 2.5° within 1 %). USNO's lux are photometric (D-115).
 - **4. The frame meter's bright majority (meter.ts, main.ts).** Rule (C): a meter texel is "bright" when it would display
   ≥ 3 EV above the law's reference grey (AgX's white is +4.03 EV). When the bright texels are the centre-weighted majority
-  (blend over a weighted fraction 0.3 … 0.6) the eye adapts to them: the correction becomes 0.6 of the difference between
+  (blend over a weighted fraction 0.5 … 0.65: a true majority; 0.3 … 0.6 closed hall-out, run 1) the eye adapts to them: the correction becomes 0.6 of the difference between
   the reference and their log-mean (D-159's rule applied to the bright part), never closing further than the law's own
   exposure in the open (vis 1: the eye out in that light) nor 6 EV. Otherwise D-159's mean meter (−1 … +1.5 EV) is
   unchanged. Night and deep twilight still fade it out (10–100 lx).
   - Synthetic frames (tests/sky_d224.test.ts): the D-219 portico (exposure 36, the view out ~70 % of the field, the sky
     5× and 7× display white): D-159 alone closes 1 EV and leaves the sky 2.5–3.5× white; now the exposure falls to the
     open-air floor 2.3 (bright share 0.78, −3.97 EV) and the sky displays at 0.32–0.45 of white. The hall looking out (door ~8 % of the field, 20× white
-    at the hall's exposure 136): bright share < 0.3, the correction identical to D-159's, the door still 20× white. An
-    ordinary frame (40 % sky 1.5 EV over the ground) and a uniform grey: unchanged. A doorway growing from 2 to 22 of 24
+    at the hall's exposure 136): bright share < 0.5, the correction identical to D-159's, the door still 20× white. An
+    rendered hall-out framing (doorway 43 % of the weighted field): identical to D-159. An ordinary frame (40 % sky 1.5 EV
+    over the ground) and a uniform grey: unchanged. A doorway growing from 2 to 22 of 24
     columns: the exposure closes monotonically.
   - The Apadana entry sequence is untouched by construction where the bright part is a minority (enter-door, hall,
     hall-out); `carryEye` still sets the adaptation over time.
   - `exposureInfo()` adds `meterBright` and `meterMean` (D-159's part alone); the moments' lum records log them; the F3
     overlay shows the meter EV, the bright share and the overcast weight.
-- **Rendered:** (filled in below)
+- **Rendered (quality high, WebGPU / SwiftShader, 960 × 540, two runs through the shared queue; shots/moments-lum.json):**
+  | view | exposure | meter EV (D-159 part) | bright share | measured |
+  |---|---|---|---|---|
+  | apadana-w-portico-out (new: the D-219 portico stance, day 25 11:00) | 1.67 (D-159 alone: law 16.4 × 2^−1 = 8.2) | −3.29 (−1) | 0.71 | the sky between the columns sRGB 133–177, p99 173, 0 % clipped; the plain (104, 121, 86); the columns in shade (41, 35, 27) |
+  | apadana-hall-out, run 1 (blend 0.3 … 0.6) | 35.1 | −2.62 (−1) | 0.43 | the door no longer burned (0 % clipped, the court readable): a regression; the blend moved to 0.5 … 0.65 |
+  | apadana-hall-out, run 2 (0.5 … 0.65) | 108.3 | −1 (−1) | 0.43 | 7.8 % clipped (rubric: 7.9 %), the door (255, 255, 255), the hall (10, 6, 5): the blow-out restored |
+  | dawn-stair-top (−2.9°) | 4.83 (lead's earlier render 4.84) | −0.31 | 0.25 | mean 71.6 (71.9), p50 62 (59); sky rows 150–190 (89–93, 111–114, 138–140) b/r 1.5: the "clear" day's broken deck covers the low W sky, and the arch (11–21° up) lies at and above the frame's top edge; no arch or shadow band is visible in this framing |
+  | dawn-sunrise (+2.5°) | 3.44 | −0.80 | 0.25 | cloud undersides salmon; the sky between them (147, 139, 137); the ranges (101, 104, 115) b/r 1.13, grey-blue: no pink first light (the veil, as predicted: 2–6 % of their radiance is their own) |
+  | snow-terrace (cover 1) | 3.24 | −0.45 | 0.25 | the frame shows no sky: the dark brown above the merlons (23–49, 18–37, 14–23) is the Apadana N portico's shaded interior behind the columns, not the sky (the rubric's "brown sky" in this frame is that); the overcast change is verified in node only |
+  - **Not rendered:** an overcast frame with sky (the rain-approach at cover 0.76, or any frame at test quality, where the
+    dome draws the overcast itself). The high-quality overcast deck's own radiance is the volumetric layer's (CPU mirror,
+    tools/dev/cloud_compare.ts, day 280 10:00 cover 1: base 1.34× the sunlit ground of albedo 0.25), unchanged here.
 - **Tiers:** CIE overcast distribution B; overcast CCT B (measured, Annapolis); the blend by cover C; the lidar ratio and the
   stratospheric layer B-values used as C; the sun's photometric luminance B (USNO); the bright-majority rule and its
   constants C.
