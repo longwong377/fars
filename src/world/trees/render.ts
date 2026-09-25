@@ -312,10 +312,49 @@ function cascadeStart(shadowCam: THREE.Camera) {
     return (n.breaks[i - 1] ?? 0) * Math.min(n.camera.far, n.maxFar); }
   return 0;
 }
-function nearCascadesOnly(mesh: THREE.Mesh) {
+/** the shadow passes draw `shadowN()` instances (the main pass draws geometry.instanceCount, a prefix of them: D-228), and
+ *  none into a cascade that starts beyond TREE_SHADOW_REACH */
+function nearCascadesOnly(mesh: THREE.Mesh, shadowN: () => number) {
   let saved = -1; const g = mesh.geometry as THREE.InstancedBufferGeometry;
-  mesh.onBeforeShadow = (_r, _o, _c, shadowCam) => { if (cascadeStart(shadowCam) < TREE_SHADOW_REACH) { saved = -1; return; } saved = g.instanceCount; g.instanceCount = 0; };
+  mesh.onBeforeShadow = (_r, _o, _c, shadowCam) => { saved = g.instanceCount; g.instanceCount = cascadeStart(shadowCam) < TREE_SHADOW_REACH ? shadowN() : 0; };
   mesh.onAfterShadow = () => { if (saved >= 0) { g.instanceCount = saved; saved = -1; } };
+}
+
+// ---------------------------------------------------------------- view culling of the near 3-D trees (D-228)
+/** The near sets hold every tree within r3 all round the camera and are not frustum-culled (their bounds span the world),
+ *  so a frame drew every one of them, behind the camera too, and every shadow caster into three cascades (village P22 at
+ *  high: 2.56 M triangles for the plain, D-040's limit 2 M). Culled per tree instead: a tree is drawn in the main pass if
+ *  its bounding sphere meets the view frustum widened by `marginDeg`; a shadow caster stays in the shadow passes if the
+ *  sphere swept away from the sun until its shadow is on the ground meets that frustum (its shadow can be seen). Neither
+ *  the tree nor its shadow can reach the frame otherwise, so nothing visible is lost. The cull is redone when the view
+ *  turns by `turnDeg`, the camera moves `moveM` or the sun moves `sunDeg`; trees within `keepR` are always kept, so
+ *  neither a turn nor a step brings an uncovered tree into the frame between two culls (margin 8° > 3° turn + atan(1/12)). */
+export const VIEW_CULL = { marginDeg: 8, turnDeg: 3, moveM: 1, sunDeg: 0.5, keepR: 12, shadowCapM: 400 };
+const _proxy = new THREE.PerspectiveCamera(), _pm = new THREE.Matrix4(), _a = new THREE.Vector3(), _b = new THREE.Vector3();
+/** the view frustum of `cam`, widened by `marginDeg` on every side */
+export function widenedFrustum(cam: THREE.PerspectiveCamera, marginDeg = VIEW_CULL.marginDeg, out = new THREE.Frustum()) {
+  const M = (marginDeg * Math.PI) / 180, tv = Math.tan((cam.fov * Math.PI) / 360) / (cam.zoom || 1), th = tv * cam.aspect;
+  const v2 = Math.min(Math.atan(tv) + M, 1.55), h2 = Math.min(Math.atan(th) + M, 1.55);
+  _proxy.fov = (2 * v2 * 180) / Math.PI; _proxy.aspect = Math.tan(h2) / Math.tan(v2); _proxy.near = cam.near; _proxy.far = cam.far; _proxy.updateProjectionMatrix();
+  cam.updateMatrixWorld(); _proxy.matrixWorldInverse.copy(cam.matrixWorld).invert();
+  return out.setFromProjectionMatrix(_pm.multiplyMatrices(_proxy.projectionMatrix, _proxy.matrixWorldInverse));
+}
+/** the registered shadow-casting sun's direction (toward the sun), or null (no sun: no shadows) */
+export function shadowSunDir(out = new THREE.Vector3()) { const L = SHADOW_LIGHTS[0]; if (!L) return null; return out.copy(L.position).sub(L.target.position).normalize(); }
+/** 1: the tree can be seen; 2: only its shadow can (casters only); 0: neither. `toSun` null: no shadows */
+export function treeViewClass(r: TreeInst, models: TreeModel[], fr: THREE.Frustum, camPos: THREE.Vector3, toSun: THREE.Vector3 | null, caster: boolean): 0 | 1 | 2 {
+  if (Math.hypot(r.x - camPos.x, r.z - camPos.z) < VIEW_CULL.keepR) return 1;
+  const m = models[r.row], h = m.H * r.sy, rad = 0.5 * Math.hypot(m.W * r.sxz, h) + 0.5;
+  _a.set(r.x, r.y + h / 2, r.z);
+  const P = fr.planes; let inside = true;
+  for (let i = 0; i < 6; i++) if (P[i].distanceToPoint(_a) < -rad) { inside = false; break; }
+  if (inside) return 1;
+  if (!caster || !toSun) return 0;
+  // the capsule from the sphere along the light until every point of the sphere has reached 10 m below the tree's foot
+  const sinEl = Math.max(toSun.y, Math.sin((2 * Math.PI) / 180)), L = Math.min(VIEW_CULL.shadowCapM, (h / 2 + rad + 10) / sinEl);
+  _b.copy(toSun).multiplyScalar(-L).add(_a);
+  for (let i = 0; i < 6; i++) if (P[i].distanceToPoint(_a) < -rad && P[i].distanceToPoint(_b) < -rad) return 0;
+  return 2;
 }
 
 // ---------------------------------------------------------------- template geometry and instanced meshes
@@ -378,16 +417,23 @@ function pickable(mesh: THREE.Mesh, inst: () => TreeInst[], models: TreeModel[],
 
 /** near 3-D trees at one level of detail: wood + leaves, one draw each */
 export class NearTreeSet {
-  readonly wood: THREE.Mesh; readonly leaves: THREE.Mesh; private inst: Instances;
+  readonly wood: THREE.Mesh; readonly leaves: THREE.Mesh; private inst: Instances; private shadowN = 0;
   constructor(kit: TreeKit, readonly lod: 0 | 1, cap: number, castShadow: boolean, name: string) {
     this.inst = new Instances(cap);
     this.wood = new THREE.Mesh(this.inst.geometry(woodTemplate(lod ? M1 : M0, lod ? SIDES1 : SIDES0)), kit.woodMaterial());
     this.leaves = new THREE.Mesh(this.inst.geometry(cardTemplate(lod ? K1 : K0)), kit.leafMaterial(lod));
     this.wood.name = `${name}-wood-lod${lod}`; this.leaves.name = `${name}-leaves-lod${lod}`;
-    for (const m of [this.wood, this.leaves]) { m.castShadow = castShadow; m.receiveShadow = true; m.frustumCulled = false; pickable(m, () => this.inst.recs, kit.models, name); if (castShadow) nearCascadesOnly(m); m.onBeforeRender = () => kit.syncSun(); }
+    for (const m of [this.wood, this.leaves]) { m.castShadow = castShadow; m.receiveShadow = true; m.frustumCulled = false; pickable(m, () => this.inst.recs, kit.models, name); if (castShadow) nearCascadesOnly(m, () => this.shadowN); m.onBeforeRender = () => kit.syncSun(); }
   }
-  set(recs: TreeInst[]) { const n = this.inst.apply(recs); (this.wood.geometry as THREE.InstancedBufferGeometry).instanceCount = n; (this.leaves.geometry as THREE.InstancedBufferGeometry).instanceCount = n; return n; }
-  count() { return (this.wood.geometry as THREE.InstancedBufferGeometry).instanceCount; }
+  /** the records to draw; the main pass draws the first `mainN` of them (the trees in view), the shadow passes all (D-228) */
+  set(recs: TreeInst[], mainN = recs.length) { const n = this.inst.apply(recs), k = Math.min(n, mainN); this.shadowN = n;
+    (this.wood.geometry as THREE.InstancedBufferGeometry).instanceCount = k; (this.leaves.geometry as THREE.InstancedBufferGeometry).instanceCount = k; return n; }
+  /** trees held (drawn in the shadow passes if this set casts shadows) */
+  count() { return this.shadowN; }
+  /** the records held: the first drawn() of them are drawn in the main pass */
+  records(): readonly TreeInst[] { return this.inst.recs; }
+  /** trees drawn in the main pass */
+  drawn() { return (this.wood.geometry as THREE.InstancedBufferGeometry).instanceCount; }
   tris() { return this.count() * (this.lod ? TRIS.lod1 : TRIS.lod0); }
 }
 /** far trees: one camera-facing impostor quad each */

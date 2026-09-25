@@ -14,6 +14,7 @@
     3000,
     6000
    ],
+   "town_note": "3,000-6,000 is PEOPLE.md section 3e's first-pass figure; PEOPLE.md P5.6 replaces it with 5,000-10,000 (working value 7,000; Q-038), and the build has 1,456 homes for 7,968 people (town_plots.json) holding 7,776 (D-081, seed 1). See research/SETTLEMENT.md section 3 (D-228).",
    "src": "SUMNER1986;PEOPLE-R",
    "tier": "C (derived)"
   },
@@ -215,9 +216,9 @@
    "id": "pw_area_b_craft",
    "kind": "workshop_zone",
    "name": "Persepolis West Area B craft zone: kiln, bone pits, pigment workshop",
-   "tier": "B",
+   "tier": "C",
    "src": "PW2017;PW-PIGMENT2021",
-   "note": "Area B 500 m W of Area A (PW2017, B). A kiln and industrial remains \"of possible Achaemenid date\"; pits full of bone fragments, read as raw material for fluorapatite used to whiten the grey limestone of the Terrace (B). Pigment lumps: azurite, malachite, Egyptian blue, glauconite, red and yellow ochre (haematite, magnetite, goethite); a bronze scrap with an Egyptian-blue crust and diopside suggest Egyptian blue was made here; palette matches the Terrace palaces (PW-PIGMENT2021, B). Position C (+-250 m); activity B; date in 467 C (possible Achaemenid).",
+   "note": "Area B 500 m W of Area A (PW2017, B). A kiln and industrial remains \"of possible Achaemenid date\"; pits full of bone fragments, read as raw material for fluorapatite used to whiten the grey limestone of the Terrace (B). Pigment lumps: azurite, malachite, Egyptian blue, glauconite, red and yellow ochre (haematite, magnetite, goethite); a bronze scrap with an Egyptian-blue crust and diopside suggest Egyptian blue was made here; palette matches the Terrace palaces (PW-PIGMENT2021, B). Position C (+-250 m); activity B; date in 467 C (possible Achaemenid). Tier C (D-228): activity and existence B, position C (+-250 m, placed 500 m W of a placed Area A); the file's rule is tier = the lower of existence and position.",
    "date_range": "possible Achaemenid",
    "present_467": true,
    "xy": [
@@ -290,9 +291,9 @@
    "id": "frataraka_complex",
    "kind": "temple_complex",
    "name": "\"Frataraka\" complex (pedestal temple)",
-   "tier": "B",
+   "tier": "C",
    "src": "GONDET2018;DASHTESTAN2021",
-   "note": "Post-Achaemenid by Callieri (brick sizes, column-base types, pedestal style) (SX, B). ABSENT in 467. Position C (N of the Terrace).",
+   "note": "Post-Achaemenid by Callieri (brick sizes, column-base types, pedestal style) (SX, B). ABSENT in 467. Position C (N of the Terrace). Tier C (D-228): the post-Achaemenid dating that makes it absent is B, its position C (+-250 m, N of the Terrace); the file's rule is tier = the lower of existence and position.",
    "date_range": "post-Achaemenid (3rd-2nd c. BCE?)",
    "present_467": false,
    "xy": [
@@ -1254,12 +1255,12 @@
    "id": "precinct_plinths",
    "kind": "plinths",
    "name": "two stone plinths of the sacred precinct",
-   "tier": "B",
+   "tier": "C",
    "src": "PAS-PRECINCT;RECON",
    "in_feature": [
     "sacred_precinct"
    ],
-   "note": "after the Pasargadae precinct (search extracts, B form): white limestone on black limestone borders, 2.8 and 2.5 m square, 2 m high, ~9 m apart, the S one with a monolithic stair (eight or nine steps: Q-470); orientation (true N-S), the stair's side and the border's size C"
+   "note": "after the Pasargadae precinct (search extracts, B form): white limestone on black limestone borders, 2.8 and 2.5 m square, 2 m high, ~9 m apart, the S one with a monolithic stair (eight or nine steps: Q-470); orientation (true N-S), the stair's side and the border's size C. Tier C (D-228): the form is B at Pasargadae; plinths at Persepolis, their place and orientation are an analogy (C, D-207, D-209); the file's rule is tier = the lower of existence and position."
   },
   {
    "id": "precinct_altar",

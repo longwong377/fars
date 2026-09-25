@@ -43,6 +43,12 @@ describe('settlement geometry budget (whole-frame proxy: settlement ≤ 150 draw
       for (let f = 0; f < n; f += Math.max(1, Math.floor(n / 50))) { const d = o.userData.describe({ faceIndex: f }); expect(d, `${o.name} face ${f}`).toBeTruthy(); expect(['A', 'B', 'C', 'B/C']).toContain(d.tier); checked++; } });
     expect(checked).toBeGreaterThan(200);
   });
+  it('F3 flags the houses\' box-slab walls, roofs and fixed doors as PLACEHOLDER (§3.7; Phase 6+7 review M4, D-228)', () => {
+    let houses = 0, flagged = 0;
+    town.group.traverse((o: any) => { if (!o.isMesh || typeof o.userData.describe !== 'function') return; const n = o.geometry.index.count / 3;
+      for (let f = 0; f < n; f += Math.max(1, Math.floor(n / 200))) { const d = o.userData.describe({ faceIndex: f }); if (!d || !/: (large )?courtyard house/.test(d.note)) continue; houses++; if (d.placeholder === true && d.note.includes('PLACEHOLDER')) flagged++; } });
+    expect(houses).toBeGreaterThan(20); expect(flagged).toBe(houses);
+  });
 });
 
 describe('walk into the town (offline bot: game colliders and player controller)', () => {

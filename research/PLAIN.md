@@ -5,7 +5,7 @@
 - **Reconstructed (C):** monthly flows, crop heights, and the field layout.
 - **Village positions** come from Barrington Atlas map 94 via Pleiades. They are map-scale, with accuracy up to 10 km. Only 6 of Sumner's 39 secure sites could be located; the rest are placed procedurally.
 - **Blocked (B6):** every scholarly full text. Sumner 1986 is on archive.org, which is also blocked.
-- **Horizon finding (measured).** The 40.96 km far terrain ring truncates the W/WSW and SSE skyline. Ranges 55–66 km out rise 0.1–0.4° above the in-ring horizon in those sectors. The DEM tiles already cover them (§6).
+- **Horizon finding (measured; fixed by D-035).** The 40.96 km far terrain ring of this research truncated the W/WSW and SSE skyline: ranges 55–66 km out rose 0.1–0.4° above the in-ring horizon in those sectors (§6). D-035 extended the far ring to ±71.7 km with Earth curvature and refraction; the drawn skyline now agrees with an independent SRTM profile within 0.15° in all 36 sectors (tests/terrain.test.ts).
 
 Machine-readable file: `src/data/plain.json`, with the same frame and fields as `settlement.json`, plus a `crops` calendar and per-river `flow_by_month`.
 
@@ -81,7 +81,7 @@ Conflict: Iranica (IR-ARCH2) gives "100–150 Achaemenid settlements within the 
 | Feature | State | Source | Access | Tier |
 |---|---|---|---|---|
 | Tomb of Darius I (DNa/DNb), 29.98913, 52.87462 | standing, sealed; cut and in use in Darius' lifetime (Ctesias story, via WP-NR) | LIVIUS-NR; WP-NR; OVERTURE-2026 | SX / FT | B |
-| Tomb attributed to Xerxes (ENE of Darius') | uninscribed; attributed by elimination. Kings prepared their tombs in life, so it **may be cut or being cut in 467** | LIVIUS-NR; WP-NR | SX | C (Q-047; chronology.json currently says absent) |
+| Tomb attributed to Xerxes (ENE of Darius') | uninscribed; attributed by elimination. Kings prepared their tombs in life, so it **may be cut or being cut in 467** | LIVIUS-NR; WP-NR | SX | C (Q-047, decided in D-033: present in chronology.json, façade cut and uninscribed; built without inscription panels) |
 | Tombs of Artaxerxes I (WSW) and Darius II (westernmost) | absent: those kings reign after 465 | LIVIUS-NR | SX | B |
 | Ka'ba-ye Zardosht, 29.98804, 52.87452 | standing. Dovetail clamps and black-on-white stone point to Darius I or Xerxes I; the Pasargadae twin is a few decades older | WP-NR | SX | C (Q-006) |
 | Neo-Elamite relief | intact (the Bahram II overcarving is blocked) | ALVAREZMON | SX | B |
@@ -93,8 +93,8 @@ Conflict: Iranica (IR-ARCH2) gives "100–150 Achaemenid settlements within the 
 - **Data.** The DEM far ring (`public/generated/terrain_far.u16`, ±40.96 km, 80 m cells) was checked against AWS Terrain Tiles (SRTM, z10), with 1° rays out to 120 km from the Apadana court (eye 1,626.6 m, refraction k = 0.13). The full table is in `plain.json` → `horizon_check.sectors`.
 - **Near horizon (E):** Kuh-e Rahmat. The ridge behind the Terrace is 2,216 m at 3.1 km E. The massif high point is 2,554 m at 11.2 km, bearing 117°. From 0° to 140° true it fills the view at 5–12° elevation.
 - **Far horizon:** 0.3–2.8° elevation to the S, W and N, formed by ranges 16–40 km away (2,100–2,750 m).
-- **Truncation.** In the sectors 150–160°, 230–250° and 270–290° true, ranges 55–66 km away (2,670–2,960 m) stand 0.1–0.4° above the in-ring horizon, so they are **missing from the current skyline**. The WNW gap over the Kur valley (in-ring horizon only 0.32–0.36°) is the most visible.
-- **Fix.** Extend the far ring to about 70 km (`tools/build_terrain.py`); tiles N29–N30 and E052–E053 already cover it. This is not changed here, as it is outside this agent's remit (Q-053).
+- **Truncation.** In the sectors 150–160°, 230–250° and 270–290° true, ranges 55–66 km away (2,670–2,960 m) stand 0.1–0.4° above the in-ring horizon, so they were **missing from the skyline** of the ±40.96 km ring (restored by D-035). The WNW gap over the Kur valley (in-ring horizon only 0.32–0.36°) is the most visible.
+- **Fix (done, D-035).** The far ring was extended to ±71.7 km (`tools/build_terrain.py`, tiles N29–N30 and E052–E053) with Earth curvature and refraction (Q-053); `tests/terrain.test.ts` checks the drawn skyline against this SRTM horizon.
 
 ## 7. Vegetation and wildlife
 - **Vegetation:** see §3 zones. Pollen evidence is in `_climate_C.md`: *Quercus brantii* woodland and *Pistacia–Amygdalus* scrub on the slopes; *Artemisia*/grass steppe; Achaemenid arboriculture (*Olea*, *Punica*, *Platanus*, cypress). Tier B.
@@ -108,7 +108,7 @@ Conflict: Iranica (IR-ARCH2) gives "100–150 Achaemenid settlements within the 
 5. The first way-station on each road (PF Q texts: Hallock 1969).
 
 ## 9. As built (Phase 7, session 3; D-037 to D-040)
-**Placeholder or weak, read first:** the Naqsh-e Rustam relief figures are schematic silhouettes and the DNa/DNb panels are dressed but not inscribed (both flagged PLACEHOLDER in the dev overlay); the Xerxes tomb spacing (60 m) and the façade's arm widths, recess, columns and door are C (Q-076, Q-077); the Ka'ba stair/door side and window layout are C (Q-078); 33 of the 37 villages, all 37 canals, all field plots, tracks and orchards are placed by rule (C).
+**Placeholder or weak, read first:** the Neo-Elamite relief's figures are schematic silhouettes (flagged PLACEHOLDER in the dev overlay); the tomb reliefs are carved by the relief system (D-069: programme B, carving C); DNa and DNb carry their Old Persian text from the CC0 edition, incised (D-061, D-177, D-184), but their Elamite and Babylonian versions and the captions DNc–DNe are not carved (PLACEHOLDER, Q-290); the Xerxes tomb spacing (60 m) and the façade's arm widths, recess, columns and door are C (Q-076, Q-077); the Ka'ba stair/door side and window layout are C (Q-078); 33 of the 37 villages, all 37 canals, all field plots, tracks and orchards are placed by rule (C).
 
 Data added to `src/data/plain.json` (each with tier, source and note):
 - `river_*.channel`: trapezoid fitted to the flow table (bed, side slope, bank height; C); `river_*.riparian`: species (IR-RIPARIAN analogy + SAEIDI2021 Platanus), band, spacing and gaps (C).

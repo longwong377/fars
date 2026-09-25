@@ -18,6 +18,8 @@ import { TreeField } from './trees';
 import { buildWaterAndRoads } from './water';
 import { TownHaze } from './haze';
 
+/** what the dev overlay (F3) says of every plot's walls, roofs and doors (D-228) */
+export const PLOT_PLACEHOLDER = 'PLACEHOLDER geometry: the walls, roofs and street-door leaves are plain box slabs, and the street doors stand open and never move (the plan itself, plots, rooms, courts and lanes, is the C reconstruction).';
 export interface Desc { tier: string; src: string; note: string; placeholder?: boolean }
 interface ColBox { x: number; y: number; z: number; hx: number; hy: number; hz: number; rot: number }
 interface Cluster { id: string; c: P2; batches: Map<string, Batch>; desc: Desc[] }
@@ -151,7 +153,9 @@ export class Settlement {
       local[p.idx] = (i1 - i0) * (j1 - j0) > 2500 && p.roofed === 0 ? 1 : 0; // big open enclosures: walls follow the ground (roofed plots keep one base, so walls and roofs agree)
       const row = ROWS[p.row];
       pdesc[p.idx] = cl.desc.length;
-      cl.desc.push({ tier: row?.tier ?? 'C', src: row?.src ?? 'RECON', note: `${p.id}: ${kindLabel(p)}${p.capacity ? `, houses ${p.capacity}` : ''}, ${p.area} m² (${p.roofed} m² roofed). ${p.note || ''} ${row?.note ?? HOUSE_BASIS}`.replace(/\s+/g, ' ') });
+      // PLACEHOLDER (§3.7, Phase 6+7 review M4): the plan (plots, rooms, courts, lanes) is the C reconstruction, but its
+      // walls, roofs and street doors are drawn as plain box slabs, and the doors stand open and never move
+      cl.desc.push({ tier: row?.tier ?? 'C', src: row?.src ?? 'RECON', placeholder: true, note: `${p.id}: ${kindLabel(p)}${p.capacity ? `, houses ${p.capacity}` : ''}, ${p.area} m² (${p.roofed} m² roofed). ${p.note || ''} ${row?.note ?? HOUSE_BASIS} ${PLOT_PLACEHOLDER}`.replace(/\s+/g, ' ') });
       const rng = new Rng(hashString(p.id), 'colour');
       const official = p.kind === 'official';
       // each house its own batch of loam: brightness varies, the hue only slightly toward warmer or greyer (C)
