@@ -19,14 +19,14 @@ console.log(`built ${sets.length} sets, ${sets.reduce((s, q) => s + q.items.leng
 const at = (e: number, y: number, n: number) => new THREE.Vector3(e, y, -n);
 const line = (what: string, cam: THREE.Vector3) => {
   updateReliefs(cam, 1e9); const s = reliefStats();
-  console.log(`${what.padEnd(34)} tris ${String(s.tris).padStart(8)}  L0..L3 ${s.byLod.join(' / ')}  far ${s.farTris}  draws ${s.draws} (far ${s.farDraws}, proxies ${s.proxies})`);
+  console.log(`${what.padEnd(34)} tris ${String(s.tris).padStart(8)}  L0..L4 ${s.byLod.join(' / ')}  far ${s.farTris}  draws ${s.draws} (far ${s.farDraws}, proxies ${s.proxies})`);
   return s;
 };
 for (const f of apadanaFacades(manifest)) for (const off of [2, 4, 6, 10, 16, 25]) line(`${f.id} audience panel, ${off} m`, at(f.origin[0] + f.normal[0] * off, 1.6, f.origin[1] + f.normal[1] * off));
 let worst = 0, where = '';
 for (const f of apadanaFacades(manifest)) for (let a = -f.length / 2; a <= f.length / 2; a += 4) for (const off of [1.2, 4, 15]) {
   updateReliefs(at(f.origin[0] + f.along[0] * a + f.normal[0] * off, 1.6, f.origin[1] + f.along[1] * a + f.normal[1] * off), 1e9);
-  if (apSet.stats.tris > worst) { worst = apSet.stats.tris; where = `${f.id} a=${a} off=${off} L0..L3 ${apSet.stats.byLod.join(' / ')}`; }
+  if (apSet.stats.tris > worst) { worst = apSet.stats.tris; where = `${f.id} a=${a} off=${off} L0..L4 ${apSet.stats.byLod.join(' / ')}`; }
 }
 console.log(`Apadana walk worst (tests/reliefs.test.ts): ${worst} at ${where}`);
 let w2 = 0, wh2 = '';

@@ -12,7 +12,7 @@
 // the part's base height and, for hall floors, the floor's box) a splash and dust band at the foot of walls and traffic
 // wear along the floors' axes; indirect specular from the sky environment (envmap.ts) on the smoother surfaces.
 import * as THREE from 'three/webgpu';
-import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture, positionGeometry, atan } from 'three/tsl';
+import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture, positionGeometry, atan, sin } from 'three/tsl';
 import PC from '../data/polychromy.json';
 import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
 import { SkySpecularNode } from './envmap';
@@ -98,7 +98,10 @@ export interface SurfaceDef {
   chips?: { cover: number; size: number; albedo: [number, number, number] };
   /** vertical weathering streaks on rock faces (run-off, varnish): albedo darkened by up to `amp` in bands `1/freq` m
    *  wide, stretched ~12× vertically (C) */
-  streaks?: { amp: number; freq: number };
+  streaks?: { amp: number; freq: number; stretch?: number };
+  /** a rock face's jointed blocks (D-217, C): each block (a cell `size` m: across, up, across; its edges warped by noise)
+   *  gets its own tone, ±`tone` of the albedo, and each bed (the rows) a tone of its own, ±`bed` */
+  rockBlocks?: { size: [number, number, number]; tone: number; bed: number };
   /** herb layer that follows SEASON (ground surfaces only) */
   herbs?: number;
   /** ashlar only: each block (the joint pattern's course × block cells) gets its own tone, ±this fraction of the albedo:
@@ -307,7 +310,11 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
   if (d.roughVar) rough = rough.mul(float(1).add(mx_noise_float(p.mul(0.9).add(3.7)).mul(0.7).add(mx_noise_float(p.mul(3.1).add(1.3)).mul(0.3)).mul(d.roughVar))).clamp(0.04, 1);
   let height: any = null, tilt: any = undefined;
   if (d.bump) { // two octaves of relief: broad undulation (trowel / settling) + fine grain
-    height = mx_noise_float(p.mul(d.bump.freq)).mul(d.bump.amp).add(mx_noise_float(p.mul(d.bump.freq * 5.3)).mul(d.bump.amp * 0.35));
+    // band-limited by the pixel footprint as the micro grain is (D-217): an octave whose period spans under ~3 px fades to
+    // its mean. Unfiltered, the fine octave (5.3 × freq: 0.31 m on the Naqsh cliff) aliased from 200 m and its screen-space
+    // bump normals drew a moiré of wavy lines over the whole face (rubric s7 pass 2, R9)
+    const fpB = fwidth(p).length().max(1e-6), bandB = (freq: number) => float(1).sub(smoothstep(0.15, 0.35, fpB.mul(freq)));
+    height = mx_noise_float(p.mul(d.bump.freq)).mul(d.bump.amp).mul(bandB(d.bump.freq)).add(mx_noise_float(p.mul(d.bump.freq * 5.3)).mul(d.bump.amp * 0.35).mul(bandB(d.bump.freq * 5.3)));
   }
   if (d.micro) { // fine grain, band-limited by the pixel footprint (D-147)
     const fade = float(1).sub(smoothstep(0.15, 0.35, fwidth(p).length().max(1e-6).mul(d.micro.freq)));
@@ -465,8 +472,15 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     alb = alb.mul(vec3(float(1).sub(trod.mul(0.08)), float(1).sub(trod.mul(0.1)), float(1).sub(trod.mul(0.13))));
     rough = rough.sub(trod.mul(0.12));
   }
+  if (d.rockBlocks) { // jointed rock (D-217): a tone per block and per bed, the cells' edges warped (world space: no projection)
+    const B = d.rockBlocks, w = mx_noise_float(p.mul(0.07).add(vec3(3.3, 1.1, 7.7))).mul(0.9);
+    const bi = floor(p.x.div(B.size[0]).add(w)), bj = floor(p.y.div(B.size[1]).add(w.mul(0.6)).add(p.x.mul(0.011))), bk = floor(p.z.div(B.size[2]).add(w));
+    const hb = fract(sin(bi.mul(127.1).add(bj.mul(311.7)).add(bk.mul(74.7))).mul(43758.5453)).mul(2).sub(1);
+    const hr = fract(sin(bj.mul(269.5).add(19.19)).mul(43758.5453)).mul(2).sub(1);
+    alb = alb.mul(float(1).add(hb.mul(B.tone)).add(hr.mul(B.bed)));
+  }
   if (d.streaks) { // vertical weathering streaks: noise fast across the face, slow down it (C)
-    const f = d.streaks.freq, q = vec3(p.x.mul(f), p.y.mul(f * 0.08), p.z.mul(f));
+    const f = d.streaks.freq, q = vec3(p.x.mul(f), p.y.mul(f * (d.streaks.stretch ?? 0.08)), p.z.mul(f));
     const st = smoothstep(0.1, 0.75, mx_noise_float(q).mul(0.5).add(0.5).add(mx_noise_float(q.mul(3.1)).mul(0.15)));
     alb = alb.mul(float(1).sub(st.mul(d.streaks.amp)));
   }
@@ -636,7 +650,10 @@ export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
   const film = clamp(cov, 0, 1).mul(opacity).mul(kept).mul(float(1).sub(leaf));
   const grain = float(1).add(mx_noise_float(p.mul(F.grain_freq)).mul(F.grain_amp).mul(float(1).sub(smoothstep(0.2, 0.45, foot.mul(F.grain_freq)))));
   const gold = vec3(G.f0[0], G.f0[1], G.f0[2]).mul(float(1).add(mx_noise_float(p.mul(G.grain_freq)).mul(G.grain_amp)));
-  const L: Layer = { alb: mix(mix(S.alb, pig.mul(grain), film), gold, leaf), rough: mix(mix(S.rough, float(F.roughness), film), float(G.roughness), leaf), height: (S.height ?? float(0)).add(film.add(leaf).mul(F.relief)) };
+  // the carving's own sky occlusion (D-217, relief_field.carvingOcclusion): the skylight at the foot of each contour and in
+  // the folds scaled by 1 − 0.85 × occlusion, and grime held in the recesses (up to 15 % darker, C)
+  const occ = clamp(attribute('ao', 'float'), 0, 1);
+  const L: Layer = { alb: mix(mix(S.alb, pig.mul(grain), film), gold, leaf).mul(float(1).sub(occ.mul(0.15))), rough: mix(mix(S.rough, float(F.roughness), film), float(G.roughness), leaf), height: (S.height ?? float(0)).add(film.add(leaf).mul(F.relief)) };
   class GiltLighting extends (THREE as any).PhysicalLightingModel {
     indirectSpecular(builder: any) {
       const ctx = builder.context; // the skylight's irradiance (hemisphere light / probes), reflected by the gold only
@@ -646,6 +663,7 @@ export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
   }
   const m = new THREE.MeshStandardNodeMaterial();
   finish(m, L, d);
+  m.aoNode = float(1).sub(occ.mul(0.85));
   m.metalnessNode = leaf;
   (m as any).setupLightingModel = () => new GiltLighting();
   m.userData = { tier: 'C', note: 'carved limestone (joint-free) with a matte mineral paint film: pigments B (RELIEFS_AND_COLOUR §3a), colour values, film and wear C (src/data/polychromy.json, D-030); gilding drawn as gold leaf (metal, D-151): gilding on the reliefs B (Iranica "Persepolis": traces of gold; Nagel 2010 "color and gilding"), the technique and the gilded zones C (Q-231); the brush, loss and grain noise of the film fade to their mean where a period falls under ~3 px (D-204)' };
