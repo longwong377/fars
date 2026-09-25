@@ -37,7 +37,18 @@ const SHOTS: [string, string, number[], number[]][] = [
   ['extra-side', 'extra', [3.4, 1.3, 1.2], [0, 0.9, 0]],
   ['macro-extra-persian', 'extra', [1, 0.5, 0.1], [0, 0, 0]],
   ['stress', 'stress', [0, 1.6, 4], [0, 1.2, -10]],
+  // the carried loads (D-217, rubric s7 pass 2 R1): a porter with a jar on the shoulder, one with a sack, a woman with a jar
+  // on her head, walking in place along +Z; from the front, from their right (the review's view of the jar hiding the head)
+  // and from behind on their right
+  ['carry-front', 'carry', [0, 1.4, 4.4], [0, 1.1, -2.2]],
+  ['carry-right', 'carry', [-5.2, 1.4, -2.2], [0, 1.15, -2.2]],
+  ['carry-back', 'carry', [-2.6, 1.5, -8], [0, 1.15, -2.2]],
 ];
+// the carriers of the 'carry' shots (stations: the act's pose and prop, as the crowd draws them in the world)
+// (staggered in depth, so the view from their right shows each of them)
+const CARRY = [{ act: 'carry_jar', why: 'carrying a jar of water', dress: 'worker', sex: 'm', role: 'porter', seed: 41, x: -1, z: 0 },
+  { act: 'carry_sack', why: 'carrying a sack of grain', dress: 'worker', sex: 'm', role: 'porter', seed: 42, x: 0, z: -2.2 },
+  { act: 'carry_jar_head', why: 'carrying water home', dress: 'woman', sex: 'f', role: 'grinder', seed: 43, x: 1, z: -4.4 }];
 const DEFAULT = ['mixed-full', 'macro-persian', 'macro-woman2'];
 const TAG = process.env.TAG ? `${process.env.TAG}-` : '';
 test('human lab close-ups', async ({ page }, info) => {
@@ -59,6 +70,10 @@ test('human lab close-ups', async ({ page }, info) => {
         for (let i = 0; i < 300; i++) { const dress = dresses[i % 6], d = 2 + 18 * Math.sqrt((i + 0.5) / 300), a = (((i * 0.618) % 1) - 0.5) * 1.2;
           cr.addExtra(`s${i}`, { id: -100 - i, sex: dress === 'woman' ? 'f' : 'm', role: dress === 'guard' ? 'guard' : dress === 'child' ? 'child' : 'mason', dress, seed: 5000 + i, x: d * Math.sin(a), y: 0, z: 4 - d * Math.cos(a), yaw: i, anim: anims[i % anims.length], look: null }); } });
       lastLineup = 'stress';
+    } else if (lu === 'carry') {
+      if (lu !== lastLineup) { const r = await page.evaluate(s => (window as any).__lab.stations(s), CARRY); console.log(lu, JSON.stringify(r)); lastLineup = lu; }
+      await page.evaluate(() => (window as any).__lab.at(1.3)); // a moment of the walk with the load up
+      await page.evaluate(([c, t]) => (window as any).__lab.view(c[0], c[1], c[2], t[0], t[1], t[2]), [c, t]);
     } else {
       if (lu !== lastLineup) { await page.evaluate(() => (window as any).__lab.view(0, 1.5, 4, 0, 1.2, 0)); const r = await page.evaluate(s => (window as any).__lab.lineup(s), LINEUPS[lu]); console.log(lu, JSON.stringify(r)); lastLineup = lu; }
       // macro shots: [person index, distance, side offset] framed on that person's eyes; others: camera and target

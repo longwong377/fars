@@ -35,6 +35,9 @@ export interface Pose { rot: Partial<Record<BoneName, E3>>; hips: E3; /** strike
   /** an instrument held against the body (props.ts rule 'inst'): its frame in character space (reference body): origin,
    *  main axis (+Z of instrumentForms.ts) and up reference (+Y) */
   inst?: [E3, E3, E3];
+  /** a load borne on the right shoulder (carry_shoulder): a jar is seated on the shoulder with its neck in the raised hand
+   *  (props.ts), not hung from the palm (D-217) */
+  shoulder?: boolean;
 }
 
 const S = Math.sin, C = Math.cos, PI = Math.PI;
@@ -82,14 +85,17 @@ export function pose(id: AnimId, t: number, ph: number, k: number): Pose {
     case 'walk': case 'carry_shoulder': case 'carry_head': case 'carry_front': case 'guard_walk': {
       legsWalk(p, ph, id === 'walk' ? 0.42 : 0.34);
       r.l_upper = [0.3 * S(ph), 0, 0.06]; r.r_upper = [-0.3 * S(ph), 0, -0.06]; r.l_fore = [-0.25 - 0.15 * Math.max(0, -S(ph)), 0, 0]; r.r_fore = [-0.25 - 0.15 * Math.max(0, S(ph)), 0, 0];
-      if (id === 'carry_shoulder') { r.r_upper = [-2.7, 0, -0.35]; r.r_fore = [-1.1, 0, 0]; r.head = [0, 0.1, -0.12]; }
+      // the right arm raised out to the side and over the load (D-217: searched with tools/dev/jar_search.ts so the shoulder
+      // jar's neck lies in the hand and the arm and head stay clear of it; was [-2.7, 0, -0.35] / -1.1: the hand over the
+      // crown, the jar through the forearm; C)
+      if (id === 'carry_shoulder') { r.r_upper = [-2.4, 0, -0.85]; r.r_fore = [-0.9, 0, 0]; r.head = [0, 0.1, -0.12]; }
       if (id === 'carry_head') { r.l_upper = [-2.9, 0, 0.35]; r.l_fore = [-0.9, 0, 0]; r.neck = [0, 0, 0]; r.spine = [-0.03, 0, 0]; }
       if (id === 'carry_front') { r.l_upper = [-0.5, 0, 0.1]; r.r_upper = [-0.5, 0, -0.1]; r.l_fore = [-1.2, 0, -0.3]; r.r_fore = [-1.2, 0, 0.3]; }
       if (id === 'guard_walk') { r.r_upper = [-0.25, 0, -0.1]; r.r_fore = [-1.25, 0, 0]; }
       r.head = [0.04 * S(2 * ph), 0.2 * wob(t * 0.4, k), 0];
       // the shoulder jar's bearer holds the head turned and tilted away from the jar (D-187: this line used to overwrite
       // the carry_shoulder head above, and the upright head sat hidden behind the jar from the bearer's right)
-      if (id === 'carry_shoulder') r.head = [0.04 * S(2 * ph), 0.1 + 0.1 * wob(t * 0.4, k), -0.12];
+      if (id === 'carry_shoulder') { r.head = [0.04 * S(2 * ph), 0.1 + 0.1 * wob(t * 0.4, k), -0.12]; p.shoulder = true; p.grip = [0.1, 0.6]; } // the hand round the jar's neck or the sack's mouth, not a closed fist (D-217)
       break;
     }
     case 'guard': {
