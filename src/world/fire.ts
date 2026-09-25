@@ -6,6 +6,7 @@ import { colourOnly } from '../render/fx';
 import { surfaceMaterial } from '../render/materials';
 import { uniform, uv, vec3, vec4, float, mx_noise_float, time, attribute, smoothstep, mix, length, vec2, max, positionWorld, cameraPosition, normalize, dot, pow, step } from 'three/tsl';
 import { Rng } from '../core/rng';
+import { fireOcc, fireOccNode, tileOf } from './fireOcc';
 
 export type FireKind = 'torch' | 'brazier' | 'hearth' | 'oven' | 'lamp' | 'kiln' | 'altar';
 /** when a fire burns (C schedules): 'night' dusk to after sunrise (default); 'home' a domestic hearth, lit as the light
@@ -13,7 +14,8 @@ export type FireKind = 'torch' | 'brazier' | 'hearth' | 'oven' | 'lamp' | 'kiln'
  *  the morning; 'day' a workshop fire (kiln, forge) in working hours; 'kept' a fire that is never let go out (D-209: the
  *  precinct's altar, fed at dawn and dusk and sheltered in rain by the magi, C). Needs the local hour (update's last argument). */
 export type FireSchedule = 'night' | 'home' | 'bake' | 'day' | 'kept';
-export interface FireSource { id: string; kind: FireKind; pos: THREE.Vector3; lit: boolean; seed: number; tier: string; src: string; note: string; sched?: FireSchedule; group?: string }
+export interface FireSource { id: string; kind: FireKind; pos: THREE.Vector3; lit: boolean; seed: number; tier: string; src: string; note: string; sched?: FireSchedule; group?: string;
+  /** its tile in the baked fire-light occlusion atlas (D-222), −1 when not baked (the town's fires); set on first use */ occ?: number }
 const SPEC: Record<FireKind, { flameH: number; flameW: number; power: number; range: number; smoke: number }> = {
   torch: { flameH: 0.45, flameW: 0.22, power: 1.2, range: 14, smoke: 0.2 },
   brazier: { flameH: 0.7, flameW: 0.55, power: 2.4, range: 22, smoke: 0.5 },
@@ -129,18 +131,23 @@ export class FireSystem {
    *  measured cost in BLOCKERS) */
   constructor(maxLights: number, shadowLights = 0, shadowMapSize = 512) {
     this.group.name = 'fire';
+    // ?fireocc=0 (diagnostic, D-222): the fire lights without the baked occlusion
+    const useOcc = fireOcc() !== null && !(typeof location !== 'undefined' && new URLSearchParams(location.search).get('fireocc') === '0');
     for (let i = 0; i < maxLights; i++) {
       const l = new THREE.PointLight(FIRE_RGB, 0, 20, 2); l.castShadow = i < shadowLights; this.lights.push(l); this.group.add(l);
       if (l.castShadow) { l.shadow.mapSize.set(shadowMapSize, shadowMapSize); l.shadow.camera.near = 0.1; l.shadow.camera.far = 50; l.shadow.bias = -0.0005; (l.shadow as any).normalBias = 0.05; }
       // the light confined to its side of a hall's walls (D-216, roomMask): the light's colour × intensity × the mask
       const c = new THREE.Color(), box = uniform(new THREE.Vector4(0, 0, 0, 0)), ys = uniform(new THREE.Vector2(0, 0)), mode = uniform(0);
-      (l as any).colorNode = uniform(c).onRenderUpdate(() => c.copy(l.color).multiplyScalar(l.intensity)).mul(roomMask(box, ys, mode));
-      this.lightRoom.push({ box, ys, mode });
+      // and in the shade of the architecture for the Terrace's fixed fires (D-222, B24: the baked occlusion atlas, fireOcc.ts)
+      const lp = uniform(new THREE.Vector3()), tile = uniform(-1);
+      const col = uniform(c).onRenderUpdate(() => c.copy(l.color).multiplyScalar(l.intensity)).mul(roomMask(box, ys, mode));
+      (l as any).colorNode = useOcc ? col.mul(fireOccNode(lp, tile)) : col;
+      this.lightRoom.push({ box, ys, mode, lp, tile });
     }
   }
   /** per light: the room box its light is confined to (world x0, x1, z0, z1; y0, y1) and the mode (+1 inside it only, −1
    *  outside it only, 0 unconfined) */
-  private lightRoom: { box: any; ys: any; mode: any }[] = [];
+  private lightRoom: { box: any; ys: any; mode: any; lp: any; tile: any }[] = [];
   /** the roofed halls' interiors (world boxes); set before build() (world.ts placeFires) */
   private rooms: RoomBox[] = [];
   setRooms(rooms: RoomBox[]) { this.rooms = rooms; }
@@ -243,6 +250,7 @@ export class FireSystem {
       { const R = this.roomOf(f), u = this.lightRoom[i]; u.mode.value = R.mode;
         if (R.room) { u.box.value.set(R.room.x0, R.room.x1, R.room.z0, R.room.z1); u.ys.value.set(R.room.y0, R.room.y1); } }
       l.position.copy(f.pos).y += L.height - LIFT[f.kind];
+      { const u = this.lightRoom[i]; if (f.occ === undefined) f.occ = tileOf(fireOcc(), l.position.x, l.position.y, l.position.z); u.tile.value = f.occ; u.lp.value.copy(l.position); }
       const flick = 0.8 + 0.2 * (Math.sin(t * 11 + f.seed) * 0.5 + Math.sin(t * 17.3 + f.seed * 3) * 0.5);
       l.intensity = L.candela * flick * this.lightScale; l.distance = L.cutoff; l.decay = L.decay;
     });
