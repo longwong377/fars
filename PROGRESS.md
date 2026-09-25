@@ -1,6 +1,17 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Session 8 (in progress).** Merged: stone surfaces D-218, visible weather D-219, smoke and dust D-220, court assembly and
+  scribes' room D-221, fire-light occlusion D-222 (lead), mountains and plain D-223, sky and exposure D-224, garments and beards
+  D-225; relief carving D-226 running. **Nothing of this has been judged by a rubric yet; render pass 3 queued (jobs 4xx).**
+  Browser-verified this session: B24 resolved (night-terrace, the court floor no longer lit through the parapet); night-moon-fire
+  (new moment: fire, moon and stars in one frame, exposure 3.56, 0.02 % clipped); the portico view out no longer clips (D-224).
+  Still broken or unverified: sunlit ashlar Ystd/Y 0.06–0.07 on screen, target 0.15 (B40); rain curtains not yet seen in the
+  re-framed rain-approach; the dust never rendered; the town at dusk unreadable at 1–2.5 km (needs lamp/hearth glow); the near
+  plain an empty sheet; the Belt of Venus lilac (B44), no arch in the dawn frames; the scribes read bare-chested under the red
+  room light (Q-544); spearmen's files not legible at eye level; no cloth simulation. The soak on the session-7 tree passed 7/8
+  (one late funeral, fixed); the re-soak on the merged tree is running. Baseline `npm test`: 923 passed, 12 failed (11
+  timeouts or CPU-timing budgets under load, not yet re-run alone; the scribe test fixed by D-221).
 - **Session 8, garments and beards (D-225; rubric s7 pass 2 fix 6).** **No cloth simulation:** the Persian robe's pleats
   (front pleat stack, diagonal side folds, broad back folds, the heel's kick) and the slanted sleeves are baked into the
   meshes and swing with the skinning, without lag or sway; cut and every size C (Q-540). Beyond 20 m (LOD 2) only the
