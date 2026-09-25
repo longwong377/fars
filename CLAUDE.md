@@ -25,7 +25,10 @@ translation layer). Period scripts only, only published texts. `npm run lint:lan
 
 ## Licences / ethics (§12)
 USE = personal, non-commercial. CC0 / CC-BY / CC-BY-NC OK; record every asset in `ASSET_LEDGER.md`.
-Ritual only as attested. No face scans without licence. Kurtaš labour, children, punishment: as evidence, not sensational.
+Gaps (user direction, session 7, D-207): where the evidence is silent, fill with the MOST PROBABLE reconstruction by analogy
+(region, period, neighbours), tier C, reasoning visible in F3 and the translation layer; keep out only what the evidence says
+was NOT there (e.g. fire temples in 467). Ritual: attested elements where known, otherwise probable reconstruction shown as
+action, fire, offering and wordless chant — no invented liturgical words for a living religion. No face scans without licence. Kurtaš labour, children, punishment: as evidence, not sensational.
 Blocklist: `research/ANACHRONISM_BLOCKLIST.md` (ancient world only).
 
 ## Verification (§13)
