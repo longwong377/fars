@@ -12,6 +12,7 @@ import { rasterize } from '../src/arch/relief_field';
 import { figureDef, defBounds } from '../src/arch/relief_figures';
 import { setReliefShadow, reliefShadowNode } from '../src/render/reliefShadow';
 import { paintedStoneMaterial, surfaceMaterial } from '../src/render/materials';
+import { lodFalseShadow } from '../tools/dev/relief_shadow_lod';
 
 /** the sun `off` degrees off the wall plane (a wall facing +z), its direction within the plane `phi` degrees above the
  *  horizontal, from the viewer's left */
@@ -64,6 +65,11 @@ describe('relief cast shadows (D-226)', () => {
       const v = reliefShadowAt(d, [x, y, 0], L), l = ex.lit(x, y, 0); n++; area += 1 - v; if ((v < 0.5 ? 0 : 1) === l) agree++;
     }
     expect(agree / n).toBeGreaterThan(0.95); expect(falseSh / on).toBeLessThan(0.02); expect(area).toBeGreaterThan(100);
+  });
+  it('no false self-shadow on the DRAWN surface: from the LOD meshes (L1-L4) < 1 % of the sunward points shaded where the exact march is lit (was 11-44 %: the first render\'s blotches)', () => {
+    const e = (22 * Math.PI) / 180, ph = (70 * Math.PI) / 180, L: [number, number, number] = [-Math.cos(e) * Math.cos(ph), Math.cos(e) * Math.sin(ph), Math.sin(e)];
+    for (const lod of [1, 2, 4]) { const r = lodFalseShadow('lion_bull', 2, 0.06, lod, L); expect(r.falseSh, `lion-and-bull L${lod}`).toBeLessThan(0.01); expect(r.missed).toBeLessThan(0.06); }
+    for (const lod of [2, 3]) { const r = lodFalseShadow('guard', 0.741, 0.045, lod, L); expect(r.falseSh, `guard L${lod}`).toBeLessThan(0.01); }
   });
   it('no shadow where the sun is behind the wall, beyond the reach, or in front of the relief\'s top', () => {
     const d = one('guard', 0.741, 0.045), L = sunAt(15, 35);

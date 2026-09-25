@@ -57,6 +57,8 @@ export const ATLAS_W = 8192;
 /** the march: a sample occludes by smoothstep(0, SOFT0 + SOFT_T·t, H − h_ray − BIAS) (m; t = metres along the ray: the sun's
  *  half-degree penumbra is 0.0093·t, the rest filters the texel) */
 export const BIAS = 0.0005, SOFT0 = 0.001, SOFT_T = 0.012;
+/** a point higher than this over the wall face lies on the carving: its march starts on the atlas's surface if that is higher */
+export const LIFT_MIN = 0.002;
 
 const key = (kind: string, seed: number) => `${kind}|${seed}`;
 const boundsCache = new Map<string, [number, number, number, number]>();
@@ -195,9 +197,14 @@ export function reliefShadowAt(D: ReliefShadowData, p: [number, number, number],
   }
   return 1;
 }
-export function marchPanel(D: ReliefShadowData, P: ShadowPanel, u: number, v: number, w: number, L: [number, number, number]): number {
+export function marchPanel(D: ReliefShadowData, P: ShadowPanel, u: number, v: number, w0: number, L: [number, number, number]): number {
   const su = L[0] * P.X[0] + L[2] * P.X[1], sv = L[1], sw = L[0] * P.Z[0] + L[2] * P.Z[1];
   if (sw <= 0.004) return 1;
+  // the ray starts on the atlas's own surface where the drawn surface lies under it: a figure's LOD mesh departs from the
+  // field by up to its RTIN bound (0.12 of the depth at L2: 7 mm on a panel), and a march from the mesh found the carving
+  // above its own starting point (the first render's dark blotches over the lion-and-bull; tools/dev/relief_shadow_lod.ts)
+  // (not on the ground: the wall face, w ≈ 0, keeps its own height, or the dilated foot of a step would lift its start)
+  const w = w0 > LIFT_MIN ? Math.max(w0, atlasHeight(D, P, u, v)) : w0;
   const hl = Math.max(Math.hypot(su, sv), 1e-4), tEnd = Math.min((P.hmax - w) / sw, REACH / hl);
   if (tEnd <= 0) return 1;
   let occ = 0;

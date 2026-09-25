@@ -11,7 +11,7 @@
 // materials that opt in (receiveReliefShadow): a fragment stage may bind only 16 sampled textures (D-216).
 import * as THREE from 'three/webgpu';
 import { Fn, float, int, ivec2, vec2, vec4, texture, textureLoad, uniformArray, floor, clamp, max, min, smoothstep, length, If, Loop } from 'three/tsl';
-import { HSCALE, REACH, SLOTS, MARCH_STEPS, BIAS, SOFT0, SOFT_T, type ReliefShadowData } from '../arch/relief_shadow';
+import { HSCALE, REACH, SLOTS, MARCH_STEPS, BIAS, SOFT0, SOFT_T, LIFT_MIN, type ReliefShadowData } from '../arch/relief_shadow';
 
 let DATA: ReliefShadowData | null = null, ATLAS: THREE.DataTexture | null = null, PANELS: any = null, uploaded = -1, lastUpload = -Infinity;
 /** the atlas is ~45 MB: while its fields are still arriving from the workers it is uploaded at most every UPLOAD_MS */
@@ -81,6 +81,9 @@ export function reliefShadowNode(p: any, L: any): any {
     If(found.greaterThan(0.5), () => {
       const su = L.x.mul(X.x).add(L.z.mul(X.y)), sv = L.y, sw = L.x.mul(Z.x).add(L.z.mul(Z.y));
       If(sw.greaterThan(0.004), () => {
+        // start on the atlas's surface where the drawn (LOD) surface lies under it (relief_shadow.ts marchPanel)
+        const q0 = clamp(vec2(u, v).div(T), vec2(-0.5, -0.5), rect.zw.add(0.5));
+        If(w.greaterThan(LIFT_MIN), () => { w.assign(max(w, texture(A, rect.xy.add(q0).div(vec2(AW, AH))).level(float(0)).r.mul(HSCALE))); }); // not on the ground (the wall face)
         const hl = max(length(vec2(su, sv)), 1e-4), tEnd = min(hmax.sub(w).div(sw), float(REACH).div(hl)).toVar();
         If(tEnd.greaterThan(0), () => {
           const occ = float(0).toVar();
