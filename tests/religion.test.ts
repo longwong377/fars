@@ -7,7 +7,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, type Env } from '../src/people/sim';
-import { SACRIFICE, type Seg } from '../src/people/population';
+import { SACRIFICE, FUNERAL_BEFORE_SET_H, type Seg } from '../src/people/population';
 import { checkPlan } from '../src/people/planCheck';
 import { WeatherSystem } from '../src/weather/weatherState';
 import { buildTownPlan } from '../src/world/settlement/plan';
@@ -113,6 +113,16 @@ describe('the magi, the sacrifices and the funerals in the plans (D-209)', () =>
     expect(bad).toEqual([]); expect(funerals).toBeGreaterThan(80);
     expect(performanceFor('bury', 'digging the grave and laying the dead in the earth (Herodotus 1.140)', 1).note).toMatch(/Nothing of the body is shown/);
   }, 240_000);
+  it('every funeral of the year, town and plain, is over and its people home before the light goes, rain or not (soak s8: a burial at 23:00-24:00 left the bearers at the grave at midnight: farmer 15310, day 245)', () => {
+    const late: string[] = []; let n = 0;
+    for (let d = 1; d < 354; d++) { const C = P.cal.ctx(d);
+      for (const H of P.households) { if (!H.deaths.includes(d - 1)) continue; const f = P.funeralOf(H.id, d, C.wx, C.sun); if (!f) continue; n++;
+        if (f.t > C.sun.set - FUNERAL_BEFORE_SET_H + 1e-9 && late.length < 6) late.push(`h${H.id} d${d} at ${f.t.toFixed(2)} (sunset ${C.sun.set.toFixed(2)})`); } }
+    expect(late).toEqual([]); expect(n).toBeGreaterThan(100);
+    const segs = P.plan(15310, 246) as Seg[], prev = P.plan(15310, 245) as Seg[];
+    expect(prev.some(s => s.act === 'bury' && s.t1 < P.cal.ctx(245).sun.set)).toBe(true);
+    expect(checkPlan(P, 15310, 246, segs, prev[prev.length - 1].place, prev).filter(x => x.kind === 'teleport')).toEqual([]);
+  }, 120_000);
   it('the places: the magus at the altar facing it; an offerer and his magus side by side W of the plinths; a funeral at one grave of the burial ground', () => {
     const geo = new PopGeo({ pop: P, nav: nav(), town: plan, seed: 1 });
     const d = Array.from({ length: 354 }, (_, k) => k).find(k => P.cal.ctx(k).sacrifices.length)!, s = P.cal.ctx(d).sacrifices[0];

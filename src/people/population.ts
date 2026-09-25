@@ -1171,12 +1171,16 @@ export class Population {
   /** D-209 (E-71): the funeral of a household's dead, the day after the death (the day `mourning` is 1): when the dead are
    *  carried out (hours; C: in the morning, after the rain when it rains), who died, and whether the dead is a magus (whose
    *  body the magi lay out first, Herodotus 1.140, read, a Greek claim: carried out to the hillside and NOT shown) */
-  funeralOf(h: number, d: number, wx: DayCtx['wx'], sun: { rise: number; set: number }): { t: number; dead: number[]; magus: boolean } | null {
+  funeralOf(h: number, d: number, wx: DayCtx['wx'], sun: { rise: number; set: number }): { t: number; dead: number[]; magus: boolean; wet: boolean } | null {
     const H = this.households[h], x = d - 1; if (!H.deaths.includes(x)) return null;
     const dead = (this.lifeByDay[x]?.deaths ?? []).filter(i => this.persons[i].hh === h || this.persons[i].hh2 === h);
     let t = sun.rise + 1.8 + 1.4 * u01(this.seed, S.fun, h, x);
     for (const [ra, rb] of wetSpells(wx)) if (ra < t + 2.2 && rb > t - 0.8) t = rb + 0.25; // (not through the rain: C)
-    return { t, dead, magus: dead.some(i => this.persons[i].job === 'priest') };
+    // ... but not past the daylight a burial needs: a rain that lasts into the evening does not keep the dead in the house
+    // overnight; they are carried out in it, the cloak drawn over the head (soak s8: a wet spell to 22:45 put a burial at
+    // 23:00-24:00 and left the bearers at the grave at midnight; C)
+    const latest = sun.set - FUNERAL_BEFORE_SET_H; if (t > latest) t = Math.max(sun.rise + 1, latest);
+    return { t, dead, magus: dead.some(i => this.persons[i].job === 'priest'), wet: wetHours(wx, t - 0.5, t + 2.2) > 0 };
   }
   /** D-209 (E-34): the year's animal sacrifices of the town's Persian households, one day each (the rate C: SACRIFICE) */
   private sacYear: { hh: number; day: number; u: number; goat: boolean }[] | null = null;
@@ -2519,16 +2523,19 @@ class Planner {
     if (f && (bearer || mourner)) {
       const to = f.magus ? 'mountain' : out, lv = f.t - this.P.walkH(this.home, to, this.d, this.homeW, this.homeW);
       if (lv > this.t) this.atHome(lv, 'talk', 'mourning with the household and visitors');
-      if (f.magus) { this.go(to, this.homeW, 'carrying the dead magus out to the hillside, as the magi do (Herodotus 1.140)'); this.add(this.t + 0.2, to, 'carry_bier', 'the dead magus laid out on the hillside (Herodotus 1.140; what follows is not shown)', this.homeW); }
+      const rain = f.wet ? ', in the rain, the cloak drawn over the head' : ''; // (funeralOf: a rain into the evening does not put it off)
+      if (f.magus) { this.go(to, this.homeW, 'carrying the dead magus out to the hillside, as the magi do (Herodotus 1.140)'); this.add(this.t + 0.2, to, 'carry_bier', `the dead magus laid out on the hillside (Herodotus 1.140; what follows is not shown)${rain}`, this.homeW); }
       else if (bearer) { this.go(out, this.homeW, 'carrying the dead out of the settlement');
-        this.add(Math.max(this.t + 0.1, f.t + 0.25), out, 'carry_bier', 'the dead, coated in wax, carried on the bier to the grave (E-71; Herodotus 1.140)', this.homeW);
-        this.add(this.t + 0.9, out, 'bury', 'digging the grave and laying the dead in the earth (Herodotus 1.140)', this.homeW);
-        this.add(this.t + 0.2, out, 'mourn', 'standing at the grave with the household', this.homeW); }
-      else { this.go(out, this.homeW, 'following the dead out of the settlement'); this.add(Math.max(this.t + 0.3, f.t + 1.35), out, 'mourn', 'mourning at the grave while the dead is buried (E-71)', this.homeW); }
+        this.add(Math.max(this.t + 0.1, f.t + 0.25), out, 'carry_bier', `the dead, coated in wax, carried on the bier to the grave (E-71; Herodotus 1.140)${rain}`, this.homeW);
+        this.add(this.t + 0.9, out, 'bury', `digging the grave and laying the dead in the earth (Herodotus 1.140)${rain}`, this.homeW);
+        this.add(this.t + 0.2, out, 'mourn', `standing at the grave with the household${rain}`, this.homeW); }
+      else { this.go(out, this.homeW, 'following the dead out of the settlement'); this.add(Math.max(this.t + 0.3, f.t + 1.35), out, 'mourn', `mourning at the grave while the dead is buried (E-71)${rain}`, this.homeW); }
       this.go(this.home, this.homeW, 'returning home'); }
     else if (bearer) { // (a death with no funeral found: the household of a lodger; as before, C)
-      for (const [ra, rb] of wetSpells(this.C.wx)) if (ra < this.t + 2 && rb > this.t) this.atHome(rb, 'talk', 'mourning with the household and visitors'); // (not through the rain: C)
-      this.go(out, this.homeW, 'carrying the dead out of the settlement'); this.add(this.t + 1.2, out, 'carry_bier', 'the dead are carried out of the settlement (E-71)', this.homeW); this.go(this.home, this.homeW, 'returning home'); }
+      const latest = this.sun.set - FUNERAL_BEFORE_SET_H; // (not through the rain, but not past the daylight either: funeralOf; C)
+      for (const [ra, rb] of wetSpells(this.C.wx)) if (ra < this.t + 2 && rb > this.t) this.atHome(Math.max(this.t, Math.min(rb, latest)), 'talk', 'mourning with the household and visitors');
+      const rain = wetHours(this.C.wx, this.t, this.t + 1.6) > 0 ? ', in the rain, the cloak drawn over the head' : '';
+      this.go(out, this.homeW, 'carrying the dead out of the settlement'); this.add(this.t + 1.2, out, 'carry_bier', `the dead are carried out of the settlement (E-71)${rain}`, this.homeW); this.go(this.home, this.homeW, 'returning home'); }
     this.atHome(Math.max(this.t, this.hd.noon), 'talk', 'mourning with the household and visitors'); this.noonAtHome('a meal with the household, in mourning'); this.atHome(Math.max(this.t, this.hd.supper), 'rest', 'mourning at home');
     this.atHome(this.t + this.hd.sLen, 'eat', 'the evening meal with the household, in mourning'); this.atHome(Math.max(this.t, this.bed()), 'rest', 'mourning at home'); return this.finish();
   }
@@ -4366,4 +4373,6 @@ class Planner {
   }
 }
 /** the plan segment in force at hour h */
+/** a funeral is over, and its people home, this long before sunset at the latest (h; D-209 addendum, soak s8; C) */
+export const FUNERAL_BEFORE_SET_H = 2.5;
 export function segAt(segs: Seg[], h: number): Seg { for (const s of segs) if (h < s.t1) return s; return segs[segs.length - 1]; }
