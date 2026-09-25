@@ -4,7 +4,7 @@
 // there, terrainPlain.ts plotKeep), the town's trodden ground, a worn path, a road or village track, a built site, hill
 // slope or natural ground. Objects are counted inside the frustum by distance band: plain trees (river and canal lines,
 // orchard plots, woodland), village compounds, the town's built sites; "resolved" = at least 1.5 px tall.
-// Usage: npx tsx tools/dev/plain_view_census.ts [view ...]   (views: stair-noon-plain, stair-dawn-plain, rahmat-west-pm)
+// Usage: npx tsx tools/dev/plain_view_census.ts [view ...]   (views: stair-noon-plain, stair-dawn-plain, rahmat-west-pm, town-smoke-dusk)
 import { loadTerrain, loadRiversFile } from '../../tests/plainLib';
 import { buildTownPlan } from '../../src/world/settlement/plan';
 import { buildTownGround, groundAt, desireLines } from '../../src/world/plain/townGround';
@@ -16,11 +16,12 @@ import { trackLines } from '../../src/world/plain/ribbons';
 import { toLocal } from '../../src/world/settlement/site';
 import { distToSegment } from '../../src/world/plain/data';
 
-const VIEWS: Record<string, [number, number, number, number, number]> = {
+const VIEWS: Record<string, [number, number, number, number, number, number?]> = {
   'stair-noon-plain': [-36.4, 122.45, 1.6, 251, -3], 'stair-dawn-plain': [-39.6, 122.45, 1.6, 251, -4], 'rahmat-west-pm': [-250, 500, 1.6, 95, 6],
+  'town-smoke-dusk': [-50.5, -120, 1.6, 205, -1.5, 24], // moments.spec (D-220)
 };
 const TERRACE = { e0: -61, e1: 256, n0: -239, n1: 235 };
-const W = 960, H = 540, VFOV = 40, STEP = 4;
+const W = 960, H = 540, STEP = 4;
 const BANDS = [200, 500, 1000, 2500, 5000, 10000, 1e9];
 const band = (d: number) => BANDS.findIndex(b => d < b);
 const bandName = (i: number) => (i === 0 ? '<200' : i === BANDS.length - 1 ? `>${BANDS[i - 1] / 1000}k` : `${BANDS[i - 1] >= 1000 ? BANDS[i - 1] / 1000 + 'k' : BANDS[i - 1]}-${BANDS[i] >= 1000 ? BANDS[i] / 1000 + 'k' : BANDS[i]}`);
@@ -36,7 +37,7 @@ export function census(names: string[]) {
   for (const p of orchardPlots(Z, villages)) trees.push(...orchardPlotTrees(Z, p.sx, p.sz));
   const out: Record<string, any> = {};
   for (const name of names) {
-    const [e, n, eye, az, pitch] = VIEWS[name];
+    const [e, n, eye, az, pitch, VFOV = 40] = VIEWS[name];
     const inTer = (x: number, z: number) => x >= TERRACE.e0 && x <= TERRACE.e1 && -z >= TERRACE.n0 && -z <= TERRACE.n1;
     const cy = (inTer(e, -n) ? 0 : T.heightAt(e, -n)) + eye;
     const yaw = -((az - 341) * Math.PI) / 180, pt = (pitch * Math.PI) / 180;
