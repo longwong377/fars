@@ -7,13 +7,13 @@
 //    point until the ray is above the relief's top or REACH along the wall; a sample higher than the ray occludes, softly
 //    over the sun's penumbra and the texel;
 //  - elsewhere, and for a wall facing away from the sun, the factor is 1.
-// Two texture bindings (the 8-bit atlas and the RGBA32F panel table): every lit material pays for them, and a fragment stage
-// may bind only 16 textures (D-216).
+// One texture binding (the 8-bit atlas, with the plan grid in its last rows) and a uniform array (the panel table), in the
+// materials that opt in (receiveReliefShadow): a fragment stage may bind only 16 sampled textures (D-216).
 import * as THREE from 'three/webgpu';
-import { Fn, float, int, ivec2, vec2, vec4, texture, textureLoad, floor, clamp, max, min, smoothstep, length, If, Loop } from 'three/tsl';
+import { Fn, float, int, ivec2, vec2, vec4, texture, textureLoad, uniformArray, floor, clamp, max, min, smoothstep, length, If, Loop } from 'three/tsl';
 import { HSCALE, REACH, SLOTS, MARCH_STEPS, BIAS, SOFT0, SOFT_T, type ReliefShadowData } from '../arch/relief_shadow';
 
-let DATA: ReliefShadowData | null = null, ATLAS: THREE.DataTexture | null = null, PANELS: THREE.DataTexture | null = null, uploaded = -1, lastUpload = -Infinity;
+let DATA: ReliefShadowData | null = null, ATLAS: THREE.DataTexture | null = null, PANELS: any = null, uploaded = -1, lastUpload = -Infinity;
 /** the atlas is ~45 MB: while its fields are still arriving from the workers it is uploaded at most every UPLOAD_MS */
 const UPLOAD_MS = 2000;
 /** hand the atlas to the renderer (before the first frame builds the materials); refreshReliefShadow re-uploads it as it fills */
@@ -23,10 +23,22 @@ export function setReliefShadow(D: ReliefShadowData) {
     ATLAS = new THREE.DataTexture(D.atlas, D.aw, D.ah, THREE.RedFormat, THREE.UnsignedByteType);
     ATLAS.minFilter = ATLAS.magFilter = THREE.LinearFilter; ATLAS.wrapS = ATLAS.wrapT = THREE.ClampToEdgeWrapping; ATLAS.generateMipmaps = false; ATLAS.flipY = false; ATLAS.name = 'relief shadow atlas';
     ATLAS.unpackAlignment = 1;
-    PANELS = new THREE.DataTexture(D.panelData.length ? D.panelData : new Float32Array(16), Math.max(4, D.panels.length * 4), 1, THREE.RGBAFormat, THREE.FloatType);
-    PANELS.minFilter = PANELS.magFilter = THREE.NearestFilter; PANELS.generateMipmaps = false; PANELS.flipY = false; PANELS.name = 'relief shadow panels'; PANELS.needsUpdate = true;
+    // the panel table is a uniform array, not a texture: a fragment stage binds at most 16 sampled textures and the first
+    // render with a second texture here failed on a material already at 15 (D-226)
+    const vecs: THREE.Vector4[] = []; for (let i = 0; i < Math.max(4, D.panelData.length / 4); i++) vecs.push(new THREE.Vector4(D.panelData[i * 4] ?? 0, D.panelData[i * 4 + 1] ?? 0, D.panelData[i * 4 + 2] ?? 0, D.panelData[i * 4 + 3] ?? 0));
+    PANELS = uniformArray(vecs, 'vec4');
   }
   refreshReliefShadow();
+}
+/** the materials that receive the relief shadows: the architecture's stone and plaster, the painted relief stone and the
+ *  incised signs (the reliefs' walls and the reliefs). Opt-in, so the heavier materials (terrain, plants, people) bind no
+ *  more textures for a term that never reaches them */
+export const RELIEF_SHADOW_FLAG = 'receivesReliefShadow';
+export function receiveReliefShadow<M extends THREE.Material>(m: M): M {
+  (m as any)[RELIEF_SHADOW_FLAG] = true;
+  const key = (m as any).customProgramCacheKey.bind(m);
+  (m as any).customProgramCacheKey = () => key() + '|reliefShadow'; // a program with the term is never shared with one without
+  return m;
 }
 /** per frame (world.update): upload the atlas if it changed (throttled while fields are still arriving) */
 export function refreshReliefShadow(now = performance.now()) {
@@ -35,13 +47,13 @@ export function refreshReliefShadow(now = performance.now()) {
   ATLAS.needsUpdate = true; uploaded = D.version; lastUpload = now;
 }
 /** GPU memory of the relief shadow textures (bytes) */
-export const reliefShadowBytes = () => (DATA ? DATA.aw * DATA.ah + DATA.panels.length * 64 : 0);
+export const reliefShadowBytes = () => (DATA ? DATA.aw * DATA.ah : 0);
 
 /** TSL: the sun's visibility past the relief carving at world point p (1 lit … 0 in the carving's shadow); L = unit vector
  *  toward the sun (world). Built when a material compiles: before setReliefShadow it is the constant 1 */
 export function reliefShadowNode(p: any, L: any): any {
-  return Fn(() => {
-    const D = DATA; if (!D || !D.panels.length || !ATLAS || !PANELS) return float(1);
+  return Fn((builder: any) => {
+    const D = DATA; if (!D || !D.panels.length || !ATLAS || !PANELS || !builder?.material?.[RELIEF_SHADOW_FLAG]) return float(1);
     const A = ATLAS, PT = PANELS, AW = D.aw, AH = D.ah;
     const cx = int(clamp(floor(p.x.sub(D.gx0).div(D.gc)), 0, D.gw - 1)), cz = int(clamp(floor(p.z.sub(D.gz0).div(D.gc)), 0, D.gh - 1));
     // integer arithmetic throughout (a float carries 24 bits: the grid's texels lie beyond 2^24 in the linear index)
@@ -55,7 +67,7 @@ export function reliefShadowNode(p: any, L: any): any {
       If(id.lessThan(0.5), () => { more.assign(0); });
       If(id.greaterThan(0.5), () => {
         const b = int(id).sub(int(1)).mul(int(4));
-        const t0 = textureLoad(PT, ivec2(b, int(0))), t1 = textureLoad(PT, ivec2(b.add(int(1)), int(0))), t2 = textureLoad(PT, ivec2(b.add(int(2)), int(0))), t3 = textureLoad(PT, ivec2(b.add(int(3)), int(0)));
+        const t0 = PT.element(b), t1 = PT.element(b.add(int(1))), t2 = PT.element(b.add(int(2))), t3 = PT.element(b.add(int(3)));
         const d = p.sub(t0.xyz), uu = d.x.mul(t1.x).add(d.z.mul(t1.y)), ww = d.x.mul(t1.z).add(d.z.mul(t1.w)), vv = d.y;
         const inU = uu.greaterThanEqual(t3.y).and(uu.lessThanEqual(t3.z)); // the points this panel holds (its slice of the wall)
         const inV = vv.greaterThanEqual(-REACH).and(vv.lessThanEqual(t2.w.mul(t0.w).add(REACH)));

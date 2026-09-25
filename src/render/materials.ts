@@ -11,6 +11,7 @@
 // side of the hairline joint; on the architecture's own meshes (surfaceMaterial(…, { arch: true }), whose vertices carry
 // the part's base height and, for hall floors, the floor's box) a splash and dust band at the foot of walls and traffic
 // wear along the floors' axes; indirect specular from the sky environment (envmap.ts) on the smoother surfaces.
+import { receiveReliefShadow, RELIEF_SHADOW_FLAG } from './reliefShadow';
 import * as THREE from 'three/webgpu';
 import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture, positionGeometry, atan, sin, cos, instanceIndex, mx_worley_noise_float_2d } from 'three/tsl';
 import PC from '../data/polychromy.json';
@@ -770,7 +771,7 @@ export class SurfaceNodeMaterial extends THREE.MeshStandardNodeMaterial {
   skySpecularScale: any = null;
   setupEnvironment(builder: any): any { return this.skySpecular ? new SkySpecularNode(this.skySpecularScale) : super.setupEnvironment(builder); }
   customProgramCacheKey(): string { return super.customProgramCacheKey() + (this.skySpecular ? '|skyspec' : '') + (this.skySpecularScale ? 'W' : ''); }
-  copy(source: any): this { super.copy(source); this.skySpecular = !!source.skySpecular; this.skySpecularScale = source.skySpecularScale ?? null; return this; }
+  copy(source: any): this { super.copy(source); this.skySpecular = !!source.skySpecular; this.skySpecularScale = source.skySpecularScale ?? null; if (source[RELIEF_SHADOW_FLAG]) receiveReliefShadow(this); return this; }
 }
 
 const cache = new Map<string, THREE.MeshStandardNodeMaterial>();
@@ -794,6 +795,7 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   if (opts.modify) L = opts.modify(L, d); // e.g. fields, crops and woodland over the plain's earth (src/world/plain/terrainPlain.ts)
   finish(m, L, d);
   m.userData = { tier: d.tier, note: d.note };
+  if (!opts.modify) receiveReliefShadow(m); // the architecture's surfaces carry the reliefs' cast shadows (D-226); the plain's layers do not
   cache.set(key, m);
   return m;
 }
@@ -892,6 +894,7 @@ export function paintedStoneMaterial(): THREE.MeshStandardNodeMaterial {
   finish(m, L, d);
   m.aoNode = float(1).sub(occ.mul(0.85));
   m.metalnessNode = leaf;
+  receiveReliefShadow(m); // the figures' shadows on themselves (D-226)
   (m as any).setupLightingModel = () => new GiltLighting();
   m.userData = { tier: 'C', note: 'carved limestone (joint-free) with a matte mineral paint film: pigments B (RELIEFS_AND_COLOUR §3a), colour values, film and wear C (src/data/polychromy.json, D-030); gilding drawn as gold leaf (metal, D-151): gilding on the reliefs B (Iranica "Persepolis": traces of gold; Nagel 2010 "color and gilding"), the technique and the gilded zones C (Q-231); the brush, loss and grain noise of the film fade to their mean where a period falls under ~3 px (D-204)' };
   cache.set(key, m);
@@ -910,6 +913,7 @@ export function incisedMaterial(surface: string, atlas: Atlas): THREE.MeshStanda
   const I = incisionNodes(atlas);
   m.normalNode = I.normalView; m.aoNode = I.ao; m.opacityNode = I.mask; m.alphaTest = 0.5;
   m.polygonOffset = true; m.polygonOffsetFactor = -1; m.polygonOffsetUnits = -4;
+  receiveReliefShadow(m); // an inscription beside a relief lies in its shadow like the face it is cut into (D-226)
   m.userData = { tier: 'C', note: `incised signs in ${surface} (D-177): the stone's own surface; V-section, walls at 45° (C)` };
   cache.set(key, m);
   return m;

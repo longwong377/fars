@@ -99,21 +99,27 @@ describe('relief cast shadows (D-226)', () => {
     const c = Math.floor((0 - d.gz0) / d.gc) * d.gw + Math.floor((0.1 - d.gx0) / d.gc); expect(d.grid[c * 4]).toBe(1);
     const far = Math.floor((1.5 - d.gz0) / d.gc) * d.gw + Math.floor((0.1 - d.gx0) / d.gc); if (far < d.gw * d.gh) expect(d.grid[far * 4]).toBe(0);
   });
-  it('the sun\'s relief shadow node generates WGSL in the painted stone and a plain stone material (two texture bindings)', async () => {
+  it('the sun\'s relief shadow node: WGSL in the opted-in materials with ONE more texture binding; none in the others', async () => {
     const d = one('guard', 0.741, 0.045); setReliefShadow(d);
     const canvas: any = { style: {}, width: 64, height: 64, getContext: () => null, addEventListener() {}, removeEventListener() {} };
     const r: any = new (THREE as any).WebGPURenderer({ canvas, antialias: false }); r.hasFeature = () => true;
-    const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(46, 1, 0.05, 1000), sun = new THREE.DirectionalLight(0xffffff, 3);
-    const dir = uniform(new THREE.Vector3(0.3, 0.5, 0.8).normalize());
-    (sun as any).colorNode = uniform(new THREE.Color(1, 1, 1)).mul(reliefShadowNode(positionWorld, dir));
-    scene.add(sun, sun.target);
-    const counts: number[] = [];
-    for (const mat of [paintedStoneMaterial(), surfaceMaterial('limestone')]) {
+    const camera = new THREE.PerspectiveCamera(46, 1, 0.05, 1000), dir = uniform(new THREE.Vector3(0.3, 0.5, 0.8).normalize());
+    const wgsl = (mat: THREE.Material, withNode: boolean) => {
+      const scene = new THREE.Scene(), sun = new THREE.DirectionalLight(0xffffff, 3);
+      (sun as any).colorNode = withNode ? uniform(new THREE.Color(1, 1, 1)).mul(reliefShadowNode(positionWorld, dir)) : uniform(new THREE.Color(1, 1, 1));
+      scene.add(sun, sun.target);
       const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), mat), b = new (THREE as any).WGSLNodeBuilder(mesh, r);
       b.scene = scene; b.camera = camera; b.material = mat; b.lightsNode = r.lighting.getNode(scene, camera); b.lightsNode.setLights([sun]); b.build();
-      const f = b.fragmentShader as string; expect(f.length).toBeGreaterThan(100); expect(f).toMatch(/textureLoad/);
-      counts.push((f.match(/texture_2d</g) ?? []).length); if (process.env.DUMP_WGSL) (await import("node:fs")).writeFileSync(process.env.DUMP_WGSL + counts.length + ".wgsl", f);
+      return b.fragmentShader as string;
+    };
+    const tex = (f: string) => (f.match(/texture_2d</g) ?? []).length;
+    for (const mat of [paintedStoneMaterial(), surfaceMaterial('limestone')]) {
+      const f = wgsl(mat, true); expect(f).toMatch(/textureSampleLevel/); expect(f).toMatch(/% 8192/);
+      expect(tex(f) - tex(wgsl(mat, false)), 'texture bindings the term adds').toBe(1);
+      if (process.env.DUMP_WGSL) (await import('node:fs')).writeFileSync(process.env.DUMP_WGSL + (mat === paintedStoneMaterial() ? 1 : 2) + '.wgsl', f);
     }
-    for (const c of counts) expect(c).toBeLessThanOrEqual(16);
+    // a material that does not opt in (the plain's layers, plants, people) gets the constant 1
+    const other = new THREE.MeshStandardNodeMaterial(), f = wgsl(other, true);
+    expect(f).not.toMatch(/% 8192/); expect(tex(f)).toBe(tex(wgsl(new THREE.MeshStandardNodeMaterial(), false)));
   });
 });

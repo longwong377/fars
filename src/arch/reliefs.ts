@@ -16,7 +16,7 @@ export type { KindInfo } from './relief_figures';
 
 /** the carvable figure kinds (see FIGURE_KINDS for tier / source / note of each) */
 export const RELIEF_KINDS = Object.keys(FIGURE_KINDS);
-export const RELIEF_META = { tier: 'C', src: 'RELIEF-R;MATCULT-R;IR-APAD', placeholder: true, note: 'procedural low relief; licensed scans would replace (NEEDS #10). Carved heightfield figures (D-019); layout B/C; hair/beard dark blue B, other paint C' };
+export const RELIEF_META = { tier: 'C', src: 'RELIEF-R;MATCULT-R;IR-APAD', placeholder: true, note: 'procedural low relief; licensed scans would replace (NEEDS #10). Carved heightfield figures (D-019), cut back in near-vertical steps, no undercut; their sun shadows marched from a height atlas (D-226); layout B/C; hair/beard dark blue B, other paint C' };
 
 // ---------------- levels of detail ----------------
 /** per LOD: target grid cell on the stone (m), largest grid, RTIN error bound (relief-depth units), normal smoothing (cells),
