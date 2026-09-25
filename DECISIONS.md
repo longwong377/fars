@@ -4908,7 +4908,23 @@ the head. The same cap for a lodger's household. Test: tests/religion.test.ts (e
 - **Tier:** C throughout (see Q-500 … Q-506); the method (single scattering, Beer–Lambert, mass conservation) A.
 ## D-223 Mountains, cliffs and the plain from the Terrace (session 8; rubric s7 pass 2 fixes 8 and 9, R9)
 - **Read first: what is broken, weak or unverified.**
-  - RENDER_STATUS_PLACEHOLDER
+  - **The near plain from the Terrace is still a flat brown sheet** (render 2, stair-noon-plain: the ground 40–200 m out,
+    Ystd/Y 0.068, render 1 0.065, rubric 0.036 on its own crop). That ground is the Terrace foot, the approach and the
+    court's camp ground: trodden, no fields allowed (D-190). The patchy wear, tone and stains added after render 1 barely
+    show: from 14 m up the pixel's footprint along the view is ~1–4 m at 100–200 m, so the 1–4 m octaves are band-limited
+    away, and trodden and untrodden earth differ by only ~12 % in albedo. One approach tried; not in BLOCKERS. Next: larger
+    features (tracks with ruts crossing the foot, stone heaps, tethered animals, the herb layer surviving as green/straw
+    patches in their own colour), measured on a people-free crop.
+  - **The royal road still reads as a straight light line** at dawn (render 2): its course is settlement.json's straight
+    line (C); the drawn wander (±3 m over 520 m) is under a pixel at 1 km. Ruts and verge only read within ~200 m.
+  - **The town at dusk (town-smoke-dusk, D-220) does not read**: at 1–2.5 km from 15 m up a 3 m house is ~4 px tall on the
+    24° lens and a roof ~0.2 px deep (census: 696 roofed plots in view, all ≥ 1.5 px tall); in the dusk light walls, roofs
+    and ground are within a few per cent. The lighter roofs and darker lanes change it by no measurable amount there; the
+    smoke layer lifts the band (Y 0.026 with smoke, 0.020 without, plain 0.010). At noon the town at ~1.5 km (render 2)
+    shows light roof tops over darker walls. Reading the town at dusk needs the lamps and hearth glow, not materials.
+  - The naqsh-200m view was rendered once, in render 1 (with the shadow-side fix): no fine wavy lines at 960 × 540; the
+    face still carries broad dark vertical run-off streaks and block tones (Ystd/Y 0.44–0.59), which some may still read
+    as a curtain. Not re-rendered in render 2 (the lead's town-smoke-dusk took its slot).
   - Kuh-e Rahmat's stratigraphy is unsourced: the bedding (12 m packages, 45 % cliff-forming, dip 2.9°), the new riser and
     bench, the talus, aprons and fans are all C (Q-520, Q-521). No photograph of the massif was reached (B6).
   - The riser and bench are a shading tilt, not geometry: silhouettes and cast shadows keep the DEM's smooth 30 m form;
@@ -4964,7 +4980,16 @@ the head. The same cap for a lodger's household. Test: tests/religion.test.ts (e
   Plot contrast kept (plotKeep) 1.00 / 0.94 / 0.47 / 0.31 at 0.2–0.5 / 0.5–1 / 1–2.5 / 2.5–5 km. Objects in the frustum
   (count / ≥ 1.5 px tall): plain trees 6,548 / 113 at 2.5–5 km, 19,529 / 455 at 5–10 km; village compounds 270 / 0 within
   10 km; town roofed plots 459 / 459 at 0.5–2.5 km.
-- **Browser.** BROWSER_PLACEHOLDER
+- **Browser (high, WebGPU, two runs).** Render 1 (the whole D-223 tree before the post-render changes; files tagged
+  `-before`): stair-noon-plain, stair-dawn-plain, rahmat-west-pm, naqsh-200m. Render 2 (`-after`, the final tree):
+  stair-noon-plain, stair-dawn-plain, rahmat-west-pm, moment town-smoke-dusk (and its no-smoke A/B). Findings: the
+  radial desire lines are gone (people still walk their routes as lines over the trodden ground); the irrigated fields at
+  0.2–2.5 km read as green blocks either side of the approach; Kuh-e Rahmat shows pale riser bands along the contours
+  (render 1: unbroken, like contour lines; render 2: broken along the strike: Ystd/Y 0.160 → 0.162, HF 0.032 → 0.029 on
+  the face); the dark dots on the slopes are goat and sheep flocks (fauna), not shrubs (the 3-D shrub crowns are under a
+  pixel there); Naqsh as above. Budgets: stair-dawn-plain 425 draw calls / 7.51 M triangles (was 425 / 7.56 M in render
+  1), stair-noon-plain 402 / 6.12 M, rahmat-west-pm 424 / 5.83 M, naqsh-200m 131 / 2.58 M; README budgets 3,000 / 12 M.
+  Plain adds 11–15 draw calls in the plain views (render 1), unchanged: no new mesh.
 - **Tests:** tests/hills_d223.test.ts (shrub stretch and cover, bench slopes, cliff winding and shadow side, the horizon
   exclusion, the road material's WGSL), tests/plain_d223.test.ts (the path net, no radial runs in the stair view, the
   district fallow, the census). landscape, plain, plain_look, surfaces (3), detail, settlement (2), shader_build pass.
