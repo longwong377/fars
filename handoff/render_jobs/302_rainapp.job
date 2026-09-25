@@ -1,0 +1,3 @@
+rainapp
+tests/e2e/moments.spec.ts
+E2E_PORT=5299 Q=high ONLY=rain-approach TIMEOUT=3500 PW_TIMEOUT=3500

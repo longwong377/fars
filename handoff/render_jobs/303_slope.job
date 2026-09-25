@@ -1,0 +1,3 @@
+slope
+tests/e2e/settlement.spec.ts
+E2E_PORT=5301 Q=high ONLY=slope-s-dusk TIMEOUT=2900 PW_TIMEOUT=2900
