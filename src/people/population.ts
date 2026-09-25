@@ -1468,6 +1468,9 @@ class Planner {
   /** hours at home between tasks (C). Men: rest, mending tools and baskets, the household's animals (plain), talk with
    *  the household. Women: rest, the quern, spinning, talk. Both: a sleep in the heat of the day */
   private homeHours(until: number, why = 'resting at home') {
+    // the day's plan ends at midnight: an `until` past it (a homemaker's rain-bound day, forced rain: the rain-columns moment
+    // hung its first frame, t = 24 against until = 24.5) could never be reached
+    until = Math.min(until, 24);
     const r = this.r, plain = this.hh.zone === 'plain', f = this.p.sex === 'f', H = L.home_hours, [s0, s1] = H.spell_h;
     // (no "minding the children" in her rest any more: the little ones are then as often in the lane, at a neighbour's or
     // with the house's minder; their own plans say where they are: S2 and S8 of shadow review r5)
@@ -1489,7 +1492,10 @@ class Planner {
     const restCap = farmMan ? (this.C.season === 'winter' ? H.men_rest_cap_h.winter : H.men_rest_cap_h.other) : womanHome ? (this.C.season === 'winter' ? H.women_rest_cap_h.winter : H.women_rest_cap_h.other) : Infinity;
     // a woman's hours: the spindle and the loom in winter and on her days off (S7, r4; home_hours.women_winter, women_day_off; C)
     const WF = this.C.season === 'winter' ? H.women_winter : this.dayOff ? H.women_day_off : H.women, spinMin = womanHome ? (WF as { spin_min_h?: number }).spin_min_h ?? 0 : 0;
+    let lastT = -1;
     while (this.t < until - 0.3) {
+      if (this.t <= lastT) break; // a spell that could not advance the clock ends the loop (the rest below fills the time)
+      lastT = this.t;
       const hot = this.C.heatRest && this.t >= 11.5 && this.t < 15.5 ? H.sleep_in_heat : 0;
       // no work that needs light before first light, about 0.45 h before sunrise (civil dawn at 30° N; S7 r5: a scribe mending
       // baskets from 04:40; C)
