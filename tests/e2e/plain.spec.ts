@@ -59,10 +59,14 @@ test('plain', async ({ page }, info) => {
     // the town's share too (its garden trees, channels and water: the garden view, D-149)
     const town = await page.evaluate(async () => { const p = (window as any).__parsa, g = p.world.root.getObjectByName('settlement'); if (!g) return null;
       g.visible = false; await p.renderOnce(); const st = p.stats(); g.visible = true; return { drawCalls: st.drawCalls, triangles: st.triangles, trees: p.world.settlement?.stats?.().trees ?? null }; });
-    // D-227: the animals' share (the stair foot's tether lines, heaps and loads are in the fauna's group)
-    const fauna = await page.evaluate(async () => { const p = (window as any).__parsa, g = p.world.root.getObjectByName('fauna'); if (!g) return null;
-      const f = p.world.root.getObjectByName('terrace-foot'); await p.renderOnce(); const st0 = p.stats(); g.visible = false; await p.renderOnce(); const st = p.stats(); g.visible = true;
-      return { drawCalls: st0.drawCalls - st.drawCalls, triangles: st0.triangles - st.triangles, foot: f ? { visible: f.visible, loads: f.getObjectByName('terrace-foot:loads')?.count ?? 0 } : null }; });
+    // D-227: the animals' share (the stair foot's tether lines, heaps and loads are in the fauna's group; the world's update
+    // re-shows the group every frame, so it is hidden after each update as moments.spec's A/B does), and the people drawn
+    const fauna = await page.evaluate(async () => { const p = (window as any).__parsa, W = p.world, g = W.root.getObjectByName('fauna'); if (!g) return null;
+      if (!W.__abWrapped) { const up = W.update.bind(W); W.update = (dt: number, ctx: any) => { up(dt, ctx); W.root.traverse((o: any) => { if (o.userData?.__hideAB) o.visible = false; }); }; W.__abWrapped = true; }
+      const f = W.root.getObjectByName('terrace-foot'); await p.renderOnce(); const st0 = p.stats(); g.userData.__hideAB = true; await p.renderOnce(); const st = p.stats(); delete g.userData.__hideAB; g.visible = true;
+      const P = W.people, cs = P?.crowd.stats();
+      return { drawCalls: st0.drawCalls - st.drawCalls, triangles: st0.triangles - st.triangles, foot: f ? { loads: f.getObjectByName('terrace-foot:loads')?.count ?? 0 } : null,
+        people: P ? { visible: P.view.stats.visible, walking: P.view.stats.walking, skinned: cs?.perf.drawn, impostors: P.crowd.impPerf.drawn } : null }; });
     const lum = await lumStats(page, png);
     const pick = await page.evaluate(() => (window as any).__parsa.pick(0, 0));
     out[s.n] = { quality: Q, withPlain, withoutPlain: without, plainAdds: { drawCalls: withPlain.drawCalls - without.drawCalls, triangles: withPlain.triangles - without.triangles },

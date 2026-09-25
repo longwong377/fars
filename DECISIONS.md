@@ -5297,3 +5297,67 @@ moment-*-webgpu.png in the worktree, not committed).**
   stratospheric layer B-values used as C; the sun's photometric luminance B (USNO); the bright-majority rule and its
   constants C.
 - **Open questions:** Q-530 … Q-536. **Blockers:** B43, B44.
+## D-227 The town and the near plain at a distance: the town's evening fires measured by line of sight, the moments re-timed to the most fires lit at dusk, fire light on the smoke layer; the stair foot's approach track, tether lines, heaps and herb patches (session 8 workstream; D-220 and D-223 "still broken")
+- **Read first: what is broken, placeholder or unverified.**
+  - **The town at dusk still shows no points of fire, and cannot from these cameras (B49).** Measured with the sim's fires and
+    the town as built (tests/town_glow.test.ts, a 0.5 m height raster of every wall, roof and oven top): at the new hour,
+    of 886 lit town fires 420 are in the Terrace view's frame (0.45–1.7 km) and 594 in Kuh-e Rahmat's (0.8–2.0 km), and
+    **0 and 0 flames are in line of sight**; their light on their own courts' walls that the cameras see sums to 0.03 and
+    0.30 of one fire's candela over the whole town. From 1–4° below the horizontal a 2.5–3 m court wall hides 48–170 m of
+    ground; the plan's hearths stand in court corners (C, Q-561). Nothing is drawn for that light (it would be staged).
+  - **The re-timing thins the smoke.** Day 20 19:00 has the most fires lit in the dusk (886; the old moment, day 14 18:48,
+    had 43: the households had eaten before sunset and the fires were embers), but the low evening fire smokes less than
+    the embers after a meal: τ Terrace → S quarters 0.113 (was 0.343), Kuh-e Rahmat → W/S quarters 0.072 (was 0.259). The
+    D-220 test's floor (τ ≥ 0.1 / 0.05) still holds. The moment is truer to "as lamps are lit" and weaker as a picture.
+  - **The fire light on the smoke layer is physically small at dusk**: 0.15 % of the layer's skylight in-scatter at the
+    moment (sun −5.7°), 3.9 % at −8.7° (tests/town_glow.test.ts, the sky gain applied to both). Built because it is the light
+    the layer gets after dark on cool evenings; not visible in the moment frames.
+  - **Lamps in houses are not modelled (Q-560)**: saucer lamps are B by analogy (Q-516), who had oil is C; a room's lamp
+    would show only through its door into its hidden court. The sim gives nearly every household the same bedtime (Q-566):
+    on day 20 all 866 low fires go out within a minute at 19:16 (src/people not touched).
+  - Near plain: the tether lines, loads, heaps, approach track and herb patches are node-measured; RENDER RESULTS BELOW.
+  - All of it is C. No stone heaps on the W plain: the stone came from Kuh-e Rahmat (E), whose quarry has no position read
+    (Q-565); the building site's masons' yard (construction.ts) is unchanged.
+- **Problem.** D-220: "the town-smoke-dusk frame reads as an empty dark plain"; D-223: "the near plain is still an empty
+  brown sheet" and "the town at dusk ... needs lamp and hearth glow".
+- **The town's fires (measured, tools/dev/town_glow_probe.ts, tests/town_glow.test.ts):**
+  - Lit town fires by hour from the sim (hearthSmoke.ts SmokeModel, fire.ts schedules): day 14 866 at 18:00 (sun +5.6°),
+    167 at 18:30, 43 at 18:48, 39 at 18:50: a warm night (minimum 10.2 °C), so after the meal every hearth dies to embers.
+    A scan of the year for calm (≤ 1.5 m/s), clear, dry dusks with a cool night (< 8 °C: the fire kept low until bedtime):
+    days 18 and 20 in spring; day 20 (7 May 467 BCE; wind 0.91 m/s, minimum 5.7 °C) holds 885–886 lit from 18:40 until bedtime at 19:16
+    (sun −1.6° … −8.8°). **Moments town-smoke-dusk and town-smoke-dusk-rahmat re-timed to day 20 19:00** (sun −5.7°,
+    civil dusk; same cameras, not staged).
+  - Line of sight: see "Read first". The raster dilates 0.4–0.55 m walls to the 0.5 m cells they cross (conservative by up
+    to a cell); trees are not in it (they only hide more). The same code from 300 m above q_s1 sees 47 of 103 flames and
+    0.09 fire-candela of wall glow per fire.
+  - Approaches for B49 (rule 5): glow at the lit wall patches (measured: nothing to draw); the smoke lit from below (built);
+    the re-timing and a higher point on Kuh-e Rahmat (100 m E of the camera: 0.15 fire-candela; 200 m E the ridge hides the
+    town). Shipped: the re-timing and the smoke's fire light.
+- **Fire light on the smoke layer (hearthSmoke.ts, landSmoke.ts, world.ts):** each quarter's cell carries `fireE`, the lit
+  fires' candela (fire.ts fireLight, renderer units at fire scale 1) × FIRE_ESCAPE_SR / the footprint (4R²); FIRE_ESCAPE_SR =
+  1.0 sr is the measured mean solid angle a court hearth's light leaves its court by (0.98 sr over q_s1's 148 lit hearths,
+  128 rays each; Q-562). The shader adds ω · uFire · fireE · HG(−rd.y) to the layer's source (uFire = the fires' ~1900 K
+  colour × the sky's fireScale, D-117). One float attribute per cell, 0 draws added. `SmokeModel.setFireLight` runs each
+  frame from the fires' lit state.
+- **The near plain from the stair top (tests/terrace_foot.test.ts; plain.spec stair-noon-plain):**
+  - *The approach as a worn track* (settlement/water.ts): the town place → stair foot line (people_places.json) drawn in the
+    roads' mesh with their track material (cart-rut pairs, crown, ragged herb verge, patches; D-223), 8 m wide (APPROACH_W,
+    C), meandering like the roads, stopping 3 m short of the stair. It runs straight away from the stair's top, so its bands
+    lie along the view, where a pixel is ~0.27 m across at 200 m. 0 draws added (the roads' mesh).
+  - *Tether lines at the foot* (terraceFoot.ts, fauna.ts): two ground ropes 50–120 m W of the stair foot either side of the
+    approach, 51 slots; on each day 35–80 % filled from 07:00–10:30 to 12:30–16:30 (closed-form in seed, day and hour);
+    donkeys 55 %, mules 20 %, saddle horses 18 %, Bactrian camels 7 %, standing across the rope, heads at their fodder
+    (grazing pose 70 % of the time); a pair of sacks set down beside each pack animal; the dung swept into 4 heaps per line
+    and a straw heap at each line's end; the lines' ground trodden bare (townGround.ts). Day 0 11:00: 27 animals, 21 loads;
+    22:00 and 05:30: none. Cost there: 4 species draws + heaps + loads = 6 draws, 19.5 k triangles (budget ≤ 10, ≤ 0.5 M).
+  - *Herbs at the foot* (townGround.ts): below each of the Terrace's W and S drain mouths (D-214) a fan of herbs 16 m out,
+    6–10 m wide, the trodden share cut to 0.25 (11 of 12 drains on trodden ground; Q-564); between the paths grazed herb
+    back in 20–60 m patches (two-octave value noise over 40 % of the foot, trodden share × 0.35; mean run 25 m), never within
+    14 m of the approach line, 3 m of a worn path or 10 m of a tether line. The shader is unchanged: less trodden ground shows
+    the herb layer in its own colour. The 4 m ground map makes the fans' edges blocky at close range (C).
+- **Rendered:** see below.
+- **Files:** src/world/hearthSmoke.ts, landSmoke.ts, fire.ts (FIRE_RGB exported), world.ts, fauna.ts, terraceFoot.ts (new),
+  settlement/water.ts, plain/townGround.ts, plain/index.ts, plain/terrainPlain.ts (note); tests/town_glow.test.ts,
+  tests/terrace_foot.test.ts, tests/lib/townLos.ts (new), tests/shader_build.test.ts (D-227 case), tests/e2e/moments.spec.ts
+  (re-timed), tests/e2e/plain.spec.ts (`faunaAdds`); tools/dev/town_glow_probe.ts.
+- **Open questions:** Q-560 … Q-566. **Blockers:** B49.

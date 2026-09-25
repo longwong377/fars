@@ -29,6 +29,9 @@ const env = (t: number): Env => { const d = Math.floor(t / 24), c = W.conditions
 /** the moments as the spec has them (day, hour) */
 const spec = readFileSync('tests/e2e/moments.spec.ts', 'utf8');
 const shot = (n: string) => { const m = new RegExp(`n: '${n}', day: (\\d+), hour: ([\\d.]+)`).exec(spec)!; return { day: +m[1], hour: +m[2] }; };
+/** the hour with the most town fires lit in the dusk of a calm, dry, cool spring evening near the moment's day (rendered in
+ *  D-227; the moment keeps day 14 18:48, where the smoke reads: see the last test) */
+const CAND = { day: 20, hour: 19.0 };
 let model: SmokeModel, fire: FireSystem, town: Settlement, T: ReturnType<typeof loadTerrain>, H: (e: number, n: number) => number;
 beforeAll(() => {
   const sim = new PeopleSim(1, new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8'))), env);
@@ -45,28 +48,28 @@ const litAt = (day: number, h: number) => { const alt = sunAltAt(day, h); return
 const countLit = (day: number, h: number) => { update(day, h); const L = litAt(day, h); return townFires().filter(L).length; };
 
 describe('the town\'s evening fires by hour (the people sim, D-220 → D-227)', () => {
-  it('on day 14 (the old moment, a warm evening) the hearths are embers by dusk; on the new day they burn low until bedtime', () => {
+  it('on day 14 (the moment, a warm evening) the hearths are embers by dusk; on day 20 (cool) they burn low until bedtime', () => {
     const rows: string[] = []; let best = { h: 0, n: -1 }, bestDark = { h: 0, n: -1 };
-    const m = shot('town-smoke-dusk');
+    const m = CAND;
     for (const day of [14, m.day]) for (let h = 17; h <= 20.01; h += 1 / 12) { const n = countLit(day, h), alt = sunAltAt(day, h);
       if (day === m.day) { if (n > best.n) best = { h, n }; if (alt <= -4 && n >= bestDark.n) bestDark = { h, n }; }
       if (Math.round(h * 12) % 2 === 0) rows.push(`day ${day} ${h.toFixed(2)} h sun ${alt.toFixed(1)}° lit ${n}`); }
     console.log(rows.join('\n'));
     const old = countLit(14, 18.8); console.log(`old moment (day 14 18:48): ${old} town fires lit; new day ${m.day}: most ${best.n} at ${best.h.toFixed(2)} h, most with the sun ≤ −4°: ${bestDark.n} until ${bestDark.h.toFixed(2)} h`);
     expect(old).toBeLessThan(60);
-    // the new moment: a calm, cool, dry evening (the fire kept low until bedtime), at the most fires lit in the dusk
+    // the candidate: a calm, cool, dry evening (the fire kept low until bedtime), at the most fires lit in the dusk
     const c = W.conditions(m.day, m.hour), dw = W.days[m.day];
     expect(c.windMs).toBeLessThan(1.5); expect(dw.wet).toBeFalsy(); expect(dw.tmin).toBeLessThan(COLD_EVENING_C);
     expect(sunAltAt(m.day, m.hour)).toBeLessThan(-4); expect(sunAltAt(m.day, m.hour)).toBeGreaterThan(-8);
     const now = countLit(m.day, m.hour); expect(now).toBeGreaterThanOrEqual(0.95 * best.n); expect(now).toBeGreaterThan(800);
-    expect(shot('town-smoke-dusk-rahmat')).toEqual(m);
+    expect(shot('town-smoke-dusk-rahmat')).toEqual(shot('town-smoke-dusk'));
     expect(m.hour).toBeGreaterThan(sunTimes(m.day).set);
   });
 });
 
 describe('what the moment cameras see of the fires (line of sight over the town, D-227)', () => {
   it('from the Terrace and Kuh-e Rahmat the courts\' walls hide every flame; seen from 300 m above, about half show', () => {
-    const m = shot('town-smoke-dusk'); update(m.day, m.hour); const L = litAt(m.day, m.hour);
+    for (const m of [CAND, shot('town-smoke-dusk')]) { update(m.day, m.hour); const L = litAt(m.day, m.hour);
     const s0 = townFires()[0], q = town.plan.sites.find(s => s.id === 'q_s1')!;
     const top: Cam = { ...CAMS[0], n: 'overhead q_s1', e: q.frame.c[0], n_: q.frame.c[1] + 100, absY: H(q.frame.c[0], q.frame.c[1]) + 300, az: 161, pitch: -72, fov: 60 }; void s0;
     const out: Record<string, ReturnType<typeof viewStats>> = {};
@@ -76,14 +79,14 @@ describe('what the moment cameras see of the fires (line of sight over the town,
       out[cam.n] = viewStats(R, T, cam, eye, fire.fires, isLit);
       const s = out[cam.n]; console.log(`${cam.n}: lit ${s.lit}, in frame ${s.inFrustum} at ${s.dMin.toFixed(0)}–${s.dMax.toFixed(0)} m (median ${s.dMed.toFixed(0)}); flames in sight ${s.flameSeen} (Σ ${s.flameSum.toFixed(2)} fire-candela); lit walls seen from ${s.glowFires} fires (Σ ${s.glowSum.toFixed(3)} fire-candela)`); }
     const t = out['town-smoke-dusk'], r = out['town-smoke-dusk-rahmat'], o = out['overhead q_s1'];
-    expect(t.inFrustum).toBeGreaterThan(300); expect(r.inFrustum).toBeGreaterThan(300);
-    expect(t.flameSeen / t.inFrustum).toBeLessThan(0.02); expect(r.flameSeen / r.inFrustum).toBeLessThan(0.02);
-    // all their light on their courts' walls that the camera sees, summed over the town: under one fire's own candela
+    console.log(`(day ${m.day} ${m.hour} h)`);
+    if (m === CAND) { expect(t.inFrustum).toBeGreaterThan(300); expect(r.inFrustum).toBeGreaterThan(300); }
+    expect(t.flameSeen / Math.max(1, t.inFrustum)).toBeLessThan(0.02); expect(r.flameSeen / Math.max(1, r.inFrustum)).toBeLessThan(0.02);
     expect(t.glowSum).toBeLessThan(1); expect(r.glowSum).toBeLessThan(1);
-    expect(o.flameSeen / o.inFrustum).toBeGreaterThan(0.3); expect(o.glowSum / o.inFrustum).toBeGreaterThan(0.03); // the method sees them when they are to be seen
-  }, 600_000);
-  it('a hearth\'s light leaves its court upward by FIRE_ESCAPE_SR (±25 %); on the layer it is a few % of the skylight at the moment', () => {
-    const m = shot('town-smoke-dusk'); update(m.day, m.hour); const L = litAt(m.day, m.hour);
+    if (m === CAND) { expect(o.flameSeen / o.inFrustum).toBeGreaterThan(0.3); expect(o.glowSum / o.inFrustum).toBeGreaterThan(0.03); } } // the method sees them when they are to be seen
+  }, 900_000);
+  it('a hearth\'s light leaves its court upward by FIRE_ESCAPE_SR (±25 %); on the layer it is a few % of the skylight at dusk', () => {
+    const m = CAND; update(m.day, m.hour); const L = litAt(m.day, m.hour);
     const q = town.plan.sites.find(s => s.id === 'q_s1')!, c = { x0: q.frame.c[0] - 200, x1: q.frame.c[0] + 200, z0: -q.frame.c[1] - 200, z1: -q.frame.c[1] + 200 };
     const R = heightRaster(town.group, 0.5, /^settlement:/, c);
     const inQ = townFires().filter(i => fire.fires[i].group === 'q_s1' && L(i)); let sr = 0; for (const i of inQ) sr += escapeSr(R, T, fire.fires[i].pos);
@@ -111,12 +114,13 @@ describe('the smoke layer at the new moment (D-220 test carried to D-227)', () =
     const o: [number, number, number] = [e, y, -n], d = [te - e, ty - y, -tn + n], L = Math.hypot(d[0], d[1], d[2]);
     return cells.reduce((s, c) => s + cellTau(c, o, [d[0] / L, d[1] / L, d[2] / L]), 0);
   };
-  it('still reads from the Terrace over the S quarters (τ ≥ 0.1) and from Kuh-e Rahmat (τ ≥ 0.05)', () => {
-    const m = shot('town-smoke-dusk'); const rows: string[] = [];
-    for (const [day, h] of [[14, 18.8], [m.day, m.hour - 0.25], [m.day, m.hour], [m.day, m.hour + 0.25]] as [number, number][]) { update(day, h);
+  it('the moment\'s hour is the one whose smoke reads (τ Terrace ≥ 0.3, Kuh-e Rahmat ≥ 0.2), thicker than at the most-fires hour', () => {
+    const m = shot('town-smoke-dusk'), c = CAND; const rows: string[] = []; const tau: Record<string, number> = {};
+    for (const [day, h] of [[m.day, m.hour], [c.day, c.hour - 0.25], [c.day, c.hour], [c.day, c.hour + 0.25]] as [number, number][]) { update(day, h);
       const tD = ray(model.cells, -50.5, -120, 1.6, -900, -1300, H(-900, -1300) + 4), yR = H(380, -60) + 1.6, tR = Math.max(ray(model.cells, 380, -60, yR, -935, -95, H(-935, -95) + 4), ray(model.cells, 380, -60, yR, -815, -1095, H(-815, -1095) + 4));
       rows.push(`day ${day} ${h.toFixed(2)} h: τ Terrace→S ${tD.toFixed(3)}, Rahmat→W/S ${tR.toFixed(3)}`);
-      if (day === m.day && h === m.hour) { expect(tD).toBeGreaterThan(0.1); expect(tR).toBeGreaterThan(0.05); } }
+      tau[`${day}|${h}`] = tD; if (day === m.day && h === m.hour) { expect(tD).toBeGreaterThan(0.3); expect(tR).toBeGreaterThan(0.2); } }
     console.log(rows.join('\n'));
+    expect(tau[`${m.day}|${m.hour}`]).toBeGreaterThan(2 * tau[`${c.day}|${c.hour}`]);
   });
 });

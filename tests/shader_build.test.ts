@@ -99,9 +99,11 @@ describe('surface shaders build (WGSL, node)', () => {
     if (!renderer.backend.device) renderer.backend.device = { limits: { maxUniformBufferBindingSize: 65536, maxStorageBufferBindingSize: 134217728 } };
     const L = new LandSmoke(); L.update([{ id: 'q', cx: 0, cz: -900, angle: 0, R: 120, Rw: 120, tail: 300, Ld: 1200, H1: 30, H2: 8, sigma: 1e-3, gy0: -15, gx: 0, gz: 0, y0: -20, y1: 150, seed: 1, E: 100, fireE: 0.15 }], { x: 0, y: 1.6, z: 0 });
     const F = new TerraceFoot(1, () => -12); F.update(0, 11, 0, () => {});
-    scene.add(L.group, F.group); const fails: string[] = [], meshes: THREE.Mesh[] = [];
+    const { buildWaterAndRoads } = await import('../src/world/settlement/water'), { buildTownPlan } = await import('../src/world/settlement/plan');
+    const roads = buildWaterAndRoads(buildTownPlan(), () => -12).group.getObjectByName('settlement:roads') as THREE.Mesh; // (the approach's dusty crown)
+    scene.add(L.group, F.group, roads); const fails: string[] = [], meshes: THREE.Mesh[] = [roads];
     L.group.traverse((o: any) => { if (o.isMesh) meshes.push(o); }); F.group.traverse((o: any) => { if (o.isMesh) meshes.push(o); });
-    expect(meshes.length).toBe(4);
+    expect(meshes.length).toBe(5);
     for (const m of meshes) { try { const b = build(renderer, scene, camera, m); if (!b.fragment.includes('output')) fails.push(m.name + ': no output'); } catch (e: any) { fails.push(`${m.name}: ${String(e?.message ?? e).slice(0, 300)}`); } }
     expect(fails).toEqual([]);
   });

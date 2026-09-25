@@ -18,10 +18,10 @@
 //    gentle ground, and shrubs (pistachio-almond, B pollen; C placement), more in the gullies and on shaded slopes.
 import * as THREE from 'three/webgpu';
 import { Fn, uniform, positionWorld, normalWorld, attribute, vec2, vec3, vec4, float, uint, int, ivec2, floor, fract, min, max, mix, step, smoothstep, length, fwidth, textureLoad, texture, abs, sin, cos, clamp, color, mx_noise_float, sqrt, dot } from 'three/tsl';
-import { surfaceMaterial, NOISE_FRAME, type Layer } from '../../render/materials';
+import { surfaceMaterial, NOISE_FRAME, SEASON, type Layer } from '../../render/materials';
 import { DISTRICT, SALT, STRIP, ZONE, ZoneMap, IRR_STEPS, IRR_FALLOW_SPREAD, ROTATION, VINE_SHARE, pcg } from './fields';
 import { CROP_ROWS, YEAR, cropTable, cropState, PLOT_OFFSET_DAYS, foliage } from './seasonal';
-import { GROUND, PATH_W } from './townGround';
+import { GROUND, PATH_W, LUSH_MAX } from './townGround';
 import { CURV_SCALE, type Detail, type DetailMap } from '../../terrain/terrainDetail';
 
 // ---------------------------------------------------------------- TSL mirrors of fields.ts
@@ -213,6 +213,9 @@ export class PlainGround {
       const gr = texture(groundTex, p.add(GROUND.half).div(GROUND.cell).add(0.5).div(GROUND.n));
       const allowed = mix(float(1), smoothstep(0.4, 0.6, gr.w), gIn);
       const trample = gr.z.mul(gIn);
+      // D-227: herbs grown back at the Terrace foot (townGround.ts: below the drains and in patches), in the map's A channel
+      // under LUSH_MAX where no field is allowed (allowed ground reads 1)
+      const lush = clamp(gr.w.div(LUSH_MAX), 0, 1).mul(float(1).sub(step(LUSH_MAX + 0.03, gr.w))).mul(gIn);
       // distance to the nearest worn path: each of the 4 surrounding samples names its nearest path point q and (by its
       // vector) the path's normal; the pixel's distance to that line, the least of the four. Filtering the vectors instead
       // drew false paths on the midline between two paths (their vectors cancel; after-run of D-190). A sample with no path
@@ -293,6 +296,11 @@ export class PlainGround {
       const packedAlb = mix(packed, packed.mul(vec3(0.62, 0.58, 0.52)), litter).mul(toneT).mul(vec3(float(1).sub(stain), float(1).sub(stain.mul(1.1)), float(1).sub(stain.mul(1.3))));
       const tr = trEff.mul(float(1).sub(M)).mul(0.85);
       alb = mix(alb, packedAlb, tr);
+      // D-227: where the foot's herbs grow back (damp below a drain, less trodden between the paths) they cover the ground in
+      // their own colour, the season's green or straw (the road verges' herb, materials.ts herbs), tufted near, their mean far
+      { const herbC = mix(vec3(0.319, 0.264, 0.107), vec3(0.078, 0.107, 0.027), SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001)));
+        const tuftL = smoothstep(0.35, 0.75, mx_noise_float(vec3(p.x.mul(2.3), 6.1, p.y.mul(2.3))).mul(0.5).add(0.5)).mul(near).add(float(1).sub(near).mul(0.6));
+        alb = mix(alb, herbC.mul(float(1).add(mx_noise_float(vec3(p.x.mul(0.2), 3.3, p.y.mul(0.2))).mul(0.15))), lush.mul(tuftL).mul(SEASON.green.add(SEASON.dry).min(1)).mul(0.9)); }
       const pxD = fwidth(pathD).max(1e-4), hw = PATH_W / 2;
       const pathCov = clamp(min(float(hw), pathD.add(pxD.mul(0.5))).sub(max(float(-hw), pathD.sub(pxD.mul(0.5)))).max(0).div(pxD), 0, 1);
       alb = mix(alb, packed.mul(1.05), pathCov.mul(0.5)); // a trodden line, not a road (after-run: at 0.8 the fan of paths read as roads)

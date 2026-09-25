@@ -42,14 +42,14 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // Terrace 2.3 m inside its W edge, looking SSW over the lower town (quarters q_s1-q_s4 at 0.9-1.6 km, bearings 185-217°
   // true, 20 m below) with a 55 mm lens (24°); and from Kuh-e Rahmat E of the Terrace (+65 m) over the Terrace to the S and
   // W quarters (bearings 205-249°). Each is captured again with the smoke and dust hidden (ab), so their contrast is measured
-  // D-227: re-timed from day 14 18:48 (a warm evening: the sim's households had eaten before sunset and 23 of the town's
-  // 1,241 hearths still burned, the rest embers) to day 20 (7 May 467 BCE) 19:00, sun −5.7°, wind 0.9 m/s: the night's minimum
-  // 5.7 °C keeps every household's fire low from the evening meal until bedtime (hearthSmoke.ts COLD_EVENING_C), so 866 hearths
-  // burn at dusk, the most in the dark of any calm dry spring evening near the old day (tests/town_glow.test.ts). Measured by
-  // line of sight: the courts' walls hide every one of them from both cameras (0 of 420 and 0 of 594 flames; their light on
-  // their own walls, all summed, under one fire's candela): the frame shows the smoke, not points of fire (B49)
-  { n: 'town-smoke-dusk', day: 20, hour: 19.0, w: 'clear', v: [-50.5, -120, 1.6, 205, -1.5], fov: 24, ab: { tag: 'smoke', hide: ['landsmoke', 'settlement:haze', 'fire:smoke', 'dust'] } },
-  { n: 'town-smoke-dusk-rahmat', day: 20, hour: 19.0, w: 'clear', v: [380, -60, 1.6, 228, -4], ab: { tag: 'smoke', hide: ['landsmoke', 'settlement:haze', 'fire:smoke', 'dust'] } },
+  // D-227: day 14 18:48 kept. Rendered re-timed to day 20 19:00 (sun −5.7°, wind 0.9 m/s; the night's minimum 5.7 °C keeps
+  // every household's fire low until bedtime: 886 town fires lit, the most in the dusk of any calm dry spring evening near day
+  // 14; here 43, the rest embers after a meal eaten before sunset): no fire point in either frame (by line of sight 0 of 420
+  // and 0 of 594 flames: the courts' walls hide them, B49), and the smoke's contrast fell from +10.3 to +2.2 luma (τ Terrace →
+  // S quarters 0.343 → 0.113: the low fire smokes less than the embers after a meal). The day-20 hour is one line away
+  // (tests/town_glow.test.ts measures both)
+  { n: 'town-smoke-dusk', day: 14, hour: 18.8, w: 'clear', v: [-50.5, -120, 1.6, 205, -1.5], fov: 24, ab: { tag: 'smoke', hide: ['landsmoke', 'settlement:haze', 'fire:smoke', 'dust'] } },
+  { n: 'town-smoke-dusk-rahmat', day: 14, hour: 18.8, w: 'clear', v: [380, -60, 1.6, 228, -4], ab: { tag: 'smoke', hide: ['landsmoke', 'settlement:haze', 'fire:smoke', 'dust'] } },
   // the Now view (D-201, stretch, out of world): the same spots as the ruin stands today (C, recollection)
   { n: 'now-stair-top', day: 25, hour: 10, w: 'clear', v: [-36.4, 122.45, 1.6, 79, 6], now: true },
   { n: 'now-apadana', day: 25, hour: 10, w: 'clear', v: [1.9, 75, 1.6, 161, 8], now: true },
