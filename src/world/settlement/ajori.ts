@@ -102,7 +102,12 @@ export function buildAjori(g: { c: P2; theta: number }, H: (e: number, n: number
   const wv = (u: number, v: number, y: number) => { const p = toGrid(f, u, v); return [p[0], y0 + y, -p[1]]; };
   const quad = (a: number[], b: number[], cc: number[], d: number[], n: number[], u0: number, u1: number, v0: number, v1: number, fade: number) => {
     const o = pos.length / 3; for (const p of [a, b, cc, d]) pos.push(...p); for (let i = 0; i < 4; i++) { nor.push(...n); col.push(fade, fade, fade); }
-    uvs.push(u0, v0, u1, v0, u1, v1, u0, v1); idx.push(o, o + 1, o + 2, o, o + 2, o + 3); };
+    uvs.push(u0, v0, u1, v0, u1, v1, u0, v1);
+    // wind each quad to its own normal: with DoubleSide the quads wound against n had their normal flipped into the
+    // wall and read black (render pass 2, the W half of each façade and the corridor walls)
+    const e1 = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], e2 = [d[0] - a[0], d[1] - a[1], d[2] - a[2]];
+    const fw = (e1[1] * e2[2] - e1[2] * e2[1]) * n[0] + (e1[2] * e2[0] - e1[0] * e2[2]) * n[1] + (e1[0] * e2[1] - e1[1] * e2[0]) * n[2];
+    if (fw >= 0) idx.push(o, o + 1, o + 2, o, o + 2, o + 3); else idx.push(o, o + 2, o + 1, o, o + 3, o + 2); };
   const nW = (u: number, v: number) => { const a = toGrid(f, 0, 0), b = toGrid(f, u, v); return [b[0] - a[0], 0, -(b[1] - a[1])]; };
   let seed = 1; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
   const rows: [number, number, number][] = [[1.4, 2.5, 0], [3.3, 4.4, 0.5], [5.2, 6.3, 0]]; // y0, y1, atlas row (0 aurochs? see uv) — alternate
@@ -120,7 +125,7 @@ export function buildAjori(g: { c: P2; theta: number }, H: (e: number, n: number
   const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); pg.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
   pg.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2)); pg.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); pg.setIndex(idx); pg.computeBoundingSphere();
   const tex = friezeTextures();
-  const pm = new THREE.MeshStandardNodeMaterial({ roughness: 0.3, metalness: 0, side: THREE.DoubleSide });
+  const pm = new THREE.MeshStandardNodeMaterial({ roughness: 0.3, metalness: 0, side: THREE.FrontSide });
   if (tex) { pm.colorNode = texture(tex.map, uv()).rgb.mul(attribute('color', 'vec3')); pm.normalMap = tex.normal; }
   else pm.colorNode = vec3(0.12, 0.28, 0.55).mul(float(1));
   const panels = new THREE.Mesh(pg, pm); panels.name = 'settlement:tol_ajori:glaze'; panels.receiveShadow = true; panels.matrixAutoUpdate = false;
