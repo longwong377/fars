@@ -1,7 +1,7 @@
 {
  "tier": "C",
  "stride": 18,
- "count": 52982,
+ "count": 64298,
  "normalBias": 0.9,
  "options": {
   "spacing": 2,
@@ -16,7 +16,7 @@
   "skyRays": 2,
   "sunSkyRatio": 3,
   "fine": {
-   "treasury:1": 1
+   "treasury:1": 0.5
   }
  },
  "partsHash": "8acd7f25259576ca",
@@ -28,7 +28,7 @@
   "tachara": 0.0035,
   "hadish": 0.0185,
   "treasury": 0.0004,
-  "harem": 0.0088
+  "harem": 0.0093
  },
  "volumes": [
   {
@@ -209,14 +209,14 @@
     74.5
    ],
    "spacing": [
-    1,
+    0.5,
     2,
-    1
+    0.5
    ],
    "dims": [
-    82,
+    164,
     3,
-    16
+    31
    ],
    "roof": [
     143,
@@ -267,7 +267,7 @@
     7,
     7.9
    ],
-   "offset": 51622
+   "offset": 62938
   }
  ]
 }

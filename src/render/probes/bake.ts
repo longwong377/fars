@@ -41,7 +41,7 @@ export interface BakeOptions {
    *  out, the 2 m interpolation spread its light a metre behind the jambs (the scribes' room, render pass 2 R7) */
   fine?: Record<string, number>;
 }
-export const BAKE: BakeOptions = { spacing: 2, layer: 2.5, margin: 6, full: 2, inset: 0.25, normalBias: 0.9, skyDirs: 4096, rays: 1024, sunRays: 2, skyRays: 2, sunSkyRatio: 3, fine: { 'treasury:1': 1 } };
+export const BAKE: BakeOptions = { spacing: 2, layer: 2.5, margin: 6, full: 2, inset: 0.25, normalBias: 0.9, skyDirs: 4096, rays: 1024, sunRays: 2, skyRays: 2, sunSkyRatio: 3, fine: { 'treasury:1': 0.5 } };
 
 // ------------------------------------------------------------------ volumes
 /** one volume per roofed space: the roof boxes of a building that touch each other at the same ceiling height form one

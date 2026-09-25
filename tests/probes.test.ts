@@ -242,9 +242,9 @@ describe('light probes: the baked Terrace field', () => {
     // the S wall's inner face at grid n −84.7, the doorway x 184.0–185.1: the floor 0.9–1.9 m E of the jamb, 0.1 m off the
     // wall face, against the floor 1.5 m into the room (sky + sun channels for an up-facing floor). The 2 m grid lit this
     // foot 18–30× the room (the doorway probe's light spread a metre behind the jamb); a ray-traced check gives ~0 direct sky
-    const v = F.volumes.find(q => q.building === 'treasury:1')!; expect(v.spacing[0]).toBe(1);
+    const v = F.volumes.find(q => q.building === 'treasury:1')!; expect(v.spacing[0]).toBe(0.5);
     const up = (e: number, z: number) => { const s = sampleField(F, e, 0.31, z, 0, 1, 0)!; const [a, b] = evalSample(s.s, 0, 1, 0); return a + b; };
-    for (const e of [186, 186.5, 187]) expect(up(e, 84.6), `x ${e}`).toBeLessThan(2 * up(e, 83.2) + 1e-4);
+    for (const e of [185.6, 186, 186.5, 187]) expect(up(e, 84.6), `x ${e}`).toBeLessThan(2 * up(e, 83.2) + 1e-4);
   });
   it('every roofed hall is darker at its centre than open ground', () => {
     for (const [b, v] of Object.entries(meta.hallCentreVisibility as Record<string, number>)) { expect(v, b).toBeGreaterThan(0); expect(v, b).toBeLessThan(0.2); }
