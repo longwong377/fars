@@ -19,13 +19,13 @@ test('weather debug', async ({ page }, info) => {
   const out: Record<string, any> = {}, save = () => writeFileSync(`shots/wx-debug${tag}.json`, JSON.stringify({ ...out, errors: errs.slice(0, 20) }, null, 1));
   const P = 'window.__parsa', SH = `${P}.world.root.parent.getObjectByName('rain-shafts')`;
   const frames = async (n: number) => { for (let i = 0; i < n; i++) await page.evaluate(() => (window as any).__parsa.renderOnce()); };
-  const shot = async (name: string, n = 2) => { await frames(n); await page.screenshot({ path: `shots/wx-${name}${tag}.png` }); console.log('shot', name); };
+  const shot = async (name: string, n = 1) => { await frames(n); await page.screenshot({ path: `shots/wx-${name}${tag}.png` }); console.log('shot', name); };
   const load = async (day: number, hour: number, w: string) => {
     await page.goto(`/?test&quality=${process.env.Q ?? 'test'}&day=${day}&hour=${hour}&weather=${w}`);
     await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 1_200_000 });
     await page.evaluate(() => (window as any).__parsa.renderer.setAnimationLoop(null));
   };
-  const stance = async (v: number[]) => { await page.evaluate(`${P}.carryEye(null); ${P}.view(${v.join(',')}, 40)`); await frames(4); return page.evaluate(`${P}.exposureInfo()`) as Promise<any>; };
+  const stance = async (v: number[]) => { await page.evaluate(`${P}.carryEye(null); ${P}.view(${v.join(',')}, 40)`); await frames(3); return page.evaluate(`${P}.exposureInfo()`) as Promise<any>; };
   const hold = (x: number | null) => page.evaluate(`${P}.carryEye(${x ?? 'null'}, 0)`);
   if (!only || only.includes('rain-approach')) {
     await load(299, 11.45, 'auto'); const o: any = out['rain-approach'] = {};
