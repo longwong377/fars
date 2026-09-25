@@ -45,12 +45,15 @@ const LINES: any[] = COURT.guard_lines;
 /** the posts of the lines (a file of ten per slot), each line's centre (the anchor of its posts) and the slots */
 const GEN = (() => {
   const places: CourtPlace[] = [], slots: Slot[] = [];
+  const SPACE: number = COURT.day.file_spacing_m;
   for (const L of LINES) {
-    const c: P2 = [(L.a[0] + L.b[0]) / 2, (L.a[1] + L.b[1]) / 2];
+    const c: P2 = [(L.a[0] + L.b[0]) / 2, (L.a[1] + L.b[1]) / 2], len = Math.hypot(L.b[0] - L.a[0], L.b[1] - L.a[1]);
     places.push({ id: L.id, kind: 'idle', at: c, heading: L.heading, tier: 'C', note: `ceremonial guard line: ${L.what} (guards on the stairways and at the gates: reliefs B; the line C)` });
+    // D-221: the posts stand SPACE apart, centred on the line (a close file, not strung out over the line's length)
+    const step = L.n === 1 ? 0 : Math.min(SPACE, len / (L.n - 1)) / len;
     for (let s = 0; s * 10 < L.n; s++) { const posts: string[] = [];
-      for (let k = s * 10; k < Math.min(L.n, s * 10 + 10); k++) { const f = L.n === 1 ? 0.5 : k / (L.n - 1), id = `${L.id}_${k}`;
-        places.push({ id, kind: 'post', at: [+(L.a[0] + (L.b[0] - L.a[0]) * f).toFixed(2), +(L.a[1] + (L.b[1] - L.a[1]) * f).toFixed(2)], heading: L.heading, tier: 'C', anchor: L.id, note: `a post of the king's spearmen: ${L.what} (C)` });
+      for (let k = s * 10; k < Math.min(L.n, s * 10 + 10); k++) { const f = 0.5 + (k - (L.n - 1) / 2) * step, id = `${L.id}_${k}`;
+        places.push({ id, kind: 'post', at: [+(L.a[0] + (L.b[0] - L.a[0]) * f).toFixed(2), +(L.a[1] + (L.b[1] - L.a[1]) * f).toFixed(2)], heading: L.heading, tier: 'C', anchor: L.id, note: `a post of the king's spearmen: ${L.what}, in a close file ${SPACE} m apart (C; D-221)` });
         posts.push(id); }
       slots.push({ line: L.id, posts, night: !!L.night, what: L.what }); }
   }
@@ -65,6 +68,30 @@ export const COURT_PRIVATE: CourtPlace[] = COURT.private_places as CourtPlace[];
 export const NIGHT_SLOTS = COURT_SLOTS.map((s, i) => [s, i] as const).filter(([s]) => s.night).map(([, i]) => i);
 /** the court's camp below the Terrace (popgeo.ts resolves `court_camp` to open ground about it) */
 export const COURT_CAMP: { c: P2; r: number; note: string } = { c: COURT.camp.c, r: COURT.camp.r, note: COURT.camp.note };
+
+/** D-221: what the people waiting at a court place wait on, and so face (grid; C): the Apadana's N stair from the forecourt
+ *  (its central landing: site_spec apadana platform x -61.5..65.35, N edge y 52, stair zone 7 m), its E stair from the court
+ *  below it, the hall's N doorway from the N portico, the throne inside the hall */
+/** (a stair is a segment: its 81.67 m run along the façade, site_spec apadana.stairs; one faces the stair where one stands) */
+export const FOCUS: Record<string, [P2, P2]> = { n_stair: [[-38.9, 56], [42.7, 56]], e_stair: [[69, -45.7], [69, 35.9]], hall_door: [[1.9, 25.4], [1.9, 25.4]], throne: [[1.9, -22.2], [1.9, -22.2]], front: [[1.9, -22.2], [1.9, -22.2]] };
+const FOCUS_OF: Record<string, keyof typeof FOCUS> = { forecourt: 'n_stair', forecourt_wait: 'n_stair', court_apadana_e: 'e_stair', court_portico: 'hall_door', court_audience: 'throne', court_audience_front: 'front' };
+/** the point a person waiting at `place` at (e, n) looks at, or null (the place has no focus) */
+export function focusOf(place: string, e = 0, n = 0): P2 | null {
+  const k = FOCUS_OF[place]; if (!k) return null; const [a, b] = FOCUS[k], dx = b[0] - a[0], dy = b[1] - a[1], L2 = dx * dx + dy * dy;
+  const f = L2 > 0 ? Math.max(0, Math.min(1, ((e - a[0]) * dx + (n - a[1]) * dy) / L2)) : 0; return [a[0] + dx * f, a[1] + dy * f];
+}
+/** D-221: ground in the forecourt that those spread over it keep off: the way between the files of spearmen from the Gate
+ *  to the Apadana's N stair, the parties' places (a block of up to five rows behind each place's front row) and the
+ *  petitioners' line (C) */
+export function courtKeepClear(e: number, n: number): boolean {
+  const Wt = COURT.visitors.waiting, L = Wt.line;
+  if (Math.abs(e) < 6.8 && n > 60 && n < 100) return true;
+  if (e > L.x - 1.6 && e < L.x + (L.lines - 1) * L.gap_m + 0.9 && n > L.y0 - 0.7 && n < L.y0 + L.n * L.step_m + 0.2) return true;
+  for (const x of Wt.stations_x) if (Math.abs(e - x) < 2.6) for (const y of Wt.stations_y) if (n > y - 1.6 && n < y + 4.8) return true;
+  return false;
+}
+/** D-221: the acts of waiting that face the focus (talk faces the one talked to, work its work) */
+export const FACING_ACTS = /^(queue|rest|inspect|shelter|eat)$/;
 
 // ------------------------------------------------------------------ places: where they are and how far apart
 const FAC: Record<string, P2> = Object.fromEntries((townData as any).facilities.map((f: any) => [f.id, f.at as P2]));
@@ -81,7 +108,7 @@ export function walkHours(a: string, b: string) {
 }
 
 // ------------------------------------------------------------------ the people
-const S = { gen: salt('court-gen'), plan: salt('court-plan'), vis: salt('court-visitors'), day: salt('court-day'), vig: salt('court-vigil'), aud: salt('court-audience'), king: salt('court-king'), ret: salt('court-retinue') };
+const S = { gen: salt('court-gen'), plan: salt('court-plan'), vis: salt('court-visitors'), day: salt('court-day'), vig: salt('court-vigil'), aud: salt('court-audience'), king: salt('court-king'), ret: salt('court-retinue'), face: salt('court-face') };
 type Group = 'royal_guard' | 'women' | 'attendants' | 'palace' | 'table' | 'porters' | 'butchers' | 'officials' | 'nobles' | 'visitor' | 'king' | 'retinue';
 interface Member { g: Group; role: string; sleep: string }
 /** D-210 (gap audit item 17): the animals a party brings, as its people's delegation on the Apadana reliefs leads them
@@ -115,6 +142,16 @@ export interface CourtLook { dress?: string; delegation?: string; pieces?: strin
 interface PopGen { hh(q: string, zone: Household['zone'], persian: boolean, home?: string): number; person(x: Partial<Person> & { sex: 'm' | 'f'; age: number; job: Job; hh: number }): number }
 const pickW = <T>(r: HStream, list: [T, number][]): T => { let u = r.next() * list.reduce((s, x) => s + x[1], 0); for (const [v, w] of list) { u -= w; if (u <= 0) return v; } return list[0][0]; };
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+
+/** D-221: a party's turn before the king on an audience morning: led up from the forecourt at tIn, before the throne from
+ *  tTurn to tDone, its usher (pid, or -1: none on duty for it) */
+export interface Turn { party: number; k: number; tIn: number; tTurn: number; tDone: number; usher: number }
+/** D-221: the forecourt's order on a day (CourtResidents.dayOrder) */
+export interface DayOrder { station: Map<number, number>; line: Map<number, number>; gate: Map<number, number>; turns: Turn[]; turnOf: Map<number, Turn>; usherOf: Map<number, Turn> }
+/** D-221: the forecourt's places in the order they are given: the row nearest the stair first, nearest the way first (C) */
+const STATION_ORDER: number[] = (() => { const Wt = COURT.visitors.waiting, nx = Wt.stations_x.length, ix: number[] = [];
+  for (let j = 0; j < nx * Wt.stations_y.length; j++) ix.push(j);
+  return ix.sort((a, b) => Math.floor(a / nx) - Math.floor(b / nx) || Math.abs(Wt.stations_x[a % nx] - 1.9) - Math.abs(Wt.stations_x[b % nx] - 1.9)); })();
 
 export class CourtResidents {
   /** the court's people are pids [first, end) */
@@ -213,6 +250,66 @@ export class CourtResidents {
   /** D-199: the king's day, shared by his bearers and escort */
   kingDay(d: number): KingDay { const u = (k: number) => u01(this.pop.seed, S.king, d, k), a0 = lerp(KING.audience_start[0], KING.audience_start[1], u(1));
     return { aud: this.audienceDay(d), a0, a1: a0 + lerp(KING.audience_len[0], KING.audience_len[1], u(2)) }; }
+  /** a party's shared draws on a day (its members go up together: CourtDay.visitor) */
+  partyDraw(pa: Party, d: number, x: number) { return u01(this.pop.seed, S.vis, 5000 + pa.i, d, x); }
+  /** D-221: the forecourt's order on day d (cached; a pure function of the seed and the day): which parties go up to wait,
+   *  each at a place of its own (a delegation's block, a petitioner party's run of the line), those called this morning
+   *  first in the order they go before the king, with their turns and ushers. The parties with no place left wait at the camp */
+  private orders = new Map<number, DayOrder>();
+  dayOrder(d: number): DayOrder {
+    let o = this.orders.get(d); if (o) return o; const V = COURT.visitors, Wt = V.waiting;
+    o = { station: new Map(), line: new Map(), gate: new Map(), turns: [], turnOf: new Map(), usherOf: new Map() };
+    const here = this.parties.filter(pa => d > pa.day && d < pa.leave);
+    // the morning's audience: the parties called, in the order they came (C), each in its turn while the king sits
+    const called = here.filter(pa => pa.audience === d).sort((a, b) => a.day - b.day || a.i - b.i);
+    if (called.length) { const Kd = this.kingDay(d), slot = Math.min(Wt.turn_max_h, (Kd.a1 - Kd.a0 - 0.2) / called.length);
+      // the ushers on duty (not their day off, not ill), one to each party called (C)
+      const ushers = (this.byGroup.get('officials') ?? []).filter(pid => this.mem.get(pid)!.role === 'usher' && (d + pid) % 8 !== 0 && this.pop.present(pid, d) && !this.pop.sick(pid, d));
+      called.forEach((pa, k) => { const tTurn = Kd.a0 + 0.1 + k * slot, t: Turn = { party: pa.i, k, tIn: tTurn - Math.min(Wt.before_turn_h, 2.5 * slot), tTurn, tDone: tTurn + slot * 0.8, usher: k < ushers.length ? ushers[k] : -1 };
+        o!.turns.push(t); o!.turnOf.set(pa.i, t); if (t.usher >= 0) o!.usherOf.set(t.usher, t); }); }
+    // who goes up: the parties called, and the others with the day's chance (C); places in that order while there are any
+    const up = here.filter(pa => pa.audience === d || this.partyDraw(pa, d, 7) < V.up_share).sort((a, b) => (a.audience === d ? 0 : 1) - (b.audience === d ? 0 : 1) || (o!.turnOf.get(a.i)?.k ?? 0) - (o!.turnOf.get(b.i)?.k ?? 0) || a.i - b.i);
+    const NS = Wt.stations_x.length * Wt.stations_y.length; let js = 0, q = 0;
+    const LN = Wt.line.n;
+    up.forEach((pa, k) => o!.gate.set(pa.i, k % Wt.gate.length));
+    for (const pa of up) { if (pa.petition) { if ((q % LN) + pa.size > LN) q = Math.ceil(q / LN) * LN; // (a party is not split between the lines)
+      if (q + pa.size <= LN * Wt.line.lines) { o.line.set(pa.i, q); q += pa.size; } } else if (js < NS) o.station.set(pa.i, js++); }
+    this.orders.set(d, o); if (this.orders.size > 8) this.orders.delete(this.orders.keys().next().value!); return o;
+  }
+  /** D-221: does the party wait in the forecourt on day d (it has a place there) */
+  upOn(pa: Party, d: number) { const o = this.dayOrder(d); return o.turnOf.has(pa.i) || o.station.has(pa.i) || o.line.has(pa.i); }
+  /** D-221: where a person stands in the order of the forecourt, the hall and before the throne (the reliefs' form: each
+   *  delegation behind an usher, B; every place C), and the way they face; null when the place has no order for them */
+  formationSpot(pid: number, place: string, d: number): { at: P2; heading: number } | null {
+    const f = this.formation(pid, place, d); if (f) f.heading += (u01(this.pop.seed, S.face, pid, d) - 0.5) * 12; return f; } // (no one stands ruler-straight: ±6°, C)
+  private formation(pid: number, place: string, d: number): { at: P2; heading: number } | null {
+    const m = this.mem.get(pid); if (!m) return null; const Wt = COURT.visitors.waiting, o = this.dayOrder(d);
+    let pa: Party | undefined, usher = false;
+    if (m.g === 'visitor') pa = this.parties[this.pop.persons[pid].idx]; else if (m.role === 'usher') { const t = o.usherOf.get(pid); if (t) { pa = this.parties[t.party]; usher = true; } }
+    if (!pa) return null; const mi = usher ? -1 : pa.members.indexOf(pid);
+    // a block of `cols` abreast whose front row's middle is at P, facing the heading hd (deg cw from grid north); the usher
+    // stands a step ahead of the leader and to his left (C)
+    const block = (P: P2, hd: number, cols: number) => { const r = hd * Math.PI / 180, fx = Math.sin(r), fy = Math.cos(r), rx = fy, ry = -fx;
+      if (usher) return { at: [P[0] + fx * 1.0 - rx * 0.7, P[1] + fy * 1.0 - ry * 0.7] as P2, heading: hd };
+      const row = Math.floor(mi / cols), inRow = Math.min(cols, pa!.size - row * cols), c = mi - row * cols, lat = (c - (inRow - 1) / 2) * Wt.block_lateral_m, back = row * Wt.block_row_m;
+      return { at: [P[0] - fx * back + rx * lat, P[1] - fy * back + ry * lat] as P2, heading: hd }; };
+    const face = (P: P2, pl: string) => { const f = focusOf(pl, P[0], P[1])!; return Math.atan2(f[0] - P[0], f[1] - P[1]) * 180 / Math.PI; };
+    if (place === 'forecourt_wait') {
+      const j = o.station.get(pa.i);
+      if (j !== undefined) { const nx = Wt.stations_x.length, P: P2 = [Wt.stations_x[STATION_ORDER[j] % nx], Wt.stations_y[Math.floor(STATION_ORDER[j] / nx)]]; return block(P, face(P, place), Wt.block_cols); }
+      const q = o.line.get(pa.i); if (q === undefined) return null; const L = Wt.line;
+      const li = Math.floor(q / L.n), x = L.x + li * L.gap_m, q0 = q - li * L.n;
+      if (usher) return { at: [x - 0.8, L.y0 + (q0 - 0.5) * L.step_m], heading: 180 };
+      return { at: [x, L.y0 + (q0 + mi) * L.step_m], heading: 180 }; // (the line faces the stair: S)
+    }
+    // shown to the guards in the Gate: the party together, at one of the hall's places clear of the way from the W door to
+    // the S door, facing the S door (C); not held (parties that come at the same time stand aside for each other)
+    if (place === 'gate_hall') { const g = o.gate.get(pa.i); if (g === undefined || usher) return null; return block(Wt.gate[g] as P2, 180, Wt.block_cols); }
+    const t = o.turnOf.get(pa.i); if (!t) return null;
+    if (place === 'court_audience') { const P: P2 = [Wt.hall_x[t.k % Wt.hall_x.length], Wt.hall_y]; return block(P, 180, Wt.block_cols); }
+    if (place === 'court_audience_front') return block(Wt.front as P2, 180, Wt.block_cols);
+    return null;
+  }
   /** D-199: the tent a person's household lodges in (camps.ts), or null (not in a camp) */
   tentOf(pid: number): Tent | null { return this.tentOfHH.get(this.pop.persons[pid].hh) ?? null; }
   /** D-199: how a court person looks beyond the dress of the job (popview.lookInput): a man of a delegation wears his
@@ -459,8 +556,11 @@ class CourtDay {
       : [...halls.map(h => [h, 'clean', `sweeping ${h === 'forecourt' ? 'the forecourt' : h === 'apadana_hall' ? 'the Apadana' : h === 'gate_hall' ? 'the Gate of All Nations' : h === 'court_portico' ? 'the Apadana portico' : h === 'court_tripylon' ? 'the Tripylon' : h === 'court_hadish' ? 'the Hadish' : 'the Tachara'}`, 1] as Opt),
         ['court_cistern', 'draw_water', 'drawing water for the palaces', 1.2], ['court_table_store', 'rest', 'resting between tasks', 0.8],
         ['apadana_hall', 'inspect', 'standing by in the Apadana in case he is called', 1]];
-    this.fill(r.range(11.6, 12.6), opts); this.meal(this.m.sleep === 'court_camp' ? 'court_kitchen' : this.m.sleep, 0.5, 'the midday meal from the kitchens');
-    this.fill(r.range(18, 19), opts); this.meal(this.m.sleep, 0.5, 'the evening meal'); this.fill(r.range(20.6, 21.6), [[this.m.sleep, 'rest', 'resting before sleep', 2], [this.m.sleep, 'talk', 'talking with the other servants', 1.5]]); this.night();
+    // D-221: the halls and courts where the court waits (the forecourt, the Gate, the Apadana and its portico) are swept
+    // before it assembles and after it has gone down, not among the waiting parties (C)
+    const OPEN = /^(forecourt|gate_hall|court_portico|apadana_hall)$/, busy = dayOff ? opts : opts.filter(o => !(o[1] === 'clean' && OPEN.test(o[0])));
+    this.fill(r.range(7.5, 8.1), opts); this.fill(r.range(11.6, 12.6), busy); this.meal(this.m.sleep === 'court_camp' ? 'court_kitchen' : this.m.sleep, 0.5, 'the midday meal from the kitchens');
+    this.fill(r.range(15.6, 16.2), busy); this.fill(r.range(18, 19), opts); this.meal(this.m.sleep, 0.5, 'the evening meal'); this.fill(r.range(20.6, 21.6), [[this.m.sleep, 'rest', 'resting before sleep', 2], [this.m.sleep, 'talk', 'talking with the other servants', 1.5]]); this.night();
   }
   table() {
     const r = this.r, K = 'court_kitchen', B = 'court_bakehouse', ST = 'court_table_store', HD = 'court_hadish', role = this.m.role;
@@ -517,7 +617,19 @@ class CourtDay {
     const opts: Opt[] = role === 'secretary' ? [['court_tripylon', 'write_tablet', 'writing the court’s letters on clay', 3], ['gate_hall', 'write_tablet', 'recording the parties that come to the Gate', 1.2], ['court_tripylon', 'talk', 'talking over a letter with an official', 0.8]]
       : role === 'usher' ? [['gate_hall', 'inspect', 'an usher looking over the parties waiting at the Gate', 2], ['forecourt', 'inspect', 'an usher seeing the waiting parties in order in the forecourt', 2], ['apadana_hall', 'inspect', 'an usher at the door of the Apadana', 1.5], ['forecourt', 'talk', 'talking with a party’s leader about their audience', 1]]
       : [['court_tripylon', 'talk', 'talking over the court’s business', 2], ['apadana_hall', 'inspect', 'in attendance in the Apadana', 1.5], ['court_apadana_e', 'talk', 'talking with other officials below the Apadana', 1.5], ['gate_hall', 'inspect', 'going over the parties at the Gate', 0.8]];
-    this.go('court_apadana_e', 'going up to the Terrace'); this.fill(r.range(12, 12.8), opts); this.meal('court_apadana_e', 0.6, 'a midday meal sent out from the king’s table');
+    this.go('court_apadana_e', 'going up to the Terrace');
+    // D-221: on an audience morning an usher on duty leads one party in: at its head in the forecourt, up into the hall with
+    // it, and before the king by the leader's hand (the Apadana reliefs: B for the form; the times and places C)
+    const T = role === 'usher' ? this.K.dayOrder(this.d).usherOf.get(this.pid) : undefined;
+    if (T) { const pa = this.K.parties[T.party], who = pa.petition ? `the ${pa.origin} petitioners` : `the ${pa.origin} party`, Wt = COURT.visitors.waiting, FW = 'forecourt_wait';
+      this.fill(T.tIn - Wt.usher_before_h - walkHours(this.cur, FW), opts);
+      if (wetHours(this.C.wx, this.t, T.tIn) > 0) this.at(T.tIn, 'court_portico', 'inspect', `an usher with ${who} under the Apadana portico, out of the rain, ready to lead them up`);
+      else this.at(T.tIn, FW, 'inspect', `an usher at the head of ${who} in the forecourt, ready to lead them up to the king (the Apadana reliefs, B)`);
+      this.go('court_audience', `an usher leading ${who} up to the Apadana`);
+      this.add(Math.max(this.t + 0.02, T.tTurn - walkHours('court_audience', 'court_audience_front')), 'court_audience', 'inspect', `an usher standing with ${who} in the Apadana until their turn`);
+      this.go('court_audience_front', `an usher leading ${who} before the king by the leader’s hand (the reliefs, B)`);
+      this.add(Math.max(this.t + 0.04, T.tDone), 'court_audience_front', 'inspect', `an usher presenting ${who} to the king (the reliefs, B; what is said is not shown)`); }
+    this.fill(r.range(12, 12.8), opts); this.meal('court_apadana_e', 0.6, 'a midday meal sent out from the king’s table');
     this.fill(r.range(15.8, 17), opts); this.go(this.m.sleep, 'going down to the camp');
     this.fill(r.range(18.6, 19.4), camp); this.meal(this.m.sleep, 0.6, 'the evening meal at the camp'); this.fill(r.range(20.8, 21.8), camp); this.night();
   }
@@ -628,20 +740,28 @@ class CourtDay {
       this.meal(CA, 0.6, 'the evening meal at the camp'); this.fill(lerp(20.8, 21.6, pr(3)), campOpts); this.night(); return; }
     this.morning(lerp(this.sun.rise - 0.5, this.sun.rise + 0.3, pr(4)) + r.range(-0.1, 0.1)); this.meal(CA, 0.4, 'breakfast at the camp');
     if (d === pa.leave) { this.add(this.t + lerp(0.5, 1, pr(5)), CA, 'tend_animals', 'loading the animals to go home'); this.add(this.t + lerp(1, 2, pr(6)), 'road:departure', 'walk', 'on the road home from the court', undefined, 'road'); this.add(24, '-', 'offmap', 'gone home', undefined, 'away'); return; }
-    const up = d === pa.audience || pr(7) < 0.6;
+    // D-221: up to the Terrace only while the forecourt has a place for the party (the day's order: CourtResidents.dayOrder)
+    const turn = K.dayOrder(d).turnOf.get(pa.i), up = K.upOn(pa, d);
     if (!up) { this.fill(lerp(11.5, 12.5, pr(8)), campOpts); this.meal(CA, 0.5, 'the midday meal at the camp'); this.fill(lerp(18.2, 19, pr(9)), campOpts); this.meal(CA, 0.6, 'the evening meal at the camp'); this.fill(lerp(20.8, 21.6, pr(10)), campOpts); this.night(); return; }
-    // up to the Terrace: checked at the Gate, waiting in the forecourt (C); shelter under the Apadana portico in rain
-    const wait: Opt[] = [['gate_hall', 'queue', 'in the queue at the Gate, waiting to be let through', 0.8], ['forecourt', 'queue', 'waiting in the forecourt to be called', 2.5], ['forecourt', 'rest', 'resting in the forecourt', 1.2], ['forecourt', 'talk', 'talking with other parties in the forecourt', 1], ['court_portico', 'shelter', 'waiting in the shade of the Apadana portico', 0.6]];
-    this.fill(lerp(6.6, 8.2, pr(18)), campOpts);
-    this.go('gate_hall', 'going up to the Terrace'); this.add(this.t + lerp(0.3, 0.8, pr(11)), 'gate_hall', 'queue', 'in the queue at the Gate, their party shown to the guards', gifts);
-    if (d === pa.audience) { // the audience: led up to the Apadana by an usher (reliefs, B) and before the king on his throne (D-199)
-      const Kd = K.kingDay(d), a0 = lerp(Kd.a0 + 0.1, Math.max(Kd.a0 + 0.2, Kd.a1 - 1.2), pr(12)); this.fill(a0 - 0.25, wait.map(o => [o[0], o[1], o[2], o[3], gifts] as Opt));
-      this.go('court_audience', 'led up to the Apadana by an usher', 'walk', gifts); this.add(Math.min(Kd.a1 - 0.3, this.t + lerp(0.5, 0.9, pr(13))), 'court_audience', 'queue', pa.petition ? 'in the queue in the Apadana, waiting to be heard by the king' : 'in the queue in the Apadana with the gifts, waiting to be led before the king', gifts);
+    // up to the Terrace: checked at the Gate, then waiting with the party at its own place in the forecourt before the
+    // Apadana's N stair, standing or sitting together, facing the stair (D-221; C); shelter under the Apadana portico in rain
+    const FW = 'forecourt_wait', where = pa.petition ? 'in the petitioners’ line before the Apadana’s N stair' : 'with the party at its place before the Apadana’s N stair';
+    const wait: Opt[] = [[FW, 'queue', `in the queue ${where}, waiting to be called`, 3], [FW, 'rest', `resting ${where}, sitting on the ground`, 1.5], ['court_portico', 'shelter', 'waiting in the shade of the Apadana portico, out of the rain', 1]];
+    const wet = (a: number, b: number) => wetHours(this.C.wx, a, b) > 0;
+    this.fill(turn ? lerp(6.2, 6.8, pr(18)) : lerp(6.6, 8.2, pr(18)), campOpts);
+    this.go('gate_hall', 'going up to the Terrace'); this.add(this.t + (turn ? lerp(0.2, 0.35, pr(11)) : lerp(0.2, 0.5, pr(11))), 'gate_hall', 'queue', 'in the queue at the Gate, their party shown to the guards', gifts);
+    if (turn) { // the audience: led up to the Apadana by an usher in the party's turn (reliefs, B) and before the king on his throne (D-199)
+      this.fill(turn.tIn, wait.map(o => [o[0], o[1], o[2], o[3], gifts] as Opt));
+      if (this.t < turn.tIn - 0.02) { if (wet(this.t, turn.tIn)) this.at(turn.tIn, 'court_portico', 'shelter', 'waiting in the shade of the Apadana portico, out of the rain', gifts); else this.at(turn.tIn, FW, 'queue', `in the queue ${where}, waiting to be called`, gifts); }
+      this.go('court_audience', 'led up to the Apadana by an usher', 'walk', gifts);
+      this.add(Math.max(this.t + 0.02, turn.tTurn - walkHours('court_audience', 'court_audience_front')), 'court_audience', 'queue', pa.petition ? 'in the queue in the Apadana, waiting to be heard by the king' : 'in the queue in the Apadana with the gifts, waiting to be led before the king', gifts);
       this.go('court_audience_front', 'led before the king by the usher, the hand held (the reliefs, B)', 'walk', gifts);
-      this.add(this.t + lerp(0.1, 0.2, pr(19)), 'court_audience_front', 'inspect', pa.petition ? 'standing before the king to be heard (the Treasury relief, B; the petition C; the bow with a hand before the mouth is not posed)' : 'standing before the king while the gifts are presented (the reliefs, B; C)', gifts);
-      this.at(this.t + 0.3, 'court_audience', 'rest', pa.petition ? 'resting after the audience' : 'resting after the audience, the gifts handed over');
-      this.go('forecourt', 'coming out of the Apadana'); this.meal('forecourt', 0.5, 'bread and water in the forecourt'); }
-    else { this.fill(lerp(11.3, 12.3, pr(14)), wait); this.meal('forecourt', 0.5, 'bread and water in the forecourt'); this.fill(lerp(14.5, 16, pr(15)), wait); }
+      this.add(Math.max(this.t + 0.04, turn.tDone), 'court_audience_front', 'inspect', pa.petition ? 'standing before the king to be heard (the Treasury relief, B; the petition C; the bow with a hand before the mouth is not posed)' : 'standing before the king while the gifts are presented (the reliefs, B; C)', gifts);
+      this.go(FW, 'coming out of the Apadana');
+      if (wet(this.t, this.t + 0.3)) this.at(this.t + 0.3, 'court_portico', 'shelter', 'waiting in the shade of the Apadana portico, out of the rain');
+      else this.at(this.t + 0.3, FW, 'rest', pa.petition ? `resting ${where} after the audience` : `resting ${where} after the audience, the gifts handed over`);
+      this.meal(FW, 0.5, 'bread and water with the party in the forecourt'); }
+    else { this.fill(lerp(11.3, 12.3, pr(14)), wait); this.meal(FW, 0.5, 'bread and water with the party in the forecourt'); this.fill(lerp(14.5, 16, pr(15)), wait); }
     this.go(CA, 'going down to the camp'); this.fill(lerp(18.2, 19, pr(16)), campOpts); this.meal(CA, 0.6, 'the evening meal at the camp'); this.fill(lerp(20.8, 21.6, pr(17)), campOpts); this.night();
   }
 }

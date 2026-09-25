@@ -8,6 +8,20 @@
   render** (0 emitters: an ordering bug, fixed after the last render, node-verified only); animal/flock/cart dust unverified.
   **The town's hearth flames now follow the sim's household day:** on a warm evening they are out by ~19:30 (Q-502). All amounts
   C (Q-500 … Q-506). The per-quarter haze sheets are gone (replaced by the layer).
+- **Session 8, the court as an assembly and the scribes' room at work (D-221; rubric s7 pass 2 items 7 and 11).**
+  Still placeholder or open: the usher does not hold the leader's hand (no pose); the delegations' animals stay at the camp;
+  the scribes' lamp is never lit (no lamp in the fire-light model); the Aramaic leather sheet carries no writing; the
+  pupil rests on a recollected attestation (Q-514). The 30-day court soak fails variety, populationVariety and
+  plansWellFormed (2,786 "festival" issues of the court women on day 10) identically on the base tree (pre-existing).
+  Done, node-measured: the spearmen in close files 1.0 m apart (ordered 0.5 % → 91.9 %), the parties at their own places
+  before the N stair in the order of the audience, one usher to each called party (members within 3 m of their centroid
+  8.6 % → 100 %), those waiting facing the stair, hall door or throne (mean cosine 0.009 → 0.996); the scribes at seats
+  round the desk, a stylus in the writer's hand, the Aramaic secretary with pen and leather, a pupil (gap audit 33), mats,
+  lamp and soot, ink, water bowl, jars, bench baskets, seals, a trodden floor. Moments re-timed: court-assembly day 32
+  09:30 (an audience morning), scribe-at-work and scribe-room-ne day 21 13:30. Renders (2 runs, D-221): the court frame is
+  calmer (no sweepers, blocks and knots) but the spearmen's files are not legible at eye level; in the scribe frame the
+  scribes and the pupil STILL READ AS BARE-CHESTED in red (node: the tunic is drawn; likely madder-red cloth under the red
+  floor bounce, unverified) and the nearest scribe was hidden by the rig's 2.5 m clearance (camera moved back, not re-rendered).
 - **Session 7 ENDED (HANDOFF.md).** Everything merged; tsc clean, lint:all OK; **full `npm test` not run on the final merged tree; soak not re-run after D-211's last fix; nothing from the gap fills seen in a browser.** Open at the top: rain curtains have no visible effect (debug job 300), slope view at a tree, B24 fire light through parapets, Naqsh moiré, rubric pass 2 fix list items 2–10. The rain-day planner hang is fixed (9e2c5e7) but its upstream cause (a ration issue shifted to 23:54) is not.
 - **Rubric s7 pass 2, geometry bugs (D-217; R1, R2, R8, R9, R11).** Still weak: the relief carving is still procedural
   (PLACEHOLDER, NEEDS #10) and casts no shadow on its wall beyond the screen-space contact shadows; the contours now carry

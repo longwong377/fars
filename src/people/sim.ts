@@ -24,6 +24,12 @@ import { Population, Seg, segAt, GUARD_POSTS, SliceSeat, TERRACE_ABSTRACT, TOWN_
 import { hall100Layout, colPlace } from './construction';
 import { PlayerMemory, Encounter } from './memory';
 import { COURT_PLACES, COURT_PRIVATE } from './court'; // D-182 hook (D-199: the king's rooms)
+import { v as specV } from '../arch/spec';
+/** D-221: a place on the floor round the Treasury desk's things (site_spec treasury.scribes_room.seats; C): the Elamite
+ *  scribe's, the Aramaic secretary's, the pupil's; grid position and heading (deg cw from grid N) */
+export function deskSeat(who: 'elamite' | 'aramaic' | 'pupil' | 'visitor'): { at: P2; heading: number } {
+  const s = (specV<any>('treasury', 'scribes_room').seats as Record<string, [number, number, number]>)[who]; return { at: [s[0], s[1]], heading: s[2] };
+}
 
 export type Role = 'guard' | 'mason' | 'foreman' | 'porter' | 'scribe' | 'baker' | 'grinder' | 'child' | 'courier' | 'official';
 export interface Place { id: string; kind: string; at: P2; heading?: number; span?: [P2, P2]; tier: string; note: string; /** a column's centre (generated work places) */ c?: P2 }
@@ -396,6 +402,10 @@ export class PeopleSim {
         return this.task(ties.length ? 'talk' : act, pl, ties.length ? (this.nav.snap(ties[0].pos[0] + 1.3, ties[0].pos[1], 2) ?? PLACES[pl].at) : this.here(a, pl, 2.5, rng), chunk(0.3, 0.8), why);
       }
     }
+    // D-221: the Treasury's scribes sit at their places round the desk's things (site_spec treasury.scribes_room.seats, C):
+    // the Elamite scribe at the desk facing E, the Aramaic secretary SE of him facing WNW; writing, eating, resting there
+    if (pl === 'treasury_desk' && a.role === 'scribe' && (act === 'write_tablet' || act === 'eat' || act === 'rest')) {
+      const S = deskSeat(a.langs[0] === 'Aramaic' ? 'aramaic' : 'elamite'); return this.task(act, pl, S.at, act === 'rest' ? end : chunk(0.3, 1.2), why, S.heading); }
     // the plan's act at the plan's place (meals, rest, talk and knucklebones at the hearths, writing at the desk, …)
     const jitter = PLACES[pl]?.kind === 'hearth' ? 2.6 : PLACES[pl]?.kind === 'post' ? 0 : 2;
     // the same act at the same place goes on where the person already is (a meal is one sitting, not a walk between bites)

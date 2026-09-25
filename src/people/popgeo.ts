@@ -13,8 +13,8 @@ import type { Population } from './population';
 import { TERRACE_ABSTRACT, SACRIFICE } from './population';
 import { PRECINCT, ALTAR_SPOT, BURIAL, precinctAt } from '../world/settlement/precinct';
 import { NAV, type NavGrid, type P2 } from './navgrid';
-import { PLACES } from './sim';
-import { COURT_CAMP } from './court';
+import { PLACES, deskSeat } from './sim';
+import { COURT_CAMP, COURT_PLACES, courtKeepClear, focusOf, FACING_ACTS } from './court';
 import { campOfPlace, beforeDoor, type Tent } from './camps';
 import { sunTimes } from './calendar';
 import { hall100Layout } from './construction';
@@ -47,7 +47,11 @@ export interface Spot {
   /** a court or yard of a walled plot: the plot's key (PopGeo.plotAt) and the top of the walls round it (m above the
    *  ground): from outside it, below that height, the person is hidden (the crowd's LOD; D-143) */
   plot?: number; wall?: number;
+  /** D-221: held where it stands (a guard's post, a place in the court's order): the view does not step it aside */
+  fixed?: boolean;
 }
+/** D-221: the court places whose spots are the day's order (court.ts formationSpot) */
+const ORDERED = new Set(['forecourt_wait', 'court_audience', 'court_audience_front', 'gate_hall']);
 export interface Route { pts: Float64Array; cum: Float64Array; len: number }
 /** a built village as the plain builds it (plain/villages.ts Village and Compound, the fields used here) */
 export interface VillageIn { id: string; x: number; y: number; r: number; pop: number }
@@ -249,7 +253,7 @@ export class PopGeo {
   /** where a person is at a (non-road) place of their plan, doing `act`, at `hour` of `day` */
   spot(pid: number, place: string, act: ActivityId, day: number, hour: number): Spot {
     if (place === '-' || place.startsWith('road:')) return this.none(place, 'not a place');
-    if (place in PLACES || place in this.abs || place === 'palaces') return this.terrace(pid, place);
+    if (place in PLACES || place in this.abs || place === 'palaces') return this.terrace(pid, place, act, day);
     const k = place.indexOf(':'), head = k > 0 ? place.slice(0, k) : place, tail = k > 0 ? place.slice(k + 1) : '', q = tail.split(':')[0];
     const sun = sunTimes(day), dark = hour < sun.rise - 0.25 || hour > sun.set + 0.6;
     const indoor = INDOOR.has(act) || (dark && act === 'rest');
@@ -309,12 +313,29 @@ export class PopGeo {
   }
   /** a Terrace spot: spread over the place (its span, a ring round a hearth, the abstract places' areas) on walkable cells
    *  that see the place's anchor in a straight line (so the way to it needs no search; up to 8 draws, else the anchor) */
-  private terrace(pid: number, place: string): Spot {
+  private terrace(pid: number, place: string, act: ActivityId = 'rest', day = 0): Spot {
     // (a court guard post hangs from its line's centre, so the posts of one file share their routes: court.ts, D-182)
     const anchor = place === 'palaces' ? `palaces:${['apadana', 'tachara', 'hadish'][Math.floor(this.hash(pid, 'palaces', 12) * 3)]}` : (PLACES[place] as { anchor?: string } | undefined)?.anchor ?? place;
     const P = PLACES[place], A = this.abs[anchor], ap = this.anchorPt(anchor); if (!ap) return this.none(place, 'no walkable anchor');
+    const K = this.pop.court;
+    // D-221: a scribe's pupil at his place by the Treasury desk (site_spec treasury.scribes_room.seats, C)
+    if (place === 'treasury_desk' && this.pop.persons[pid]?.pupilOf !== undefined && (act === 'write_tablet' || act === 'eat' || act === 'rest')) { const S = deskSeat('pupil');
+      return this.sp(S.at[0], S.at[1], true, S.heading, 'nav', 'Terrace: treasury_desk, the pupil’s place by the desk (C: D-221)', { anchor, fixed: true }); }
+    // (and a scribe come up from the town to copy and check tablets with them: the visitor's place, not held)
+    if (place === 'treasury_desk' && this.pop.persons[pid]?.job === 'scribe' && act === 'write_tablet') { const S = deskSeat('visitor');
+      return this.sp(S.at[0], S.at[1], true, S.heading, 'nav', 'Terrace: treasury_desk, a visiting scribe’s place by the desk (C: D-221)', { anchor }); }
+    // D-221: the court's order: a party's place in the forecourt, in the hall and before the throne, and its usher's
+    if (K && ORDERED.has(place)) { const f = K.formationSpot(pid, place, day);
+      if (f) { const q: P2 | null = this.nav.walkable(f.at[0], f.at[1]) ? f.at : this.nav.snap(f.at[0], f.at[1], 3);
+        if (q) return this.sp(q[0], q[1], true, f.heading, 'nav', `Terrace: ${place}, in the order of the day's audience (the reliefs' form, B; the place C: D-221)`, { anchor, fixed: place !== 'gate_hall' }); } }
+    // D-221: talk in the forecourt is in knots of a few, standing round, clear of the way and the parties' places (C)
+    if (K && place === 'forecourt' && act === 'talk') { const C = this.talkKnots(), c = C[Math.floor(this.hash(pid, `knot${day}`, 1) * C.length)], a = this.hash(pid, `knot${day}`, 2) * Math.PI * 2, r = 0.95 + 0.25 * this.hash(pid, `knot${day}`, 3);
+      const e = c[0] + Math.cos(a) * r, n = c[1] + Math.sin(a) * r; return this.sp(e, n, true, headingOf(c[0] - e, c[1] - n), 'nav', 'Terrace: forecourt, talking in a knot of a few (C: D-221)', { anchor }); }
+    // D-221: a post is held where it stands; people spread over a place keep off the posts, and in the forecourt off the way
+    // between the files and off the parties' places (the ushers keep them clear: C)
+    const clear = K ? (e: number, n: number) => !this.nearPost(e, n) && (place !== 'forecourt' || !courtKeepClear(e, n)) : null;
     let s: P2 | null = null, face: P2 | null = null;
-    for (let t = 0; t < 8 && !s; t++) { let e: number, n: number;
+    for (let t = 0; t < (clear && P?.kind !== 'post' ? 24 : 8) && !s; t++) { let e: number, n: number;
       if (A) { e = A.c[0] + (this.hash(pid, place, 13 + 50 * t) * 2 - 1) * A.h[0]; n = A.c[1] + (this.hash(pid, place, 14 + 50 * t) * 2 - 1) * A.h[1]; }
       else if (P.kind === 'post') { e = P.at[0]; n = P.at[1]; }
       else if (P.span) { const [[x0, y0], [x1, y1]] = P.span; e = x0 + (x1 - x0) * this.hash(pid, place, 13 + 50 * t); n = y0 + (y1 - y0) * this.hash(pid, place, 14 + 50 * t); }
@@ -322,10 +343,30 @@ export class PopGeo {
       // other places within 2.6 m
       else { const a = this.hash(pid, place, 13 + 50 * t) * Math.PI * 2, u = this.hash(pid, place, 14 + 50 * t), r = P.kind === 'hearth' ? Math.sqrt(1.6 * 1.6 + u * (8 * 8 - 1.6 * 1.6)) : P.kind === 'oven' ? 1.6 + u : 0.8 + 1.8 * u; e = P.at[0] + Math.cos(a) * r; n = P.at[1] + Math.sin(a) * r; if (P.kind === 'hearth' || P.kind === 'oven') face = P.at; }
       // the point itself where it is walkable (snapping to cell centres stacked people on one point), else the nearest cell
-      const q: P2 | null = this.nav.walkable(e, n) ? [e, n] : this.nav.snap(e, n, 4); if (q && (Math.hypot(q[0] - ap[0], q[1] - ap[1]) < 0.3 || this.nav.lineClear(q, ap))) s = q; }
+      const q: P2 | null = this.nav.walkable(e, n) ? [e, n] : this.nav.snap(e, n, 4); if (q && (!clear || P?.kind === 'post' || clear(q[0], q[1])) && (Math.hypot(q[0] - ap[0], q[1] - ap[1]) < 0.3 || this.nav.lineClear(q, ap))) s = q; }
     s ??= ap;
-    const hd = face ? headingOf(face[0] - s[0], face[1] - s[1]) : P?.heading ?? this.hash(pid, place, 15) * 360;
-    return this.sp(s[0], s[1], !(P as { hidden?: boolean } | undefined)?.hidden /* D-199: the king's rooms are not drawn */, hd, 'nav', `Terrace: ${place}`, { anchor });
+    // D-221: waiting at a court place, one faces what is waited on (the stair, the hall's door, the throne: court.ts focusOf)
+    const fo = K && FACING_ACTS.test(act) ? focusOf(place, s[0], s[1]) : null;
+    const hd = face ? headingOf(face[0] - s[0], face[1] - s[1]) : fo ? headingOf(fo[0] - s[0], fo[1] - s[1]) + (this.hash(pid, place, 16) - 0.5) * 30 /* (±15°: looking about, C) */ : P?.heading ?? this.hash(pid, place, 15) * 360;
+    return this.sp(s[0], s[1], !(P as { hidden?: boolean } | undefined)?.hidden /* D-199: the king's rooms are not drawn */, hd, 'nav', `Terrace: ${place}${fo ? ', facing what is waited on (C: D-221)' : ''}`, { anchor, ...(K && P?.kind === 'post' ? { fixed: true } : {}) });
+  }
+  /** D-221: the centres of the forecourt's knots of talkers: every 3 m of the forecourt where a ring of 1.3 m round the
+   *  centre is walkable, off the posts, the way and the parties' places; 20 of them, spread (C) */
+  private knots: P2[] | null = null;
+  private talkKnots(): P2[] {
+    if (this.knots) return this.knots; const all: P2[] = [];
+    for (let x = -24; x <= 36; x += 3) for (let y = 64; y <= 101; y += 3) { let ok = true;
+      for (let k = 0; k < 8 && ok; k++) { const a = k * Math.PI / 4, e = x + Math.cos(a) * 1.3, n = y + Math.sin(a) * 1.3; if (!this.nav.walkable(e, n) || courtKeepClear(e, n) || this.nearPost(e, n)) ok = false; }
+      if (ok && !courtKeepClear(x, y)) all.push([x, y]); }
+    const step = Math.max(1, Math.floor(all.length / 20)); this.knots = all.filter((_, i) => i % step === 0).slice(0, 20); if (!this.knots.length) this.knots = [[0, 82]]; return this.knots;
+  }
+  /** D-221: the court's guard posts by 1 m cell, and whether (e, n) is within 0.8 m of one */
+  private posts: Map<number, P2[]> | null = null;
+  private nearPost(e: number, n: number): boolean {
+    if (!this.posts) { this.posts = new Map(); for (const p of COURT_PLACES) if (p.kind === 'post') { const k = (Math.floor(p.at[0]) + 4096) * 8192 + Math.floor(p.at[1]) + 4096; (this.posts.get(k) ?? this.posts.set(k, []).get(k)!).push(p.at); } }
+    const fx = Math.floor(e), fy = Math.floor(n);
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) { const L = this.posts.get((fx + dx + 4096) * 8192 + fy + dy + 4096); if (L) for (const q of L) if (Math.hypot(q[0] - e, q[1] - n) < 0.8) return true; }
+    return false;
   }
   /** D-199: a court camp (camps.ts): inside the household's tent (asleep, ill, resting in the dark: not drawn) or out before its
    *  door; someone of the court without a tent there (a guard visiting) before one of its tents */

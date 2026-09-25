@@ -4906,3 +4906,97 @@ the head. The same cap for a lodger's household. Test: tests/religion.test.ts (e
   line of sight, which is exactly how the layer is seen from the Terrace); a ray-marched volume against the depth buffer
   (reading the depth in the transparent pass copies a multisampled depth at quality test/low: risky on SwiftShader).
 - **Tier:** C throughout (see Q-500 … Q-506); the method (single scattering, Beer–Lambert, mass conservation) A.
+
+## D-221 The court as an assembly and the scribes' room at work (session 8; rubric s7 pass 2 items 7 and 11; gap audit item 33; D-207)
+**Broken or unverified first.** See "Renders" at the end for what the browser frames show. The court's delegations' animals
+stay at the camp (not drawn in the forecourt); the usher does not hold the leader's hand (no pose for it); the scribes'
+lamp is never lit (no lamp light in the fire model); the Aramaic secretary's leather sheet carries no writing (nothing
+reachable to draw, nothing invented); the pupil rests on a recollected attestation (Hallock's "Persian boys copying
+texts", NOT SEEN, Q-514). The 30-day court soak's variety gates fail on the base tree as on this one (see below).
+
+**A. The court as an assembly (court setting only; research/COURT.md §6).** Cause, measured in node over the population
+view (`tests/lib/court_order.ts`): the 21 stretches of ten posts were strung out 1.5-3.8 m apart along their lines and a
+guard who came to his post after someone stood there was stepped aside; each petitioner and delegate stood at a random
+spot of the forecourt facing anywhere. Decided (all C; the form B from the reliefs):
+- Posts `court.json day.file_spacing_m` = 1.0 m apart, centred on each line; a post (and a place in the day's order) is
+  held where it stands (`Spot.fixed`, popview `separate`); people spread over a Terrace place keep 0.8 m off every post and,
+  in the forecourt, off the way between the files and off the parties' places (`courtKeepClear`). The Gate's S file moved
+  to the W wall, clear of the way to the S door.
+- `CourtResidents.dayOrder(d)`: the parties that go up on day d each get a place in the forecourt before the Apadana's N
+  stair (`visitors.waiting`: 25 places, blocks of five abreast 0.9 m apart, rows 1 m deep; petitioners in lines of 31 on the
+  E side, a party never split), those called that morning nearest the stair in the order they came; at the Gate a party
+  stands together at one of three places (not held). On a day without its audience a party goes up with a chance of 0.4
+  (was 0.6) and only while a place is free (0 party-days turned away in days 0-116 at seed 1).
+- The morning's audience in turns: at most 0.25 h each while the king sits, one after another (never two before the throne);
+  led up 0.3 h (at most 2.5 turns) before the turn into a block in the hall between the columns; one usher on duty to each
+  party (531 turns in the season, every one with an usher), at its head in the forecourt from 0.75 h before, with it in the
+  hall and before the king (court.ts `official`).
+- Those waiting face what they wait on (`court.ts FOCUS`, `focusOf`): the N stair (a segment: its 81.67 m run) from the
+  forecourt, the E stair from the court below it, the hall's N door from the portico, the throne in the hall (±15° for
+  people spread over a place, ±6° in the blocks); popview's spot key carries the facing act.
+- After the first render (see Renders): talk in the forecourt in knots of a few round 20 centres clear of the way and the
+  parties' places, facing the knot's centre (popgeo `talkKnots`); the forecourt, the Gate, the Apadana and its portico
+  swept only before about 08:00 and after about 16:00 (court.ts `palace`; in the moment's view cone 0 sweepers, was a
+  dozen).
+- The `court-assembly` moment moved to an audience morning: day 32, 09:30 (was day 30, 10:00: no audience that day).
+Measured (seed 1, the same metric on the same samples, days 30, 31, 33, 40 at 09:00-11:00, before → after): guards whose
+nearest file-mate is 0.8-1.3 m away, within 10° of the line's heading and on their post 0.5 % of 1,941 → 91.9 % of 1,945
+(87 % in the meal hours, 99-100 % outside them; the rest are file ends whose neighbour is at his meal: Q-512); party
+members within 3 m of their party's centroid 8.6 % of 2,801 → 100 % of 2,106 (fewer wait: the chance to go up 0.6 → 0.4);
+mean cosine to the focus 0.009 (18.6 % within 30°) → 0.996 (100 %). The moment's hour (day 32, 09:30): 152 of 152 guards,
+183 of 183 waiting in 21 parties, 0.995. Tests: `tests/court_order.test.ts` (asserts ≥ 0.8 per sample and
+≥ 0.9 overall, ≥ 0.9 / 0.95 cohesion, ≥ 0.95 / 0.97 focus). The plan checker: `tests/court.test.ts`, `court_fill.test.ts`
+pass (every party led before the king within its stay).
+
+**B. The scribes' room at work (D-067; site_spec treasury.scribes_room, r_scribes_room).** Cause: at the old moment (day 25,
+10:00) one Treasury scribe was ill and the other counting a caravan into the store, so nobody of the desk was in the room;
+an agent at the desk sat at a random point 0.8-2 m from it with no heading; writing drew a tablet and no stylus. Decided:
+- Performance: `write_tablet` = a tablet on the left palm and a reed stylus in the right hand (prop2 'stylus', 6 triangles
+  in the small objects' union, paid for by the silver phiale's twelfth side: the union stays within its 1,000); the
+  Aramaic secretary's variant (`/in Aramaic/`) = a leather sheet on the left palm and a reed pen (the court's prop class:
+  one more draw only where he writes).
+- The Babylonian of the two Treasury scribes (the roster's Aramaic secretary, LANGUAGES B) writes his desk spells "in
+  Aramaic with a reed pen and ink on leather" (Cameron's leather duplicates, B; Q-513).
+- Places round the desk's things (site_spec `scribes_room.seats`, C): the Elamite scribe at the desk facing E, the Aramaic
+  secretary SE of him facing WNW by the scrolls and the ink, the pupil NE facing WSW, a visiting town scribe NW facing ESE;
+  the detailed agents sit there (sim.ts `deskSeat`), the pupil and visitors by popgeo.
+- The pupil (gap audit item 33; Q-514): the Aramaic secretary's son (15, a Treasury worker) goes up with his father on about
+  three days in four that his father keeps the desk and copies signs on a practice tablet beside the scribes, at his side
+  all day (population.ts `pupilDay`; no person added, the pids unchanged); 0 plan issues over the year for him and both
+  scribes; beside his father on 259 of the 350 days his father keeps the desk (74 %).
+- The room (furnish.ts, all C with notes): reed mats at the four places; a clay saucer lamp on the N bench, unlit by day,
+  soot on the wall above it (hashed-alpha decal, no shadow); a pot of ink; a bowl of water by the clay; two tablet jars in
+  the SE corner; two baskets of tablets on the bench's E end; two cylinder seals on their cords by the drying board; the
+  floor about the places darkened and clay-stained (decal). The scribes wear the Median dress (sim.ts roster: tunic,
+  trousers, boots; Q-515); the pupil a working tunic.
+- The `scribe-at-work` moment moved to day 21, 13:30 (all three writing at the desk in the sim, no visitor) and re-posed
+  from the room's W part at seated eye height looking E, the doorway's light from the right (the first render, from the E
+  end at 13:00, had them as silhouettes against the doorway); `scribe-room-ne` to the same hour. The pupil wears the
+  Median dress as the scribes (popview `lookInput`; the first render showed his working tunic as a bare-looking back).
+Tests: `tests/scribes_room.test.ts`; `tests/people_pieces.test.ts`'s moment test (failing on the base tree: "a scribe drawn
+within 6 m", no scribe in the room at day 25 10:00 since D-211's turns by seat) re-aimed to the new moment: both scribes
+write at the desk within 6 m, LOD 0, Median dress; the old pixel thresholds kept and met (tunic 12,690 px, trousers 2,859,
+cap 2,693, boots 2,404). `tests/performances.test.ts` passes except its CPU-timing assertion under load (the
+draw-count assertion, which the stylus first broke at 3 draws, passes at 2).
+
+**Soak.** `npx tsx tools/soak.ts 30 60 1 --court` on this tree: events, stuck, stocks, renderedHonest, visibleChange pass;
+variety and populationVariety fail on children, a builder and Treasury workers (30 days is short for the variety gate:
+the year soak passed it, D-199); plansWellFormed fails on 2,786 "festival" issues, all the court women on day 10 (the
+court's plans have no festival rule; pre-existing). The same run on the base tree (HEAD b875b92, exported): the same
+three gates fail with the same numbers (festival 2,786; 20 people listed failing variety; the worst agent a child at 0.168).
+**Renders (two runs through the shared queue, quality high, webgpu; shots/moment-*-webgpu-d221r1.png and the current
+moment-*-webgpu.png in the worktree, not committed).**
+- Run 1 (commit 709e5d6): `court-assembly` (day 32, 09:30) still read as a crowd: parties' blocks not legible at eye level,
+  palace servants sweeping among them, off-duty guards and nobles scattered (node view cone: 51 + 51 talkers). `scribe-at-work`
+  from the E end (13:00): four seated figures as silhouettes against the doorway; mats visible. `scribe-room-ne`: three
+  figures, a sheet in one's hands catching the light.
+- Run 2 (commit 229462c): `court-assembly`: no sweepers; standing and seated blocks of delegates at the right (in rows,
+  facing the stair), talkers in small knots; the files of spearmen are NOT identifiable at this distance and eye height
+  (29-41 m, end-on): the frame still reads as a busy court more than an assembly. `scribe-at-work` from the W (13:30): the
+  Aramaic secretary and the pupil seated facing the camera, a stylus-like stick in a right hand, the water bowl, the clay
+  under its cloth, the drying board with tablets, the mats; **the Elamite scribe is missing: 2.42 m from the lens, inside
+  the rig's 2.5 m clearance** (camera moved 0.3 m back to 2.72 m afterwards, NOT re-rendered). **Both figures read as
+  bare-chested in short red skirts.** Node (people_pieces) says their Median tunic, trousers and boots are drawn (12,690
+  tunic pixels at this view); my unverified reading is the colour: a madder-red tunic and trousers (looks.ts Median main
+  colours) under the red floor's bounce look like skin. Not fixed (no render left); the lamp and the soot are not seen in
+  either view.
