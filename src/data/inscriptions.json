@@ -40,6 +40,7 @@
    "ya : xa-ša-ça-ma : u-ta-a : ta-ya : ma-na-a : ka-ra-ta-ma : u-ta-a : ta-ya-ma-i",
    "ya : pa-i-ça : ka-ra-ta-ma : a-va-ša-ca-i-ya : a-u-ra-ma-za-da-a : pa-a-tu-u-va"
   ],
+  "op_lined": true,
   "op_words": [
    {
     "ario": "baga",
@@ -535,7 +536,6 @@
     "cmp": "same"
    }
   ],
-  "op_lined": true,
   "el_lines": [
    "𒀭𒈾𒀊𒅕𒃻𒅕𒊏𒀭𒌋𒊏𒈦𒁕𒀝𒋡𒀸𒈬𒊒𒌦",
    "𒄭𒁁𒅖𒁕𒀝𒋡𒀭𒆠𒅅𒄷𒅁𒁁𒁁𒅖𒁕𒀝𒋡𒁹",
@@ -643,6 +643,7 @@
    "ga-i-ba-i-ša : u-ta-a-ma-i-ya : xa-ša-ça",
    "ma : u-ta-a : ta-ya-ma-i-ya : ka-ra-ta-ma"
   ],
+  "op_lined": true,
   "op_words": [
    {
     "ario": "baga",
@@ -1015,7 +1016,6 @@
     "cmp": "same"
    }
   ],
-  "op_lined": true,
   "el_lines": [
    "𒀭𒈾𒀊𒉿𒅕𒃻𒅕𒊏𒀭𒌋𒊏𒈦𒁕𒀝𒋡",
    "𒀸𒈬𒊒𒌦𒄭𒁁𒅖𒁕𒀝𒋡𒀭𒆠𒅅𒄷𒁁",
@@ -1105,6 +1105,7 @@
    "pa-i-ça : da-a-ra-ya-va-ha-u-ša : XŠ-ha-ya-a : ka-ra-ta-ma : a-va-ša-ca-i-ya",
    ": a-u-ra-ma-za-da-a : pa-a-tu-u-va : ha-da-a : ba-ga-i-ba-i-ša"
   ],
+  "op_lined": true,
   "op_words": [
    {
     "ario": "baga",
@@ -1512,7 +1513,6 @@
     "cmp": "same"
    }
   ],
-  "op_lined": true,
   "el_lines": [
    "𒀭𒈾𒀊𒅕𒃻𒅕𒊏𒀭𒌋𒊏𒈦𒁕𒀝𒋡𒄭𒀸𒈬𒊒𒌦𒁁𒅖",
    "𒁕𒀝𒋡𒀭𒆠𒅅𒄷𒁁𒁁𒅖𒁕𒀝𒋡𒁹𒇽𒎌𒅕𒊏𒅕𒁁𒅖",
@@ -1596,6 +1596,7 @@
    "da-a : pa-a-tu-u-va : ha-da-a : ba-ga-i-ba-i-ša : u-ta-ma",
    "i-ya : xa-ša-ça-ma : u-ta-a : ta-ya-ma-i-ya : ka-ra-ta-ma :"
   ],
+  "op_lined": true,
   "op_words": [
    {
     "ario": "baga",
@@ -1940,7 +1941,6 @@
     "cmp": "same"
    }
   ],
-  "op_lined": true,
   "el_lines": [
    "𒀭𒈾𒀊𒉿𒅕𒃻𒅕𒊏𒀭𒌋𒊏𒈦𒁕𒀝𒋡𒀸𒈬𒊒𒌦",
    "𒄭𒁁𒅖𒁕𒀝𒋡𒀭𒆠𒅅𒄷𒁁𒁁𒅖𒁕𒀝𒋡𒁹𒇽𒎌𒅕𒊏",
@@ -2005,6 +2005,7 @@
    "na-a-ma : da-a-ra-ya-va-ha-u-ša : xa-ša-a-ya-θa",
    "i-ya-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya :"
   ],
+  "op_lined": true,
   "op_words": [
    {
     "ario": "Xšayaṛšā",
@@ -2052,7 +2053,6 @@
     "cmp": "same"
    }
   ],
-  "op_lined": true,
   "el_lines": [
    "𒁹𒅅𒊺𒅕𒃻𒁹𒁹𒁹𒁹𒎙𒅕𒃻𒅕",
    "𒊏𒁹𒁹𒁹𒁹𒎙𒁹𒁹𒁹𒁹𒎙𒅁𒅔𒈾𒁹𒁕",
@@ -2108,6 +2108,7 @@
    ": ha-ya : ma-θa-i-ša-ta : ba-ga-a-na-a-ma : ma-a-ma : a-u",
    "ra-ma-za-da-a : pa-a-tu-u-va : u-ta-a-ma-i-ya : vi-i-θa-ma"
   ],
+  "op_lined": true,
   "op_words": [
    {
     "ario": "Dārayava.uš",
@@ -2330,7 +2331,6 @@
     "cmp": "same"
    }
   ],
-  "op_lined": true,
   "el_lines": [
    "𒁹𒁕𒊑𒅀𒈠𒌋𒅖𒁹𒁹𒁹𒁹𒎙𒅕𒃻𒊏𒁹𒁹𒁹𒁹𒎙𒁹𒁹𒁹𒁹𒎙𒅁𒈾𒁹𒁹𒁹𒁹𒎙𒁹𒁕",
    "𒀀𒌑𒅖𒁁𒈾𒁹𒈪𒅖𒁕𒀾𒁀𒁹𒃻𒀝𒊑𒁹𒄩𒋡𒎙𒉡𒅖𒅆",
@@ -2441,6 +2441,7 @@
    "ta-ya-a-ma : ra-a-sa-ta-a-ma : ma-a",
    ": a-va-ra-da : ma-a : sa-ta-ba-va"
   ],
+  "op_lined": true,
   "op_words": [
    {
     "ario": "baga",
@@ -3615,8 +3616,7 @@
     "signs": "sa-ta-ba-va",
     "cmp": "same"
    }
-  ],
-  "op_lined": true
+  ]
  },
  "DNb": {
   "ario": "Q007153",
@@ -3696,6 +3696,7 @@
    "a : a-ya-u-ma-i-na-i-ša : ba-va-a-ha-ya : x-x-x-di-i-ya",
    ": ma-a : ra-xa-θa-tu-u-va : x-x-x-i-ya :"
   ],
+  "op_lined": true,
   "op_words": [
    {
     "ario": "baga",
@@ -5222,8 +5223,7 @@
     "cmp": "damaged",
     "lost": true
    }
-  ],
-  "op_lined": true
+  ]
  },
  "DPa": {
   "ario": "Q007157",
@@ -5251,6 +5251,7 @@
    "a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya : ha",
    "ya : i-ma-ma : ta-ca-ra-ma : a-ku-u-na-u-ša"
   ],
+  "op_lined": true,
   "op_words": [
    {
     "ario": "Dārayava.uš",
@@ -5323,7 +5324,6 @@
     "cmp": "same"
    }
   ],
-  "op_lined": true,
   "el_lines": [
    "𒁹𒁕𒊑𒅀𒈠𒌋𒅖𒁹𒁹𒁹𒁹𒎙𒅕𒃻",
    "𒅕𒊏𒁹𒁹𒁹𒁹𒎙𒁹𒁹𒁹𒁹𒎙𒅁𒅔𒈾𒁹𒁹𒁹𒁹𒎙𒁹",
@@ -5375,6 +5375,7 @@
    "da-a-ra-ya-va-u-ša : XŠ : va-za-ra-ka : vi-i-ša",
    "ta-a-sa-pa-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya"
   ],
+  "op_lined": true,
   "op_words": [
    {
     "ario": "Dārayava.uš",
@@ -5409,7 +5410,6 @@
     "cmp": "same"
    }
   ],
-  "op_lined": true,
   "el_lines": [
    "𒁹𒁕𒊑𒅀𒈠𒌋𒅖𒁹",
    "𒁹𒁹𒁹𒎙𒅕𒃻𒅕𒊏𒁹𒈪𒅖",
@@ -5456,6 +5456,7 @@
   "op_signs": [
    "a-ra-da-sa-ta-a-na : a-θa-ga-i-na : da-a-ra-ya-va-ha-u-ša : XŠ-ha-ya-a : vi-i-θa-i-ya-a : ka-ra-ta"
   ],
+  "op_lined": true,
   "op_words": [
    {
     "ario": "ardastāna",
@@ -5488,7 +5489,6 @@
     "cmp": "same"
    }
   ],
-  "op_lined": true,
   "el_lines": [
    "𒄯𒁕𒅖𒁕𒈾𒀸𒄯𒎌𒅔𒈾𒁹𒁕𒊑𒅀𒈠𒌋𒅖𒁹𒁹𒁹𒁹𒎙𒀸𒌌𒄭𒎌𒂊𒈠𒄷𒌓𒌇𒋡"
   ],
@@ -5550,6 +5550,7 @@
    "i-ta-ma-i-ya : ya-a-na-ma : a-u-ra-ma-za-da-a : da-da-a-tu",
    "u-va : ha-da-a : vi-i-sa-i-ba-i-ša : ba-ga-i-ba-i-ša :"
   ],
+  "op_lined": true,
   "op_words": [
    {
     "ario": "A.uramazdā",
@@ -5987,8 +5988,7 @@
     "signs": "ba-ga-i-ba-i-ša",
     "cmp": "same"
    }
-  ],
-  "op_lined": true
+  ]
  },
  "DPe": {
   "ario": "Q007161",
@@ -6032,6 +6032,7 @@
    "du-u-va-i-ša-ta-ma : ša-i-ya-a-ta-i-ša : a-xa-ša-ta-a : ha-u-va-ca-i",
    "ya : a-u-ra-a : na-i-ra-sa-a-ta-i-ya : a-ba-i-ya : i-ma-a-ma : vi-i-θa-ma"
   ],
+  "op_lined": true,
   "op_words": [
    {
     "ario": "adam",
@@ -6512,8 +6513,7 @@
     "signs": "vi-i-θa-ma",
     "cmp": "same"
    }
-  ],
-  "op_lined": true
+  ]
  },
  "DPf": {
   "ario": "Q007162",
@@ -6610,6 +6610,521 @@
    "omitted": 0,
    "excess": 0,
    "restored": 7,
+   "paren": 0
+  }
+ },
+ "XPg": {
+  "ario": "Q007215",
+  "op_translit": "θāti Xšayaṛšā xšāyaθiya vazṛka vašnā A.uramazdāha vasai̯ taya nai̯bam akunau̯š utā frāmāyatā Dārayava.uš xšāyaθiya haya manā pitā vašnāci A.uramazdāha adam abiyajāvayam abi ava kṛtam utā frataram akunavam mām A.uramazdā pātu hadā bagai̯biš utamai̯ xšaçam",
+  "el_atf": "",
+  "el_cuneiform": "",
+  "el_unmapped": [],
+  "bab_atf": "",
+  "bab_cuneiform": "",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (6 signs); lost stretches blank (C)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
+   "op_lines": "A (the edition's lines)"
+  },
+  "op_signs": [
+   "θa-a-ta-i-ya : xa-ša-ya-a-ra-ša-a :",
+   "xa-ša-a-ya-θa-i-ya : va-za-ra-ka : va-ša",
+   "na-a : a-u-ra-ma-za-da-a-ha : va-sa-i",
+   "ya : ta-ya : na-i-ba-ma : a-ku-u-na-u",
+   "ša : u-ta-a : fa-ra-a-ma-a-ya-ta-a :",
+   "da-a-ra-ya-va-u-ša : xa-ša-a-ya-θa-i-ya",
+   ": ha-ya : ma-na-a : pa-i-ta-a : va-ša",
+   "na-a-ca-i-ya : a-u-ra-ma-za-da-a-ha",
+   ": a-da-ma : a-ba-i-ya-ja-a-va-ya-ma",
+   ": a-ba-i-ya : a-va : ka-ra-ta-ma :",
+   "u-ta-a : fa-ra-ta-ra-ma : a-ku-u-na",
+   "va-ma : ma-a-ma : a-u-ra-ma-za-da-a",
+   ": pa-a-tu-u-va : ha-da-a : ba-ga-i",
+   "ba-i-ša : u-ta-ma-i-ya : xa-ša-ça-ma"
+  ],
+  "op_lined": true,
+  "op_words": [
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnā",
+    "signs": "va-ša-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdāha",
+    "signs": "a-u-ra-ma-za-da-a-ha",
+    "cmp": "same"
+   },
+   {
+    "ario": "vasai̯",
+    "signs": "va-sa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "taya",
+    "signs": "ta-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "nai̯bam",
+    "signs": "na-i-ba-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunau̯š",
+    "signs": "a-ku-u-na-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "frāmāyatā",
+    "signs": "fa-ra-a-ma-a-ya-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "Dārayava.uš",
+    "signs": "da-a-ra-ya-va-u-ša",
+    "cmp": "same",
+    "restored": 1
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "haya",
+    "signs": "ha-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "manā",
+    "signs": "ma-na-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "pitā",
+    "signs": "pa-i-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "vašnāci",
+    "signs": "va-ša-na-a-ca-i-ya",
+    "cmp": "same",
+    "restored": 2
+   },
+   {
+    "ario": "A.uramazdāha",
+    "signs": "a-u-ra-ma-za-da-a-ha",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same",
+    "restored": 1
+   },
+   {
+    "ario": "abiyajāvayam",
+    "signs": "a-ba-i-ya-ja-a-va-ya-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "abi",
+    "signs": "a-ba-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "ava",
+    "signs": "a-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "kṛtam",
+    "signs": "ka-ra-ta-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "utā",
+    "signs": "u-ta-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "frataram",
+    "signs": "fa-ra-ta-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "mām",
+    "signs": "ma-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "A.uramazdā",
+    "signs": "a-u-ra-ma-za-da-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "pātu",
+    "signs": "pa-a-tu-u-va",
+    "cmp": "same"
+   },
+   {
+    "ario": "hadā",
+    "signs": "ha-da-a",
+    "cmp": "same",
+    "restored": 2
+   },
+   {
+    "ario": "bagai̯biš",
+    "signs": "ba-ga-i-ba-i-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "utamai̯",
+    "signs": "u-ta-ma-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšaçam",
+    "signs": "xa-ša-ça-ma",
+    "cmp": "same"
+   }
+  ]
+ },
+ "XPj": {
+  "ario": "Q007218",
+  "op_translit": "adam Xšayaṛšā xšāyaθiya vazṛka xšāyaθiya xšāyaθiyānām xšāyaθiya dahyunām xšāyaθiya ahyāyā būmiyā Dārayavahau̯š xšāyaθiyahyā puça Haxāmanišiya θāti Xšayaṛšā xšāyaθiya imam tacaram adam akunavam",
+  "el_atf": "{DIŠ}u₂ {DIŠ}ik-še-ir-ša₂ {DIŠ}EŠŠANA ir-ša₂-ir-ra {DIŠ}EŠŠANA {DIŠ}EŠŠANA-ip-in-na {DIŠ}EŠŠANA {DIŠ}da-a-u₂-iš-pe₃-na {DIŠ}EŠŠANA {AŠ}mu-ru-un hi uk-ku {DIŠ}da-ri-ia-ma-u-iš {DIŠ}EŠŠANA {DIŠ}ša₂-ak-ri {DIŠ}ha-ak-ka₄-man-nu-ši-ia na-an-ri {DIŠ}ik-še-ir-ša₂ {DIŠ}EŠŠANA hi {AŠ}ta₂-iz-za-ra {DIŠ}u₂ hu-ut-ta₂",
+  "el_cuneiform": "𒁹𒌑 𒁹𒅅𒊺𒅕𒃻 𒁹𒁹𒁹𒁹𒎙 𒅕𒃻𒅕𒊏 𒁹𒁹𒁹𒁹𒎙 𒁹𒁹𒁹𒁹𒎙𒅁𒅔𒈾 𒁹𒁹𒁹𒁹𒎙 𒁹𒁕𒀀𒌑𒅖𒁁𒈾 𒁹𒁹𒁹𒁹𒎙 𒀸𒈬𒊒𒌦 𒄭 𒊌𒆪 𒁹𒁕𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒁹𒃻𒀝𒊑 𒁹𒄩𒀝𒋡𒎙𒉡𒅆𒅀 𒈾𒀭𒊑 𒁹𒅅𒊺𒅕𒃻 𒁹𒁹𒁹𒁹𒎙 𒄭 𒀸𒁕𒄑𒍝𒊏 𒁹𒌑 𒄷𒌓𒁕",
+  "el_unmapped": [],
+  "bab_atf": "a-na-ku {m}hi-ši-ʾ-ar-ši LUGAL GAL-u₂ LUGAL LUGAL.MEŠ LUGAL KUR.KUR.MEŠ LUGAL qaq-qa-ru a-ga-a DUMU {m}da-ri-ia-muš LUGAL {m}a-ha-ma-an-ni-iš-ši-ʾ {m}hi-ši-ʾ-ar-ši LUGAL i-qab-bi E₂ ta-aš₂-ša₂-ri a-ga-a a-na-ku e-te-pu-us₂-su",
+  "bab_cuneiform": "𒀀𒈾𒆪 𒁹𒄭𒅆𒀪𒅈𒅆 𒈗 𒃲𒌑 𒈗 𒈗𒎌 𒈗 𒆳𒆳𒎌 𒈗 𒆕𒋡𒊒 𒀀𒂵𒀀 𒌉 𒁹𒁕𒊑𒅀𒈲 𒈗 𒁹𒀀𒄩𒈠𒀭𒉌𒅖𒅆𒀪 𒁹𒄭𒅆𒀪𒅈𒅆 𒈗 𒄿𒃮𒁉 𒂍 𒋫𒀾𒃻𒊑 𒀀𒂵𒀀 𒀀𒈾𒆪 𒂊𒋼𒁍𒍑𒋢",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (1 signs); lost stretches blank (C)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
+   "op_lines": "A (the edition's lines)",
+   "el_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)",
+   "bab_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)"
+  },
+  "op_signs": [
+   "a-da-ma : xa-ša-ya-a-ra-ša-a : XŠ : va-za-ra-ka : XŠ : XŠ-ya-a-na-a-ma : XŠ : da-ha-ya-u-na-a-ma : XŠ : a-ha-ya-a-ya-a : ba-u-mi-i-ya-a : da-a-ra-ya-va-ha-u-ša : XŠ-ya-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya : θa-a-ta-i-ya : xa-ša-ya-a-ra-ša-a : XŠ : i-ma-ma : ta-ca-ra-ma : a-da-ma : a-ku-u-na-va-ma"
+  ],
+  "op_lined": true,
+  "op_words": [
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "XŠ",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "vazṛka",
+    "signs": "va-za-ra-ka",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "XŠ",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "xšāyaθiyānām",
+    "signs": "XŠ-ya-a-na-a-ma",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "XŠ",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "dahyunām",
+    "signs": "da-ha-ya-u-na-a-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "XŠ",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "ahyāyā",
+    "signs": "a-ha-ya-a-ya-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "būmiyā",
+    "signs": "ba-u-mi-i-ya-a",
+    "cmp": "same",
+    "restored": 1
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "signs": "XŠ-ya-ha-ya-a",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "puça",
+    "signs": "pa-u-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "XŠ",
+    "cmp": "logogram"
+   },
+   {
+    "ario": "imam",
+    "signs": "i-ma-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "tacaram",
+    "signs": "ta-ca-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "cmp": "same"
+   }
+  ],
+  "el_lines": [
+   "𒁹𒌑𒁹𒅅𒊺𒅕𒃻𒁹𒁹𒁹𒁹𒎙𒅕𒃻𒅕𒊏𒁹𒁹𒁹𒁹𒎙𒁹𒁹𒁹𒁹𒎙𒅁𒅔𒈾𒁹𒁹𒁹𒁹𒎙𒁹𒁕𒀀𒌑𒅖𒁁𒈾𒁹𒁹𒁹𒁹𒎙𒀸𒈬𒊒𒌦𒄭𒊌𒆪𒁹𒁕𒊑𒅀𒈠𒌋𒅖𒁹𒁹𒁹𒁹𒎙𒁹𒃻𒀝𒊑𒁹𒄩𒀝𒋡𒎙𒉡𒅆𒅀𒈾𒀭𒊑𒁹𒅅𒊺𒅕𒃻𒁹𒁹𒁹𒁹𒎙𒄭𒀸𒁕𒄑𒍝𒊏𒁹𒌑𒄷𒌓𒁕"
+  ],
+  "el_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 1,
+   "paren": 0
+  },
+  "bab_lines": [
+   "𒀀𒈾𒆪𒁹𒄭𒅆𒀪𒅈𒅆𒈗𒃲𒌑𒈗𒈗𒎌𒈗𒆳𒆳𒎌𒈗𒆕𒋡𒊒𒀀𒂵𒀀𒌉𒁹𒁕𒊑𒅀𒈲𒈗𒁹𒀀𒄩𒈠𒀭𒉌𒅖𒅆𒀪𒁹𒄭𒅆𒀪𒅈𒅆𒈗𒄿𒃮𒁉𒂍𒋫𒀾𒃻𒊑𒀀𒂵𒀀𒀀𒈾𒆪𒂊𒋼𒁍𒍑𒋢"
+  ],
+  "bab_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 6,
+   "paren": 0
+  }
+ },
+ "XPk": {
+  "ario": "Q007219",
+  "op_translit": "Xšayaṛšā Dārayavahau̯š xšāyaθiyahyā puça Haxāmanišiya",
+  "el_atf": "{DIŠ}ik-še-ir-ša₂ {DIŠ}da-ri-ia-ma-u-iš {DIŠ}EŠŠANA ša₂-ak-ri ha-ak-ka₄-man-nu-ši-ia",
+  "el_cuneiform": "𒁹𒅅𒊺𒅕𒃻 𒁹𒁕𒊑𒅀𒈠𒌋𒅖 𒁹𒁹𒁹𒁹𒎙 𒃻𒀝𒊑 𒄩𒀝𒋡𒎙𒉡𒅆𒅀",
+  "el_unmapped": [],
+  "bab_atf": "{m}hi-ši-ʾ-ar-ši A {m}da-a-ri-ia-muš LUGAL {m}a-ha-man-nu-ši-ia",
+  "bab_cuneiform": "𒁹𒄭𒅆𒀪𒅈𒅆 𒀀 𒁹𒁕𒀀𒊑𒅀𒈲 𒈗 𒁹𒀀𒄩𒎙𒉡𒅆𒅀",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (10 signs); lost stretches blank (C)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
+   "op_lines": "A (the edition's lines)",
+   "el_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)",
+   "bab_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)"
+  },
+  "op_signs": [
+   "xa-ša-ya-a-ra-ša-a : da-a-ra-ya-va-ha-u-ša : xa-ša-a-ya-θa-i-ya-ha-ya-a : pa-u-ça : ha-xa-a-ma-na-i-ša-i-ya"
+  ],
+  "op_lined": true,
+  "op_words": [
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same",
+    "restored": 1
+   },
+   {
+    "ario": "Dārayavahau̯š",
+    "signs": "da-a-ra-ya-va-ha-u-ša",
+    "cmp": "same",
+    "restored": 2
+   },
+   {
+    "ario": "xšāyaθiyahyā",
+    "signs": "xa-ša-a-ya-θa-i-ya-ha-ya-a",
+    "cmp": "same",
+    "restored": 2
+   },
+   {
+    "ario": "puça",
+    "signs": "pa-u-ça",
+    "cmp": "same"
+   },
+   {
+    "ario": "Haxāmanišiya",
+    "signs": "ha-xa-a-ma-na-i-ša-i-ya",
+    "cmp": "same",
+    "restored": 5
+   }
+  ],
+  "el_lines": [
+   "𒁹𒅅𒊺𒅕𒃻𒁹𒁕𒊑𒅀𒈠𒌋𒅖𒁹𒁹𒁹𒁹𒎙𒃻𒀝𒊑𒄩𒀝𒋡𒎙𒉡𒅆𒅀"
+  ],
+  "el_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 18,
+   "paren": 0
+  },
+  "bab_lines": [
+   "𒁹𒄭𒅆𒀪𒅈𒅆𒀀𒁹𒁕𒀀𒊑𒅀𒈲𒈗𒁹𒀀𒄩𒎙𒉡𒅆𒅀"
+  ],
+  "bab_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 12,
+   "paren": 0
+  }
+ },
+ "XPm": {
+  "ario": "Q007221",
+  "op_translit": "θāti Xšayaṛšā xšāyaθiya imam tacaram adam akunavam",
+  "el_atf": "na-an-ri {DIŠ}ik-še-ir-ša₂ {DIŠ}EŠŠANA hi ta₂-iz-za-ra {DIŠ}u₂ hu-ut-ta₂",
+  "el_cuneiform": "𒈾𒀭𒊑 𒁹𒅅𒊺𒅕𒃻 𒁹𒁹𒁹𒁹𒎙 𒄭 𒁕𒄑𒍝𒊏 𒁹𒌑 𒄷𒌓𒁕",
+  "el_unmapped": [],
+  "bab_atf": "{m}hi-ši-ʾ-ar-ši LUGAL i-qab-bi E₂ ta-aš₂-ša₂-ri a-ga-a a-na-ku e-te-pu-us₂-su",
+  "bab_cuneiform": "𒁹𒄭𒅆𒀪𒅈𒅆 𒈗 𒄿𒃮𒁉 𒂍 𒋫𒀾𒃻𒊑 𒀀𒂵𒀀 𒀀𒈾𒆪 𒂊𒋼𒁍𒍑𒋢",
+  "bab_unmapped": [],
+  "tier": {
+   "text": "A (standard edition, via CC0 mirror)",
+   "op_signs": "A (the published sign-by-sign edition, ARIo in CATF, CC0; data/corpus/ario_catf.json; D-184); restorations of later damage C (3 signs); lost stretches blank (C)",
+   "el_bab_signs": "B (ATF indices → OSL)",
+   "version_split": "A (verified: every carved Elamite and Babylonian version equals its ARIo CATF lines sign for sign, tools/build_cun_lines.py)",
+   "op_lines": "A (the edition's lines)",
+   "el_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)",
+   "bab_lines": "A (the edition's lines and signs, ARIo CATF; no word spaces); the signs the editor restored ([…]) C, counted in el/bab_marks; signs the scribe omitted (<…>) not carved (D-184)"
+  },
+  "op_signs": [
+   "θa-a-ta-i-ya : xa-ša-ya-a-ra-ša-a : xa-ša-a-ya-θa-i-ya : i-ma-ma : ta-ca-ra-ma : a-da-ma : a-ku-u-na-va-ma"
+  ],
+  "op_lined": true,
+  "op_words": [
+   {
+    "ario": "θāti",
+    "signs": "θa-a-ta-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "Xšayaṛšā",
+    "signs": "xa-ša-ya-a-ra-ša-a",
+    "cmp": "same"
+   },
+   {
+    "ario": "xšāyaθiya",
+    "signs": "xa-ša-a-ya-θa-i-ya",
+    "cmp": "same"
+   },
+   {
+    "ario": "imam",
+    "signs": "i-ma-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "tacaram",
+    "signs": "ta-ca-ra-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "adam",
+    "signs": "a-da-ma",
+    "cmp": "same"
+   },
+   {
+    "ario": "akunavam",
+    "signs": "a-ku-u-na-va-ma",
+    "cmp": "same",
+    "restored": 3
+   }
+  ],
+  "el_lines": [
+   "𒈾𒀭𒊑𒁹𒅅𒊺𒅕𒃻𒁹𒁹𒁹𒁹𒎙𒄭𒁕𒄑𒍝𒊏𒁹𒌑𒄷𒌓𒁕"
+  ],
+  "el_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 11,
+   "paren": 0
+  },
+  "bab_lines": [
+   "𒁹𒄭𒅆𒀪𒅈𒅆𒈗𒄿𒃮𒁉𒂍𒋫𒀾𒃻𒊑𒀀𒂵𒀀𒀀𒈾𒆪𒂊𒋼𒁍𒍑𒋢"
+  ],
+  "bab_marks": {
+   "omitted": 0,
+   "excess": 0,
+   "restored": 2,
    "paren": 0
   }
  }

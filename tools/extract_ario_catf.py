@@ -12,7 +12,11 @@ import hashlib, json, re, sys
 
 IDS = {'XPa': 'Q007209', 'XPb': 'Q007210', 'XPc': 'Q007211', 'XPd': 'Q007212', 'XPe': 'Q007213', 'DPh': 'Q007164',
        'DNa': 'Q007152', 'DNb': 'Q007153', 'DPa': 'Q007157', 'DPb': 'Q007158', 'DPc': 'Q007159', 'DPd': 'Q007160',
-       'DPe': 'Q007161', 'DPf': 'Q007162', 'DPg': 'Q007163'}
+       'DPe': 'Q007161', 'DPf': 'Q007162', 'DPg': 'Q007163',
+       # D-214 (gap audit items 27, 28): Xerxes' texts on the Apadana plaque and glazed bricks (XPg = Xerxes I 11), on column
+       # bases (XPj = Xerxes I 14, XPm = Xerxes I 17) and on his garment on a relief (XPk = Xerxes I 15): ARIo numbers its
+       # Xerxes texts in the sigla's order (XPa = Xerxes I 05 ... XPe = 09), and each is confirmed by content (research/LANGUAGES.md)
+       'XPg': 'Q007215', 'XPj': 'Q007218', 'XPk': 'Q007219', 'XPm': 'Q007221'}
 VER = {'Persian': 'op', 'Elamite': 'el', 'Akkadian': 'bab'}
 
 def main(path):
@@ -35,6 +39,9 @@ def main(path):
         for l in b.split('\n'):
             m = re.match(r'@m=locator (\w+)', l)
             if m: ver = VER[m.group(1)]; continue
+            # XPg (Q007215) heads its only version '@h1 Old Persian version' with no locator line (D-214)
+            m = re.match(r'@h1 (Old Persian|Elamite|Akkadian) version', l)
+            if m: ver = {'Old Persian': 'op', 'Elamite': 'el', 'Akkadian': 'bab'}[m.group(1)]; continue
             m = re.match(r"^(\d+'?)\.\s(.*)$", l)
             if m and ver: t[ver].append(m.group(1) + '. ' + m.group(2).rstrip())
         out['texts'][sig] = t

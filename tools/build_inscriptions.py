@@ -53,7 +53,10 @@ def main():
            # akunau̯š' (Q007147 is an OP-only copy of the same text; the trilingual is used), DPb the titulary without 'xšāyaθiyānām',
            # DPc 'ardastāna aθangai̯na', DPd 'iyam dahyāu̯š Pārsa', DPe the list of lands, DPf the Elamite and DPg the Babylonian
            # companion texts of the Terrace south wall
-           'DPa': 'Q007157', 'DPb': 'Q007158', 'DPc': 'Q007159', 'DPd': 'Q007160', 'DPe': 'Q007161', 'DPf': 'Q007162', 'DPg': 'Q007163'}  # DNa/DNb: Darius I's tomb, Naqsh-e Rustam (identified by content: DNa 'Ariyaciça', 'gāθum', 'patikarā'; DNb 'ima frašam ... upari Dārayava.um')
+           'DPa': 'Q007157', 'DPb': 'Q007158', 'DPc': 'Q007159', 'DPd': 'Q007160', 'DPe': 'Q007161', 'DPf': 'Q007162', 'DPg': 'Q007163',
+           # D-214: XPg (the Apadana plaque and glazed bricks; Old Persian only in ARIo), XPj and XPm (column bases), XPk (the
+           # garment of Xerxes on a relief): ARIo Xerxes I 11, 14, 17, 15 (the sigla's order; content checked, LANGUAGES.md §2)
+           'XPg': 'Q007215', 'XPj': 'Q007218', 'XPk': 'Q007219', 'XPm': 'Q007221'}  # DNa/DNb: Darius I's tomb, Naqsh-e Rustam (identified by content: DNa 'Ariyaciça', 'gāθum', 'patikarā'; DNb 'ima frašam ... upari Dārayava.um')
     res = {}
     for sig, q in IDS.items():
         raw = texts[q]
@@ -63,7 +66,7 @@ def main():
         # a word without a determinative (har-da-is₂-ta₂-na, the loan of OP ardastāna): its OP ends before the first ATF
         # (hyphenated) token
         if sig in ('DPf', 'DPg'): m = re.match('', raw)
-        elif sig == 'DPc': m = re.search(r'\S+-\S+', raw)
+        elif sig in ('DPc', 'XPm'): m = re.search(r'\S+-\S+', raw)  # XPm's Elamite opens with na-an-ri ('says'), no determinative
         op = raw[:m.start()].strip() if m else raw
         rest = raw[m.start():] if m else ''
         # Babylonian versions of Xerxes texts open with 'DINGIR GAL₂' / '{d}u₂-ra-ma-az-da' patterns; split at the first occurrence of ' DINGIR ' or 'AN GAL'
@@ -72,7 +75,10 @@ def main():
         # the same wording from Hamadan). The fallback is per text so the other entries stay byte-identical.
         # DPa and DPb (Darius' titulary) as DPh; DPc's Babylonian begins after the Elamite verb hu-ut-tuk-ka₄ ('made'), with
         # ku-bu-ur-ri-e (C: the split of the running text); DPf is Elamite and DPg Babylonian throughout
-        SPLIT = {'XPe': r'\{m\}hi-ši-ʾ-ar-ši', 'DPh': r'\{m\}', 'DPa': r'\{m\}', 'DPb': r'\{m\}', 'DPc': r'ku-bu-ur-ri-e', 'DPg': r'^'}
+        SPLIT = {'XPe': r'\{m\}hi-ši-ʾ-ar-ši', 'DPh': r'\{m\}', 'DPa': r'\{m\}', 'DPb': r'\{m\}', 'DPc': r'ku-bu-ur-ri-e', 'DPg': r'^',
+                 # D-214: XPk and XPm as XPe (the Babylonian opens with the king's name under {m}); XPj's Babylonian opens with
+                 # a-na-ku ('I') before it
+                 'XPk': r'\{m\}', 'XPm': r'\{m\}', 'XPj': r'a-na-ku \{m\}'}
         b = None if sig == 'DPf' else re.search(SPLIT[sig], rest) if sig in SPLIT else re.search(r'\bDINGIR\b|\bAN GAL\b|\bil-lu\b', rest)
         el, bab = (rest[:b.start()].strip(), rest[b.start():].strip()) if b else (rest.strip(), '')
         elc, elm = atf_to_cun(el); bac, bam = atf_to_cun(bab)
