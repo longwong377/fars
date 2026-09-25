@@ -3,7 +3,7 @@
 // forms are reconstruction (C). Instanced per type; render-only (the benches under them are the collidable parts).
 import * as THREE from 'three/webgpu';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { uv, float } from 'three/tsl';
+import { uv, float, attribute } from 'three/tsl';
 import { v } from '../arch/spec';
 import { Rng } from '../core/rng';
 import { INSCRIPTION_PICK_LAYER } from '../arch/decor';
@@ -171,6 +171,7 @@ export function buildScribesRoom(room: number[], shelves: number[][], seed = 1):
   // were lit by the full sun, and glowed white at the room's exposure; session 4)
   group.traverse(o => { if ((o as THREE.Mesh).isMesh && !o.layers.isEnabled(INSCRIPTION_PICK_LAYER)) { o.castShadow = !o.name.match(/soot|floor_stain|mats/); o.receiveShadow = true; } }); // (D-221: the decals and the mats cast none)
   group.traverse(o => { if ((o as THREE.Mesh).isMesh && !o.userData.tier) o.userData = { tier: 'C', src: 'IR-TREAS;MATCULT-R', note: 'scribes\' room of the Treasury (PT find-spot "a northeastern room", B): drying board, clay, baskets (types B; forms, sizes, number and arrangement C)' }; });
+    mergeStatic(group, ['scribes:drying_board', 'scribes:clay', 'scribes:cloth', 'scribes:baskets', 'scribes:lamp', 'scribes:ink', 'scribes:water_bowl', 'scribes:jars', 'scribes:seals'], 'scribes:furnishings');
   return group;
 }
 
@@ -184,4 +185,31 @@ function scrollGeometry(): THREE.BufferGeometry {
   const lip = new THREE.CylinderGeometry(SCROLL_R * 1.06, SCROLL_R * 1.06, 0.004, 14, 1, true).rotateZ(Math.PI / 2).translate(0.052, SCROLL_R, 0); // the outer edge of the rolled sheet
   const ties = [-0.035, 0, 0.035].map(x => new THREE.TorusGeometry(SCROLL_R * 1.04, 0.0016, 4, 14).rotateY(Math.PI / 2).translate(x, SCROLL_R, 0));
   return mergeGeometries([col(roll, [0.62, 0.5, 0.36]), col(lip, [0.58, 0.46, 0.33]), ...ties.map(t => col(t, [0.55, 0.48, 0.36]))])!;
+}
+
+/** merge a room's small static opaque pieces (each a plain coloured MeshStandardNodeMaterial, Mesh or InstancedMesh) into
+ *  one vertex-coloured mesh (per-vertex roughness), so the room costs one draw for them (session 8: D-221's furnishings
+ *  took the scribes' room from 9 to 17 draws). Each piece's name, place and F3 record stay on an empty anchor, and the merged
+ *  mesh's note lists them */
+function mergeStatic(group: THREE.Group, names: string[], name: string) {
+  const geos: THREE.BufferGeometry[] = [], notes: string[] = [], m4 = new THREE.Matrix4(), mi = new THREE.Matrix4();
+  for (const n of names) {
+    const o = group.getObjectByName(n) as THREE.Mesh | undefined; if (!o || !o.isMesh) continue;
+    const mat = o.material as THREE.MeshStandardMaterial, col = mat.color ?? new THREE.Color(1, 1, 1), rough = mat.roughness ?? 0.8;
+    o.updateMatrix(); const base = strip(o.geometry.clone()); if (!base.getAttribute('normal')) base.computeVertexNormals();
+    const inst = (o as any).isInstancedMesh ? (o as unknown as THREE.InstancedMesh) : null, k = inst ? inst.count : 1;
+    for (let i = 0; i < k; i++) {
+      const g = base.clone(); if (inst) { inst.getMatrixAt(i, mi); m4.multiplyMatrices(o.matrix, mi); } else m4.copy(o.matrix);
+      g.applyMatrix4(m4); const nv = g.getAttribute('position').count, c = new Float32Array(nv * 3), r = new Float32Array(nv).fill(rough);
+      for (let v = 0; v < nv; v++) { c[v * 3] = col.r; c[v * 3 + 1] = col.g; c[v * 3 + 2] = col.b; }
+      g.setAttribute('color', new THREE.BufferAttribute(c, 3)); g.setAttribute('aRough', new THREE.BufferAttribute(r, 1)); geos.push(g);
+    }
+    const anchor = new THREE.Object3D(); anchor.name = o.name; anchor.position.copy(o.position); anchor.rotation.copy(o.rotation); anchor.userData = o.userData;
+    notes.push(`${n.replace(/^scribes:/, '')}: ${o.userData?.note ?? ''}`); group.remove(o); group.add(anchor);
+  }
+  if (!geos.length) return;
+  const m = new THREE.MeshStandardNodeMaterial({ vertexColors: true, metalness: 0 }); m.roughnessNode = attribute('aRough', 'float');
+  const mesh = new THREE.Mesh(mergeGeometries(geos)!, m); mesh.name = name; mesh.castShadow = true; mesh.receiveShadow = true;
+  mesh.userData = { tier: 'C', src: 'IR-TREAS;MATCULT-R;RECON', note: `the room's small furnishings, merged into one draw (each piece's record is on its named anchor): ${notes.join(' | ')}` };
+  group.add(mesh);
 }
