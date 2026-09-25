@@ -32,6 +32,8 @@ import { buildMeshes } from '../arch/meshes';
 import { loadProbes, probeSummary, setProbeOccluders } from '../render/probes/runtime';
 import { loadSculpt } from '../arch/sculpt';
 import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Reliefs, buildStairCrenellations, buildFoundationDeposits } from '../arch/decor';
+import { buildWaterworks } from '../arch/waterworks';
+import { buildGlazedFrieze } from '../arch/glazed';
 import { updateReliefs, settleReliefs } from '../arch/reliefs';
 import { FireSystem } from './fire';
 import { buildTreasuryGoods, buildScribesRoom } from './furnish';
@@ -153,6 +155,13 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const p4 = buildPhase4Reliefs(doorways); root.add(p4.group); // stair and door-jamb reliefs of the other palaces (D-049)
   const cren = buildStairCrenellations(parts); if (cren) root.add(cren); // stair-parapet merlons (D-065)
   const insc = buildInscriptions(manifest, parts, p4.inscriptions); root.add(insc);
+  // D-214: the stones carrying texts that are solid and not architecture parts (the Hadish N portico's antae): a collider each
+  const inscSolids = (insc.userData.solids ?? []) as { c: [number, number]; size: [number, number]; y0: number; y1: number }[];
+  for (const s of inscSolids) phys.addBox({ x: s.c[0], y: (s.y0 + s.y1) / 2, z: -s.c[1] }, { x: s.size[0] / 2, y: (s.y1 - s.y0) / 2, z: s.size[1] / 2 });
+  // D-214 (gap audit item 31): the Terrace's drain mouths, inlets and gutters and the cistern heads (all C); the kerbs are solid
+  const waterworks = buildWaterworks(parts, (e, n) => terrain.heightAt(e, -n)); root.add(waterworks.group);
+  const glaze = buildGlazedFrieze(parts); if (glaze) root.add(glaze); // D-214 (item 28): the Apadana towers' glazed-brick frieze (C)
+  for (const c of waterworks.colliders) phys.addBox({ x: c.c.x, y: c.c.y, z: c.c.z }, { x: c.half.x, y: c.half.y, z: c.half.z });
   insc.add(buildFoundationDeposits(manifest)); // the Apadana foundation deposits, sealed under the hall corners (D-068)
   if ((manifest.treasury as any)?.benches) root.add(buildTreasuryGoods((manifest.treasury as any).benches, seed)); // stored goods (types B, placement C)
   if ((manifest.treasury as any)?.scribesRoom) root.add(buildScribesRoom((manifest.treasury as any).scribesRoom, (manifest.treasury as any).scribesShelves, seed)); // the scribes' room (D-067)
@@ -181,6 +190,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const jackals = new Jackals(seed, terrain); root.add(jackals.mesh); // on the plain edge from dusk to dawn
   for (const f of fire.fires) nav.blockDisc(f.pos.x, -f.pos.z, f.kind === 'torch' ? 0 : 0.8);
   for (const [e, n, r] of palace.navDiscs()) nav.blockDisc(e, n, r); // the furnishings' standing pieces (both states with the court setting on)
+  for (const s of inscSolids) nav.blockDisc(s.c[0], s.c[1], Math.hypot(s.size[0], s.size[1]) / 2); // D-214: the Hadish antae
+  for (const [e, n, r] of waterworks.navDiscs) nav.blockDisc(e, n, r); // D-214: the cistern heads' kerbs
   const env = (t: number): Env => { if (!weather) return { rain: 0, lightning: false, windMs: 2, tempC: 18 }; const d = Math.floor(t / 24), c = weather.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
   // Phase 5 (D-021): the whole population and the year's calendar; the court is absent unless the out-of-world setting
   // 'Court calendar = seasonal pattern' is on (D-003)
