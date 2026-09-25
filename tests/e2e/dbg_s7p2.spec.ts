@@ -35,10 +35,10 @@ test('s7 pass 2 picks (D-217)', async ({ page }) => {
       const root = p.world.scene ?? p.world.root; let top: any = root; while (top?.parent) top = top.parent;
       const inter = (b: any) => b.min.x <= hi.x && b.max.x >= lo.x && b.min.y <= hi.y && b.max.y >= lo.y && b.min.z <= hi.z && b.max.z >= lo.z;
       top.traverseVisible((o: any) => { if (!o.isMesh || !o.geometry) return; const g = o.geometry; if (!g.boundingBox) g.computeBoundingBox(); const bb = g.boundingBox; if (!bb || !isFinite(bb.min.x)) return;
-        const M = o.matrixWorld.clone(), name = `${o.parent?.name ?? ''}/${o.name}`;
+        const M = o.matrixWorld.clone(), name = `${o.parent?.parent?.name ?? ''}/${o.parent?.name ?? ''}/${o.name}|L${o.layers.mask}|${o.constructor?.name}`;
         if (o.isInstancedMesh) { const m = M.clone().identity(); for (let i = 0; i < o.count; i++) { o.getMatrixAt(i, m); const w = bb.clone().applyMatrix4(M.clone().multiply(m)); if (inter(w)) out.push({ name, inst: i, min: w.min.toArray().map((x: number) => +x.toFixed(2)), max: w.max.toArray().map((x: number) => +x.toFixed(2)), mat: o.material?.type, note: String(o.userData?.note ?? '').slice(0, 140) }); } }
-        else { const w = bb.clone().applyMatrix4(M); if (inter(w) && (w.max.x - w.min.x) < 60) out.push({ name, min: w.min.toArray().map((x: number) => +x.toFixed(2)), max: w.max.toArray().map((x: number) => +x.toFixed(2)), mat: o.material?.type, note: String(o.userData?.note ?? '').slice(0, 140) }); } });
-      return out.slice(0, 60); }, s.box) : null;
+        else { const w = bb.clone().applyMatrix4(M); if (inter(w)) out.push({ name, min: w.min.toArray().map((x: number) => +x.toFixed(2)), max: w.max.toArray().map((x: number) => +x.toFixed(2)), mat: o.material?.type, note: String(o.userData?.note ?? '').slice(0, 140) }); } });
+      return out.slice(0, 150); }, s.box) : null;
     out[s.n] = { picks: r, found }; console.log('picks', s.n, JSON.stringify(r)); if (found) console.log('found', s.n, JSON.stringify(found));
   }
   mkdirSync('shots', { recursive: true }); const f = 'shots/dbg-s7p2.json', all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {};

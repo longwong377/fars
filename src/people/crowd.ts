@@ -21,6 +21,7 @@
 import * as THREE from 'three/webgpu';
 import { attribute, positionLocal, float, abs, min, max, mix, step } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { surfaceMaterial } from '../render/materials';
 import { pose, type Pose } from './anim';
 import { ACTIVITIES, performanceFor, type ActivityId, type Performance, type WorkSpec, type Performer } from './activities';
 import { PeopleSim, PLACES, type Agent } from './sim';
@@ -140,6 +141,18 @@ export interface Person {
 /** a person drawn as an impostor: their cached look (packed colours, dress row, stature scale) */
 interface ImpLook { packed: Float32Array; dress: Dress; scale: number; seed: number }
 
+/** a block of limestone being dressed (D-217, C): 1.4 × 0.75 × 0.9 m on the ground; the sides and ends quarry-rough (each
+ *  face bulged out by up to 3 cm and uneven by ~1 cm, the arrises knocked back), the top dressed flat. Position and normal only */
+export function masonBlock(seed: number): THREE.BufferGeometry {
+  const W = 1.4, H = 0.75, D = 0.9, g = new THREE.BoxGeometry(W, H, D, 6, 4, 4).translate(0, H / 2, 0), p = g.getAttribute('position') as THREE.BufferAttribute;
+  const h = (x: number, y: number, z: number) => { const v = Math.sin(x * 12.9898 + y * 78.233 + z * 37.719 + seed * 0.618) * 43758.5453; return v - Math.floor(v); };
+  for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    const ux = x / (W / 2), uz = z / (D / 2), uy = y / H, top = uy > 0.999, edge = Math.max(Math.abs(ux), Math.abs(uz)) > 0.999;
+    if (top) continue; // the dressed top
+    const bulge = 0.03 * (1 - Math.max(Math.abs(ux) > 0.999 ? 0 : ux * ux, Math.abs(uz) > 0.999 ? 0 : uz * uz)) * (1 - (2 * uy - 1) ** 2) + 0.01 * (h(x, y, z) - 0.5);
+    const out = edge ? bulge : 0; if (Math.abs(ux) > 0.999) p.setX(i, x + Math.sign(x) * out); if (Math.abs(uz) > 0.999) p.setZ(i, z + Math.sign(z) * out); }
+  g.deleteAttribute('uv'); g.computeVertexNormals(); return mergeGeometries([g.toNonIndexed()])!;
+}
 export class Crowd {
   readonly group = new THREE.Group();
   readonly persons = new Map<string, Person>();
@@ -230,8 +243,15 @@ export class Crowd {
     const parts: THREE.BufferGeometry[] = []; const q = new THREE.Quaternion(), one = new THREE.Vector3(1, 1, 1), M = new THREE.Matrix4();
     const put = (g: THREE.BufferGeometry, items: [THREE.Vector3, number][]) => { for (const [p, yaw] of items) { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), yaw); parts.push(g.clone().applyMatrix4(M.compose(p, q, one))); } };
     const sim = this.sim!, nav = sim.nav;
-    const masons = sim.agents.filter(a => a.role === 'mason');
-    put(paintedBox(1.4, 0.75, 0.9, stone, 0.9), masons.map(a => { const e = a.slot[0], n = a.slot[1] + 0.95; return [gw(e, n, nav.heightAt(e, n) || 0), 0.1 * Math.sin(a.id)]; }));
+    // the masons' blocks (D-217; rubric s7 pass 2, R8: "two dark grey boxes" in hall100-site): drawn as flat vertex-coloured
+    // boxes in the props' material, they read as untextured placeholders. Now a block of the Terrace limestone as it comes
+    // from the quarry and is being worked (the stone of the yard's rough drums, construction.ts): its faces bulged and
+    // uneven by a few cm, the top being dressed flat; its own mesh (one draw)
+    const masons = sim.agents.filter(a => a.role === 'mason'), blocks: THREE.BufferGeometry[] = [];
+    for (const a of masons) { const e = a.slot[0], n = a.slot[1] + 0.95; q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.1 * Math.sin(a.id)); blocks.push(masonBlock(a.id).applyMatrix4(M.compose(gw(e, n, nav.heightAt(e, n) || 0), q, one))); }
+    if (blocks.length) { const bm = new THREE.Mesh(mergeGeometries(blocks)!, surfaceMaterial('rubble')); bm.castShadow = bm.receiveShadow = true; bm.name = 'work:blocks';
+      bm.userData = { tier: 'C', src: 'RECON', placeholder: false, note: 'limestone blocks being dressed at the masons\' places, 1.4 × 0.75 × 0.9 m, quarry-rough with the top dressed (construction in 467 B; block size and working C; D-217)' };
+      this.group.add(bm); nearCascadesOnly(bm); }
     const grind = sim.agents.filter(a => a.role === 'grinder' || a.role === 'baker');
     put(paintedBox(0.4, 0.14, 0.7, stone, 0.9), grind.map(a => { const e = a.slot[0] + 0.62, n = a.slot[1]; return [gw(e, n, nav.heightAt(e, n) || 0), Math.PI / 2]; }));
     const guards = sim.agents.filter(a => a.role === 'guard');
