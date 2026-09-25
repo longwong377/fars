@@ -102,6 +102,9 @@ export const SKIN = {
  *  albedo (linear: a white tissue that reflects most visible light, slightly warm; the MakeHuman texture's sclera was
  *  sRGB 0.66 and the old shader dimmed it to 0.3 linear, which read grey), iris colours (linear albedo; dark brown
  *  irises reflect only a few per cent) */
+/** D-215: eye paint (the court's fashion, Xenophon Cyr. 1.3.2, 8.1.41: B claim; who wears it C): the lash strips' roots,
+ *  `band` of the strip's depth, are filled solid and near black, a line along each lid at the lashes (C) */
+export const KOHL = { band: 0.35, alb: [0.018, 0.016, 0.015] as RGB };
 export const EYE = { irisR: 0.0059, pupilR: 0.0015, sclera: [0.64, 0.6, 0.55] as RGB, caruncle: [0.6, 0.36, 0.34] as RGB, lidShadow: 0.45, f0: 0.025 };
 export const IRIS: RGB[] = [[0.04, 0.02, 0.009], [0.062, 0.032, 0.013], [0.095, 0.05, 0.02], [0.13, 0.072, 0.03], [0.14, 0.1, 0.045], [0.11, 0.115, 0.06], [0.11, 0.13, 0.105], [0.1, 0.14, 0.18]];
 /** lash strips (MakeHuman helper UVs span u 0.704–0.762 along both lids): clumps along the lid, tapering to the tip */
@@ -353,7 +356,8 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const curls = mix(mix(natural, court, kCourt), straight, kStraight);
     const hairAlb = vColor.mul(curls.mul(0.75).add(0.42)).mul(u3.mul(0.2).add(0.9));
     const hairH = curls.mul(mix(HAIR.bump, HAIR.bumpStraight, kStraight)).mul(band(mix(200, 120, kCourt)));
-    const lashAlb = vHair.mul(0.45);
+    const kohlK = bits('kohl').mul(float(1).sub(smoothstep(KOHL.band * 0.7, KOHL.band * 1.3, e1))); // D-215
+    const lashAlb = mix(vHair.mul(0.45), vec3(...KOHL.alb), kohlK);
 
     // ---- cloth: dyed wool or linen; weave, folds, mottling, motifs
     const isLinen = is(m, MAT.cloth_main).mul(mod(bits('linen'), 2)).add(is(m, MAT.cloth_second).mul(mod(floor(bits('linen').div(2)), 2))).add(is(m, MAT.cloth_trim).mul(floor(bits('linen').div(4))));
@@ -469,7 +473,7 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const along = U.x.sub(LASH.u0).div(LASH.u1 - LASH.u0), tl = e1;
     const clumpC = abs(fract(along.mul(mix(LASH.clumps, LASH.clumps * 0.6, e2)).add(n1.mul(0.35))).sub(0.5)).mul(2);
     const lashW = float(1).sub(tl).mul(float(1).sub(tl).max(0).sqrt()).mul(0.8).add(0.1).mul(mix(1, 0.7, e2));
-    const lashCut = max(step(lashW, clumpC), step(0.9, tl));
+    const lashCut = max(step(lashW, clumpC), step(0.9, tl)).mul(float(1).sub(bits('kohl').mul(step(tl, KOHL.band)))); // (kohl: the root band solid)
     this.maskNode = float(1).sub(kHair.mul(max(edgeCut, silCut))).sub(kLash.mul(lashCut)).greaterThan(0.5);
     // shadow-only copies (the player's head; the cheaper shadow casters of full-detail people): no colour, no depth, and
     // a constant fragment so the main pass only pays for vertices; the shadow pass uses this positionNode

@@ -16,7 +16,9 @@ export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field
   | 'fleece' | 'butchery' | 'hides' | 'basket_meat' | 'threshing_floor' | 'stooks' | 'sheaves' | 'sheaf' | 'grain_heap' | 'spoil' | 'basket_fruit' | 'press' | 'brushwood'
   | 'pigment_slab' | 'bier' | 'wash_stone' | 'drying_rack' | 'target' | 'hearth_pot' | 'ard' | 'throne'
   // D-210: the vehicles (gap audit items 16, 17) and the state poultry yard (item 11)
-  | 'cart' | 'chariot' | 'wagon' | 'hurdles';
+  | 'cart' | 'chariot' | 'wagon' | 'hurdles'
+  // D-215: children's play (gap audit item 26)
+  | 'knucklebones' | 'toy_wheeled';
 type RGB = [number, number, number];
 const MUD: RGB = [0.5, 0.41, 0.31], MUD_WET: RGB = [0.36, 0.29, 0.22], BRICK: RGB = [0.62, 0.53, 0.4], STRAW: RGB = [0.72, 0.62, 0.38], STRAW_D: RGB = [0.62, 0.52, 0.3],
   WOOD: RGB = [0.45, 0.33, 0.21], WOOD_D: RGB = [0.34, 0.25, 0.16], STONE: RGB = [0.55, 0.54, 0.52], LIME: RGB = [0.66, 0.64, 0.6], POT: RGB = [0.62, 0.44, 0.3], WOOL: RGB = [0.8, 0.76, 0.66],
@@ -72,6 +74,8 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   chariot: { tier: 'B', note: 'a two-wheeled chariot with spoked wheels, a box for the driver and a pole to the yoke of two horses (chariots on the Apadana reliefs and the royal chariot of HDT 7.40-41: B; form, size and the eight spokes C); court setting only' },
   wagon: { tier: 'C', note: 'a covered four-wheeled wagon (harmamaxa) for the royal women on the road (HDT 7.83, a claim; RECOLLECTION, NOT SEEN): a box on solid wheels under an arched cloth cover, a pole to the yoke (form and size C); court setting only' },
   hurdles: { tier: 'C', note: 'the state poultry yard: a ring of wattle hurdles and a low mud-brick coop (poultry and their fodder: PF 2034, IR-PET, B; where and how kept C)' },
+  knucklebones: { tier: 'B', note: 'five knucklebones (astragali of sheep or goats) in the dust, thrown and gathered by children: astragali are common finds of the period (B object; the children’s game C)' },
+  toy_wheeled: { tier: 'C', note: 'a fired-clay animal on four clay wheels on axles, pulled by a cord (wheeled clay animals from Susa and Mesopotamia, RECOLLECTION, NOT SEEN: C; the form, a humped bull, C). The wheels do not turn' },
   throne: { tier: 'B', note: 'the king’s throne and footstool at an audience (court setting, D-199): a high-backed chair on turned legs with lion’s-paw feet, and a footstool, as the Treasury audience relief carves them (TREAS-AUD, B); gilded wood and the sizes C: the seat 0.525 m and the footstool 0.105 m high, fitted to the enthroned pose measured on the rig (anim ENTHRONED); where it stood in the Apadana is not known (C)' },
 };
 
@@ -197,6 +201,16 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       g.push(P(box(3.2, 1.6, 2.2, 0, 0, -R + 2.2), MUD, 1)); g.push(P(box(3.5, 0.12, 2.5, 0, 1.6, -R + 2.2), [0.55, 0.47, 0.34], 1));
       g.push(P(box(0.6, 0.7, 0.05, 0, 0, -R + 3.32), [0.2, 0.16, 0.12], 1)); // the coop's low door
       for (let i = 0; i < 3; i++) g.push(P(lathe([[0, 0], [0.22, 0.02], [0.2, 0.1], [0, 0.1]], 7).translate(-2 + i * 2, 0, 2.5 - i), POT)); // water and grain dishes
+      return merge(g); }
+    // D-215: five astragali scattered in front of the player (C)
+    case 'knucklebones': { const g: THREE.BufferGeometry[] = []; const BONE: RGB = [0.82, 0.76, 0.64];
+      for (let i = 0; i < 5; i++) { const a = i * 2.4, r = 0.05 + 0.03 * (i % 3); g.push(P(box(0.024, 0.014, 0.017, 0, 0, 0).rotateY(a * 1.7).translate(Math.cos(a) * r, 0, Math.sin(a) * r), BONE, 0.7)); }
+      return merge(g); }
+    // D-215: a clay humped bull on four wheels, the cord rising from its muzzle toward the child's hand ahead (+Z) (C)
+    case 'toy_wheeled': { const CLAY: RGB = [0.66, 0.47, 0.33], g = [P(new THREE.SphereGeometry(1, 7, 4).scale(0.05, 0.035, 0.085).translate(0, 0.07, 0), CLAY),
+        P(new THREE.SphereGeometry(0.028, 6, 4).translate(0, 0.095, 0.085), CLAY), P(new THREE.SphereGeometry(0.02, 5, 3).translate(0, 0.108, -0.01), CLAY)];
+      for (const z of [-0.05, 0.05]) { g.push(P(rod([-0.06, 0.025, z], [0.06, 0.025, z], 0.004, 0.004, 3), WOOD_D)); for (const x of [-0.055, 0.055]) g.push(P(new THREE.CylinderGeometry(0.025, 0.025, 0.012, 7).rotateZ(Math.PI / 2).translate(x, 0.025, z), CLAY)); }
+      g.push(P(rod([0, 0.09, 0.11], [0, 0.45, 0.7], 0.0025, 0.0025, 3), [0.72, 0.64, 0.46]));
       return merge(g); }
     case 'ard': { // in the ploughman's frame: the stilt rises to his left hand (≈ 0.12, 0.92, 0.5), the share runs in the soil at z ≈ 1.2, the beam goes to the yoke
       // on the oxen's necks in front of the withers (the team walks at z 3.35: animals.ts 'team'; yoke at z 4.05)

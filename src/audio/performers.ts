@@ -150,7 +150,7 @@ function courtGig(c: MusicCtx, hall: NonNullable<MusicCtx['courtHall']>, kind: '
   for (let i = 0; i < singers; i++) parts.push({ key: `court:singer:${i}`, extra: { sex: 'f', seed: 7100 + i, heading: 180, anim: 'idle', floor: hall.fl }, pos: at(i, singers, 1), play: 'sing',
     perf: i === 0 ? { id: `${key}:voices`, instrument: 'voice', register: 'f', voices: singers, tradition: 'mesopotamian', context: 'court', modeId, pieceSeed, tonic, tempo, seed: r.int(0, 1e9), claims } : null });
   return { id: key, kind, place: 'hadish', claims, tier: tierOf(claims), until, parts,
-    visual: { placeholder: true, note: 'PLACEHOLDER: the court women wear the working women’s dress (court dress not modelled: BLOCKERS B20c). The harps and the playing and singing are modelled (D-200, C)' } };
+    visual: { placeholder: false, note: 'the court women in the court dress (D-215, B20c closed): the many-folded robe belted at the front, the crenellated crown and the long veil down the back (IR-WOMEN, the Pazyryk women: B; cut, sizes and colours C), gold at the ears and wrists, the eyes lined (C). The harps and the playing and singing are modelled (D-200, C)' } };
 }
 /** the parts that sound (a chorus sings from its leader's place; the other singers only sit with her) */
 export const soundingParts = (g: Gig) => g.parts.filter(p => p.perf);

@@ -948,5 +948,25 @@
   "cite": "Esther 1:6: at the king's feast in the palace garden of Susa, hangings of white, green and blue fastened with cords of fine linen and purple to silver rings and pillars of marble, and couches of gold and silver on a pavement (a late literary source on the Persian court)",
   "url": "https://www.sefaria.org/Esther.1.6",
   "access": "recollection of the text (NOT SEEN this session, D-212): late literary, C"
+ },
+ "XEN-CYR-EYES": {
+  "cite": "Xenophon, Cyropaedia 1.3.2 (Astyages \"adorned with pencillings beneath his eyes, with rouge rubbed on his face, and with a wig of false hair: the common Median fashion ... the necklaces about their necks, and the bracelets on their wrists\"), 8.1.41 (Cyrus \"encouraged also the fashion of pencilling the eyes\"), 8.8.20 (\"beauty-doctors who pencil their eyes\"), tr. W. Miller",
+  "url": "https://raw.githubusercontent.com/PerseusDL/canonical-greekLit/master/data/tlg0032/tlg007/tlg0032.tlg007.perseus-eng2.xml",
+  "access": "downloaded and the passages read this session (D-215). Greek literature about the Persian court: claims, max tier B"
+ },
+ "HDT-7.41-61": {
+  "cite": "Herodotus 7.41 (of the ten thousand \"one thousand had golden pomegranates on their spear-shafts instead of a spike ... the nine thousand ... silver pomegranates ... those following nearest to Xerxes had apples of gold\") and 7.61 (the Persians \"for shields ... had wicker bucklers, with quivers hanging beneath them\"), tr. A. D. Godley",
+  "url": "https://raw.githubusercontent.com/PerseusDL/canonical-greekLit/master/data/tlg0016/tlg001/tlg0016.tlg001.perseus-eng2.xml",
+  "access": "downloaded and the passages read this session (D-215). Greek claims about the Persian army: max tier B"
+ },
+ "LACHISH-R": {
+  "cite": "The Lachish reliefs of Sennacherib's palace at Nineveh (British Museum, c. 700 BCE): deported families on the march, women carrying small children on the hip and shoulder",
+  "url": "https://www.britishmuseum.org/collection/term/BIOG135937",
+  "access": "recollection (NOT SEEN this session, D-215): an analogy for carrying children, C"
+ },
+ "SUSA-TOYS": {
+  "cite": "Wheeled animal figurines and rattles of fired clay from Susa and Mesopotamian sites (the Louvre's Oriental Antiquities; 3rd-1st millennium BCE)",
+  "url": "https://collections.louvre.fr/",
+  "access": "recollection (NOT SEEN this session, D-215): an analogy for toys, C"
  }
 }

@@ -19,10 +19,10 @@
 // Playing (D-200): the music director has a performer play or sing (setPlaying): the playing performance (playing.ts) is
 // given in place of the plan's for as long as it is kept alive, and a singer's jaw and breath follow the piece's notes.
 import * as THREE from 'three/webgpu';
-import { attribute, positionLocal, float, abs, min } from 'three/tsl';
+import { attribute, positionLocal, float, abs, min, max, mix, step } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { pose, type Pose } from './anim';
-import { ACTIVITIES, performanceFor, type ActivityId, type Performance, type WorkSpec } from './activities';
+import { ACTIVITIES, performanceFor, type ActivityId, type Performance, type WorkSpec, type Performer } from './activities';
 import { PeopleSim, PLACES, type Agent } from './sim';
 import type { HumanSystem } from './humans';
 import { RigSolver, PALETTE_STRIDE, PLANTED, type RigInput, type FaceState } from './humanRig';
@@ -30,7 +30,9 @@ import { lookFor, wearTexel, type PersonLook, type LookInput } from './looks';
 import { HB } from './humanFormat';
 import { PERSON_TEXELS, FLAG_HIDE_HEAD } from './humanMaterial';
 import { nearCascadesOnly } from './humanGPU';
-import { propGeometry, propUnionGeometry, paintedBox, PROP_NOTES, PROPS, PROP_CLASSES, propSlot, placeProp, interleave } from './props';
+import { propGeometry, propUnionGeometry, paintedBox, PROP_NOTES, PROPS, PROP_CLASSES, propSlot, placeProp, interleave, BABE_CLASS } from './props';
+import { babeKind, babeLength, holdBabe, holdHand, placeBabe, tintFor, BABE_NOTES, type BabeMode } from './babes';
+import { h32, salt } from './hash';
 import { PLAYING, singFace, type PlayKind } from './playing';
 import { PIECES, pieceBit, COSTUME_OF, weatherMask, type Dress } from './outfits';
 import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim } from './workAnims';
@@ -132,6 +134,8 @@ export interface Person {
   pid: number; vp: ViewPerson | null; vpFrame: number; gaitPh: number;
   /** the LOD drawn with in the last frame */
   lod?: number;
+  /** D-215: the children carried or put down beside this person now (prop kind, transform in character space, skin tint) */
+  babeProps?: { kind: string; M: THREE.Matrix4; tint: number; mode: string }[];
 }
 /** a person drawn as an impostor: their cached look (packed colours, dress row, stature scale) */
 interface ImpLook { packed: Float32Array; dress: Dress; scale: number; seed: number }
@@ -206,12 +210,14 @@ export class Crowd {
       const at = (n: string) => g.getAttribute(n) as THREE.InterleavedBufferAttribute, ik = at('ik'), ip = at('ip'), ax = [at('aRx'), at('aRy'), at('aRz')];
       const m = new THREE.MeshStandardNodeMaterial(); const mr = attribute('mr', 'vec2');
       m.colorNode = attribute('color', 'vec3'); m.metalnessNode = mr.x; m.roughnessNode = mr.y;
+      // D-215: the carried children's skin (metalness −1 in the geometry) tinted by the instance parameter (the carer's tone)
+      if (c === BABE_CLASS) { m.colorNode = attribute('color', 'vec3').mul(mix(float(1), attribute('ip', 'float'), float(1).sub(step(-0.5, mr.x)))); m.metalnessNode = max(mr.x, 0); }
       // the instance's own kind only: other kinds' vertices collapse to a point (arithmetic mask, no select: D-012); the
       // instance parameter moves the vertices that carry a displacement (the bowstring's middle, the spindle on its yarn)
       const sv = attribute('sv', 'vec3').mul(attribute('ip', 'float'));
       m.positionNode = positionLocal.add(attribute('aRx', 'vec3').mul(sv.x)).add(attribute('aRy', 'vec3').mul(sv.y)).add(attribute('aRz', 'vec3').mul(sv.z)).mul(float(1).sub(min(abs(attribute('pk', 'float').sub(attribute('ik', 'float'))), 1)));
       const im = new THREE.InstancedMesh(g, m, CARRIED_MAX); im.count = 0; im.visible = false; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false;
-      im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.name = c === 0 ? 'props:carried' : 'props:tools'; im.raycast = () => {}; // all kinds are in every instance on the CPU side
+      im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.name = c === 0 ? 'props:carried' : c === BABE_CLASS ? 'props:children' : 'props:tools'; im.raycast = () => {}; // all kinds are in every instance on the CPU side
       im.userData = { tier: 'C', src: 'RECON', note: 'carried: ' + kinds.map(k => `${k} (${PROP_NOTES[k].tier}): ${PROP_NOTES[k].note}`).join('; ') };
       this.group.add(im); this.carried.push({ mesh: im, data, kind: ik, param: ip, axes: ax }); nearCascadesOnly(im);
     });
@@ -399,7 +405,9 @@ export class Crowd {
     else if (vp) { act = vp.moving && !ACTIVITIES[vp.act].moving ? 'walk' : vp.act; why = vp.why; }
     else { act = e!.act; why = e!.why ?? ''; }
     if (act !== p.act || why !== p.why) { // the performance changes only with the activity or the plan's reason
-      p.act = act ?? ''; p.why = why; p.perf = act ? performanceFor(act, why, a ? a.seed : Math.round(p.animK * 159), e?.variant) : null; p.actPlaceholder = !!p.perf?.placeholder; }
+      p.act = act ?? ''; p.why = why; p.perf = act ? performanceFor(act, why, a ? a.seed : Math.round(p.animK * 159), e?.variant, vp ? this.who(p.pid) : undefined) : null; p.actPlaceholder = !!p.perf?.placeholder;
+      // D-215 (gap audit item 37): the lame walk with a staff, the blind feel their way with one
+      if (vp?.impair && p.perf && act === 'walk' && !p.perf.animals) p.perf = { ...p.perf, anim: vp.impair === 1 ? 'limp' : 'feel', prop: 'staff', note: vp.impair === 1 ? 'a lame man walking with a staff (gap audit item 37: injuries of the building sites and the fields are to be expected; C)' : 'a blind elder feeling the way with a staff, led by a child of the house when one walks with them (gap audit item 37; C)' }; }
     p.anim = p.perf ? p.perf.anim : e?.anim ?? 'idle';
   }
   private lastTime = 0;
@@ -447,10 +455,12 @@ export class Crowd {
   /** the performance a person of the population gives for an act and reason (cached per person): the one resolve() gives
    *  them when attached (the same variant seed), for the anchors and the impostors' things */
   private popPerfs = new Map<number, { act: string; why: string; perf: Performance }>();
+  /** D-215: who a person of the population is (the play variants for boys or small children: activities.ts) */
+  private who(pid: number): Performer | undefined { const V = this.view; if (!V || pid < 0 || !V.pop.persons[pid]) return undefined; return { sex: V.pop.persons[pid].sex, age: V.pop.ageOn(pid, Math.floor(Math.max(0, V.lastT) / 24)) }; }
   private popPerf(pid: number, act: ActivityId, why: string, lookSeed?: number): Performance {
     const c = this.popPerfs.get(pid); if (c && c.act === act && c.why === why) return c.perf;
     const p = this.byPid.get(pid), s = p ? 0 : lookSeed ?? this.impLooks.get(pid)?.seed ?? this.view!.lookInput(pid).seed;
-    const perf = performanceFor(act, why, p ? Math.round(p.animK * 159) : Math.round(((s % 1000) / 159) * 159)); // newPerson's animK, resolve()'s seed
+    const perf = performanceFor(act, why, p ? Math.round(p.animK * 159) : Math.round(((s % 1000) / 159) * 159), undefined, this.who(pid)); // newPerson's animK, resolve()'s seed
     if (c) { c.act = act; c.why = why; c.perf = perf; } else { if (this.popPerfs.size > 60_000) this.popPerfs.clear(); this.popPerfs.set(pid, { act, why, perf }); }
     return perf;
   }
@@ -530,6 +540,7 @@ export class Crowd {
       p.drawnFrame = this.frame; p.lod = lod; if (this.drawnKeys) this.drawnKeys.add(p.agent ? -1 - p.agent.id : p.pid);
       if (p.prop) this.placeProp(p, p.prop, p.propM, p.ip[0]);
       if (p.prop2) this.placeProp(p, p.prop2, p.propM2, p.ip[1]);
+      if (p.babeProps) for (const b of p.babeProps) this.placeProp(p, b.kind, b.M, b.tint); // D-215
       if (p.perf && d < THINGS_DIST && (p.perf.work?.length || p.perf.animals)) this.placeThings(p, time, d, dt);
     }
     IK_Q.passes = 4; gpu.end(true);
@@ -622,11 +633,18 @@ export class Crowd {
         : vp && !ACTIVITIES[p.act as ActivityId]?.prop ? vp.prop ?? undefined : undefined;
       const want = P.prop ?? load;
       prop1 = want ? (want === 'bread' ? 'basket' : want) : null; prop2 = P.prop2 ?? null;
+      if (prop1 === 'spear') prop1 = this.spearOf(p, vp);
       if (po.hit && !p.lastHit && d < 60) this.onHit?.(P.sound ?? 'chisel', _v.set(p.root[0], p.root[1], p.root[2]).clone());
       p.lastHit = !!po.hit;
     } else po = pose(anim, time + p.t0, time * 4.2, p.animK);
     // coats, weapons on the back and hats are laid aside while seated, crouched or asleep (they would pass through the ground; C)
     // dressed for the cold (outfits.weatherMask: S5 of shadow review r6), then coats, weapons and hats laid aside
+    // D-215: a shield-bearer at his post holds the shield at his side by its grip (the left arm down); the children carried
+    // on the arms or the hip, a small child's hand held
+    const vpC = !a && !p.extra ? p.vp : null;
+    if (anim === 'guard' && this.shieldBit(p.look.dress) & p.look.mask) { po.rot.l_upper = [0.04, 0, 0.1]; po.rot.l_fore = [-0.18, 0, 0]; po.grip = [1, po.grip?.[1] ?? 1]; }
+    if (vpC?.babes?.length) holdBabe(po, vpC.babes[0].mode, anim);
+    if (vpC?.hand) holdHand(po, vpC.hand, vpC.handSide ?? 'l', vpC.handUp ?? 0);
     const m0 = weatherMask(p.look.dress, p.look.mask, this.airC);
     const mask = ASIDE.has(anim) ? m0 & ~this.asideBits(p.look.dress, anim) : m0;
     if (mask !== p.mask) { p.mask = mask; this.humans.gpu.person[p.slot * PERSON_TEXELS * 4 + 1] = mask; this.humans.gpu.markPersonDirty(); }
@@ -672,7 +690,21 @@ export class Crowd {
     const par = { v: 0 }, sc = p.look.scale;
     p.prop = prop1 && placeProp(prop1, this.rigS, po, sc, time, 0, p.propM, par) ? prop1 : null; p.ip[0] = par.v;
     p.prop2 = prop2 && placeProp(prop2, this.rigS, po, sc, time, 1, p.propM2, par) ? prop2 : null; p.ip[1] = par.v;
+    // D-215: the children held or put down beside (babes.ts: their kind by age and way of holding, their size by age)
+    const B = vpC?.babes; if (B?.length) { const L = p.babeProps ?? (p.babeProps = []); L.length = B.length;
+      for (let i = 0; i < B.length; i++) { const b = B[i], k = babeKind(b.mode, b.months), q = L[i] ?? (L[i] = { kind: '', M: new THREE.Matrix4(), tint: 1, mode: '' });
+        q.kind = k.kind; q.mode = b.mode; q.tint = tintFor(p.look.col.skin); placeBabe(b.mode, this.rigS, sc, babeLength(b.months), k.ref, q.M, THREE.Vector3); } }
+    else if (p.babeProps) p.babeProps.length = 0;
   }
+  /** the spear a guard carries (D-215): the king's spearmen an apple of gold at the butt (the plan's words: court.ts), one
+   *  Persian-dress guard in ten a golden pomegranate, the others silver (Herodotus 7.41: B; the one in ten C) */
+  private spearOf(p: Person, vp: ViewPerson | null): string {
+    if (vp?.carryNote && /apple-shaped butt/.test(vp.carryNote)) return 'spear_apple';
+    if ((p.look.dress === 'guard') && h32(this.seed, SALT_SPEAR, p.agent ? p.agent.id : 1e6 + p.pid) % 10 === 0) return 'spear_gpom';
+    return 'spear';
+  }
+  private shieldBits = new Map<string, number>();
+  private shieldBit(dress: Dress) { let b = this.shieldBits.get(dress); if (b === undefined) { const k = pieceBit(dress, 'shield'); b = k ? 1 << k : 0; this.shieldBits.set(dress, b); } return b; }
   /** a world point in the person's character space (inverse of the instance root: translate, yaw about +Y, scale).
    *  The rig solves in character space, so gaze targets must be given there (world targets aimed the eyes wrongly). */
   private toChar(p: Person, w: ArrayLike<number>) {
@@ -684,7 +716,7 @@ export class Crowd {
   private asideCache = new Map<string, number>();
   private asideBits(dress: Dress, anim: AnimId) {
     const k = dress + (anim === 'sleep' ? ':s' : ''); let b = this.asideCache.get(k);
-    if (b === undefined) { b = 0; for (const id of ['kandys', 'quiver', 'bow', 'gorytos', 'akinaka', ...(anim === 'sleep' ? ['hat_fluted', 'fillet', 'cap_soft', 'headband', 'cap_pointed', 'cap_low', 'crown'] : [])]) { const bit = pieceBit(dress, id); if (bit) b |= 1 << bit; } this.asideCache.set(k, b); }
+    if (b === undefined) { b = 0; for (const id of ['kandys', 'quiver', 'bow', 'gorytos', 'akinaka', 'shield', ...(anim === 'sleep' ? ['hat_fluted', 'fillet', 'cap_soft', 'headband', 'cap_pointed', 'cap_low', 'crown', 'crown_w'] : [])]) { const bit = pieceBit(dress, id); if (bit) b |= 1 << bit; } this.asideCache.set(k, b); }
     return b;
   }
   /** people culled from view still make their tool sounds (detailed agents and the population's people, D-143) */
@@ -765,7 +797,8 @@ export class Crowd {
         const court = pp ? this.view!.pop.court : null, courtRole = court?.roleOf(p.pid) ?? null; // D-182: the court's people say who they are
         const who = p.agent ? `${p.agent.name ?? 'unnamed'} (${p.agent.role}, ${p.agent.origin})` : pp ? `${this.view!.pop.nameOf(p.pid) ?? 'unnamed'} (${courtRole ?? pp.job}, ${pp.origin}; population person ${p.pid}: ${p.vp?.what ?? ''})` : `extra ${p.key}`;
         const act = p.act ? `; doing ${p.act}${p.actPlaceholder ? ' — PLACEHOLDER: no performance for this activity (abstract-only), a standing pose is shown' : p.perf ? ` (${p.perf.tier}: ${p.perf.note})` : ''}` : '';
-        proxy.userData = { tier: 'C', src: 'RECON', placeholder: p.actPlaceholder || !!court?.placeholder(p.pid), note: `${who}; ${p.look.dress} dress${act}; ${p.look.note}` };
+        const kids = p.babeProps?.length ? `; with a small child: ${p.babeProps.map(b => BABE_NOTES[b.mode as BabeMode]).join('; ')} (D-215)` : '', hand = p.vp?.hand ? `; hand in hand with p${p.vp.handWith} (D-215, C)` : '';
+        proxy.userData = { tier: 'C', src: 'RECON', placeholder: p.actPlaceholder || !!court?.placeholder(p.pid), note: `${who}; ${p.look.dress} dress${act}${kids}${hand}; ${p.look.note}` };
         out.push({ distance: best, point: ray.at(best, new THREE.Vector3()), object: proxy } as THREE.Intersection);
       }
     }
@@ -780,5 +813,6 @@ export class Crowd {
   /** evidence notes for the pieces a person wears (tests, overlay) */
   static pieceNotes(look: PersonLook) { return look.pieces.map(id => ({ ...PIECES[id], id })); }
 }
+const SALT_SPEAR = salt('crowd-spear');
 const _v = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _s = new THREE.Sphere(), _m = new THREE.Matrix4(), _m2 = new THREE.Matrix4(), _m3 = new THREE.Matrix4();
 const _q = new THREE.Quaternion(), _up = new THREE.Vector3(0, 1, 0), _one = new THREE.Vector3(1, 1, 1);

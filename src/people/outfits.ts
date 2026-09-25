@@ -19,8 +19,8 @@ import type { HumanAssets, HumanVariant } from './humanAssets';
 import { HB, PART, MAT, EYE_UNIT, SKIN_CURV_MAX, PRM_UPPER, type HBone } from './humanFormat';
 import { clothHull, headHull, hull2, rayToHull, BELT_TOP } from './drape';
 
-export type Dress = 'persian' | 'guard' | 'median' | 'worker' | 'woman' | 'child' | 'envoy' | 'envoy_short' | 'envoy_bare' | 'king';
-export const DRESSES: Dress[] = ['persian', 'guard', 'median', 'worker', 'woman', 'child', 'envoy', 'envoy_short', 'envoy_bare', 'king'];
+export type Dress = 'persian' | 'guard' | 'median' | 'worker' | 'woman' | 'child' | 'envoy' | 'envoy_short' | 'envoy_bare' | 'king' | 'court_woman';
+export const DRESSES: Dress[] = ['persian', 'guard', 'median', 'worker', 'woman', 'child', 'envoy', 'envoy_short', 'envoy_bare', 'king', 'court_woman'];
 /** colour slots of the per-person data (texel index in the person texture); 0 = fixed by material class/param */
 export const COL = { fixed: 0, skin: 1, main: 2, second: 3, trim: 4, hair: 5, leather: 6, felt: 8 } as const;
 export type ColSlot = typeof COL[keyof typeof COL];
@@ -330,16 +330,28 @@ export const PIECES: Record<string, PieceMeta> = {
   cap_low: { id: 'cap_low', label: 'low rounded cap / wrapped headcloth', tier: 'C', src: 'APA-RELIEF;WALSER1966', note: 'the rounded or conical caps of the lowland delegations (Babylonians, Assyrians/Syrians, Lydians, Cilicians) on the Apadana reliefs (B for “a cap”; recollection of the plates, NOT SEEN: the tassels and lappets are not modelled; C form)' },
   crown: { id: 'crown', label: 'the king’s tall crown with a dentate rim', tier: 'B', src: 'APA-RELIEF;TREAS-AUD;HADISH-JAMB', note: 'the king’s tall cylindrical headdress on the Treasury audience relief and the palace door jambs (B); the dentate (crenellated) rim, height 0.2 m, the gold band and the cloth under it C' },
   body: { id: 'body', label: 'MakeHuman body (variant)', tier: 'C', src: 'RECON', note: 'MakeHuman CC0 base mesh with macro/face morphs; skin albedo procedural (D-020)' },
+  // D-215 (gap audit items 21, 22; D-207): jewellery by rank, the wicker shield, the court women's crown and veil
+  earrings: { id: 'earrings', label: 'gold ring earrings', tier: 'C', src: 'MATCULT-R;XEN-CYR-EYES', note: 'a plain gold hoop through each lobe (ring earrings on guards and nobles: MATERIAL_CULTURE, NOT SEEN, C; Xenophon, Cyr. 1.3.2, read: the Median court wears ornaments, a claim, B). Worn by rank (C): nobles, the king, the court women, many of the guards; the ring 18 mm across and its wire C' },
+  bracelets: { id: 'bracelets', label: 'gold bracelets', tier: 'C', src: 'MATCULT-R;XEN-CYR-EYES', note: 'a gold ring at each wrist ("the bracelets on their wrists" are Median fashion: Xenophon, Cyr. 1.3.2, read, a claim: B; bracelets with animal-head terminals are known, MATERIAL_CULTURE NOT SEEN: the terminals are not modelled). Worn by rank (C)' },
+  earrings_b: { id: 'earrings_b', label: 'bronze ring earrings', tier: 'C', src: 'RECON', note: 'a plain bronze hoop through each lobe: ordinary women\'s ornaments by analogy with the court\'s gold (D-207, C; no Persepolis evidence either way)' },
+  bracelets_b: { id: 'bracelets_b', label: 'bronze bracelets', tier: 'C', src: 'RECON', note: 'a bronze ring at each wrist: ordinary women\'s ornaments by analogy (D-207, C)' },
+  shield: { id: 'shield', label: 'wicker shield on the left arm', tier: 'C', src: 'HDT-7.41-61;MATCULT-R', note: 'the Persians\' wicker bucklers (Herodotus 7.61, read: "for shields they had wicker bucklers", a claim, B); a violin-shaped wicker shield on the Persepolis stair guards (MATERIAL_CULTURE, NOT SEEN: verify from the Apadana and Tripylon photographs). Held by the grip at its centre in the left hand, 0.8 × 0.44 m, the side notches and the wicker C. Given to a share of the Persian-dress guards, who then carry no bow or quiver (C)' },
+  crown_w: { id: 'crown_w', label: 'court woman\'s crenellated crown', tier: 'C', src: 'IR-WOMEN;PAZYRYK', note: 'a crenellated ("turreted") crown: the statuette of a high-ranking Persian woman from Egypt and the Pazyryk women (IR-WOMEN, search extract: B for a crown); a low gold band 7 cm high with ten merlons, C' },
+  veil: { id: 'veil', label: 'court woman\'s long veil down the back', tier: 'C', src: 'IR-WOMEN;PAZYRYK', note: 'a long veil falling from under the crown down the back (the Pazyryk women: IR-WOMEN, search extract, B for the veil); to mid-thigh, over the shoulders and the robe, fine wool in the second colour: C' },
 };
 
 // costume composition: pieces per dress; `opt` = optional per person (a bit in the person's piece mask)
 export interface CostumeDef { dress: Dress; always: string[]; opt: string[] }
 export const COSTUMES: Record<Dress, CostumeDef> = {
-  persian: { dress: 'persian', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque', 'quiver', 'bow', 'crown'] },
+  persian: { dress: 'persian', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque', 'quiver', 'bow', 'crown', 'earrings', 'bracelets', 'shield', 'crown_w', 'veil'] },
   // guards wear the Persian costume (the same mesh) with the bow and quiver bits always set: one draw fewer per LOD and cascade
-  guard: { dress: 'guard', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'quiver', 'bow'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque'] },
+  guard: { dress: 'guard', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'quiver', 'bow'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'hat_fluted', 'fillet', 'torque', 'earrings', 'bracelets', 'shield'] },
   // D-199, court setting only: the king wears the Persian costume's mesh with the crown bit set (as the guards, above)
-  king: { dress: 'king', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'crown'], opt: ['hair', 'bun', 'beard_long'] },
+  king: { dress: 'king', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'crown'], opt: ['hair', 'bun', 'beard_long', 'earrings', 'bracelets'] },
+  // D-215 (gap audit item 22, BLOCKERS B20c): the women of the court on the Persian costume's mesh (as the guards and the
+  // king): the many-folded robe belted at the front (IR-WOMEN: the elite woman's dress, B), the crenellated crown and the
+  // long veil down the back (the Pazyryk women, B), gold at the ears and wrists; no new mesh and no new draw
+  court_woman: { dress: 'court_woman', always: ['robe_upper', 'robe_skirt', 'robe_sleeves', 'belt', 'shoes', 'crown_w', 'veil'], opt: ['hair', 'earrings', 'bracelets'] },
   // D-199, court setting only: the delegations' own dress (the Apadana reliefs, research/COURT.md, src/data/delegations.json)
   // in three costumes: the long sleeved garment of the lowland peoples, the knee-length tunic of the others (trousers and
   // boots optional) and the bare-chested wrap to the knee (the Indians), each people with its own headgear and footwear
@@ -349,13 +361,13 @@ export const COSTUMES: Record<Dress, CostumeDef> = {
   envoy: { dress: 'envoy', always: ['tunic_upper', 'dress_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_low', 'headband', 'fillet', 'torque'] },
   envoy_short: { dress: 'envoy_short', always: ['tunic_upper', 'tunic_skirt', 'belt'], opt: ['trousers', 'shoes', 'boots', 'hair', 'bun', 'beard_long', 'beard_short', 'cap_pointed', 'cap_low', 'headband', 'akinaka'] },
   envoy_bare: { dress: 'envoy_bare', always: ['tunic_skirt', 'belt'], opt: ['shoes', 'hair', 'bun', 'beard_long', 'beard_short', 'headband'] },
-  median: { dress: 'median', always: ['tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos', 'kandys'] },
+  median: { dress: 'median', always: ['tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots'], opt: ['hair', 'bun', 'beard_long', 'beard_short', 'cap_soft', 'akinaka', 'gorytos', 'kandys', 'earrings', 'bracelets'] },
   worker: { dress: 'worker', always: ['work_upper', 'work_skirt', 'belt'], opt: ['hair', 'beard_long', 'beard_short', 'work_trousers', 'shoes', 'headband', 'cap_soft'] },
-  woman: { dress: 'woman', always: ['dress_upper', 'dress_skirt', 'belt'], opt: ['hair', 'hair_bob', 'headcloth', 'shoes'] },
+  woman: { dress: 'woman', always: ['dress_upper', 'dress_skirt', 'belt'], opt: ['hair', 'hair_bob', 'headcloth', 'shoes', 'earrings_b', 'bracelets_b'] },
   child: { dress: 'child', always: ['child_upper', 'child_skirt'], opt: ['hair', 'shoes'] },
 };
 /** the built costume (one instanced mesh per LOD) a dress is drawn with */
-export const COSTUME_OF: Record<Dress, Dress> = { persian: 'persian', guard: 'persian', median: 'median', worker: 'worker', woman: 'woman', child: 'child', envoy: 'envoy', envoy_short: 'envoy_short', envoy_bare: 'envoy_bare', king: 'persian' };
+export const COSTUME_OF: Record<Dress, Dress> = { persian: 'persian', guard: 'persian', median: 'median', worker: 'worker', woman: 'woman', child: 'child', envoy: 'envoy', envoy_short: 'envoy_short', envoy_bare: 'envoy_bare', king: 'persian', court_woman: 'persian' };
 /** the costumes that are built */
 export const BUILT: Dress[] = ['persian', 'median', 'worker', 'woman', 'child', 'envoy', 'envoy_short', 'envoy_bare'];
 /** bit of a piece in the mask of the costume a dress is drawn with (bit 0 = always present; 0 also for pieces that are
@@ -980,6 +992,92 @@ function gorytosGeo(L: Lib, key: string, lod: number) {
     weights: t => [W('pelvis', 1 - 0.4 * t), W('thigh_l', 0.4 * t)], mat: MAT.leather, col: COL.leather, prm: 3 });
 }
 
+// ------------------------------------------------------------------------------------------------ D-215: ornaments, shield, veil
+const LOBES = new WeakMap<HumanVariant, [V3, V3]>();
+/** the ear lobes of a body in the bind pose (left, right): the lowest 2.5 mm band of the head below the eyes where the
+ *  pinna stands out more than 5 mm beyond the skull (measured above the ear), 3 mm in from its rim (C; D-215) */
+export function earLobes(c: Pick<Ctx, 'A' | 'v' | 'J'>): [V3, V3] {
+  const hit = LOBES.get(c.v); if (hit) return hit;
+  const V = c.v.pos, eyeY = c.v.eyeY, hz = c.J('head')[2], head = partVerts(c.A, [P.head]);
+  const out = [1, -1].map(sd => {
+    const band = (y: number) => { let mx = 0, at: V3 = [0, y, hz]; for (const i of head) { const py = V[i * 3 + 1]; if (Math.abs(py - y) > 0.00125) continue; const x = V[i * 3] * sd; if (x > mx) { mx = x; at = [V[i * 3], py, V[i * 3 + 2]]; } } return { mx, at }; };
+    const skull = band(eyeY + 0.025).mx; let lobe: V3 | null = null;
+    for (let y = eyeY + 0.01; y > eyeY - 0.08; y -= 0.0025) { const b = band(y); if (b.mx > skull + 0.005) lobe = b.at; else if (lobe && y < eyeY - 0.02) break; }
+    const L = lobe ?? [sd * (skull + 0.008), eyeY - 0.045, hz] as V3; return [L[0] - sd * 0.003, L[1], L[2]] as V3;
+  }) as [V3, V3];
+  LOBES.set(c.v, out); return out;
+}
+/** a closed ring of wire (radius `r`) along a loop given per variant (`at(c, a)`: the loop's point at angle a) */
+function loopGeo(A: HumanAssets, key: string, o: { segs: number; rings: number; r: number; at: (c: Ctx, a: number) => V3; up: (c: Ctx) => V3; weights: [number, number][]; mat: number; prm: number }): Geo {
+  return tubeGeo(A, key, { segs: o.segs, rings: o.rings,
+    frame: (c, t) => { const a = t * 2 * Math.PI, p = o.at(c, a), w = nrm(sub(o.at(c, a + 0.01), o.at(c, a - 0.01))), up = o.up(c), u = nrm(sub(up, scl(w, dot(up, w)))); return { o: p, u, v: nrm(cross(w, u)), w }; },
+    radius: () => o.r, weights: () => o.weights, mat: o.mat, col: COL.fixed, prm: o.prm });
+}
+/** earrings: a hoop 18 mm across through each lobe, hanging in the ear's plane (wire 1.2 mm; C) */
+export const EARRING_R = 0.009;
+function earringsGeo(L: Lib, key: string, lod: number, metal: number) {
+  const R = EARRING_R, segs = lod === 0 ? 5 : 3, rings = lod === 0 ? 12 : lod === 1 ? 6 : 4;
+  return merge(key, [0, 1].map(s => loopGeo(L.A, `${key}_${s}`, { segs, rings, r: 0.0012,
+    at: (c, a) => { const l = earLobes(c)[s]; return [l[0], l[1] - R + R * Math.cos(a), l[2] + R * Math.sin(a)]; }, up: () => [1, 0, 0], weights: [W('head', 1)], mat: MAT.metal, prm: metal })));
+}
+const WRIST = new WeakMap<HumanVariant, Map<string, number[]>>();
+/** where a bracelet sits: 86 % of the way from the elbow to the wrist (C) */
+export const BRACELET_AT = 0.86;
+/** bracelets: a solid ring round each forearm just above the wrist, 4 mm clear of the forearm's section there (wire
+ *  3.5 mm; the animal-head terminals not modelled: C) */
+function braceletsGeo(L: Lib, key: string, lod: number, metal: number) {
+  const segs = lod === 0 ? 6 : lod === 1 ? 4 : 3, rings = lod === 0 ? 16 : lod === 1 ? 8 : 5;
+  const frameOf = (c: Ctx, s: 'l' | 'r') => { const a = c.J(`lowerarm_${s}`), h = c.J(`hand_${s}`), w = nrm(sub(h, a)), o = add(a, scl(sub(h, a), BRACELET_AT)), u = nrm(sub([0, 0, 1], scl(w, w[2]))); return { o, u, v: nrm(cross(w, u)), w }; };
+  const sup = (c: Ctx, s: 'l' | 'r') => { let m = WRIST.get(c.v); if (!m) WRIST.set(c.v, m = new Map()); const hit = m.get(s); if (hit) return hit;
+    const F = frameOf(c, s), r = new Array(64).fill(0.025);
+    for (const i of partVerts(c.A, s === 'l' ? [P.farm_l, P.hand_l] : [P.farm_r, P.hand_r])) { const d = sub([c.v.pos[i * 3], c.v.pos[i * 3 + 1], c.v.pos[i * 3 + 2]], F.o); if (Math.abs(dot(d, F.w)) > 0.012) continue; const x = dot(d, F.u), y = dot(d, F.v); for (let b = 0; b < 64; b++) { const h = x * COS64[b] + y * SIN64[b]; if (h > r[b]) r[b] = h; } }
+    m.set(s, r); return r; };
+  return merge(key, (['l', 'r'] as const).map(s => loopGeo(L.A, `${key}_${s}`, { segs, rings, r: 0.0035,
+    at: (c, a) => { const F = frameOf(c, s), rr = rimAt(sup(c, s), a) + 0.004 + 0.0035; return add(F.o, add(scl(F.u, rr * Math.cos(a)), scl(F.v, rr * Math.sin(a)))); },
+    up: c => frameOf(c, s).w, weights: [W(`lowerarm_${s}`, 1)], mat: MAT.metal, prm: metal })));
+}
+/** the wicker shield: violin-shaped (an ellipse 0.8 × 0.44 m with a notch in each side), 2 cm thick and a little domed,
+ *  held by the grip at its centre in the left hand: its long axis along the forearm, its face outward (C) */
+export const SHIELD = { half: 0.4, halfW: 0.22, notch: 0.28, thick: 0.02, off: 0.05, dome: 0.03 } as const;
+function shieldGeo(L: Lib, key: string, lod: number) {
+  const segs = lod === 0 ? 24 : lod === 1 ? 12 : 8, S = SHIELD;
+  const F0 = (c: Ctx) => { const a = c.J('lowerarm_l'), h = c.J('hand_l'), m = c.J('middle_01_l'), u = nrm(sub(h, a)), g = add(h, scl(sub(m, h), 0.85)), w0: V3 = [1, 0, 0], w = nrm(sub(w0, scl(u, dot(w0, u)))); return { g: add(g, scl(w, S.off)), u, w }; };
+  return tubeGeo(L.A, key, { segs, rings: 1, capStart: true, capEnd: true, capLift: S.dome,
+    frame: (c, t) => { const F = F0(c); return { o: add(F.g, scl(F.w, (t - 0.5) * S.thick)), u: F.u, v: nrm(cross(F.w, F.u)), w: F.w }; },
+    radius: (_c, _t, th) => { const a = S.half, b = S.halfW, ct = Math.cos(th), st = Math.sin(th); return (a * b) / Math.hypot(b * ct, a * st) * (1 - S.notch * Math.exp(-((ct / 0.2) ** 2))); },
+    weights: () => [W('lowerarm_l', 0.3), W('hand_l', 0.7)], mat: MAT.wicker, col: COL.fixed, prm: 0 });
+}
+/** the court woman's crown: a low gold band fitted to the head with ten merlons (crenellated), 7 cm (C) */
+function crownWGeo(L: Lib, key: string, lod: number) {
+  const segs = lod === 0 ? 40 : lod === 1 ? 20 : 10, rings = lod === 0 ? 4 : 2, H = 0.07, merlons = 10;
+  const cache = { v: null as HumanVariant | null, r: [] as number[] }, F0 = (c: Ctx) => headRingFrame(c, 0.05, 0.12);
+  return tubeGeo(L.A, key, { segs, rings, lining: 0.003, closeTop: true,
+    frame: (c, t) => { const F = F0(c); return { ...F, o: add(F.o, scl(F.w, -0.01 + (H + 0.01) * t)) }; },
+    radius: (c, t, th) => { const r = headRim(c, F0(c), 0.008, cache), gap = Math.cos(th * merlons) > 0.2 ? 0 : 1; return rimAt(r, th) + 0.008 + 0.004 * t - gap * 0.02 * sstep(0.62, 0.7, t); },
+    weights: () => [W('head', 1)], mat: MAT.metal, col: COL.fixed, prm: METAL.gold });
+}
+const VEIL = new WeakMap<HumanVariant, Map<string, number[][]>>();
+/** the court woman's veil: an open sheet over the back and the shoulders' backs (±60° from the back), from under the
+ *  crown to mid-thigh; hanging from the widest of the body and the robe above each height (a running maximum: cloth
+ *  hangs, it does not tuck in), 12 mm clear of them and flaring to 4 cm at the hem; 3 mm fine wool, lined (C) */
+function veilGeo(L: Lib, key: string, lod: number) {
+  const S = lod === 0 ? 16 : lod === 1 ? 8 : 5, R = lod === 0 ? 12 : lod === 1 ? 5 : 3, A0 = Math.PI - 1.05, A1 = Math.PI + 1.05;
+  const origin = (c: Ctx, t: number): V3 => { const y0 = c.v.eyeY + 0.055, y1 = c.J('pelvis')[1] - 0.26, hz = c.J('head')[2] + 0.03, bz = c.J('spine_02')[2]; return [0, lerp(y0, y1, t), lerp(hz, bz, sstep(0, 0.3, t))]; };
+  const robe = ['robe_upper', 'robe_sleeves', 'robe_skirt'].map(k => geoKey(k, lod));
+  const table = (c: Ctx) => { let m = VEIL.get(c.v); if (!m) VEIL.set(c.v, m = new Map()); const hit = m.get(key); if (hit) return hit;
+    const parts = [P.head, P.neck, P.chest, P.belly, P.pelvis, P.uarm_l, P.uarm_r, P.thigh_l, P.thigh_r], rows: number[][] = []; let run: number[] | null = null;
+    for (let k = 0; k <= R; k++) { const F = vertFrame(origin(c, k / R)), r = new Array(64).fill(0), slab = 0.02;
+      for (const i of partVerts(c.A, parts)) { const d = sub([c.v.pos[i * 3], c.v.pos[i * 3 + 1], c.v.pos[i * 3 + 2]], F.o); if (Math.abs(d[1]) > slab) continue; const x = dot(d, F.u), y = dot(d, F.v); for (let b = 0; b < 64; b++) { const h = x * COS64[b] + y * SIN64[b]; if (h > r[b]) r[b] = h; } }
+      const pr = placedSupport(c, robe, F, slab); for (let b = 0; b < 64; b++) r[b] = Math.max(r[b], pr[b]);
+      const sm = r.map((_, b) => (r[(b + 63) % 64] + 2 * r[b] + r[(b + 1) % 64]) / 4); if (run) for (let b = 0; b < 64; b++) sm[b] = Math.max(sm[b], run[b]); run = sm; rows.push(sm); }
+    m.set(key, rows); return rows; };
+  return tubeGeo(L.A, key, { segs: S, rings: R, lining: 0.003, arc: [A0, A1],
+    frame: (c, t) => vertFrame(origin(c, t)),
+    radius: (c, t, th) => { const rows = table(c), k = Math.min(R, Math.round(t * R)); return rimAt(rows[k], th) + 0.012 + 0.028 * t * t + 0.003 * Math.sin(th * 9 + t * 5) * t; },
+    weights: t => t < 0.1 ? [W('head', 1 - t / 0.1), W('neck_01', t / 0.1)] : t < 0.25 ? [W('neck_01', 1 - (t - 0.1) / 0.15), W('spine_03', (t - 0.1) / 0.15)] : t < 0.6 ? [W('spine_03', 1 - (t - 0.25) / 0.35), W('spine_01', (t - 0.25) / 0.35)] : [W('spine_01', 1 - (t - 0.6) / 0.4), W('pelvis', (t - 0.6) / 0.4)],
+    mat: MAT.cloth_second, col: COL.second, prm: 4 });
+}
+
 // ------------------------------------------------------------------------------------------------ piece factory
 function buildPiece(L: Lib, id: string, lod: number): Geo {
   const J = L.J;
@@ -1022,6 +1120,11 @@ function buildPiece(L: Lib, id: string, lod: number): Geo {
     case 'bow': return bowGeo(L, `${id}@${lod}`, lod);
     case 'akinaka': return akinakaGeo(L, `${id}@${lod}`, lod);
     case 'gorytos': return gorytosGeo(L, `${id}@${lod}`, lod);
+    case 'earrings': case 'earrings_b': return earringsGeo(L, `${id}@${lod}`, lod, id === 'earrings' ? METAL.gold : METAL.bronze);
+    case 'bracelets': case 'bracelets_b': return braceletsGeo(L, `${id}@${lod}`, lod, id === 'bracelets' ? METAL.gold : METAL.bronze);
+    case 'shield': return shieldGeo(L, `${id}@${lod}`, lod);
+    case 'crown_w': return crownWGeo(L, `${id}@${lod}`, lod);
+    case 'veil': return veilGeo(L, `${id}@${lod}`, lod);
   }
   void J;
   throw new Error('unknown piece ' + id);
@@ -1178,7 +1281,9 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
           const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
           for (const v of sub) for (let e = 0; e < 3; e++) { const x = out.refPos[v * 3 + e]; if (x < lo[e]) lo[e] = x; if (x > hi[e]) hi[e] = x; }
           const ext = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]);
-          parts.push(opts.simplify(sub, out.refPos, Math.min(tris, Math.max(4, Math.round(tris * FAR_KEEP))), PIECE_ERR * ext)); }
+          // (D-215: a piece smaller than the error bound — an earring, a bracelet — is removed whole by the simplifier: it
+          // keeps its far geometry instead, so the farthest body still draws what the look wears)
+          const simp = opts.simplify(sub, out.refPos, Math.min(tris, Math.max(4, Math.round(tris * FAR_KEEP))), PIECE_ERR * ext); parts.push(simp.length >= 12 ? simp : sub); }
         const idx = new Uint32Array(parts.reduce((x, q) => x + q.length, 0)); let o = 0; for (const q of parts) { idx.set(q, o); o += q.length; }
         const far: CostumeLOD = { ...out, lod: 3, index: idx, triangles: idx.length / 3, bodyTriangles: -1, pieceTris: {},
           tid: out.tid.slice(), skinIndex: out.skinIndex.slice(), skinWeight: out.skinWeight.slice(), uv: out.uv.slice(), hmat: out.hmat.slice(), hext: out.hext.slice(), refPos: out.refPos.slice(), refNrm: out.refNrm.slice() };

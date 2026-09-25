@@ -62,7 +62,7 @@ describe('music schedule: the court', () => {
       expect(s.find(p => p.perf!.instrument === 'voice')!.perf!.voices).toBe(4); expect(g.parts).toHaveLength(6);
       expect(new Set(s.map(p => p.perf!.pieceSeed)).size).toBe(1); // one piece, shared
       for (const p of g.parts) { expect(Math.abs(p.pos.e - hall.cx)).toBeLessThan(hall.sx / 2); expect(Math.abs(p.pos.n - hall.cy)).toBeLessThan(hall.sy / 2); expect(p.extra?.floor).toBe(hall.fl); }
-      expect(g.visual.placeholder).toBe(true);
+      expect(g.visual.placeholder).toBe(false); expect(g.visual.note).toMatch(/crown/); // D-215: the court dress (B20c closed)
     }
     const night = sweep([], [22, 24], on).gigs.concat(sweep([], [0, 5.5], on).gigs).filter(g => g.kind === 'court_night'); expect(night.length).toBeGreaterThan(0);
     expect(sweep([], [0, 5.5], { courtToday: true, courtYesterday: false }).gigs).toHaveLength(0); // the night after a day without the court
