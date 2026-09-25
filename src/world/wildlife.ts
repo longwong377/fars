@@ -6,7 +6,10 @@
 //  - buzzard / golden eagle (B: raptors of the Zagros, Bamu NP extract): 1–2 birds soaring in wide circles 120–450 m above
 //    the Kuh-e Rahmat slope by day, gliding with few wingbeats;
 //  - house sparrows (C): on the court floors near fires and people by day; they fly 8–15 m off when someone comes within 3 m.
-// Rendering: one InstancedMesh per species (3 draw calls; no shadows), a low-poly body + wings, flapping in the vertex
+//  - D-210 (gap audit items 10, 15, 36): hooded crows (C: expected, not sourced) on the ground at the town's middens by day,
+//    walking and pecking, now and then flying to another midden, lifting off when someone comes within 8 m; black kites
+//    (C: summer migrants, Mar–Sep) circling low over the town's middens and the stockyard, 35–120 m up.
+// Rendering: one InstancedMesh per species (5 draw calls; no shadows), a low-poly body + wings, flapping in the vertex
 // shader from a per-instance phase. Sizes from field-guide values (C).
 import * as THREE from 'three/webgpu';
 import { attribute, positionLocal, sin, float, vec3, abs, uniform } from 'three/tsl';
@@ -15,11 +18,32 @@ import type { NavGrid, P2 } from '../people/navgrid';
 import type { Terrain } from '../terrain/heightfield';
 
 export interface BirdSpecies { id: string; name: string; tier: string; months: number[]; hours: [number, number]; span: number; length: number; colour: [number, number, number]; flapHz: number; count: number }
-export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow', BirdSpecies> = {
+export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite', BirdSpecies> = {
   swallow: { id: 'swallow', name: 'barn swallow / common swift', tier: 'C (expected, not sourced; summer migrant)', months: [2, 3, 4, 5, 6, 7, 8], hours: [5.5, 19.5], span: 0.33, length: 0.18, colour: [0.07, 0.08, 0.12], flapHz: 7, count: 36 },
   raptor: { id: 'raptor', name: 'buzzard / golden eagle', tier: 'B (Zagros raptors, extract) / C on-site', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [8.5, 17.5], span: 1.9, length: 0.85, colour: [0.28, 0.21, 0.14], flapHz: 2.2, count: 2 },
   sparrow: { id: 'sparrow', name: 'house sparrow', tier: 'C (expected, not sourced)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6, 18.5], span: 0.24, length: 0.15, colour: [0.42, 0.33, 0.24], flapHz: 14, count: 40 },
+  crow: { id: 'crow', name: 'hooded crow', tier: 'C (crows and ravens expected, not sourced: SOUNDSCAPE.md section 4; D-210)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6.2, 18.3], span: 0.95, length: 0.46, colour: [0.2, 0.2, 0.21], flapHz: 3.5, count: 30 },
+  kite: { id: 'kite', name: 'black kite', tier: 'C (summer migrant over towns and middens; expected, not sourced; D-210)', months: [2, 3, 4, 5, 6, 7, 8], hours: [8, 17.5], span: 1.5, length: 0.58, colour: [0.3, 0.22, 0.15], flapHz: 2.4, count: 4 },
 };
+/** a crow's place (closed form): three quarters of each spell on the ground at its midden, walking and pecking between
+ *  spots within 6 m, the rest flying 12-25 m up to the next midden of its round; flushed (within 8 m of someone) it circles
+ *  the midden 5-9 m up until they have gone (C) */
+export function crowAt(middens: P2[], ground: (e: number, n: number) => number, seed: number, i: number, t: number, flushed: boolean, out: BirdPose) {
+  const r = new Rng(seed, `crow:${i}`), T = r.range(70, 130), off = r.range(0, T), k = Math.floor((t + off) / T), u = (t + off) / T - k, m = middens.length;
+  const at = (q: number) => middens[Math.floor(new Rng(seed, `crow:${i}:${q}`).range(0, m * 0.999)) % m], A = at(k), B = at(k + 1);
+  const hop = new Rng(seed, `crowhop:${i}:${Math.floor(t / 4)}`), jx = hop.range(-6, 6), jn = hop.range(-6, 6);
+  if (flushed) { const w = 0.5 + 0.2 * r.next(), R = 11 + 4 * r.next(), a = w * t + r.range(0, 6.3); out.pos.set(A[0] + R * Math.cos(a), ground(A[0], A[1]) + 5 + 4 * r.next(), -(A[1] + R * Math.sin(a))); out.heading = Math.atan2(-Math.sin(a), Math.cos(a)); out.bank = -0.3; out.flap = 1; out.visible = true; return; }
+  if (u < 0.75 || Math.hypot(B[0] - A[0], B[1] - A[1]) < 1) { const e = A[0] + jx, n = A[1] + jn; out.pos.set(e, ground(e, n) + 0.02, -n); out.heading = hop.range(0, 6.28); out.bank = 0; out.flap = 0; out.visible = true; return; }
+  const w = (u - 0.75) / 0.25, s = w * w * (3 - 2 * w), e = A[0] + (B[0] - A[0]) * s, n = A[1] + (B[1] - A[1]) * s, h = Math.sin(Math.PI * w) * r.range(12, 25);
+  out.pos.set(e, ground(e, n) + h + 0.02, -n); out.heading = Math.atan2(B[0] - A[0], B[1] - A[1]); out.bank = 0; out.flap = Math.sin(t * 0.8 + i) > -0.3 ? 1 : 0.2; out.visible = true;
+}
+/** a black kite circling low over its anchor: radius 30-60 m, 35-120 m up, 8-10 m/s, twisting its tail (not modelled) */
+export function kiteAt(base: P2, ground: number, seed: number, t: number, out: BirdPose) {
+  const r = new Rng(seed, 'kite'), R = r.range(30, 60), v = r.range(8, 10), w = (v / R) * (r.chance(0.5) ? 1 : -1), p = r.range(0, 6.3), h = r.range(35, 120);
+  const cx = base[0] + 40 * Math.sin(0.01 * t + p), cn = base[1] + 40 * Math.cos(0.013 * t + p);
+  out.pos.set(cx + R * Math.cos(w * t + p), ground + h + 8 * Math.sin(0.07 * t + p), -(cn + R * Math.sin(w * t + p)));
+  out.heading = Math.atan2(-R * w * Math.sin(w * t + p), R * w * Math.cos(w * t + p)); out.bank = -0.3 * Math.sign(w); out.flap = Math.sin(0.2 * t + p) > 0.85 ? 1 : 0; out.visible = true;
+}
 
 /** a bird mesh: body (tapered box) + two wing quads; wing vertices carry `wing` = ±1 at the tips (0 on the body) */
 function birdGeometry(span: number, len: number): THREE.BufferGeometry {
@@ -64,9 +88,11 @@ export class Birds {
   private flush = new Map<number, { from: THREE.Vector3; to: P2; t0: number }>();
   private pose: BirdPose = { pos: new THREE.Vector3(), heading: 0, bank: 0, flap: 0, visible: false };
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private e = new THREE.Euler(0, 0, 0, 'YXZ');
-  constructor(private seed: number, private nav: NavGrid, private terrain: Terrain, anchors: P2[]) {
+  private middens: P2[] = []; private kiteBases: P2[] = [];
+  /** `town` (D-210): the town's middens (the crows' rounds) and the places the kites circle over (middens, the stockyard) */
+  constructor(private seed: number, private nav: NavGrid, private terrain: Terrain, anchors: P2[], town?: { middens: P2[]; kites: P2[] }) {
     this.group.name = 'wildlife-birds';
-    this.anchors = anchors;
+    this.anchors = anchors; if (town) { this.middens = town.middens; this.kiteBases = town.kites; }
     const rng = new Rng(seed, 'sparrow-spots');
     for (let i = 0; i < BIRDS.sparrow.count; i++) { const a = anchors[i % anchors.length]; const s = nav.snap(a[0] + rng.range(-10, 10), a[1] + rng.range(-10, 10), 6); if (s) this.sparrowSpots.push(s); }
     for (const sp of Object.values(BIRDS)) {
@@ -94,6 +120,9 @@ export class Birds {
         const p = this.pose, sd = hashSeed(this.seed, sp.id, i);
         if (sp.id === 'swallow') { const a = this.anchors[i % this.anchors.length]; swallowAt(a, this.nav.heightAt(a[0], a[1]) || 0, sd, t, p); }
         else if (sp.id === 'raptor') { const base: P2 = [260 + i * 350, -40 - i * 220]; raptorAt(base, this.terrain.heightAt(base[0], -base[1]), sd, t, wind.x, wind.n, p); }
+        else if (sp.id === 'crow') { if (!this.middens.length) continue; crowAt(this.middens, this.gh, this.seed, i, t, false, p);
+          if (player && p.flap === 0 && Math.hypot(player[0] - p.pos.x, player[1] + p.pos.z) < 8) crowAt(this.middens, this.gh, this.seed, i, t, true, p); }
+        else if (sp.id === 'kite') { if (!this.kiteBases.length) continue; const b = this.kiteBases[i % this.kiteBases.length]; kiteAt(b, this.terrain.heightAt(b[0], -b[1]), sd, t, p); }
         else { if (!this.sparrowAt(i, t, player, p)) continue; }
         this.e.set(0, p.heading, 0); this.q.setFromEuler(this.e); if (p.bank) this.q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), p.bank));
         this.m4.compose(p.pos, this.q, ONE); mesh.setMatrixAt(n, this.m4); flapAttr.setX(n, p.flap); n++;
@@ -101,6 +130,7 @@ export class Birds {
       mesh.count = n; mesh.instanceMatrix.needsUpdate = n > 0; flapAttr.needsUpdate = n > 0;
     }
   }
+  private gh = (e: number, n: number) => this.terrain.heightAt(e, -n);
   /** sparrows: hop between spots near their anchor; flush 8–15 m when someone is within 3 m, land after ~1.2 s */
   private sparrowAt(i: number, t: number, player: P2 | null, out: BirdPose): boolean {
     const s = this.sparrowSpots[i]; if (!s) return false;

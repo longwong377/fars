@@ -36,7 +36,7 @@ import { PIECES, pieceBit, COSTUME_OF, weatherMask, type Dress } from './outfits
 import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim } from './workAnims';
 import { IK_Q } from './poseKit';
 import { WorkObjects, WORK_NOTES, type WorkKind } from './workObjects';
-import { Animals, animalsFor, ANIMAL_BUILD, grazeReach } from './animals';
+import { Animals, animalsFor, ANIMAL_BUILD, grazeReach, mountSeat, riderLift, type Species } from './animals';
 import type { PopView, ViewPerson } from './popview';
 import { CrowdImpostors, rowOf, frameOf } from './impostors';
 import type { AnimId } from './anim';
@@ -99,6 +99,10 @@ export const CARRIED_MAX = 2 * (POOL_MAX + POOL_HYST) + 128;
 export const THINGS_DIST = 400;
 /** a flock bleats about once every BLEAT_S seconds when the listener is within 60 m (C) */
 const BLEAT_S = 7;
+/** D-210: the working animals' voices (C): a donkey or mule of a performance brays about once every BRAY_S seconds within
+ *  150 m; a flock's dog barks about once every BARK_S seconds within 90 m, and every few seconds at a stranger (the listener)
+ *  within 20 m; hens cluck within 40 m */
+const BRAY_S = 75, BARK_S = 45, BRAYERS = new Set<Species>(['donkey', 'donkey_pack', 'mule', 'mule_pack']);
 
 export interface Person {
   key: string; agent: Agent | null; look: PersonLook; slot: number; rig: RigInput; face: FaceState;
@@ -291,6 +295,10 @@ export class Crowd {
     if (!spec.act) p.animK = 0.3; // the Phase 3 lineups' fixed seed
     return p;
   }
+  /** D-210: move an extra (a driver or a rider of world/traffic.ts) and change what it does, keeping its look; false when
+   *  there is no such extra */
+  moveExtra(key: string, x: number, y: number, z: number, yaw: number, act?: ActivityId, why?: string): boolean {
+    const p = this.persons.get(key); if (!p?.extra) return false; const e = p.extra; e.x = x; e.y = y; e.z = z; e.yaw = yaw; if (act) e.act = act; if (why !== undefined) e.why = why; return true; }
   /** remove the extras only (the pool's population people, attached by feedPool and indexed by pid, stay: D-143) */
   removeExtras() { for (const [k, p] of this.persons) if (p.extra) { this.freeSlot(p.slot); this.persons.delete(k); } }
   /** a person is speaking (address → speech line): the jaw moves for `seconds` */
@@ -494,6 +502,8 @@ export class Crowd {
       // side-on): the root follows it every frame, between pose refreshes too
       p.path = PATHED.has(p.anim) ? workRoot(p.anim as WorkAnim, this.cycleT(p, time), p.animK) : null;
       if (p.path) { const c = Math.cos(yaw), sn = Math.sin(yaw), o = p.path; x += c * o[0] + sn * o[1]; z += -sn * o[0] + c * o[1]; yaw += o[2]; }
+      // D-210: a rider sits on the mount's back (the mount stands on the ground at the base)
+      if (p.perf?.animals?.kind === 'mount') y += riderLift(p.perf.animals.species[0], p.look.stature || 1.65);
       const pr = p.prevRoot, r = p.root;
       if (p.drawnFrame === this.frame - 1) { pr[0] = r[0]; pr[1] = r[1]; pr[2] = r[2]; pr[3] = r[3]; } else { pr[0] = x; pr[1] = y; pr[2] = z; pr[3] = yaw; }
       r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
@@ -546,6 +556,7 @@ export class Crowd {
       // brings work objects and animals: performed as resolve() and placeThings do for the skinned, so the things are there
       // within THINGS_DIST whether the pool draws the person skinned or as an impostor, and nobody jumps between the two
       const pf = own && !a && vp && !(vp.moving && !ACTIVITIES[vp.act].moving) ? (PATH_ACTS.has(vp.act) ? 2 : THINGS_ACTS.has(vp.act) ? 1 : 0) : 0;
+      let lift = 0, vAnim: AnimId | null = null; // D-210: a rider's impostor (the seated frame) on the mount's back
       if (!this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), pf === 2 ? PATH_REACH + 4 : pf ? 4 : 1.3))) return;
       const key = a ? -1 - a.id : pid; let L = this.impLooks.get(key);
       if (!L) { if (made >= cap) { pending++; return; } made++;
@@ -555,12 +566,13 @@ export class Crowd {
         if (P) { const q = this.impP, k = L.seed, b = q.base, r = q.root; b[0] = x; b[1] = y; b[2] = z; b[3] = yaw;
           if (PATHED.has(P.anim)) { const o = workRoot(P.anim as WorkAnim, time + k % 100, (k % 1000) / 159); if (o) { const c = Math.cos(yaw), sn = Math.sin(yaw); x += c * o[0] + sn * o[1]; z += -sn * o[0] + c * o[1]; yaw += o[2]; } }
           r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
+          if (P.animals?.kind === 'mount' && d3 < THINGS_DIST) { lift = mountSeat(P.animals.species[0]).y; vAnim = P.anim; }
           if (d3 < THINGS_DIST && (P.work?.length || P.animals)) { q.perf = P; q.anim = P.anim; q.animK = (k % 1000) / 159; q.animT = k % 100; q.vp = vp; q.pid = pid; q.key = `p${pid}`; this.placeThings(q, time, d3, dt); } }
         if (!this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), 1.3))) return; } // the body out of view (its things in it)
-      const act = a ? this.sim!.performance(a).act : vp!.act, anim = ACTIVITIES[act].anim, moving = a ? a.walking : vp!.moving;
+      const act = a ? this.sim!.performance(a).act : vp!.act, anim = vAnim ?? ACTIVITIES[act].anim, moving = a ? a.walking : vp!.moving;
       if (ACTIVITIES[act].placeholder && !moving) placeholders++; // shown standing (idle), counted as the skinned are
       const ph = a ? a.gait : ((this.impPhase.get(key) ?? (pid % 628) / 100) + (moving ? (vp!.speed || 1.2) * dt / 0.72 * Math.PI : ACTIVITIES[act].moving ? IN_PLACE_RATE * dt : 0)); if (!a) this.impPhase.set(key, ph);
-      imp.push(x, y, z, yaw, rowOf(L.dress, frameOf(moving && !ACTIVITIES[act].moving ? 'walk' : anim, ph)), L.scale, null, L.packed); this.drawnKeys?.add(key);
+      imp.push(x, y + lift, z, yaw, rowOf(L.dress, frameOf(moving && !ACTIVITIES[act].moving && !vAnim ? 'walk' : anim, ph)), L.scale, null, L.packed); this.drawnKeys?.add(key);
       const dd = Math.sqrt((x - cam.x) ** 2 + (z - cam.z) ** 2); bands[dd < 600 ? 0 : dd < 1500 ? 1 : dd < 3000 ? 2 : 3]++; if (moving) walkers++;
     };
     for (let i = 0; i < this.nImp; i++) { const e = this.impList[i]; one(e.vp ? e.vp.pid : -1, e.a, e.vp, e.x, e.y, e.z, e.yaw, true); }
@@ -733,6 +745,10 @@ export class Crowd {
     }
     if (A.kind === 'flock' && d < 60 && list.length && Math.random() < dt / BLEAT_S) { const an = list[Math.floor(Math.random() * list.length)]; const c = Math.cos(b[3]), s = Math.sin(b[3]);
       this.onHit?.('bleat', new THREE.Vector3(b[0] + c * an.x + s * an.z, b[1] + 0.5, b[2] - s * an.x + c * an.z)); }
+    if (d < 150 && list.length && this.onHit) { const at = (an: { x: number; z: number }, h: number) => { const c = Math.cos(b[3]), s = Math.sin(b[3]); return new THREE.Vector3(b[0] + c * an.x + s * an.z, b[1] + h, b[2] - s * an.x + c * an.z); };
+      const br = list.find(an => BRAYERS.has(an.sp)); if (br && Math.random() < dt / BRAY_S) this.onHit('bray', at(br, 1.1));
+      const dog = d < 90 ? list.find(an => an.sp === 'dog') : undefined; if (dog && Math.random() < dt / (d < 20 ? 3.5 : BARK_S)) this.onHit('bark', at(dog, 0.5));
+      if (d < 40 && Math.random() < dt / 6) { const hen = list.find(an => an.sp === 'hen' || an.sp === 'cock'); if (hen) this.onHit('cluck', at(hen, 0.25)); } }
   }
   // ------------------------------------------------------------------------------------------------ hits (overlay, pick)
   private raycast(rc: THREE.Raycaster, out: THREE.Intersection[]) {

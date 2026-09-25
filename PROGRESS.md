@@ -1,6 +1,20 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Animals (D-210; gap audit items 5, 6, 10, 11, 15, 16, 17).** Added: dogs (with the herds, in the yards and as strays),
+  and the animals that travel with their drivers and riders (the caravan's strings, Bactrian camels, E-06 donkey strings and
+  ox carts, E-20 couriers). Also fowl and the state poultry yard, the paradise's deer and gazelle, the river's boar, crows and
+  kites, the court's chariot and wagons, the delegations' animals, and the animals' synthesised voices.
+  - **Tiers:** every form, count and behaviour is C (fauna.json). Several sources are RECOLLECTION, NOT SEEN (FAUNA-RECOLL).
+  - **Never rendered in a browser:** node checks only.
+  - **Weak or not built:**
+    - Walk gait only: no trot or gallop.
+    - The bands' donkeys are not drawn on the road between camps (`road:` segments are not placed).
+    - The lioness, okapi, ibex and the delegations' chariots are not drawn.
+    - No reins; wheels do not turn.
+    - Flies are heard but not seen. No bats, rats or storks.
+  - **Crowd CPU gate:** performances.test (median < 10 ms) fails under machine load on both the base and this branch. It
+    needs re-measuring.
 - **Audience panel and the carved edge (D-204; the user's "fill the gaps").** The panel's composition after the Treasury
   audience reliefs is RECOLLECTION, NOT SEEN (the figures B via TREAS-AUD; order, sizes, canopy and paint C). **Not rendered
   in a browser** (node previews only: `shots/d204/`). Weak: at L2 (4-14 m) folds are faint and the royal robe's pattern and

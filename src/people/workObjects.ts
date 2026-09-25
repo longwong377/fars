@@ -14,7 +14,9 @@ import { nearCascadesOnly } from './humanGPU';
 
 export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field' | 'jar' | 'mortar_tub' | 'brick_course' | 'beam' | 'loom' | 'dung_cakes' | 'vat' | 'fodder'
   | 'fleece' | 'butchery' | 'hides' | 'basket_meat' | 'threshing_floor' | 'stooks' | 'sheaves' | 'sheaf' | 'grain_heap' | 'spoil' | 'basket_fruit' | 'press' | 'brushwood'
-  | 'pigment_slab' | 'bier' | 'wash_stone' | 'drying_rack' | 'target' | 'hearth_pot' | 'ard' | 'throne';
+  | 'pigment_slab' | 'bier' | 'wash_stone' | 'drying_rack' | 'target' | 'hearth_pot' | 'ard' | 'throne'
+  // D-210: the vehicles (gap audit items 16, 17) and the state poultry yard (item 11)
+  | 'cart' | 'chariot' | 'wagon' | 'hurdles';
 type RGB = [number, number, number];
 const MUD: RGB = [0.5, 0.41, 0.31], MUD_WET: RGB = [0.36, 0.29, 0.22], BRICK: RGB = [0.62, 0.53, 0.4], STRAW: RGB = [0.72, 0.62, 0.38], STRAW_D: RGB = [0.62, 0.52, 0.3],
   WOOD: RGB = [0.45, 0.33, 0.21], WOOD_D: RGB = [0.34, 0.25, 0.16], STONE: RGB = [0.55, 0.54, 0.52], LIME: RGB = [0.66, 0.64, 0.6], POT: RGB = [0.62, 0.44, 0.3], WOOL: RGB = [0.8, 0.76, 0.66],
@@ -66,6 +68,10 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   target: { tier: 'C', note: 'a straw butt with a hide face on a post, for archery practice (C)' },
   hearth_pot: { tier: 'C', note: 'three hearth stones, ash and embers, a cooking pot on them (C; the fire is the settlement’s own)' },
   ard: { tier: 'C', note: 'a wooden ard with a stilt, a sole with a share and a beam to the yoke (the scratch plough of the ancient Near East: type B; form C)' },
+  cart: { tier: 'C', note: 'an ox cart: a plank bed on two solid wheels of three boards, a pole to the yoke on the oxen’s necks, loaded with sacks of grain (carts are silent at Persepolis; the Assyrian reliefs show such carts: B analogy; form, size and load C)' },
+  chariot: { tier: 'B', note: 'a two-wheeled chariot with spoked wheels, a box for the driver and a pole to the yoke of two horses (chariots on the Apadana reliefs and the royal chariot of HDT 7.40-41: B; form, size and the eight spokes C); court setting only' },
+  wagon: { tier: 'C', note: 'a covered four-wheeled wagon (harmamaxa) for the royal women on the road (HDT 7.83, a claim; RECOLLECTION, NOT SEEN): a box on solid wheels under an arched cloth cover, a pole to the yoke (form and size C); court setting only' },
+  hurdles: { tier: 'C', note: 'the state poultry yard: a ring of wattle hurdles and a low mud-brick coop (poultry and their fodder: PF 2034, IR-PET, B; where and how kept C)' },
   throne: { tier: 'B', note: 'the king’s throne and footstool at an audience (court setting, D-199): a high-backed chair on turned legs with lion’s-paw feet, and a footstool, as the Treasury audience relief carves them (TREAS-AUD, B); gilded wood and the sizes C: the seat 0.525 m and the footstool 0.105 m high, fitted to the enthroned pose measured on the rig (anim ENTHRONED); where it stood in the Apadana is not known (C)' },
 };
 
@@ -153,6 +159,44 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       g.push(P(lathe([[0.06, 0], [0.15, 0.06], [0.17, 0.14], [0.12, 0.22], [0.12, 0.25]], 10).translate(0, 0.13, 0), [0.3, 0.22, 0.17], 0.8));
       g.push(P(box(0.14, 0.03, 0.08, 0, 0.03, 0), [0.4, 0.12, 0.05], 0.7));
       for (let i = 0; i < 3; i++) g.push(P(rod([-0.3 + 0.05 * i, 0.03, -0.05 + 0.05 * i], [0.05 * i, 0.06, 0.02 * i], 0.015, 0.012, 3), [0.3, 0.22, 0.15]));
+      return merge(g); }
+    // D-210: the vehicles, origin on the ground under the axle (the cart's and chariot's; the wagon's middle), the pole
+    // forward (+Z) to the yoke at the draught animals' necks (cart: animals.ts 'draught', CART_AT; C)
+    case 'cart': { const g: THREE.BufferGeometry[] = [], R = 0.46, bedY = 0.62;
+      for (const x of [-0.82, 0.82]) { g.push(P(new THREE.CylinderGeometry(R, R, 0.09, 14).rotateZ(Math.PI / 2).translate(x, R, 0), WOOD_D));
+        g.push(P(new THREE.CylinderGeometry(0.1, 0.1, 0.16, 8).rotateZ(Math.PI / 2).translate(x, R, 0), WOOD)); }
+      g.push(P(rod([-0.9, R, 0], [0.9, R, 0], 0.045, 0.045, 6), WOOD));
+      g.push(P(box(1.44, 0.07, 2.1, 0, bedY - 0.07, -0.05), WOOD)); for (const x of [-0.7, 0.7]) g.push(P(box(0.05, 0.28, 2.1, x, bedY, -0.05), WOOD_D));
+      g.push(P(box(1.44, 0.28, 0.05, 0, bedY, -1.08), WOOD_D));
+      g.push(P(rod([0, bedY - 0.04, 0.95], [0, 1.1, 3.45], 0.05, 0.04, 6), WOOD)); g.push(P(rod([-0.78, 1.14, 3.48], [0.78, 1.14, 3.48], 0.045, 0.045, 6), WOOD));
+      for (const x of [-0.55, 0.55]) for (const d of [-0.2, 0.2]) g.push(P(rod([x + d, 1.14, 3.48], [x + d * 0.9, 0.88, 3.45], 0.012, 0.012, 3), WOOD_D));
+      for (let i = 0; i < 5; i++) { const x = (i % 2 ? 0.3 : -0.3) + 0.03 * jit(i), z = -0.75 + i * 0.36;
+        g.push(P(new THREE.CapsuleGeometry(0.2, 0.42, 2, 7).rotateZ(Math.PI / 2).scale(1, 0.75, 1).translate(x, bedY + 0.16, z), [0.64, 0.58, 0.46], 1)); }
+      return merge(g); }
+    case 'chariot': { const g: THREE.BufferGeometry[] = [], R = 0.5, GILT: RGB = [0.62, 0.48, 0.28];
+      for (const x of [-0.7, 0.7]) { g.push(P(new THREE.TorusGeometry(R - 0.03, 0.035, 5, 18).rotateY(Math.PI / 2).translate(x, R, 0), WOOD_D));
+        g.push(P(new THREE.CylinderGeometry(0.07, 0.07, 0.28, 8).rotateZ(Math.PI / 2).translate(x, R, 0), GILT, 0.6, 0.3));
+        for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2; g.push(P(rod([x, R, 0], [x, R + (R - 0.05) * Math.sin(a), (R - 0.05) * Math.cos(a)], 0.014, 0.014, 3), WOOD)); } }
+      g.push(P(rod([-0.8, R, 0], [0.8, R, 0], 0.04, 0.04, 6), WOOD));
+      g.push(P(box(1.0, 0.05, 0.8, 0, R + 0.02, -0.05), WOOD)); g.push(P(box(1.0, 0.72, 0.04, 0, R + 0.07, 0.34), [0.5, 0.2, 0.12], 0.8));
+      for (const x of [-0.5, 0.5]) g.push(P(box(0.04, 0.6, 0.72, x, R + 0.07, -0.05), [0.5, 0.2, 0.12], 0.8));
+      g.push(P(rod([0, R + 0.05, 0.36], [0, 1.02, 1.6], 0.04, 0.035, 6), WOOD)); g.push(P(rod([0, 1.02, 1.6], [0, 1.22, 2.9], 0.035, 0.03, 6), WOOD));
+      g.push(P(rod([-0.62, 1.24, 2.9], [0.62, 1.24, 2.9], 0.04, 0.04, 6), WOOD));
+      return merge(g); }
+    case 'wagon': { const g: THREE.BufferGeometry[] = [], R = 0.42;
+      for (const z of [-0.95, 0.95]) for (const x of [-0.82, 0.82]) g.push(P(new THREE.CylinderGeometry(R, R, 0.09, 12).rotateZ(Math.PI / 2).translate(x, R, z), WOOD_D));
+      for (const z of [-0.95, 0.95]) g.push(P(rod([-0.88, R, z], [0.88, R, z], 0.04, 0.04, 5), WOOD));
+      g.push(P(box(1.5, 0.45, 2.7, 0, 0.62, 0), [0.4, 0.2, 0.12], 0.8));
+      g.push(P(new THREE.CylinderGeometry(0.75, 0.75, 2.6, 10, 1, true, -Math.PI / 2, Math.PI).rotateX(Math.PI / 2).rotateZ(0).translate(0, 1.07, 0), [0.66, 0.55, 0.36], 1));
+      g.push(P(rod([0, 0.7, 1.4], [0, 1.08, 3.9], 0.045, 0.04, 6), WOOD)); g.push(P(rod([-0.7, 1.12, 3.92], [0.7, 1.12, 3.92], 0.04, 0.04, 6), WOOD));
+      return merge(g); }
+    case 'hurdles': { const g: THREE.BufferGeometry[] = [], R = 9, n = 26, WAT: RGB = [0.52, 0.42, 0.28];
+      for (let i = 0; i < n; i++) { if (i === 0) continue; const a = (i / n) * Math.PI * 2, x = R * Math.cos(a), z = R * Math.sin(a), w = 2 * Math.PI * R / n + 0.05;
+        g.push(P(box(w, 0.9, 0.06, 0, 0, 0).rotateY(-a + Math.PI / 2).translate(x, 0, z), WAT, 1));
+        g.push(P(rod([x, 0, z], [x, 1.0, z], 0.03, 0.025, 4), WOOD_D)); }
+      g.push(P(box(3.2, 1.6, 2.2, 0, 0, -R + 2.2), MUD, 1)); g.push(P(box(3.5, 0.12, 2.5, 0, 1.6, -R + 2.2), [0.55, 0.47, 0.34], 1));
+      g.push(P(box(0.6, 0.7, 0.05, 0, 0, -R + 3.32), [0.2, 0.16, 0.12], 1)); // the coop's low door
+      for (let i = 0; i < 3; i++) g.push(P(lathe([[0, 0], [0.22, 0.02], [0.2, 0.1], [0, 0.1]], 7).translate(-2 + i * 2, 0, 2.5 - i), POT)); // water and grain dishes
       return merge(g); }
     case 'ard': { // in the ploughman's frame: the stilt rises to his left hand (≈ 0.12, 0.92, 0.5), the share runs in the soil at z ≈ 1.2, the beam goes to the yoke
       // on the oxen's necks in front of the withers (the team walks at z 3.35: animals.ts 'team'; yoke at z 4.05)
