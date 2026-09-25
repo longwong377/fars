@@ -76,10 +76,10 @@ day 197 of the regnal year · Tashritu 20 (30 Oct 467 BCE) · sunrise 06:24, sun
 07:05  eat @ h:420 — bread and water before leaving [off the Terrace: not drawn]
 07:16  walk → road:terrace — going up to the Treasury [off the Terrace: not drawn]
 07:29  walk @ road:terrace — going up to the Treasury [off the Terrace: not drawn]
-07:40  walk → treasury_desk — recording issues and payments
-07:51  write_tablet @ treasury_desk — recording issues and payments
+07:40  walk → treasury_desk — recording issues and payments, in Aramaic with a reed pen and ink on leather
+07:51  write_tablet @ treasury_desk — recording issues and payments, in Aramaic with a reed pen and ink on leather
 12:01  eat @ treasury_desk — the midday meal: the camp’s bread and water
-12:30  write_tablet @ treasury_desk — recording issues and payments
+12:30  write_tablet @ treasury_desk — recording issues and payments, in Aramaic with a reed pen and ink on leather
 15:31  walk → road:terrace — walking
 15:42  walk → road:terrace — walking [off the Terrace: not drawn]
 15:55  rest @ h:420 — at home [off the Terrace: not drawn]
@@ -139,7 +139,7 @@ day 200 of the regnal year · Tashritu 23 (2 Nov 467 BCE) · sunrise 06:27, suns
 15:13  gamble @ lane:q_pw_n — knucklebones in the lane [off the Terrace: not drawn]
 16:38  walk @ road:town — walking [off the Terrace: not drawn]
 16:44  rest @ h:1107 — at home [off the Terrace: not drawn]
-16:50  eat @ h:1107 — a birthday meal for Kassandane [off the Terrace: not drawn]
+16:50  eat @ h:1107 — a birthday meal for *Čiθrazātā [off the Terrace: not drawn]
 18:34  talk @ h:1107 — with the household [off the Terrace: not drawn]
 20:13  sleep @ h:1107 — asleep [off the Terrace: not drawn]
 
@@ -187,7 +187,7 @@ day 230 of the regnal year · Arahsamnu 23 (2 Dec 467 BCE) · sunrise 06:48, sun
 17:57–19:25  talk @ h:10075 (town) — with the household
 19:25–24:00  sleep @ h:10075 (town) — asleep
 
-## Person 2902: Ḫibtâ — servant, female, age 22, Elamite, zone town
+## Person 2902: *Hučiθrā — servant, female, age 22, Elamite, zone town
 day 310 of the regnal year · Shabatu 15 (20 Feb 466 BCE) · sunrise 06:26, sunset 17:33 · weather: 1–16 °C, cloud 81 %, rain 2.1 mm, wind 2 m/s · rain 17:30–22:30 · household 1126 (town q_pw_s, 6 people: 2896 scribe m45, 2897 homemaker f41, 2899 child m10, 2900 child m7, 2901 child m4, 2902 servant f22)
 00:00–05:46  sleep @ h:1126 (town) — asleep
 05:46–06:17  grind @ h:1126 (town) — grinding the household’s flour at the quern
@@ -231,7 +231,7 @@ day 327 of the regnal year · Addaru 2 (9 Mar 466 BCE) · sunrise 06:11, sunset 
 17:41–19:44  rest @ h:1116 (town) — with the household
 19:44–24:00  sleep @ h:1116 (town) — asleep
 
-## Person 7016: Barušiyatiš — child, male, age 5, Elamite, zone town
+## Person 7016: Barukka — child, male, age 5, Elamite, zone town
 day 55 of the regnal year · Aiaru 26 (10 Jun 467 BCE) · sunrise 05:00, sunset 18:59 · weather: 18–38 °C, cloud 23 %, dry, wind 3 m/s · household 2006 (town q_pw_n, 7 people: 7011 craftsman m48, 7012 homemaker f41, 7013 craftsman m24, 7014 child m12, 7015 child f8, 7016 child m5, 7017 child m18 months)
 00:00–04:56  sleep @ h:2006 (town) — asleep [with 7012]
 04:56–05:15  sleep @ h:2006 (town) — asleep
@@ -376,7 +376,7 @@ day 343 of the regnal year · Addaru 18 (25 Mar 466 BCE) · sunrise 05:57, sunse
 22:48–22:59  eat @ h:4538 (plain) — nursed by the mother [with 18770]
 22:59–24:00  sleep @ h:4538 (plain) — asleep beside the mother [with 18770]
 
-## Person 44135: Phaidyme — herder, female, age 8, Persian, zone transient
+## Person 44135: *Bagastūnā — herder, female, age 8, Persian, zone transient
 day 170 of the regnal year · Ululu 22 (3 Oct 467 BCE) · sunrise 06:00, sunset 17:59 · weather: 12–31 °C, cloud 10 %, dry, wind 2 m/s · household 10030 (transient band13, 30 people: 44126 herder m31, 44127 herder f25, 44128 herder m31, 44129 herder f26, 44130 herder f55, 44131 herder f7, 44132 herder m44, 44133 herder f37, 44134 herder f12, 44135 herder f8, 44136 herder m3, 44137 herder m36, 44138 herder f29, 44139 herder f9, 44140 herder m4, 44141 herder m12 months, 44142 herder m43, 44143 herder f36, 44144 herder m68, 44145 herder f2, 44146 herder m42, 44147 herder f38, 44148 herder m16, 44149 herder m8, 44150 herder m5, 44151 herder m26, 44152 herder f22, 44153 herder m31, 44154 herder f25, 44155 herder m7)
 00:00–05:32  sleep @ camp:band13:1 (plain) — asleep in the tent
 05:32–05:47  eat @ camp:band13:1 (plain) — bread and curds in the tent
@@ -497,7 +497,7 @@ day 312 of the regnal year · Shabatu 17 (22 Feb 466 BCE) · sunrise 06:24, suns
 18:51–19:06  talk @ h:2494 (plain) — with the household
 19:06–24:00  sleep @ h:2494 (plain) — asleep
 
-## Person 36403: Irdabama — farmer, female, age 13, Persian, zone plain
+## Person 36403: Roxane — farmer, female, age 13, Persian, zone plain
 day 329 of the regnal year · Addaru 4 (11 Mar 466 BCE) · sunrise 06:10, sunset 17:49 · weather: 0–15 °C, cloud 97 %, rain 4.0 mm, wind 3 m/s · rain 06:15–12:00 · household 8436 (plain v_29, 8 people: 36398 farmer m55, 36399 homemaker f45, 36400 farmer m24, 36401 farmer m20, 36402 homemaker f17, 36403 farmer f13, 36404 child m10, 36405 child m6)
 00:00–05:16  sleep @ h:8436 (plain) — asleep
 05:16–05:49  grind @ h:8436 (plain) — grinding the household’s flour at the quern
