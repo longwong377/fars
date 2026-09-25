@@ -231,6 +231,7 @@ async function boot() {
         cond: { rain: c.rain, snowFall: c.snowFall, wetness: c.wetness, snowCover: c.snowCover, cloud: c.cloud, haze: c.haze }, override: weather.override,
         horizon: sky.horizon.toArray().map(v => +v.toPrecision(4)), hemi: { sky: sky.hemi.color.toArray().map(v => +v.toPrecision(3)), ground: sky.hemi.groundColor.toArray().map(v => +v.toPrecision(3)), I: +sky.hemi.intensity.toPrecision(4) },
         sunI: +sky.sun.intensity.toPrecision(4), env: !!(scene as any).environment || !!(scene as any).environmentNode, fogNode: !!(scene as any).fogNode }; },
+    holdWeather: (h: { wetness?: number; snow?: number; cell?: number } | null) => { wxHold = h; },
     pickW: (nx: number, ny: number) => { const rc = new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(nx, ny), camera);
       const hit = rc.intersectObjects(world.root.children, true).find(h => (h.object as THREE.Mesh).isMesh && (h.object as THREE.Mesh).visible && !((h.object as any).material?.transparent));
       if (!hit) return null; const m: any = (hit.object as THREE.Mesh).material, n = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : null;
@@ -298,6 +299,8 @@ async function boot() {
   { const P = (world as any).people; if (P) P.crowd.onPopIn = (what: string, d: number) => api.popins.push({ what, d: +d.toFixed(1), t: clock.t }); }
   addEventListener('error', e => api.errors.push(String(e.message)));
   let freeCam: null | { x: number; y: number; z: number; yaw: number; pitch: number } = null;
+  /** debug (D-219): weather uniforms held at given values for before/after renders (__parsa.holdWeather) */
+  let wxHold: { wetness?: number; snow?: number; cell?: number } | null = null;
   let meterLn = NaN, meterBusy = false, meterT = 0, meterGain = 0; // frame meter (D-159)
   let botInput: { forward: number; right: number; run: boolean; yawDeg?: number; pitchDeg?: number } = { forward: 0, right: 0, run: false };
   let lastFrameMs = 0; let probeT = 0;
@@ -381,6 +384,7 @@ async function boot() {
     const t0 = performance.now(); if (opts.render !== false) renderer.info.reset();
     { const ss = seasonAt(clock.dayIndex); SEASON.green.value = ss.green; SEASON.dry.value = ss.dry; }
     WEATHER.wetness.value = cond.wetness; WEATHER.snow.value = cond.snowCover; WEATHER.puddles.value = Math.max(0, cond.wetness - 0.4) / 0.6;
+    if (wxHold) { if (wxHold.wetness !== undefined) { WEATHER.wetness.value = wxHold.wetness; WEATHER.puddles.value = Math.max(0, wxHold.wetness - 0.4) / 0.6; } if (wxHold.snow !== undefined) WEATHER.snow.value = wxHold.snow; if (wxHold.cell !== undefined) (RAIN_CELL.value as THREE.Vector4).w = wxHold.cell; } // debug holds (D-219: before/after measurements)
     pipeline.flash.value = world.flash?.() ?? 0;
     if (opts.render === false) return;
     // a frame rendered outside the renderer's animation loop (renderOnce, bench, bots) must advance the node frame itself:

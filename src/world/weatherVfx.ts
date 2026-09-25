@@ -78,21 +78,23 @@ export class WeatherVfx {
     this.uFlake.value.setRGB(0.85 * (amb[0] + 0.25 * sI * (sc?.r ?? 0)), 0.85 * (amb[1] + 0.25 * sI * (sc?.g ?? 0)), 0.85 * (amb[2] + 0.25 * sI * (sc?.b ?? 0)));
   }
   update(dt: number, camera: THREE.Camera, cond: { rain: number; snowFall: number; windMs: number; windDirDeg: number; lightning: boolean }, flashCap: number): number {
-    const cp = camera.position, m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), tiltQ = new THREE.Quaternion(), zAxis = new THREE.Vector3(0, 0, 1), pos = new THREE.Vector3(), scl = new THREE.Vector3();
+    const cp = camera.position, m4 = new THREE.Matrix4(), pos = new THREE.Vector3(), scl = new THREE.Vector3();
     const pxAngle = (camera as THREE.PerspectiveCamera).isPerspectiveCamera ? (2 * Math.tan(THREE.MathUtils.degToRad((camera as THREE.PerspectiveCamera).fov) / 2)) / 540 : 0.0015; // (a 540-line frame: the test captures)
     const wr = ((cond.windDirDeg + 180 - 341) * Math.PI) / 180, wx = Math.sin(wr) * cond.windMs, wz = -Math.cos(wr) * cond.windMs;
     const nr = Math.floor(this.maxDrops * Math.min(1, cond.rain)), ns = Math.floor(this.maxFlakes * Math.min(1, cond.snowFall));
     const wrap = (v: number, c: number, r: number) => { const d = v - c; return c + (((d + r) % (2 * r)) + 2 * r) % (2 * r) - r; };
     // rain: 6.5 m/s fall (C, typical drop terminal velocity), tilted by wind
-    const tilt = Math.atan2(Math.hypot(wx, wz), 6.5); tiltQ.setFromAxisAngle(zAxis, tilt * Math.sign(wx + wz));
+    const axis = new THREE.Vector3(-wx, 6.5, -wz).normalize(), ax = new THREE.Vector3(), rt = new THREE.Vector3(), fw = new THREE.Vector3(); // (up along the streak)
     { const { R, H } = RAIN_VOL;
       for (let i = 0; i < nr; i++) {
         const a = this.drops; a[i * 3] += wx * dt; a[i * 3 + 1] -= 6.5 * dt; a[i * 3 + 2] += wz * dt;
         if (a[i * 3 + 1] < cp.y - 2) a[i * 3 + 1] += H;
         const x = wrap(a[i * 3], cp.x, R), z = wrap(a[i * 3 + 2], cp.z, R), y = cp.y - 2 + (((a[i * 3 + 1] - cp.y + 2) % H) + H) % H;
         const d = Math.hypot(x - cp.x, y - cp.y, z - cp.z), mp = minPixel(RAIN_W, d, pxAngle);
-        e.set(0, Math.atan2(cp.x - x, cp.z - z), 0); q.setFromEuler(e).multiply(tiltQ);
-        m4.compose(pos.set(x, y, z), q, scl.set(mp.scale, 1, 1)); this.rain.setMatrixAt(i, m4); this.rainFade.setX(i, mp.fade * nearFade(d));
+        // the streak along the drop's velocity (fall + wind), turned about that axis to face the eye (session 7 turned each
+        // streak by the same signed angle in its own facing frame: streaks leant both ways across the frame)
+        ax.copy(axis); rt.set(cp.x - x, cp.y - y, cp.z - z).cross(ax); if (rt.lengthSq() < 1e-8) rt.set(1, 0, 0); rt.normalize(); fw.crossVectors(rt, ax);
+        m4.makeBasis(rt.multiplyScalar(mp.scale), ax, fw).setPosition(x, y, z); this.rain.setMatrixAt(i, m4); this.rainFade.setX(i, mp.fade * nearFade(d));
       } }
     this.rain.count = nr; this.rain.instanceMatrix.needsUpdate = nr > 0; this.rainFade.needsUpdate = nr > 0;
     { const { R, H } = SNOW_VOL;
