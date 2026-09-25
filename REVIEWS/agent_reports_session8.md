@@ -189,3 +189,28 @@ tools/dev/overcast_colour.ts.
 30–60 %) stopped the door blowing out (regression; the doorway is 43 % of the centre-weighted field), run 2 (50–65 %) 108.3,
 7.8 % clipped (rubric 7.9 %); dawn-stair-top 4.83 (mean 71.6 vs 71.9); dawn-sunrise ranges b/r 1.13. Tests sky_d224 and 15
 sky/exposure/weather/shader suites (115). D-224, Q-530..Q-536, B43, B44.
+
+## D-226 relief carving (merged: worktree-agent-a1edd9eae5ae4c8ce, head 4d7afc5)
+**Broken / placeholder first.** Still procedural low relief (C, RELIEF_META.placeholder, NEEDS #10); the edge profile from
+memory of photographs (Q-550). No undercut (a heightfield cannot hold one: the near-vertical step, contour occlusion and cast
+shadow stand in). The lion-and-bull is still a poor drawing (the lion's head lost under the mane block; musculature only the
+incised arcs and doming; Q-552). Detail finer than the 5 mm atlas texel (curls, pleat steps) casts no self-shadow (on a guard at
+22° ~25 % of what the exact march shades stays lit; the lion-and-bull 3–4 %). Robes speckle at 10 m in reliefs-raking (pleat
+self-shadow at 17° or paint-loss noise, not separated). Naqsh-e Rustam reliefs not covered. Load: atlas 43 MiB (8-bit 8192 ×
+5560) GPU and as much JS heap, ~8 s worker + 0.8 s main thread. Render run 1 failed one material at 17 textures (limit 16; the
+panel table moved to a uniform array) and showed dark blotches on the bull; run 2 (high, 5 frames, TAG d226b) passed both views.
+Full npm test and the soak not re-run on the final tree.
+**Cause of "no raking shadows":** the relief figures cast no shadow (D-048); the sun's nearest cascade has cm texels and a 6 cm
+normal bias that lifts every wall point above a 4.5–6 cm relief; the node preview marched its own heightfield.
+**Changed:** src/arch/relief_shadow.ts + src/render/reliefShadow.ts: all 927 figures and 2,740 rosettes stamped once into an
+8-bit height atlas in their walls' frames (texel 5–8 mm; facades sliced), a plan grid of ≤ 4 panels per cell; the sun's colour
+marches the atlas toward the sun (24 bilinear samples, 0.4 m reach), starting on the atlas's own surface on the carving (the
+LOD meshes lie up to 7 mm under the field: run 1's blotches); one extra texture binding in the opted-in materials; crisper edges
+(a near-vertical step holding 0.65–0.75 of the height, less rounding; the lion deeper, narrower waist); paint film even (opacity
+0.94–0.97, was 0.64–0.90), losses rare; per-vertex paint = the mean within half its longest edge (the LOD's diamonds).
+**Measured:** 15° raking sun, a straight edge: depth 3/4.5/6 cm → band 2.75/4.85/6.90 cm (exact march 3.20/5.20/7.20); shaded
+ground: guard 890 vs 1,025 cm² exact, lion-and-bull 3,365 vs 3,435; false self-shadow 0–0.43 % (was 11–44 % before the
+start-on-atlas fix); robe edge profile 1/3/12 mm in: 8.8/11.7/20.7 → 19.6/22.6/28.3 mm; reliefs-raking: wall luma 101 → ~49
+over 6 px then a 3 px near-black edge (geometry predicts 4–6 px); apadana-e-stair-raking: the bull's belly throws a band, luma
+110 → 44–63 over 10 px, blotches gone. Budgets: Apadana walk worst 1.091 → 1.112 M tris, Phase 4 jambs 1.444 → 1.450 M (budget
+1.5 M), draws unchanged. D-226, Q-550..Q-552, bench-reports/relief_budget_d226.txt.
