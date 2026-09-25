@@ -4649,6 +4649,10 @@ spot of the forecourt facing anywhere. Decided (all C; the form B from the relie
 - Those waiting face what they wait on (`court.ts FOCUS`, `focusOf`): the N stair (a segment: its 81.67 m run) from the
   forecourt, the E stair from the court below it, the hall's N door from the portico, the throne in the hall (±15° for
   people spread over a place, ±6° in the blocks); popview's spot key carries the facing act.
+- After the first render (see Renders): talk in the forecourt in knots of a few round 20 centres clear of the way and the
+  parties' places, facing the knot's centre (popgeo `talkKnots`); the forecourt, the Gate, the Apadana and its portico
+  swept only before about 08:00 and after about 16:00 (court.ts `palace`; in the moment's view cone 0 sweepers, was a
+  dozen).
 - The `court-assembly` moment moved to an audience morning: day 32, 09:30 (was day 30, 10:00: no audience that day).
 Measured (seed 1, the same metric on the same samples, days 30, 31, 33, 40 at 09:00-11:00, before → after): guards whose
 nearest file-mate is 0.8-1.3 m away, within 10° of the line's heading and on their post 0.5 % of 1,941 → 91.9 % of 1,945
@@ -4680,12 +4684,14 @@ an agent at the desk sat at a random point 0.8-2 m from it with no heading; writ
   the SE corner; two baskets of tablets on the bench's E end; two cylinder seals on their cords by the drying board; the
   floor about the places darkened and clay-stained (decal). The scribes wear the Median dress (sim.ts roster: tunic,
   trousers, boots; Q-515); the pupil a working tunic.
-- The `scribe-at-work` moment moved to day 21, 13:00 (all three writing at the desk in the sim) and re-posed from the room's
-  E end at seated eye height; `scribe-room-ne` to the same hour.
+- The `scribe-at-work` moment moved to day 21, 13:30 (all three writing at the desk in the sim, no visitor) and re-posed
+  from the room's W part at seated eye height looking E, the doorway's light from the right (the first render, from the E
+  end at 13:00, had them as silhouettes against the doorway); `scribe-room-ne` to the same hour. The pupil wears the
+  Median dress as the scribes (popview `lookInput`; the first render showed his working tunic as a bare-looking back).
 Tests: `tests/scribes_room.test.ts`; `tests/people_pieces.test.ts`'s moment test (failing on the base tree: "a scribe drawn
 within 6 m", no scribe in the room at day 25 10:00 since D-211's turns by seat) re-aimed to the new moment: both scribes
-write at the desk within 6 m, LOD 0, Median dress; the old pixel thresholds kept and met (tunic 12,933 px, cap 3,066,
-boots 2,917, trousers 2,671). `tests/performances.test.ts` passes except its CPU-timing assertion under load (the
+write at the desk within 6 m, LOD 0, Median dress; the old pixel thresholds kept and met (tunic 15,542 px, trousers 3,535,
+cap 3,297, boots 2,891). `tests/performances.test.ts` passes except its CPU-timing assertion under load (the
 draw-count assertion, which the stylus first broke at 3 draws, passes at 2).
 
 **Soak.** `npx tsx tools/soak.ts 30 60 1 --court` on this tree: events, stuck, stocks, renderedHonest, visibleChange pass;

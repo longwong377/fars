@@ -96,19 +96,19 @@ const CLOTHED_PARTS = new Set<number>([PART.chest, PART.belly, PART.pelvis, PART
 const clothedParts = (costume: Dress) => (costume === 'worker' || costume === 'child' ? new Set([...CLOTHED_PARTS].filter(p => p !== PART.uarm_l && p !== PART.uarm_r)) : CLOTHED_PARTS);
 const upperOf = (costume: Dress) => [...COSTUMES[costume].always].find(id => /upper/.test(id));
 
-// (D-221: the moment moved to day 21, 13:00, from the room's E end: on day 25 at 10:00 one scribe was ill and the other in
+// (D-221: the moment moved to day 21, 13:30, from the room's W part: on day 25 at 10:00 one scribe was ill and the other in
 // the store since D-211's turns by seat, so no scribe was in the room and this test failed on the base tree)
-describe('the scribe-at-work moment (tests/e2e/moments.spec.ts: day 21, 13:00, (190.4, −83.0, 1.05), az 247°, pitch −10°, fov 50)', () => {
+describe('the scribe-at-work moment (tests/e2e/moments.spec.ts: day 21, 13:30, (184.4, −82.9, 1.05), az 76°, pitch −10°, fov 50)', () => {
   it('both scribes write at the desk in Median dress at full detail, and their tunics, trousers and boots fill the frame where the render showed skin', () => {
     const W = new WeatherSystem(1), env = (t: number): Env => { const d = Math.floor(t / 24), c = W.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
     const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
     const sim = new PeopleSim(1, nav, env), plan = buildTownPlan(), terrain = loadTerrain(), rivers = loadRiversFile(), canals = buildCanals(terrain, rivers.rivers, 1), villages = placeVillages(terrain, rivers.rivers, canals, 1);
     const geo = new PopGeo({ pop: sim.pop, nav, town: plan, ground: (e, n) => terrain.heightAt(e, -n), villages, compounds: vi => villageCompounds(villages[vi], terrain, 1), canals: canals.map(c => c.pts), seed: 1 });
-    const view = new PopView(sim, geo, 1); sim.jumpTo(21 * 24 + 13); for (let i = 0; i < 20; i++) sim.step(3);
+    const view = new PopView(sim, geo, 1); sim.jumpTo(21 * 24 + 13.5); for (let i = 0; i < 20; i++) sim.step(3);
     const humans = newHumans(), crowd = new Crowd(sim, 1, humans as any); crowd.view = view; crowd.looksPerFrame = 1e9;
     // main.ts __parsa.view: the eye above the ground, the azimuth true (grid north is 341° true: yaw = −(az − 341°))
-    const e = 190.4, n = -83.0, y = nav.heightAt(e, n) + 1.05, cam = new THREE.PerspectiveCamera(50, 16 / 9, 0.1, 5000); cam.position.set(e, y, -n);
-    const h = ((247 - 341) * Math.PI) / 180, p = (-10 * Math.PI) / 180; cam.lookAt(e + Math.sin(h) * Math.cos(p) * 10, y + Math.sin(p) * 10, -n - Math.cos(h) * Math.cos(p) * 10);
+    const e = 184.4, n = -82.9, y = nav.heightAt(e, n) + 1.05, cam = new THREE.PerspectiveCamera(50, 16 / 9, 0.1, 5000); cam.position.set(e, y, -n);
+    const h = ((76 - 341) * Math.PI) / 180, p = (-10 * Math.PI) / 180; cam.lookAt(e + Math.sin(h) * Math.cos(p) * 10, y + Math.sin(p) * 10, -n - Math.cos(h) * Math.cos(p) * 10);
     for (let f = 0; f < 3; f++) { view.update(sim.t, [e, n]); crowd.update(f * 0.1, cam.position, null, cam); }
     const near = [...crowd.persons.values()].filter(q => q.drawnFrame > 0 && q.dist < 6);
     const scribes = near.filter(q => q.agent?.role === 'scribe'), s = scribes[0];
@@ -125,7 +125,7 @@ describe('the scribe-at-work moment (tests/e2e/moments.spec.ts: day 21, 13:00, (
     const px = Object.fromEntries([...hit.counts].sort((a, b) => b[1] - a[1]));
     OUT.moment = { ...(OUT.moment as object), pixels960x540: px }; save();
     // what the render read as bare torso and arms, bald head, bare feet: the tunic, the felt cap, the boots
-    // (the old view's thresholds kept: the two scribes at 2.7-3.6 m give tunic 12,933, cap 3,066, boots 2,917, trousers 2,671 px)
+    // (the old view's thresholds kept: the two scribes at 2.4-3.5 m give tunic 15,542, trousers 3,535, cap 3,297, boots 2,891 px)
     expect(hit.counts.get('tunic_upper') ?? 0).toBeGreaterThan(5000);
     expect(hit.counts.get('cap_soft') ?? 0).toBeGreaterThan(1500);
     expect(hit.counts.get('boots') ?? 0).toBeGreaterThan(1500);

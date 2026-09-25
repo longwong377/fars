@@ -328,6 +328,9 @@ export class PopGeo {
     if (K && ORDERED.has(place)) { const f = K.formationSpot(pid, place, day);
       if (f) { const q: P2 | null = this.nav.walkable(f.at[0], f.at[1]) ? f.at : this.nav.snap(f.at[0], f.at[1], 3);
         if (q) return this.sp(q[0], q[1], true, f.heading, 'nav', `Terrace: ${place}, in the order of the day's audience (the reliefs' form, B; the place C: D-221)`, { anchor, fixed: place !== 'gate_hall' }); } }
+    // D-221: talk in the forecourt is in knots of a few, standing round, clear of the way and the parties' places (C)
+    if (K && place === 'forecourt' && act === 'talk') { const C = this.talkKnots(), c = C[Math.floor(this.hash(pid, `knot${day}`, 1) * C.length)], a = this.hash(pid, `knot${day}`, 2) * Math.PI * 2, r = 0.95 + 0.25 * this.hash(pid, `knot${day}`, 3);
+      const e = c[0] + Math.cos(a) * r, n = c[1] + Math.sin(a) * r; return this.sp(e, n, true, headingOf(c[0] - e, c[1] - n), 'nav', 'Terrace: forecourt, talking in a knot of a few (C: D-221)', { anchor }); }
     // D-221: a post is held where it stands; people spread over a place keep off the posts, and in the forecourt off the way
     // between the files and off the parties' places (the ushers keep them clear: C)
     const clear = K ? (e: number, n: number) => !this.nearPost(e, n) && (place !== 'forecourt' || !courtKeepClear(e, n)) : null;
@@ -346,6 +349,16 @@ export class PopGeo {
     const fo = K && FACING_ACTS.test(act) ? focusOf(place, s[0], s[1]) : null;
     const hd = face ? headingOf(face[0] - s[0], face[1] - s[1]) : fo ? headingOf(fo[0] - s[0], fo[1] - s[1]) + (this.hash(pid, place, 16) - 0.5) * 30 /* (±15°: looking about, C) */ : P?.heading ?? this.hash(pid, place, 15) * 360;
     return this.sp(s[0], s[1], !(P as { hidden?: boolean } | undefined)?.hidden /* D-199: the king's rooms are not drawn */, hd, 'nav', `Terrace: ${place}${fo ? ', facing what is waited on (C: D-221)' : ''}`, { anchor, ...(K && P?.kind === 'post' ? { fixed: true } : {}) });
+  }
+  /** D-221: the centres of the forecourt's knots of talkers: every 3 m of the forecourt where a ring of 1.3 m round the
+   *  centre is walkable, off the posts, the way and the parties' places; 20 of them, spread (C) */
+  private knots: P2[] | null = null;
+  private talkKnots(): P2[] {
+    if (this.knots) return this.knots; const all: P2[] = [];
+    for (let x = -24; x <= 36; x += 3) for (let y = 64; y <= 101; y += 3) { let ok = true;
+      for (let k = 0; k < 8 && ok; k++) { const a = k * Math.PI / 4, e = x + Math.cos(a) * 1.3, n = y + Math.sin(a) * 1.3; if (!this.nav.walkable(e, n) || courtKeepClear(e, n) || this.nearPost(e, n)) ok = false; }
+      if (ok && !courtKeepClear(x, y)) all.push([x, y]); }
+    const step = Math.max(1, Math.floor(all.length / 20)); this.knots = all.filter((_, i) => i % step === 0).slice(0, 20); if (!this.knots.length) this.knots = [[0, 82]]; return this.knots;
   }
   /** D-221: the court's guard posts by 1 m cell, and whether (e, n) is within 0.8 m of one */
   private posts: Map<number, P2[]> | null = null;

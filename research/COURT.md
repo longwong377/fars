@@ -172,6 +172,11 @@ heading, and talked with other parties. What changed (every place, spacing and h
 - **Focus.** Those waiting at a court place face what they wait on (`court.ts FOCUS`): the N stair from the forecourt, the
   E stair from the court below it, the hall's N door from the portico, the throne in the hall (±15° for those spread over
   a place, ±6° in the blocks).
+- **After the first render (day 32, 09:30):** the frame still read as a crowd: in its view cone (node) 51 off-duty guards
+  and 51 nobles stood talking at random spots facing anywhere, and palace servants swept the forecourt among the parties.
+  Now talk in the forecourt is in knots of a few round 20 centres clear of the way and the parties' places, each facing
+  the knot's centre; the forecourt, the Gate, the Apadana and its portico are swept before 07:30-08:05 and after
+  15:35-16:10, not while the court waits.
 Measured (seed 1; the same metric): guards ordered (nearest file-mate 0.8-1.3 m, within 10° of the line's heading, on the
 post) 0.5 % → 87-100 % (the rest are the end men of files with a neighbour away at his meal); members within 3 m of their
 party's centroid 8.6 % → 100 %; mean cosine to the focus 0.009 → 0.995. Tests: `tests/court_order.test.ts`. Open: Q-510

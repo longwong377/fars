@@ -556,8 +556,11 @@ class CourtDay {
       : [...halls.map(h => [h, 'clean', `sweeping ${h === 'forecourt' ? 'the forecourt' : h === 'apadana_hall' ? 'the Apadana' : h === 'gate_hall' ? 'the Gate of All Nations' : h === 'court_portico' ? 'the Apadana portico' : h === 'court_tripylon' ? 'the Tripylon' : h === 'court_hadish' ? 'the Hadish' : 'the Tachara'}`, 1] as Opt),
         ['court_cistern', 'draw_water', 'drawing water for the palaces', 1.2], ['court_table_store', 'rest', 'resting between tasks', 0.8],
         ['apadana_hall', 'inspect', 'standing by in the Apadana in case he is called', 1]];
-    this.fill(r.range(11.6, 12.6), opts); this.meal(this.m.sleep === 'court_camp' ? 'court_kitchen' : this.m.sleep, 0.5, 'the midday meal from the kitchens');
-    this.fill(r.range(18, 19), opts); this.meal(this.m.sleep, 0.5, 'the evening meal'); this.fill(r.range(20.6, 21.6), [[this.m.sleep, 'rest', 'resting before sleep', 2], [this.m.sleep, 'talk', 'talking with the other servants', 1.5]]); this.night();
+    // D-221: the halls and courts where the court waits (the forecourt, the Gate, the Apadana and its portico) are swept
+    // before it assembles and after it has gone down, not among the waiting parties (C)
+    const OPEN = /^(forecourt|gate_hall|court_portico|apadana_hall)$/, busy = dayOff ? opts : opts.filter(o => !(o[1] === 'clean' && OPEN.test(o[0])));
+    this.fill(r.range(7.5, 8.1), opts); this.fill(r.range(11.6, 12.6), busy); this.meal(this.m.sleep === 'court_camp' ? 'court_kitchen' : this.m.sleep, 0.5, 'the midday meal from the kitchens');
+    this.fill(r.range(15.6, 16.2), busy); this.fill(r.range(18, 19), opts); this.meal(this.m.sleep, 0.5, 'the evening meal'); this.fill(r.range(20.6, 21.6), [[this.m.sleep, 'rest', 'resting before sleep', 2], [this.m.sleep, 'talk', 'talking with the other servants', 1.5]]); this.night();
   }
   table() {
     const r = this.r, K = 'court_kitchen', B = 'court_bakehouse', ST = 'court_table_store', HD = 'court_hadish', role = this.m.role;
