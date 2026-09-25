@@ -14,7 +14,7 @@ export type PoseBone = typeof POSE_BONES[number];
 type BoneName = PoseBone;
 
 export type AnimId = 'idle' | 'walk' | 'carry_shoulder' | 'carry_head' | 'carry_front' | 'guard' | 'guard_walk' | 'chisel' | 'grind' | 'knead'
-  | 'bake' | 'draw_water' | 'write' | 'eat' | 'sleep' | 'talk' | 'sit' | 'dice' | 'inspect' | 'play' | 'enthroned' | WorkAnim;
+  | 'bake' | 'draw_water' | 'write' | 'eat' | 'sleep' | 'talk' | 'sit' | 'dice' | 'inspect' | 'play' | 'enthroned' | 'ride' | WorkAnim;
 export type E3 = [number, number, number];
 export interface Pose { rot: Partial<Record<BoneName, E3>>; hips: E3; /** strike/impact event this frame (for tool sounds) */ hit?: boolean;
   /** the performer's root moved along a path of the cycle's own (m, m, rad in the performer's frame: the ploughman along
@@ -62,6 +62,10 @@ function sitCross(p: Pose) {
 
 /** D-199: the enthroned pose's pelvis offset from standing (m: down, back; C, measured against the throne's seat) */
 export const ENTHRONED = { drop: -0.3, back: -0.12 } as const;
+/** D-210: the riding pose: the pelvis offset from standing (m), the thighs' forward and outward turn and the knees' bend
+ *  (rad), and the seat's height above the root at scale 1 (the lowest pelvis or thigh point, m: measured on the rig,
+ *  tests/fauna.test.ts); the crowd lifts a rider by the mount's seat height minus seat × the look's scale (C) */
+export const RIDE = { drop: 0, back: -0.04, thigh: [-0.55, 0.58] as [number, number], shin: 0.7, shinIn: 0.22, seatK: 0.352 } as const;
 /** pose for an animation at time t (s); `ph` = gait phase (radians) for moving anims; `k` = per-person seed */
 export function pose(id: AnimId, t: number, ph: number, k: number): Pose {
   if (WORK.has(id)) return workPose(id as WorkAnim, t, ph, k);
@@ -139,6 +143,17 @@ export function pose(id: AnimId, t: number, ph: number, k: number): Pose {
       r.spine = [0.02, 0, 0]; r.r_upper = [-0.45, 0, -0.12]; r.r_fore = [-0.95, 0, 0.1]; r.l_upper = [-0.3, 0, 0.12]; r.l_fore = [-1.35, 0, -0.1];
       r.head = [0.02, 0, 0]; break;
     }
+    // D-210: astride a horse or a donkey without stirrups (blocklist; the Apadana horses carry a saddle cloth only): upright,
+    // the thighs forward and apart round the barrel, the lower legs hanging, the toes down, both hands forward low at the
+    // reins (not drawn); a small rise and fall with the mount's walk. Not planted and not seated on the ground: the crowd
+    // lifts the root so the seat (RIDE.seat, measured on the rig: tests/fauna.test.ts) rests on the mount's back
+    case 'ride': {
+      const b = Math.abs(S(t * 3.3 + k)); p.hips = [0, RIDE.drop + 0.012 * b, RIDE.back]; r.hips = [-0.06, 0, 0];
+      r.l_thigh = [RIDE.thigh[0], 0, RIDE.thigh[1]]; r.r_thigh = [RIDE.thigh[0], 0, -RIDE.thigh[1]]; r.l_shin = [RIDE.shin, 0, -RIDE.shinIn]; r.r_shin = [RIDE.shin, 0, RIDE.shinIn];
+      r.l_foot = [0.5, 0, 0]; r.r_foot = [0.5, 0, 0]; r.spine = [0.06 + 0.02 * b, 0, 0];
+      r.l_upper = [-0.4, 0, 0.12]; r.l_fore = [-1.05, 0, -0.15]; r.r_upper = [-0.4, 0, -0.12]; r.r_fore = [-1.05, 0, 0.15];
+      r.head = [0.04, 0.3 * wob(t * 0.25, k), 0]; break;
+    }
     case 'sleep': { p.hips = [0, -0.83, 0]; r.hips = [-PI / 2, 0, 0]; r.l_upper = [0, 0, 0.1]; r.r_upper = [0, 0, -0.1]; r.head = [0.2, 0.2, 0]; r.chest = [breath * 0.6, 0, 0]; r.l_shin = [0.2, 0, 0]; r.r_shin = [0.1, 0, 0]; break; }
     case 'talk': {
       const g = Math.max(0, wob(t * 1.3, k)); p.hips = [0.015 * wob(t * 0.5, k), 0, 0];
@@ -152,4 +167,4 @@ export function pose(id: AnimId, t: number, ph: number, k: number): Pose {
   return p;
 }
 const WORK = new Set<string>(WORK_ANIMS);
-export const ANIMS: AnimId[] = ['idle', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'chisel', 'grind', 'knead', 'bake', 'draw_water', 'write', 'eat', 'sleep', 'talk', 'sit', 'dice', 'inspect', 'play', 'enthroned', ...WORK_ANIMS];
+export const ANIMS: AnimId[] = ['idle', 'walk', 'carry_shoulder', 'carry_head', 'carry_front', 'guard', 'guard_walk', 'chisel', 'grind', 'knead', 'bake', 'draw_water', 'write', 'eat', 'sleep', 'talk', 'sit', 'dice', 'inspect', 'play', 'enthroned', 'ride', ...WORK_ANIMS];

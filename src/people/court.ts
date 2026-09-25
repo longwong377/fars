@@ -84,6 +84,14 @@ export function walkHours(a: string, b: string) {
 const S = { gen: salt('court-gen'), plan: salt('court-plan'), vis: salt('court-visitors'), day: salt('court-day'), vig: salt('court-vigil'), aud: salt('court-audience'), king: salt('court-king'), ret: salt('court-retinue') };
 type Group = 'royal_guard' | 'women' | 'attendants' | 'palace' | 'table' | 'porters' | 'butchers' | 'officials' | 'nobles' | 'visitor' | 'king' | 'retinue';
 interface Member { g: Group; role: string; sleep: string }
+/** D-210 (gap audit item 17): the animals a party brings, as its people's delegation on the Apadana reliefs leads them
+ *  (delegations.json `animal`, the relief carving's own list: B imagery, several RECOLLECTION); a petitioner's party, and a
+ *  delegation whose gift animal has no rig (the lioness, the okapi, the ibex: not drawn), have their pack animals */
+const ANIMAL_WORDS: Record<string, string> = { horse: 'the horses', camel_bactrian: 'the Bactrian camel', dromedary: 'the dromedary', bull: 'the humped bull', ram: 'the fat-tailed rams', wild_ass: 'the wild ass' };
+export function partyAnimals(pa: Pick<Party, 'petition' | 'origin'>): string {
+  const del = pa.petition ? undefined : DELEGATIONS_BY_ORIGIN.get(pa.origin) as (Deleg & { animal?: string }) | undefined;
+  return (del?.animal && ANIMAL_WORDS[del.animal]) || 'the pack animals';
+}
 /** a party's gift (the delegation's own, delegations.json) and the prop it is carried as: `gifts for the king: ` and the gift */
 export interface Party { i: number; day: number; leave: number; size: number; petition: boolean; origin: string; gift: string; members: number[]; audience: number; hh?: number }
 /** D-199: the delegations of the Apadana reliefs by origin (dress and gifts) */
@@ -603,7 +611,8 @@ class CourtDay {
     const K = this.K, d = this.d, r = this.r, pa = K.parties[this.p.idx], k = d - pa.day, CA = 'court_camp';
     const pr = (x: number) => u01(K.pop.seed, S.vis, 5000 + pa.i, d, x); // the party's shared draws (they go up together)
     const gifts = pa.petition ? undefined : `gifts for the king: ${pa.gift}`;
-    const campOpts: Opt[] = [[CA, 'rest', 'resting at the camp', 2], [CA, 'talk', 'talking with the party at the camp', 2], [CA, 'tend_animals', 'seeing to the party’s animals', 1], [CA, 'exchange', 'exchanging goods in kind at the camp', 0.6], [CA, 'wash', 'washing clothes at the camp', 0.4]];
+    const beasts = partyAnimals(pa); // D-210: the gift animal of the delegation's relief, or the party's pack animals
+    const campOpts: Opt[] = [[CA, 'rest', 'resting at the camp', 2], [CA, 'talk', 'talking with the party at the camp', 2], [CA, 'tend_animals', `seeing to the party’s animals: ${beasts}`, 1], [CA, 'exchange', 'exchanging goods in kind at the camp', 0.6], [CA, 'wash', 'washing clothes at the camp', 0.4]];
     if (d === pa.day) { // arriving
       // (the night at the last station on the road and a day's stage from it, as the road station's parties: D-196's planCheck
       // (g) found the party "on the road" from midnight, 15 h on foot; the court setting only; C)
@@ -612,7 +621,7 @@ class CourtDay {
         if (go - 0.4 - this.t > 0.05) this.add(go - 0.4, '-', 'offmap', `the morning at the last station on the road to the court (${pa.origin} party)`, undefined, 'away'); this.add(go, '-', 'eat', 'a meal at the last station before the road', undefined, 'away'); }
       this.add(h - 1, '-', 'offmap', `on the road to the court (${pa.origin} party)`, undefined, 'away');
       this.add(h, 'road:arrival', 'walk', 'on the road to the court', undefined, 'road'); this.cur = CA;
-      this.add(this.t + 0.6, CA, 'tend_animals', 'unloading the party’s animals at the camp');
+      this.add(this.t + 0.6, CA, 'tend_animals', `unloading the party’s animals at the camp: ${beasts}`);
       if (this.lastEat >= 0 && this.t - this.lastEat > 3) this.meal(CA, 0.5, 'a meal at the camp after the road'); // (the road's food since the station's meal)
       this.fill(Math.max(this.t + 0.5, lerp(18.2, 19, pr(2))), campOpts);
       this.meal(CA, 0.6, 'the evening meal at the camp'); this.fill(lerp(20.8, 21.6, pr(3)), campOpts); this.night(); return; }

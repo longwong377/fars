@@ -83,6 +83,8 @@ import type { WeatherSystem } from '../weather/weatherState';
 import placesJson from '../data/people_places.json';
 import { CourtCampTents } from './courtCamps';
 import { CAMPS } from '../people/camps';
+import { Fauna, FAC as FAUNA_FAC, type VillageIn } from './fauna';
+import { Traffic, type Mover } from './traffic';
 const gw = (e: number, n: number, y: number) => new THREE.Vector3(e, y, -n);
 /** longest absence simulated step by step on load (C: a month runs in about a second at the Phase 3 population) */
 export const CATCHUP_MAX_DAYS = 30;
@@ -166,7 +168,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
   const nav = await NavGrid.load(async p => (await fetch('/' + p)).arrayBuffer());
   // visible birds (§5.5): swallows over the courts in season, raptors over the slope, sparrows on the court floors
-  const birds = new Birds(seed, nav, terrain, ([[0, 90], [-20, 124], [60, -10], [-20, -110], [150, 40], [200, -70], [100, -110], [20, -125]] as [number, number][]).map(p => nav.snap(p[0], p[1], 8) ?? p));
+  // (D-210: and the crows at the town's middens, the kites over the middens and the stockyard)
+  const townMiddens = (settlement?.plan.middens ?? []).filter(m => m.kind === 'midden').map(m => m.c);
+  const birds = new Birds(seed, nav, terrain, ([[0, 90], [-20, 124], [60, -10], [-20, -110], [150, 40], [200, -70], [100, -110], [20, -125]] as [number, number][]).map(p => nav.snap(p[0], p[1], 8) ?? p),
+    townMiddens.length ? { middens: townMiddens, kites: [FAUNA_FAC.stockyard, townMiddens[0], townMiddens[Math.floor(townMiddens.length / 2)], townMiddens[townMiddens.length - 1]] } : undefined);
   root.add(birds.group);
   const jackals = new Jackals(seed, terrain); root.add(jackals.mesh); // on the plain edge from dusk to dawn
   for (const f of fire.fires) nav.blockDisc(f.pos.x, -f.pos.z, f.kind === 'torch' ? 0 : 0.8);
@@ -186,6 +191,19 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const geo = new PopGeo({ pop: sim.pop, nav, town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n), seed,
     villages: plain.data.villages, compounds: vi => villageCompounds(plain.data.villages[vi], terrain, seed), canals: plain.data.canals.map(c => c.pts) });
   const view = new PopView(sim, geo, seed); crowd.view = view;
+  // D-210: the animals that live about the town, the villages, the paradise and the river (world/fauna.ts), and the animals
+  // that travel with their drivers and riders (world/traffic.ts; drawn as crowd extras performing with their animals)
+  const groundAt = (e: number, n: number) => (nav.walkable(e, n) ? nav.heightAt(e, n) : terrain.heightAt(e, -n));
+  const faunaT0 = performance.now();
+  const villagesIn: VillageIn[] = plain.data.villages.map(v => ({ id: v.id, x: v.x, y: v.y, r: v.r, comps: villageCompounds(v, terrain, seed) }));
+  const fauna = new Fauna(seed, settlement?.plan ?? null, villagesIn, groundAt, { rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })), canals: plain.data.canals.map(c => c.pts as [number, number][]) });
+  if (sim.pop.court) { const cc = CAMPS.find(c => c.id === 'court'); if (cc) fauna.addCourtVehicles(cc.c as [number, number], cc.r); }
+  root.add(fauna.group); const faunaMs = performance.now() - faunaT0;
+  const traffic = new Traffic(seed, sim.pop as any, settlement?.plan ?? null); const movers: Mover[] = [], moverKeys = new Set<string>();
+  const syncTraffic = (cam: THREE.Vector3) => { traffic.at(sim.t, movers, { e: cam.x, n: -cam.z, r: 750 }); const now = new Set<string>();
+    for (const m of movers) { const k = `tr:${m.key}`, y = groundAt(m.e, m.n), yaw = yawOf(m.heading * 180 / Math.PI); now.add(k);
+      if (!moverKeys.has(k) || !crowd.moveExtra(k, m.e, y, -m.n, yaw, m.act, m.why)) { crowd.addExtra(k, { ...m.look, x: m.e, y, z: -m.n, yaw, act: m.act, why: m.why }); moverKeys.add(k); } }
+    for (const k of moverKeys) if (!now.has(k)) { crowd.detach(k); moverKeys.delete(k); } };
   let impMs = 0;
   { const t = performance.now(), pg = (k: string) => { const g = propGeometry(k)!, n = g.getAttribute('position').count; return { pos: g.getAttribute('position').array as Float32Array, idx: g.index ? g.index.array : Array.from({ length: n }, (_, i) => i) }; };
     crowd.imp = new CrowdImpostors(bakeImpostors(humans.A, humans.O, { jar: pg('jar'), sack: pg('sack') })); crowd.group.add(crowd.imp.mesh); impMs = performance.now() - t; }
@@ -212,6 +230,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const vols = (v: Settings['volume']) => (nowView.active ? { ...v, voices: 0, music: 0, effects: 0 } : v);
   nowView.onChange = () => { if (settings) audio.setVolumes(vols(settings.volume)); };
   crowd.onHit = (kind, pos) => sound.strike(kind, pos);
+  fauna.onSound = (kind, pos) => sound.strike(kind, pos); // D-210: barks, cock-crow, clucks, grunts at the animal
   // speech + crowd murmur (D-011): murmur from everyone whose activity sounds as talk; lines only from the lexicons
   // voices: eSpeak-NG clips pre-rendered from the lexicon IPA (tools/build_speech.py) first, the formant synthesiser for anything missing
   const voiceManifest = await fetch('/voices/manifest.json').then(r => (r.ok ? r.json() : { clips: {} })).catch(() => ({ clips: {} }));
@@ -279,6 +298,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const popLine = () => { const V = view.stats, I = crowd.impPerf, st = crowd.stats(), ph = st.placeholderActs + I.placeholders;
     if (Math.abs(sim.t - popAt) > 1 / 6) { popAt = sim.t; popTxt = `places not built: ${V.unresolved}`; }
     return `population ${sim.pop.persons.length} simulated · out of doors near: ${V.visible} (${V.walking} walking) of ${V.candidates} kept, drawn ${st.perf.drawn.reduce((a, b) => a + b, 0)} skinned + ${I.drawn} impostors [D-143] · ${popTxt} · activities with no performance, shown standing: ${st.placeholderActs} skinned + ${I.placeholders} impostors${ph ? ' [PLACEHOLDER]' : ''} · props ${st.props}${over(st.propsDropped)} · work objects ${st.things.instances}${over(st.things.dropped)}, animals ${st.animals.instances}${over(st.animals.dropped)} [D-142] · pop-ins ${I.popins}`; };
+  /** dev overlay (F3): the animals of D-210 (fauna.json: every one C unless its row says otherwise) */
+  const faunaLine = () => { const c = fauna.counts(), a = fauna.animals.stats(), f = fauna.stats;
+    return `animals (D-210, C; fauna.json): yard dogs ${c.yardDogsTown} town + ${c.yardDogsVillage} village + ${c.stableDogs} stable, strays ${c.strays}, hens ${c.hens} in ${c.henYards} yards + ${c.poultryYard} in the state poultry yard, deer ${c.deer}, gazelle ${c.gazelle}, boar ${c.boar}; drawn ${f.drawn} (${a.draws} draws, ${(a.triangles / 1e3).toFixed(1)} k tris${a.dropped ? `, ${a.dropped} over the cap NOT DRAWN` : ''}) ${JSON.stringify(f.bySpecies)}; on the roads ${movers.length} drivers and riders (${movers.map(m => m.kind).join(',') || 'none'}); built in ${faunaMs.toFixed(0)} ms`; };
   const simulate = (dt: number, clock: any) => {
     const target = clock.t * 24;
     if (!simStarted) { sim.jumpTo(target); simStarted = true; }
@@ -365,7 +387,11 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       doors.view(ctx.camera.position);
       { const pp = ctx.player.position; playerAt = new THREE.Vector3(pp.x, pp.y, pp.z); }
       view.update(sim.t, [ctx.camera.position.x, -ctx.camera.position.z]); // the population out of doors near the camera (D-143)
+      if (!nowView.active) syncTraffic(ctx.camera.position); // D-210: the drivers and riders on the roads, before the crowd draws them
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
+      { const day = Math.floor(sim.t / 24), sun = sunTimes(day); // D-210: the animals of the town, the villages, the paradise and the river
+        fauna.group.visible = !nowView.active;
+        if (!nowView.active) fauna.update({ t: time, hour: ctx.clock.localHour, month: ctx.cond.day.climMonth, sun, player: [playerAt.x, -playerAt.z], cam: ctx.camera.position, dt, rain: ctx.cond.rain }); }
       settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, skyLight: ctx.skyLight, cond: ctx.cond, player: ctx.player });
       campTents?.update(ctx.player.position.x, ctx.player.position.z); // D-199
       fire.setSkyLight(ctx.skyLight);
@@ -409,7 +435,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         sound.update(dt, { hour, month, windMs: ctx.cond.windMs, rain: ctx.cond.rain, insideSpace: spaceAt(cam.position.x, cam.position.y, cam.position.z),
           nearColumns: spaceAt(cam.position.x, cam.position.y, cam.position.z) !== 'open', stepPhase: ctx.player.bobPhase, running: false,
           surface: surfaceAt(feet, terrain.heightAt(p.x, p.z)), fires: fire.fires, listener: cam.position,
-          worksite: null, workHours: hour > 6.5 && hour < 17.5 }); // chisels, querns, dice now come from the people (crowd.onHit)
+          worksite: null, workHours: hour > 6.5 && hour < 17.5, // chisels, querns, dice now come from the people (crowd.onHit)
+          place: fauna.placeAt(cam.position.x, -cam.position.z), sun: sunTimes(Math.floor(sim.t / 24)), tempC: ctx.cond.tempC }); // D-210: where the animals and insects are heard
       }
     },
     flash: () => lastFlash,
@@ -418,7 +445,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       const o = audio.occlusionOf(lastHandle?.panner), s = lastSpoken;
       return [s ? `speech heard: ${s.lineId} (${s.lang}) tier ${s.tier} [${s.parts}] · ${s.situation} · ${s.backend}${o ? ` · occlusion ${o.gainDb.toFixed(1)} dB, ${Math.round(o.cutoffHz)} Hz via ${o.path}` : ''}` : 'speech heard: none yet',
         ...director.lines(),
+        `animals and insects heard (D-210, synthesised, C): ${sound.heardLines().join(' · ') || 'none in the last minute'}${sound.fliesLevel > 0.05 ? ` · flies ${sound.fliesLevel.toFixed(2)}` : ''}`,
         `occlusion (C, Maekawa; Q-304): ${audio.occlStats.tracked} sources tracked, ${audio.occlStats.queries} re-queried this frame in ${audio.occlStats.ms.toFixed(2)} ms · field ${occl.w}×${occl.h} cells built in ${occMs.toFixed(0)} ms · town and plain buildings not occluders`];
     },
-    summary: () => `${nowView.active ? nowView.summary() + ' · ' : ''}${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest + ${crowd.impPerf.drawn} impostors (baked in ${impMs.toFixed(0)} ms), ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms, view ${view.stats.evalMs.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''}${campTents ? ` · court camps ${campTents.info.tents} tents, ${(campTents.info.tris / 1e3).toFixed(1)} k tris in ${campTents.info.meshes} meshes (D-199, C)` : ''} · ${plain.summary()} · ${insc.userData.summary ?? ''}` } as WorldBuild;
+    summary: () => `${nowView.active ? nowView.summary() + ' · ' : ''}${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest + ${crowd.impPerf.drawn} impostors (baked in ${impMs.toFixed(0)} ms), ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms, view ${view.stats.evalMs.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''}${campTents ? ` · court camps ${campTents.info.tents} tents, ${(campTents.info.tris / 1e3).toFixed(1)} k tris in ${campTents.info.meshes} meshes (D-199, C)` : ''} · ${faunaLine()} · ${plain.summary()} · ${insc.userData.summary ?? ''}` } as WorldBuild;
 }

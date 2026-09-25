@@ -41,7 +41,10 @@ export interface WorkSpec { kind: WorkKind; at: [number, number, number]; follow
 /** animals the work needs (animals.ts): a flock grazing about the herder, the yoked pair ahead of the ploughman, the
  *  animals treading the threshing floor, one standing to be groomed, a sheep lying to be shorn, stock tethered by the
  *  butcher, a sheep on a lead */
-export interface AnimalSpec { kind: 'flock' | 'team' | 'circle' | 'beside' | 'lying' | 'tethered' | 'lead'; species: Species[]; n?: number }
+export interface AnimalSpec { kind: 'flock' | 'team' | 'circle' | 'beside' | 'lying' | 'tethered' | 'lead' | 'string' | 'mount' | 'draught'; species: Species[]; n?: number;
+  /** D-210: a flock's dogs; a string's, a mount's or a draught pair's walking pace (m/s; 0 standing), the lead rope between
+   *  the animals of a string (m), the first animal's distance behind the driver (m) and its side offset (m) */
+  dogs?: number; pace?: number; gap?: number; lead?: number; side?: number }
 
 export interface Performance {
   anim: AnimId; moving?: boolean;
@@ -60,8 +63,22 @@ export interface Performance {
 
 const SHEEP: Species[] = ['sheep', 'sheep', 'goat'];
 export const ACTIVITIES: Record<ActivityId, Performance> = {
-  walk: { anim: 'walk', moving: true, sound: 'footsteps', tier: 'C', note: 'walking' },
-  carry_sack: { anim: 'carry_shoulder', moving: true, prop: 'sack', sound: 'footsteps', tier: 'B', note: 'sack on the shoulder (porters on the tribute reliefs carry skins and bags: B)' },
+  walk: { anim: 'walk', moving: true, sound: 'footsteps', tier: 'C', note: 'walking',
+    // D-210 (gap audit item 6): the animals that travel with the people who lead them (world/traffic.ts, the court's parties)
+    variants: [
+      { when: /string of pack|pack train/, animals: { kind: 'string', species: ['donkey_pack', 'donkey_pack', 'mule_pack', 'donkey_pack', 'donkey_pack'], n: 5, pace: 1.0 },
+        note: 'a driver leading a string of five pack animals nose to tail, donkeys and a mule with panniers and sacks (pack donkeys: POTTS2023, B; mules: population.json, C; strings of five, the loads and the pace C)' },
+      { when: /unloaded string/, animals: { kind: 'string', species: ['donkey', 'donkey', 'mule', 'donkey', 'donkey'], n: 5, pace: 1.0 }, note: 'a driver leading his string back unladen (C)' },
+      { when: /string of Bactrian camels/, animals: { kind: 'string', species: ['camel_pack'], n: 4, pace: 1.0, gap: 1.2, lead: 1.4 },
+        note: 'a camel driver leading four Bactrian camels roped nose to tail, sacks slung each side (camels: the Apadana reliefs, B imagery; population.json camel 0-20 “caravans from outside Fars”, C; the string C)' },
+      { when: /unladen camels/, animals: { kind: 'string', species: ['camel'], n: 4, pace: 1.0, gap: 1.2, lead: 1.4 }, note: 'a camel driver leading his string back unladen (C)' },
+      { when: /courier riding/, anim: 'ride', sound: undefined, animals: { kind: 'mount', species: ['horse_saddle'], pace: 1.8 },
+        note: 'a royal courier riding a relay horse at a walk into or out of the road station (the relay: HDT 8.98, a claim, B; horse rations POTTS2023, B; riding HDT 1.136, B); a saddle cloth, no stirrups (blocklist); walking the horse near the station and its pace C' },
+      { when: /ox cart/, animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0.9 }, work: [{ kind: 'cart', at: [0, 0, -4.7] }],
+        note: 'a carter walking ahead of his yoked oxen and their cart of grain sacks on the road (carts silent at Persepolis, Assyrian reliefs B analogy; draught cattle Q-193; C)' }] },
+  carry_sack: { anim: 'carry_shoulder', moving: true, prop: 'sack', sound: 'footsteps', tier: 'B', note: 'sack on the shoulder (porters on the tribute reliefs carry skins and bags: B)',
+    variants: [{ when: /loading the donkeys|unloading the donkeys|pitching the tents|loading the animals|unloading the party/, animals: { kind: 'beside', species: ['donkey_pack'] },
+      note: 'loading or unloading the pack donkeys by the tents, a loaded donkey standing by (E-49 “herders, dogs and donkeys”; C)' }] },
   carry_jar: { anim: 'carry_shoulder', moving: true, prop: 'jar', sound: 'footsteps', tier: 'B', note: 'jar on the shoulder (tribute reliefs: B)' },
   carry_jar_head: { anim: 'carry_head', moving: true, prop: 'jar_head', sound: 'footsteps', tier: 'C', note: 'water jar carried on the head (C)' },
   carry_bread: { anim: 'carry_front', moving: true, prop: 'basket', sound: 'footsteps', tier: 'C', note: 'basket of bread for the gang’s meal (C)' },
@@ -109,12 +126,28 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   tend_animals: { anim: 'groom', prop: 'wisp', tier: 'C', animals: { kind: 'beside', species: ['donkey'] }, work: [{ kind: 'fodder', at: [0.95, 0, 1.55] }],
     note: 'seeing to the household’s animals: rubbing down and feeding (donkeys and horses are attested with rations, POTTS2023: B; the work C)',
     variants: [
+      // D-210 (gap audit item 6): a driver holding his string or his cart while the loads come off (world/traffic.ts)
+      { when: /holding the string/, anim: 'hold_lead', prop: 'lead', work: [], animals: { kind: 'string', species: ['donkey_pack', 'donkey_pack', 'mule_pack', 'donkey_pack', 'donkey_pack'], n: 5, pace: 0, side: -0.9, lead: -1.2 },
+        note: 'a driver holding his string of pack animals while the loads are taken off (C)' },
+      { when: /holding the camels/, anim: 'hold_lead', prop: 'lead', work: [], animals: { kind: 'string', species: ['camel_pack'], n: 4, pace: 0, gap: 1.2, side: -1.1, lead: -1.5 },
+        note: 'a camel driver holding his string while the loads are taken off (C)' },
+      { when: /holding the ox cart/, anim: 'idle', prop: 'goad', work: [{ kind: 'cart', at: [0, 0, -4.7] }], animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0 },
+        note: 'a carter standing by his oxen while the grain is taken off the cart (C)' },
+      // D-210 (gap audit item 17, court setting): a delegation's gift animal at the court's camp (the Apadana reliefs: B imagery; C)
+      { when: /Bactrian camel/, animals: { kind: 'beside', species: ['camel'] }, note: 'seeing to the party’s Bactrian camel, a gift of the Apadana reliefs (APA-RELIEF, B imagery; at the camp C)' },
+      { when: /dromedary/, animals: { kind: 'beside', species: ['dromedary'] }, note: 'seeing to the Arab party’s dromedary, a gift of the Apadana reliefs (B imagery; C)' },
+      { when: /humped bull/, animals: { kind: 'beside', species: ['zebu'] }, note: 'seeing to the party’s humped bull, a gift of the Apadana reliefs (B imagery; C)' },
+      { when: /fat-tailed rams/, anim: 'fodder', prop: 'basket_hip', animals: { kind: 'tethered', species: ['sheep', 'sheep'] }, work: [], note: 'feeding the party’s two fat-tailed rams, a gift of the Apadana reliefs (B imagery; C)' },
+      { when: /wild ass/, animals: { kind: 'beside', species: ['donkey'] }, note: 'seeing to the party’s wild ass, a gift of the Apadana reliefs (RECOLLECTION, C), drawn with the donkey’s form (no onager rig: C)' },
+      { when: /party’s animals.*the horses/, animals: { kind: 'beside', species: ['horse'] }, note: 'seeing to the party’s horses, the gift the Apadana reliefs show seven delegations leading (APA-RELIEF, MATCULT-R: B imagery; C)' },
+      { when: /pack mules?/, animals: { kind: 'beside', species: ['mule'] }, note: 'seeing to a pack mule (C)' },
+      { when: /the pack animals/, animals: { kind: 'beside', species: ['donkey_pack'] }, note: 'seeing to the party’s pack donkeys, their loads still on or stacked by (a travelling party’s animals: E-21, E-49; C)' },
       { when: /horse/, animals: { kind: 'beside', species: ['horse'] }, note: 'tending the relay horses of the road station (horse rations, POTTS2023: B; C)' },
       { when: /ewes|lamb/, anim: 'fodder', prop: 'basket_hip', animals: { kind: 'flock', species: SHEEP, n: 5 }, work: [], note: 'with the ewes at lambing (E-48, C): fodder scattered from a basket' },
       { when: /out and giving them water/, anim: 'fodder', prop: 'basket_hip', animals: { kind: 'flock', species: ['sheep', 'goat', 'sheep'], n: 4 }, work: [], note: 'letting the household’s animals out and giving them fodder and water (C)' },
       { when: 0.35, animals: { kind: 'beside', species: ['ox'] }, note: 'seeing to the household’s ox (cattle are not in population.json: Q-193; C)' }] },
-  herd: { anim: 'herd', prop: 'staff', tier: 'C', animals: { kind: 'flock', species: SHEEP, n: 12 }, sound: 'bleat',
-    note: 'herding sheep and goats (state flocks attested, PF 58-60: A; the herder leaning on his staff, the flock grazing about him: C). The bleats are the flock’s' },
+  herd: { anim: 'herd', prop: 'staff', tier: 'C', animals: { kind: 'flock', species: SHEEP, n: 12, dogs: 2 }, sound: 'bleat',
+    note: 'herding sheep and goats (state flocks attested, PF 58-60: A; the herder leaning on his staff, the flock grazing about him: C). The bleats are the flock’s. Two dogs with every flock (D-210: E-49’s participants “herders, dogs and donkeys”; the herders’ plans “with the dogs”; dogs spared by the magi, HDT 1.140, a claim; C), lying by the herdsman or at the flock’s edge and going round it; they bark at a stranger who comes close' },
   shear: { anim: 'shear', prop: 'knife', tier: 'C', animals: { kind: 'lying', species: ['sheep'] }, work: [{ kind: 'fleece', at: [0.55, 0, 0.3] }],
     note: 'shearing the state flock (E-47, season C): kneeling at a sheep laid on its side, the fleece cut with a knife (shears are not attested in the research files: Q-192; plucking, recalled for Babylonian temple flocks in E-47, is NOT SEEN)' },
   slaughter: { anim: 'butcher', prop: 'knife', tier: 'B', animals: { kind: 'tethered', species: ['goat', 'sheep'] }, work: [{ kind: 'butchery', at: [0, 0, 0.62] }, { kind: 'hides', at: [-0.9, 0, 0.1] }, { kind: 'basket_meat', at: [0.42, 0, 0.22] }],
@@ -163,7 +196,9 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   wash: { anim: 'wash', prop: 'cloth', sound: 'wash', tier: 'C', work: [{ kind: 'wash_stone', at: [0, 0, 0.55] }, { kind: 'drying_rack', at: [1.7, 0, -0.6] }],
     note: 'washing clothes and wool at the water: rinsed, beaten on a stone, wrung, hung to dry (C)' },
   train: { anim: 'archery', prop: 'bow', prop2: 'arrow', sound: 'bow', tier: 'B', work: [{ kind: 'target', at: [0, 0, 22] }],
-    note: 'boys of households of standing learning to shoot with the bow (HDT 1.136, a Greek claim: B; XEN-CYR 1.2.15; Q-146): shooting at a straw target at 22 m (C). Riding is not performed yet (D-142)' },
+    note: 'boys of households of standing learning to shoot with the bow (HDT 1.136, a Greek claim: B; XEN-CYR 1.2.15; Q-146): shooting at a straw target at 22 m (C)',
+    variants: [{ when: 0.35, anim: 'ride', prop: undefined, prop2: undefined, sound: undefined, work: [], animals: { kind: 'mount', species: ['horse_saddle'], pace: 0 },
+      note: 'a boy of a household of standing learning to ride (HDT 1.136 “taught to ride”, a Greek claim: B), sitting a standing horse on a saddle cloth, no stirrups (blocklist; D-210; C)' }] },
   cook: { anim: 'cook', prop: 'ladle', prop2: 'stick', sound: 'fire', tier: 'C', work: [{ kind: 'hearth_pot', at: [0, 0, 0.58] }, { kind: 'brushwood', at: [-0.75, 0, 0.12] }],
     note: 'at dusk the hearth fire is lit and the evening meal warmed: squatting at the hearth, stirring the pot, feeding sticks under it (§9.2; C). The fire itself is the settlement’s hearth' },
   // D-199 (court setting only): the king as the door-jamb and audience reliefs show him, and the two attendants behind him

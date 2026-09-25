@@ -3875,3 +3875,59 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
 - **The user's direction (2026-09-25):** to be a true time capsule the world's gaps must be filled "to the best of our ability/education"; leaving things out because the sources are thin takes away from a living, breathing world. This revises the project's practice (and CLAUDE.md's ethics line): **where the evidence is silent, the world shows the most probable reconstruction** by analogy (the region, the period, neighbouring cultures), tier C, with its reasoning in the F3 overlay and the translation layer. Things stay out only where the evidence says they were **not** there.
 - **Religion:** fire temples stay out — the evidence is against them in 467 (Herodotus 1.131–132: no temples or altars in the Greek sense, worship on high places; no excavated fire temple at Persepolis; temple cults are dated from Artaxerxes II, c. 400, and the Sasanians). What is filled instead: open-air fire cult (the stepped fire altar of the Naqsh-e Rustam tomb reliefs, the Pasargadae sacred precinct's plinths), magi with the barsom (seals, the Oxus plaques), offerings on hills and at rivers (PF), sacrifice with the meat taken home (Herodotus), funerals (Herodotus 1.140), a wordless chant (Herodotus: "a magus chants"). One line is kept: no invented liturgical words for a living religion; rites are shown as action, fire, offering and wordless chant (the user may lift it).
 - **Supersedes** in part: D-178/D-200's silent magus, the "no invented liturgy / nothing shown" performance notes of E-30..E-34 (events_calendar.json), and every "not shown because not attested" choice that the audit (D-208) marks for filling.
+
+## D-210 The animals: dogs, the animals that travel, fowl, the paradise's game and the river's boar, and their voices (session 7; D-207; gap audit D-208 items 5, 6, 10, 11, 15, 16, 17)
+- **What is reconstruction or unverified (read first).** Every animal added here is tier C in its form, count, place and behaviour. Where a species rests on evidence the tier is in `src/data/fauna.json` and the dev overlay (F3): dogs B as a species (HDT 1.140, a claim), poultry B (PF 2034), donkeys and horses B (POTTS2023), the camels and the delegations' animals B as relief imagery, the gazelle and boar B as Fars species. The recollections are **NOT SEEN** (new source key FAUNA-RECOLL): Xenophon's paradise full of game (Anab. 1.2.7), the harmamaxa (HDT 7.83), Aristophanes' "Persian bird", the Ashkelon dog burials, the Assyrian mastiffs and ox carts, the Mesopotamian fallow deer's range, Barth's Basseri. **Nothing was rendered in a browser this session:** every check is a node measurement, so how the new animals look is unverified; screenshots are still owed.
+- **Broken or placeholder, stated plainly:**
+  - The rig has one gait, a walk. Couriers are shown walking their horses near the station (1.8 m/s); nothing trots or gallops.
+  - The transhumant bands' loaded donkeys are not seen on the road between camps. popgeo does not place anyone on a `road:` segment, so the band on the move is not drawn. Its donkeys appear at the camps: loading, unloading, hobbled and watered.
+  - These delegation gifts have no rig and are not drawn: the lioness and cubs, the okapi, the ibex, and the Lydians' and Libyans' chariots. Those parties are shown with pack donkeys. The Indians' wild ass uses the donkey's form.
+  - Reins are not drawn. Cart and chariot wheels do not turn.
+  - Not built: flies as particles, bats, rats, storks.
+  - The crowd CPU gate in tests/performances.test.ts (median < 10 ms for 300 performers) fails on this machine under load 15-17 on 4 cores. The base commit fails it too. Measured interleaved, base 15.8 / 24.7 ms against this branch 25.2 / 20.5 ms. The gate was not lowered and needs re-measuring on a quiet machine.
+- **Dogs (item 5).** Species `dog` in the working animals' rig (a pariah and herding type: pricked ears, curled tail; C).
+  - Two dogs go with every flock, through the `herd` performance's `dogs: 2`. They lie by the herdsman or at the flock's edge and go round it. That makes 64 dogs with the 32 state herdsmen, and the bands' dogs as well.
+  - Yard dogs: one town house in eight gives 158 dogs, plus 4 at the state stable and the way-station. One village compound in four gives 1,001 dogs across 3,983 compounds.
+  - About half the town's middens have 1-3 strays, 30 in all.
+  - Town total 256, inside population.json's 100-400.
+  - A yard dog lies by its door and gets up to nose about the yard. It never leaves its plot's open cells; tests/fauna.test.ts checks 5,352 positions.
+  - A yard dog stands, faces the visitor and barks while he is within 14 m (released at 20 m). It barks fast at first, then now and then.
+  - Strays keep 10 m off.
+- **The animals that travel (item 6; world/traffic.ts), each tied to an event the simulation already schedules:**
+  - **The daily Treasury caravan** (Population.caravan) arrives in strings of five: four pack donkeys and a mule, with panniers and sacks, two sacks an animal. The strings come along the royal road from the W to the stair foot at the caravan's hour. They are held 0.3 h while the porters (the simulation's) carry the loads up, then led back unladen round to the state stable's gate. On 56 days of 360, a string of four Bactrian camels comes too.
+  - **The E-06 / E-06b grain deliveries** come in strings of pack donkeys up the south road to the storehouse gate at E-06's hour, at about 10 BAR an animal and 4-40 animals. They are held 0.5 h while the grain is measured in (E-15), then led away. Deliveries of 800 BAR or more also bring 1-3 ox carts (new work object `cart`; draught pair `draught`).
+  - **The E-20 couriers:** a rider on a saddle-cloth horse (`horse_saddle`; no stirrups) comes in along the royal road to the stable at the calendar's hour. A letter not for Persepolis goes on with a fresh rider 0.4 h later on the south road.
+  - **How they are drawn:** the drivers and riders are crowd extras within 750 m. They perform `walk` or `tend_animals` variants whose animals come with the performance (`string`, `mount`, `draught`). A new `crowd.moveExtra` moves them. The routes keep to settlement.json's roads, go round the stable's E end, and stay off the Terrace and every town plot (tested every 3 m).
+  - **Riding:** a new pose `ride` (astride, no stirrups). The crowd lifts the rider onto the mount by the mount's seat height minus 0.352 × stature (`riderLift`). This was measured on all 23 body variants against the horse and the donkey: seat within 1.9 cm, no leg more than 2.2 cm into the barrel. Riders far off use the impostors' seated frame on the mount. Boys of standing ride a standing horse in a third of their practice (`train`; HDT 1.136).
+  - **Species added:** mule, camel (Bactrian), dromedary, and the pack and saddle variants `donkey_pack`, `mule_pack`, `camel_pack`, `horse_saddle`. The court setting adds the zebu.
+- **Fowl (item 11).**
+  - Hens and a cock (species `hen`, `cock`: the same rig on two legs, pecking) in three town yards in ten and two village compounds in five, 3-6 birds each. That is 10,285 birds in 1,996 yards. They peck about the yard by day and roost indoors at night (not drawn then).
+  - The state poultry yard: 150 birds (inside population.json's 100-500) in a ring of wattle hurdles with a mud-brick coop (work object `hurdles`), on the nearest open ground beside the royal stores.
+  - Cocks crow at first light, from about 80 minutes before sunrise to an hour after.
+- **Game (item 15; world/fauna.ts).**
+  - In the Bagh-e Firuzi paradise: 6 Mesopotamian fallow deer hinds and 2 stags (`deer`, `stag`), and 8 goitered gazelle does (hornless) and 3 bucks (`gazelle`, `gazelle_m`). Each herd's centre drifts over the garden. They lie up at midday and draw off from a person within 25 m, and the wall stops them.
+  - A sounder of wild boar (a sow and 3 young) roots along 400 m of the Pulvar's reedy margin below the Bagh-e Firuzi from dusk to dawn.
+  - Hooded crows (30) walk the town's middens by day, fly between them and lift off from a person within 8 m. Four black kites circle over the middens and the stockyard, Mar-Sep (wildlife.ts).
+- **Carts and chariots (item 16) and the delegations' animals (item 17), in the court setting.**
+  - New work objects: `cart`, `chariot` and `wagon`.
+  - The royal chariot, with two horses standing in the yoke, and two covered wagons with their mules stand at the court camp's edge.
+  - Each delegation's party keeps the animal its people lead on the Apadana reliefs at the court's camp: the horses, the Bactrian camel, the dromedary, the humped bull and the two fat-tailed rams. The source is delegations.json `animal`, copied from relief_figures.ts DELEGATIONS. court.ts names the party's animals in the plan's reason (`partyAnimals`); that change is small and local.
+  - population.ts is unchanged.
+- **Soundscape (item 10).** All sounds are synthesised, so no sample was added and ASSET_LEDGER is unchanged.
+  - New strike kinds at the animal: `bray`, `bark`, `cluck`, `cockcrow`, `grunt`.
+  - New ambient species, gated by month, hour (the cocks by sunrise), heat, and the listener's surroundings from `fauna.placeAt` (houses, water, trees, middens, animals): the town's cocks at first light, dogs at night, a donkey braying by day, hooded crows, black kite, scops owl, little owl, marsh frogs, cicadas and wild boar.
+  - A flies layer by day in the warm months at dung, middens and animals.
+  - F3 lists every voice heard with its tier. research/SOUNDSCAPE.md §9 gives each row.
+- **Costs (node; bench-reports/fauna.json).**
+  - World fauna at a busy town spot at noon: 3 draws, 86 animals, 48 k triangles.
+  - The poultry yard: 3 draws, 154 animals, 80 k triangles.
+  - A village at 9:00: 3 draws, 142 animals, 75 k triangles.
+  - The paradise: 4 draws, 19 animals, 12 k triangles.
+  - The river at night: 1 draw, 2.8 k triangles.
+  - Species meshes run 510-900 triangles each. There is one extra draw per species in view: up to 21 in the crowd and 11 in the world fauna, all instanced and shadowing in the near cascades only.
+  - The 300-performer crowd test now draws 224 animals in 6 draws (154 k triangles), against 202 in 4 (140 k) before.
+  - Birds: +2 draws (crows, kites).
+  - Traffic: at most a few dozen extra people. Each string is one extra plus 5 animals.
+  - Building the fauna takes about 0.43 s in node.
+- **Tests.** tests/fauna.test.ts is new (18 tests): data rows and sources, the ride pose on the rig, the closed-form placements, the performance selection, the delegations, the counts, the yards, the paradise wall, the barks and cock-crow, the costs, the routes, the caravan, deliveries and couriers against the simulation, the soundscape schedule and the crows. tests/performances.test.ts now checks each species' data row (`ANIMAL_BUILD.row`: population.json or fauna.json; cattle still Q-193). Its "missing animal" example is now `elephant`, because the camel exists.
+

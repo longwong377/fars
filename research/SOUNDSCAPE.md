@@ -109,6 +109,32 @@ are blocked, B6). Rows marked "read" were read in full from Perseus in session 3
 | M-20 | The vertical angular harp: the soundbox upright against the player or leaning forward, the strings roughly vertical, the string rod projecting at its foot; 15-25 strings, usually 21; from the player's navel to about a head's length above the head | HARP-ANGULAR-SX (extracts of harp-history summaries) | B (type); C (every size) | `instrumentForms.ts` HARP_V: 21 strings, 0.95 m soundbox leaning 15°; the melody uses nine of them (M-04; Q-390) |
 | M-21 | The horizontal harp of the Assyrian reliefs: seven to nine strings, held level under the left arm, struck with a plectrum | Cheng 2012 (CHENG-HARP), extracts | B (Assyria); C elsewhere | `instrumentForms.ts` HARP_H and the plectrum; not scheduled |
 
+## 9. The animals of the town, the villages and the roads (D-210)
+
+Added in session 7 under D-207 (fill the gaps with the most probable reconstruction). **Nothing here was newly retrieved:**
+every row is either already in this file or the project's data, or a recollection marked NOT SEEN. Every sound design is
+synthesised in Web Audio (`src/audio/soundscape.ts`), so no sample was added and `ASSET_LEDGER.md` is unchanged. The counts,
+places and behaviour are in `src/data/fauna.json`.
+
+| sound | where and when | evidence | tier |
+|---|---|---|---|
+| Dogs barking | at the dog: a yard dog at a stranger (the visitor) within 14 m, a herd dog within 20 m, now and then at night; the town's dogs heard from further off at night | HDT 1.140 (dogs spared by the magi, a claim); population.json `dog` 100-400; E-49 "herders, dogs and donkeys" | B species / C sound |
+| Donkeys braying | a working donkey or mule within 150 m about once in 75 s; the town's donkeys from further off by day | donkeys with rations (POTTS2023); pack donkeys of E-06 | B species / C sound |
+| Cocks crowing | a cock within 250 m from about 80 min before sunrise to an hour after (at most one every 5 s); the town's and villages' cocks from further off at first light | PF 2034 poultry (B); "the Persian bird" (Aristophanes, RECOLLECTION, NOT SEEN) | B fowl / C sound |
+| Hens clucking | in a yard within 30-40 m by day | as above | C |
+| Wild boar grunting | at the Pulvar margin, dusk to dawn | wild boar in the Zagros of Fars (§5) | B species / C place and sound |
+| Hooded crows | by day, anywhere; the birds themselves walk at the town's middens | expected, not sourced (§4) | C |
+| Black kite | Mar-Sep by day over the town and the stockyard | expected, not sourced | C |
+| Scops owl | Apr-Sep nights among trees | expected, not sourced | C |
+| Little owl | dusk and night, all year | expected, not sourced | C |
+| Marsh frogs | Mar-Jun evenings, by the rivers and canals | expected, not sourced | C |
+| Cicadas | Jun-Aug, 10:00-17:30, 26 °C and over, among trees (gardens, orchards, the paradise) | §6 (no Fars source) | C |
+| Flies | by day, Apr-Oct, above 14 °C, at dung, middens and animals within a few metres (a buzzing layer, no visible flies) | brief §5.5; expected | C |
+
+The listener's surroundings (houses, water, trees, middens, animals) come from `world/fauna.ts` `placeAt`. The dev
+overlay (F3) lists the animal and insect voices heard in the last minute with these tiers. Not built: bats at dusk, rats
+and mice at the stores, storks, ravens as a species apart, the flies as visible particles.
+
 ## Sources (this file)
 1. Perseus `canonical-greekLit` on GitHub: Herodotus (Godley) `tlg0016.tlg001.perseus-eng2.xml`; Athenaeus (Yonge) `tlg0008.tlg001.perseus-eng2.xml`. **Read.**
 2. Wikipedia "Achaemenid music" and Iranica "Music history i." (extracts).

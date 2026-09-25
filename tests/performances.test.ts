@@ -178,9 +178,11 @@ describe('work objects and animals', () => {
     console.log(`work objects (triangles): ${tris.join(', ')}`);
   });
   it('every species builds within budget; grazing brings the muzzle to the ground, walking swings the legs, lying rests the belly on the ground', () => {
-    const PJ = JSON.parse(readFileSync('src/data/population.json', 'utf8')).animals.map((a: any) => a.id as string);
+    const PJ = JSON.parse(readFileSync('src/data/population.json', 'utf8')).animals.map((a: any) => a.id as string), FJ = Object.keys(JSON.parse(readFileSync('src/data/fauna.json', 'utf8')));
     for (const sp of SPECIES) {
-      expect(sp === 'ox' || PJ.some((id: string) => id === sp || id.split('_').includes(sp)), `${sp} in population.json animals (cattle: Q-193)`).toBe(true);
+      // D-210: each species names its data row (ANIMAL_BUILD.row): the town's animals in population.json, the game and the
+      // delegations' animals in fauna.json; cattle stay Q-193
+      const row = ANIMAL_BUILD[sp].row; expect(sp === 'ox' || PJ.includes(row) || (FJ.includes(row) && row !== '_meta'), `${sp}: row ${row} in population.json animals or fauna.json (cattle: Q-193)`).toBe(true);
       const g = animalGeometry(sp), n = g.getAttribute('position').count / 3; expect(n, sp).toBeLessThanOrEqual(1100);
       const P = g.getAttribute('position'), L = g.getAttribute('aLeg'), Pv = g.getAttribute('aPiv'), H = g.getAttribute('aHT');
       const at = (i: number, st: { phase: number; walk: number; graze: number; lie: number }) => deformAnimal(sp, [P.getX(i), P.getY(i), P.getZ(i)], [L.getX(i), L.getY(i), L.getZ(i), L.getW(i)], [Pv.getX(i), Pv.getY(i), Pv.getZ(i), Pv.getW(i)], [H.getX(i), H.getY(i), H.getZ(i), H.getW(i)], st, 0);
@@ -221,7 +223,7 @@ describe('activity lint (brief §9.5): zero placeholders', () => {
     const reg: any = { ...ACTIVITIES, weave: { anim: 'idle', tier: 'C', note: 'PLACEHOLDER, NO PERFORMANCE: weaving', placeholder: true, abstractOnly: true } };
     const bad = activityLint(reg); expect(bad.length).toBeGreaterThanOrEqual(3); expect(bad.join('\n')).toMatch(/weave: flagged placeholder/);
     expect(activityLint({ ...ACTIVITIES, reap: { ...ACTIVITIES.reap, prop: 'scythe' } } as any).join('\n')).toMatch(/prop 'scythe'/);
-    expect(activityLint({ ...ACTIVITIES, herd: { ...ACTIVITIES.herd, animals: { kind: 'flock', species: ['camel'] } } } as any).join('\n')).toMatch(/animal 'camel'/);
+    expect(activityLint({ ...ACTIVITIES, herd: { ...ACTIVITIES.herd, animals: { kind: 'flock', species: ['elephant'] } } } as any).join('\n')).toMatch(/animal 'elephant'/); // (the camel is a species since D-210)
   });
   it('the simulation’s own reasons select the intended performances', () => {
     const cases: [ActivityId, string, string][] = [

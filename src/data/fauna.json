@@ -1,0 +1,54 @@
+{
+  "_meta": {
+    "title": "The animals of the town, the villages, the paradise, the river and the roads that the evidence names or implies, as reconstructed for 467 BCE (D-210; REVIEWS/gap_audit.md items 5, 6, 10, 11, 15, 16, 17, 36)",
+    "rule": "D-207: where the evidence is silent, the most probable reconstruction by analogy, tier C, the reasoning stated here and shown in the dev overlay (F3). Every count, share, place and behaviour below is C unless its row says otherwise. Recollections are marked RECOLLECTION, NOT SEEN: the scholarly hosts are blocked (B6).",
+    "code": "src/people/animals.ts (the species and their rig), src/world/fauna.ts (the animals that live about the town, the villages, the paradise and the river), src/world/traffic.ts (the animals that travel, with the people who lead them), src/world/wildlife.ts (the birds, the jackals, and now the crows and kites), src/audio/soundscape.ts (their voices), src/people/activities.ts (the performances that bring animals with them)",
+    "tiers": "A attested / B inferred (search extracts capped at B; Greek claims about Persia max B) / C reconstructed",
+    "src_keys": "all keys resolve in src/data/sources.json"
+  },
+  "dog": {
+    "tier": "C", "src": "HDT;EVENTS-R;RECON;FAUNA-RECOLL",
+    "evidence": "HDT 1.140 (read in full, a claim, B): the magi kill every creature 'except dogs and men'. E-49's participants row lists 'herders, dogs and donkeys' for the transhumant bands; the herders' plans have them 'watching the flock with the dogs'. population.json dog: 100-400 for the town (herding, guarding, scavenging; C). The Persian-period dog burials at Ashkelon and the Assyrian mastiff reliefs are RECOLLECTION, NOT SEEN.",
+    "herd_dogs_per_flock": 2, "yard_share_town": 0.12, "yard_share_village": 0.25, "stable_dogs": 2, "stray_midden_share": 0.5, "strays_per_midden": [1, 3],
+    "count_note": "Measured on the built plan (tests/fauna.test.ts): about 160 yard dogs in the 1,337 town houses (one house in eight: the farming household template's '0-1 dog' for a town where most households are not farmers, C), 4 at the state stable and the way-station, 15-45 strays at about half of the town's 29 middens, and two with every herdsman's flock (the state shepherds and the bands); the town's total falls inside population.json's 100-400. The plain's villages keep a dog in one compound in four (C; outside population.json's town count).",
+    "behaviour": "yard dogs lie by the door and get up now and then to nose about the yard; night and day they bark at a stranger in the lane (the visitor) within 14 m, fast at first, then now and then, until he is 20 m off; strays nose about the middens by day, lie up in the heat and keep 10 m from people; herd dogs lie by the herdsman or at the flock's edge and go round it, barking at a stranger within 20 m (C: pariah and herding dogs of the Near East today)",
+    "form": "one pariah/herding type: pricked ears, curled tail, tawny, black, cream or dark (C)"
+  },
+  "poultry": {
+    "tier": "B", "src": "IR-PET;IR-ADMIN;RECON;FAUNA-RECOLL",
+    "evidence": "PF 2034: 1,044 poultry (population.json poultry, B: a royal-table scale); fodder for poultry among the Fortification texts' outlays (IR-PET, B). Hens in household yards: C (the chicken was kept across the Near East by the Achaemenid period; Aristophanes' 'Persian bird' for the cock is RECOLLECTION, NOT SEEN).",
+    "yard_share_town": 0.3, "yard_share_village": 0.4, "hens_per_yard": [3, 6], "cock_share": 0.6, "state_yard_birds": 150,
+    "count_note": "About 400 town yards and a like share of village compounds keep 3-6 hens, most with a cock (C); the state poultry yard beside the royal stores keeps 150 birds (within population.json's 100-500 state poultry), in a ring of wattle hurdles with a mud-brick coop (where and how kept: C)",
+    "behaviour": "pecking about the yard by day, roosting indoors from dusk to first light (not drawn at night); the cocks crow from about 80 minutes before sunrise to an hour after it (C)",
+    "form": "the red-junglefowl type (C: the breed is not known)"
+  },
+  "fallow_deer": { "tier": "C", "src": "FAUNA-RECOLL;RECON", "count": [6, 2],
+    "evidence": "Game in the paradises: Xenophon, Anabasis 1.2.7 (the Celaenae paradise 'full of wild beasts' the king hunted), RECOLLECTION, NOT SEEN; no Persepolis-specific evidence (SETTLEMENT.md). The Mesopotamian fallow deer's former range in the Zagros and Khuzestan: recollection.",
+    "place": "the Bagh-e Firuzi paradise (settlement plan 'paradise', the walled garden behind the Tol-e Ajori gate): six hinds and two stags grazing about a centre that drifts slowly over the garden, lying up at midday, drawing off from a person on foot within 25 m (C)" },
+  "goitered_gazelle": { "tier": "B", "src": "SOUND-R;FAUNA-RECOLL;RECON", "count": [8, 3],
+    "evidence": "Goitered gazelle in the Zagros of Fars (Bamu NP, SOUNDSCAPE.md section 5: B for the species); in the paradise by the same analogy as the deer (C).",
+    "place": "the Bagh-e Firuzi paradise: eight does (hornless, as most females are) and three bucks, a herd apart from the deer (C)" },
+  "wild_boar": { "tier": "B", "src": "SOUND-R;IR-RIPARIAN;RECON", "count": 4,
+    "evidence": "Wild boar in the Zagros of Fars (Bamu NP, SOUNDSCAPE.md section 5: B for the species); in the reed margins of the Pulvar: C (reed beds of the plateau rivers, IR-RIPARIAN).",
+    "place": "a sow and three young rooting along 400 m of the Pulvar's reedy margin below the Bagh-e Firuzi (town.json 'river'), from dusk to half an hour after sunrise; grunting now and then (C)" },
+  "delegation_animals": { "tier": "B", "src": "APA-RELIEF;WALSER1966;MATCULT-R", "setting": "court setting only",
+    "evidence": "The animals the delegations lead on the Apadana reliefs, as the relief carving has them (src/arch/relief_figures.ts DELEGATIONS; delegations.json `animal`): horses (seven peoples), Bactrian camels, a dromedary, humped bulls, fat-tailed rams, a wild ass, a lioness with cubs, an ibex, an okapi (B imagery; several identifications RECOLLECTION).",
+    "drawn": "at the court's camp, seen to by the party: the horses, the Bactrian camel, the dromedary, the humped bull (zebu), the two rams; the wild ass with the donkey's form (C)",
+    "not_drawn": "the lioness and her cubs, the ibex, the okapi (no rig); the Lydians' and Libyans' chariots (RECOLLECTION)" },
+  "travel": {
+    "tier": "C", "src": "POTTS2023;EVENTS-R;HDT;APA-RELIEF;MATCULT-R;RECON",
+    "caravan": "the day's caravan for the Treasury (Population.caravan: hour and sacks): strings of five pack animals (four donkeys and a mule, two sacks each) led in along the royal road from the W to the stair foot, held there 0.3 h while the porters take the loads up, then led back unladen to the state stable; on about one day in six a string of four Bactrian camels comes with it (population.json camel 0-20 'caravans from outside Fars'; the reliefs' camels). Pace 1.0 m/s loaded (C)",
+    "deliveries": "E-06 / E-06b grain to the royal stores and the storehouse: about 10 BAR a pack donkey (C), 4-40 animals (E-06's participants 'pack donkeys (C) 4-40'), up the south road to the storehouse gate, held 0.5 h while the grain is measured in (E-15), then led away; a delivery of 800 BAR or more also brings one to three ox carts (carts: C, Assyrian reliefs by analogy; draught cattle Q-193)",
+    "couriers": "E-20: a courier walks his relay horse in along the royal road to the state stable standing in for the road station at the hour the calendar gives; a letter not for Persepolis goes on with a fresh rider 0.4 h later on the south road (HDT 8.98, a claim, B; horse rations POTTS2023, B; the horse walked near the station, 1.8 m/s, C). Saddle cloth, no stirrups (blocklist)",
+    "riding": "the rider sits astride with no stirrups (anim 'ride', measured on the rig: the seat on the mount's back within 3 cm, no leg through the barrel); boys of households of standing learning to ride on a standing horse (HDT 1.136, a claim, B; a third of the practice)",
+    "not_drawn": "the transhumant bands' loaded donkeys on the road between camps: popgeo does not place people on a 'road:' segment, so the band on the move is not drawn; its donkeys are seen at the camps (loaded, unloaded, hobbled, watered). No trot or gallop: the rig has a walk only, so every animal that travels is shown walking."
+  },
+  "court_vehicles": { "tier": "C", "src": "APA-RELIEF;HDT;FAUNA-RECOLL;RECON", "setting": "court setting only",
+    "note": "at the court's camp below the Terrace: the royal chariot with its two horses standing in the yoke (chariots on the Apadana reliefs; the king's chariot HDT 7.40-41: B claims), and two covered wagons (harmamaxai, HDT 7.83: RECOLLECTION, NOT SEEN) with their mules unyoked beside them (form and place C)" },
+  "birds": { "tier": "C", "src": "SOUND-R;RECON",
+    "crow": "hooded crows (C: crows and ravens expected, not sourced): 30 about the town's middens by day, walking and pecking, flying from midden to midden, lifting off from a person within 8 m",
+    "kite": "black kites (C: summer migrants over towns and middens, Mar-Sep): 4 circling 35-120 m over the middens and the stockyard" },
+  "sounds": { "tier": "C", "src": "SOUND-R;RECON",
+    "note": "all synthesised in Web Audio (no samples; nothing added to ASSET_LEDGER): the dogs' barks (at the dog: at a stranger, and now and then at night; and the town's dogs heard from further off at night), the donkeys' bray (a working donkey or mule within 150 m about once in 75 s; the town's donkeys from further off by day), the cocks at first light (at a cock within 250 m, and the town's from further off), hens clucking, the boar's grunt, hooded crows, the black kite's whistle (Mar-Sep), the scops owl (Apr-Sep nights, among trees), the little owl (dusk and night), marsh frogs by the water on spring evenings (Mar-Jun), cicadas among trees in the heat (Jun-Aug, 26 C and over), flies buzzing at dung, middens and animals by day in the warm months. Scheduled by month, hour (the cocks by sunrise) and the listener's surroundings (world/fauna.ts placeAt: houses, water, trees, middens, animals). Every design C; the species tiers as above and research/SOUNDSCAPE.md section 9",
+    "not_heard_or_drawn": "bats at dusk, rats and mice at the stores, storks, ravens as a species apart, the flies as visible particles: not built (logged in D-210)" }
+}
