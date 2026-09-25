@@ -410,7 +410,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
         jackals.update(ctx.clock.dayIndex, ctx.clock.localHour, time); }
-      shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)));
+      shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air?.optics);
       if (ctx.skyLight?.clouds?.cell) ctx.skyLight.clouds.cell.value.copy(shafts.cellWorld); // the cloud thickens over the rain cell
       if (audio.ctx) {
         const cam = ctx.camera, fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);

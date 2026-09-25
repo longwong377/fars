@@ -15,11 +15,12 @@ import type { Terrain } from '../terrain/heightfield';
 import { azAltToWorld } from '../sky/ephemeris';
 import { CLOUD_BASE } from '../sky/clouds';
 import { Rng } from '../core/rng';
+import { opticalDepth, Z0, type AirOptics } from '../sky/aerial';
 
 /** debug (?shaftdbg=1|2|3): 1 = solid red at full strength; 2 = red, optical-depth term only; 3 = red, height fade only */
 const DBG = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('shaftdbg') : null;
 const SIGMA = 0.00025; // 1/m extinction at the core (C: a 4.4 km core radius → optical depth ~2 through the middle, ~0.86 opacity)
-interface Shaft { mesh: THREE.Mesh; radius: ReturnType<typeof uniform>; off: [number, number]; scale: number }
+interface Shaft { mesh: THREE.Mesh; radius: ReturnType<typeof uniform>; trans: ReturnType<typeof uniform>; off: [number, number]; scale: number }
 
 export class RainShafts {
   readonly group = new THREE.Group();
@@ -30,8 +31,12 @@ export class RainShafts {
     const geo = new THREE.CylinderGeometry(1, 1, 1, 40, 1, true).translate(0, 0.5, 0);
     const rng = new Rng(3, 'rain-shafts');
     for (let i = 0; i < count; i++) {
-      const R = uniform(1000);
-      const m = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.FrontSide, fog: true }));
+      const R = uniform(1000), TR = uniform(1);
+      // (no scene fog on the mesh: it would veil the curtain at the distance of the mesh's surface — seen from inside the 2R
+      // mesh, the far wall 2–3 R off — not of the rain, which lies about the column's core. The contrast is scaled instead by
+      // the air's transmittance to the core (TR, set per frame from the aerial optics), and what shows through is the sky
+      // behind, which already carries the in-scatter: session 7, the solid-red debug shafts came out a faint pink)
+      const m = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.FrontSide, fog: false }));
       const v = normalize(cameraPosition.sub(positionWorld)), n = normalWorld;
       const cosT = abs(dot(vec2(n.x, n.z), vec2(v.x, v.z)).div(max(length(vec2(v.x, v.z)), 1e-3)));
       const tau = R.mul(SIGMA * Math.sqrt(Math.PI)).mul(exp(float(1).sub(cosT.mul(cosT)).mul(-4))); // Gaussian column, mesh at 2R
@@ -40,12 +45,12 @@ export class RainShafts {
       const fade = float(1).sub(smoothstep(0.4, 1.0, y01)).mul(smoothstep(0.0, 0.03, y01));
       m.colorNode = DBG ? color(1, 0, 0) : this.uTint;
       const optic = float(1).sub(exp(tau.negate().mul(float(1).sub(this.uSnow.mul(0.4)))));
-      m.opacityNode = DBG === '1' ? this.uStrength : DBG === '2' ? optic : DBG === '3' ? fade : optic.mul(fade).mul(streak).mul(this.uStrength);
+      m.opacityNode = DBG === '1' ? this.uStrength : DBG === '2' ? optic : DBG === '3' ? fade : optic.mul(fade).mul(streak).mul(this.uStrength).mul(TR);
       const mesh = new THREE.Mesh(geo, m); mesh.frustumCulled = false; mesh.visible = false; mesh.castShadow = false; mesh.receiveShadow = false; mesh.renderOrder = 2;
       mesh.userData = { tier: 'C', src: 'RECON', note: 'rain cell shafts: position from the weather episode timing and the steering wind; optics C' };
       this.group.add(mesh);
       const ang = rng.range(0, Math.PI * 2), dist = i === 0 ? 0 : rng.range(0.6, 1.4);
-      this.shafts.push({ mesh, radius: R, off: [Math.cos(ang) * dist, Math.sin(ang) * dist], scale: i === 0 ? 1 : rng.range(0.4, 0.8) });
+      this.shafts.push({ mesh, radius: R, trans: TR, off: [Math.cos(ang) * dist, Math.sin(ang) * dist], scale: i === 0 ? 1 : rng.range(0.4, 0.8) });
     }
   }
   private baseY = uniform(-50); private topY = uniform(1500);
@@ -53,7 +58,7 @@ export class RainShafts {
   readonly cellWorld = new THREE.Vector4(0, 0, 1, 0);
   /** place the cell for this moment; `cell` from WeatherSystem.rainCell; hides the shafts when the player is inside the
    *  rain (the local streaks and fog take over) or the cell is beyond the far terrain */
-  update(dt: number, camPos: THREE.Vector3, cell: { distanceM: number; bearingTrueDeg: number; intensity: number; snow: boolean; radiusM: number } | null, skyTint: THREE.Color) {
+  update(dt: number, camPos: THREE.Vector3, cell: { distanceM: number; bearingTrueDeg: number; intensity: number; snow: boolean; radiusM: number } | null, skyTint: THREE.Color, air?: AirOptics) {
     this.uTime.value += dt;
     const show = !!cell && cell.distanceM > cell.radiusM * 0.8 && cell.distanceM < 70000;
     for (const s of this.shafts) s.mesh.visible = false;
@@ -72,6 +77,9 @@ export class RainShafts {
       const inside = Math.hypot(x - camPos.x, z - camPos.z) < 2 * r;
       const m = s.mesh.material as THREE.Material; const side = inside ? THREE.BackSide : THREE.FrontSide; if (m.side !== side) { m.side = side; m.needsUpdate = true; }
       s.mesh.visible = true;
+      // the air's transmittance (green channel) along the level path to the column's core
+      const dCore = Math.max(0, Math.hypot(x - camPos.x, z - camPos.z));
+      s.trans.value = air ? Math.exp(-opticalDepth(air, Z0 + 40, Z0 + 40, dCore)[1]) : 1;
     }
     this.uStrength.value = cell.intensity; this.uSnow.value = cell.snow ? 1 : 0;
     this.uTint.value.copy(skyTint).multiplyScalar(cell.snow ? 1.05 : 0.35); // skyTint: the calibrated horizon radiance (D-060); a curtain under the thick cell cloud is well shaded (C)
