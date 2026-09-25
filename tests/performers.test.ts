@@ -76,10 +76,10 @@ describe('music schedule: evidence (brief §11; lint:music)', () => {
     for (const g of everything) { expect(g.claims.length).toBeGreaterThan(0); for (const c of g.claims) expect(MUSIC_CLAIMS[c], c).toBeTruthy(); expect(g.tier).toMatch(/^[ABC]/);
       for (const p of soundingParts(g)) expect(refusal(p.perf!, true, { x: p.pos.e, y: p.pos.y, z: -p.pos.n }), p.key).toBeNull(); }
   });
-  it('nothing is ever scheduled at an offering, and no instrument but the court harp plays (the herders\' pipe: its own tests)', () => {
+  it('nothing is ever scheduled at an offering by the Terrace\'s people, and no instrument but the court harp plays (the herders\' pipe and the magus\'s chant: their own tests)', () => {
     for (const g of everything) for (const p of soundingParts(g)) { expect(p.perf!.context).not.toBe('offering'); if (p.perf!.instrument !== 'voice') { expect(p.perf!.instrument).toBe('harp'); expect(p.perf!.context).toBe('court'); } }
   });
-  it('the magi at an offering never sing (the chant is not attested, M-06)', () => {
+  it('a magus holding an offering does not sing; he chants only when his plan says he chants (D-209: the population\'s magi, their own tests)', () => {
     const magi = [0, 1].map(i => ({ ...grinder(i), sex: 'm' as const, role: 'magus', task: { act: 'offer', place: 'offering_place' } }));
     expect(sweep(magi, [0, 24], {}, 4).gigs).toHaveLength(0);
   });

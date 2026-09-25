@@ -9,6 +9,7 @@ import { Site, SiteMeta, Plot, P2, Frame, toGrid, toLocal, OUT, LANE, FREE, RES,
 import { generateQuarter, QuarterOpts } from './quarter';
 import { ringCompound, yardCompound, roomBlock, openGround } from './compounds';
 import { HOUSE } from './town_rules';
+import { precinctProps, precinctMiddens, burialGraves, PRECINCT_FIRE } from './precinct';
 
 export const TOWN_SEED = 467; // the town is architecture: fixed, not per world seed
 export const SETTLEMENT: any = settlementJson;
@@ -26,9 +27,11 @@ export interface Prop { shape: 'box' | 'cyl'; mat: Mat; c: P2; theta: number; hu
 export interface TreeSpot { c: P2; species: string; size: number; row: string; feature: string }
 export interface WaterPiece { kind: 'pool' | 'channel' | 'well' | 'canal' | 'ditch'; pts: P2[]; width: number; level: number; row: string; feature: string; note?: string }
 export interface Road { id: string; feature: string; row: string; pts: P2[]; width: number; note: string }
-export interface Midden { c: P2; r: number; h: number; kind: 'midden' | 'dung' | 'ash' | 'bone'; row: string; feature: string }
+export interface Midden { c: P2; r: number; h: number; kind: 'midden' | 'dung' | 'ash' | 'bone' | 'grave'; row: string; feature: string }
 export interface Group { id: string; pts: P2[] } // footprint corners that set the base height of a prop group
-export interface TownPlan { sites: Site[]; props: Prop[]; trees: TreeSpot[]; water: WaterPiece[]; roads: Road[]; middens: Midden[]; groups: Map<string, P2[]>; gate: { c: P2; theta: number } }
+/** a fire the plan places that is not a site's fitting (D-209: the kept fire on the precinct's altar), its height above its prop group's base */
+export interface PlanFire { c: P2; group: string; y: number; sched: 'kept'; note: string }
+export interface TownPlan { sites: Site[]; props: Prop[]; trees: TreeSpot[]; water: WaterPiece[]; roads: Road[]; middens: Midden[]; groups: Map<string, P2[]>; gate: { c: P2; theta: number }; fires?: PlanFire[] }
 
 // ---------------------------------------------------------------------------------------------------------------------
 // Quarters (all C). Centres and orientations are judgement inside the settlement.json zones; each keeps clear of the
@@ -342,6 +345,8 @@ export function buildTownPlan(): TownPlan {
   props.push({ shape: 'box', mat: 'mud', c: toGrid(hf, -hallW / 2 - 0.5, 0), theta: hf.theta, hu: 0.5, hv: hallD / 2 + 1, y0: -0.4, y1: 6.9, group: 'hall_gohar', collide: true, row: 'hall_dasht_e_gohar', feature: 'zone_dasht_e_gohar', note: HN + ': back wall' });
   props.push({ shape: 'box', mat: 'mud', c: toGrid(hf, 0, 0), theta: hf.theta, hu: hallW / 2 + 1, hv: hallD / 2 + 1, y0: 6.2, y1: 6.9, group: 'hall_gohar', collide: false, row: 'hall_dasht_e_gohar', feature: 'zone_dasht_e_gohar', note: HN + ': flat roof on timber beams' });
   pavilionProps(props, groups);
+  // D-209: the open-air sacred precinct (its plinths, altar, wood and ash) and the town's burial ground (precinct.ts)
+  precinctProps(props, groups); precinctMiddens(middens); burialGraves(middens, props);
   // roads (settlement.json) and the spur to the Tol-e Ajori gate (C)
   const roads: Road[] = SETTLEMENT.features.filter((f: any) => f.kind === 'road' && f.present_467).map((f: any) => ({ id: f.id, feature: f.id, row: f.id, pts: f.polyline, width: f.width_m ?? 7, note: f.note }));
   const mouth = toGrid({ c: AJORI.c, theta: ajTheta }, AJORI.long / 2, 0), pout = toGrid({ c: AJORI.c, theta: ajTheta }, AJORI.long / 2 + 80, 0);
@@ -351,7 +356,7 @@ export function buildTownPlan(): TownPlan {
   const cf = FEATURES.canal_kuh_e_rahmat; water.push({ kind: 'canal', pts: cf.polyline, width: cf.width_m, level: 0.1, row: 'canal_kuh_e_rahmat', feature: 'canal_kuh_e_rahmat', note: cf.note });
   // wells in the sites
   for (const s of sites) for (const f of s.fittings) if (f.kind === 'well') water.push({ kind: 'well', pts: [s.grid(f.u, f.v)], width: 0.9, level: -1.4, row: 'town_wells', feature: f.plot >= 0 ? s.plots[f.plot].feature : s.meta.feature });
-  cache = { sites, props, trees, water, roads, middens, groups, gate: { c: AJORI.c, theta: ajTheta } };
+  cache = { sites, props, trees, water, roads, middens, groups, gate: { c: AJORI.c, theta: ajTheta }, fires: [{ ...PRECINCT_FIRE, sched: 'kept' }] };
   return cache;
 }
 

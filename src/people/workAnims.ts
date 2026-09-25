@@ -18,7 +18,9 @@ export const WORK_ANIMS = ['hoe', 'irrigate', 'reap', 'bind', 'winnow', 'drive',
   // playing and singing (D-200)
   'harp_v', 'harp_h', 'lyre', 'frame_drum', 'double_pipe', 'reed_pipe', 'sing',
   // children's play (D-215: gap audit item 26) and the lame and the blind on the move (item 37)
-  'ball', 'chase', 'pull_toy', 'rattle', 'limp', 'feel'] as const;
+  'ball', 'chase', 'pull_toy', 'rattle', 'limp', 'feel',
+  // the magi and the dead (D-209): the barsom held before the fire, the kept fire fed, standing in mourning
+  'barsom', 'feed_fire', 'mourn'] as const;
 export type WorkAnim = typeof WORK_ANIMS[number];
 /** how each cycle meets the ground (humanRig: planted feet, or the body resting on the ground) and whether it moves the
  *  performer's root along a path of its own (the ploughman along the furrow, the thresher turning with his team) */
@@ -34,6 +36,7 @@ export const WORK_META: Record<WorkAnim, { ground: 'feet' | 'seat'; path?: boole
   harp_v: { ground: 'feet' }, harp_h: { ground: 'feet' }, lyre: { ground: 'feet' }, frame_drum: { ground: 'feet' }, double_pipe: { ground: 'feet' },
   reed_pipe: { ground: 'seat', aside: true }, sing: { ground: 'feet' },
   ball: { ground: 'feet' }, chase: { ground: 'feet', path: true, gait: true }, pull_toy: { ground: 'feet', path: true, gait: true }, rattle: { ground: 'seat' }, limp: { ground: 'feet', gait: true }, feel: { ground: 'feet', gait: true },
+  barsom: { ground: 'feet' }, feed_fire: { ground: 'feet' }, mourn: { ground: 'feet' },
 };
 /** D-215: the children's paths (C): running round after one another on a circle of 2.2 m at 2 m/s; walking round pulling
  *  a toy on a circle of 1.5 m at 0.5 m/s. Both start at the view's spot and come back to it */
@@ -675,6 +678,33 @@ function sing(t: number, k: number): Pose {
   look(p, T, [0.4 * wob(t * 0.1, k + 3), 1.7, 5]); p.grip = [0.4, 0.4]; return p;
 }
 
+/** D-209: a magus standing with the barsom held upright before him in the right fist (a man in Median dress holding the
+ *  barsom on the Oxus plaques: B; how it is held here C), the left hand laid over the right wrist, the head a little bowed
+ *  toward the fire or the offering. At the offering and when he chants (the chant is the music system's: the jaw under the
+ *  mouth-cover) */
+function barsomPose(t: number, k: number): Pose {
+  const p = blank(), T = body(p, { hp: 0.02, sp: 0.05, ch: 0.02, drop: -0.01, hy: 0.02 * wob(t * 0.12, k) }, t, k);
+  stance(p, T, { w: 0.12, zl: 0.02, zr: -0.02, out: 0.14 });
+  grip(p, T, 'r', [-0.05, 1.1, 0.3], [-0.8, -1, -0.2], 1.2); grip(p, T, 'l', [0.02, 1.04, 0.27], [0.8, -1, -0.2], -0.9);
+  look(p, T, [0.1 * wob(t * 0.08, k + 2), 0.5, 2.6], 0.08); p.grip = [0.4, 1]; return p;
+}
+/** D-209: feeding the kept fire on the altar's top (about 1.2 m high, 0.9 m ahead): a stick taken from the bundle in the
+ *  crook of the left arm and laid on the fire, leaning in, then back (C) */
+function feedFire(t: number, k: number): Pose {
+  const P = 6, q = fr(t / P + k * 0.21), p = blank(), reach = win(q, 0.3, 0.62, 0.1);
+  const T = body(p, { hp: 0.05 + 0.14 * reach, sp: 0.05 + 0.12 * reach, drop: -0.01, hy: 0.03 * wob(t * 0.2, k) }, t, k);
+  stance(p, T, { w: 0.13, zl: 0.08, zr: -0.06, out: 0.14 });
+  const R = key(q, [[0, [-0.12, 0.98, 0.22]], [0.2, [0.06, 1.0, 0.24]], [0.45, [-0.02, 1.22, 0.62]], [0.6, [-0.02, 1.2, 0.64]], [0.8, [-0.14, 1.0, 0.25]]]);
+  grip(p, T, 'r', [R[0], R[1], R[2]], [-0.8, -0.9, -0.3], 0.6); grip(p, T, 'l', [0.14, 1.0, 0.2], [0.8, -1, -0.2], -0.8);
+  look(p, T, [0, 1.2, 0.9]); p.grip = [1, 1]; p.show = [q > 0.1 && q < 0.6, false]; return p;
+}
+/** D-209: standing in mourning at a grave: the head bowed, the hands joined low (C: no wailing or tearing is staged) */
+function mourn(t: number, k: number): Pose {
+  const p = blank(), T = body(p, { hp: 0.04, sp: 0.1, ch: 0.08, drop: -0.01, hy: 0.02 * wob(t * 0.1, k) }, t, k);
+  stance(p, T, { w: 0.12, zl: 0.02, zr: -0.02, out: 0.14 });
+  grip(p, T, 'r', [-0.03, 0.9, 0.14], [-0.8, -1, -0.2], 0.9); grip(p, T, 'l', [0.035, 0.91, 0.13], [0.8, -1, -0.2], -0.9);
+  look(p, T, [0.2 * wob(t * 0.07, k), 0, 2.2], 0.25); p.grip = [0.4, 0.4]; return p;
+}
 /** a work cycle's pose. `ph`: the gait phase for walking cycles (bearers); `k`: per-person seed */
 export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
   switch (id) {
@@ -727,6 +757,9 @@ export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
     case 'rattle': return rattle(t, k);
     case 'limp': return limp(t, ph, k);
     case 'feel': return feel(t, ph, k);
+    case 'barsom': return barsomPose(t, k);
+    case 'feed_fire': return feedFire(t, k);
+    case 'mourn': return mourn(t, k);
   }
 }
 /** the root path of a path cycle at time t (called every frame by the crowd, also between pose refreshes) */

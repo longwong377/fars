@@ -3,7 +3,8 @@
 // src/audio/tuning.ts (never equal temperament), and generative variation so no two performances are the same.
 // Evidence rules carried here:
 //  - at sacrifice there is no instrument at all: a magus chants unaccompanied (Herodotus 1.132, B). `perform` refuses an
-//    instrument for the 'offering' context (the chant is speech, src/audio/speech.ts);
+//    instrument for the 'offering' context, and any voice there but one man's WORDLESS recitative citing M-06 (D-209: the
+//    chant's words are not attested and none are invented; its form is C, M-22), heard through the mouth-cover;
 //  - court music (singing and playing at the king's supper; the women's night watch "singing and playing": Heracleides
 //    via Athenaeus, B for the court in general) only when the court is resident (the out-of-world court setting, D-003);
 //  - work songs and herders' pipes are C and used sparingly (the caller decides who plays and when: performers.ts).
@@ -24,6 +25,9 @@ export interface Performance { id: string; instrument: InstrumentId; tradition: 
   register?: 'f' | 'm'; voices?: number;
   /** the first degree (Hz): an ensemble's parts share it, and a shared `pieceSeed` gives them the same melody (heterophony) */
   tonic?: number; pieceSeed?: number;
+  /** D-209: 'recitative' = the magus's chant: lines of even syllables on one reciting tone, a rise at the start and a fall to
+   *  the final at the end, no melody and no words (M-06, M-22; C) */
+  style?: 'recitative';
   /** research/SOUNDSCAPE.md §8 claim ids this playing rests on; `MusicSystem.perform` refuses a performance without them */
   claims?: string[] }
 export interface NoteEv { t: number; dur: number; f: number; vel: number; dyad?: number; stroke?: 'dum' | 'tek' | 'clap'; drone?: number; phrase?: number }
@@ -37,6 +41,7 @@ export function modeFor(p: Performance): Mode {
 
 /** note events for about `seconds` of playing */
 export function compose(p: Performance, seconds: number): NoteEv[] {
+  if (p.style === 'recitative') return recite(p, seconds);
   const rng = new Rng(p.pieceSeed ?? p.seed, p.pieceSeed != null ? 'compose:piece' : `compose:${p.id}`), info = INSTRUMENTS[p.instrument], range = rangeOf(p);
   const beat = 60 / (p.tempo ?? rng.range(72, 104));
   const ev: NoteEv[] = [];
@@ -80,9 +85,37 @@ export function compose(p: Performance, seconds: number): NoteEv[] {
   return ev.filter(e => e.t < seconds);
 }
 
+/** D-209 (M-06, M-22; C): the magus's chant as intoned lines, not a song. Each line: 7-15 syllables of even length (the
+ *  `tempo` is syllables a minute, 150-190), the first on the final or the step above rising to the reciting tone (the
+ *  third degree of the mode), the line recited on that tone with now and then the step above, the last but one on the
+ *  step below or above, the last held on the final; a breath between lines. The syllables are vowels only (song.ts: one
+ *  vowel a line): the rhythm of speech with no speech in it. Nothing of the kind survives from Persia: the form is the
+ *  plainest recitation on one tone, as liturgical recitation in the region's later traditions keeps it (RECOLLECTION, C) */
+function recite(p: Performance, seconds: number): NoteEv[] {
+  const rng = new Rng(p.seed, `recite:${p.id}`), range = rangeOf(p), mode = modeFor(p);
+  let base = p.tonic ?? range[0] * rng.range(1.0, 1.12); while (base > range[0] * 1.6) base /= 2;
+  const f = scaleFreqs(mode, base, 5), syl = 60 / (p.tempo ?? rng.range(150, 190)), ev: NoteEv[] = [];
+  let t = 0, phrase = 0;
+  while (t < seconds) {
+    const n = rng.int(7, 15);
+    for (let i = 0; i < n; i++) {
+      const deg = i === 0 ? (rng.chance(0.5) ? 0 : 1) : i === 1 && rng.chance(0.5) ? 1 : i === n - 1 ? 0 : i === n - 2 ? (rng.chance(0.65) ? 1 : 3) : rng.chance(0.07) ? 3 : 2;
+      const len = i === n - 1 ? syl * rng.range(2.2, 3.2) : syl * rng.range(0.85, 1.2);
+      ev.push({ t, dur: len * (i === n - 1 ? 0.95 : 0.78), f: f[deg], vel: (i === 0 ? 0.75 : 0.85) * rng.range(0.9, 1), phrase }); t += len;
+    }
+    t += syl * rng.range(1.6, 3); phrase++;
+  }
+  return ev.filter(e => e.t < seconds);
+}
+/** the mouth-cover over the chanting magus's mouth (D-209: the Oxus plaques' covered chin; C): a felt flap damps the voice's
+ *  upper partials, a one-pole low-pass at about 1.5 kHz (C) */
+function muffle(x: Float32Array, sr: number, fc = 1500): Float32Array {
+  const a = Math.exp((-2 * Math.PI * fc) / sr); let y = 0; for (let i = 0; i < x.length; i++) { y = (1 - a) * x[i] + a * y; x[i] = y; }
+  let peak = 1e-9; for (let i = 0; i < x.length; i++) peak = Math.max(peak, Math.abs(x[i])); for (let i = 0; i < x.length; i++) x[i] *= 0.8 / peak; return x;
+}
 /** render events to a mono buffer (pure; node-testable) */
 export function render(p: Performance, events: NoteEv[], sr: number): Float32Array {
-  if (p.instrument === 'voice') return sing(events, sr, { register: p.register ?? 'f', seed: p.seed, voices: p.voices });
+  if (p.instrument === 'voice') { const v = sing(events, sr, { register: p.register ?? 'f', seed: p.seed, voices: p.voices }); return p.context === 'offering' ? muffle(v, sr) : v; }
   const end = events.reduce((m, e) => Math.max(m, e.t + e.dur + 1), 0), out = new Float32Array(Math.ceil(end * sr));
   const rng = new Rng(p.seed, `render:${p.id}`);
   const add = (x: Float32Array, t: number) => { const o = Math.max(0, Math.floor(t * sr)); for (let i = 0; i < x.length && o + i < out.length; i++) out[o + i] += x[i]; };
@@ -102,7 +135,8 @@ export function render(p: Performance, events: NoteEv[], sr: number): Float32Arr
 export const VOICE_SR = 22050;
 /** can this performance be played at all (the evidence rules, without the audio context)? the reason when not */
 export function refusal(p: Performance, courtResident: boolean, pos?: { x: number; y: number; z: number }): string | null {
-  if (p.context === 'offering') return 'no instrument or song at an offering (Herodotus 1.132; the chant is not attested: M-06)';
+  // at an offering only a magus's chant: one man's voice, unaccompanied, wordless, citing M-06 (Herodotus 1.132; D-209)
+  if (p.context === 'offering' && (p.instrument !== 'voice' || p.register !== 'm' || (p.voices ?? 1) > 1 || p.style !== 'recitative' || !p.claims?.includes('M-06'))) return 'at an offering only a magus chants, alone and without words, and no instrument plays (Herodotus 1.132: M-05, M-06; D-209)';
   if (p.context === 'court' && !courtResident) return 'court music only with the court resident (D-003, M-16)';
   if (!p.claims?.length) return 'no tiered source (SOUNDSCAPE §8 claim) for this playing';
   const bad = p.claims.filter(c => !knownClaim(c)); if (bad.length) return `unknown claim ids ${bad.join(', ')}`;

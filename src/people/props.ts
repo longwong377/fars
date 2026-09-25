@@ -89,6 +89,7 @@ export const PROP_NOTES: Record<string, { tier: 'A' | 'B' | 'C'; note: string }>
   spear_gpom: { tier: 'B', note: 'a spear with a golden pomegranate at the butt: of the ten thousand “one thousand had golden pomegranates … the nine thousand silver” (Herodotus 7.41, read: B); given to one guard in ten of the Persian-dress files (C)' },
   ball: { tier: 'C', note: 'a child’s stitched leather ball, 10 cm (balls of leather or linen stuffed with chaff or hair are known from Egypt and the Greek world: RECOLLECTION, NOT SEEN; none attested at Persepolis; C)' },
   toy_bow: { tier: 'C', note: 'a boy’s small bow of the recurved form, 0.6 m (boys taught to shoot: HDT 1.136, a Greek claim, B; the toy C)' },
+  barsom: { tier: 'C', note: 'the barsom: a bundle of thin twigs held upright in the right hand by a magus at the fire and at offerings (a man in Median dress holding the barsom on the gold plaques of the Oxus Treasure, OXUS-PLAQUE: B; a bundle on Achaemenid seals, NOT SEEN); a bundle 0.46 m long, drawn as two splayed rods (the twigs are not resolved at a carried prop’s size): C (D-209)' },
   rattle: { tier: 'C', note: 'a hollow fired-clay rattle with pellets inside and a stub handle (clay rattles are known from Near Eastern and Iranian sites: RECOLLECTION, NOT SEEN; C)' },
   babe: { tier: 'C', note: 'a baby of 3-12 months or a small child carried, in a little tunic, bare-legged (C; D-215: its size by age, its skin the carer’s tone)' },
   babe_wrapped: { tier: 'C', note: 'a baby under three months swaddled in a cloth, the face showing (swaddling by analogy with Greek and Egyptian practice: C, Q-431)' },
@@ -212,6 +213,10 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
       return merge(parts); }
     // D-215: children's toys (gap audit item 26)
     case 'ball': return paint(new THREE.SphereGeometry(0.05, 6, 4), [0.55, 0.4, 0.26], 0, 0.85);
+    // D-209: the barsom, a bundle of thin twigs held upright (the Oxus plaques: B; length and form C)
+    // (12 triangles: the small objects' union has 14 to spare of its 1,000; at a carried prop's size the bundle reads as two
+    // splayed rods 2.4 and 1.6 cm thick, the twigs are not resolved)
+    case 'barsom': return merge([paint(rod([0, 0, -0.1], [0.004, 0, 0.36], 0.012, 0.009, 3), [0.5, 0.42, 0.26], 0, 0.9), paint(rod([0, 0, -0.08], [-0.016, 0.008, 0.33], 0.008, 0.006, 3), [0.56, 0.47, 0.29], 0, 0.9)]);
     case 'rattle': return merge([paint(new THREE.SphereGeometry(0.034, 5, 4).scale(1, 0.85, 1).translate(0, 0, 0.1), [0.66, 0.46, 0.32], 0, 0.9), paint(rod([0, 0, -0.03], [0, 0, 0.07], 0.012, 0.014, 3, true), [0.62, 0.43, 0.3], 0, 0.9)]);
     // D-215: the carried child (gap audit item 4): its own frame, origin at its seat (the bottom), +Y up its spine, +Z its
     // front; made at a reference length (babes.ts babeKind) and scaled per instance. Skin vertices carry metalness −1: the
@@ -277,10 +282,14 @@ export const PROPS: Record<string, PropSpec> = {
   // D-215: the gilded spear butts, the children's toys
   spear_apple: { geom: 'spear_apple', rule: 'legacy', grip: [0.15, 1] }, spear_gpom: { geom: 'spear_gpom', rule: 'legacy', grip: [0.15, 1] },
   ball: { geom: 'ball', rule: 'toss' }, toy_bow: { geom: 'toy_bow', rule: 'bow', hand: 'l' }, rattle: { geom: 'rattle', rule: 'one', hand: 'r', roll: 'up' },
+  // D-209: the magus's barsom, upright in the right fist
+  barsom: { geom: 'barsom', rule: 'one', hand: 'r', roll: 'up', up: 1 },
 };
 /** the two carried-prop meshes: small objects (with the Phase 3 set) and long tools. Every kind of a class is in one union */
 export const PROP_CLASSES: string[][] = [
-  ['spear', 'sack', 'jar', 'tablet', 'mallet', 'basket', 'sickle', 'spindle', 'distaff', 'trowel', 'brick', 'knife', 'cloth', 'wisp', 'bowl', 'rag', 'awl', 'arrow', 'lead', 'ladle', 'stick'],
+  ['spear', 'sack', 'jar', 'tablet', 'mallet', 'basket', 'sickle', 'spindle', 'distaff', 'trowel', 'brick', 'knife', 'cloth', 'wisp', 'bowl', 'rag', 'awl', 'arrow', 'lead', 'ladle', 'stick',
+    // (D-209: the magus's barsom, 12 triangles: the long tools' union is at its 700)
+    'barsom'],
   // (D-199: the king's and his attendants' things join the long tools' union: the small objects' is at its budget)
   ['hoe', 'fork', 'goad', 'staff', 'broom', 'mould', 'rope', 'adze', 'bow', 'beater', 'paddle', 'sceptre', 'parasol', 'lotus', 'whisk', 'towel',
     // (D-215: the children's toys, small, in the long tools' union: the small objects' is full)
