@@ -1,0 +1,21 @@
+built 9 sets, 927 figures (Apadana 550) in 1972 ms
+N audience panel, 2 m              tris  1054234  L0..L4 199666 / 187497 / 86854 / 82555 / 0  far 443022  draws 202 (far 19, proxies 2)
+N audience panel, 4 m              tris   831026  L0..L4 0 / 146363 / 104446 / 82555 / 0  far 443022  draws 202 (far 19, proxies 2)
+N audience panel, 6 m              tris   765804  L0..L4 0 / 0 / 185667 / 82555 / 0  far 443022  draws 202 (far 19, proxies 2)
+N audience panel, 10 m             tris   754116  L0..L4 0 / 0 / 165757 / 35695 / 0  far 498264  draws 134 (far 20, proxies 0)
+N audience panel, 16 m             tris   712388  L0..L4 0 / 0 / 91765 / 32092 / 0  far 534451  draws 88 (far 21, proxies 0)
+N audience panel, 25 m             tris   622998  L0..L4 0 / 0 / 0 / 0 / 0  far 570038  draws 24 (far 23, proxies 0)
+E audience panel, 2 m              tris  1043671  L0..L4 199666 / 187497 / 86854 / 31514 / 0  far 483500  draws 142 (far 20, proxies 3)
+E audience panel, 4 m              tris   820463  L0..L4 0 / 146363 / 104446 / 31514 / 0  far 483500  draws 142 (far 20, proxies 3)
+E audience panel, 6 m              tris   755241  L0..L4 0 / 0 / 185667 / 31514 / 0  far 483500  draws 141 (far 20, proxies 2)
+E audience panel, 10 m             tris   746635  L0..L4 0 / 0 / 165757 / 39896 / 0  far 486582  draws 146 (far 27, proxies 0)
+E audience panel, 16 m             tris   704907  L0..L4 0 / 0 / 91765 / 39497 / 0  far 519565  draws 100 (far 28, proxies 0)
+E audience panel, 25 m             tris   647448  L0..L4 0 / 0 / 0 / 0 / 0  far 594488  draws 31 (far 30, proxies 0)
+Apadana walk worst (tests/reliefs.test.ts): 1112480 at E a=19.165 off=1.2 L0..L4 324302 / 356298 / 125346 / 52358 / 0
+Phase 4 jambs worst (all sets): 1449916 at hall100:N1 jamb 1 off 0
+Grand Stair foot (all far)         tris   474131  L0..L4 0 / 0 / 0 / 0 / 0  far 474131  draws 9 (far 9, proxies 0)
+meshes generated 846, 50464 ms generating; total 53922 ms
+masons' marks on the Apadana stair reliefs: 68 marks, 1 draw(s), 136 tris (+ one mesh of ≤ 72 tris on the Hall of 100 Columns' yard when dressed drums wait there)
+palace furnishings (court setting off, stored): 55 pieces, 15 draws, 18.1 k tris, 54 colliders — tachara 7 draws 14.4 k; hadish 4 draws 2.6 k; harem 4 draws 1.2 k (a building's group is drawn within 90 m)
+palace furnishings (court setting on, use): 271 pieces, 19 draws, 47.0 k tris, 110 colliders — apadana 3 draws 4.4 k; tachara 6 draws 23.4 k; hadish 5 draws 11.8 k; harem 5 draws 7.5 k (a building's group is drawn within 90 m)
+palace furnishings (court setting on, stored): 55 pieces, 15 draws, 18.1 k tris, 54 colliders — tachara 7 draws 14.4 k; hadish 4 draws 2.6 k; harem 4 draws 1.2 k (a building's group is drawn within 90 m)

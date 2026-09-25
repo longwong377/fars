@@ -1,6 +1,14 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Relief carving (D-226; rubric s7 pass 2 fix 1).** The reliefs now cast shadows on their ground and on themselves (a
+  height atlas in the walls' frames marched by the sun's light; rendered at high: apadana-e-stair-raking, reliefs-raking,
+  shadow widths within ~1 px of the geometry; node: a straight edge's band grows with the depth, +2.05 cm per 1.5 cm at a 15°
+  sun, 4-14 % short of the exact march). Still weak/placeholder: the carving is procedural (NEEDS #10, C), **no undercut**
+  (heightfield), the lion-and-bull is still a poor drawing (Q-552), fine self-shadow (curls, pleat steps) under the atlas's
+  5 mm texel is lost (25 % of a guard's exact self-shadow at 22°), the Naqsh reliefs cast none, the atlas costs 43 MiB and
+  ~8 s of worker time at load; robes still show a fine speckle at 10 m in raking light (not separated). Edges crisper (robe
+  step 8.8 -> 19.6 mm high 1 mm in), paint even and edge-bounded (the LOD's pattern diamonds and loss diamonds gone).
 - **Smoke and dust (D-220, session 8 workstream; rubric s7 fix 5).** Rendered at high (moments `town-smoke-dusk`,
   `town-smoke-dusk-rahmat`, `dawn-stair-top`, each with an A/B capture): the smoke layer over the lower town reads as a pale
   band (+22 % Weber over the town rows from the Terrace, +10–12 % from Kuh-e Rahmat, faint at dawn over the villages); the town
