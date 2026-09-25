@@ -457,6 +457,29 @@ export function extractLod(f: Field, err: Float32Array, maxError: number, gradSt
     const c = col[gc] === BG ? bgl : lin[col[gc]]; cl[v * 3] = c[0]; cl[v * 3 + 1] = c[1]; cl[v * 3 + 2] = c[2];
   }
   const index = tris.slice(0, nt);
+  // the paint prefiltered over each vertex's footprint (D-226; rubric s7 pass 2: "camouflage-mottled paint"): a vertex's colour
+  // is the mean of the painted grid points within half its longest edge, so a painted pattern finer than the LOD's triangles
+  // (the royal robe's circles and lotuses, the guards' robe pattern) averages to its tint instead of spreading one sampled
+  // point over triangles centimetres wide, which drew stone-white and pigment diamonds across every patterned robe from 4 m.
+  // Where the triangles are small (colour edges refined at L0, outlines at every LOD) the window is a cell or less and the
+  // colour is the point's own. Gilded vertices keep the gilt key (the material draws them as metal)
+  {
+    const reach = new Float32Array(nv);
+    for (let t = 0; t < nt; t += 3) for (let e = 0; e < 3; e++) { const a = index[t + e], b = index[t + (e + 1) % 3], ga = vlist[a], gb = vlist[b];
+      const L = Math.max(Math.abs((ga % n) - (gb % n)), Math.abs(Math.floor(ga / n) - Math.floor(gb / n))) / 2; if (L > reach[a]) reach[a] = L; if (L > reach[b]) reach[b] = L; }
+    const W = n + 1, sat = new Float64Array(W * W * 4); // summed-area tables of linear colour × painted, and of painted
+    for (let j = 0; j < n; j++) { let r0 = 0, r1 = 0, r2 = 0, r3 = 0;
+      for (let i = 0; i < n; i++) { const c = col[j * n + i]; if (c !== BG) { const q = lin[c]; r0 += q[0]; r1 += q[1]; r2 += q[2]; r3 += 1; }
+        const o = ((j + 1) * W + i + 1) * 4, u = (j * W + i + 1) * 4; sat[o] = sat[u] + r0; sat[o + 1] = sat[u + 1] + r1; sat[o + 2] = sat[u + 2] + r2; sat[o + 3] = sat[u + 3] + r3; } }
+    const gk0 = palette.findIndex(c => c[0] === GILT_SRGB[0] && c[1] === GILT_SRGB[1] && c[2] === GILT_SRGB[2]);
+    for (let v = 0; v < nv; v++) {
+      const r = Math.min(8, Math.floor(reach[v])), gc = src[v]; if (r < 1 || col[gc] === BG || col[gc] === gk0) continue;
+      const i = gc % n, j = (gc - i) / n, i0 = Math.max(0, i - r), i1 = Math.min(max, i + r), j0 = Math.max(0, j - r), j1 = Math.min(max, j + r);
+      const A = (j1 + 1) * W + i1 + 1, B = j0 * W + i1 + 1, C = (j1 + 1) * W + i0, Dd = j0 * W + i0, box = (k: number) => sat[A * 4 + k] - sat[B * 4 + k] - sat[C * 4 + k] + sat[Dd * 4 + k];
+      const m = box(3); if (m <= 0) continue;
+      cl[v * 3] = box(0) / m; cl[v * 3 + 1] = box(1) / m; cl[v * 3 + 2] = box(2) / m;
+    }
+  }
   // gilding (D-151): 1 on vertices of a gilded mass (their colour is the gilt key), 0 elsewhere
   const gilt = new Float32Array(nv), gk = palette.findIndex(c => c[0] === GILT_SRGB[0] && c[1] === GILT_SRGB[1] && c[2] === GILT_SRGB[2]);
   if (gk > 0) for (let v = 0; v < nv; v++) if (col[src[v]] === gk) gilt[v] = 1;

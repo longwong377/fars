@@ -10,12 +10,13 @@ import { FIGURE_KINDS, PIGMENT, DELEGATIONS, SPECIES, defBounds, figureDef, base
 const SPECIES_HALF = (k: string) => (SPECIES[k] ? SPECIES[k].L / 2 : 0.3);
 import { rasterize, rtinErrors, extractLod, LodMesh, Box, FigureDef } from './relief_field';
 import { paintedStoneMaterial } from '../render/materials';
+import { planReliefShadow, stampField, type ShadowItem, type ReliefShadowData } from './relief_shadow';
 export { FIGURE_KINDS, PIGMENT, DELEGATIONS } from './relief_figures';
 export type { KindInfo } from './relief_figures';
 
 /** the carvable figure kinds (see FIGURE_KINDS for tier / source / note of each) */
 export const RELIEF_KINDS = Object.keys(FIGURE_KINDS);
-export const RELIEF_META = { tier: 'C', src: 'RELIEF-R;MATCULT-R;IR-APAD', placeholder: true, note: 'procedural low relief; licensed scans would replace (NEEDS #10). Carved heightfield figures (D-019); layout B/C; hair/beard dark blue B, other paint C' };
+export const RELIEF_META = { tier: 'C', src: 'RELIEF-R;MATCULT-R;IR-APAD', placeholder: true, note: 'procedural low relief; licensed scans would replace (NEEDS #10). Carved heightfield figures (D-019), cut back in near-vertical steps, no undercut; their sun shadows marched from a height atlas (D-226); layout B/C; hair/beard dark blue B, other paint C' };
 
 // ---------------- levels of detail ----------------
 /** per LOD: target grid cell on the stone (m), largest grid, RTIN error bound (relief-depth units), normal smoothing (cells),
@@ -91,7 +92,8 @@ class WorkerPool {
     for (let i = 0; i < n; i++) {
       const w = new Worker(new URL('./relief_worker.ts', import.meta.url), { type: 'module' });
       w.onmessage = (e: MessageEvent) => { const key = this.waiting.get(e.data.id)!; this.waiting.delete(e.data.id); this.pending.delete(key);
-        if (e.data.mesh) { meshCache.set(key, e.data.mesh); genStats.generated++; } else console.error('relief worker', key, e.data.error);
+        if (e.data.field) { this.onField.get(key)?.(e.data.field); this.onField.delete(key); }
+        else if (e.data.mesh) { meshCache.set(key, e.data.mesh); genStats.generated++; } else console.error('relief worker', key, e.data.error);
         this.idle.push(w); this.pump(); this.onDone?.(); };
       w.onerror = e => console.error('relief worker error', e.message);
       this.workers.push(w); this.idle.push(w);
@@ -100,6 +102,12 @@ class WorkerPool {
   request(key: string, kind: string, seed: number, n: number, lod: number) {
     if (this.pending.has(key) || meshCache.has(key)) return;
     this.pending.add(key); this.queue.push({ key, job: { kind, seed, n, err: RELIEF_LODS[lod].err, grad: RELIEF_LODS[lod].grad, pre: RELIEF_LODS[lod].pre } }); this.pump();
+  }
+  private onField = new Map<string, (f: { n: number; x0: number; y0: number; cell: number; h: Float32Array }) => void>();
+  /** a rasterised field (the relief shadow atlas, D-226), delivered to `done`; queued behind the meshes already asked for */
+  requestField(key: string, kind: string, seed: number, n: number, done: (f: { n: number; x0: number; y0: number; cell: number; h: Float32Array }) => void) {
+    if (this.pending.has(key)) return;
+    this.pending.add(key); this.onField.set(key, done); this.queue.push({ key, job: { kind, seed, n, err: 0, grad: 1, pre: true, field: true } }); this.pump();
   }
   /** jobs are served nearest-first: the caller re-sorts by priority before pumping */
   prioritise(prio: (key: string) => number) { this.queue.sort((a, b) => prio(a.key) - prio(b.key)); }
@@ -163,7 +171,7 @@ export class ReliefSet extends THREE.Group {
   dirty = true;
   private inst: number[] = []; private level: Int8Array; private shown: Int8Array; private grids: number[][] = []; private centres: Float32Array;
   private geoIds = new Map<string, number>(); private geoUse = new Map<string, number>(); private lastCam = new THREE.Vector3(Infinity, 0, 0);
-  private rosNear: THREE.InstancedMesh | null = null; private rosettes: RosetteItem[]; private rosMats: THREE.Matrix4[] = [];
+  private rosNear: THREE.InstancedMesh | null = null; readonly rosettes: RosetteItem[]; private rosMats: THREE.Matrix4[] = [];
   private mats: THREE.Matrix4[] = []; private chunks: Chunk[] = []; private chunkOf: Int32Array;
   /** the whole set merged at L3, drawn instead of the far chunks while every chunk is far (D-048) */
   private whole: THREE.Mesh | null = null;
@@ -385,6 +393,33 @@ function rosetteBoss(): THREE.BufferGeometry {
   g.setAttribute('paint', new THREE.Float32BufferAttribute(new Array(pos.length / 3).fill(1), 1)); g.setAttribute('gilt', new THREE.Float32BufferAttribute(new Array(pos.length / 3).fill(0), 1)); g.setAttribute('ao', new THREE.Float32BufferAttribute(new Array(pos.length / 3).fill(0), 1)); g.setIndex(idx); g.computeVertexNormals();
   return g;
 }
+// ---------------- the relief shadow atlas (D-226; relief_shadow.ts, render/reliefShadow.ts) ----------------
+/** the figures (and rosettes) of relief sets as the shadow atlas takes them */
+export function shadowItems(sets: ReliefSet[]): ShadowItem[] {
+  const out: ShadowItem[] = [], emb = carving().embed;
+  for (const s of sets) {
+    for (const it of s.items) out.push({ kind: it.kind, seed: it.seed, o: [it.o.x, it.o.y, it.o.z], X: [it.X.x, it.X.z], Z: [it.Z.x, it.Z.z], S: it.S, D: it.D, mirror: it.mirror, embed: emb });
+    // a rosette is placed by its lower edge's centre (facadeItems, registerItems): the kind's frame has its centre at 0.5
+    for (const r of s.rosettes) out.push({ kind: 'rosette', seed: 0, o: [r.o.x, r.o.y, r.o.z], X: [r.X.x, r.X.z], Z: [r.Z.x, r.Z.z], S: r.S, D: r.D, mirror: false, embed: emb });
+  }
+  return out;
+}
+let shadowData: ReliefShadowData | null = null;
+/** plan the relief shadow atlas for these sets and fill it: fields from the worker pool as they come (the texture is uploaded
+ *  as they land), or synchronously (node, no workers). `onChange` is told when the atlas changes (the renderer's texture) */
+export function buildReliefShadow(sets: ReliefSet[], onChange?: (d: ReliefShadowData) => void): ReliefShadowData {
+  const D = planReliefShadow(shadowItems(sets)); shadowData = D;
+  const wp = workers(), t0 = performance.now();
+  for (const [k, j] of [...D.jobs]) {
+    if (wp) wp.requestField(k + '|F', j.kind, j.seed, j.n, f => { stampField(D, k, f); onChange?.(D); });
+    else { stampField(D, k, rasterize(defOf(j.kind, j.seed), j.n, true)); }
+  }
+  if (!wp) { genStats.ms += performance.now() - t0; onChange?.(D); }
+  return D;
+}
+/** the current relief shadow atlas (null before buildReliefShadow) */
+export const reliefShadowData = () => shadowData;
+
 /** per-frame hook (world.update): LOD selection for every live relief set; budgetMs bounds main-thread generation when no Worker exists */
 export function updateReliefs(cam: THREE.Vector3, budgetMs = 4) { for (const s of liveSets) s.update(cam, budgetMs); }
 /** meshes still being generated for the current views */

@@ -5297,3 +5297,101 @@ moment-*-webgpu.png in the worktree, not committed).**
   stratospheric layer B-values used as C; the sun's photometric luminance B (USNO); the bright-majority rule and its
   constants C.
 - **Open questions:** Q-530 … Q-536. **Blockers:** B43, B44.
+
+## D-226 Relief carving that casts shadows: a relief height atlas marched by the sun's light, crisper cut-back edges, an even edge-bounded paint film (session 8 workstream; REVIEWS/rubric_s7_pass2.md fix-list item 1)
+- **Read first: what is still broken, placeholder or unverified.**
+  - The carving is still the procedural low relief (C, RELIEF_META placeholder true; licensed scans NEEDS #10). Every form is
+    RECOLLECTION of photographs, NOT SEEN this session (Q-550). **No undercut**: a heightfield cannot hold one; the
+    near-vertical step, the baked contour occlusion (D-217) and now the cast shadow stand in for it.
+  - **The lion-and-bull is still a weak drawing** (the lion a long rearing body, its head lost under the mane block; the chest
+    was deepened a little, Q-552). The musculature the brief asks for is the same incised arcs and doming as before.
+  - **Fine self-shadow is lost below the atlas's texel** (5 mm on the registers): on a guard at 22°, 25-27 % of the sunward
+    points the exact L0 march shades (curls, pleat steps) stay lit (tools/dev/relief_shadow_lod.ts); the broad forms (the
+    lion-and-bull: 3-4 % missed) and every cast shadow on the ground are kept. The mesh's own normals still shade the pleats.
+  - **Rendered once completely** (quality high, WebGPU on SwiftShader, 5 frames: apadana-e-stair-raking and reliefs-raking, TAG d226b; shots/d226/render/); the first render ran with a second texture binding and one material failed
+    to build (17 sampled textures in a fragment stage, the limit 16) and its reliefs-raking view timed out on the loaded box.
+  - The Naqsh-e Rustam reliefs are not in the atlas (a plain-scale plan grid 6 km away; they are drawn beyond 1.5 km only as
+    far chunks): they cast no shadow. The rosettes are in it; the relief proxies in the shadow map (D-048) are unchanged.
+  - Memory: the atlas is 43 MiB (R8, 8192 × 5560) of GPU memory and as much JS heap; filling it costs ~8 s of relief-worker
+    time and ~0.8 s of stamping on the main thread at load (node timings, loaded box). Budget 3.5 GB (README): within.
+- **What the render showed and why (measured).** The reliefs cast nothing: the sun's cascaded shadow map has texels of
+  several centimetres in its nearest cascade and a 6 cm normal bias (skySystem.ts), which lifts every receiver on the wall
+  above a 4.5-6 cm relief; the relief batch casts no shadow at all (D-048). The node previews (tools/relief_preview.ts)
+  marched their own heightfield, so they showed shadows the game never drew. The sun in the two moments is not low but it
+  does rake: apadana-e-stair-raking (day 25, 10:00) sun 60.9° up, 21.8° off the E façade's plane: a vertical step of 1 cm
+  casts 2.5 cm along the light (0.85 across, 2.36 down); reliefs-raking (16:00) 32.3° up, 17.1° off the N façade: 3.25 cm
+  per cm (tools/dev/relief_shadow_check.ts).
+- **Rendered (moments, high, 5 frames; shots/d226/render/moment-*-d226b-webgpu.png).** reliefs-raking (sun 17° off the N
+  façade, from the viewer's right): every audience-panel figure throws a shadow to its left and down; across the back of a
+  robe (row 290) the wall's luma 101 falls to 48-50 for 6 px, then a 3 px near-black line (luma 11-19: the step's face turned
+  from the sun, and its contour occlusion) before the paint. Expected across: a 2.7-3.6 cm crest × 2.69 = 7-10 cm, × 0.8
+  foreshortening at ~10 m (1.35 cm/px) = 4-6 px: measured 6. apadana-e-stair-raking (sun 22° off the E façade, high): the
+  lion-and-bull's belly throws a band down onto the wall, luma 110 -> 44-63 over 10 px at three columns (~13 cm at ~10 m,
+  the belly's underside and its cast shadow; a 2.6-3.7 cm crest casts 6-9 cm down); the guards' feet and right edges carry
+  thin shadows (0.85 cm across per cm of height: 1-2 px at this sun). The first render's dark blotches over the bull (the
+  march from the LOD mesh) are gone; frame luma mean 94.0 -> 94.3. The robes still show a fine dark speckle at 10 m in
+  reliefs-raking (pleat and curl self-shadow at 17°, or the residual loss noise: not separated).
+- **The cast shadows (src/arch/relief_shadow.ts, src/render/reliefShadow.ts; C as a method, the heights are the carving's).**
+  - Every relief figure and rosette of the Terrace's nine sets (927 figures, 2,740 rosettes) is stamped once into an 8-bit
+    height atlas in the frame of its wall: metres above the wall face over 6.4 cm (0.25 mm steps). Figures on one plane
+    within 0.85 m of each other form a panel; a panel wider than a third of the atlas (an Apadana façade, 81 m) is cut into
+    slices whose rectangles overlap by the march's reach, each holding the points of its own core (so a march never leaves
+    its slice's heights). Texel = the panel's smallest figure / 150, within 5-8 mm (the registers 5 mm). Skyline packing:
+    75 panels, 38.5 M texels in 45.5 M.
+  - A plan grid (0.5 m cells, in the same texture's last rows) lists up to four panels near each cell (6 cells hold two,
+    none more). The panel table is a uniform array.
+  - The sun's colour node (every lit material that opts in: the architecture's surfaces, the painted relief stone, the
+    incised signs) marches the atlas from the fragment toward the sun: 24 bilinear samples until the ray is above the
+    relief's top or 0.4 m along the wall; a sample above the ray occludes over a centred soft band of 1 mm + 1.2 % of the
+    distance (the sun's half-degree penumbra is 0.93 %); bias 0.5 mm. On the carving the ray starts on the atlas's surface
+    where the drawn LOD mesh lies under it (the RTIN bound at L2 is 0.12 of the depth, 7 mm on a panel: from the mesh the
+    march found the carving above itself — the first render's dark blotches over the lion-and-bull). A texel stamps the mean
+    of the bilinear value and the maximum of its four field samples (a half-texel dilation: without it a straight edge's
+    band came out 0.9-1.0 cm short of the exact march).
+  - Reach 0.4 m: a 6 cm relief shades its ground down to a sun 8.5° off the wall (where the wall's own direct light is 15 % of
+    square-on). The shader binds ONE more texture (a fragment stage may bind 16; the first render hit 17 with a second).
+  - CPU mirror (reliefShadowAt, marchPanel) for the tests and previews; the fields come from the relief workers (a new
+    `field` job) and the texture is uploaded at most every 2 s while they arrive, then once at the end; reliefsPending counts
+    them, so the e2e settle waits for the full atlas.
+- **Measured (node; tools/dev/relief_shadow_check.ts, relief_shadow_lod.ts; tests/relief_shadow.test.ts).** The rubric's
+  test, a 15° raking sun (off the wall plane; its in-plane direction 35° above the horizontal):
+  - A straight carved edge (the throne-bearers' ledge, 4 m): the shadow band under it 2.75 / 4.85 / 6.90 cm for 3 / 4.5 / 6 cm
+    of carving (the exact march of the L0 field 3.20 / 5.20 / 7.20): +2.05 cm of band per 1.5 cm of depth, the geometry's
+    rate for the ledge's crest (L_up / L_out = 2.14 × the crest's 0.65-0.7 of the depth ≈ 1.4 × 1.5 cm): **the width grows in
+    proportion to the depth**, within 4-14 % of the exact march (the atlas's texel rounds the crest).
+  - A guard (0.74 m, 4.5 cm): shaded ground 890 cm² (exact 1,025), agreement 98.2 % of the ground points; the lion-and-bull
+    (6 cm) 3,365 cm² (exact 3,435), 99.7 %.
+  - False self-shadow on the drawn surface, sun 22° off the wall, from the LOD meshes: lion-and-bull L0-L4 0.00-0.29 %
+    (was 2.7 / 11.2 / 17.1 / 24.8 / 43.8 % before the start-on-the-atlas fix), guard L2-L3 0.23-0.43 %.
+- **The carved edge (relief_figures.ts; C, Q-550).** D-151 domed the body toward its outline (0.5 of its height over 0.1 of
+  the figure's) under a 0.03 quarter-round and a step of half the rest: the robe met the ground at a quarter of its height, a
+  pillow ("clay cut-outs"). Now a mass is cut back in a near-vertical step of 0.65 of its height (0.75 on a robe, 0.7 on an
+  animal's body), its arris rounded over 0.012 of the figure's height (the robe; default 0.012, was 0.018), a slight doming
+  left (robe 0.15 over 0.06, animal 0.3 over 0.08). Measured across the back of a Persian noble's robe (L0, 4.5 cm deep,
+  tools/dev/relief_edge_profile.ts), height 1 / 3 / 12 mm in from the outline: before 8.8 / 11.7 / 20.7 mm, now 19.6 /
+  22.6 / 28.3 mm. The lion's body is deeper (0.215 of the figure unit, was 0.2) with a narrower waist (0.6, was 0.75), held
+  to the lion-and-bull's 3.28 m extent (the D-217 cell test, Q-552).
+- **Paint (src/data/polychromy.json, relief_field.ts; C, Q-551).** Thin, even, edge-bounded: the film's opacity runs
+  0.94-0.97 (thickness_min 0.45 -> 0.85, hiding 2.3 -> 3.4; it ran 0.64-0.90 at brush scale: dark pigments over the light
+  stone read as camouflage); losses rare (level 0.72 -> 0.9, wear_bias 0.45 -> 0.12, soft 0.05); the arrises thinned by at
+  most a quarter (wear max 0.7 -> 0.25), so no bare rim round every figure. **The mottling's main source was the LOD:**
+  a vertex's colour was one sampled point, spread over triangles centimetres wide, so a patterned robe (the royal robe's
+  circles and lotuses, the guards' pattern) became white and pigment diamonds from 4 m, and the losses, thresholded on a
+  coverage interpolated over those triangles, cut stone-coloured diamonds out of plain robes. Now a vertex takes the mean
+  colour of the painted grid points within half its longest edge (gilt vertices keep the key): the pattern averages to its
+  tint where the mesh cannot draw it and stays itself where the triangles are small (colour edges at L0, outlines).
+  Node previews: shots/d226/before|after/audience_d8*.png (after_atlas = the game's shadow term).
+- **Costs (tools/relief_budget.ts; bench-reports/relief_budget_d217.txt -> relief_budget_d226.txt).** Triangles: Apadana walk worst
+  1.091 -> 1.112 M, Phase 4 jambs worst 1.444 -> 1.450 M (budget 1.5 M), all far 473 -> 474 k, before the N panel at 2 m
+  1.035 -> 1.054 M; draws unchanged (202 / 9). Shader: one texture load per lit fragment of the opted-in materials away from
+  the reliefs, up to 4 grid loads and 25 bilinear samples near them.
+- **Rejected.** The cascaded shadow map with the relief batch casting and a smaller bias (texels of several cm in the
+  nearest cascade; acne on every wall at grazing sun); an extra near-field shadow map of the reliefs only (a render pass and
+  draws per frame, still a bias against a 2 cm step); a per-figure instance atlas (up to ~8 figures under a 1 m cell of the
+  Apadana registers: 24 × 8 lookups); a shadow skirt of wall-coloured geometry round each figure (it must match the wall's
+  material exactly, and the stone workstream changes it); refining colour edges at L1/L2 (the jamb budget is 1.45 of 1.5 M);
+  shelf packing (55 MiB, rows over 8192 at 4096 wide).
+- **Tests:** tests/relief_shadow.test.ts (new: the edge band against the exact march and its growth with depth, a guard's
+  ground, the LOD false-shadow check, the sun behind the wall / out of reach, slices and seams, the grid, the WGSL and its
+  one extra texture binding, opt-out materials untouched); tests/polychromy.test.ts (the even film: mean coverage > 0.93,
+  none under 0.74); tests/reliefs.test.ts (the D-217 cloud check's "before" count now 9, was 18: the steeper steps).
