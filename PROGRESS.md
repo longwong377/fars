@@ -1,6 +1,7 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Session 7 (in progress).** Soak on the merged tree (sim r9 D-197, names D-202, court D-199; before the jar fix D-213 and the D-206/D-210/D-212 merges) PASSES all 8 gates: REVIEWS/soak/soak-2026-09-25T02-43-08-676Z.json (15,462,938 person-days, 0 plan issues). Shadow review round 9 FAILED (A and B: #76's water jar, fixed D-213); round 10 (pick 181) pending on the sim agent's final code. The D-207 gap fills (D-198..D-212) are node-verified only; render pass 2 incomplete (renders held twice for memory).
 - **Animals (D-210; gap audit items 5, 6, 10, 11, 15, 16, 17).** Added: dogs (with the herds, in the yards and as strays),
   and the animals that travel with their drivers and riders (the caravan's strings, Bactrian camels, E-06 donkey strings and
   ox carts, E-20 couriers). Also fowl and the state poultry yard, the paradise's deer and gazelle, the river's boar, crows and
