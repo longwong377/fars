@@ -115,8 +115,9 @@ export const isBodySurface = (A: HumanAssets, i: number) => A.part[i] < PART.eye
 
 /** index-only simplification with meshoptimizer (the far-LOD costumes): keeps the vertex set, reduces the triangles */
 export function meshoptSimplify(M: any) {
-  return (index: Uint32Array, pos: Float32Array, targetTris: number) => {
-    const [res] = M.simplify(index, pos, 3, Math.min(index.length, targetTris * 3), 0.03, []);
+  /** absError (m): an absolute error bound in place of 3 % of the mesh's extent (D-205: per piece of a costume) */
+  return (index: Uint32Array, pos: Float32Array, targetTris: number, absError?: number) => {
+    const [res] = M.simplify(index, pos, 3, Math.min(index.length, targetTris * 3), absError ?? 0.03, absError != null ? ['ErrorAbsolute'] : []);
     return Uint32Array.from(res as Uint32Array);
   };
 }

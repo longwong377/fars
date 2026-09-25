@@ -948,9 +948,11 @@ const ORDER = (id: string) => (id === 'belt' ? 2 : id.includes('upper') || id.in
 
 /** share of the far costume's triangles kept by the farthest LOD (C) */
 export const FAR_KEEP = 0.2;
+/** the farthest LOD's error bound for a piece, as a share of its own extent (D-205; C) */
+export const PIECE_ERR = 0.12;
 export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: number[]; variants?: string[]; profile?: Record<string, number>;
   /** index-only simplifier (meshoptimizer) for the farthest LOD; without it there are three LODs */
-  simplify?: (index: Uint32Array, pos: Float32Array, targetTris: number) => Uint32Array } = {}): OutfitBuild {
+  simplify?: (index: Uint32Array, pos: Float32Array, targetTris: number, absError?: number) => Uint32Array } = {}): OutfitBuild {
   const t0 = performance.now();
   const ref = A.byId.m03 ?? A.variants[0];
   const J = (b: HBone): V3 => [ref.joints[HB[b] * 3], ref.joints[HB[b] * 3 + 1], ref.joints[HB[b] * 3 + 2]];
@@ -989,7 +991,8 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
       const vmap = new Map<number, number>(); const verts: { tid: number; kind: 'body' | 'piece'; g?: Geo; i: number; bit: number }[] = [];
       const index: number[] = []; const pieceTris: Record<string, number> = { body: bodyIdx.length / 3 };
       for (const i of bodyIdx) { let k = vmap.get(i); if (k === undefined) { k = verts.length; vmap.set(i, k); verts.push({ tid: i, kind: 'body', i, bit: 0 }); } index.push(k); }
-      for (const id of [...COSTUMES[d].always, ...COSTUMES[d].opt]) { const key = geoKey(id, lod), g = geos[key]; const bit = pieceBit(d, id), off = verts.length;
+      const ranges: [string, number, number][] = [['body', 0, index.length]]; // index ranges per piece (the farthest LOD simplifies each)
+      for (const id of [...COSTUMES[d].always, ...COSTUMES[d].opt]) { const key = geoKey(id, lod), g = geos[key]; const bit = pieceBit(d, id), off = verts.length; ranges.push([id, index.length, index.length + g.index.length]);
         for (let i = 0; i < g.n; i++) verts.push({ tid: pieceBase[key] + i, kind: 'piece', g, i, bit });
         for (const i of g.index) index.push(off + i); pieceTris[id] = g.index.length / 3; }
       const n = verts.length;
@@ -1006,10 +1009,20 @@ export function buildOutfits(A: HumanAssets, opts: { dresses?: Dress[]; lods?: n
           out.hmat[k * 4] = g.mat[i]; out.hmat[k * 4 + 1] = g.col[i]; out.hmat[k * 4 + 2] = q.bit; out.hmat[k * 4 + 3] = g.prm[i]; out.hext[k * 4] = g.ao[i]; out.hext[k * 4 + 1] = g.slack[i]; out.hext[k * 4 + 2] = g.aux[i]; out.hext[k * 4 + 3] = g.edge[i]; }
       }
       costumes[d].push(out);
-      // the farthest costume: the far one simplified (index-only, meshoptimizer; pieces are separate components, so hidden
-      // optional pieces stay separable). Same vertices, a quarter or less of the triangles.
+      // the farthest costume: the far one simplified (index-only, meshoptimizer), the body and each piece on its own (hidden
+      // optional pieces stay separable). Same vertices, a fifth or so of the triangles. D-205: simplified as one mesh, the
+      // error bound (3 % of the whole figure, ~5 cm) removed every thin piece whole — the belt of every costume, the
+      // guards' bow, fillets, torques, headbands and the sword — so the farthest body drew fewer pieces than the look wore;
+      // each piece now has its own bound (3 % of its own extent) and keeps at least 4 triangles
       if (lod === 2 && opts.simplify) {
-        const idx = opts.simplify(out.index, out.refPos, Math.max(200, Math.round(out.triangles * FAR_KEEP)));
+        const parts: Uint32Array[] = [];
+        for (const [id, a, b] of ranges) { if (b <= a) continue; const sub = out.index.slice(a, b), tris = sub.length / 3;
+          if (id === 'body') { parts.push(opts.simplify(sub, out.refPos, Math.round(tris * FAR_KEEP))); continue; }
+          const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+          for (const v of sub) for (let e = 0; e < 3; e++) { const x = out.refPos[v * 3 + e]; if (x < lo[e]) lo[e] = x; if (x > hi[e]) hi[e] = x; }
+          const ext = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]);
+          parts.push(opts.simplify(sub, out.refPos, Math.min(tris, Math.max(4, Math.round(tris * FAR_KEEP))), PIECE_ERR * ext)); }
+        const idx = new Uint32Array(parts.reduce((x, q) => x + q.length, 0)); let o = 0; for (const q of parts) { idx.set(q, o); o += q.length; }
         const far: CostumeLOD = { ...out, lod: 3, index: idx, triangles: idx.length / 3, bodyTriangles: -1, pieceTris: {},
           tid: out.tid.slice(), skinIndex: out.skinIndex.slice(), skinWeight: out.skinWeight.slice(), uv: out.uv.slice(), hmat: out.hmat.slice(), hext: out.hext.slice(), refPos: out.refPos.slice(), refNrm: out.refNrm.slice() };
         costumes[d].push(far);
