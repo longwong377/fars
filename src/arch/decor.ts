@@ -49,7 +49,7 @@ export function buildReliefs(m: Manifest): THREE.Group {
   const crenMats: THREE.Matrix4[] = [];
   const topAt = (aa: number) => { const s = sg.spans.find(x => aa >= x.a0 - 1e-6 && aa <= x.a1 + 1e-6); if (!s || s.type === 'landing') return sg.podium + sg.parapet; const d = s.rise > 0 ? aa - s.a0 : s.a1 - aa; return (Math.floor(d / sg.tread) + 1) * sg.riser + sg.parapet; };
   for (const f of apadanaFacades(m)) for (let aa = -f.length / 2 + C.width / 2; aa < f.length / 2; aa += C.width * 1.15) crenMats.push(facadeMatrix(f, aa, topAt(aa), 1).multiply(new THREE.Matrix4().makeTranslation(0, 0, -0.5)));
-  const ci = new THREE.InstancedMesh(cren, surfaceMaterial('limestone'), crenMats.length); crenMats.forEach((mm, i) => ci.setMatrixAt(i, mm)); ci.castShadow = true; ci.receiveShadow = true;
+  const ci = new THREE.InstancedMesh(cren, surfaceMaterial('limestone_merlon'), crenMats.length); crenMats.forEach((mm, i) => ci.setMatrixAt(i, mm)); ci.castShadow = true; ci.receiveShadow = true;
   ci.userData = { tier: 'C', src: 'IR-PERS;RECON', note: 'four-stepped crenellations (motif B, size C)' }; ci.name = 'crenellations'; ci.computeBoundingSphere(); g.add(ci);
   return g;
 }
@@ -103,7 +103,7 @@ export function stairCrenellationPlan(parts: Part[]): Merlon[] {
 export function buildStairCrenellations(parts: Part[]): THREE.InstancedMesh | null {
   const CR = v<any>('global', 'r_stair_crenellation'), plan = stairCrenellationPlan(parts); if (!plan.length) return null;
   const geo = crenellationGeometry(CR.width, CR.height, CR.steps, 1);
-  const mesh = new THREE.InstancedMesh(geo, surfaceMaterial('limestone'), plan.length), m = new THREE.Matrix4(), t = new THREE.Matrix4();
+  const mesh = new THREE.InstancedMesh(geo, surfaceMaterial('limestone_merlon'), plan.length), m = new THREE.Matrix4(), t = new THREE.Matrix4();
   plan.forEach((q, i) => {
     // X along the run, Y up, Z = X × Y across the parapet (right-handed, so the extrusion keeps its winding); the unit-deep
     // extrusion is scaled to the merlon depth and centred on the parapet's mid-line

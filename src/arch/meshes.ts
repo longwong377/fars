@@ -221,10 +221,56 @@ function bevelledBoxGeometry(b: Box, index: PartIndex, stats: BevelStats): THREE
 export interface BevelStats { edges: number; bevelled: number; trisFlat: number; trisBevelled: number }
 /** kinds whose up-facing faces are walked floors: their box goes to the `pbox` attribute with +hx (floor wear, D-157) */
 const FLOORS = new Set(['floor_finish', 'portico_floor', 'pavement', 'landing', 'floor']);
+/** Stair blocks (D-218): the Grand Stair's steps were cut "4-5 steps from single blocks" (SITE_SPEC
+ *  grand_stair.block_construction, IR-PERS: B); every other flight is drawn the same way by analogy (C). The step parts of
+ *  each flight (same building, tread and width, same line across the run) are ordered by height and grouped into block rows
+ *  of 4 or 5 steps (hashed per row). Per step: [row index, flight seed in 0.1…0.9 (negative on the first step of a row, whose
+ *  tread carries the row's joint), run direction x, z (world, rising)]. The material reads it as the `stair` attribute */
+export function stairRows(parts: Part[]): Map<Part, [number, number, number, number]> {
+  const out = new Map<Part, [number, number, number, number]>(), flights = new Map<string, { b: Box; run: [number, number]; along: number }[]>();
+  for (const p of parts) {
+    if (p.type !== 'box' || p.kind !== 'step') continue;
+    const r = p.rot ?? 0, c = Math.cos(r), s = Math.sin(r), runLocal = p.size[0] <= p.size[1] ? 0 : 1;
+    const run: [number, number] = runLocal === 0 ? [c, s] : [-s, c]; // grid (e, n) unit along the run (sign fixed below)
+    const across = -run[1] * p.c[0] + run[0] * p.c[1];
+    const k = `${p.building}|${Math.min(...p.size).toFixed(3)}|${Math.max(...p.size).toFixed(2)}|${(((r % Math.PI) + Math.PI) % Math.PI).toFixed(3)}|${runLocal}|${Math.round(Math.abs(across) * 20) * Math.sign(across)}`;
+    (flights.get(k) ?? flights.set(k, []).get(k)!).push({ b: p, run, along: run[0] * p.c[0] + run[1] * p.c[1] });
+  }
+  // a line of steps may hold several flights (the Grand Stair's mirrored halves): split where consecutive treads do not touch
+  const chains: [string, { b: Box; run: [number, number]; along: number }[]][] = [];
+  for (const [k, L] of flights) {
+    L.sort((a, b) => a.along - b.along);
+    // (or where the heights stop rising the same way: two flights rising apart from a common foot, the Hadish stairs)
+    const tread = Math.min(...L[0].b.size); let ch = [L[0]], n = 0, dir = 0;
+    for (let i = 1; i < L.length; i++) {
+      const dy = L[i].b.y1 - L[i - 1].b.y1, s = Math.abs(dy) < 1e-4 ? 0 : Math.sign(dy);
+      if (L[i].along - L[i - 1].along > tread * 1.5 || s === 0 || (dir !== 0 && s !== dir)) { chains.push([`${k}|${n++}`, ch]); ch = []; dir = 0; }
+      else dir = s;
+      ch.push(L[i]);
+    }
+    chains.push([`${k}|${n}`, ch]);
+  }
+  for (const [k, F] of chains) {
+    F.sort((a, b) => a.b.y1 - b.b.y1);
+    // the rising direction: from the lowest step toward the highest (a single step: its run axis as found)
+    const sgn = F.length > 1 && F[F.length - 1].along < F[0].along ? -1 : 1;
+    let h = 0; for (let i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) >>> 0;
+    const seed = 0.1 + 0.8 * ((h % 1000) / 1000);
+    let row = 0, left = 4 + ((h >>> 3) & 1);
+    F.forEach((f, i) => {
+      if (i > 0 && left === 0) { row++; left = 4 + (((h >>> 5) + row * 7) % 2); }
+      const first = i === 0 || out.get(F[i - 1].b)![0] !== row;
+      out.set(f.b, [row, first ? -seed : seed, sgn * f.run[0], -sgn * f.run[1]]); // grid n → world −z
+      left--;
+    });
+  }
+  return out;
+}
 /** per-vertex part attributes for the architecture variant of the surface materials (D-157): `y0` = the part's base height
  *  (wall-foot band), `pbox` = (centre x, centre z, ±half size x, half size z) in world axes (+ for floors: traffic wear;
- *  the sizes also gate the slab joints of large up-facing parts), `ytop` = the part's top (run-off streaks) */
-function partAttributes(g: THREE.BufferGeometry, p: Box | Prism, index: PartIndex) {
+ *  the sizes also gate the slab joints of large up-facing parts), `ytop` = the part's top (run-off streaks), `stair` = the
+ *  step's block row (stairRows, D-218; zeros for any other part) */
+function partAttributes(g: THREE.BufferGeometry, p: Box | Prism, index: PartIndex, stair?: [number, number, number, number]) {
   const n = g.getAttribute('position').count, y0 = new Float32Array(n).fill(-1000), box = new Float32Array(n * 4);
   // `y0`: the floor in front of each vertex of a vertical face (5 cm out along its normal, the highest part top at or below
   // the part's own top): a wall's floor, a parapet's tread or court, a jamb's threshold. Parts founded deep (stairs,
@@ -251,6 +297,8 @@ function partAttributes(g: THREE.BufferGeometry, p: Box | Prism, index: PartInde
   for (let i = 0; i < n; i++) box.set([cx, cz, sx, hz], i * 4);
   g.setAttribute('y0', new THREE.BufferAttribute(y0, 1)); g.setAttribute('pbox', new THREE.BufferAttribute(box, 4));
   g.setAttribute('ytop', new THREE.BufferAttribute(new Float32Array(n).fill(p.y1), 1)); // run-off streaks below the part's top
+  const st = new Float32Array(n * 4); if (stair) for (let i = 0; i < n; i++) st.set(stair, i * 4);
+  g.setAttribute('stair', new THREE.BufferAttribute(st, 4));
 }
 /** A/B for measurements (window.__parsaSurf.bevels(on)): swap the merged part meshes between their bevelled and their
  *  plain geometry */
@@ -332,6 +380,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
   const group = new THREE.Group(); group.name = 'architecture';
   const byKey = new Map<string, { geos: THREE.BufferGeometry[]; plain: THREE.BufferGeometry[]; parts: Part[] }>();
   const index = new PartIndex(parts), bstats: BevelStats = { edges: 0, bevelled: 0, trisFlat: 0, trisBevelled: 0 };
+  const stairs = stairRows(parts);
   if (opts.dynamicDoors) bevelSwap.length = 0;
   const cols = new Map<string, { order: ColumnOrder; built: number; parts: Column[] }>();
   const colossi = parts.filter(p => p.type === 'box' && p.sculpt) as Box[];
@@ -355,7 +404,7 @@ export function buildMeshes(parts: Part[], phys?: Physics, opts: { dynamicDoors?
     // walls around sculpted jambs are already cut in the parts (terrace.ts: parts.cutWall). The render geometry is the part's
     // own, with its free arrises bevelled (D-157); the collider above stays the plain box
     const plain = g.clone(), rg = (p.type === 'box' ? bevelledBoxGeometry(p, index, bstats) : null) ?? g.clone();
-    partAttributes(rg, p, index); partAttributes(plain, p, index);
+    partAttributes(rg, p, index, stairs.get(p)); partAttributes(plain, p, index, stairs.get(p));
     bstats.trisFlat += plain.getAttribute('position').count / 3; bstats.trisBevelled += rg.getAttribute('position').count / 3;
     const key = `${p.building}|${p.material}|${p.tier}|${p.placeholder ? 1 : 0}`;
     if (!byKey.has(key)) byKey.set(key, { geos: [], plain: [], parts: [] }); const e = byKey.get(key)!; e.geos.push(rg); e.plain.push(plain); e.parts.push(p);

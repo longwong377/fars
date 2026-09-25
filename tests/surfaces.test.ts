@@ -77,21 +77,23 @@ describe('ashlar (D-157)', () => {
     expect(Math.min(...lengths)).toBeGreaterThanOrEqual(1.15 - 1e-9); expect(Math.max(...lengths)).toBeLessThanOrEqual(3.45 + 1e-9);
     expect(stats(heights).sd).toBeGreaterThan(0.1); expect(stats(lengths).sd).toBeGreaterThan(0.4); // really varied
   });
-  it('block indices change exactly at the joints; neighbouring blocks differ in tone by ~±13 % (1σ ~7.5 %)', () => {
+  it('block indices change exactly at the joints; neighbouring blocks differ in tone (D-157 ±13 %; D-218 1σ blockSd, tests/surfaces_d218.test.ts)', () => {
     let changes = 0, atJoint = 0; const tones: number[] = [];
     for (let y = 0.4; y < 20; y += 1.7) {
       let prev = cells(0, y, J).blk;
       for (let a = 0.005; a < 60; a += 0.01) { const q = cells(a, y, J); if (q.blk !== prev) { changes++; if (q.joints.some(j => Math.abs(j - a) < 0.011)) atJoint++; } prev = q.blk; }
     }
     expect(changes).toBeGreaterThan(100); expect(atJoint / changes).toBeGreaterThan(0.95);
-    for (let c = 0; c < 40; c++) for (let b = 0; b < 40; b++) tones.push(1 + (2 * hash12(b + 0.37, c + 11.3) - 1) * SURFACES.limestone.blockTone!);
-    const s = stats(tones); expect(s.sd).toBeGreaterThan(0.06); expect(s.sd).toBeLessThan(0.09); expect(Math.abs(s.mean - 1)).toBeLessThan(0.02);
+    // D-218: a triangular distribution of 1σ blockSd (the two tone hashes of materials.ts blockIds)
+    const sd = J.blockSd!, t2 = (b: number, c: number) => hash12(b * 0.71 + 19.1, c + 3.3);
+    for (let c = 0; c < 40; c++) for (let b = 0; b < 40; b++) tones.push(1 + (hash12(b + 0.37, c + 11.3) + t2(b, c) - 1) * sd * Math.sqrt(6));
+    const s = stats(tones); expect(s.sd).toBeGreaterThan(0.9 * sd); expect(s.sd).toBeLessThan(1.1 * sd); expect(Math.abs(s.mean - 1)).toBeLessThan(0.02);
   });
-  it('a joint and its worn arrises darken a pixel column by ~15–25 % at 10 m (960×540, 46°) and ~5–8 % at 30 m', () => {
-    const px = (d: number) => (2 * Math.tan((23 * Math.PI) / 180) * d) / 540;
-    const ink = J.width * J.dark + 2 * J.lip! * J.lipDark!; // m of full darkness per joint (box filter)
-    const at10 = ink / px(10), at30 = ink / px(30);
-    expect(at10).toBeGreaterThan(0.12); expect(at10).toBeLessThan(0.3); expect(at30).toBeGreaterThan(0.04); expect(at30).toBeLessThan(0.1);
+  // D-157's 'a joint and its worn arrises darken a pixel column by 12–30 % at 10 m and 4–10 % at 30 m' (an albedo ink): since
+  // D-218 the arris is a rounded normal and the gate is measured with the light in tests/surfaces_d218.test.ts ('a bed joint
+  // reads in sun'), with the same bounds
+  it('the joint itself stays a hairline (Q-071); the arris is rounded over 3–9 mm (D-218)', () => {
+    expect(J.width).toBeLessThanOrEqual(0.001); expect(J.lip! * 0.5).toBeGreaterThanOrEqual(0.003); expect(J.lip! * 1.5).toBeLessThanOrEqual(0.01);
   });
 });
 
