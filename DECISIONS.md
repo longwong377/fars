@@ -4621,3 +4621,85 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
   off, braziers off, all fires off; after; the shadow cost), gate-dusk (after: B, fires off), pulvar-bank-april and
   garden-paradise (after), scribe-room-ne and scribe-at-work (after: B, the session-4 GI input, the scene pass; after the
   re-bake), hadish-hall and apadana-hall-axis (after: B, SSR off). The before images are the pass-2 shots.
+
+## D-219 Weather you can see: rain curtains, wet ground, snow, streaks and flakes; the ration issue's rain shift (session 7 workstream; REVIEWS/rubric_s7_pass2.md fix-list item 4, R6; HANDOFF 2a, 2b)
+- **Read first: what is still broken, weak or unverified.**
+  - **The §1.1 rain-approach moment, as framed, still shows almost no curtain: 4 % darker in its mask (PNG luminance).** The
+    factor that zeroed R6 is not in the shafts: it is the eye. The moment stands 5 m inside the Apadana W portico
+    (skyVis 0.05), so the exposure law adapts to the portico's shade (exposure **36**, run 1; the test quality has no frame
+    meter, `meterLn` null, and at high the meter may close down by 1 EV at most, D-159). The sky behind the columns is then
+    ~5–7× display white, on AgX's shoulder: a **solid red** shaft at full opacity renders as pale pink (255, 239, 230) against
+    the sky's (236, 241, 246); the real curtain, 22 % darker than the sky in scene-linear light, moves the PNG by 4 %. The
+    rubric's "uniform white card" is the same saturation. **Not fixed here** (the eye law and the meter bounds are the lead's,
+    D-117/D-159): either re-frame the moment in the open, or let the meter close down further for a frame that is mostly
+    bright exterior. Measured alternative stances below.
+  - **My ≥ 15 % target is NOT met in the PNG** at the half-open stance tried (Apadana platform NW corner, grid −57, 55,
+    exposure 7.1, skyVis 0.31): the sky in the shafts' mask is **11.7 % darker** in luminance (median; 75th pct 14.4 %, 90th
+    16.5 %, max 18 %; sRGB 195 → 186). In scene-linear light the same pixels are **22 % darker** (AgX inverted). Tone-mapping
+    forward from that, an open-air exposure of 2.5 would give ~16 % (estimate, not rendered). CPU per shaft core: 18–34 %.
+  - **No dark cloud base at quality test** (the volumetric clouds are off there: CLOUD_MARCH test = 0): the curtains hang
+    from a pale sky. At high the cell's cloud is thicker (clouds.ts boost); **no high render was made** for this workstream.
+  - **The darkening front is not visible from the Terrace.** The cell's cloud shadow and wet ground (new, below) lie 2.5–8 km
+    out; from 16 m above the plain that ground is 1–4 pixel rows under the horizon at 540 lines: the "front" variant (cell
+    shadow and wetness off) changes the far plain band by 1 % (Y 0.341 → 0.344). What the eye sees of the cell is its
+    curtain.
+  - **Wet ground reads darker only near the eye.** Held wetness 1 against 0 at the open stance: the plain 45–60 m below is
+    8 % darker (median), but at grazing angles (rows 330–450) 3–7 % *brighter* (the new sky sheen of the water film, Fresnel
+    at 75–85°). Puddles (15 % of flat area, the old noise field) now show as bright sky-coloured patches, flat and sharp at
+    quality test (no SSR): they read a little like paint or snow patches. The albedo law itself (porosity × 0.5) is old C.
+  - **Snow:** lies on the court floor (+45 % luminance against snow held 0; floor sRGB 135/140/144 → 158/167/178) and on the
+    relief ledges below eye level; the **merlon tops are not seen from this stance** (the eye is below them: 0/255 change in
+    the merlon band, which is correct, not a bug). **No footprints.** The brown in the snow frame is the calibrated horizon
+    under full overcast (0.279, 0.273, 0.256: R > G > B): the clear-sky dome model has no overcast whitening; **open, not
+    fixed** (skySystem, the lead's). Flakes: round and never lens-sized now; their density is node-measured only (visually
+    still sparse).
+  - **Not rendered:** the streak orientation fix (after run 1), the rain-columns moment after it, anything at quality high.
+    Run 1 (rain-columns, before the orientation fix) showed the streaks, bright on the dark stair façade.
+  - `people_days_r8` "B S5 child by the water" timed out (338 s > 300 s) under load on this branch; it is the known timing
+    failure (HANDOFF), not an assertion; not re-run alone.
+- **What (all C unless said):**
+  1. **Rain shafts (rainShafts.ts).** The colour is built on the GPU from the air (aerial.ts): the curtain's light
+     L = J·(1 − T_air·(1 − k)) at opacity α = (1 − e^{−τ})·profile·streaks, J the air's in-scatter table in the ray's
+     direction (the same table as the fog and the clouds), T_air the fog's own optical depth from the eye to the column's
+     core (per channel). Composited over the sky this is exactly the fog equation with the curtain as the surface. k = 0.42
+     at the ground → 0.22 at the cloud base (a density and shade gradient: darker under the base; Q-490); snow 1.05. The
+     profile: dense over the lower ~80 %, into the cloud base above 0.78; streaks ~200 m across, a few km tall, falling
+     7 m/s. Before: a CPU copy of the fog colour × 0.35 and T_air in the opacity. Debug: `RainShafts.debug(0|1|2|4)` at run
+     time (uniforms), `stats()`; `?shaftdbg` kept.
+  2. **The rain cell** (RAIN_CELL, one uniform: clouds, sun, materials): the sun's direct light is shaded under its cloud
+     (cellShadowNode: × (1 − 0.9 × strength) within 0.55 R of the centre projected along the sun to the cloud base, full at
+     1.25 R; Q-494); the ground under it is wet out to 0.6–1.2 R, puddled above 0.4.
+  3. **Wet surfaces (materials.ts, envmap.ts):** porous surfaces too rough to reflect the sky when dry (porosity ≥ 0.5:
+     earth, mud plaster, lime plaster, timber, matting) reflect it scaled by their wetness (SkySpecularNode `scale`; one
+     environment fetch, no probe visibility lookup: wetness is zero under the roofs). Dry look unchanged. Reflection class
+     1 for them (tests/reflections_s7 updated); the SSR composite's subtraction is exact at wetness 1 and over-subtracts by
+     ≤ 20 % of the sky reflection at 0.8 (the SSR only runs below roughness 0.5, i.e. wetness > ~0.8 on these).
+  4. **The ground is dry ahead of the day's rain (weatherState.ts):** it interpolated toward the day-end state, which
+     includes the rain to come: 0.48 at 11:27 on day 299 with yesterday dry, now 0.006. Day-end states and the climate are
+     unchanged.
+  5. **Streaks and flakes (weatherVfx.ts):** lit by the sky (hemisphere light: rain 0.8 × the mean radiance round it; flakes
+     ρ 0.85 under sky, ground and a quarter of the sun); never under a pixel (widened, opacity × the inverse: light
+     conserved); nothing within 0.5 m of the lens, full by 1.5 m; volumes rain 10 m × 10 m high, snow 9 m × 8 m, snow twice
+     the rain's count (4.5× and 14× the old density per m³); flakes round and 12 mm (were 30 mm diamonds). Streaks along the
+     drop's velocity, turned to face the eye (they leant both ways).
+  6. **Snow on the ground lights the scene from below (skySystem.ts):** the ground's reflectance mix(soil, snow 0.82–0.86,
+     snow cover) for the hemisphere's ground colour, the clouds' base and the air's ambient in-scatter (Q-493).
+  7. **The ration issue's rain shift (population.ts, HANDOFF 2a):** the upstream cause is in `rationRun`, not `workBlock`:
+     the open-depot issue hour was pushed past every wet spell of the day (a camp woman, pid 1190, walking up at 23:32 and
+     queueing at 23:57 on a day of unbroken rain). `rainShiftedIssue`: the shifted issue waits for another day when it would
+     start later than the queue's length before sunset (Q-495). `workBlock`'s depot slot must also fit the block in
+     daylight. Late queues (after 20:00) in a 1/7 sample of the town on that day: 5 → 0.
+- **Measured (renders: `tests/e2e/dbg_weather.spec.ts`, quality test, WebGPU/SwiftShader; images in the worktree's shots/,
+  wx-*; run 1 suffixed -run1):** above. Run 1 (portico stance): real 232/236/242 vs shafts hidden 236/241/246 (sRGB, mask
+  mean); red at full opacity 255/239/230. Run 2: the open stance and the portico at the open stance's exposure (7.1): 11 %
+  and 10.9 % darker in the mask (90th pct 16.5 %, 16.4 %).
+- **Tests:** tests/rain_shafts.test.ts (a mid-rate 8 mm/h shaft darkens the sky ≥ 15 % in scene-linear light for ≥ 3 of the
+  7 shafts at the moment's own air; the gradient); tests/weather_visible.test.ts (wet darkening, dry before the rain, the
+  cell's wetness and shadow, snow mask on up faces only, snow ground albedo, ≥ 1 px, near fade, density); tests/shader_build
+  (the shafts with the air's nodes, streaks and flakes generate WGSL); tests/rain_day_plans.test.ts (no ration queue after
+  20:00 on a day of rain; rainShiftedIssue). tsc clean; lint:all OK.
+- **Cost:** shafts +1 texture fetch and the fog's optical depth per shaft pixel; the wet sheen one environment fetch per pixel
+  on porous surfaces (paid dry too); snow flakes 2× the drop count on the CPU per frame (24 k matrices at ultra).
+- **Alternatives not taken:** darkening k further to pass the PNG threshold (no evidence; accuracy first); a dark cloud-base
+  disc over the cell at test quality (a stand-in for the volumetric clouds); changing the eye law or the meter's bounds
+  (the lead's; recommended above); gating the wet sheen with a shader branch (textureSample in non-uniform control flow).
