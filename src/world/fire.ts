@@ -110,7 +110,7 @@ function roomMask(box: any, ys: any, mode: any) {
   return float(1).sub(pos).add(pos.mul(inB)).mul(float(1).sub(neg.mul(inB)));
 }
 // ~1900 K blackbody (Planck, sRGB-normalised) — the colour temperature of wood/oil flames (C)
-const FIRE_RGB = new THREE.Color().setRGB(1.0, 0.52, 0.18);
+export const FIRE_RGB = new THREE.Color().setRGB(1.0, 0.52, 0.18);
 
 /** the sky and sun as the smoke sees them: SkySystem (horizon radiance, hemisphere light, sun) */
 export interface SmokeSky { horizon: THREE.Color; hemi?: THREE.HemisphereLight; sun: THREE.DirectionalLight; state: { sunDir: THREE.Vector3 }; fireScale?: number }

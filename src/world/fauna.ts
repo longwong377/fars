@@ -17,6 +17,9 @@
 // near shadow cascades only) out to DRAW_R of the camera.
 import * as THREE from 'three/webgpu';
 import { Animals, type AnimalInst, type Species } from '../people/animals';
+import { STAIR_FOOT, type TerraceFoot } from './terraceFoot';
+/** D-227: the stair foot's animals are drawn from this far (m; the plain views from the Terrace see them at 40-400 m) */
+export const FOOT_DRAW_R = 700;
 import { workGeometry } from '../people/workObjects';
 import type { TownPlan } from './settlement/plan';
 import { plotCells } from './settlement/walk';
@@ -44,7 +47,7 @@ interface YardDog { yard: Yard; seed: number; where: 'town' | 'village' | 'stabl
 interface Strays { c: P2; spots: P2[]; n: number; seed: number }
 interface HenYard { yard: Yard; n: number; cock: boolean; seed: number; r?: number }
 export interface VillageIn { id: string; x: number; y: number; r: number; comps: { x: number; y: number; w: number; d: number; angle: number; rooms: { u0: number; v0: number; u1: number; v1: number }[]; gate: number }[] }
-export interface FaunaCtx { t: number; hour: number; month: number; sun: { rise: number; set: number }; player: P2 | null; cam: { x: number; y: number; z: number }; dt: number; rain: number }
+export interface FaunaCtx { t: number; hour: number; /** the day (D-227: the foot's tether lines) */ day?: number; month: number; sun: { rise: number; set: number }; player: P2 | null; cam: { x: number; y: number; z: number }; dt: number; rain: number }
 
 /** a coarse point grid (50 m cells) for the per-frame radius queries */
 class Grid<T> { private m = new Map<number, T[]>(); constructor(private cell = 50) {}
@@ -239,8 +242,14 @@ export class Fauna {
       const team: [number, number, Species][] = v.kind === 'chariot' ? [[0.55, 2.43, 'horse'], [-0.55, 2.43, 'horse']] : [[1.8, 1.2, 'mule'], [2.6, -0.4, 'mule']];
       team.forEach(([x, z, sp], j) => { const graze = v.kind === 'wagon' && fr(c.t / 21 + j * 0.4) < 0.6;
         Object.assign(o, { sp, e: v.e - co * x + s * z, n: v.n + s * x + co * z, x: 0, z: 0, yaw: ch + (v.kind === 'wagon' ? 0.6 * j - 0.3 : 0), phase: 0, walk: 0, graze: graze ? 1 : 0, lie: 0, coat: h01(77, j) }); push(); }); }
+    // D-227: the tether lines at the foot of the Grand Stair (terraceFoot.ts), within FOOT_DRAW_R of it
+    if (this.foot) { const vis = Math.hypot(STAIR_FOOT[0] - cam[0], STAIR_FOOT[1] - cam[1]) < FOOT_DRAW_R; this.foot.group.visible = vis;
+      if (vis) this.foot.update(c.day ?? 0, c.hour, c.t, a => { Object.assign(o, a); push(); }); }
     A.end();
   }
+  /** D-227: the tether lines at the stair foot (terraceFoot.ts): drawn with this rig */
+  foot: TerraceFoot | null = null;
+  addTerraceFoot(f: TerraceFoot) { this.foot = f; this.group.add(f.group); }
   /** the listener's surroundings for the soundscape (audio/soundscape.ts Place): houses, water, trees, dung and middens,
    *  animals near (C: the distances at which each counts) */
   placeAt(e: number, n: number): Place {
