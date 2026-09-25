@@ -1,7 +1,7 @@
 {
  "tier": "C",
  "stride": 18,
- "count": 50030,
+ "count": 52982,
  "normalBias": 0.9,
  "options": {
   "spacing": 2,
@@ -14,18 +14,21 @@
   "rays": 1024,
   "sunRays": 2,
   "skyRays": 2,
-  "sunSkyRatio": 3
+  "sunSkyRatio": 3,
+  "fine": {
+   "treasury:1": 1
+  }
  },
  "partsHash": "8acd7f25259576ca",
- "built": "2026-09-24",
+ "built": "2026-09-25",
  "note": "baked light probes of the roofed buildings: sky through the openings, one and two bounces of sun and sky, year-averaged sun (D-110, D-111; model C)",
  "hallCentreVisibility": {
   "gate_nations": 0.0361,
   "apadana": 0.0075,
-  "tachara": 0.0034,
+  "tachara": 0.0035,
   "hadish": 0.0185,
   "treasury": 0.0004,
-  "harem": 0.0089
+  "harem": 0.0088
  },
  "volumes": [
   {
@@ -206,14 +209,14 @@
     74.5
    ],
    "spacing": [
+    1,
     2,
-    2,
-    2
+    1
    ],
    "dims": [
-    41,
+    82,
     3,
-    8
+    16
    ],
    "roof": [
     143,
@@ -264,7 +267,7 @@
     7,
     7.9
    ],
-   "offset": 48670
+   "offset": 51622
   }
  ]
 }

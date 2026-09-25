@@ -37,8 +37,11 @@ export interface BakeOptions {
   /** shadow rays per bounce hit toward the sun, and cosine rays toward the sky (outdoor hits) */
   sunRays: number; skyRays: number;
   /** typical daytime ratio of horizontal sun to sky irradiance, for the bounce colour only */ sunSkyRatio: number;
+  /** a finer horizontal spacing (m) for named volumes (D-216): where a doorway narrower than the spacing lets one probe see
+   *  out, the 2 m interpolation spread its light a metre behind the jambs (the scribes' room, render pass 2 R7) */
+  fine?: Record<string, number>;
 }
-export const BAKE: BakeOptions = { spacing: 2, layer: 2.5, margin: 6, full: 2, inset: 0.25, normalBias: 0.9, skyDirs: 4096, rays: 1024, sunRays: 2, skyRays: 2, sunSkyRatio: 3 };
+export const BAKE: BakeOptions = { spacing: 2, layer: 2.5, margin: 6, full: 2, inset: 0.25, normalBias: 0.9, skyDirs: 4096, rays: 1024, sunRays: 2, skyRays: 2, sunSkyRatio: 3, fine: { 'treasury:1': 1 } };
 
 // ------------------------------------------------------------------ volumes
 /** one volume per roofed space: the roof boxes of a building that touch each other at the same ceiling height form one
@@ -89,9 +92,10 @@ export function probeVolumes(parts: Part[], manifest: Manifest, o: BakeOptions =
     const room = (manifest[floorOf] as any)?.room as number[] | undefined;
     const floor = room ? room[4] : 0;
     // round down: the grid never reaches past its (possibly trimmed) margin, so no two volumes overlap
-    const nx = Math.floor((m.x1 - m.x0) / o.spacing + 1e-9) + 1, nz = Math.floor((m.z1 - m.z0) / o.spacing + 1e-9) + 1;
+    const sp = o.fine?.[b] ?? o.spacing;
+    const nx = Math.floor((m.x1 - m.x0) / sp + 1e-9) + 1, nz = Math.floor((m.z1 - m.z0) / sp + 1e-9) + 1;
     const y0 = floor + o.inset, y1 = r.ceil - o.inset, ny = Math.max(2, Math.ceil((y1 - y0) / o.layer) + 1);
-    vols.push({ building: b, origin: [m.x0, y0, m.z0], spacing: [o.spacing, (y1 - y0) / (ny - 1), o.spacing], dims: [nx, ny, nz],
+    vols.push({ building: b, origin: [m.x0, y0, m.z0], spacing: [sp, (y1 - y0) / (ny - 1), sp], dims: [nx, ny, nz],
       roof: [r.x0, r.x1, r.z0, r.z1], full: o.full, yLo: [floor - 1, floor - 0.05], yHi: [r.ceil, r.top], offset });
     offset += nx * ny * nz;
   }
@@ -254,9 +258,9 @@ export function probeBounce(ctx: BakeContext, x: number, y: number, z: number, p
  *  fraction of the spacing, 1 when the neighbour probe is in sight, 0 inside a solid (D-152). The lookup leaves out a
  *  cell's side whose probes cannot reach the point, so light does not leak through a wall thinner than the spacing
  *  (the Treasury N range's 1.7 m inner wall lit the scribes' room floor along its foot from the sunlit court). */
-export function probeReach(ctx: BakeContext, x: number, y: number, z: number): number[] {
+export function probeReach(ctx: BakeContext, x: number, y: number, z: number, spacing = ctx.o.spacing): number[] {
   if (ctx.scene.inside(x, y, z, -PROBE_CLEAR)) return [0, 0, 0, 0];
-  const sp = ctx.o.spacing, out: number[] = [];
+  const sp = spacing, out: number[] = [];
   for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
     // (zero direction components are nudged off zero: the slab test divides by them)
     const h = ctx.scene.intersect(x, y, z, dx || 1e-9, 1e-9, dz || 1e-9, 1e-4, sp * 1.001);
@@ -373,7 +377,7 @@ export const bounceSlots = (valid: (i: number) => number) => (r: number[], i: nu
 export function bakeAll(scene: TraceScene, vols: ProbeVolume[], sun: SunSet, plain: RGB, o: BakeOptions = BAKE): ProbeField {
   const ctx: BakeContext = { scene, dirs: sphereDirs(o.rays), skyDirs: sphereDirs(o.skyDirs), sun, o, plain };
   const pos = probePositions(vols);
-  const reach = pos.map(p => probeReach(ctx, ...p));
+  const reach = vols.flatMap(v => pos.slice(v.offset, v.offset + v.dims[0] * v.dims[1] * v.dims[2]).map(p => probeReach(ctx, ...p, v.spacing[0])));
   const sky = pos.map(p => probeSky(ctx, ...p)), valid = (i: number) => !!sky[i][4];
   ctx.sky = fieldOf(vols, sky, SKY_SLOTS, o, reach); dilate(vols, ctx.sky.data);
   const reachY = vols.flatMap(v => pos.slice(v.offset, v.offset + v.dims[0] * v.dims[1] * v.dims[2]).map(p => probeReachY(ctx, ...p, v.spacing[1])));

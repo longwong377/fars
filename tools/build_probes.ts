@@ -64,7 +64,7 @@ const workers = Math.max(1, Math.min(+(process.env.WORKERS ?? cpus().length), 8)
 const dir = mkdtempSync(join(tmpdir(), 'probes-'));
 console.log(`probe volumes: ${vols.map(v => `${v.building} ${v.dims.join('×')}`).join(', ')} = ${pos.length} probes, ${BAKE.skyDirs} sky + ${BAKE.rays} bounce rays each, ${workers} workers`);
 // reach along the grid axes (D-152) and between layers: which neighbours each probe sees (4 + 2 rays a probe: in-process)
-const reachCtx = context(), reach = pos.map(p => probeReach(reachCtx, p[0], p[1], p[2]));
+const reachCtx = context(), reach = vols.flatMap(v => pos.slice(v.offset, v.offset + v.dims[0] * v.dims[1] * v.dims[2]).map(p => probeReach(reachCtx, p[0], p[1], p[2], v.spacing[0]))); // (per volume: D-216's finer grid)
 const reachY = vols.flatMap(v => pos.slice(v.offset, v.offset + v.dims[0] * v.dims[1] * v.dims[2]).map(p => probeReachY(reachCtx, p[0], p[1], p[2], v.spacing[1])));
 console.log(`reach (D-152): ${reach.filter(r => r.some(v => v < 1)).length} probes with a solid within one spacing`);
 let t = Date.now();
