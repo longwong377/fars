@@ -306,8 +306,8 @@ export interface PieceMeta { id: string; label: string; tier: 'A' | 'B' | 'C'; s
 /** evidence per piece (overlay text; sources are keys of src/data/sources.json or MATERIAL_CULTURE rows) */
 export const PIECES: Record<string, PieceMeta> = {
   robe_upper: { id: 'robe_upper', label: 'Persian court robe (body and shoulders)', tier: 'B', src: 'IR-CAND', note: 'single wide piece girt at the waist (MATERIAL_CULTURE: Persian court robe)' },
-  robe_skirt: { id: 'robe_skirt', label: 'robe skirt with pleats', tier: 'B', src: 'IR-CAND', note: 'falls below the belt in tiers of pleats to the ankle; pleat layout and hem line C' },
-  robe_sleeves: { id: 'robe_sleeves', label: 'wide robe sleeves', tier: 'B', src: 'IR-CAND', note: 'wide sleeves in folds; hanging drape follows the skeleton (no cloth simulation), C' },
+  robe_skirt: { id: 'robe_skirt', label: 'robe skirt with pleats', tier: 'B', src: 'IR-CAND', note: 'falls below the belt in pleats to the ankle (B); D-225: baked into the mesh as the reliefs carve it: a stack of vertical pleats at the front, diagonal folds from the hips back to the hem, broad folds behind, the hem higher in front; moves with the skinning, no cloth simulation; every size and count C' },
+  robe_sleeves: { id: 'robe_sleeves', label: 'wide robe sleeves', tier: 'B', src: 'IR-CAND', note: 'wide sleeves in folds (B); D-225: cut on the slant (shorter over the front of the forearm) with folds winding to the deep back of the opening; baked, follows the skeleton and sags where slack (no cloth simulation); cut and sizes C' },
   tunic_upper: { id: 'tunic_upper', label: 'sleeved tunic (sarapis)', tier: 'B', src: 'IR-CAND', note: 'Median riding costume: sleeved tunic, tight sleeves to the wrist; hangs from the chest and shoulder blades, bloused over the belt, hemmed openings (D-206, C for the drape)' },
   tunic_skirt: { id: 'tunic_skirt', label: 'tunic skirt to the knee', tier: 'B', src: 'IR-CLOTH', note: 'knee-length, belted' },
   trousers: { id: 'trousers', label: 'trousers (anaxyrides)', tier: 'B', src: 'IR-CAND', note: 'close-fitting trousers of the riding costume' },
@@ -325,7 +325,7 @@ export const PIECES: Record<string, PieceMeta> = {
   hair: { id: 'hair', label: 'scalp hair, curled', tier: 'B', src: 'RELIEF-R', note: 'curled hair as carved on the reliefs; colour natural dark (the reliefs paint it dark blue, a convention), C' },
   hair_bob: { id: 'hair_bob', label: 'bobbed hair', tier: 'B', src: 'IR-WOMEN', note: 'elite Persian woman statuette from Egypt: bobbed hair (B); for workers C' },
   bun: { id: 'bun', label: 'hair bunched at the nape', tier: 'B', src: 'RELIEF-R', note: 'Persian and Median men on the reliefs wear the hair gathered in a mass at the back of the neck; size C' },
-  beard_long: { id: 'beard_long', label: 'long curled beard, squared', tier: 'B', src: 'RELIEF-R', note: 'long beard with rows of curls on the reliefs; length and curl rendering C' },
+  beard_long: { id: 'beard_long', label: 'long curled beard, squared', tier: 'B', src: 'RELIEF-R', note: 'long beard with rows of curls on the reliefs (B); D-225: in the court dressing its hanging mass is laid out in stacked rows of spiral curls (rolls in the mesh, curls in the material); a working man\'s long beard stays a plain mass; length, row and curl sizes C (Q-241)' },
   beard_short: { id: 'beard_short', label: 'short beard', tier: 'C', src: 'RECON', note: 'workers and foreigners: short beard (reconstruction)' },
   hat_fluted: { id: 'hat_fluted', label: 'fluted felt hat', tier: 'B', src: 'IR-CLOTH', note: 'tall fluted headgear of Persian-dress nobles and guards; height, flute count, material C' },
   fillet: { id: 'fillet', label: 'twisted cloth fillet', tier: 'C', src: 'SUSA-ARCH', note: 'headband of the Susa glazed-brick archers (Darius I); worn here by some Persian-dress guards (C)' },
