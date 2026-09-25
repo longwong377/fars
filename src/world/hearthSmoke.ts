@@ -115,7 +115,17 @@ export interface SmokeCell {
   R: number; Rw: number; tail: number; Ld: number; H1: number; H2: number;
   /** extinction scale (1/m): k · M / (H1 − H2), so σ(h) = sigma · (e^(−h/H1) − e^(−h/H2)) over the footprint */
   sigma: number; gy0: number; gx: number; gz: number; y0: number; y1: number; seed: number; E: number;
+  /** D-227: the settlement's fire light reaching the layer from below (renderer irradiance at fire scale 1): the lit fires'
+   *  candela × the solid angle their light escapes their courtyards upward (FIRE_ESCAPE_SR), over the footprint */
+  fireE?: number;
 }
+/** D-227: the solid angle (sr) of a courtyard hearth's light that leaves its court upward past the walls, the mean over the
+ *  town's lit hearths measured against the town's walls (tests/town_glow.test.ts: rays over the sphere from each fire that meet
+ *  no wall, floor or roof within 14 m); C (the plan's courts and hearth places are C) */
+export const FIRE_ESCAPE_SR = 1.0;
+/** the fire light from below on a cell's layer: Σ candela (renderer, fire scale 1) of its settlement's lit fires × the escaping
+ *  solid angle, spread over its footprint (4 R²) */
+export function cellFireE(sumCandela: number, R: number): number { return (sumCandela * FIRE_ESCAPE_SR) / (4 * R * R); }
 /** the horizontal profile of a cell at local (x along the wind, z across): the footprint (a ramp as the smoke gathers
  *  across it), the downwind tail (e^(−x/Ld)) and soft edges (C) */
 export function cellProfile(c: Pick<SmokeCell, 'R' | 'Rw' | 'Ld'>, x: number, z: number): number {
@@ -223,6 +233,13 @@ export class SmokeModel {
   }
   /** the phase of a linked fire now (tests, F3) */
   phaseOf(i: number, hour: number): Phase | null { const h = this.fireHh[i]; if (h < 0) return null; return phaseAt((this.fires[i].kind === 'oven' ? this.oven : this.hearth).get(h) ?? [], hour); }
+  /** D-227: each quarter's fire light on its layer from below, from the fires' lit state now (fire.ts FireSource.lit; its
+   *  `group` names the quarter) and each kind's candela (renderer, fire scale 1: fire.ts fireLight). Returns Σ candela lit per site */
+  setFireLight(fires: { lit: boolean; kind: string; group?: string }[], candela: (kind: string) => number): Map<string, number> {
+    const sum = new Map<string, number>(); for (const f of fires) if (f.lit && f.group) sum.set(f.group, (sum.get(f.group) ?? 0) + candela(f.kind));
+    for (const c of this.cells) { const site = this.sites.find(s => s.id === c.id); c.fireE = site && site.kind === 'quarter' ? cellFireE(sum.get(c.id) ?? 0, c.R) : 0; }
+    return sum;
+  }
   /** the fires' state and the cells at (day, hour) in the wind (m/s, FROM windDirDeg true) with the sun at sunAlt */
   update(day: number, hour: number, windMs: number, windDirDeg: number, sunAltDeg: number) {
     if (day !== this.day) { this.build(day); this.siteCurve.clear(); for (const s of this.sites) this.siteCurve.set(s.id, this.curve(s)); }

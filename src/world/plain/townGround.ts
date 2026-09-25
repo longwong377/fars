@@ -22,6 +22,7 @@ import { toLocal, type P2 } from '../settlement/site';
 import placesJson from '../../data/people_places.json';
 import townJson from '../../data/town.json';
 import courtJson from '../../data/court.json';
+import { FOOT_LINES } from '../terraceFoot';
 
 export const GROUND = { half: 2048, cell: 4, n: 1025 } as const;
 /** the Terrace footprint (settlement.json / footprints.json terrace, grid m) and the people's walkable grid round it (D-024) */
@@ -87,7 +88,21 @@ export function desireLines(plan: TownPlan): { a: P2; b: P2; w: number }[] {
 
 /** `camps`: the court setting's retinue camps (court.json camps, D-199): their ground trodden and not tilled, as the court's
  *  own camp's (C: a camp pitched on fallow ground) */
-export function buildTownGround(plan: TownPlan | null, camps: { c: P2; r: number }[] = []): GroundMap {
+/** D-227: herbs where the foot's ground is damp or little trodden (C). Below each drain mouth in the Terrace's W and S walls
+ *  (arch/waterworks.ts, D-214) the rain off the courts runs out onto the foot: a fan FAN.len m out from the wall, FAN.w0 m wide
+ *  at the wall and FAN.w1 m at its end (at least a cell and a half of the 4 m ground map wide), where the herbs grow back (the trodden share cut to FAN.keep); and between the paths
+ *  the foot keeps grazed herb in patches ~PATCH.lam m across (value noise; the trodden share × PATCH.keep over PATCH.share
+ *  of the ground, not within PATCH.clear m of the approach line). From the stair a 20-60 m patch spans 5-20 px along the view
+ *  at 100-200 m (D-223: the 10-35 m wear noise's contrast is ~12 % of albedo and does not read); herbs in their own colour do */
+export const FAN = { len: 16, w0: 6, w1: 10, keep: 0.25 } as const;
+export const PATCH = { lam: 45, share: 0.35, keep: 0.35, clear: 14 } as const;
+const vnoise = (x: number, y: number, seed: number) => { const h = (i: number, j: number) => { const v = Math.sin(i * 127.1 + j * 311.7 + seed * 74.7) * 43758.5453; return v - Math.floor(v); };
+  const i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j, sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+  return (h(i, j) * (1 - sx) + h(i + 1, j) * sx) * (1 - sy) + (h(i, j + 1) * (1 - sx) + h(i + 1, j + 1) * sx) * sy; };
+/** the herb patch mask at grid (e, n): 1 in a patch, 0 out (two octaves, thresholded to PATCH.share of the ground; C) */
+export function herbPatch(e: number, n: number): number { const v = 0.7 * vnoise(e / PATCH.lam, n / PATCH.lam, 3) + 0.3 * vnoise(e / (PATCH.lam * 0.4), n / (PATCH.lam * 0.4), 7);
+  return sstep(0.55, 0.62, v); }
+export function buildTownGround(plan: TownPlan | null, camps: { c: P2; r: number }[] = [], drains: { at: P2; n: P2 }[] = [], herbs = true): GroundMap {
   const { n, half, cell } = GROUND, N = n * n;
   const vx = new Float32Array(N).fill(VEC_RANGE), vy = new Float32Array(N).fill(VEC_RANGE), best = new Float32Array(N).fill(1e9);
   const trample = new Float32Array(N), allowed = new Float32Array(N).fill(1);
@@ -130,6 +145,20 @@ export function buildTownGround(plan: TownPlan | null, camps: { c: P2; r: number
     for (const r of desireLines(plan)) { runs++;
       seg(r.a, r.b, VEC_RANGE, (k, d, px, py) => { if (d < best[k]) { best[k] = d; vx[k] = px; vy[k] = py; } });
       seg(r.a, r.b, 5, (k, d) => { trample[k] = Math.max(trample[k], r.w * (1 - sstep(0.8, 3.5, d))); }); } // (was ±14 m, then ±6 m: broad bands; D-223)
+  }
+  // D-227: the foot's herbs: in patches between the paths (not on a worn path), and in a fan below each drain mouth; last, over
+  // every trodden layer above
+  // the tether lines at the stair foot (terraceFoot.ts): the animals' standing ground trodden bare and dunged (C)
+  const nearLine = (e: number, nn: number) => Math.min(...FOOT_LINES.map(L => segDist(e, nn, L.a, L.b)));
+  for (const L of FOOT_LINES) each(Math.min(L.a[0], L.b[0]) - 12, Math.max(L.a[0], L.b[0]) + 12, Math.min(L.a[1], L.b[1]) - 12, Math.max(L.a[1], L.b[1]) + 12, (k, e, nn) => {
+    trample[k] = Math.max(trample[k], 0.85 * (1 - sstep(5, 10, segDist(e, nn, L.a, L.b)))); });
+  if (herbs) {
+  each(APPROACH_BOX.e0 - 120, TERRACE_BOX.e1 + 160, APPROACH_BOX.n0 - 160, APPROACH_BOX.n1 + 160, (k, e, nn) => {
+    const dT = boxDist(e, nn, TERRACE_BOX), dA = stair && townPl ? segDist(e, nn, stair, townPl) : 1e9; if (dT > 150 && dA > 70) return;
+    const p = herbPatch(e, nn) * sstep(PATCH.clear, PATCH.clear + 10, dA); if (best[k] < 3 || nearLine(e, nn) < 10) return; trample[k] *= 1 - (1 - PATCH.keep) * p; });
+  for (const d of drains) { const L = FAN.len, e0 = d.at[0], n0 = d.at[1];
+    each(e0 - L - FAN.w1, e0 + L + FAN.w1, n0 - L - FAN.w1, n0 + L + FAN.w1, (k, e, nn) => { const de = e - e0, dn = nn - n0, t = de * d.n[0] + dn * d.n[1], a = Math.abs(-de * d.n[1] + dn * d.n[0]);
+      if (t < 0 || t > L) return; const hw = (FAN.w0 + (FAN.w1 - FAN.w0) * (t / L)) / 2, f = (1 - sstep(hw * 0.8, hw + 1, a)) * (1 - sstep(L * 0.7, L, t)); trample[k] *= 1 - (1 - FAN.keep) * f; }); }
   }
   const data = new Uint8Array(N * 4), enc = (v: number) => Math.round(128 + Math.max(-VEC_RANGE, Math.min(VEC_RANGE, v)) * 10);
   for (let k = 0; k < N; k++) { data[k * 4] = enc(vx[k]); data[k * 4 + 1] = enc(vy[k]); data[k * 4 + 2] = Math.round(Math.min(1, trample[k]) * 255); data[k * 4 + 3] = allowed[k] ? 255 : 0; }

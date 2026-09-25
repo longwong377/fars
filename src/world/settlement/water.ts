@@ -10,6 +10,7 @@ import { hashString, Rng } from '../../core/rng';
 import type { TownPlan } from './plan';
 import type { P2 } from './site';
 import { ROWS, FEATURES } from './plan';
+import placesJson from '../../data/people_places.json';
 
 const lerp2 = (a: P2, b: P2, t: number): P2 => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
 /** resample a polyline every `step` metres */
@@ -61,6 +62,8 @@ export function meander(pts: P2[], step: number): P2[] {
  *  ~6 m, so the edge is no ruled line); broad patches along the road where it was widened round a soft spot or recently
  *  trodden (±8 % over ~40 m). The ruts give way to their mean share where a rut spans under ~2 px of `lat` (a far road keeps
  *  its mean tone, never an aliased stripe); the verge is broad enough not to alias. All C */
+/** D-227: the approach's worn width (m; C: the roads' 6-8 m) */
+export const APPROACH_W = 8;
 export const ROAD_TRACK = { gauge: 1.4, rutW: 0.35, rutDark: 0.14, verge: 1.5, edgeWander: 0.7, patch: 0.08 } as const;
 function roadMaterial() {
   return surfaceMaterial('road', { variant: 'track', modify: (L: Layer) => {
@@ -198,8 +201,15 @@ export function buildWaterAndRoads(plan: TownPlan, H: (e: number, n: number) => 
     all.forEach((p, i) => { const far = Math.hypot(p[0], p[1]) > 4000; if (far && i % 5 !== 0 && i !== all.length - 1) return; if (far !== runFar && run.length) { run.push(p); flush(); run = [p]; runFar = far; return; } runFar = far; run.push(p); });
     flush(); void near; void farPts;
   }
+  // D-227: the approach from the town's place to the foot of the Grand Stair (people_places.json town → stair_foot; D-024's
+  // walkable axis) worn as a track like the roads (their ruts, verge and patches): the Terrace's goods, fodder and fuel came up
+  // it by cart and pack animal and every visitor walked it (C: width, wear, carts on it). It runs straight away from the
+  // stair's top, so from there its ruts and verges are bands along the view and survive the pixel footprint (D-223: marks
+  // across the view do not). It stops 3 m short of the stair's first step
+  { const P = (id: string) => ((placesJson as any).places as any[]).find(q => q.id === id)?.at as P2 | undefined, a = P('town'), b = P('stair_foot');
+    if (a && b) { const L = Math.hypot(b[0] - a[0], b[1] - a[1]), end: P2 = [b[0] - ((b[0] - a[0]) / L) * 3, b[1] - ((b[1] - a[1]) / L) * 3]; rparts.push(ribbon(meander([a, end], 8), APPROACH_W, H, 0.06)); } }
   const rg = geo(rparts); const rm = new THREE.Mesh(rg, roadMat); rm.name = 'settlement:roads'; rm.receiveShadow = true; rm.matrixAutoUpdate = false;
-  rm.userData = { tier: 'C', src: 'LIVIUS-TR;PLEIADES-FARS;ROYALROAD-GIS;SUMNER1986;RECON', note: 'earth roads 6-8 m (settlement.json): to Naqsh-e Rustam, to Pasargadae up the Pulvar, the royal road W toward Susa, S to Tirazziš; courses C (Q-054); spur to the Tol-e Ajori gate C; worn as tracks: a cart-rut pair each side, a ragged herb verge (D-223, C)' };
+  rm.userData = { tier: 'C', src: 'LIVIUS-TR;PLEIADES-FARS;ROYALROAD-GIS;SUMNER1986;RECON', note: 'earth roads 6-8 m (settlement.json): to Naqsh-e Rustam, to Pasargadae up the Pulvar, the royal road W toward Susa, S to Tirazziš; courses C (Q-054); the approach from the town place to the Grand Stair worn as a track too (D-227, C); spur to the Tol-e Ajori gate C; worn as tracks: a cart-rut pair each side, a ragged herb verge (D-223, C)' };
   group.add(rm); tris += rg.index!.count / 3; meshes++;
   const update = (_cam: THREE.Vector3) => {};
   return { group, tris, meshes, update };

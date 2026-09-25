@@ -59,10 +59,14 @@ test('plain', async ({ page }, info) => {
     // the town's share too (its garden trees, channels and water: the garden view, D-149)
     const town = await page.evaluate(async () => { const p = (window as any).__parsa, g = p.world.root.getObjectByName('settlement'); if (!g) return null;
       g.visible = false; await p.renderOnce(); const st = p.stats(); g.visible = true; return { drawCalls: st.drawCalls, triangles: st.triangles, trees: p.world.settlement?.stats?.().trees ?? null }; });
+    // D-227: the animals' share (the stair foot's tether lines, heaps and loads are in the fauna's group)
+    const fauna = await page.evaluate(async () => { const p = (window as any).__parsa, g = p.world.root.getObjectByName('fauna'); if (!g) return null;
+      const f = p.world.root.getObjectByName('terrace-foot'); await p.renderOnce(); const st0 = p.stats(); g.visible = false; await p.renderOnce(); const st = p.stats(); g.visible = true;
+      return { drawCalls: st0.drawCalls - st.drawCalls, triangles: st0.triangles - st.triangles, foot: f ? { visible: f.visible, loads: f.getObjectByName('terrace-foot:loads')?.count ?? 0 } : null }; });
     const lum = await lumStats(page, png);
     const pick = await page.evaluate(() => (window as any).__parsa.pick(0, 0));
     out[s.n] = { quality: Q, withPlain, withoutPlain: without, plainAdds: { drawCalls: withPlain.drawCalls - without.drawCalls, triangles: withPlain.triangles - without.triangles },
-      townAdds: town ? { drawCalls: withPlain.drawCalls - town.drawCalls, triangles: withPlain.triangles - town.triangles, trees: town.trees } : null, lum, centre: pick };
+      townAdds: town ? { drawCalls: withPlain.drawCalls - town.drawCalls, triangles: withPlain.triangles - town.triangles, trees: town.trees } : null, faunaAdds: fauna, lum, centre: pick };
     console.log(s.n, JSON.stringify(out[s.n]));
   }
   mkdirSync('shots', { recursive: true }); const f = 'shots/plain-stats.json'; const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {};

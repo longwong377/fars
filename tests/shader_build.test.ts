@@ -92,4 +92,17 @@ describe('surface shaders build (WGSL, node)', () => {
     expect(fails).toEqual([]);
     expect(shafts.stats().shafts.filter(s => s.vis).length).toBe(7);
   });
+  it('the smoke layer with the fires\' light from below and the stair foot\'s heaps and loads generate WGSL (D-227)', async () => {
+    const { LandSmoke } = await import('../src/world/landSmoke'), { TerraceFoot } = await import('../src/world/terraceFoot');
+    const renderer = makeRenderer(), scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(40, 16 / 9, 0.05, 110000);
+    scene.add(new THREE.HemisphereLight(0xbfd6ff, 0x6b5a45, 0.6));
+    if (!renderer.backend.device) renderer.backend.device = { limits: { maxUniformBufferBindingSize: 65536, maxStorageBufferBindingSize: 134217728 } };
+    const L = new LandSmoke(); L.update([{ id: 'q', cx: 0, cz: -900, angle: 0, R: 120, Rw: 120, tail: 300, Ld: 1200, H1: 30, H2: 8, sigma: 1e-3, gy0: -15, gx: 0, gz: 0, y0: -20, y1: 150, seed: 1, E: 100, fireE: 0.15 }], { x: 0, y: 1.6, z: 0 });
+    const F = new TerraceFoot(1, () => -12); F.update(0, 11, 0, () => {});
+    scene.add(L.group, F.group); const fails: string[] = [], meshes: THREE.Mesh[] = [];
+    L.group.traverse((o: any) => { if (o.isMesh) meshes.push(o); }); F.group.traverse((o: any) => { if (o.isMesh) meshes.push(o); });
+    expect(meshes.length).toBe(4);
+    for (const m of meshes) { try { const b = build(renderer, scene, camera, m); if (!b.fragment.includes('output')) fails.push(m.name + ': no output'); } catch (e: any) { fails.push(`${m.name}: ${String(e?.message ?? e).slice(0, 300)}`); } }
+    expect(fails).toEqual([]);
+  });
 });

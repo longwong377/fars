@@ -10,7 +10,7 @@
 import * as THREE from 'three/webgpu';
 import { colourOnly } from '../render/fx';
 import { attribute, vec3, float, cameraPosition, positionWorld, positionGeometry, normalize, dot, pow, cos, sin, min, max, abs, exp, step, mix, smoothstep, clamp, mx_noise_float, uniform } from 'three/tsl';
-import { smokeSkyRadiance, type SmokeSky } from './fire';
+import { smokeSkyRadiance, FIRE_RGB, type SmokeSky } from './fire';
 import type { SmokeCell } from './hearthSmoke';
 
 /** debug (?smokedbg): the layer drawn solid blue wherever its optical depth exceeds 0.01 */
@@ -28,6 +28,8 @@ export class LandSmoke {
   private geo: THREE.InstancedBufferGeometry; private a: THREE.InstancedBufferAttribute[]; private inA: THREE.InstancedBufferAttribute;
   private front: THREE.Mesh; private back: THREE.Mesh;
   private uSky = uniform(new THREE.Color(0.3, 0.3, 0.3)); private uSun = uniform(new THREE.Color(0, 0, 0)); private uSunDir = uniform(new THREE.Vector3(0, 1, 0));
+  /** D-227: the fires' colour (~1900 K, fire.ts) × the sky's fire scale (their light is pre-exposed for night, D-117) */
+  private uFire = uniform(new THREE.Color(0, 0, 0)); private fireA: THREE.InstancedBufferAttribute;
   /** cells drawn in the last update, and how many of them hold the eye */
   count = 0; inside = 0;
   constructor() {
@@ -36,6 +38,7 @@ export class LandSmoke {
     g.index = box.index; g.setAttribute('position', box.getAttribute('position'));
     this.a = [0, 1, 2, 3].map(k => { const at = new THREE.InstancedBufferAttribute(new Float32Array(LAND_SMOKE_MAX * 4), 4); at.setUsage(THREE.DynamicDrawUsage); g.setAttribute(`s${k}`, at); return at; });
     this.inA = new THREE.InstancedBufferAttribute(new Float32Array(LAND_SMOKE_MAX), 1); g.setAttribute('sIn', this.inA);
+    this.fireA = new THREE.InstancedBufferAttribute(new Float32Array(LAND_SMOKE_MAX), 1); this.fireA.setUsage(THREE.DynamicDrawUsage); g.setAttribute('sFire', this.fireA);
     g.instanceCount = 0; this.geo = g;
     const s0 = attribute('s0', 'vec4'), s1 = attribute('s1', 'vec4'), s2 = attribute('s2', 'vec4'), s3 = attribute('s3', 'vec4');
     // s0 = (cx, cz, angle, gy0), s1 = (gx, gz, R, Rw), s2 = (tail, Ld, H1, H2), s3 = (sigma, y0, y1, seed)
@@ -72,7 +75,11 @@ export class LandSmoke {
     }
     const tau = s3.x.mul(max(sum, float(0)));
     const cosT = dot(rd, this.uSunDir), hg = float((1 - G * G) / (4 * Math.PI)).div(pow(float(1 + G * G).sub(cosT.mul(2 * G)), 1.5));
-    const colour = (this.uSky as any).add((this.uSun as any).mul(hg)).mul(OMEGA), alpha = float(1).sub(exp(tau.negate()));
+    // D-227: the town's fire light from below (sFire: renderer irradiance at fire scale 1, the lit fires' light escaping their
+    // courts upward over the footprint; hearthSmoke.ts cellFireE), scattered toward the eye: light travelling up, seen along rd
+    const cosF = rd.y.negate(), hgF = float((1 - G * G) / (4 * Math.PI)).div(pow(float(1 + G * G).sub(cosF.mul(2 * G)), 1.5));
+    const fireIn = (this.uFire as any).mul(attribute('sFire', 'float')).mul(hgF);
+    const colour = (this.uSky as any).add((this.uSun as any).mul(hg)).add(fireIn).mul(OMEGA), alpha = float(1).sub(exp(tau.negate()));
     const mk = (side: THREE.Side, pos: any, name: string) => {
       const m = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side }));
       m.positionNode = pos; m.colorNode = SMOKE_DBG ? vec3(0, 0, 1) : colour; m.opacityNode = SMOKE_DBG ? step(0.01, tau).mul(0.8) : alpha;
@@ -85,15 +92,16 @@ export class LandSmoke {
   setSkyLight(sky: SmokeSky | null | undefined) {
     if (!sky?.horizon || !sky.sun) return; smokeSkyRadiance(sky, this.uSky.value);
     this.uSun.value.copy(sky.sun.color).multiplyScalar(sky.sun.visible ? sky.sun.intensity : 0); this.uSunDir.value.copy(sky.state.sunDir);
+    this.uFire.value.copy(FIRE_RGB).multiplyScalar(sky.fireScale ?? 1);
   }
   /** draw these cells for an eye at `eye` (world) */
   update(cells: SmokeCell[], eye: { x: number; y: number; z: number }) {
     const n = Math.min(LAND_SMOKE_MAX, cells.length); let inside = 0;
     for (let i = 0; i < n; i++) { const c = cells[i];
       this.a[0].setXYZW(i, c.cx, c.cz, c.angle, c.gy0); this.a[1].setXYZW(i, c.gx, c.gz, c.R, c.Rw);
-      this.a[2].setXYZW(i, c.tail, c.Ld, c.H1, c.H2); this.a[3].setXYZW(i, c.sigma, c.y0, c.y1, c.seed);
+      this.a[2].setXYZW(i, c.tail, c.Ld, c.H1, c.H2); this.a[3].setXYZW(i, c.sigma, c.y0, c.y1, c.seed); this.fireA.setX(i, c.fireE ?? 0);
       const inn = insideCell(c, eye) ? 1 : 0; this.inA.setX(i, inn); inside += inn; }
-    for (const at of this.a) at.needsUpdate = true; this.inA.needsUpdate = true;
+    for (const at of this.a) at.needsUpdate = true; this.inA.needsUpdate = true; this.fireA.needsUpdate = true;
     this.geo.instanceCount = n; this.count = n; this.inside = inside;
     this.front.visible = n > 0; this.back.visible = inside > 0;
   }
