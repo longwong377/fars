@@ -98,7 +98,7 @@ function pickName(rng: Rng, sex: 'm' | 'f', origins: string[], used: Set<string>
   const pool = NAMES.filter(n => n.sex === sex && origins.includes(n.origin_guess) && !used.has(n.name));
   if (!pool.length) return null;
   const n = rng.pick(pool); used.add(n.name); return n.texts ? { name: n.name, tier: n.tier.startsWith('A') ? 'A' : 'B', note: `attested ${n.texts.slice(0, 2).join(', ')}` } // (every name cites its texts: D-193)
-    : { name: n.name, tier: 'C', note: `recalled attestation (C, not seen): ${n.attestation}` }; // (D-202)
+    : { name: n.name, tier: 'C', note: `${(n as any).source === 'RECONSTRUCTED' ? 'reconstructed name (C, not attested)' : 'recalled attestation (C, not seen)'}: ${n.attestation}` }; // (D-202, D-213)
 }
 /** posts where a stranger is stopped and questioned (the gates and stair heads; the Treasury door) */
 const CHECK_POSTS = new Set(['post_stair_n', 'post_stair_s', 'post_gate_w1', 'post_gate_w2', 'post_gate_s1', 'post_gate_s2', 'post_treas_1', 'post_treas_2']);
@@ -240,6 +240,7 @@ export class PeopleSim {
     if (a.role === 'guard' && a.task?.act === 'stand_guard' && a.post && GUARD_POSTS.includes(a.post) && !a.relieved && a.watchEnd !== undefined && this.t < a.watchEnd + 0.6 && seg.place !== a.post)
       return this.task('stand_guard', a.post, PLACES[a.post].at, Math.min(a.watchEnd + 0.6, this.t + 0.1), /relieved at the post/.test(seg.why) ? 'waiting for the patrol man to stand in while he eats' : 'waiting to be relieved', PLACES[a.post].heading); // (S7 of reviewer B r5)
     if (seg.where !== 'terrace' || !(seg.place in PLACES || seg.place === 'terrace_round')) {
+      this.setDown(a, seg.act); // (the jar is put down before the plan leaves the Terrace: shadow review r9, #76 carried the water jar to the town)
       const T: Task = { act: seg.act, place: seg.place, spot: PLACES.town.at, heading: null, until: end, why: seg.why, off: true };
       const h = this.houseOf(a, day);
       if (h) { const plan = this.planOf(a, day), nxt = segAt(plan, Math.min(24 - 1e-6, seg.t1 + 1e-4));
@@ -249,15 +250,18 @@ export class PeopleSim {
     }
     return this.onTerrace(a, seg, end, rng);
   }
-  /** fine-grained behaviour on the Terrace inside one plan block (the block's place and act are the plan's) */
-  private onTerrace(a: Agent, seg: Seg, end: number, rng: Rng): Task {
-    const pl = seg.place, act = seg.act, why = seg.why; const chunk = (lo: number, hi: number) => Math.min(end, this.t + rng.range(lo, hi));
-    // carried goods are set down when the next task is not carrying
+  /** carried goods are set down when the next task is not carrying them (on the Terrace, and before a block off it) */
+  private setDown(a: Agent, act: ActivityId) {
     if (a.role !== 'porter' && a.carry && !((a.carry === 'jar_head' && act === 'carry_jar_head') || (a.carry === 'basket' && act === 'carry_bread') || (a.carry === 'sack' && act === 'carry_sack'))) {
       // a camp woman's sack still in her hands when the carrying block ends is set down where it was going (it is a few steps
       // at most): into that stock, not out of the world (S6 r5)
       if (a.carry === 'sack' && a.sackTo) { this.stock[a.sackTo] += 1; if (a.sackTo === 'oven') this.flows.flourToOven++; else this.flows.grainUp++; }
       a.carry = null; a.sackTo = undefined; }
+  }
+  /** fine-grained behaviour on the Terrace inside one plan block (the block's place and act are the plan's) */
+  private onTerrace(a: Agent, seg: Seg, end: number, rng: Rng): Task {
+    const pl = seg.place, act = seg.act, why = seg.why; const chunk = (lo: number, hi: number) => Math.min(end, this.t + rng.range(lo, hi));
+    this.setDown(a, act);
     // (no sack to set down when there was none to carry: she comes to the place empty-handed)
     if (act === 'rest' && a.emptyCarry && /^setting the (flour|sack of barley) down/.test(why)) { a.emptyCarry = false; return this.task('rest', pl, this.here(a, pl, 2, rng), end, pl === 'oven' ? 'at the ovens: no flour ground yet to bring' : 'by the querns: no barley at the depot to bring'); }
     // (the next thing at the same place, lying, sitting or eating, is done where the person already is: no walk of a minute to

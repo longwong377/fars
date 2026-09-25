@@ -145,8 +145,8 @@ describe('D-193: the names from licensed evidence only (D-192, Q-294)', () => {
     expect(JSON.stringify(N.names)).not.toMatch(/EWB|ALP-MEGA/);
   });
   it('D-202: the licensed evidence holds no woman\'s name, so women draw on names recalled from the published literature (C, each with its attestation); the named detailed agents carry their texts or the recalled attestation', () => {
-    for (const a of sim.agents) { if (!a.name) continue; expect(a.nameNote, a.name).toMatch(/^(attested (PF|PT) \d+|recalled attestation \(C, not seen\): .+)/); }
-    const R = (namesRecalled as any).names; for (const n of R) { expect(n.attestation, n.name).toBeTruthy(); expect(n.tier, n.name).toMatch(/^C /); expect(n.source).toBe('RECOLLECTION'); }
+    for (const a of sim.agents) { if (!a.name) continue; expect(a.nameNote, a.name).toMatch(/^(attested (PF|PT) \d+|(recalled attestation \(C, not seen\)|reconstructed name \(C, not attested\)): .+)/); }
+    const R = (namesRecalled as any).names; for (const n of R) { expect(n.attestation, n.name).toBeTruthy(); expect(n.tier, n.name).toMatch(/^C /); expect(['RECOLLECTION', 'RECONSTRUCTED']).toContain(n.source); if (n.source === 'RECONSTRUCTED') expect(n.name.startsWith('*'), n.name).toBe(true); }
     expect((namesData as any).names.some((n: any) => n.sex === 'f')).toBe(false); // (names.json itself stays the licensed evidence)
     const women = P.persons.filter((p: any) => p.sex === 'f' && p.agent < 0).slice(0, 2000), rec = new Set(R.map((n: any) => n.name));
     expect(women.every((p: any) => { const n = nameFor(1, p); return n === null || rec.has(n); })).toBe(true);

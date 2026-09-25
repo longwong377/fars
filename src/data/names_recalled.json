@@ -2,7 +2,8 @@
  "_meta": {
   "purpose": "Names recalled from the published literature where the licensed evidence read (names.json: 67 PF texts via CDLI) holds none for a sex or origin (session 7, D-202; the user: \"fill the gaps to the best of your educated ability\"). Brief §9.1 still binds: every name here is attested in the source named (none invented or composed from elements); the forms are normalised, not transliterations.",
   "tier": "C: recalled, NOT SEEN; each attestation to be verified against the source (upgrade to A/B when read). Names are facts: nothing of any publication is bundled.",
-  "notable": "royal women are kept out of the everyday pools (notable)"
+  "notable": "royal women are kept out of the everyday pools (notable)",
+  "reconstructed": "Names marked with * are composed on attested Old Iranian elements after the pattern of attested women's names (D-213): the user directed that gaps be filled by informed reconstruction (D-207); brief §9.1 \"never invent names\" is superseded for this pool only, and every such name is labelled in F3"
  },
  "names": [
   {
@@ -27,7 +28,8 @@
    "origin_guess": "Iranian",
    "attestation": "Herodotus 3.88, 7.78: daughter of Bardiya",
    "source": "RECOLLECTION",
-   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
   },
   {
    "name": "Artaynte",
@@ -35,7 +37,8 @@
    "origin_guess": "Iranian",
    "attestation": "Herodotus 9.108-113",
    "source": "RECOLLECTION",
-   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
   },
   {
    "name": "Artazostre",
@@ -43,7 +46,8 @@
    "origin_guess": "Iranian",
    "attestation": "Herodotus 6.43: daughter of Darius, wife of Mardonius",
    "source": "RECOLLECTION",
-   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
   },
   {
    "name": "Sandauke",
@@ -51,7 +55,8 @@
    "origin_guess": "Iranian",
    "attestation": "Plutarch, Themistocles 13: sister of Xerxes",
    "source": "RECOLLECTION",
-   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
   },
   {
    "name": "Amytis",
@@ -59,7 +64,8 @@
    "origin_guess": "Iranian",
    "attestation": "Ctesias (FGrH 688 F13-14): daughter of Xerxes",
    "source": "RECOLLECTION",
-   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
   },
   {
    "name": "Rhodogune",
@@ -67,7 +73,8 @@
    "origin_guess": "Iranian",
    "attestation": "Ctesias (FGrH 688): daughter of Xerxes",
    "source": "RECOLLECTION",
-   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
   },
   {
    "name": "Roxane",
@@ -83,7 +90,8 @@
    "origin_guess": "Iranian",
    "attestation": "Herodotus 1.107: a Median woman, mother of Cyrus",
    "source": "RECOLLECTION",
-   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
   },
   {
    "name": "Kassandane",
@@ -91,7 +99,8 @@
    "origin_guess": "Iranian",
    "attestation": "Herodotus 2.1, 3.2: wife of Cyrus",
    "source": "RECOLLECTION",
-   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
   },
   {
    "name": "Atossa",
@@ -471,7 +480,8 @@
    "origin_guess": "Lycian",
    "attestation": "Lycian dynast named on coins, c. 480-440 BCE",
    "source": "RECOLLECTION",
-   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
   },
   {
    "name": "Padiaset",
@@ -664,6 +674,382 @@
    "attestation": "Elephantine Aramaic papyri, 5th c. BCE (Cowley 1923; TAD B)",
    "source": "RECOLLECTION",
    "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+  },
+  {
+   "name": "*Rtaduxçā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *rta- \"truth, order\" (Irdabama = *Rtabāmā; Irtašduna = *Rtastūnā) + *-duxçā \"daughter\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Rtazātā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *rta- \"truth, order\" (Irdabama = *Rtabāmā; Irtašduna = *Rtastūnā) + *-zātā \"born\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Rtačiθrā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *rta- \"truth, order\" (Irdabama = *Rtabāmā; Irtašduna = *Rtastūnā) + *-čiθrā \"of the lineage\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Bagabāmā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *baga- \"god\" (Bagabigna, Bakabada in PF) + *-bāmā \"radiance\" (Irdabama); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Bagastūnā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *baga- \"god\" (Bagabigna, Bakabada in PF) + *-stūnā \"pillar\" (Irtašduna); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Bagaduxçā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *baga- \"god\" (Bagabigna, Bakabada in PF) + *-duxçā \"daughter\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Bagazātā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *baga- \"god\" (Bagabigna, Bakabada in PF) + *-zātā \"born\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Bagačiθrā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *baga- \"god\" (Bagabigna, Bakabada in PF) + *-čiθrā \"of the lineage\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Vahubāmā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *vahu- \"good\" (Vahumisa, DB) + *-bāmā \"radiance\" (Irdabama); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Vahustūnā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *vahu- \"good\" (Vahumisa, DB) + *-stūnā \"pillar\" (Irtašduna); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Vahuduxçā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *vahu- \"good\" (Vahumisa, DB) + *-duxçā \"daughter\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Vahuzātā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *vahu- \"good\" (Vahumisa, DB) + *-zātā \"born\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Vahučiθrā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *vahu- \"good\" (Vahumisa, DB) + *-čiθrā \"of the lineage\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Hubāmā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *hu- \"good, well\" (Hutautha = Atossa) + *-bāmā \"radiance\" (Irdabama); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Hustūnā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *hu- \"good, well\" (Hutautha = Atossa) + *-stūnā \"pillar\" (Irtašduna); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Huduxçā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *hu- \"good, well\" (Hutautha = Atossa) + *-duxçā \"daughter\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Huzātā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *hu- \"good, well\" (Hutautha = Atossa) + *-zātā \"born\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Hučiθrā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *hu- \"good, well\" (Hutautha = Atossa) + *-čiθrā \"of the lineage\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Miθrabāmā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *miθra- (Miθradāta) + *-bāmā \"radiance\" (Irdabama); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Miθrastūnā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *miθra- (Miθradāta) + *-stūnā \"pillar\" (Irtašduna); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Miθraduxçā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *miθra- (Miθradāta) + *-duxçā \"daughter\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Miθrazātā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *miθra- (Miθradāta) + *-zātā \"born\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Miθračiθrā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *miθra- (Miθradāta) + *-čiθrā \"of the lineage\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Farnabāmā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *farnah- \"glory\" (Farnaka) + *-bāmā \"radiance\" (Irdabama); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Farnastūnā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *farnah- \"glory\" (Farnaka) + *-stūnā \"pillar\" (Irtašduna); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Farnaduxçā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *farnah- \"glory\" (Farnaka) + *-duxçā \"daughter\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Farnazātā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *farnah- \"glory\" (Farnaka) + *-zātā \"born\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Farnačiθrā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *farnah- \"glory\" (Farnaka) + *-čiθrā \"of the lineage\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Aryabāmā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *arya- \"Aryan\" (Ariyaramna) + *-bāmā \"radiance\" (Irdabama); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Aryastūnā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *arya- \"Aryan\" (Ariyaramna) + *-stūnā \"pillar\" (Irtašduna); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Aryaduxçā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *arya- \"Aryan\" (Ariyaramna) + *-duxçā \"daughter\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Aryazātā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *arya- \"Aryan\" (Ariyaramna) + *-zātā \"born\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Aryačiθrā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *arya- \"Aryan\" (Ariyaramna) + *-čiθrā \"of the lineage\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Dātabāmā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *dāta- \"given, law\" + *-bāmā \"radiance\" (Irdabama); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Dātastūnā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *dāta- \"given, law\" + *-stūnā \"pillar\" (Irtašduna); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Dātaduxçā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *dāta- \"given, law\" + *-duxçā \"daughter\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Dātazātā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *dāta- \"given, law\" + *-zātā \"born\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Dātačiθrā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *dāta- \"given, law\" + *-čiθrā \"of the lineage\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Raučastūnā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *raučah- \"light\" (Roxane = *Raučanā) + *-stūnā \"pillar\" (Irtašduna); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Raučaduxçā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *raučah- \"light\" (Roxane = *Raučanā) + *-duxçā \"daughter\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Raučazātā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *raučah- \"light\" (Roxane = *Raučanā) + *-zātā \"born\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Raučačiθrā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *raučah- \"light\" (Roxane = *Raučanā) + *-čiθrā \"of the lineage\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Čiθrabāmā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *čiθra- \"lineage, brilliance\" (Čiçantaxma) + *-bāmā \"radiance\" (Irdabama); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Čiθrastūnā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *čiθra- \"lineage, brilliance\" (Čiçantaxma) + *-stūnā \"pillar\" (Irtašduna); the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Čiθraduxçā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *čiθra- \"lineage, brilliance\" (Čiçantaxma) + *-duxçā \"daughter\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Čiθrazātā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *čiθra- \"lineage, brilliance\" (Čiçantaxma) + *-zātā \"born\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
+  },
+  {
+   "name": "*Čiθračiθrā",
+   "sex": "f",
+   "origin_guess": "Iranian",
+   "attestation": "RECONSTRUCTED on attested elements: *čiθra- \"lineage, brilliance\" (Čiçantaxma) + *-čiθrā \"of the lineage\"; the pattern of the PF women Irdabama (*Rta-bāmā) and Irtašduna (*Rta-stūnā) (Tavernier 2007, RECOLLECTION, NOT SEEN); not an attested name",
+   "source": "RECONSTRUCTED",
+   "tier": "C (a name composed on attested Old Iranian elements; NOT an attested name: D-207, the user's direction to fill gaps)"
   }
  ]
 }
