@@ -4745,3 +4745,67 @@ one teleport in 15.46 M person-days: a wet spell to 22:45 pushed farmer 15310's 
 and left the bearers at the grave at midnight. `funeralOf` keeps a funeral at least FUNERAL_BEFORE_SET_H = 2.5 h before
 sunset (C): a rain into the evening does not keep the dead in the house; they are carried out in it, the cloak drawn over
 the head. The same cap for a lodger's household. Test: tests/religion.test.ts (every funeral of the year).
+
+## D-223 Mountains, cliffs and the plain from the Terrace (session 8; rubric s7 pass 2 fixes 8 and 9, R9)
+- **Read first: what is broken, weak or unverified.**
+  - RENDER_STATUS_PLACEHOLDER
+  - Kuh-e Rahmat's stratigraphy is unsourced: the bedding (12 m packages, 45 % cliff-forming, dip 2.9°), the new riser and
+    bench, the talus, aprons and fans are all C (Q-520, Q-521). No photograph of the massif was reached (B6).
+  - The riser and bench are a shading tilt, not geometry: silhouettes and cast shadows keep the DEM's smooth 30 m form;
+    the tilt fades out once a 4.2 m riser spans under ~1.4 px (with the rig's 40° lens at 540 rows: ~2.3 km). The landform
+    maps (gullies, curvature, the uphill slope read for aprons and fans) stop at the mid ring (±10 km).
+  - The woodland canopy dots keep the plan grid (the 3-D trees near the camera mirror it); only their shape is corrected
+    on slopes. The chips and the herb layer are plan-projected, masked off steep ground as before (stretch ≤ 1.25 where
+    they are at full strength).
+  - Plots beyond ~5 km stay sub-pixel from the Terrace (a 100 m plot at 5 km from 14 m up is ~0.3 px tall); the far
+    field now varies by 800 m district (irrigated fallow share, as the rain-fed rotation), not by plot. No new impostor
+    layer: the river and canal trees already stand as impostors to 20 km (census below).
+  - The town's roofs and lanes are a tone change only (C, Q-525); the town casts no sun shadow beyond 150 m
+    (settlement SHADOW_RANGE, unchanged) and nothing beyond the 600 m cascades. Smoke is another workstream.
+- **R9, the Naqsh-e Rustam moiré: cause found and fixed in code.** Approach 1 (D-217, bump band-limit) was not it.
+  Approach 2, the terrain horizon, is excluded by measurement: the CPU horizon map gives full sun on every face vertex at
+  10:00 and 15:00 on day 0. Approach 3, shadow acne, is the cause: `nr_rock` is DoubleSide, and three r186 draws a
+  DoubleSide material DoubleSide into the shadow maps, so the lit face wrote its own depth. At the naqsh-200m time (day 0,
+  15:00) the sun stands at grid azimuth 271°, along the face (mean N·L 0.11): the depth slope is ~9 × the cascade texel
+  against a 0.06 m normal bias, and the acne drew fine wavy lines over the whole face. Fix: `shadowSide = BackSide` on the
+  cliff (one outward-facing sheet: face +z, top up; the east return's winding was inward and is flipped), so its back faces
+  alone cast, as the terrain's FrontSide chunks already do. Also band-limited: the materials' fine and middle mottling
+  octaves and the streaks' fine octave (all surfaces; they aliased at a distance).
+- **Fix 8, rock on the hills (terrainPlain.ts).** A cliff package is a riser (its top 35 %, 2.4 × the mean slope, ≤ 76°)
+  over a bench, drawn as a world-space tilt of the shading normal that keeps the package's mean slope; the riser bare, pale,
+  streaked by run-off; talus on the upper bench; aprons below steep ground (the slope 20–45 m uphill from the landform map);
+  gravel fans at gully mouths. Scrub crowns are spheres in a 3-D jittered grid (3 m cubes, lattice-free frame), grey-green
+  rather than near-black: no stretching on steep ground.
+- **Fix 9, the plain from the Terrace.** The "straight radial beige streaks" were the D-190 desire lines (12 ruled runs from
+  sites up to 3 km away to the stair foot, each with a ±6 m trodden band) and the roads (uniform 6–8 m strips with ruled
+  edges). Now the paths are a branching net (each site joins the nearest point of the approach, a road or an earlier path;
+  wear accumulates on the trunks; 23 runs, 1 at the stair foot; trodden band ±3.5 m), and the roads are worn tracks (cart
+  ruts, a ragged herb verge, patches). The irrigated land's fallow share varies by 800 m district (8–32 %, mean 20 %), so
+  the far plain reads in blocks. The town's roofs are lighter (a clay-and-straw finish coat) and its lanes and courts up to
+  30 % darker by the roofed share within 3 m.
+- **Why the plain-stats said `crops 0, margins 0, nearTrees 0`:** those are the near 3-D sets (crops within 30 m, river
+  margins, plain trees within 225 m); from the landing none of them is near. The ground is shader-drawn at any distance.
+  Census of the stair-noon-plain view (tools/dev/plain_view_census.ts, one ray per 4 × 4 px, node): see Measured.
+- **Measured (node).**
+  | quantity | before | after |
+  |---|---|---|
+  | shrub crowns, down/across run ratio at 0 / 45 / 60 / 75° | 1.00 / 1.41 / 2.00 / 3.83 | 1.01 / 1.00 / 1.00 / 1.00 |
+  | shrub cover (every cell full) at 0 / 75° | 0.108 / 0.107 of plan | 0.127 / 0.132 of ground |
+  | Naqsh face vertices with sun visibility < 0.99 (10:00, 15:00) | – | 0 of 88,988 (horizon excluded) |
+  | cliff triangles facing into the rock | east return (≈2.5 k m²) | 77 of 63,733 m² (0.1 %) |
+  | worn-path runs / ending at the stair foot | 43 / 12 | 23 / 1 |
+  | runs radial to the stair-noon-plain camera (within 12°, in view) | 4 | 0 |
+  | worn-path pixels in stair-noon-plain | 720 | 48 |
+  | irrigated fallow share by district | 20 % everywhere | 8–32 % (mean 20 %) |
+  | terrain fragment shader | 4 texture samples, 26 noise calls | 8, 27 |
+  | draw calls / instances added | – | 0 / 0 |
+  Census, stair-noon-plain (px of 518,400; after): Terrace 249,600; sky 213,520; fields 21,696 (irrigated 18,448 at
+  0.2–2.5 km, rain-fed 3,248 at 1–5 km); trodden 8,880; natural 10,160; town sites 2,336; roads 608; hill 10,944 (>10 km).
+  Plot contrast kept (plotKeep) 1.00 / 0.94 / 0.47 / 0.31 at 0.2–0.5 / 0.5–1 / 1–2.5 / 2.5–5 km. Objects in the frustum
+  (count / ≥ 1.5 px tall): plain trees 6,548 / 113 at 2.5–5 km, 19,529 / 455 at 5–10 km; village compounds 270 / 0 within
+  10 km; town roofed plots 459 / 459 at 0.5–2.5 km.
+- **Browser.** BROWSER_PLACEHOLDER
+- **Tests:** tests/hills_d223.test.ts (shrub stretch and cover, bench slopes, cliff winding and shadow side, the horizon
+  exclusion, the road material's WGSL), tests/plain_d223.test.ts (the path net, no radial runs in the stair view, the
+  district fallow, the census). landscape, plain, plain_look, surfaces (3), detail, settlement (2), shader_build pass.
+- Open: Q-520 … Q-526.
