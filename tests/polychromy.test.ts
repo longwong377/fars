@@ -132,9 +132,9 @@ describe('masonry joints and carved stone (D-029)', () => {
 });
 
 describe('dark door-frame limestone (D-031)', () => {
-  it('polished dark grey (Munsell N3, 6.4 %), not black', () => {
+  it('polished dark grey (Munsell N3 honed, 6.4 %; polished diffuse N2.7, 5.2 %: D-218), not black', () => {
     const Y = luminance(lin(SURFACES.limestone_dark.albedo));
-    expect(Y).toBeCloseTo(munsellY(3), 3); expect(Y).toBeGreaterThan(0.05);
+    expect(Y).toBeCloseTo(munsellY(2.7), 3); expect(Y).toBeGreaterThan(0.05);
     expect(Y).toBeLessThan(luminance(lin(SURFACES.limestone.albedo)) / 2); // still clearly darker than the grey limestone
   });
 });

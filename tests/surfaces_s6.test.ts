@@ -18,8 +18,8 @@ describe('albedos from the evidence (D-188)', () => {
   it("the Terrace limestone is 'light grey' (N7, 42 %) in every dressed, carved and platform surface", () => {
     for (const k of ['limestone', 'limestone_carved', 'terrace', 'rubble']) expect(Y(SURFACES[k].albedo), k).toBeCloseTo(munsellY(7), 3);
     expect(munsellY(7)).toBeGreaterThan(0.41); expect(munsellY(7)).toBeLessThan(0.43);
-    // the dark Majdabad stone stays N3 (D-031)
-    expect(Y(SURFACES.limestone_dark.albedo)).toBeCloseTo(munsellY(3), 3);
+    // the dark Majdabad stone: N3 (D-031) honed, its polished diffuse N2.7 (D-218)
+    expect(Y(SURFACES.limestone_dark.albedo)).toBeCloseTo(munsellY(2.7), 3);
   });
   it('mud plaster is a buff earth (no green cast); the greyish yellow-green clay paint is the Treasury walls alone', () => {
     const m = lin(SURFACES.mudbrick.albedo), g = lin(SURFACES.mudbrick_painted.albedo);
