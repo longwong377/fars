@@ -61,6 +61,8 @@ export interface Person {
   twin?: number;
   /** the one this person marries this year (on `marry`; E-73, D-211) */
   spouse?: number;
+  /** D-221: a Treasury scribe's son who learns at the desk beside him (the scribe's pid) */
+  pupilOf?: number;
 }
 export interface Household { id: number; home: string; q: string; zone: 'town' | 'plain' | 'terrace' | 'transient'; xy: [number, number]; persian: boolean; members: number[]; kin: number[]; deaths: number[]; births: number[];
   /** the house plot (town_plots.json id) of a town household, and all its plots when it needs more than one (estates) */
@@ -522,6 +524,11 @@ export class Population {
       for (let c = 0; c < mix.boys + mix.girls; c++) { const r = this.rng(-4800 - k * 100 - c);
         const c0 = this.childFor(hhs, c < mix.boys ? 'm' : 'f', 4, 15, r, g); if (c0 !== null && this.persons[c0].age >= 12) { this.persons[c0].job = 'treasury'; this.persons[c0].sub = craft; this.persons[c0].work = ws; } }
     }
+    // D-221 (gap audit item 33): a Treasury scribe's son of 12-16 who works for the Treasury is his father's pupil: on the
+    // days his father keeps the desk he goes up with him and copies beside him (the PF's "Persian boys copying texts",
+    // Hallock: RECOLLECTION, NOT SEEN, B at best; who and where C). No person is added (the pids stay as they were)
+    for (const s of this.treasuryScribes) { const son = this.households[this.persons[s].hh].members.find(m => m !== s && this.persons[m].sex === 'm' && this.persons[m].job === 'treasury' && this.persons[m].age >= 12 && this.persons[m].age <= 16);
+      if (son !== undefined) this.persons[son].pupilOf = s; }
     // ---------------- officials, scribes and storekeepers with their households (~500; C)
     const offG = this.group('officials', 'officials, scribes and storekeepers', 'store_town', false, 'town');
     const offSeats = seatOf('official');
@@ -2165,7 +2172,7 @@ class Planner {
       case 'camp': return this.campWoman();
       case 'porter': return p.sub === 'terrace' ? (p.agent >= 0 ? this.depotPorter() : this.terracePorter()) : this.townPorter();
       case 'scribe': return this.scribe();
-      case 'treasury': return this.treasuryWorker();
+      case 'treasury': return this.pupilDay() ?? this.treasuryWorker();
       case 'official': return this.official();
       case 'messenger': return this.messenger();
       case 'storekeeper': return this.storekeeper();
@@ -3599,7 +3606,11 @@ class Planner {
     // D-211: a quarter of the Treasury letters had been "delivered" to an empty desk)
     const late = turnB ? C.letters.filter(x => x.go + 1.3 > this.t).map(x => x.go) : [];
     if (late.length) this.workBlock('treasury_desk', 'terrace', 'write_tablet', 'keeping the desk for a sealed letter from the road station, to receive and record it (E-20)', this.t, Math.min(this.sun.set - 0.1, Math.max(...late) + 1.3), false, 'treasury_desk');
-    this.go(this.home, this.homeW); this.evening(this.t); return this.finish();
+    this.go(this.home, this.homeW); this.evening(this.t);
+    // D-221: the Babylonian of the two is the Aramaic secretary (sim.ts roster: LANGUAGES B): at the desk he writes the
+    // leather duplicates in Aramaic with pen and ink (Cameron's inference, B; activities.ts write_tablet's variant)
+    if (p.origin === 'Babylonian') for (const s of this.segs) if (s.act === 'write_tablet' && s.place === 'treasury_desk') s.why += ', in Aramaic with a reed pen and ink on leather';
+    return this.finish();
   }
   /** the town's scribes: the desk, and whatever the day brings, in turn among them (C): the ration issue at the storehouse
    *  (E-01), deliveries measured in (E-06), grain to the mill (E-07), a party's halmi at the station (E-21), sealed letters
@@ -3625,6 +3636,23 @@ class Planner {
       this.workBlock(desk, 'town', 'write_tablet', 'writing and sealing tablets', this.t, Math.max(this.t, h - walk), false); this.errand(pl, w, 'write_tablet', why, dur, desk, 'town'); }
     this.workBlock(desk, 'town', 'write_tablet', 'writing and sealing tablets', Math.max(7.5, this.t), 15.5, false);
     this.go(this.home, this.homeW, q !== null ? 'carrying the ration home' : 'going home', q !== null ? 'carry_sack' : 'walk'); this.evening(this.t); return this.finish();
+  }
+  /** D-221 (gap audit item 33; rubric s7 pass 2 item 11): a Treasury scribe's pupil (his son) on a day his father keeps
+   *  the desk: up with him, copying signs on a practice tablet beside the scribes, at his side all day, home with him
+   *  (the PF's "Persian boys copying texts", Hallock: RECOLLECTION, NOT SEEN; the rest C). Null: an ordinary day */
+  private pupilDay(): Seg[] | null {
+    const P = this.P, d = this.d, fa = this.p.pupilOf; if (fa === undefined || !P.present(fa, d) || P.sick(fa, d) || P.home(fa, d) !== P.home(this.pid, d)) return null;
+    // (on about three days in four that his father keeps the desk; the others at the Treasury's work like the other boys: C)
+    if (u01(P.seed, S.assign, 7300000 + this.pid, d) >= 0.75) return null;
+    const fs = P.rawPlan(fa, d); if (!fs.some(s => s.place === 'treasury_desk' && s.act === 'write_tablet') || fs[0].t0 > 0) return null;
+    for (const s of fs) { const road = s.where === 'road', home = s.place === this.home;
+      const [act, why]: [ActivityId, string] = road ? ['walk', 'walking with his father']
+        : s.act === 'sleep' || s.act === 'eat' || s.act === 'rest' || s.act === 'talk' ? [s.act, s.why]
+        : home ? ['rest', 'resting at home']
+        : s.act === 'write_tablet' ? ['write_tablet', s.place === 'treasury_desk' ? 'copying signs on a practice tablet beside the scribes at the Treasury desk, his father’s pupil (the PF’s “Persian boys copying texts”: RECOLLECTION; C)' : 'copying signs on a practice tablet beside his father at his work']
+        : ['rest', 'with his father at his work'];
+      this.segs.push({ ...s, act, why, with: fa }); this.t = s.t1; if (!road) { this.cur = s.place; this.curW = s.where; } }
+    return this.segs;
   }
   private treasuryWorker(): Seg[] {
     const p = this.p, C = this.C;

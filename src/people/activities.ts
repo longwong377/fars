@@ -37,7 +37,9 @@ export type PropKind = 'spear' | 'sack' | 'jar' | 'jar_head' | 'tablet' | 'malle
   // D-215: the gilded spear butts (court) and children's toys
   | 'spear_apple' | 'spear_gpom' | 'ball' | 'toy_bow' | 'rattle'
   // D-209: the magus's barsom
-  | 'barsom';
+  | 'barsom'
+  // D-221: the scribes' writing things
+  | 'stylus' | 'pen' | 'leather';
 /** sounds a performance makes (soundscape.ts strike kinds; 'murmur' and 'footsteps' are layers, 'fire' the fire's own) */
 export type SoundKind = 'chisel' | 'quern' | 'fire' | 'murmur' | 'footsteps' | 'dice' | 'water' | 'hoe' | 'sickle' | 'loom' | 'trowel' | 'adze' | 'mould' | 'wash' | 'broom' | 'bow' | 'bleat';
 /** a thing at the place (workObjects.ts), in the performer's frame (m: right −x / left +x, ahead +z; yaw rad). `follow`:
@@ -107,7 +109,10 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   knead: { anim: 'knead', tier: 'C', note: 'kneading dough in a trough (C)' },
   bake: { anim: 'bake', sound: 'fire', tier: 'C', note: 'slapping flat loaves into the oven (C)' },
   draw_water: { anim: 'draw_water', prop: 'jar', sound: 'water', tier: 'C', note: 'filling a jar at the water point (C)' },
-  write_tablet: { anim: 'write', prop: 'tablet', tier: 'B', note: 'writing on a clay tablet with a stylus (PF/PT tablets: A; posture C)' },
+  write_tablet: { anim: 'write', prop: 'tablet', prop2: 'stylus', tier: 'B', note: 'writing on a clay tablet held in the left hand with a reed stylus in the right (PF/PT tablets: A; the stylus B by analogy; posture C; D-221: the stylus drawn)',
+    // D-221: the Aramaic secretary writes with a reed pen and ink on leather (Aramaic epigraphs in ink on PF tablets: B;
+    // the Treasury tablets' leather duplicates, Cameron's inference: B)
+    variants: [{ when: /in Aramaic/, prop: 'leather', prop2: 'pen', note: 'writing Aramaic with a reed pen and ink on a sheet of leather on the left palm (Aramaic ink epigraphs on Persepolis tablets: B; leather documents in the chancery: B by analogy; posture C; the writing on the sheet is not drawn: D-221)' }] },
   eat: { anim: 'eat', sound: 'murmur', tier: 'C', note: 'sitting and eating bread (rations: B)' },
   sleep: { anim: 'sleep', tier: 'C', note: 'lying asleep on a mat (C)' },
   talk: { anim: 'talk', sound: 'murmur', tier: 'C', note: 'talking with gestures' },

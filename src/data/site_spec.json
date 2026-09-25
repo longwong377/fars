@@ -4731,12 +4731,13 @@
      186.8,
      -83.2
     ],
-    "desk_heading": 90
+    "desk_heading": 90,
+    "seats": { "elamite": [186.8, -83.2, 90], "aramaic": [187.8, -83.75, 300], "pupil": [187.6, -82.5, 235], "visitor": [186.05, -82.45, 125] }
    },
    "u": "m",
    "src": "IR-TREAS;REF-PLAN",
    "tier": "C",
-   "note": "the scribes' room: the PT tablets were found in \"a northeastern room of the Treasury\" (IR-TREAS, SX, B); which room is C: the NE room of the N range beside the entrance vestibule (rooms[2], x 178.1-192.0). The desk (where the scribe sits, grid) is 1.2 m from the S doorway (184.0-185.1) for its daylight, facing grid E (heading deg from grid N, C)"
+   "note": "the scribes' room: the PT tablets were found in \"a northeastern room of the Treasury\" (IR-TREAS, SX, B); which room is C: the NE room of the N range beside the entrance vestibule (rooms[2], x 178.1-192.0). The desk (where the scribe sits, grid) is 1.2 m from the S doorway (184.0-185.1) for its daylight, facing grid E (heading deg from grid N, C). D-221: three places on the floor round the desk's things (grid x, y, heading): the Elamite scribe at the desk facing E over the drying board and the clay; the Aramaic secretary SE of him facing WNW by the leather scrolls and the ink; a pupil NE of them facing WSW, copying; a scribe come up from the town to copy and check tablets with them NW of the desk, facing ESE (all C)"
   },
   "r_scribes_room": {
    "v": {
@@ -4756,12 +4757,20 @@
      0.35
     ],
     "clay_lump": 0.12,
-    "baskets": 3
+    "baskets": 3,
+    "mat": [0.95, 0.65],
+    "lamp": { "at": [188.9, -80.95], "r": 0.055, "soot": [0.34, 0.75] },
+    "ink_pot": { "at": [187.8, -83.35], "r": 0.035, "h": 0.07 },
+    "water_bowl": { "at": [186.55, -82.62], "r": 0.1 },
+    "jars": [[190.9, -84.2], [191.45, -84.2]],
+    "bench_baskets": [190.1, 190.7],
+    "seals": { "at": [187.2, -84.0], "n": 2, "len": 0.032, "d": 0.013 },
+    "floor_stain": { "c": [187.2, -83.2], "r": [1.3, 0.9] }
    },
    "u": "m",
    "src": "IR-TREAS;MATCULT-R;RECON",
    "tier": "C",
-   "note": "furnishing of the scribes' room: a mud-brick bench along the N and W walls (gap = free wall at the corners and by the door) carrying filed tablets in rows (tablets_per_m per row, two rows); PT letters are rectangular tablets (MATERIAL_CULTURE, NOT SEEN: size C) sealed on the left edge; a board of fresh tablets drying by the desk, a lump of clay kept moist under a cloth, and reed baskets of tablets on the floor (all C: types from the archive practice, B; number and arrangement C)"
+   "note": "furnishing of the scribes' room: a mud-brick bench along the N and W walls (gap = free wall at the corners and by the door) carrying filed tablets in rows (tablets_per_m per row, two rows); PT letters are rectangular tablets (MATERIAL_CULTURE, NOT SEEN: size C) sealed on the left edge; a board of fresh tablets drying by the desk, a lump of clay kept moist under a cloth, and reed baskets of tablets on the floor (all C: types from the archive practice, B; number and arrangement C). D-221 (rubric s7 pass 2 item 11): a reed mat under each place; a clay saucer lamp on the N bench, unlit by day, the wall above it sooted by the evenings (soot: width and height, m); a small pot of ink by the Aramaic secretary; a bowl of water by the clay to wet it; two jars for tablets in the SE corner (tablets kept in jars and baskets: Mesopotamian archive practice, B by analogy); two baskets of tablets on the bench's E end; two cylinder seals on their cords by the drying board (the tablets are sealed on the left edge, D-179; whose seals C); the floor about the places darker, trodden and clay-stained (all C)"
   },
   "r_shaft_paint": {
    "v": {

@@ -96,21 +96,23 @@ const CLOTHED_PARTS = new Set<number>([PART.chest, PART.belly, PART.pelvis, PART
 const clothedParts = (costume: Dress) => (costume === 'worker' || costume === 'child' ? new Set([...CLOTHED_PARTS].filter(p => p !== PART.uarm_l && p !== PART.uarm_r)) : CLOTHED_PARTS);
 const upperOf = (costume: Dress) => [...COSTUMES[costume].always].find(id => /upper/.test(id));
 
-describe('the scribe-at-work moment (tests/e2e/moments.spec.ts: day 25, 10:00, (189.4, −84.2, 1.0), az 269°, pitch −12°, fov 50)', () => {
-  it('the scribe is agent 120 in Median dress at full detail, and his tunic, trousers, boots and felt cap fill the frame where the render showed skin', () => {
+// (D-221: the moment moved to day 21, 13:00, from the room's E end: on day 25 at 10:00 one scribe was ill and the other in
+// the store since D-211's turns by seat, so no scribe was in the room and this test failed on the base tree)
+describe('the scribe-at-work moment (tests/e2e/moments.spec.ts: day 21, 13:00, (190.4, −83.0, 1.05), az 247°, pitch −10°, fov 50)', () => {
+  it('both scribes write at the desk in Median dress at full detail, and their tunics, trousers and boots fill the frame where the render showed skin', () => {
     const W = new WeatherSystem(1), env = (t: number): Env => { const d = Math.floor(t / 24), c = W.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
     const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
     const sim = new PeopleSim(1, nav, env), plan = buildTownPlan(), terrain = loadTerrain(), rivers = loadRiversFile(), canals = buildCanals(terrain, rivers.rivers, 1), villages = placeVillages(terrain, rivers.rivers, canals, 1);
     const geo = new PopGeo({ pop: sim.pop, nav, town: plan, ground: (e, n) => terrain.heightAt(e, -n), villages, compounds: vi => villageCompounds(villages[vi], terrain, 1), canals: canals.map(c => c.pts), seed: 1 });
-    const view = new PopView(sim, geo, 1); sim.jumpTo(25 * 24 + 10);
+    const view = new PopView(sim, geo, 1); sim.jumpTo(21 * 24 + 13); for (let i = 0; i < 20; i++) sim.step(3);
     const humans = newHumans(), crowd = new Crowd(sim, 1, humans as any); crowd.view = view; crowd.looksPerFrame = 1e9;
     // main.ts __parsa.view: the eye above the ground, the azimuth true (grid north is 341° true: yaw = −(az − 341°))
-    const e = 189.4, n = -84.2, y = nav.heightAt(e, n) + 1.0, cam = new THREE.PerspectiveCamera(50, 16 / 9, 0.1, 5000); cam.position.set(e, y, -n);
-    const h = ((269 - 341) * Math.PI) / 180, p = (-12 * Math.PI) / 180; cam.lookAt(e + Math.sin(h) * Math.cos(p) * 10, y + Math.sin(p) * 10, -n - Math.cos(h) * Math.cos(p) * 10);
+    const e = 190.4, n = -83.0, y = nav.heightAt(e, n) + 1.05, cam = new THREE.PerspectiveCamera(50, 16 / 9, 0.1, 5000); cam.position.set(e, y, -n);
+    const h = ((247 - 341) * Math.PI) / 180, p = (-10 * Math.PI) / 180; cam.lookAt(e + Math.sin(h) * Math.cos(p) * 10, y + Math.sin(p) * 10, -n - Math.cos(h) * Math.cos(p) * 10);
     for (let f = 0; f < 3; f++) { view.update(sim.t, [e, n]); crowd.update(f * 0.1, cam.position, null, cam); }
     const near = [...crowd.persons.values()].filter(q => q.drawnFrame > 0 && q.dist < 6);
-    const s = near.find(q => q.agent?.role === 'scribe')!;
-    expect(s, 'a scribe drawn within 6 m').toBeTruthy();
+    const scribes = near.filter(q => q.agent?.role === 'scribe'), s = scribes[0];
+    expect(scribes.length, 'both scribes drawn within 6 m').toBe(2); expect(scribes.every(q => q.anim === 'write')).toBe(true);
     const row = s.slot * PERSON_TEXELS * 4, mask = humans.gpu.person[row + 1];
     OUT.moment = { who: `agent ${s.agent!.id} (${s.agent!.role}, ${s.agent!.origin}; population ${s.pid})`, dist: +s.dist.toFixed(2), lod: s.lod, dress: s.look.dress, costume: COSTUME_OF[s.look.dress], variant: s.look.variantId, anim: s.anim, act: s.act,
       lookPieces: s.look.pieces, lookMask: s.look.mask, drawnMask: mask };
@@ -119,10 +121,11 @@ describe('the scribe-at-work moment (tests/e2e/moments.spec.ts: day 25, 10:00, (
     expect(mask).toBe(s.look.mask & ~(1 << pieceBit('median', 'kandys')));
     const C = O.costumes.median.find(c => c.lod === s.lod)!, drawn = drawnPieces(C, mask);
     for (const id of ['tunic_upper', 'tunic_skirt', 'trousers', 'belt', 'boots']) expect(drawn.has(id), id).toBe(true);
-    const hit = raster(near.map(q => ({ C: O.costumes[COSTUME_OF[q.look.dress]].find(c => c.lod === q.lod)!, slot: q.slot, root: q.root })), humans.gpu, cam, 960, 540);
+    const hit = raster(scribes.map(q => ({ C: O.costumes[COSTUME_OF[q.look.dress]].find(c => c.lod === q.lod)!, slot: q.slot, root: q.root })), humans.gpu, cam, 960, 540);
     const px = Object.fromEntries([...hit.counts].sort((a, b) => b[1] - a[1]));
     OUT.moment = { ...(OUT.moment as object), pixels960x540: px }; save();
     // what the render read as bare torso and arms, bald head, bare feet: the tunic, the felt cap, the boots
+    // (the old view's thresholds kept: the two scribes at 2.7-3.6 m give tunic 12,933, cap 3,066, boots 2,917, trousers 2,671 px)
     expect(hit.counts.get('tunic_upper') ?? 0).toBeGreaterThan(5000);
     expect(hit.counts.get('cap_soft') ?? 0).toBeGreaterThan(1500);
     expect(hit.counts.get('boots') ?? 0).toBeGreaterThan(1500);

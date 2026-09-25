@@ -90,8 +90,13 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // the floor across the desk), 2.6 m from the desk at his front right (the desk faces grid E), looking W at the scribe,
   // the unfinished tablet and the drying board, the S doorway's light on him from the left (a first try 1.4 m away had
   // him fill the frame, quality-test render). Old: (183.2, −83.9, 1.6, 60, −20)
-  { n: 'scribe-at-work', day: 25, hour: 10, w: 'clear', v: [189.4, -84.2, 1.0, 269, -12], fov: 50 },
-  { n: 'scribe-room-ne', day: 25, hour: 10, w: 'clear', v: [190.9, -82.0, 1.7, 235, -15], fov: 50 }, // the old view from the NE corner
+  // re-posed (D-221, rubric s7 pass 2 item 11): the room now holds the Elamite scribe at the desk (tablet and stylus), the
+  // Aramaic secretary SE of him (pen and leather) and the pupil NE of them (site_spec scribes_room.seats). Day 21 13:00 is
+  // an hour when the sim has all three writing there (node: tools/dev scan, D-221), the sun in the S doorway. From the
+  // room's E end at seated eye height, looking W over the three. Old: day 25 10:00 (one scribe ill, the other in the
+  // store: the room held nobody of the desk), (189.4, -84.2, 1.0, 269, -12)
+  { n: 'scribe-at-work', day: 21, hour: 13, w: 'clear', v: [190.4, -83.0, 1.05, 247, -10], fov: 50 },
+  { n: 'scribe-room-ne', day: 21, hour: 13, w: 'clear', v: [190.9, -82.0, 1.7, 235, -15], fov: 50 }, // the old view from the NE corner (D-221: at the new hour)
   { n: 'stair-climb', day: 25, hour: 8.5, w: 'clear', v: [-43.9, 128, 1.6, 341, 12] },
   { n: 'stair-climb-pm', day: 25, hour: 16, w: 'clear', v: [-43.9, 128, 1.6, 341, 12] }, // the W-facing stair in the afternoon sun (the morning view is in the Terrace's shadow); shares its state with tripylon-n-stair
   { n: 'snow-terrace', day: 280, hour: 10, w: 'snow', v: [-20, 70, 1.6, 161, 4] },
@@ -117,7 +122,9 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // forecourt looking E across the files of the king's spearmen lining the way from the Gate to the Apadana, petitioners
   // and delegations waiting, nobles by the Apadana; the view the node scan found with the most people visible on the
   // Terrace (tools/dev/court_scan.ts). The king is not shown (B9); delegation dress is a placeholder (D-182)
-  { n: 'court-assembly', day: 30, hour: 10, w: 'clear', v: [-35, 85, 1.6, 71, -2], fov: IN, court: true },
+  // D-221: re-timed to an audience morning (day 32, the king enthroned 08:28-10:17 in the sim: parties waiting in their
+  // places before the N stair, each led up in turn by an usher). Old: day 30 10:00 (no audience that day)
+  { n: 'court-assembly', day: 32, hour: 9.5, w: 'clear', v: [-35, 85, 1.6, 71, -2], fov: IN, court: true },
 ];
 test('moments', async ({ page }, info) => {
   // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run). TIMEOUT (s) and FRAMES

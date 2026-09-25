@@ -49,6 +49,11 @@
   ],
   "visitors": {
     "label": "petitioners and gift-bearing delegations waiting on the king",
+    "up_share": 0.4, "up_note": "D-221: on a day that is not its audience a party goes up to wait in the forecourt with this chance (C; was 0.6 before D-221), and only while the forecourt has a place for it (waiting.stations, waiting.line): the rest wait at the camp",
+    "waiting": { "stations_x": [-20.5, -13, 11.5, 18.5, 25.5], "stations_y": [71, 78, 85, 92, 99], "block_cols": 5, "block_lateral_m": 0.9, "block_row_m": 1.0,
+      "line": { "x": 30.5, "y0": 67, "step_m": 0.9, "n": 31, "lines": 2, "gap_m": 2.2 }, "gate": [[7.5, 118], [7.5, 127.5], [-8.5, 128.5]], "hall_x": [-6.74, 1.9, 10.54], "hall_y": -2.9, "front": [1.9, -15.0],
+      "turn_max_h": 0.25, "before_turn_h": 0.3, "usher_before_h": 0.75,
+      "tier": "C", "note": "D-221: 25 places of the forecourt for delegations (blocks of five abreast, 0.9 m apart, rows 1 m deep, facing the N stair), W and E of the way between the files of spearmen, nearest the stair first; petitioners in lines of 31 along the E side facing the stair (a second line beside the first when it is full; a party is not split); in the hall the parties called next stand in blocks facing the throne, between the columns; each party goes before the king in turn (at most a quarter of an hour, the morning's parties in the order they came), led up from the forecourt 0.3 h before its turn by an usher who has stood at its head from 0.75 h before. All C: the reliefs give the form (an usher leading each delegation: B), nothing gives the places or the hours" },
     "parties_per_day": 5, "first_arrival": 0, "last_arrival": 106, "size": [2, 24], "petitioner_share": 0.35, "petitioner_size": [1, 3], "stay_days": [5, 14],
     "origins": ["Median", "Elamite", "Armenian", "Arian", "Babylonian", "Lydian", "Arachosian", "Syrian", "Cappadocian", "Egyptian", "Scythian", "Ionian", "Bactrian", "Gandharan", "Parthian", "Sagartian", "Sogdian", "Indian", "Thracian", "Arab", "Cilician", "Libyan", "Kushite"],
     "origins_note": "D-199: the 23 peoples of the Apadana delegations (delegations.json); a party brings its own people's gifts and wears its own dress",
@@ -103,13 +108,14 @@
     { "id": "court_throne_g1", "kind": "post", "at": [5.0, -21.3], "heading": 0, "tier": "C", "note": "a spearman of the king's escort beside the throne (C)" },
     { "id": "court_throne_g2", "kind": "post", "at": [-1.2, -24.2], "heading": 0, "tier": "C", "note": "a spearman of the king's escort behind the throne (C)" },
     { "id": "court_throne_g3", "kind": "post", "at": [5.0, -24.2], "heading": 0, "tier": "C", "note": "a spearman of the king's escort behind the throne (C)" },
+    { "id": "forecourt_wait", "kind": "idle", "at": [0, 80], "span": [[-25, 67], [34, 95]], "tier": "C", "note": "D-221: the parties' places in the forecourt before the Apadana's N stair: each delegation stands (or sits) together as a block at a place of its own for the day, those called that morning nearest the stair in the order they go up, each led by an usher (the Apadana reliefs carve each delegation in its file behind an usher who holds its leader's hand: B for the form; the places, the order and the hours C); petitioners in a line along the E side (C). Everyone faces the stair (C)" },
     { "id": "court_audience", "kind": "idle", "at": [1.9, -4], "span": [[-8, -13], [12, 4]], "tier": "C", "note": "the Apadana hall N of the throne: parties waiting to be led before the king (C)" },
     { "id": "court_audience_front", "kind": "idle", "at": [1.9, -15.5], "span": [[-0.5, -16.2], [4.3, -14.3]], "tier": "C", "note": "before the throne, where an usher brings a party (the reliefs: an usher leads each delegation by the hand, B; the spot C)" }
   ],
   "guard_lines": [
     { "id": "cg_stair_s", "a": [-37, 113.5], "b": [-22, 113.5], "n": 10, "heading": 0, "night": true, "what": "the head of the Grand Stair, S file" },
     { "id": "cg_stair_n", "a": [-37, 131.5], "b": [-22, 131.5], "n": 10, "heading": 180, "night": true, "what": "the head of the Grand Stair, N file" },
-    { "id": "cg_gate_s", "a": [-9, 114], "b": [9, 114], "n": 10, "heading": 0, "night": true, "what": "inside the Gate of All Nations, S file" },
+    { "id": "cg_gate_s", "a": [-10.5, 113.5], "b": [-10.5, 122.5], "n": 10, "heading": 90, "night": true, "what": "inside the Gate of All Nations, S file (D-221: along the W wall S of the W door, facing into the hall, clear of the way to the S door)" },
     { "id": "cg_gate_n", "a": [-9, 134.5], "b": [9, 134.5], "n": 10, "heading": 180, "night": false, "what": "inside the Gate of All Nations, N file" },
     { "id": "cg_way_w", "a": [-6, 99], "b": [-6, 65], "n": 20, "heading": 90, "night": false, "what": "the way from the Gate to the Apadana, W file" },
     { "id": "cg_way_e", "a": [6, 99], "b": [6, 65], "n": 20, "heading": 270, "night": false, "what": "the way from the Gate to the Apadana, E file" },
@@ -123,9 +129,10 @@
     { "id": "cg_road_s", "a": [22, 118], "b": [60, 118], "n": 20, "heading": 0, "night": false, "what": "the road E from the Gate, S file" },
     { "id": "cg_road_n", "a": [22, 131], "b": [60, 131], "n": 20, "heading": 180, "night": false, "what": "the road E from the Gate, N file" }
   ],
-  "guard_lines_note": "Ceremonial posts (C): files of ten standing where the reliefs put guards (stairways, gates, façades: B for the motif) and along the processional ways; a file holds one stretch of ten posts for a watch and moves to another the next time (C). By night only the stair head, the Gate, the palaces and the Tripylon are held (C); the rest of the night watch waits within call at the guards' court",
+  "guard_lines_note": "Ceremonial posts (C): files of ten standing where the reliefs put guards (stairways, gates, façades: B for the motif) and along the processional ways; a file holds one stretch of ten posts for a watch and moves to another the next time (C). D-221: the posts of a line stand file_spacing_m apart, centred on the line (a line of 20 is two files of ten shoulder to shoulder), every man facing the line's heading, not strung out along its whole length (the reliefs' guards stand in close files: B for the motif; the spacing C). By night only the stair head, the Gate, the palaces and the Tripylon are held (C); the rest of the night watch waits within call at the guards' court",
   "day": {
     "walk_ms": 1.25, "detour": 1.3, "climb_h": 0.17, "min_walk_h": 0.05,
+    "file_spacing_m": 1.0, "file_spacing_note": "D-221: a man's width with his shield and bow case, arms' length apart (C; the reliefs carve the spearmen overlapping in profile)",
     "guard_meal_break_h": 0.45, "guard_break_first_h": 2.2, "guard_break_step_h": 0.55,
     "tier": "C", "src": "RECON", "note": "walking at 1.25 m/s over 1.3 × the straight line, +10 min to climb to the Terrace (as lives.json walk_ms); each man at a post is relieved once in his watch for a meal, two of a file of ten at a time (C)"
   }

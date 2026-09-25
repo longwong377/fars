@@ -150,3 +150,30 @@ Measured (seed 1, plans; tests/court_fill.test.ts): town at 02:00 21,270 / 21,67
 13,000-30,000), at 10:30 18,588 / 18,561; plain 41,136-41,311 (w 42,000, range 33,000-49,000); the Terrace unchanged
 (4,912 at 10:30 on day 30). The whole court 25,817 people (9,310 before). They arrive with the court (day 0) and leave on
 its leave day (E-26), striking the tents. The year soak with the court (`npx tsx tools/soak.ts 354 60 1 --court`, 76,238 people) passes all 8 gates (D-199).
+
+## 6. D-221: the court as an assembly (rubric s7 pass 2 item 7; court setting only)
+The pass-2 renders showed the forecourt as a fair: people spread at random, no files, no waiting parties, no focus. The
+causes, measured in node (`tests/lib/court_order.ts`, `tools/dev/court_order.ts`): the 21 stretches of ten posts were
+strung out along their lines 1.5-3.8 m apart, and a guard who reached his post after someone else stood there was stepped
+aside (popview `separate`); petitioners and delegates each took a random spot of the forecourt's span with a random
+heading, and talked with other parties. What changed (every place, spacing and hour C; the form from the reliefs, B):
+- **Files.** The posts of a line stand `day.file_spacing_m` (1.0 m) apart, centred on the line; a post is held where it
+  stands (`Spot.fixed`), and everyone spread over a place keeps 0.8 m off the posts. The Gate's S file stands along the W
+  wall, clear of the way to the S door.
+- **Parties at their places.** On each day `CourtResidents.dayOrder` gives the parties that go up a place of their own in
+  the forecourt before the Apadana's N stair (`visitors.waiting`: 25 places W and E of the way between the files, blocks of
+  five abreast 0.9 m apart and rows 1 m deep; petitioners in lines of 31 on the E side), those called that morning nearest
+  the stair in the order they came. A party goes up on a day without its audience with a chance of 0.4 (was 0.6), and only
+  while a place is free; the rest wait at the camp. At the Gate a party stands together at one of three places.
+- **Turns and ushers.** The called parties go before the king one after another (at most a quarter of an hour each while
+  he sits), led up from the forecourt 0.3 h (at most 2.5 turns) before their turn into a block in the hall between the
+  columns, then before the throne. One usher on duty to each (the reliefs' usher who leads each delegation by the hand, B):
+  at the party's head in the forecourt from 0.75 h before, with it in the hall and before the king.
+- **Focus.** Those waiting at a court place face what they wait on (`court.ts FOCUS`): the N stair from the forecourt, the
+  E stair from the court below it, the hall's N door from the portico, the throne in the hall (±15° for those spread over
+  a place, ±6° in the blocks).
+Measured (seed 1; the same metric): guards ordered (nearest file-mate 0.8-1.3 m, within 10° of the line's heading, on the
+post) 0.5 % → 87-100 % (the rest are the end men of files with a neighbour away at his meal); members within 3 m of their
+party's centroid 8.6 % → 100 %; mean cosine to the focus 0.009 → 0.995. Tests: `tests/court_order.test.ts`. Open: Q-510
+to Q-512. Not done: the delegations' animals are still not drawn in the forecourt (they stay at the camp); the hand held
+between usher and leader is not posed.
