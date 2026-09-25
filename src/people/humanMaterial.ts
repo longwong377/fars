@@ -74,7 +74,7 @@ export const SAG_MAX = 0.1;
  *  (the two bones' relative rotation where the skin weights mix). Micro-shadowing: the baked cavity also darkens the
  *  direct light (after Chan 2018's micro-shadows), so eye sockets, the nose's underside and cloth folds read in sun. */
 export const DRAPE = { foldLow: [2, 3] as [number, number], foldHigh: [7, 10] as [number, number], highNear: [15, 24] as [number, number],
-  fade: 0.6, soil: 0.55, dust: [0.34, 0.28, 0.2] as RGB, wrinkle: 0.0014, wrinkleF: 26, micro: 1, hatH: 0.154,
+  fade: 0.6, soil: 0.8, dust: [0.34, 0.28, 0.2] as RGB, wrinkle: 0.0014, wrinkleF: 26, micro: 1, hatH: 0.154,
   /** D-206 (C): hems — a shell's cut line (the outer 30 % of its ramp, and the turned edge) and a skirt's last hand's
    *  breadth — are doubled cloth: darker by hemDark and rolled (a ridge of hemRoll m); gathers above the belt on the upper
    *  garments (class parameter 5, uv.y = height above the belt, m): gatherN folds round the body, gather m deep, fading out
