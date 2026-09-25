@@ -3878,7 +3878,7 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
   - Still visible in the node previews: the trousers poke through the skirt at the knee when a man squats (as before); the crouched scribe's boot rim shows as a thin ring.
   - Under the room's warm light, undyed wool against a light skin, faded weld and the Susa guards' ochre stay under ΔE 12 for some wearers (numbers below). No evidence allows moving those colours, so they were left as they are (rule 6).
   - The bun is now hidden under the felt cap's nape flap (it poked through before; 275 → 52 px in the moment). Whether Median men wore the hair out below the cap is not checked against a plate (MATERIAL_CULTURE "Soft cap").
-  - Not rendered in the browser. The CPU-timing tests (humans_runtime "posing 300", performances "300 performers") fail under this machine's load (load average 12–50). HEAD fails the performances one too under the same load (11.1 ms against < 10). The changed code is not on the posing path.
+  - Not rendered in the browser. The CPU-timing tests (humans_runtime "posing 300", performances "300 performers") failed in the full run under this machine's load (load average 12–50); HEAD failed the performances one too under the same load (11.1 ms against < 10). Rerun alone at load average 8, both pass.
 - **Report (D-205):** in the browser frame of the scribe-at-work moment, the Babylonian scribe in Median dress read as a naked man in a loincloth, although every piece was drawn. The causes:
   - the garment shells hug the body like paint: the tunic follows the chest, shoulder blades and spine; the felt cap copies the pinna; the boots copy the toes;
   - under the room's warm light nothing tells cloth from skin at the edges.
@@ -3963,4 +3963,4 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
   - fp_scribe_{full,stand,write,back,head,feet,room_write,room_full}.png: the material mirror (the scribe writing and standing, a mason, a woman grinder);
   - after/after_bind_{cap,boot,tunic}.png: bind-pose geometry.
   - Numbers: bench-reports/garment-ease-{before,after}.json.
-- **Tests:** tests/humans_faces.test.ts's cap test now checks the dome: LOD 0 has more than 3 × LOD 1's triangles, the rim's p10 stands more than 4 mm off the head, and the turned edge closes onto it. All of these pass: tests/humans*.test.ts, people_look, people_pieces (the moment's thresholds hold), performances, court_view and instruments, except the two CPU-timing tests (above). tsc and lint:all are clean.
+- **Tests:** tests/humans_faces.test.ts's cap test now checks the dome: LOD 0 has more than 3 × LOD 1's triangles, the rim's p10 stands more than 4 mm off the head, and the turned edge closes onto it. All of these pass: tests/humans*.test.ts, people_look, people_pieces (the moment's thresholds hold), performances, court_view and instruments; the two CPU-timing tests pass when rerun alone (above). tsc and lint:all are clean.
