@@ -4717,3 +4717,31 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
   tone and joint-ink tests moved to D-218's terms), tests/polychromy.test.ts, tests/surfaces_s6.test.ts (N2.7);
   shader_build, arch, now_view, probes, detail, crenellation pass; the noise-frame test is in surfaces_d218. Numbers: bench-reports/surfaces-d218.txt.
 - Open: Q-480 … Q-485. Blocker: B40.
+
+## D-222 Fire light in the shade of the architecture: a baked occlusion atlas for the Terrace's fixed fires (session 8; BLOCKERS B24, rubric s7 pass 2 fix 3)
+- **Problem (B24):** the fires' point lights cast no shadows, so the two braziers on the Apadana N stair's landing lit the N
+  court floor through the stair's 1 m parapet and façade (night-terrace, D-216). Shadow-casting point lights need a cube map
+  each and broke WebGPU's 16 sampled-texture limit at 12 lights (B24 approach 2).
+- **Decision:** the Terrace's 50 fires stand where the architecture puts them (world.ts placeFires, now
+  src/world/firePlaces.ts so an offline tool places the same fires). `tools/build_fire_occ.ts` traces, per fire, a 128 × 128
+  octahedral map of the distance from the light to the middle of the first solid it meets (second-depth midpoint between the
+  ray's entry and exit, capped 1 m past the entry: the lit face sits well in front of the stored depth) against the parts
+  with the light probes' tracer, into one atlas (8 tiles per row, 1024 × 896, half floats, 1.8 MB; 4 s). Each fire light's
+  colour node multiplies the room mask (D-216) by a 4-tap PCF lookup of its tile (src/world/fireOcc.ts): one texture binding
+  for all lights (TextureNode uniform hash = the texture). The town's fires and anything that moves cast no fire shadow.
+  `?fireocc=0` switches it off. Stale-bake guard: tests/fire_occ.test.ts checks the parts hash and the fire list.
+- **Measured (node):** the N court floor 6–14 m N of each landing brazier within 4 m of its line < 5 % lit (was 100 %), the
+  landing round the brazier > 95 % lit. **Browser (high, WebGPU):** the shader compiles and brazier-close renders (fire-lit
+  floor with its falloff; no acne seen); the night-terrace comparison (B vs braziers0) timed out under load and is re-queued.
+- **Weak:** 1.4° per texel (a 0.25 m step at 10 m) softened by PCF; no occlusion by people, props or the town; lights of the
+  town's hearths still pass through their courtyard walls. Rerun the bake after any architecture change (with build_nav and
+  build_probes).
+- **Alternatives:** cube shadow maps for the nearest 1–2 fires (texture limit and frame cost on real hardware); moving the
+  braziers (Q-442, no evidence either way); screen-space shadows (miss off-screen occluders).
+
+## D-209 addendum (session 8): funerals are over before the light goes
+The soak on the session-7 tree (REVIEWS/soak/soak-2026-09-25T15-03-51-325Z.json) passed 7 of 8 gates; plansWellFormed found
+one teleport in 15.46 M person-days: a wet spell to 22:45 pushed farmer 15310's household funeral (day 245) to 23:00–24:00
+and left the bearers at the grave at midnight. `funeralOf` keeps a funeral at least FUNERAL_BEFORE_SET_H = 2.5 h before
+sunset (C): a rain into the evening does not keep the dead in the house; they are carried out in it, the cloak drawn over
+the head. The same cap for a lodger's household. Test: tests/religion.test.ts (every funeral of the year).
