@@ -39,6 +39,7 @@ import { PalaceFurnishings } from './furnish_palaces';
 import { buildReliefMarks } from '../arch/marks';
 import { loadWritingFonts } from './writing';
 import { buildPlain } from './plain';
+import { woodlandTrees } from './plain/trees';
 import { bakeTerrainDetail } from '../terrain/terrainDetail';
 import { ConstructionView } from './construction';
 import { NowView } from './nowview';
@@ -368,6 +369,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       interact: (p: { x: number; z: number }, night: boolean, t = sim.t) => visitor.interact(p, t, night, court),
       log: () => visitor.s.log, state: () => visitor.s,
     },
+    /** dev: the woodland trees within r m of grid (e, n), as [e, n, crown width] (camera-rig framing: the renders keep off them) */
+    treesNear: (e: number, n: number, r: number) => woodlandTrees((plain.data as any).zones, e, -n, r).map(t => [t.x, t.y, t.w]),
     mapLayers: () => (mapItems ??= buildMapLayers({ town: settlement?.plan as any, plain: builtPlainOf(plain.data as any) })),
     saveState: () => ({ people: sim.save(), visitor: visitor.save() }), loadState: (s: any) => { if (s?.people) { sim.load(s.people); simStarted = true; syncBodies(); } visitor.load(s?.visitor); },
     /** persistence (brief §9.5): simulate the time the world ran while the visitor was away, everyone in the abstract LOD

@@ -38,6 +38,13 @@ for (const v of [...VIEWS, ...EXTRA]) for (const town of v.ab ? [true, false] : 
         const P = (window as any).__parsa, S = P.world.settlement;
         if (spot === 'slope') return [253, -650, 1.6, 228, -4]; // 3 m E of the first try, off a garden tree's trunk
         if (spot === 'mountain') return [380, -60, 1.6, 250, -8];
+        if (spot === 'slope') { // the nearest spot to [253, -650] with no woodland tree within 8 m nor in the view's cone to 60 m (render pass 2: a tree stood at the lens)
+          const B = 228, bx = Math.sin(B * Math.PI / 180), by = Math.cos(B * Math.PI / 180), T = (window as any).__parsa.world.treesNear(253, -650, 110);
+          const clear = (e: number, n: number) => T.every(([x, y, w]: number[]) => { const dx = x - e, dy = y - n, d = Math.hypot(dx, dy), along = dx * bx + dy * by;
+            return d > 8 + w / 2 && !(along > 0 && along < 60 && Math.abs(dx * by - dy * bx) < 2 + w / 2 + along * 0.2); });
+          for (let r = 0; r <= 40; r += 2) for (let k = 0; k < Math.max(1, Math.round(r * 1.5)); k++) { const a = (2 * Math.PI * k) / Math.max(1, Math.round(r * 1.5)), e = 253 + r * Math.cos(a), n = -650 + r * Math.sin(a);
+            if (clear(e, n)) return [e, n, 1.6, B, -4]; }
+          return [253, -650, 1.6, B, -4]; }
         if (spot === 'terrace') return [-50.5, -120, 1.6, 215, -3]; // on the Terrace platform 2.3 m inside its W edge (x −52.8 here), looking SW over the lower town
         if (!S) return spot === 'slope' ? [253, -650, 1.6, 228, -4] : spot === 'mountain' ? [380, -60, 1.6, 250, -8] : [-50.5, -120, 1.6, 215, -3];
         const plan = S.plan;
