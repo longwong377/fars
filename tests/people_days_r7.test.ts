@@ -105,7 +105,7 @@ describe('minor findings', () => {
     const fm = sim.agents.find(a => a.role === 'foreman')!; const fs: Seg[] = P.plan(fm.pid, 70); expect(fs.some(s => /cord and a straightedge/.test(s.carry ?? ''))).toBe(true); expect(fs.some(s => /chisels/.test(s.carry ?? ''))).toBe(false);
   }, 300_000);
   it('the sample\'s day line shows the storm and the rain the planners obey (A S6, B S8: day 324 printed as "rain")', async () => {
-    const T = await import('../tools/shadow_days'); const line = T.dayLine(sim, W, 323); expect(line).toMatch(/storm 05:45–13:30/); expect(line).toMatch(/rain \d\d:\d\d–/);
+    const T = await import('../tools/shadow_days'); const line = T.dayLine(sim, W, 323); expect(line).toMatch(/(heavy rain|thunder [^,]*, heavy weather) 05:45–13:30/); // (D-211: "storm" only where it thunders, A S8 of r9) expect(line).toMatch(/rain \d\d:\d\d–/);
   });
 });
 

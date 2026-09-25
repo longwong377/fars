@@ -2,12 +2,12 @@
 
 ## Broken / placeholder / weak (read first)
 - **§8.2 rubric pass 2 FAILED (session 7; REVIEWS/rubric_s7_pass2.md).** Light 2, materials 1, scale 3, detail 2, people 2, weather 1, atmosphere 2; no §1.1 moment lands except the Apadana entry (partly). Twelve rendering bugs R1-R12. Workstreams running: light and material bugs (R3 black water, R4 fire falloff, R5 orange Gate at night, R7 leak, R10 SSR, R12, the night floodlight: D-216) and geometry bugs (R1 jar through the head, R2 relief blobs, R8 placeholder boxes, R9 stretched Naqsh cliff, R11 floating rod: D-217). Lead fixes, **not yet seen rendered**: the rain shafts rebuilt (R6: the camera stood inside a 12 km column mesh; now shafts 1-4 km across with σ from the rain rate, tests/rain_shafts.test.ts), far flames no narrower than 2 px with their light conserved (the town's 1,037 dusk fires vanished from Kuh-e Rahmat), the Tol-e Ajori glazed panels (half rendered black: winding against the normal), rig framing (nobody within 2.5 m of the lens; the slope view off the trees). The rain-columns moment times out at high (58 min) under load: re-queued at medium.
-- **Regression, open:** tests/exchanges.test.ts "delivery: expected 0" since merge 27e18f3 (D-197 + D-202): porters at the store never coincide with a recording scribe; sent to the sim workstream (D-211) to make the receipt scheduled rather than lucky.
+- **Fixed (D-211):** tests/exchanges.test.ts "delivery: expected 0" (since merge 27e18f3): the receipts are now scheduled (a scribe receives the caravan in the Treasury store; one messenger per letter; scribes' turns by seat; planCheck (s) `receipt`).
 - **Session 7 (in progress).** Soak on the merged tree (sim r9 D-197, names D-202, court D-199; before the jar fix D-213 and the D-206/D-210/D-212 merges) PASSES all 8 gates: REVIEWS/soak/soak-2026-09-25T02-43-08-676Z.json (15,462,938 person-days, 0 plan issues). Shadow review round 9 FAILED (A and B: #76's water jar, fixed D-213); round 10 (pick 181) pending on the sim agent's final code. The D-207 gap fills (D-198..D-212) are node-verified only; render pass 2 incomplete (renders held twice for memory).
 - **Religious life (D-209; the user's direction D-207).** An open-air precinct 180 m S of the Terrace (two plinths after
   Pasargadae, a stepped altar after the Naqsh-e Rustam reliefs: B forms; place and size C) with a fire kept on the altar; the
   three magi in Median dress with the barsom and the cap's flaps over the mouth feed it at dawn and dusk, make the lan and the
-  offerings, and chant WITHOUT WORDS (M-06 performed wordless, M-22: C); about 180 households' sacrifices a year (Herodotus
+  offerings, and chant WITHOUT WORDS (M-06 performed wordless, M-23: C); about 180 households' sacrifices a year (Herodotus
   1.132's form: the beast led, cut up, boiled, chanted over, the meat carried home; the killing never shown); funerals carry
   the dead to a burial ground at the mountain's foot and bury them (1.140), exposure never shown; no household offerings
   (argued out). **All C, never rendered in a browser, the chant never heard** (node tests: tests/religion.test.ts).
@@ -60,6 +60,11 @@
   not drawn; with the court setting on, both states' pieces block the people's grid all year. Found, not caused: the Tachara
   SW room is unreachable on the bare nav grid (0.95 m doorway P_W). Drum marks are rarely seen (dressed drums seldom wait).
   Cost: +15 draws / 18 k tris stored (within 90 m of each palace), +19 / 47 k with the court; marks 1 draw, 136 tris.
+- **D-211 sim fills (festivals, lanes at noon, weddings, healer, hearing, games; the r9 findings; real Treasury receipts):
+  NOT soaked on the final commit 2bc77c6.** The last soak (f9b39a5) passed 7 of 8 gates; plansWellFormed failed on 3 of
+  15.5 M person-days, which 2bc77c6 fixes (swept and tested, not re-soaked). Open: under forced all-day rain, a camp issue
+  is pushed to 23:54 and a homemaker's noon comes at midnight (main's 9e2c5e7 guards the hang; the cause is not fixed).
+  Best clothes and toys are words only (not drawn). All C; Strabo and the frame drum sources are R (recalled). See D-211.
 - **Audience panel and the carved edge (D-204; the user's "fill the gaps").** The panel's composition after the Treasury
   audience reliefs is RECOLLECTION, NOT SEEN (the figures B via TREAS-AUD; order, sizes, canopy and paint C). **Not rendered
   in a browser** (node previews only: `shots/d204/`). Weak: at L2 (4-14 m) folds are faint and the royal robe's pattern and

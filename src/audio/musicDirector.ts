@@ -88,7 +88,7 @@ export class MusicDirector {
       const who = p.agentId != null ? `person ${p.agentId}` : p.pid != null ? `population person ${p.pid}` : 'court musician';
       out.push(`music ${i ? 'heard' : 'scheduled (out of earshot)'}: ${g.kind} · ${who} · ${INSTRUMENTS[pf.instrument].name}${pf.voices && pf.voices > 1 ? ` ×${pf.voices}` : ''}${p.play ? ` · seen: ${p.play}` : ''} · ${mode ? `${mode.name} (${mode.species}; ${mode.tier})` : ''} · tier ${g.tier} [${g.claims.join(', ')}]${occ ? ` · occlusion ${occ.gainDb.toFixed(1)} dB, ${Math.round(occ.cutoffHz)} Hz via ${occ.path}` : ''}${g.visual.placeholder ? ` · ${g.visual.note}` : ''}`);
     }
-    if (!out.length) out.push('music: nobody is playing or singing now (only performers make music: SOUNDSCAPE §8); the magus’s chant, when he chants, is wordless (M-06, M-22, D-209)');
+    if (!out.length) out.push('music: nobody is playing or singing now (only performers make music: SOUNDSCAPE §8); the magus’s chant, when he chants, is wordless (M-06, M-23, D-209)');
     return out;
   }
 }

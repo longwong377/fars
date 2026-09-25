@@ -18,13 +18,17 @@
 //    pipe, sitting, in the evening by the band's fire (in two of five twenty-minute stretches, four to seven minutes) or
 //    at midday while the flock lies up (one in four); the same man of his band all day; not in foul weather. The herders
 //    are the population's people (popview.ts): `pop` is who the view places out of doors now.
-//  - the magus's chant (M-06, M-22, M-15, M-13; C, D-209, the user's direction D-207): a magus of the population chanting
+//  - the magus's chant (M-06, M-23, M-15, M-13; C, D-209, the user's direction D-207): a magus of the population chanting
 //    by his plan (at the fire at dawn and dusk, over the lan, an offering or a household's sacrifice) intones alone on one
 //    tone, vowels only, WITHOUT WORDS (the chant's words are not attested and none are invented), damped by the mouth-cover.
+//  - the women's drum (M-22, M-15, M-13, M-17; C, D-211): at a wedding at dusk in the groom's courtyard, and on a festival
+//    evening in the lanes, the women of the population whose plan has them singing to the frame drum: one of them (the same
+//    woman all evening) beats it, the others sing a wordless vocalise; in most twenty-minute stretches, four to eight minutes;
+//    not in foul weather.
 // Not here, on purpose: no instrument and no other voice at an offering (Herodotus 1.132: no pipes, M-05; the magus alone
 // chants); no words for the chant (D-200 kept it silent; D-209 sounds it wordless); no soldiers', street or
-// foreign music beyond the Ionians' songs (no source seen); no lyre, frame drum or double pipe (modelled and animated,
-// D-200, but no source says who played them at Persepolis).
+// foreign music beyond the Ionians' songs (no source seen); no lyre or double pipe (modelled and animated,
+// D-200, but no source says who played them at Persepolis; the frame drum only in the women's hands, D-211).
 import { Rng } from '../core/rng';
 import type { Performance } from './music';
 import { tierOf } from './musicClaims';
@@ -50,7 +54,7 @@ export interface PopPerformer { pid: number; sex: 'm' | 'f'; age: number; act: s
  *  placed in the hall (extra). `pos`: where the sound comes from (the mouth or the instrument); an extra stands on the
  *  floor at `extra.floor`. `play`: what the performer is seen doing (playing.ts) */
 export interface GigPart { key: string; agentId?: number; pid?: number; extra?: { sex: 'm' | 'f'; seed: number; /** facing, grid degrees (0 north, 90 east) */ heading: number; anim: 'sit' | 'idle'; floor: number }; pos: { e: number; n: number; y: number }; perf: Performance | null; play?: PlayKind }
-export interface Gig { id: string; kind: 'quern_song' | 'mason_song' | 'court_supper' | 'court_night' | 'herder_pipe' | 'magus_chant'; place: string; parts: GigPart[]; claims: string[]; tier: string;
+export interface Gig { id: string; kind: 'quern_song' | 'mason_song' | 'court_supper' | 'court_night' | 'herder_pipe' | 'magus_chant' | 'women_drum'; place: string; parts: GigPart[]; claims: string[]; tier: string;
   /** hours (sim) when this stretch of playing ends */
   until: number;
   /** what you see: PLACEHOLDER when the playing or the instrument is not shown */
@@ -71,6 +75,11 @@ export function piperSlot(o: PopPerformer, h: number, sun: { rise: number; set: 
   if (h > sun.rise && h < sun.set && o.act === 'rest' && /^route:band\d+:/.test(o.place) && /flock lies up/.test(o.why)) return 'noon';
   return null;
 }
+/** the women's drum (M-22; D-211): the share of twenty-minute stretches with singing and drumming where women of the population
+ *  are at it (a wedding's dusk, a festival evening) */
+export const DRUM_P = 0.7;
+/** a woman of the population singing to the frame drum now (population.ts: the wedding's and the festival evening's reasons) */
+export function drumSlot(o: PopPerformer): boolean { return !o.moving && o.sex === 'f' && o.age >= 14 && o.act === 'talk' && /frame drum/.test(o.why); }
 const u = (seed: number, key: string) => new Rng(seed, key).next();
 
 export function musicAt(agents: readonly PerformerAgent[], c: MusicCtx, pop: readonly PopPerformer[] = []): Gig[] {
@@ -118,16 +127,33 @@ export function musicAt(agents: readonly PerformerAgent[], c: MusicCtx, pop: rea
           perf: { id: `${key}:p`, instrument: 'reed_pipe', tradition: 'mesopotamian', context: 'herding', modeId: MESOPOTAMIAN_MODES[r.int(0, 6)].id, tempo: r.range(58, 80), seed: r.int(0, 1e9), claims } }] });
     }
   }
-  // --- the magus's chant (D-209; M-06, M-22): a magus of the population whose plan says he chants now (at the fire at dawn
+  // --- the magus's chant (D-209; M-06, M-23): a magus of the population whose plan says he chants now (at the fire at dawn
   // and dusk, over an offering or a household's sacrifice), alone, without words, through the mouth-cover; for as long as he
   // chants (his plan's segment: the director follows him and stops when he stops)
   for (const o of pop) {
     if (o.act !== 'chant' || o.moving || o.sex !== 'm') continue;
-    const key = `chant:${o.pid}:${block}`, r = new Rng(o.seed, `chant:${day}`), claims = ['M-06', 'M-22', 'M-15', 'M-13'];
+    const key = `chant:${o.pid}:${block}`, r = new Rng(o.seed, `chant:${day}`), claims = ['M-06', 'M-23', 'M-15', 'M-13'];
     out.push({ id: key, kind: 'magus_chant', place: o.place, claims, tier: tierOf(claims), until: (block + 1) * BLOCK_H,
       visual: { placeholder: false, note: 'a magus chants standing with the barsom upright, the mouth under the cap\'s flaps: the words are not attested and none are sung (D-209: vowels only, intoned on one tone; C)' },
       parts: [{ key: `${key}:v`, pid: o.pid, play: 'sing_work', pos: { e: o.e, n: o.n, y: o.y + 1.6 },
         perf: { id: `${key}:v`, instrument: 'voice', register: 'm', tradition: 'mesopotamian', context: 'offering', style: 'recitative', modeId: MESOPOTAMIAN_MODES[r.int(0, 6)].id, tempo: r.range(150, 190), seed: r.int(0, 1e9), claims } }] });
+  }
+  // --- the women's drum (D-211): a wedding's dusk, a festival evening
+  if (!c.foul && pop.length) {
+    const at = new Map<string, PopPerformer[]>(); for (const o of pop) if (drumSlot(o)) (at.get(o.place) ?? at.set(o.place, []).get(o.place)!).push(o);
+    for (const [place, os] of at) {
+      const key = `drum:${place}:${block}`; if (u(c.seed, key) >= DRUM_P) continue;
+      const w = window(c.seed, key, block, 0.07, 0.13); if (c.t < w.from || c.t >= w.to) continue;
+      const du = (o: PopPerformer) => u(c.seed, `drummer:${o.pid}:${day}`), sorted = [...os].sort((a, b) => du(a) - du(b)), dr = sorted[0], singers = sorted.slice(1, 6);
+      const r = new Rng(dr.seed, `drum:${block}`), mode = MESOPOTAMIAN_MODES[r.int(0, 6)].id, tempo = r.range(84, 112), pieceSeed = r.int(0, 1e9);
+      const claimsD = ['M-22', 'M-17'], claimsV = ['M-22', 'M-15', 'M-13', 'M-17'];
+      const parts: GigPart[] = [{ key: `${key}:d`, pid: dr.pid, play: 'frame_drum', pos: { e: dr.e, n: dr.n, y: dr.y + 1.2 },
+        perf: { id: `${key}:d`, instrument: 'frame_drum', tradition: 'mesopotamian', context: 'leisure', tempo, seed: r.int(0, 1e9), claims: claimsD } }];
+      singers.forEach((o, i) => parts.push({ key: `${key}:v${i}`, pid: o.pid, play: 'sing', pos: { e: o.e, n: o.n, y: o.y + 1.5 },
+        perf: i === 0 ? { id: `${key}:v`, instrument: 'voice', register: 'f', voices: singers.length, tradition: 'mesopotamian', context: 'leisure', modeId: mode, tempo, pieceSeed, seed: r.int(0, 1e9), claims: claimsV } : null }));
+      out.push({ id: key, kind: 'women_drum', place, claims: [...new Set([...claimsD, ...claimsV])], tier: tierOf(claimsV), until: w.to, parts,
+        visual: { placeholder: false, note: 'one woman beats the frame drum held upright, the others sing (jaw and breath: the rig has no lips) and are seen singing; the clapping is heard in the drum\'s cycle, not drawn (C)' } });
+    }
   }
   // --- the court (setting only)
   const hall = c.courtHall;

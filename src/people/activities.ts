@@ -118,6 +118,11 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   play: { anim: 'play', tier: 'C', note: 'children playing: hopping and skipping about (C)',
     // D-215 (gap audit item 26; D-207): the kinds of play, by share and age (all C: no Persepolis evidence either way)
     variants: [
+      // D-211: the games the plan names come first, drawn with D-215's pieces where one exists
+      { when: /knucklebones/, anim: 'dice', sound: 'dice', work: [{ kind: 'knucklebones', at: [0, 0, 0.38] }], note: 'knucklebones on the ground of the lane (astragali are common finds of the period: B object; the game C)' },
+      { when: /ball/, anim: 'ball', prop: 'ball', note: 'playing ball (a ball of leather or rag: C)' },
+      { when: /\btop\b/, note: 'a whipped top (tops are known in the Greek and Egyptian worlds: C here). No top drawn' },
+      { when: /clay animal on wheels/, anim: 'pull_toy', work: [{ kind: 'toy_wheeled', at: [0.12, 0, -0.62], follow: true }], note: 'pulling a clay animal on wheels round by its cord (wheeled animal toys are known from Susa: C)' },
       { when: 0.2, anim: 'ball', prop: 'ball', ages: [3, 13], note: 'tossing a leather ball up and catching it (balls known from Egypt and the Greek world: RECOLLECTION, NOT SEEN; C)' },
       { when: 0.2, anim: 'chase', ages: [3, 12], note: 'running round after the other children (C)' },
       { when: 0.2, anim: 'dice', sound: 'dice', work: [{ kind: 'knucklebones', at: [0, 0, 0.38] }], ages: [4, 13], note: 'knucklebones in the dust, sitting on the ground: astragali thrown and gathered (astragali are common finds: B object; the children’s game C)' },
@@ -127,7 +132,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   offmap: { anim: 'idle', tier: 'C', note: 'in the town (not rendered until the settlement exists, Phase 6)' },
   // Phase 5 (D-021): performed with existing poses
   queue: { anim: 'idle', tier: 'C', note: 'standing in the queue at a ration issue (E-01: the group queues and receives its grain; standing C)' },
-  exchange: { anim: 'talk', prop: 'basket', sound: 'murmur', tier: 'C', note: 'exchanging goods in kind with a basket in hand (no coins: blocklist coins-everyday; C)' },
+  exchange: { anim: 'talk', prop: 'basket', sound: 'murmur', tier: 'C', note: 'exchanging goods in kind with a basket in hand (no coins: blocklist coins-everyday; C)',
+    variants: [{ when: /from a tray/, anim: 'sit', prop: 'basket_lap', note: 'a woman selling her wares from a tray at her door in the lane, for barley or oil in kind (D-211; lanes as working space: analogy, C)' }] },
   lie_ill: { anim: 'sleep', tier: 'C', note: 'lying ill on a mat at home (E-72 sickness; C)' },
   // ============================================ the abstract population's work (D-142; every motion C)
   haul: { anim: 'haul', prop: 'rope', tier: 'C', work: [{ kind: 'drum_sledge', at: [0, 0, 6.2], shared: 'place' }],
@@ -230,7 +236,9 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [
       { when: /kiln/, anim: 'stoke', prop: 'stick', prop2: undefined, sound: 'fire', work: [{ kind: 'brushwood', at: [-0.7, 0, 0.1] }], note: 'firing the kiln of the Persepolis West craft yard (kiln: PW2017, B; its firing C)' },
       { when: /pigment|colour/, anim: 'grind', prop: undefined, prop2: undefined, sound: 'quern', work: [{ kind: 'pigment_slab', at: [0, 0, 0.55] }], note: 'grinding pigments on a slab, Egyptian blue among them (PW-PIGMENT2021: B; the work C)' },
-      { when: /clay/, anim: 'hoe', prop: 'hoe', prop2: undefined, sound: 'hoe', work: [{ kind: 'spoil', at: [-1.1, 0, 0.4] }], note: 'digging clay by the river for the kiln (C)' }] },
+      { when: /clay/, anim: 'hoe', prop: 'hoe', prop2: undefined, sound: 'hoe', work: [{ kind: 'spoil', at: [-1.1, 0, 0.4] }], note: 'digging clay by the river for the kiln (C)' },
+      { when: /picking over the grain/, prop: undefined, prop2: 'basket_lap', note: 'picking over the grain on a tray in the lap on the doorstep: the stones and the chaff out (D-211; C)' },
+      { when: /mending clothes/, prop: 'awl', prop2: 'cloth', note: 'mending clothes on the doorstep, a needle of bone or bronze (C)' }] },
   carry_bier: { anim: 'bier_r', moving: true, sound: 'footsteps', tier: 'C', work: [{ kind: 'bier', at: [-0.46, 0, 0], shared: 'group', follow: true }],
     note: 'carrying the dead out of the settlement on a bier, four bearers (E-71; HDT 1.140 for burial in the earth: B claim). Exposure is never shown',
     variants: [{ when: 0.5, anim: 'bier_l', work: [{ kind: 'bier', at: [0.46, 0, 0], shared: 'group', follow: true }], note: 'a bearer with the bier’s pole on the left shoulder (C)' }] },

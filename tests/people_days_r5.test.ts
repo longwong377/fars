@@ -25,7 +25,9 @@ beforeAll(() => { sim = new PeopleSim(1, nav(), env); P = (sim as any).pop; });
 const daylightRest = (pid: number, d: number) => { const { rise, set } = P.cal.ctx(d).sun; let r = 0;
   for (const s of P.plan(pid, d) as Seg[]) if (s.act === 'rest' && s.where !== 'road') r += Math.max(0, Math.min(s.t1, set) - Math.max(s.t0, rise)); return r; };
 const ableFarmMen = (d: number, step = 1) => { const out: number[] = []; for (let pid = 0; pid < P.persons.length; pid += step) { const p = P.persons[pid];
-  if (p.job !== 'farmer' || p.sex !== 'm' || p.age < 16 || p.age > 60 || !P.present(pid, d) || P.sick(pid, d) || P.mourning(pid, d) || P.households[P.home(pid, d)].zone !== 'plain') continue; out.push(pid); } return out; };
+  if (p.job !== 'farmer' || p.sex !== 'm' || p.age < 16 || p.age > 60 || !P.present(pid, d) || P.sick(pid, d) || P.mourning(pid, d) || P.households[P.home(pid, d)].zone !== 'plain') continue;
+  // (D-211: a man of a house holding or sending a wedding that day, or at a hearing, has no farming day)
+  if ((P.weddingList[d] ?? []).some((w: any) => w.from === P.home(pid, d) || w.to === P.home(pid, d)) || P.weddingOf(pid, d) || P.hearing(pid, d)) continue; out.push(pid); } return out; };
 
 /** the runs of road pieces in a plan, as [first, end) index pairs, with a place before and after (a walk, or walks in a row) */
 const roadRuns = (s: Seg[]) => { const out: [number, number][] = []; for (let i = 1; i < s.length; i++) { if (s[i].where !== 'road' || s[i - 1].where === 'road') continue;

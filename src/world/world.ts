@@ -301,7 +301,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // magi when they chant (D-209)
   const popPerformers: PopPerformer[] = [];
   const bandPeople = (day: number) => { popPerformers.length = 0;
-    for (const o of view.visible) if (o.agent < 0 && (o.place.startsWith('camp:band') || o.place.startsWith('route:band') || o.act === 'chant')) { const q = view.pop.persons[o.pid];
+    for (const o of view.visible) if (o.agent < 0 && (o.place.startsWith('camp:band') || o.place.startsWith('route:band') || o.act === 'chant' || /frame drum/.test(o.why))) { const q = view.pop.persons[o.pid]; // (the magus's chant, D-209; the women's drum at a wedding or a festival, D-211
       popPerformers.push({ pid: o.pid, sex: q.sex, age: view.pop.ageOn(o.pid, day), act: o.act, why: o.why, place: o.place, e: o.e, n: o.n, y: o.y, moving: o.moving, seed: h32(seed, o.pid) }); }
     return popPerformers; };
   const surfaceAt = (y: number, groundY: number) => (y > -1 ? 'stone' : Math.abs(y - groundY) < 0.3 ? 'earth' : 'stone') as 'stone' | 'earth';

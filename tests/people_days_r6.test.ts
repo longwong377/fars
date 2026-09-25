@@ -248,7 +248,9 @@ describe('S7 (B): the detailed tier\'s words', () => {
 
 describe('session 6 additions (D-175): the minor findings behind the 4s', () => {
   it('nobody goes to the well in the dark of the morning: every morning draw begins at first light (sunrise - 0.45 h) or later (A: #123 drew water 77 min before sunrise)', () => {
-    let n = 0; for (const d of [21, 101, 181, 261, 341]) { const { rise } = P.cal.ctx(d).sun;
+    // (day 61 added to the sample, D-211: a house now draws its need, not half as much again (A S7 r9), and the five days held
+    // 9,829 morning draws; the floor of 10,000 is kept)
+    let n = 0; for (const d of [21, 61, 101, 181, 261, 341]) { const { rise } = P.cal.ctx(d).sun;
       for (let pid = d % 3; pid < P.persons.length; pid += 3) { if (!resident(pid, d)) continue;
         for (const s of P.plan(pid, d) as Seg[]) if (s.act === 'draw_water' && s.t0 < 12) { n++; expect(s.t0, `${pid} d${d} ${s.why}`).toBeGreaterThanOrEqual(rise - 0.45 - 1e-6); } } }
     expect(n).toBeGreaterThan(10_000);

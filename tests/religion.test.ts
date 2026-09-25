@@ -126,7 +126,7 @@ describe('the magi, the sacrifices and the funerals in the plans (D-209)', () =>
   }, 120_000);
 });
 
-describe('the magus\'s chant: wordless, alone, and the one sound at an offering (D-209; M-06, M-22)', () => {
+describe('the magus\'s chant: wordless, alone, and the one sound at an offering (D-209; M-06, M-23)', () => {
   const chant: Performance = { id: 'c', instrument: 'voice', register: 'm', tradition: 'mesopotamian', context: 'offering', style: 'recitative', modeId: 'meso1', tempo: 170, seed: 7, claims: ['M-06', 'M-22', 'M-15', 'M-13'] };
   it('lines on one reciting tone ending on the final, a breath between them, in a man\'s low range', () => {
     const ev = compose(chant, 40), by = new Map<number, typeof ev>(); for (const e of ev) (by.get(e.phrase!) ?? by.set(e.phrase!, []).get(e.phrase!)!).push(e);

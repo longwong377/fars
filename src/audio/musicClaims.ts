@@ -23,11 +23,12 @@ export const MUSIC_CLAIMS: Record<string, MusicClaim> = {
   'M-18': { id: 'M-18', tier: 'B', src: ['HOM-IL'], short: "'two herdsmen followed with them playing upon pipes' (Iliad 18.525-526, read): pastoral piping in the Greek world; C for Fars" },
   'M-19': { id: 'M-19', tier: 'B', src: ['ALVAREZMON-MADAKTU'], short: 'the Elamite royal orchestra at Madaktu (653 BCE): seven vertical harps, a horizontal harp, two double pipes, a drum, fifteen clapping and singing; standing and walking (extracts; relief NOT SEEN)' },
   'M-20': { id: 'M-20', tier: 'B', src: ['HARP-ANGULAR-SX'], short: 'the vertical angular harp: soundbox upright or leaning forward against the player, strings vertical from a rod at its foot, usually 21 strings, navel to above the head (extracts)' },
+  'M-22': { id: 'M-22', tier: 'C', src: ['DRUM-WOMEN-R'], short: 'women beat the frame drum at weddings and rejoicing (Iron Age figurines; the tof of the Hebrew texts): an analogy of the region, RECOLLECTION, NOT SEEN (D-211)' },
   'M-21': { id: 'M-21', tier: 'B', src: ['CHENG-HARP'], short: 'the horizontal harp: 7-9 strings, held level under the left arm, struck with a plectrum (Cheng 2012, extracts)' },
-  'M-22': { id: 'M-22', tier: 'C', src: [], short: "the magus's chant as a low recitation on one tone with a rise and a fall, vowels only, damped by the mouth-cover (D-209: no Achaemenid chant survives; the plainest liturgical recitation, C)" },
+  'M-23': { id: 'M-23', tier: 'C', src: [], short: "the magus's chant as a low recitation on one tone with a rise and a fall, vowels only, damped by the mouth-cover (D-209: no Achaemenid chant survives; the plainest liturgical recitation, C)" },
 };
 /** claims that are recorded but must never be performed (M-11, M-12: not Achaemenid or rejected). M-06, the magus's chant,
- *  kept silent by D-200, is performed since D-209 (the user's direction D-207): wordless, as a recitation (M-22), by a
+ *  kept silent by D-200, is performed since D-209 (the user's direction D-207): wordless, as a recitation (M-23), by a
  *  magus at the fire and at offerings only. M-10 (herders' pipes) is performed since D-200: the transhumant bands'
  *  herders are drawn by the population view */
 export const NOT_PERFORMED = ['M-11', 'M-12'];

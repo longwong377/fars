@@ -236,6 +236,8 @@ export class PeopleSim {
   private decide0(a: Agent, seg: Seg, end: number, rng: Rng): Task {
     const day = Math.floor(this.t / 24);
     a.sick = seg.act === 'lie_ill';
+    // a porter's last sack when his carrying block ends goes into the store (a few steps at most), not home with him: D-211
+    if (a.role === 'porter' && a.carry === 'sack' && !(seg.place === 'stair_foot' && seg.act === 'rest')) { a.carry = null; this.stock.store++; }
     // a guard whose watch has ended keeps the post until the relief arrives (at most ~36 minutes)
     if (a.role === 'guard' && a.task?.act === 'stand_guard' && a.post && GUARD_POSTS.includes(a.post) && !a.relieved && a.watchEnd !== undefined && this.t < a.watchEnd + 0.6 && seg.place !== a.post)
       return this.task('stand_guard', a.post, PLACES[a.post].at, Math.min(a.watchEnd + 0.6, this.t + 0.1), /relieved at the post/.test(seg.why) ? 'waiting for the patrol man to stand in while he eats' : 'waiting to be relieved', PLACES[a.post].heading); // (S7 of reviewer B r5)
@@ -338,7 +340,15 @@ export class PeopleSim {
       }
       case 'porter': {
         if (!(pl === 'stair_foot' && act === 'rest')) break;
-        if (a.carry === 'sack') return this.task('rest', 'treasury_store', this.here(a, 'treasury_store', 3, rng), this.t + 0.03, 'set the sack down');
+        // (the sack handed in to the scribe who is counting the caravan into the store, and recorded: E-06, the PF receipts "PN
+        // received"; D-211: the receipt had come about only by a porter walking past a writing scribe. With no scribe there
+        // the sack is set down)
+        if (a.carry === 'sack') { const sc = this.storeScribe(); return sc ? this.task('rest', 'treasury_store', this.nav.snap(sc.pos[0] + 1.1, sc.pos[1] - 0.6, 2) ?? sc.pos, this.t + 0.03, 'handing the sack in to the scribe, who counts it and records the receipt')
+          : this.task('rest', 'treasury_store', this.here(a, 'treasury_store', 3, rng), this.t + 0.03, 'set the sack down'); }
+        // (the caravan's sacks are counted off the animals by the porters together before the first is taken up, a quarter of
+        // an hour: the load taken over by number, as the store's scribe receives it by number; C, D-211)
+        { const day = Math.floor(this.t / 24), cv = this.lastCaravanDay === day ? this.pop.caravan(day) : null, until = cv ? day * 24 + cv.h + 0.2 : 0;
+          if (cv && this.t < until && this.stock.depot > 0 && this.nearP(a, 'stair_foot', 6)) return this.task('talk', 'stair_foot', this.here(a, 'stair_foot', 3, rng), until, 'counting the caravan’s sacks off the animals with the others'); }
         if (this.stock.depot > 0 && this.nearP(a, 'stair_foot', 6)) { this.stock.depot--; a.carry = 'sack'; a.loadDay = Math.floor(this.t / 24); return this.task('carry_sack', 'treasury_store', this.here(a, 'treasury_store', 3, rng), this.t + 0.02, 'carrying a sack to the Treasury store'); }
         if (this.stock.depot > 0) return this.task('rest', 'stair_foot', this.here(a, 'stair_foot', 3, rng), this.t + 0.02, a.loadDay === Math.floor(this.t / 24) ? 'going for the next load' : 'going down to the depot for a load'); // (S7 of reviewer B r5: "the next load" for the first)
         // (once the day's caravan is carried up the plan sends the porters home: Population.caravanDone; what is left of the
@@ -369,6 +379,16 @@ export class PeopleSim {
         const mom = this.agents[a.ties[0]]; const near = !!mom && !!mom.task && !mom.offmap && mom.task.place === pl; const c = near ? mom.pos : PLACES[pl].at;
         const s = this.nav.snap(c[0] + rng.range(-6, 6), c[1] + rng.range(-6, 6), 4) ?? c;
         return this.task(act === 'eat' ? 'eat' : act === 'play' ? 'play' : 'rest', pl, s, chunk(0.15, 0.4), why);
+      }
+      case 'courier': {
+        // the sealed letter handed to a scribe (or an official) of the Treasury, who asks for his document and takes it (E-20;
+        // the PF letter-orders and their receipts): to the one writing at the desk; when the desk's scribe is counting a
+        // caravan into the store, to him there (D-211: the courier had met a scribe only when one happened to be at the desk)
+        if (pl !== 'treasury_desk' || act !== 'talk') break;
+        const at = (o: Agent, p: string) => !o.offmap && !o.walking && o.task?.place === p && (o.role === 'scribe' || o.role === 'official');
+        const desk = this.agents.find(o => at(o, 'treasury_desk')), sc = desk ? null : this.storeScribe(), to = desk ?? sc;
+        if (to) return this.task('talk', to.task!.place, this.nav.snap(to.pos[0] + 1.2, to.pos[1] + 0.4, 2) ?? to.pos, end, sc ? 'delivering a sealed document to the scribe in the store' : why);
+        break;
       }
       case 'official': {
         if (act !== 'inspect' && act !== 'talk') break;
@@ -532,9 +552,12 @@ export class PeopleSim {
     if (a.role === 'guard' && a.task?.act === 'stand_guard') for (const o of this.agents) if (o !== a && o.post === a.post && o.task?.act === 'stand_guard') { o.relieved = true; }
     if (!a.task?.off) this.socialise(a);
   }
+  /** a scribe writing in the Treasury store now (the caravan's receipt: Population scribe's day), or null */
+  private storeScribe(): Agent | null { for (const o of this.agents) if (o.role === 'scribe' && !o.offmap && !o.walking && o.task?.act === 'write_tablet' && o.task.place === 'treasury_store') return o; return null; }
   private finish(a: Agent) {
     const act = a.task?.act;
-    if (a.role === 'porter' && a.carry === 'sack' && this.nearP(a, 'treasury_store', 6)) { a.carry = null; this.stock.store++; }
+    // (a sack carried up is handed in to the store's scribe first when one is counting there: the next decision, above)
+    if (a.role === 'porter' && a.carry === 'sack' && this.nearP(a, 'treasury_store', 6) && !(act === 'carry_sack' && this.storeScribe())) { a.carry = null; this.stock.store++; }
     if (a.role === 'guard' && a.carry === 'sack' && this.nearP(a, 'garrison_hearth_m', 6)) a.carry = null;
     if (act === 'draw_water' && !a.task?.off) a.carry = 'jar_head';
   }

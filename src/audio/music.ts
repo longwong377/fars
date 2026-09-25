@@ -4,7 +4,7 @@
 // Evidence rules carried here:
 //  - at sacrifice there is no instrument at all: a magus chants unaccompanied (Herodotus 1.132, B). `perform` refuses an
 //    instrument for the 'offering' context, and any voice there but one man's WORDLESS recitative citing M-06 (D-209: the
-//    chant's words are not attested and none are invented; its form is C, M-22), heard through the mouth-cover;
+//    chant's words are not attested and none are invented; its form is C, M-23), heard through the mouth-cover;
 //  - court music (singing and playing at the king's supper; the women's night watch "singing and playing": Heracleides
 //    via Athenaeus, B for the court in general) only when the court is resident (the out-of-world court setting, D-003);
 //  - work songs and herders' pipes are C and used sparingly (the caller decides who plays and when: performers.ts).
@@ -26,7 +26,7 @@ export interface Performance { id: string; instrument: InstrumentId; tradition: 
   /** the first degree (Hz): an ensemble's parts share it, and a shared `pieceSeed` gives them the same melody (heterophony) */
   tonic?: number; pieceSeed?: number;
   /** D-209: 'recitative' = the magus's chant: lines of even syllables on one reciting tone, a rise at the start and a fall to
-   *  the final at the end, no melody and no words (M-06, M-22; C) */
+   *  the final at the end, no melody and no words (M-06, M-23; C) */
   style?: 'recitative';
   /** research/SOUNDSCAPE.md §8 claim ids this playing rests on; `MusicSystem.perform` refuses a performance without them */
   claims?: string[] }
@@ -85,7 +85,7 @@ export function compose(p: Performance, seconds: number): NoteEv[] {
   return ev.filter(e => e.t < seconds);
 }
 
-/** D-209 (M-06, M-22; C): the magus's chant as intoned lines, not a song. Each line: 7-15 syllables of even length (the
+/** D-209 (M-06, M-23; C): the magus's chant as intoned lines, not a song. Each line: 7-15 syllables of even length (the
  *  `tempo` is syllables a minute, 150-190), the first on the final or the step above rising to the reciting tone (the
  *  third degree of the mode), the line recited on that tone with now and then the step above, the last but one on the
  *  step below or above, the last held on the final; a breath between lines. The syllables are vowels only (song.ts: one
