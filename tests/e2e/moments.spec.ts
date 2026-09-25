@@ -58,7 +58,11 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // session 7 re-time (11.1 → 11.45): at 11:06 the cell stood 14.9 km out (near edge 9 km); with the day's haze (V ≈ 30 km) the
   // air passes ~10 % of the curtain's contrast there, and a ?shaftdbg=1 render showed the solid-red shafts as a faint pink:
   // placed right, washed out by the air as the physics says. At 11:27 the cell is ~8.5 km out (near edge ~2.5 km, T ≈ 0.7)
-  { n: 'rain-approach', day: 299, hour: 11.45, w: 'auto', v: [-38, -5, 1.6, 232, 3] }, // a heavy cell (14 mm) 15 km SW over the plain, seen out of the Apadana W portico, 50 min before it arrives (D-060, D-064)
+  // session 8 (D-219): from inside the Apadana W portico (sky visibility 0.05) the eye law set exposure 36 and the sky sat on
+  // AgX's shoulder at 5-7× display white: even a solid-red shaft rendered pale pink and the real curtain (22 % darker in
+  // linear light) moved the PNG 4 %. The moment moves into the open: the Grand Stair's top landing, looking the same way over
+  // the plain toward the cell (old view: [-38, -5, 1.6, 232, 3])
+  { n: 'rain-approach', day: 299, hour: 11.45, w: 'auto', v: [-38, 124, 1.6, 232, 3] }, // a heavy cell (14 mm) SW over the plain, 50 min before it arrives (D-060, D-064, D-219)
   // from the sunlit N court, 10 m out from the N portico's outer row (y 48), between its two axial columns (x −2.4, 6.2):
   // sunlit pavement, the portico's shade and the black doorway 27 m off (session 4 reframe; the old view stood in the
   // portico facing two blank walls)
