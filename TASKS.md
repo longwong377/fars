@@ -93,4 +93,13 @@
 - [x] §8.2 rubric pass 1 (FAIL) → look workstreams merged: bugs and framing (D-187), surfaces and light (D-188), people (D-189), landscape (D-190)
 - [~] Phase 5 shadow review: rounds 6 and 7 FAIL; round-7 fixes and year-wide invariants merged (D-191), final soak passes; round 8 input pick 149 NOT scored; women unnamed after the licence re-sourcing (D-193)
 - [ ] Render pass 2 (handoff/render_jobs/2*.job) and rubric pass 2; outdoor AO; Phase 3/4, 5, 6/7 reviews; bench; walkthrough e2e
+## Session 7 (ended; HANDOFF.md)
+- [x] Gap policy D-207 (user direction) and the gap audit (D-208); fills merged: D-198..D-202, D-204, D-206, D-209..D-215
+- [x] Render pass 2 (partial: the moments, plain, crowd, settlement views; not every job) → rubric pass 2 FAILED → workstreams D-216 (light, materials) and D-217 (geometry, reliefs) merged; lead fixes: Tol-e Ajori panels, far flames, rig framing, rain shafts rebuilt, the rain-day planner hang, README budgets
+- [x] Shadow review round 9 (FAIL: #76's jar) → D-213; round-10 input pick 181 generated (regenerate on the final tree)
+- [ ] Full `npm test` on the merged tree; soak; shadow review round 10
+- [ ] Rain curtains invisible (debug job 300 first); slope view still at a tree (job 303); B24 fire light through parapets; Naqsh moiré
+- [ ] Re-render every moment D-216/D-217 touched and the gap fills; rubric pass 3; fix list items 2-10
+- [ ] Phase 3+4, 5, 6+7 independent reviews; bench; walkthrough e2e; FINAL_REPORT.md
+- [ ] Gap-audit items still open: 19, 20, 30, 32-36, 39-41
 ## Phase 9 — Polish, optimisation, FINAL_REPORT.md
