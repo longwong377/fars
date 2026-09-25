@@ -211,6 +211,12 @@ export class Settlement {
         case 'anvil': mud.box(g[0], g[1], th, 0.22, 0.2, y - 0.05, y + 0.5, st, shade(st, 0.8), d); break;
         case 'bench': mud.box(g[0], g[1], th, 0.8, 0.25, y, y + 0.8, tim, tim, d); break;
         case 'knucklebones': for (let x = 0; x < 5; x++) mud.box(...at(x * 0.07 - 0.14, (x % 2) * 0.05), th + x, 0.018, 0.012, y, y + 0.02, lin(BONE), lin(BONE), d); break;
+        // D-215: a leather ball, a clay bull on wheels (wheels as flat discs, seen from above) and a clay rattle (C)
+        case 'toys': { const clay = lin([0.66, 0.47, 0.33]), hide = lin([0.55, 0.4, 0.26]);
+          mud.lathe(...at(-0.25, 0.1), y, [[0.001, 0], [0.035, 0.012], [0.05, 0.05], [0.035, 0.088], [0.001, 0.1]], 5, hide, d);
+          mud.box(...at(0.15, 0), th, 0.085, 0.05, y + 0.04, y + 0.11, clay, clay, d); mud.box(...at(0.25, 0), th, 0.03, 0.028, y + 0.08, y + 0.14, clay, clay, d);
+          for (const s2 of [-1, 1]) mud.box(...at(0.15, s2 * 0.055), th, 0.075, 0.006, y, y + 0.05, shade(clay, 0.8), clay, d);
+          mud.lathe(...at(0.05, -0.25), y, [[0.001, 0], [0.03, 0.02], [0.034, 0.04], [0.012, 0.07], [0.008, 0.12]], 5, clay, d); break; }
         case 'trough': mud.box(g[0], g[1], th, 0.7 * f.size, 0.28, y - 0.05, y + 0.5, st, st, d); col.boxes.push({ x: g[0], y: y + 0.25, z: -g[1], hx: 0.7 * f.size, hy: 0.3, hz: 0.28, rot: th }); break;
         case 'manger': mud.box(g[0], g[1], th, 0.9, 0.3, y - 0.05, y + 0.85, shade(mc, 0.85), mc, d); col.boxes.push({ x: g[0], y: y + 0.4, z: -g[1], hx: 0.9, hy: 0.45, hz: 0.3, rot: th }); break;
         case 'well': this.well(g, y, mud, d); col.boxes.push({ x: g[0], y: y + 0.35, z: -g[1], hx: 0.85, hy: 0.4, hz: 0.85, rot: 0 }); break;

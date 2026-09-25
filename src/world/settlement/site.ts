@@ -20,7 +20,7 @@ export const toLocal = (f: Frame, e: number, n: number): P2 => { const c = Math.
 
 export type PlotKind = 'house' | 'house_large' | 'workshop' | 'elite' | 'official' | 'store' | 'stable' | 'station' | 'garden' | 'yard' | 'craft_area' | 'pavilion' | 'pen';
 export type Craft = 'metal' | 'wood' | 'textile' | 'bakery' | 'brewery' | 'pottery' | 'pigment' | 'bone' | 'kiln' | 'brick';
-export type FittingKind = 'hearth' | 'oven' | 'kiln' | 'forge' | 'jar' | 'jar_big' | 'tree' | 'well' | 'quern' | 'loom' | 'vat' | 'timber' | 'anvil' | 'pit' | 'midden' | 'pen_dung' | 'trough' | 'manger' | 'bench' | 'knucklebones' | 'grind_slab' | 'bricks' | 'pool' | 'channel' | 'column' | 'ditch';
+export type FittingKind = 'hearth' | 'oven' | 'kiln' | 'forge' | 'jar' | 'jar_big' | 'tree' | 'well' | 'quern' | 'loom' | 'vat' | 'timber' | 'anvil' | 'pit' | 'midden' | 'pen_dung' | 'trough' | 'manger' | 'bench' | 'knucklebones' | 'toys' | 'grind_slab' | 'bricks' | 'pool' | 'channel' | 'column' | 'ditch';
 
 export interface Plot {
   idx: number; id: string; kind: PlotKind;

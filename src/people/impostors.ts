@@ -40,9 +40,9 @@ const FR = Object.fromEntries(FRAMES.map((f, i) => [f.id, i])) as Record<string,
 /** the frame that stands for an animation (and the walk phase for walking ones) */
 export function frameOf(anim: AnimId, phase: number): number {
   switch (anim) {
-    case 'walk': case 'guard_walk': case 'play': case 'carry_front': { const k = Math.floor((((phase / (Math.PI * 2)) % 1) + 1) % 1 * 6); return FR.walk0 + Math.min(5, k); }
+    case 'walk': case 'guard_walk': case 'play': case 'carry_front': case 'chase': case 'pull_toy': case 'limp': case 'feel': { const k = Math.floor((((phase / (Math.PI * 2)) % 1) + 1) % 1 * 6); return FR.walk0 + Math.min(5, k); }
     case 'carry_head': return FR.carry_head; case 'carry_shoulder': return FR.carry_shoulder;
-    case 'sit': case 'write': case 'eat': case 'dice': case 'ride': return FR.sit; // a rider far off: the seated frame on the mount's back (D-210)
+    case 'sit': case 'write': case 'eat': case 'dice': case 'ride': case 'rattle': return FR.sit; // a rider far off: the seated frame on the mount's back (D-210)
     case 'grind': case 'knead': case 'bake': return FR.kneel;
     case 'chisel': case 'draw_water': return FR.bend;
     case 'sleep': return FR.lie; case 'guard': return FR.guard;

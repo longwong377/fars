@@ -82,7 +82,7 @@ describe('work cycles: pose sanity (every cycle, many phases)', () => {
   });
   it('standing cycles are planted: the sole on the ground (±2 cm), no hand below it, and stationary feet do not skate (≤ 4 cm) — on three bodies', () => {
     const rig = new RigSolver(A.meta.curlAxes), pal = new Float32Array(PALETTE_STRIDE);
-    const moving = new Set<WorkAnim>(['plough', 'bier_l', 'bier_r', 'drive']); // walking, or shuffling as the team turns
+    const moving = new Set<WorkAnim>(['plough', 'bier_l', 'bier_r', 'drive', ...WORK_ANIMS.filter(a => WORK_META[a].gait)]); // walking, or shuffling as the team turns (D-215: the walking cycles are flagged gait)
     for (const vid of ['m03', 'f02', 'm08']) { const v = A.byId[vid];
       for (const a of WORK_ANIMS) { if (WORK_META[a].ground !== 'feet') continue; const P = PERIOD[a] ?? 9; const ank: number[][] = [];
         for (let i = 0; i < 16; i++) { const t = (i / 16) * P + 0.05; const inp = inputFor(v, pose(a, t, t * 4.2, 1.1), a); rig.setPose(inp); rig.solve(inp, pal, 0);

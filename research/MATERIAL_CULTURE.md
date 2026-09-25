@@ -30,7 +30,7 @@ citing a plate. Source keys shared with PEOPLE.md are defined there.
 | Workers' dress | knee-length belted tunic, trousers or bare legs, no ornaments | NS | C | no worker imagery retrieved. Pull from delegation servants and animal handlers |
 | Weather clothing | kandys and sheepskins in winter; felt caps | NS / IR-CAND "skins" (SX) | C | |
 | Women: elite | many-folded Persian dress belted at the front, an elaborate necklace, a crenellated ("turreted") crown, bobbed hair (statuette of a high-ranking Persian woman from Egypt) | IR-WOMEN (SX) | B | |
-| Women: Pazyryk tapestry | Persian women with crowns and a **long veil falling down the back** | IR-WOMEN (SX) | B | Hermitage. Achaemenid-period import |
+| Women: Pazyryk tapestry | Persian women with crowns and a **long veil falling down the back** | IR-WOMEN (SX) | B | Hermitage. Achaemenid-period import. D-215: the court women's dress (robe, crown, veil; C, Q-435) |
 | Women: seals | PFS 77*: a woman enthroned, a female servant behind (Neo-Elamite style); women in art almost always uncovered | IR-WOMEN (SX) | B | Chador-like covering only on Ergili relief, Pazyryk and some seals. **The chador itself is blocklisted** |
 | Women: workers | no imagery. Reconstruct as the ordinary tunic with a mantle or headcloth | reconstruction | C | label C in the overlay. D-155: the cloth covers the head and the back of the neck, ends a little below the shoulders, and hangs down the front of the chest and the back (Q-249) |
 | Children | no imagery; smaller tunics | reconstruction | C | |
@@ -53,7 +53,7 @@ the plates (NEEDS_FROM_ME #1, #16). The full table is `src/data/delegations.json
 | item | description | source | tier | note |
 |---|---|---|---|---|
 | Court dressing of hair and beard | Persian- and Median-dress men on the Persepolis reliefs: the hair gathered in a bushy mass at the nape, the beard long and squared, both carved as rows of small snail curls; the long beard's lower part as wavy vertical locks ending in a row of curls | RELIEF-R; NS (a model prior of the Apadana and Tripylon reliefs; verify from a plate) | B for the carved convention, C for real hair | rendered as curls jittered in rows and blended with natural curls, not as carved shells (the literal pattern read as sculpture); Q-241 |
-| Median court grooming | the Median king "with pencilled eyes, rouged cheeks and false hair, as is the Median fashion" | Xenophon, *Cyropaedia* 1.3.2 (NS: recollection of the text, not read this session) | C | not modelled (no make-up or wigs are drawn); evidence that court hair was dressed, Q-241 |
+| Median court grooming | the Median king "adorned with pencillings beneath his eyes, with rouge rubbed on his face, and with a wig of false hair — the common Median fashion"; Cyrus "encouraged also the fashion of pencilling the eyes" (8.1.41); "beauty-doctors who pencil their eyes" (8.8.20) | Xenophon, *Cyropaedia* 1.3.2, 8.1.41, 8.8.20 (read, session 7: XEN-CYR-EYES) | B (claim) | D-215: eye paint (the lashes' roots filled dark) for the king, the court women and half the Persian-dress nobles, a share of the town's women (C, Q-434); rouge and wigs not modelled; evidence that court hair was dressed, Q-241 |
 | Hair and beard colour | painted dark blue on the reliefs (a convention); natural dark brown to black rendered, greying with age | RELIEFS_AND_COLOUR §3b | C | |
 | Working men's beards | shorter, untrimmed beards of varied density; no relief evidence for workers | reconstruction | C | three densities (looks.ts) |
 | Egyptians shaven | the Egyptians shave head and chin and let them grow only in mourning | Herodotus 2.36 (NS) | C | workers of Egyptian origin get no beard (D-092) |
@@ -77,18 +77,18 @@ the plates (NEEDS_FROM_ME #1, #16). The full table is `src/data/delegations.json
 | Shoes | simple flat-soled shoes, probably leather; sometimes high boots | IR-CLOTH (SX) | B | Persian dress: low shoes with three straps and buttons on the reliefs (NS) |
 | Boots | Median and riding dress: ankle boots tied with laces | NS | C | |
 | Torque | a neck ring with animal-head terminals; worn by nobles and some guards; given as a royal gift | NS | C | Apadana reliefs; the Treasury relief (verify) |
-| Bracelets | bracelets with animal-head terminals; also gifts in the Apadana delegations | NS | C | |
-| Earrings | ring earrings on guards and nobles | NS | C | |
+| Bracelets | bracelets with animal-head terminals; also gifts in the Apadana delegations; "the bracelets on their wrists" are Median (Cyr. 1.3.2, read) | NS; XEN-CYR-EYES | C | D-215: plain gold rings at the wrists by rank, bronze for a share of the town's women (terminals not modelled; Q-432) |
+| Earrings | ring earrings on guards and nobles | NS | C | D-215: gold hoops by rank, bronze for a share of the town's women (Q-432) |
 | Necklace | on the elite woman (Egypt statuette) | IR-WOMEN (SX) | B | |
 
 ## Weapons of guards
 | item | description | source | tier | note |
 |---|---|---|---|---|
-| Spear | long spear with a spherical butt (apple or pomegranate), silver or gold | SUSA-ARCH; IR-IMM (SX) | B | Golden for the 1,000, silver for the 9,000 (Herodotus) |
+| Spear | long spear with a spherical butt (apple or pomegranate), silver or gold | SUSA-ARCH; IR-IMM (SX); HDT 7.41 (read: HDT-7.41-61) | B | Golden pomegranates for the 1,000, silver for the 9,000, apples of gold for those nearest the king (Herodotus 7.41). D-215: the king's spearmen (court setting) golden apples; one Persian-dress guard in ten golden pomegranates (C, Q-438) |
 | Bow | composite bow over the shoulder | SUSA-ARCH (SX) | B | |
 | Quiver | large quiver, called "wicker" in one caption; on the back | SUSA-ARCH (SX) | B | Persepolis reliefs also show a bow case (*gorytos*) on the Median guards (NS, C) |
 | Akinakes | short sword in a scabbard hung at the right thigh, with a scabbard-tip chape. Median dress | Wikipedia "Acinaces" (search list only); scabbard tips in the Treasury (ISAC-FINDS, SX) | B | |
-| Wicker shield | large oval or violin-shaped wicker shield on the Persepolis stair guards | NS | C | verify from the Apadana/Tripylon photos |
+| Wicker shield | large oval or violin-shaped wicker shield on the Persepolis stair guards; the Persians' "wicker bucklers, with quivers hanging beneath them" (Herodotus 7.61, read) | NS; HDT-7.41-61 | C (form); B (claim) | verify from the Apadana/Tripylon photos. D-215: violin-shaped, held at the side by a share of the Persian-dress guards (Q-433) |
 | Arrowheads | "hundreds of pieces of martial equipment such as arrowheads and scabbard tips" in the Treasury | ISAC-FINDS (SX) | B | trilobate bronze type (NS, C) |
 | Scale armour | worn under the tunic (Herodotus 7.61) | NS | B per brief | hidden |
 
