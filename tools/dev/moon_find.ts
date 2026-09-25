@@ -9,5 +9,5 @@ for (let d = 0; d < YEAR_DAYS; d++) for (let h = 0; h < 24; h += 0.25) {
   const jd = START_JDN + d + h / 24 - 0.5 - LMT_OFFSET_H / 24, m = moonHorizon(jd), s = sunHorizon(jd);
   if (s.altitude > -18 || m.altitude < H0 || m.altitude > H1 || m.azimuth < A0 || m.azimuth > A1) continue;
   const f = moonPhase(jd).fraction; if (f < F) continue;
-  console.log(`day ${d} ${h.toFixed(2)} h: moon alt ${m.altitude.toFixed(1)} az ${m.azimuth.toFixed(1)} true (grid ${((m.azimuth + 19 + 360) % 360).toFixed(1)}), fraction ${f.toFixed(2)}, sun ${s.altitude.toFixed(1)}`);
+  console.log(`day ${d} ${h.toFixed(2)} h: moon alt ${m.altitude.toFixed(1)} az ${m.azimuth.toFixed(1)} true (the camera rig's view azimuth is true; grid ${((m.azimuth + 19 + 360) % 360).toFixed(1)}), fraction ${f.toFixed(2)}, sun ${s.altitude.toFixed(1)}`);
 }

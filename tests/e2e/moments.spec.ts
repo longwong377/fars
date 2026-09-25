@@ -44,10 +44,12 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // now toward the centre over the dark plain, the band rising out of the frame's top left
   { n: 'night-milkyway', day: 1, hour: 3.5, w: 'clear', v: [-36, 125, 1.6, 215, 38], fov: 60 },
   // §1.1 "night with fire, moon and stars" in ONE frame (rubric s7 pass 2 fix 14: no render held the moon; session 8): day 11
-  // (28 Apr 467 BCE) at 02:45 the moon, 95 % lit, stands 14.1° up at true azimuth 253.5° (grid 272.5°) over the plain, the
-  // sun 31° down (astronomy-engine; tools/dev/moon_find.ts); from 4 m E of the S stair-head brazier (x −33.4, y 121, lit
-  // until after sunrise) looking W along the landing: the brazier's flame low on the left, the parapet, the moonlit plain
-  { n: 'night-moon-fire', day: 11, hour: 2.75, w: 'clear', v: [-29.4, 121.6, 1.6, 272.5, 6] },
+  // (28 Apr 467 BCE) at 02:45 the moon, 95 % lit, stands 14.1° up at true azimuth 253.5° over the plain, the sun 31° down
+  // (astronomy-engine; tools/dev/moon_find.ts). The view's azimuth is TRUE (main.ts: yaw = −(az − 341°)): 253.5° true is
+  // grid 272.5°, due W along the landing. From 10 m E of the S stair-head brazier (x −33.4, y 121; lit until after sunrise),
+  // 1.5 m N of its line: the flame low left of centre, the parapet, the moonlit plain, the moon above. (First render, from 4 m
+  // at az 272.5 read as grid: the moon 19° off-axis and the eye adapted to the near fire, exposure 1.09: the plain black.)
+  { n: 'night-moon-fire', day: 11, hour: 2.75, w: 'clear', v: [-23.4, 122.5, 1.6, 253.5, 6] },
   { n: 'brazier-close', day: 0, hour: 21.5, w: 'clear', v: [-36.4, 132, 1.6, 161, -8], fov: IN },
   { n: 'apadana-hall-torch', day: 0, hour: 21, w: 'clear', v: [-8, 0, 4.6, 161, 6], fov: IN },
   { n: 'rain-columns', day: 2, hour: 14, w: 'rain', v: [-20, 70, 1.6, 161, 4] },
