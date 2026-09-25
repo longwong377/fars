@@ -107,3 +107,32 @@ pids unchanged); mats, lamp and soot, ink pot, water bowl, jars, bench baskets, 
 had one scribe ill and the other in the store: moved to day 21 13:30, re-aimed from the W. people_pieces passes again.
 Tests: court, court_fill, court_order, scribes_room, court_view, people, population, people_pieces, treasury_rooms. D-221,
 Q-510..Q-516, COURT.md §6, SITE_SPEC regenerated.
+
+## D-223 mountains, cliffs and the plain from the Terrace (merged: worktree-agent-a4c56a96aa1c9fb35, head c7202d2)
+**Broken / unverified first.** The near plain is still an empty brown sheet (stair-noon-plain render 2: ground 40–200 m out
+Ystd/Y 0.068 vs 0.065): it is the Terrace foot, the approach and the court camp (trodden; no fields, D-190); the added wear,
+tone and stains are band-limited away (a pixel covers 1–4 m at 100–200 m from 14 m up) and trodden vs untrodden earth differ
+~12 % in albedo; one approach tried; next: larger features (tracks, stone heaps, tethered animals, herb patches). The royal
+road still reads as a straight light line at dawn (settlement.json's straight polyline; ±3 m wander < 1 px at 1 km). The town
+at dusk does not read and materials cannot fix it: at 1–2.5 km from 15 m on the 24° lens a 3 m house is ~4 px tall, a roof
+~0.2 px deep (696 roofed plots in view, all ≥ 1.5 px); at dusk walls, roofs and ground are within a few % (smoke lifts the band
+Y 0.026 vs 0.020, open plain 0.010); at noon the town at ~1.5 km shows light roof tops over darker walls; at dusk it needs lamp
+and hearth glow. Naqsh-e Rustam rendered once with the fix (render 1): no fine wavy lines at 960×540, broad dark run-off
+streaks and block tones remain (Ystd/Y 0.44–0.59). All geology C (Q-520, Q-521); the riser/bench is a shading tilt, not
+geometry (silhouettes and cast shadows keep the DEM's form; fades by ~2.3 km). The dark dots on Kuh-e Rahmat are flocks.
+**R9 moiré: shadow acne.** nr_rock is DoubleSide and three r186 draws DoubleSide into the shadow map on both sides, so the lit
+face shadowed itself (sun at grid 271° along the face at 15:00, mean N·L 0.11, depth slope ~9× the cascade texel vs a 0.06 m
+normal bias). Fix: shadowSide = BackSide (naqsh.ts); the E return flipped (0.1 % still faces in); fine and middle mottling and
+the streaks' fine octave band-limited (materials.ts). The bump band-limit (D-217) and the horizon map were ruled out.
+**Mountains (terrainPlain.ts):** cliff packages as a riser over a bench (world-space normal tilt keeping the DEM's slope),
+pinching out along strike and cut by gullies; pale riser with run-off streaks, darker bench; talus under each riser, aprons
+under steep ground, gravel fans at gully mouths; shrub crowns 3-D spheres on a rotated jittered grid, grey-green; woodland dots
+round on slopes. Shrub down/across ratio at 0/45/60/75° 1.00/1.41/2.00/3.83 → 1.01/1.00/1.00/1.00.
+**Plain:** the radial streaks were D-190's 12 ruled desire lines to the stair foot: now a branching net (23 runs, was 43; one
+ends at the stair foot, was 12; none pointing at the stair camera, was 4; band ±3.5 m, was ±6); worn-path pixels in
+stair-noon-plain 720 → 48; roads as worn tracks (ruts, herb verge, patches); irrigated fallow by 800 m district (8–32 %,
+fields.ts with a JS mirror); town roofs lighter (clay-and-straw coat) and lanes darker where roofs close in. plain-stats'
+`crops 0, margins 0, nearTrees 0` counts only the near 3-D sets: 6,548 trees in frustum at 2.5–5 km, 19,529 at 5–10 km
+(impostors to 20 km); fields keep 1.00/0.94/0.47 of plot contrast at 0.2–0.5/0.5–1/1–2.5 km. Terrain shader 4 → 8 texture
+samples, 26 → 27 noise calls; 0 draws added; render 2 budgets 402–425 draws, 5.8–7.5 M tris. Tests hills_d223, plain_d223 and
+18 other suites. D-223, Q-520..Q-526, PLAIN.md §12.
