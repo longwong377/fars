@@ -38,6 +38,21 @@ function geo(parts: { pos: number[]; nor: number[]; idx: number[]; wd?: [number,
   g.setIndex(pos.length / 3 > 65535 ? new THREE.Uint32BufferAttribute(idx, 1) : new THREE.Uint16BufferAttribute(idx, 1)); g.computeBoundingSphere(); g.computeVertexNormals(); return g;
 }
 
+/** D-223: a road's drawn course between its settlement.json points (courses C) wanders as an earth road does round soft
+ *  ground and field corners: ±2.2 m over ~520 m and ±0.8 m over ~90 m, zero at every listed point (junctions stay put). Under
+ *  the road's half-width, so whoever walks the listed line (the town's routes) stays on the drawn road (C) */
+export const ROAD_MEANDER = { a1: 2.2, l1: 520, a2: 0.8, l2: 90 } as const;
+export function meander(pts: P2[], step: number): P2[] {
+  const out: P2[] = [pts[0]], M = ROAD_MEANDER;
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const [ax, ay] = pts[i], [bx, by] = pts[i + 1], L = Math.hypot(bx - ax, by - ay), n = Math.max(1, Math.ceil(L / step)), nx = -(by - ay) / (L || 1), ny = (bx - ax) / (L || 1);
+    const ph = (ax * 0.0137 + ay * 0.0071) % (2 * Math.PI);
+    for (let k = 1; k <= n; k++) { const t = k / n, d = t * L, env = Math.sin(Math.PI * t) * Math.min(1, L / 300);
+      const o = env * (M.a1 * Math.sin(2 * Math.PI * d / M.l1 + ph) + M.a2 * Math.sin(2 * Math.PI * d / M.l2 + 2.1 * ph));
+      out.push([ax + (bx - ax) * t + nx * o, ay + (by - ay) * t + ny * o]); }
+  }
+  return out;
+}
 /** D-223 (rubric s7 pass 2 fix 9: from the Terrace the roads read as "straight radial beige streaks", uniform strips with
  *  ruled edges, like seams of a projected texture): an earth road as a worn track. Across it (attribute `lat`, m from the
  *  axis): a wheel-rut pair in each half (ruts 1.4 m apart, the gauge of a two-wheeled cart, C; wheeled traffic on the royal
@@ -176,7 +191,7 @@ export function buildWaterAndRoads(plan: TownPlan, H: (e: number, n: number) => 
   const roadMat = roadMaterial(); (roadMat as any).polygonOffset = true; (roadMat as any).polygonOffsetFactor = -2; (roadMat as any).polygonOffsetUnits = -2;
   const rparts: { pos: number[]; nor: number[]; idx: number[] }[] = [];
   for (const r of plan.roads) {
-    const all = resample(r.pts, 8), near = all.filter(p => Math.hypot(p[0], p[1]) <= 4000), farPts = all.filter((p, i) => Math.hypot(p[0], p[1]) > 4000 && i % 5 === 0);
+    const all = meander(r.pts, 8), near = all.filter(p => Math.hypot(p[0], p[1]) <= 4000), farPts = all.filter((p, i) => Math.hypot(p[0], p[1]) > 4000 && i % 5 === 0);
     // keep the order along the road: split into runs of near / far samples
     let run: P2[] = [], runFar = false;
     const flush = () => { if (run.length > 1) rparts.push(ribbon(run, r.width, H, runFar ? 0.4 : 0.06)); };

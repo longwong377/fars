@@ -57,3 +57,15 @@ describe('the stair-noon-plain view (plain_view_census.ts)', () => {
     const [n, res] = (c.objects['town roofed plot']['500-1k'] as string).split('/').map(Number); expect(n).toBeGreaterThan(100); expect(res).toBe(n);
   }, 180_000);
 });
+
+describe('the roads\' drawn course (settlement water.ts meander)', () => {
+  it('wanders under the road\'s half-width and passes through every listed point', async () => {
+    const { meander, ROAD_MEANDER } = await import('../src/world/settlement/water');
+    const plan = buildTownPlan(); let worst = 0, far = 0;
+    for (const r of plan.roads) { const m = meander(r.pts, 8);
+      for (const p of r.pts) expect(Math.min(...m.map(q => Math.hypot(q[0] - p[0], q[1] - p[1])))).toBeLessThan(1e-6);
+      for (const q of m) { let d = Infinity; for (let i = 1; i < r.pts.length; i++) { const [ax, ay] = r.pts[i - 1], [bx, by] = r.pts[i], dx = bx - ax, dy = by - ay, t = Math.max(0, Math.min(1, ((q[0] - ax) * dx + (q[1] - ay) * dy) / (dx * dx + dy * dy)));
+        d = Math.min(d, Math.hypot(ax + t * dx - q[0], ay + t * dy - q[1])); } worst = Math.max(worst, d); if (d > 1.5) far++; } }
+    console.log({ worst: worst.toFixed(2), far }); expect(worst).toBeLessThanOrEqual(ROAD_MEANDER.a1 + ROAD_MEANDER.a2 + 1e-6); expect(worst).toBeLessThanOrEqual(Math.min(...plan.roads.map(r => r.width)) / 2 + 1e-6); expect(far).toBeGreaterThan(100);
+  });
+});

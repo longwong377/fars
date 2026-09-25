@@ -160,9 +160,12 @@ export class PlainGround {
       // its mean share: whole while the riser (4.2 m of sy) spans ~3 px, gone under ~1.4 px (with the rig's 40° lens at 540
       // rows: to ~1.1 km on a face seen square-on, gone by ~2.3 km; twice that at 1080 rows)
       const wP = fwY.div(HILL.pkg).max(0.015), r0 = 1 - HILL.riser;
-      const riser = smoothstep(float(r0).sub(wP), float(r0).add(wP), pkgF).mul(float(1).sub(smoothstep(float(1).sub(wP.mul(2)), float(1), pkgF))).mul(cliff); // (its top edge, where the next package's bench begins, softened over the pixel too)
+      // the band is not continuous along the strike (render 1 of D-223: unbroken risers read as contour lines): it pinches
+      // out and resumes over ~60-120 m (a noise per package) and is cut where a gully crosses it
+      const brk = smoothstep(-0.2, 0.25, mx_noise_float(vec3(q.x.mul(0.011), pkgI.mul(1.7).add(0.3), q.y.mul(0.011)))).mul(float(1).sub(D.x.mul(has)));
+      const riser = smoothstep(float(r0).sub(wP), float(r0).add(wP), pkgF).mul(float(1).sub(smoothstep(float(1).sub(wP.mul(2)), float(1), pkgF))).mul(cliff).mul(brk); // (its top edge, where the next package's bench begins, softened over the pixel too)
       const riserVis = float(1).sub(smoothstep(0.35, 0.7, fwY.div(HILL.pkg * HILL.riser)));
-      const riserV = mix(float(HILL.cliffShare * HILL.riser), riser, riserVis);
+      const riserV = mix(float(HILL.cliffShare * HILL.riser * 0.47), riser, riserVis); // (0.47: the band's mean share along the strike, CPU mirror of the noise)
       return { D, Dq, has, nw, slope, dh, sy, pkgI, pkgF, cliff, fwY, riser, riserV, riserVis, hillFar: has };
     };
     // one frame for the pixel, shared by both functions below (the nodes are generated once)
@@ -275,10 +278,20 @@ export class PlainGround {
       let alb: any = mix(albIn, plotAlb, M);
       // --- trampled ground and worn paths (the town, the Terrace foot): packed bare earth, the herbs trodden and grazed off,
       // dung and straw litter near; a path is a band of PATH_W m, box-filtered over the pixel (a faint line far away)
+      // D-223 (the render of stair-noon-plain: the ground within ~200 m of the Terrace, which fills the lower half of the frame,
+      // was one flat packed-earth tone, Ystd/Y 0.036): trodden ground is patchy. Wear follows the traffic, not a map
+      // boundary: the herbs hold on in the less-trodden patches (wear ±60 % over 10-35 m), the bare earth varies in tone
+      // (dry dust lighter, damp, dung- and ash-stained ground darker: ±10 % over ~4 m, ±6 % over ~1.2 m, darker warm
+      // patches over ~8 m), each octave fading to its mean where its period spans under ~3-7 px (C)
+      const bl = (lam: number) => float(1).sub(smoothstep(0.15, 0.35, fw.div(lam)));
+      const wearN = mx_noise_float(vec3(p.x.mul(0.03), 2.7, p.y.mul(0.03))).add(mx_noise_float(vec3(p.x.mul(0.09), 5.1, p.y.mul(0.09))).mul(0.5).mul(bl(11)));
+      const trEff = clamp(trample.mul(float(1).add(wearN.mul(0.6))), 0, 1);
       const packed = soil.mul(1.12).add(vec3(0.015, 0.012, 0.008));
       const litter = smoothstep(0.55, 0.8, mx_noise_float(positionWorld.mul(0.9).add(vec3(3.1, 0, 7.7)))).mul(near).mul(0.5);
-      const packedAlb = mix(packed, packed.mul(vec3(0.62, 0.58, 0.52)), litter);
-      const tr = trample.mul(float(1).sub(M)).mul(0.85);
+      const toneT = float(1).add(mx_noise_float(vec3(p.x.mul(0.25), 8.3, p.y.mul(0.25))).mul(0.10).mul(bl(4))).add(mx_noise_float(vec3(p.x.mul(0.8), 1.9, p.y.mul(0.8))).mul(0.06).mul(bl(1.25)));
+      const stain = smoothstep(0.35, 0.7, mx_noise_float(vec3(p.x.mul(0.12), 4.4, p.y.mul(0.12)))).mul(bl(8)).mul(0.18);
+      const packedAlb = mix(packed, packed.mul(vec3(0.62, 0.58, 0.52)), litter).mul(toneT).mul(vec3(float(1).sub(stain), float(1).sub(stain.mul(1.1)), float(1).sub(stain.mul(1.3))));
+      const tr = trEff.mul(float(1).sub(M)).mul(0.85);
       alb = mix(alb, packedAlb, tr);
       const pxD = fwidth(pathD).max(1e-4), hw = PATH_W / 2;
       const pathCov = clamp(min(float(hw), pathD.add(pxD.mul(0.5))).sub(max(float(-hw), pathD.sub(pxD.mul(0.5)))).max(0).div(pxD), 0, 1);
