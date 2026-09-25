@@ -56,11 +56,12 @@ export function meterEV(lnFrame: number, lawExposure: number, key: number, eyeLu
 // Rule (C): texels that would display ≥ BRIGHT_EV above the law's reference grey are "bright" (at AgX's shoulder: its white
 // is 0.18 · 2^4.03). When they are the centre-weighted majority of the frame, the eye adapts to them: the correction becomes
 // METER_K of the difference between the reference and the bright texels' log-mean (as D-159 does for the whole frame),
-// blended in over a weighted bright fraction of BRIGHT_F0 … BRIGHT_F1, never closing further than the outdoor law's own
-// exposure (the eye out in that light) nor than BRIGHT_MIN_EV. A small bright door in a dark hall (hall-out: ~8 % of the
-// frame) does not reach the blend: the door still blows out from inside, as a camera and an eye adapted to the hall see
+// blended in over a weighted bright fraction of BRIGHT_F0 … BRIGHT_F1 (a true majority: the first render, with 0.3 … 0.6,
+// closed hall-out down 1.6 EV more, its doorway being 43 % of the centre-weighted field, and the door no longer burned), never closing further than the outdoor law's own
+// exposure (the eye out in that light) nor than BRIGHT_MIN_EV. A bright door in a dark hall (hall-out: 43 % of the weighted
+// field, 8 % clipped) does not reach the blend: the door still blows out from inside, as a camera and an eye adapted to the hall see
 // it; the eye adapting across the threshold is the adaptation over time (exposure.ts, carryEye).
-export const BRIGHT_EV = 3, BRIGHT_F0 = 0.3, BRIGHT_F1 = 0.6, BRIGHT_MIN_EV = -6;
+export const BRIGHT_EV = 3, BRIGHT_F0 = 0.5, BRIGHT_F1 = 0.65, BRIGHT_MIN_EV = -6;
 /** the meter's texels (ln L, the red channel of the RGBA float read-back) */
 export function meterTexels(px: ArrayLike<number>, w = METER_W, h = METER_H): Float32Array {
   const t = new Float32Array(w * h); for (let i = 0; i < w * h; i++) t[i] = px[i * 4]; return t;

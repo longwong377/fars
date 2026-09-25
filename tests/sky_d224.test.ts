@@ -157,6 +157,14 @@ describe('frame meter: the bright majority (D-224)', () => {
     expect(m.ev).toBeCloseTo(old, 9);                        // D-159 unchanged: the interior adaptation holds (D-141)
     expect(door * X * 2 ** m.ev).toBeGreaterThan(WHITE * 5); // the door burns
   });
+  it('the rendered hall-out framing (the doorway 43 % of the centre-weighted field, run 1) stays with D-159: the door burns', () => {
+    const X = 108, hall = ref(X) * 0.3, door = (20 * WHITE) / X;
+    const t = tex((i, j) => (i >= 8 && i < 16 && j >= 2 && j < 12 ? door : hall));
+    const m = meterEVFrame(t, X, KEY, 30000, 1.2);
+    expect(m.bright).toBeGreaterThan(0.35); expect(m.bright).toBeLessThan(0.5);
+    expect(m.ev).toBeCloseTo(meterEV(meterLogMean(px(t)), X, KEY, 30000), 9);
+    expect(door * X * 2 ** m.ev).toBeGreaterThan(WHITE * 5);
+  });
   it('an ordinary frame (grey ground, sky 1.5 EV brighter, 40 % sky) and a uniform grey are unchanged', () => {
     const X = 2, g = ref(X);
     const t = tex((_i, j) => (j < 6 ? g * 2 ** 1.5 : g)), m = meterEVFrame(t, X, KEY, 30000, 2);

@@ -4827,3 +4827,86 @@ the head. The same cap for a lodger's household. Test: tests/religion.test.ts (e
 - **Alternatives not taken:** darkening k further to pass the PNG threshold (no evidence; accuracy first); a dark cloud-base
   disc over the cell at test quality (a stand-in for the volumetric clouds); changing the eye law or the meter's bounds
   (the lead's; recommended above); gating the wet sheen with a shader branch (textureSample in non-uniform control flow).
+
+## D-224 Sky and exposure: the overcast sky, the antisolar twilight, the low sun's light, the frame meter's bright majority (session 8 workstream; REVIEWS/rubric_s7_pass2.md item 12 and weather; D-219 "still weak")
+- **Read first: what is still broken, weak or unverified.**
+  - **The Belt of Venus is still lilac, not pink (BLOCKERS B44).** At −2.9° the arch is at 11–21° over a blue-grey
+    Earth's shadow, as observed, but its reddest point is R/B 0.48 (xy 0.266, 0.268; D-116 0.43). Four approaches measured
+    (below); the only one that turns it pink-lilac (R/B 0.86 at −2°, 1.08 at −1°) is a converged multiple-scattering table,
+    and that fails the D-116 check against Lee's (2015) measurement at −1° … −2° (B43), so it is recorded, not adopted.
+  - **Dawn clouds at −2.9° stay unlit, and that is the geometry, not a fault of the lighting:** the modelled deck lies
+    1.5–3.6 km above the plain, and the sun leaves it at −1.4° (base) and −2.1° (top) (D-119). At −2.9° only cloud above
+    ~8 km over the observer is sunlit; the weather has no mid or high cloud (Q-534). At +2.5° the undersides are lit
+    (rubric: "the salmon cloud undersides are right"). Not changed.
+  - **The western ranges at +2.5° take no visible first light in the model** (Q-535): they are sunlit (the horizon map:
+    vis 1 from 16–26 km, the Terrace and the near plain in Kuh-e Rahmat's shadow), but at the clear-day haze 0.25 (V 43 km)
+    the air leaves 14–28 % of their own light, so their sunlit faces carry 2–6 % of the radiance that reaches the eye and
+    differ from the same faces in shade by 1–2 %. A red first light needs V ≳ 100 km (aerosol τ ≲ 0.04). The haze is the
+    weather's (not tuned here).
+  - **Under full cover the ground is still lit by a quarter-strength directional sun with sharp shadows** (D-115's
+    session-3 cloud factors, C), so the overcast horizon is 0.7× the grey ground where the CIE overcast sky over albedo 0.2
+    gives ~2× (Q-532: a physical partition is proposed there, not made: it changes every cloudy day's light).
+  - Browser renders: see "Rendered" below (two runs through the shared queue).
+- **1. The overcast sky (horizon.ts, skySystem.ts).** The dome, the fog colour, the air's in-scatter (terrain veil, far
+  cloud, rain shafts) and the skylight's colour blend by the weather's cloud cover c toward the CIE standard overcast sky:
+  - L(e) = L_z (1 + 2 sin e) / 3 (Moon & Spencer 1942; CIE 1955; ISO 15469 type 1: zenith 3× horizon, no azimuth), with
+    L_z = E / (7π/9) so the overcast part carries the same skylight irradiance as the clear parts (D-060): the dome is
+    (1 − c) · clear + c · overcast at every cover, the irradiance conserved (tested at c 0, 0.3, 0.76, 1 and sun 40°, 8°,
+    −3° within 1 %), and at c = 0 the clear calibration is bit-identical. None at night (the D-047 night dome stays).
+  - Colour: the measured mean overcast daylight, 6358 K (median 6341 K; Lee & Hernández-Andrés 2005, "Colors of the
+    daytime overcast sky", Applied Optics 44(27) 5712, abstract via search extracts: overcasts make daylight bluer than the
+    light on their tops, more so the thicker the cloud), in the renderer's colour (0.923, 1.020, 1.028); it follows the
+    D-116 model's change of the light reaching the cloud top (sun at 3.6 km + clear sky, USNO lux) from a noon sun, so a
+    low sun and twilight light the deck bluer (tools/dev/overcast_colour.ts: 0.93/1.02/1.00 at 30°, 0.81/1.03/1.32 at 3°).
+  - The weight is the cover itself: the expected radiance of a sky a fraction c of which is cloud (the weather's cover is
+    the observed dome cover, D-145). Where the volumetric layer draws the clouds (high quality) the dome between them is the
+    clear sky (kP0, kT0) and only the CPU-side quantities (fog, air, skylight colour, clouds' ambient) take the blend; at
+    test quality the dome itself draws it and no sun disc is painted on it (C).
+  - Measured (SkySystem, node): the snow frame's horizon was (0.279, 0.273, 0.256), R > G > B (D-219); under full cover
+    now b/r 1.06–1.08 (CCT 6000–8000 K), the skylight b/r 1.06–1.08 (clear 1.70–1.79); the rain day (cover 0.76) b/r 1.22
+    horizon, 1.24 skylight.
+- **2. The antisolar twilight (atmosphere.ts, aerial.ts).**
+  - Aerosol backscatter: Cornette–Shanks g 0.8 alone gives p(180°) = 0.0056 sr⁻¹, a lidar ratio ~200 sr where Raman
+    lidars measure ~40–70 sr for continental and desert dust (from memory; Q-533). A backward HG lobe (g −0.5, weight
+    0.035; two-term HG, Kattawar 1975) gives 50 sr, asymmetry 0.75.
+  - A stratospheric background layer (Junge layer: Gaussian at 20 km, σ 5 km, τ 0.005 at 550 nm, Ångström 1.2, ω 1; the
+    quiescent SAGE-era background, from memory; Q-533), out of the column USNO's k fixes (the boundary layer keeps the
+    rest; aerial.ts subtracts it from the terrain's air: V 43 → 45 km). It scatters the reddened light above the Earth's
+    shadow nearly neutrally where Rayleigh re-blues it ("most vivid for modest aerosol optical depths", Lee 2015).
+  - Effect at haze 0.25 (antisolar vertical; D-116 → D-224): −2°: arch reddest R/B 0.61 → 0.65; −3°: 0.43 → 0.48,
+    arch / shadow 1.52 → 1.42; the Lee colour check 0.003–0.011 (limit 0.02). The arch peak stays at 12–21°, the shadow
+    top rises 5.5°, 8°, 11°, 15.5° for −1° … −4°.
+  - Tried, not adopted: a converged multiple-scattering table (below, B43); a deeper tropospheric aerosol layer (6 km scale
+    height, τ 0.02: bluer arch, R/B 0.43 → 0.37 at −3°, as D-116 found for 2.5 km).
+  - **Found (B43):** D-116's multiple-scattering table (48 μ_s × 12 heights, linear: 2.4° of sun angle and 8.3 km per row,
+    the lowest at 4.2 km) puts 44–57 % more light into the dark segment at −2° … −3° than a 192 × 64 √-height reference;
+    96 × 24 √ is within 2 % (`MS_CONVERGED`, ~2× the build time). Converged, the shadow deepens (arch / shadow 2.0 at
+    −3°) and the arch turns pink-lilac at −1° … −2° (rgb 1.00, 0.89, 0.92 at 6°, −1°), but the dark segment warms against
+    the sky above the arch by Δxy 0.023–0.031, outside the "small or nil" difference Lee measured (tests/horizon.test.ts,
+    limit 0.02). Kept at D-116's table until Lee's measured chromaticities decide (Q-531).
+- **3. The low sun keeps its photometric light (skySystem.ts).** The sun's colour was its spectral transmittance divided by
+  its largest channel, so a red low sun lost luminance the exposure law still counted: Y 0.51 at +2.5° against 0.96 at
+  the zenith, half the light on sunlit ground and far ranges at sunrise (and ~16 % at 5°, ~6 % at 10°). The colour now
+  carries the zenith sun's max-normalised luminance at every altitude (noon unchanged: max channel 1.00; tested at 69°,
+  22°, 6° and 2.5° within 1 %). USNO's lux are photometric (D-115).
+- **4. The frame meter's bright majority (meter.ts, main.ts).** Rule (C): a meter texel is "bright" when it would display
+  ≥ 3 EV above the law's reference grey (AgX's white is +4.03 EV). When the bright texels are the centre-weighted majority
+  (blend over a weighted fraction 0.3 … 0.6) the eye adapts to them: the correction becomes 0.6 of the difference between
+  the reference and their log-mean (D-159's rule applied to the bright part), never closing further than the law's own
+  exposure in the open (vis 1: the eye out in that light) nor 6 EV. Otherwise D-159's mean meter (−1 … +1.5 EV) is
+  unchanged. Night and deep twilight still fade it out (10–100 lx).
+  - Synthetic frames (tests/sky_d224.test.ts): the D-219 portico (exposure 36, the view out ~70 % of the field, the sky
+    5× and 7× display white): D-159 alone closes 1 EV and leaves the sky 2.5–3.5× white; now the exposure falls to the
+    open-air floor 2.3 (bright share 0.78, −3.97 EV) and the sky displays at 0.32–0.45 of white. The hall looking out (door ~8 % of the field, 20× white
+    at the hall's exposure 136): bright share < 0.3, the correction identical to D-159's, the door still 20× white. An
+    ordinary frame (40 % sky 1.5 EV over the ground) and a uniform grey: unchanged. A doorway growing from 2 to 22 of 24
+    columns: the exposure closes monotonically.
+  - The Apadana entry sequence is untouched by construction where the bright part is a minority (enter-door, hall,
+    hall-out); `carryEye` still sets the adaptation over time.
+  - `exposureInfo()` adds `meterBright` and `meterMean` (D-159's part alone); the moments' lum records log them; the F3
+    overlay shows the meter EV, the bright share and the overcast weight.
+- **Rendered:** (filled in below)
+- **Tiers:** CIE overcast distribution B; overcast CCT B (measured, Annapolis); the blend by cover C; the lidar ratio and the
+  stratospheric layer B-values used as C; the sun's photometric luminance B (USNO); the bright-majority rule and its
+  constants C.
+- **Open questions:** Q-530 … Q-536. **Blockers:** B43, B44.
