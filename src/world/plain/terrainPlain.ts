@@ -165,6 +165,8 @@ export class PlainGround {
       const riserV = mix(float(HILL.cliffShare * HILL.riser), riser, riserVis);
       return { D, Dq, has, nw, slope, dh, sy, pkgI, pkgF, cliff, fwY, riser, riserV, riserVis, hillFar: has };
     };
+    // one frame for the pixel, shared by both functions below (the nodes are generated once)
+    const HB = hillBase(positionWorld.xz);
     const field = Fn(([albIn]: any[]) => {
       const p = positionWorld.xz; // world x, z (z = -grid north)
       // --- the pixel footprint on the ground (m): its major axis (along the view at grazing angles) and minor axis (across)
@@ -283,7 +285,7 @@ export class PlainGround {
       alb = mix(alb, packed.mul(1.05), pathCov.mul(0.5)); // a trodden line, not a road (after-run: at 0.8 the fan of paths read as roads)
 
       // --- the hills (terrainDetail.ts maps: near ring 4 m, mid ring 16 m; beyond them the geometric normal alone)
-      const Hb = hillBase(p);
+      const Hb = HB;
       const { D, has, nw, slope, sy, pkgF, cliff, fwY, riser, riserV } = Hb;
       const gully = D.x.mul(has), curv = D.y.mul(255).sub(128).div(CURV_SCALE).mul(has); // 1/m, + convex
       const cvx = clamp(curv.mul(40), -1, 1); // ±0.025 1/m spans it
@@ -401,7 +403,7 @@ export class PlainGround {
     // few pixels (hillBase riserVis) and then give way to the mean normal. In cliff packages on slopes over ~11-20 deg, inside the landform
     // maps' rings (the fields and the trodden ground are gentler than that: no tilt there)
     const tiltFn = Fn(() => {
-      const p = positionWorld.xz, Hb = hillBase(p), s = Hb.slope;
+      const Hb = HB, s = Hb.slope;
       const r = HILL.riser, sR = s.mul(HILL.riserSteep).min(HILL.riserMaxSlope), sB = s.sub(sR.mul(r)).max(0).div(1 - r);
       const sT = mix(sB, sR, Hb.riser);
       const nT = vec3(Hb.dh.x.mul(sT), 1, Hb.dh.y.mul(sT)).normalize(), n0 = vec3(Hb.dh.x.mul(s), 1, Hb.dh.y.mul(s)).normalize();
