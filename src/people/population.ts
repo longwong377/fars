@@ -2325,7 +2325,7 @@ class Planner {
         if (this.t < supper - 0.3) this.homeHours(supper, 'resting at home after work'); }
       else this.homeHours(supper, 'resting at home after work');
     }
-    const bd = H.birthday >= 0 ? (H.birthday === this.pid ? 'his birthday meal: the day every man values most (HDT 1.133)' : `a birthday meal for ${nameFor(this.P.seed, this.P.persons[H.birthday]) ?? 'a man of the house'} (HDT 1.133)`) : null;
+    const bd = H.birthday >= 0 ? (H.birthday === this.pid ? (this.p.sex === 'f' ? 'her birthday meal (HDT 1.133: the day each Persian values most)' : 'his birthday meal: the day every man values most (HDT 1.133)') : `a birthday meal for ${nameFor(this.P.seed, this.P.persons[H.birthday]) ?? (this.P.persons[H.birthday].sex === 'f' ? 'a woman of the house' : 'a man of the house')} (HDT 1.133)`) : null;
     if (this.t <= H.supper + 0.05) { if (this.t < H.supper) this.idleUntil(H.supper); this.atHome(this.t + H.sLen + (this.supperWhy ? 0.25 : 0), 'eat', bd ?? this.supperWhy ?? 'the evening meal with the household'); }
     else this.atHome(this.t + Math.max(0.3, H.sLen * 0.7), 'eat', bd ?? 'the evening meal, kept for the late-comer');
     if (bakeAfter) { this.atHome(this.t + 0.35, 'knead', 'kneading the dough'); this.atHome(this.t + 0.45, 'bake', 'baking the flat bread for tomorrow by the evening fire'); }

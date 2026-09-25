@@ -247,6 +247,12 @@ export class PeopleSim {
     // a guard whose watch has ended keeps the post until the relief arrives (at most ~36 minutes)
     if (a.role === 'guard' && a.task?.act === 'stand_guard' && a.post && GUARD_POSTS.includes(a.post) && !a.relieved && a.watchEnd !== undefined && this.t < a.watchEnd + 0.6 && seg.place !== a.post)
       return this.task('stand_guard', a.post, PLACES[a.post].at, Math.min(a.watchEnd + 0.6, this.t + 0.1), /relieved at the post/.test(seg.why) ? 'waiting for the patrol man to stand in while he eats' : 'waiting to be relieved', PLACES[a.post].heading); // (S7 of reviewer B r5)
+    // a walk between two places ON the Terrace (the plan writes every walk as a road:terrace block) is walked on the
+    // Terrace's own grid to the next place, not played as a trip down the stair and back (shadow review r10 B, S1: an
+    // official 38 min off the Terrace for a 3-min walk from the Treasury to the Gate; 49 % of detailed scribes' days)
+    if (seg.where === 'road') { const plan = this.planOf(a, day), i = plan.indexOf(seg), pv = plan[i - 1], nx = plan[i + 1];
+      const onT = (x: Seg | undefined) => !!x && x.where === 'terrace' && (x.place in PLACES || x.place === 'terrace_round');
+      if (onT(pv) && onT(nx)) return this.onTerrace(a, nx!, end, rng); }
     if (seg.where !== 'terrace' || !(seg.place in PLACES || seg.place === 'terrace_round')) {
       this.setDown(a, seg.act); // (the jar is put down before the plan leaves the Terrace: shadow review r9, #76 carried the water jar to the town)
       const T: Task = { act: seg.act, place: seg.place, spot: PLACES.town.at, heading: null, until: end, why: seg.why, off: true };

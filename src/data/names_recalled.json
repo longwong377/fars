@@ -12,7 +12,8 @@
    "origin_guess": "Iranian",
    "attestation": "PF (Elamite fIr-da-ba-ma): a woman with her own estates and workforce; Brosius 1996, Henkelman 2010",
    "source": "RECOLLECTION",
-   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
   },
   {
    "name": "Phaidyme",
@@ -20,7 +21,8 @@
    "origin_guess": "Iranian",
    "attestation": "Herodotus 3.68-69: daughter of Otanes",
    "source": "RECOLLECTION",
-   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
   },
   {
    "name": "Parmys",
@@ -82,7 +84,8 @@
    "origin_guess": "Iranian",
    "attestation": "Ctesias (FGrH 688 F15): sister of Teritouchmes, 5th c.",
    "source": "RECOLLECTION",
-   "tier": "C (recollection of the published attestation, NOT SEEN: verify)"
+   "tier": "C (recollection of the published attestation, NOT SEEN: verify)",
+   "notable": true
   },
   {
    "name": "Mandane",
