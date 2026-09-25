@@ -39,3 +39,15 @@ SwiftShader), `npm run lint:all` (chronology/anachronism/language/activity cover
 No questions, no pauses; decide, log in `DECISIONS.md`, proceed. Gates bind — never lower one to pass it.
 Commit at every gate; push to the branch the session designates (session 1: `claude/new-session-lfjkbn`; sessions 2–3: `claude/amazing-fermi-40ds7j`); never force-push.
 Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived files from `data/dem/`.
+
+## Working rules learned in sessions 5–8 (the user asked for these to persist)
+- **Render queue is the bottleneck** (one shared SwiftShader lock; a high view's test is ~8 min, but jobs wait ~50 min behind
+  others). Run at most 3 agents that render at once; give each ≤ 2 browser runs and node-side previews/CPU mirrors first; the
+  lead's full passes go in grouped jobs (views sharing day/hour/weather share a page load). Details: HANDOFF.md Tools.
+- **Timing tests under load are not failures** until re-run alone on an idle box (performances, popview, humans_runtime,
+  cloudnoise, long people_days runs). Never commit bench-reports/*.txt rewritten by a loaded test run.
+- **Reviewers use every reference** in `references/` paired to the moments (table in handoff/review_briefs.md), and say which
+  ones they judged against; memory of photographs of the ruin is allowed only where no reference covers it, labelled C.
+- **Before merging an agent branch:** records conflict (DECISIONS, OPEN_QUESTIONS, BLOCKERS, PROGRESS) are unions of appended
+  rows: keep both sides, no blank line inside a table; reserve D/Q/B number ranges per agent in its prompt.
+- **After a render-affecting merge**, re-render the moments it touches before claiming a fix; a node test is not a render.

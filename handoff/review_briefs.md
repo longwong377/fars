@@ -45,6 +45,27 @@ photographs: none reachable (B6, logged exception); use references/ (catalogued 
 one photoreal mood image, NOT photographs of the site) and the reviewer's knowledge of real photographs of Persepolis, the
 Marvdasht plain and comparable limestone architecture, and say so in the review. Judge the §1.1 moments as scenes.
 
+### Reference images for the rubric (session 8; the user's instruction: use ALL the supplied references)
+The reviewer must open, with the Read tool, every reference image named below next to each moment it pairs with, and say in
+the review which references each score was judged against. Weights and caveats are in references/INDEX.md: **P** plans (for
+layout), **R** Getty "Persepolis Reimagined" screens (scholarly-advised, rendered CG: the best benchmark for material, light and
+colour in a reconstruction), **A** artist reconstructions (composition, massing, crowd density), **M** the one photoreal mood
+image. None is a photograph of the site as it stood, so where a reference and the evidence disagree on CONTENT (colours of
+shafts, glazed bands, horse capitals, the town's density) the evidence wins and the conflict is logged in INDEX.md; the
+references are the yardstick for how REAL a frame looks. The reviewer's memory of photographs of the ruin today is still used
+for weathered stone, the plain and the hills, and must be labelled as such (tier C).
+| moments / renders | references to open |
+|---|---|
+| apadana-hall-in, apadana-hall-axis, apadana-enter-hall, apadana-hall-torch, hadish-hall | `column hall.jpg`, `more interior.png` |
+| gate-dusk, Gate views | `bulls.png`, `more bulls.png`, `lamassu statues.png`, `more interior.png` |
+| reliefs-raking, apadana-e-stair-raking, apadana-enter-court, tripylon-n-stair | `Apadana-Relief-1.png`, `reliefs.jpg`, `more reliefs.png`, `apadana more.png` |
+| stair-climb, stair-climb-pm, dawn-*, the approach, plain-* | `perspepolis-wizualizacja.jpg`, `another artist rendition 2.jpg`, `persepolis from a distance.jpg` (M), `persepolis more.jpg` |
+| court-assembly, crowd-court-* | `another artist rendition.jpg`, `example of soldier.jpg` |
+| tachara-*, harem-portico, capitals in any view | `another artist rendition 3.jpg`, `… 4.jpg`, `… 5.jpg`, `… 6.jpg`, `… 7.jpg`, `another column.webp` |
+| town-smoke-dusk*, settlement-* | `persepolis more 1.jpg` (mood; its density conflicts with Sumner), `persepolis more.jpg` |
+| layout in any wide view | `Persepolis Plan.webp`, `palace-of-darius-i-and-xerxes.webp` (P) |
+Never judge against the ✗ files (`another artist rendition 8.png`, `one artist rendition.png`, `apadana more.jpg`, `another soldier.jpg`).
+
 ## Shadow review round 5 (§13.11) — REVIEWS/shadow_phase5_r5.md
 Input: `npx tsx tools/shadow_days.ts 1 97 > REVIEWS/shadow_days_input_seed1_pick97.txt` on the merged tree (after D-150).
 Fresh reviewer, round-3 protocol (REVIEWS/shadow_phase5_r3.md ll. 3–33): score all 20 from the timelines + research files
