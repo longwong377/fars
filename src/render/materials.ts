@@ -229,10 +229,10 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // with straw, finished fine: a light buff (sRGB 0.64/0.55/0.43, L* 60, the town render's hue lightened as a fine clay
   // finish dries, C). The greyish yellow-green clay paint is attested only for the Treasury (Schmidt) and at
   // Pasargadae: `mudbrick_painted` below, used by the Treasury alone
-  mudbrick: { albedo: [0.64, 0.55, 0.43], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.35 }, runoff: 0.1, plasterWork: { float: 1, cracks: 1 }, bump: { amp: 0.006, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster on mud brick: earthen plaster B (Stein et al. 2016, search extract); its tone C (D-188). The green clay paint is not extended beyond the Treasury (Q-028); D-218: a renewed skirting coat ~0.5 m, rising damp and a salt tide line at the foot, hand-laid undulation ±6 mm (all C, Q-483)' },
+  mudbrick: { albedo: [0.64, 0.55, 0.43], roughness: 0.93, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.2 }, runoff: 0.1, plasterWork: { float: 1, cracks: 1 }, bump: { amp: 0.006, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'mud plaster on mud brick: earthen plaster B (Stein et al. 2016, search extract); its tone C (D-188). The green clay paint is not extended beyond the Treasury (Q-028); D-218: a renewed skirting coat ~0.5 m, rising damp and a salt tide line at the foot, hand-laid undulation ±6 mm (all C, Q-483)' },
   // the Treasury's walls: mud plaster coated with a greyish yellow-green clay paint, attested at Pasargadae and, per
   // Schmidt, on the Treasury walls (Stein et al. 2016, npj Herit. Sci., search extract: B for the coating); tone C
-  mudbrick_painted: { albedo: [0.58, 0.57, 0.45], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.35 }, runoff: 0.1, plasterWork: { float: 1, cracks: 1 }, bump: { amp: 0.006, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'Treasury walls: mud plaster with a greyish yellow-green clay paint (Treasury walls per Schmidt; Pasargadae: via Stein et al. 2016, B); tone C; extent to other buildings open (Q-028)' },
+  mudbrick_painted: { albedo: [0.58, 0.57, 0.45], roughness: 0.9, porosity: 0.8, noiseScale: 0.6, noiseAmp: 0.09, tone: { sd: 0.1, chroma: 0.018, patch: -0.07 }, foot: 1, skirt: { h: 0.5, dark: 0.1, salt: 0.2 }, runoff: 0.1, plasterWork: { float: 1, cracks: 1 }, bump: { amp: 0.006, freq: 1.4 }, micro: { amp: 0.0006, freq: 55, alb: 0.05 }, tier: 'B/C', note: 'Treasury walls: mud plaster with a greyish yellow-green clay paint (Treasury walls per Schmidt; Pasargadae: via Stein et al. 2016, B); tone C; extent to other buildings open (Q-028)' },
   plaster: { albedo: [0.78, 0.74, 0.66], roughness: 0.85, porosity: 0.7, noiseScale: 0.8, noiseAmp: 0.08, roughVar: 0.1, tone: { sd: 0.09, chroma: 0.015, patch: 0.05 }, foot: 1, bump: { amp: 0.0022, freq: 2.4 }, micro: { amp: 0.00025, freq: 70, alb: 0.03 }, tier: 'C', note: 'lime/gypsum plaster' },
   // albedo (C, session 4): a hematite-like reflectance (~4–7 % below 580 nm rising to 30–50 % above 620 nm) integrated
   // with CIE 1931 / D65 gives linear ≈ (0.25–0.53, 0.034–0.085, 0.036–0.059), R/G 6–7.5; the old (0.48, 0.14, 0.10) sRGB
@@ -714,7 +714,8 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const damp = float(1).sub(smoothstep(dampTop.sub(0.12), dampTop, h)).mul(float(0.6).add(float(1).sub(smoothstep(float(0), dampTop, h)).mul(0.4))).mul(on);
     alb = alb.mul(float(1).sub(damp.mul(K.dark)));
     rough = mix(rough, float(0.97), damp.mul(0.5));
-    const salt = bandCoverN(abs(h.sub(dampTop)), aa, float(0.012)).mul(smoothstep(-0.2, 0.3, mx_noise_float(along.mul(0.9).add(vec3(4.4, 0, 9.2))))).mul(on);
+    // (a soft band ~4 cm either side, not a line: the first render drew a 2.4 mm-sharp line that read as a wire at dusk)
+    const salt = float(1).sub(smoothstep(float(0), aa.add(0.04), abs(h.sub(dampTop)))).mul(smoothstep(-0.2, 0.3, mx_noise_float(along.mul(0.9).add(vec3(4.4, 0, 9.2))))).mul(on);
     alb = mix(alb, vec3(0.78, 0.77, 0.74), salt.mul(K.salt));
   }
   if (arch && d.runoff) { // run-off below the tops of exposed stone (D-157, C): streaks fast across the face, slow down it

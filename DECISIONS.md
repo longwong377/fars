@@ -4621,3 +4621,99 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
   off, braziers off, all fires off; after; the shadow cost), gate-dusk (after: B, fires off), pulvar-bank-april and
   garden-paradise (after), scribe-room-ne and scribe-at-work (after: B, the session-4 GI input, the scene pass; after the
   re-bake), hadish-hall and apadana-hall-axis (after: B, SSR off). The before images are the pass-2 shots.
+
+## D-218 Rubric s7 pass 2, fixes 2 and 10: the dressed stone, stair blocks, merlons, polished frames and the mud-plaster foot (session 7; REVIEWS/rubric_s7_pass2.md)
+- **Read first: what is still broken, weak or unverified.**
+  - **The rubric's on-screen target (Ystd/Y 0.15–0.25 on sunlit ashlar at 5–30 m) is NOT met.** Measured on the CPU mirror
+    of the shader with AgX (tests/surfaces_d218.test.ts, frontal views): 0.057–0.060 → 0.109–0.130. Rendered (stair-climb-pm, high, the only sunlit ashlar in the two renders): the Terrace wall,
+    seen along its face at ~20–60 m, 0.041–0.048 → 0.062–0.072 over the region and 0.032–0.034 → 0.046–0.053 in 48 px windows. In scene-linear
+    terms (before the tone map) the stone went 0.10 → 0.19–0.20, inside the rubric's "real stone 0.15–0.35"; AgX's local slope
+    at the sunlit stone's screen level (linear Y 0.30–0.35) is 0.6–0.7, so the displayed spread is ~0.6× the scene's. Reaching
+    0.15 on screen needs a scene spread of ~0.25: blocks 1σ ≥ 22 % and laminae ≥ 13 %, a patchwork beyond what freshly dressed
+    stone of one quarry district plausibly shows (the rubric's reference photographs are of 2,500-year-weathered stone through
+    camera tone curves, themselves tier C). Accuracy over the number: shipped at blocks 1σ 17 %, laminae 9 %, logged as B40
+    and Q-480 (a calibration photograph of unweathered faces, NEEDS #13, would settle the amplitude).
+  - The amplitudes are C throughout, calibrated against the rubric's photographic range, not measured stone.
+  - Oblique views (the Terrace wall seen along its face in stair-climb-pm) show less than the frontal numbers: the pixel
+    footprint along the wall is several times larger, and the laminae and joints average out.
+  - Pits, chisel facets and striations resolve only within ~1–6 m at 960×540 (band-limited by rule D-147); they add nothing to
+    the 5–30 m measure and are there for "detail at 1 m" (brief §8.3). Not rendered at arm's length.
+  - Not done from fix 10: the Gate's door and the pilaster recesses (geometry, another workstream). No stone or baked-brick
+    base course under the mud-brick walls (none found, Q-483): the "base course" is drawn as a renewed mud-plaster skirting coat.
+  - GPU cost estimated from the generated WGSL, not measured on a GPU (B5): limestone fragment shader 1,166 → 1,481 lines,
+    perlin calls 21 → 23, + one 2-D Worley (9 cells), + ~14 hashes and 5 sines; merlons 1,131 → 1,279 lines; mud plaster
+    592 → 612. Rough estimate ≤ 0.6 ms at 1080p on a mid-range GPU with stone over the whole screen, inside the 2 ms allowance.
+  - The instanced merlon shader (instanceIndex) is not covered by tests/shader_build (an InstancedMesh needs a device in
+    three's builder); the same surface on a plain mesh is. The merlons rendered (stair-climb-pm), but only in shade: the
+    per-merlon tone reads; the ledge dust and run-off were not judged.
+  - Mud plaster rendered at dusk only (gate-dusk, no before image: the baseline run's court-assembly view timed out and the
+    after run took gate-dusk instead). The salt tide line drew as a thin, continuous light squiggle (a "wire"); after the render
+    it was softened to a ~4 cm band at strength 0.2: **that change is NOT rendered**. The skirting coat's 4 mm edge is not
+    visible at dusk. The dark frames look dark grey-brown at dusk; "glossy near-black" in daylight is not verified by a render.
+  - The lead's brazier-close quilt of pyramids on the Grand Stair top landing: cause found and fixed in node (below), NOT
+    re-rendered in that view. The merlons' sawtooth silhouette in that image is the four-stepped outline itself (motif B).
+  - A dotted vertical line on the sunlit Terrace wall in stair-climb-pm (x ≈ 760 px) is in the before and after images alike;
+    not investigated (a prism seam of the platform?).
+  - Mean Y of the sunlit wall 0.297 → 0.306 (+3 %) although every variation is mean-preserving in node (the few blocks in view).
+- **What changed (src/render/materials.ts, src/arch/meshes.ts, src/arch/decor.ts).**
+  - **Block tone**: 1σ 7.5 % uniform (±13 %) → 17 % triangular (Joints.blockSd; few extremes), warm/cool ±3 → ±5 %, block tilt
+    ±0.43 → ±0.57°; broad tone 6.5 → 7.5 % (limestone, terrace, merlons). All mean-preserving (measured: mean factor 1.003).
+  - **Rounded arrises**: D-157's albedo lip (5 mm, 25 % darker) and near-only height lip → a filtered normal: over the lip's
+    share of the pixel, the arris turns 40° toward the joint (ARRIS_K 0.84), its width 3–9 mm per block, the lip 5 % darker
+    in albedo. The side of the joint is now known (ashlarCells returns sBed, headCells sHead), so the upper block's lower arris
+    looks down and the lower block's upper arris up. Measured in sun (sun 30° up, 30° off the face): at 5 m the row below a bed
+    joint +5 %, the row above −44 %; at 10 m −21 %; at 30 m −5 % (D-157's gate on the joint ink, 12–30 % at 10 m and 4–10 %
+    at 30 m, now met with the light rather than as an ink).
+  - **Stone inside the block** (StoneDef, in block-local terms so every feature stops at the joints): bedding laminae (two
+    octaves, 0.35 and 0.09 m, 1σ 9 % × 0.25–1.75 per block; bands on vertical faces, a stretched mottle on bedding planes);
+    stylolites (dark wavy seams with their sawtooth, 2.4 mm, 45 % darker, 0.22–0.57 m apart, in 45 % of the blocks); fossil
+    moulds and pits (2-D Worley, 2.2 cm cells, 50 % darker and 1.5 mm deep, 0.3–1.7× density per block, their mean cover
+    beyond ~6 m); chisel facets 8 × 3 cm tilted ±1.1° along a per-block stroke direction, with 4 mm striations 0.12 mm deep.
+    The seams' and pits' mean darkening is divided out (pitMean, styloMean): the mean stays within 1 % near and far (measured).
+  - **Stairs** (meshes.ts stairRows → per-vertex `stair`): the steps of each flight in rows of 4 or 5 (hashed per row; the
+    Grand Stair's "4-5 steps cut from single blocks", SITE_SPEC grand_stair.block_construction, B; the other flights by
+    analogy, C); along the step, blocks 1.9 m ± 30 % (C) with head joints on treads and risers; the row's joint across the
+    first tread of each row, 6 cm in front of the next riser (C); risers carry no bed joints; every tread and riser of one row
+    and block shares one tone (was a tone per tread). Flights on one line are split where their treads stop touching or their
+    heights stop rising the same way (the Hadish flights rise apart from a common foot). 847 steps in 35 flights, 163 full rows
+    checked (tests). Foot polish on the treads: roughness down to 60 % in the middle of the flight, most toward the nosing, 4 %
+    darker, the tool marks worn away; grit and dust at the tread ends (C).
+  - **Merlons** (limestone_merlon, both the stair-parapet and the Apadana crenellations): each a monolith of the same stone,
+    its own tone by instance, no course joints across it (the chamfered foot is its joint), the stone detail above, dust on the
+    step ledges (14 %), faint run-off under each ledge (7 %; C).
+  - **Dark frames** (limestone_dark): roughness 0.18 → 0.10 (mirror polish; the Tachara's "Hall of Mirrors", WP, C), diffuse
+    albedo N3 6.4 % → N2.7 5.2 % (a polish removes the surface scatter that lightens a honed face, C; Q-482). **The light
+    probes were NOT re-baked** for this: the frames are a small share of any probe's view; every other surface keeps its mean
+    albedo (all D-218 variation is mean-preserving). tests/polychromy and surfaces_s6 updated to N2.7 (the "not black" guard,
+    Y > 5 %, kept).
+  - **Mud plaster** (mudbrick, mudbrick_painted): a renewed skirting coat up to ~0.5 m (± 0.12 m along the wall, its edge 4 mm
+    proud, a little less bleached), rising damp to 3/4 of it (10 % darker at the foot), a patchy whitish salt tide line at the
+    damp's edge (after the render: a soft ~4 cm band, 0.2); the hand-laid undulation 4 → 6 mm (C; Q-483).
+  - **The noise frame** (lead's report, brazier-close): mx_noise_float is Perlin noise on the integer lattice, zero at every
+    node; a floor at y = 0 (the Grand Stair's top landing, the court datum) or any plane where coordinate × frequency is whole
+    is a lattice plane, and the bump's normals there are a regular quilt 1/frequency apart (1/6 m for limestone), which a
+    brazier at grazing light draws as rows of pyramids. The bump, micro, grain, broad-tone, wear and dust noise now read the
+    world position in a frame rotated about two axes (NOISE_FRAME, Rz 0.47 · Rx 0.61; lengths, frequencies and 1σ unchanged).
+    Measured in node: on the y = 0, x = 0 and z = 0 planes the noise's 1σ at the lattice nodes was 0.000 against 0.28 between
+    them; in the rotated frame 0.26–0.27 at both. Affects every surface that uses these octaves (all of SURFACES).
+- **Measured before → after.**
+  | what | before (D-157) | after (D-218) | how |
+  |---|---|---|---|
+  | sunlit ashlar, frontal, sun 41° off the face, 5 / 10 / 30 m | 0.059 / 0.058 / 0.057 | 0.119 / 0.116 / 0.109 | Ystd/Y after AgX, CPU mirror |
+  | the same, sun 66° off the face | 0.060 / 0.058 / 0.057 | 0.130 / 0.126 / 0.114 | CPU mirror |
+  | the same in scene-linear terms (before the tone map) | ~0.10 | 0.19–0.20 | CPU mirror |
+  | Terrace wall in sun, oblique, stair-climb-pm (x 640–940, y 10–170) | 0.048 (windows 0.032) | 0.072 (windows 0.053) | render, high |
+  | the same, x 700–900, y 20–150 | 0.041 (0.034) | 0.062 (0.046) | render, high |
+  | a bed joint in sun, the row above / below at 5 m | albedo ink only | −44 % / +5 % | CPU mirror |
+  | the row above a bed joint at 10 / 30 m | (D-157 gate 12–30 % / 4–10 %) | −21 % / −7 % | CPU mirror |
+  | block tone 1σ | 7.5 % | 17.0 % (3 % of blocks beyond 2σ) | node |
+  | stone detail mean factor, footprint 3 mm / 2 cm / 8 cm | – | 1.005 / 1.000 / 1.001 | node |
+- **Alternatives tried** (rule 5: the target not met): (1) more albedo variance only (blockSd 0.14 → 0.17, laminae 0.06 →
+  0.09: 0.095 → 0.114 on screen at 10 m; to 0.15 needs ≥ 0.22/0.13, rejected as implausible for fresh stone); (2) shading
+  variance from normals (rounded arrises, chisel facets, block tilt, the bump): lines at the joints and detail near, but a
+  dressed face is flat at the 0.1–1 m scale, so little at 5–30 m; (3) weathering layers (run-off, dust, splash: kept at the
+  scale 25–50 years of exposure allow). Not tried: a steeper tone curve (the look of every view, not this workstream).
+- **Tests:** tests/surfaces_d218.test.ts (new; CPU mirror tests/lib/stone_cpu.ts with AgX), tests/surfaces.test.ts (the block
+  tone and joint-ink tests moved to D-218's terms), tests/polychromy.test.ts, tests/surfaces_s6.test.ts (N2.7);
+  shader_build, arch, now_view, probes, detail, crenellation pass; the noise-frame test is in surfaces_d218. Numbers: bench-reports/surfaces-d218.txt.
+- Open: Q-480 … Q-485. Blocker: B40.
