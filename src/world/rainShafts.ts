@@ -66,7 +66,12 @@ export class RainShafts {
     for (const s of this.shafts) {
       const r = cell.radiusM * s.scale, x = cx + s.off[0] * cell.radiusM, z = cz + s.off[1] * cell.radiusM;
       s.mesh.position.set(x, this.baseY.value, z); s.mesh.scale.set(2 * r, this.topY.value - this.baseY.value, 2 * r); s.radius.value = r;
-      s.mesh.visible = Math.hypot(x - camPos.x, z - camPos.z) > 2.1 * r; // FrontSide only: hidden once the camera is inside the column's mesh
+      // inside the mesh's 2R cylinder the far wall is drawn (BackSide): a ray leaving the cylinder at angle θ to its normal passes
+      // the axis at the same b = 2R·sin θ as one entering it, so the optical-depth term is the same (session 7: the cell was
+      // hidden whenever its centre came within 2.1 R — at 11:27 on day 299 a 6 km cell 8.5 km out, the §1.1 rain moment)
+      const inside = Math.hypot(x - camPos.x, z - camPos.z) < 2 * r;
+      const m = s.mesh.material as THREE.Material; const side = inside ? THREE.BackSide : THREE.FrontSide; if (m.side !== side) { m.side = side; m.needsUpdate = true; }
+      s.mesh.visible = true;
     }
     this.uStrength.value = cell.intensity; this.uSnow.value = cell.snow ? 1 : 0;
     this.uTint.value.copy(skyTint).multiplyScalar(cell.snow ? 1.05 : 0.35); // skyTint: the calibrated horizon radiance (D-060); a curtain under the thick cell cloud is well shaded (C)
