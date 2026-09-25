@@ -201,12 +201,17 @@ describe('garments and hair geometry (D-155)', () => {
     expect(slackN).toBeGreaterThan(100); expect(n).toBeGreaterThan(20);
     expect(drop / n, 'mean drop of the slack cloth when seated (m; 0 before D-155)').toBeGreaterThan(0.03);
   });
-  it('the felt cap is built on the full body at LOD0 and its cut edge stands off the skin (a blunt felt edge)', () => {
+  it('the felt cap is finer at LOD0 and its rim stands off the skin, its edge turned under onto it (a blunt felt edge)', () => {
+    // D-206: the cap is a dome of its own (outfits.ts softCap): rings from the crown to the rim, then one ring of turned
+    // edge (edge byte 0) lying on the head's hull; the rim ring is the S vertices before them
     const g0 = O.geos!['cap_soft@0'], g1 = O.geos!['cap_soft@1'];
     expect(g0.index.length / 3).toBeGreaterThan(g1.index.length / 3 * 3);
-    const v = vRef(), P = piecePos('cap_soft@0'); let edgeOff = 1, k = 0;
-    for (let i = 0; i < g0.n; i++) { if (g0.edge[i] > 5) continue; k++; let d = 9; for (let j = 0; j < A.NO; j++) { if (A.part[j] !== PART.head) continue; d = Math.min(d, Math.hypot(v.pos[j * 3] - P[i][0], v.pos[j * 3 + 1] - P[i][1], v.pos[j * 3 + 2] - P[i][2])); } edgeOff = Math.min(edgeOff, d); if (k > 40) break; }
-    expect(k).toBeGreaterThan(10); expect(edgeOff).toBeGreaterThan(0.0025);
+    const v = vRef(), P = piecePos('cap_soft@0'), lip: number[] = []; for (let i = 0; i < g0.n; i++) if (g0.edge[i] <= 5) lip.push(i);
+    const S = lip.length, dHead = (p: number[]) => { let d = 9; for (let j = 0; j < A.NO; j++) { if (A.part[j] !== PART.head && A.part[j] !== PART.neck) continue; d = Math.min(d, Math.hypot(v.pos[j * 3] - p[0], v.pos[j * 3 + 1] - p[1], v.pos[j * 3 + 2] - p[2])); } return d; };
+    const rimOff = lip.map(i => dHead(P[i - S])).sort((a, b) => a - b), lipOff = lip.map(i => dHead(P[i])).sort((a, b) => a - b);
+    expect(S).toBeGreaterThan(10);
+    expect(rimOff[Math.floor(S * 0.1)], 'the rim stands off (p10, m)').toBeGreaterThan(0.004);
+    expect(lipOff[Math.floor(S * 0.5)], 'the turned edge closes onto the head (median, m)').toBeLessThan(rimOff[Math.floor(S * 0.5)] * 0.6);
   });
   it('the headcloth has clean cut lines: no holes between arm and chest, no zigzag along its hanging edges', () => {
     const v = A.byId.f02, P = piecePos('headcloth@0', v), I = O.geos!['headcloth@0'].index, cnt = new Map<string, number>();

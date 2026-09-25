@@ -3,13 +3,13 @@
 // band-limiting), the sun with a shadow map from the same coarse shadow casters the game uses, the hemisphere light,
 // the lab's exposure law and AgX. Iterating on faces, hair and dress without the shared browser queue; the browser
 // (tests/e2e/humanlab.spec.ts) is the judgement. Screenshots find problems; tests/humans*.test.ts measure.
-// Run: npx tsx tools/dev/face_preview.ts <view> [--lineup men|mixed|extra] [--out shots/fp_<view>.png] [--w 960 --h 540]
+// Run: npx tsx tools/dev/face_preview.ts <view> [--lineup men|mixed|extra|scribe] [--drop kandys,…] [--lod 0|1|2] [--light room] [--out shots/fp_<view>.png] [--w 960 --h 540]
 //   views: face-<i> (0.95 m in front of lineup person i, as the lab's face-* shots), macro-<i> (0.5 m), full, back, side,
 //          or cam=x,y,z:tx,ty,tz
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 import { decodeHumanAssets } from '../../src/people/humanAssets';
-import { buildOutfits, COSTUME_OF, type CostumeLOD } from '../../src/people/outfits';
+import { buildOutfits, COSTUME_OF, pieceBit, type CostumeLOD } from '../../src/people/outfits';
 import { lookFor, type PersonLook } from '../../src/people/looks';
 import { RigSolver, PALETTE_STRIDE, PLANTED } from '../../src/people/humanRig';
 import { pose, type AnimId } from '../../src/people/anim';
@@ -29,6 +29,10 @@ const LINEUPS: Record<string, any[]> = {
   mixed: [{ dress: 'woman', sex: 'f', role: 'grinder', seed: 21 }, { dress: 'woman', sex: 'f', role: 'baker', seed: 22 }, { dress: 'child', sex: 'm', role: 'child', seed: 23 }, { dress: 'worker', sex: 'm', role: 'porter', seed: 24 }],
   // walking (D-189: the skirts' hem folds, fit and joint wrinkles in motion)
   walk: [{ dress: 'persian', sex: 'm', role: 'official', seed: 41, anim: 'walk' }, { dress: 'woman', sex: 'f', role: 'baker', seed: 42, anim: 'walk' }, { dress: 'worker', sex: 'm', role: 'porter', seed: 43, anim: 'walk' }, { dress: 'guard', sex: 'm', role: 'guard', seed: 44, anim: 'walk' }],
+  // D-206: the scribe of the scribe-at-work moment (agent 120, Babylonian, Median dress), writing and standing, and a
+  // working man and a woman standing (the tunic, the dress and the undyed cloth against skin)
+  scribe: [{ dress: 'median', sex: 'm', role: 'scribe', origin: 'Babylonian', seed: 525735469, anim: 'write' }, { dress: 'median', sex: 'm', role: 'scribe', origin: 'Babylonian', seed: 525735469 },
+    { dress: 'worker', sex: 'm', role: 'mason', origin: 'Persian', seed: 34 }, { dress: 'woman', sex: 'f', role: 'grinder', origin: 'Elamite', seed: 21 }],
   extra: [{ dress: 'median', sex: 'm', role: 'official', seed: 31 }, { dress: 'persian', sex: 'm', role: 'official', seed: 36 }, { dress: 'worker', sex: 'm', role: 'porter', seed: 34, anim: 'sit' }, { dress: 'worker', sex: 'm', role: 'mason', seed: 31 }],
 };
 const lineup = LINEUPS[arg('lineup', 'men')], W = +arg('w', '960'), H = +arg('h', '540'), SS = +arg('ss', '1'), hour = +arg('hour', '10'), day = +arg('day', '25');
@@ -65,7 +69,9 @@ const people: Person[] = lineup.map((sp, i) => {
   const s = look.scale, lookC: [number, number, number] = [(cam.eye[0] - x) / s, cam.eye[1] / s, cam.eye[2] / s];
   const inp = { joints: v.joints, pose: pose(anim, 1.3, 0.2, 0.3), face: { jaw: 0, blink: 0, look: lookC, eyeYaw: 0, eyePitch: 0 }, grip: [0, 0] as [number, number], x: 0, y: 0, z: 0, yaw: 0, scale: 1, plant: PLANTED.has(anim), seat: !PLANTED.has(anim) };
   rig.setPose(inp); rig.solve(inp, pal, 0);
-  const C = O.costumes[COSTUME_OF[look.dress]][0], Cs = O.costumes[COSTUME_OF[look.dress]][2];
+  const lodC = +arg('lod', '0'), C = O.costumes[COSTUME_OF[look.dress]][lodC], Cs = O.costumes[COSTUME_OF[look.dress]][2];
+  // --drop kandys,…: pieces laid aside (the seated scribe's coat, crowd.ts ASIDE)
+  const mask = arg('drop', '').split(',').filter(Boolean).reduce((m, id) => m & ~(pieceBit(look.dress, id) ? 1 << pieceBit(look.dress, id) : 0), look.mask);
   const skin = (Cc: CostumeLOD) => {
     const n = Cc.tid.length, pos = new Float32Array(n * 3), nrm = new Float32Array(n * 3), vis = new Uint8Array(n), bend = new Float32Array(n); const base = look.variant * O.NV * 4;
     const wt = wearTexel(look.wear), camD = Math.hypot(cam.eye[0] - x, cam.eye[1], cam.eye[2]);
@@ -85,7 +91,7 @@ const people: Person[] = lineup.map((sp, i) => {
       const cls = Cc.hmat[k * 4]; if (cls >= 1 && cls <= 3 && Cc.hext[k * 4 + 1]) { const o = Cc.skinIndex[k * 4] * 12; const c1 = norm3([pal[o + 1], pal[o + 5], pal[o + 9]]); py -= (Cc.hext[k * 4 + 1] / 255) * SAG_MAX * (1 - Math.abs(c1[1])); }
       const l = Math.hypot(nx, ny, nz) || 1;
       pos[k * 3] = x + px * s; pos[k * 3 + 1] = py * s; pos[k * 3 + 2] = pz * s; nrm[k * 3] = nx / l; nrm[k * 3 + 1] = ny / l; nrm[k * 3 + 2] = nz / l;
-      vis[k] = (Math.floor(look.mask / 2 ** Cc.hmat[k * 4 + 2]) % 2) ? 1 : 0;
+      vis[k] = (Math.floor(mask / 2 ** Cc.hmat[k * 4 + 2]) % 2) ? 1 : 0;
     }
     return { pos, nrm, vis, bend };
   };
@@ -98,8 +104,11 @@ log(`people posed: ${people.map(p => `${p.look.variantId} ${p.look.dress} [${p.l
 const sky = new SkySystem(new THREE.Scene(), 1024, 'test' as any); const clock = new WorldClock(day, hour);
 sky.update(clock.jdUT, new THREE.Vector3(...cam.eye), 0, 0.1);
 const sunDir = norm3(sky.sun.position.clone().sub(sky.sun.target.position).toArray() as V3);
-const sunC = sky.sun.color.toArray().map(c => c * sky.sun.intensity) as V3, hemiI = sky.hemi.intensity;
-const skyC = sky.hemi.color.toArray() as V3, grC = sky.hemi.groundColor.toArray() as V3;
+// --light room (D-206, C): the scribe-at-work room's warm light as a stand-in — the sun's colour × CIE A's (a warm key)
+// and a red painted floor bouncing into the hemisphere's ground colour, the floor drawn red; not the renderer's lighting
+const ROOM = arg('light', '') === 'room', FLOOR: V3 = ROOM ? [0.42, 0.1, 0.06] : [0.36, 0.31, 0.25];
+const sunC = sky.sun.color.toArray().map((c, i) => c * sky.sun.intensity * (ROOM ? [1, 0.62, 0.3][i] : 1)) as V3, hemiI = sky.hemi.intensity;
+const skyC = (ROOM ? [0.55, 0.36, 0.26] : sky.hemi.color.toArray()) as V3, grC = (ROOM ? [0.75, 0.22, 0.12] : sky.hemi.groundColor.toArray()) as V3;
 const sunE = sky.sun.visible ? sky.sun.intensity * Math.max(0, Math.sin((sky.state.sunAlt * Math.PI) / 180)) : 0;
 const exposure = Math.min(6, Math.max(0.35, 2.3 / (sunE + hemiI * 0.8 + 0.004)));
 log(`sun alt ${sky.state.sunAlt.toFixed(1)}°, dir ${sunDir.map(x => x.toFixed(2))}, exposure ${exposure.toFixed(3)}`);
@@ -191,7 +200,7 @@ const backdrop = (x: number, y: number): V3 => { // floor (court fill) and the m
   const dv = norm3([((x + 0.5) / RW - 0.5) * 2 / fx, -((y + 0.5) / RH - 0.5) * 2 / fy, -1]); const dw: V3 = [cx[0] * dv[0] + cy[0] * dv[1] + cz[0] * dv[2], cx[1] * dv[0] + cy[1] * dv[1] + cz[1] * dv[2], cx[2] * dv[0] + cy[2] * dv[1] + cz[2] * dv[2]];
   const tf = dw[1] < -1e-4 ? -cam.eye[1] / dw[1] : 1e9, tw = dw[2] < -1e-4 ? (-5.5 - cam.eye[2]) / dw[2] : 1e9;
   const floorHit = tf < tw, t = Math.min(tf, tw); if (t > 1e8) return [0.45, 0.55, 0.75].map(c => c * hemiI) as V3;
-  const p: V3 = [cam.eye[0] + dw[0] * t, cam.eye[1] + dw[1] * t, cam.eye[2] + dw[2] * t], n: V3 = floorHit ? [0, 1, 0] : [0, 0, 1], alb = floorHit ? [0.36, 0.31, 0.25] : [0.3, 0.27, 0.2];
+  const p: V3 = [cam.eye[0] + dw[0] * t, cam.eye[1] + dw[1] * t, cam.eye[2] + dw[2] * t], n: V3 = floorHit ? [0, 1, 0] : [0, 0, 1], alb = floorHit ? FLOOR : [0.3, 0.27, 0.2];
   const sh = shadowAt(p), nl = Math.max(0, dot3(n, sunDir)), wgt = 0.5 * n[1] + 0.5;
   return [0, 1, 2].map(i => alb[i] / Math.PI * (sunC[i] * nl * sh + (grC[i] + (skyC[i] - grC[i]) * wgt) * hemiI)) as V3;
 };

@@ -33,7 +33,7 @@ const {
   diffuseContribution, specularColor, specularColorBlended, specularF90, metalness, roughness, mod, fract, length, sqrt, atan, exp, pow, cross,
   cameraViewMatrix, BRDF_GGX, F_Schlick, BRDF_Lambert, cameraPosition,
 } = TSL as any; // TSL's typings do not follow mixed float/vec3 arithmetic; the graph is checked when it builds
-import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS } from './humanFormat';
+import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER } from './humanFormat';
 
 /** height field → shading normal (view space; surface gradient from screen-space derivatives, Mikkelsen 2010) */
 function bumped(h: any) {
@@ -73,7 +73,13 @@ export const SAG_MAX = 0.1;
  *  (the two bones' relative rotation where the skin weights mix). Micro-shadowing: the baked cavity also darkens the
  *  direct light (after Chan 2018's micro-shadows), so eye sockets, the nose's underside and cloth folds read in sun. */
 export const DRAPE = { foldLow: [2, 3] as [number, number], foldHigh: [7, 10] as [number, number], highNear: [15, 24] as [number, number],
-  fade: 0.6, soil: 0.55, dust: [0.34, 0.28, 0.2] as RGB, wrinkle: 0.0014, wrinkleF: 26, micro: 1, hatH: 0.154 };
+  fade: 0.6, soil: 0.55, dust: [0.34, 0.28, 0.2] as RGB, wrinkle: 0.0014, wrinkleF: 26, micro: 1, hatH: 0.154,
+  /** D-206 (C): hems — a shell's cut line (the outer 30 % of its ramp, and the turned edge) and a skirt's last hand's
+   *  breadth — are doubled cloth: darker by hemDark and rolled (a ridge of hemRoll m); gathers above the belt on the upper
+   *  garments (class parameter 5, uv.y = height above the belt, m): gatherN folds round the body, gather m deep, fading out
+   *  over gatherH m */
+  hemBand: 0.3, hemDark: 0.14, hemRoll: 0.0007, gather: 0.0024, gatherN: 22, gatherH: 0.07 };
+
 /** person flags (texel 7 w): 1 = hide the head (the player's own body, seen from inside it) */
 export const FLAG_HIDE_HEAD = 1;
 
@@ -381,7 +387,13 @@ export class HumanMaterial extends THREE.MeshStandardNodeMaterial {
     const foldH = tU.mul(tU).mul(ampF).mul(lowF.mul(0.7).add(highF.mul(0.6)).add(0.6)).mul(skirtF);
     // joint wrinkles: rings across the limb where it bends (bind pose: limbs roughly along Y)
     const wrinkleH = sin(P.y.mul(DRAPE.wrinkleF * TAU).add(n2.mul(3))).mul(DRAPE.wrinkle).mul(vWear.y).mul(band(DRAPE.wrinkleF));
-    const clothH = n2.mul(mix(0.003, 0.0012, is(prm, 4))).add(n1.mul(mix(0.00025, 0.00012, isLinen))).add(weaveH).add(pleatH).add(foldH).add(wrinkleH); // linen is smoother than wool
+    // D-206: hems (doubled, rolled cloth at a shell's cut line and a skirt's hem) and the gathers the belt draws in above it
+    const hem = max(float(1).sub(smoothstep(0, DRAPE.hemBand, e2)).mul(float(1).sub(vAux.y)), vAux.y.mul(smoothstep(0.93, 0.99, U.y))).mul(kCloth);
+    const hemH = sin(hem.mul(Math.PI)).mul(DRAPE.hemRoll);
+    const gz = float(1).sub(smoothstep(0, DRAPE.gatherH, U.y)).mul(step(-0.03, U.y)).mul(is(prm, PRM_UPPER)).mul(kCloth);
+    const gatherH = sin(thB.mul(DRAPE.gatherN).add(n2.mul(1.5))).mul(DRAPE.gather).mul(gz).mul(band(DRAPE.gatherN / 0.9));
+    clothAlb = clothAlb.mul(float(1).sub(hem.mul(DRAPE.hemDark)));
+    const clothH = n2.mul(mix(0.003, 0.0012, is(prm, 4))).add(n1.mul(mix(0.00025, 0.00012, isLinen))).add(weaveH).add(pleatH).add(foldH).add(wrinkleH).add(hemH).add(gatherH); // linen is smoother than wool
 
     // ---- felt, leather, metal, wood, wicker
     const feltAlb = vColor.mul(float(1).add(n3.mul(0.1)).add(n1.mul(0.05)));
