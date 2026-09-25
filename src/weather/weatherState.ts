@@ -45,7 +45,11 @@ export class WeatherSystem {
     let snowFall = raining && d.snow ? Math.min(1, 0.3 + d.precipMm / 15) * edge : 0;
     const prev = this.surface[i - 1] ?? { wet: 0, snow: 0 }, cur = this.surface[i];
     const f = hour / 24;
-    let wetness = Math.max(raining ? Math.min(1, prev.wet + edge) : 0, prev.wet * (1 - f) + cur.wet * f);
+    // (before the day's rain begins the ground holds only yesterday's water, drying: the day-end state includes today's rain,
+    // and interpolating toward it wetted the ground ahead of the rain — 0.48 at 11:27 on day 299, the rain-approach moment,
+    // with the rain 30 min off and yesterday dry. D-219; the day-end surface states are unchanged)
+    const dryEnd = prev.wet * (d.tmax > 25 ? 0.2 : 0.5);
+    let wetness = Math.max(raining ? Math.min(1, prev.wet + edge) : 0, d.wet && hour < rs ? prev.wet * (1 - f) + dryEnd * f : prev.wet * (1 - f) + cur.wet * f);
     let snowCover = Math.min(1, (prev.snow * (1 - f) + cur.snow * f) / 40);
     let cloud = raining ? Math.max(d.cloud, 0.85) : d.cloud;
     let dust = d.dust ? Math.max(0, Math.sin(Math.PI * Math.min(1, Math.max(0, (hour - 10) / 8)))) : 0;

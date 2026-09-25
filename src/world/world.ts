@@ -53,6 +53,7 @@ import { buildMapLayers, builtPlainOf, MapItem } from '../ui/mapLayers';
 import { DoorSystem } from '../arch/doors';
 import { WeatherVfx } from './weatherVfx';
 import { RainShafts } from './rainShafts';
+import { RAIN_CELL } from '../sky/clouds';
 import { Birds, Jackals } from './wildlife';
 import { azAltToWorld } from '../sky/ephemeris';
 import { Settlement } from './settlement/build';
@@ -439,12 +440,13 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       building?.sync(); // cheap unless a column changed state
       palace.update(ctx.camera.position, courtOn(Math.floor(sim.t / 24))); // D-212: stored / laid out for the court; far groups not drawn
       nowView.update(); // the Now view: colliders the town streams in meanwhile stay off
+      if (ctx.skyLight?.hemi) wvfx.setLight(ctx.skyLight.hemi, ctx.skyLight.sun ?? null); // streaks and flakes lit by the sky (D-219)
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
       { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
         jackals.update(ctx.clock.dayIndex, ctx.clock.localHour, time); }
-      shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air?.optics);
-      if (ctx.skyLight?.clouds?.cell) ctx.skyLight.clouds.cell.value.copy(shafts.cellWorld); // the cloud thickens over the rain cell
+      shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air);
+      RAIN_CELL.value.copy(shafts.cellWorld); // the cloud thickens over the rain cell, shades the sun and wets the ground under it (D-219)
       if (audio.ctx) {
         const cam = ctx.camera, fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.quaternion);
         audio.setListener(cam.position, fwd);
