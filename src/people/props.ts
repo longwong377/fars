@@ -89,6 +89,10 @@ export const PROP_NOTES: Record<string, { tier: 'A' | 'B' | 'C'; note: string }>
   spear_gpom: { tier: 'B', note: 'a spear with a golden pomegranate at the butt: of the ten thousand “one thousand had golden pomegranates … the nine thousand silver” (Herodotus 7.41, read: B); given to one guard in ten of the Persian-dress files (C)' },
   ball: { tier: 'C', note: 'a child’s stitched leather ball, 10 cm (balls of leather or linen stuffed with chaff or hair are known from Egypt and the Greek world: RECOLLECTION, NOT SEEN; none attested at Persepolis; C)' },
   toy_bow: { tier: 'C', note: 'a boy’s small bow of the recurved form, 0.6 m (boys taught to shoot: HDT 1.136, a Greek claim, B; the toy C)' },
+  // D-221 (rubric s7 pass 2 item 11): the scribes' writing things
+  stylus: { tier: 'C', note: 'a reed stylus for writing cuneiform on clay, cut to a wedge at the tip (a reed or bone stylus: the wedge impressions of the tablets, A; Mesopotamian practice, B by analogy; 14 cm and the cut C), in the right hand while the left holds the tablet (D-221)' },
+  pen: { tier: 'C', note: 'a reed pen for writing Aramaic in ink (Aramaic ink epigraphs on Persepolis tablets: B; pen and ink on leather in the Achaemenid chancery, the Arshama letters: B by analogy; the pen 18 cm, its inked tip C: D-221)' },
+  leather: { tier: 'C', note: 'a sheet of prepared leather being written in Aramaic, one end still rolled (Treasury tablets tied to leather documents with an Aramaic duplicate, Cameron’s inference: B; the Arshama letters on leather: B by analogy; size C). The writing on it is NOT drawn: no Aramaic Treasury document is reachable and nothing is invented (D-221)' },
   barsom: { tier: 'C', note: 'the barsom: a bundle of thin twigs held upright in the right hand by a magus at the fire and at offerings (a man in Median dress holding the barsom on the gold plaques of the Oxus Treasure, OXUS-PLAQUE: B; a bundle on Achaemenid seals, NOT SEEN); a bundle 0.46 m long, drawn as two splayed rods (the twigs are not resolved at a carried prop’s size): C (D-209)' },
   rattle: { tier: 'C', note: 'a hollow fired-clay rattle with pellets inside and a stub handle (clay rattles are known from Near Eastern and Iranian sites: RECOLLECTION, NOT SEEN; C)' },
   babe: { tier: 'C', note: 'a baby of 3-12 months or a small child carried, in a little tunic, bare-legged (C; D-215: its size by age, its skin the carer’s tone)' },
@@ -161,7 +165,7 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
     case 'paddle': return merge([paint(rod([0, 0, -0.55], [0, 0, 0.9], 0.017, 0.017, 5), WOOD, 0, 0.75), paint(box(0.12, 0.018, 0.26, 0, 0, 1.0), WOOD_D, 0, 0.75)]);
     case 'cloth': return paint(new THREE.CylinderGeometry(0.05, 0.05, 0.36, 6, 1, false).rotateZ(Math.PI / 2).scale(1, 0.7, 1), [0.62, 0.58, 0.5], 0, 1);
     case 'wisp': return paint(rod([0, 0, -0.06], [0, 0, 0.16], 0.022, 0.03, 5, true), STRAW, 0, 1);
-    case 'bowl': return paint(new THREE.LatheGeometry([[0, 0], [0.03, 0.002], [0.08, 0.018], [0.1, 0.04], [0.098, 0.042]].map(([x, y]) => new THREE.Vector2(x, y)), 12), [0.82, 0.8, 0.76], 1, 0.28);
+    case 'bowl': return paint(new THREE.LatheGeometry([[0, 0], [0.03, 0.002], [0.08, 0.018], [0.1, 0.04], [0.098, 0.042]].map(([x, y]) => new THREE.Vector2(x, y)), 11), [0.82, 0.8, 0.76], 1, 0.28); // (11 sides, D-221: 8 triangles for the scribes' stylus in the small objects' union)
     case 'rag': return paint(new THREE.SphereGeometry(0.035, 5, 4).scale(1, 0.7, 1.2), [0.7, 0.66, 0.58], 0, 1);
     case 'awl': return merge([paint(rod([0, 0, -0.05], [0, 0, 0.04], 0.012, 0.012, 4, true), [0.8, 0.76, 0.66], 0, 0.7), paint(rod([0, 0, 0.04], [0, 0, 0.12], 0.004, 0.001, 3), [0.8, 0.76, 0.66], 0, 0.7)]);
     case 'ladle': return merge([paint(rod([0, 0, -0.08], [0, 0, 0.36], 0.011, 0.011, 4), WOOD, 0, 0.7), paint(new THREE.SphereGeometry(0.045, 6, 3, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2).translate(0, 0.02, 0.4), WOOD_D, 0, 0.7)]);
@@ -216,6 +220,14 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
     // D-209: the barsom, a bundle of thin twigs held upright (the Oxus plaques: B; length and form C)
     // (12 triangles: the small objects' union has 14 to spare of its 1,000; at a carried prop's size the bundle reads as two
     // splayed rods 2.4 and 1.6 cm thick, the twigs are not resolved)
+    // D-221: the scribes' writing things (grip frame: +Z toward the working end)
+    case 'stylus': return paint(rod([0, 0, -0.07], [0, 0, 0.075], 0.0045, 0.0012, 3), [0.7, 0.62, 0.43], 0, 0.7); // (one tapered reed, 6 triangles: the small objects' union is at its budget)
+    case 'pen': return merge([paint(rod([0, 0, -0.1], [0, 0, 0.07], 0.0035, 0.003, 3), [0.7, 0.63, 0.44], 0, 0.7), paint(rod([0, 0, 0.07], [0, 0, 0.085], 0.003, 0.001, 3), [0.08, 0.07, 0.06], 0, 0.5)]);
+    case 'leather': { // a sheet 0.2 x 0.13 m lying on the palm (x across, z along), its far end rolled
+      const sheet = new THREE.PlaneGeometry(0.2, 0.13, 2, 2).rotateX(-Math.PI / 2).translate(0, 0.004, 0.01), pos = sheet.getAttribute('position');
+      for (let i = 0; i < pos.count; i++) { const x = pos.getX(i) / 0.1; pos.setY(i, pos.getY(i) + 0.012 * x * x); } // (a little cupped across)
+      sheet.computeVertexNormals();
+      return merge([paint(sheet, [0.76, 0.64, 0.47], 0, 0.8), paint(rod([-0.1, 0.014, 0.075], [0.1, 0.014, 0.075], 0.012, 0.012, 5), [0.7, 0.58, 0.42], 0, 0.8)]); }
     case 'barsom': return merge([paint(rod([0, 0, -0.1], [0.004, 0, 0.36], 0.012, 0.009, 3), [0.5, 0.42, 0.26], 0, 0.9), paint(rod([0, 0, -0.08], [-0.016, 0.008, 0.33], 0.008, 0.006, 3), [0.56, 0.47, 0.29], 0, 0.9)]);
     case 'rattle': return merge([paint(new THREE.SphereGeometry(0.034, 5, 4).scale(1, 0.85, 1).translate(0, 0, 0.1), [0.66, 0.46, 0.32], 0, 0.9), paint(rod([0, 0, -0.03], [0, 0, 0.07], 0.012, 0.014, 3, true), [0.62, 0.43, 0.3], 0, 0.9)]);
     // D-215: the carried child (gap audit item 4): its own frame, origin at its seat (the bottom), +Y up its spine, +Z its
@@ -284,12 +296,16 @@ export const PROPS: Record<string, PropSpec> = {
   ball: { geom: 'ball', rule: 'toss' }, toy_bow: { geom: 'toy_bow', rule: 'bow', hand: 'l' }, rattle: { geom: 'rattle', rule: 'one', hand: 'r', roll: 'up' },
   // D-209: the magus's barsom, upright in the right fist
   barsom: { geom: 'barsom', rule: 'one', hand: 'r', roll: 'up', up: 1 },
+  // D-221: the scribes' stylus and pen in the right hand, the leather on the left palm
+  stylus: { geom: 'stylus', rule: 'one', hand: 'r', roll: 'up' }, pen: { geom: 'pen', rule: 'one', hand: 'r', roll: 'up' }, leather: { geom: 'leather', rule: 'palm', hand: 'l' },
 };
 /** the two carried-prop meshes: small objects (with the Phase 3 set) and long tools. Every kind of a class is in one union */
 export const PROP_CLASSES: string[][] = [
   ['spear', 'sack', 'jar', 'tablet', 'mallet', 'basket', 'sickle', 'spindle', 'distaff', 'trowel', 'brick', 'knife', 'cloth', 'wisp', 'bowl', 'rag', 'awl', 'arrow', 'lead', 'ladle', 'stick',
     // (D-209: the magus's barsom, 12 triangles: the long tools' union is at its 700)
-    'barsom'],
+    'barsom',
+    // (D-221: the scribes' stylus, 6 triangles, paid for by the phiale's twelfth side)
+    'stylus'],
   // (D-199: the king's and his attendants' things join the long tools' union: the small objects' is at its budget)
   ['hoe', 'fork', 'goad', 'staff', 'broom', 'mould', 'rope', 'adze', 'bow', 'beater', 'paddle', 'sceptre', 'parasol', 'lotus', 'whisk', 'towel',
     // (D-215: the children's toys, small, in the long tools' union: the small objects' is full)
@@ -298,7 +314,9 @@ export const PROP_CLASSES: string[][] = [
   // where someone plays)
   ['harp_v', 'harp_h', 'lyre', 'frame_drum', 'double_pipe', 'reed_pipe', 'plectrum',
     // (D-215: the royal spearmen's gilded spears, court setting only: the court's things, drawn where the court is)
-    'spear_apple', 'spear_gpom'],
+    'spear_apple', 'spear_gpom',
+    // (D-221: the Aramaic secretary's pen and leather, drawn only in the Treasury's scribes' room: the everyday unions are full)
+    'pen', 'leather'],
   // D-215: the carried children (a class of their own: one draw more only where a child is carried; the skin tinted per
   // instance by the carer's tone)
   ['babe', 'babe_wrapped', 'babe_sling', 'babe_wrapped_sling', 'babe_mat', 'babe_cradle'],

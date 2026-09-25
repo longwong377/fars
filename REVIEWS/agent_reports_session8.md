@@ -80,3 +80,30 @@ Stair → village p21 at dawn 0.39; a 6 m/s wind more than halves τ; 5 puffs pe
 smoke − none): town-smoke-dusk rows 250–262 +10.3/+8.9 luma (+22 % Weber; control parapet |Δ| 0.25), near-horizon sky −3.9;
 rahmat +10–12 %; dawn-stair-top +6.8 at the horizon line. Draws +1 (+1 inside a layer). Tests: smoke_dust (16), smoke_light,
 fire_light, settlement, settlement_build, religion, fx_shader, fauna; tsc; lint:all. D-220, Q-500..Q-506.
+
+## D-221 the court as an assembly and the scribes' room (merged: worktree-agent-a1c7dbb28cc230746, head 1f092fd)
+**Broken / unverified first.** In render 2 the Aramaic secretary and the pupil still read as bare torsos in short red skirts
+(node: the Median tunic, trousers and boots are drawn, 12,690 tunic pixels; guess, unchecked: madder-red cloth under the red
+floor's bounce reads as skin; handed to the garments workstream D-225). The nearest scribe sat 2.42 m from the lens, inside
+the rig's 2.5 m clearance, and was not drawn: the camera moved back 0.3 m, not re-rendered. The court frame is calmer (no
+sweepers; blocks and knots) but the spearmen's files, 29–41 m away and end-on at eye level, are not legible: still a busy
+court more than an assembly. Placeholders: the usher does not hold the leader's hand (no pose); the delegations' animals stay
+at the camp; the Aramaic leather sheet carries no writing; the pupil rests on a recalled attestation (Q-514). (The lamp is
+lit since the lead's follow-up: a fire of kind lamp, sched 'day', in the occlusion bake.) The 30-day court soak fails
+variety, populationVariety and plansWellFormed (2,786 "festival" issues, court women on day 10) identically on the base
+tree (pre-existing). Timing asserts in performances/popview failed under load.
+**Court:** posts 1.0 m apart centred on each line (court.json day.file_spacing_m), held in place (Spot.fixed), others kept
+0.8 m off posts, the way between the files and the parties' places; the Gate's S file to the W wall. CourtResidents.dayOrder:
+25 party blocks five abreast before the N stair (0.9 m apart, rows 1 m), petitioners in lines on the E side, the morning's
+called parties nearest in arrival order; one party at a time before the king (≤ 0.25 h), each with its own usher (531 turns);
+those waiting face the N stair, E stair, hall door or throne; forecourt talk in knots round ~20 centres; sweeping only before
+~08:00 and after ~16:00; court-assembly moved to day 32 09:30. Measured (node, before → after): guards in order 0.5 % →
+91.9 % of ~1,945 (87 % at meal hours: end men whose neighbour eats, Q-512); party members within 3 m of their centre 8.6 % →
+100 %; mean alignment to the focus 0.009 → 0.996; within 30° 18.6 % → 100 %. Test tests/court_order.test.ts.
+**Scribes' room:** write_tablet draws a tablet in the left palm and a 6-triangle stylus (the phiale lost a side to keep the
+1,000-triangle small-prop budget; draws back to 2); the Aramaic secretary with leather sheet and reed pen; seats in site_spec
+(Elamite scribe, secretary, pupil, visitor); the secretary's son (15) copies on 259 of 350 days (gap audit 33; no new person,
+pids unchanged); mats, lamp and soot, ink pot, water bowl, jars, bench baskets, seals, stained floor (all C); the old moment
+had one scribe ill and the other in the store: moved to day 21 13:30, re-aimed from the W. people_pieces passes again.
+Tests: court, court_fill, court_order, scribes_room, court_view, people, population, people_pieces, treasury_rooms. D-221,
+Q-510..Q-516, COURT.md §6, SITE_SPEC regenerated.

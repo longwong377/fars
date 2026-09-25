@@ -53,6 +53,11 @@ export function placeFires(fire: FireSink, m: any, parts: any[], doorways: Doorw
   if (hm) fire.add('hearth', gw(HC.x[0] + 3, (HC.y[0] + HC.y[1]) / 2, hm[4]), { ...C, note: 'cooking hearth in the Harem court (C)' });
   const TN = (v<any[]>('treasury', 'doors')).find((d: any) => d.id === 'N');
   if (m.treasury && TN) for (const s of [-1, 1]) fire.add('torch', gw(TN.at[0] + s * (TN.width / 2 + 0.6), TN.at[1] + 0.3, 2.4), { ...C, note: 'torch at the Treasury N doorway, street side (C)' });
+  // the scribes' room's saucer lamp on the bench (D-221 placed it unlit): lit through the working day, the room's only
+  // daylight a 1.1 m doorway (session 8; C); its body is furnish.ts's clay lamp
+  const SR = (m.treasury as any)?.scribesRoom as number[] | undefined, SH = (m.treasury as any)?.scribesShelves as number[][] | undefined;
+  if (SR) { const L = v<any>('treasury', 'r_scribes_room'), nb = SH?.find(([, , sx, sy]) => sx > sy), top = nb ? nb[4] : SR[4] + L.bench.height;
+    fire.add('lamp', gw(L.lamp.at[0], L.lamp.at[1], top + 0.02), { ...C, sched: 'day', body: false, note: 'the scribes\' saucer lamp, lit while they work in the dim room (C)' }); }
 }
 
 /** where the Terrace fires' point lights stand (world x, y, z, mm-rounded) as FireSystem.update puts them: the fire's base

@@ -20,6 +20,7 @@ import { babeMode, type BabeMode } from './babes';
 import type { PeopleSim, Agent } from './sim';
 import { ACTIVITIES, type ActivityId } from './activities';
 import { PopGeo, routeAt, headingOf, type Spot, type Route } from './popgeo';
+import { FACING_ACTS } from './court';
 import { sunTimes } from './calendar';
 import { h32, salt } from './hash';
 import type { P2 } from './navgrid';
@@ -209,7 +210,8 @@ export class PopView {
     const indoor = act === 'sleep' || act === 'lie_ill' || act === 'offmap' || (dark && act === 'rest');
     // (keyed by the day too: a spot depends on the day, the home and the age with it; a lane's spot memoised on day 150 was
     // used on day 25, 9 m away, when the person had turned twelve in between: D-191)
-    const key = (P.day * 4194304 + P.place[i]) * 2 + (indoor ? 1 : 0); let sp = s.spots.get(key);
+    // (D-221: and by whether the act faces what is waited on, court setting only: popgeo.terrace)
+    const key = ((P.day * 4194304 + P.place[i]) * 2 + (indoor ? 1 : 0)) * 2 + (this.pop.court && FACING_ACTS.test(act) ? 1 : 0); let sp = s.spots.get(key);
     if (!sp) { sp = this.geo.spot(s.pid, place, act, P.day, h); if (s.spots.size >= 64) s.spots.clear(); s.spots.set(key, sp); }
     return sp;
   }
@@ -348,7 +350,8 @@ export class PopView {
    *  open ground (popgeo.stepClear). Counted: `stats.spread`, and `stats.crowded` when no ring has room */
   private separate(s: PS, t: number, arriving: boolean) {
     this.release(s); const sp = s.spot!; let e = sp.e, n = sp.n;
-    if (!this.freeAt(e, n, s.pid)) { let found = false; const ph = h32(this.seed, S.sep, s.pid) / 4294967296 * Math.PI * 2;
+    // (D-221: a post or a place in the court's order is held where it stands)
+    if (!sp.fixed && !this.freeAt(e, n, s.pid)) { let found = false; const ph = h32(this.seed, S.sep, s.pid) / 4294967296 * Math.PI * 2;
       for (let ring = 1; ring <= 8 && !found; ring++) { const m = 6 * ring; for (let k = 0; k < m && !found; k++) { const a = ph + (k / m) * Math.PI * 2, r = SEP * 1.05 * ring, e2 = sp.e + Math.cos(a) * r, n2 = sp.n + Math.sin(a) * r;
         if (this.freeAt(e2, n2, s.pid) && this.geo.stepClear(sp, [e2, n2])) { e = e2; n = n2; found = true; } } }
       if (found) this.stats.spread++; else this.stats.crowded++; }
@@ -448,7 +451,7 @@ export class PopView {
   lookInput(pid: number): LookInput {
     const p = this.pop.persons[pid];
     if (p.agent >= 0) { const a = this.sim.agents[p.agent]; return { id: a.id, sex: a.sex, role: a.role, dress: a.dress as Dress, origin: a.origin, seed: a.seed }; }
-    const day = Math.floor(this.sim.t / 24), age = this.pop.ageOn(pid, day), cl = this.pop.court?.lookOf(pid) ?? null, dress = (cl?.dress as Dress | undefined) ?? dressOf(p.job, p.sex, age, p.persian);
+    const day = Math.floor(this.sim.t / 24), age = this.pop.ageOn(pid, day), cl = this.pop.court?.lookOf(pid) ?? null, dress = (cl?.dress as Dress | undefined) ?? (p.pupilOf !== undefined ? 'median' : dressOf(p.job, p.sex, age, p.persian)); // (D-221: a scribe's pupil dresses as the scribes, Q-515)
     return { id: 100000 + pid, sex: p.sex, role: roleOf(p.job, p.sub), dress, origin: p.origin, seed: h32(this.seed, salt('look'), pid) % 1000000000, age: age < 12 ? 'child' : age >= 58 ? 'elder' : 'adult',
       ...(cl ? { delegation: cl.delegation, pieces: cl.pieces, beardless: cl.beardless, stature: cl.stature } : {}) }; // (D-199: the court setting's delegations, king and attendants)
   }
