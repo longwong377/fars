@@ -3835,7 +3835,8 @@ class Planner {
       : p.sex === 'f' ? [['home', 'grind', 'grinding for the household'], ...(this.hd.bake ? [['home', 'knead', 'kneading the household’s dough'] as [string, ActivityId, string]] : []), ['home', 'spin', 'spinning for the household'], ...(this.C.wx.wet ? [] : [['wash', 'wash', 'washing the household’s clothes at the water'] as [string, ActivityId, string]])]
       : [...(this.C.wx.wet ? [] : [['fuel', 'gather', 'gathering dung and brushwood for the house'] as [string, ActivityId, string], ['errand', 'exchange', 'on an errand for the household in the lane'] as [string, ActivityId, string]]), ['home', 'talk', 'waiting on the master'], ['home', 'craft', 'mending the house’s tools and baskets'], ['home', 'clean', 'sweeping the courtyard and the roof']];
     let ate = false, fuel = 0;
-    let last = ''; while (this.t < 17) { if (!ate && this.t > 11.7) { ate = true; this.atHome(this.t + 0.5, 'eat', 'the midday meal with the household'); continue; }
+    // (a guard on the loop: a float residue a hair short of 17:00 made no progress, D-211's soak hung on it)
+    let last = ''; for (let g = 0; g < 60 && this.t < 17 - 0.02; g++) { if (!ate && this.t > 11.7) { ate = true; this.atHome(this.t + 0.5, 'eat', 'the midday meal with the household'); continue; }
       // one task, then another; in a town house the dough, the washing, the fuel and the errand once a day (was: a servant
       // kneading the household's dough three times and washing twice in a day)
       const spent = (x: [string, ActivityId, string]) => x[2] === last || (!estate && ['knead', 'wash', 'gather', 'exchange', 'clean'].includes(x[1]) && this.segs.some(s => s.why === x[2])) || (x[0] === 'fuel' && (fuel > 0 || (!ate && this.t > 9.5))); // (the fuel run, 2-3 h, not across the midday meal)
