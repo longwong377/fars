@@ -1322,6 +1322,11 @@ export class Population {
    *  not drafted, a job that stops for the festival */
   festDay(pid: number, d: number) {
     const C = this.cal.ctx(d), p = this.persons[pid]; if (!C.festival || !Population.FEST_OFF.has(p.job) || !this.dayFree(pid, d)) return false;
+    // (D-229: the court's people are not the town's work groups. E-38 is the day off of the gangs and the town's work groups;
+    // the court in residence keeps the court's day (court.ts, which has no festival rule: D-221), and nothing attests the
+    // court's women, servants or retinue taking the town's day off. Before this, the women of the court, who live on the
+    // Terrace, read as "work on a festival day off" in their own quarters: Phase 5 review C1, Q-580)
+    if (this.court?.owns(pid)) return false;
     const H = this.households[this.home(pid, d)]; if (H.zone === 'transient') return false;
     if (this.weddingOf(pid, d) || (d === p.marry && !p.moved) || (this.keeperOn(H.id, d) === pid) || this.draftedOn(pid, d, C)) return false;
     // (the house's child-minder keeps the little ones of a mother whose day is not the festival's: her day is child()'s)
