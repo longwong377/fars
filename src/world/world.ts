@@ -297,10 +297,11 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     // what a performer is seen doing (D-200: the playing performance, the singers' jaw and breath on the piece's notes)
     play: (who, kind, sec, notes) => crowd.setPlaying(Crowd.keyOf(who), kind, sec, time, notes),
   });
-  // the population's people who may play (D-200): the herders of the transhumant bands out of doors near the view
+  // the population's people who may play (D-200): the herders of the transhumant bands out of doors near the view, and the
+  // magi when they chant (D-209)
   const popPerformers: PopPerformer[] = [];
   const bandPeople = (day: number) => { popPerformers.length = 0;
-    for (const o of view.visible) if (o.agent < 0 && (o.place.startsWith('camp:band') || o.place.startsWith('route:band'))) { const q = view.pop.persons[o.pid];
+    for (const o of view.visible) if (o.agent < 0 && (o.place.startsWith('camp:band') || o.place.startsWith('route:band') || o.act === 'chant')) { const q = view.pop.persons[o.pid];
       popPerformers.push({ pid: o.pid, sex: q.sex, age: view.pop.ageOn(o.pid, day), act: o.act, why: o.why, place: o.place, e: o.e, n: o.n, y: o.y, moving: o.moving, seed: h32(seed, o.pid) }); }
     return popPerformers; };
   const surfaceAt = (y: number, groundY: number) => (y > -1 ? 'stone' : Math.abs(y - groundY) < 0.3 ? 'earth' : 'stone') as 'stone' | 'earth';

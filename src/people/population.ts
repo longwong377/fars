@@ -3405,9 +3405,9 @@ class Planner {
     this.go('offering_place', 'town', `leading a ${beast} to the precinct for a sacrifice`);
     if (this.t < s.t) this.add(s.t, 'offering_place', 'sacrifice', `standing with the ${beast} at the precinct until the magus comes`, 'town');
     this.add(s.t + SACRIFICE.pray, 'offering_place', 'sacrifice', `calling on the god over his ${beast}, the magus standing by with the barsom; he prays for the king and all the Persians (Herodotus 1.132)`, 'town');
-    this.add(this.t + SACRIFICE.cut, 'offering_place', 'cut_offering', `the ${beast} killed and cut limb from limb (Herodotus 1.132)`, 'town');
-    this.add(this.t + SACRIFICE.boil, 'offering_place', 'cook', 'boiling the meat of the offering on a small fire', 'town');
-    this.add(this.t + SACRIFICE.chant, 'offering_place', 'sacrifice', 'standing by while the magus chants over the meat laid on soft grass (Herodotus 1.132)', 'town');
+    this.add(s.t + SACRIFICE.pray + SACRIFICE.cut, 'offering_place', 'cut_offering', `the ${beast} killed and cut limb from limb (Herodotus 1.132)`, 'town');
+    this.add(s.t + SACRIFICE.pray + SACRIFICE.cut + SACRIFICE.boil, 'offering_place', 'cook', 'boiling the meat of the offering on a small fire', 'town');
+    this.add(s.t + SACRIFICE.h, 'offering_place', 'sacrifice', 'standing by while the magus chants over the meat laid on soft grass (Herodotus 1.132)', 'town');
     this.go(this.home, this.homeW, 'carrying the meat of the offering home (Herodotus 1.132)', 'carry_bread');
     if (this.t < this.hd.noon) this.homeHours(this.hd.noon, 'at home'); this.noonAtHome();
     this.homeHours(Math.max(this.t, 15.5), 'at home'); this.evening(Math.max(this.t, this.sun.set - 1)); return this.finish();
@@ -3463,8 +3463,8 @@ class Planner {
       const who = nameFor(P.seed, P.persons[s.offerer]) ?? 'a man of the town', beast = s.goat ? 'goat' : 'sheep';
       jobs.push({ t: s.t, place: 'offering_place', f: () => {
         this.add(s.t + SACRIFICE.pray, 'offering_place', 'offer', `standing by with the barsom while ${who} calls on the god over his ${beast} (Herodotus 1.132)`, 'town');
-        this.add(this.t + SACRIFICE.cut + SACRIFICE.boil, 'offering_place', 'talk', `with ${who} while the ${beast} is cut up and its meat boiled`, 'town');
-        this.add(this.t + SACRIFICE.chant, 'offering_place', 'chant', 'chanting over the meat laid on soft grass, without words (Herodotus 1.132: no sacrifice without a magus)', 'town');
+        this.add(s.t + SACRIFICE.pray + SACRIFICE.cut + SACRIFICE.boil, 'offering_place', 'talk', `with ${who} while the ${beast} is cut up and its meat boiled`, 'town');
+        this.add(s.t + SACRIFICE.h, 'offering_place', 'chant', 'chanting over the meat laid on soft grass, without words (Herodotus 1.132: no sacrifice without a magus)', 'town');
         this.go(this.home, this.homeW); } });
     }
     jobs.sort((a, b) => a.t - b.t);

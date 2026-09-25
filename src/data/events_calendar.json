@@ -258,7 +258,7 @@
       "place_kind": "offering place off the Terrace (C)",
       "goods": [{ "item": "barley", "qty": 7.5, "unit": "qa per month for lan (C: PF 1955's 90-qa share, if the text covers a year)" }, { "item": "wine", "qty": "C", "unit": "qa" }],
       "preconditions": [], "effects": ["store.grain -= qty", "the priest's keep is covered (lan as basic income)"],
-      "performance": "minimal: the allocation is received and carried to the offering place. No invented liturgy. If a sacrifice is ever shown: no altar, no fire, no music; the magus chants (HDT 1.132, claim)",
+      "performance": "D-209 (the most probable reconstruction, C): the duty magus (day % 3) feeds the kept fire on the precinct's stepped altar before first light, sets the day's barley on the ground before the fire and wine in a bowl beside it (set out, not poured: HDT 1.132 \"no libations\", B claim), the barsom in hand and the mouth covered, then chants at the fire WITHOUT WORDS (HDT 1.132: a magus chants; no words are invented); at dusk he banks the fire. The allocation is drawn monthly at the storehouse. Put off by the rain",
       "default": true, "tier": "B", "src": "HENK2008;HDT", "note": "Darius-era PF; continuity in 467 and the place are C (Q-035)"
     },
     {
@@ -266,7 +266,7 @@
       "months": "all", "rule": { "type": "rate", "per": "month", "mean": 1, "range": [0, 2] },
       "participants": [{ "role": "magus", "count": 1 }], "place_kind": "mountain slope / river bank (C)",
       "goods": [{ "item": "barley", "qty": "share of the allocation", "unit": "qa" }],
-      "preconditions": [], "effects": ["store.grain -= qty"], "performance": "as E-30",
+      "preconditions": [], "effects": ["store.grain -= qty"], "performance": "D-209 (C): the magus climbs the slope of Kuh-e Rahmat or walks to the Pulvar bank with barley, sets it out (on the bank, not in the water: HDT 1.138, B claim), stands with the barsom and chants without words; put off by the rain",
       "default": true, "tier": "B", "src": "HENK2008", "note": "PF 1955 and the journals of the magi Kammargina and Upiš (SX); rate C"
     },
     {
@@ -274,7 +274,7 @@
       "months": "all", "rule": { "type": "rate", "per": "month", "mean": 2, "range": [1, 4], "weights": { "Humban": 3, "Auramazdā": 1, "Mišebaka": 1, "Napiriša": 1, "Adad": 0.5, "Šimut": 0.5 } },
       "participants": [{ "role": "magus or šatin", "count": 1 }], "place_kind": "offering place (C)",
       "goods": [{ "item": "barley or wine; sheep for larger offerings", "qty": "C", "unit": "-" }],
-      "preconditions": [], "effects": ["store.grain -= qty"], "performance": "as E-30",
+      "preconditions": [], "effects": ["store.grain -= qty"], "performance": "D-209 (C): at the precinct, barley and wine set out before the fire with the barsom and a wordless chant; one in five with a sheep, which the magus kills with his own hand (HDT 1.140, B claim; not shown: the butchery of the joints is), boils and chants over, and carries the meat home",
       "default": true, "tier": "B", "src": "IR-ADMIN;HENK2008", "note": "gods and relative weight from SX (Humban's grain more than 3x Auramazdā's); rates C"
     },
     {
@@ -285,6 +285,14 @@
       "goods": [{ "item": "sheep", "qty": "C", "unit": "head" }, { "item": "grain", "qty": "C", "unit": "BAR" }, { "item": "wine", "qty": "C", "unit": "marriš" }],
       "preconditions": ["a presiding high official is present (none attested in 467)"], "effects": [],
       "default": false, "tier": "B", "src": "HENK2011", "note": "Darius-era (Parnakka, Ziššawiš; NN 2259); not scheduled by default"
+    },
+    {
+      "id": "E-34", "kind": "offering", "name": "a household's sacrifice at the precinct (the form after Herodotus 1.132)",
+      "months": "all", "rule": { "type": "household", "per": "year", "share": { "standing": 0.9, "other": 0.4 }, "goat_share": 0.25, "applies_to": "Persian and Median men of the town's Persian households, of a trade that can leave its work for a morning (Population.sacrificesOn)" },
+      "participants": [{ "role": "the household's eldest man who is free that day (the offerer)", "count": 1 }, { "role": "magus (no sacrifice without one: HDT 1.132)", "count": 1 }], "place_kind": "the precinct's open ground W of the plinths (D-209, C)",
+      "goods": [{ "item": "sheep or goat of the household", "qty": 1, "unit": "head" }], "preconditions": ["a magus free of the lan, the day's offerings and another sacrifice", "no rain", "done by 15:00"], "effects": ["the meat carried home and eaten by the household (C)"],
+      "performance": "D-209: the man leads the beast to the precinct, calls on the god (praying for the king and all the Persians: HDT 1.132, B claim), the magus standing by with the barsom; the beast is killed and cut limb from limb (the killing is not shown: the butchery of the joints on the hide is), the meat boiled on a small fire and laid on soft grass, the magus chants over it WITHOUT WORDS, the man carries the meat home. About 180 a year (seed 1)",
+      "default": true, "tier": "C", "src": "HDT;RECON", "note": "the form is a Greek claim (B); who sacrifices, how often (about once a year for a household of standing, two years in five for the others), where and when are C (D-207 most probable reconstruction)"
     },
     {
       "id": "E-35", "kind": "feast", "name": "the king's birthday feast (tukta)",
@@ -469,7 +477,7 @@
       "participants": [{ "role": "household", "count": "all" }, { "role": "bearers", "count": [2, 4] }], "place_kind": "home -> burial ground outside the settlement (C)",
       "goods": [], "preconditions": [],
       "effects": ["household shrinks; the person's ration stops (CE-16)", "the group head reports it (C)"],
-      "performance": "the body is carried out of the settlement. Herodotus 1.140: Persians coat the body in wax and bury it; the magi first let birds or dogs tear it ('secretly and obscurely told'). Do not show exposure",
+      "performance": "D-209: the day after the death, at one hour of the morning (after the rain), the men of the house carry the dead, coated in wax at home (HDT 1.140, B claim; not shown), on a bier out of the settlement to the burial ground (the town's at the foot of Kuh-e Rahmat, C; a village's outside it), dig the grave and lay the dead in the earth; the women who can leave the little ones follow and stand at the grave; all go home to mourn. A dead magus is carried out to the hillside only (the magi first let birds or dogs tear it: HDT 1.140, 'secretly and obscurely told'): exposure is NEVER shown",
       "default": true, "tier": "C", "src": "BF1994;HDT", "note": "e0 22-25 in Roman Egypt (SX) -> CDR ~40-45; infant mortality is RECOLLECTION, NOT SEEN (Coale-Demeny West levels 2-4)"
     },
     {

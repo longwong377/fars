@@ -240,9 +240,16 @@ describe('activity lint (brief §9.5): zero placeholders', () => {
     ];
     for (const [act, why, anim] of cases) expect(performanceFor(act, why, 5).anim, `${act}: “${why}”`).toBe(anim);
     expect(performanceFor('tend_animals', 'tending the relay horses', 3).animals?.species).toEqual(['horse']);
-    // offerings: never a gesture or a fire; shares of jar, sack and lead by seed
-    const seen = new Set<string>(); for (let s = 0; s < 400; s++) { const P = performanceFor('offer', 'the lan (the regular offering; performance not attested)', s); seen.add(P.anim); expect(P.note).toMatch(/not (attested|shown)/i); }
-    expect([...seen].sort()).toEqual(['hold', 'hold_lead', 'hold_sack']);
+    // offerings (D-209): the magus with the barsom and the mouth-cover, the lan set out before him; a sheep on its lead when
+    // the plan says so; the rite shown as a reconstruction and said so, with no words
+    for (let s = 0; s < 50; s++) { const P = performanceFor('offer', 'the lan: the day’s barley set out on the ground before the fire and wine in a bowl beside it, the barsom in hand (PF lan, B; the rite C)', s);
+      expect(P.anim).toBe('barsom'); expect(P.prop).toBe('barsom'); expect(P.wear).toEqual(['mouth_cover']); expect(P.work?.map(w => w.kind)).toEqual(['offering_set']); expect(P.note).toMatch(/not attested.*reconstruction.*no words/); }
+    expect(performanceFor('offer', 'a sheep issued for an offering for Humban, held on its lead before the fire (HENK2008: B)', 3).animals?.species).toEqual(['sheep']);
+    for (const [act, why, anim] of [['tend_fire', 'feeding the kept fire before first light', 'feed_fire'], ['chant', 'chanting at the fire, without words', 'barsom'], ['sacrifice', 'calling on the god over his goat', 'hold_lead'],
+      ['sacrifice', 'standing by while the magus chants over the meat laid on soft grass (Herodotus 1.132)', 'mourn'], ['cut_offering', 'the sheep killed and cut limb from limb', 'butcher'], ['bury', 'digging the grave', 'hoe'], ['mourn', 'mourning at the grave', 'mourn']] as const)
+      expect(performanceFor(act, why, 1).anim, `${act}: ${why}`).toBe(anim);
+    expect(performanceFor('sacrifice', 'calling on the god over his goat', 1).animals?.species).toEqual(['goat']);
+    expect(performanceFor('walk', 'leading a sheep to the precinct for a sacrifice', 1).animals?.species).toEqual(['sheep']);
   });
 });
 

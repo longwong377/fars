@@ -76,17 +76,45 @@ April–July: 1.0 2.5 6.7 8.6 11.7 8.6 10.6 5.5 2.8 2.0 1.1 0.6 (then × 0.5, C)
 | E-27 | 12–1 (setting only) | **Journeys to the king at the New Year** (Darius-era pattern) | officials, taxpayers | Terrace | – | court resident only | KING2022 (abstract) | B (Darius-era) / C |
 | E-28 | all | Couriers of the post are not stopped "by snow nor rain nor heat nor darkness" | – | – | – | weather never cancels E-20 | HDT 8.98 (FT) | B (claim) |
 
-## 4. Religion (only what is attested)
+## 4. Religion (attested rows; how they are shown: the D-209 notes below the table)
 | id | month(s) | event | participants | place | quantities | frequency | source | tier |
 |---|---|---|---|---|---|---|---|---|
 | E-30 | all | ***lan***: "a specific kind of daily sacrifice, which, in economic terms, served as a basic income for individuals with cultic responsibilities"; "the most widespread type of sacrifice" in the archive | magus (*makuš*) or priest (*šatin*); the storekeeper issues the allocation | the offering place (**not on the Terrace**: no evidence; C) | PF 1955: 360 qa barley in four equal shares (*lan*, Mišebaka, a mountain, a river), period not retrieved; wine also used | daily (the allocation is drawn monthly, C) | HENK2008 (SX) | B (the rite exists, Darius-era) / C (continued in 467; place) |
 | E-31 | all | **Offerings to a named mountain and a named river** | magus | mountain / river bank (C) | from the same allocation | C: monthly | HENK2008 (SX) | B / C |
 | E-32 | all | **Offerings for gods**: Mišebaka ("All Gods"), Auramazdā, Humban (the most offerings; his grain is more than 3 × Auramazdā's), Napiriša, Adad, Šimut | magus or *šatin* (Elamite priest) | as E-30 | barley, wine, sheep | C: monthly | IR-ADMIN, HENK2008 (SX) | B / C |
 | E-33 | – | ***šip***: a large sacrificial feast "intimately connected with the crown"; Parnakka presided at Pasargadae and Ziššawiš at Appištapdan; sheep/goats under a *halmi* of Parnakka (NN 2259) | a high official presiding, priests, guests | not at Persepolis in the attested cases | sheep, goats, grain, wine | **not scheduled by default** (neither office-holder is attested in 467); 0–1 a year only if a presiding official is set (C) | HENK2011 (SX) | B (Darius-era) / C |
-| E-34 | – | Form of a Persian sacrifice (Greek claim): "they do not build altars or kindle fire, employ libations, or music"; "a Magus comes near and chants"; the sacrificer takes the meat | magus, sacrificer | open ground | – | applies to E-30 to E-33 if they are ever performed on screen | HDT 1.132 (FT) | B (claim) |
+| E-34 | – | Form of a Persian sacrifice (Greek claim): "they do not build altars or kindle fire, employ libations, or music"; "a Magus comes near and chants"; the sacrificer takes the meat | magus, sacrificer | open ground | – | the households' sacrifices at the precinct (D-209: about 180 a year, C) and the form of E-30 to E-32 as shown | HDT 1.132 (FT) | B (claim) / C (rate, place) |
 | E-35 | – (court only) | **King's birthday feast**: "served once a year, on the king's birthday … *tukta* … the king anoints his head and makes gifts to the Persians" | king, court | wherever the king is | – | court resident only; date unknown | HDT 9.110 (FT) | B (claim) |
 | E-36 | – (court only) | When the king "comes to Persia" he sacrifices and gives gifts to all the Persians, men and women | king | – | – | court resident only | XEN-CYR 8.5.21, 8.5.26 (FT) | B (claim) |
 | E-37 | any | **Birthday meal**: "The day which every man values most is his own birthday … a more abundant meal"; the poorer serve "the lesser kinds of cattle" | household | home | one small animal or better food | once a year per adult (Persian households) | HDT 1.133 (FT) | B (claim) |
+
+**How the religious rows are shown (D-209, session 7; the user's direction D-207: the most probable reconstruction, tier C,
+as action, fire, offering and wordless chant; no invented liturgical words; no fire temple, the evidence being against
+one in 467).** All of it is reconstruction unless a source is named:
+- **The place:** an open-air precinct on the level bench at the foot of Kuh-e Rahmat, 180 m S of the Terrace (C): two stone
+  plinths after the Pasargadae sacred precinct (B form, search extracts) and a stepped fire altar after the Naqsh-e Rustam
+  tomb reliefs (B form; relief NOT SEEN), with a fire kept on it (C; Herodotus 3.16 "the Persians hold fire to be a god",
+  read). No temple, shrine or statue (Herodotus 1.131, read).
+- **E-30 (the lan):** the duty magus of three (day % 3) feeds the fire before first light, sets out the day's barley and a
+  bowl of wine before it (set out, not poured: Herodotus 1.132 "no libations"), barsom in hand and the mouth covered (the
+  Oxus plaques, B), chants without words, and banks the fire at dusk. Put off by the rain (9 days in the year, seed 1).
+- **E-31, E-32:** barley set out on the mountain's slope or the river's bank (not in the water: Herodotus 1.138), or before
+  the fire for a god, with the barsom and a wordless chant; an E-32 sheep is killed by the magus himself (Herodotus 1.140:
+  "the Magi kill with their own hands"), boiled, chanted over and its meat carried home. The killing is never shown: the
+  butchery of the joints on the hide is (D-142's rule).
+- **E-34 (households' sacrifices):** about 180 a year (seed 1) by Persian and Median men of the town's Persian households
+  (nine in ten households of standing a year, two in five of the others: C), each with a magus: the beast led to the
+  precinct, the god called on, the beast cut up, its meat boiled and laid on soft grass, the magus chanting over it, the
+  meat carried home (Herodotus 1.132, a Greek claim: B).
+- **E-71 (funerals):** the day after a death the men of the house carry the dead on a bier to the burial ground (the town's
+  at the mountain's foot 1.1 km S of the Terrace, C) and bury it; the women who can leave the little ones follow and stand
+  at the grave (Herodotus 1.140: the body coated in wax and buried in the earth, B claim; not shown). A dead magus is only
+  carried out to the hillside: exposure is never shown.
+- **Not added (household piety):** no offering at meals and no household shrine. Herodotus 1.132 says no Persian sacrifice
+  is made without a magus, which argues against a private offering at the hearth; no domestic cult of Persians is attested
+  for the period. The house's hearth fire is kept (lit at dusk, banked, relit before dawn: fire.ts 'home'), which is
+  practice, not rite. Babylonian and Elamite households' domestic cults (known in Mesopotamia) are an open question
+  (Q-471).
 
 ## 5. Agriculture, herds and the river (Fars)
 | id | month(s) | event | participants | place | quantities | frequency | source | tier |

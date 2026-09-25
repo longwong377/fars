@@ -4246,3 +4246,96 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
   instruments (four prop classes); performers (the court women's gig is no longer PLACEHOLDER); popview (a hand-held child is
   allowed its snap distance off its own route; the variant check passes who performs).
 - **Doubts:** Q-205 (updated), Q-430 to Q-439.
+
+## D-209 The religious life of 467 around Persepolis: an open-air precinct with a kept fire, the magi's day, households' sacrifices, funerals and a wordless chant (session 7; the user's direction D-207)
+- **Read first: all of it is reconstruction, and none of it has been seen.** Every place, size, hour, rate, gesture and sound
+  here is tier C, built on B forms (the Pasargadae plinths and the Naqsh-e Rustam altar from search extracts only; the relief
+  and Stronach 1978 NOT SEEN) and B claims (Herodotus 1.101, 1.131-132, 1.138, 1.140, 3.16, read this session in the Perseus
+  text: Greek reports, not Persian ones). **Nothing was rendered in a browser** (node tests only): the precinct, the fire, the
+  graves, the mouth-cover, the barsom, the new poses and the chant's sound are unverified by eye and ear. The chant is a
+  design (M-22) with no evidence for its sound at all. The killing of a sacrificial animal is never shown; exposure is never
+  shown. One line is kept: no liturgical words are invented (the chant is vowels only).
+- **What the evidence rules out, kept out:** a fire temple, shrine or statue (Herodotus 1.131: not their custom; none
+  excavated; temple cults date from Artaxerxes II and the Sasanians); an altar fire kindled for a sacrifice, libations and
+  music at a sacrifice (1.132: the meat is boiled on a pot's fire, the wine is set out in a bowl, no instrument plays).
+- **1. The precinct (src/world/settlement/precinct.ts; settlement.json `sacred_precinct`, rows `precinct_plinths` B and
+  `precinct_altar` C; chronology.json).** On the level bench at the foot of Kuh-e Rahmat 180 m S of the Terrace (centre grid
+  [255, -415]; measured on the terrain: under 8 % slope over the precinct, 9 m above the plain W of it; 330 m from the road
+  south, over 300 m from any built site and from the canal; the lan's old abstract place was 120 m up the steep slope E of
+  the Terrace). Why there: Herodotus puts sacrifice on the heights, and the one excavated precinct (Pasargadae) lies on open
+  ground below a rise at the plain's edge; this is the nearest open, level, untilled ground above the plain, clear of
+  everything built, with the mountain above it for the offerings "to a mountain" (E-31). Built: two white limestone plinths
+  on black borders (2.8 and 2.5 m square, 2 m high, 9 m apart centre to centre on a true N-S line, the S one with a monolithic
+  stair of eight 0.25 m steps: eight or nine in the extracts, Q-470); the fire plinth stands bare with the court away
+  (Stronach's reading, via extract: the king's platform and the fire's). East of them a stepped altar (a three-stepped foot,
+  a square shaft, a three-stepped top; 0.9 m across, 1.18 m high: the relief's form B, size C) with the kept fire on it, its
+  wood stacked beside and its ash heaped E. The fire (fire.ts `altar`, schedule `kept`) burns day and night, in rain too
+  (sheltered by the magi, C; Herodotus 3.16 "the Persians hold fire to be a god", read; Q-473). town.json `offering_place`
+  moved to the precinct; the ground there and at the burial ground is trodden and never tilled (townGround.ts).
+- **2. The burial ground (settlement.json `burial_ground_town`, row `burial_graves`).** 140 low earth mounds in loose rows,
+  some ringed with field stones, on dry untilled ground at the mountain's foot 1.1 km S of the Terrace, 250 m E of the lower
+  town (Herodotus 1.140: the body coated in wax and buried in the earth, B claim; no burial ground of 467 is located:
+  Q-472). town.json `outside` (the town's funerals) moved there from the open plain SW, which was fields. The villages keep
+  their own outskirts (no graves drawn there).
+- **3. The magi (population.ts `priest`).** The population's three magi (unchanged in number; the PF makuš with the lan
+  allocation, HENK2008 B) now wear the Median dress with the soft cap (popview `dressOf`; the Oxus plaques' man with the
+  barsom: B; the Magi a Median tribe, Herodotus 1.101, read) and carry the barsom (props.ts: two splayed rods of twigs,
+  12 triangles, in the small objects' union). At the fire and the offerings the cap's flaps are drawn over the mouth and
+  chin (outfits.ts `mouth_cover`, a new optional piece of the Median costume, appended so every earlier piece bit is
+  unchanged: "his chin is covered", OXUS-PLAQUE, B; the crowd sets its bit only while a performance `wear`s it:
+  activities.ts). The duty magus (day % 3) feeds the fire before first light, makes the lan (barley set out before the fire,
+  wine in a bowl beside it, the barsom in hand), chants at the fire, and at dusk banks the fire and chants; the other two stand
+  at the fire at first light. Each makes the calendar's E-31 offerings (up the slope, or on the Pulvar bank, not in the
+  water: Herodotus 1.138) and E-32 (at the precinct; one in five with a sheep he kills himself, Herodotus 1.140 "the Magi
+  kill with their own hands", boils, chants over and carries home), and attends the households' sacrifices. Rain: the fire
+  is fed through it (planCheck's weather rule allows `tend_fire`); the rest waits for it or is put off.
+- **4. The households' sacrifices (E-34; Population.sacrificesOn, Planner.offeringDay; events_calendar.json E-34, and the
+  calendar's chronicle).** A town household that is Persian sacrifices about once a year (nine in ten households of
+  standing, two in five of the others: C): its eldest Persian or Median man who is free that day, of a trade that can leave
+  its work for a morning (gardener, craftsman, official, steward, scribe, servant, elder). He leads a sheep (a goat one time
+  in four) to the precinct, calls on the god (praying for the king and all the Persians: 1.132) with a magus standing by with
+  the barsom; the beast is cut limb from limb on its hide (the killing is not shown: the butchery of the joints is), the
+  meat boiled on a small fire and laid on soft grass (a new work object) while the magus chants over it, and he carries the
+  meat home. Each gets a magus free of his other hours (else it waits; it is put off by the rain or past 15:00). Both plans
+  keep the same absolute hours, so offerer and magus meet (measured: their chants start together).
+- **5. Funerals (E-71; Planner.mourningDay, Population.funeralOf).** The day after a death, at one morning hour (after the
+  rain): the men of the house carry the dead on a bier to the burial ground, to a grave of the household's own (popgeo
+  `burial`), dig the grave and lay the dead in the earth, and stand at it; the women who can leave the little ones (not a
+  mother of a child of four or under, not the keeper of a sick little one) follow and stand at the grave, head bowed (a new
+  `mourn` pose; no wailing is staged). A dead magus is only carried out to the hillside (the rest is never shown). The bier
+  is shown at the grave, not on the way (the plans do not route a shared object: Q-196).
+- **6. Household piety: not added, and why.** Herodotus 1.132 makes a magus necessary to any Persian sacrifice, which argues
+  against private offerings at the hearth; no Persian domestic cult of the period is attested. The house's fire is kept as
+  practice (lit at dusk, banked, relit before dawn: fire.ts 'home'), not as rite. The Babylonian and Elamite households'
+  domestic cults are an open question (Q-471).
+- **7. The chant (music.ts `recite`, `muffle`; performers.ts `magus_chant`; musicClaims: M-06 performable, M-22 new;
+  SOUNDSCAPE §8 "performed wordless (C)").** Lines of 7-15 even syllables (150-190 a minute) on one reciting tone (the
+  mode's third degree), rising to it and falling to the final, a breath between lines; a man's voice (110-350 Hz) singing
+  vowels only (one a line: no phones, no words), damped by the mouth-cover (a one-pole low-pass at 1.5 kHz). Sounded only
+  while a magus's plan says `chant` (at the fire, the lan, the offerings, a household's sacrifice); the director follows him
+  (world.ts passes the chanting magi with the herders). `refusal`: at an offering only this (a man, alone, a recitative,
+  citing M-06); an instrument (M-05), a woman, a chorus or a song is refused. The gig's tier is C. Closes BLOCKERS B20a and
+  Q-301 for the staging; the words stay unknown.
+- **Measured (seed 1, node, the year):** 3 magi; the lan made on 343 days, put off by the rain on 9 (the duty magus absent
+  or ill on the other 2); the fire tended 266 h and chanted at 206 h in the year; E-31 offerings 14 and E-32 22 segments (4
+  with a sheep); 179 households' sacrifices (46 with a goat); deaths 238 in the town and 1,222 in the villages (infants
+  among them). Household funerals the next day: town 229 (167 with the men carrying the dead to the burial ground and
+  burying it, 99 of them with women at the grave; 62 with no man of the house free, of which 24 have the women at the grave
+  "while the dead is buried": the neighbours who would carry are not simulated), villages 1,164 (1,078 with a burial at the
+  village's outskirts). No magus died this year (the hillside path is untested by the sim). planCheck over the year for the
+  magi and the offerers, and the funeral households' "with" checks: no issue.
+- **Cost (measured):** the precinct 25 props, 276 triangles and 96 for the ash, in two meshes (stone; the wood in the loam
+  batch); the burial ground 140 mounds (13,440 triangles in the existing refuse mesh: no new draw) and 174 field stones
+  (1,740 triangles, one mesh); one more fire (a flame instance; smoke from the shared pool, a point light only among the
+  nearest). The small objects' prop union 986 → 998 triangles (≤ 1,000); two more work-object kinds (the offering set, the
+  grass bed: a draw each, only where in view); the Median costume gains the mouth-cover piece (within its budgets:
+  tests/humans_runtime). Sim: sacrificesOn takes 8.5 ms once for the year's list, then 0.05 ms a day.
+- **Tests:** tests/religion.test.ts (new: the precinct's forms and place, the kept fire, the burial ground; the magi's days,
+  the sacrifices and the funerals over the year with planCheck; the places; the chant's form, wordlessness and refusal
+  rules). Changed: music (the chant allowed, all else at an offering refused), performers (wording), performances (the offer
+  performance and the new acts). lint:music (the chant in the sweep), lint:activity (a worn piece must exist).
+- **Weak / doubts:** Q-470 (steps), Q-471 (non-Persian household cult), Q-472 (where the precinct and the burial ground were),
+  Q-473 (a kept fire at all). The walk to the grave shows no bier; the offerer's myrtle wreath is not modelled; the barsom is
+  two rods; the mouth-cover's fit is by rule on each body's head hull (not looked at); villages have no drawn graves;
+  sacrifices in the villages (no magus there) are not simulated; the king's worship on the plinths (court setting, E-36)
+  is not staged.

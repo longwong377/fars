@@ -10,7 +10,7 @@
   - existence of the garden zones, a ~1 ha official building N of the Terrace, and a Pulvar–Persepolis canal (B).
 
   **Every position is C**, with its uncertainty given.
-- **Not placed, for lack of evidence:** storehouses, stables, a garrison outside the Terrace, qanats, and a burial ground in use in 467. See the gaps below.
+- **Not placed, for lack of evidence:** storehouses, stables, a garrison outside the Terrace, qanats. A burial ground in use in 467 is placed since D-209 as the most probable reconstruction (C; section 6). See the gaps below.
 
 Machine-readable file: `src/data/settlement.json`. Its frame is the project grid: pyproj tmerc about the Apadana origin, rotated −19°, as in `tools/osm_to_grid.py`. `src/core/geo.ts` agrees to within 2 m at 6 km and about 80 m at 40 km.
 
@@ -79,7 +79,8 @@ Population, with the court absent: 3,000–6,000 in the town and palace zones (P
 
 ## 6. Death practice (only as evidenced)
 - Herodotus 1.140 (FT, read): "the dead bodies of Persians are not buried before they have been mangled by birds or dogs. That this is the way of the Magi, I know for certain … before the Persians bury the body in earth they embalm it in wax." This is a Greek report, so tier B for practice.
-- No burial ground in use near Persepolis in 467 is located. The Spring Cemetery is late 4th century or later. Akhor Rostam is disputed. **Nothing is placed in the town** (C). No exposure platforms are invented.
+- No burial ground in use near Persepolis in 467 is located. The Spring Cemetery is late 4th century or later. Akhor Rostam is disputed. ~~Nothing is placed in the town (C).~~ **D-209 (session 7, the user's direction D-207): a burial ground is placed as the most probable reconstruction (C)**: on dry untilled ground at the foot of Kuh-e Rahmat, 1.1 km S of the Terrace, 250 m E of the lower town (settlement.json burial_ground_town; 140 low earth mounds, some ringed with field stones). The funerals carry the dead there and bury them (E-71). No exposure platforms are invented, and exposure is never shown (a dead magus is only carried out to the hillside).
+- **D-209: the open-air sacred precinct** (settlement.json sacred_precinct; C place, B forms): two plinths after the Pasargadae sacred precinct and a stepped fire altar after the Naqsh-e Rustam tomb reliefs, on the level bench at the mountain's foot 180 m S of the Terrace; a fire kept on the altar by the magi. No fire temple (Herodotus 1.131; none excavated; temple cults are later).
 
 ## 7. Biggest gaps (what would unblock them)
 1. The Tol-e Ajori destruction date, and the gate's true coordinates and passage axis: Askari Chaverdi, Callieri & Matin 2017 (full text); the mission plans.

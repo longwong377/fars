@@ -9,7 +9,7 @@
 //    the tomb reliefs at Naqsh-e Rustam.
 //  - the plinths (B for the form: PAS-PRECINCT, search extracts): two white limestone plinths about 2 m high rising from
 //    low black limestone borders, one 2.8 x 2.8 m, the other 2.5 x 2.5 m fronted by a monolithic flight of steps (eight in
-//    one extract, nine in another: Q-420), "some nine metres apart" (read here as centre to centre, C). Stronach's
+//    one extract, nine in another: Q-470), "some nine metres apart" (read here as centre to centre, C). Stronach's
 //    reading: the stepped plinth a platform for the king, the other for the fire in a portable holder. With the court
 //    away (D-003) the fire-plinth stands bare (C);
 //  - the altar (B for the form: NR-ALTAR, search extracts; the relief itself NOT SEEN): a stepped altar (a three-stepped
@@ -70,12 +70,12 @@ export function precinctProps(props: Prop[], groups: Map<string, P2[]>) {
     box(g, pl.u, 0, pl.half + P.border.out, pl.half + P.border.out, -0.4, P.border.h, BLACK, `${PL}: its low border of black limestone (B); the course's height and width C`);
     box(g, pl.u, 0, pl.half, pl.half, P.border.h, P.border.h + pl.h, WHITE, `${PL}: ${label}; white limestone (B); the plain top and the joints not modelled (C)`);
   }
-  // the stair against the S face of the S plinth: a monolithic flight of eight steps (Q-420: eight or nine), rise and tread
+  // the stair against the S face of the S plinth: a monolithic flight of eight steps (Q-470: eight or nine), rise and tread
   // C; in the S plinth's group (one base for the plinth and its stair)
   const S = P.stair, south = P.kingP.u - P.kingP.half, run0 = S.steps * S.tread, top = P.kingP.u + P.kingP.half + P.border.out, bot = south - run0;
   groups.set('precinct_king', [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => precinctAt((top + bot) / 2 + a * ((top - bot) / 2 + 0.2), b * (P.kingP.half + P.border.out + 0.2))));
   for (let k = 0; k < S.steps; k++) { const run = (S.steps - k) * S.tread; // step k (from the bottom) runs from the face out to its own front
-    box('precinct_king', south - run / 2, 0, run / 2, S.half, k === 0 ? -0.3 : P.border.h + k * S.rise - 0.02, P.border.h + (k + 1) * S.rise, WHITE, `${PL}: the stair, one monolithic flight (eight steps: one extract says nine, Q-420; B); rise ${S.rise} m and tread ${S.tread} m C`); }
+    box('precinct_king', south - run / 2, 0, run / 2, S.half, k === 0 ? -0.3 : P.border.h + k * S.rise - 0.02, P.border.h + (k + 1) * S.rise, WHITE, `${PL}: the stair, one monolithic flight (eight steps: one extract says nine, Q-470; B); rise ${S.rise} m and tread ${S.tread} m C`); }
   // the altar: a three-stepped foot (the lowest set 0.25 m into the ground), the shaft, a three-stepped top
   const A = P.altar, g = 'precinct_altar'; sq(g, A.u, A.e, 0.7); let y = 0;
   const step = (half: number, h: number, what: string) => { box(g, A.u, A.e, half, half, y === 0 ? -0.25 : y, y + h, ALTAR_STONE, `${AL}: ${what}`, 'precinct_altar'); y += h; };
