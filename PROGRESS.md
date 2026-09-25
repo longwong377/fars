@@ -1,6 +1,18 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Session 8, garments and beards (D-225; rubric s7 pass 2 fix 6).** **No cloth simulation:** the Persian robe's pleats
+  (front pleat stack, diagonal side folds, broad back folds, the heel's kick) and the slanted sleeves are baked into the
+  meshes and swing with the skinning, without lag or sway; cut and every size C (Q-540). Beyond 20 m (LOD 2) only the
+  stack's bulge and the hem's slant remain. The court beard's hanging mass is 6 rows of spiral curls (rolls laid out in the
+  vertex stage for the court dressing only; a working man's long beard stays plain; C, Q-543); at arm's length the rows can
+  read as carving. Cloth: a band-limited tabby weave (gone by ~0.5 m), weft bars and uneven chroma (mean kept), the 3 mm felt
+  lumps cut to 1.5 mm, folds hanging from the chest, sharpened creases on the robe, soil at the hem's edge. Dyes: only
+  madder's a*/b* moved (a search extract; colorimetry papers blocked, Q-541): the population's saturation barely changed.
+  Impostor cloth stats now sampled inside the far triangles (the hem band was overstated 3.4×; impostor match worst ΔE 2.10 →
+  0.96). The D-221 "bare-chested scribes" are not a palette problem (tunic vs skin ΔE 17-46 in every light: Q-544; the
+  room's lighting). Persian costume 40,380 / 6,041 / 3,008 / 765 triangles (budgets 42,000 / 7,000 / 3,200 / 800).
+  One humanlab run at high (no errors; the beard's rows read as carved rolls at 1 m); court-assembly NOT re-rendered.
 - **Smoke and dust (D-220, session 8 workstream; rubric s7 fix 5).** Rendered at high (moments `town-smoke-dusk`,
   `town-smoke-dusk-rahmat`, `dawn-stair-top`, each with an A/B capture): the smoke layer over the lower town reads as a pale
   band (+22 % Weber over the town rows from the Terrace, +10–12 % from Kuh-e Rahmat, faint at dawn over the villages); the town

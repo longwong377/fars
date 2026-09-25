@@ -5000,3 +5000,114 @@ moment-*-webgpu.png in the worktree, not committed).**
   tunic pixels at this view); my unverified reading is the colour: a madder-red tunic and trousers (looks.ts Median main
   colours) under the red floor's bounce look like skin. Not fixed (no render left); the lamp and the soot are not seen in
   either view.
+## D-225 Garments and beards that read as cloth and curls: the Persian robe's baked pleats, slanted sleeves, rows of curls on the court beard, a woven cloth that vanishes with distance, uneven dyes, soil at the hem's edge (session 8 workstream; rubric s7 pass 2 fix 6)
+- **Read first: what is still broken, unverified or placeholder.**
+  - **No cloth simulation.** The drape is baked into the meshes and moves with the skinning: the robe's pleats swing with the
+    thighs and do not lag, sway or settle; seated and kneeling skirts still rely on D-155's slack sag. Everything about the
+    cut and every size and count is C (Q-540); only the pattern (front pleat stack, diagonal side folds, folded wide sleeves,
+    rows of curls) is B, from the carved convention.
+  - **Browser: one run** (humanlab at Q=high, WebGPU on SwiftShader, commit 02ee2f6's tree; shots/humanlab-d225-{men-full,
+    face-persian,men-side,extra-side}-webgpu.png, not committed): no page or shader error. The robes show the front stack, the
+    diagonal folds at the hem, the slanted sleeves and the hem soil at 4 m; the court beard reads as a stack of curled rows
+    — at 1 m (face-persian) it reads more as carved rolls than as hair (a judgement for the reviewer; the roll depth could
+    go down). **Not rendered:** court-assembly and the crowd views (the pleats at 10-40 m), anything in motion, WebGL2,
+    the scribes' room.
+  - LOD 2 (20 m and beyond) carries only the front stack's bulge and the slant of the hem (10 columns); the far LOD is
+    meshopt's simplification of it. At court-assembly distances (29-41 m) the pleats are mostly shading or nothing.
+  - The dye numbers remain C except madder's a*/b* (a search extract); every colorimetry paper was blocked by the network
+    proxy this session (Q-541). The population's saturation hardly moved (below): the "flat and saturated" reading is now
+    answered by unevenness within a garment, not by a paler palette, because no evidence says the palette is too strong.
+  - The court beard's rows of spiral curls can read as literal carving at arm's length (D-155 warned of snail shells); the
+    rows (6) and curl size (2.2 cm) are C (Q-543).
+  - The weave is only visible within ~0.5 m (by design: band-limited); at 1-5 m the cloth reads through the weft bars, the
+    chroma unevenness and the folds.
+  - The lead's question (D-221 render 2: scribes read as bare-chested in red): **not the palette** — measured below
+  (Q-544); left for the room's lighting.
+- **Why:** rubric s7 pass 2 scored People 2: "robes are stiff cones with no drape, beards are combed blocks rather than
+  curled rows, colours are flat and saturated"; fix 6: "cloth simulation or baked drape with the Persian court robe's
+  attested pleat pattern; a weave normal; slightly desaturated, uneven natural dyes; soil at the hems; beards: curled rows".
+- **The robe's skirt (drape.ts `ROBE`, `robePleat`, `robeTheta`; outfits.ts `skirtTube` with `robe: true`):** its own
+  tube, 72/24/10 columns at LOD 0/1/2 (was 40/14/8), 14/8/4 rings, the columns denser at the front (θ(u) = 2πu − 0.35 sin 2πu).
+  The radius adds, by |θ| from the front and t down the skirt:
+  - the front pleat stack: ±0.3 rad, standing 1.6 cm forward, 4 grooves 8 mm deep (full detail);
+  - diagonal side folds: angular frequency 15.7 (7 at LOD 1), running 1 rad back from the waist to the hem, 3 mm deep at the
+    belt to 2 cm at the hem, rounded crests and sharp valleys (2|cos(φ/2)| − 1);
+  - the back: 7 broad folds (4 at LOD 1) growing to 1.8 cm at the hem, and a 2 cm kick at the heel; flare 5 → 4 cm; the hem
+    higher in front as before.
+  The lining takes every second ring (new tubeGeo `liningStride`: at the least radius of the outer rings it spans, less its
+  thickness, so no trough cuts through it); tubeGeo also takes a column-angle map (`thAt`). uv.x of the robe runs −½ … ½, so
+  the material finds |θ| exactly; its one seam quad (back centre) is masked by the uv derivative. Class parameter
+  `PRM_ROBE` = 6 (the woman's dress keeps D-189's shaded pleats, prm 1). D-189's per-person hem folds and fit still apply
+  (vertex stage).
+- **The sleeves (drape.ts `SLEEVE`; outfits.ts `robeSleeves`):** cut on the slant — each column's rings drawn up along the
+  sleeve to t·(1 − 0.28 (½ + ½ cos θ)²), so the opening runs from below the elbow over the front of the forearm to the wrist
+  behind; 6 folds winding 3 rad over the length, 4 mm deep on the front and 1.6 cm on the hanging back; 32/10/8 columns,
+  12/4/4 rings, lining every second ring. Weights and slack follow the drawn-up position.
+- **The court beard (drape.ts `BEARD`, `beardRow`; outfits.ts `beardGeo`; humanMaterial hair):** the long beard's mass has 18
+  rings at full detail (3 a row) and θ 0 at the back (its uv seam hidden against the neck); each row's roll (−0.6 … 0.4 ×
+  4.5 mm) is stored in the spare byte and laid out along the bind normal by the vertex stage **only for the court dressing**
+  (look flags' hairStyle 1): a working man's long beard stays a plain mass (the first version put the rolls in the mesh and
+  gave the porters a stack of tyres). In the material the mass's curl cells come from the tube's uv: 6 rows aligned with
+  the rolls, 14 curls round (about 2.2 cm), alternate rows offset, each curl a spiral groove of 2 turns; the rolls are shaded
+  too (the vertex normal does not follow); curl bump 2 mm on the mass; the cheeks' and chin's curls in 1.2 cm rows (the scalp
+  keeps 8 mm). D-155's wavy locks on the lower mass are gone.
+- **Cloth (humanMaterial `DRAPE.weave`, `streak`, `dyeUneven`, `lump`, `hang`, `hemEdge`; mirrored in tools/dev/human_cpu.ts):**
+  - a tabby weave height field (warp i over weft j where i + j is even, round threads with their crimp), 7 and 15 threads per
+    cm (wool, linen; C, Q-542), 0.3 / 0.15 mm, the crossings lit and the gaps dark (albedo ±8 %), band-limited (was a
+    sin × sin at the same count);
+  - weft bars: the cloth's first shared noise now anisotropic (14 × 170 cycles/m), ±4 % albedo and 0.12 mm, band-limited
+    (it was isotropic 160/m, 0.25 mm and never band-limited);
+  - uneven dyeing: the chroma about the garment's own, ±4 % in 7 × 20 cm patches and ±14 % along the weft bars
+    (band-limited), linear in the noise so the mean colour is kept;
+  - the old isotropic drape noise, 3 mm deep (it read as felt: lumps with no direction), cut to 1.5 mm; 14 folds hanging from
+    the chest to the belt on the upper garments, 3 mm, fading out 30 cm above the belt;
+  - the robe skirt's valleys sharpened into creases (1.6 mm) and fine creases in the front stack, band-limited (gone by ~7 m);
+  - hem soil 0.55 → 0.8, and the last 7 % of a skirt drags in the dust (+0.3 hem weight).
+- **Impostors (impostors.ts `clothStatsOf`), a bug found on the way:** the far body's cloth weights were averaged over each
+  triangle's corners; the far triangles span from the hem to the knee, so the hem band's share came out 3.4× too large
+  (Persian robe 0.30 against 0.09 over the surface; child 0.34 against 0.09) and the impostors took more hem soil than the
+  skinned body showed. Now sampled at 16 points inside each triangle. The impostor match (tests/people_look.test.ts, 42
+  people): worst ΔE 2.10 → 0.96, mean 0.88 → 0.42, with the stronger soil (raising the soil with the old stats failed the
+  gate at ΔE 3.13).
+- **Colour (looks.ts DYES):** madder strong [40, 38, 28] → [40, 31, 29] (the search extract's a*/b* for madder with alum
+  on wool), weak [52, 28, 26] → [52, 26, 24] (C); nothing else changed.
+- **The scribes' "bare torsos in red" (lead, D-221 render 2), checked:** the moment's two scribes (day 21, 13:30) wear green
+  (Elamite) and weld (Babylonian) tunics, not madder. ΔE*ab tunic against the wearer's skin: 31 / 46 in D65, 26 / 35 in the
+  D-206 room light (CIE A × the red floor), 17 / 28 under the red floor's bounce alone; the tunics are 1.7-2.9× the skin's
+  luminance in every light. The Babylonian's grey-brown undyed trousers are the one garment at the skin's luminance (Y ratio
+  0.97-1.16; ΔE 14 under the red bounce). Nothing in the palette explains a tunic read as skin; the frame is red-dominated and
+  underexposed (the doorway's daylight should key the figures): Q-544, for the lighting side. The palette was not changed
+  for it (rule 6).
+- **Measured (node; before = the base tree 60f14a1 exported, after = this tree):**
+  - The robe skirt, bind pose (m03; m05 and m09 within 0.5 mm): the hem ring's residual after its mean and three harmonics
+    (the body's ellipse) rms 6.7 → 12.1 mm at LOD 0, 5.7 → 9.3 at LOD 1, 6.4 → 3.0 at LOD 2 (the old 8-column ring's residual
+    was aliased pleat ripple); peak to peak 29 → 52, 19 → 34, 13 → 7 mm; fold crests round the hem 11 → 14, 4 → 8, 4 → 5; each
+    column's generator off a straight line (a cone gives 0) 13.8 → 17.4, 13.4 → 19.6, 14.9 → 12.8 mm.
+  - The court beard's mass, the front column (m03, m09): local maxima in the row zone 0 → 4, second difference rms 5.3 →
+    5.5 mm (a working man's: 0.35 mm, no maxima).
+  - The cloth's height field on the robe's front (CPU mirror, rms µm by band at 0.3 / 1 / 3 / 10 m): folds (< 50/m)
+    1119 / 1123 / 1123 / 813 → 189 / 201 / 188 / 188 (the 3 mm lumps; the folds are now in the mesh); weft bars (50-300/m)
+    90 / 90 / 90 / 66 → 36 / 23 / 0 / 0; weave (> 300/m) 38 / 5.5 / 5.5 / 3.4 → 28 / 0.3 / 0 / 0.
+  - One robe up close (0.3 m, CPU mirror): saturation sd 0.0003 → 0.019, luminance sd 1.25 → 2.55 %.
+  - Main garments' sRGB saturation, 300 looks each, p50 / p90: Persian 0.521 / 0.650 → 0.520 / 0.642, guards 0.446 / 0.593
+    → 0.446 / 0.590, Median 0.446 / 0.612 → 0.446 / 0.599, women 0.337 / 0.565 → 0.337 / 0.550, workers unchanged.
+  - Hem soil (soil 0.25, CPU mirror): ΔE between the skirt's last centimetre and mid-skirt 6.96 → 10.43; at 85 % 2.44 → 3.39.
+  - Triangles (tests/humans_runtime budgets 42,000 / 7,000 / 3,200 / 800): Persian costume 38,236 / 5,789 / 3,012 / 759 →
+    40,380 / 6,041 / 3,008 / 765 (robe skirt 1,680 → 3,168 at LOD 0, sleeves 2,208 → 2,432, long beard 2,632 → 3,064); Median
+    37,779 / 5,556 / 2,964 / 754, worker 39,570 / 6,567 / 2,808 / 593 (the long beard). Vertex source 19.14 → 19.61 MB. The
+    300-person stress views (tools/dev/human_budget.ts): 15 draws as before; main-pass triangles 2,677,352 → 2,726,936
+    (2-60 m) and 2,776,459 → 2,828,367 (2-20 m); shadow triangles per map +104 and +94. The outfit build (worker) 5.2 → 5.9 s.
+    GPU cost of the new shading not measured (SwiftShader; REAL_HARDWARE_TODO).
+- **Tests:** tests/people_drape.test.ts (new, 7): the hem's folds per LOD and variant, the front stack and the diagonal run of
+  the side folds, the coarse lining inside the pleats, the slanted sleeve, the beard rows in the spare byte (plain at mid
+  detail), the weave present at 0.3 m and gone at 3 m, uneven dyes keeping their mean. Green: humans, humans_faces,
+  humans_runtime, humans_shader (the TSL graph builds to WGSL and GLSL), people_look, people_pieces, people_children,
+  scribes_room, court_fill, court_view, instruments, paint_glaze, performances, popview, smoke_dust. `npx tsc --noEmit -p .`
+  clean; `npm run lint:all` OK.
+- **Tools:** tools/dev/face_preview.ts passes the uv derivative (the robe's seam mask) and lays out the court beard's rows;
+  node previews in shots/d225/{before,after}/ (not committed).
+- **Alternatives rejected:** cloth simulation (per-person meshes and draws: D-090, D-189); more columns on the D-206 tube
+  with its 26 sine pleats (aliased at 40 columns, a regular ripple, not the reliefs' pattern); the pleats as shading only
+  (they fade out by ~7 m and the silhouette stays a cone); the beard's rows in the mesh for every long beard (a working man's
+  beard became a stack of rolls); a separate court beard piece (3,000 more triangles in a costume at 40,380 of 42,000); a
+  paler palette (no evidence says the dyes were weaker; rule 6).
