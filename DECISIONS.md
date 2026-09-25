@@ -4246,3 +4246,77 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
   instruments (four prop classes); performers (the court women's gig is no longer PLACEHOLDER); popview (a hand-held child is
   allowed its snap distance off its own route; the variant check passes who performs).
 - **Doubts:** Q-205 (updated), Q-430 to Q-439.
+
+## D-217 Rubric s7 pass 2, the geometry and content bugs R1, R2, R8, R9, R11 (session 7; REVIEWS/rubric_s7_pass2.md)
+- **Read first: what is still broken or weak.**
+  - R2: the relief animals now read as animals from 8–20 m (legs, heads, contour), but the carving itself is still the
+    procedural low relief (C, RELIEF_META placeholder true; licensed scans NEEDS #10): the lion is a long tube rearing on the
+    bull, the paint is still the mottled film, and a figure casts no shadow on the wall behind it beyond the screen-space
+    contact shadows (the batch casts none, D-048). The self-shadowing asked for is a baked sky occlusion (below), not a
+    cast shadow: a raking-sun test of shadow width against depth is not done.
+  - R8: the forecourt's "white slab" is the terrace-edge parapet's free end, a real part (C); its end face is one block face
+    of the plain limestone (Ystd/Y 0.018 measured at 2.8 m): the stone material's flatness (fix item 2, another
+    workstream). Its form is unchanged (Q-451).
+  - R9: rendered once after the change (see below); the Ka'ba-ye Zardosht is still a white box without courses.
+  - The relief far chunks cost more: all-far 196 k → 473 k triangles (one draw per chunk; walk worst 1.09 M of 1.5 M).
+- **R1, the jar that swallows a head (crowd-court-forecourt-w).** Not a head carry: the man carries a jar on the shoulder
+  (`carry_jar`, pose `carry_shoulder`, prop `jar`). The legacy rule hung the jar 0.45 m below the raised palm: it stood beside
+  the head at head height, its base 37–41 cm under the crown, with the hand and forearm inside it (node, every porter body:
+  3,200–7,700 skinned vertices inside the jar over a walk cycle, the head hidden from his right). Now (props.ts
+  SHOULDER_JAR): the jar's base sits on the top of the right shoulder (0.09 m over the shoulder joint, reference body), its
+  axis runs to the raised hand's grip offset 8.5 cm out of the palm, so the hand holds the neck with the fingers over the lip;
+  the jar is the one the hand reaches (× 0.72–0.92 of the storage jar, 0.33–0.42 m tall). The arm pose was searched over
+  4 bodies × 3 walk phases (tools/dev/jar_search.ts): r_upper [−2.4, 0, −0.85], r_fore −0.9 (was [−2.7, 0, −0.35], −1.1: the
+  hand over the crown), the hand open round the neck (grip 0.6). Measured (tests/carry_props.test.ts, 30 bodies × 8
+  phases): no head vertex inside a jar; the head ≥ 3.4 cm clear of the shoulder jar; nothing of the body deeper than 3 cm
+  (the upper arm under the seat 1.4–2.0 cm, the gripping hand ≤ 2.8 cm); the grip within 5 cm of the neck. The head carry
+  (`jar_head`) was already on its pad (D-187): 0.7–3.4 cm over the crown, no intrusion, now tested too. The see-through hole
+  at the waist was not reproduced in the humanlab renders after the pose change (below); the old pose raised the upper arm
+  to 155°, where the tunic's skinning opens at the armpit. All C (Q-450).
+- **R2, relief animals as grey clouds.** Cause, measured (node, tools/relief_preview.ts, relief_budget.ts): (1) L3, used for
+  every figure beyond 14 m and for every far chunk, had an RTIN error bound (0.3) above the silhouette error (0.2), so the
+  outline was left to the error metric while the foot of every outline is cut back half a relief-depth behind the wall face
+  (D-204, which assumes a cell-exact outline): the figure became triangles from its top to behind the wall, a cloud (the
+  lion-and-bull at L3: 18 such triangles spanning > 2.5 cells, now 0; tests/reliefs.test.ts). (2) The grid caps made the
+  large figures coarse where they are seen: the lion-and-bull is 3.26 m across, so L2 had 25 mm cells and L3 51 mm (its legs
+  are 4–6 cm wide). Not the displacement path (the relief is geometry) and not the noise. Fix (reliefs.ts RELIEF_LODS): L3
+  error 0.15 and a fifth band L4 (25.6 mm cells, error 0.15) beyond 28 m, so the outline is cell-exact at every LOD; the L2
+  and L3 caps 257 and 129 (L1's stays 257: 513 doubled the audience panel's triangles at 2 m); far chunks merged at L3 to
+  28 m, at L4 beyond (RELIEF_FARTHEST). Budget (bench-reports/relief_budget_d217.txt): Apadana walk worst 956 k → 1.09 M
+  (budget 1.5 M), Phase 4 jambs worst 1.12 M → 1.44 M, all far 196 k → 473 k. **Carving depth** (fix item 1: 2–6 cm): the
+  large panels' factor 1.5 → 1.333 (6.75 → 6.0 cm; every relief now 4.5–6.0 cm, tools/dev/relief_depths.ts; SITE_SPEC
+  apadana.r_relief_carving, C, Q-452). **Contours:** the relief mesh carries a baked sky occlusion (relief_field
+  carvingOcclusion: horizon AO from the heightfield, 8 directions to 6 % of the figure height, heights at the register
+  figures' depth ratio): the skylight at the foot of each outline and in the folds × (1 − 0.85 occ), and grime up to 15 %
+  darker in the recesses (paintedStoneMaterial). The contour's foot 0.2+ occluded, the open top < 0.03 (test).
+  Rendered (high, apadana-e-stair-raking): the near lion-and-bull and the far one read with head, legs and outline; the
+  frame's edge energy over the far one 9.0 → 10.6, Ystd/Y over the near one 0.099 → 0.108.
+- **R8, the untextured boxes.** Identified by picks and by the meshes' world boxes (tests/e2e/dbg_s7p2.spec.ts, DBG=1):
+  hall100-site's two dark grey boxes are the masons' blocks (crowd.ts work objects: a 1.4 × 0.75 × 0.9 m box at each mason's
+  place in the yard) drawn as flat vertex-coloured boxes in the props' material. Real (dress_stone, B), so kept: now
+  quarry-rough limestone as it is worked (faces bulged and uneven by a few cm, the top dressed flat) in the yard's rubble
+  surface, its own mesh `work:blocks` (C, placeholder false; tests/work_blocks.test.ts). Rendered: the blocks read as stone
+  (sunlit face Ystd/Y 0.20, was 0.28 on the flat shading's hard edge; shaded face 0.04 both: fix item 2's flatness). The
+  white cube (court-assembly) and slab (crowd-court-forecourt-w) are one object: the terrace-edge parapet's east end at
+  grid x −32.2, y 86.9–87.5, 1 m high, 0.6 m thick, 2.8 m from the camera (the view's ray geometry; the picks, made on the
+  day-25 load at the same pose, passed south of it). Real (terrace.parapet_height, C), not stray, not a placeholder: kept as
+  it is (Q-451). No placeholder flag was needed: neither object is a placeholder.
+- **R9, the stretched Naqsh-e Rustam cliff.** Not a texture projection: every surface material is world-space 3-D
+  procedural. Two causes: (1) the face relief's ribs and fissures were smooth functions of x alone (6 m and 2.1 m periods,
+  |sin| cusps) from foot to crest, which the raking afternoon sun drew as long smooth folds; the material's streaks were
+  stretched 12× down the face; (2) the bump map's fine octave (0.31 m) aliased from 200 m and its screen-space bump normals
+  drew a moiré of wavy lines over the whole face. Fix: the face is joint-bounded blocks (columns 4–10 m between irregular
+  vertical joints, beds ~3.1 m dipping ~2°, each block proud or recessed by up to ±0.8 m; fine fissures cut to 0.06 m); the
+  rock surface gets a tone per block and per bed (`rockBlocks`) and streaks 3× longer than wide (`streaks.stretch`); every
+  surface's bump octaves are band-limited by the pixel footprint as the micro grain is (D-147), so no bump aliases at a
+  distance. All C (Q-453).
+- **R11, the floating rod (apadana-hall-out, apadana-enter-door).** Picked: `fire-body:torch` at grid (1.9, 24.8), 5.7 m
+  over the floor, in the middle of the Apadana's N doorway. The hall's wall torches were set every 10 m from each wall's
+  middle, so the one at the N (and S) wall's middle stood in the doorway with nothing to hold it. Torches whose place lies in
+  a doorway (within its width + 0.5 m and depth + 1 m) are no longer set (world.ts apadanaTorches; tests/fires_place.test.ts).
+  Rendered (dbg-s7p2-apadana-hall-out, high): no rod.
+- **Not changed:** the architecture's parts (the parts hash, probes and walkable grid need no re-bake); the colliders of the
+  Naqsh cliff follow its new mesh (built from it at load).
+- **Tests:** tests/carry_props.test.ts, tests/work_blocks.test.ts, tests/fires_place.test.ts, four D-217 cases in
+  tests/reliefs.test.ts. Full suite: 1 failure, tests/exchanges.test.ts "delivery: expected 0", the regression already open
+  in PROGRESS (not touched here).
