@@ -167,6 +167,36 @@ describe('dust of work and feet (D-220)', () => {
 });
 void addSpans;
 
+// the crowd reports its dust emitters while it draws (render 2 found none in any view: the world cleared them after the
+// crowd had drawn; dust.begin now runs before crowd.update, world.ts). Here the crowd and its animals feed a DustSystem
+describe('the crowd feeds the dust (D-220)', () => {
+  it('a walker, a herder walking and a mason dressing stone report emitters; a resting man none (the herd\'s animals: not asserted, none walked here)', async () => {
+    const { decodeHumanAssets, meshoptSimplify } = await import('../src/people/humanAssets');
+    const { buildOutfits } = await import('../src/people/outfits'); const { HumanGPU } = await import('../src/people/humanGPU');
+    const { Crowd } = await import('../src/people/crowd'); const { propOf } = await import('../src/people/popview');
+    const b = readFileSync('public/generated/humans/humans.bin');
+    const A = decodeHumanAssets(JSON.parse(readFileSync('public/generated/humans/humans.json', 'utf8')), b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength));
+    const { MeshoptSimplifier } = await import('three/addons/libs/meshopt_simplifier.module.js'); await MeshoptSimplifier.ready;
+    const O = buildOutfits(A, { simplify: meshoptSimplify(MeshoptSimplifier) });
+    const img = () => new THREE.DataTexture(new Uint8Array(4), 1, 1);
+    const crowd = new Crowd(null, 1, { A, O, gpu: new HumanGPU(A, O, { skin: img(), eye: img() }, { capacity: 64 }), ms: { load: 0, outfits: 0, gpu: 0, worker: false } } as any);
+    crowd.view = { lookInput: (pid: number) => ({ id: 100000 + pid, sex: 'm', role: 'porter', dress: 'worker', origin: 'persian', seed: 7777 + pid * 31 }), childStature: () => null,
+      geo: { plotAt: () => 0 }, stats: {}, pop: { persons: [], nameOf: () => null } } as any;
+    const vp = (pid: number, e: number, n: number, act: any, why: string, o: any = {}) => ({ pid, e, n, y: -15, heading: 180, act, moving: false, why, place: '', prop: propOf(act, null), carryNote: null, speed: 0, entry: 0, what: 'test', agent: -1, plot: 0, wall: 0, hh: -1, ...o });
+    const V = [vp(1, 2, 8, 'walk', 'walking', { moving: true, speed: 1.3 }), vp(2, -2, 9, 'dress_stone', 'dressing a block for the Hall of a Hundred Columns'),
+      vp(3, 4, 14, 'herd', 'driving the flock out to the stubble', { moving: true, speed: 0.9 }), vp(4, -4, 10, 'rest', 'resting')];
+    const P = V.map(v => [crowd.attachPop(v.pid), v] as const), frame = () => (crowd as any).frame as number;
+    const d = new DustSystem(), taps: string[] = []; crowd.dustTap = (k, x, y, z, yaw, s, sd) => { taps.push(k); d.emit(k, x, y, z, yaw, s, sd); };
+    let animals = 0; crowd.animals.onPush = (a, M) => { if (a.walk > 0.2) { animals++; const p = new THREE.Vector3().setFromMatrixPosition(M); d.emit('flock', p.x, p.y, p.z, 0, 1, a.coat * 1e4); } };
+    const cam = new THREE.PerspectiveCamera(70, 16 / 9, 0.1, 5000); cam.position.set(0, -13.4, 0); cam.lookAt(0, -14, -10); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+    for (let f = 0; f < 3; f++) { taps.length = 0; animals = 0; d.begin(cam.position); for (const [p, v] of P) { p.vp = v as any; p.vpFrame = frame() + 1; } crowd.update(f / 30, cam.position, cam.position, cam); }
+    d.update(0.5, cam, { wetness: 0, snowCover: 0, rain: 0, windMs: 1, windDirDeg: 250 });
+    console.log('dust taps', JSON.stringify(taps), 'walking animals', animals, 'dust', JSON.stringify(d.stats));
+    expect(taps).toContain('walk'); expect(taps).toContain('mason'); expect(taps.filter(k => k === 'walk').length).toBeLessThanOrEqual(2); // the walker (and the herder)
+    expect(d.stats.puffs).toBeGreaterThan(0); expect(d.stats.byKind.mason).toBe(1);
+  }, 240_000);
+});
+
 // the shaders build (three's WGSL node builder in node: catches TSL type errors; the device's WGSL validation needs a render)
 describe('smoke and dust shaders build to WGSL (D-220)', () => {
   const build = (mesh: THREE.Mesh) => {

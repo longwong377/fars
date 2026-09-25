@@ -4632,7 +4632,14 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
     246–300 +3.5 … +10 (+13 … +22 %), the near-horizon sky rows 200–240 −3.9 (the smoke darker than the bright twilight horizon,
     part of it the frame meter's exposure), the parapet in the foreground 0.0 (control, |Δ| 0.25); `town-smoke-dusk-rahmat`
     rows 250–300 +4.2 … +6.1 (Weber +10 … +12 %), rows 420–540 (the Terrace, control) +0.1. The contrast is measurably
-    non-zero; whether it *reads* as the §1.1 moment is for the rubric. Render 2 (dawn-stair-top village smoke, hall100-site dust A/B): queued, see below.
+    non-zero; whether it *reads* as the §1.1 moment is for the rubric.
+  - **Render 2 (high):** `dawn-stair-top` (05:24, day 0) with − without smoke: a faint haze along the horizon line where the
+    villages' layers veil the far tree line (row 205 mean +6.8 luma; 0.8 % of the frame changes by ≥ 4), weak. `hall100-site`
+    (09:30): **no dust at all — the dust system reported 0 emitters in every rendered view.** Cause found after the render: the
+    world cleared the frame's emitters (`dust.begin`) after the crowd had already reported them. Fixed (begin before
+    `crowd.update`) and verified in node with a real Crowd (a walker, a herder and a mason report emitters; 7 puffs), **NOT
+    RE-RENDERED** (the workstream's two renders were used). Walking animals reported no emitter in the node crowd (the herd's
+    animals did not walk there): animal and flock dust unverified; carts come from the traffic movers (unverified).
   - All amounts are C: the fuel (dung cake and brushwood, Q-500), the emission factors and smoke optics (recollection, NOT SEEN,
     Q-501), the boundary layer (Q-504), the dust (Q-505). The hours are the sim's (lives.json meals, C, Q-064).
   - **The town's night flames changed.** A house hearth's flame now shows only while its household's day has it lit (lighting,

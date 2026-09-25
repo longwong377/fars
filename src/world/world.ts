@@ -447,6 +447,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       { const pp = ctx.player.position; playerAt = new THREE.Vector3(pp.x, pp.y, pp.z); }
       view.update(sim.t, [ctx.camera.position.x, -ctx.camera.position.z]); // the population out of doors near the camera (D-143)
       if (!nowView.active) syncTraffic(ctx.camera.position); // D-210: the drivers and riders on the roads, before the crowd draws them
+      dust.begin(ctx.camera.position); // D-220: this frame's dust emitters are reported while the crowd draws (begin BEFORE it: render 2 found none)
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
       { const day = Math.floor(sim.t / 24), sun = sunTimes(day); // D-210: the animals of the town, the villages, the paradise and the river
         fauna.group.visible = !nowView.active;
@@ -454,8 +455,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       { // D-220: what the households burn now → the fires' state and the smoke layer (recomputed when the minute or the wind changes)
         const key = `${ctx.clock.dayIndex}|${Math.floor(ctx.clock.localHour * 60)}|${ctx.cond.windMs.toFixed(1)}|${Math.round(ctx.cond.windDirDeg)}|${Math.round(ctx.sky.sunAlt)}`;
         if (key !== smokeKey) { smokeKey = key; smoke.update(ctx.clock.dayIndex, ctx.clock.localHour, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.sky.sunAlt); }
-        landSmoke.group.visible = !nowView.active; landSmoke.setSkyLight(ctx.skyLight); landSmoke.update(smoke.cells, ctx.camera.position);
-        dust.begin(ctx.camera.position); }
+        landSmoke.group.visible = !nowView.active; landSmoke.setSkyLight(ctx.skyLight); landSmoke.update(smoke.cells, ctx.camera.position); }
       settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, skyLight: ctx.skyLight, cond: ctx.cond, player: ctx.player });
       campTents?.update(ctx.player.position.x, ctx.player.position.z); // D-199
       fire.setSkyLight(ctx.skyLight);
