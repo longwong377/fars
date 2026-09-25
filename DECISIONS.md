@@ -3761,7 +3761,7 @@ two mornings in five, C); the retinue billeted in the town's houses (the house p
 standing crops (the camp ground made trodden instead); camps chosen for looks (sites searched for clear, level ground).
 ## D-197 The round-8 reviewers' other findings, fixed at their rules and swept year-wide (session 7, sim workstream)
 - **Read first: what is broken, unverified or placeholder.**
-  - Every new rule here is C. Nothing attested says who kept a sick child, whether a sick guard went home, how many dry hours a gang needed, when the villages winnowed, how long teenagers worked or how long adults slept in the heat (Q-362 to Q-365).
+  - Every new rule here is C. Nothing attested says who kept a sick child, whether a sick guard went home, how many dry hours a gang needed, when the villages winnowed, how long teenagers worked or how long adults slept in the heat (Q-395, Q-396, Q-364, Q-365).
   - The invariants check the plans' words, places and hours against the calendar's weather, sun and household. They do not see what the renderer draws. The detailed porters' carrying is done in sim.ts; the plan only bounds their hours at the depot. The 1-minute walks (B S8) were in the detailed tier and are tested by stepping one day, not swept year-wide.
   - The detailed porters' day is now short: 2.8 h on the Terrace on average (was 7.3 h). They come up for the caravan and go home once it is carried up. That is one of reviewer A's options. Nothing is known of any other work they did (C).
   - Not changed: `dayWork`'s outdoor days (the stockyard's slaughter) still stay at home for any storm in the day's light. The sick of 5 and over lie ill at home as before. The homemakers' rest cap (B S5) is a planner rule; it is measured below but has no invariant of its own.
@@ -3775,7 +3775,7 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
      - Sick child-days of 1–4 spent out of the house: 28,908 of 31,434 (92.0 %; mean 2.63 h; threshing floors 27,015 h, lane 27,338 h, fields 12,850 h) → 650 (2.1 %). These are short well trips between 11:00 and 15:00 with a keeper who has no one to send (221 h in the year); with no such hour free, the keeper does not go. Days with an hour or more out: 28,396 → 0. Days with more than 15 min out of doors below 5 °C: 6,616 → 5. 27094 on day 229 (index) now lies at home beside his grandfather all day.
      - **A sick guard (A S10, B S3; C, `lives.json` guard_sick_home 0.6).** A guard with a wife in the town and an illness of 3 days or more is helped down on the second morning and nursed at home in 60 % of such episodes. He goes back up on the last evening (`Planner.guardSickHome`). Guard sick-days at home with a wife in the town: 0 of 415 → 180.
      - **A guard at home with his wife ill** fetches the water and lights the fire before he sits with them. The lane of the quarter waits. Visits on such days doing her work: 0 of 416 → 406 of 406.
-  3. **The gangs work the dry part of the day (A S3, B S2; C, Q-363).** `workSpan` is the working window less the wet spells, with a storm counted a quarter of an hour either side. The gangs set out when a wet spell holding the start has passed, and stop where one comes on that lasts to the end of the day. Showers between are sheltered under the Gate's roof, as before. The day is given up only with fewer than `DRY_WORK_H` = 3.5 dry hours. Was: any storm in the day's light, or more than 5 rain hours in the whole day, even after work.
+  3. **The gangs work the dry part of the day (A S3, B S2; C, Q-396).** `workSpan` is the working window less the wet spells, with a storm counted a quarter of an hour either side. The gangs set out when a wet spell holding the start has passed, and stop where one comes on that lasts to the end of the day. Showers between are sheltered under the Gate's roof, as before. The day is given up only with fewer than `DRY_WORK_H` = 3.5 dry hours. Was: any storm in the day's light, or more than 5 rain hours in the whole day, even after work.
      - Where it applies: the builders (`builderAvailable`, `rainedOff`, `buildCredit` credits the dry hours), the Terrace's staff and porters (`terraceWorker`), the camp women.
      - The farm men (`dryTask`, as the rain), the gardeners and the state shepherds now take a storm by its hours too. The construction logs "halted" at the hour the storm comes on: for the whole day when the storm gives the day up, "for the rest of the day" when it comes on after a dry start.
      - Builder-days lost on days with 3.5 h or more dry: 4,125 → 42. The 42 are on day 48 (index), a dry day, and are not the weather. All builder-days lost to the weather: 9,214 → 5,131.
@@ -4029,3 +4029,68 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
   - after/after_bind_{cap,boot,tunic}.png: bind-pose geometry.
   - Numbers: bench-reports/garment-ease-{before,after}.json.
 - **Tests:** tests/humans_faces.test.ts's cap test now checks the dome: LOD 0 has more than 3 × LOD 1's triangles, the rim's p10 stands more than 4 mm off the head, and the turned edge closes onto it. All of these pass: tests/humans*.test.ts, people_look, people_pieces (the moment's thresholds hold), performances, court_view and instruments; the two CPU-timing tests pass when rerun alone (above). tsc and lint:all are clean.
+## D-212 The palaces furnished, and masons' and sculptors' marks cut (session 7; gap audit items 8 and 13; D-207)
+- **Read first: all of it is reconstruction, and none of it has been seen rendered.** Node-side only: no browser render, no
+  screenshot, no probe re-bake. Every size, colour, number and position of the furnishings and of the marks is **C**. The
+  evidence behind the kinds is second-hand: the Persepolis sculptors' marks rest on a **search extract** of Roaf 1983 (the
+  plates and the list of marks NOT SEEN); the "double diamond" is named there but its form is NOT SEEN (drawn as two
+  lozenges joined point to point); the circle, cross and L are Pasargadae's marks (search extract of Nylander 1970, the page
+  not verified) and their use at Persepolis is C; the Pazyryk carpet, the Assurbanipal garden relief and Esther 1:6 are
+  **recollection**, NOT SEEN this session. Herodotus 9.80 and 9.82 were read in the project's download (HDT, a Greek claim:
+  max B). What the evidence says was NOT there stays out: no candle (blocklisted; lamps are clay oil lamps on bronze stands),
+  no image of a god, no furniture of later periods.
+- **Furnishings (src/world/furnish_palaces.ts; SITE_SPEC global.r_palace_furnishings, C).** Kinds after the audience reliefs
+  (TREAS-AUD, B: canopy, footstool, two incense burners), Herodotus 9.80/9.82 (couches gilded and silver-plated "richly
+  covered", tables of gold and silver, "gaily coloured" hangings in the establishment Xerxes left to Mardonius: B claim), the
+  Pazyryk carpet (knotted pile, ~1.83 × 2.00 m, red field of squares in borders: B for the craft and size), the Assurbanipal
+  couch with footstool and table (analogy) and Esther 1:6 (hangings on rings: late literary, C). Pieces: pile carpets (the
+  field of squares drawn as flat colour patches), reed mat, wall hangings on gilded rods, couches (gilded or silvered frame,
+  mattress, bolster), couch covers, small tables, stools and stacks of them, footstools, bronze incense burners, bronze lamp
+  stands with clay lamps (unlit), wooden chests with bronze bands, stoppered storage jars, rolled carpets and hangings, and the
+  canopy (four gilded poles, a cloth roof and a fringed band).
+  - **The court away (the default world):** the Apadana stands empty (its S storerooms are solid in the build); the Tachara's
+    side rooms hold the store — rolled carpets in W2 and the NW room, rolled hangings and a chest in W1, covered couches and
+    stacked stools in E2 and the NE room, the incense burners put by, chests in W3/E3, jars in SW/SE — and the steward's
+    everyday minimum sits inside the S door (a reed mat, a stool, a water jar, a lamp stand). The Hadish and the Harem halls
+    keep covered couches, rolled carpets and hangings and chests along their walls (the Hadish apartments, where most of its
+    store would be, are not modelled: Q-087). 55 pieces.
+  - **The court setting on, court in residence (court.json days 0-116):** the Apadana gets the canopy over the throne's place,
+    two incense burners before it, four carpets under it, a carpet road from the N doorway and hangings on the S wall behind;
+    the Tachara, the Hadish and the Harem get carpets bay by bay between the column bases, couch sets (couch, footstool,
+    table) along the walls, hangings wherever the wall has no door, window or niche, incense burners inside the main door and
+    lamp stands in the corners; the Tachara's side and N rooms get a couch set and carpets. 271 pieces. The court's own
+    places (throne, attendants, escort, the audience front, the Hadish musicians' floor) are kept clear (tested).
+  - **Solid:** every standing piece has a box collider in its current state (54 stored / 110 in use; the canopy's posts as
+    four); carpets, mats and hangings have none. The people's grid is blocked under the standing pieces at load (with the
+    court setting on, both states' pieces, all year: C, noted). Every hall and Tachara side room reachable before stays
+    reachable (tested) — the Tachara SW room is **already unreachable on the bare grid** (its 0.95 m doorway P_W is closed by
+    the grid's body clearance), found by this test, not caused by it.
+  - **Light:** the furnishings are not in the architecture's parts, so the parts hash and the probe bake are unchanged and
+    **the probes were not re-baked**: the textiles (albedo ~0.1-0.4, mostly red on a red plaster floor) are not in the baked
+    interreflection. Judged not necessary for the stored state (small pieces in side rooms); for the court state the carpets
+    would slightly darken and redden the halls' bounce light — not measured. Lamps drawn unlit: the torches and braziers of
+    the fire system light the halls.
+  - **Cost** (tools/relief_budget.ts, last lines): stored 55 pieces, 15 draws (a building's group drawn only within 90 m:
+    Tachara 7 draws 14.4 k tris, Hadish 4 / 2.6 k, Harem 4 / 1.2 k), 18.1 k tris; court in residence 271 pieces, 19 draws,
+    47.0 k tris (Apadana 3 / 4.4 k, Tachara 6 / 23.4 k, Hadish 5 / 11.8 k, Harem 5 / 7.5 k). Build ~0.5 s in node. The
+    carpet's pattern is colour patches 1.5 mm apart on the pile (no coplanar faces); every piece stands on the floor's plaster
+    coat (global.r_floor_finish).
+- **Masons' and sculptors' marks (src/arch/marks.ts; SITE_SPEC global.r_masons_marks, C).** Only four shapes are cut: the
+  double lozenge (Persepolis reliefs, ROAF1983) and the circle, cross and L (Pasargadae and the Lydian terraces at Sardis,
+  PAS-MARKS). No Lydian letter form is drawn: the Persepolis marks "resemble Lydian letters" (IR-GREECE7) but which letters
+  was not found. They are incised with the inscriptions' V-section (carving.ts gained `shapeAtlas` and `bakeCarved`; the
+  shader is the D-177 incision, unchanged): 5 cm, 3 mm deep on the reliefs; 9 cm on the drums.
+  - **On the Apadana N and E stair reliefs:** 68 marks on the background, as Roaf describes them — beside every fourth guard
+    or noble from the stair's centre (in front of the spear blade or raised hand, or behind the shoulder above the quiver) and
+    behind the last man of each delegation (labelling the group); a team's shape per run of four figures, the same run of
+    teams on both stairs (the same teams on both Apadana stairs: MATERIAL_CULTURE, B). Each mark clears every figure's bounds
+    by 1 cm and lies on the façade's face (tested). They are children of the relief group, so they stay in the Now view (Roaf
+    recorded them on the ruin). One draw, 136 triangles.
+  - **On the Hall of 100 Columns' yard:** each dressed drum waiting in the yard carries its team's mark on the upper bedding
+    face (hidden once the next drum is set: C). Dressed drums seldom wait (the simulation raises them as they are dressed), so
+    these are rarely seen. At most one draw of 72 triangles.
+  - **Not done:** marks on the Terrace wall or other block faces (no Persepolis position found), a Greek sketch (Richter 1946:
+    unconfirmed; left out), other Persepolis marks' shapes (Roaf's plates: Q-393).
+- **Not taken on** from the audit's extra list: the Hadish apartments and S balcony (item 30), glazed bricks (28) and paint
+  placeholders (29) are left for a later pass; the guards' shield and jewellery (21) are people-look work in another
+  workstream.

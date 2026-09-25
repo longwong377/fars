@@ -15,7 +15,7 @@ export const WALL_SLOPE = 1;
 const MARGIN_EM = 0.3;
 
 export interface Cell { x0: number; y0: number; w: number; h: number; ox: number; oy: number; adv: number; maxDepthEm: number }
-export interface Atlas { tex: THREE.DataTexture; data: Uint8Array; width: number; height: number; cells: Map<string, Cell>; font: opentype.Font; tpe: number; maxDepthEm: number }
+export interface Atlas { tex: THREE.DataTexture; data: Uint8Array; width: number; height: number; cells: Map<string, Cell>; font: opentype.Font | null; tpe: number; maxDepthEm: number }
 
 /** a glyph's outline as closed polylines in em units, y up (quadratic and cubic segments flattened) */
 export function glyphPolys(font: opentype.Font, ch: string): [number, number][][] {
@@ -68,11 +68,19 @@ export function signDepth(polys: [number, number][][], w: number, h: number, ox:
  *  `tpe`: texels per em (96 for Old Persian: ~1 mm per texel at the 7.5 cm XPa signs, em = 1.25 × sign height; 64 for the
  *  denser cuneiform set) */
 export function buildAtlas(font: opentype.Font, chars: Iterable<string>, tpe = 96): Atlas {
-  const upm = font.unitsPerEm, list = [...new Set(chars)].filter(ch => ch.trim() && ch !== ' ').sort(), cells = new Map<string, Cell>();
+  const upm = font.unitsPerEm, list = [...new Set(chars)].filter(ch => ch.trim() && ch !== ' ').sort();
+  return packAtlas(list.map(ch => ({ key: ch, polys: glyphPolys(font, ch), adv: (font.charToGlyph(ch).advanceWidth ?? upm) / upm })), tpe, font);
+}
+/** the depth atlas of marks that are not a script (masons' marks, D-212): each shape's outline as closed polylines in em
+ *  units (y up; non-zero winding, so a hole runs the other way round), cut exactly as a sign is */
+export function shapeAtlas(shapes: Record<string, [number, number][][]>, tpe = 128): Atlas {
+  return packAtlas(Object.keys(shapes).sort().map(k => ({ key: k, polys: shapes[k], adv: 1 })), tpe, null);
+}
+function packAtlas(entries: { key: string; polys: [number, number][][]; adv: number }[], tpe: number, font: opentype.Font | null): Atlas {
+  const cells = new Map<string, Cell>();
   const fields: { ch: string; f: Float32Array; w: number; h: number }[] = [];
   let maxDepth = 0;
-  for (const ch of list) {
-    const polys = glyphPolys(font, ch), adv = (font.charToGlyph(ch).advanceWidth ?? upm) / upm;
+  for (const { key: ch, polys, adv } of entries) {
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const p of polys) for (const [x, y] of p) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
     if (!polys.length) { cells.set(ch, { x0: 0, y0: 0, w: 0, h: 0, ox: 0, oy: 0, adv, maxDepthEm: 0 }); continue; }
     const ox = x0 - MARGIN_EM, oy = y0 - MARGIN_EM, w = Math.ceil((x1 - x0 + 2 * MARGIN_EM) * tpe), h = Math.ceil((y1 - y0 + 2 * MARGIN_EM) * tpe);
@@ -148,3 +156,12 @@ export function carvedGeometry(A: Atlas, L: Layout, dx = 0, dy = 0, lift = 0.000
 }
 /** the deepest cut of a layout (m) */
 export function layoutMaxDepth(A: Atlas, L: Layout): number { let m = 0; for (const s of L.signs) m = Math.max(m, A.cells.get(s.ch)?.maxDepthEm ?? 0); return m * L.em; }
+/** a carved geometry moved into another frame (the face's matrix baked in): positions, normals and the face's along/up
+ *  directions (carveT / carveB) all follow `m`, so several faces' cuts can share one mesh (masons' marks, D-212) */
+export function bakeCarved(g: THREE.BufferGeometry, m: THREE.Matrix4): THREE.BufferGeometry {
+  const out = g.clone(); out.applyMatrix4(m);
+  const v = new THREE.Vector3();
+  for (const k of ['carveT', 'carveB']) { const a = out.getAttribute(k) as THREE.BufferAttribute; for (let i = 0; i < a.count; i++) { v.fromBufferAttribute(a, i).transformDirection(m); a.setXYZ(i, v.x, v.y, v.z); } a.needsUpdate = true; }
+  out.userData = { ...g.userData };
+  return out;
+}

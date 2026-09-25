@@ -182,7 +182,8 @@ describe('language lint: every source that can reach the canvas', () => {
   const IN_WORLD_TEXT_SITES: Record<string, string> = {
     'src/arch/decor.ts': 'carved inscriptions from inscriptions.json (panelText: op_signs / *_cuneiform), captured and checked below',
     'src/arch/carving.ts': 'the carving itself (glyph outlines → depth atlas; layoutText / carvedGeometry of the lines it is given; no text of its own)',
-    'src/world/plain/naqsh.ts': 'DNa/DNb Old Persian from inscriptions.json (panelText op_signs), captured and checked below',
+    'src/arch/marks.ts': 'masons\' and sculptors\' marks (D-212): four drawn shapes, not a script (double lozenge, circle, cross, L), cut through carving.ts; no text, no font',
+    'src/world/plain/naqsh.ts':'DNa/DNb Old Persian from inscriptions.json (panelText op_signs), captured and checked below',
     'src/world/writing.ts': 'writing on objects (D-179): seal inscriptions from writing.json impressed in clay (glyph outlines → height field), captured and checked below',
   };
   /** font glyph APIs: a file that turns characters into outlines draws text into the world, whatever it does with them */

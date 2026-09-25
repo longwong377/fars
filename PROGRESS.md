@@ -15,6 +15,14 @@
     - Flies are heard but not seen. No bats, rats or storks.
   - **Crowd CPU gate:** performances.test (median < 10 ms) fails under machine load on both the base and this branch. It
     needs re-measuring.
+- **Palace furnishings and masons' marks (D-212; gap audit items 8 and 13; D-207).** **All C, none of it rendered in a
+  browser** (node tests only). Sources second-hand: Roaf 1983's sculptors' marks via a search extract (the "double diamond"
+  form NOT SEEN), Pasargadae's circle/cross/L via a search extract, the Pazyryk carpet, the Assurbanipal couch and Esther 1:6
+  from recollection; Herodotus 9.80/9.82 read (B claim). The furnishings are not in the probe bake (not re-baked: the court
+  state's carpets would redden the bounce light, not measured); lamps are unlit; the Hadish's own store (its apartments) is
+  not drawn; with the court setting on, both states' pieces block the people's grid all year. Found, not caused: the Tachara
+  SW room is unreachable on the bare nav grid (0.95 m doorway P_W). Drum marks are rarely seen (dressed drums seldom wait).
+  Cost: +15 draws / 18 k tris stored (within 90 m of each palace), +19 / 47 k with the court; marks 1 draw, 136 tris.
 - **Audience panel and the carved edge (D-204; the user's "fill the gaps").** The panel's composition after the Treasury
   audience reliefs is RECOLLECTION, NOT SEEN (the figures B via TREAS-AUD; order, sizes, canopy and paint C). **Not rendered
   in a browser** (node previews only: `shots/d204/`). Weak: at L2 (4-14 m) folds are faint and the royal robe's pattern and
