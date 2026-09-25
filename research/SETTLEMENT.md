@@ -10,7 +10,7 @@
   - existence of the garden zones, a ~1 ha official building N of the Terrace, and a Pulvar–Persepolis canal (B).
 
   **Every position is C**, with its uncertainty given.
-- **Not placed, for lack of evidence:** storehouses, stables, a garrison outside the Terrace, qanats. A burial ground in use in 467 is placed since D-209 as the most probable reconstruction (C; section 6). See the gaps below.
+- **Not located by any source:** storehouses, stables, a garrison outside the Terrace, a burial ground; no qanat is dated to the Achaemenid period (Q-052). The build places **one storehouse and one state stable** as C (D-043: their existence is attested in the Fortification tablets, their place and plan are reconstruction; `town_elements` town_stores and town_stables) and a burial ground in use in 467 as the most probable reconstruction (C, D-209; section 6). No garrison outside the Terrace and no qanat is built. See the gaps below.
 
 Machine-readable file: `src/data/settlement.json`. Its frame is the project grid: pyproj tmerc about the Apadana origin, rotated −19°, as in `tools/osm_to_grid.py`. `src/core/geo.ts` agrees to within 2 m at 6 km and about 80 m at 40 km.
 
@@ -60,7 +60,7 @@ Access: `SX` = search extract, `FT` = full text or dataset downloaded, `NS` = no
 | Kuh-e Rahmat canal | polyline (4446, 3351) → (260, 300) | C (B existence) | Earth canal feeding the Terrace foot and the N zone |
 | Roads | see JSON | C | Earth roads, 6–8 m |
 
-Population, with the court absent: 3,000–6,000 in the town and palace zones (PEOPLE.md, C). The plain density derived from Sumner is 44,000 / 675 ha ≈ 65 persons/ha of settled area (C, derived).
+Population, with the court absent (all C): this research took 3,000–6,000 for the town and palace zones from PEOPLE.md §3e (its first-pass figure, also in the `_meta.density` of settlement.json and plain.json); PEOPLE.md §P5.6 (Phase 5, court absent, town at night) replaces it with 5,000–10,000, working value ≈ 7,000 (Q-038: SELOPERSE's 600 ha "garden city" at 8–15 % built blocks and 65–150 persons/ha gives 3,100–13,500). The build has **1,456 homes with room for 7,968 people** (7,830 in the town zones and 138 in the hamlets and the way-station; `src/data/town_plots.json`, D-041), and the simulation houses its 2,058 town households, 7,776 people (seed 1), in them (D-081). The build therefore sits inside PEOPLE.md's range and above this file's first figure. The plain density derived from Sumner is 44,000 / 675 ha ≈ 65 persons/ha of settled area (C, derived).
 
 ## 4. Gardens (paradises)
 | Value | Source | Access | Tier |

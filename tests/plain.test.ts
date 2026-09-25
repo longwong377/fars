@@ -3,7 +3,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
-import { loadTerrain, loadRiversFile } from './plainLib';
+import { loadTerrain, loadRiversFile, frameTriangles } from './plainLib';
 import { PLAIN, feature, pointInPolygon, settlementZones, distToPolyline } from '../src/world/plain/data';
 import { riverState, cropState, foliage, doyOf, MID_MONTH, MONTHS, CROP_ROWS, cropTable, YEAR } from '../src/world/plain/seasonal';
 import { plotAt, landUseAt, pcg, unit, checkMixes, IRR_STEPS, RAINFED_BARLEY, VINE_SHARE, buildZones, zoneAt } from '../src/world/plain/fields';
@@ -14,6 +14,10 @@ import { panelText } from '../src/arch/inscription_text';
 import { buildMapLayers, builtPlainOf } from '../src/ui/mapLayers';
 import { loadInscriptionFonts } from '../src/arch/decor';
 import { curvatureDrop } from '../src/terrain/heightfield';
+import { updateReliefs, settleReliefs } from '../src/arch/reliefs';
+import { WorldClock } from '../src/core/clock';
+import { sunHorizon, azAltToWorld } from '../src/sky/ephemeris';
+import { widenedFrustum, treeViewClass, shadowSunDir, VIEW_CULL } from '../src/world/trees/render';
 
 const T = loadTerrain(), R = loadRiversFile();
 
@@ -212,6 +216,8 @@ describe('walking the plain (terrain heightfield + lazy plain colliders)', () =>
 
 describe('the plain as built (headless): budgets, tiers, chronology', () => {
   let P: PlainBuild; const scene = new THREE.Scene();
+  // the scene's shadow-casting sun, registered by buildPlain for the tree sets' cascade hooks (frameTriangles fakes its CSM)
+  const sun = new THREE.DirectionalLight(); sun.castShadow = true; scene.add(sun, sun.target);
   beforeAll(async () => {
     P = await buildPlain(scene, T, null, { quality: 'high', seed: 1, fetchJson: async p => JSON.parse(readFileSync('public/' + p, 'utf8')) });
   }, 120_000);
@@ -234,7 +240,7 @@ describe('the plain as built (headless): budgets, tiers, chronology', () => {
       expect(P.group.getObjectByName(`inscription:${id}:op:pick`), id).toBeTruthy();
     }
   });
-  it('draw calls and triangles of everything the plain adds stay inside the Phase 7 budget (<= 150 calls, <= 2 M triangles before culling)', () => {
+  it('the plain is a fixed handful of meshes (<= 40), whatever the view; their static triangles before any culling (the budget is per frame: next test)', () => {
     let calls = 0, tris = 0; const rows: string[] = [];
     P.group.traverse(o => { const m = o as THREE.Mesh; if (!m.isMesh) return; calls++;
       const g = m.geometry, per = (g.index ? g.index.count : g.getAttribute('position').count) / 3, inst = (g as any).isInstancedBufferGeometry ? (g as THREE.InstancedBufferGeometry).instanceCount : 1;
@@ -242,10 +248,61 @@ describe('the plain as built (headless): budgets, tiers, chronology', () => {
     console.log(`plain meshes ${calls}, triangles ${(tris / 1e6).toFixed(2)} M (worst case, no culling)\n` + rows.join('\n') + '\n' + JSON.stringify(P.stats()));
     expect(calls).toBeLessThanOrEqual(40); expect(tris).toBeLessThan(2.0e6);
   });
+  // the Phase 7 views of tests/e2e/plain.spec.ts: [name, day, hour, east, north, eye, bearing, pitch]
+  const VIEWS: [string, number, number, number, number, number, number, number][] = [['village-p22', 0, 16, -973, 3287, 1.6, 341, 1], ['pulvar-bank-april', 0, 10, -2505, 2700, 1.6, 341, -8],
+    ['field-april', 0, 10, -5205, 1611, 1.6, 251, -12], ['stair-dawn-plain', 0, 5.85, -39.6, 122.45, 1.6, 251, -4], ['naqsh-200m', 0, 15, 592, 5924, 1.6, 341, 7]];
+  /** place the camera and the sun as __parsa.view and the sky do, and run the plain's update for that frame */
+  const frameAt = async (v: typeof VIEWS[number], fov: number) => {
+    const [, day, hour, e, n, eye, az, pitch] = v, cam = new THREE.PerspectiveCamera(fov, 960 / 540, 0.05, 110000);
+    cam.position.set(e, T.heightAt(e, -n) + eye, -n); cam.rotation.set((pitch * Math.PI) / 180, -((az - 341) * Math.PI) / 180, 0, 'YXZ'); cam.updateMatrixWorld(true);
+    const s = sunHorizon(new WorldClock(day, hour).jdUT), d = azAltToWorld(s.azimuth, s.altitude);
+    sun.position.set(cam.position.x + d[0] * 800, cam.position.y + d[1] * 800, cam.position.z + d[2] * 800); sun.target.position.copy(cam.position); sun.updateMatrixWorld();
+    P.update(0, { clock: { dayIndex: day }, cond: { windMs: 2 }, camera: cam }); updateReliefs(cam.position, 50);
+    await settleReliefs(cam.position, 30_000); // the carved reliefs' LOD for this camera (as __parsa.renderOnce settles it)
+    return cam;
+  };
+  it('what a frame draws of the plain at the Phase 7 views, shadow passes included, stays inside D-040\'s limit (<= 150 calls, <= 2 M triangles; village P22 was 2.56 M, D-190/D-228)', async () => {
+    const out: string[] = [];
+    for (const fov of [40, 70]) for (const v of VIEWS) { // the rig's photographic lens and the player's field of view
+      const cam = await frameAt(v, fov), f = frameTriangles(P.group, cam, sun);
+      out.push(`${v[0]} fov ${fov}: ${f.calls} calls, ${(f.main / 1e6).toFixed(3)} M main + ${(f.shadow / 1e6).toFixed(3)} M shadow passes = ${(f.total / 1e6).toFixed(3)} M; near trees drawn ${P.stats().nearTreesDrawn} of ${P.stats().nearTrees}, shadow casters ${P.stats().shadowTreesDrawn} of ${P.stats().shadowTrees}`);
+      expect(f.calls, `${v[0]} fov ${fov}`).toBeLessThanOrEqual(150); expect(f.total, `${v[0]} fov ${fov}`).toBeLessThan(2.0e6);
+    }
+    console.log(out.join('\n'));
+  });
+  it('the near trees\' view cull loses nothing visible: every tree left out of the main pass lies outside the view, every caster left out of the shadow passes casts its shadow outside it, and a turn or a step short of the next cull brings no uncovered tree into view (D-228)', async () => {
+    for (const fov of [40, 70]) {
+      const cam = await frameAt(VIEWS[0], fov), { placed, sets, models } = P.nearTrees(), toSun = shadowSunDir()!; expect(toSun).toBeTruthy();
+      const exact = widenedFrustum(cam, 0);
+      sets.forEach((set, k) => { const main = new Set(set.records().slice(0, set.drawn())), all = new Set(set.records()), caster = k < 2;
+        for (const r of placed[k]) { const c = treeViewClass(r, models, exact, cam.position, toSun, caster);
+          if (c === 1) expect(main.has(r), `tree in view drawn (set ${k})`).toBe(true); else if (c === 2) expect(all.has(r), `caster whose shadow is in view kept (set ${k})`).toBe(true); } });
+      // just short of a re-cull: turned (yaw and pitch) and stepped sideways, the cull kept from the first pose
+      for (const [dyaw, dpitch, step] of [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0.7, -0.7, 0], [0, 0, 1], [1, 0, -1]]) {
+        const c2 = cam.clone(); const t = (VIEW_CULL.turnDeg - 0.05) * Math.PI / 180;
+        c2.rotation.set(cam.rotation.x + dpitch * t, cam.rotation.y + dyaw * t, 0, 'YXZ'); c2.position.x += step * (VIEW_CULL.moveM - 0.05); c2.updateMatrixWorld(true);
+        const fr2 = widenedFrustum(c2, 0);
+        sets.forEach((set, k) => { const main = new Set(set.records().slice(0, set.drawn()));
+          for (const r of placed[k]) { const m = models[r.row], h = m.H * r.sy; // the crown box's bounding sphere, in the exact frustum
+            if (fr2.intersectsSphere(new THREE.Sphere(new THREE.Vector3(r.x, r.y + h / 2, r.z), 0.5 * Math.hypot(m.W * r.sxz, h)))) expect(main.has(r), `fov ${fov} turn ${dyaw},${dpitch} step ${step} (set ${k})`).toBe(true); } });
+      }
+    }
+  });
   it('every placed mesh carries a tier and a source (dev overlay F3); placeholders are flagged', () => {
     const missing: string[] = []; let placeholders = 0;
     P.group.traverse(o => { if (!(o as THREE.Mesh).isMesh) return; let q: THREE.Object3D | null = o; while (q && !q.userData?.tier) q = q.parent; if (!q) missing.push(o.name); else if (q.userData.placeholder) placeholders++; });
     expect(missing).toEqual([]); expect(placeholders).toBeGreaterThan(0);
+  });
+  it('F3 on the quarries names the site hit with its own tier: Majdabad C (map-scale position), Sivand B (+-100 m) if built (D-228)', () => {
+    let m: THREE.Mesh | null = null; P.group.traverse(o => { if ((o as THREE.Mesh).isMesh && o.name === 'plain-quarries') m = o as THREE.Mesh; });
+    if (!m) throw new Error('no quarry mesh'); m = m as THREE.Mesh; expect(m.userData.tier).toBe('C');
+    const n = m.geometry.getAttribute('position').count / 3, seen = new Map<string, string>();
+    for (let f = 0; f < n; f++) { const d = m.userData.describe({ faceIndex: f }); expect(d, `face ${f}`).toBeTruthy(); seen.set(d.note.split(':')[0], d.tier); }
+    const tiers = [...seen.values()].sort(); console.log('quarry sites in F3', JSON.stringify([...seen]));
+    expect(feature('quarry_majdabad').tier).toBe('C'); expect(feature('quarry_sivand').tier).toBe('B');
+    // only Majdabad is built (quarries.ts finds no slope > 25 % within Sivand's 100 m, so Sivand is skipped): before D-228 its
+    // workings showed Sivand's B
+    expect(seen.get('Majdabad quarry')).toBe('C'); void tiers;
   });
   it('the tomb reliefs are carved figures of the attested programme (D-069)', () => {
     const sets: any[] = []; P.group.traverse(o => { if (o.name.endsWith('-reliefs') && (o as any).items) sets.push(o); });

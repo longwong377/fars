@@ -13,6 +13,7 @@ const spec = J('src/data/site_spec.json');
 const errors: string[] = [];
 const present = new Map<string, boolean>();
 for (const s of chrono.structures) present.set(s.id, s.present);
+const chronoTier = new Map<string, string>((chrono.structures as any[]).map(s => [s.id, s.tier]));
 const footprintPresent = new Map<string, boolean>();
 for (const s of chrono.structures) if (s.footprint) footprintPresent.set(s.footprint, s.present);
 
@@ -45,6 +46,10 @@ for (const [file, zone] of [['src/data/settlement.json', 'settlement'], ['src/da
     if (!!f.present_467 !== present.get(f.chrono)) errors.push(`${zone} feature ${f.id}: present_467=${f.present_467} but chronology ${f.chrono} present=${present.get(f.chrono)}`);
     for (const k of String(f.src ?? '').split(';')) if (k && !sources[k]) errors.push(`${zone} feature ${f.id}: unknown source key ${k}`);
     if (!['A', 'B', 'C'].includes(f.tier)) errors.push(`${zone} feature ${f.id}: bad tier ${f.tier}`);
+    // the files' rule (D-228): tier = the lower of existence and position; a position uncertain by more than 200 m is not a
+    // dataset coordinate, so it is C, and so is the row. The chronology row carries the same tier.
+    if (typeof f.unc_m === 'number' && f.unc_m > 200 && f.tier !== 'C') errors.push(`${zone} feature ${f.id}: tier ${f.tier} but position +-${f.unc_m} m (C): tier = the lower of existence and position`);
+    if (chronoTier.get(f.chrono) !== f.tier) errors.push(`${zone} feature ${f.id}: tier ${f.tier} but chronology ${f.chrono} tier ${chronoTier.get(f.chrono)}`);
     if (f.present_467) { const text = [f.id.replace(/_/g, ' '), f.name, f.kind].join(' ');
       for (const t of terms) if (t.re.test(text) && !f.blocklist_ok?.[t.id]) errors.push(`${zone} feature ${f.id}: present in 467 but matches blocklist '${t.id}' (exempt only with a blocklist_ok reason)`); }
   }
@@ -63,6 +68,8 @@ for (const [file, zone] of [['src/data/settlement.json', 'settlement'], ['src/da
     for (const k of String(r.src ?? '').split(';')) if (!k || !sources[k]) errors.push(`town row ${r.id}: unknown source key '${k}'`);
     for (const f of r.in_feature ?? []) { const F = feats.get(f); if (!F) errors.push(`town row ${r.id}: in_feature ${f} is not a settlement feature`); else if (!F.present_467) errors.push(`town row ${r.id}: in_feature ${f} is ABSENT in 467`); }
     if (!(r.in_feature ?? []).length) errors.push(`town row ${r.id}: no in_feature (fail-closed)`);
+    // a reconstruction row placed in a feature is no better attested than the place it stands in (D-228)
+    for (const f of r.in_feature ?? []) { const F = feats.get(f); if (F && r.tier < F.tier) errors.push(`town row ${r.id}: tier ${r.tier} above its feature ${f} (${F.tier}): tier = the lower of existence and position`); }
     const text = [r.id.replace(/_/g, ' '), r.name, r.kind].join(' ');
     for (const t of terms) if (t.re.test(text) && !r.blocklist_ok?.[t.id]) errors.push(`town row ${r.id}: matches blocklist '${t.id}'`);
   }
@@ -86,6 +93,15 @@ for (const [file, zone] of [['src/data/settlement.json', 'settlement'], ['src/da
       if (Math.hypot(c[0] - f.xy[0], c[1] - f.xy[1]) < 80) errors.push(`plot ${p.id} stands on the site of ${f.id}, ABSENT in 467`); }
   }
   console.log(`lint:chrono settlement build: ${rows.size} town rows, ${n} generated items checked`);
+}
+// town.json (the population's abstract places): every quarter and facility position is C (its _meta: no storehouse, stable
+// or burial ground located), so each row is C whatever its activity's tier (D-228); source keys resolve
+{
+  const TJ = J('src/data/town.json');
+  for (const k of ['quarters', 'facilities'] as const) for (const r of (TJ[k] ?? []) as any[]) {
+    if (r.tier !== 'C') errors.push(`town.json ${k} ${r.id}: tier ${r.tier}, but every town.json position is C (tier = the lower of existence and position)`);
+    for (const key of String(r.src ?? '').split(';')) if (key && !sources[key]) errors.push(`town.json ${k} ${r.id}: unknown source key ${key}`);
+  }
 }
 // generated architecture: every part's building must be a PRESENT chronology structure (fail-closed)
 const { buildTerrace } = await import('../src/arch/terrace');

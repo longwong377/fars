@@ -20,7 +20,8 @@ import { PlainGround } from './terrainPlain';
 import { buildRivers } from './rivers';
 import { canalBanks, trackLines, tracksMesh } from './ribbons';
 import { riparianTrees, canalTrees, orchardPlots, orchardPlotTrees, woodlandTrees, orchardRows, instOf, Tree, TREE_TAG } from './trees';
-import { TreeKit, NearTreeSet, ImpostorSet, impostorPx, registerShadowLight, type TreeInst } from '../trees/render';
+import { TRIS } from '../trees/model';
+import { TreeKit, NearTreeSet, ImpostorSet, impostorPx, registerShadowLight, widenedFrustum, shadowSunDir, treeViewClass, VIEW_CULL, type TreeInst } from '../trees/render';
 import { nearCrops } from './crops';
 import { buildNaqsh } from './naqsh';
 import { buildQuarries } from './quarries';
@@ -54,6 +55,9 @@ export interface PlainBuild {
   stats(): Record<string, number>; summary(): string;
   /** dev: every plain tree within R of grid (e, n), as [e, n, crown width] */
   treesAround(e: number, n: number, R: number): number[][];
+  /** tests (D-228): the near 3-D trees placed around the camera (LOD0, LOD1 casting shadows, LOD1 without) and the sets
+   *  that draw them after the view cull */
+  nearTrees(): { placed: TreeInst[][]; sets: NearTreeSet[]; models: TreeKit['models'] };
 }
 export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Physics | null, opts: { quality: Quality; seed: number; fetchJson?: (p: string) => Promise<any>; town?: TownPlan | null; /** the court setting's retinue camps (D-199): trodden ground */ camps?: { c: [number, number]; r: number }[] }): Promise<PlainBuild> {
   const t0 = performance.now(), Q = PLAIN_QUALITY[opts.quality] ?? PLAIN_QUALITY.high;
@@ -105,6 +109,9 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   // Naqsh-e Rustam and the quarries
   const nr = buildNaqsh(terrain, rivers.nrAncientFootAsl); group.add(nr.group);
   const qb = buildQuarries(terrain, opts.seed); group.add(qb.group);
+  // Naqsh-e Rustam's meshes cast shadows near the cliff, except the relief sets', which manage their own (their shadow proxies are the only relief
+  // draws in the shadow passes, D-048: switching every mesh under the group drew the carved figures into all 4 cascades, D-228)
+  const nrCasters: THREE.Mesh[] = []; nr.group.traverse(o => { if ((o as THREE.Mesh).isMesh && !o.name.startsWith('relief:')) nrCasters.push(o as THREE.Mesh); });
   if (phys) { nr.colliders(phys); for (const b of qb.boxes) phys.addBox(b.c, b.h, b.rot); }
   const tBuild = performance.now() - t0;
 
@@ -137,11 +144,30 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     const a: TreeInst[] = [], b: TreeInst[] = [], c: TreeInst[] = [];
     for (const q of kept) { const r = instOf(q.t, terrain, q.where);
       if (q.d < Q.lod0R && a.length < MAX_LOD0) a.push(r); else if (q.d < SHADOW_R && b.length < SHADOW_N) b.push(r); else if (c.length < Q.maxNear) c.push(r); else break; }
-    lod0.set(a); lod1s.set(b); lod1n.set(c);
+    placed = { a, b, c }; cullKey.dirty = true;
     const n = a.length + b.length + c.length;
     nearList = list.slice(0, n).map(q => q.t);
     // the impostors take over exactly where the 3-D set stops (at R3, or at the first tree the caps left out)
     nearC.value.set(cam.x, 0, cam.z); nearR.value = n < list.length ? list[n].d : R;
+  };
+  // view culling of the near sets (D-228): the main pass draws the trees in view, the shadow passes the casters whose
+  // shadow can be seen; redone when the view turns, the camera moves or the sun moves (VIEW_CULL)
+  let placed: { a: TreeInst[]; b: TreeInst[]; c: TreeInst[] } = { a: [], b: [], c: [] };
+  const cullKey = { dirty: true, pos: new THREE.Vector3(1e9, 0, 0), q: new THREE.Quaternion(), fov: 0, aspect: 0, sun: new THREE.Vector3(), hasSun: false };
+  const sunNow = new THREE.Vector3(), fr = new THREE.Frustum(), DEG = Math.PI / 180;
+  const cullNear = (cam: any) => {
+    if (!cam?.isPerspectiveCamera) { if (cullKey.dirty) { lod0.set(placed.a); lod1s.set(placed.b); lod1n.set(placed.c); cullKey.dirty = false; } return; } // no view (headless callers): everything
+    const toSun = shadowSunDir(sunNow), k = cullKey;
+    const stale = k.dirty || cam.position.distanceTo(k.pos) > VIEW_CULL.moveM || cam.quaternion.angleTo(k.q) > VIEW_CULL.turnDeg * DEG || cam.fov !== k.fov || cam.aspect !== k.aspect
+      || !!toSun !== k.hasSun || (toSun && toSun.angleTo(k.sun) > VIEW_CULL.sunDeg * DEG);
+    if (!stale) return;
+    k.dirty = false; k.pos.copy(cam.position); k.q.copy(cam.quaternion); k.fov = cam.fov; k.aspect = cam.aspect; k.hasSun = !!toSun; if (toSun) k.sun.copy(toSun);
+    widenedFrustum(cam, VIEW_CULL.marginDeg, fr);
+    const split = (recs: TreeInst[], caster: boolean) => { const seen: TreeInst[] = [], shade: TreeInst[] = [];
+      for (const r of recs) { const v = treeViewClass(r, kit.models, fr, cam.position, toSun, caster); if (v === 1) seen.push(r); else if (v === 2) shade.push(r); }
+      return { recs: seen.concat(shade), mainN: seen.length }; };
+    const A = split(placed.a, true), B = split(placed.b, true), C = split(placed.c, false);
+    lod0.set(A.recs, A.mainN); lod1s.set(B.recs, B.mainN); lod1n.set(C.recs);
   };
   // mid ring: every orchard tree of the plots whose centre is within rMid, and every woodland tree within rMid, as
   // impostors (those inside the near radius collapse in the shader); the rows and the painted canopy start beyond
@@ -175,18 +201,21 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     // the mid ring is rebuilt before the near set moves far enough to leave it (its centre stays within (rMid - r3) / 4)
     if (Math.hypot(cam.x - lastMid.x, cam.z - lastMid.z) > (Q.rMid - Q.r3) * 0.25) { lastMid = cam.clone(); rebuildMid(cam); }
     if (Math.hypot(cam.x - lastNear.x, cam.z - lastNear.z) > Q.r3 * 0.08) { lastNear = cam.clone(); rebuildNear(cam); }
+    cullNear(ctx.camera);
     crops.update(cam, terrain); margins.update(cam); (margins as any).wind.value = kit.wind.value;
     // shadow casting only near the camera (the CSM cascades end at 600 m; a far caster would still be drawn into every
     // cascade its bounding sphere touches): village cells, Naqsh-e Rustam and the quarries
     for (const c of vb.cells) c.mesh.castShadow = c.centres.some(([x, z]) => Math.hypot(x - cam.x, z - cam.z) < 900);
-    const nrNear = Math.hypot(600 - cam.x, -6124 - cam.z) < 1200; nr.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = nrNear; });
+    const nrNear = Math.hypot(600 - cam.x, -6124 - cam.z) < 1200; for (const m of nrCasters) m.castShadow = nrNear;
     nr.texts.visible = Math.hypot(600 - cam.x, -6124 - cam.z) < 600; // the DNa/DNb carving (~0.2 M triangles) only near the cliff
     const qNear = qb.sites.some(s => Math.hypot(s.x - cam.x, -s.y - cam.z) < 900); qb.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = qNear; });
     const pp = ctx.player?.position ?? cam; syncColliders(pp, cam); syncTrunks(pp);
     void dt;
   };
+  const placedTris = () => placed.a.length * TRIS.lod0 + (placed.b.length + placed.c.length) * TRIS.lod1;
   const stats = () => ({ canals: canals.length, villages: villages.length, compounds: vb.compounds, villageTris: vb.tris, riverTris: rv.stats().tris, lineTrees: lineTrees.length, orchardPlots: plots.length,
-    nearTrees: lod0.count() + lod1s.count() + lod1n.count(), lod0Trees: lod0.count(), shadowTrees: lod0.count() + lod1s.count(), nearTreeTris: lod0.tris() + lod1s.tris() + lod1n.tris(), nearR: Math.round(nearR.value),
+    nearTrees: placed.a.length + placed.b.length + placed.c.length, lod0Trees: placed.a.length, shadowTrees: placed.a.length + placed.b.length, nearTreeTris: placedTris(), nearR: Math.round(nearR.value),
+    nearTreesDrawn: lod0.drawn() + lod1s.drawn() + lod1n.drawn(), shadowTreesDrawn: lod0.count() + lod1s.count(),
     midTrees: midCount, orchardRows: orch.userData.rows, treeKitMs: Math.round(kit.buildMs), treeBakeMs: Math.round(kit.bakeMs), treeBakes: kit.bakes,
     crops: crops.count(), margins: margins.count(), naqshTris: nr.tris, genMs: Math.round(tGen), buildMs: Math.round(tBuild),
     detailMs: Math.round(detail.near.ms + detail.mid.ms), detailWaitMs: Math.round(detailWaitMs), townPaths: townGround?.runs ?? 0 });
@@ -198,6 +227,6 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     for (const t of woodlandTrees(zones, e, -n, R)) add(t);
     return out;
   };
-  return { group, data: { rivers, canals, villages, zones }, update, stats, treesAround,
+  return { group, data: { rivers, canals, villages, zones }, update, stats, treesAround, nearTrees: () => ({ placed: [placed.a, placed.b, placed.c], sets: [lod0, lod1s, lod1n], models: kit.models }),
     summary: () => { const s = stats(); return `plain: ${s.villages} villages (${s.compounds} compounds), ${s.canals} canals, ${s.lineTrees} river/canal trees, ${s.orchardPlots} orchard plots, near trees ${s.nearTrees} (LOD0 ${s.lod0Trees}), mid-ring impostors ${s.midTrees}, crop tufts ${s.crops}, built in ${s.buildMs} ms`; } };
 }
