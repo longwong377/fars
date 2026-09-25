@@ -6,6 +6,9 @@ import * as THREE from 'three/webgpu';
 import { buildTerrace } from '../src/arch/terrace';
 import { buildReliefs, apadanaFacades, buildPhase4Reliefs } from '../src/arch/decor';
 import { ReliefSet, updateReliefs, reliefStats, genStats } from '../src/arch/reliefs';
+import { buildReliefMarks } from '../src/arch/marks';
+import { PalaceFurnishings } from '../src/world/furnish_palaces';
+import { v } from '../src/arch/spec';
 
 const t0 = performance.now();
 const { manifest, doorways } = buildTerrace() as any;
@@ -32,3 +35,12 @@ for (const d of doorways.filter((q: any) => q.framed)) for (const off of [0, 1.2
 console.log(`Phase 4 jambs worst (all sets): ${w2} at ${wh2}`);
 line('Grand Stair foot (all far)', at(-60, 1.6, 122));
 console.log(`meshes generated ${genStats.generated}, ${genStats.ms.toFixed(0)} ms generating; total ${(performance.now() - t0).toFixed(0)} ms`);
+{ // D-212: what the masons' marks and the palace furnishings add (draws = meshes; the marks are one incised quad each)
+  const { parts } = buildTerrace() as any; const mk = buildReliefMarks(manifest, parts); let draws = 0, tris = 0, n = 0;
+  mk.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) { draws++; tris += m.geometry.index!.count / 3; n += m.userData.marks; } });
+  console.log(`masons' marks on the Apadana stair reliefs: ${n} marks, ${draws} draw(s), ${tris} tris (+ one mesh of ≤ 72 tris on the Hall of 100 Columns' yard when dressed drums wait there)`);
+  for (const court of [false, true]) { const pf = new PalaceFurnishings(parts, manifest, doorways, { court });
+    for (const st of court ? ['use', 'stored'] as const : ['stored'] as const) {
+      const per = [...pf.group.children].filter(g => g.name.endsWith(':' + st)).map(g => { let t = 0; g.traverse(o => { const m = o as THREE.Mesh; if (m.isMesh) t += m.geometry.getAttribute('position').count / 3; }); return `${g.name.split(':')[1]} ${g.children.length} draws ${(t / 1e3).toFixed(1)} k`; });
+      console.log(`palace furnishings (court setting ${court ? 'on' : 'off'}, ${st}): ${pf.info.items[st]} pieces, ${pf.info.meshes[st]} draws, ${(pf.info.tris[st] / 1e3).toFixed(1)} k tris, ${pf.info.colliders[st]} colliders — ${per.join('; ')} (a building's group is drawn within ${v<any>('global', 'r_palace_furnishings').cull} m)`); } }
+}

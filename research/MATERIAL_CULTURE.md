@@ -96,7 +96,7 @@ the plates (NEEDS_FROM_ME #1, #16). The full table is `src/data/delegations.json
 | item | description | source | tier | note |
 |---|---|---|---|---|
 | Toothed (claw) chisel | parallel-line tooling; attested at Pasargadae (Palace P) | STONE (SX) | B | Nylander: Greek/Ionian technique |
-| Masons' marks | on blocks at Persepolis and Susa. They resemble letters of the **Lydian** alphabet. They show separate teams carving at once, with the same teams on both Apadana stairs | STONE (SX) | B | Useful for "a mason's mark on a block" (brief §1) |
+| Masons' marks | on blocks at Persepolis and Susa. They resemble letters of the **Lydian** alphabet. They show separate teams carving at once, with the same teams on both Apadana stairs | STONE (SX) | B | Useful for "a mason's mark on a block" (brief §1). **Built (D-212):** four shapes only (the reliefs' "double diamond", ROAF1983; circle, cross, L of Pasargadae, PAS-MARKS), 68 on the Apadana stair reliefs' background and one on each dressed drum's bedding face; positions and sizes C (Q-393) |
 | Stoneworking sequence | quarry → terrace: setting, attaching, dressing on site. Unfinished sculptures and capitals exist | STONE (SX) | B | |
 | Drill, point, flat chisel, mallet, bronze or iron tools, dovetail clamps | — | NS | C | clamps are also noted in SITE_SPEC (SX) |
 | Carpentry | treasury personnel include wood handlers and carpentry-supply staff | HENK2023 (SX) | B | tools are NS (adze, saw, bow-drill), C |
@@ -117,7 +117,11 @@ the plates (NEEDS_FROM_ME #1, #16). The full table is `src/data/delegations.json
 | Throne and footstool | the king enthroned with a footstool, the crown prince standing behind (Treasury Audience relief) | x.com/HistContent caption (SX) | B | footstool NS |
 | Throne-bearers | 28 peoples lift the throne platform (Hall of 100 Columns / Tripylon door reliefs) | NS | C | Hall of 100 Columns is under construction in 467 |
 | Parasol and fly-whisk | carried behind the king | brief §9.1; NS | C | |
-| Incense burners | tall stands before the king (Treasury relief) | NS | C | |
+| Incense burners | tall stands before the king (Treasury relief) | NS | C | built as bronze stands with a stepped conical lid (D-212) |
+| Couches and tables | "couches gilded and silver-plated", "golden and silver couches richly covered, and tables of gold and silver" in the establishment Xerxes left to Mardonius | HDT 9.80, 9.82 (FT, Greek claim) | B | form after the Assurbanipal garden relief (ASB-GARDEN, analogy, NS); built D-212, C |
+| Wall hangings | "gaily coloured tapestry" (Mardonius' establishment); hangings of white, green and blue on silver rings at Susa | HDT 9.82 (B claim); Esther 1:6 (late literary, NS) | B / C | built D-212: banded wool on gilded rods, C |
+| Pile carpets | knotted wool pile, ~1.83 × 2.00 m, red field of squares, borders of deer and horsemen; Achaemenid style, c. 400 BCE | PAZYRYK (recollection, NS) | B (craft, size) | built D-212: field of squares in a border, C |
+| Stools, footstools, chests, lamp stands, storage jars | ordinary household and palace pieces | NS | C | built D-212 (stored with the court away, in use with it); lamps are clay oil lamps, never candles (blocklist) |
 
 ## Writing
 | item | description | source | tier | note |

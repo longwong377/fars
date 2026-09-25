@@ -35,6 +35,8 @@ import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Relie
 import { updateReliefs, settleReliefs } from '../arch/reliefs';
 import { FireSystem } from './fire';
 import { buildTreasuryGoods, buildScribesRoom } from './furnish';
+import { PalaceFurnishings } from './furnish_palaces';
+import { buildReliefMarks } from '../arch/marks';
 import { loadWritingFonts } from './writing';
 import { buildPlain } from './plain';
 import { bakeTerrainDetail } from '../terrain/terrainDetail';
@@ -145,12 +147,15 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       if (now !== h) console.warn(`[probes] baked for parts ${h}, the architecture is ${now}: rerun npx tsx tools/build_probes.ts`); } catch { /* no SubtleCrypto (insecure context) */ } }
   await loadInscriptionFonts(async p => (await fetch('/' + p)).arrayBuffer());
   const reliefs = buildReliefs(manifest); root.add(reliefs);
+  reliefs.add(buildReliefMarks(manifest, parts)); // the sculptors' marks on the reliefs' background (D-212; still there in the Now view)
   const p4 = buildPhase4Reliefs(doorways); root.add(p4.group); // stair and door-jamb reliefs of the other palaces (D-049)
   const cren = buildStairCrenellations(parts); if (cren) root.add(cren); // stair-parapet merlons (D-065)
   const insc = buildInscriptions(manifest, parts, p4.inscriptions); root.add(insc);
   insc.add(buildFoundationDeposits(manifest)); // the Apadana foundation deposits, sealed under the hall corners (D-068)
   if ((manifest.treasury as any)?.benches) root.add(buildTreasuryGoods((manifest.treasury as any).benches, seed)); // stored goods (types B, placement C)
   if ((manifest.treasury as any)?.scribesRoom) root.add(buildScribesRoom((manifest.treasury as any).scribesRoom, (manifest.treasury as any).scribesShelves, seed)); // the scribes' room (D-067)
+  // the palaces' furnishings (D-212, all C): stored with the court away, laid out for use while the court setting's court is here
+  const palace = new PalaceFurnishings(parts, manifest, doorways, { court: settings?.courtCalendar === 'seasonal', phys }); root.add(palace.group);
   const q = settings?.quality ?? 'high';
   const fire = new FireSystem({ test: 2, low: 4, medium: 8, high: 12, ultra: 16 }[q]); placeFires(fire, manifest, parts);
   // Phase 6 settlement: its hearths, ovens and kilns join the fire system before it builds (?notown leaves it out, for A/B budgets)
@@ -170,6 +175,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   root.add(birds.group);
   const jackals = new Jackals(seed, terrain); root.add(jackals.mesh); // on the plain edge from dusk to dawn
   for (const f of fire.fires) nav.blockDisc(f.pos.x, -f.pos.z, f.kind === 'torch' ? 0 : 0.8);
+  for (const [e, n, r] of palace.navDiscs()) nav.blockDisc(e, n, r); // the furnishings' standing pieces (both states with the court setting on)
   const env = (t: number): Env => { if (!weather) return { rain: 0, lightning: false, windMs: 2, tempC: 18 }; const d = Math.floor(t / 24), c = weather.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
   // Phase 5 (D-021): the whole population and the year's calendar; the court is absent unless the out-of-world setting
   // 'Court calendar = seasonal pattern' is on (D-003)
@@ -372,6 +378,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time, ctx.clock.localHour);
       plain.update(dt, ctx);
       building?.sync(); // cheap unless a column changed state
+      palace.update(ctx.camera.position, courtOn(Math.floor(sim.t / 24))); // D-212: stored / laid out for the court; far groups not drawn
       nowView.update(); // the Now view: colliders the town streams in meanwhile stay off
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
       { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
@@ -420,5 +427,5 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         ...director.lines(),
         `occlusion (C, Maekawa; Q-304): ${audio.occlStats.tracked} sources tracked, ${audio.occlStats.queries} re-queried this frame in ${audio.occlStats.ms.toFixed(2)} ms · field ${occl.w}×${occl.h} cells built in ${occMs.toFixed(0)} ms · town and plain buildings not occluders`];
     },
-    summary: () => `${nowView.active ? nowView.summary() + ' · ' : ''}${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest + ${crowd.impPerf.drawn} impostors (baked in ${impMs.toFixed(0)} ms), ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms, view ${view.stats.evalMs.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''}${campTents ? ` · court camps ${campTents.info.tents} tents, ${(campTents.info.tris / 1e3).toFixed(1)} k tris in ${campTents.info.meshes} meshes (D-199, C)` : ''} · ${plain.summary()} · ${insc.userData.summary ?? ''}` } as WorldBuild;
+    summary: () => `${nowView.active ? nowView.summary() + ' · ' : ''}${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest + ${crowd.impPerf.drawn} impostors (baked in ${impMs.toFixed(0)} ms), ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms, view ${view.stats.evalMs.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · ${palace.summary()} · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''}${campTents ? ` · court camps ${campTents.info.tents} tents, ${(campTents.info.tris / 1e3).toFixed(1)} k tris in ${campTents.info.meshes} meshes (D-199, C)` : ''} · ${plain.summary()} · ${insc.userData.summary ?? ''}` } as WorldBuild;
 }

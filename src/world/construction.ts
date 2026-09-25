@@ -20,6 +20,7 @@ import placesJson from '../data/people_places.json';
 import { order } from '../arch/orders';
 import { v } from '../arch/spec';
 import type { Construction } from '../people/construction';
+import { drumMark, marksMesh, type MarkAt } from '../arch/marks';
 
 const B = 'hall100';
 /** one column's visible state: drums set, fluted, capital set */
@@ -91,7 +92,11 @@ export class ConstructionView {
     const pitch = 2 * r + 0.6, perRow = Math.max(1, Math.floor((cx - 6 - ex0) / pitch));
     // quarry-rough drums (a few cm of waste left on, C) in the S rows; dressed drums in the N rows, nearest the portico ramp
     for (let k = 0; k < site.waiting; k++) rough.push(cyl(r + 0.06, dh + 0.08, ex0 + 1.5 + (k % perRow) * pitch, ny0 + 1.6 + Math.floor(k / perRow) * pitch, 9));
-    for (let k = 0; k < site.dressed; k++) dressed.push(cyl(r, dh, ex0 + 1.5 + (k % perRow) * pitch, ny0 + 1.6 + (2 + Math.floor(k / perRow)) * pitch));
+    // each dressed drum carries its team's mark on the upper bedding face (D-212: masons' marks B, the shapes of Pasargadae
+    // and the Persepolis reliefs; on the bedding face, hidden once the next drum is set, C)
+    const marks: MarkAt[] = [];
+    for (let k = 0; k < site.dressed; k++) { const e = ex0 + 1.5 + (k % perRow) * pitch, n = ny0 + 1.6 + (2 + Math.floor(k / perRow)) * pitch;
+      dressed.push(cyl(r, dh, e, n)); marks.push(drumMark(new THREE.Vector3(e, y + dh, -n), r, k)); }
     // capitals: finished ones beside the carving place, the block in work as a roughed-out box of the capital's size
     const cap = capitalAlone(o, 1);
     if (cap) {
@@ -118,5 +123,7 @@ export class ConstructionView {
     add(rough, 'rubble', `masons' yard: ${site.waiting} quarry-rough drum(s) waiting${site.capitalInWork ? ', a capital block being carved' : ''} (counts from the simulation, D-022; stacking and yard layout C)`);
     add(dressed, 'limestone', `masons' yard: ${site.dressed} dressed drum(s) ready to raise, ${site.capitalsReady} finished capital(s) (counts from the simulation; layout C)`);
     add(timber, 'scaffold', `timber scaffold(s) at column(s) ${site.scaffolds.map(i => i + 1).join(', ')} (receiving drums / being fluted); form C: no evidence of the method was retrieved (D-022)`);
+    const mk = marksMesh(marks, 'limestone', v<any>('global', 'r_masons_marks').drum.lift, 'hall100:site:marks', 'masons\' marks on the dressed drums\' upper bedding faces (D-212; marks B, shapes B elsewhere, this placement C)');
+    if (mk) { mk.userData = { ...mk.userData, building: B, placeholder: false }; this.yard.add(mk); }
   }
 }

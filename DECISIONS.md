@@ -3875,3 +3875,69 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
 - **The user's direction (2026-09-25):** to be a true time capsule the world's gaps must be filled "to the best of our ability/education"; leaving things out because the sources are thin takes away from a living, breathing world. This revises the project's practice (and CLAUDE.md's ethics line): **where the evidence is silent, the world shows the most probable reconstruction** by analogy (the region, the period, neighbouring cultures), tier C, with its reasoning in the F3 overlay and the translation layer. Things stay out only where the evidence says they were **not** there.
 - **Religion:** fire temples stay out — the evidence is against them in 467 (Herodotus 1.131–132: no temples or altars in the Greek sense, worship on high places; no excavated fire temple at Persepolis; temple cults are dated from Artaxerxes II, c. 400, and the Sasanians). What is filled instead: open-air fire cult (the stepped fire altar of the Naqsh-e Rustam tomb reliefs, the Pasargadae sacred precinct's plinths), magi with the barsom (seals, the Oxus plaques), offerings on hills and at rivers (PF), sacrifice with the meat taken home (Herodotus), funerals (Herodotus 1.140), a wordless chant (Herodotus: "a magus chants"). One line is kept: no invented liturgical words for a living religion; rites are shown as action, fire, offering and wordless chant (the user may lift it).
 - **Supersedes** in part: D-178/D-200's silent magus, the "no invented liturgy / nothing shown" performance notes of E-30..E-34 (events_calendar.json), and every "not shown because not attested" choice that the audit (D-208) marks for filling.
+
+## D-212 The palaces furnished, and masons' and sculptors' marks cut (session 7; gap audit items 8 and 13; D-207)
+- **Read first: all of it is reconstruction, and none of it has been seen rendered.** Node-side only: no browser render, no
+  screenshot, no probe re-bake. Every size, colour, number and position of the furnishings and of the marks is **C**. The
+  evidence behind the kinds is second-hand: the Persepolis sculptors' marks rest on a **search extract** of Roaf 1983 (the
+  plates and the list of marks NOT SEEN); the "double diamond" is named there but its form is NOT SEEN (drawn as two
+  lozenges joined point to point); the circle, cross and L are Pasargadae's marks (search extract of Nylander 1970, the page
+  not verified) and their use at Persepolis is C; the Pazyryk carpet, the Assurbanipal garden relief and Esther 1:6 are
+  **recollection**, NOT SEEN this session. Herodotus 9.80 and 9.82 were read in the project's download (HDT, a Greek claim:
+  max B). What the evidence says was NOT there stays out: no candle (blocklisted; lamps are clay oil lamps on bronze stands),
+  no image of a god, no furniture of later periods.
+- **Furnishings (src/world/furnish_palaces.ts; SITE_SPEC global.r_palace_furnishings, C).** Kinds after the audience reliefs
+  (TREAS-AUD, B: canopy, footstool, two incense burners), Herodotus 9.80/9.82 (couches gilded and silver-plated "richly
+  covered", tables of gold and silver, "gaily coloured" hangings in the establishment Xerxes left to Mardonius: B claim), the
+  Pazyryk carpet (knotted pile, ~1.83 × 2.00 m, red field of squares in borders: B for the craft and size), the Assurbanipal
+  couch with footstool and table (analogy) and Esther 1:6 (hangings on rings: late literary, C). Pieces: pile carpets (the
+  field of squares drawn as flat colour patches), reed mat, wall hangings on gilded rods, couches (gilded or silvered frame,
+  mattress, bolster), couch covers, small tables, stools and stacks of them, footstools, bronze incense burners, bronze lamp
+  stands with clay lamps (unlit), wooden chests with bronze bands, stoppered storage jars, rolled carpets and hangings, and the
+  canopy (four gilded poles, a cloth roof and a fringed band).
+  - **The court away (the default world):** the Apadana stands empty (its S storerooms are solid in the build); the Tachara's
+    side rooms hold the store — rolled carpets in W2 and the NW room, rolled hangings and a chest in W1, covered couches and
+    stacked stools in E2 and the NE room, the incense burners put by, chests in W3/E3, jars in SW/SE — and the steward's
+    everyday minimum sits inside the S door (a reed mat, a stool, a water jar, a lamp stand). The Hadish and the Harem halls
+    keep covered couches, rolled carpets and hangings and chests along their walls (the Hadish apartments, where most of its
+    store would be, are not modelled: Q-087). 55 pieces.
+  - **The court setting on, court in residence (court.json days 0-116):** the Apadana gets the canopy over the throne's place,
+    two incense burners before it, four carpets under it, a carpet road from the N doorway and hangings on the S wall behind;
+    the Tachara, the Hadish and the Harem get carpets bay by bay between the column bases, couch sets (couch, footstool,
+    table) along the walls, hangings wherever the wall has no door, window or niche, incense burners inside the main door and
+    lamp stands in the corners; the Tachara's side and N rooms get a couch set and carpets. 271 pieces. The court's own
+    places (throne, attendants, escort, the audience front, the Hadish musicians' floor) are kept clear (tested).
+  - **Solid:** every standing piece has a box collider in its current state (54 stored / 110 in use; the canopy's posts as
+    four); carpets, mats and hangings have none. The people's grid is blocked under the standing pieces at load (with the
+    court setting on, both states' pieces, all year: C, noted). Every hall and Tachara side room reachable before stays
+    reachable (tested) — the Tachara SW room is **already unreachable on the bare grid** (its 0.95 m doorway P_W is closed by
+    the grid's body clearance), found by this test, not caused by it.
+  - **Light:** the furnishings are not in the architecture's parts, so the parts hash and the probe bake are unchanged and
+    **the probes were not re-baked**: the textiles (albedo ~0.1-0.4, mostly red on a red plaster floor) are not in the baked
+    interreflection. Judged not necessary for the stored state (small pieces in side rooms); for the court state the carpets
+    would slightly darken and redden the halls' bounce light — not measured. Lamps drawn unlit: the torches and braziers of
+    the fire system light the halls.
+  - **Cost** (tools/relief_budget.ts, last lines): stored 55 pieces, 15 draws (a building's group drawn only within 90 m:
+    Tachara 7 draws 14.4 k tris, Hadish 4 / 2.6 k, Harem 4 / 1.2 k), 18.1 k tris; court in residence 271 pieces, 19 draws,
+    47.0 k tris (Apadana 3 / 4.4 k, Tachara 6 / 23.4 k, Hadish 5 / 11.8 k, Harem 5 / 7.5 k). Build ~0.5 s in node. The
+    carpet's pattern is colour patches 1.5 mm apart on the pile (no coplanar faces); every piece stands on the floor's plaster
+    coat (global.r_floor_finish).
+- **Masons' and sculptors' marks (src/arch/marks.ts; SITE_SPEC global.r_masons_marks, C).** Only four shapes are cut: the
+  double lozenge (Persepolis reliefs, ROAF1983) and the circle, cross and L (Pasargadae and the Lydian terraces at Sardis,
+  PAS-MARKS). No Lydian letter form is drawn: the Persepolis marks "resemble Lydian letters" (IR-GREECE7) but which letters
+  was not found. They are incised with the inscriptions' V-section (carving.ts gained `shapeAtlas` and `bakeCarved`; the
+  shader is the D-177 incision, unchanged): 5 cm, 3 mm deep on the reliefs; 9 cm on the drums.
+  - **On the Apadana N and E stair reliefs:** 68 marks on the background, as Roaf describes them — beside every fourth guard
+    or noble from the stair's centre (in front of the spear blade or raised hand, or behind the shoulder above the quiver) and
+    behind the last man of each delegation (labelling the group); a team's shape per run of four figures, the same run of
+    teams on both stairs (the same teams on both Apadana stairs: MATERIAL_CULTURE, B). Each mark clears every figure's bounds
+    by 1 cm and lies on the façade's face (tested). They are children of the relief group, so they stay in the Now view (Roaf
+    recorded them on the ruin). One draw, 136 triangles.
+  - **On the Hall of 100 Columns' yard:** each dressed drum waiting in the yard carries its team's mark on the upper bedding
+    face (hidden once the next drum is set: C). Dressed drums seldom wait (the simulation raises them as they are dressed), so
+    these are rarely seen. At most one draw of 72 triangles.
+  - **Not done:** marks on the Terrace wall or other block faces (no Persepolis position found), a Greek sketch (Richter 1946:
+    unconfirmed; left out), other Persepolis marks' shapes (Roaf's plates: Q-393).
+- **Not taken on** from the audit's extra list: the Hadish apartments and S balcony (item 30), glazed bricks (28) and paint
+  placeholders (29) are left for a later pass; the guards' shield and jewellery (21) are people-look work in another
+  workstream.

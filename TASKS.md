@@ -37,7 +37,7 @@
 - [x] Walkthrough e2e over all six areas (session 3, after the step-up fix D-034)
 - [ ] Camera-rig views of the new areas at high quality
 - [x] Reliefs on the Tachara/Hadish/Tripylon/Harem/Hall-100 stairs and jambs (355 figures), 11 windows, 9 niches, 22 working doors; far relief chunks (draws ~1,000) — D-048..D-052
-- [~] XPe (D-066) and stair crenellations (D-065) added; Treasury N range + scribes' room (D-067); Tachara rebuilt from REF-PLAN with side/N rooms and the lance-bearers (D-130..D-134); other furnishings open
+- [~] XPe (D-066) and stair crenellations (D-065) added; Treasury N range + scribes' room (D-067); Tachara rebuilt from REF-PLAN with side/N rooms and the lance-bearers (D-130..D-134); palace furnishings stored / laid out for the court and masons' marks (D-212, C, node only)
 - [ ] Phase 4 independent review
 ## Phase 5 — Population + economy sim in workers, events, memory, persistence, soak test
 - [x] Simulation LOD (abstract/full) with non-teleporting promotion; load-time catch-up (persistence)
