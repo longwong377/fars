@@ -175,6 +175,9 @@ async function boot() {
       // camera rig (session 4): a photographic vertical field of view per capture (24 mm ≈ 46°, 35 mm ≈ 32° at 16:9);
       // omitted = the player's setting (70° by default, a 14 mm lens: fine for presence, not for judging a photograph)
       camera.fov = fovDeg ?? settings.fov; camera.updateProjectionMatrix();
+      // a rig capture is a photograph, not a walk: nobody stands within 2.5 m of the lens (render pass 2: a head filled the
+      // foreground of stair-foot-east and workshop-area-b). The player's own camera never sets this.
+      if (world.people) world.people.crowd.rigClear = 2.5;
     },
     viewLatLon: (lat: number, lon: number, eye: number, az: number, pitch: number) => { const [e, n] = latLonToGrid(lat, lon); api.view(e, n, eye, az, pitch); },
     walkMode: () => { freeCam = null; },

@@ -21,15 +21,15 @@ Large source data (`data/dem/*.tif`, raw imagery) stays out of git. Derived terr
 clone runs without the DEM.
 
 ## Budgets (set in Phase 1; proxies measured headless, real numbers from `?bench=all` — see REAL_HARDWARE_TODO.md)
-| Budget | Target (top quality, RTX 3070-class, 1440p) | Current measured (SwiftShader, test quality) |
+| Budget | Target (top quality, RTX 3070-class, 1440p) | Current measured (SwiftShader, quality high, session 7) |
 |---|---|---|
 | Frame time | ≤ 16.7 ms (60 fps) | not measurable headless (software rasteriser); bench mode records it on hardware |
-| Draw calls per frame | ≤ 3,000 | 99 (terrain + sky, approach view) |
-| Triangles per frame | ≤ 12 M | 1.11 M (approach view) |
-| JS heap | ≤ 1.5 GB | ~125 MB after boot |
+| Draw calls per frame | ≤ 3,000 | 408 / 557 / 647 (stair at dawn over the plain, Apadana N court, Grand Stair foot; `shots/plain-stats.json`); the plain adds 10–20, the town 11–27 |
+| Triangles per frame | ≤ 12 M | 7.47 M / 8.57 M / 8.65 M (same views; terrain 4.5–4.6 M of it) |
+| JS heap | ≤ 1.5 GB | ~125 MB after boot (Phase 1); not re-measured with the full population |
 | GPU memory (textures + buffers) | ≤ 3.5 GB | tracked via `renderer.info.memory` counts |
-| First playable load (download) | ≤ 60 MB | ≈ 14 MB (JS about 2 MB, terrain 11.8 MB, stars 0.2 MB) |
-| Total download (streamed) | ≤ 2.5 GB | ≈ 14 MB so far |
+| First playable load (download) | ≤ 60 MB | ≈ 36 MB `dist/` (JS 6.7 MB, 2.29 MB gzipped; generated data 26 MB) |
+| Total download (streamed) | ≤ 2.5 GB | ≈ 36 MB (nothing is streamed yet) |
 
 ## Layout
 `research/`: evidence bible (SITE_SPEC, CHRONOLOGY, …). `src/data/`: machine-readable spec, chronology, sources, climate,

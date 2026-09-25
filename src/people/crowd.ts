@@ -166,6 +166,8 @@ export class Crowd {
   readonly impPerf = { drawn: 0, candidates: 0, looksPending: 0, poolCands: 0, popins: 0, doorEntries: 0, walking: 0, placeholders: 0, walled: 0, bands: [0, 0, 0, 0] as number[], feedMs: 0, impMs: 0 };
   /** the walled plot the camera is in (PopGeo.plotAt; 0 none) */
   private camPlot = 0;
+  /** camera rig only (__parsa.view): people within this distance of the lens are not drawn (0 = off, the player's camera) */
+  rigClear = 0;
   /** hidden behind the walls of the court or yard they stand in, from a camera outside it and below the wall tops */
   private walledOff(vp: ViewPerson, camY: number) { return vp.wall > 0 && vp.plot !== this.camPlot && camY < vp.y + vp.wall - 0.3; }
   private camAt = new THREE.Vector3();
@@ -508,7 +510,7 @@ export class Crowd {
       if (p.drawnFrame === this.frame - 1) { pr[0] = r[0]; pr[1] = r[1]; pr[2] = r[2]; pr[3] = r[3]; } else { pr[0] = x; pr[1] = y; pr[2] = z; pr[3] = yaw; }
       r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
       const d = len3(x - cam.x, y + 0.9 - cam.y, z - cam.z); p.dist = d;
-      p.shown = d < LOD_DIST[3];
+      p.shown = d < LOD_DIST[3] && !(d < this.rigClear);
       if (!p.shown) continue;
       const reach = p.perf?.animals || p.perf?.work?.length ? 4 : 1.3; // a performance's things and animals spread a few metres
       if (camera && !this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), reach * p.look.scale))) { if (a || !p.extra) this.soundsOnly(p, d, time); continue; }
