@@ -136,3 +136,27 @@ fields.ts with a JS mirror); town roofs lighter (clay-and-straw coat) and lanes 
 (impostors to 20 km); fields keep 1.00/0.94/0.47 of plot contrast at 0.2–0.5/0.5–1/1–2.5 km. Terrain shader 4 → 8 texture
 samples, 26 → 27 noise calls; 0 draws added; render 2 budgets 402–425 draws, 5.8–7.5 M tris. Tests hills_d223, plain_d223 and
 18 other suites. D-223, Q-520..Q-526, PLAIN.md §12.
+
+## D-225 garments and beards (merged: worktree-agent-aea82b185c065550d, head 2927fd5)
+**Broken / unverified first.** No cloth simulation: the pleats and sleeves are baked into the meshes and move with the
+skinning (never lag, sway or settle; seated skirts on D-155's slack sag). Only the pattern is B (the reliefs' convention); cut,
+sizes, counts C (Q-540). LOD 2 (> ~20 m) keeps only the front stack's bulge and the slanted hem: at court-assembly distances
+(29–41 m) the pleats are mostly shading or nothing. One browser run only (humanlab, high, WebGPU, no errors): at 4 m the front
+stack, hem folds, slanted sleeves and hem soil read; at 1 m the court beard reads as stacked curled rows, more carved rolls than
+hair (roll depth can be reduced). NOT rendered: court-assembly, crowds, motion, WebGL2, the scribes' room. Dyes: only madder
+moved (a* 31 b* 29, from a search extract; colorimetry papers blocked, Q-541): population saturation barely changed (Persian p90
+0.650 → 0.642, women 0.565 → 0.550); "flat" answered by unevenness within a garment (saturation spread 0.0003 → 0.019 at 0.3 m).
+The weave shows only within ~0.5 m (band-limited). The scribes' "bare-chested" look is NOT the palette: at day 21 13:30 the
+tunics are green (Elamite) and weld yellow (Babylonian); tunic vs skin ΔE*ab 31/46 daylight, 26/35 room light, 17/28 under the
+red bounce alone; tunics 1.7–2.9× the skin's luminance; only the grey undyed trousers match skin luminance; likely the room's
+red-dominated underexposed light (Q-544; palette unchanged).
+**Changed:** the Persian robe skirt (drape.ts ROBE/robePleat/robeTheta; outfits.ts skirtTube({robe})): 72/24/10 columns at
+LOD 0/1/2, a front pleat stack 1.6 cm proud with 4 grooves, diagonal side folds hips to hem (2 cm at the hem), 7 back folds and
+a heel kick, hem higher in front, lining on every second ring; sleeves cut on the slant with 6 folds; the court beard 6 rolls
+(vertex shader, court style only) with 14 spiral curls per row and 1.2 cm curl rows on cheeks and chin; cloth: band-limited
+tabby weave, weft bars, uneven chroma, felt noise 3 → 1.5 mm, chest folds, robe creases, hem soil 0.55 → 0.8 plus a dragged
+last 7 %; impostors.ts clothStatsOf sampled inside triangles (the hem band had been overstated 3.4×; impostor worst ΔE 2.10 →
+0.96). Measured: hem ring rms beyond the body 6.7 → 12.1 mm (LOD 0), fold crests round the hem 11 → 14; felt-band cloth rms
+1119 → 189 µm at 0.3 m; beard 4 row maxima (was 0); hem soil ΔE 6.96 → 10.43; Persian costume 40,380/6,041/3,008/765
+triangles (budgets 42,000/7,000/3,200/800); 300-person view 15 draws, +1.9 % triangles. Tests people_drape (7) and 15 suites.
+D-225, Q-540..Q-544.
