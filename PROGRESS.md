@@ -1,6 +1,11 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **D-211 sim fills (festivals, lanes at noon, weddings, healer, hearing, games; the r9 findings; real Treasury receipts):
+  NOT soaked on the final commit 2bc77c6.** The last soak (f9b39a5) passed 7 of 8 gates; plansWellFormed failed on 3 of
+  15.5 M person-days, which 2bc77c6 fixes (swept and tested, not re-soaked). Open: under forced all-day rain, a camp issue
+  is pushed to 23:54 and a homemaker's noon comes at midnight (main's 9e2c5e7 guards the hang; the cause is not fixed).
+  Best clothes and toys are words only (not drawn). All C; Strabo and the frame drum sources are R (recalled). See D-211.
 - **Audience panel and the carved edge (D-204; the user's "fill the gaps").** The panel's composition after the Treasury
   audience reliefs is RECOLLECTION, NOT SEEN (the figures B via TREAS-AUD; order, sizes, canopy and paint C). **Not rendered
   in a browser** (node previews only: `shots/d204/`). Weak: at L2 (4-14 m) folds are faint and the royal robe's pattern and
