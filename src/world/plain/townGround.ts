@@ -45,22 +45,43 @@ export function laneExtras(): P2[] {
   return out;
 }
 
-/** the worn desire lines (grid m) with their wear (0..1): each built site's lane mouth nearest the other end, joined by a
- *  clear straight run to its three nearest sites (within 2.5 km), to the stair foot (within 3 km: the Terrace workforce
- *  walks it daily) and each facility to its two nearest sites and the stair; runs a site blocks are left out */
+/** the worn paths (grid m) with their wear (0..1). D-223 (rubric s7 pass 2 fix 9, "straight radial beige streaks"): the
+ *  D-190 set joined every site within 3 km straight to the stair foot, a star of a dozen ruled lines converging under the
+ *  Grand Stair, which from the Terrace read as seams of a projected texture. Paths merge: people bound for the stair walk
+ *  to the nearest well-trodden way and follow it (desire lines coalesce into a branching net, and wear concentrates on the
+ *  trunks). So the net grows from the trunks, the approach line (town place to stair foot) and the roads, nearest site
+ *  first: each site's lane mouth runs clear and straight to the nearest point of the net (if that is nearer than the stair
+ *  itself), each join adding wear to the branch it joins and every branch between it and the stair (0.25 a spur, up to
+ *  0.6 on a trunk); each site keeps one clear run to its nearest neighbouring site (the quarters' own traffic, 0.2); the
+ *  facilities join the net the same way. All C (which runs wear, and how much) */
 export function desireLines(plan: TownPlan): { a: P2; b: P2; w: number }[] {
-  const walk = new TownWalk(plan.sites), ex = laneExtras(), stair = ex[0];
+  const walk = new TownWalk(plan.sites), ex = laneExtras(), stair = ex[0], townPl = ex[1];
   const sites = plan.sites.map(s => ({ c: s.frame.c as P2, exits: siteExits(s) })).filter(s => s.exits.length);
   const mouth = (i: number, to: P2) => sites[i].exits.reduce((b, p) => (Math.hypot(p[0] - to[0], p[1] - to[1]) < Math.hypot(b[0] - to[0], b[1] - to[1]) ? p : b));
   const d2 = (a: P2, b: P2) => Math.hypot(a[0] - b[0], a[1] - b[1]);
   const out: { a: P2; b: P2; w: number }[] = [], seen = new Set<string>();
-  const add = (a: P2, b: P2, w: number) => { const k = [a, b].map(p => p.join(',')).sort().join('|'); if (seen.has(k) || d2(a, b) < 5 || !walk.clear(a, b)) return; seen.add(k); out.push({ a, b, w }); };
-  const nearest = (p: P2, k: number, R: number, skip = -1) => sites.map((s, i) => [d2(s.c, p), i] as [number, number]).filter(([d, i]) => i !== skip && d < R).sort((x, y) => x[0] - y[0]).slice(0, k).map(x => x[1]);
-  sites.forEach((s, i) => {
-    for (const j of nearest(s.c, 3, 2500, i)) add(mouth(i, sites[j].c), mouth(j, s.c), 0.25);
-    if (stair && d2(s.c, stair) < 3000) add(mouth(i, stair), stair, 0.4);
-  });
-  for (const f of ex.slice(1)) { for (const j of nearest(f, 2, 3000)) add(f, mouth(j, f), 0.25); if (stair && d2(f, stair) < 3000) add(f, stair, f === ex[1] ? 0.6 : 0.3); }
+  // the net: segments with their parent (toward the stair) for the wear; roads and the approach are trunks (not drawn:
+  // the roads are drawn by the settlement, the approach is trodden ground, D-190)
+  interface Seg { a: P2; b: P2; parent: number; out: number }
+  const net: Seg[] = [];
+  if (stair && townPl) net.push({ a: townPl, b: stair, parent: -1, out: -1 });
+  for (const r of plan.roads) for (let i = 1; i < r.pts.length; i++) { const a = r.pts[i - 1], b = r.pts[i]; if (Math.min(d2(a, [0, 0]), d2(b, [0, 0])) < 4000) net.push({ a, b, parent: -1, out: -1 }); }
+  const wear = (k: number, dw: number) => { for (let j = k; j >= 0; j = net[j].parent) if (net[j].out >= 0) out[net[j].out].w = Math.min(0.6, out[net[j].out].w + dw); };
+  const add = (a: P2, b: P2, w: number, parent = -1): boolean => { const key = [a, b].map(p => p.join(',')).sort().join('|'); if (seen.has(key) || d2(a, b) < 5 || !walk.clear(a, b)) return false;
+    seen.add(key); out.push({ a, b, w }); net.push({ a, b, parent, out: out.length - 1 }); return true; };
+  /** the nearest point of the net to p that p can reach in a clear straight run (at most `max` m), with its segment */
+  const join = (p: P2, max: number): { q: P2; k: number } | null => {
+    const cand = net.map((sg, k) => { const dx = sg.b[0] - sg.a[0], dy = sg.b[1] - sg.a[1], L2 = dx * dx + dy * dy || 1, t = Math.min(1, Math.max(0, ((p[0] - sg.a[0]) * dx + (p[1] - sg.a[1]) * dy) / L2));
+      const q: P2 = [sg.a[0] + t * dx, sg.a[1] + t * dy]; return { q, k, d: d2(p, q) }; }).filter(c => c.d < max && c.d > 5).sort((x, y) => x.d - y.d);
+    for (const c of cand.slice(0, 6)) if (walk.clear(p, c.q)) return { q: c.q, k: c.k };
+    return null;
+  };
+  const order = sites.map((s, i) => i).filter(i => stair && d2(sites[i].c, stair) < 3000).sort((i, j) => d2(sites[i].c, stair) - d2(sites[j].c, stair));
+  for (const i of order) { const m = mouth(i, stair), direct = d2(m, stair), j = join(m, direct);
+    if (j) { if (add(m, j.q, 0.25, j.k)) wear(j.k, 0.08); } else add(m, stair, 0.4); }
+  sites.forEach((s, i) => { const nb = sites.map((t, j) => [d2(t.c, s.c), j] as [number, number]).filter(([d, j]) => j !== i && d < 2500).sort((x, y) => x[0] - y[0]);
+    for (const [, j] of nb.slice(0, 1)) add(mouth(i, sites[j].c), mouth(j, s.c), 0.2); });
+  for (const f of ex.slice(2)) { if (!stair || d2(f, stair) > 3000) continue; const j = join(f, d2(f, stair)); if (j) { if (add(f, j.q, 0.25, j.k)) wear(j.k, 0.05); } else add(f, stair, 0.3); }
   return out;
 }
 
@@ -108,7 +129,7 @@ export function buildTownGround(plan: TownPlan | null, camps: { c: P2; r: number
     for (const w of plan.water) for (let i = 1; i < w.pts.length; i++) seg(w.pts[i - 1], w.pts[i], 20, (k, d) => { if (d < w.width / 2 + 12) allowed[k] = 0; });
     for (const r of desireLines(plan)) { runs++;
       seg(r.a, r.b, VEC_RANGE, (k, d, px, py) => { if (d < best[k]) { best[k] = d; vx[k] = px; vy[k] = py; } });
-      seg(r.a, r.b, 7, (k, d) => { trample[k] = Math.max(trample[k], r.w * (1 - sstep(1, 6, d))); }); } // (was ±14 m: broad bands)
+      seg(r.a, r.b, 5, (k, d) => { trample[k] = Math.max(trample[k], r.w * (1 - sstep(0.8, 3.5, d))); }); } // (was ±14 m, then ±6 m: broad bands; D-223)
   }
   const data = new Uint8Array(N * 4), enc = (v: number) => Math.round(128 + Math.max(-VEC_RANGE, Math.min(VEC_RANGE, v)) * 10);
   for (let k = 0; k < N; k++) { data[k * 4] = enc(vx[k]); data[k * 4 + 1] = enc(vy[k]); data[k * 4 + 2] = Math.round(Math.min(1, trample[k]) * 255); data[k * 4 + 3] = allowed[k] ? 255 : 0; }

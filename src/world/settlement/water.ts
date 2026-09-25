@@ -3,8 +3,8 @@
 // and depth-offset); garden channels, pools, ditches and well water are flat water surfaces. Roads are cut into ~1 km
 // pieces that hide beyond 6 km (they are sub-pixel there). One water mesh for everything.
 import * as THREE from 'three/webgpu';
-import { positionWorld, vec3, float, cameraViewMatrix, vec4, normalize, attribute } from 'three/tsl';
-import { surfaceMaterial } from '../../render/materials';
+import { positionWorld, vec3, float, cameraViewMatrix, vec4, normalize, attribute, abs, fwidth, max, mix, smoothstep, mx_noise_float } from 'three/tsl';
+import { surfaceMaterial, SEASON, type Layer } from '../../render/materials';
 import { rippleNormal, waterBody, skyReflection, waterRoughness } from '../plain/waterShade';
 import { hashString, Rng } from '../../core/rng';
 import type { TownPlan } from './plan';
@@ -21,22 +21,69 @@ export function resample(pts: P2[], step: number): P2[] {
 }
 /** a ribbon of width w along pts, draped: y = ground + lift; returns position/normal/index arrays */
 function ribbon(pts: P2[], w: number, H: (e: number, n: number) => number, lift: number, off = 0, dropEdge = 0) {
-  const pos: number[] = [], nor: number[] = [], idx: number[] = [];
+  const pos: number[] = [], nor: number[] = [], idx: number[] = [], lat: number[] = [];
   for (let i = 0; i < pts.length; i++) {
     const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1;
     const nx = -dy / L, ny = dx / L; // left normal (grid)
-    for (const s of [-1, 1]) { const e = pts[i][0] + nx * (off + s * w / 2), n = pts[i][1] + ny * (off + s * w / 2); pos.push(e, H(e, n) + lift - dropEdge, -n); nor.push(0, 1, 0); }
+    for (const s of [-1, 1]) { const e = pts[i][0] + nx * (off + s * w / 2), n = pts[i][1] + ny * (off + s * w / 2); pos.push(e, H(e, n) + lift - dropEdge, -n); nor.push(0, 1, 0); lat.push(s * w / 2, w / 2); }
     if (i > 0) { const k = (i - 1) * 2; idx.push(k, k + 2, k + 1, k + 1, k + 2, k + 3); }
   }
-  return { pos, nor, idx };
+  return { pos, nor, idx, lat };
 }
-function geo(parts: { pos: number[]; nor: number[]; idx: number[]; wd?: [number, number] }[]) {
-  const pos: number[] = [], nor: number[] = [], idx: number[] = [], wd: number[] = [];
-  for (const p of parts) { const o = pos.length / 3; pos.push(...p.pos); nor.push(...p.nor); for (const i of p.idx) idx.push(i + o); for (let k = 0; k < p.pos.length / 3; k++) wd.push(...(p.wd ?? [0.4, 0])); }
+function geo(parts: { pos: number[]; nor: number[]; idx: number[]; wd?: [number, number]; lat?: number[] }[]) {
+  const pos: number[] = [], nor: number[] = [], idx: number[] = [], wd: number[] = [], lat: number[] = [];
+  for (const p of parts) { const o = pos.length / 3; pos.push(...p.pos); nor.push(...p.nor); for (const i of p.idx) idx.push(i + o); for (let k = 0; k < p.pos.length / 3; k++) { wd.push(...(p.wd ?? [0.4, 0])); lat.push(p.lat?.[2 * k] ?? 0, p.lat?.[2 * k + 1] ?? 1); } }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('wdepth', new THREE.Float32BufferAttribute(wd, 2));
+  g.setAttribute('lat', new THREE.Float32BufferAttribute(lat, 2)); // signed metres from the ribbon's axis, and its half-width (the roads' ruts and verges, D-223)
   g.setIndex(pos.length / 3 > 65535 ? new THREE.Uint32BufferAttribute(idx, 1) : new THREE.Uint16BufferAttribute(idx, 1)); g.computeBoundingSphere(); g.computeVertexNormals(); return g;
 }
 
+/** D-223: a road's drawn course between its settlement.json points (courses C) wanders as an earth road does round soft
+ *  ground and field corners: ±2.2 m over ~520 m and ±0.8 m over ~90 m, zero at every listed point (junctions stay put). Under
+ *  the road's half-width, so whoever walks the listed line (the town's routes) stays on the drawn road (C) */
+export const ROAD_MEANDER = { a1: 2.2, l1: 520, a2: 0.8, l2: 90 } as const;
+export function meander(pts: P2[], step: number): P2[] {
+  const out: P2[] = [pts[0]], M = ROAD_MEANDER;
+  for (let i = 0; i + 1 < pts.length; i++) {
+    const [ax, ay] = pts[i], [bx, by] = pts[i + 1], L = Math.hypot(bx - ax, by - ay), n = Math.max(1, Math.ceil(L / step)), nx = -(by - ay) / (L || 1), ny = (bx - ax) / (L || 1);
+    const ph = (ax * 0.0137 + ay * 0.0071) % (2 * Math.PI);
+    for (let k = 1; k <= n; k++) { const t = k / n, d = t * L, env = Math.sin(Math.PI * t) * Math.min(1, L / 300);
+      const o = env * (M.a1 * Math.sin(2 * Math.PI * d / M.l1 + ph) + M.a2 * Math.sin(2 * Math.PI * d / M.l2 + 2.1 * ph));
+      out.push([ax + (bx - ax) * t + nx * o, ay + (by - ay) * t + ny * o]); }
+  }
+  return out;
+}
+/** D-223 (rubric s7 pass 2 fix 9: from the Terrace the roads read as "straight radial beige streaks", uniform strips with
+ *  ruled edges, like seams of a projected texture): an earth road as a worn track. Across it (attribute `lat`, m from the
+ *  axis): a wheel-rut pair in each half (ruts 1.4 m apart, the gauge of a two-wheeled cart, C; wheeled traffic on the royal
+ *  roads: recollection, Q-526), darker and damper and pressed 3 cm in, the crown between them and the shoulders the road's own
+ *  loose, dusty tone; the last ~1.5 m a ragged verge where the herb layer returns (its edge wanders by ±0.7 m along the road over
+ *  ~6 m, so the edge is no ruled line); broad patches along the road where it was widened round a soft spot or recently
+ *  trodden (±8 % over ~40 m). The ruts give way to their mean share where a rut spans under ~2 px of `lat` (a far road keeps
+ *  its mean tone, never an aliased stripe); the verge is broad enough not to alias. All C */
+export const ROAD_TRACK = { gauge: 1.4, rutW: 0.35, rutDark: 0.14, verge: 1.5, edgeWander: 0.7, patch: 0.08 } as const;
+function roadMaterial() {
+  return surfaceMaterial('road', { variant: 'track', modify: (L: Layer) => {
+    const la = attribute('lat', 'vec2'), p = positionWorld, R = ROAD_TRACK;
+    const a = abs(la.x), hw = la.y, px = fwidth(la.x).max(1e-3);
+    const near = float(1).sub(smoothstep(0.25, 0.8, px.div(R.rutW)));
+    // a rut pair each side of the axis at 0.9 ± gauge/2 m (0.2 and 1.6 m: one cart track each way on a 6-8 m road, C);
+    // far off, their mean share of the width
+    const rut = (c: number) => float(1).sub(smoothstep(R.rutW * 0.3, R.rutW * 0.5, abs(a.sub(c))));
+    const ruts = max(rut(0.9 - R.gauge / 2), rut(0.9 + R.gauge / 2)).mul(near).add(float(1).sub(near).mul(R.rutW * 4).div(hw.mul(2).max(1)));
+    // the verge: the outer R.verge m, its inner edge wandering along the road; the herb layer and the plain's loam return
+    const wander = mx_noise_float(vec3(p.x.mul(0.17), 0, p.z.mul(0.17))).mul(R.edgeWander).add(mx_noise_float(vec3(p.x.mul(0.9), 2.1, p.z.mul(0.9))).mul(0.25).mul(near));
+    const verge = float(1).sub(smoothstep(0, R.verge, hw.sub(a).add(wander))).mul(0.85);
+    const loam = vec3(0.184, 0.122, 0.064); // the plain's loam (terrainMesh groundColour 0.43, 0.36, 0.27 sRGB) in linear
+    const herb = mix(vec3(0.319, 0.264, 0.107), vec3(0.078, 0.107, 0.027), SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001))); // straw / green (materials.ts herbs)
+    const vergeAlb = mix(loam, herb, SEASON.green.add(SEASON.dry).min(1).mul(0.55)).mul(float(1).add(mx_noise_float(p.mul(1.3)).mul(0.12)));
+    const patch = float(1).add(mx_noise_float(vec3(p.x.mul(0.025), 1.3, p.z.mul(0.025))).mul(R.patch * 2));
+    let alb: any = L.alb.mul(patch).mul(float(1).sub(ruts.mul(R.rutDark)));
+    alb = mix(alb, vergeAlb, verge);
+    const height = (L.height ?? float(0)).sub(ruts.mul(near).mul(0.03)).add(verge.mul(0.015));
+    return { alb, rough: L.rough, height, tilt: L.tilt };
+  } });
+}
 export function waterMaterial() {
   const m = new THREE.MeshStandardNodeMaterial({ metalness: 0 });
   // slow water (plain/waterShade.ts, as the rivers): wind ripples as band-limited noise drifting slowly, the Fresnel sky,
@@ -141,10 +188,10 @@ export function buildWaterAndRoads(plan: TownPlan, H: (e: number, n: number) => 
   const bm = new THREE.Mesh(banks, surfaceMaterial('bank')); bm.name = 'settlement:canal_banks'; bm.receiveShadow = true; bm.castShadow = false; bm.matrixAutoUpdate = false;
   bm.userData = { tier: 'C', src: cf.src, note: 'Kuh-e Rahmat canal banks (course and section C; existence B)' }; group.add(bm); tris += banks.index!.count / 3; meshes++;
   // roads: one mesh for all of them (a single draw call, receive-only); samples every 8 m within 4 km, 40 m beyond
-  const roadMat = surfaceMaterial('road'); (roadMat as any).polygonOffset = true; (roadMat as any).polygonOffsetFactor = -2; (roadMat as any).polygonOffsetUnits = -2;
+  const roadMat = roadMaterial(); (roadMat as any).polygonOffset = true; (roadMat as any).polygonOffsetFactor = -2; (roadMat as any).polygonOffsetUnits = -2;
   const rparts: { pos: number[]; nor: number[]; idx: number[] }[] = [];
   for (const r of plan.roads) {
-    const all = resample(r.pts, 8), near = all.filter(p => Math.hypot(p[0], p[1]) <= 4000), farPts = all.filter((p, i) => Math.hypot(p[0], p[1]) > 4000 && i % 5 === 0);
+    const all = meander(r.pts, 8), near = all.filter(p => Math.hypot(p[0], p[1]) <= 4000), farPts = all.filter((p, i) => Math.hypot(p[0], p[1]) > 4000 && i % 5 === 0);
     // keep the order along the road: split into runs of near / far samples
     let run: P2[] = [], runFar = false;
     const flush = () => { if (run.length > 1) rparts.push(ribbon(run, r.width, H, runFar ? 0.4 : 0.06)); };
@@ -152,7 +199,7 @@ export function buildWaterAndRoads(plan: TownPlan, H: (e: number, n: number) => 
     flush(); void near; void farPts;
   }
   const rg = geo(rparts); const rm = new THREE.Mesh(rg, roadMat); rm.name = 'settlement:roads'; rm.receiveShadow = true; rm.matrixAutoUpdate = false;
-  rm.userData = { tier: 'C', src: 'LIVIUS-TR;PLEIADES-FARS;ROYALROAD-GIS;SUMNER1986;RECON', note: 'earth roads 6-8 m (settlement.json): to Naqsh-e Rustam, to Pasargadae up the Pulvar, the royal road W toward Susa, S to Tirazziš; courses C (Q-054); spur to the Tol-e Ajori gate C' };
+  rm.userData = { tier: 'C', src: 'LIVIUS-TR;PLEIADES-FARS;ROYALROAD-GIS;SUMNER1986;RECON', note: 'earth roads 6-8 m (settlement.json): to Naqsh-e Rustam, to Pasargadae up the Pulvar, the royal road W toward Susa, S to Tirazziš; courses C (Q-054); spur to the Tol-e Ajori gate C; worn as tracks: a cart-rut pair each side, a ragged herb verge (D-223, C)' };
   group.add(rm); tris += rg.index!.count / 3; meshes++;
   const update = (_cam: THREE.Vector3) => {};
   return { group, tris, meshes, update };

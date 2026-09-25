@@ -237,9 +237,11 @@ function endCaps(f: Face, xa: number, xb: number, H: number, holes: Hole[]): THR
     for (let h = -1.5; h <= top; h += 3) pts.push(toWorld(f, x, h, faceDepth(x, h, H, holes)));
     pts.push(toWorld(f, x, top, faceDepth(x, top, H, holes)));
     const back = [toWorld(f, x, top, 40), toWorld(f, x, -1.5, 40)];
-    const tri: THREE.Vector3[] = []; // fan from the rear bottom corner
-    for (let k = 0; k + 1 < pts.length; k++) tri.push(back[1], pts[k], pts[k + 1]);
-    tri.push(back[1], pts[pts.length - 1], back[0]);
+    const tri: THREE.Vector3[] = []; // fan from the rear bottom corner, wound to face out of the rock (-x at xa, +x at xb:
+    // the shadow pass draws the cliff's back faces only, D-223, so every part must face outward)
+    const out = x === xb;
+    for (let k = 0; k + 1 < pts.length; k++) out ? tri.push(back[1], pts[k + 1], pts[k]) : tri.push(back[1], pts[k], pts[k + 1]);
+    out ? tri.push(back[1], back[0], pts[pts.length - 1]) : tri.push(back[1], pts[pts.length - 1], back[0]);
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(tri.flatMap(v => [v.x, v.y, v.z]), 3)); g.computeVertexNormals(); parts.push(g);
   }
   return mergeGeometries(parts)!;
@@ -287,6 +289,15 @@ export function buildNaqsh(terrain: Terrain, ancientFootAsl: number): NaqshBuild
   const holes = tombs.flatMap(t => facadeHoles(t.x));
   const rock = surfaceMaterial('nr_rock'), dressed = surfaceMaterial('nr_dressed');
   rock.side = THREE.DoubleSide; // the cliff's top and end returns are seen from both sides
+  // D-223 (rubric s7 pass 2 R9, the fine wavy moiré): a DoubleSide material is drawn DoubleSide into the shadow maps
+  // (three r186 Renderer: shadowSide ?? side for DoubleSide), so the lit face wrote its own depth and shadowed itself:
+  // shadow acne. The naqsh-200m sun (day 0, 15:00) stands at grid azimuth 271°, along the face (mean N·L 0.11 over its
+  // vertices): the depth slope is ~9 × the cascade texel (~0.2 m at 150-300 m) against a 0.06 m normal bias, so the acne
+  // drew wavy lines over the whole face. The cliff is one outward-facing sheet (face +z, top up, returns outward), so its
+  // back faces alone give the correct cast shadows (as the terrain's FrontSide chunks already do: shadowSide defaults to
+  // BackSide for them). The terrain horizon (the other suspect) is excluded: 1.0 on every face vertex at 10:00 and 15:00
+  // (CPU mirror, tests/naqsh_shadow.test.ts)
+  rock.shadowSide = THREE.BackSide;
   const facades = tombs.map(t => ({ t, fc: tombFacade(f, t.x, t.inscribed, t.id) }));
   const texts = new THREE.Group(); texts.name = 'nr-inscriptions'; const carved: THREE.BufferGeometry[] = [], textInfo: string[] = [], carvedSigns: { id: string; ver: 'op'; signs: string }[] = [];
   const inscMat = incisedMaterial('nr_dressed', inscriptionAtlas('op')); // cut into the dressed field (D-177)

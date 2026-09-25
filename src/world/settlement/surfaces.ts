@@ -7,7 +7,10 @@ export const SETTLEMENT_SURFACES: Record<string, SurfaceDef> = {
   // town house walls: straw-tempered mud render over mud brick in the local loam (base colour per house from vertex
   // colours); roofs and wall tops: packed earth over reeds and poles
   mud_plaster: { albedo: [0.56, 0.47, 0.36], roughness: 0.95, porosity: 0.85, noiseScale: 0.9, noiseAmp: 0.13, bump: { amp: 0.012, freq: 1.6 }, top: 'mud_roof', tier: 'C', note: 'town walls: mud plaster (straw-tempered loam) over mud brick, local soil tone (C; no excavated Persepolis house)' },
-  mud_roof: { albedo: [0.49, 0.42, 0.33], roughness: 0.97, porosity: 0.9, noiseScale: 0.5, noiseAmp: 0.12, bump: { amp: 0.01, freq: 1.8 }, chips: { cover: 0.05, size: 0.08, albedo: [0.62, 0.56, 0.42] }, tier: 'C', note: 'flat roof: packed earth over reeds and poles, straw in the mud (C)' },
+  // D-223: the roof's finish coat is a fine clay-and-straw render (the region's kahgel), rolled and renewed before the rains
+  // and bleached by the sun: lighter and yellower than the trodden, damp, littered earth of the lanes (was 0.49, 0.42, 0.33,
+  // the lanes' own tone: from the Terrace the roofs did not read, rubric s7 pass 2 fix 9). C
+  mud_roof: { albedo: [0.60, 0.53, 0.41], roughness: 0.97, porosity: 0.9, noiseScale: 0.5, noiseAmp: 0.12, bump: { amp: 0.01, freq: 1.8 }, chips: { cover: 0.05, size: 0.08, albedo: [0.66, 0.60, 0.46] }, tier: 'C', note: 'flat roof: packed earth over reeds and poles, a sun-bleached clay-and-straw finish coat renewed before the rains (C, D-223)' },
   // refuse: middens, dung, bone pits (base colour from vertex colours); sherds as chips
   refuse: { albedo: [0.32, 0.28, 0.23], roughness: 0.96, porosity: 0.9, noiseScale: 1.2, noiseAmp: 0.18, bump: { amp: 0.02, freq: 2.5 }, chips: { cover: 0.1, size: 0.05, albedo: [0.56, 0.36, 0.26] }, tier: 'C', note: 'middens, dung and ash: grime where work happens (brief 5.5), C' },
   // Tol-e Ajori facing: baked brick (AJORI-BRICK2018: baked and glazed brick with mud brick, B); brick ~0.33 m square,
