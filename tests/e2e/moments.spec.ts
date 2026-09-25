@@ -91,7 +91,10 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'apadana-enter-portico', day: 25, hour: 11, w: 'clear', v: [1.9, 36, 1.6, 161, 2], fov: IN }, // the old view, in the portico
   { n: 'apadana-enter-door', day: 25, hour: 11, w: 'clear', v: [1.9, 31.0, 1.6, 161, 2], fov: IN, carry: ['apadana-enter-portico', 0] },
   { n: 'apadana-enter-hall', day: 25, hour: 11, w: 'clear', v: [1.9, 23.0, 1.6, 161, 4], fov: IN, carry: ['apadana-enter-door', 6] },
-  { n: 'apadana-hall-out', day: 25, hour: 11, w: 'clear', v: [1.9, 18, 1.6, 341, 3], fov: IN }, // 7 m inside, looking N out through the doorway to the portico and the sunlit court, adapted to the hall
+  { n: 'apadana-hall-out', day: 25, hour: 11, w: 'clear', v: [1.9, 18, 1.6, 341, 3], fov: IN },
+  // D-224: the frame meter's bright majority: 5 m inside the Apadana W portico looking out over the plain (the D-219
+  // rain-approach stance, where the portico's exposure left the sky 5–7× display white); shares the page load above
+  { n: 'apadana-w-portico-out', day: 25, hour: 11, w: 'clear', v: [-38, -5, 1.6, 232, 3] }, // 7 m inside, looking N out through the doorway to the portico and the sunlit court, adapted to the hall
   // inside the hall, one bay E of the axis (between column lines x 6.2 and 14.9), looking SSW and up: the capitals and
   // beams close overhead, the far doorway the one bright thing low in the frame (session 4 reframe)
   { n: 'apadana-hall-in', day: 25, hour: 11, w: 'clear', v: [10.55, 12.4, 1.6, 170, 20], fov: 50 },
@@ -195,7 +198,7 @@ test('moments', async ({ page }, info) => {
     // §8.3 luminance (display-referred sRGB luma): whole frame; appended to shots/moments-lum.json
     const lum = await lumStats(page, png); const exp = await page.evaluate(() => (window as any).__parsa.exposureInfo()); eyeAt.set(s.n, exp.exposure);
     mkdirSync('shots', { recursive: true }); const f = 'shots/moments-lum.json'; const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {};
-    all[`${s.n}${process.env.TAG ? '-' + process.env.TAG : ''}|${process.env.Q ?? 'test'}|${proj}`] = { lum, exposure: +exp.exposure.toFixed(3), meterEV: +(exp.meterEV ?? 0).toFixed(2), sunAlt: +exp.sunAlt.toFixed(1), fov: fov ?? 'game', ...(s.carry ? { carry: s.carry } : {}) }; writeFileSync(f, JSON.stringify(all, null, 1));
+    all[`${s.n}${process.env.TAG ? '-' + process.env.TAG : ''}|${process.env.Q ?? 'test'}|${proj}`] = { lum, exposure: +exp.exposure.toFixed(3), meterEV: +(exp.meterEV ?? 0).toFixed(2), bright: +(exp.meterBright ?? 0).toFixed(2), meterMean: +(exp.meterMean ?? 0).toFixed(2), sunAlt: +exp.sunAlt.toFixed(1), fov: fov ?? 'game', ...(s.carry ? { carry: s.carry } : {}) }; writeFileSync(f, JSON.stringify(all, null, 1));
     console.log(s.n, JSON.stringify(lum), 'backend', await page.evaluate(() => (window as any).__parsa.backend));
     if (s.ab) { // the same view with the named objects hidden (D-220: the smoke's own contrast); their state and the draw calls logged
       const nFr = process.env.FRAMES ? +process.env.FRAMES : s.frames ?? 8;

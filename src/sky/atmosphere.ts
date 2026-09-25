@@ -69,6 +69,7 @@ const OZ = LAM.map((_, i) => { let s = 0; for (let k = 0; k < 4; k++) s += O3_XS
 /** bin → linear sRGB weights: radiance factor per unit solar irradiance → RGB, white-balanced so that the sun above the
  *  atmosphere (all bins at 1) is (1, 1, 1), as Bruneton's demo does (a ~5800 K balance, close to a camera's daylight
  *  setting). The zenith sun at the ground then comes out (1, 0.92, 0.82): the session-3 noon colour (1, 0.92, 0.84). */
+let SUN_SRGB: V3 = [1, 1, 1];
 export const BIN_RGB: number[] = (() => {
   const xyz = new Array(NL * 3).fill(0);
   for (let i = 0; i < NL; i++) for (let k = 0; k < 8; k++) { // 5 nm samples in the 40 nm bin
@@ -78,8 +79,22 @@ export const BIN_RGB: number[] = (() => {
   const rgb = new Array(NL * 3).fill(0), white = [0, 0, 0];
   for (let i = 0; i < NL; i++) for (let r = 0; r < 3; r++) { const v = XYZ_TO_SRGB[r * 3] * xyz[i * 3] + XYZ_TO_SRGB[r * 3 + 1] * xyz[i * 3 + 1] + XYZ_TO_SRGB[r * 3 + 2] * xyz[i * 3 + 2]; rgb[i * 3 + r] = v; white[r] += v; }
   for (let i = 0; i < NL; i++) for (let r = 0; r < 3; r++) rgb[i * 3 + r] /= white[r];
+  SUN_SRGB = [white[0], white[1], white[2]];
   return rgb;
 })();
+/** a CIE 1931 chromaticity (x, y) in the renderer's colour (linear sRGB white-balanced to the sun above the atmosphere,
+ *  as spectrumToRGB), normalised to Rec. 709 luminance 1 (D-224: the measured overcast colour) */
+export function xyToRenderer(x: number, y: number): V3 {
+  const X = x / y, Z = (1 - x - y) / y;
+  const c = [0, 1, 2].map(r => (XYZ_TO_SRGB[r * 3] * X + XYZ_TO_SRGB[r * 3 + 1] + XYZ_TO_SRGB[r * 3 + 2] * Z) / SUN_SRGB[r]);
+  const Yl = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  return [c[0] / Yl, c[1] / Yl, c[2] / Yl];
+}
+/** chromaticity of CIE daylight at correlated colour temperature T (K; the CIE daylight locus, 4000–25000 K) */
+export function daylightXY(T: number): [number, number] {
+  const x = T <= 7000 ? -4.607e9 / T ** 3 + 2.9678e6 / T ** 2 + 99.11 / T + 0.244063 : -2.0064e9 / T ** 3 + 1.9018e6 / T ** 2 + 247.48 / T + 0.23704;
+  return [x, -3 * x * x + 2.87 * x - 0.275];
+}
 /** spectral values → linear sRGB, white-balanced to the sun above the atmosphere */
 export function spectrumToRGB(s: ArrayLike<number>, out: V3 = [0, 0, 0], o = 0): V3 {
   let r = 0, g = 0, b = 0;
@@ -98,33 +113,81 @@ export function aerosolTauFor(k: number): number {
   return Math.max(0.02, k - ray - oz);
 }
 
+// ---- D-224 (session 8): the antisolar twilight ------------------------------------------------------------------------
+/** Background stratospheric aerosol (the Junge sulphate layer; C for 467 BCE, when the volcanic state is unknown): a
+ *  Gaussian layer at 20 km (σ 5 km) of optical depth 0.005 at 550 nm, the quiescent (non-volcanic) background of the SAGE
+ *  satellite record (~0.003–0.01; cited from memory, verify: Q-533), Ångström 1.2, single-scattering albedo 1. It is part
+ *  of the column USNO's k fixes (aerosolTauFor), so the boundary layer keeps the rest. Lit by reddened sunlight above the
+ *  Earth's shadow and scattering nearly neutrally (λ^−1.2 against Rayleigh's λ^−4), it carries red into the antitwilight
+ *  arch where Rayleigh alone re-blues it (Lee 2015: the arch "most vivid for modest aerosol optical depths"). */
+export const STRAT_TAU = 0.005;
+const STRAT_Z = 20000, STRAT_SIGMA = 5000, STRAT_ANGSTROM = 1.2;
+/** Aerosol backscatter (B method, C amount): Cornette–Shanks g 0.8 gives p(180°) = 0.0056 sr⁻¹, i.e. an extinction-to-
+ *  backscatter (lidar) ratio 1 / (ω p) ≈ 200 sr, where Raman lidars measure ~40–70 sr for continental and desert-dust
+ *  aerosol (cited from memory, verify: Q-533). A backward Henyey–Greenstein lobe (g −0.5) of weight 0.035 brings p(180°) to
+ *  0.022 sr⁻¹ (lidar ratio 50 sr) and the asymmetry to 0.75 (two-term HG, Kattawar 1975). The antisolar sky (the arch,
+ *  the Earth's shadow, the air toward a sunlit range) is backscatter. */
+export const MIE_BACKSCATTER = 0.035;
+export interface AtmosphereOptions {
+  /** weight of the backward lobe of the aerosol phase function */ backscatter: number;
+  /** optical depth of the stratospheric layer at 550 nm */ stratTau: number;
+  /** multiple scattering on (off: single scattering only, for tests) */ ms: boolean;
+  /** multiple-scattering table: μ_s cells, height cells, height mapped as √((r − R_g) / (R_top − R_g)) (dense low) */
+  mw: number; mh: number; msSqrt: boolean;
+}
+/** D-224, NOT adopted (BLOCKERS B43): the 48 × 12 linear table of D-116 (2.4° of sun angle, 8.3 km per row, the lowest
+ *  row at 4.2 km) puts 44–57 % more multiple scattering into the dark segment at −2° … −3° than a 192 × 64 √-height
+ *  reference (linear interpolation of a quantity that falls by orders of magnitude per degree); 96 × 24 √ (MS_CONVERGED)
+ *  is within 2 % of it. The converged table deepens the Earth's shadow (arch / shadow 1.5 → 2.0 at −3°) and turns the arch
+ *  pink-lilac at −1° … −2°, but warms the dark segment against the sky above the arch by Δxy 0.023–0.031 at −1° … −2°,
+ *  outside Lee's (2015) measured "small or nil" colour difference (tests/horizon.test.ts, limit 0.02). Until Lee's measured
+ *  chromaticities settle which is nearer the sky (Q-531), the table that agrees with the measurement stays. */
+export const MS_CONVERGED: Partial<AtmosphereOptions> = { mw: 96, mh: 24, msSqrt: true };
+export const ATMOSPHERE_DEFAULTS: AtmosphereOptions = { backscatter: MIE_BACKSCATTER, stratTau: STRAT_TAU, ms: true, mw: 48, mh: 12, msSqrt: false };
+/** the options D-116 … D-219 used (the comparison baseline in the tests) */
+export const ATMOSPHERE_D116: Partial<AtmosphereOptions> = { backscatter: 0, stratTau: 0, mw: 48, mh: 12, msSqrt: false };
+/** aerosol phase function: Cornette–Shanks g 0.8 (Bruneton) plus a backward Henyey–Greenstein lobe of weight b */
+export function miePhase(nu: number, b = MIE_BACKSCATTER): number {
+  const g = MIE_G, cs = ((3 / (8 * Math.PI)) * ((1 - g * g) * (1 + nu * nu))) / ((2 + g * g) * Math.pow(1 + g * g - 2 * g * nu, 1.5));
+  if (!(b > 0)) return cs;
+  const gb = -0.5, hb = (1 - gb * gb) / (4 * Math.PI * Math.pow(1 + gb * gb - 2 * gb * nu, 1.5));
+  return (1 - b) * cs + b * hb;
+}
+/** the stratospheric share of an aerosol column (at most a quarter of it) */
+export const stratTauFor = (aerosolTau: number, strat = STRAT_TAU) => Math.min(strat, aerosolTau * 0.25);
 export class Atmosphere {
   private mieExt: number[]; private mieSca: number[];
   private static TW = 96; private static TH = 32;   // transmittance table: μ × r
-  private static MW = 48; private static MH = 12;   // multiple-scattering table: μ_s (2.4° steps of sun angle near the horizon) × r
+  private MW: number; private MH: number;   // multiple-scattering table: μ_s × r (D-224: 96 × 24, √ height)
   private trans: Float32Array; private ms: Float32Array;
   // scratch
   private ext = new Float64Array(NL); private sR = new Float64Array(NL); private sM = new Float64Array(NL);
   private ts = new Float64Array(NL); private mss = new Float64Array(NL); private thr = new Float64Array(NL); private acc = new Float64Array(NL);
   /** `deferred`: allocate only; the tables are then built by buildStep() a few cells at a time (a haze change by day must
    *  not stall a frame for the ~0.3 s the two tables take, D-156). Not usable until `complete`. */
-  constructor(readonly aerosolTau: number, deferred = false) {
-    const b0 = aerosolTau / (H_M * Math.exp(-OBSERVER_ALT / H_M));
+  private opt: AtmosphereOptions; private stExt: number[];
+  /** `opt`: the D-224 model by default (ATMOSPHERE_DEFAULTS); ATMOSPHERE_D116 for the earlier one */
+  constructor(readonly aerosolTau: number, deferred = false, opt: Partial<AtmosphereOptions> = {}) {
+    this.opt = { ...ATMOSPHERE_DEFAULTS, ...opt }; this.MW = this.opt.mw; this.MH = this.opt.mh;
+    const stTau = stratTauFor(aerosolTau, this.opt.stratTau), blTau = aerosolTau - stTau;
+    const bs = stTau / (STRAT_SIGMA * Math.sqrt(2 * Math.PI));
+    this.stExt = LAM.map(l => bs * Math.pow(l / 550, -STRAT_ANGSTROM));
+    const b0 = blTau / (H_M * Math.exp(-OBSERVER_ALT / H_M));
     this.mieExt = LAM.map(l => b0 * Math.pow(l / 550, -ANGSTROM));
     this.mieSca = this.mieExt.map(v => v * MIE_ALBEDO);
     this.trans = new Float32Array(Atmosphere.TW * Atmosphere.TH * NL);
-    this.ms = new Float32Array(Atmosphere.MW * Atmosphere.MH * NL);
+    this.ms = new Float32Array(this.MW * this.MH * NL); this.CELLS = Atmosphere.TW * Atmosphere.TH + this.MW * this.MH;
     if (!deferred) this.buildStep(Infinity);
   }
   /** table cells built so far: the transmittance table's, then the multiple-scattering table's (which reads it) */
   private built = 0;
-  private static readonly CELLS = Atmosphere.TW * Atmosphere.TH + Atmosphere.MW * Atmosphere.MH;
-  get complete(): boolean { return this.built >= Atmosphere.CELLS; }
+  private CELLS: number;
+  get complete(): boolean { return this.built >= this.CELLS; }
   /** build up to `maxCells` more cells, stopping early once `maxMs` have passed; true when both tables are complete. The
    *  cells are the same arithmetic as a full build, in the same order, so a deferred model equals an immediate one. */
   buildStep(maxCells: number, maxMs = Infinity): boolean {
-    const { TW, MW } = Atmosphere, nT = TW * Atmosphere.TH, t0 = maxMs < Infinity ? performance.now() : 0;
-    for (let n = 0; n < maxCells && this.built < Atmosphere.CELLS; n++) {
+    const { TW } = Atmosphere, MW = this.MW, nT = TW * Atmosphere.TH, t0 = maxMs < Infinity ? performance.now() : 0;
+    for (let n = 0; n < maxCells && this.built < this.CELLS; n++) {
       const k = this.built++;
       if (k < nT) this.transmittanceCell(k % TW, Math.floor(k / TW)); else this.multipleScatteringCell((k - nT) % MW, Math.floor((k - nT) / MW));
       if (maxMs < Infinity && (n & 7) === 7 && performance.now() - t0 > maxMs) break;
@@ -134,9 +197,9 @@ export class Atmosphere {
 
   /** extinction, Rayleigh and Mie scattering at radius r into the scratch arrays */
   private medium(r: number) {
-    const z = r - R_SEA, dr = Math.exp(-z / H_R), dm = Math.exp(-z / H_M), dz = ozone(z);
+    const z = r - R_SEA, dr = Math.exp(-z / H_R), dm = Math.exp(-z / H_M), dz = ozone(z), ds = Math.exp(-0.5 * ((z - STRAT_Z) / STRAT_SIGMA) ** 2);
     const { ext, sR, sM } = this;
-    for (let c = 0; c < NL; c++) { sR[c] = RAY[c] * dr; sM[c] = this.mieSca[c] * dm; ext[c] = sR[c] + this.mieExt[c] * dm + OZ[c] * dz; }
+    for (let c = 0; c < NL; c++) { const st = this.stExt[c] * ds; sR[c] = RAY[c] * dr; sM[c] = this.mieSca[c] * dm + st; ext[c] = sR[c] + this.mieExt[c] * dm + st + OZ[c] * dz; }
   }
 
   // ---- transmittance (Bruneton 2017, functions.glsl: GetTransmittanceTextureUvFromRMu and its inverse) -------------------
@@ -184,10 +247,10 @@ export class Atmosphere {
   // ---- multiple scattering (Hillaire 2020 §5.5) ------------------------------------------------------------------------
   private L2 = new Float64Array(NL); private fms = new Float64Array(NL);
   private multipleScatteringCell(i: number, j: number) {
-    const { MW, MH } = Atmosphere, SQ = 6, NS = 20, L2 = this.L2, fms = this.fms;
+    const { MW, MH } = this, SQ = 6, NS = 20, L2 = this.L2, fms = this.fms;
     const { ts, thr } = this;
     {
-      const muS = ((i + 0.5) / MW) * 2 - 1, r = R_GROUND + ((j + 0.5) / MH) * (R_TOP - R_GROUND - 1);
+      const hy = (j + 0.5) / MH, muS = ((i + 0.5) / MW) * 2 - 1, r = R_GROUND + (this.opt.msSqrt ? hy * hy : hy) * (R_TOP - R_GROUND - 1);
       const sx = Math.sqrt(Math.max(0, 1 - muS * muS)), sy = muS;
       L2.fill(0); fms.fill(0);
       for (let a = 0; a < SQ; a++) for (let b = 0; b < SQ; b++) {
@@ -217,9 +280,9 @@ export class Atmosphere {
     }
   }
   private multipleScattering(r: number, muS: number, out: Float64Array) {
-    const { MW, MH } = Atmosphere;
+    const { MW, MH } = this;
     const x = Math.max(0, Math.min(MW - 1, clamp01((muS + 1) / 2) * MW - 0.5));
-    const y = Math.max(0, Math.min(MH - 1, clamp01((r - R_GROUND) / (R_TOP - R_GROUND)) * MH - 0.5));
+    const hr = clamp01((r - R_GROUND) / (R_TOP - R_GROUND)), y = Math.max(0, Math.min(MH - 1, (this.opt.msSqrt ? Math.sqrt(hr) : hr) * MH - 0.5));
     bilinearN(this.ms, MW, MH, x, y, out);
   }
 
@@ -232,7 +295,7 @@ export class Atmosphere {
     const acc = this.acc; acc.fill(0); if (!(tMax > 0)) { out[0] = out[1] = out[2] = 0; return out; }
     const nu = v[0] * s[0] + v[1] * s[1] + v[2] * s[2];
     const pR = (3 / (16 * Math.PI)) * (1 + nu * nu);
-    const g = MIE_G, pM = ((3 / (8 * Math.PI)) * ((1 - g * g) * (1 + nu * nu))) / ((2 + g * g) * Math.pow(1 + g * g - 2 * g * nu, 1.5));
+    const pM = miePhase(nu, this.opt.backscatter);
     const { ext, sR, sM, ts, mss, thr } = this; thr.fill(1);
     let t = 0;
     for (let k = 0; k < steps; k++) {
@@ -241,7 +304,7 @@ export class Atmosphere {
       this.medium(pr); this.sunTransmittance(pr, muS, ts); this.multipleScattering(pr, muS, mss);
       for (let c = 0; c < NL; c++) {
         const e = Math.max(ext[c], 1e-12), T = Math.exp(-e * dt);
-        const S = ts[c] * (sR[c] * pR + sM[c] * pM) + mss[c] * (sR[c] + sM[c]);
+        const S = ts[c] * (sR[c] * pR + sM[c] * pM) + (this.opt.ms ? mss[c] * (sR[c] + sM[c]) : 0);
         acc[c] += (thr[c] * (S - S * T)) / e; thr[c] *= T;
       }
     }
