@@ -437,9 +437,13 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
   const p = positionWorld, n = normalWorld, pr = latticeFree(p); // pr: the noise's own frame (D-218, below)
   // mottling: broad variation (metre scale) + fine grain; mx_noise is ~[-1,1] so amplitudes are fractions of albedo. With a
   // broad tone (D-157) only the fine octave stays (as grain), the broad field is toneFactor()
-  const fine = mx_noise_float(pr.mul(d.noiseScale * 9.0)).mul(d.noiseAmp * 0.12);
-  const mott = d.tone ? fine.add(mx_noise_float(pr.mul(d.noiseScale * 0.18)).mul(d.noiseAmp * 0.6).add(mx_noise_float(pr.mul(d.noiseScale * 1.7)).mul(d.noiseAmp * 0.25)).mul(float(1).sub(SURF_AB)))
-    : mx_noise_float(pr.mul(d.noiseScale * 0.18)).mul(d.noiseAmp * 0.6).add(mx_noise_float(pr.mul(d.noiseScale * 1.7)).mul(d.noiseAmp * 0.25)).add(fine);
+  // D-223: the octaves band-limited by the pixel footprint (as the tone octaves, D-157): unfiltered, the fine octave (the
+  // Naqsh rock's 0.32 m at 0.26 m per pixel from 200 m) aliased into a speckle that crawled as the camera moved
+  const fpM = fwidth(p).length().max(1e-6);
+  const fine = mx_noise_float(pr.mul(d.noiseScale * 9.0)).mul(d.noiseAmp * 0.12).mul(bandLimit(fpM, 1 / (d.noiseScale * 9.0)));
+  const midO = mx_noise_float(pr.mul(d.noiseScale * 1.7)).mul(d.noiseAmp * 0.25).mul(bandLimit(fpM, 1 / (d.noiseScale * 1.7)));
+  const mott = d.tone ? fine.add(mx_noise_float(pr.mul(d.noiseScale * 0.18)).mul(d.noiseAmp * 0.6).add(midO).mul(float(1).sub(SURF_AB)))
+    : mx_noise_float(pr.mul(d.noiseScale * 0.18)).mul(d.noiseAmp * 0.6).add(midO).add(fine);
   let alb = base.mul(float(1).add(mott));
   if (d.tone) alb = alb.mul(toneFactor(pr, d.tone));
   let rough: any = float(d.roughness);
@@ -663,7 +667,7 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
   }
   if (d.streaks) { // vertical weathering streaks: noise fast across the face, slow down it (C)
     const f = d.streaks.freq, q = vec3(p.x.mul(f), p.y.mul(f * (d.streaks.stretch ?? 0.08)), p.z.mul(f));
-    const st = smoothstep(0.1, 0.75, mx_noise_float(q).mul(0.5).add(0.5).add(mx_noise_float(q.mul(3.1)).mul(0.15)));
+    const st = smoothstep(0.1, 0.75, mx_noise_float(q).mul(0.5).add(0.5).add(mx_noise_float(q.mul(3.1)).mul(0.15).mul(bandLimit(fwidth(p).length().max(1e-6), 1 / (f * 3.1))))); // (D-223: the fine octave band-limited)
     alb = alb.mul(float(1).sub(st.mul(d.streaks.amp)));
   }
   if (d.herbs) { // seasonal herb layer (C): green in spring, straw in summer, sparse in winter

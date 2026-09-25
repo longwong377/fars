@@ -10,7 +10,7 @@ import { surfaceMaterial } from '../../render/materials';
 import { registerSettlementSurfaces } from './surfaces';
 import { Batch, RGB, lin } from './geom';
 import { buildTownPlan, TownPlan, ROWS, FEATURES, Prop } from './plan';
-import { Site, Plot, Wall, ROOF_T, DOOR_H, P2 } from './site';
+import { Site, Plot, Wall, ROOF_T, DOOR_H, P2, ROOM } from './site';
 import { HOUSE_BASIS } from './town_rules';
 import { hashString, Rng } from '../../core/rng';
 import { buildAjori } from './ajori';
@@ -92,8 +92,16 @@ export class Settlement {
     for (const s of this.plan.sites) {
       const green = (k: number) => { const c = s.cell[k]; if (c < 0) return c === -1; const kd = s.plots[c].kind; return kd === 'garden' || kd === 'yard' || (kd === 'elite' && s.sub[k] === 3); };
       const colOf = (k: number): RGB => { const c = s.cell[k]; if (c < 0) return c === -4 ? lin([0.56, 0.49, 0.39]) : lin([0.53, 0.46, 0.36]); const sb = s.sub[k]; return sb === 1 ? lin([0.44, 0.38, 0.3]) : sb === 2 ? lin([0.56, 0.49, 0.38]) : lin([0.5, 0.43, 0.33]); };
+      // D-223 (rubric s7 pass 2 fix 9: from the Terrace the town's roofs did not read against its ground): the ground between
+      // the houses is darker where the houses close in on it (the sky it sees, and the damp and litter a lane collects),
+      // by the share of roofed cells within 3 m of each corner: up to 30 % darker at the foot of a wall in a narrow lane
+      // (C); the roofs are lighter than before (surfaces.ts mud_roof)
+      const R3 = 3, occ = (i: number, j: number) => { let r = 0, n = 0;
+        for (let dj = -R3; dj < R3; dj++) for (let di = -R3; di < R3; di++) { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= s.W || jj >= s.H) continue; n++; if (s.cell[s.k(ii, jj)] >= 0 && s.sub[s.k(ii, jj)] === ROOM) r++; }
+        return 1 - 0.3 * (n ? r / n : 0); };
       const tile = (i0: number, j0: number, n: number, c: RGB) => { const P = (i: number, j: number) => { const g = s.grid(s.u0 + i, s.v0 + j); return [g[0], H(g[0], g[1]) + 0.1, -g[1]]; };
-        ground.quad(P(i0, j0), P(i0 + n, j0), P(i0 + n, j0 + n), P(i0, j0 + n), [0, 1, 0], c, c, c, c, 0); };
+        const C = (i: number, j: number): RGB => shade(c, occ(i, j));
+        ground.quad(P(i0, j0), P(i0 + n, j0), P(i0 + n, j0 + n), P(i0, j0 + n), [0, 1, 0], C(i0, j0), C(i0 + n, j0), C(i0 + n, j0 + n), C(i0, j0 + n), 0); };
       for (let bj = 0; bj < s.H; bj += 4) for (let bi = 0; bi < s.W; bi += 4) {
         let all = true; for (let j = bj; j < Math.min(s.H, bj + 4) && all; j++) for (let i = bi; i < Math.min(s.W, bi + 4); i++) if (green(s.k(i, j))) { all = false; break; }
         if (all && bi + 4 <= s.W && bj + 4 <= s.H) { tile(bi, bj, 4, colOf(s.k(bi + 1, bj + 1))); continue; }

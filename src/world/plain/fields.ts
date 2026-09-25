@@ -28,7 +28,7 @@ export const cellU = (c: number) => (Math.floor(c) + 32768) >>> 0;
 
 export const DISTRICT = 800;
 /** salts (shared with the shader) */
-export const SALT = { dx: 11, dz: 12, angle: 21, width: 22, length: 23, plotSalt: 24, rotation: 25, px: 31, pz: 32, crop: 41, offset: 42, tree: 51, tx: 52, tz: 53, tsize: 54 } as const;
+export const SALT = { dx: 11, dz: 12, angle: 21, width: 22, length: 23, plotSalt: 24, rotation: 25, irrFallow: 26, px: 31, pz: 32, crop: 41, offset: 42, tree: 51, tx: 52, tz: 53, tsize: 54 } as const;
 export const STRIP = { w: [22, 30], l: [90, 120] } as const; // width 22-52 m, length 90-210 m (C)
 
 export interface Plot {
@@ -201,6 +201,12 @@ export const RAINFED_BARLEY = 0.4; // fields_rainfed: barley 40 %, fallow/grazin
  *  blocks of green and of weedy fallow, as a dry-farmed plain does, not as one mean colour */
 export const ROTATION = { crop: 0.7, fallow: 0.1 } as const;
 export const rainfedThreshold = (dc: [number, number]) => (unit(hash2(cellU(dc[0]), cellU(dc[1]), SALT.rotation)) < 0.5 ? ROTATION.crop : ROTATION.fallow);
+/** D-223: each district's irrigated land keeps its own fallow share, 20 % ± 12 % (uniform; the mean is the data's 20 %):
+ *  the canals' command areas were worked and rested village by village, not as one field (C). The crop thresholds scale
+ *  with it, so the crops keep their proportions. From the Terrace the irrigated plain then reads in 800 m blocks at any
+ *  distance, as the rain-fed land does (rubric s7 pass 2 fix 9, the "empty sheet") */
+export const IRR_FALLOW_SPREAD = 0.12;
+export const irrigatedScale = (dc: [number, number]) => (IRR_STEPS[3] + IRR_FALLOW_SPREAD * (2 * unit(hash2(cellU(dc[0]), cellU(dc[1]), SALT.irrFallow)) - 1)) / IRR_STEPS[3];
 export const VINE_SHARE = 0.3; // orchards_gardens: 30 % of orchard plots are vineyards
 export function checkMixes() { // the thresholds above are the data's mixes (tests)
   const m = feature('fields_irrigated_pulvar').crop_mix, k = feature('fields_irrigated_kur').crop_mix, rf = feature('fields_rainfed').rule.crop_mix;
@@ -216,7 +222,7 @@ export function landUseAt(zm: ZoneMap, x: number, z: number): PlotUse {
   const offsetDays = Math.floor(ho * (2 * PLOT_OFFSET_DAYS + 1)) - PLOT_OFFSET_DAYS;
   let use: LandUse = 'natural', idx = 7;
   if (B > 127) { use = 'orchard'; idx = hc >= 1 - VINE_SHARE ? 6 : 5; }
-  else if (R > 127) { use = 'irrigated'; idx = IRR_STEPS.reduce((k, t) => k + (hc >= t ? 1 : 0), 0); }
+  else if (R > 127) { use = 'irrigated'; const sc = irrigatedScale(plot.dc); idx = IRR_STEPS.reduce((k, t) => k + (hc >= Math.fround(t * sc) ? 1 : 0), 0); }
   else if (G > 127) { use = 'rainfed'; idx = hc >= rainfedThreshold(plot.dc) ? 4 : 0; }
   if (use !== 'natural' && zm.ground) { const g = groundAt(zm.ground, x, -z); if (g[2] < 0.5) { use = 'natural'; idx = 7; } }
   return { use, row: CROP_ROWS[idx], rowIndex: idx, offsetDays, plot };
