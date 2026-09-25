@@ -13,6 +13,8 @@ export interface WorldBuild {
   applySettings?(s: Settings): void;
   audio?: { unlock(): void };
   fire?: FireSystem; wvfx?: WeatherVfx; flash?(): number;
+  /** D-220: the people's fires and their smoke layer, and the dust */
+  smoke?: { model: SmokeModel; land: LandSmoke; dust: DustSystem };
   people?: { sim: PeopleSim; crowd: Crowd; nav: NavGrid; humans: HumanSystem; view: PopView; geo: PopGeo; probe(renderer: THREE.WebGPURenderer): Promise<VisibleCount> };
   /** address the nearest person in front of the camera (§9.4); returns what was said (out-of-world subtitle) or null */
   address?(camera: THREE.Camera): Subtitle | { gesture: string } | null;
@@ -92,6 +94,9 @@ import { CourtCampTents } from './courtCamps';
 import { CAMPS } from '../people/camps';
 import { Fauna, FAC as FAUNA_FAC, type VillageIn } from './fauna';
 import { Traffic, type Mover } from './traffic';
+import { SmokeModel, type SmokeSite } from './hearthSmoke';
+import { LandSmoke } from './landSmoke';
+import { DustSystem, type DustKind } from './dust';
 /** longest absence simulated step by step on load (C: a month runs in about a second at the Phase 3 population) */
 export const CATCHUP_MAX_DAYS = 30;
 /** full-detail simulation radius around the player (m); effectively everyone at the current population (C) */
@@ -197,6 +202,21 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     for (const m of movers) { const k = `tr:${m.key}`, y = groundAt(m.e, m.n), yaw = yawOf(m.heading * 180 / Math.PI); now.add(k);
       if (!moverKeys.has(k) || !crowd.moveExtra(k, m.e, y, -m.n, yaw, m.act, m.why)) { crowd.addExtra(k, { ...m.look, x: m.e, y, z: -m.n, yaw, act: m.act, why: m.why }); moverKeys.add(k); } }
     for (const k of moverKeys) if (!now.has(k)) { crowd.detach(k); moverKeys.delete(k); } };
+  // D-220: smoke and dust. The households' hearths and ovens follow the people sim's household day (hearthSmoke.ts); their
+  // smoke gathers in a layer over each quarter and each village of the plain (landSmoke.ts); dust rises behind walkers,
+  // animals and carts on dry earth and off the masons' and haulers' work (dust.ts)
+  const smokeSites: SmokeSite[] = [
+    ...(settlement?.plan.sites ?? []).map(s => ({ id: s.id, e: s.frame.c[0], n: s.frame.c[1], R: Math.sqrt(s.W * s.H) / 2, kind: 'quarter' as const })),
+    ...plain.data.villages.map(v => ({ id: v.id, e: v.x, n: v.y, R: (v.r * Math.sqrt(Math.PI)) / 2, kind: 'village' as const, pop: v.pop }))];
+  const smoke = new SmokeModel(sim.pop as any, fire.fires, smokeSites, (e, n) => terrain.heightAt(e, -n)); fire.setSimState(smoke.lit, smoke.gh);
+  const landSmoke = new LandSmoke(); root.add(landSmoke.group);
+  const dust = new DustSystem(); root.add(dust.group);
+  dust.rooms = Object.values(manifest).map((m: any) => m?.room).filter((r: any) => Array.isArray(r)).map(([cx, cy, sx, sy, fl, h]: number[]) => ({ x0: cx - sx / 2, x1: cx + sx / 2, z0: -cy - sy / 2, z1: -cy + sy / 2, y0: fl, y1: fl + h }));
+  crowd.dustTap = (kind, x, y, z, yaw, speed, sd) => dust.emit(kind, x, y, z, yaw, speed, sd);
+  { const FLOCK = new Set(['sheep', 'goat']), SKIP = new Set(['dog', 'hen', 'cock']), e = new THREE.Vector3();
+    crowd.animals.onPush = (a, M) => { if (a.walk < 0.2 || SKIP.has(a.sp)) return; e.setFromMatrixPosition(M);
+      dust.emit((FLOCK.has(a.sp) ? 'flock' : 'animal') as DustKind, e.x, e.y, e.z, Math.atan2(M.elements[8], M.elements[10]), 1.1 * a.walk, Math.floor(a.coat * 1e4 + a.phase * 97)); }; }
+  let smokeKey = '';
   let impMs = 0;
   { const t = performance.now(), pg = (k: string) => { const g = propGeometry(k)!, n = g.getAttribute('position').count; return { pos: g.getAttribute('position').array as Float32Array, idx: g.index ? g.index.array : Array.from({ length: n }, (_, i) => i) }; };
     crowd.imp = new CrowdImpostors(bakeImpostors(humans.A, humans.O, { jar: pg('jar'), sack: pg('sack') })); crowd.group.add(crowd.imp.mesh); impMs = performance.now() - t; }
@@ -346,7 +366,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   }, settlement ? indexTown(settlement.plan as any) : null);
   const court = settings?.courtCalendar === 'seasonal';
   let mapItems: MapItem[] | null = null; // out-of-world map layers (translation layer), built on first use
-  return { root, fire, wvfx, settlement, simulate, people: { sim, crowd, nav, humans, view, geo, probe: (r: THREE.WebGPURenderer) => countVisible(r, crowd) }, address, plain, doors, get lastSubtitle() { return lastSubtitle; }, get lastSpoken() { return lastSpoken; },
+  return { root, fire, wvfx, settlement, smoke: { model: smoke, land: landSmoke, dust }, simulate, people: { sim, crowd, nav, humans, view, geo, probe: (r: THREE.WebGPURenderer) => countVisible(r, crowd) }, address, plain, doors, get lastSubtitle() { return lastSubtitle; }, get lastSpoken() { return lastSpoken; },
     building,
     /** visitor mode: where the player may stand (blocked moves go back to the last allowed point), the interact key, the
      *  log (translation layer chronicle only). `night`: outside the Terrace's hours (C: the sun below 6°) */
@@ -385,14 +405,22 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       { const pp = ctx.player.position; playerAt = new THREE.Vector3(pp.x, pp.y, pp.z); }
       view.update(sim.t, [ctx.camera.position.x, -ctx.camera.position.z]); // the population out of doors near the camera (D-143)
       if (!nowView.active) syncTraffic(ctx.camera.position); // D-210: the drivers and riders on the roads, before the crowd draws them
+      dust.begin(ctx.camera.position); // D-220: this frame's dust emitters are reported while the crowd draws (begin BEFORE it: render 2 found none)
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
       { const day = Math.floor(sim.t / 24), sun = sunTimes(day); // D-210: the animals of the town, the villages, the paradise and the river
         fauna.group.visible = !nowView.active;
         if (!nowView.active) fauna.update({ t: time, hour: ctx.clock.localHour, month: ctx.cond.day.climMonth, sun, player: [playerAt.x, -playerAt.z], cam: ctx.camera.position, dt, rain: ctx.cond.rain }); }
+      { // D-220: what the households burn now → the fires' state and the smoke layer (recomputed when the minute or the wind changes)
+        const key = `${ctx.clock.dayIndex}|${Math.floor(ctx.clock.localHour * 60)}|${ctx.cond.windMs.toFixed(1)}|${Math.round(ctx.cond.windDirDeg)}|${Math.round(ctx.sky.sunAlt)}`;
+        if (key !== smokeKey) { smokeKey = key; smoke.update(ctx.clock.dayIndex, ctx.clock.localHour, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.sky.sunAlt); }
+        landSmoke.group.visible = !nowView.active; landSmoke.setSkyLight(ctx.skyLight); landSmoke.update(smoke.cells, ctx.camera.position); }
       settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, skyLight: ctx.skyLight, cond: ctx.cond, player: ctx.player });
       campTents?.update(ctx.player.position.x, ctx.player.position.z); // D-199
       fire.setSkyLight(ctx.skyLight);
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time, ctx.clock.localHour);
+      { // D-220: dust from this frame's emitters (the crowd and its animals were drawn above), and the carts' wheels
+        if (!nowView.active) for (const m of movers) if (m.kind === 'cart') dust.emit('cart', m.e, groundAt(m.e, m.n), -m.n, yawOf(m.heading * 180 / Math.PI), 0.9, m.key.length * 131 + Math.round(m.e));
+        dust.group.visible = !nowView.active; dust.setSkyLight(ctx.skyLight); dust.update(time, ctx.camera, ctx.cond); }
       plain.update(dt, ctx);
       building?.sync(); // cheap unless a column changed state
       palace.update(ctx.camera.position, courtOn(Math.floor(sim.t / 24))); // D-212: stored / laid out for the court; far groups not drawn
@@ -447,5 +475,5 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         `animals and insects heard (D-210, synthesised, C): ${sound.heardLines().join(' · ') || 'none in the last minute'}${sound.fliesLevel > 0.05 ? ` · flies ${sound.fliesLevel.toFixed(2)}` : ''}`,
         `occlusion (C, Maekawa; Q-304): ${audio.occlStats.tracked} sources tracked, ${audio.occlStats.queries} re-queried this frame in ${audio.occlStats.ms.toFixed(2)} ms · field ${occl.w}×${occl.h} cells built in ${occMs.toFixed(0)} ms · town and plain buildings not occluders`];
     },
-    summary: () => `${nowView.active ? nowView.summary() + ' · ' : ''}${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest + ${crowd.impPerf.drawn} impostors (baked in ${impMs.toFixed(0)} ms), ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms, view ${view.stats.evalMs.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · ${palace.summary()} · fires ${JSON.stringify(fire.stats())}${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''}${campTents ? ` · court camps ${campTents.info.tents} tents, ${(campTents.info.tris / 1e3).toFixed(1)} k tris in ${campTents.info.meshes} meshes (D-199, C)` : ''} · ${faunaLine()} · ${plain.summary()} · ${insc.userData.summary ?? ''}` } as WorldBuild;
+    summary: () => `${nowView.active ? nowView.summary() + ' · ' : ''}${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest + ${crowd.impPerf.drawn} impostors (baked in ${impMs.toFixed(0)} ms), ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms, view ${view.stats.evalMs.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · ${palace.summary()} · fires ${JSON.stringify(fire.stats())} · smoke layer ${landSmoke.count} cells (${landSmoke.inside} round the eye; D-220, C) · dust ${dust.stats.puffs} puffs from ${dust.stats.emitters} (dry ${dust.stats.dry})${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''}${campTents ? ` · court camps ${campTents.info.tents} tents, ${(campTents.info.tris / 1e3).toFixed(1)} k tris in ${campTents.info.meshes} meshes (D-199, C)` : ''} · ${faunaLine()} · ${plain.summary()} · ${insc.userData.summary ?? ''}` } as WorldBuild;
 }

@@ -9,7 +9,10 @@ const IN = 46, OUT = 40;
 // carry: [view, s] = the eye carried over from an earlier view of the same world state, adapted for s seconds since (the
 // frozen test world otherwise adapts every frame fully; __parsa.carryEye, D-187): the entry sequence steps from the sun
 // into the dark with the eye it had outside
-const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, number, number, number, number]; fov?: number; frames?: number; court?: boolean; carry?: [string, number]; now?: boolean }[] = [
+// ab: object names hidden for a second capture of the same view (…-no<tag>), rendered after the moment itself, so the
+// difference between the two measures what those objects add (the second capture's TRAA history still holds some of the
+// first: the difference is a lower bound)
+const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, number, number, number, number]; fov?: number; frames?: number; court?: boolean; carry?: [string, number]; now?: boolean; ab?: { tag: string; hide: string[] } }[] = [
   // dawn before sunrise (D-118): day 0 (17 Apr 467 BCE) 05:24, the sun 2.9° below the horizon (sunrise ~05:35): the
   // Earth's shadow and the antitwilight arch over the W plain, no sun shadows; the old slot (05:51, sun +2.5°) and a view
   // E into the glow over Kuh-e Rahmat are kept for comparison
@@ -22,7 +25,7 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // wall filled the lower half (its top at y ≈ 280 of 540, the horizon at y 165); −5° moves the frame 39 px: the wall's
   // top to y ≈ 320 (the lower 40 %), its merlons rising past the horizon at y ≈ 204 (computed: not rendered at −5°).
   // Old poses: (−39.6, 122.45, 1.6, 251, −4) and (−40.2, 122.45, 1.6, 251, −12)
-  { n: 'dawn-stair-top', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 135.5, 1.6, 281, -5] },
+  { n: 'dawn-stair-top', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 135.5, 1.6, 281, -5], ab: { tag: 'smoke', hide: ['landsmoke', 'settlement:haze', 'fire:smoke', 'dust'] } }, // D-220: the villages' dawn smoke measured
   { n: 'dawn-sunrise', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 135.5, 1.6, 281, -5] },
   { n: 'dawn-sunrise-nw', day: 0, hour: 5.85, w: 'clear', v: [-36.4, 134.8, 1.6, 311, -8] }, // from the N end of the top landing: the N upper flight descending on the right, the plain to the NW
   { n: 'dawn-stair-top-nw', day: 0, hour: 5.40, w: 'clear', v: [-36.4, 134.8, 1.6, 311, -8] }, // the pre-sunrise moment from the head of the N upper flight: the stair descending, the plain to the NW (session 4)
@@ -32,6 +35,15 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // W of the Gate's W façade (x −16.4), looking E along the doorway's axis (y 124.6): the 18.5 m wall and the 10 m doorway
   // with its colossi, the guards at their feet and the braziers (pitch 15° at the photographic 40°: the wall top at +35°)
   { n: 'gate-dusk', day: 0, hour: 19.25, w: 'clear', v: [-40, 124.6, 1.6, 90, 15] },
+  // §1.1 "smoke rising from the town at dusk as lamps are lit" (D-220; rubric s7 pass 2 fix 5: no render existed). Day 14
+  // (1 May 467 BCE), one of the stillest dry evenings of the spring (wind 0.8 m/s at 18:48; weather seed 1), 13 min after
+  // sunset (18:35, sun −4.6°): the households' evening fires were lit before the meal (the people sim: the meal ~0.7 h before
+  // sunset, the fire lit 0.35 h before it) and their smoke lies over the quarters under the evening inversion. From the
+  // Terrace 2.3 m inside its W edge, looking SSW over the lower town (quarters q_s1-q_s4 at 0.9-1.6 km, bearings 185-217°
+  // true, 20 m below) with a 55 mm lens (24°); and from Kuh-e Rahmat E of the Terrace (+65 m) over the Terrace to the S and
+  // W quarters (bearings 205-249°). Each is captured again with the smoke and dust hidden (ab), so their contrast is measured
+  { n: 'town-smoke-dusk', day: 14, hour: 18.8, w: 'clear', v: [-50.5, -120, 1.6, 205, -1.5], fov: 24, ab: { tag: 'smoke', hide: ['landsmoke', 'settlement:haze', 'fire:smoke', 'dust'] } },
+  { n: 'town-smoke-dusk-rahmat', day: 14, hour: 18.8, w: 'clear', v: [380, -60, 1.6, 228, -4], ab: { tag: 'smoke', hide: ['landsmoke', 'settlement:haze', 'fire:smoke', 'dust'] } },
   // the Now view (D-201, stretch, out of world): the same spots as the ruin stands today (C, recollection)
   { n: 'now-stair-top', day: 25, hour: 10, w: 'clear', v: [-36.4, 122.45, 1.6, 79, 6], now: true },
   { n: 'now-apadana', day: 25, hour: 10, w: 'clear', v: [1.9, 75, 1.6, 161, 8], now: true },
@@ -120,7 +132,7 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'tachara-lance-bearers', day: 25, hour: 16, w: 'clear', v: [-26.9, -86.0, 1.6, 304, -4], fov: IN }, // 4.8 m from the figure, 37° off its face: the doorway, its frame and folded leaves, the W wall
   { n: 'tachara-lance-bearer-close', day: 25, hour: 16, w: 'clear', v: [-28.4, -84.6, 1.6, 311, -10], fov: IN }, // 2.8 m from the figure, 30° off its face
   { n: 'hadish-hall', day: 25, hour: 11, w: 'clear', v: [22, -150, 1.6, 161, 2], fov: IN },
-  { n: 'hall100-site', day: 25, hour: 9.5, w: 'clear', v: [146, 45, 1.6, 161, 4] },
+  { n: 'hall100-site', day: 25, hour: 9.5, w: 'clear', v: [146, 45, 1.6, 161, 4], ab: { tag: 'dust', hide: ['dust'] } }, // D-220: the masons' and haulers' dust measured
   { n: 'tripylon-n-stair', day: 25, hour: 16, w: 'clear', v: [82, -38, 1.6, 161, 6] },
   { n: 'harem-portico', day: 25, hour: 10, w: 'clear', v: [114, -114, 1.6, 161, 4], fov: IN },
   // §1.1 "the court in full assembly on the Terrace" (D-182): ONLY with the court setting (?court=seasonal, C; the default
@@ -177,6 +189,23 @@ test('moments', async ({ page }, info) => {
     mkdirSync('shots', { recursive: true }); const f = 'shots/moments-lum.json'; const all = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : {};
     all[`${s.n}${process.env.TAG ? '-' + process.env.TAG : ''}|${process.env.Q ?? 'test'}|${proj}`] = { lum, exposure: +exp.exposure.toFixed(3), meterEV: +(exp.meterEV ?? 0).toFixed(2), sunAlt: +exp.sunAlt.toFixed(1), fov: fov ?? 'game', ...(s.carry ? { carry: s.carry } : {}) }; writeFileSync(f, JSON.stringify(all, null, 1));
     console.log(s.n, JSON.stringify(lum), 'backend', await page.evaluate(() => (window as any).__parsa.backend));
+    if (s.ab) { // the same view with the named objects hidden (D-220: the smoke's own contrast); their state and the draw calls logged
+      const nFr = process.env.FRAMES ? +process.env.FRAMES : s.frames ?? 8;
+      const st = await page.evaluate((names) => { const P = (window as any).__parsa, W = P.world, r = W.root, S = W.smoke;
+        const vis = Object.fromEntries(names.map((n: string) => { const o = r.getObjectByName(n); return [n, o ? o.visible : null]; }));
+        return { vis, draws: P.stats().drawCalls, tris: P.stats().triangles, cells: S?.land.count, inside: S?.land.inside, fire: W.fire?.stats(), dust: S?.dust.stats, link: S?.model.linkStats().linked,
+          sample: S?.model.cells.slice(0, 3).map((c: any) => ({ id: c.id, sigma: +c.sigma.toExponential(2), E: Math.round(c.E), H1: Math.round(c.H1), tail: Math.round(c.tail) })) }; }, s.ab.hide);
+      console.log(s.n, 'smoke state', JSON.stringify(st));
+      await page.evaluate((names) => { const r = (window as any).__parsa.world.root; for (const n of names) { const o = r.getObjectByName(n); if (o) o.userData.__hideAB = true; } }, s.ab.hide);
+      // hidden every frame (the world's update sets their visibility each frame): patched onBeforeRender is not enough, so
+      // the spec wraps the world's update
+      await page.evaluate(() => { const W = (window as any).__parsa.world; if (W.__abWrapped) return; const up = W.update.bind(W); W.update = (dt: number, ctx: any) => { up(dt, ctx); W.root.traverse((o: any) => { if (o.userData?.__hideAB) o.visible = false; }); }; W.__abWrapped = true; });
+      for (let i = 0; i < nFr; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
+      const drawsB = await page.evaluate(() => (window as any).__parsa.stats().drawCalls);
+      const pngB = await page.screenshot({ path: `shots/moment-${s.n}-no${s.ab.tag}-${proj}.png` });
+      const lumB = await lumStats(page, pngB); console.log(s.n, `no${s.ab.tag}`, JSON.stringify(lumB), 'draws with', st.draws, 'without', drawsB);
+      await page.evaluate(() => { const r = (window as any).__parsa.world.root; r.traverse((o: any) => { if (o.userData?.__hideAB) { delete o.userData.__hideAB; o.visible = true; } }); });
+    }
   }
   console.log(errs.slice(0, 5).join('\n'));
 });
