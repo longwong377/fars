@@ -4733,6 +4733,12 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
 - **Measured (node):** the N court floor 6–14 m N of each landing brazier within 4 m of its line < 5 % lit (was 100 %), the
   landing round the brazier > 95 % lit. **Browser (high, WebGPU):** the shader compiles and brazier-close renders (fire-lit
   floor with its falloff; no acne seen); night-terrace (B vs braziers0, 2 frames each): the court floor in the frame's lower third (rows 360–540) gains 0.2–1.4 luma from the braziers (D-216: Y 0.041 with them, 0.002 without), while the portico columns and the merlon tips they see gain 15–43; B24 resolved.
+- **Addendum (same session): slope-scaled bias.** The first bias (2 cm + 1 % of r) left the open floor round the stair-head
+  brazier 11 % falsely shadowed in the octahedral texels' diamonds: brazier-close rendered rows of triangles across the paving
+  (first blamed on a noise lattice, D-218). A texel spans ~r·0.06 across the ray, so on a surface grazed at θ its own distance
+  varies by ~r·0.06·tan θ within a texel and its PCF neighbour: the bias is now 2 cm + 1 % r + 0.06 r tan θ (tan capped at 12,
+  total ≤ 0.9 m, inside MID_CAP). Node: the floor within 3 m of both stair-head braziers > 99 % lit (was 89 %); B24's court
+  behind the parapet still < 5 % lit. Not yet re-rendered (pass 3, job 4xx).
 - **Weak:** 1.4° per texel (a 0.25 m step at 10 m) softened by PCF; no occlusion by people, props or the town; lights of the
   town's hearths still pass through their courtyard walls. Rerun the bake after any architecture change (with build_nav and
   build_probes).
