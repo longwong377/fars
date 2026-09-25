@@ -1,6 +1,14 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **§13.11 shadow review round 10 PASSED (session 8), both reviewers** (REVIEWS/shadow_phase5_r10.md, _b.md; sample pick 181
+  regenerated on the merged tree after the soak passed all 8 gates): A 7 × 5 and 13 × 4, B 9 × 5 and 11 × 4; no score below 4
+  (rounds 1–9 failed). Both found S1 (a walk between two Terrace places played as a trip down the stair and back: 49 % of
+  detailed scribes' days, 17 % of officials', guards helped back when ill): fixed in sim.ts decide0 (tests/terrace_walk.test.ts).
+  Open 4-level findings: guards' long family visits all talk and no heat sleep (S2); a mason's 4-minute return to carving after
+  his meal on heat days; a town porter's fixed 4 h window; three noble women's names not flagged notable; the Lycian name
+  fallback (D-202); a woman's birthday meal labelled "his". The Phase 5 GATE still needs the independent Phase 5 review
+  (rendered floors, pop-in).
 - **Session 8 (in progress).** Merged: stone surfaces D-218, visible weather D-219, smoke and dust D-220, court assembly and
   scribes' room D-221, fire-light occlusion D-222 (lead), mountains and plain D-223, sky and exposure D-224, garments and beards
   D-225; relief carving D-226 running. **Nothing of this has been judged by a rubric yet; render pass 3 queued (jobs 4xx).**

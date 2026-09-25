@@ -97,7 +97,8 @@
 - [x] Gap policy D-207 (user direction) and the gap audit (D-208); fills merged: D-198..D-202, D-204, D-206, D-209..D-215
 - [x] Render pass 2 (partial: the moments, plain, crowd, settlement views; not every job) → rubric pass 2 FAILED → workstreams D-216 (light, materials) and D-217 (geometry, reliefs) merged; lead fixes: Tol-e Ajori panels, far flames, rig framing, rain shafts rebuilt, the rain-day planner hang, README budgets
 - [x] Shadow review round 9 (FAIL: #76's jar) → D-213; round-10 input pick 181 generated (regenerate on the final tree)
-- [ ] Full `npm test` on the merged tree; soak; shadow review round 10
+- [x] Soak on the merged session-8 tree (all 8 gates); shadow review round 10 PASSED (both reviewers; S1 fixed)
+- [ ] Full `npm test` on the merged tree on an idle box
 - [ ] Rain curtains invisible (debug job 300 first); slope view still at a tree (job 303); B24 fire light through parapets; Naqsh moiré
 - [ ] Re-render every moment D-216/D-217 touched and the gap fills; rubric pass 3; fix list items 2-10
 - [ ] Phase 3+4, 5, 6+7 independent reviews; bench; walkthrough e2e; FINAL_REPORT.md
