@@ -10,7 +10,7 @@ import { Terrain, curvatureDrop } from './terrain/heightfield';
 import { TerrainMesh } from './terrain/terrainMesh';
 import { SkySystem } from './sky/skySystem';
 import { exposureTarget, interiorExposureTarget, adaptExposure, X_MAX, KEY } from './sky/exposure';
-import { meterEV, meterLogMean, METER_W, METER_H } from './render/meter';
+import { meterEVFrame, meterLogMean, meterTexels, METER_W, METER_H } from './render/meter';
 import { twilightWeight } from './sky/horizon';
 import { WeatherSystem, WeatherOverride } from './weather/weatherState';
 import { Physics } from './player/physics';
@@ -236,7 +236,7 @@ async function boot() {
       const hit = rc.intersectObjects(world.root.children, true).find(h => (h.object as THREE.Mesh).isMesh && (h.object as THREE.Mesh).visible && !((h.object as any).material?.transparent));
       if (!hit) return null; const m: any = (hit.object as THREE.Mesh).material, n = hit.face ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld) : null;
       return { name: hit.object.name, parent: hit.object.parent?.name, mat: m?.constructor?.name, skySpec: !!m?.skySpecular, wetScale: !!m?.skySpecularScale, tier: m?.userData?.tier, note: String(m?.userData?.note ?? '').slice(0, 60), d: +hit.distance.toFixed(2), p: hit.point.toArray().map(v => +v.toFixed(2)), ny: n ? +n.y.toFixed(3) : null, roofed: roofedAt(hit.point.x, hit.point.y, hit.point.z) }; },
-    exposureInfo: () => ({ exposure: renderer.toneMappingExposure, meterEV: meterGain, meterLn, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, gain: sky.gain, lux: sky.lux, toneMapping: renderer.toneMapping }),
+    exposureInfo: () => ({ exposure: renderer.toneMappingExposure, meterEV: meterGain, meterLn, meterBright, skyVis, sunAlt: sky.state.sunAlt, sunI: sky.sun.intensity, hemiI: sky.hemi.intensity, gain: sky.gain, lux: sky.lux, toneMapping: renderer.toneMapping }),
     popins: [] as { what: string; d: number; t: number }[],
     /** people: summary rows (out-of-world; for tests and the dev overlay) */
     people: () => { const P = (world as any).people; if (!P) return null; return { t: P.sim.t, stock: P.sim.stock, events: P.sim.events.slice(-20),
@@ -301,7 +301,7 @@ async function boot() {
   let freeCam: null | { x: number; y: number; z: number; yaw: number; pitch: number } = null;
   /** debug (D-219): weather uniforms held at given values for before/after renders (__parsa.holdWeather) */
   let wxHold: { wetness?: number; snow?: number; cell?: number } | null = null;
-  let meterLn = NaN, meterBusy = false, meterT = 0, meterGain = 0; // frame meter (D-159)
+  let meterLn = NaN, meterBusy = false, meterT = 0, meterGain = 0, meterTex: Float32Array | null = null, meterBright = 0; // frame meter (D-159, D-224)
   let botInput: { forward: number; right: number; run: boolean; yawDeg?: number; pitchDeg?: number } = { forward: 0, right: 0, run: false };
   let lastFrameMs = 0; let probeT = 0;
 
@@ -373,7 +373,10 @@ async function boot() {
     // frame meter (D-159, C): a bounded share of the frame's own centre-weighted log-average on top of the law, faded out
     // below ~10 lx at the eye (night stays with the law's absolute threshold); read back from the previous frame
     const lawE = KEY / target, lawSum = sunE + sky.hemi.intensity * 0.8 + sky.moonLight.intensity * 0.3;
-    meterGain = meterEV(meterLn, target, KEY, sky.lux * Math.min(1, lawE / Math.max(lawSum, 1e-12)));
+    // D-224: when bright exterior is the centre-weighted majority of the frame (a portico looking out) the eye adapts to it,
+    // down to the law's exposure in the open (meter.ts)
+    const openX = exposureTarget(sunE, sky.hemi.intensity * 0.8, 1, sky.moonLight.intensity * 0.3, fireE, sky.fireScale);
+    { const m = meterEVFrame(meterTex, target, KEY, sky.lux * Math.min(1, lawE / Math.max(lawSum, 1e-12)), openX); meterGain = m.ev; meterBright = m.bright; }
     const metered = target * Math.pow(2, meterGain);
     exposure = TEST ? (adaptHold ? adaptExposure(adaptHold.from, metered, adaptHold.seconds) : metered) : adaptExposure(exposure, metered, dt); // dark adaptation is slower than light adaptation
     if (P.get('xp')) exposure = +P.get('xp')!; // debug: a fixed exposure (diagnostic renders)
@@ -397,7 +400,7 @@ async function boot() {
     meterT += dt;
     if (pipeline.meterTarget && !meterBusy && (TEST || meterT > 0.25)) {
       meterBusy = true; meterT = 0;
-      const rd = renderer.readRenderTargetPixelsAsync(pipeline.meterTarget, 0, 0, METER_W, METER_H).then(px => { meterLn = meterLogMean(px as any); }).catch(() => {}).finally(() => { meterBusy = false; });
+      const rd = renderer.readRenderTargetPixelsAsync(pipeline.meterTarget, 0, 0, METER_W, METER_H).then(px => { meterLn = meterLogMean(px as any); meterTex = meterTexels(px as any); }).catch(() => {}).finally(() => { meterBusy = false; });
       if (TEST) await rd;
     }
     { const sub = (world as any).lastSubtitle ?? null; if (sub && sub !== lastSub) { lastSub = sub; lastSubAt = now / 1000; }
@@ -408,7 +411,7 @@ async function boot() {
     overlay.update(renderer, scene, camera, [
       `grid E ${camera.position.x.toFixed(1)} N ${(-camera.position.z).toFixed(1)} · ${(camera.position.y + curvatureDrop(camera.position.x, camera.position.z) + terrain.meta.court_asl).toFixed(1)} m asl · ground ${terrain.aslAt(camera.position.x, camera.position.z).toFixed(1)}`,
       clock.label(),
-      `sun alt ${sky.state.sunAlt.toFixed(1)}° · moon ${(sky.state.moonFraction * 100).toFixed(0)}% alt ${sky.state.moonAlt.toFixed(0)}° · ${sky.lux.toPrecision(2)} lx (USNO-C171, B) · sky gain ${sky.gain.toPrecision(3)} · exposure ${exposure.toFixed(2)} (D-117, C) · twilight dome ${(twilightWeight(sky.state.sunAlt) * 100).toFixed(0)}% (D-116, B/C)`,
+      `sun alt ${sky.state.sunAlt.toFixed(1)}° · moon ${(sky.state.moonFraction * 100).toFixed(0)}% alt ${sky.state.moonAlt.toFixed(0)}° · ${sky.lux.toPrecision(2)} lx (USNO-C171, B) · sky gain ${sky.gain.toPrecision(3)} · exposure ${exposure.toFixed(2)} (D-117, C) · meter ${meterGain.toFixed(2)} EV, bright ${(meterBright * 100).toFixed(0)}% (D-159/D-224, C) · overcast ${(sky.overcast.w * 100).toFixed(0)}% (CIE overcast B, blend C, D-224) · twilight dome ${(twilightWeight(sky.state.sunAlt) * 100).toFixed(0)}% (D-116, B/C)`,
       `weather: ${weather.override} · ${cond.tempC.toFixed(1)} °C · cloud ${(cond.cloud * 100).toFixed(0)}% · rain ${cond.rain.toFixed(2)} · wind ${cond.windMs.toFixed(1)} m/s from ${cond.windDirDeg.toFixed(0)}° · wet ${cond.wetness.toFixed(2)} · snow ${cond.snowCover.toFixed(2)}`,
       `terrain chunks ${tmesh.stats().chunks}, ${(tmesh.stats().tris / 1e6).toFixed(2)} M tris · ${world.summary?.() ?? ''}`,
       // the last line spoken and its tiers (§3.2: tiers visible in the dev overlay; the situation that chose it, D-168)

@@ -101,33 +101,69 @@ export const TW_LO = 2, TW_HI = 90;
  *  Returns kP (the Preetham dome's factor; `scale`, as before), kT (the factor on the raw sky-view radiance) and the
  *  horizon radiance the fog, the far cloud haze and rain shafts converge to: the calibrated dome 1.5° above the horizon
  *  across the view (a 90° fan), capped at 2.5× the all-round mean so the solar aureole near a low sun does not light up
- *  the whole distance (C). */
-export function skyCalibration(sun: V3, p: SkyParams, hemiE: number, nightFactor: number, vx: number, vz: number, twilight?: TwilightSky | null): { scale: number; kP: number; kT: number; horizon: V3 } {
+ *  the whole distance (C).
+ *  D-224: `overcast` blends the dome toward the CIE overcast sky by the cloud cover (kP0 / kT0: the clear parts before
+ *  that blend, for a dome whose clouds are drawn by the volumetric layer; ovL: the overcast zenith radiance × cover). */
+export function skyCalibration(sun: V3, p: SkyParams, hemiE: number, nightFactor: number, vx: number, vz: number, twilight?: TwilightSky | null, overcast?: Overcast | null): { scale: number; kP: number; kT: number; horizon: V3; kP0: number; kT0: number; ovL: V3; wo: number } {
   const n = Math.max(0, Math.min(1, nightFactor)), w = twilight ? Math.max(0, Math.min(1, twilight.w)) : 0;
   const E = w < 1 ? skyIrradianceY(sun, p) : 1;
   const kday = Math.min(50, Math.max(0.01, hemiE / Math.max(E, 1e-6)));
-  const kP = (1 - w) * (1 - n) * kday + n;
-  const kT = twilight && w > 0 ? (w * (1 - n) * hemiE) / Math.max(twilight.view.irradianceY, 1e-30) : 0;
+  const kP0 = (1 - w) * (1 - n) * kday + n;
+  const kT0 = twilight && w > 0 ? (w * (1 - n) * hemiE) / Math.max(twilight.view.irradianceY, 1e-30) : 0;
+  // D-224: the overcast share (the weather's cover; none at night, where the D-047 night dome stays), CIE overcast
+  // gradation, calibrated to the same irradiance: the clear parts keep (1 − wo) of it and the overcast part the rest
+  const wo = overcast ? Math.max(0, Math.min(1, overcast.w)) * (1 - n) : 0;
+  const kP = kP0 - ((1 - w) * (1 - n) * kday) * wo, kT = kT0 * (1 - wo);
+  const Lz = (hemiE * wo) / OVERCAST_E_PER_LZ, ch = overcast?.chroma ?? [1, 1, 1];
+  const ovL: V3 = [Lz * ch[0], Lz * ch[1], Lz * ch[2]];
   const Y = (c: V3) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
-  const h = calibratedHorizon(sun, p, kP, kT, twilight?.view ?? null, vx, vz);
-  let mean = 0; for (const [x, z] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) mean += Y(calibratedHorizon(sun, p, kP, kT, twilight?.view ?? null, x, z)) / 4;
+  const h = calibratedHorizon(sun, p, kP, kT, twilight?.view ?? null, vx, vz, ovL);
+  let mean = 0; for (const [x, z] of [[1, 0], [0, 1], [-1, 0], [0, -1]]) mean += Y(calibratedHorizon(sun, p, kP, kT, twilight?.view ?? null, x, z, ovL)) / 4;
   const cap = Math.min(1, (2.5 * mean) / Math.max(Y(h), 1e-12));
-  return { scale: kP, kP, kT, horizon: [h[0] * cap, h[1] * cap, h[2] * cap] };
+  return { scale: kP, kP, kT, horizon: [h[0] * cap, h[1] * cap, h[2] * cap], kP0, kT0, ovL, wo };
 }
 
-/** the calibrated dome (without the sun disc) in world direction `dir`: kP · Preetham + kT · sky-view table */
-export function domeRadiance(dir: V3, sun: V3, p: SkyParams, kP: number, kT: number, view: SkyView | null): V3 {
+// ---- D-224: the overcast sky -----------------------------------------------------------------------------------------
+/** The overcast part of the dome: weight (the weather's cloud cover, 0..1) and colour (Rec. 709 luminance 1). */
+export interface Overcast { w: number; chroma: V3 }
+/** CIE standard overcast sky (Moon & Spencer 1942, adopted by the CIE in 1955; ISO 15469 / CIE S 011 type 1):
+ *  L(e) = L_z (1 + 2 sin e) / 3, zenith three times the horizon, no azimuth dependence. Its horizontal irradiance is
+ *  ∫ L cos θ dω = (7π / 9) L_z, so L_z = E / (7π / 9). B (the standard; the distribution of heavy overcast, measured
+ *  skies scatter about it: Q-530). */
+export const OVERCAST_E_PER_LZ = (7 * Math.PI) / 9;
+export const overcastGradation = (dirY: number) => (1 + 2 * Math.max(0, Math.min(1, dirY))) / 3;
+/** mean correlated colour temperature of daylight under overcast skies, 6358 K (median 6341 K): R. L. Lee Jr. &
+ *  J. Hernández-Andrés (2005), "Colors of the daytime overcast sky", Applied Optics 44(27) 5712–5722 (abstract via search
+ *  extracts, SX; full text blocked). They find overcasts make daylight bluer than the light on their tops, more so the
+ *  thicker the cloud (droplet absorption enhanced by multiple scattering). B (measured at Annapolis, not at Pārsa). */
+export const OVERCAST_CCT = 6358;
+/** the renderer's global daylight colour on a high cloud top at a noon sun (the D-116 model's sun + sky, luminance 1,
+ *  haze 0.25: tools/dev/overcast_colour.ts); the overcast colour follows the model's change of the light reaching the cloud
+ *  from this reference (a low sun and twilight light the deck bluer), times the measured overcast CCT */
+export const GLOBAL_NOON_RGB: V3 = [0.992, 1.001, 1.009];
+/** the overcast sky's colour for the light reaching the cloud top, `global` (any scale), in the renderer's colour
+ *  (`cct` as xyToRenderer(daylightXY(OVERCAST_CCT)) — passed in to keep this file free of the atmosphere's spectra) */
+export function overcastChroma(global: V3, cct: V3): V3 {
+  const c: V3 = [0, 1, 2].map(i => (cct[i] * Math.max(0, global[i])) / GLOBAL_NOON_RGB[i]) as V3;
+  const y = 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  return y > 1e-12 ? [c[0] / y, c[1] / y, c[2] / y] : [cct[0], cct[1], cct[2]];
+}
+
+/** the calibrated dome (without the sun disc) in world direction `dir`: kP · Preetham + kT · sky-view table, plus the
+ *  overcast part `ovL` (its zenith radiance, already weighted by the cover) with the CIE overcast gradation (D-224) */
+export function domeRadiance(dir: V3, sun: V3, p: SkyParams, kP: number, kT: number, view: SkyView | null, ovL?: V3 | null): V3 {
   const a = kP > 0 ? skyRadiance(dir, sun, p) : [0, 0, 0] as V3;
   const out: V3 = [a[0] * kP, a[1] * kP, a[2] * kP];
   if (view && kT > 0) { const t = skyViewRadiance(view, dir, sun[0], sun[2]); out[0] += t[0] * kT; out[1] += t[1] * kT; out[2] += t[2] * kT; }
+  if (ovL) { const g = overcastGradation(dir[1]); out[0] += ovL[0] * g; out[1] += ovL[1] * g; out[2] += ovL[2] * g; }
   return out;
 }
-function calibratedHorizon(sun: V3, p: SkyParams, kP: number, kT: number, view: SkyView | null, vx: number, vz: number): V3 {
+function calibratedHorizon(sun: V3, p: SkyParams, kP: number, kT: number, view: SkyView | null, vx: number, vz: number, ovL?: V3): V3 {
   const hl = Math.hypot(vx, vz) || 1, a0 = Math.atan2(vz / hl, vx / hl), el = (1.5 * Math.PI) / 180;
   const out: V3 = [0, 0, 0]; const N = 5;
   for (let i = 0; i < N; i++) {
     const a = a0 + ((i / (N - 1)) - 0.5) * (Math.PI / 2);
-    const r = domeRadiance([Math.cos(a) * Math.cos(el), Math.sin(el), Math.sin(a) * Math.cos(el)], sun, p, kP, kT, view);
+    const r = domeRadiance([Math.cos(a) * Math.cos(el), Math.sin(el), Math.sin(a) * Math.cos(el)], sun, p, kP, kT, view, ovL);
     out[0] += r[0] / N; out[1] += r[1] / N; out[2] += r[2] / N;
   }
   return out;

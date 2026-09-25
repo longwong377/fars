@@ -48,3 +48,49 @@ export function meterEV(lnFrame: number, lawExposure: number, key: number, eyeLu
   const fade = t * t * (3 - 2 * t);
   return Math.min(METER_MAX_EV, Math.max(METER_MIN_EV, ev)) * fade;
 }
+
+// ---- D-224: the bright majority ------------------------------------------------------------------------------------------
+// Fault (D-159, D-219): the mean meter may close the law down by 1 EV at most, so a frame that is mostly bright exterior
+// seen from shade (a portico looking out, a doorway filling the view) kept the shade's exposure and the sky rendered 5–7×
+// display white (the rain-approach portico: exposure 36). An eye that fixates the bright view adapts to it within seconds.
+// Rule (C): texels that would display ≥ BRIGHT_EV above the law's reference grey are "bright" (at AgX's shoulder: its white
+// is 0.18 · 2^4.03). When they are the centre-weighted majority of the frame, the eye adapts to them: the correction becomes
+// METER_K of the difference between the reference and the bright texels' log-mean (as D-159 does for the whole frame),
+// blended in over a weighted bright fraction of BRIGHT_F0 … BRIGHT_F1, never closing further than the outdoor law's own
+// exposure (the eye out in that light) nor than BRIGHT_MIN_EV. A small bright door in a dark hall (hall-out: ~8 % of the
+// frame) does not reach the blend: the door still blows out from inside, as a camera and an eye adapted to the hall see
+// it; the eye adapting across the threshold is the adaptation over time (exposure.ts, carryEye).
+export const BRIGHT_EV = 3, BRIGHT_F0 = 0.3, BRIGHT_F1 = 0.6, BRIGHT_MIN_EV = -6;
+/** the meter's texels (ln L, the red channel of the RGBA float read-back) */
+export function meterTexels(px: ArrayLike<number>, w = METER_W, h = METER_H): Float32Array {
+  const t = new Float32Array(w * h); for (let i = 0; i < w * h; i++) t[i] = px[i * 4]; return t;
+}
+/** centre-weighted fraction of the texels brighter than lnT, and their weighted log-mean */
+export function brightShare(tex: ArrayLike<number>, lnT: number, w = METER_W, h = METER_H): { f: number; lnHi: number } {
+  let wb = 0, ws = 0, sb = 0;
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+    const v = tex[j * w + i]; if (!Number.isFinite(v)) continue;
+    const wt = meterWeight(i, j, w, h); ws += wt; if (v > lnT) { wb += wt; sb += v * wt; }
+  }
+  return { f: ws > 0 ? wb / ws : 0, lnHi: wb > 0 ? sb / wb : NaN };
+}
+/** the meter's gain in EV from the texels (D-159's mean meter with D-224's bright-majority rule); `outdoorExposure`: the
+ *  law's exposure for the same light in the open (vis 1), the floor of the bright correction */
+export function meterEVFrame(tex: ArrayLike<number> | null, lawExposure: number, key: number, eyeLux: number, outdoorExposure?: number, w = METER_W, h = METER_H): { ev: number; bright: number } {
+  if (!tex || !(lawExposure > 0)) return { ev: 0, bright: 0 };
+  let s = 0, ws = 0;
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) { const v = tex[j * w + i]; if (!Number.isFinite(v)) continue; const wt = meterWeight(i, j, w, h); s += v * wt; ws += wt; }
+  if (!(ws > 0)) return { ev: 0, bright: 0 };
+  const evMean = meterEV(s / ws, lawExposure, key, 1e9); // unfaded; the fade is applied once below
+  const lnRef = Math.log((0.18 * (key / lawExposure)) / Math.PI);
+  const { f, lnHi } = brightShare(tex, lnRef + BRIGHT_EV * Math.LN2, w, h);
+  let ev = evMean;
+  if (f > BRIGHT_F0 && Number.isFinite(lnHi)) {
+    const floor = Math.max(BRIGHT_MIN_EV, outdoorExposure && outdoorExposure > 0 ? Math.log2(outdoorExposure / lawExposure) : BRIGHT_MIN_EV);
+    const evB = Math.min(evMean, Math.max(floor, (METER_K * (lnRef - lnHi)) / Math.LN2));
+    const t = Math.min(1, (f - BRIGHT_F0) / (BRIGHT_F1 - BRIGHT_F0)), wB = t * t * (3 - 2 * t);
+    ev = evMean + (evB - evMean) * wB;
+  }
+  const tl = Math.min(1, Math.max(0, (Math.log10(Math.max(eyeLux, 1e-9)) - 1) / 1)), fade = tl * tl * (3 - 2 * tl);
+  return { ev: ev * fade, bright: f };
+}

@@ -9,7 +9,8 @@
 //    i.e. 650 / 549 / 445 nm equivalents.
 //  • Aerosol: the D-116 aerosol, whose column above the observer makes the USNO clear-sky extinction k (0.21 per air mass
 //    at the weather's clear-day haze 0.25; D-115): σ_M(z) = τ_a / H_M · exp(−(z − 1625 m) / H_M), H_M = 1.2 km (Bruneton),
-//    Ångström 0.8 (per channel 0.882 / 1.005 / 1.187 of the 550 nm value). So the aerial perspective, the twilight dome and
+//    Ångström 0.8 (per channel 0.882 / 1.005 / 1.187 of the 550 nm value); less the stratospheric layer's 0.005 (D-224:
+//    it lies 20 km up, out of every terrain ray). So the aerial perspective, the twilight dome and
 //    the sun's colour are one air. At haze 0.25 the plain's air gives σ(550) = 9.0e-5 m⁻¹: Koschmieder's visibility
 //    V = 3.912 / σ = 43 km (clear spring day over Marvdasht: 40–70 km, reviewer's range, C), a 59 % veil at 10 km.
 //  • Blowing dust (the weather's dust 0..1, C): +4.0e-4 m⁻¹ at dust 1 (V ≈ 8 km, inside the 5–15 km of dust days),
@@ -31,7 +32,7 @@
 // path whose sunlit fraction varies linearly, so the air in Kuh-e Rahmat's dawn shadow scatters only skylight.
 import * as THREE from 'three/webgpu';
 import { Fn, uniform, vec2, vec3, vec4, float, max, min, abs, exp, sqrt, acos, clamp, dot, length, mix, step, texture, output, positionWorld, cameraPosition } from 'three/tsl';
-import { aerosolTauFor, OBSERVER_ALT, GROUND_ALT } from './atmosphere';
+import { aerosolTauFor, stratTauFor, OBSERVER_ALT, GROUND_ALT } from './atmosphere';
 import { extinctionK } from './illuminance';
 import { EARTH_R, REFRACTION_K } from '../terrain/horizonMap';
 
@@ -60,7 +61,7 @@ export interface AirState { haze: number; dust?: number; mist?: number; rain?: n
 export interface AirOptics { betaR: V3; betaM: V3; betaMist: number; betaPrecip: number }
 /** layer coefficients at the reference height Z0 for a weather state */
 export function airOptics(s: AirState): AirOptics {
-  const tau = aerosolTauFor(extinctionK(s.haze)), m550 = (tau / H_AEROSOL) * Math.exp(-(Z0 - OBSERVER_ALT) / H_AEROSOL), d = DUST_BETA * Math.max(0, s.dust ?? 0);
+  const tau0 = aerosolTauFor(extinctionK(s.haze)), tau = tau0 - stratTauFor(tau0), m550 = (tau / H_AEROSOL) * Math.exp(-(Z0 - OBSERVER_ALT) / H_AEROSOL), d = DUST_BETA * Math.max(0, s.dust ?? 0);
   return {
     betaR: RAYLEIGH_RGB.map(b => b * Math.exp(-Z0 / H_RAYLEIGH)) as V3,
     betaM: [0, 1, 2].map(c => m550 * AEROSOL_RGB[c] + d * DUST_RGB[c]) as V3,

@@ -11,7 +11,7 @@ import { float, vec2, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix
 import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt } from './ephemeris';
 import { VolumetricClouds } from './clouds';
 import { skyCalibration, twilightWeight, TW_HI } from './horizon';
-import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, type SkyView, type SkyViewJob } from './atmosphere';
+import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, xyToRenderer, daylightXY, type SkyView, type SkyViewJob } from './atmosphere';
 import { sunNormalLux, skyLux, moonLux, elongationFromFraction, extinctionK, NIGHT_LUX, REN_PER_LUX_SUN, REN_PER_LUX_SKY } from './illuminance';
 import { skyGain, fireLightScale } from './exposure';
 import { CLOUD_BASE, CLOUD_TOP, cellShadowNode } from './clouds';
@@ -20,7 +20,9 @@ import coverTable from '../data/cloud_cover_table.json';
 import { HorizonMap, HORIZON_LAYOUT, loadHorizonMap } from '../terrain/horizonMap';
 import { horizonAtlasTexture, horizonVisibility, type HorizonAtlases } from '../terrain/horizonShadow';
 import { Air, AIR_ALBEDO, EYE_SKY } from './aerial';
-import { domeRadiance } from './horizon';
+import { domeRadiance, overcastChroma, OVERCAST_CCT } from './horizon';
+/** the measured mean overcast colour (6358 K daylight, Lee & Hernández-Andrés 2005) in the renderer's colour (D-224) */
+const OVERCAST_RGB = xyToRenderer(...daylightXY(OVERCAST_CCT));
 
 export interface SkyState { sunDir: THREE.Vector3; sunAlt: number; moonDir: THREE.Vector3; moonAlt: number; moonFraction: number; daylight: number; nightFactor: number }
 
@@ -54,6 +56,11 @@ export class SkySystem {
   readonly horizon = new THREE.Color(0.6, 0.63, 0.68);
   // dome (D-060, D-116): kP · Preetham + kT · twilight table + disc weight · physical sun disc
   private uKP = uniform(1); private uKT = uniform(0); private uDW = uniform(0);
+  /** the overcast part of the dome (D-224): its zenith radiance × the cover, drawn with the CIE overcast gradation where the
+   *  volumetric layer is off (test quality); where it is on, the layer draws the cloud and the dome between is clear sky */
+  private uOv = uniform(new THREE.Color(0, 0, 0));
+  /** the overcast sky's colour (luminance 1) and weight used this frame (D-224; read by tests and the dev overlay) */
+  overcast = { w: 0, chroma: [1, 1, 1] as [number, number, number] };
   private uDisc = uniform(new THREE.Color(0, 0, 0)); private uSunH = uniform(new THREE.Vector2(1, 0)); private uSunDir3 = uniform(new THREE.Vector3(0, 1, 0));
   /** the twilight sky-view table as a texture (RGBA half float, radiance / its irradiance luminance) */
   private lutTex: THREE.DataTexture;
@@ -139,7 +146,7 @@ export class SkySystem {
     scene.add(this.milkyWay);
     this.sky.scale.setScalar(DOME * 0.95);
     this.sky.turbidity.value = 3; this.sky.rayleigh.value = 1.2; this.sky.mieCoefficient.value = 0.004; this.sky.mieDirectionalG.value = 0.8;
-    this.sky.userData = { tier: 'B', src: 'RECON', note: 'Preetham analytic sky by day (three SkyMesh); below +10° a spectral spherical-atmosphere model (Bruneton 2017 constants, Hillaire 2020 multiple scattering: Earth\'s shadow, antitwilight arch, glow; aerosol amount C); both calibrated to the USNO-C171 skylight (D-060, D-115, D-116)' };
+    this.sky.userData = { tier: 'B', src: 'RECON', note: 'Preetham analytic sky by day (three SkyMesh); below +10° a spectral spherical-atmosphere model (Bruneton 2017 constants, Hillaire 2020 multiple scattering: Earth\'s shadow, antitwilight arch, glow; aerosol amount C); both calibrated to the USNO-C171 skylight (D-060, D-115, D-116). D-224: aerosol backscatter (lidar ratio 50 sr, C) and a stratospheric background layer (τ 0.005, C) redden the antitwilight arch; under cloud the dome blends by the cover (C) toward the CIE standard overcast sky (zenith 3× horizon, B) at the measured mean overcast colour 6358 K (Lee & Hernández-Andrés 2005, B), and the skylight takes that colour' };
     this.sky.frustumCulled = false;
     // SkyMesh pins its depth to 1.0, which is the NEAR plane under reversed-Z (WebGPU path) — draw it first, untested
     const skyMat = this.sky.material as THREE.Material; skyMat.depthTest = false; skyMat.depthWrite = false; this.sky.renderOrder = -10;
@@ -156,7 +163,8 @@ export class SkySystem {
       const T = texture(this.lutTex, vec2(u, v)).rgb;
       const ca = Math.cos(SUN_ANGULAR_RADIUS), cb = Math.cos(SUN_ANGULAR_RADIUS * 1.3);
       const disc = smoothstep(cb, ca, dot(d, this.uSunDir3));
-      (skyMat as any).colorNode = vec4(cn.xyz.mul(this.uKP).add(T.mul(this.uKT)).add((this.uDisc as any).mul(disc.mul(this.uDW))), 1); }
+      const ovG = float(1).add(clamp(d.y, 0, 1).mul(2)).div(3); // CIE overcast gradation (D-224)
+      (skyMat as any).colorNode = vec4(cn.xyz.mul(this.uKP).add(T.mul(this.uKT)).add((this.uDisc as any).mul(disc.mul(this.uDW))).add((this.uOv as any).mul(ovG)), 1); }
     scene.add(this.sky);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(shadowMapSize, shadowMapSize);
@@ -351,10 +359,19 @@ export class SkySystem {
     }
     // skylight colour: the session-3 day colour by day, the physical sky's irradiance colour in twilight, the session-3
     // night blue at night; its luminance is kept at the day colour's 0.796 so hemi.intensity · 0.8 stays the illuminance
+    // the overcast sky's colour (D-224): the measured overcast CCT, following the model's change of the light that reaches
+    // the cloud top (sun at CLOUD_TOP + the clear sky's irradiance, weighted by USNO's clear-sky lux) from a noon sun
+    const Yc = (c: number[]) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    const cover = Math.max(0, Math.min(1, cloudCover));
+    { const t = A.sunColorAt(OBSERVER_ALT + CLOUD_TOP, alt), ty = Math.max(Yc(t), 1e-30), eS = sunNormalLux(alt, k) * sinA, eK = skyLux(alt);
+      const irr = this.view ? this.view.irradiance.map(x => x / Math.max(this.view!.irradianceY, 1e-30)) : [0.78, 1.0, 1.5];
+      const g = [0, 1, 2].map(i => (Math.max(0, t[i]) / ty) * eS + irr[i] * eK) as [number, number, number];
+      this.overcast = { w: cover, chroma: overcastChroma(g, OVERCAST_RGB) }; }
     { const dayC = [0.75, 0.8, 0.9], nightC = [0.55, 0.62, 0.8], twC = this.view && w > 0 ? this.view.irradiance.map(x => x / Math.max(this.view!.irradianceY, 1e-30)) : dayC;
-      const Yc = (c: number[]) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
-      const nd = dayC.map(x => x / Yc(dayC)), nn = nightC.map(x => x / Yc(nightC)), nt = twC.map(x => x / Yc(twC));
-      const c = [0, 1, 2].map(i => ((1 - w) * nd[i] + w * nt[i]) * (1 - night) + nn[i] * night);
+      const nd = dayC.map(x => x / Yc(dayC)), nn = nightC.map(x => x / Yc(nightC)), nt = twC.map(x => x / Yc(twC)), oc = this.overcast.chroma;
+      // under cloud the skylight takes the overcast colour in proportion to the cover (D-224: shade under overcast is grey,
+      // not the clear sky's blue)
+      const c = [0, 1, 2].map(i => (((1 - w) * nd[i] + w * nt[i]) * (1 - cover) + oc[i] * cover) * (1 - night) + nn[i] * night);
       const y = Yc(c); this.hemi.color.setRGB((0.796 * c[0]) / y, (0.796 * c[1]) / y, (0.796 * c[2]) / y); }
     // ground bounce (D-153, C): the hemisphere light's lower half is the light the open ground around the viewer reflects,
     // albedo × (direct sun and moon on the horizontal + the skylight), in the sky term's units: a shaded wall on a clear
@@ -379,12 +396,16 @@ export class SkySystem {
     { const sk = this.sky, P = { turbidity: sk.turbidity.value as number, rayleigh: sk.rayleigh.value as number, mieCoefficient: sk.mieCoefficient.value as number, mieDirectionalG: sk.mieDirectionalG.value as number };
       const hc = this.hemi.color, hemiE = this.hemi.intensity * (0.2126 * hc.r + 0.7152 * hc.g + 0.0722 * hc.b);
       const tw = this.view && w > 0 ? { view: this.view, w } : null;
-      const cal = skyCalibration([this.state.sunDir.x, this.state.sunDir.y, this.state.sunDir.z], P, hemiE, night, view?.x ?? 1, view?.z ?? 0, tw);
-      this.uKP.value = cal.kP; this.uKT.value = tw ? cal.kT * this.view!.irradianceY : 0;
+      const cal = skyCalibration([this.state.sunDir.x, this.state.sunDir.y, this.state.sunDir.z], P, hemiE, night, view?.x ?? 1, view?.z ?? 0, tw, this.overcast);
+      // the dome shader (D-224): with the volumetric layer drawn, the dome between its clouds is the clear sky (kP0, kT0);
+      // without it (test quality) the dome is the cover-weighted blend with the overcast sky, as the fog and the air are
+      const drawnClouds = this.clouds.mesh.visible, ovS = drawnClouds ? 0 : cal.wo;
+      this.uKP.value = drawnClouds ? cal.kP0 : cal.kP; this.uKT.value = tw ? (drawnClouds ? cal.kT0 : cal.kT) * this.view!.irradianceY : 0;
+      this.uOv.value.setRGB(ovS > 0 ? cal.ovL[0] : 0, ovS > 0 ? cal.ovL[1] : 0, ovS > 0 ? cal.ovL[2] : 0);
       this.horizon.setRGB(cal.horizon[0], cal.horizon[1], cal.horizon[2]);
       // the physical sun disc (with the table): the sun's radiance, E / Ω, capped below the half-float range
       const disc = Math.min(30000, this.sun.visible ? this.sun.intensity / (Math.PI * SUN_ANGULAR_RADIUS * SUN_ANGULAR_RADIUS) : 0);
-      this.uDisc.value.copy(this.sun.color).multiplyScalar(disc); this.uDW.value = tw ? w * (1 - night) : 0;
+      this.uDisc.value.copy(this.sun.color).multiplyScalar(disc); this.uDW.value = tw ? w * (1 - night) * (1 - ovS) : 0; // no disc painted on an overcast dome (D-224)
       const hs = Math.hypot(this.state.sunDir.x, this.state.sunDir.z) || 1; this.uSunH.value.set(this.state.sunDir.x / hs, this.state.sunDir.z / hs);
       this.uSunDir3.value.copy(this.state.sunDir);
       // the air's in-scatter (D-156): J(φ) = the calibrated dome 1.5° up at azimuth φ from the sun; its ambient part is the
@@ -392,7 +413,7 @@ export class SkySystem {
       const hI = this.hemi.intensity, gc = this.hemi.groundColor, sv: [number, number, number] = [this.state.sunDir.x, this.state.sunDir.y, this.state.sunDir.z];
       const amb: [number, number, number] = [0, 1, 2].map(i => (AIR_ALBEDO * 0.5 * hI * ([hc.r, hc.g, hc.b][i] + [gc.r, gc.g, gc.b][i])) / Math.PI) as [number, number, number];
       const twv = tw?.view ?? null;
-      this.air.setInscatter(d => domeRadiance(d, sv, P, cal.kP, cal.kT, twv), sv, amb);
+      const ovL = cal.ovL; this.air.setInscatter(d => domeRadiance(d, sv, P, cal.kP, cal.kT, twv, ovL), sv, amb);
       this.air.vEye.value = EYE_SKY.sunVisibility = this.eyeSunVisibility; this.air.sunUp.value = this.sun.visible ? smoothstepJS(-0.5, 0.5, alt) : 0; }
     if (wind) { const a = ((wind.fromDeg + 180) * Math.PI) / 180; C.wind.value.set(Math.sin(a) * wind.ms * 2.5, -Math.cos(a) * wind.ms * 2.5); C.time.value = wind.tSeconds; } // winds aloft ~2.5 × surface (C)
     // cover over THIS observer (D-064): the weather field scales the cover by 0.6–1.4 across its tile, so the uniform is
