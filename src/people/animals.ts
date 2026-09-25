@@ -307,6 +307,8 @@ export class Animals {
   /** animals not drawn this frame because their species' instance cap was full (reported by stats: never silent) */
   dropped = 0;
   constructor(private cap = 512, name = 'animals:work') { this.group.name = name; }
+  /** D-220: called for every animal pushed (the world's dust: a walking animal raises dust on dry earth) */
+  onPush: ((a: AnimalInst, M: THREE.Matrix4) => void) | null = null;
   private mesh(sp: Species) {
     let m = this.meshes.get(sp); if (m) return m;
     const g = animalGeometry(sp), F = animalFrame(sp), drop = lieDrop(sp);
@@ -340,6 +342,7 @@ export class Animals {
   begin(time: number) { this.uTime.value = time % 100000; this.dropped = 0; for (const m of this.meshes.values()) { m.n = 0; m.box.makeEmpty(); } }
   /** an animal at a world transform with its state */
   push(a: AnimalInst, M: THREE.Matrix4) {
+    this.onPush?.(a, M);
     const m = this.mesh(a.sp); if (m.n >= this.cap) { this.dropped++; return; } const i = m.n++;
     m.mesh.setMatrixAt(i, M); m.state.setXYZW(i, a.phase % (TWO_PI * 64), a.walk, a.graze, a.lie);
     const e = M.elements; m.rot[0].setXYZ(i, e[0], e[1], e[2]); m.rot[1].setXYZ(i, e[4], e[5], e[6]); m.rot[2].setXYZ(i, e[8], e[9], e[10]);

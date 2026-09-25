@@ -185,6 +185,15 @@ export class Crowd {
   private camPlot = 0;
   /** camera rig only (__parsa.view): people within this distance of the lens are not drawn (0 = off, the player's camera) */
   rigClear = 0;
+  /** D-220: dust from the people drawn this frame (world/dust.ts): called for a walker (kind 'walk'), a mason dressing stone
+   *  ('mason') and a hauling gang's man ('haul') with the world position, yaw, speed (m/s) and a stable seed */
+  dustTap: ((kind: 'walk' | 'mason' | 'haul', x: number, y: number, z: number, yaw: number, speed: number, seed: number) => void) | null = null;
+  private tapDust(act: string, moving: boolean, x: number, y: number, z: number, yaw: number, speed: number, seed: number, mounted: boolean) {
+    const T = this.dustTap; if (!T) return;
+    if (act === 'dress_stone') T('mason', x, y, z, yaw, 0, seed);
+    else if (act === 'haul') { if (seed % 3 === 0) T('haul', x, y, z, yaw, 0, seed); } // (one in three of the gang: the sledge is shared)
+    else if (moving && !mounted) T('walk', x, y, z, yaw, speed, seed); // (a rider's dust is the mount's: Animals.onPush)
+  }
   /** hidden behind the walls of the court or yard they stand in, from a camera outside it and below the wall tops */
   private walledOff(vp: ViewPerson, camY: number) { return vp.wall > 0 && vp.plot !== this.camPlot && camY < vp.y + vp.wall - 0.3; }
   private camAt = new THREE.Vector3();
@@ -560,6 +569,7 @@ export class Crowd {
       const c = gpu.costumes.get(`${COSTUME_OF[p.look.dress]}@${lod}`)!;
       gpu.push(c, p.slot, p.root[0], p.root[1], p.root[2], p.root[3], p.prevRoot[0], p.prevRoot[1], p.prevRoot[2], p.prevRoot[3], lod === 0 ? 1 : d < K.shadow && !hid ? 2 : 0);
       p.drawnFrame = this.frame; p.lod = lod; if (this.drawnKeys) this.drawnKeys.add(p.agent ? -1 - p.agent.id : p.pid);
+      if (this.dustTap && !hid) this.tapDust(p.act, p.agent ? p.agent.walking : !!(p.vp?.moving), p.root[0], p.root[1], p.root[2], p.root[3], p.vp?.speed || 1.25, p.agent ? p.agent.seed : p.pid, p.perf?.animals?.kind === 'mount');
       if (p.prop) this.placeProp(p, p.prop, p.propM, p.ip[0]);
       if (p.prop2) this.placeProp(p, p.prop2, p.propM2, p.ip[1]);
       if (p.babeProps) for (const b of p.babeProps) this.placeProp(p, b.kind, b.M, b.tint); // D-215
@@ -606,6 +616,7 @@ export class Crowd {
       if (ACTIVITIES[act].placeholder && !moving) placeholders++; // shown standing (idle), counted as the skinned are
       const ph = a ? a.gait : ((this.impPhase.get(key) ?? (pid % 628) / 100) + (moving ? (vp!.speed || 1.2) * dt / 0.72 * Math.PI : ACTIVITIES[act].moving ? IN_PLACE_RATE * dt : 0)); if (!a) this.impPhase.set(key, ph);
       imp.push(x, y + lift, z, yaw, rowOf(L.dress, frameOf(moving && !ACTIVITIES[act].moving && !vAnim ? 'walk' : anim, ph)), L.scale, null, L.packed); this.drawnKeys?.add(key);
+      if (this.dustTap) this.tapDust(act, moving, x, y, z, yaw, vp?.speed || 1.25, a ? a.seed : pid, !!vAnim);
       const dd = Math.sqrt((x - cam.x) ** 2 + (z - cam.z) ** 2); bands[dd < 600 ? 0 : dd < 1500 ? 1 : dd < 3000 ? 2 : 3]++; if (moving) walkers++;
     };
     for (let i = 0; i < this.nImp; i++) { const e = this.impList[i]; one(e.vp ? e.vp.pid : -1, e.a, e.vp, e.x, e.y, e.z, e.yaw, true); }

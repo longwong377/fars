@@ -4621,3 +4621,75 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
   off, braziers off, all fires off; after; the shadow cost), gate-dusk (after: B, fires off), pulvar-bank-april and
   garden-paradise (after), scribe-room-ne and scribe-at-work (after: B, the session-4 GI input, the scene pass; after the
   re-bake), hadish-hall and apadana-hall-axis (after: B, SSR off). The before images are the pass-2 shots.
+
+## D-220 Smoke and dust: the people's fires from the sim, a smoke layer over the town and villages, dust of work and feet (session 8 workstream; rubric s7 pass 2 fix 5; brief §1.1 "smoke rising from the town at dusk as lamps are lit", §5.4)
+- **Read first: what is broken, unverified or placeholder.**
+  - **Rendered (high, SwiftShader, two views, each also captured with the smoke and dust hidden):** the smoke shows as a pale
+    band over the lower town and the plain in front of it, not as a picture of a smoky town: at 1 km and 20 m below the Terrace
+    the town is itself a line of dark specks 10–20 px tall, and from Kuh-e Rahmat at 228° the quarters sit at the frame's left
+    edge beyond the Terrace's S palaces. Rising plumes are not visible at 18:48 (most hearths are embers by then, τ ≈ 0.02).
+    Measured (display luma, with − without): `town-smoke-dusk` rows 250–262 (the town) +10.3 / +8.9 (Weber +22 %), rows
+    246–300 +3.5 … +10 (+13 … +22 %), the near-horizon sky rows 200–240 −3.9 (the smoke darker than the bright twilight horizon,
+    part of it the frame meter's exposure), the parapet in the foreground 0.0 (control, |Δ| 0.25); `town-smoke-dusk-rahmat`
+    rows 250–300 +4.2 … +6.1 (Weber +10 … +12 %), rows 420–540 (the Terrace, control) +0.1. The contrast is measurably
+    non-zero; whether it *reads* as the §1.1 moment is for the rubric. Render 2 (dawn-stair-top village smoke, hall100-site dust A/B): queued, see below.
+  - All amounts are C: the fuel (dung cake and brushwood, Q-500), the emission factors and smoke optics (recollection, NOT SEEN,
+    Q-501), the boundary layer (Q-504), the dust (Q-505). The hours are the sim's (lives.json meals, C, Q-064).
+  - **The town's night flames changed.** A house hearth's flame now shows only while its household's day has it lit (lighting,
+    cooking, a low evening fire on a cool night): on a warm evening (night minimum ≥ 8 °C, e.g. day 14) the town's hearth flames
+    are out by ~19:30 and only embers smoke (Q-502). On day 0 (minimum 6.7 °C) they burn low until bedtime (~19:00–21:00). The
+    previous C schedule lit ~70 % of them from sunset to 1.5–3 h after; the far-flame work (2 px minimum) is unaffected.
+  - The sim's villages stand elsewhere than the rendered ones (Q-503): village smoke uses the plain's mean household day.
+  - The smoke layer's ray stops at a ground plane fitted over each settlement's footprint; houses and trees inside the layer,
+    and land rising under the downwind tail, are not seen by it (the box's faces inside a hill are hidden by the depth test).
+  - Walker dust is taken only from people the crowd draws (skinned or impostor) within 220 m; the fauna's yard animals and
+    game raise none; a hauling gang's sledge dust is emitted by one in three of its men at their own 6.2 m ahead.
+- **Why no frame had smoke (the rubric's question: absent, too faint, culled or killed by the composite?).**
+  1. *Absent in every frozen render*: the fire system's near puffs were spawned at a rate × dt, and a test render
+     (`renderOnce`) passes dt = 0: not one puff in any moment render ever (node test: `smoke_dust.test.ts`).
+  2. *Too faint by design*: since D-195 a household hearth's plume is τ ≈ 0.03 (a faint wisp, correct for one hearth).
+  3. *Not in frame*: the town's haze sheets existed, but no moment looked at the town at dusk (gate-dusk looks E at the Gate
+     wall; the dawn views look WNW over the plain, the town lies SSW), and the villages had no fire and no smoke at all.
+  4. *Dust*: no code existed.
+  5. *Not the composite*: the effect materials draw after the opaque pass into `output` and leave the G-buffer alone
+     (fx.ts colourOnly, D-183); the SSGI composite subtracts only the diffuse G-buffer's sky term, which they do not touch.
+- **Decision.**
+  - `src/world/hearthSmoke.ts`: each town hearth ('home') and oven ('bake') is linked through its house plot to the household
+    living there (1,241 of 1,304 town fires). Its phase follows the sim's household day (`Population.hday`): relit 0.3 h before
+    breakfast; lit by the 'cook' act 0.35 h before the evening meal (a smoky start from embers, 0.15 h), cooking through the
+    meal, then a low fire until bedtime on a cool night or embers for 1 h; the oven fired 0.4 h before baking (before
+    breakfast on a morning baking day, else from the evening meal − 1.2 h). Emission per phase in g/h (Q-501); a source's
+    optical depth k·Q/(u0·w0). The other fires keep their C schedules.
+  - The smoke of each quarter's households (and of each village: the plain's mean household day × population) gathers in a
+    leaky box: column M(t) = Σ flux × residence, residence 1/(u/L + 1/2400 s), u ≥ 0.5 m/s; vertical profile
+    e^(−h/H1) − e^(−h/H2) (peak 14 m at H1 = 30 m in stable air, mixed up to 600 m by day); a downwind tail e^(−x/(u·2400 s)).
+  - `src/world/landSmoke.ts`: one instanced box per settlement along the wind; the fragment integrates the extinction along
+    the view ray exactly over six segments (the profile and a slow noise at each segment's middle) and draws the smoke's
+    single-scattered skylight and sun (smokeSkyRadiance, D-070) with opacity 1 − e^(−τ). Front faces from outside, back
+    faces from inside a box. CPU mirror `cellTau`. Replaces the per-quarter haze sheets (haze.ts keeps the plumes).
+  - `fire.ts`: the near puffs are closed-form in time (PUFFS per kind, 8 s life, the velocity relaxing from the buoyant
+    rise to the wind drift); their opacity from the fire's emission (a charcoal brazier nearly clear, a pitch torch sooty).
+    `haze.ts`: each plume's opacity from its fire's emission now.
+  - `src/world/dust.ts`: puffs behind walkers, working animals, flocks and carts, off the masons' chisels and the hauling
+    sledges; closed-form in time; only on dry ground (weather wetness < 0.25, no snow, no rain; stone dust in any dry-sky
+    weather), none in the roofed halls, 0.3 on the Terrace's courts. The crowd (`Crowd.dustTap`) and the working animals
+    (`Animals.onPush`) report emitters as they are drawn.
+  - Moments: `town-smoke-dusk` (Terrace W edge looking SSW over the lower town, 24°) and `town-smoke-dusk-rahmat` (Kuh-e
+    Rahmat, 40°), day 14 18:48 (wind 0.8 m/s, 13 min after sunset), each captured again with the smoke and dust hidden
+    (moments.spec `ab`), logging the draw calls with and without.
+- **Measured in node** (`tests/smoke_dust.test.ts`, 15 tests): τ along the line of sight from the Terrace eye to the S quarters
+  at 18:48 on day 14: 0.19–0.35 (0.24 to q_s1's far side, 0.35 to q_s4); at 12:30 < 0.03; after midnight no cell. From Kuh-e
+  Rahmat to the W quarter 0.074; from the Grand Stair to village p21 (4.7 km) at dawn 0.39. A 6 m/s wind cuts the Terrace τ by
+  more than half. A lit hearth near the eye has 5 puffs at dt = 0 (was 0); peak puff opacity lighting 0.116, cooking 0.037,
+  embers 0.025, charcoal brazier < 0.01. Dust: none on wet ground (day 3 after rain), none in a hall, halved puffs beyond 90 m,
+  none beyond 220 m. Shaders build to WGSL in node.
+- **Cost.** Draw calls: +1 (the smoke layer; +1 more only while the eye stands inside a quarter's or village's layer), +1 dust,
+  −1 (the haze sheets gone): net +1…+2 against the ≤ 8 budget. GPU: the layer's fragment is ~650 ALU operations (6 segments,
+  4 exp and one 3-D noise each) over the pixels its boxes cover (estimate: ~0.1–0.2 ms at 1080p on a mid-range GPU for
+  ~30 % coverage with tails overlapping; NOT MEASURED on hardware, SwiftShader only). CPU: the model recomputes when the
+  minute or the wind changes (~50 cells, ~0.2 ms); on a new day it rebuilds ~3,300 household days (~150–300 ms, once).
+- **Alternatives.** Brighter or denser plumes per hearth (rejected: D-195's physics; the landscape reads from the layer, not
+  the wisps); camera-facing haze sheets per quarter (the old way: a flat card whose opacity does not grow along a grazing
+  line of sight, which is exactly how the layer is seen from the Terrace); a ray-marched volume against the depth buffer
+  (reading the depth in the transparent pass copies a multisampled depth at quality test/low: risky on SwiftShader).
+- **Tier:** C throughout (see Q-500 … Q-506); the method (single scattering, Beer–Lambert, mass conservation) A.
