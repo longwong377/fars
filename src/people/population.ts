@@ -784,6 +784,8 @@ export class Population {
     r.bakeAM = bake && r.baker >= 0 && H.zone !== 'terrace' && (homeJobs.includes(this.persons[r.baker].job) || r.baker === keeper);
     if (H.zone === 'town' || H.zone === 'plain') {
       const athome = women.filter(x => (homeJobs.includes(this.persons[x].job) || x === keeper) && this.persons[x].agent < 0).sort((a, b) => this.ageOn(a, d) - this.ageOn(b, d));
+      // (a girl of the house before a woman who works away from it all day: the Treasury's women, the work camp's; D-211,
+      // r3's house without water once the others' extra trips were stopped)
       // (a girl before a boy: water is the women's and the girls' work, a boy's or a man's only where none is at home; A S7 of
       // shadow review r9: 77 % of the trips of males of 12 or more were made while a woman of the house was at home; C, Q-148)
       const kid = mem.filter(x => this.ageOn(x, d) >= 8 && this.ageOn(x, d) <= 13 && !this.sick(x, d) && this.persons[x].agent < 0 && this.persons[x].job === 'child').sort((a, b) => (this.persons[a].sex === 'f' ? 0 : 1) - (this.persons[b].sex === 'f' ? 0 : 1) || this.ageOn(b, d) - this.ageOn(a, d))[0];
@@ -792,7 +794,7 @@ export class Population {
       const serv = mem.filter(x => this.persons[x].job === 'servant' && this.persons[x].agent < 0 && !this.sick(x, d) && this.ageOn(x, d) >= 14).sort((a, b) => (this.persons[a].sex === 'f' ? 0 : 1) - (this.persons[b].sex === 'f' ? 0 : 1) || a - b);
       // (not the keeper of a sick little one while another can go: sickKeepers, A S2 of shadow review r8)
       const keep = new Set(this.sickKeepers(h, d).values()), free = (x: number | undefined) => x !== undefined && !keep.has(x) ? x : undefined;
-      r.waterer = free(serv[0]) ?? athome.find(x => !keep.has(x)) ?? women.find(x => this.persons[x].agent < 0 && !keep.has(x)) ?? free(kid) ?? mem.filter(x => this.ageOn(x, d) >= 14 && this.persons[x].job !== 'guard' && !this.sick(x, d) && !keep.has(x))[0]
+      r.waterer = free(serv[0]) ?? athome.find(x => !keep.has(x)) ?? free(kid !== undefined && this.persons[kid].sex === 'f' ? kid : undefined) ?? women.find(x => this.persons[x].agent < 0 && !keep.has(x)) ?? free(kid) ?? mem.filter(x => this.ageOn(x, d) >= 14 && this.persons[x].job !== 'guard' && !this.sick(x, d) && !keep.has(x))[0]
         ?? serv[0] ?? athome[0] ?? women.find(x => this.persons[x].agent < 0) ?? kid ?? man ?? -1;
       r.jars = Math.max(1, Math.min(3, Math.round(eaters * (C.wx.tmax >= 32 ? 6 : 4) / 15 + 0.2)));
       // a girl of 9-13 of the house fetches one of the jars as her chore on some days, when the house needs two or more and a
@@ -1789,6 +1791,16 @@ class Planner {
       const a = s.t1 - cut; segs.splice(i, 2, { ...s, t1: a }, { t0: a, t1: a + walk, place: `road:${W}`, act: 'walk', why: 'to the well with the jar', where: 'road' },
         { t0: a + walk, t1: s.t1, place: w, act: 'draw_water', why: 'drawing the house’s water', where: W }, { ...nx, act: 'carry_jar_head', why: 'carrying water home' });
       i += 3; need--; }
+    // still short (D-211: the house's water is the waterer's alone now, so a day with no hour for it went without): from a
+    // spell at home of any length that holds the trip, in daylight or the dusk, the evening's water (the hour "when the women
+    // go out to draw water", Gen 24:11: R; C)
+    for (let i = 0; i < segs.length && need > 0; i++) { const s = segs[i];
+      if (s.place !== this.home || s.where !== W || s.with !== undefined || /^minding/.test(s.why) || !/^(talk|spin|play|rest|craft)$/.test(s.act) || / in the night|nurs|sick|ill|asleep/.test(s.why)) continue;
+      const lo = this.nursing ? 11 : this.sun.rise - 0.2, hi = this.nursing ? 15 : this.sun.set + 0.3; // (the keeper of a sick little one: as above)
+      const a = Math.max(s.t0, lo); if (Math.min(s.t1 - 0.1, hi) - a < trip || /* (home a while after it: the jar poured in) */ (rain && rain[0] < a + trip && rain[1] > a) || busy(a, a + trip)) continue;
+      const parts: Seg[] = [...(a > s.t0 + 1e-6 ? [{ ...s, t1: a }] : []), { t0: a, t1: a + walk, place: `road:${W}`, act: 'walk', why: 'to the well with the jar', where: 'road' },
+        { t0: a + walk, t1: a + walk + 0.22, place: w, act: 'draw_water', why: 'drawing the house’s water', where: W }, { t0: a + walk + 0.22, t1: a + trip, place: `road:${W}`, act: 'carry_jar_head', why: 'carrying water home', where: 'road' }];
+      if (a + trip < s.t1 - 1e-6) parts.push({ ...s, t0: a + trip }); segs.splice(i, 1, ...parts); i += parts.length - 1; need--; }
   }
   /** no walk that arrives home and goes straight out again (S10, r4: "a walk split in two"; her walk home and back out to the
    *  well made one walk from the well to the well for the child with her): water carried home is poured into the house jar,
@@ -3272,7 +3284,7 @@ class Planner {
       if (until - this.t < 0.3) return false;
       const lim = until, wet = inside || this.rainIn(this.t, this.t + 1) > 0.2, out = !wet, wellTrip = 2 * P.walkH(this.home, `well:${q}`, d, W, W) + 0.35;
       const w: Record<'water' | 'fuel' | 'grind' | 'spin' | 'errand' | 'birds' | 'dung' | 'learn', number> = { learn: learnAt ? 1.2 : 0,
-        water: out && age >= 7 && !servWater && until - this.t > wellTrip && this.canDraw() ? (girl ? 1.2 : 0.7) : 0, fuel: out && age >= 8 && !manservant && until - this.t > 1.2 + 2 * P.walkH(this.home, plain ? `outside:${q}` : 'outside', d, W, W) ? (plain ? 1 : 0.6) : 0,
+        water: out && age >= 7 && !servWater && until - this.t > wellTrip && this.t >= this.sun.rise - 0.45 && this.canDraw() ? /* (not before first light: D-175) */ (girl ? 1.2 : 0.7) : 0, fuel: out && age >= 8 && !manservant && until - this.t > 1.2 + 2 * P.walkH(this.home, plain ? `outside:${q}` : 'outside', d, W, W) ? (plain ? 1 : 0.6) : 0,
         grind: girl && age >= 10 && !H.women.includes(this.pid) ? 1 : 0, spin: girl && age >= 8 ? (age >= 10 ? 1.4 : 0.6) : 0, errand: out && age >= 6 && until - this.t > 0.8 ? 0.6 : 0,
         birds: plain && out && age >= 6 && age <= 11 && d >= CW.bird_days[0] && d < CW.bird_days[1] && until - this.t > 1.5 ? 1 : 0, dung: plain && girl && age >= 9 && out ? 0.5 : 0 };
       for (const k of Object.keys(w) as (keyof typeof w)[]) if ((done[k] ?? 0) >= cap[k]) w[k] = 0;
