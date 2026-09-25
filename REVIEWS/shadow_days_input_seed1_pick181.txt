@@ -1,0 +1,518 @@
+# Shadow days (§13.11): 20 people, one full day each (seed 1, pick seed 181); court absent (D-003). Times are local solar hours; dates are the Babylonian month and day and the Julian date.
+Pick (stratified): #90 (detailed: a guard, a leader of ten), #12 (detailed: a guard), #77 (detailed: a guard), #120 (detailed: not a guard), #109 (detailed: not a guard), #133 (detailed: not a guard); 759 (a Terrace worker of the population), 44787 (a Terrace worker of the population), 2902 (a townsperson), 2832 (a townsperson), 7016 (a townsperson), 35731 (a man who works in the open, on a day with rain in daylight), 8337 (a child past a birthday that moves it across an age rule (1, 5 or 8 on the day)), 45918 (a baby under four months), 44135 (a transhumant herder), 43603 (a traveller or a messenger of the road station), 14207 (a man sitting up by the grain heap on a threshing night), 18579 (anyone), 9282 (anyone), 36403 (anyone).
+Each detailed agent is stepped alone in a fresh simulation from midnight of its day, walking the real routes; "[off the Terrace: not drawn]" marks hours it spends hidden in the town or the plain. Population people are their day plans.
+
+## Detailed agent #90: (unnamed) — guard, man 33, Persian; speaks Old Persian, Aramaic; person 272
+day 156 of the regnal year · Ululu 8 (19 Sep 467 BCE) · sunrise 05:47, sunset 18:12 · weather: 16–36 °C, cloud 0 %, dry, wind 3 m/s · household 90 (q_lt_e, home h:90, 5 people: 272 guard m33, 273 homemaker f30, 274 child f14, 275 child f8, 277 child m6 months)
+00:00  sleep @ garrison_sleep — asleep in the garrison quarters
+06:14  walk → garrison_hearth_s — breakfast
+06:15  eat @ garrison_hearth_s — breakfast
+06:55  talk @ garrison_hearth_s — off watch at the hearth
+07:13  walk → road:town — down to the town
+07:24  walk → road:town — down to the town [off the Terrace: not drawn]
+07:38  walk @ road:town — down to the town [off the Terrace: not drawn]
+07:40  talk @ h:90 — with his wife and the children in the town [off the Terrace: not drawn]
+08:59  talk @ h:90 — with his family [off the Terrace: not drawn]
+12:08  eat @ h:90 — the midday meal with his family [off the Terrace: not drawn]
+12:38  talk @ h:90 — with his family [off the Terrace: not drawn]
+17:09  eat @ h:90 — a meal with his family before going back up [off the Terrace: not drawn]
+17:45  walk → road:terrace — back up to the garrison [off the Terrace: not drawn]
+17:59  walk @ road:terrace — back up to the garrison [off the Terrace: not drawn]
+18:11  walk → garrison_hearth_s — knucklebones at the hearth
+18:22  gamble @ garrison_hearth_s — knucklebones at the hearth
+18:58  rest @ garrison_hearth_s — resting
+19:30  walk → garrison_sleep — asleep
+19:31  sleep @ garrison_sleep — asleep
+
+## Detailed agent #12: Umanna — guard, man 26, Persian (name A: attested PF 1 (P382687), PF 54 (P382740)); speaks Old Persian, Aramaic; person 36
+day 104 of the regnal year · Duzu 15 (29 Jul 467 BCE) · sunrise 05:05, sunset 18:54 · weather: 20–39 °C, cloud 16 %, dry, wind 1 m/s · household 12 (q_pw_n, home h:12, 3 people: 36 guard m26, 37 homemaker f17, 38 child m12 months)
+00:00  sleep @ garrison_sleep — asleep in the garrison quarters
+05:32  eat @ garrison_hearth_m — breakfast
+06:14  gamble @ garrison_hearth_m — knucklebones at the hearth
+06:32  walk → road:town — down to the town
+06:42  walk → road:town — down to the town [off the Terrace: not drawn]
+06:51  talk @ h:12 — with his wife and the child in the town [off the Terrace: not drawn]
+08:35  talk @ h:12 — with his family [off the Terrace: not drawn]
+12:06  eat @ h:12 — the midday meal with his family [off the Terrace: not drawn]
+12:35  talk @ h:12 — with his family [off the Terrace: not drawn]
+17:45  eat @ h:12 — a meal with his family before going back up [off the Terrace: not drawn]
+18:21  walk → road:terrace — back up to the garrison [off the Terrace: not drawn]
+18:29  walk @ road:terrace — back up to the garrison [off the Terrace: not drawn]
+18:39  walk → garrison_hearth_m — knucklebones at the hearth
+18:49  gamble @ garrison_hearth_m — knucklebones at the hearth
+20:08  sleep @ garrison_sleep — asleep
+
+## Detailed agent #77: (unnamed) — guard, man 40, Median; speaks Old Persian, Aramaic; person 236
+day 69 of the regnal year · Simanu 10 (24 Jun 467 BCE) · sunrise 04:57, sunset 19:02 · weather: 16–35 °C, cloud 0 %, dry, wind 2 m/s · household 77 (q_lt_e, home h:77, 4 people: 236 guard m40, 237 homemaker f36, 238 child m7, 239 child m14 months)
+00:00  sleep @ garrison_sleep — asleep in the garrison quarters
+04:55  eat @ garrison_hearth_m — breakfast before the watch
+05:34  talk @ garrison_hearth_m — readying for the watch
+06:01  patrol (the armed walk to his own post, not a round) → post_gate_w2 — on watch [carrying a spear, a bow case and a short sword]
+06:04  stand_guard @ post_gate_w2 — on watch [carrying a spear, a bow case and a short sword]
+09:11  stand_guard @ post_gate_w2 — waiting for the patrol man to stand in while he eats
+09:17  walk → garrison_hearth_m — bread and water at the hearth, relieved at the post
+09:20  eat @ garrison_hearth_m — bread and water at the hearth, relieved at the post
+09:41  patrol (the armed walk to his own post, not a round) → post_gate_w2 — on watch [carrying a spear, a bow case and a short sword, and a water jar at the post through the heat]
+09:43  stand_guard @ post_gate_w2 — on watch [carrying a spear, a bow case and a short sword, and a water jar at the post through the heat]
+14:01  stand_guard @ post_gate_w2 — waiting to be relieved
+14:07  walk → garrison_hearth_m — a meal after the watch
+14:10  eat @ garrison_hearth_m — a meal after the watch
+14:45  sleep @ garrison_sleep — a short sleep in the heat of the day in the quarters
+15:24  walk → forecourt — talking with men of another file in the court
+15:26  talk @ forecourt — talking with men of another file in the court
+16:00  walk → garrison_hearth_m — off watch at the hearth
+16:02  talk @ garrison_hearth_m — off watch at the hearth
+17:08  craft @ garrison_sleep — seeing to his arms and kit in the quarters: the spear shaft oiled, the shield’s leather rim sewn
+17:59  talk @ garrison_hearth_m — off watch at the hearth
+18:49  rest @ garrison_hearth_m — resting
+19:01  eat @ garrison_hearth_m — evening meal
+19:42  talk @ garrison_hearth_m — off watch at the hearth
+20:38  sleep @ garrison_sleep — asleep
+
+## Detailed agent #120: Anani — scribe, man 54, Babylonian (name C: recalled attestation (C, not seen): Elephantine Aramaic papyri, 5th c. BCE (Cowley 1923; TAD B)); speaks Aramaic, Babylonian; person 1517
+day 197 of the regnal year · Tashritu 20 (30 Oct 467 BCE) · sunrise 06:24, sunset 17:35 · weather: 7–26 °C, cloud 0 %, dry, wind 2 m/s · household 420 (q_lt_e, home h:420, 3 people: 1472 treasury f39, 1517 scribe m54, 1540 treasury m15)
+00:00  sleep @ h:420 — asleep [off the Terrace: not drawn]
+05:32  rest @ h:420 — at home [off the Terrace: not drawn]
+07:05  eat @ h:420 — bread and water before leaving [off the Terrace: not drawn]
+07:16  walk → road:terrace — going up to the Treasury [off the Terrace: not drawn]
+07:29  walk @ road:terrace — going up to the Treasury [off the Terrace: not drawn]
+07:40  walk → treasury_desk — recording issues and payments
+07:51  write_tablet @ treasury_desk — recording issues and payments
+10:01  write_tablet @ treasury_store — counting the stock and filing sealed receipts
+11:13  write_tablet @ treasury_desk — recording issues and payments
+12:01  eat @ treasury_desk — the midday meal: the camp’s bread and water
+12:30  write_tablet @ treasury_desk — recording issues and payments
+15:31  walk → road:terrace — walking
+15:42  walk → road:terrace — walking [off the Terrace: not drawn]
+15:55  rest @ h:420 — at home [off the Terrace: not drawn]
+16:44  eat @ h:420 — the evening meal with the household [off the Terrace: not drawn]
+17:11  walk @ road:town — walking [off the Terrace: not drawn]
+17:14  gamble @ lane:q_lt_e — knucklebones with neighbours [off the Terrace: not drawn]
+17:50  walk @ road:town — walking [off the Terrace: not drawn]
+17:54  talk @ h:420 — with the household [off the Terrace: not drawn]
+18:50  sleep @ h:420 — asleep [off the Terrace: not drawn]
+
+## Detailed agent #109: Bēl-ēṭir — mason, man 27, Babylonian (name C: recalled attestation (C, not seen): Neo-Babylonian legal and administrative archives, 6th-5th c. BCE); speaks Aramaic, Babylonian; person 332
+day 52 of the regnal year · Aiaru 23 (7 Jun 467 BCE) · sunrise 05:01, sunset 18:58 · weather: 15–33 °C, cloud 25 %, dry, wind 2 m/s · household 100 (q_lt_w, home h:100, 10 people: 309 builder m32, 327 builder m47, 330 builder m25, 331 builder m40, 332 builder m27, 333 builder m26, 339 builder m41, 340 builder m47, 346 builder m19, 347 builder m45)
+00:00  sleep @ h:100 — asleep [off the Terrace: not drawn]
+04:31  rest @ h:100 — at home [off the Terrace: not drawn]
+04:40  eat @ h:100 — bread and water before leaving [off the Terrace: not drawn]
+04:51  walk → road:terrace — going to the building site [carrying his chisels and mallet in a bag] [off the Terrace: not drawn]
+05:09  walk @ road:terrace — going to the building site [carrying his chisels and mallet in a bag] [off the Terrace: not drawn]
+05:23  walk → worksite_capital — carving a double-bull capital
+05:34  dress_stone @ worksite_capital — carving a double-bull capital
+11:36  eat @ worksite_capital — bread and water
+11:57  dress_stone @ worksite_capital — carving a double-bull capital
+12:01  walk → road:terrace — going home [carrying his chisels and mallet in a bag]
+12:12  walk → road:terrace — going home [carrying his chisels and mallet in a bag] [off the Terrace: not drawn]
+12:30  walk @ road:terrace — going home [carrying his chisels and mallet in a bag] [off the Terrace: not drawn]
+12:33  rest @ h:100 — resting at home after work [off the Terrace: not drawn]
+14:12  sleep @ h:100 — sleeping through the heat of the day [off the Terrace: not drawn]
+15:52  rest @ h:100 — resting at home after work [off the Terrace: not drawn]
+16:29  walk @ road:town — walking [off the Terrace: not drawn]
+16:33  talk @ lane:q_lt_w — talking in the lane [off the Terrace: not drawn]
+18:00  walk @ road:town — walking [off the Terrace: not drawn]
+18:04  rest @ h:100 — at home [off the Terrace: not drawn]
+18:20  eat @ h:100 — the evening meal with the household [off the Terrace: not drawn]
+18:59  rest @ h:100 — with the household [off the Terrace: not drawn]
+21:04  sleep @ h:100 — asleep [off the Terrace: not drawn]
+
+## Detailed agent #133: (unnamed) — official, man 31, Persian; speaks Old Persian, Elamite, Aramaic; person 2767
+day 200 of the regnal year · Tashritu 23 (2 Nov 467 BCE) · sunrise 06:27, sunset 17:32 · weather: 8–27 °C, cloud 18 %, dry, wind 1 m/s · household 1107 (q_pw_n, home h:1107, 7 people: 2767 official m31, 2768 homemaker f23, 2769 child f5, 2770 child m7 months, 2771 servant f39, 2772 servant f19, 2773 servant f35)
+00:00  sleep @ h:1107 — asleep [off the Terrace: not drawn]
+06:12  talk @ h:1107 — with the household [off the Terrace: not drawn]
+07:28  eat @ h:1107 — breakfast with the household: the new bread [off the Terrace: not drawn]
+07:53  rest @ h:1107 — at home [off the Terrace: not drawn]
+08:13  walk → road:terrace — on the way [off the Terrace: not drawn]
+08:22  walk @ road:terrace — on the way [off the Terrace: not drawn]
+08:31  walk → treasury_desk — declaring a payment at the Treasury
+08:43  talk @ treasury_desk — declaring a payment at the Treasury
+09:57  walk → road:terrace — on the way
+10:09  walk → road:terrace — on the way [off the Terrace: not drawn]
+10:27  walk → gate_hall — an inspection round of the gate hall
+10:35  inspect @ gate_hall — an inspection round of the gate hall
+10:58  walk → road:terrace — walking
+11:06  walk @ road:terrace — walking [off the Terrace: not drawn]
+11:16  talk @ official_bldg — at the official building [off the Terrace: not drawn]
+12:21  eat @ official_bldg — bread and water [off the Terrace: not drawn]
+12:42  talk @ official_bldg — at the official building [off the Terrace: not drawn]
+15:01  walk → road:town — walking [off the Terrace: not drawn]
+15:11  walk @ road:town — walking [off the Terrace: not drawn]
+15:13  gamble @ lane:q_pw_n — knucklebones in the lane [off the Terrace: not drawn]
+16:38  walk @ road:town — walking [off the Terrace: not drawn]
+16:44  rest @ h:1107 — at home [off the Terrace: not drawn]
+16:50  eat @ h:1107 — a birthday meal for Kassandane [off the Terrace: not drawn]
+18:34  talk @ h:1107 — with the household [off the Terrace: not drawn]
+20:13  sleep @ h:1107 — asleep [off the Terrace: not drawn]
+
+## Person 759: Ištimanka — builder (labour), male, age 26, Thracian, zone town
+day 324 of the regnal year · Shabatu 29 (6 Mar 466 BCE) · sunrise 06:14, sunset 17:45 · weather: 1–15 °C, cloud 88 %, rain 12.4 mm, wind 2 m/s · rain 05:15–13:45 · heavy rain 05:45–13:30 · household 207 (town q_lt_e, 10 people: 759 builder m26, 766 builder m18, 770 builder m46, 782 builder m23, 792 builder m47, 793 builder m39, 806 builder m24, 807 builder m21, 808 builder m27, 826 builder m50)
+00:00–05:35  sleep @ h:207 (town) — asleep
+05:35–07:14  talk @ h:207 (town) — with the household
+07:14–07:44  eat @ h:207 (town) — breakfast with the household
+07:44–09:27  craft @ h:207 (town) — mending tools and baskets
+09:27–10:41  rest @ h:207 (town) — at home: the gang works in halves in winter
+10:41–11:57  talk @ h:207 (town) — with the household
+11:57–12:36  eat @ h:207 (town) — the midday meal with the household
+12:36–14:07  rest @ h:207 (town) — resting at home
+14:07–15:13  talk @ h:207 (town) — with the household
+15:13–16:21  rest @ h:207 (town) — at home
+16:21–16:39  cook @ h:207 (town) — lighting the fire for the evening meal and the cold night
+16:39–16:42  rest @ h:207 (town) — at home
+16:42–17:30  eat @ h:207 (town) — the evening meal with the household
+17:30–19:32  rest @ h:207 (town) — with the household
+19:32–24:00  sleep @ h:207 (town) — asleep
+
+## Person 44787: Šamaš-iddin — builder (labour), male, age 26, Lycian, zone town
+day 230 of the regnal year · Arahsamnu 23 (2 Dec 467 BCE) · sunrise 06:48, sunset 17:11 · weather: 0–16 °C, cloud 5 %, dry, wind 1 m/s · household 10075 (town q_lt_e, 4 people: 44787 builder m26, 44788 builder m31, 44789 builder m39, 44790 builder m44)
+00:00–06:07  sleep @ h:10075 (town) — asleep
+06:07–06:31  rest @ h:10075 (town) — at home
+06:31–06:39  eat @ h:10075 (town) — bread and water before leaving
+06:39–07:09  walk @ road:terrace (road) — going to the building site [carrying a mattock and a carrying basket] [dressed against the cold]
+07:09–10:15  carry_jar @ h100_wall_S (terrace) — carrying water for the mortar [carrying a water jar] [dressed against the cold]
+10:15–12:00  carry_jar @ h100_wall_S (terrace) — carrying water for the mortar [carrying a water jar]
+12:00–12:30  eat @ work_hearth (terrace) — the midday meal: the camp’s bread and water
+12:30–15:30  haul @ hall100_site (terrace) — building up the earth ramp
+15:30–16:00  walk @ road:terrace (road) — going home [carrying a mattock and a carrying basket]
+16:00–16:03  rest @ h:10075 (town) — taking up the water jar at home
+16:03–16:06  walk @ road:town (road) — to the well with the jar
+16:06–16:16  draw_water @ well:q_lt_e (town) — drawing the house’s water [carrying a water jar]
+16:16–16:19  carry_jar_head @ road:town (road) — carrying water home [carrying a jar of water on the head]
+16:19–16:22  rest @ h:10075 (town) — at home
+16:22–16:40  cook @ h:10075 (town) — lighting the fire for the evening meal and the cold night
+16:40–16:43  rest @ h:10075 (town) — at home
+16:43–17:12  eat @ h:10075 (town) — the evening meal with the household
+17:12–17:15  walk @ road:town (road) — walking
+17:15–17:35  talk @ lane:q_lt_e (town) — talking with neighbours in the lane at dusk
+17:35–17:54  talk @ lane:q_lt_e (town) — talking with neighbours in the lane after dark
+17:54–17:57  walk @ road:town (road) — walking
+17:57–19:25  talk @ h:10075 (town) — with the household
+19:25–24:00  sleep @ h:10075 (town) — asleep
+
+## Person 2902: Ḫibtâ — servant, female, age 22, Elamite, zone town
+day 310 of the regnal year · Shabatu 15 (20 Feb 466 BCE) · sunrise 06:26, sunset 17:33 · weather: 1–16 °C, cloud 81 %, rain 2.1 mm, wind 2 m/s · rain 17:30–22:30 · household 1126 (town q_pw_s, 6 people: 2896 scribe m45, 2897 homemaker f41, 2899 child m10, 2900 child m7, 2901 child m4, 2902 servant f22)
+00:00–05:46  sleep @ h:1126 (town) — asleep
+05:46–06:17  grind @ h:1126 (town) — grinding the household’s flour at the quern
+06:17–06:56  rest @ h:1126 (town) — at home
+06:56–07:15  eat @ h:1126 (town) — breakfast with the household
+07:15–07:18  walk @ road:town (road) — to the well with the jar [dressed against the cold]
+07:18–07:31  draw_water @ well:q_pw_s (town) — drawing the house’s water [carrying a water jar] [dressed against the cold]
+07:31–07:34  carry_jar_head @ road:town (road) — carrying water home [carrying a jar of water on the head] [dressed against the cold]
+07:34–08:55  grind @ h:1126 (town) — grinding for the household
+08:55–10:31  spin @ h:1126 (town) — spinning for the household
+10:31–11:28  grind @ h:1126 (town) — grinding for the household
+11:28–12:00  spin @ h:1126 (town) — spinning for the household
+12:00–12:30  eat @ h:1126 (town) — the midday meal with the household
+12:30–14:19  grind @ h:1126 (town) — grinding for the household
+14:19–15:00  spin @ h:1126 (town) — spinning for the household
+15:00–15:03  walk @ road:town (road) — to the well with the jar
+15:03–15:16  draw_water @ well:q_pw_s (town) — drawing the house’s water [carrying a water jar]
+15:16–15:19  carry_jar_head @ road:town (road) — carrying water home [carrying a jar of water on the head]
+15:19–15:50  spin @ h:1126 (town) — spinning for the household
+15:50–16:44  grind @ h:1126 (town) — grinding for the household
+16:44–17:00  spin @ h:1126 (town) — spinning for the household
+17:00–17:28  eat @ h:1126 (town) — the evening meal, kept for the late-comer
+17:28–19:17  talk @ h:1126 (town) — with the household
+19:17–24:00  sleep @ h:1126 (town) — asleep
+
+## Person 2832: Irtuppiya — porter (town), male, age 27, Persian, zone town
+day 327 of the regnal year · Addaru 2 (9 Mar 466 BCE) · sunrise 06:11, sunset 17:48 · weather: 4–19 °C, cloud 24 %, dry, wind 2 m/s · household 1116 (town q_pw_n, 5 people: 2830 official m51, 2831 homemaker f46, 2832 porter m27, 2833 child m7, 2834 servant m29)
+00:00–05:37  sleep @ h:1116 (town) — asleep
+05:37–06:26  rest @ h:1116 (town) — at home
+06:26–06:36  eat @ h:1116 (town) — bread and water before leaving (the household eats later)
+06:36–06:57  walk @ road:town (road) — going to work [dressed against the cold]
+06:57–11:02  carry_sack @ store_town (town) — carrying sacks into the storehouse [carrying a load]
+11:02–11:22  walk @ road:town (road) — going home
+11:22–12:05  rest @ h:1116 (town) — at home
+12:05–12:38  eat @ h:1116 (town) — the midday meal with the household
+12:38–16:12  rest @ h:1116 (town) — resting at home after work
+16:12–16:18  walk @ road:town (road) — out to the doorstep
+16:18–17:05  craft @ lane:q_pw_n (town) — mending tools and baskets on the doorstep
+17:05–17:11  walk @ road:town (road) — walking
+17:11–17:41  eat @ h:1116 (town) — the evening meal with the household
+17:41–19:44  rest @ h:1116 (town) — with the household
+19:44–24:00  sleep @ h:1116 (town) — asleep
+
+## Person 7016: Barušiyatiš — child, male, age 5, Elamite, zone town
+day 55 of the regnal year · Aiaru 26 (10 Jun 467 BCE) · sunrise 05:00, sunset 18:59 · weather: 18–38 °C, cloud 23 %, dry, wind 3 m/s · household 2006 (town q_pw_n, 7 people: 7011 craftsman m48, 7012 homemaker f41, 7013 craftsman m24, 7014 child m12, 7015 child f8, 7016 child m5, 7017 child m18 months)
+00:00–04:56  sleep @ h:2006 (town) — asleep [with 7012]
+04:56–05:15  sleep @ h:2006 (town) — asleep
+05:15–06:00  sleep @ h:2006 (town) — asleep [with 7012]
+06:00–06:26  eat @ h:2006 (town) — eating with the mother [with 7012]
+06:26–06:27  play @ h:2006 (town) — playing near the mother [with 7012]
+06:27–06:34  walk @ road:town (road) — walking with the mother [with 7012]
+06:34–07:38  play @ h:2002 (town) — playing nearby while the mother talks [with 7012]
+07:38–07:53  play @ h:2002 (town) — playing near the mother while she nurses the baby [with 7012]
+07:53–08:17  play @ h:2002 (town) — playing nearby while the mother talks [with 7012]
+08:17–08:24  walk @ road:town (road) — walking with the mother [with 7012]
+08:24–08:27  play @ h:2006 (town) — playing near the mother [with 7012]
+08:27–08:30  walk @ road:town (road) — walking with the mother [with 7012]
+08:30–10:32  play @ lane:q_pw_n (town) — playing near the mother [with 7012]
+10:32–10:35  walk @ road:town (road) — walking with the mother [with 7012]
+10:35–11:07  play @ h:2006 (town) — playing near the mother [with 7012]
+11:07–11:18  play @ h:2006 (town) — playing near the mother while she nurses the baby [with 7012]
+11:18–11:54  play @ h:2006 (town) — playing near the mother [with 7012]
+11:54–12:29  eat @ h:2006 (town) — eating with the mother [with 7012]
+12:29–12:32  walk @ road:town (road) — walking with the mother [with 7012]
+12:32–12:45  play @ well:q_pw_n (town) — playing by the well [with 7012]
+12:45–12:48  walk @ road:town (road) — walking with the mother [with 7012]
+12:48–13:31  play @ h:2006 (town) — playing near the mother [with 7012]
+13:31–14:40  play @ h:2006 (town) — playing nearby while the mother talks [with 7012]
+14:40–16:22  sleep @ h:2006 (town) — asleep [with 7012]
+16:22–16:25  walk @ road:town (road) — walking with the mother [with 7012]
+16:25–16:38  play @ well:q_pw_n (town) — playing by the well [with 7012]
+16:38–16:41  walk @ road:town (road) — walking with the mother [with 7012]
+16:41–16:45  play @ h:2006 (town) — playing near the mother [with 7012]
+16:45–17:41  play @ h:2006 (town) — playing near the mother while she grinds [with 7012]
+17:41–18:11  play @ h:2006 (town) — playing near the mother [with 7012]
+18:11–18:45  eat @ h:2006 (town) — eating with the mother [with 7012]
+18:45–19:04  play @ h:2006 (town) — playing near the mother [with 7012]
+19:04–19:21  play @ h:2006 (town) — playing near the mother while she nurses the baby [with 7012]
+19:21–20:18  play @ h:2006 (town) — playing near the mother [with 7012]
+20:18–24:00  sleep @ h:2006 (town) — asleep [with 7012]
+
+## Person 35731: Mikrašba — farmer, male, age 55, Persian, zone plain
+day 354 of the regnal year · Addaru 29 (5 Apr 466 BCE) · sunrise 05:47, sunset 18:12 · weather: 5–18 °C, cloud 85 %, rain 2.8 mm, wind 2 m/s · rain 12:15–16:45 · household 8293 (plain v_27, 6 people: 35731 farmer m55, 35732 homemaker f46, 35733 farmer m25, 35734 child m12, 35735 child f9, 35784 homemaker f16)
+00:00–05:25  sleep @ h:8293 (plain) — asleep
+05:25–05:58  rest @ h:8293 (plain) — at home
+05:58–06:23  eat @ h:8293 (plain) — breakfast with the household: the new bread
+06:23–06:42  rest @ h:8293 (plain) — at home
+06:42–06:48  walk @ road:plain (road) — out to the field [carrying a hoe, and bread and water] [dressed against the cold]
+06:48–09:00  field_work @ field:8293:2 (plain) — hoeing and weeding the growing crop [dressed against the cold]
+09:00–11:50  field_work @ field:8293:2 (plain) — hoeing and weeding the growing crop
+11:50–12:15  eat @ field:8293:2 (plain) — the midday meal: the bread and water he carried out in the morning
+12:15–12:21  walk @ road:plain (road) — home out of the rain
+12:21–13:38  rest @ h:8293 (plain) — at home out of the rain
+13:38–14:21  rest @ h:8293 (plain) — at home
+14:21–17:00  craft @ h:8293 (plain) — mending tools and baskets
+17:00–17:21  rest @ h:8293 (plain) — at home
+17:21–17:53  eat @ h:8293 (plain) — the evening meal with the household
+17:53–17:56  walk @ road:plain (road) — walking
+17:56–18:22  exchange @ lane:v_27 (plain) — exchanging goods in kind with neighbours
+18:22–18:25  walk @ road:plain (road) — walking
+18:25–20:36  rest @ h:8293 (plain) — with the household
+20:36–24:00  sleep @ h:8293 (plain) — asleep
+
+## Person 8337: Irdabada — child, male, age 19 months, Persian, zone plain
+day 250 of the regnal year · Kislimu 14 (22 Dec 467 BCE) · sunrise 06:54, sunset 17:05 · weather: -3–11 °C, cloud 24 %, dry, wind 1 m/s · household 2291 (plain v_tukrash, 5 people: 8333 farmer m50, 8334 homemaker f39, 8335 child m7, 8336 child m3, 8337 child m19 months)
+00:00–02:32  sleep @ h:2291 (plain) — asleep [with 8334]
+02:32–02:42  eat @ h:2291 (plain) — nursed in the night, half asleep [with 8334]
+02:42–07:34  sleep @ h:2291 (plain) — asleep [with 8334]
+07:34–07:37  rest @ road:plain (road) — carried by the mother [with 8334] [dressed against the cold]
+07:37–07:51  play @ well:v_tukrash (plain) — playing near the mother [with 8334] [dressed against the cold]
+07:51–07:54  rest @ road:plain (road) — carried by the mother [with 8334] [dressed against the cold]
+07:54–08:18  eat @ h:2291 (plain) — a meal with the household [with 8334]
+08:18–08:21  rest @ road:plain (road) — carried by the mother [with 8334] [dressed against the cold]
+08:21–08:34  play @ well:v_tukrash (plain) — playing near the mother [with 8334] [dressed against the cold]
+08:34–08:37  rest @ road:plain (road) — carried by the mother [with 8334] [dressed against the cold]
+08:37–08:45  play @ h:2291 (plain) — playing at home near the mother [with 8334]
+08:45–08:48  rest @ road:plain (road) — carried by the elder brother [with 8335] [dressed against the cold]
+08:48–10:17  play @ canal:v_tukrash (plain) — taken along by the elder brother [with 8335] [dressed against the cold]
+10:17–10:20  rest @ road:plain (road) — carried by the elder brother [with 8335] [dressed against the cold]
+10:20–11:02  play @ lane:v_tukrash (plain) — taken along by the elder brother [with 8335] [dressed against the cold]
+11:02–11:05  rest @ road:plain (road) — carried by the elder brother [with 8335] [dressed against the cold]
+11:05–11:15  play @ h:2291 (plain) — playing at home near the mother [with 8334]
+11:15–11:27  eat @ h:2291 (plain) — nursed by the mother [with 8334]
+11:27–11:56  play @ h:2291 (plain) — playing at home near the mother [with 8334]
+11:56–12:29  eat @ h:2291 (plain) — a meal with the household [with 8334]
+12:29–12:32  play @ h:2291 (plain) — playing at home near the mother [with 8334]
+12:32–14:31  sleep @ h:2291 (plain) — a midday sleep [with 8334]
+14:31–14:44  eat @ h:2291 (plain) — nursed by the mother [with 8334]
+14:44–15:07  rest @ h:2291 (plain) — carried on the mother’s back while she works [with 8334]
+15:07–15:10  rest @ road:plain (road) — carried by the elder brother [with 8335]
+15:10–15:53  play @ lane:v_tukrash (plain) — taken along by the elder brother [with 8335]
+15:53–15:56  rest @ road:plain (road) — carried by the elder brother [with 8335]
+15:56–16:02  play @ h:2291 (plain) — playing at home near the mother [with 8334]
+16:02–16:41  eat @ h:2291 (plain) — a meal with the household [with 8334]
+16:41–17:50  play @ h:2291 (plain) — playing at home near the mother [with 8334]
+17:50–24:00  sleep @ h:2291 (plain) — asleep [with 8334]
+
+## Person 45918: Bakabana — child, male, age 3 months, Persian, zone plain
+day 343 of the regnal year · Addaru 18 (25 Mar 466 BCE) · sunrise 05:57, sunset 18:02 · weather: 5–21 °C, cloud 37 %, dry, wind 2 m/s, dust · dust in the air 10:45–17:15 · household 4538 (plain v_09, 6 people: 18769 farmer m36, 18770 homemaker f29, 18771 child f9, 18772 child m5, 18773 child f2, 45918 child m3 months)
+00:00–01:32  sleep @ h:4538 (plain) — asleep beside the mother [with 18770]
+01:32–01:47  eat @ h:4538 (plain) — nursed by the mother [with 18770]
+01:47–03:51  sleep @ h:4538 (plain) — asleep beside the mother [with 18770]
+03:51–04:22  sleep @ h:4538 (plain) — asleep on a mat beside the mother while she works [with 18770]
+04:22–04:34  eat @ h:4538 (plain) — nursed by the mother [with 18770]
+04:34–05:42  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
+05:42–05:48  rest @ h:4538 (plain) — in the mother’s lap [with 18770]
+05:48–06:07  sleep @ h:4538 (plain) — asleep in the mother’s lap [with 18770]
+06:07–06:31  sleep @ h:4538 (plain) — asleep in the mother’s lap at the meal [with 18770]
+06:31–06:44  eat @ h:4538 (plain) — nursed by the mother [with 18770]
+06:44–07:59  rest @ h:4538 (plain) — in the mother’s lap [with 18770]
+07:59–09:05  sleep @ h:4538 (plain) — asleep in the mother’s lap [with 18770]
+09:05–09:16  eat @ h:4538 (plain) — nursed by the mother [with 18770]
+09:16–09:19  rest @ road:plain (road) — carried on the mother’s back [with 18770]
+09:19–09:32  rest @ well:v_09 (plain) — on the mother’s back while she works [with 18770]
+09:32–09:35  rest @ road:plain (road) — carried on the mother’s back [with 18770]
+09:35–10:30  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
+10:30–11:28  sleep @ h:4538 (plain) — asleep on a mat beside the mother while she works [with 18770]
+11:28–11:43  eat @ h:4538 (plain) — nursed by the mother [with 18770]
+11:43–11:51  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
+11:51–12:24  rest @ h:4538 (plain) — in the mother’s lap at the meal [with 18770]
+12:24–12:58  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
+12:58–14:00  sleep @ h:4538 (plain) — asleep on a mat beside the mother while she works [with 18770]
+14:00–14:10  eat @ h:4538 (plain) — nursed by the mother [with 18770]
+14:10–15:25  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
+15:25–15:29  sleep @ h:4538 (plain) — asleep on a mat beside the mother while she works [with 18770]
+15:29–15:33  sleep @ road:plain (road) — asleep, carried on the mother’s back [with 18770] [the face wrapped against the dust]
+15:33–15:53  sleep @ well:v_09 (plain) — asleep on the mother’s back while she works [with 18770] [the face wrapped against the dust]
+15:53–15:56  sleep @ road:plain (road) — asleep, carried on the mother’s back [with 18770] [the face wrapped against the dust]
+15:56–16:10  eat @ h:4538 (plain) — nursed by the mother [with 18770]
+16:10–17:02  rest @ h:4538 (plain) — lying on a mat beside the mother while she works [with 18770]
+17:02–17:12  rest @ h:4538 (plain) — in the mother’s lap [with 18770]
+17:12–17:25  rest @ h:4538 (plain) — in the mother’s lap at the meal [with 18770]
+17:25–17:42  sleep @ h:4538 (plain) — asleep in the mother’s lap at the meal [with 18770]
+17:42–17:54  sleep @ h:4538 (plain) — asleep in the mother’s lap [with 18770]
+17:54–18:06  eat @ h:4538 (plain) — nursed by the mother [with 18770]
+18:06–19:20  rest @ h:4538 (plain) — in the mother’s lap [with 18770]
+19:20–19:55  sleep @ h:4538 (plain) — asleep in the mother’s lap [with 18770]
+19:55–20:08  eat @ h:4538 (plain) — nursed by the mother [with 18770]
+20:08–20:41  rest @ h:4538 (plain) — in the mother’s lap [with 18770]
+20:41–22:48  sleep @ h:4538 (plain) — asleep beside the mother [with 18770]
+22:48–22:59  eat @ h:4538 (plain) — nursed by the mother [with 18770]
+22:59–24:00  sleep @ h:4538 (plain) — asleep beside the mother [with 18770]
+
+## Person 44135: Phaidyme — herder, female, age 8, Persian, zone transient
+day 170 of the regnal year · Ululu 22 (3 Oct 467 BCE) · sunrise 06:00, sunset 17:59 · weather: 12–31 °C, cloud 10 %, dry, wind 2 m/s · household 10030 (transient band13, 30 people: 44126 herder m31, 44127 herder f25, 44128 herder m31, 44129 herder f26, 44130 herder f55, 44131 herder f7, 44132 herder m44, 44133 herder f37, 44134 herder f12, 44135 herder f8, 44136 herder m3, 44137 herder m36, 44138 herder f29, 44139 herder f9, 44140 herder m4, 44141 herder m12 months, 44142 herder m43, 44143 herder f36, 44144 herder m68, 44145 herder f2, 44146 herder m42, 44147 herder f38, 44148 herder m16, 44149 herder m8, 44150 herder m5, 44151 herder m26, 44152 herder f22, 44153 herder m31, 44154 herder f25, 44155 herder m7)
+00:00–05:32  sleep @ camp:band13:1 (plain) — asleep in the tent
+05:32–05:47  eat @ camp:band13:1 (plain) — bread and curds in the tent
+05:47–06:50  play @ camp:band13:1 (plain) — playing by the tents with the other children
+06:50–07:12  draw_water @ water:band13:1 (plain) — fetching water from the stream with a small jar [carrying a water jar]
+07:12–08:04  gather @ camp:band13:1 (plain) — gathering dry brush for the fire
+08:04–09:26  play @ camp:band13:1 (plain) — playing by the tents with the other children
+09:26–10:39  tend_animals @ flock:band13:1 (plain) — with the ewes and goats kept back at the fold, the lame and the weak
+10:39–11:30  play @ camp:band13:1 (plain) — playing by the tents with the other children
+11:30–11:56  gather @ camp:band13:1 (plain) — gathering dry brush for the fire
+11:56–12:20  eat @ camp:band13:1 (plain) — a midday meal of bread and curds in the tent
+12:20–14:24  sleep @ camp:band13:1 (plain) — sleeping in the tent through the heat
+14:24–15:17  play @ camp:band13:1 (plain) — playing by the tents with the other children
+15:17–16:12  play @ water:band13:1 (plain) — playing by the stream with the other children
+16:12–17:14  gather @ camp:band13:1 (plain) — gathering dry brush for the fire
+17:14–17:33  draw_water @ water:band13:1 (plain) — fetching water from the stream with a small jar [carrying a water jar]
+17:33–18:19  play @ camp:band13:1 (plain) — playing by the tents with the other children
+18:19–18:22  play @ camp:band13:1 (plain) — playing by the tents until the evening meal
+18:22–18:52  eat @ camp:band13:1 (plain) — the evening meal by the fire
+18:52–19:04  play @ camp:band13:1 (plain) — by the fire with the family
+19:04–24:00  sleep @ camp:band13:1 (plain) — asleep in the tent
+
+## Person 43603: Mardunuya — traveller, male, age 55, Persian, zone transient
+day 254 of the regnal year · Kislimu 18 (26 Dec 467 BCE) · sunrise 06:54, sunset 17:05 · weather: -4–10 °C, cloud 34 %, dry, wind 1 m/s · household 9989 (transient station, 7 people: 43597 traveller m41, 43598 traveller m22, 43599 traveller m26, 43600 traveller m20, 43601 traveller m20, 43602 traveller m47, 43603 traveller m55)
+00:00–06:44  sleep @ station (town) — asleep at the station lodging
+06:44–06:58  rest @ station (town) — up at the station lodging
+06:58–07:33  eat @ station (town) — breakfast with the party
+07:33–09:47  tend_animals @ station (town) — seeing to the animals and the gear
+09:47–10:41  gamble @ station (town) — knucklebones at the station
+10:41–11:29  rest @ station (town) — resting at the station lodging
+11:29–12:14  craft @ station (town) — mending harness, bags and sandals for the road
+12:14–12:18  rest @ station (town) — resting at the station lodging
+12:18–12:56  eat @ station (town) — the midday meal with the party
+12:56–13:24  walk @ road:town (road) — on another errand
+13:24–15:11  talk @ lane:q_lt_e (town) — seeing the lower town
+15:11–15:39  walk @ road:town (road) — walking
+15:39–16:39  rest @ station (town) — resting at the station lodging
+16:39–17:16  eat @ station (town) — the evening meal with the party
+17:16–19:37  talk @ station (town) — talking by the fire with the party
+19:37–24:00  sleep @ station (town) — asleep at the station lodging
+
+## Person 14207: Irtuppiya — farmer, male, age 22, Persian, zone plain
+day 108 of the regnal year · Duzu 19 (2 Aug 467 BCE) · sunrise 05:08, sunset 18:51 · weather: 21–39 °C, cloud 0 %, dry, wind 4 m/s · household 3556 (plain v_03, 2 people: 14207 farmer m22, 14208 homemaker f20)
+00:00–04:26  sleep @ h:3556 (plain) — asleep
+04:26–04:50  rest @ h:3556 (plain) — at home
+04:50–05:05  eat @ h:3556 (plain) — breakfast with the household
+05:05–05:28  rest @ h:3556 (plain) — at home
+05:28–05:31  walk @ road:plain (road) — out to the threshing floor [carrying a winnowing fork, and bread and water]
+05:31–07:31  thresh @ threshing:v_03 (plain) — threshing and winnowing on the village floor {E-43}
+07:31–07:43  eat @ threshing:v_03 (plain) — bread and water by the threshing floor, carried out at dawn
+07:43–10:30  thresh @ threshing:v_03 (plain) — threshing and winnowing on the village floor {E-43}
+10:30–10:33  walk @ road:plain (road) — walking [carrying a winnowing fork]
+10:33–10:39  rest @ h:3556 (plain) — at home
+10:39–11:08  eat @ h:3556 (plain) — the midday meal with the household, back from the threshing floor
+11:08–12:09  sleep @ h:3556 (plain) — sleeping through the heat of the day
+12:09–14:39  sleep @ h:3556 (plain) — sleeping in the afternoon: tonight he keeps watch by the grain heap
+14:39–15:40  sleep @ h:3556 (plain) — sleeping through the heat of the day
+15:40–16:01  eat @ h:3556 (plain) — bread and water
+16:01–17:38  tend_animals @ h:3556 (plain) — seeing to the household’s animals
+17:38–18:52  craft @ h:3556 (plain) — mending the winnowing forks, the sieves and the sacks
+18:52–19:17  eat @ h:3556 (plain) — the evening meal with the household
+19:17–19:44  talk @ h:3556 (plain) — with the household
+19:44–19:47  walk @ road:plain (road) — out to the threshing floor for the night
+19:47–21:26  rest @ threshing:v_03 (plain) — sitting up by the grain heap on the threshing floor, keeping watch over it
+21:26–24:00  sleep @ threshing:v_03 (plain) — asleep by the grain heap on the threshing floor, guarding it
+
+## Person 18579: Bakabada — child, male, age 8, Persian, zone plain
+day 255 of the regnal year · Kislimu 19 (27 Dec 467 BCE) · sunrise 06:54, sunset 17:05 · weather: -5–8 °C, cloud 13 %, dry, wind 1 m/s · household 4495 (plain v_09, 6 people: 18576 farmer m36, 18577 homemaker f32, 18578 child f11, 18579 child m8, 18580 child f5, 18581 child m2)
+00:00–06:36  sleep @ h:4495 (plain) — asleep
+06:36–06:51  tend_animals @ h:4495 (plain) — letting the household’s animals out and giving them water [dressed against the cold]
+06:51–06:54  rest @ h:4495 (plain) — at home
+06:54–07:24  rest @ h:4495 (plain) — waiting for the morning bread
+07:24–07:43  eat @ h:4495 (plain) — breakfast with the household
+07:43–07:47  walk @ road:plain (road) — out for fuel [dressed against the cold]
+07:47–09:04  gather @ outside:v_09 (plain) — gathering dung and brushwood for the fire [dressed against the cold]
+09:04–09:08  carry_sack @ road:plain (road) — carrying the fuel home [carrying dung cakes and brushwood] [dressed against the cold]
+09:08–09:11  rest @ h:4495 (plain) — setting the load down at home
+09:11–09:15  walk @ road:plain (road) — out to the lane [dressed against the cold]
+09:15–10:55  play @ lane:v_09 (plain) — playing knucklebones on the beaten earth of the lane with the other children [dressed against the cold]
+10:55–11:50  play @ lane:v_09 (plain) — pulling a clay animal on wheels along the lane [dressed against the cold]
+11:50–11:54  walk @ road:plain (road) — walking home [dressed against the cold]
+11:54–11:57  rest @ h:4495 (plain) — taking up the load at home
+11:57–12:05  carry_bread @ road:plain (road) — carrying the midday bread and water out to the men in the field [carrying bread in a basket and a water jar] [dressed against the cold]
+12:05–12:42  eat @ field:4495:3 (plain) — eating with the men at the field [dressed against the cold]
+12:42–12:50  walk @ road:plain (road) — home from the field with the empty basket [carrying the empty basket] [dressed against the cold]
+12:50–13:41  rest @ h:4495 (plain) — resting after the meal
+13:41–13:45  walk @ road:plain (road) — out for fuel
+13:45–14:38  gather @ outside:v_09 (plain) — gathering dung and brushwood for the fire
+14:38–14:42  carry_sack @ road:plain (road) — carrying the fuel home [carrying dung cakes and brushwood]
+14:42–15:34  play @ h:4495 (plain) — playing at home
+15:34–15:38  walk @ road:plain (road) — out to the lane [dressed against the cold]
+15:38–16:04  play @ lane:v_09 (plain) — playing chase along the lane with the other children [dressed against the cold]
+16:04–16:08  walk @ road:plain (road) — walking home [dressed against the cold]
+16:08–16:14  play @ h:4495 (plain) — playing in the courtyard [dressed against the cold]
+16:14–16:54  eat @ h:4495 (plain) — the evening meal with the household
+16:54–18:09  rest @ h:4495 (plain) — with the household
+18:09–24:00  sleep @ h:4495 (plain) — asleep
+
+## Person 9282: Haturka — farmer, male, age 18, Persian, zone plain
+day 312 of the regnal year · Shabatu 17 (22 Feb 466 BCE) · sunrise 06:24, sunset 17:35 · weather: 1–15 °C, cloud 14 %, dry, wind 2 m/s · household 2494 (plain v_rakkan, 6 people: 9280 farmer m51, 9281 homemaker f40, 9282 farmer m18, 9283 child f12, 9284 child m6, 9285 child f23 months)
+00:00–05:39  sleep @ h:2494 (plain) — asleep
+05:39–06:54  rest @ h:2494 (plain) — at home
+06:54–07:14  eat @ h:2494 (plain) — breakfast with the household
+07:14–07:54  talk @ h:2494 (plain) — with the household
+07:54–07:57  walk @ road:plain (road) — out to the canal [carrying a mattock and a basket, and bread and water] [dressed against the cold]
+07:57–10:30  dig_canal @ canal:v_rakkan (plain) — clearing the village canal [dressed against the cold] {E-50}
+10:30–11:47  dig_canal @ canal:v_rakkan (plain) — clearing the village canal {E-50}
+11:47–12:16  eat @ canal:v_rakkan (plain) — the midday meal: the bread and water he carried out in the morning
+12:16–15:00  dig_canal @ canal:v_rakkan (plain) — clearing the village canal {E-50}
+15:00–15:03  walk @ road:plain (road) — walking [carrying a mattock and a basket]
+15:03–16:15  craft @ h:2494 (plain) — mending tools and baskets
+16:15–16:22  rest @ h:2494 (plain) — at home
+16:22–17:03  eat @ h:2494 (plain) — the evening meal with the household
+17:03–17:06  walk @ road:plain (road) — visiting
+17:06–18:48  talk @ h:2566 (plain) — visiting Mikrašba
+18:48–18:51  walk @ road:plain (road) — going home
+18:51–19:06  talk @ h:2494 (plain) — with the household
+19:06–24:00  sleep @ h:2494 (plain) — asleep
+
+## Person 36403: Irdabama — farmer, female, age 13, Persian, zone plain
+day 329 of the regnal year · Addaru 4 (11 Mar 466 BCE) · sunrise 06:10, sunset 17:49 · weather: 0–15 °C, cloud 97 %, rain 4.0 mm, wind 3 m/s · rain 06:15–12:00 · household 8436 (plain v_29, 8 people: 36398 farmer m55, 36399 homemaker f45, 36400 farmer m24, 36401 farmer m20, 36402 homemaker f17, 36403 farmer f13, 36404 child m10, 36405 child m6)
+00:00–05:16  sleep @ h:8436 (plain) — asleep
+05:16–05:49  grind @ h:8436 (plain) — grinding the household’s flour at the quern
+05:49–07:10  rest @ h:8436 (plain) — at home
+07:10–07:37  eat @ h:8436 (plain) — breakfast with the household: the new bread
+07:37–11:56  spin @ h:8436 (plain) — spinning wool with a drop spindle
+11:56–12:05  rest @ h:8436 (plain) — at home
+12:05–12:42  eat @ h:8436 (plain) — the midday meal with the household
+12:42–12:45  walk @ road:plain (road) — to the well with the jar
+12:45–12:58  draw_water @ well:v_29 (plain) — drawing the house’s water [carrying a water jar]
+12:58–13:01  carry_jar_head @ road:plain (road) — carrying water home [carrying a jar of water on the head]
+13:01–13:56  spin @ h:8436 (plain) — spinning wool with a drop spindle
+13:56–15:00  play @ h:8436 (plain) — playing indoors
+15:00–15:03  walk @ road:plain (road) — to the well with the jar
+15:03–15:16  draw_water @ well:v_29 (plain) — drawing the house’s water [carrying a water jar]
+15:16–15:19  carry_jar_head @ road:plain (road) — carrying water home [carrying a jar of water on the head]
+15:19–15:26  play @ h:8436 (plain) — playing indoors
+15:26–17:07  spin @ h:8436 (plain) — spinning wool with a drop spindle
+17:07–17:13  rest @ h:8436 (plain) — at home
+17:13–17:49  eat @ h:8436 (plain) — the evening meal with the household
+17:49–18:50  rest @ h:8436 (plain) — with the household
+18:50–24:00  sleep @ h:8436 (plain) — asleep

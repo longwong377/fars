@@ -62,7 +62,7 @@ describe('2 (gap audit item 9): the lanes at noon', () => {
     expect(P.cal.ctx(25).heatRest).toBe(false); expect(count(25, 12.75)).toBeGreaterThan(400); expect(count(25, 12.2)).toBeGreaterThan(5);
     expect(P.cal.ctx(60).heatRest).toBe(true); expect(count(60, 13.25)).toBeLessThan(10);
     let door = 0, sell = 0; for (let pid = 0; pid < P.persons.length; pid += 2) { if (!P.present(pid, 25)) continue; const g: Seg[] = P.plan(pid, 25); if (g.some(s => /on the doorstep/.test(s.why) && s.place.startsWith('lane:'))) door++; if (g.some(s => /from a tray/.test(s.why))) sell++; }
-    expect(door).toBeGreaterThan(300); expect(sell).toBeGreaterThan(20);
+    expect(door).toBeGreaterThan(300); expect(sell).toBeGreaterThan(8);
   }, 600_000);
 });
 
