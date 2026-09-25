@@ -40,6 +40,7 @@ for (const v of [...VIEWS, ...EXTRA]) for (const town of v.ab ? [true, false] : 
         if (spot === 'mountain') return [380, -60, 1.6, 250, -8];
         if (spot === 'slope') { // the nearest spot to [253, -650] with no woodland tree within 8 m nor in the view's cone to 60 m (render pass 2: a tree stood at the lens)
           const B = 228, bx = Math.sin(B * Math.PI / 180), by = Math.cos(B * Math.PI / 180), T = (window as any).__parsa.world.treesNear(253, -650, 110);
+          (window as any).__treeLog = [T.length, ...T.map((t: number[]) => [Math.round(t[0] - 253), Math.round(t[1] + 650), Math.round(t[2])]).sort((a: number[], b: number[]) => Math.hypot(a[0], a[1]) - Math.hypot(b[0], b[1])).slice(0, 6)];
           const clear = (e: number, n: number) => T.every(([x, y, w]: number[]) => { const dx = x - e, dy = y - n, d = Math.hypot(dx, dy), along = dx * bx + dy * by;
             return d > 8 + w / 2 && !(along > 0 && along < 60 && Math.abs(dx * by - dy * bx) < 2 + w / 2 + along * 0.2); });
           for (let r = 0; r <= 40; r += 2) for (let k = 0; k < Math.max(1, Math.round(r * 1.5)); k++) { const a = (2 * Math.PI * k) / Math.max(1, Math.round(r * 1.5)), e = 253 + r * Math.cos(a), n = -650 + r * Math.sin(a);
@@ -64,6 +65,7 @@ for (const v of [...VIEWS, ...EXTRA]) for (const town of v.ab ? [true, false] : 
         return [-50.5, -120, 1.6, 215, -3];
       }, v.spot);
       // a photographic lens (vertical 40°, ≈ 28 mm; FOV=game: the player's 70°), session 4
+      if (v.spot === 'slope') console.log('slope trees (count, nearest [de, dn, w])', JSON.stringify(await page.evaluate(() => (window as any).__treeLog)));
       const fov = process.env.FOV === 'game' ? undefined : 40;
       await page.evaluate(([c, f]) => (window as any).__parsa.view(...c, f), [cam, fov] as const);
       for (let i = 0; i < (v.frames ?? 6); i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
