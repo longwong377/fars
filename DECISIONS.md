@@ -3511,3 +3511,87 @@ checks: probe field, sun ephemeris, ray tests against the parts, rig and prop pl
 - **Invariants (planCheck, swept year-wide, in the soak's plansWellFormed):** (g) `stage`: more than `STAGE_CAP_H` = 7 h on foot in a day (road walking and the off-map road and descent; a grazing flock is not a march); couriers exempt. (h) `flock`: a herding man of a band, 16–55, in the plain and not ill, whose day (or last night's watch) never touches the flock. Sweep (herders and travellers every day, 1 in 40 of everyone else; 392,137 person-days): before 353 herder + 655 traveller person-days over 7 h; after 0 and 0.
 - **Tests:** tests/people_days_r9.test.ts (44216's day; the year-wide sweep of every band and party; parties sleep at the last station); tests/people_days_r8.test.ts B S11 now asserts the small child's total walk ≤ 4.5 h (the premise, a 6 h 45 min arrival-day walk, is gone).
 - **Open (the reviewers' other findings, to the sim workstream):** A S1 / B S7 the age-rule pick draws newborns (tool); A S2 / B S3 a sick small child taken to the mother's work or the lane in the cold, a sick guard always nursed in the garrison; A S3 / B S2 a storm or rain anywhere in the day cancels the builders' whole day; A S4 the porters' afternoon waits for a caravan that came in the morning; A S6 winnowing in the calm morning; A S7 / B S8 "after dark" before dusk; A S8 roofed doorkeepers stop at noon on heat days; A S9 Treasury women of every trade spin at home; B S4 13–15-year-olds play 3–4 h; B S5 homemakers' rest; B S6 long siestas.
+
+## D-197 The round-8 reviewers' other findings, fixed at their rules and swept year-wide (session 7, sim workstream)
+- **Read first: what is broken, unverified or placeholder.**
+  - Every new rule here is C. Nothing attested says who kept a sick child, whether a sick guard went home, how many dry hours a gang needed, when the villages winnowed, how long teenagers worked or how long adults slept in the heat (Q-362 to Q-365).
+  - The invariants check the plans' words, places and hours against the calendar's weather, sun and household. They do not see what the renderer draws. The detailed porters' carrying is done in sim.ts; the plan only bounds their hours at the depot. The 1-minute walks (B S8) were in the detailed tier and are tested by stepping one day, not swept year-wide.
+  - The detailed porters' day is now short: 2.8 h on the Terrace on average (was 7.3 h). They come up for the caravan and go home once it is carried up. That is one of reviewer A's options. Nothing is known of any other work they did (C).
+  - Not changed: `dayWork`'s outdoor days (the stockyard's slaughter) still stay at home for any storm in the day's light. The sick of 5 and over lie ill at home as before. The homemakers' rest cap (B S5) is a planner rule; it is measured below but has no invariant of its own.
+  - Round-9 input: `REVIEWS/shadow_days_input_seed1_pick167.txt`, generated on the final code, not read or scored.
+- **The fixes, each at its rule, with the year-wide numbers before (the tree at 30288f3) and after (read-only scratch measurements, seed 1; not committed):**
+  1. **Tool: the age-rule stratum (A S1, B S7).** `tools/shadow_days.ts` now draws only children born before the year, and only on a day on which they are a year older. Pool: 6,023 children, of whom 1,854 were born in the year and could cross no rule → 4,169. Seed 149 now draws 33498, aged 1 on day 345.
+  2. **A sick little one stays at home (A S2, B S3; C).** `Population.sickKeepers` picks each sick child's keeper:
+     - a child of 0–1: its mother (or wet nurse);
+     - a child of 2–4: the grandparent of the house when one is fit (not ill, not in mourning, not a guard), else its mother, else another woman of the house, else a man of it (not the one back from the grain heap).
+     The keeper's day is a day at home with no outings (`Planner.nursing`): no lane, no visits, no ration queue, no well while another of the house can fetch the water (`hday.waterer`). A keeper with no one else to fetch it goes to the well only between 11:00 and 15:00, with the child. The child lies ill beside the keeper (`small`).
+     - Sick child-days of 1–4 spent out of the house: 28,908 of 31,434 (92.0 %; mean 2.63 h; threshing floors 27,015 h, lane 27,338 h, fields 12,850 h) → 650 (2.1 %). These are short well trips between 11:00 and 15:00 with a keeper who has no one to send (221 h in the year); with no such hour free, the keeper does not go. Days with an hour or more out: 28,396 → 0. Days with more than 15 min out of doors below 5 °C: 6,616 → 5. 27094 on day 229 (index) now lies at home beside his grandfather all day.
+     - **A sick guard (A S10, B S3; C, `lives.json` guard_sick_home 0.6).** A guard with a wife in the town and an illness of 3 days or more is helped down on the second morning and nursed at home in 60 % of such episodes. He goes back up on the last evening (`Planner.guardSickHome`). Guard sick-days at home with a wife in the town: 0 of 415 → 180.
+     - **A guard at home with his wife ill** fetches the water and lights the fire before he sits with them. The lane of the quarter waits. Visits on such days doing her work: 0 of 416 → 406 of 406.
+  3. **The gangs work the dry part of the day (A S3, B S2; C, Q-363).** `workSpan` is the working window less the wet spells, with a storm counted a quarter of an hour either side. The gangs set out when a wet spell holding the start has passed, and stop where one comes on that lasts to the end of the day. Showers between are sheltered under the Gate's roof, as before. The day is given up only with fewer than `DRY_WORK_H` = 3.5 dry hours. Was: any storm in the day's light, or more than 5 rain hours in the whole day, even after work.
+     - Where it applies: the builders (`builderAvailable`, `rainedOff`, `buildCredit` credits the dry hours), the Terrace's staff and porters (`terraceWorker`), the camp women.
+     - The farm men (`dryTask`, as the rain), the gardeners and the state shepherds now take a storm by its hours too. The construction logs "halted" at the hour the storm comes on: for the whole day when the storm gives the day up, "for the rest of the day" when it comes on after a dry start.
+     - Builder-days lost on days with 3.5 h or more dry: 4,125 → 42. The 42 are on day 48 (index), a dry day, and are not the weather. All builder-days lost to the weather: 9,214 → 5,131.
+     - Terrace staff (1 in 3) on such days: 406 → 4.
+     - Farming men (1 in 5) on the 18 storm days: at home 29,320 and in the field 9 → at home 18,229 and in the field 9,369.
+     - #104 (person 324) on day 201 goes up at 09:57, after the storm, and works until 15:30.
+  4. **The porters and the caravan (A S4; C).** `Population.caravan` computes the day's caravan (its hour, the first from 09:00 out of the rain and storm spans; its sacks), and the sim unloads it at that hour. A detailed porter comes up an hour before it (or before his group's ration issue there, if that is earlier) and goes home when its sacks are carried up (`caravanDone`: 0.2 h a sack for each of six porters; `depotHours`). The population's porters carry the camp's barley until the caravan comes, then its sacks. The afternoon is never a wait.
+     - 88 stepped porter-days (7 porters, every 25th day): waiting 3.71 → 0.05 h a day; after 11:00, 1.77 → 0.01 h; days with 3 h or more of waiting 55 → 0; carries 12.9 → 12.6 lines a day; on the Terrace 7.3 → 2.8 h.
+     - The sim's words after the caravan: "at the depot, the caravan's loads carried up", not "waiting for a caravan".
+  5. **Words (A S7, B S8).**
+     - The lane's talk is "at dusk" until the light ends (sunset + 0.4 h) and "after dark" from then. Talks labelled "after dark" that start before the light ends: 4,320 of 10,320 (41.9 %; 1,551 before sunset) → 0 of 10,658 (every 10th person, every 7th day).
+     - A house is kin's, a named person's or a neighbour's the same way all day (`visitTarget` gives the name and the house together). Person-days with a house named two ways, same sample: 8,266 → 135 by a broad word match; the invariant finds none.
+     - The words of a day kept in by the weather ("at home: storm", "storm: …", "rain: …", "kept in by the rain") stay only within half an hour of it (`words`). Such words away from the storm: 435 → 0.
+     - The sim does the next thing at a place where the person already is, if it is lying, sitting, eating or sleeping (#51's two 1-minute walks to garrison_sleep: 2 → 0).
+  6. **Roofed work on heat days (A S8).** The E-64 noon stop is for work in the open. The Treasury's inside staff and the palace doorkeepers and cleaners keep the day to 15:30 (`workWindow(C, roofed)`). Leaving on heat days: doors 11:50 → 15:30; Treasury 12:00 → 15:30.
+  7. **Work taken home by trade (A S9).** Only the textile workers of the Treasury workshop spin at home for it. The shiners and woodworkers finish their own work at home; the handlers of supplies take none home. Women spinning at home "for the workshop": shiners 23.9 %, woodworkers 23.7 %, handlers 23.4 % of days → 0; textile 24.0 % → 24.0 %.
+  8. **Winnowing in the wind (A S6; C, Q-364).** On a threshing day with a working afternoon wind (1.8 m/s) the household goes back to the floor from about 16:00, or earlier when the heat breaks earlier, and winnows until half an hour before sunset. Supper is half an hour later on such days. Before, the afternoon session ended at sunset − 2.2 h and was dropped on hot days. Every 5th person of the plain on the E-43 days:
+     - hours on the floor, morning/afternoon: 1.84 M / 0.28 M → 1.82 M / 0.56 M;
+     - winnowing hours, morning/afternoon: 343 k / 155 k (69 % in the morning) → 342 k / 317 k (52 %);
+     - windy-afternoon floor-days with no afternoon on the floor: 73 k (37 %) → 45 k (23 %; homemakers and children go back on 6 days in 10, as before).
+  9. **B S4, B S5, B S6.**
+     - **Teens (C, Q-365).** From 13 a child's working hours are near an adult's (a fifth band in `children.work`: girls 7 h, boys 6.5 h, with more of each chore). Play is capped at 1.5 h a day (`teen_play_cap_h`); past it, the girl spins and the boy mends. From 13 the late afternoon is an adult's. Daily play of a `child` (minding the little ones not counted), every 3rd day: girls of 13 2.59 → 1.03 h (days with 2 h or more 59.2 % → 0), girls of 14 2.87 → 1.09 h, boys of 13 3.86 → 1.21 h, boys of 14 4.75 → 1.34 h. A 13-year-old's talk alone at home is no longer relabelled as play (`relabel`).
+     - **Homemakers (C).** Talk "with the household" at home now counts with the rest under the women's and the farming men's rest cap. With only little ones of four or under at home it is the spindle. Town homemakers 16–50, daylight, every 3rd day: work 5.48 → 6.41 h; rest, talk and play 4.65 → 3.63 h; days with under 4 h of work 17.8 % → 5.4 %. Plain: 6.18 → 6.91 h; 3.69 → 3.02 h; 11.4 % → 3.3 %.
+     - **Siesta (C, Q-365).** From 14, sleep in the heat of the day is capped at 2.5 h (`HEAT_SLEEP_CAP_H`, `Planner.siesta`); past it, rest in the shade, or the spindle for a woman at home. Adult-days (16–60, every 3rd day) with 12.5 h or more of sleep: 26,333 (1.0 %; 15,177 in summer, 20,385 farmers) → 4,505 (0.2 %). Of these, 3,756 are elders and homemakers and 3,675 fall in winter and autumn; 972 are nights of 12 h or more, and the rest are a night and a short day's sleep. Adult-days with more than 2.5 h asleep between 10:00 and 18:30: 293,596 → 20,591. The rest are sleeps before or after night work (the grain heap, night duty, the watch), which the cap does not touch.
+- **Invariants added to planCheck** (swept year-wide by the soak's plansWellFormed):
+  - (i) `sick`: a sick little one away from its house more than 0.75 h, or out of doors below 5 °C more than 0.5 h; a guard at his family's house on a day his wife is ill who does none of the house's work.
+  - (j) `weatherday`: a Terrace worker kept at home by the weather with `DRY_WORK_H` of the working window dry; a farming man kept in by a storm while the day's field task has a dry stretch.
+  - (c) `wait`, extended: a detailed porter's stand at the depot outside `depotHours` is a wait (the `WAIT_OK` exemption had hidden it).
+  - (d) `label`, extended: "after dark" and "at dusk" by the hour; one relation per house in a day; the weather's words near the weather; winnowing only in a working wind; spinning at home for the workshop only for the textile trade.
+  - (k) `teen`: a child of 13 or more at play past the cap (minding the little ones is not play).
+  - (l) `siesta`: from 14, more than 2.5 h asleep in the heat.
+  - (m) `roofed`: roofed work stopped at the heat's noon.
+  - (n) `winnow`: a farming man who threshed in the morning and is not on the floor in the afternoon's working wind.
+  - Scratch sweeps before the soak, all read-only:
+    - checkPlan on every person-day of the year, split by person over six runs (15.46 M person-days), on the code of the last hour before the commit;
+    - checkDay on every 17th and 20th day;
+    - every storm day and the day after for the working jobs (0.77 M person-days);
+    - a final targeted run over the jobs touched by the last fixes (1.54 M person-days).
+  - What the sweeps found, each fixed at its rule:
+    - a farmer's market exchange going on into a storm;
+    - an official inspecting the building works in a storm (the works' days had moved with the dry-hours rule);
+    - a 13-year-old's talk alone at home relabelled as play;
+    - the grain heap's watcher 8.0 h between meals: the siesta cap now runs before the meals' safety net, so the net can use the hours past the cap;
+    - a groom leading two horses along the road, 7.03 h on foot at 39 °C. This was already there before these changes (D-196's (g)). Now one lead a day, none in an E-64 afternoon;
+    - the lamps lit "at dusk" 1.1 h before sunset. Also already there; now from half an hour before sunset;
+    - a 3.26 h gap between a baby's feeds after a birthday meal. `feedGaps` may now nurse at a meal of 0.6 h (was 0.75 h);
+    - two false positives of the invariants themselves: "the kinswoman keeping the house" named the minder, not the house; a feed at the palace where a woman carries water counted as roofed work.
+  - The court test (`tests/court.test.ts`, the court setting only) failed on 30288f3 too: D-196's (g) found the court's visitors "on the road" from midnight, 15 h. They now sleep at the last station, as the road station's parties do, and eat at the camp after the road (commit 0996337).
+- **Soak:** **PASS, all eight gates.** `npm run soak` (seed 1, 354 days, everyone, court absent) on 0996337. Report: `bench-reports/soak-2026-09-25T00-15-33-395Z.json` (not in git).
+  - variety (135 detailed agents): worst 0.023 (#128, a child).
+  - populationVariety (43,245 measured): none failing. The worst is 0.097 (2463, a child), close to the 0.1 gate (it was 0.089 on D-191's run). Infants (not gated): 0 of 3,526 would fail.
+  - events: 14–20 kinds a week (mean 16.86; floor 8), 23 kinds in the year.
+  - stuck: nobody.
+  - stocks: sacks 0–280; grain 9,724–71,091, flour 587–2,065; no shortfall, no collapse; harvest factor 0.945.
+  - renderedHonest: nothing unlisted or placeholder performed.
+  - plansWellFormed: 15,462,938 person-days with no issue of any kind, the new invariants (i)–(n) included; 118 checked days with no issue.
+  - visibleChange: 51 of 51 weeks.
+  - The population's checks took 5,334 s under a load of 7–10 from other sessions. Frame cost (not gated): 0.09 ms mean real-time, 14.2 ms mean and 356 ms p99 at x60.
+  - An earlier soak on 749c8b3 was stopped half-way when the court fix was committed; it reported nothing.
+- **Tests:** Run on the final code (0996337) unless named.
+  - `npx tsc --noEmit` clean. `npm run lint:all` OK.
+  - tests/people_days_r10.test.ts: 17 of 17. tests/people_days_r8.test.ts: 17 of 17.
+  - On 749c8b3. Its only difference from 0996337 is in court.ts's visitors, which these tests do not run (the court setting is off):
+    - r5, r6, r7 and r9: all passed. r8's B S5 timed out at 300 s under the load; run again on 0996337 (with r10 only) it passed.
+    - people, population, people_days, r3, r4, construction_view, exchanges, performers, popview and sim_lod: all passed.
+  - court and court_view: 10 of 10 after the court fix (the court test failed before it, on 30288f3 as well).
