@@ -132,36 +132,36 @@ day 125 of the regnal year · Abu 7 (19 Aug 467 BCE) · sunrise 05:20, sunset 18
 22:16  eat @ garrison_hearth_m — a meal after the watch
 22:31  sleep @ garrison_sleep — asleep
 
-## Detailed agent #126: (unnamed) — grinder, woman 27, Elamite; speaks Elamite; person 1182
+## Detailed agent #126: Parmys — grinder, woman 27, Elamite (name C: recalled attestation (C, not seen): Herodotus 3.88, 7.78: daughter of Bardiya); speaks Elamite; person 1182
 day 144 of the regnal year · Abu 26 (7 Sep 467 BCE) · sunrise 05:36, sunset 18:23 · weather: 19–38 °C, cloud 2 %, dry, wind 3 m/s · household 306 (q_pw_n, home h:306, 2 people: 1182 camp f27, 1183 porter m40)
 00:00  sleep @ h:306 — asleep [off the Terrace: not drawn]
 04:31  grind @ h:306 — grinding the household’s flour at the quern [off the Terrace: not drawn]
 04:52  rest @ h:306 — at home [off the Terrace: not drawn]
 05:22  eat @ h:306 — bread and water before leaving [off the Terrace: not drawn]
 05:33  walk → road:terrace — going up to the work camp [off the Terrace: not drawn]
-05:42  walk @ road:terrace — going up to the work camp [off the Terrace: not drawn]
+05:41  walk @ road:terrace — going up to the work camp [off the Terrace: not drawn]
 05:58  walk → querns — grinding grain
-06:08  grind @ querns — grinding grain
+06:07  grind @ querns — grinding grain
 07:13  walk → water — fetching water for the camp
-07:15  draw_water @ water — fetching water for the camp
+07:14  draw_water @ water — fetching water for the camp
 07:28  carry_jar_head → work_hearth — carrying water to the work camp [carrying a jar of water on the head]
 07:30  rest @ work_hearth — set the water jar down
 07:40  grind @ querns — grinding grain
 08:52  walk → water — fetching water for the camp
-08:54  draw_water @ water — fetching water for the camp
+08:53  draw_water @ water — fetching water for the camp
 09:07  carry_jar_head → work_hearth — carrying water to the work camp [carrying a jar of water on the head]
 09:09  rest @ work_hearth — set the water jar down
 09:19  grind @ querns — grinding grain
 10:31  walk → water — fetching water for the camp
-10:33  draw_water @ water — fetching water for the camp
+10:32  draw_water @ water — fetching water for the camp
 10:46  carry_jar_head → work_hearth — carrying water to the work camp [carrying a jar of water on the head]
 10:48  rest @ work_hearth — set the water jar down
 10:58  grind @ querns — grinding grain
 11:36  eat @ querns — bread and water
 11:57  grind @ querns — grinding grain
 12:00  walk → road:terrace — going home
-12:10  walk → road:terrace — going home [off the Terrace: not drawn]
-12:20  walk @ road:terrace — going home [off the Terrace: not drawn]
+12:09  walk → road:terrace — going home [off the Terrace: not drawn]
+12:18  walk @ road:terrace — going home [off the Terrace: not drawn]
 12:25  grind @ h:306 — grinding for tomorrow’s bread [off the Terrace: not drawn]
 12:40  walk @ road:town — walking [off the Terrace: not drawn]
 12:44  draw_water @ well:q_pw_n — fetching water [carrying a water jar] [off the Terrace: not drawn]
@@ -245,7 +245,7 @@ day 263 of the regnal year · Kislimu 27 (4 Jan 466 BCE) · sunrise 06:53, sunse
 16:56  rest @ h:305 — with the household [off the Terrace: not drawn]
 18:25  sleep @ h:305 — asleep [off the Terrace: not drawn]
 
-## Person 998: Parruš — builder (brick), male, age 32, Elamite, zone town
+## Person 998: Kuprlli — builder (brick), male, age 32, Elamite, zone town
 day 242 of the regnal year · Kislimu 6 (14 Dec 467 BCE) · sunrise 06:52, sunset 17:07 · weather: -1–13 °C, cloud 78 %, rain 7.5 mm, wind 1 m/s · rain 15:00–23:00 · household 261 (town q_lt_e, 5 people: 998 builder m32, 999 homemaker f28, 1000 child m9, 1001 child f6, 45088 child f3 months)
 00:00–06:26  sleep @ h:261 (town) — asleep
 06:26–07:52  rest @ h:261 (town) — at home
@@ -261,7 +261,7 @@ day 242 of the regnal year · Kislimu 6 (14 Dec 467 BCE) · sunrise 06:52, sunse
 16:31–19:23  talk @ h:261 (town) — with the household
 19:23–24:00  sleep @ h:261 (town) — asleep
 
-## Person 676: Manyabaduš — builder (labour), male, age 24, Syrian, zone town
+## Person 676: Anani — builder (labour), male, age 24, Syrian, zone town
 day 224 of the regnal year · Arahsamnu 17 (26 Nov 467 BCE) · sunrise 06:44, sunset 17:15 · weather: 5–22 °C, cloud 21 %, dry, wind 2 m/s · household 189 (town q_pw_s, 3 people: 676 builder m24, 677 homemaker f18, 45077 child f1 months)
 00:00–06:25  sleep @ h:189 (town) — asleep
 06:25–06:30  rest @ h:189 (town) — at home
@@ -277,7 +277,7 @@ day 224 of the regnal year · Arahsamnu 17 (26 Nov 467 BCE) · sunrise 06:44, su
 17:05–19:45  talk @ h:189 (town) — with the household
 19:45–24:00  sleep @ h:189 (town) — asleep
 
-## Person 2017: (unnamed) — child, female, age 5, Ionian, zone town
+## Person 2017: Philis — child, female, age 5, Ionian, zone town
 day 342 of the regnal year · Addaru 17 (24 Mar 466 BCE) · sunrise 05:58, sunset 18:01 · weather: 7–23 °C, cloud 23 %, dry, wind 1 m/s · household 672 (town q_lt_e, 3 people: 1939 treasury f32, 2009 treasury m16, 2017 child f5)
 00:00–05:53  sleep @ h:672 (town) — asleep
 05:53–06:28  play @ h:672 (town) — playing in the courtyard before the morning bread [dressed against the cold]
@@ -347,7 +347,7 @@ day 320 of the regnal year · Shabatu 25 (2 Mar 466 BCE) · sunrise 06:18, sunse
 17:22–19:30  rest @ h:1243 (town) — with the household
 19:30–24:00  sleep @ h:1243 (town) — asleep
 
-## Person 486: (unnamed) — child, male, age 14, Carian, zone town
+## Person 486: Bakadušda — child, male, age 14, Carian, zone town
 day 184 of the regnal year · Tashritu 7 (17 Oct 467 BCE) · sunrise 06:13, sunset 17:46 · weather: 11–31 °C, cloud 0 %, dry, wind 1 m/s · household 143 (town q_lt_e, 6 people: 482 builder m49, 483 homemaker f40, 484 homemaker f19, 485 homemaker f17, 486 child m14, 487 child f5)
 00:00–06:25  sleep @ h:143 (town) — asleep
 06:25–06:34  carry_sack @ h:143 (town) — carrying in brushwood for the morning fire [carrying dung cakes and brushwood]
@@ -370,8 +370,8 @@ day 184 of the regnal year · Tashritu 7 (17 Oct 467 BCE) · sunrise 06:13, suns
 10:48–10:58  talk @ h:1401 (town) — handing over the bread, a word with the kinswoman
 10:58–11:01  walk @ road:town (road) — going home
 11:01–11:04  rest @ h:143 (town) — at home
-11:04–11:09  walk @ road:town (road) — to the house of kin
-11:09–11:52  play @ h:725 (town) — playing at the house of kin
+11:04–11:09  walk @ road:town (road) — to Nupta’s house
+11:09–11:52  play @ h:725 (town) — playing at Nupta’s house
 11:52–11:57  walk @ road:town (road) — walking home
 11:57–12:03  rest @ h:143 (town) — at home
 12:03–12:37  eat @ h:143 (town) — the midday meal with the household
@@ -415,7 +415,7 @@ day 3 of the regnal year · Nisanu 3 (19 Apr 467 BCE) · sunrise 05:35, sunset 1
 18:07–20:53  talk @ h:7855 (plain) — with the household
 20:53–24:00  sleep @ h:7855 (plain) — asleep
 
-## Person 30442: (unnamed) — child, female, age 5, Persian, zone plain
+## Person 30442: Amytis — child, female, age 5, Persian, zone plain
 day 224 of the regnal year · Arahsamnu 17 (26 Nov 467 BCE) · sunrise 06:44, sunset 17:15 · weather: 5–22 °C, cloud 21 %, dry, wind 2 m/s · household 7130 (plain v_23, 7 people: 30437 farmer m48, 30438 homemaker f43, 30439 farmer m26, 30440 farmer m20, 30441 farmer m13, 30442 child f5, 32342 homemaker f15)
 00:00–07:09  sleep @ h:7130 (plain) — asleep [with 30438]
 07:09–07:30  eat @ h:7130 (plain) — eating with the mother [with 30438]
@@ -483,7 +483,7 @@ day 39 of the regnal year · Aiaru 10 (25 May 467 BCE) · sunrise 05:08, sunset 
 23:13–23:27  eat @ h:1638 (town) — nursed by the mother [with 5091]
 23:27–24:00  sleep @ h:1638 (town) — asleep beside the mother [with 5091]
 
-## Person 44597: (unnamed) — herder, female, age 31, Persian, zone transient
+## Person 44597: Parmys — herder, female, age 31, Persian, zone transient
 day 329 of the regnal year · Addaru 4 (11 Mar 466 BCE) · sunrise 06:10, sunset 17:49 · weather: 0–15 °C, cloud 97 %, rain 4.0 mm, wind 3 m/s · rain 06:15–12:00 · household 10050 (transient band33, 10 people: 44596 herder m33, 44597 herder f31, 44598 herder m10, 44599 herder f7, 44600 herder m3, 44601 herder m23, 44602 herder f19, 44603 herder m26, 44604 herder f20, 44605 herder f51)
 00:00–04:52  sleep @ camp:band33:0 (plain) — asleep in the tent
 04:52–05:46  rest @ camp:band33:0 (plain) — up in the tent before first light
@@ -595,7 +595,7 @@ day 316 of the regnal year · Shabatu 21 (26 Feb 466 BCE) · sunrise 06:21, suns
 19:15–20:04  talk @ h:6579 (plain) — with the household
 20:04–24:00  sleep @ h:6579 (plain) — asleep
 
-## Person 39155: (unnamed) — child, female, age 11, Persian, zone plain
+## Person 39155: Irdabama — child, female, age 11, Persian, zone plain
 day 177 of the regnal year · Ululu 29 (10 Oct 467 BCE) · sunrise 06:06, sunset 17:53 · weather: 8–27 °C, cloud 0 %, dry, wind 2 m/s · household 9037 (plain v_33, 6 people: 39152 farmer m37, 39153 homemaker f32, 39154 farmer f13, 39155 child f11, 39156 child f4, 39157 child m6 months)
 00:00–06:00  sleep @ h:9037 (plain) — asleep
 06:00–06:14  carry_sack @ h:9037 (plain) — carrying in dung cakes for the morning fire [carrying dung cakes and brushwood]
@@ -629,8 +629,8 @@ day 177 of the regnal year · Ululu 29 (10 Oct 467 BCE) · sunrise 06:06, sunset
 14:24–14:36  draw_water @ well:v_33 (plain) — fetching water for the household [carrying a water jar]
 14:36–14:39  carry_jar_head @ road:plain (road) — carrying water home [carrying a jar of water on the head]
 14:39–14:42  carry_jar @ h:9037 (plain) — pouring the water into the house jar [carrying a water jar]
-14:42–14:47  walk @ road:plain (road) — to the house of kin
-14:47–15:44  play @ h:9043 (plain) — playing at the house of kin
+14:42–14:47  walk @ road:plain (road) — to Phaidyme’s house
+14:47–15:44  play @ h:9043 (plain) — playing at Phaidyme’s house
 15:44–15:47  walk @ road:plain (road) — out to the lane
 15:47–16:34  play @ lane:v_33 (plain) — playing in the lane
 16:34–16:37  walk @ road:plain (road) — walking home
