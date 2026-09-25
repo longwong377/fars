@@ -160,3 +160,32 @@ last 7 %; impostors.ts clothStatsOf sampled inside triangles (the hem band had b
 1119 → 189 µm at 0.3 m; beard 4 row maxima (was 0); hem soil ΔE 6.96 → 10.43; Persian costume 40,380/6,041/3,008/765
 triangles (budgets 42,000/7,000/3,200/800); 300-person view 15 draws, +1.9 % triangles. Tests people_drape (7) and 15 suites.
 D-225, Q-540..Q-544.
+
+## D-224 sky and exposure (merged: worktree-agent-a31aafc3ed0f91a99, head 27ef078)
+**Broken / unverified first.** (1) The Belt of Venus is still lilac, not pink (B44): at −2.9° the arch sits at 11–21° over a
+blue-grey Earth's shadow, but its reddest point is R/B 0.48 (was 0.43). Of four approaches only a converged multiple-scattering
+table turns it pink-lilac (R/B 0.86 at −2°), and it fails D-116's test against Lee 2015 at −1°/−2° (Δxy 0.023–0.031, limit
+0.02): kept as MS_CONVERGED, not adopted (B43, Q-531); it exposed that D-116's coarse table puts 44–57 % too much light into
+the dark segment at −2°…−3°. (2) The rendered dawn frames show no arch and no shadow band: the "clear" day's broken deck
+(cover 0.05) covers the low W sky, and the arch sits at and above the frame's top. (3) Dawn clouds at −2.9° stay unlit: the deck
+at 1.5–3.6 km loses the sun at −1.4°/−2.1°; only cloud above ~8 km would be lit and the weather has none (Q-534); at +2.5° the
+undersides render salmon. (4) The W ranges at +2.5° are sunlit but the clear-day air (visibility 43 km) passes 14–28 % of their
+light: rendered grey-blue (101, 104, 115); a red first light needs ~100 km visibility (Q-535; haze not tuned). (5) No rendered
+overcast frame: node only; snow-terrace's "brown sky" is the Apadana N portico's shaded interior. (6) Under full cover the
+ground still gets a quarter-strength sun with sharp shadows (D-115's factors): the overcast horizon is 0.7× the grey ground
+where CIE gives ~2× (Q-532, not changed).
+**Changed:** overcast: dome, fog colour, air in-scatter and skylight colour blend by cloud cover to the CIE standard overcast
+sky (L = Lz(1 + 2 sin e)/3, zenith 3× horizon, same irradiance as the clear sky), colour 6358 K (Lee & Hernández-Andrés 2005,
+abstract), bluer at low sun; nothing changes at cover 0. Antisolar twilight: aerosol lidar ratio 50 sr (was ~200), a
+stratospheric background layer (τ 0.005 at 20 km; visibility 43 → 45 km; both C, Q-533). The low sun keeps the zenith sun's
+luminance (+88 % at 2.5°, +16 % at 5°, +6 % at 10°; the max-channel normalisation threw half away). Frame meter (meter.ts
+meterEVFrame): texels ≥ 3 EV above the law's grey are "bright"; when they are the centre-weighted majority (blend 50–65 %), the
+correction is 0.6 × (reference − bright log-mean), never closing past the open-air exposure nor 6 EV; D-159 otherwise.
+exposureInfo meterBright/meterMean; F3 shows meter EV, bright share, overcast weight; new moment apadana-w-portico-out;
+tools/dev/overcast_colour.ts.
+**Measured:** full cover horizon b/r 1.06–1.08 (was R > G > B), skylight b/r 1.06–1.08 (clear 1.70–1.79); zenith:horizon 3;
+6000–7000 K; irradiance within 1 %. Synthetic: portico sky 5–7× white → exposure 36 → 2.30 (sky 0.32–0.45 of white). Renders
+(high): apadana-w-portico-out exposure 1.67 (D-159 alone ≈ 8.2), sky sRGB 133–177, 0 % clipped; apadana-hall-out run 1 (blend
+30–60 %) stopped the door blowing out (regression; the doorway is 43 % of the centre-weighted field), run 2 (50–65 %) 108.3,
+7.8 % clipped (rubric 7.9 %); dawn-stair-top 4.83 (mean 71.6 vs 71.9); dawn-sunrise ranges b/r 1.13. Tests sky_d224 and 15
+sky/exposure/weather/shader suites (115). D-224, Q-530..Q-536, B43, B44.
