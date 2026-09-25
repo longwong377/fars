@@ -74,4 +74,22 @@ describe('surface shaders build (WGSL, node)', () => {
     expect(fails).toEqual([]);
     expect(built).toEqual(expect.arrayContaining(['composite', 'ssgi', 'ssr', 'sss', 'environment dome']));
   });
+  it('the weather effect materials (rain shafts with the air\'s nodes, streaks, flakes) generate WGSL (D-219)', async () => {
+    const { RainShafts } = await import('../src/world/rainShafts'), { WeatherVfx } = await import('../src/world/weatherVfx');
+    const { Air } = await import('../src/sky/aerial'), { WeatherSystem } = await import('../src/weather/weatherState');
+    const renderer = makeRenderer(), scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(40, 16 / 9, 0.05, 110000);
+    scene.add(new THREE.HemisphereLight(0xbfd6ff, 0x6b5a45, 0.6));
+    const shafts = new RainShafts({ heightAt: () => -12 } as any, 7), air = new Air();
+    shafts.update(0.016, new THREE.Vector3(-38, 1.6, 5), new WeatherSystem(1).rainCell(299, 11.45), new THREE.Color(0.6, 0.63, 0.68), air);
+    const vfx = new WeatherVfx(100); vfx.setLight(new THREE.HemisphereLight(0xbfd6ff, 0x6b5a45, 0.6), null);
+    vfx.update(0.016, camera, { rain: 1, snowFall: 1, windMs: 3, windDirDeg: 250, lightning: false }, 1);
+    scene.add(shafts.group, vfx.group);
+    if (!renderer.backend.device) renderer.backend.device = { limits: { maxUniformBufferBindingSize: 65536, maxStorageBufferBindingSize: 134217728 } }; // (the instanced meshes ask the device's limits; no device in node)
+    const fails: string[] = [], meshes: THREE.Mesh[] = [];
+    shafts.group.traverse((o: any) => { if (o.isMesh) meshes.push(o); }); vfx.group.traverse((o: any) => { if (o.isMesh) meshes.push(o); });
+    expect(meshes.length).toBe(9);
+    for (const m of meshes) { try { const b = build(renderer, scene, camera, m); if (!b.fragment.includes('output')) fails.push(m.name + ': no output'); } catch (e: any) { fails.push(`${m.name}: ${String(e?.message ?? e).slice(0, 300)}`); } }
+    expect(fails).toEqual([]);
+    expect(shafts.stats().shafts.filter(s => s.vis).length).toBe(7);
+  });
 });

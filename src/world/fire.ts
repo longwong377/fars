@@ -7,6 +7,7 @@ import { surfaceMaterial } from '../render/materials';
 import { uniform, uv, vec3, vec4, float, mx_noise_float, time, attribute, smoothstep, mix, length, vec2, max, positionWorld, cameraPosition, normalize, dot, pow, step } from 'three/tsl';
 import { Rng } from '../core/rng';
 import { fireOcc, fireOccNode, tileOf } from './fireOcc';
+import { SOURCE, FORGE_GH, sourceTau, windWorld } from './hearthSmoke';
 
 export type FireKind = 'torch' | 'brazier' | 'hearth' | 'oven' | 'lamp' | 'kiln' | 'altar';
 /** when a fire burns (C schedules): 'night' dusk to after sunrise (default); 'home' a domestic hearth, lit as the light
@@ -14,7 +15,9 @@ export type FireKind = 'torch' | 'brazier' | 'hearth' | 'oven' | 'lamp' | 'kiln'
  *  the morning; 'day' a workshop fire (kiln, forge) in working hours; 'kept' a fire that is never let go out (D-209: the
  *  precinct's altar, fed at dawn and dusk and sheltered in rain by the magi, C). Needs the local hour (update's last argument). */
 export type FireSchedule = 'night' | 'home' | 'bake' | 'day' | 'kept';
-export interface FireSource { id: string; kind: FireKind; pos: THREE.Vector3; lit: boolean; seed: number; tier: string; src: string; note: string; sched?: FireSchedule; group?: string;
+/** `plot`: the town house plot the fire belongs to (settlement build.ts): the household living there drives a 'home' hearth
+ *  and a 'bake' oven (D-220, hearthSmoke.ts) */
+export interface FireSource { id: string; kind: FireKind; pos: THREE.Vector3; lit: boolean; seed: number; tier: string; src: string; note: string; sched?: FireSchedule; group?: string; plot?: string;
   /** its tile in the baked fire-light occlusion atlas (D-222), −1 when not baked (the town's fires); set on first use */ occ?: number }
 const SPEC: Record<FireKind, { flameH: number; flameW: number; power: number; range: number; smoke: number }> = {
   torch: { flameH: 0.45, flameW: 0.22, power: 1.2, range: 14, smoke: 0.2 },
@@ -26,8 +29,25 @@ const SPEC: Record<FireKind, { flameH: number; flameW: number; power: number; ra
   // D-209: the kept fire on the precinct's stepped altar: a wood fire in the open, a little larger than a hearth's (C)
   altar: { flameH: 0.6, flameW: 0.55, power: 1.9, range: 16, smoke: 1.1 },
 };
-/** smoke puffs come only from fires within this distance of the camera (the pool is shared; far smoke is the town haze) */
+/** smoke puffs come only from fires within this distance of the camera (the pool is shared; far smoke is the town's plumes
+ *  and the smoke layer over the town and villages, landSmoke.ts) */
 export const SMOKE_RANGE = 300;
+/** the near smoke puffs (D-220): a pool of SMOKE_MAX; each smoking fire, nearest first, gets PUFFS[kind] of them, each
+ *  living PUFF_LIFE s on a cycle staggered by the fire's seed. Their places are closed-form in time (the velocity relaxes from
+ *  the buoyant rise to the wind's drift at PUFF_RELAX /s), so a frozen test render (dt = 0) shows them: the old pool
+ *  spawned puffs at a rate × dt and never had one in any moment render (rubric s7 pass 2: no smoke in any frame) */
+export const SMOKE_MAX = 400, PUFF_LIFE = 8, PUFF_RELAX = 0.5;
+export const PUFFS: Record<FireKind, number> = { torch: 3, brazier: 2, hearth: 5, oven: 6, lamp: 0, kiln: 8, altar: 6 };
+/** one near puff of a fire at world time t: its offset from the fire (m), size (m), age (s) and optical depth scale */
+export function puffAt(kind: FireKind, seed: number, j: number, t: number, wind: [number, number, number], out: { x: number; y: number; z: number; size: number; age: number; fade: number }) {
+  const K = PUFFS[kind], cyc = t / PUFF_LIFE + j / K + seed * 0.618, ph = cyc - Math.floor(cyc), age = ph * PUFF_LIFE, n = Math.floor(cyc);
+  const hsh = (a: number) => { const v = Math.sin(seed * 12.9898 + j * 78.233 + n * 37.719 + a * 4.581) * 43758.5453; return v - Math.floor(v); };
+  const vx0 = (hsh(1) - 0.5) * 0.3, vz0 = (hsh(2) - 0.5) * 0.3, vy0 = 0.7 + hsh(3) * 0.4; // the buoyant rise off the fire (C)
+  const vx = wind[0] * 0.6, vz = wind[2] * 0.6, vy = 0.35, e = (1 - Math.exp(-PUFF_RELAX * age)) / PUFF_RELAX;
+  out.x = vx * age + (vx0 - vx) * e; out.y = vy * age + (vy0 - vy) * e; out.z = vz * age + (vz0 - vz) * e;
+  out.size = Math.max(0.4, SOURCE[kind]?.w0 ?? 0.6) + 0.35 * age; out.age = age;
+  out.fade = Math.min(1, age * 2) * (1 - ph); return out;
+}
 /** a far flame is drawn no narrower than this many pixels, its brightness cut by the area ratio so that the light
  *  reaching the eye is unchanged (render pass 2: from Kuh-e Rahmat at dusk the town's 1,037 lit fires were each under
  *  a pixel wide and vanished; a real town seen from a hill at dusk shows as a scatter of points) */
@@ -111,7 +131,6 @@ export class FireSystem {
   private flames!: THREE.InstancedMesh;
   private lights: THREE.PointLight[] = [];
   private smoke!: THREE.InstancedMesh;
-  private smokeP: { pos: THREE.Vector3; vel: THREE.Vector3; age: number; life: number; size: number; power?: number }[] = [];
   private smokeGlow!: THREE.InstancedBufferAttribute;
   // light on the smoke (session 3, D-060, D-070): the skylight scattered by the smoke (smokeSkyRadiance), the sun through a
   // forward-peaked phase function, and the fire below it; set each frame by setSkyLight (was a constant unlit grey,
@@ -126,6 +145,17 @@ export class FireSystem {
   private lightScale = 1;
   private rng = new Rng(1, 'fire');
   private uLit = uniform(1);
+  /** the people's fires (D-220, hearthSmoke.ts SmokeModel): per fire 1 = flame shown, 0 = out or embers, −1 = its own schedule;
+   *  and its smoke emission (g/h; −1 = its kind's default while lit). Set by the world before update() */
+  simLit: Int8Array | null = null; simGh: Float32Array | null = null;
+  setSimState(lit: Int8Array, gh: Float32Array) { this.simLit = lit; this.simGh = gh; }
+  /** smoke emission of fire i now (g/h of particles): the household day's phase where one drives it, else its kind's
+   *  (a forge's charcoal for a workshop 'day' hearth) while lit */
+  emission(i: number): number {
+    const g = this.simGh?.[i] ?? -1; if (g >= 0) return g; const f = this.fires[i]; if (!f.lit) return 0;
+    return f.kind === 'hearth' && f.sched === 'day' ? FORGE_GH : SOURCE[f.kind]?.gh ?? 0;
+  }
+  private smokeN = 0;
   private flux!: THREE.InstancedBufferAttribute;
   /** `shadowLights`: how many of the nearest fires' lights cast shadows (cube maps of `shadowMapSize`; 0 by default: D-216,
    *  measured cost in BLOCKERS) */
@@ -163,7 +193,7 @@ export class FireSystem {
   }
   /** `base` = where the object stands (floor) or, for torches, the bracket point on the wall */
   /** `meta.body: false` = the caller draws the fire's body itself (the settlement merges its hearths and ovens) */
-  add(kind: FireKind, base: THREE.Vector3, meta: { tier: string; src: string; note: string; sched?: FireSchedule; group?: string; body?: boolean }) {
+  add(kind: FireKind, base: THREE.Vector3, meta: { tier: string; src: string; note: string; sched?: FireSchedule; group?: string; plot?: string; body?: boolean }) {
     const lift = LIFT[kind];
     const { body, ...m } = meta;
     this.fires.push({ id: `${kind}-${this.fires.length}`, kind, pos: base.clone().add(new THREE.Vector3(0, lift, 0)), lit: false, seed: this.rng.next() * 100, ...m });
@@ -211,7 +241,7 @@ export class FireSystem {
     this.flames.userData = { tier: 'C', src: 'RECON', note: 'flame billboards (procedural); fire placements C unless noted' };
     this.group.add(this.flames);
     // smoke puffs: soft quads, per-instance alpha
-    const SMAX = 400; const sq = new THREE.PlaneGeometry(1, 1);
+    const SMAX = SMOKE_MAX; const sq = new THREE.PlaneGeometry(1, 1);
     this.smokeAlpha = new THREE.InstancedBufferAttribute(new Float32Array(SMAX), 1); sq.setAttribute('aAlpha', this.smokeAlpha);
     const sm = colourOnly(new THREE.MeshBasicNodeMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide }));
     const su = uv(); const r = length(su.sub(0.5)).mul(2);
@@ -222,14 +252,17 @@ export class FireSystem {
       const hg = float((1 - G * G) / (4 * Math.PI)).div(pow(float(1 + G * G).sub(cosT.mul(2 * G)), 1.5));
       sm.colorNode = (this.uSky as any).add((this.uSun as any).mul(hg)).mul(OMEGA).add(vec3(1.0, 0.55, 0.25).mul(attribute('aGlow', 'float'))); }
     sm.opacityNode = puff.mul(attribute('aAlpha', 'float'));
-    this.smoke = new THREE.InstancedMesh(sq, sm, SMAX); this.smoke.frustumCulled = false; this.smoke.count = 0; this.smoke.renderOrder = 4;
-    this.smoke.userData = { tier: 'C', src: 'RECON', note: 'smoke puffs (procedural), drift with the weather wind' };
+    sm.forceSinglePass = true; // camera-facing: one pass (D-220: a double-sided transparent is drawn twice)
+    this.smoke = new THREE.InstancedMesh(sq, sm, SMAX); this.smoke.name = 'fire:smoke'; this.smoke.frustumCulled = false; this.smoke.count = 0; this.smoke.renderOrder = 4;
+    this.smoke.userData = { tier: 'C', src: 'RECON', note: 'smoke puffs of the fires within 300 m (D-220): opacity from the fire\'s emission (the household day\'s phase for the town\'s hearths and ovens; dung cake and brushwood fuel C; emission factors C, NOT SEEN), rising and drifting with the weather wind' };
     this.group.add(this.smoke);
   }
   /** lit state: fires burn from dusk (sun < 4° and falling or night) until after sunrise (C schedule) */
   update(dt: number, camera: THREE.Camera, sunAlt: number, windMs: number, windDirDeg: number, rain: number, t: number, hour?: number) {
     const lit = sunAlt < 4;
-    for (const f of this.fires) f.lit = (hour === undefined || !f.sched || f.sched === 'night' ? lit : scheduleLit(f.sched, hour, sunAlt, f.seed)) && !(rain > 0.6 && (f.kind === 'brazier' || f.kind === 'hearth'));
+    const SL = this.simLit;
+    this.fires.forEach((f, i) => { const sl = SL ? SL[i] : -1;
+      f.lit = (sl >= 0 ? sl === 1 : hour === undefined || !f.sched || f.sched === 'night' ? lit : scheduleLit(f.sched, hour, sunAlt, f.seed)) && !(rain > 0.6 && (f.kind === 'brazier' || f.kind === 'hearth')); });
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
     // flames: cylindrical billboards (yaw only) facing the camera, no narrower than FLAME_MIN_PX with their light conserved
     const viewH = typeof innerHeight === 'number' ? innerHeight : 1080, fov = (camera as THREE.PerspectiveCamera).fov ?? 70;
@@ -254,25 +287,25 @@ export class FireSystem {
       const flick = 0.8 + 0.2 * (Math.sin(t * 11 + f.seed) * 0.5 + Math.sin(t * 17.3 + f.seed * 3) * 0.5);
       l.intensity = L.candela * flick * this.lightScale; l.distance = L.cutoff; l.decay = L.decay;
     });
-    // smoke
-    const wr = ((windDirDeg + 180 - 341) * Math.PI) / 180; // wind blows FROM windDir; grid frame
-    const wind = new THREE.Vector3(Math.sin(wr) * windMs, 0, -Math.cos(wr) * windMs);
-    const cp = camera.position;
-    for (const f of this.fires) {
-      const s = SPEC[f.kind]; if (!f.lit || s.smoke <= 0) continue;
-      if (f.pos.distanceToSquared(cp) > SMOKE_RANGE * SMOKE_RANGE) continue;
-      if (this.rng.next() < s.smoke * dt * 3 && this.smokeP.length < 400)
-        this.smokeP.push({ power: s.power, pos: f.pos.clone().add(new THREE.Vector3(0, s.flameH, 0)), vel: new THREE.Vector3((this.rng.next() - 0.5) * 0.2, 0.5 + this.rng.next() * 0.4, (this.rng.next() - 0.5) * 0.2), age: 0, life: 6 + this.rng.next() * 6, size: 0.4 });
+    // smoke puffs near the camera, closed-form in time (D-220: frozen renders show them), nearest smoking fires first
+    const wind = windWorld(windDirDeg, windMs), u = Math.max(1, windMs), cp = camera.position, camQ = camera.quaternion;
+    const near: { i: number; d2: number; g: number }[] = [];
+    this.fires.forEach((f, i) => { if (!PUFFS[f.kind]) return; const g = this.emission(i); if (g <= 0) return; const d2 = f.pos.distanceToSquared(cp); if (d2 <= SMOKE_RANGE * SMOKE_RANGE) near.push({ i, d2, g }); });
+    near.sort((a, b) => a.d2 - b.d2);
+    let k = 0; const P = { x: 0, y: 0, z: 0, size: 0, age: 0, fade: 0 }, v = new THREE.Vector3(), sc = new THREE.Vector3();
+    for (const { i, g } of near) {
+      const f = this.fires[i], K = PUFFS[f.kind]; if (k + K > SMOKE_MAX) break;
+      const s = SPEC[f.kind], w0 = SOURCE[f.kind]?.w0 ?? 0.6, tau = sourceTau(f.kind, g) / u; // the wind thins the column (1 / u)
+      for (let j = 0; j < K; j++) {
+        puffAt(f.kind, f.seed, j, t, wind, P);
+        v.set(f.pos.x + P.x, f.pos.y + s.flameH + P.y, f.pos.z + P.z); m4.compose(v, camQ, sc.set(P.size, P.size, P.size)); this.smoke.setMatrixAt(k, m4);
+        // optical depth through the puff: the column's τ at the source diluted as it widens (w0 / size), ×2 for the puffs'
+        // overlap along the column (C)
+        this.smokeAlpha.array[k] = (1 - Math.exp(-2 * tau * (w0 / P.size))) * P.fade;
+        this.smokeGlow.array[k] = f.lit ? s.power * 0.6 * Math.exp(-P.age * 1.5) : 0; k++; // lit by its fire as it leaves the flame (C)
+      }
     }
-    let k = 0; const camQ = camera.quaternion;
-    this.smokeP = this.smokeP.filter(p => (p.age += dt) < p.life);
-    for (const p of this.smokeP) {
-      p.vel.lerp(new THREE.Vector3(wind.x * 0.6, 0.35, wind.z * 0.6), Math.min(1, dt * 0.5)); p.pos.addScaledVector(p.vel, dt); p.size += dt * 0.35;
-      m4.compose(p.pos, camQ, new THREE.Vector3(p.size, p.size, p.size)); this.smoke.setMatrixAt(k, m4);
-      this.smokeAlpha.array[k] = 0.35 * Math.min(1, p.age * 2) * (1 - p.age / p.life);
-      this.smokeGlow.array[k] = (p.power ?? 1) * 0.6 * Math.exp(-p.age * 1.5); k++; // lit by its fire as it leaves the flame (C)
-    }
-    this.smoke.count = k; this.smoke.instanceMatrix.needsUpdate = true; this.smokeAlpha.needsUpdate = true; this.smokeGlow.needsUpdate = true;
+    this.smokeN = k; this.smoke.count = k; this.smoke.visible = k > 0; this.smoke.instanceMatrix.needsUpdate = true; this.smokeAlpha.needsUpdate = true; this.smokeGlow.needsUpdate = true;
   }
   /** the lit fires that get a point light for an eye at `p`: the nearest `lights.length` within 90 m */
   private lightedFires(p: THREE.Vector3): FireSource[] {
@@ -287,7 +320,7 @@ export class FireSystem {
       e += L.candela * FIRE_FLICKER_MEAN * pointAttenuation(q.distanceTo(p), L.cutoff, L.decay); }
     return e * this.lightScale;
   }
-  stats() { return { fires: this.fires.length, lit: this.fires.filter(f => f.lit).length, smoke: this.smokeP.length }; }
+  stats() { return { fires: this.fires.length, lit: this.fires.filter(f => f.lit).length, smoke: this.smokeN }; }
 }
 
 /** lit state of a scheduled fire (C). `seed` (0..100) staggers the fires so a town lights up over an hour, not at once. */

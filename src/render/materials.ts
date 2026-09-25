@@ -19,6 +19,7 @@ import { SkySpecularNode } from './envmap';
 import { incisionNodes } from './incision';
 import type { Atlas } from '../arch/carving';
 import { roofedNode } from './probes/roofs';
+import { RAIN_CELL } from '../sky/clouds';
 
 export const WEATHER = { wetness: uniform(0), snow: uniform(0), puddles: uniform(0) };
 /** seasonal ground cover (0..1): green = living herb layer, dry = standing straw/stubble (set per frame from the date; season.ts) */
@@ -765,9 +766,11 @@ const wantsSkySpecular = (d: SurfaceDef) => (d.metal ?? 0) > 0 || d.roughness < 
  *  that clones (door fittings, roof slabs) keep it */
 export class SurfaceNodeMaterial extends THREE.MeshStandardNodeMaterial {
   skySpecular = false;
-  setupEnvironment(builder: any): any { return this.skySpecular ? new SkySpecularNode() : super.setupEnvironment(builder); }
-  customProgramCacheKey(): string { return super.customProgramCacheKey() + (this.skySpecular ? '|skyspec' : ''); }
-  copy(source: any): this { super.copy(source); this.skySpecular = !!source.skySpecular; return this; }
+  /** a node scaling the sky reflection (the wet sheen of a porous surface, D-219), or null */
+  skySpecularScale: any = null;
+  setupEnvironment(builder: any): any { return this.skySpecular ? new SkySpecularNode(this.skySpecularScale) : super.setupEnvironment(builder); }
+  customProgramCacheKey(): string { return super.customProgramCacheKey() + (this.skySpecular ? '|skyspec' : '') + (this.skySpecularScale ? 'W' : ''); }
+  copy(source: any): this { super.copy(source); this.skySpecular = !!source.skySpecular; this.skySpecularScale = source.skySpecularScale ?? null; return this; }
 }
 
 const cache = new Map<string, THREE.MeshStandardNodeMaterial>();
@@ -794,6 +797,18 @@ export function surfaceMaterial(name: string, opts: { vertexColors?: boolean; va
   cache.set(key, m);
   return m;
 }
+/** CPU mirrors of the weather terms in `finish` (tests, D-219). `ny`: the surface normal's up component; `n11`: the noise
+ *  value (−1..1) where it enters. The albedo factor of a wet surface (1 = dry) */
+export const smoothJS = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+export function wetAlbedoFactor(wetness: number, porosity: number, ny: number, roofed = 0): number {
+  const wet = wetness * (0.55 + 0.45 * smoothJS(0.75, 0.95, ny)) * (1 - roofed); return 1 - wet * porosity * 0.5;
+}
+/** the snow cover's share of a surface (0..1) for the weather's snow cover (0..1) */
+export function snowMaskCPU(snowCover: number, ny: number, n11: number, roofed = 0): number {
+  return Math.min(1, Math.max(0, smoothJS(0.75, 0.95, ny) * snowCover * (1 - roofed) * (1.6 - (n11 + 1) * 0.3)));
+}
+/** the ground's wetness under the approaching rain cell (RAIN_CELL: radius R, strength w) at distance d from its centre */
+export const cellWetness = (d: number, R: number, w: number) => w * (1 - smoothJS(0.6 * R, 1.2 * R, d));
 /** weather on top of a layer, then the material's colour, roughness, metalness and normal nodes */
 function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   const p = positionWorld, n = normalWorld;
@@ -802,10 +817,15 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   const up = smoothstep(0.75, 0.95, n.y);
   // nothing is wet, puddled or snowed on under the halls' roofs (session 5: probes/roofs.ts)
   const open = float(1).sub(roofedNode());
-  const wet = WEATHER.wetness.mul(float(0.55).add(up.mul(0.45))).mul(open);
+  // the ground under the approaching rain cell is wet already (RAIN_CELL; D-219: the darkening front seen from the Terrace)
+  const cellD = vec2(p.x.sub(RAIN_CELL.x), p.z.sub(RAIN_CELL.y)).length();
+  const cellWet = RAIN_CELL.w.mul(float(1).sub(smoothstep(RAIN_CELL.z.mul(0.6), RAIN_CELL.z.mul(1.2), cellD)));
+  const wetness = max(WEATHER.wetness, cellWet);
+  const wet = wetness.mul(float(0.55).add(up.mul(0.45))).mul(open);
   alb = alb.mul(float(1).sub(wet.mul(d.porosity * 0.5)));
   // puddles: only in the low spots of a broad noise field (≈15% of flat area at full puddle state), never a uniform sheen
-  const puddle = up.mul(WEATHER.puddles).mul(open).mul(smoothstep(0.68, 0.74, mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5)));
+  const puddles = max(WEATHER.puddles, cellWet.sub(0.4).div(0.6).max(0));
+  const puddle = up.mul(puddles).mul(open).mul(smoothstep(0.68, 0.74, mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5)));
   // snow: zero when snow = 0 (noise only modulates coverage, never adds snow on its own)
   const snowMask = clamp(up.mul(WEATHER.snow).mul(open).mul(float(1.6).sub(mx_noise_float(p.mul(0.8)).add(1).mul(0.3))), 0, 1);
   m.colorNode = mix(alb, vec3(0.92, 0.93, 0.96), snowMask);
@@ -820,6 +840,10 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   if (wantsSkySpecular(d)) {
     if (m instanceof SurfaceNodeMaterial) m.skySpecular = true;
     else { (m as any).setupEnvironment = () => new SkySpecularNode(); (m as any).skySpecular = true; } // (materials built elsewhere as plain standard ones; the flag tells the SSR composite, D-216)
+  } else if (m instanceof SurfaceNodeMaterial && (d.metal ?? 0) === 0 && d.porosity >= 0.5) {
+    // D-219: a porous surface too rough to reflect the sky when dry (earth, mud plaster, lime plaster, timber) reflects it when
+    // wet: the water film and the puddles are smooth. Scaled by the wetness, so the dry look is unchanged
+    m.skySpecular = true; m.skySpecularScale = max(wet, puddle);
   }
 }
 

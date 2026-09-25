@@ -1,6 +1,13 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Smoke and dust (D-220, session 8 workstream; rubric s7 fix 5).** Rendered at high (moments `town-smoke-dusk`,
+  `town-smoke-dusk-rahmat`, `dawn-stair-top`, each with an A/B capture): the smoke layer over the lower town reads as a pale
+  band (+22 % Weber over the town rows from the Terrace, +10–12 % from Kuh-e Rahmat, faint at dawn over the villages); the town
+  itself is only a line of specks at that range, and no rising plume is visible at dusk (embers). **Dust: never seen in a
+  render** (0 emitters: an ordering bug, fixed after the last render, node-verified only); animal/flock/cart dust unverified.
+  **The town's hearth flames now follow the sim's household day:** on a warm evening they are out by ~19:30 (Q-502). All amounts
+  C (Q-500 … Q-506). The per-quarter haze sheets are gone (replaced by the layer).
 - **Session 7 ENDED (HANDOFF.md).** Everything merged; tsc clean, lint:all OK; **full `npm test` not run on the final merged tree; soak not re-run after D-211's last fix; nothing from the gap fills seen in a browser.** Open at the top: rain curtains have no visible effect (debug job 300), slope view at a tree, B24 fire light through parapets, Naqsh moiré, rubric pass 2 fix list items 2–10. The rain-day planner hang is fixed (9e2c5e7) but its upstream cause (a ration issue shifted to 23:54) is not.
 - **Rubric s7 pass 2, geometry bugs (D-217; R1, R2, R8, R9, R11).** Still weak: the relief carving is still procedural
   (PLACEHOLDER, NEEDS #10) and casts no shadow on its wall beyond the screen-space contact shadows; the contours now carry

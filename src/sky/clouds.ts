@@ -27,6 +27,25 @@ function noiseAtlas() {
 const BASE_TILE = 7000, WEATHER_TILE = 46000, DETAIL_TILE = 1400;
 
 export const CLOUD_BASE = 1500, CLOUD_TOP = 3600; // m above the observer (C)
+/** the approaching rain cell (world x, world z, radius m, strength 0..1; 0 = none), one uniform shared by the cloud layer
+ *  (thicker cloud above it), the sun (the cell's cloud shades it: cellShadowNode) and the surface materials (the ground
+ *  under it is wet: materials.ts). Set each frame from RainShafts.cellWorld (world.ts). D-219 */
+export const RAIN_CELL = uniform(new THREE.Vector4(0, 0, 1, 0));
+/** TSL: the direct sun's transmittance past the rain cell's deep cloud at world point `p` (C, D-219): the sun ray from p
+ *  meets the cloud base (CLOUD_BASE above the court) at q; within ~R of the cell's centre the cloud (τ ≫ 10) blocks the beam,
+ *  softly over its ragged edge. So the plain under and downsun of the cell lies in its shadow: the darkening front */
+/** CPU mirror of cellShadowNode (tests): p = world [x, y, z], sun = unit vector toward the sun, cell = [x, z, R, strength] */
+export function cellShadowAt(p: [number, number, number], sun: [number, number, number], cell: [number, number, number, number]): number {
+  const s = Math.max(CLOUD_BASE - p[1], 0) / Math.max(sun[1], 0.05), qx = p[0] + sun[0] * s, qz = p[2] + sun[2] * s, d = Math.hypot(qx - cell[0], qz - cell[1]);
+  const t = Math.min(1, Math.max(0, (d - 0.55 * cell[2]) / (0.7 * cell[2]))), sm = t * t * (3 - 2 * t);
+  return 1 - (1 - sm) * cell[3] * 0.9;
+}
+export function cellShadowNode(p: any, sunDir: any): any {
+  const s = max(float(CLOUD_BASE).sub(p.y), 0).div(max(sunDir.y, 0.05));
+  const q = vec2(p.x.add(sunDir.x.mul(s)), p.z.add(sunDir.z.mul(s)));
+  const d = q.sub(vec2(RAIN_CELL.x, RAIN_CELL.y)).length();
+  return float(1).sub(float(1).sub(smoothstep(RAIN_CELL.z.mul(0.55), RAIN_CELL.z.mul(1.25), d)).mul(RAIN_CELL.w).mul(0.9));
+}
 
 export class VolumetricClouds {
   readonly mesh: THREE.Mesh;
@@ -43,7 +62,7 @@ export class VolumetricClouds {
   readonly wind = uniform(new THREE.Vector2(3, 0));          // m/s, world x/z
   /** the approaching rain cell (world x, world z, radius m, strength 0..1; strength 0 = none): the cloud above it is
    *  thicker and taller, so the curtain hangs from a darker base (the light march does the darkening). C (session 3). */
-  readonly cell = uniform(new THREE.Vector4(0, 0, 1, 0));
+  readonly cell = RAIN_CELL;
   /** `air`: the medium between the eye and the cloud (aerial.ts, D-156): the terrain's aerial perspective, so distant cloud
    *  sinks into the same haze as the ranges below it (D-064: one air) */
   constructor(radius: number, quality: string, readonly air: Air) {

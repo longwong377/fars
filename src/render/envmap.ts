@@ -82,6 +82,9 @@ export const specularOcclusionCPU = (vis: number, nv: number, _r?: number) =>
 const ENV_DEBUG = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('envdbg') : null;
 export class SkySpecularNode extends LightingNode {
   static get type() { return 'SkySpecularNode'; }
+  /** `scale`: a node that scales the reflection (materials.ts: the wet sheen on porous surfaces that are otherwise too rough
+   *  to reflect the sky; D-219), or none */
+  constructor(private scale: any = null) { super(); }
   setup(builder: any): any {
     const r2 = roughness.mul(roughness);
     const refl = positionViewDirection.negate().reflect(normalView);
@@ -93,11 +96,13 @@ export class SkySpecularNode extends LightingNode {
     // specks at the scribes' doorway, session-6 rubric)
     const gV = geometricNormalWorld().transformDirection(cameraViewMatrix), reflG = positionViewDirection.negate().reflect(gV);
     const offWorld = mix(reflG, gV, r2.mul(r2)).normalize().transformDirection(cameraWorldMatrix);
-    const vis = skyEnv.occlusion ? skyEnv.occlusion(positionWorld, normalWorld, dirWorld, offWorld) : float(1);
+    // (the wet sheen, `scale`, lies only where the sky reaches — wetness is zero under the roofs — so it skips the probe field's
+    // visibility lookup: one environment fetch is its whole cost, paid on the dry plain too, D-219)
+    const vis = skyEnv.occlusion && !this.scale ? skyEnv.occlusion(positionWorld, normalWorld, dirWorld, offWorld) : float(1);
     const occ = specularOcclusion(vis, dot(normalView, positionViewDirection), roughness);
     // debug (?envdbg=occ, chosen when the shader is built): the sky visibility (red) and the occlusion (green) as radiance
     if (ENV_DEBUG === 'occ') { builder.context.radiance.addAssign(vec3(vis, occ, 0).mul(0.05)); return undefined; }
-    builder.context.radiance.addAssign(radiance.mul(occ).mul(skyEnv.intensity));
+    builder.context.radiance.addAssign(this.scale ? radiance.mul(occ).mul(skyEnv.intensity).mul(this.scale) : radiance.mul(occ).mul(skyEnv.intensity));
     return undefined;
   }
 }

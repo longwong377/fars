@@ -4746,6 +4746,166 @@ and left the bearers at the grave at midnight. `funeralOf` keeps a funeral at le
 sunset (C): a rain into the evening does not keep the dead in the house; they are carried out in it, the cloak drawn over
 the head. The same cap for a lodger's household. Test: tests/religion.test.ts (every funeral of the year).
 
+## D-219 Weather you can see: rain curtains, wet ground, snow, streaks and flakes; the ration issue's rain shift (session 7 workstream; REVIEWS/rubric_s7_pass2.md fix-list item 4, R6; HANDOFF 2a, 2b)
+- **Read first: what is still broken, weak or unverified.**
+  - **The §1.1 rain-approach moment, as framed, still shows almost no curtain: 4 % darker in its mask (PNG luminance).** The
+    factor that zeroed R6 is not in the shafts: it is the eye. The moment stands 5 m inside the Apadana W portico
+    (skyVis 0.05), so the exposure law adapts to the portico's shade (exposure **36**, run 1; the test quality has no frame
+    meter, `meterLn` null, and at high the meter may close down by 1 EV at most, D-159). The sky behind the columns is then
+    ~5–7× display white, on AgX's shoulder: a **solid red** shaft at full opacity renders as pale pink (255, 239, 230) against
+    the sky's (236, 241, 246); the real curtain, 22 % darker than the sky in scene-linear light, moves the PNG by 4 %. The
+    rubric's "uniform white card" is the same saturation. **Not fixed here** (the eye law and the meter bounds are the lead's,
+    D-117/D-159): either re-frame the moment in the open, or let the meter close down further for a frame that is mostly
+    bright exterior. Measured alternative stances below.
+  - **My ≥ 15 % target is NOT met in the PNG** at the half-open stance tried (Apadana platform NW corner, grid −57, 55,
+    exposure 7.1, skyVis 0.31): the sky in the shafts' mask is **11.7 % darker** in luminance (median; 75th pct 14.4 %, 90th
+    16.5 %, max 18 %; sRGB 195 → 186). In scene-linear light the same pixels are **22 % darker** (AgX inverted). Tone-mapping
+    forward from that, an open-air exposure of 2.5 would give ~16 % (estimate, not rendered). CPU per shaft core: 18–34 %.
+  - **No dark cloud base at quality test** (the volumetric clouds are off there: CLOUD_MARCH test = 0): the curtains hang
+    from a pale sky. At high the cell's cloud is thicker (clouds.ts boost); **no high render was made** for this workstream.
+  - **The darkening front is not visible from the Terrace.** The cell's cloud shadow and wet ground (new, below) lie 2.5–8 km
+    out; from 16 m above the plain that ground is 1–4 pixel rows under the horizon at 540 lines: the "front" variant (cell
+    shadow and wetness off) changes the far plain band by 1 % (Y 0.341 → 0.344). What the eye sees of the cell is its
+    curtain.
+  - **Wet ground reads darker only near the eye.** Held wetness 1 against 0 at the open stance: the plain 45–60 m below is
+    8 % darker (median), but at grazing angles (rows 330–450) 3–7 % *brighter* (the new sky sheen of the water film, Fresnel
+    at 75–85°). Puddles (15 % of flat area, the old noise field) now show as bright sky-coloured patches, flat and sharp at
+    quality test (no SSR): they read a little like paint or snow patches. The albedo law itself (porosity × 0.5) is old C.
+  - **Snow:** lies on the court floor (+45 % luminance against snow held 0; floor sRGB 135/140/144 → 158/167/178) and on the
+    relief ledges below eye level; the **merlon tops are not seen from this stance** (the eye is below them: 0/255 change in
+    the merlon band, which is correct, not a bug). **No footprints.** The brown in the snow frame is the calibrated horizon
+    under full overcast (0.279, 0.273, 0.256: R > G > B): the clear-sky dome model has no overcast whitening; **open, not
+    fixed** (skySystem, the lead's). Flakes: round and never lens-sized now; their density is node-measured only (visually
+    still sparse).
+  - **Not rendered:** the streak orientation fix (after run 1), the rain-columns moment after it, anything at quality high.
+    Run 1 (rain-columns, before the orientation fix) showed the streaks, bright on the dark stair façade.
+  - `people_days_r8` "B S5 child by the water" timed out (338 s > 300 s) under load on this branch; it is the known timing
+    failure (HANDOFF), not an assertion; not re-run alone.
+- **What (all C unless said):**
+  1. **Rain shafts (rainShafts.ts).** The colour is built on the GPU from the air (aerial.ts): the curtain's light
+     L = J·(1 − T_air·(1 − k)) at opacity α = (1 − e^{−τ})·profile·streaks, J the air's in-scatter table in the ray's
+     direction (the same table as the fog and the clouds), T_air the fog's own optical depth from the eye to the column's
+     core (per channel). Composited over the sky this is exactly the fog equation with the curtain as the surface. k = 0.42
+     at the ground → 0.22 at the cloud base (a density and shade gradient: darker under the base; Q-490); snow 1.05. The
+     profile: dense over the lower ~80 %, into the cloud base above 0.78; streaks ~200 m across, a few km tall, falling
+     7 m/s. Before: a CPU copy of the fog colour × 0.35 and T_air in the opacity. Debug: `RainShafts.debug(0|1|2|4)` at run
+     time (uniforms), `stats()`; `?shaftdbg` kept.
+  2. **The rain cell** (RAIN_CELL, one uniform: clouds, sun, materials): the sun's direct light is shaded under its cloud
+     (cellShadowNode: × (1 − 0.9 × strength) within 0.55 R of the centre projected along the sun to the cloud base, full at
+     1.25 R; Q-494); the ground under it is wet out to 0.6–1.2 R, puddled above 0.4.
+  3. **Wet surfaces (materials.ts, envmap.ts):** porous surfaces too rough to reflect the sky when dry (porosity ≥ 0.5:
+     earth, mud plaster, lime plaster, timber, matting) reflect it scaled by their wetness (SkySpecularNode `scale`; one
+     environment fetch, no probe visibility lookup: wetness is zero under the roofs). Dry look unchanged. Reflection class
+     1 for them (tests/reflections_s7 updated); the SSR composite's subtraction is exact at wetness 1 and over-subtracts by
+     ≤ 20 % of the sky reflection at 0.8 (the SSR only runs below roughness 0.5, i.e. wetness > ~0.8 on these).
+  4. **The ground is dry ahead of the day's rain (weatherState.ts):** it interpolated toward the day-end state, which
+     includes the rain to come: 0.48 at 11:27 on day 299 with yesterday dry, now 0.006. Day-end states and the climate are
+     unchanged.
+  5. **Streaks and flakes (weatherVfx.ts):** lit by the sky (hemisphere light: rain 0.8 × the mean radiance round it; flakes
+     ρ 0.85 under sky, ground and a quarter of the sun); never under a pixel (widened, opacity × the inverse: light
+     conserved); nothing within 0.5 m of the lens, full by 1.5 m; volumes rain 10 m × 10 m high, snow 9 m × 8 m, snow twice
+     the rain's count (4.5× and 14× the old density per m³); flakes round and 12 mm (were 30 mm diamonds). Streaks along the
+     drop's velocity, turned to face the eye (they leant both ways).
+  6. **Snow on the ground lights the scene from below (skySystem.ts):** the ground's reflectance mix(soil, snow 0.82–0.86,
+     snow cover) for the hemisphere's ground colour, the clouds' base and the air's ambient in-scatter (Q-493).
+  7. **The ration issue's rain shift (population.ts, HANDOFF 2a):** the upstream cause is in `rationRun`, not `workBlock`:
+     the open-depot issue hour was pushed past every wet spell of the day (a camp woman, pid 1190, walking up at 23:32 and
+     queueing at 23:57 on a day of unbroken rain). `rainShiftedIssue`: the shifted issue waits for another day when it would
+     start later than the queue's length before sunset (Q-495). `workBlock`'s depot slot must also fit the block in
+     daylight. Late queues (after 20:00) in a 1/7 sample of the town on that day: 5 → 0.
+- **Measured (renders: `tests/e2e/dbg_weather.spec.ts`, quality test, WebGPU/SwiftShader; images in the worktree's shots/,
+  wx-*; run 1 suffixed -run1):** above. Run 1 (portico stance): real 232/236/242 vs shafts hidden 236/241/246 (sRGB, mask
+  mean); red at full opacity 255/239/230. Run 2: the open stance and the portico at the open stance's exposure (7.1): 11 %
+  and 10.9 % darker in the mask (90th pct 16.5 %, 16.4 %).
+- **Tests:** tests/rain_shafts.test.ts (a mid-rate 8 mm/h shaft darkens the sky ≥ 15 % in scene-linear light for ≥ 3 of the
+  7 shafts at the moment's own air; the gradient); tests/weather_visible.test.ts (wet darkening, dry before the rain, the
+  cell's wetness and shadow, snow mask on up faces only, snow ground albedo, ≥ 1 px, near fade, density); tests/shader_build
+  (the shafts with the air's nodes, streaks and flakes generate WGSL); tests/rain_day_plans.test.ts (no ration queue after
+  20:00 on a day of rain; rainShiftedIssue). tsc clean; lint:all OK.
+- **Cost:** shafts +1 texture fetch and the fog's optical depth per shaft pixel; the wet sheen one environment fetch per pixel
+  on porous surfaces (paid dry too); snow flakes 2× the drop count on the CPU per frame (24 k matrices at ultra).
+- **Alternatives not taken:** darkening k further to pass the PNG threshold (no evidence; accuracy first); a dark cloud-base
+  disc over the cell at test quality (a stand-in for the volumetric clouds); changing the eye law or the meter's bounds
+  (the lead's; recommended above); gating the wet sheen with a shader branch (textureSample in non-uniform control flow).
+
+## D-220 Smoke and dust: the people's fires from the sim, a smoke layer over the town and villages, dust of work and feet (session 8 workstream; rubric s7 pass 2 fix 5; brief §1.1 "smoke rising from the town at dusk as lamps are lit", §5.4)
+- **Read first: what is broken, unverified or placeholder.**
+  - **Rendered (high, SwiftShader, two views, each also captured with the smoke and dust hidden):** the smoke shows as a pale
+    band over the lower town and the plain in front of it, not as a picture of a smoky town: at 1 km and 20 m below the Terrace
+    the town is itself a line of dark specks 10–20 px tall, and from Kuh-e Rahmat at 228° the quarters sit at the frame's left
+    edge beyond the Terrace's S palaces. Rising plumes are not visible at 18:48 (most hearths are embers by then, τ ≈ 0.02).
+    Measured (display luma, with − without): `town-smoke-dusk` rows 250–262 (the town) +10.3 / +8.9 (Weber +22 %), rows
+    246–300 +3.5 … +10 (+13 … +22 %), the near-horizon sky rows 200–240 −3.9 (the smoke darker than the bright twilight horizon,
+    part of it the frame meter's exposure), the parapet in the foreground 0.0 (control, |Δ| 0.25); `town-smoke-dusk-rahmat`
+    rows 250–300 +4.2 … +6.1 (Weber +10 … +12 %), rows 420–540 (the Terrace, control) +0.1. The contrast is measurably
+    non-zero; whether it *reads* as the §1.1 moment is for the rubric.
+  - **Render 2 (high):** `dawn-stair-top` (05:24, day 0) with − without smoke: a faint haze along the horizon line where the
+    villages' layers veil the far tree line (row 205 mean +6.8 luma; 0.8 % of the frame changes by ≥ 4), weak. `hall100-site`
+    (09:30): **no dust at all — the dust system reported 0 emitters in every rendered view.** Cause found after the render: the
+    world cleared the frame's emitters (`dust.begin`) after the crowd had already reported them. Fixed (begin before
+    `crowd.update`) and verified in node with a real Crowd (a walker, a herder and a mason report emitters; 7 puffs), **NOT
+    RE-RENDERED** (the workstream's two renders were used). Walking animals reported no emitter in the node crowd (the herd's
+    animals did not walk there): animal and flock dust unverified; carts come from the traffic movers (unverified).
+  - All amounts are C: the fuel (dung cake and brushwood, Q-500), the emission factors and smoke optics (recollection, NOT SEEN,
+    Q-501), the boundary layer (Q-504), the dust (Q-505). The hours are the sim's (lives.json meals, C, Q-064).
+  - **The town's night flames changed.** A house hearth's flame now shows only while its household's day has it lit (lighting,
+    cooking, a low evening fire on a cool night): on a warm evening (night minimum ≥ 8 °C, e.g. day 14) the town's hearth flames
+    are out by ~19:30 and only embers smoke (Q-502). On day 0 (minimum 6.7 °C) they burn low until bedtime (~19:00–21:00). The
+    previous C schedule lit ~70 % of them from sunset to 1.5–3 h after; the far-flame work (2 px minimum) is unaffected.
+  - The sim's villages stand elsewhere than the rendered ones (Q-503): village smoke uses the plain's mean household day.
+  - The smoke layer's ray stops at a ground plane fitted over each settlement's footprint; houses and trees inside the layer,
+    and land rising under the downwind tail, are not seen by it (the box's faces inside a hill are hidden by the depth test).
+  - Walker dust is taken only from people the crowd draws (skinned or impostor) within 220 m; the fauna's yard animals and
+    game raise none; a hauling gang's sledge dust is emitted by one in three of its men at their own 6.2 m ahead.
+- **Why no frame had smoke (the rubric's question: absent, too faint, culled or killed by the composite?).**
+  1. *Absent in every frozen render*: the fire system's near puffs were spawned at a rate × dt, and a test render
+     (`renderOnce`) passes dt = 0: not one puff in any moment render ever (node test: `smoke_dust.test.ts`).
+  2. *Too faint by design*: since D-195 a household hearth's plume is τ ≈ 0.03 (a faint wisp, correct for one hearth).
+  3. *Not in frame*: the town's haze sheets existed, but no moment looked at the town at dusk (gate-dusk looks E at the Gate
+     wall; the dawn views look WNW over the plain, the town lies SSW), and the villages had no fire and no smoke at all.
+  4. *Dust*: no code existed.
+  5. *Not the composite*: the effect materials draw after the opaque pass into `output` and leave the G-buffer alone
+     (fx.ts colourOnly, D-183); the SSGI composite subtracts only the diffuse G-buffer's sky term, which they do not touch.
+- **Decision.**
+  - `src/world/hearthSmoke.ts`: each town hearth ('home') and oven ('bake') is linked through its house plot to the household
+    living there (1,241 of 1,304 town fires). Its phase follows the sim's household day (`Population.hday`): relit 0.3 h before
+    breakfast; lit by the 'cook' act 0.35 h before the evening meal (a smoky start from embers, 0.15 h), cooking through the
+    meal, then a low fire until bedtime on a cool night or embers for 1 h; the oven fired 0.4 h before baking (before
+    breakfast on a morning baking day, else from the evening meal − 1.2 h). Emission per phase in g/h (Q-501); a source's
+    optical depth k·Q/(u0·w0). The other fires keep their C schedules.
+  - The smoke of each quarter's households (and of each village: the plain's mean household day × population) gathers in a
+    leaky box: column M(t) = Σ flux × residence, residence 1/(u/L + 1/2400 s), u ≥ 0.5 m/s; vertical profile
+    e^(−h/H1) − e^(−h/H2) (peak 14 m at H1 = 30 m in stable air, mixed up to 600 m by day); a downwind tail e^(−x/(u·2400 s)).
+  - `src/world/landSmoke.ts`: one instanced box per settlement along the wind; the fragment integrates the extinction along
+    the view ray exactly over six segments (the profile and a slow noise at each segment's middle) and draws the smoke's
+    single-scattered skylight and sun (smokeSkyRadiance, D-070) with opacity 1 − e^(−τ). Front faces from outside, back
+    faces from inside a box. CPU mirror `cellTau`. Replaces the per-quarter haze sheets (haze.ts keeps the plumes).
+  - `fire.ts`: the near puffs are closed-form in time (PUFFS per kind, 8 s life, the velocity relaxing from the buoyant
+    rise to the wind drift); their opacity from the fire's emission (a charcoal brazier nearly clear, a pitch torch sooty).
+    `haze.ts`: each plume's opacity from its fire's emission now.
+  - `src/world/dust.ts`: puffs behind walkers, working animals, flocks and carts, off the masons' chisels and the hauling
+    sledges; closed-form in time; only on dry ground (weather wetness < 0.25, no snow, no rain; stone dust in any dry-sky
+    weather), none in the roofed halls, 0.3 on the Terrace's courts. The crowd (`Crowd.dustTap`) and the working animals
+    (`Animals.onPush`) report emitters as they are drawn.
+  - Moments: `town-smoke-dusk` (Terrace W edge looking SSW over the lower town, 24°) and `town-smoke-dusk-rahmat` (Kuh-e
+    Rahmat, 40°), day 14 18:48 (wind 0.8 m/s, 13 min after sunset), each captured again with the smoke and dust hidden
+    (moments.spec `ab`), logging the draw calls with and without.
+- **Measured in node** (`tests/smoke_dust.test.ts`, 15 tests): τ along the line of sight from the Terrace eye to the S quarters
+  at 18:48 on day 14: 0.19–0.35 (0.24 to q_s1's far side, 0.35 to q_s4); at 12:30 < 0.03; after midnight no cell. From Kuh-e
+  Rahmat to the W quarter 0.074; from the Grand Stair to village p21 (4.7 km) at dawn 0.39. A 6 m/s wind cuts the Terrace τ by
+  more than half. A lit hearth near the eye has 5 puffs at dt = 0 (was 0); peak puff opacity lighting 0.116, cooking 0.037,
+  embers 0.025, charcoal brazier < 0.01. Dust: none on wet ground (day 3 after rain), none in a hall, halved puffs beyond 90 m,
+  none beyond 220 m. Shaders build to WGSL in node.
+- **Cost.** Draw calls: +1 (the smoke layer; +1 more only while the eye stands inside a quarter's or village's layer), +1 dust,
+  −1 (the haze sheets gone): net +1…+2 against the ≤ 8 budget. GPU: the layer's fragment is ~650 ALU operations (6 segments,
+  4 exp and one 3-D noise each) over the pixels its boxes cover (estimate: ~0.1–0.2 ms at 1080p on a mid-range GPU for
+  ~30 % coverage with tails overlapping; NOT MEASURED on hardware, SwiftShader only). CPU: the model recomputes when the
+  minute or the wind changes (~50 cells, ~0.2 ms); on a new day it rebuilds ~3,300 household days (~150–300 ms, once).
+- **Alternatives.** Brighter or denser plumes per hearth (rejected: D-195's physics; the landscape reads from the layer, not
+  the wisps); camera-facing haze sheets per quarter (the old way: a flat card whose opacity does not grow along a grazing
+  line of sight, which is exactly how the layer is seen from the Terrace); a ray-marched volume against the depth buffer
+  (reading the depth in the transparent pass copies a multisampled depth at quality test/low: risky on SwiftShader).
+- **Tier:** C throughout (see Q-500 … Q-506); the method (single scattering, Beer–Lambert, mass conservation) A.
 ## D-223 Mountains, cliffs and the plain from the Terrace (session 8; rubric s7 pass 2 fixes 8 and 9, R9)
 - **Read first: what is broken, weak or unverified.**
   - RENDER_STATUS_PLACEHOLDER
