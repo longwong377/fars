@@ -77,7 +77,11 @@ function feathers(u: number, v: number, w: number, h: number, depth: number) {
 
 // ---------------- mass helpers ----------------
 type Col = C3 | ((x: number, y: number) => C3);
-const M = (add: SDF[], o: Partial<Mass> & { colour: Col; amp: number }): Mass => ({ add, round: 0.018, edge: 0.45, ...o });
+// D-226 (rubric s7 pass 2, fix item 1: "clay cut-outs, not carving"): a mass is cut back from the ground in a near-vertical
+// step that holds most of its height (edge 0.65, was 0.45) and its arris is rounded over ~1 % of the figure's height (round
+// 0.012, was 0.018: 9 mm on a register figure, now 5 mm less); the Persepolis carving is planar, not pillowed (C, after
+// photographs of the Apadana reliefs, NOT SEEN this session)
+const M = (add: SDF[], o: Partial<Mass> & { colour: Col; amp: number }): Mass => ({ add, round: 0.012, edge: 0.65, ...o });
 const inc = (s: SDF, depth = 0.1, width = 0.0022): Incision => ({ s, depth, width });
 export interface Built { masses: Mass[]; incisions: Incision[] }
 
@@ -214,9 +218,11 @@ export function human(fr: Frame, h: Human, extra: Partial<Record<Layer, Mass[]>>
   const L: Record<Layer, Mass[]> = { back: [], farArm: [], body: [], top: [], front: [] }, I: Incision[] = [];
   const g = h.garment, g2 = h.garment2, st = h.stride ?? 1, seated = !!h.seated, beltY = 0.49;
   let robe: Col = g; // the robe's paint: its colour, or the royal robe's pattern with the lion strip along its hem (below)
-  // D-151: the body rounds more toward its outline (dome 0.5 over 0.1 of the figure's height) so the robe reads as a body
-  // under cloth, not a flat cut-out; the outline keeps its crisp cut-back step (edge)
-  const BODY = { amp: 0.6, round: 0.03, edge: 0.5, dome: 0.5, domeW: 0.1, groove: 0.12, grooveW: 0.007 };
+  // D-151 domed the body toward its outline (0.5 of its height over 0.1 of the figure's) so the robe read as a body under
+  // cloth; with a quarter-round of 0.03 and a step of half the rest, the robe met the ground at a quarter of its height: a
+  // pillow ("clay cut-outs", rubric s7 pass 2). D-226: the robe is a low plane cut back in a near-vertical step of 0.75 of
+  // its height, its arris rounded over 0.012 (9 mm), a slight doming (0.15 over 0.06) left for the body under the cloth
+  const BODY = { amp: 0.6, round: 0.012, edge: 0.75, dome: 0.15, domeW: 0.06, groove: 0.12, grooveW: 0.007 };
   const body: SDF[] = [fr.spoly([[-0.064, 0.712], [-0.072, 0.64], [-0.066, 0.53], [-0.062, 0.49], [0.068, 0.49], [0.079, 0.58], [0.077, 0.655], [0.052, 0.708], [0.0, 0.724]]), fr.seg(0.0, 0.7, 0.012, 0.765, 0.031, 0.027)];
   let fold: ((x: number, y: number, t: number) => number) | undefined;
   if (seated) { // thighs horizontal, shins down to the footstool (the throne is drawn by the caller)
@@ -422,7 +428,7 @@ export const SPECIES: Record<string, Species> = {
     tier: 'B', note: 'fat-tailed ram of the Cilicians (B)' },
   lioness: { L: 0.56, H: 0.33, D: 0.17, neck: { len: 0.1, ang: 25, base: 0.075, top: 0.058, arch: 0.01 }, head: { len: 0.11, dep: 0.085, ang: -12, muzzle: 0.62 }, leg: 1, ears: 0.7, tail: 'lion', feet: 'paw', waist: 0.72,
     tier: 'B', note: 'lioness of the Elamite delegation (B/C)' },
-  lion: { L: 0.6, H: 0.37, D: 0.2, neck: { len: 0.1, ang: 30, base: 0.09, top: 0.07, arch: 0.01 }, head: { len: 0.12, dep: 0.1, ang: -8, muzzle: 0.62 }, leg: 1.1, ears: 0.7, tail: 'lion', mane: 'lion', feet: 'paw', waist: 0.75,
+  lion: { L: 0.6, H: 0.37, D: 0.215, neck: { len: 0.1, ang: 30, base: 0.1, top: 0.075, arch: 0.01 }, head: { len: 0.12, dep: 0.1, ang: -8, muzzle: 0.62 }, leg: 1.1, ears: 0.7, tail: 'lion', mane: 'lion', feet: 'paw', waist: 0.6,
     tier: 'B', note: 'lion (lion-and-bull combat, royal hero: B motif)' },
   ibex: { L: 0.42, H: 0.4, D: 0.18, neck: { len: 0.12, ang: 55, base: 0.06, top: 0.038, arch: 0.01 }, head: { len: 0.11, dep: 0.05, ang: -60, muzzle: 0.65 }, leg: 0.75, horns: 'ibex', ears: 0.7, tail: 'short', feet: 'hoof',
     tier: 'C', note: 'ibex (Libyans: ibex or kudu, RECOLLECTION, C)' },
@@ -444,7 +450,9 @@ export interface QuadBuilt extends Built { poll: [number, number]; shoulder: [nu
 /** Profile quadruped facing +x, feet at y = 0. Near legs are carved in front of the body, far legs behind it. */
 export function quadruped(fr: Frame, sp: Species, pose: QuadPose = {}): QuadBuilt {
   const out: Mass[] = [], incs: SDF[] = [], col = STONE, { L, H, D } = sp, hl = L / 2, lg = sp.leg, w = sp.waist ?? 1, paw = sp.feet === 'paw', lean = pose.lean ?? 0;
-  const BODY = { amp: 0.62, round: 0.035, edge: 0.5, dome: 0.45, domeW: 0.1, groove: 0.1, grooveW: 0.008 };
+  // D-226: the animal's body is cut back in a near-vertical step too (edge 0.7, was 0.5), its musculature rounded within it
+  // (dome 0.3 over 0.08, was 0.45 over 0.1; round 0.02, was 0.035)
+  const BODY = { amp: 0.62, round: 0.02, edge: 0.7, dome: 0.3, domeW: 0.08, groove: 0.1, grooveW: 0.008 };
   const Wt = [hl - 0.45 * D, H], C = [hl, H - 0.5 * D], B = [-hl, H - 0.35 * D];
   const shoulder = [hl - 0.42 * D, H - 0.4 * D], hip = [-hl + 0.42 * D, H - 0.3 * D];
   // --- legs: root → upper joint → lower joint → fetlock, a radius per joint; feet aimed in field (world) coordinates

@@ -15,6 +15,7 @@ import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, type SkyVi
 import { sunNormalLux, skyLux, moonLux, elongationFromFraction, extinctionK, NIGHT_LUX, REN_PER_LUX_SUN, REN_PER_LUX_SKY } from './illuminance';
 import { skyGain, fireLightScale } from './exposure';
 import { CLOUD_BASE, CLOUD_TOP, cellShadowNode } from './clouds';
+import { reliefShadowNode } from '../render/reliefShadow';
 import { localCoverageUniform, localWeatherFactor } from './cloudCover';
 import coverTable from '../data/cloud_cover_table.json';
 import { HorizonMap, HORIZON_LAYOUT, loadHorizonMap } from '../terrain/horizonMap';
@@ -178,7 +179,8 @@ export class SkySystem {
     // have not yet been seen in a browser, D-156); main.ts's FogExp2 then draws, at its fixed density
     const off = typeof location !== 'undefined' && new URLSearchParams(location.search).get('air') === '0';
     if (!off) {
-      (this.sun as any).colorNode = uniform(sunC).onRenderUpdate(() => sunC.copy(this.sun.color).multiplyScalar(this.sun.intensity)).mul(horizonVisibility(sunA, this.uSunAlt, this.uSunDirW)).mul(cellShadowNode(positionWorld, this.uSunDirW)); // (the rain cell's cloud shades the plain under it: D-219)
+      (this.sun as any).colorNode = uniform(sunC).onRenderUpdate(() => sunC.copy(this.sun.color).multiplyScalar(this.sun.intensity)).mul(horizonVisibility(sunA, this.uSunAlt, this.uSunDirW)).mul(cellShadowNode(positionWorld, this.uSunDirW)) // (the rain cell's cloud shades the plain under it: D-219)
+        .mul(reliefShadowNode(positionWorld, this.uSunDirW)); // the relief figures' shadows on their ground and on themselves (D-226)
       (this.moonLight as any).colorNode = uniform(moonC).onRenderUpdate(() => moonC.copy(this.moonLight.color).multiplyScalar(this.moonLight.intensity)).mul(horizonVisibility(moonA, this.uMoonAlt, this.uMoonDirW));
       // aerial perspective (D-156): three r186 uses scene.fogNode ahead of scene.fog (main.ts keeps its FogExp2 for the colour
       // that the rain shafts and the rivers read); the air's sun weighting reads the coarse horizon levels

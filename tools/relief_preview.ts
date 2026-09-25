@@ -11,7 +11,9 @@
 //   --bare: stone only (no paint), to judge the carving alone
 //   --panel: the Apadana audience panel as planned (planAudience), each figure at the LOD the game picks from --dist m (or
 //            --lod), rasterised per pixel as the GPU draws it, with the paint film's brush and loss noise (--nonoise: off);
-//            --mmpx (default 4) mm per pixel, --crop in metres along the façade / up from its foot; `_screen` = at --dist
+//            --mmpx (default 4) mm per pixel, --crop in metres along the façade / up from its foot; `_screen` = at --dist;
+//            --atlas: the sun's shadow as the game draws it (D-226: the relief shadow atlas marched by the sun's light, its CPU
+//            mirror reliefShadowAt) instead of the exact march of the rasterised meshes (`_atlas` files)
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 import PC from '../src/data/polychromy.json';
@@ -24,7 +26,7 @@ const opt = (k: string, d: string) => { const i = args.indexOf(k); return i >= 0
 const flag = (k: string) => { const i = args.indexOf(k); if (i >= 0) { args.splice(i, 1); return true; } return false; };
 const N = +opt('--n', '513'), LOD = +opt('--lod', '0'), OUT = opt('--out', 'shots/relief_kinds'), [SAZ, SALT] = opt('--sun', '150,22').split(',').map(Number);
 const DEPTH = +opt('--depth', '0.045'), H = +opt('--height', '0.78'), PX = +opt('--px', '420'), SHEET = flag('--sheet'), CROP = opt('--crop', ''), DIST = +opt('--dist', '0'), BARE = flag('--bare');
-const PANEL = flag('--panel'), NONOISE = flag('--nonoise');
+const PANEL = flag('--panel'), NONOISE = flag('--nonoise'), ATLAS = flag('--atlas');
 const kinds = args.length ? args : Object.keys(FIGURE_KINDS);
 mkdirSync(OUT, { recursive: true });
 const FILM = (PC as any).paint.film.v;
@@ -137,6 +139,12 @@ async function renderPanel() {
   const W = Math.round((a1 - a0) / MM), Hh = Math.round((y1 - y0) / MM), np = W * Hh;
   const hm = new Float32Array(np).fill(-1), nm = new Float32Array(np * 3), cm = new Float32Array(np * 3), pm = new Float32Array(np), gm = new Float32Array(np);
   const cam = [0, 1.6, DIST || 6], plan = planAudience(), used: string[] = [];
+  // D-226: the game's shadow term: the plan's figures (and rosettes) on a wall facing +z, stamped into the relief shadow atlas
+  let SH: any = null;
+  if (ATLAS) { const RS = await import('../src/arch/relief_shadow'), { rasterize: rz } = await import('../src/arch/relief_field');
+    const items = [...plan.figures.map(p => ({ kind: p.kind, seed: p.variant, o: [p.along, p.y, 0] as [number, number, number], X: [1, 0] as [number, number], Z: [0, 1] as [number, number], S: figH * p.scale, D: p.depth ?? D0, mirror: p.facing < 0, embed: CV.embed })),
+      ...plan.rosettes.map(r => ({ kind: 'rosette', seed: 0, o: [r.a, r.y - v<any>('apadana', 'r_rosette').diameter / 2, 0] as [number, number, number], X: [1, 0] as [number, number], Z: [0, 1] as [number, number], S: v<any>('apadana', 'r_rosette').diameter, D: D0 * 0.6, mirror: false, embed: CV.embed }))];
+    SH = RS.planReliefShadow(items); for (const [k, j] of [...SH.jobs]) RS.stampField(SH, k, rz(figureDef(j.kind, j.seed), j.n, true)); SH.at = RS.reliefShadowAt; }
   let tris = 0;
   for (const p of plan.figures) {
     const b = kindBounds(p.kind, p.variant), S = figH * p.scale, D = p.depth ?? D0, sx = p.facing < 0 ? -1 : 1;
@@ -174,7 +182,8 @@ async function renderPanel() {
     let nx = 0, ny = 0, nz = 1; if (on) { nx = nm[g * 3]; ny = nm[g * 3 + 1]; nz = 1; }
     const nl = Math.hypot(nx, ny, nz); nx /= nl; ny /= nl; nz /= nl;
     let lit = 1, x = i, y = j, z = Math.max(0, hm[g]) + 0.0002;
-    for (let s = 0; s < 600; s++) { x += L[0] / hz; y -= L[1] / hz; z += dz; if (x < 0 || y < 0 || x >= W - 1 || y >= Hh - 1 || z > 0.09) break; if (hm[Math.round(y) * W + Math.round(x)] > z) { lit = 0; break; } }
+    if (SH) lit = SH.at(SH, [wa, wy, Math.max(0, hm[g])], [L[0], L[1], L[2]]);
+    else for (let s = 0; s < 600; s++) { x += L[0] / hz; y -= L[1] / hz; z += dz; if (x < 0 || y < 0 || x >= W - 1 || y >= Hh - 1 || z > 0.09) break; if (hm[Math.round(y) * W + Math.round(x)] > z) { lit = 0; break; } }
     const ndl = Math.max(0, nx * L[0] + ny * L[1] + nz * L[2]), sky = 0.25 * (0.5 + 0.5 * nz);
     const cov = BARE || !on ? 0 : pm[g];
     const thick = aaNoise(wa, wy, FL.brush_freq, 0) * (1 - FL.thickness_min) + FL.thickness_min;
@@ -190,7 +199,7 @@ async function renderPanel() {
     }
   }
   const enc = (a: Float32Array) => { const o = new Uint8Array(a.length); for (let q = 0; q < a.length; q++) o[q] = l2s(a[q]); return o; };
-  const tag = AUTO ? `d${DIST}` : `lod${LOD}`, name = `${OUT}/audience_${tag}${BARE ? '_bare' : ''}.png`;
+  const tag = AUTO ? `d${DIST}` : `lod${LOD}`, name = `${OUT}/audience_${tag}${BARE ? '_bare' : ''}${ATLAS ? '_atlas' : ''}.png`;
   writeFileSync(name, png(W, Hh, enc(lin)));
   if (DIST > 0) { // as it covers the screen from DIST m (1080 px over 70°), box-filtered, shown ×SCREEN_UP
     const pxPerM = 1080 / (2 * DIST * Math.tan((35 * Math.PI) / 180)), w2 = Math.max(4, Math.round((a1 - a0) * pxPerM)), h2 = Math.max(4, Math.round((y1 - y0) * pxPerM)), small = new Float32Array(w2 * h2 * 3), cnt = new Float32Array(w2 * h2), UP = +opt('--up', '2');

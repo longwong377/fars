@@ -321,7 +321,9 @@ describe('the far LODs keep the figure (D-217; rubric s7 pass 2, R2: animals dra
       return spans; };
     const now = spansOf(lodGrid(3.26, 3), RELIEF_LODS[3].err), before = spansOf(65, 0.3);
     console.log(`lion-and-bull L3: cloud triangles ${before} before D-217 (65², bound 0.3), ${now} now`);
-    expect(before).toBeGreaterThan(10); expect(now).toBe(0);
+    // (the "before" configuration drew 18 cloud triangles with the D-217 carving; with the D-226 carving, steeper steps and
+    // less doming, it still draws 9: the check still sees clouds where they are)
+    expect(before).toBeGreaterThan(5); expect(now).toBe(0);
   });
   it('the carving shades its own contours: sky occlusion at the foot of a step, none on the open top', () => {
     const rect: FigureDef = { masses: [{ add: [poly([[-0.2, 0.1], [0.2, 0.1], [0.2, 0.9], [-0.2, 0.9]])], amp: 0.6, round: 0.03, edge: 0.5, colour: PIGMENT.cinnabar }], bounds: [-0.5, 0, 0.5, 1] };

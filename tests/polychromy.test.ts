@@ -57,10 +57,12 @@ describe('relief paint coverage (D-030)', () => {
     expect(paintedFrac(lb)).toBe(0); expect(paintedFrac(horse)).toBeLessThan(0.05); // the horse carries only its painted harness
     for (const [k, s] of [['persian', 0], ['guard', 0], ['delegate', 10], ['king', 0]] as [string, number][]) {
       const m = reliefLodMesh(k, s, 513, 0); let n = 0, sum = 0, worn = 0;
-      for (let i = 0; i < m.verts; i++) if (m.paint[i] > 0) { n++; sum += m.paint[i]; if (m.paint[i] < 0.7) worn++; }
+      for (let i = 0; i < m.verts; i++) if (m.paint[i] > 0) { n++; sum += m.paint[i]; if (m.paint[i] < 0.95) worn++; }
       expect(n / m.verts, `${k} painted share`).toBeGreaterThan(0.5);
       expect(sum / n, `${k} mean coverage`).toBeGreaterThan(0.8); expect(sum / n).toBeLessThan(0.99); // not full-coverage flat colour
-      expect(worn / n, `${k} worn arris vertices`).toBeGreaterThan(0.02);
+      // D-226: the film thins on the raised arrises by at most a quarter (a kept palace; the rubric: thin, even, edge-bounded)
+      expect(worn / n, `${k} thinned arris vertices`).toBeGreaterThan(0.02); expect(sum / n, `${k} mean coverage (even film)`).toBeGreaterThan(0.93);
+      for (let i = 0; i < m.verts; i++) if (m.paint[i] > 0) expect(m.paint[i]).toBeGreaterThanOrEqual(0.74);
       for (let i = 0; i < m.verts; i++) { expect(m.paint[i]).toBeGreaterThanOrEqual(0); expect(m.paint[i]).toBeLessThanOrEqual(1); }
     }
   });

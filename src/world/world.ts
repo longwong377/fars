@@ -37,7 +37,8 @@ import { loadSculpt } from '../arch/sculpt';
 import { buildReliefs, buildInscriptions, loadInscriptionFonts, buildPhase4Reliefs, buildStairCrenellations, buildFoundationDeposits } from '../arch/decor';
 import { buildWaterworks } from '../arch/waterworks';
 import { buildGlazedFrieze } from '../arch/glazed';
-import { updateReliefs, settleReliefs } from '../arch/reliefs';
+import { updateReliefs, settleReliefs, buildReliefShadow, ReliefSet } from '../arch/reliefs';
+import { setReliefShadow, refreshReliefShadow } from '../render/reliefShadow';
 import { FireSystem } from './fire';
 import { placeFires } from './firePlaces';
 import { loadFireOcc } from './fireOcc';
@@ -128,6 +129,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const reliefs = buildReliefs(manifest); root.add(reliefs);
   reliefs.add(buildReliefMarks(manifest, parts)); // the sculptors' marks on the reliefs' background (D-212; still there in the Now view)
   const p4 = buildPhase4Reliefs(doorways); root.add(p4.group); // stair and door-jamb reliefs of the other palaces (D-049)
+  // the relief figures' cast shadows (D-226): their heights stamped into an atlas in their walls' frames, marched toward the sun
+  // by the sun's light in every lit material; filled by the relief workers as the fields come in
+  setReliefShadow(buildReliefShadow([...reliefs.children, ...p4.group.children].filter((c): c is ReliefSet => c instanceof ReliefSet)));
   const cren = buildStairCrenellations(parts); if (cren) root.add(cren); // stair-parapet merlons (D-065)
   const insc = buildInscriptions(manifest, parts, p4.inscriptions); root.add(insc);
   // D-214: the stones carrying texts that are solid and not architecture parts (the Hadish N portico's antae): a collider each
@@ -401,6 +405,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     update(dt: number, ctx: any) {
       time += dt;
       updateReliefs(ctx.camera.position, dt === 0 ? 50 : 4); // carved-relief LOD (D-019); dt 0 = a test render
+      refreshReliefShadow(); // the relief shadow atlas's upload as its fields arrive (D-226)
       doors.view(ctx.camera.position);
       { const pp = ctx.player.position; playerAt = new THREE.Vector3(pp.x, pp.y, pp.z); }
       view.update(sim.t, [ctx.camera.position.x, -ctx.camera.position.z]); // the population out of doors near the camera (D-143)
