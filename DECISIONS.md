@@ -3870,3 +3870,97 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
   - (3) Performers posed by the Crowd's own path: 4 each of scribe/write, mason/chisel, grinder/grind, baker/knead and bake, porter/carry_shoulder, and Persian- and Median-dress guards. Each is rasterised from 6 views at every LOD. Every garment worn is seen (hair excepted under a cap). Skin of the torso or sleeved arms stays ≤ 3 % of the upper garment's pixels at LOD 0–1 and ≤ 6 % at LOD 2–3. The worst case is 5.9 %: a porter at LOD 2 at 3.05 % and the simplified far bodies at 3.5–5.9 %, where the coarse shells let the body poke through. Nobody else has the scribe's reported fault.
   - (4) The moment itself: the scribe is agent 120, median, LOD 0. Tunic > 5,000 px, cap, boots and trousers > 1,500 px each. Torso/upper-arm/thigh skin < 1 % of the tunic's pixels (17 px of chest at the neckline).
 - **Tests:** tests/people_pieces.test.ts (new); tests/humans*.test.ts, people_look, performances, court_view, popview and performers pass. tsc and lint:all are clean.
+
+## D-206 Garments that read as cloth: ease over a cloth hull, a felt dome, boots on a last, hems and gathers; the brown wool greyer (session 7)
+- **Read first: unverified in the browser; all of it tier C.** No Playwright or browser render was made. Everything below is measured in node (tools/dev/garment_check.ts) and looked at in node previews: an id and lit-albedo raster of the scribe-at-work moment, and the CPU mirror of the material (tools/dev/face_preview.ts, with a stand-in for the room's warm light, `--light room`; not the renderer's lighting). The cut and drape of every garment is reconstruction (C): hang from the chest, the blouse over the belt, the cap's dome and flaps, the boot's last, hem and gather sizes. What remains broken or unmeasured:
+  - At LOD 1 (7–20 m) the upper garments are shells of the far body (9 cm triangles). The hug measure below is worse there (e.g. m02 front 15.7 → 22.9 mm), but the measure is not trustworthy on triangles that bridge arm and flank. Clothed-skin pixels of the standing scribe at LOD 1 went 100 → 91 (front) and 62 → 51 (3/4). Not investigated further.
+  - The belt's gathers and the hems are shading (a bump and a darker band). In the node previews they are faint at 2 m and invisible at 10 m.
+  - Still visible in the node previews: the trousers poke through the skirt at the knee when a man squats (as before); the crouched scribe's boot rim shows as a thin ring.
+  - Under the room's warm light, undyed wool against a light skin, faded weld and the Susa guards' ochre stay under ΔE 12 for some wearers (numbers below). No evidence allows moving those colours, so they were left as they are (rule 6).
+  - The bun is now hidden under the felt cap's nape flap (it poked through before; 275 → 52 px in the moment). Whether Median men wore the hair out below the cap is not checked against a plate (MATERIAL_CULTURE "Soft cap").
+  - Not rendered in the browser. The CPU-timing tests (humans_runtime "posing 300", performances "300 performers") fail under this machine's load (load average 12–50). HEAD fails the performances one too under the same load (11.1 ms against < 10). The changed code is not on the posing path.
+- **Report (D-205):** in the browser frame of the scribe-at-work moment, the Babylonian scribe in Median dress read as a naked man in a loincloth, although every piece was drawn. The causes:
+  - the garment shells hug the body like paint: the tunic follows the chest, shoulder blades and spine; the felt cap copies the pinna; the boots copy the toes;
+  - under the room's warm light nothing tells cloth from skin at the edges.
+- **Cloth hull (src/people/drape.ts `clothHull`, new).** For each body variant it computes a target position under the cloth for each torso and arm vertex. Shells laid over it get the new shellGeo options `hull`, `lip` and `edge(p, i)`.
+  - **Torso:** per 1 cm horizontal slice, the 2D convex hull of neck, chest, belly and pelvis. This bridges the breastbone, the spine groove and the hollows above the collarbones.
+  - **The hang:** below the armpits (upper arm joint − 6 cm), each of 96 directions keeps the widest section above it: the cloth falls straight from the chest, bust, shoulder blades and flanks. Over the last 5 cm above the belt's top it is drawn back to the section (the blouse; girt at the waist B, drape C).
+  - **Arms:** 1.2 cm sections across the bone, made convex.
+  - **The push is limited** to where the surface runs along the section's axis. A shoulder's top or a sole lies inside its section, and a ray from the centre would carry it across. The push is also capped at 7 cm (torso) and 3 cm (arms).
+  - **The thickness** is laid along the section's radial direction, not the skin normal: offsetting along the normal re-imprinted the spine groove. Smoothing inside a hull shell moves only along that direction; a free Laplacian slid vertices into teeth. Cut lines still straighten along themselves (the headcloth's edges).
+  - **Used by:** the upper garments (tunic, robe, working and child's tunic, dress), the headcloth below the neck (it lies over the dress's hull) and the kandys's cape. The kandys's hanging body is also fitted over the tunic.
+- **Hems with thickness (shellGeo `lip`).** The openings of the upper garments (neckline and cuffs) stand off the skin by ¾ of their thickness. Each cut edge gets a turned edge: two triangles per edge back to the skin, with a cavity AO. The hip edge under the skirt sinks in as before. Only true cut lines get a lip; holes in the body mesh do not.
+- **The felt cap (outfits.ts `softCap`, rebuilt as its own dome).** Moving the shell onto a hull folded the pinna's front, its back and the skull behind onto one surface, so the cap is no longer a shell. It is built from rings of latitude about the cranium's centre (`headHull`):
+  - above the centre, the head's radial extent dilated over a 24° cone (a rounded bulge over the ears);
+  - below it, the widest head-and-neck section above, hanging straight (lappets and nape flap);
+  - the rim follows the old cut (over the brow, lappets to 3.5 cm below the jaw joint, flap to 1 cm above the neck joint), found per body;
+  - felt 1.2 cm at the sides (hair under it) and 4.2 cm at the crown, thinning to 6 mm at the rim, which turns under onto the hull (a blunt edge);
+  - the upper rows are at common heights, so the lappets do not shear the quads into a ridge;
+  - the chin cover is not modelled.
+- **Boots and shoes (outfits.ts `footShell`, rebuilt as lofted tubes).** A foot shell kept the mid body's coarse toes as notches, even after it was moved onto the foot's convex hull (by sections, by 400 support planes, by nearest-plane projection: tried and rejected, see below). Each boot is now two tubes:
+  - a shaft of horizontal sections from the top (foot joint + 11 cm; shoes + 3.5 cm) to the ground, closed under the heel, its top standing 5 mm off the leg and turned under;
+  - a vamp of sections across the foot from inside the shaft to past the toes;
+  - each section is the convex hull of the body's own section plus 5 mm of leather (6.5 mm under the sole). From the ball forward the vamp keeps the ball's width and rounds off in an ellipse over the last 4 cm (a toe box);
+  - the instep's crease is where the two tubes meet;
+  - laces are not modelled;
+  - shoe leather is 4 mm and boot leather 5 mm, so the two never share vertex positions: meshoptimizer took the shared vamp for seams and kept three times the triangles at LOD 3.
+- **Skirts:** drape folds all round at full detail: 7 mm (tunic, working and child's skirts) and 5 mm (the dress), orders 7 and 11, deepening from the belt to the hem. The rubric's "skirts as rigid cones" (s6).
+- **Material (humanMaterial.ts DRAPE, mirrored in tools/dev/human_cpu.ts):**
+  - **Hems:** the outer 30 % of a shell's cut-line ramp and a skirt's last 6 % are doubled cloth: 14 % darker, with a 0.7 mm rolled ridge.
+  - **Gathers above the belt:** 22 folds, 2.4 mm, fading over 7 cm, on the upper garments. They carry class parameter 5 (humanFormat `PRM_UPPER`), and uv.y is set to the height above the belt's top (1 on the arms).
+  - Weave, sheen, hem soil and joint wrinkles were already there (D-155, D-189).
+- **Colour (looks.ts DYES).** 'brown' was a tan, [36–50, 6–7, 16–17], which is the colour of skin. It is now the dark end of undyed brown wool: strong [30, 4, 9], weak [43, 4, 10] (C, Q-360). Nothing else changed.
+- **Colour, measured** as CIE ΔE*ab between each garment and the wearer's skin, not white-balanced, in three lights: D65, CIE A, and "room" = CIE A reddened by the red floor (× 1, 0.8, 0.7; C). Dividing the browser frame's lit skirt by its albedo gave a magenta light, because AgX is not albedo × light. The scribe's garments in the room light: tunic (weld) 40, trousers 19, belt 21.5, felt 32.9, leather 26.8. His colours did not cause the report: the shape did.
+- **Colour population sweep** (6 dresses × 300 looks, main/second/trim), share of garments under ΔE 12, before → after:
+
+  | Dress | Room | D65 |
+  |---|---|---|
+  | working men | 16.9 → 8.9 % | 21.2 → 9.2 % |
+  | children | 20.7 → 9.1 % | 27.8 → 7.3 % |
+  | guards | 12.2 → 10.2 % | |
+  | women | 7.2 → 5.7 % | |
+  | Median dress | 2.9 → 1.4 % | |
+  | Persian dress | 3.2 → 3.0 % | |
+
+  By textile (room): brown 26.6 → 4.6 %. Unchanged: wool 10.3 %, weld 11.7 %, ochre 42 % (B, Susa bricks), madder 5.1 %.
+- **Shape measured** (bind pose, LOD 0, before → after, body in brackets):
+  - **The hug** is how far the upper garment's silhouette recedes behind its widest point above, between the armpits and 10 cm above the belt:
+    - m02 front 8.7 → 4.1 (13.2), back 21.1 → 4.1 (23.9) mm;
+    - m03 back 22.5 → 3.7 (26.9);
+    - m09 back 25.0 → 3.5 (29.1);
+    - f02 (dress) front 11.2 → 2.9 (16.4), back 24.9 → 2.9 (35.1).
+    - The side stays 9–12 mm (the flank under a sleeve hanging beside it).
+  - **The boots' forefoot seen from above**, area over convex outline: 0.959 → 1.005 (the body's toes 0.954) at LOD 0, and 0.805 → 1.023 at LOD 1.
+  - **Hollows** (depth inside the 8-pass smoothed surface): the cap over the ear 0.26 → 0.18 mm (m02; 0.27 → 0.32 m03, from the dome's collapsed rows at the lappets' front, not the ear), the back 0.14 → 0, the upper arm 0.10 → 0.06.
+- **The moment, rebuilt as tests/people_pieces.test.ts does** (agent 120, m02, LOD 0, 960 × 540), before → after:
+  - garment pixels 23,199 → 24,102; skin 1,533 → 1,467; torso and upper-arm skin 17 → 5;
+  - tunic 8,591 → 9,067; cap 2,622 → 3,239; boots 2,565 → 2,773; bun 275 → 52.
+  - The performers' worst clothed-skin share (people_pieces) went 5.86 % → 5.03 %.
+- **Triangles** (LOD 0/1/2/3, before → after; budgets 42,000/7,000/3,200/800):
+
+  | Costume | Before | After |
+  |---|---|---|
+  | persian | 35,503/4,895/2,580/592 | 35,868/5,105/2,670/609 |
+  | median | 37,355/4,957/2,835/637 | 36,307/5,232/2,798/634 |
+  | worker | 39,961/6,212/2,765/583 | 39,138/6,567/2,808/601 |
+  | woman | 31,475/4,997/2,262/556 | 31,694/5,157/2,302/564 |
+  | child | 29,737/5,158/1,835/367 | 30,104/5,384/1,941/388 |
+  | envoy | 35,701/5,297/2,470/550 | 35,926/5,451/2,504/563 |
+  | envoy_short | 39,476/6,291/3,125/687 | 39,625/6,499/3,093/687 |
+  | envoy_bare | 37,549/6,214/2,173/493 | 37,556/6,276/2,115/478 |
+
+  Median pieces at LOD 0: cap 3,262 → 2,072; boots 1,084 → 1,008; tunic 1,711 → 1,929 (lips). The felt cap and footwear have their own far tessellation, so they left the shared-shell set. Build time is unchanged within noise (node, 3.7–4.6 s for all costumes; a hull is ~90 ms per variant).
+- **Alternatives rejected:**
+  - a hull pass lifting shell vertices along their normals (D-205: spiky toes at LOD 1, a ballooned cap);
+  - the cap as a shell moved radially onto the dilated head (the folded pinna folded over itself);
+  - for the foot: horizontal sections (radial from one centre, which carried the toes' tips across the foot); thick cross-sections (a box of toes); thin two-pass sections with nearest-point moves (teeth from the mid body's toes); a 400-plane convex hull with radial and with nearest-plane projection (clean on the full body, folded or slotted on the mid body's shell);
+  - moving undyed wool, weld or ochre away from skin (no evidence for other values);
+  - cloth simulation (triangles, draws, CPU; D-090).
+- **Previews** (node; shots/ is not in git), in shots/garment-ease/before and shots/garment-ease/after:
+  - moment_id.png and moment_lit.png: the moment's raster;
+  - scribe_id.png and scribe_lit.png: the crouched scribe from 4 views at LOD 0 and 1;
+  - standing_id.png and standing_lit.png;
+  - fp_scribe_{full,stand,write,back,head,feet,room_write,room_full}.png: the material mirror (the scribe writing and standing, a mason, a woman grinder);
+  - after/after_bind_{cap,boot,tunic}.png: bind-pose geometry.
+  - Numbers: bench-reports/garment-ease-{before,after}.json.
+- **Tests:** tests/humans_faces.test.ts's cap test now checks the dome: LOD 0 has more than 3 × LOD 1's triangles, the rim's p10 stands more than 4 mm off the head, and the turned edge closes onto it. All of these pass: tests/humans*.test.ts, people_look, people_pieces (the moment's thresholds hold), performances, court_view and instruments, except the two CPU-timing tests (above). tsc and lint:all are clean.

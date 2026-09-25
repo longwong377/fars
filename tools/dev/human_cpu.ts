@@ -4,7 +4,7 @@
 // (wrapped diffuse, two GGX lobes, Kajiya–Kay, sheen, the sky-reflection proxy) and three's AgX tone mapping.
 // It is a verification aid: the browser render is the judgement (screenshots find problems; tests measure).
 import { SKIN, EYE, IRIS, LASH, HAIR, REF_TONE, SAG_MAX, DRAPE } from '../../src/people/humanMaterial';
-import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS } from '../../src/people/humanFormat';
+import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER } from '../../src/people/humanFormat';
 
 export type V3 = [number, number, number];
 // ------------------------------------------------------------------ MaterialX Perlin noise (three r186 MaterialXNoise)
@@ -163,7 +163,13 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const pleatH = (pleatT - 0.5) * 0.003 * is(prm, 1) * band(21);
   const foldH = skirtFold(U[1], Math.atan2(P[0], P[2] - 0.02), W4[2], 0, Math.hypot(...f.posV)) * f.aux[1] * kCloth;
   const wrinkleH = Math.sin(P[1] * DRAPE.wrinkleF * Math.PI * 2 + n2 * 3) * DRAPE.wrinkle * W4[1] * band(DRAPE.wrinkleF);
-  const clothH = n2 * mix(0.003, 0.0012, is(prm, 4)) + n1 * mix(0.00025, 0.00012, isLinen) + weaveH + pleatH + foldH + wrinkleH;
+  // D-206: hems and the gathers above the belt
+  const hem = Math.max((1 - sstep(0, DRAPE.hemBand, e2)) * (1 - f.aux[1]), f.aux[1] * sstep(0.93, 0.99, U[1])) * kCloth;
+  const hemH = Math.sin(hem * Math.PI) * DRAPE.hemRoll;
+  const gz = (1 - sstep(0, DRAPE.gatherH, U[1])) * (U[1] >= -0.03 ? 1 : 0) * is(prm, PRM_UPPER) * kCloth;
+  const gatherH = Math.sin(thB * DRAPE.gatherN + n2 * 1.5) * DRAPE.gather * gz * band(DRAPE.gatherN / 0.9);
+  clothAlb = clothAlb.map(c => c * (1 - hem * DRAPE.hemDark)) as V3;
+  const clothH = n2 * mix(0.003, 0.0012, is(prm, 4)) + n1 * mix(0.00025, 0.00012, isLinen) + weaveH + pleatH + foldH + wrinkleH + hemH + gatherH;
   // felt, leather, metal, wood, wicker
   const feltAlb = f.color.map(c => c * (1 + n3 * 0.1 + n1 * 0.05)) as V3;
   const seam = Math.exp(-((P[0] / 0.0022) ** 2)) * 0.00045 * is(prm, 0);

@@ -38,6 +38,9 @@ export type PartId = typeof PART[keyof typeof PART];
 /** shading class of a vertex (the human material branches on it; stored ×1/255 in the `hmat` attribute's x) */
 export const MAT = { skin: 0, cloth_main: 1, cloth_second: 2, cloth_trim: 3, eye: 4, hair: 5, teeth: 6, mouth: 7, leather: 8, felt: 9, metal: 10, lash: 11, wood: 12, wicker: 13 } as const;
 export type MatId = typeof MAT[keyof typeof MAT];
+/** cloth class parameter (hmat.w) of the upper garments — tunic, robe, dress bodies: their uv.y is the height above the
+ *  belt (m), where the material gathers the cloth (D-206) */
+export const PRM_UPPER = 5;
 
 /** Per-vertex extras of BODY render vertices (D-155), in the bytes that garments use for other things (the material
  *  reads them by class): skin: hext.y = scalp-hair mask, hext.w = surface curvature (0..1 → 0..SKIN_CURV_MAX 1/m);

@@ -45,7 +45,9 @@ export const DYES: Record<string, { strong: Lab; weak: Lab; fade: number; tier: 
   green: { strong: [45, -17, 18], weak: [60, -11, 15], fade: 0.7, tier: 'C', note: 'green (weld over woad, NOT SEEN; the yellow fades first)' },
   wool: { strong: [74, 1, 12], weak: [60, 2, 10], fade: 0.1, tier: 'C', note: 'undyed wool, clean cream to worn and dingy' },
   linen: { strong: [81, 0, 7], weak: [66, 1, 10], fade: 0.1, tier: 'C', note: 'linen, bleached to unbleached and worn' },
-  brown: { strong: [36, 7, 17], weak: [50, 6, 16], fade: 0.2, tier: 'C', note: 'brown (undyed dark wool or a tannin dye)' },
+  // D-206: the dark end of undyed brown wool, greyer than a tan (the tan it was, [36-50, 6-7, 16-17], is the colour of
+  // skin: ΔE*ab under 12 against the wearer's skin for a fifth of the working men's garments; C, Q-360)
+  brown: { strong: [30, 4, 9], weak: [43, 4, 10], fade: 0.2, tier: 'C', note: 'brown (undyed dark wool, greyish; a tannin tan would read as skin)' },
   grey: { strong: [54, 1, 5], weak: [62, 1, 6], fade: 0.1, tier: 'C', note: 'grey-brown undyed wool' },
   turquoise: { strong: [52, -22, -8], weak: [62, -16, -6], fade: 0.5, tier: 'B', note: 'turquoise of the Susa guard robes (SUSA-ARCH)' },
   ochre: { strong: [60, 9, 38], weak: [68, 6, 28], fade: 0.4, tier: 'B', note: 'yellow of the Susa guard robes (SUSA-ARCH)' },
