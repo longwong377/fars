@@ -11,7 +11,10 @@
   8.6 % → 100 %), those waiting facing the stair, hall door or throne (mean cosine 0.009 → 0.996); the scribes at seats
   round the desk, a stylus in the writer's hand, the Aramaic secretary with pen and leather, a pupil (gap audit 33), mats,
   lamp and soot, ink, water bowl, jars, bench baskets, seals, a trodden floor. Moments re-timed: court-assembly day 32
-  09:30 (an audience morning), scribe-at-work and scribe-room-ne day 21 13:00. Renders: see D-221.
+  09:30 (an audience morning), scribe-at-work and scribe-room-ne day 21 13:30. Renders (2 runs, D-221): the court frame is
+  calmer (no sweepers, blocks and knots) but the spearmen's files are not legible at eye level; in the scribe frame the
+  scribes and the pupil STILL READ AS BARE-CHESTED in red (node: the tunic is drawn; likely madder-red cloth under the red
+  floor bounce, unverified) and the nearest scribe was hidden by the rig's 2.5 m clearance (camera moved back, not re-rendered).
 - **Session 7 ENDED (HANDOFF.md).** Everything merged; tsc clean, lint:all OK; **full `npm test` not run on the final merged tree; soak not re-run after D-211's last fix; nothing from the gap fills seen in a browser.** Open at the top: rain curtains have no visible effect (debug job 300), slope view at a tree, B24 fire light through parapets, Naqsh moiré, rubric pass 2 fix list items 2–10. The rain-day planner hang is fixed (9e2c5e7) but its upstream cause (a ration issue shifted to 23:54) is not.
 - **Rubric s7 pass 2, geometry bugs (D-217; R1, R2, R8, R9, R11).** Still weak: the relief carving is still procedural
   (PLACEHOLDER, NEEDS #10) and casts no shadow on its wall beyond the screen-space contact shadows; the contours now carry

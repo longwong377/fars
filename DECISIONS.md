@@ -4690,8 +4690,8 @@ an agent at the desk sat at a random point 0.8-2 m from it with no heading; writ
   Median dress as the scribes (popview `lookInput`; the first render showed his working tunic as a bare-looking back).
 Tests: `tests/scribes_room.test.ts`; `tests/people_pieces.test.ts`'s moment test (failing on the base tree: "a scribe drawn
 within 6 m", no scribe in the room at day 25 10:00 since D-211's turns by seat) re-aimed to the new moment: both scribes
-write at the desk within 6 m, LOD 0, Median dress; the old pixel thresholds kept and met (tunic 15,542 px, trousers 3,535,
-cap 3,297, boots 2,891). `tests/performances.test.ts` passes except its CPU-timing assertion under load (the
+write at the desk within 6 m, LOD 0, Median dress; the old pixel thresholds kept and met (tunic 12,690 px, trousers 2,859,
+cap 2,693, boots 2,404). `tests/performances.test.ts` passes except its CPU-timing assertion under load (the
 draw-count assertion, which the stylus first broke at 3 draws, passes at 2).
 
 **Soak.** `npx tsx tools/soak.ts 30 60 1 --court` on this tree: events, stuck, stocks, renderedHonest, visibleChange pass;
@@ -4699,3 +4699,19 @@ variety and populationVariety fail on children, a builder and Treasury workers (
 the year soak passed it, D-199); plansWellFormed fails on 2,786 "festival" issues, all the court women on day 10 (the
 court's plans have no festival rule; pre-existing). The same run on the base tree (HEAD b875b92, exported): the same
 three gates fail with the same numbers (festival 2,786; 20 people listed failing variety; the worst agent a child at 0.168).
+**Renders (two runs through the shared queue, quality high, webgpu; shots/moment-*-webgpu-d221r1.png and the current
+moment-*-webgpu.png in the worktree, not committed).**
+- Run 1 (commit 709e5d6): `court-assembly` (day 32, 09:30) still read as a crowd: parties' blocks not legible at eye level,
+  palace servants sweeping among them, off-duty guards and nobles scattered (node view cone: 51 + 51 talkers). `scribe-at-work`
+  from the E end (13:00): four seated figures as silhouettes against the doorway; mats visible. `scribe-room-ne`: three
+  figures, a sheet in one's hands catching the light.
+- Run 2 (commit 229462c): `court-assembly`: no sweepers; standing and seated blocks of delegates at the right (in rows,
+  facing the stair), talkers in small knots; the files of spearmen are NOT identifiable at this distance and eye height
+  (29-41 m, end-on): the frame still reads as a busy court more than an assembly. `scribe-at-work` from the W (13:30): the
+  Aramaic secretary and the pupil seated facing the camera, a stylus-like stick in a right hand, the water bowl, the clay
+  under its cloth, the drying board with tablets, the mats; **the Elamite scribe is missing: 2.42 m from the lens, inside
+  the rig's 2.5 m clearance** (camera moved 0.3 m back to 2.72 m afterwards, NOT re-rendered). **Both figures read as
+  bare-chested in short red skirts.** Node (people_pieces) says their Median tunic, trousers and boots are drawn (12,690
+  tunic pixels at this view); my unverified reading is the colour: a madder-red tunic and trousers (looks.ts Median main
+  colours) under the red floor's bounce look like skin. Not fixed (no render left); the lamp and the soot are not seen in
+  either view.

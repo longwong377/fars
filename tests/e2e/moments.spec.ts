@@ -96,7 +96,7 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // room's W part at seated eye height, looking E over the three, the doorway's light from the right (a first try from the
   // room's E end, (190.4, -83.0, 1.05, 247, -10) at 13:00, had them as silhouettes against the doorway). Old: day 25
   // 10:00 (one scribe ill, the other in the store: the room held nobody of the desk), (189.4, -84.2, 1.0, 269, -12)
-  { n: 'scribe-at-work', day: 21, hour: 13.5, w: 'clear', v: [184.4, -82.9, 1.05, 76, -10], fov: 50 },
+  { n: 'scribe-at-work', day: 21, hour: 13.5, w: 'clear', v: [184.1, -82.9, 1.05, 76, -10], fov: 50 }, // (D-221: 0.3 m back from 184.4, where the rig's 2.5 m clearance hid the Elamite scribe 2.42 m away; NOT re-rendered)
   { n: 'scribe-room-ne', day: 21, hour: 13.5, w: 'clear', v: [190.9, -82.0, 1.7, 235, -15], fov: 50 }, // the old view from the NE corner (D-221: at the new hour)
   { n: 'stair-climb', day: 25, hour: 8.5, w: 'clear', v: [-43.9, 128, 1.6, 341, 12] },
   { n: 'stair-climb-pm', day: 25, hour: 16, w: 'clear', v: [-43.9, 128, 1.6, 341, 12] }, // the W-facing stair in the afternoon sun (the morning view is in the Terrace's shadow); shares its state with tripylon-n-stair
