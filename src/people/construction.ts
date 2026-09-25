@@ -32,7 +32,10 @@ export const BUILD = {
 
 export interface ColumnState { i: number; at: P2; ring: 'hall' | 'portico'; drums: number; drumsTotal: number; fluted: number; capitalSet: boolean }
 export interface BuildEvent { day: number; hour: number; kind: 'drum_arrived' | 'drum_dressed' | 'drum_set' | 'shaft_complete' | 'fluting_done' | 'capital_carved' | 'capital_set' | 'course_laid' | 'relief_progress' | 'halted'; text: string; place: string; column?: number }
-export interface Credit { stone: number; labour: number; brick: number; frost: boolean; wet: boolean; storm: boolean }
+export interface Credit { stone: number; labour: number; brick: number; frost: boolean; wet: boolean; storm: boolean;
+  /** the hour the storm came on in the working day: with `storm`, the day given up to it; without, the gangs worked its dry
+   *  part and stopped when it came (Population.workSpan: A S3, B S2 of shadow review r8; the day's credit is its dry hours) */
+  stormAt?: number }
 /** what the stonecutters are doing today (for assigning individual people to real places) */
 export interface StoneTasks { flute: number | null; dress: boolean; capital: boolean; relief: string; /** column receiving drums */ raise: number | null; /** dressed drums ready to raise */ dressed: number; /** lowest wall side (next course) */ wall: 'N' | 'S' | 'E' | 'W' }
 type Snapshot = ReturnType<Construction['snapshot']>;
@@ -100,7 +103,8 @@ export class Construction {
     const nDrums = cr.wet || cr.storm ? 0 : poisson(u01(this.seed, this.S.drum, day), B.drumsPerWeek.v / 7);
     for (let k = 0; k < nDrums; k++) { this.yard.waiting++; ev(10 + k, 'drum_arrived', 'a column drum arrived from the quarry at the masons’ yard', 'worksite'); }
     const sum = { drumsSet: 0, fluted: 0, courses: 0, relief: 0 };
-    if (cr.storm) ev(12, 'halted', 'storm: work on the Hall of a Hundred Columns stopped', 'worksite');
+    if (cr.storm) ev(cr.stormAt ?? 12, 'halted', 'storm: work on the Hall of a Hundred Columns stopped', 'worksite');
+    else if (cr.stormAt !== undefined) ev(cr.stormAt, 'halted', 'storm: work on the Hall of a Hundred Columns stopped for the rest of the day', 'worksite');
     // --- stonecutters: fluting first, then dressing, then capitals, the rest on the doorway reliefs
     let S = cr.stone;
     const f = this.fluteTarget();

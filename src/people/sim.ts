@@ -260,9 +260,14 @@ export class PeopleSim {
       a.carry = null; a.sackTo = undefined; }
     // (no sack to set down when there was none to carry: she comes to the place empty-handed)
     if (act === 'rest' && a.emptyCarry && /^setting the (flour|sack of barley) down/.test(why)) { a.emptyCarry = false; return this.task('rest', pl, this.here(a, pl, 2, rng), end, pl === 'oven' ? 'at the ovens: no flour ground yet to bring' : 'by the querns: no barley at the depot to bring'); }
+    // (the next thing at the same place, lying, sitting or eating, is done where the person already is: no walk of a minute to
+    // another spot of the room between lying ill and the food brought to him; B S8 of shadow review r8, #51's two 1-minute
+    // "walk → garrison_sleep" legs while he was already there)
+    const still = (x: ActivityId) => x === 'eat' || x === 'talk' || x === 'gamble' || x === 'rest' || x === 'lie_ill' || x === 'sleep';
+    const here0 = a.task && !a.walking && !a.task.off && a.task.place === pl && still(a.task.act) && still(act) ? a.task.spot : null;
     switch (act) {
-      case 'sleep': return this.task('sleep', pl, a.role === 'guard' && pl === 'garrison_sleep' ? a.slot : this.here(a, pl, 2, rng), end, why);
-      case 'lie_ill': return this.task('lie_ill', pl, a.role === 'guard' ? a.slot : this.here(a, pl, 2, rng), end, why);
+      case 'sleep': return this.task('sleep', pl, a.role === 'guard' && pl === 'garrison_sleep' ? a.slot : here0 ?? this.here(a, pl, 2, rng), end, why);
+      case 'lie_ill': return this.task('lie_ill', pl, a.role === 'guard' && pl === 'garrison_sleep' ? a.slot : here0 ?? this.here(a, pl, 2, rng), end, why);
       case 'stand_guard': {
         const P = PLACES[pl]; if (a.post !== pl || a.task?.act !== 'stand_guard' || a.watchEnd !== end) { a.relieved = false; } a.post = pl; a.watchEnd = end;
         return this.task('stand_guard', pl, P.at, end, why, P.heading);
@@ -332,7 +337,9 @@ export class PeopleSim {
         if (a.carry === 'sack') return this.task('rest', 'treasury_store', this.here(a, 'treasury_store', 3, rng), this.t + 0.03, 'set the sack down');
         if (this.stock.depot > 0 && this.nearP(a, 'stair_foot', 6)) { this.stock.depot--; a.carry = 'sack'; a.loadDay = Math.floor(this.t / 24); return this.task('carry_sack', 'treasury_store', this.here(a, 'treasury_store', 3, rng), this.t + 0.02, 'carrying a sack to the Treasury store'); }
         if (this.stock.depot > 0) return this.task('rest', 'stair_foot', this.here(a, 'stair_foot', 3, rng), this.t + 0.02, a.loadDay === Math.floor(this.t / 24) ? 'going for the next load' : 'going down to the depot for a load'); // (S7 of reviewer B r5: "the next load" for the first)
-        return this.task(rng.chance(0.5) ? 'rest' : 'talk', 'stair_foot', this.here(a, 'stair_foot', 3.5, rng), chunk(0.2, 0.5), 'waiting for a caravan');
+        // (once the day's caravan is carried up the plan sends the porters home: Population.caravanDone; what is left of the
+        // block is the last loads' minutes, not a wait for a caravan that has come: A S4 of shadow review r8)
+        return this.task(rng.chance(0.5) ? 'rest' : 'talk', 'stair_foot', this.here(a, 'stair_foot', 3.5, rng), chunk(0.2, 0.5), this.lastCaravanDay === Math.floor(this.t / 24) ? 'at the depot, the caravan’s loads carried up' : 'waiting for a caravan');
       }
       case 'baker': case 'grinder': {
         if (act === 'knead') { // the dough for the gang from the ovens' flour, once for each kneading block (S6 r5)
@@ -368,8 +375,7 @@ export class PeopleSim {
     // the plan's act at the plan's place (meals, rest, talk and knucklebones at the hearths, writing at the desk, …)
     const jitter = PLACES[pl]?.kind === 'hearth' ? 2.6 : PLACES[pl]?.kind === 'post' ? 0 : 2;
     // the same act at the same place goes on where the person already is (a meal is one sitting, not a walk between bites)
-    const sit = (x: ActivityId) => x === 'eat' || x === 'talk' || x === 'gamble' || x === 'rest';
-    const stay = a.task && !a.walking && !a.task.off && a.task.place === pl && (a.task.act === act || (sit(a.task.act) && sit(act))) ? a.task.spot : null;
+    const stay = a.task && !a.walking && !a.task.off && a.task.place === pl && (a.task.act === act || (still(a.task.act) && still(act))) ? a.task.spot : null;
     return this.task(act, pl, stay ?? this.here(a, pl, jitter, rng), act === 'eat' || act === 'write_tablet' || act === 'talk' ? chunk(0.3, 1.2) : end, why);
   }
   /** the posts of a round, nearest first from where he stands, choosing now and then the second nearest (so no two rounds
@@ -468,10 +474,10 @@ export class PeopleSim {
     if (day !== this.lastGrainDay && hour >= 6.5) { this.lastGrainDay = day;
       if (this.stock.grain < 12) { const n = new Rng(this.seed, `camp-grain:${day}`).int(CW.camp_grain_up[0], CW.camp_grain_up[1]); this.stock.grain += n; this.flows.grainIn += n; this.log('delivery', `${n} sacks of barley for the work camp brought up to the stair foot`, 'stair_foot'); } }
     // goods for the Treasury carried up from the stair foot (C): 1–2 loads a day around mid-morning; weather holds them up
+    // (its hour is the population's, Population.caravan, so the porters' plans know when it comes: A S4 of shadow review r8)
     if (day !== this.lastCaravanDay && hour >= 9) {
-      const bad = (h: number) => (C.wx.stormH && h >= C.wx.stormH[0] && h <= C.wx.stormH[1]) || (C.wx.rain && h >= C.wx.rain[0] && h <= C.wx.rain[1]);
-      if (bad(hour) && hour < 15) return;
-      this.lastCaravanDay = day; if (bad(hour)) { this.log('weather_effect', 'no caravan reached the stair foot today: the road was stopped by the weather', 'stair_foot', 'W-01'); return; }
+      const cv = this.pop.caravan(day); if (cv ? hour < cv.h - 1e-6 : hour < 15) return;
+      this.lastCaravanDay = day; if (!cv) { this.log('weather_effect', 'no caravan reached the stair foot today: the road was stopped by the weather', 'stair_foot', 'W-01'); return; }
       const r = new Rng(this.seed, `caravan:${day}`); const n = r.int(1, 2); let sacks = 0;
       for (let i = 0; i < n; i++) sacks += r.int(20, 40);
       this.stock.depot += sacks; this.log('caravan', `${n === 1 ? 'a caravan' : 'two caravans'} unloaded ${sacks} sacks at the stair foot`, 'stair_foot');
