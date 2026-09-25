@@ -5,7 +5,7 @@
 // SwiftShader render. Not bit-exact where the shader uses Worley noise (the pits: a jittered grid with its own hash here,
 // statistically the same).
 import { mxNoise2, mxNoise3, hash12 } from './mx_noise_cpu';
-import { SURFACES, TONE_OCTAVES, TONE_NORM, TONE_OFFSETS, LAMINAE, LAM_NORM, STYLO_SPACING, pitMean, styloMean, ARRIS_K, type Joints, type StoneDef, type SurfaceDef } from '../../src/render/materials';
+import { SURFACES, NOISE_FRAME, TONE_OCTAVES, TONE_NORM, TONE_OFFSETS, LAMINAE, LAM_NORM, STYLO_SPACING, pitMean, styloMean, ARRIS_K, type Joints, type StoneDef, type SurfaceDef } from '../../src/render/materials';
 import { srgbToLinear } from '../../src/core/colour';
 
 const fract = (x: number) => x - Math.floor(x);
@@ -43,9 +43,11 @@ export function blockTone(J: Joints, d: SurfaceDef, id: Ids): number {
   const tone = 1 + dev * (tri ? J.blockSd! * Math.sqrt(6) : d.blockTone ?? 0.08), wc = (2 * id.w - 1) * (J.warmCool ?? 0);
   return tone * (1 + 0.2126 * wc + 0.7152 * 0.2 * wc - 0.0722 * 1.2 * wc);
 }
-/** materials.ts toneFactor (luminance: no chroma), fp = |fwidth(p)| */
-export function tone(d: SurfaceDef, x: number, y: number, z: number, fp: number): number {
-  let t = 0; TONE_OCTAVES.forEach(([lam, w], i) => { const o = TONE_OFFSETS[i]; t += w * mxNoise3(x / lam + o[0], y / lam + o[1], z / lam + o[2]) * bandLimit(fp, lam); });
+/** materials.ts latticeFree: the noise's rotated frame */
+export const rot = (x: number, y: number, z: number) => NOISE_FRAME.map(r => r[0] * x + r[1] * y + r[2] * z) as [number, number, number];
+/** materials.ts toneFactor (luminance: no chroma) at the world point, fp = |fwidth(p)| */
+export function tone(d: SurfaceDef, wx: number, wy: number, wz: number, fp: number): number {
+  const [x, y, z] = rot(wx, wy, wz); let t = 0; TONE_OCTAVES.forEach(([lam, w], i) => { const o = TONE_OFFSETS[i]; t += w * mxNoise3(x / lam + o[0], y / lam + o[1], z / lam + o[2]) * bandLimit(fp, lam); });
   return Math.max(0.2, 1 + t * d.tone!.sd * TONE_NORM);
 }
 /** a jittered-grid Worley F1 distance (cell units): statistically as mx_worley_noise_float_2d */
@@ -114,7 +116,7 @@ export function ashlarPixel(d: SurfaceDef, x: number, y: number, z: number, px: 
   // the procedural bump's base octave (materials.ts layer(): mx_noise(p × freq) × amp, band-limited), as a slope
   if (d.bump) {
     const B = d.bump, k = B.freq, band = 1 - smoothstep(0.15, 0.35, fp * k), e = 1e-3;
-    const hgt = (u: number, v: number) => mxNoise3(u * k, v * k, z * k) * B.amp * band;
+    const hgt = (u: number, v: number) => { const q = rot(u, v, z); return mxNoise3(q[0] * k, q[1] * k, q[2] * k) * B.amp * band; };
     tx -= (hgt(x + e, y) - hgt(x - e, y)) / (2 * e); ty -= (hgt(x, y + e) - hgt(x, y - e)) / (2 * e);
   }
   const l = Math.hypot(tx, ty, 1);

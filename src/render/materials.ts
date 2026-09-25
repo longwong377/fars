@@ -421,18 +421,27 @@ function stoneDetail(S: StoneDef, q: any, vs: any, id: Ids, fp: any) {
   return { f, h, tf };
 }
 
+/** D-218: the lattice-free frame of the surface noise. mx_noise_float is Perlin gradient noise on the integer lattice: on a
+ *  plane that is a lattice plane (a floor at y = 0 or at any height where y × frequency is a whole number, a wall at such an x
+ *  or z) it is zero on a regular grid of nodes, and its bump normals drew a quilt of pyramids 1/frequency apart over the
+ *  floor (the Grand Stair's top landing at the court datum y = 0, under the braziers at grazing light: lead's brazier-close
+ *  render, session 7). The world position is turned into a frame rotated about two axes (Rz 0.47 · Rx 0.61 rad) before it
+ *  enters the noise, so no axis-aligned floor or wall is a lattice plane; the rotation keeps lengths, so every frequency,
+ *  band limit and 1σ is unchanged */
+export const NOISE_FRAME: [number, number, number][] = [[0.89157, -0.37121, 0.25944], [0.45289, 0.73077, -0.51075], [0, 0.57287, 0.81965]];
+const latticeFree = (p: any) => vec3(dot(p, v3(NOISE_FRAME[0])), dot(p, v3(NOISE_FRAME[1])), dot(p, v3(NOISE_FRAME[2])));
 export interface Layer { alb: any; rough: any; height: any | null; tilt?: any }
 /** albedo, roughness and height of one surface definition (before weather). `arch`: the architecture's own meshes, whose
  *  vertices carry the part's base height (`y0`) and, on hall floors, the floor's box (`pbox`: centre x, z, half size x, z) */
 function layer(d: SurfaceDef, base: any, arch = false): Layer {
-  const p = positionWorld, n = normalWorld;
+  const p = positionWorld, n = normalWorld, pr = latticeFree(p); // pr: the noise's own frame (D-218, below)
   // mottling: broad variation (metre scale) + fine grain; mx_noise is ~[-1,1] so amplitudes are fractions of albedo. With a
   // broad tone (D-157) only the fine octave stays (as grain), the broad field is toneFactor()
-  const fine = mx_noise_float(p.mul(d.noiseScale * 9.0)).mul(d.noiseAmp * 0.12);
-  const mott = d.tone ? fine.add(mx_noise_float(p.mul(d.noiseScale * 0.18)).mul(d.noiseAmp * 0.6).add(mx_noise_float(p.mul(d.noiseScale * 1.7)).mul(d.noiseAmp * 0.25)).mul(float(1).sub(SURF_AB)))
-    : mx_noise_float(p.mul(d.noiseScale * 0.18)).mul(d.noiseAmp * 0.6).add(mx_noise_float(p.mul(d.noiseScale * 1.7)).mul(d.noiseAmp * 0.25)).add(fine);
+  const fine = mx_noise_float(pr.mul(d.noiseScale * 9.0)).mul(d.noiseAmp * 0.12);
+  const mott = d.tone ? fine.add(mx_noise_float(pr.mul(d.noiseScale * 0.18)).mul(d.noiseAmp * 0.6).add(mx_noise_float(pr.mul(d.noiseScale * 1.7)).mul(d.noiseAmp * 0.25)).mul(float(1).sub(SURF_AB)))
+    : mx_noise_float(pr.mul(d.noiseScale * 0.18)).mul(d.noiseAmp * 0.6).add(mx_noise_float(pr.mul(d.noiseScale * 1.7)).mul(d.noiseAmp * 0.25)).add(fine);
   let alb = base.mul(float(1).add(mott));
-  if (d.tone) alb = alb.mul(toneFactor(p, d.tone));
+  if (d.tone) alb = alb.mul(toneFactor(pr, d.tone));
   let rough: any = float(d.roughness);
   if (d.roughVar) rough = rough.mul(float(1).add(mx_noise_float(p.mul(0.9).add(3.7)).mul(0.7).add(mx_noise_float(p.mul(3.1).add(1.3)).mul(0.3)).mul(d.roughVar))).clamp(0.04, 1);
   let height: any = null, tilt: any = undefined;
@@ -441,12 +450,12 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     // its mean. Unfiltered, the fine octave (5.3 × freq: 0.31 m on the Naqsh cliff) aliased from 200 m and its screen-space
     // bump normals drew a moiré of wavy lines over the whole face (rubric s7 pass 2, R9)
     const fpB = fwidth(p).length().max(1e-6), bandB = (freq: number) => float(1).sub(smoothstep(0.15, 0.35, fpB.mul(freq)));
-    height = mx_noise_float(p.mul(d.bump.freq)).mul(d.bump.amp).mul(bandB(d.bump.freq)).add(mx_noise_float(p.mul(d.bump.freq * 5.3)).mul(d.bump.amp * 0.35).mul(bandB(d.bump.freq * 5.3)));
+    height = mx_noise_float(pr.mul(d.bump.freq)).mul(d.bump.amp).mul(bandB(d.bump.freq)).add(mx_noise_float(pr.mul(d.bump.freq * 5.3)).mul(d.bump.amp * 0.35).mul(bandB(d.bump.freq * 5.3)));
   }
   if (d.micro) { // fine grain, band-limited by the pixel footprint (D-147)
     const fade = float(1).sub(smoothstep(0.15, 0.35, fwidth(p).length().max(1e-6).mul(d.micro.freq)));
-    height = (height ?? float(0)).add(mx_noise_float(p.mul(d.micro.freq)).mul(d.micro.amp).mul(fade));
-    alb = alb.mul(float(1).add(mx_noise_float(p.mul(d.micro.freq * 1.9).add(7.3)).mul(d.micro.alb ?? 0.04).mul(fade)));
+    height = (height ?? float(0)).add(mx_noise_float(pr.mul(d.micro.freq)).mul(d.micro.amp).mul(fade));
+    alb = alb.mul(float(1).add(mx_noise_float(pr.mul(d.micro.freq * 1.9).add(7.3)).mul(d.micro.alb ?? 0.04).mul(fade)));
   }
   if (d.plasterWork) { // plaster work (D-188, C): float arcs and hairline shrinkage cracks, band-limited by the pixel footprint
     const PW = d.plasterWork, fp = fwidth(p).length().max(1e-6);
@@ -725,14 +734,14 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const keepX = float(1).sub(step(hz.mul(1.6), hx)), keepZ = float(1).sub(step(hx.mul(1.6), hz));
     const alongX = exp(sq(dz.div(1.3)).negate()).mul(float(1).sub(smoothstep(hx.mul(0.6), hx, dx))).mul(keepX);
     const alongZ = exp(sq(dx.div(1.3)).negate()).mul(float(1).sub(smoothstep(hz.mul(0.6), hz, dz))).mul(keepZ);
-    const wear = max(alongX, alongZ).mul(float(0.7).add(mx_noise_float(p.mul(0.65).add(vec3(2.7, 0, 8.1))).mul(0.6))).clamp(0, 1).mul(up).mul(has).mul(SURF_AB);
+    const wear = max(alongX, alongZ).mul(float(0.7).add(mx_noise_float(pr.mul(0.65).add(vec3(2.7, 0, 8.1))).mul(0.6))).clamp(0, 1).mul(up).mul(has).mul(SURF_AB);
     alb = alb.mul(float(1).sub(wear.mul(d.wear.alb)));
     rough = rough.mul(float(1).sub(wear.mul(d.wear.rough))).min(1);
     // dust along the walls (D-188, C): a swept floor keeps a film of dust and grit within ~0.4 m of its edges, where the
     // broom does not reach, thicker in the corners, patchy; the floor's box edges are its walls
     const edge = min(hx.sub(dx), hz.sub(dz)).max(0), corner = float(1).sub(smoothstep(0.2, 1.2, max(hx.sub(dx), hz.sub(dz))));
     const dust = float(1).sub(smoothstep(0.04, 0.45, edge)).mul(float(0.6).add(corner.mul(0.4)))
-      .mul(smoothstep(-0.35, 0.25, mx_noise_float(p.mul(1.7).add(vec3(6.1, 0, 3.3))))).mul(up).mul(has).mul(SURF_AB);
+      .mul(smoothstep(-0.35, 0.25, mx_noise_float(pr.mul(1.7).add(vec3(6.1, 0, 3.3))))).mul(up).mul(has).mul(SURF_AB);
     alb = mix(alb, DIRT, dust.mul(0.3));
     rough = mix(rough, float(0.9), dust.mul(0.7));
   }

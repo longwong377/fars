@@ -9,8 +9,8 @@ import { stairRows } from '../src/arch/meshes';
 import { buildTerrace } from '../src/arch/terrace';
 import { buildStairCrenellations } from '../src/arch/decor';
 import type { Box } from '../src/arch/parts';
-import { blockIds, blockTone, stoneDetail, renderWall, ashlarPixel, d157 } from './lib/stone_cpu';
-import { rng } from './lib/mx_noise_cpu';
+import { blockIds, blockTone, stoneDetail, renderWall, ashlarPixel, d157, rot } from './lib/stone_cpu';
+import { rng, mxNoise3 } from './lib/mx_noise_cpu';
 
 const R = rng(218);
 const stats = (xs: number[]) => { const m = xs.reduce((a, b) => a + b, 0) / xs.length; return { mean: m, sd: Math.sqrt(xs.reduce((a, b) => a + (b - m) ** 2, 0) / xs.length) }; };
@@ -107,6 +107,28 @@ function findBed() {
   const split = hash12(k, 7.13) * (V.course[1] - V.course[0]) + V.course[0];
   return [k * H, k * H + split, (k + 1) * H].reduce((a, b) => (Math.abs(b - 6.3) < Math.abs(a - 6.3) ? b : a));
 }
+
+describe('the noise is not on a lattice plane of any floor or wall (D-218; the lead\'s brazier-close pyramids)', () => {
+  it('the bump noise on a floor at y = 0 (and walls at x = 0, z = 0) varies as much at the lattice nodes as between them', () => {
+    // Perlin noise is zero at its integer lattice nodes: sampled on a lattice plane it is a regular quilt, 1/frequency apart.
+    // Compare the spread of the bump noise (freq 6/m) at the world nodes (i/6, j/6) with the spread at the cell centres
+    const f = SURFACES.limestone.bump!.freq, spread = (off: number, frame: boolean, plane: 'y' | 'x' | 'z') => {
+      const v: number[] = [];
+      for (let i = 0; i < 60; i++) for (let j = 0; j < 60; j++) {
+        const a = (i + off) / f, b = (j + off) / f, P = plane === 'y' ? [a, 0, b] : plane === 'x' ? [0, a, b] : [a, b, 0];
+        const q = frame ? rot(P[0], P[1], P[2]) : P; v.push(mxNoise3(q[0] * f, q[1] * f, q[2] * f));
+      }
+      return stats(v).sd;
+    };
+    for (const plane of ['y', 'x', 'z'] as const) {
+      const rawNodes = spread(0, false, plane), rawMid = spread(0.5, false, plane), nodes = spread(0, true, plane), mid = spread(0.5, true, plane);
+      rows.push(`noise on the ${plane} = 0 plane: world frame 1σ ${rawNodes.toFixed(3)} at the nodes vs ${rawMid.toFixed(3)} between (a quilt); rotated frame ${nodes.toFixed(3)} vs ${mid.toFixed(3)}`);
+      expect(rawNodes).toBeLessThan(0.01); // the defect, as it was
+      expect(nodes / mid).toBeGreaterThan(0.75); expect(nodes / mid).toBeLessThan(1.33);
+    }
+    report();
+  });
+});
 
 describe('merlons, frames, mud plaster (D-218)', () => {
   it('the merlons are monoliths of the dressed stone: their own surface, no joints across them, weathered ledges', () => {

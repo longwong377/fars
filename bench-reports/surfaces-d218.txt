@@ -3,10 +3,13 @@ block tone: 1σ 17.0 % (blockSd 0.17), mean 1.0032; 3.2 % of blocks beyond 2σ
 stone detail at footprint 0.003 m: vertical faces mean 1.0050 1σ 13.8 %; bedding planes mean 1.0062 1σ 13.6 %
 stone detail at footprint 0.02 m: vertical faces mean 0.9998 1σ 9.5 %; bedding planes mean 1.0009 1σ 9.5 %
 stone detail at footprint 0.08 m: vertical faces mean 1.0008 1σ 6.1 %; bedding planes mean 1.0001 1σ 6.0 %
-sun frontal 41°, 5 m: Ystd/Y 0.059 (D-157) → 0.116 (D-218)
-sun frontal 41°, 10 m: Ystd/Y 0.058 (D-157) → 0.113 (D-218)
-sun frontal 41°, 30 m: Ystd/Y 0.057 (D-157) → 0.106 (D-218)
-sun raking 66°, 5 m: Ystd/Y 0.060 (D-157) → 0.127 (D-218)
-sun raking 66°, 10 m: Ystd/Y 0.058 (D-157) → 0.123 (D-218)
-sun raking 66°, 30 m: Ystd/Y 0.057 (D-157) → 0.110 (D-218)
-bed joint in sun (mean of 21 columns): at 5 m the row below the joint 5.0 %, the row above -43.8 %; the row above at 10 m -21.1 %, at 30 m -5.2 %
+sun frontal 41°, 5 m: Ystd/Y 0.059 (D-157) → 0.119 (D-218)
+sun frontal 41°, 10 m: Ystd/Y 0.058 (D-157) → 0.116 (D-218)
+sun frontal 41°, 30 m: Ystd/Y 0.057 (D-157) → 0.109 (D-218)
+sun raking 66°, 5 m: Ystd/Y 0.060 (D-157) → 0.130 (D-218)
+sun raking 66°, 10 m: Ystd/Y 0.058 (D-157) → 0.126 (D-218)
+sun raking 66°, 30 m: Ystd/Y 0.057 (D-157) → 0.114 (D-218)
+bed joint in sun (mean of 21 columns): at 5 m the row below the joint 5.1 %, the row above -43.9 %; the row above at 10 m -21.4 %, at 30 m -6.9 %
+noise on the y = 0 plane: world frame 1σ 0.000 at the nodes vs 0.275 between (a quilt); rotated frame 0.269 vs 0.260
+noise on the x = 0 plane: world frame 1σ 0.000 at the nodes vs 0.286 between (a quilt); rotated frame 0.263 vs 0.266
+noise on the z = 0 plane: world frame 1σ 0.000 at the nodes vs 0.290 between (a quilt); rotated frame 0.261 vs 0.265
