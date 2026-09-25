@@ -99,13 +99,15 @@ export class TerrainMesh {
       return worst; });
   }
   /** choose LOD per chunk: the coarsest step whose height error and vertex spacing, seen from the camera, stay under
-   *  ERR_RAD and SPACING_RAD (× lodBias for lower quality settings) */
+   *  ERR_RAD and SPACING_RAD ÷ lodBias: the bias is a detail factor (high 1; ultra 1.5 finer, test 0.35 coarser). It was a
+   *  multiplier, so the scale ran backwards: ultra drew the coarsest terrain (3.3 M tris at the stair-dawn view) and test the
+   *  finest (9.9 M) (Phase 6+7 review, session 8, C1) */
   update(camPos: THREE.Vector3) {
     for (const ch of this.chunks) {
       const d = Math.max(1, camPos.distanceTo(ch.center) - ch.radius);
       const err = (ch.err ??= this.chunkErrors(ch));
       let step = 1;
-      for (let k = 1; k < STEPS.length; k++) { const s = STEPS[k]; if (err[k] / d <= ERR_RAD * this.lodBias && (s * ch.ring.cell) / d <= SPACING_RAD * this.lodBias) step = s; else break; }
+      for (let k = 1; k < STEPS.length; k++) { const s = STEPS[k]; if (err[k] / d <= ERR_RAD / this.lodBias && (s * ch.ring.cell) / d <= SPACING_RAD / this.lodBias) step = s; else break; }
       if (step !== ch.step) {
         let g = ch.lods.get(step); if (!g) { g = this.buildGeometry(ch, step); ch.lods.set(step, g); }
         ch.mesh.geometry = g; ch.step = step;

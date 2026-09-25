@@ -1,0 +1,1 @@
+stair-dawn-plain terrain triangles by quality (TerrainMesh, node): {"test":1657600,"low":2364160,"medium":3640320,"high":4620032,"ultra":7177728}
