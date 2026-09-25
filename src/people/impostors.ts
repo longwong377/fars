@@ -68,9 +68,11 @@ export function clothWeights(x: number, y: number, z: number, nY: number, ao: nu
   const low = 1 - sst(0.1, 0.9, y), arms = sst(0.15, 0.2, Math.abs(x)) * (1 - sst(1.02, 1.12, y));
   const front = sst(0.02, 0.08, z) * sst(0.72, 0.8, y) * (1 - sst(1.2, 1.3, y)) * (1 - sst(0.14, 0.18, Math.abs(x)));
   const load = sst(1.28, 1.36, y) * Math.max(sst(0.06, 0.1, Math.abs(x)), 1 - sst(-0.05, 0, z));
-  return { up: sst(-0.25, 0.75, nY) * sst(0.66, 0.8, ao), hem: Math.max(1 - sst(0.03, 0.3, y), skirt * sst(0.72, 1, t) * 0.7),
+  return { up: sst(-0.25, 0.75, nY) * sst(0.66, 0.8, ao), hem: Math.max(1 - sst(0.03, 0.3, y), skirt * (sst(0.72, 1, t) * 0.7 + sst(DRAPE.hemEdge[0], 1, t) * DRAPE.hemEdge[1])), // (D-225: the hem's edge)
     where: [low, Math.max(low, arms), Math.max(low, arms, front), Math.max(low, load * 0.8)] };
 }
+/** barycentric sample points: the centroids of a triangle's 16 sub-triangles (4 divisions a side) */
+const SUB: [number, number][] = (() => { const n = 4, o: [number, number][] = []; for (let i = 0; i < n; i++) for (let j = 0; j < n - i; j++) { o.push([(i + 1 / 3) / n, (j + 1 / 3) / n]); if (i + j < n - 1) o.push([(i + 2 / 3) / n, (j + 2 / 3) / n]); } return o; })();
 /** area-weighted means of clothWeights per colour slot over the costume's shown triangles (bind pose of one variant) */
 export function clothStatsOf(O: OutfitBuild, L: CostumeLOD, variant: number, mask: number): ClothStats[] {
   const acc = [0, 1, 2].map(() => ({ up: 0, hem: 0, where: [0, 0, 0, 0], w: 0 })), I = L.index, base = variant * O.NV * 4;
@@ -79,9 +81,13 @@ export function clothStatsOf(O: OutfitBuild, L: CostumeLOD, variant: number, mas
     if (cls < MAT.cloth_main || cls > MAT.cloth_trim || !((mask >> L.hmat[a * 4 + 2]) & 1)) continue; const sl = col - 2; if (sl < 0 || sl > 2) continue;
     const pa = P(a), pb = P(b), pc = P(c), e1 = [pb[0] - pa[0], pb[1] - pa[1], pb[2] - pa[2]], e2 = [pc[0] - pa[0], pc[1] - pa[1], pc[2] - pa[2]];
     const area = 0.5 * Math.hypot(e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]); if (!area) continue;
-    for (const i of [a, b, c]) { const t = base + L.tid[i] * 4, n = unpackNormal(O.source[t + 3]);
-      const w = clothWeights(O.source[t], O.source[t + 1], O.source[t + 2], n[1], L.hext[i * 4] / 255, L.hext[i * 4 + 2] / 255, L.uv[i * 2 + 1]), q = acc[sl];
-      q.up += w.up * area; q.hem += w.hem * area; for (let z = 0; z < 4; z++) q.where[z] += w.where[z] * area; q.w += area; } }
+    // D-225: the weights are sampled inside the triangle (16 sub-triangle centroids), not averaged over its corners: the far
+    // body's triangles span from the hem to the knee, and the corner mean overstated the hem band's share 3.4× (0.30 against
+    // 0.09 over the surface, the Persian robe's far body), so the impostors took more hem soil than the skinned body showed
+    const V = [a, b, c].map(i => { const t = base + L.tid[i] * 4; return [O.source[t], O.source[t + 1], O.source[t + 2], unpackNormal(O.source[t + 3])[1], L.hext[i * 4] / 255, L.hext[i * 4 + 2] / 255, L.uv[i * 2 + 1]]; }), q = acc[sl];
+    for (const [u, v] of SUB) { const w0 = 1 - u - v, x = (k: number) => V[0][k] * w0 + V[1][k] * u + V[2][k] * v;
+      const w = clothWeights(x(0), x(1), x(2), x(3), x(4), x(5), x(6)), wa = area / SUB.length;
+      q.up += w.up * wa; q.hem += w.hem * wa; for (let z = 0; z < 4; z++) q.where[z] += w.where[z] * wa; q.w += wa; } }
   return acc.map(q => q.w ? { up: q.up / q.w, hem: q.hem / q.w, where: q.where.map(x => x / q.w) as ClothStats['where'] } : { up: 0, hem: 0, where: [0, 0, 0, 0] as ClothStats['where'] });
 }
 /** a look's garment colours as the skinned material shows them on average (D-189): sun-bleaching of up-facing cloth, the

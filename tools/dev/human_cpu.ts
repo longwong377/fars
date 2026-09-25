@@ -4,7 +4,8 @@
 // (wrapped diffuse, two GGX lobes, Kajiya–Kay, sheen, the sky-reflection proxy) and three's AgX tone mapping.
 // It is a verification aid: the browser render is the judgement (screenshots find problems; tests measure).
 import { SKIN, EYE, IRIS, LASH, HAIR, REF_TONE, SAG_MAX, DRAPE, KOHL } from '../../src/people/humanMaterial';
-import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER } from '../../src/people/humanFormat';
+import { MAT, EYE_UNIT, SKIN_CURV_MAX, LOOK_BITS, PRM_UPPER, PRM_ROBE } from '../../src/people/humanFormat';
+import { ROBE, BEARD } from '../../src/people/drape';
 
 export type V3 = [number, number, number];
 // ------------------------------------------------------------------ MaterialX Perlin noise (three r186 MaterialXNoise)
@@ -79,7 +80,7 @@ export interface Surf {
 }
 /** the surface stage for one fragment (fw = metres per pixel on the surface, as length(fwidth(P)); nb = the bind-space
  *  facet normal from dFdx/dFdy of P; silh = 1 − |n_geom · v|) */
-export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex | null): Surf {
+export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex | null, fwU = 0): Surf {
   const m = f.mat[0], prm = f.mat[1], pat = Math.floor(f.mat[2] + 0.5), grime = f.mat[3], e1 = f.ext[0], e2 = f.ext[1], P = f.bind, U = f.uv;
   const kSkin = is(m, MAT.skin), kEye = is(m, MAT.eye), kHair = is(m, MAT.hair), kTeeth = is(m, MAT.teeth), kMouth = is(m, MAT.mouth);
   const kLeather = is(m, MAT.leather), kFelt = is(m, MAT.felt), kMetal = is(m, MAT.metal), kLash = is(m, MAT.lash), kWood = is(m, MAT.wood), kWicker = is(m, MAT.wicker);
@@ -94,7 +95,7 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const fr = (skin: V3, hair: V3, cloth: V3, felt: V3, leather: V3, oth: V3): V3 => [0, 1, 2].map(i => skin[i] * kSkin + hair[i] * (kHair + kLash) + cloth[i] * kCloth + felt[i] * kFelt + leather[i] * kLeather + oth[i] * other) as V3;
   const s3 = (x: number): V3 => [x, x, x];
   const hairF1 = mix3([900, 300, 900], [700, 40, 700], kStraight), hairF2 = mix3(mix3([260, 170, 260], [190, 110, 190], isBeard), [120, 15, 120], kStraight);
-  const q1 = fr(s3(SKIN.pores[0][0]), hairF1, s3(160), s3(900), s3(200), s3(60)), q2 = fr(s3(SKIN.pores[1][0]), hairF2, [14, 5, 14], s3(250), s3(60), s3(40)), q3 = fr(s3(30), s3(40), s3(9), s3(40), s3(20), s3(40));
+  const q1 = fr(s3(SKIN.pores[0][0]), hairF1, [DRAPE.streak.f[0], DRAPE.streak.f[1], DRAPE.streak.f[0]], s3(900), s3(200), s3(60)), q2 = fr(s3(SKIN.pores[1][0]), hairF2, [14, 5, 14], s3(250), s3(60), s3(40)), q3 = fr(s3(30), s3(40), s3(9), s3(40), s3(20), s3(40));
   const i1: V3 = kEye ? [Math.cos(eang) * 6, Math.sin(eang) * 6, et * 3.2] : [P[0] * q1[0], P[1] * q1[1], P[2] * q1[2]];
   const i2: V3 = kEye ? [ex * 900, ey * 900, P[0] * 900] : [P[0] * q2[0], P[1] * q2[1], P[2] * q2[2]];
   const pv = (k: number) => fract(Math.sin((f.color[0] + f.hair[0]) * (12.9898 + k) + (f.color[1] + f.hair[1]) * 78.233 + (f.color[2] + f.hair[2]) * (37.719 + 2 * k)) * 43758.5453);
@@ -129,21 +130,18 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const eyeAlb = mix3(sclera, iris, irisM).map(c => c * lidSh) as V3;
   // hair
   const ridge = 1 - Math.abs(n2), natural = ridge * ridge * 0.75 + u1 * 0.25;
-  const arc = Math.atan2(P[0], P[2] - 0.02) * 0.085, hx = mix(arc, P[0], isBeard), rowC = P[1] / HAIR.row, ri = Math.floor(rowC);
-  const cellX = hx / HAIR.row + mod(ri, 2) * 0.5, ci = Math.floor(cellX), hsh = (a: number, b: number, c: number) => fract(Math.sin(ri * a + ci * b) * c);
+  const massC = isMass * kCourt, rowSz = mix(HAIR.row, BEARD.cheekRow, isBeard); // D-225
+  const arc = Math.atan2(P[0], P[2] - 0.02) * 0.085, hx = mix(arc, P[0], isBeard), rowC = mix(P[1] / rowSz, U[1] * BEARD.rows, massC), ri = Math.floor(rowC);
+  const cellX = mix(hx / rowSz, U[0] * BEARD.around, massC) + mod(ri, 2) * 0.5, ci = Math.floor(cellX), hsh = (a: number, b: number, c: number) => fract(Math.sin(ri * a + ci * b) * c);
   const h1 = hsh(12.9898, 78.233, 43758.5453), h2 = hsh(39.3468, 11.135, 24634.6345);
   const cu = fract(cellX) - 0.5 + (h1 - 0.5) * 0.3, cv = fract(rowC) - 0.5 + (h2 - 0.5) * 0.3, rr = Math.hypot(cu, cv) * (h1 * 0.3 + 1.7), th = Math.atan2(cv, cu) + h2 * Math.PI * 2;
-  const tuft = clamp(1 - rr * rr) * (Math.sin(th + rr * 8) * 0.25 + 0.75);
-  let court = mix(natural, tuft * (u1 * 0.4 + 0.6), 0.6);
-  const lockPh = P[1] * 150 + n3 * 4, lc = (P[0] + Math.sin(lockPh) * 0.0022 + n2 * 0.001) / 0.0075;
-  const lf = (fract(lc) - 0.5) * 2, lh = fract(Math.sin(Math.floor(lc) * 91.345) * 47453.5453);
-  const locks = Math.max(1 - lf * lf, 0) * (lh * 0.25 + 0.6) * ((1 - Math.abs(n1)) * 0.4 + 0.6) + 0.15;
-  const lockZone = isMass * sstep(0.2, 0.3, U[1]) * (1 - sstep(0.86, 0.94, U[1]));
-  court = mix(court, locks, lockZone);
+  const tuft = clamp(1 - rr * rr) * (Math.sin(th + rr * mix(8, Math.PI * 2 * BEARD.turns, isBeard)) * mix(0.25, 0.35, isBeard) + mix(0.75, 0.65, isBeard));
+  const court = mix(natural, tuft * (u1 * 0.4 + 0.6), mix(0.6, 0.75, massC));
   const straight = u1 * 0.6 + u2 * 0.4;
   const curls = mix(mix(natural, court, kCourt), straight, kStraight);
   const hairAlb = f.color.map(c => c * (curls * 0.75 + 0.42) * (u3 * 0.2 + 0.9)) as V3;
-  const hairH = curls * mix(HAIR.bump, HAIR.bumpStraight, kStraight) * band(mix(200, 120, kCourt));
+  const rowH = (Math.pow(Math.sin(fract(U[1] * BEARD.rows) * Math.PI), 0.6) - 0.6) * sstep(0.04, 0.12, U[1]) * BEARD.rowAmp * 0.6 * massC * band(BEARD.rows / 0.14 * 2);
+  const hairH = curls * mix(mix(HAIR.bump, HAIR.bumpStraight, kStraight), HAIR.bumpMass, massC) * band(mix(200, 120, kCourt)) + rowH;
   const kohlK = bits(pat, 'kohl') * (1 - sstep(KOHL.band * 0.7, KOHL.band * 1.3, e1)); // D-215
   const lashAlb = f.hair.map((c, i) => mix(c * 0.45, KOHL.alb[i], kohlK)) as V3;
   // cloth
@@ -151,17 +149,27 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const isLinen = is(m, MAT.cloth_main) * mod(lb, 2) + is(m, MAT.cloth_second) * mod(Math.floor(lb / 2), 2) + is(m, MAT.cloth_trim) * Math.floor(lb / 4);
   const pat0 = mod(bits(pat, 'motif'), 2);
   const cx = fract((P[0] + P[2] * 0.7) * 22) - 0.5, cy = fract(P[1] * 22) - 0.5, rose = (1 - sstep(0.18, 0.26, Math.hypot(cx, cy))) * pat0 * is(m, MAT.cloth_main);
-  let clothAlb = f.color.map(c => c * (1 + n3 * 0.05 + n1 * 0.035)) as V3;
+  let clothAlb = f.color.map(c => c * (1 + n3 * 0.05 + n1 * DRAPE.streak.alb * band(DRAPE.streak.f[1]))) as V3;
+  const dLum = clothAlb[0] * 0.2126 + clothAlb[1] * 0.7152 + clothAlb[2] * 0.0722; clothAlb = clothAlb.map(c => dLum + (c - dLum) * (1 + n2 * DRAPE.dyeUneven[0] + n1 * DRAPE.dyeUneven[1] * band(DRAPE.streak.f[1]))) as V3; // D-225
   clothAlb = mix3(clothAlb, f.hair, rose);
   const upF = sstep(-0.25, 0.75, f.ext[2] ?? 0) * sstep(0.66, 0.8, f.aux[0]) * (n3 * 0.3 + 0.85);
   const W4 = f.wear ?? [0, 0, 0, 0], fadeAmt = clamp(W4[0] * (f.ext[3] ?? 0) * upF * DRAPE.fade, 0, 0.8), cLum = clothAlb[0] * 0.2126 + clothAlb[1] * 0.7152 + clothAlb[2] * 0.0722;
   clothAlb = mix3(clothAlb, clothAlb.map(c => Math.min(0.8, mix(cLum, c, 0.4) * 1.25 + 0.012)) as V3, fadeAmt);
   const ax = Math.abs(nb[0]), az = Math.abs(nb[2]), sH = (P[0] * az + P[2] * ax) / (ax + az + 1e-4);
-  const fq = mix(700, 1500, isLinen);
-  const weaveH = Math.sin(P[1] * fq * Math.PI * 2) * Math.sin(sH * fq * Math.PI * 2) * mix(0.00012, 0.00006, isLinen) * band(fq);
+  const fq = mix(DRAPE.weave.fq[0], DRAPE.weave.fq[1], isLinen), wu = sH * fq, wv = P[1] * fq, su = 1 - mod(Math.floor(wu), 2) * 2, sv = 1 - mod(Math.floor(wv), 2) * 2; // D-225: tabby
+  const thread = (x: number) => Math.sqrt(Math.max(1 - (fract(x) * 2 - 1) ** 2, 0));
+  const weave01 = Math.max(thread(wu) * (Math.sin(wv * Math.PI) * su * 0.5 + 0.5), thread(wv) * (Math.sin(wu * Math.PI) * sv * -0.5 + 0.5));
+  const weaveK = band(fq), weaveH = (weave01 - 0.5) * mix(DRAPE.weave.h[0], DRAPE.weave.h[1], isLinen) * weaveK;
+  clothAlb = clothAlb.map(c => c * (1 + (weave01 - 0.5) * DRAPE.weave.alb * weaveK)) as V3;
   const thB = Math.atan2(P[0], P[2] - 0.02), sideS = sstep(0.35, 0.9, Math.abs(Math.sin(thB)));
   const pleatT = Math.abs(fract(thB * 26 / (Math.PI * 2) + P[1] * 9 * Math.sign(thB) * sideS) - 0.5) * 2;
   const pleatH = (pleatT - 0.5) * 0.003 * is(prm, 1) * band(21);
+  // D-225: the robe's creases (the material's robeH; fwU = the uv.x derivative, the seam mask)
+  const uR = Math.abs(U[0]), aR = uR * Math.PI * 2 - Math.sin(uR * Math.PI * 2) * ROBE.warp, tR = U[1];
+  const pmR = 1 - sstep(ROBE.panel, ROBE.panel + 0.12, aR), sideR = sstep(ROBE.panel, ROBE.panel + 0.15, aR) * (1 - sstep(2.3, 2.7, aR)), backR = sstep(2.3, 2.7, aR);
+  const valley = (c: number) => 1 - sstep(0, 0.3, Math.abs(c)), qR = aR / (2 * ROBE.panel) * ROBE.panelPleats * 2;
+  const robeH = (valley(Math.cos((aR - ROBE.panel - tR * ROBE.sideTwist) * ROBE.sideN / 2)) * sideR * (tR * 0.7 + 0.3) + valley(Math.cos(aR * ROBE.backN / 2)) * backR * tR
+    + valley(Math.sin(qR * Math.PI)) * pmR * 0.6 + valley(Math.sin(qR * Math.PI * ROBE.fine)) * pmR * 0.2) * -ROBE.crease * is(prm, PRM_ROBE) * band(60) * (1 - sstep(0.015, 0.04, fwU));
   const foldH = skirtFold(U[1], Math.atan2(P[0], P[2] - 0.02), W4[2], 0, Math.hypot(...f.posV)) * f.aux[1] * kCloth;
   const wrinkleH = Math.sin(P[1] * DRAPE.wrinkleF * Math.PI * 2 + n2 * 3) * DRAPE.wrinkle * W4[1] * band(DRAPE.wrinkleF);
   // D-206: hems and the gathers above the belt
@@ -169,8 +177,9 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const hemH = Math.sin(hem * Math.PI) * DRAPE.hemRoll;
   const gz = (1 - sstep(0, DRAPE.gatherH, U[1])) * (U[1] >= -0.03 ? 1 : 0) * is(prm, PRM_UPPER) * kCloth;
   const gatherH = Math.sin(thB * DRAPE.gatherN + n2 * 1.5) * DRAPE.gather * gz * band(DRAPE.gatherN / 0.9);
+  const hz = (1 - sstep(0.04, DRAPE.hang.top, U[1])) * (U[1] >= -0.03 ? 1 : 0) * is(prm, PRM_UPPER) * kCloth, hangH = Math.sin(thB * DRAPE.hang.n + n3 * 2.5) * DRAPE.hang.h * hz * band(DRAPE.hang.n / 0.9);
   clothAlb = clothAlb.map(c => c * (1 - hem * DRAPE.hemDark)) as V3;
-  const clothH = n2 * mix(0.003, 0.0012, is(prm, 4)) + n1 * mix(0.00025, 0.00012, isLinen) + weaveH + pleatH + foldH + wrinkleH + hemH + gatherH;
+  const clothH = n2 * mix(DRAPE.lump, 0.0012, is(prm, 4)) + n1 * mix(DRAPE.streak.h[0], DRAPE.streak.h[1], isLinen) * band(DRAPE.streak.f[1]) + weaveH + pleatH + robeH + foldH + wrinkleH + hemH + gatherH + hangH;
   // felt, leather, metal, wood, wicker
   const feltAlb = f.color.map(c => c * (1 + n3 * 0.1 + n1 * 0.05)) as V3;
   const seam = Math.exp(-((P[0] / 0.0022) ** 2)) * 0.00045 * is(prm, 0);
@@ -190,7 +199,7 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const where = Math.max(low, arms * zHands, front * zFront, load * zLoad * 0.8);
   const grimeMask = grime * where * (kCloth + kSkin * Math.max(feet * 0.65 + 0.35, arms * zHands) + kLeather * 0.8 + kFelt * 0.3) * (u3 * 0.6 + 0.7);
   alb = mix3(alb, grimeCol, grimeMask * 0.35);
-  const hemBand = Math.max(1 - sstep(0.03, 0.3, P[1]), f.aux[1] * kCloth * sstep(0.72, 1, U[1]) * 0.7);
+  const hemBand = Math.max(1 - sstep(0.03, 0.3, P[1]), f.aux[1] * kCloth * (sstep(0.72, 1, U[1]) * 0.7 + sstep(DRAPE.hemEdge[0], 1, U[1]) * DRAPE.hemEdge[1]));
   const soilMask = clamp(W4[3] * hemBand * (kCloth + kLeather * 0.8 + kSkin * feet * 0.6) * (u2 * 0.8 + 0.6) * DRAPE.soil, 0, 0.75);
   alb = mix3(alb, DRAPE.dust, soilMask);
   const rough = Math.min(1, soilMask * 0.15 + kSkin * (SKIN.roughSheen - oil * 0.08 + n1 * 0.06 * band(SKIN.pores[0][0])) + kEye * mix(0.1, 0.035, irisM) + kHair * 0.5 + kTeeth * 0.25 + kMouth * 0.3 + kLeather * 0.55 + kFelt * 0.95 + kMetal * 0.32 + kLash * 0.6 + kWood * 0.55 + kWicker * 0.85 + kCloth * mix(0.92, 0.8, isLinen) + grimeMask * 0.2);
@@ -210,7 +219,7 @@ export function surface(f: Frag, fw: number, nb: V3, silh: number, skinTex: Tex 
   const clumpC = Math.abs(fract(along * mix(LASH.clumps, LASH.clumps * 0.6, e2) + n1 * 0.35) - 0.5) * 2, lashW = ((1 - tl) * Math.sqrt(Math.max(0, 1 - tl)) * 0.8 + 0.1) * mix(1, 0.7, e2);
   const lashCut = Math.max(lashW <= clumpC ? 1 : 0, 0.9 <= tl ? 1 : 0) * (1 - bits(pat, 'kohl') * (tl <= KOHL.band ? 1 : 0));
   const keep = 1 - kHair * Math.max(edgeCut, silCut) - kLash * lashCut > 0.5;
-  return { alb, rough, metal: kMetal, h, ao, keep, f0, micro: f.aux[0], microK: (kSkin + kCloth + kFelt + kLeather + kHair * 0.5) * DRAPE.micro, wrap, trans, roughB: SKIN.roughOil, lobeB: kSkin * mix(SKIN.oilLobe[0], SKIN.oilLobe[1], oil), kHair, kkEdge: sstep(0.3, 1, e2), hairTilt: mix((curls - 0.5) * 1.6, Math.cos(lockPh) * 0.33, lockZone * kCourt),
+  return { alb, rough, metal: kMetal, h, ao, keep, f0, micro: f.aux[0], microK: (kSkin + kCloth + kFelt + kLeather + kHair * 0.5) * DRAPE.micro, wrap, trans, roughB: SKIN.roughOil, lobeB: kSkin * mix(SKIN.oilLobe[0], SKIN.oilLobe[1], oil), kHair, kkEdge: sstep(0.3, 1, e2), hairTilt: (curls - 0.5) * 1.6,
     sheenCol: sheenBase.map(c => c * sheenK) as V3, sheenRough: kCloth * mix(0.55, 0.35, isLinen) + kFelt * 0.7 + (1 - kCloth - kFelt) * 0.5,
     specOcc: mix(1, f.aux[0], kSkin * 0.5) * mix(1, curls * 0.6 + 0.4, kHair),
     roughEnv: kSkin * 0.45 + kEye * 0.04 + kHair * 0.5 + kTeeth * 0.3 + kMouth * 0.3 + kLeather * 0.55 + kMetal * 0.32 + kWood * 0.6 + kWicker * 0.8 + (kCloth + kFelt + kLash) * 0.9,

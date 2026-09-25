@@ -21,6 +21,7 @@ import { decodePNG, encodePNG } from '../humans/png';
 import { surface, shade, agx, toSRGB8, makeTex, dot3, norm3, cross3, SAG_MAX, skirtFold, type V3, type Frag, type Env, type Tex } from './human_cpu';
 import { wearTexel } from '../../src/people/looks';
 import { DRAPE } from '../../src/people/humanMaterial';
+import { BEARD } from '../../src/people/drape';
 
 const arg = (k: string, d: string) => { const i = process.argv.indexOf(`--${k}`); return i > 0 ? process.argv[i + 1] : d; };
 const view = process.argv[2] ?? 'macro-0';
@@ -81,6 +82,7 @@ const people: Person[] = lineup.map((sp, i) => {
       // the skirt's hem folds and fit (the material's vertex stage, D-189)
       if (clothK && Cc.hext[k * 4 + 2] > 127) { const d = skirtFold(Cc.uv[k * 2 + 1], Math.atan2(bx, bz - 0.02), wt[2], wt[1], camD), rl = Math.hypot(bx, bz - 0.02) || 1; bx += bx / rl * d; bz += (bz - 0.02) / rl * d; }
       if (clsK === MAT.felt && Cc.hmat[k * 4 + 3] === 1) by += Cc.uv[k * 2 + 1] * DRAPE.hatH * look.wear.hat; // the fluted hat's height (D-189)
+      if (clsK === MAT.hair && Cc.hmat[k * 4 + 3] === 3 && Math.floor(look.pattern / 2) % 4 === 1) { const d = (Cc.hext[k * 4 + 2] / 255 - 0.6) * BEARD.rowAmp; bx += nb[0] * d; by += nb[1] * d; bz += nb[2] * d; } // the court beard's rows (D-225)
       if (clothK && Cc.hext[k * 4 + 2] <= 127) { const oa = Cc.skinIndex[k * 4] * 12, ob = Cc.skinIndex[k * 4 + 1] * 12, ya = norm3([pal[oa + 1], pal[oa + 5], pal[oa + 9]]), yb = norm3([pal[ob + 1], pal[ob + 5], pal[ob + 9]]);
         const mixW = Math.min(1, 4 * (Cc.skinWeight[k * 4] / 255) * (Cc.skinWeight[k * 4 + 1] / 255)); bend[k] = Math.min(1, Math.max(0, (1 - dot3(ya, yb)) * 2)) * mixW; }
       let px = 0, py = 0, pz = 0, nx = 0, ny = 0, nz = 0;
@@ -214,7 +216,8 @@ for (let y = 0; y < RH; y++) for (let x = 0; x < RW; x++) {
     const fw = Math.hypot(Math.abs(dPx[0]) + Math.abs(dPy[0]), Math.abs(dPx[1]) + Math.abs(dPy[1]), Math.abs(dPx[2]) + Math.abs(dPy[2]));
     const nb = norm3(cross3(dPx, dPy));
     const n = norm3(f.nrmV), v = norm3([-f.posV[0], -f.posV[1], -f.posV[2]]);
-    const s = surface(f, fw, nb, 1 - Math.abs(dot3(n, v)), skinTex), sx = surface(fX, fw, nb, 0, skinTex), sy = surface(fY, fw, nb, 0, skinTex);
+    const fwU = Math.abs(fX.uv[0] - f.uv[0]) + Math.abs(fY.uv[0] - f.uv[0]); // (fwidth of uv.x: the robe's seam mask, D-225)
+    const s = surface(f, fw, nb, 1 - Math.abs(dot3(n, v)), skinTex, fwU), sx = surface(fX, fw, nb, 0, skinTex, fwU), sy = surface(fY, fw, nb, 0, skinTex, fwU);
     // bumped(): surface gradient from the screen-space derivatives of the height and the view-space position
     const dpdx: V3 = [fX.posV[0] - f.posV[0], fX.posV[1] - f.posV[1], fX.posV[2] - f.posV[2]], dpdy: V3 = [fY.posV[0] - f.posV[0], fY.posV[1] - f.posV[1], fY.posV[2] - f.posV[2]];
     const r1 = cross3(dpdy, n), r2 = cross3(n, dpdx), det = dot3(dpdx, r1), dhx = sx.h - s.h, dhy = sy.h - s.h, sg = Math.sign(det);

@@ -16,8 +16,8 @@
 // positions are generated per variant (23), so each body wears its own fitted copy.
 // Every piece carries an evidence tier and source key for the dev overlay (F3). Colours are per person (crowd.ts).
 import type { HumanAssets, HumanVariant } from './humanAssets';
-import { HB, PART, MAT, EYE_UNIT, SKIN_CURV_MAX, PRM_UPPER, type HBone } from './humanFormat';
-import { clothHull, headHull, hull2, rayToHull, BELT_TOP } from './drape';
+import { HB, PART, MAT, EYE_UNIT, SKIN_CURV_MAX, PRM_UPPER, PRM_ROBE, type HBone } from './humanFormat';
+import { clothHull, headHull, hull2, rayToHull, BELT_TOP, ROBE, SLEEVE, BEARD, robePleat, robeTheta, beardRow } from './drape';
 
 export type Dress = 'persian' | 'guard' | 'median' | 'worker' | 'woman' | 'child' | 'envoy' | 'envoy_short' | 'envoy_bare' | 'king' | 'court_woman';
 export const DRESSES: Dress[] = ['persian', 'guard', 'median', 'worker', 'woman', 'child', 'envoy', 'envoy_short', 'envoy_bare', 'king', 'court_woman'];
@@ -46,7 +46,7 @@ export interface Geo {
   /** material class (MAT), colour slot (COL), class parameter, sleeve/drape slack 0..255 (the shader sags it), cavity AO 0..255 */
   mat: Uint8Array; col: Uint8Array; prm: Uint8Array; slack: Uint8Array; ao: Uint8Array;
   /** garments' spare byte (hext.z; the body uses it for the beard region): 255 on a skirt tube, whose hem the material
-   *  folds and fits per person (D-189) */
+   *  folds and fits per person (D-189); on the long beard's mass 0.6 + its row profile (D-225: drape.ts beardRow) */
   aux: Uint8Array;
   /** 0 at a shell's cut line … 255 a ramp inside it (hair and beard edges are frayed in the shader) */
   edge: Uint8Array;
@@ -205,24 +205,31 @@ interface TubeOpts {
   tOf?: (k: number, rings: number) => number;
   /** open sheet over θ ∈ [a0, a1] instead of a closed ring (a cape); the side edges are closed when lined */
   arc?: [number, number];
+  /** D-225: closed rings only: the angle of column j of S (monotonic 0 → 2π; default uniform), so pleats get columns */
+  thAt?: (j: number, S: number) => number;
+  /** D-225: the lining takes every n-th ring (n divides rings; closed tubes) */
+  liningStride?: number;
 }
 function tubeGeo(A: HumanAssets, key: string, o: TubeOpts): Geo {
   const S = o.segs, R = o.rings, lining = o.lining ?? 0, lined = typeof lining === 'function' || lining > 0, arc = o.arc, cols = arc ? S + 1 : S;
   const linAt = typeof lining === 'function' ? lining : () => lining;
-  const layers = lined ? 2 : 1, nRing = cols * (R + 1), poles = (o.capStart ? 1 : 0) + (o.capEnd ? 1 : 0);
-  const n = nRing * layers + poles;
+  // D-225: the lining may take every `ls`-th ring only (it is seen only through the opening: pleats need rings, it does not)
+  const ls = lined ? (o.liningStride ?? 1) : 1; if (R % ls || (arc && ls > 1)) throw new Error(`${key}: lining stride ${ls} must divide ${R} rings (closed tubes only)`);
+  const RL = R / ls, nRing = cols * (R + 1), nLin = lined ? cols * (RL + 1) : 0, poles = (o.capStart ? 1 : 0) + (o.capEnd ? 1 : 0);
+  const n = nRing + nLin + poles;
   const idx: number[] = [];
+  /** layer 0: outer ring k (0..R); layer 1: lining ring k (0..RL, at outer ring k·ls) */
   const vid = (layer: number, k: number, j: number) => layer * nRing + k * cols + (arc ? j : ((j % S) + S) % S);
-  const thOf = (j: number) => (arc ? arc[0] + ((arc[1] - arc[0]) * j) / S : (j / S) * 2 * Math.PI);
-  for (let layer = 0; layer < layers; layer++) for (let k = 0; k < R; k++) for (let j = 0; j < S; j++) {
+  const thOf = (j: number) => (arc ? arc[0] + ((arc[1] - arc[0]) * j) / S : o.thAt ? o.thAt(j, S) : (j / S) * 2 * Math.PI);
+  for (let layer = 0; layer < (lined ? 2 : 1); layer++) for (let k = 0; k < (layer ? RL : R); k++) for (let j = 0; j < S; j++) {
     const a = vid(layer, k, j), b = vid(layer, k, j + 1), c = vid(layer, k + 1, j), d = vid(layer, k + 1, j + 1);
     // outer faces outward: (a, c, b) with θ increasing counter-clockwise about +w, t along +w (checked by the tests' normal-direction test)
     if (layer === 0) idx.push(a, b, c, b, d, c); else idx.push(a, c, b, b, c, d);
   }
   if (lined && arc) for (let k = 0; k < R; k++) for (const [j, flip] of [[0, false], [S, true]] as const) { const a = vid(0, k, j), b = vid(0, k + 1, j), c = vid(1, k, j), d = vid(1, k + 1, j); if (flip) idx.push(a, c, b, b, c, d); else idx.push(a, b, c, b, d, c); }
-  if (lined) { for (let j = 0; j < S; j++) { const a = vid(0, R, j), b = vid(0, R, j + 1), c = vid(1, R, j), d = vid(1, R, j + 1); idx.push(a, b, c, b, d, c); }
+  if (lined) { for (let j = 0; j < S; j++) { const a = vid(0, R, j), b = vid(0, R, j + 1), c = vid(1, RL, j), d = vid(1, RL, j + 1); idx.push(a, b, c, b, d, c); }
     if (o.closeTop) for (let j = 0; j < S; j++) { const a = vid(0, 0, j), b = vid(0, 0, j + 1), c = vid(1, 0, j), d = vid(1, 0, j + 1); idx.push(a, c, b, b, c, d); } }
-  let pole = nRing * layers;
+  let pole = nRing + nLin;
   const pS = o.capStart ? pole++ : -1, pE = o.capEnd ? pole++ : -1;
   if (pS >= 0) for (let j = 0; j < S; j++) idx.push(pS, vid(0, 0, j + 1), vid(0, 0, j));
   if (pE >= 0) for (let j = 0; j < S; j++) idx.push(pE, vid(0, R, j), vid(0, R, j + 1));
@@ -231,8 +238,9 @@ function tubeGeo(A: HumanAssets, key: string, o: TubeOpts): Geo {
     const out = new Float32Array(n * 3);
     const partSet = o.support ? new Set(o.support.parts) : null;
     let run: number[] | null = null;
+    const rad = lined ? new Float32Array((R + 1) * cols) : null, frames: Frame[] = [];
     for (let k = 0; k <= R; k++) {
-      const t = tOf(k, R), F = o.frame(c, t);
+      const t = tOf(k, R), F = o.frame(c, t); frames.push(F);
       let supArr: number[] | null = null;
       if (partSet) { // support radii in 64 bins of θ from body verts in the slab
         const B = 64; supArr = new Array(B).fill(0); const V = c.v.pos, slab = o.support!.slab;
@@ -248,20 +256,24 @@ function tubeGeo(A: HumanAssets, key: string, o: TubeOpts): Geo {
       const sup = (th: number) => { if (!supArr) return 0; const B = supArr.length; const f = (((th / (2 * Math.PI)) % 1) + 1) % 1 * B, b0 = Math.floor(f) % B, b1 = (b0 + 1) % B, a = f - Math.floor(f); return supArr[b0] * (1 - a) + supArr[b1] * a; };
       for (let j = 0; j < cols; j++) {
         const th = thOf(j), r = o.radius(c, t, th, sup), dir = add(scl(F.u, Math.cos(th)), scl(F.v, Math.sin(th)));
-        const p = add(F.o, scl(dir, r)); out.set(p, vid(0, k, j) * 3);
-        if (lined) out.set(add(F.o, scl(dir, Math.max(0.0005, r - linAt(t, th)))), vid(1, k, j) * 3);
+        const p = add(F.o, scl(dir, r)); out.set(p, vid(0, k, j) * 3); if (rad) rad[k * cols + j] = r;
       }
     }
+    // the lining: under the outer layer at its ring (the least radius of the outer rings it spans, so a pleat's trough
+    // between two lining rings is not cut through)
+    if (rad) for (let kk = 0; kk <= RL; kk++) { const k = kk * ls, F = frames[k], t = tOf(k, R);
+      for (let j = 0; j < cols; j++) { let r = rad[k * cols + j]; for (let q = Math.max(0, k - ls + 1); q <= Math.min(R, k + ls - 1); q++) r = Math.min(r, rad[q * cols + j]);
+        const th = thOf(j), dir = add(scl(F.u, Math.cos(th)), scl(F.v, Math.sin(th))); out.set(add(F.o, scl(dir, Math.max(0.0005, r - linAt(t, th)))), vid(1, kk, j) * 3); } }
     if (pS >= 0) { const F = o.frame(c, tOf(0, R)); out.set(add(F.o, scl(F.w, -0.0)), pS * 3); }
     if (pE >= 0) { const F = o.frame(c, tOf(R, R)); out.set(add(F.o, scl(F.w, o.capLift ?? 0)), pE * 3); }
     return out;
   };
   const g = newGeo(key, n, idx, place);
-  for (let layer = 0; layer < layers; layer++) for (let k = 0; k <= R; k++) for (let j = 0; j < cols; j++) {
-    const i = vid(layer, k, j), t = tOf(k, R), th = thOf(j); setW(g, i, o.weights(t, th)); g.uv[i * 2] = j / S; g.uv[i * 2 + 1] = t;
+  for (let layer = 0; layer < (lined ? 2 : 1); layer++) for (let k = 0; k <= (layer ? RL : R); k++) for (let j = 0; j < cols; j++) {
+    const i = vid(layer, k, j), t = tOf(layer ? k * ls : k, R), th = thOf(j); setW(g, i, o.weights(t, th)); g.uv[i * 2] = j / S; g.uv[i * 2 + 1] = t;
     if (o.slack) g.slack[i] = Math.round(255 * clamp(o.slack(t, th))); if (o.aux) g.aux[i] = Math.round(255 * clamp(o.aux(t, th))); if (layer === 1) g.ao[i] = 150; }
-  if (pS >= 0) { setW(g, pS, o.weights(tOf(0, R), 0)); g.uv.set([0.5, 0], pS * 2); }
-  if (pE >= 0) { setW(g, pE, o.weights(tOf(R, R), 0)); g.uv.set([0.5, 1], pE * 2); }
+  if (pS >= 0) { setW(g, pS, o.weights(tOf(0, R), 0)); g.uv.set([0.5, 0], pS * 2); if (o.aux) g.aux[pS] = Math.round(255 * clamp(o.aux(tOf(0, R), 0))); }
+  if (pE >= 0) { setW(g, pE, o.weights(tOf(R, R), 0)); g.uv.set([0.5, 1], pE * 2); if (o.aux) g.aux[pE] = Math.round(255 * clamp(o.aux(tOf(R, R), 0))); }
   setMat(g, o.mat, o.col, o.prm ?? 0);
   return g;
 }
@@ -294,8 +306,8 @@ export interface PieceMeta { id: string; label: string; tier: 'A' | 'B' | 'C'; s
 /** evidence per piece (overlay text; sources are keys of src/data/sources.json or MATERIAL_CULTURE rows) */
 export const PIECES: Record<string, PieceMeta> = {
   robe_upper: { id: 'robe_upper', label: 'Persian court robe (body and shoulders)', tier: 'B', src: 'IR-CAND', note: 'single wide piece girt at the waist (MATERIAL_CULTURE: Persian court robe)' },
-  robe_skirt: { id: 'robe_skirt', label: 'robe skirt with pleats', tier: 'B', src: 'IR-CAND', note: 'falls below the belt in tiers of pleats to the ankle; pleat layout and hem line C' },
-  robe_sleeves: { id: 'robe_sleeves', label: 'wide robe sleeves', tier: 'B', src: 'IR-CAND', note: 'wide sleeves in folds; hanging drape follows the skeleton (no cloth simulation), C' },
+  robe_skirt: { id: 'robe_skirt', label: 'robe skirt with pleats', tier: 'B', src: 'IR-CAND', note: 'falls below the belt in pleats to the ankle (B); D-225: baked into the mesh as the reliefs carve it: a stack of vertical pleats at the front, diagonal folds from the hips back to the hem, broad folds behind, the hem higher in front; moves with the skinning, no cloth simulation; every size and count C' },
+  robe_sleeves: { id: 'robe_sleeves', label: 'wide robe sleeves', tier: 'B', src: 'IR-CAND', note: 'wide sleeves in folds (B); D-225: cut on the slant (shorter over the front of the forearm) with folds winding to the deep back of the opening; baked, follows the skeleton and sags where slack (no cloth simulation); cut and sizes C' },
   tunic_upper: { id: 'tunic_upper', label: 'sleeved tunic (sarapis)', tier: 'B', src: 'IR-CAND', note: 'Median riding costume: sleeved tunic, tight sleeves to the wrist; hangs from the chest and shoulder blades, bloused over the belt, hemmed openings (D-206, C for the drape)' },
   tunic_skirt: { id: 'tunic_skirt', label: 'tunic skirt to the knee', tier: 'B', src: 'IR-CLOTH', note: 'knee-length, belted' },
   trousers: { id: 'trousers', label: 'trousers (anaxyrides)', tier: 'B', src: 'IR-CAND', note: 'close-fitting trousers of the riding costume' },
@@ -313,7 +325,7 @@ export const PIECES: Record<string, PieceMeta> = {
   hair: { id: 'hair', label: 'scalp hair, curled', tier: 'B', src: 'RELIEF-R', note: 'curled hair as carved on the reliefs; colour natural dark (the reliefs paint it dark blue, a convention), C' },
   hair_bob: { id: 'hair_bob', label: 'bobbed hair', tier: 'B', src: 'IR-WOMEN', note: 'elite Persian woman statuette from Egypt: bobbed hair (B); for workers C' },
   bun: { id: 'bun', label: 'hair bunched at the nape', tier: 'B', src: 'RELIEF-R', note: 'Persian and Median men on the reliefs wear the hair gathered in a mass at the back of the neck; size C' },
-  beard_long: { id: 'beard_long', label: 'long curled beard, squared', tier: 'B', src: 'RELIEF-R', note: 'long beard with rows of curls on the reliefs; length and curl rendering C' },
+  beard_long: { id: 'beard_long', label: 'long curled beard, squared', tier: 'B', src: 'RELIEF-R', note: 'long beard with rows of curls on the reliefs (B); D-225: in the court dressing its hanging mass is laid out in stacked rows of spiral curls (rolls in the mesh, curls in the material); a working man\'s long beard stays a plain mass; length, row and curl sizes C (Q-241)' },
   beard_short: { id: 'beard_short', label: 'short beard', tier: 'C', src: 'RECON', note: 'workers and foreigners: short beard (reconstruction)' },
   hat_fluted: { id: 'hat_fluted', label: 'fluted felt hat', tier: 'B', src: 'IR-CLOTH', note: 'tall fluted headgear of Persian-dress nobles and guards; height, flute count, material C' },
   fillet: { id: 'fillet', label: 'twisted cloth fillet', tier: 'C', src: 'SUSA-ARCH', note: 'headband of the Susa glazed-brick archers (Darius I); worn here by some Persian-dress guards (C)' },
@@ -433,14 +445,18 @@ const skirtRings = (lod: number) => Math.max(3, Math.round(TESS[lod].ring * (lod
 function skirtTube(L: Lib, key: string, lod: number, o: { top: number; hem: (c: Ctx, th: number) => number; ease: number; flare: number; pleats: number; pleatAmp: number; frontPleat?: number; col?: number;
   /** D-206: drape folds all round, falling from the belt and deepening toward the hem (m; full detail only: a skirt read
    *  as a rigid cone, rubric s6) */
-  folds?: number }) {
-  const T = TESS[lod], rings = skirtRings(lod);
+  folds?: number;
+  /** D-225: the Persian robe's baked pleats (drape.ts ROBE/robePleat) in place of the ripples: its own columns (denser at
+   *  the front), rings and a coarser lining, class parameter PRM_ROBE */
+  robe?: boolean }) {
+  const T = TESS[lod], rings = o.robe ? ROBE.rings[lod] : skirtRings(lod), segs = o.robe ? ROBE.segs[lod] : T.seg;
   const kneeT = 0.55;
-  return tubeGeo(L.A, key, { segs: T.seg, rings, lining: 0.004,
+  const g = tubeGeo(L.A, key, { segs, rings, lining: 0.004, thAt: o.robe ? robeTheta : undefined, liningStride: o.robe ? 2 : 1,
     frame: (c, t) => { const top = c.J('spine_01')[1] + o.top, hemMid = o.hem(c, Math.PI / 2); const y = lerp(top, hemMid, t); const zc = lerp(c.J('pelvis')[2] + 0.02, c.J('calf_l')[2] - 0.01, t); return vertFrame([0, y, zc]); },
     support: { parts: [P.pelvis, P.belly, ...LEGS], slab: 0.03, running: 'max' },
     radius: (c, t, th, sup) => {
       const base = sup(th) + o.ease + o.flare * sstep(0.1, 1, t);
+      if (o.robe) return base + robePleat(Math.abs(Math.atan2(Math.sin(th), Math.cos(th))), t, lod);
       // pleats: fine ripples on the sides (fabric drawn up to the belt), a box-pleat cascade at the front (C)
       const side = sstep(0.25, 0.8, Math.abs(Math.sin(th))), front = o.frontPleat ? Math.exp(-((Math.atan2(Math.sin(th), Math.cos(th))) ** 2) / 0.05) : 0;
       const rip = o.pleatAmp * sstep(0.05, 0.35, t) * (side * Math.sin(th * o.pleats) + front * (o.frontPleat ?? 0) * Math.cos(th * o.pleats * 1.5))
@@ -456,33 +472,53 @@ function skirtTube(L: Lib, key: string, lod: number, o: { top: number; hem: (c: 
     // the knees was stretched flat into a disc; the lower and middle (front and back) cloth now drops under gravity
     slack: (t, th) => sstep(0.3, 0.85, t) * (0.35 + 0.65 * Math.abs(Math.cos(th))),
     aux: () => 1, // a skirt: the material folds its hem and fits it per person (D-189)
-    mat: MAT.cloth_main, col: o.col ?? COL.main, prm: o.pleats > 20 ? 1 : 0,
+    mat: MAT.cloth_main, col: o.col ?? COL.main, prm: o.robe ? PRM_ROBE : o.pleats > 20 ? 1 : 0,
   });
-}
-/** apply a per-θ hem height to a skirt tube's last ring (the frame places rings on a straight axis) */
-function withHem(g: Geo, segs: number, rings: number, lined: boolean, hem: (c: Ctx, th: number) => number): Geo {
-  const place = g.place; const nRing = segs * (rings + 1);
-  g.place = (c: Ctx) => { const out = place(c); for (let layer = 0; layer < (lined ? 2 : 1); layer++) for (let k = 1; k <= rings; k++) { const f = k / rings; for (let j = 0; j < segs; j++) { const i = layer * nRing + k * segs + j; const th = (j / segs) * 2 * Math.PI; const y0 = out[(layer * nRing + j) * 3 + 1];
-      const yEnd = hem(c, th), yMidEnd = hem(c, Math.PI / 2); const yLin = lerp(y0, yMidEnd, f); out[i * 3 + 1] = yLin + (yEnd - yMidEnd) * f * f; } } return out; };
+  // D-225: the robe's column parameter u runs −½ … ½ (0 at the front), so the material finds each fold from uv.x exactly
+  // (|u| → robeTheta); its one seam quad lies at the back centre, where the material masks the creases
+  if (o.robe) for (let i = 0; i < g.n; i++) if (g.uv[i * 2] > 0.5 + 1e-6) g.uv[i * 2] -= 1;
   return g;
 }
-/** wide hanging sleeves (Persian robe): shoulder → wrist, flaring, heavier on the back of the arm (it hangs when raised) */
+/** apply a per-θ hem height to a skirt tube's rings (the frame places rings on a straight axis); `thAt` and `liningStride`
+ *  as the tube was built with (D-225) */
+function withHem(g: Geo, segs: number, rings: number, lined: boolean, hem: (c: Ctx, th: number) => number, thAt?: (j: number, S: number) => number, liningStride = 1): Geo {
+  const place = g.place; const nRing = segs * (rings + 1), thOf = (j: number) => (thAt ? thAt(j, segs) : (j / segs) * 2 * Math.PI);
+  g.place = (c: Ctx) => { const out = place(c); for (let layer = 0; layer < (lined ? 2 : 1); layer++) { const st = layer ? liningStride : 1; for (let kk = 1; kk <= rings / st; kk++) { const f = (kk * st) / rings; for (let j = 0; j < segs; j++) { const i = layer * nRing + kk * segs + j; const th = thOf(j); const y0 = out[(layer * nRing + j) * 3 + 1];
+      const yEnd = hem(c, th), yMidEnd = hem(c, Math.PI / 2); const yLin = lerp(y0, yMidEnd, f); out[i * 3 + 1] = yLin + (yEnd - yMidEnd) * f * f; } } } return out; };
+  return g;
+}
+/** wide hanging sleeves (Persian robe): shoulder → wrist, flaring, heavier on the back of the arm (it hangs when raised).
+ *  D-225: the reliefs' sleeve is cut on the slant — its opening runs from below the elbow on the front of the forearm down
+ *  to the wrist behind (drape.ts SLEEVE.cut), and it hangs in folds that wind from the upper arm round to the deep back of
+ *  the opening (a helix, rounded crests and sharp valleys); the lining takes every second ring. B for the wide folded
+ *  sleeve (IR-CAND), C for the cut and every size. Baked: it moves with the skinning (and sags where slack, D-155). */
 function robeSleeves(L: Lib, key: string, lod: number) {
-  const T = TESS[lod], segs = Math.max(8, Math.round(T.seg * 0.6)), rings = Math.max(3, Math.round(T.ring * 0.6));
+  const segs = SLEEVE.segs[lod], rings = SLEEVE.rings[lod];
+  const tEnd = (th: number) => 1 - SLEEVE.cut * (0.5 + 0.5 * Math.cos(th)) ** 2; // θ 0 = the front of the arm
   const one = (s: 'l' | 'r') => {
     const up = `upperarm_${s}` as HBone, lo = `lowerarm_${s}` as HBone, ha = `hand_${s}` as HBone; const partU = s === 'l' ? P.uarm_l : P.uarm_r, partF = s === 'l' ? P.farm_l : P.farm_r;
     const split = 0.5; // t of the elbow
-    return tubeGeo(L.A, `${key}_${s}`, { segs, rings, lining: 0.003,
+    const g = tubeGeo(L.A, `${key}_${s}`, { segs, rings, lining: 0.003, liningStride: 2,
       frame: (c, t) => { const a = c.J(up), e = c.J(lo), h = add(c.J(ha), scl(nrm(sub(c.J(ha), c.J(lo))), -0.03));
         return t < split ? segFrame(add(a, [s === 'l' ? -0.01 : 0.01, 0.01, 0]), e, t / split, [0, 0, 1]) : segFrame(e, h, (t - split) / (1 - split), [0, 0, 1]); },
       support: { parts: [partU, partF], slab: 0.02 },
       radius: (c, t, th, sup) => { const back = 0.5 - 0.5 * Math.cos(th); // θ π = back of the arm
-        // folds (D-155, C): the wide sleeve hangs in soft vertical folds toward the cuff, deeper on the hanging back
-        const folds = (0.004 + 0.008 * back) * sstep(0.35, 1.0, t) * Math.sin(th * 7 + t * 2.5);
-        return sup(th) + 0.006 + 0.022 * sstep(0.0, 0.35, t) + (0.02 + 0.075 * back) * sstep(0.3, 1.0, t) + folds; },
-      weights: t => { const k = sstep(split - 0.12, split + 0.12, t); return [W(up, 1 - k), W(lo, k)]; },
-      slack: (t, th) => sstep(0.35, 1, t) * (0.25 + 0.75 * (0.5 - 0.5 * Math.cos(th))),
+        // folds (D-155, D-225): winding from the upper arm to the deep back of the opening, deeper on the hanging back
+        const ph = th * SLEEVE.folds + t * SLEEVE.twist, fold = (2 * Math.abs(Math.cos(ph / 2)) - 1) * (SLEEVE.foldAmp[0] + SLEEVE.foldAmp[1] * back) * sstep(0.12, 1.0, t) * (lod === 2 ? 0 : 1);
+        return sup(th) + 0.006 + 0.022 * sstep(0.0, 0.35, t) + (0.02 + 0.075 * back) * sstep(0.3, 1.0, t) + fold; },
+      weights: (t, th) => { const k = sstep(split - 0.12, split + 0.12, t * tEnd(th)); return [W(up, 1 - k), W(lo, k)]; },
+      slack: (t, th) => sstep(0.35, 1, t * tEnd(th)) * (0.25 + 0.75 * (0.5 - 0.5 * Math.cos(th))),
       mat: MAT.cloth_main, col: COL.main, prm: 2 });
+    // the slanted opening: each column's rings drawn up along the column to t·tEnd(θ) (interpolated between its placed rings)
+    const place = g.place, RL = rings / 2, nRing = segs * (rings + 1);
+    g.place = (c: Ctx) => { const out = place(c), tmp = new Float32Array((rings + 1) * 3);
+      for (let layer = 0; layer < 2; layer++) { const R = layer ? RL : rings, o0 = layer * nRing;
+        for (let j = 0; j < segs; j++) { const f = tEnd((j / segs) * 2 * Math.PI);
+          for (let k = 0; k <= R; k++) for (let e = 0; e < 3; e++) tmp[k * 3 + e] = out[(o0 + k * segs + j) * 3 + e];
+          for (let k = 1; k <= R; k++) { const x = k * f, k0 = Math.min(R - 1, Math.floor(x)), a = x - k0;
+            for (let e = 0; e < 3; e++) out[(o0 + k * segs + j) * 3 + e] = tmp[k0 * 3 + e] * (1 - a) + tmp[(k0 + 1) * 3 + e] * a; } } }
+      return out; };
+    return g;
   };
   return merge(`${key}`, [one('l'), one('r')]);
 }
@@ -700,22 +736,29 @@ function beardGeo(L: Lib, key: string, lod: number, long: boolean) {
   const shell = shellGeo(A, ref, `${key}_shell`, { tris: A.lods[lod === 0 ? 0 : TESS[lod].tris], d, ramp: long ? 0.008 : 0.011, smooth: lod === 0 ? 4 : 2, minOff: 0.003, // a wider ramp: the short beard thins over ~1 cm at its edge (D-155)
     thick: p => (long ? 0.01 : 0.0035) + (long ? 0.012 : 0.002) * sstep(ref.eyeY - 0.06, ref.eyeY - 0.12, p[1]), mat: MAT.hair, col: COL.hair, prm: 2 }); // short: 3.5 mm (was 5: its cut edges read as blobs)
   if (!long) return shell;
-  const T = TESS[lod], segs = Math.max(8, Math.round(T.seg * 0.6)), rings = Math.max(3, Math.round(T.ring * 0.5));
+  // D-225: the long beard's hanging mass carved as the reliefs carve it, in stacked rows of curls: at full detail three
+  // rings a row, each row a rounded roll (the curls across a row are the material's, BEARD.around a ring); θ 0 lies
+  // at the back (against the neck), so the tube's uv seam is hidden there and the material's curl columns run round
+  const T = TESS[lod], segs = Math.max(8, Math.round(T.seg * 0.6)), rings = lod === 0 ? BEARD.rows * 3 : Math.max(3, Math.round(T.ring * 0.5));
   const { chinI, noseI } = faceGeom(L);
   const LEN = 0.12; // below the chin (C: the carved beards reach the upper chest)
-  const mass = tubeGeo(A, `${key}_mass`, { segs, rings, capEnd: true,
+  const mass = tubeGeo(A, `${key}_mass`, { segs, rings, capEnd: true, // (θ0 = θ − π below)
     frame: (c, t) => { const ch: V3 = [c.v.pos[chinI * 3], c.v.pos[chinI * 3 + 1], c.v.pos[chinI * 3 + 2]], no: V3 = [0, c.v.pos[noseI * 3 + 1], c.v.pos[noseI * 3 + 2]];
       const top: V3 = [0, lerp(ch[1], no[1], 0.3), ch[2] - 0.03];
       const by = ch[1] - LEN, chest = frontZ(c, by); // the bottom hangs clear of the chest (robe ~1.5 cm)
       const bot: V3 = [0, by, Math.max(ch[2] - 0.01, chest + 0.015 + 0.03)];
-      const w = nrm(sub(bot, top)), u = nrm(cross([-1, 0, 0], w)); // u × v = w with v = −X
-      return { o: add(top, scl(sub(bot, top), t)), u, v: [-1, 0, 0], w }; },
-    radius: (c, t, th) => { // rounded rectangle: half-width 5 cm → 4.2 cm at the bottom, half-depth 2.8 cm (front) / 3.5 cm (back, over the neck)
-      const hw = lerp(0.052, 0.042, t), hd = Math.cos(th) > 0 ? lerp(0.032, 0.026, t) : 0.036, ct = Math.cos(th), st = Math.sin(th), p = 6;
+      const w = nrm(sub(bot, top)), u = scl(nrm(cross([-1, 0, 0], w)), -1); // θ 0 at the back; u × v = w with v = +X
+      return { o: add(top, scl(sub(bot, top), t)), u, v: [1, 0, 0], w }; },
+    radius: (c, t, th0) => { // rounded rectangle: half-width 5 cm → 4.2 cm at the bottom, half-depth 2.8 cm (front) / 3.5 cm (back, over the neck)
+      const th = th0 + Math.PI, hw = lerp(0.052, 0.042, t), hd = Math.cos(th) > 0 ? lerp(0.032, 0.026, t) : 0.036, ct = Math.cos(th), st = Math.sin(th), p = 6;
       const r = 1 / Math.pow(Math.pow(Math.abs(ct) / hd, p) + Math.pow(Math.abs(st) / hw, p), 1 / p);
-      const lumpy = 1 + 0.07 * Math.sin(th * 5 + t * 7.3) * Math.sin(t * 13.1 + th * 3) + 0.04 * Math.sin(th * 11 + t * 21); // locks, not a block (C)
+      const lumpy = 1 + 0.03 * Math.sin(th * 5 + t * 7.3) * Math.sin(t * 13.1 + th * 3); // not a machined block (C)
+      // the rows (full detail): a roll per row, 0 at the rows' joints; not on the back against the neck
       return r * lumpy * (t > 0.85 ? 1 - 0.5 * sstep(0.85, 1, t) ** 2 : 1); },
-    weights: t => [W('jaw', 0.7 - 0.3 * t), W('head', 0.3 + 0.1 * t), W('neck_01', 0.2 * t)], mat: MAT.hair, col: COL.hair, prm: 3 }); // prm 3: the hanging mass (wavy locks in the court dressing)
+    // the rows: a roll per row (0.6 in the spare byte = none), which the material's vertex stage lays out along the normal
+    // for the court dressing only (a working man's long beard is not carved in rows); at full detail
+    aux: (t, th0) => (lod === 0 ? 0.6 + beardRow(t, th0 + Math.PI) : 0.6),
+    weights: t => [W('jaw', 0.7 - 0.3 * t), W('head', 0.3 + 0.1 * t), W('neck_01', 0.2 * t)], mat: MAT.hair, col: COL.hair, prm: 3 }); // prm 3: the hanging mass (rows of curls in the court dressing)
   return merge(key, [shell, mass]);
 }
 /** a hat as a lathe around the head's vertical axis from a rim ring fitted to the head (support function) */
@@ -1095,9 +1138,9 @@ function buildPiece(L: Lib, id: string, lod: number): Geo {
   const J = L.J;
   switch (id) {
     case 'robe_upper': return upperShell(L, `${id}@${lod}`, lod, { armCut: 0.28, hipDrop: 0.1, neckDrop: 0.035, thick: 0.013, armThick: 0.012, smooth: 3 });
-    case 'robe_skirt': { const T = TESS[lod], rings = skirtRings(lod);
+    case 'robe_skirt': { // D-225: the baked pleats of the reliefs' robe (drape.ts ROBE), its own columns and a coarser lining
       const hem = (c: Ctx, th: number) => 0.035 + 0.035 * Math.max(0, Math.cos(th)) ** 2; // front of the hem higher, shoes show (C)
-      return withHem(skirtTube(L, `${id}@${lod}`, lod, { top: -0.02, hem, ease: 0.012, flare: 0.05, pleats: 26, pleatAmp: 0.009, frontPleat: 1 }), T.seg, rings, true, hem); }
+      return withHem(skirtTube(L, `${id}@${lod}`, lod, { top: -0.02, hem, ease: 0.012, flare: 0.04, pleats: 26, pleatAmp: 0.009, frontPleat: 1, robe: true }), ROBE.segs[lod], ROBE.rings[lod], true, hem, robeTheta, 2); }
     case 'robe_sleeves': return robeSleeves(L, `${id}@${lod}`, lod);
     case 'tunic_upper': return upperShell(L, `${id}@${lod}`, lod, { armCut: 0.97, hipDrop: 0.08, neckDrop: 0.03, thick: 0.009, armThick: 0.006, smooth: 2 });
     case 'tunic_skirt': case 'work_skirt': case 'child_skirt': { const T = TESS[lod], rings = skirtRings(lod);
