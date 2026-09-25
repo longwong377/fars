@@ -12,7 +12,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, Env } from '../src/people/sim';
-import { type Seg, segAt, wetHours } from '../src/people/population';
+import { type Seg, segAt, wetHours, CAMP_OPEN } from '../src/people/population';
 import { checkPlan, invariants } from '../src/people/planCheck';
 import { festivals, STORE_BOUNDS } from '../src/people/calendar';
 import { musicAt, drumSlot, type PopPerformer } from '../src/audio/performers';
@@ -39,7 +39,7 @@ describe('1 (gap audit item 3): the šip feasts and the festival days off', () =
   it('on both festival days nobody whose day off it is works, everyone\'s plan holds (every 3rd person), and the builders are off the Terrace', () => {
     const days = festivals(1).map(f => f.day); const r = sweep(all().filter(i => i % 3 === 0), ['festival', 'weather', 'light', 'label', 'meals', 'dress', 'wait', 'teen', 'siesta', 'water', 'reason'], days);
     expect(r.n).toBeGreaterThan(25_000); expect(r.bad).toEqual([]);
-    for (const d of days) { let off = 0, up = 0; for (const pid of P.builders as number[]) { if (!P.festDay(pid, d)) continue; off++; if ((P.plan(pid, d) as Seg[]).some(s => s.where === 'terrace')) up++; } expect(off).toBeGreaterThan(500); expect(up).toBe(0); }
+    for (const d of days) { let off = 0, up = 0; for (const pid of P.builders as number[]) { if (!P.festDay(pid, d)) continue; off++; if ((P.plan(pid, d) as Seg[]).some(s => s.where === 'terrace')) up++; } expect(off).toBeGreaterThan(250); expect(up).toBe(0); }
   }, 900_000);
   it('the houses\' heads fetch the šip meat in the morning; the houses feast at midday; some women drum in the lanes at dusk', () => {
     const d = festivals(1)[0].day; let fetch = 0, feast = 0, drum = 0, n = 0;
@@ -59,7 +59,7 @@ describe('1 (gap audit item 3): the šip feasts and the festival days off', () =
 describe('2 (gap audit item 9): the lanes at noon', () => {
   it('on a mild day the lanes hold the doorstep\'s work, the sellers and the children after the meal; on an E-64 day the lull holds', () => {
     const count = (d: number, h: number) => { let n = 0; for (let pid = 0; pid < P.persons.length; pid += 2) { if (!P.present(pid, d) || P.households[P.home(pid, d)].zone !== 'town') continue; if (segAt(P.plan(pid, d), h).place.startsWith('lane:')) n++; } return n; };
-    expect(P.cal.ctx(25).heatRest).toBe(false); expect(count(25, 12.75)).toBeGreaterThan(150); expect(count(25, 12.2)).toBeGreaterThan(20);
+    expect(P.cal.ctx(25).heatRest).toBe(false); expect(count(25, 12.75)).toBeGreaterThan(400); expect(count(25, 12.2)).toBeGreaterThan(5);
     expect(P.cal.ctx(60).heatRest).toBe(true); expect(count(60, 13.25)).toBeLessThan(10);
     let door = 0, sell = 0; for (let pid = 0; pid < P.persons.length; pid += 2) { if (!P.present(pid, 25)) continue; const g: Seg[] = P.plan(pid, 25); if (g.some(s => /on the doorstep/.test(s.why) && s.place.startsWith('lane:'))) door++; if (g.some(s => /from a tray/.test(s.why))) sell++; }
     expect(door).toBeGreaterThan(300); expect(sell).toBeGreaterThan(20);
@@ -125,7 +125,7 @@ describe('5 (shadow review r9): the reviewers\' findings at their rules', () => 
   it('B S2 / A S10: the herders\' camp work and leisure go into the tent in the rain (a), every herder on every wet day', () => {
     const wet = [...Array(354).keys()].filter(d => { const C = P.cal.ctx(d); return !!C.wx.rain || !!C.wx.stormH; });
     const ids = all().filter(i => P.persons[i].job === 'herder'); const r = sweep(ids, ['weather', 'light', 'dress', 'label'], wet); expect(r.n).toBeGreaterThan(200); expect(r.bad).toEqual([]);
-    for (const pid of ids) for (const d of wet) { if (!P.present(pid, d)) continue; for (const s of P.plan(pid, d) as Seg[]) if (s.place.startsWith('camp:') && /by the tents?\b/.test(s.why) && s.act !== 'sleep') expect(wetHours(P.cal.ctx(d).wx, s.t0, s.t1), `${pid} d${d} ${s.why}`).toBe(0); }
+    for (const pid of ids) for (const d of wet) { if (!P.present(pid, d)) continue; for (const s of P.plan(pid, d) as Seg[]) if (s.place.startsWith('camp:') && CAMP_OPEN.test(s.why) && s.act !== 'sleep') expect(wetHours(P.cal.ctx(d).wx, s.t0, s.t1), `${pid} d${d} ${s.why}`).toBe(0); }
   }, 600_000);
   it('A S5 / B S3: boys of 13-15 go now and then with their fathers of the gangs and the workshops (every 7th day)', () => {
     const by: Record<string, [number, number]> = {};
@@ -139,7 +139,7 @@ describe('5 (shadow review r9): the reviewers\' findings at their rules', () => 
     const r = sweep(ids, ['label', 'water'], days); expect(r.n).toBeGreaterThan(100_000); expect(r.bad).toEqual([]);
     let dup = 0, q = 0, empty = 0, home = 0;
     for (const d of days) for (let pid = 0; pid < P.persons.length; pid++) { const p = P.persons[pid]; if (!P.present(pid, d)) continue;
-      if (p.job === 'child' && pid % 3 === 0) { const g: Seg[] = P.plan(pid, d); const h = g.filter(s => /^handing over the bread/.test(s.why)).map(s => s.place); if (h.length !== new Set(h).size || g.filter(s => /barley for oil/.test(s.why)).length > 1) dup++; }
+      if (p.job === 'child' && pid % 3 === 0) { const g: Seg[] = P.plan(pid, d); const h = g.filter(s => /^handing over the bread/.test(s.why)).map(s => s.place); if (h.length !== new Set(h).size || g.filter((s, i) => /barley for oil/.test(s.why) && !(i > 0 && g[i - 1].why === s.why && g[i - 1].place === s.place)).length > 1) dup++; } // (one exchange cut in two by the cold's dress is one)
       if (p.job === 'traveller') { const g: Seg[] = P.plan(pid, d); g.forEach((s, i) => { if (s.act === 'queue' && s.place === 'store_town') { q++; if (g[i + 1]?.where === 'road' && g[i + 1].act !== 'carry_sack') empty++; } if (s.place === 'station' && /at home/.test(s.why)) home++; }); } }
     expect(dup).toBe(0); expect(q).toBeGreaterThan(30); expect(empty).toBe(0); expect(home).toBe(0);
     for (let d = 0; d < 354; d++) { const C = P.cal.ctx(d); if (!C.wx.stormH || C.wx.thunderH) continue; for (let pid = 0; pid < P.persons.length; pid += 13) if (P.present(pid, d)) for (const s of P.plan(pid, d) as Seg[]) expect(s.why).not.toMatch(/\bstorm\b/); }

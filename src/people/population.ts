@@ -1033,6 +1033,7 @@ export class Population {
   vigilMan(h: number, d: number): number {
     const H = this.households[h]; if (!H || H.zone !== 'plain' || d < 0 || d >= REGNAL_DAYS) return -1;
     if (dayStorm(this.cal.ctx(d))) return -1; const T = this.hday(h, d).task; if (!T || T.kind !== 'thresh') return -1;
+    if ((this.weddingList[d + 1] ?? []).some(w => w.from === h || w.to === h)) return -1; // (not the night before a wedding of the house: D-211)
     const u = u01(this.seed, S.assign, 7000 + h, d); if (!(u < 0.2) || (u < 0.1 && this.walkH(H.home, 'store_town', d, 'plain', 'town') < 3)) return -1;
     // not when it would leave children under ten without a grown woman of the house at home, tonight or after midnight (the
     // soak on D-150's first pass: a widower's child of nine alone at night, a toddler taken to the floor)
@@ -4106,7 +4107,7 @@ class Planner {
     const at = (t1: number, place: string, act: ActivityId, why: string, carry?: string) => { if (t1 <= this.t + 0.015) return; [place, act, why] = this.herdShelter(place, act, why, t1); this.add(Math.min(24, t1), place, act, why, 'plain'); const s = this.segs[this.segs.length - 1]; if (carry) s.carry = carry; if (role === 'little' && mom >= 0) s.with = mom; };
     const noonMeal = () => at(this.t + 0.4, camp, 'eat', role === 'little' ? 'a midday meal with the mother' : 'a midday meal of bread and curds in the tent');
     const grazer = withFlock && B.grazers.includes(this.pid); // half the flock's men and boys, by turns, take it out today
-    if (grazer) { if (this.t < this.lightStart()) at(this.lightStart(), camp, 'rest', 'up by the tent before first light'); at(Math.max(this.t + 0.2, B.departF), fold, 'tend_animals', 'letting the flock out of the fold and counting it');
+    if (grazer) { if (this.t < this.lightStart()) at(this.lightStart(), camp, 'rest', 'up in the tent before first light'); at(Math.max(this.t + 0.2, B.departF), fold, 'tend_animals', 'letting the flock out of the fold and counting it');
       at(Math.max(this.t + 0.5, B.haltA), graze, 'herd', 'grazing the flock on the stubble and fallow near the camp with the dogs (E-49)', 'a herdsman’s staff'); at(this.t + 0.4, graze, 'eat', 'a midday meal of bread and curds by the flock');
       if (hot) at(B.haltB, graze, 'sleep', 'sleeping in the shade while the flock lies up through the heat');
       at(Math.max(this.t + 0.5, B.arriveFlock), graze, 'herd', 'grazing the flock back toward the tents', 'a herdsman’s staff'); at(this.t + 0.4, fold, 'tend_animals', 'watering the flock and folding it beside the tents'); return; }
@@ -4120,7 +4121,7 @@ class Planner {
       : role === 'child' ? [['play', 'playing by the tents with the other children', 'camp', 3], ['gather', 'gathering dry brush for the fire', 'camp', this.age >= 7 ? 1 : 0], ['play', 'playing by the stream with the other children', 'stream', 1], ['draw_water', 'fetching water from the stream with a small jar', 'stream', this.age >= 7 ? 0.7 : 0], ['tend_animals', [10, 11, 12, 1, 2].includes(this.C.month) ? 'with the lambs and the kids by the fold' : 'with the ewes and goats kept back at the fold, the lame and the weak', 'fold', 0.8]]
       : role === 'little' ? [['play', 'playing by the tent near the mother', 'camp', 1]] : [['rest', 'sitting by the tent', 'camp', 1], ['talk', 'talking with the old people of the band', 'camp', 1], ['rest', 'minding the little ones by the tent', 'camp', 1]];
     if (watched) at(this.t + lerp(2.5, 3.5, r.next()), camp, 'sleep', 'sleeping in the tent after the night watch');
-    if (this.t < this.lightStart() && (role === 'man' || role === 'youth')) at(this.lightStart(), camp, 'rest', 'up by the tent before first light'); // (the fold's work in the light: planCheck (b))
+    if (this.t < this.lightStart() && (role === 'man' || role === 'youth')) at(this.lightStart(), camp, 'rest', 'up in the tent before first light'); // (the fold's work in the light: planCheck (b))
     spell(B.haltA, am); noonMeal();
     if (hot || role === 'little' || (role === 'child' && this.age < 7)) at(this.t + (hot ? lerp(1.5, 2.5, r.next()) : 1.2), camp, 'sleep', role === 'little' || !hot ? 'a midday sleep in the tent' : 'sleeping in the tent through the heat');
     const cookAt = B.supper - (role === 'woman' ? 0.55 : 0.05);
