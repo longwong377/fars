@@ -50,3 +50,33 @@ a rain-delayed issue waits for another day near dusk; the depot queue must fit t
 1/7 town sample on that day 5 → 0); debug: __parsa.weatherDbg(), pickW(), holdWeather(), tests/e2e/dbg_weather.spec.ts.
 **Tests:** rain_shafts (an 8 mm/h shaft darkens the sky ≥ 15 % linear for ≥ 3 of 7 shafts), weather_visible (new),
 shader_build, reflections_s7, rain_day_plans, weather, sky/surface/exposure suites; tsc, lint:all. D-219, Q-490..Q-495.
+
+## D-220 smoke and dust (merged: worktree-agent-a3f0e1f4d0c864d3e, 805d645, 6ad2600)
+**Broken / unverified first.** Dust has NEVER appeared in a render: every rendered view reported 0 emitters (dust.begin()
+ran after crowd.update() and cleared them); fixed in 6ad2600 and checked in node with a real Crowd (walker, herder, mason: 7
+puffs); NOT re-rendered; animals/flocks/carts dust unverified. The smoke measurably changes the image but does not show a
+smoky town: from the Terrace at 1 km the lower town is a thin line of specks with a pale band over it; no rising plume at
+18:48 (most hearths embers); from Kuh-e Rahmat (bearing 228°) the S palaces fill the foreground. Lead's look: the
+town-smoke-dusk frame reads as an empty dark plain under a twilight sky; the moment does not land (framing, and the town's
+readability at distance: landscape workstream). Side effect: the town's hearth flames follow the sim (lit for lighting,
+cooking, or a low fire on nights with minimum < 8 °C); on a warm evening (day 14) they are out by ~19:30 (was ~70 % lit from
+sunset to 1.5–3 h after; Q-502). All amounts C, recollection (Q-500..Q-506). Sim villages stand elsewhere than the rendered
+villages (Q-503): village smoke uses the plain's mean household day scaled by population. GPU cost estimated (~650 ALU per
+covered pixel, 0.1–0.2 ms at 1080p), not measured. performances "300 performers" and popview costs failed under load.
+**Why no frame had smoke:** near puffs spawned at rate × dt and renderOnce passes dt = 0; single-hearth plumes τ ≈ 0.03 (right
+for one hearth); the town's haze existed but no moment looked SSW at it; villages had no fire or smoke; no dust code; not
+killed by the composite.
+**Changed:** src/world/hearthSmoke.ts (1,241 of 1,304 town fires linked to their household's day: relit before breakfast, cook
+0.35 h before the evening meal, cooking, low fire or embers; ovens before baking; per-quarter and per-village leaky boxes
+ventilated by the wind, ~40 min dilution, layer peaking ~14 m up at dusk and dawn, mixed high by day, a downwind tail);
+src/world/landSmoke.ts (one instanced wind-aligned box per settlement, exact extinction in 6 segments, sky/sun lit, 1 − e^−τ;
+replaces haze.ts's per-quarter sheets); fire.ts puffs from time (frozen renders show them), opacity from each fire's emission;
+src/world/dust.ts (walkers, animals, flocks, carts on dry earth; chisels and sledges; none on wet ground, snow, rain or in
+halls; a third on the Terrace courts; Crowd.dustTap, Animals.onPush); moments town-smoke-dusk (Terrace W edge looking SSW,
+24° lens) and town-smoke-dusk-rahmat, day 14 18:48, wind 0.8 m/s; moments.spec `ab` option (A/B shots with named objects
+hidden, draw calls logged).
+**Measured:** τ Terrace → S quarters at dusk 0.19–0.35, at 12:30 < 0.03, after midnight 0; Rahmat → W quarter 0.074; Grand
+Stair → village p21 at dawn 0.39; a 6 m/s wind more than halves τ; 5 puffs per lit hearth at dt = 0 (was 0); renders (high,
+smoke − none): town-smoke-dusk rows 250–262 +10.3/+8.9 luma (+22 % Weber; control parapet |Δ| 0.25), near-horizon sky −3.9;
+rahmat +10–12 %; dawn-stair-top +6.8 at the horizon line. Draws +1 (+1 inside a layer). Tests: smoke_dust (16), smoke_light,
+fire_light, settlement, settlement_build, religion, fx_shader, fauna; tsc; lint:all. D-220, Q-500..Q-506.
