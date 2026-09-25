@@ -4283,7 +4283,8 @@ standing crops (the camp ground made trodden instead); camps chosen for looks (s
   12 triangles, in the small objects' union). At the fire and the offerings the cap's flaps are drawn over the mouth and
   chin (outfits.ts `mouth_cover`, a new optional piece of the Median costume, appended so every earlier piece bit is
   unchanged: "his chin is covered", OXUS-PLAQUE, B; the crowd sets its bit only while a performance `wear`s it:
-  activities.ts). The duty magus (day % 3) feeds the fire before first light, makes the lan (barley set out before the fire,
+  activities.ts; the beard is hidden while the flaps are drawn over it; measured on the 20 body variants: 8-10 mm off the
+  face at its nearest, 5.4-6.2 cm at the hanging edge, no NaN). The duty magus (day % 3) feeds the fire before first light, makes the lan (barley set out before the fire,
   wine in a bowl beside it, the barsom in hand), chants at the fire, and at dusk banks the fire and chants; the other two stand
   at the fire at first light. Each makes the calendar's E-31 offerings (up the slope, or on the Pulvar bank, not in the
   water: Herodotus 1.138) and E-32 (at the precinct; one in five with a sheep he kills himself, Herodotus 1.140 "the Magi

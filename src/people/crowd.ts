@@ -647,7 +647,8 @@ export class Crowd {
     if (anim === 'guard' && this.shieldBit(p.look.dress) & p.look.mask) { po.rot.l_upper = [0.04, 0, 0.1]; po.rot.l_fore = [-0.18, 0, 0]; po.grip = [1, po.grip?.[1] ?? 1]; }
     if (vpC?.babes?.length) holdBabe(po, vpC.babes[0].mode, anim);
     if (vpC?.hand) holdHand(po, vpC.hand, vpC.handSide ?? 'l', vpC.handUp ?? 0);
-    const m0 = weatherMask(p.look.dress, p.look.mask, this.airC) | (P?.wear ? this.wearBits(p.look.dress, P.wear) : 0); // (D-209: the magus's mouth-cover at the fire)
+    // (D-209: the magus's mouth-cover at the fire; drawn over the beard, which it hides)
+    const w0 = weatherMask(p.look.dress, p.look.mask, this.airC), wb = P?.wear ? this.wearBits(p.look.dress, P.wear) : null, m0 = wb ? (w0 | wb[0]) & ~wb[1] : w0;
     const mask = ASIDE.has(anim) ? m0 & ~this.asideBits(p.look.dress, anim) : m0;
     if (mask !== p.mask) { p.mask = mask; this.humans.gpu.person[p.slot * PERSON_TEXELS * 4 + 1] = mask; this.humans.gpu.markPersonDirty(); }
     // glance: the player within 7 m turns heads (clamped) and eyes. How much follows the simulation's memory of the
@@ -705,9 +706,11 @@ export class Crowd {
     if ((p.look.dress === 'guard') && h32(this.seed, SALT_SPEAR, p.agent ? p.agent.id : 1e6 + p.pid) % 10 === 0) return 'spear_gpom';
     return 'spear';
   }
-  /** D-209: the bits of the pieces a performance puts on (activities.ts `wear`); a piece the dress lacks sets nothing */
-  private wearCache = new Map<string, number>();
-  private wearBits(dress: Dress, ids: string[]) { const k = dress + '|' + ids.join(','); let b = this.wearCache.get(k); if (b === undefined) { b = 0; for (const id of ids) { const bit = pieceBit(dress, id); if (bit) b |= 1 << bit; } this.wearCache.set(k, b); } return b; }
+  /** D-209: the bits of the pieces a performance puts on (activities.ts `wear`) and takes off (the beard under the mouth-cover); a piece the dress lacks sets nothing */
+  private wearCache = new Map<string[], Map<Dress, [number, number]>>();
+  /** [bits put on, bits taken off] for a performance's worn pieces (cached by the registry's own array: no allocation a frame) */
+  private wearBits(dress: Dress, ids: string[]): [number, number] { let m = this.wearCache.get(ids); if (!m) this.wearCache.set(ids, m = new Map()); let b = m.get(dress);
+    if (!b) { const bits = (l: string[]) => { let x = 0; for (const id of l) { const k = pieceBit(dress, id); if (k) x |= 1 << k; } return x; }; b = [bits(ids), ids.includes('mouth_cover') ? bits(['beard_long', 'beard_short']) : 0]; m.set(dress, b); } return b; }
   private shieldBits = new Map<string, number>();
   private shieldBit(dress: Dress) { let b = this.shieldBits.get(dress); if (b === undefined) { const k = pieceBit(dress, 'shield'); b = k ? 1 << k : 0; this.shieldBits.set(dress, b); } return b; }
   /** a world point in the person's character space (inverse of the instance root: translate, yaw about +Y, scale).
