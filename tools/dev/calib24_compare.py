@@ -3,7 +3,9 @@ Regions are defined in the world and projected with each image's own camera (the
 the rig view: same position and heading, vertical fov 34.4°, 960 x 540, no roll), so they cover the same stone and sky.
 Only ratios are compared (the photo is a Lightroom-processed JPEG with an unknown tone curve and white balance; the render is
 AgX-tone-mapped with auto exposure). Linear values from the sRGB decode.
-Run: python3 tools/dev/calib24_compare.py [shots/moment-calib-24-now-high-webgpu.png ...]
+Run: python3 tools/dev/calib24_compare.py [shots/moment-calib-24-now-high-webgpu.png ...] [--side out.jpg]
+  --side: the photo resampled to the rig's angular scale (f 875 px), centred in a 960 x 540 frame, over the renders, labelled
+  (REVIEWS/calib24/side_by_side.jpg; D-232)
 """
 import sys, math, json
 import numpy as np
@@ -105,5 +107,23 @@ def main(paths):
         Image.fromarray(v).save('shots/calib24_regions_' + n.replace('.png', '').replace(' ', '_').replace('#', '') + '.png')
 
 
+def side_by_side(paths, out, labels=None):
+    rows = []
+    ph = Image.open(PHOTO).convert('RGB'); k = (540 / 2) / math.tan(math.radians(RIG['fov'] / 2)) / PHOTO_CAM['f']
+    ph = ph.resize((round(ph.size[0] * k), round(ph.size[1] * k)), Image.LANCZOS)
+    fr = Image.new('RGB', (960, 540), (40, 40, 40)); fr.paste(ph, ((960 - ph.size[0]) // 2, (540 - ph.size[1]) // 2)); rows.append((fr, 'photo #24 (2019-02-08 15:59 IRST, Lightroom), framed to the rig view'))
+    for i, p in enumerate(paths): rows.append((Image.open(p).convert('RGB').resize((960, 540)), (labels or [])[i] if labels and i < len(labels) else p.split('/')[-1]))
+    img = Image.new('RGB', (960, 540 * len(rows) + 20 * (len(rows) - 1)), (0, 0, 0)); d = ImageDraw.Draw(img)
+    for i, (im, lab) in enumerate(rows):
+        y = i * 560; img.paste(im, (0, y)); d.text((8, y + 6), lab, fill=(255, 255, 0))
+    img.save(out, quality=88)
+
+
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    a = sys.argv[1:]
+    if '--side' in a:
+        i = a.index('--side'); out = a[i + 1]; paths = a[:i] + a[i + 2:]
+        side_by_side(paths, out, ['render: Now view (D-201), day 303 16:05 LMT, same sun (D-232)', 'render: 467 BCE, same frame (D-232)'])
+    else:
+        paths = a
+    main(paths)

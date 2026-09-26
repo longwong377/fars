@@ -29,8 +29,9 @@ export interface SkyState { sunDir: THREE.Vector3; sunAlt: number; moonDir: THRE
 
 const DOME = 60000;
 /** linear albedo of the open ground around a viewer (C): the mean of the Terrace courts' fill and the plain's loam
- *  (materials.ts SURFACES court_fill and earth), for the hemisphere light's ground bounce (D-153) */
-export const GROUND_RHO: [number, number, number] = [0.20, 0.15, 0.10];
+ *  (materials.ts SURFACES court_fill and earth), for the hemisphere light's ground bounce (D-153; D-232: the loam's dry
+ *  10YR 5.5/3, was [0.20, 0.15, 0.10]) */
+export const GROUND_RHO: [number, number, number] = [0.27, 0.20, 0.13];
 /** the share of that ground in direct sun (C: buildings, trees and relief shade the rest) */
 export const GROUND_SUNLIT = 0.85;
 /** fresh snow's albedo per channel (B: 0.8–0.9 for new snow, the textbook range; C: 0.82 as the mean of an old and a new

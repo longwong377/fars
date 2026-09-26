@@ -79,7 +79,7 @@ function roadMaterial() {
     // the verge: the outer R.verge m, its inner edge wandering along the road; the herb layer and the plain's loam return
     const wander = mx_noise_float(vec3(p.x.mul(0.17), 0, p.z.mul(0.17))).mul(R.edgeWander).add(mx_noise_float(vec3(p.x.mul(0.9), 2.1, p.z.mul(0.9))).mul(0.25).mul(near));
     const verge = float(1).sub(smoothstep(0, R.verge, hw.sub(a).add(wander))).mul(0.85);
-    const loam = vec3(0.184, 0.122, 0.064); // the plain's loam (terrainMesh groundColour 0.43, 0.36, 0.27 sRGB) in linear
+    const loam = vec3(0.325, 0.226, 0.132); // the plain's loam (terrainMesh groundColour 0.606, 0.512, 0.398 sRGB, D-232) in linear
     const herb = mix(vec3(0.319, 0.264, 0.107), vec3(0.078, 0.107, 0.027), SEASON.green.div(SEASON.green.add(SEASON.dry).max(0.001))); // straw / green (materials.ts herbs)
     const vergeAlb = mix(loam, herb, SEASON.green.add(SEASON.dry).min(1).mul(0.55)).mul(float(1).add(mx_noise_float(p.mul(1.3)).mul(0.12)));
     const patch = float(1).add(mx_noise_float(vec3(p.x.mul(0.025), 1.3, p.z.mul(0.025))).mul(R.patch * 2));

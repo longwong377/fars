@@ -36,13 +36,20 @@ const cellUN = (c: any) => c.add(32768).toUint(); // c is already floor()ed
 
 /** the hills (D-190, C unless noted): limestone (the Terrace is partly cut from Kuh-e Rahmat's own bedrock: KR-BEDROCK, B) */
 export const HILL = {
-  /** sRGB albedo: weathered grey limestone, its darker weathered patches, fresh scree, colluvial soil on the slopes (C) */
-  rock: [0.50, 0.48, 0.45], rockDark: [0.36, 0.35, 0.33], scree: [0.58, 0.55, 0.50], slopeSoil: [0.47, 0.43, 0.37],
+  /** sRGB albedo: weathered limestone, its darker weathered patches, fresh scree, colluvial soil on the slopes (C). D-232:
+   *  warm grey-brown, not neutral grey (photos #24, #21, #8 and the satellite view #13: Kuh-e Rahmat buff-tan, its hue near
+   *  the plain's; #13 R/G 1.22, B/G 0.73 through the haze): rock 10YR 5/2 (Y 0.19), dark patches 10YR 3.5/2, scree 10YR
+   *  5.75/2, colluvium 10YR 5/3 (Munsell renotation, Illuminant C adapted to D65); the luminances kept (were 0.20, 0.10,
+   *  0.27, 0.18) */
+  rock: [0.530, 0.467, 0.393], rockDark: [0.381, 0.318, 0.249], scree: [0.608, 0.543, 0.465], slopeSoil: [0.554, 0.462, 0.352],
   /** bedding: packages of beds (m) of which ~45 % form cliffs; beds 0.6-2.2 m; a gentle dip (C) */
   pkg: 12, cliffShare: 0.45, bed: [0.6, 1.6], dip: 0.05, dipDir: 0.52,
   /** D-223: a cliff package's riser (its top third: the resistant bed standing as a low cliff) over its bench; the riser
    *  ~2.4× the mean slope (at most 76°), the bench the rest, so a package keeps the DEM's mean slope (C) */
   riser: 0.35, riserSteep: 2.4, riserMaxSlope: 4,
+  /** D-232: the riser's face albedo factor and the bench's (were 1.12 and 0.88), the rock's weathered-patch share toward
+   *  rockDark (was 0.5), and the rock-soil-scrub mosaic: ±mosaic of the albedo in patches of mosaicL m, octave weights mosaicW (C) */
+  riserK: 1.22, benchK: 0.84, weatherK: 0.75, mosaic: 0.28, mosaicL: [6, 16, 40], mosaicW: [0.3, 0.45, 0.45],
   /** shrubs: 5 m cells, crowns 0.6-1.6 m radius; cover on open slopes, in gullies, on shaded (north-facing) slopes (C) */
   shrubCell: 5, shrubCover: { slope: 0.035, gully: 0.15, north: 0.04 },
   /** D-223: the crowns as spheres in a 3-D jittered grid of 3 m cubes (no stretching on steep ground), radius 0.6-1.6 m */
@@ -351,14 +358,31 @@ export class PlainGround {
       const fwP = fwidth(P3).length().max(1e-4);
       const runoff = smoothstep(0.1, 0.6, mx_noise_float(vec3(P3.x.mul(0.33), P3.y.mul(0.04), P3.z.mul(0.33)).add(vec3(5.1, 0, 2.7))))
         .mul(float(1).sub(smoothstep(0.15, 0.35, fwP.div(3.0))));
-      const faceK = mix(float(1), float(1.12).sub(runoff.mul(0.22)), riserV).mul(mix(float(1), float(0.88), cliffV.sub(riserV).max(0)));
-      const rockAlb = mix(linA(HILL.rock), linA(HILL.rockDark), weather.mul(0.5)).mul(bedTone).mul(float(1).sub(recess.mul(0.35))).mul(faceK);
+      // D-232: the riser paler and the bench darker (1.22 / 0.84, were 1.12 / 0.88): the bedding read neither at 0.5-2 km in the
+      // calib-24 view (photo #24: strongly bedded) nor in rahmat-west-pm; still C
+      const faceK = mix(float(1), float(HILL.riserK).sub(runoff.mul(0.22)), riserV).mul(mix(float(1), float(HILL.benchK), cliffV.sub(riserV).max(0)));
+      const rockAlb = mix(linA(HILL.rock), linA(HILL.rockDark), weather.mul(HILL.weatherK)).mul(bedTone).mul(float(1).sub(recess.mul(0.35))).mul(faceK);
       const screeAlb = linA(HILL.scree).mul(float(1).add(mx_noise_float(P3.mul(1.7)).mul(0.1).mul(near))).mul(float(1).sub(fan.mul(0.06))); // fan gravel a little darker (finer, moister)
       const steepSoil = smoothstep(0.25, 0.6, slope).mul(hillOn).mul(0.55); // herbs thin out on steep colluvium
       alb = mix(alb, mix(linA(HILL.slopeSoil), soil, 0.3), steepSoil);
       alb = mix(alb, screeAlb, scree.mul(0.8));
       alb = mix(alb, rockAlb, rock);
       alb = alb.mul(float(1).sub(gully.mul(0.28).mul(hillOn))).mul(float(1).add(cvx.mul(0.05).mul(hillOn))); // gullies hold shade and moisture
+      // D-232: the rock-soil-scrub mosaic between the metre and the DEM's 30 m (C): bare slabs and outcrops lighter, soil- and
+      // scrub-filled hollows and the unresolved cast shadows of the rough ground darker, in patches of ~6, 16 and 40 m (three
+      // octaves in the lattice-free frame, each fading to the mean where its period spans under ~3-7 px: no aliasing), ±HILL.mosaic
+      // of the albedo on rock and scree, half that on the colluvium. The calib-24 view's Kuh-e Rahmat at 0.4-2.5 km read
+      // Ystd/Y 0.14-0.15 in 12 px windows against the photo's 0.29 (tools/dev/calib24_mountain.py)
+      { const Pm = vec3(dot(P3, v3(NOISE_FRAME[0])), dot(P3, v3(NOISE_FRAME[1])), dot(P3, v3(NOISE_FRAME[2])));
+        const blP = (lam: number) => float(1).sub(smoothstep(0.15, 0.35, fwP.div(lam)));
+        // (render 1 of D-232: two octaves of 6 and 16 m under a soft ramp on rock and scree only lifted the calib-24 mountain's
+        // 12 px spread from 0.154 to 0.163; now three octaves to 40 m, a sharper ramp (patches, not a haze) on all the hills'
+        // ground, the colluvium at half)
+        const W3 = HILL.mosaicW, offs = [vec3(2.3, 8.8, 5.1), vec3(4.4, 1.9, 7.3), vec3(9.7, 3.1, 0.6)];
+        let mo: any = float(0);
+        HILL.mosaicL.forEach((lam, i) => { mo = mo.add(mx_noise_float(Pm.div(lam).add(offs[i])).mul(W3[i]).mul(blP(lam))); });
+        const mw = float(0.5).add(rock.add(scree).min(1).mul(0.5)).mul(hillOn);
+        alb = alb.mul(float(1).add(smoothstep(-0.12, 0.12, mo).mul(2).sub(1).mul(HILL.mosaic).mul(mw))); }
       // relief below the DEM (bump only; the heights are never moved): ledges, outcrop masses, the gullies' cut (C)
       const fadeFine = float(1).sub(smoothstep(0.5, 2.0, fw)), fadeMid = float(1).sub(smoothstep(4.0, 16.0, fw));
       // a bed's profile up the slope: a short riser at its base (the offset climbs over the first 15 %), then a long tread
