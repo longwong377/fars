@@ -36,7 +36,8 @@ for (const v of [...VIEWS, ...EXTRA]) for (const town of v.ab ? [true, false] : 
     mkdirSync('shots', { recursive: true }); const f = 'shots/settlement-stats.json';
     {
       await page.goto(`/?test&quality=${Q}&day=${v.day}&hour=${v.hour}&weather=${v.w}${town ? '' : '&notown'}`);
-      await page.waitForFunction(() => (window as any).__parsa?.ready === true, null, { timeout: 900_000 });
+      await page.waitForFunction(() => (window as any).__parsa?.ready === true || (window as any).__parsa?.error, null, { timeout: +(process.env.READY_TIMEOUT ?? 1800) * 1000 }); // (a loaded box: 14 min loads seen, session 8)
+      { const err = await page.evaluate(() => (window as any).__parsa?.error); if (err) throw new Error('world build failed: ' + err); }
       await page.evaluate(() => (window as any).__parsa?.renderer?.setAnimationLoop(null)); // frozen test world: no frames behind the screenshots
       const cam = await page.evaluate((spot: string) => {
         const P = (window as any).__parsa, S = P.world.settlement;
