@@ -76,7 +76,7 @@ test('surfaces A/B', async ({ page }) => {
       w0.last = vn;
       const ts = Date.now();
       for (let i = 0; i < frames; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
-      const png = await page.screenshot({ path: `shots/surf-${name}-${vn.replace('=', '-')}.png` });
+      const png = await page.screenshot({ path: `shots/surf-${name}-${vn.replace("=", "-")}${process.env.TAG ?? ""}.png` });
       const lum = await lumStats(page, png);
       const info = await page.evaluate(() => { const p = (window as any).__parsa, st = p.stats(), e = p.exposureInfo(); return { drawCalls: st.drawCalls, triangles: st.triangles, exposure: e.exposure, meterEV: e.meterEV, envCaptures: (window as any).__parsaSurf.envCaptures?.() }; });
       out[`${name}|${vn}`] = { ...info, lum, frameS: +((Date.now() - ts) / 1000 / frames).toFixed(1) };
