@@ -65,3 +65,24 @@ describe('the retaining walls\' foot (D-232)', () => {
     const row = (SPEC as any).terrace.r_masonry; expect(row.tier).toBe('C'); expect(row.src).toMatch(/REF-PHOTO-24/); expect(row.src).toMatch(/REF-PHOTO-33/);
   });
 });
+
+describe('the retaining walls\' shader (D-232)', () => {
+  it('builds WGSL with no dropped TSL assignment (render 1: the foot\'s Voronoi ran outside a Fn(), its assigns were lost and the whole wall read as one block)', async () => {
+    const THREE = await import('three/webgpu');
+    const { surfaceMaterial } = await import('../src/render/materials');
+    const { installProbeLight } = await import('../src/render/probes/runtime');
+    const canvas: any = { style: {}, width: 960, height: 540, getContext: () => null, addEventListener() {}, removeEventListener() {} };
+    const r: any = new (THREE as any).WebGPURenderer({ canvas, antialias: false }); installProbeLight(r); r.hasFeature = () => true;
+    const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(46, 16 / 9, 0.05, 1e5);
+    const errs: string[] = [], orig = console.error, origW = console.warn;
+    console.error = (...a: any[]) => { errs.push(a.join(' ')); }; console.warn = (...a: any[]) => { errs.push(a.join(' ')); };
+    try {
+      for (const k of ['terrace', 'terrace_now']) {
+        const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), surfaceMaterial(k, { arch: false }));
+        const b = new (THREE as any).WGSLNodeBuilder(mesh, r); b.scene = scene; b.camera = camera; b.material = mesh.material; b.lightsNode = r.lighting.getNode(scene, camera); b.build();
+        expect(b.fragmentShader).toMatch(/textureLoad/);
+      }
+    } finally { console.error = orig; console.warn = origW; }
+    expect(errs.filter(e => /No stack|assign/i.test(e))).toEqual([]);
+  }, 120_000);
+});

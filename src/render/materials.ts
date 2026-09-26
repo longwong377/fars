@@ -277,6 +277,9 @@ export const SURFACES: Record<string, SurfaceDef> = {
   scaffold: { albedo: [0.45, 0.35, 0.24], roughness: 0.85, porosity: 0.5, noiseScale: 3, noiseAmp: 0.1, tier: 'C', note: 'timber scaffold poles' },
   rubble: { albedo: LIMESTONE, roughness: 0.9, porosity: 0.5, noiseScale: 2, noiseAmp: 0.2, bump: { amp: 0.01, freq: 3 }, micro: { amp: 0.0015, freq: 32, alb: 0.06 }, tier: 'C', note: 'stone chips: the Terrace limestone (albedo as `limestone`, D-188)' },
 };
+/** the Now view's Terrace (nowview.ts, D-201): the limestone as the ruin's other stone (its court included, as before), with the
+ *  retaining walls' layout of D-232 on its walls */
+SURFACES.terrace_now = { ...SURFACES.limestone, joints: RETAINING, note: SURFACES.limestone.note + '; D-232: the Terrace walls\' photographed joint layout (terrace.r_masonry)' };
 
 /** shading normal from a procedural height field (view space; surface-gradient method, Mikkelsen 2010) */
 function bumped(h: any) {
@@ -425,13 +428,14 @@ function retainingCells(t: any, p: any, nx: any, nz: any) {
   const footTop = mask.mul(faceWS).mul(float(1).sub(inStair)).mul(F.height); // above the plain (F.ground)
   const q = vec2(t.div(F.cell), p.y.sub(F.ground).div(F.row)), qc = floor(q);
   const seedOf = (cx: any, cy: any) => vec2(cx.add(0.5).add(hash12(cx.add(0.13), cy.add(9.1)).sub(0.5).mul(2 * F.jitter[0])), cy.add(0.5).add(hash12(cy.add(4.7), cx.add(0.37)).sub(0.5).mul(2 * F.jitter[1])));
-  const best = float(1e9).toVar(), s1 = vec2(0).toVar(), c1 = vec2(0).toVar();
+  // (plain expressions, no toVar/assign: this runs outside a Fn(), where TSL drops assignments; render 1 of D-232)
+  let best: any = float(1e9), s1: any = vec2(0), c1: any = vec2(0);
   for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
     const cc = qc.add(vec2(i, j)), s = seedOf(cc.x, cc.y), dv = q.sub(s), d2 = dot(dv, dv), m = step(d2, best);
-    best.assign(min(best, d2)); s1.assign(mix(s1, s, m)); c1.assign(mix(c1, cc, m));
+    best = min(best, d2); s1 = mix(s1, s, m); c1 = mix(c1, cc, m);
   }
   const inFoot = step(s1.y.mul(F.row), footTop); // the own cell is foot stone
-  const edge = float(1e3).toVar(), eDir = vec2(0, 1).toVar();
+  let edge: any = float(1e3), eDir: any = vec2(0, 1);
   for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
     const cc = qc.add(vec2(i, j)), s = seedOf(cc.x, cc.y);
     const dd = s1.sub(s), ln = dd.length(), other = step(1e-4, ln); // the own seed is skipped
@@ -439,7 +443,7 @@ function retainingCells(t: any, p: any, nx: any, nz: any) {
     const nm = vec2(ns.x.div(F.cell), ns.y.div(F.row)), dM = dS.div(nm.length().max(1e-6)); // metres to the edge line
     const counts = max(inFoot, step(s.y.mul(F.row), footTop)).mul(other); // an edge of the foot's stones
     const dE = mix(float(1e3), dM, counts), m = step(dE, edge);
-    edge.assign(min(edge, dE)); eDir.assign(mix(eDir, nm.normalize(), m));
+    edge = min(edge, dE); eDir = mix(eDir, nm.normalize(), m);
   }
   // in the foot: the cell edges alone; above it, the courses and the foot's top edge, whichever is nearer
   const polyB = max(inFoot, step(edge, dBedC)); // 1: the nearest "bed" is a cell edge

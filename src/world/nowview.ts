@@ -42,8 +42,8 @@ let steelMat: THREE.MeshStandardNodeMaterial | null = null;
 export function nowMaterial(m: Material, arch: boolean): THREE.Material {
   const tag = (x: THREE.MeshStandardNodeMaterial) => { x.userData = { ...x.userData, tier: 'C', note: NOTE }; return x; };
   switch (m) {
-    case 'limestone': case 'terrace': case 'rubble':
-      return tag(surfaceMaterial(arch ? 'limestone' : 'limestone_carved', { arch, variant: 'now', modify: patina(0.85, [0.2, 0.195, 0.185], 0.7) }));
+    case 'limestone': case 'terrace': case 'rubble': // (D-232: the Terrace's walls keep their photographed joint layout in the ruin)
+      return tag(surfaceMaterial(arch ? (m === 'terrace' ? 'terrace_now' : 'limestone') : 'limestone_carved', { arch, variant: 'now', modify: patina(0.85, [0.2, 0.195, 0.185], 0.7) }));
     case 'limestone_dark':
       return tag(surfaceMaterial('limestone_dark', { arch, variant: 'now', modify: patina(0.45, [0.1, 0.1, 0.1], 0.3) }));
     case 'steel':
