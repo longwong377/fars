@@ -84,13 +84,20 @@ cause→effect probes. *Anti-proxy:* a chronicle entry is not a sighting.
 
 **G. The senses.** The soundscape, voices, murmur, music, animals, weather and work sounds, rendered and listened to per area and
 time; no audible loops or repeated lines; every visible person who speaks is heard in their language. *Tools:* offline audio
-renders per coverage cell, loudness/layer/repetition metrics, a listening rubric by a reviewer. *Anti-proxy:* "the audio context
+renders per coverage cell, loudness/layer/repetition metrics, a listening rubric by a reviewer. Known failures (audit D): the noise
+generator restarts from one fixed seed (every footstep and fire identical), wind/rain/whistle are 4–6 s loops, the murmur reuses 6
+phrases per language and voice, no human voice off the Terrace (only the 135 detailed agents speak), acoustics and occlusion stop at
+the Terrace, rivers are silent, no limiter. *Anti-proxy:* "the audio context
 is running" is not listening.
 
 **H. It runs and holds together.** Walkable everywhere (walk bots over every area, in the browser, with the population drawn: no
 falls, no invisible walls, no getting stuck); no pop-in of objects or people inside 50 m; save/load and persistence in the browser;
 the simulation off the main thread; memory and load time measured; frame rate on real hardware (REAL_HARDWARE_TODO, the user's
-optional run). *Anti-proxy:* triangle counts are not frame rates.
+optional run). Known failures (audit D): the player falls through the terrain on Kuh-e Rahmat where the one collider and the drawn ground
+switch LOD at different distances (up to 2.56 m apart at ~2 km, 5.97 m at ~10 km; 12 of 24 eastward crossings fell); walk bots
+reach 13 % of the Terrace and 0 % of everything else; animals and all but the nearest 48 people are not solid; no autosave; the
+bench has never produced a valid report and skips the simulation. *Anti-proxy:* triangle counts are not frame rates; a bot that
+walks only the Terrace says nothing of the mountain.
 
 **I. Faithful.** Sourced and tiered in data and F3; no anachronism (the blocklist and lints); conflicts logged; the user's
 directions superseding the brief recorded (D-236). Existing lints and reviews, re-run on the current tree.
@@ -128,6 +135,11 @@ life on screen, sound) are fixed once for everywhere.
   censuses and the scene-variety gate on ≥ 3 seeds (E); system sightings (F); audio renders and a listening rubric (G); walk bots
   over every area in the browser with an object pop-in probe (H); WORLD_INVENTORY (J); evidence retention; the scope-ledger test;
   CLAUDE.md §13 restated in the brief's scope words.
+- **P0 urgent (session 8): the terrain fall-through fixed and caught** (one surface for drawing and walking at every LOD seam,
+  plus a safety net); walk bots over every area.
+- **P0 also:** one seed drives everything (remove the 11 `Math.random` in sound and fauna timing) and a new seed per new game,
+  shown in settings; autosave and save on close; the language lint inside `npm run build`; the bench made valid (it must run the
+  simulation, physics, town, court, night, rain and ×60 routes) and its reports kept.
 - **P1 Life on screen and identity:** merge D-229 (impostor work poses); shelter and indoor occupancy (rain, night, sickness,
   sleep); steering and no overlaps, no treadmill, no dragging; addressability and speech beyond the 135 Terrace agents (everyone the
   player meets can be addressed and heard); gesture with speech; a names onomasticon (attested first, reconstructed from attested
@@ -144,7 +156,10 @@ life on screen, sound) are fixed once for everywhere.
 - **P3 Photoreal everywhere:** materials (stone, plaster, earth, wood, cloth, metal), reliefs (scans when the user supplies them;
   until then carved geometry), trees and plants with variety, soft contact-hardening shadows, the calibration completed (§8.1: a
   column base, stair flight, doorway), the tone-curve question (B40), faces and bodies up close.
-- **P4 Runs:** the simulation in a worker; memory and load time; streaming; the real-GPU bench (the user's optional run).
+- **P4 Runs:** the simulation in a worker (it stalls the main thread up to 84 ms at ×1 and 360–500 ms at ×60); memory (JS heap,
+  GPU bytes) and load time with budgets; streaming and compression (KTX2, Meshopt); animals and everyone near the player solid;
+  sound everywhere (voices off the Terrace, acoustics everywhere, varied noise and loops, rivers, a limiter); the real-GPU bench
+  (the user's optional run).
 
 ## 7. Discovery and completeness (UD-11, UD-14)
 
@@ -203,3 +218,4 @@ entry; the user's directions are all traced and met; FINAL_REPORT.md leads with 
 | rev | date (session) | change | why |
 |---|---|---|---|
 | 1 | 2026-09-26 (s8) | First version | UD-06 … UD-14; the four audits |
+| 1.1 | 2026-09-26 (s8) | Audit D folded in (fall-through, walk coverage, sound, seeds, autosave, bench, worker) | audit D |
