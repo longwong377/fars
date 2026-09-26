@@ -6,7 +6,8 @@
 //     streamed colliders and the safety net active; falls, rescues and invisible walls must be 0.
 // Usage: npx tsx tools/dev/terrain_seams.ts [crossings=2100] [seed=7] [--no-write]. Writes bench-reports/terrain-seams.txt.
 // tests/terrain_walk.test.ts runs a sample of both.
-import { writeFileSync } from 'node:fs';
+import { writeFileSync, mkdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import * as THREE from 'three/webgpu';
 import { Physics } from '../../src/player/physics';
 import { TerrainMesh } from '../../src/terrain/terrainMesh';
@@ -34,7 +35,7 @@ function drawnAt(x: number, z: number): number {
   throw new Error(`no triangle at ${x}, ${z}`);
 }
 let s = seed >>> 0; const rnd = () => ((s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296);
-const seamLines: string[] = []; let seamWorst = 0; const t1 = Date.now();
+const seamLines: string[] = []; let seamWorst = 0, seamN = Infinity; const seamPer: Record<string, { worst_m: number; mean_m: number; n: number }> = {}; const t1 = Date.now();
 for (const [name, H] of [['near/mid', T.near.half], ['mid/far', T.mid.half]] as const) {
   let worst = 0, sum = 0, at = ''; const N = 10000;
   for (let k = 0; k < N; k++) {
@@ -43,7 +44,7 @@ for (const [name, H] of [['near/mid', T.near.half], ['mid/far', T.mid.half]] as 
     P.updateTerrain(T, { x, y: 0, z }); const hit = P.castRayDown(x, z, 6000);
     const d = hit === null ? Infinity : Math.abs(hit - drawnAt(x, z)); sum += d; if (d > worst) { worst = d; at = `(${x.toFixed(1)}, ${z.toFixed(1)})`; }
   }
-  seamWorst = Math.max(seamWorst, worst);
+  seamWorst = Math.max(seamWorst, worst); seamN = Math.min(seamN, N); seamPer[name] = { worst_m: +worst.toFixed(5), mean_m: +(sum / N).toFixed(6), n: N };
   seamLines.push(`  T-H1 ${name} seam (±64 m band, ${N} samples): collider vs drawn mesh mean ${(sum / N * 1000).toFixed(2)} mm, worst ${(worst * 1000).toFixed(2)} mm at ${at}`);
 }
 
@@ -57,5 +58,12 @@ const lines = [`terrain seams (tools/dev/terrain_seams.ts, seed ${seed}, ${new D
   ...Object.entries(r.byKind).map(([k, b]) => `  ${k}: ${b.n} crossings, fell ${b.fell}, rescued ${b.rescued}, walls ${b.wall}, slope-stopped ${b.slope}`),
   ...r.walls.map(w => `  wall: ${w}`), ...r.falls.map(f => `  fall: ${f}`)];
 console.log(lines.join('\n'));
-if (!process.argv.includes('--no-write')) writeFileSync('bench-reports/terrain-seams.txt', lines.join('\n') + '\n');
+if (!process.argv.includes('--no-write')) {
+  writeFileSync('bench-reports/terrain-seams.txt', lines.join('\n') + '\n');
+  // the evidence of T-H1 (MASTER_PLAN §4.1): {id, value, n, commit, tool}; value = the worst seam's worst |collider − drawn| (m),
+  // n = the samples per ring seam (the smaller seam's)
+  const commit = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).trim(); mkdirSync('REVIEWS/evidence/s8-h', { recursive: true });
+  writeFileSync('REVIEWS/evidence/s8-h/T-H1.json', JSON.stringify({ id: 'T-H1', value: +seamWorst.toFixed(5), n: seamN, commit, tool: 'tools/dev/terrain_seams.ts', unit: 'm', seams: seamPer,
+    crossings: { n: r.crossings, fell: r.fell, rescued: r.rescued, invisible_walls: r.wall, byKind: r.byKind } }, null, 1) + '\n');
+}
 process.exit(r.fell || r.rescued || r.wall || seamWorst > 0.05 ? 1 : 0);
