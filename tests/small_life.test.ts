@@ -29,10 +29,11 @@ describe('the small life (session 9)', () => {
   });
   it('motion is continuous and deterministic in world time (no saved state)', () => {
     const a: SmallPose = { e: 0, n: 0, up: 0, heading: 0, flap: 0, visible: false }, b = { ...a };
-    for (const k of Object.keys(SMALL) as (keyof typeof SMALL)[]) for (let t = 100; t < 160; t += 0.37) {
-      smallAt(k, 3, 2, 5, 0, t, a); smallAt(k, 3, 2, 5, 0, t + 1 / 60, b);
+    // every frame over 400 s for three creatures of each kind (a coarse sample once let a 7 m/s lizard dash through)
+    for (const k of Object.keys(SMALL) as (keyof typeof SMALL)[]) for (const i of [0, 1, 2]) for (let t = 100; t < 500; t += 1 / 60) {
+      smallAt(k, 3, 2 + i, 5, i, t, a); smallAt(k, 3, 2 + i, 5, i, t + 1 / 60, b);
       // top speeds (C): a fly's dart ~5 m/s, a dragonfly ~10 m/s, a butterfly ~4 m/s, an agama's dash ~3.5 m/s
-      const vmax = { fly: 6, dragonfly: 11, butterfly: 4.5, lizard: 4 }[k];
+      const vmax = { fly: 6, dragonfly: 11, butterfly: 4.5, lizard: 4, frog: 5.5, tortoise: 0.3, snake: 1, jird: 4.5 }[k];
       expect(Math.hypot(a.e - b.e, a.n - b.n) * 60, `${k} at ${t}`).toBeLessThan(vmax);
     }
     const s1 = mk(), s2 = mk(); s1.update(3, 11, 4321, [0, 0], 0, 2); s2.update(3, 11, 4321, [0, 0], 0, 2);
@@ -69,5 +70,16 @@ describe('the small life (session 9)', () => {
     for (let i = 0; i < s.flowers.count; i++) { expect(Object.values(FLOWERS).some(f => f.rgb.every((c, k) => Math.abs(c - [col.getX(i), col.getY(i), col.getZ(i)][k]) < 1e-4)), `flower ${i} colour`).toBe(true);
       expect(fh.getX(i)).toBeGreaterThan(0.05); expect(fh.getX(i)).toBeLessThan(0.95);
       s.flowers.getMatrixAt(i, M); v.setFromMatrixPosition(M); expect(Math.hypot(v.x, v.z)).toBeLessThan(FLOWER_R + CELL * 1.5); }
+  });
+  it('frogs at the water in spring, tortoises on the steppe in spring, jirds at dawn and dusk; each keeps its season and hours (G43, G64, G65, G67)', () => {
+    const s = mk(), seen = (m: number, h: number, v: [number, number], k: string) => { s.update(m, h, 5000, v, 0, 2); return s.meshes.get(k as any)!.count; };
+    expect(seen(3, 12, [0, 40], 'frog')).toBeGreaterThan(0); expect(seen(8, 12, [0, 40], 'frog')).toBe(0);
+    let tort = 0, jd = 0, jn = 0; for (let x = -1000; x <= 1000; x += 72) { tort += seen(3, 12, [x, -500], 'tortoise'); jd += seen(4, 7, [x, -500], 'jird'); jn += seen(4, 12, [x, -500], 'jird'); }
+    expect(tort).toBeGreaterThan(0); expect(jd).toBeGreaterThan(0); expect(jn).toBe(0);
+    expect(SMALL.snake.p).toBeLessThan(0.02); // a snake is a rare meeting
+  });
+  it('frogs, jirds and snakes slip away at their own distance; tortoises do not', () => {
+    for (const k of ['frog', 'jird', 'snake', 'lizard'] as const) { expect(SMALL[k].flee).toBeGreaterThan(1); expect(SMALL[k].hide).toBeGreaterThan(30); }
+    expect(SMALL.tortoise.flee).toBeUndefined();
   });
 });

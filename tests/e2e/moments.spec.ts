@@ -116,6 +116,16 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // behind the Terrace from the plain, and the ranges to the N
   { n: 'winter-snowline-e', day: 280, hour: 11, w: 'clear', v: [-600, 60, 1.6, 70, 6], fov: 40 },
   { n: 'winter-snowline-n', day: 280, hour: 11, w: 'clear', v: [-600, 60, 1.6, 350, 3], fov: 40 },
+  // session 9 (G4): hoarfrost on a clear January dawn (day 269, -2.8 C at 07:15 for the test seed) on the ground W of the Terrace
+  { n: 'frost-dawn', day: 269, hour: 7.25, w: 'clear', v: [-300, 60, 1.6, 251, -10], fov: 50 },
+  // session 9 (G5): breath in the cold at the same dawn, among the people of the Terrace's gate (the Gate of All Lands)
+  { n: 'breath-dawn', day: 269, hour: 7.5, w: 'clear', v: [-12, 118, 1.6, 71, -4], fov: 45 },
+  // session 9 (G10): the 22 deg halo and sun dogs under the day's own thin cover (day 220, 09:00, sun 26 deg up at az 135)
+  { n: 'halo-sundogs', day: 220, hour: 9, w: 'auto', v: [0, 0, 1.6, 135, 24], fov: 75 },
+  // session 9 (G7): dust devils over the plain W of the Terrace on a hot June afternoon (day 54, 15:00, 37 C)
+  { n: 'dust-devils-jun', day: 54, hour: 15, w: 'clear', v: [-36, 125, 1.6, 251, 1], fov: 60 },
+  // session 9 (G8): heat shimmer and the inferior mirage over the plain at a hot June noon, looking W along the level (opt-in ?heat=1)
+  { n: 'heat-mirage-jun', day: 54, hour: 13.5, w: 'clear', v: [-36, 125, 1.6, 251, -0.5], fov: 20 },
   { n: 'night-moon-fire', day: 11, hour: 2.75, w: 'clear', v: [-23.4, 122.5, 1.6, 253.5, 6] },
   { n: 'brazier-close', day: 0, hour: 21.5, w: 'clear', v: [-36.4, 132, 1.6, 161, -8], fov: IN },
   { n: 'apadana-hall-torch', day: 0, hour: 21, w: 'clear', v: [-8, 0, 4.6, 161, 6], fov: IN },
@@ -207,6 +217,12 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // D-221: re-timed to an audience morning (day 32, the king enthroned 08:28-10:17 in the sim: parties waiting in their
   // places before the N stair, each led up in turn by an usher). Old: day 30 10:00 (no audience that day)
   { n: 'court-assembly', day: 32, hour: 9.5, w: 'clear', v: [-35, 85, 1.6, 71, -2], fov: IN, court: true },
+  // D-256: a column drum on the road to the Terrace (world/traffic.ts): day 13 (the haul dh13:0, seed 1) at 08:14, the driver
+  // ahead of two yoke of oxen dragging the rough drum on its sledge along the royal road 0.7 km W of the drum ground, three
+  // men beside it; from 31 m ahead and to its S side (grid 301°, true 282°), the Terrace behind the camera
+  { n: 'drum-road', day: 13, hour: 8.24, w: 'clear', v: [-495, 128, 1.6, 282, -2] },
+  // D-256 (land work): the quarrymen at the Majdabad face, day 20, 10:00 (the land agent's request)
+  { n: 'quarry-work', day: 20, hour: 10, w: 'clear', v: [-21990, -1030, 1.6, 304, -5], fov: 50 },
 ];
 test('moments', async ({ page }, info) => {
   // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run). TIMEOUT (s) and FRAMES

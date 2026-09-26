@@ -6324,7 +6324,7 @@ moment-*-webgpu.png in the worktree, not committed).**
   middens (Apr-Oct, 8-18 h, 5-9 a heap, 0.08-0.5 m up), dragonflies at the water (May-Sep, 9-17 h, 45 % of edge cells, 0.6-1.8 m
   up, hover and dart), butterflies over fields and steppe (Mar-Jun and Sep-Oct, 9-17 h, 18 % of cells: whites, a clouded
   yellow, a painted lady by instance colour), rock agamas on rock (Apr-Oct, 9-17 h, 30 % of rock cells, 6 % of steppe cells;
-  basking 25-60 s spells, dashing up to 1.6 m in 0.7 s; one slips away for 90 s when someone comes within 3 m). Positions are
+  basking 25-60 s spells, dashing up to 3.2 m in 1.3 s (was 0.7 s: ~7 m/s at the peak, caught by the speed test after the per-kind hash fix); one slips away for 90 s when someone comes within 3 m). Positions are
   closed-form in (seed, cell, index, world seconds): no saved state, continuous across saves and skips. Nothing flies in rain
   or wind over 8 m/s. Four InstancedMeshes (no draw while empty, no shadows). Species and seasons are recollection (SMALL-R,
   sources.json; C).
@@ -6425,3 +6425,239 @@ moment-*-webgpu.png in the worktree, not committed).**
   level like the town's). NOT removed: B64's other half (town and village rooms have the town's furnish only; nobody sleeps
   on a roof, Q-650).
 - **Tier.** C throughout (layout, rooms, pens, fittings, floors, lamps); Sumner's densities B derived.
+
+## D-260 The human sounds that are not words: laughter, children's calls, babies crying (session 9; gap hunters G33; C)
+- **What.** audio/voices.ts: after a turn in a conversation, one listener laughs in 12 % of turns (voiceless h and an open vowel,
+  pulsed 3-4 times and falling, 1.3x pace, a little louder); a child's unit is a call at play in 25 % of their units (long vowel
+  glides, rising, 1.8x louder, a higher pitch); a baby within the clear-voice radius starts a bout of crying once in ~900 s on
+  average (3-10 cries: a glottal onset and a long front vowel at 1.9x the child base pitch, a gasp of 0.25-0.75 s between).
+  Every one is logged and captioned as wordless ("(laughter)", "(a child calling out at play)", "(a baby crying)") and checked
+  against the modern-word list (tests/audio_population.test.ts). The formant synthesiser has no breathy [ɦ] or [æ]: laughter
+  uses [h] with [a] or [ə] (PLACEHOLDER-QUALITY voice, as D-245).
+- **Babies are heard.** people/crowd.ts nearPeople now lists the small children carried or put down beside a person (D-215's
+  vp.babes) at the carer's place, with their own identity and age from the population; before, no baby was ever a near person.
+- **Tests.** audio_population (12, one new: laughter among the adults and the children but never by the baby, calls only from
+  children, cries only from the baby, a laugh never by the one whose turn it answered), people_children pass.
+- **Not done:** calling to animals (herders' calls, whistles, tongue clicks: needs the activity of the person, not in NearPerson),
+  singing at work beyond D-200's music, crying by older children, coughing and sneezing. G33 stays PARTIAL.
+
+## D-261 Hoarfrost at dawn; the 22° halo and sun dogs (session 9; gap hunters G4, G10)
+- **Hoarfrost** (weatherState.ts `frostAmount`, Conditions.frost, WEATHER.frost; materials.ts `finish`): a speckled white rime
+  (albedo toward 0.8, patchy at ~2 m, fine at ~5 cm) on open, up-facing, dry surfaces, the terrain and the stone alike. It forms
+  once the screen air falls below 0.5 °C and is full by −2.5 °C; cloud (×(1 − 0.8 cover)), wind (a third left at 7 m/s) and dry
+  air (down to 0.35 below 60 % RH) thin it; rain, falling snow and snow cover take its place; it goes as the morning air passes
+  0.5 °C (C thresholds). Measured over the generated years: 58-66 frosty mornings at 06:30 (seeds 1, 7, 971044) against Shiraz's
+  44 air-frost days (WMO, A: the ground frosts on more nights than the screen air; C), none Apr-Oct, none left at 11:00.
+- **The 22° halo and the sun dogs** (src/sky/halo.ts; the dome's shader in skySystem.ts): a brightening of the dome in a ring at
+  21.9-22.5° from the sun (red inside, sharp inward, fading outward) and in two parhelia on the sun's altitude at
+  22° + 0.0045·alt² (22° at the horizon, ~29° at 40°; gone above ~50°), each ×(1 + 0.45 ring + 2.2 dog) × today's strength.
+  Days: thin broken dry cover (0.15-0.65), the sun up, and 40 % of such days carry a cirrus veil (C): 60 halo days in the
+  generated year for seed 1. No separate cirrus layer is drawn (the veil is implied by the cover).
+- **Tests.** tests/frost.test.ts (2), tests/halo.test.ts (3); weather, weather_visible, surfaces_s6, sky, eclipse pass.
+- **Unverified on screen:** frost-dawn (day 269, 07:15) and halo-sundogs (day 220, 09:00, the day's own weather) queued.
+
+## D-262 More of the birds a walker sees (session 9; gap hunters G45, G46, G52, G55-G58; C unless stated)
+- **What** (wildlife.ts BIRDS; placement in world.ts): chukar and see-see partridge coveys of 8 on the W face of Kuh-e Rahmat above
+  the Terrace (15-50 % slope; B species, C place), pecking about, the whole covey flushing when someone comes within 18 m and
+  gliding 90 m away over 4.5 s to land (each bird its own place in the flight); hoopoes in the courts Mar-Sep (flush at 7 m);
+  bee-eater flocks hawking 10-25 m over the water and fields Apr-Sep; grey herons (all year) and little egrets (Mar-Oct) walking
+  the wet ground as the storks do; a jackdaw and chough flock of 18 circling together 25-90 m over the cliff behind the Terrace;
+  magpies on the fields; sandgrouse flocks crossing fast (18 m/s) and low (20-60 m) toward the water at dawn (06:12-08:48, a
+  passage every ~12 min); wheatears on the stony uncultivated ground Mar-Oct. The calls of the partridges, hoopoe and bee-eater
+  were already in the soundscape; now the birds are seen with them.
+- **Shared behaviours:** `terrainGroundBird` (a ground bird on the terrain: peck, flush, fly off, land; the one reactive state,
+  as the sparrows'), `flockAt` (a flock circling as one), `sandgrouseAt` (a timed passage). 9 more InstancedMeshes (no draw while
+  empty).
+- **Not done:** owls (G47), nightingales and bulbuls seen (G54), rollers, geese and ducks (G51 partial), perched birds (on walls,
+  posts, trees).
+- **Tests.** birds_s9 (4 new: a ground bird's flush and landing, the flock staying together at height, sandgrouse passages at
+  dawn only, the seasons), wildlife, small_life pass.
+
+## D-263 Frogs, tortoises, snakes and jirds; each small creature slips away at its own distance (session 9; G43, G64, G65, G67; C)
+- **What** (smallLife.ts SMALL): marsh frogs at the water's edge Mar-Jul by day (35 % of edge cells, 1-3; a hop of up to 1 m in
+  0.3 s every 20-45 s; slip into the water at 2 m for a minute; their spring chorus was already in the soundscape);
+  spur-thighed tortoises on the steppe Mar-Jun (2.5 % of steppe cells, ~0.05 m/s; they do not flee); a snake now and then on
+  rock or steppe Apr-Sep (1.2 % of cells, gliding with a travelling S-wave in the vertex shader, gone for 5 minutes once seen
+  within 3 m); jirds at their burrows at dawn (06:00-09:00) and dusk (17:00-19:30), dashing up to 3 m in 1.2 s and diving in at 5 m
+  for 2 minutes. Each kind has its own flee distance and hiding time (SmallSpec.flee, .hide); the agama's dash was lengthened
+  to 1.3 s (it peaked at ~7 m/s).
+- **A hash fix:** each kind's presence and motion were keyed by the kind's first letter (a "fly" and a "frog" would have shared
+  their draws); now by the kind's index.
+- **Tests.** small_life (10): the new kinds' seasons, hours and contexts; the flee rules; top speeds checked every frame over 400 s
+  for three creatures of each kind.
+- **Not done:** geckos on walls at night (G63: needs wall positions), scorpions (G66), hedgehogs and porcupines (G40), rats and mice
+  at the stores (G41), small carnivores (G44).
+
+## D-264 Thorn cushions, camelthorn and thistles near the walker (session 9; gap hunters G72; B/C)
+- **What** (src/world/groundFlora.ts): on the ground within 36 m of the viewer, from the small life's 8 m cell contexts: tragacanth
+  thorn cushions (Astragalus; grey-green faceted domes 0.3-0.7 m, on 60 % of rock cells 3-7 and 30 % of steppe cells 1-4; the
+  plant of the Zagros's tragacanth gum: B presence, C stands), camelthorn (Alhagi; twiggy bushes 0.25-0.5 m on the steppe and a
+  few at field edges; green May-Sep, brown by October-March; C) and thistles (0.4-0.9 m, green in spring, purple heads May-July,
+  dry straw heads after; C). Static positions from a hash of (seed, cell, index); they grow in over the last 20 % of the radius
+  (nothing pops); rebuilt when the viewer moves 4 m or the month turns. Three InstancedMeshes, receiving shadows, casting none.
+- **Not done:** the plants are not colliders (the walker passes through a cushion); no grasses tufts beyond the existing herb
+  layer; walnut and juniper trees (G69, G70) need new tree-kit species (the impostor atlas grows with each).
+- **Tests.** tests/ground_flora.test.ts (4): context densities, radius, sizes and determinism, the rebuild rule, the seasons.
+
+## D-265 Dust devils on the summer plain (session 9; gap hunters G7; B presence / C the rest)
+- **What** (src/world/dustDevils.ts): on May-September afternoons (11:30-17:30) with the air over 28 C, little cloud, wind 1-7 m/s
+  and dry ground, whirling dust columns rise over the open plain (not the town within 1.5 km, orchards, water or the slopes):
+  the plain within 6 km of the viewer is cut into 1 km cells; each 90 s slot of a cell starts one with a chance of 5 % × the
+  afternoon's strength; it lives 2-6 minutes (rising over the first 15 %, dying away over the last 30 %), 30-150 m tall, 3-8 m
+  wide at the foot spreading to 10-25 m, twisting, leaning downwind, drifting at 60 % of the wind plus a wander. Closed-form in
+  (seed, world time). Drawn as stacked camera-facing dust cards lit as D-220's dust (sky, sun with a forward-scattering phase),
+  fogged with the scene; at most 12 at once (one InstancedMesh). A June afternoon of the test seed shows 2-4 within the view
+  W of the Terrace.
+- **Tests.** tests/dust_devils.test.ts (3). **Unverified on screen:** dust-devils-jun queued.
+
+## D-266 Hail in the spring thunderstorms (session 9; gap hunters G9; A presence / C the rest)
+- **What** (weatherState.ts Conditions.hail, .hailCover; weatherVfx.ts; main.ts): 35 % of the Feb-May thunderstorm days open with
+  hail: the first 15 minutes of the rain (ramping in and out over 3 minutes), hailstones drawn with the snowflakes' particles
+  (white ice under the sky light) falling at ~14 m/s with little drift, 60 % of the flake count; after it the stones lie on the
+  ground as a patchy partial snow cover (WEATHER.snow ≥ 0.4 × cover) melting over ~40 minutes. The fixed test weathers carry none.
+  Measured: 0, 2 and 1 hail days in the generated years of seeds 1, 7 and 971044 (C: a few a year on the Fars plateau).
+- **Not done:** the sound of hail on roofs and ground (the rain bed plays); no hail damage to crops. The test seed has no hail
+  day, so no moment can show it (a debug weather override would).
+- **Tests.** tests/hail.test.ts (2); weather, weather_visible, frost pass.
+
+## D-267 Breath visible in the cold (session 9; gap hunters G5; A physics / C thresholds)
+- **What** (src/world/breath.ts; world.ts): below ~6 C (full by -2 C; damp air shows it more, half at 20 % RH), each exhaled breath
+  of the people within 12 m of the camera, and the walker's own in front of the eye, forms a small cloud that grows from 6 to 38 cm,
+  drifts 0.4 m forward and a little up and is gone in 1.3 s; each person on their own rhythm (3.2-4.5 s, 2.4-3.7 s walking) from
+  their key; soft camera-facing cards lit like D-220's dust, white. The crowd's near people now carry the way they face (crowd.ts
+  nearPeople: `yaw` from the drawn root), which the breath uses. One InstancedMesh (at most 64 puffs), drawn only when cold.
+- **Not done:** the walker's breath does not quicken when running (the player's gait is not read); the animals' breath.
+- **Tests.** tests/breath.test.ts (3); audio_population passes (NearPerson gained `yaw`).
+
+## D-268 Heat shimmer and the inferior mirage (session 9; gap hunters G8; A physics / C thresholds) — OPT-IN, UNVERIFIED
+- **What** (render/pipeline.ts, in the composite before TRAA; main.ts sets `pipeline.heat`): on hot, bright, dry afternoons
+  (heat = (T − 26 C)/10 × the sun over 15-30 deg × (1 − 1.5 cloud) × (1 − 2 wetness), each clamped), where a line of sight runs
+  within ~1 deg of level to ground more than 300-1500 m away the scene is resampled with a slowly boiling offset of ~1.6 px; the
+  ground within 0.23 deg below the horizon beyond 1.5-4 km takes (×0.92, ×0.75 weight) the colour of the point mirrored above the
+  horizon, found by projecting the mirrored direction (getScreenPosition). Far pixels only: their AO, GI and SSR are ~0, so the
+  raw scene colour stands in for the composite there.
+- **Opt-in** (`?heat=1`, HEAT_ON) until a render verifies the node graph: the post graph is the one place a bad node breaks every
+  frame (the session-2 lesson: a runtime select() there crashed the page). Moment heat-mirage-jun is queued with the flag.
+- **Not done:** medium quality (no depth-derived world position there) gets none; no refraction of the sun's disc.
+
+## D-269 The little owl, bulbuls, rollers, wintering ducks; the water birds kept out of the river beds (session 9; G46, G47, G51, G54)
+- **What** (wildlife.ts BIRDS): little owls on the slope and stony steppe by day and dusk (flush at 14 m); white-eared bulbuls
+  hopping in the courts and gardens (flush at 5 m); rollers circling low over the fields Apr-Aug; parties of 4 wintering ducks
+  (Nov-Mar) resting at the water's edge, the party flushing together at 25 m and flying 120 m off. All C; the owls' and the
+  bulbul's voices were already in the soundscape.
+- **A fix:** the water birds were placed from the rivers' centreline points, and the terrain there is the channel's bed, under
+  0.4-1.8 m of water: the storks (and the herons and egrets of D-262) could be drawn under the surface. They now take `banks`
+  (points 6 m out from each side of a river's channel within 5 km, and the canals' line) and a wader's ground that never goes
+  below the bank's level less 0.4 m (over the channel they stand at about the water's level, as on a shallow margin; C).
+- **Tests.** birds_s9 (the seasons of the new birds), wildlife pass.
+
+## D-270 Coughs, more in winter (session 9; gap hunters G34; C)
+- **What** (audio/voices.ts COUGH, world.ts): anyone past infancy within the clear-voice radius coughs now and then (a glottal
+  catch and a breathy burst, twice or thrice; wordless, captioned "(a cough)", checked against the modern-word list: the single
+  "ʔhə" reads as "he" and is not used), not while speaking; once in ~500 s per person Nov-Mar (winter colds), 1,200 s in spring
+  and autumn, 1,800 s in summer (C). No sickness in the population's plans drives it (the sick are not modelled as such).
+- **Tests.** audio_population (coughs heard, never from the baby; a cough is not a conversational turn).
+
+## D-271 Alfalfa and flax on the irrigated land (session 9; gap hunters GA3, G75)
+- **What** (plain.json crops and crop_mix; seasonal.ts; fields.ts IRR_STEPS; crops.ts): alfalfa 2 % of the irrigated plots
+  (the "Median grass", fodder for the horses: Strabo 11.13.7 and Pliny NH 18.144, a claim for Media, B there / C here;
+  perennial, winter-dormant, regrowing to ~0.45 m and cut about every 35 days April-October, never ploughed) and flax 1 %
+  (sown about 20 November, pulled about 20 June, little stubble; C). Barley goes to 42 %; the other shares are unchanged.
+  CROP_ROWS gains the two before fallow (fallow is row 8, the irrigated steps count 0-8); every row index is named (D-259), so
+  nothing else moved. Near tufts: alfalfa bushy, flax slender (C). The flax's blue flowers are not drawn (the crop texture holds
+  height, green, straw and tillage only).
+- **Tests.** plain, plain_d223, plain_look, landscape, beasts, court_fill pass (73).
+
+## D-272 Roses along the paradise's channel (session 9; gap hunters G73; C)
+- **What** (groundFlora.ts RoseBeds; world.ts): rose bushes (0.6-1.1 m domes) every 2 m on both sides of the paradise's axis
+  channel (1.7 m from its line, inside the plane and cypress rows at 3.2 m; clear of the basins where the cross channels meet),
+  ~260 bushes; their blossoms (small pale quads on the dome) open pink in May-June, a few again in October. Drawn from the
+  garden's frame (Site.grid) without adding fittings, so the town's plan and its derived data do not move. Old roses in Persian
+  gardens: C for 467 (the damask rose's Achaemenid presence is not attested in our sources).
+- **Tests.** tests/roses.test.ts (2): the axis points lie in the garden and clear of the axis trees; the bloom calendar.
+
+## D-256 The work on the land: cattle and milking, fishing, fowling, nuts and acorns, bees, the quarrymen and the drums on the road, the flocks penned at night (session 9; UD-07, UD-08, UD-14; WORLD_INVENTORY G12-G17, G30, GA1, GB52; tier C)
+- **What was missing.** The gap hunters (REVIEWS/gap_hunt_s9_A.md, _B.md) found the plain's work cut to the fields: no cows or
+  calves (only plough and cart oxen, Q-193), no milk, no fishing on the Pulvar, the Kur or the canals, no snaring or fowling,
+  no nut or acorn gathering though plain.json says the nuts are "gathered Aug-Sep", no bees; the Majdabad quarry's workings
+  empty and the column drums "arriving" at the masons' yard as an event (construction.ts E-61) with nobody on the road; and
+  since the session's wolves (beasts.ts) the flocks of the plain were nowhere at night.
+- **How it could pass while failing** (brief clause 1): a performance that no plan emits; a plan that emits it out of season or
+  in the rain; a drum on the road that does not match the construction's count; a herd of one token cow (T-D5). The tests
+  (tests/land_work.test.ts) check the simulation's own output for each.
+- **The village cattle** (population.ts, lives.json farm_men_other_work.cattle, fauna.json cattle): 45 % of plain households
+  keep a cow (C). The village cows go out together with a man of a house whose turn it is (the turn-herding of the plateau's
+  villages, RECOLLECTION NOT SEEN; C), to the river meadow nearest the village (popgeo.ts `meadow:`: 20-120 m back from the
+  bank of the river within 3 km, else the canal's grass) in the morning, home through the midday, out again from late
+  afternoon and home at sunset − 0.6 h, each cow to her own gate; not in the depth of winter (months 9-11: kept in on straw).
+  A boy of a house with a cow takes her with the village cattle on 40 % of his herding days. Performed as `herd` with a herd of
+  eight cows and calves and a dog (new species `cow` with an udder and `calf`, animals.ts); they low (a new strike `low`,
+  soundscape.ts; crowd.ts every ~25 s within 150 m). **Milking** (`milk`, kneeling at the cow's flank with a pot): the house's
+  first woman at first light before breakfast and in the evening at about sunset − 0.7 h, in the months the cows are in milk
+  (Mar-Sep: months 12-6, calving in late winter: C).
+- **Fishing** (`fish`: a hand line from the bank, the catch in a basket, the water sound; a variant lifting wicker traps),
+  **fowling** (`fowl`: setting pegged horsehair snare lines at the field edges; with the bow at the waterfowl in the reeds, a
+  boy with the small bow), **nuts and acorns** (`gather` variants: picking wild pistachio and almond into a basket in months 5-6,
+  August-September as plain.json says; acorns months 6-8), **bees** (`bees`: clay-pipe hives in a mud wall, seeing to them in
+  spring, the honey taken with a knife into a jar in months 5-7; the bees' `buzz`), **wild garlic** in the third month
+  (Θāigraciš, "garlic-collecting": the name A, the act C) are options of the season's other men's work, each in its months
+  (lives.json by_month; a son may go along). New places (popgeo.ts): `bank:` the river bank nearest the village (half the
+  channel's width and a pace out from the centre line) or a canal bank, `edge:` the field edges 150-500 m out, `slope:` the
+  nearest ground over 12 % slope within 5 km (the pistachio-almond-oak scrub) or the scrub 1.5-2.5 km out; their walks use
+  nominal distances (population.ts LAND_FAR: 900, 1200, 450, 2500 m; C). Measured (tools/dev/land_trace.ts, seed 1, 400
+  plain households every third day, 220,631 person-days): village cows 198 person-days, a boy with the cow 107, milking 1,679,
+  fishing 273, snaring 632, waterfowl 507, nuts 47, acorns 129, bees 53, wild garlic **0** (the third month is the barley
+  harvest and the threshing: every household has its field task, and the other work is not reached: B81); planCheck issues on
+  those days: none.
+- **The quarry and the drums** (world/traffic.ts, plain/quarries.ts `quarrySites`): fourteen quarrymen at Majdabad (the Sivand
+  quarry has no rock within its 100 m and is not built, as before) on every day without rain or a storm, sunrise + 0.5 h to
+  sunset − 0.5 h: five cutting the channel round the next drum at the face with the pick, the rest roughing out drums among
+  the blocks with mallet and point (`quarry`, the chisel sound; a new work object `drum_rough`), three loading the drum on the
+  sledge in the hour and a half before a haul leaves; the midday meal at the camp, the rest through the heat (E-64), the evening
+  meal by the fire; asleep in the open at the camp in May-September, in the cold months in the camp's huts, which are not
+  built (not drawn: B80). **Each E-61 arrival is a haul** (34 in the year, seed 1): a driver ahead of two yoke of oxen dragging
+  the rough drum on a sledge (`drum_haul`; animals.ts `draught` now takes n 4), three men beside it with the levers; 28.0 km from
+  the quarry camp across to the royal road (7 km), along it to the Terrace's W foot, round the foot clear of the stair's tether
+  lines and along the N foot to the drum ground (150, 272), where the ground stands at the court's level; at 0.4 m/s only in
+  the daylight (sunrise + 1 h to sunset − 1 h), halting by the road for the night (unyoking and feeding the oxen, the evening
+  meal, asleep by the sledge, the oxen lying by it); at the drum ground an hour before the yard counts the drum in (the drum
+  levered off; the last 250 m into the masons' yard and how the drums went up are the labour gang's and not modelled: Q-710),
+  then back to the quarry with the empty sledge at 0.8 m/s (`sledge`). Closed form in time from the calendar's own E-61 events:
+  the spans of every haul add up to the route at the pace (0 of 34 off), inside the daylight, arriving at the drum ground.
+- **Penned at night** (fauna.ts, activities.ts): in 45 % of the village compounds the cow (and her calf in the milk months)
+  stands or lies in the court from dusk to dawn, and all day in the winter months; in 55 % two to five sheep and goats with
+  her; the state flock (80) lies in a fold of thorn brush beside the stockyard from dusk to dawn (a new work object `fold`, a
+  static mesh in the fauna group; the plain's 40-mesh budget untouched); the bands' night watch and their folding of the flock
+  beside the tents (E-49) now draw the flock penned in its fold (animals.ts `fold`: most lying at night), as does the
+  stockyard's flock kept in out of the rain (was: a donkey being groomed, the tend_animals base).
+- **Not done**: the royal and noble hunt (G11, A001, S-013: the paradise's hunt with horse and bow is court work, another
+  agent's scope); the quarrymen's huts (B80); ducks and geese (G18); cheese-making (GA5). Unrendered: one render budgeted.
+- **Merged by the lead (session 9)** with the fords, small life, birds and the rest: the performances test's grazing check had
+  stopped at the cheetah (pre-existing failure reported by D-256), and once past it the hare, the wild goat and the urial (the
+  lead's species) failed too. Fixes: the cheetah's neck 0.34 → 0.44 m, the wild goat's 0.38 → 0.48 m, the urial's 0.36 → 0.42 m
+  (the rig cannot splay or crouch the forelegs to drink or graze, so the neck reaches instead; C, noted on the builds); the
+  forward-reach check scaled to the body (≥ min(0.2 m, a quarter of its length): a 0.5 m hare reaches 0.13 m).
+
+## D-273 Roof timber arriving for the building works (session 9; gap hunters G77; A for Susa / B analogy / C here)
+- **What** (world/traffic.ts, people/activities.ts, people/workObjects.ts `cart_timber`): in the dry months (April-October,
+  the regnal months 1-7) on about one day in nine a train of 2-3 ox carts, each with five ~6 m beams lashed on and overhanging
+  behind, comes in along the royal road and round the Terrace's W foot to the drum ground at the N foot (D-256's delivery point
+  for the works), arriving between 09:00 and 16:00; the carters hold their oxen ~1.5 h while the beams are levered off, then
+  drive back the way they came. Timber brought from far for the palaces is the Susa foundation charter's (A for Susa); here
+  the loads, carts, rate and route are C. How the beams went up onto the Terrace is not modelled (as Q-710 for the drums).
+- **Tests.** land_work (the year's timber days: 10-45, April-October only; the carts held at the drum ground; the cart drawn with
+  its beams), performances pass; lint:activity 0 placeholders.
+- **Addendum (session 9, B83):** plain/riparian.ts places no reed, rush or grass tuft beyond the mid ring where the corridor stands
+  more than 0.4 m over the far ring's ground (the floating tufts of the beasts-lions render); tests/far_corridor.test.ts. The
+  raised corridor itself stays B83. Walnut and juniper (G69, G70) deferred: each new species grows the tree kit's impostor
+  atlas baked at load, against the session's load-time work (D-248), for a tree seen in gardens and on the high slopes only.
+
+## D-274 The Moon added to the sky, not painted over it; earthshine at ~1/1000 (session 9; the planets-dusk render)
+- **What was wrong:** the planets-dusk render showed the young Moon (phase angle 20°, 7.9° up at dusk) as a grey 7 px smudge. The
+  Moon was drawn opaque over the sky with a fixed dark-side floor of ~0.025 (1/50 of the lit crescent): against a dusk sky
+  brighter than that, the unlit disc replaced the sky with a grey patch; in the eclipse render the umbra showed black.
+- **Now** (skySystem.ts): the Moon is drawn additively after the sky and the stars (the airlight in front of the Moon lights the
+  whole disc; the Moon's own light adds to it); earthshine is ~1/1000 of the lit part × (1 − the lit fraction), a cold tint (C);
+  a star behind the disc (within 0.265°) is hidden in the star shader. Not masked: a planet or a meteor behind the Moon (a lunar
+  occultation of a planet would show the planet through the disc: rare).
+- **Unverified on screen:** planets-moon-tele and the T-J5 planets-dusk at the player's lens are queued after this commit.

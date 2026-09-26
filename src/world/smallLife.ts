@@ -12,17 +12,30 @@
 //    Apr-Oct, still for long spells, dashing a metre or two now and then (C).
 // No creature flies in rain or wind over 8 m/s (C). One InstancedMesh per kind (4 draws, none while empty; no shadows).
 import * as THREE from 'three/webgpu';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { attribute, positionLocal, sin, float, vec3, abs, uniform, mix } from 'three/tsl';
 import type { P2 } from '../people/navgrid';
 
-export type SmallKind = 'fly' | 'dragonfly' | 'butterfly' | 'lizard';
+export type SmallKind = 'fly' | 'dragonfly' | 'butterfly' | 'lizard' | 'frog' | 'tortoise' | 'snake' | 'jird';
 export type CellCtx = 'midden' | 'water' | 'rock' | 'field' | 'steppe' | 'none';
-export const SMALL = {
-  fly: { name: 'house fly', months: [3, 4, 5, 6, 7, 8, 9], hours: [8, 18] as [number, number], ctx: ['midden'] as CellCtx[], p: 1, per: [5, 9] as [number, number], max: 160, span: 0.013, length: 0.008, flapHz: 25, colour: [0.06, 0.06, 0.06] as [number, number, number] },
-  dragonfly: { name: 'dragonfly', months: [4, 5, 6, 7, 8], hours: [9, 17] as [number, number], ctx: ['water'] as CellCtx[], p: 0.45, per: [1, 2] as [number, number], max: 40, span: 0.09, length: 0.07, flapHz: 6, colour: [0.2, 0.32, 0.45] as [number, number, number] },
-  butterfly: { name: 'butterflies (whites, clouded yellow, painted lady)', months: [2, 3, 4, 5, 8, 9], hours: [9, 17] as [number, number], ctx: ['field', 'steppe'] as CellCtx[], p: 0.18, per: [1, 2] as [number, number], max: 60, span: 0.055, length: 0.02, flapHz: 5, colour: [1, 1, 1] as [number, number, number] },
-  lizard: { name: 'rock agama', months: [3, 4, 5, 6, 7, 8, 9], hours: [9, 17] as [number, number], ctx: ['rock', 'steppe'] as CellCtx[], p: 0.3, per: [1, 1] as [number, number], max: 40, span: 0, length: 0.3, flapHz: 0, colour: [0.46, 0.41, 0.33] as [number, number, number] },
-} as const;
+/** a kind of small creature: months (0 = January), hours (and a second window), the cell contexts it lives in, the share of
+ *  such cells holding it and how many there, its size and colour; `flee`: it slips away when someone comes within this many
+ *  metres and stays hidden `hide` seconds (C) */
+export interface SmallSpec { name: string; months: readonly number[]; hours: [number, number]; hours2?: [number, number]; ctx: readonly CellCtx[]; p: number; per: [number, number]; max: number;
+  span: number; length: number; flapHz: number; colour: [number, number, number]; flee?: number; hide?: number; windOk?: boolean }
+export const SMALL: Record<SmallKind, SmallSpec> = {
+  fly: { name: 'house fly', months: [3, 4, 5, 6, 7, 8, 9], hours: [8, 18], ctx: ['midden'], p: 1, per: [5, 9], max: 160, span: 0.013, length: 0.008, flapHz: 25, colour: [0.06, 0.06, 0.06] },
+  dragonfly: { name: 'dragonfly', months: [4, 5, 6, 7, 8], hours: [9, 17], ctx: ['water'], p: 0.45, per: [1, 2], max: 40, span: 0.09, length: 0.07, flapHz: 6, colour: [0.2, 0.32, 0.45] },
+  butterfly: { name: 'butterflies (whites, clouded yellow, painted lady)', months: [2, 3, 4, 5, 8, 9], hours: [9, 17], ctx: ['field', 'steppe'], p: 0.18, per: [1, 2], max: 60, span: 0.055, length: 0.02, flapHz: 5, colour: [1, 1, 1] },
+  lizard: { name: 'rock agama', months: [3, 4, 5, 6, 7, 8, 9], hours: [9, 17], ctx: ['rock', 'steppe'], p: 0.3, per: [1, 1], max: 40, span: 0, length: 0.3, flapHz: 0, colour: [0.46, 0.41, 0.33], flee: 3, hide: 90, windOk: true },
+  // session 9 (G64, G65, G67, G43): marsh frogs at the water's edge in spring (their chorus is in the soundscape), spur-thighed
+  // tortoises on the steppe in spring, a snake now and then on warm rock or steppe, jirds at their burrows at dawn and dusk (C)
+  frog: { name: 'marsh frog', months: [2, 3, 4, 5, 6], hours: [8, 19.5], ctx: ['water'], p: 0.35, per: [1, 3], max: 50, span: 0, length: 0.08, flapHz: 0, colour: [0.33, 0.4, 0.2], flee: 2, hide: 60, windOk: true },
+  tortoise: { name: 'spur-thighed tortoise', months: [2, 3, 4, 5], hours: [9, 17], ctx: ['steppe'], p: 0.025, per: [1, 1], max: 6, span: 0, length: 0.2, flapHz: 0, colour: [0.42, 0.37, 0.24], windOk: true },
+  snake: { name: 'snake (a whip snake, a viper)', months: [3, 4, 5, 6, 7, 8], hours: [9, 18], ctx: ['rock', 'steppe'], p: 0.012, per: [1, 1], max: 4, span: 0, length: 0.9, flapHz: 0, colour: [0.4, 0.36, 0.28], flee: 3, hide: 300, windOk: true },
+  jird: { name: 'jird (Meriones) at its burrows', months: [2, 3, 4, 5, 6, 7, 8, 9, 10], hours: [6, 9], hours2: [17, 19.5], ctx: ['steppe', 'field'], p: 0.06, per: [1, 3], max: 30, span: 0, length: 0.25, flapHz: 0, colour: [0.66, 0.54, 0.38], flee: 5, hide: 120, windOk: true },
+};
+const KIND_IDX = Object.fromEntries((Object.keys(SMALL) as SmallKind[]).map((k, i) => [k, i + 1])) as Record<SmallKind, number>;
 const BUTTERFLY_COLOURS: [number, number, number][] = [[0.92, 0.91, 0.86], [0.92, 0.91, 0.86], [0.93, 0.78, 0.25], [0.86, 0.5, 0.2]];
 /** session 9 (G71): the flowers near the walker, within FLOWER_R: per bloom colour its species' head colour, stem height
  *  and share of a blooming cell (C: SMALL-R); on rock in April, tulips and a few crown imperials (tall, orange) */
@@ -50,13 +63,18 @@ export function dartAt(seed: number, t: number, period: number, r: number, hold:
 }
 /** where creature `i` of `kind` in cell (ix, iy) is at world time t (grid metres; `up` over the ground) */
 export function smallAt(kind: SmallKind, seed: number, ix: number, iy: number, i: number, t: number, out: SmallPose) {
-  const s = h32(seed, ix, iy, i, kind.length * 7 + kind.charCodeAt(0)), cx = (ix + 0.2 + 0.6 * u01(s, 3)) * CELL, cy = (iy + 0.2 + 0.6 * u01(s, 4)) * CELL, ph = u01(s, 5) * 100;
+  const s = h32(seed, ix, iy, i, KIND_IDX[kind] * 131), cx = (ix + 0.2 + 0.6 * u01(s, 3)) * CELL, cy = (iy + 0.2 + 0.6 * u01(s, 4)) * CELL, ph = u01(s, 5) * 100;
   out.visible = true;
   if (kind === 'fly') { const d = dartAt(s, t + ph, 0.35, 0.45, 0.2); out.e = cx + d.x; out.n = cy + d.y; out.up = 0.08 + 0.45 * u01(s, Math.floor((t + ph) / 0.35)); out.heading = Math.atan2(d.vx, d.vy); out.flap = 1; return; }
   if (kind === 'dragonfly') { const d = dartAt(s, t + ph, 2.2, 3.5, 0.55); out.e = cx + d.x; out.n = cy + d.y; out.up = 0.6 + 1.2 * u01(s, 6) + 0.15 * Math.sin(t * 1.3 + ph); out.heading = Math.atan2(d.vx, d.vy); out.flap = 1; return; }
   if (kind === 'butterfly') { const d = dartAt(s, t + ph, 3.2, 3, 0.1); out.e = cx + d.x + 0.12 * Math.sin(t * 7.1 + ph); out.n = cy + d.y + 0.12 * Math.cos(t * 5.3 + ph); out.up = 0.3 + 1.0 * u01(s, 7) + 0.2 * Math.abs(Math.sin(t * 4.3 + ph)); out.heading = Math.atan2(d.vx, d.vy) + 0.4 * Math.sin(t * 3 + ph); out.flap = 1; return; }
-  // lizard: basks through each 25-60 s spell, then dashes to a spot within 1.6 m in 0.7 s (up to ~3.5 m/s at the peak)
-  const T = 25 + 35 * u01(s, 8), d = dartAt(s, t + ph, T, 1.6, 1 - 0.7 / T); out.e = cx + d.x; out.n = cy + d.y; out.up = 0.01; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0;
+  if (kind === 'frog') { const T = 20 + 25 * u01(s, 8), d = dartAt(s, t + ph, T, 0.5, 1 - 0.3 / T); out.e = cx + d.x; out.n = cy + d.y; out.up = 0.005; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; }
+  if (kind === 'tortoise') { const d = dartAt(s, t + ph, 70, 2.5, 0.25); out.e = cx + d.x; out.n = cy + d.y; out.up = 0; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; } // ~0.05 m/s
+  if (kind === 'snake') { const d = dartAt(s, t + ph, 35, 3, 0.55); out.e = cx + d.x; out.n = cy + d.y; out.up = 0.005; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; }
+  if (kind === 'jird') { const T = 4 + 5 * u01(s, 8), d = dartAt(s, t + ph, T, 1.5, 1 - 1.2 / T); // a dash of up to 3 m in 1.2 s (~3.8 m/s at the peak)
+    out.e = cx + d.x; out.n = cy + d.y; out.up = 0.005; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0; return; }
+  // lizard: basks through each 25-60 s spell, then dashes up to 3.2 m in 1.3 s (~3.7 m/s at the peak)
+  const T = 25 + 35 * u01(s, 8), d = dartAt(s, t + ph, T, 1.6, 1 - 1.3 / T); out.e = cx + d.x; out.n = cy + d.y; out.up = 0.01; out.heading = Math.atan2(d.vx, d.vy); out.flap = 0;
 }
 
 /** a winged insect: a thin body along +z and two (or four) wing quads whose tip vertices carry `wing` = +-1 */
@@ -90,6 +108,26 @@ function flowerGeometry(): THREE.BufferGeometry {
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); g.setAttribute('head', new THREE.Float32BufferAttribute(H, 1)); return g;
 }
 
+/** session 9: box parts merged (a frog, a jird): [w, h, d, x, y, z] each */
+function boxesGeometry(parts: [number, number, number, number, number, number][], wave = false): THREE.BufferGeometry {
+  const P: number[] = [], N: number[] = [], S: number[] = [], I: number[] = []; let o = 0, zmin = Infinity, zmax = -Infinity;
+  for (const [, , d, , , z] of parts) { zmin = Math.min(zmin, z - d / 2); zmax = Math.max(zmax, z + d / 2); }
+  for (const [w, h, d, x, y, z] of parts) { const g = new THREE.BoxGeometry(w, h, d); g.translate(x, y, z); const p = g.getAttribute('position'), n = g.getAttribute('normal');
+    for (let i = 0; i < p.count; i++) { P.push(p.getX(i), p.getY(i), p.getZ(i)); N.push(n.getX(i), n.getY(i), n.getZ(i)); S.push(wave ? (p.getZ(i) - zmin) / (zmax - zmin) : 0); }
+    for (const k of g.index!.array) I.push(k + o); o += p.count; }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
+  g.setAttribute('wing', new THREE.Float32BufferAttribute(new Array(P.length / 3).fill(0), 1)); g.setAttribute('along', new THREE.Float32BufferAttribute(S, 1)); g.setIndex(I); return g;
+}
+const frogGeometry = () => boxesGeometry([[0.045, 0.028, 0.06, 0, 0.016, 0], [0.036, 0.022, 0.025, 0, 0.022, 0.038], [0.014, 0.008, 0.05, 0.028, 0.006, -0.01], [0.014, 0.008, 0.05, -0.028, 0.006, -0.01]]);
+function tortoiseGeometry(): THREE.BufferGeometry {
+  const dome = new THREE.SphereGeometry(0.1, 12, 5, 0, Math.PI * 2, 0, Math.PI / 2); dome.scale(1, 0.85, 1.2); dome.translate(0, 0.012, 0);
+  const b = boxesGeometry([[0.035, 0.025, 0.05, 0, 0.02, 0.13], [0.03, 0.012, 0.03, 0.08, 0.006, 0.07], [0.03, 0.012, 0.03, -0.08, 0.006, 0.07], [0.03, 0.012, 0.03, 0.08, 0.006, -0.07], [0.03, 0.012, 0.03, -0.08, 0.006, -0.07]]);
+  const d = dome.toNonIndexed(); d.deleteAttribute('uv'); d.setAttribute('wing', new THREE.Float32BufferAttribute(new Array(d.getAttribute('position').count).fill(0), 1)); d.setAttribute('along', new THREE.Float32BufferAttribute(new Array(d.getAttribute('position').count).fill(0), 1));
+  return mergeGeometries([d, b.toNonIndexed()])!;
+}
+const snakeGeometry = () => boxesGeometry(Array.from({ length: 24 }, (_, k) => { const t = k / 23, w = 0.028 * (1 - 0.7 * Math.max(0, t - 0.75) / 0.25) * (t < 0.04 ? 0.8 : 1); return [w, 0.018, 0.04, 0, 0.009, 0.45 - k * 0.0375] as [number, number, number, number, number, number]; }), true);
+const jirdGeometry = () => boxesGeometry([[0.045, 0.04, 0.09, 0, 0.03, 0], [0.032, 0.03, 0.04, 0, 0.038, 0.06], [0.008, 0.008, 0.12, 0, 0.02, -0.1]]);
+
 export interface SmallWorld {
   /** the walkable/visible ground height at a grid point (world y) */ ground(e: number, n: number): number;
   /** the context of a grid point */ ctxAt(e: number, n: number): CellCtx;
@@ -102,19 +140,21 @@ export class SmallLife {
   private pose: SmallPose = { e: 0, n: 0, up: 0, heading: 0, flap: 0, visible: false };
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private e = new THREE.Euler(0, 0, 0, 'YXZ'); private p = new THREE.Vector3(); private c = new THREE.Color();
   private fled = new Map<number, number>();
-  stats = { fly: 0, dragonfly: 0, butterfly: 0, lizard: 0, cells: 0, flowers: 0 };
+  stats: Record<SmallKind | 'cells' | 'flowers', number> = { fly: 0, dragonfly: 0, butterfly: 0, lizard: 0, frog: 0, tortoise: 0, snake: 0, jird: 0, cells: 0, flowers: 0 };
   constructor(private seed: number, private world: SmallWorld) {
     this.group.name = 'wildlife-small';
-    const geos: Record<SmallKind, THREE.BufferGeometry> = { fly: wingedGeometry(SMALL.fly.span, SMALL.fly.length, 0.005, 1), dragonfly: wingedGeometry(SMALL.dragonfly.span, SMALL.dragonfly.length, 0.011, 2), butterfly: wingedGeometry(SMALL.butterfly.span, SMALL.butterfly.length, 0.03, 1), lizard: lizardGeometry() };
+    const geos: Record<SmallKind, THREE.BufferGeometry> = { fly: wingedGeometry(SMALL.fly.span, SMALL.fly.length, 0.005, 1), dragonfly: wingedGeometry(SMALL.dragonfly.span, SMALL.dragonfly.length, 0.011, 2), butterfly: wingedGeometry(SMALL.butterfly.span, SMALL.butterfly.length, 0.03, 1), lizard: lizardGeometry(), frog: frogGeometry(), tortoise: tortoiseGeometry(), snake: snakeGeometry(), jird: jirdGeometry() };
     for (const k of Object.keys(SMALL) as SmallKind[]) {
       const sp = SMALL[k], m = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...sp.colour, THREE.SRGBColorSpace), roughness: k === 'dragonfly' ? 0.45 : 0.85, side: THREE.DoubleSide });
       if (sp.flapHz) { const wing = attribute('wing', 'float'), phase = attribute('phase', 'float');
         // wingbeat: the tips swing through +-70 deg (a butterfly's clap, a fly's blur), scaled to the half-span
         m.positionNode = positionLocal.add(vec3(0, abs(wing).mul(sin(this.uTime.mul(sp.flapHz * 2 * Math.PI).add(phase))).mul(float(sp.span * 0.45)), 0)); }
+      if (k === 'snake') { const al = attribute('along', 'float'), phase = attribute('phase', 'float'); // the body's travelling S-wave
+        m.positionNode = positionLocal.add(vec3(sin(al.mul(11).sub(this.uTime.mul(2.2)).add(phase)).mul(0.07).mul(al.mul(0.6).add(0.4)), 0, 0)); }
       const g = geos[k]; g.setAttribute('phase', new THREE.InstancedBufferAttribute(new Float32Array(sp.max).map((_, i) => u01(seed, i, 9) * 6.28), 1));
       const mesh = new THREE.InstancedMesh(g, m, sp.max); mesh.count = 0; mesh.frustumCulled = false; mesh.castShadow = mesh.receiveShadow = false; mesh.name = `small-${k}`;
       if (k === 'butterfly') for (let i = 0; i < sp.max; i++) mesh.setColorAt(i, this.c.setRGB(...BUTTERFLY_COLOURS[h32(seed, i, 11) % BUTTERFLY_COLOURS.length], THREE.SRGBColorSpace));
-      mesh.userData = { ...TAG, note: `${sp.name}: ${k === 'lizard' ? 'basking and dashing' : 'flight'} procedural, around the viewer only (C)` };
+      mesh.userData = { ...TAG, note: `${sp.name}: ${sp.flapHz ? 'flight' : 'movement'} procedural, around the viewer only (C)` };
       this.meshes.set(k, mesh); this.group.add(mesh);
     }
     { // the flowers: one mesh, the head's colour per instance (`fcol`), the stem green; the stem is scaled to the flower's height
@@ -164,20 +204,20 @@ export class SmallLife {
   update(month: number, hour: number, t: number, viewer: P2, rain: number, windMs: number, bloom?: { violet: number; yellow: number; red: number }) {
     this.uTime.value = t % 10000;
     this.updateFlowers(viewer, bloom ?? { violet: 0, yellow: 0, red: 0 }, month);
-    const counts: Record<SmallKind, number> = { fly: 0, dragonfly: 0, butterfly: 0, lizard: 0 };
+    const counts = Object.fromEntries((Object.keys(SMALL) as SmallKind[]).map(k => [k, 0])) as Record<SmallKind, number>;
     const i0 = Math.floor((viewer[0] - R) / CELL), i1 = Math.floor((viewer[0] + R) / CELL), j0 = Math.floor((viewer[1] - R) / CELL), j1 = Math.floor((viewer[1] + R) / CELL);
-    const live = (Object.keys(SMALL) as SmallKind[]).filter(k => { const sp = SMALL[k]; return (sp.months as readonly number[]).includes(month) && hour >= sp.hours[0] && hour <= sp.hours[1] && rain < 0.15 && (k === 'lizard' || windMs < 8); });
+    const live = (Object.keys(SMALL) as SmallKind[]).filter(k => { const sp = SMALL[k]; const inH = (w?: [number, number]) => !!w && hour >= w[0] && hour <= w[1]; return sp.months.includes(month) && (inH(sp.hours) || inH(sp.hours2)) && rain < 0.15 && (sp.windOk || windMs < 8); });
     let cells = 0;
     if (live.length) for (let ix = i0; ix <= i1; ix++) for (let iy = j0; iy <= j1; iy++) {
       if (Math.hypot((ix + 0.5) * CELL - viewer[0], (iy + 0.5) * CELL - viewer[1]) > R) continue;
       const cx = this.ctx(ix, iy); if (cx === 'none') continue; cells++;
       for (const k of live) {
         const sp = SMALL[k]; if (!(sp.ctx as readonly CellCtx[]).includes(cx)) continue;
-        const p = (k === 'lizard' && cx === 'steppe') ? 0.06 : sp.p; if (u01(this.seed, ix, iy, k.charCodeAt(0), 13) >= p) continue;
+        const p = (k === 'lizard' && cx === 'steppe') ? 0.06 : sp.p; if (u01(this.seed, ix, iy, KIND_IDX[k], 13) >= p) continue;
         const n = sp.per[0] + (h32(this.seed, ix, iy, 17) % (sp.per[1] - sp.per[0] + 1)), mesh = this.meshes.get(k)!;
         for (let i = 0; i < n && counts[k] < sp.max; i++) {
           const P = this.pose; smallAt(k, this.seed, ix, iy, i, t, P);
-          if (k === 'lizard') { const key = h32(ix, iy, i), gone = this.fled.get(key); if (gone !== undefined && t - gone < 90) continue; if (Math.hypot(P.e - viewer[0], P.n - viewer[1]) < 3) { this.fled.set(key, t); continue; } }
+          if (sp.flee) { const key = h32(ix, iy, i, KIND_IDX[k]), gone = this.fled.get(key); if (gone !== undefined && t - gone < (sp.hide ?? 90)) continue; if (Math.hypot(P.e - viewer[0], P.n - viewer[1]) < sp.flee) { this.fled.set(key, t); continue; } }
           const y = this.world.ground(P.e, P.n); if (!Number.isFinite(y)) continue;
           this.e.set(0, P.heading, 0); this.q.setFromEuler(this.e); this.p.set(P.e, y + P.up, -P.n);
           this.m4.compose(this.p, this.q, ONE); mesh.setMatrixAt(counts[k]++, this.m4);

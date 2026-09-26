@@ -65,6 +65,9 @@ import { landUseAt } from './plain/fields';
 import { RAIN_CELL } from '../sky/clouds';
 import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
+import { GroundFlora, RoseBeds } from './groundFlora';
+import { DustDevils } from './dustDevils';
+import { BreathFx, BREATH_R, breathVisibility } from './breath';
 import { bloomAt, doyOf } from './plain/seasonal';
 import { PointIndex } from './plain/data';
 import { azAltToWorld } from '../sky/ephemeris';
@@ -103,6 +106,7 @@ import type { AnimalInst } from '../people/animals';
 import { CAMPS } from '../people/camps';
 import { Fauna, FAC as FAUNA_FAC, type VillageIn } from './fauna';
 import { Traffic, type Mover } from './traffic';
+import { quarrySites } from './plain/quarries';
 import { SmokeModel, type SmokeSite } from './hearthSmoke';
 import { LandSmoke } from './landSmoke';
 import { TerraceFoot } from './terraceFoot';
@@ -202,12 +206,24 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       for (let e = -3000; e <= -300; e += 450) for (let n = -2200; n <= 2200; n += 450) if (landUseAt(plain.data.zones, e, -n).use !== 'natural') fields.push([e, n]);
       for (const L of [...plain.data.rivers.rivers.map(r => Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number])), ...plain.data.canals.map(c => c.pts as [number, number][])])
         for (let i = 0; i < L.length; i += 4) if (Math.hypot(L[i][0], L[i][1]) < 5000) waters.push(L[i]);
-      return { fields, waters }; })());
+      // session 9: the partridges' slope (the W face of Kuh-e Rahmat above the Terrace, 15-50 % slope) and the wheatears'
+      // stony steppe (uncultivated ground within 3 km, off the town)
+      const slope: [number, number][] = [], steppe: [number, number][] = [], sl = (e: number, n: number) => Math.hypot(terrain.heightAt(e + 10, -n) - terrain.heightAt(e - 10, -n), terrain.heightAt(e, -n - 10) - terrain.heightAt(e, -n + 10)) / 20;
+      for (let e = 250; e <= 1600; e += 150) for (let n = -1600; n <= 1600; n += 150) { const g = sl(e, n); if (g > 0.15 && g < 0.5) slope.push([e, n]); }
+      for (let e = -3000; e <= 1500; e += 300) for (let n = -2500; n <= 2500; n += 300) if (Math.hypot(e, n) > 700 && sl(e, n) < 0.15 && landUseAt(plain.data.zones, e, -n).use === 'natural') steppe.push([e, n]);
+      // the water birds' edges (session 9): points 6 m out from each side of the rivers' channels (the centreline is the bed,
+      // under the water) and the canals' own line (their water is at ground level)
+      const banks: [number, number][] = [];
+      for (const r of plain.data.rivers.rivers) for (let i = 4; i < r.x.length - 4; i += 4) { if (Math.hypot(r.x[i], r.y[i]) > 5000) continue;
+        const tx = r.x[i + 4] - r.x[i - 4], ty = r.y[i + 4] - r.y[i - 4], L = Math.hypot(tx, ty) || 1, o = r.topWidth / 2 + 6;
+        banks.push([r.x[i] - ty / L * o, r.y[i] + tx / L * o], [r.x[i] + ty / L * o, r.y[i] - tx / L * o]); }
+      for (const c of plain.data.canals) for (let i = 0; i < c.pts.length; i += 4) if (Math.hypot(c.pts[i][0], c.pts[i][1]) < 5000) banks.push(c.pts[i] as [number, number]);
+      return { fields, waters, slope, steppe, banks }; })());
   root.add(birds.group);
   const jackals = new Jackals(seed, terrain); root.add(jackals.mesh); // on the plain edge from dusk to dawn
   // the small life around the viewer (session 9: flies at the middens, dragonflies at the water's edge, butterflies over the
   // fields and steppe, rock agamas): each 8 m cell's context from the middens, the rivers and canals, the slope and land use
-  const smallLife = (() => {
+  const small = (() => {
     const wet = new PointIndex(100), dung = new PointIndex(50), halfW: number[] = [];
     plain.data.rivers.rivers.forEach((r, k) => { halfW[k] = r.topWidth / 2; wet.addPolyline(r, 5, k); });
     for (const c of plain.data.canals) wet.addPolyline(c.pts as [number, number][], 5, 9);
@@ -220,9 +236,19 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       if (sl > 0.3) return 'rock';
       return landUseAt(plain.data.zones, e, -n).use === 'natural' ? 'steppe' : 'field';
     };
-    return new SmallLife(seed, { ground, ctxAt });
+    return { life: new SmallLife(seed, { ground, ctxAt }), flora: new GroundFlora(seed, { ground, ctxAt }), ctx: ctxAt };
   })();
-  root.add(smallLife.group);
+  const smallLife = small.life, flora = small.flora; // flora (session 9, G72): the thorn cushions, camelthorn and thistles near the viewer
+  root.add(smallLife.group, flora.group);
+  // roses along the paradise's axis channel (session 9, G73): both sides, every 2 m, clear of the basins where channels cross
+  const roses = (() => { const site = settlement?.plan.sites.find((q: any) => q.meta?.id === 'paradise' || q.id === 'paradise') as any; if (!site?.grid) return null;
+    const spots: { e: number; n: number; y: number; size: number; rot: number }[] = []; let k = 0;
+    for (let u = -165 + 32; u < 165 - 26; u += 2) { if ([-40, 50].some(c => Math.abs(u - c) < 4.5)) continue; for (const v of [-1.7, 1.7]) { const g = site.grid(u, v) as [number, number], h = ((k++ * 2654435761) >>> 0) / 4294967296;
+      spots.push({ e: g[0], n: g[1], y: nav.heightAt(g[0], g[1]) || terrain.heightAt(g[0], -g[1]), size: 0.6 + 0.5 * h, rot: h * 6.283 }); } }
+    const r = new RoseBeds(spots); root.add(r.mesh); return r; })();
+  const devils = new DustDevils(seed); root.add(devils.group); // dust devils on the summer plain (session 9, G7)
+  const breath = new BreathFx(); root.add(breath.group); const breathBuf: any[] = []; // breath in the cold (session 9, G5)
+  const devilOpen = (e: number, n: number) => Math.hypot(e, n) > 1500 && landUseAt(plain.data.zones, e, -n).use !== 'orchard' && small.ctx(e, n) !== 'none' && small.ctx(e, n) !== 'water' && small.ctx(e, n) !== 'rock';
   for (const f of fire.fires) nav.blockDisc(f.pos.x, -f.pos.z, f.kind === 'torch' ? 0 : 0.8);
   for (const [e, n, r] of palace.navDiscs()) nav.blockDisc(e, n, r); // the furnishings' standing pieces (both states with the court setting on)
   for (const s of inscSolids) nav.blockDisc(s.c[0], s.c[1], Math.hypot(s.size[0], s.size[1]) / 2); // D-214: the Hadish antae
@@ -243,7 +269,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // Terrace grid, the town's lanes and houses, the plain's villages), the nearest in the skinned pool, the rest as
   // impostors baked from the same bodies (impostors.ts)
   const geo = new PopGeo({ pop: sim.pop, nav, town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n), seed,
-    villages: plain.data.villages, compounds: vi => villageCompounds(plain.data.villages[vi], terrain, seed), canals: plain.data.canals.map(c => c.pts) });
+    villages: plain.data.villages, compounds: vi => villageCompounds(plain.data.villages[vi], terrain, seed), canals: plain.data.canals.map(c => c.pts),
+    rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })) }); // (D-256: the banks and meadows of the land work)
   const view = new PopView(sim, geo, seed); crowd.view = view;
   wmark('view');
   // D-210: the animals that live about the town, the villages, the paradise and the river (world/fauna.ts), and the animals
@@ -261,6 +288,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   fauna.addTerraceFoot(new TerraceFoot(seed, groundAt)); // D-227: the tether lines, heaps and loads at the foot of the Grand Stair (C)
   root.add(fauna.group); const faunaMs = performance.now() - faunaT0;
   const traffic = new Traffic(seed, sim.pop as any, settlement?.plan ?? null); const movers: Mover[] = [], moverKeys = new Set<string>();
+  traffic.setQuarries(quarrySites(terrain)); // D-256: the quarrymen at work and the drums hauled to the Terrace
   const syncTraffic = (cam: THREE.Vector3) => { traffic.at(sim.t, movers, { e: cam.x, n: -cam.z, r: 750 }); const now = new Set<string>();
     for (const m of movers) { const k = `tr:${m.key}`, y = groundAt(m.e, m.n), yaw = yawOf(m.heading * 180 / Math.PI); now.add(k);
       if (!moverKeys.has(k) || !crowd.moveExtra(k, m.e, y, -m.n, yaw, m.act, m.why)) { crowd.addExtra(k, { ...m.look, x: m.e, y, z: -m.n, yaw, act: m.act, why: m.why }); moverKeys.add(k); } }
@@ -506,6 +534,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       { // D-220: dust from this frame's emitters (the crowd and its animals were drawn above), and the carts' wheels
         if (!nowView.active) for (const m of movers) if (m.kind === 'cart') dust.emit('cart', m.e, groundAt(m.e, m.n), -m.n, yawOf(m.heading * 180 / Math.PI), 0.9, m.key.length * 131 + Math.round(m.e));
         dust.group.visible = !nowView.active; dust.setSkyLight(ctx.skyLight); dust.update(time, ctx.camera, ctx.cond); }
+      { // breath in the cold (session 9, G5): the people within BREATH_R and the walker's own, only when it can be seen
+        const cold = !nowView.active && breathVisibility(ctx.cond.tempC, ctx.cond.rh) > 0.02; breath.group.visible = cold;
+        if (cold) { breath.setSkyLight(ctx.skyLight); breath.update(time, ctx.camera, crowd.nearPeople(ctx.camera.position, BREATH_R, breathBuf), ctx.player ? { moving: false } : null, { tempC: ctx.cond.tempC, rh: ctx.cond.rh }); } }
       plain.update(dt, ctx);
       building?.sync(); // cheap unless a column changed state
       palace.update(ctx.camera.position, courtOn(Math.floor(sim.t / 24))); // D-212: stored / laid out for the court; far groups not drawn
@@ -514,8 +545,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
       { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
+        devils.group.visible = !nowView.active; if (!nowView.active) { devils.setSkyLight(ctx.skyLight); devils.update(ctx.clock.t * 86400, ctx.camera, [ctx.camera.position.x, -ctx.camera.position.z], (e, n) => terrain.heightAt(e, -n), { month: ctx.cond.day.climMonth, hour: ctx.clock.localHour, tempC: ctx.cond.tempC, cloud: ctx.cond.cloud, windMs: ms, wetness: ctx.cond.wetness }, [w[0] * ms, -w[2] * ms], devilOpen); }
         jackals.update(ctx.clock.dayIndex, ctx.clock.localHour, time);
-        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex))); smallLife.group.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
+        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex))); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); flora.group.visible = !nowView.active; roses?.update(ctx.cond.day.climMonth); if (roses) roses.mesh.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
       shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air,
         ctx.skyLight ? { dirW: ctx.skyLight.state.sunDir, rgb: ctx.skyLight.sun.color.clone().multiplyScalar(ctx.skyLight.sun.visible ? ctx.skyLight.sun.intensity : 0), visible: ctx.skyLight.eyeSunVisibility } : undefined); // the rainbow's sun (session 9): its intensity already carries the cloud's dimming; the terrain's skyline at the eye (C)
       RAIN_CELL.value.copy(shafts.cellWorld); // the cloud thickens over the rain cell, shades the sun and wets the ground under it (D-219)
@@ -534,6 +566,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         const p = ctx.player.position, feet = ctx.player.feetY;
         { // D-245: the population's voices (the Now view has no people of 467), the jaw moving with the voice; the water
           const near = nowView.active ? [] : crowd.nearPeople(cam.position, voices.bedR, nearBuf);
+          voices.coughEvery = [0, 1, 2, 10, 11].includes(ctx.cond.day.climMonth) ? 500 : [5, 6, 7].includes(ctx.cond.day.climMonth) ? 1800 : 1200; // winter colds (C)
           voices.update(dt, near, cam.position, k => (scriptedUntil.get(k) ?? -1) > time);
           const at = audio.ctx.currentTime; for (const [k, v] of voices.speaking) crowd.voice(k, time + (v.from - at), time + (v.to - at), time);
           crowd.claimVoices(voices.claimed, time);

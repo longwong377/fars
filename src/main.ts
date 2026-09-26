@@ -31,6 +31,7 @@ import { installWebGPUCompat } from './render/compat';
 import { Pipeline } from './render/pipeline';
 import { probeEyeVisibility, probeVolumeExtent } from './render/probes/runtime';
 import { WEATHER, SEASON, BLOOM } from './render/materials';
+import { haloAmount } from './sky/halo';
 import { bloomAt, doyOf } from './world/plain/seasonal';
 import { RAIN_CELL } from './sky/clouds';
 import { roofedAt } from './render/probes/roofs';
@@ -414,6 +415,7 @@ async function boot() {
       body.position.x += Math.sin(input.yaw) * 0.12; body.position.z += Math.cos(input.yaw) * 0.12;
     }
     sky.groundSnow = cond.snowCover; // the ground's reflectance under snow (D-219)
+    sky.halo = haloAmount(SEED, clock.dayIndex, cond.cloud, cond.rain, sky.state.sunAlt); // session 9: the 22 deg halo and sun dogs on cirrus days
     sky.update(clock.jdUT, camera.position, cond.cloud, cond.haze, { ms: cond.windMs, fromDeg: cond.windDirDeg, tSeconds: (clock.t % 7) * 86400 }, viewDir.set(0, 0, -1).applyEuler(camera.rotation));
     if (P.get('hemi')) sky.hemi.intensity *= +P.get('hemi')!; if (P.has('noshadow')) sky.sun.castShadow = false;
     if (P.has('nosun')) sky.sun.intensity = 0; if (P.get('sbias')) sky.sun.shadow.bias = +P.get('sbias')!; // debug (diagnostic renders)
@@ -452,9 +454,11 @@ async function boot() {
     if (firstFrames > 0) TRACE(`frame ${3 - firstFrames}: world.update ${(performance.now() - tu0).toFixed(0)} ms`);
     const t0 = performance.now(); if (opts.render !== false) renderer.info.reset();
     { const ss = seasonAt(clock.dayIndex); SEASON.green.value = ss.green; SEASON.dry.value = ss.dry; const bl = bloomAt(doyOf(clock.dayIndex)); BLOOM.violet.value = bl.violet; BLOOM.yellow.value = bl.yellow; BLOOM.red.value = bl.red; }
-    WEATHER.wetness.value = cond.wetness; WEATHER.snow.value = cond.snowCover; WEATHER.snowLine.value = snowLineASL(cond.day.climMonth) - terrain.meta.court_asl; WEATHER.puddles.value = Math.max(0, cond.wetness - 0.4) / 0.6; // snowLine: the mountains' seasonal snow (session 9)
+    WEATHER.wetness.value = cond.wetness; WEATHER.frost.value = cond.frost ?? 0; WEATHER.snow.value = Math.max(cond.snowCover, 0.4 * (cond.hailCover ?? 0)); /* hailstones lying (session 9) */ WEATHER.snowLine.value = snowLineASL(cond.day.climMonth) - terrain.meta.court_asl; WEATHER.puddles.value = Math.max(0, cond.wetness - 0.4) / 0.6; // snowLine: the mountains' seasonal snow (session 9)
     if (wxHold) { if (wxHold.wetness !== undefined) { WEATHER.wetness.value = wxHold.wetness; WEATHER.puddles.value = Math.max(0, wxHold.wetness - 0.4) / 0.6; } if (wxHold.snow !== undefined) WEATHER.snow.value = wxHold.snow; if (wxHold.cell !== undefined) (RAIN_CELL.value as THREE.Vector4).w = wxHold.cell; } // debug holds (D-219: before/after measurements)
     pipeline.flash.value = world.flash?.() ?? 0;
+    // session 9 (G8): heat shimmer and mirage on hot, bright, dry afternoons (26-36 C, the sun over 15 deg, little cloud; C)
+    pipeline.heat.value = Math.min(1, Math.max(0, (cond.tempC - 26) / 10)) * Math.min(1, Math.max(0, (sky.state.sunAlt - 15) / 15)) * Math.max(0, 1 - cond.cloud * 1.5) * Math.max(0, 1 - cond.wetness * 2);
     if (opts.render === false || NORENDER) { if (NORENDER) lastFrameMs = performance.now() - t0; return; }
     // a frame rendered outside the renderer's animation loop (renderOnce, bench, bots) must advance the node frame itself:
     // passes update once per node frame, so otherwise the scene pass is skipped and only the final quad is drawn (the

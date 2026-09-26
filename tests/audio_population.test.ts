@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { AudioEngine, LIMITER, ceilingCurve } from '../src/audio/engine';
 import { Soundscape } from '../src/audio/soundscape';
 import { NoiseStream } from '../src/audio/beds';
-import { PopulationVoices, personVoice, voiceDist, voiceLang, WORDLESS, unitsFor, type NearPerson } from '../src/audio/voices';
+import { PopulationVoices, personVoice, voiceDist, voiceLang, WORDLESS, LAUGH, CHILD_CALL, CRY, COUGH, unitsFor, type NearPerson } from '../src/audio/voices';
 import { WaterSound, FLOW } from '../src/audio/water';
 import { planUtterance, renderPlan } from '../src/audio/speech';
 import { LEXICON, murmurEligible, type LangId } from '../src/lang/lexicon';
@@ -57,13 +57,14 @@ describe('voices from the population (T-G3, D-241, T-K1a2)', () => {
     for (const p of near) { const mine = log.filter(u => u.key === p.key); expect(mine.length, p.key).toBeGreaterThan(0);
       for (const u of mine.slice(0, 3)) expect(sourceLevel(u.src as any, u.t0, lis).db, `${p.key} ${u.unit}`).toBeGreaterThan(-40); }
     const published = new Set<string>([...LINES.map(l => l.id), ...(Object.keys(LEXICON) as LangId[]).flatMap(l => LEXICON[l].filter(murmurEligible).map(e => e.id))]);
-    for (const u of log) if (u.lang === 'wordless') expect(u.unit.startsWith('wordless:')).toBe(true); else expect(published.has(u.unit), u.unit).toBe(true);
+    // (the human sounds that are not words, session 9: laughter, children's calls, babies' cries, are wordless too)
+    for (const u of log) if (u.lang === 'wordless') expect(/^(wordless|laugh|call|cry|cough):/.test(u.unit), u.unit).toBe(true); else expect(published.has(u.unit), u.unit).toBe(true);
     // the Egyptians and Lydians of the scene hum; nobody of theirs speaks another people's words
     const wordlessKeys = new Set(S.people.filter(p => voiceLang(p.lang, p.langs).lang === null).map(p => p.key));
     expect(wordlessKeys.size).toBeGreaterThan(0);
     for (const u of log) if (wordlessKeys.has(u.key)) expect(u.lang).toBe('wordless');
     expect(log.some(u => u.kind === 'bed')).toBe(true); // the talkers beyond the clear voices are heard as the grain bed
-    for (const w of WORDLESS) expect(findModernWords(w.ipa, { ipa: true }), w.ipa).toEqual([]);
+    for (const w of [...WORDLESS, ...LAUGH, ...CHILD_CALL, ...CRY, ...COUGH]) expect(findModernWords(w.ipa, { ipa: true }), w.ipa).toEqual([]);
     for (const l of ['op', 'el', 'arc', 'bab', 'grc'] as LangId[]) expect(unitsFor(l).words.length).toBeGreaterThan(40);
   });
   it('a voice claims the jaw only while it plays (a visible speaker is a heard speaker)', () => {
@@ -113,5 +114,27 @@ describe('running water (T-G3e)', () => {
       const db = 10 * Math.log10(playing.reduce((a, s) => a + 10 ** (sourceLevel(s, t, lis).db / 10), 0));
       expect(db).toBeGreaterThan(-40); expect(w.near.river).toBeCloseTo(dist, 0);
     }
+  });
+});
+
+describe('the human sounds that are not words (session 9, G33)', () => {
+  const log = (v: PopulationVoices) => (v.log = [] as NonNullable<PopulationVoices['log']>);
+  it('in company someone laughs now and then; a child calls out at play; a baby near the listener cries in bouts', () => {
+    const { ctx, e } = engineOn(), v = new PopulationVoices(e, { seed: 5 }), L = log(v);
+    const talk: NearPerson[] = [0, 1, 2].map(i => ({ key: `a${i}`, x: i * 0.8, y: 0, z: 3, talking: true, lang: 'Elamite', sex: i ? 'f' : 'm', age: 25 + i * 11, seed: 40 + i, group: 'g' }));
+    const kids: NearPerson[] = [0, 1].map(i => ({ key: `k${i}`, x: 6 + i, y: 0, z: -3, talking: true, lang: 'Elamite', sex: 'm', age: 7 + i, seed: 70 + i, group: 'play' }));
+    const baby: NearPerson = { key: 'b0', x: -4, y: 0, z: 1, talking: false, lang: 'Elamite', sex: 'f', age: 0.5, seed: 90, group: null };
+    v.cryEvery = 20; v.coughEvery = 60; // (the world's 900 s and 1200 s, shortened)
+    drive(ctx, 240, dt => v.update(dt, [...talk, ...kids, baby], { x: 0, y: 1.6, z: 0 }));
+    expect(L.filter(u => u.unit.startsWith('cough:')).length).toBeGreaterThan(3);
+    const laughs = L.filter(u => u.unit.startsWith('laugh:')), calls = L.filter(u => u.unit.startsWith('call:')), cries = L.filter(u => u.unit.startsWith('cry:'));
+    expect(laughs.length).toBeGreaterThan(2); expect(laughs.every(u => u.key !== 'b0'), laughs.map(u => u.key).join()).toBe(true); expect(laughs.some(u => u.key.startsWith('a'))).toBe(true);
+    expect(calls.length).toBeGreaterThan(2); expect(calls.every(u => u.key.startsWith('k'))).toBe(true);
+    expect(cries.length).toBeGreaterThan(3); expect(cries.every(u => u.key === 'b0')).toBe(true);
+    // a laugh is a listener's, not the speaker's own turn going on: the laugher did not speak the unit just before it
+    for (const u of laughs) { const grp = u.key[0], before = L.filter(x => x.key[0] === grp && x.t0 < u.t0 && !/^(laugh|cough):/.test(x.unit)).pop(); if (before) expect(before.key).not.toBe(u.key); } // (a cough is not a turn)
+    // the cry is high: the baby's voice pitch well above the adults'
+    expect(cries[0].voice.age).toBeLessThan(2);
+    const coughs = L.filter(u => u.unit.startsWith('cough:')); expect(coughs.every(u => u.key !== 'b0')).toBe(true);
   });
 });
