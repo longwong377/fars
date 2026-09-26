@@ -201,7 +201,7 @@ views; the first real bench recalibrates it.
 
 Every threshold is a row of `gates/thresholds.json`: `{id, axis, metric, op, value, unit, sample_min, sample, tool, status,
 anti_proxy, ud, since}`. `tests/gates_ratchet.test.ts` reads every committed version (`git log -- gates/thresholds.json`, `git
-show`) and fails if an id disappears, a value moves the loose way, `sample_min` falls, the operator changes, a tool's status
+show`) and fails if an id disappears, a value moves the loose way, `sample_min` falls, the metric, unit, axis or operator changes, a tool's status
 moves back (to-build → partial → built only), a partial or built row names a missing file, the plan fails to quote an id, or
 the plan quotes an id the file lacks. The only loosening allowed carries `"loosened_by": "UD-nn"`, a user direction that says so.
 New thresholds are added, never swapped for easier ones.

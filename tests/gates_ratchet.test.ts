@@ -1,7 +1,8 @@
 // The thresholds ratchet (MASTER_PLAN.md §4.1, UD-12): every threshold of the Walker Test lives in gates/thresholds.json and
 // can only tighten. Checked against every committed version of the file (git history), so a threshold cannot be dropped,
 // loosened, sampled more thinly or quietly demoted to "to-build" in one commit or in several. A loosening passes only when
-// its row carries "loosened_by": a UD-nn of USER_DIRECTIONS.md (the user's own words), never a decision of a session.
+// its row carries "loosened_by": a UD-nn of USER_DIRECTIONS.md (the user's own words), never a decision of a session. A row's
+// metric, unit, axis and operator never change: measuring something else is a new id, and the old one stays.
 import { describe, it, expect } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -55,6 +56,10 @@ describe('thresholds ratchet (MASTER_PLAN §4.1)', () => {
         expect(r, `${old.id} (present at ${rev}) was removed`).toBeTruthy();
         if (!r) continue;
         expect(r.op, `${r.id}: operator changed since ${rev}`).toBe(old.op);
+        // what is measured cannot be reworded either (a reworded metric is a new threshold: add a new id, keep this one)
+        expect(r.metric, `${r.id}: metric reworded since ${rev}`).toBe(old.metric);
+        expect(r.unit, `${r.id}: unit changed since ${rev}`).toBe(old.unit);
+        expect(r.axis, `${r.id}: axis changed since ${rev}`).toBe(old.axis);
         const looser = !asStrict(old.op, old.value, r.value) || r.sample_min < old.sample_min;
         if (looser) expect(r.loosened_by && uds.has(r.loosened_by), `${r.id} loosened since ${rev} (${old.value} → ${r.value}, n ${old.sample_min} → ${r.sample_min}) without a user direction`).toBeTruthy();
         expect(STATUS.indexOf(r.status), `${r.id}: status demoted since ${rev}`).toBeGreaterThanOrEqual(STATUS.indexOf(old.status));
