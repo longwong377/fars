@@ -6589,3 +6589,7 @@ moment-*-webgpu.png in the worktree, not committed).**
   the loads, carts, rate and route are C. How the beams went up onto the Terrace is not modelled (as Q-710 for the drums).
 - **Tests.** land_work (the year's timber days: 10-45, April-October only; the carts held at the drum ground; the cart drawn with
   its beams), performances pass; lint:activity 0 placeholders.
+- **Addendum (session 9, B83):** plain/riparian.ts places no reed, rush or grass tuft beyond the mid ring where the corridor stands
+  more than 0.4 m over the far ring's ground (the floating tufts of the beasts-lions render); tests/far_corridor.test.ts. The
+  raised corridor itself stays B83. Walnut and juniper (G69, G70) deferred: each new species grows the tree kit's impostor
+  atlas baked at load, against the session's load-time work (D-248), for a tree seen in gardens and on the high slopes only.
