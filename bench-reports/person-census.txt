@@ -1,0 +1,60 @@
+{
+ "persons": 46910,
+ "named": 0.998,
+ "distinctNames": 209,
+ "topNames": [
+  [
+   "Irdabada",
+   815
+  ],
+  [
+   "Bakabana",
+   811
+  ],
+  [
+   "Irtima",
+   810
+  ],
+  [
+   "Irtuppiya",
+   805
+  ],
+  [
+   "Bakerabba",
+   805
+  ],
+  [
+   "Pirrena",
+   803
+  ],
+  [
+   "Umanna",
+   798
+  ],
+  [
+   "Tiššantamma",
+   797
+  ]
+ ],
+ "withHousehold": 1,
+ "onAPlotOrPlace": 1,
+ "livingWithOthers": 0.993,
+ "livingAlone": 328,
+ "withJobOrRole": 1,
+ "jobs": 26
+}
+by origin/sex: n, named share, distinct names, persons per name
+  Persian/m: 20736, 1.00, 27, 766
+  Persian/f: 18209, 1.00, 47, 387
+  Elamite/m: 2614, 1.00, 141, 19
+  Elamite/f: 2492, 1.00, 67, 37
+  Babylonian/m: 405, 1.00, 13, 31
+  Babylonian/f: 348, 1.00, 11, 32
+  Lycian/m: 345, 1.00, 112, 3
+  Egyptian/f: 343, 1.00, 63, 5
+  Egyptian/m: 242, 1.00, 56, 4
+  Ionian/f: 181, 1.00, 59, 3
+  Lydian/f: 171, 1.00, 64, 3
+  Syrian/f: 170, 1.00, 55, 3
+  Syrian/m: 129, 1.00, 26, 5
+  Lydian/m: 120, 0.99, 53, 2
