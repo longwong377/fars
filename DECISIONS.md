@@ -6276,3 +6276,94 @@ moment-*-webgpu.png in the worktree, not committed).**
   graph's nodes (the plain's worn paths from `openRuns` follow them); the plan now builds in ~3-4 s in node (was 1.4 s: Q-671).
   A 14-day soak (tools/soak.ts 14 60 1) keeps plansWellFormed true.
 - **Tier.** Engineering on C-tier plans. Door widths: excavated Achaemenid and Elamite house doors 0.7-1.0 m (C, recollection).
+
+## D-257 The roads ford the rivers; the Pasargadae road redrawn off the river (session 9; gap hunters A061, B-022, W-014, A519; tier C)
+- **What was wrong.** Every road that met the Pulvar or the Kur ran into the water: no ford, bridge or boat (settlement.json only
+  said "ford or bridge, C"). Measured before the fix: the four settlement.json roads as drawn (settlement/water.ts meander) meet a
+  river centreline 18 times, 14 of them the Pasargadae road, whose polyline was digitised on the modern Pulvar's own line (its
+  vertices 1-43 m from the river): it crossed the river back and forth and ran *inside* the channel for ~400 m near grid
+  (12.2 km, 16.9 km). 44 village tracks (straight lines between villages, ribbons.ts) crossed a river too, and 23 track samples
+  ran along a channel, up to ~250 m.
+- **Fords** (src/world/plain/crossings.ts): wherever a road or village track as drawn cuts a river centreline, a ford square to
+  the stream: a cobble causeway across the channel at the road's width, its top 0.30 m (Pulvar) / 0.35 m (Kur) over the bed, the
+  bank ramps paved the same; stepping stones a few metres downstream with their tops 0.15 m over the low-water level; four
+  stakes on the bank tops; at each Kur ford an upturned round hide boat on the bank with its pole. Against the monthly flow
+  table (plain.json, C): the Pulvar runs 0.09-0.11 m over the causeway Aug-Oct (it breaks over it) and 0.9 m in April; the Kur
+  0.37-0.44 m Aug-Oct (knee-deep: carts and pack animals ford it) and 1.45 m in April (not fordable: the boat). Colliders on
+  every slab and stone (the causeway is walked). 51 fords (7 on roads, 44 on tracks).
+- **No bridges, no ferries.** The rivers are small and not navigable; Herodotus' royal road passes its "navigable rivers ... by
+  ferries" (5.52: the Tigris, the Gyndes, the Choaspes, far to the W; B, read in the Perseus text this session); round boats of
+  hide on a willow frame are his Mesopotamian river boats (1.194, B there, C here). A Persian bridge on the Pulvar or the Kur in
+  467 has no evidence we hold (the Band-e Amir weir is 10th c. CE and blocked).
+- **The Pasargadae road redrawn** (tools/dev/reroute_pasargadae.ts; settlement.json `course_note`): beyond its third vertex
+  (5.2 km NE of the Terrace) its course is the least-cost path over a 40 m grid of the valley (distance x (1 + (slope/5 %)^2);
+  ground over 25 % impassable, 35 % within 250 m of the river, a gorge road cut into the side at Tang-e Bulaghi, C; entering
+  the channel costs a ford, 8 km; the wet margin and leaving the valley floor cost extra), simplified to 15 m without any
+  shortcut coming nearer the river. Three tries: a smoothed offset of the river line (17 crossings, 50 km, up a 76 % slope),
+  a least-cost path without a valley term (7 crossings, a 10 km cross-country detour round the gorge), then this. Measured: 3
+  crossings of the Pulvar (a ford each; two of them 225 m apart at a meander at 32.4 km E: Q-720), 66 km (was 56 km, cutting
+  across the bends), grade p50 0.7 %, p95 6.7 %, max 31 % (in the gorge), 1.3 km over 10 %, 441 m from the Sivand quarry.
+  The route map: REVIEWS/evidence/s9-crossings/route_pasargadae.png. The modern trace stays in `polyline_latlon`.
+- **Village tracks** (`keepOffChannels`): a track sample within 8 m of a channel's top edge and running within 45 deg of the
+  stream is moved onto the bank it is on; a crossing is left to its ford.
+- **The plain's mesh budget** (tests/plain.test.ts, <= 40 meshes) was full at 40: the fords are one mesh (stones as rubble; stakes
+  and boat on a `soft` vertex attribute that switches the stone's relief off), and the quarries' faces (0.2 k triangles, the
+  limestone whose albedo the rubble surface shares) are merged into it (`plain-stone`), keeping their own F3 description per face.
+  The gate is not raised.
+- **Tests.** tests/crossings.test.ts (5): the four attested road-river meetings exist; no road or track sample in a channel is
+  more than 30 m from a ford; the causeway and stepping stones against the flow table; each causeway top within 6 cm of plan.
+  plain.test.ts (quarry F3 on `plain-stone`), settlement, settlement_build, visitor_access, maplayers, terrain_walk,
+  plain_d223, plain_look pass; town_plots.json rebuilt unchanged.
+- **Unverified on screen**: two moments queued (ford-pulvar-sep, ford-kur-apr). Nobody crosses at a ford yet (traffic.ts routes
+  run W and S; the drum haulage of D-256 will use the Pasargadae road); no water sound over the causeway.
+
+## D-258 The small life around the walker, the bats at dusk; puddles only on level ground (session 9; gap hunters G42, G59-G62; tier C)
+- **Small life** (src/world/smallLife.ts): the ground within 36 m of the camera is cut into 8 m cells; each cell's context is read
+  once (a town midden within 6 m; the water's edge: 4 m inside to 8 m outside a river's top width, or a canal; rock: slope over
+  30 %; else the plain's land use, field or steppe) and a hash of (seed, cell) decides what lives there: house flies at the
+  middens (Apr-Oct, 8-18 h, 5-9 a heap, 0.08-0.5 m up), dragonflies at the water (May-Sep, 9-17 h, 45 % of edge cells, 0.6-1.8 m
+  up, hover and dart), butterflies over fields and steppe (Mar-Jun and Sep-Oct, 9-17 h, 18 % of cells: whites, a clouded
+  yellow, a painted lady by instance colour), rock agamas on rock (Apr-Oct, 9-17 h, 30 % of rock cells, 6 % of steppe cells;
+  basking 25-60 s spells, dashing up to 1.6 m in 0.7 s; one slips away for 90 s when someone comes within 3 m). Positions are
+  closed-form in (seed, cell, index, world seconds): no saved state, continuous across saves and skips. Nothing flies in rain
+  or wind over 8 m/s. Four InstancedMeshes (no draw while empty, no shadows). Species and seasons are recollection (SMALL-R,
+  sources.json; C).
+- **Bats** (wildlife.ts BIRDS.bat, `batAt`): 16 pipistrelles, Mar-Oct, from 20 min after the month's sunset (SUNSET_BY_MONTH at
+  30 deg N, 17.3 h in December to 19.2 h in June, C) for about two hours, hawking loops of 5-12 m, 3-10 m up, jinking every half
+  second, half over the courts and half over the water within 5 km.
+- **Spring flowers** (G71; seasonal.ts `bloomAt`, BLOOM uniforms): violet (irises, grape hyacinths) and yellow (buttercups,
+  gageas, crucifers) from early March into April, red (poppies, anemones, pheasant's eye; tulips on rock) from April through May
+  (windows by day of year, C: the Zagros foothill flora as the lead recalls it, SMALL-R). Far: the plain's terrain shader tints
+  the uncultivated ground and the bunds in patches ~40-80 m across (about a fifth of the ground at a colour's peak), specks of
+  heads under ~8 cm a pixel and their mean beyond. Near (within 20 m): 10-30 heads a blooming cell (28 % of steppe and rock cells
+  at peak, 12 % of field cells: the verges), stems 6-45 cm, and in April now and then a crown imperial (0.6-0.9 m, orange) on
+  rock. One more InstancedMesh (`small-flower`, up to 900 heads). No flowering trees or shrubs (almond blossom: not done).
+- **Puddles only on level ground** (materials.ts `finish`): the beasts renders (day 12, clear after rain) showed puddles lying on
+  the hillsides of the SW steppe: the puddle mask used the up-facing term (slopes up to ~33 %). Now it takes `level`
+  (smoothstep 0.996-0.9995 of the normal's y: water stands on slopes under ~3 %, none past ~9 %); floors, courts, roofs and the
+  flat plain keep theirs.
+- **Tests.** tests/small_life.test.ts (6): July noon flies at the midden and dragonflies at the water, no butterflies; April
+  butterflies and agamas, nothing by night, in January or in rain; each insect within its context's reach; continuity (top speeds
+  per kind: fly 6, dragonfly 11, butterfly 4.5, agama 4 m/s) and determinism; the agama slipping away; the bats' hours, months and
+  height. beasts, birds_s9, fauna and wildlife tests pass.
+- **Seen in the beasts renders (the first of the queue):** the onager herd reads as animals at distance; the two lions are a few
+  pixels at 70 m; the cheetahs, lying, are hidden behind a rise from their camera (the view, not the animals: beast_find places
+  the camera 70 m off without a line-of-sight check); the lions' view shows B83 (the far ring's corridor above the ground).
+- **Unverified on screen:** two moments queued (small-spring-field, small-dusk-bats). Flies (8 mm) are below the render's pixel at
+  any distance past ~1 m. No mosquitoes, no ants, no beetles, no scorpions (G61 partial).
+
+## D-259 Pulses and garden plots on the irrigated land (session 9; gap hunters G16, G74; A name / C)
+- **What.** Two crop rows join the irrigated mix (plain.json fields_irrigated_*.crop_mix; fields.ts IRR_STEPS; the shader
+  mirrors it): **pulses** 7 % (lentil, chickpea, bitter vetch, pea, broad bean: sown about 25 November with the cereals, low and
+  bushy, yellowing from late April, pulled about 20 May, little stubble; C) and **garden** plots 2 % (garlic, onions, leeks set
+  late October in rows with soil between and lifted about 25 May: the Old Persian month Θāigraciš, May-June, is
+  "garlic-collecting", A for the name, B for the etymology; then summer snake melons and gourds, watered, to September; C).
+  Barley 45 %, wheat 13 %, emmer/spelt 8 %, sesame 5 %, fallow 20 % (was barley 50, wheat 15, emmer 10, sesame 5, fallow 20).
+  Not cucumbers: the Akkadian qiššû usually glossed so is likely the snake melon.
+- **Row order.** CROP_ROWS is now barley, wheat, emmer_spelt, sesame, pulses, garden, fallow, orchard_floor, vineyard, steppe:
+  the irrigated plot's row is still the count of steps its hash passes (0-6, 6 = fallow), so the shader needs no remap; every
+  literal row index (fallow 4, orchard 5-6, steppe 7 in fields.ts, terrainPlain.ts, crops.ts) became a named ROW.* index, and
+  IRR_STEPS[3] ("where the fallow starts") became IRR_CROP. The near crop tufts draw pulses bushier and greyer, garlic and
+  onion leaves upright, narrow and blue-green (C).
+- **Tests.** plain, plain_d223 (IRR_CROP), plain_look, landscape, beasts, court_fill, small_life pass (81). The rain-fed land
+  keeps barley and fallow only (dry-farmed pulses: not done).

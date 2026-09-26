@@ -30,7 +30,8 @@ import { runBench } from './world/bench';
 import { installWebGPUCompat } from './render/compat';
 import { Pipeline } from './render/pipeline';
 import { probeEyeVisibility, probeVolumeExtent } from './render/probes/runtime';
-import { WEATHER, SEASON } from './render/materials';
+import { WEATHER, SEASON, BLOOM } from './render/materials';
+import { bloomAt, doyOf } from './world/plain/seasonal';
 import { RAIN_CELL } from './sky/clouds';
 import { roofedAt } from './render/probes/roofs';
 import { seasonAt } from './world/season';
@@ -450,7 +451,7 @@ async function boot() {
     tmesh.update(camera.position);
     if (firstFrames > 0) TRACE(`frame ${3 - firstFrames}: world.update ${(performance.now() - tu0).toFixed(0)} ms`);
     const t0 = performance.now(); if (opts.render !== false) renderer.info.reset();
-    { const ss = seasonAt(clock.dayIndex); SEASON.green.value = ss.green; SEASON.dry.value = ss.dry; }
+    { const ss = seasonAt(clock.dayIndex); SEASON.green.value = ss.green; SEASON.dry.value = ss.dry; const bl = bloomAt(doyOf(clock.dayIndex)); BLOOM.violet.value = bl.violet; BLOOM.yellow.value = bl.yellow; BLOOM.red.value = bl.red; }
     WEATHER.wetness.value = cond.wetness; WEATHER.snow.value = cond.snowCover; WEATHER.snowLine.value = snowLineASL(cond.day.climMonth) - terrain.meta.court_asl; WEATHER.puddles.value = Math.max(0, cond.wetness - 0.4) / 0.6; // snowLine: the mountains' seasonal snow (session 9)
     if (wxHold) { if (wxHold.wetness !== undefined) { WEATHER.wetness.value = wxHold.wetness; WEATHER.puddles.value = Math.max(0, wxHold.wetness - 0.4) / 0.6; } if (wxHold.snow !== undefined) WEATHER.snow.value = wxHold.snow; if (wxHold.cell !== undefined) (RAIN_CELL.value as THREE.Vector4).w = wxHold.cell; } // debug holds (D-219: before/after measurements)
     pipeline.flash.value = world.flash?.() ?? 0;

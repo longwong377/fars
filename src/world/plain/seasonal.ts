@@ -28,6 +28,16 @@ export function monthly(values: readonly number[], doy: number): number {
 }
 
 const smooth = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+/** session 9 (WORLD_INVENTORY G71): the spring flowers of the uncultivated ground and the field verges, by day of year (C:
+ *  the Zagros foothill flora as the lead recalls it, SMALL-R): violet (irises, grape hyacinths) and yellow (buttercups,
+ *  gageas, crucifers) from early March into April, red (poppies, anemones, pheasant's eye; tulips on the rocky slopes) from
+ *  April through May; each 0-1 (the share of its peak) */
+export const BLOOM_WINDOWS = { violet: [59, 85, 112], yellow: [50, 88, 122], red: [92, 120, 152] } as const;
+export function bloomAt(doy: number): { violet: number; yellow: number; red: number } {
+  const bump = ([a, m, b]: readonly number[]) => doy <= a || doy >= b ? 0 : doy < m ? smooth(a, m, doy) : 1 - smooth(m, b, doy);
+  return { violet: bump(BLOOM_WINDOWS.violet), yellow: bump(BLOOM_WINDOWS.yellow), red: bump(BLOOM_WINDOWS.red) };
+}
 /** cyclic distance-aware window: 1 between doy a and b (a may be > b across the new year), with soft edges of width e */
 function window(doy: number, a: number, b: number, e: number) {
   const inside = (x: number) => { const aa = a, bb = b < a ? b + YEAR : b; const xx = x < aa - e ? x + YEAR : x; return smooth(aa - e, aa, xx) * (1 - smooth(bb, bb + e, xx)); };
@@ -50,7 +60,10 @@ export function monthIndex(doy: number) { const cum = [0, 31, 59, 90, 120, 151, 
 
 // ---------------------------------------------------------------- fields
 /** crop-state rows (the order is the row index used by the terrain shader and the crop instances) */
-export const CROP_ROWS = ['barley', 'wheat', 'emmer_spelt', 'sesame', 'fallow', 'orchard_floor', 'vineyard', 'steppe'] as const;
+/** the crop rows (the shader's crop texture rows, in this order: the irrigated mix's cumulative steps count up to `fallow`) */
+export const CROP_ROWS = ['barley', 'wheat', 'emmer_spelt', 'sesame', 'pulses', 'garden', 'fallow', 'orchard_floor', 'vineyard', 'steppe'] as const;
+/** row indices the shader and fields.ts use */
+export const ROW = Object.fromEntries(CROP_ROWS.map((r, i) => [r, i])) as Record<typeof CROP_ROWS[number], number>;
 export type CropRow = typeof CROP_ROWS[number];
 export interface CropState {
   /** standing crop height (m) */ height: number;
@@ -101,6 +114,14 @@ export function cropState(row: CropRow, doy: number): CropState {
       const stubble = window(d, 262, 330, 10) * 0.35, hb = herb(d);
       return { height: h * grow, green: cover * (1 - ripe) + (1 - grow) * hb.green * 0.35, straw: cover * ripe + stubble, tilled: window(d, 115, 135, 5) };
     }
+    // pulses (G74): lentil, chickpea, vetch, pea, broad bean sown late November with the cereals, low and bushy, yellowing from
+    // late April and pulled by hand about 20 May: little stubble is left, the ground is grazed (C)
+    case 'pulses': { const c = winterCereal('pulses', d, 329, 112, 136, 140); return (d >= 140 && d < 315) ? { ...c, straw: c.straw * 0.3 } : c; }
+    // garden plots (G16): garlic, onions and leeks set late October and lifted about 25 May (the month Θāigraciš,
+    // 'garlic-collecting', May-June: A name), in rows with soil between; then summer snake melons and gourds, watered, to
+    // September; dug over in October (C)
+    case 'garden': { const h = monthly(heights('garden'), d), set = window(d, 285, 300, 5), lift = window(d, 140, 152, 4), summer = window(d, 160, 262, 10);
+      return { height: h, green: Math.min(0.6, h / 0.45 * 0.6) * (1 - lift * 0.8) + summer * 0.1, straw: lift * 0.3, tilled: Math.max(set, window(d, 150, 162, 4)) * 0.8 }; }
     case 'fallow': { const hb = herb(d); return { height: 0.12 * hb.green, green: hb.green * 0.45, straw: hb.dry * 0.4, tilled: 0 }; } // grazed weedy fallow: soil shows between the weeds (C)
     case 'orchard_floor': { const hb = herb(d); return { height: 0.15, green: Math.max(0.35, hb.green) * 0.8, straw: hb.dry * 0.2, tilled: 0 }; } // watered ground under trees (C)
     // head-trained vine stocks (about half a metre of old wood) all year; budburst in April (crops.vines leaf_out Apr),

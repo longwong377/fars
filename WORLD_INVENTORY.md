@@ -53,7 +53,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 
 | # | gap | found by (row ids) | category | tier of presence in 467 | status |
 |---|---|---|---|---|---|
-| G1 | river crossing: ford or bridge where the roads meet the Pulvar and the Kur | A061; B-022, W-014 | transport | C | MISSING/PARTIAL |
+| G1 | river crossing: ford or bridge where the roads meet the Pulvar and the Kur | A061; B-022, W-014 | transport | C | BUILT (D-257: 51 fords on roads and tracks; the Pasargadae road redrawn off the river); unrendered |
 | G2 | villages as real places (compounds are solid boxes; ovens, pens, courts, night light) | A072; B-023 | settlement | C | MISSING/PARTIAL |
 | G3 | snowline: snow on Kuh-e Rahmat and the Zagros skyline in winter | A401; B-031, W-053 | weather | B | MISSING/PARTIAL |
 | G4 | frost, hoarfrost and ice at dawn (44 frost days) | A402; W-006, W-011 | weather | A | MISSING/PARTIAL |
@@ -68,7 +68,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G13 | fish and fishing in the rivers and canals | A003, A161; F-001, P-019, P-064 | food quest / fauna | C | MISSING/PARTIAL |
 | G14 | wild nut gathering on the slopes (Aug-Sep) | A004; W-052 | food quest | C | MISSING/PARTIAL |
 | G15 | bees, bee-keeping and honey | A006, A151; P-020, P-065 | food quest / fauna | C | MISSING/PARTIAL |
-| G16 | garlic, onions and named garden vegetables (the month Θāigraciš, 'garlic-collecting') | A007, A204, A207; FL-010 | crops | A name / C | MISSING/PARTIAL |
+| G16 | garlic, onions and named garden vegetables (the month Θāigraciš, 'garlic-collecting') | A007, A204, A207; FL-010 | crops | A name / C | BUILT (D-259: garden plots of garlic, onions and leeks, 2 % of the irrigated plots, lifted in Θāigraciš); unrendered |
 | G17 | cattle herds: cows and calves (only work oxen exist) | A024; P-012, F-055 | husbandry | C | MISSING/PARTIAL |
 | G18 | domestic ducks and geese | A026; F-046 | husbandry | C | MISSING/PARTIAL |
 | G19 | cavalry, horse lines and pastures in the default world | A033, A556; B-080 | armed forces | B/C | MISSING/PARTIAL |
@@ -94,7 +94,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G39 | hares | A109; F-012 | fauna | C | MISSING/PARTIAL |
 | G40 | hedgehog and porcupine | A110; F-025, F-032 | fauna | C | MISSING/PARTIAL |
 | G41 | rats and mice at the stores | A111; B-049, F-042 | fauna | B | MISSING/PARTIAL |
-| G42 | bats at dusk | A112; W-025 | fauna | B | MISSING/PARTIAL |
+| G42 | bats at dusk | A112; W-025 | fauna | B | BUILT (D-258: pipistrelles over the courts and the water from 20 min after sunset, Mar-Oct); unrendered |
 | G43 | small rodents of the steppe (jirds, gerbils, jerboas) | A113; F-013 | fauna | C | MISSING/PARTIAL |
 | G44 | small wild cats and carnivores (jungle cat, wildcat, badger, marten) | A115; F-009 | fauna | B | MISSING/PARTIAL |
 | G45 | partridges seen, flushing on the slope | A124; F-029, W-009 | birds | B | MISSING/PARTIAL |
@@ -111,10 +111,10 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G56 | magpies | A136; problems #6 | birds | C | MISSING/PARTIAL |
 | G57 | sandgrouse and bustard | A138; F-024 | birds | C | MISSING/PARTIAL |
 | G58 | wheatears | A140; F-031 | birds | C | MISSING/PARTIAL |
-| G59 | lizards (agamas) | A150; F-023 | reptiles | C | MISSING/PARTIAL |
-| G60 | butterflies | A152; B-047 | insects | C | MISSING/PARTIAL |
-| G61 | dragonflies and mosquitoes at the water | A153, A164; F-006 | insects | C | MISSING/PARTIAL |
-| G62 | visible flies at dung and middens | A154; B-047 | insects | C | MISSING/PARTIAL |
+| G59 | lizards (agamas) | A150; F-023 | reptiles | C | BUILT (D-258: rock agamas basking and dashing on rock, slipping away at 3 m); below render resolution, verified by test |
+| G60 | butterflies | A152; B-047 | insects | C | BUILT (D-258: whites, clouded yellows, painted ladies over fields and steppe, Mar-Jun and Sep-Oct); unrendered |
+| G61 | dragonflies and mosquitoes at the water | A153, A164; F-006 | insects | C | PARTIAL (D-258: dragonflies at the water's edge May-Sep; no mosquitoes) |
+| G62 | visible flies at dung and middens | A154; B-047 | insects | C | BUILT (D-258: house flies at the town's middens Apr-Oct); below render resolution, verified by test |
 | G63 | geckos on the walls at night | A156; F-043 | reptiles | C | MISSING/PARTIAL |
 | G64 | tortoise | A157; F-022 | reptiles | B | MISSING/PARTIAL |
 | G65 | snakes | A158; F-023 | reptiles | C | MISSING/PARTIAL |
@@ -123,10 +123,10 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G68 | a locust year | A167; W-047 | events | C | MISSING/PARTIAL |
 | G69 | walnut | A171; FL-006 | trees | C | MISSING/PARTIAL |
 | G70 | juniper | A173; FL-007 | trees | C | MISSING/PARTIAL |
-| G71 | spring wildflowers (tulips, poppies, irises, crown imperial) | A220; W-039 | flora | B/C | MISSING/PARTIAL |
+| G71 | spring wildflowers (tulips, poppies, irises, crown imperial) | A220; W-039 | flora | B/C | BUILT (D-258: bloom tint far, flower heads near, by the calendar); unrendered |
 | G72 | tragacanth and thorn cushions, camelthorn, thistles | A221, A223; FL-008 | flora | B | MISSING/PARTIAL |
 | G73 | roses in the paradise | A226; FL-016 | flora | C | MISSING/PARTIAL |
-| G74 | pulses (lentil, chickpea, vetch, pea, broad bean) | A201; FL-011 | crops | C | MISSING/PARTIAL |
+| G74 | pulses (lentil, chickpea, vetch, pea, broad bean) | A201; FL-011 | crops | C | BUILT (D-259: 7 % of the irrigated plots; not on the rain-fed land); unrendered |
 | G75 | flax | A202; FL-013 | crops | C | MISSING/PARTIAL |
 | G76 | melons, cucumbers and gourds | A205; FL-012 | crops | C | MISSING/PARTIAL |
 | G77 | timber arriving for the roofs | A508; P-033 | commodities | B | MISSING/PARTIAL |
@@ -158,7 +158,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GA20 | rope and basket making (partial) | A500 | crafts | C | MISSING/PARTIAL |
 | GA21 | felt making | A501 | crafts | C | MISSING/PARTIAL |
 | GA22 | threshing sledge | A509 | farming | B analogy | MISSING/PARTIAL |
-| GA23 | boats or rafts at the crossings | A519 | transport | C | MISSING/PARTIAL |
+| GA23 | boats or rafts at the crossings | A519 | transport | C | BUILT (D-257: a hide boat at each Kur ford); unrendered, never used |
 | GA24 | road traffic to Pasargadae and Naqsh-e Rustam (partial) | A520 | transport | C | MISSING/PARTIAL |
 | GA25 | field boundary marks | A523 | land | C | MISSING/PARTIAL |
 | GA26 | dance at weddings and festivals | A525 | arts | B claim | MISSING/PARTIAL |

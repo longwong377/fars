@@ -27,6 +27,8 @@ import { RAIN_CELL } from '../sky/clouds';
 export const WEATHER = { wetness: uniform(0), snow: uniform(0), puddles: uniform(0), snowLine: uniform(9000) };
 /** seasonal ground cover (0..1): green = living herb layer, dry = standing straw/stubble (set per frame from the date; season.ts) */
 export const SEASON = { green: uniform(0.8), dry: uniform(0.1) };
+/** session 9 (G71): the spring flowers' bloom today, 0-1 each (seasonal.ts bloomAt) */
+export const BLOOM = { violet: uniform(0), yellow: uniform(0), red: uniform(0) };
 /** the masons' yard's dressing waste on the court fill (D-188; set by the construction view, src/world/construction.ts):
  *  `rect` = the yard (world x0, z0, x1, z1), `amount` = how much is being dressed there (0 none … 1), `work` = a block
  *  being carved (world x, z, radius, 0/1). Stone chips 4× denser and a film of limestone dust (C: dressing on site is B,
@@ -950,9 +952,12 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   const wetness = max(WEATHER.wetness, cellWet);
   const wet = wetness.mul(float(0.55).add(up.mul(0.45))).mul(open);
   alb = alb.mul(float(1).sub(wet.mul(d.porosity * 0.5)));
-  // puddles: only in the low spots of a broad noise field (≈15% of flat area at full puddle state), never a uniform sheen
+  // puddles: only in the low spots of a broad noise field (≈15% of flat area at full puddle state), never a uniform sheen;
+  // session 9: and only on near-level ground (water stands on slopes under ~3 %, none by 9 %; the beasts renders showed puddles
+  // lying on the hillsides of the SW steppe, where `up` let them onto slopes up to ~33 %)
+  const level = smoothstep(0.996, 0.9995, n.y);
   const puddles = max(WEATHER.puddles, cellWet.sub(0.4).div(0.6).max(0));
-  const puddle = up.mul(puddles).mul(open).mul(smoothstep(0.68, 0.74, mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5)));
+  const puddle = level.mul(puddles).mul(open).mul(smoothstep(0.68, 0.74, mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5)));
   // snow: zero when snow = 0 (noise only modulates coverage, never adds snow on its own)
   // the mountains' seasonal snow above the snowline (session 9): a patchy band 250 m deep (drifts in the hollows first, C)
   const elev = smoothstep(WEATHER.snowLine.sub(100), WEATHER.snowLine.add(150), p.y.add(mx_noise_float(p.mul(0.004)).mul(120)));

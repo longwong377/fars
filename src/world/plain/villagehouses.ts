@@ -115,7 +115,7 @@ export class VillageHouses {
             y: gl + 0.035, h: Math.max(1.6, S.base[ci] + DOOR_H - doorVar(id).drop - gl - 0.06), wood: L.doorWood, kind: 'house', site: v.id }); this.info.gates++; }
         // the fires: the hearth ('home': lit for the evening meal, banked after dark) and the lamp (the ovens: Q-690)
         for (const f of c.fittings) { this.info.fittings++; if (!fire || f.kind !== 'hearth') continue; /* (the ovens are drawn, not fires: Q-690) */ const g = G(cu + f.u, cv + f.v), y = H(g[0], g[1]);
-          fire.add(f.kind, new THREE.Vector3(g[0], f.kind === 'oven' ? y + 0.55 : y, -g[1]), { tier: 'C', src: SRC, note: `${id}: ${f.note}`, sched: 'home', body: false, slow: true }); this.info.fires++; }
+          fire.add(f.kind, new THREE.Vector3(g[0], y, -g[1]), { tier: 'C', src: SRC, note: `${id}: ${f.note}`, sched: 'home', body: false, slow: true }); this.info.fires++; }
         // the evening lamp: a clay saucer lamp on a ledge on the back wall of the first living room (the rooms SiteHouses furnishes
         // as living rooms, houses.ts roomUse: the main range first, then the wing), 1.1 m up
         let lamp: VillageHouses['lamps'][number][number] = null;
