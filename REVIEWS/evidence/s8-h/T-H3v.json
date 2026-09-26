@@ -1,0 +1,12 @@
+{
+ "id": "T-H3v",
+ "value": 0,
+ "n": 1,
+ "commit": "2f9b5da+wt",
+ "tool": "tests/e2e/persistence.spec.ts",
+ "unit": "saves",
+ "previous_build_loads": true,
+ "unreadable_announced": true,
+ "unknown_version_announced": true,
+ "note": "browser run (session 9, job persistence4, snapshot 20:12 of 2f9b5da with uncommitted wild-animal code in the tree, unrelated to saves); commit stamped by the lead: the snapshot had no .git"
+}

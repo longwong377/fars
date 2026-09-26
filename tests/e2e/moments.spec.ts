@@ -89,6 +89,12 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // ~10-12° up; from the Terrace's NW corner and from the plain west of the Grand Stair, looking toward the antisolar side
   { n: 'rainbow-terrace', day: 12, hour: 17, w: 'auto', v: [-36, 125, 1.6, 75, 8], fov: 70 },
   { n: 'rainbow-plain', day: 12, hour: 17, w: 'auto', v: [-600, 60, 1.6, 75, 8], fov: 70 },
+  // session 9: the wild animals (src/world/beasts.ts; tools/dev/beast_find.ts 12 13, seed 1) by day: the lion pride lying up in
+  // the reeds of their river reach, the onager herd and the cheetahs on the SW steppe, the leopard on its ledge above the Terrace
+  { n: 'beasts-lions', day: 12, hour: 13, w: 'clear', v: [7324.9, 11132.7, 1.6, 40.7, -3], fov: 40 },
+  { n: 'beasts-onagers', day: 12, hour: 13, w: 'clear', v: [-13686.8, -13861.5, 1.6, 40.7, -3], fov: 40 },
+  { n: 'beasts-cheetahs', day: 12, hour: 13, w: 'clear', v: [-13352, -12966.9, 1.6, 40.7, -3], fov: 40 },
+  { n: 'beasts-leopard', day: 12, hour: 13, w: 'clear', v: [1182.4, -92.2, 1.6, 40.7, -3], fov: 40 },
   { n: 'night-moon-fire', day: 11, hour: 2.75, w: 'clear', v: [-23.4, 122.5, 1.6, 253.5, 6] },
   { n: 'brazier-close', day: 0, hour: 21.5, w: 'clear', v: [-36.4, 132, 1.6, 161, -8], fov: IN },
   { n: 'apadana-hall-torch', day: 0, hour: 21, w: 'clear', v: [-8, 0, 4.6, 161, 6], fov: IN },

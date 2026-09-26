@@ -1,0 +1,11 @@
+{
+ "id": "T-H3s",
+ "value": 0.1219,
+ "n": 0,
+ "commit": "2f9b5da+wt",
+ "tool": "tests/e2e/persistence.spec.ts",
+ "unit": "MB",
+ "bytes": 127856,
+ "world_hours": 6,
+ "note": "browser run (session 9, job persistence4, snapshot 20:12 of 2f9b5da with uncommitted wild-animal code in the tree, unrelated to saves); commit stamped by the lead: the snapshot had no .git"
+}

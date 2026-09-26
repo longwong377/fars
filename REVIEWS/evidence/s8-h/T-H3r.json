@@ -1,0 +1,25 @@
+{
+ "id": "T-H3r",
+ "value": 0,
+ "n": 1,
+ "commit": "2f9b5da+wt",
+ "tool": "tests/e2e/persistence.spec.ts",
+ "diff_paths": [],
+ "unit": "bytes",
+ "bytes": 73029,
+ "systems": {
+  "people": true,
+  "memory": true,
+  "relations": true,
+  "events": true,
+  "routes": true,
+  "visitor": true,
+  "doors": true,
+  "clock": true,
+  "weather": true,
+  "player": true
+ },
+ "population_sample_equal": true,
+ "people_equal": true,
+ "note": "browser run (session 9, job persistence4, snapshot 20:12 of 2f9b5da with uncommitted wild-animal code in the tree, unrelated to saves); commit stamped by the lead: the snapshot had no .git"
+}
