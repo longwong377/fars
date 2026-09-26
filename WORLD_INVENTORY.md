@@ -1,0 +1,267 @@
+# WORLD_INVENTORY — what a real Persepolis and Marvdasht of 467 BCE would hold, and what the build lacks
+
+Built from two independent gap hunts (session 9; MASTER_PLAN §7, T-J6, T-J7): hunter A worked from the HRAF Outline of Cultural
+Materials and the natural world by kingdom (REVIEWS/gap_hunt_s9_A.md, ~190 rows), hunter B from the brief line by line, the
+tablets' commodity and occupation lists, a traveller's walk at every hour band and season, and fauna by habitat
+(REVIEWS/gap_hunt_s9_B.md, 239 rows). Neither saw the other's list or REVIEWS/gap_audit.md. Their PRESENT rows (≈ 80 and ≈ 107) are
+in their reports; this file holds the GAPS (MISSING or PARTIAL), merged into one list, each with who found it.
+
+## The estimate (T-J6: unfound gaps ≤ 5 %) — FAILS
+
+- Gaps found by A: n1 = 138; by B: n2 = 138; by both: m = 78; distinct: 198.
+- Lincoln–Petersen N = n1·n2/m = 244 (Chapman 244); estimated gaps neither hunter found: **46 (19 %)**.
+- T-J6 needs ≤ 5 %: the next hunt needs more, and different, taxonomies (a third hunter with a different list; e.g. the Old Persian
+  and Elamite lexicon of things, the Persepolis seal imagery, Mesopotamian household inventories).
+- The matching is the lead's (two rows that name the same thing count once); the grouping is coarse (a row can hold a few species).
+
+## Fill order (the gaps whose absence most breaks the time capsule for a walker; T-J7)
+
+1. villages as real places
+2. river crossing
+3. cattle herds
+4. hunting
+5. snowline
+6. planets
+7. quarrymen
+8. fish and fishing
+9. the smith at the forge
+10. tanning
+11. bees, bee-keeping
+12. doves and rock doves
+13. larks
+14. storks
+15. visible flies
+16. lizards
+17. human non-speech sounds
+18. spring wildflowers
+19. gazelle on the open plain
+20. wild goat and wild sheep
+21. red fox
+22. hares
+23. bats
+24. tomb guardians
+25. summer sleeping on the roofs
+26. garlic, onions
+27. pulses
+28. the act of sealing
+29. silver weighed on a balance
+30. dates arriving
+
+Already filled this session: the large predators and the onager (beasts.ts), lunar eclipse, meteors, rainbow (unrendered or partly rendered: sessions/s09.md).
+
+## Gaps both hunters found (78)
+
+| # | gap | found by (row ids) | category | tier of presence in 467 | status |
+|---|---|---|---|---|---|
+| G1 | river crossing: ford or bridge where the roads meet the Pulvar and the Kur | A061; B-022, W-014 | transport | C | MISSING/PARTIAL |
+| G2 | villages as real places (compounds are solid boxes; ovens, pens, courts, night light) | A072; B-023 | settlement | C | MISSING/PARTIAL |
+| G3 | snowline: snow on Kuh-e Rahmat and the Zagros skyline in winter | A401; B-031, W-053 | weather | B | MISSING/PARTIAL |
+| G4 | frost, hoarfrost and ice at dawn (44 frost days) | A402; W-006, W-011 | weather | A | MISSING/PARTIAL |
+| G5 | breath visible in the cold | A403; W-007 | weather | A physics | MISSING/PARTIAL |
+| G6 | planets (Venus as morning and evening star, Jupiter, Saturn, Mars) | A404; W-004, W-035 | sky | A | MISSING/PARTIAL |
+| G7 | dust devils on the summer plain | A406; W-019 | weather | B | MISSING/PARTIAL |
+| G8 | heat shimmer and mirage | A407; W-018 | weather | A physics | MISSING/PARTIAL |
+| G9 | hail in the spring thunderstorms | A408; W-044 | weather | A | MISSING/PARTIAL |
+| G10 | 22° halo and sun dogs | A409; N-004 | sky | A physics | MISSING/PARTIAL |
+| G11 | hunting: the royal and noble hunt | A001, A593; S-013 | food quest | B claim | MISSING/PARTIAL |
+| G12 | snaring and fowling | A002; P-064 | food quest | C | MISSING/PARTIAL |
+| G13 | fish and fishing in the rivers and canals | A003, A161; F-001, P-019, P-064 | food quest / fauna | C | MISSING/PARTIAL |
+| G14 | wild nut gathering on the slopes (Aug-Sep) | A004; W-052 | food quest | C | MISSING/PARTIAL |
+| G15 | bees, bee-keeping and honey | A006, A151; P-020, P-065 | food quest / fauna | C | MISSING/PARTIAL |
+| G16 | garlic, onions and named garden vegetables (the month Θāigraciš, 'garlic-collecting') | A007, A204, A207; FL-010 | crops | A name / C | MISSING/PARTIAL |
+| G17 | cattle herds: cows and calves (only work oxen exist) | A024; P-012, F-055 | husbandry | C | MISSING/PARTIAL |
+| G18 | domestic ducks and geese | A026; F-046 | husbandry | C | MISSING/PARTIAL |
+| G19 | cavalry, horse lines and pastures in the default world | A033, A556; B-080 | armed forces | B/C | MISSING/PARTIAL |
+| G20 | sesame-oil pressing, oil jars, lamp oil | A045; P-010 | food processing | B/C | MISSING/PARTIAL |
+| G21 | salt: supply and trade | A054; P-021 | commodities | C | MISSING/PARTIAL |
+| G22 | the garrison's rooms (B63) | A073; B-013 | settlement | B | MISSING/PARTIAL |
+| G23 | summer sleeping on the roofs | A077; W-038 | housing | C | MISSING/PARTIAL |
+| G24 | latrines and cesspits | A078; S-003 | housing | B analogy | MISSING/PARTIAL |
+| G25 | lime burning, plastering and wall painting at work | A092; P-042 | crafts | B/C | MISSING/PARTIAL |
+| G26 | the smith at the forge (a lit forge with nobody at it); hammer, bellows, kiln roar | A095; B-037, SO-008, B-102 | crafts | B | MISSING/PARTIAL |
+| G27 | goldsmiths forging and chasing | A096; P-039 | crafts | B | MISSING/PARTIAL |
+| G28 | tanning and leatherwork (hides stop at a counter) | A098; B-056, P-014 | crafts | B | MISSING/PARTIAL |
+| G29 | seal cutting | A099; P-047 | crafts | A/C | MISSING/PARTIAL |
+| G30 | quarrymen at Majdabad and Sivand; drums hauled across the plain | A505, A506; P-063, P-034, S-012 | crafts / transport | B/C | MISSING/PARTIAL |
+| G31 | signal fires and beacons | A522; W-037 | communication | C | MISSING/PARTIAL |
+| G32 | adult board games (twenty squares) at the guard posts and doorsteps | A529; S-016 | recreation | C | MISSING/PARTIAL |
+| G33 | human non-speech sounds: babies crying, laughter, children shouting, calling to animals | A533; SO-005, SO-006 | sound | C | MISSING/PARTIAL |
+| G34 | coughing and sickness sounds | A560; SO-007 | sound | C | MISSING/PARTIAL |
+| G35 | tomb guardians and a tomb cult at Naqsh-e Rustam | A564; S-010 | religion | B analogy | MISSING/PARTIAL |
+| G36 | gazelle on the open plain (not only the paradise) | A102; F-018 | fauna | B | MISSING/PARTIAL |
+| G37 | red fox | A107; F-021 | fauna | B | MISSING/PARTIAL |
+| G38 | wild goat and wild sheep on Kuh-e Rahmat | A108; F-026, F-027 | fauna | B | MISSING/PARTIAL |
+| G39 | hares | A109; F-012 | fauna | C | MISSING/PARTIAL |
+| G40 | hedgehog and porcupine | A110; F-025, F-032 | fauna | C | MISSING/PARTIAL |
+| G41 | rats and mice at the stores | A111; B-049, F-042 | fauna | B | MISSING/PARTIAL |
+| G42 | bats at dusk | A112; W-025 | fauna | B | MISSING/PARTIAL |
+| G43 | small rodents of the steppe (jirds, gerbils, jerboas) | A113; F-013 | fauna | C | MISSING/PARTIAL |
+| G44 | small wild cats and carnivores (jungle cat, wildcat, badger, marten) | A115; F-009 | fauna | B | MISSING/PARTIAL |
+| G45 | partridges seen, flushing on the slope | A124; F-029, W-009 | birds | B | MISSING/PARTIAL |
+| G46 | hoopoe, bee-eater and roller seen | A125, A139; W-048, F-050 | birds | B/C | MISSING/PARTIAL |
+| G47 | owls seen | A126; W-031 | birds | C | MISSING/PARTIAL |
+| G48 | doves and rock doves | A127; F-030 | birds | C | MISSING/PARTIAL |
+| G49 | larks over fields and steppe | A128; F-014 | birds | C | MISSING/PARTIAL |
+| G50 | white storks | A129; F-016, W-015 | birds | C | MISSING/PARTIAL |
+| G51 | cranes, geese and ducks in winter and on migration | A130; W-043, W-056, SO-012 | birds | B | MISSING/PARTIAL |
+| G52 | herons and egrets | A131; F-004 | birds | C | MISSING/PARTIAL |
+| G53 | vultures | A132; W-022, F-048 | birds | B | MISSING/PARTIAL |
+| G54 | nightingale and bulbul in the gardens | A134; W-033 | birds | C | MISSING/PARTIAL |
+| G55 | choughs, jackdaws and ravens | A135; F-049 | birds | C | MISSING/PARTIAL |
+| G56 | magpies | A136; problems #6 | birds | C | MISSING/PARTIAL |
+| G57 | sandgrouse and bustard | A138; F-024 | birds | C | MISSING/PARTIAL |
+| G58 | wheatears | A140; F-031 | birds | C | MISSING/PARTIAL |
+| G59 | lizards (agamas) | A150; F-023 | reptiles | C | MISSING/PARTIAL |
+| G60 | butterflies | A152; B-047 | insects | C | MISSING/PARTIAL |
+| G61 | dragonflies and mosquitoes at the water | A153, A164; F-006 | insects | C | MISSING/PARTIAL |
+| G62 | visible flies at dung and middens | A154; B-047 | insects | C | MISSING/PARTIAL |
+| G63 | geckos on the walls at night | A156; F-043 | reptiles | C | MISSING/PARTIAL |
+| G64 | tortoise | A157; F-022 | reptiles | B | MISSING/PARTIAL |
+| G65 | snakes | A158; F-023 | reptiles | C | MISSING/PARTIAL |
+| G66 | scorpions | A159; F-023 | invertebrates | C | MISSING/PARTIAL |
+| G67 | frogs seen | A160; F-011 | amphibians | C | MISSING/PARTIAL |
+| G68 | a locust year | A167; W-047 | events | C | MISSING/PARTIAL |
+| G69 | walnut | A171; FL-006 | trees | C | MISSING/PARTIAL |
+| G70 | juniper | A173; FL-007 | trees | C | MISSING/PARTIAL |
+| G71 | spring wildflowers (tulips, poppies, irises, crown imperial) | A220; W-039 | flora | B/C | MISSING/PARTIAL |
+| G72 | tragacanth and thorn cushions, camelthorn, thistles | A221, A223; FL-008 | flora | B | MISSING/PARTIAL |
+| G73 | roses in the paradise | A226; FL-016 | flora | C | MISSING/PARTIAL |
+| G74 | pulses (lentil, chickpea, vetch, pea, broad bean) | A201; FL-011 | crops | C | MISSING/PARTIAL |
+| G75 | flax | A202; FL-013 | crops | C | MISSING/PARTIAL |
+| G76 | melons, cucumbers and gourds | A205; FL-012 | crops | C | MISSING/PARTIAL |
+| G77 | timber arriving for the roofs | A508; P-033 | commodities | B | MISSING/PARTIAL |
+| G78 | large predators and the onager (built this session: beasts.ts, cf3165e; unrendered) | A104, A106; W-029, F-008, F-019, F-020, F-028, F-033, F-034 | fauna | B | BUILT (s9, unrendered) |
+
+## Gaps only hunter A found (60)
+
+| # | gap | found by (row ids) | category | tier of presence in 467 | status |
+|---|---|---|---|---|---|
+| GA1 | acorn, wild green and herb gathering | A005 | food quest | C | MISSING/PARTIAL |
+| GA2 | domestic cat (A: missing; B: uncertain) | A028 | husbandry | C | MISSING/PARTIAL |
+| GA3 | alfalfa ('Median grass') fodder fields | A031, A206 | crops | B claim | MISSING/PARTIAL |
+| GA4 | animal branding and marking | A034 | husbandry | C | MISSING/PARTIAL |
+| GA5 | cheese making and drying | A047 | food processing | C | MISSING/PARTIAL |
+| GA6 | fruit drying on roofs and mats | A048 | food processing | C | MISSING/PARTIAL |
+| GA7 | elite symposium drinking | A053 | drink | B claim | MISSING/PARTIAL |
+| GA8 | barefoot poor and children | A065 | dress | C | MISSING/PARTIAL |
+| GA9 | mourning dress and signs | A066 | death | B claim | MISSING/PARTIAL |
+| GA10 | tattooing (Thracians) | A067 | adornment | B claim | MISSING/PARTIAL |
+| GA11 | fly-whisks and parasols among the elite (partial) | A068 | adornment | A | MISSING/PARTIAL |
+| GA12 | transhumant bands' black tents and the band on the road | A021, A074 | settlement | C | MISSING/PARTIAL |
+| GA13 | shaduf water lifting | A081 | irrigation | C | MISSING/PARTIAL |
+| GA14 | the scribes' lamp lit | A086 | housing | C | MISSING/PARTIAL |
+| GA15 | the town's lights at dusk (partial, B49) | A087 | housing | C | MISSING/PARTIAL |
+| GA16 | scarecrows (partial) | A089 | farming | C | MISSING/PARTIAL |
+| GA17 | furniture in the town interiors (partial) | A085 | housing | C | MISSING/PARTIAL |
+| GA18 | charcoal burning | A091 | crafts | C | MISSING/PARTIAL |
+| GA19 | carpentry at work (partial) | A097 | crafts | B | MISSING/PARTIAL |
+| GA20 | rope and basket making (partial) | A500 | crafts | C | MISSING/PARTIAL |
+| GA21 | felt making | A501 | crafts | C | MISSING/PARTIAL |
+| GA22 | threshing sledge | A509 | farming | B analogy | MISSING/PARTIAL |
+| GA23 | boats or rafts at the crossings | A519 | transport | C | MISSING/PARTIAL |
+| GA24 | road traffic to Pasargadae and Naqsh-e Rustam (partial) | A520 | transport | C | MISSING/PARTIAL |
+| GA25 | field boundary marks | A523 | land | C | MISSING/PARTIAL |
+| GA26 | dance at weddings and festivals | A525 | arts | B claim | MISSING/PARTIAL |
+| GA27 | recitation of heroes' songs to the young | A527 | arts | B claim | MISSING/PARTIAL |
+| GA28 | wrestling, races, riding contests | A530 | recreation | C | MISSING/PARTIAL |
+| GA29 | lullabies and lament | A534, A562 | sound | C | MISSING/PARTIAL |
+| GA30 | Aramaic leather with writing (partial) | A536 | records | B | MISSING/PARTIAL |
+| GA31 | polygyny and concubinage | A540 | family | B claim | MISSING/PARTIAL |
+| GA32 | divorce, widow remarriage, fostering | A541 | family | C | MISSING/PARTIAL |
+| GA33 | village headman and elders | A543 | community | C | MISSING/PARTIAL |
+| GA34 | theft and guarding against it (partial) | A552 | law | C | MISSING/PARTIAL |
+| GA35 | the armoury (partial) | A555 | armed forces | A | MISSING/PARTIAL |
+| GA36 | court physicians (partial) | A558 | health | B | MISSING/PARTIAL |
+| GA37 | visible disability: the blind and the lame | A559 | health | C | MISSING/PARTIAL |
+| GA38 | magi killing noxious creatures | A567 | religion | B claim | MISSING/PARTIAL |
+| GA39 | morning prayer to the sun | A571 | religion | C | MISSING/PARTIAL |
+| GA40 | toddlers walking on their own | A578 | childhood | C | MISSING/PARTIAL |
+| GA41 | the wolf-killing month (*Vṛkazana) and its act | A105 | calendar | A name / C | MISSING/PARTIAL |
+| GA42 | Persian squirrel | A114 | fauna | C | MISSING/PARTIAL |
+| GA43 | delegation beasts drawn (lioness, okapi, ibex) | A117 | fauna | B | MISSING/PARTIAL |
+| GA44 | kestrels | A133 | birds | C | MISSING/PARTIAL |
+| GA45 | winter starlings | A137 | birds | C | MISSING/PARTIAL |
+| GA46 | ants | A155 | insects | C | MISSING/PARTIAL |
+| GA47 | freshwater crab | A162 | invertebrates | C | MISSING/PARTIAL |
+| GA48 | snails after rain | A163 | invertebrates | C | MISSING/PARTIAL |
+| GA49 | moths at the lamps | A165 | insects | C | MISSING/PARTIAL |
+| GA50 | cicadas and crickets seen (partial) | A166 | insects | C | MISSING/PARTIAL |
+| GA51 | spiders and webs | A168 | invertebrates | C | MISSING/PARTIAL |
+| GA52 | the oak woodland's companion trees (wild pear, hawthorn, Celtis, maple, Pistacia khinjuk) | A172 | trees | C | MISSING/PARTIAL |
+| GA53 | quince, plum, apricot | A174 | trees | C | MISSING/PARTIAL |
+| GA54 | jujube | A175 | trees | C | MISSING/PARTIAL |
+| GA55 | giant fennel on the slopes | A222 | flora | C | MISSING/PARTIAL |
+| GA56 | crop-field weeds | A225 | flora | C | MISSING/PARTIAL |
+| GA57 | millet | A203 | crops | C | MISSING/PARTIAL |
+| GA58 | a military review or muster | A594 | armed forces | C | MISSING/PARTIAL |
+| GA59 | chance events: house fire, flood, earthquake, epidemic | A595 | events | C | MISSING/PARTIAL |
+| GA60 | the mill building (B63) | A042 | food processing | B | MISSING/PARTIAL |
+
+## Gaps only hunter B found (60)
+
+| # | gap | found by (row ids) | category | tier of presence in 467 | status |
+|---|---|---|---|---|---|
+| GB1 | zodiacal light | W-005 | sky | A physics | MISSING/PARTIAL |
+| GB2 | dew on grass and crops | W-016 | weather | A physics | MISSING/PARTIAL |
+| GB3 | the comet of 467/466 (Pliny NH 2.149; recollection) | N-005 | sky | C | MISSING/PARTIAL |
+| GB4 | the act of sealing (rolling a seal) | B-009 | records | B | MISSING/PARTIAL |
+| GB5 | the Hadish apartments furnished | B-014 | settlement | C | MISSING/PARTIAL |
+| GB6 | storerooms showing their actual stock | B-015 | economy | C | MISSING/PARTIAL |
+| GB7 | run-off streams in the lanes and the mountain gullies after rain | B-044, N-009 | water | C | MISSING/PARTIAL |
+| GB8 | spilled grain | B-055 | traces | C | MISSING/PARTIAL |
+| GB9 | dye works (partial) | B-057 | crafts | C | MISSING/PARTIAL |
+| GB10 | litters for nobles and royal women | B-061 | transport | C | MISSING/PARTIAL |
+| GB11 | dates arriving by pack train | B-066, P-008 | commodities | B | MISSING/PARTIAL |
+| GB12 | pregnancy visible | B-075 | people | C | MISSING/PARTIAL |
+| GB13 | silver weighed on a balance (performed as `inspect`: a detector escape) | B-095, P-022 | economy | B | MISSING/PARTIAL |
+| GB14 | writing boards and the scribe's kit | B-099 | records | C | MISSING/PARTIAL |
+| GB15 | rain on timber and cloth heard | B-103 | sound | C | MISSING/PARTIAL |
+| GB16 | barley loaves issued by the state bakery (partial) | P-004 | commodities | A | MISSING/PARTIAL |
+| GB17 | milking performed | P-016 | husbandry | C | MISSING/PARTIAL |
+| GB18 | eggs | P-018 | commodities | C | MISSING/PARTIAL |
+| GB19 | textiles and garments issued | P-024 | commodities | B | MISSING/PARTIAL |
+| GB20 | tools issued and stored | P-025 | commodities | C | MISSING/PARTIAL |
+| GB21 | potters shaping pots (partial) | P-044 | crafts | B | MISSING/PARTIAL |
+| GB22 | relief sculptors carving (partial) | P-043 | crafts | C | MISSING/PARTIAL |
+| GB23 | bone workers (partial) | P-046 | crafts | B | MISSING/PARTIAL |
+| GB24 | stone-vessel makers | P-048 | crafts | C | MISSING/PARTIAL |
+| GB25 | guides of travelling parties (partial) | P-053 | transport | B | MISSING/PARTIAL |
+| GB26 | interpreters | P-060 | administration | B analogy | MISSING/PARTIAL |
+| GB27 | accountants with a counting board (partial) | P-061 | administration | C | MISSING/PARTIAL |
+| GB28 | merchants and traders (partial) | P-066 | exchange | C | MISSING/PARTIAL |
+| GB29 | swifts screaming over the Terrace (partial) | W-026 | birds | C | MISSING/PARTIAL |
+| GB30 | the Belt of Venus in its colour (partial, B44) | W-027 | sky | A | MISSING/PARTIAL |
+| GB31 | nightjar | W-032 | birds | C | MISSING/PARTIAL |
+| GB32 | mountain springs and seeps | N-010 | water | C | MISSING/PARTIAL |
+| GB33 | salt crusts and playas toward the lakes | N-014 | landscape | C | MISSING/PARTIAL |
+| GB34 | limestone outcrops and scree texture (partial, B57) | N-012 | landscape | A | MISSING/PARTIAL |
+| GB35 | crepuscular rays unverified (partial) | N-007 | sky | C | MISSING/PARTIAL |
+| GB36 | otter | F-002 | fauna | B | MISSING/PARTIAL |
+| GB37 | Caspian turtle | F-003 | reptiles | B | MISSING/PARTIAL |
+| GB38 | kingfisher | F-005 | birds | C | MISSING/PARTIAL |
+| GB39 | reed warblers | F-010 | birds | C | MISSING/PARTIAL |
+| GB40 | quail | F-015 | birds | C | MISSING/PARTIAL |
+| GB41 | rooks and crows in the winter fields (partial) | F-017 | birds | C | MISSING/PARTIAL |
+| GB42 | swallows nesting under the eaves (partial) | F-040 | birds | C | MISSING/PARTIAL |
+| GB43 | fleas and lice (scratching) | F-044 | people | C | MISSING/PARTIAL |
+| GB44 | trot and gallop (every animal walks; a courier never hurries) | F-056 | animals | C | MISSING/PARTIAL |
+| GB45 | lotus and water lilies in the pools | FL-017 | flora | C | MISSING/PARTIAL |
+| GB46 | a bath or washing room in elite houses | S-004 | housing | C | MISSING/PARTIAL |
+| GB47 | a scribal school | S-005 | education | C | MISSING/PARTIAL |
+| GB48 | household cults of the foreign workers (Q-471) | S-009 | religion | C | MISSING/PARTIAL |
+| GB49 | workmen at the Xerxes façade at Naqsh-e Rustam | S-011 | construction | C | MISSING/PARTIAL |
+| GB50 | the Persian washing rule (Hdt 1.138) contradicted by garrison laundry in the river | S-017 | religion / consistency | B claim | MISSING/PARTIAL |
+| GB51 | horses whinnying and snorting | SO-001 | sound | C | MISSING/PARTIAL |
+| GB52 | cattle lowing | SO-002 | sound | C | MISSING/PARTIAL |
+| GB53 | camels grumbling | SO-003 | sound | C | MISSING/PARTIAL |
+| GB54 | hooves, cart wheels and harness on the road | SO-004 | sound | C | MISSING/PARTIAL |
+| GB55 | door pivots and bolts heard | SO-009 | sound | C | MISSING/PARTIAL |
+| GB56 | a crowd bed beyond 60 m (a court assembly heard from afar) | SO-011 | sound | C | MISSING/PARTIAL |
+| GB57 | a roof reached: stairs to the Apadana towers | W-058 | architecture | B | MISSING/PARTIAL |
+| GB58 | goods in the lanes: a place of exchange (partial) | S-002 | exchange | C | MISSING/PARTIAL |
+| GB59 | drainage filth in the lanes (partial) | B-054 | traces | C | MISSING/PARTIAL |
+| GB60 | snow in the default year (seed 1 has no snow day) | B-032 | weather | A climate | MISSING/PARTIAL |
+
+## Absent by evidence (kept out; from both reports)
+
+Qanats (Q-052 conflict with Polybius 10.28 logged), coinage in daily use, a marketplace (Hdt 1.153 claim), rice (Q-013), cotton, date palms on the plain (frost), the later rock tombs of Kuh-e Rahmat, punishment shown (policy, brief §12), pigs (weak: to be argued in a row), the brown bear within the world's reach (high Zagros only).
