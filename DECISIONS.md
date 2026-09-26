@@ -5661,3 +5661,20 @@ moment-*-webgpu.png in the worktree, not committed).**
   cloudlight, court_fill, fire_light, now_view, sky (3), smoke_light, twilight, weather. Renders (2, shared queue, high, WebGPU):
   calib-24 + calib-24-now + rahmat-west-pm, twice (shots/r1, shots/r2, not committed).
 - Records: Q-600 … Q-604; B57.
+
+## D-236 The court comes and goes by default; names without copy-paste; a world that never repeats (session 8, the user's directions)
+- **The king (user's choice, overriding the brief's §2 evidence-only default):** in the default world the king and the court
+  arrive with a procession at the most probable season, reside, and depart, in real time over the regnal year; everything
+  about it reconstructed (C) and labelled so in the translation layer and F3. No source places Xerxes at Persepolis in 467
+  (Q-005): that stays stated. The court-absent world remains a setting. Implementation: the D-182/D-199 court (court.ts,
+  the camps, the delegations) moves from a setting to the year's calendar with arrival and departure as witnessed events.
+- **Names (user: "every person needs ... a name ... nothing copy pasted"):** the population has 209 distinct names for
+  46,910 people (Persian men 27 names, ~766 each: tools/dev/person_census.ts). First maximise ATTESTED names (the PF/PT
+  onomasticon, Tavernier's Iranica, Hallock), then reconstruct from attested name elements where the evidence runs out
+  (tier C, labelled; D-207's gap rule applied to names, D-213's method), so no name is shared by more people than a real
+  town of that size would share. Brief §9.1's "never invent" is superseded here by the user's direction.
+- **Every person a life:** home, household, family, job, name — and a HISTORY (origin, arrival, past marriages, children,
+  losses, work-group past), consistent with the simulation and surfaced in behaviour and the translation layer.
+- **Never the same twice:** comings and goings (delegations, caravans, messengers, travellers, the court) as visible events;
+  seeded randomness within the evidence; scene-level variety measured (the same place at the same hour on different days
+  must differ); a new world seed per new game (shown in settings), the seed still reproducing that world exactly.
