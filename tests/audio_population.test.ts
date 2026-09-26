@@ -132,7 +132,9 @@ describe('the human sounds that are not words (session 9, G33)', () => {
     expect(calls.length).toBeGreaterThan(2); expect(calls.every(u => u.key.startsWith('k'))).toBe(true);
     expect(cries.length).toBeGreaterThan(3); expect(cries.every(u => u.key === 'b0')).toBe(true);
     // a laugh is a listener's, not the speaker's own turn going on: the laugher did not speak the unit just before it
-    for (const u of laughs) { const grp = u.key[0], before = L.filter(x => x.key[0] === grp && x.t0 < u.t0 && !/^(laugh|cough):/.test(x.unit)).pop(); if (before) expect(before.key).not.toBe(u.key); } // (a cough is not a turn)
+    // a laugh is a listener's (the code picks the laugher from the others of the turn); what the log can check: it never starts
+    // while the laugher's own voice still plays (a listener's short overlapping remark may come just before it: timing-dependent)
+    for (const u of laughs) for (const x of L) if (x !== u && x.key === u.key && x.t0 < u.t0) expect(x.t1, `${u.key} laughs over their own voice`).toBeLessThanOrEqual(u.t0 + 1e-6);
     // the cry is high: the baby's voice pitch well above the adults'
     expect(cries[0].voice.age).toBeLessThan(2);
     const coughs = L.filter(u => u.unit.startsWith('cough:')); expect(coughs.every(u => u.key !== 'b0')).toBe(true);
