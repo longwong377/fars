@@ -6382,3 +6382,18 @@ moment-*-webgpu.png in the worktree, not committed).**
   children, cries only from the baby, a laugh never by the one whose turn it answered), people_children pass.
 - **Not done:** calling to animals (herders' calls, whistles, tongue clicks: needs the activity of the person, not in NearPerson),
   singing at work beyond D-200's music, crying by older children, coughing and sneezing. G33 stays PARTIAL.
+
+## D-261 Hoarfrost at dawn; the 22° halo and sun dogs (session 9; gap hunters G4, G10)
+- **Hoarfrost** (weatherState.ts `frostAmount`, Conditions.frost, WEATHER.frost; materials.ts `finish`): a speckled white rime
+  (albedo toward 0.8, patchy at ~2 m, fine at ~5 cm) on open, up-facing, dry surfaces, the terrain and the stone alike. It forms
+  once the screen air falls below 0.5 °C and is full by −2.5 °C; cloud (×(1 − 0.8 cover)), wind (a third left at 7 m/s) and dry
+  air (down to 0.35 below 60 % RH) thin it; rain, falling snow and snow cover take its place; it goes as the morning air passes
+  0.5 °C (C thresholds). Measured over the generated years: 58-66 frosty mornings at 06:30 (seeds 1, 7, 971044) against Shiraz's
+  44 air-frost days (WMO, A: the ground frosts on more nights than the screen air; C), none Apr-Oct, none left at 11:00.
+- **The 22° halo and the sun dogs** (src/sky/halo.ts; the dome's shader in skySystem.ts): a brightening of the dome in a ring at
+  21.9-22.5° from the sun (red inside, sharp inward, fading outward) and in two parhelia on the sun's altitude at
+  22° + 0.0045·alt² (22° at the horizon, ~29° at 40°; gone above ~50°), each ×(1 + 0.45 ring + 2.2 dog) × today's strength.
+  Days: thin broken dry cover (0.15-0.65), the sun up, and 40 % of such days carry a cirrus veil (C): 60 halo days in the
+  generated year for seed 1. No separate cirrus layer is drawn (the veil is implied by the cover).
+- **Tests.** tests/frost.test.ts (2), tests/halo.test.ts (3); weather, weather_visible, surfaces_s6, sky, eclipse pass.
+- **Unverified on screen:** frost-dawn (day 269, 07:15) and halo-sundogs (day 220, 09:00, the day's own weather) queued.

@@ -55,14 +55,14 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 |---|---|---|---|---|---|
 | G1 | river crossing: ford or bridge where the roads meet the Pulvar and the Kur | A061; B-022, W-014 | transport | C | BUILT (D-257: 51 fords on roads and tracks; the Pasargadae road redrawn off the river); unrendered |
 | G2 | villages as real places (compounds are solid boxes; ovens, pens, courts, night light) | A072; B-023 | settlement | C | MISSING/PARTIAL |
-| G3 | snowline: snow on Kuh-e Rahmat and the Zagros skyline in winter | A401; B-031, W-053 | weather | B | MISSING/PARTIAL |
-| G4 | frost, hoarfrost and ice at dawn (44 frost days) | A402; W-006, W-011 | weather | A | MISSING/PARTIAL |
+| G3 | snowline: snow on Kuh-e Rahmat and the Zagros skyline in winter | A401; B-031, W-053 | weather | B | BUILT (de548be: a seasonal snowline by month); render queued |
+| G4 | frost, hoarfrost and ice at dawn (44 frost days) | A402; W-006, W-011 | weather | A | BUILT (D-261: rime on the cold clear mornings, 58-66 a year); no ice on water; render queued |
 | G5 | breath visible in the cold | A403; W-007 | weather | A physics | MISSING/PARTIAL |
-| G6 | planets (Venus as morning and evening star, Jupiter, Saturn, Mars) | A404; W-004, W-035 | sky | A | MISSING/PARTIAL |
+| G6 | planets (Venus as morning and evening star, Jupiter, Saturn, Mars) | A404; W-004, W-035 | sky | A | BUILT (282daa6: the five planets at their places and magnitudes); rendered: Mercury and Venus 0.5 deg apart at dusk, positions verified |
 | G7 | dust devils on the summer plain | A406; W-019 | weather | B | MISSING/PARTIAL |
 | G8 | heat shimmer and mirage | A407; W-018 | weather | A physics | MISSING/PARTIAL |
 | G9 | hail in the spring thunderstorms | A408; W-044 | weather | A | MISSING/PARTIAL |
-| G10 | 22° halo and sun dogs | A409; N-004 | sky | A physics | MISSING/PARTIAL |
+| G10 | 22° halo and sun dogs | A409; N-004 | sky | A physics | BUILT (D-261: ring and parhelia on cirrus days); render queued |
 | G11 | hunting: the royal and noble hunt | A001, A593; S-013 | food quest | B claim | MISSING/PARTIAL |
 | G12 | snaring and fowling | A002; P-064 | food quest | C | MISSING/PARTIAL |
 | G13 | fish and fishing in the rivers and canals | A003, A161; F-001, P-019, P-064 | food quest / fauna | C | MISSING/PARTIAL |
@@ -88,10 +88,10 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G33 | human non-speech sounds: babies crying, laughter, children shouting, calling to animals | A533; SO-005, SO-006 | sound | C | PARTIAL (D-260: laughter in company, children calling at play, babies crying; no calls to animals); unverified by ear |
 | G34 | coughing and sickness sounds | A560; SO-007 | sound | C | MISSING/PARTIAL |
 | G35 | tomb guardians and a tomb cult at Naqsh-e Rustam | A564; S-010 | religion | B analogy | MISSING/PARTIAL |
-| G36 | gazelle on the open plain (not only the paradise) | A102; F-018 | fauna | B | MISSING/PARTIAL |
-| G37 | red fox | A107; F-021 | fauna | B | MISSING/PARTIAL |
-| G38 | wild goat and wild sheep on Kuh-e Rahmat | A108; F-026, F-027 | fauna | B | MISSING/PARTIAL |
-| G39 | hares | A109; F-012 | fauna | C | MISSING/PARTIAL |
+| G36 | gazelle on the open plain (not only the paradise) | A102; F-018 | fauna | B | BUILT (93f56ed: a goitered gazelle herd on the plain's best uncultivated flat); unrendered |
+| G37 | red fox | A107; F-021 | fauna | B | BUILT (93f56ed: dusk to dawn at the field edges); unrendered |
+| G38 | wild goat and wild sheep on Kuh-e Rahmat | A108; F-026, F-027 | fauna | B | BUILT (93f56ed: bezoar goats high, wild sheep lower on Kuh-e Rahmat); unrendered |
+| G39 | hares | A109; F-012 | fauna | C | BUILT (93f56ed); unrendered |
 | G40 | hedgehog and porcupine | A110; F-025, F-032 | fauna | C | MISSING/PARTIAL |
 | G41 | rats and mice at the stores | A111; B-049, F-042 | fauna | B | MISSING/PARTIAL |
 | G42 | bats at dusk | A112; W-025 | fauna | B | BUILT (D-258: pipistrelles over the courts and the water from 20 min after sunset, Mar-Oct); unrendered |
@@ -100,12 +100,12 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G45 | partridges seen, flushing on the slope | A124; F-029, W-009 | birds | B | MISSING/PARTIAL |
 | G46 | hoopoe, bee-eater and roller seen | A125, A139; W-048, F-050 | birds | B/C | MISSING/PARTIAL |
 | G47 | owls seen | A126; W-031 | birds | C | MISSING/PARTIAL |
-| G48 | doves and rock doves | A127; F-030 | birds | C | MISSING/PARTIAL |
-| G49 | larks over fields and steppe | A128; F-014 | birds | C | MISSING/PARTIAL |
-| G50 | white storks | A129; F-016, W-015 | birds | C | MISSING/PARTIAL |
-| G51 | cranes, geese and ducks in winter and on migration | A130; W-043, W-056, SO-012 | birds | B | MISSING/PARTIAL |
+| G48 | doves and rock doves | A127; F-030 | birds | C | BUILT (a8b1f4d: doves in the courts, flushing); unrendered |
+| G49 | larks over fields and steppe | A128; F-014 | birds | C | BUILT (a8b1f4d: song flight over fields in spring); unrendered |
+| G50 | white storks | A129; F-016, W-015 | birds | C | BUILT (a8b1f4d: walking the wet ground in spring and summer); unrendered |
+| G51 | cranes, geese and ducks in winter and on migration | A130; W-043, W-056, SO-012 | birds | B | PARTIAL (a8b1f4d: winter cranes in a V; no geese or ducks) |
 | G52 | herons and egrets | A131; F-004 | birds | C | MISSING/PARTIAL |
-| G53 | vultures | A132; W-022, F-048 | birds | B | MISSING/PARTIAL |
+| G53 | vultures | A132; W-022, F-048 | birds | B | BUILT (a8b1f4d: griffon vultures soaring over Kuh-e Rahmat); unrendered |
 | G54 | nightingale and bulbul in the gardens | A134; W-033 | birds | C | MISSING/PARTIAL |
 | G55 | choughs, jackdaws and ravens | A135; F-049 | birds | C | MISSING/PARTIAL |
 | G56 | magpies | A136; problems #6 | birds | C | MISSING/PARTIAL |

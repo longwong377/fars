@@ -116,6 +116,10 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // behind the Terrace from the plain, and the ranges to the N
   { n: 'winter-snowline-e', day: 280, hour: 11, w: 'clear', v: [-600, 60, 1.6, 70, 6], fov: 40 },
   { n: 'winter-snowline-n', day: 280, hour: 11, w: 'clear', v: [-600, 60, 1.6, 350, 3], fov: 40 },
+  // session 9 (G4): hoarfrost on a clear January dawn (day 269, -2.8 C at 07:15 for the test seed) on the ground W of the Terrace
+  { n: 'frost-dawn', day: 269, hour: 7.25, w: 'clear', v: [-300, 60, 1.6, 251, -10], fov: 50 },
+  // session 9 (G10): the 22 deg halo and sun dogs under the day's own thin cover (day 220, 09:00, sun 26 deg up at az 135)
+  { n: 'halo-sundogs', day: 220, hour: 9, w: 'auto', v: [0, 0, 1.6, 135, 24], fov: 75 },
   { n: 'night-moon-fire', day: 11, hour: 2.75, w: 'clear', v: [-23.4, 122.5, 1.6, 253.5, 6] },
   { n: 'brazier-close', day: 0, hour: 21.5, w: 'clear', v: [-36.4, 132, 1.6, 161, -8], fov: IN },
   { n: 'apadana-hall-torch', day: 0, hour: 21, w: 'clear', v: [-8, 0, 4.6, 161, 6], fov: IN },

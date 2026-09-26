@@ -6,9 +6,20 @@ import { START_JDN } from '../core/calendar';
 import { YEAR_DAYS } from '../core/clock';
 
 export type WeatherOverride = 'auto' | 'clear' | 'overcast' | 'rain' | 'storm' | 'snow' | 'dust' | 'mist';
+/** session 9 (WORLD_INVENTORY G4; 44 frost days a year at Shiraz, WMO: A): hoarfrost on the open ground, 0-1. It forms once the
+ *  air (1.5 m) falls below 0.5 C (the ground is colder than the screen on a clear night) and is full by -2.5 C; a cloudy sky
+ *  (less radiative cooling), wind (mixing) and dry air (less water to deposit) thin it; rain, falling snow or snow cover
+ *  take its place. It goes as the morning air passes 0.5 C (C: the thresholds) */
+export function frostAmount(tempC: number, cloud: number, windMs: number, rh: number, falling: number, snowCover: number): number {
+  if (falling > 0.05 || snowCover > 0.3) return 0;
+  const cold = Math.min(1, Math.max(0, (0.5 - tempC) / 3));
+  return cold * (1 - 0.8 * cloud) * (windMs < 3 ? 1 : windMs < 7 ? 1 - (windMs - 3) / 6 : 1 / 3) * Math.min(1, Math.max(0.35, rh / 60));
+}
 export interface Conditions {
   tempC: number; cloud: number; rain: number /*0..1 intensity*/; snowFall: number; windMs: number; windDirDeg: number; rh: number;
   haze: number; dust: number; mist: number; lightning: boolean; wetness: number; snowCover: number; day: DayWeather;
+  /** session 9 (G4): hoarfrost on open ground, 0-1 (frostAmount) */
+  frost: number;
 }
 
 export class WeatherSystem {
@@ -67,7 +78,8 @@ export class WeatherSystem {
       case 'mist': mist = 1; rain = 0; break;
     }
     const haze = Math.min(1, 0.15 + 0.5 * dust + 0.6 * mist + 0.25 * rain + d.rh / 400);
-    return { tempC, cloud, rain, snowFall, windMs, windDirDeg: d.windDirDeg, rh: d.rh, haze, dust, mist, lightning, wetness, snowCover, day: d };
+    const frost = frostAmount(tempC, cloud, windMs, d.rh, rain + snowFall, snowCover);
+    return { tempC, cloud, rain, snowFall, windMs, windDirDeg: d.windDirDeg, rh: d.rh, haze, dust, mist, lightning, wetness, snowCover, day: d, frost };
   }
   /** the rain cell that brings (or brought) today's rain episode to the Terrace, as a moving object: before the episode it
    *  stands upwind at (steering wind × time to onset), after it recedes downwind; the episode's own timing (above) is

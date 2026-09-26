@@ -24,7 +24,7 @@ import { roofedNode } from './probes/roofs';
 import { RAIN_CELL } from '../sky/clouds';
 
 /** snowLine: the seasonal snowline in metres above the court datum (weather/climate.ts snowLineASL − court_asl; session 9) */
-export const WEATHER = { wetness: uniform(0), snow: uniform(0), puddles: uniform(0), snowLine: uniform(9000) };
+export const WEATHER = { wetness: uniform(0), snow: uniform(0), puddles: uniform(0), snowLine: uniform(9000), frost: uniform(0) };
 /** seasonal ground cover (0..1): green = living herb layer, dry = standing straw/stubble (set per frame from the date; season.ts) */
 export const SEASON = { green: uniform(0.8), dry: uniform(0.1) };
 /** session 9 (G71): the spring flowers' bloom today, 0-1 each (seasonal.ts bloomAt) */
@@ -962,6 +962,11 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   // the mountains' seasonal snow above the snowline (session 9): a patchy band 250 m deep (drifts in the hollows first, C)
   const elev = smoothstep(WEATHER.snowLine.sub(100), WEATHER.snowLine.add(150), p.y.add(mx_noise_float(p.mul(0.004)).mul(120)));
   const snowMask = clamp(up.mul(max(WEATHER.snow, elev)).mul(open).mul(float(1.6).sub(mx_noise_float(p.mul(0.8)).add(1).mul(0.3))), 0, 1);
+  // hoarfrost (session 9, G4): a speckled white rime on open, up-facing surfaces (patchy at ~2 m, fine at ~5 cm, fading past a few
+  // pixels to its mean), under what snow would cover; it does not settle on wet ground (C)
+  const rime = up.mul(WEATHER.frost).mul(open).mul(float(1).sub(wet)).mul(smoothstep(0.25, 0.75, mx_noise_float(p.mul(0.5)).mul(0.5).add(0.5)).mul(0.5).add(0.5))
+    .mul(mx_noise_float(p.mul(18)).mul(0.25).add(0.75));
+  alb = mix(alb, vec3(0.78, 0.8, 0.84), rime.mul(0.7));
   m.colorNode = mix(alb, vec3(0.92, 0.93, 0.96), snowMask);
   m.roughnessNode = mix(mix(L.rough, L.rough.mul(0.45), wet), float(0.05), puddle).max(float(0.04)).mul(float(1).sub(snowMask.mul(0.1))).add(snowMask.mul(0.1));
   m.metalnessNode = float(d.metal ?? 0);
