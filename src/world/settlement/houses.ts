@@ -334,6 +334,7 @@ export class SiteHouses {
         // the room's inside up to the ceiling; above the roof the parapet's inner face (exterior)
         const yc = sd.roof - ROOF_T + ROOF.beam, inner = sh(col0, 0.82);
         this.face(B.plaster, { ax, sA: along0, sB: along1, cc, t, sg, yb: () => sp.y0 + 0.3, yt: () => Math.min(top, yc), holes: faceHoles, bulge: 0, seed, col: () => inner, owner: this.owner(we.plot, P.wall), ao: () => 0.16, y0: () => -1000, ytop: 1e4 });
+        for (const h of faceHoles) if (h.through) this.reveal(B, ax, cc, t, sg, h, inner, we.plot); // the window's inner half
         if (top > sd.roof + 0.02) this.face(B.plaster, { ax, sA: along0, sB: along1, cc, t, sg, yb: () => sd.roof - 0.13, yt: x => ytopF(x) - bev, holes: [], bulge: 0.006, seed: seed + 3, col: (_x, y) => sh(col0, 1.0 + 0.03 * smooth((y - sd.roof) / 0.5)), owner: this.owner(we.plot, P.wall), ao: () => 0.85, y0: () => sd.roof, ytop: top });
       } else {
         // exterior: the stone footing, then the plaster
