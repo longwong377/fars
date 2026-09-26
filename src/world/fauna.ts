@@ -130,6 +130,8 @@ export class Fauna {
       } else if (p.kind === 'stable' || p.kind === 'station') for (let k = 0; k < 2; k++) this.yardDogs.push({ yard: yard(), seed: hi * 7 + 3 + k, where: 'stable' });
     }
     for (const t of plan.trees) this.treePts.add(t.c[0], t.c[1], t.c);
+    // the tannery (D-255): hides, lime and scraps draw the flies as a midden does (session 9)
+    if (FAC.tannery) this.dungPts.add(FAC.tannery[0], FAC.tannery[1], FAC.tannery);
     // strays at about half of the middens (a quarter's middens by the house backs, the kiln's, the stable's, the station's)
     plan.middens.forEach((m, mi) => { this.dungPts.add(m.c[0], m.c[1], m.c); if (m.kind !== 'midden' || h01(this.seed, 7000 + mi) >= FAUNA.strayMiddenShare) return;
       const spots: P2[] = []; for (let k = 0; k < 24 && spots.length < 6; k++) { const a = h01(this.seed, 7100 + mi, k) * Math.PI * 2, r = 2 + 8 * h01(this.seed, 7200 + mi, k), e = m.c[0] + r * Math.cos(a), n = m.c[1] + r * Math.sin(a);

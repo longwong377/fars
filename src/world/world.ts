@@ -227,7 +227,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
     const wet = new PointIndex(100), dung = new PointIndex(50), halfW: number[] = [];
     plain.data.rivers.rivers.forEach((r, k) => { halfW[k] = r.topWidth / 2; wet.addPolyline(r, 5, k); });
     for (const c of plain.data.canals) wet.addPolyline(c.pts as [number, number][], 5, 9);
-    for (const m of townMiddens) dung.add(m[0], m[1]);
+    for (const m of townMiddens) dung.add(m[0], m[1]); if ((FAUNA_FAC as any).tannery) dung.add((FAUNA_FAC as any).tannery[0], (FAUNA_FAC as any).tannery[1]); // the tannery's flies (D-255)
     const ground = (e: number, n: number) => { const y = nav.heightAt(e, n); return Number.isFinite(y) ? y : terrain.heightAt(e, -n); };
     const ctxAt = (e: number, n: number): CellCtx => {
       if (dung.any(e, n, 6)) return 'midden';

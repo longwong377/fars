@@ -18,7 +18,7 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-252 | s9 | the court's arrival simulated; a new game starts before it (Q-680..Q-689, B70..B72) | worktree-agent-a05470624036dba65 | merged 8d7f15c (agent stopped by an interruption before its soak: unverified) |
 | D-253 | s9 | the renderless world (?norender) and its throughput (lead) | claude/amazing-fermi-40ds7j | in flight |
 | D-254 | s9 | villages as real places (Q-690..Q-699, B74..B76) | worktree-agent-a40a663d397a906e6 | merged (session 9; Q-693..Q-699 unused) |
-| D-255 | s9 | crafts and records in action (Q-700..Q-709, B77..B79) | agent worktree (crafts_records) | in flight |
+| D-255 | s9 | crafts and records in action (Q-700..Q-709, B77..B79) | worktree-agent-a6b224ab6a23fe3b1 | merged (session 9; Q-704..Q-709 and B77..B79 unused) |
 | D-256 | s9 | work on the land (Q-710..Q-719, B80..B82) | worktree-agent-ab76e505f3151e55f | merged (session 9; Q-715..Q-719 and B82 unused) |
 | D-257 | s9 | the fords; the Pasargadae road redrawn (lead; Q-720..Q-721) | claude/amazing-fermi-40ds7j | in flight |
 | D-258 | s9 | the small life and the bats; puddles only on level ground (lead; B83) | claude/amazing-fermi-40ds7j | in flight |
