@@ -10,3 +10,4 @@ export interface SaveGame {
 const KEY = 'parsa.save.v1';
 export function writeSave(s: SaveGame): boolean { try { localStorage.setItem(KEY, JSON.stringify(s)); return true; } catch { return false; } }
 export function readSave(): SaveGame | null { try { const r = localStorage.getItem(KEY); return r ? JSON.parse(r) : null; } catch { return null; } }
+export function clearSave(): void { try { localStorage.removeItem(KEY); } catch { /* nothing kept */ } }

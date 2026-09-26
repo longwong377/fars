@@ -2,9 +2,9 @@
 import * as THREE from 'three/webgpu';
 import { loadSettings, saveSettings, urlParams, QUALITY, Settings } from './core/settings';
 import { WorldClock, YEAR_DAYS } from './core/clock';
-import { WORLD_SEED_DEFAULT } from './core/rng';
+import { chooseWorldSeed, newWorldSeed, keepWorldSeed } from './core/seed';
 import { Input } from './core/input';
-import { writeSave, readSave } from './core/save';
+import { writeSave, readSave, clearSave } from './core/save';
 import { latLonToGrid, gridToLatLon } from './core/geo';
 import { Terrain, curvatureDrop } from './terrain/heightfield';
 import { TerrainMesh } from './terrain/terrainMesh';
@@ -42,7 +42,7 @@ if (P.get('webgl')) settings.forceWebGL = P.get('webgl') === '1';
 if (P.has('tl')) settings.translation = true; // tests: translation layer on
 if (P.has('visitor')) settings.playerMode = 'visitor'; // tests: visitor mode (D-063)
 if (P.get('court')) settings.courtCalendar = P.get('court') === 'seasonal' ? 'seasonal' : 'evidence'; // tests: ?court=seasonal (C) for the court-resident scenes
-const SEED = +(P.get('seed') ?? WORLD_SEED_DEFAULT);
+const SEED = chooseWorldSeed(P.get('seed'), P.has('test') || P.has('bench')); // a new world per new game (D-236); tests and the bench fixed
 const TEST = P.has('test'); // frozen world for camera rig / walkthrough tests
 const Q = QUALITY[settings.quality];
 document.body.classList.toggle('cb', settings.colourBlindUI);
@@ -131,7 +131,7 @@ async function boot() {
   function restore(s: ReturnType<typeof state> | null) {
     if (!s) return false;
     if (s.seed !== SEED) { // the seed defines the whole world (weather, people): reload with the saved seed, then load
-      const q = new URLSearchParams(location.search); q.set('seed', String(s.seed)); q.set('loadsave', '1'); location.search = q.toString(); return false;
+      keepWorldSeed(s.seed); const q = new URLSearchParams(location.search); q.set('seed', String(s.seed)); q.set('loadsave', '1'); location.search = q.toString(); return false;
     }
     settings.timeScale = s.timeScale; clock.scale = TEST ? 0 : s.timeScale;
     clock.t = s.clockT; weather.override = s.weatherOverride as WeatherOverride; input.yaw = s.player.yaw; input.pitch = s.player.pitch;
@@ -147,6 +147,9 @@ async function boot() {
     start: () => { shell.playing(); input.lock(); world.audio?.unlock(); },
     resume: () => { shell.playing(); input.lock(); },
     save: () => writeSave(state()), load: () => restore(readSave() as any),
+    seed: () => SEED,
+    newWorld: () => { // a new world: a fresh seed, the old save dropped, the page reloaded without ?seed (D-236)
+      newWorldSeed(); clearSave(); const q = new URLSearchParams(location.search); q.delete('seed'); q.delete('loadsave'); location.search = q.toString(); },
     applySettings: (s: Settings) => { camera.fov = s.fov; camera.updateProjectionMatrix(); clock.scale = s.timeScale; world.applySettings?.(s); shell.nowCaption(s.nowView ? NOW_CAPTION : null); saveSettings(s); },
     getTime: () => ({ day: clock.dayIndex, hour: clock.localHour, label: clock.label() }),
     setTime: (d: number, h: number) => clock.set(d, h),
@@ -269,7 +272,8 @@ async function boot() {
       const all = (g ? rc.intersectObject(g, true) : rc.intersectObjects(scene.children, true)).filter(i => (i.object as any).isMesh && i.object.visible);
       const row = (h: THREE.Intersection) => ({ name: h.object.name || h.object.parent?.name, parent: h.object.parent?.name, d: h.distance, p: [h.point.x, h.point.y, h.point.z], mat: (h.object as any).material?.type, inst: h.instanceId ?? h.batchId, note: (h.object.userData?.note ?? h.object.parent?.userData?.note ?? '').slice(0, 160) });
       const h = all[0]; return h ? { ...row(h), next: all.slice(1, 4).map(row) } : null; },
-    save: () => writeSave(state()), load: () => restore(readSave() as any), saveState: () => state(),
+    save: () => writeSave(state()), load: () => restore(readSave() as any),
+    saveState: () => state(),
     /** §13.2 rendered plan overlay: renders the given building's parts (filtered by kind) top-down, orthographic,
      *  0.25 m/px over grid x∈[-80,272], y∈[-250,250]; returns a row-major 0/1 mask (row 0 = north). */
     planMask: async (building: string, kinds: string[] | null) => {

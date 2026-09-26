@@ -7,6 +7,8 @@ export interface ShellHooks {
   start(): void; resume(): void; save(): boolean; load(): boolean; applySettings(s: Settings): void;
   getTime(): { day: number; hour: number; label: string }; setTime(day: number, hour: number): void;
   getWeather(): string; setWeather(w: string): void;
+  /** the world's seed, and beginning a new world with a fresh one (D-236) */
+  seed(): number; newWorld(): void;
 }
 
 const root = () => document.getElementById('shell')!;
@@ -90,6 +92,8 @@ export class Shell {
     });
     root().replaceChildren(el('div', { className: 'panel' }, el('div', { className: 'card' },
       el('h2', {}, 'World'),
+      el('div', { className: 'row' }, el('label', {}, `World seed ${this.hooks.seed()} (every new world is drawn afresh; the seed reproduces it)`),
+        el('button', { onclick: () => { if (confirm('Begin a new world? The saved game of this world is discarded.')) this.hooks.newWorld(); } }, 'New world')),
       range('Day of year (Xerxes yr 19)', t.day, 0, YEAR_DAYS - 1, 1, v => this.hooks.setTime(v, this.hooks.getTime().hour), v => `day ${v + 1}`),
       range('Hour (local mean time)', +t.hour.toFixed(2), 0, 23.99, 0.25, v => this.hooks.setTime(this.hooks.getTime().day, v), v => `${Math.floor(v)}:${String(Math.round((v % 1) * 60)).padStart(2, '0')}`),
       sel('Time scale', String(s.timeScale), [['0', 'stopped'], ['1', 'real time'], ['10', '×10'], ['60', '×60'], ['600', '×600']], v => { s.timeScale = +v; }),
