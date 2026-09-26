@@ -58,6 +58,10 @@ function vn(x: number, y: number, seed = 0) {
   return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
 }
 
+/** the season a day of the world's year shows on the houses (day 0 ≈ the start of Nisannu, late March; C): the harvest
+ *  (grain drying on the roofs, nights on the roof) from mid-May to early July, the warm months (nights on the roof) to
+ *  mid-September, else the cold */
+export function seasonOf(day: number): 'harvest' | 'warm' | 'cold' { const d = ((day % 360) + 360) % 360; return d >= 45 && d < 100 ? 'harvest' : d >= 100 && d < 170 ? 'warm' : 'cold'; }
 /** the batches a build writes into */
 export interface HB { plaster: Batch; stone: Batch; timber: Batch; brick: Batch; items: Batch }
 export const plasterBatch = (far = false) => { const b = new Batch().addAttr('y0', 1, [-1000]).addAttr('ytop', 1, [1e4]).addAttr('ao', 1, [1]); if (far) b.addAttr('tile', 2, [1e9, 1e9]); return b; };
@@ -191,11 +195,14 @@ export class SiteHouses {
 
   // ---- the near level --------------------------------------------------------------------------------------------------
   /** everything of one tile at full detail */
-  buildTile(tile: number, B: HB) {
+  buildTile(tile: number, B: HB, day = 0) {
+    this.day = day;
     for (const we of this.wallsByTile.get(tile) ?? []) this.wallNear(we, B);
     for (const r of this.roomsByTile.get(tile) ?? []) this.roomNear(r, B);
     this.fixturesNear(tile, B);
   }
+  /** the day of the year the near tiles show (seasonal things on the roofs) */
+  private day = 0;
   /** face plane geometry of a wall: axis 0 = along u, 1 = along v; `cc` = the wall's centre line across; the face at
    *  cc + sg · (t / 2 + d) */
   private face(b: Batch, o: { ax: number; sA: number; sB: number; cc: number; t: number; sg: number; yb: (s: number) => number; yt: (s: number) => number; holes: Hole[]; bulge: number; seed: number;
@@ -575,13 +582,17 @@ export class SiteHouses {
         for (const e of [-0.38, 0.38]) { const [u2, v2] = at(e, 0); this.lbox(B.timber, u2, v2, 0.3, 0.03, gy, gy + 0.1, c, c, own, false, yaw + Math.PI / 2); } const cl = lin([0.75, 0.7, 0.6]); this.lbox(B.timber, u, v, 0.25, 0.4, gy + 0.36, gy + 0.4, cl, cl, own, false, yaw); B.timber.set('ao', 1); break; }
       case 'roller': { const sp = this.roofSpot(f); if (!sp) break; const a = f.rot, A = this.wp(sp.u - Math.cos(a) * 0.3, sp.v - Math.sin(a) * 0.3, sp.y + 0.14), Bq = this.wp(sp.u + Math.cos(a) * 0.3, sp.v + Math.sin(a) * 0.3, sp.y + 0.14);
         B.stone.set('ao', 1); this.pole(B.stone, A, Bq, 0.14, 9, sh(st, 1.0), own); break; }
-      case 'roof_fuel': { const sp = this.roofSpot(f); if (!sp) break; B.timber.set('ao', 0.95); const n = 18;
+      case 'roof_fuel': { const sp = this.roofSpot(f); if (!sp) break;
+        // after the harvest: the household's grain share spread on a mat on the roof to dry (C)
+        if (seasonOf(this.day) === 'harvest' && hi(f.plot, 91) < 0.5) { const g = lin([0.74, 0.64, 0.42]), a = f.rot + 1.2; B.timber.set('ao', 1);
+          const c0 = [sp.u - Math.cos(a) * 1.0 - 0.9, sp.v - Math.sin(a) * 1.0], pts = [[-0.8, -0.6], [0.8, -0.6], [0.8, 0.6], [-0.8, 0.6]].map(([x, z]) => this.wp(c0[0] + x * Math.cos(a) - z * Math.sin(a), c0[1] + x * Math.sin(a) + z * Math.cos(a), sp.y + 0.05));
+          B.timber.poly(pts, [0, 1, 0], [g, sh(g, 0.95), g, sh(g, 1.04)], own); } B.timber.set('ao', 0.95); const n = 18;
         for (let k = 0; k < n; k++) { const a = f.rot + (hi(f.alt ?? 0, k) - 0.5) * 0.6, x = (hi(f.alt ?? 0, k, 1) - 0.5) * 0.9, z = (hi(f.alt ?? 0, k, 2) - 0.5) * 0.8, y = sp.y + 0.05 + 0.08 * Math.floor(k / 6);
           const c = sh(lin([0.47, 0.41, 0.31]), 0.75 + 0.4 * hi(f.alt ?? 0, k, 3)); const L2 = f.len * (0.7 + 0.3 * hi(k, 1)); this.pole(B.timber, this.wp(sp.u + x - Math.cos(a) * L2 / 2, sp.v + z - Math.sin(a) * L2 / 2, y), this.wp(sp.u + x + Math.cos(a) * L2 / 2, sp.v + z + Math.sin(a) * L2 / 2, y + 0.03), 0.018, 4, c, own, false); }
         // a stack of dried dung cakes beside it
         const dc = lin([0.36, 0.3, 0.22]); for (let k = 0; k < 8; k++) { const [u, v] = [sp.u + 0.7 + (k % 2) * 0.05, sp.v + 0.3]; this.lbox(B.timber, u, v, 0.1, 0.1, sp.y + k * 0.035, sp.y + k * 0.035 + 0.03, sh(dc, 0.85 + 0.2 * hi(k, 2)), dc, own, false, k * 0.7); }
         B.timber.set('ao', 1); break; }
-      case 'roof_mats': { const sp = this.roofSpot(f); if (!sp) break; const n = 1 + (f.alt ?? 0) % 3; B.timber.set('ao', 0.95);
+      case 'roof_mats': { const sp = this.roofSpot(f); if (!sp || seasonOf(this.day) !== 'warm' && seasonOf(this.day) !== 'harvest') break; const n = 1 + (f.alt ?? 0) % 3; B.timber.set('ao', 0.95); // rolled on the roof only while the nights are slept there
         for (let k = 0; k < n; k++) { const a = f.rot, o = (k - (n - 1) / 2) * 0.3, cu = sp.u - Math.sin(a) * o, cv = sp.v + Math.cos(a) * o; const c = k === 1 ? lin([0.55, 0.3, 0.22]) : sh(lin([0.63, 0.56, 0.4]), 0.9 + 0.15 * hi(k, f.plot));
           this.pole(B.timber, this.wp(cu - Math.cos(a) * 0.9, cv - Math.sin(a) * 0.9, sp.y + 0.12), this.wp(cu + Math.cos(a) * 0.9, cv + Math.sin(a) * 0.9, sp.y + 0.12), 0.12, 8, c, own); }
         B.timber.set('ao', 1); break; }

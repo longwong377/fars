@@ -8,7 +8,7 @@ import type { Terrain } from '../../terrain/heightfield';
 import type { FireSystem, FireKind, FireSchedule } from '../fire';
 import { surfaceMaterial } from '../../render/materials';
 import { attribute, positionLocal, uniform, step } from 'three/tsl';
-import { SiteHouses, plasterBatch, newHB, TILE, NEAR_R, HOUSE_PARTS, type HB } from './houses';
+import { SiteHouses, plasterBatch, newHB, TILE, NEAR_R, HOUSE_PARTS, seasonOf, type HB } from './houses';
 import { TownDoors } from './towndoors';
 import { fixturesOf, livesOf, HOUSE_KINDS } from './houseplan';
 import { registerSettlementSurfaces } from './surfaces';
@@ -65,6 +65,8 @@ export class Settlement {
   private near = new Map<number, NearTile>();
   /** the near tiles shown, merged into one mesh per material (5 draws, 2 of them casting, whatever the number of tiles) */
   private merged: Partial<Record<keyof HB, THREE.Mesh>> = {}; private shownKey = '';
+  /** the day the near tiles were built for; a change of season rebuilds them (houses.ts seasonOf) */
+  private nearDay = 0;
   private nearMats!: Record<keyof HB, THREE.Material>;
   private farMeshes: THREE.Mesh[] = [];
   private fitDesc = new Map<string, Int32Array>();
@@ -283,7 +285,7 @@ export class Settlement {
   /** one near tile: the houses at full detail, the fittings in it (houses.ts); geometry per material, kept for merging */
   private buildNear(hs: SiteHouses, tile: number, cl: Cluster): NearTile {
     const t0 = performance.now(), B = newHB(), s = hs.s, fd = this.fitDesc.get(s.id)!;
-    hs.buildTile(tile, B);
+    hs.buildTile(tile, B, this.nearDay);
     B.items.set('y0', -1000).set('ytop', 1e4).set('ao', 1);
     s.fittings.forEach((f, fi) => { if (SKIP_FITTINGS.has(f.kind) || hs.tileOfPlotEl(f.plot, f.u, f.v) !== tile) return; this.fittingGeom(s, f, B.items, (e, n) => this.terrain.heightAt(e, -n), fd[fi] * 32); });
     const geo: NearTile['geo'] = {}; let tris = 0;
@@ -373,6 +375,7 @@ export class Settlement {
   update(dt: number, ctx: { camera: THREE.Camera; clock: any; sky: any; skyLight?: any; cond: any; player: any }) {
     const p = ctx.player?.position ?? ctx.camera.position; this.streamColliders(p.x, p.z);
     const cp = ctx.camera.position;
+    const day = ctx.clock?.dayIndex ?? 0; if (seasonOf(day) !== seasonOf(this.nearDay)) { for (const t of [...this.near.keys()]) this.dropNear(t); this.shownKey = ''; } this.nearDay = day;
     this.nearUpdate(cp.x, cp.z, 1);
     this.doors?.update(dt, cp, ctx.clock?.dayIndex ?? 0, ctx.sky?.sunAlt ?? 30, this.nearTile);
     for (const m of this.casters) { const bs = m.geometry.boundingSphere!; m.castShadow = bs.center.distanceTo(cp) - bs.radius < SHADOW_RANGE; }
