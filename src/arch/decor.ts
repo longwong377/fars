@@ -117,15 +117,32 @@ export function buildStairCrenellations(parts: Part[]): THREE.InstancedMesh | nu
 }
 /** the merlons' chamfer (m, C) */
 export const CREN_BEVEL = 0.012;
-export function crenellationGeometry(w: number, h: number, steps: number, depth: number) {
+/** the merlon's double-rebated vertical slot (apadana.r_merlon_slot, D-230): fractions of the merlon's width, height, depth */
+export interface MerlonSlot { outer_w: number; outer_h: number; inner_w: number; inner_h: number; outer_d: number; inner_d: number; faces: number }
+export const merlonSlot = (): MerlonSlot => v<MerlonSlot>('apadana', 'r_merlon_slot');
+/** a four-stepped merlon, `w` wide, `h` tall, `depth` deep (z 0…depth), with the double-rebated vertical slot in both faces
+ *  (D-230; `slot` null = the solid merlon of D-188). Built as three solids whose shared faces lie inside the stone: the
+ *  stepped outline with the outer recess cut through it (chamfered, D-188), the outer rebate's filler with the inner slot cut
+ *  through it, and the inner slot's filler (the web). The recess mouths carry the chamfer; the rebates inside are sharp */
+export function crenellationGeometry(w: number, h: number, steps: number, depth: number, slot: MerlonSlot | null = merlonSlot()) {
   const pts: number[][] = []; const sw = w / 2 / steps, sh = h / steps;
   pts.push([-w / 2, 0]); for (let i = 0; i < steps; i++) { pts.push([-w / 2 + i * sw, (i + 1) * sh]); pts.push([-w / 2 + (i + 1) * sw, (i + 1) * sh]); }
   for (let i = steps - 1; i >= 0; i--) { pts.push([w / 2 - (i + 1) * sw, (i + 1) * sh]); pts.push([w / 2 - i * sw, (i + 1) * sh]); } pts.push([w / 2, 0]);
+  const wo = slot ? slot.outer_w * w : 0, ho = slot ? slot.outer_h * h : 0, wi = slot ? slot.inner_w * w : 0, hi = slot ? slot.inner_h * h : 0;
+  const d_o = slot ? slot.outer_d * depth : 0, d_i = slot ? slot.inner_d * depth : 0;
+  if (slot) pts.push([wo / 2, 0], [wo / 2, ho], [-wo / 2, ho], [-wo / 2, 0]); // the outer recess, open at the foot
   // D-188: a 12 mm chamfer on every arris (the merlons were stacks of perfectly sharp boxes, §8.2 rubric fix 4), inside the
   // same outline (bevelOffset −size); the chamfer along the foot draws the joint on which the merlon sits on its coping
-  const B = CREN_BEVEL;
-  const g = new THREE.ExtrudeGeometry(new THREE.Shape(pts.map(([x, y]) => new THREE.Vector2(x, y))), { depth: depth - 2 * B, bevelEnabled: true, bevelThickness: B, bevelSize: B, bevelOffset: -B, bevelSegments: 1 });
-  g.translate(0, 0, B); g.deleteAttribute('uv'); return g;
+  const B = CREN_BEVEL, shape = (q: number[][]) => new THREE.Shape(q.map(([x, y]) => new THREE.Vector2(x, y)));
+  const g = new THREE.ExtrudeGeometry(shape(pts), { depth: depth - 2 * B, bevelEnabled: true, bevelThickness: B, bevelSize: B, bevelOffset: -B, bevelSegments: 1 });
+  g.translate(0, 0, B); g.deleteAttribute('uv');
+  if (!slot) return g;
+  // the outer rebate's back plane (with the inner slot through it) and the web behind the inner slot
+  const rebate = new THREE.ExtrudeGeometry(shape([[-wo / 2, 0], [-wi / 2, 0], [-wi / 2, hi], [wi / 2, hi], [wi / 2, 0], [wo / 2, 0], [wo / 2, ho], [-wo / 2, ho]]), { depth: depth - 2 * d_o, bevelEnabled: false });
+  rebate.translate(0, 0, d_o); rebate.deleteAttribute('uv');
+  const web = new THREE.BoxGeometry(wi, hi, depth - 2 * d_o - 2 * d_i).toNonIndexed(); web.translate(0, hi / 2, depth / 2); web.deleteAttribute('uv');
+  const out = mergeGeometries([g, rebate, web])!; g.dispose(); rebate.dispose(); web.dispose();
+  return out;
 }
 
 // ---------- carved inscriptions: the published text (D-177), incised into the stone (D-177) ----------

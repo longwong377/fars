@@ -192,11 +192,17 @@ const LIMESTONE: [number, number, number] = atY(munsellY(7), [0.44, 0.43, 0.40])
  *  arrises worn round over 5 mm either side (25 % darker on average: the rounded lip turns from the light and is
  *  partly shaded), so the joint pattern reads at 5–30 m while the joint itself stays 0.8 mm; blocks ±13 % in tone with
  *  a ±3 % warm/cool split and tilted by up to ±0.43° */
-const HAIRLINE: Joints = { course: 1.05, block: 2.3, width: 0.0008, dark: 0.6, vary: { course: [0.8, 1.3], jitter: 1.0 }, lip: 0.006, lipDark: 0.05, warmCool: 0.05, tilt: 0.01, blockSd: 0.17 };
+/** D-230 (B40): the block tone measured on the site photographs (tools/dev/stone_photo_d230.py, linear Y, boxes inside block
+ *  faces): the weathered Terrace W wall (#24) 1σ 0.27 between blocks (IQR 0.22), 0.24 within, 0.43 in 48 px windows; the
+ *  least weathered stone in situ, the Apadana E stair (#29, buried until the 1930s), 0.13 over 4 relief blocks and 0.07 over 5
+ *  merlons (pooled 0.10); the fresh stone under the Gate lintel's spalled skin (#5) as light as the skin (1.05×), warmer, 5 %
+ *  within. 1σ 13 % = the near-fresh 0.10 × 1.2 (phone HDR flattening) ⊕ 0.05 (~50 years of soiling by 467): C, basis B-grade
+ *  photographs. The rest of the weathered walls' spread (patina, spalls, open joints, cracks) is 2,500 years' weathering */
+const HAIRLINE: Joints = { course: 1.05, block: 2.3, width: 0.0008, dark: 0.6, vary: { course: [0.8, 1.3], jitter: 1.0 }, lip: 0.006, lipDark: 0.05, warmCool: 0.05, tilt: 0.01, blockSd: 0.13 };
 /** D-218 (rubric s7 pass 2, fix 2: "every ashlar surface reads as poured concrete", sunlit Ystd/Y 0.04–0.08 measured against
  *  0.15–0.35 for real stone). The session-4 values above were changed: each arris is rounded over 3–9 mm (per block) and
  *  drawn as a filtered normal (the lip turned 40° toward the joint over its share of the pixel), so the joint reads as a
- *  light and a dark line in sun at 5–30 m while the joint itself stays 0.8 mm; blocks 1σ 14 % in tone (triangular), ±5 %
+ *  light and a dark line in sun at 5–30 m while the joint itself stays 0.8 mm; blocks 1σ 14 % (17 % shipped; 13 % since D-230) in tone (triangular), ±5 %
  *  warm/cool, tilted up to ±0.57°. Inside the block, STONE: laminae 1σ 6 %, stylolites in 45 % of the blocks (2.4 mm, 45 %
  *  darker), pits in 2.2 cm cells (r 0.12 cell, 50 % darker, 1.5 mm deep; up to 1.7× denser in fossil-rich blocks), chisel
  *  facets 8 × 3 cm tilted ±1.1° with 4 mm striations 0.12 mm deep, foot polish on the treads. All C (the stone's bedding,
@@ -212,7 +218,7 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // Persepolis light grey limestone, freshly dressed (LIMESTONE above: stone B, N7 C). Ashlar dry-laid
   // without mortar (SITE_SPEC terrace.wall_material, B: 'dry-laid'; Grand Stair 'dry-jointed', B) and, by the Achaemenid
   // practice of anathyrosis (recollection, C; Q-071), fitted to hairline joints: 0.8 mm (C), not a sunk mortar groove
-  limestone: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.13, stone: STONE, tone: { sd: 0.075, chroma: 0.01 }, foot: 1, wear: { alb: 0.05, rough: 0.2 }, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'dressed light grey limestone (Iranica, B), dry-laid ashlar with hairline joints (B dry-laid; joint width C, Q-071); albedo N7 = 42 % C (D-188) pending calibration photo (NEEDS #13); D-218: block tone 1σ 14 %, rounded arrises, laminae, stylolites, pits, chisel facets (C, Q-480); stairs in blocks of 4–5 steps (B, Grand Stair; others C), treads foot-polished (C)' },
+  limestone: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.13, stone: STONE, tone: { sd: 0.075, chroma: 0.01 }, foot: 1, wear: { alb: 0.05, rough: 0.2 }, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'dressed light grey limestone (Iranica, B), dry-laid ashlar with hairline joints (B dry-laid; joint width C, Q-071); albedo N7 = 42 % C (D-188) pending calibration photo (NEEDS #13); D-230: block tone 1σ 13 % from the site photographs (the least weathered in-situ stone, Apadana E stair #29; the weathered walls #24 show 27 %, mostly weathering; B40); D-218: rounded arrises, laminae, stylolites, pits, chisel facets (C, Q-480); stairs in blocks of 4–5 steps (B, Grand Stair; others C), treads foot-polished (C)' },
   // the merlons (D-218, rubric s7 fix 10: 'box stacks'): each a monolith of the same stone, its own tone, no joints across it
   // (it sits on its coping on the chamfered foot joint), dust on the step ledges and faint run-off under them (C)
   limestone_merlon: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, blockTone: 0.13, joints: HAIRLINE, stone: STONE, monolith: { w: 0.9, h: 0.9, steps: 4, dust: 0.14, runoff: 0.07 }, tone: { sd: 0.075, chroma: 0.01 }, bump: { amp: 0.0015, freq: 6 }, micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'four-stepped merlon: one block of the dressed light grey limestone (monolith C), its own tone, dust on the ledges and run-off (C, D-218)' },

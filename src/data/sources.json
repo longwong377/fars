@@ -1003,5 +1003,20 @@
   "cite": "Oxus Treasure, gold votive plaques of a man in Median dress holding a barsom (British Museum; BM Images 00024345001), via search extracts",
   "url": "https://www.bmimages.com/preview.asp?image=00024345001",
   "access": "search-extract only (2026-09-25, D-209): 'a male figure ... in so-called Median dress, wearing a belted tunic ..., hood ..., trousers, long boots and a soft cap with neck-guard. His chin is covered. He carries a barsom in his right hand'; identified as a priest because of the barsom. Achaemenid, 5th-4th c."
+ },
+ "REF-PHOTO-29": {
+  "cite": "references/reliefs.webp (INDEX.md §6 #29): photograph of the Apadana E stair façade in warm sun, the crowning row of four-stepped merlons with a double-rebated vertical slot in the face (third-party, reference only)",
+  "url": "references/reliefs.webp",
+  "access": "supplied by the user (session 8); measured in pixels on the merlons (D-230)"
+ },
+ "REF-DRAW-32": {
+  "cite": "references/stairs more.webp (INDEX.md §6 #32): measured elevations of two stair façades with the merlon row, each merlon drawn with a small recess (third-party, reference only)",
+  "url": "references/stairs more.webp",
+  "access": "supplied by the user (session 8)"
+ },
+ "REF-PHOTO-24": {
+  "cite": "references/persepolis and the mountain behind the ruins 2.webp (INDEX.md §6 #24): the Terrace W wall from the plain, F. Kriechbaumer, EXIF 2019-02-08 15:59:34, Olympus E-M1 II 14 mm, Lightroom (third-party, reference only)",
+  "url": "references/persepolis and the mountain behind the ruins 2.webp",
+  "access": "supplied by the user (session 8); camera solved against the DEM and the Terrace outline (D-230)"
  }
 }

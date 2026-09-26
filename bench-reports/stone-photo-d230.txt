@@ -1,0 +1,6 @@
+photos: near-fresh block tone pooled 1σ 0.100 (#29 relief blocks 0.127, n 4; merlons 0.072, n 5); ×1.2 (HDR) ⊕ 0.05 (50 years' soiling) = 0.130; weathered #24 0.267 (IQR 0.224); set 0.13
+#24 scale, 0.10 m pixels: between-block 0.180 → 0.144, within-block 0.027 → 0.027 (319 blocks)
+#29 scale, 5 mm pixels: between-block 0.145 → 0.122, within-block 0.126 → 0.126 (17 blocks)
+10 m, 40° fov, 540 rows: Ystd/Y on screen 0.059 → 0.057, scene-linear 0.092 → 0.091 (photo #24 0.431, weathered)
+150 m, 34.4° fov, 905 rows (#24): Ystd/Y on screen 0.102 → 0.079, scene-linear 0.162 → 0.126 (photo #24 0.431, weathered)
+AgX local slope at the stone's level (linear 0.35): 0.42 (a camera curve ≥ 1)
