@@ -261,7 +261,13 @@ export class Settlement {
     const at = (du: number, dv: number): P2 => { const c = Math.cos(th), sn = Math.sin(th); return [g[0] + du * c - dv * sn, g[1] + du * sn + dv * c]; };
     const pot = lin(POT), st = lin(STONE), tim = lin(TIMBER), mc = lin(MUD);
     switch (f.kind) {
-      case 'hearth': this.hearthRing(mud, g, y, d); break;
+      case 'hearth': { this.hearthRing(mud, g, y, d);
+        // the household's cooking things by the hearth (C): a round-bottomed cooking pot, one or two bowls, a bread basket
+        const h = (hashString(`${s.id}:${f.u.toFixed(1)}:${f.v.toFixed(1)}`) % 1000) / 1000, cp = lin([0.4, 0.3, 0.23]), bw = lin([0.66, 0.46, 0.32]);
+        const [pe, pn] = at(0.62, 0.15 + 0.2 * h); mud.lathe(pe, pn, y - 0.02, [[0.05, 0], [0.15, 0.07], [0.17, 0.16], [0.12, 0.26], [0.11, 0.29]], 8, sh(cp, 0.8 + 0.3 * h), d);
+        for (let k = 0; k < 1 + Math.round(h * 2); k++) { const [be, bn] = at(0.35 + 0.2 * k, -0.5 - 0.1 * k); mud.lathe(be, bn, y, [[0.03, 0], [0.08, 0.02], [0.1, 0.06], [0.1, 0.065]], 8, sh(bw, 0.9 + 0.2 * ((h * 7 + k) % 1)), d); }
+        if (h > 0.4) { const [ke, kn] = at(-0.6, 0.4); mud.lathe(ke, kn, y, [[0.14, 0], [0.19, 0.08], [0.2, 0.12]], 9, lin([0.62, 0.52, 0.34]), d); }
+        break; }
       case 'oven': { const oc = lin([0.6, 0.47, 0.34]); mud.cyl(g[0], g[1], 0.42, 0.34, y - 0.1, y + 0.75, 10, sh(oc, 0.7), oc, d, false); mud.cyl(g[0], g[1], 0.34, 0.2, y + 0.75, y + 0.82, 10, oc, sh(oc, 0.25), d, true); break; }
       case 'forge': mud.box(g[0], g[1], th, 0.5 * f.size, 0.4 * f.size, y - 0.1, y + 0.55, sh(mc, 0.5), sh(mc, 0.35), d); break;
       case 'kiln': { const r = 1.2 * f.size; mud.cyl(g[0], g[1], r, r * 0.92, y - 0.1, y + 1.3 * f.size, 12, sh(mc, 0.55), sh(mc, 0.85), d, false); mud.cyl(g[0], g[1], r * 0.92, 0.35, y + 1.3 * f.size, y + 2.0 * f.size, 12, sh(mc, 0.85), sh(mc, 0.4), d); break; }

@@ -574,7 +574,11 @@ export class SiteHouses {
     const along = back < 2 ? [u0 + 0.45, u1 - 0.45] : [v0 + 0.45, v1 - 0.45];
     const atBack = (a: number, d: number): [number, number] => back === 0 ? [a, v0 + 0.28 + d] : back === 1 ? [a, v1 - 0.28 - d] : back === 2 ? [u0 + 0.28 + d, a] : [u1 - 0.28 - d, a];
     B.plaster.set('y0', -1000).set('ytop', 1e4).set('ao', 0.2); B.timber.set('ao', 0.2);
-    if (vest) { if (h < 0.6) { const [u, v] = atBack((along[0] + along[1]) / 2, 0.2), y = gy(u, v); this.lbox(B.plaster, u, v, back < 2 ? Math.min(0.9, (along[1] - along[0]) / 2) : 0.22, back < 2 ? 0.22 : Math.min(0.9, (along[1] - along[0]) / 2), y - 0.05, y + 0.4, sh(this.tone(r.plot, 1, false), 0.8), this.tone(r.plot, 1, false), own); } }
+    if (vest) { // the water jar on its stand by the street door, a cup on its lid (C); a bench in some
+      { const [u, v] = atBack(along[0] + 0.15, 0.12), y = gy(u, v), g = s.grid(u, v); this.lbox(B.plaster, u, v, 0.2, 0.2, y - 0.05, y + 0.28, sh(this.tone(r.plot, 1, false), 0.8), this.tone(r.plot, 1, false), own);
+        B.plaster.lathe(g[0], g[1], y + 0.28, [[0.1, 0], [0.22, 0.2], [0.21, 0.42], [0.1, 0.58], [0.12, 0.62]], 9, lin([0.66, 0.5, 0.37]), own);
+        B.plaster.lathe(g[0] + 0.03, g[1], y + 0.9, [[0.03, 0], [0.045, 0.05], [0.05, 0.08]], 6, lin([0.6, 0.42, 0.3]), own); }
+      if (h < 0.6) { const [u, v] = atBack((along[0] + along[1]) / 2, 0.2), y = gy(u, v); this.lbox(B.plaster, u, v, back < 2 ? Math.min(0.9, (along[1] - along[0]) / 2) : 0.22, back < 2 ? 0.22 : Math.min(0.9, (along[1] - along[0]) / 2), y - 0.05, y + 0.4, sh(this.tone(r.plot, 1, false), 0.8), this.tone(r.plot, 1, false), own); } }
     else if (use === 'store') { // a store: jars and sacks along the back wall
       const pot = lin([0.63, 0.43, 0.3]), sack = lin([0.62, 0.55, 0.42]); const n = Math.max(2, Math.floor((along[1] - along[0]) / 0.62));
       for (let k = 0; k < n; k++) { const a = along[0] + 0.2 + ((along[1] - along[0] - 0.4) * k) / Math.max(1, n - 1), [u, v] = atBack(a, 0.12), y = gy(u, v), g = s.grid(u, v), kk = 0.9 + 0.5 * hi(r.room, k, 1);
