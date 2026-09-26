@@ -343,7 +343,7 @@ async function boot() {
     if (freeCam) { camera.position.set(freeCam.x, freeCam.y, freeCam.z); camera.rotation.set(freeCam.pitch, freeCam.yaw, 0, 'YXZ'); body.visible = false; }
     else {
       const e = player.eye;
-      const bob = settings.headBob && player.grounded ? Math.sin(player.bobPhase * 2) * 0.025 : 0;
+      const bob = settings.headBob && player.grounded ? Math.sin(player.bobPhase * 2) * 0.018 : 0; // ±1.8 cm (D-238: comfort; T-K3 < 2 cm)
       camera.position.set(e.x, e.y + bob, e.z); camera.rotation.set(input.pitch, input.yaw, 0, 'YXZ');
       body.visible = true; body.position.set(e.x, player.feetY, e.z); body.rotation.y = input.yaw; animateBody(body, player.bobPhase, 1.35, dt);
       // keep the camera ahead of the torso when looking down

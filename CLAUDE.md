@@ -1,7 +1,8 @@
 # PĀRSA — project memory for Claude Code
 
 **Read first, every session: `USER_DIRECTIONS.md` (the user's own words, append-only) and `MASTER_PLAN.md` (how the goal is
-achieved and measured; it governs over older task lists and handoffs).** The master brief is `PERSEPOLIS_BRIEF.md` (copy of the user's upload). Re-read it after any compaction/restart,
+achieved and measured; it governs over older task lists and handoffs), with its locked thresholds in `gates/thresholds.json`
+(they only tighten: `tests/gates_ratchet.test.ts`).** The master brief is `PERSEPOLIS_BRIEF.md` (copy of the user's upload). Re-read it after any compaction/restart,
 then read `PROGRESS.md`, `TASKS.md`, `DECISIONS.md`, `BLOCKERS.md` and resume from the first unfinished task.
 If the user types only "continue", that is what it means.
 
@@ -35,6 +36,8 @@ Blocklist: `research/ANACHRONISM_BLOCKLIST.md` (ancient world only).
 ## Verification (§13)
 `npm test` (unit + dimension + sky + weather), `npm run test:e2e` (camera rig + walkthrough bots, headless Chromium,
 SwiftShader), `npm run lint:all` (chronology/anachronism/language/activity coverage), `npm run soak` (year-long sim).
+These are the brief's tools, not its scope: §13 is read in its own scope words ("every walkable area", "as scenes"), and the
+measure of progress is MASTER_PLAN.md's Walker Test (the illusion-break log, axes A–K and R, the generated COVERAGE.md board).
 
 ## How to run (§15)
 No questions, no pauses; decide, log in `DECISIONS.md`, proceed. Gates bind — never lower one to pass it.
@@ -62,4 +65,7 @@ chosen views: the coverage harness (`tests/e2e/coverage.spec.ts`, `tools/dev/cov
 sampled over every walkable area and reports, per view and per area, the share of pixels drawn by PLACEHOLDER-flagged
 objects, flat/blank surfaces, and the rubric reviewer's scores on a sample. The backlog is ordered by the areas that fail
 most; a phase or area is done only when its coverage passes. Placeholders (town houses, procedural reliefs, stand-in
-people at distance) are the first targets.
+people at distance) are the first targets. Since MASTER_PLAN rev 2: samples are seeded from the commit hash (never chosen),
+areas come from the physically walkable envelope (`data/areas.json`, not the nav grid), evidence goes STALE after a global
+change until canaries clear it, reviewers are briefed from `handoff/review_template.md` and calibrated on an anchor set,
+agents from `handoff/agent_template.md`, and every session ships a change a player would notice plus three verified surprises.
