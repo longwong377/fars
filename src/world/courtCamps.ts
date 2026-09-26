@@ -60,32 +60,48 @@ export function tentShell(b: Batch, t: Tent, groundAt: (e: number, n: number) =>
 }
 
 interface Col { x: number; y: number; z: number; hx: number; hy: number; hz: number; rot: number }
-/** the tents of the court setting's camps (court.ts CourtResidents.tents): a mesh per camp and colliders near the player */
+/** D-252: the hour of the year a tent stands from, rounded UP to the hour (a household's tents appear at the top of the hour
+ *  after it has reached the camp: never before it; placeholder: no pitching is animated, B70) */
+const pitchKey = (t: Tent) => (t.pitch === undefined ? -1 : Math.ceil(t.pitch));
+/** the tents of the court setting's camps (court.ts CourtResidents.tents): a mesh per camp and hour of pitching (D-252: a camp
+ *  grows as its households come and is struck on the leave day), and colliders near the player for the tents standing */
 export class CourtCampTents {
   readonly group = new THREE.Group();
-  readonly info = { tents: 0, tris: 0, meshes: 0, colliders: 0, liveColliders: 0, buildMs: 0 };
-  private cols: { c: [number, number]; r: number; boxes: Col[]; live: any[] | null }[] = [];
+  readonly info = { tents: 0, tris: 0, meshes: 0, colliders: 0, liveColliders: 0, buildMs: 0, standing: 0 };
+  private cols: { c: [number, number]; r: number; boxes: Col[]; live: any[] | null; from: number; to: number; mesh: THREE.Mesh; n: number }[] = [];
+  private tNow = NaN;
   constructor(tents: Tent[], groundAt: (e: number, n: number) => number, private phys: Physics | null = null) {
     const t0 = performance.now(); Object.assign(SURFACES, TENT_SURFACES);
     this.group.name = 'court-camps'; this.group.userData = { tier: 'C', src: 'RECON;HDT', note: 'the court’s camps (court setting only, D-199): tents in lines (camps.ts), all C; Q-333' };
     const mat = surfaceMaterial('tent_cloth', { vertexColors: true }); mat.side = THREE.DoubleSide; // (the open doors and fronts show the undersides)
-    const byCamp = new Map<string, Tent[]>(); for (const t of tents) (byCamp.get(t.camp) ?? byCamp.set(t.camp, []).get(t.camp)!).push(t);
-    for (const [id, list] of byCamp) {
+    const byCamp = new Map<string, Tent[]>(); for (const t of tents) { const k = `${t.camp}|${pitchKey(t)}|${t.strike ?? -1}`; (byCamp.get(k) ?? byCamp.set(k, []).get(k)!).push(t); }
+    for (const [key, list] of byCamp) {
+      const id = list[0].camp, from = pitchKey(list[0]) < 0 ? -Infinity : pitchKey(list[0]), to = list[0].strike ?? Infinity;
       const def = CAMP_BY_ID.get(id)!, b = new Batch(), desc: { tier: string; src: string; note: string }[] = [], boxes: Col[] = []; let r = 0;
       for (const t of list) { const K = TENT_KINDS[t.kind], d = desc.length; desc.push({ tier: 'C', src: def.src, note: `a ${t.kind} tent of ${def.label}: ${K.note} (court setting, D-199)` });
         const { y0 } = tentShell(b, t, groundAt, d); r = Math.max(r, Math.hypot(t.e - def.c[0], t.n - def.c[1]) + Math.max(t.w, t.d));
         boxes.push({ x: t.e, y: y0 + t.h / 2, z: -t.n, hx: t.w / 2, hy: t.h / 2, hz: t.d / 2, rot: Math.PI - (t.heading * Math.PI) / 180 }); }
-      const m = new THREE.Mesh(b.toGeometry(), mat); m.name = `court-camp:${id}`; m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false;
-      const owner = b.owner; m.userData = { tier: 'C', src: def.src, note: `${def.label}: ${list.length} tents (court setting, D-199; C)`, describe: (hit: any) => desc[owner[hit?.faceIndex ?? -1]] ?? null };
+      const m = new THREE.Mesh(b.toGeometry(), mat); m.name = `court-camp:${key}`; m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false;
+      const owner = b.owner; m.userData = { tier: 'C', src: def.src, note: `${def.label}: ${list.length} tents (court setting, D-199; C)${Number.isFinite(from) ? `, pitched from hour ${from % 24} of day ${Math.floor(from / 24)}, struck day ${Math.floor(to / 24)} (D-252)` : ''}`, describe: (hit: any) => desc[owner[hit?.faceIndex ?? -1]] ?? null };
       this.group.add(m); this.info.tents += list.length; this.info.tris += b.tris; this.info.meshes++;
-      this.cols.push({ c: def.c, r, boxes, live: null }); this.info.colliders += boxes.length;
+      this.cols.push({ c: def.c, r, boxes, live: null, from, to, mesh: m, n: list.length }); this.info.colliders += boxes.length;
     }
     this.info.buildMs = performance.now() - t0;
   }
-  /** colliders for the camps within 150 m of the player (at most `budget` boxes a call), dropped beyond 250 m */
-  update(x: number, z: number, budget = 400) {
+  /** D-252: show the tents standing at hour `t` of the year (day * 24 + hour): a camp's are pitched as its households come and
+   *  struck on the leave day. NaN: every tent shown (the camps as a whole, for tools that do not keep time) */
+  setTime(t: number) {
+    if (t === this.tNow) return; this.tNow = t; let standing = 0;
+    for (const c of this.cols) { const on = Number.isNaN(t) || (t >= c.from && t < c.to); c.mesh.visible = on; if (on) standing += c.n;
+      else if (c.live && this.phys) { for (const k of c.live) this.phys.world.removeCollider(k, false); this.info.liveColliders -= c.live.length; c.live = null; } }
+    this.info.standing = standing;
+  }
+  /** colliders for the standing tents within 150 m of the player (at most `budget` boxes a call), dropped beyond 250 m; `t`: the
+   *  hour of the year (D-252) */
+  update(x: number, z: number, budget = 400, t?: number) {
+    if (t !== undefined) this.setTime(t);
     if (!this.phys) return; const e = x, n = -z;
-    for (const c of this.cols) { const d = Math.hypot(c.c[0] - e, c.c[1] - n) - c.r;
+    for (const c of this.cols) { if (!c.mesh.visible) continue; const d = Math.hypot(c.c[0] - e, c.c[1] - n) - c.r;
       if (d < 150 && (!c.live || c.live.length < c.boxes.length) && budget > 0) { c.live ??= [];
         while (c.live.length < c.boxes.length && budget-- > 0) { const q = c.boxes[c.live.length]; c.live.push(this.phys.addBox({ x: q.x, y: q.y, z: q.z }, { x: q.hx, y: q.hy, z: q.hz }, q.rot)); this.info.liveColliders++; } }
       else if (d > 250 && c.live) { for (const k of c.live) this.phys.world.removeCollider(k, false); this.info.liveColliders -= c.live.length; c.live = null; } }

@@ -3,6 +3,7 @@ import * as THREE from 'three/webgpu';
 import { loadSettings, saveSettings, urlParams, QUALITY, Settings } from './core/settings';
 import { WorldClock, YEAR_DAYS } from './core/clock';
 import { chooseWorldSeed, newWorldSeed, keepWorldSeed } from './core/seed';
+import { newGameStart } from './core/newGame';
 import { Input } from './core/input';
 import { writeSave, readSave, readSaveAsync, clearSave, Autosaver, setSaveProblemHandler, lastWrite, parseSave } from './core/save';
 import { latLonToGrid, gridToLatLon } from './core/geo';
@@ -99,7 +100,10 @@ async function boot() {
   shadowsSeePeople(sky.sun); // the people's shadow-only casters live on their own layer (D-093)
   const weather = new WeatherSystem(SEED);
   if (P.get('weather')) weather.override = P.get('weather') as WeatherOverride;
-  const clock = new WorldClock(+(P.get('day') ?? 0), +(P.get('hour') ?? 7.0));
+  // D-239 (D-252): a new game begins at dawn 1-3 days before the seed's arrival of the court (the seed's day, never the
+  // player's); ?day / ?hour, the tests and the bench keep their fixed start; a saved visit restores its own time below
+  const START = P.has('day') || TEST || P.has('bench') ? { day: +(P.get('day') ?? 0), hour: 7.0 } : newGameStart(SEED, settings.courtCalendar === 'seasonal');
+  const clock = new WorldClock(START.day, +(P.get('hour') ?? START.hour));
   clock.scale = TEST ? 0 : settings.timeScale;
 
   // cascaded shadows (high/ultra): 4 cascades to 600 m; lower qualities keep the single follow-the-player map

@@ -4,7 +4,7 @@ import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';
 // backend draw is counted (people's by pass), with the people shown and hidden in the same frame state; the crowd's own
 // counts give the people in view per band (full / mid / far / farthest skinned, impostors by distance) and the CPU cost
 // of the view and the pool. Two page loads (the queue's limit): day 25 (a working day: the Terrace forecourt and the
-// Hall of 100 Columns site in the morning, a town lane at midday, the approach road at dawn), then day 0 with the court
+// Hall of 100 Columns site in the morning, a town lane at midday, the approach road at dawn), then day 20 with the court
 // setting (?court=seasonal: the "court in full assembly" moment; D-003). Q=high by default (the budget); Q=test to iterate.
 // ONLY=a,b picks scenes. Screenshots → shots/crowd-*.png; numbers → shots/crowd-scale.json.
 const az = (gridDeg: number) => gridDeg - 19; // grid heading → true azimuth (view() takes true azimuths)
@@ -20,12 +20,12 @@ const DAY25: Scene[] = [
   { n: 'approach-dawn', hour: 5.4, v: [-36.4, 122.45, 1.6, az(250), -3], note: 'the approach road and the plain W from the Grand Stair top at dawn, people going up to work (day 25, 05:24)' },
 ];
 const COURT: Scene[] = [
-  { n: 'court-forecourt', hour: 10, v: [20, 80, 1.6, az(135), -2], note: 'court setting, day 0 10:00 (the court in residence, D-003): the Apadana forecourt' },
-  { n: 'court-from-hillside', hour: 10, v: [290, -20, 1.6, az(270), -8], note: 'court setting, day 0 10:00: the Terrace from the hillside above it' },
+  { n: 'court-forecourt', hour: 10, v: [20, 80, 1.6, az(135), -2], note: 'court setting, day 20 10:00 (D-252: was day 0, before the court now arrives) (the court in residence, D-003): the Apadana forecourt' },
+  { n: 'court-from-hillside', hour: 10, v: [290, -20, 1.6, az(270), -8], note: 'court setting, day 20 10:00 (D-252: was day 0, before the court now arrives): the Terrace from the hillside above it' },
   // the views on the Terrace with the most people visible with the court resident (D-182; tools/dev/court_scan.ts, node
   // sightlines: 741 and 709 of the drawn)
-  { n: 'court-forecourt-w', hour: 10, v: [-35, 85, 1.6, az(90), -2], note: 'court setting, day 0 10:00: from the W end of the forecourt looking E across the files of the king’s spearmen on the way from the Gate to the Apadana (D-182)' },
-  { n: 'court-apadana-n', hour: 10, v: [0, 55, 1.6, az(337.5), -2], note: 'court setting, day 0 10:00: from the foot of the Apadana’s N façade looking NNW over the forecourt to the Gate (D-182)' },
+  { n: 'court-forecourt-w', hour: 10, v: [-35, 85, 1.6, az(90), -2], note: 'court setting, day 20 10:00 (D-252: was day 0, before the court now arrives): from the W end of the forecourt looking E across the files of the king’s spearmen on the way from the Gate to the Apadana (D-182)' },
+  { n: 'court-apadana-n', hour: 10, v: [0, 55, 1.6, az(337.5), -2], note: 'court setting, day 20 10:00 (D-252: was day 0, before the court now arrives): from the foot of the Apadana’s N façade looking NNW over the forecourt to the Gate (D-182)' },
 ];
 test('crowd scale: the population drawn, measured', async ({ page }, info) => {
   test.setTimeout(+(process.env.TIMEOUT ?? 1700) * 1000);
@@ -71,7 +71,8 @@ test('crowd scale: the population drawn, measured', async ({ page }, info) => {
   const day25 = DAY25.filter(s => !only || only.includes(s.n)), court = COURT.filter(s => !only || only.includes(s.n));
   if (day25.length) { await load(25, day25[0].hour, false);
     for (const s of day25) { await page.evaluate(h => (window as any).__parsa.setTime(25, h), s.hour); await page.evaluate(() => (window as any).__parsa.renderOnce()); await measure(s); } }
-  if (court.length) { await load(0, court[0].hour, true); for (const s of court) await measure(s); }
+  // (D-252: the court comes on the seed's day, 6-18; day 20 it is resident whatever the seed)
+  if (court.length) { await load(20, court[0].hour, true); for (const s of court) await measure(s); }
   console.log(errs.slice(0, 10).join('\n'));
   expect(errs).toEqual([]);
   for (const r of Object.values(out)) expect((r as any).inView, `${(r as any).scene}: people in view`).toBeGreaterThan(0);

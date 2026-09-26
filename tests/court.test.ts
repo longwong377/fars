@@ -26,11 +26,15 @@ const TER = (popData as any).zones.find((z: any) => z.id === 'terrace').court_re
 function onTerrace(P: Population, d: number, h: number) { let n = 0; for (let pid = 0; pid < P.persons.length; pid++) { if (!P.present(pid, d)) continue; if (segAt(P.plan(pid, d), h).where === 'terrace') n++; } return n; }
 
 describe('the court in residence (D-182)', () => {
-  it('exists only with the court setting, only while resident (days 0-116, gone from day 117)', () => {
+  it('exists only with the court setting, only while it is here (from its arrival on the seed’s day, D-252, to 116; gone from day 117)', () => {
     expect(absent.pop.court).toBeNull(); expect(absent.pop.persons.some(p => p.sub.startsWith('court:'))).toBe(false);
-    const K = court.pop.court!; expect(K).not.toBeNull(); expect(K.end - K.first).toBeGreaterThan(4000);
+    const K = court.pop.court!, Y = K.year; expect(K).not.toBeNull(); expect(K.end - K.first).toBeGreaterThan(4000);
     for (let pid = K.first; pid < K.end; pid += 97) { const p = court.pop.persons[pid]; expect(p.sub.startsWith('court:')).toBe(true);
-      expect(court.pop.present(pid, 150)).toBe(false); expect(court.pop.present(pid, 300)).toBe(false); expect(p.leave).toBeLessThanOrEqual(117); }
+      expect(court.pop.present(pid, 150)).toBe(false); expect(court.pop.present(pid, 300)).toBe(false); expect(p.leave).toBeLessThanOrEqual(117);
+      expect(p.arrive).toBeGreaterThanOrEqual(Y.first); if (K.inColumn(pid)) expect(court.pop.present(pid, Y.first - 1), `${pid} before the court`).toBe(false); }
+    // D-252: the king comes on the seed's day in the window (court.json arrival), the household ahead of him, nobody of it before
+    expect(Y.arrive).toBeGreaterThanOrEqual(COURT.arrival.window[0]); expect(Y.arrive).toBeLessThanOrEqual(COURT.arrival.window[1]);
+    expect(court.pop.persons[K.king].arrive).toBe(Y.arrive); expect(Y.first).toBeLessThan(Y.arrive); expect(Y.first).toBeGreaterThan(0);
     // on the leave day (E-26) the resident court goes down the road and is away by the evening
     const g = K.guards[3]; const s = court.pop.plan(g, 117); expect(segAt(s, 20).where).toBe('away');
     // everyone in the population before the court is unchanged in kind: the court's people come after them
@@ -38,7 +42,7 @@ describe('the court in residence (D-182)', () => {
   });
   it('the Terrace holds population.json’s court-resident numbers by day and by night (within 20 % of the working value, inside the range)', () => {
     const P = court.pop, rows: string[] = [];
-    for (const d of [0, 45, 100]) { const day = onTerrace(P, d, 10), night = onTerrace(P, d, 2); rows.push(`day ${d}: 10:00 ${day}, 02:00 ${night}`);
+    for (const d of [P.court!.firstDay + 2, 45, 100]) { const day = onTerrace(P, d, 10), night = onTerrace(P, d, 2); rows.push(`day ${d}: 10:00 ${day}, 02:00 ${night}`);
       expect(day).toBeGreaterThanOrEqual(Math.max(TER.day.all_seasons.range[0], 0.8 * TER.day.all_seasons.w)); expect(day).toBeLessThanOrEqual(Math.min(TER.day.all_seasons.range[1], 1.2 * TER.day.all_seasons.w));
       expect(night).toBeGreaterThanOrEqual(Math.max(TER.night.all_seasons.range[0], 0.8 * TER.night.all_seasons.w)); expect(night).toBeLessThanOrEqual(Math.min(TER.night.all_seasons.range[1], 1.2 * TER.night.all_seasons.w)); }
     // without the court the Terrace is the court-absent Terrace
@@ -59,10 +63,10 @@ describe('the court in residence (D-182)', () => {
     expect(COURT_SLOTS.length).toBeGreaterThanOrEqual(20); expect(NIGHT_SLOTS.length).toBeGreaterThan(4);
     for (const s of COURT_SLOTS) { expect(s.posts.length).toBe(10); for (const q of s.posts) { const P = PLACES[q] as any; expect(P.kind).toBe('post'); expect(nav.lineClear(P.at, PLACES[P.anchor].at), q).toBe(true); } }
   });
-  it('plans are well formed for every court person over a week (contiguous, registered and performed activities, sleep, meals, no teleport, walks under 3.1 h)', () => {
+  it('plans are well formed for every court person over its coming and the week after (contiguous, registered and performed activities, sleep, meals, no teleport, walks under 3.1 h)', () => {
     const K = court.pop.court!, P = court.pop, issues: string[] = []; const acts = new Set<string>();
     for (let pid = K.first; pid < K.end; pid++) { let prev: string | null = null, prevD = -9;
-      for (let d = 0; d < 7; d++) { if (!P.present(pid, d)) continue; const segs = P.plan(pid, d); let t = 0;
+      for (let d = K.year.first; d < K.firstDay + 5; d++) { if (!P.present(pid, d)) continue; const segs = P.plan(pid, d); let t = 0;
         for (const s of segs) { if (Math.abs(s.t0 - t) > 1e-6 || s.t1 < s.t0 - 1e-9) issues.push(`${pid} day ${d}: gap at ${s.t0}`); t = s.t1; acts.add(s.act);
           if (s.where === 'road' && s.t1 - s.t0 > 3.1) issues.push(`${pid} day ${d}: a ${(s.t1 - s.t0).toFixed(1)} h walk`); }
         if (Math.abs(t - 24) > 1e-6) issues.push(`${pid} day ${d}: ends at ${t}`);
@@ -73,7 +77,7 @@ describe('the court in residence (D-182)', () => {
     for (const a of acts) { expect(ACTIVITIES[a as keyof typeof ACTIVITIES], a).toBeTruthy(); expect(ACTIVITIES[a as keyof typeof ACTIVITIES].placeholder, a).toBeFalsy(); }
     expect(activityLint(Object.fromEntries([...acts].map(a => [a, (ACTIVITIES as any)[a]])) as any)).toEqual([]);
     // the day checks (a person in two places, children alone) on two days, everyone
-    for (const d of [2, 5]) { const cache = new Map<number, Seg[]>(); const planOf = (x: number) => { let v = cache.get(x); if (!v) { v = P.plan(x, d); cache.set(x, v); } return v; };
+    for (const d of [K.year.first, K.firstDay, K.firstDay + 3]) { const cache = new Map<number, Seg[]>(); const planOf = (x: number) => { let v = cache.get(x); if (!v) { v = P.plan(x, d); cache.set(x, v); } return v; };
       expect(checkDay(P, d, planOf).filter(x => K.owns(x.pid))).toEqual([]); }
   }, 600_000);
   it('a festival day (D-211) is the town’s day off, not the court’s: every court person’s plan on it is well formed (Phase 5 review C1; D-229)', () => {
@@ -83,7 +87,10 @@ describe('the court in residence (D-182)', () => {
         if (P.festDay(pid, d)) issues.push(`${pid} ${K.member(pid)?.g} day ${d}: the town's festival day off`);
         const prev = P.present(pid, d - 1) ? P.plan(pid, d - 1) : null, segs = P.plan(pid, d);
         for (const x of checkPlan(P, pid, d, segs, prev ? prev[prev.length - 1].place : null, prev)) issues.push(`${pid} ${K.member(pid)?.g} day ${d}: ${x.kind} ${x.note}`); } }
-    expect(n).toBeGreaterThan(5000); // (the opening of the year falls while the court is resident)
+    // (D-252: the opening of the year, day 10, no longer falls in the residence for every seed: the court comes on days 6-18. For
+    // seed 1 it is the first day of the household that comes ahead (2,012 person-days checked); the court's own plans on a
+    // festival are checked whenever any of it is here)
+    expect(n).toBeGreaterThan(1500);
     expect(issues.slice(0, 20)).toEqual([]);
     // the town's own people still keep it (the court setting changes nothing for them)
     const d = festivals(1)[0].day; let off = 0; for (let pid = 0; pid < K.first; pid += 7) if (P.festDay(pid, d)) off++; expect(off).toBeGreaterThan(1000);
@@ -98,7 +105,8 @@ describe('the court in residence (D-182)', () => {
   }, 600_000);
   it('the king’s spearmen hold their posts by the rota: the watch’s files at their slots, one man in five away at his meal at most', () => {
     const K = court.pop.court!, P = court.pop;
-    for (const [d, h, night] of [[10, 10, false], [10, 18, false], [11, 2, true], [60, 9, false]] as [number, number, boolean][]) {
+    const A = K.firstDay + 3; // (D-252: the whole guard is here from the day after the king's)
+    for (const [d, h, night] of [[A, 10, false], [A, 18, false], [A + 1, 2, true], [60, 9, false]] as [number, number, boolean][]) {
       const rd = h < 6 ? d - 1 : d; let expected = 0, held = 0, wrong = 0;
       for (const pid of K.guards) { const post = K.postOf(pid, rd); const w = K.phase(pid, rd); if (post === null || w !== (h < 6 ? 2 : h < 14 ? 0 : 1)) continue; expected++;
         const s = segAt(P.plan(pid, d), h); if (s.act === 'stand_guard') { if (s.place === post) held++; else wrong++; } }
@@ -113,7 +121,8 @@ describe('the court in residence (D-182)', () => {
     const again = new PeopleSim(1, nav, env, { court: true }).pop, other: Population = new PeopleSim(2, nav, env, { court: true }).pop; const K = court.pop.court!;
     expect(again.persons.length).toBe(court.pop.persons.length); expect(again.court!.parties.length).toBe(K.parties.length);
     let same = 0, diff = 0;
-    for (let pid = K.first; pid < K.end; pid += 211) { expect(JSON.stringify(again.plan(pid, 7))).toBe(JSON.stringify(court.pop.plan(pid, 7))); same++; }
+    for (let pid = K.first; pid < K.end; pid += 211) { const d = K.firstDay + 7; expect(JSON.stringify(again.plan(pid, d))).toBe(JSON.stringify(court.pop.plan(pid, d))); same++; }
+    expect(again.court!.year).toEqual(K.year); // (D-252: the arrival is the seed's)
     for (let i = 0; i < 20; i++) { const a = K.guards[i * 37]; if (other.persons[a]?.age !== court.pop.persons[a].age || other.nameOf(a) !== court.pop.nameOf(a)) diff++; }
     expect(same).toBeGreaterThan(20); expect(diff).toBeGreaterThan(5);
   }, 120_000);

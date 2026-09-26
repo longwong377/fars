@@ -5,6 +5,14 @@ and `src/people/court.ts` (the people and their day plans). The court exists **o
 'Court calendar = seasonal pattern' (`?court=seasonal`, D-003). Court ABSENT stays the default and the evidence-strict
 state: nothing places Xerxes at Persepolis in 467 (Q-005, B9).
 
+**D-252 (session 9): the court now ARRIVES.** With the court coming and going by default (D-236) it is no longer present from
+day 0: one residence a year, the king's day drawn by the seed in days 6–18 of Nisannu (Q-680), the household of the palaces and
+the table four days ahead, the first 200 spearmen three days ahead, heralds on the royal road on the four days before (T-F5), the
+baggage and trains the day before, the king's column on his day, the camp followers after (Q-681; court.json `arrival`,
+src/people/courtYear.ts); everyone first seen at the road station and walking in along the royal road (Q-683); the camps pitched
+as their households come (B70). It leaves on E-26's day as before, by the same road. A new game starts at dawn 1–3 days before
+the arrival (D-239). Placeholders: the king on foot (B71), tents that appear whole (B70), nothing drawn beyond the station (B72).
+
 **Read this first: what is weak, placeholder or not done.**
 - **No primary text on the court was read in full this session.** Iranica, attalus.org (Athenaeus), achemenet
   (Henkelman 2010), isac.uchicago.edu and academia are refused by the egress proxy (B6). Everything below from them is a

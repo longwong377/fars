@@ -6201,3 +6201,43 @@ moment-*-webgpu.png in the worktree, not committed).**
   ground-bounce bound (0.1-0.2) failed at 0.207 on the session-8 head too: D-232 made the plain's loam brighter (GROUND_RHO
   luminance 0.21), and at night down/up is that albedo by construction; the test now asserts down/up = the ground's albedo ± 15 %.
   In the fast tier under load, three CPU-budget tests (performances, humans_runtime posing, solids) fail as timing tests do.
+
+## D-252 The court arrives: a before, an arrival over days, an after; a new game begins before it (session 9, UD-09, UD-10; D-236, D-239; T-F8, T-F5, T-F3d, T-K10; tier C)
+- **How this could pass its tests while the intent fails (said before building, and measured against):** (1) the plans put the
+  column on the road, but the view draws nobody (a road block from a place not built, '-', is hidden: popview.ts) → the column is
+  first seen at the road station and the walks are counted as the population view DRAWS them (tools/dev/court_arrival.ts, the
+  people_trace world), not from the plans; (2) the arrival day exists but the camps' tents stand from day 0 (one static mesh) →
+  tents carry a pitch and strike hour, drawn in meshes by the hour, tested against each household's arrival; (3) a new game starts
+  before the arrival but the arrival moves with the start or the player (a performance, T-F6) → the day is a pure function of the
+  seed (courtYear.ts), the same in the calendar, the court and the boot, tested; (4) road density "doubles" because only the
+  court is counted or the baseline day is already busy → every drawn walker within 1 km of the stair foot is counted, the
+  baseline an ordinary day before anyone of the court (heralds included) has come; (5) messengers exist but ride at night, or
+  after the crowd (T-F5's anti-proxy) → the heralds' hours are by day, and the order is read from the world log (E-20 before
+  E-25); (6) T-F8 counts two "events" on days with nobody on the road in daylight or no change on the Terrace → an event needs
+  ≥ 200 of the column on the road in daylight AND the Terrace's court head count at 14:00 moving by ≥ 500 across it.
+- **Season, and one residence or two (C; Q-680).** One residence a year, in spring: the king's day drawn by the seed in days 6–18
+  (7–19 Nisannu), leaving on E-26's day 117 as before. Basis: Persepolis a spring/summer residence of a mobile court
+  (WP-PERS-SEASON, RESIDENCE2021: B for the pattern), New Year trips to the king (KING2022, B, Darius era), the Greek claim that the
+  king spent spring at Susa (XEN-CYR 8.6.22, B) putting Susa on the road before; the window starts after day 5 so the arrival has
+  a before inside the simulated year. A second residence: nothing in research/ supports it (rejected).
+- **The order of coming (C; Q-681, Q-684, Q-685; court.json `arrival`).** Day −4: the palace servants, the king's table, its
+  porters and butchers (they make ready: every hall swept "for the king's coming", the Hadish set in order, the kitchens swept and
+  fired, the table store counted and stocked from the royal stores, the flocks penned); day −3: the first 200 of the king's
+  spearmen take posts on the rota; days −4..−1: two heralds a day ride in along the royal road with the word, up to the Gate,
+  a night at the road station, away W at first light (E-20 in the world log); day −1: the baggage, the supply trains, the royal
+  herds and the horses, pitching their camps; day 0 (the king's day): the town's soldiers lead, then the spearmen, the officials,
+  the Persians of rank, the king at the seed's hour (11:12–12:24) walking up from the station under the parasol with his bearers
+  and escort, the women of the household and their attendants after, the nobles' servants with the baggage in the afternoon, the
+  plain's soldiers closing; day +1: the craftsmen and sellers who follow a court. Petitioners and delegations from day +2. Every
+  household comes together at its drawn hour; everyone is first seen at the road station (Q-683) and walks the royal road to the
+  camps or up the Grand Stair; at a camp the tents are pitched as its households come (B70). The departure (E-26) now goes the
+  same way (the walk to the station is drawn). E-25 is at the king's hour on his day; `ctx.court` (the furnishings in use, the
+  court's music, E-27) holds from his day to the leave day; the court's courier and traveller rates (E-20, E-21) hold only while
+  it is resident (they held all year before: a world-wide fix).
+- **A new game (D-239, T-K10).** With no ?day, no save and not a test or the bench, the clock starts at dawn (sunrise − 0.4 h) of
+  the day 1–3 (the seed's draw) before the seed's arrival (src/core/newGame.ts, main.ts); tests/defaults.test.ts pins it. The
+  evidence-strict world keeps day 0 at 07:00. Any date can still be set.
+- **The soak** now runs the default world (the court coming and going) unless `--no-court`, and writes T-F8's evidence with
+  `--evidence <pass>`.
+- **Rejected.** Keeping the court present from day 0 and "arriving" only in the chronicle (the anti-proxy of T-F8); an arrival
+  on day 0 with the before in a previous year the simulation does not hold; the king arriving in a chariot (no asset, B71).

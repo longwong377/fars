@@ -11,6 +11,7 @@ import { Construction, BuildEvent, StoneTasks } from './construction';
 import type { Population } from './population';
 import * as Astro from 'astronomy-engine';
 import { LATITUDE_N, LONGITUDE_E } from '../core/calendar';
+import { courtYear, courtResident, heralds } from './courtYear';
 
 export const CAL = calData as any;
 export const POP = popData as any;
@@ -109,6 +110,12 @@ const HOURS: Record<string, [number, number]> = { courier: [0, 24], delivery: [7
 export interface Inst { day: number; hour: number; k: number }
 /** all instances of a `rate` row over the year (deterministic per (seed, id, period)) */
 export function rateSchedule(seed: number, id: string, court = false, idSalt = salt(id)): Inst[] {
+  // D-252: the court's rates hold only while it is resident (courtYear.ts); outside the residence the court-absent rates
+  if (!court) return rateSchedule0(seed, id, false, idSalt);
+  const inRes = (x: Inst) => courtResident(seed, x.day);
+  return [...rateSchedule0(seed, id, false, idSalt).filter(x => !inRes(x)), ...rateSchedule0(seed, id, true, idSalt).filter(inRes)].sort((a, b) => a.day - b.day || a.hour - b.hour);
+}
+function rateSchedule0(seed: number, id: string, court: boolean, idSalt: number): Inst[] {
   const row = ROW[id]; const r = row.rule; const out: Inst[] = [];
   if (r.type !== 'rate' || (row.setting === 'court_resident' && !court)) return out;
   const hr = HOURS[row.kind] ?? [8, 16];
@@ -264,7 +271,7 @@ export class EventCalendar {
   private computeDay(d: number): DayCtx {
     const { month, dom, m: M } = dateOf(d); const season = seasonOf(month); const wx = dayWx(this.env, d); const sun = sunTimes(d);
     const pop = this.pop, S = this.stores, seed = this.seed;
-    const court = this.court && month >= 1 && month <= 4; // resident Nisannu–Duzu under the setting (D-003)
+    const court = this.court && courtResident(seed, d); // resident from the seed's arrival (D-252) to E-26's day under the setting (D-003)
     if (this.firstRainDay < 0 && month >= 7 && wx.wet) this.firstRainDay = d;
     const ctx: DayCtx = { day: d, month, dom, season, wx, sun, court, events: [], issue: new Map(), special: new Map(), wine: new Map(), maternity: new Map(), payments: [], deliveries: [], couriers: [], letters: [],
       slaughter: [], milling: [], brewing: [], offerings: [], sacrifices: [], agri: new Set(), river: ROW['E-51'].rule.by_month[String(month)], winter: [9, 10, 11].includes(month), brick: [2, 3, 4, 5].includes(month) && !wx.wet,
@@ -369,7 +376,10 @@ export class EventCalendar {
     if (wx.dust) E(10, 'W-03', 'dust: faces covered, travel slow', 'plain');
     if (ctx.winter && (wx.frost || wx.wet)) E(7, 'E-62', 'frost or rain: no mud-brick, mortar or plaster work today', 'worksite');
     // court (setting only; E-25/26/27, CE-17/18)
-    if (this.court) { if (d === 0) E(9, 'E-25', 'the court arrives from Susa', 'stair_foot'); if (month === 4 && dom === 29) E(9, 'E-26', 'the court leaves', 'stair_foot');
+    // D-252: the court arrives on the seed's day (courtYear.ts), the word of it carried ahead by couriers of the road (T-F5)
+    if (this.court) { const CY = courtYear(seed);
+      for (const x of heralds(seed)) if (x.day === d) E(x.hour, 'E-20', 'a courier of the court rides in along the royal road with word that the king is coming', 'station');
+      if (d === CY.arrive) E(CY.kingHour, 'E-25', 'the court arrives from Susa', 'stair_foot'); if (d === CY.leave) E(9, 'E-26', 'the court leaves', 'stair_foot');
       if (court && [12, 1].includes(month)) E(11, 'E-27', 'officials and taxpayers come to the king for the New Year', 'forecourt'); }
 
     // --- life (E-04, E-37, E-70 … E-74), from the population's per-person draws
