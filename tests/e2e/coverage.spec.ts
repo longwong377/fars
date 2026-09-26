@@ -113,7 +113,7 @@ test('coverage', async ({ page }, info) => {
         moonFrac: v.moonFrac, moonAlt: v.moonAlt, rigClear: 0, revisit: !!v.revisit, extra: !!v.extra, seed: PTS.meta.seed, commit: COMMIT, dep: DEP, q: Q, project: info.project.name, fov: fovArg ?? 'player', frames: FRAMES,
         cam: [v.e, v.n, v.eye, v.az, v.pitch], sunAlt: +r.st.sky.sunAlt.toFixed(1), drawCalls: r.st.drawCalls, triangles: r.st.triangles, backend: r.st.backend,
         shares: r.fm.shares, gate: r.fm.gate ?? null, missing: f.missing ?? null, flatness: f.flatness ?? null, lowDetail: f.lowDetail ?? null, frame: f, objects: r.fm.objects, phObjects: r.fm.phObjects, groups: r.fm.groups,
-        visibleMeshes: r.fm.visibleMeshes, materials: r.fm.materials, geometries: r.fm.geometries, hiddenTop: r.fm.hiddenTop, flagMs: r.fm.ms,
+        visibleMeshes: r.fm.visibleMeshes, tieredSourced: r.fm.tieredSourced, untieredKeys: r.fm.untieredKeys, materials: r.fm.materials, geometries: r.fm.geometries, hiddenTop: r.fm.hiddenTop, flagMs: r.fm.ms,
         repetition: r.rep, life: r.life ? { ...r.life, keys: undefined } : null, lumGrid: r.th.Y, ms: Date.now() - t1, at: new Date().toISOString() };
       saveJson(OUT, tag(v.id), rec);
       console.log(`${v.id} ${v.sub} m${v.month} ${v.state}${v.forced ? ' (forced)' : ''}: A1 ${r.fm.shares.phOrUntiered} A2f ${r.fm.gate?.flatRegion} A3c ${r.fm.gate?.clipped} luma ${r.fm.gate?.meanLuma} ph ${r.fm.shares.placeholder} miss ${f.missing} low ${f.lowDetail} flat ${f.flatness} tile ${f.tiling?.periodic}/${f.tiling?.textured} rep ${r.rep.maxIdentical} people ${r.life?.people ?? '-'} (${((Date.now() - t1) / 1000).toFixed(0)} s)`);
