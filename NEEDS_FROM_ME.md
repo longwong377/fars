@@ -28,3 +28,37 @@ download.blender.org, wikipedia, github.com release downloads. (Web *search/fetc
 | 14 | A published English translation of the inscriptions carved in the world, XPa, XPb, XPc, XPd, XPe, DPa–DPe, DPf (Elamite) and DPg (Babylonian), DNa and DNb (and DPh, shown for the sealed deposit), under a licence allowed by USE (public domain, e.g. H. C. Tolman, *Ancient Persian Lexicon and the Texts of the Achaemenidan Inscriptions*, 1908; or CC-BY/CC-BY-NC, e.g. the ORACC ARIo translations if their licence says so) | a PDF/text of the translation, with its licence | `data/sources/translations/` | The translation layer shows the transliteration of the version looked at (ARIo, CC0) and word glosses from the lexicons only. **Corrected in D-167:** the Livius.org translations were read in full (the GitHub scrape is reachable), but every Livius page says "All content copyright © 1995–2024 Livius.org. All rights reserved.", and the scrape's CC-BY-NC cannot relicense that, so §12 does not allow them in the build. ORACC (its ARIo translations) and archive.org (Tolman 1908) are blocked here; the ORACC ARIo CATF on GitHub holds no translations. No translation is paraphrased from memory (§4.1). BLOCKERS B17. |
 | 15 | The Persepolis Treasury texts in transliteration: Cameron, *Persepolis Treasury Tablets* (OIP 65, 1948), and Cameron, "Persepolis Treasury Tablets Old and New", JNES 17 (1958), and "New Tablets from the Persepolis Treasury", JNES 24 (1965) (ISAC publishes OIP 65 free as a PDF); optionally Bowman, *Aramaic Ritual Texts from Persepolis* (OIP 91, free PDF) | ISAC OIP pages | `data/sources/oip65.pdf`, `data/sources/oip91.pdf` | The tablets in the Treasury scribes' room carry a PLACEHOLDER text (B18): with these, a few dated Xerxes-year-19 payment texts can be impressed sign by sign (writing.json), and the chert vessels of the store can carry their ink texts. |
 | 16 | The plates of the Apadana delegations: Walser, *Die Völkerschaften auf den Reliefs von Persepolis* (1966), Taf. 5-30, and Schmidt, *Persepolis I* (OIP 68, 1953) pls. 27-49 (or dated, credited photographs of each delegation of the E stair) | a library copy / ISAC OIP 68 PDF | `data/sources/walser1966/`, `data/sources/oip68.pdf` | D-199 dressed the 23 delegations from a recollection of these plates (NOT SEEN): each people's headgear, garments, footwear and gifts (src/data/delegations.json), and the disputed rows XVII and XXI (Q-370) are to be checked row by row and raised from 'recollection' to a cited plate. |
+
+## Photographs of the site (expands #13; session 8). Optional; nothing is blocked without them
+They calibrate what has not changed since 467 BCE: the stone, the hills, the plain, the light. Content still comes from the
+scholarship. Drop them in `references/calibration/` (the calibration shots) or `references/photos/` (the rest), with one line
+each in `references/notes.md`: what, where you stood, and the licence.
+**Requirements:** original files with EXIF intact (date, time, GPS if possible; say if the camera clock was not on Iran time);
+no filters, HDR or "enhance"; ideally RAW or straight-from-camera JPEG, 12 MP or more. Your own photos, or CC0 / CC-BY /
+CC-BY-NC with author and URL. A grey card or colour checker in shots 1–4 is a bonus, not required.
+**Priority 1: the calibration scene (brief §8.1; blocked since session 1)**
+1. A standing column or column base in full sun, 5–10 m away, lit side and shade side both visible, some sky in frame.
+2. The Grand Stair's lower flight from its foot, in sun.
+3. A doorway with dark polished stone jambs (Tachara or Hadish) in sun, 3–5 m away.
+4. Any one of 1–3 again at a different time of day (morning vs afternoon), same spot.
+**Priority 2: stone surfaces (B40: how much the limestone really varies)**
+5. The Terrace's W retaining wall: one shot from 10–20 m, one from 1–2 m, in sun.
+6. Stair treads close (the worn centres and the ends).
+7. The dark polished door-frame stone close, showing its gloss and reflections.
+8. A column shaft's fluting close, and a fallen capital fragment.
+9. Reliefs in raking light at 0.5–2 m: a guard, a delegation figure, the lion-and-bull (Apadana E stair; early morning sun from
+   the E rakes it).
+10. Any surviving or restored mud-brick and mud plaster (Treasury, Area B, the Gate's walls).
+**Priority 3: landscape and sky**
+11. Kuh-e Rahmat from the Terrace: the whole slope (bedding, scree, shrubs), midday and near sunset.
+12. The Marvdasht plain looking W from the stair top, midday (April if you can choose).
+13. The ground at the Terrace foot close (earth, herbs, stones).
+14. Naqsh-e Rustam: the cliff from ~200 m and the rock surface close.
+15. The distant ranges at sunrise or sunset (first light colour, haze).
+16. An overcast or rainy sky over the plain.
+17. Snow on the Terrace, if you ever have it.
+**Priority 4: the Now view (the ruin today, out of world)**
+18. The Apadana's standing columns from the N court.
+19. The Gate of All Nations from the W (the stair top).
+20. The view from the stair top toward the Gate.
+**Also useful:** traditional mud-brick houses and courtyards in a Fars village (the town's houses are placeholders).
