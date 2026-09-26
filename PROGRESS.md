@@ -307,7 +307,7 @@
     - the full unit suite after the merge (the probe tests pass; the full suite passed before the merge);
     - the roof tops' self-shadowing after the roof fix.
 - **Photorealism is not established.** The §8.2 rubric review and the independent Phase 3 and Phase 4 reviews have not run. The §1.1 moments have not been re-rendered at high quality since the session 2 fixes.
-- **Calibration scene (§8.1):** blocked (NEEDS #13). Stone and light values are C estimates.
+- **Calibration scene (§8.1): built from photograph #24 (D-230; REVIEWS/calib24.md): geometry calibrates, photometry NOT matched** (BLOCKERS B55): the camera solves on the Terrace outline and the DEM skyline (corners rms 8.9 px, skyline 8 px); rig views calib-24 / calib-24-now render the frame at the photo's sun; the ratios (sun : shade 3.9 photo vs 7.0 render; sky, ground, mountain) differ for reasons the processed photo cannot separate (Lightroom grade, thin cloud, modern gravel). Light values stay C. The Now view's W portico columns re-placed from it (not re-rendered). Stone block tone re-set 17 → 13 % from the site photographs (B40 still not met: the rubric's range is weathered stone); merlons carry the double-rebated slot of photo #29 (rendered in stair-climb-pm and reliefs-raking).
 - **People (merged in session 3, D-090 to D-093):**
   - What changed: MakeHuman CC0 bodies in period dress replace the placeholder rigs. There are 5 built costumes with 4 LODs each; the crowd is pooled from the simulation, one instanced draw per costume per LOD.
   - Measured at high quality:
