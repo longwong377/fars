@@ -184,9 +184,10 @@ export function buildVillageMeshes(villages: Village[], terrain: Terrain, seed =
     const g = boxesMesh(bx, bx.length); tris += g.getAttribute('position').count / 3;
     const m = new THREE.Mesh(g, mat); m.name = 'plain-villages-' + key; m.castShadow = false; m.receiveShadow = true; // shadows switched on near the camera (index.ts)
     cellList.push({ mesh: m, centres: centres.get(key)! });
-    m.userData = tag(vu, 'village houses: courtyard compounds of mud brick (layout C, villages_unlocated.layout); positions: Barrington points (C, map-scale +-3 km) or placed by rule (C)');
+    m.userData = { ...tag(vu, 'village houses: courtyard compounds of mud brick (layout C, villages_unlocated.layout); positions: Barrington points (C, map-scale +-3 km) or placed by rule (C)'),
+      placeholder: true, placeholder_why: 'each compound is merged vertex-coloured boxes: no walls with thickness, doors, roofs, courts, ovens, pens, people or night light (audit B M6; MASTER_PLAN §6 order, step 1)' };
     group.add(m);
   }
-  group.userData = tag(vu);
+  group.userData = { ...tag(vu), placeholder: true, placeholder_why: 'village compounds are box massing (audit B M6)' };
   return { group, boxes, tris, compounds, cells: cellList };
 }

@@ -95,7 +95,8 @@ export function buildAjori(g: { c: P2; theta: number }, H: (e: number, n: number
   for (let u = -L + 0.6; u < L - 0.5; u += 2.2) for (const s of [-1, 1]) { box(u, u + 1.1, s * W - (s > 0 ? 0.9 : 0), s * W + (s < 0 ? 0.9 : 0), top, top + 0.7, false); box(u + 0.25, u + 0.85, s * W - (s > 0 ? 0.9 : 0), s * W + (s < 0 ? 0.9 : 0), top + 0.7, top + 1.2, false); }
   for (let v = -W + 2.8; v < W - 2.2; v += 2.2) for (const s of [-1, 1]) { box(s * L - (s > 0 ? 0.9 : 0), s * L + (s < 0 ? 0.9 : 0), v, v + 1.1, top, top + 0.7, false); box(s * L - (s > 0 ? 0.9 : 0), s * L + (s < 0 ? 0.9 : 0), v + 0.25, v + 0.85, top + 0.7, top + 1.2, false); }
   const bg = brick.toGeometry(); const bm = new THREE.Mesh(bg, surfaceMaterial('baked_brick')); bm.name = 'settlement:tol_ajori:body'; bm.castShadow = bm.receiveShadow = true; bm.matrixAutoUpdate = false;
-  bm.userData = { tier: 'B/C', src: 'TOLAJORI2017;AJORI-BRICK2018;AJORI2013', note: TIER_NOTE }; group.add(bm);
+  bm.userData = { tier: 'B/C', src: 'TOLAJORI2017;AJORI-BRICK2018;AJORI2013', note: TIER_NOTE, placeholder: true,
+    placeholder_why: 'box massing with box merlons: no brick courses, glazed-brick relief panels drawn as flat strips, no wear (audit B M6)' }; group.add(bm);
   // glazed panels: quads 4 cm proud of the façades (short sides, flanking the corridor mouths) and along the corridor
   // walls; uv.x repeats every 2.2 m (one animal), uv.y 0-0.5 dragon, 0.5-1 aurochs; animals face the passage
   const pos: number[] = [], nor: number[] = [], uvs: number[] = [], col: number[] = [], idx: number[] = [];
@@ -129,6 +130,6 @@ export function buildAjori(g: { c: P2; theta: number }, H: (e: number, n: number
   if (tex) { pm.colorNode = texture(tex.map, uv()).rgb.mul(attribute('color', 'vec3')); pm.normalMap = tex.normal; }
   else pm.colorNode = vec3(0.12, 0.28, 0.55).mul(float(1));
   const panels = new THREE.Mesh(pg, pm); panels.name = 'settlement:tol_ajori:glaze'; panels.receiveShadow = true; panels.matrixAutoUpdate = false;
-  panels.userData = { tier: 'B/C', src: 'TOLAJORI2017;WP-ISHTAR', note: PANEL_NOTE }; group.add(panels);
+  panels.userData = { tier: 'B/C', src: 'TOLAJORI2017;WP-ISHTAR', note: PANEL_NOTE, placeholder: true, placeholder_why: 'the glazed-brick panels are flat strips, not moulded relief bricks (audit B M6)' }; group.add(panels);
   return { group, tris: bg.index!.count / 3 + idx.length / 3, meshes: 2, colliders };
 }
