@@ -8,7 +8,9 @@ import { PLAIN, feature, pointInPolygon, settlementZones, distToPolyline } from 
 import { riverState, cropState, foliage, doyOf, MID_MONTH, MONTHS, CROP_ROWS, cropTable, YEAR } from '../src/world/plain/seasonal';
 import { plotAt, landUseAt, pcg, unit, checkMixes, IRR_STEPS, RAINFED_BARLEY, VINE_SHARE, buildZones, zoneAt } from '../src/world/plain/fields';
 import { buildCanals } from '../src/world/plain/canals';
-import { placeVillages, villageCompounds, compoundBoxes } from '../src/world/plain/villages';
+import { placeVillages } from '../src/world/plain/villages';
+import { doorOpenness } from '../src/world/settlement/towndoors';
+import { toLocal } from '../src/world/settlement/site';
 import { buildPlain, PlainBuild, PLAIN_QUALITY } from '../src/world/plain';
 import { panelText } from '../src/arch/inscription_text';
 import { buildMapLayers, builtPlainOf } from '../src/ui/mapLayers';
@@ -197,15 +199,19 @@ describe('walking the plain (terrain heightfield + lazy plain colliders)', () =>
     expect(minY).toBeGreaterThan(bedY - 0.4); // never fell through the carved trough
     expect(pl.maxFall).toBeLessThan(1);
   });
-  it('a village house wall stops the player', () => {
-    const v = P.data.villages.find(q => q.id === 'village_p01')!;
-    const c = villageCompounds(v, T, 1)[0], wall = compoundBoxes(c, T.heightAt(c.x, -c.y))[0]; // the N yard wall
-    const sa = Math.sin(c.angle), ca = Math.cos(c.angle), out = c.d / 2 + 10;
-    const e = c.x - sa * out, n = c.y + ca * out; // 10 m outside the N wall along the compound's +v axis
-    const yaw = Math.atan2(-sa, -ca); // walk along -v (world direction (sa, ca))
-    const { pl } = walk(e, n, yaw, 20);
-    const along = (pl.position.x - c.x) * -sa + (-pl.position.z - c.y) * ca; // position along +v from the compound centre
-    expect(along).toBeGreaterThan(c.d / 2 - 0.05); void wall;
+  it('a village house wall stops the player at its face, and an open gate lets a body through into the yard (D-254)', () => {
+    const vi = P.data.villages.findIndex(q => q.id === 'village_p01'), vh = P.villageHouses, S = vh.st[vi]; vh.ensure(vi);
+    const fr = S.fr.frame, rect = S.comps.map(c => { const [lu, lv] = toLocal(fr, c.x, c.y); return [lu - c.w / 2, lv - c.d / 2, lu + c.w / 2, lv + c.d / 2]; });
+    // a compound with open ground 12 m beyond its N wall and 8 m before its S wall (no neighbour in the way: the walk tests this wall)
+    const free = (ci: number, v0: number, v1: number) => rect.every((r, j) => j === ci || r[2] <= rect[ci][0] || r[0] >= rect[ci][2] || r[3] <= v0 || r[1] >= v1);
+    const day = 150, ci = S.comps.findIndex((c, i) => free(i, rect[i][3], rect[i][3] + 12) && free(i, rect[i][1] - 8, rect[i][1]) && doorOpenness(`${P.data.villages[vi].id}:${P.data.villages[vi].id}-c${i}`, 'house', day, 30) > 0.5);
+    expect(ci).toBeGreaterThanOrEqual(0); const c = S.comps[ci];
+    const sa = Math.sin(c.angle), ca = Math.cos(c.angle), yawN = Math.atan2(sa, ca), yawS = Math.atan2(-sa, -ca); // world yaws walking along +v and -v
+    const alongV = (p: THREE.Vector3) => (p.x - c.x) * -sa + (-p.z - c.y) * ca, alongU = (p: THREE.Vector3) => (p.x - c.x) * ca + (-p.z - c.y) * sa;
+    { const out = c.d / 2 + 10, u = (c.rooms[0].u0 + c.rooms[0].u1) / 2; const { pl } = walk(c.x + u * ca - sa * out, c.y + u * sa + ca * out, yawS, 20);
+      const v = alongV(pl.position); expect(v).toBeGreaterThan(c.d / 2 + 0.3); expect(v).toBeLessThan(c.d / 2 + 1.0); } // stopped at the wall's outer face (0.3 m out), not short of it
+    { const out = -c.d / 2 - 5, u = c.gateU; const { pl } = walk(c.x + u * ca - sa * out, c.y + u * sa + ca * out, yawN, 7);
+      expect(alongV(pl.position), 'through the gate').toBeGreaterThan(-c.d / 2 + 0.5); expect(Math.abs(alongU(pl.position) - c.gateU)).toBeLessThan(0.6); }
   });
   it('the Naqsh-e Rustam cliff face stops the player at its foot', () => {
     const fy = PLAIN.naqsh_e_rustam.cliff.face_y;

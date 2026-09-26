@@ -38,7 +38,8 @@ export function frameTriangles(root: THREE.Object3D, cam: THREE.PerspectiveCamer
     const inst = g.isInstancedBufferGeometry ? g.instanceCount : (m as any).isInstancedMesh ? (m as any).count : 1; return (Math.min(n, g.drawRange?.count ?? Infinity) / 3) * inst; };
   // draws: one per mesh with something to draw (a zero-instance draw is skipped: RenderObject.getDrawParameters), one per
   // visible BatchedMesh instance
-  const draws = (m: THREE.Mesh, t: number, cull: boolean) => (t <= 0 ? 0 : (m as any).isBatchedMesh ? batchedDraws(m, cull) : 1);
+  // (a mesh with geometry groups, one material each, is a draw per group: D-254's village near meshes)
+  const draws = (m: THREE.Mesh, t: number, cull: boolean) => (t <= 0 ? 0 : (m as any).isBatchedMesh ? batchedDraws(m, cull) : Math.max(1, (m.geometry as any).groups?.length ?? 0));
   const batchedDraws = (m: any, cull: boolean) => { let k = 0; for (let i = 0; i < m._instanceInfo.length; i++) { const ii = m._instanceInfo[i]; if (!ii.active || !ii.visible) continue;
     if (cull && m.perObjectFrustumCulled) { m.getBoundingSphereAt(ii.geometryIndex, sp); m.getMatrixAt(i, im); sp.applyMatrix4(im).applyMatrix4(m.matrixWorld); if (!fr.intersectsSphere(sp)) continue; } k++; } return k; };
   let main = 0, shadow = 0, calls = 0; const rows: { name: string; main: number; shadow: number; calls: number }[] = [];

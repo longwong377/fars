@@ -23,6 +23,8 @@ export interface WorldBuild {
   settle?(camera: THREE.Camera): Promise<void>;
   /** Phase 6: the lower town, gardens, Tol-e Ajori, roads (null with ?notown) */
   settlement?: Settlement | null;
+  /** Phase 7: the plain (D-254: its villages as built, with their gates) */
+  plain?: import('./plain').PlainBuild;
   /** working timber doors (D-051): E opens/closes the door faced; state saved with the world (main.ts, core/save.ts) */
   doors?: DoorSystem;
   /** the Now view (D-201; out-of-world, off by default): the ruin as it stands today; `keepBodies` is set by main (the player) */
@@ -169,19 +171,21 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // the halls' interiors: a fire's light stays on its side of their walls (D-216; manifest rooms [e, n, size e, size n, floor, height])
   fire.setRooms(Object.values(manifest).map((m: any) => m?.room).filter((r: any) => Array.isArray(r))
     .map(([cx, cy, sx, sy, fl, h]: number[]) => ({ x0: cx - sx / 2, x1: cx + sx / 2, z0: -cy - sy / 2, z1: -cy + sy / 2, y0: fl, y1: fl + h })));
-  // Phase 6 settlement: its hearths, ovens and kilns join the fire system before it builds (?notown leaves it out, for A/B budgets)
+  // Phase 6 settlement: its hearths, ovens and kilns join the fire system before it builds (?notown leaves it out, for A/B budgets;
+  // the plain's villages join it too, D-254: it builds after the plain)
   const noTown = typeof location !== 'undefined' && new URLSearchParams(location.search).has('notown');
   const settlement = noTown ? null : new Settlement(phys, terrain, fire, q); if (settlement) root.add(settlement.group);
   wmark('settlement');
-  fire.build(); root.add(fire.group);
-  wmark('fire.build');
   const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group);
   const shafts = new RainShafts(terrain); root.add(shafts.group); // distant rain cells approaching on the wind
   void QUALITY;
   // Phase 7: the Marvdasht plain (src/world/plain; plain.json): rivers, canals, fields, orchards, villages, Naqsh-e Rustam
   const plain = await buildPlain(scene, terrain, phys, { quality: q, seed, town: settlement?.plan ?? null,
-    camps: settings?.courtCalendar === 'seasonal' ? CAMPS.filter(c => c.id !== 'court').map(c => ({ c: c.c, r: c.r })) : [], drains: waterworks.plan.drains.map(d => ({ at: d.at as [number, number], n: d.n as [number, number] })) }); root.add(plain.group); // (D-199: the retinue's camps on trodden ground)
+    camps: settings?.courtCalendar === 'seasonal' ? CAMPS.filter(c => c.id !== 'court').map(c => ({ c: c.c, r: c.r })) : [], drains: waterworks.plan.drains.map(d => ({ at: d.at as [number, number], n: d.n as [number, number] })), fire }); root.add(plain.group); // (D-199: the retinue's camps on trodden ground)
   wmark('plain');
+  // (D-254: the fire system builds after the plain: the villages' hearths, ovens and lamps join it)
+  fire.build(); root.add(fire.group);
+  wmark('fire.build');
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
   const nav = await NavGrid.load(async p => (await fetch('/' + p)).arrayBuffer());
   wmark('nav');

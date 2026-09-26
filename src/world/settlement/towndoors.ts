@@ -52,15 +52,16 @@ export class TownDoors {
   private cols = new Map<number, any>(); private shown: number[][] = [[], [], []];
   private lastEye = new THREE.Vector3(1e9, 0, 0); private lastKey = '';
   readonly stats = { drawn: 0, shut: 0, colliders: 0 };
-  constructor(readonly doors: StreetDoor[], private phys: Physics | null) {
-    this.group.name = 'settlement:doors';
+  /** `variants`: how many leaf meshes (by the wood's age); the villages use one (D-254: a single draw, the plain's mesh budget) */
+  constructor(readonly doors: StreetDoor[], private phys: Physics | null, private variants = 3, name = 'settlement:doors') {
+    this.group.name = name;
     this.open = new Float32Array(doors.length).fill(-1); this.target = new Float32Array(doors.length); this.sched = new Float32Array(doors.length);
     const mat = surfaceMaterial('house_timber', { vertexColors: true }) as any; mat.aoNode = attribute('ao', 'float');
-    for (let v = 0; v < 3; v++) { const m = new THREE.InstancedMesh(leafGeometry(v), mat, MAXI); m.name = `settlement-doors:${v}`; m.count = 0; m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true;
+    for (let v = 0; v < variants; v++) { const m = new THREE.InstancedMesh(leafGeometry(variants === 1 ? 1 : v), mat, MAXI); m.name = `${name === 'settlement:doors' ? 'settlement-doors' : name}:${v}`; m.count = 0; m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true;
       m.userData = { tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'street door leaves (D-234)', describe: () => ({ tier: 'C', src: 'MESO-HOUSE-SX;RECON', note: 'street door: a leaf of poplar planks on battens, turning on a pivot post in a stone socket (B analogue: Babylonian doors on doorposts in sockets of brick or stone, search extract); shut and barred at night, open, ajar or shut by day by the household (C)' }) };
       this.meshes.push(m); this.group.add(m); }
   }
-  private variant(d: StreetDoor) { return d.wood < 0.35 ? 0 : d.wood < 0.7 ? 1 : 2; }
+  private variant(d: StreetDoor) { return this.variants === 1 ? 0 : d.wood < 0.35 ? 0 : d.wood < 0.7 ? 1 : 2; }
   /** the leaf's yaw at openness f */
   private yaw(d: StreetDoor, f: number) { let da = d.openYaw - d.closedYaw; da = ((da + Math.PI * 3) % (Math.PI * 2)) - Math.PI; return d.closedYaw + da * f; }
   update(dt: number, eye: THREE.Vector3, day: number, sunAlt: number, nearTile: (t: number) => boolean) {
@@ -72,7 +73,7 @@ export class TownDoors {
         this.target[i] = this.manual.get(i)?.to ?? sched; if (this.open[i] < 0) this.open[i] = this.target[i]; this.shown[this.variant(d)].push(i); }); }
     const M = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), pos = new THREE.Vector3(), scl = new THREE.Vector3(1, 1, 1);
     let shut = 0, drawn = 0;
-    for (let v = 0; v < 3; v++) { const m = this.meshes[v], list = this.shown[v]; let n = 0;
+    for (let v = 0; v < this.meshes.length; v++) { const m = this.meshes[v], list = this.shown[v]; let n = 0;
       for (const i of list) { if (n >= MAXI) break; const d = this.doors[i];
         const t = this.target[i], o = this.open[i]; if (o !== t) this.open[i] = Math.abs(t - o) < dt / 1.5 ? t : o + Math.sign(t - o) * dt / 1.5; // 1.5 s to swing
         q.setFromAxisAngle(up, this.yaw(d, this.open[i])); pos.set(d.hinge[0], d.y, -d.hinge[1]); scl.set(1, Math.min(1.02, d.h / (DOOR_H - 0.05)), 1); M.compose(pos, q, scl); // the leaf cut to its doorway's lintel m.setMatrixAt(n++, M);

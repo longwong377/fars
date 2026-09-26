@@ -4,12 +4,14 @@
 // or canal, >= 2 km apart (C). A Barrington point is used as given unless it falls where no village can stand (in a river
 // corridor, a settlement zone or on a slope); then the nearest suitable spot inside its uncertainty is used and the offset
 // is recorded. Layout inside each village is reconstruction (C): courtyard compounds of mud brick (villages_unlocated.layout).
-import * as THREE from 'three/webgpu';
+// D-254: the compounds are planned here (villageCompounds), rasterised once for the people and the drawn world alike
+// (villagesite.ts) and built as houses by the town's house generator (villagehouses.ts; settlement/houses.ts).
 import type { Terrain } from '../../terrain/heightfield';
-import { feature, pointInPolygon, settlementZones, PointIndex, RiverProfile, tag } from './data';
+import { feature, pointInPolygon, settlementZones, PointIndex, RiverProfile } from './data';
 import type { Canal } from './canals';
 import { Rng } from '../../core/rng';
-import { SURFACES, surfaceMaterial } from '../../render/materials';
+import { SURFACES } from '../../render/materials';
+import { h32, salt } from '../../people/hash';
 
 // village mud plaster on mud brick, unpainted (C): the Terrace's greyish yellow-green clay paint is not assumed here
 SURFACES.village_mud = { albedo: [0.56, 0.49, 0.38], roughness: 0.95, porosity: 0.85, noiseScale: 0.7, noiseAmp: 0.09, bump: { amp: 0.006, freq: 1.1 }, tier: 'C', note: 'village houses: mud plaster over mud brick, flat roofs of beams, reeds and mud (C)' };
@@ -18,7 +20,17 @@ export interface Village {
   id: string; name: string; x: number; y: number; pop: number; r: number; tier: string; src: string; note: string;
   located: boolean; /** metres moved from the data point to stand on suitable ground */ moved: number; chrono: string;
 }
-export interface Compound { x: number; y: number; w: number; d: number; angle: number; rooms: { u0: number; v0: number; u1: number; v1: number; h: number }[]; gate: number; seed: number }
+/** a room of a compound (compound-local metres, whole metres from the compound's corner) */
+export interface CRoom { u0: number; v0: number; u1: number; v1: number; h: number }
+/** a doorway: the midpoint of its 1 m edge (compound-local); `along` the axis its wall runs along */
+export interface CDoor { u: number; v: number; along: 'u' | 'v' }
+/** a courtyard compound (D-254): centre (grid e, n), sides w (along the village grid's x) and d, the village's angle; the
+ *  rooms, their doors onto the court, the animal pen and its door, the gate in the S wall (gateU: its centre; `gate` the
+ *  same as a fraction of w − 3, as read before D-254), the wing's side (−1 W, +1 E, 0 none) and the compound's seed */
+export interface Compound { x: number; y: number; w: number; d: number; angle: number; rooms: CRoom[]; gate: number; gateU: number; seed: number;
+  doors: CDoor[]; pen: { u0: number; v0: number; u1: number; v1: number }; penDoor: CDoor; wing: -1 | 0 | 1; fittings: CFitting[] }
+/** a household's fitting (compound-local centre; `rot` the direction it faces, radians CCW from local +u; in the yard or the pen) */
+export interface CFitting { kind: 'oven' | 'hearth' | 'bin' | 'jar' | 'manger'; u: number; v: number; rot: number; size: number; pen: boolean; note: string }
 
 export function placeVillages(terrain: Terrain, rivers: RiverProfile[], canals: Canal[], seed = 1): Village[] {
   const zones = settlementZones();
@@ -77,117 +89,160 @@ export function placeVillages(terrain: Terrain, rivers: RiverProfile[], canals: 
   return out;
 }
 
-/** courtyard compounds of one village (C layout: villages_unlocated.layout) */
+/** the smallest compound side (m) a crowded village keeps when a compound is shrunk to leave a lane (C) */
+export const COMPOUND_MIN = 11;
+/** the lane left between two compounds (m; >= 2 cells, Q-670's rule for the town's lanes, C) */
+export const LANE_MIN = 2;
+/** courtyard compounds of one village (C layout: villages_unlocated.layout). D-254: every compound stands on the village's
+ *  1 m grid (the village frame: centre (v.x, v.y), turned by the village's angle), its sides whole metres, so the people's
+ *  raster (villagesite.ts) and the drawn walls are one plan; compounds never overlap (a lane of >= LANE_MIN m between them:
+ *  a compound that would crowd a neighbour is shrunk, else the ground is left open). Each compound's plan: a range of rooms
+ *  along the N side split into two or three rooms, a wing along the E or W side (55 %, C), an animal pen in a S corner, the
+ *  gate in the S wall, a door from each room onto the court. The random stream of the village (placement, sizes, the gate
+ *  and the seed) is drawn as before D-254; the plan inside draws from the compound's own seed. */
 export function villageCompounds(v: Village, terrain: Terrain, seed = 1): Compound[] {
+  // (memoised: the plain, the people, the animals and the tools all ask for the same plan; callers do not change it)
+  const key = `${v.id}|${seed}|${v.x}|${v.y}|${v.r}|${v.pop}`; const hit = PLANS.get(key); if (hit) return hit;
+  const out = planCompounds(v, seed); PLANS.set(key, out); void terrain; return out;
+}
+const PLANS = new Map<string, Compound[]>();
+function planCompounds(v: Village, seed: number): Compound[] {
   const lay = feature('villages_unlocated').layout;
   const rng = new Rng(seed, 'village-' + v.id);
   const want = Math.max(4, Math.round(v.pop / lay.household_size));
   const spacing = Math.sqrt((Math.PI * v.r * v.r) / want); // one compound per grid cell of the settled disc
   const angle = rng.range(0, Math.PI / 2);
   const ca = Math.cos(angle), sa = Math.sin(angle);
-  const cells: { x: number; y: number; d: number }[] = [];
+  const cells: { u: number; w: number; d: number }[] = [];
   const R = v.r * 1.15, m = Math.ceil(R / spacing);
   for (let i = -m; i <= m; i++) for (let j = -m; j <= m; j++) {
     const u = (i + rng.range(-0.18, 0.18)) * spacing, w = (j + rng.range(-0.18, 0.18)) * spacing;
-    const x = v.x + u * ca - w * sa, y = v.y + u * sa + w * ca;
     const edge = v.r * (0.85 + 0.3 * Math.sin(Math.atan2(w, u) * 3 + v.x * 0.001)); // lobed outline
     const d = Math.hypot(u, w); if (d > edge) continue;
-    cells.push({ x, y, d });
+    cells.push({ u, w, d });
   }
   cells.sort((a, b) => a.d - b.d);
-  const out: Compound[] = [];
+  const out: Compound[] = [], taken: [number, number, number, number][] = []; // integer rects [U0, V0, U1, V1) in the village frame
   for (const c of cells.slice(0, want)) {
     if (rng.chance(0.08)) continue; // lanes widen into small open spaces
     const cw = Math.min(spacing - 3, rng.range(lay.compound_m[0], lay.compound_m[1])), cd = Math.min(spacing - 3, rng.range(lay.compound_m[0], lay.compound_m[1]));
     const rd = rng.range(lay.room_depth_m[0], lay.room_depth_m[1]), rh = rng.range(lay.room_height_m[0], lay.room_height_m[1]);
-    const a = angle + rng.range(-0.08, 0.08);
-    // rooms along the side away from the sun's winter path (grid N side ~ true NNW; C) and sometimes a second wing
-    const rooms = [{ u0: -cw / 2, v0: cd / 2 - rd, u1: cw / 2, v1: cd / 2, h: rh }];
-    if (rng.chance(0.55)) { const side = rng.chance(0.5) ? -1 : 1; rooms.push({ u0: side < 0 ? -cw / 2 : cw / 2 - rd * 0.9, v0: -cd / 2 + 1.5, u1: side < 0 ? -cw / 2 + rd * 0.9 : cw / 2, v1: cd / 2 - rd, h: rh - 0.2 }); }
-    out.push({ x: c.x, y: c.y, w: cw, d: cd, angle: a, rooms, gate: rng.range(-0.3, 0.3), seed: rng.int(0, 1e9) });
+    rng.range(-0.08, 0.08); // (each compound's own small turn before D-254: drawn to keep the village's stream, not used)
+    const wing: -1 | 0 | 1 = rng.chance(0.55) ? (rng.chance(0.5) ? -1 : 1) : 0;
+    const gate = rng.range(-0.3, 0.3), cseed = rng.int(0, 1e9);
+    // on the grid, clear of the compounds already placed
+    let W = Math.max(COMPOUND_MIN, Math.round(cw)), D = Math.max(COMPOUND_MIN, Math.round(cd)), U0 = Math.round(c.u - W / 2), V0 = Math.round(c.w - D / 2), ok = false;
+    for (let t = 0; t < 32; t++) {
+      const hit = taken.find(r => U0 < r[2] + LANE_MIN && U0 + W > r[0] - LANE_MIN && V0 < r[3] + LANE_MIN && V0 + D > r[1] - LANE_MIN);
+      if (!hit) { ok = true; break; }
+      const ox = Math.min(U0 + W, hit[2] + LANE_MIN) - Math.max(U0, hit[0] - LANE_MIN), oy = Math.min(V0 + D, hit[3] + LANE_MIN) - Math.max(V0, hit[1] - LANE_MIN);
+      if (ox <= oy) { if ((hit[0] + hit[2]) / 2 < U0 + W / 2) U0 += ox; W -= ox; } else { if ((hit[1] + hit[3]) / 2 < V0 + D / 2) V0 += oy; D -= oy; }
+      if (W < COMPOUND_MIN || D < COMPOUND_MIN) break;
+    }
+    if (!ok) continue;
+    taken.push([U0, V0, U0 + W, V0 + D]);
+    const lu = U0 + W / 2, lw = V0 + D / 2;
+    out.push({ x: v.x + lu * ca - lw * sa, y: v.y + lu * sa + lw * ca, w: W, d: D, angle, ...compoundPlan(W, D, rd, rh, wing, gate, cseed), seed: cseed });
   }
-  void terrain;
   return out;
 }
 
-// ---------------------------------------------------------------- geometry and colliders
-export interface Box { cx: number; cy: number; cz: number; hx: number; hy: number; hz: number; rot: number; roof: boolean; /** a timber door leaf (drawn dark, no collider) */ door?: boolean }
-/** boxes of one compound (world frame; rot about +y): yard walls with a gate gap, room blocks with flat roofs. Every box
- *  reaches 0.6 m below the ground at the compound centre, so gentle slopes do not show a gap. */
-export function compoundBoxes(c: Compound, groundY: number): Box[] {
-  const lay = feature('villages_unlocated').layout, t = lay.wall_m as number, wh = lay.yard_wall_h_m as number;
-  const ca = Math.cos(c.angle), sa = Math.sin(c.angle), out: Box[] = [];
-  const add = (u0: number, v0: number, u1: number, v1: number, h: number, roof: boolean, door = false, base = -0.6) => {
-    const u = (u0 + u1) / 2, v = (v0 + v1) / 2, x = c.x + u * ca - v * sa, y = c.y + u * sa + v * ca;
-    out.push({ cx: x, cy: groundY + (h + base) / 2, cz: -y, hx: Math.abs(u1 - u0) / 2, hy: (h - base) / 2, hz: Math.abs(v1 - v0) / 2, rot: c.angle, roof, door });
-  };
-  const W = c.w / 2, D = c.d / 2, g = c.gate * (c.w - 3), gw = 1.4;
-  add(-W, D - t, W, D, wh, false); add(-W, -D + t, -W + t, D - t, wh, false); add(W - t, -D + t, W, D - t, wh, false); // N, W, E walls
-  add(-W, -D, g - gw / 2, -D + t, wh, false); add(g + gw / 2, -D, W, -D + t, wh, false); // S wall with the gate
-  for (const [k, r] of c.rooms.entries()) {
-    add(r.u0, r.v0, r.u1, r.v1, r.h, true);
-    // a door on the courtyard side (0.9 x 1.8 m timber leaf, C): the main range opens south, a wing opens toward the yard
-    const du = (c.seed % 7) / 7 - 0.5;
-    if (k === 0) { const u = (r.u0 + r.u1) / 2 + du * (r.u1 - r.u0) * 0.6; add(u - 0.45, r.v0 - 0.05, u + 0.45, r.v0 + 0.02, 1.8, false, true, 0); }
-    else { const v = (r.v0 + r.v1) / 2, inner = r.u0 < 0 ? r.u1 : r.u0, s = r.u0 < 0 ? 1 : -1; add(Math.min(inner, inner + s * 0.05), v - 0.45, Math.max(inner, inner + s * 0.05), v + 0.45, 1.8, false, true, 0); }
+/** a compound's plan in whole metres (compound-local: u along the village grid's x, v along its y, the gate in the S wall
+ *  at v = −d/2; C throughout, the region's courtyard house by analogy: rooms along the side that faces the winter sun,
+ *  research/PLAIN.md) */
+function compoundPlan(W: number, D: number, rd: number, rh: number, wingSide: -1 | 0 | 1, gate: number, seed: number): Pick<Compound, 'rooms' | 'gate' | 'gateU' | 'doors' | 'pen' | 'penDoor' | 'wing' | 'fittings'> {
+  const r = new Rng(seed, 'village-rooms');
+  const U = (a: number) => -W / 2 + a, V = (b: number) => -D / 2 + b; // cell-edge index -> compound-local metres
+  const rdI = Math.min(5, Math.max(3, Math.round(rd + r.range(-0.5, 0.5))));
+  const rooms: CRoom[] = [], doors: CDoor[] = [];
+  // the wing: its width, where it starts from the S wall
+  let wing: -1 | 0 | 1 = wingSide, wb0 = r.pick([0, 0, 2, 3]);
+  const wd = Math.min(5, Math.max(3, rdI - (r.chance(0.5) ? 1 : 0)));
+  // the pen: in the S corner away from the wing (C)
+  const ps: -1 | 1 = wing ? (-wing as -1 | 1) : (r.chance(0.5) ? -1 : 1);
+  let pw = r.int(3, 5); const pd = Math.max(3, Math.min(r.int(3, 4), D - rdI - 4));
+  if (wing && wb0 === 0 && W - pw - wd < 5) wb0 = 2; // leave the S wall room for the gate
+  if (wing && D - rdI - wb0 < 3) wing = 0;
+  if (W - pw - (wing && wb0 === 0 ? wd : 0) < 5) pw = 3;
+  // the main range (N side), in two or three rooms of >= 4 m
+  const nMain = W >= 17 ? (r.chance(0.6) ? 3 : 2) : W >= 10 ? 2 : 1, cuts = [0];
+  for (let k = 1; k < nMain; k++) cuts.push(Math.round((W * k) / nMain + r.range(-1, 1)));
+  cuts.push(W);
+  const wingCols = (a: number) => wing === -1 ? a < wd : wing === 1 ? a >= W - wd : false;
+  for (let k = 0; k < nMain; k++) {
+    const a0 = cuts[k], a1 = cuts[k + 1]; rooms.push({ u0: U(a0), v0: V(D - rdI), u1: U(a1), v1: V(D), h: rh });
+    // its door onto the court: a column clear of the room's own ends and of the wing (a wall meeting a jamb narrows it)
+    const cand: number[] = []; for (let a = a0 + 1; a <= a1 - 2; a++) if (!wingCols(a) && !wingCols(a - 1) && !wingCols(a + 1)) cand.push(a);
+    if (cand.length) { const a = cand[Math.min(cand.length - 1, Math.floor(cand.length * (0.3 + 0.4 * r.next())))]; doors.push({ u: U(a) + 0.5, v: V(D - rdI), along: 'u' }); }
+    // a room the wing shuts off the court opens into the next room of the range (a door in the partition, clear of its ends)
+    else doors.push({ u: U(k + 1 < nMain ? a1 : a0), v: V(D - rdI + 1 + Math.floor((rdI - 2) * r.next())) + 0.5, along: 'v' });
   }
+  if (wing) {
+    const b0 = wb0, b1 = D - rdI, au = wing === -1 ? U(0) : U(W - wd), av = wing === -1 ? U(wd) : U(W), face = wing === -1 ? U(wd) : U(W - wd);
+    const split = b1 - b0 >= 8 ? b0 + Math.round((b1 - b0) / 2) : -1, spans = split > 0 ? [[b0, split], [split, b1]] : [[b0, b1]];
+    for (const [s0, s1] of spans) { rooms.push({ u0: au, v0: V(s0), u1: av, v1: V(s1), h: rh });
+      const cand: number[] = []; for (let b = s0 + 1; b <= s1 - 2; b++) cand.push(b);
+      if (cand.length) { const b = cand[Math.floor(cand.length * r.next())]; doors.push({ u: face, v: V(b) + 0.5, along: 'v' }); } }
+  }
+  const pen = { u0: ps === -1 ? U(0) : U(W - pw), v0: V(0), u1: ps === -1 ? U(pw) : U(W), v1: V(pd) };
+  const penDoor: CDoor = { u: (ps === -1 ? U(1) : U(W - pw + 1)) + Math.floor((pw - 2) * r.next()) + 0.5, v: V(pd), along: 'u' };
+  // the gate: the drawn fraction along the S wall, kept clear of the pen, of a wing that reaches the wall and of the corners
+  const left = ps === -1 ? pw : wing === -1 && wb0 === 0 ? wd : 0, right = ps === 1 ? pw : wing === 1 && wb0 === 0 ? wd : 0;
+  const a = Math.min(W - right - 2, Math.max(left + 1, Math.round(W / 2 + gate * (W - 3) - 0.5))), gateU = U(a) + 0.5;
+  return { rooms, doors, pen, penDoor, gateU, gate: gateU / (W - 3), wing, fittings: planFittings(W, D, rooms, pen, [...doors, penDoor], a, seed) };
+}
+
+/** the household's fittings in its yard and pen, on the compound's own 1 m grid (C, deterministic per compound seed): the
+ *  bread oven in a corner of the yard, the hearth before the rooms, one or two storage bins and a few jars against the
+ *  walls, the manger in the pen; never in a doorway's way (the cells either side of every door and their neighbours stay
+ *  free), each pushed off the walls it stands against so that its body clears their faces (a wall stands on the cell edge,
+ *  up to 0.3 m of it on this side) */
+function planFittings(W: number, D: number, rooms: CRoom[], pen: Compound['pen'], doors: CDoor[], gateA: number, seed: number): CFitting[] {
+  const r = new Rng(seed, 'village-fittings'), code = new Int8Array(W * D); // 0 yard, 1 room, 2 pen
+  const cellsOf = (q: { u0: number; v0: number; u1: number; v1: number }, c: number) => { for (let b = Math.round(q.v0 + D / 2); b < Math.round(q.v1 + D / 2); b++) for (let a = Math.round(q.u0 + W / 2); a < Math.round(q.u1 + W / 2); a++) code[b * W + a] = c; };
+  for (const q of rooms) cellsOf(q, 1); cellsOf(pen, 2);
+  const at = (a: number, b: number) => a < 0 || b < 0 || a >= W || b >= D ? -1 : code[b * W + a];
+  const near = new Set<number>(), mark = (a: number, b: number) => { for (const [da, db] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) { const x = a + da, y = b + db; if (x >= 0 && y >= 0 && x < W && y < D) near.add(y * W + x); } };
+  for (const d of doors) { if (d.along === 'u') { const a = Math.floor(d.u + W / 2), b = Math.round(d.v + D / 2); mark(a, b - 1); mark(a, b); } else { const a = Math.round(d.u + W / 2), b = Math.floor(d.v + D / 2); mark(a - 1, b); mark(a, b); } }
+  mark(gateA, 0);
+  type WC = { a: number; b: number; walls: [number, number][]; corner: boolean; facade: boolean };
+  const wallCells = (c: number): WC[] => { const out: WC[] = [];
+    for (let b = 0; b < D; b++) for (let a = 0; a < W; a++) { if (code[b * W + a] !== c || near.has(b * W + a)) continue; const walls: [number, number][] = []; let facade = false;
+      for (const [da, db] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as [number, number][]) { const x = at(a + da, b + db); if (x !== c) { walls.push([da, db]); if (x === 1) facade = true; } }
+      if (walls.length) out.push({ a, b, walls, corner: walls.length >= 2, facade }); }
+    return out; };
+  const out: CFitting[] = [], pos = (x: WC): [number, number] => [-W / 2 + x.a + 0.5, -D / 2 + x.b + 0.5];
+  const clear = (x: WC, m: number) => { const [u, v] = pos(x); return out.every(f => Math.hypot(f.u - u, f.v - v) >= m); };
+  const pick = (list: WC[]) => list.length ? list[Math.floor(r.next() * list.length)] : null;
+  const add = (kind: CFitting['kind'], x: WC, rad: number, size: number, note: string, along = false) => {
+    const push = Math.max(0, 0.3 + rad - 0.5); let [u, v] = pos(x); for (const [du, dv] of x.walls) { u -= du * push; v -= dv * push; }
+    out.push({ kind, u, v, rot: Math.atan2(x.walls[0][1], x.walls[0][0]) + (along ? Math.PI / 2 : 0), size, pen: kind === 'manger', note }); };
+  const yard = wallCells(0);
+  // 1. the bread oven (tannur): a clay cylinder in a corner of the yard, fired with dung cakes and brushwood before dawn (C: the
+  //    tannur is the region's bread oven by analogy; every household bakes its own, D-207)
+  const oven = pick(yard.filter(x => x.corner && !x.facade)) ?? pick(yard.filter(x => !x.facade)) ?? pick(yard);
+  if (oven) add('oven', oven, 0.44, 1, 'a bread oven (tannur): a clay cylinder in a corner of the yard, fired before dawn (C; the region\'s oven by analogy)');
+  // 2. the hearth: before the rooms, where the household cooks in the warm months (C)
+  const hearth = pick(yard.filter(x => x.facade && clear(x, 2.2))) ?? pick(yard.filter(x => clear(x, 2.2)));
+  if (hearth) add('hearth', hearth, 0.55, 1, 'the household\'s hearth in the yard before the rooms: a ring of stones, the cooking pot and bowls (C)');
+  // 3. storage: one or two mud bins for the grain and a few jars against the yard walls (C: bins of unbaked clay, the region's
+  //    village storage by analogy; jars: PF ration units, B existence)
+  const nb = r.int(1, 2); for (let q = 0; q < nb; q++) { const x = pick(yard.filter(y => !y.facade && clear(y, 1.3))); if (x) add('bin', x, 0.36, r.range(0.85, 1.1), 'a storage bin of unbaked clay for the grain, lidded, against the yard wall (C)'); }
+  const nj = r.int(1, 3); for (let q = 0; q < nj; q++) { const x = pick(yard.filter(y => clear(y, 0.8))); if (x) add('jar', x, 0.27, r.range(0.8, 1.1), 'a storage jar: water, oil or grain (jars as ration units: PF, B; form C)'); }
+  // 4. the pen: a mud manger along its wall (C)
+  const pc = wallCells(2).filter(x => clear(x, 1)), mx = pick(pc.filter(y => !y.corner)) ?? pick(pc);
+  if (mx) add('manger', mx, 0.32, 1, 'a mud manger along the pen\'s wall; dung trodden into the floor (C)', true);
   return out;
 }
-/** the corners of a box in world coordinates: local u along the compound's grid-x, v along grid-y (world z = -y) */
-const corner = (b: Box, su: number, sy: number, sv: number): THREE.Vector3 => {
-  const ca = Math.cos(b.rot), sa = Math.sin(b.rot), u = su * b.hx, v = sv * b.hz;
-  return new THREE.Vector3(b.cx + u * ca - v * sa, b.cy + sy * b.hy, b.cz - (u * sa + v * ca));
-};
-const DOOR = new THREE.Color().setRGB(0.2, 0.15, 0.1, THREE.SRGBColorSpace);
-/** merged mesh of many boxes (5 faces each, no bottom), vertex-coloured walls and roofs, outward normals */
-export function boxesMesh(boxes: Box[], seed: number): THREE.BufferGeometry {
-  const pos: number[] = [], nor: number[] = [], col: number[] = [];
-  const wall = new THREE.Color(), roof = new THREE.Color(); let k = seed >>> 0;
-  const rnd = () => { k = (Math.imul(k, 1664525) + 1013904223) >>> 0; return k / 4294967296; };
-  const FACES: [number, number, number][][] = [ // [su, sy, sv] corners of the five faces
-    [[-1, 1, -1], [1, 1, -1], [1, 1, 1], [-1, 1, 1]],
-    [[-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]], [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1]],
-    [[1, -1, -1], [1, -1, 1], [1, 1, 1], [1, 1, -1]], [[-1, -1, -1], [-1, -1, 1], [-1, 1, 1], [-1, 1, -1]]];
-  for (const b of boxes) {
-    const v = rnd() * 0.08 - 0.04; wall.setRGB(0.56 + v, 0.49 + v, 0.38 + v * 0.8, THREE.SRGBColorSpace); roof.setRGB(0.5 + v, 0.45 + v, 0.37 + v, THREE.SRGBColorSpace);
-    const centre = new THREE.Vector3(b.cx, b.cy, b.cz);
-    FACES.forEach((f, fi) => {
-      let q = f.map(([su, sy, sv]) => corner(b, su, sy, sv));
-      const fc = q.reduce((a, p) => a.add(p), new THREE.Vector3()).multiplyScalar(0.25);
-      let n = q[1].clone().sub(q[0]).cross(q[3].clone().sub(q[0])).normalize();
-      if (n.dot(fc.sub(centre)) < 0) { q = [q[0], q[3], q[2], q[1]]; n.negate(); }
-      const cl = b.door ? DOOR : fi === 0 && b.roof ? roof : wall;
-      for (const p of [q[0], q[1], q[2], q[0], q[2], q[3]]) { pos.push(p.x, p.y, p.z); nor.push(n.x, n.y, n.z); col.push(cl.r, cl.g, cl.b); }
-    });
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  g.computeBoundingSphere();
-  return g;
-}
-export interface VillageBuild { group: THREE.Group; boxes: Map<string, Box[]>; tris: number; compounds: number; /** per cell mesh: the centres (world x, z) of its villages, for switching shadows on near the camera */ cells: { mesh: THREE.Mesh; centres: [number, number][] }[] }
-/** all villages: one merged mesh per 8 km cell (a few draw calls, frustum-culled per cell); boxes kept for lazy colliders */
-export function buildVillageMeshes(villages: Village[], terrain: Terrain, seed = 1): VillageBuild {
-  const group = new THREE.Group(); group.name = 'plain-villages';
-  const mat = surfaceMaterial('village_mud', { vertexColors: true });
-  const cells = new Map<string, Box[]>(), boxes = new Map<string, Box[]>(), centres = new Map<string, [number, number][]>(); let tris = 0, compounds = 0;
-  const cellList: VillageBuild['cells'] = [];
-  for (const v of villages) {
-    const cs = villageCompounds(v, terrain, seed); compounds += cs.length;
-    const bx: Box[] = [];
-    for (const c of cs) bx.push(...compoundBoxes(c, terrain.heightAt(c.x, -c.y)));
-    boxes.set(v.id, bx);
-    const key = `${Math.floor(v.x / 8000)},${Math.floor(v.y / 8000)}`; if (!cells.has(key)) { cells.set(key, []); centres.set(key, []); } cells.get(key)!.push(...bx); centres.get(key)!.push([v.x, -v.y]);
-  }
-  const vu = feature('villages_unlocated');
-  for (const [key, bx] of cells) {
-    const g = boxesMesh(bx, bx.length); tris += g.getAttribute('position').count / 3;
-    const m = new THREE.Mesh(g, mat); m.name = 'plain-villages-' + key; m.castShadow = false; m.receiveShadow = true; // shadows switched on near the camera (index.ts)
-    cellList.push({ mesh: m, centres: centres.get(key)! });
-    m.userData = { ...tag(vu, 'village houses: courtyard compounds of mud brick (layout C, villages_unlocated.layout); positions: Barrington points (C, map-scale +-3 km) or placed by rule (C)'),
-      placeholder: true, placeholder_why: 'each compound is merged vertex-coloured boxes: no walls with thickness, doors, roofs, courts, ovens, pens, people or night light (audit B M6; MASTER_PLAN §6 order, step 1)' };
-    group.add(m);
-  }
-  group.userData = { ...tag(vu), placeholder: true, placeholder_why: 'village compounds are box massing (audit B M6)' };
-  return { group, boxes, tris, compounds, cells: cellList };
+
+/** the threshing floor's radius (m; C: the region's floors by analogy, RECOLLECTION) */
+export const THRESH_R = 7;
+/** the threshing floor of a village (the people's `threshing:<village>` place, popgeo.ts): a round floor of beaten earth
+ *  with a kerb of fieldstones at the village's edge, beyond its compounds, where the grain is trodden out and winnowed (C).
+ *  The bearing is the people's own hash of the village (as since D-143); the distance keeps it clear of every compound */
+export function threshingFloor(v: { id: string; x: number; y: number; r: number }, comps: { x: number; y: number; w: number; d: number }[], seed = 1): [number, number] {
+  const a = (h32(seed, salt('popgeo-village'), salt(v.id)) / 4294967296) * Math.PI * 2;
+  let ext = 0; for (const c of comps) ext = Math.max(ext, Math.hypot(c.x - v.x, c.y - v.y) + Math.hypot(c.w, c.d) / 2);
+  const d = Math.max(v.r + 45, ext + THRESH_R + 12);
+  return [v.x + Math.cos(a) * d, v.y + Math.sin(a) * d];
 }
