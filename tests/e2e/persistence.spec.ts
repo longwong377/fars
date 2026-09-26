@@ -45,7 +45,12 @@ test('persistence: autosave on a timer and when hidden, IndexedDB, a byte-identi
   let diff = Math.abs(A.length - B.length); for (let i = 0; i < Math.min(A.length, B.length); i++) if (A[i] !== B[i]) diff++;
   const systems = { people: !!before.s.npc?.people?.agents?.length, memory: !!before.s.npc?.people?.memory, relations: !!before.s.npc?.people?.relations, events: Array.isArray(before.s.npc?.people?.events),
     routes: Array.isArray(before.s.npc?.people?.routes), visitor: !!before.s.npc?.visitor, doors: !!before.s.doors, clock: typeof before.s.clockT === 'number', weather: !!before.s.weatherOverride, player: !!before.s.player };
-  evidence('T-H3r', diff, 1, { unit: 'bytes', bytes: A.length, systems, population_sample_equal: JSON.stringify(before.pop) === JSON.stringify(after.pop), people_equal: JSON.stringify(before.people) === JSON.stringify(after.people) });
+  // the paths that differ (session 9: a character count alone shifts after the first difference): up to 20, with both values
+  const paths: string[] = []; const walk = (a: any, b: any, p: string) => { if (paths.length >= 20) return; if (JSON.stringify(a) === JSON.stringify(b)) return;
+    if (a && b && typeof a === 'object' && typeof b === 'object') { for (const k of new Set([...Object.keys(a), ...Object.keys(b)])) walk(a[k], b[k], p + '.' + k); return; }
+    paths.push(`${p}: ${JSON.stringify(a)?.slice(0, 80)} → ${JSON.stringify(b)?.slice(0, 80)}`); };
+  walk({ ...before.s, savedAt: '' }, { ...after.s, savedAt: '' }, '');
+  evidence('T-H3r', diff, 1, { diff_paths: paths, unit: 'bytes', bytes: A.length, systems, population_sample_equal: JSON.stringify(before.pop) === JSON.stringify(after.pop), people_equal: JSON.stringify(before.people) === JSON.stringify(after.people) });
   expect(diff, 'save → load → save byte differences').toBe(0);
   for (const [k, v] of Object.entries(systems)) expect(v, `the save holds ${k}`).toBe(true);
   expect(after.people).toEqual(before.people);
