@@ -30,6 +30,11 @@ download.blender.org, wikipedia, github.com release downloads. (Web *search/fetc
 | 16 | The plates of the Apadana delegations: Walser, *Die Völkerschaften auf den Reliefs von Persepolis* (1966), Taf. 5-30, and Schmidt, *Persepolis I* (OIP 68, 1953) pls. 27-49 (or dated, credited photographs of each delegation of the E stair) | a library copy / ISAC OIP 68 PDF | `data/sources/walser1966/`, `data/sources/oip68.pdf` | D-199 dressed the 23 delegations from a recollection of these plates (NOT SEEN): each people's headgear, garments, footwear and gifts (src/data/delegations.json), and the disputed rows XVII and XXI (Q-370) are to be checked row by row and raised from 'recollection' to a cited plate. |
 
 ## Photographs of the site (expands #13; session 8). Optional; nothing is blocked without them
+**THE EASY VERSION (the user's choice; enough to be useful):** download 10–30 ordinary daytime photos of Persepolis from
+Wikimedia Commons (category "Persepolis"; our proxy blocks it, a normal browser does not) or use your own holiday photos:
+the columns and stairs, the relief carvings close up, the Gate of All Nations, the mountain behind the Terrace, the plain,
+Naqsh-e Rustam. Unedited if possible. Drop them in `references/photos/` and paste each Commons page link into
+`references/notes.md` (that link is the licence record). Nothing else is needed; the detailed list below is optional.
 They calibrate what has not changed since 467 BCE: the stone, the hills, the plain, the light. Content still comes from the
 scholarship. Drop them in `references/calibration/` (the calibration shots) or `references/photos/` (the rest), with one line
 each in `references/notes.md`: what, where you stood, and the licence.
