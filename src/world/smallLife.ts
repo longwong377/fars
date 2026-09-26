@@ -12,7 +12,7 @@
 //    Apr-Oct, still for long spells, dashing a metre or two now and then (C).
 // No creature flies in rain or wind over 8 m/s (C). One InstancedMesh per kind (4 draws, none while empty; no shadows).
 import * as THREE from 'three/webgpu';
-import { attribute, positionLocal, sin, float, vec3, abs, uniform } from 'three/tsl';
+import { attribute, positionLocal, sin, float, vec3, abs, uniform, mix } from 'three/tsl';
 import type { P2 } from '../people/navgrid';
 
 export type SmallKind = 'fly' | 'dragonfly' | 'butterfly' | 'lizard';
@@ -24,6 +24,15 @@ export const SMALL = {
   lizard: { name: 'rock agama', months: [3, 4, 5, 6, 7, 8, 9], hours: [9, 17] as [number, number], ctx: ['rock', 'steppe'] as CellCtx[], p: 0.3, per: [1, 1] as [number, number], max: 40, span: 0, length: 0.3, flapHz: 0, colour: [0.46, 0.41, 0.33] as [number, number, number] },
 } as const;
 const BUTTERFLY_COLOURS: [number, number, number][] = [[0.92, 0.91, 0.86], [0.92, 0.91, 0.86], [0.93, 0.78, 0.25], [0.86, 0.5, 0.2]];
+/** session 9 (G71): the flowers near the walker, within FLOWER_R: per bloom colour its species' head colour, stem height
+ *  and share of a blooming cell (C: SMALL-R); on rock in April, tulips and a few crown imperials (tall, orange) */
+export const FLOWERS = {
+  violet: { name: 'iris, grape hyacinth', rgb: [0.3, 0.2, 0.55] as [number, number, number], h: [0.08, 0.25] as [number, number] },
+  yellow: { name: 'buttercup, gagea, crucifers', rgb: [0.85, 0.72, 0.12] as [number, number, number], h: [0.06, 0.2] as [number, number] },
+  red: { name: 'poppy, anemone, pheasant\'s eye; tulip on rock', rgb: [0.72, 0.07, 0.05] as [number, number, number], h: [0.15, 0.45] as [number, number] },
+  crown: { name: 'crown imperial (Fritillaria imperialis)', rgb: [0.85, 0.38, 0.08] as [number, number, number], h: [0.6, 0.9] as [number, number] },
+} as const;
+export const FLOWER_R = 20, FLOWER_MAX = 900;
 export const CELL = 8, R = 36;
 const TAG = { tier: 'C', src: 'SMALL-R' };
 
@@ -70,6 +79,17 @@ function lizardGeometry(): THREE.BufferGeometry {
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); g.setAttribute('wing', new THREE.BufferAttribute(W, 1)); g.setIndex(idx); return g;
 }
 
+/** a flower: a stem (two crossed thin quads, 1 m tall, scaled per instance) and a head (three crossed quads 4 cm across at the
+ *  top); vertex attribute `head` = 1 on the head, 0 on the stem */
+function flowerGeometry(): THREE.BufferGeometry {
+  const P: number[] = [], H: number[] = [], N: number[] = [];
+  const quad = (a: number[], b: number[], c: number[], d: number[], h: number) => { P.push(...a, ...b, ...c, ...a, ...c, ...d); for (let i = 0; i < 6; i++) { H.push(h); N.push(0, 1, 0); } };
+  const w = 0.004; quad([-w, 0, 0], [w, 0, 0], [w, 1, 0], [-w, 1, 0], 0); quad([0, 0, -w], [0, 0, w], [0, 1, w], [0, 1, -w], 0);
+  const r = 0.022; for (let k = 0; k < 3; k++) { const a = k * Math.PI / 3, c = Math.cos(a) * r, d = Math.sin(a) * r; quad([-c, 1 - r * 0.6, -d], [c, 1 - r * 0.6, d], [c, 1 + r * 0.9, d], [-c, 1 + r * 0.9, -d], 1); }
+  quad([-r, 1, -r], [r, 1, -r], [r, 1, r], [-r, 1, r], 1);
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); g.setAttribute('head', new THREE.Float32BufferAttribute(H, 1)); return g;
+}
+
 export interface SmallWorld {
   /** the walkable/visible ground height at a grid point (world y) */ ground(e: number, n: number): number;
   /** the context of a grid point */ ctxAt(e: number, n: number): CellCtx;
@@ -82,7 +102,7 @@ export class SmallLife {
   private pose: SmallPose = { e: 0, n: 0, up: 0, heading: 0, flap: 0, visible: false };
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private e = new THREE.Euler(0, 0, 0, 'YXZ'); private p = new THREE.Vector3(); private c = new THREE.Color();
   private fled = new Map<number, number>();
-  stats = { fly: 0, dragonfly: 0, butterfly: 0, lizard: 0, cells: 0 };
+  stats = { fly: 0, dragonfly: 0, butterfly: 0, lizard: 0, cells: 0, flowers: 0 };
   constructor(private seed: number, private world: SmallWorld) {
     this.group.name = 'wildlife-small';
     const geos: Record<SmallKind, THREE.BufferGeometry> = { fly: wingedGeometry(SMALL.fly.span, SMALL.fly.length, 0.005, 1), dragonfly: wingedGeometry(SMALL.dragonfly.span, SMALL.dragonfly.length, 0.011, 2), butterfly: wingedGeometry(SMALL.butterfly.span, SMALL.butterfly.length, 0.03, 1), lizard: lizardGeometry() };
@@ -97,6 +117,43 @@ export class SmallLife {
       mesh.userData = { ...TAG, note: `${sp.name}: ${k === 'lizard' ? 'basking and dashing' : 'flight'} procedural, around the viewer only (C)` };
       this.meshes.set(k, mesh); this.group.add(mesh);
     }
+    { // the flowers: one mesh, the head's colour per instance (`fcol`), the stem green; the stem is scaled to the flower's height
+      const g = flowerGeometry(), fcol = new THREE.InstancedBufferAttribute(new Float32Array(FLOWER_MAX * 3), 3), fh = new THREE.InstancedBufferAttribute(new Float32Array(FLOWER_MAX), 1);
+      g.setAttribute('fcol', fcol); g.setAttribute('fh', fh);
+      const m = new THREE.MeshStandardNodeMaterial({ roughness: 0.8, side: THREE.DoubleSide });
+      m.colorNode = mix(vec3(0.16, 0.24, 0.07), attribute('fcol', 'vec3'), attribute('head', 'float'));
+      // the stem stretches to the flower's height (`fh`), the head keeps its size on top of it
+      const hd = attribute('head', 'float'), H = attribute('fh', 'float');
+      m.positionNode = vec3(positionLocal.x, mix(positionLocal.y.mul(H), positionLocal.y.sub(1).add(H), hd), positionLocal.z);
+      const mesh = new THREE.InstancedMesh(g, m, FLOWER_MAX); mesh.count = 0; mesh.frustumCulled = false; mesh.castShadow = mesh.receiveShadow = false; mesh.name = 'small-flower';
+      mesh.userData = { ...TAG, note: `spring flowers near the walker: ${Object.values(FLOWERS).map(f => f.name).join('; ')} (C; bloom by day of year, seasonal.ts bloomAt)` };
+      this.flowers = mesh; this.group.add(mesh);
+    }
+  }
+  flowers!: THREE.InstancedMesh;
+  /** the flowers within FLOWER_R of the viewer: in each field/steppe cell a bloom colour's heads where its patch hash falls
+   *  under today's bloom (so a cell blooms in its season and fades out of it), 10-30 heads per cell; on rock tulips (red) and
+   *  in April a crown imperial now and then. Static positions from (seed, cell, index) */
+  private updateFlowers(viewer: P2, bloom: { violet: number; yellow: number; red: number }, month: number) {
+    const fcol = this.flowers.geometry.getAttribute('fcol') as THREE.InstancedBufferAttribute, fh = this.flowers.geometry.getAttribute('fh') as THREE.InstancedBufferAttribute; let n = 0;
+    const i0 = Math.floor((viewer[0] - FLOWER_R) / CELL), i1 = Math.floor((viewer[0] + FLOWER_R) / CELL), j0 = Math.floor((viewer[1] - FLOWER_R) / CELL), j1 = Math.floor((viewer[1] + FLOWER_R) / CELL);
+    if (bloom.violet + bloom.yellow + bloom.red > 0.02) for (let ix = i0; ix <= i1; ix++) for (let iy = j0; iy <= j1; iy++) {
+      if (Math.hypot((ix + 0.5) * CELL - viewer[0], (iy + 0.5) * CELL - viewer[1]) > FLOWER_R) continue;
+      const cx = this.ctx(ix, iy); if (cx !== 'field' && cx !== 'steppe' && cx !== 'rock') continue;
+      for (const kind of ['violet', 'yellow', 'red'] as const) {
+        if (u01(this.seed, ix, iy, kind.length, 21) > bloom[kind] * (cx === 'field' ? 0.12 : 0.28)) continue; // fields: only their verges bloom
+        const heads = 10 + (h32(this.seed, ix, iy, kind.length, 22) % 21), ox = (ix + u01(this.seed, ix, iy, 23)) * CELL, oy = (iy + u01(this.seed, ix, iy, 24)) * CELL;
+        for (let i = 0; i < heads && n < FLOWER_MAX; i++) {
+          const crown = cx === 'rock' && kind === 'red' && month === 3 && i === 0 && u01(this.seed, ix, iy, 25) < 0.3, sp = crown ? FLOWERS.crown : FLOWERS[kind];
+          const a = u01(this.seed, ix, iy, i, 26) * 6.2832, d = 2.2 * Math.sqrt(u01(this.seed, ix, iy, i, 27)), e = ox + Math.cos(a) * d, nn = oy + Math.sin(a) * d;
+          const y = this.world.ground(e, nn); if (!Number.isFinite(y)) continue;
+          const h = sp.h[0] + (sp.h[1] - sp.h[0]) * u01(this.seed, ix, iy, i, 28), lean = (u01(this.seed, ix, iy, i, 29) - 0.5) * 0.3;
+          this.e.set(lean, a, 0); this.q.setFromEuler(this.e); this.p.set(e, y, -nn); this.m4.compose(this.p, this.q, ONE);
+          this.flowers.setMatrixAt(n, this.m4); fcol.setXYZ(n, ...sp.rgb); fh.setX(n, h); n++;
+        }
+      }
+    }
+    this.flowers.count = n; if (n) { this.flowers.instanceMatrix.needsUpdate = true; fcol.needsUpdate = true; fh.needsUpdate = true; } this.stats.flowers = n;
   }
   private ctx(ix: number, iy: number): CellCtx {
     const key = (ix + 32768) * 65536 + (iy + 32768); let c = this.cells.get(key);
@@ -104,8 +161,9 @@ export class SmallLife {
     return c;
   }
   /** month 0 = January; hour local; t world seconds; the viewer's grid position; rain 0-1; wind m/s */
-  update(month: number, hour: number, t: number, viewer: P2, rain: number, windMs: number) {
+  update(month: number, hour: number, t: number, viewer: P2, rain: number, windMs: number, bloom?: { violet: number; yellow: number; red: number }) {
     this.uTime.value = t % 10000;
+    this.updateFlowers(viewer, bloom ?? { violet: 0, yellow: 0, red: 0 }, month);
     const counts: Record<SmallKind, number> = { fly: 0, dragonfly: 0, butterfly: 0, lizard: 0 };
     const i0 = Math.floor((viewer[0] - R) / CELL), i1 = Math.floor((viewer[0] + R) / CELL), j0 = Math.floor((viewer[1] - R) / CELL), j1 = Math.floor((viewer[1] + R) / CELL);
     const live = (Object.keys(SMALL) as SmallKind[]).filter(k => { const sp = SMALL[k]; return (sp.months as readonly number[]).includes(month) && hour >= sp.hours[0] && hour <= sp.hours[1] && rain < 0.15 && (k === 'lizard' || windMs < 8); });

@@ -6331,6 +6331,13 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Bats** (wildlife.ts BIRDS.bat, `batAt`): 16 pipistrelles, Mar-Oct, from 20 min after the month's sunset (SUNSET_BY_MONTH at
   30 deg N, 17.3 h in December to 19.2 h in June, C) for about two hours, hawking loops of 5-12 m, 3-10 m up, jinking every half
   second, half over the courts and half over the water within 5 km.
+- **Spring flowers** (G71; seasonal.ts `bloomAt`, BLOOM uniforms): violet (irises, grape hyacinths) and yellow (buttercups,
+  gageas, crucifers) from early March into April, red (poppies, anemones, pheasant's eye; tulips on rock) from April through May
+  (windows by day of year, C: the Zagros foothill flora as the lead recalls it, SMALL-R). Far: the plain's terrain shader tints
+  the uncultivated ground and the bunds in patches ~40-80 m across (about a fifth of the ground at a colour's peak), specks of
+  heads under ~8 cm a pixel and their mean beyond. Near (within 20 m): 10-30 heads a blooming cell (28 % of steppe and rock cells
+  at peak, 12 % of field cells: the verges), stems 6-45 cm, and in April now and then a crown imperial (0.6-0.9 m, orange) on
+  rock. One more InstancedMesh (`small-flower`, up to 900 heads). No flowering trees or shrubs (almond blossom: not done).
 - **Puddles only on level ground** (materials.ts `finish`): the beasts renders (day 12, clear after rain) showed puddles lying on
   the hillsides of the SW steppe: the puddle mask used the up-facing term (slopes up to ~33 %). Now it takes `level`
   (smoothstep 0.996-0.9995 of the normal's y: water stands on slopes under ~3 %, none past ~9 %); floors, courts, roofs and the

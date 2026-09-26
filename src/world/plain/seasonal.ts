@@ -28,6 +28,16 @@ export function monthly(values: readonly number[], doy: number): number {
 }
 
 const smooth = (a: number, b: number, x: number) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+
+/** session 9 (WORLD_INVENTORY G71): the spring flowers of the uncultivated ground and the field verges, by day of year (C:
+ *  the Zagros foothill flora as the lead recalls it, SMALL-R): violet (irises, grape hyacinths) and yellow (buttercups,
+ *  gageas, crucifers) from early March into April, red (poppies, anemones, pheasant's eye; tulips on the rocky slopes) from
+ *  April through May; each 0-1 (the share of its peak) */
+export const BLOOM_WINDOWS = { violet: [59, 85, 112], yellow: [50, 88, 122], red: [92, 120, 152] } as const;
+export function bloomAt(doy: number): { violet: number; yellow: number; red: number } {
+  const bump = ([a, m, b]: readonly number[]) => doy <= a || doy >= b ? 0 : doy < m ? smooth(a, m, doy) : 1 - smooth(m, b, doy);
+  return { violet: bump(BLOOM_WINDOWS.violet), yellow: bump(BLOOM_WINDOWS.yellow), red: bump(BLOOM_WINDOWS.red) };
+}
 /** cyclic distance-aware window: 1 between doy a and b (a may be > b across the new year), with soft edges of width e */
 function window(doy: number, a: number, b: number, e: number) {
   const inside = (x: number) => { const aa = a, bb = b < a ? b + YEAR : b; const xx = x < aa - e ? x + YEAR : x; return smooth(aa - e, aa, xx) * (1 - smooth(bb, bb + e, xx)); };

@@ -18,7 +18,7 @@
 //    gentle ground, and shrubs (pistachio-almond, B pollen; C placement), more in the gullies and on shaded slopes.
 import * as THREE from 'three/webgpu';
 import { Fn, uniform, positionWorld, normalWorld, attribute, vec2, vec3, vec4, float, uint, int, ivec2, floor, fract, min, max, mix, step, smoothstep, length, fwidth, textureLoad, texture, abs, sin, cos, clamp, color, mx_noise_float, sqrt, dot } from 'three/tsl';
-import { surfaceMaterial, NOISE_FRAME, SEASON, type Layer } from '../../render/materials';
+import { surfaceMaterial, NOISE_FRAME, SEASON, BLOOM, type Layer } from '../../render/materials';
 import { DISTRICT, SALT, STRIP, ZONE, ZoneMap, IRR_STEPS, IRR_FALLOW_SPREAD, ROTATION, VINE_SHARE, pcg } from './fields';
 import { CROP_ROWS, YEAR, cropTable, cropState, PLOT_OFFSET_DAYS, foliage } from './seasonal';
 import { GROUND, PATH_W, LUSH_MAX } from './townGround';
@@ -286,6 +286,15 @@ export class PlainGround {
       plotAlb = mix(plotAlb, mix(soil.mul(1.05), lin(0.36, 0.40, 0.2), 0.45), bund.mul(0.85));
       plotAlb = mix(plotAlb, soil.mul(1.15).add(vec3(0.02, 0.018, 0.012)), track.mul(0.9));
       let alb: any = mix(albIn, plotAlb, M);
+      // session 9 (G71): the spring flowers on the uncultivated ground and the bunds: violet and yellow in March-April, red
+      // (poppies, anemones) in April-May (BLOOM, seasonal.ts bloomAt; C). Each colour in its own patches ~40-80 m across over
+      // about a fifth of the ground at its peak; inside a patch the heads are specks near (3-4 per m) and their mean far
+      { const wild = float(1).sub(M).add(bund.mul(0.8)).min(1);
+        const patch = (o: number, amt: any) => smoothstep(0.58, 0.72, mx_noise_float(vec3(p.x.mul(0.017).add(o), o * 0.37, p.y.mul(0.017))).mul(0.5).add(0.5)).mul(amt);
+        const headsNear = float(1).sub(smoothstep(0.08, 0.25, fw)); // a head spans a few pixels only under ~8 cm a pixel
+        const speckF = (o: number) => mix(float(0.35), step(0.62, mx_noise_float(vec3(p.x.mul(3.7).add(o), o, p.y.mul(3.7))).mul(0.5).add(0.5)), headsNear);
+        const fl = (o: number, amt: any, c: any) => { alb = mix(alb, c, patch(o, amt).mul(speckF(o)).mul(wild).mul(0.75)); };
+        fl(11.3, BLOOM.violet, lin(0.24, 0.16, 0.42)); fl(27.9, BLOOM.yellow, lin(0.78, 0.66, 0.12)); fl(53.1, BLOOM.red, lin(0.62, 0.06, 0.04)); }
       // --- trampled ground and worn paths (the town, the Terrace foot): packed bare earth, the herbs trodden and grazed off,
       // dung and straw litter near; a path is a band of PATH_W m, box-filtered over the pixel (a faint line far away)
       // D-223 (the render of stair-noon-plain: the ground within ~200 m of the Terrace, which fills the lower half of the frame,

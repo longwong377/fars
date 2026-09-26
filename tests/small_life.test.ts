@@ -3,7 +3,8 @@
 // someone comes within 3 m.
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three/webgpu';
-import { SmallLife, SMALL, CELL, dartAt, smallAt, type CellCtx, type SmallPose } from '../src/world/smallLife';
+import { SmallLife, SMALL, CELL, FLOWERS, FLOWER_R, dartAt, smallAt, type CellCtx, type SmallPose } from '../src/world/smallLife';
+import { bloomAt, MID_MONTH } from '../src/world/plain/seasonal';
 import { BIRDS, batHours, batAt, SUNSET_BY_MONTH, type BirdPose } from '../src/world/wildlife';
 
 // a test world: a midden at the origin, a canal edge along n = 40, rock E of e = 60, fields W of e = -40, steppe between
@@ -50,5 +51,23 @@ describe('the small life (session 9)', () => {
     expect(SUNSET_BY_MONTH[5] - SUNSET_BY_MONTH[11]).toBeGreaterThan(1.7); // June vs December at 30 N (C)
     const p: BirdPose = { pos: new THREE.Vector3(), heading: 0, bank: 0, flap: 0, visible: false };
     for (let t = 0; t < 300; t += 1.3) { batAt([0, 0], 0, 11, t, p); expect(p.pos.y).toBeGreaterThan(1); expect(p.pos.y).toBeLessThan(12.5); expect(Math.hypot(p.pos.x, p.pos.z)).toBeLessThan(16); }
+  });
+  it('the spring flowers bloom by the calendar: violet and yellow in March, red in May, nothing in winter or summer (G71)', () => {
+    const at = (m: number) => bloomAt(MID_MONTH[m]);
+    expect(at(0)).toEqual({ violet: 0, yellow: 0, red: 0 }); expect(at(6)).toEqual({ violet: 0, yellow: 0, red: 0 });
+    expect(at(2).violet).toBeGreaterThan(0.5); expect(at(2).yellow).toBeGreaterThan(0.5); expect(at(2).red).toBe(0);
+    expect(at(4).red).toBeGreaterThan(0.5); expect(at(4).violet).toBe(0);
+  });
+  it('flowers near the walker in spring only, heads of the species colours, fewer in the fields (their verges) than on the steppe', () => {
+    const s = mk(), ape = bloomAt(MID_MONTH[3]);
+    s.update(3, 12, 1000, [0, 0], 0, 2, ape); const steppe = s.flowers.count; expect(steppe).toBeGreaterThan(20);
+    s.update(3, 12, 1000, [-200, 0], 0, 2, ape); const field = s.flowers.count; expect(field).toBeLessThan(steppe);
+    s.update(6, 12, 1000, [0, 0], 0, 2, bloomAt(MID_MONTH[6])); expect(s.flowers.count).toBe(0);
+    s.update(3, 12, 1000, [0, 0], 0, 2, ape);
+    const col = s.flowers.geometry.getAttribute('fcol'), fh = s.flowers.geometry.getAttribute('fh');
+    const M = new THREE.Matrix4(), v = new THREE.Vector3();
+    for (let i = 0; i < s.flowers.count; i++) { expect(Object.values(FLOWERS).some(f => f.rgb.every((c, k) => Math.abs(c - [col.getX(i), col.getY(i), col.getZ(i)][k]) < 1e-4)), `flower ${i} colour`).toBe(true);
+      expect(fh.getX(i)).toBeGreaterThan(0.05); expect(fh.getX(i)).toBeLessThan(0.95);
+      s.flowers.getMatrixAt(i, M); v.setFromMatrixPosition(M); expect(Math.hypot(v.x, v.z)).toBeLessThan(FLOWER_R + CELL * 1.5); }
   });
 });

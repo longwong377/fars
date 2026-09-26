@@ -27,6 +27,8 @@ import { RAIN_CELL } from '../sky/clouds';
 export const WEATHER = { wetness: uniform(0), snow: uniform(0), puddles: uniform(0), snowLine: uniform(9000) };
 /** seasonal ground cover (0..1): green = living herb layer, dry = standing straw/stubble (set per frame from the date; season.ts) */
 export const SEASON = { green: uniform(0.8), dry: uniform(0.1) };
+/** session 9 (G71): the spring flowers' bloom today, 0-1 each (seasonal.ts bloomAt) */
+export const BLOOM = { violet: uniform(0), yellow: uniform(0), red: uniform(0) };
 /** the masons' yard's dressing waste on the court fill (D-188; set by the construction view, src/world/construction.ts):
  *  `rect` = the yard (world x0, z0, x1, z1), `amount` = how much is being dressed there (0 none … 1), `work` = a block
  *  being carved (world x, z, radius, 0/1). Stone chips 4× denser and a film of limestone dust (C: dressing on site is B,

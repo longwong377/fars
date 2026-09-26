@@ -104,6 +104,8 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // June dusk against the western sky (flies and agamas are a few pixels at most at this size: verified by test, not by eye)
   { n: 'small-spring-field', day: 12, hour: 11, w: 'clear', v: [-800, 200, 1.6, 251, -6], fov: 35 },
   { n: 'small-dusk-bats', day: 60, hour: 19.75, w: 'clear', v: [0, 90, 1.6, 270, 18], fov: 50 },
+  // G71: poppies at their peak (mid-May: day 30) on the uncultivated ground and bunds W of the Terrace, near and far
+  { n: 'flowers-may', day: 30, hour: 10, w: 'clear', v: [-800, 200, 1.6, 251, -10], fov: 50 },
   // session 9: the planets (src/sky/planets.ts): Mercury and Venus 0.5° apart in the evening twilight of day 29, 13° up at true
   // azimuth 291° over the plain (tools/dev/planets_467.ts), from the Terrace's W edge
   { n: 'planets-dusk', day: 29, hour: 19.5, w: 'clear', v: [-36, 125, 1.6, 291, 8], fov: 40 },
