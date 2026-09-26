@@ -6593,3 +6593,13 @@ moment-*-webgpu.png in the worktree, not committed).**
   more than 0.4 m over the far ring's ground (the floating tufts of the beasts-lions render); tests/far_corridor.test.ts. The
   raised corridor itself stays B83. Walnut and juniper (G69, G70) deferred: each new species grows the tree kit's impostor
   atlas baked at load, against the session's load-time work (D-248), for a tree seen in gardens and on the high slopes only.
+
+## D-274 The Moon added to the sky, not painted over it; earthshine at ~1/1000 (session 9; the planets-dusk render)
+- **What was wrong:** the planets-dusk render showed the young Moon (phase angle 20°, 7.9° up at dusk) as a grey 7 px smudge. The
+  Moon was drawn opaque over the sky with a fixed dark-side floor of ~0.025 (1/50 of the lit crescent): against a dusk sky
+  brighter than that, the unlit disc replaced the sky with a grey patch; in the eclipse render the umbra showed black.
+- **Now** (skySystem.ts): the Moon is drawn additively after the sky and the stars (the airlight in front of the Moon lights the
+  whole disc; the Moon's own light adds to it); earthshine is ~1/1000 of the lit part × (1 − the lit fraction), a cold tint (C);
+  a star behind the disc (within 0.265°) is hidden in the star shader. Not masked: a planet or a meteor behind the Moon (a lunar
+  occultation of a planet would show the planet through the disc: rare).
+- **Unverified on screen:** planets-moon-tele and the T-J5 planets-dusk at the player's lens are queued after this commit.

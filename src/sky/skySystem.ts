@@ -118,6 +118,8 @@ export class SkySystem {
   private uSunAlt = uniform(45); private uMoonAlt = uniform(-10);
   /** session 9: today's halo strength (halo.ts haloAmount; set by the caller before update) */
   private uHalo = uniform(0); halo = 0;
+  /** session 9: earthshine on the Moon's dark part, ~1/1000 of its lit part, strongest near new moon */
+  private uEarthshine = uniform(0.001);
   private uSunDirW = uniform(new THREE.Vector3(0, 1, 0)); private uMoonDirW = uniform(new THREE.Vector3(0, -1, 0));
   /** the terrain horizon's visibility of the sun's disc at the eye (0..1; 1 without a map); the eye's adaptation and the
    *  ground bounce use it here; main.ts's exposure and the probes' eye test can read it (sunVisibilityAt for any point) */
@@ -220,14 +222,17 @@ export class SkySystem {
     }
     // moon: disc of 0.52° apparent diameter, shaded by the true sun direction (phase)
     const moonR = Math.tan((0.26 * Math.PI) / 180) * DOME * 0.9;
-    const mm = new THREE.MeshBasicNodeMaterial({ fog: false, depthWrite: false, depthTest: false });
+    // session 9 (the planets-dusk render: the young Moon a grey smudge): the Moon ADDS to the sky drawn before it (the air in front
+    // of the Moon lights the whole disc, its dark part included) instead of replacing it; the stars behind the disc are masked in
+    // their own shader. Earthshine: ~1/1000 of the lit crescent, strongest near new moon (C), not a fixed floor of 1/50
+    const mm = new THREE.MeshBasicNodeMaterial({ fog: false, depthWrite: false, depthTest: false, transparent: false, blending: THREE.AdditiveBlending });
     const lit = max(dot(normalWorld, this.uMoonSun), float(0));
     // a lunar eclipse (session 9, T-J5): each point of the disc lit by the part of the Sun it sees past the Earth; in the
     // umbra only the red light the Earth's atmosphere bends in (ephemeris.ts; geometry A/B, the umbra's colour and depth C)
     const dSh = length(normalize(positionWorld.sub(cameraPosition)).sub(this.uShadowW)); // chord ≈ angle for small angles
     const tSh = clamp(dSh.sub(this.uShadow.x).div(this.uShadow.y.sub(this.uShadow.x)), 0, 1);
     const eclipse = mix(vec3(1, 1, 1), mix(vec3(...UMBRA_RGB).mul(UMBRA_BRIGHTNESS), vec3(1, 1, 1), tSh), this.uShadow.z);
-    mm.colorNode = vec4(vec3(0.95, 0.93, 0.88).mul(lit.mul(1.2)).add(vec3(0.02, 0.025, 0.035)).mul(eclipse), 1);
+    mm.colorNode = vec4(vec3(0.95, 0.93, 0.88).mul(lit.mul(1.2)).add(vec3(0.8, 1.0, 1.4).mul(this.uEarthshine)).mul(eclipse), 1);
     this.moon = new THREE.Mesh(new THREE.SphereGeometry(moonR, 32, 16), mm);
     this.moon.frustumCulled = false; this.moon.renderOrder = -8;
     scene.add(this.moon);
@@ -236,7 +241,9 @@ export class SkySystem {
     geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(3), 3));
     const pm = new THREE.PointsNodeMaterial({ transparent: false, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false, fog: false, sizeAttenuation: false }); // opaque pass (drawn first by renderOrder, covered by architecture), additive so faint stars never darken the sky
     const bright = attribute('bright', 'float'), tint = attribute('tint', 'vec3');
-    pm.colorNode = vec4(tint.mul(bright).mul(this.uNight), 1);
+    // (a star behind the Moon's disc is hidden: 0.265 deg, the disc's radius; session 9, the Moon now drawn additively)
+    const behindMoon = step(float(Math.cos((0.265 * Math.PI) / 180)), dot(normalize(positionWorld.sub(cameraPosition)), this.uMoonDirW));
+    pm.colorNode = vec4(tint.mul(bright).mul(this.uNight).mul(float(1).sub(behindMoon)), 1);
     pm.sizeNode = float(1.0).add(bright.mul(1.5));
     this.stars = new THREE.Points(geo, pm);
     this.stars.frustumCulled = false; this.stars.renderOrder = -9;
@@ -312,7 +319,7 @@ export class SkySystem {
     // terrain horizon (D-156): re-bake the sun's atlas after 0.1° of azimuth (the moon's after 0.2°, while it is up); the
     // eye's own visibility of the sun and the moon (the adaptation and the ground bounce below)
     this.sunAz = s.azimuth; this.moonAz = mo.azimuth;
-    this.uSunAlt.value = s.altitude; this.uHalo.value = s.altitude > 0 ? this.halo : 0; this.uSunDirW.value.copy(this.state.sunDir); this.uMoonAlt.value = mo.altitude; this.uMoonDirW.value.copy(this.state.moonDir);
+    this.uSunAlt.value = s.altitude; this.uHalo.value = s.altitude > 0 ? this.halo : 0; this.uEarthshine.value = 1.2 * 0.001 * (1 - ph.fraction); this.uSunDirW.value.copy(this.state.sunDir); this.uMoonAlt.value = mo.altitude; this.uMoonDirW.value.copy(this.state.moonDir);
     let eyeMoon = 1;
     { const H = this.horizonMap, dAz = (a: number, b: number) => Math.abs(((a - b + 540) % 360) - 180);
       if (H) {

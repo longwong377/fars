@@ -37,3 +37,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-271 | s9 | alfalfa and flax (lead) | claude/amazing-fermi-40ds7j | in flight |
 | D-272 | s9 | roses in the paradise (lead) | claude/amazing-fermi-40ds7j | in flight |
 | D-273 | s9 | roof timber arriving (lead) | claude/amazing-fermi-40ds7j | in flight |
+| D-274 | s9 | the Moon drawn additively; earthshine (lead) | claude/amazing-fermi-40ds7j | in flight |
