@@ -294,7 +294,8 @@ describe('the plain as built (headless): budgets, tiers, chronology', () => {
     expect(missing).toEqual([]); expect(placeholders).toBeGreaterThan(0);
   });
   it('F3 on the quarries names the site hit with its own tier: Majdabad C (map-scale position), Sivand B (+-100 m) if built (D-228)', () => {
-    let m: THREE.Mesh | null = null; P.group.traverse(o => { if ((o as THREE.Mesh).isMesh && o.name === 'plain-quarries') m = o as THREE.Mesh; });
+    // D-257: the quarries' faces are the first part of the plain's one stone mesh, the fords' ('plain-stone')
+    let m: THREE.Mesh | null = null; P.group.traverse(o => { if ((o as THREE.Mesh).isMesh && o.name === 'plain-stone') m = o as THREE.Mesh; });
     if (!m) throw new Error('no quarry mesh'); m = m as THREE.Mesh; expect(m.userData.tier).toBe('C');
     const n = m.geometry.getAttribute('position').count / 3, seen = new Map<string, string>();
     for (let f = 0; f < n; f++) { const d = m.userData.describe({ faceIndex: f }); expect(d, `face ${f}`).toBeTruthy(); seen.set(d.note.split(':')[0], d.tier); }

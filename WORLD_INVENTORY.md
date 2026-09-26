@@ -53,7 +53,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 
 | # | gap | found by (row ids) | category | tier of presence in 467 | status |
 |---|---|---|---|---|---|
-| G1 | river crossing: ford or bridge where the roads meet the Pulvar and the Kur | A061; B-022, W-014 | transport | C | MISSING/PARTIAL |
+| G1 | river crossing: ford or bridge where the roads meet the Pulvar and the Kur | A061; B-022, W-014 | transport | C | BUILT (D-257: 51 fords on roads and tracks; the Pasargadae road redrawn off the river); unrendered |
 | G2 | villages as real places (compounds are solid boxes; ovens, pens, courts, night light) | A072; B-023 | settlement | C | MISSING/PARTIAL |
 | G3 | snowline: snow on Kuh-e Rahmat and the Zagros skyline in winter | A401; B-031, W-053 | weather | B | MISSING/PARTIAL |
 | G4 | frost, hoarfrost and ice at dawn (44 frost days) | A402; W-006, W-011 | weather | A | MISSING/PARTIAL |
@@ -158,7 +158,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GA20 | rope and basket making (partial) | A500 | crafts | C | MISSING/PARTIAL |
 | GA21 | felt making | A501 | crafts | C | MISSING/PARTIAL |
 | GA22 | threshing sledge | A509 | farming | B analogy | MISSING/PARTIAL |
-| GA23 | boats or rafts at the crossings | A519 | transport | C | MISSING/PARTIAL |
+| GA23 | boats or rafts at the crossings | A519 | transport | C | BUILT (D-257: a hide boat at each Kur ford); unrendered, never used |
 | GA24 | road traffic to Pasargadae and Naqsh-e Rustam (partial) | A520 | transport | C | MISSING/PARTIAL |
 | GA25 | field boundary marks | A523 | land | C | MISSING/PARTIAL |
 | GA26 | dance at weddings and festivals | A525 | arts | B claim | MISSING/PARTIAL |

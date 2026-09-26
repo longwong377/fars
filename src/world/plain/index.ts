@@ -25,6 +25,7 @@ import { TreeKit, NearTreeSet, ImpostorSet, impostorPx, registerShadowLight, wid
 import { nearCrops } from './crops';
 import { buildNaqsh } from './naqsh';
 import { buildQuarries } from './quarries';
+import { buildCrossings, keepOffChannels } from './crossings';
 import { doyOf, riverState, marginState } from './seasonal';
 import { riparianMargins } from './riparian';
 import { buildTownGround } from './townGround';
@@ -84,7 +85,7 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   const floodDepth = rivers.rivers.map(r => (feature(r.id).flow_by_month as { month: string; depth_m: number }[]).reduce((m, q) => Math.max(m, q.depth_m), 0)) as [number, number];
   const margins = riparianMargins(rv.profiles, canals, terrain, opts.quality, floodDepth); group.add(margins.mesh);
   const cb = canalBanks(canals, terrain); group.add(cb);
-  const tr = tracksMesh(trackLines(villages), terrain); group.add(tr);
+  const tLines = keepOffChannels(trackLines(villages), rivers.rivers); const tr = tracksMesh(tLines, terrain); group.add(tr);
   if (PLAIN_DRAWS_SETTLEMENT_ROADS) for (const r of settlementRoads()) group.add(tracksMesh([r.pts], terrain, r.width, 'plain-road-' + r.id)); // off by default (D-040)
   // villages
   const vb = buildVillageMeshes(villages, terrain, opts.seed); group.add(vb.group);
@@ -109,10 +110,12 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
   // Naqsh-e Rustam and the quarries
   const nr = buildNaqsh(terrain, rivers.nrAncientFootAsl); group.add(nr.group);
   const qb = buildQuarries(terrain, opts.seed); group.add(qb.group);
+  // the fords where the roads meet the Pulvar and the Kur (D-257, C)
+  const fords = buildCrossings(terrain, rivers.rivers, opts.seed, tLines.map((pts, i) => ({ id: `track_${i}`, pts, width: feature('villages_unlocated').tracks.width_m as number })), (qb.group.children.find(o => (o as THREE.Mesh).isMesh) as THREE.Mesh | undefined) ?? null); group.add(fords.group);
   // Naqsh-e Rustam's meshes cast shadows near the cliff, except the relief sets', which manage their own (their shadow proxies are the only relief
   // draws in the shadow passes, D-048: switching every mesh under the group drew the carved figures into all 4 cascades, D-228)
   const nrCasters: THREE.Mesh[] = []; nr.group.traverse(o => { if ((o as THREE.Mesh).isMesh && !o.name.startsWith('relief:')) nrCasters.push(o as THREE.Mesh); });
-  if (phys) { nr.colliders(phys); for (const b of qb.boxes) phys.addBox(b.c, b.h, b.rot); }
+  if (phys) { nr.colliders(phys); for (const b of qb.boxes) phys.addBox(b.c, b.h, b.rot); for (const b of fords.boxes) phys.addBox(b.c, b.h, b.rot); }
   const tBuild = performance.now() - t0;
 
   // lazy colliders near the player: village boxes, river corridor trimeshes, tree trunks
@@ -209,11 +212,12 @@ export async function buildPlain(scene: THREE.Scene, terrain: Terrain, phys: Phy
     const nrNear = Math.hypot(600 - cam.x, -6124 - cam.z) < 1200; for (const m of nrCasters) m.castShadow = nrNear;
     nr.texts.visible = Math.hypot(600 - cam.x, -6124 - cam.z) < 600; // the DNa/DNb carving (~0.2 M triangles) only near the cliff
     const qNear = qb.sites.some(s => Math.hypot(s.x - cam.x, -s.y - cam.z) < 900); qb.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = qNear; });
+    const fNear = qNear || fords.crossings.some(c => Math.hypot(c.x - cam.x, -c.y - cam.z) < 600); // the quarries share the fords' mesh (D-257) fords.group.traverse(o => { if ((o as THREE.Mesh).isMesh) (o as THREE.Mesh).castShadow = fNear; });
     const pp = ctx.player?.position ?? cam; syncColliders(pp, cam); syncTrunks(pp);
     void dt;
   };
   const placedTris = () => placed.a.length * TRIS.lod0 + (placed.b.length + placed.c.length) * TRIS.lod1;
-  const stats = () => ({ canals: canals.length, villages: villages.length, compounds: vb.compounds, villageTris: vb.tris, riverTris: rv.stats().tris, lineTrees: lineTrees.length, orchardPlots: plots.length,
+  const stats = () => ({ fords: fords.crossings.length, fordStones: fords.stats.stones, canals: canals.length, villages: villages.length, compounds: vb.compounds, villageTris: vb.tris, riverTris: rv.stats().tris, lineTrees: lineTrees.length, orchardPlots: plots.length,
     nearTrees: placed.a.length + placed.b.length + placed.c.length, lod0Trees: placed.a.length, shadowTrees: placed.a.length + placed.b.length, nearTreeTris: placedTris(), nearR: Math.round(nearR.value),
     nearTreesDrawn: lod0.drawn() + lod1s.drawn() + lod1n.drawn(), shadowTreesDrawn: lod0.count() + lod1s.count(),
     midTrees: midCount, orchardRows: orch.userData.rows, treeKitMs: Math.round(kit.buildMs), treeBakeMs: Math.round(kit.bakeMs), treeBakes: kit.bakes,
