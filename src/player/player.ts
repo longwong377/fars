@@ -16,6 +16,12 @@ export const STEP_UP = NAV.maxStep;
 /** a step's top must offer this much standing depth beyond the edge (C: about a forefoot) */
 const STEP_MIN_DEPTH = 0.12;
 const OFFSET = 0.02; // character-controller skin
+/** a contact normal at least this upright is floor (the 42° climb limit) */
+const FLOOR_NY = Math.cos((42 * Math.PI) / 180);
+/** safety net (audit D M1): feet this far below the drawn ground mean the body has passed through it. No walkable floor
+ *  lies more than 0.56 m below the terrain surface (measured over the 1.41 M walkable cells of the nav grid, session 8) */
+export const RESCUE_DEPTH = 1.0;
+export interface Rescue { x: number; z: number; depth: number; n: number }
 export interface PlayerInput { forward: number; right: number; run: boolean; yaw: number; pitch: number }
 
 export class Player {
@@ -23,6 +29,10 @@ export class Player {
   vy = 0; grounded = false; yaw = 0; pitch = 0; bobPhase = 0; distanceWalked = 0; fallStartY: number | null = null; lastFall = 0; maxFall = 0;
   /** eye offset left by a step-up, eased back to zero so the camera glides instead of popping (render only) */
   stepEase = { x: 0, y: 0, z: 0 }; steps = 0;
+  /** times the safety net put the body back on the ground, and the last one (a real bug if ever > 0: tests assert 0) */
+  rescues = 0; lastRescue: Rescue | null = null;
+  /** moves retried level after a floor-only stop (see update) */
+  levelRetries = 0;
   constructor(private phys: Physics, x: number, y: number, z: number) {
     const R = phys.R;
     this.body = phys.world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(x, y + CAPSULE_HALF + CAPSULE_R, z));
@@ -52,12 +62,35 @@ export class Player {
     const wasGrounded = this.grounded;
     let grounded = this.controller.computedGrounded();
     const want = Math.hypot(desired.x, desired.z);
-    // blocked (progress along the wished direction < 90 %) by a near-vertical face while grounded: try to step onto it,
-    // straight across the face (its normal), so an oblique approach still carries the body past the edge
+    // Rapier's controller sometimes stops a grounded body dead on open ground when the move carries the small downward
+    // push that keeps it grounded: every contact is floor (normal within the climb angle), yet under 50 % of the step is
+    // made (measured: tests/lib/seams.ts, 8 of 2,100 terrain crossings, all 6-50 km out; "invisible walls"). Then the
+    // move is retried level; snap-to-ground (0.35 m) still follows the ground down.
+    if (wasGrounded && want > 1e-5 && desired.y < 0 && (m.x * desired.x + m.z * desired.z) / want < want * 0.5) {
+      let floorOnly = this.controller.numComputedCollisions() > 0;
+      for (let i = 0; i < this.controller.numComputedCollisions(); i++) { const n = this.controller.computedCollision(i)?.normal1; if (!n || n.y < FLOOR_NY) floorOnly = false; }
+      if (floorOnly) {
+        this.controller.computeColliderMovement(this.collider, { x: desired.x, y: 0, z: desired.z });
+        const m2 = this.controller.computedMovement();
+        if (m2.x * desired.x + m2.z * desired.z > m.x * desired.x + m.z * desired.z) { m = m2; grounded = this.controller.computedGrounded() || grounded; this.levelRetries++; }
+      }
+    }
+    // blocked (progress along the wished direction < 90 %) by a face too steep to walk up (a riser, a step's edge) while
+    // grounded: try to step onto it, straight across the face (its normal), so an oblique approach still carries the body
+    // past the edge. Only a face steeper than the climb angle counts: until session 8 (H workstream) a plain slope of 11°
+    // or more also cut the progress below 90 % (the move's downward push projected on the slope), so every frame on the
+    // mountain became a 0.39 m "step": the player went uphill at 11.7 m/s at 30 Hz. The contact's normal1 is the obstacle's
+    // outward normal (measured: a wall facing −x gives normal1 (−1, 0, 0)); the direction code read normal2 and never fired.
+    let steep = false;
     if (wasGrounded && want > 1e-5 && (m.x * desired.x + m.z * desired.z) / want < want * 0.9) {
-      let dx = desired.x / want, dz = desired.z / want;
-      for (let i = 0; i < this.controller.numComputedCollisions(); i++) { const c = this.controller.computedCollision(i); const n = c?.normal2;
-        if (n && Math.abs(n.y) < 0.3 && -(n.x * dx + n.z * dz) > 0.2) { const l = Math.hypot(n.x, n.z); dx = -n.x / l; dz = -n.z / l; break; } }
+      const dx = desired.x / want, dz = desired.z / want;
+      for (let i = 0; i < this.controller.numComputedCollisions(); i++) { const n = this.controller.computedCollision(i)?.normal1;
+        if (n && n.y < FLOOR_NY && -(n.x * dx + n.z * dz) > 0.05) steep = true; }
+    }
+    if (steep) {
+      const dx0 = desired.x / want, dz0 = desired.z / want; let dx = dx0, dz = dz0;
+      for (let i = 0; i < this.controller.numComputedCollisions(); i++) { const n = this.controller.computedCollision(i)?.normal1;
+        if (n && Math.abs(n.y) < 0.3 && -(n.x * dx0 + n.z * dz0) > 0.2) { const l = Math.hypot(n.x, n.z); dx = -n.x / l; dz = -n.z / l; break; } }
       const s = this.stepUp(p, dx, dz);
       if (s) { m = s; grounded = true; this.steps++; this.stepEase = { x: this.stepEase.x - s.x, y: this.stepEase.y - s.y, z: this.stepEase.z - s.z }; }
     }
@@ -88,6 +121,18 @@ export class Player {
     const rise = lift - drop.time_of_impact + OFFSET;
     if (rise < 0.02 || rise > STEP_UP + 0.01) return null;
     return { x: over.x - p.x, y: rise, z: over.z - p.z };
+  }
+  /** safety net: if the feet are more than RESCUE_DEPTH below the ground (`groundAt`, the drawn terrain surface), put the
+   *  body back on it, logged and counted. Called after each physics step (main.ts simStep and the walk bots). */
+  rescueIfUnderground(groundAt: (x: number, z: number) => number): boolean {
+    const p = this.position, g = groundAt(p.x, p.z), depth = g - this.feetY;
+    if (!(depth > RESCUE_DEPTH)) return false;
+    // stand on whatever is just above the terrain there (a floor a little above it), else on the terrain itself
+    const hit = this.phys.castRayDown(p.x, p.z, g + 2.5, this.collider), y = hit !== null && hit >= g - 0.05 ? hit : g;
+    this.teleport(p.x, y, p.z); this.fallStartY = null; this.grounded = false;
+    this.rescues++; this.lastRescue = { x: p.x, z: p.z, depth, n: this.rescues };
+    console.warn(`[ground] rescued the player ${depth.toFixed(2)} m below the ground at grid E ${p.x.toFixed(1)} N ${(-p.z).toFixed(1)} (${this.rescues} so far): a collider bug to fix`);
+    return true;
   }
   teleport(x: number, y: number, z: number) { this.body.setTranslation({ x, y: y + CAPSULE_HALF + CAPSULE_R + 0.02, z }, true); this.vy = 0; }
 }
