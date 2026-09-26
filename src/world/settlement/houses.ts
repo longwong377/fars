@@ -212,11 +212,12 @@ export class SiteHouses {
   /** face plane geometry of a wall: axis 0 = along u, 1 = along v; `cc` = the wall's centre line across; the face at
    *  cc + sg · (t / 2 + d) */
   private face(b: Batch, o: { ax: number; sA: number; sB: number; cc: number; t: number; sg: number; yb: (s: number) => number; yt: (s: number) => number; holes: Hole[]; bulge: number; seed: number;
-    col: (s: number, y: number) => RGB; owner: number; ao: (y: number) => number; y0: (s: number) => number; ytop: number; off?: number }) {
+    col: (s: number, y: number) => RGB; owner: number; ao: (y: number) => number; y0: (s: number) => number; ytop: number; off?: number; st2?: number[] }) {
     const { ax, sA, sB, cc, t, sg } = o, off = o.off ?? 0;
     if (sB - sA < 0.01) return;
     const st = [sA, sB]; for (const h of o.holes) st.push(Math.max(sA, Math.min(sB, h.s0)), Math.max(sA, Math.min(sB, h.s1)));
     const step = o.bulge ? 1.3 : 3.0, n = Math.ceil((sB - sA) / step); for (let i = 1; i < n; i++) st.push(sA + ((sB - sA) * i) / n);
+    for (const x of o.st2 ?? []) if (x > sA && x < sB) st.push(x);
     const S = [...new Set(st.map(x => +x.toFixed(4)))].sort((a, b2) => a - b2);
     const yLo = Math.min(o.yb(sA), o.yb(sB)), yHi = Math.max(o.yt(sA), o.yt(sB));
     const brk: number[] = []; for (const h of o.holes) brk.push(h.y0, h.y1); if (o.bulge) for (let y = Math.ceil(yLo) + 0.2; y < yHi; y += 1.2) brk.push(y);
@@ -271,8 +272,13 @@ export class SiteHouses {
     if (w.kind === 'facade' && we.room >= 0) { const r = this.rooms[this.roomOf.get(we.room)!]; const sg = this.courtSign(w); if (r && sg && this.eaveOn(r, w, sg)) { top = r.R - ROOF_T; eaveCourt = sg; } }
     const sides = [this.side(w, -1), this.side(w, 1)];
     const exposedTop = sides.every(sd => sd.cls !== 'room' || top > sd.roof + 0.05) && !eaveCourt && w.kind !== 'partition';
-    const jit = exposedTop ? 0.015 + 0.035 * (L.age / 50) : 0;
-    const ytopF = (x: number) => top + (exposedTop ? jit * (vn(x * 0.7 + seed, 3.1) * 2 - 1) * Math.min(smooth((x - sA) / 0.4), smooth((sB - x) / 0.4)) : 0);
+    // an exposed top wears unevenly: a fine and a broad undulation, and the odd notch the rain has cut (C; by the age of the
+    // wall and whether anyone keeps it: yard and garden walls more than a house's parapet)
+    const keep = house ? 1 : 1.8, jit = exposedTop ? (0.015 + 0.035 * (L.age / 50)) * keep : 0, broad = exposedTop ? (0.02 + 0.05 * (L.age / 50)) * keep : 0;
+    const notches: [number, number, number][] = []; if (exposedTop && len > 3) { const nn = Math.floor(len / 6 * keep + hi(seed, 81)); for (let q = 0; q < nn; q++) notches.push([sA + 0.6 + (len - 1.2) * hi(seed, q, 82), 0.25 + 0.35 * hi(seed, q, 83), (0.06 + 0.16 * hi(seed, q, 84)) * keep]); }
+    const topSt: number[] = []; for (const [c, w] of notches) for (const f of [-1, -0.5, -0.2, 0, 0.2, 0.5, 1]) topSt.push(c + f * w);
+    const ytopF = (x: number) => { if (!exposedTop) return top; const end = Math.min(smooth((x - sA) / 0.4), smooth((sB - x) / 0.4));
+      let y = jit * (vn(x * 0.7 + seed, 3.1) * 2 - 1) + broad * (vn(x * 0.22 + seed * 0.37, 7.3) * 2 - 1); for (const [c, w, dpt] of notches) y -= dpt * (1 - smooth(Math.abs(x - c) / w)); return top + y * end; };
     const bev = exposedTop ? Math.min(0.06, t * 0.12) : 0;
     const add = L.addition >= 0 && we.room >= 0 && this.roomSide(this.rooms[this.roomOf.get(we.room)!]) === L.addition;
     // doors: the lintel and the wall over it; a threshold stone (street doors) or a rolled mat (rooms)
@@ -335,7 +341,7 @@ export class SiteHouses {
         const yc = sd.roof - ROOF_T + ROOF.beam, inner = sh(col0, 0.82);
         this.face(B.plaster, { ax, sA: along0, sB: along1, cc, t, sg, yb: () => sp.y0 + 0.3, yt: () => Math.min(top, yc), holes: faceHoles, bulge: 0, seed, col: () => inner, owner: this.owner(we.plot, P.wall), ao: () => 0.16, y0: () => -1000, ytop: 1e4 });
         for (const h of faceHoles) if (h.through) this.reveal(B, ax, cc, t, sg, h, inner, we.plot); // the window's inner half
-        if (top > sd.roof + 0.02) this.face(B.plaster, { ax, sA: along0, sB: along1, cc, t, sg, yb: () => sd.roof - 0.13, yt: x => ytopF(x) - bev, holes: [], bulge: 0.006, seed: seed + 3, col: (_x, y) => sh(col0, 1.0 + 0.03 * smooth((y - sd.roof) / 0.5)), owner: this.owner(we.plot, P.wall), ao: () => 0.85, y0: () => sd.roof, ytop: top });
+        if (top > sd.roof + 0.02) this.face(B.plaster, { ax, sA: along0, sB: along1, cc, t, sg, yb: () => sd.roof - 0.13, yt: x => ytopF(x) - bev, holes: [], bulge: 0.006, seed: seed + 3, st2: topSt, col: (_x, y) => sh(col0, 1.0 + 0.03 * smooth((y - sd.roof) / 0.5)), owner: this.owner(we.plot, P.wall), ao: () => 0.85, y0: () => sd.roof, ytop: top });
       } else {
         // exterior: the stone footing, then the plaster
         const soc = house || (we.plot >= 0 && s.plots[we.plot].kind !== 'garden') ? L.socle : 0.3;
@@ -354,11 +360,11 @@ export class SiteHouses {
             const np = Math.floor(hi(seed, 41) * 3); for (let q = 0; q < np; q++) { const ps = nicheHere.len > 0 ? sB - 0.9 - 0.5 * q - 0.3 * hi(seed, q, 42) : sA + 0.9 + 0.5 * q + 0.3 * hi(seed, q, 42), py = floor + 1.35 + 0.35 * hi(seed, q, 43);
               if (ps < sA + 0.2 || ps > sB - 0.2) continue; B.timber.set('ao', 0.9); this.pole(B.timber, this.wp(...P2l(ps, sg * (t / 2 - 0.05)), py), this.wp(...P2l(ps, sg * (t / 2 + 0.17)), py + 0.03), 0.025, 5, sh(lin(POLE), 0.75 + 0.3 * hi(seed, q, 44)), this.owner(we.plot, P.fixture), 'end'); B.timber.set('ao', 1); } } }
         const bulge = (0.007 + 0.012 * (1 - L.standing) + 0.006 * (L.age / 50)) * (house ? 1 : 0.7);
-        this.face(B.plaster, { ax, sA: along0, sB: along1, cc, t, sg, yb: ysoc, yt: x => ytopF(x) - bev, holes: faceHoles, bulge, seed: seed + si * 13,
+        this.face(B.plaster, { ax, sA: along0, sB: along1, cc, t, sg, yb: ysoc, yt: x => ytopF(x) - bev, holes: faceHoles, bulge, seed: seed + si * 13, st2: topSt,
           col: (_x, y) => { const yr = y - floor; return sh(col0, (0.955 + 0.06 * smooth(yr / 2.6)) * (sd.cls === 'open' ? 1 - 0.035 * (1 - smooth(yr / 0.8)) : 1)); },
           owner: this.owner(we.plot, P.wall), ao: aoF, y0: ysoc, ytop: top });
         // decals on this face: repairs, bare brick, soot, the household's dung cakes, the drain's stain
-        if (house) this.faceDecals(we, sd, sg, floor, top, faceHoles, courtFix, decs, seed + si);
+        if (we.plot >= 0) this.faceDecals(we, sd, sg, floor, top, faceHoles, courtFix, decs, seed + si); // (yard and garden walls weather too)
         for (const [sgd, d] of decs) if (sgd === sg) this.decal(B, ax, cc, t, sg, d, col0, floor, we.plot);
         decs.length = 0;
         // hole reveals and backs
@@ -366,8 +372,10 @@ export class SiteHouses {
       }
     }
     // the cap of an exposed top: worn round, uneven along the wall
-    if (exposedTop) { const c = this.tone(we.plot, 0, add), n = Math.max(1, Math.ceil(len / 0.8)); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 1);
-      for (let k = 0; k < n; k++) { const a = sA + (len * k) / n, z = sA + (len * (k + 1)) / n, ya = ytopF(a), yz = ytopF(z);
+    if (exposedTop) { const c = this.tone(we.plot, 0, add), n = Math.max(1, Math.ceil(len / (notches.length ? 0.35 : 0.8))); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 1);
+      const nf = Math.ceil(len / 1.3); // the faces' own stations (face(): 1.3 m) and the notches': the cap and the faces meet edge to edge
+      const CS = [...new Set([...Array.from({ length: nf + 1 }, (_, k) => sA + (len * k) / nf), ...topSt.filter(x => x > sA && x < sB)].map(x => +x.toFixed(4)))].sort((p, q) => p - q); void n;
+      for (let k = 0; k + 1 < CS.length; k++) { const a = CS[k], z = CS[k + 1], ya = ytopF(a), yz = ytopF(z);
         const p = (x: number, o2: number, y: number) => this.wp(...P2l(x, o2), y), hw = t / 2, e = bev;
         const up = [0, 1, 0]; const [nx, nz] = ax === 0 ? this.dirW(0, 1) : this.dirW(1, 0); const n1 = [nx * 0.7, 0.7, nz * 0.7], n0 = [-nx * 0.7, 0.7, -nz * 0.7];
         B.plaster.quad(p(a, -hw + e, ya), p(z, -hw + e, yz), p(z, hw - e, yz), p(a, hw - e, ya), up, sh(c, 1.04), sh(c, 1.04), sh(c, 1.04), sh(c, 1.04), this.owner(we.plot, P.wall));
