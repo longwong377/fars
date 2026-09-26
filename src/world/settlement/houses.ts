@@ -519,13 +519,33 @@ export class SiteHouses {
       B.plaster.quad(P3(sp, f, (y0 + y1) / 2), P3(sp + wS * 0.8, f, (y0 + y1) / 2), P3(sp + wS * 0.4, f, y0), P3(sp, f, y0), N, sh(c, 0.75), c, c, c, this.owner(r.plot, P.spout)); }
   }
 
+  /** the house's lamp (D-234, Q-560): a clay saucer lamp on a ledge on the back wall of its first living room, 1.1 m up
+   *  (grid e, n; world y), or null. Saucer lamps are B by analogy (Q-516); that every house burned one in the evening is C */
+  lampSpot(plot: number): [number, number, number] | null {
+    const p = this.s.plots[plot]; if (!HOUSE_KINDS.has(p.kind) || p.kind === 'workshop') return null;
+    for (const r of this.rooms) { if (r.plot !== plot || !r.full) continue; const k = this.roomUse(r); if (k !== 'living') continue;
+      const [u, v] = this.backPoint(r, 0.5, 0.2); const g = this.s.grid(u, v); return [g[0], g[1], this.gl(u, v) + 1.12]; }
+    return null;
+  }
+  /** a room's use: the vestibule, a store, a living room (C) */
+  roomUse(r: RoomEl): 'vestibule' | 'store' | 'living' | 'none' {
+    const s = this.s, p = s.plots[r.plot]; if (!HOUSE_KINDS.has(p.kind) || r.i1 - r.i0 < 2 || r.j1 - r.j0 < 2) return 'none';
+    if (p.door && s.room[p.door.cell] === r.room) return 'vestibule';
+    return hi(r.room, this.si, 5) < 0.35 || p.kind === 'workshop' ? 'store' : 'living';
+  }
+  /** a point on a room's back wall (away from its court): `f` along the wall (0..1), `d` m out from the wall face */
+  private backPoint(r: RoomEl, f: number, d: number): [number, number] {
+    const s = this.s, u0 = s.u0 + r.i0, u1 = s.u0 + r.i1, v0 = s.v0 + r.j0, v1 = s.v0 + r.j1, back = r.drain >= 0 && r.drain < 4 ? [1, 0, 3, 2][r.drain] : 1;
+    const a = back < 2 ? u0 + 0.45 + (u1 - u0 - 0.9) * f : v0 + 0.45 + (v1 - v0 - 0.9) * f;
+    return back === 0 ? [a, v0 + 0.28 + d] : back === 1 ? [a, v1 - 0.28 - d] : back === 2 ? [u0 + 0.28 + d, a] : [u1 - 0.28 - d, a];
+  }
   /** what a room holds (C, the probable household by analogy; D-234): a store room its jars and sacks, a living room its
    *  reed mat, bedding rolled against the wall, a low mud platform and a stack of folded rugs; the vestibule a bench; rooms
    *  of workshops their stock. Dark volumes otherwise: the visitor walking in would find them empty */
   private furnish(r: RoomEl, B: HB) {
     const s = this.s, p = s.plots[r.plot]; if (!HOUSE_KINDS.has(p.kind)) return;
     const u0 = s.u0 + r.i0, u1 = s.u0 + r.i1, v0 = s.v0 + r.j0, v1 = s.v0 + r.j1, W2 = u1 - u0, D2 = v1 - v0; if (W2 < 2 || D2 < 2) return;
-    const vest = p.door && s.room[p.door.cell] === r.room, h = hi(r.room, this.si, 5), own = this.owner(r.plot, P.fixture);
+    const use = this.roomUse(r), vest = use === 'vestibule', h = hi(r.room, this.si, 5), own = this.owner(r.plot, P.fixture);
     const gy = (u: number, v: number) => this.gl(u, v);
     // the wall away from the court (the room's back): opposite its drain side
     const back = r.drain >= 0 && r.drain < 4 ? [1, 0, 3, 2][r.drain] : 1; // 0 −v, 1 +v, 2 −u, 3 +u
@@ -533,7 +553,7 @@ export class SiteHouses {
     const atBack = (a: number, d: number): [number, number] => back === 0 ? [a, v0 + 0.28 + d] : back === 1 ? [a, v1 - 0.28 - d] : back === 2 ? [u0 + 0.28 + d, a] : [u1 - 0.28 - d, a];
     B.plaster.set('y0', -1000).set('ytop', 1e4).set('ao', 0.2); B.timber.set('ao', 0.2);
     if (vest) { if (h < 0.6) { const [u, v] = atBack((along[0] + along[1]) / 2, 0.2), y = gy(u, v); this.lbox(B.plaster, u, v, back < 2 ? Math.min(0.9, (along[1] - along[0]) / 2) : 0.22, back < 2 ? 0.22 : Math.min(0.9, (along[1] - along[0]) / 2), y - 0.05, y + 0.4, sh(this.tone(r.plot, 1, false), 0.8), this.tone(r.plot, 1, false), own); } }
-    else if (h < 0.35 || p.kind === 'workshop') { // a store: jars and sacks along the back wall
+    else if (use === 'store') { // a store: jars and sacks along the back wall
       const pot = lin([0.63, 0.43, 0.3]), sack = lin([0.62, 0.55, 0.42]); const n = Math.max(2, Math.floor((along[1] - along[0]) / 0.62));
       for (let k = 0; k < n; k++) { const a = along[0] + 0.2 + ((along[1] - along[0] - 0.4) * k) / Math.max(1, n - 1), [u, v] = atBack(a, 0.12), y = gy(u, v), g = s.grid(u, v), kk = 0.9 + 0.5 * hi(r.room, k, 1);
         if (hi(r.room, k, 2) < 0.65) B.plaster.lathe(g[0], g[1], y - 0.05, [[0.12 * kk, 0], [0.26 * kk, 0.25 * kk], [0.25 * kk, 0.55 * kk], [0.12 * kk, 0.78 * kk], [0.1 * kk, 0.82 * kk]], 8, sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)), own);
@@ -544,6 +564,10 @@ export class SiteHouses {
       const bed: RGB[] = [[0.7, 0.64, 0.52], [0.52, 0.28, 0.2], [0.42, 0.36, 0.3], [0.66, 0.5, 0.3]]; const nb = 1 + Math.floor(hi(r.room, 7) * 3);
       for (let k = 0; k < nb; k++) { const a = along[0] + 0.3 + k * 0.75; if (a + 0.6 > along[1]) break; const [ua, va] = atBack(a, 0.16), [ub, vb] = atBack(a + 0.6, 0.16), y = gy(ua, va) + 0.13 + 0.14;
         this.pole(B.timber, this.wp(ua, va, y), this.wp(ub, vb, y), 0.14, 7, lin(bed[Math.floor(hi(r.room, k, 8) * bed.length)]), own); }
+      const L = this.lampSpot(r.plot); if (L) { const [lu, lv] = this.backPoint(r, 0.5, 0.2); const lg = s.grid(lu, lv); if (Math.hypot(lg[0] - L[0], lg[1] - L[1]) < 0.01) { const [bu, bv] = this.backPoint(r, 0.5, 0.08);
+        this.lbox(B.plaster, bu, bv, 0.18, 0.18, L[2] - 0.1, L[2] - 0.02, sh(this.tone(r.plot, 1, false), 0.7), sh(this.tone(r.plot, 1, false), 0.8), own); // a ledge of mud
+        B.plaster.lathe(lg[0], lg[1], L[2] - 0.02, [[0.03, 0], [0.07, 0.02], [0.075, 0.035], [0.06, 0.035]], 7, lin([0.6, 0.42, 0.3]), own);
+        } }
       const [fu, fv] = atBack(along[1] - 0.35, 0.2), fy = gy(fu, fv) + 0.13; for (let k = 0; k < 3 + Math.floor(h * 4); k++) { const c = lin(bed[(k + Math.floor(h * 4)) % bed.length]); this.lbox(B.timber, fu, fv, 0.28 - 0.01 * k, 0.22, fy + k * 0.05, fy + k * 0.05 + 0.045, sh(c, 0.85), c, own, false, 0.05 * k); } }
     B.plaster.set('ao', 1); B.timber.set('ao', 1);
   }

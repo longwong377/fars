@@ -58,7 +58,7 @@ export class Settlement {
   private fire: FireSystem;
   /** town meshes cast shadows only within SHADOW_RANGE of the camera: distant town content stays out of the cascades */
   private casters: THREE.Mesh[] = [];
-  readonly info = { tris: 0, meshes: 0, colliders: 0, liveColliders: 0, fires: 0, trees: 0, buildMs: 0, phases: {} as Record<string, number> };
+  readonly info = { tris: 0, meshes: 0, colliders: 0, liveColliders: 0, fires: 0, lamps: 0, trees: 0, buildMs: 0, phases: {} as Record<string, number> };
   /** D-234: each site's houses (far and near levels), the near tiles built (tile → meshes), the street doors */
   readonly houses: SiteHouses[] = [];
   private clusterOfSite = new Map<string, Cluster>();
@@ -216,6 +216,10 @@ export class Settlement {
       pcol[p.idx] = lin(baseC);
     }
     const hs = new SiteHouses(s, si, H, base, local, pcol, pdesc, cl.desc); this.houses.push(hs); this.clusterOfSite.set(s.id, cl);
+    // each house's evening lamp (Q-560): the fire system's 'lamp' on the 'home' schedule (lit as the light fails, out an hour
+    // or two after dark, lit again before dawn), no `group` (its light stays in the room: not part of the town's fire light
+    // on the smoke, D-227). Not driven by the household's own evening (C)
+    for (const p of plots) { const L = hs.lampSpot(p.idx); if (!L) continue; this.fire.add('lamp', new THREE.Vector3(L[0], L[2], -L[1]), { tier: 'C', src: 'RECON', note: `${p.id}: a clay saucer lamp on a ledge in the living room (saucer lamps B by analogy, Q-516; that every house burned one in the evening C, Q-560; D-234)`, sched: 'home', body: false }); this.info.lamps++; }
     hs.buildFar(cl.far);
     // wall colliders (the plan's walls: the same boxes as before D-234, so the walk and the people agree)
     for (const w of s.walls()) { if (w.door) continue; const sp = hs.wallSpan(w), along = w.v0 === w.v1, len = along ? w.u1 - w.u0 : w.v1 - w.v0;
