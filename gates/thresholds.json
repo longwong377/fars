@@ -1218,7 +1218,7 @@
    "sample_min": 10000,
    "sample": "samples per ring seam",
    "tool": "tools/dev/audit_d/ring_probe.mts",
-   "status": "to-build",
+   "status": "built",
    "anti_proxy": "the player fell through Kuh-e Rahmat at 12 of 24 crossings",
    "ud": "UD-06",
    "since": "rev 2 (s8)"

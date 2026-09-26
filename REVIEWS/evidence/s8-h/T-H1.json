@@ -1,0 +1,24 @@
+{
+ "id": "T-H1",
+ "value": 0.00134,
+ "n": 10000,
+ "commit": "3614fe8",
+ "tool": "tools/dev/audit_d/ring_probe.mts",
+ "unit": "m",
+ "seams": {
+  "near/mid": {
+   "worst_m": 0.00071,
+   "mean_m": 0.000199,
+   "n": 10000,
+   "at": "(-2029.4, 1684.3)"
+  },
+  "mid/far": {
+   "worst_m": 0.00134,
+   "mean_m": 0.00026,
+   "n": 10000,
+   "at": "(1356.8, -10272.0)"
+  }
+ },
+ "walks_fell": 0,
+ "crossings_tool": "tools/dev/terrain_seams.ts (2,100 crossings: bench numbers in the H workstream report)"
+}
