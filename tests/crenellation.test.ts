@@ -2,7 +2,9 @@
 // parapet block (on its mid-line, at the pitch) and never floats over a lower step; the mesh is one tiered instanced draw.
 import { describe, it, expect } from 'vitest';
 import { buildTerrace } from '../src/arch/terrace';
-import { stairCrenellationPlan, buildStairCrenellations } from '../src/arch/decor';
+import { stairCrenellationPlan, buildStairCrenellations, crenellationGeometry, merlonSlot } from '../src/arch/decor';
+import * as THREE from 'three/webgpu';
+import spec from '../src/data/site_spec.json';
 import type { Box } from '../src/arch/parts';
 import { v } from '../src/arch/spec';
 
@@ -40,5 +42,40 @@ describe('stair crenellations', () => {
     m.geometry.computeBoundingBox(); const bb = m.geometry.boundingBox!;
     expect(bb.max.y - bb.min.y).toBeCloseTo(CR.height, 6); expect(bb.max.x - bb.min.x).toBeCloseTo(CR.width, 6);
     console.log(`merlons: ${plan.length} (${CR.buildings.map((b: string) => `${b} ${plan.filter(q => q.building === b).length}`).join(', ')}), ${m.geometry.index ? m.geometry.index.count / 3 : m.geometry.attributes.position.count / 3} tris each`);
+  });
+});
+
+// D-230: the double-rebated vertical slot in each face of every merlon (apadana.r_merlon_slot, measured on photograph #29)
+describe('merlon slot (D-230)', () => {
+  const S = merlonSlot(), w = 0.9, h = 0.9, D = 0.45;
+  const geo = crenellationGeometry(w, h, 4, D), mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide }));
+  const hitZ = (x: number, y: number, front: boolean) => {
+    const rc = new THREE.Raycaster(new THREE.Vector3(x, y, front ? 5 : -5), new THREE.Vector3(0, 0, front ? -1 : 1));
+    const hit = rc.intersectObject(mesh)[0]; return hit ? hit.point.z : NaN;
+  };
+  it('is in the spec with its source and tier (widths, heights B from the photograph; depths C)', () => {
+    const row = (spec as any).apadana.r_merlon_slot; expect(row.tier).toBe('B/C'); expect(row.src).toMatch(/REF-PHOTO-29/);
+    expect(S.outer_w).toBeGreaterThan(S.inner_w); expect(S.outer_h).toBeGreaterThan(S.inner_h); expect(S.faces).toBe(2);
+    expect(2 * (S.outer_d + S.inner_d)).toBeLessThan(0.8); // a web remains between the two faces' slots
+  });
+  it('rays into each face meet the face, the outer rebate and the inner slot at their depths; the outline is unchanged', () => {
+    geo.computeBoundingBox(); const b = geo.boundingBox!;
+    expect(b.max.x - b.min.x).toBeCloseTo(w, 5); expect(b.max.y - b.min.y).toBeCloseTo(h, 5); expect(b.max.z - b.min.z).toBeCloseTo(D, 5);
+    const zo = S.outer_d * D, zi = (S.outer_d + S.inner_d) * D, xr = ((S.outer_w / 2 + S.inner_w / 2) * w) / 2;
+    for (const front of [true, false]) {
+      const face = (z: number) => (front ? D - z : z);
+      expect(hitZ(0.3 * w, 0.2 * h, front), 'the face beside the slot').toBeCloseTo(face(0), 3);
+      expect(hitZ(0, 0.8 * h, front), 'the face above the slot').toBeCloseTo(face(0), 3);
+      expect(hitZ(xr, 0.2 * h, front), 'the outer rebate beside the inner slot').toBeCloseTo(face(zo), 4);
+      expect(hitZ(0, ((S.inner_h + S.outer_h) / 2) * h, front), 'the outer rebate above the inner slot').toBeCloseTo(face(zo), 4);
+      expect(hitZ(0, 0.5 * S.inner_h * h, front), 'the inner slot').toBeCloseTo(face(zi), 4);
+      expect(hitZ(0, 0.02, front), 'open at the foot').toBeCloseTo(face(zi), 4);
+    }
+  });
+  it('stays inside the merlons\' triangle budget', () => {
+    const tris = (g: THREE.BufferGeometry) => (g.index ? g.index.count : g.attributes.position.count) / 3;
+    const solid = tris(crenellationGeometry(w, h, 4, D, null)), slotted = tris(geo);
+    console.log(`merlon triangles: ${solid} solid (D-188) → ${slotted} with the slot (D-230)`);
+    expect(slotted).toBeLessThanOrEqual(240);
   });
 });

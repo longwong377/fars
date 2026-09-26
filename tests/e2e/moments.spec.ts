@@ -53,6 +53,14 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // the Now view (D-201, stretch, out of world): the same spots as the ruin stands today (C, recollection)
   { n: 'now-stair-top', day: 25, hour: 10, w: 'clear', v: [-36.4, 122.45, 1.6, 79, 6], now: true },
   { n: 'now-apadana', day: 25, hour: 10, w: 'clear', v: [1.9, 75, 1.6, 161, 8], now: true },
+  // §8.1 calibration scene (D-230; BLOCKERS B6/B7, NEEDS #13): photograph #24 (references/INDEX.md §6: the Terrace W wall from
+  // the plain, EXIF 2019-02-08 15:59:34, camera time taken as IRST, UT+3:30), camera solved against the DEM skyline and the
+  // Terrace outline (tools/dev/calib24_camera.py: grid (−166.6, 108.9), 1.6 m above the DEM, looking 117.0° true, pitch
+  // 7.5°, roll 0.5° (not set here), f 1461 px on the 1500 × 905 image = vertical fov 34.4°). The photo's sun (az 238.8°,
+  // alt 19.3°, tools/dev/calib24_sun.ts) stands over the simulated year on day 303 at 16.09 LMT (the late-winter match).
+  // The ruin as it is (the Now view) and the same frame in 467; tools/dev/calib24_compare.py compares them with the photo
+  { n: 'calib-24-now', day: 303, hour: 16.087, w: 'clear', v: [-166.6, 108.9, 1.6, 117.0, 7.5], fov: 34.4, now: true },
+  { n: 'calib-24', day: 303, hour: 16.087, w: 'clear', v: [-166.6, 108.9, 1.6, 117.0, 7.5], fov: 34.4 },
   { n: 'night-terrace', day: 5, hour: 22.5, w: 'clear', v: [0, 92, 1.6, 161, 6] },
   // moonless pre-dawn (day 1 = 18 Apr 467 BCE, the moon a thin crescent set in the evening): the Milky Way from Cygnus to
   // Sagittarius over the SE, seen from the Grand Stair top (D-047)

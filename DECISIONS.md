@@ -5504,3 +5504,72 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **M4, houses:** every plot's walls, roofs and street-door leaves in the town are box slabs and the doors never move, but F3 never said so. Each plot's face description (src/world/settlement/build.ts) now carries `placeholder: true` and the note `PLOT_PLACEHOLDER`, so F3 prints [PLACEHOLDER] on any house, workshop or compound wall, roof or door. The plan (plots, rooms, courts, lanes) stays the C reconstruction. PROGRESS says so, and its stale "trees are placeholders" half is removed (D-122 put the town trees on the tree kit and removed that flag). Test: tests/settlement_build.test.ts.
 - **M5, stale statements (each checked against the code before rewording):** PROGRESS Phase 6 (people live in the houses: D-081 plots, walk.ts lane network, D-143 drawn, B11's lower-town lane count; the gate row), Phase 7 placeholders and the gate row (the tomb reliefs are carved, D-069; DNa/DNb incised in Old Persian, D-061/D-177/D-184; the Neo-Elamite figures and the Elamite/Babylonian versions stay placeholders); town.json `_meta.status` (the places now resolve to the built town through popgeo.ts; the mill, stockyard and brickyard are not built); research/PLAIN.md "read first", §5 and §6, and plain.json `horizon_check` (the truncation fixed by D-035) and `nr_xerxes_tomb` (present since D-033, built without inscription panels); research/SETTLEMENT.md "read first" (one storehouse and one stable placed, D-043) and §3's population, which now states both figures with sources: PEOPLE.md §3e's first-pass 3,000–6,000 (also annotated in the `_meta.density` of settlement.json and plain.json), PEOPLE.md §P5.6's 5,000–10,000 (working 7,000; Q-038), and the build's 1,456 homes for 7,968 people (7,830 town zones + 138 hamlets and way-station; town_plots.json) holding 7,776 people of 2,058 households (D-081, seed 1).
 - **Checks:** `npx tsc --noEmit -p .` clean; `npm run lint:all` OK; vitest with `--maxWorkers=1`: plain (32), plain_look, plain_d223, hills_d223, trees, settlement, settlement_build (with the new placeholder test), maplayers, religion, inscriptions, smoke_dust and terrain pass (132 tests).
+
+## D-230 The site photographs as yardsticks: stone variation (B40), the merlons' slot, the §8.1 calibration scene (session 8 workstream; references/INDEX.md §6)
+- **Read first: what is still broken, weak or unverified.**
+  - **B40 is still not met, and the evidence now says it should not be for 467 stone.** The rubric's 0.15–0.25 on screen was
+    judged on photographs of the ruin; measured on them it is weathering: the W wall (#24) 0.43 in 48 px windows, of which
+    0.27 between blocks, 0.24 within, 0.24 joints/cracks/form. The block tone went DOWN, 17 → 13 %, on the least weathered
+    in-situ stone. Renders after: stair-climb-pm's sunlit Terrace wall 0.066 over the region / 0.049 in windows (D-218: 0.072 /
+    0.053), calib-24's wall 0.081. The gate needs the lead's decision (BLOCKERS B40); it was not changed here.
+  - The near-fresh sample is small and processed: 4 relief blocks (one of them with a single sunlit patch; the E stair's
+    shelter throws shadow bands) and 5 merlons in shade, through a phone's HDR (Q-591). ±35 % on the 1σ.
+  - Merlon slot depths are C (±50 %, Q-590); the back face's slot is by symmetry, not seen. Rendered (stair-climb-pm,
+    reliefs-raking) and read as the photographed double rebate; not judged against #29 by a reviewer.
+  - §8.1: the geometry calibrates, the photometry is NOT matched and this photograph cannot settle it (Lightroom grade, thin
+    cloud, modern gravel; BLOCKERS B55). No lighting change was made from it.
+  - The Now view's columns were moved from the photograph AFTER the calibration render: not re-rendered.
+- **1. Stone (B40; src/render/materials.ts HAIRLINE.blockSd 0.17 → 0.13).** Measured with tools/dev/stone_photo_d230.py
+  (linear Y; boxes picked inside block faces on 4× crops, each checked on an overlay):
+  | photo | what | between blocks 1σ | within | 48 px windows | note |
+  |---|---|---|---|---|---|
+  | #24 W wall | weathered, 30 blocks | 0.267 (IQR 0.224) | 0.238 | 0.431 | rest 0.241 (joints, cracks); R/B 1σ between 0.115 |
+  | #33 Grand Stair wall | weathered | – | – | 0.425 | spalled, open joints |
+  | #5 Gate lintel | weathered skin vs spalls | – | skin 0.07 smooth, fresh spall 0.05 | 0.269 | spall/skin Y 1.045, spall warmer (R/B 1.49 vs 1.30) |
+  | #29 Apadana E stair | buried until the 1930s: 4 relief blocks | 0.127 | 0.116 smooth ground (2.5 mm px) | – | R/B 1σ between 0.072 |
+  | #29 | 5 merlons in shade | 0.072 | – | – | monoliths |
+  | #18/#22 Louvre capital | unweathered | – | pale grey, dark cloudy veins | – | form and museum light: not measured |
+  Judgement: the weathered walls' spread is mostly 2,500 years' weathering (differential red-brown staining, spalls, open
+  joints, cracks: ~75 % of the between-block variance, 1 − (0.13/0.267)²); fresh stone had ~0.10 between blocks (pooled), allowed ×1.2 for the
+  phone's HDR flattening and ⊕ 0.05 for ~50 years of soiling by 467 → 13 %, triangular, mean-preserving (the probes need no
+  re-bake). Within-block texture unchanged: ours 12.6 % at 5 mm pixels against #29's 11.6 % and the spall's 5 %; at 0.1 m
+  pixels 2.7 % (the laminae band-limited, D-147) against ~4–6 % patch-to-patch on #29's blocks (a small gap, logged). The
+  warm/cool split (R/B 1σ ≈ 6.4 %) matches #29's 7.2 %. Hue of fresh stone: #5's spalls R/B 1.33–1.69 under neutral light,
+  ours (albedo) 1.23: kept.
+  | measured (CPU mirror, AgX; tests/stone_photo_d230.test.ts, surfaces_d218) | D-218 (17 %) | D-230 (13 %) |
+  |---|---|---|
+  | between-block at #24's 0.1 m pixels / at 5 mm | 0.180 / 0.145 | 0.144 / 0.122 |
+  | sunlit frontal wall, 5 / 10 / 30 m, sun 41° off (region) | 0.119 / 0.116 / 0.109 | 0.104 / 0.101 / 0.093 |
+  | the #24 view's wall (150 m, fov 34.4°, 48 px windows) | 0.102 | 0.079 (render 0.081) |
+  | stair-climb-pm render, Terrace wall x 640–940 y 10–170 (windows) | 0.072 (0.053) | 0.066 (0.049), mean Y 0.311 (0.306) |
+  AgX's local slope at the stone's level is 0.42 (measured on agxGrey); a camera curve is ≥ 1, which is most of the gap between
+  a render and a photograph of the same stone.
+- **2. The merlons' slot (src/arch/decor.ts crenellationGeometry; SITE_SPEC apadana.r_merlon_slot, tier B/C).** Photo #29 (the
+  Apadana E stair merlons) shows in each face a double-rebated vertical slot open at the foot: outer recess 0.26 W × 0.41 H,
+  inner slot 0.10 W × 0.33 H, centred (two merlons measured; the step outline itself matches ours: widths 1 : 0.74 : 0.50 :
+  0.27 vs 1 : 0.75 : 0.5 : 0.25); #32 draws a recess on every merlon. Depths 0.15 of the merlon depth each (reveals vs side
+  faces on the oblique merlons, C). The Apadana's own crenellation is the photographed one (B); the stair-parapet merlons of
+  the Grand Stair, Tachara, Hadish and Tripylon take it by the convention (C). Geometry: the stepped outline with the outer
+  recess cut through it (the D-188 chamfer kept, on the recess mouths too), the rebate's filler with the inner slot through
+  it, the web; shared faces lie inside the stone. 132 → 204 triangles a merlon (≈ +28 k over ~390 merlons; frames stay far
+  under B13's 12 M). Tests: tests/crenellation.test.ts (spec row, rays into both faces meet face / rebate / slot at their
+  depths, open at the foot, outline unchanged, budget ≤ 240).
+- **3. §8.1 calibration (REVIEWS/calib24.md; REVIEWS/calib24/side_by_side.jpg).** Photo #24, EXIF 2019-02-08 15:59:34 taken
+  as IRST (Q-593): sun az 238.84°, alt 19.32° (tools/dev/calib24_sun.ts); the simulated year's day 303 16.087 LMT has the same
+  sun. Camera (tools/dev/calib24_camera.py, least squares on 6 Terrace-outline corners and 150 skyline columns against the
+  DEM): grid (−166.6, 108.9), 117.01° true, pitch 7.47°, roll 0.48°, f 1461 px (vertical fov 34.4°); corners rms 8.9 px,
+  skyline median 8 px. Rig views calib-24-now (Now view) and calib-24 (467) added to tests/e2e/moments.spec.ts; rendered
+  (high, WebGPU). Ratios (tools/dev/calib24_compare.py): sunlit/shaded wall 3.86 photo vs 8.65 Now / 6.97 467; sky/sunlit
+  wall 3.06 vs 0.73 / 0.56; ground/sunlit wall 2.12 vs 0.21 / 0.19; mountain/sky 0.42 vs 1.04 / 1.39; mountain R/G ÷ stone
+  R/G 0.72 vs 1.01 / 1.07. Read: sun : shade physically ~8–10 for this geometry (the render's range; the photo's lifted
+  shadows and thin cloud explain 3.9); sky and ground differ by scene (cloud, modern gravel); the weathered wall is red-brown
+  and dark where the Now patina is neutral grey and lighter (Q-594). **Fixed:** the Now view's W portico columns
+  (now_view.json: the inner row x −42.31 at y 16.7, 8.06, −17.86, −26.5, tops within 0.05–0.52° of the photo; the recalled
+  (−50.95, −0.58), (−50.95, −9.22) and the fragment (−50.95, 8.06) have nothing on their rays; tools/dev/calib24_columns.ts;
+  count 13 kept; tests/now_view.test.ts passes). Two shafts with capital fragments in the photo match no Apadana column
+  (Q-592). **Logged:** B55.
+- **Checks:** `npx tsc --noEmit -p .` clean; `npm run lint:all` OK; vitest `--maxWorkers=1`: stone_photo_d230 (new),
+  surfaces_d218 (its ×1.8 claim checked on D-218's own 17 % surface; D-230's number recorded beside it, ≥ ×1.5), surfaces,
+  surfaces_s6, crenellation, arch, shader_build, now_view, polychromy. Renders (2, shared queue, high): calib-24-now +
+  calib-24; stair-climb-pm + reliefs-raking.
+- Records: Q-590 … Q-594 (Q-590, 591, 592, 593, 594); B40 updated; B55.

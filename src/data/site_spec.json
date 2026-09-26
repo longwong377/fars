@@ -336,7 +336,7 @@
    "u": "m",
    "src": "IR-PERS;SI-ARCH;RECON",
    "tier": "C",
-   "note": "four-stepped merlons crowning the stair parapets. Motif B on the Apadana stairs (IR-PERS, apadana.r_crenellation); on the Tachara S stair by analogy (tachara.stair_s_reliefs \"Persepolis stair convention\", C); on the Grand Stair per grand_stair.parapet_height (C); on the Hadish and Tripylon stairs by the same convention (C, NOT SEEN). Size as the Apadana merlon (0.9 x 0.9 m, C), pitch 1.15 x width as on the Apadana (C); depth = the parapet thickness up to max_depth (the Apadana merlon depth, C). Each merlon stands on the lowest parapet block under it (no merlon floats over a lower step; C). The terrace-edge parapet is left plain: terrace.parapet_height assumes crenellations but no source for them was reached (the motif is attested on stairs). The Hadish S balcony \"behind four-stepped crenellations\" (B) is not modelled (Q-P4 balcony geometry NOT SEEN)."
+   "note": "four-stepped merlons crowning the stair parapets. Motif B on the Apadana stairs (IR-PERS, apadana.r_crenellation); on the Tachara S stair by analogy (tachara.stair_s_reliefs \"Persepolis stair convention\", C); on the Grand Stair per grand_stair.parapet_height (C); on the Hadish and Tripylon stairs by the same convention (C, NOT SEEN). Size as the Apadana merlon (0.9 x 0.9 m, C), pitch 1.15 x width as on the Apadana (C); depth = the parapet thickness up to max_depth (the Apadana merlon depth, C). Each merlon stands on the lowest parapet block under it (no merlon floats over a lower step; C). The terrace-edge parapet is left plain: terrace.parapet_height assumes crenellations but no source for them was reached (the motif is attested on stairs). The Hadish S balcony \"behind four-stepped crenellations\" (B) is not modelled (Q-P4 balcony geometry NOT SEEN). D-230: each merlon carries the double-rebated slot of apadana.r_merlon_slot (seen on the Apadana E stair merlons, B; here by the same convention, C)."
   },
   "r_jamb_inscription": {
    "v": {
@@ -1542,7 +1542,14 @@
    "u": "m",
    "src": "RECON",
    "tier": "C",
-   "note": "four-stepped crenellations crowning the stair façades (motif B, IR-PERS; size C)"
+   "note": "four-stepped crenellations crowning the stair façades (motif B, IR-PERS; size C); each face with the double-rebated slot of apadana.r_merlon_slot (B, D-230)"
+  },
+  "r_merlon_slot": {
+   "v": { "outer_w": 0.26, "outer_h": 0.41, "inner_w": 0.1, "inner_h": 0.33, "outer_d": 0.15, "inner_d": 0.15, "faces": 2 },
+   "u": "fraction of the merlon (w: of its width, h: of its height, d: of its depth)",
+   "src": "REF-PHOTO-29;REF-DRAW-32;RECON",
+   "tier": "B/C",
+   "note": "D-230: every merlon face carries a double-rebated vertical slot, open at the foot, centred: an outer recess 0.26 of the width (35 of 136 px on the frontal merlon in #29; 0.26 on a second; about the top step) and 0.41 of the height (0.40 and 0.43 on two merlons), and inside it a deeper slot 0.10 wide (13 of 136 px; 0.09) and 0.33 high (0.32, 0.35); no sill within ±1.2 cm. Widths and heights B (photograph of the surviving Apadana E stair merlons, #29; #32 draws a recess on every merlon of both elevations). Depths C: each rebate ~0.15 of the merlon depth, from the reveals of the two oblique merlons against their side faces (2.5-3.5 px vs 16-22 px, less the cast shadow seen on the frontal merlon; ±50 %). Both faces (the merlons stand free, seen from the court and from the stair; the back face is not seen in #29: C). The Apadana crenellation (seen) and, by the Persepolis stair convention, the stair-parapet merlons (C)"
   },
   "r_parapet_height": {
    "v": 1.0,

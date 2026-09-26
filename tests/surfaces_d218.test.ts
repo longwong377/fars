@@ -71,10 +71,14 @@ describe('sunlit ashlar on screen (D-218; rubric: Ystd/Y 0.04–0.08 measured, r
   it('D-157 reproduces the rubric\'s flat stone; D-218 at least doubles the spread at 5–30 m', () => {
     for (const [tag, sun] of suns) for (const dist of [5, 10, 30]) {
       const m = (d: typeof L) => { let f = 0; const N = 2; for (let k = 0; k < N; k++) f += renderWall(d, { dist, sun, outY, patch: [3 + k * 17.3, 1.3 + k * 3.1, 4, 3] }).flat / N; return f; };
-      const before = m(d157(L)), after = m(L);
-      rows.push(`sun ${tag}, ${dist} m: Ystd/Y ${before.toFixed(3)} (D-157) → ${after.toFixed(3)} (D-218)`);
+      // D-218's own claim is checked on D-218's surface (block 1σ 17 %); D-230 set the block tone from the site photographs
+      // (13 %, tests/stone_photo_d230.test.ts) and its number is recorded beside it
+      const d218 = { ...L, joints: { ...L.joints!, blockSd: 0.17 } };
+      const before = m(d157(L)), after = m(d218), now = m(L);
+      rows.push(`sun ${tag}, ${dist} m: Ystd/Y ${before.toFixed(3)} (D-157) → ${after.toFixed(3)} (D-218) → ${now.toFixed(3)} (D-230, block 1σ ${L.joints!.blockSd})`);
       expect(before, 'the old surface as the rubric measured it').toBeLessThan(0.085);
       expect(after / before).toBeGreaterThan(1.8);
+      expect(now / before).toBeGreaterThan(1.5);
     }
     report();
   }, 600_000);

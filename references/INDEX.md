@@ -110,3 +110,7 @@ confirm D-223's model (#8, #21, #24); (3) quarry positions and the unfinished ca
 watercourses (#10) check the drains (D-214); (5) the pre-modern open plain with tracks (#27); (6) the unweathered Susa capital
 (#18) and the real walls (#5, #24, #33) give measurable stone variation for B40; (7) #24 (dated) can drive the §8.1
 calibration scene (processed JPEG: colour ratios only, with care).
+**Done (D-230):** (1) the slot is in the merlons (SITE_SPEC apadana.r_merlon_slot); (6) block tone re-set from #24/#29/#5
+(B40, tools/dev/stone_photo_d230.py); (7) #24 drives the calibration views calib-24 / calib-24-now (camera solved on the
+Terrace and the DEM skyline; REVIEWS/calib24.md; its photometry not usable: B55). #24 also re-placed the Now view's W portico
+columns.
