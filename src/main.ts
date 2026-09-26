@@ -4,7 +4,7 @@ import { loadSettings, saveSettings, urlParams, QUALITY, Settings } from './core
 import { WorldClock, YEAR_DAYS } from './core/clock';
 import { chooseWorldSeed, newWorldSeed, keepWorldSeed } from './core/seed';
 import { Input } from './core/input';
-import { writeSave, readSave, clearSave, Autosaver } from './core/save';
+import { writeSave, readSave, readSaveAsync, clearSave, Autosaver, setSaveProblemHandler, lastWrite, parseSave } from './core/save';
 import { latLonToGrid, gridToLatLon } from './core/geo';
 import { Terrain, curvatureDrop } from './terrain/heightfield';
 import { TerrainMesh } from './terrain/terrainMesh';
@@ -131,6 +131,10 @@ async function boot() {
   }
   function restore(s: ReturnType<typeof state> | null) {
     if (!s) return false;
+    try { return restoreSave(s); } catch (e) { // a save this build cannot apply is announced, never lost silently (T-H3v)
+      console.error('[persistence] restore failed', e); notices.push(`The saved visit could not be loaded (${String((e as Error)?.message ?? e)}); a new visit begins.`); shell.notice(notices[notices.length - 1]); return false; }
+  }
+  function restoreSave(s: ReturnType<typeof state>) {
     if (s.seed !== SEED) { // the seed defines the whole world (weather, people): reload with the saved seed, then load
       keepWorldSeed(s.seed); const q = new URLSearchParams(location.search); q.set('seed', String(s.seed)); q.set('loadsave', '1'); location.search = q.toString(); return false;
     }
@@ -144,6 +148,8 @@ async function boot() {
     return true;
   }
 
+  const notices: string[] = []; // out-of-world save and load notices (T-H3s, T-H3v)
+  setSaveProblemHandler(m => { notices.push(m); console.warn('[save]', m); shell.notice(m); });
   Object.assign(hooksImpl, {
     start: () => { shell.playing(); input.lock(); world.audio?.unlock(); },
     resume: () => { shell.playing(); input.lock(); },
@@ -281,7 +287,14 @@ async function boot() {
       const h = all[0]; return h ? { ...row(h), next: all.slice(1, 4).map(row) } : null; },
     save: () => writeSave(state()), load: () => restore(readSave() as any), saveState: () => state(),
     /** autosave status (T-H3) and a forced autosave by reason (e2e: 'hidden' is what visibilitychange does) */
-    autosave: () => ({ intervalMs: autosave.intervalMs, saves: autosave.saves, failures: autosave.failures, last: autosave.last }),
+    autosave: () => ({ intervalMs: autosave.intervalMs, saves: autosave.saves, failures: autosave.failures, last: autosave.last, bytes: lastWrite.bytes, local: lastWrite.local }),
+    /** the IndexedDB write of the last save settled (true: written) */
+    saveFlushed: async () => (lastWrite.idb ? await lastWrite.idb : false),
+    /** the save as the next start will read it (IndexedDB first) */
+    storedSave: async () => readSaveAsync(),
+    /** load a stored save's text as the start would (tests of older saves: T-H3v); returns whether it was applied */
+    loadRaw: (json: string) => restore(parseSave(json) as any),
+    notices,
     /** the population out of doors near the camera: a sorted sample (pid, place, act, position) for save/load checks */
     popSample: (n = 60) => { const P = (world as any).people; if (!P) return null; return [...P.view.visible].sort((a: any, b: any) => a.pid - b.pid).slice(0, n).map((o: any) => ({ pid: o.pid, act: o.act, place: o.place, e: +o.e.toFixed(2), n: +o.n.toFixed(2), moving: o.moving })); },
     /** §13.2 rendered plan overlay: renders the given building's parts (filtered by kind) top-down, orthographic,
@@ -436,7 +449,7 @@ async function boot() {
     ]);
   }
   // load on start (audit D M9): the saved visit, unless a test world or ?newvisit; the title then offers to continue it
-  const continued = P.get('loadsave') || (!TEST && !P.has('newvisit') && readSave()) ? restore(readSave() as any) : false;
+  const continued = P.get('loadsave') || (!TEST && !P.has('newvisit')) ? restore(await readSaveAsync() as any) : false;
   if (P.get('bench')) {
     // the bench must time the GPU's work, not just command submission (WebGPU renders asynchronously): wait for the queue
     // (WebGPU) or read one pixel back (WebGL2) after each frame; GPU pass time from timestamp queries where supported

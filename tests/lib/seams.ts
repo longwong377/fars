@@ -7,7 +7,9 @@
 // Per crossing: fell (feet ever > 0.3 m below the drawn surface), rescued (the safety net fired: must be 0), stopped by
 // a slope steeper than the controller climbs (drawn, legitimate), stopped elsewhere (an invisible wall: must be 0), and the
 // worst |feet − drawn surface| while grounded on ground under 30° (on a cliff the capsule's side rests on the face).
+import * as THREE from 'three/webgpu';
 import type { Terrain } from '../../src/terrain/heightfield';
+import { TerrainMesh } from '../../src/terrain/terrainMesh';
 import { Physics } from '../../src/player/physics';
 import { Player } from '../../src/player/player';
 
@@ -85,4 +87,38 @@ export function seamCrossings(T: Terrain, P: Physics, n: number, seed = 1, opts:
   }
   res.ms = Date.now() - t0;
   return res;
+}
+
+/** collider vs DRAWN ground at the ring seams (gates T-H1): N samples per seam (near/mid ±2,048 m, mid/far ±10,240 m; a
+ *  ±64 m band either side of the seam line, all four sides): a ray cast on the streamed chunk colliders against the height
+ *  read from the terrain mesh's own full-resolution chunk geometry (its vertex and index buffers, not Terrain.heightAt) */
+export function seamSamples(T: Terrain, P: Physics, N = 10000, seed = 7) {
+  const t0 = Date.now(), mesh = new TerrainMesh(T, 1) as any, geoms = new Map<any, THREE.BufferGeometry>();
+  const drawnAt = (x: number, z: number): number => {
+    const ch = mesh.chunks.find((c: any) => { const x0 = -c.ring.half + c.c0 * c.ring.cell, z0 = -c.ring.half + c.r0 * c.ring.cell, s = c.cells * c.ring.cell; return x >= x0 && x < x0 + s && z >= z0 && z < z0 + s; });
+    let g = geoms.get(ch); if (!g) { g = mesh.buildGeometry(ch, 1) as THREE.BufferGeometry; geoms.set(ch, g); }
+    const pos = g.attributes.position.array as Float32Array, idx = g.index!.array, cells = ch.cells, cell = ch.ring.cell;
+    const x0 = -ch.ring.half + ch.c0 * cell, z0 = -ch.ring.half + ch.r0 * cell, j = Math.min(cells - 1, Math.floor((x - x0) / cell)), i = Math.min(cells - 1, Math.floor((z - z0) / cell));
+    const t0_ = (i * cells + j) * 6; // two triangles per cell, in index order
+    for (const t of [t0_, t0_ + 3]) {
+      const A = idx[t] * 3, B = idx[t + 1] * 3, C = idx[t + 2] * 3;
+      const ax = pos[A], az = pos[A + 2], bx = pos[B], bz = pos[B + 2], cx = pos[C], cz = pos[C + 2];
+      const d = (bz - cz) * (ax - cx) + (cx - bx) * (az - cz), u = ((bz - cz) * (x - cx) + (cx - bx) * (z - cz)) / d, v = ((cz - az) * (x - cx) + (ax - cx) * (z - cz)) / d, w = 1 - u - v;
+      if (u >= -1e-6 && v >= -1e-6 && w >= -1e-6) return u * pos[A + 1] + v * pos[B + 1] + w * pos[C + 1];
+    }
+    throw new Error(`no triangle at ${x}, ${z}`);
+  };
+  const R = rng(seed), lines: string[] = [], seams: Record<string, { worst_m: number; mean_m: number; n: number; at: string }> = {}; let worst = 0;
+  for (const [name, H] of [['near/mid', T.near.half], ['mid/far', T.mid.half]] as const) {
+    let w = 0, sum = 0, at = '';
+    for (let k = 0; k < N; k++) {
+      const side = k % 4, along = (R() * 2 - 1) * (H - 1), across = H + (R() * 2 - 1) * 64;
+      const [x, z] = side === 0 ? [across, along] : side === 1 ? [-across, along] : side === 2 ? [along, across] : [along, -across];
+      P.updateTerrain(T, { x, y: 0, z }); const hit = P.castRayDown(x, z, 6000);
+      const d = hit === null ? Infinity : Math.abs(hit - drawnAt(x, z)); sum += d; if (d > w) { w = d; at = `(${x.toFixed(1)}, ${z.toFixed(1)})`; }
+    }
+    worst = Math.max(worst, w); seams[name] = { worst_m: +w.toFixed(5), mean_m: +(sum / N).toFixed(6), n: N, at };
+    lines.push(`  ${name} seam (±64 m band, ${N} samples): collider vs drawn mesh mean ${(sum / N * 1000).toFixed(2)} mm, worst ${(w * 1000).toFixed(2)} mm at ${at}`);
+  }
+  return { worst, n: N, seams, lines, ms: Date.now() - t0 };
 }

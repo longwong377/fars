@@ -5,7 +5,7 @@
 // tests/e2e/persistence.spec.ts.
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { Autosaver, AUTOSAVE_MS } from '../src/core/save';
+import { Autosaver, AUTOSAVE_MS, parseSave, writeSave, setSaveProblemHandler, MAX_SAVE_BYTES, type SaveGame } from '../src/core/save';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, type Env } from '../src/people/sim';
 import { WeatherSystem } from '../src/weather/weatherState';
@@ -56,4 +56,28 @@ describe('save -> load -> save is byte-identical (T-H3r), and the world goes on 
     for (let i = 0; i < 600; i++) { s1.step(1); s2.step(1); }
     expect(JSON.stringify(s2.save()) === JSON.stringify(s1.save()), 'ten minutes on, the same world').toBe(true);
   }, 300_000);
+});
+
+describe('older saves and failed saves are never lost silently (T-H3v, T-H3s)', () => {
+  it('a save of the previous build (people without walks, chronicle or route cache) loads and goes on; unreadable or unknown saves are announced', () => {
+    const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
+    const W = new WeatherSystem(1), env = (t: number): Env => { const d = Math.floor(t / 24), c = W.conditions(d, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
+    const s1 = new PeopleSim(1, nav, env); s1.jumpTo(24 * 12 + 9); for (let i = 0; i < 120; i++) s1.step(1); s1.noteAddressed(4);
+    // the previous build's save: the fields this session added are absent
+    const cur: any = s1.save(), old: any = { ...cur, agents: cur.agents.map((a: any) => { const { path, pathI, walking, gait, legs, waitRoute, loadDay, kneadKey, emptyCarry, round, roundKey, ...rest } = a; return rest; }) };
+    delete old.events; delete old.routes; delete old.near;
+    const oldSave: SaveGame = { v: 1, savedAt: '2026-09-25T20:00:00Z', seed: 1, clockT: 12.4, timeScale: 1, weatherOverride: 'auto', player: { x: -175, y: 0, z: -122, yaw: 0, pitch: 0 }, npc: { people: old, visitor: { step: 0 } } };
+    const notes: string[] = []; setSaveProblemHandler(m => notes.push(m));
+    const parsed = parseSave(JSON.stringify(oldSave)); expect(parsed, 'the previous build\'s save reads').not.toBeNull(); expect(notes).toEqual([]);
+    const s2 = new PeopleSim(1, nav, env); s2.load((parsed!.npc as any).people);
+    expect(s2.familiarity(4)).toBeCloseTo(s1.familiarity(4), 9); for (let i = 0; i < 60; i++) s2.step(1); // and it goes on
+    expect(parseSave('{not json')).toBeNull(); expect(notes.length).toBe(1);
+    expect(parseSave(JSON.stringify({ ...oldSave, v: 7 }))).toBeNull(); expect(notes.length).toBe(2); expect(notes[1]).toMatch(/cannot read/);
+  });
+  it('a save no store accepts is announced (node: no localStorage, no IndexedDB); the size ceiling is 2 MB', () => {
+    const notes: string[] = []; setSaveProblemHandler(m => notes.push(m));
+    expect(writeSave({ v: 1, savedAt: '', seed: 1, clockT: 0, timeScale: 1, weatherOverride: 'auto', player: { x: 0, y: 0, z: 0, yaw: 0, pitch: 0 } })).toBe(false);
+    expect(notes.length).toBe(1); expect(notes[0]).toMatch(/could not be saved/);
+    expect(MAX_SAVE_BYTES).toBe(2 * 1024 * 1024);
+  });
 });

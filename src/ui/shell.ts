@@ -45,6 +45,12 @@ export class Shell {
   playing() { this.mode = 'playing'; const dot = this.settings.translation && !new URLSearchParams(location.search).has('test'); root().replaceChildren(...(dot ? [el('div', { className: 'crosshair' })] : [])); }
   /** the Now view's caption (out-of-world, English; D-201): what the view is and its tier, while it is on (not in ?test
    *  captures). Its own element, so the menus redrawing the shell leave it alone */
+  /** an out-of-world notice about saving or loading (English; T-H3s, T-H3v: a failed save or an unreadable save is never
+   *  silent), shown for 12 s at the foot of the screen; not in ?test captures (the test reads __parsa.notices) */
+  notice(text: string) {
+    if (new URLSearchParams(location.search).has('test')) return;
+    const e = el('div', { className: 'save-notice' }, text); document.body.append(e); setTimeout(() => e.remove(), 12_000);
+  }
   nowCaption(text: string | null) {
     let e = document.getElementById('now-caption');
     const show = !!text && !new URLSearchParams(location.search).has('test');
