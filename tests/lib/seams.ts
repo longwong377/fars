@@ -22,9 +22,9 @@ const rng = (seed: number) => { let s = seed >>> 0; return () => ((s = (Math.imu
 /** the drawn slope angle (deg) at (x, z) along the unit direction (dx, dz), steepest over the next 1.5 m */
 function slopeAhead(T: Terrain, x: number, z: number, dx: number, dz: number) {
   let worst = 0;
-  for (let s = 0; s <= 1.5; s += 0.25) { const ax = x + dx * s, az = z + dz * s, h0 = T.heightAt(ax, az), h1 = T.heightAt(ax + dx * 0.5, az + dz * 0.5);
+  for (let s = 0; s <= 1.5; s += 0.25) { const ax = x + dx * s, az = z + dz * s, h0 = T.surfaceAt(ax, az), h1 = T.surfaceAt(ax + dx * 0.5, az + dz * 0.5);
     // the full gradient too: a slope across the direction can stop the capsule sliding along it
-    const gx = (T.heightAt(ax + 0.5, az) - T.heightAt(ax - 0.5, az)), gz = (T.heightAt(ax, az + 0.5) - T.heightAt(ax, az - 0.5));
+    const gx = (T.surfaceAt(ax + 0.5, az) - T.surfaceAt(ax - 0.5, az)), gz = (T.surfaceAt(ax, az + 0.5) - T.surfaceAt(ax, az - 0.5));
     worst = Math.max(worst, Math.atan2(Math.abs(h1 - h0), 0.5) * 180 / Math.PI, Math.atan(Math.hypot(gx, gz)) * 180 / Math.PI); }
   return worst;
 }
@@ -59,15 +59,15 @@ export function seamCrossings(T: Terrain, P: Physics, n: number, seed = 1, opts:
     if (kind.startsWith('corner')) { const d = Math.hypot(dx, dz); dx /= d; dz /= d; }
     const x0 = x - dx * before, z0 = z - dz * before, run = R() < 0.4;
     P.updateTerrain(T, { x: x0, y: 0, z: z0 });
-    const pl = new Player(P, x0, T.heightAt(x0, z0) + 0.05, z0);
+    const pl = new Player(P, x0, T.surfaceAt(x0, z0) + 0.05, z0);
     const yaw = Math.atan2(-dx, -dz); // yaw 0 looks toward −z; forward = (−sin yaw, −cos yaw)
-    const step = (fwd: number) => { P.updateTerrain(T, pl.position); pl.update(dt, { forward: fwd, right: 0, run, yaw, pitch: 0 }); P.step(dt); pl.rescueIfUnderground((a, b) => T.heightAt(a, b)); };
+    const step = (fwd: number) => { P.updateTerrain(T, pl.position); pl.update(dt, { forward: fwd, right: 0, run, yaw, pitch: 0 }); P.step(dt); pl.rescueIfUnderground((a, b) => T.surfaceAt(a, b)); };
     for (let i = 0; i < 8; i++) step(0);
     let fell = false, best = -Infinity, lastProgress = 0, t = 0, stopped = false;
     const total = before + after, speed = run ? 3.2 : 1.35, tMax = (total / speed) * 3 + 4;
     while (t < tMax) {
       step(1); t += dt;
-      const p = pl.position, prog = (p.x - x0) * dx + (p.z - z0) * dz, g = T.heightAt(p.x, p.z), gap = pl.feetY - g;
+      const p = pl.position, prog = (p.x - x0) * dx + (p.z - z0) * dz, g = T.surfaceAt(p.x, p.z), gap = pl.feetY - g;
       if (gap < -0.3) fell = true;
       if (pl.grounded && Math.abs(gap) > res.worstGroundGap && Math.abs(gap) < 5 && slopeAhead(T, p.x, p.z, dx, dz) < 30) { res.worstGroundGap = Math.abs(gap); res.worstGapAt = `${kind} at world (${p.x.toFixed(2)}, ${p.z.toFixed(2)}) gap ${gap.toFixed(2)} dir (${dx.toFixed(3)}, ${dz.toFixed(3)}) run ${run} t ${t.toFixed(2)} slope ${slopeAhead(T, p.x, p.z, dx, dz).toFixed(0)}°`; }
       if (prog >= total) break;

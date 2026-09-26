@@ -126,7 +126,7 @@ export async function buildOfflineWorld(o: { seed?: number; day?: number; hour?:
       P.updateTerrain(T, pp);
       pl.update(dt, { forward: inp.forward, right: 0, run: !!inp.run, yaw: inp.yaw, pitch: 0 });
       P.step(Math.max(1 / 240, dt));
-      pl.rescueIfUnderground((a, b) => T.heightAt(a, b));
+      pl.rescueIfUnderground((a, b) => T.surfaceAt(a, b));
     },
   };
   const ctxAt = (x: number, y: number, z: number) => ({ clock: { dayIndex: o.day ?? 25, localHour: o.hour ?? 10 }, cond: { windMs: 2, windDirDeg: 0 }, camera: { position: new THREE.Vector3(x, y + 1.6, z) }, player: { position: new THREE.Vector3(x, y, z) } });

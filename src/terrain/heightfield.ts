@@ -68,11 +68,20 @@ export class Terrain {
   /** the ring drawn (and walked) at (x, z): each ring owns its whole extent minus the finer ring's (terrainMesh.ts draws
    *  the near ring to ±2,048 m, the mid ring to ±10,240 m, the far ring beyond; the rings agree along the seams to 0.02 m) */
   ringAt(x: number, z: number): Ring { return this.near.contains(x, z) ? this.near : this.mid.contains(x, z) ? this.mid : this.far; }
-  /** ground height at world (x, z): the drawn surface itself (the owning ring's triangles), which is also the walked one
-   *  (physics.ts builds its colliders from the same chunks). Until audit D (session 8) this was the bilinear height with
-   *  the ring switches at 2,040 / 10,208 m while the collider switched at 1,984 / 9,984 m (the player fell through the
-   *  mountain there: 12 of 24 crossings). */
-  heightAt(x: number, z: number): number { return this.ringAt(x, z).surfaceAt(x, z); }
+  /** the drawn ground at world (x, z): the owning ring's triangles, which is also the walked ground (physics.ts builds its
+   *  colliders from the same chunks). Used for everything about the player's feet (the safety net, the bots, the tests).
+   *  Until audit D (session 8) the collider switched rings at 1,984 / 9,984 m while the drawing switched at 2,048 / 10,240 m
+   *  (the player fell through the mountain there: 12 of 24 crossings). */
+  surfaceAt(x: number, z: number): number { return this.ringAt(x, z).surfaceAt(x, z); }
+  /** placement height (bilinear; ring switches at 2,040 / 10,208 m) that everything placed on the ground was built with.
+   *  It differs from the drawn surface by up to ~0.5 m on the mid ring's slopes (objects float or sink there: Q-645); moving
+   *  placement to surfaceAt changes generated layouts (tried in session 8: a village compound moved so a population route
+   *  crossed a wall, and the plain gained a 41st mesh over its budget of 40), so it waits for those fixes. */
+  heightAt(x: number, z: number): number {
+    if (this.near.contains(x, z, 8)) return this.near.heightAt(x, z);
+    if (this.mid.contains(x, z, 32)) return this.mid.heightAt(x, z);
+    return this.far.heightAt(x, z);
+  }
   private _chunks: TerrainChunk[] | null = null;
   /** every drawn chunk: each ring split into CHUNK_CELLS chunks, a coarser ring skipping those inside the finer ring (the
    *  ring extents are chunk-aligned by construction) */

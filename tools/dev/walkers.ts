@@ -67,7 +67,7 @@ console.log(`offline world built in ${(W.buildMs / 1000).toFixed(0)} s`);
 const { T, P, nav, scene } = W; scene.updateMatrixWorld(true);
 const plan = W.settlement!.plan, townWalk = TownWalk.fromPlan(plan), villages = W.plain!.data.villages;
 const vsite = (vi: number) => (W.geo as any).vsite(vi) as { walk: TownWalk; site: Site };
-const slope = (x: number, z: number) => { const gx = (T.heightAt(x + 0.75, z) - T.heightAt(x - 0.75, z)) / 1.5, gz = (T.heightAt(x, z + 0.75) - T.heightAt(x, z - 0.75)) / 1.5; return Math.atan(Math.hypot(gx, gz)) * 180 / Math.PI; };
+const slope = (x: number, z: number) => { const gx = (T.surfaceAt(x + 0.75, z) - T.surfaceAt(x - 0.75, z)) / 1.5, gz = (T.surfaceAt(x, z + 0.75) - T.surfaceAt(x, z - 0.75)) / 1.5; return Math.atan(Math.hypot(gx, gz)) * 180 / Math.PI; };
 
 // ---- the areas: a sampler of targets (grid e, n) and a router
 type Router = 'nav' | 'town' | 'village' | 'open';
@@ -105,7 +105,7 @@ const AREAS: Record<string, Area> = {
 const shape = new P.R.Capsule(0.6, 0.25), rot = { x: 0, y: 0, z: 0, w: 1 };
 function standable(p: P2, router: Router): number | null {
   const x = p[0], z = -p[1]; P.updateTerrain(T, { x, y: 0, z }); W.settlement!.streamColliders(x, z, Infinity); P.step(1e-4);
-  const nh = router === 'nav' ? nav.heightAt(p[0], p[1]) : NaN, g = T.heightAt(x, z);
+  const nh = router === 'nav' ? nav.heightAt(p[0], p[1]) : NaN, g = T.surfaceAt(x, z);
   const floor = P.castRayDown(x, z, Number.isFinite(nh) ? nh + 1.2 : g + (router === 'open' ? 3 : 8));
   if (floor === null) return null;
   if (P.world.intersectionWithShape({ x, y: floor + 0.87 + 0.03, z }, rot, shape)) return null;
@@ -142,7 +142,7 @@ function runArea(A: Area): Res {
   /** one step toward (e, n); returns the distance left */
   const stepTo = (e: number, n: number) => { const p = pl.position, de = e - p.x, dn = n + p.z, yaw = Math.atan2(-de, dn); // yaw 0 faces −z (grid north)
     W.step(pl, DT, { forward: 1, yaw, run: true }); R.botT += DT;
-    const q = pl.position, g = T.heightAt(q.x, q.z);
+    const q = pl.position, g = T.surfaceAt(q.x, q.z);
     if (pl.feetY < g - 0.3 && !R.examples.some(x => x.startsWith('fell'))) ex(`fell: feet ${(g - pl.feetY).toFixed(2)} m under the ground at (${q.x.toFixed(1)}, ${(-q.z).toFixed(1)})`);
     if (pl.feetY < g - 0.3) R.fell++;
     hist.push({ t: R.botT, x: q.x, z: -q.z }); while (hist.length && hist[0].t < R.botT - 3) hist.shift();

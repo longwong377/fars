@@ -2,7 +2,7 @@
 //  1. T-H1: collider vs DRAWN ground at the terrain LOD seams, 10,000 samples per ring seam (near/mid, mid/far), the drawn
 //     height read from the terrain mesh's own chunk geometry (tests/lib/seams.ts seamSamples); writes the evidence
 //     REVIEWS/evidence/s8-h/T-H1.json {id, value (m, the worst seam's worst), n (samples per seam), commit, tool}.
-//  2. The audit's bands: physics ray vs Terrain.heightAt (the drawn surface), 200 samples per band from 0 to 30 km.
+//  2. The audit's bands: physics ray vs Terrain.surfaceAt (the drawn surface), 200 samples per band from 0 to 30 km.
 //  3. The audit's walks across the old collider switch lines (e 1,984 m, 9,984 m; n 1,984 m).
 // Session 8 (audit D, a8cba80): near-ring edge 2.56 m apart, 12 of 24 crossings fell. After the H workstream: see the evidence.
 // Usage (from the repo root): npx tsx tools/dev/audit_d/ring_probe.mts [--no-write]
@@ -24,7 +24,7 @@ for (const [lo, hi] of [[0, 1900], [1984, 2040], [2100, 9900], [9984, 10200], [1
     const x = r * Math.cos(a), z = r * Math.sin(a);
     P.updateTerrain(T, { x, y: 0, z }); P.step(1e-4);
     const hit = P.castRayDown(x, z, 6000); if (hit === null) { console.log('NO GROUND at', x, z); continue; }
-    const d = Math.abs(hit - T.heightAt(x, z)); worst = Math.max(worst, d); sum += d; n++;
+    const d = Math.abs(hit - T.surfaceAt(x, z)); worst = Math.max(worst, d); sum += d; n++;
   }
   console.log(`band ${lo}-${hi} m: physics vs drawn height mean ${(sum / n).toFixed(3)} m, worst ${worst.toFixed(3)} m`);
 }
@@ -32,12 +32,12 @@ for (const [lo, hi] of [[0, 1900], [1984, 2040], [2100, 9900], [9984, 10200], [1
 let lostAny = 0;
 for (const [x0, z0, yawDeg] of [[1940, 300, -90], [1940, -800, -90], [9940, 0, -90], [300, 1940, 180]] as [number, number, number][]) {
   P.updateTerrain(T, { x: x0, y: 0, z: z0 }); P.step(1e-4);
-  const pl = new Player(P, x0, (P.castRayDown(x0, z0, 6000) ?? T.heightAt(x0, z0)) + 0.05, z0);
+  const pl = new Player(P, x0, (P.castRayDown(x0, z0, 6000) ?? T.surfaceAt(x0, z0)) + 0.05, z0);
   for (let i = 0; i < 30; i++) { pl.update(1 / 30, { forward: 0, right: 0, run: false, yaw: 0, pitch: 0 }); P.updateTerrain(T, pl.position); P.step(1 / 30); }
   pl.maxFall = 0; let worstOff = 0, lost = false;
   for (let i = 0; i < 30 * 90; i++) {
     P.updateTerrain(T, pl.position); pl.update(1 / 30, { forward: 1, right: 0, run: false, yaw: yawDeg * Math.PI / 180, pitch: 0 }); P.step(1 / 30);
-    const off = pl.feetY - T.heightAt(pl.position.x, pl.position.z); if (Math.abs(off) > Math.abs(worstOff)) worstOff = off;
+    const off = pl.feetY - T.surfaceAt(pl.position.x, pl.position.z); if (Math.abs(off) > Math.abs(worstOff)) worstOff = off;
     if (off < -3) { lost = true; break; }
   }
   if (lost) lostAny++;

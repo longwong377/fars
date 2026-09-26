@@ -32,7 +32,7 @@ for (const area of areas) {
   const pl = new Player(P, x0, P.castRayDown(x0, z0, 400) ?? T.heightAt(x0, z0), z0); pl.maxFall = 0; pl.fallStartY = null;
   const stepDt = (yawDeg: number, fwd: number, dt: number) => { const yaw = -((yawDeg - 341) * Math.PI) / 180;
     if (OW) { OW.step(pl, dt, { forward: fwd, yaw }); return; }
-    P.updateTerrain(T, pl.position); pl.update(dt, { forward: fwd, right: 0, run: false, yaw, pitch: 0 }); P.step(Math.max(1 / 240, dt)); pl.rescueIfUnderground((a, b) => T.heightAt(a, b)); };
+    P.updateTerrain(T, pl.position); pl.update(dt, { forward: fwd, right: 0, run: false, yaw, pitch: 0 }); P.step(Math.max(1 / 240, dt)); pl.rescueIfUnderground((a, b) => T.surfaceAt(a, b)); };
   for (let i = 0; i < 30; i++) stepDt(0, 0, 1 / 30);
   pl.maxFall = 0;
   const walkTo = (east: number, north: number, maxSeconds = 240, tol = 0.5, dt = 1 / 30) => {

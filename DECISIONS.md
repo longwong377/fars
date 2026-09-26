@@ -5845,8 +5845,9 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **The terrain collider is the drawn terrain.** Physics builds one Rapier heightfield per drawn terrain chunk (`Terrain.chunks()`,
   the list `TerrainMesh` draws: near 512 m, mid 2,048 m, far 20,480 m chunks, split in collider tiles of ≤ 128 cells), from the
   same ring samples, streamed around the player (96 m, dropped beyond 160 m); `castRayDown` gives the chunk under the ray its
-  collider first. `Terrain.heightAt` is the drawn surface itself: the owning ring (near to ±2,048 m, mid to ±10,240 m) and its
-  cell triangles on the (r, c+1)–(r+1, c) diagonal that both the mesh and parry use (measured). Replaces one collider for the
+  collider first. `Terrain.surfaceAt` is the drawn surface itself: the owning ring (near to ±2,048 m, mid to ±10,240 m) and its
+  cell triangles on the (r, c+1)–(r+1, c) diagonal that both the mesh and parry use (measured); the feet, the safety net, the
+  bots and the tests use it. `heightAt` stays the placement height (bilinear) until Q-645's two consequences are fixed. Replaces one collider for the
   whole ring, switched at 1,984 / 9,984 m while the drawing switched at 2,048 / 10,240 m and `heightAt` (bilinear) at 2,040 /
   10,208 m. Near the player every drawn chunk is at LOD step 1 (the spacing rule forbids coarser within 140 m at any quality),
   so the collider at full resolution is what is drawn. The rings already agree at their seams (≤ 0.02 m: build_terrain.py).
@@ -5878,4 +5879,4 @@ moment-*-webgpu.png in the worktree, not committed).**
   lane graph, or straight with side-steps; metrics per area in bench-reports/walkers-offline.txt and the evidence of T-H1r/T-H1s.
   The bot waits up to 5 s for a person in its way, then side-steps. The browser walkthrough adds a town lane into a house court,
   the fields and Kuh-e Rahmat across the old seam (tests/e2e/walkthrough.spec.ts), with the population drawn.
-- **Tier / evidence:** engineering; the measures are in the H workstream report and REVIEWS/evidence/s8-h. Q-640 … Q-644, B61, B62.
+- **Tier / evidence:** engineering; the measures are in the H workstream report and REVIEWS/evidence/s8-h. Q-640 … Q-645, B61, B62.

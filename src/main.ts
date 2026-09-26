@@ -106,7 +106,7 @@ async function boot() {
   const world: WorldBuild = await buildWorld(scene, phys, terrain, settings, weather, SEED);
   const [sx, sz] = [SPAWN.east, -SPAWN.north];
   phys.updateTerrain(terrain, { x: sx, y: 0, z: sz }); phys.step(1 / 60);
-  const player = new Player(phys, sx, terrain.heightAt(sx, sz) + 0.05, sz);
+  const player = new Player(phys, sx, terrain.surfaceAt(sx, sz) + 0.05, sz);
   const input = new Input(canvas, () => settings);
   input.yaw = SPAWN.yaw;
   input.onInteract = () => { // E: in visitor mode the halmi / the errand's business first; the door faced within reach (D-051), else the nearest person in front
@@ -201,7 +201,7 @@ async function boot() {
     walkMode: () => { freeCam = null; },
     teleport: (east: number, north: number) => { const x = east, z = -north; player.teleport(x, groundAt(east, north), z); player.maxFall = 0; player.fallStartY = null; },
     setInput: (i: Partial<{ forward: number; right: number; run: boolean; yawDeg: number; pitchDeg: number }>) => { botInput = { ...botInput, ...i }; },
-    playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, maxFall: player.maxFall, rescues: player.rescues, lastRescue: player.lastRescue, terrainColliders: phys.terrainChunks().length, yaw: input.yaw, ground: phys.castRayDown(player.position.x, player.position.z, player.position.y + 0.5, player.collider) ?? terrain.heightAt(player.position.x, player.position.z) }),
+    playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, maxFall: player.maxFall, rescues: player.rescues, lastRescue: player.lastRescue, terrainColliders: phys.terrainChunks().length, yaw: input.yaw, ground: phys.castRayDown(player.position.x, player.position.z, player.position.y + 0.5, player.collider) ?? terrain.surfaceAt(player.position.x, player.position.z) }),
     stats: () => ({ reliefs: reliefStats(), backend, drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, terrain: tmesh.stats(), frameMs: lastFrameMs, heap: (performance as any).memory?.usedJSHeapSize ?? null }),
     renderOnce: async () => { await frame(0, { render: false }); await world.settle?.(camera); await frame(0); },
     /** a frame without rendering: the camera placed (view), the world updated (picks after a view or setTime; D-187) */
@@ -344,7 +344,7 @@ async function boot() {
       if (r.blocked) player.teleport(r.x, player.feetY, r.z);
     }
     phys.step(Math.max(1 / 240, dt));
-    player.rescueIfUnderground((x, z) => terrain.heightAt(x, z)); // safety net, counted (audit D M1): tests assert it never fires
+    player.rescueIfUnderground((x, z) => terrain.surfaceAt(x, z)); // safety net, counted (audit D M1): tests assert it never fires
     world.simulate?.(dt, clock);
   }
   let exposure = 1, adaptT = 0, skyVis = -1, rayVis = 1, probeVis = { eye: 1, w: 0 };
