@@ -92,6 +92,8 @@ import { sunTimes } from '../people/calendar';
 import { Rng } from '../core/rng';
 import type { WeatherSystem } from '../weather/weatherState';
 import { CourtCampTents } from './courtCamps';
+import { NearSolids, SOLID_R } from './solids';
+import type { AnimalInst } from '../people/animals';
 import { CAMPS } from '../people/camps';
 import { Fauna, FAC as FAUNA_FAC, type VillageIn } from './fauna';
 import { Traffic, type Mover } from './traffic';
@@ -226,14 +228,20 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   let impMs = 0;
   { const t = performance.now(), pg = (k: string) => { const g = propGeometry(k)!, n = g.getAttribute('position').count; return { pos: g.getAttribute('position').array as Float32Array, idx: g.index ? g.index.array : Array.from({ length: n }, (_, i) => i) }; };
     crowd.imp = new CrowdImpostors(bakeImpostors(humans.A, humans.O, { jar: pg('jar'), sack: pg('sack') })); crowd.group.add(crowd.imp.mesh); impMs = performance.now() - t; }
-  // the population's people nearest the player are solid too (brief §6: player collision with crowds): 48 capsules
-  // follow the nearest of them within 20 m, where the crowd draws them (the view's spot and the cycle's own path: the
-  // ploughman up to PATH_REACH from his spot along the furrow; D-142 × D-143). Their animals are not solid (C)
-  const popBodies = Array.from({ length: 48 }, () => { const b = phys.world.createRigidBody(phys.R.RigidBodyDesc.kinematicPositionBased().setTranslation(0, -1000, 0)); phys.world.createCollider(phys.R.ColliderDesc.capsule(0.55, 0.25).setTranslation(0, 0.8, 0), b); return b; });
-  const syncPopBodies = () => { const pp = playerAt;
-    const near = pp ? view.query([pp.x, -pp.z], 20 + PATH_REACH).filter(o => o.agent < 0).map(o => { const r = crowd.rootOf(o.pid); const x = r ? r[0] : o.e, y = r ? r[1] : o.y, z = r ? r[2] : -o.n; return { x, y, z, d: Math.hypot(x - pp.x, z - pp.z) }; })
-      .filter(q => q.d < 20).sort((a, b) => a.d - b.d) : [];
-    popBodies.forEach((b, i) => { const q = near[i]; b.setNextKinematicTranslation(q ? { x: q.x, y: q.y, z: q.z } : { x: 0, y: -1000, z: 0 }); }); };
+  // the people and animals near the player are solid (brief §6: player collision with crowds and animals; D-237): pools of
+  // kinematic capsules follow the nearest of them within SOLID_R, where the crowd draws them (the view's spot and the
+  // cycle's own path: the ploughman up to PATH_REACH from his spot along the furrow; D-142 × D-143), the crowd's extras
+  // (drivers, riders, musicians) and the animals as the crowd and the fauna push them to be drawn (solids.ts). Until
+  // session 8: the nearest 48 of the population within 20 m, and no animal
+  const solids = new NearSolids(phys);
+  { const tap = (A: { onPush: ((a: AnimalInst, M: THREE.Matrix4) => void) | null }) => { const prev = A.onPush; A.onPush = (a, M) => { prev?.(a, M); solids.animal(a, M); }; };
+    tap(crowd.animals); tap(fauna.animals); }
+  const syncPopBodies = () => { const pp = playerAt; if (!pp) return; solids.begin(pp);
+    if (!nowView.active) {
+      for (const o of view.query([pp.x, -pp.z], SOLID_R + PATH_REACH)) if (o.agent < 0) { const r = crowd.rootOf(o.pid); solids.person(r ? r[0] : o.e, r ? r[1] : o.y, r ? r[2] : -o.n); }
+      for (const p of crowd.persons.values()) if (p.extra && (p.root[0] || p.root[2])) solids.person(p.root[0], p.root[1], p.root[2]);
+    } else solids.beginAnimals();
+    solids.end(); };
   // the Hall of 100 Columns follows the simulation's construction state (Phase 5; replaces the static hall columns)
   const building = present('hall100') ? new ConstructionView(arch.group, () => sim.construction) : null; if (building) root.add(building.group);
   // the Now view (D-201): built on first use; keeps the carving, the weather and the birds, hides the rest of 467
@@ -413,6 +421,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       view.update(sim.t, [ctx.camera.position.x, -ctx.camera.position.z]); // the population out of doors near the camera (D-143)
       if (!nowView.active) syncTraffic(ctx.camera.position); // D-210: the drivers and riders on the roads, before the crowd draws them
       dust.begin(ctx.camera.position); // D-220: this frame's dust emitters are reported while the crowd draws (begin BEFORE it: render 2 found none)
+      solids.beginAnimals(); // this frame's animals are gathered as they are pushed (crowd and fauna, below)
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
       { const day = Math.floor(sim.t / 24), sun = sunTimes(day); // D-210: the animals of the town, the villages, the paradise and the river
         fauna.group.visible = !nowView.active;
@@ -483,5 +492,5 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         `animals and insects heard (D-210, synthesised, C): ${sound.heardLines().join(' · ') || 'none in the last minute'}${sound.fliesLevel > 0.05 ? ` · flies ${sound.fliesLevel.toFixed(2)}` : ''}`,
         `occlusion (C, Maekawa; Q-304): ${audio.occlStats.tracked} sources tracked, ${audio.occlStats.queries} re-queried this frame in ${audio.occlStats.ms.toFixed(2)} ms · field ${occl.w}×${occl.h} cells built in ${occMs.toFixed(0)} ms · town and plain buildings not occluders`];
     },
-    summary: () => `${nowView.active ? nowView.summary() + ' · ' : ''}${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest + ${crowd.impPerf.drawn} impostors (baked in ${impMs.toFixed(0)} ms), ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms, view ${view.stats.evalMs.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · ${palace.summary()} · fires ${JSON.stringify(fire.stats())} · smoke layer ${landSmoke.count} cells (${landSmoke.inside} round the eye; D-220, C) · dust ${dust.stats.puffs} puffs from ${dust.stats.emitters} (dry ${dust.stats.dry})${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''}${campTents ? ` · court camps ${campTents.info.tents} tents, ${(campTents.info.tris / 1e3).toFixed(1)} k tris in ${campTents.info.meshes} meshes (D-199, C)` : ''} · ${faunaLine()} · ${plain.summary()} · ${insc.userData.summary ?? ''}` } as WorldBuild;
+    summary: () => `${nowView.active ? nowView.summary() + ' · ' : ''}${probeSummary()} · people ${sim.agents.filter(a => !a.offmap).length}/${sim.agents.length} on the Terrace (drawn ${crowd.perf.drawn.join('/')} full/mid/far/farthest + ${crowd.impPerf.drawn} impostors (baked in ${impMs.toFixed(0)} ms), ${crowd.perf.attached} pooled, pose ${crowd.perf.ms.toFixed(2)} ms, view ${view.stats.evalMs.toFixed(2)} ms) · ${popLine()} · architecture: ${parts.length} parts, ${(arch.triangles / 1e6).toFixed(2)} M tris, ${arch.colliders} colliders, built in ${ms.toFixed(0)} ms · ${palace.summary()} · solid near the player: ${solids.stats.people} people + ${solids.stats.animals} animals of ${solids.stats.candidatesPeople} + ${solids.stats.candidatesAnimals} within ${SOLID_R} m${solids.stats.dropped ? ` (${solids.stats.dropped} over the pools NOT SOLID)` : ''}, ${solids.stats.ms.toFixed(2)} ms (D-237) · fires ${JSON.stringify(fire.stats())} · smoke layer ${landSmoke.count} cells (${landSmoke.inside} round the eye; D-220, C) · dust ${dust.stats.puffs} puffs from ${dust.stats.emitters} (dry ${dust.stats.dry})${settlement ? ` · town ${settlement.info.meshes} meshes, ${(settlement.info.tris / 1e6).toFixed(2)} M tris, colliders ${settlement.info.liveColliders}/${settlement.info.colliders}, built in ${settlement.info.buildMs.toFixed(0)} ms` : ''}${campTents ? ` · court camps ${campTents.info.tents} tents, ${(campTents.info.tris / 1e3).toFixed(1)} k tris in ${campTents.info.meshes} meshes (D-199, C)` : ''} · ${faunaLine()} · ${plain.summary()} · ${insc.userData.summary ?? ''}` } as WorldBuild;
 }

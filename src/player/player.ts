@@ -106,8 +106,10 @@ export class Player {
    *  when there is no step of height ≤ STEP_UP with STEP_MIN_DEPTH of floor beyond the edge (a wall, a drop, a slope) */
   private stepUp(p: { x: number; y: number; z: number }, dx: number, dz: number) {
     const w = this.phys.world, shape = this.collider.shape, rot = { x: 0, y: 0, z: 0, w: 1 };
+    // stopAtPenetration: a body already touching (a person's or an animal's capsule the controller stopped against) blocks
+    // at once; with false, parry ignored it and the "step" carried the player 0.39 m into the capsule (session 8, solids)
     const cast = (from: { x: number; y: number; z: number }, v: { x: number; y: number; z: number }, max: number) => {
-      const h = w.castShape(from, rot, v, shape, 0, max, false, undefined, undefined, this.collider, this.body); return h ? h.time_of_impact : max; };
+      const h = w.castShape(from, rot, v, shape, 0, max, true, undefined, undefined, this.collider, this.body); return h ? h.time_of_impact : max; };
     const lift = cast(p, { x: 0, y: 1, z: 0 }, STEP_UP + OFFSET);
     if (lift < 0.05) return null; // head against a ceiling
     const up = { x: p.x, y: p.y + lift, z: p.z };
@@ -120,6 +122,8 @@ export class Player {
     const n = drop.normal1; if (n.y < Math.cos((42 * Math.PI) / 180)) return null; // too steep to stand on
     const rise = lift - drop.time_of_impact + OFFSET;
     if (rise < 0.02 || rise > STEP_UP + 0.01) return null;
+    // the body must fit where the step puts it (just above the top)
+    if (w.intersectionWithShape({ x: over.x, y: p.y + rise + 0.03, z: over.z }, rot, shape, undefined, undefined, this.collider, this.body)) return null;
     return { x: over.x - p.x, y: rise, z: over.z - p.z };
   }
   /** safety net: if the feet are more than RESCUE_DEPTH below the ground (`groundAt`, the drawn terrain surface), put the
