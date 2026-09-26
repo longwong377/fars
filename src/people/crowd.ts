@@ -105,6 +105,8 @@ export const CARRIED_MAX = 2 * (POOL_MAX + POOL_HYST) + 128;
 export const THINGS_DIST = 400;
 /** a flock bleats about once every BLEAT_S seconds when the listener is within 60 m (C) */
 const BLEAT_S = 7;
+/** D-256: a herd of cows lows about once every LOW_S seconds within 150 m (C) */
+const LOW_S = 25;
 /** D-210: the working animals' voices (C): a donkey or mule of a performance brays about once every BRAY_S seconds within
  *  150 m; a flock's dog barks about once every BARK_S seconds within 90 m, and every few seconds at a stranger (the listener)
  *  within 20 m; hens cluck within 40 m */
@@ -366,10 +368,14 @@ export class Crowd {
       out.push(nearPerson(key, this.voiceId(key, a, pid), act, moving, x, y, z, group));
     };
     for (const p of this.persons.values()) { if (p.extra || !p.shown) continue; const a = p.agent, vp = p.vpFrame === this.frame ? p.vp : null;
-      const moving = a && !a.offmap ? a.walking : !!vp?.moving; push(p.key, a, p.pid, p.act, moving, p.base[0], p.base[1], p.base[2], a && !a.offmap ? a.task?.place ?? null : vp?.place || null); }
+      const moving = a && !a.offmap ? a.walking : !!vp?.moving; push(p.key, a, p.pid, p.act, moving, p.base[0], p.base[1], p.base[2], a && !a.offmap ? a.task?.place ?? null : vp?.place || null);
+      if (out.length && out[out.length - 1].key === p.key) out[out.length - 1].yaw = p.base[3]; // session 9: which way they face (their breath)
+      // session 9 (G33): the small children carried or put down beside them (D-215) are there to be heard (a baby's cry:
+      // audio/voices.ts), with their own identity and age from the population
+      if (vp?.babes) for (const b of vp.babes) push(`p${b.pid}`, null, b.pid, 'rest', false, p.base[0] + 0.25, p.base[1], p.base[2], null); }
     for (let i = 0; i < this.nImp; i++) { const e = this.impList[i], a = e.a, vp = e.vp; if (!vp && !a) continue;
       const act = vp ? vp.act : this.sim!.performance(a!).act, moving = vp ? vp.moving : a!.walking;
-      push(a ? `a${a.id}` : `p${vp!.pid}`, a, vp ? vp.pid : -1, act, moving, e.x, e.y, e.z, vp ? vp.place || null : a!.task?.place ?? null); }
+      push(a ? `a${a.id}` : `p${vp!.pid}`, a, vp ? vp.pid : -1, act, moving, e.x, e.y, e.z, vp ? vp.place || null : a!.task?.place ?? null); if (out.length) out[out.length - 1].yaw = e.yaw; }
     return out;
   }
   /** D-245: a person's voice plays from `from` to `to` (world time); the voices took them (see Person.claimedAt) */
@@ -854,6 +860,8 @@ export class Crowd {
         continue; }
       this.things.push(w.kind, place(fr, w.at[0], w.at[1], w.at[2], 0, _m));
     }
+    // (D-256: the bees about the hives buzz within 25 m, now and then)
+    if (d < 25 && this.onHit && (P.work ?? []).some(w => w.kind === 'hives') && this.snd.next() < dt / 3) { const c = Math.cos(b[3]), s = Math.sin(b[3]); this.onHit('buzz', new THREE.Vector3(b[0] + s * 0.9, b[1] + 0.5, b[2] + c * 0.9)); }
     const A = P.animals; if (!A) return;
     const t = this.cycleT(p, time), anim = p.anim;
     const path = anim === 'plough' ? { s: ploughPath(t, p.animK).s } : anim === 'drive' ? { yaw: -2 * Math.PI * ((t / THRESH_TURN_S + p.animK * 0.05) % 1) } : undefined;
@@ -867,8 +875,10 @@ export class Crowd {
       } else place(fr, an.x, an.y ?? 0, an.z, an.yaw, _m);
       this.animals.push(an, _m);
     }
-    if (A.kind === 'flock' && d < 60 && list.length && this.snd.next() < dt / BLEAT_S) { const an = list[Math.floor(this.snd.next() * list.length)]; const c = Math.cos(b[3]), s = Math.sin(b[3]);
-      this.onHit?.('bleat', new THREE.Vector3(b[0] + c * an.x + s * an.z, b[1] + 0.5, b[2] - s * an.x + c * an.z)); }
+    // (D-256: a herd of cows lows, less often and heard further, LOW_S; a penned flock or herd calls too)
+    const cattle = A.species.includes('cow');
+    if ((A.kind === 'flock' || A.kind === 'fold') && d < (cattle ? 150 : 60) && list.length && this.snd.next() < dt / (cattle ? LOW_S : BLEAT_S)) { const an = list[Math.floor(this.snd.next() * list.length)]; const c = Math.cos(b[3]), s = Math.sin(b[3]);
+      if (an.sp !== 'dog') this.onHit?.(cattle ? 'low' : 'bleat', new THREE.Vector3(b[0] + c * an.x + s * an.z, b[1] + (cattle ? 1.0 : 0.5), b[2] - s * an.x + c * an.z)); }
     if (d < 150 && list.length && this.onHit) { const at = (an: { x: number; z: number }, h: number) => { const c = Math.cos(b[3]), s = Math.sin(b[3]); return new THREE.Vector3(b[0] + c * an.x + s * an.z, b[1] + h, b[2] - s * an.x + c * an.z); };
       const br = list.find(an => BRAYERS.has(an.sp)); if (br && this.snd.next() < dt / BRAY_S) this.onHit('bray', at(br, 1.1));
       const dog = d < 90 ? list.find(an => an.sp === 'dog') : undefined; if (dog && this.snd.next() < dt / (d < 20 ? 3.5 : BARK_S)) this.onHit('bark', at(dog, 0.5));

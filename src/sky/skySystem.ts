@@ -6,8 +6,9 @@
 // and Milky Way: perceptual values (C, D-047). Stars: HYG v4.1 (CC BY-SA), proper motion applied to 467 BCE, precessed
 // with the IAU model inside Rotation_EQJ_HOR.
 import * as THREE from 'three/webgpu';
+import { HALO_R } from './halo';
 import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
-import { float, vec2, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color, Fn, positionWorld, cameraPosition, normalize, atan, asin, acos, abs, exp, clamp, sqrt, length, texture, mx_fractal_noise_float, int } from 'three/tsl';
+import { float, vec2, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color, Fn, positionWorld, cameraPosition, normalize, atan, asin, acos, abs, exp, clamp, sqrt, length, texture, mx_fractal_noise_float, int, step } from 'three/tsl';
 import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt, earthShadow, UMBRA_BRIGHTNESS, UMBRA_RGB } from './ephemeris';
 import { VolumetricClouds } from './clouds';
 import { Meteors } from './meteors';
@@ -115,6 +116,8 @@ export class SkySystem {
   private hzMoon = horizonAtlasTexture(HORIZON_LAYOUT.levels, 'chord');
   private hzSunAz = NaN; private hzMoonAz = NaN;
   private uSunAlt = uniform(45); private uMoonAlt = uniform(-10);
+  /** session 9: today's halo strength (halo.ts haloAmount; set by the caller before update) */
+  private uHalo = uniform(0); halo = 0;
   private uSunDirW = uniform(new THREE.Vector3(0, 1, 0)); private uMoonDirW = uniform(new THREE.Vector3(0, -1, 0));
   /** the terrain horizon's visibility of the sun's disc at the eye (0..1; 1 without a map); the eye's adaptation and the
    *  ground bounce use it here; main.ts's exposure and the probes' eye test can read it (sunVisibilityAt for any point) */
@@ -178,7 +181,15 @@ export class SkySystem {
       const ca = Math.cos(SUN_ANGULAR_RADIUS), cb = Math.cos(SUN_ANGULAR_RADIUS * 1.3);
       const disc = smoothstep(cb, ca, dot(d, this.uSunDir3));
       const ovG = float(1).add(clamp(d.y, 0, 1).mul(2)).div(3); // CIE overcast gradation (D-224)
-      (skyMat as any).colorNode = vec4(cn.xyz.mul(this.uKP).add(T.mul(this.uKT)).add((this.uDisc as any).mul(disc.mul(this.uDW))).add((this.uOv as any).mul(ovG)), 1); }
+      // the 22 deg halo and the sun dogs (session 9, halo.ts): a brightening of the dome in the ring and at the parhelia
+      const deg = acos(clamp(dot(d, this.uSunDir3), -1, 1)).mul(180 / Math.PI);
+      const ring = (c: number) => mix(exp(deg.sub(c).div(1.6).pow(2).negate()), exp(deg.sub(c).div(0.35).pow(2).negate()), step(deg, float(c)));
+      const ringRGB = vec3(ring(HALO_R.r), ring(HALO_R.g), ring(HALO_R.b));
+      const de = asin(clamp(d.y, -1, 1)).mul(180 / Math.PI).sub(this.uSunAlt), dd = this.uSunAlt.mul(this.uSunAlt).mul(0.0045).add(22);
+      const dog = (o: number) => mix(exp(deg.sub(dd.add(o)).div(2.5).pow(2).negate()), exp(deg.sub(dd.add(o)).div(0.5).pow(2).negate()), step(deg, dd.add(o)));
+      const dogRGB = vec3(dog(-0.3), dog(0), dog(0.3)).mul(exp(de.div(0.9).pow(2).negate())).mul(float(1).sub(smoothstep(40, 55, this.uSunAlt)));
+      const halo = float(1).add(ringRGB.mul(0.45).add(dogRGB.mul(2.2)).mul(this.uHalo));
+      (skyMat as any).colorNode = vec4(cn.xyz.mul(this.uKP).add(T.mul(this.uKT)).mul(halo).add((this.uDisc as any).mul(disc.mul(this.uDW))).add((this.uOv as any).mul(ovG)), 1); }
     scene.add(this.sky);
     this.sun.castShadow = true;
     this.sun.shadow.mapSize.set(shadowMapSize, shadowMapSize);
@@ -301,7 +312,7 @@ export class SkySystem {
     // terrain horizon (D-156): re-bake the sun's atlas after 0.1° of azimuth (the moon's after 0.2°, while it is up); the
     // eye's own visibility of the sun and the moon (the adaptation and the ground bounce below)
     this.sunAz = s.azimuth; this.moonAz = mo.azimuth;
-    this.uSunAlt.value = s.altitude; this.uSunDirW.value.copy(this.state.sunDir); this.uMoonAlt.value = mo.altitude; this.uMoonDirW.value.copy(this.state.moonDir);
+    this.uSunAlt.value = s.altitude; this.uHalo.value = s.altitude > 0 ? this.halo : 0; this.uSunDirW.value.copy(this.state.sunDir); this.uMoonAlt.value = mo.altitude; this.uMoonDirW.value.copy(this.state.moonDir);
     let eyeMoon = 1;
     { const H = this.horizonMap, dAz = (a: number, b: number) => Math.abs(((a - b + 540) % 360) - 180);
       if (H) {

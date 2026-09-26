@@ -200,6 +200,109 @@
    "grown": false,
    "tier": "C",
    "note": "Q-013: not grown"
+  },
+  "pulses": {
+   "sow": [
+    "Nov",
+    "Dec"
+   ],
+   "harvest": [
+    "May"
+   ],
+   "height_m": {
+    "Jan": 0.06,
+    "Feb": 0.1,
+    "Mar": 0.2,
+    "Apr": 0.35,
+    "May": 0.45,
+    "Jun": 0.0,
+    "Jul": 0,
+    "Aug": 0,
+    "Sep": 0,
+    "Oct": 0,
+    "Nov": 0.02,
+    "Dec": 0.04
+   },
+   "tier": "C",
+   "note": "session 9 (WORLD_INVENTORY G74): lentil, chickpea, bitter vetch, pea and broad bean, the Near East's winter pulses sown with the cereals and pulled in May (the lead's recollection of the regional crop record: C); a share of the irrigated plots"
+  },
+  "garden": {
+   "sow": [
+    "Oct",
+    "Nov"
+   ],
+   "harvest": [
+    "May",
+    "Jun"
+   ],
+   "height_m": {
+    "Jan": 0.15,
+    "Feb": 0.2,
+    "Mar": 0.3,
+    "Apr": 0.4,
+    "May": 0.45,
+    "Jun": 0.2,
+    "Jul": 0.3,
+    "Aug": 0.3,
+    "Sep": 0.25,
+    "Oct": 0.05,
+    "Nov": 0.08,
+    "Dec": 0.12
+   },
+   "tier": "A name (the month \u0398\u0101igraci\u0161, 'garlic-collecting', DB) / C",
+   "note": "session 9 (WORLD_INVENTORY G16): garden plots of garlic, onions and leeks set in autumn and lifted in late spring (the Old Persian month \u0398\u0101igraci\u0161, May-June, is 'garlic-collecting': A for the name, B for the etymology); summer snake melons and gourds on the same ground (C; not cucumber: the Akkadian qi\u0161\u0161\u00fb usually glossed so is likely the snake melon)"
+  },
+  "alfalfa": {
+   "perennial": true,
+   "cuts": [
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct"
+   ],
+   "height_m": {
+    "Jan": 0.05,
+    "Feb": 0.08,
+    "Mar": 0.25,
+    "Apr": 0.45,
+    "May": 0.4,
+    "Jun": 0.4,
+    "Jul": 0.4,
+    "Aug": 0.4,
+    "Sep": 0.4,
+    "Oct": 0.35,
+    "Nov": 0.15,
+    "Dec": 0.06
+   },
+   "tier": "B claim (the 'Median grass', fodder for the horses: Strabo 11.13.7, Pliny NH 18.144) / C here",
+   "note": "session 9 (WORLD_INVENTORY GA3): alfalfa, perennial, cut about every five weeks from April to October for the royal and noble horses and the draught animals; 2 % of the irrigated plots (C)"
+  },
+  "flax": {
+   "sow": [
+    "Nov"
+   ],
+   "harvest": [
+    "Jun"
+   ],
+   "height_m": {
+    "Jan": 0.08,
+    "Feb": 0.12,
+    "Mar": 0.3,
+    "Apr": 0.6,
+    "May": 0.8,
+    "Jun": 0.0,
+    "Jul": 0,
+    "Aug": 0,
+    "Sep": 0,
+    "Oct": 0,
+    "Nov": 0.02,
+    "Dec": 0.05
+   },
+   "tier": "C",
+   "note": "session 9 (WORLD_INVENTORY G75): flax for linen and linseed, sown in November, blue-flowering in April, pulled in June; 1 % of the irrigated plots (C)"
   }
  },
  "features": [
@@ -2896,7 +2999,7 @@
    "name": "Irrigated fields along the Pulvar",
    "tier": "C",
    "src": "SUMNER1986;SHOBAIRI2018;IR-FOODAG",
-   "note": "Band within 1.5 km of the modern Pulvar (C); mosaic barley 50 %, wheat/emmer 25 %, sesame 5 % (summer), fallow 20 % (C). Irregular small plots following canals, never the modern rectangular grid (blocklist modern-landscape).",
+   "note": "Band within 1.5 km of the modern Pulvar (C); mosaic barley 42 %, wheat/emmer 21 %, sesame 5 % (summer), pulses 7 %, garden plots of garlic and onions 2 %, alfalfa 2 %, flax 1 %, fallow 20 % (C; session 9 added the pulses, gardens, alfalfa and flax: G16, G74, GA3, G75). Irregular small plots following canals, never the modern rectangular grid (blocklist modern-landscape).",
    "date_range": "Achaemenid",
    "present_467": true,
    "polygon": [
@@ -3346,10 +3449,14 @@
     ]
    ],
    "crop_mix": {
-    "barley": 0.5,
-    "wheat": 0.15,
-    "emmer_spelt": 0.1,
+    "barley": 0.42,
+    "wheat": 0.13,
+    "emmer_spelt": 0.08,
     "sesame": 0.05,
+    "pulses": 0.07,
+    "garden": 0.02,
+    "alfalfa": 0.02,
+    "flax": 0.01,
     "fallow": 0.2
    },
    "chrono": "fields_irrigated_pulvar"
@@ -3874,10 +3981,14 @@
     ]
    ],
    "crop_mix": {
-    "barley": 0.5,
-    "wheat": 0.15,
-    "emmer_spelt": 0.1,
+    "barley": 0.42,
+    "wheat": 0.13,
+    "emmer_spelt": 0.08,
     "sesame": 0.05,
+    "pulses": 0.07,
+    "garden": 0.02,
+    "alfalfa": 0.02,
+    "flax": 0.01,
     "fallow": 0.2
    },
    "chrono": "fields_irrigated_kur"

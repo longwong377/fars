@@ -53,23 +53,23 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 
 | # | gap | found by (row ids) | category | tier of presence in 467 | status |
 |---|---|---|---|---|---|
-| G1 | river crossing: ford or bridge where the roads meet the Pulvar and the Kur | A061; B-022, W-014 | transport | C | MISSING/PARTIAL |
+| G1 | river crossing: ford or bridge where the roads meet the Pulvar and the Kur | A061; B-022, W-014 | transport | C | BUILT (D-257: 51 fords on roads and tracks; the Pasargadae road redrawn off the river); unrendered |
 | G2 | villages as real places (compounds are solid boxes; ovens, pens, courts, night light) | A072; B-023 | settlement | C | MISSING/PARTIAL |
-| G3 | snowline: snow on Kuh-e Rahmat and the Zagros skyline in winter | A401; B-031, W-053 | weather | B | MISSING/PARTIAL |
-| G4 | frost, hoarfrost and ice at dawn (44 frost days) | A402; W-006, W-011 | weather | A | MISSING/PARTIAL |
-| G5 | breath visible in the cold | A403; W-007 | weather | A physics | MISSING/PARTIAL |
-| G6 | planets (Venus as morning and evening star, Jupiter, Saturn, Mars) | A404; W-004, W-035 | sky | A | MISSING/PARTIAL |
-| G7 | dust devils on the summer plain | A406; W-019 | weather | B | MISSING/PARTIAL |
-| G8 | heat shimmer and mirage | A407; W-018 | weather | A physics | MISSING/PARTIAL |
-| G9 | hail in the spring thunderstorms | A408; W-044 | weather | A | MISSING/PARTIAL |
-| G10 | 22° halo and sun dogs | A409; N-004 | sky | A physics | MISSING/PARTIAL |
+| G3 | snowline: snow on Kuh-e Rahmat and the Zagros skyline in winter | A401; B-031, W-053 | weather | B | BUILT (de548be: a seasonal snowline by month); render queued |
+| G4 | frost, hoarfrost and ice at dawn (44 frost days) | A402; W-006, W-011 | weather | A | BUILT (D-261: rime on the cold clear mornings, 58-66 a year); no ice on water; render queued |
+| G5 | breath visible in the cold | A403; W-007 | weather | A physics | BUILT (D-267: people near and the walker; not the animals); unrendered |
+| G6 | planets (Venus as morning and evening star, Jupiter, Saturn, Mars) | A404; W-004, W-035 | sky | A | BUILT (282daa6: the five planets at their places and magnitudes); rendered: Mercury and Venus 0.5 deg apart at dusk, positions verified |
+| G7 | dust devils on the summer plain | A406; W-019 | weather | B | BUILT (D-265); render queued |
+| G8 | heat shimmer and mirage | A407; W-018 | weather | A physics | PARTIAL (D-268: built opt-in ?heat=1, awaiting a render to verify) |
+| G9 | hail in the spring thunderstorms | A408; W-044 | weather | A | PARTIAL (D-266: seen falling and lying; not heard); unrendered (no hail day in the test seed) |
+| G10 | 22° halo and sun dogs | A409; N-004 | sky | A physics | BUILT (D-261: ring and parhelia on cirrus days); render queued |
 | G11 | hunting: the royal and noble hunt | A001, A593; S-013 | food quest | B claim | MISSING/PARTIAL |
-| G12 | snaring and fowling | A002; P-064 | food quest | C | MISSING/PARTIAL |
-| G13 | fish and fishing in the rivers and canals | A003, A161; F-001, P-019, P-064 | food quest / fauna | C | MISSING/PARTIAL |
-| G14 | wild nut gathering on the slopes (Aug-Sep) | A004; W-052 | food quest | C | MISSING/PARTIAL |
-| G15 | bees, bee-keeping and honey | A006, A151; P-020, P-065 | food quest / fauna | C | MISSING/PARTIAL |
-| G16 | garlic, onions and named garden vegetables (the month Θāigraciš, 'garlic-collecting') | A007, A204, A207; FL-010 | crops | A name / C | MISSING/PARTIAL |
-| G17 | cattle herds: cows and calves (only work oxen exist) | A024; P-012, F-055 | husbandry | C | MISSING/PARTIAL |
+| G12 | snaring and fowling | A002; P-064 | food quest | C | BUILT (D-256: snare lines at the field edges, the bow at the waterfowl in the reeds, in the season's other work, autumn-winter); unrendered |
+| G13 | fish and fishing in the rivers and canals | A003, A161; F-001, P-019, P-064 | food quest / fauna | C | BUILT (D-256: hand lines and wicker traps from the river or canal bank nearest the village; the catch carried home); unrendered |
+| G14 | wild nut gathering on the slopes (Aug-Sep) | A004; W-052 | food quest | C | BUILT (D-256: wild pistachios and almonds gathered on the slopes in August-September); unrendered |
+| G15 | bees, bee-keeping and honey | A006, A151; P-020, P-065 | food quest / fauna | C | BUILT (D-256: clay-pipe hives in the gardens, looked to in spring, the honey taken in late summer; the bees' buzz); unrendered |
+| G16 | garlic, onions and named garden vegetables (the month Θāigraciš, 'garlic-collecting') | A007, A204, A207; FL-010 | crops | A name / C | BUILT (D-259: garden plots of garlic, onions and leeks, 2 % of the irrigated plots, lifted in Θāigraciš); PARTIAL (D-256: wild garlic offered in the third month but never reached: the harvest takes every household, B81) |
+| G17 | cattle herds: cows and calves (only work oxen exist) | A024; P-012, F-055 | husbandry | C | BUILT (D-256: cows and calves, the village herd by turns and the boys, milking at dawn and dusk, penned in the compounds at night); unrendered |
 | G18 | domestic ducks and geese | A026; F-046 | husbandry | C | MISSING/PARTIAL |
 | G19 | cavalry, horse lines and pastures in the default world | A033, A556; B-080 | armed forces | B/C | MISSING/PARTIAL |
 | G20 | sesame-oil pressing, oil jars, lamp oil | A045; P-010 | food processing | B/C | FILLED (D-255; open ground, not built: the press and the tannery) |
@@ -82,63 +82,63 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G27 | goldsmiths forging and chasing | A096; P-039 | crafts | B | FILLED (D-255) |
 | G28 | tanning and leatherwork (hides stop at a counter) | A098; B-056, P-014 | crafts | B | FILLED (D-255; open ground, not built: the press and the tannery) |
 | G29 | seal cutting | A099; P-047 | crafts | A/C | FILLED (D-255) |
-| G30 | quarrymen at Majdabad and Sivand; drums hauled across the plain | A505, A506; P-063, P-034, S-012 | crafts / transport | B/C | MISSING/PARTIAL |
+| G30 | quarrymen at Majdabad and Sivand; drums hauled across the plain | A505, A506; P-063, P-034, S-012 | crafts / transport | B/C | BUILT (D-256: 14 quarrymen at Majdabad; each E-61 drum hauled 28 km on a sledge behind two yoke over two days; Sivand not built, B80 the huts); unrendered |
 | G31 | signal fires and beacons | A522; W-037 | communication | C | MISSING/PARTIAL |
 | G32 | adult board games (twenty squares) at the guard posts and doorsteps | A529; S-016 | recreation | C | MISSING/PARTIAL |
-| G33 | human non-speech sounds: babies crying, laughter, children shouting, calling to animals | A533; SO-005, SO-006 | sound | C | MISSING/PARTIAL |
-| G34 | coughing and sickness sounds | A560; SO-007 | sound | C | MISSING/PARTIAL |
+| G33 | human non-speech sounds: babies crying, laughter, children shouting, calling to animals | A533; SO-005, SO-006 | sound | C | PARTIAL (D-260: laughter in company, children calling at play, babies crying; no calls to animals); unverified by ear |
+| G34 | coughing and sickness sounds | A560; SO-007 | sound | C | PARTIAL (D-270: coughs by season; no sick people); unverified by ear |
 | G35 | tomb guardians and a tomb cult at Naqsh-e Rustam | A564; S-010 | religion | B analogy | MISSING/PARTIAL |
-| G36 | gazelle on the open plain (not only the paradise) | A102; F-018 | fauna | B | MISSING/PARTIAL |
-| G37 | red fox | A107; F-021 | fauna | B | MISSING/PARTIAL |
-| G38 | wild goat and wild sheep on Kuh-e Rahmat | A108; F-026, F-027 | fauna | B | MISSING/PARTIAL |
-| G39 | hares | A109; F-012 | fauna | C | MISSING/PARTIAL |
+| G36 | gazelle on the open plain (not only the paradise) | A102; F-018 | fauna | B | BUILT (93f56ed: a goitered gazelle herd on the plain's best uncultivated flat); unrendered |
+| G37 | red fox | A107; F-021 | fauna | B | BUILT (93f56ed: dusk to dawn at the field edges); unrendered |
+| G38 | wild goat and wild sheep on Kuh-e Rahmat | A108; F-026, F-027 | fauna | B | BUILT (93f56ed: bezoar goats high, wild sheep lower on Kuh-e Rahmat); unrendered |
+| G39 | hares | A109; F-012 | fauna | C | BUILT (93f56ed); unrendered |
 | G40 | hedgehog and porcupine | A110; F-025, F-032 | fauna | C | MISSING/PARTIAL |
 | G41 | rats and mice at the stores | A111; B-049, F-042 | fauna | B | MISSING/PARTIAL |
-| G42 | bats at dusk | A112; W-025 | fauna | B | MISSING/PARTIAL |
-| G43 | small rodents of the steppe (jirds, gerbils, jerboas) | A113; F-013 | fauna | C | MISSING/PARTIAL |
+| G42 | bats at dusk | A112; W-025 | fauna | B | BUILT (D-258: pipistrelles over the courts and the water from 20 min after sunset, Mar-Oct); unrendered |
+| G43 | small rodents of the steppe (jirds, gerbils, jerboas) | A113; F-013 | fauna | C | PARTIAL (D-263: jirds at their burrows at dawn and dusk; no jerboas); unrendered |
 | G44 | small wild cats and carnivores (jungle cat, wildcat, badger, marten) | A115; F-009 | fauna | B | MISSING/PARTIAL |
-| G45 | partridges seen, flushing on the slope | A124; F-029, W-009 | birds | B | MISSING/PARTIAL |
-| G46 | hoopoe, bee-eater and roller seen | A125, A139; W-048, F-050 | birds | B/C | MISSING/PARTIAL |
-| G47 | owls seen | A126; W-031 | birds | C | MISSING/PARTIAL |
-| G48 | doves and rock doves | A127; F-030 | birds | C | MISSING/PARTIAL |
-| G49 | larks over fields and steppe | A128; F-014 | birds | C | MISSING/PARTIAL |
-| G50 | white storks | A129; F-016, W-015 | birds | C | MISSING/PARTIAL |
-| G51 | cranes, geese and ducks in winter and on migration | A130; W-043, W-056, SO-012 | birds | B | MISSING/PARTIAL |
-| G52 | herons and egrets | A131; F-004 | birds | C | MISSING/PARTIAL |
-| G53 | vultures | A132; W-022, F-048 | birds | B | MISSING/PARTIAL |
-| G54 | nightingale and bulbul in the gardens | A134; W-033 | birds | C | MISSING/PARTIAL |
-| G55 | choughs, jackdaws and ravens | A135; F-049 | birds | C | MISSING/PARTIAL |
-| G56 | magpies | A136; problems #6 | birds | C | MISSING/PARTIAL |
-| G57 | sandgrouse and bustard | A138; F-024 | birds | C | MISSING/PARTIAL |
-| G58 | wheatears | A140; F-031 | birds | C | MISSING/PARTIAL |
-| G59 | lizards (agamas) | A150; F-023 | reptiles | C | MISSING/PARTIAL |
-| G60 | butterflies | A152; B-047 | insects | C | MISSING/PARTIAL |
-| G61 | dragonflies and mosquitoes at the water | A153, A164; F-006 | insects | C | MISSING/PARTIAL |
-| G62 | visible flies at dung and middens | A154; B-047 | insects | C | MISSING/PARTIAL |
+| G45 | partridges seen, flushing on the slope | A124; F-029, W-009 | birds | B | BUILT (D-262: coveys on the slope, flushing together); unrendered |
+| G46 | hoopoe, bee-eater and roller seen | A125, A139; W-048, F-050 | birds | B/C | BUILT (D-262 hoopoe, bee-eater; D-269 roller); unrendered |
+| G47 | owls seen | A126; W-031 | birds | C | PARTIAL (D-269: the little owl seen; scops owls only heard) |
+| G48 | doves and rock doves | A127; F-030 | birds | C | BUILT (a8b1f4d: doves in the courts, flushing); unrendered |
+| G49 | larks over fields and steppe | A128; F-014 | birds | C | BUILT (a8b1f4d: song flight over fields in spring); unrendered |
+| G50 | white storks | A129; F-016, W-015 | birds | C | BUILT (a8b1f4d: walking the wet ground in spring and summer); unrendered |
+| G51 | cranes, geese and ducks in winter and on migration | A130; W-043, W-056, SO-012 | birds | B | BUILT (a8b1f4d cranes; D-269 wintering ducks; no geese); unrendered |
+| G52 | herons and egrets | A131; F-004 | birds | C | BUILT (D-262: grey heron, little egret); unrendered |
+| G53 | vultures | A132; W-022, F-048 | birds | B | BUILT (a8b1f4d: griffon vultures soaring over Kuh-e Rahmat); unrendered |
+| G54 | nightingale and bulbul in the gardens | A134; W-033 | birds | C | PARTIAL (D-269: bulbuls seen; nightingales only heard) |
+| G55 | choughs, jackdaws and ravens | A135; F-049 | birds | C | BUILT (D-262: a jackdaw and chough flock over the cliff); unrendered |
+| G56 | magpies | A136; problems #6 | birds | C | BUILT (D-262); unrendered |
+| G57 | sandgrouse and bustard | A138; F-024 | birds | C | PARTIAL (D-262: sandgrouse flights at dawn; no bustard); unrendered |
+| G58 | wheatears | A140; F-031 | birds | C | BUILT (D-262); unrendered |
+| G59 | lizards (agamas) | A150; F-023 | reptiles | C | BUILT (D-258: rock agamas basking and dashing on rock, slipping away at 3 m); below render resolution, verified by test |
+| G60 | butterflies | A152; B-047 | insects | C | BUILT (D-258: whites, clouded yellows, painted ladies over fields and steppe, Mar-Jun and Sep-Oct); unrendered |
+| G61 | dragonflies and mosquitoes at the water | A153, A164; F-006 | insects | C | PARTIAL (D-258: dragonflies at the water's edge May-Sep; no mosquitoes) |
+| G62 | visible flies at dung and middens | A154; B-047 | insects | C | BUILT (D-258: house flies at the town's middens Apr-Oct); below render resolution, verified by test |
 | G63 | geckos on the walls at night | A156; F-043 | reptiles | C | MISSING/PARTIAL |
-| G64 | tortoise | A157; F-022 | reptiles | B | MISSING/PARTIAL |
-| G65 | snakes | A158; F-023 | reptiles | C | MISSING/PARTIAL |
+| G64 | tortoise | A157; F-022 | reptiles | B | BUILT (D-263); unrendered |
+| G65 | snakes | A158; F-023 | reptiles | C | BUILT (D-263: rare); unrendered |
 | G66 | scorpions | A159; F-023 | invertebrates | C | MISSING/PARTIAL |
-| G67 | frogs seen | A160; F-011 | amphibians | C | MISSING/PARTIAL |
+| G67 | frogs seen | A160; F-011 | amphibians | C | BUILT (D-263: seen as well as heard); unrendered |
 | G68 | a locust year | A167; W-047 | events | C | MISSING/PARTIAL |
 | G69 | walnut | A171; FL-006 | trees | C | MISSING/PARTIAL |
 | G70 | juniper | A173; FL-007 | trees | C | MISSING/PARTIAL |
-| G71 | spring wildflowers (tulips, poppies, irises, crown imperial) | A220; W-039 | flora | B/C | MISSING/PARTIAL |
-| G72 | tragacanth and thorn cushions, camelthorn, thistles | A221, A223; FL-008 | flora | B | MISSING/PARTIAL |
-| G73 | roses in the paradise | A226; FL-016 | flora | C | MISSING/PARTIAL |
-| G74 | pulses (lentil, chickpea, vetch, pea, broad bean) | A201; FL-011 | crops | C | MISSING/PARTIAL |
-| G75 | flax | A202; FL-013 | crops | C | MISSING/PARTIAL |
+| G71 | spring wildflowers (tulips, poppies, irises, crown imperial) | A220; W-039 | flora | B/C | BUILT (D-258: bloom tint far, flower heads near, by the calendar); unrendered |
+| G72 | tragacanth and thorn cushions, camelthorn, thistles | A221, A223; FL-008 | flora | B | BUILT (D-264: near the walker; the far slopes keep the terrain's painted shrubs); unrendered |
+| G73 | roses in the paradise | A226; FL-016 | flora | C | BUILT (D-272: along the axis channel); unrendered |
+| G74 | pulses (lentil, chickpea, vetch, pea, broad bean) | A201; FL-011 | crops | C | BUILT (D-259: 7 % of the irrigated plots; not on the rain-fed land); unrendered |
+| G75 | flax | A202; FL-013 | crops | C | BUILT (D-271: 1 % of irrigated plots; no blue flowers drawn); unrendered |
 | G76 | melons, cucumbers and gourds | A205; FL-012 | crops | C | MISSING/PARTIAL |
-| G77 | timber arriving for the roofs | A508; P-033 | commodities | B | MISSING/PARTIAL |
+| G77 | timber arriving for the roofs | A508; P-033 | commodities | B | BUILT (D-273: ox-cart trains of beams to the drum ground in the dry months); unrendered |
 | G78 | large predators and the onager (built this session: beasts.ts, cf3165e; unrendered) | A104, A106; W-029, F-008, F-019, F-020, F-028, F-033, F-034 | fauna | B | BUILT (s9, unrendered) |
 
 ## Gaps only hunter A found (60)
 
 | # | gap | found by (row ids) | category | tier of presence in 467 | status |
 |---|---|---|---|---|---|
-| GA1 | acorn, wild green and herb gathering | A005 | food quest | C | MISSING/PARTIAL |
+| GA1 | acorn, wild green and herb gathering | A005 | food quest | C | BUILT (D-256: acorns on the slopes in the autumn; wild greens and herbs not) |
 | GA2 | domestic cat (A: missing; B: uncertain) | A028 | husbandry | C | MISSING/PARTIAL |
-| GA3 | alfalfa ('Median grass') fodder fields | A031, A206 | crops | B claim | MISSING/PARTIAL |
+| GA3 | alfalfa ('Median grass') fodder fields | A031, A206 | crops | B claim | BUILT (D-271: 2 % of irrigated plots, cut monthly in summer); unrendered |
 | GA4 | animal branding and marking | A034 | husbandry | C | MISSING/PARTIAL |
 | GA5 | cheese making and drying | A047 | food processing | C | MISSING/PARTIAL |
 | GA6 | fruit drying on roofs and mats | A048 | food processing | C | MISSING/PARTIAL |
@@ -158,7 +158,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GA20 | rope and basket making (partial) | A500 | crafts | C | MISSING/PARTIAL |
 | GA21 | felt making | A501 | crafts | C | MISSING/PARTIAL |
 | GA22 | threshing sledge | A509 | farming | B analogy | MISSING/PARTIAL |
-| GA23 | boats or rafts at the crossings | A519 | transport | C | MISSING/PARTIAL |
+| GA23 | boats or rafts at the crossings | A519 | transport | C | BUILT (D-257: a hide boat at each Kur ford); unrendered, never used |
 | GA24 | road traffic to Pasargadae and Naqsh-e Rustam (partial) | A520 | transport | C | MISSING/PARTIAL |
 | GA25 | field boundary marks | A523 | land | C | MISSING/PARTIAL |
 | GA26 | dance at weddings and festivals | A525 | arts | B claim | MISSING/PARTIAL |
@@ -252,7 +252,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB49 | workmen at the Xerxes façade at Naqsh-e Rustam | S-011 | construction | C | MISSING/PARTIAL |
 | GB50 | the Persian washing rule (Hdt 1.138) contradicted by garrison laundry in the river | S-017 | religion / consistency | B claim | MISSING/PARTIAL |
 | GB51 | horses whinnying and snorting | SO-001 | sound | C | MISSING/PARTIAL |
-| GB52 | cattle lowing | SO-002 | sound | C | MISSING/PARTIAL |
+| GB52 | cattle lowing | SO-002 | sound | C | BUILT (D-256: the herds' lowing, a new strike; the compounds' cows at night) |
 | GB53 | camels grumbling | SO-003 | sound | C | MISSING/PARTIAL |
 | GB54 | hooves, cart wheels and harness on the road | SO-004 | sound | C | MISSING/PARTIAL |
 | GB55 | door pivots and bolts heard | SO-009 | sound | C | MISSING/PARTIAL |

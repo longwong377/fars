@@ -9,7 +9,7 @@
 // village), woodland cover (woodland rule, thinned near the capital); settlement.json zones, the Terrace, river corridors,
 // village cores and the Naqsh-e Rustam precinct are left as natural ground.
 import { PLAIN, feature, pointInPolygon, settlementZones } from './data';
-import { CROP_ROWS, CropRow, PLOT_OFFSET_DAYS } from './seasonal';
+import { CROP_ROWS, CropRow, PLOT_OFFSET_DAYS, ROW } from './seasonal';
 import type { Terrain } from '../../terrain/heightfield';
 import { groundAt, TERRACE_BOX, type GroundMap } from './townGround';
 
@@ -193,8 +193,12 @@ export function zoneAt(z: ZoneMap, x: number, wz: number): [number, number, numb
 }
 
 // ---------------------------------------------------------------- crop choice (plain.json crop_mix; mirrored in the shader)
-/** cumulative crop thresholds of the irrigated mix: barley 0.5, wheat 0.15, emmer/spelt 0.1, sesame 0.05, fallow 0.2 */
-export const IRR_STEPS = [0.5, 0.65, 0.75, 0.8];
+/** cumulative crop thresholds of the irrigated mix: barley 0.45, wheat 0.13, emmer/spelt 0.08, sesame 0.05, pulses 0.07,
+ *  garden 0.02 (session 9, G16/G74), alfalfa 0.02 (GA3), flax 0.01 (G75), fallow 0.2; barley 0.42; a plot's crop row is the
+ *  number of steps its hash passes (0-8, 8 = fallow: CROP_ROWS' order) */
+export const IRR_STEPS = [0.42, 0.55, 0.63, 0.68, 0.75, 0.77, 0.79, 0.8];
+/** the irrigated land's crop share (the last step): past it, fallow */
+export const IRR_CROP = IRR_STEPS[IRR_STEPS.length - 1];
 export const RAINFED_BARLEY = 0.4; // fields_rainfed: barley 40 %, fallow/grazing 60 %
 /** dry farming alternates crop and fallow years by block (C, D-190): half the districts are in their crop year (70 % of
  *  plots barley), half in fallow (10 %); the mean is the data's 40 %. From the Terrace the plain then reads as large
@@ -206,11 +210,12 @@ export const rainfedThreshold = (dc: [number, number]) => (unit(hash2(cellU(dc[0
  *  with it, so the crops keep their proportions. From the Terrace the irrigated plain then reads in 800 m blocks at any
  *  distance, as the rain-fed land does (rubric s7 pass 2 fix 9, the "empty sheet") */
 export const IRR_FALLOW_SPREAD = 0.12;
-export const irrigatedScale = (dc: [number, number]) => (IRR_STEPS[3] + IRR_FALLOW_SPREAD * (2 * unit(hash2(cellU(dc[0]), cellU(dc[1]), SALT.irrFallow)) - 1)) / IRR_STEPS[3];
+export const irrigatedScale = (dc: [number, number]) => (IRR_CROP + IRR_FALLOW_SPREAD * (2 * unit(hash2(cellU(dc[0]), cellU(dc[1]), SALT.irrFallow)) - 1)) / IRR_CROP;
 export const VINE_SHARE = 0.3; // orchards_gardens: 30 % of orchard plots are vineyards
 export function checkMixes() { // the thresholds above are the data's mixes (tests)
   const m = feature('fields_irrigated_pulvar').crop_mix, k = feature('fields_irrigated_kur').crop_mix, rf = feature('fields_rainfed').rule.crop_mix;
-  return { irr: [m.barley, m.barley + m.wheat, m.barley + m.wheat + m.emmer_spelt, m.barley + m.wheat + m.emmer_spelt + m.sesame], kurSame: JSON.stringify(m) === JSON.stringify(k), rainBarley: rf.barley, vine: feature('orchards_gardens').rule.vine_share };
+  const cum = (keys: string[]) => keys.reduce((a, k) => { a.push((a.length ? a[a.length - 1] : 0) + m[k]); return a; }, [] as number[]);
+  return { irr: cum(['barley', 'wheat', 'emmer_spelt', 'sesame', 'pulses', 'garden', 'alfalfa', 'flax']), kurSame: JSON.stringify(m) === JSON.stringify(k), rainBarley: rf.barley, vine: feature('orchards_gardens').rule.vine_share };
 }
 export type LandUse = 'irrigated' | 'rainfed' | 'orchard' | 'natural';
 export interface PlotUse { use: LandUse; row: CropRow; rowIndex: number; offsetDays: number; plot: Plot }
@@ -220,11 +225,11 @@ export function landUseAt(zm: ZoneMap, x: number, z: number): PlotUse {
   const [R, G, B] = zoneAt(zm, plot.seed[0], plot.seed[1]);
   const hc = unit(hash2(plot.h, 7, SALT.crop)), ho = unit(hash2(plot.h, 9, SALT.offset));
   const offsetDays = Math.floor(ho * (2 * PLOT_OFFSET_DAYS + 1)) - PLOT_OFFSET_DAYS;
-  let use: LandUse = 'natural', idx = 7;
-  if (B > 127) { use = 'orchard'; idx = hc >= 1 - VINE_SHARE ? 6 : 5; }
+  let use: LandUse = 'natural', idx = ROW.steppe;
+  if (B > 127) { use = 'orchard'; idx = hc >= 1 - VINE_SHARE ? ROW.vineyard : ROW.orchard_floor; }
   else if (R > 127) { use = 'irrigated'; const sc = irrigatedScale(plot.dc); idx = IRR_STEPS.reduce((k, t) => k + (hc >= Math.fround(t * sc) ? 1 : 0), 0); }
-  else if (G > 127) { use = 'rainfed'; idx = hc >= rainfedThreshold(plot.dc) ? 4 : 0; }
-  if (use !== 'natural' && zm.ground) { const g = groundAt(zm.ground, x, -z); if (g[2] < 0.5) { use = 'natural'; idx = 7; } }
+  else if (G > 127) { use = 'rainfed'; idx = hc >= rainfedThreshold(plot.dc) ? ROW.fallow : ROW.barley; }
+  if (use !== 'natural' && zm.ground) { const g = groundAt(zm.ground, x, -z); if (g[2] < 0.5) { use = 'natural'; idx = ROW.steppe; } }
   return { use, row: CROP_ROWS[idx], rowIndex: idx, offsetDays, plot };
 }
 export { pointInPolygon };

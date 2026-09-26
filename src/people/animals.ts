@@ -28,9 +28,11 @@ import { RIDE } from './anim';
 
 export type Species = 'sheep' | 'goat' | 'ox' | 'donkey' | 'horse' | 'dog' | 'mule' | 'camel' | 'dromedary' | 'zebu' | 'deer' | 'stag' | 'gazelle' | 'gazelle_m' | 'boar' | 'hen' | 'cock'
   | 'donkey_pack' | 'mule_pack' | 'camel_pack' | 'horse_saddle'
-  | 'wolf' | 'lion' | 'lioness' | 'cheetah' | 'leopard' | 'hyena' | 'onager' | 'fox' | 'hare' | 'wild_goat' | 'urial';
+  | 'wolf' | 'lion' | 'lioness' | 'cheetah' | 'leopard' | 'hyena' | 'onager' | 'fox' | 'hare' | 'wild_goat' | 'urial'
+  // D-256: the cows and calves of the village herds (WORLD_INVENTORY G17)
+  | 'cow' | 'calf';
 export const SPECIES: Species[] = ['sheep', 'goat', 'ox', 'donkey', 'horse', 'dog', 'mule', 'camel', 'dromedary', 'zebu', 'deer', 'stag', 'gazelle', 'gazelle_m', 'boar', 'hen', 'cock',
-  'donkey_pack', 'mule_pack', 'camel_pack', 'horse_saddle', 'wolf', 'lion', 'lioness', 'cheetah', 'leopard', 'hyena', 'onager', 'fox', 'hare', 'wild_goat', 'urial'];
+  'donkey_pack', 'mule_pack', 'camel_pack', 'horse_saddle', 'wolf', 'lion', 'lioness', 'cheetah', 'leopard', 'hyena', 'onager', 'fox', 'hare', 'wild_goat', 'urial', 'cow', 'calf'];
 type RGB = [number, number, number];
 interface Build { len: number; h: number; girth: number; neck: number; neckA: number; nb?: number; head: number; headR: number; leg: number;
   tail: 'fat' | 'short' | 'long' | 'tuft' | 'hair' | 'curl' | 'hen' | 'cock' | 'brush' | 'cat'; ears: 'small' | 'long' | 'mid' | 'prick' | 'none';
@@ -41,6 +43,8 @@ interface Build { len: number; h: number; girth: number; neck: number; neckA: nu
   row: string;
   /** humps (the camels), the zebu's hump at the withers, tusks (the boar), comb and wattles (the fowl), two legs (the fowl) */
   humps?: 1 | 2; withers?: boolean; tusks?: boolean; comb?: 'hen' | 'cock'; biped?: boolean;
+  /** D-256: a cow's udder under the hind barrel */
+  udder?: boolean;
   /** what it carries: panniers and sacks (pack animals), a saddle cloth (a ridden horse; no stirrups: blocklist) */
   gear?: 'pack' | 'pack_camel' | 'saddle' }
 const DONKEY: Build = { len: 1.25, h: 1.08, girth: 0.5, neck: 0.56, neckA: 0.85, nb: -0.1, head: 0.46, headR: 0.1, leg: 0.034, tail: 'tuft', ears: 'long', mane: true, coat: [[0.46, 0.42, 0.37], [0.36, 0.31, 0.26], [0.55, 0.5, 0.44]], stride: 1.1, row: 'donkey',
@@ -90,8 +94,8 @@ export const ANIMAL_BUILD: Record<Species, Build> = {
     tier: 'B species (the Asiatic lion in the Mesopotamian and Iranian lowlands and the Fars river valleys into the 20th c.: Dasht-e Arzhan by Shiraz, RECOLLECTION NOT SEEN; lions throughout Achaemenid art: the Persepolis door-jamb reliefs of the royal hero, A) / C form', note: 'Asiatic lion, male: the mane shorter than the African lion\'s (C), tawny' },
   lioness: { len: 1.5, h: 0.92, girth: 0.46, neck: 0.36, neckA: 0.55, nb: -0.08, head: 0.34, headR: 0.1, leg: 0.038, tail: 'cat', ears: 'small', coat: [[0.74, 0.6, 0.4], [0.68, 0.54, 0.36]], stride: 1.3, row: 'lion',
     tier: 'B species (as the lion) / C form', note: 'Asiatic lioness, tawny' },
-  cheetah: { len: 1.25, h: 0.8, girth: 0.3, neck: 0.34, neckA: 0.75, nb: -0.05, head: 0.22, headR: 0.07, leg: 0.022, tail: 'cat', ears: 'small', coat: [[0.8, 0.66, 0.44], [0.76, 0.62, 0.42]], stride: 1.5, row: 'cheetah',
-    tier: 'B species (the Asiatic cheetah on the open plains of Iran; the last wild ones survive in the central deserts: RECOLLECTION NOT SEEN) / C form', note: 'Asiatic cheetah: long-legged, small-headed; spots and the tear marks NOT modelled' },
+  cheetah: { len: 1.25, h: 0.8, girth: 0.3, neck: 0.44, neckA: 0.75, nb: -0.05, head: 0.22, headR: 0.07, leg: 0.022, tail: 'cat', ears: 'small', coat: [[0.8, 0.66, 0.44], [0.76, 0.62, 0.42]], stride: 1.5, row: 'cheetah',
+    tier: 'B species (the Asiatic cheetah on the open plains of Iran; the last wild ones survive in the central deserts: RECOLLECTION NOT SEEN) / C form', note: 'Asiatic cheetah: long-legged, small-headed; spots and the tear marks NOT modelled; the neck 0.44 m (a real one ~0.3 m) so the head reaches the water: the rig cannot crouch the forelegs to drink (C)' },
   leopard: { len: 1.3, h: 0.66, girth: 0.38, neck: 0.3, neckA: 0.6, nb: -0.05, head: 0.26, headR: 0.085, leg: 0.03, tail: 'cat', ears: 'small', coat: [[0.76, 0.6, 0.38], [0.7, 0.55, 0.34]], stride: 1.1, row: 'leopard',
     tier: 'B species (the Persian leopard in the Zagros, rocky slopes: RECOLLECTION NOT SEEN) / C form', note: 'Persian leopard, pale and large; rosettes NOT modelled' },
   hyena: { len: 1.05, h: 0.78, girth: 0.4, neck: 0.34, neckA: 0.65, nb: -0.08, head: 0.3, headR: 0.09, leg: 0.03, tail: 'brush', ears: 'prick', mane: true, coat: [[0.66, 0.6, 0.48], [0.58, 0.53, 0.42]], stride: 0.95, row: 'striped_hyena',
@@ -102,10 +106,18 @@ export const ANIMAL_BUILD: Record<Species, Build> = {
     tier: 'B species (red fox in Fars: research/SOUNDSCAPE.md §5) / C form', note: 'red fox, rufous with a bushy tail (white tip and dark legs NOT modelled)' },
   hare: { len: 0.5, h: 0.32, girth: 0.2, neck: 0.1, neckA: 0.6, nb: 0.05, head: 0.13, headR: 0.045, leg: 0.012, tail: 'short', ears: 'long', coat: [[0.62, 0.52, 0.38], [0.56, 0.46, 0.33]], stride: 0.6, row: 'hare',
     tier: 'C (the Cape or European hare of the Iranian plateau: RECOLLECTION NOT SEEN)', note: 'hare, sandy brown, long ears (the hopping gait NOT modelled: it walks)' },
-  wild_goat: { len: 1.2, h: 0.85, girth: 0.4, neck: 0.38, neckA: 0.8, head: 0.28, headR: 0.07, leg: 0.028, tail: 'short', ears: 'mid', horns: 'goat', coat: [[0.6, 0.48, 0.34], [0.52, 0.42, 0.3]], stride: 1.0, row: 'wild_goat',
+  wild_goat: { len: 1.2, h: 0.85, girth: 0.4, neck: 0.48, neckA: 0.8, head: 0.28, headR: 0.07, leg: 0.028, tail: 'short', ears: 'mid', horns: 'goat', coat: [[0.6, 0.48, 0.34], [0.52, 0.42, 0.3]], stride: 1.0, row: 'wild_goat',
     tier: 'B species (the bezoar wild goat of the Zagros: SOUNDSCAPE.md §5, Bamu NP) / C form', note: 'bezoar wild goat: the males\' long scimitar horns NOT modelled (the domestic goat\'s horns stand in)' },
-  urial: { len: 1.15, h: 0.8, girth: 0.4, neck: 0.36, neckA: 0.75, head: 0.27, headR: 0.07, leg: 0.026, tail: 'short', ears: 'small', horns: 'goat', coat: [[0.64, 0.5, 0.36], [0.58, 0.46, 0.32]], stride: 1.0, row: 'wild_sheep',
+  urial: { len: 1.15, h: 0.8, girth: 0.4, neck: 0.42, neckA: 0.75, head: 0.27, headR: 0.07, leg: 0.026, tail: 'short', ears: 'small', horns: 'goat', coat: [[0.64, 0.5, 0.36], [0.58, 0.46, 0.32]], stride: 1.0, row: 'wild_sheep',
     tier: 'B species (the wild sheep of the Zagros: SOUNDSCAPE.md §5, Bamu NP) / C form', note: 'wild sheep (urial type): the curled horns and the bib NOT modelled' },
+  // D-256 (WORLD_INVENTORY G17; gap hunt A024, P-012): the village cattle. Cows and calves of the small humpless cattle of
+  // the plateau (the ox's build, smaller and finer: C); the draught ox of the plough is the castrated male of the same herds
+  cow: { len: 1.65, h: 1.12, girth: 0.64, neck: 0.46, neckA: 0.5, nb: -0.12, head: 0.43, headR: 0.115, leg: 0.042, tail: 'tuft', ears: 'mid', horns: 'ox', udder: true,
+    coat: [[0.4, 0.25, 0.15], [0.24, 0.17, 0.12], [0.55, 0.4, 0.26], [0.62, 0.55, 0.45]], stride: 1.35, row: 'cattle',
+    tier: 'C (cattle in the PF texts: RECOLLECTION, NOT SEEN, Q-193; the village herds of cows and calves C: an ox-ploughing country breeds its oxen, D-256)', note: 'cow, small and humpless, red-brown, dark, dun or pale; an udder under the hind barrel (form, size and coat C)' },
+  calf: { len: 0.95, h: 0.78, girth: 0.38, neck: 0.3, neckA: 0.6, nb: -0.08, head: 0.3, headR: 0.08, leg: 0.03, tail: 'tuft', ears: 'mid',
+    coat: [[0.46, 0.3, 0.18], [0.3, 0.22, 0.15], [0.6, 0.46, 0.3]], stride: 0.95, row: 'cattle',
+    tier: 'C (as the cow)', note: 'calf of a few months, hornless, long-legged for its size (C)' },
   donkey_pack: { ...DONKEY, gear: 'pack', note: 'donkey with a pack saddle, two wicker panniers and a sack across the top (loads and gear C; pack donkeys: POTTS2023, B)' },
   mule_pack: { ...MULE, gear: 'pack', note: 'mule with a pack saddle, panniers and a sack (C)' },
   camel_pack: { ...CAMEL, gear: 'pack_camel', note: 'Bactrian camel with two great sacks slung each side and a bundle between the humps (C)' },
@@ -164,6 +176,7 @@ export function animalGeometry(sp: Species): THREE.BufferGeometry {
   // humps (camels: two over the fore and hind barrel, one high in the middle for the dromedary) and the zebu's hump
   if (B.humps === 2) for (const z of [0.24, -0.2]) parts.push({ g: new THREE.SphereGeometry(B.girth * 0.27, 8, 6).scale(1, 1.25, 1.1).translate(0, F.bodyY + B.girth * 0.5, z * B.len), col: white });
   if (B.humps === 1) parts.push({ g: new THREE.SphereGeometry(B.girth * 0.36, 9, 6).scale(1, 1.15, 1.35).translate(0, F.bodyY + B.girth * 0.46, -0.02 * B.len), col: white });
+  if (B.udder) parts.push({ g: new THREE.SphereGeometry(B.girth * 0.17, 8, 5).scale(1, 0.75, 1.1).translate(0, F.bodyY - B.girth * 0.46, -B.len * 0.22), col: [0.86, 0.62, 0.55] });
   if (B.withers) parts.push({ g: new THREE.SphereGeometry(B.girth * 0.2, 7, 5).scale(0.9, 1.3, 1).translate(0, F.bodyY + B.girth * 0.52, 0.3 * B.len), col: white });
   // legs: fore at +z, hind at −z; gait order LH 0, LF .25, RH .5, RF .75 (a lateral walk); the fowl: two legs under the body
   const hipY = F.bodyY - B.girth * 0.12, kneeY = hipY * 0.45;
@@ -315,14 +328,26 @@ export function animalsFor(spec: AnimalSpec, t: number, seed: number, path?: { s
     case 'mount': { const s = sp(0), B = ANIMAL_BUILD[s], pace = spec.pace ?? 0, st = pace > 0 ? 1 : fr(t / 23 + h1(seed)) < 0.08 ? 1 : 0;
       out.push({ sp: s, x: 0, z: -mountSeat(s).z, yaw: 0, phase: (TWO_PI * t * Math.max(pace, 0.5)) / B.stride, walk: st, graze: 0, lie: 0, coat: h1(seed, 8) }); break; }
     // an ox pair drawing a cart behind its carter (the cart: work object 'cart' at CART_AT), walking at `pace`
-    case 'draught': { const pace = spec.pace ?? 0.9; for (let i = 0; i < 2; i++) { const s = sp(i), B = ANIMAL_BUILD[s];
-      out.push({ sp: s, x: i ? -0.55 : 0.55, z: -(1.2 + B.len / 2), yaw: 0, phase: (TWO_PI * t * pace) / B.stride + i * 0.9, walk: pace > 0 ? 1 : 0, graze: 0, lie: 0, coat: h1(seed + i, 5) }); }
+    // (D-256: `n` 4 = two yoke pairs, one behind the other, for the drum sledge from the quarry)
+    case 'draught': { const pace = spec.pace ?? 0.9, pairs = Math.max(1, Math.round((spec.n ?? 2) / 2)); let z0 = -1.2;
+      for (let k = 0; k < pairs; k++) { let L = 0; for (let i = 0; i < 2; i++) { const s = sp(2 * k + i), B = ANIMAL_BUILD[s]; L = Math.max(L, B.len);
+        out.push({ sp: s, x: i ? -0.55 : 0.55, z: z0 - B.len / 2, yaw: 0, phase: (TWO_PI * t * pace) / B.stride + i * 0.9 + k * 0.4, walk: pace > 0 ? 1 : 0, graze: 0, lie: 0, coat: h1(seed + i + 2 * k, 5) }); }
+        z0 -= L + 0.9; }
+      break; }
+    // D-256: animals penned in a fold (the brushwood fold beside a band's tents, the stockyard's fold: work object 'fold', its
+    // centre FOLD_AT ahead of the performer): standing, turning and heads down at the fodder by day, most lying at night
+    // (`pace` 1 = night: the share lying; C)
+    case 'fold': { const n = spec.n ?? 12, R = FOLD_R - 0.9, night = (spec.pace ?? 0) > 0;
+      for (let i = 0; i < n; i++) { const s = sp(i), B = ANIMAL_BUILD[s], a = TWO_PI * h1(i, seed + 11), r = R * Math.sqrt(0.08 + 0.92 * h1(seed, i + 31));
+        const lying = night ? h1(i, 77 + seed) < 0.8 : fr(t / (60 + 30 * h1(i, 3)) + h1(i, 5)) < 0.25;
+        const eat = !lying && fr(t / 13 + i * 0.37) < 0.55;
+        out.push({ sp: s, x: r * Math.sin(a), z: FOLD_AT + r * Math.cos(a), yaw: TWO_PI * h1(seed + i, 13) + 0.3 * Math.sin(t * 0.03 + i), phase: 0, walk: 0, graze: eat ? 1 : 0, lie: lying ? 1 : 0, coat: h1(seed + i, 7) }); }
       break; }
   }
   // a flock's dogs (D-210: every flock and band has them, E-49's participants row “herders, dogs and donkeys”): the
   // herdsman's dog lies near him and now and then trots out round the flock and back; the others lie at the flock's edge
   // and move round it from time to time (C)
-  if (spec.kind === 'flock' && spec.dogs) for (let i = 0; i < spec.dogs; i++) {
+  if ((spec.kind === 'flock' || spec.kind === 'fold') && spec.dogs) for (let i = 0; i < spec.dogs; i++) {
     const T = 38 + 14 * h1(seed, 40 + i), off = h1(seed, 50 + i) * T, k = Math.floor((t + off) / T), u = t + off - k * T, go = T * (i ? 0.78 : 0.72);
     const spot = (m: number): [number, number] => { if (i === 0 && m % 2 === 0) return [1.1, 0.5]; const a = TWO_PI * h1(m + 7 * i, seed + i), r = 9 + 2.5 * h1(m, 3 + i); return [r * Math.sin(a), 2 + r * Math.cos(a)]; };
     const A = spot(k), Bp = spot(k + 1), dx = Bp[0] - A[0], dz = Bp[1] - A[1], w = u < go ? 0 : Math.min(1, (u - go) / (T - go)), walking = u >= go && Math.hypot(dx, dz) > 0.1;
@@ -332,6 +357,8 @@ export function animalsFor(spec: AnimalSpec, t: number, seed: number, path?: { s
   }
   return out;
 }
+/** D-256: a fold's radius (m) and how far ahead of the performer its centre is (work object 'fold' at [0, 0, FOLD_AT]) */
+export const FOLD_R = 6, FOLD_AT = 7.5;
 /** where the cart stands behind its draught pair (the performer's frame: the axle, m; workObjects 'cart') */
 export const CART_AT: [number, number, number] = [0, 0, -(1.2 + 1.85 + 0.45 + 1.2)];
 

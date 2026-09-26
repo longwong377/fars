@@ -14,6 +14,7 @@ import livesData from '../data/lives.json';
 import namesData from '../data/names.json';
 import namesRecalled from '../data/names_recalled.json';
 import plotsData from '../data/town_plots.json';
+import faunaJson from '../data/fauna.json';
 import { u01, salt, HStream } from './hash';
 import { Rng } from '../core/rng';
 import { dateOf, REGNAL_DAYS, travellerParties, transfers, transhumantBands, flockDrives, DayCtx, EventCalendar, eventRow, rainHours, rainSpells, festivalOn, stormWord, TREASURY_DESK } from './calendar';
@@ -27,6 +28,15 @@ const POPD = popData as any, T = townData as any, L = livesData as any;
 export interface TownPlot { id: string; site: string; zone: string; pop_zone: string; kind: string; craft?: string; c: [number, number]; door: [number, number]; door_in: [number, number]; capacity: number }
 export const TOWN_PLOTS: TownPlot[] = (plotsData as any).plots;
 const PLOT_BY_ID = new Map(TOWN_PLOTS.map(x => [x.id, x]));
+/** D-256: the usual walk out from a village to the grounds of the land work (m; C): the river meadow and the fallow the cows
+ *  graze, the bank where men fish, the field edges where the snares are set, the slopes where nuts and acorns are gathered */
+export const LAND_FAR: Record<string, number> = { meadow: 900, bank: 1200, edge: 450, slope: 2500 };
+/** D-256: a plain household keeps a cow (and her calf) with this share (fauna.json cattle.household_share_plain; C) */
+export const COW_SHARE: number = (faunaJson as any).cattle.household_share_plain;
+/** D-256: the months the cows are in milk (fauna.json cattle.milk_months: calving in late winter, milk through the summer; C) */
+export const MILK_MONTHS: number[] = (faunaJson as any).cattle.milk_months;
+/** D-256: the months the village cows go out to graze (fauna.json cattle.graze_months; in the depth of winter kept in on straw; C) */
+export const GRAZE_MONTHS: number[] = (faunaJson as any).cattle.graze_months;
 /** each settlement site's lane exits onto the open ground (town_plots.json _meta.sites) */
 export const TOWN_SITES: Record<string, { c: [number, number]; zone: string; exits: [number, number][] }> = Object.fromEntries(((plotsData as any)._meta.sites as any[]).map(x => [x.id, { c: x.c, zone: x.zone, exits: x.exits ?? [] }]));
 export type Job = 'guard' | 'builder' | 'porter' | 'camp' | 'scribe' | 'treasury' | 'official' | 'messenger' | 'storekeeper' | 'miller' | 'weaver' | 'brewer' | 'groom'
@@ -159,7 +169,7 @@ export const DEPOT_EARLY_H = 1;
 /** out of doors: the planners' own list (Planner.dustVeil, coldWear): the roads, the lanes, the wells, the fields, the
  *  canal, the pasture, the fuel ground, the threshing floor, the gardens, the stockyard, the Terrace's open courts, works and
  *  posts; not a house, a workshop, a store, a hall or a tent */
-export const OPEN_PLACE = /^(lane:|well:|field:|canal:|pasture:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_|training:|flock:|route:|road:)/;
+export const OPEN_PLACE = /^(lane:|well:|field:|canal:|pasture:|meadow:|bank:|edge:|slope:|outside|threshing:|garden:|orchard:|vineyard:|estate:|stockyard|crown_fields|river|clay_pit|worksite|h100_|hall100_site|stair_foot|querns|oven|work_hearth|water|forecourt|brickyard|terrace_round|post_|training:|flock:|route:|road:)/;
 /** at the house but out of doors: on the roof, in the courtyard, at the wall where the dung cakes dry, on the doorstep */
 export const OPEN_WHY = /\broof\b|in the courtyard|courtyard before|on the wall to dry|on the doorstep|animals out|on the open ground|(weaving at the ground loom|spinning wool|playing|talking with the men of the band|sitting|minding the little ones|resting) by the (new )?tents?\b|by the fire (with the (band|family)|, telling|while)/;
 /** a band's camp work and leisure out of doors by the tents (B S2 / A S10 of shadow review r9: weaving, spinning, play and talk
@@ -959,7 +969,10 @@ export class Population {
     const o = OW.opts[k], why = typeof o.why === 'string' ? o.why : o.why[String(C.month)] ?? o.why.other;
     const place = o.place === 'field' ? field : o.place === 'town' ? 'lane:q_lt_e' : `${o.place}:${q}`;
     const h0 = rise + 0.8 + lag, h1 = Math.max(h0 + o.h[0], Math.min(end(11.5, 14) - 0.4 * u(9), h0 + lerp(o.h[0], o.h[1], u(12))));
-    return { kind: 'other', opt: k, act: o.act, place, why, h0, h1, all: false, sheaves: false, late, tool: o.tool, helper: !!o.helper, carryHome: o.carry_home };
+    // (D-256: the village cows go out again in the afternoon and come home at dusk: an afternoon session to sunset − 0.6 h)
+    const pm: [number, number] | null = o.pm_why ? [Math.max(h1 + 1.5, late - 0.6), C.sun.set - 0.6] : null;
+    return { kind: 'other', opt: k, act: o.act, place, why, h0, h1, all: false, sheaves: false, late, tool: o.tool, helper: !!o.helper, carryHome: o.carry_home,
+      ...(pm && pm[1] - pm[0] >= 0.75 ? { pm, pmWhy: o.pm_why } : {}) };
   }
   /** the day's field task as the weather allows it (S1 of shadow review r5; W-01 "outdoor work stops"; C): outdoor work is
    *  not begun into rain that covers its window. When it is raining as the work would begin, the household waits at home
@@ -1610,11 +1623,16 @@ export class Population {
     if (place.endsWith(':trees')) { const b = this.pos(place.slice(0, -6), d); return [b[0] + 90, b[1] + 120]; }
     if (place === 'offering_place:altar') return this.facilities.offering_place; // (D-209: the altar stands in the precinct)
     const k = place.indexOf(':'); if (k > 0) { const tail = place.slice(k + 1); if (place.startsWith('field:') || place.startsWith('estate:')) { const H = this.households[parseInt(tail, 10)]; const plot = +(tail.split(':')[1] ?? 0); return [H.xy[0] + 300 - plot * 150, H.xy[1] + 200 + plot * 120]; }
+      // D-256: the land work's grounds lie out from the village (popgeo.ts finds them in the built land: the river meadow, the
+      // bank, the field edge, the slopes); here only their usual distance, for the walk (C)
+      const far = LAND_FAR[place.slice(0, k)]; if (far && this.quarters[tail]) { const c = this.quarters[tail].xy; return [c[0] + far, c[1]]; }
       if (this.quarters[tail]) return this.quarters[tail].xy; if (place.startsWith('ws:')) return [T.treasury_workshops.around[0] + (+tail - 1.5) * 150, T.treasury_workshops.around[1]]; }
     if (this.facilities[place]) return this.facilities[place]; if (place === 'ws_textile') return [-700, -1000];
     void d; return TERRACE_XY;
   }
   /** walking minutes between two abstract places (C: 1.2 m/s, +10 min to climb to the Terrace) */
+  /** D-256: a plain household keeps a cow and her calf (fauna.json cattle.household_share_plain; C) */
+  hasCow(h: number) { const H = this.households[h]; return !!H && H.zone === 'plain' && u01(this.seed, salt('cow'), h) < COW_SHARE; }
   walkH(a: string, b: string, d: number, wa: Where, wb: Where) {
     if (a === b) return 0; const A = this.pos(a, d), B = this.pos(b, d); let m = Math.hypot(A[0] - B[0], A[1] - B[1]) / L.walk_ms.v / 60;
     if ((wa === 'terrace') !== (wb === 'terrace')) m += 10; return Math.min(5, Math.max(0.05, m / 60));
@@ -2295,6 +2313,9 @@ class Planner {
   }
   // ---------------------------------------------------------------- shared pieces
   private finish(): Seg[] { if (this.t < 24) this.atHome(24, 'sleep', 'asleep'); return this.segs; }
+  /** D-256: this woman milks the household's cow today: a plain house with a cow, in the months she is in milk, the house's
+   *  first woman, not nursing a newborn on a postpartum rest (C) */
+  private milker() { return this.hh.zone === 'plain' && this.P.hasCow(this.hh.id) && MILK_MONTHS.includes(this.C.month) && this.hd.women[0] === this.pid && !this.C.wx.wet; }
   /** the household's day (shared meal times, bread, grinding, the plain household's field task) */
   private get hd(): HDay { return this._hd ??= this.P.hday(this.hh.id, this.d); }
   private _hd: HDay | null = null;
@@ -2340,6 +2361,8 @@ class Planner {
       if (tEnd - this.t > 0.25 && grind - g0 > 0.1) this.atHome(Math.min(tEnd, this.t + grind - g0), 'grind', 'grinding the household’s flour at the quern');
       if (wellLater && tEnd >= firstLight && !this.nursing) { if (this.t < firstLight) this.atHome(firstLight, 'rest', 'at home'); this.well(this.t + 0.2, withHouse ? 'fetching the day’s water' : 'fetching the day’s water before work'); }
       if (tEnd - this.t > 0.6 && this.t >= firstLight && this.hh.zone !== 'terrace' && !this.C.wx.wet && this.adult() && !this.nursing && this.canDraw()) this.well(this.t + 0.25, 'fetching water');
+      // D-256: the household's cow milked in the courtyard at first light, before the herd goes out (C)
+      if (this.milker() && tEnd - this.t > 0.35 && this.t >= firstLight) this.atHome(this.t + 0.25, 'milk', 'milking the household’s cow in the courtyard at first light');
     }
     if (withHouse) { if (this.t < H.breakfast) { if (p.sex === 'm' && this.adult() && this.homeW !== 'terrace' && H.breakfast - this.t > 0.6) this.homeHours(H.breakfast, 'at home'); else this.atHome(H.breakfast, ...this.idle()); } this.atHome(this.t + H.bLen, 'eat', H.bakeAM ? 'breakfast with the household: the new bread' : 'breakfast with the household'); }
     else { if (this.t < until - early) this.atHome(until - early, ...this.idle()); this.atHome(this.t + early, 'eat', this.P.breakfasters(this.hh.id, this.d, this.pid) ? 'bread and water before leaving (the household eats later)' : 'bread and water before leaving'); }
@@ -2402,7 +2425,11 @@ class Planner {
       if (this.age < 13 && !H.women.includes(this.pid)) { const cool = C.heatRest ? this.sun.set - 2.5 : 0; // (after the heat breaks: S5 r5; from thirteen the late afternoon is as a man's or a woman's: B S4 of r8)
         if (C.wx.wet || C.wx.dust) this.atHome(supper, 'play', 'playing indoors');
         else { if (cool > this.t + 0.2 && supper - cool > 0.7) this.atHome(cool, 'play', 'playing indoors out of the heat'); if (supper - this.t > 0.5) { this.go(`lane:${this.hh.q}`, this.homeW); this.add(supper - 0.1, `lane:${this.hh.q}`, 'play', 'playing in the lane', this.homeW); this.go(this.home, this.homeW); } else this.atHome(supper, 'play', 'playing indoors out of the heat'); } }
-      else if (p.sex === 'f' && H.women.includes(this.pid)) { const g = this.groundPM ? 0 : H.grindEach * (1 - L.household_bread.grind_morning_share); this.groundPM = true; if (g > 0.2) this.atHome(this.t + Math.min(supper - this.t, g), 'grind', 'grinding for tomorrow’s bread'); if (supper - this.t > 0.8 && r.chance(0.5) && !C.wx.wet && !this.nursing && this.canDraw()) this.well(this.t + 0.3, 'fetching water'); if (this.t < supper) this.homeHours(supper, 'at home'); }
+      else if (p.sex === 'f' && H.women.includes(this.pid)) { const g = this.groundPM ? 0 : H.grindEach * (1 - L.household_bread.grind_morning_share); this.groundPM = true; if (g > 0.2) this.atHome(this.t + Math.min(supper - this.t, g), 'grind', 'grinding for tomorrow’s bread');
+        if (supper - this.t > 0.8 && r.chance(0.5) && !C.wx.wet && !this.nursing && this.canDraw()) this.well(this.t + 0.3, 'fetching water');
+        // D-256: the cow milked in the courtyard in the evening, when the herd has come home (about sunset − 0.7 h; C)
+        if (this.milker()) { const m0 = Math.max(this.t, Math.min(supper - 0.3, this.sun.set - 0.7)); if (m0 > this.t + 0.1) this.homeHours(m0, 'at home'); if (supper - this.t >= 0.3) this.atHome(this.t + 0.25, 'milk', 'milking the household’s cow in the courtyard in the evening'); }
+        if (this.t < supper) this.homeHours(supper, 'at home'); }
       else if (r.chance(0.4) && !C.wx.wet && !this.nursing) {
         // the lane after work: not in the dust (W-03), not before the heat breaks on an E-64 day (about 2.5 h before sunset,
         // as homeHours' lane), and an hour or two of it, not the whole afternoon (S5 of shadow review r5: 3 h of knucklebones
@@ -3595,9 +3622,11 @@ class Planner {
     } else if (herds) { // ---- the household's animals: out through the cool of the day with bread (C)
       const pa = `pasture:${q}`, hot = C.wx.tmax >= 30;
       this.go(pa, 'plain', 'taking the animals out'); const t1 = hot ? Math.max(this.t + 1.5, 11) : Math.max(this.t + 2, Math.min(eve - 0.5, 14.5 + 1.5 * r.next()));
-      this.workBlock(pa, 'plain', 'herd', 'minding the household’s animals on the stubble and the fallow', this.t, t1, true, pa, H.noon, 'the bread and curds carried out in a cloth, eaten by the animals', { toRefuge: 'bringing the animals home out of the rain' });
+      // (D-256: a boy of a house with a cow takes her and her calf out with the village cattle on some days, C)
+      const cows = !girl && P.hasCow(this.hh.id) && GRAZE_MONTHS.includes(C.month) && u01(P.seed, S.kid, this.pid, d, 3) < 0.4;
+      this.workBlock(pa, 'plain', 'herd', cows ? 'minding the household’s cow and calf with the village cattle on the fallow' : 'minding the household’s animals on the stubble and the fallow', this.t, t1, true, pa, H.noon, 'the bread and curds carried out in a cloth, eaten by the animals', { toRefuge: 'bringing the animals home out of the rain' });
       this.go(this.home, W, 'bringing the animals home'); work += 3;
-      if (hot) { this.noonAtHome(); this.atHome(Math.max(this.t, 15.2), 'sleep', 'sleeping through the heat of the day'); this.go(pa, 'plain', 'taking the animals out again'); this.add(Math.max(this.t + 0.5, eve - 0.35), pa, 'herd', 'grazing the animals in the cool of the evening', 'plain'); this.go(this.home, W, 'bringing the animals home'); }
+      if (hot) { this.noonAtHome(); this.atHome(Math.max(this.t, 15.2), 'sleep', 'sleeping through the heat of the day'); this.go(pa, 'plain', 'taking the animals out again'); this.add(Math.max(this.t + 0.5, eve - 0.35), pa, 'herd', cows ? 'grazing the cows in the cool of the evening' : 'grazing the animals in the cool of the evening', 'plain'); this.go(this.home, W, 'bringing the animals home'); }
       else { if (this.t < H.noon + 1 && !this.segs.some(x => x.act === 'eat' && x.t0 > 11)) this.noonAtHome(); half(eve, 1); }
     } else {
       // ---- at home: the morning's work, then play; the midday meal (or the bread carried out); the afternoon's
@@ -4172,7 +4201,10 @@ class Planner {
     const w = this.homeW, walk = this.P.walkH(this.home, T.place, this.d, w, 'plain');
     if ((this.cur ?? this.home) !== T.place) { this.homeHours(T.pm[0] - walk, this.C.wx.tmax >= 30 ? 'resting through the heat' : 'resting after the midday meal'); this.go(T.place, 'plain', this.toward(T.place)); }
     const a0 = Math.max(this.t, T.pm[0]), mid = a0 + (T.pm[1] - a0) * lerp(0.4, 0.6, this.r.next());
-    if (T.pm[1] - a0 >= 2) { this.workBlock(T.place, 'plain', act, why, a0, mid, true, T.place); this.add(this.t + lerp(0.2, 0.35, this.r.next()), T.place, 'eat', T.place.startsWith('threshing') ? 'bread and water by the threshing floor' : 'bread and water at the field edge', 'plain'); }
+    // (not in the rain: the bread waits for the second half, or for home, when the weather is on; D-256: the cows' afternoon on
+    // the meadow met a shower at 16:39 on day 353)
+    if (T.pm[1] - a0 >= 2) { this.workBlock(T.place, 'plain', act, why, a0, mid, true, T.place); const e = lerp(0.2, 0.35, this.r.next());
+      if ((this.cur ?? T.place) === T.place && wetHours(this.C.wx, this.t, this.t + e) === 0) this.add(this.t + e, T.place, 'eat', T.place.startsWith('threshing') ? 'bread and water by the threshing floor' : T.place.startsWith('meadow') ? 'bread and water on the meadow' : 'bread and water at the field edge', 'plain'); }
     this.workBlock(T.place, 'plain', act, why, Math.max(this.t, a0), T.pm[1], true, T.place); this.go(this.home, w, 'home from the field');
   }
   private farmer(): Seg[] {

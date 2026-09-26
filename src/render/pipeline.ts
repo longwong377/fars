@@ -31,7 +31,7 @@
 // re-evaluates that term with the material's own lookup and specular occlusion).
 import './shareInstancing'; // one vertex program per instanced mesh kind (D-250)
 import * as THREE from 'three/webgpu';
-import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2, metalness, roughness, Fn, dot, normalize, luminance, smoothstep, pmremTexture, EnvironmentBRDF, reflect, step, passTexture, log2, length } from 'three/tsl';
+import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2, metalness, roughness, Fn, dot, normalize, luminance, smoothstep, pmremTexture, EnvironmentBRDF, reflect, step, passTexture, log2, length, getScreenPosition, mx_noise_float, cameraPosition, time, abs } from 'three/tsl';
 import { ssgi } from './ssgi';
 import { ssgi as ssgiOrig } from 'three/addons/tsl/display/SSGINode.js';
 import { ssr } from 'three/addons/tsl/display/SSRNode.js';
@@ -52,6 +52,8 @@ export const BLOOM_THRESHOLD = 0.9, BLOOM_STRENGTH = 0.12;
 export const BLOOM_SAT = 16;
 /** the bloom radius (the weight of its broad mips) outdoors; it falls to 0 (the narrow mips) at interior exposures */
 export const BLOOM_RADIUS = 0.35;
+/** session 9 (G8): the heat shimmer and mirage pass is opt-in (?heat=1) until a render has verified its node graph */
+export const HEAT_ON = typeof location !== 'undefined' && new URLSearchParams(location.search).get('heat') === '1';
 /** SSGI (D-157): thickness of a depth sample (m; it grows with the view distance beyond 8 m, ssgi.ts), and the contact AO's
  *  radius (m) with its own samples per side and slice (3 of 4 within 0.5 m) */
 export const SSGI_THICKNESS = 0.25, SSGI_CONTACT_RADIUS = 1.2, SSGI_CONTACT_STEPS = 4;
@@ -83,6 +85,8 @@ export function reflectionClass(m: any): 0 | 1 | 2 { return !m ? 0 : m.userData?
 export class Pipeline {
   rp: THREE.RenderPipeline | null = null;
   readonly flash = uniform(0); // lightning flash (additive)
+  /** session 9 (G8): the afternoon's heat over the plain, 0-1 (heat shimmer and the inferior mirage; set by main.ts from the weather) */
+  readonly heat = uniform(0);
   private hemiSky = uniform(new THREE.Color());
   private hemiGround = uniform(new THREE.Color());
   private camWorld: any;
@@ -259,7 +263,24 @@ export class Pipeline {
       const chosen = V.includes('scene') ? col.rgb : V.includes('aonear') ? vec3(aoNear) : V.includes('ao') ? vec3(ao) : V.includes('gi') ? bounce
         : V.includes('probe') ? vec3(w, aoNear, aoFull) : V.includes('plain') ? col.rgb.mul(aoFull).add(dif.rgb.mul(bounce)) : V.includes('direct') ? colDirect
         : V.includes('ssr') ? ssrRefl : V.includes('env') ? envSpec : V.includes('sss') ? (this.sssDebug ?? vec3(1)) : litR;
-      composite = vec4(chosen, col.a);
+      // session 9 (G8, A physics): heat shimmer and the inferior mirage over the hot plain. Only where a line of sight runs within
+      // ~1 deg of level to ground more than 300-1500 m off: the scene is resampled with a slowly boiling offset of ~1.5 px
+      // (shimmer); the ground within 0.23 deg below the horizon beyond 1.5 km takes the colour of the point mirrored above the
+      // horizon (the sky and the far foot of the hills: the 'lake' of a mirage), with the shimmer on it. Far pixels only (their
+      // AO, GI and SSR are ~0, so the raw scene colour stands in for the composite there). 0 when not hot (C thresholds)
+      let img: any = chosen;
+      if (!V && HEAT_ON) { // opt-in (?heat=1) until a render verifies the graph (session 9)
+        const rW = pWorld.sub(cameraPosition).normalize(), el = rW.y, dist = length(pView);
+        const level = float(1).sub(smoothstep(0.004, 0.02, abs(el)));
+        const boil = vec2(mx_noise_float(vec3(uv().x.mul(55), uv().y.mul(380), time.mul(2.2))), mx_noise_float(vec3(uv().x.mul(40), uv().y.mul(300), time.mul(1.7).add(7.3)))).mul(1.6 / 540);
+        const wS = this.heat.mul(smoothstep(300, 1500, dist)).mul(level);
+        const mirW = this.heat.mul(smoothstep(1500, 4000, dist)).mul(step(el, float(0))).mul(float(1).sub(smoothstep(0, 0.004, el.negate())));
+        const mirView = uniform(camera.matrixWorldInverse).mul(vec4(cameraPosition.add(vec3(rW.x, el.negate(), rW.z).mul(2000)), 1)).xyz;
+        const mirUV = getScreenPosition(mirView, uniform(camera.projectionMatrix)).add(boil);
+        const shimmered = mix(img, col.sample(uv().add(boil)).rgb, wS);
+        img = mix(shimmered, col.sample(mirUV).rgb.mul(0.92), mirW.mul(0.75));
+      }
+      composite = vec4(img, col.a);
     }
     if (!raw) composite = addAirLight(composite, dep, camera, this.sun); // D-156 (item 15): sunlit dust in the halls' air, before TRAA — src/render/airlight.ts
     let out: any = traa(composite, dep, vel, camera);

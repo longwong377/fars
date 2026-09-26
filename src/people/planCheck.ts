@@ -172,7 +172,9 @@ const DUST_IDLE = (s: Seg) => !/^a dispute/.test(s.why) // (a quarrel at the wel
 export const LIGHT_ACTS = new Set<ActivityId>(['herd', 'tend_animals', 'field_work', 'reap', 'thresh', 'plough', 'dig_canal', 'irrigate', 'pick_fruit', 'garden_work', 'gather', 'craft',
   'write_tablet', 'dress_stone', 'mould_brick', 'lay_brick', 'haul', 'shear', 'slaughter', 'wash', 'gamble', 'exchange', 'spin', 'weave', 'polish_metal', 'work_wood', 'clean', 'train', 'inspect',
   // D-255
-  'smith', 'goldsmith', 'weigh', 'seal', 'cut_seal', 'tan', 'press_oil']);
+  'smith', 'goldsmith', 'weigh', 'seal', 'cut_seal', 'tan', 'press_oil',
+  // D-256: the land work
+  'fish', 'fowl', 'bees', 'quarry']);
 const LIT = /lamp|torch|by the fire|the fire\b|moon/;
 /** (b) work done in the dark by its nature (C): a night turn of the irrigation water, the flock watched at night by turns, the
  *  ewes at lambing */

@@ -144,6 +144,9 @@ export function riparianMargins(profiles: CorridorSection[][], canals: Canal[], 
           const hx = unit(hash2(h, 5, 6)); if (hx > 0.45 && dc >= NEAR_DENSE + stepR) continue;
           const ex = hx > 0.45 ? 4 : 0, exG = hx > 0.35 ? 4 : 0; // extra (near-only) tufts: kind + 4
           const p0 = prof(q0, u), p1 = prof(q1, u), hy = p0[0] + (p1[0] - p0[0]) * f, hrel = p0[1] + (p1[1] - p0[1]) * f, t = p0[2] + (p1[2] - p0[2]) * f;
+          // B83 (session 9): beyond the mid ring the corridor can stand above the far ring's coarse ground (up to 6.5 m); a tuft there
+          // would hang in the air at a walker's eye, so none is placed where the corridor is more than 0.4 m over the ground drawn
+          if ((Math.abs(x) > 10040 || Math.abs(y) > 10040) && hy - terrain.heightAt(x, -y) > 0.4) continue;
           const bed = u < 0 ? bedA : bedB, inBed = r1 < 0.8 * Math.min(1, Math.max(0, (bed - 0.47) / 0.1)); // a bed thins out over a few metres at its ends
           const jx = (unit(hash2(h, 1, 2)) - 0.5) * 0.5, jy = (unit(hash2(h, 3, 4)) - 0.5) * 0.5;
           if (hrel > 0.18 && hrel < aprilD - 0.05 && t === 0) { // the channel slope between the low summer water and the spring flood level

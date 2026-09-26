@@ -72,6 +72,8 @@ export interface GeoOpts {
   villages?: VillageIn[]; compounds?: (vi: number) => CompoundIn[];
   /** plain canal courses (grid polylines), for canal:<village> */
   canals?: P2[][];
+  /** D-256: the rivers' courses (grid polylines) and half-widths (m), for the land work's banks and meadows */
+  rivers?: { pts: P2[]; half: number }[];
   seed?: number;
 }
 
@@ -140,10 +142,12 @@ export class PopGeo {
       const extra: P2[] = [this.stair, [...PLACES.town.at] as P2, ...['mill', 'stockyard', 'brickyard', 'offering_place', 'crown_fields', 'clay_pit', 'river', 'mountain', 'outside', 'tannery', 'oil_press'].map(k => FAC[k])];
       this.town = TownWalk.fromPlan(o.town, extra);
     } else this.town = null;
-    this.villages = o.villages ?? []; this.compoundsOf = o.compounds ?? null; this.canals = o.canals ?? [];
+    this.villages = o.villages ?? []; this.compoundsOf = o.compounds ?? null; this.canals = o.canals ?? []; this.rivers = o.rivers ?? [];
     if (this.villages.length) this.mapVillages();
   }
-  private villages: VillageIn[]; private compoundsOf: ((vi: number) => CompoundIn[]) | null; private canals: P2[][];
+  private villages: VillageIn[]; private compoundsOf: ((vi: number) => CompoundIn[]) | null; private canals: P2[][]; private rivers: { pts: P2[]; half: number }[];
+  /** D-256: per village (or town house), the slope found for the nuts and acorns (null: none within reach) */
+  private slopes = new Map<string, P2 | null>();
   private hash(pid: number, place: string, k = 0) { return h32(this.seed, S.spot, pid, salt(place), k) / 4294967296; }
 
   // -------------------------------------------------------------------------------------------------- villages
@@ -326,6 +330,11 @@ export class PopGeo {
       case 'mountain': case 'river': case 'crown_fields': case 'clay_pit': return this.openNear(FAC[head], head === 'crown_fields' ? 120 : 20, pid, place, `${head} (town.json, open ground, C)`, FAC[head]);
       case 'terrace_edge': return this.openNear(PLACES.town.at, 6, pid, place, 'the Terrace approach, W');
       case 'pasture': return this.pasture(pid, tail, day);
+      // D-256: the grounds of the land work (C: which bank, which meadow, which slope is this module's choice)
+      case 'meadow': return this.landWater(pid, q, day, 'meadow');
+      case 'bank': return this.landWater(pid, q, day, 'bank');
+      case 'edge': return this.outside(pid, q, day, 150, 500, 'the field edges beyond the village (C: D-256)');
+      case 'slope': return this.slope(pid, q, day);
       case 'training': return this.outside(pid, q, day, 120, 200, 'practice ground outside the quarter (C)');
       case 'field': case 'threshing': case 'vineyard': case 'orchard': return this.plainPlace(pid, head, tail, day);
       case 'camp': case 'route': return this.band(pid, head, tail);
@@ -508,6 +517,42 @@ export class PopGeo {
     let best: { si: number; pi: number; c: P2 } | null = null, bd = 450; for (const g of this.gardens) { const d = Math.hypot(g.c[0] - from[0], g.c[1] - from[1]); if (d < bd) { bd = d; best = g; } }
     if (best) return this.inPlot(this.plan.sites[best.si], best.pi, pid, `garden:${q}`, false, 'town', undefined, 'garden: ') ?? this.none('garden', 'empty garden');
     return this.outside(pid, q, day, 15, 60, 'garden ground at the edge of the quarter (not built: C)');
+  }
+  /** D-256: the centre of the person's settlement (the village, or the town house's site) and its radius */
+  private homeCentre(pid: number, q: string, day: number): { c: P2; r: number; key: string } | null {
+    const H = this.pop.households[this.pop.home(pid, day)];
+    if (H.zone === 'plain') { const m = this.villageOf(H.id); if (m) { const v = this.villages[m.vi]; return { c: [v.x, v.y], r: v.r, key: `v${m.vi}` }; } }
+    const hd = this.homeDoor(pid, day); if (hd) return { c: hd.s.frame.c, r: Math.hypot(hd.s.W, hd.s.H) / 2, key: `s${hd.s.id}` };
+    const c = this.pop.quarters[q]?.xy; return c ? { c, r: 0, key: `q${q}` } : null;
+  }
+  /** D-256: the water of the land work. 'bank': where a man fishes or goes after the waterfowl: on the bank of the river
+   *  nearest the village within 3 km (half its width and a pace out from the centre line), else at the nearest canal within
+   *  2.5 km, else the village's water (canal()). 'meadow': where the cows graze: the river meadow 20-120 m back from that
+   *  bank, else the grass along the canal, else the grazing beyond the fields (all C) */
+  private landWater(pid: number, q: string, day: number, kind: 'bank' | 'meadow'): Spot {
+    const h = this.homeCentre(pid, q, day), key = `${kind}:${q}`; if (!h) return this.none(kind, 'no home');
+    let best: { p: P2; nrm: P2; half: number } | null = null, bd = 3000;
+    for (const R of this.rivers) for (let i = 1; i < R.pts.length; i++) { const a = R.pts[i - 1], b = R.pts[i], dx = b[0] - a[0], dn = b[1] - a[1], l2 = dx * dx + dn * dn || 1;
+      const t = Math.max(0, Math.min(1, ((h.c[0] - a[0]) * dx + (h.c[1] - a[1]) * dn) / l2)), p: P2 = [a[0] + dx * t, a[1] + dn * t], d = Math.hypot(p[0] - h.c[0], p[1] - h.c[1]);
+      if (d < bd) { bd = d; const L = Math.sqrt(l2), s = Math.sign((h.c[0] - p[0]) * -dn + (h.c[1] - p[1]) * dx) || 1; best = { p, nrm: [(-dn / L) * s, (dx / L) * s], half: R.half }; } }
+    if (best) { const o = best.half + (kind === 'bank' ? 1.2 : 20 + 100 * this.hash(pid, key, 61)), along = (this.hash(pid, key, 62) - 0.5) * (kind === 'bank' ? 160 : 300), tx = -best.nrm[1], tn = best.nrm[0];
+      const c: P2 = [best.p[0] + best.nrm[0] * o + tx * along, best.p[1] + best.nrm[1] * o + tn * along];
+      return this.openNear(c, kind === 'bank' ? 1.2 : 25, pid, key, kind === 'bank' ? 'on the river bank (C: D-256)' : 'the river meadow (C: D-256)', kind === 'bank' ? [c[0] - best.nrm[0] * 5, c[1] - best.nrm[1] * 5] : undefined); }
+    let cb: P2 | null = null, cd = 2500; for (const c of this.canals) for (const p of c) { const d = Math.hypot(p[0] - h.c[0], p[1] - h.c[1]); if (d < cd) { cd = d; cb = p; } }
+    if (cb) return this.openNear(cb, kind === 'bank' ? 3 : 30, pid, key, kind === 'bank' ? 'on the canal bank (no river within 3 km: C, D-256)' : 'the grass along the canal (no river within 3 km: C, D-256)', kind === 'bank' ? cb : undefined);
+    return kind === 'bank' ? this.canal(pid, q, day) : this.outside(pid, q, day, 350, 900, 'grazing beyond the fields (no water within reach: C, D-256)');
+  }
+  /** D-256: the slopes where the wild pistachios, almonds and oaks grow: the nearest ground within 5 km of the settlement whose
+   *  slope is over 12 % (the scrub of the hill foot: plain.json crops.pistachio_almond), a spot of the person's own round it;
+   *  else the scrub 1.5-2.5 km out (C) */
+  private slope(pid: number, q: string, day: number): Spot {
+    const h = this.homeCentre(pid, q, day); if (!h) return this.none('slope', 'no home');
+    let c = this.slopes.get(h.key);
+    if (c === undefined) { c = null; const g = this.ground, st = (e: number, n: number) => Math.hypot(g(e + 15, n) - g(e - 15, n), g(e, n + 15) - g(e, n - 15)) / 30;
+      for (let r = h.r + 300; r <= 5000 && !c; r += 200) for (let k = 0; k < 36; k++) { const a = (k / 36) * Math.PI * 2, e = h.c[0] + Math.cos(a) * r, n = h.c[1] + Math.sin(a) * r; if (st(e, n) > 0.12) { c = [e, n]; break; } }
+      this.slopes.set(h.key, c); }
+    if (!c) return this.outside(pid, q, day, 1500, 2500, 'the scrub beyond the fields (no slope within 5 km: C, D-256)');
+    return this.openNear(c, 120, pid, `slope:${q}`, 'the scrub of the slopes: wild pistachio, almond and oak (C: D-256)');
   }
   /** workers of a workshop group spread over the `n` workshop plots of its crafts nearest its place (C); `forgeDay`: the
    *  worker is at the workshop's forge that day (D-255) */

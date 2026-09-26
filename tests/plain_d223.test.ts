@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildTownPlan } from '../src/world/settlement/plan';
 import { desireLines, laneExtras } from '../src/world/plain/townGround';
-import { plotAt, irrigatedScale, IRR_STEPS, IRR_FALLOW_SPREAD, unit, hash2 } from '../src/world/plain/fields';
+import { plotAt, irrigatedScale, IRR_STEPS, IRR_CROP, IRR_FALLOW_SPREAD, unit, hash2 } from '../src/world/plain/fields';
 import { census } from '../tools/dev/plain_view_census';
 
 describe('worn paths merge into a net (townGround.ts desireLines)', () => {
@@ -29,17 +29,17 @@ describe('irrigated fallow by district (fields.ts irrigatedScale)', () => {
   it('the fallow share keeps the data mean (20 %) over the plain and ranges 8-32 % between districts', () => {
     let fallow = 0, n = 0; const perD = new Map<string, Map<number, number>>();
     for (let i = 0; i < 120000; i++) { const x = -6000 + ((i * 7919) % 12000) + (i % 7) * 0.37, z = -6000 + ((i * 104729) % 12000) + (i % 11) * 0.53, p = plotAt(x, z);
-      const hc = unit(hash2(p.h, 7, 41)), f = hc >= Math.fround(IRR_STEPS[3] * irrigatedScale(p.dc)) ? 1 : 0; fallow += f; n++;
+      const hc = unit(hash2(p.h, 7, 41)), f = hc >= Math.fround(IRR_CROP * irrigatedScale(p.dc)) ? 1 : 0; fallow += f; n++;
       const k = p.dc.join(','), q = perD.get(k) ?? new Map<number, number>(); q.set(p.h, f); perD.set(k, q); } // each plot once per district
-    expect(Math.abs(fallow / n - (1 - IRR_STEPS[3]))).toBeLessThan(0.01);
+    expect(Math.abs(fallow / n - (1 - IRR_CROP))).toBeLessThan(0.01);
     // each district's expected share is 1 − 0.8 × its scale: 8-32 %; the plots drawn follow it (correlation over districts)
     const rows = [...perD.entries()].filter(([, q]) => q.size > 30).map(([k, q]) => { const dc = k.split(',').map(Number) as [number, number];
-      return [1 - IRR_STEPS[3] * irrigatedScale(dc), [...q.values()].reduce((a, b) => a + b, 0) / q.size]; });
+      return [1 - IRR_CROP * irrigatedScale(dc), [...q.values()].reduce((a, b) => a + b, 0) / q.size]; });
     const ex = rows.map(r => r[0]), ob = rows.map(r => r[1]), m = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length;
     const me = m(ex), mo = m(ob), cov = m(rows.map(r => (r[0] - me) * (r[1] - mo))), sd = (a: number[], mu: number) => Math.sqrt(m(a.map(v => (v - mu) ** 2)));
     const corr = cov / (sd(ex, me) * sd(ob, mo));
     console.log({ districts: rows.length, expected: [Math.min(...ex).toFixed(3), Math.max(...ex).toFixed(3)], corr: corr.toFixed(2) });
-    expect(Math.min(...ex)).toBeGreaterThanOrEqual(1 - IRR_STEPS[3] - IRR_FALLOW_SPREAD - 1e-9); expect(Math.max(...ex)).toBeLessThanOrEqual(1 - IRR_STEPS[3] + IRR_FALLOW_SPREAD + 1e-9);
+    expect(Math.min(...ex)).toBeGreaterThanOrEqual(1 - IRR_CROP - IRR_FALLOW_SPREAD - 1e-9); expect(Math.max(...ex)).toBeLessThanOrEqual(1 - IRR_CROP + IRR_FALLOW_SPREAD + 1e-9);
     expect(Math.max(...ex) - Math.min(...ex)).toBeGreaterThan(0.18); expect(corr).toBeGreaterThan(0.4);
   });
 });
