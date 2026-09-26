@@ -85,7 +85,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G30 | quarrymen at Majdabad and Sivand; drums hauled across the plain | A505, A506; P-063, P-034, S-012 | crafts / transport | B/C | MISSING/PARTIAL |
 | G31 | signal fires and beacons | A522; W-037 | communication | C | MISSING/PARTIAL |
 | G32 | adult board games (twenty squares) at the guard posts and doorsteps | A529; S-016 | recreation | C | MISSING/PARTIAL |
-| G33 | human non-speech sounds: babies crying, laughter, children shouting, calling to animals | A533; SO-005, SO-006 | sound | C | MISSING/PARTIAL |
+| G33 | human non-speech sounds: babies crying, laughter, children shouting, calling to animals | A533; SO-005, SO-006 | sound | C | PARTIAL (D-260: laughter in company, children calling at play, babies crying; no calls to animals); unverified by ear |
 | G34 | coughing and sickness sounds | A560; SO-007 | sound | C | MISSING/PARTIAL |
 | G35 | tomb guardians and a tomb cult at Naqsh-e Rustam | A564; S-010 | religion | B analogy | MISSING/PARTIAL |
 | G36 | gazelle on the open plain (not only the paradise) | A102; F-018 | fauna | B | MISSING/PARTIAL |

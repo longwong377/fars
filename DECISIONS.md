@@ -6367,3 +6367,18 @@ moment-*-webgpu.png in the worktree, not committed).**
   onion leaves upright, narrow and blue-green (C).
 - **Tests.** plain, plain_d223 (IRR_CROP), plain_look, landscape, beasts, court_fill, small_life pass (81). The rain-fed land
   keeps barley and fallow only (dry-farmed pulses: not done).
+
+## D-260 The human sounds that are not words: laughter, children's calls, babies crying (session 9; gap hunters G33; C)
+- **What.** audio/voices.ts: after a turn in a conversation, one listener laughs in 12 % of turns (voiceless h and an open vowel,
+  pulsed 3-4 times and falling, 1.3x pace, a little louder); a child's unit is a call at play in 25 % of their units (long vowel
+  glides, rising, 1.8x louder, a higher pitch); a baby within the clear-voice radius starts a bout of crying once in ~900 s on
+  average (3-10 cries: a glottal onset and a long front vowel at 1.9x the child base pitch, a gasp of 0.25-0.75 s between).
+  Every one is logged and captioned as wordless ("(laughter)", "(a child calling out at play)", "(a baby crying)") and checked
+  against the modern-word list (tests/audio_population.test.ts). The formant synthesiser has no breathy [ɦ] or [æ]: laughter
+  uses [h] with [a] or [ə] (PLACEHOLDER-QUALITY voice, as D-245).
+- **Babies are heard.** people/crowd.ts nearPeople now lists the small children carried or put down beside a person (D-215's
+  vp.babes) at the carer's place, with their own identity and age from the population; before, no baby was ever a near person.
+- **Tests.** audio_population (12, one new: laughter among the adults and the children but never by the baby, calls only from
+  children, cries only from the baby, a laugh never by the one whose turn it answered), people_children pass.
+- **Not done:** calling to animals (herders' calls, whistles, tongue clicks: needs the activity of the person, not in NearPerson),
+  singing at work beyond D-200's music, crying by older children, coughing and sneezing. G33 stays PARTIAL.

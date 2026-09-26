@@ -59,6 +59,18 @@ export const WORDLESS: Unit[] = ([['mː', 'fall', 'a hum'], ['m̩ː', 'level', '
   ['ʔm̩ʔm̩', 'fall', 'a hum of refusal'], ['əː', 'level', 'a hesitation'], ['əːm', 'level', 'a hesitation'], ['aː', 'fall', 'a realising "ah"'], ['ʔəː', 'rise', 'a questioning sound']] as const)
   .map(([ipa, intonation, gloss], i) => ({ id: `wordless:${i}`, ipa, intonation, kind: 'wordless' as const, parts: [`wordless:${i}`], tier: 'C', gloss: `(${gloss}; no published words of this language: T-K1a2)`, translit: '' }));
 
+/** session 9 (WORLD_INVENTORY G33, "outside the Terrace nobody makes a human sound" beyond talk): the human sounds that are not
+ *  language (C): laughter in company (voiceless h and an open vowel, pulsed and falling), a child's calls at play (long
+ *  vowel glides, rising), a baby's cry (a glottal onset and a long front vowel, rising and falling in the cry's own pitch).
+ *  No word of any language (each checked against the modern-word list by tests/audio_population.test.ts) */
+const nonverbal = (tag: string, gloss: string, xs: readonly (readonly [string, Intonation])[]): Unit[] => xs.map(([ipa, intonation], i) => ({ id: `${tag}:${i}`, ipa, intonation, kind: 'wordless' as const, parts: [`${tag}:${i}`], tier: 'C', gloss: `(${gloss})`, translit: '' }));
+export const LAUGH = nonverbal('laugh', 'laughter', [['hahaha', 'fall'], ['həhəhəhə', 'fall'], ['hahahaha', 'fall'], ['həhəhə', 'level']]);
+export const CHILD_CALL = nonverbal('call', 'a child calling out at play', [['ɛːɔ', 'rise'], ['ɔːə', 'rise'], ['uːɔ', 'rise'], ['aːə', 'fall']]);
+export const CRY = nonverbal('cry', 'a baby crying', [['ʔwɛːɛ', 'fall'], ['ʔɛːɛ', 'rise'], ['ʔwɛːə', 'fall']]);
+/** how often (C): a listener laughs after one turn in LAUGH_P; a child's unit is a call in CHILD_CALL_P; a baby near the
+ *  listener starts a bout of crying once in CRY_EVERY_S seconds on average, 3-10 cries with a gasp between */
+export const LAUGH_P = 0.12, CHILD_CALL_P = 0.25, CRY_EVERY_S = 900;
+
 const UNITS = new Map<LangId, { lines: Unit[]; words: Unit[] }>();
 const speakable = (ipa: string) => { try { return tokenizeIpa(ipa).length > 0; } catch { return false; } };
 /** the published units of a language (lines without a role restriction; attested words) */
@@ -100,8 +112,8 @@ export const voiceDist = (a: VoiceParams, b: VoiceParams) => { const A = voiceBa
   return Math.hypot(dp / VOICE_MIN.pitch, (Math.log(A.formantScale / B.formantScale) - dp) / VOICE_MIN.formant, (a.rate - b.rate) / VOICE_MIN.rate,
     ((a.glottis ?? 0.5) - (b.glottis ?? 0.5)) / VOICE_MIN.glottis, ((a.f2 ?? 1) - (b.f2 ?? 1)) / VOICE_MIN.f2); };
 const wrap = (v: number, lo: number, w: number) => lo + ((((v - lo) % w) + w) % w);
-interface Slot { key: string; p: NearPerson; voice: VoiceParams; rng: Rng; loud: number; recent: Map<string, number>; busyUntil: number; nextAt: number; seen: number; n: number; spoke: number }
-interface Group { busyUntil: number; nextAt: number; speaker: string | null; turnLeft: number; last: string | null }
+interface Slot { key: string; p: NearPerson; voice: VoiceParams; rng: Rng; loud: number; recent: Map<string, number>; busyUntil: number; nextAt: number; seen: number; n: number; spoke: number; /** a baby's cries left in this bout */ bout?: number }
+interface Group { busyUntil: number; nextAt: number; speaker: string | null; turnLeft: number; last: string | null; /** a listener's laugh after the turn */ laughAt?: number; laughBy?: string }
 /** one utterance or grain started (the offline measurement reads these: tools/dev/audio_render.ts) */
 export interface Uttered { key: string; kind: 'voice' | 'bed'; t0: number; t1: number; unit: string; lang: LangId | 'wordless'; src: AudioBufferSourceNode; pan: PannerNode; buf: AudioBuffer; voice: VoiceParams }
 /** what the translation layer may show for an utterance heard near (out of world; T-K3c) */
@@ -166,32 +178,36 @@ export class PopulationVoices {
     catch { return null; }
     finally { this.budget.n++; const ms = performance.now() - t0; this.budget.ms += ms; this.stats.renders++; this.stats.renderMs += ms; this.stats.totalRenders++; this.stats.totalRenderMs += ms; }
   }
+  /** a baby's mean seconds between bouts of crying (CRY_EVERY_S; tests shorten it) */
+  cryEvery = CRY_EVERY_S;
   /** the translation layer's hook: an utterance within `captionR` m of the listener starts (out of world) */
   onCaption: ((c: Caption) => void) | null = null; captionR = 6;
   /** start one unit from a person: a voice (clear, HRTF when among the nearest) or a bed grain (low-passed, equal-power) */
-  private utter(s: Slot, lang: LangId | null, now: number, kind: 'voice' | 'bed', hrtf: boolean, d: number): number | null {
-    const u = this.pickUnit(s, lang, now); if (!u) return null;
+  private utter(s: Slot, lang: LangId | null, now: number, kind: 'voice' | 'bed', hrtf: boolean, d: number, o: { unit?: Unit; loud?: number; pitch?: number } = {}): number | null {
+    // a child's unit is now and then a call at play, louder (G33)
+    if (!o.unit && s.p.age < 12 && s.rng.chance(CHILD_CALL_P)) o = { unit: s.rng.pick(CHILD_CALL), loud: 1.8, pitch: 1.1 };
+    const u = o.unit ?? this.pickUnit(s, lang, now); if (!u) return null;
     // nobody says a word the same way twice: this utterance's pitch (±4 %), pace (±8 %), vowels (F2/F3 ±2 %) and, for a single
     // word, its tune vary
-    const r = s.rng, v = { ...s.voice, pitch: s.voice.pitch * (0.96 + 0.08 * r.next()), rate: s.voice.rate * (0.92 + 0.16 * r.next()), f2: (s.voice.f2 ?? 1) * (0.98 + 0.04 * r.next()), accent: (s.voice.accent ?? 1) * (0.8 + 0.4 * r.next()) };
+    const r = s.rng, v = { ...s.voice, pitch: s.voice.pitch * (o.pitch ?? 1) * (0.96 + 0.08 * r.next()), rate: s.voice.rate * (u.id.startsWith('laugh') ? 1.3 : 1) * (0.92 + 0.16 * r.next()), f2: (s.voice.f2 ?? 1) * (0.98 + 0.04 * r.next()), accent: (s.voice.accent ?? 1) * (0.8 + 0.4 * r.next()) };
     const tune: Unit = u.kind !== 'line' ? { ...u, intonation: r.chance(0.6) ? u.intonation : r.pick(['fall', 'level', 'rise'] as Intonation[]) } : u;
     const buf = this.render(tune, lang ?? 'arc', v, s.n); if (!buf) return null;
     const e = this.e, c = e.ctx!, p = s.p, t0 = now + 0.02, src = c.createBufferSource(); src.buffer = buf; src.playbackRate.value = 0.98 + 0.04 * s.rng.next();
-    const dur = buf.duration / src.playbackRate.value, g = c.createGain(); g.gain.value = (kind === 'voice' ? this.level : this.bedLevel) * s.loud * (0.9 + 0.2 * s.rng.next());
-    const my = p.y + (p.age < 12 ? 1.05 : 1.55), pan = e.panner(p.x, my, p.z, 2, kind === 'voice' ? 100 : 160); if (!hrtf) pan.panningModel = 'equalpower';
+    const dur = buf.duration / src.playbackRate.value, g = c.createGain(); g.gain.value = (kind === 'voice' ? this.level : this.bedLevel) * s.loud * (o.loud ?? 1) * (0.9 + 0.2 * s.rng.next());
+    const my = p.y + (p.age < 2 ? 1.1 : p.age < 12 ? 1.05 : 1.55), pan = e.panner(p.x, my, p.z, 2, kind === 'voice' ? 100 : 160); if (!hrtf) pan.panningModel = 'equalpower';
     if (kind === 'bed') { const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 0.5; lp.frequency.value = Math.max(900, 2600 - 25 * d); src.connect(lp); lp.connect(g); } else src.connect(g);
     g.connect(pan); e.route(pan, 'voices', t0 + dur); src.start(t0); src.stop(t0 + dur + 0.01);
     s.n++; for (const id of [u.id, ...u.parts]) s.recent.set(id, now); this.recentAll.set(`${lang}|${u.id}`, now);
     if (s.recent.size > 64) for (const [k, t] of s.recent) if (t < now - 61) s.recent.delete(k);
     this.speaking.set(s.key, { from: t0, to: t0 + dur }); s.busyUntil = t0 + dur; s.spoke = t0 + dur; this.stats.utterances++;
-    const L = lang ?? 'wordless'; this.log?.push({ key: s.key, kind, t0, t1: t0 + dur, unit: u.id, lang: L, src, pan, buf, voice: s.voice });
+    const L = u.kind === 'wordless' ? 'wordless' : (lang ?? 'wordless'); this.log?.push({ key: s.key, kind, t0, t1: t0 + dur, unit: u.id, lang: L, src, pan, buf, voice: s.voice });
     if (this.onCaption && d <= this.captionR) this.onCaption({ key: s.key, unit: u.id, lang: L, translit: u.translit, gloss: u.gloss, tier: u.tier, t0, t1: t0 + dur });
     return t0 + dur;
   }
   /** Call once a frame with everyone the crowd places near the listener. `hold(key)`: a person speaking a scripted line
    *  now (world.ts exchanges), left to it */
   update(dt: number, people: readonly NearPerson[], listener: Vec3, hold?: (key: string) => boolean) {
-    const e = this.e; if (!e.ctx || e.ctx.state !== 'running') return; void dt;
+    const e = this.e; if (!e.ctx || e.ctx.state !== 'running') return;
     const now = e.ctx.currentTime; this.budget.n = 0; this.budget.ms = 0; this.claimed.clear();
     const st = this.stats; st.renders = 0; st.renderMs = 0; st.starved = 0; st.byLang = {}; const fb = new Set<string>();
     for (const [k, v] of this.speaking) if (v.to < now - 1) this.speaking.delete(k);
@@ -220,6 +236,10 @@ export class PopulationVoices {
       }
       const gk = members.map(m => m.p.key).sort()[0]; let g = this.groups.get(gk); if (!g) this.groups.set(gk, g = { busyUntil: 0, nextAt: now + 0.2 * this.rng.next(), speaker: null, turnLeft: 0, last: null });
       const eat = members.some(m => m.p.eating) ? 2.5 : 1;
+      if (g.laughAt !== undefined && now >= g.laughAt) { // a listener laughs after the turn (G33)
+        const i = slots.findIndex(q => q.key === g!.laughBy); g.laughAt = undefined;
+        if (i >= 0 && now >= slots[i].busyUntil) { const end = this.utter(slots[i], ml[i], now, 'voice', hr(slots[i].key), members[i].d, { unit: this.rng.pick(LAUGH), loud: 1.2 }); if (end != null) { g.busyUntil = Math.max(g.busyUntil, end); g.nextAt = Math.max(g.nextAt, end + 0.2); } }
+      }
       if (now < g.busyUntil) { // a listener's short overlap now and then (~ once in 25 s per conversation)
         if (this.rng.chance(0.04 * Math.min(0.1, Math.max(0, dt)))) { const i = Math.floor(this.rng.next() * slots.length), s = slots[i]; if (s.key !== g.speaker && now >= s.busyUntil) this.utter(s, ml[i], now, 'voice', hr(s.key), members[i].d); }
         continue;
@@ -231,8 +251,15 @@ export class PopulationVoices {
         for (let q = 0; q < others.length; q++) { r -= w[q]; if (r <= 0) { i = others[q]; break; } }
         g.turnLeft = ml[i] ? 1 + Math.floor(this.rng.next() * 3) : 1; }
       const s = slots[i], end = this.utter(s, ml[i], now, 'voice', hr(s.key), members[i].d); if (end == null) { g.turnLeft = 0; g.nextAt = now + 0.3; continue; }
+      if (g.turnLeft <= 1 && slots.length > 1 && this.rng.chance(LAUGH_P)) { const others = slots.filter(q => q.key !== s.key); g.laughBy = this.rng.pick(others).key; g.laughAt = end - 0.1 + 0.4 * this.rng.next(); }
       g.speaker = s.key; g.last = s.key; g.turnLeft--; g.busyUntil = end; g.nextAt = end + (g.turnLeft > 0 ? 0.12 + 0.33 * this.rng.next() : 0.25 + 0.85 * this.rng.next()) * eat * (ml[i] ? 1 : 3);
     }
+    // babies (G33): a baby within clearR of the listener, talking or not, starts a bout of crying now and then (C)
+    for (const p of people) { if (p.age >= 2) continue; const d = Math.hypot(p.x - listener.x, p.y + 1.1 - listener.y, p.z - listener.z); if (d > this.clearR) continue;
+      const s = this.slot(p, now); s.seen = now; s.p = p; this.claimed.add(p.key); if (now < s.busyUntil || now < s.nextAt) continue;
+      if (!s.bout) { if (!s.rng.chance(Math.min(1, Math.max(0, dt)) / this.cryEvery)) continue; s.bout = 3 + s.rng.int(0, 7); }
+      const end = this.utter(s, null, now, 'voice', false, d, { unit: s.rng.pick(CRY), loud: 1.5, pitch: 1.9 }); if (end == null) continue;
+      s.bout--; s.nextAt = end + 0.25 + 0.5 * s.rng.next() + (s.bout ? 0 : 2); }
     // the bed: sqrt(n) streams of grains from the talkers beyond the clear voices (the wordless hum in it too)
     const streams = bed.length ? Math.min(this.bedStreams, Math.ceil(Math.sqrt(bed.length))) : 0; st.streams = streams;
     if (streams) {

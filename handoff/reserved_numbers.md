@@ -23,3 +23,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-257 | s9 | the fords; the Pasargadae road redrawn (lead; Q-720..Q-721) | claude/amazing-fermi-40ds7j | in flight |
 | D-258 | s9 | the small life and the bats; puddles only on level ground (lead; B83) | claude/amazing-fermi-40ds7j | in flight |
 | D-259 | s9 | pulses and garden plots (lead) | claude/amazing-fermi-40ds7j | in flight |
+| D-260 | s9 | laughter, children's calls, babies crying (lead) | claude/amazing-fermi-40ds7j | in flight |

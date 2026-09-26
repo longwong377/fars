@@ -366,7 +366,10 @@ export class Crowd {
       out.push(nearPerson(key, this.voiceId(key, a, pid), act, moving, x, y, z, group));
     };
     for (const p of this.persons.values()) { if (p.extra || !p.shown) continue; const a = p.agent, vp = p.vpFrame === this.frame ? p.vp : null;
-      const moving = a && !a.offmap ? a.walking : !!vp?.moving; push(p.key, a, p.pid, p.act, moving, p.base[0], p.base[1], p.base[2], a && !a.offmap ? a.task?.place ?? null : vp?.place || null); }
+      const moving = a && !a.offmap ? a.walking : !!vp?.moving; push(p.key, a, p.pid, p.act, moving, p.base[0], p.base[1], p.base[2], a && !a.offmap ? a.task?.place ?? null : vp?.place || null);
+      // session 9 (G33): the small children carried or put down beside them (D-215) are there to be heard (a baby's cry:
+      // audio/voices.ts), with their own identity and age from the population
+      if (vp?.babes) for (const b of vp.babes) push(`p${b.pid}`, null, b.pid, 'rest', false, p.base[0] + 0.25, p.base[1], p.base[2], null); }
     for (let i = 0; i < this.nImp; i++) { const e = this.impList[i], a = e.a, vp = e.vp; if (!vp && !a) continue;
       const act = vp ? vp.act : this.sim!.performance(a!).act, moving = vp ? vp.moving : a!.walking;
       push(a ? `a${a.id}` : `p${vp!.pid}`, a, vp ? vp.pid : -1, act, moving, e.x, e.y, e.z, vp ? vp.place || null : a!.task?.place ?? null); }
