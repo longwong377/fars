@@ -74,7 +74,7 @@ test('coverage', async ({ page }, info) => {
   const all = PTS.points as any[], done = loadJson(OUT), tag = (id: string) => `${id}|${Q}|${info.project.name}`;
   const start = +(process.env.START ?? 0), stride = +(process.env.STRIDE ?? 1), off = +(process.env.OFFSET ?? 0), chunk = +(process.env.CHUNK ?? 40);
   const end = Math.min(all.length, +(process.env.END ?? all.length));
-  const work = process.env.POINTS === '0' ? [] : all.map((p, i) => ({ p, i })).filter(({ p, i }) => i >= start && i < end && (i - off) % stride === 0 && (process.env.REDO || !done[tag(p.id)])).slice(0, chunk).map(x => x.p);
+  const work = process.env.POINTS === '0' ? [] : all.map((p, i) => ({ p, i })).filter(({ p, i }) => i >= start && i < end && (i - off) % stride === 0 && (process.env.REDO || done[tag(p.id)]?.seed !== PTS.meta.seed)).slice(0, chunk).map(x => x.p);
   const vwork = variety ? (PTS.variety as any[]).slice(0, variety) : [];
   console.log(`coverage: ${work.length} views (of ${all.length}; ${Object.keys(done).length} done) + ${vwork.length} variety places × ${vwork[0]?.days.length ?? 0} days at Q=${Q}, ${FRAMES} frames, fov ${fovArg ?? 'player'}`);
   if (!work.length && !vwork.length) return;
