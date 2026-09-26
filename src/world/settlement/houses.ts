@@ -319,7 +319,11 @@ export class SiteHouses {
         // the footing's top ledge
         B.stone.set('ao', 0.9); { const n = Math.max(1, Math.ceil(len / 1.5)); for (let k = 0; k < n; k++) { const a = along0 + (len * k) / n, z = along0 + (len * (k + 1)) / n, ya = ysoc(a), yz = ysoc(z);
           const p = (x: number, o2: number, y: number) => this.wp(...P2l(x, sg * (t / 2 + o2)), y); B.stone.quad(p(a, 0, ya), p(z, 0, yz), p(z, 0.035, yz), p(a, 0.035, ya), [0, 1, 0], stcol, stcol, stcol, stcol, this.owner(we.plot, P.socle)); } } B.stone.set('ao', 1);
-        if (nicheHere && sd.cls === 'open') { const sc = nicheHere.len > 0 ? sB - 0.45 : sA + 0.45; if (sc - 0.14 > sA + 0.1 && sc + 0.14 < sB - 0.1) faceHoles.push({ s0: sc - 0.13, s1: sc + 0.13, y0: floor + 1.25, y1: floor + 1.58, through: false, depth: 0.16 }); }
+        if (nicheHere && sd.cls === 'open') { const sc = nicheHere.len > 0 ? sB - 0.45 : sA + 0.45; if (sc - 0.14 > sA + 0.1 && sc + 0.14 < sB - 0.1) { faceHoles.push({ s0: sc - 0.13, s1: sc + 0.13, y0: floor + 1.25, y1: floor + 1.58, through: false, depth: 0.16 });
+            // the lamp's soot over the niche; a timber peg or two driven into the wall by the door (a halter, a basket, a lamp hook)
+            decs.push([sg, { s0: sc - 0.16, s1: sc + 0.16, y0: floor + 1.58, y1: floor + 2.05, kind: 'soot', seed, k: 0.8 }]);
+            const np = Math.floor(hi(seed, 41) * 3); for (let q = 0; q < np; q++) { const ps = nicheHere.len > 0 ? sB - 0.9 - 0.5 * q - 0.3 * hi(seed, q, 42) : sA + 0.9 + 0.5 * q + 0.3 * hi(seed, q, 42), py = floor + 1.35 + 0.35 * hi(seed, q, 43);
+              if (ps < sA + 0.2 || ps > sB - 0.2) continue; B.timber.set('ao', 0.9); this.pole(B.timber, this.wp(...P2l(ps, sg * (t / 2 - 0.05)), py), this.wp(...P2l(ps, sg * (t / 2 + 0.17)), py + 0.03), 0.025, 5, sh(lin(POLE), 0.75 + 0.3 * hi(seed, q, 44)), this.owner(we.plot, P.fixture), 'end'); B.timber.set('ao', 1); } } }
         const bulge = (0.007 + 0.012 * (1 - L.standing) + 0.006 * (L.age / 50)) * (house ? 1 : 0.7);
         this.face(B.plaster, { ax, sA: along0, sB: along1, cc, t, sg, yb: ysoc, yt: x => ytopF(x) - bev, holes: faceHoles, bulge, seed: seed + si * 13,
           col: (_x, y) => { const yr = y - floor; return sh(col0, (0.955 + 0.06 * smooth(yr / 2.6)) * (sd.cls === 'open' ? 1 - 0.035 * (1 - smooth(yr / 0.8)) : 1)); },
