@@ -6661,3 +6661,6 @@ moment-*-webgpu.png in the worktree, not committed).**
   a star behind the disc (within 0.265°) is hidden in the star shader. Not masked: a planet or a meteor behind the Moon (a lunar
   occultation of a planet would show the planet through the disc: rare).
 - **Unverified on screen:** planets-moon-tele and the T-J5 planets-dusk at the player's lens are queued after this commit.
+- **Addendum (D-257, after the ford-pulvar-sep render):** the causeway read as a flight of clean pale steps across the channel
+  (level 1 m slabs at stepped heights, the cobbles near dressed-limestone white). Each slab is now tilted to the slope between its
+  neighbours, and the cobbles are weathered river greys (sRGB 0.39-0.53). Re-render queued (ford-pulvar-sep, TAG v2).

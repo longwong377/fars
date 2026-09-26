@@ -79,7 +79,7 @@ export function keepOffChannels(lines: [number, number][][], rivers: RiverProfil
 type Box = { c: THREE.Vector3; h: THREE.Vector3; rot: number };
 export interface CrossingBuild { group: THREE.Group; crossings: Crossing[]; boxes: Box[]; stats: { stones: number; steps: number; boats: number } }
 
-const COBBLE = [new THREE.Color().setRGB(0.62, 0.58, 0.52, THREE.SRGBColorSpace), new THREE.Color().setRGB(0.50, 0.47, 0.42, THREE.SRGBColorSpace), new THREE.Color().setRGB(0.70, 0.66, 0.58, THREE.SRGBColorSpace)];
+const COBBLE = [new THREE.Color().setRGB(0.47, 0.44, 0.39, THREE.SRGBColorSpace), new THREE.Color().setRGB(0.39, 0.37, 0.33, THREE.SRGBColorSpace), new THREE.Color().setRGB(0.53, 0.50, 0.44, THREE.SRGBColorSpace)]; // river cobbles, weathered and silted (darker than dressed limestone; C)
 const WOOD = new THREE.Color().setRGB(0.36, 0.28, 0.20, THREE.SRGBColorSpace), HIDE = new THREE.Color().setRGB(0.40, 0.30, 0.21, THREE.SRGBColorSpace);
 
 /** vertex colour, and `soft` = 1 for timber and hide (the stone's relief and grain switched off: one mesh, one draw) */
@@ -109,16 +109,18 @@ export function buildCrossings(terrain: Terrain, rivers: RiverProfile[], seed = 
     const ground = (u: number, v: number) => { const x = c.x + nx * u + c.tx * v, y = c.y + ny * u + c.ty * v, au = Math.abs(u);
       const chan = au <= bHalf ? bedY : au <= topHalf ? bedY + Math.min(ch.bank_height_m, (au - bHalf) / sl) : bankY;
       return Math.max(chan, au <= topHalf ? chan : terrain.heightAt(x, -y)); };
-    const put = (u: number, v: number, lx: number, lz: number, top: number, bottom: number, col: THREE.Color, into: THREE.BufferGeometry[], yaw = 0, collide = true) => {
+    const put = (u: number, v: number, lx: number, lz: number, top: number, bottom: number, col: THREE.Color, into: THREE.BufferGeometry[], yaw = 0, collide = true, pitch = 0) => {
       const x = c.x + nx * u + c.tx * v, y = c.y + ny * u + c.ty * v, h = Math.max(0.05, top - bottom);
-      const g = new THREE.BoxGeometry(lx, h, lz); g.rotateY(rot + yaw); g.translate(x, bottom + h / 2, -y); into.push(paint(g, col, 0.08, rng, into === wood ? 1 : 0));
+      const g = new THREE.BoxGeometry(lx, h, lz); if (pitch) g.rotateZ(pitch); g.rotateY(rot + yaw); g.translate(x, bottom + h / 2, -y); into.push(paint(g, col, 0.08, rng, into === wood ? 1 : 0));
       if (collide) boxes.push({ c: new THREE.Vector3(x, bottom + h / 2, -y), h: new THREE.Vector3(lx / 2, h / 2, lz / 2), rot: rot + yaw });
     };
     // the causeway and its paved ramps: slabs 1 m along the ford, the road's width across it
     const reach = topHalf + 5, W = c.roadW - 0.5;
+    // each slab tilted to the slope between its neighbours (session 9: level 1 m slabs read as a flight of pale steps in the ford render)
+    const topAt = (u: number) => Math.max(ground(u, 0) + 0.08, Math.abs(u) <= topHalf ? bedY + F.causeway : -Infinity);
     for (let u = -reach; u <= reach + 1e-6; u += 1) {
-      const g0 = ground(u, 0), top = Math.max(g0 + 0.08, Math.abs(u) <= topHalf ? bedY + F.causeway : -Infinity);
-      put(u, rng.range(-0.1, 0.1), 1.02, W, top + rng.range(-0.03, 0.02), Math.min(g0, top) - 0.25, COBBLE[rng.int(0, 2)], stones, rng.range(-0.04, 0.04)); nStones++;
+      const g0 = ground(u, 0), top = topAt(u), pitch = Math.atan2(topAt(u + 0.5) - topAt(u - 0.5), 1);
+      put(u, rng.range(-0.1, 0.1), 1.06, W, top + rng.range(-0.03, 0.02), Math.min(g0, top) - 0.25, COBBLE[rng.int(0, 2)], stones, rng.range(-0.04, 0.04), true, pitch); nStones++;
       // cobbles spilled along the downstream lip, where the water falls off the causeway
       if (Math.abs(u) <= topHalf) for (let k = 0; k < 2; k++) { const s = rng.range(0.25, 0.45); put(u + rng.range(-0.4, 0.4), W / 2 + rng.range(0.1, 0.8), s, s * rng.range(0.7, 1.1), bedY + F.causeway * rng.range(0.5, 0.9), bedY - 0.1, COBBLE[rng.int(0, 2)], stones, rng.range(0, 3), false); nStones++; }
     }
