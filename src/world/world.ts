@@ -63,6 +63,7 @@ import { landUseAt } from './plain/fields';
 import { RAIN_CELL } from '../sky/clouds';
 import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
+import { GroundFlora } from './groundFlora';
 import { bloomAt, doyOf } from './plain/seasonal';
 import { PointIndex } from './plain/data';
 import { azAltToWorld } from '../sky/ephemeris';
@@ -208,7 +209,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const jackals = new Jackals(seed, terrain); root.add(jackals.mesh); // on the plain edge from dusk to dawn
   // the small life around the viewer (session 9: flies at the middens, dragonflies at the water's edge, butterflies over the
   // fields and steppe, rock agamas): each 8 m cell's context from the middens, the rivers and canals, the slope and land use
-  const smallLife = (() => {
+  const small = (() => {
     const wet = new PointIndex(100), dung = new PointIndex(50), halfW: number[] = [];
     plain.data.rivers.rivers.forEach((r, k) => { halfW[k] = r.topWidth / 2; wet.addPolyline(r, 5, k); });
     for (const c of plain.data.canals) wet.addPolyline(c.pts as [number, number][], 5, 9);
@@ -221,9 +222,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       if (sl > 0.3) return 'rock';
       return landUseAt(plain.data.zones, e, -n).use === 'natural' ? 'steppe' : 'field';
     };
-    return new SmallLife(seed, { ground, ctxAt });
+    return { life: new SmallLife(seed, { ground, ctxAt }), flora: new GroundFlora(seed, { ground, ctxAt }) };
   })();
-  root.add(smallLife.group);
+  const smallLife = small.life, flora = small.flora; // flora (session 9, G72): the thorn cushions, camelthorn and thistles near the viewer
+  root.add(smallLife.group, flora.group);
   for (const f of fire.fires) nav.blockDisc(f.pos.x, -f.pos.z, f.kind === 'torch' ? 0 : 0.8);
   for (const [e, n, r] of palace.navDiscs()) nav.blockDisc(e, n, r); // the furnishings' standing pieces (both states with the court setting on)
   for (const s of inscSolids) nav.blockDisc(s.c[0], s.c[1], Math.hypot(s.size[0], s.size[1]) / 2); // D-214: the Hadish antae
@@ -516,7 +518,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
         jackals.update(ctx.clock.dayIndex, ctx.clock.localHour, time);
-        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex))); smallLife.group.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
+        if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex))); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); flora.group.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
       shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air,
         ctx.skyLight ? { dirW: ctx.skyLight.state.sunDir, rgb: ctx.skyLight.sun.color.clone().multiplyScalar(ctx.skyLight.sun.visible ? ctx.skyLight.sun.intensity : 0), visible: ctx.skyLight.eyeSunVisibility } : undefined); // the rainbow's sun (session 9): its intensity already carries the cloud's dimming; the terrain's skyline at the eye (C)
       RAIN_CELL.value.copy(shafts.cellWorld); // the cloud thickens over the rain cell, shades the sun and wets the ground under it (D-219)

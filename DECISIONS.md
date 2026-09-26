@@ -6429,3 +6429,14 @@ moment-*-webgpu.png in the worktree, not committed).**
   for three creatures of each kind.
 - **Not done:** geckos on walls at night (G63: needs wall positions), scorpions (G66), hedgehogs and porcupines (G40), rats and mice
   at the stores (G41), small carnivores (G44).
+
+## D-264 Thorn cushions, camelthorn and thistles near the walker (session 9; gap hunters G72; B/C)
+- **What** (src/world/groundFlora.ts): on the ground within 36 m of the viewer, from the small life's 8 m cell contexts: tragacanth
+  thorn cushions (Astragalus; grey-green faceted domes 0.3-0.7 m, on 60 % of rock cells 3-7 and 30 % of steppe cells 1-4; the
+  plant of the Zagros's tragacanth gum: B presence, C stands), camelthorn (Alhagi; twiggy bushes 0.25-0.5 m on the steppe and a
+  few at field edges; green May-Sep, brown by October-March; C) and thistles (0.4-0.9 m, green in spring, purple heads May-July,
+  dry straw heads after; C). Static positions from a hash of (seed, cell, index); they grow in over the last 20 % of the radius
+  (nothing pops); rebuilt when the viewer moves 4 m or the month turns. Three InstancedMeshes, receiving shadows, casting none.
+- **Not done:** the plants are not colliders (the walker passes through a cushion); no grasses tufts beyond the existing herb
+  layer; walnut and juniper trees (G69, G70) need new tree-kit species (the impostor atlas grows with each).
+- **Tests.** tests/ground_flora.test.ts (4): context densities, radius, sizes and determinism, the rebuild rule, the seasons.

@@ -27,3 +27,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-261 | s9 | hoarfrost; the 22 deg halo and sun dogs (lead) | claude/amazing-fermi-40ds7j | in flight |
 | D-262 | s9 | more birds seen (lead) | claude/amazing-fermi-40ds7j | in flight |
 | D-263 | s9 | frogs, tortoises, snakes, jirds (lead) | claude/amazing-fermi-40ds7j | in flight |
+| D-264 | s9 | thorn cushions, camelthorn, thistles (lead) | claude/amazing-fermi-40ds7j | in flight |
