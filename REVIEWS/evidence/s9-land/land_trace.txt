@@ -1,0 +1,410 @@
+# (1) a column drum from the quarry to the Terrace (world/traffic.ts; D-256)
+quarry quarry_majdabad at (-22006, -1009), moved 1450 m to rock; route 28.03 km to the drum ground (150, 272); pace 0.4 m/s loaded, 0.8 m/s back
+haul dh13:0: E-61 "a column drum arrived from the quarry at the masons’ yard" at d13 10:00; at the drum ground d13 09:00; out spans d11 11:44-d11 17:32, d12 06:26-d12 17:33, d13 06:26-d13 09:00; back d13 10:11-d13 17:33, d14 06:25-d14 08:47
+  d11 10:14  (-21982, -1005) 22.17 km from the drum ground  tend_animals | yoking the oxen to the drum sledge at the quarry camp  [animals fold ox; work drum_haul]
+  d11 10:44  (-21982, -1005) 22.17 km from the drum ground  tend_animals | yoking the oxen to the drum sledge at the quarry camp  [animals fold ox; work drum_haul]
+  d11 11:14  (-21982, -1005) 22.17 km from the drum ground  tend_animals | yoking the oxen to the drum sledge at the quarry camp  [animals fold ox; work drum_haul]
+  d11 11:44  (-21982, -1005) 22.17 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d11 12:14  (-21550, -429) 21.71 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d11 12:44  (-21118, 147) 21.27 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d11 13:14  (-20686, 723) 20.84 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d11 13:44  (-20254, 1299) 20.43 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d11 14:14  (-19822, 1875) 20.04 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d11 14:44  (-19390, 2451) 19.66 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d11 15:14  (-18958, 3027) 19.31 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d11 15:44  (-18526, 3603) 18.97 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d11 16:14  (-18094, 4179) 18.66 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d11 16:44  (-17661, 4746) 18.36 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d11 17:14  (-17085, 4314) 17.70 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d11 17:44  (-16747, 4060) 17.32 km from the drum ground  tend_animals | unyoking the oxen by the drum sledge at the halt, giving them straw and water  [animals fold ox; work drum_haul]
+  d11 18:14  (-16747, 4060) 17.32 km from the drum ground  tend_animals | unyoking the oxen by the drum sledge at the halt, giving them straw and water  [animals fold ox; work drum_haul]
+  d11 18:44  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d11 19:14  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d11 19:44  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d11 20:14  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d11 20:44  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d11 21:14  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d11 21:44  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d11 22:14  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d11 22:44  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d11 23:14  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d11 23:44  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 00:14  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 00:44  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 01:14  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 01:44  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 02:14  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 02:44  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 03:14  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 03:44  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 04:14  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 04:44  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 05:14  (-16747, 4060) 17.32 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 05:44  (-16747, 4060) 17.32 km from the drum ground  tend_animals | yoking the oxen to the drum sledge at first light  [animals fold ox; work drum_haul]
+  d12 06:14  (-16747, 4060) 17.32 km from the drum ground  tend_animals | yoking the oxen to the drum sledge at first light  [animals fold ox; work drum_haul]
+  d12 06:44  (-16404, 3803) 16.93 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 07:14  (-15821, 3380) 16.27 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 07:44  (-15223, 2979) 15.61 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 08:14  (-14625, 2579) 14.95 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 08:44  (-14027, 2178) 14.30 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 09:14  (-13429, 1777) 13.66 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 09:44  (-12831, 1376) 13.03 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 10:14  (-12233, 975) 12.40 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 10:44  (-11635, 574) 11.79 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 11:14  (-11007, 471) 11.16 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 11:44  (-10342, 746) 10.50 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 12:14  (-9676, 1021) 9.85 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 12:44  (-9011, 1296) 9.22 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 13:14  (-8295, 1371) 8.52 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 13:44  (-7579, 1442) 7.82 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 14:14  (-6862, 1514) 7.12 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 14:44  (-6146, 1585) 6.43 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 15:14  (-5430, 1661) 5.75 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 15:44  (-4714, 1739) 5.08 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 16:14  (-3998, 1816) 4.43 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 16:44  (-3282, 1893) 3.80 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 17:14  (-2566, 1970) 3.20 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d12 17:44  (-2282, 1754) 2.85 km from the drum ground  tend_animals | unyoking the oxen by the drum sledge at the halt, giving them straw and water  [animals fold ox; work drum_haul]
+  d12 18:14  (-2282, 1754) 2.85 km from the drum ground  tend_animals | unyoking the oxen by the drum sledge at the halt, giving them straw and water  [animals fold ox; work drum_haul]
+  d12 18:44  (-2282, 1754) 2.85 km from the drum ground  tend_animals | unyoking the oxen by the drum sledge at the halt, giving them straw and water  [animals fold ox; work drum_haul]
+  d12 19:14  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 19:44  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 20:14  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 20:44  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 21:14  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 21:44  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 22:14  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 22:44  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 23:14  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d12 23:44  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d13 00:14  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d13 00:44  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d13 01:14  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d13 01:44  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d13 02:14  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d13 02:44  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d13 03:14  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d13 03:44  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d13 04:14  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d13 04:44  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d13 05:14  (-2282, 1754) 2.85 km from the drum ground  sleep | asleep by the drum sledge where the haul halted for the night  [animals fold ox; work drum_haul]
+  d13 05:44  (-2282, 1754) 2.85 km from the drum ground  tend_animals | yoking the oxen to the drum sledge at first light  [animals fold ox; work drum_haul]
+  d13 06:14  (-2282, 1754) 2.85 km from the drum ground  tend_animals | yoking the oxen to the drum sledge at first light  [animals fold ox; work drum_haul]
+  d13 06:44  (-2109, 1341) 2.50 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d13 07:14  (-1832, 676) 2.02 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d13 07:44  (-1200, 386) 1.35 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d13 08:14  (-522, 144) 0.68 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d13 08:44  (-200, 244) 0.35 km from the drum ground  walk | driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace  [animals draught ox/ox/ox/ox; work drum_haul]
+  d13 09:14  (150, 272) 0.00 km from the drum ground  tend_animals | holding the oxen at the drum ground while the drum is levered off the sledge  [animals fold ox; work drum_haul]
+  d13 09:44  (150, 272) 0.00 km from the drum ground  tend_animals | holding the oxen at the drum ground while the drum is levered off the sledge  [animals fold ox; work drum_haul]
+  d13 10:14  (21, 289) 0.13 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 10:44  (-978, 306) 1.13 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 11:14  (-2018, 1123) 2.33 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 11:44  (-2878, 1937) 3.46 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 12:14  (-4310, 1782) 4.71 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 12:44  (-5741, 1628) 6.05 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 13:14  (-7174, 1483) 7.42 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 13:44  (-8607, 1339) 8.82 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 14:14  (-9966, 901) 10.14 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 14:44  (-11297, 351) 11.45 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 15:14  (-12493, 1150) 12.67 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 15:44  (-13689, 1951) 13.94 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 16:14  (-14886, 2753) 15.24 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 16:44  (-16079, 3559) 16.56 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 17:14  (-17231, 4423) 17.87 km from the drum ground  walk | driving the oxen back to the quarry with the empty sledge  [animals draught ox/ox/ox/ox; work sledge]
+  d13 17:44  (-17894, 4446) 18.52 km from the drum ground  sleep | asleep by the empty sledge where the team halted for the night  [animals fold ox; work sledge]
+  d13 18:14  (-17894, 4446) 18.52 km from the drum ground  sleep | asleep by the empty sledge where the team halted for the night  [animals fold ox; work sledge]
+  d13 18:44  (-17894, 4446) 18.52 km from the drum ground  sleep | asleep by the empty sledge where the team halted for the night  [animals fold ox; work sledge]
+  d13 19:14  (-17894, 4446) 18.52 km from the drum ground  sleep | asleep by the empty sledge where the team halted for the night  [animals fold ox; work sledge]
+  d13 19:44  (-17894, 4446) 18.52 km from the drum ground  sleep | asleep by the empty sledge where the team halted for the night  [animals fold ox; work sledge]
+  d13 20:14  (-17894, 4446) 18.52 km from the drum ground  sleep | asleep by the empty sledge where the team halted for the night  [animals fold ox; work sledge]
+  d13 20:44  (-17894, 4446) 18.52 km from the drum ground  sleep | asleep by the empty sledge where the team halted for the night  [animals fold ox; work sledge]
+  d13 21:14  (-17894, 4446) 18.52 km from the drum ground  sleep | asleep by the empty sledge where the team halted for the night  [animals fold ox; work sledge]
+  d13 21:44  (-17894, 4446) 18.52 km from the drum ground  sleep | asleep by the empty sledge where the team halted for the night  [animals fold ox; work sledge]
+  d13 22:14  (-17894, 4446) 18.52 km from the drum ground  sleep | asleep by the empty sledge where the team halted for the night  [animals fold ox; work sledge]
+  d13 22:44  (-17894, 4446) 18.52 km from the drum ground  sleep | asleep by the empty sledge where the team halted for the night  [animals fold ox; work sledge]
+  d13 23:14  (-17894, 4446) 18.52 km from the drum ground  sleep | asleep by the empty sledge where the team halted for the night  [animals fold ox; work sledge]
+  d13 23:44  (-17894, 4446) 18.52 km from the drum ground  sleep | asleep by the empty sledge where the team halted for the night  [animals fold ox; work sledge]
+  d14 00:14  (not on the road)
+  d14 00:44  (not on the road)
+  d14 01:14  (not on the road)
+  d14 01:44  (not on the road)
+  d14 02:14  (not on the road)
+  d14 02:44  (not on the road)
+  d14 03:14  (not on the road)
+  d14 03:44  (not on the road)
+  d14 04:14  (not on the road)
+  d14 04:44  (not on the road)
+  d14 05:14  (not on the road)
+  d14 05:44  (not on the road)
+  d14 06:14  (not on the road)
+  d14 06:44  (not on the road)
+  d14 07:14  (not on the road)
+  d14 07:44  (not on the road)
+  d14 08:14  (not on the road)
+  d14 08:44  (not on the road)
+hauls in the year: 34 (E-61 arrivals); spans that do not add up to the route: 0
+
+# (2) days on the land (population.ts; planCheck on each)
+sample: 400 plain households, every third day: 220631 person-days
+  a turn with the village cows: 198 person-days
+  a boy with the cow and calf: 107 person-days
+  milking: 1679 person-days
+  fishing: 273 person-days
+  snaring: 632 person-days
+  waterfowl: 507 person-days
+  nuts: 47 person-days
+  acorns: 129 person-days
+  bees: 53 person-days
+  garlic: 0 person-days
+planCheck issues on those days: none
+
+## milking: person 7057 (homemaker f21), day 0 (month 1, sunrise 5.62, sunset 18.38)
+  0.00-3.98 h:2014 sleep | asleep
+  3.98-4.42 h:2014 grind | grinding the household’s flour at the quern
+  4.42-4.66 h:2014 knead | kneading the dough
+  4.66-5.19 h:2014 bake | baking the flat bread
+  5.19-5.44 h:2014 milk | milking the household’s cow in the courtyard at first light
+  5.44-5.73 h:2014 rest | at home
+  5.73-6.09 h:2014 eat | breakfast with the household: the new bread
+  6.09-6.96 h:2014 spin | spinning, the little ones beside her
+  6.96-7.04 h:2014 rest | at home
+  7.04-7.09 road:plain walk | visiting
+  7.09-7.99 h:2150 talk | visiting *Farnazātā
+  7.99-8.04 road:plain walk | walking
+  8.04-8.09 h:2014 rest | at home
+  8.09-8.15 road:plain walk | walking
+  8.15-9.12 lane:v_masumabad talk | talking with the women outside the door
+  9.12-9.18 road:plain walk | walking
+  9.18-10.93 h:2014 rest | at home
+  10.93-10.99 road:plain walk | out to the doorstep
+  10.99-11.87 lane:v_masumabad craft | mending clothes on the doorstep
+  11.87-11.93 road:plain walk | walking
+  11.93-12.44 h:2014 eat | the midday meal with the household
+  12.44-12.49 road:plain walk | walking
+  12.49-13.76 lane:v_masumabad talk | talking with the women outside the door
+  13.76-13.82 road:plain walk | walking
+  13.82-16.62 h:2014 spin | spinning
+  16.62-16.98 h:2014 grind | grinding for tomorrow’s bread
+  16.98-17.08 h:2014 spin | spinning
+  17.08-17.38 h:2014 cook | lighting the fire and warming the evening meal
+  17.38-17.61 h:2014 rest | at home
+  17.61-18.05 h:2014 eat | the evening meal with the household
+  18.05-18.11 road:plain walk | walking
+  18.11-18.35 well:v_masumabad draw_water | evening water
+  18.35-18.41 road:plain carry_jar_head | carrying water home
+  18.41-19.64 h:2014 rest | with the household
+  19.64-24.00 h:2014 sleep | asleep
+
+## fishing: person 7281 (farmer m41), day 0 (month 1, sunrise 5.62, sunset 18.38)
+  0.00-4.91 h:2065 sleep | asleep
+  4.91-5.78 h:2065 rest | at home
+  5.78-6.10 h:2065 eat | breakfast with the household
+  6.10-6.22 h:2065 rest | at home
+  6.22-6.51 road:plain walk | walking
+  6.51-7.50 bank:v_masumabad fish | fishing with a hand line from the river bank in the spring water
+  7.50-9.13 bank:v_masumabad fish | fishing with a hand line from the river bank in the spring water
+  9.13-9.42 road:plain carry_sack | carrying the catch home
+  9.42-10.68 h:2065 craft | mending tools and baskets
+  10.68-11.94 h:2065 tend_animals | seeing to the household’s animals
+  11.94-12.12 h:2065 rest | at home
+  12.12-12.69 h:2065 eat | the midday meal with the household
+  12.69-14.59 h:2065 rest | at home
+  14.59-16.34 h:2065 craft | mending tools and baskets
+  16.34-16.39 road:plain walk | out to the doorstep
+  16.39-17.13 lane:v_masumabad craft | mending tools and baskets on the doorstep
+  17.13-17.18 road:plain walk | walking
+  17.18-17.80 h:2065 tend_animals | seeing to the household’s animals
+  17.80-18.33 h:2065 eat | the evening meal with the household
+  18.33-20.04 h:2065 talk | with the household
+  20.04-24.00 h:2065 sleep | asleep
+
+## a boy with the cow and calf: person 7407 (child m10), day 0 (month 1, sunrise 5.62, sunset 18.38)
+  0.00-5.18 h:2093 sleep | asleep
+  5.18-5.37 h:2093 carry_sack | carrying in dung cakes for the morning fire
+  5.37-5.66 h:2093 rest | waiting for the morning bread
+  5.66-5.94 h:2093 eat | breakfast with the household
+  5.94-5.99 road:plain walk | taking the animals out
+  5.99-7.50 pasture:v_masumabad herd | minding the household’s cow and calf with the village cattle on the fallow
+  7.50-12.02 pasture:v_masumabad herd | minding the household’s cow and calf with the village cattle on the fallow
+  12.02-12.51 pasture:v_masumabad eat | the bread and curds carried out in a cloth, eaten by the animals
+  12.51-15.74 pasture:v_masumabad herd | minding the household’s cow and calf with the village cattle on the fallow
+  15.74-15.79 road:plain walk | bringing the animals home
+  15.79-15.84 h:2093 rest | taking up the load at home
+  15.84-15.92 road:plain carry_bread | taking bread to a kinswoman
+  15.92-16.17 h:2035 talk | handing over the bread, a word with the kinswoman
+  16.17-16.25 road:plain walk | going home
+  16.25-16.30 h:2093 rest | at home
+  16.30-16.35 road:plain walk | out for fuel
+  16.35-17.22 outside:v_masumabad gather | gathering dung and brushwood for the fire
+  17.22-17.27 road:plain carry_sack | carrying the fuel home
+  17.27-17.61 h:2093 play | playing at home
+  17.61-17.71 h:2093 rest | at home
+  17.71-18.18 h:2093 eat | the evening meal with the household
+  18.18-20.11 h:2093 rest | with the household
+  20.11-24.00 h:2093 sleep | asleep
+
+## a turn with the village cows: person 7638 (farmer m42), day 0 (month 1, sunrise 5.62, sunset 18.38)
+  0.00-5.29 h:2145 sleep | asleep
+  5.29-5.79 h:2145 rest | at home
+  5.79-6.13 h:2145 eat | breakfast with the household
+  6.13-6.31 h:2145 rest | at home
+  6.31-6.50 road:plain walk | walking
+  6.50-7.50 meadow:v_masumabad herd | out with the village cows and calves on the river meadow and the fallow: his house's turn with the herd
+  7.50-10.95 meadow:v_masumabad herd | out with the village cows and calves on the river meadow and the fallow: his house's turn with the herd
+  10.95-11.13 road:plain walk | walking
+  11.13-12.08 h:2145 rest | at home
+  12.08-12.67 h:2145 eat | the midday meal with the household
+  12.67-13.66 h:2145 talk | with the household
+  13.66-15.18 h:2145 tend_animals | seeing to the household’s animals
+  15.18-15.40 h:2145 rest | resting after the midday meal
+  15.40-15.58 road:plain walk | walking
+  15.58-16.67 meadow:v_masumabad herd | grazing the village cows back toward the village in the evening, then each cow home to its own gate
+  16.67-16.96 meadow:v_masumabad eat | bread and water on the meadow
+  16.96-17.78 meadow:v_masumabad herd | grazing the village cows back toward the village in the evening, then each cow home to its own gate
+  17.78-17.97 road:plain walk | home from the field
+  17.97-18.36 h:2145 eat | the evening meal with the household
+  18.36-20.90 h:2145 talk | with the household
+  20.90-24.00 h:2145 sleep | asleep
+
+## bees: person 8847 (farmer m35), day 9 (month 1, sunrise 5.49, sunset 18.51)
+  0.00-4.77 h:2400 sleep | asleep
+  4.77-5.79 h:2400 talk | with the household
+  5.79-6.09 h:2400 eat | breakfast with the household
+  6.09-6.31 h:2400 rest | at home
+  6.31-6.37 road:plain walk | out to the garden beds
+  6.37-8.58 garden:v_rakkan bees | seeing to the hives in the garden
+  8.58-8.63 road:plain walk | walking
+  8.63-8.68 h:2400 rest | at home
+  8.68-8.74 road:plain walk | out to the doorstep
+  8.74-10.40 lane:v_rakkan craft | mending tools and baskets on the doorstep
+  10.40-10.46 road:plain walk | walking
+  10.46-11.86 h:2400 tend_animals | seeing to the household’s animals
+  11.86-12.09 h:2400 rest | at home
+  12.09-12.64 h:2400 eat | the midday meal with the household
+  12.64-12.69 road:plain walk | walking
+  12.69-13.56 lane:v_rakkan talk | talking with the men of the lane
+  13.56-13.61 road:plain walk | walking
+  13.61-15.30 h:2400 talk | with the household
+  15.30-16.34 h:2400 tend_animals | seeing to the household’s animals
+  16.34-16.40 road:plain walk | out to the doorstep
+  16.40-17.26 lane:v_rakkan craft | mending tools and baskets on the doorstep
+  17.26-17.31 road:plain walk | walking
+  17.31-17.90 h:2400 craft | mending tools and baskets
+  17.90-18.40 h:2400 eat | the evening meal with the household
+  18.40-18.49 road:plain walk | visiting
+  18.49-19.77 h:2654 talk | visiting Bakadušda
+  19.77-19.85 road:plain walk | going home
+  19.85-20.12 h:2400 rest | with the household
+  20.12-24.00 h:2400 sleep | asleep
+
+## nuts: person 7539 (farmer m23), day 144 (month 5, sunrise 5.62, sunset 18.38)
+  0.00-5.11 h:2123 sleep | asleep
+  5.11-5.80 h:2123 rest | at home
+  5.80-5.98 h:2123 eat | bread and water before leaving (the household eats later)
+  5.98-6.59 road:plain walk | walking
+  6.59-10.70 slope:v_masumabad gather | gathering wild pistachios and almonds on the slopes
+  10.70-11.30 road:plain carry_sack | carrying the nuts home
+  11.30-11.92 h:2123 tend_animals | seeing to the household’s animals
+  11.92-12.41 h:2123 eat | the midday meal with the household
+  12.41-14.91 h:2123 sleep | sleeping through the heat of the day
+  14.91-15.20 h:2123 rest | resting in the shade of the house through the heat
+  15.20-16.79 h:2123 tend_animals | seeing to the household’s animals
+  16.79-17.18 h:2123 craft | mending tools and baskets
+  17.18-17.60 h:2123 rest | at home
+  17.60-18.01 h:2123 eat | the evening meal with the household
+  18.01-20.47 h:2123 rest | at home
+  20.47-24.00 h:2123 sleep | asleep
+
+## acorns: person 7291 (farmer m50), day 150 (month 6, sunrise 5.71, sunset 18.29)
+  0.00-5.22 h:2067 sleep | asleep
+  5.22-5.95 h:2067 rest | at home
+  5.95-6.13 h:2067 eat | bread and water before leaving (the household eats later)
+  6.13-6.66 road:plain walk | walking
+  6.66-11.43 slope:v_masumabad gather | gathering acorns under the oaks of the slopes
+  11.43-11.96 road:plain carry_sack | carrying the acorns home
+  11.96-12.03 h:2067 rest | at home
+  12.03-12.62 h:2067 eat | the midday meal with the household
+  12.62-15.12 h:2067 sleep | sleeping through the heat of the day
+  15.12-15.58 h:2067 rest | resting in the shade of the house through the heat
+  15.58-17.09 h:2067 tend_animals | seeing to the household’s animals
+  17.09-17.61 h:2067 craft | plastering the roof with mud and straw before the rains
+  17.61-18.17 h:2067 eat | the evening meal with the household
+  18.17-20.43 h:2067 rest | with the household
+  20.43-24.00 h:2067 sleep | asleep
+
+## snaring: person 7228 (farmer m55), day 177 (month 7, sunrise 6.13, sunset 17.87)
+  0.00-5.45 h:2052 sleep | asleep
+  5.45-6.33 h:2052 rest | at home
+  6.33-6.61 h:2052 eat | breakfast with the household
+  6.61-6.84 h:2052 rest | at home
+  6.84-6.91 road:plain walk | walking
+  6.91-7.50 edge:v_masumabad fowl | setting snares for partridge, quail and sandgrouse at the field edges
+  7.50-9.03 edge:v_masumabad fowl | setting snares for partridge, quail and sandgrouse at the field edges
+  9.03-9.10 road:plain carry_sack | carrying the birds home
+  9.10-10.45 h:2052 craft | plastering the roof with mud and straw before the rains
+  10.45-11.79 h:2052 rest | at home
+  11.79-12.32 h:2052 eat | the midday meal with the household
+  12.32-13.53 h:2052 craft | plastering the roof with mud and straw before the rains
+  13.53-14.25 h:2052 talk | with the household
+  14.25-15.32 h:2052 tend_animals | seeing to the household’s animals
+  15.32-16.67 h:2052 craft | plastering the roof with mud and straw before the rains
+  16.67-16.97 h:2052 rest | at home
+  16.97-17.44 h:2052 eat | the evening meal with the household
+  17.44-17.49 road:plain walk | visiting
+  17.49-19.14 h:2100 talk | visiting Mitranka
+  19.14-19.20 road:plain walk | going home
+  19.20-19.58 h:2052 rest | with the household
+  19.58-24.00 h:2052 sleep | asleep
+
+## waterfowl: person 7069 (farmer m29), day 207 (month 8, sunrise 6.56, sunset 17.44)
+  0.00-6.34 h:2018 sleep | asleep
+  6.34-7.15 h:2018 rest | at home
+  7.15-7.30 h:2018 eat | bread and water before leaving (the household eats later)
+  7.30-7.56 road:plain walk | walking
+  7.56-9.00 bank:v_masumabad fowl | out after the waterfowl in the reeds with the bow
+  9.00-9.74 bank:v_masumabad fowl | out after the waterfowl in the reeds with the bow
+  9.74-10.01 road:plain carry_sack | carrying the birds home
+  10.01-11.86 h:2018 rest | at home
+  11.86-12.39 h:2018 eat | the midday meal with the household
+  12.39-12.44 road:plain walk | out to the doorstep
+  12.44-13.27 lane:v_masumabad craft | mending tools and baskets on the doorstep
+  13.27-13.32 road:plain walk | walking
+  13.32-14.58 h:2018 craft | mending the plough and the yoke for the ploughing
+  14.58-14.63 road:plain walk | out for fuel
+  14.63-15.52 outside:v_masumabad gather | gathering dung and brushwood against the cold
+  15.52-15.57 road:plain carry_sack | carrying the fuel home
+  15.57-16.24 h:2018 craft | mending tools and baskets
+  16.24-16.60 h:2018 rest | at home
+  16.60-17.07 h:2018 eat | the evening meal with the household
+  17.07-20.18 h:2018 rest | with the household
+  20.18-24.00 h:2018 sleep | asleep
+
+# (4) the quarrymen at Majdabad (world/traffic.ts)
+day 20 (month 1, wet false, heat rest false)
+  d20 03:00: 0 men {}
+  d20 07:00: 14 men {"quarry | cutting the channel round the next drum at the face":5,"quarry | roughing out a column drum among the blocks":9}
+  d20 10:00: 14 men {"quarry | cutting the channel round the next drum at the face":5,"quarry | roughing out a column drum among the blocks":9}
+  d20 12:18: 14 men {"eat | the midday meal of bread and onions at the quarry camp":14}
+  d20 13:30: 14 men {"quarry | cutting the channel round the next drum at the face":5,"quarry | roughing out a column drum among the blocks":9}
+  d20 17:00: 14 men {"quarry | cutting the channel round the next drum at the face":5,"quarry | roughing out a column drum among the blocks":9}
+  d20 18:51: 14 men {"eat | the evening meal at the quarry camp by the fire":14}
+  d20 22:00: 0 men {}
+day 120 (month 5, wet false, heat rest true)
+  d120 03:00: 14 men {"sleep | asleep at the quarry camp in the open, in a cloak":14}
+  d120 07:00: 14 men {"quarry | cutting the channel round the next drum at the face":5,"quarry | roughing out a column drum among the blocks":9}
+  d120 10:00: 14 men {"quarry | cutting the channel round the next drum at the face":5,"quarry | roughing out a column drum among the blocks":9}
+  d120 12:18: 14 men {"eat | the midday meal of bread and onions at the quarry camp":14}
+  d120 13:30: 14 men {"rest | resting in the shade of the rock through the heat":14}
+  d120 17:00: 14 men {"quarry | cutting the channel round the next drum at the face":5,"quarry | roughing out a column drum among the blocks":9}
+  d120 18:54: 14 men {"eat | the evening meal at the quarry camp by the fire":14}
+  d120 22:00: 14 men {"sleep | asleep at the quarry camp in the open, in a cloak":14}
+day 250 (month 9, wet false, heat rest false)
+  d250 03:00: 0 men {}
+  d250 07:00: 0 men {}
+  d250 10:00: 14 men {"quarry | cutting the channel round the next drum at the face":5,"quarry | roughing out a column drum among the blocks":9}
+  d250 12:18: 14 men {"eat | the midday meal of bread and onions at the quarry camp":14}
+  d250 13:30: 14 men {"quarry | cutting the channel round the next drum at the face":5,"quarry | roughing out a column drum among the blocks":9}
+  d250 17:00: 14 men {"eat | the evening meal at the quarry camp by the fire":14}
+  d250 17:17: 14 men {"eat | the evening meal at the quarry camp by the fire":14}
+  d250 22:00: 0 men {}
