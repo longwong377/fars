@@ -659,7 +659,7 @@ export class PeopleSim {
     if (Array.isArray(s.routes)) { this.pathCache.clear(); for (const [k, v] of s.routes) this.pathCache.set(k, v); }
     if (Array.isArray(s.near)) { this.near.clear(); for (const [k, v] of s.near) this.near.set(k, v); }
     for (const x of s.agents) { const a = this.agents[x.id]; if (!a) continue; Object.assign(a, { pos: x.pos, task: x.task, carry: x.carry, hunger: x.hunger, fatigue: x.fatigue, sick: x.sick, day: x.day, decisions: x.decisions, metPlayer: x.metPlayer, lastMetDay: x.lastMetDay, offmap: x.offmap, relieved: x.relieved, heading: x.heading, post: x.post, watchEnd: x.watchEnd, sackTo: x.sackTo });
-      a.lod = x.lod ?? a.lod;
+      a.lod = x.lod; // exactly as saved: unset means full (session 9: a live 'abstract' survived the load and broke the round trip)
       if (x.walking !== undefined) { // a save with the walk in progress: go on with it exactly
         Object.assign(a, { path: x.path ?? null, pathI: x.pathI ?? 0, walking: x.walking, gait: x.gait ?? a.gait, travel: x.travel ?? null, legs: x.legs, waitRoute: x.waitRoute, loadDay: x.loadDay, kneadKey: x.kneadKey, emptyCarry: x.emptyCarry, round: x.round, roundKey: x.roundKey }); this.ground(a); continue; }
       a.path = null; a.walking = false; a.travel = null; this.ground(a); if (a.task && !a.task.off && Math.hypot(a.pos[0] - a.task.spot[0], a.pos[1] - a.task.spot[1]) > 0.4) this.begin(a, a.task, false); }
