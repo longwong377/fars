@@ -4,7 +4,7 @@ import { loadSettings, saveSettings, urlParams, QUALITY, Settings } from './core
 import { WorldClock, YEAR_DAYS } from './core/clock';
 import { chooseWorldSeed, newWorldSeed, keepWorldSeed } from './core/seed';
 import { Input } from './core/input';
-import { writeSave, readSave, clearSave } from './core/save';
+import { writeSave, readSave, readSaveAsync, clearSave, Autosaver, setSaveProblemHandler, lastWrite, parseSave } from './core/save';
 import { latLonToGrid, gridToLatLon } from './core/geo';
 import { Terrain, curvatureDrop } from './terrain/heightfield';
 import { TerrainMesh } from './terrain/terrainMesh';
@@ -106,7 +106,7 @@ async function boot() {
   const world: WorldBuild = await buildWorld(scene, phys, terrain, settings, weather, SEED);
   const [sx, sz] = [SPAWN.east, -SPAWN.north];
   phys.updateTerrain(terrain, { x: sx, y: 0, z: sz }); phys.step(1 / 60);
-  const player = new Player(phys, sx, terrain.heightAt(sx, sz) + 0.05, sz);
+  const player = new Player(phys, sx, terrain.surfaceAt(sx, sz) + 0.05, sz);
   const input = new Input(canvas, () => settings);
   input.yaw = SPAWN.yaw;
   input.onInteract = () => { // E: in visitor mode the halmi / the errand's business first; the door faced within reach (D-051), else the nearest person in front
@@ -131,6 +131,10 @@ async function boot() {
   }
   function restore(s: ReturnType<typeof state> | null) {
     if (!s) return false;
+    try { return restoreSave(s); } catch (e) { // a save this build cannot apply is announced, never lost silently (T-H3v)
+      console.error('[persistence] restore failed', e); notices.push(`The saved visit could not be loaded (${String((e as Error)?.message ?? e)}); a new visit begins.`); shell.notice(notices[notices.length - 1]); return false; }
+  }
+  function restoreSave(s: ReturnType<typeof state>) {
     if (s.seed !== SEED) { // the seed defines the whole world (weather, people): reload with the saved seed, then load
       keepWorldSeed(s.seed); const q = new URLSearchParams(location.search); q.set('seed', String(s.seed)); q.set('loadsave', '1'); location.search = q.toString(); return false;
     }
@@ -144,18 +148,26 @@ async function boot() {
     return true;
   }
 
+  const notices: string[] = []; // out-of-world save and load notices (T-H3s, T-H3v)
+  setSaveProblemHandler(m => { notices.push(m); console.warn('[save]', m); shell.notice(m); });
   Object.assign(hooksImpl, {
     start: () => { shell.playing(); input.lock(); world.audio?.unlock(); },
     resume: () => { shell.playing(); input.lock(); },
     save: () => writeSave(state()), load: () => restore(readSave() as any),
     seed: () => SEED,
     newWorld: () => { // a new world: a fresh seed, the old save dropped, the page reloaded without ?seed (D-236)
+      autosave.enabled = false; // (the dropped save must not be written back as the page unloads)
       newWorldSeed(); clearSave(); const q = new URLSearchParams(location.search); q.delete('seed'); q.delete('loadsave'); location.search = q.toString(); },
+    hasSave: () => readSave() !== null, newVisit: () => { autosave.enabled = false; clearSave(); location.reload(); },
     applySettings: (s: Settings) => { camera.fov = s.fov; camera.updateProjectionMatrix(); clock.scale = s.timeScale; world.applySettings?.(s); shell.nowCaption(s.nowView ? NOW_CAPTION : null); saveSettings(s); },
     getTime: () => ({ day: clock.dayIndex, hour: clock.localHour, label: clock.label() }),
     setTime: (d: number, h: number) => clock.set(d, h),
     getWeather: () => weather.override, setWeather: (w: string) => { weather.override = w as WeatherOverride; },
   });
+  // autosave (audit D M9; T-H3): every AUTOSAVE_MS of real time while the visit is on (playing or paused), and when the page
+  // is hidden or closed; frozen test worlds only with ?autosave
+  const autosave = new Autosaver(() => writeSave(state()), () => (shell.mode === 'playing' || shell.mode === 'paused') && (!TEST || P.has('autosave')));
+  autosave.attach(window, document);
   input.onPauseRequest = () => { if (shell.mode === 'playing') shell.pause(); };
   input.onOverlayToggle = () => overlay.toggle();
 
@@ -189,7 +201,7 @@ async function boot() {
     walkMode: () => { freeCam = null; },
     teleport: (east: number, north: number) => { const x = east, z = -north; player.teleport(x, groundAt(east, north), z); player.maxFall = 0; player.fallStartY = null; },
     setInput: (i: Partial<{ forward: number; right: number; run: boolean; yawDeg: number; pitchDeg: number }>) => { botInput = { ...botInput, ...i }; },
-    playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, maxFall: player.maxFall, yaw: input.yaw, ground: phys.castRayDown(player.position.x, player.position.z, player.position.y + 0.5, player.collider) ?? terrain.heightAt(player.position.x, player.position.z) }),
+    playerState: () => ({ ...player.position, feetY: player.feetY, grounded: player.grounded, lastFall: player.lastFall, maxFall: player.maxFall, rescues: player.rescues, lastRescue: player.lastRescue, terrainColliders: phys.terrainChunks().length, yaw: input.yaw, ground: phys.castRayDown(player.position.x, player.position.z, player.position.y + 0.5, player.collider) ?? terrain.surfaceAt(player.position.x, player.position.z) }),
     stats: () => ({ reliefs: reliefStats(), backend, drawCalls: renderer.info.render.drawCalls, triangles: renderer.info.render.triangles, geometries: renderer.info.memory.geometries, textures: renderer.info.memory.textures, terrain: tmesh.stats(), frameMs: lastFrameMs, heap: (performance as any).memory?.usedJSHeapSize ?? null }),
     renderOnce: async () => { await frame(0, { render: false }); await world.settle?.(camera); await frame(0); },
     /** a frame without rendering: the camera placed (view), the world updated (picks after a view or setTime; D-187) */
@@ -273,8 +285,18 @@ async function boot() {
       const all = (g ? rc.intersectObject(g, true) : rc.intersectObjects(scene.children, true)).filter(i => (i.object as any).isMesh && i.object.visible);
       const row = (h: THREE.Intersection) => ({ name: h.object.name || h.object.parent?.name, parent: h.object.parent?.name, d: h.distance, p: [h.point.x, h.point.y, h.point.z], mat: (h.object as any).material?.type, inst: h.instanceId ?? h.batchId, note: (h.object.userData?.note ?? h.object.parent?.userData?.note ?? '').slice(0, 160) });
       const h = all[0]; return h ? { ...row(h), next: all.slice(1, 4).map(row) } : null; },
-    save: () => writeSave(state()), load: () => restore(readSave() as any),
-    saveState: () => state(),
+    save: () => writeSave(state()), load: () => restore(readSave() as any), saveState: () => state(),
+    /** autosave status (T-H3) and a forced autosave by reason (e2e: 'hidden' is what visibilitychange does) */
+    autosave: () => ({ intervalMs: autosave.intervalMs, saves: autosave.saves, failures: autosave.failures, last: autosave.last, bytes: lastWrite.bytes, local: lastWrite.local }),
+    /** the IndexedDB write of the last save settled (true: written) */
+    saveFlushed: async () => (lastWrite.idb ? await lastWrite.idb : false),
+    /** the save as the next start will read it (IndexedDB first) */
+    storedSave: async () => readSaveAsync(),
+    /** load a stored save's text as the start would (tests of older saves: T-H3v); returns whether it was applied */
+    loadRaw: (json: string) => restore(parseSave(json) as any),
+    notices,
+    /** the population out of doors near the camera: a sorted sample (pid, place, act, position) for save/load checks */
+    popSample: (n = 60) => { const P = (world as any).people; if (!P) return null; return [...P.view.visible].sort((a: any, b: any) => a.pid - b.pid).slice(0, n).map((o: any) => ({ pid: o.pid, act: o.act, place: o.place, e: +o.e.toFixed(2), n: +o.n.toFixed(2), moving: o.moving })); },
     /** §13.2 rendered plan overlay: renders the given building's parts (filtered by kind) top-down, orthographic,
      *  0.25 m/px over grid x∈[-80,272], y∈[-250,250]; returns a row-major 0/1 mask (row 0 = north). */
     planMask: async (building: string, kinds: string[] | null) => {
@@ -322,6 +344,7 @@ async function boot() {
       if (r.blocked) player.teleport(r.x, player.feetY, r.z);
     }
     phys.step(Math.max(1 / 240, dt));
+    player.rescueIfUnderground((x, z) => terrain.surfaceAt(x, z)); // safety net, counted (audit D M1): tests assert it never fires
     world.simulate?.(dt, clock);
   }
   let exposure = 1, adaptT = 0, skyVis = -1, rayVis = 1, probeVis = { eye: 1, w: 0 };
@@ -341,6 +364,7 @@ async function boot() {
   async function frame(dtOverride?: number, opts: { sim?: boolean; render?: boolean } = {}) {
     const now = performance.now();
     const dt = dtOverride ?? Math.min(0.1, (now - prev) / 1000); prev = now;
+    autosave.tick();
     overlay.frame(dt);
     const playing = shell.mode === 'playing' || TEST || P.has('bench');
     if (playing && opts.sim !== false) simStep(dt, !TEST);
@@ -424,7 +448,8 @@ async function boot() {
       ...((world as any).soundLines?.() ?? [((s: any) => (s ? `speech heard: ${s.lineId} (${s.lang}) tier ${s.tier} [${s.parts}] · ${s.situation} · ${s.backend}` : 'speech heard: none yet'))((world as any).lastSpoken)]),
     ]);
   }
-  if (P.get('loadsave')) restore(readSave() as any);
+  // load on start (audit D M9): the saved visit, unless a test world or ?newvisit; the title then offers to continue it
+  const continued = P.get('loadsave') || (!TEST && !P.has('newvisit')) ? restore(await readSaveAsync() as any) : false;
   if (P.get('bench')) {
     // the bench must time the GPU's work, not just command submission (WebGPU renders asynchronously): wait for the queue
     // (WebGPU) or read one pixel back (WebGL2) after each frame; GPU pass time from timestamp queries where supported
@@ -436,7 +461,7 @@ async function boot() {
   TRACE('world built');
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
   api.ready = true;
-  if (TEST) shell.playing(); else shell.title();
+  if (TEST) shell.playing(); else shell.title(continued);
   void lastSave; void gridToLatLon; void YEAR_DAYS;
 }
 

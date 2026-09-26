@@ -32,3 +32,4 @@ h2 { font-weight: normal; letter-spacing: 0.12em; font-size: 18px; margin: 18px 
 .tl-w { display: inline-flex; flex-direction: column; } .tl-wo { font-style: italic; } .tl-wg { font-size: 11px; color: var(--muted); }
 .tl-panel { position: fixed; inset: 4vh 4vw; background: var(--bg); border: 1px solid var(--line); padding: 14px 18px; overflow: auto; pointer-events: auto; }
 .tl-map { width: min(80vh, 100%); height: auto; display: block; margin: 6px auto; } .tl-chron .row { display: block; }
+.save-notice { position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%); max-width: min(760px, calc(100vw - 32px)); box-sizing: border-box; background: rgba(0,0,0,0.7); border: 1px solid var(--line); padding: 6px 12px; font-size: 13px; color: var(--fg); text-align: center; pointer-events: none; }

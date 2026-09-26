@@ -5,6 +5,8 @@ import { YEAR_DAYS } from '../core/clock';
 
 export interface ShellHooks {
   start(): void; resume(): void; save(): boolean; load(): boolean; applySettings(s: Settings): void;
+  /** a saved visit exists; forget it and begin afresh (the autosave keeps the visit otherwise: audit D M9) */
+  hasSave(): boolean; newVisit(): void;
   getTime(): { day: number; hour: number; label: string }; setTime(day: number, hour: number): void;
   getWeather(): string; setWeather(w: string): void;
   /** the world's seed, and beginning a new world with a fresh one (D-236) */
@@ -23,15 +25,17 @@ export class Shell {
     this.mode = 'loading';
     root().replaceChildren(el('div', { className: 'panel' }, el('div', { className: 'card title' }, el('h1', {}, 'PĀRSA'), el('div', { className: 'sub' }, msg))));
   }
-  title() {
+  /** `continued`: the saved visit was loaded at start (the world stands as it was left) */
+  title(continued = false) {
     this.mode = 'title';
-    const start = el('button', { onclick: () => this.hooks.start() }, 'Enter');
+    const start = el('button', { onclick: () => this.hooks.start() }, continued ? 'Continue the visit' : 'Enter');
     root().replaceChildren(el('div', { className: 'panel' }, el('div', { className: 'card title' },
       el('h1', {}, 'PĀRSA'),
       el('div', { className: 'sub' }, 'Persepolis, the nineteenth year of Xerxes — 467 BCE'),
       el('p', { className: 'small' }, 'Click to begin. Walk with W A S D, look with the mouse, hold Shift to walk faster. Esc opens the menu. Sound is part of this place: use headphones if you can.'),
       start,
-      el('button', { onclick: () => { if (this.hooks.load()) this.hooks.start(); } }, 'Continue saved visit'),
+      ...(continued ? [el('button', { onclick: () => this.hooks.newVisit() }, 'Begin a new visit')]
+        : this.hooks.hasSave() ? [el('button', { onclick: () => { if (this.hooks.load()) this.hooks.start(); } }, 'Continue saved visit')] : []),
       el('button', { onclick: () => this.settingsPanel(() => this.title()) }, 'Settings'),
     )));
     start.focus();
@@ -41,6 +45,12 @@ export class Shell {
   playing() { this.mode = 'playing'; const dot = this.settings.translation && !new URLSearchParams(location.search).has('test'); root().replaceChildren(...(dot ? [el('div', { className: 'crosshair' })] : [])); }
   /** the Now view's caption (out-of-world, English; D-201): what the view is and its tier, while it is on (not in ?test
    *  captures). Its own element, so the menus redrawing the shell leave it alone */
+  /** an out-of-world notice about saving or loading (English; T-H3s, T-H3v: a failed save or an unreadable save is never
+   *  silent), shown for 12 s at the foot of the screen; not in ?test captures (the test reads __parsa.notices) */
+  notice(text: string) {
+    if (new URLSearchParams(location.search).has('test')) return;
+    const e = el('div', { className: 'save-notice' }, text); document.body.append(e); setTimeout(() => e.remove(), 12_000);
+  }
   nowCaption(text: string | null) {
     let e = document.getElementById('now-caption');
     const show = !!text && !new URLSearchParams(location.search).has('test');
