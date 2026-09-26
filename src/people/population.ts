@@ -16,7 +16,7 @@ import namesRecalled from '../data/names_recalled.json';
 import plotsData from '../data/town_plots.json';
 import { u01, salt, HStream } from './hash';
 import { Rng } from '../core/rng';
-import { dateOf, REGNAL_DAYS, travellerParties, transfers, transhumantBands, flockDrives, DayCtx, EventCalendar, eventRow, rainHours, rainSpells, festivalOn, stormWord } from './calendar';
+import { dateOf, REGNAL_DAYS, travellerParties, transfers, transhumantBands, flockDrives, DayCtx, EventCalendar, eventRow, rainHours, rainSpells, festivalOn, stormWord, TREASURY_DESK } from './calendar';
 import { colPlace } from './construction';
 import { COLD_C } from './outfits';
 import { CourtResidents } from './court'; // D-182 hook (court.ts): the court in residence, only with the court setting
@@ -1322,6 +1322,11 @@ export class Population {
    *  not drafted, a job that stops for the festival */
   festDay(pid: number, d: number) {
     const C = this.cal.ctx(d), p = this.persons[pid]; if (!C.festival || !Population.FEST_OFF.has(p.job) || !this.dayFree(pid, d)) return false;
+    // (D-229: the court's people are not the town's work groups. E-38 is the day off of the gangs and the town's work groups;
+    // the court in residence keeps the court's day (court.ts, which has no festival rule: D-221), and nothing attests the
+    // court's women, servants or retinue taking the town's day off. Before this, the women of the court, who live on the
+    // Terrace, read as "work on a festival day off" in their own quarters: Phase 5 review C1, Q-580)
+    if (this.court?.owns(pid)) return false;
     const H = this.households[this.home(pid, d)]; if (H.zone === 'transient') return false;
     if (this.weddingOf(pid, d) || (d === p.marry && !p.moved) || (this.keeperOn(H.id, d) === pid) || this.draftedOn(pid, d, C)) return false;
     // (the house's child-minder keeps the little ones of a mother whose day is not the festival's: her day is child()'s)
@@ -3581,7 +3586,7 @@ class Planner {
   }
   private scribe(): Seg[] {
     const P = this.P, C = this.C, p = this.p; if (p.sub !== 'treasury') return this.scribeTown();
-    const t0 = this.sun.rise + 1.3, t1 = 15.5; this.morning(t0 - P.walkH(this.home, 'stair_foot', this.d, this.homeW, 'terrace') - 0.05); this.go('stair_foot', 'terrace', 'going up to the Treasury');
+    const t0 = this.sun.rise + TREASURY_DESK.open, t1 = TREASURY_DESK.close; this.morning(t0 - P.walkH(this.home, 'stair_foot', this.d, this.homeW, 'terrace') - 0.05); this.go('stair_foot', 'terrace', 'going up to the Treasury');
     // the Terrace groups' ration issue is recorded and sealed at the depot (E-01 participants: a scribe seals the tablet)
     const issues = [...C.issue.entries()].filter(([g]) => P.groups[g].issuePlace === 'stair_foot').map(([, h]) => h).sort((a, b) => a - b), tIssue = issues[0], lastIssue = issues[issues.length - 1];
     // (the two take the day's turns by their seats, which alternate: their person ids need not; D-211, both had sealed at the

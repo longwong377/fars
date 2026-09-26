@@ -5678,3 +5678,91 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Never the same twice:** comings and goings (delegations, caravans, messengers, travellers, the court) as visible events;
   seeded randomness within the evidence; scene-level variety measured (the same place at the same hour on different days
   must differ); a new world seed per new game (shown in settings), the seed still reproducing that world exactly.
+
+## D-229 Phase 5 review fixes: the court keeps the court's day on a festival (C1), every activity has impostor frames (M4), the simulation's step measured on the main thread (M3) (session 8 workstream; REVIEWS/phase5.md)
+- **C1 cause (measured, tools/dev/plan_dump.ts 51421 10 10 1 --court).** The 2,786 "festival" issues of the 30-day court soak
+  were all court women on day 10 (the opening of the year, D-211). `Population.festDay` (the town's festival day off, E-38:
+  "a day off for the gangs and the town's work groups") took every person whose job is in FEST_OFF, and the court's
+  women are `homemaker`s; their plans come from court.ts (which has no festival rule, D-221), so their day was the court's
+  as usual. planCheck's rule (o) then read the day as a day off holding "work", because it finds work on a day off by the
+  place (`where === 'terrace'`): the women of the court live on the Terrace, and their first segment, asleep in the
+  women's quarters, was flagged. The plans were right; the claim that the town's day off was theirs was wrong.
+- **C1 fix.** `festDay` is false for the court's people (`court.owns(pid)`): E-38 is the town's day off, and nothing attests
+  the court's women, servants or retinue taking it (C; Q-580). The court's plans are unchanged, the town's are unchanged
+  (the rule reads the court only with the court setting), and planCheck's rule is unchanged (no gate lowered). Scan
+  (tools/dev/court_plans.ts): every court person on day 10 and on 53 days through the year (every 7th and both festivals,
+  1,368,301 person-days) has 0 plan issues. Test: tests/court.test.ts "a festival day is the town's day off, not the court's".
+- **C1 soak.** The first year court soak on this tree (commit f746922; REVIEWS/soak/soak-2026-09-26T00-11-46-903Z.json):
+  7 of 8 gates, 0 festival issues, plansWellFormed failed on one receipt day check (below). **After the letters fix
+  (commit 385b2e3), both year soaks pass all 8 gates:** court setting (`npx tsx tools/soak.ts 354 60 1 --court`;
+  REVIEWS/soak/soak-2026-09-26T02-14-54-430Z.json): 76,238 people, 17,994,855 person-days, 0 plan issues, 0 day issues,
+  worst variety 0.017 (a child), 0 people failing population variety, 14–21 event kinds a week, 0 stuck; default world
+  (`npm run soak`; REVIEWS/soak/soak-2026-09-26T02-06-43-665Z.json): 46,910 people, 15,462,938 person-days, 0 plan
+  issues, worst 0.017, 14–20 kinds a week. Both ran together on the loaded box (~2 h each).
+- **C1, a second failure the festival issues had hidden (the first year court soak on this tree, commit f746922:
+  REVIEWS/soak/soak-2026-09-26T00-11-46-903Z.json).** With the festival fixed, plansWellFormed still failed on one
+  day check: day 159, messenger 3853, "a sealed letter brought to the Treasury with no scribe or official there to take
+  it" at 15.59. tools/dev/receipt_scan.ts (the receipts check on every day, not every third): default world 0 issues, 113
+  of 114 letters carried; court setting 2 issues (day 86 at 19.27, day 159 at 15.59), 302 of 303 carried. Cause: the
+  calendar sent a Treasury letter up until sunset - 1.1 h, while the desk closes at 15.5 h (scribe()); with the court's
+  couriers a late letter, or a second letter behind a first (the day's man is one man; D-211), reached the desk after the
+  scribes had gone, and a letter after the messenger's day ended was never carried. **Fix (EventCalendar.treasuryLetters,
+  TREASURY_DESK):** the day's man runs one letter at a time; a letter that comes in while he is up on the Terrace goes up
+  when he is back; one he could not hand over before 15.5 h waits at the station and goes up when the desk opens next
+  morning with the night's letters (the rule the night letters already had). After: 0 issues on every day in both
+  settings, every calendar letter carried (110 default, 290 court). Test: tests/court.test.ts "every sealed letter for the
+  Treasury is handed over while the desk is open". This changes the default world's plans on the days with a late or a
+  queued letter, so both year soaks were re-run on it.
+- **M4 cause (measured).** `frameOf` drew every animation without a frame of its own with the standing frame: of the 74
+  animations, 50 took it, 43 of them not standing still (every work cycle, the instruments, the ball, enthroned; talk,
+  inspect, the three holds, singing and mourning are standing poses). With the default world on day 30 at 10:00, 20,312 of
+  the 41,636 people awake and placed (48.8 %) had an activity whose own animation fell back (field work 10,460, spinning
+  4,306, crafts 2,334, herding 1,082 …); day 150: 54.1 % (the fruit harvest); day 100 16:00: 53.4 % (threshing). The crowd
+  also drew an impostor with the activity's default animation, not the variant the plan's reason picks (a gleaner as a
+  hoer). The placeholder counter counted only registry placeholders, so "0 placeholders" held while half the distant
+  people stood.
+- **M4 fix (impostors.ts, crowd.ts).** 42 new impostor frames, chosen by measurement, not by name
+  (tools/dev/imp_keys.ts): a pose is the character-space positions of 13 bone heads on the working man's reference body; a
+  cycle is sampled for 60 s at 0.1 s; each animation's cycle is compared with candidate frames (the atlas's 14 and every
+  cycle's medoid, the single pose with the least mean distance to the cycle's poses); a greedy cover keeps every
+  animation's cycle within 0.09 m (RMS) of the frame it shows, sharing frames between animations (the instruments, holding
+  and the barsom share the harp-holding pose; polishing, mending, the reed pipe and the rattle a seated working pose;
+  stoking and cooking a squat at the fire). The nine swing cycles (hoeing, winnowing, ploughing, gleaning, passing,
+  picking, treading, washing, archery) take their two medoids, shown in turn on the cycle's own clock (a 600-bit mask per
+  animation: which medoid is nearer at each 0.1 s); the carriers get their second stride; the gaits keep the walk's six
+  frames and now step when their cycle runs in place. Every animation is within 0.09 m of what is drawn (worst: fodder
+  → the gleaning frame 0.088, the reed-pipe pose for mending 0.088, feed_fire → the harp-holding pose 0.088); the standing
+  frame now stands only for standing still (idle, inspect). The rider's impostor takes the riding frame, lifted as the
+  skinned rider is (riderLift). The impostor shows the performance's own animation (Crowd.impAnim: popPerf for the
+  population, the task's reason for the detailed agents). An animation without a frame is counted in
+  `impPerf.placeholders` (impFallback), and activityLint (npm run lint:activity, npm test) fails on one.
+- **M4 costs.** 56 frames × 6 dresses = 336 rows in 4 columns of blocks: the atlas is 1024 × 2688 (was 256 × 2688; each
+  side within WebGL2's least 4096), 42.0 MB for the three textures with mips (was 10.5 MB; GPU budget 3.5 GB); the bake
+  at load 1.7–2.0 s in node on the loaded box (was 0.72 s: linear in the rows; an attempt to write each texel once per view
+  gained nothing and was reverted). Per impostor per frame: one cached performance lookup (a Map hit while the plan's act
+  and reason hold).
+- **M4 verification.** tests/impostor_frames.test.ts (new: every animation has frames and none but standing still shows the
+  standing frame; the gaits on the walk's frames; each cycle within 0.09 m of the frame shown at each moment; the
+  carriers alternate); tests/popview.test.ts (the atlas layout, coverage floors by the frame's head height, the far-body
+  match), tests/court_view.test.ts and popview's crowd scenes (impPerf.placeholders 0, now counting frame fallbacks),
+  tests/people_look.test.ts, tests/performances.test.ts: pass. Browser: one crowd_scale run through the shared queue (hall-site-working-morning, high,
+  webgpu, 16.8 min, shots/crowd-hall-site-working-morning-high-webgpu.png): passed with no page or WebGPU errors; 3,024
+  in view, 2,651 of them impostors (bands < 600 m 1, 600–1,500 m 2,123, 1,500–3,000 m 527), `placeholderImpostors` 0,
+  0 pop-ins, 97 visible (all skinned: the browser probe counts no impostor visible in this view, so the new frames
+  are not judged on screen by it); the frame 15.39 M triangles, 11.11 M of it the world (B13: this view was already over
+  budget). A node preview of the worker dress's 56 frames (tools/dev/imp_bake.ts --raw) shows each as a distinct pose.
+  **No render has shown the work frames at a distance where they can be judged by eye.**
+- **M3 (measured; not moved: BLOCKERS B53, B54).** tools/dev/sim_cost.ts (the world's settings: one route search a step, the
+  detailed agents at full LOD, day 41, default world, the box loaded): 1× mean 0.106 ms, p99 0.30 ms, max 111.9 ms (a
+  route search), the midnight frame 3.8 ms; 60× mean 16.5 ms, p50 0.13 ms, p99 383 ms, max 706 ms, 229 of 1,440 frames over
+  16.7 ms. The profile: navgrid.findPath 10.7 s self, move 5.6 s, move8 4.1 s, lineClear 1.9 s of ~23 s; 385 route searches in
+  the game day at 60×, 22.5 s in all, 0 failed; the long ones (~800 m, ~1,700 cells of 0.5 m) cost 150–200 ms alone and
+  400–650 ms on the loaded box; the string pulling is negligible (A* alone takes the same). The day rollover is not the
+  cost. Moving PeopleSim into a worker is planned (B53) but not done here: it needs a browser run to verify the crowd feed
+  and the frame loop (this workstream's one render went to M4), and at 60× the searches alone would keep a worker ~94 %
+  busy (22.5 s of search per 24 s of real time), so the search itself needs cutting first (B54).
+- **Rejected.** Mapping every work animation to one of the 14 old frames (the cycles lie 0.10–0.28 m from the nearest: a
+  reaper as the seated frame at 0.24, a sweeper as the seated frame at 0.24); one frame per animation (74 frames: more
+  texture than the shared cover, and the swing cycles frozen mid-stroke); a per-dress frame subset (a person of any dress can be given most of
+  these activities: travellers tend animals in Median dress, the court's servants cook in Persian dress); raising the
+  festival rule's tolerance (lowering a gate); a festival rule written into the court's plans (nothing attests it).

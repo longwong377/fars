@@ -9,6 +9,7 @@ import { WORK_NOTES } from './workObjects';
 import { SPECIES } from './animals';
 import { PIECES } from './outfits';
 import { STRIKE_KINDS, LAYER_SOUNDS } from '../audio/soundscape';
+import { impFallback } from './impostors';
 import type { Performance } from './activities';
 
 export function activityLint(registry: Record<string, Performance>): string[] {
@@ -19,6 +20,8 @@ export function activityLint(registry: Record<string, Performance>): string[] {
     if (P.abstractOnly) bad.push(`${id}${where}: abstract-only (never rendered)`);
     if (P.note !== undefined && /PLACEHOLDER/.test(P.note)) bad.push(`${id}${where}: its note says PLACEHOLDER`);
     if (P.anim !== undefined && !ANIMS.includes(P.anim)) bad.push(`${id}${where}: pose cycle '${P.anim}' does not exist`);
+    // D-229: distance never breaks it (§9.5): the pose cycle has impostor frames of its own (impostors.ts IMP_MAP), not the standing frame
+    if (P.anim !== undefined && ANIMS.includes(P.anim) && impFallback(P.anim)) bad.push(`${id}${where}: pose cycle '${P.anim}' has no impostor frame (drawn standing beyond the skinned crowd)`);
     for (const k of [P.prop, P.prop2]) if (k && (!PROPS[k] || !propGeometry(PROPS[k].geom))) bad.push(`${id}${where}: prop '${k}' has no geometry`);
     if (P.sound && !sounds.has(P.sound)) bad.push(`${id}${where}: sound '${P.sound}' is not played by the soundscape`);
     for (const w of P.work ?? []) if (!WORK_NOTES[w.kind]) bad.push(`${id}${where}: work object '${w.kind}' does not exist`);

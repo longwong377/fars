@@ -145,6 +145,9 @@ export function transhumantBands(seed: number) {
 /** the heavy weather's word for [a, b]: "storm" where it thunders then (within half an hour), "heavy rain" where it does not
  *  (A S8 of shadow review r9; D-211) */
 export function stormWord(wx: DayWx, a = 0, b = 24): 'storm' | 'heavy rain' { const l = wx.thunderH; return l && a < l[1] + 0.5 && b > l[0] - 0.5 ? 'storm' : 'heavy rain'; }
+/** the Treasury desk's hours (D-211, D-229): opens at sunrise + `open` h, closes at `close` h (the scribes' day:
+ *  population.ts scribe()); a letter is handed over in `hand` h */
+export const TREASURY_DESK = { open: 1.3, close: 15.5, hand: 0.4 } as const;
 /** the festival days of the year (D-211; E-33, E-38; C): the šip at the offering place, and the day off for the town's work
  *  groups and the Terrace's gangs. The dates are C: a šip at the opening of the year (the Babylonian akītu is held in the
  *  first days of Nisannu: B for Babylon, an analogy here) and one on the festival of the seventh month, Bāgayādiš, "the
@@ -231,6 +234,32 @@ export class EventCalendar {
   }
   get lastDay() { return this.days.length - 1; }
   private inst(id: string, d: number) { return this.sched.get(id)?.get(d) ?? []; }
+  private lettersCache = new Map<number, { today: { go: number; j: number }[]; late: number[] }>();
+  /** the Treasury's letters of a day (E-20; D-211, D-229; C): a courier's sealed letter for the Treasury is taken up from the
+   *  road station by the day's man for the Terrace run, one run at a time, and handed over at the desk while it is open
+   *  (TREASURY_DESK: from sunrise + 1.3 h to 15.5 h, the scribes' day, population.ts scribe()). A letter that comes in while
+   *  he is up on the Terrace goes up when he is back; a letter he could not hand over before the desk closes waits at the
+   *  station and goes up when the desk opens next morning, with the night's letters (letters waiting together go in one
+   *  man's bag). Before D-229 the letters went up until sunset - 1.1 h, so with the court's couriers (the court setting) a
+   *  letter reached the desk at 19:27, and a second letter behind a first one at 15:39, after the scribes had gone (the
+   *  year court soak's receipt issues, days 86 and 159) */
+  treasuryLetters(d: number): { today: { go: number; j: number }[]; late: number[] } {
+    const c = this.lettersCache.get(d); if (c) return c;
+    const seed = this.seed, sun = sunTimes(d), open = sun.rise + TREASURY_DESK.open, P = this.pop;
+    const cand: { go: number; j: number }[] = [];
+    for (const x of this.inst('E-20', d)) if (u01(seed, salt('E-20t'), d, x.k) < 0.5) cand.push({ go: Math.max(x.hour, open), j: x.k });
+    if (d > 0) for (const k of this.treasuryLetters(d - 1).late) cand.push({ go: open, j: 50 + k });
+    cand.sort((a, b) => a.go - b.go || a.j - b.j);
+    const bag = cand.filter((x, i, l) => i === 0 || x.go > l[i - 1].go + 1e-6); // (letters waiting together go in one man's bag)
+    // the run: the station down to the stair foot and up the stair (the messenger's plan: population.ts messenger()), the letter
+    // handed over at the desk, back to the station
+    const up = P.walkH('station', 'stair_foot', d, 'town', 'terrace') + 0.1, back = P.walkH('treasury_desk', 'station', d, 'terrace', 'town');
+    const today: { go: number; j: number }[] = [], late: number[] = []; let free = -Infinity;
+    for (const x of bag) { const go = Math.max(x.go, free);
+      if (go + up + TREASURY_DESK.hand > TREASURY_DESK.close) { for (const y of cand) if (Math.abs(y.go - x.go) < 1e-6 && y.j < 50) late.push(y.j); continue; }
+      today.push({ go, j: x.j }); free = go + up + TREASURY_DESK.hand + back; }
+    const r = { today, late }; this.lettersCache.set(d, r); return r;
+  }
 
   private computeDay(d: number): DayCtx {
     const { month, dom, m: M } = dateOf(d); const season = seasonOf(month); const wx = dayWx(this.env, d); const sun = sunTimes(d);
@@ -291,12 +320,11 @@ export class EventCalendar {
     for (const x of this.inst('E-13', d)) ops.push({ t: x.hour, f: () => { const n = Math.max(0, Math.round(S.sheep - 1200)); if (n < 20) return; S.sheep -= n; E(x.hour, 'E-13', `${n} tax animals and sheep of the king driven out on the road to Susa`, 'station', n); } });
     for (const x of this.inst('E-15', d)) ops.push({ t: x.hour, f: () => { const n = 1 + Math.floor(u01(seed, salt('E-15n'), d, x.k) * 10); S.tablets += n; E(x.hour, 'E-15', `${n} sealed tablets filed; stock counted`, u01(seed, salt('E-15p'), d, x.k) < 0.5 ? 'treasury_desk' : 'store_town', n); } });
     for (const x of this.inst('E-20', d)) { const tr = u01(seed, salt('E-20t'), d, x.k) < 0.5; ctx.couriers.push({ t: x.hour, treasury: tr });
-      if (tr && x.hour < sun.set - 1.1) ctx.letters.push({ go: Math.max(x.hour, sun.rise + 1.3), j: x.k });
+
       E(x.hour, 'E-20', `an express courier ${u01(seed, salt('E-20d'), d, x.k) < 0.5 ? 'arrived at' : 'left'} the road station${tr ? ' with a sealed letter for the Treasury' : ''}`, 'station'); }
-    if (d > 0) { const set0 = sunTimes(d - 1).set; for (const x of this.inst('E-20', d - 1)) if (u01(seed, salt('E-20t'), d - 1, x.k) < 0.5 && x.hour >= set0 - 1.1) ctx.letters.push({ go: sun.rise + 1.3, j: 50 + x.k }); }
+    // the sealed letters taken up to the Treasury today (D-229: treasuryLetters, the day's man delivering while the desk is open)
     // (the Treasury door doubled while a letter is brought up: E-81)
-    // (letters waiting for the desk to open go up together, in one man's bag)
-    ctx.letters.sort((a, b) => a.go - b.go); ctx.letters = ctx.letters.filter((x, i, l) => i === 0 || x.go > l[i - 1].go + 1e-6); for (const x of ctx.letters) ctx.doubled.push([x.go + 0.8, x.go + 1.8]);
+    ctx.letters = this.treasuryLetters(d).today; for (const x of ctx.letters) ctx.doubled.push([x.go + 0.8, x.go + 1.8]);
     for (const p of this.pop.parties) if (p.day === d) ops.push({ t: p.hour, f: () => { const fl = p.size * p.stay * 1.25 / 10, be = p.size * p.stay / 10; S.flour -= Math.min(S.flour, fl); S.beer -= Math.min(S.beer, be);
       E(p.hour, 'E-21', `a party of ${p.size} from ${p.route} showed its sealed halmi and drew travel rations`, 'station', p.size); } });
     for (const x of this.pop.transferList) if (x.day === d) ops.push({ t: x.hour, f: () => { S.flour -= Math.min(S.flour, x.size * 1.5 / 10); E(x.hour, 'E-23', `a work group of ${x.size} arrived to new quarters in the town`, 'store_town', x.size); } });

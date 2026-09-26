@@ -23,33 +23,112 @@ import { pose, type AnimId } from './anim';
 import { MAT, HB, unpackLookBits } from './humanFormat';
 import type { PersonLook } from './looks';
 import { DRAPE } from './humanMaterial';
+import { WORK_META, type WorkAnim } from './workAnims';
 
-/** atlas layout: 8 views round the person; one row per dress and frame; cells of CELL² texels over W × H metres */
-export const IMP = { views: 8, cell: 32, width: 1.6, height: 2.0, y0: -0.05 } as const;
+/** atlas layout: 8 views round the person; one row per dress and frame; cells of CELL² texels over W × H metres; the rows
+ *  laid out in `cols` columns of blocks (D-229: 56 frames × 6 dresses = 336 rows; 4 columns keep the atlas 1024 × 2688,
+ *  within the 4096 a side every WebGL2 device offers) */
+export const IMP = { views: 8, cell: 32, width: 1.6, height: 2.0, y0: -0.05, cols: 4 } as const;
 /** the dresses drawn (guards: the Persian costume with the bow and quiver bits) */
 export const IMP_DRESSES: Dress[] = ['persian', 'guard', 'median', 'worker', 'woman', 'child'];
 /** frames: what the person is doing (anim, walk phase) and what they carry (prop drawn in) */
-export const FRAMES: { id: string; anim: AnimId; ph: number; prop?: 'jar_head' | 'sack' }[] = [
+export interface Frame { id: string; anim: AnimId; ph: number; prop?: 'jar_head' | 'sack'; /** the cycle's time (s) posed (default 0.7) */ t?: number }
+export const FRAMES: Frame[] = [
   { id: 'stand', anim: 'idle', ph: 0 },
   ...[0, 1, 2, 3, 4, 5].map(k => ({ id: `walk${k}`, anim: 'walk' as AnimId, ph: (k / 6) * Math.PI * 2 })),
   { id: 'carry_head', anim: 'carry_head', ph: Math.PI / 2, prop: 'jar_head' }, { id: 'carry_shoulder', anim: 'carry_shoulder', ph: Math.PI / 2, prop: 'sack' },
   { id: 'sit', anim: 'sit', ph: 0 }, { id: 'kneel', anim: 'grind', ph: 0 }, { id: 'bend', anim: 'chisel', ph: 0 }, { id: 'lie', anim: 'sleep', ph: 0 }, { id: 'guard', anim: 'guard', ph: 0 },
+  // D-229 (Phase 5 review M4): the carriers' other stride, and the work. A work frame is a pose of an animation's cycle at
+  // time t (s; the bake's k = 0.4), chosen by `npx tsx tools/dev/imp_keys.ts --cover
+  // --pairs=winnow,gather,pass,pick,wash,archery,hoe,plough,tread`: a cycle's medoid (the one pose with the least mean
+  // distance to the cycle's poses over 60 s), greedily shared between animations within 0.09 m, or, for the swing cycles
+  // named, its two medoids, drawn in turn on the cycle's clock (IMP_MAP). Pinned by tests/impostor_frames.test.ts
+  { id: 'carry_head1', anim: 'carry_head', ph: Math.PI * 1.5, prop: 'jar_head' }, { id: 'carry_shoulder1', anim: 'carry_shoulder', ph: Math.PI * 1.5, prop: 'sack' },
+  { id: 'hoe@44.5', anim: 'hoe', ph: 0, t: 44.5 }, { id: 'hoe@5.8', anim: 'hoe', ph: 0, t: 5.8 }, { id: 'winnow@36.4', anim: 'winnow', ph: 0, t: 36.4 },
+  { id: 'winnow@16.4', anim: 'winnow', ph: 0, t: 16.4 }, { id: 'plough@6.4', anim: 'plough', ph: 0, t: 6.4 }, { id: 'plough@31', anim: 'plough', ph: 0, t: 31 },
+  { id: 'gather@25.5', anim: 'gather', ph: 0, t: 25.5 }, { id: 'gather@58', anim: 'gather', ph: 0, t: 58 }, { id: 'pass@10.3', anim: 'pass', ph: 0, t: 10.3 },
+  { id: 'pass@39.6', anim: 'pass', ph: 0, t: 39.6 }, { id: 'pick@10.7', anim: 'pick', ph: 0, t: 10.7 }, { id: 'pick@19.6', anim: 'pick', ph: 0, t: 19.6 },
+  { id: 'tread@29', anim: 'tread', ph: 0, t: 29 }, { id: 'tread@10.2', anim: 'tread', ph: 0, t: 10.2 }, { id: 'wash@23.5', anim: 'wash', ph: 0, t: 23.5 },
+  { id: 'wash@51.6', anim: 'wash', ph: 0, t: 51.6 }, { id: 'archery@4.1', anim: 'archery', ph: 0, t: 4.1 }, { id: 'archery@8.6', anim: 'archery', ph: 0, t: 8.6 },
+  { id: 'harp_h@30.9', anim: 'harp_h', ph: 0, t: 30.9 }, { id: 'reed_pipe@16.5', anim: 'reed_pipe', ph: 0, t: 16.5 }, { id: 'stoke@22.7', anim: 'stoke', ph: 0, t: 22.7 },
+  { id: 'wash@26.8', anim: 'wash', ph: 0, t: 26.8 }, { id: 'enthroned@20.7', anim: 'enthroned', ph: 0, t: 20.7 }, { id: 'ride@45.8', anim: 'ride', ph: 0, t: 45.8 },
+  { id: 'drive@22.8', anim: 'drive', ph: 0, t: 22.8 }, { id: 'groom@27', anim: 'groom', ph: 0, t: 27 }, { id: 'herd@24.8', anim: 'herd', ph: 0, t: 24.8 },
+  { id: 'sweep@24.6', anim: 'sweep', ph: 0, t: 24.6 }, { id: 'pat@52.2', anim: 'pat', ph: 0, t: 52.2 }, { id: 'haul@56.4', anim: 'haul', ph: 0, t: 56.4 },
+  { id: 'reap@25.1', anim: 'reap', ph: 0, t: 25.1 }, { id: 'draw_water@1', anim: 'draw_water', ph: 0, t: 1 }, { id: 'stir@17.5', anim: 'stir', ph: 0, t: 17.5 },
+  { id: 'weave@10.8', anim: 'weave', ph: 0, t: 10.8 }, { id: 'adze@16.5', anim: 'adze', ph: 0, t: 16.5 }, { id: 'bier_r@47.9', anim: 'bier_r', ph: 0, t: 47.9 },
+  { id: 'bier_l@3.9', anim: 'bier_l', ph: 0, t: 3.9 }, { id: 'lay@37', anim: 'lay', ph: 0, t: 37 }, { id: 'irrigate@54.2', anim: 'irrigate', ph: 0, t: 54.2 },
+  { id: 'mould@26', anim: 'mould', ph: 0, t: 26 },
 ];
 export const ROWS = IMP_DRESSES.length * FRAMES.length;
+/** rows per column of blocks */
+export const RPC = Math.ceil(ROWS / IMP.cols);
+/** the texel origin (x, y) of a row's view cell at level 0 (divided by 2^level in a mip) */
+export const cellAt = (row: number, view: number): [number, number] => [(Math.floor(row / RPC) * IMP.views + view) * IMP.cell, (row % RPC) * IMP.cell];
 const FR = Object.fromEntries(FRAMES.map((f, i) => [f.id, i])) as Record<string, number>;
-/** the frame that stands for an animation (and the walk phase for walking ones) */
-export function frameOf(anim: AnimId, phase: number): number {
-  switch (anim) {
-    case 'walk': case 'guard_walk': case 'play': case 'carry_front': case 'chase': case 'pull_toy': case 'limp': case 'feel': { const k = Math.floor((((phase / (Math.PI * 2)) % 1) + 1) % 1 * 6); return FR.walk0 + Math.min(5, k); }
-    case 'carry_head': return FR.carry_head; case 'carry_shoulder': return FR.carry_shoulder;
-    case 'sit': case 'write': case 'eat': case 'dice': case 'ride': case 'rattle': return FR.sit; // a rider far off: the seated frame on the mount's back (D-210)
-    case 'grind': case 'knead': case 'bake': return FR.kneel;
-    case 'chisel': case 'draw_water': return FR.bend;
-    case 'sleep': return FR.lie; case 'guard': return FR.guard;
-    default: return FR.stand;
-  }
+/** the stepping cycles, drawn with the walk's six frames on the gait phase */
+export const IMP_GAITS = new Set<AnimId>(['walk', 'guard_walk', 'play', 'carry_front', 'chase', 'pull_toy', 'limp', 'feel']);
+/** D-229: the frame of every other animation, the nearest by tools/dev/imp_keys.ts's measure (the cycle's mean pose
+ *  distance: ≤ 0.09 m for every animation, tests/impostor_frames.test.ts). Two frames and a mask: the second is shown
+ *  where the mask's bit is set, one bit per 0.1 s of the cycle's first 60 s (then round again) */
+export const IMP_MAP: Partial<Record<AnimId, [string] | [string, string, string]>> = {
+  idle: ['stand'], guard: ['guard'], chisel: ['bend'], grind: ['kneel'], knead: ['kneel'], bake: ['kneel'],
+  draw_water: ['draw_water@1'], write: ['sit'], eat: ['sit'], sleep: ['lie'], talk: ['draw_water@1'], sit: ['sit'],
+  dice: ['sit'], inspect: ['stand'], enthroned: ['enthroned@20.7'], ride: ['ride@45.8'], irrigate: ['irrigate@54.2'], reap: ['reap@25.1'],
+  bind: ['wash@26.8'], drive: ['drive@22.8'], herd: ['herd@24.8'], groom: ['groom@27'], fodder: ['gather@25.5'], shear: ['wash@26.8'],
+  butcher: ['wash@23.5'], hold: ['harp_h@30.9'], hold_sack: ['harp_h@30.9'], hold_lead: ['draw_water@1'], sweep: ['sweep@24.6'], weave: ['weave@10.8'],
+  spin: ['harp_h@30.9'], pat: ['pat@52.2'], stir: ['stir@17.5'], mould: ['mould@26'], lay: ['lay@37'], haul: ['haul@56.4'],
+  polish: ['reed_pipe@16.5'], adze: ['adze@16.5'], stoke: ['stoke@22.7'], mend: ['reed_pipe@16.5'], bier_l: ['bier_l@3.9'], bier_r: ['bier_r@47.9'],
+  cook: ['stoke@22.7'], harp_v: ['harp_h@30.9'], harp_h: ['harp_h@30.9'], lyre: ['harp_h@30.9'], frame_drum: ['harp_h@30.9'], double_pipe: ['harp_h@30.9'],
+  reed_pipe: ['reed_pipe@16.5'], sing: ['draw_water@1'], ball: ['harp_h@30.9'], rattle: ['reed_pipe@16.5'], barsom: ['harp_h@30.9'], feed_fire: ['harp_h@30.9'],
+  mourn: ['draw_water@1'],
+  hoe: ['hoe@44.5', 'hoe@5.8', '3e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f'],
+  winnow: ['winnow@36.4', 'winnow@16.4', '000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fff'],
+  plough: ['plough@6.4', 'plough@31', 'ff803fe00ff807fc01ff007fc01fe00ff803fe00ff807fc01ff007fc01ff000007fffff000003ff803fe00ff803fe01ff007fc01ff007f803fe00ff803fe01ff007fc01ff007fc0000ffff'],
+  gather: ['gather@25.5', 'gather@58', '3fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc0000003fffc00'],
+  pass: ['pass@10.3', 'pass@39.6', '1ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe0007ff8001ffe000'],
+  pick: ['pick@10.7', 'pick@19.6', '000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc000000ffc'],
+  tread: ['tread@29', 'tread@10.2', '01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe01fc03f807f00fe'],
+  wash: ['wash@23.5', 'wash@51.6', '0000000fc3c0fffff800000001f8781fffff000000001e0f03ffffe000000003c1e07ffffc00000000f83c0fffff800000001f8781fffff000000001f0f03ffffe000000003c1e07ffffc0'],
+  archery: ['archery@4.1', 'archery@8.6', 'fffffc000000000ffffffffffc000000000ffffffffffc000000000ffffffffffc000000000ffffffffffc000000000ffffffffffc000000000ffffffffffc000000000ffffffffffc0000'],
+};
+const MAPPED = new Map<AnimId, { a: number; b: number; bits: Uint8Array | null }>(Object.entries(IMP_MAP).map(([k, v]) => {
+  const bits = v!.length === 3 ? Uint8Array.from(Array.from(v![2]!).flatMap(h => { const x = parseInt(h, 16); return [(x >> 3) & 1, (x >> 2) & 1, (x >> 1) & 1, x & 1]; })) : null;
+  return [k as AnimId, { a: FR[v![0]], b: FR[v!.length === 3 ? v![1]! : v![0]], bits }];
+}));
+/** the frame that stands for an animation: the gait phase for the gaits and the carriers, the cycle's time t (s) for the
+ *  swing cycles */
+export function frameOf(anim: AnimId, phase: number, t = 0): number {
+  const q = (((phase / (Math.PI * 2)) % 1) + 1) % 1;
+  if (IMP_GAITS.has(anim)) return FR.walk0 + Math.min(5, Math.floor(q * 6));
+  if (anim === 'carry_head') return q < 0.5 ? FR.carry_head : FR.carry_head1;
+  if (anim === 'carry_shoulder') return q < 0.5 ? FR.carry_shoulder : FR.carry_shoulder1;
+  const m = MAPPED.get(anim); if (!m) return FR.stand; // (no frame of its own: impFallback, counted as a placeholder)
+  if (!m.bits) return m.a; const i = Math.floor((((t % 60) + 60) % 60) * 10) % m.bits.length; return m.bits[i] ? m.b : m.a;
+}
+/** D-229: an animation with no frame of its own, drawn standing (a placeholder: the crowd counts it) */
+export const impFallback = (anim: AnimId) => !IMP_GAITS.has(anim) && anim !== 'carry_head' && anim !== 'carry_shoulder' && !MAPPED.has(anim);
+/** every frame an animation can show */
+export function framesOf(anim: AnimId): number[] {
+  const s = new Set<number>(); for (let k = 0; k < 24; k++) s.add(frameOf(anim, (k / 24) * Math.PI * 2)); for (let i = 0; i < 600; i++) s.add(frameOf(anim, 0, i / 10 + 0.05)); return [...s];
 }
 export const rowOf = (dress: Dress, frame: number) => Math.max(0, IMP_DRESSES.indexOf(dress)) * FRAMES.length + frame;
+/** the rig's seated poses (crowd.ts SEATED: the body rests on the ground, not on its feet) */
+const SEAT = new Set<string>(['sit', 'write', 'eat', 'dice', 'sleep', 'grind', 'knead', 'bake', ...(Object.keys(WORK_META) as WorkAnim[]).filter(k => WORK_META[k].ground === 'seat')]);
+/** pose the rig in an animation at time t (s) and gait phase ph, the bake's person seed (k = 0.4) */
+export function solvePose(rig: RigSolver, pal: Float32Array, joints: Float32Array, anim: AnimId, t: number, ph: number, prop = false) {
+  const po = pose(anim, t, ph, 0.4), inp: RigInput = { joints, pose: po, face: { jaw: 0, blink: 0, look: null, eyeYaw: 0, eyePitch: 0 }, grip: po.grip ?? (prop ? [0.4, 0.8] : [0, 0]), x: 0, y: 0, z: 0, yaw: 0, scale: 1, plant: PLANTED.has(anim), seat: SEAT.has(anim) } as RigInput;
+  rig.setPose(inp); rig.solve(inp, pal, 0);
+}
+/** pose the rig in a frame of the atlas */
+export const solveFrame = (rig: RigSolver, pal: Float32Array, joints: Float32Array, F: Frame) => solvePose(rig, pal, joints, F.anim, F.t ?? 0.7, F.ph, !!F.prop);
+/** the bone heads that make a pose's silhouette (D-229: tools/dev/imp_keys.ts, tests/impostor_frames.test.ts) */
+export const POSE_BONES = [HB.pelvis, HB.spine_03, HB.head, HB.lowerarm_l, HB.hand_l, HB.lowerarm_r, HB.hand_r, HB.calf_l, HB.foot_l, HB.calf_r, HB.foot_r, HB.upperarm_l, HB.upperarm_r];
+const featOf = (rig: RigSolver) => { const f = new Float64Array(POSE_BONES.length * 3); POSE_BONES.forEach((b, i) => { f[i * 3] = rig.wt[b * 3]; f[i * 3 + 1] = rig.wt[b * 3 + 1]; f[i * 3 + 2] = rig.wt[b * 3 + 2]; }); return f; };
+/** a pose as the positions of POSE_BONES (character space, m) */
+export function poseRig(rig: RigSolver, pal: Float32Array, joints: Float32Array, anim: AnimId, t: number, ph: number) { solvePose(rig, pal, joints, anim, t, ph); return featOf(rig); }
+export function framePoseOf(rig: RigSolver, pal: Float32Array, joints: Float32Array, F: Frame) { solveFrame(rig, pal, joints, F); return featOf(rig); }
+/** RMS distance between two poses' bone heads (m) */
+export function poseDist(a: Float64Array, b: Float64Array) { let s = 0; for (let i = 0; i < a.length; i += 3) s += (a[i] - b[i]) ** 2 + (a[i + 1] - b[i + 1]) ** 2 + (a[i + 2] - b[i + 2]) ** 2; return Math.sqrt(s / (a.length / 3)); }
 /** the fixed colour (wood, clay, the jar, wicker, metal, eyes: linear albedo, C) */
 export const FIXED: [number, number, number] = [0.25, 0.16, 0.1];
 /** weights: texture A (main, second, trim, coverage), B (skin, hair, leather + felt, fixed), N (normal, cavity AO) */
@@ -129,7 +208,7 @@ export const farLod = (O: OutfitBuild, dress: Dress): CostumeLOD | undefined => 
 
 /** bake the atlas (level 0 and its mips) */
 export function bakeImpostors(A: HumanAssets, O: OutfitBuild, props?: { jar?: { pos: Float32Array; idx: ArrayLike<number> }; sack?: { pos: Float32Array; idx: ArrayLike<number> } }): ImpostorAtlas {
-  const t0 = performance.now(), C = IMP.cell, V = IMP.views, W = V * C, H = ROWS * C;
+  const t0 = performance.now(), C = IMP.cell, V = IMP.views, W = IMP.cols * V * C, H = RPC * C;
   const wA = new Float32Array(W * H * 4), wB = new Float32Array(W * H * 4), nN = new Float32Array(W * H * 4);
   for (let k = 0; k < W * H; k++) { nN[k * 4] = 0.5; nN[k * 4 + 1] = 0.5; nN[k * 4 + 2] = 1; nN[k * 4 + 3] = 1; } // empty texels: facing the viewer, no cavity (bilinear edges stay clean)
   const rig = new RigSolver(A.meta.curlAxes), pal = new Float32Array(PALETTE_STRIDE), refStature = {} as Record<Dress, number>;
@@ -140,8 +219,7 @@ export function bakeImpostors(A: HumanAssets, O: OutfitBuild, props?: { jar?: { 
     const P = new Float32Array(nv * 3), N = new Float32Array(nv * 3), slot = new Uint8Array(nv), keep = new Uint8Array(nv), ao = new Float32Array(nv);
     for (let i = 0; i < nv; i++) { const cls = L.hmat[i * 4], col = L.hmat[i * 4 + 1], bit = L.hmat[i * 4 + 2]; slot[i] = slotOf(cls, col); keep[i] = (mask >> bit) & 1; ao[i] = L.hext[i * 4] / 255; }
     FRAMES.forEach((F, fi) => {
-      const po = pose(F.anim, 0.7, F.ph, 0.4), inp: RigInput = { joints: v.joints, pose: po, face: { jaw: 0, blink: 0, look: null, eyeYaw: 0, eyePitch: 0 }, grip: F.prop ? [0.4, 0.8] : [0, 0], x: 0, y: 0, z: 0, yaw: 0, scale: 1, plant: PLANTED.has(F.anim), seat: ['sit', 'grind', 'sleep'].includes(F.anim) } as RigInput;
-      rig.setPose(inp); rig.solve(inp, pal, 0);
+      solveFrame(rig, pal, v.joints, F);
       for (let i = 0; i < nv; i++) { const t = (v.index * O.NV + L.tid[i]) * 4, bx = O.source[t], by = O.source[t + 1], bz = O.source[t + 2], n0 = unpackNormal(O.source[t + 3]);
         let px = 0, py = 0, pz = 0, qx = 0, qy = 0, qz = 0;
         for (let k = 0; k < 4; k++) { const w = L.skinWeight[i * 4 + k] / 255; if (!w) continue; const o = L.skinIndex[i * 4 + k] * 12;
@@ -153,7 +231,7 @@ export function bakeImpostors(A: HumanAssets, O: OutfitBuild, props?: { jar?: { 
       const row = di * FRAMES.length + fi;
       for (let vw = 0; vw < V; vw++) {
         const al = (vw / V) * Math.PI * 2, rx = Math.cos(al), rz = -Math.sin(al), dx = Math.sin(al), dz = Math.cos(al); // screen right, toward the viewer (character space)
-        z.fill(-1e9); const ox = vw * C, oy = row * C;
+        z.fill(-1e9); const [ox, oy] = cellAt(row, vw);
         const sx = (x: number, zz: number) => ((x * rx + zz * rz) / IMP.width + 0.5) * C, sy = (y: number) => ((y - IMP.y0) / IMP.height) * C;
         const tri = (ax: number, ay: number, az: number, bx: number, by: number, bz: number, cx: number, cy: number, cz: number, fill: (i: number, j: number) => void) => {
           const x0 = Math.max(0, Math.floor(Math.min(ax, bx, cx))), x1 = Math.min(C - 1, Math.ceil(Math.max(ax, bx, cx))), y0 = Math.max(0, Math.floor(Math.min(ay, by, cy))), y1 = Math.min(C - 1, Math.ceil(Math.max(ay, by, cy)));
@@ -180,9 +258,11 @@ export function bakeImpostors(A: HumanAssets, O: OutfitBuild, props?: { jar?: { 
   });
   const cloth = {} as Record<Dress, ClothStats[]>;
   for (const dress of IMP_DRESSES) { const L = farLod(O, dress); if (L) cloth[dress] = clothStatsOf(O, L, refVariant(A, dress).index, typicalMask(dress)); }
-  const cover = new Float32Array(ROWS * V); for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) if (wA[(j * W + i) * 4 + 3] >= 0.5) cover[Math.floor(j / C) * V + Math.floor(i / C)]++;
-  for (let k = 0; k < cover.length; k++) cover[k] /= C * C;
-  const { A: LA, B: LB, N: LN } = mips(wA, wB, nN, W, H, cover);
+  // coverage per cell of the texture (the mips' grid: W / C columns) and per row and view (`coverage`)
+  const PC = W / C, covP = new Float32Array(PC * RPC); for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) if (wA[(j * W + i) * 4 + 3] >= 0.5) covP[Math.floor(j / C) * PC + Math.floor(i / C)]++;
+  for (let k = 0; k < covP.length; k++) covP[k] /= C * C;
+  const cover = new Float32Array(ROWS * V); for (let r = 0; r < ROWS; r++) for (let vw = 0; vw < V; vw++) { const [x, y] = cellAt(r, vw); cover[r * V + vw] = covP[(y / C) * PC + x / C]; }
+  const { A: LA, B: LB, N: LN } = mips(wA, wB, nN, W, H, covP);
   return { W, H, A: LA, B: LB, N: LN, refStature, ms: performance.now() - t0, coverage: cover, cloth };
 }
 /** prop geometry placed at a bone head (character space) with an offset and scale (no rotation: jar and sack are near round) */
@@ -194,7 +274,7 @@ function xform(g: { pos: Float32Array; idx: ArrayLike<number> }, wt: Float64Arra
 /** mip levels: weights and normals averaged by coverage; coverage scaled per cell so the texels passing 0.5 keep the
  *  cell's full-size share (coverage-preserving, trees/atlas.ts mipChain) */
 function mips(a0: Float32Array, b0: Float32Array, n0: Float32Array, W: number, H: number, cover0: Float32Array) {
-  const C = IMP.cell, cols = IMP.views, rows = ROWS; const out = { A: [] as Level[], B: [] as Level[], N: [] as Level[] };
+  const C = IMP.cell, cols = W / C, rows = H / C; const out = { A: [] as Level[], B: [] as Level[], N: [] as Level[] };
   const u8 = (f: Float32Array) => { const u = new Uint8Array(f.length); for (let i = 0; i < f.length; i++) { const v = f[i] * 255 + 0.5; u[i] = v <= 0 ? 0 : v >= 255 ? 255 : v; } return u; };
   let A = a0, B = b0, N = n0, w = W, h = H, ts = C;
   const push = () => { out.A.push({ data: u8(A), width: w, height: h }); out.B.push({ data: u8(B), width: w, height: h }); out.N.push({ data: u8(N), width: w, height: h }); };
@@ -243,7 +323,9 @@ export class CrowdImpostors {
     const c = cos(ipos.w), s = sin(ipos.w), lx = dir.x.mul(c).sub(dir.y.mul(s)), lz = dir.x.mul(s).add(dir.y.mul(c));
     const view = mod(floor(atan(lx, lz).div(Math.PI * 2).mul(IMP.views).add(0.5).add(IMP.views)), IMP.views);
     const half = 0.5 / IMP.cell; // half a texel inset: no bleeding between cells at level 0
-    const vUV = varying(vec2(view.add(P.x.mul(0.5 - half).add(0.5)).div(IMP.views), iinfo.x.add(P.y.mul(1 - 2 * half).add(half)).div(ROWS)));
+    // the row's cell (D-229: rows in IMP.cols columns of blocks, cellAt)
+    const blk = floor(iinfo.x.div(RPC)), rr = iinfo.x.sub(blk.mul(RPC));
+    const vUV = varying(vec2(blk.mul(IMP.views).add(view).add(P.x.mul(0.5 - half).add(0.5)).div(IMP.views * IMP.cols), rr.add(P.y.mul(1 - 2 * half).add(half)).div(RPC)));
     const unpack = (p: any) => { const r = floor(p.div(65536)), g2 = floor(mod(p, 65536).div(256)), b = mod(p, 256); const v = vec3(r, g2, b).div(255); return v.mul(v); };
     const cMain = varying(unpack(iinfo.z)), cSecond = varying(unpack(iinfo.w)), cTrim = varying(unpack(icol.x)), cSkin = varying(unpack(icol.y)), cHair = varying(unpack(icol.z)), cLeather = varying(unpack(icol.w));
     const vRight = varying(right), vDir = varying(vec3(dir.x, 0, dir.y));
@@ -256,7 +338,7 @@ export class CrowdImpostors {
     m.aoNode = float(0.55).add(n.a.mul(0.45)); m.roughnessNode = float(0.85); m.metalnessNode = float(0);
     m.alphaTest = 0.5;
     const mesh = new THREE.Mesh(g, m); mesh.name = 'people:impostors'; mesh.frustumCulled = false; mesh.castShadow = false; mesh.receiveShadow = true; mesh.visible = false;
-    mesh.userData = { tier: 'C', src: 'RECON', note: 'distant people: impostors baked from the far body of each dress in 14 activity frames (D-143); colours per person (looks.ts)' };
+    mesh.userData = { tier: 'C', src: 'RECON', note: `distant people: impostors baked from the far body of each dress in ${FRAMES.length} activity frames (D-143, D-229); colours per person (looks.ts)` };
     mesh.raycast = () => {};
     this.mesh = mesh;
   }

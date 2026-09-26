@@ -39,9 +39,9 @@ import { PIECES, pieceBit, COSTUME_OF, weatherMask, type Dress } from './outfits
 import { WORK_META, workRoot, ploughPath, THRESH_TURN_S, type WorkAnim } from './workAnims';
 import { IK_Q } from './poseKit';
 import { WorkObjects, WORK_NOTES, type WorkKind } from './workObjects';
-import { Animals, animalsFor, ANIMAL_BUILD, grazeReach, mountSeat, riderLift, type Species } from './animals';
+import { Animals, animalsFor, ANIMAL_BUILD, grazeReach, riderLift, type Species } from './animals';
 import type { PopView, ViewPerson } from './popview';
-import { CrowdImpostors, rowOf, frameOf } from './impostors';
+import { CrowdImpostors, rowOf, frameOf, impFallback, IMP_GAITS } from './impostors';
 import type { AnimId } from './anim';
 /** poses in which people sit, kneel or lie (the seat pass rests them on the ground; coats and back-carried weapons are
  *  laid aside) */
@@ -495,6 +495,14 @@ export class Crowd {
     if (c) { c.act = act; c.why = why; c.perf = perf; } else { if (this.popPerfs.size > 60_000) this.popPerfs.clear(); this.popPerfs.set(pid, { act, why, perf }); }
     return perf;
   }
+  /** D-229: the animation an impostor shows: the performance resolve() would give (popPerf for the population; the
+   *  detailed agents' by their task's reason, cached per agent) */
+  private agentPerfs = new Map<number, { act: string; why: string; anim: AnimId }>();
+  private impAnim(pid: number, a: Agent | null, act: ActivityId, why: string, seed: number): AnimId {
+    if (!a) return this.popPerf(pid, act, why, seed).anim;
+    const c = this.agentPerfs.get(a.id); if (c && c.act === act && c.why === why) return c.anim;
+    const anim = performanceFor(act, why, a.seed).anim; this.agentPerfs.set(a.id, { act, why, anim }); return anim;
+  }
   /** a thing at (x, y, z) in a frame [x, y, z, yaw] (world), turned by yaw */
   private placeAt(fr: ArrayLike<number>, x: number, y: number, z: number, yaw: number, out: THREE.Matrix4) { const c = Math.cos(fr[3]), s = Math.sin(fr[3]);
     _q.setFromAxisAngle(_up, fr[3] + yaw); return out.compose(_v.set(fr[0] + c * x + s * z, fr[1] + y, fr[2] - s * x + c * z), _q, _one); }
@@ -609,13 +617,18 @@ export class Crowd {
         if (P) { const q = this.impP, k = L.seed, b = q.base, r = q.root; b[0] = x; b[1] = y; b[2] = z; b[3] = yaw;
           if (PATHED.has(P.anim)) { const o = workRoot(P.anim as WorkAnim, time + k % 100, (k % 1000) / 159); if (o) { const c = Math.cos(yaw), sn = Math.sin(yaw); x += c * o[0] + sn * o[1]; z += -sn * o[0] + c * o[1]; yaw += o[2]; } }
           r[0] = x; r[1] = y; r[2] = z; r[3] = yaw;
-          if (P.animals?.kind === 'mount' && d3 < THINGS_DIST) { lift = mountSeat(P.animals.species[0]).y; vAnim = P.anim; }
+          if (P.animals?.kind === 'mount' && d3 < THINGS_DIST) { lift = riderLift(P.animals.species[0], L.scale * (imp.atlas.refStature[L.dress] || 1.65)); vAnim = P.anim; } // (D-229: the riding frame, lifted as the skinned rider is)
           if (d3 < THINGS_DIST && (P.work?.length || P.animals)) { q.perf = P; q.anim = P.anim; q.animK = (k % 1000) / 159; q.animT = k % 100; q.vp = vp; q.pid = pid; q.key = `p${pid}`; this.placeThings(q, time, d3, dt); } }
         if (!this.wide.intersectsSphere(_s.set(_v.set(x, y + 0.9, z), 1.3))) return; } // the body out of view (its things in it)
-      const act = a ? this.sim!.performance(a).act : vp!.act, anim = vAnim ?? ACTIVITIES[act].anim, moving = a ? a.walking : vp!.moving;
-      if (ACTIVITIES[act].placeholder && !moving) placeholders++; // shown standing (idle), counted as the skinned are
-      const ph = a ? a.gait : ((this.impPhase.get(key) ?? (pid % 628) / 100) + (moving ? (vp!.speed || 1.2) * dt / 0.72 * Math.PI : ACTIVITIES[act].moving ? IN_PLACE_RATE * dt : 0)); if (!a) this.impPhase.set(key, ph);
-      imp.push(x, y + lift, z, yaw, rowOf(L.dress, frameOf(moving && !ACTIVITIES[act].moving && !vAnim ? 'walk' : anim, ph)), L.scale, null, L.packed); this.drawnKeys?.add(key);
+      const act = a ? this.sim!.performance(a).act : vp!.act, moving = a ? a.walking : vp!.moving;
+      // D-229: the performance's own animation (the plan's reason picks the variant: a reaper reaps, a gleaner gathers), as the
+      // skinned pool resolves it; a rider with no mount drawn keeps the activity's own (the walk)
+      let anim: AnimId = vAnim ?? ACTIVITIES[act].anim; if (!vAnim && !(moving && !ACTIVITIES[act].moving)) { const r = this.impAnim(pid, a, act, a ? a.task?.why ?? '' : vp!.why, L.seed); if (r !== 'ride') anim = r; }
+      const fa: AnimId = moving && !ACTIVITIES[act].moving && !vAnim ? 'walk' : anim;
+      if ((ACTIVITIES[act].placeholder && !moving) || impFallback(fa)) placeholders++; // shown standing: counted as the skinned are (D-229: and a frame missing)
+      const inPlace = !moving && (ACTIVITIES[act].moving || IMP_GAITS.has(fa) || fa === 'carry_head' || fa === 'carry_shoulder'); // (a stepping cycle in place steps)
+      const ph = a ? a.gait : ((this.impPhase.get(key) ?? (pid % 628) / 100) + (moving ? (vp!.speed || 1.2) * dt / 0.72 * Math.PI : inPlace ? IN_PLACE_RATE * dt : 0)); if (!a) this.impPhase.set(key, ph);
+      imp.push(x, y + lift, z, yaw, rowOf(L.dress, frameOf(fa, ph, time + (L.seed % 100))), L.scale, null, L.packed); this.drawnKeys?.add(key);
       if (this.dustTap) this.tapDust(act, moving, x, y, z, yaw, vp?.speed || 1.25, a ? a.seed : pid, !!vAnim);
       const dd = Math.sqrt((x - cam.x) ** 2 + (z - cam.z) ** 2); bands[dd < 600 ? 0 : dd < 1500 ? 1 : dd < 3000 ? 2 : 3]++; if (moving) walkers++;
     };

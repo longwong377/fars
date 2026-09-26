@@ -5,11 +5,12 @@ import { readFileSync } from 'node:fs';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, PLACES, type Env } from '../src/people/sim';
 import { Population, segAt, type Seg } from '../src/people/population';
-import { checkPlan, checkDay } from '../src/people/planCheck';
+import { checkPlan, checkDay, receipts, LETTER_WHY } from '../src/people/planCheck';
 import { ACTIVITIES } from '../src/people/activities';
 import { activityLint } from '../src/people/activityLint';
 import { COURT, COURT_PLACES, COURT_SLOTS, NIGHT_SLOTS } from '../src/people/court';
 import { WeatherSystem } from '../src/weather/weatherState';
+import { festivals, TREASURY_DESK } from '../src/people/calendar';
 import popData from '../src/data/population.json';
 import sources from '../src/data/sources.json';
 
@@ -74,6 +75,26 @@ describe('the court in residence (D-182)', () => {
     // the day checks (a person in two places, children alone) on two days, everyone
     for (const d of [2, 5]) { const cache = new Map<number, Seg[]>(); const planOf = (x: number) => { let v = cache.get(x); if (!v) { v = P.plan(x, d); cache.set(x, v); } return v; };
       expect(checkDay(P, d, planOf).filter(x => K.owns(x.pid))).toEqual([]); }
+  }, 600_000);
+  it('a festival day (D-211) is the town’s day off, not the court’s: every court person’s plan on it is well formed (Phase 5 review C1; D-229)', () => {
+    const K = court.pop.court!, P = court.pop, issues: string[] = []; let n = 0;
+    for (const f of festivals(1)) { const d = f.day; if (d < 1) continue;
+      for (let pid = K.first; pid < K.end; pid++) { if (!P.present(pid, d)) continue; n++;
+        if (P.festDay(pid, d)) issues.push(`${pid} ${K.member(pid)?.g} day ${d}: the town's festival day off`);
+        const prev = P.present(pid, d - 1) ? P.plan(pid, d - 1) : null, segs = P.plan(pid, d);
+        for (const x of checkPlan(P, pid, d, segs, prev ? prev[prev.length - 1].place : null, prev)) issues.push(`${pid} ${K.member(pid)?.g} day ${d}: ${x.kind} ${x.note}`); } }
+    expect(n).toBeGreaterThan(5000); // (the opening of the year falls while the court is resident)
+    expect(issues.slice(0, 20)).toEqual([]);
+    // the town's own people still keep it (the court setting changes nothing for them)
+    const d = festivals(1)[0].day; let off = 0; for (let pid = 0; pid < K.first; pid += 7) if (P.festDay(pid, d)) off++; expect(off).toBeGreaterThan(1000);
+  }, 600_000);
+  it('every sealed letter for the Treasury is handed over while the desk is open, every day of the year, with and without the court (D-229)', () => {
+    for (const S of [absent, court]) { const P = S.pop; let cal = 0, carried = 0; const bad: string[] = [];
+      for (let d = 0; d < 354; d++) { const L = P.cal.ctx(d).letters; cal += L.length;
+        for (const x of L) expect(x.go + P.walkH('station', 'stair_foot', d, 'town', 'terrace') + 0.1 + TREASURY_DESK.hand, `day ${d}`).toBeLessThanOrEqual(TREASURY_DESK.close + 1e-9);
+        for (const m of P.messengers) if (P.present(m, d)) carried += P.plan(m, d).filter(s => s.why === LETTER_WHY).length;
+        for (const x of receipts(P, d, pid => P.plan(pid, d))) bad.push(`${S === court ? 'court' : 'absent'} day ${d}: ${x.pid} ${x.note}`); }
+      expect(bad).toEqual([]); expect(carried).toBe(cal); expect(cal).toBeGreaterThan(50); }
   }, 600_000);
   it('the king’s spearmen hold their posts by the rota: the watch’s files at their slots, one man in five away at his meal at most', () => {
     const K = court.pop.court!, P = court.pop;

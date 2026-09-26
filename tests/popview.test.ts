@@ -19,7 +19,7 @@ import { placeVillages, villageCompounds } from '../src/world/plain/villages';
 import { loadTerrain, loadRiversFile } from './plainLib';
 import { decodeHumanAssets, meshoptSimplify, type HumanAssets } from '../src/people/humanAssets';
 import { buildOutfits, unpackNormal, type OutfitBuild } from '../src/people/outfits';
-import { bakeImpostors, farLod, typicalMask, slotOf, IMP, IMP_DRESSES, FRAMES, ROWS, rowOf, frameOf, packRGB, unpackRGB, FIXED, CrowdImpostors, type ImpostorAtlas } from '../src/people/impostors';
+import { bakeImpostors, farLod, typicalMask, slotOf, IMP, IMP_DRESSES, FRAMES, ROWS, RPC, cellAt as impCell, rowOf, frameOf, framePoseOf, packRGB, unpackRGB, FIXED, CrowdImpostors, type ImpostorAtlas } from '../src/people/impostors';
 import { RigSolver, PALETTE_STRIDE, PLANTED } from '../src/people/humanRig';
 import { pose } from '../src/people/anim';
 import { lookFor } from '../src/people/looks';
@@ -143,14 +143,17 @@ describe('population view: the plans in the built world (D-143)', () => {
 
 describe('impostors (D-143): the far body baked, matched at the switch', () => {
   it('bakes every dress and frame from the far body; coverage in every view; mip levels keep the coverage', () => {
-    expect(atlas.W).toBe(IMP.views * IMP.cell); expect(atlas.H).toBe(ROWS * IMP.cell);
-    // a floor per frame kind (a lying or crouching body covers less of its cell); a child's body is baked at its own
-    // stature in the same 1.6 × 2 m cell, so its floors are half the adults'
-    for (let r = 0; r < ROWS; r++) for (let v = 0; v < IMP.views; v++) { const id = FRAMES[r % FRAMES.length].id, child = IMP_DRESSES[Math.floor(r / FRAMES.length)] === 'child';
-      expect(atlas.coverage[r * IMP.views + v], `row ${r} (${id}) view ${v}`).toBeGreaterThan((id === 'lie' ? 0.02 : ['sit', 'kneel', 'bend'].includes(id) ? 0.04 : 0.07) * (child ? 0.5 : 1)); }
+    expect(atlas.W).toBe(IMP.cols * IMP.views * IMP.cell); expect(atlas.H).toBe(RPC * IMP.cell); expect(Math.max(atlas.W, atlas.H)).toBeLessThanOrEqual(4096); // (WebGL2's least maximum)
+    // a floor per frame kind (a lying body, or one whose head is below 1.3 m: seated, kneeling, crouched or bent at work,
+    // covers less of its cell); a child's body is baked at its own stature in the same 1.6 × 2 m cell, so its floors are
+    // half the adults'
+    const rig = new RigSolver(A.meta.curlAxes), pal = new Float32Array(PALETTE_STRIDE), ref = A.variants.reduce((b, x) => x.meta.sex === 'm' && x.meta.group === 'adult' && Math.abs(x.height - 1.66) < Math.abs(b.height - 1.66) ? x : b);
+    const low = FRAMES.map(F => framePoseOf(rig, pal, ref.joints, F)[2 * 3 + 1] < 1.3 /* POSE_BONES[2]: the head */);
+    for (let r = 0; r < ROWS; r++) for (let v = 0; v < IMP.views; v++) { const fi = r % FRAMES.length, id = FRAMES[fi].id, child = IMP_DRESSES[Math.floor(r / FRAMES.length)] === 'child';
+      expect(atlas.coverage[r * IMP.views + v], `row ${r} (${id}) view ${v}`).toBeGreaterThan((id === 'lie' ? 0.02 : low[fi] ? 0.04 : 0.07) * (child ? 0.5 : 1)); }
     // coverage-preserving mips: at level 3 (4 × 4 texels a cell) the share of texels passing 0.5 stays within 0.1 of level 0
     const L = atlas.A[3], ts = IMP.cell >> 3; let worst = 0;
-    for (let r = 0; r < ROWS; r += 5) for (let v = 0; v < IMP.views; v += 3) { let pass = 0; for (let j = 0; j < ts; j++) for (let i = 0; i < ts; i++) if (L.data[((r * ts + j) * L.width + v * ts + i) * 4 + 3] >= 128) pass++; worst = Math.max(worst, Math.abs(pass / (ts * ts) - atlas.coverage[r * IMP.views + v])); }
+    for (let r = 0; r < ROWS; r += 5) for (let v = 0; v < IMP.views; v += 3) { let pass = 0; for (let j = 0; j < ts; j++) for (let i = 0; i < ts; i++) if (L.data[((impCell(r, v)[1] / 8 + j) * L.width + impCell(r, v)[0] / 8 + i) * 4 + 3] >= 128) pass++; worst = Math.max(worst, Math.abs(pass / (ts * ts) - atlas.coverage[r * IMP.views + v])); }
     expect(worst).toBeLessThan(0.2);
     note('m05', `impostor atlas ${atlas.W}×${atlas.H}, ${atlas.A.length} levels, baked in ${atlas.ms.toFixed(0)} ms (node)`);
   }, 120_000);
@@ -179,7 +182,7 @@ describe('impostors (D-143): the far body baked, matched at the switch', () => {
       const ref = { area: area / (HR * HR), top: (top + 1) / HR * IMP.height + IMP.y0, width: (x1 - x0 + 1) / HR * IMP.width };
       // the atlas cell (level 0, view 0)
       const C: number = IMP.cell, a0 = atlas.A[0]; let aa = 0, at = -1, ax0 = C, ax1 = -1; const share = [0, 0, 0, 0, 0, 0, 0];
-      for (let j = 0; j < C; j++) for (let i = 0; i < C; i++) { const o = ((row * C + j) * atlas.W + i) * 4; if (a0.data[o + 3] < 128) continue; aa++; at = Math.max(at, j); ax0 = Math.min(ax0, i); ax1 = Math.max(ax1, i);
+      for (let j = 0; j < C; j++) for (let i = 0; i < C; i++) { const o = ((impCell(row, 0)[1] + j) * atlas.W + impCell(row, 0)[0] + i) * 4; if (a0.data[o + 3] < 128) continue; aa++; at = Math.max(at, j); ax0 = Math.min(ax0, i); ax1 = Math.max(ax1, i);
         const w = [a0.data[o], a0.data[o + 1], a0.data[o + 2], atlas.B[0].data[o], atlas.B[0].data[o + 1], atlas.B[0].data[o + 2], atlas.B[0].data[o + 3]]; const s = w.reduce((x, y) => x + y, 0) || 1; w.forEach((x, k) => share[k] += x / s); }
       const imp = { area: aa / (C * C), top: (at + 1) / C * IMP.height + IMP.y0, width: (ax1 - ax0 + 1) / C * IMP.width };
       const texel = IMP.height / C;
