@@ -107,6 +107,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
       // D-256 (G30; A505/A506, P-034): the column drums hauled from the quarry across the plain (world/traffic.ts)
       { when: /dragging a column drum/, prop: 'goad', animals: { kind: 'draught', species: ['ox', 'ox', 'ox', 'ox'], n: 4, pace: 0.4 }, work: [DRUM_BEHIND],
         note: 'a driver walking ahead of two yoke pairs of oxen dragging a rough-cut column drum on a wooden sledge from the quarry to the Terrace, at a slow walk (drums from the quarry: construction.ts E-61, the stone from Majdabad by petrography, B; how they travelled is not attested: sledge, oxen, route and pace C, D-256)' },
+      { when: /empty sledge/, prop: 'goad', animals: { kind: 'draught', species: ['ox', 'ox', 'ox', 'ox'], n: 4, pace: 0.8 }, work: [{ kind: 'sledge', at: [0, 0, -9.0] }],
+        note: 'driving the two yoke back to the quarry with the empty sledge (C: D-256)' },
       { when: /beside the drum sledge/, note: 'one of the gang walking beside the drum sledge, with the levers and the rollers for the bad places of the road (C: D-256)' },
       { when: /ox cart/, animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0.9 }, work: [{ kind: 'cart', at: [0, 0, -4.7] }],
         note: 'a carter walking ahead of his yoked oxen and their cart of grain sacks on the road (carts silent at Persepolis, Assyrian reliefs B analogy; draught cattle Q-193; C)' }] },
@@ -134,7 +136,9 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [
       // D-256: the drum haul's night halt by the road (world/traffic.ts), the oxen unyoked and lying by it
       { when: /by the drum sledge/, work: [{ kind: 'drum_haul', at: [-2.6, 0, 0.6] }], animals: { kind: 'fold', species: ['ox'], n: 4, pace: 1 },
-        note: 'asleep in a cloak on the ground by the drum sledge where the haul halted for the night, the oxen unyoked and lying by it (C: D-256)' }] },
+        note: 'asleep in a cloak on the ground by the drum sledge where the haul halted for the night, the oxen unyoked and lying by it (C: D-256)' },
+      { when: /by the empty sledge/, work: [{ kind: 'sledge', at: [-2.6, 0, 0.6] }], animals: { kind: 'fold', species: ['ox'], n: 4, pace: 1 },
+        note: 'asleep by the empty sledge on the way back to the quarry, the oxen lying by it (C: D-256)' }] },
   talk: { anim: 'talk', sound: 'murmur', tier: 'C', note: 'talking with gestures' },
   rest: { anim: 'sit', tier: 'C', note: 'sitting and resting' },
   gamble: { anim: 'dice', sound: 'dice', tier: 'C', note: 'throwing knucklebones (astragali are common finds of the period: B object, C scene)' },
@@ -164,6 +168,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   haul: { anim: 'haul', prop: 'rope', tier: 'C', work: [{ kind: 'drum_sledge', at: [0, 0, 6.2], shared: 'place' }],
     note: 'the labour gang hauling a column drum on a sledge with ropes, heaving in time (construction by ramp and sledge: C; the gangs are attested, PT-WAGE: B)',
     variants: [
+      // D-256: the drum's gang at the quarry and at the drum ground (the drum on its sledge is the driver's: world/traffic.ts)
+      { when: /roping the drum|levering the drum/, work: [], note: 'the haul\'s gang roping the rough drum down on its sledge at the quarry, or levering it off at the drum ground below the Terrace (C: D-256)' },
       { when: /earth/, anim: 'pass', prop: 'basket_both', work: [], note: 'building up the earth ramp: baskets of earth passed along a chain of men (C)' },
       { when: /brick/, anim: 'pass', prop: 'brick', work: [{ kind: 'brick_stack', at: [-0.9, 0, 0.3] }], note: 'carrying dried bricks to the wall: passed hand to hand along a chain (C)' }] },
   mould_brick: { anim: 'mould', prop: 'mould', sound: 'mould', tier: 'C', work: [{ kind: 'mud_heap', at: [-0.62, 0, 0.36] }, { kind: 'brick_field', at: [1.35, 0, 0.1] }, { kind: 'jar', at: [-0.7, 0, -0.35] }],
@@ -209,7 +215,7 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
       // D-256: the animals penned against the wolves (session 9's wolves: world/beasts.ts), the cattle and the flocks
       { when: /folding it|in the fold|the fold\b/, anim: 'fodder', prop: 'basket_hip', animals: { kind: 'fold', species: SHEEP, n: 20 }, work: [FOLD],
         note: 'the flock penned in a fold of thorn brush against the wolves and fed from a basket (folds of brush and stone for the night: pastoral practice across the Zagros, RECOLLECTION NOT SEEN; C: D-256)' },
-      { when: /the drum sledge/, anim: 'fodder', prop: 'basket_hip', animals: { kind: 'fold', species: ['ox'], n: 4 }, work: [{ kind: 'drum_haul', at: [-2.6, 0, 0.6] }],
+      { when: /drum sledge|drum ground/, anim: 'fodder', prop: 'basket_hip', animals: { kind: 'fold', species: ['ox'], n: 4 }, work: [{ kind: 'drum_haul', at: [-2.6, 0, 0.6] }],
         note: 'unyoking the oxen by the drum sledge at the day\'s halt and giving them straw and water (C: D-256)' },
       { when: /out and giving them water/, anim: 'fodder', prop: 'basket_hip', animals: { kind: 'flock', species: ['sheep', 'goat', 'sheep'], n: 4 }, work: [], note: 'letting the household’s animals out and giving them fodder and water (C)' },
       { when: 0.35, animals: { kind: 'beside', species: ['ox'] }, note: 'seeing to the household’s ox (cattle are not in population.json: Q-193; C)' }] },

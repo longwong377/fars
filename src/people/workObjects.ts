@@ -22,7 +22,7 @@ export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field
   // D-209: the lan set out before the fire, and the boiled meat of a sacrifice laid on soft grass
   | 'offering_set' | 'grass_bed'
   // D-256: the work on the land (the fold against the wolves, the drums from the quarry, milking, fishing, snaring, bees, nuts)
-  | 'fold' | 'drum_haul' | 'drum_rough' | 'milk_pot' | 'basket_fish' | 'fish_trap' | 'snare' | 'hives' | 'basket_nuts';
+  | 'fold' | 'drum_haul' | 'sledge' | 'drum_rough' | 'milk_pot' | 'basket_fish' | 'fish_trap' | 'snare' | 'hives' | 'basket_nuts';
 type RGB = [number, number, number];
 const MUD: RGB = [0.5, 0.41, 0.31], MUD_WET: RGB = [0.36, 0.29, 0.22], BRICK: RGB = [0.62, 0.53, 0.4], STRAW: RGB = [0.72, 0.62, 0.38], STRAW_D: RGB = [0.62, 0.52, 0.3],
   WOOD: RGB = [0.45, 0.33, 0.21], WOOD_D: RGB = [0.34, 0.25, 0.16], STONE: RGB = [0.55, 0.54, 0.52], LIME: RGB = [0.66, 0.64, 0.6], POT: RGB = [0.62, 0.44, 0.3], WOOL: RGB = [0.8, 0.76, 0.66],
@@ -84,6 +84,7 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   grass_bed: { tier: 'B', note: 'the boiled meat of a sacrifice laid on soft grass, trefoil (Herodotus 1.132, read, a Greek claim: B; the grass and the pieces C: D-209)' },
   fold: { tier: 'C', note: 'a fold for the night: a ring of cut thorn brush about 12 m across, heaped chest-high, a gap for the gate closed with a bundle (folds against the wolves: the pastoral practice of the Zagros, RECOLLECTION NOT SEEN; C: D-256)' },
   drum_haul: { tier: 'C', note: 'a rough-cut column drum lying on a heavy wooden sledge, roped down, the traces running forward to the yokes (drums from the quarry: construction.ts E-61; the stone from Majdabad by petrography: B; sledge and haul C: D-256)' },
+  sledge: { tier: 'C', note: 'the drum sledge going back empty to the quarry: two heavy runners and cross-pieces, the traces forward to the yokes (C: D-256)' },
   drum_rough: { tier: 'C', note: 'a column drum roughed out at the quarry, over-size, the point marks on it, chips about its foot (C: D-256)' },
   milk_pot: { tier: 'C', note: 'a round-bellied clay pot for the milk (C: D-256)' },
   basket_fish: { tier: 'C', note: 'a basket with the catch, barbel and carp of the river (C: D-256)' },
@@ -244,6 +245,11 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       for (const z of [-1.0, 0, 1.0]) g.push(P(box(1.5, 0.12, 0.24, 0, 0.18, z), WOOD));
       for (const x of [-0.35, 0.35]) g.push(P(rod([x, 0.2, 1.55], [x * 0.3, 1.0, 3.0], 0.025, 0.025, 4), [0.62, 0.54, 0.38]));
       g.push(P(rod([-0.7, 1.4, 0], [0.7, 1.4, 0], 0.02, 0.02, 4), [0.6, 0.52, 0.36]));
+      return merge(g); }
+    case 'sledge': { const g: THREE.BufferGeometry[] = [];
+      for (const x of [-0.6, 0.6]) g.push(P(box(0.2, 0.2, 3.1, x, 0, 0), WOOD_D));
+      for (const z of [-1.0, 0, 1.0]) g.push(P(box(1.5, 0.12, 0.24, 0, 0.18, z), WOOD));
+      for (const x of [-0.35, 0.35]) g.push(P(rod([x, 0.2, 1.55], [x * 0.3, 1.0, 3.0], 0.025, 0.025, 4), [0.62, 0.54, 0.38]));
       return merge(g); }
     case 'drum_rough': { const g = [P(new THREE.CylinderGeometry(0.84, 0.88, 1.3, 9).translate(0, 0.65, 0), LIME, 1)];
       for (let i = 0; i < 6; i++) g.push(P(mound(0.18 + 0.08 * Math.abs(jit(i)), 0.07, 5, 1.0 * Math.cos(i * 1.1), 1.0 * Math.sin(i * 1.1)), [0.7, 0.68, 0.63], 1));

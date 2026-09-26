@@ -4097,7 +4097,10 @@ class Planner {
     const w = this.homeW, walk = this.P.walkH(this.home, T.place, this.d, w, 'plain');
     if ((this.cur ?? this.home) !== T.place) { this.homeHours(T.pm[0] - walk, this.C.wx.tmax >= 30 ? 'resting through the heat' : 'resting after the midday meal'); this.go(T.place, 'plain', this.toward(T.place)); }
     const a0 = Math.max(this.t, T.pm[0]), mid = a0 + (T.pm[1] - a0) * lerp(0.4, 0.6, this.r.next());
-    if (T.pm[1] - a0 >= 2) { this.workBlock(T.place, 'plain', act, why, a0, mid, true, T.place); this.add(this.t + lerp(0.2, 0.35, this.r.next()), T.place, 'eat', T.place.startsWith('threshing') ? 'bread and water by the threshing floor' : 'bread and water at the field edge', 'plain'); }
+    // (not in the rain: the bread waits for the second half, or for home, when the weather is on; D-256: the cows' afternoon on
+    // the meadow met a shower at 16:39 on day 353)
+    if (T.pm[1] - a0 >= 2) { this.workBlock(T.place, 'plain', act, why, a0, mid, true, T.place); const e = lerp(0.2, 0.35, this.r.next());
+      if ((this.cur ?? T.place) === T.place && wetHours(this.C.wx, this.t, this.t + e) === 0) this.add(this.t + e, T.place, 'eat', T.place.startsWith('threshing') ? 'bread and water by the threshing floor' : T.place.startsWith('meadow') ? 'bread and water on the meadow' : 'bread and water at the field edge', 'plain'); }
     this.workBlock(T.place, 'plain', act, why, Math.max(this.t, a0), T.pm[1], true, T.place); this.go(this.home, w, 'home from the field');
   }
   private farmer(): Seg[] {

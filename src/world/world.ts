@@ -98,6 +98,7 @@ import type { AnimalInst } from '../people/animals';
 import { CAMPS } from '../people/camps';
 import { Fauna, FAC as FAUNA_FAC, type VillageIn } from './fauna';
 import { Traffic, type Mover } from './traffic';
+import { quarrySites } from './plain/quarries';
 import { SmokeModel, type SmokeSite } from './hearthSmoke';
 import { LandSmoke } from './landSmoke';
 import { TerraceFoot } from './terraceFoot';
@@ -237,6 +238,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   fauna.addTerraceFoot(new TerraceFoot(seed, groundAt)); // D-227: the tether lines, heaps and loads at the foot of the Grand Stair (C)
   root.add(fauna.group); const faunaMs = performance.now() - faunaT0;
   const traffic = new Traffic(seed, sim.pop as any, settlement?.plan ?? null); const movers: Mover[] = [], moverKeys = new Set<string>();
+  traffic.setQuarries(quarrySites(terrain)); // D-256: the quarrymen at work and the drums hauled to the Terrace
   const syncTraffic = (cam: THREE.Vector3) => { traffic.at(sim.t, movers, { e: cam.x, n: -cam.z, r: 750 }); const now = new Set<string>();
     for (const m of movers) { const k = `tr:${m.key}`, y = groundAt(m.e, m.n), yaw = yawOf(m.heading * 180 / Math.PI); now.add(k);
       if (!moverKeys.has(k) || !crowd.moveExtra(k, m.e, y, -m.n, yaw, m.act, m.why)) { crowd.addExtra(k, { ...m.look, x: m.e, y, z: -m.n, yaw, act: m.act, why: m.why }); moverKeys.add(k); } }

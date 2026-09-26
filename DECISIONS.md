@@ -6316,3 +6316,60 @@ moment-*-webgpu.png in the worktree, not committed).**
   plain_d223, plain_look pass; town_plots.json rebuilt unchanged.
 - **Unverified on screen**: two moments queued (ford-pulvar-sep, ford-kur-apr). Nobody crosses at a ford yet (traffic.ts routes
   run W and S; the drum haulage of D-256 will use the Pasargadae road); no water sound over the causeway.
+
+## D-256 The work on the land: cattle and milking, fishing, fowling, nuts and acorns, bees, the quarrymen and the drums on the road, the flocks penned at night (session 9; UD-07, UD-08, UD-14; WORLD_INVENTORY G12-G17, G30, GA1, GB52; tier C)
+- **What was missing.** The gap hunters (REVIEWS/gap_hunt_s9_A.md, _B.md) found the plain's work cut to the fields: no cows or
+  calves (only plough and cart oxen, Q-193), no milk, no fishing on the Pulvar, the Kur or the canals, no snaring or fowling,
+  no nut or acorn gathering though plain.json says the nuts are "gathered Aug-Sep", no bees; the Majdabad quarry's workings
+  empty and the column drums "arriving" at the masons' yard as an event (construction.ts E-61) with nobody on the road; and
+  since the session's wolves (beasts.ts) the flocks of the plain were nowhere at night.
+- **How it could pass while failing** (brief clause 1): a performance that no plan emits; a plan that emits it out of season or
+  in the rain; a drum on the road that does not match the construction's count; a herd of one token cow (T-D5). The tests
+  (tests/land_work.test.ts) check the simulation's own output for each.
+- **The village cattle** (population.ts, lives.json farm_men_other_work.cattle, fauna.json cattle): 45 % of plain households
+  keep a cow (C). The village cows go out together with a man of a house whose turn it is (the turn-herding of the plateau's
+  villages, RECOLLECTION NOT SEEN; C), to the river meadow nearest the village (popgeo.ts `meadow:`: 20-120 m back from the
+  bank of the river within 3 km, else the canal's grass) in the morning, home through the midday, out again from late
+  afternoon and home at sunset − 0.6 h, each cow to her own gate; not in the depth of winter (months 9-11: kept in on straw).
+  A boy of a house with a cow takes her with the village cattle on 40 % of his herding days. Performed as `herd` with a herd of
+  eight cows and calves and a dog (new species `cow` with an udder and `calf`, animals.ts); they low (a new strike `low`,
+  soundscape.ts; crowd.ts every ~25 s within 150 m). **Milking** (`milk`, kneeling at the cow's flank with a pot): the house's
+  first woman at first light before breakfast and in the evening at about sunset − 0.7 h, in the months the cows are in milk
+  (Mar-Sep: months 12-6, calving in late winter: C).
+- **Fishing** (`fish`: a hand line from the bank, the catch in a basket, the water sound; a variant lifting wicker traps),
+  **fowling** (`fowl`: setting pegged horsehair snare lines at the field edges; with the bow at the waterfowl in the reeds, a
+  boy with the small bow), **nuts and acorns** (`gather` variants: picking wild pistachio and almond into a basket in months 5-6,
+  August-September as plain.json says; acorns months 6-8), **bees** (`bees`: clay-pipe hives in a mud wall, seeing to them in
+  spring, the honey taken with a knife into a jar in months 5-7; the bees' `buzz`), **wild garlic** in the third month
+  (Θāigraciš, "garlic-collecting": the name A, the act C) are options of the season's other men's work, each in its months
+  (lives.json by_month; a son may go along). New places (popgeo.ts): `bank:` the river bank nearest the village (half the
+  channel's width and a pace out from the centre line) or a canal bank, `edge:` the field edges 150-500 m out, `slope:` the
+  nearest ground over 12 % slope within 5 km (the pistachio-almond-oak scrub) or the scrub 1.5-2.5 km out; their walks use
+  nominal distances (population.ts LAND_FAR: 900, 1200, 450, 2500 m; C). Measured (tools/dev/land_trace.ts, seed 1, 400
+  plain households every third day, 220,631 person-days): village cows 198 person-days, a boy with the cow 107, milking 1,679,
+  fishing 273, snaring 632, waterfowl 507, nuts 47, acorns 129, bees 53, wild garlic **0** (the third month is the barley
+  harvest and the threshing: every household has its field task, and the other work is not reached: B81); planCheck issues on
+  those days: none.
+- **The quarry and the drums** (world/traffic.ts, plain/quarries.ts `quarrySites`): fourteen quarrymen at Majdabad (the Sivand
+  quarry has no rock within its 100 m and is not built, as before) on every day without rain or a storm, sunrise + 0.5 h to
+  sunset − 0.5 h: five cutting the channel round the next drum at the face with the pick, the rest roughing out drums among
+  the blocks with mallet and point (`quarry`, the chisel sound; a new work object `drum_rough`), three loading the drum on the
+  sledge in the hour and a half before a haul leaves; the midday meal at the camp, the rest through the heat (E-64), the evening
+  meal by the fire; asleep in the open at the camp in May-September, in the cold months in the camp's huts, which are not
+  built (not drawn: B80). **Each E-61 arrival is a haul** (34 in the year, seed 1): a driver ahead of two yoke of oxen dragging
+  the rough drum on a sledge (`drum_haul`; animals.ts `draught` now takes n 4), three men beside it with the levers; 28.0 km from
+  the quarry camp across to the royal road (7 km), along it to the Terrace's W foot, round the foot clear of the stair's tether
+  lines and along the N foot to the drum ground (150, 272), where the ground stands at the court's level; at 0.4 m/s only in
+  the daylight (sunrise + 1 h to sunset − 1 h), halting by the road for the night (unyoking and feeding the oxen, the evening
+  meal, asleep by the sledge, the oxen lying by it); at the drum ground an hour before the yard counts the drum in (the drum
+  levered off; the last 250 m into the masons' yard and how the drums went up are the labour gang's and not modelled: Q-710),
+  then back to the quarry with the empty sledge at 0.8 m/s (`sledge`). Closed form in time from the calendar's own E-61 events:
+  the spans of every haul add up to the route at the pace (0 of 34 off), inside the daylight, arriving at the drum ground.
+- **Penned at night** (fauna.ts, activities.ts): in 45 % of the village compounds the cow (and her calf in the milk months)
+  stands or lies in the court from dusk to dawn, and all day in the winter months; in 55 % two to five sheep and goats with
+  her; the state flock (80) lies in a fold of thorn brush beside the stockyard from dusk to dawn (a new work object `fold`, a
+  static mesh in the fauna group; the plain's 40-mesh budget untouched); the bands' night watch and their folding of the flock
+  beside the tents (E-49) now draw the flock penned in its fold (animals.ts `fold`: most lying at night), as does the
+  stockyard's flock kept in out of the rain (was: a donkey being groomed, the tend_animals base).
+- **Not done**: the royal and noble hunt (G11, A001, S-013: the paradise's hunt with horse and bow is court work, another
+  agent's scope); the quarrymen's huts (B80); ducks and geese (G18); cheese-making (GA5). Unrendered: one render budgeted.
