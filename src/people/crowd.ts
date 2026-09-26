@@ -44,6 +44,8 @@ import { Animals, animalsFor, ANIMAL_BUILD, grazeReach, riderLift, type Species 
 import type { PopView, ViewPerson } from './popview';
 import { CrowdImpostors, rowOf, frameOf, impFallback, IMP_GAITS } from './impostors';
 import type { AnimId } from './anim';
+import type { NearPerson } from '../audio/voices';
+import { voiceIdentity, nearPerson, type VoiceIdentity } from './talkers';
 /** poses in which people sit, kneel or lie (the seat pass rests them on the ground; coats and back-carried weapons are
  *  laid aside) */
 const SEATED = new Set<AnimId>(['sit', 'write', 'eat', 'dice', 'sleep', 'grind', 'knead', 'bake', ...(Object.keys(WORK_META) as WorkAnim[]).filter(k => WORK_META[k].ground === 'seat')]);
@@ -138,6 +140,9 @@ export interface Person {
   lod?: number;
   /** D-215: the children carried or put down beside this person now (prop kind, transform in character space, skin tint) */
   babeProps?: { kind: string; M: THREE.Matrix4; tint: number; mode: string }[];
+  /** D-245: their voice plays from voiceFrom to voiceTo (world time; audio/voices.ts); claimedAt: when the voices last took
+   *  them (a talker claimed by the voices moves the jaw only while the voice plays: a visible speaker is a heard one) */
+  voiceFrom?: number; voiceTo?: number; claimedAt?: number;
 }
 /** a person drawn as an impostor: their cached look (packed colours, dress row, stature scale) */
 interface ImpLook { packed: Float32Array; dress: Dress; scale: number; seed: number }
@@ -342,6 +347,35 @@ export class Crowd {
     const p = this.persons.get(key); if (!p?.extra) return false; const e = p.extra; e.x = x; e.y = y; e.z = z; e.yaw = yaw; if (act) e.act = act; if (why !== undefined) e.why = why; return true; }
   /** remove the extras only (the pool's population people, attached by feedPool and indexed by pid, stay: D-143) */
   removeExtras() { for (const [k, p] of this.persons) if (p.extra) { this.freeSlot(p.slot); this.persons.delete(k); } }
+  // ------------------------------------------------------------------------------------------------ voices (D-245)
+  /** who a person near the listener is, for their voice: language label (a detailed agent's first language; a person of
+   *  the population's origin, mapped by audio/voices.ts voiceLang), sex, age and a voice seed (cached per person) */
+  private voiceIds = new Map<string, VoiceIdentity>();
+  private voiceId(key: string, a: Agent | null, pid: number): VoiceIdentity {
+    let v = this.voiceIds.get(key); if (v) return v;
+    v = voiceIdentity(a, pid, this.view?.pop ?? null, Math.floor((this.sim?.t ?? 0) / 24), this.seed);
+    if (this.voiceIds.size > 20000) this.voiceIds.clear(); this.voiceIds.set(key, v); return v;
+  }
+  /** D-245: everyone the crowd placed within `radius` of the listener in the last update, skinned or impostor, in view or
+   *  not (people behind the listener talk too), detailed agents and the population alike; extras (performers, drivers)
+   *  are left out (the music and the traffic sound them) */
+  nearPeople(cam: { x: number; y: number; z: number }, radius: number, out: NearPerson[] = []): NearPerson[] {
+    out.length = 0; const r2 = radius * radius;
+    const push = (key: string, a: Agent | null, pid: number, act: string, moving: boolean, x: number, y: number, z: number, group: string | null) => {
+      const dx = x - cam.x, dz = z - cam.z; if (dx * dx + dz * dz > r2 || (!a && pid < 0)) return;
+      out.push(nearPerson(key, this.voiceId(key, a, pid), act, moving, x, y, z, group));
+    };
+    for (const p of this.persons.values()) { if (p.extra || !p.shown) continue; const a = p.agent, vp = p.vpFrame === this.frame ? p.vp : null;
+      const moving = a && !a.offmap ? a.walking : !!vp?.moving; push(p.key, a, p.pid, p.act, moving, p.base[0], p.base[1], p.base[2], a && !a.offmap ? a.task?.place ?? null : vp?.place || null); }
+    for (let i = 0; i < this.nImp; i++) { const e = this.impList[i], a = e.a, vp = e.vp; if (!vp && !a) continue;
+      const act = vp ? vp.act : this.sim!.performance(a!).act, moving = vp ? vp.moving : a!.walking;
+      push(a ? `a${a.id}` : `p${vp!.pid}`, a, vp ? vp.pid : -1, act, moving, e.x, e.y, e.z, vp ? vp.place || null : a!.task?.place ?? null); }
+    return out;
+  }
+  /** D-245: a person's voice plays from `from` to `to` (world time); the voices took them (see Person.claimedAt) */
+  voice(key: string, from: number, to: number, now: number) { const p = this.persons.get(key); if (p) { p.voiceFrom = from; p.voiceTo = to; p.claimedAt = now; } }
+  /** D-245: the talkers the voices hold this frame (their jaw moves only with their voice) */
+  claimVoices(keys: Iterable<string>, now: number) { for (const k of keys) { const p = this.persons.get(k); if (p) p.claimedAt = now; } }
   /** a person is speaking (address → speech line): the jaw moves for `seconds` */
   speaking(agentId: number, seconds: number, now: number) { const p = this.byAgent.get(agentId); if (p) p.speakUntil = now + seconds; }
   /** who plays or sings now (D-200), by person key (a detailed agent `a<id>`, a person of the population `p<pid>`, an
@@ -719,7 +753,7 @@ export class Crowd {
       f.blink = bt >= 0 && bt < 0.15 ? Math.sin((bt / 0.15) * Math.PI) : anim === 'sleep' ? 1 : 0;
       if (!f.look) { f.eyeYaw = 0.12 * Math.sin(time * 0.7 + p.slot) * (Math.sin(time * 0.23 + p.slot * 3) > 0.3 ? 1 : 0); f.eyePitch = 0.05 * Math.sin(time * 0.5 + p.slot * 1.7); }
       // jaw: speaking (addressed), talking, eating
-      const talking = time < p.speakUntil || anim === 'talk';
+      const talking = time < p.speakUntil || (time >= (p.voiceFrom ?? 1) && time < (p.voiceTo ?? 0)) || (anim === 'talk' && !(time - (p.claimedAt ?? -9) < 0.5)); // (D-245)
       if (talking) f.jaw = Math.max(0, 0.15 * Math.abs(Math.sin(time * 10.5 + p.slot)) * (0.6 + 0.4 * Math.sin(time * 3.1 + p.slot)) - (anim === 'talk' && Math.sin(time * 0.8 + p.slot) < 0 ? 0.1 : 0));
       if (anim === 'eat') f.jaw = 0.06 * (0.5 + 0.5 * Math.sin(time * 9 + p.slot));
     } else f.blink = anim === 'sleep' ? 1 : 0;
