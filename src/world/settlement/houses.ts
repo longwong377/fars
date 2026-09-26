@@ -8,8 +8,9 @@
 //    lintels, stone thresholds and pivot stones; small high windows; porticoes, ladders, benches and each household's
 //    things (houseplan.ts).
 //  - FAR (one mesh per cluster, always drawn): walls and roofs as plain boxes with the eave's shadow line; the tiles that
-//    are drawn NEAR are collapsed in its vertex shader (a per-vertex tile centre against the eye), so every house is drawn
-//    exactly once, near or far, and the shadow pass agrees (three's shadow pass uses the material's positionNode).
+//    are drawn NEAR are collapsed in its vertex shader (a per-vertex tile id looked up in a state texture the CPU sets when
+//    it swaps in the merged near meshes), so every house is drawn exactly once, near or far; its shadow pass is not
+//    collapsed (castShadowPositionNode): the far level casts the near houses' shadows too.
 // Street door leaves are the town door system (TownDoors, build.ts): instanced, turning on their pivot posts, shut at night.
 // Every face carries an owner: (plot or fixture description index) × 32 + part, so F3 names the house, the part, its tier
 // and its sources (HOUSE_PARTS). All tier C: no house of Achaemenid Fars is excavated; the analogues are named per part.
@@ -68,7 +69,7 @@ export function doorVar(id: string) { const h = (k: number) => hashString(`${id}
   return { drop: 0.15 * h(1), lh: 0.1 + 0.07 * h(2), bear: 0.15 + 0.17 * h(3), step: h(4) < 0.4 ? 1 : 0, niche: h(5) < 0.75 ? 1 : 0 }; }
 /** the batches a build writes into */
 export interface HB { plaster: Batch; stone: Batch; timber: Batch; brick: Batch; items: Batch; props: Batch }
-export const plasterBatch = (far = false) => { const b = new Batch().addAttr('y0', 1, [-1000]).addAttr('ytop', 1, [1e4]).addAttr('ao', 1, [1]); if (far) b.addAttr('tile', 2, [1e9, 1e9]); return b; };
+export const plasterBatch = (far = false) => { const b = new Batch().addAttr('y0', 1, [-1000]).addAttr('ytop', 1, [1e4]).addAttr('ao', 1, [1]); if (far) b.addAttr('tileId', 1, [0]); return b; };
 export const plainBatch = () => new Batch().addAttr('ao', 1, [1]);
 export const newHB = (): HB => ({ plaster: plasterBatch(), stone: plainBatch(), timber: plainBatch(), brick: plainBatch(), items: plasterBatch(), props: plainBatch() });
 
@@ -178,7 +179,7 @@ export class SiteHouses {
   buildFar(b: Batch) {
     const s = this.s, th = s.frame.theta;
     for (const we of this.walls) { const w = we.w; if (w.kind === 'partition') continue;
-      const t = this.tileInfo(we.tile); b.set('tile', t.x, t.z);
+      b.set('tileId', we.tile + 1); // (texel 0 is never near: see build.ts NEAR_STATE)
       const sp = this.wallSpan(w), along = w.v0 === w.v1, len = along ? w.u1 - w.u0 : w.v1 - w.v0, hu = along ? len / 2 : w.thick / 2, hv = along ? w.thick / 2 : len / 2;
       const c = this.tone(we.plot, 0, false); b.set('y0', sp.gmin).set('ytop', sp.top).set('ao', 1);
       if (w.door) { const yl = Math.max(sp.doorBase, sp.gmax) + DOOR_H; if (sp.top - yl > 0.05) b.box(sp.gm[0], sp.gm[1], th, hu, hv, yl, sp.top, sh(c, 0.9), c, this.owner(we.plot, P.door)); continue; }
@@ -188,7 +189,7 @@ export class SiteHouses {
         const off = w.thick / 2 + o / 2, cu = (w.u0 + w.u1) / 2 + (along ? 0 : sgn * off), cv = (w.v0 + w.v1) / 2 + (along ? sgn * off : 0), g = s.grid(cu, cv);
         b.box(g[0], g[1], th, along ? len / 2 : o / 2, along ? o / 2 : len / 2, R - ROOF_T + ROOF.beam, R - r.fall - 0.012, sh(c, 0.7), c, this.owner(we.plot, P.eave)); } }
     }
-    for (const r of this.rooms) { const t = this.tileInfo(r.tile); b.set('tile', t.x, t.z).set('y0', -1000).set('ytop', 1e4).set('ao', 1);
+    for (const r of this.rooms) { b.set('tileId', r.tile + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 1);
       const c = this.pcol[r.plot], g = s.grid(s.u0 + (r.i0 + r.i1) / 2, s.v0 + (r.j0 + r.j1) / 2);
       b.box(g[0], g[1], th, (r.i1 - r.i0) / 2, (r.j1 - r.j0) / 2, r.R - ROOF_T, r.R - r.fall - 0.012, sh(c, 0.8), c, this.owner(r.plot, P.roof)); }
   }
@@ -199,11 +200,12 @@ export class SiteHouses {
 
   // ---- the near level --------------------------------------------------------------------------------------------------
   /** everything of one tile at full detail */
-  buildTile(tile: number, B: HB, day = 0) {
-    this.day = day;
-    for (const we of this.wallsByTile.get(tile) ?? []) this.wallNear(we, B);
-    for (const r of this.roomsByTile.get(tile) ?? []) this.roomNear(r, B);
-    this.fixturesNear(tile, B);
+  buildTile(tile: number, B: HB, day = 0) { const g = this.tileSteps(tile, B, day); while (!g.next().done) { /* all at once */ } }
+  /** the same, a wall, a room or the fixtures at a time (the prefetch ring is built across frames, B59) */
+  *tileSteps(tile: number, B: HB, day = 0): Generator<void, void, void> {
+    for (const we of this.wallsByTile.get(tile) ?? []) { this.day = day; this.wallNear(we, B); yield; }
+    for (const r of this.roomsByTile.get(tile) ?? []) { this.day = day; this.roomNear(r, B); yield; }
+    this.day = day; this.fixturesNear(tile, B);
   }
   /** the day of the year the near tiles show (seasonal things on the roofs) */
   private day = 0;

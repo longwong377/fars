@@ -113,7 +113,7 @@ describe('surface shaders build (WGSL, node)', () => {
     const sun = new THREE.DirectionalLight(0xffffff, 3); sun.castShadow = true; scene.add(new THREE.HemisphereLight(0xbfd6ff, 0x6b5a45, 0.6), sun, sun.target);
     if (!renderer.backend.device) renderer.backend.device = { limits: { maxUniformBufferBindingSize: 65536, maxStorageBufferBindingSize: 134217728 } };
     const town = new Settlement(null, loadTerrain(), new FireSystem(0), 'test'); const q = town.plan.sites.find(s => s.id === 'q_s1')!;
-    town.nearUpdate(q.frame.c[0], -q.frame.c[1], 0); town.doors.update(0, new THREE.Vector3(q.frame.c[0], 0, -q.frame.c[1]), 3, 20, () => true);
+    town.nearUpdate(q.frame.c[0], -q.frame.c[1], 0, true); town.doors.update(0, new THREE.Vector3(q.frame.c[0], 0, -q.frame.c[1]), 3, 20, () => true);
     const meshes: THREE.Mesh[] = [], seen = new Set<string>();
     town.group.traverse((o: any) => { if (!o.isMesh) return; const k = /:far$/.test(o.name) ? 'far' : /settlement:near:/.test(o.name) ? 'near:' + o.name.split(':').pop() : /settlement-doors/.test(o.name) ? 'doors' : ''; if (k && !seen.has(k)) { seen.add(k); meshes.push(o); } });
     expect([...seen].sort()).toEqual(['doors', 'far', 'near:brick', 'near:items', 'near:plaster', 'near:props', 'near:stone', 'near:timber'].filter(k => seen.has(k) || k !== 'near:brick'));

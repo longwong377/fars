@@ -23,7 +23,7 @@ beforeAll(() => { T = loadTerrain(); fire = new FireSystem(0); town = new Settle
 const houses = (s: Site) => s.plots.filter(p => HOUSE_KINDS.has(p.kind));
 const decode = (o: number) => ({ desc: o >> 5, part: o & 31 });
 /** the houses' far level (its vertices carry their tile's centre) */
-const isFarMesh = (o: any) => !!o.geometry?.getAttribute?.('tile');
+const isFarMesh = (o: any) => !!o.geometry?.getAttribute?.('tileId');
 
 describe('every house built (D-234)', () => {
   it('the far level holds walls and roofs of every house plot; every near tile builds every house of it with walls, roof, eave or parapet and doorways', () => {
@@ -108,11 +108,11 @@ describe('budgets (settlement view ≤ 150 draw calls and ≤ 2 M triangles adde
   it('the far level, and the near tiles at three lane spots: triangles, meshes, the share that casts shadows', () => {
     let far = 0, farMeshes = 0; town.group.traverse((o: any) => { if (o.isMesh && isFarMesh(o)) { far += o.geometry.index.count / 3; farMeshes++; } });
     console.log(`[houses] far level ${(far / 1e6).toFixed(3)} M triangles in ${farMeshes} meshes`); expect(far).toBeLessThan(0.8e6);
-    for (const id of ['q_s1', 'q_w1', 'q_s3']) { const s = town.plan.sites.find(x => x.id === id)!; const t0 = performance.now(); town.nearUpdate(s.frame.c[0], -s.frame.c[1], 0); const ms = performance.now() - t0;
+    for (const id of ['q_s1', 'q_w1', 'q_s3']) { const s = town.plan.sites.find(x => x.id === id)!; const t0 = performance.now(); town.nearUpdate(s.frame.c[0], -s.frame.c[1], 0, true); const ms = performance.now() - t0;
       let cast = 0, all = 0, meshes = 0; town.group.traverse((o: any) => { if (!o.isMesh || !/settlement:near:/.test(o.name) || !o.visible) return; const t = o.geometry.index.count / 3; all += t; meshes++; if (o.castShadow) cast += t; });
       console.log(`[houses] near ${id}: ${town.nearInfo.tiles} tiles, ${meshes} meshes, ${(all / 1e3).toFixed(0)} k triangles (${(cast / 1e3).toFixed(0)} k cast), built in ${ms.toFixed(0)} ms`);
       expect(all).toBeLessThan(0.6e6); expect(cast).toBeLessThan(0.25e6); expect(meshes).toBeLessThanOrEqual(5 * Math.ceil(Math.PI * (NEAR_R + TILE) ** 2 / TILE ** 2)); }
-    town.nearUpdate(1e7, 1e7, 0);
+    town.nearUpdate(1e7, 1e7, 0, true);
   }, 300_000);
 });
 
@@ -136,7 +136,7 @@ describe('no two houses alike (UD-08, D-236: nothing copy-pasted)', () => {
 
 describe('F3 names the house, the part, its tier (D-234; D-228\'s PLACEHOLDER lifted from the near level)', () => {
   it('near faces carry no placeholder and name a part with a tier and sources; far faces are marked as the distant level', () => {
-    const s = town.plan.sites.find(x => x.id === 'q_w1')!; town.nearUpdate(s.frame.c[0], -s.frame.c[1], 0);
+    const s = town.plan.sites.find(x => x.id === 'q_w1')!; town.nearUpdate(s.frame.c[0], -s.frame.c[1], 0, true);
     let near = 0, farN = 0; const parts = new Set<number>(); const bad: string[] = [];
     town.group.traverse((o: any) => { if (!o.isMesh || typeof o.userData.describe !== 'function') return; const n = o.geometry.index.count / 3, isNear = /settlement:near:/.test(o.name), isFar = isFarMesh(o); if (!isNear && !isFar) return;
       for (let f = 0; f < n; f += Math.max(1, Math.floor(n / 400))) { const d = o.userData.describe({ faceIndex: f }); if (!d) { bad.push(`${o.name} ${f}: no description`); continue; }
@@ -146,6 +146,6 @@ describe('F3 names the house, the part, its tier (D-234; D-228\'s PLACEHOLDER li
     console.log(`[houses] F3: ${near} near faces (${parts.size} parts), ${farN} far faces`);
     expect(bad.slice(0, 5)).toEqual([]); expect(parts.size).toBeGreaterThanOrEqual(10);
     for (const p of HOUSE_PARTS.slice(1)) if (p.note) { expect(p.tier).toBe('C'); expect(p.src.length).toBeGreaterThan(3); }
-    town.nearUpdate(1e7, 1e7, 0); void THREE;
+    town.nearUpdate(1e7, 1e7, 0, true); void THREE;
   });
 });

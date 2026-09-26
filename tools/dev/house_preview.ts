@@ -46,7 +46,7 @@ function renderView(a: string[], out: string) {
   const fov = +(a[a[1].includes(':') ? 3 : 6] ?? 60), W = +(process.env.PW ?? a[7] ?? 480), H = +(process.env.PH ?? a[8] ?? 270);
   const [cx, cz, eyeH, gridYaw, pitch] = cam;
   const ey = T.heightAt(cx, cz) + eyeH;
-  town.nearUpdate(cx, cz, 0); town.doors.update(0, new THREE.Vector3(cx, 0, cz), +(process.env.DAY ?? 25), 30, () => true);
+  town.nearUpdate(cx, cz, 0, true); town.doors.update(0, new THREE.Vector3(cx, 0, cz), +(process.env.DAY ?? 25), 30, () => true);
   // camera basis: grid bearing gridYaw (cw from grid north = −z), pitch up
   const yr = (gridYaw * Math.PI) / 180, pr = (pitch * Math.PI) / 180;
   const fwd = new THREE.Vector3(Math.sin(yr) * Math.cos(pr), Math.sin(pr), -Math.cos(yr) * Math.cos(pr)), right = new THREE.Vector3(Math.cos(yr), 0, Math.sin(yr)), up = new THREE.Vector3().crossVectors(right, fwd);
@@ -60,11 +60,11 @@ function renderView(a: string[], out: string) {
   town.group.traverse((o: any) => {
     if (!o.isMesh || !o.visible || !o.geometry?.index) return; if (/haze|water|road|canal/.test(o.name)) return;
     if (o.isInstancedMesh && !/settlement-doors/.test(o.name)) return;
-    const g = o.geometry, P = g.getAttribute('position'), N = g.getAttribute('normal'), C = g.getAttribute('color'), AO = g.getAttribute('ao'), TL = g.getAttribute('tile'), I = g.index; if (!N || !P) return;
+    const g = o.geometry, P = g.getAttribute('position'), N = g.getAttribute('normal'), C = g.getAttribute('color'), AO = g.getAttribute('ao'), TL = g.getAttribute('tileId'), I = g.index; if (!N || !P) return;
     const inst = o.isInstancedMesh ? o.count : 1, M = new THREE.Matrix4(), NM = new THREE.Matrix3(), v3 = new THREE.Vector3();
     for (let q = 0; q < inst; q++) { if (o.isInstancedMesh) { o.getMatrixAt(q, M); NM.getNormalMatrix(M); } else { M.identity(); NM.identity(); }
     for (let t = 0; t < I.count; t += 3) { const ids = [I.getX(t), I.getX(t + 1), I.getX(t + 2)];
-      if (TL && ids.some(i => Math.hypot(TL.getX(i) - eyeXZ.x, TL.getY(i) - eyeXZ.y) < 72)) continue;
+      if (TL && ids.some(i => town.nearTile(TL.getX(i) - 1))) continue;
       const p: number[] = [], n: number[] = [], c: number[] = [], ao: number[] = []; let near = false;
       for (const i of ids) { v3.set(P.getX(i), P.getY(i), P.getZ(i)).applyMatrix4(M); p.push(v3.x, v3.y, v3.z); v3.set(N.getX(i), N.getY(i), N.getZ(i)).applyMatrix3(NM).normalize(); n.push(v3.x, v3.y, v3.z); c.push(C ? C.getX(i) : 0.3, C ? C.getY(i) : 0.3, C ? C.getZ(i) : 0.3); ao.push(AO ? AO.getX(i) : 1); if (Math.hypot(p[p.length - 3] - cx, p[p.length - 1] - cz) < R) near = true; }
       if (near) tris.push({ p, n, c, ao }); } } });

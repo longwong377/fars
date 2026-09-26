@@ -7,7 +7,7 @@ import type { Physics } from '../../player/physics';
 import type { Terrain } from '../../terrain/heightfield';
 import type { FireSystem, FireKind, FireSchedule } from '../fire';
 import { surfaceMaterial } from '../../render/materials';
-import { attribute, positionLocal, uniform, step } from 'three/tsl';
+import { attribute, positionLocal, textureLoad, ivec2, int, float, step } from 'three/tsl';
 import { SiteHouses, plasterBatch, newHB, TILE, NEAR_R, HOUSE_PARTS, seasonOf, type HB } from './houses';
 import { TownDoors } from './towndoors';
 import { fixturesOf, livesOf, HOUSE_KINDS } from './houseplan';
@@ -25,8 +25,11 @@ import { TownHaze } from './haze';
 /** what F3 adds on the far level of the houses (D-234: beyond NEAR_R the houses are drawn as walls and roofs in plain boxes
  *  with the eave's shadow line; their footings, pole ends, spouts, windows, repairs and court things are drawn near only) */
 export const FAR_LOD_NOTE = 'distant level of detail (beyond ~72 m): walls and roofs as plain plastered boxes with the eave line; the footing, pole ends, spouts, windows, repairs and the household\'s things are drawn within ~72 m (D-234).';
-/** the eye (world x, z) the far level collapses its near tiles around, and the radius (houses.ts) */
-export const NEAR_EYE = uniform(new THREE.Vector2(1e9, 1e9)), NEAR_RADIUS = uniform(NEAR_R);
+/** which tiles are drawn near (a texel per tile id + 1; texel 0 never): the far level collapses them in its vertex stage.
+ *  Set only when the merged near meshes are swapped in, so the two always agree, whatever the eye does meanwhile */
+const NS_W = 512, NS_H = 240; export const NEAR_STATE = new THREE.DataTexture(new Uint8Array(NS_W * NS_H * 4), NS_W, NS_H, THREE.RGBAFormat, THREE.UnsignedByteType);
+/** a tile is shown within NEAR_R and hidden beyond NEAR_R + NEAR_HYST (fewer merges as the visitor walks) */
+const NEAR_HYST = 16;
 /** small fittings drawn near only; large ones (ovens, kilns, wells ...) also on the far level */
 const FAR_FITTINGS = new Set(['oven', 'kiln', 'forge', 'well', 'column', 'trough', 'manger']);
 const SKIP_FITTINGS = new Set(['tree', 'channel', 'ditch', 'midden', 'pen_dung', 'pit', 'pool']);
@@ -35,7 +38,7 @@ interface ColBox { x: number; y: number; z: number; hx: number; hy: number; hz: 
 interface Cluster { id: string; c: P2; batches: Map<string, Batch>; desc: Desc[]; far: Batch }
 interface SiteCol { id: string; c: P2; r: number; boxes: ColBox[]; live: any[] | null }
 const NEAR_KEYS = ['plaster', 'stone', 'timber', 'brick', 'items', 'props'] as const;
-interface NearTile { hs: SiteHouses; geo: Partial<Record<keyof HB, { g: THREE.BufferGeometry; owner: Int32Array }>>; tris: number; cl: Cluster; shown: boolean }
+interface NearTile { hs: SiteHouses; geo: Partial<Record<keyof HB, { g: THREE.BufferGeometry; owner: Int32Array }>>; tris: number; cl: Cluster }
 
 const MUD: RGB = [0.56, 0.47, 0.36], TIMBER: RGB = [0.36, 0.26, 0.17], POT: RGB = [0.63, 0.43, 0.3], STONE: RGB = [0.55, 0.53, 0.49], BONE: RGB = [0.82, 0.78, 0.68];
 const shade = (c: RGB, k: number): RGB => [c[0] * k, c[1] * k, c[2] * k], sh = shade;
@@ -71,7 +74,7 @@ export class Settlement {
   private farMeshes: THREE.Mesh[] = [];
   private fitDesc = new Map<string, Int32Array>();
   doors!: TownDoors;
-  readonly nearInfo = { tiles: 0, tris: 0, meshes: 0, buildMs: 0, lastBuildMs: 0, mergeMs: 0 };
+  readonly nearInfo = { tiles: 0, tris: 0, meshes: 0, buildMs: 0, lastBuildMs: 0, mergeMs: 0, syncBuilds: 0, jobBuilds: 0, syncMerges: 0, maxStep: 0, maxMergeStep: 0 };
   constructor(private phys: Physics | null, private terrain: Terrain, fire: FireSystem, quality = 'high') {
     const t0 = performance.now();
     this.fire = fire;
@@ -155,7 +158,8 @@ export class Settlement {
     };
     // D-234: the houses' far level, collapsed where a tile is drawn near (the same test in the shadow pass)
     const far = surfaceMaterial('house_plaster', { vertexColors: true, arch: true, variant: 'far' }) as any;
-    far.positionNode = positionLocal.mul(step(NEAR_RADIUS, attribute('tile', 'vec2').sub(NEAR_EYE).length())); far.aoNode = attribute('ao', 'float');
+    { const id = int(attribute('tileId', 'float')), st = textureLoad(NEAR_STATE, ivec2(id.mod(int(NS_W)), id.div(int(NS_W)))).r;
+      far.positionNode = positionLocal.mul(float(1).sub(step(0.5, st))); } far.aoNode = attribute('ao', 'float');
     // ... but it casts every house's shadow, near ones too (its surfaces lie at or inside the near ones: the roofs at the low
     // edge of their fall), so the near walls, roofs and footings need not cast: a third of the near triangles in the cascades
     far.castShadowPositionNode = positionLocal;
@@ -233,7 +237,7 @@ export class Settlement {
     const fdesc = new Int32Array(s.fittings.length); this.fitDesc.set(s.id, fdesc);
     s.fittings.forEach((f, fi) => {
       fdesc[fi] = cl.desc.length; cl.desc.push({ tier: 'C', src: f.plot >= 0 ? (ROWS[plots[f.plot].row]?.src ?? 'RECON') : 'RECON', note: f.note ?? `${f.kind} (C)` });
-      if (SKIP_FITTINGS.has(f.kind)) { if (f.kind === 'pool') { const b = s.plots[f.plot]?.kind === "garden" ? stone() : cl.far.set("tile", 1e9, 1e9); this.poolKerb(s, f, b, H, b === cl.far ? fdesc[fi] * 32 : fdesc[fi]); } return; } // channels: water.ts
+      if (SKIP_FITTINGS.has(f.kind)) { if (f.kind === 'pool') { const b = s.plots[f.plot]?.kind === "garden" ? stone() : cl.far.set("tileId", 0); this.poolKerb(s, f, b, H, b === cl.far ? fdesc[fi] * 32 : fdesc[fi]); } return; } // channels: water.ts
       const g = s.grid(f.u, f.v), y = H(g[0], g[1]), th = s.frame.theta + f.rot;
       const fireMeta = (sched: FireSchedule) => ({ tier: 'C', src: f.plot >= 0 ? (ROWS[plots[f.plot].row]?.src ?? 'RECON') : 'RECON', note: f.note ?? `${f.kind} (C)`, sched, group: s.id, plot: f.plot >= 0 ? plots[f.plot]?.id : undefined });
       const addFire = (kind: FireKind, e: number, n: number, yy: number, sched: FireSchedule) => { this.fire.add(kind, new THREE.Vector3(e, yy, -n), { ...fireMeta(sched), body: false }); this.fireIdx.push({ site: s.id, kind }); this.info.fires++; };
@@ -248,7 +252,7 @@ export class Settlement {
         case 'column': col.boxes.push({ x: g[0], y: y + f.size / 2, z: -g[1], hx: 0.35, hy: f.size / 2, hz: 0.35, rot: 0 }); break;
         default: break;
       }
-      if (FAR_FITTINGS.has(f.kind)) { const t = hs.tileInfo(hs.tileOfPlotEl(f.plot, f.u, f.v)); cl.far.set('tile', t.x, t.z).set('y0', -1000).set('ytop', 1e4).set('ao', 1); this.fittingGeom(s, f, cl.far, H, fdesc[fi] * 32); }
+      if (FAR_FITTINGS.has(f.kind)) { const t = hs.tileOfPlotEl(f.plot, f.u, f.v); hs.tileInfo(t); cl.far.set('tileId', t + 1).set('y0', -1000).set('ytop', 1e4).set('ao', 1); this.fittingGeom(s, f, cl.far, H, fdesc[fi] * 32); }
     });
   }
   /** a fitting's geometry (hearth ring, oven, kiln, jars, quern, loom ...) into a batch; `d` the owner (description × 32) */
@@ -288,55 +292,83 @@ export class Settlement {
   }
   /** one near tile: the houses at full detail, the fittings in it (houses.ts); geometry per material, kept for merging */
   private buildNear(hs: SiteHouses, tile: number, cl: Cluster): NearTile {
-    const t0 = performance.now(), B = newHB(), s = hs.s, fd = this.fitDesc.get(s.id)!;
-    hs.buildTile(tile, B, this.nearDay);
-    B.items.set('y0', -1000).set('ytop', 1e4).set('ao', 1);
-    s.fittings.forEach((f, fi) => { if (SKIP_FITTINGS.has(f.kind) || hs.tileOfPlotEl(f.plot, f.u, f.v) !== tile) return; this.fittingGeom(s, f, B.items, (e, n) => this.terrain.heightAt(e, -n), fd[fi] * 32); });
-    const geo: NearTile['geo'] = {}; let tris = 0;
-    for (const k of NEAR_KEYS) { const b = B[k]; if (!b.tris) continue; geo[k] = { g: b.toGeometry(), owner: b.owner.slice() }; tris += b.tris; }
-    const ms = performance.now() - t0; this.nearInfo.buildMs += ms; this.nearInfo.lastBuildMs = ms;
-    return { hs, geo, tris, cl, shown: false };
+    const t0 = performance.now(), out: { n?: NearTile } = {}; this.nearInfo.syncBuilds++;
+    const g = this.nearSteps(hs, tile, cl, newHB(), out); while (!g.next().done) { /* at once */ }
+    const ms = performance.now() - t0; this.nearInfo.buildMs += ms; this.nearInfo.lastBuildMs = ms; return out.n!;
   }
-  /** the near tiles round the eye: all within NEAR_R built at once, the next ring one per call (`prefetch`), shown within
-   *  NEAR_R, dropped beyond NEAR_R + 80 m; the shown set merged per material when it changes; the far level's uniform eye
-   *  moved to match */
-  nearUpdate(x: number, z: number, prefetch = 1) {
-    NEAR_EYE.value.set(x, z);
-    let tiles = 0, tris = 0; const shown: number[] = [];
+  /** a prefetch job: the next tile of the ring, built a few milliseconds a frame (B59) */
+  private job: { tile: number; gen: Generator<void, void, void>; out: { n?: NearTile }; ms: number } | null = null;
+  private startJob(hs: SiteHouses, tile: number, cl: Cluster) { const out: { n?: NearTile } = {}; this.job = { tile, gen: this.nearSteps(hs, tile, cl, newHB(), out), out, ms: 0 }; }
+  private runJob(budgetMs: number, all = false): NearTile | null {
+    const j = this.job; if (!j) return null; const t0 = performance.now(); let done = false;
+    while (!done && (all || performance.now() - t0 < budgetMs)) { const t1 = performance.now(); done = !!j.gen.next().done; const d = performance.now() - t1; if (d > this.nearInfo.maxStep) this.nearInfo.maxStep = d; }
+    j.ms += performance.now() - t0; if (!done) return null;
+    this.job = null; this.nearInfo.jobBuilds++; this.nearInfo.buildMs += j.ms; this.nearInfo.lastBuildMs = j.ms; this.near.set(j.tile, j.out.n!); return j.out.n!;
+  }
+  /** one near tile, a step at a time: the houses at full detail (a wall, a room, the fixtures), the fittings in it, each
+   *  material's geometry (houses.ts; F3 names plot and part) */
+  private *nearSteps(hs: SiteHouses, tile: number, cl: Cluster, B: HB, out: { n?: NearTile }): Generator<void, void, void> {
+    yield* hs.tileSteps(tile, B, this.nearDay);
+    const s = hs.s, fd = this.fitDesc.get(s.id)!; let c = 0;
+    B.items.set('y0', -1000).set('ytop', 1e4).set('ao', 1);
+    for (let fi = 0; fi < s.fittings.length; fi++) { const f = s.fittings[fi]; if (SKIP_FITTINGS.has(f.kind) || hs.tileOfPlotEl(f.plot, f.u, f.v) !== tile) continue;
+      this.fittingGeom(s, f, B.items, (e, n) => this.terrain.heightAt(e, -n), fd[fi] * 32); if (++c % 12 === 0) yield; }
+    const geo: NearTile['geo'] = {}; let tris = 0;
+    for (const k of NEAR_KEYS) { const b = B[k]; if (!b.tris) continue; geo[k] = { g: b.toGeometry(), owner: b.owner.slice() }; tris += b.tris; yield; }
+    out.n = { hs, geo, tris, cl };
+  }
+  /** the near tiles round the eye: those within NEAR_R built (at once if missing: a teleport), the next ring one at a time
+   *  a few ms a frame (B59), shown within NEAR_R and kept until NEAR_R + NEAR_HYST, dropped beyond NEAR_R + 80 m. When the
+   *  shown set changes the merged meshes are rebuilt a part at a time and swapped in with the far level's state texture;
+   *  `sync` (tests; a jump) does it at once */
+  nearUpdate(x: number, z: number, prefetch = 1, sync = false) {
+    let tiles = 0, tris = 0; const want: number[] = []; let lost = true;
     for (const hs of this.houses) { const s = hs.s, rs = Math.hypot(s.W, s.H) / 2;
       if (Math.hypot(s.frame.c[0] - x, -s.frame.c[1] - z) > rs + NEAR_R + 120) { for (const [t, n] of this.near) if (n.hs === hs) this.dropNear(t); continue; }
       const cl = this.clusterOfSite.get(s.id)!;
       for (const [t, info] of hs.tiles) { const d = Math.hypot(info.x - x, info.z - z); let n = this.near.get(t);
-        if (d < NEAR_R + 0.25) { if (!n) { n = this.buildNear(hs, t, cl); this.near.set(t, n); } }
-        else if (d < NEAR_R + 40 && !n && prefetch > 0) { prefetch--; n = this.buildNear(hs, t, cl); this.near.set(t, n); }
+        if (d < NEAR_R) { if (!n) { n = this.job?.tile === t ? this.runJob(0, true)! : this.buildNear(hs, t, cl); this.near.set(t, n); } }
+        else if (d < NEAR_R + 40 && !n && prefetch > 0 && !this.job) { prefetch--; this.startJob(hs, t, cl); }
         else if (n && d > NEAR_R + 80) { this.dropNear(t); n = undefined; }
-        if (n) { n.shown = d < NEAR_R + 0.25; if (n.shown) { tiles++; tris += n.tris; shown.push(t); } } } }
-    const key = shown.sort((p, q) => p - q).join(',');
-    if (key !== this.shownKey) { this.shownKey = key; this.mergeNear(shown); }
+        if (n) { const on = d < NEAR_R || (this.shownSet.has(t) && d < NEAR_R + NEAR_HYST); if (on) { want.push(t); tiles++; tris += n.tris; if (this.shownSet.has(t) && d < NEAR_R) lost = false; } } } }
+    if (this.job) { const j = this.job, info = this.tileXZ(j.tile); if (Math.hypot(info.x - x, info.z - z) > NEAR_R + 80) this.job = null; else this.runJob(3); } // 3 ms a frame
+    const key = want.sort((p, q) => p - q).join(',');
+    if (key !== this.wantKey) { this.wantKey = key; this.mergeJob = this.mergeSteps(want); }
+    // a jump (nothing shown round the eye any more) or a test: the merge at once; else a part at a time
+    if (this.mergeJob) { const t0 = performance.now(), all = sync || lost; if (all) this.nearInfo.syncMerges++; let done = false; while (!done && (all || performance.now() - t0 < 4)) { const t1 = performance.now(); done = !!this.mergeJob.next().done; const d = performance.now() - t1; if (!all && d > this.nearInfo.maxMergeStep) this.nearInfo.maxMergeStep = d; } if (done) this.mergeJob = null; this.nearInfo.mergeMs = performance.now() - t0; }
     this.nearInfo.tiles = tiles; this.nearInfo.tris = tris; this.nearInfo.meshes = Object.values(this.merged).filter(m => m && m.visible).length;
   }
-  /** concatenate the shown tiles' geometry per material into one mesh each; F3 finds a face's tile by its range */
-  private mergeNear(shown: number[]) {
-    const t0 = performance.now();
+  private tileXZ(t: number) { return this.houses[Math.floor(t / 4096)].tiles.get(t)!; }
+  private wantKey = ''; private shownSet = new Set<number>(); private mergeJob: Generator<void, void, void> | null = null;
+  /** concatenate the wanted tiles' geometry per material, a part at a time; then swap the merged meshes and the far level's
+   *  state texture in one go (F3 finds a face's tile by its range) */
+  private *mergeSteps(want: number[]): Generator<void, void, void> {
+    const parts0 = want.map(t => ({ t, n: this.near.get(t)! })).filter(q => q.n);
+    const next: Partial<Record<keyof HB, { g: THREE.BufferGeometry; ranges: { f0: number; f1: number; owner: Int32Array; desc: Desc[] }[] } | null>> = {};
     for (const k of NEAR_KEYS) {
-      const parts = shown.map(t => ({ n: this.near.get(t)!, x: this.near.get(t)!.geo[k] })).filter(q => q.x);
-      let m = this.merged[k];
-      if (!parts.length) { if (m) m.visible = false; continue; }
-      if (!m) { m = new THREE.Mesh(new THREE.BufferGeometry(), this.nearMats[k]); m.name = `settlement:near:${k}`; m.castShadow = k === 'props' || k === 'items'; m.receiveShadow = true; m.matrixAutoUpdate = false; m.frustumCulled = false; this.merged[k] = m; this.group.add(m); }
+      const parts = parts0.map(q => ({ n: q.n, x: q.n.geo[k] })).filter(q => q.x);
+      if (!parts.length) { next[k] = null; continue; }
       const g0 = parts[0].x!.g, names = Object.keys(g0.attributes); let nv = 0, ni = 0; for (const q of parts) { nv += q.x!.g.getAttribute('position').count; ni += q.x!.g.index!.count; }
-      const g = new THREE.BufferGeometry();
-      for (const a of names) { const size = g0.getAttribute(a).itemSize, arr = new Float32Array(nv * size); let o = 0; for (const q of parts) { const src = q.x!.g.getAttribute(a).array as Float32Array; arr.set(src, o); o += src.length; } g.setAttribute(a, new THREE.BufferAttribute(arr, size)); }
+      const arrs = names.map(a => ({ a, size: g0.getAttribute(a).itemSize, arr: new Float32Array(nv * g0.getAttribute(a).itemSize), o: 0 }));
       const idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni); let io = 0, vb = 0; const ranges: { f0: number; f1: number; owner: Int32Array; desc: Desc[] }[] = [];
-      for (const q of parts) { const src = q.x!.g.index!.array; for (let i = 0; i < src.length; i++) idx[io + i] = src[i] + vb; ranges.push({ f0: io / 3, f1: (io + src.length) / 3, owner: q.x!.owner, desc: q.n.cl.desc }); io += src.length; vb += q.x!.g.getAttribute('position').count; }
-      g.setIndex(new THREE.BufferAttribute(idx, 1)); g.computeBoundingSphere();
-      m.geometry.dispose(); m.geometry = g; m.visible = true;
+      for (const q of parts) { const g = q.x!.g; for (const A of arrs) { const src = g.getAttribute(A.a).array as Float32Array; A.arr.set(src, A.o); A.o += src.length; }
+        const src = g.index!.array; for (let i = 0; i < src.length; i++) idx[io + i] = src[i] + vb; ranges.push({ f0: io / 3, f1: (io + src.length) / 3, owner: q.x!.owner, desc: q.n.cl.desc }); io += src.length; vb += g.getAttribute('position').count; yield; }
+      const g = new THREE.BufferGeometry(); for (const A of arrs) g.setAttribute(A.a, new THREE.BufferAttribute(A.arr, A.size)); g.setIndex(new THREE.BufferAttribute(idx, 1)); g.computeBoundingSphere();
+      next[k] = { g, ranges }; yield;
+    }
+    // swap
+    for (const k of NEAR_KEYS) { const x = next[k]; let m = this.merged[k];
+      if (!x) { if (m) m.visible = false; continue; }
+      if (!m) { m = new THREE.Mesh(new THREE.BufferGeometry(), this.nearMats[k]); m.name = `settlement:near:${k}`; m.castShadow = k === 'props' || k === 'items'; m.receiveShadow = true; m.matrixAutoUpdate = false; m.frustumCulled = false; this.merged[k] = m; this.group.add(m); }
+      m.geometry.dispose(); m.geometry = x.g; m.visible = true; const ranges = x.ranges;
       m.userData = { tier: 'C', src: 'RECON', note: `houses near (${k})`, describe: (hit: any) => { const f = hit?.faceIndex ?? -1; let lo = 0, hi2 = ranges.length - 1; while (lo < hi2) { const mid = (lo + hi2 + 1) >> 1; if (ranges[mid].f0 <= f) lo = mid; else hi2 = mid - 1; } const r = ranges[lo]; return r && f >= r.f0 && f < r.f1 ? partDesc(r.desc, r.owner[f - r.f0], false) : null; } };
     }
-    this.nearInfo.mergeMs = performance.now() - t0;
+    const st = NEAR_STATE.image.data as Uint8Array; for (const t of this.shownSet) st[(t + 1) * 4] = 0; this.shownSet = new Set(parts0.map(q => q.t)); for (const t of this.shownSet) st[(t + 1) * 4] = 255; NEAR_STATE.needsUpdate = true;
   }
-  private dropNear(t: number) { const n = this.near.get(t); if (!n) return; for (const x of Object.values(n.geo)) x?.g.dispose(); this.near.delete(t); }
+  /** drop a tile built far behind (a shown tile stays until the next swap) */
+  private dropNear(t: number) { if (this.job?.tile === t) this.job = null; if (this.shownSet.has(t)) return; const n = this.near.get(t); if (!n) return; for (const x of Object.values(n.geo)) x?.g.dispose(); this.near.delete(t); }
   /** is tile t drawn near (the eye within NEAR_R of its centre)? */
-  nearTile = (t: number) => !!this.near.get(t)?.shown;
+  nearTile = (t: number) => this.shownSet.has(t);
   /** E on a street door (main.ts, after the palace doors) */
   useDoor(camera: THREE.Camera) { return this.doors?.use(camera) ?? null; }
   /** a ring of hearth stones with ash inside (C) */
