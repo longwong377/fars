@@ -95,6 +95,9 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'beasts-onagers', day: 12, hour: 13, w: 'clear', v: [-13686.8, -13861.5, 1.6, 40.7, -3], fov: 40 },
   { n: 'beasts-cheetahs', day: 12, hour: 13, w: 'clear', v: [-13352, -12966.9, 1.6, 40.7, -3], fov: 40 },
   { n: 'beasts-leopard', day: 12, hour: 13, w: 'clear', v: [1182.4, -92.2, 1.6, 40.7, -3], fov: 40 },
+  // session 9: the planets (src/sky/planets.ts): Mercury and Venus 0.5° apart in the evening twilight of day 29, 13° up at true
+  // azimuth 291° over the plain (tools/dev/planets_467.ts), from the Terrace's W edge
+  { n: 'planets-dusk', day: 29, hour: 19.5, w: 'clear', v: [-36, 125, 1.6, 291, 8], fov: 40 },
   { n: 'night-moon-fire', day: 11, hour: 2.75, w: 'clear', v: [-23.4, 122.5, 1.6, 253.5, 6] },
   { n: 'brazier-close', day: 0, hour: 21.5, w: 'clear', v: [-36.4, 132, 1.6, 161, -8], fov: IN },
   { n: 'apadana-hall-torch', day: 0, hour: 21, w: 'clear', v: [-8, 0, 4.6, 161, 6], fov: IN },

@@ -11,6 +11,7 @@ import { float, vec2, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix
 import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt, earthShadow, UMBRA_BRIGHTNESS, UMBRA_RGB } from './ephemeris';
 import { VolumetricClouds } from './clouds';
 import { Meteors } from './meteors';
+import { Planets } from './planets';
 import { skyCalibration, twilightWeight, TW_HI } from './horizon';
 import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, xyToRenderer, daylightXY, type SkyView, type SkyViewJob } from './atmosphere';
 import { sunNormalLux, skyLux, moonLux, elongationFromFraction, extinctionK, NIGHT_LUX, REN_PER_LUX_SUN, REN_PER_LUX_SKY } from './illuminance';
@@ -59,6 +60,8 @@ export class SkySystem {
   eclipse = { light: 1, sepDeg: 180, active: false };
   /** sporadic meteors (session 9; meteors.ts): main.ts sets `meteors.seed` to the world seed */
   readonly meteors: Meteors;
+  /** the planets (session 9; planets.ts) */
+  readonly planets: Planets;
   private lastStarJD = -1;
   twilight = 1;
   /** radiance of the sky just above the horizon across the view, after calibration: the fog colour (D-060) */
@@ -229,6 +232,7 @@ export class SkySystem {
     this.stars.userData = { tier: 'A', src: 'HYG41', note: 'HYG v4.1 positions + proper motion to 467 BCE, precessed (astronomy-engine)' };
     scene.add(this.stars);
     this.meteors = new Meteors(DOME * 0.88); scene.add(this.meteors.group);
+    this.planets = new Planets(DOME * 0.9); scene.add(this.planets.points);
     this.clouds = new VolumetricClouds(DOME * 0.85, quality, this.air); scene.add(this.clouds.mesh);
     EYE_SKY.sunVisibilityAt = (x, y, z) => this.sunVisibilityAt(x, y, z);
   }
@@ -323,6 +327,7 @@ export class SkySystem {
       this.eclipse = { light, sepDeg: sep, active: light < 0.999 }; }
     this.uNight.value = night * (1 - 0.85 * cloudCover);
     this.meteors.update(jdUT, camPos, this.uNight.value);
+    this.planets.update(jdUT, camPos, s.altitude, cloudCover);
     // faint diffuse light (Milky Way, airglow): only in full darkness, washed out by moonlight, hidden by cloud (C)
     const moonUp = smoothstepJS(-2, 8, mo.altitude);
     this.uMW.value = night * Math.pow(1 - cloudCover, 1.5) * (1 - 0.92 * moonUp * Math.min(1, ph.fraction * 1.6) * this.eclipse.light); // (the Milky Way comes back as an eclipse darkens the moon)
