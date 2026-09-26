@@ -292,3 +292,30 @@ stone R/G 0.72 / 1.01 / 1.07. The weathered wall red-brown and dark where the No
 **Lead's note:** the ground/wall (2.12 vs 0.2) and sky/wall (3.06 vs 0.6) gaps are ~10× and 5×, more than a grade explains;
 with sunlit/shade agreeing with a clear-sky estimate, the likely reading is a much darker weathered wall today plus the
 grade; kept as Q-594 for a second dated photo.
+
+## D-232 the Terrace masonry, Kuh-e Rahmat and the ground from the photographs (merged: worktree-agent-a6564639b147d5c39, 29f5bdd)
+**Broken / unverified first.** No correct render of the new wall layout exists: render 1 drew the 467 wall one flat tone (the
+foot's Voronoi used toVar/assign outside a Fn(): "No stack defined for assign"), render 2 drew the walls BLACK (normalize() of a
+zero vector → NaN, kept by mix() at weight 0, into the arris tilt); both fixed in node with tests that fail on the old code;
+NOT rendered (the lead queued calib-24, calib-24-now, stair-climb-pm: job 401b). REVIEWS/calib24/side_by_side.jpg is render 2
+(the black wall labelled broken). Kuh-e Rahmat's texture at 0.4–2.5 km is still below the photo's (Ystd/Y in 12 px windows
+0.154 → 0.172 vs 0.29; the photo's grade and camera curve; no sub-DEM shadows at low sun; three approaches; B57). The ground
+change affects every view (loam, roads, canal banks, the probe bake's plain and the sky's ground bounce GROUND_RHO ~+35 %;
+shaded faces lighter: calib-24 sun:shade 6.97 → 5.79); only calib-24, calib-24-now and rahmat-west-pm rendered. The layout
+rests on one photograph (#24: 47 courses, 57 blocks, 203 m of wall; far faces read at 0.15–0.2 m/px); the Grand Stair recess
+judged by eye on #33; the foot's stepped plinth not modelled; whether the foot showed above the 467 ground open (C; Q-600..Q-604).
+**Masonry:** photo #24 rectified onto the wall planes with the D-230 camera, joints read on a 0.5 m grid and checked by an
+automatic bed profile (tools/dev/masonry_photo_d232.py). Course height p25/median/p75: photo 0.90/1.10/1.35 m (0.45–1.65),
+before 0.93/1.05/1.18, after 0.90/1.12/1.40; courses < 0.75 m / ≥ 1.5 m: 21/15 % → after 19/20 % (before 0/0); block length:
+photo 2.0/2.2/3.5 m (1.15–7.0), before 1.97/2.30/2.63, after 1.76/2.12/3.58; blocks ≥ 3.5 m 26 % → 27 % (before 0); polygonal foot
+38 % of the W wall's length, 4.84 m high (after 38 %, 4.9 m, placed to match #24), foot cells 4.6 × 1.8 m. Courses from a course
+table (four wall sections + the Grand Stair recess), 1.9 m cells with inner joints at 60 %, split blocks in tall courses, a
+Voronoi foot with 4 mm joints, jogged beds in the stair recess. SITE_SPEC terrace.r_masonry; src/render/masonry.ts; the Now
+view's Terrace uses it (terrace_now). Block tone (13 %) and joint width unchanged.
+**Kuh-e Rahmat:** warm grey-brown (rock 10YR 5/2, scree 10YR 5.75/2, colluvium 10YR 5/3; rock R/G 1.09 → 1.31, B/G 0.87 → 0.69;
+satellite #13 1.22/0.73 through haze); risers 1.12 → 1.22, benches 0.88 → 0.84; a rock/soil/scrub mosaic (±28 % in 6/16/40 m
+patches, footprint-faded). Rendered: calib-24-now mountain R/G 1.15 → 1.22, spread 0.154 → 0.172; rahmat-west-pm face R/G 1.01 →
+1.10, spread 0.087 → 0.113 (patchy and banded). Mountain/sky 0.68 → 0.71 (photo 0.27; the thin bright cloud: B55).
+**Ground:** the plain loam was 10YR 4/2 (a moist soil); now 10YR 5.5/3 (luminance 0.117 → 0.24; roads 10YR 6/3, canal banks 5/3);
+mountain/plain 1.87 → 0.91 (photos 0.75–1.32: #13, #8, #27); calib-24 ground/sunlit wall 0.19 → 0.36 (render 1), sky/ground
+3.02 → 1.65 (photo 1.45); probes re-baked. Tests masonry_d232 (8), ground_d232 (2) and ~35 files. D-232, B57, Q-600..Q-604.
