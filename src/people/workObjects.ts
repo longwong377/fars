@@ -20,11 +20,13 @@ export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field
   // D-215: children's play (gap audit item 26)
   | 'knucklebones' | 'toy_wheeled'
   // D-209: the lan set out before the fire, and the boiled meat of a sacrifice laid on soft grass
-  | 'offering_set' | 'grass_bed';
+  | 'offering_set' | 'grass_bed'
+  // D-255: the crafts and the records
+  | 'anvil' | 'bellows_stand' | 'bellows' | 'stake' | 'weigh_table' | 'sealed_jars' | 'seal_bench' | 'tan_beam' | 'tan_vat' | 'hide_frames' | 'oil_press' | 'oil_jars';
 type RGB = [number, number, number];
 const MUD: RGB = [0.5, 0.41, 0.31], MUD_WET: RGB = [0.36, 0.29, 0.22], BRICK: RGB = [0.62, 0.53, 0.4], STRAW: RGB = [0.72, 0.62, 0.38], STRAW_D: RGB = [0.62, 0.52, 0.3],
   WOOD: RGB = [0.45, 0.33, 0.21], WOOD_D: RGB = [0.34, 0.25, 0.16], STONE: RGB = [0.55, 0.54, 0.52], LIME: RGB = [0.66, 0.64, 0.6], POT: RGB = [0.62, 0.44, 0.3], WOOL: RGB = [0.8, 0.76, 0.66],
-  HIDE: RGB = [0.5, 0.36, 0.23], MEAT: RGB = [0.42, 0.2, 0.16], FAT: RGB = [0.78, 0.72, 0.6], EARTH: RGB = [0.46, 0.39, 0.3], LINEN: RGB = [0.8, 0.77, 0.7];
+  HIDE: RGB = [0.5, 0.36, 0.23], IRON: RGB = [0.3, 0.29, 0.28], MEAT: RGB = [0.42, 0.2, 0.16], FAT: RGB = [0.78, 0.72, 0.6], EARTH: RGB = [0.46, 0.39, 0.3], LINEN: RGB = [0.8, 0.77, 0.7];
 const box = (w: number, h: number, d: number, x = 0, y = 0, z = 0) => new THREE.BoxGeometry(w, h, d).translate(x, y + h / 2, z);
 const mound = (r: number, h: number, seg = 9, x = 0, z = 0) => new THREE.LatheGeometry([[r * 1.02, 0], [r, 0.02], [r * 0.8, h * 0.45], [r * 0.45, h * 0.86], [0, h]].map(([a, b]) => new THREE.Vector2(a, b)), seg).translate(x, 0, z);
 const lathe = (pts: number[][], seg: number) => new THREE.LatheGeometry(pts.map(([a, b]) => new THREE.Vector2(a, b)), seg);
@@ -80,6 +82,19 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   toy_wheeled: { tier: 'C', note: 'a fired-clay animal on four clay wheels on axles, pulled by a cord (wheeled clay animals from Susa and Mesopotamia, RECOLLECTION, NOT SEEN: C; the form, a humped bull, C). The wheels do not turn' },
   offering_set: { tier: 'C', note: 'the lan set out before the fire: barley heaped on a cloth and wine in a clay bowl beside it (barley and wine issued for the lan: PF 1955, HENK2008, B; set out, not poured: Herodotus 1.132 "no libations", read, a Greek claim; the setting-out C: D-209)' },
   grass_bed: { tier: 'B', note: 'the boiled meat of a sacrifice laid on soft grass, trefoil (Herodotus 1.132, read, a Greek claim: B; the grass and the pieces C: D-209)' },
+  // D-255
+  anvil: { tier: 'C', note: 'the smith’s anvil: an iron block on a wooden stump, its face 0.62 m up, a few scales of iron and a spare bar at its foot (iron-working: B; the form C). The forge and its fire are the workshop’s own fitting beside it' },
+  bellows_stand: { tier: 'C', note: 'a goatskin bag bellows on a low stand with a clay nozzle into the forge, worked by hand (bag bellows: Egyptian tomb paintings, B by analogy; RECOLLECTION, NOT SEEN; the stand C)' },
+  bellows: { tier: 'C', note: 'a pair of goatskin bag bellows on the ground with clay nozzles into the forge, pressed in turn by a helper (B by analogy; C)' },
+  stake: { tier: 'C', note: 'a goldsmith’s stake set in a wooden block, a silver bowl on it being chased, and a tray of finished phialai beside (the gold and silver vessels of the Treasury and the shiners who kept them: LIVIUS-TREAS, B; the stake and the work C)' },
+  weigh_table: { tier: 'B', note: 'a low table with the stone weights in a row, the silver in a bowl and a clay tablet for the record (inscribed stone weights of Darius from the Treasury: RECOLLECTION, NOT SEEN, B; silver paid by weight in lieu of rations, PT: B; the table and its things C)' },
+  sealed_jars: { tier: 'B', note: 'two store jars, their mouths closed with a stopper, a cord and a lump of clay rolled with a seal, and a sack tied and sealed the same way (sealings of jars and sacks, the Treasury’s and the Fortification’s: A as objects; RECOLLECTION of Schmidt’s finds, NOT SEEN; the jars C)' },
+  seal_bench: { tier: 'C', note: 'the seal cutter’s low block: the bow drill’s shaft upright on a stone blank, a bowl of wet abrasive sand, two finished cylinder seals (seals in their thousands on the tablets, PFS: A; their cutting at Persepolis C)' },
+  tan_beam: { tier: 'C', note: 'a tanner’s beam: a log sloping from the tanner’s thighs to the ground on two legs, a hide over it, the scrapings of flesh and hair in a heap at its foot and the ground dark round it (hides of the slaughter to the Treasury: PF 58-60, A; tanning C)' },
+  tan_vat: { tier: 'C', note: 'a tanning vat sunk in the ground with a mud-brick rim, the hides soaking in dark liquor (lime or oak-gall tanning; which is not known: C)' },
+  hide_frames: { tier: 'C', note: 'the tannery’s ground: three wooden frames with hides laced in them drying, a heap of lime, the ground stained dark (C)' },
+  oil_press: { tier: 'C', note: 'a stone mortar for pounding roasted sesame, a sack of seed and a basket of the crushed paste beside it (sesame moved and issued in the Fortification texts: PF 56, A; the pounding and the hot-water method of getting the oil C)' },
+  oil_jars: { tier: 'C', note: 'a row of oil jars stoppered and waiting to go to the stores and the lamp keepers, and a clay lamp (C)' },
   throne: { tier: 'B', note: 'the king’s throne and footstool at an audience (court setting, D-199): a high-backed chair on turned legs with lion’s-paw feet, and a footstool, as the Treasury audience relief carves them (TREAS-AUD, B); gilded wood and the sizes C: the seat 0.525 m and the footstool 0.105 m high, fitted to the enthroned pose measured on the rig (anim ENTHRONED); where it stood in the Apadana is not known (C)' },
 };
 
@@ -219,6 +234,61 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
         P(new THREE.SphereGeometry(0.028, 6, 4).translate(0, 0.095, 0.085), CLAY), P(new THREE.SphereGeometry(0.02, 5, 3).translate(0, 0.108, -0.01), CLAY)];
       for (const z of [-0.05, 0.05]) { g.push(P(rod([-0.06, 0.025, z], [0.06, 0.025, z], 0.004, 0.004, 3), WOOD_D)); for (const x of [-0.055, 0.055]) g.push(P(new THREE.CylinderGeometry(0.025, 0.025, 0.012, 7).rotateZ(Math.PI / 2).translate(x, 0.025, z), CLAY)); }
       g.push(P(rod([0, 0.09, 0.11], [0, 0.45, 0.7], 0.0025, 0.0025, 3), [0.72, 0.64, 0.46]));
+      return merge(g); }
+    // ------------------------------------------------ D-255: the crafts and the records (performer's frame)
+    case 'anvil': { const g = [P(new THREE.CylinderGeometry(0.19, 0.21, 0.5, 9).translate(0, 0.25, 0), WOOD_D, 0.9), P(box(0.16, 0.12, 0.26, 0, 0.5, 0), [0.24, 0.23, 0.22], 0.5, 0.7),
+        P(new THREE.ConeGeometry(0.035, 0.09, 5).rotateZ(Math.PI / 2).translate(0, 0.59, 0.17).rotateY(Math.PI / 2), [0.24, 0.23, 0.22], 0.5, 0.7)];
+      g.push(P(box(0.03, 0.03, 0.5, 0.3, 0, -0.1).rotateY(0.4), [0.3, 0.29, 0.28], 0.6, 0.6)); for (let i = 0; i < 5; i++) g.push(P(box(0.03, 0.006, 0.02, 0.25 * jit(i), 0, 0.25 + 0.1 * jit(i, 2)).rotateY(jit(i, 3) * 3), [0.18, 0.16, 0.15], 0.8, 0.3));
+      return merge(g); }
+    case 'bellows_stand': { const SKIN: RGB = [0.46, 0.34, 0.24]; return merge([P(box(0.34, 0.5, 0.3, 0, 0, 0), MUD, 1), P(new THREE.SphereGeometry(1, 8, 5).scale(0.16, 0.08, 0.2).translate(0, 0.56, 0), SKIN, 0.85),
+        P(rod([0.02, 0.56, 0], [0.34, 0.5, -0.05], 0.03, 0.022, 5), POT, 0.9), P(rod([0, 0.64, 0.04], [0, 0.66, 0.14], 0.012, 0.012, 4), WOOD)]); }
+    case 'bellows': { const SKIN: RGB = [0.46, 0.34, 0.24], g: THREE.BufferGeometry[] = [];
+      for (const x of [-0.15, 0.15]) g.push(P(new THREE.SphereGeometry(1, 8, 5).scale(0.13, 0.12, 0.17).translate(x, 0.12, 0), SKIN, 0.85), P(rod([x, 0.1, 0.12], [x * 0.3, 0.12, 0.6], 0.025, 0.02, 5), POT, 0.9));
+      return merge(g); }
+    case 'stake': { const SILVER: RGB = [0.8, 0.79, 0.76]; const g = [P(new THREE.CylinderGeometry(0.14, 0.15, 0.2, 9).translate(0, 0.1, 0), WOOD_D), P(rod([0, 0.2, 0], [0, 0.27, 0], 0.012, 0.012, 5), IRON, 0.6, 0.6),
+        paint(lathe([[0.001, 0.3], [0.03, 0.298], [0.07, 0.282], [0.085, 0.262], [0.083, 0.26]], 10), SILVER, 1, 0.3)];
+      g.push(P(box(0.32, 0.02, 0.22, 0.38, 0, -0.2), WOOD)); for (const [x, z] of [[0.3, -0.24], [0.44, -0.16]]) g.push(paint(lathe([[0.001, 0.02], [0.03, 0.022], [0.07, 0.036], [0.085, 0.056], [0.083, 0.058]], 10).translate(x, 0, z), SILVER, 1, 0.3));
+      return merge(g); }
+    case 'weigh_table': { const DIOR: RGB = [0.16, 0.17, 0.16], SILVER: RGB = [0.78, 0.77, 0.74], top = 0.72; const g = [P(box(0.62, 0.035, 0.4, 0, top - 0.035, 0), WOOD)];
+      for (const x of [-0.27, 0.27]) for (const z of [-0.16, 0.16]) g.push(P(box(0.04, top - 0.035, 0.04, x, 0, z), WOOD_D));
+      for (let i = 0; i < 5; i++) { const r = 0.012 + 0.008 * i; g.push(P(new THREE.SphereGeometry(1, 7, 4).scale(r * 1.6, r, r).translate(-0.24 + i * 0.07 + r, top + r * 0.7, -0.1), DIOR, 0.4)); } // duck-shaped weights, graded
+      g.push(P(lathe([[0.001, 0], [0.06, 0.005], [0.09, 0.035], [0.088, 0.038]], 10).translate(0.12, top, 0.05), POT, 0.8));
+      for (let i = 0; i < 7; i++) g.push(paint(box(0.018, 0.008, 0.012, 0.12 + 0.04 * jit(i), top + 0.02 + 0.004 * i, 0.05 + 0.04 * jit(i, 2)).rotateY(0), SILVER, 1, 0.35));
+      g.push(P(box(0.07, 0.022, 0.05, -0.15, top, 0.1), [0.56, 0.48, 0.37], 0.9));
+      return merge(g); }
+    case 'sealed_jars': { const CLAY: RGB = [0.52, 0.42, 0.3], jarG = (x: number, z: number, sc: number) => [P(lathe([[0.001, 0], [0.13, 0.03], [0.24, 0.3], [0.2, 0.55], [0.1, 0.62], [0.11, 0.66]], 12).scale(sc, sc, sc).translate(x, 0, z), POT, 0.85),
+        P(new THREE.CylinderGeometry(0.1 * sc, 0.1 * sc, 0.03, 10).translate(x, 0.67 * sc, z), CLAY, 0.9), P(new THREE.SphereGeometry(0.045 * sc, 6, 4).scale(1, 0.5, 1).translate(x + 0.02, 0.69 * sc, z), CLAY, 0.9)];
+      return merge([...jarG(0, 0, 0.95), ...jarG(0.62, 0.2, 1.05), P(new THREE.SphereGeometry(1, 8, 5).scale(0.22, 0.28, 0.18).translate(-0.55, 0.26, 0.15), [0.62, 0.55, 0.42], 1),
+        P(new THREE.SphereGeometry(0.03, 5, 3).translate(-0.55, 0.56, 0.1), CLAY, 0.9)]); }
+    case 'seal_bench': { const g = [P(box(0.36, 0.24, 0.3, 0, 0, 0), STONE, 0.8), P(rod([0, 0.24, 0], [0, 0.44, 0], 0.006, 0.006, 4), WOOD), P(new THREE.CylinderGeometry(0.012, 0.012, 0.03, 6).translate(0, 0.255, 0), [0.28, 0.33, 0.52], 0.4)];
+      g.push(P(lathe([[0.001, 0], [0.05, 0.004], [0.07, 0.03], [0.068, 0.032]], 9).translate(0.12, 0.24, 0.06), POT, 0.8), P(new THREE.CylinderGeometry(0.06, 0.06, 0.004, 9).translate(0.12, 0.265, 0.06), [0.52, 0.46, 0.36], 0.4));
+      for (const x of [-0.1, -0.13]) g.push(P(new THREE.CylinderGeometry(0.009, 0.009, 0.03, 6).rotateZ(Math.PI / 2).translate(x, 0.25, 0.08), x < -0.12 ? [0.55, 0.3, 0.2] : [0.28, 0.33, 0.52], 0.4));
+      return merge(g); }
+    case 'tan_beam': { const HIDE_W: RGB = [0.62, 0.52, 0.4], STAIN: RGB = [0.26, 0.2, 0.15]; const a: [number, number, number] = [0, 0.86, 0.32], b: [number, number, number] = [0, 0.05, 1.3];
+      const g = [P(rod(a, b, 0.11, 0.13, 8), WOOD_D), P(rod([-0.2, 0, 0.42], [0, 0.78, 0.4], 0.03, 0.03, 4), WOOD_D), P(rod([0.2, 0, 0.42], [0, 0.78, 0.4], 0.03, 0.03, 4), WOOD_D)];
+      const L = Math.hypot(b[1] - a[1], b[2] - a[2]), ang = Math.atan2(a[1] - b[1], b[2] - a[2]);
+      g.push(P(new THREE.CylinderGeometry(0.135, 0.135, L * 0.8, 10, 1, true, -Math.PI * 0.55, Math.PI * 1.1).rotateX(Math.PI / 2).rotateX(ang).translate(0, (a[1] + b[1]) / 2 + 0.01, (a[2] + b[2]) / 2), HIDE_W, 0.7));
+      g.push(P(box(1.5, 0.004, 1.9, 0, 0, 0.9), STAIN, 1), P(mound(0.22, 0.09, 8, -0.35, 1.25), [0.55, 0.42, 0.34], 0.8));
+      return merge(g); }
+    case 'tan_vat': { const LIQ: RGB = [0.2, 0.15, 0.1]; const g = [P(new THREE.CylinderGeometry(0.62, 0.66, 0.45, 12, 1, true).translate(0, 0.225, 0), MUD, 1), P(new THREE.CylinderGeometry(0.62, 0.62, 0.02, 12).translate(0, 0.39, 0), LIQ, 0.15)];
+      for (let i = 0; i < 3; i++) g.push(P(box(0.5, 0.02, 0.36, 0.2 * jit(i), 0.405, 0.2 * jit(i, 2)).rotateY(jit(i, 3) * 2), HIDE, 0.6));
+      g.push(P(box(0.14, 0.45, 1.4, 0.7, 0, 0), BRICK, 0.95), P(box(0.14, 0.45, 1.4, -0.7, 0, 0), BRICK, 0.95));
+      return merge(g); }
+    case 'hide_frames': { const g: THREE.BufferGeometry[] = [P(box(4.2, 0.004, 2.6, 0, 0, 0), [0.3, 0.24, 0.18], 1), P(mound(0.45, 0.3, 9, -1.7, -0.8), [0.86, 0.85, 0.8], 1)];
+      for (let i = 0; i < 3; i++) { const x = -1.2 + i * 1.2, z = 0.4 + 0.15 * jit(i), yaw = 0.2 * jit(i, 2), f: THREE.BufferGeometry[] = [];
+        for (const sx of [-0.55, 0.55]) f.push(P(rod([sx, 0, 0], [sx, 1.5, 0], 0.03, 0.028, 4), WOOD_D));
+        for (const y of [0.25, 1.4]) f.push(P(rod([-0.58, y, 0], [0.58, y, 0], 0.025, 0.025, 4), WOOD));
+        f.push(P(box(0.95, 1.0, 0.012, 0, 0.32, 0), i === 1 ? [0.66, 0.56, 0.42] : HIDE, 0.8));
+        g.push(merge(f).rotateY(yaw).translate(x, 0, z)); }
+      return merge(g); }
+    case 'oil_press': { const g = [P(new THREE.CylinderGeometry(0.22, 0.26, 0.35, 10, 1, true).translate(0, 0.175, 0), STONE, 0.75), P(new THREE.CylinderGeometry(0.14, 0.14, 0.02, 10).translate(0, 0.28, 0), [0.66, 0.54, 0.36], 1),
+        P(new THREE.RingGeometry(0.14, 0.22, 10).rotateX(-Math.PI / 2).translate(0, 0.35, 0), STONE, 0.75)];
+      g.push(P(new THREE.SphereGeometry(1, 8, 5).scale(0.2, 0.26, 0.17).translate(0.55, 0.24, -0.1), [0.62, 0.55, 0.42], 1), P(new THREE.CylinderGeometry(0.18, 0.14, 0.16, 10, 1, true).translate(-0.5, 0.08, -0.05), [0.6, 0.52, 0.32]),
+        P(mound(0.16, 0.08, 7, -0.5, -0.05).translate(0, 0.08, 0), [0.6, 0.48, 0.3], 0.9));
+      return merge(g); }
+    case 'oil_jars': { const g: THREE.BufferGeometry[] = []; for (let i = 0; i < 4; i++) g.push(P(lathe([[0.001, 0], [0.09, 0.02], [0.14, 0.18], [0.1, 0.34], [0.05, 0.4], [0.055, 0.43]], 10).translate(i * 0.32, 0, 0.03 * jit(i)), POT, 0.8),
+        P(new THREE.CylinderGeometry(0.05, 0.05, 0.03, 8).translate(i * 0.32, 0.43, 0.03 * jit(i)), [0.52, 0.42, 0.3], 0.9));
+      g.push(P(lathe([[0.001, 0], [0.04, 0.004], [0.05, 0.02], [0.048, 0.022]], 8).scale(1, 1, 1.3).translate(-0.3, 0, 0.1), POT, 0.8));
       return merge(g); }
     case 'ard': { // in the ploughman's frame: the stilt rises to his left hand (≈ 0.12, 0.92, 0.5), the share runs in the soil at z ≈ 1.2, the beam goes to the yoke
       // on the oxen's necks in front of the withers (the team walks at z 3.35: animals.ts 'team'; yoke at z 4.05)

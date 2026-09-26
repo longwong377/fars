@@ -23,6 +23,9 @@ const G: Record<string, [St[], number]> = {
   craft: [[M('craft', 'firing the kiln'), M('craft', 'making pigments'), M('craft', 'digging clay by the river'), F('weave')], 3.6],
   homeA: [[F('spin'), F('gather', 'gathering dung and brushwood for the fire'), F('gather', 'shaping dung cakes and setting them on the wall to dry'), F('brew')], 3.4],
   homeB: [[F('cook'), F('wash'), F('clean'), M('garden_work', 'hoeing and weeding the beds')], 3.4],
+  // D-255: the crafts and the records
+  craftsA: [[M('smith', 'forging at the forge of the workshop'), M('smith', 'working the bellows at the forge for the smith'), M('goldsmith', 'chasing a silver bowl on the stake'), M('cut_seal', 'cutting a cylinder seal with the bow drill')], 2.6],
+  craftsB: [[M('weigh', 'weighing silver and goods on the balance', { dress: 'persian', role: 'official' }), M('seal', 'sealing the tablet of the payment'), M('seal', 'sealing the jars and sacks of the store'), M('tan', 'scraping hides on the beam'), M('press_oil', 'pounding roasted sesame in the stone mortar')], 3.2],
   orchard: [[M('garden_work', 'pruning the trees'), M('pick_fruit', 'the vintage: picking grapes'), M('pick_fruit', 'treading the picked grapes in the press'), M('carry_bier')], 4],
 };
 // [shot name, group, camera (x, y, z), target (x, y, z) — relative to the group's centre; time (s)]
@@ -39,6 +42,11 @@ const PAGE2: Shot[] = [
   ['craft', 'craft', [2, 2.3, 8.5], [0, 0.6, 0.5], 3.4], ['home-a', 'homeA', [-2, 2.2, 8.5], [0, 0.6, 0.5], 3.4],
   ['home-b', 'homeB', [2, 2.2, 8.5], [0, 0.6, 0.5], 3.4], ['orchard', 'orchard', [-1.5, 2.5, 10], [0, 0.8, 0.3], 3.4],
   ['haul-25m', 'haul', [18, 7, 18], [0, 0.6, 2], 3.4], ['animals-30m', 'animalsA', [-12, 8, 27], [0, 0.6, 0], 3.4],
+];
+// D-255: the crafts and the records (one page load: ONLY narrows the shots)
+const PAGE3: Shot[] = [
+  ['crafts-a', 'craftsA', [1.5, 2.2, 7], [0, 0.6, 0.5], 5.3], ['crafts-b', 'craftsB', [-1.5, 2.4, 9.5], [0, 0.7, 0.5], 3.4],
+  ['smith', 'craftsA', [-2.6, 1.6, 2.6], [-3.9, 0.7, 0.5], 5.3], ['weigh', 'craftsB', [-5.2, 1.6, 2.4], [-6.4, 1.0, 0.4], 3.4],
 ];
 const ORIGIN = [0, 0, 24]; // clear of the lab's backdrop wall
 
@@ -70,3 +78,4 @@ async function run(page: any, info: any, shots: Shot[]) {
 }
 test('activity performances: fields, animals, offering, archery', async ({ page }, info) => { await run(page, info, PAGE1); });
 test('activity performances: building, crafts, household, orchard, the bier', async ({ page }, info) => { await run(page, info, PAGE2); });
+test('activity performances: the crafts and the records (D-255)', async ({ page }, info) => { await run(page, info, PAGE3); });

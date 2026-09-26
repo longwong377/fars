@@ -76,6 +76,8 @@ export interface GeoOpts {
 }
 
 const T = townJson as any, L = livesJson as any;
+/** D-255: the acts of the Treasury's metal trades (at its metal workshops) */
+const METAL_ACTS = new Set<ActivityId>(['smith', 'goldsmith', 'polish_metal', 'cut_seal']);
 const FAC: Record<string, P2> = Object.fromEntries((T.facilities as any[]).map(f => [f.id, f.at as P2]));
 const S = { spot: salt('popgeo-spot'), ring: salt('popgeo-ring'), dir: salt('popgeo-dir'), vil: salt('popgeo-village'), pick: salt('popgeo-pick') };
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -135,7 +137,7 @@ export class PopGeo {
         if (p.kind === 'garden') this.gardens.push({ si, pi, c }); if (p.kind === 'workshop' || p.kind === 'craft_area') this.workshops.push({ si, pi, c, craft: p.craft ?? '' }); });
         for (const f of s.fittings) if (f.kind === 'well') this.wells.push(s.grid(f.u, f.v)); });
       for (const w of o.town.water) if (w.kind === 'canal' || w.kind === 'ditch' || w.kind === 'channel' || w.kind === 'pool') for (let i = 1; i < w.pts.length; i++) { const [a, b] = [w.pts[i - 1], w.pts[i]], L = Math.hypot(b[0] - a[0], b[1] - a[1]), m = Math.max(1, Math.ceil(L / 25)); for (let k = 0; k <= m; k++) this.water.push([a[0] + (b[0] - a[0]) * k / m, a[1] + (b[1] - a[1]) * k / m]); }
-      const extra: P2[] = [this.stair, [...PLACES.town.at] as P2, ...['mill', 'stockyard', 'brickyard', 'offering_place', 'crown_fields', 'clay_pit', 'river', 'mountain', 'outside'].map(k => FAC[k])];
+      const extra: P2[] = [this.stair, [...PLACES.town.at] as P2, ...['mill', 'stockyard', 'brickyard', 'offering_place', 'crown_fields', 'clay_pit', 'river', 'mountain', 'outside', 'tannery', 'oil_press'].map(k => FAC[k])];
       this.town = TownWalk.fromPlan(o.town, extra);
     } else this.town = null;
     this.villages = o.villages ?? []; this.compoundsOf = o.compounds ?? null; this.canals = o.canals ?? [];
@@ -300,7 +302,15 @@ export class PopGeo {
       case 'outside': return tail ? this.outside(pid, q, day, 90, 220, 'gathering ground outside') : this.burial(pid, act, day);
       case 'garden': return this.garden(pid, q, day);
       case 'estate': { const x = this.housePlot(parseInt(q, 10), pid); if (!x || !this.plan) return this.none(place, 'estate plot not built'); return this.inPlot(this.plan.sites[x[0]], x[1], pid, place, indoor, 'town', undefined, 'estate: ') ?? this.none(place, 'estate plot empty'); }
-      case 'ws': { const a = T.treasury_workshops.around, c: P2 = [a[0] + (+tail - 1.5) * 150, a[1]]; return this.workshop(pid, place, c, ['metal', 'wood', 'textile', 'pottery'], 12, indoor, 'treasury workshop: '); }
+      // (D-255: the metal trades of the Treasury's workshops, the goldsmiths, the shiners and the seal cutters, at its metal
+      // workshops, the forge's work at the forge)
+      case 'ws': { const a = T.treasury_workshops.around, c: P2 = [a[0] + (+tail - 1.5) * 150, a[1]]; const metal = METAL_ACTS.has(act);
+        return this.workshop(pid, place, c, metal ? ['metal'] : ['metal', 'wood', 'textile', 'pottery'], metal ? 6 : 12, indoor, 'treasury workshop: ', act === 'smith' ? day : undefined); }
+      // D-255: the tannery by the canal NE of the Terrace, downwind of the town, and the sesame-oil press by the royal stores:
+      // not built; their people work in the open at the town.json places with the beams, vats, frames, mortars and jars their
+      // performances carry (activities.ts; C)
+      case 'tannery': return this.openNear(FAC.tannery, 10, pid, place, 'the tannery by the canal: NOT BUILT, open ground at its town.json place; its beams, vats and drying frames are drawn with the tanners (C)');
+      case 'oil_press': return this.openNear(FAC.oil_press, 7, pid, place, 'the sesame-oil press by the royal stores: NOT BUILT, open ground at its town.json place; its mortars and jars are drawn with the pressers (C)');
       case 'ws_textile': return this.workshop(pid, place, [-700, -1000], ['textile'], 10, indoor, 'textile workshop: ');
       case 'brewery': return this.workshop(pid, place, FAC.brewery, ['brewery'], 3, indoor, 'brewery: ');
       case 'craft_zone': { const x = this.plotIx.get('pw_area_b-yard'); if (!x || !this.plan) return this.none(place, 'Area B not built'); return this.inPlot(this.plan.sites[x[0]], x[1], pid, 'craft_zone', indoor, 'town', undefined, 'Area B craft yard: ') ?? this.none(place, 'empty'); }
@@ -433,6 +443,7 @@ export class PopGeo {
   private home(pid: number, hh: number, act: ActivityId, indoor: boolean, day: number): Spot {
     const H = this.pop.households[hh]; if (!H) return this.none('h', 'no household');
     if (H.zone === 'town') { const x = this.housePlot(hh, pid); if (!x || !this.plan) return this.none('h', 'no house plot');
+      if (act === 'smith') { const f = this.forgeSpot(this.plan.sites[x[0]], x[1], pid, day); if (f) return f; } // D-255: the smith of the house at its forge
       return this.inPlot(this.plan.sites[x[0]], x[1], pid, `h:${hh}`, indoor, 'town', undefined, hh === this.pop.home(pid, day) ? 'home: ' : 'visit: ') ?? this.none('h', 'plot has no cells'); }
     if (H.zone === 'plain') { const m = this.villageOf(hh); if (!m) return this.none('h', 'village not built'); const V = this.vsite(m.vi), p = V.site.plots[m.ci];
       return this.inPlot(V.site, p.idx, pid, `h:${hh}`, indoor, 'village', m.vi, `village ${this.villages[m.vi].id}: `) ?? this.none('h', 'compound empty'); }
@@ -497,13 +508,32 @@ export class PopGeo {
     if (best) return this.inPlot(this.plan.sites[best.si], best.pi, pid, `garden:${q}`, false, 'town', undefined, 'garden: ') ?? this.none('garden', 'empty garden');
     return this.outside(pid, q, day, 15, 60, 'garden ground at the edge of the quarter (not built: C)');
   }
-  /** workers of a workshop group spread over the `n` workshop plots of its crafts nearest its place (C) */
-  private workshop(pid: number, place: string, c: P2, crafts: string[], n: number, indoor: boolean, what: string): Spot {
+  /** workers of a workshop group spread over the `n` workshop plots of its crafts nearest its place (C); `forgeDay`: the
+   *  worker is at the workshop's forge that day (D-255) */
+  private workshop(pid: number, place: string, c: P2, crafts: string[], n: number, indoor: boolean, what: string, forgeDay?: number): Spot {
     if (!this.plan) return this.none(place, 'no town');
     const cand = this.workshops.filter(w => crafts.includes(w.craft)).map(w => ({ w, d: Math.hypot(w.c[0] - c[0], w.c[1] - c[1]) })).sort((a, b) => a.d - b.d).slice(0, n);
     if (!cand.length) return this.none(place, 'no workshop of that craft');
-    const w = cand[Math.floor(this.hash(pid, place, 19) * cand.length)].w;
+    const fg = forgeDay !== undefined ? this.pop.treasuryForge(pid, forgeDay) : null; // (D-255: the day's pairs at the forges, in turn)
+    const w = cand[fg ? fg.slot % cand.length : Math.floor(this.hash(pid, place, 19) * cand.length)].w;
+    if (forgeDay !== undefined) { const f = this.forgeSpot(this.plan.sites[w.si], w.pi, pid, forgeDay); if (f) return f; }
     return this.inPlot(this.plan.sites[w.si], w.pi, pid, place, indoor, 'town', undefined, what) ?? this.none(place, 'empty workshop');
+  }
+  /** D-255: at a metal workshop's forge (its 'forge' fitting, the 'anvil' fitting giving the side the court opens to): the
+   *  smith 0.85 m from the forge toward the anvil fitting, square to that line with the forge's fire on his left (the smith
+   *  performance's anvil, bellows and quench jar are placed about him: activities.ts); the helper at the bellows (a boy, or
+   *  the second smith of the house, or by the day's lot one smith of two at a Treasury workshop) squatting 0.95 m from the
+   *  forge on the court side, facing it. Null: the plot has no forge */
+  private forgeSpot(s: Site, pi: number, pid: number, day: number): Spot | null {
+    const f = s.fittings.find(x => x.plot === pi && x.kind === 'forge'); if (!f) return null;
+    const a = s.fittings.find(x => x.plot === pi && x.kind === 'anvil'), F = s.grid(f.u, f.v), P = s.plots[pi], [i0, j0, i1, j1] = P.rect, C = s.grid((s.cu(i0) + s.cu(i1 - 1)) / 2, (s.cv(j0) + s.cv(j1 - 1)) / 2);
+    const to = a ? s.grid(a.u, a.v) : C, L0 = Math.hypot(to[0] - F[0], to[1] - F[1]) || 1, d: P2 = [(to[0] - F[0]) / L0, (to[1] - F[1]) / L0];
+    const helper = this.pop.forgeHelper(pid, day);
+    let e: number, n: number, head: number;
+    if (!helper) { e = F[0] + 0.85 * d[0]; n = F[1] + 0.85 * d[1]; head = headingOf(-d[1], d[0]); }
+    else { let p: P2 = [-d[1], d[0]]; if (p[0] * (C[0] - F[0]) + p[1] * (C[1] - F[1]) < 0) p = [d[1], -d[0]]; e = F[0] + 0.95 * p[0]; n = F[1] + 0.95 * p[1]; head = headingOf(F[0] - e, F[1] - n); }
+    const [u, v] = toLocal(s.frame, e, n), k = s.k(s.ci(u), s.cj(v)), court = s.cell[k] === pi && s.sub[k] === COURT;
+    return this.sp(e, n, true, head, 'town', `${helper ? 'at the bellows of the forge' : 'at the forge'} of ${P.id}`, court ? { plot: this.plotKey('town', s, pi), wall: Math.min(P.yardWall, P.height) } : {});
   }
   private compound(pid: number, site: string, place: string, indoor: boolean, what: string): Spot {
     if (!this.plan) return this.none(place, 'no town'); const si = this.siteIx.get(site); if (si === undefined) return this.none(place, `${site} not built`);

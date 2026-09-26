@@ -79,6 +79,12 @@ const RULES: [RegExp, ActivityId[]][] = [
   [/^(resting|nursing|stopping to nurse)/, ['rest', 'lie_ill']],
   [/^(on watch|standing in at the post)/, ['stand_guard']], [/^(in the queue|waiting for the ration)/, ['queue']],
   [/^kneading/, ['knead']], [/^baking/, ['bake']],
+  // D-255 (REVIEWS/escapes.md: silver "weighing" performed as `inspect`, hands clasped, passed the activity lint): the crafts'
+  // and the records' words fix their performances, in a Treasury workshop's words too
+  [/^(treasury workshop: )?weighing/, ['weigh']], [/^(treasury workshop: )?sealing/, ['seal']],
+  [/^(treasury workshop: )?(forging|working the bellows)/, ['smith']], [/^(treasury workshop: )?(chasing|raising)/, ['goldsmith']],
+  [/^(treasury workshop: )?cutting a (cylinder )?seal/, ['cut_seal']], [/^(scraping hides|turning the hides)/, ['tan']],
+  [/^(pounding roasted sesame|skimming the oil)/, ['press_oil']],
 ];
 const reasonCache = new Map<string, boolean>();
 export function reasonOk(act: ActivityId, why: string) {
@@ -164,7 +170,9 @@ const DUST_IDLE = (s: Seg) => !/^a dispute/.test(s.why) // (a quarrel at the wel
     || (/^(rest|sleep)$/.test(s.act) && (s.place.startsWith('lane:') || OPEN_WHY.test(s.why))));
 /** (b) out-of-doors work that needs daylight */
 export const LIGHT_ACTS = new Set<ActivityId>(['herd', 'tend_animals', 'field_work', 'reap', 'thresh', 'plough', 'dig_canal', 'irrigate', 'pick_fruit', 'garden_work', 'gather', 'craft',
-  'write_tablet', 'dress_stone', 'mould_brick', 'lay_brick', 'haul', 'shear', 'slaughter', 'wash', 'gamble', 'exchange', 'spin', 'weave', 'polish_metal', 'work_wood', 'clean', 'train', 'inspect']);
+  'write_tablet', 'dress_stone', 'mould_brick', 'lay_brick', 'haul', 'shear', 'slaughter', 'wash', 'gamble', 'exchange', 'spin', 'weave', 'polish_metal', 'work_wood', 'clean', 'train', 'inspect',
+  // D-255
+  'smith', 'goldsmith', 'weigh', 'seal', 'cut_seal', 'tan', 'press_oil']);
 const LIT = /lamp|torch|by the fire|the fire\b|moon/;
 /** (b) work done in the dark by its nature (C): a night turn of the irrigation water, the flock watched at night by turns, the
  *  ewes at lambing */
@@ -342,7 +350,7 @@ export function invariants(P: Population, pid: number, d: number, segs: Seg[], p
   return out;
 }
 /** (o) work on a festival day off (the Terrace is checked by its place) */
-const FEST_WORK = /^(dress_stone|haul|lay_brick|mould_brick|reap|thresh|plough|field_work|dig_canal|irrigate|garden_work|pick_fruit|brew|polish_metal|work_wood|shear|slaughter|write_tablet)$/;
+const FEST_WORK = /^(dress_stone|haul|lay_brick|mould_brick|reap|thresh|plough|field_work|dig_canal|irrigate|garden_work|pick_fruit|brew|polish_metal|work_wood|shear|slaughter|write_tablet|smith|goldsmith|weigh|seal|cut_seal|tan|press_oil)$/;
 /** (q) the words of a baby, a newborn, a feed */
 const BABY_WORDS = /\bthe baby\b|with the newborn|^nursing\b|stopping to nurse/;
 /** (g) the cap on a day's stage on foot (C: a family's stage with its old and little ones, and a day's road walk) */

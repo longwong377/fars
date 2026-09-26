@@ -718,7 +718,7 @@ export class Crowd {
       const want = P.prop ?? load;
       prop1 = want ? (want === 'bread' ? 'basket' : want) : null; prop2 = P.prop2 ?? null;
       if (prop1 === 'spear') prop1 = this.spearOf(p, vp);
-      if (po.hit && !p.lastHit && d < 60) this.onHit?.(P.sound ?? 'chisel', _v.set(p.root[0], p.root[1], p.root[2]).clone());
+      if (po.hit && !p.lastHit && d < 60) this.onHit?.(po.hitKind ?? P.sound ?? 'chisel', _v.set(p.root[0], p.root[1], p.root[2]).clone());
       p.lastHit = !!po.hit;
     } else po = pose(anim, time + p.t0, time * 4.2, p.animK);
     // coats, weapons on the back and hats are laid aside while seated, crouched or asleep (they would pass through the ground; C)
@@ -815,7 +815,7 @@ export class Crowd {
   private soundsOnly(p: Person, d: number, time: number) {
     if (d > 60 || !p.perf?.sound) return; const a = p.agent;
     const po = pose(p.anim, this.cycleT(p, time), a ? a.gait : p.gaitPh, p.animK);
-    if (po.hit && !p.lastHit) this.onHit?.(p.perf.sound, new THREE.Vector3(p.root[0], p.root[1], p.root[2])); p.lastHit = !!po.hit;
+    if (po.hit && !p.lastHit) this.onHit?.(po.hitKind ?? p.perf.sound, new THREE.Vector3(p.root[0], p.root[1], p.root[2])); p.lastHit = !!po.hit;
   }
   /** props not drawn this frame because their class was full (stats) */
   private propsDropped = 0;

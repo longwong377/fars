@@ -267,7 +267,9 @@ describe('crowd: performers with their things and animals (budgets)', () => {
     ms.sort((a, b) => a - b); const st = crowd.stats();
     console.log(`performers: ${st.people} in view; CPU median ${ms[45].toFixed(2)} ms, p95 ${ms[85].toFixed(2)} ms; props ${st.props} in ${st.propDraws} draws; work objects ${st.things.instances} in ${st.things.draws} draws (${(st.things.triangles / 1e3).toFixed(0)} k tris) ${JSON.stringify(st.things.kinds)}; animals ${st.animals.instances} in ${st.animals.draws} draws (${(st.animals.triangles / 1e3).toFixed(0)} k tris) ${JSON.stringify(st.animals.species)}; people ${(st.triangles / 1e6).toFixed(2)} M tris in ${st.draws} draws`);
     expect(st.placeholderActs).toBe(0);
-    expect(st.propDraws).toBeLessThanOrEqual(2); expect(st.props).toBeLessThanOrEqual(2 * CARRIED_MAX);
+    // (the small objects' and the long tools' unions, both full, and D-255's crafts' tools, a class drawn only where a craft
+    // is worked: this crowd works every craft. The unions' triangle budgets above are unchanged)
+    expect(st.propDraws).toBeLessThanOrEqual(3); expect(st.props).toBeLessThanOrEqual(3 * CARRIED_MAX);
     expect(st.animals.draws).toBeLessThanOrEqual(SPECIES.length); expect(st.things.draws).toBeLessThanOrEqual(Object.keys(WORK_NOTES).length);
     expect(st.things.triangles + st.animals.triangles).toBeLessThan(1.2e6);
     expect(st.animals.dropped, 'animals over the instance cap').toBe(0); expect(st.things.dropped, 'work objects over the instance cap').toBe(0);

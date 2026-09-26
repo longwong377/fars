@@ -413,7 +413,7 @@ export class PeopleSim {
     }
     // D-221: the Treasury's scribes sit at their places round the desk's things (site_spec treasury.scribes_room.seats, C):
     // the Elamite scribe at the desk facing E, the Aramaic secretary SE of him facing WNW; writing, eating, resting there
-    if (pl === 'treasury_desk' && a.role === 'scribe' && (act === 'write_tablet' || act === 'eat' || act === 'rest')) {
+    if (pl === 'treasury_desk' && a.role === 'scribe' && (act === 'write_tablet' || act === 'seal' || act === 'eat' || act === 'rest')) {
       const S = deskSeat(a.langs[0] === 'Aramaic' ? 'aramaic' : 'elamite'); return this.task(act, pl, S.at, act === 'rest' ? end : chunk(0.3, 1.2), why, S.heading); }
     // the plan's act at the plan's place (meals, rest, talk and knucklebones at the hearths, writing at the desk, …)
     const jitter = PLACES[pl]?.kind === 'hearth' ? 2.6 : PLACES[pl]?.kind === 'post' ? 0 : 2;
@@ -616,7 +616,7 @@ export class PeopleSim {
   }
   /** every activity a detailed agent can perform in the rendered world (for the activity lint); off the Terrace an agent
    *  is hidden and takes the population's activity, which may be an abstract-only placeholder (activities.ts) */
-  static readonly EMITS: ActivityId[] = ['craft', 'walk', 'carry_sack', 'carry_jar_head', 'carry_bread', 'stand_guard', 'patrol', 'dress_stone', 'grind', 'knead', 'bake', 'draw_water', 'write_tablet', 'eat', 'sleep', 'talk', 'rest', 'gamble', 'inspect', 'shelter', 'play', 'queue', 'lie_ill', 'offmap'];
+  static readonly EMITS: ActivityId[] = ['craft', 'walk', 'carry_sack', 'carry_jar_head', 'carry_bread', 'stand_guard', 'patrol', 'dress_stone', 'grind', 'knead', 'bake', 'draw_water', 'write_tablet', 'seal', 'eat', 'sleep', 'talk', 'rest', 'gamble', 'inspect', 'shelter', 'play', 'queue', 'lie_ill', 'offmap'];
   /** a bounded set of the detailed people for the renderer: on the Terrace (not off-map), within `radius` of `centre`,
    *  nearest first, at most `max` (crowd pooling will draw these; D-024) */
   visibleAgents(centre: P2, radius: number, max = Infinity): Agent[] {

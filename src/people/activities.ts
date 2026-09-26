@@ -25,7 +25,9 @@ export type ActivityId =
   // the king and his attendants (court setting only, D-199)
   | 'royal_walk' | 'enthroned' | 'bear_parasol' | 'attend_parasol' | 'bear_whisk' | 'attend_whisk'
   // the magi's fire, the households' sacrifices and the funerals (D-209)
-  | 'tend_fire' | 'chant' | 'sacrifice' | 'cut_offering' | 'bury' | 'mourn';
+  | 'tend_fire' | 'chant' | 'sacrifice' | 'cut_offering' | 'bury' | 'mourn'
+  // D-255: the crafts and the records (WORLD_INVENTORY G20, G26-G29, GB4, GB13)
+  | 'smith' | 'goldsmith' | 'weigh' | 'seal' | 'cut_seal' | 'tan' | 'press_oil';
 
 /** props an activity can put in the hands (props.ts PROPS) */
 export type PropKind = 'spear' | 'sack' | 'jar' | 'jar_head' | 'tablet' | 'mallet' | 'basket' | 'bread'
@@ -39,9 +41,12 @@ export type PropKind = 'spear' | 'sack' | 'jar' | 'jar_head' | 'tablet' | 'malle
   // D-209: the magus's barsom
   | 'barsom'
   // D-221: the scribes' writing things
-  | 'stylus' | 'pen' | 'leather';
+  | 'stylus' | 'pen' | 'leather'
+  // D-255: the crafts' and the records' tools
+  | 'hammer' | 'tongs' | 'hammer_s' | 'punch' | 'balance' | 'seal_cyl' | 'drill_bow' | 'scraper' | 'pestle';
 /** sounds a performance makes (soundscape.ts strike kinds; 'murmur' and 'footsteps' are layers, 'fire' the fire's own) */
-export type SoundKind = 'chisel' | 'quern' | 'fire' | 'murmur' | 'footsteps' | 'dice' | 'water' | 'hoe' | 'sickle' | 'loom' | 'trowel' | 'adze' | 'mould' | 'wash' | 'broom' | 'bow' | 'bleat';
+export type SoundKind = 'chisel' | 'quern' | 'fire' | 'murmur' | 'footsteps' | 'dice' | 'water' | 'hoe' | 'sickle' | 'loom' | 'trowel' | 'adze' | 'mould' | 'wash' | 'broom' | 'bow' | 'bleat'
+  | 'hammer' | 'bellows' | 'chase' | 'clink' | 'drill' | 'scrape' | 'pound';
 /** a thing at the place (workObjects.ts), in the performer's frame (m: right −x / left +x, ahead +z; yaw rad). `follow`:
  *  moves with the performer's own path (the ard behind the team); `shared`: one for everyone doing it at the same place
  *  (the threshing floor, the drum on its sledge) or in the same group (the bier) */
@@ -257,6 +262,31 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     note: 'at dusk the hearth fire is lit and the evening meal warmed: squatting at the hearth, stirring the pot, feeding sticks under it (§9.2; C). The fire itself is the settlement’s hearth',
     variants: [{ when: /meat of the offering/, work: [{ kind: 'hearth_pot', at: [0, 0, 0.58] }, { kind: 'brushwood', at: [-0.75, 0, 0.12] }, { kind: 'grass_bed', at: [0.95, 0, 0.45] }],
       note: 'boiling the meat of a sacrifice in a pot on a small fire of brushwood at the precinct, the soft grass laid ready beside (Herodotus 1.132 "after boiling the flesh, spreads the softest grass", read, a Greek claim: B; the fire is the pot\'s, not an altar fire: C, D-209)' }] },
+  // ============================================ D-255: the crafts and the records (WORLD_INVENTORY G20, G26-G29, GB4, GB13; research/CRAFTS.md)
+  smith: { anim: 'smith', prop: 'hammer', prop2: 'tongs', sound: 'hammer', tier: 'C',
+    work: [{ kind: 'anvil', at: [0.02, 0, 0.55] }, { kind: 'bellows_stand', at: [0.36, 0, 0.3] }, { kind: 'jar', at: [-0.4, 0, 0.62] }],
+    note: 'a smith at the forge of a metal workshop: the bar held at a red heat in the tongs on the anvil and hammered, turned, hammered; laid back in the fire of the workshop’s forge on his left while he works the bag bellows with his right hand; every third heat quenched in the water jar first. The sounds are the blows, the bellows’ breath and the hiss of the quench (metal workshops among the Treasury’s craftsmen, PT: B; iron-working in the period B; the smith’s forms and motions C: research/CRAFTS.md)',
+    variants: [{ when: /bellows/, anim: 'bellows', prop: undefined, prop2: undefined, sound: 'bellows', work: [{ kind: 'bellows', at: [0, 0, 0.42] }],
+      note: 'working the pair of bag bellows at the forge for the smith, squatting, the bags pressed in turn with the hands, their clay nozzles into the fire (bag bellows: Egyptian tomb paintings, B by analogy, there trodden; C)' }] },
+  goldsmith: { anim: 'chasing', prop: 'punch', prop2: 'hammer_s', sound: 'chase', tier: 'B', work: [{ kind: 'stake', at: [0, 0, 0.42] }],
+    note: 'a goldsmith of the Treasury chasing a silver bowl on a stake set in a block: a punch held on the metal in the left hand and tapped with a small hammer, moved on along the line (goldsmiths among the Treasury craftsmen, PT: B; chased and repoussé vessels of the period B; the stake and the motion C)',
+    variants: [{ when: /raising|forging/, prop: undefined, note: 'a goldsmith raising a sheet of gold or silver into a bowl over the stake, the left hand turning it under the small hammer’s blows (PT goldsmiths: B; the work C)' }] },
+  weigh: { anim: 'weigh', prop: 'balance', sound: 'clink', tier: 'B', work: [{ kind: 'weigh_table', at: [0, 0, 0.45] }],
+    note: 'weighing silver on a hand balance at the Treasury: the balance held up by its cord, a stone weight or the silver laid in a pan, the beam watched until it settles; the weights graded in a row on the table (silver paid by weight in lieu of rations, PT via E-05: B; inscribed stone weights of Darius from the Treasury: RECOLLECTION, NOT SEEN; the balance’s form C). Was performed as `inspect`, hands clasped, with nothing in them (REVIEWS/escapes.md)' },
+  seal: { anim: 'seal', prop: 'tablet', prop2: 'seal_cyl', tier: 'B',
+    note: 'sealing a clay tablet: the tablet on the left palm, a cylinder seal rolled across it under the fingers of the right hand, the edge turned and rolled too (the rollings on the Fortification and Treasury tablets, PFS: A; the posture C). Silent',
+    variants: [{ when: /jars|sacks|stopper|store/, anim: 'seal_jar', prop: 'seal_cyl', prop2: undefined, work: [{ kind: 'sealed_jars', at: [0, 0, 0.45] }],
+      note: 'sealing the store’s jars and sacks: a lump of clay pressed over the stopper and the cord and a seal rolled over it (sealings of jars and sacks: A as objects; RECOLLECTION of the Treasury’s finds, NOT SEEN; C). Silent' }] },
+  cut_seal: { anim: 'drill', prop: 'drill_bow', sound: 'drill', tier: 'C', work: [{ kind: 'seal_bench', at: [0, 0, 0.38] }],
+    note: 'a seal cutter at his block working a stone cylinder with the bow drill, the drill’s cap pressed down with the left hand, the bow drawn back and forth, wet sand for the cutting (seals by the thousand on the tablets, PFS: A; their cutting at Persepolis and the workers C: WORLD_INVENTORY G29)' },
+  tan: { anim: 'scrape', prop: 'scraper', sound: 'scrape', tier: 'C', work: [{ kind: 'tan_beam', at: [0, 0, 0] }, { kind: 'hide_frames', at: [2.6, 0, 1.2], shared: 'place' }],
+    note: 'a tanner at the beam: a hide over the sloping log, the flesh and then the hair scraped off with a two-handled scraper; the drying frames, the lime heap and the stained ground of the tannery about him (hides of the slaughter to the Treasury and its workshops: PF 58-60, CE-07: A; tanning and its methods C). The flies are heard there (D-210 flies)',
+    variants: [{ when: /soaking|vat|liquor/, anim: 'stir', prop: 'paddle', sound: undefined, work: [{ kind: 'tan_vat', at: [0, 0, 0.72] }, { kind: 'hide_frames', at: [2.6, 0, 1.2], shared: 'place' }],
+      note: 'turning the hides in the tanning vat with a pole (C)' }] },
+  press_oil: { anim: 'pound', prop: 'pestle', sound: 'pound', tier: 'C', work: [{ kind: 'oil_press', at: [0, 0, 0.42] }, { kind: 'oil_jars', at: [1.2, 0, 0.5], shared: 'place' }],
+    note: 'pounding roasted sesame in a stone mortar with a long pestle, for its oil (sesame in the Fortification texts, PF 56: A; sesame oil the Near East’s lamp and cooking oil: B by analogy; the pounding and the hot-water method C: research/CRAFTS.md)',
+    variants: [{ when: /skimming|hot water|the oil off/, anim: 'cook', prop: 'ladle', prop2: 'stick', sound: 'fire', work: [{ kind: 'hearth_pot', at: [0, 0, 0.58] }, { kind: 'brushwood', at: [-0.75, 0, 0.12] }, { kind: 'oil_jars', at: [1.2, 0, 0.5], shared: 'place' }],
+      note: 'the crushed sesame worked in hot water over a small fire and the oil skimmed off the top into the jars with a ladle (C)' }] },
   // D-199 (court setting only): the king as the door-jamb and audience reliefs show him, and the two attendants behind him
   royal_walk: { anim: 'walk', moving: true, prop: 'sceptre', prop2: 'lotus', sound: 'footsteps', tier: 'B', note: 'the king walking, the long staff in his right hand and a lotus in his left (door-jamb reliefs of the Tachara and the Hadish, HADISH-JAMB: B); the gait and the pace C' },
   enthroned: { anim: 'enthroned', prop: 'sceptre', prop2: 'lotus', tier: 'B', work: [{ kind: 'throne', at: [0, 0, 0] }], note: 'the king enthroned at an audience, staff and lotus in his hands, his feet on the footstool (the Treasury audience relief, TREAS-AUD: B); where the throne stood in the Apadana and the hours C; the king does not move or speak (brief §1.1 restraint)' },

@@ -72,16 +72,16 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G17 | cattle herds: cows and calves (only work oxen exist) | A024; P-012, F-055 | husbandry | C | MISSING/PARTIAL |
 | G18 | domestic ducks and geese | A026; F-046 | husbandry | C | MISSING/PARTIAL |
 | G19 | cavalry, horse lines and pastures in the default world | A033, A556; B-080 | armed forces | B/C | MISSING/PARTIAL |
-| G20 | sesame-oil pressing, oil jars, lamp oil | A045; P-010 | food processing | B/C | MISSING/PARTIAL |
+| G20 | sesame-oil pressing, oil jars, lamp oil | A045; P-010 | food processing | B/C | FILLED (D-255; open ground, not built: the press and the tannery) |
 | G21 | salt: supply and trade | A054; P-021 | commodities | C | MISSING/PARTIAL |
 | G22 | the garrison's rooms (B63) | A073; B-013 | settlement | B | MISSING/PARTIAL |
 | G23 | summer sleeping on the roofs | A077; W-038 | housing | C | MISSING/PARTIAL |
 | G24 | latrines and cesspits | A078; S-003 | housing | B analogy | MISSING/PARTIAL |
 | G25 | lime burning, plastering and wall painting at work | A092; P-042 | crafts | B/C | MISSING/PARTIAL |
-| G26 | the smith at the forge (a lit forge with nobody at it); hammer, bellows, kiln roar | A095; B-037, SO-008, B-102 | crafts | B | MISSING/PARTIAL |
-| G27 | goldsmiths forging and chasing | A096; P-039 | crafts | B | MISSING/PARTIAL |
-| G28 | tanning and leatherwork (hides stop at a counter) | A098; B-056, P-014 | crafts | B | MISSING/PARTIAL |
-| G29 | seal cutting | A099; P-047 | crafts | A/C | MISSING/PARTIAL |
+| G26 | the smith at the forge (a lit forge with nobody at it); hammer, bellows, kiln roar | A095; B-037, SO-008, B-102 | crafts | B | FILLED (D-255) |
+| G27 | goldsmiths forging and chasing | A096; P-039 | crafts | B | FILLED (D-255) |
+| G28 | tanning and leatherwork (hides stop at a counter) | A098; B-056, P-014 | crafts | B | FILLED (D-255; open ground, not built: the press and the tannery) |
+| G29 | seal cutting | A099; P-047 | crafts | A/C | FILLED (D-255) |
 | G30 | quarrymen at Majdabad and Sivand; drums hauled across the plain | A505, A506; P-063, P-034, S-012 | crafts / transport | B/C | MISSING/PARTIAL |
 | G31 | signal fires and beacons | A522; W-037 | communication | C | MISSING/PARTIAL |
 | G32 | adult board games (twenty squares) at the guard posts and doorsteps | A529; S-016 | recreation | C | MISSING/PARTIAL |
@@ -204,7 +204,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB1 | zodiacal light | W-005 | sky | A physics | MISSING/PARTIAL |
 | GB2 | dew on grass and crops | W-016 | weather | A physics | MISSING/PARTIAL |
 | GB3 | the comet of 467/466 (Pliny NH 2.149; recollection) | N-005 | sky | C | MISSING/PARTIAL |
-| GB4 | the act of sealing (rolling a seal) | B-009 | records | B | MISSING/PARTIAL |
+| GB4 | the act of sealing (rolling a seal) | B-009 | records | B | FILLED (D-255) |
 | GB5 | the Hadish apartments furnished | B-014 | settlement | C | MISSING/PARTIAL |
 | GB6 | storerooms showing their actual stock | B-015 | economy | C | MISSING/PARTIAL |
 | GB7 | run-off streams in the lanes and the mountain gullies after rain | B-044, N-009 | water | C | MISSING/PARTIAL |
@@ -213,7 +213,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB10 | litters for nobles and royal women | B-061 | transport | C | MISSING/PARTIAL |
 | GB11 | dates arriving by pack train | B-066, P-008 | commodities | B | MISSING/PARTIAL |
 | GB12 | pregnancy visible | B-075 | people | C | MISSING/PARTIAL |
-| GB13 | silver weighed on a balance (performed as `inspect`: a detector escape) | B-095, P-022 | economy | B | MISSING/PARTIAL |
+| GB13 | silver weighed on a balance (performed as `inspect`: a detector escape) | B-095, P-022 | economy | B | FILLED (D-255) |
 | GB14 | writing boards and the scribe's kit | B-099 | records | C | MISSING/PARTIAL |
 | GB15 | rain on timber and cloth heard | B-103 | sound | C | MISSING/PARTIAL |
 | GB16 | barley loaves issued by the state bakery (partial) | P-004 | commodities | A | MISSING/PARTIAL |
