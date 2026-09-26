@@ -104,3 +104,11 @@
 - [ ] Phase 3+4, 5, 6+7 independent reviews; bench; walkthrough e2e; FINAL_REPORT.md
 - [ ] Gap-audit items still open: 19, 20, 30, 32-36, 39-41
 ## Phase 9 — Polish, optimisation, FINAL_REPORT.md
+## Session 8: every inch (D-233, the user's direction)
+- [~] Coverage harness: sampled viewpoints over every walkable area, placeholder/missing-pixel masks, per-area report (D-235, agent)
+- [~] The town's 1,456 houses built for real (the largest placeholder; D-234, agent)
+- [~] Terrace masonry, Kuh-e Rahmat, ground calibrated to the site photographs (D-232, agent)
+- [ ] Rubric pass 3 on the pass-3 renders, judged against the site photographs (handoff/review_briefs.md)
+- [ ] Work the coverage report worst-first, area by area: palace interiors and furnishing, the plain near field, villages,
+      people at distance (impostor poses: D-229), reliefs (scans: NEEDS #10), night lighting of the town
+- [ ] Coverage passes in every area (the photoreal gate applied to coverage, D-233)
