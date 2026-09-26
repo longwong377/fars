@@ -6324,7 +6324,7 @@ moment-*-webgpu.png in the worktree, not committed).**
   middens (Apr-Oct, 8-18 h, 5-9 a heap, 0.08-0.5 m up), dragonflies at the water (May-Sep, 9-17 h, 45 % of edge cells, 0.6-1.8 m
   up, hover and dart), butterflies over fields and steppe (Mar-Jun and Sep-Oct, 9-17 h, 18 % of cells: whites, a clouded
   yellow, a painted lady by instance colour), rock agamas on rock (Apr-Oct, 9-17 h, 30 % of rock cells, 6 % of steppe cells;
-  basking 25-60 s spells, dashing up to 1.6 m in 0.7 s; one slips away for 90 s when someone comes within 3 m). Positions are
+  basking 25-60 s spells, dashing up to 3.2 m in 1.3 s (was 0.7 s: ~7 m/s at the peak, caught by the speed test after the per-kind hash fix); one slips away for 90 s when someone comes within 3 m). Positions are
   closed-form in (seed, cell, index, world seconds): no saved state, continuous across saves and skips. Nothing flies in rain
   or wind over 8 m/s. Four InstancedMeshes (no draw while empty, no shadows). Species and seasons are recollection (SMALL-R,
   sources.json; C).
@@ -6414,3 +6414,18 @@ moment-*-webgpu.png in the worktree, not committed).**
   posts, trees).
 - **Tests.** birds_s9 (4 new: a ground bird's flush and landing, the flock staying together at height, sandgrouse passages at
   dawn only, the seasons), wildlife, small_life pass.
+
+## D-263 Frogs, tortoises, snakes and jirds; each small creature slips away at its own distance (session 9; G43, G64, G65, G67; C)
+- **What** (smallLife.ts SMALL): marsh frogs at the water's edge Mar-Jul by day (35 % of edge cells, 1-3; a hop of up to 1 m in
+  0.3 s every 20-45 s; slip into the water at 2 m for a minute; their spring chorus was already in the soundscape);
+  spur-thighed tortoises on the steppe Mar-Jun (2.5 % of steppe cells, ~0.05 m/s; they do not flee); a snake now and then on
+  rock or steppe Apr-Sep (1.2 % of cells, gliding with a travelling S-wave in the vertex shader, gone for 5 minutes once seen
+  within 3 m); jirds at their burrows at dawn (06:00-09:00) and dusk (17:00-19:30), dashing up to 3 m in 1.2 s and diving in at 5 m
+  for 2 minutes. Each kind has its own flee distance and hiding time (SmallSpec.flee, .hide); the agama's dash was lengthened
+  to 1.3 s (it peaked at ~7 m/s).
+- **A hash fix:** each kind's presence and motion were keyed by the kind's first letter (a "fly" and a "frog" would have shared
+  their draws); now by the kind's index.
+- **Tests.** small_life (10): the new kinds' seasons, hours and contexts; the flee rules; top speeds checked every frame over 400 s
+  for three creatures of each kind.
+- **Not done:** geckos on walls at night (G63: needs wall positions), scorpions (G66), hedgehogs and porcupines (G40), rats and mice
+  at the stores (G41), small carnivores (G44).

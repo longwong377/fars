@@ -95,7 +95,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G40 | hedgehog and porcupine | A110; F-025, F-032 | fauna | C | MISSING/PARTIAL |
 | G41 | rats and mice at the stores | A111; B-049, F-042 | fauna | B | MISSING/PARTIAL |
 | G42 | bats at dusk | A112; W-025 | fauna | B | BUILT (D-258: pipistrelles over the courts and the water from 20 min after sunset, Mar-Oct); unrendered |
-| G43 | small rodents of the steppe (jirds, gerbils, jerboas) | A113; F-013 | fauna | C | MISSING/PARTIAL |
+| G43 | small rodents of the steppe (jirds, gerbils, jerboas) | A113; F-013 | fauna | C | PARTIAL (D-263: jirds at their burrows at dawn and dusk; no jerboas); unrendered |
 | G44 | small wild cats and carnivores (jungle cat, wildcat, badger, marten) | A115; F-009 | fauna | B | MISSING/PARTIAL |
 | G45 | partridges seen, flushing on the slope | A124; F-029, W-009 | birds | B | BUILT (D-262: coveys on the slope, flushing together); unrendered |
 | G46 | hoopoe, bee-eater and roller seen | A125, A139; W-048, F-050 | birds | B/C | PARTIAL (D-262: hoopoe and bee-eater; no roller); unrendered |
@@ -116,10 +116,10 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G61 | dragonflies and mosquitoes at the water | A153, A164; F-006 | insects | C | PARTIAL (D-258: dragonflies at the water's edge May-Sep; no mosquitoes) |
 | G62 | visible flies at dung and middens | A154; B-047 | insects | C | BUILT (D-258: house flies at the town's middens Apr-Oct); below render resolution, verified by test |
 | G63 | geckos on the walls at night | A156; F-043 | reptiles | C | MISSING/PARTIAL |
-| G64 | tortoise | A157; F-022 | reptiles | B | MISSING/PARTIAL |
-| G65 | snakes | A158; F-023 | reptiles | C | MISSING/PARTIAL |
+| G64 | tortoise | A157; F-022 | reptiles | B | BUILT (D-263); unrendered |
+| G65 | snakes | A158; F-023 | reptiles | C | BUILT (D-263: rare); unrendered |
 | G66 | scorpions | A159; F-023 | invertebrates | C | MISSING/PARTIAL |
-| G67 | frogs seen | A160; F-011 | amphibians | C | MISSING/PARTIAL |
+| G67 | frogs seen | A160; F-011 | amphibians | C | BUILT (D-263: seen as well as heard); unrendered |
 | G68 | a locust year | A167; W-047 | events | C | MISSING/PARTIAL |
 | G69 | walnut | A171; FL-006 | trees | C | MISSING/PARTIAL |
 | G70 | juniper | A173; FL-007 | trees | C | MISSING/PARTIAL |
