@@ -223,6 +223,9 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'drum-road', day: 13, hour: 8.24, w: 'clear', v: [-495, 128, 1.6, 282, -2] },
   // D-256 (land work): the quarrymen at the Majdabad face, day 20, 10:00 (the land agent's request)
   { n: 'quarry-work', day: 20, hour: 10, w: 'clear', v: [-21990, -1030, 1.6, 304, -5], fov: 50 },
+  // D-255 (crafts): the tannery by the canal NE of the Terrace and the sesame-oil press, day 60, 09:00 (the crafts agent's request)
+  { n: 'tannery-work', day: 60, hour: 9, w: 'clear', v: [415, 420, 1.6, 26, -8], fov: 50 },
+  { n: 'press-work', day: 60, hour: 9, w: 'clear', v: [-228, -702, 1.6, 26, -8], fov: 50 },
 ];
 test('moments', async ({ page }, info) => {
   // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run). TIMEOUT (s) and FRAMES
