@@ -553,6 +553,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         const p = ctx.player.position, feet = ctx.player.feetY;
         { // D-245: the population's voices (the Now view has no people of 467), the jaw moving with the voice; the water
           const near = nowView.active ? [] : crowd.nearPeople(cam.position, voices.bedR, nearBuf);
+          voices.coughEvery = [0, 1, 2, 10, 11].includes(ctx.cond.day.climMonth) ? 500 : [5, 6, 7].includes(ctx.cond.day.climMonth) ? 1800 : 1200; // winter colds (C)
           voices.update(dt, near, cam.position, k => (scriptedUntil.get(k) ?? -1) > time);
           const at = audio.ctx.currentTime; for (const [k, v] of voices.speaking) crowd.voice(k, time + (v.from - at), time + (v.to - at), time);
           crowd.claimVoices(voices.claimed, time);

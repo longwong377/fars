@@ -69,9 +69,13 @@ const nonverbal = (tag: string, gloss: string, xs: readonly (readonly [string, I
 export const LAUGH = nonverbal('laugh', 'laughter', [['hahaha', 'fall'], ['həhəhəhə', 'fall'], ['hahahaha', 'fall'], ['həhəhə', 'level']]);
 export const CHILD_CALL = nonverbal('call', 'a child calling out at play', [['ɛːɔ', 'rise'], ['ɔːə', 'rise'], ['uːɔ', 'rise'], ['aːə', 'fall']]);
 export const CRY = nonverbal('cry', 'a baby crying', [['ʔwɛːɛ', 'fall'], ['ʔɛːɛ', 'rise'], ['ʔwɛːə', 'fall']]);
+/** G34: a cough (a glottal catch and a breathy burst, twice or thrice; never the single 'ʔhə', which the modern-word list reads as "he") */
+export const COUGH = nonverbal('cough', 'a cough', [['ʔhəʔhə', 'fall'], ['ʔxəʔxə', 'fall'], ['ʔhəhəʔhə', 'fall'], ['kʰəʔhə', 'level']]);
 /** how often (C): a listener laughs after one turn in LAUGH_P; a child's unit is a call in CHILD_CALL_P; a baby near the
  *  listener starts a bout of crying once in CRY_EVERY_S seconds on average, 3-10 cries with a gasp between */
 export const LAUGH_P = 0.12, CHILD_CALL_P = 0.25, CRY_EVERY_S = 900;
+/** a person near the listener coughs once in this many seconds on average (world.ts sets it by season: winter colds; C) */
+export const COUGH_EVERY_S = 1200;
 
 const UNITS = new Map<LangId, { lines: Unit[]; words: Unit[] }>();
 const speakable = (ipa: string) => { try { return tokenizeIpa(ipa).length > 0; } catch { return false; } };
@@ -182,6 +186,8 @@ export class PopulationVoices {
   }
   /** a baby's mean seconds between bouts of crying (CRY_EVERY_S; tests shorten it) */
   cryEvery = CRY_EVERY_S;
+  /** a person's mean seconds between coughs (COUGH_EVERY_S; the world shortens it in winter) */
+  coughEvery = COUGH_EVERY_S;
   /** the translation layer's hook: an utterance within `captionR` m of the listener starts (out of world) */
   onCaption: ((c: Caption) => void) | null = null; captionR = 6;
   /** start one unit from a person: a voice (clear, HRTF when among the nearest) or a bed grain (low-passed, equal-power) */
@@ -262,6 +268,11 @@ export class PopulationVoices {
       if (!s.bout) { if (!s.rng.chance(Math.min(1, Math.max(0, dt)) / this.cryEvery)) continue; s.bout = 3 + s.rng.int(0, 7); }
       const end = this.utter(s, null, now, 'voice', false, d, { unit: s.rng.pick(CRY), loud: 1.5, pitch: 1.9 }); if (end == null) continue;
       s.bout--; s.nextAt = end + 0.25 + 0.5 * s.rng.next() + (s.bout ? 0 : 2); }
+    // coughs (G34): anyone past infancy within clearR now and then, not while they speak (C)
+    for (const p of people) { if (p.age < 2) continue; const d = Math.hypot(p.x - listener.x, p.y + 1.5 - listener.y, p.z - listener.z); if (d > this.clearR) continue;
+      if (!this.rng.chance(Math.min(1, Math.max(0, dt)) / this.coughEvery)) continue;
+      const s = this.slot(p, now); s.seen = now; s.p = p; if (now < s.busyUntil) continue; this.claimed.add(p.key);
+      this.utter(s, null, now, 'voice', false, d, { unit: this.rng.pick(COUGH), loud: 1.1, pitch: 0.95 }); }
     // the bed: sqrt(n) streams of grains from the talkers beyond the clear voices (the wordless hum in it too)
     const streams = bed.length ? Math.min(this.bedStreams, Math.ceil(Math.sqrt(bed.length))) : 0; st.streams = streams;
     if (streams) {

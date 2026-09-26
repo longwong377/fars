@@ -6492,3 +6492,10 @@ moment-*-webgpu.png in the worktree, not committed).**
   (points 6 m out from each side of a river's channel within 5 km, and the canals' line) and a wader's ground that never goes
   below the bank's level less 0.4 m (over the channel they stand at about the water's level, as on a shallow margin; C).
 - **Tests.** birds_s9 (the seasons of the new birds), wildlife pass.
+
+## D-270 Coughs, more in winter (session 9; gap hunters G34; C)
+- **What** (audio/voices.ts COUGH, world.ts): anyone past infancy within the clear-voice radius coughs now and then (a glottal
+  catch and a breathy burst, twice or thrice; wordless, captioned "(a cough)", checked against the modern-word list: the single
+  "ʔhə" reads as "he" and is not used), not while speaking; once in ~500 s per person Nov-Mar (winter colds), 1,200 s in spring
+  and autumn, 1,800 s in summer (C). No sickness in the population's plans drives it (the sick are not modelled as such).
+- **Tests.** audio_population (coughs heard, never from the baby; a cough is not a conversational turn).

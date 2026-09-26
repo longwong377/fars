@@ -33,3 +33,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-267 | s9 | breath in the cold (lead) | claude/amazing-fermi-40ds7j | in flight |
 | D-268 | s9 | heat shimmer and mirage (lead; opt-in) | claude/amazing-fermi-40ds7j | in flight |
 | D-269 | s9 | owl, bulbul, roller, ducks; water birds off the river beds (lead) | claude/amazing-fermi-40ds7j | in flight |
+| D-270 | s9 | coughs (lead) | claude/amazing-fermi-40ds7j | in flight |
