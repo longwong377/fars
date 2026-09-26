@@ -109,6 +109,8 @@ function pickName(rng: Rng, sex: 'm' | 'f', origins: string[], used: Set<string>
 /** posts where a stranger is stopped and questioned (the gates and stair heads; the Treasury door) */
 const CHECK_POSTS = new Set(['post_stair_n', 'post_stair_s', 'post_gate_w1', 'post_gate_w2', 'post_gate_s1', 'post_gate_s2', 'post_treas_1', 'post_treas_2']);
 
+/** chronicle entries kept in a save (of the 2,000 held): the last few days' events, a few tens of kB */
+export const SAVED_EVENTS = 500;
 export class PeopleSim {
   readonly agents: Agent[] = [];
   readonly events: SimEvent[] = [];
@@ -633,14 +635,26 @@ export class PeopleSim {
 
   save() {
     return { t: this.t, stock: { ...this.stock }, flows: { ...this.flows }, lastGrainDay: this.lastGrainDay, lastCaravanDay: this.lastCaravanDay, memory: this.memory.snapshot(), relations: this.pop.relationsSnapshot(),
-      agents: this.agents.map(a => ({ id: a.id, pos: a.pos, task: a.task, carry: a.carry, hunger: a.hunger, fatigue: a.fatigue, sick: a.sick, day: a.day, decisions: a.decisions, metPlayer: a.metPlayer, lastMetDay: a.lastMetDay, offmap: a.offmap, relieved: a.relieved, heading: a.heading, lod: a.lod, travel: a.travel, post: a.post, watchEnd: a.watchEnd, sackTo: a.sackTo })) };
+      events: this.events.slice(-SAVED_EVENTS).map(e => ({ ...e })), // the chronicle (translation layer) survives a reload (H workstream: T-H3r)
+      // the route cache (5 m buckets: which route a trip takes depends on it) and the player's watching hours: without them a
+      // loaded world went its own way within minutes (T-H3r)
+      routes: [...this.pathCache], near: [...this.near],
+      agents: this.agents.map(a => ({ id: a.id, pos: a.pos, task: a.task, carry: a.carry, hunger: a.hunger, fatigue: a.fatigue, sick: a.sick, day: a.day, decisions: a.decisions, metPlayer: a.metPlayer, lastMetDay: a.lastMetDay, offmap: a.offmap, relieved: a.relieved, heading: a.heading, lod: a.lod, travel: a.travel, post: a.post, watchEnd: a.watchEnd, sackTo: a.sackTo,
+        // the walk in progress (H workstream, T-H3r: a load went on from a re-planned route, ~1 m off within minutes)
+        path: a.path, pathI: a.pathI, walking: a.walking, gait: a.gait, legs: a.legs, waitRoute: a.waitRoute, loadDay: a.loadDay, kneadKey: a.kneadKey, emptyCarry: a.emptyCarry, round: a.round, roundKey: a.roundKey })) };
   }
   load(s: any) {
     if (!s?.agents) return; this.t = s.t; this.stock = { ...INITIAL_STOCK, ...s.stock }; this.lastCaravanDay = s.lastCaravanDay; if (s.flows) this.flows = { ...s.flows }; if (s.lastGrainDay !== undefined) this.lastGrainDay = s.lastGrainDay;
     this.cal.ctx(Math.floor(s.t / 24)); // the calendar is deterministic: recompute to the saved day, then restore what the detailed people changed
     if (s.relations) this.pop.relationsRestore(s.relations); this.memory.restore(s.memory); this.evT = s.t; this.planCache.clear();
+    this.events.length = 0; if (Array.isArray(s.events)) for (const e of s.events) this.events.push({ ...e });
+    if (Array.isArray(s.routes)) { this.pathCache.clear(); for (const [k, v] of s.routes) this.pathCache.set(k, v); }
+    if (Array.isArray(s.near)) { this.near.clear(); for (const [k, v] of s.near) this.near.set(k, v); }
     for (const x of s.agents) { const a = this.agents[x.id]; if (!a) continue; Object.assign(a, { pos: x.pos, task: x.task, carry: x.carry, hunger: x.hunger, fatigue: x.fatigue, sick: x.sick, day: x.day, decisions: x.decisions, metPlayer: x.metPlayer, lastMetDay: x.lastMetDay, offmap: x.offmap, relieved: x.relieved, heading: x.heading, post: x.post, watchEnd: x.watchEnd, sackTo: x.sackTo });
-      a.lod = x.lod ?? a.lod; a.path = null; a.walking = false; a.travel = null; this.ground(a); if (a.task && !a.task.off && Math.hypot(a.pos[0] - a.task.spot[0], a.pos[1] - a.task.spot[1]) > 0.4) this.begin(a, a.task, false); }
+      a.lod = x.lod ?? a.lod;
+      if (x.walking !== undefined) { // a save with the walk in progress: go on with it exactly
+        Object.assign(a, { path: x.path ?? null, pathI: x.pathI ?? 0, walking: x.walking, gait: x.gait ?? a.gait, travel: x.travel ?? null, legs: x.legs, waitRoute: x.waitRoute, loadDay: x.loadDay, kneadKey: x.kneadKey, emptyCarry: x.emptyCarry, round: x.round, roundKey: x.roundKey }); this.ground(a); continue; }
+      a.path = null; a.walking = false; a.travel = null; this.ground(a); if (a.task && !a.task.off && Math.hypot(a.pos[0] - a.task.spot[0], a.pos[1] - a.task.spot[1]) > 0.4) this.begin(a, a.task, false); }
   }
   static activityOk(id: string) { return id in ACTIVITIES; }
 }

@@ -4,7 +4,7 @@ import { loadSettings, saveSettings, urlParams, QUALITY, Settings } from './core
 import { WorldClock, YEAR_DAYS } from './core/clock';
 import { chooseWorldSeed, newWorldSeed, keepWorldSeed } from './core/seed';
 import { Input } from './core/input';
-import { writeSave, readSave, clearSave } from './core/save';
+import { writeSave, readSave, clearSave, Autosaver } from './core/save';
 import { latLonToGrid, gridToLatLon } from './core/geo';
 import { Terrain, curvatureDrop } from './terrain/heightfield';
 import { TerrainMesh } from './terrain/terrainMesh';
@@ -150,12 +150,18 @@ async function boot() {
     save: () => writeSave(state()), load: () => restore(readSave() as any),
     seed: () => SEED,
     newWorld: () => { // a new world: a fresh seed, the old save dropped, the page reloaded without ?seed (D-236)
+      autosave.enabled = false; // (the dropped save must not be written back as the page unloads)
       newWorldSeed(); clearSave(); const q = new URLSearchParams(location.search); q.delete('seed'); q.delete('loadsave'); location.search = q.toString(); },
+    hasSave: () => readSave() !== null, newVisit: () => { autosave.enabled = false; clearSave(); location.reload(); },
     applySettings: (s: Settings) => { camera.fov = s.fov; camera.updateProjectionMatrix(); clock.scale = s.timeScale; world.applySettings?.(s); shell.nowCaption(s.nowView ? NOW_CAPTION : null); saveSettings(s); },
     getTime: () => ({ day: clock.dayIndex, hour: clock.localHour, label: clock.label() }),
     setTime: (d: number, h: number) => clock.set(d, h),
     getWeather: () => weather.override, setWeather: (w: string) => { weather.override = w as WeatherOverride; },
   });
+  // autosave (audit D M9; T-H3): every AUTOSAVE_MS of real time while the visit is on (playing or paused), and when the page
+  // is hidden or closed; frozen test worlds only with ?autosave
+  const autosave = new Autosaver(() => writeSave(state()), () => (shell.mode === 'playing' || shell.mode === 'paused') && (!TEST || P.has('autosave')));
+  autosave.attach(window, document);
   input.onPauseRequest = () => { if (shell.mode === 'playing') shell.pause(); };
   input.onOverlayToggle = () => overlay.toggle();
 
@@ -273,8 +279,11 @@ async function boot() {
       const all = (g ? rc.intersectObject(g, true) : rc.intersectObjects(scene.children, true)).filter(i => (i.object as any).isMesh && i.object.visible);
       const row = (h: THREE.Intersection) => ({ name: h.object.name || h.object.parent?.name, parent: h.object.parent?.name, d: h.distance, p: [h.point.x, h.point.y, h.point.z], mat: (h.object as any).material?.type, inst: h.instanceId ?? h.batchId, note: (h.object.userData?.note ?? h.object.parent?.userData?.note ?? '').slice(0, 160) });
       const h = all[0]; return h ? { ...row(h), next: all.slice(1, 4).map(row) } : null; },
-    save: () => writeSave(state()), load: () => restore(readSave() as any),
-    saveState: () => state(),
+    save: () => writeSave(state()), load: () => restore(readSave() as any), saveState: () => state(),
+    /** autosave status (T-H3) and a forced autosave by reason (e2e: 'hidden' is what visibilitychange does) */
+    autosave: () => ({ intervalMs: autosave.intervalMs, saves: autosave.saves, failures: autosave.failures, last: autosave.last }),
+    /** the population out of doors near the camera: a sorted sample (pid, place, act, position) for save/load checks */
+    popSample: (n = 60) => { const P = (world as any).people; if (!P) return null; return [...P.view.visible].sort((a: any, b: any) => a.pid - b.pid).slice(0, n).map((o: any) => ({ pid: o.pid, act: o.act, place: o.place, e: +o.e.toFixed(2), n: +o.n.toFixed(2), moving: o.moving })); },
     /** §13.2 rendered plan overlay: renders the given building's parts (filtered by kind) top-down, orthographic,
      *  0.25 m/px over grid x∈[-80,272], y∈[-250,250]; returns a row-major 0/1 mask (row 0 = north). */
     planMask: async (building: string, kinds: string[] | null) => {
@@ -342,6 +351,7 @@ async function boot() {
   async function frame(dtOverride?: number, opts: { sim?: boolean; render?: boolean } = {}) {
     const now = performance.now();
     const dt = dtOverride ?? Math.min(0.1, (now - prev) / 1000); prev = now;
+    autosave.tick();
     overlay.frame(dt);
     const playing = shell.mode === 'playing' || TEST || P.has('bench');
     if (playing && opts.sim !== false) simStep(dt, !TEST);
@@ -425,7 +435,8 @@ async function boot() {
       ...((world as any).soundLines?.() ?? [((s: any) => (s ? `speech heard: ${s.lineId} (${s.lang}) tier ${s.tier} [${s.parts}] · ${s.situation} · ${s.backend}` : 'speech heard: none yet'))((world as any).lastSpoken)]),
     ]);
   }
-  if (P.get('loadsave')) restore(readSave() as any);
+  // load on start (audit D M9): the saved visit, unless a test world or ?newvisit; the title then offers to continue it
+  const continued = P.get('loadsave') || (!TEST && !P.has('newvisit') && readSave()) ? restore(readSave() as any) : false;
   if (P.get('bench')) {
     // the bench must time the GPU's work, not just command submission (WebGPU renders asynchronously): wait for the queue
     // (WebGPU) or read one pixel back (WebGL2) after each frame; GPU pass time from timestamp queries where supported
@@ -437,7 +448,7 @@ async function boot() {
   TRACE('world built');
   renderer.setAnimationLoop(() => { inAnimationLoop = true; try { void frame(); } finally { inAnimationLoop = false; } });
   api.ready = true;
-  if (TEST) shell.playing(); else shell.title();
+  if (TEST) shell.playing(); else shell.title(continued);
   void lastSave; void gridToLatLon; void YEAR_DAYS;
 }
 
