@@ -518,7 +518,7 @@ export class Crowd {
     if (camera) { this.lastCamera = camera; camera.updateMatrixWorld(); this.pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); this.frustum.setFromProjectionMatrix(this.pm); this.wide.copy(this.frustum); for (const pl of this.wide.planes) pl.constant += 3; }
     this.frame++;
     // the air's temperature now (the sim's weather; once a frame), for the dress of the cold
-    if (this.sim && (this.frame & 31) === 1) { try { this.airC = this.sim.env(this.sim.t).tempC; } catch { this.airC = 20; } }
+    if (this.sim && (this.frame & 31) === 1) { try { const E = this.sim.env(this.sim.t); this.airC = E.tempC; this.airRain = E.rain; } catch { this.airC = 20; this.airRain = 0; } }
     const S = this.sim?.stock;
     if (S && (S.depot !== this.lastStock.depot || S.store !== this.lastStock.store)) {
       const nd = this.pileLayout(0, 200, [PLACES.stair_foot.at[0] - 3, PLACES.stair_foot.at[1] - 2.5], S.depot);
@@ -696,7 +696,7 @@ export class Crowd {
     if (vpC?.babes?.length) holdBabe(po, vpC.babes[0].mode, anim);
     if (vpC?.hand) holdHand(po, vpC.hand, vpC.handSide ?? 'l', vpC.handUp ?? 0);
     // (D-209: the magus's mouth-cover at the fire; drawn over the beard, which it hides)
-    const w0 = weatherMask(p.look.dress, p.look.mask, this.airC), wb = P?.wear ? this.wearBits(p.look.dress, P.wear) : null, m0 = wb ? (w0 | wb[0]) & ~wb[1] : w0;
+    const w0 = weatherMask(p.look.dress, p.look.mask, this.airC, this.airRain), wb = P?.wear ? this.wearBits(p.look.dress, P.wear) : null, m0 = wb ? (w0 | wb[0]) & ~wb[1] : w0;
     const mask = ASIDE.has(anim) ? m0 & ~this.asideBits(p.look.dress, anim) : m0;
     if (mask !== p.mask) { p.mask = mask; this.humans.gpu.person[p.slot * PERSON_TEXELS * 4 + 1] = mask; this.humans.gpu.markPersonDirty(); }
     // glance: the player within 7 m turns heads (clamped) and eyes. How much follows the simulation's memory of the
@@ -769,6 +769,8 @@ export class Crowd {
   }
   /** the air's temperature (°C) the crowd dresses for */
   airC = 20;
+  /** D-244: the rain now (0-1): those out in it cover their heads (outfits.weatherMask) */
+  airRain = 0;
   private asideCache = new Map<string, number>();
   private asideBits(dress: Dress, anim: AnimId) {
     const k = dress + (anim === 'sleep' ? ':s' : ''); let b = this.asideCache.get(k);

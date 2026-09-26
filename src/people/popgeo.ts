@@ -19,6 +19,7 @@ import { campOfPlace, beforeDoor, type Tent } from './camps';
 import { sunTimes } from './calendar';
 import { hall100Layout } from './construction';
 import { footprint } from '../arch/spec';
+import { terraceRoofed } from './roofs';
 import { h32, salt } from './hash';
 import type { ActivityId } from './activities';
 import type { TownPlan } from '../world/settlement/plan';
@@ -49,6 +50,14 @@ export interface Spot {
   plot?: number; wall?: number;
   /** D-221: held where it stands (a guard's post, a place in the court's order): the view does not step it aside */
   fixed?: boolean;
+  /** D-244: drawn under a built roof (inside a roofed Terrace building: roofs.ts): drawn there even when the plan says indoors */
+  roof?: boolean;
+  /** D-244: inside a room or a tent that is built (a town house's room, a village compound's room, a court camp's tent): drawn
+   *  there (the view draws it; the walls and the roof hide it from outside) */
+  inside?: boolean;
+  /** D-244: the plan says indoors here but the place has no room built (a yard with no rooms, the garrison's court, a place
+   *  not built): not drawn (popview), never drawn out of doors to show the person (BLOCKERS B63) */
+  noRoom?: boolean;
 }
 /** D-221: the court places whose spots are the day's order (court.ts formationSpot) */
 const ORDERED = new Set(['forecourt_wait', 'court_audience', 'court_audience_front', 'gate_hall']);
@@ -72,7 +81,13 @@ const S = { spot: salt('popgeo-spot'), ring: salt('popgeo-ring'), dir: salt('pop
 const rad = (d: number) => (d * Math.PI) / 180;
 /** heading (deg cw from grid north) of the direction (de, dn) */
 export const headingOf = (de: number, dn: number) => (Math.atan2(de, dn) * 180) / Math.PI;
-/** acts done indoors (a roofed room: not drawn) wherever the person is at home (C) */
+/** D-244: how far (m) a person the plan puts indoors at a place in the open on the Terrace goes to be under a roof (C) */
+export const ROOF_NEAR = 40;
+/** D-244: Terrace places whose people go in to rooms of their own that are not built (the garrison quarters: the royal
+ *  guard's sleeping places, its hearths and the guards' mess; terrace.ts draws the garrison as a perimeter wall): never sent
+ *  under another building's roof */
+const NO_SNAP = /^(garrison_|court_guard_quarters|court_guard_mess)/;
+/** acts done indoors (a roofed room) wherever the person is at home, when the view does not say (C) */
 const INDOOR = new Set<ActivityId>(['sleep', 'lie_ill', 'offmap']);
 /** the Terrace's abstract work places (TERRACE_ABSTRACT): centre and half-extent (grid m) over which people spread, from
  *  the spec footprints and the hall's layout (C: who stands where inside them) */
@@ -196,7 +211,7 @@ export class PopGeo {
   }
 
   // -------------------------------------------------------------------------------------------------- spots
-  private sp(e: number, n: number, out: boolean, heading: number, net: Spot['net'], what: string, extra: Partial<Spot> = {}): Spot { this.stats.spots++; return { e, n, out, heading, net, what, ok: true, ...extra }; }
+  private sp(e: number, n: number, out: boolean, heading: number, net: Spot['net'], what: string, extra: Partial<Spot> = {}): Spot { this.stats.spots++; return { e, n, out, heading, net, what, ok: true, ...(net === 'nav' && terraceRoofed(e, n) ? { roof: true } : {}), ...extra }; }
   private none(place: string, why: string): Spot { this.stats.unresolved++; this.unresolved.set(place.split(':')[0], (this.unresolved.get(place.split(':')[0]) ?? 0) + 1); return { e: 0, n: 0, out: false, heading: 0, net: 'open', what: `${place}: ${why}`, ok: false }; }
   /** a cell of a site plot: an open (court/yard) cell for work, a room for indoor acts; deterministic per person */
   private inPlot(s: Site, pi: number, pid: number, key: string, indoor: boolean, net: 'town' | 'village', v?: number, what = ''): Spot | null {
@@ -206,7 +221,9 @@ export class PopGeo {
     const [e, n] = s.grid(s.cu(k % s.W) + j, s.cv((k / s.W) | 0) + jj);
     const [i0, j0, i1, j1] = s.plots[pi].rect, c = s.grid((s.cu(i0) + s.cu(i1 - 1)) / 2, (s.cv(j0) + s.cv(j1 - 1)) / 2), P = s.plots[pi];
     const walled = out && s.cell[k] === pi ? { plot: this.plotKey(net, s, pi, v), wall: s.sub[k] === COURT ? P.height : Math.min(P.yardWall, P.height) } : {};
-    return this.sp(e, n, out, headingOf(c[0] - e, c[1] - n) + (this.hash(pid, key, 4) - 0.5) * 120, net, `${what}${out ? 'court' : 'room'} of ${P.id}`, { ...(v !== undefined ? { v } : {}), ...walled });
+    // (D-244: a room of the plot: drawn inside it, under its roof: the plot and the roof's height hide it from outside)
+    const room = !out && s.cell[k] === pi && s.sub[k] === ROOM ? { inside: true, plot: this.plotKey(net, s, pi, v), wall: P.height + 0.3 } : {};
+    return this.sp(e, n, out, headingOf(c[0] - e, c[1] - n) + (this.hash(pid, key, 4) - 0.5) * 120, net, `${what}${out ? 'court' : 'room'} of ${P.id}`, { ...(v !== undefined ? { v } : {}), ...walled, ...room });
   }
   /** a plot's key: a town plot positive, a village compound negative */
   private plotKey(net: 'town' | 'village', s: Site, pi: number, v?: number) { return net === 'town' ? ((this.siteIx.get(s.id) ?? 0) + 1) * 100000 + pi : -(((v ?? 0) + 1) * 100000 + pi); }
@@ -250,13 +267,31 @@ export class PopGeo {
     const hh = this.pop.home(pid, day), x = this.housePlot(hh, pid); if (!x || !this.plan) return null; return { s: this.plan.sites[x[0]], si: x[0], pi: x[1] };
   }
 
-  /** where a person is at a (non-road) place of their plan, doing `act`, at `hour` of `day` */
-  spot(pid: number, place: string, act: ActivityId, day: number, hour: number): Spot {
+  /** D-244: the keys of the walled plots of a person's own house on a day (PopGeo.plotAt's keys: an estate's every plot;
+   *  empty: no house built) */
+  homePlotKeys(pid: number, day: number): number[] {
+    const hh = this.pop.home(pid, day), H = this.pop.households[hh]; if (!H) return [];
+    if (H.zone === 'town') { if (!this.plan) return []; const ids = H.plots?.length ? H.plots : H.plot ? [H.plot] : [];
+      return ids.map(id => this.plotIx.get(id)).filter((x): x is [number, number] => !!x).map(x => this.plotKey('town', this.plan!.sites[x[0]], x[1])); }
+    if (H.zone === 'plain') { const m = this.villageOf(hh); return m ? [this.plotKey('village', this.vsite(m.vi).site, this.vsite(m.vi).site.plots[m.ci].idx, m.vi)] : []; }
+    return [];
+  }
+  /** D-244: the key of the walled plot at (e, n) in every raster that holds the point (overlapping village rasters: the
+   *  first-found raster may not be the one a person was placed in) */
+  plotsAt(e: number, n: number): number[] {
+    const out: number[] = []; const k = this.plotAt(e, n); if (k) out.push(k);
+    for (let vi = 0; vi < this.villages.length; vi++) { const v = this.villages[vi]; if (Math.abs(e - v.x) > v.r * 1.3 + 20 || Math.abs(n - v.y) > v.r * 1.3 + 20) continue;
+      const S = this.vsite(vi).site, [u, w] = toLocal(S.frame, e, n), ci = S.ci(u), cj = S.cj(w); if (!S.inb(ci, cj)) continue; const c = S.cell[S.k(ci, cj)]; if (c >= 0) { const key = this.plotKey('village', S, c, vi); if (!out.includes(key)) out.push(key); } }
+    return out;
+  }
+  /** where a person is at a (non-road) place of their plan, doing `act`, at `hour` of `day`; `indoorArg`: the plan puts them
+   *  under a roof (population.ts planIndoors, D-244: the view passes it), else the act decides (asleep, ill, resting after dark) */
+  spot(pid: number, place: string, act: ActivityId, day: number, hour: number, indoorArg?: boolean): Spot {
     if (place === '-' || place.startsWith('road:')) return this.none(place, 'not a place');
-    if (place in PLACES || place in this.abs || place === 'palaces') return this.terrace(pid, place, act, day);
+    if (place in PLACES || place in this.abs || place === 'palaces') return this.terrace(pid, place, act, day, indoorArg ?? false);
     const k = place.indexOf(':'), head = k > 0 ? place.slice(0, k) : place, tail = k > 0 ? place.slice(k + 1) : '', q = tail.split(':')[0];
     const sun = sunTimes(day), dark = hour < sun.rise - 0.25 || hour > sun.set + 0.6;
-    const indoor = INDOOR.has(act) || (dark && act === 'rest');
+    const indoor = indoorArg ?? (INDOOR.has(act) || (dark && act === 'rest'));
     switch (head) {
       case 'h': return this.home(pid, +tail, act, indoor, day);
       case 'lane': return this.lane(pid, q, day);
@@ -313,7 +348,7 @@ export class PopGeo {
   }
   /** a Terrace spot: spread over the place (its span, a ring round a hearth, the abstract places' areas) on walkable cells
    *  that see the place's anchor in a straight line (so the way to it needs no search; up to 8 draws, else the anchor) */
-  private terrace(pid: number, place: string, act: ActivityId = 'rest', day = 0): Spot {
+  private terrace(pid: number, place: string, act: ActivityId = 'rest', day = 0, indoor = false): Spot {
     // (a court guard post hangs from its line's centre, so the posts of one file share their routes: court.ts, D-182)
     const anchor = place === 'palaces' ? `palaces:${['apadana', 'tachara', 'hadish'][Math.floor(this.hash(pid, 'palaces', 12) * 3)]}` : (PLACES[place] as { anchor?: string } | undefined)?.anchor ?? place;
     const P = PLACES[place], A = this.abs[anchor], ap = this.anchorPt(anchor); if (!ap) return this.none(place, 'no walkable anchor');
@@ -345,10 +380,24 @@ export class PopGeo {
       // the point itself where it is walkable (snapping to cell centres stacked people on one point), else the nearest cell
       const q: P2 | null = this.nav.walkable(e, n) ? [e, n] : this.nav.snap(e, n, 4); if (q && (!clear || P?.kind === 'post' || clear(q[0], q[1])) && (Math.hypot(q[0] - ap[0], q[1] - ap[1]) < 0.3 || this.nav.lineClear(q, ap))) s = q; }
     s ??= ap;
+    // D-244: the plan puts the person under a roof (the dark, the rain: population.ts planIndoors) at a place in the open:
+    // they go in under the nearest roofed hall within ROOF_NEAR m (from the courts of the Harem into its halls, from the
+    // court E of the Apadana into its portico: C); with none so near, the room is not built (popview: not drawn)
+    let inRoof = false;
+    // (not the garrison's people: their own quarters' rooms are the roof they go to, and those are not built: BLOCKERS B63)
+    if (indoor && !(P as { hidden?: boolean } | undefined)?.hidden && !NO_SNAP.test(place) && !terraceRoofed(s[0], s[1])) { const q = this.roofNear(s, pid, place); if (q) { s = q; inRoof = true; } }
     // D-221: waiting at a court place, one faces what is waited on (the stair, the hall's door, the throne: court.ts focusOf)
     const fo = K && FACING_ACTS.test(act) ? focusOf(place, s[0], s[1]) : null;
     const hd = face ? headingOf(face[0] - s[0], face[1] - s[1]) : fo ? headingOf(fo[0] - s[0], fo[1] - s[1]) + (this.hash(pid, place, 16) - 0.5) * 30 /* (±15°: looking about, C) */ : P?.heading ?? this.hash(pid, place, 15) * 360;
-    return this.sp(s[0], s[1], !(P as { hidden?: boolean } | undefined)?.hidden /* D-199: the king's rooms are not drawn */, hd, 'nav', `Terrace: ${place}${fo ? ', facing what is waited on (C: D-221)' : ''}`, { anchor, ...(K && P?.kind === 'post' ? { fixed: true } : {}) });
+    return this.sp(s[0], s[1], !(P as { hidden?: boolean } | undefined)?.hidden /* D-199: the king's rooms are not drawn */, hd, 'nav', `Terrace: ${place}${fo ? ', facing what is waited on (C: D-221)' : ''}${inRoof ? ', gone in under the nearest roof (C: D-244)' : ''}`, { anchor, ...(K && P?.kind === 'post' ? { fixed: true } : {}) });
+  }
+  /** D-244: the nearest walkable point under a roofed Terrace building within ROOF_NEAR m of `s` (rings 1 m apart, starting
+   *  at an angle of the person's own), or null */
+  private roofNear(s: P2, pid: number, place: string): P2 | null {
+    const a0 = this.hash(pid, place, 27) * Math.PI * 2;
+    for (let r = 1; r <= ROOF_NEAR; r++) { const m = Math.max(8, Math.ceil((2 * Math.PI * r) / 1.2));
+      for (let k = 0; k < m; k++) { const a = a0 + (k / m) * Math.PI * 2, e = s[0] + Math.cos(a) * r, n = s[1] + Math.sin(a) * r; if (terraceRoofed(e, n) && this.nav.walkable(e, n)) return [e, n]; } }
+    return null;
   }
   /** D-221: the centres of the forecourt's knots of talkers: every 3 m of the forecourt where a ring of 1.3 m round the
    *  centre is walkable, off the posts, the way and the parties' places; 20 of them, spread (C) */
@@ -376,7 +425,8 @@ export class PopGeo {
     let t = K?.tentOf(pid) ?? null; if (t && t.camp !== def.id) t = null;
     if (!t && K) { let list = this.campTents.get(def.id); if (!list) this.campTents.set(def.id, list = K.tents.filter(x => x.camp === def.id)); if (list.length) { t = list[Math.floor(this.hash(pid, place, 21) * list.length)]; indoor = false; } }
     if (!t) return this.openNear(def.id === 'court' ? COURT_CAMP.c : def.c, def.r, pid, place, `${def.label} (court setting, C)`);
-    if (indoor) return this.sp(t.e, t.n, false, t.heading, 'open', `inside a ${t.kind} tent of ${def.label} (camps.ts: C)`);
+    if (indoor) { const hr = (t.heading * Math.PI) / 180, m = Math.min(t.w, t.d) * 0.6, a = (this.hash(pid, place, 25) - 0.5) * m, b = (this.hash(pid, place, 26) - 0.5) * m; // (D-244: on the tent's floor, C)
+      return this.sp(t.e + a * Math.cos(hr) + b * Math.sin(hr), t.n - a * Math.sin(hr) + b * Math.cos(hr), false, t.heading, 'open', `inside a ${t.kind} tent of ${def.label} (camps.ts: C)`, { inside: true, fixed: true }); }
     const [e, n] = beforeDoor(t, 0.8 + 2.4 * this.hash(pid, place, 22), (this.hash(pid, place, 23) - 0.5) * t.w * 0.9);
     return this.sp(e, n, true, t.heading + 180 + (this.hash(pid, place, 24) - 0.5) * 140, 'open', `before a ${t.kind} tent of ${def.label} (camps.ts: C)`);
   }
@@ -496,10 +546,11 @@ export class PopGeo {
    *  same court or yard, open ground to open ground, the Terrace grid in line (popview.ts spreads people who would stand
    *  on one another) */
   stepClear(a: Spot, b: P2): boolean {
-    if (a.net === 'nav') return this.nav.walkable(b[0], b[1]) && this.nav.lineClear([a.e, a.n], b);
+    if (a.net === 'nav') return this.nav.walkable(b[0], b[1]) && this.nav.lineClear([a.e, a.n], b) && (!a.roof || terraceRoofed(b[0], b[1])); // (D-244: from under a roof, not out from under it)
     const within = (s: Site, la: P2, lb: P2) => { const ia = s.ci(la[0]), ja = s.cj(la[1]), ib = s.ci(lb[0]), jb = s.cj(lb[1]); if (!s.inb(ia, ja) || !s.inb(ib, jb)) return false;
       const ca = s.cell[s.k(ia, ja)], cb = s.cell[s.k(ib, jb)];
-      if (openCode(ca) ? !openCode(cb) : cb !== ca || s.sub[s.k(ib, jb)] === ROOM) return false;
+      const ka = s.k(ia, ja), kb = s.k(ib, jb), sameRoom = ca >= 0 && ca === cb && s.sub[ka] === ROOM && s.sub[kb] === ROOM && s.room[ka] === s.room[kb]; // (D-244: people drawn in a room spread within it)
+      if (!sameRoom && (openCode(ca) ? !openCode(cb) : cb !== ca || s.sub[kb] === ROOM || s.sub[ka] === ROOM)) return false; // (and never out of a room into its court)
       return siteLine(s, la, lb, 0.25); };
     if (a.net === 'town' && this.town) { const la = this.town.locate(a.e, a.n), lb = this.town.locate(b[0], b[1]); if (!la || !lb || la.si !== lb.si) return false;
       return within(this.town.boxes[la.si].s, [la.u, la.v], [lb.u, lb.v]); }
