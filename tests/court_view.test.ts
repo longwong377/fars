@@ -63,8 +63,9 @@ describe('the court in full assembly, drawn (D-182)', () => {
   // forecourt looking E, 741; the foot of the Apadana's N portico looking NNW, 709; a coarse scan of the Terrace every 15 m
   // and the hillside, × 8 headings: the hillside at [330, 20] looking W, 2,816 on day 0 and 3,191 on day 30)
   const SC: [string, number, number, number, number, number, number][] = [
-    ['court-forecourt', 0, 10, 20, 80, 135, -2], ['court-from-hillside', 0, 10, 290, -20, 270, -8],
-    ['court-forecourt-w', 0, 10, -35, 85, 90, -2], ['court-apadana-n', 0, 10, 0, 55, 337.5, -2], ['court-hillside-best', 30, 10, 330, 20, 270, -2], ['court-forecourt-w-day30', 30, 10, -35, 85, 90, -2]];
+    // (D-252: the court now comes on the seed's day (6-18): the scenes that were day 0 are day 20, the court resident whatever the seed)
+    ['court-forecourt', 20, 10, 20, 80, 135, -2], ['court-from-hillside', 20, 10, 290, -20, 270, -8],
+    ['court-forecourt-w', 20, 10, -35, 85, 90, -2], ['court-apadana-n', 20, 10, 0, 55, 337.5, -2], ['court-hillside-best', 30, 10, 330, 20, 270, -2], ['court-forecourt-w-day30', 30, 10, -35, 85, 90, -2]];
   it('the COURT scenes and the scan’s best views: everyone out of doors in view drawn, no placeholder, the visible counted (≥ 300 in the best view on the Terrace: B11), the people’s triangles', () => {
     const sl = new Sightlines(geo, buildTerrace().parts), rows: string[] = [], res: Record<string, unknown> = {}, _v = new THREE.Vector3();
     for (const [name, d, h, e, n, hd, pitch] of SC) {

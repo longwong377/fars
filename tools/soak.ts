@@ -18,7 +18,16 @@
 //    who is elsewhere (a person in two places) and every child under ten for being alone at night. Gate: no issue at all.
 //  - visible change: construction progress week by week and the seasonal state.
 //  - cost: step() at 60 fps with the full population (ms/frame), and the day-rollover spike.
-// Usage: npx tsx tools/soak.ts [days=354] [dtSeconds=60] [seed=1] [--sample N] [--court]
+//  - T-F8 (D-252; not one of the 8 gates, its own threshold): the court's arrivals and departures a walker can witness in the
+//    year, in the default world (the court comes and goes by default, UD-10, labelled C). An event is a run of days on which
+//    at least T_F8.MIN_ROAD people of the court's own column (not the visitors, not the heralds) walk the road in daylight
+//    coming in (on their arrival day) or going (on their leave day), AND the court's head count on the Terrace at 14:00 changes
+//    across it by at least T_F8.MIN_TERRACE (the day before the run against the day after). With it, T-F5's order from the
+//    world log: the heralds' E-20 couriers on the road before the E-25 arrival.
+// Usage: npx tsx tools/soak.ts [days=354] [dtSeconds=60] [seed=1] [--sample N] [--no-court] [--evidence <pass>]
+//   the default world (the court comes and goes: D-236) unless --no-court (the evidence-strict world); --court is accepted
+//   (the default); --evidence <pass> also writes REVIEWS/evidence/<pass>/T-F8.seed-<seed>.json and the pass's T-F8.json
+//   (every seed's run in the pass folded into one record)
 //   → prints a summary, writes bench-reports/soak-*.json
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { NavGrid } from '../src/people/navgrid';
@@ -29,6 +38,8 @@ import { checkPlan, checkDay } from '../src/people/planCheck';
 import { EVENT_KINDS, STORE_BOUNDS, Stores } from '../src/people/calendar';
 import { WeatherSystem } from '../src/weather/weatherState';
 import { seasonAt } from '../src/world/season';
+import { execSync } from 'node:child_process';
+import { existsSync, readdirSync } from 'node:fs';
 
 export const SOAK_GATES = {
   NEAR_COPY: 0.9,          // two days agreeing in ≥ 90 % of their half-hour buckets are near-copies
@@ -38,6 +49,8 @@ export const SOAK_GATES = {
   SACKS_MAX: 5000,
   CONSTRUCTION_WEEKS: 0.75, // visible change: construction advances in at least 3 weeks out of 4
 };
+/** T-F8 (D-252): what makes a coming or going of the court witnessable (C) */
+export const T_F8 = { MIN_ROAD: 200, MIN_TERRACE: 500, HOUR: 14 };
 const B = 48;
 /** near-copy count and similarity statistics over all pairs of the given days (codes: Uint8, 48 per day) */
 function pairStats(sig: Uint8Array, days: number[], full: boolean) {
@@ -56,6 +69,7 @@ function histShare(sig: Uint8Array, days: number[]) {
 }
 
 export function runSoak(days = 354, dt = 60, seed = 1, log = (s: string) => console.log(s), opts: { sample?: number; court?: boolean; skipPopulation?: boolean } = {}) {
+  opts = { court: true, ...opts }; // (D-252: the default world, the court coming and going, unless court: false)
   const nav = new NavGrid(new Int16Array(readFileSync('public/generated/nav.i16').buffer.slice(0)), new Uint8Array(readFileSync('public/generated/nav_edges.u8')));
   const W = new WeatherSystem(seed);
   const env = (t: number): Env => { const d = Math.floor(t / 24), c = W.conditions(d % W.days.length, t - d * 24); return { rain: c.rain, lightning: c.lightning, windMs: c.windMs, tempC: c.tempC, dust: c.dust }; };
@@ -123,6 +137,8 @@ export function runSoak(days = 354, dt = 60, seed = 1, log = (s: string) => cons
   const planIssues: Record<string, number> = {}; const planExamples: string[] = [];
   const byJob: Record<string, { n: number; mean: number; worst: number; failing: number; timingBlind: number; tbn: number }> = {};
   const t1 = Date.now(); let plans = 0;
+  // T-F8 (D-252): per day, the court's column on the road in daylight coming in / going, and the court on the Terrace at 14:00
+  const K = P.court, inRoad = new Int32Array(days), outRoad = new Int32Array(days), terr = new Int32Array(days), heraldRoad = new Int32Array(days);
   if (!opts.skipPopulation) for (let k = 0; k < ids.length; k++) {
     // the detailed agents' variety is measured by what they actually did (part a); their plans are checked here like anyone's
     const pid = ids[k], p = P.persons[pid], agent = p.agent >= 0;
@@ -133,6 +149,9 @@ export function runSoak(days = 354, dt = 60, seed = 1, log = (s: string) => cons
       const segs = P.plan(pid, d); plans++;
       for (const x of checkPlan(P, pid, d, segs, prevD === d - 1 ? prevLast : null, prevD === d - 1 ? prevSegs : null)) { planIssues[x.kind] = (planIssues[x.kind] ?? 0) + 1; if (planIssues[x.kind] <= 5 && planExamples.length < 60) planExamples.push(`${pid} ${p.job} ${p.sex}${p.age} day ${d}: ${x.kind}: ${x.note}`); }
       prevLast = segs[segs.length - 1].place; prevD = d; prevSegs = segs;
+      if (K && K.owns(pid)) { const sun = P.cal.ctx(d).sun, lit = segs.some(s => s.where === 'road' && s.t1 > sun.rise && s.t0 < sun.set);
+        if (K.inColumn(pid)) { if (lit && d === p.arrive) inRoad[d]++; if (lit && d === p.leave) outRoad[d]++; if (segAt(segs, T_F8.HOUR).where === 'terrace') terr[d]++; }
+        else if (lit && K.member(pid)?.g === 'herald' && d === p.arrive) heraldRoad[d]++; }
       let prev = 0; for (const s of segs) { if (s.t0 < prev - 1e-6 || s.t1 < s.t0 - 1e-9) { if (popBad.length < 20) popBad.push(`${pid} ${p.job} day ${d}: segments out of order at ${s.t0}`); break; } prev = s.t1;
         if (!ACTIVITIES[s.act] && popBad.length < 20) popBad.push(`${pid} ${p.job}: unknown activity ${s.act}`);
         if (s.where === 'road' && s.t1 - s.t0 > 3.1 && p.zone !== 'transient' && popBad.length < 20) popBad.push(`${pid} ${p.job} day ${d}: a ${(s.t1 - s.t0).toFixed(1)} h walk (${s.why})`);
@@ -162,6 +181,7 @@ export function runSoak(days = 354, dt = 60, seed = 1, log = (s: string) => cons
   for (const j of Object.values(byJob)) { j.mean = +(j.mean / j.n).toFixed(3); j.worst = +j.worst.toFixed(3); j.timingBlind = j.tbn ? +(j.timingBlind / j.tbn).toFixed(3) : NaN; }
   const popSeconds = (Date.now() - t1) / 1000;
   const popFailing = popStats.filter(s => s.share >= SOAK_GATES.MAX_NEAR_COPY_SHARE);
+  const tf8 = K && !opts.skipPopulation ? courtEvents(inRoad, outRoad, terr, heraldRoad, sim, sampleN ? sampleN / persons : 1) : null;
   // ---------------------------------------------------------------- per-frame cost of the full population at 60 fps (real-time clock)
   const cost = frameCost(seed, nav, env, !!opts.court);
   const season = [0, 60, 120, 180, 240, 300].map(d => ({ day: d, ...seasonAt(d), river: cal.days[Math.min(d, days - 1)].river, agri: [...cal.days[Math.min(d, days - 1)].agri] }));
@@ -185,7 +205,38 @@ export function runSoak(days = 354, dt = 60, seed = 1, log = (s: string) => cons
     stuck: stuck.slice(0, 10), populationStuck: popStuck.slice(0, 10), sacks, sliceStock: { ...sim.stock }, campFlows: { ...sim.flows }, stores, shortfalls: cal.shortfalls.length, collapse, harvestFactor: +cal.harvestFactor.toFixed(3),
     life: lifeCounts, construction, renderedActivities: rendered, badRendered, planProblems: popBad,
     planChecks: { personDays: plans, issues: planIssues, examples: planExamples, daysChecked, dayIssues, dayExamples, note: 'planCheck.ts: no_sleep, reason, meals, teleport and the D-191 invariants (weather, light, wait, label, feed, dress) on every person-day; apart (a person in two places) and alone (a child under ten at night) on every third day for everyone' },
-    season, frameCost: cost };
+    season, frameCost: cost, tf8 };
+}
+
+/** T-F8 (D-252): the court's witnessable comings and goings from the per-day tallies (the people of its column on the road in
+ *  daylight on their arrival or leave day; its head count on the Terrace at 14:00), and T-F5's order from the world log (the
+ *  E-20 heralds of the court before E-25). `scale`: the share of people measured (a --sample run scales the thresholds) */
+function courtEvents(inRoad: Int32Array, outRoad: Int32Array, terr: Int32Array, heraldRoad: Int32Array, sim: PeopleSim, scale: number) {
+  const days = inRoad.length, K = sim.pop.court!, minRoad = T_F8.MIN_ROAD * scale, minTer = T_F8.MIN_TERRACE * scale;
+  const runs = (a: Int32Array) => { const out: [number, number][] = []; for (let d = 0; d < days; d++) if (a[d] >= minRoad) { if (out.length && out[out.length - 1][1] === d - 1) out[out.length - 1][1] = d; else out.push([d, d]); } return out; };
+  const at = (d: number) => terr[Math.max(0, Math.min(days - 1, d))];
+  const ev = (kind: 'arrival' | 'departure', a: Int32Array) => runs(a).map(([d0, d1]) => { const before = at(d0 - 1), after = at(d1 + 1), road = Array.from(a.slice(d0, d1 + 1));
+    const change = kind === 'arrival' ? after - before : before - after; return { kind, days: [d0, d1], roadInDaylight: road, terraceAt14: { before, after }, witnessable: change >= minTer && Math.max(...road) >= minRoad }; });
+  const events = [...ev('arrival', inRoad), ...ev('departure', outRoad)].sort((a, b) => a.days[0] - b.days[0]);
+  // T-F5 from the world log: the heralds' couriers (E-20, the court's word) before the king's arrival (E-25)
+  const log: { t: number; id: string; text: string }[] = []; for (let d = 0; d < days; d++) for (const e of sim.cal.ctx(d).events) if (e.id === 'E-25' || e.id === 'E-26' || (e.id === 'E-20' && /word that the king is coming/.test(e.text))) log.push({ t: e.t, id: e.id, text: e.text });
+  const e25 = log.find(e => e.id === 'E-25'), heraldsBefore = e25 ? log.filter(e => e.id === 'E-20' && e.t < e25.t).length : 0, heraldsAfter = e25 ? log.filter(e => e.id === 'E-20' && e.t >= e25.t).length : 0;
+  const y = K.year;
+  return { value: events.filter(e => e.witnessable).length, events, year: y, worldLog: log,
+    tf5: { heraldsBeforeArrival: heraldsBefore, heraldsAfterArrival: heraldsAfter, heraldsOnTheRoadInDaylight: Array.from(heraldRoad.slice(Math.max(0, y.heraldDays[0]), y.heraldDays[1] + 2)), ok: heraldsBefore > 0 && heraldsAfter === 0 },
+    terraceAt14: Object.fromEntries([...Array(12).keys()].map(i => y.first - 3 + i).filter(d => d >= 0 && d < days).map(d => [d, terr[d]]).concat([[y.leave - 1, at(y.leave - 1)], [y.leave, at(y.leave)], [y.leave + 1, at(y.leave + 1)]])),
+    rule: `an event: a run of days with >= ${T_F8.MIN_ROAD} of the court's column on the road in daylight on their arrival (leave) day, and the court on the Terrace at ${T_F8.HOUR}:00 up (down) by >= ${T_F8.MIN_TERRACE} across it${scale < 1 ? ` (scaled by the sample, ${scale.toFixed(3)})` : ''}` };
+}
+/** write the T-F8 evidence of one soak run and fold the pass's runs into one record (REVIEWS/evidence/<pass>/) */
+function writeTF8(pass: string, r: ReturnType<typeof runSoak>) {
+  if (!r.tf8) return; const dir = `REVIEWS/evidence/${pass}`; mkdirSync(dir, { recursive: true });
+  let commit = 'unknown'; try { commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim(); } catch { /* no git */ }
+  const run = { seed: r.seed, court: r.court, days: r.days, gates: r.gates, gatesPassed: Object.values(r.gates).filter(Boolean).length, ...r.tf8 };
+  writeFileSync(`${dir}/T-F8.seed-${r.seed}.json`, JSON.stringify({ run: 'T-F8', commit, tool: 'tools/soak.ts', date: new Date().toISOString().slice(0, 10), ...run }, null, 1));
+  const runs = readdirSync(dir).filter(f => /^T-F8\.seed-\d+\.json$/.test(f)).map(f => JSON.parse(readFileSync(`${dir}/${f}`, 'utf8')));
+  writeFileSync(`${dir}/T-F8.json`, JSON.stringify({ id: 'T-F8', value: Math.min(...runs.map(x => x.value)), n: runs.filter(x => x.court && x.days >= 354).length, n_note: 'seeds of the default world soaked a whole year (tools/soak.ts, one run per seed)',
+    unit: 'events per year', commit, tool: 'tools/soak.ts', pass, date: new Date().toISOString().slice(0, 10), runs: runs.map(x => ({ seed: x.seed, court: x.court, days: x.days, value: x.value, gatesPassed: x.gatesPassed, commit: x.commit, events: x.events.map((e: any) => ({ kind: e.kind, days: e.days, witnessable: e.witnessable })), tf5: x.tf5.ok })) }, null, 1));
+  void existsSync;
 }
 
 /** step() cost with the full population at 60 fps and the real-time clock, over a stretch that crosses midnight */
@@ -202,10 +253,11 @@ export function frameCost(seed: number, nav: NavGrid, env: (t: number) => Env, c
 }
 
 if (process.argv[1]?.endsWith('soak.ts')) {
-  const args = process.argv.slice(2).filter(a => !a.startsWith('--')); const flag = (k: string) => process.argv.indexOf(k);
+  const args = process.argv.slice(2).filter((a, i, all) => !a.startsWith('--') && all[i - 1] !== '--sample' && all[i - 1] !== '--evidence'); const flag = (k: string) => process.argv.indexOf(k);
   const [days, dt, seed] = [+(args[0] ?? 354), +(args[1] ?? 60), +(args[2] ?? 1)];
   const sample = flag('--sample') >= 0 ? +process.argv[flag('--sample') + 1] : 0;
-  const r = runSoak(days, dt, seed, undefined, { sample, court: flag('--court') >= 0 });
+  const r = runSoak(days, dt, seed, undefined, { sample, court: flag('--no-court') < 0 }); // (the default world: the court comes and goes, D-236)
+  if (flag('--evidence') >= 0) writeTF8(process.argv[flag('--evidence') + 1], r);
   mkdirSync('bench-reports', { recursive: true }); const f = `bench-reports/soak-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
   writeFileSync(f, JSON.stringify(r, null, 1));
   const { renderedActivities, season, ...brief } = r; void renderedActivities; void season;

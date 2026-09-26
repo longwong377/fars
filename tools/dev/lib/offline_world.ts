@@ -86,7 +86,7 @@ export async function buildOfflineWorld(o: { seed?: number; day?: number; hour?:
   const t = 24 * (o.day ?? 25) + (o.hour ?? 10);
   if (o.people !== false) {
     sim = new PeopleSim(seed, nav, env, { court }); sim.routeSearchesPerStep = 4; sim.jumpTo(t);
-    if (sim.pop.court) { const tents = new CourtCampTents(sim.pop.court.tents, (e, n) => T.heightAt(e, -n), P); scene.add(tents.group); }
+    if (sim.pop.court) { const tents = new CourtCampTents(sim.pop.court.tents, (e, n) => T.heightAt(e, -n), P); tents.setTime(t); scene.add(tents.group); } // (D-252: the tents standing at t)
     if (plain) { geo = new PopGeo({ pop: sim.pop, nav, town: settlement?.plan ?? null, ground: (e, n) => T.heightAt(e, -n), seed,
       villages: plain.data.villages, compounds: vi => villageCompounds(plain.data.villages[vi], T, seed), canals: plain.data.canals.map(c => c.pts) });
       view = new PopView(sim, geo, seed); }

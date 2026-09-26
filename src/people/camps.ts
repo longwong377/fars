@@ -22,7 +22,12 @@ export const TENT_KINDS: Record<TentKind, { w: number; d: number; h: number; sle
   pavilion: { w: 7.2, d: 7.2, h: 3.3, sleeps: 10, tier: 'C', note: 'a larger tent of dyed cloth with a peaked roof for Persians of rank and officials (tents adorned with gold and silver in the Persian camp, HDT 9.80: a claim, B; this form C)' },
 };
 export interface CampDef { id: string; zone: 'town' | 'plain'; c: P2; r: number; axis: number; label: string; tier: string; src: string; note: string }
-export interface Tent { camp: string; i: number; e: number; n: number; heading: number; kind: TentKind; w: number; d: number; h: number }
+export interface Tent { camp: string; i: number; e: number; n: number; heading: number; kind: TentKind; w: number; d: number; h: number;
+  /** D-252: when the tent stands (hours of the regnal year, day * 24 + hour): pitched as its household reaches the camp, struck
+   *  on the morning of the court's leave day (court.ts sets them; absent: standing all year) */
+  pitch?: number; strike?: number }
+/** D-252: does the tent stand at hour t of the year (day * 24 + hour) */
+export const tentStands = (t: Tent, at: number) => (t.pitch ?? -Infinity) <= at && at < (t.strike ?? Infinity);
 export const CAMPS: CampDef[] = (courtData as any).camps;
 export const CAMP_BY_ID = new Map(CAMPS.map(c => [c.id, c]));
 /** the place id of a camp in the plans (the court's own camp keeps its D-182 id) */

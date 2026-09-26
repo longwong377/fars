@@ -464,7 +464,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
         smoke.setFireLight(fire.fires, k => fireLight(k as FireKind).candela); // D-227: the fires' light on the layer from below (their lit state of the last frame)
         landSmoke.group.visible = !nowView.active; landSmoke.setSkyLight(ctx.skyLight); landSmoke.update(smoke.cells, ctx.camera.position); }
       settlement?.update(dt, { camera: ctx.camera, clock: ctx.clock, sky: ctx.sky, skyLight: ctx.skyLight, cond: ctx.cond, player: ctx.player });
-      campTents?.update(ctx.player.position.x, ctx.player.position.z); // D-199
+      campTents?.update(ctx.player.position.x, ctx.player.position.z, 400, sim.t); // D-199; D-252: the tents standing now
       fire.setSkyLight(ctx.skyLight);
       fire.update(dt, ctx.camera, ctx.sky.sunAlt, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.cond.rain, time, ctx.clock.localHour);
       { // D-220: dust from this frame's emitters (the crowd and its animals were drawn above), and the carts' wheels

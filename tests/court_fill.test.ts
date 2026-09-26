@@ -91,7 +91,11 @@ describe('the king (D-199: B9, Q-335)', () => {
   it('gives audience on about two mornings in five: walks to the Apadana with staff and lotus, enthroned, walks back; otherwise unseen in the Hadish', () => {
     const K = P.court!, rows: string[] = []; let aud = 0, days = 0;
     const hidden = new Set(COURT_PRIVATE.map(p => p.id));
-    for (let d = K.firstDay; d < K.leaveDay; d++) { days++; const s = P.plan(K.king, d), Kd = K.kingDay(d);
+    // D-252: on his day he comes in past the road station and walks up with the parasol over him; then into the Hadish, unseen
+    { const s = P.plan(K.king, K.firstDay), seen = s.filter(x => x.where !== 'away' && !hidden.has(x.place));
+      expect(seen.map(x => x.act)).toEqual(['rest', 'royal_walk']); expect(seen[0].place).toBe('station'); expect(K.kingDay(K.firstDay).aud).toBe(false);
+      for (let d = 0; d < K.firstDay; d++) expect(P.present(K.king, d)).toBe(false); }
+    for (let d = K.firstDay + 1; d < K.leaveDay; d++) { days++; const s = P.plan(K.king, d), Kd = K.kingDay(d);
       const seen = s.filter(x => x.where !== 'away' && !hidden.has(x.place));
       if (Kd.aud) { aud++; const th = s.find(x => x.act === 'enthroned')!; expect(th, `day ${d}`).toBeDefined(); expect(th.place).toBe(KING.throne);
         expect(Math.abs(th.t1 - Kd.a1)).toBeLessThan(1e-6); expect(Math.abs(th.t0 - Kd.a0)).toBeLessThan(0.02);
@@ -149,7 +153,12 @@ describe('the camps’ tents (D-199: camps.ts, C)', () => {
   }, 300_000);
   it('the tents drawn: a mesh per camp, a collider per tent, ≤ 20 triangles a tent; the people asleep inside (on the tent’s floor, drawn inside it: D-244), the rest before their door', () => {
     const K = P.court!, t0 = performance.now(), C = new CourtCampTents(K.tents, () => 1600), ms = performance.now() - t0;
-    expect(C.info.tents).toBe(K.tents.length); expect(C.info.meshes).toBe(CAMPS.length); expect(C.info.colliders).toBe(K.tents.length); expect(C.info.tris / C.info.tents).toBeLessThanOrEqual(20);
+    expect(C.info.tents).toBe(K.tents.length); expect(C.info.meshes).toBeGreaterThanOrEqual(CAMPS.length); expect(C.info.colliders).toBe(K.tents.length); expect(C.info.tris / C.info.tents).toBeLessThanOrEqual(20);
+    // D-252: a camp stands only while the court is here: none before its first household comes, all once the column is in, none
+    // after the leave day's morning; a tent never stands before its household reaches the camp
+    const Y = K.year; C.setTime(Y.first * 24); expect(C.info.standing).toBe(0); C.setTime((Y.last + 1) * 24 + 12); expect(C.info.standing).toBe(K.tents.length); C.setTime(K.leaveDay * 24 + 12); expect(C.info.standing).toBe(0);
+    C.setTime(Y.arrive * 24); const before = C.info.standing; expect(before).toBeGreaterThan(0); expect(before).toBeLessThan(K.tents.length);
+    for (let pid = K.first; pid < K.end; pid += 37) { const t = K.tentOf(pid), p = P.persons[pid]; if (!t || p.zone === 'transient') continue; expect(t.pitch!, `${pid}`).toBeGreaterThan(p.arrive * 24 + K.arriveHour(pid)); }
     OUT.tentGeometry = { tents: C.info.tents, triangles: C.info.tris, meshes: C.info.meshes, buildMs: +ms.toFixed(0), perTent: +(C.info.tris / C.info.tents).toFixed(1) }; save();
     const geo = new PopGeo({ pop: P, nav, town: buildTownPlan(), seed: 1 });
     let n = 0; for (const [camp, list] of K.retinue) for (const pid of list.filter((_, i) => i % 97 === 0)) { const t = K.tentOf(pid)!; expect(t.camp).toBe(camp);

@@ -32,6 +32,7 @@ import { REGNAL_DAYS } from './calendar';
 import { dustWear, coldWear, wetHours, wetSpells, OPEN_PLACE } from './population'; // (functions only, called after both modules have loaded)
 import { CAMPS, CAMP_BY_ID, campPlace, campOfPlace, layoutCamp, TENT_KINDS, type Tent, type TentKind } from './camps';
 import delegationsData from '../data/delegations.json';
+import { courtYear, heralds, type CourtYear } from './courtYear';
 
 export const COURT = courtData as any;
 type P2 = [number, number];
@@ -97,7 +98,7 @@ export const FACING_ACTS = /^(queue|rest|inspect|shelter|eat)$/;
 const FAC: Record<string, P2> = Object.fromEntries((townData as any).facilities.map((f: any) => [f.id, f.at as P2]));
 const XY = new Map<string, P2>([...((placesData as any).places as CourtPlace[]), ...COURT_PLACES, ...COURT_PRIVATE].map(p => [p.id, p.at]));
 const ANCHOR = new Map(COURT_PLACES.filter(p => p.anchor).map(p => [p.id, p.anchor!]));
-const TOWN_PLACES = new Set(['court_camp', 'royal_store', 'store_town', 'stockyard', 'terrace_edge']);
+const TOWN_PLACES = new Set(['court_camp', 'royal_store', 'store_town', 'stockyard', 'terrace_edge', 'station']); // (D-252: the road station, where the court is first and last seen)
 const whereOf = (pl: string): Where => pl === '-' ? 'away' : TOWN_PLACES.has(pl) ? 'town' : pl.startsWith('rcamp:') ? campOfPlace(pl)?.zone ?? 'town' : 'terrace';
 const xyOf = (pl: string): P2 => pl === 'court_camp' ? COURT_CAMP.c : pl.startsWith('rcamp:') ? campOfPlace(pl)?.c ?? [0, 0] : FAC[pl] ?? XY.get(pl) ?? [0, 0];
 const D = COURT.day;
@@ -108,8 +109,8 @@ export function walkHours(a: string, b: string) {
 }
 
 // ------------------------------------------------------------------ the people
-const S = { gen: salt('court-gen'), plan: salt('court-plan'), vis: salt('court-visitors'), day: salt('court-day'), vig: salt('court-vigil'), aud: salt('court-audience'), king: salt('court-king'), ret: salt('court-retinue'), face: salt('court-face') };
-type Group = 'royal_guard' | 'women' | 'attendants' | 'palace' | 'table' | 'porters' | 'butchers' | 'officials' | 'nobles' | 'visitor' | 'king' | 'retinue';
+const S = { arr: salt('court-arrive'), gen: salt('court-gen'), plan: salt('court-plan'), vis: salt('court-visitors'), day: salt('court-day'), vig: salt('court-vigil'), aud: salt('court-audience'), king: salt('court-king'), ret: salt('court-retinue'), face: salt('court-face') };
+type Group = 'royal_guard' | 'women' | 'attendants' | 'palace' | 'table' | 'porters' | 'butchers' | 'officials' | 'nobles' | 'visitor' | 'king' | 'retinue' | 'herald';
 interface Member { g: Group; role: string; sleep: string }
 /** D-210 (gap audit item 17): the animals a party brings, as its people's delegation on the Apadana reliefs leads them
  *  (delegations.json `animal`, the relief carving's own list: B imagery, several RECOLLECTION); a petitioner's party, and a
@@ -160,7 +161,13 @@ export class CourtResidents {
   readonly parties: Party[] = [];
   readonly byGroup = new Map<Group, number[]>();
   private mem = new Map<number, Member>();
-  readonly firstDay: number = COURT.resident.first_day; readonly lastDay: number = COURT.resident.last_day; readonly leaveDay: number = COURT.resident.leave_day;
+  /** D-252: the court's year for this seed (courtYear.ts): the king's day (firstDay, the residence's first day), the first
+   *  day anyone of it comes (the household ahead), the last day of the residence and the leave day (E-26) */
+  readonly year: CourtYear; readonly firstDay: number; readonly lastDay: number; readonly leaveDay: number;
+  /** D-252: the hour each person of the court reaches the road station on their arrival day (Person.arrive) */
+  private arriveH = new Map<number, number>();
+  /** D-252: the heralds (T-F5), by their order in courtYear.heralds */
+  readonly heralds: number[] = [];
   /** D-199: the king, his two bearers and his escort (pids) */
   readonly king: number; readonly bearers: { parasol: number; whisk: number }; readonly escort: number[] = [];
   /** D-199: the retinue's people by camp (pids) */
@@ -169,10 +176,17 @@ export class CourtResidents {
   readonly tents: Tent[] = []; private tentOfHH = new Map<number, Tent>(); readonly campRadius = new Map<string, number>();
   constructor(readonly pop: Population) {
     const P = pop as unknown as PopGen, seed = pop.seed; this.first = pop.persons.length;
+    this.year = courtYear(seed); this.firstDay = this.year.arrive; this.lastDay = this.year.lastDay; this.leaveDay = this.year.leave;
+    // D-252: when each household comes (court.json arrival: the day relative to the king's, the hour it reaches the road
+    // station drawn per household so a household comes together; C)
+    const AR = COURT.arrival, when = (spec: { day: number; hour: [number, number] }, hh: number): [number, number] => [this.firstDay + spec.day, +lerp(spec.hour[0], spec.hour[1], u01(seed, S.arr, hh)).toFixed(3)];
+    let arr: [number, number] = [this.firstDay, 12];
     const add = (g: Group, role: string, sleep: string, x: Partial<Person> & { sex: 'm' | 'f'; age: number; job: Job; hh: number }) => {
-      const pid = P.person({ zone: 'terrace', arrive: this.firstDay, leave: this.leaveDay, wife: false, single: true, work: sleep, sub: `court:${g}:${role}`, ...x });
-      this.mem.set(pid, { g, role, sleep }); (this.byGroup.get(g) ?? this.byGroup.set(g, []).get(g)!).push(pid); return pid; };
-    const campHH: [number, TentKind, string][] = []; // (household, tent kind, camp) of the households that lodge in tents, in order
+      const pid = P.person({ zone: 'terrace', arrive: arr[0], leave: this.leaveDay, wife: false, single: true, work: sleep, sub: `court:${g}:${role}`, ...x });
+      this.arriveH.set(pid, arr[1]); this.mem.set(pid, { g, role, sleep }); (this.byGroup.get(g) ?? this.byGroup.set(g, []).get(g)!).push(pid); return pid; };
+    // (household, tent kind, camp, the hour of the year its tent is pitched) of the households that lodge in tents, in order
+    const campHH: [number, TentKind, string, number][] = [];
+    const pitchAt = (camp: string) => arr[0] * 24 + arr[1] + walkHours('station', campPlace(camp)) + 0.25; // (on reaching the camp: C)
     for (const [gi, G] of (COURT.groups as any[]).entries()) {
       const g = G.id as Group; let hh = -1, inHH = 0, lastSleep = '';
       for (let i = 0; i < G.n; i++) {
@@ -183,7 +197,8 @@ export class CourtResidents {
         const persian = origin === 'Persian';
         // households: a file of ten (the guard), else ten who sleep at one place (C)
         if (inHH >= 10 || sleep !== lastSleep || hh < 0 || (g === 'royal_guard' && i % 10 === 0)) { hh = P.hh('court', 'terrace', persian, sleep === 'court_camp' ? 'court_camp' : sleep); inHH = 0; lastSleep = sleep;
-          if (sleep === 'court_camp') campHH.push([hh, TENT_OF_GROUP[g] ?? 'ridge', 'court']); }
+          const GA = AR.groups[g]; arr = g === 'royal_guard' && Math.floor(i / 10) < GA.advance_files ? when({ day: GA.advance_day, hour: GA.advance_hour }, hh) : when(GA, hh);
+          if (sleep === 'court_camp') campHH.push([hh, TENT_OF_GROUP[g] ?? 'ridge', 'court', pitchAt('court')]); }
         inHH++;
         const job: Job = sex === 'f' && G.jobF ? G.jobF : G.job;
         const role = G.roles ? pickW<string>(r, G.roles) : g;
@@ -194,7 +209,8 @@ export class CourtResidents {
     }
     // D-199: the king (Xerxes, born c. 518: HDT 7.2-3, B claim; 51 in 467, C), his parasol bearer and his fly-whisk and towel
     // bearer (beardless attendants, as the reliefs carve them: B), four spearmen of his escort (Persian and Median dress)
-    { const KH = P.hh('court', 'terrace', true, KING.private);
+    { arr = [this.firstDay, +this.year.kingHour.toFixed(3)]; // (D-252: the king's hour of his day, his bearers and escort with him)
+      const KH = P.hh('court', 'terrace', true, KING.private);
       this.king = add('king', 'king', KING.private, { sex: 'm', age: 51, job: 'official', hh: KH, origin: 'Persian', nm: 'Xšayāršā' } as any); // (the name as his inscriptions write it, XPa-XPh: A)
       const AH = P.hh('court', 'terrace', true, 'court_harem_s');
       this.bearers = { parasol: add('king', 'parasol', 'court_harem_s', { sex: 'm', age: 30, job: 'steward', hh: AH, origin: 'Persian' }), whisk: add('king', 'whisk', 'court_harem_s', { sex: 'm', age: 26, job: 'steward', hh: AH, origin: 'Persian' }) };
@@ -204,7 +220,7 @@ export class CourtResidents {
     // party is of one of the 23 peoples of the Apadana reliefs, brings its people's gifts, and is led before the king on one of
     // his audience mornings within its stay (none if he gives none then)
     const V = COURT.visitors; let pi = 0; const visitorTents: { tent: number; kind: TentKind; free: number }[] = [], partyTent: number[] = [];
-    for (let d = V.first_arrival; d <= V.last_arrival; d++) {
+    for (let d = Math.max(V.first_arrival, this.firstDay + AR.visitors_from); d <= V.last_arrival; d++) { // (D-252: to a king who is there)
       const n = poisson(u01(seed, S.vis, d), V.parties_per_day);
       for (let k = 0; k < n; k++) { const r = new HStream(seed, S.vis, 1000 + pi, 7);
         const petition = r.chance(V.petitioner_share); const size = petition ? r.int(V.petitioner_size[0], V.petitioner_size[1]) : r.int(V.size[0], V.size[1]);
@@ -228,10 +244,16 @@ export class CourtResidents {
       for (let i = 0; i < G.n; i++) { const r = new HStream(seed, S.ret, gi * 100000 + i);
         const origin = pickW<string>(r, G.origins), sex: 'm' | 'f' = G.sex ?? (r.chance(G.sexF ?? 0) ? 'f' : 'm');
         if (inHH >= 10 || hh < 0) { camp = G.camp ?? townCamps[nh % townCamps.length]; nh++; hh = P.hh('court', 'terrace', origin === 'Persian', campPlace(camp)); inHH = 0;
-          const H = pop.households[hh]; H.xy = [...CAMP_BY_ID.get(camp)!.c] as [number, number]; campHH.push([hh, TENT_OF_GROUP[G.id] ?? 'ridge', camp]); }
+          arr = when(AR.retinue[G.id], hh);
+          const H = pop.households[hh]; H.xy = [...CAMP_BY_ID.get(camp)!.c] as [number, number]; campHH.push([hh, TENT_OF_GROUP[G.id] ?? 'ridge', camp, pitchAt(camp)]); }
         inHH++;
         const pid = add('retinue', G.id, campPlace(camp), { sex, age: Math.floor(lerp(G.age[0], G.age[1] + 0.999, r.next())), job: G.job, hh, origin });
         (this.retinue.get(camp) ?? this.retinue.set(camp, []).get(camp)!).push(pid); } }
+    // D-252 (T-F5): the heralds, couriers of the road riding ahead with the word of the king's coming; each a day and a night
+    { const HD = AR.heralds, HH = P.hh('court', 'terrace', true, 'station');
+      for (const x of heralds(seed)) { const r = new HStream(seed, S.gen, 900000 + x.i); arr = [x.day, x.hour];
+        const pid = P.person({ sex: 'm', age: Math.floor(lerp(20, 38.999, r.next())), job: 'messenger', hh: HH, origin: pickW<string>(r, HD.origins), zone: 'transient', arrive: x.day, leave: x.day + 1, idx: x.i, wife: false, single: true, work: 'station', sub: 'court:herald' });
+        this.arriveH.set(pid, x.hour); this.mem.set(pid, { g: 'herald', role: 'herald', sleep: 'station' }); (this.byGroup.get('herald') ?? this.byGroup.set('herald', []).get('herald')!).push(pid); this.heralds.push(pid); } }
     this.end = pop.persons.length;
     // D-199: the tents (camps.ts): the residents' households in the order they were made, the court camp's visitors' tents
     // after them; each camp laid out once. The court camp's households are placed at the camp's centre for the view
@@ -239,11 +261,20 @@ export class CourtResidents {
       const hs = campHH.filter(x => x[2] === def.id), kinds: TentKind[] = hs.map(x => x[1]);
       if (def.id === 'court') kinds.push(...visitorTents.map(t => t.kind));
       const { tents, r } = layoutCamp(def, kinds); this.campRadius.set(def.id, r); this.tents.push(...tents);
+      // D-252: each tent pitched when its household reaches the camp, the visitors' lines with the king's column, and struck on
+      // the morning of the leave day (C)
+      const strike = this.leaveDay * 24 + 7.5, visPitch = this.firstDay * 24 + this.year.kingHour + 1;
+      tents.forEach((t, k) => { t.pitch = +(k < hs.length ? hs[k][3] : visPitch).toFixed(3); t.strike = strike; });
       hs.forEach(([hh], k) => { this.tentOfHH.set(hh, tents[k]); if (def.id === 'court') pop.households[hh].xy = [...def.c] as [number, number]; });
       if (def.id === 'court') this.parties.forEach((pa, k) => { const t = tents[hs.length + partyTent[k]]; this.tentOfHH.set(pa.hh!, t); pop.households[pa.hh!].xy = [...def.c] as [number, number]; });
     }
   }
   owns(pid: number) { return pid >= this.first && pid < this.end; }
+  /** D-252: the hour a person of the court reaches the road station on their arrival day (-1: not of the court) */
+  arriveHour(pid: number) { return this.arriveH.get(pid) ?? -1; }
+  /** D-252: the court's own column (not the visitors, not the heralds): its people's arrival and leave days are the court's
+   *  coming and going (tools/soak.ts T-F8) */
+  inColumn(pid: number) { const g = this.mem.get(pid)?.g; return !!g && g !== 'visitor' && g !== 'herald'; }
   member(pid: number) { return this.mem.get(pid) ?? null; }
   /** D-199: is day d one of the king's audience mornings (about two in five while the court is resident; C) */
   audienceDay(d: number) { return d > this.firstDay && d < this.leaveDay && u01(this.pop.seed, S.aud, d) < KING.audience_share && !this.pop.sick(this.king, d); }
@@ -327,6 +358,7 @@ export class CourtResidents {
     const m = this.mem.get(pid); if (!m) return null; const G = (COURT.groups as any[]).find(x => x.id === m.g);
     if (m.g === 'visitor') { const pa = this.parties[this.pop.persons[pid].idx], del = DELEGATIONS_BY_ORIGIN.get(pa.origin);
       return `${m.role === 'petitioner' ? `a ${pa.origin} petitioner` : `a delegate of a ${pa.origin} party`} waiting on the king (court setting, C)${del ? `; the dress of the ${del.id} of the Apadana reliefs (relief ${del.relief}: form B, colours C, D-199)` : ''}${m.role === 'delegate' ? `; gifts: ${pa.gift}` : ''}`; }
+    if (m.g === 'herald') return 'a herald: a courier of the royal road riding ahead of the court with word of the king’s coming (the relay: HDT 8.98, a claim, B; the heralds C, D-252: T-F5)';
     if (m.g === 'king') return m.role === 'king' ? 'the king, Xerxes (court setting only, C: nothing places him at Persepolis in 467, Q-005; his dress, crown, staff and lotus as the reliefs carve them, B: D-199)'
       : m.role === 'escort' ? 'a spearman of the king’s escort (court setting, C)' : `the king’s ${m.role === 'parasol' ? 'parasol bearer' : 'fly-whisk and towel bearer'} (the door-jamb reliefs, B; court setting, C)`;
     if (m.g === 'retinue') { const R = RET_BY_ID.get(m.role); return `${R?.label ?? m.role}, lodged at ${CAMP_BY_ID.get(campOfPlace(m.sleep)?.id ?? '')?.label ?? m.sleep} (the court’s retinue, court setting, C: Q-333, D-199)`; }
@@ -354,7 +386,8 @@ export class CourtResidents {
   }
   /** where a person's plan for day d ends (tomorrow's plan starts there) */
   endPlace(pid: number, d: number): string {
-    const m = this.mem.get(pid)!; if (!this.pop.present(pid, d) || d >= this.leaveDay) return '-';
+    const m = this.mem.get(pid)!; if (!this.pop.present(pid, d) || d >= this.pop.persons[pid].leave) return '-';
+    if (d === this.pop.persons[pid].arrive) return m.sleep; // (D-252: no watch on the day they come)
     if (m.g === 'royal_guard' && this.phase(pid, d) === 2 && !this.pop.sick(pid, d)) return this.postOf(pid, d) ?? 'court_guard_mess';
     return m.sleep;
   }
@@ -437,6 +470,8 @@ class CourtDay {
     const K = this.K, d = this.d, p = this.p;
     if (!K.pop.present(this.pid, d)) { this.add(24, '-', 'offmap', 'not at Persepolis', undefined, 'away'); return this.segs; }
     if (this.m.g === 'visitor') this.visitor();
+    else if (this.m.g === 'herald') this.herald();
+    else if (d === p.arrive) this.arrivalDay();
     else if (d >= K.leaveDay && this.m.g === 'retinue') this.retinueLeaves();
     else if (d >= K.leaveDay) this.departure();
     else if (K.pop.sick(this.pid, d)) this.sickDay();
@@ -473,8 +508,75 @@ class CourtDay {
     else this.morning(this.sun.rise - r.range(0.6, 1.1));
     this.meal(this.m.sleep, 0.3, 'the last breakfast before the road');
     this.at(Math.max(this.t + 0.5, 8.4 + r.range(0, 0.5)), this.m.sleep, 'rest', 'making ready to leave with the court');
-    this.go('terrace_edge', 'going down with the court'); this.add(this.t + 1.2, 'road:departure', 'walk', 'leaving with the court on the road to Susa', undefined, 'road');
-    this.add(24, '-', 'offmap', 'gone with the court', undefined, 'away');
+    this.leaveBy(this.columnWalk(false));
+  }
+  /** D-252: down to the road station and away W on the royal road with the column: the walk to the station is drawn (the court
+   *  seen going), the road beyond it is not (Q-683) */
+  leaveBy([act, why, carry]: [ActivityId, string, string | undefined]) {
+    this.go('station', why, act, carry); this.add(this.t + 0.05, 'station', 'rest', 'halting by the road station while the column closes up');
+    this.add(this.t + 1.2, 'road:departure', 'walk', 'leaving with the court on the road to Susa', undefined, 'road'); this.add(24, '-', 'offmap', 'gone with the court', undefined, 'away');
+  }
+  /** D-252: how a person of the court walks in the column (coming, or going when `coming` is false): the act, the words (the
+   *  performance's variant reads them: the pack strings of the baggage and the trains, activities.ts) and what is carried (C) */
+  columnWalk(coming = true): [ActivityId, string, string | undefined] {
+    const g = this.m.g, role = this.m.role, dir = coming ? 'in along the royal road' : 'out along the royal road to Susa', arms = 'spear with its apple-shaped butt, bow and quiver (reliefs B)';
+    if (g === 'king') return role === 'king' ? ['royal_walk', `walking ${coming ? 'up from the road station' : 'down to the road station'} at the head of his household, the parasol held over him (door-jamb reliefs, B; the ${coming ? 'arrival' : 'leaving'} on foot C)`, undefined]
+      : role === 'parasol' ? ['bear_parasol', `walking behind the king ${dir}, the parasol held over him`, undefined] : role === 'whisk' ? ['bear_whisk', `walking behind the king ${dir} with the fly-whisk and the towel`, undefined]
+      : ['patrol', `walking before the king ${dir}`, arms];
+    if (g === 'royal_guard') return ['walk', `marching ${dir} with the king’s spearmen`, arms];
+    if (g === 'retinue') { const w = RET_BY_ID.get(role)?.work;
+      if (w === 'baggage') return ['walk', `leading a string of pack mules of the court’s baggage ${dir}`, undefined];
+      if (w === 'convoy') return ['walk', `leading a pack train of the court’s supply trains ${dir}`, undefined];
+      if (w === 'horses' || w === 'herds') return ['walk', `with the court’s horses and mules ${dir}`, undefined];
+      if (w === 'soldier') return ['walk', `marching ${dir} with the soldiers of the court`, 'spear, bow and quiver']; }
+    if (coming && this.d < this.K.firstDay) return ['walk', `coming ${dir} ahead of the court, to make ready for the king`, undefined];
+    return ['walk', `${coming ? 'coming' : 'going'} ${dir} with the court’s column`, undefined];
+  }
+  /** D-252: the day a person of the court comes: the night at the last camp on the road and the morning's march (away: beyond
+   *  the road station nothing is drawn, Q-683), in past the road station at the household's hour (court.json arrival), along the
+   *  road and up to where they lodge (the Terrace by the Grand Stair; the camps); at a camp the tents pitched first; then
+   *  settling in, a meal and the night (C) */
+  arrivalDay() {
+    const K = this.K, r = this.r, T = K.arriveHour(this.pid), g = this.m.g, SL = this.m.sleep, king = g === 'king' && this.m.role === 'king';
+    const home = king ? KING.private : SL, camp = SL === 'court_camp' || SL.startsWith('rcamp:');
+    const wake = Math.min(this.sun.rise - r.range(0.5, 0.9), T - 2.2);
+    this.add(wake, '-', 'sleep', 'asleep at the last camp on the road from Susa', undefined, 'away');
+    this.add(wake + 0.35, '-', 'eat', 'a meal at the last camp before the road', undefined, 'away');
+    // (the last stage is a morning's march: no more than the day's stage on foot with the walk from the station, planCheck (g); C)
+    this.add(T - r.range(4.2, 4.8), '-', 'offmap', 'at the last camp on the road from Susa, loading the animals and waiting for the column to move', undefined, 'away');
+    this.add(T - 0.05, '-', 'offmap', 'on the road from Susa with the court', undefined, 'away');
+    this.add(T, 'station', 'rest', 'halting by the road station while the column closes up'); this.cur = 'station';
+    const [act, why, carry] = this.columnWalk(true); this.go(g === 'king' && this.m.role !== 'escort' ? KING.private : g === 'king' ? KING.gather : home, why, act, carry);
+    if (camp) this.at(this.t + r.range(0.6, 1.0), SL, 'carry_sack', 'unloading the animals and pitching the tents of the camp');
+    else if (g === 'king' && !king) this.go(SL, this.m.role === 'escort' ? 'going to the quarters' : 'going to the south wing');
+    const settle: Opt[] = king ? [[KING.private, 'rest', 'resting in the palace after the road', 2], [KING.private, 'talk', 'in council in the palace with the chiliarch (C)', 1]]
+      : [[SL, 'rest', 'resting after the road from Susa', 2], [SL, 'talk', 'talking over the road with the others', 1.5]];
+    if (g === 'royal_guard' || (g === 'king' && this.m.role === 'escort')) settle.push(['court_guard_mess', 'talk', 'talking with the men of his file in the guards’ court', 1]);
+    if (this.t < 15.5) { this.fill(r.range(14.8, 15.4), settle); this.meal(home, 0.4, 'a meal after the road'); }
+    this.fill(Math.max(this.t + 0.3, r.range(18.2, 19)), settle); this.meal(home, 0.6, 'the evening meal, the first at Persepolis');
+    this.fill(Math.max(this.t + 0.3, r.range(20.8, 21.6)), settle); this.night(king ? 'asleep in the palace' : camp ? 'asleep in the tent' : 'asleep');
+  }
+  /** D-252 (T-F5): a herald, a courier of the road riding ahead of the court with the word of its coming: in along the royal road
+   *  past the road station, up to the Gate of All Nations with the word, back to the station for the night, and away W again at
+   *  first light to meet the column (the relay: HDT 8.98, XEN-CYR 8.6.17-18, claims, B; the heralds C) */
+  herald() {
+    const r = this.r, p = this.p, ST = 'station';
+    if (this.d === p.arrive) { const T = this.K.arriveHour(this.pid);
+      this.add(Math.min(this.sun.rise - r.range(0.4, 0.8), T - 2.2), '-', 'sleep', 'asleep at a station of the road', undefined, 'away');
+      this.add(this.t + 0.3, '-', 'eat', 'a meal at a station of the road before riding on', undefined, 'away');
+      this.add(T - 0.05, '-', 'offmap', 'a courier riding ahead of the court on the royal road', undefined, 'away');
+      this.add(T, ST, 'rest', 'reining in at the road station'); this.cur = ST;
+      this.go('stair_foot', 'a courier riding along the royal road to the Terrace with word that the king is coming');
+      this.go('gate_hall', 'going up to the Gate of All Nations with word of the king’s coming');
+      this.at(this.t + r.range(0.3, 0.5), 'gate_hall', 'talk', 'giving word of the king’s coming to the officers at the Gate');
+      this.go('stair_foot', 'going down to his horse at the stair foot'); this.go(ST, 'a courier riding back to the road station');
+      this.at(this.t + r.range(0.3, 0.5), ST, 'tend_animals', 'seeing to his horse at the road station');
+      const idle: Opt[] = [[ST, 'rest', 'resting at the road station', 2], [ST, 'talk', 'talking with the grooms of the road station about the court’s coming', 1.5], [ST, 'tend_animals', 'seeing to his horse at the road station', 0.6]];
+      this.meal(ST, 0.5, 'a meal at the road station after the ride'); this.fill(Math.max(this.t + 0.4, r.range(18.3, 19)), idle);
+      this.meal(ST, 0.5, 'the evening meal at the road station'); this.fill(Math.max(this.t + 0.3, r.range(20.6, 21.4)), idle); this.night('asleep at the road station'); return; }
+    this.morning(this.sun.rise - r.range(0.5, 0.8), 'asleep at the road station'); this.meal(ST, 0.3, 'breakfast at the road station');
+    this.at(this.t + r.range(0.3, 0.5), ST, 'tend_animals', 'saddling a fresh horse at the road station');
+    this.add(this.t + 1, 'road:departure', 'walk', 'a courier riding back along the royal road to meet the court', undefined, 'road'); this.add(24, '-', 'offmap', 'gone to meet the court on the road', undefined, 'away');
   }
   // ---------------------------------------------------------------- the king's spearmen (C; the rota D-023's cycle)
   private postBreak(post: string, w0: number, t1: number, why: string) {
@@ -560,27 +662,35 @@ class CourtDay {
     this.meal(this.m.sleep, 0.5, 'the midday meal in the south wing'); this.fill(r.range(17.5, 18.2), opts); serve('carrying the women’s evening meal from the kitchens');
     this.fill(r.range(19.2, 19.8), opts); this.meal(this.m.sleep, 0.5, 'the evening meal in the south wing'); this.fill(r.range(20.8, 21.8), opts); this.night();
   }
+  /** D-252: a day of the household that comes ahead, before the king's day: making ready (C) */
+  get prep() { return this.d < this.K.firstDay; }
   palace() {
-    const r = this.r, dayOff = (this.d + this.pid) % 7 === 0;
+    const r = this.r, prep = this.prep, dayOff = !prep && (this.d + this.pid) % 7 === 0;
     this.morning(r.range(4.9, 6)); this.meal(this.m.sleep, 0.3, 'breakfast before the day’s work');
     const halls = ['apadana_hall', 'gate_hall', 'court_tachara', 'court_hadish', 'court_portico', 'forecourt', 'court_tripylon'];
     const opts: Opt[] = dayOff ? [[this.m.sleep, 'rest', 'resting on a day free of work', 3], [this.m.sleep, 'talk', 'talking with the other servants', 2], ['court_cistern', 'wash', 'washing clothes at the kitchens’ water', 1]]
-      : [...halls.map(h => [h, 'clean', `sweeping ${h === 'forecourt' ? 'the forecourt' : h === 'apadana_hall' ? 'the Apadana' : h === 'gate_hall' ? 'the Gate of All Nations' : h === 'court_portico' ? 'the Apadana portico' : h === 'court_tripylon' ? 'the Tripylon' : h === 'court_hadish' ? 'the Hadish' : 'the Tachara'}`, 1] as Opt),
-        ['court_cistern', 'draw_water', 'drawing water for the palaces', 1.2], ['court_table_store', 'rest', 'resting between tasks', 0.8],
-        ['apadana_hall', 'inspect', 'standing by in the Apadana in case he is called', 1]];
+      : [...halls.map(h => [h, 'clean', `sweeping ${h === 'forecourt' ? 'the forecourt' : h === 'apadana_hall' ? 'the Apadana' : h === 'gate_hall' ? 'the Gate of All Nations' : h === 'court_portico' ? 'the Apadana portico' : h === 'court_tripylon' ? 'the Tripylon' : h === 'court_hadish' ? 'the Hadish' : 'the Tachara'}${prep ? ' for the king’s coming' : ''}`, prep ? 1.4 : 1] as Opt),
+        ['court_cistern', 'draw_water', prep ? 'drawing water to fill the palaces’ jars before the court comes' : 'drawing water for the palaces', 1.2], ['court_table_store', 'rest', 'resting between tasks', 0.8],
+        prep ? ['court_hadish', 'clean', 'setting the Hadish in order for the king', 1] : ['apadana_hall', 'inspect', 'standing by in the Apadana in case he is called', 1]];
     // D-221: the halls and courts where the court waits (the forecourt, the Gate, the Apadana and its portico) are swept
     // before it assembles and after it has gone down, not among the waiting parties (C)
-    const OPEN = /^(forecourt|gate_hall|court_portico|apadana_hall)$/, busy = dayOff ? opts : opts.filter(o => !(o[1] === 'clean' && OPEN.test(o[0])));
+    const OPEN = /^(forecourt|gate_hall|court_portico|apadana_hall)$/, busy = dayOff || prep ? opts : opts.filter(o => !(o[1] === 'clean' && OPEN.test(o[0])));
     this.fill(r.range(7.5, 8.1), opts); this.fill(r.range(11.6, 12.6), busy); this.meal(this.m.sleep === 'court_camp' ? 'court_kitchen' : this.m.sleep, 0.5, 'the midday meal from the kitchens');
     this.fill(r.range(15.6, 16.2), busy); this.fill(r.range(18, 19), opts); this.meal(this.m.sleep, 0.5, 'the evening meal'); this.fill(r.range(20.6, 21.6), [[this.m.sleep, 'rest', 'resting before sleep', 2], [this.m.sleep, 'talk', 'talking with the other servants', 1.5]]); this.night();
   }
   table() {
-    const r = this.r, K = 'court_kitchen', B = 'court_bakehouse', ST = 'court_table_store', HD = 'court_hadish', role = this.m.role;
-    const dayOff = (this.d + this.pid) % 6 === 0;
+    const r = this.r, K = 'court_kitchen', B = 'court_bakehouse', ST = 'court_table_store', HD = 'court_hadish', role = this.m.role, prep = this.prep;
+    const dayOff = !prep && (this.d + this.pid) % 6 === 0;
     this.morning(r.range(4.3, 5.2)); this.meal(this.m.sleep, 0.3, 'breakfast before the fires are lit');
     if (dayOff) { const o: Opt[] = [[this.m.sleep, 'rest', 'resting on a day free of the kitchens', 3], [this.m.sleep, 'talk', 'talking with the others of the kitchens', 2], ['court_cistern', 'wash', 'washing clothes at the kitchens’ water', 1]];
       this.fill(r.range(12, 13), o); this.meal(this.m.sleep, 0.5, 'the midday meal'); this.fill(r.range(18.5, 19.5), o); this.meal(this.m.sleep, 0.5, 'the evening meal'); this.fill(r.range(20.8, 21.6), o); this.night(); return; }
-    const opts: Opt[] = role === 'cook' ? [[K, 'cook', 'at the fires of the king’s kitchens', 4], [ST, 'rest', 'fetching what the cooks need from the table store', 0.6], [K, 'clean', 'sweeping the kitchen court', 0.5]]
+    // (D-252: before the king's day the kitchens are made ready and the table store stocked: C)
+    const opts: Opt[] = prep ? (role === 'cook' ? [[K, 'clean', 'sweeping out the king’s kitchens before the court comes', 2], [K, 'cook', 'firing the new hearths of the king’s kitchens', 1], [ST, 'inspect', 'taking count of the stores in the king’s table store', 1.5]]
+        : role === 'baker' ? [[B, 'knead', 'kneading dough for the first bread of the king’s table', 1.5], [B, 'bake', 'firing the ovens of the king’s bakehouse', 1.5], [ST, 'inspect', 'taking count of the flour in the king’s table store', 1]]
+        : role === 'wine' ? [[ST, 'inspect', 'setting the wine jars in rows in the king’s table store', 2], [HD, 'clean', 'setting the Hadish in order for the king’s table', 1]]
+        : role === 'water' ? [['court_cistern', 'draw_water', 'drawing water to fill the kitchens’ jars before the court comes', 3], [K, 'rest', 'resting between tasks', 0.6]]
+        : [[HD, 'clean', 'setting the Hadish in order for the king’s table', 2], [K, 'carry_jar', 'helping at the kitchens between the tasks, carrying in the water', 1.5]])
+      : role === 'cook' ? [[K, 'cook', 'at the fires of the king’s kitchens', 4], [ST, 'rest', 'fetching what the cooks need from the table store', 0.6], [K, 'clean', 'sweeping the kitchen court', 0.5]]
       : role === 'baker' ? [[B, 'knead', 'kneading dough for the king’s bread', 2.5], [B, 'bake', 'baking the king’s bread', 2.5], [ST, 'rest', 'fetching flour from the table store', 0.4]]
       : role === 'wine' ? [[ST, 'inspect', 'minding the wine jars in the table store', 1.5], [HD, 'inspect', 'standing by with the wine in the Hadish', 1.5], [K, 'rest', 'resting between tasks', 0.6]]
       : role === 'water' ? [['court_cistern', 'draw_water', 'drawing water for the kitchens', 3], [K, 'rest', 'resting between tasks', 0.6]]
@@ -588,22 +698,22 @@ class CourtDay {
     const trip = () => { // the carrying part of the job, now and then (C)
       if (role === 'wine') { this.go(ST); this.go(HD, 'carrying wine to the king’s table', 'carry_jar', 'a jar of wine'); }
       else if (role === 'water') { this.go('court_cistern'); this.add(this.t + 0.2, 'court_cistern', 'draw_water', 'drawing water for the kitchens'); this.go(K, 'carrying water to the kitchens', 'carry_jar_head', 'a water jar'); }
-      else if (role === 'server') { this.go(K); this.go(r.chance(0.6) ? HD : 'court_guard_mess', 'carrying dishes from the kitchens', 'carry_bread', 'bread and dishes from the king’s kitchens'); }
+      else if (role === 'server' && !prep) { this.go(K); this.go(r.chance(0.6) ? HD : 'court_guard_mess', 'carrying dishes from the kitchens', 'carry_bread', 'bread and dishes from the king’s kitchens'); }
       else if (role === 'baker') { this.go(B); this.go(K, 'carrying bread to the kitchens', 'carry_bread', 'baskets of bread'); } };
     const work = (until: number) => { while (this.t < until - 0.4) { if (role !== 'cook' && r.chance(0.35)) trip(); else this.fill(Math.min(until, this.t + r.range(0.6, 1.6)), opts); } this.fill(until, opts); };
     work(Math.min(r.range(11, 11.8), this.t + 6.4)); this.meal(this.m.sleep === 'court_camp' ? K : this.m.sleep, 0.5, 'the midday meal in the kitchen court');
     work(Math.min(r.range(17.2, 18.2), this.t + 6.6)); this.meal(K, 0.5, 'the evening meal in the kitchen court'); work(r.range(19.8, 20.4)); this.night();
   }
   porter() {
-    const r = this.r, RS = 'royal_store', ST = 'court_table_store';
-    const dayOff = (this.d + this.pid) % 7 === 0;
+    const r = this.r, RS = 'royal_store', ST = 'court_table_store', prep = this.prep;
+    const dayOff = !prep && (this.d + this.pid) % 7 === 0;
     this.morning(r.range(4.8, 5.8)); this.meal(this.m.sleep, 0.3, 'breakfast at the camp');
     if (dayOff) { const o: Opt[] = [[this.m.sleep, 'rest', 'resting at the camp on a day without loads', 3], [this.m.sleep, 'talk', 'talking with the porters at the camp', 2], [this.m.sleep, 'gamble', 'knucklebones with the porters', 1], [this.m.sleep, 'craft', 'mending his carrying pad and ropes', 1]];
       this.fill(r.range(12, 13), o); this.meal(this.m.sleep, 0.5, 'the midday meal at the camp'); this.fill(r.range(18.5, 19.5), o); this.meal(this.m.sleep, 0.5, 'the evening meal at the camp'); this.fill(r.range(20.8, 21.6), o); this.night(); return; }
     const loads: [ActivityId, string, string][] = [['carry_sack', 'carrying flour up from the royal stores to the king’s kitchens', 'a sack of flour'], ['carry_jar', 'carrying wine up from the royal stores to the king’s table store', 'a jar of wine'],
       ['carry_sack', 'carrying barley up from the royal stores to the king’s kitchens', 'a sack of barley'], ['carry_jar', 'carrying oil up from the royal stores', 'a jar of oil']];
     const trips = (until: number) => { while (this.t + 2 * walkHours(RS, ST) + 0.4 < until) { if (!this.dryStart(2 * walkHours(RS, ST) + 0.5, until)) break; // (D-244: no load carried through the rain)
-      const [a, why, c] = loads[Math.floor(r.next() * loads.length)];
+      const [a, w0, c] = loads[Math.floor(r.next() * loads.length)], why = prep ? `${w0}, stocking it before the court comes` : w0;
       this.go(RS, 'going down to the royal stores'); this.add(this.t + r.range(0.1, 0.3), RS, 'rest', 'waiting while the storekeeper weighs out the load');
       this.go(ST, why, a, c); this.add(this.t + r.range(0.08, 0.2), ST, 'rest', 'setting the load down in the king’s table store'); if (r.chance(0.25)) this.add(this.t + r.range(0.2, 0.5), ST, 'rest', 'resting before the next load'); } };
     trips(r.range(10.8, 11.6)); this.meal('stair_foot', 0.5, 'the midday meal at the stair foot'); trips(r.range(16, 17)); this.go(this.m.sleep, 'going back to the camp');
@@ -611,11 +721,12 @@ class CourtDay {
     this.meal(this.m.sleep, 0.5, 'the evening meal at the camp'); this.fill(r.range(20.6, 21.4), [[this.m.sleep, 'rest', 'resting at the camp', 2], [this.m.sleep, 'gamble', 'knucklebones with the porters', 1]]); this.night();
   }
   butcher() {
-    const r = this.r, SY = 'stockyard', dayOff = (this.d + this.pid) % 6 === 0;
+    const r = this.r, SY = 'stockyard', prep = this.prep, dayOff = !prep && (this.d + this.pid) % 6 === 0;
     this.morning(r.range(4.6, 5.4)); this.meal(this.m.sleep, 0.3, 'breakfast at the camp');
     if (dayOff) { const o: Opt[] = [[this.m.sleep, 'rest', 'resting at the camp', 3], [this.m.sleep, 'talk', 'talking at the camp', 2], [this.m.sleep, 'craft', 'mending baskets and ropes', 1]];
       this.fill(r.range(12, 13), o); this.meal(this.m.sleep, 0.5, 'the midday meal at the camp'); this.fill(r.range(18.5, 19.5), o); this.meal(this.m.sleep, 0.5, 'the evening meal at the camp'); this.night(); return; }
-    this.go(SY, 'going to the stockyard'); const o: Opt[] = [[SY, 'slaughter', 'slaughtering sheep and goats for the king’s table', 3], [SY, 'slaughter', 'slaughtering sheep and goats for the king’s table under the stockyard’s shed, out of the rain', 3], [SY, 'rest', 'resting at the stockyard', 0.6], [SY, 'rest', 'resting under the stockyard’s shed, out of the rain', 0.6]];
+    this.go(SY, 'going to the stockyard'); const o: Opt[] = [[SY, 'slaughter', 'slaughtering sheep and goats for the king’s table', prep ? 1 : 3], [SY, 'slaughter', 'slaughtering sheep and goats for the king’s table under the stockyard’s shed, out of the rain', prep ? 1 : 3], [SY, 'rest', 'resting at the stockyard', 0.6], [SY, 'rest', 'resting under the stockyard’s shed, out of the rain', 0.6],
+      ...(prep ? [[SY, 'tend_animals', 'penning the sheep and goats driven in for the king’s table before the court comes', 2.5]] as Opt[] : [])]; // (D-252: the flocks for the table penned ahead of the court: C)
     this.fill(r.range(8.5, 9.5), o);
     if (r.chance(0.5)) { this.go('court_kitchen', 'carrying meat up to the king’s kitchens', 'carry_bread', 'baskets of meat'); this.add(this.t + 0.2, 'court_kitchen', 'rest', 'handing the meat over at the kitchens'); this.go(SY, 'going back to the stockyard'); }
     this.fill(r.range(11.8, 12.6), o); this.meal(SY, 0.5, 'the midday meal at the stockyard'); this.fill(r.range(15.5, 16.5), o); this.go(this.m.sleep, 'going back to the camp');
@@ -730,7 +841,7 @@ class CourtDay {
   retinueLeaves() {
     const r = this.r, CA = this.m.sleep; this.morning(this.sun.rise - r.range(0.6, 1.1)); this.meal(CA, 0.3, 'the last breakfast before the road');
     this.at(this.t + r.range(0.8, 1.4), CA, 'tend_animals', 'striking the tents and loading the animals to leave with the court');
-    this.add(this.t + 1.2, 'road:departure', 'walk', 'leaving with the court on the road to Susa', undefined, 'road'); this.add(24, '-', 'offmap', 'gone with the court', undefined, 'away');
+    this.leaveBy(this.columnWalk(false));
   }
   // ---------------------------------------------------------------- petitioners and delegations (C)
   visitor() {
@@ -745,14 +856,16 @@ class CourtDay {
       const h = lerp(9.5, 15.5, pr(1)), ST = (livesData as any).travellers_stay.stage_h as [number, number], go = Math.max(this.sun.rise - 0.5, h - 1 - lerp(ST[0], ST[1], pr(8)));
       if (go > 1) { this.add(Math.min(go - 0.4, this.sun.rise + 0.3), '-', 'sleep', `asleep at the last station on the road to the court (${pa.origin} party)`, undefined, 'away');
         if (go - 0.4 - this.t > 0.05) this.add(go - 0.4, '-', 'offmap', `the morning at the last station on the road to the court (${pa.origin} party)`, undefined, 'away'); this.add(go, '-', 'eat', 'a meal at the last station before the road', undefined, 'away'); }
-      this.add(h - 1, '-', 'offmap', `on the road to the court (${pa.origin} party)`, undefined, 'away');
-      this.add(h, 'road:arrival', 'walk', 'on the road to the court', undefined, 'road'); this.cur = CA;
+      // (D-252: seen from the road station on, as the court is: the party halts there and walks the road to the camp)
+      const w = walkHours('station', CA); this.add(h - w - 0.05, '-', 'offmap', `on the road to the court (${pa.origin} party)`, undefined, 'away');
+      this.add(h - w, 'station', 'rest', 'halting by the road station to ask the way to the court’s camp'); this.cur = 'station'; this.go(CA, 'on the road to the court');
       this.add(this.t + 0.6, CA, 'tend_animals', `unloading the party’s animals at the camp: ${beasts}`);
       if (this.lastEat >= 0 && this.t - this.lastEat > 3) this.meal(CA, 0.5, 'a meal at the camp after the road'); // (the road's food since the station's meal)
       this.fill(Math.max(this.t + 0.5, lerp(18.2, 19, pr(2))), campOpts);
       this.meal(CA, 0.6, 'the evening meal at the camp'); this.fill(lerp(20.8, 21.6, pr(3)), campOpts); this.night(); return; }
     this.morning(lerp(this.sun.rise - 0.5, this.sun.rise + 0.3, pr(4)) + r.range(-0.1, 0.1)); this.meal(CA, 0.4, 'breakfast at the camp');
-    if (d === pa.leave) { this.add(this.t + lerp(0.5, 1, pr(5)), CA, 'tend_animals', 'loading the animals to go home'); this.add(this.t + lerp(1, 2, pr(6)), 'road:departure', 'walk', 'on the road home from the court', undefined, 'road'); this.add(24, '-', 'offmap', 'gone home', undefined, 'away'); return; }
+    if (d === pa.leave) { this.add(this.t + lerp(0.5, 1, pr(5)), CA, 'tend_animals', 'loading the animals to go home'); this.go('station', 'on the road home from the court'); // (D-252: seen to the road station)
+      this.add(this.t + lerp(0.5, 1.2, pr(6)), 'road:departure', 'walk', 'on the road home from the court', undefined, 'road'); this.add(24, '-', 'offmap', 'gone home', undefined, 'away'); return; }
     // D-221: up to the Terrace only while the forecourt has a place for the party (the day's order: CourtResidents.dayOrder)
     const turn = K.dayOrder(d).turnOf.get(pa.i), up = K.upOn(pa, d);
     if (!up) { this.fill(lerp(11.5, 12.5, pr(8)), campOpts); this.meal(CA, 0.5, 'the midday meal at the camp'); this.fill(lerp(18.2, 19, pr(9)), campOpts); this.meal(CA, 0.6, 'the evening meal at the camp'); this.fill(lerp(20.8, 21.6, pr(10)), campOpts); this.night(); return; }

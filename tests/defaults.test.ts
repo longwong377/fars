@@ -4,6 +4,9 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { DEFAULT_SETTINGS } from '../src/core/settings';
 import { chooseWorldSeed } from '../src/core/seed';
+import { newGameStart } from '../src/core/newGame';
+import { courtYear } from '../src/people/courtYear';
+import { sunTimes } from '../src/people/calendar';
 
 describe('decided defaults (T-K10)', () => {
   it('D-236 / UD-10: the court comes and goes by default (reconstructed, C)', () => {
@@ -21,5 +24,14 @@ describe('decided defaults (T-K10)', () => {
     const seeds = new Set(Array.from({ length: 20 }, () => { m.clear(); return chooseWorldSeed(null, false, store); }));
     expect(seeds.size).toBeGreaterThan(18);
   });
-  it.todo('D-239: a new game begins at dawn 1–3 days before the court\'s seed-chosen arrival (needs the arrival simulated: MASTER_PLAN §6 programme)');
+  it('D-239 (D-252): a new game begins at dawn 1–3 days before the court\'s seed-chosen arrival; the arrival is the seed\'s alone', () => {
+    const seen = new Set<number>();
+    for (const seed of [1, 7, 12345, 99991, 424242, 2147483000]) { const y = courtYear(seed), s = newGameStart(seed); seen.add(y.arrive);
+      expect(y.arrive - s.day, `seed ${seed}`).toBeGreaterThanOrEqual(1); expect(y.arrive - s.day, `seed ${seed}`).toBeLessThanOrEqual(3);
+      expect(s.hour).toBeCloseTo(sunTimes(s.day).rise - 0.4, 2); // dawn: sunrise − 0.4 h (court.json arrival.dawn_before_rise_h)
+      expect(y.arrive).toBeGreaterThanOrEqual(6); expect(y.arrive).toBeLessThanOrEqual(18); expect(y.first).toBeGreaterThan(0); expect(y.first).toBeLessThan(s.day + 1); }
+    expect(seen.size).toBeGreaterThan(1); // (the day varies with the seed)
+    const main = readFileSync('src/main.ts', 'utf8'); expect(main).toMatch(/newGameStart\(SEED, settings\.courtCalendar === 'seasonal'\)/);
+    expect(newGameStart(1, false)).toEqual({ day: 0, hour: 7 }); // (the evidence-strict world keeps the old start)
+  });
 });
