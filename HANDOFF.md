@@ -1,4 +1,4 @@
-# HANDOFF — end of session 8 (2026-09-26); branch claude/amazing-fermi-40ds7j, tag ratchet/s08
+# HANDOFF — end of session 8 (2026-09-26); branch claude/amazing-fermi-40ds7j (tag ratchet/s08 exists locally only: the git proxy dropped every tag push)
 
 **Read first, in this order:** `USER_DIRECTIONS.md` (the user's own words, UD-01..UD-14, append-only), `MASTER_PLAN.md` (rev 2.1,
 governs everything), `gates/thresholds.json` (169 locked thresholds), then PROGRESS.md (problems first), this file, BLOCKERS.md.

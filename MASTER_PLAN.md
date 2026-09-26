@@ -336,7 +336,8 @@ its worst cells.
 7. Close: every worktree branch merged or abandoned with a DECISIONS or BLOCKERS row and its fate in the reserved-numbers table
    (T-R6); no cited D/Q/B number missing from its record; CLAUDE.md's descriptions of tools checked against the files on the branch;
    `sessions/sNN.md` written (breaks found, board delta, the visible change, surprises with evidence paths, the gap hunters' lists
-   and estimate); this plan revised if anything learned changes it (§13); the handoff written; the tag `ratchet/sNN` pushed.
+   and estimate); this plan revised if anything learned changes it (§13); the handoff written; the tag `ratchet/sNN` pushed (where the environment refuses tag pushes, as in session 8, the closing commit
+   is recorded in `sessions/sNN.md`).
 
 **The programme** (from the four audits and two critiques; the board re-orders it within the order above):
 - **Life and identity:** per-person faces and bodies; a names onomasticon (attested first, D-236) and histories that surface
