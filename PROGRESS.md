@@ -1,6 +1,14 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Coverage harness (D-235) built; coverage NOT yet measured.** Sampler (`tools/dev/coverage_points.ts`: 515 views seeded
+  from a commit hash, month × hour band × weather per area by the climate, the far world and the edges of built content),
+  ID/flag pass (`__parsa.flagMask`), `tests/e2e/coverage.spec.ts`, `tools/dev/coverage_report.ts` (REVIEWS/coverage_report.md,
+  board, evidence files). Only a 16-view pilot rendered (old sample, not evidence): town lanes 74 % placeholder pixels (the box
+  houses), low detail (flag-free) 55 % on Terrace views and 53 % at village P22, every walker frozen (a harness bug, fixed:
+  the camera rig froze the people's simulation at page-load time — `setTime` in any rig spec moved the sun but not the
+  people). Views take 1–7 min each at test quality under load: a full pass is ~30 lane-hours. The default world (seed 1) has
+  no snow day in the year. Areas are interim (the §4.3 registry is not built).
 - **§13.11 shadow review round 10 PASSED (session 8), both reviewers** (REVIEWS/shadow_phase5_r10.md, _b.md; sample pick 181
   regenerated on the merged tree after the soak passed all 8 gates): A 7 × 5 and 13 × 4, B 9 × 5 and 11 × 4; no score below 4
   (rounds 1–9 failed). Both found S1 (a walk between two Terrace places played as a trip down the stair and back: 49 % of
