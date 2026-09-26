@@ -46,3 +46,18 @@ export const SLICE: { start: [number, number]; targets: [number, number, string]
   [1.9, 40, 'N portico again'], [30, 55.5, 'Apadana N stair, E wing'], [48, 62, 'court E of the stair'], [-30, 100, 'court W'],
   [-36.4, 112, 'S head'], [-36.4, 96, 'S upper flight'], [-43.9, 92, 'S outer landing'], [-43.9, 116, 'S lower flight'], [-80, 122.5, 'plain'],
 ] };
+
+/** H workstream (audit D M2): beyond the Terrace. Grid (east, north) waypoints, walked straight between them.
+ *  - town: a lane of the quarter Persepolis West A (q_w1) through the street door (a full metre wide) of house q_w1-0004
+ *    into its court: the town's lane graph route (settlement/walk.ts TownWalk.route) pushed to the lanes' middles (the raw
+ *    route grazes wall corners and a walled prop: the controller stops there), checked offline with the people present;
+ *  - plain: the fields W of the stair foot (the old near-ring collider covered them; no seam);
+ *  - mountain: up Kuh-e Rahmat eastward across e 1,984 and 2,048 m, where the old terrain collider switched rings while
+ *    the drawing did not (audit D M1: 12 of 24 crossings fell). */
+export const BEYOND: Record<'town' | 'plain' | 'mountain', { start: [number, number]; targets: [number, number, string][] }> = {
+  town: { start: [-484.88, 423.72], targets: [[-484.25, 414.74, 'lane'], [-483.18, 413.82, 'lane'], [-482.28, 400.85, 'lane'], [-481.09, 383.89, 'lane'], [-480.53, 375.91, 'lane'],
+    [-480.32, 372.92, 'lane'], [-481.25, 371.85, 'lane S'], [-489.78, 362.04, 'lane'], [-490.44, 361.29, 'lane'], [-491.39, 359.11, 'lane corner'], [-492.32, 358.05, 'lane'], [-501.29, 357.42, 'lane'],
+    [-518.25, 356.23, 'lane'], [-530.22, 355.4, 'lane'], [-531.22, 355.33, 'lane'], [-532.29, 356.25, 'before the door'], [-532.36, 357.25, 'street door of q_w1-0004'], [-534.35, 357.11, 'the court of q_w1-0004']] },
+  plain: { start: [-600, 122.45], targets: [[-640, 170, 'field NW'], [-690, 215, 'field'], [-720, 260, 'field N']] },
+  mountain: { start: [1900, -300], targets: [[1960, -300, 'slope'], [2000, -300, 'across e 1,984'], [2070, -300, 'across e 2,048'], [2150, -300, 'mountain, mid ring']] },
+};
