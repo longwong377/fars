@@ -64,6 +64,9 @@ for weathered stone, the plain and the hills, and must be labelled as such (tier
 | tachara-*, harem-portico, capitals in any view | `another artist rendition 3.jpg`, `… 4.jpg`, `… 5.jpg`, `… 6.jpg`, `… 7.jpg`, `another column.webp` |
 | town-smoke-dusk*, settlement-* | `persepolis more 1.jpg` (mood; its density conflicts with Sumner), `persepolis more.jpg` |
 | layout in any wide view | `Persepolis Plan.webp`, `palace-of-darius-i-and-xerxes.webp` (P) |
+**Stone in 467 is ~50 years old (D-231):** judge the world's stone against the near-fresh references (`reliefs.webp`, the
+Apadana E stair buried until the 1930s: between-block variation ~0.10; the Louvre capital), not against the weathered walls
+of today (#24, #33, #5: 0.26–0.43), which are the Now view's look. Say which references you judged stone against.
 **Photographs of the site today (second upload, INDEX.md §6): the reviewer's yardstick for stone, light and landscape, in
 place of memory wherever they cover a view:**
 | moments / renders | photographs to open |

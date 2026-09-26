@@ -5573,3 +5573,14 @@ moment-*-webgpu.png in the worktree, not committed).**
   surfaces_s6, crenellation, arch, shader_build, now_view, polychromy. Renders (2, shared queue, high): calib-24-now +
   calib-24; stair-climb-pm + reliefs-raking.
 - Records: Q-590 … Q-594 (Q-590, 591, 592, 593, 594); B40 updated; B55.
+
+## D-231 The stone's yardstick is near-fresh stone, not today's weathering (session 8, lead; D-218, D-230, B40)
+- **Question (D-230 asked the lead):** the rubric pass-2 reviewer's heuristic "real sunlit stone measures Ystd/Y 0.15–0.35"
+  was never a gate (the §8.2 gate is "no category below 4"); D-230 measured the user's photographs: the weathered walls read
+  0.26–0.43 in 48 px windows (#24 0.43 = 0.27 between blocks, 0.24 within, 0.24 joints/cracks/form), the least weathered
+  stone in place (the Apadana E stair reliefs and merlons, buried until the 1930s, #29) 0.10 between blocks.
+- **Decision:** the world is 467, when the stone was ~50 years old. The rubric reviewer judges stone against the near-fresh
+  references (#29 `reliefs.webp`, #18/#22 the Louvre capital) and treats the weathered walls (#24, #33, #5) as the ruin's
+  look (the Now view), not the target; the brief for the reviewer says so (handoff/review_briefs.md). The gate is unchanged.
+- **Consequence:** D-230's block tone (13 %, 1σ) stands; the on-screen flatness left after AgX's shallow local slope at the
+  stone's level (0.42, vs ≥ 1 for a camera curve) is logged in B40 as a tone-mapping question, not a material one.
