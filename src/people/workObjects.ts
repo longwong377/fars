@@ -20,7 +20,9 @@ export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field
   // D-215: children's play (gap audit item 26)
   | 'knucklebones' | 'toy_wheeled'
   // D-209: the lan set out before the fire, and the boiled meat of a sacrifice laid on soft grass
-  | 'offering_set' | 'grass_bed';
+  | 'offering_set' | 'grass_bed'
+  // D-256: the work on the land (the fold against the wolves, the drums from the quarry, milking, fishing, snaring, bees, nuts)
+  | 'fold' | 'drum_haul' | 'drum_rough' | 'milk_pot' | 'basket_fish' | 'fish_trap' | 'snare' | 'hives' | 'basket_nuts';
 type RGB = [number, number, number];
 const MUD: RGB = [0.5, 0.41, 0.31], MUD_WET: RGB = [0.36, 0.29, 0.22], BRICK: RGB = [0.62, 0.53, 0.4], STRAW: RGB = [0.72, 0.62, 0.38], STRAW_D: RGB = [0.62, 0.52, 0.3],
   WOOD: RGB = [0.45, 0.33, 0.21], WOOD_D: RGB = [0.34, 0.25, 0.16], STONE: RGB = [0.55, 0.54, 0.52], LIME: RGB = [0.66, 0.64, 0.6], POT: RGB = [0.62, 0.44, 0.3], WOOL: RGB = [0.8, 0.76, 0.66],
@@ -80,6 +82,15 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   toy_wheeled: { tier: 'C', note: 'a fired-clay animal on four clay wheels on axles, pulled by a cord (wheeled clay animals from Susa and Mesopotamia, RECOLLECTION, NOT SEEN: C; the form, a humped bull, C). The wheels do not turn' },
   offering_set: { tier: 'C', note: 'the lan set out before the fire: barley heaped on a cloth and wine in a clay bowl beside it (barley and wine issued for the lan: PF 1955, HENK2008, B; set out, not poured: Herodotus 1.132 "no libations", read, a Greek claim; the setting-out C: D-209)' },
   grass_bed: { tier: 'B', note: 'the boiled meat of a sacrifice laid on soft grass, trefoil (Herodotus 1.132, read, a Greek claim: B; the grass and the pieces C: D-209)' },
+  fold: { tier: 'C', note: 'a fold for the night: a ring of cut thorn brush about 12 m across, heaped chest-high, a gap for the gate closed with a bundle (folds against the wolves: the pastoral practice of the Zagros, RECOLLECTION NOT SEEN; C: D-256)' },
+  drum_haul: { tier: 'C', note: 'a rough-cut column drum lying on a heavy wooden sledge, roped down, the traces running forward to the yokes (drums from the quarry: construction.ts E-61; the stone from Majdabad by petrography: B; sledge and haul C: D-256)' },
+  drum_rough: { tier: 'C', note: 'a column drum roughed out at the quarry, over-size, the point marks on it, chips about its foot (C: D-256)' },
+  milk_pot: { tier: 'C', note: 'a round-bellied clay pot for the milk (C: D-256)' },
+  basket_fish: { tier: 'C', note: 'a basket with the catch, barbel and carp of the river (C: D-256)' },
+  fish_trap: { tier: 'C', note: 'a conical wicker fish trap at the water\'s edge, weighted with a stone (C: D-256)' },
+  snare: { tier: 'C', note: 'a pegged snare line: a cord between two pegs with horsehair nooses along it (C: D-256)' },
+  hives: { tier: 'C', note: 'clay-pipe hives, a dozen long cylinders laid in rows in a low mud wall, their ends stopped with mud and a flight hole in each (the pipe hive of Iran and the Near East, RECOLLECTION NOT SEEN; C: D-256)' },
+  basket_nuts: { tier: 'C', note: 'a basket of wild pistachios and almonds in their husks (C: D-256)' },
   throne: { tier: 'B', note: 'the king’s throne and footstool at an audience (court setting, D-199): a high-backed chair on turned legs with lion’s-paw feet, and a footstool, as the Treasury audience relief carves them (TREAS-AUD, B); gilded wood and the sizes C: the seat 0.525 m and the footstool 0.105 m high, fitted to the enthroned pose measured on the rig (anim ENTHRONED); where it stood in the Apadana is not known (C)' },
 };
 
@@ -220,6 +231,37 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       for (const z of [-0.05, 0.05]) { g.push(P(rod([-0.06, 0.025, z], [0.06, 0.025, z], 0.004, 0.004, 3), WOOD_D)); for (const x of [-0.055, 0.055]) g.push(P(new THREE.CylinderGeometry(0.025, 0.025, 0.012, 7).rotateZ(Math.PI / 2).translate(x, 0.025, z), CLAY)); }
       g.push(P(rod([0, 0.09, 0.11], [0, 0.45, 0.7], 0.0025, 0.0025, 3), [0.72, 0.64, 0.46]));
       return merge(g); }
+    // D-256: a ring of thorn brush R 6 m (animals.ts FOLD_R) with a gate gap toward the performer (−z), in low heaped clumps
+    case 'fold': { const g: THREE.BufferGeometry[] = [], R = 6, n = 30, THORN: RGB = [0.36, 0.3, 0.22];
+      for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + Math.PI / 2; if (i === n / 2 || i === n / 2 + 1) continue; // (the gate, toward the performer: a = 3π/2)
+        const x = R * Math.cos(a), z = R * Math.sin(a), h = 1.0 + 0.3 * Math.abs(jit(i, 4));
+        g.push(P(new THREE.SphereGeometry(1, 7, 4).scale(0.75, h * 0.62, 0.6).rotateY(-a).translate(x, h * 0.25, z), jit(i) > 0 ? THORN : [0.42, 0.35, 0.25], 1)); }
+      for (let i = 0; i < 3; i++) g.push(P(mound(0.45, 0.25, 7, -1.5 + 1.5 * i, 1.2 * jit(i, 7)), STRAW_D));
+      return merge(g); }
+    // D-256: the drum on its sledge, lying on its side (axis across the runners), the traces forward (+z) to the yoke
+    case 'drum_haul': { const g = [P(new THREE.CylinderGeometry(0.86, 0.86, 1.3, 11).rotateZ(Math.PI / 2).translate(0, 0.28 + 0.86, 0), LIME, 0.95)];
+      for (const x of [-0.6, 0.6]) g.push(P(box(0.2, 0.2, 3.1, x, 0, 0), WOOD_D));
+      for (const z of [-1.0, 0, 1.0]) g.push(P(box(1.5, 0.12, 0.24, 0, 0.18, z), WOOD));
+      for (const x of [-0.35, 0.35]) g.push(P(rod([x, 0.2, 1.55], [x * 0.3, 1.0, 3.0], 0.025, 0.025, 4), [0.62, 0.54, 0.38]));
+      g.push(P(rod([-0.7, 1.4, 0], [0.7, 1.4, 0], 0.02, 0.02, 4), [0.6, 0.52, 0.36]));
+      return merge(g); }
+    case 'drum_rough': { const g = [P(new THREE.CylinderGeometry(0.84, 0.88, 1.3, 9).translate(0, 0.65, 0), LIME, 1)];
+      for (let i = 0; i < 6; i++) g.push(P(mound(0.18 + 0.08 * Math.abs(jit(i)), 0.07, 5, 1.0 * Math.cos(i * 1.1), 1.0 * Math.sin(i * 1.1)), [0.7, 0.68, 0.63], 1));
+      return merge(g); }
+    case 'milk_pot': return merge([P(lathe([[0.001, 0], [0.09, 0.02], [0.14, 0.12], [0.12, 0.22], [0.08, 0.26], [0.09, 0.29], [0.07, 0.29], [0.001, 0.2]], 10), POT, 0.85),
+      P(new THREE.CylinderGeometry(0.075, 0.075, 0.004, 10).translate(0, 0.24, 0), [0.92, 0.9, 0.84], 0.6)]);
+    case 'basket_fish': { const g = [P(new THREE.CylinderGeometry(0.22, 0.17, 0.2, 10, 1, true).translate(0, 0.1, 0), [0.6, 0.52, 0.32])];
+      for (let i = 0; i < 4; i++) g.push(P(new THREE.SphereGeometry(1, 6, 3).scale(0.035, 0.03, 0.15).rotateY(i * 0.8).translate(0.06 * jit(i), 0.16 + 0.02 * i, 0.06 * jit(i, 2)), [0.5, 0.5, 0.44], 0.35, 0.2));
+      return merge(g); }
+    case 'fish_trap': return merge([P(new THREE.ConeGeometry(0.28, 1.1, 9, 1, true).rotateX(-Math.PI / 2).translate(0, 0.28, 0.2), [0.56, 0.48, 0.3], 1), P(box(0.2, 0.14, 0.16, 0, 0, -0.45), STONE, 0.9)]);
+    case 'snare': { const g = [P(rod([-0.5, 0, 0], [-0.5, 0.2, 0], 0.012, 0.01, 3), WOOD), P(rod([0.5, 0, 0], [0.5, 0.2, 0], 0.012, 0.01, 3), WOOD), P(rod([-0.5, 0.12, 0], [0.5, 0.12, 0], 0.003, 0.003, 3), [0.3, 0.26, 0.2])];
+      for (let i = 0; i < 5; i++) g.push(P(new THREE.TorusGeometry(0.035, 0.002, 3, 8).translate(-0.36 + 0.18 * i, 0.08, 0), [0.25, 0.22, 0.18]));
+      return merge(g); }
+    case 'hives': { const g = [P(box(2.4, 0.9, 0.8, 0, 0, 0), MUD, 1)];
+      for (let r = 0; r < 2; r++) for (let c = 0; c < 6; c++) { const x = -1.0 + 0.4 * c, y = 0.25 + 0.36 * r;
+        g.push(P(new THREE.CylinderGeometry(0.16, 0.16, 0.86, 9, 1, true).rotateX(Math.PI / 2).translate(x, y, 0.03), POT, 0.9)); g.push(P(new THREE.CircleGeometry(0.16, 9).translate(x, y, -0.41), MUD_WET, 1)); }
+      return merge(g); }
+    case 'basket_nuts': return merge([P(new THREE.CylinderGeometry(0.2, 0.15, 0.2, 10, 1, true).translate(0, 0.1, 0), [0.6, 0.52, 0.32]), P(mound(0.18, 0.1, 8).translate(0, 0.12, 0), [0.62, 0.55, 0.36], 0.8)]);
     case 'ard': { // in the ploughman's frame: the stilt rises to his left hand (≈ 0.12, 0.92, 0.5), the share runs in the soil at z ≈ 1.2, the beam goes to the yoke
       // on the oxen's necks in front of the withers (the team walks at z 3.35: animals.ts 'team'; yoke at z 4.05)
       const g = [P(rod([0.12, 0.92, 0.52], [0.06, 0.08, 1.02], 0.025, 0.03, 5), WOOD), P(rod([0.12, 0.92, 0.52], [0.24, 0.98, 0.48], 0.02, 0.02, 4), WOOD_D),

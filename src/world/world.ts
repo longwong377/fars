@@ -218,7 +218,8 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // Terrace grid, the town's lanes and houses, the plain's villages), the nearest in the skinned pool, the rest as
   // impostors baked from the same bodies (impostors.ts)
   const geo = new PopGeo({ pop: sim.pop, nav, town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n), seed,
-    villages: plain.data.villages, compounds: vi => villageCompounds(plain.data.villages[vi], terrain, seed), canals: plain.data.canals.map(c => c.pts) });
+    villages: plain.data.villages, compounds: vi => villageCompounds(plain.data.villages[vi], terrain, seed), canals: plain.data.canals.map(c => c.pts),
+    rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })) }); // (D-256: the banks and meadows of the land work)
   const view = new PopView(sim, geo, seed); crowd.view = view;
   wmark('view');
   // D-210: the animals that live about the town, the villages, the paradise and the river (world/fauna.ts), and the animals
