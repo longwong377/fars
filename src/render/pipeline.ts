@@ -29,6 +29,7 @@
 // the polished frames, bronze, wet stone), mirror rays blurred by roughness, weighted by the split-sum specular
 // reflectance of each pixel; where a ray hits, it replaces the sky environment the material reflected (the composite
 // re-evaluates that term with the material's own lookup and specular occlusion).
+import './shareInstancing'; // one vertex program per instanced mesh kind (D-250)
 import * as THREE from 'three/webgpu';
 import { pass, mrt, output, normalView, packNormalToRGB, unpackRGBToNormal, sample, velocity, diffuseColor, vec4, vec3, uniform, mix, max, float, uv, getViewPosition, logarithmicDepthToViewZ, viewZToPerspectiveDepth, clamp, min, vec2, metalness, roughness, Fn, dot, normalize, luminance, smoothstep, pmremTexture, EnvironmentBRDF, reflect, step, passTexture, log2, length } from 'three/tsl';
 import { ssgi } from './ssgi';

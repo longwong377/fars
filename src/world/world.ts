@@ -105,7 +105,12 @@ import { DustSystem, type DustKind } from './dust';
 export const CATCHUP_MAX_DAYS = 30;
 /** full-detail simulation radius around the player (m); effectively everyone at the current population (C) */
 export const LOD_RADIUS = 1e9;
+const WTRACE = typeof location !== 'undefined' && new URLSearchParams(location.search).has('trace');
+let wLast = 0;
+/** boot stage timing with ?trace (D-248: where a page load goes) */
+function wmark(stage: string) { if (!WTRACE) return; const t = performance.now(); console.info('[boot]', 'world:' + stage, (t - wLast).toFixed(0), 'ms'); wLast = t; }
 export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Terrain, settings?: Settings, weather?: WeatherSystem, seed = 1): Promise<WorldBuild> {
+  wLast = performance.now();
   void bakeTerrainDetail(terrain); // the hills' landform maps in a worker while the Terrace and the town build (D-190)
   const root = new THREE.Group(); root.name = 'world'; scene.add(root);
   const t0 = performance.now();
@@ -115,10 +120,12 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const probesP = loadProbes('/'); // baked light probes of the roofed halls (D-110): must be in before the first frame builds the shaders
   const fireOccP = loadFireOcc('/'); // the Terrace fires' baked light occlusion (D-222): in before the fire lights' colour nodes are made
   const { parts, manifest, doorways } = buildTerrace();
+  wmark('{ parts, manifest, doorways }');
   setProbeOccluders(parts); // the eye adaptation's direct-sun test inside the probe volumes (D-113)
   setTraffic(doorways); // trodden ground on the courts, from the doorways (D-188)
   await loadSculpt(async p => { const r = await fetch('/' + p); if (!r.ok) throw new Error(`${p}: ${r.status}`); return r.arrayBuffer(); }); // precomputed carved pieces (D-018)
   const arch = buildMeshes(parts, phys, { dynamicDoors: true }); // door leaves: kinematic colliders of the door system
+  wmark('arch');
   root.add(arch.group);
   // the seal inscriptions impressed in clay (door sealings, tablets) are drawn from the period-script fonts: loaded before
   // the first clay object bakes the writing atlas (writing.ts, D-179)
@@ -130,13 +137,16 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       if (now !== h) console.warn(`[probes] baked for parts ${h}, the architecture is ${now}: rerun npx tsx tools/build_probes.ts`); } catch { /* no SubtleCrypto (insecure context) */ } }
   await loadInscriptionFonts(async p => (await fetch('/' + p)).arrayBuffer());
   const reliefs = buildReliefs(manifest); root.add(reliefs);
+  wmark('reliefs');
   reliefs.add(buildReliefMarks(manifest, parts)); // the sculptors' marks on the reliefs' background (D-212; still there in the Now view)
   const p4 = buildPhase4Reliefs(doorways); root.add(p4.group); // stair and door-jamb reliefs of the other palaces (D-049)
+  wmark('p4');
   // the relief figures' cast shadows (D-226): their heights stamped into an atlas in their walls' frames, marched toward the sun
   // by the sun's light in every lit material; filled by the relief workers as the fields come in
   setReliefShadow(buildReliefShadow([...reliefs.children, ...p4.group.children].filter((c): c is ReliefSet => c instanceof ReliefSet)));
   const cren = buildStairCrenellations(parts); if (cren) root.add(cren); // stair-parapet merlons (D-065)
   const insc = buildInscriptions(manifest, parts, p4.inscriptions); root.add(insc);
+  wmark('insc');
   // D-214: the stones carrying texts that are solid and not architecture parts (the Hadish N portico's antae): a collider each
   const inscSolids = (insc.userData.solids ?? []) as { c: [number, number]; size: [number, number]; y0: number; y1: number }[];
   for (const s of inscSolids) phys.addBox({ x: s.c[0], y: (s.y0 + s.y1) / 2, z: -s.c[1] }, { x: s.size[0] / 2, y: (s.y1 - s.y0) / 2, z: s.size[1] / 2 });
@@ -149,6 +159,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   if ((manifest.treasury as any)?.scribesRoom) root.add(buildScribesRoom((manifest.treasury as any).scribesRoom, (manifest.treasury as any).scribesShelves, seed)); // the scribes' room (D-067)
   // the palaces' furnishings (D-212, all C): stored with the court away, laid out for use while the court setting's court is here
   const palace = new PalaceFurnishings(parts, manifest, doorways, { court: settings?.courtCalendar === 'seasonal', phys }); root.add(palace.group);
+  wmark('palace');
   const q = settings?.quality ?? 'high';
   // ?fireshadows=K (diagnostic, D-216): the nearest K fire lights cast shadows
   const fireShadows = typeof location !== 'undefined' ? +(new URLSearchParams(location.search).get('fireshadows') ?? 0) : 0;
@@ -160,15 +171,19 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // Phase 6 settlement: its hearths, ovens and kilns join the fire system before it builds (?notown leaves it out, for A/B budgets)
   const noTown = typeof location !== 'undefined' && new URLSearchParams(location.search).has('notown');
   const settlement = noTown ? null : new Settlement(phys, terrain, fire, q); if (settlement) root.add(settlement.group);
+  wmark('settlement');
   fire.build(); root.add(fire.group);
+  wmark('fire.build');
   const wvfx = new WeatherVfx({ test: 1500, low: 2500, medium: 5000, high: 8000, ultra: 12000 }[q]); root.add(wvfx.group);
   const shafts = new RainShafts(terrain); root.add(shafts.group); // distant rain cells approaching on the wind
   void QUALITY;
   // Phase 7: the Marvdasht plain (src/world/plain; plain.json): rivers, canals, fields, orchards, villages, Naqsh-e Rustam
   const plain = await buildPlain(scene, terrain, phys, { quality: q, seed, town: settlement?.plan ?? null,
     camps: settings?.courtCalendar === 'seasonal' ? CAMPS.filter(c => c.id !== 'court').map(c => ({ c: c.c, r: c.r })) : [], drains: waterworks.plan.drains.map(d => ({ at: d.at as [number, number], n: d.n as [number, number] })) }); root.add(plain.group); // (D-199: the retinue's camps on trodden ground)
+  wmark('plain');
   // people (Phase 3): walkable grid from the colliders (tools/build_nav.ts), fires kept clear, simulation + crowd
   const nav = await NavGrid.load(async p => (await fetch('/' + p)).arrayBuffer());
+  wmark('nav');
   // visible birds (§5.5): swallows over the courts in season, raptors over the slope, sparrows on the court floors
   // (D-210: and the crows at the town's middens, the kites over the middens and the stockyard)
   const townMiddens = (settlement?.plan.middens ?? []).filter(m => m.kind === 'midden').map(m => m.c);
@@ -184,24 +199,28 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // Phase 5 (D-021): the whole population and the year's calendar; the court is absent unless the out-of-world setting
   // 'Court calendar = seasonal pattern' is on (D-003)
   const sim = new PeopleSim(seed, nav, env, { court: settings?.courtCalendar === 'seasonal' }); let simStarted = false;
+  wmark('sim');
   sim.routeSearchesPerStep = 1; // at most one new route search per render frame (D-024)
   // D-199: the court's camps (court setting only): the tents of the court's camp and of the retinue's camps (camps.ts)
   const campTents = sim.pop.court ? new CourtCampTents(sim.pop.court.tents, (e, n) => terrain.heightAt(e, -n), phys) : null; if (campTents) root.add(campTents.group);
   // people's bodies (D-090): MakeHuman-derived variants in period dress, instanced per costume and LOD, pooled (D-093)
   const humans = await humansP;
   const crowd = new Crowd(sim, seed, humans); root.add(crowd.group);
+  wmark('crowd');
   // the whole population drawn (D-143): everyone out of doors near the camera, placed in the built world (popgeo.ts: the
   // Terrace grid, the town's lanes and houses, the plain's villages), the nearest in the skinned pool, the rest as
   // impostors baked from the same bodies (impostors.ts)
   const geo = new PopGeo({ pop: sim.pop, nav, town: settlement?.plan ?? null, ground: (e, n) => terrain.heightAt(e, -n), seed,
     villages: plain.data.villages, compounds: vi => villageCompounds(plain.data.villages[vi], terrain, seed), canals: plain.data.canals.map(c => c.pts) });
   const view = new PopView(sim, geo, seed); crowd.view = view;
+  wmark('view');
   // D-210: the animals that live about the town, the villages, the paradise and the river (world/fauna.ts), and the animals
   // that travel with their drivers and riders (world/traffic.ts; drawn as crowd extras performing with their animals)
   const groundAt = (e: number, n: number) => (nav.walkable(e, n) ? nav.heightAt(e, n) : terrain.heightAt(e, -n));
   const faunaT0 = performance.now();
   const villagesIn: VillageIn[] = plain.data.villages.map(v => ({ id: v.id, x: v.x, y: v.y, r: v.r, comps: villageCompounds(v, terrain, seed) }));
   const fauna = new Fauna(seed, settlement?.plan ?? null, villagesIn, groundAt, { rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })), canals: plain.data.canals.map(c => c.pts as [number, number][]) });
+  wmark('fauna');
   if (sim.pop.court) { const cc = CAMPS.find(c => c.id === 'court'); if (cc) fauna.addCourtVehicles(cc.c as [number, number], cc.r); }
   fauna.addTerraceFoot(new TerraceFoot(seed, groundAt)); // D-227: the tether lines, heaps and loads at the foot of the Grand Stair (C)
   root.add(fauna.group); const faunaMs = performance.now() - faunaT0;
@@ -228,6 +247,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   let impMs = 0;
   { const t = performance.now(), pg = (k: string) => { const g = propGeometry(k)!, n = g.getAttribute('position').count; return { pos: g.getAttribute('position').array as Float32Array, idx: g.index ? g.index.array : Array.from({ length: n }, (_, i) => i) }; };
     crowd.imp = new CrowdImpostors(bakeImpostors(humans.A, humans.O, { jar: pg('jar'), sack: pg('sack') })); crowd.group.add(crowd.imp.mesh); impMs = performance.now() - t; }
+  wmark('crowd.imp');
   // the people and animals near the player are solid (brief §6: player collision with crowds and animals; D-237): pools of
   // kinematic capsules follow the nearest of them within SOLID_R, where the crowd draws them (the view's spot and the
   // cycle's own path: the ploughman up to PATH_REACH from his spot along the furrow; D-142 × D-143), the crowd's extras
@@ -247,6 +267,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // the Now view (D-201): built on first use; keeps the carving, the weather and the birds, hides the rest of 467
   const nowView = new NowView({ root, parts, phys, keep: [reliefs, p4.group, insc, wvfx.group, shafts.group, birds.group],
     hideWithin: [reliefs.getObjectByName('crenellations'), insc.getObjectByName('apadana-foundation-deposits')] });
+  wmark('nowView');
   // people are solid to the player: a kinematic capsule each (brief §6: player collision with crowds)
   const R = phys.R; const bodies = sim.agents.map(() => { const b = phys.world.createRigidBody(R.RigidBodyDesc.kinematicPositionBased().setTranslation(0, -1000, 0)); phys.world.createCollider(R.ColliderDesc.capsule(0.55, 0.25).setTranslation(0, 0.8, 0), b); return b; });
   const ms = performance.now() - t0;
@@ -300,6 +321,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // audio occlusion (§11; D-178): the Terrace's solid parts in a 0.5 m field; doorways let sound through; the door
   // leaves are re-read twice a second; the town's and the plain's buildings are not occluders (C)
   const occT0 = performance.now(); const occl = new OcclusionField(parts, doorways, rooms); const occMs = performance.now() - occT0;
+  wmark('occl');
   let leavesAt = -1;
   const syncLeaves = () => { occl.leaves = [...doors.doors.values()].flatMap(d => d.leaves.map(l => { const az = d.az(l); return { a: l.pivot, b: [l.pivot[0] + l.len * Math.cos(az), l.pivot[1] + l.len * Math.sin(az)] as [number, number], y0: l.y0, y1: l.y0 + l.height }; })); };
   // one-shots (tool strikes) ask at once when they start: answers are cached per metre of source and listener for half

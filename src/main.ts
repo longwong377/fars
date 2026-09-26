@@ -71,6 +71,12 @@ async function boot() {
     await renderer.init();
   }
   const backend = (renderer.backend as any).isWebGPUBackend ? 'WebGPU' : 'WebGL2';
+  if (P.has('shaderlog')) { // dev (D-250): which object and material each new render pipeline came from, with its WGSL size
+    const pl: any = (renderer as any)._pipelines, orig = pl.getForRender.bind(pl), seen = new Set<any>(); (window as any).__shaderLog = [];
+    pl.getForRender = (ro: any, pr: any) => { const r = orig(ro, pr); if (r && !seen.has(r)) { seen.add(r); const m = ro.material, o = ro.object;
+      (window as any).__shaderLog.push({ obj: o?.name || o?.parent?.name || o?.type, mat: m?.name || m?.type, note: String(m?.userData?.note ?? m?.userData?.surface ?? '').slice(0, 60), pass: ro.context?.depth === false ? 'nodepth' : (ro.context?.textures?.length ? 'mrt' + ro.context.textures.length : ''), shadow: !!ro.object?.isShadow || String(ro.passId ?? ''), frag: r.fragmentProgram?.code?.length ?? 0, vert: r.vertexProgram?.code?.length ?? 0, fid: r.fragmentProgram?.id, vid: r.vertexProgram?.id, key: r.cacheKey,
+        ...(P.get('shaderlog') && new RegExp(P.get('shaderlog')!).test(o?.name ?? '') ? { fcode: r.fragmentProgram?.code, vcode: r.vertexProgram?.code } : {}) }); } return r; };
+  }
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2) * Q.pixelRatio);
   renderer.setSize(innerWidth, innerHeight, false);
   renderer.toneMapping = THREE.AgXToneMapping; renderer.toneMappingExposure = 1.0;
@@ -372,6 +378,7 @@ async function boot() {
     return open / dirs.length;
   }
   let prev = performance.now();
+  let firstFrames = P.has('trace') ? 3 : 0; // ?trace: time the first frames' stages (D-250)
   let inAnimationLoop = false; // set while three's animation loop (which advances the node frame) calls frame()
   const viewDir = new THREE.Vector3();
   async function frame(dtOverride?: number, opts: { sim?: boolean; render?: boolean } = {}) {
@@ -380,7 +387,9 @@ async function boot() {
     autosave.tick();
     overlay.frame(dt);
     const playing = shell.mode === 'playing' || TEST || P.has('bench');
+    const tf0 = firstFrames > 0 ? performance.now() : 0;
     if (playing && opts.sim !== false) simStep(dt, !TEST);
+    if (firstFrames > 0) TRACE(`frame ${3 - firstFrames}: simStep ${(performance.now() - tf0).toFixed(0)} ms`);
     const cond = weather.conditions(clock.dayIndex, clock.localHour);
     if (freeCam) { camera.position.set(freeCam.x, freeCam.y, freeCam.z); camera.rotation.set(freeCam.pitch, freeCam.yaw, 0, 'YXZ'); body.visible = false; }
     else {
@@ -424,8 +433,10 @@ async function boot() {
     if (P.get('xp')) exposure = +P.get('xp')!; // debug: a fixed exposure (diagnostic renders)
     renderer.toneMappingExposure = exposure;
     pipeline.setExposure(exposure / X_MAX, exposure); // bloom threshold in display terms once the exposure leaves the outdoor range; saturation cap
+    const tu0 = performance.now();
     world.update?.(dt, { clock, cond, sky: sky.state, skyLight: sky, camera, player, settings }); // skyLight: horizon radiance and sun light (D-060)
     tmesh.update(camera.position);
+    if (firstFrames > 0) TRACE(`frame ${3 - firstFrames}: world.update ${(performance.now() - tu0).toFixed(0)} ms`);
     const t0 = performance.now(); if (opts.render !== false) renderer.info.reset();
     { const ss = seasonAt(clock.dayIndex); SEASON.green.value = ss.green; SEASON.dry.value = ss.dry; }
     WEATHER.wetness.value = cond.wetness; WEATHER.snow.value = cond.snowCover; WEATHER.puddles.value = Math.max(0, cond.wetness - 0.4) / 0.6;
@@ -438,6 +449,7 @@ async function boot() {
     if (!inAnimationLoop) { const nf = (renderer as any)._nodes?.nodeFrame; if (nf) { nf.update(); (renderer.info as any).frame = nf.frameId; } }
     pipeline.render(scene, camera);
     lastFrameMs = performance.now() - t0;
+    if (firstFrames > 0) { TRACE(`frame ${3 - firstFrames}: render ${lastFrameMs.toFixed(0)} ms`); firstFrames--; }
     // read the frame meter back (every 0.25 s; every frame in frozen test renders, awaited, so captures are deterministic)
     meterT += dt;
     if (pipeline.meterTarget && !meterBusy && (TEST || meterT > 0.25)) {

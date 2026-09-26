@@ -1,0 +1,21 @@
+import { chromium } from '@playwright/test';
+const args = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-vulkan=swiftshader', '--use-webgpu-adapter=swiftshader'];
+const b = await chromium.launch({ headless: true, args });
+const page = await b.newPage();
+page.on('console', m => console.log(m.text()));
+await page.goto('http://localhost:6800/package.json');
+await page.evaluate(async () => {
+  const ad = await navigator.gpu.requestAdapter(); const dev = await ad.requestDevice({ requiredLimits: { maxTextureDimension2D: 8192 } });
+  const W = 8192, H = +(new URLSearchParams(location.search).get('h') ?? 1024);
+  const data = new Uint8Array(W * H); for (let i = 0; i < data.length; i++) data[i] = i * 7;
+  const mk = f => dev.createTexture({ size: [f === 'rgba8unorm' ? W / 4 : W, H], format: f, usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST });
+  const time = async (label, fn) => { const t = performance.now(); fn(); await dev.queue.onSubmittedWorkDone(); console.log(label, (performance.now() - t).toFixed(0), 'ms'); };
+  const H2 = 1024; const d2 = data.subarray(0, W * H2);
+  let t = mk('r8unorm'); await time(`r8 whole ${W}x${H2}`, () => dev.queue.writeTexture({ texture: t }, d2, { bytesPerRow: W }, [W, H2]));
+  t = mk('rgba8unorm'); await time(`rgba8 whole ${W/4}x${H2}`, () => dev.queue.writeTexture({ texture: t }, d2, { bytesPerRow: W }, [W / 4, H2]));
+  t = mk('r8unorm'); await time(`r8 64-row chunks`, () => { for (let y = 0; y < H2; y += 64) dev.queue.writeTexture({ texture: t, origin: [0, y] }, d2.subarray(y * W, (y + 64) * W), { bytesPerRow: W }, [W, 64]); });
+  t = mk('r8unorm'); await time(`r8 via staging buffer`, () => { const buf = dev.createBuffer({ size: W * H2, usage: GPUBufferUsage.COPY_SRC, mappedAtCreation: true }); new Uint8Array(buf.getMappedRange()).set(d2); buf.unmap();
+    const e = dev.createCommandEncoder(); e.copyBufferToTexture({ buffer: buf, bytesPerRow: W }, { texture: t }, [W, H2]); dev.queue.submit([e.finish()]); });
+  t = mk('r8unorm'); await time(`r8 region 512x512`, () => dev.queue.writeTexture({ texture: t, origin: [1024, 256] }, data.subarray(0, 512 * 512), { bytesPerRow: 512 }, [512, 512]));
+});
+await b.close();

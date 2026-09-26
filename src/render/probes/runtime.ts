@@ -12,7 +12,7 @@
 // Data3DTexture: r186 binds that through a 2-D view on WebGPU (validation error, black frame; HANDOFF gotchas).
 import * as THREE from 'three/webgpu';
 import { HemisphereLightNode } from 'three/webgpu';
-import { uniform, texture, vec2, vec3, float, mix, max, min, clamp, floor, smoothstep, step, normalWorld, positionWorld, dot, length } from 'three/tsl';
+import { uniform, uniformArray, texture, vec2, vec3, vec4, float, int, mix, max, min, clamp, floor, smoothstep, step, normalWorld, positionWorld, dot, length, Fn, Loop } from 'three/tsl';
 import { geometricNormalWorld } from '../envmap';
 import { ProbeField, ProbeVolume, atlasData, decodeField, encodeField, fieldVisibility, gridExtent, volumeAt, openAmbientMean, VALID_LO, VALID_HI, ATLAS_BANDS, PROBE_STRIDE, REACH_SOFT, L1_FLOOR, L1_ONESIDED } from './field';
 import { SURFACES } from '../materials';
@@ -63,7 +63,27 @@ export function setProbeField(F: ProbeField | null) {
   d.minFilter = d.magFilter = THREE.LinearFilter; d.wrapS = d.wrapT = THREE.ClampToEdgeWrapping; d.generateMipmaps = false; d.flipY = false;
   d.name = 'light probes'; d.needsUpdate = true;
   ATLAS = { tex: d, width: A.width, height: A.height, pos: A.pos };
+  VOLS = uniformArray(volumeTable(F.volumes, A.pos).map(r => new THREE.Vector4(...r)), 'vec4');
 }
+/** the probe volumes as rows of vec4 for the looped lookup (D-250; VOL_ROWS per volume):
+ *  0 grid box x0 x1 y0 y1 · 1 z0 z1, atlas tile u0 v0 · 2 the horizontal fade edges (roof ∓ full) · 3 yLo, yHi ·
+ *  4 origin, nx · 5 spacing, ny · 6 nz, max(0, n − 2) per axis */
+const VOL_ROWS = 7;
+let VOLS: any = null;
+export function volumeTable(volumes: ProbeVolume[], pos: [number, number][]): [number, number, number, number][] {
+  const rows: [number, number, number, number][] = [];
+  volumes.forEach((v, i) => {
+    const g = gridExtent(v), [u0, v0] = pos[i], [nx, ny, nz] = v.dims, [rx0, rx1, rz0, rz1] = v.roof, f = v.full;
+    rows.push([g.x0, g.x1, g.y0, g.y1], [g.z0, g.z1, u0, v0], [rx0 - f, rx1 + f, rz0 - f, rz1 + f], [v.yLo[0], v.yLo[1], v.yHi[0], v.yHi[1]],
+      [v.origin[0], v.origin[1], v.origin[2], nx], [v.spacing[0], v.spacing[1], v.spacing[2], ny], [nz, Math.max(0, nx - 2), Math.max(0, ny - 2), Math.max(0, nz - 2)]);
+  });
+  return rows;
+}
+/** the unrolled lookup (one masked copy of the per-volume terms per volume, sessions 3-8) instead of the loop: ?probeloop=0,
+ *  kept for A/B renders of D-250 */
+let UNROLLED = typeof location === 'undefined' || new URLSearchParams(location.search).get('probeloop') !== '1'; // opt-in (?probeloop=1) until verified in a render
+/** tests and tools: choose the looped (true) or unrolled lookup for shaders built from now on */
+export function setProbeLoop(on: boolean) { UNROLLED = !on; }
 /** GPU memory of the atlases (bytes) */
 export const probeTextureBytes = () => (ATLAS ? ATLAS.width * ATLAS.height * BANDS * 8 : 0);
 
@@ -111,6 +131,10 @@ export function probeVolumeExtent(p: { x: number; y: number; z: number }): numbe
 
 /** reversed smoothstep edges are undefined in WGSL/GLSL: a (near-)empty ramp becomes a step */
 const ramp = (a: number, b: number, x: any) => (b - a > 1e-3 ? smoothstep(a, b, x) : step(a, x));
+/** the same ramp with node edges (the looped lookup): smoothstep's polynomial over max(b − a, 1e-6), a step at a when the
+ *  ramp is (near-)empty or reversed, as `ramp` decides per volume */
+const rampN = (a: any, b: any, x: any) => { const w = b.sub(a), t = clamp(x.sub(a).div(max(w, 1e-6)), 0, 1), sm = t.mul(t).mul(t.mul(-2).add(3));
+  return mix(step(a, x), sm, step(1e-3, w)); };
 
 /** TSL: the ambient (sky) irradiance at world position p with world normal n. S = hemisphere sky colour × intensity,
  *  U = probeSun, hemi = the hemisphere light's irradiance for n (the fallback). Returns the irradiance and the field weight. */
@@ -128,25 +152,46 @@ export function probeAmbient(p: any, n: any, S: any, U: any, hemi: any, directSk
   // per volume (masked sums: the volumes do not overlap): the texel centre of the cell's low corner in q's two layers,
   // the fractions within the cell, and the fade
   let uA: any = float(0), uB: any = float(0), vv: any = float(0), fx: any = float(0), fy: any = float(0), fz: any = float(0), fade: any = float(0);
-  FIELD.volumes.forEach((v: ProbeVolume, i: number) => {
-    const g = gridExtent(v), [u0, v0] = ATLAS!.pos[i], [nx, ny, nz] = v.dims, [rx0, rx1, rz0, rz1] = v.roof, f = v.full;
-    const inside = step(g.x0, p.x).mul(step(p.x, g.x1)).mul(step(g.y0, p.y)).mul(step(p.y, g.y1)).mul(step(g.z0, p.z)).mul(step(p.z, g.z1));
-    const wx = ramp(g.x0, rx0 - f, p.x).mul(float(1).sub(ramp(rx1 + f, g.x1, p.x)));
-    const wz = ramp(g.z0, rz0 - f, p.z).mul(float(1).sub(ramp(rz1 + f, g.z1, p.z)));
-    const wy = ramp(v.yLo[0], v.yLo[1], p.y).mul(float(1).sub(ramp(v.yHi[0], v.yHi[1], p.y)));
-    const gx = clamp(q.x.sub(v.origin[0]).div(v.spacing[0]), 0, nx - 1);
-    const gy = clamp(q.y.sub(v.origin[1]).div(v.spacing[1]), 0, ny - 1);
-    const gz = clamp(q.z.sub(v.origin[2]).div(v.spacing[2]), 0, nz - 1);
-    const k0 = min(floor(gy), Math.max(0, ny - 2)), k1 = min(k0.add(1), ny - 1);
-    const ix = min(floor(gx), Math.max(0, nx - 2)), iz = min(floor(gz), Math.max(0, nz - 2));
-    uA = uA.add(inside.mul(k0.mul(nx).add(ix).add(u0 + 0.5)));
-    uB = uB.add(inside.mul(k1.mul(nx).add(ix).add(u0 + 0.5)));
-    vv = vv.add(inside.mul(iz.add(v0 + 0.5)));
-    fx = fx.add(inside.mul(gx.sub(ix)));
-    fz = fz.add(inside.mul(gz.sub(iz)));
-    fy = fy.add(inside.mul(gy.sub(k0)));
-    fade = fade.add(inside.mul(wx).mul(wz).mul(wy));
-  });
+  if (UNROLLED || !VOLS) {
+    FIELD.volumes.forEach((v: ProbeVolume, i: number) => {
+      const g = gridExtent(v), [u0, v0] = ATLAS!.pos[i], [nx, ny, nz] = v.dims, [rx0, rx1, rz0, rz1] = v.roof, f = v.full;
+      const inside = step(g.x0, p.x).mul(step(p.x, g.x1)).mul(step(g.y0, p.y)).mul(step(p.y, g.y1)).mul(step(g.z0, p.z)).mul(step(p.z, g.z1));
+      const wx = ramp(g.x0, rx0 - f, p.x).mul(float(1).sub(ramp(rx1 + f, g.x1, p.x)));
+      const wz = ramp(g.z0, rz0 - f, p.z).mul(float(1).sub(ramp(rz1 + f, g.z1, p.z)));
+      const wy = ramp(v.yLo[0], v.yLo[1], p.y).mul(float(1).sub(ramp(v.yHi[0], v.yHi[1], p.y)));
+      const gx = clamp(q.x.sub(v.origin[0]).div(v.spacing[0]), 0, nx - 1);
+      const gy = clamp(q.y.sub(v.origin[1]).div(v.spacing[1]), 0, ny - 1);
+      const gz = clamp(q.z.sub(v.origin[2]).div(v.spacing[2]), 0, nz - 1);
+      const k0 = min(floor(gy), Math.max(0, ny - 2)), k1 = min(k0.add(1), ny - 1);
+      const ix = min(floor(gx), Math.max(0, nx - 2)), iz = min(floor(gz), Math.max(0, nz - 2));
+      uA = uA.add(inside.mul(k0.mul(nx).add(ix).add(u0 + 0.5)));
+      uB = uB.add(inside.mul(k1.mul(nx).add(ix).add(u0 + 0.5)));
+      vv = vv.add(inside.mul(iz.add(v0 + 0.5)));
+      fx = fx.add(inside.mul(gx.sub(ix)));
+      fz = fz.add(inside.mul(gz.sub(iz)));
+      fy = fy.add(inside.mul(gy.sub(k0)));
+      fade = fade.add(inside.mul(wx).mul(wz).mul(wy));
+    });
+  } else { // D-250: the one volume containing p (first match; the volumes do not overlap) found by a loop, its terms evaluated once
+    const V = VOLS, NV = FIELD.volumes.length;
+    const find = Fn(([pp]: [any]) => { const vi = float(0).toVar(), found = float(0).toVar();
+      Loop(NV, ({ i }: { i: any }) => { const b0 = V.element(i.mul(VOL_ROWS)), b1 = V.element(i.mul(VOL_ROWS).add(1));
+        const inside = step(b0.x, pp.x).mul(step(pp.x, b0.y)).mul(step(b0.z, pp.y)).mul(step(pp.y, b0.w)).mul(step(b1.x, pp.z)).mul(step(pp.z, b1.y));
+        vi.addAssign(inside.mul(float(1).sub(found)).mul(float(i))); found.assign(max(found, inside)); });
+      return vec2(vi, found); });
+    const hit = find(p), base = int(hit.x).mul(VOL_ROWS), inside = hit.y, row = (k: number) => V.element(base.add(k));
+    const B0 = row(0), B1 = row(1), R = row(2), Y = row(3), O = row(4), SP = row(5), N6 = row(6);
+    const nx = O.w, ny = SP.w, nz = N6.x;
+    const wx = rampN(B0.x, R.x, p.x).mul(float(1).sub(rampN(R.y, B0.y, p.x)));
+    const wz = rampN(B1.x, R.z, p.z).mul(float(1).sub(rampN(R.w, B1.y, p.z)));
+    const wy = rampN(Y.x, Y.y, p.y).mul(float(1).sub(rampN(Y.z, Y.w, p.y)));
+    const gx = clamp(q.x.sub(O.x).div(SP.x), 0, nx.sub(1)), gy = clamp(q.y.sub(O.y).div(SP.y), 0, ny.sub(1)), gz = clamp(q.z.sub(O.z).div(SP.z), 0, nz.sub(1));
+    const k0 = min(floor(gy), N6.z), k1 = min(k0.add(1), ny.sub(1)), ix = min(floor(gx), N6.y), iz = min(floor(gz), N6.w);
+    uA = inside.mul(k0.mul(nx).add(ix).add(B1.z.add(0.5))); uB = inside.mul(k1.mul(nx).add(ix).add(B1.z.add(0.5)));
+    vv = inside.mul(iz.add(B1.w.add(0.5)));
+    fx = inside.mul(gx.sub(ix)); fz = inside.mul(gz.sub(iz)); fy = inside.mul(gy.sub(k0));
+    fade = inside.mul(wx).mul(wz).mul(wy);
+  }
   const T = ATLAS.tex, at = (u: any, v: any, band: number) => texture(T, vec2(u.div(W), v.add(band * H).div(BANDS * H)));
   // D-152: the reach of the lower layer's four corner probes (texel centres: unfiltered); a side of the cell none of whose
   // probes reaches q is left out (field.ts reachFrac: a wall thinner than the spacing lies between them)

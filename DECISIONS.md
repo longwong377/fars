@@ -6149,3 +6149,40 @@ moment-*-webgpu.png in the worktree, not committed).**
   the render queue holds a job another agent needs.
 - **Rejected by the user.** Sibling cloud sessions as parallel render lanes (extra usage); T-R10 holds this.
 - **Optional.** The user may run one command on a machine with a GPU; the plan never waits on it.
+
+## D-250 Where a page load goes, and fewer, smaller shaders (session 9, UD-15; D-248 step 1; T-H4, T-K7c)
+- **Measured first (tools/dev/trace_load.mjs, profile_frame.mjs, gpu_trace.mjs, shader_sizes.mjs, shader_log.mjs; test quality,
+  960×540, day 25 11:00 clear).** On an idle box the world builds in **17 s** (settlement 6.1 s, the architecture 2.5 s, the plain
+  2.6 s, impostor bake 1.5 s, inscriptions 0.9 s, reliefs 0.7 s); the first frame's simulation 0.3 s and world update 2.8 s. The
+  rest of the load is **SwiftShader compiling render pipelines**: the first render 88 s, then ~210-230 s more in the next frames as
+  streamed content (relief chunks, town tiles) draws for the first time; steady frames then take 0.07-0.5 s. A Chrome trace of the
+  GPU process (416 s of CPU, single-threaded): 151 s in `CreateRenderPipeline` (125 calls, up to 11 s each) and ~250 s inside two
+  queue submissions with no API call in them (SwiftShader's JIT of each pipeline at its first draw). The JS thread's 184 s
+  "writeTexture" in a CPU profile is the page waiting on that GPU process (the relief shadow atlas upload itself: 18 ms per 8 MB
+  in isolation, tools/dev/wt_bench.mjs).
+- **So the cached world (D-248 item 1) is not the lever:** it would save ≤ 17 s of a ~6-min load. It is deferred; the shader
+  work below is first.
+- **What makes the shaders:** 163 pipelines, 16.4 MB of WGSL; 85 fragment shaders over 50 KB, the surfaces ~165 KB each. Of a
+  175 KB stone surface (tools/dev/wgsl_dump.ts, node): the light-probe lookup ~100 KB (every volume's terms unrolled, and the
+  lookup inlined twice: the hemisphere light and the sky-specular occlusion), the other lights 12 KB, the surface's own layers
+  ~64 KB. In SwiftShader (tools/dev/ss_compile.mjs, one pipeline compiled and drawn): 3.5 s full, 3.1 s with the loop below,
+  2.9 s without probes, 1.9 s without any light: compile time is not linear in size; the surface's noise layers are most of it.
+  **51 pipelines were copies**: the fragment program shared, the vertex program different only because three sizes an
+  InstancedMesh's uniform matrix array to its count (`array<mat4x4<f32>, N>` for N ≤ 1,024), so each count compiled the whole
+  fragment shader again (3.6 MB).
+- **Changes (both opt-in until an A/B render shows them identical: `?probeloop=1`, `?shareinst=1`):** (1) the probe lookup finds
+  the one volume containing the point with a WGSL loop over a uniform table of the volumes (7 vec4 rows each; the volumes do not
+  overlap, first match) and evaluates its terms once (runtime.ts; the unrolled lookup stays for A/B); (2) plain InstancedMeshes read
+  their matrices as per-instance attributes at every count (src/render/shareInstancing.ts: the builder's uniform-buffer limit
+  reads 0 for them; skinned meshes unchanged). Together: 163 → 125 pipelines, 16.4 → 9.3 MB of WGSL (shader_log runs 1-3).
+  tests/shader_share.test.ts checks the code generation.
+- **Not yet shown:** the time saved. Two A/B loads under load 6-11 (a render job, vitest and an agent sharing the box) gave 456 s
+  (old) and 513 s (new) of GPU-process CPU: streamed content reaches the first frames at load-dependent times, so a fixed frame
+  count compared different pipeline sets. shader_sizes.mjs now renders until the pipeline set stops growing; the A/B is to be
+  re-run on a quieter box, then a pixel A/B render (hall interior and a crowd of instanced objects) before the switches become
+  the default.
+- **Also:** the dev server no longer watches `.claude/` (agents' worktrees reloaded the lead's pages mid-measurement) and
+  `NOHMR=1` turns reloads off for probes (vite.config.ts); `?trace` logs the world's build stages and the first frames' parts.
+- **Alternatives considered:** precompiling with `compileAsync` before the first frame (measured: 122 s spent, then the first
+  frame compiled again, the keys differ; rejected); a persistent Chromium profile (session 8: no gain); one "uber" surface
+  program with per-surface uniforms (the next lever: the ~40 surface programs differ mostly in constants; not started).

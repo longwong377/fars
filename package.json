@@ -12,6 +12,8 @@
     "sculpt": "tsx tools/build_sculpt.ts",
     "spec:md": "python3 tools/spec_to_md.py",
     "test": "vitest run",
+    "test:fast": "TIER=fast vitest run",
+    "test:gate": "tools/dev/cpu_slot.sh npx vitest run --maxWorkers=2",
     "guards": "vitest run tests/gates_ratchet.test.ts tests/scope_ledger.test.ts tests/defaults.test.ts",
     "prepare": "git config core.hooksPath .githooks || true",
     "test:e2e": "playwright test",
