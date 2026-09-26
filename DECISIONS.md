@@ -5843,7 +5843,7 @@ moment-*-webgpu.png in the worktree, not committed).**
 
 ## D-234 The town's houses as built: two levels of detail, each household's house, the street doors (session 8 workstream; replaces D-228's PLACEHOLDER box slabs; UD-06, UD-08, UD-14 via D-233/D-236)
 - **Read first: what is broken, placeholder or unverified.**
-  - **Renders: pending** (the shared queue; this entry is updated when they land).
+  - **Rendered once, and not after the last fixes (one run through the shared queue, quality high, WebGPU/SwiftShader, 960 × 540; box load 6–11):** workshop-area-b (added 49 draws, 1.25 M triangles), court-q_s1 (added 53 draws, 1.46 M), door-q_s1 (added 58 draws, 1.70 M): all inside the settlement's ≤ 150 draws / ≤ 2 M triangles; **lane-q_s1 failed**: the page was not ready in 15 min (the loaded box: the others took 14–20 min; the ready wait is now 30 min, READY_TIMEOUT, not re-run). **The Terrace (town-smoke-dusk) and Kuh-e Rahmat views were not rendered.** What the court render showed, fixed after it and NOT re-rendered: bright sky between the pole ends (the court facade is now built up between them), pale 6-sided pole caps (now 8-sided, darker end grain), a regular pale salt stripe (fainter), cobble-like footing stones in bright mortar (smaller, darker mortar); the Area B render's yard walls read as plain boxes (their tops now worn and notched, repairs and bare brick on every plot's walls). The door view's camera stands too close to judge the door (the leaf's plank grain reads as noise at 0.6 m; three thin bright lines at the doorway's head, cause not found).
   - **Interiors:** rooms are furnished by use and each house burns a lamp in the evening, but **no one is drawn inside** (the people sim keeps a person at home hidden, D-143; src/people not touched).
   - **The distant level (beyond ~72 m of a 32 m tile's centre) is simplified**: walls and roofs as plain plastered boxes with
     the eave's shadow line and the street-door leaves; no footing, pole ends, spouts, windows, repairs or court things. F3
@@ -5886,7 +5886,7 @@ moment-*-webgpu.png in the worktree, not committed).**
   included (its roofs sit at the low edge of the near roofs' fall, its surfaces at or inside the near ones). Measured
   headless (tests/houses.test.ts): far level 0.558 M triangles in 16 meshes (was 0.906 M for the whole settlement with every
   jar and toy); near at q_s1 / q_w1 / q_s3 lane spots: 16 / 15 / 17 tiles, 5 meshes, 336 / 314 / 376 k triangles of which
-  after rooms were furnished 418 / 387 / 466 k triangles, 71 / 67 / 80 k cast; the whole town's near level would be 4.9 M triangles (431 tiles, worst 29.4 k). In-frame draws and triangles: pending the render.
+  after rooms were furnished 418 / 387 / 466 k triangles, 71 / 67 / 80 k cast; the whole town's near level would be 4.9 M triangles (431 tiles, worst 29.4 k). In frame (the render above): the settlement added 49–58 draws and 1.25–1.70 M triangles in the three near views.
 - **Street doors (towndoors.ts).** 1,494 street doors: a leaf of 3–5 poplar planks on two battens on a pivot post, three
   variants by the timber's age (3 instanced draws for the doors within 220 m), turning 1.5 s; shut and barred from dusk
   (each house at its own moment between sun −3° and −9°) to dawn; by day per house and day: shut ~22 %, ajar ~33 %, open
@@ -5897,6 +5897,12 @@ moment-*-webgpu.png in the worktree, not committed).**
   distinct lane faces (frontage, height, parapet, footing, door timber, tone) with one identical pair within 20 m. Each house
   its own standing (from its size and kind), age (1–50 years), months since re-plastering, later room strip (35 % of houses
   over 15 years), repairs and bare brick by age and care, door timber, hinge side, animal; 11,581 fixtures.
+- **T-E5 (perceptual repetition), not measured on renders:** a CPU-preview proxy (tools/dev/house_pairs.ts, house_preview.ts
+  VIEWS batch mode with the door leaves, tools/dev/ssim_pairs.py; untextured, one shared light) on 8 pairs of neighbouring
+  houses' door views 6–50 m apart: SSIM mean 0.77, max 0.92, 1 pair of 8 over 0.9 (after the doorway variety: lintel, niche,
+  doorstep, jamb boards or surround). Kit-shared still: the surfaces (one shader per material, varied only by world position
+  and vertex tone), the leaf (3 variants), the ladder, jar and pole forms, the 1 m door width and 2 m plan head, the wall
+  thicknesses by kind, the 1 m raster, the one-storey type, the eave profile.
 - **People, hearths and sight (tests/houses.test.ts, town_glow.test.ts).** Every street door leaf hangs in its plan
   doorway (the walking grid's door edge); fixtures stand in their own plot, never on a doorway's cells; 873 house hearths
   stand in their courts ≥ 0.3 m clear of the wall faces, exactly where the fire system burns them. The LOS raster (D-227)
