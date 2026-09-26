@@ -6316,3 +6316,31 @@ moment-*-webgpu.png in the worktree, not committed).**
   plain_d223, plain_look pass; town_plots.json rebuilt unchanged.
 - **Unverified on screen**: two moments queued (ford-pulvar-sep, ford-kur-apr). Nobody crosses at a ford yet (traffic.ts routes
   run W and S; the drum haulage of D-256 will use the Pasargadae road); no water sound over the causeway.
+
+## D-258 The small life around the walker, the bats at dusk; puddles only on level ground (session 9; gap hunters G42, G59-G62; tier C)
+- **Small life** (src/world/smallLife.ts): the ground within 36 m of the camera is cut into 8 m cells; each cell's context is read
+  once (a town midden within 6 m; the water's edge: 4 m inside to 8 m outside a river's top width, or a canal; rock: slope over
+  30 %; else the plain's land use, field or steppe) and a hash of (seed, cell) decides what lives there: house flies at the
+  middens (Apr-Oct, 8-18 h, 5-9 a heap, 0.08-0.5 m up), dragonflies at the water (May-Sep, 9-17 h, 45 % of edge cells, 0.6-1.8 m
+  up, hover and dart), butterflies over fields and steppe (Mar-Jun and Sep-Oct, 9-17 h, 18 % of cells: whites, a clouded
+  yellow, a painted lady by instance colour), rock agamas on rock (Apr-Oct, 9-17 h, 30 % of rock cells, 6 % of steppe cells;
+  basking 25-60 s spells, dashing up to 1.6 m in 0.7 s; one slips away for 90 s when someone comes within 3 m). Positions are
+  closed-form in (seed, cell, index, world seconds): no saved state, continuous across saves and skips. Nothing flies in rain
+  or wind over 8 m/s. Four InstancedMeshes (no draw while empty, no shadows). Species and seasons are recollection (SMALL-R,
+  sources.json; C).
+- **Bats** (wildlife.ts BIRDS.bat, `batAt`): 16 pipistrelles, Mar-Oct, from 20 min after the month's sunset (SUNSET_BY_MONTH at
+  30 deg N, 17.3 h in December to 19.2 h in June, C) for about two hours, hawking loops of 5-12 m, 3-10 m up, jinking every half
+  second, half over the courts and half over the water within 5 km.
+- **Puddles only on level ground** (materials.ts `finish`): the beasts renders (day 12, clear after rain) showed puddles lying on
+  the hillsides of the SW steppe: the puddle mask used the up-facing term (slopes up to ~33 %). Now it takes `level`
+  (smoothstep 0.996-0.9995 of the normal's y: water stands on slopes under ~3 %, none past ~9 %); floors, courts, roofs and the
+  flat plain keep theirs.
+- **Tests.** tests/small_life.test.ts (6): July noon flies at the midden and dragonflies at the water, no butterflies; April
+  butterflies and agamas, nothing by night, in January or in rain; each insect within its context's reach; continuity (top speeds
+  per kind: fly 6, dragonfly 11, butterfly 4.5, agama 4 m/s) and determinism; the agama slipping away; the bats' hours, months and
+  height. beasts, birds_s9, fauna and wildlife tests pass.
+- **Seen in the beasts renders (the first of the queue):** the onager herd reads as animals at distance; the two lions are a few
+  pixels at 70 m; the cheetahs, lying, are hidden behind a rise from their camera (the view, not the animals: beast_find places
+  the camera 70 m off without a line-of-sight check); the lions' view shows B83 (the far ring's corridor above the ground).
+- **Unverified on screen:** two moments queued (small-spring-field, small-dusk-bats). Flies (8 mm) are below the render's pixel at
+  any distance past ~1 m. No mosquitoes, no ants, no beetles, no scorpions (G61 partial).

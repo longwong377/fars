@@ -94,7 +94,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G39 | hares | A109; F-012 | fauna | C | MISSING/PARTIAL |
 | G40 | hedgehog and porcupine | A110; F-025, F-032 | fauna | C | MISSING/PARTIAL |
 | G41 | rats and mice at the stores | A111; B-049, F-042 | fauna | B | MISSING/PARTIAL |
-| G42 | bats at dusk | A112; W-025 | fauna | B | MISSING/PARTIAL |
+| G42 | bats at dusk | A112; W-025 | fauna | B | BUILT (D-258: pipistrelles over the courts and the water from 20 min after sunset, Mar-Oct); unrendered |
 | G43 | small rodents of the steppe (jirds, gerbils, jerboas) | A113; F-013 | fauna | C | MISSING/PARTIAL |
 | G44 | small wild cats and carnivores (jungle cat, wildcat, badger, marten) | A115; F-009 | fauna | B | MISSING/PARTIAL |
 | G45 | partridges seen, flushing on the slope | A124; F-029, W-009 | birds | B | MISSING/PARTIAL |
@@ -111,10 +111,10 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G56 | magpies | A136; problems #6 | birds | C | MISSING/PARTIAL |
 | G57 | sandgrouse and bustard | A138; F-024 | birds | C | MISSING/PARTIAL |
 | G58 | wheatears | A140; F-031 | birds | C | MISSING/PARTIAL |
-| G59 | lizards (agamas) | A150; F-023 | reptiles | C | MISSING/PARTIAL |
-| G60 | butterflies | A152; B-047 | insects | C | MISSING/PARTIAL |
-| G61 | dragonflies and mosquitoes at the water | A153, A164; F-006 | insects | C | MISSING/PARTIAL |
-| G62 | visible flies at dung and middens | A154; B-047 | insects | C | MISSING/PARTIAL |
+| G59 | lizards (agamas) | A150; F-023 | reptiles | C | BUILT (D-258: rock agamas basking and dashing on rock, slipping away at 3 m); below render resolution, verified by test |
+| G60 | butterflies | A152; B-047 | insects | C | BUILT (D-258: whites, clouded yellows, painted ladies over fields and steppe, Mar-Jun and Sep-Oct); unrendered |
+| G61 | dragonflies and mosquitoes at the water | A153, A164; F-006 | insects | C | PARTIAL (D-258: dragonflies at the water's edge May-Sep; no mosquitoes) |
+| G62 | visible flies at dung and middens | A154; B-047 | insects | C | BUILT (D-258: house flies at the town's middens Apr-Oct); below render resolution, verified by test |
 | G63 | geckos on the walls at night | A156; F-043 | reptiles | C | MISSING/PARTIAL |
 | G64 | tortoise | A157; F-022 | reptiles | B | MISSING/PARTIAL |
 | G65 | snakes | A158; F-023 | reptiles | C | MISSING/PARTIAL |

@@ -950,9 +950,12 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   const wetness = max(WEATHER.wetness, cellWet);
   const wet = wetness.mul(float(0.55).add(up.mul(0.45))).mul(open);
   alb = alb.mul(float(1).sub(wet.mul(d.porosity * 0.5)));
-  // puddles: only in the low spots of a broad noise field (≈15% of flat area at full puddle state), never a uniform sheen
+  // puddles: only in the low spots of a broad noise field (≈15% of flat area at full puddle state), never a uniform sheen;
+  // session 9: and only on near-level ground (water stands on slopes under ~3 %, none by 9 %; the beasts renders showed puddles
+  // lying on the hillsides of the SW steppe, where `up` let them onto slopes up to ~33 %)
+  const level = smoothstep(0.996, 0.9995, n.y);
   const puddles = max(WEATHER.puddles, cellWet.sub(0.4).div(0.6).max(0));
-  const puddle = up.mul(puddles).mul(open).mul(smoothstep(0.68, 0.74, mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5)));
+  const puddle = level.mul(puddles).mul(open).mul(smoothstep(0.68, 0.74, mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5)));
   // snow: zero when snow = 0 (noise only modulates coverage, never adds snow on its own)
   // the mountains' seasonal snow above the snowline (session 9): a patchy band 250 m deep (drifts in the hollows first, C)
   const elev = smoothstep(WEATHER.snowLine.sub(100), WEATHER.snowLine.add(150), p.y.add(mx_noise_float(p.mul(0.004)).mul(120)));

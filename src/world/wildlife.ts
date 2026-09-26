@@ -18,7 +18,7 @@ import type { NavGrid, P2 } from '../people/navgrid';
 import type { Terrain } from '../terrain/heightfield';
 
 export interface BirdSpecies { id: string; name: string; tier: string; months: number[]; hours: [number, number]; span: number; length: number; colour: [number, number, number]; flapHz: number; count: number }
-export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 'dove' | 'lark' | 'stork' | 'vulture' | 'crane', BirdSpecies> = {
+export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 'dove' | 'lark' | 'stork' | 'vulture' | 'crane' | 'bat', BirdSpecies> = {
   swallow: { id: 'swallow', name: 'barn swallow / common swift', tier: 'C (expected, not sourced; summer migrant)', months: [2, 3, 4, 5, 6, 7, 8], hours: [5.5, 19.5], span: 0.33, length: 0.18, colour: [0.07, 0.08, 0.12], flapHz: 7, count: 36 },
   raptor: { id: 'raptor', name: 'buzzard / golden eagle', tier: 'B (Zagros raptors, extract) / C on-site', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [8.5, 17.5], span: 1.9, length: 0.85, colour: [0.28, 0.21, 0.14], flapHz: 2.2, count: 2 },
   sparrow: { id: 'sparrow', name: 'house sparrow', tier: 'C (expected, not sourced)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6, 18.5], span: 0.24, length: 0.15, colour: [0.42, 0.33, 0.24], flapHz: 14, count: 40 },
@@ -29,6 +29,8 @@ export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 
   lark: { id: 'lark', name: 'crested lark / skylark in song flight', tier: 'C (larks over fields and steppe: SOUNDSCAPE.md section 4 "expected")', months: [1, 2, 3, 4, 5, 6], hours: [5.5, 11], span: 0.32, length: 0.17, colour: [0.5, 0.42, 0.32], flapHz: 12, count: 10 },
   stork: { id: 'stork', name: 'white stork', tier: 'C (summer visitor of the Iranian plateau\'s wet fields; not sourced)', months: [2, 3, 4, 5, 6, 7], hours: [7, 18], span: 2.0, length: 1.0, colour: [0.86, 0.86, 0.84], flapHz: 2, count: 8 },
   vulture: { id: 'vulture', name: 'griffon vulture', tier: 'B (griffon and Egyptian vultures of the Zagros; recollection) / C place', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [9.5, 16.5], span: 2.6, length: 1.05, colour: [0.55, 0.45, 0.33], flapHz: 1.5, count: 3 },
+  // session 9 (G42): pipistrelles hawking over the courts and the water at dusk, Mar-Oct; `hours` is replaced by batHours()
+  bat: { id: 'bat', name: 'pipistrelle bats (Kuhl\'s pipistrelle and kin)', tier: 'C (bats at dusk expected over courts and water; species recollection, SMALL-R)', months: [2, 3, 4, 5, 6, 7, 8, 9], hours: [18, 21], span: 0.23, length: 0.08, colour: [0.16, 0.13, 0.11], flapHz: 11, count: 16 },
   crane: { id: 'crane', name: 'common crane (winter flocks)', tier: 'B (winter cranes, geese and ducks at the Fars lakes: SOUNDSCAPE.md section 4, Bakhtegan) / C passage', months: [10, 11, 0, 1, 2], hours: [7.5, 16.5], span: 2.1, length: 1.1, colour: [0.55, 0.57, 0.6], flapHz: 1.6, count: 18 },
 };
 /** a crow's place (closed form): three quarters of each spell on the ground at its midden, walking and pecking between
@@ -62,6 +64,18 @@ export function storkAt(base: P2, ground: (e: number, n: number) => number, seed
   if (u < 0.8) { const e = base[0] + 25 * Math.sin(t / 97 + p), n = base[1] + 25 * Math.cos(t / 131 + p); out.pos.set(e, ground(e, n) + 0.05, -n); out.heading = t / 97 + p; out.bank = 0; out.flap = 0; out.visible = true; return; }
   const R = 60, w = 0.12, h = 60 + 120 * Math.sin(Math.PI * (u - 0.8) / 0.2); out.pos.set(base[0] + R * Math.cos(w * t + p), ground(base[0], base[1]) + h, -(base[1] + R * Math.sin(w * t + p)));
   out.heading = Math.atan2(-Math.sin(w * t + p), Math.cos(w * t + p)); out.bank = -0.3; out.flap = 0; out.visible = true;
+}
+/** local sunset by month at 30 deg N (h, to 0.1 h; C): bats hunt from 20 min after it for about two hours */
+export const SUNSET_BY_MONTH = [17.5, 17.9, 18.2, 18.5, 18.9, 19.2, 19.2, 18.9, 18.4, 17.9, 17.4, 17.3];
+export const batHours = (month: number): [number, number] => [SUNSET_BY_MONTH[month] + 0.33, SUNSET_BY_MONTH[month] + 2.3];
+/** a bat hawking: a loop of 5-12 m round its beat 3-10 m up, jinking every half second (C) */
+export function batAt(anchor: P2, ground: number, seed: number, t: number, out: BirdPose) {
+  const r = new Rng(seed, 'bat'), a = r.range(5, 12), w = r.range(0.5, 0.9) * (r.chance(0.5) ? 1 : -1), p = r.range(0, 6.3), h0 = r.range(3, 10), k = Math.floor(t * 2), f = t * 2 - k;
+  const jx = (j: number) => Math.sin(j * 12.9898 + p * 78.233) * 1.8, jn = (j: number) => Math.cos(j * 4.1414 + p * 11.1) * 1.8;
+  const ox = jx(k) + (jx(k + 1) - jx(k)) * f, on = jn(k) + (jn(k + 1) - jn(k)) * f;
+  const x = anchor[0] + a * Math.cos(w * t + p) + ox, n = anchor[1] + a * 0.8 * Math.sin(w * t + p) + on;
+  out.pos.set(x, ground + h0 + 1.5 * Math.sin(1.7 * t + p), -n); out.heading = Math.atan2(-a * w * Math.sin(w * t + p) + (jx(k + 1) - jx(k)) * 2, a * 0.8 * w * Math.cos(w * t + p) + (jn(k + 1) - jn(k)) * 2);
+  out.bank = 0.5 * Math.sin(3 * t + p); out.flap = 1; out.visible = true;
 }
 /** a crane flock crossing the plain high in a V, one passage every ~40 minutes in winter daylight (C) */
 export function craneAt(i: number, seed: number, t: number, out: BirdPose) {
@@ -141,7 +155,7 @@ export class Birds {
     this.uTime.value = t % 100000;
     for (const sp of Object.values(BIRDS)) {
       const mesh = this.meshes.get(sp.id)!, flapAttr = mesh.geometry.getAttribute('flapAmt') as THREE.InstancedBufferAttribute;
-      const active = sp.months.includes(month) && hour >= sp.hours[0] && hour <= sp.hours[1] && rain < 0.4;
+      const hrs = sp.id === 'bat' ? batHours(month) : sp.hours, active = sp.months.includes(month) && hour >= hrs[0] && hour <= hrs[1] && rain < 0.4;
       let n = 0;
       if (active) for (let i = 0; i < sp.count; i++) {
         const p = this.pose, sd = hashSeed(this.seed, sp.id, i);
@@ -155,6 +169,7 @@ export class Birds {
         else if (sp.id === 'stork') { if (!this.waters.length) continue; const b = this.waters[(i * 7) % this.waters.length]; storkAt(b, this.gh, sd, t, p); }
         else if (sp.id === 'vulture') { const base: P2 = [900 + i * 500, 300 - i * 700]; raptorAt(base, this.terrain.heightAt(base[0], -base[1]) + 200, sd, t, wind.x, wind.n, p); }
         else if (sp.id === 'crane') { craneAt(i, this.seed, t, p); if (!p.visible) continue; }
+        else if (sp.id === 'bat') { const pool = i % 2 && this.waters.length ? this.waters : this.anchors, a = pool[(i * 5) % pool.length]; batAt(a, i % 2 && this.waters.length ? this.terrain.heightAt(a[0], -a[1]) : (this.nav.heightAt(a[0], a[1]) || 0), sd, t, p); }
         else { if (!this.sparrowAt(i, t, player, p)) continue; }
         this.e.set(0, p.heading, 0); this.q.setFromEuler(this.e); if (p.bank) this.q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), p.bank));
         this.m4.compose(p.pos, this.q, ONE); mesh.setMatrixAt(n, this.m4); flapAttr.setX(n, p.flap); n++;
