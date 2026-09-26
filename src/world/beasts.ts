@@ -12,8 +12,10 @@
 // player is (T-F6). The large wild animals keep their distance from a person (C); none ever comes at the player.
 import { h01 } from './fauna';
 export type P2 = [number, number];
-export interface BeastInst { sp: 'wolf' | 'lion' | 'lioness' | 'cheetah' | 'leopard' | 'hyena' | 'onager'; e: number; n: number; yaw: number; walk: number; graze: number; lie: number; coat: number }
-export interface BeastRanges { wolfPath: P2[]; wolfDen: P2 | null; leopardPath: P2[]; lionReach: P2[]; lionDen: P2 | null; hyenaMidden: P2 | null; steppe: P2 | null }
+export interface BeastInst { sp: 'wolf' | 'lion' | 'lioness' | 'cheetah' | 'leopard' | 'hyena' | 'onager' | 'fox' | 'hare' | 'wild_goat' | 'urial' | 'gazelle' | 'gazelle_m'; e: number; n: number; yaw: number; walk: number; graze: number; lie: number; coat: number }
+export interface BeastRanges { wolfPath: P2[]; wolfDen: P2 | null; leopardPath: P2[]; lionReach: P2[]; lionDen: P2 | null; hyenaMidden: P2 | null; steppe: P2 | null;
+  /** session 9 (the gap hunters): the gazelles' plain (the second-best flat natural patch), the fields' edges where foxes and hares go */
+  gazellePlain: P2 | null; fieldEdges: P2[] }
 export interface BeastInputs { ground: (e: number, n: number) => number; natural?: (e: number, n: number) => boolean; rivers: P2[][]; people: P2[] }
 const fr = (x: number) => x - Math.floor(x);
 const smooth = (x: number) => { const t = Math.max(0, Math.min(1, x)); return t * t * (3 - 2 * t); };
@@ -45,7 +47,17 @@ export function beastRanges(I: BeastInputs): BeastRanges {
     const th = (a / 24) * 2 * Math.PI, c: P2 = [Math.cos(th) * r, Math.sin(th) * r]; if (!I.natural(c[0], c[1]) || I.people.some(q => dist(c, q) < 3000)) continue;
     let k = 0, lo = I.ground(c[0], c[1]), hi = lo; for (let i = 0; i < 12; i++) { const t = (i / 12) * 2 * Math.PI, p: P2 = [c[0] + Math.cos(t) * 600, c[1] + Math.sin(t) * 600]; if (I.natural(p[0], p[1])) k++; const g = I.ground(p[0], p[1]); lo = Math.min(lo, g); hi = Math.max(hi, g); }
     if (hi - lo < 60 && k > bestScore) { bestScore = k; steppe = c; } }
-  return { wolfPath, wolfDen, leopardPath, lionReach, lionDen, hyenaMidden: null, steppe };
+  // the gazelles' plain: the best flat natural patch 4 km or more from the onagers' steppe; the fields' edges: points on
+  // natural ground next to farmed ground 600-3,000 m from a village (foxes and hares by the crops)
+  let gazellePlain: P2 | null = null, gs = 8;
+  if (I.natural) for (let r = 4000; r <= 20000; r += 1000) for (let a = 0; a < 24; a++) { const th = (a / 24) * 2 * Math.PI + 0.13, c: P2 = [Math.cos(th) * r, Math.sin(th) * r];
+    if (!I.natural(c[0], c[1]) || (steppe && dist(c, steppe) < 4000) || I.people.some(q => dist(c, q) < 2000)) continue;
+    let k = 0, lo = I.ground(c[0], c[1]), hi = lo; for (let i = 0; i < 12; i++) { const t = (i / 12) * 2 * Math.PI, p: P2 = [c[0] + Math.cos(t) * 500, c[1] + Math.sin(t) * 500]; if (I.natural(p[0], p[1])) k++; const g = I.ground(p[0], p[1]); lo = Math.min(lo, g); hi = Math.max(hi, g); }
+    if (hi - lo < 50 && k > gs) { gs = k; gazellePlain = c; } }
+  const fieldEdges: P2[] = [];
+  if (I.natural) for (const v of I.people.slice(1)) for (let a = 0; a < 8 && fieldEdges.length < 40; a++) { const th = (a / 8) * 2 * Math.PI, r = 600 + 2400 * fr(Math.sin(v[0] * 12.9898 + v[1] * 78.233 + a) * 43758.5453);
+    const p: P2 = [v[0] + Math.cos(th) * r, v[1] + Math.sin(th) * r], q: P2 = [p[0] + Math.cos(th) * 60, p[1] + Math.sin(th) * 60]; if (I.natural(p[0], p[1]) !== I.natural(q[0], q[1])) fieldEdges.push(p); }
+  return { wolfPath, wolfDen, leopardPath, lionReach, lionDen, hyenaMidden: null, steppe, gazellePlain, fieldEdges };
 }
 /** a point s metres along a polyline, going there and back (s grows without bound) */
 function alongPath(L: P2[], s: number): { p: P2; dir: number } {
@@ -83,11 +95,24 @@ export function beastsAt(R: BeastRanges, seed: number, t: number, hour: number, 
     const moving = !hot && !dark && (hour < sun.rise + 2.5 || hour > sun.set - 2.5);
     for (let j = 0; j < 2; j++) { const { p, dir } = alongPath([[R.steppe[0] + 1500, R.steppe[1] - 900], [R.steppe[0] + 900, R.steppe[1] + 1200], [R.steppe[0] - 600, R.steppe[1] + 1500]], (moving ? t : Math.floor(t / 3600) * 3600) * 0.9 - j * 8);
       out.push({ sp: 'cheetah', e: p[0] + j * 3, n: p[1], yaw: dir, walk: moving ? 1 : 0, graze: 0, lie: moving ? 0 : 1, coat: h01(seed, 3520 + j) }); } }
+  // the wild goats on the high rocks (by day, lying up at midday), the wild sheep on the lower slopes (morning and evening; lying
+  // up in the heat and at night), a herd of goitered gazelle on the open plain (by day), foxes and hares at the fields' edges
+  // from dusk to dawn (C)
+  const herd = (sp: BeastInst['sp'], path: P2[], s0: number, n: number, spread: number, active: boolean, grazeK: number) => { if (path.length < 2) return;
+    const { p } = alongPath(path, t * 0.05 + h01(seed, s0) * 3000); for (let j = 0; j < n; j++) { const T = 35 + 20 * h01(seed, s0 + 1 + j), k = Math.floor(t / T), a = h01(seed, s0 + 2 + j, k) * 6.28, r = 3 + spread * Math.sqrt(h01(seed, s0 + 3 + j, k)), walking = active && fr(t / T) > 0.75;
+      out.push({ sp, e: p[0] + Math.cos(a) * r, n: p[1] + Math.sin(a) * r, yaw: h01(seed, s0 + 4 + j, k) * 6.28, walk: walking ? 1 : 0, graze: active && !walking && fr(t / 17 + j * 0.3) < grazeK ? 1 : 0, lie: active ? 0 : 1, coat: h01(seed, s0 + 5 + j) }); } };
+  const day = hour > sun.rise + 0.2 && hour < sun.set - 0.2, midday = hour > 11.5 && hour < 15;
+  herd('wild_goat', R.leopardPath, 3700, 7, 25, day && !midday, 0.7);
+  herd('urial', R.wolfPath, 3800, 9, 30, (hour > sun.rise && hour < sun.rise + 3.5) || (hour > sun.set - 3 && hour < sun.set), 0.75);
+  if (R.gazellePlain) { const gp = R.gazellePlain, path: P2[] = [[gp[0] - 400, gp[1]], [gp[0] + 400, gp[1] + 200]];
+    herd('gazelle', path, 3900, 6, 40, day && !midday, 0.7); herd('gazelle_m', path, 3950, 1, 40, day && !midday, 0.6); }
+  if (R.fieldEdges.length && !day) for (let j = 0; j < 6; j++) { const fe = R.fieldEdges[Math.floor(h01(seed, 4000 + j) * R.fieldEdges.length)], T = 40 + 20 * h01(seed, 4001 + j), k = Math.floor(t / T), a = h01(seed, 4002 + j, k) * 6.28, r = 5 + 60 * h01(seed, 4003 + j, k);
+    out.push({ sp: j < 2 ? 'fox' : 'hare', e: fe[0] + Math.cos(a) * r, n: fe[1] + Math.sin(a) * r, yaw: a + 1.57, walk: fr(t / T) > 0.6 ? 1 : 0, graze: fr(t / T) > 0.6 ? 0 : 1, lie: 0, coat: h01(seed, 4004 + j) }); }
   return out;
 }
 /** the large wild animals keep their distance from a person on foot (C): pushed out along the line from the player */
 export function keepAway(b: BeastInst, player: P2 | null): BeastInst {
-  if (!player) return b; const R = b.sp === 'hyena' ? 25 : b.sp === 'onager' ? 150 : b.sp === 'cheetah' ? 120 : 80, dx = b.e - player[0], dn = b.n - player[1], d = Math.hypot(dx, dn);
+  if (!player) return b; const R = b.sp === 'hyena' || b.sp === 'fox' || b.sp === 'hare' ? 25 : b.sp === 'onager' || b.sp === 'gazelle' || b.sp === 'gazelle_m' ? 150 : b.sp === 'cheetah' || b.sp === 'wild_goat' || b.sp === 'urial' ? 120 : 80, dx = b.e - player[0], dn = b.n - player[1], d = Math.hypot(dx, dn);
   if (d >= R || d < 0.01) return b; const k = (R - d) / d; return { ...b, e: b.e + dx * k, n: b.n + dn * k, walk: 1, graze: 0, lie: 0, yaw: Math.atan2(dx, dn) };
 }
 /** the calls: which animal calls when (per second of world time, C) and how far it carries (m) */

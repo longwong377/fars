@@ -28,9 +28,9 @@ import { RIDE } from './anim';
 
 export type Species = 'sheep' | 'goat' | 'ox' | 'donkey' | 'horse' | 'dog' | 'mule' | 'camel' | 'dromedary' | 'zebu' | 'deer' | 'stag' | 'gazelle' | 'gazelle_m' | 'boar' | 'hen' | 'cock'
   | 'donkey_pack' | 'mule_pack' | 'camel_pack' | 'horse_saddle'
-  | 'wolf' | 'lion' | 'lioness' | 'cheetah' | 'leopard' | 'hyena' | 'onager';
+  | 'wolf' | 'lion' | 'lioness' | 'cheetah' | 'leopard' | 'hyena' | 'onager' | 'fox' | 'hare' | 'wild_goat' | 'urial';
 export const SPECIES: Species[] = ['sheep', 'goat', 'ox', 'donkey', 'horse', 'dog', 'mule', 'camel', 'dromedary', 'zebu', 'deer', 'stag', 'gazelle', 'gazelle_m', 'boar', 'hen', 'cock',
-  'donkey_pack', 'mule_pack', 'camel_pack', 'horse_saddle', 'wolf', 'lion', 'lioness', 'cheetah', 'leopard', 'hyena', 'onager'];
+  'donkey_pack', 'mule_pack', 'camel_pack', 'horse_saddle', 'wolf', 'lion', 'lioness', 'cheetah', 'leopard', 'hyena', 'onager', 'fox', 'hare', 'wild_goat', 'urial'];
 type RGB = [number, number, number];
 interface Build { len: number; h: number; girth: number; neck: number; neckA: number; nb?: number; head: number; headR: number; leg: number;
   tail: 'fat' | 'short' | 'long' | 'tuft' | 'hair' | 'curl' | 'hen' | 'cock' | 'brush' | 'cat'; ears: 'small' | 'long' | 'mid' | 'prick' | 'none';
@@ -98,6 +98,14 @@ export const ANIMAL_BUILD: Record<Species, Build> = {
     tier: 'B species (the striped hyena across Iran, a scavenger at the edges of settlements: RECOLLECTION NOT SEEN) / C form', note: 'striped hyena: a crest of long hair along the back (the mane); stripes and the sloping back NOT modelled' },
   onager: { ...DONKEY, len: 1.35, h: 1.2, girth: 0.5, coat: [[0.74, 0.6, 0.44], [0.7, 0.56, 0.4], [0.78, 0.64, 0.48]], stride: 1.3, row: 'onager',
     tier: 'B species (the Persian onager on the steppes of Iran; hunted by the Achaemenid and Assyrian kings: the Nineveh reliefs, recollection; RECOLLECTION NOT SEEN) / C form', note: 'Persian onager (wild ass): sandy with a pale belly (belly NOT modelled), a dark dorsal stripe NOT modelled' },
+  fox: { len: 0.68, h: 0.4, girth: 0.22, neck: 0.2, neckA: 0.75, nb: -0.05, head: 0.2, headR: 0.055, leg: 0.015, tail: 'brush', ears: 'prick', coat: [[0.72, 0.42, 0.22], [0.66, 0.44, 0.28]], stride: 0.7, row: 'red_fox',
+    tier: 'B species (red fox in Fars: research/SOUNDSCAPE.md §5) / C form', note: 'red fox, rufous with a bushy tail (white tip and dark legs NOT modelled)' },
+  hare: { len: 0.5, h: 0.32, girth: 0.2, neck: 0.1, neckA: 0.6, nb: 0.05, head: 0.13, headR: 0.045, leg: 0.012, tail: 'short', ears: 'long', coat: [[0.62, 0.52, 0.38], [0.56, 0.46, 0.33]], stride: 0.6, row: 'hare',
+    tier: 'C (the Cape or European hare of the Iranian plateau: RECOLLECTION NOT SEEN)', note: 'hare, sandy brown, long ears (the hopping gait NOT modelled: it walks)' },
+  wild_goat: { len: 1.2, h: 0.85, girth: 0.4, neck: 0.38, neckA: 0.8, head: 0.28, headR: 0.07, leg: 0.028, tail: 'short', ears: 'mid', horns: 'goat', coat: [[0.6, 0.48, 0.34], [0.52, 0.42, 0.3]], stride: 1.0, row: 'wild_goat',
+    tier: 'B species (the bezoar wild goat of the Zagros: SOUNDSCAPE.md §5, Bamu NP) / C form', note: 'bezoar wild goat: the males\' long scimitar horns NOT modelled (the domestic goat\'s horns stand in)' },
+  urial: { len: 1.15, h: 0.8, girth: 0.4, neck: 0.36, neckA: 0.75, head: 0.27, headR: 0.07, leg: 0.026, tail: 'short', ears: 'small', horns: 'goat', coat: [[0.64, 0.5, 0.36], [0.58, 0.46, 0.32]], stride: 1.0, row: 'wild_sheep',
+    tier: 'B species (the wild sheep of the Zagros: SOUNDSCAPE.md §5, Bamu NP) / C form', note: 'wild sheep (urial type): the curled horns and the bib NOT modelled' },
   donkey_pack: { ...DONKEY, gear: 'pack', note: 'donkey with a pack saddle, two wicker panniers and a sack across the top (loads and gear C; pack donkeys: POTTS2023, B)' },
   mule_pack: { ...MULE, gear: 'pack', note: 'mule with a pack saddle, panniers and a sack (C)' },
   camel_pack: { ...CAMEL, gear: 'pack_camel', note: 'Bactrian camel with two great sacks slung each side and a bundle between the humps (C)' },
@@ -203,8 +211,8 @@ export function animalGeometry(sp: Species): THREE.BufferGeometry {
     const a = tr.clone(), b = a.clone().add(new V(0, 0.16, -0.08)), c = b.clone().add(new V(0.03, 0.08, 0.1));
     parts.push({ g: tube(a, b, 0.03, 0.026, 5), col: white, ht: tht }, { g: tube(b, c, 0.026, 0.015, 5), col: white, ht: tht }); }
   else if (B.tail === 'brush') { // the wolf's and the hyena's bushy tail, hanging (session 9)
-    const a = tr.clone(), b = a.clone().add(new V(0, -0.2, -0.14)), c = b.clone().add(new V(0, -0.2, -0.05));
-    parts.push({ g: tube(a, b, 0.05, 0.065, 6), col: white, ht: tht }, { g: tube(b, c, 0.065, 0.03, 6), col: [0.3, 0.26, 0.22], ht: tht }); }
+    const k = B.h / 0.78, a = tr.clone(), b = a.clone().add(new V(0, -0.2 * k, -0.14 * k)), c = b.clone().add(new V(0, -0.2 * k, -0.05 * k)); // (sized by the animal: the fox's is a wolf's at half size)
+    parts.push({ g: tube(a, b, 0.05 * k, 0.065 * k, 6), col: white, ht: tht }, { g: tube(b, c, 0.065 * k, 0.03 * k, 6), col: [0.3, 0.26, 0.22], ht: tht }); }
   else if (B.tail === 'cat') { // the cats' long tail: down, then the tip curving up; the lion's with a dark tuft (session 9)
     const L = B.len * 0.55, a = tr.clone(), b = a.clone().add(new V(0, -L * 0.55, -L * 0.3)), c = b.clone().add(new V(0, -L * 0.2, -L * 0.3)), d = c.clone().add(new V(0, L * 0.12, -L * 0.18));
     for (const [p0, p1, r0, r1] of [[a, b, 0.03, 0.026], [b, c, 0.026, 0.022], [c, d, 0.022, 0.018]] as const) parts.push({ g: tube(p0, p1, r0 * B.girth / 0.4, r1 * B.girth / 0.4, 5), col: white, ht: tht });

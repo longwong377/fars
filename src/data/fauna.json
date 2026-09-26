@@ -57,7 +57,8 @@
    3
   ],
   "evidence": "Goitered gazelle in the Zagros of Fars (Bamu NP, SOUNDSCAPE.md section 5: B for the species); in the paradise by the same analogy as the deer (C).",
-  "place": "the Bagh-e Firuzi paradise: eight does (hornless, as most females are) and three bucks, a herd apart from the deer (C)"
+  "place": "the Bagh-e Firuzi paradise: eight does (hornless, as most females are) and three bucks, a herd apart from the deer (C)",
+  "plain": "session 9: also a herd of seven on the best flat uncultivated patch of the plain (research/SOUNDSCAPE.md §5: 'gazelle on the open plain'), by day, resting at midday (C)"
  },
  "wild_boar": {
   "tier": "B",
@@ -154,5 +155,37 @@
   "src": "RANGE-R",
   "count": 0,
   "evidence": "The Syrian brown bear lived in the higher Zagros oak forests (RECOLLECTION, NOT SEEN (the scholarly hosts are blocked: B6)); Kuh-e Rahmat's bare W face and the plain are not its ground: none placed in the world's reach (logged, not drawn)."
+ },
+ "red_fox": {
+  "tier": "B",
+  "src": "SOUND-R;RECON",
+  "count": 2,
+  "evidence": "The red fox is confirmed in Fars (research/SOUNDSCAPE.md §5).",
+  "place": "two at the fields' edges near the villages from dusk to dawn (C)",
+  "not_modelled": "white tail tip, dark legs"
+ },
+ "hare": {
+  "tier": "C",
+  "src": "RANGE-R;RECON",
+  "count": 4,
+  "evidence": "Hares on the fields and steppe of the Iranian plateau (RECOLLECTION, NOT SEEN).",
+  "place": "four at the fields' edges near the villages from dusk to dawn (C)",
+  "not_modelled": "the hopping gait"
+ },
+ "wild_goat": {
+  "tier": "B",
+  "src": "SOUND-R;RECON",
+  "count": 7,
+  "evidence": "The bezoar wild goat of the Zagros (research/SOUNDSCAPE.md §5, the Bamu list).",
+  "place": "a herd of seven on Kuh-e Rahmat's upper rocks by day, lying up at midday (C)",
+  "not_modelled": "the males' scimitar horns"
+ },
+ "wild_sheep": {
+  "tier": "B",
+  "src": "SOUND-R;RECON",
+  "count": 9,
+  "evidence": "The wild sheep of the Zagros (research/SOUNDSCAPE.md §5, the Bamu list).",
+  "place": "a flock of nine on the mountain's lower slopes in the morning and evening, lying up in the heat and at night (C)",
+  "not_modelled": "the curled horns and bib"
  }
 }

@@ -32,6 +32,15 @@ describe('the wild animals\' ground', () => {
     expect(B.steppe).not.toBeNull(); const s = B.steppe!; expect(natural(s[0], s[1])).toBe(true); for (const q of people) expect(d(s, q)).toBeGreaterThanOrEqual(3000);
   });
 });
+describe('the smaller wild animals (the gap hunters)', () => {
+  it('wild goats on the high rocks by day, a gazelle herd on the plain, foxes and hares at the fields\' edges at night', () => {
+    const morning = beastsAt(B, 1, 80000, 9, sun, 3), night = beastsAt(B, 1, 80000, 1, sun, 3);
+    expect(morning.filter(b => b.sp === 'wild_goat').length).toBe(7); expect(morning.filter(b => b.sp === 'urial').length).toBe(9);
+    expect(B.gazellePlain).not.toBeNull(); expect(morning.filter(b => b.sp === 'gazelle' || b.sp === 'gazelle_m').length).toBe(7);
+    expect(B.fieldEdges.length).toBeGreaterThan(5); expect(night.filter(b => b.sp === 'fox').length).toBe(2); expect(night.filter(b => b.sp === 'hare').length).toBe(4);
+    expect(morning.filter(b => b.sp === 'fox' || b.sp === 'hare').length).toBe(0);
+  });
+});
 describe('the wild animals\' days', () => {
   it('the same for everyone at the same time', () => { expect(beastsAt(B, 1, 50000, 23, sun, 3)).toEqual(beastsAt(B, 1, 50000, 23, sun, 3)); });
   it('wolves and lions travel by night and lie up by day; the onagers graze by day', () => {
