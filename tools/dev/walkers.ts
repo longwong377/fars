@@ -47,7 +47,8 @@ function mergeAndWrite(files: string[]) {
   const all: Record<string, any> = {}; let meta: any = null;
   for (const f of files) { const j = JSON.parse(readFileSync(f, 'utf8')); meta ??= j.meta; Object.assign(all, j.areas); }
   const ids = Object.keys(all), pct = (r: any) => 100 * r.reached / Math.max(1, r.targets), stuck = (r: any) => 100 * r.stuckT / Math.max(1e-9, r.botT);
-  const commit = execFileSync('git', ['rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).trim(), tool = 'tools/dev/walkers.ts', pass = 's8-h';
+  // the commit the bots ran on (RUN_COMMIT when the tree moved on while they ran), else HEAD
+  const commit = process.env.RUN_COMMIT ?? execFileSync('git', ['rev-parse', '--short', 'HEAD'], { encoding: 'utf8' }).trim(), tool = 'tools/dev/walkers.ts', pass = 's8-h';
   mkdirSync(`REVIEWS/evidence/${pass}`, { recursive: true });
   const per = Object.fromEntries(ids.map(id => [id, { reached_pct: +pct(all[id]).toFixed(2), targets: all[id].targets, stuck_pct: +stuck(all[id]).toFixed(3), bot_hours: +(all[id].botT / 3600).toFixed(3),
     hard: { stuck: all[id].stuckEvents, fell: all[id].fell, rescues: all[id].rescues, invisible_walls: all[id].walls, through_walls: all[id].throughWalls } }]));
@@ -174,12 +175,12 @@ function runArea(A: Area): Res {
     for (let q = 0; q < 300 && floor === null; q++) { const c = A.sample(); if (!c || (q < 250 && Math.hypot(c[0] - here[0], c[1] - here[1]) > 150)) continue; const f = standable(c, A.router); if (f !== null) { tgt = c; floor = f; } }
     if (!tgt) { R.unreach++; continue; }
     R.targets++; const fall0 = pl.maxFall; pl.maxFall = 0;
-    let ok = false;
+    let ok = false, stopAt: P2 = tgt;
     for (let attempt = 0; attempt < 3 && !ok; attempt++) {
       const path = route([pl.position.x, -pl.position.z], tgt);
       if (!path) { if (attempt === 0) { R.noRoute++; ex(`no route to (${tgt[0].toFixed(1)}, ${tgt[1].toFixed(1)})`); } break; }
       ok = true;
-      for (let i = 1; i < path.length && ok; i++) { const [we, wn] = path[i], last = i === path.length - 1;
+      for (let i = 1; i < path.length && ok; i++) { const [we, wn] = path[i], last = i === path.length - 1; stopAt = [we, wn];
         if (walkTo(we, wn, last ? 0.6 : 0.35)) continue;
         // open ground, or a person or an animal in the way anywhere: side-step round it (alternate sides, wider each
         // time), then on; on a route (lanes, doors, the grid) a person standing in the way may also be waited for
@@ -194,7 +195,8 @@ function runArea(A: Area): Res {
     pl.maxFall = Math.max(fall0, pl.maxFall);
     if (ok) { R.reached++; continue; }
     // not reached: a hard stuck event if the bot has not moved 0.5 m in 10 s; why it stopped
-    R.stuckEvents++; const why = classify(tgt[0], tgt[1]);
+    // why it stopped: what stands between the bot and the waypoint it was walking to (not the far target)
+    R.stuckEvents++; const why = classify(stopAt[0], stopAt[1]);
     if (why !== 'invisible') ex(`not reached (${tgt[0].toFixed(1)}, ${tgt[1].toFixed(1)}) from (${pl.position.x.toFixed(1)}, ${(-pl.position.z).toFixed(1)}): stopped by ${why}`);
     // go on from a fresh standable spot (as a player would turn away)
     P.world.removeCollider(pl.collider, false); P.world.removeRigidBody(pl.body); P.world.removeCharacterController(pl.controller);
