@@ -2,31 +2,31 @@
  "id": "door_clearance",
  "value": 0.3,
  "unit": "m",
- "n": 10650,
- "commit": "e7e5f55",
+ "n": 10883,
+ "commit": "51e6ae6",
  "tool": "tools/dev/door_census.ts",
  "target": ">= 0.8 m every door (Q-640, D-249)",
  "method": "free run through the door midpoint along its line, least of 25 lines from 0.6 m outside to 0.6 m inside; solids: Site.walls() boxes and footprints.ts (the colliders build.ts makes)",
  "all": {
-  "n": 10650,
+  "n": 10883,
   "min": 0.3,
   "p1": 0.8,
   "p5": 0.8,
   "median": 1,
-  "under_0_8": 26,
+  "under_0_8": 15,
   "under_0_62": 12
  },
  "street": {
   "n": 1505,
   "min": 0.3,
-  "p1": 0.725,
+  "p1": 0.8,
   "p5": 0.8,
   "median": 1,
-  "under_0_8": 16,
+  "under_0_8": 5,
   "under_0_62": 3
  },
  "inside": {
-  "n": 9145,
+  "n": 9378,
   "min": 0.3,
   "p1": 0.8,
   "p5": 1,
@@ -35,12 +35,12 @@
   "under_0_62": 9
  },
  "quarters": {
-  "n": 10394,
+  "n": 10627,
   "min": 0.3,
   "p1": 0.8,
   "p5": 0.8,
   "median": 1,
-  "under_0_8": 26,
+  "under_0_8": 15,
   "under_0_62": 12
  },
  "compounds": {
@@ -65,8 +65,8 @@
   "q_w2 street door at grid (-1125.6, 537.7): 0.40 m",
   "q_s3 inner door at grid (-1265.1, -845.8): 0.45 m",
   "q_s3 inner door at grid (-1168.8, -813.1): 0.45 m",
-  "q_s1 street door at grid (-362.5, -987.3): 0.65 m",
-  "q_s2 street door at grid (-817.5, -1141.6): 0.65 m",
-  "q_s2 street door at grid (-736.5, -1146.9): 0.65 m"
+  "q_s3 street door at grid (-1111.8, -908.3): 0.65 m",
+  "q_s3 street door at grid (-1211.9, -898.9): 0.65 m",
+  "q_s1 inner door at grid (-387.7, -980.3): 0.73 m"
  ]
 }

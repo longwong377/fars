@@ -1,0 +1,43 @@
+{
+ "id": "T-H1r",
+ "value": 93.5,
+ "n": 200,
+ "commit": "51e6ae6",
+ "tool": "tools/dev/walkers.ts",
+ "unit": "%",
+ "scope": "area",
+ "offline": true,
+ "meta": {
+  "date": "2026-09-26",
+  "seed": 1,
+  "N": 200
+ },
+ "areas": {
+  "town": {
+   "reached_pct": 93.5,
+   "targets": 200,
+   "stuck_pct": 16.355,
+   "bot_hours": 3.343,
+   "hard": {
+    "stuck": 13,
+    "fell": 0,
+    "rescues": 0,
+    "invisible_walls": 2,
+    "through_walls": 0
+   }
+  },
+  "compounds": {
+   "reached_pct": 93.5,
+   "targets": 200,
+   "stuck_pct": 25.259,
+   "bot_hours": 1.39,
+   "hard": {
+    "stuck": 13,
+    "fell": 0,
+    "rescues": 0,
+    "invisible_walls": 3,
+    "through_walls": 0
+   }
+  }
+ }
+}

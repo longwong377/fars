@@ -128,6 +128,11 @@ const blocker = (pl: Player, dx: number, dz: number): 'living' | 'terrain' | 'ot
   const p = pl.position, hit = P.world.castShape(p, rot, { x: dx, y: 0, z: dz }, pl.collider.shape, 0, 0.6, true, undefined, undefined, pl.collider, pl.body);
   if (!hit) return null; const c = hit.collider, b = c.parent();
   if (b && W.livingBodies.has(b.handle)) return 'living'; if (c.shapeType() === P.R.ShapeType.HeightField) return 'terrain'; return 'other'; };
+/** the collider ahead, for the report: where it stands and its size */
+const hitInfo = (pl: Player, e: number, n: number) => { const p = pl.position, de = e - p.x, dn = n + p.z, L = Math.hypot(de, dn) || 1;
+  const hit = P.world.castShape(p, rot, { x: de / L, y: 0, z: -dn / L }, pl.collider.shape, 0, 0.6, true, undefined, undefined, pl.collider, pl.body);
+  if (!hit) return 'nothing within 0.6 m'; const c = hit.collider, tr = c.translation(), sh: any = c.shape;
+  return `collider at (${tr.x.toFixed(2)}, ${(-tr.z).toFixed(2)}, y ${tr.y.toFixed(2)}) ${sh.halfExtents ? `box ${sh.halfExtents.x.toFixed(2)}x${sh.halfExtents.y.toFixed(2)}x${sh.halfExtents.z.toFixed(2)}` : `r ${sh.radius?.toFixed?.(2)}`}${c.parent()?.isDynamic?.() ? ' dynamic' : ''}`; };
 
 // ---- walking
 interface Res { targets: number; reached: number; noRoute: number; unreach: number; stuckEvents: number; stuckT: number; botT: number; fell: number; rescues: number; drops: number; walls: number; slopeStops: number; drawnStops: number; livingStops: number; throughWalls: number; examples: string[] }
@@ -204,7 +209,7 @@ function runArea(A: Area): Res {
     // not reached: a hard stuck event if the bot has not moved 0.5 m in 10 s; why it stopped
     // why it stopped: what stands between the bot and the waypoint it was walking to (not the far target)
     R.stuckEvents++; const why = classify(stopAt[0], stopAt[1]);
-    if (why !== 'invisible') ex(`not reached (${tgt[0].toFixed(1)}, ${tgt[1].toFixed(1)}): stopped at (${pl.position.x.toFixed(1)}, ${(-pl.position.z).toFixed(1)}) by ${why}, walking to (${stopAt[0].toFixed(1)}, ${stopAt[1].toFixed(1)})`);
+    if (why !== 'invisible') ex(`not reached (${tgt[0].toFixed(1)}, ${tgt[1].toFixed(1)}): stopped at (${pl.position.x.toFixed(1)}, ${(-pl.position.z).toFixed(1)}) by ${why}, walking to (${stopAt[0].toFixed(1)}, ${stopAt[1].toFixed(1)}); ${hitInfo(pl, stopAt[0], stopAt[1])}`);
     // go on from a fresh standable spot (as a player would turn away)
     P.world.removeCollider(pl.collider, false); P.world.removeRigidBody(pl.body); P.world.removeCharacterController(pl.controller);
     pl = W.spawn(tgt[0], -tgt[1], floor ?? undefined); hist.length = 0; lastCell = null; for (let i = 0; i < 10; i++) W.step(pl, DT, { forward: 0, yaw: 0 });

@@ -1,0 +1,16 @@
+[cpu_slot] slot 0: npx tsx tools/dev/walkers.ts town --targets 60 --json /tmp/claude-0/-home-user-fars/f386af01-b91d-5cb6-bd5f-2d7c709da98b/scratchpad/base_town.json
+offline world built in 29 s
+town | 60 | 45 (75.0 %) | 0 | 27.92 % | 15 | 0 | 0 | 0 | 0 | 11 | 4 | 0 | 0 | 77.5 (499 s)
+    not reached (-899.5, -1074.5) from (-793.9, -1048.1): stopped by drawn
+    not reached (-752.7, -1143.6) from (-752.1, -1145.8): stopped by drawn
+    not reached (-766.8, -1007.4) from (-752.7, -1145.7): stopped by drawn
+    not reached (-834.0, -1119.1) from (-850.9, -1162.6): stopped by a person or an animal
+    not reached (-822.3, -1050.0) from (-821.7, -1052.2): stopped by drawn
+    not reached (-807.2, -999.7) from (-820.8, -1052.1): stopped by drawn
+    not reached (-897.5, -1060.7) from (-779.0, -1049.0): stopped by a person or an animal
+    not reached (-766.1, -1159.9) from (-857.5, -1136.1): stopped by drawn
+    not reached (-789.6, -1018.3) from (-769.4, -1161.7): stopped by drawn
+    not reached (-763.4, -1090.6) from (-756.4, -1078.4): stopped by drawn
+    not reached (-852.7, -1014.5) from (-758.2, -1088.5): stopped by drawn
+    not reached (-790.3, -1002.0) from (-852.7, -1014.5): stopped by a person or an animal
+(wall clock 9 min)
