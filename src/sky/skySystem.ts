@@ -10,6 +10,7 @@ import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
 import { float, vec2, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color, Fn, positionWorld, cameraPosition, normalize, atan, asin, acos, abs, exp, clamp, sqrt, length, texture, mx_fractal_noise_float, int } from 'three/tsl';
 import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt, earthShadow, UMBRA_BRIGHTNESS, UMBRA_RGB } from './ephemeris';
 import { VolumetricClouds } from './clouds';
+import { Meteors } from './meteors';
 import { skyCalibration, twilightWeight, TW_HI } from './horizon';
 import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, xyToRenderer, daylightXY, type SkyView, type SkyViewJob } from './atmosphere';
 import { sunNormalLux, skyLux, moonLux, elongationFromFraction, extinctionK, NIGHT_LUX, REN_PER_LUX_SUN, REN_PER_LUX_SKY } from './illuminance';
@@ -56,6 +57,8 @@ export class SkySystem {
    *  (rad) and 1 while any of the disc is in the penumbra; `eclipse`: the disc's brightness for the overlay and the light */
   private uShadowW = uniform(new THREE.Vector3(0, -1, 0)); private uShadow = uniform(new THREE.Vector3(0.0123, 0.0217, 0));
   eclipse = { light: 1, sepDeg: 180, active: false };
+  /** sporadic meteors (session 9; meteors.ts): main.ts sets `meteors.seed` to the world seed */
+  readonly meteors: Meteors;
   private lastStarJD = -1;
   twilight = 1;
   /** radiance of the sky just above the horizon across the view, after calibration: the fog colour (D-060) */
@@ -225,6 +228,7 @@ export class SkySystem {
     this.stars.frustumCulled = false; this.stars.renderOrder = -9;
     this.stars.userData = { tier: 'A', src: 'HYG41', note: 'HYG v4.1 positions + proper motion to 467 BCE, precessed (astronomy-engine)' };
     scene.add(this.stars);
+    this.meteors = new Meteors(DOME * 0.88); scene.add(this.meteors.group);
     this.clouds = new VolumetricClouds(DOME * 0.85, quality, this.air); scene.add(this.clouds.mesh);
     EYE_SKY.sunVisibilityAt = (x, y, z) => this.sunVisibilityAt(x, y, z);
   }
@@ -318,6 +322,7 @@ export class SkySystem {
       else this.uShadow.value.z = 0;
       this.eclipse = { light, sepDeg: sep, active: light < 0.999 }; }
     this.uNight.value = night * (1 - 0.85 * cloudCover);
+    this.meteors.update(jdUT, camPos, this.uNight.value);
     // faint diffuse light (Milky Way, airglow): only in full darkness, washed out by moonlight, hidden by cloud (C)
     const moonUp = smoothstepJS(-2, 8, mo.altitude);
     this.uMW.value = night * Math.pow(1 - cloudCover, 1.5) * (1 - 0.92 * moonUp * Math.min(1, ph.fraction * 1.6) * this.eclipse.light); // (the Milky Way comes back as an eclipse darkens the moon)

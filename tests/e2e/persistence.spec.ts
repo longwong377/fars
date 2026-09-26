@@ -23,12 +23,14 @@ test('persistence: autosave on a timer and when hidden, IndexedDB, a byte-identi
   const a0 = await page.evaluate(() => (window as any).__parsa.autosave());
   expect(a0.intervalMs).toBeLessThanOrEqual(5 * 60_000);
   await page.evaluate(() => { const w = (window as any).__parsa; w.walkMode(); w.teleport(-40, 122.45); w.simulate(3, 1 / 30); });
-  const hidden = await page.evaluate(async () => { const w = (window as any).__parsa;
+  // (the count is read again just before the page is hidden: the 60 s interval save may fire while a slow box simulates;
+  // session 9's first browser run counted it: 2 saves for 1)
+  const hidden = await page.evaluate(async () => { const w = (window as any).__parsa, before = w.autosave().saves;
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' }); document.dispatchEvent(new Event('visibilitychange'));
     const a = w.autosave(), flushed = await w.saveFlushed(), stored = await w.storedSave();
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'visible' });
-    return { a, flushed, storedT: stored?.clockT, nowT: w.saveState().clockT }; });
-  expect(hidden.a.saves).toBe(a0.saves + 1); expect(hidden.a.last.reason).toBe('hidden'); expect(hidden.flushed, 'written to IndexedDB').toBe(true);
+    return { a, before, flushed, storedT: stored?.clockT, nowT: w.saveState().clockT }; });
+  expect(hidden.a.saves).toBe(hidden.before + 1); expect(hidden.a.last.reason).toBe('hidden'); expect(hidden.flushed, 'written to IndexedDB').toBe(true);
   expect(hidden.storedT).toBeCloseTo(hidden.nowT, 9);
   evidence('T-H3', a0.intervalMs / 60_000, 1, { unit: 'real minutes', on_hidden: true, indexeddb: hidden.flushed });
   // --- T-H3r: a state with people walking, a door moved, the visitor; save → change everything → load → save
