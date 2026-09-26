@@ -16,7 +16,7 @@ import { depHash } from '../../tools/dev/coverage_dep';
 // points), CHUNK (max views per run, default 40: keep a run under the watchdog)  STRIDE, OFFSET (every STRIDE-th point:
 // a pilot over all states and areas)  FOV=photo (40°) instead of the player's  LIFE=0 (skip the life probe)
 // VARIETY=N (before the points: the first N variety places, each at the same hour on the file's days; D-236)  POINTS=0 (variety only)
-// TIMEOUT (s, default 7000; a run stops starting views 4 min before it)  OUT (default shots/coverage.json)
+// TIMEOUT (s, default 7000; a run stops starting views 10 min before it)  OUT (default shots/coverage.json)
 const PTS = JSON.parse(readFileSync('tests/data/coverage_points.json', 'utf8'));
 const Q = process.env.Q ?? 'test', FRAMES = +(process.env.FRAMES ?? (Q === 'test' ? 3 : 6)), TIMEOUT = +(process.env.TIMEOUT ?? 7000);
 const OUT = process.env.OUT ?? 'shots/coverage.json', VOUT = OUT.replace(/\.json$/, '_variety.json');
@@ -86,7 +86,7 @@ test('coverage', async ({ page }, info) => {
   const err = await page.evaluate(() => (window as any).__parsa.error); if (err) throw new Error(err);
   console.log(`page ready in ${((Date.now() - t0) / 1000).toFixed(0)} s`);
   const state = { key: `${first.day}|${first.hour}|${first.w}` };
-  const late = () => Date.now() - t0 > (TIMEOUT - 240) * 1000;
+  const late = () => Date.now() - t0 > (TIMEOUT - 600) * 1000; // a heavy view takes up to ~7 min under load
 
   // variety (D-236): the same place at the same hour on several days; how different are the scenes?
   for (const pl of vwork) {
