@@ -1,4 +1,4 @@
-# HANDOFF — end of session 8 (2026-09-26)
+# HANDOFF — end of session 8 (2026-09-26); branch claude/amazing-fermi-40ds7j, tag ratchet/s08
 
 **Read first, in this order:** `USER_DIRECTIONS.md` (the user's own words, UD-01..UD-14, append-only), `MASTER_PLAN.md` (rev 2.1,
 governs everything), `gates/thresholds.json` (169 locked thresholds), then PROGRESS.md (problems first), this file, BLOCKERS.md.
@@ -32,7 +32,18 @@ The user wants no interventions: decide, log in DECISIONS, proceed. Every report
 - `tools/dev/cpu_slot.sh`: heavy node jobs run in 2 low-priority slots (load 11 on 4 cores starved renders for hours).
 
 ## Agent branches at close (see handoff/reserved_numbers.md for fates)
-- (pending: town houses D-234, coverage harness D-235, walkability D-237, indoor truth D-244; reports requested at close)
+All six agent branches of the session are merged (handoff/reserved_numbers.md): D-229, D-245, D-237, D-244, D-234, D-235.
+Their worktrees under .claude/worktrees/ can be removed (`git worktree remove -f -f <path>`).
+- **D-237 walkability:** terrain colliders from the drawn chunks (0 of 24 mountain crossings fall, was 12; T-H1 built), controller
+  fixes, rescue net, solid people/animals near the player, autosave (IndexedDB, byte-identical round trip in node), walk bots
+  (tools/dev/walkers.ts, lib/offline_world.ts). Town fails: 61.7 % of targets reached, 27.5 % stuck; 767 house doors too narrow
+  (Q-640); lane routes clip walls (Q-641). 7 of 14 areas never bot-walked. persistence.spec and the walkthrough never ran.
+- **D-244 indoor truth:** the indoors drawn inside rooms or not at all (T-D3 0, T-D3s 100 %, T-D4 4.6 % worst area, 3 seeds);
+  tools/dev/people_trace.ts. Never seen on screen; garrison/mill/camps have no rooms so their people vanish (B63).
+- **D-234 town houses:** 1,447 distinct houses, near/far levels, 1,494 street doors, lamps, seasons. Rendered once before its
+  last fixes (lane view timed out); near tiles built on the main thread (B59); drawn people walk through shut doors (B60).
+- **D-235 coverage harness:** commit-seeded sampler, ID pass, gate metrics, coverage.spec, coverage_report.ts (evidence and
+  COVERAGE.md). No evidence yet; a pass is ~30 lane-hours at test quality. How to run: PROGRESS.md (D-235 entry).
 
 ## What is broken, unverified or placeholder (read first)
 - Photo #24 side by side: the Terrace wall reads as grey concrete, no polygonal foot, smooth ground, featureless mountain (B57).
@@ -40,7 +51,9 @@ The user wants no interventions: decide, log in DECISIONS, proceed. Every report
   area registry, Tier 0, walker bots, Tier-1 sampler, generated board, anchor set, escapes log, event kinds).
 - The court's arrival is not simulated (present from day 0); D-239 (start before the arrival) and T-F8 wait on it.
 - The simulation still runs on the main thread (B53); long route searches stall 150–650 ms (B54).
-- Impostor work frames and the new voices have never been seen or heard in a browser.
+- Impostor work frames, the new voices, the houses after their fixes, indoor drawing, solid crowds and autosave have never been
+  seen or heard in a browser. **The first job of session 9 is to render and listen to what session 8 merged.**
+- The town walk fails (doors too narrow, routes clip walls); the town's tiles hitch the main thread (B59).
 - Villages are box compounds; interiors unbuilt; faces are a few variants; one voice synthesiser.
 - The random-seed year soak (seed 362095439) was stopped for CPU at 25k/46k people: re-run it idle via cpu_slot.
 - D-246 (the perpetual 467) and D-247 (a fall off the Terrace) are decided, not implemented.
@@ -48,10 +61,13 @@ The user wants no interventions: decide, log in DECISIONS, proceed. Every report
 ## Next steps, in order (MASTER_PLAN §6)
 1. Session start: `git fetch --unshallow --tags` if shallow; `npm ci`; `npm run guards`; merge or record any agent branch left
    in handoff/reserved_numbers.md.
-2. Finish step 1: autosave (D-237 if not merged), indoor truth (D-244 if not merged), the court's arrival simulated.
-3. Step 2, time-boxed: **the renderless mode first** (measure bot-hours per core-hour into gates/budget.json), then the area
+2. Verify session 8 on screen: one grouped render job for the town (lane-q_s1, court-q_s1, town-smoke-dusk), the persistence
+   and walkthrough specs, a crowd view at distance (work frames), then the first coverage chunk (D-235 command in PROGRESS).
+   Listen: town lane, forecourt, village, Pulvar bank, rain by a fire, a close conversation.
+3. Finish step 1: town doors wide enough (Q-640) and lanes off the walls (Q-641); the court's arrival simulated (D-239, T-F8);
+   the random-seed soak (seed 362095439) via cpu_slot.
+4. Step 2, time-boxed: **the renderless mode first** (measure bot-hours per core-hour into gates/budget.json), then the area
    registry, Tier 0, walker bots (five policies), the Tier-1 sampler, the generated board, anchors, escapes, event kinds.
-4. Listen: render audio for a town lane, the forecourt, a village, the Pulvar bank, rain by a fire, a close conversation.
 5. At close: sessions/s09.md, fates in reserved_numbers.md, tag `ratchet/s09` pushed.
 
 ## Tools (session 8 additions)
