@@ -54,6 +54,12 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
   audio renders, bakes, long vitest runs) goes through `tools/dev/cpu_slot.sh` (2 slots, nice 15), one process per slot, never
   parallel copies; SwiftShader keeps the rest. The lead checks `uptime` before launching work: load above 6 means queue, not start.
   Agents' briefs say this; a render that has not advanced in 30 min means the box is oversubscribed, not that the render is slow.
+- **Memory is the third bottleneck (session 9: 14 of 15 GB used, no swap, load 35).** A render job holds ~3.5 GB (GPU process +
+  page), each vitest worker up to ~2 GB, an agent's node run ~3 GB, an extra measurement browser ~1.3 GB. Check `free -g` with
+  `uptime` before launching; no second browser of your own while a render job and two agents' test runs are live.
+- **A page load is SwiftShader compiling shaders, not building the world (D-250):** the world builds in ~17 s idle; the first
+  frames compile ~125 pipelines for 5-7 minutes. A page that needs no pixels uses `?norender` (D-253); measure GPU-process CPU
+  (tools/dev/shader_sizes.mjs), not wall time, when comparing shader changes on a busy box.
 - **Timing tests under load are not failures** until re-run alone on an idle box (performances, popview, humans_runtime,
   cloudnoise, long people_days runs). Never commit bench-reports/*.txt rewritten by a loaded test run.
 - **Reviewers use every reference** in `references/` paired to the moments (table in handoff/review_briefs.md), and say which
