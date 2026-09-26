@@ -109,6 +109,9 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // session 9: the planets (src/sky/planets.ts): Mercury and Venus 0.5° apart in the evening twilight of day 29, 13° up at true
   // azimuth 291° over the plain (tools/dev/planets_467.ts), from the Terrace's W edge
   { n: 'planets-dusk', day: 29, hour: 19.5, w: 'clear', v: [-36, 125, 1.6, 291, 8], fov: 40 },
+  // the young Moon below the pair (phase angle 20 deg, az 294.5, alt 7.9): at 40 deg it is 7 px, a grey smudge; the crescent and the
+  // earthshine's brightness need a long lens
+  { n: 'planets-moon-tele', day: 29, hour: 19.5, w: 'clear', v: [-36, 125, 1.6, 294.5, 7.9], fov: 3 },
   // session 9: the mountains' winter snow (weather/climate.ts snowLineASL; materials.ts finish): mid-January (day 280), Kuh-e Rahmat
   // behind the Terrace from the plain, and the ranges to the N
   { n: 'winter-snowline-e', day: 280, hour: 11, w: 'clear', v: [-600, 60, 1.6, 70, 6], fov: 40 },
