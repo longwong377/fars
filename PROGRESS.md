@@ -1,6 +1,14 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Phase 5 review fixes (D-229).** C1: the court setting's year soak passes all 8 gates again (the court's people no longer take
+  the town's festival day off; Treasury letters are handed over while the desk is open), and so does the default world's
+  (REVIEWS/soak/soak-2026-09-26T02-*.json). M4: every animation has impostor frames of its own (56 frames; the swing cycles
+  alternate two poses, the carriers step), frame fallbacks count as placeholders and fail lint:activity; before, ~50 % of the
+  people awake in the default world were drawn standing as impostors. **Still open:** no render has shown the work frames at a
+  distance where they can be judged (the one crowd_scale run passed with 0 placeholder impostors, but its visible impostors
+  were 0); the atlas bake at load is 1.7–2.0 s (was 0.72 s) and 42 MB; M3 not done: the simulation still runs on the main
+  thread, long route searches hitch 150–650 ms at 1× and 60× (B53 plan, B54).
 - **§13.11 shadow review round 10 PASSED (session 8), both reviewers** (REVIEWS/shadow_phase5_r10.md, _b.md; sample pick 181
   regenerated on the merged tree after the soak passed all 8 gates): A 7 × 5 and 13 × 4, B 9 × 5 and 11 × 4; no score below 4
   (rounds 1–9 failed). Both found S1 (a walk between two Terrace places played as a trip down the stair and back: 49 % of

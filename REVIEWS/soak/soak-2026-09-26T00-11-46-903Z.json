@@ -1,0 +1,760 @@
+{
+ "days": 354,
+ "dt": 60,
+ "seed": 1,
+ "court": true,
+ "detailedAgents": 135,
+ "population": 76238,
+ "populationMeasured": 72565,
+ "sampled": "everyone",
+ "seconds": {
+  "build": 0.599,
+  "detailed": 54.787,
+  "population": 6653.532,
+  "plans": 17994855
+ },
+ "gates": {
+  "variety": true,
+  "populationVariety": true,
+  "events": true,
+  "stuck": true,
+  "stocks": true,
+  "renderedHonest": true,
+  "plansWellFormed": false,
+  "visibleChange": true
+ },
+ "byRole": {
+  "guard": {
+   "n": 100,
+   "nearCopyShare": 0.001,
+   "worst": 0.002,
+   "meanSimilarity": 0.308,
+   "timingBlind": 0.003
+  },
+  "foreman": {
+   "n": 1,
+   "nearCopyShare": 0,
+   "worst": 0,
+   "meanSimilarity": 0.415,
+   "timingBlind": 0.001
+  },
+  "mason": {
+   "n": 12,
+   "nearCopyShare": 0.004,
+   "worst": 0.006,
+   "meanSimilarity": 0.445,
+   "timingBlind": 0.009
+  },
+  "porter": {
+   "n": 6,
+   "nearCopyShare": 0,
+   "worst": 0,
+   "meanSimilarity": 0.545,
+   "timingBlind": 0.006
+  },
+  "scribe": {
+   "n": 2,
+   "nearCopyShare": 0.007,
+   "worst": 0.008,
+   "meanSimilarity": 0.635,
+   "timingBlind": 0.031
+  },
+  "baker": {
+   "n": 2,
+   "nearCopyShare": 0.005,
+   "worst": 0.006,
+   "meanSimilarity": 0.489,
+   "timingBlind": 0.014
+  },
+  "grinder": {
+   "n": 4,
+   "nearCopyShare": 0.003,
+   "worst": 0.004,
+   "meanSimilarity": 0.479,
+   "timingBlind": 0.009
+  },
+  "child": {
+   "n": 3,
+   "nearCopyShare": 0.015,
+   "worst": 0.017,
+   "meanSimilarity": 0.593,
+   "timingBlind": 0.09
+  },
+  "courier": {
+   "n": 2,
+   "nearCopyShare": 0,
+   "worst": 0,
+   "meanSimilarity": 0.455,
+   "timingBlind": 0.007
+  },
+  "official": {
+   "n": 3,
+   "nearCopyShare": 0,
+   "worst": 0,
+   "meanSimilarity": 0.506,
+   "timingBlind": 0.005
+  }
+ },
+ "worst": [
+  {
+   "id": 127,
+   "pid": 1175,
+   "role": "child",
+   "days": 354,
+   "nearCopyShare": 0.017,
+   "meanSimilarity": 0.588,
+   "maxSimilarity": 1,
+   "timingBlindNearCopy": 0.091
+  },
+  {
+   "id": 128,
+   "pid": 1178,
+   "role": "child",
+   "days": 354,
+   "nearCopyShare": 0.015,
+   "meanSimilarity": 0.586,
+   "maxSimilarity": 1,
+   "timingBlindNearCopy": 0.088
+  },
+  {
+   "id": 129,
+   "pid": 1180,
+   "role": "child",
+   "days": 354,
+   "nearCopyShare": 0.013,
+   "meanSimilarity": 0.604,
+   "maxSimilarity": 1,
+   "timingBlindNearCopy": 0.092
+  },
+  {
+   "id": 119,
+   "pid": 1425,
+   "role": "scribe",
+   "days": 354,
+   "nearCopyShare": 0.008,
+   "meanSimilarity": 0.625,
+   "maxSimilarity": 1,
+   "timingBlindNearCopy": 0.03
+  },
+  {
+   "id": 120,
+   "pid": 1517,
+   "role": "scribe",
+   "days": 354,
+   "nearCopyShare": 0.007,
+   "meanSimilarity": 0.644,
+   "maxSimilarity": 1,
+   "timingBlindNearCopy": 0.032
+  }
+ ],
+ "byJob": {
+  "homemaker": {
+   "n": 10340,
+   "mean": 0,
+   "worst": 0.006,
+   "failing": 0,
+   "timingBlind": 0.003,
+   "tbn": 116
+  },
+  "child": {
+   "n": 13376,
+   "mean": 0.003,
+   "worst": 0.071,
+   "failing": 0,
+   "timingBlind": 0.064,
+   "tbn": 136
+  },
+  "porter": {
+   "n": 4410,
+   "mean": 0,
+   "worst": 0.007,
+   "failing": 0,
+   "timingBlind": 0.062,
+   "tbn": 45
+  },
+  "builder": {
+   "n": 632,
+   "mean": 0.004,
+   "worst": 0.008,
+   "failing": 0,
+   "timingBlind": 0.011,
+   "tbn": 9
+  },
+  "camp": {
+   "n": 24,
+   "mean": 0.002,
+   "worst": 0.008,
+   "failing": 0,
+   "timingBlind": null,
+   "tbn": 0
+  },
+  "treasury": {
+   "n": 1038,
+   "mean": 0.01,
+   "worst": 0.079,
+   "failing": 0,
+   "timingBlind": 0.038,
+   "tbn": 10
+  },
+  "servant": {
+   "n": 5760,
+   "mean": 0,
+   "worst": 0.004,
+   "failing": 0,
+   "timingBlind": 0.035,
+   "tbn": 58
+  },
+  "official": {
+   "n": 333,
+   "mean": 0,
+   "worst": 0.002,
+   "failing": 0,
+   "timingBlind": 0.041,
+   "tbn": 4
+  },
+  "scribe": {
+   "n": 25,
+   "mean": 0.011,
+   "worst": 0.03,
+   "failing": 0,
+   "timingBlind": null,
+   "tbn": 0
+  },
+  "storekeeper": {
+   "n": 20,
+   "mean": 0.014,
+   "worst": 0.021,
+   "failing": 0,
+   "timingBlind": null,
+   "tbn": 0
+  },
+  "miller": {
+   "n": 40,
+   "mean": 0.006,
+   "worst": 0.013,
+   "failing": 0,
+   "timingBlind": 0.017,
+   "tbn": 1
+  },
+  "weaver": {
+   "n": 90,
+   "mean": 0.007,
+   "worst": 0.015,
+   "failing": 0,
+   "timingBlind": 0.021,
+   "tbn": 1
+  },
+  "brewer": {
+   "n": 12,
+   "mean": 0.001,
+   "worst": 0.001,
+   "failing": 0,
+   "timingBlind": null,
+   "tbn": 0
+  },
+  "groom": {
+   "n": 4124,
+   "mean": 0,
+   "worst": 0.038,
+   "failing": 0,
+   "timingBlind": 0.104,
+   "tbn": 42
+  },
+  "shepherd": {
+   "n": 32,
+   "mean": 0.019,
+   "worst": 0.028,
+   "failing": 0,
+   "timingBlind": null,
+   "tbn": 0
+  },
+  "messenger": {
+   "n": 6,
+   "mean": 0,
+   "worst": 0,
+   "failing": 0,
+   "timingBlind": null,
+   "tbn": 0
+  },
+  "caretaker": {
+   "n": 30,
+   "mean": 0.004,
+   "worst": 0.007,
+   "failing": 0,
+   "timingBlind": 0.013,
+   "tbn": 1
+  },
+  "priest": {
+   "n": 3,
+   "mean": 0,
+   "worst": 0,
+   "failing": 0,
+   "timingBlind": null,
+   "tbn": 0
+  },
+  "gardener": {
+   "n": 592,
+   "mean": 0.001,
+   "worst": 0.002,
+   "failing": 0,
+   "timingBlind": 0.003,
+   "tbn": 6
+  },
+  "elder": {
+   "n": 2838,
+   "mean": 0,
+   "worst": 0.03,
+   "failing": 0,
+   "timingBlind": 0.004,
+   "tbn": 26
+  },
+  "steward": {
+   "n": 693,
+   "mean": 0,
+   "worst": 0.002,
+   "failing": 0,
+   "timingBlind": 0.019,
+   "tbn": 7
+  },
+  "craftsman": {
+   "n": 2205,
+   "mean": 0.002,
+   "worst": 0.02,
+   "failing": 0,
+   "timingBlind": 0.093,
+   "tbn": 25
+  },
+  "farmer": {
+   "n": 12077,
+   "mean": 0.001,
+   "worst": 0.089,
+   "failing": 0,
+   "timingBlind": 0.005,
+   "tbn": 116
+  },
+  "traveller": {
+   "n": 9088,
+   "mean": 0,
+   "worst": 0,
+   "failing": 0,
+   "timingBlind": 0.008,
+   "tbn": 93
+  },
+  "herder": {
+   "n": 873,
+   "mean": 0,
+   "worst": 0,
+   "failing": 0,
+   "timingBlind": 0,
+   "tbn": 10
+  },
+  "guard": {
+   "n": 3904,
+   "mean": 0,
+   "worst": 0.003,
+   "failing": 0,
+   "timingBlind": 0.017,
+   "tbn": 41
+  }
+ },
+ "populationFailing": [],
+ "infants": {
+  "measured": 3526,
+  "note": "under one year: reported, not gated (their mothers are gated)",
+  "wouldFail": 0,
+  "meanShare": 0,
+  "worstShare": 0.007
+ },
+ "populationWorst": [
+  {
+   "pid": 29729,
+   "job": "farmer",
+   "days": 10,
+   "share": 0.089
+  },
+  {
+   "pid": 2458,
+   "job": "treasury",
+   "days": 354,
+   "share": 0.079
+  },
+  {
+   "pid": 3446,
+   "job": "child",
+   "days": 57,
+   "share": 0.071
+  },
+  {
+   "pid": 2463,
+   "job": "child",
+   "days": 354,
+   "share": 0.067
+  },
+  {
+   "pid": 2469,
+   "job": "treasury",
+   "days": 354,
+   "share": 0.066
+  },
+  {
+   "pid": 1720,
+   "job": "child",
+   "days": 354,
+   "share": 0.061
+  },
+  {
+   "pid": 1725,
+   "job": "child",
+   "days": 354,
+   "share": 0.061
+  },
+  {
+   "pid": 2472,
+   "job": "child",
+   "days": 354,
+   "share": 0.061
+  },
+  {
+   "pid": 1721,
+   "job": "child",
+   "days": 354,
+   "share": 0.061
+  },
+  {
+   "pid": 1733,
+   "job": "treasury",
+   "days": 354,
+   "share": 0.059
+  }
+ ],
+ "kindsPerWeek": {
+  "min": 14,
+  "max": 21,
+  "mean": 17.2,
+  "floor": 8
+ },
+ "eventKinds": [
+  "agriculture",
+  "brewing",
+  "construction",
+  "courier",
+  "court_movement",
+  "delivery",
+  "dispute",
+  "feast",
+  "festival",
+  "guard_shift",
+  "household",
+  "life_event",
+  "maternity_ration",
+  "milling",
+  "offering",
+  "pastoral",
+  "ration_issue",
+  "record_keeping",
+  "river",
+  "slaughter",
+  "special_ration",
+  "travellers",
+  "treasury_draw",
+  "treasury_payment",
+  "weather_effect",
+  "work_group_transfer"
+ ],
+ "otherEventKinds": [
+  "caravan",
+  "issue",
+  "water"
+ ],
+ "stuck": [],
+ "populationStuck": [],
+ "sacks": {
+  "min": 0,
+  "max": 280.5
+ },
+ "sliceStock": {
+  "depot": 48,
+  "store": 170,
+  "grain": 12,
+  "querns": 88.88696785799617,
+  "flour": 4.113032142004427,
+  "oven": 279.5
+ },
+ "campFlows": {
+  "grainIn": 570,
+  "grainUp": 566,
+  "ground": 487.1130321420013,
+  "flourToOven": 485,
+  "kneaded": 211.5
+ },
+ "stores": {
+  "grain": {
+   "min": 9023,
+   "max": 69932,
+   "start": 33976,
+   "end": 37665,
+   "bounds": [
+    0,
+    250000
+   ],
+   "ok": true
+  },
+  "flour": {
+   "min": 467,
+   "max": 2038,
+   "start": 869,
+   "end": 1570,
+   "bounds": [
+    0,
+    20000
+   ],
+   "ok": true
+  },
+  "tarmu": {
+   "min": 44,
+   "max": 1568,
+   "start": 300,
+   "end": 1333,
+   "bounds": [
+    0,
+    10000
+   ],
+   "ok": true
+  },
+  "beer": {
+   "min": 9,
+   "max": 433,
+   "start": 299,
+   "end": 210,
+   "bounds": [
+    0,
+    5000
+   ],
+   "ok": true
+  },
+  "wine": {
+   "min": 5,
+   "max": 1378,
+   "start": 333,
+   "end": 126,
+   "bounds": [
+    0,
+    5000
+   ],
+   "ok": true
+  },
+  "figs": {
+   "min": 5,
+   "max": 12,
+   "start": 5,
+   "end": 12,
+   "bounds": [
+    0,
+    5000
+   ],
+   "ok": true
+  },
+  "sesame": {
+   "min": 20,
+   "max": 110,
+   "start": 20,
+   "end": 110,
+   "bounds": [
+    0,
+    5000
+   ],
+   "ok": true
+  },
+  "sheep": {
+   "min": 526,
+   "max": 1500,
+   "start": 1500,
+   "end": 668,
+   "bounds": [
+    100,
+    5000
+   ],
+   "ok": true
+  },
+  "hides": {
+   "min": 116,
+   "max": 835,
+   "start": 119,
+   "end": 820,
+   "bounds": [
+    0,
+    5000
+   ],
+   "ok": true
+  },
+  "poultry": {
+   "min": 600,
+   "max": 600,
+   "start": 600,
+   "end": 600,
+   "bounds": [
+    0,
+    5000
+   ],
+   "ok": true
+  },
+  "silver_paid": {
+   "min": 0,
+   "max": 10683,
+   "start": 0,
+   "end": 10683,
+   "bounds": null,
+   "ok": true
+  },
+  "tablets": {
+   "min": 5,
+   "max": 1354,
+   "start": 5,
+   "end": 1354,
+   "bounds": null,
+   "ok": true
+  }
+ },
+ "shortfalls": 0,
+ "collapse": [],
+ "harvestFactor": 0.945,
+ "life": {
+  "births": 1854,
+  "deaths": 1463,
+  "marriages": 378,
+  "sick": 77954,
+  "birthdays": 23160
+ },
+ "construction": {
+  "raisedAtEnd": 46,
+  "drumsSet": 34,
+  "shaftsFluted": 7.1,
+  "coursesLaid": 27,
+  "reliefDoorways": 0.363,
+  "weeksAdvanced": 51,
+  "weeks": 51,
+  "walls": {
+   "N": 51,
+   "S": 51,
+   "E": 51,
+   "W": 50
+  },
+  "capitalsSet": 40
+ },
+ "renderedActivities": {
+  "sleep": 697947,
+  "walk": 57667,
+  "stand_guard": 274182,
+  "eat": 104133,
+  "rest": 77212,
+  "patrol": 26966,
+  "talk": 100997,
+  "grind": 17768,
+  "knead": 661,
+  "play": 9999,
+  "gamble": 60249,
+  "dress_stone": 52453,
+  "bake": 2065,
+  "craft": 28764,
+  "draw_water": 3442,
+  "inspect": 2587,
+  "write_tablet": 10533,
+  "carry_sack": 4345,
+  "carry_jar_head": 1131,
+  "carry_bread": 64,
+  "lie_ill": 14427,
+  "queue": 288,
+  "shelter": 154
+ },
+ "badRendered": [],
+ "planProblems": [],
+ "planChecks": {
+  "personDays": 17994855,
+  "issues": {},
+  "examples": [],
+  "daysChecked": 118,
+  "dayIssues": {
+   "receipt": 1
+  },
+  "dayExamples": [
+   "3853 messenger m23 day 159: receipt: 15.59 a sealed letter brought to the Treasury with no scribe or official there to take it"
+  ],
+  "note": "planCheck.ts: no_sleep, reason, meals, teleport and the D-191 invariants (weather, light, wait, label, feed, dress) on every person-day; apart (a person in two places) and alone (a child under ten at night) on every third day for everyone"
+ },
+ "season": [
+  {
+   "day": 0,
+   "green": 0.9866666666666667,
+   "dry": 0.003333333333333334,
+   "river": "high",
+   "agri": [
+    "E-44"
+   ]
+  },
+  {
+   "day": 60,
+   "green": 0.30806451612903224,
+   "dry": 0.5983870967741935,
+   "river": "low",
+   "agri": [
+    "E-41",
+    "E-42",
+    "E-43"
+   ]
+  },
+  {
+   "day": 120,
+   "green": 0.05,
+   "dry": 0.7293478260869566,
+   "river": "low/dry",
+   "agri": [
+    "E-43",
+    "E-45",
+    "E-46"
+   ]
+  },
+  {
+   "day": 180,
+   "green": 0.05,
+   "dry": 0.566304347826087,
+   "river": "low/dry",
+   "agri": [
+    "E-45"
+   ]
+  },
+  {
+   "day": 240,
+   "green": 0.3387096774193548,
+   "dry": 0.26129032258064516,
+   "river": "moderate",
+   "agri": [
+    "E-40"
+   ]
+  },
+  {
+   "day": 300,
+   "green": 0.6658333333333334,
+   "dry": 0.08833333333333333,
+   "river": "rising",
+   "agri": [
+    "E-50"
+   ]
+  }
+ ],
+ "frameCost": {
+  "realtime": {
+   "frames": 1800,
+   "meanMs": 0.131,
+   "p99Ms": 0.131,
+   "maxMs": 106.378,
+   "midnightFrameMs": 3.466
+  },
+  "x60": {
+   "frames": 600,
+   "meanMs": 14.871,
+   "p99Ms": 399.554,
+   "maxMs": 640.35
+  },
+  "note": "detailed agents at full LOD; the day rollover (calendar day for ~46,000 people) falls inside the real-time run"
+ }
+}
