@@ -134,7 +134,8 @@ interface Res { targets: number; reached: number; noRoute: number; unreach: numb
 const DT = 1 / 30;
 function runArea(A: Area): Res {
   const R: Res = { targets: 0, reached: 0, noRoute: 0, unreach: 0, stuckEvents: 0, stuckT: 0, botT: 0, fell: 0, rescues: 0, drops: 0, walls: 0, slopeStops: 0, drawnStops: 0, livingStops: 0, throughWalls: 0, examples: [] };
-  const ex = (m: string) => { if (R.examples.length < 12) R.examples.push(m); };
+  // examples: the hard breaks (walls, falls, walls walked through) always kept (up to 20 each kind), the rest up to 12
+  const ex = (m: string) => { const hard = /^(invisible wall|fell|through a wall)/.test(m), n = R.examples.filter(e => hard ? e.startsWith(m.split(" ")[0]) : !/^(invisible wall|fell|through a wall)/.test(e)).length; if (n < (hard ? 20 : 12)) R.examples.push(m); };
   let start: P2 | null = null, sf: number | null = null;
   for (let q = 0; q < 2000 && sf === null; q++) { start = A.sample(); if (start) sf = standable(start, A.router); }
   if (!start || sf === null) { ex('no standable start'); return R; }
