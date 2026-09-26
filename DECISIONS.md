@@ -5584,3 +5584,69 @@ moment-*-webgpu.png in the worktree, not committed).**
   look (the Now view), not the target; the brief for the reviewer says so (handoff/review_briefs.md). The gate is unchanged.
 - **Consequence:** D-230's block tone (13 %, 1σ) stands; the on-screen flatness left after AgX's shallow local slope at the
   stone's level (0.42, vs ≥ 1 for a camera curve) is logged in B40 as a tone-mapping question, not a material one.
+
+## D-232 The calib-24 side-by-side's three faults: the Terrace retaining walls' joint layout measured on photos #24 and #33, Kuh-e Rahmat warm and textured at 0.5-2 km, the plain's loam dry and pale (session 8 workstream; REVIEWS/calib24.md)
+- **Read first: what is still broken, weak or unverified.**
+  - **The new wall layout has never been seen in a correct render.** Render 1 drew the whole Terrace wall in one flat tone (the
+    foot's Voronoi used toVar/assign outside a Fn(): TSL dropped the assignments, the seed stayed (0, 0), every point read as
+    one foot cell). Render 2 drew the walls **black** (a normalize() of the own seed's zero vector: NaN, which mix() keeps even
+    at weight 0, entered the arris tilt). Both are fixed in node (tests/masonry_d232.test.ts: a WGSL build that fails on a
+    dropped assign, and a CPU mirror that checks the edge direction finite over the whole face), **NOT re-rendered** (the two
+    renders allowed were spent). The lead must render calib-24, calib-24-now (and a Terrace view such as stair-climb-pm)
+    before this is claimed. REVIEWS/calib24/side_by_side.jpg is render 2, its wall labelled as broken.
+  - The layout's distributions come from ONE photograph (#24; 47 courses, 57 blocks, 203 m of W wall), the far faces read at
+    0.15-0.2 m per pixel (their thin courses may be false beds), no published figure reached (Schmidt, Tilia: B6; Q-602). The
+    Grand Stair recess pattern is judged by eye on #33, not measured. The foot's stepped-back plinth is not modelled (Q-600);
+    whether the foot showed above the 467 ground is open (Q-601).
+  - **Kuh-e Rahmat's texture at 0.4-2.5 km is still below the photo's**: 12 px windows Ystd/Y 0.154 → 0.172 (calib-24-now) and
+    0.136 → 0.127 (calib-24's strip right of the Apadana) against #24's 0.29 (graded: Lightroom clarity, a camera curve steeper
+    than AgX's). Three approaches tried (riser/bench and weathering contrast; a 2-octave mosaic on rock and scree; a 3-octave,
+    sharper mosaic on all the hill ground): BLOCKERS B57. In rahmat-west-pm the face went 0.087 → 0.113 (12 px) and reads
+    patchy and banded; whether the mosaic reads as rock or as camouflage is for the reviewer.
+  - The mountain's luminance against the sky is unchanged in kind (calib-24-now 0.68 → 0.71; photo 0.27, its horizon sky bright
+    thin cloud: B55); only hue and contrast were changed, the luminances of the hill covers kept within 10 %.
+  - The ground change is global: the loam (and roads, canal banks, the probe bake's plain, the sky's ground bounce GROUND_RHO)
+    is brighter everywhere, in every view; only calib-24/-now and rahmat-west-pm were rendered. The sky's ground bounce rose
+    ~35 %: shaded faces lighter (calib-24 sun : shade 6.97 → 5.79, Now 8.66 → 7.87; the photo's 3.86). Other moments not
+    re-rendered. The soil's moisture is not seasonal (Q-603).
+- **1. The retaining walls' joints (src/render/masonry.ts, materials.ts retainingCells; SITE_SPEC terrace.r_masonry, C).**
+  Photo #24 rectified onto the wall planes with D-230's solved camera (tools/dev/masonry_photo_d232.py: face A the salient's W
+  face at 116-195 m, 0.08-0.13 m per pixel; face B the W wall S of it at 213-291 m); joints read by eye on 4-5× crops with a
+  0.5 m grid, checked against an automatic bed profile; overlay shots/masonry_d232_faceA.png.
+  | measure | photo #24 | before (D-218 HAIRLINE) | after (CPU mirror) |
+  |---|---|---|---|
+  | course height p25 / median / p75 (m) | 0.90 / 1.10 / 1.35 (n 47, 0.45-1.65) | 0.93 / 1.05 / 1.18 (0.8-1.3) | 0.90 / 1.12 / 1.40 |
+  | courses < 0.75 m / ≥ 1.5 m | 21 % / 15 % | 0 / 0 | 19 % / 20 % |
+  | block length p25 / median / p75 (m) | 2.0 / 2.2 / 3.5 (n 57, 1.15-7.0) | 1.97 / 2.30 / 2.63 (1.15-3.45) | 1.76 / 2.12 / 3.58 (0.96-7.6) |
+  | blocks ≥ 3.5 m | 26 % | 0 | 27 % |
+  | foot (large irregular blocks, dressed bedrock) along the W/S walls | 38 % of 203 m read, 4.84 m high (median), 15 % of the area | none | 38 % (placed to agree with #24: seen 0.94, absent-read 0.09), 4.9 m |
+  | foot blocks | 3.5-6.8 × 1.4-2.2 m (median 5.8 × 1.8) | – | Voronoi cells 4.6 × 1.8 m, row-jittered |
+  How: courses laid level from a course table per wall section (4 sections by face plane, 1 for the Grand Stair recess; heights
+  from the photographed deciles, 2 cm quantum, a float texture read with textureLoad); blocks as runs of 4 cells of 1.9 m whose
+  inner joints are present with p 0.6 (±0.25 cell); a block of a course ≥ 1.4 m split thin/thick in 25 % (the photo's 0.46 + 1.1 m
+  pieces); the foot a row-jittered Voronoi on W/S faces under a 110 m plan noise (tools/dev/foot_place_d232.ts), its joints
+  4 mm with 2 cm arrises and faces tilted ±1.5° (C); the Grand Stair recess (#33, IR-PERS 'huge irregular blocks', B): split
+  share 0.5 at 0.25-0.75 of the height (jogged beds), inner head joints leaning up to ±12° (C). Joint width, block tone (13 %,
+  D-230/D-231) and the stone inside the block unchanged; the palaces keep HAIRLINE. The Now view's Terrace walls take the same
+  layout (terrace_now). Node preview: shots/masonry_compare_d232.png (tools/dev/masonry_preview_d232.ts + masonry_compare_d232.py).
+- **2. Kuh-e Rahmat (src/world/plain/terrainPlain.ts HILL; terrainMesh groundColour).** Hue: the hills' covers from neutral grey
+  to warm grey-brown (rock 10YR 5/2, dark patches 10YR 3.5/2, scree 10YR 5.75/2, colluvium 10YR 5/3; R/G 1.09 → 1.31, B/G 0.87 →
+  0.69 in albedo; the satellite view #13 through haze R/G 1.22, B/G 0.73), luminances kept within 10 % (tests/ground_d232).
+  Contrast: riser 1.12 → 1.22, bench 0.88 → 0.84, weathered-patch share 0.5 → 0.75, and a rock-soil-scrub mosaic ±28 % in 6/16/40 m
+  patches, each octave band-limited by the pixel footprint (no aliasing), mean-preserving (all C). Measured (tools/dev/
+  calib24_mountain.py; the photo resampled to the rig's angular scale): calib-24-now mountain R/G 1.15 → 1.22 (display), 12 px
+  Ystd/Y 0.154 → 0.172; rahmat-west-pm face (tools/dev/rahmat_face_d232.py) R/G 1.01 → 1.10, B/G 0.99 → 0.93, 12 px 0.087 → 0.113.
+- **3. The ground (terrainMesh groundColour, SURFACES.earth, rivers.ts, water.ts, settlement road and bank; skySystem GROUND_RHO).**
+  The loam was 10YR 4/2 (Y 0.117), a moist soil's colour. Evidence for the dry plain: #13 mountain / open plain 1.32, #8 unpaved
+  foot vs mountain 0.75-1.0 (tools/dev/ground_photo_d232.py); the 1930s aerial #27 shows the unimproved plain pale; the dry
+  colour of the calcareous loams 10YR 5.5/3-6/3 and textbook dry-soil albedo 0.2-0.35 (both RECOLLECTION, C). Now 10YR 5.5/3
+  (Y 0.240, R/G 1.45, B/G 0.58); mountain / plain 1.87 → 0.91 (inside 0.75-1.32). Roads (compacted dust) 10YR 6/3, canal banks
+  10YR 5/3. The photo's 2.1 ground/wall is the modern gravel lot and was not the target. calib-24: ground / sunlit wall 0.19 →
+  0.36 (render 1; render 2's wall is black), sky / ground 3.02 → 1.65 (photo 1.45). The probes re-baked (WORKERS=2, 365 s;
+  tests/probes green).
+- **Checks:** `npx tsc --noEmit -p .` clean; `npm run lint:all` OK; vitest `--maxWorkers=1`: masonry_d232 (new, 8), ground_d232
+  (new, 2), shader_build, hills_d223, plain_d223, weather_visible, detail, landscape, polychromy, reflections_s7,
+  relief_shadow, roofs, stone_photo_d230, surfaces (3), plain, plain_look, settlement, probes, language, airlight, cloudcover,
+  cloudlight, court_fill, fire_light, now_view, sky (3), smoke_light, twilight, weather. Renders (2, shared queue, high, WebGPU):
+  calib-24 + calib-24-now + rahmat-west-pm, twice (shots/r1, shots/r2, not committed).
+- Records: Q-600 … Q-604; B57.

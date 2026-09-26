@@ -56,3 +56,17 @@ and 1.49, sun altitude 19.4°.
    8.06, −17.86, −26.5; tops within 0.05–0.52° of the photo, the outer row 0.63–0.93° off; `tools/dev/calib24_columns.ts`); the
    recalled (−50.95, −0.58) and the fragment at (−50.95, 8.06) have nothing on their rays. Moved in now_view.json (the count of
    13 kept). NOT re-rendered after the change.
+
+## D-232 (session 8 workstream): the three faults of the side-by-side
+**Read first: the Terrace wall is broken in both D-232 renders and its fix is NOT rendered.** `side_by_side.jpg` is now render 2
+of D-232: its walls are **black** (NaN from the new joint shader, fixed in node afterwards). `side_by_side_d232_render1.jpg` is
+render 1: the 467 wall one flat tone (the foot's TSL assignments dropped). The ground and the mountain in both are as shipped.
+| image | sky / ground | ground / sunlit wall | mountain / sky | mountain R/G, B/G (display) | mountain Ystd/Y, 12 px windows |
+|---|---|---|---|---|---|
+| photo #24 | 1.45 | 2.12 (modern gravel: not the target) | 0.27 | 1.56, 0.75 (graded) | 0.29 |
+| before, Now / 467 | 3.43 / 3.02 | 0.21 / 0.19 | 0.68 / 0.60 | 1.15, 0.79 / 1.15, 0.77 | 0.154 / 0.136 |
+| D-232 render 1, Now / 467 | 2.06 / 1.84 | 0.36 / 0.36 | 0.70 / 0.65 | 1.25, 0.74 / 1.29, 0.71 | 0.163 / 0.118 |
+| D-232 render 2, Now / 467 | 1.87 / 1.65 | – (wall black) | 0.71 / 0.70 | 1.22, 0.77 / 1.24, 0.76 | 0.172 / 0.127 |
+Mountain columns from tools/dev/calib24_mountain.py (DEM hits 0.4-2.5 km, clear of the skyline and the wall; 467 in columns
+690-960 right of the Apadana); the rest from tools/dev/calib24_compare.py. The wall layout itself: shots/masonry_compare_d232.png
+(node preview against the rectified photo) and DECISIONS D-232.

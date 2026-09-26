@@ -130,13 +130,16 @@ export function retainingAt(t: number, x: number, y: number, z: number, nx: numb
   let best = 1e9, s1 = [0, 0], c1 = [0, 0];
   for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) { const cc = [qc[0] + i, qc[1] + j], s = seedOf(cc[0], cc[1]), d2 = (q[0] - s[0]) ** 2 + (q[1] - s[1]) ** 2; if (d2 <= best) { best = d2; s1 = s; c1 = cc; } }
   const inFoot = s1[1] * F.row <= footTop ? 1 : 0;
-  let edge = 1e3;
+  // (as the shader: every neighbour evaluated, the own seed's weight zero; mix(a, b, 0) = a + (b - a) × 0 is NaN if b is)
+  let edge = 1e3, eDir = [0, 1];
+  const mix = (a: number, b: number, t: number) => a + (b - a) * t;
   for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
-    const s = seedOf(qc[0] + i, qc[1] + j), dd = [s1[0] - s[0], s1[1] - s[1]], ln = Math.hypot(dd[0], dd[1]); if (ln < 1e-4) continue;
-    const ns = [dd[0] / ln, dd[1] / ln], dS = (q[0] - (s1[0] + s[0]) / 2) * ns[0] + (q[1] - (s1[1] + s[1]) / 2) * ns[1];
-    const dM = dS / Math.hypot(ns[0] / F.cell, ns[1] / F.row);
-    if (inFoot || s[1] * F.row <= footTop) edge = Math.min(edge, dM);
+    const s = seedOf(qc[0] + i, qc[1] + j), dd = [s1[0] - s[0], s1[1] - s[1]], ln = Math.hypot(dd[0], dd[1]), other = ln >= 1e-4 ? 1 : 0;
+    const ns = [dd[0] / Math.max(ln, 1e-4), dd[1] / Math.max(ln, 1e-4)], dS = (q[0] - (s1[0] + s[0]) / 2) * ns[0] + (q[1] - (s1[1] + s[1]) / 2) * ns[1];
+    const nm = [ns[0] / F.cell, ns[1] / F.row], nl = Math.hypot(nm[0], nm[1]), dM = dS / Math.max(nl, 1e-6);
+    const counts = (inFoot || s[1] * F.row <= footTop ? 1 : 0) * other, dE = mix(1e3, dM, counts), m = (edge >= dE ? 1 : 0) * other;
+    edge = Math.min(edge, dE); eDir = [mix(eDir[0], nm[0] / Math.max(nl, 1e-6), m), mix(eDir[1], nm[1] / Math.max(nl, 1e-6), m)];
   }
   const dJoint = inFoot ? edge : Math.min(dBedC, dHead, edge);
-  return { key: inFoot ? `f${c1[0]},${c1[1]}` : `${cU},${blk}`, dJoint, inFoot };
+  return { key: inFoot ? `f${c1[0]},${c1[1]}` : `${cU},${blk}`, dJoint, inFoot, eDir };
 }

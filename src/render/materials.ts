@@ -442,8 +442,10 @@ function retainingCells(t: any, p: any, nx: any, nz: any) {
     const ns = dd.div(ln.max(1e-4)), dS = dot(q.sub(s1.add(s).mul(0.5)), ns); // ≥ 0 inside the own cell (cell units)
     const nm = vec2(ns.x.div(F.cell), ns.y.div(F.row)), dM = dS.div(nm.length().max(1e-6)); // metres to the edge line
     const counts = max(inFoot, step(s.y.mul(F.row), footTop)).mul(other); // an edge of the foot's stones
-    const dE = mix(float(1e3), dM, counts), m = step(dE, edge);
-    edge = min(edge, dE); eDir = mix(eDir, nm.normalize(), m);
+    // (no normalize(): the own seed's nm is zero, and 0/0 is NaN, which mix() keeps even at weight 0: render 2 of D-232 drew
+    // the walls black where this direction entered the arris tilt)
+    const dE = mix(float(1e3), dM, counts), m = step(dE, edge).mul(other);
+    edge = min(edge, dE); eDir = mix(eDir, nm.div(nm.length().max(1e-6)), m);
   }
   // in the foot: the cell edges alone; above it, the courses and the foot's top edge, whichever is nearer
   const polyB = max(inFoot, step(edge, dBedC)); // 1: the nearest "bed" is a cell edge

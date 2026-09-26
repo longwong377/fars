@@ -2,7 +2,8 @@
 // tools/dev/masonry_photo_d232.py). CPU mirrors of the shader's course tables and head joints (src/render/masonry.ts,
 // materials.ts retainingCells) and of the foot's placement (tools/dev/foot_place_d232.ts).
 import { describe, it, expect } from 'vitest';
-import { MASONRY, courseTables, courseTexels, courseAt, headJoints, TABLE_W } from '../src/render/masonry';
+import { MASONRY, courseTables, courseTexels, courseAt, headJoints, TABLE_W, retainingAt } from '../src/render/masonry';
+import { mxNoise3 } from './lib/mx_noise_cpu';
 import { score } from '../tools/dev/foot_place_d232';
 import SPEC from '../src/data/site_spec.json';
 
@@ -60,6 +61,14 @@ describe('the retaining walls\' foot (D-232)', () => {
     console.log(`foot: W/S share ${r.share.toFixed(3)} (photo ${PHOTO.foot.share}); seen ${r.seen.toFixed(2)}; absent-read ${r.miss.toFixed(2)}`);
     expect(r.seen).toBeGreaterThan(0.9); expect(r.miss).toBeLessThan(0.15); expect(Math.abs(r.share - PHOTO.foot.share)).toBeLessThan(0.06);
     expect(Math.abs(F.height - PHOTO.foot.height)).toBeLessThan(0.3);
+  });
+  it('the foot edge\'s direction is finite and unit everywhere (render 2: a normalize() of the own seed\'s zero vector gave NaN, and the walls rendered black)', () => {
+    const tex = courseTexels(); let bad = 0, n = 0, foot = 0;
+    for (let s = 0; s < 115; s += 0.37) for (let y = -11.7; y < 0; y += 0.23) {
+      const r = retainingAt(s - 59.71, -61.45, y, s - 59.71, -1, 0, mxNoise3, tex); n++; foot += r.inFoot;
+      if (!Number.isFinite(r.eDir[0]) || !Number.isFinite(r.eDir[1]) || Math.abs(Math.hypot(r.eDir[0], r.eDir[1]) - 1) > 1e-6 || !Number.isFinite(r.dJoint)) bad++;
+    }
+    expect(bad).toBe(0); expect(foot / n).toBeGreaterThan(0.1); // (face A: the foot along ~57 of its 115 m, ~5 of its 12 m)
   });
   it('SITE_SPEC row: tier C, sourced to the photographs', () => {
     const row = (SPEC as any).terrace.r_masonry; expect(row.tier).toBe('C'); expect(row.src).toMatch(/REF-PHOTO-24/); expect(row.src).toMatch(/REF-PHOTO-33/);

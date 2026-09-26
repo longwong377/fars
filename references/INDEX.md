@@ -114,3 +114,6 @@ calibration scene (processed JPEG: colour ratios only, with care).
 (B40, tools/dev/stone_photo_d230.py); (7) #24 drives the calibration views calib-24 / calib-24-now (camera solved on the
 Terrace and the DEM skyline; REVIEWS/calib24.md; its photometry not usable: B55). #24 also re-placed the Now view's W portico
 columns.
+**D-232:** the Terrace wall's masonry measured on #24 rectified (course heights, block lengths, the polygonal foot: SITE_SPEC
+terrace.r_masonry) and the Grand Stair recess judged on #33; Kuh-e Rahmat's hue from #13/#8/#21/#24 and the plain's brightness
+against it from #13 and #8 (tools/dev/ground_photo_d232.py). The wall's new layout is not yet seen in a correct render (D-232).

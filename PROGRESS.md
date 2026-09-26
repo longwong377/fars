@@ -1,6 +1,14 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **D-232 (session 8 workstream): the Terrace retaining walls' new joint layout is NOT seen in a correct render** — render 1
+  drew the wall one flat tone (TSL assigns dropped), render 2 black (NaN); both fixed in node (tests/masonry_d232.test.ts), not
+  re-rendered: render calib-24, calib-24-now and a Terrace view before claiming it. Layout measured on photo #24 (course heights
+  0.45-1.65 m, median 1.10; blocks 1.15-7 m, median 2.2, 26 % ≥ 3.5 m; a polygonal foot of big blocks/bedrock along 38 % of the
+  W wall, 4.9 m high) and #33 (Grand Stair recess, by eye); C, one photograph (Q-600…Q-602). Kuh-e Rahmat now warm grey-brown
+  with a 6/16/40 m mosaic; its 0.5-2 km texture still below the photo's (0.17 vs 0.29: B57). The plain's loam dry 10YR 5.5/3
+  (Y 0.24, was a moist 10YR 4/2): brighter ground everywhere, the sky's ground bounce up ~35 % (every view; only the calib and
+  rahmat-west-pm views rendered); probes re-baked. REVIEWS/calib24.md, DECISIONS D-232.
 - **§13.11 shadow review round 10 PASSED (session 8), both reviewers** (REVIEWS/shadow_phase5_r10.md, _b.md; sample pick 181
   regenerated on the merged tree after the soak passed all 8 gates): A 7 × 5 and 13 × 4, B 9 × 5 and 11 × 4; no score below 4
   (rounds 1–9 failed). Both found S1 (a walk between two Terrace places played as a trip down the stair and back: 49 % of
