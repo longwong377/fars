@@ -149,3 +149,17 @@ describe('F3 names the house, the part, its tier (D-234; D-228\'s PLACEHOLDER li
     town.nearUpdate(1e7, 1e7, 0, true); void THREE;
   });
 });
+
+describe('the street doors\' hours and the seasons (D-234)', () => {
+  it('shut at night; by day about a fifth shut, a third ajar, the rest open; the season rebuilds the near tiles', async () => {
+    const { doorOpenness } = await import('../src/world/settlement/towndoors');
+    const doors = town.houses.flatMap(h => h.doors); let night = 0, shut = 0, ajar = 0, open = 0;
+    for (const d of doors) { if (doorOpenness(d.id, d.kind, 30, -12) > 0) night++; const o = doorOpenness(d.id, d.kind, 30, 35); if (o === 0) shut++; else if (o < 0.5) ajar++; else open++; }
+    console.log(`[houses] doors at night open ${night}; by day shut ${shut}, ajar ${ajar}, open ${open}`);
+    expect(night).toBe(0); expect(shut / doors.length).toBeGreaterThan(0.12); expect(shut / doors.length).toBeLessThan(0.32); expect(ajar).toBeGreaterThan(0.2 * doors.length);
+    const { seasonOf } = await import('../src/world/settlement/houses'); expect([seasonOf(10), seasonOf(60), seasonOf(130), seasonOf(250)]).toEqual(['cold', 'harvest', 'warm', 'cold']);
+    const s = town.plan.sites.find(x => x.id === 'q_s1')!; town.nearUpdate(s.frame.c[0], -s.frame.c[1], 0, true); const n0 = town.nearInfo.tiles;
+    (town as any).resetNear(); expect(town.nearInfo.tiles).toBe(n0); town.nearUpdate(s.frame.c[0], -s.frame.c[1], 0, true); expect(town.nearInfo.tiles).toBe(n0); expect(town.nearTile([...(town as any).shownSet][0])).toBe(true);
+    town.nearUpdate(1e7, 1e7, 0, true);
+  });
+});
