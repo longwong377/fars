@@ -33,8 +33,8 @@ download.blender.org, wikipedia, github.com release downloads. (Web *search/fetc
 **THE EASY VERSION (the user's choice; enough to be useful):** download 10–30 ordinary daytime photos of Persepolis from
 Wikimedia Commons (category "Persepolis"; our proxy blocks it, a normal browser does not) or use your own holiday photos:
 the columns and stairs, the relief carvings close up, the Gate of All Nations, the mountain behind the Terrace, the plain,
-Naqsh-e Rustam. Unedited if possible. Drop them in `references/photos/` and paste each Commons page link into
-`references/notes.md` (that link is the licence record). Nothing else is needed; the detailed list below is optional.
+Naqsh-e Rustam. Unedited if possible. Just drop them in `references/photos/`; no notes or links needed (the lead
+catalogues them in references/INDEX.md; they are reference only, never in the build). The detailed list below is optional.
 They calibrate what has not changed since 467 BCE: the stone, the hills, the plain, the light. Content still comes from the
 scholarship. Drop them in `references/calibration/` (the calibration shots) or `references/photos/` (the rest), with one line
 each in `references/notes.md`: what, where you stood, and the licence.
