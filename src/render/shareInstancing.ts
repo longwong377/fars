@@ -11,8 +11,13 @@ const proto = NodeBuilder.prototype as any;
 let ON = typeof location !== 'undefined' && new URLSearchParams(location.search).get('shareinst') === '1'; // opt-in (?shareinst=1) until verified in a render (D-250)
 /** tests and tools: share (true) or not for shaders built from now on */
 export function setShareInstancing(on: boolean) { ON = on; }
+/** the attribute path costs vertex attributes: 4 for the matrix, 4 for the previous frame's (the velocity output under TRAA)
+ *  and 1 for an instance colour, within WebGPU's 16 (the first opt-in render at quality high failed validation at locations
+ *  16-18: session 9) */
+export const MAX_VERTEX_ATTRIBUTES = 16;
+export function fitsAttributes(o: any): boolean { return Object.keys(o.geometry?.attributes ?? {}).length + 9 <= MAX_VERTEX_ATTRIBUTES; }
 if (!proto.__parsaShareInstancing) {
   const base = proto.getUniformBufferLimit;
-  proto.getUniformBufferLimit = function (this: any) { const o = this.object; return ON && o?.isInstancedMesh && !o.isSkinnedMesh ? 0 : base.call(this); };
+  proto.getUniformBufferLimit = function (this: any) { const o = this.object; return ON && o?.isInstancedMesh && !o.isSkinnedMesh && fitsAttributes(o) ? 0 : base.call(this); };
   proto.__parsaShareInstancing = true;
 }

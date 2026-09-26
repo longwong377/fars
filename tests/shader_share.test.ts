@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { surfaceMaterial } from '../src/render/materials';
 import { installProbeLight, setProbeField, setProbeLoop, volumeTable } from '../src/render/probes/runtime';
 import { decodeField, gridExtent } from '../src/render/probes/field';
-import { setShareInstancing } from '../src/render/shareInstancing';
+import { setShareInstancing, fitsAttributes } from '../src/render/shareInstancing';
 
 function renderer(): any {
   const canvas: any = { style: {}, width: 960, height: 540, getContext: () => null, addEventListener() {}, removeEventListener() {} };
@@ -47,5 +47,10 @@ describe('shared shaders (D-250)', () => {
     const vOf = (n: number) => build(renderer(), new THREE.InstancedMesh(geo, mat, n)).v.replace(/NodeBuffer_\d+/g, 'NB');
     setShareInstancing(false); expect(vOf(4)).not.toBe(vOf(24));
     setShareInstancing(true); expect(vOf(4)).toBe(vOf(24)); expect(vOf(4)).toBe(vOf(900));
+  });
+  it('a mesh whose own attributes leave no room for the matrices as attributes keeps three\'s uniform path (≤ 16 vertex inputs)', () => {
+    const geo = new THREE.BoxGeometry(1, 1, 1); for (let k = 0; k < 6; k++) geo.setAttribute('extra' + k, new THREE.BufferAttribute(new Float32Array(geo.attributes.position.count), 1));
+    expect(fitsAttributes(new THREE.InstancedMesh(geo, new THREE.MeshStandardNodeMaterial(), 4))).toBe(false);
+    expect(fitsAttributes(new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshStandardNodeMaterial(), 4))).toBe(true);
   });
 });

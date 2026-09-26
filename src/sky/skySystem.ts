@@ -8,7 +8,7 @@
 import * as THREE from 'three/webgpu';
 import { SkyMesh } from 'three/addons/objects/SkyMesh.js';
 import { float, vec2, vec3, vec4, uniform, attribute, normalWorld, max, dot, mix, smoothstep, color, Fn, positionWorld, cameraPosition, normalize, atan, asin, acos, abs, exp, clamp, sqrt, length, texture, mx_fractal_noise_float, int } from 'three/tsl';
-import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt } from './ephemeris';
+import { sunHorizon, moonHorizon, moonPhase, azAltToWorld, j2000ToHorizonMatrix, starAzAlt, earthShadow, UMBRA_BRIGHTNESS, UMBRA_RGB } from './ephemeris';
 import { VolumetricClouds } from './clouds';
 import { skyCalibration, twilightWeight, TW_HI } from './horizon';
 import { Atmosphere, aerosolTauFor, OBSERVER_ALT, SUN_ANGULAR_RADIUS, xyToRenderer, daylightXY, type SkyView, type SkyViewJob } from './atmosphere';
@@ -52,6 +52,10 @@ export class SkySystem {
   private starCount = 0;
   private uNight = uniform(0);
   private uMoonSun = uniform(new THREE.Vector3(0, 1, 0));
+  /** the Earth's shadow on the Moon (session 9; ephemeris.ts earthShadow): its centre (world direction) and umbra, penumbra
+   *  (rad) and 1 while any of the disc is in the penumbra; `eclipse`: the disc's brightness for the overlay and the light */
+  private uShadowW = uniform(new THREE.Vector3(0, -1, 0)); private uShadow = uniform(new THREE.Vector3(0.0123, 0.0217, 0));
+  eclipse = { light: 1, sepDeg: 180, active: false };
   private lastStarJD = -1;
   twilight = 1;
   /** radiance of the sky just above the horizon across the view, after calibration: the fog colour (D-060) */
@@ -201,7 +205,12 @@ export class SkySystem {
     const moonR = Math.tan((0.26 * Math.PI) / 180) * DOME * 0.9;
     const mm = new THREE.MeshBasicNodeMaterial({ fog: false, depthWrite: false, depthTest: false });
     const lit = max(dot(normalWorld, this.uMoonSun), float(0));
-    mm.colorNode = vec4(vec3(0.95, 0.93, 0.88).mul(lit.mul(1.2)).add(vec3(0.02, 0.025, 0.035)), 1);
+    // a lunar eclipse (session 9, T-J5): each point of the disc lit by the part of the Sun it sees past the Earth; in the
+    // umbra only the red light the Earth's atmosphere bends in (ephemeris.ts; geometry A/B, the umbra's colour and depth C)
+    const dSh = length(normalize(positionWorld.sub(cameraPosition)).sub(this.uShadowW)); // chord ≈ angle for small angles
+    const tSh = clamp(dSh.sub(this.uShadow.x).div(this.uShadow.y.sub(this.uShadow.x)), 0, 1);
+    const eclipse = mix(vec3(1, 1, 1), mix(vec3(...UMBRA_RGB).mul(UMBRA_BRIGHTNESS), vec3(1, 1, 1), tSh), this.uShadow.z);
+    mm.colorNode = vec4(vec3(0.95, 0.93, 0.88).mul(lit.mul(1.2)).add(vec3(0.02, 0.025, 0.035)).mul(eclipse), 1);
     this.moon = new THREE.Mesh(new THREE.SphereGeometry(moonR, 32, 16), mm);
     this.moon.frustumCulled = false; this.moon.renderOrder = -8;
     scene.add(this.moon);
@@ -302,10 +311,16 @@ export class SkySystem {
     (this.sky as any).cloudCoverage && ((this.sky as any).cloudCoverage.value = this.clouds.mesh.visible ? 0 : Math.max(0.05, cloudCover));
     this.sky.position.copy(camPos); this.stars.position.copy(camPos); this.moon.position.copy(camPos).addScaledVector(this.state.moonDir, DOME * 0.9);
     this.uMoonSun.value.copy(this.state.sunDir);
+    { // the Earth's shadow: only near full moon (the phase fraction > 0.97 is a day either side of opposition)
+      const on = ph.fraction > 0.97 && mo.altitude > -3; let light = 1, sep = 180;
+      if (on) { const e = earthShadow(jdUT, [md[0], md[1], md[2]]); light = e.light; sep = (e.sep * 180) / Math.PI;
+        this.uShadowW.value.set(...e.shadowW); this.uShadow.value.set(e.umbra, e.penumbra, e.sep < e.penumbra + e.moonR ? 1 : 0); }
+      else this.uShadow.value.z = 0;
+      this.eclipse = { light, sepDeg: sep, active: light < 0.999 }; }
     this.uNight.value = night * (1 - 0.85 * cloudCover);
     // faint diffuse light (Milky Way, airglow): only in full darkness, washed out by moonlight, hidden by cloud (C)
     const moonUp = smoothstepJS(-2, 8, mo.altitude);
-    this.uMW.value = night * Math.pow(1 - cloudCover, 1.5) * (1 - 0.92 * moonUp * Math.min(1, ph.fraction * 1.6));
+    this.uMW.value = night * Math.pow(1 - cloudCover, 1.5) * (1 - 0.92 * moonUp * Math.min(1, ph.fraction * 1.6) * this.eclipse.light); // (the Milky Way comes back as an eclipse darkens the moon)
     this.milkyWay.position.copy(camPos); this.milkyWay.visible = this.uMW.value > 0.002;
     // ---- light levels (D-115, D-117) -----------------------------------------------------------------------------------
     // USNO Circular 171 clear-sky illuminance for the sun (direct beam), the sky and the moon, with the session-3 cloud
@@ -314,9 +329,9 @@ export class SkySystem {
     // beyond the camera's range multiplies all of them (the sky gain, exposure.ts).
     const k = extinctionK(haze), alt = s.altitude, sinA = Math.max(0, Math.sin((alt * Math.PI) / 180)), sinM = Math.max(0, Math.sin((mo.altitude * Math.PI) / 180));
     const sunN = sunNormalLux(alt, k) * smoothstepJS(-0.5, 0.5, alt) * (1 - 0.75 * cloudCover); // the disc crosses the horizon over ~0.5° (C)
-    const ml = moonLux(elongationFromFraction(ph.fraction), mo.altitude);
-    const moonN = ml.normal * (1 - 0.8 * cloudCover);
-    const skyL = (skyLux(alt) + ml.sky + NIGHT_LUX) * (1 - 0.3 * cloudCover);
+    const ml = moonLux(elongationFromFraction(ph.fraction), mo.altitude), eL = this.eclipse.light; // (the Earth's shadow dims the moonlight and the moonlit sky)
+    const moonN = ml.normal * eL * (1 - 0.8 * cloudCover);
+    const skyL = (skyLux(alt) + ml.sky * eL + NIGHT_LUX) * (1 - 0.3 * cloudCover);
     // at the eye: the direct sun and moon only where the terrain's skyline lets them through (D-156: in Kuh-e Rahmat's dawn
     // shadow the eye adapts to the skylight)
     const vS = this.eyeSunVisibility, vM = eyeMoon;

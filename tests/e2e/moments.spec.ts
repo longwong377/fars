@@ -75,6 +75,11 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // grid 272.5°, due W along the landing. From 10 m E of the S stair-head brazier (x −33.4, y 121; lit until after sunrise),
   // 1.5 m N of its line: the flame low left of centre, the parapet, the moonlit plain, the moon above. (First render, from 4 m
   // at az 272.5 read as grid: the moon 19° off-axis and the eye adapted to the near fire, exposure 1.09: the plain black.)
+  // session 9 (T-J5, a surprise the world holds): the partial lunar eclipse of sim day 101 (the night of 26/27 July 467 BCE, proleptic Julian;
+  // see tools/dev/eclipses_467.ts: peak 01:08 LMT, 91 % of the disc in the umbra, the Moon 36° up at true azimuth 199.5°).
+  // Wide: the Terrace under the darkened Moon; tele (4°): the disc's red umbra and the bright limb in the penumbra
+  { n: 'eclipse-terrace', day: 101, hour: 1.13, w: 'clear', v: [-36, 125, 1.6, 199.5, 24], fov: 60 },
+  { n: 'eclipse-moon-tele', day: 101, hour: 1.13, w: 'clear', v: [-36, 125, 1.6, 199.5, 36.3], fov: 4 },
   { n: 'night-moon-fire', day: 11, hour: 2.75, w: 'clear', v: [-23.4, 122.5, 1.6, 253.5, 6] },
   { n: 'brazier-close', day: 0, hour: 21.5, w: 'clear', v: [-36.4, 132, 1.6, 161, -8], fov: IN },
   { n: 'apadana-hall-torch', day: 0, hour: 21, w: 'clear', v: [-8, 0, 4.6, 161, 6], fov: IN },
