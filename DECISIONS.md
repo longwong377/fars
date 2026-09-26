@@ -6186,3 +6186,18 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Alternatives considered:** precompiling with `compileAsync` before the first frame (measured: 122 s spent, then the first
   frame compiled again, the keys differ; rejected); a persistent Chromium profile (session 8: no gain); one "uber" surface
   program with per-surface uniforms (the next lever: the ~40 surface programs differ mostly in constants; not started).
+
+## D-251 Tiered tests (session 9, UD-15; D-248 step 2)
+- **What.** `npm run test:fast` (TIER=fast) skips the gate tier listed in `tests/tiers.json`; `npm run test:gate` runs every file
+  through `tools/dev/cpu_slot.sh`; `npm test` is unchanged (every file). The tiers come from a measured run
+  (`tools/dev/test_tiers.ts` over vitest's JSON report; a file over 20 s goes to the gate tier; the guards and the language lint are
+  always fast). Measured on the session-9 box under load 6-11 with 2 workers: 132 files, 6,982 s summed; the gate tier 32 files
+  (6,650 s: people_days_* up to 1,290 s each, indoor_truth 548 s, popview 305 s, people 232 s, court_view 211 s); the fast tier
+  100 files, 333 s summed, **7 min wall under load 8**. vitest keeps its transforms on disk (`fsModuleCache`): a two-file run
+  3.6 s → 2.1 s.
+- **Full run results (1,138 tests):** 1,131 passed, 5 failed: people_days_d211 and people_days_r8 timed out and popview's cost
+  bound (9.1 ms against 6) under load (to be re-run alone, CLAUDE.md working rules); indoor_truth on the fresh random seed
+  971044: one of ~10,000 sleepers "not drawn" (T-D3s 99.99 %; a real edge case of D-244, logged in PROGRESS); exposure's night
+  ground-bounce bound (0.1-0.2) failed at 0.207 on the session-8 head too: D-232 made the plain's loam brighter (GROUND_RHO
+  luminance 0.21), and at night down/up is that albedo by construction; the test now asserts down/up = the ground's albedo ± 15 %.
+  In the fast tier under load, three CPU-budget tests (performances, humans_runtime posing, solids) fail as timing tests do.

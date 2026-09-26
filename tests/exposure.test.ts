@@ -125,6 +125,7 @@ describe('interior adaptation (probe volumes)', () => {
 });
 
 // D-153: the hemisphere light's ground half is the sunlit ground's reflection, so shade outdoors has its ground bounce
+import { GROUND_RHO } from '../src/sky/skySystem';
 describe('ground bounce (hemisphere ground term)', () => {
   const sky = new SkySystem(new THREE.Scene(), 256, 'test');
   const Y = (c: THREE.Color) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
@@ -141,7 +142,10 @@ describe('ground bounce (hemisphere ground term)', () => {
     expect(L.down).toBeGreaterThan(L.up * 0.3); // the sunlit ground rivals the sky for a shaded face
   });
   it('without sun (a moonless night, deep twilight) the ground reflects only the sky', () => {
-    for (const [d, h] of [[1, 3.5], [0, 19.4]] as const) { const L = at(d, h); expect(L.down / L.up).toBeGreaterThan(0.1); expect(L.down / L.up).toBeLessThan(0.2); }
+    // down/up is then the ground's albedo (the ground reflects the sky it sees): GROUND_RHO's luminance (0.21 since D-232's
+    // measured dry loam; the 0.1-0.2 bound of D-153 was written for the darker ground before it: session 9)
+    const rhoY = 0.2126 * GROUND_RHO[0] + 0.7152 * GROUND_RHO[1] + 0.0722 * GROUND_RHO[2];
+    for (const [d, h] of [[1, 3.5], [0, 19.4]] as const) { const L = at(d, h); expect(L.down / L.up).toBeGreaterThan(rhoY * 0.85); expect(L.down / L.up).toBeLessThan(rhoY * 1.15); }
   });
 });
 
