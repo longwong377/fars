@@ -62,6 +62,20 @@
   distance where they can be judged (the one crowd_scale run passed with 0 placeholder impostors, but its visible impostors
   were 0); the atlas bake at load is 1.7–2.0 s (was 0.72 s) and 42 MB; M3 not done: the simulation still runs on the main
   thread, long route searches hitch 150–650 ms at 1× and 60× (B53 plan, B54).
+- **Coverage harness (D-235) built; coverage NOT yet measured.** Sampler (`tools/dev/coverage_points.ts`: 515 views seeded
+  from a commit hash, month × hour band × weather per area by the climate, the far world and the edges of built content),
+  ID/flag pass (`__parsa.flagMask`), `tests/e2e/coverage.spec.ts`, `tools/dev/coverage_report.ts` (REVIEWS/coverage_report.md,
+  board, evidence files). Only a 16-view pilot rendered (old sample, not evidence): town lanes 74 % placeholder pixels (the box
+  houses), low detail (flag-free) 55 % on Terrace views and 53 % at village P22, every walker frozen (a harness bug, fixed:
+  the camera rig froze the people's simulation at page-load time — `setTime` in any rig spec moved the sun but not the
+  people). Views take 1–7 min each at test quality under load: a full pass is ~30 lane-hours. The default world (seed 1) has
+  no snow day in the year. Areas are interim (the §4.3 registry is not built). **Unfinished (next session):** no view of the
+  committed sample (seed 1139897884) has been rendered, so no evidence file exists and every coverage id reads NOT-MEASURED;
+  the queued run was cancelled at session close. Run: `E2E_PORT=6732 Q=test STRIDE=13 OFFSET=6 CHUNK=24 VARIETY=3 TIMEOUT=7000
+  PW_TIMEOUT=7100 tools/dev/queue_e2e.sh <snapdir> tests/e2e/coverage.spec.ts --project=webgpu`, then `npx tsx
+  tools/dev/coverage_report.ts shots/coverage.json REVIEWS/coverage_report.md test --evidence --board` and commit the evidence
+  files. Also unverified in a browser: the ID pass's mask images, the freeCam simulation fix, T-A3c2's flame exclusion, the
+  variety days. The branch was not merged with the lead's branch (the merge was refused by the permission system).
 - **§13.11 shadow review round 10 PASSED (session 8), both reviewers** (REVIEWS/shadow_phase5_r10.md, _b.md; sample pick 181
   regenerated on the merged tree after the soak passed all 8 gates): A 7 × 5 and 13 × 4, B 9 × 5 and 11 × 4; no score below 4
   (rounds 1–9 failed). Both found S1 (a walk between two Terrace places played as a trip down the stair and back: 49 % of

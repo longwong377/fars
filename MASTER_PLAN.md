@@ -382,39 +382,39 @@ its worst cells.
 | `REVIEWS/anchors/INDEX.md` | **TO-BUILD** | T-R1 |
 | `REVIEWS/escapes.md` | **TO-BUILD** | T-R0 |
 | `WORLD_INVENTORY.md` | **TO-BUILD** | T-J6, T-J7 |
-| `gates/scope_phrases.json` | **TO-BUILD** | T-R8 |
+| `gates/scope_phrases.json` | exists (must still write evidence) | T-R8 |
 | `handoff/reserved_numbers.md` | exists (must still write evidence) | T-R6 |
 | `handoff/review_template.md` | exists (must still write evidence) | T-A4, T-A4cg, T-G4, T-I1, T-A4m |
 | `references/INDEX.md` | exists (must still write evidence) | T-A2r |
-| `sessions/` | **TO-BUILD** | T-R2, T-R3, T-J5 |
+| `sessions/` | exists (must still write evidence) | T-R2, T-R3, T-J5 |
 | `tests/arch.test.ts` | exists (must still write evidence) | T-I6, T-I6o |
 | `tests/defaults.test.ts` | exists (must still write evidence) | T-K3, T-K10 |
 | `tests/e2e/bench.spec.ts` | exists (must still write evidence) | T-K9, T-K9w |
-| `tests/e2e/coverage.spec.ts` | **TO-BUILD** | T-C1, T-C1t, T-C1u, T-C1c, T-C2, T-C2f, T-C1f |
-| `tests/e2e/persistence.spec.ts` | **TO-BUILD** | T-H3, T-H3r, T-J3c, T-H3s, T-H3v, T-J3e |
+| `tests/e2e/coverage.spec.ts` | exists (must still write evidence) | T-C1, T-C1t, T-C1u, T-C1c, T-C2, T-C2f, T-C1f |
+| `tests/e2e/persistence.spec.ts` | exists (must still write evidence) | T-H3, T-H3r, T-J3c, T-H3s, T-H3v, T-J3e |
 | `tests/e2e/settings.spec.ts` | **TO-BUILD** | T-K3a, T-K3f |
 | `tests/language.test.ts` | exists (must still write evidence) | T-I1f, T-I2, T-I4, T-K3c |
 | `tests/player_independence.test.ts` | **TO-BUILD** | T-F6, T-F6x, T-I4c |
 | `tests/sky.test.ts` | exists (must still write evidence) | T-I6s, T-I6t, T-I6p |
 | `tools/dev/areas.ts` | **TO-BUILD** | T-A6, T-A6x |
-| `tools/dev/audio_render.ts` | **TO-BUILD** | T-G1, T-G1l, T-G2, T-G2f, T-G2b, T-G3, T-G3e, T-G5, T-G1t, T-G1n, T-G1v, T-G1m, T-G5d, T-G2m, T-G6, T-G6o |
+| `tools/dev/audio_render.ts` | exists (must still write evidence) | T-G1, T-G1l, T-G2, T-G2f, T-G2b, T-G3, T-G3e, T-G5, T-G1t, T-G1n, T-G1v, T-G1m, T-G5d, T-G2m, T-G6, T-G6o |
 | `tools/dev/audit_c/scene_probe.ts` | exists (must still write evidence) | T-E6e, T-E6i |
 | `tools/dev/audit_c/treadmill.ts` | exists (must still write evidence) | T-D2 |
 | `tools/dev/audit_c/variety_probe.ts` | exists (must still write evidence) | T-E6 |
 | `tools/dev/audit_d/ring_probe.mts` | exists (must still write evidence) | T-H1 |
-| `tools/dev/coverage_points.ts` | **TO-BUILD** | T-A0, T-A0t, T-B1m, T-B1h, T-B1w, T-B1p |
-| `tools/dev/coverage_report.ts` | **TO-BUILD** | T-A1, T-A1m, T-A2f, T-A2s, T-A3c, T-A3k, T-A3n, T-B2m, T-B2f, T-B3, T-B3a, T-J3, T-A2s2, T-A2k, T-A2f2, T-A3c2, T-B2s, T-B2l |
+| `tools/dev/coverage_points.ts` | exists (must still write evidence) | T-A0, T-A0t, T-B1m, T-B1h, T-B1w, T-B1p |
+| `tools/dev/coverage_report.ts` | exists (must still write evidence) | T-A1, T-A1m, T-A2f, T-A2s, T-A3c, T-A3k, T-A3n, T-B2m, T-B2f, T-B3, T-B3a, T-J3, T-A2s2, T-A2k, T-A2f2, T-A3c2, T-B2s, T-B2l |
 | `tools/dev/face_census.ts` | **TO-BUILD** | T-E1, T-E1l, T-E1d |
 | `tools/dev/gpu_cost.ts` | **TO-BUILD** | T-K6, T-K7c, T-K8 |
 | `tools/dev/load_probe.mjs` | exists (must still write evidence) | T-H4, T-K7 |
 | `tools/dev/long_soak.mjs` | **TO-BUILD** | T-K4, T-K4a, T-K8h |
-| `tools/dev/people_trace.ts` | exists (D-244) for T-D3 (whole-world snapshots, bot-hours not traced; its status stays to-build: the ratchet refuses its tool change against rev 2's measured row), T-D3s and T-D4; **TO-BUILD** for the rest | T-D1, T-D1w, T-D2s, T-D2g, T-D2j, T-D3, T-D3s, T-D4, T-D5, T-E4, T-D6 |
+| `tools/dev/people_trace.ts` | exists (must still write evidence) | T-D1, T-D1w, T-D2s, T-D2g, T-D2j, T-D3, T-D3s, T-D4, T-D5, T-E4, T-D6 |
 | `tools/dev/person_census.ts` | exists (must still write evidence) | T-E2, T-E2h, T-E3, T-E3r, T-E3v, T-I4n, T-I5, T-I7 |
 | `tools/dev/photo_pairs.ts` | **TO-BUILD** | T-A5, T-A5d |
 | `tools/dev/repeat_census.ts` | **TO-BUILD** | T-E5 |
 | `tools/dev/sim_cost.ts` | exists (must still write evidence) | T-H2, T-H2p, T-H2x |
 | `tools/dev/systems_probe.ts` | **TO-BUILD** | T-F1, T-F2, T-F3d, T-F3g, T-F3s, T-F4, T-F5, T-J2, T-F3s2, T-F3r, T-F3j |
-| `tools/dev/walkers.ts` | **TO-BUILD** | T-H0, T-H0w, T-H0s, T-H1r, T-H1s, T-J1a, T-J1b, T-K1, T-K1a, T-K1r, T-K2, T-E6w, T-H0p, T-K1a2 |
+| `tools/dev/walkers.ts` | exists (must still write evidence) | T-H0, T-H0w, T-H0s, T-H1r, T-H1s, T-J1a, T-J1b, T-K1, T-K1a, T-K1r, T-K2, T-E6w, T-H0p, T-K1a2 |
 | `tools/lint_activity.ts` | exists (must still write evidence) | T-F7a |
 | `tools/lint_chrono.ts` | exists (must still write evidence) | T-I3 |
 | `tools/soak.ts` | exists (must still write evidence) | T-E7, T-F2m, T-J4, T-F7, T-J4d, T-F8 |

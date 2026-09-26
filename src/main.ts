@@ -174,28 +174,29 @@ async function boot() {
   // test / tooling API (out-of-world)
   /** floor under grid (east, north) for test cameras and teleports: where the walkable grid knows the floor, cast down from
    *  just above it (a cast from high up would land on a roof, lintel or colossus top: every part is a collider) */
-  const groundAt = (east: number, north: number) => {
+  const groundAt = (east: number, north: number, castAbove?: number | null) => {
     const x = east, z = -north; phys.updateTerrain(terrain, { x, y: 0, z }); phys.step(1e-4);
     const nav = (world as any).people?.nav;
     let nh = nav?.heightAt(east, north);
     // off the walkable grid (a doorway narrower than the grid's clearance, e.g. the Tachara's W-room passages): the floor
     // of the nearest walkable cell within 2.5 m, so the cast starts under the roof instead of 400 m up (session 4)
     if (!Number.isFinite(nh) && nav) { const s = nav.snap(east, north, 2.5); if (s) nh = nav.heightAt(s[0], s[1]); }
-    return (Number.isFinite(nh) ? phys.castRayDown(x, z, nh + 1.2) : null) ?? phys.castRayDown(x, z, 400) ?? terrain.heightAt(x, z);
+    // castAbove (coverage, D-235): off the grid, cast from that height above the terrain (under a town room's roof) first
+    return (Number.isFinite(nh) ? phys.castRayDown(x, z, nh + 1.2) : castAbove != null ? phys.castRayDown(x, z, terrain.heightAt(x, z) + castAbove) : null) ?? phys.castRayDown(x, z, 400) ?? terrain.heightAt(x, z);
   };
   const api = {
     ready: false, backend,
     setTime: (day: number, hour: number) => clock.set(day, hour),
     setWeather: (w: WeatherOverride) => { weather.override = w; },
     /** place the camera at grid (east, north) with eye height above ground (or absolute asl), true-north azimuth + pitch in degrees */
-    view: (east: number, north: number, eyeAboveGround: number, azTrueDeg: number, pitchDeg: number, fovDeg?: number) => {
-      const x = east, z = -north; const g = groundAt(east, north); freeCam = { x, y: g + eyeAboveGround, z, yaw: -((azTrueDeg - 341) * Math.PI) / 180, pitch: (pitchDeg * Math.PI) / 180 };
+    view: (east: number, north: number, eyeAboveGround: number, azTrueDeg: number, pitchDeg: number, fovDeg?: number, opts?: { cast?: number | null; rigClear?: number }) => {
+      const x = east, z = -north; const g = groundAt(east, north, opts?.cast); freeCam = { x, y: g + eyeAboveGround, z, yaw: -((azTrueDeg - 341) * Math.PI) / 180, pitch: (pitchDeg * Math.PI) / 180 };
       // camera rig (session 4): a photographic vertical field of view per capture (24 mm ≈ 46°, 35 mm ≈ 32° at 16:9);
       // omitted = the player's setting (70° by default, a 14 mm lens: fine for presence, not for judging a photograph)
       camera.fov = fovDeg ?? settings.fov; camera.updateProjectionMatrix();
       // a rig capture is a photograph, not a walk: nobody stands within 2.5 m of the lens (render pass 2: a head filled the
       // foreground of stair-foot-east and workshop-area-b). The player's own camera never sets this.
-      if (world.people) world.people.crowd.rigClear = 2.5;
+      if (world.people) world.people.crowd.rigClear = opts?.rigClear ?? 2.5; // coverage (D-235) passes 0: the player's camera
     },
     viewLatLon: (lat: number, lon: number, eye: number, az: number, pitch: number) => { const [e, n] = latLonToGrid(lat, lon); api.view(e, n, eye, az, pitch); },
     walkMode: () => { freeCam = null; },
@@ -274,6 +275,11 @@ async function boot() {
       botInput = { forward: 0, right: 0, run: false };
       return { reached: false, stuck: false, t, state: api.playerState() };
     },
+    /** coverage (D-233, D-235; src/dev/coverage.ts): the ID/flag render of the current view with per-view shares (and,
+     *  given the beauty frame as PNG base64, the frame metrics); repetition in view; life in view over `seconds` */
+    flagMask: async (o?: { frame?: string; top?: number }) => (await coverage()).flagMask(o),
+    coverageRepeat: async (radius?: number) => (await coverage()).repetition(radius),
+    coverageLife: async (seconds?: number) => (await coverage()).life(seconds),
     clockLabel: () => clock.label(), gridToLatLon, world, renderer, // renderer: tests and debugging only
     sky: () => ({ sunAlt: sky.state.sunAlt, moonAlt: sky.state.moonAlt, moonFraction: sky.state.moonFraction }),
     conditions: () => weather.conditions(clock.dayIndex, clock.localHour),
@@ -322,6 +328,10 @@ async function boot() {
     },
   };
   let planFlip: boolean | null = null;
+  let covPass: any = null; // the coverage pass, built on first use (a dev module, loaded on demand)
+  const coverage = async () => { if (!covPass) { const { CoveragePass } = await import('./dev/coverage');
+    covPass = new CoveragePass({ renderer, scene, camera, root: world.root, terrain: tmesh.group, world, sunAlt: () => sky.state.sunAlt, sunDir: () => sky.sun.position.clone().sub(sky.sun.target.position).normalize(),
+      advance: (s: number) => api.advanceWorld(s, 0.5), tick: () => api.tick() }); } return covPass as import('./dev/coverage').CoveragePass; };
   (window as any).__parsa = api;
   { const P = (world as any).people; if (P) P.crowd.onPopIn = (what: string, d: number) => api.popins.push({ what, d: +d.toFixed(1), t: clock.t }); }
   addEventListener('error', e => api.errors.push(String(e.message)));
@@ -334,7 +344,10 @@ async function boot() {
 
   function simStep(dt: number, advanceClock = true) {
     if (advanceClock) clock.advance(dt);
-    if (freeCam) return;
+    // the camera rig (freeCam): no player, but the world still follows the clock. Before D-235 this returned first, so after
+    // the first __parsa.view() the people's simulation stayed at the page-load time: a setTime (or advanceWorld) moved the
+    // sun but not the people (the coverage pilot found every walker frozen over 2 s of world time)
+    if (freeCam) { world.simulate?.(dt, clock); return; }
     const ax = input.locked ? input.axes() : botInput;
     if (botInput.yawDeg !== undefined) { input.yaw = -((botInput.yawDeg - 341) * Math.PI) / 180; input.pitch = ((botInput.pitchDeg ?? 0) * Math.PI) / 180; }
     phys.updateTerrain(terrain, player.position);

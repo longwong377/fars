@@ -6088,3 +6088,53 @@ moment-*-webgpu.png in the worktree, not committed).**
   §8, ANACHRONISM_BLOCKLIST.md.
 - **Records:** Q-610 … Q-617; B59, B60. D-228's PLACEHOLDER flag is lifted from every house face; the far level is marked
   as the distant level instead.
+
+## D-235 The coverage harness: what it samples, what it measures, and how the backlog reads it (session 8, D-233)
+- **Sampler (`tools/dev/coverage_points.ts`, committed sample `tests/data/coverage_points.json`):** seeded from the first 8 hex
+  digits of a commit hash (MASTER_PLAN §4.2; the committed sample's seed 1139897884 is commit 43f1761c; a test re-derives it
+  and checks the commit exists), never a chosen number. 447 first visits
+  + 68 revisits = 515 views, and 5 variety places × 3 days. Areas and weights: Terrace 150 (strata by building × roofed/open,
+  stairs, open Terrace; ∝ √walkable area, min 3: the Treasury, Harem, garrison, Gate, Tachara, Hadish, Tripylon, Hall of 100
+  Columns and Apadana each have strata), town 120 (lanes 45, open ground in the quarters 10, courts and yards 30, rooms 12,
+  Area B 5, compounds 18; only cells reachable through the plan's own doors), plain within 7 km 85 (roads and tracks 15,
+  villages 15, irrigated fields 20, the Pulvar's banks 12, Naqsh-e Rustam 13, open ground 10), the far world 47 (the Kur 8,
+  far villages 8, fields 8, open 6, the quarries 3, and pairs just inside/outside each edge of built content: the terrain's
+  near ring at ±2,048 m, the mid ring at ±10,240 m, the fields at ±40,960 m, and the world's end at ±71,680 m), the approach
+  25, Kuh-e Rahmat 20. Why these weights: the Terrace is densest in distinct rooms per m²; the town holds most lives and the
+  largest placeholder; the plain is the largest area but changes slowly with position; the player can walk the whole far
+  ring (nothing stops a walker: audit B, M2), so the far world and its edges are sampled, thinly. **Times
+  (`tools/dev/coverage_time.ts`, MASTER_PLAN axis B, D-242):** every view gets a month, one of 8 hour bands and one of 9
+  weather states; every month, band and state appears in every area (T-B1m/h/w), weather is drawn by the simulated climate's
+  frequency for that month and band with a floor of one view per state, and the world-level pairs (band × weather,
+  month × band, area × weather: T-B1p) are completed (100 % in the committed sample). Each view is realised as a real day
+  and hour of the simulated year (WeatherSystem(1), the test pages' seed) where that combination happens, with weather
+  'auto'; only when the climate never makes it (31 of 515: the default year has NO snow day at all, lightning only in April,
+  October and November) is the state forced through the override, in the months it belongs to. 15 % of each area's places
+  are revisited 3–9 months away in another hour band. Headings: 60 % down one of the three most open directions, 40 % random.
+  Areas are INTERIM (not the §4.3 registry, which is not built).
+- **The camera is the player's** (audit B, M4): the player's 70° field of view and no rig clearance (`__parsa.view(..., {
+  rigClear: 0 })`); the look frame at quality Q (test for metrics passes, ultra where the queue allows), 960×540 (Q-639).
+- **ID/flag pass (`src/dev/coverage.ts`, `__parsa.flagMask()`):** a second render with override materials that write each
+  mesh's id and log distance; sky and transparent effects left out; source vertex stages and cut-outs kept. Per view: the
+  share of pixels drawn by PLACEHOLDER-flagged objects (the F3 record as the overlay reads it; per face in merged meshes),
+  untiered pixels, sky seen below the horizon; with the beauty frame: black, blown and large flat regions, flatness Ystd/Y,
+  **low detail (flag-free: triangles per steradian at each pixel's distance < 1000 AND the object's shading detail < 0.04;
+  catches unflagged boxes such as the villages and Tol-e Ajori, audit B M6; thresholds C, Q-632)**, visible tiling
+  (heuristic, Q-634), materials and distinct geometries in view. `coverageRepeat()`: identical instances within 30 m;
+  `coverageLife()`: people in view moving/active/idle/resting, twins (shared body variants), and after 2 s of world time
+  frozen walkers, sliding non-walkers and people off the walkable grid. Variety (D-236): the same place and hour on days 25,
+  26 and 33, compared by people present, activities, objects and image; near-identical = FAIL.
+- **Report (`tools/dev/coverage_report.ts` → `REVIEWS/coverage_report.md` + `REVIEWS/coverage_worst.jpg`):** per area,
+  sub-area and state, worst first; placeholder and low-detail objects by the pixels they cost; provisional per-view fail
+  thresholds placeholder > 5 %, missing > 5 %, low detail > 25 % (C, Q-633; to be set against rubric scores, never lowered
+  to pass). The metrics find problems; they do not certify photorealism: the rubric reviewer still scores a stratified sample.
+- **MASTER_PLAN rev 2 gate metrics (per view, `gateMetrics` at the frame's own resolution):** T-A1 (placeholder or untiered
+  pixels), T-A1m (drawn meshes in view with tier and source), T-A2f (12 px blocks with Ystd/Y < 0.03, sky excluded, in
+  connected regions ≥ 2 % of the frame), T-A3c (clipped; the sun's disc excluded, flames NOT excluded), T-A3k (crush, by day),
+  T-A3n (16 px tiles exactly black), T-B2m/T-B2f (mean tone-mapped luma of moonless / ≥ 90 %-moon night views with the fire
+  illuminance at the eye < 0.05 lx); the board (in the report) gives per interim area and id PASS / FAIL / INSUFFICIENT /
+  STALE with the evidence commit and a dependency hash (`tools/dev/coverage_dep.ts`: src, public/generated, the spec); evidence
+  whose seed or camera is not the sample file's is refused; worst-first extras are reported apart.
+- **The camera rig's world now follows the clock** (`src/main.ts` simStep): before, `__parsa.view()` froze the people's
+  simulation at the page-load time, so any spec that stepped `setTime` within one page (plain.spec, crowd_scale.spec's later
+  scenes, this spec) showed the sun of the new time over the people of the old one. Render-affecting for such specs.
