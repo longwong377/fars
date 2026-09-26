@@ -134,3 +134,19 @@ bare patches by age and care, its door timber (grey old poplar to fresh planks),
 the plot id: the plan's random streams, plots, courts, doors and hearths are untouched (town_plots.json unchanged).
 Measured (tests/houses.test.ts): 1,447 houses and workshops, **1,447 distinct configurations**; no identical house within
 20 m; 1,364 distinct lane faces (frontage, height, parapet, footing, door timber, tone), one identical pair within 20 m.
+
+**House inventory (for WORLD_INVENTORY.md, T-J7; walked as a household of 467 would live the house):**
+PRESENT (C unless noted): walls, footing, plaster and its repairs; flat roof, eave, parapet, spouts; street door with its
+hours, threshold, pivot stone, lintel, doorstep, niche with its lamp soot, pegs; room doors with mats; windows and vents;
+ceiling of poles and matting; rooms by use (store jars and sacks, living-room mat, bedding, rugs, a lamp lit in the evening;
+vestibule bench); court: hearth, bread oven (22 %), storage jars, quern (workshops), loom (weavers), court tree (12 %), toys
+(D-215), ladder, bench, portico (large houses), the household's animal at its manger with dung and fodder, brushwood and dung
+fuel, dung cakes drying, baskets and broom, mortar and pestle, washing on a line, fleece on the parapet, cradle, drain hole;
+roof: roller, fuel, sleeping mats (warm months), grain drying (after the harvest); soot over hearths and ovens.
+MISSING (not built; probable by analogy): the people inside the rooms (hidden by the sim, D-143); a water jar and cup by the
+door and the day's water carried in; cooking pots, bowls and the bread basket at the hearth; spindles and a hand loom in
+living rooms; chests and wall pegs with clothes and bags inside rooms; a household shrine niche (form unknown: left out
+rather than invented, D-207 applies to the probable, and the evidence for domestic cult objects in Achaemenid Fars was not
+reached); rooms' floor plaster and hearths inside rooms in winter (Q-561); bird nests, cats (blocklisted as pets:
+`later-animals`), flies; smells and sounds of the house (the audio system's domain).
+ABSENT BY EVIDENCE: windcatchers, domes and brick vaults, fired-brick house walls, glazed windows (blocklist).
