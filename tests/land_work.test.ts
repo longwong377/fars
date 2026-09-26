@@ -50,7 +50,7 @@ describe('the performances (activities.ts)', () => {
   it('the new activities and variants pass the activity lint, and each performs with its animals and things', () => {
     expect(activityLint(ACTIVITIES as any)).toEqual([]);
     const herd = performanceFor('herd', 'out with the village cows and calves on the river meadow and the fallow: his house’s turn with the herd');
-    expect(herd.animals!.species).toContain('cow'); expect(herd.animals!.species).toContain('calf'); expect(herd.animals!.n).toBeGreaterThanOrEqual(8); expect(herd.sound).toBe('low');
+    expect(herd.animals!.species).toContain('cow'); expect(herd.animals!.species).toContain('calf'); expect(herd.animals!.n).toBeGreaterThanOrEqual(8); expect(herd.sound).toBeUndefined(); // (the cows low from the crowd's animal voices, not from the herdsman's cycle)
     const watch = performanceFor('herd', 'watching the flock with the dogs in the night, by turns');
     expect(watch.animals!.kind).toBe('fold'); expect(watch.work!.map(w => w.kind)).toContain('fold'); expect(watch.animals!.n).toBeGreaterThanOrEqual(20);
     expect(performanceFor('tend_animals', 'watering the flock and folding it beside the tents').animals!.kind).toBe('fold');

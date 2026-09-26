@@ -110,9 +110,9 @@ export class Traffic {
       let s: number, dir = 1, act: ActivityId, why: string, gangAct: ActivityId, gangWhy: string;
       if (t < t0) { s = 0; act = 'tend_animals'; why = 'yoking the oxen to the drum sledge at the quarry camp'; gangAct = 'haul'; gangWhy = 'the gang roping the drum down on the sledge for the haul'; }
       else if (t <= lastOut + 1e-9) { s = Traffic.done(H.out, t, DRUM.pace); if (moving(H.out)) { act = 'walk'; why = 'driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace'; gangAct = 'walk'; gangWhy = 'walking beside the drum sledge with the levers and the rollers'; }
-        else { const lt = t - Math.floor(t / 24) * 24, set = this.window(Math.floor(t / 24))[1] - Math.floor(t / 24) * 24; const eve = lt >= set && lt < set + 1.2;
-          act = eve ? 'tend_animals' : 'sleep'; why = eve ? 'unyoking the oxen by the drum sledge at the halt, giving them straw and water' : 'asleep by the drum sledge where the haul halted for the night';
-          gangAct = eve ? 'eat' : 'sleep'; gangWhy = eve ? 'the evening meal by the drum sledge at the halt' : 'asleep by the drum sledge where the haul halted for the night'; } }
+        else { const D0 = Math.floor(t / 24), lt = t - D0 * 24, [w0, w1] = this.window(D0).map(x => x - D0 * 24); const eve = lt >= w1 && lt < w1 + 1.2, morn = lt >= w0 - 0.9 && lt < w0;
+          act = eve || morn ? 'tend_animals' : 'sleep'; why = eve ? 'unyoking the oxen by the drum sledge at the halt, giving them straw and water' : morn ? 'yoking the oxen to the drum sledge at first light' : 'asleep by the drum sledge where the haul halted for the night';
+          gangAct = eve || morn ? 'eat' : 'sleep'; gangWhy = eve ? 'the evening meal by the drum sledge at the halt' : morn ? 'bread before the road, by the drum sledge' : 'asleep by the drum sledge where the haul halted for the night'; } }
       else if (t < H.arrive + DRUM.hold) { s = R.len; act = 'tend_animals'; why = 'holding the oxen at the drum ground while the drum is levered off the sledge'; gangAct = 'haul'; gangWhy = 'levering the drum off the sledge at the drum ground, for the gang of the Terrace to take in'; }
       else { dir = -1; s = R.len - Traffic.done(H.back, t, DRUM.back);
         if (moving(H.back)) { act = 'walk'; why = 'driving the oxen back to the quarry with the empty sledge'; gangAct = 'walk'; gangWhy = 'walking back to the quarry beside the empty sledge'; }
@@ -145,7 +145,10 @@ export class Traffic {
       let at: P2, head = Q.rot + Math.PI, act: ActivityId, why: string;
       const loading = leaving && i < 3 && h >= leaving.out[0][0] - d * 24 - 1.5 && h < leaving.out[0][0] - d * 24;
       if (work && h >= w0 && h < w1 && !(h >= 12 && h < 12.6) && !(C.heatRest && h >= 12.6 && h < 15)) {
-        if (loading) { at = Q.at(-3 + 2 * i, 21.5); act = 'quarry'; why = 'loading a rough drum onto the sledge for the haul to the Terrace'; head = Q.rot; }
+        // (round the sledge the driver stands by at the camp: activities.ts sleep/tend_animals 'drum sledge' puts it 2.6 m to his side)
+        if (loading) { const R0 = this.drumRoute!, a0 = along(R0, 0), sd = [[1.1, 0.6, Math.PI / 2], [4.1, 0.6, -Math.PI / 2], [2.6, 2.6, Math.PI]][i]; const c = Math.cos(a0.heading), sn = Math.sin(a0.heading);
+          // (sd: metres to the driver's right, ahead, and the turn to face the sledge)
+          at = [a0.e + c * sd[0] + sn * sd[1], a0.n - sn * sd[0] + c * sd[1]]; act = 'quarry'; why = 'loading a rough drum onto the sledge for the haul to the Terrace'; head = a0.heading + sd[2]; }
         else if (i < 5) { at = face(i); act = 'quarry'; why = 'cutting the channel round the next drum at the face'; head = Q.rot + Math.PI; }
         else { at = block(i - 5); act = 'quarry'; why = 'roughing out a column drum among the blocks'; head = Q.rot + Math.PI * (i % 2); } }
       else if (work && h >= 12 && h < 12.6) { at = camp(i); act = 'eat'; why = 'the midday meal of bread and onions at the quarry camp'; }

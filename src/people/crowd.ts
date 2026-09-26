@@ -856,6 +856,8 @@ export class Crowd {
         continue; }
       this.things.push(w.kind, place(fr, w.at[0], w.at[1], w.at[2], 0, _m));
     }
+    // (D-256: the bees about the hives buzz within 25 m, now and then)
+    if (d < 25 && this.onHit && (P.work ?? []).some(w => w.kind === 'hives') && this.snd.next() < dt / 3) { const c = Math.cos(b[3]), s = Math.sin(b[3]); this.onHit('buzz', new THREE.Vector3(b[0] + s * 0.9, b[1] + 0.5, b[2] + c * 0.9)); }
     const A = P.animals; if (!A) return;
     const t = this.cycleT(p, time), anim = p.anim;
     const path = anim === 'plough' ? { s: ploughPath(t, p.animK).s } : anim === 'drive' ? { yaw: -2 * Math.PI * ((t / THRESH_TURN_S + p.animK * 0.05) % 1) } : undefined;

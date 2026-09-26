@@ -236,7 +236,7 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
     case 'fold': { const g: THREE.BufferGeometry[] = [], R = 6, n = 30, THORN: RGB = [0.36, 0.3, 0.22];
       for (let i = 0; i < n; i++) { const a = (i / n) * Math.PI * 2 + Math.PI / 2; if (i === n / 2 || i === n / 2 + 1) continue; // (the gate, toward the performer: a = 3π/2)
         const x = R * Math.cos(a), z = R * Math.sin(a), h = 1.0 + 0.3 * Math.abs(jit(i, 4));
-        g.push(P(new THREE.SphereGeometry(1, 7, 4).scale(0.75, h * 0.62, 0.6).rotateY(-a).translate(x, h * 0.25, z), jit(i) > 0 ? THORN : [0.42, 0.35, 0.25], 1)); }
+        g.push(P(new THREE.SphereGeometry(1, 7, 4).scale(0.75, h * 0.62, 0.6).rotateY(-a).translate(x, h * 0.62 - 0.08, z), jit(i) > 0 ? THORN : [0.42, 0.35, 0.25], 1)); }
       for (let i = 0; i < 3; i++) g.push(P(mound(0.45, 0.25, 7, -1.5 + 1.5 * i, 1.2 * jit(i, 7)), STRAW_D));
       return merge(g); }
     // D-256: the drum on its sledge, lying on its side (axis across the runners), the traces forward (+z) to the yoke

@@ -222,8 +222,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   herd: { anim: 'herd', prop: 'staff', tier: 'C', animals: { kind: 'flock', species: SHEEP, n: 12, dogs: 2 }, sound: 'bleat',
     variants: [
       // D-256 (G17; A024, P-012): the village cattle, out by turns with a man of the village or a boy of a house with a cow
-      { when: /cows|cattle|calves/, sound: 'low', animals: { kind: 'flock', species: CATTLE, n: 8, dogs: 1 },
-        note: 'herding the village cows and calves on the river meadow and the fallow, a dog with them (cattle breed the plough oxen of the plain, E-40; the herd, its size and its grounds C: D-256). Their lowing is theirs' },
+      { when: /cows|cattle|calves/, sound: undefined, animals: { kind: 'flock', species: CATTLE, n: 8, dogs: 1 },
+        note: 'herding the village cows and calves on the river meadow and the fallow, a dog with them (cattle breed the plough oxen of the plain, E-40; the herd, its size and its grounds C: D-256). Their lowing is theirs (crowd.ts: a low now and then, the strike low)' },
       // D-256: the flock watched at night in its fold (the bands' watch by turns: E-49; the fold C)
       { when: /in the night|by turns/, animals: { kind: 'fold', species: SHEEP, n: 24, pace: 1, dogs: 2 }, work: [FOLD],
         note: 'watching the flock penned in its thorn fold through the night, by turns, with the dogs, against the wolves (the watch: E-49 herders and dogs, C; the fold C: D-256)' }],
@@ -318,10 +318,10 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     variants: [
       { when: /cutting the channel/, anim: 'hoe', prop: 'adze', work: [{ kind: 'spoil', at: [-1.1, 0, 0.4] }],
         note: 'cutting the channel round the next drum in the bench with a quarry pick (channels cut round the block and wedges driven under it: the ancient quarrying method, RECOLLECTION NOT SEEN; C: D-256)' },
-      { when: /loading/, anim: 'haul', prop: 'rope', sound: undefined, work: [{ kind: 'drum_haul', at: [0, 0, 3.4] }],
-        note: 'levering and roping a rough drum onto the sledge for the haul to the Terrace (C: D-256)' }] },
-  bees: { anim: 'pick', sound: 'buzz', tier: 'C', work: [{ kind: 'hives', at: [0, 0, 0.9] }],
-    note: 'seeing to the hives: clay-pipe hives stacked in a low wall in the garden, the ends opened and looked into (honey in the PF texts: RECOLLECTION NOT SEEN; the clay-pipe hive of Iran and the Near East, recollection; C: D-256)',
+      { when: /loading/, anim: 'haul', prop: 'rope', sound: undefined, work: [],
+        note: 'levering and roping a rough drum onto the sledge for the haul to the Terrace, round the sledge the driver stands by (the drum and sledge are the haul\'s: world/traffic.ts; C: D-256)' }] },
+  bees: { anim: 'pick', tier: 'C', work: [{ kind: 'hives', at: [0, 0, 0.9] }],
+    note: 'seeing to the hives: clay-pipe hives stacked in a low wall in the garden, the ends opened and looked into; the buzz of the bees comes from the hives (crowd.ts, the strike buzz) (honey in the PF texts: RECOLLECTION NOT SEEN; the clay-pipe hive of Iran and the Near East, recollection; C: D-256)',
     variants: [{ when: /honey|comb/, prop: 'knife', work: [{ kind: 'hives', at: [0, 0, 0.9] }, { kind: 'jar', at: [0.6, 0, 0.1] }], note: 'taking the honey: the combs cut from the back of the pipe hives with a knife into a jar, some left for the bees for the winter (C: D-256)' }] },
   // D-199 (court setting only): the king as the door-jamb and audience reliefs show him, and the two attendants behind him
   royal_walk: { anim: 'walk', moving: true, prop: 'sceptre', prop2: 'lotus', sound: 'footsteps', tier: 'B', note: 'the king walking, the long staff in his right hand and a lotus in his left (door-jamb reliefs of the Tachara and the Hadish, HADISH-JAMB: B); the gait and the pace C' },
