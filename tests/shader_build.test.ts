@@ -116,7 +116,7 @@ describe('surface shaders build (WGSL, node)', () => {
     town.nearUpdate(q.frame.c[0], -q.frame.c[1], 0); town.doors.update(0, new THREE.Vector3(q.frame.c[0], 0, -q.frame.c[1]), 3, 20, () => true);
     const meshes: THREE.Mesh[] = [], seen = new Set<string>();
     town.group.traverse((o: any) => { if (!o.isMesh) return; const k = /:far$/.test(o.name) ? 'far' : /settlement:near:/.test(o.name) ? 'near:' + o.name.split(':').pop() : /settlement-doors/.test(o.name) ? 'doors' : ''; if (k && !seen.has(k)) { seen.add(k); meshes.push(o); } });
-    expect([...seen].sort()).toEqual(['doors', 'far', 'near:brick', 'near:items', 'near:plaster', 'near:stone', 'near:timber'].filter(k => seen.has(k) || k !== 'near:brick'));
+    expect([...seen].sort()).toEqual(['doors', 'far', 'near:brick', 'near:items', 'near:plaster', 'near:props', 'near:stone', 'near:timber'].filter(k => seen.has(k) || k !== 'near:brick'));
     const fails: string[] = [];
     for (const m of meshes) { try { const b = build(renderer, scene, camera, m); if (!b.fragment.includes('output')) fails.push(m.name + ': no output'); if (/:far$/.test(m.name) && !/tile/.test(b.vertex)) fails.push('far: no tile attribute in the vertex stage'); } catch (e: any) { fails.push(`${m.name}: ${String(e?.message ?? e).slice(0, 300)}`); } }
     expect(fails).toEqual([]);

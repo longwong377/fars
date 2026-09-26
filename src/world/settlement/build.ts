@@ -34,7 +34,7 @@ export interface Desc { tier: string; src: string; note: string; placeholder?: b
 interface ColBox { x: number; y: number; z: number; hx: number; hy: number; hz: number; rot: number }
 interface Cluster { id: string; c: P2; batches: Map<string, Batch>; desc: Desc[]; far: Batch }
 interface SiteCol { id: string; c: P2; r: number; boxes: ColBox[]; live: any[] | null }
-const NEAR_KEYS = ['plaster', 'stone', 'timber', 'brick', 'items'] as const;
+const NEAR_KEYS = ['plaster', 'stone', 'timber', 'brick', 'items', 'props'] as const;
 interface NearTile { hs: SiteHouses; geo: Partial<Record<keyof HB, { g: THREE.BufferGeometry; owner: Int32Array }>>; tris: number; cl: Cluster; shown: boolean }
 
 const MUD: RGB = [0.56, 0.47, 0.36], TIMBER: RGB = [0.36, 0.26, 0.17], POT: RGB = [0.63, 0.43, 0.3], STONE: RGB = [0.55, 0.53, 0.49], BONE: RGB = [0.82, 0.78, 0.68];
@@ -168,9 +168,9 @@ export class Settlement {
       stone: Object.assign(surfaceMaterial('house_socle', { vertexColors: true }), { aoNode: attribute('ao', 'float') }),
       timber: Object.assign(surfaceMaterial('house_timber', { vertexColors: true }), { aoNode: attribute('ao', 'float') }),
       brick: Object.assign(surfaceMaterial('house_brick', { vertexColors: true }), { aoNode: attribute('ao', 'float') }),
-      items: null as any,
+      items: null as any, props: null as any,
     };
-    this.nearMats.items = this.nearMats.plaster;
+    this.nearMats.items = this.nearMats.plaster; this.nearMats.props = this.nearMats.timber;
     for (const cl of clusters.values()) for (const [mat, b] of cl.batches) {
       if (!b.tris) continue;
       const m = new THREE.Mesh(b.toGeometry(), mats[mat]); m.name = `settlement:${cl.id}:${mat}`; m.castShadow = true; m.receiveShadow = true; m.matrixAutoUpdate = false;
@@ -318,7 +318,7 @@ export class Settlement {
       const parts = shown.map(t => ({ n: this.near.get(t)!, x: this.near.get(t)!.geo[k] })).filter(q => q.x);
       let m = this.merged[k];
       if (!parts.length) { if (m) m.visible = false; continue; }
-      if (!m) { m = new THREE.Mesh(new THREE.BufferGeometry(), this.nearMats[k]); m.name = `settlement:near:${k}`; m.castShadow = k === 'timber' || k === 'items'; m.receiveShadow = true; m.matrixAutoUpdate = false; m.frustumCulled = false; this.merged[k] = m; this.group.add(m); }
+      if (!m) { m = new THREE.Mesh(new THREE.BufferGeometry(), this.nearMats[k]); m.name = `settlement:near:${k}`; m.castShadow = k === 'props' || k === 'items'; m.receiveShadow = true; m.matrixAutoUpdate = false; m.frustumCulled = false; this.merged[k] = m; this.group.add(m); }
       const g0 = parts[0].x!.g, names = Object.keys(g0.attributes); let nv = 0, ni = 0; for (const q of parts) { nv += q.x!.g.getAttribute('position').count; ni += q.x!.g.index!.count; }
       const g = new THREE.BufferGeometry();
       for (const a of names) { const size = g0.getAttribute(a).itemSize, arr = new Float32Array(nv * size); let o = 0; for (const q of parts) { const src = q.x!.g.getAttribute(a).array as Float32Array; arr.set(src, o); o += src.length; } g.setAttribute(a, new THREE.BufferAttribute(arr, size)); }

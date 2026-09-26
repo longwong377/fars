@@ -63,10 +63,10 @@ function vn(x: number, y: number, seed = 0) {
  *  mid-September, else the cold */
 export function seasonOf(day: number): 'harvest' | 'warm' | 'cold' { const d = ((day % 360) + 360) % 360; return d >= 45 && d < 100 ? 'harvest' : d >= 100 && d < 170 ? 'warm' : 'cold'; }
 /** the batches a build writes into */
-export interface HB { plaster: Batch; stone: Batch; timber: Batch; brick: Batch; items: Batch }
+export interface HB { plaster: Batch; stone: Batch; timber: Batch; brick: Batch; items: Batch; props: Batch }
 export const plasterBatch = (far = false) => { const b = new Batch().addAttr('y0', 1, [-1000]).addAttr('ytop', 1, [1e4]).addAttr('ao', 1, [1]); if (far) b.addAttr('tile', 2, [1e9, 1e9]); return b; };
 export const plainBatch = () => new Batch().addAttr('ao', 1, [1]);
-export const newHB = (): HB => ({ plaster: plasterBatch(), stone: plainBatch(), timber: plainBatch(), brick: plainBatch(), items: plasterBatch() });
+export const newHB = (): HB => ({ plaster: plasterBatch(), stone: plainBatch(), timber: plainBatch(), brick: plainBatch(), items: plasterBatch(), props: plainBatch() });
 
 interface Side { cls: 'room' | 'court' | 'open'; plot: number; roof: number }
 interface RoomEl { plot: number; room: number; i0: number; j0: number; i1: number; j1: number; full: boolean; drain: number; eave: number; tile: number; R: number; fall: number }
@@ -477,6 +477,7 @@ export class SiteHouses {
       const [A, Bq] = out0 && !out1 ? [B0, A0] : [A0, B0];
       B.timber.set("ao", 0.2); const pc = sh(pole, 0.88 + 0.22 * hi(seed, k, 5)); this.pole(B.timber, A, Bq, rr, out0 || out1 ? 6 : 4, pc, this.owner(r.plot, P.eave), out0 || out1 ? 'end' : false); }
     B.timber.set('ao', 1);
+    this.furnish(r, B);
     // eaves: the brush layer's underside and front, the earth front, the lip (broken at the spout), the spout
     for (let sd = 0; sd < 4; sd++) { if (!ext[sd]) continue;
       const isU = sd >= 2, edge = sd === 0 ? v0 : sd === 1 ? v1 : sd === 2 ? u0 : u1, dir = sd % 2 === 0 ? -1 : 1, outE = edge + dir * ext[sd], faceE = edge + dir * tf / 2;
@@ -518,6 +519,34 @@ export class SiteHouses {
       B.plaster.quad(P3(sp, f, (y0 + y1) / 2), P3(sp + wS * 0.8, f, (y0 + y1) / 2), P3(sp + wS * 0.4, f, y0), P3(sp, f, y0), N, sh(c, 0.75), c, c, c, this.owner(r.plot, P.spout)); }
   }
 
+  /** what a room holds (C, the probable household by analogy; D-234): a store room its jars and sacks, a living room its
+   *  reed mat, bedding rolled against the wall, a low mud platform and a stack of folded rugs; the vestibule a bench; rooms
+   *  of workshops their stock. Dark volumes otherwise: the visitor walking in would find them empty */
+  private furnish(r: RoomEl, B: HB) {
+    const s = this.s, p = s.plots[r.plot]; if (!HOUSE_KINDS.has(p.kind)) return;
+    const u0 = s.u0 + r.i0, u1 = s.u0 + r.i1, v0 = s.v0 + r.j0, v1 = s.v0 + r.j1, W2 = u1 - u0, D2 = v1 - v0; if (W2 < 2 || D2 < 2) return;
+    const vest = p.door && s.room[p.door.cell] === r.room, h = hi(r.room, this.si, 5), own = this.owner(r.plot, P.fixture);
+    const gy = (u: number, v: number) => this.gl(u, v);
+    // the wall away from the court (the room's back): opposite its drain side
+    const back = r.drain >= 0 && r.drain < 4 ? [1, 0, 3, 2][r.drain] : 1; // 0 −v, 1 +v, 2 −u, 3 +u
+    const along = back < 2 ? [u0 + 0.45, u1 - 0.45] : [v0 + 0.45, v1 - 0.45];
+    const atBack = (a: number, d: number): [number, number] => back === 0 ? [a, v0 + 0.28 + d] : back === 1 ? [a, v1 - 0.28 - d] : back === 2 ? [u0 + 0.28 + d, a] : [u1 - 0.28 - d, a];
+    B.plaster.set('y0', -1000).set('ytop', 1e4).set('ao', 0.2); B.timber.set('ao', 0.2);
+    if (vest) { if (h < 0.6) { const [u, v] = atBack((along[0] + along[1]) / 2, 0.2), y = gy(u, v); this.lbox(B.plaster, u, v, back < 2 ? Math.min(0.9, (along[1] - along[0]) / 2) : 0.22, back < 2 ? 0.22 : Math.min(0.9, (along[1] - along[0]) / 2), y - 0.05, y + 0.4, sh(this.tone(r.plot, 1, false), 0.8), this.tone(r.plot, 1, false), own); } }
+    else if (h < 0.35 || p.kind === 'workshop') { // a store: jars and sacks along the back wall
+      const pot = lin([0.63, 0.43, 0.3]), sack = lin([0.62, 0.55, 0.42]); const n = Math.max(2, Math.floor((along[1] - along[0]) / 0.62));
+      for (let k = 0; k < n; k++) { const a = along[0] + 0.2 + ((along[1] - along[0] - 0.4) * k) / Math.max(1, n - 1), [u, v] = atBack(a, 0.12), y = gy(u, v), g = s.grid(u, v), kk = 0.9 + 0.5 * hi(r.room, k, 1);
+        if (hi(r.room, k, 2) < 0.65) B.plaster.lathe(g[0], g[1], y - 0.05, [[0.12 * kk, 0], [0.26 * kk, 0.25 * kk], [0.25 * kk, 0.55 * kk], [0.12 * kk, 0.78 * kk], [0.1 * kk, 0.82 * kk]], 8, sh(pot, 0.85 + 0.25 * hi(r.room, k, 3)), own);
+        else B.plaster.lathe(g[0], g[1], y - 0.02, [[0.16, 0], [0.22, 0.15], [0.2, 0.42], [0.1, 0.55], [0.03, 0.58]], 6, sh(sack, 0.85 + 0.25 * hi(r.room, k, 4)), own); } }
+    else { // a living room: the reed mat, bedding rolled against the back wall, folded rugs, a low platform in larger rooms
+      const inset = 0.45, mu0 = u0 + inset, mu1 = u1 - inset, mv0 = v0 + inset, mv1 = v1 - inset, mat = sh(lin(MAT), 0.95 + 0.1 * h);
+      B.timber.poly([this.wp(mu0, mv0, gy(mu0, mv0) + 0.13), this.wp(mu1, mv0, gy(mu1, mv0) + 0.13), this.wp(mu1, mv1, gy(mu1, mv1) + 0.13), this.wp(mu0, mv1, gy(mu0, mv1) + 0.13)], [0, 1, 0], mat, own);
+      const bed: RGB[] = [[0.7, 0.64, 0.52], [0.52, 0.28, 0.2], [0.42, 0.36, 0.3], [0.66, 0.5, 0.3]]; const nb = 1 + Math.floor(hi(r.room, 7) * 3);
+      for (let k = 0; k < nb; k++) { const a = along[0] + 0.3 + k * 0.75; if (a + 0.6 > along[1]) break; const [ua, va] = atBack(a, 0.16), [ub, vb] = atBack(a + 0.6, 0.16), y = gy(ua, va) + 0.13 + 0.14;
+        this.pole(B.timber, this.wp(ua, va, y), this.wp(ub, vb, y), 0.14, 7, lin(bed[Math.floor(hi(r.room, k, 8) * bed.length)]), own); }
+      const [fu, fv] = atBack(along[1] - 0.35, 0.2), fy = gy(fu, fv) + 0.13; for (let k = 0; k < 3 + Math.floor(h * 4); k++) { const c = lin(bed[(k + Math.floor(h * 4)) % bed.length]); this.lbox(B.timber, fu, fv, 0.28 - 0.01 * k, 0.22, fy + k * 0.05, fy + k * 0.05 + 0.045, sh(c, 0.85), c, own, false, 0.05 * k); } }
+    B.plaster.set('ao', 1); B.timber.set('ao', 1);
+  }
   /** a house's court and roof fixtures in one tile (houseplan.ts), and the site's fittings (hearths, ovens, jars ...) */
   private fixturesNear(tile: number, B: HB) {
     const s = this.s;
@@ -538,72 +567,72 @@ export class SiteHouses {
     const yaw = f.rot; // local rotation for lbox (relative to the site frame)
     switch (f.kind) {
       case 'ladder': { const faceD = 0.275, top = R + 0.45, eaveD = faceD + 0.3, gy = g(0, 1.1), foot = eaveD + (top - gy) * 0.2, c = sh(tb, 0.9 + 0.2 * hi(f.plot, 1));
-        B.timber.set('ao', 0.9);
-        for (const e of [-0.22, 0.22]) this.pole(B.timber, W3(e, foot, gy - 0.05), W3(e * 0.95, eaveD - 0.04, top), 0.035, 5, c, own);
-        for (let y = gy + 0.3; y < top - 0.1; y += 0.31) { const k = (y - gy) / (top - gy), d = foot + (eaveD - 0.04 - foot) * k; this.pole(B.timber, W3(-0.22, d, y), W3(0.22, d, y), 0.02, 4, sh(c, 0.95), own, false); }
-        B.timber.set('ao', 1); break; }
+        B.props.set('ao', 0.9);
+        for (const e of [-0.22, 0.22]) this.pole(B.props, W3(e, foot, gy - 0.05), W3(e * 0.95, eaveD - 0.04, top), 0.035, 5, c, own);
+        for (let y = gy + 0.3; y < top - 0.1; y += 0.31) { const k = (y - gy) / (top - gy), d = foot + (eaveD - 0.04 - foot) * k; this.pole(B.props, W3(-0.22, d, y), W3(0.22, d, y), 0.02, 4, sh(c, 0.95), own, false); }
+        B.props.set('ao', 1); break; }
       case 'bench': { const d0 = 0.27, dep = 0.45, h = f.h ?? 0.42, [u, v] = at(0, d0 + dep / 2), gy = g(0, d0 + dep / 2), c = this.tone(f.plot, 1, false);
         B.items.set('y0', gy).set('ytop', gy + h).set('ao', 0.8); this.lbox(B.items, u, v, dep / 2, f.len / 2, gy - 0.1, gy + h, sh(c, 0.9), sh(c, 1.03), own, false, yaw); B.items.set('ao', 1); break; }
       case 'portico': { const [p1, p2] = f.posts!, ph = R - 0.42; const c = sh(tb, 0.95);
         for (const [u, v] of [p1, p2]) { const gy = this.gl(u, v); B.stone.set('ao', 0.9); this.lbox(B.stone, u, v, 0.24, 0.24, gy - 0.1, gy + 0.14, sh(st, 0.85), st, this.owner(f.plot, P.portico), false, 0.2 + hi(u, v));
-          B.timber.set('ao', 0.9); this.pole(B.timber, this.wp(u, v, gy + 0.14), this.wp(u, v, ph - 0.2), 0.1, 8, c, this.owner(f.plot, P.portico)); }
+          B.props.set('ao', 0.9); this.pole(B.props, this.wp(u, v, gy + 0.14), this.wp(u, v, ph - 0.2), 0.1, 8, c, this.owner(f.plot, P.portico)); }
         // the beam on the posts, the poles from the facade to it, matting and earth over them
         const [a0, b0] = [p1[0] - (p2[0] - p1[0]) * 0.35, p1[1] - (p2[1] - p1[1]) * 0.35], [a1, b1] = [p2[0] + (p2[0] - p1[0]) * 0.35, p2[1] + (p2[1] - p1[1]) * 0.35];
-        this.pole(B.timber, this.wp(a0, b0, ph - 0.11), this.wp(a1, b1, ph - 0.11), 0.1, 6, sh(c, 0.9), this.owner(f.plot, P.portico));
+        this.pole(B.props, this.wp(a0, b0, ph - 0.11), this.wp(a1, b1, ph - 0.11), 0.1, 6, sh(c, 0.9), this.owner(f.plot, P.portico));
         const [x0, y0, x1, y1] = f.rect!; const ax = Math.abs(nu) > 0.5 ? 1 : 0; // poles span from the facade (across nu)
         for (let k = 0; k <= 10; k++) { const t = k / 10; const al = ax ? y0 + (y1 - y0) * t : x0 + (x1 - x0) * t; const A = ax ? this.wp(x0, al, ph + 0.02) : this.wp(al, y0, ph + 0.02), Bq = ax ? this.wp(x1, al, ph + 0.02) : this.wp(al, y1, ph + 0.02);
-          this.pole(B.timber, A, Bq, 0.06, 5, sh(lin(POLE), 0.9 + 0.2 * hi(k, f.plot)), this.owner(f.plot, P.portico)); }
-        B.timber.set('ao', 0.4); const mat = lin(MAT); B.timber.quad(this.wp(x0, y0, ph + 0.08), this.wp(x1, y0, ph + 0.08), this.wp(x1, y1, ph + 0.08), this.wp(x0, y1, ph + 0.08), [0, -1, 0], mat, mat, mat, mat, this.owner(f.plot, P.portico)); B.timber.set('ao', 1);
+          this.pole(B.props, A, Bq, 0.06, 5, sh(lin(POLE), 0.9 + 0.2 * hi(k, f.plot)), this.owner(f.plot, P.portico)); }
+        B.props.set('ao', 0.4); const mat = lin(MAT); B.props.quad(this.wp(x0, y0, ph + 0.08), this.wp(x1, y0, ph + 0.08), this.wp(x1, y1, ph + 0.08), this.wp(x0, y1, ph + 0.08), [0, -1, 0], mat, mat, mat, mat, this.owner(f.plot, P.portico)); B.props.set('ao', 1);
         const rc = sh(this.pcol[f.plot], 1.02); B.plaster.set('y0', -1000).set('ytop', 1e4).set('ao', 1); this.lbox(B.plaster, (x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2, (y1 - y0) / 2, ph + 0.08, ph + 0.26, sh(rc, 0.88), rc, this.owner(f.plot, P.portico)); break; }
       case 'tether': { const c = this.tone(f.plot, 1, false), [u, v] = at(0, 0.27 + 0.25), gy = g(0, 0.5); B.items.set('y0', gy).set('ytop', gy + 0.62).set('ao', 0.8);
         this.lbox(B.items, u, v, 0.25, 0.55, gy - 0.1, gy + 0.62, sh(c, 0.85), c, own, false, yaw); B.items.set('ao', 0.35); const [u2, v2] = at(0, 0.52); this.lbox(B.items, u2, v2, 0.14, 0.45, gy + 0.3, gy + 0.625, sh(lin([0.4, 0.34, 0.24]), 0.8), lin([0.42, 0.36, 0.24]), own, false, yaw);
         B.items.set('ao', 1); B.items.set('y0', -1000); B.plaster.set('y0', -1000); const dung = lin([0.31, 0.26, 0.19]); const [u3, v3] = at(0.2, 1.1); B.plaster.mound(...s.grid(u3, v3), 0.75, 0.025, dung, (e, n) => this.H(e, n), own, 2, 9);
-        const [u4, v4] = at(-0.45, 1.25); const py = this.gl(u4, v4); B.timber.set('ao', 0.9); this.pole(B.timber, this.wp(u4, v4, py - 0.1), this.wp(u4, v4, py + 0.35), 0.03, 5, sh(tb, 0.7), own); B.timber.set('ao', 1); break; }
-      case 'fodder': { const straw = lin([0.66, 0.58, 0.39]); const [u, v] = at(0, 0.27 + (f.len) / 2 * 0.7); B.timber.set('ao', 0.85); B.timber.mound(...s.grid(u, v), f.len / 2 + 0.1, f.h ?? 0.8, straw, (e, n) => this.H(e, n), own, 4, 12); B.timber.set('ao', 1); break; }
-      case 'firewood': { B.timber.set('ao', 0.8); const n = 14 + Math.floor(hi(f.plot, 3) * 10);
+        const [u4, v4] = at(-0.45, 1.25); const py = this.gl(u4, v4); B.props.set('ao', 0.9); this.pole(B.props, this.wp(u4, v4, py - 0.1), this.wp(u4, v4, py + 0.35), 0.03, 5, sh(tb, 0.7), own); B.props.set('ao', 1); break; }
+      case 'fodder': { const straw = lin([0.66, 0.58, 0.39]); const [u, v] = at(0, 0.27 + (f.len) / 2 * 0.7); B.props.set('ao', 0.85); B.props.mound(...s.grid(u, v), f.len / 2 + 0.1, f.h ?? 0.8, straw, (e, n) => this.H(e, n), own, 4, 12); B.props.set('ao', 1); break; }
+      case 'firewood': { B.props.set('ao', 0.8); const n = 14 + Math.floor(hi(f.plot, 3) * 10);
         for (let k = 0; k < n; k++) { const a = (hi(f.plot, k, 1) - 0.5) * f.len, h = (f.h ?? 0.8) * (0.7 + 0.5 * hi(f.plot, k, 2)), lean = 0.18 + 0.2 * hi(f.plot, k, 3), gy = g(a, 0.3 + lean);
           const c = f.alt === 2 ? sh(lin([0.42, 0.37, 0.3]), 0.8 + 0.3 * hi(k, 7)) : sh(lin([0.5, 0.43, 0.33]), 0.75 + 0.35 * hi(k, 7));
-          this.pole(B.timber, W3(a, 0.3 + lean, gy - 0.02), W3(a + (hi(f.plot, k, 4) - 0.5) * 0.3, 0.3, gy + h), 0.012 + 0.018 * hi(f.plot, k, 5), 4, c, own, false); }
-        B.timber.set('ao', 1); break; }
-      case 'line': { const h = f.h ?? 1.9, d = 0.6; const gy = g(0, d); const A = W3(-f.len / 2, 0.3, gy + h), Bq = W3(f.len / 2, 0.3, gy + h); B.timber.set('ao', 1);
-        this.pole(B.timber, A, Bq, 0.006, 3, lin([0.6, 0.55, 0.45]), own, false);
+          this.pole(B.props, W3(a, 0.3 + lean, gy - 0.02), W3(a + (hi(f.plot, k, 4) - 0.5) * 0.3, 0.3, gy + h), 0.012 + 0.018 * hi(f.plot, k, 5), 4, c, own, false); }
+        B.props.set('ao', 1); break; }
+      case 'line': { const h = f.h ?? 1.9, d = 0.6; const gy = g(0, d); const A = W3(-f.len / 2, 0.3, gy + h), Bq = W3(f.len / 2, 0.3, gy + h); B.props.set('ao', 1);
+        this.pole(B.props, A, Bq, 0.006, 3, lin([0.6, 0.55, 0.45]), own, false);
         const cloths: RGB[] = [[0.78, 0.74, 0.64], [0.72, 0.68, 0.58], [0.55, 0.28, 0.2], [0.62, 0.55, 0.42], [0.35, 0.3, 0.26], [0.8, 0.77, 0.7], [0.48, 0.42, 0.33], [0.66, 0.44, 0.24]];
         const n = 2 + Math.floor(hi(f.alt ?? 0, 5) * 3); for (let k = 0; k < n; k++) { const a = -f.len / 2 + 0.3 + (f.len - 0.6) * (k + 0.5) / n, w2 = 0.35 + 0.3 * hi(f.alt ?? 0, k, 1), dh = 0.5 + 0.5 * hi(f.alt ?? 0, k, 2); const c = lin(cloths[Math.floor(hi(f.alt ?? 0, k, 3) * cloths.length)]);
           const q = [W3(a - w2 / 2, 0.3, gy + h), W3(a + w2 / 2, 0.3, gy + h), W3(a + w2 / 2, 0.3 + 0.03, gy + h - dh), W3(a - w2 / 2, 0.3 + 0.03, gy + h - dh)]; const [nx, nz] = this.dirW(nu, nv);
-          B.timber.quad(q[0], q[1], q[2], q[3], [nx, 0, nz], c, c, sh(c, 0.95), sh(c, 0.95), own); B.timber.quad(q[1], q[0], q[3], q[2], [-nx, 0, -nz], sh(c, 0.9), sh(c, 0.9), sh(c, 0.85), sh(c, 0.85), own); } break; }
-      case 'baskets': { B.timber.set('ao', 0.85); const bc = lin([0.62, 0.52, 0.34]); const n = 1 + (f.alt ?? 0) % 3;
+          B.props.quad(q[0], q[1], q[2], q[3], [nx, 0, nz], c, c, sh(c, 0.95), sh(c, 0.95), own); B.props.quad(q[1], q[0], q[3], q[2], [-nx, 0, -nz], sh(c, 0.9), sh(c, 0.9), sh(c, 0.85), sh(c, 0.85), own); } break; }
+      case 'baskets': { B.props.set('ao', 0.85); const bc = lin([0.62, 0.52, 0.34]); const n = 1 + (f.alt ?? 0) % 3;
         for (let k = 0; k < n; k++) { const a = (k - (n - 1) / 2) * 0.45, gy = g(a, 0), k2 = 0.8 + 0.5 * hi(f.alt ?? 0, k), [u, v] = at(a, 0); const [e, nn] = s.grid(u, v);
-          B.timber.lathe(e, nn, gy - 0.01, [[0.13 * k2, 0], [0.19 * k2, 0.08 * k2], [0.21 * k2, 0.24 * k2], [0.2 * k2, 0.3 * k2]], 7, sh(bc, 0.85 + 0.25 * hi(k, 9)), own); }
+          B.props.lathe(e, nn, gy - 0.01, [[0.13 * k2, 0], [0.19 * k2, 0.08 * k2], [0.21 * k2, 0.24 * k2], [0.2 * k2, 0.3 * k2]], 7, sh(bc, 0.85 + 0.25 * hi(k, 9)), own); }
         // a broom of twigs against the wall-side of the baskets
-        const gy = g(0.6, 0.1); this.pole(B.timber, W3(0.55, 0.35, gy + 0.02), W3(0.62, 0.05, gy + 1.1), 0.016, 4, sh(tb, 0.9), own); B.timber.set('ao', 1); break; }
+        const gy = g(0.6, 0.1); this.pole(B.props, W3(0.55, 0.35, gy + 0.02), W3(0.62, 0.05, gy + 1.1), 0.016, 4, sh(tb, 0.9), own); B.props.set('ao', 1); break; }
       case 'mortar': { const gy = g(0, 0), [u, v] = at(0, 0), [e, nn] = s.grid(u, v); B.stone.set('ao', 0.85); B.stone.lathe(e, nn, gy - 0.05, [[0.22, 0], [0.24, 0.2], [0.2, 0.38], [0.13, 0.38]], 9, sh(st, 0.95), own); B.stone.set('ao', 1);
-        B.timber.set('ao', 0.9); this.pole(B.timber, W3(0.05, 0, gy + 0.3), W3(0.25, 0.3, gy + 1.1), 0.035, 5, sh(tb, 0.95), own); B.timber.set('ao', 1); break; }
-      case 'cradle': { const gy = g(0, 0), [u, v] = at(0, 0), c = sh(tb, 1.05); B.timber.set('ao', 0.85); this.lbox(B.timber, u, v, 0.28, 0.45, gy + 0.08, gy + 0.36, sh(c, 0.8), c, own, false, yaw);
-        for (const e of [-0.38, 0.38]) { const [u2, v2] = at(e, 0); this.lbox(B.timber, u2, v2, 0.3, 0.03, gy, gy + 0.1, c, c, own, false, yaw + Math.PI / 2); } const cl = lin([0.75, 0.7, 0.6]); this.lbox(B.timber, u, v, 0.25, 0.4, gy + 0.36, gy + 0.4, cl, cl, own, false, yaw); B.timber.set('ao', 1); break; }
+        B.props.set('ao', 0.9); this.pole(B.props, W3(0.05, 0, gy + 0.3), W3(0.25, 0.3, gy + 1.1), 0.035, 5, sh(tb, 0.95), own); B.props.set('ao', 1); break; }
+      case 'cradle': { const gy = g(0, 0), [u, v] = at(0, 0), c = sh(tb, 1.05); B.props.set('ao', 0.85); this.lbox(B.props, u, v, 0.28, 0.45, gy + 0.08, gy + 0.36, sh(c, 0.8), c, own, false, yaw);
+        for (const e of [-0.38, 0.38]) { const [u2, v2] = at(e, 0); this.lbox(B.props, u2, v2, 0.3, 0.03, gy, gy + 0.1, c, c, own, false, yaw + Math.PI / 2); } const cl = lin([0.75, 0.7, 0.6]); this.lbox(B.props, u, v, 0.25, 0.4, gy + 0.36, gy + 0.4, cl, cl, own, false, yaw); B.props.set('ao', 1); break; }
       case 'roller': { const sp = this.roofSpot(f); if (!sp) break; const a = f.rot, A = this.wp(sp.u - Math.cos(a) * 0.3, sp.v - Math.sin(a) * 0.3, sp.y + 0.14), Bq = this.wp(sp.u + Math.cos(a) * 0.3, sp.v + Math.sin(a) * 0.3, sp.y + 0.14);
         B.stone.set('ao', 1); this.pole(B.stone, A, Bq, 0.14, 9, sh(st, 1.0), own); break; }
       case 'roof_fuel': { const sp = this.roofSpot(f); if (!sp) break;
         // after the harvest: the household's grain share spread on a mat on the roof to dry (C)
-        if (seasonOf(this.day) === 'harvest' && hi(f.plot, 91) < 0.5) { const g = lin([0.74, 0.64, 0.42]), a = f.rot + 1.2; B.timber.set('ao', 1);
+        if (seasonOf(this.day) === 'harvest' && hi(f.plot, 91) < 0.5) { const g = lin([0.74, 0.64, 0.42]), a = f.rot + 1.2; B.props.set('ao', 1);
           const c0 = [sp.u - Math.cos(a) * 1.0 - 0.9, sp.v - Math.sin(a) * 1.0], pts = [[-0.8, -0.6], [0.8, -0.6], [0.8, 0.6], [-0.8, 0.6]].map(([x, z]) => this.wp(c0[0] + x * Math.cos(a) - z * Math.sin(a), c0[1] + x * Math.sin(a) + z * Math.cos(a), sp.y + 0.05));
-          B.timber.poly(pts, [0, 1, 0], [g, sh(g, 0.95), g, sh(g, 1.04)], own); } B.timber.set('ao', 0.95); const n = 18;
+          B.props.poly(pts, [0, 1, 0], [g, sh(g, 0.95), g, sh(g, 1.04)], own); } B.props.set('ao', 0.95); const n = 18;
         for (let k = 0; k < n; k++) { const a = f.rot + (hi(f.alt ?? 0, k) - 0.5) * 0.6, x = (hi(f.alt ?? 0, k, 1) - 0.5) * 0.9, z = (hi(f.alt ?? 0, k, 2) - 0.5) * 0.8, y = sp.y + 0.05 + 0.08 * Math.floor(k / 6);
-          const c = sh(lin([0.47, 0.41, 0.31]), 0.75 + 0.4 * hi(f.alt ?? 0, k, 3)); const L2 = f.len * (0.7 + 0.3 * hi(k, 1)); this.pole(B.timber, this.wp(sp.u + x - Math.cos(a) * L2 / 2, sp.v + z - Math.sin(a) * L2 / 2, y), this.wp(sp.u + x + Math.cos(a) * L2 / 2, sp.v + z + Math.sin(a) * L2 / 2, y + 0.03), 0.018, 4, c, own, false); }
+          const c = sh(lin([0.47, 0.41, 0.31]), 0.75 + 0.4 * hi(f.alt ?? 0, k, 3)); const L2 = f.len * (0.7 + 0.3 * hi(k, 1)); this.pole(B.props, this.wp(sp.u + x - Math.cos(a) * L2 / 2, sp.v + z - Math.sin(a) * L2 / 2, y), this.wp(sp.u + x + Math.cos(a) * L2 / 2, sp.v + z + Math.sin(a) * L2 / 2, y + 0.03), 0.018, 4, c, own, false); }
         // a stack of dried dung cakes beside it
-        const dc = lin([0.36, 0.3, 0.22]); for (let k = 0; k < 8; k++) { const [u, v] = [sp.u + 0.7 + (k % 2) * 0.05, sp.v + 0.3]; this.lbox(B.timber, u, v, 0.1, 0.1, sp.y + k * 0.035, sp.y + k * 0.035 + 0.03, sh(dc, 0.85 + 0.2 * hi(k, 2)), dc, own, false, k * 0.7); }
-        B.timber.set('ao', 1); break; }
-      case 'roof_mats': { const sp = this.roofSpot(f); if (!sp || seasonOf(this.day) !== 'warm' && seasonOf(this.day) !== 'harvest') break; const n = 1 + (f.alt ?? 0) % 3; B.timber.set('ao', 0.95); // rolled on the roof only while the nights are slept there
+        const dc = lin([0.36, 0.3, 0.22]); for (let k = 0; k < 8; k++) { const [u, v] = [sp.u + 0.7 + (k % 2) * 0.05, sp.v + 0.3]; this.lbox(B.props, u, v, 0.1, 0.1, sp.y + k * 0.035, sp.y + k * 0.035 + 0.03, sh(dc, 0.85 + 0.2 * hi(k, 2)), dc, own, false, k * 0.7); }
+        B.props.set('ao', 1); break; }
+      case 'roof_mats': { const sp = this.roofSpot(f); if (!sp || seasonOf(this.day) !== 'warm' && seasonOf(this.day) !== 'harvest') break; const n = 1 + (f.alt ?? 0) % 3; B.props.set('ao', 0.95); // rolled on the roof only while the nights are slept there
         for (let k = 0; k < n; k++) { const a = f.rot, o = (k - (n - 1) / 2) * 0.3, cu = sp.u - Math.sin(a) * o, cv = sp.v + Math.cos(a) * o; const c = k === 1 ? lin([0.55, 0.3, 0.22]) : sh(lin([0.63, 0.56, 0.4]), 0.9 + 0.15 * hi(k, f.plot));
-          this.pole(B.timber, this.wp(cu - Math.cos(a) * 0.9, cv - Math.sin(a) * 0.9, sp.y + 0.12), this.wp(cu + Math.cos(a) * 0.9, cv + Math.sin(a) * 0.9, sp.y + 0.12), 0.12, 8, c, own); }
-        B.timber.set('ao', 1); break; }
+          this.pole(B.props, this.wp(cu - Math.cos(a) * 0.9, cv - Math.sin(a) * 0.9, sp.y + 0.12), this.wp(cu + Math.cos(a) * 0.9, cv + Math.sin(a) * 0.9, sp.y + 0.12), 0.12, 8, c, own); }
+        B.props.set('ao', 1); break; }
       case 'fleece': { // over a lane-facing parapet of the house
         const cand = this.walls.filter(w => w.plot === f.plot && w.w.kind === 'outer' && !w.w.door && Math.hypot(w.w.u1 - w.w.u0, w.w.v1 - w.w.v0) > 1.5); if (!cand.length) break;
         const we = cand[Math.floor(hi(f.alt ?? 0, 3) * cand.length)], w = we.w, ax = w.v0 === w.v1 ? 0 : 1, sp = this.wallSpan(w), top = sp.top + 0.01, t = w.thick;
         const cols: RGB[] = [[0.82, 0.78, 0.68], [0.3, 0.26, 0.22], [0.55, 0.45, 0.33], [0.6, 0.3, 0.22]]; const c = lin(cols[(f.alt ?? 0) % cols.length]);
         const mid = ax === 0 ? (w.u0 + w.u1) / 2 : (w.v0 + w.v1) / 2, cc = ax === 0 ? w.v0 : w.u0, hw = 0.4, drop = 0.55;
         const p = (al: number, ac: number, y: number) => (ax === 0 ? this.wp(al, ac, y) : this.wp(ac, al, y)); const [nx, nz] = ax === 0 ? this.dirW(0, 1) : this.dirW(1, 0);
-        B.timber.set('ao', 1); B.timber.quad(p(mid - hw, cc - t / 2 - 0.02, top + 0.02), p(mid + hw, cc - t / 2 - 0.02, top + 0.02), p(mid + hw, cc + t / 2 + 0.02, top + 0.02), p(mid - hw, cc + t / 2 + 0.02, top + 0.02), [0, 1, 0], c, c, c, c, own);
-        for (const e of [-1, 1]) B.timber.quad(p(mid - hw, cc + e * (t / 2 + 0.02), top + 0.02), p(mid + hw, cc + e * (t / 2 + 0.02), top + 0.02), p(mid + hw * 0.9, cc + e * (t / 2 + 0.03), top - drop), p(mid - hw * 1.05, cc + e * (t / 2 + 0.03), top - drop * 0.9), [nx * e, 0, nz * e], c, c, sh(c, 0.9), sh(c, 0.9), own);
+        B.props.set('ao', 1); B.props.quad(p(mid - hw, cc - t / 2 - 0.02, top + 0.02), p(mid + hw, cc - t / 2 - 0.02, top + 0.02), p(mid + hw, cc + t / 2 + 0.02, top + 0.02), p(mid - hw, cc + t / 2 + 0.02, top + 0.02), [0, 1, 0], c, c, c, c, own);
+        for (const e of [-1, 1]) B.props.quad(p(mid - hw, cc + e * (t / 2 + 0.02), top + 0.02), p(mid + hw, cc + e * (t / 2 + 0.02), top + 0.02), p(mid + hw * 0.9, cc + e * (t / 2 + 0.03), top - drop), p(mid - hw * 1.05, cc + e * (t / 2 + 0.03), top - drop * 0.9), [nx * e, 0, nz * e], c, c, sh(c, 0.9), sh(c, 0.9), own);
         break; }
       default: break; // niche, drain, dungcakes: drawn on the walls (faceDecals); waterjar: the plan's jars
     }
