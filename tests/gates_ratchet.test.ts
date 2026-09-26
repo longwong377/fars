@@ -91,13 +91,18 @@ describe('thresholds ratchet (MASTER_PLAN §4.1)', () => {
     }
   });
   it('against every committed version and ratchet tag: no id removed, nothing reworded, no value loosened, no sample thinned', () => {
-    for (const { rev, rows } of history()) {
+    const H = history();
+    // a row reset to to-build in a later committed version is released from the tool lock of the versions before the reset
+    // (rev 2.1 reset every overclaimed status; the honest correction must not freeze an old wrong tool)
+    const lastReset = new Map<string, number>();
+    H.forEach(({ rows }, i) => { for (const o of rows) if (o.status === 'to-build') lastReset.set(o.id, i); });
+    for (const [i, { rev, rows }] of H.entries()) {
       for (const old of rows) {
         const r = byId.get(old.id);
         expect(r, `${old.id} (present at ${rev}) was removed`).toBeTruthy();
         if (!r) continue;
         for (const k of LOCKED) if ((old as any)[k] !== undefined) expect((r as any)[k], `${r.id}: ${k} changed since ${rev}`).toBe((old as any)[k]);
-        if (old.status !== 'to-build' && r.status !== 'to-build') expect(r.tool, `${r.id}: tool changed since ${rev} while measured`).toBe(old.tool);
+        if (old.status !== 'to-build' && r.status !== 'to-build' && (lastReset.get(r.id) ?? -1) < i) expect(r.tool, `${r.id}: tool changed since ${rev} while measured`).toBe(old.tool);
         if (old.superseded_by) expect(r.superseded_by, `${r.id}: un-superseded since ${rev}`).toBe(old.superseded_by);
         const looser = !asStrict(old.op, old.value, r.value) || r.sample_min < old.sample_min;
         if (looser) {

@@ -1,0 +1,75 @@
+{
+ "id": "T-D3s",
+ "value": 100,
+ "n": 10259,
+ "n_note": "households with members asleep at home at 23:00, over the runs",
+ "byRun": [
+  {
+   "seed": 1,
+   "court": true,
+   "v": {
+    "share": 100,
+    "sleepers": 10732,
+    "ok": 10732,
+    "fails": {},
+    "day": 25
+   }
+  },
+  {
+   "seed": 7,
+   "court": true,
+   "v": {
+    "share": 100,
+    "sleepers": 10682,
+    "ok": 10682,
+    "fails": {},
+    "day": 25
+   }
+  },
+  {
+   "seed": 14561,
+   "court": true,
+   "v": {
+    "share": 100,
+    "sleepers": 10627,
+    "ok": 10627,
+    "fails": {},
+    "day": 25
+   }
+  },
+  {
+   "seed": 1,
+   "court": false,
+   "v": {
+    "share": 100,
+    "sleepers": 10735,
+    "ok": 10735,
+    "fails": {},
+    "day": 25
+   }
+  }
+ ],
+ "commit": "d56d758",
+ "tool": "tools/dev/people_trace.ts",
+ "pass": "s8-d244-indoor-truth",
+ "date": "2026-09-26",
+ "sample": 4,
+ "runs": [
+  {
+   "seed": 1,
+   "court": true
+  },
+  {
+   "seed": 7,
+   "court": true
+  },
+  {
+   "seed": 14561,
+   "court": true
+  },
+  {
+   "seed": 1,
+   "court": false
+  }
+ ]
+}

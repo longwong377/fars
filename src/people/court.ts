@@ -29,7 +29,7 @@ import type { Population, Person, Household, Seg, Where, Job } from './populatio
 import type { ActivityId } from './activities';
 import { u01, salt, HStream, poisson } from './hash';
 import { REGNAL_DAYS } from './calendar';
-import { dustWear, coldWear, wetHours, OPEN_PLACE } from './population'; // (functions only, called after both modules have loaded)
+import { dustWear, coldWear, wetHours, wetSpells, OPEN_PLACE } from './population'; // (functions only, called after both modules have loaded)
 import { CAMPS, CAMP_BY_ID, campPlace, campOfPlace, layoutCamp, TENT_KINDS, type Tent, type TentKind } from './camps';
 import delegationsData from '../data/delegations.json';
 
@@ -395,6 +395,18 @@ class CourtDay {
     if (to === this.cur) return; const h = walkHours(this.cur, to), a = whereOf(this.cur), b = whereOf(to);
     this.add(this.t + h, `road:${a === 'terrace' || b === 'terrace' ? 'terrace' : a === 'plain' && b === 'plain' ? 'plain' : 'town'}`, act, why, carry, 'road'); this.cur = to;
   }
+  /** D-244 (T-D4): an errand in the open (`len` hours of walking and carrying from now) waits for the rain to pass. From now, the
+   *  first start at which those hours are dry (the day's wet spells, as the population's ration issue: rainShiftedIssue); the wait
+   *  is kept indoors where the person is (the Gate's roof from the open stair foot or forecourt; a tent at the camps, a room at
+   *  the royal stores, the table store's roof: C). False when the rain runs on past `until` (not today; waited out to then) */
+  dryStart(len: number, until: number): boolean {
+    const wx = this.C.wx; let t = this.t;
+    for (let k = 0; k < 24 && wetHours(wx, t, t + len) > 0; k++) { const sp = wetSpells(wx).find(x => x[1] > t && x[0] < t + len); if (!sp) break; t = sp[1]; }
+    const end = Math.min(t, until); if (end <= this.t + 0.02) return t + len <= until;
+    if (OPEN_PLACE.test(this.cur)) this.go(whereOf(this.cur) === 'terrace' ? 'gate_hall' : this.m.sleep, 'going in out of the rain');
+    this.add(Math.max(end, this.t + 0.02), this.cur, 'rest', 'waiting indoors for the rain to pass');
+    return t + len <= until;
+  }
   /** at `place` (walking there first) until t1 */
   at(t1: number, place: string, act: ActivityId, why: string, carry?: string) { this.go(place); this.add(Math.max(t1, this.t + 0.02), place, act, why, carry); }
   /** stay at the current place doing `act` until exactly t1 (when the fill before stopped short of it) */
@@ -590,7 +602,8 @@ class CourtDay {
       this.fill(r.range(12, 13), o); this.meal(this.m.sleep, 0.5, 'the midday meal at the camp'); this.fill(r.range(18.5, 19.5), o); this.meal(this.m.sleep, 0.5, 'the evening meal at the camp'); this.fill(r.range(20.8, 21.6), o); this.night(); return; }
     const loads: [ActivityId, string, string][] = [['carry_sack', 'carrying flour up from the royal stores to the king’s kitchens', 'a sack of flour'], ['carry_jar', 'carrying wine up from the royal stores to the king’s table store', 'a jar of wine'],
       ['carry_sack', 'carrying barley up from the royal stores to the king’s kitchens', 'a sack of barley'], ['carry_jar', 'carrying oil up from the royal stores', 'a jar of oil']];
-    const trips = (until: number) => { while (this.t + 2 * walkHours(RS, ST) + 0.4 < until) { const [a, why, c] = loads[Math.floor(r.next() * loads.length)];
+    const trips = (until: number) => { while (this.t + 2 * walkHours(RS, ST) + 0.4 < until) { if (!this.dryStart(2 * walkHours(RS, ST) + 0.5, until)) break; // (D-244: no load carried through the rain)
+      const [a, why, c] = loads[Math.floor(r.next() * loads.length)];
       this.go(RS, 'going down to the royal stores'); this.add(this.t + r.range(0.1, 0.3), RS, 'rest', 'waiting while the storekeeper weighs out the load');
       this.go(ST, why, a, c); this.add(this.t + r.range(0.08, 0.2), ST, 'rest', 'setting the load down in the king’s table store'); if (r.chance(0.25)) this.add(this.t + r.range(0.2, 0.5), ST, 'rest', 'resting before the next load'); } };
     trips(r.range(10.8, 11.6)); this.meal('stair_foot', 0.5, 'the midday meal at the stair foot'); trips(r.range(16, 17)); this.go(this.m.sleep, 'going back to the camp');
@@ -705,7 +718,7 @@ class CourtDay {
     const errand = !dayOff && (G.work === 'baggage' || G.work === 'convoy' || (G.work === 'household' && town)) && r.chance(G.work === 'household' ? 0.25 : 0.5);
     this.morning(r.range(4.9, 6.1)); this.meal(CA, 0.35, 'breakfast at the camp');
     this.fill(r.range(7.2, 8.4), work);
-    if (errand) { const RS = 'royal_store', load = G.work === 'household' ? 'a sack of flour' : 'a sack of barley';
+    if (errand && this.dryStart(2 * walkHours(CA, 'royal_store') + 0.6, 11.4)) { const RS = 'royal_store', load = G.work === 'household' ? 'a sack of flour' : 'a sack of barley'; // (D-244: not through the rain)
       this.go(RS, 'going to the royal stores'); this.add(this.t + r.range(0.2, 0.4), RS, 'rest', 'waiting while the storekeeper weighs out the load');
       this.go(CA, `carrying ${G.work === 'household' ? 'flour' : 'barley'} from the royal stores to the camp`, 'carry_sack', load); }
     this.fill(r.range(11.6, 12.6), work); this.meal(CA, 0.5, 'the midday meal at the camp');

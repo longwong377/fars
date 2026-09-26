@@ -266,6 +266,44 @@ export function workSpan(wx: DayCtx['wx'], w0: number, w1: number, roofed = fals
   return { a, b, dry: b - a - wet };
 }
 export const outdoors = (s: Seg) => s.where === 'road' || OPEN_PLACE.test(s.place) || OPEN_WHY.test(s.why);
+/** D-244: words that put a block under a roof ("playing indoors out of the rain", "in the stall", "inside a tent") */
+export const INDOOR_WHY = /\bindoors\b|\bin the (stall|room|hut)\b|\binside (the|a|his|her|their) (house|room|tent|hut|stall)\b|under (a|the) roof/;
+/** D-244 (T-D3): the plan puts the person under a roof at hour h of this block. The plan says so in its words (INDOOR_WHY),
+ *  or by the act (asleep, ill in bed, off the map), or the block is at a place of the plan that is not out of doors
+ *  (`outdoors`: a house, a workshop, a hall) at an hour when the plan's shelter rules rely on its roof: after dark
+ *  (popgeo's dark: from a quarter hour before sunrise to 0.6 h after sunset), in a quarter-hour of rain or within the
+ *  storm's span (shelterHome and the work rules move only the OPEN blocks indoors: the rest are taken as under the roof
+ *  already), or at leisure in the dust. A block at such a place in dry daylight is where the view may choose (a workshop's
+ *  court or its room: C). The population view (popview.ts) draws from this, and the renderless trace
+ *  (tools/dev/people_trace.ts) measures the drawn world against it */
+export function planIndoors(s: Seg, wx: DayCtx['wx'], sun: { rise: number; set: number }, h: number): boolean {
+  if (s.where === 'road' || s.where === 'away') return false;
+  if (INDOOR_WHY.test(s.why)) return true;
+  if (outdoors(s)) return false;
+  if (s.act === 'sleep' || s.act === 'lie_ill' || s.act === 'offmap') return true;
+  if (h < sun.rise - 0.25 || h > sun.set + 0.6) return true;
+  const q = Math.max(0, Math.min(95, Math.floor(h * 4)));
+  if (wx.rainQ[q] || (wx.stormH && h >= wx.stormH[0] && h < wx.stormH[1])) return true;
+  if (wx.dustH && h >= wx.dustH[0] && h < wx.dustH[1] && /^(play|rest|sleep|talk|spin)$/.test(s.act)) return true;
+  return false;
+}
+/** D-244: the next hour after h (within the block, up to t1) at which planIndoors can change: the next quarter-hour
+ *  boundary where the weather or the dark changes, or t1 */
+export function planIndoorsUntil(s: Seg, wx: DayCtx['wx'], sun: { rise: number; set: number }, h: number, t1: number): number {
+  const now = planIndoors(s, wx, sun, h), cand: number[] = [];
+  for (let q = Math.floor(h * 4) + 1; q * 0.25 < t1; q++) cand.push(q * 0.25);
+  for (const b of [sun.rise - 0.25, sun.set + 0.6, ...(wx.stormH ?? []), ...(wx.dustH ?? [])]) if (b > h && b < t1) cand.push(b);
+  cand.sort((a, b) => a - b); for (const b of cand) if (planIndoors(s, wx, sun, b + 1e-6) !== now) return b;
+  return t1;
+}
+/** D-244: the hour (at or after t0) since which planIndoors has held unchanged up to h: the start of this spell of the block */
+export function planIndoorsSince(s: Seg, wx: DayCtx['wx'], sun: { rise: number; set: number }, h: number, t0: number): number {
+  const now = planIndoors(s, wx, sun, h), cand: number[] = [];
+  for (let q = Math.ceil(h * 4) - 1; q * 0.25 > t0; q--) if (q * 0.25 <= h) cand.push(q * 0.25);
+  for (const b of [sun.rise - 0.25, sun.set + 0.6, ...(wx.stormH ?? []), ...(wx.dustH ?? [])]) if (b > t0 && b <= h) cand.push(b);
+  cand.sort((a, b) => b - a); for (const b of cand) if (planIndoors(s, wx, sun, b - 1e-6) !== now) return b;
+  return t0;
+}
 /** hours of [a, b] with rain (the shelter rule's quarter-hours) or within the storm's span */
 export function wetHours(wx: DayCtx['wx'], a: number, b: number) {
   if ((!wx.rain && !wx.stormH) || b <= a) return 0; let h = 0; const st = wx.stormH;

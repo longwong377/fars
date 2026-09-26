@@ -399,8 +399,23 @@ export function coldBits(dress: Dress): [number, number] {
   const on = dress === 'median' ? b('kandys') : dress === 'worker' ? b('work_trousers') | b('cap_soft') : dress === 'woman' ? b('headcloth') : dress === 'child' ? b('shoes') : 0;
   const off = dress === 'woman' ? b('hair') | b('hair_bob') : 0; c = [on, off]; coldCache.set(dress, c); return c;
 }
-/** a person's piece mask for the air's temperature (°C) */
-export function weatherMask(dress: Dress, mask: number, tempC: number): number { if (!(tempC < COLD_C)) return mask; const [on, off] = coldBits(dress); return (mask | on) & ~off; }
+/** D-244 (T-D4 "all with rain posture or cover"): in the rain (above RAIN_COVER, the plan's own rain: calendar dayWx) those
+ *  out in it cover the head and shoulders with what their dress has for it: the Median kandys over the shoulders, a working
+ *  man's soft cap, a woman's mantle drawn over her head (her hair under it); the Persian robe, the guards' dress and a
+ *  child's have no such piece (nothing is added). C: the cloak or mantle over the head in the rain (activities.ts shelter) */
+export const RAIN_COVER = 0.25;
+const rainCache = new Map<Dress, [number, number]>();
+export function rainBits(dress: Dress): [number, number] {
+  let c = rainCache.get(dress); if (c) return c; const b = (id: string) => { const k = pieceBit(dress, id); return k ? 1 << k : 0; };
+  const on = dress === 'median' ? b('kandys') : dress === 'worker' ? b('cap_soft') : dress === 'woman' ? b('headcloth') : 0;
+  const off = dress === 'woman' ? b('hair') | b('hair_bob') : 0; c = [on, off]; rainCache.set(dress, c); return c;
+}
+/** a person's piece mask for the air's temperature (°C) and the rain (0-1, D-244) */
+export function weatherMask(dress: Dress, mask: number, tempC: number, rain = 0): number {
+  let m = mask; if (tempC < COLD_C) { const [on, off] = coldBits(dress); m = (m | on) & ~off; }
+  if (rain > RAIN_COVER) { const [on, off] = rainBits(dress); m = (m | on) & ~off; }
+  return m;
+}
 
 // ------------------------------------------------------------------------------------------------ piece builders
 const W = (b: HBone, w = 1): [number, number] => [HB[b], w];

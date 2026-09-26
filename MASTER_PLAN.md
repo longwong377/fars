@@ -219,7 +219,8 @@ status, anti_proxy, ud, since}`. `tests/gates_ratchet.test.ts` fails **closed**:
 (one is pushed at every session close), and fails if:
 - an id disappears;
 - `metric`, `unit`, `axis`, `scope`, `op` or `sample` change;
-- `tool` changes once the row is partial or built;
+- `tool` changes once the row is partial or built (a row reset to to-build in a committed version may take a new tool, as rev 2.1's
+  reset of overclaimed statuses required; every tool change is in the audit round's guard diff, T-R7);
 - a value moves the loose way or `sample_min` falls;
 - `anti_proxy` is shorter than 20 characters;
 - the plan fails to quote an id, or quotes an id the file lacks.
@@ -407,7 +408,7 @@ its worst cells.
 | `tools/dev/gpu_cost.ts` | **TO-BUILD** | T-K6, T-K7c, T-K8 |
 | `tools/dev/load_probe.mjs` | exists (must still write evidence) | T-H4, T-K7 |
 | `tools/dev/long_soak.mjs` | **TO-BUILD** | T-K4, T-K4a, T-K8h |
-| `tools/dev/people_trace.ts` | **TO-BUILD** | T-D1, T-D1w, T-D2s, T-D2g, T-D2j, T-D3, T-D3s, T-D4, T-D5, T-E4, T-D6 |
+| `tools/dev/people_trace.ts` | exists (D-244) for T-D3 (whole-world snapshots, bot-hours not traced; its status stays to-build: the ratchet refuses its tool change against rev 2's measured row), T-D3s and T-D4; **TO-BUILD** for the rest | T-D1, T-D1w, T-D2s, T-D2g, T-D2j, T-D3, T-D3s, T-D4, T-D5, T-E4, T-D6 |
 | `tools/dev/person_census.ts` | exists (must still write evidence) | T-E2, T-E2h, T-E3, T-E3r, T-E3v, T-I4n, T-I5, T-I7 |
 | `tools/dev/photo_pairs.ts` | **TO-BUILD** | T-A5, T-A5d |
 | `tools/dev/repeat_census.ts` | **TO-BUILD** | T-E5 |

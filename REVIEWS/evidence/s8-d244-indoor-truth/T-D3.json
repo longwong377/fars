@@ -1,0 +1,105 @@
+{
+ "id": "T-D3",
+ "value": 0,
+ "n": 0,
+ "n_note": "bot-hours: none (whole-world snapshots, counted in `snapshots`); the walker bots (MASTER_PLAN §3) must trace hours before this row can be built",
+ "snapshots": 32,
+ "areas": 67,
+ "byRun": [
+  {
+   "seed": 1,
+   "court": true,
+   "v": {
+    "d3": 0,
+    "byMoment": {
+     "rain d2 8.000h": 0,
+     "dry d1 8.000h": 0,
+     "rain d208 10.250h": 0,
+     "dry d207 10.250h": 0,
+     "onset d208 9.504h": 0,
+     "dusk d1 19.002h": 0,
+     "night d25 23.000h": 0,
+     "sick d79 10.000h": 0
+    },
+    "byArea": {}
+   }
+  },
+  {
+   "seed": 7,
+   "court": true,
+   "v": {
+    "d3": 0,
+    "byMoment": {
+     "rain d1 12.250h": 0,
+     "dry d0 12.250h": 0,
+     "rain d205 10.750h": 0,
+     "dry d204 10.750h": 0,
+     "onset d1 11.754h": 0,
+     "dusk d0 18.988h": 0,
+     "night d25 23.000h": 0,
+     "sick d79 10.000h": 0
+    },
+    "byArea": {}
+   }
+  },
+  {
+   "seed": 14561,
+   "court": true,
+   "v": {
+    "d3": 0,
+    "byMoment": {
+     "rain d3 8.000h": 0,
+     "dry d2 8.000h": 0,
+     "rain d205 12.000h": 0,
+     "dry d204 12.000h": 0,
+     "onset d35 12.504h": 0,
+     "dusk d2 19.017h": 0,
+     "night d25 23.000h": 0,
+     "sick d77 10.000h": 0
+    },
+    "byArea": {}
+   }
+  },
+  {
+   "seed": 1,
+   "court": false,
+   "v": {
+    "d3": 0,
+    "byMoment": {
+     "rain d2 8.000h": 0,
+     "dry d1 8.000h": 0,
+     "rain d208 10.250h": 0,
+     "dry d207 10.250h": 0,
+     "onset d208 9.504h": 0,
+     "dusk d1 19.002h": 0,
+     "night d25 23.000h": 0,
+     "sick d79 10.000h": 0
+    },
+    "byArea": {}
+   }
+  }
+ ],
+ "commit": "d56d758",
+ "tool": "tools/dev/people_trace.ts",
+ "pass": "s8-d244-indoor-truth",
+ "date": "2026-09-26",
+ "sample": 4,
+ "runs": [
+  {
+   "seed": 1,
+   "court": true
+  },
+  {
+   "seed": 7,
+   "court": true
+  },
+  {
+   "seed": 14561,
+   "court": true
+  },
+  {
+   "seed": 1,
+   "court": false
+  }
+ ]
+}

@@ -1,0 +1,271 @@
+{
+ "id": "T-D4",
+ "value": 4.623287671232877,
+ "n": 441,
+ "n_note": "rain days x areas judged (an area judged with >= 20 sampled people in the open on the dry twin); value: the worst area's share",
+ "byRun": [
+  {
+   "seed": 1,
+   "court": true,
+   "v": {
+    "worldShare": 0.3044289502111362,
+    "worstArea": 3.5294117647058822,
+    "rains": [
+     {
+      "day": 2,
+      "hour": 8,
+      "rain": 1,
+      "dryDay": 1,
+      "open": 32,
+      "dryOpen": 14769,
+      "worst": {
+       "area": "terrace",
+       "share": 2.6548672566371683
+      },
+      "exempt": {
+       "watch": 2,
+       "flock": 3
+      },
+      "covered": 24,
+      "outInRain": 35,
+      "small": [
+       "town:orchard_7 0/3",
+       "town:orchard_8 0/1",
+       "town:stables 0/8",
+       "town:garden_gohar 0/3",
+       "town:area_c_garden 0/1"
+      ]
+     },
+     {
+      "day": 208,
+      "hour": 10.25,
+      "rain": 0.8225760858564719,
+      "dryDay": 207,
+      "open": 31,
+      "dryOpen": 10183,
+      "worst": {
+       "area": "village:village_p32",
+       "share": 3.5294117647058822
+      },
+      "exempt": {
+       "watch": 3
+      },
+      "covered": 24,
+      "outInRain": 31,
+      "small": [
+       "town:garden_gohar 0/2",
+       "town:orchard_8 0/1"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "seed": 7,
+   "court": true,
+   "v": {
+    "worldShare": 0.4058609066519915,
+    "worstArea": 4.623287671232877,
+    "rains": [
+     {
+      "day": 1,
+      "hour": 12.25,
+      "rain": 0.5257041164742196,
+      "dryDay": 0,
+      "open": 59,
+      "dryOpen": 14537,
+      "worst": {
+       "area": "terrace",
+       "share": 4.623287671232877
+      },
+      "exempt": {
+       "watch": 2
+      },
+      "covered": 44,
+      "outInRain": 59,
+      "small": [
+       "town:official 0/11",
+       "town:stables 0/8",
+       "town:orchard_3 0/10",
+       "town:orchard_4 0/12",
+       "town:paradise 0/1"
+      ]
+     },
+     {
+      "day": 205,
+      "hour": 10.75,
+      "rain": 0.9155871473755666,
+      "dryDay": 204,
+      "open": 9,
+      "dryOpen": 10216,
+      "worst": {
+       "area": "terrace",
+       "share": 0.7575757575757576
+      },
+      "exempt": {
+       "watch": 3
+      },
+      "covered": 9,
+      "outInRain": 9,
+      "small": [
+       "town:orchard_3 0/13",
+       "town:orchard_4 0/15",
+       "town:official 0/11",
+       "town:stables 0/10",
+       "town:stores 0/7",
+       "town:estate_4 0/1",
+       "town:paradise 0/1"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "seed": 14561,
+   "court": true,
+   "v": {
+    "worldShare": 0.2729630135116692,
+    "worstArea": 2.661596958174905,
+    "rains": [
+     {
+      "day": 3,
+      "hour": 8,
+      "rain": 0.7580862776402568,
+      "dryDay": 2,
+      "open": 40,
+      "dryOpen": 14654,
+      "worst": {
+       "area": "terrace",
+       "share": 2.661596958174905
+      },
+      "exempt": {
+       "watch": 1
+      },
+      "covered": 36,
+      "outInRain": 40,
+      "small": [
+       "town:official 0/1",
+       "town:stables 0/7",
+       "town:orchard_8 0/3",
+       "town:estate_3 0/14",
+       "town:q_g1 0/2",
+       "town:estate_2 0/2",
+       "town:estate_4 0/15",
+       "town:paradise 0/2",
+       "town:estate_1 0/3"
+      ]
+     },
+     {
+      "day": 205,
+      "hour": 12,
+      "rain": 1,
+      "dryDay": 204,
+      "open": 7,
+      "dryOpen": 10022,
+      "worst": {
+       "area": "open",
+       "share": 0.21154427319431854
+      },
+      "exempt": {
+       "watch": 4
+      },
+      "covered": 6,
+      "outInRain": 7,
+      "small": [
+       "town:stables 0/8",
+       "town:official 0/1",
+       "town:orchard_4 0/19",
+       "town:estate_1 0/1",
+       "town:estate_3 0/16",
+       "town:q_g1 0/2",
+       "town:estate_4 0/19"
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "seed": 1,
+   "court": false,
+   "v": {
+    "worldShare": 0.30490803580210485,
+    "worstArea": 3.5294117647058822,
+    "rains": [
+     {
+      "day": 2,
+      "hour": 8,
+      "rain": 1,
+      "dryDay": 1,
+      "open": 8,
+      "dryOpen": 10254,
+      "worst": {
+       "area": "open",
+       "share": 0.29390154298310067
+      },
+      "exempt": {
+       "watch": 2
+      },
+      "covered": 8,
+      "outInRain": 8,
+      "small": [
+       "town:orchard_7 0/3",
+       "town:orchard_8 0/1",
+       "town:stables 0/8",
+       "town:garden_gohar 0/3",
+       "town:estate_2 0/1",
+       "town:estate_3 0/1",
+       "town:area_c_garden 0/1"
+      ]
+     },
+     {
+      "day": 208,
+      "hour": 10.25,
+      "rain": 0.8225760858564719,
+      "dryDay": 207,
+      "open": 31,
+      "dryOpen": 10167,
+      "worst": {
+       "area": "village:village_p32",
+       "share": 3.5294117647058822
+      },
+      "exempt": {
+       "watch": 3
+      },
+      "covered": 25,
+      "outInRain": 31,
+      "small": [
+       "town:stables 0/10",
+       "town:garden_gohar 0/2",
+       "town:estate_1 0/1",
+       "town:estate_3 0/1",
+       "town:orchard_8 0/1"
+      ]
+     }
+    ]
+   }
+  }
+ ],
+ "commit": "d56d758",
+ "tool": "tools/dev/people_trace.ts",
+ "pass": "s8-d244-indoor-truth",
+ "date": "2026-09-26",
+ "sample": 4,
+ "runs": [
+  {
+   "seed": 1,
+   "court": true
+  },
+  {
+   "seed": 7,
+   "court": true
+  },
+  {
+   "seed": 14561,
+   "court": true
+  },
+  {
+   "seed": 1,
+   "court": false
+  }
+ ]
+}

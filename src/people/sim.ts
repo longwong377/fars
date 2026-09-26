@@ -20,7 +20,8 @@ import type { NavGrid, P2 } from './navgrid';
 import { ACTIVITIES, ActivityId } from './activities';
 import type { Dress } from './body';
 import { EventCalendar, sunTimes as sunT } from './calendar';
-import { Population, Seg, segAt, GUARD_POSTS, SliceSeat, TERRACE_ABSTRACT, TOWN_SITES, HEARTHS } from './population';
+import { terraceRoofed } from './roofs';
+import { Population, Seg, segAt, planIndoors, GUARD_POSTS, SliceSeat, TERRACE_ABSTRACT, TOWN_SITES, HEARTHS } from './population';
 import { hall100Layout, colPlace } from './construction';
 import { PlayerMemory, Encounter } from './memory';
 import { COURT_PLACES, COURT_PRIVATE } from './court'; // D-182 hook (D-199: the king's rooms)
@@ -619,8 +620,15 @@ export class PeopleSim {
   /** a bounded set of the detailed people for the renderer: on the Terrace (not off-map), within `radius` of `centre`,
    *  nearest first, at most `max` (crowd pooling will draw these; D-024) */
   visibleAgents(centre: P2, radius: number, max = Infinity): Agent[] {
-    const out: [number, Agent][] = []; for (const a of this.agents) { if (a.offmap) continue; const d = Math.hypot(a.pos[0] - centre[0], a.pos[1] - centre[1]); if (d <= radius) out.push([d, a]); }
+    const out: [number, Agent][] = []; for (const a of this.agents) { if (a.offmap || this.indoorsUnbuilt(a)) continue; const d = Math.hypot(a.pos[0] - centre[0], a.pos[1] - centre[1]); if (d <= radius) out.push([d, a]); }
     return out.sort((x, y) => x[0] - y[0]).slice(0, max).map(x => x[1]);
+  }
+  /** D-244: an agent on the Terrace whose plan puts them under a roof (population.ts planIndoors) where no roof is built (the
+   *  guards asleep along the garrison's walls: its rooms are not built, BLOCKERS B63): not drawn, never shown out of doors */
+  indoorsUnbuilt(a: Agent): boolean {
+    const k = a.task; if (!k || a.walking) return false; const day = Math.floor(this.t / 24), h = this.t - day * 24;
+    const seg: Seg = { t0: 0, t1: 24, place: k.place, act: k.act, why: k.why ?? '', where: 'terrace' };
+    return planIndoors(seg, this.cal.ctx(day).wx, sunT(day), h) && !terraceRoofed(a.pos[0], a.pos[1]);
   }
   /** people of the population on the Terrace now who have no detailed agent (not rendered yet; D-024), by place */
   abstractOnTerrace(): { total: number; byPlace: Record<string, number>; byAct: Record<string, number> } {

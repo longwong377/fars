@@ -15,7 +15,7 @@
 // walkers. Detailed agents (sim.ts) on the Terrace are drawn by the crowd from the simulation itself; off the map (in the
 // town) the view shows them from the simulation's own position (their hidden legs, walked along the town's lanes) or at
 // home.
-import { monthsOld, type Population, type Seg } from './population';
+import { monthsOld, planIndoors, planIndoorsUntil, planIndoorsSince, type Population, type Seg } from './population';
 import { babeMode, type BabeMode } from './babes';
 import type { PeopleSim, Agent } from './sim';
 import { ACTIVITIES, type ActivityId } from './activities';
@@ -61,6 +61,8 @@ export interface ViewPerson {
   hand?: 0 | 1 | 2; handWith?: number; handSide?: 'l' | 'r'; handUp?: number;
   /** D-215 (gap audit item 37, C): 0 none, 1 lame (walks with a staff), 2 blind (walks feeling the way with a staff) */
   impair?: 0 | 1 | 2;
+  /** D-244: drawn inside a room or a tent (the plan says indoors: population.ts planIndoors), not out of doors */
+  indoor?: boolean;
 }
 interface DayPlan { day: number; n: number; t1: Float32Array; place: Int32Array; act: Uint8Array; why: Int32Array; where: Uint8Array; carry: Int32Array; withP: Int32Array }
 interface PS {
@@ -87,6 +89,9 @@ interface PS {
    *  emitted in */
   wp: number; stamp: number;
 }
+/** D-244: a spot is drawn when it is out of doors (a court, yard, lane, open ground, a Terrace place) or inside a room or tent
+ *  that is built (Spot.inside); a room not built (Spot.noRoom) and the king's rooms (D-199) are not */
+const shown = (sp: Spot) => sp.out || !!sp.inside;
 const ACTS = Object.keys(ACTIVITIES) as ActivityId[]; const ACT_IX = new Map(ACTS.map((a, i) => [a, i]));
 const WHERE = ['terrace', 'town', 'plain', 'road', 'away'] as const; const W_IX = new Map<string, number>(WHERE.map((w, i) => [w, i])); const ROAD = 3, AWAY = 4;
 const S = { pace: salt('popview-pace'), sep: salt('popview-sep'), impair: salt('popview-impair') };
@@ -141,12 +146,14 @@ export class PopView {
   private centre: P2 = [1e9, 1e9];
   /** people within this distance of the centre are kept (their homes or work places within it plus the margin) */
   radius = 5000; margin = 1500;
+  /** D-244: only these people are candidates (the renderless trace's household sample, tools/dev/people_trace.ts); null: all */
+  only: ((pid: number) => boolean) | null = null;
   /** the plan computation budget per update (ms) and the Terrace route searches per update */
   planBudgetMs = 3; navBudget = 1;
   /** route searches per update (ms): beyond it, people farther than `nearR` wait at the place they are leaving (they
    *  then walk faster to arrive on time); nearer people always get their route */
   routeBudgetMs = 3; nearR = 150;
-  readonly stats = { candidates: 0, planned: 0, planMs: 0, pending: 0, visible: 0, walking: 0, hurried: 0, lateLeaves: 0, steps: 0, hidden: 0, unresolved: 0, routeWait: 0, agentsOff: 0, evalMs: 0, updates: 0, carried: 0, nanTimes: 0, spread: 0, crowded: 0, warmed: 0, warmMs: 0 };
+  readonly stats = { candidates: 0, planned: 0, planMs: 0, pending: 0, visible: 0, walking: 0, hurried: 0, lateLeaves: 0, steps: 0, hidden: 0, unresolved: 0, routeWait: 0, agentsOff: 0, evalMs: 0, updates: 0, carried: 0, nanTimes: 0, spread: 0, crowded: 0, warmed: 0, warmMs: 0, noRoom: 0, stepsIn: 0, inside: 0 };
   private out: ViewPerson[] = []; private nOut = 0;
   private anchorsBuilt = false; private homes: Float64Array | null = null;
   constructor(readonly sim: PeopleSim, readonly geo: PopGeo, readonly seed = 1) { this.pop = sim.pop;
@@ -174,7 +181,7 @@ export class PopView {
     for (let pid = 0; pid < this.pop.persons.length; pid++) {
       const hx = A[pid * 4], hy = A[pid * 4 + 1], wx = A[pid * 4 + 2], wy = A[pid * 4 + 3];
       const dh = Number.isFinite(hx) ? Math.hypot(hx - c[0], hy - c[1]) : Infinity, dw = Number.isFinite(wx) ? Math.hypot(wx - c[0], wy - c[1]) : Infinity, d = Math.min(dh, dw);
-      if (d > R) continue;
+      if (d > R || (this.only && !this.only(pid))) continue;
       let s = this.ps.get(pid);
       if (!s) s = { pid, home: [hx, hy], work: Number.isFinite(wx) ? [wx, wy] : null, d2: 0, plan: null, next: null, prev: null, v0: 1, v1: 0, mode: 0, spot: null, route: null, w0: 0, w1: 0, wOut: true, act: 'rest', carry: -1, speed: 0, what: '', entry: 0, why: -1, pl: -1, spots: new Map(), y: 0, prop: null, yOk: false, sepFor: null, sepE: 0, sepN: 0, sepT: -1e9, occ: -1, lastMode: 0,
         view: null, ver: 0, viewV: -1, viewMoving: false, isAgent: this.pop.persons[pid].agent >= 0, isYoung: false, youngV: -1, wp: -1, stamp: -1 };
@@ -204,15 +211,27 @@ export class PopView {
   }
   private segT0(P: DayPlan, i: number) { return i ? P.t1[i - 1] : 0; }
   private segIx(P: DayPlan, h: number) { let lo = 0, hi = P.n - 1; while (lo < hi) { const m = (lo + hi) >> 1; if (h < P.t1[m]) hi = m; else lo = m + 1; } return lo; }
-  /** the person's spot at segment i of a plan (memoised per place and indoor/outdoor) */
-  private spotAt(s: PS, P: DayPlan, i: number): Spot {
-    const place = this.strings[P.place[i]], act = ACTS[P.act[i]], h = (this.segT0(P, i) + P.t1[i]) / 2, sun = sunTimes(P.day), dark = h < sun.rise - 0.25 || h > sun.set + 0.6;
-    const indoor = act === 'sleep' || act === 'lie_ill' || act === 'offmap' || (dark && act === 'rest');
+  /** D-244: block i of a plan as the plan's own segment (population.ts planIndoors reads its place, act and words) */
+  private segOf(P: DayPlan, i: number): Seg { return { t0: this.segT0(P, i), t1: P.t1[i], place: this.strings[P.place[i]], act: ACTS[P.act[i]], why: P.why[i] >= 0 ? this.strings[P.why[i]] : '', where: WHERE[P.where[i]] }; }
+  /** D-244: the plan puts the person of block i under a roof at hour h of the plan's day (planIndoors); without the
+   *  calendar (no weather), the act decides as before (asleep, ill, off the map, resting after dark) */
+  private indoorAt(P: DayPlan, i: number, h: number): boolean {
+    const sun = sunTimes(P.day), C = this.pop.cal?.ctx(P.day); if (C) return planIndoors(this.segOf(P, i), C.wx, sun, h);
+    const act = ACTS[P.act[i]], dark = h < sun.rise - 0.25 || h > sun.set + 0.6; return act === 'sleep' || act === 'lie_ill' || act === 'offmap' || (dark && act === 'rest');
+  }
+  /** the person's spot at segment i of a plan (memoised per place and indoor/outdoor). `indoor`: the plan puts them under a
+   *  roof then (D-244: indoorAt at the hour it is asked for; the block's midpoint when not given). A spot out of doors
+   *  where the plan says indoors, not under a built roof, is a room not built: not drawn (`noRoom`; stats.noRoom) */
+  private spotAt(s: PS, P: DayPlan, i: number, indoorArg?: boolean): Spot {
+    const place = this.strings[P.place[i]], act = ACTS[P.act[i]], h = (this.segT0(P, i) + P.t1[i]) / 2;
+    const indoor = indoorArg ?? this.indoorAt(P, i, h);
     // (keyed by the day too: a spot depends on the day, the home and the age with it; a lane's spot memoised on day 150 was
     // used on day 25, 9 m away, when the person had turned twelve in between: D-191)
     // (D-221: and by whether the act faces what is waited on, court setting only: popgeo.terrace)
     const key = ((P.day * 4194304 + P.place[i]) * 2 + (indoor ? 1 : 0)) * 2 + (this.pop.court && FACING_ACTS.test(act) ? 1 : 0); let sp = s.spots.get(key);
-    if (!sp) { sp = this.geo.spot(s.pid, place, act, P.day, h); if (s.spots.size >= 64) s.spots.clear(); s.spots.set(key, sp); }
+    if (!sp) { sp = this.geo.spot(s.pid, place, act, P.day, h, indoor);
+      if (indoor && sp.ok && sp.out && !sp.roof) sp = { ...sp, out: false, inside: false, noRoom: true, what: `${sp.what}: indoors by the plan, no room built there (not drawn: D-244)` };
+      if (s.spots.size >= 64) s.spots.clear(); s.spots.set(key, sp); }
     return sp;
   }
   private pace(pid: number) { return 1.1 + 0.3 * (h32(this.seed, S.pace, pid) / 4294967296); }
@@ -222,41 +241,65 @@ export class PopView {
     if (!this.pop.present(s.pid, d)) { s.mode = 0; s.v0 = t; s.v1 = d * 24 + 24; s.what = 'not here today'; return; }
     const P = this.planOf(s, d); if (!P) { s.mode = 0; s.v0 = t; s.v1 = t; this.stats.pending++; return; }
     const i = this.segIx(P, h), base = d * 24;
-    const hide = (until: number, why: string) => { s.mode = 0; s.v0 = t; s.v1 = until; s.what = why; };
+    const hide = (until: number, why: string) => { s.mode = 0; s.spot = null; s.v0 = t; s.v1 = until; s.what = why; };
     if (P.where[i] === AWAY) return hide(base + P.t1[i], 'away');
     if (P.where[i] === ROAD) {
       let i0 = i, i1 = i; while (i0 > 0 && P.where[i0 - 1] === ROAD) i0--; while (i1 < P.n - 1 && P.where[i1 + 1] === ROAD) i1++;
       const T0 = base + this.segT0(P, i0), T1 = base + P.t1[i1];
       let from: Spot | null = null, to: Spot | null = null;
-      if (i0 > 0) from = this.spotAt(s, P, i0 - 1); else { const Q = this.planOf(s, d - 1, true); if (Q) { let k = Q.n - 1; while (k > 0 && Q.where[k] === ROAD) k--; from = this.spotAt(s, Q, k); } }
-      if (i1 < P.n - 1) to = this.spotAt(s, P, i1 + 1); else { const Q = this.planOf(s, d + 1, true); if (Q) { let k = 0; while (k < Q.n - 1 && Q.where[k] === ROAD) k++; to = this.spotAt(s, Q, k); } }
+      // (D-244: the place left as the plan has it at the leaving, the place reached as at the arriving)
+      if (i0 > 0) from = this.spotAt(s, P, i0 - 1, this.indoorAt(P, i0 - 1, this.segT0(P, i0) - 1e-6)); else { const Q = this.planOf(s, d - 1, true); if (Q) { let k = Q.n - 1; while (k > 0 && Q.where[k] === ROAD) k--; from = this.spotAt(s, Q, k, this.indoorAt(Q, k, Q.t1[k] - 1e-6)); } }
+      if (i1 < P.n - 1) to = this.spotAt(s, P, i1 + 1, this.indoorAt(P, i1 + 1, P.t1[i1] + 1e-6)); else { const Q = this.planOf(s, d + 1, true); if (Q) { let k = 0; while (k < Q.n - 1 && Q.where[k] === ROAD) k++; to = this.spotAt(s, Q, k, this.indoorAt(Q, k, this.segT0(Q, k) + 1e-6)); } }
       if (!from?.ok || !to?.ok) { this.stats.unresolved++; return hide(T1, `walking between places not built (${from?.what ?? '?'} → ${to?.what ?? '?'})`); }
       const r = this.routeFor(s, from, to);
-      if (r === undefined) { this.stats.routeWait++; if (from.out) { s.mode = 1; s.spot = from; s.route = null; s.wp = i0 > 0 ? P.withP[i0 - 1] : -1; s.act = i0 > 0 ? ACTS[P.act[i0 - 1]] : 'rest'; s.why = i0 > 0 ? P.why[i0 - 1] : -1; s.pl = i0 > 0 ? P.place[i0 - 1] : -1; s.carry = -1; s.speed = 0; s.what = `${from.what} (waiting for a route)`; } else s.mode = 0; s.v0 = t; s.v1 = t; return; } // over this update's search budget: ask again
+      if (r === undefined) { this.stats.routeWait++; if (shown(from)) { s.mode = 1; s.spot = from; s.route = null; s.wp = i0 > 0 ? P.withP[i0 - 1] : -1; s.act = i0 > 0 ? ACTS[P.act[i0 - 1]] : 'rest'; s.why = i0 > 0 ? P.why[i0 - 1] : -1; s.pl = i0 > 0 ? P.place[i0 - 1] : -1; s.carry = -1; s.speed = 0; s.what = `${from.what} (waiting for a route)`; } else s.mode = 0; s.v0 = t; s.v1 = t; return; } // over this update's search budget: ask again
       if (r === null) { this.stats.unresolved++; return hide(T1, `no route ${from.what} → ${to.what}`); }
       const D = (T1 - T0) * 3600, v = r.len / Math.max(1, D), nat = this.pace(s.pid);
       let S0 = T0; if (v < MIN_PACE) { S0 = T1 - r.len / nat / 3600; this.stats.lateLeaves++; } else if (v > MAX_PACE) this.stats.hurried++;
       if (t < S0) { // not yet gone: still at the place before, doing what was done there
-        s.mode = from.out ? 1 : 0; s.spot = from; s.route = null; s.v0 = T0; s.v1 = S0; s.wp = i0 > 0 ? P.withP[i0 - 1] : -1; s.act = i0 > 0 ? ACTS[P.act[i0 - 1]] : 'rest'; s.why = i0 > 0 ? P.why[i0 - 1] : -1; s.pl = i0 > 0 ? P.place[i0 - 1] : -1; s.carry = -1; s.speed = 0; s.what = `${from.what} (leaves ${fmtH(S0 - base)})`; return; }
+        s.mode = shown(from) ? 1 : 0; s.spot = from; s.route = null; s.v0 = T0; s.v1 = S0; s.wp = i0 > 0 ? P.withP[i0 - 1] : -1; s.act = i0 > 0 ? ACTS[P.act[i0 - 1]] : 'rest'; s.why = i0 > 0 ? P.why[i0 - 1] : -1; s.pl = i0 > 0 ? P.place[i0 - 1] : -1; s.carry = -1; s.speed = 0; s.what = `${from.what} (leaves ${fmtH(S0 - base)})`; return; }
       s.mode = 2; s.route = r; s.w0 = S0; s.w1 = T1; s.wOut = true; s.spot = to; s.v0 = Math.max(T0, base + this.segT0(P, i)); s.v1 = Math.min(T1, base + P.t1[i]);
       s.act = ACTS[P.act[i]]; s.why = P.why[i]; s.wp = P.withP[i]; s.pl = -1; s.carry = P.carry[i]; s.speed = r.len / Math.max(1, (T1 - S0) * 3600); s.what = `walking: ${from.what} → ${to.what} (${r.len.toFixed(0)} m)`;
       if (!from.out) s.entry = 1; return;
     }
-    const sp = this.spotAt(s, P, i); if (!sp.ok) { this.stats.unresolved++; return hide(base + P.t1[i], sp.what); }
-    const t0 = base + this.segT0(P, i);
-    let ip = i - 1; while (ip > 0 && P.where[ip] === ROAD && P.t1[ip] <= this.segT0(P, ip)) ip--; // a zero-length walk (repaired NaN times) is no walk
-    if (i > 0 && ip >= 0 && P.where[ip] !== ROAD && P.where[ip] !== AWAY) { // a change of place with no walk in the plan: walked from the start of the block
-      const pr = this.spotAt(s, P, ip);
-      if (pr.ok && Math.hypot(pr.e - sp.e, pr.n - sp.n) > 0.8 && (pr.out || sp.out)) {
-        const r = this.routeFor(s, pr, sp);
-        if (r === undefined) { this.stats.routeWait++; s.mode = pr.out ? 1 : 0; s.spot = pr; s.route = null; s.v0 = t; s.v1 = t; return; }
-        if (r) { const dur = r.len / this.pace(s.pid) / 3600, t1 = Math.min(base + P.t1[i], t0 + dur);
-          if (t < t1) { this.stats.steps++; s.mode = 2; s.route = r; s.w0 = t0; s.w1 = t1; s.wOut = true; s.spot = sp; s.v0 = t0; s.v1 = t1; s.act = 'walk'; s.why = P.why[i]; s.wp = P.withP[i]; s.pl = -1; s.carry = -1; s.speed = r.len / Math.max(1, (t1 - t0) * 3600); s.what = `stepping ${pr.what} → ${sp.what}`; if (!pr.out) s.entry = 1; return; }
-          s.v0 = t1; } } }
-    s.mode = sp.out ? 1 : 0; s.spot = sp; s.route = null; if (s.v0 < t0 || s.v0 > t) s.v0 = t0; s.v1 = base + P.t1[i];
+    // D-244: the plan's roof now (planIndoors), and the spell of the block it holds for: a person the plan puts indoors is
+    // drawn only under a built roof (else not drawn: spotAt `noRoom`); going in is walked at the END of the spell before
+    // (look-ahead, below), coming out at the start of the new one, so nobody is drawn out of doors while the plan says
+    // indoors (T-D3), not even for the few seconds of the step (the lag at plan boundaries: people_trace.ts)
+    const t0 = base + this.segT0(P, i), tEnd = base + P.t1[i];
+    const C = this.pop.cal?.ctx(d), sun = sunTimes(d), seg = C ? this.segOf(P, i) : null;
+    const indoor = this.indoorAt(P, i, h);
+    const sT0 = seg ? base + planIndoorsSince(seg, C!.wx, sun, h, this.segT0(P, i)) : t0, sT1 = seg ? base + planIndoorsUntil(seg, C!.wx, sun, h, P.t1[i]) : tEnd;
+    const sp = this.spotAt(s, P, i, indoor); if (!sp.ok) { this.stats.unresolved++; return hide(sT1, sp.what); }
+    let v0 = sT0;
+    // the place before this spell: the same block on the other side of the roof (the rain began or ended), or the block before
+    let pr: Spot | null = null;
+    if (sT0 > t0 + 1e-9) pr = this.spotAt(s, P, i, !indoor);
+    else { let ip = i - 1; while (ip > 0 && P.where[ip] === ROAD && P.t1[ip] <= this.segT0(P, ip)) ip--; // a zero-length walk (repaired NaN times) is no walk
+      if (i > 0 && ip >= 0 && P.where[ip] !== ROAD && P.where[ip] !== AWAY) pr = this.spotAt(s, P, ip, this.indoorAt(P, ip, this.segT0(P, i) - 1e-6)); }
+    if (pr && pr.ok && sp.out && !indoor && Math.hypot(pr.e - sp.e, pr.n - sp.n) > 0.8) { // coming out (or across the court): walked from the start of the spell
+      const r = this.routeFor(s, pr, sp);
+      if (r === undefined) { this.stats.routeWait++; s.mode = shown(pr) ? 1 : 0; s.spot = pr; s.route = null; s.v0 = t; s.v1 = t; return; }
+      if (r) { const dur = r.len / this.pace(s.pid) / 3600, t1 = Math.min(sT1, sT0 + dur);
+        if (t < t1) { this.stats.steps++; s.mode = 2; s.route = r; s.w0 = sT0; s.w1 = t1; s.wOut = true; s.spot = sp; s.v0 = sT0; s.v1 = t1; s.act = 'walk'; s.why = P.why[i]; s.wp = P.withP[i]; s.pl = -1; s.carry = -1; s.speed = r.len / Math.max(1, (t1 - sT0) * 3600); s.what = `stepping ${pr.what} → ${sp.what}`; if (!pr.out) s.entry = 1; return; }
+        v0 = t1; } }
+    let v1 = sT1;
+    // going in at the end of this spell: the next spell's place (the other side of the roof in this block, or the next block
+    // when it is not a walk) is indoors: the step in is walked so as to arrive as the spell ends
+    if (sp.out && !indoor) { let nx: Spot | null = null, nIn = false;
+      if (sT1 < tEnd - 1e-9) { nx = this.spotAt(s, P, i, !indoor); nIn = !indoor; }
+      else if (i + 1 < P.n && P.where[i + 1] !== ROAD && P.where[i + 1] !== AWAY) { nIn = this.indoorAt(P, i + 1, P.t1[i] + 1e-6); nx = this.spotAt(s, P, i + 1, nIn); }
+      // (into a room or a tent that is built, or in under a Terrace roof: a room not built is left at the boundary)
+      if (nx && nx.ok && nIn && (nx.inside || (nx.out && nx.roof)) && Math.hypot(nx.e - sp.e, nx.n - sp.n) > 0.8) {
+        const r = this.routeFor(s, sp, nx);
+        if (r === undefined) { this.stats.routeWait++; v1 = t; } // (over this update's search budget: ask again)
+        else if (r) { const dur = r.len / this.pace(s.pid) / 3600, w0 = Math.max(v0, sT1 - dur);
+          if (t >= w0) { this.stats.stepsIn++; s.mode = 2; s.route = r; s.w0 = w0; s.w1 = sT1; s.wOut = true; s.spot = nx; s.v0 = w0; s.v1 = sT1; s.act = 'walk'; s.why = P.why[i]; s.wp = P.withP[i]; s.pl = -1; s.carry = -1; s.speed = r.len / Math.max(1, (sT1 - w0) * 3600); s.what = `going in: ${sp.what} → ${nx.what}`; return; }
+          v1 = w0; } } }
+    s.mode = shown(sp) ? 1 : 0; s.spot = sp; s.route = null; s.v0 = Math.min(Math.max(v0, t0), t); s.v1 = v1;
     s.act = ACTS[P.act[i]]; s.why = P.why[i]; s.wp = P.withP[i]; s.pl = P.place[i]; s.carry = P.carry[i]; s.speed = 0; s.what = sp.what;
-    if (sp.out && i > 0) { const pr = P.where[i - 1] === ROAD ? null : this.spotAt(s, P, i - 1); if (pr && !pr.out) s.entry = 1; }
-    if (!sp.out) this.stats.hidden++;
+    if (sp.out && pr && !pr.out) s.entry = 1;
+    if (sp.inside) this.stats.inside++; else if (!sp.out) { this.stats.hidden++; if (sp.noRoom) this.stats.noRoom++; }
   }
   private navLeft = 0; private routeT = 0;
   /** a route within this update's budgets (undefined: ask again next update) */
@@ -268,7 +311,8 @@ export class PopView {
    *  states whose interval ended, then the list of people out of doors */
   update(t: number, centre: P2) {
     const t0 = performance.now(); this.stats.updates++;
-    if (this.lastT >= 0 && (t < this.lastT - 1e-6 || t - this.lastT > 0.25)) this.jumps++; this.lastT = t;
+    const jumped = this.lastT >= 0 && (t < this.lastT - 1e-6 || t - this.lastT > 0.25); if (jumped) this.jumps++; this.lastT = t;
+    if (jumped || this.settling) this.jumpedNow = true; // (D-244: after a jump in time nobody is "just arriving": no step aside drawn)
     if (Math.hypot(centre[0] - this.centre[0], centre[1] - this.centre[1]) > 300) this.recentre(centre);
     this.budgetLeft = this.planBudgetMs; this.tPlan = performance.now(); this.navLeft = this.navBudget; this.routeT = 0;
     const d = Math.floor(t / 24), h = t - d * 24; this.stats.pending = 0;
@@ -279,10 +323,10 @@ export class PopView {
       this.evaluate(s, t);
     }
     if (h > 23 && performance.now() - this.tPlan < this.budgetLeft) for (const s of this.list) { if (performance.now() - this.tPlan > this.budgetLeft) break; if (s.plan?.day === d && !s.next && this.pop.present(s.pid, d + 1)) this.planOf(s, d + 1); }
-    this.collect(t);
+    this.collect(t); this.jumpedNow = false;
     this.stats.evalMs = performance.now() - t0;
   }
-  private static blank(): ViewPerson { return { pid: -1, e: 0, n: 0, y: 0, heading: 0, act: 'rest', moving: false, why: '', place: '', prop: null, carryNote: null, speed: 0, entry: 0, what: '', agent: -1, plot: 0, wall: 0, hh: -1, babes: [], hand: 0, handWith: -1, handSide: 'l', handUp: 0, impair: 0 }; }
+  private static blank(): ViewPerson { return { pid: -1, e: 0, n: 0, y: 0, heading: 0, act: 'rest', moving: false, why: '', place: '', prop: null, carryNote: null, speed: 0, entry: 0, what: '', agent: -1, plot: 0, wall: 0, hh: -1, babes: [], hand: 0, handWith: -1, handSide: 'l', handUp: 0, impair: 0, indoor: false }; }
   /** the detailed agents off the map: pooled objects (reused from update to update) */
   private agentVps: ViewPerson[] = []; private nAgentVps = 0;
   private agentVp(): ViewPerson { let o = this.agentVps[this.nAgentVps]; if (!o) this.agentVps[this.nAgentVps] = o = PopView.blank(); this.nAgentVps++; this.out[this.nOut++] = o; return o; }
@@ -292,7 +336,7 @@ export class PopView {
     this.agentOcc.clear(); for (const a of this.sim.agents) if (!a.offmap) { const k = this.occKey(a.pos[0], a.pos[1]); const L = this.agentOcc.get(k); if (L) L.push(a); else this.agentOcc.set(k, [a]); }
     const upd = this.stats.updates; this.youngBuf.length = 0; this.handBuf.length = 0; this.blindBuf.length = 0;
     for (const s of this.list) {
-      const last = s.lastMode; s.lastMode = s.mode;
+      const last = this.jumpedNow ? 0 : s.lastMode; s.lastMode = s.mode;
       if (s.occ >= 0 && (s.mode !== 1 || s.sepFor !== s.spot)) this.release(s);
       // D-215: a small child the view keeps indoors (asleep: the plan's "asleep, carried on her back", "asleep in her lap")
       // with someone who is out of doors is drawn with them too (children, below)
@@ -310,7 +354,7 @@ export class PopView {
       if (s.mode === 2 && s.wp >= 0 && this.pop.ageOn(s.pid, day) < TODDLER_HAND) this.handBuf.push(s); // D-215: a small child walking with someone
       if (s.mode === 2 && o.impair === 2) this.blindBuf.push(s);
       o.pid = s.pid; o.agent = -1; o.hh = this.pop.home(s.pid, day); o.act = s.act; o.why = s.why >= 0 ? this.strings[s.why] : ''; o.place = s.mode === 1 && s.pl >= 0 ? this.strings[s.pl] : ''; o.what = s.what; o.entry = s.entry; o.carryNote = s.carry >= 0 ? this.strings[s.carry] : null;
-      o.plot = s.mode === 1 ? s.spot.plot ?? 0 : 0; o.wall = s.mode === 1 ? s.spot.wall ?? 0 : 0;
+      o.plot = s.mode === 1 ? s.spot.plot ?? 0 : 0; o.wall = s.mode === 1 ? s.spot.wall ?? 0 : 0; o.indoor = s.mode === 1 && !!s.spot.inside;
       if (s.mode === 2 && s.route) { const f = Math.max(0, Math.min(1, (t - s.w0) / Math.max(1e-9, s.w1 - s.w0))); routeAt(s.route, f * s.route.len, this.tmp); o.e = this.tmp.e; o.n = this.tmp.n; o.heading = this.tmp.heading; o.moving = true; o.speed = s.speed; walking++;
         if (!ACTIVITIES[o.act].moving) o.act = 'walk'; o.y = this.geo.y(o.e, o.n); o.prop = propOf(o.act, o.carryNote); }
       else {
@@ -373,6 +417,9 @@ export class PopView {
   private children(day: number, upd: number) {
     const K = this.kids; K.held = 0; K.unseen = 0; K.noCarer = 0; K.second = 0; K.byMode = {}; K.hands = 0; K.handJumpMax = 0; K.led = 0;
     for (const c of this.youngBuf) {
+      // (D-244: a small child asleep indoors whose plan names nobody with it sleeps beside its mother, or else beside a grown
+      // member of the household drawn in the house: not left undrawn in an empty room)
+      if (c.wp < 0 && c.spot?.inside && c.mode === 1) c.wp = this.bedside(c, day, upd);
       const carer = c.wp >= 0 ? this.ps.get(c.wp) : undefined;
       if (c.wp < 0) { K.noCarer++; continue; }
       if (!carer || carer.stamp !== upd || !carer.view || carer.mode === 0) { if (c.mode !== 0) K.unseen++; continue; } // (unseen: a child out of doors whose carer is not drawn)
@@ -391,6 +438,14 @@ export class PopView {
       for (const m of this.pop.membersOn(this.pop.home(b.pid, day), day)) { const a = this.pop.ageOn(m, day); if (a < 6 || a > 12) continue;
         const g = this.ps.get(m); if (!g?.view || g.stamp !== upd || g.mode !== 2 || g.view.hand || Math.hypot(g.view.e - o.e, g.view.n - o.n) > GUIDE_SNAP) continue;
         this.hold(o, g.view, m, CHILD_H[a]); K.led++; break; } }
+  }
+  /** D-244: who a small child asleep indoors with nobody named sleeps beside: its mother when she is drawn in the same house,
+   *  else the first grown member of the household drawn there (-1: none) */
+  private bedside(c: PS, day: number, upd: number): number {
+    const here = (q: PS | undefined) => !!q && q.stamp === upd && q.mode === 1 && !!q.spot?.inside && q.spot.plot === c.spot!.plot && !!q.view && q.view.babes!.length < 2;
+    const m = this.pop.persons[c.pid].mother; if (m >= 0 && here(this.ps.get(m))) return m;
+    for (const x of this.pop.membersOn(this.pop.home(c.pid, day), day)) if (x !== c.pid && this.pop.ageOn(x, day) >= 12 && here(this.ps.get(x))) return x;
+    return -1;
   }
   /** a walker (`q`) holds out a hand to a smaller walker (`o`, height h m), who walks beside at HAND_GAP and reaches up */
   private hold(q: ViewPerson, o: ViewPerson, pid: number, h: number) {
@@ -417,27 +472,31 @@ export class PopView {
   private agentsOff(t: number) {
     let n = 0;
     for (const a of this.sim.agents) { if (!a.offmap) continue; const sp = this.agentSpot(a, t); if (!sp) continue; n++;
-      const o = this.agentVp(); o.pid = a.pid; o.agent = a.id; o.hh = -1; o.babes!.length = 0; o.hand = 0; o.impair = 0; o.e = sp.e; o.n = sp.n; o.heading = sp.heading; o.moving = sp.moving; o.speed = sp.moving ? a.speed : 0; o.act = sp.moving ? 'walk' : (a.task?.act ?? 'rest'); o.why = a.task?.why ?? ''; o.place = sp.moving ? '' : a.task?.place ?? ''; o.plot = 0; o.wall = 0;
+      const o = this.agentVp(); o.pid = a.pid; o.agent = a.id; o.hh = -1; o.babes!.length = 0; o.hand = 0; o.impair = 0; o.e = sp.e; o.n = sp.n; o.heading = sp.heading; o.moving = sp.moving; o.speed = sp.moving ? a.speed : 0; o.act = sp.moving ? 'walk' : (a.task?.act ?? 'rest'); o.why = a.task?.why ?? ''; o.place = sp.moving ? '' : a.task?.place ?? ''; o.plot = sp.plot ?? 0; o.wall = sp.wall ?? 0; o.indoor = !!sp.inside;
       o.carryNote = a.task?.holds ?? null; o.prop = propOf(o.act, o.carryNote); o.entry = 0; o.what = sp.what; o.y = this.geo.y(o.e, o.n); }
     this.stats.agentsOff = n;
   }
-  private agentSpot(a: Agent, t: number): { e: number; n: number; heading: number; moving: boolean; what: string } | null {
+  private agentSpot(a: Agent, t: number): { e: number; n: number; heading: number; moving: boolean; what: string; inside?: boolean; plot?: number; wall?: number } | null {
     if (a.walking && a.travel) { const tr = a.travel, key = `${tr.from[0].toFixed(1)},${tr.from[1].toFixed(1)}>${tr.to[0].toFixed(1)},${tr.to[1].toFixed(1)}`;
       let r = this.legCache.get(key); if (r === undefined) { const A = this.geo.spotAtPoint(tr.from), B = this.geo.spotAtPoint(tr.to); r = this.geo.route(A, B) ?? null; this.legCache.set(key, r); }
       if (!r) return null; const f = Math.max(0, Math.min(1, (t - tr.t0) / Math.max(1e-9, tr.t1 - tr.t0))); routeAt(r, f * r.len, this.tmp);
       return { e: this.tmp.e, n: this.tmp.n, heading: this.tmp.heading, moving: true, what: 'on the way through the town (the simulation\'s hidden leg, along the lanes)' }; }
     const task = a.task; if (!task || !task.place.startsWith('h:')) return null;
-    const d = Math.floor(t / 24), sp = this.geo.spot(a.pid, task.place, task.act, d, t - d * 24); if (!sp.ok || !sp.out) return null;
-    return { e: sp.e, n: sp.n, heading: sp.heading, moving: false, what: sp.what };
+    // (D-244: under the roof the plan puts the agent under: not drawn out of doors then)
+    const d = Math.floor(t / 24), hh = t - d * 24, C = this.pop.cal?.ctx(d), seg: Seg = { t0: 0, t1: 24, place: task.place, act: task.act, why: task.why ?? '', where: 'town' };
+    const indoor = C ? planIndoors(seg, C.wx, sunTimes(d), hh) : undefined;
+    const sp = this.geo.spot(a.pid, task.place, task.act, d, hh, indoor); if (!sp.ok || !shown(sp) || (indoor && sp.out && !sp.roof)) return null;
+    return { e: sp.e, n: sp.n, heading: sp.heading, moving: false, what: sp.what, inside: sp.inside, plot: sp.plot, wall: sp.wall };
   }
   /** update with no budgets (a test render, a jump in time): every person near the centre is placed now */
   /** the time of the last update, and the number of jumps in time so far (back, or more than a quarter hour ahead: the
    *  people are where the new time puts them, so the crowd's pop-in probe starts afresh) */
   lastT = -1; jumps = 0;
+  private jumpedNow = false; private settling = false;
   settle(t: number, centre: P2) {
-    this.jumps++;
+    this.jumps++; this.settling = true;
     const b = [this.planBudgetMs, this.routeBudgetMs, this.navBudget, this.nearR]; this.planBudgetMs = this.routeBudgetMs = this.navBudget = 1e9;
-    try { this.update(t, centre); } finally { [this.planBudgetMs, this.routeBudgetMs, this.navBudget, this.nearR] = b; }
+    try { this.update(t, centre); } finally { [this.planBudgetMs, this.routeBudgetMs, this.navBudget, this.nearR] = b; this.settling = false; }
   }
   /** the people out of doors within `radius` of `centre` (grid), valid until the next update (the objects are reused) */
   query(centre: P2, radius: number, out: ViewPerson[] = []): ViewPerson[] {
@@ -457,6 +516,9 @@ export class PopView {
   }
   /** a child's standing height by age (m; C: a modern growth-chart median, the body is the child variant scaled) */
   childStature(pid: number): number | null { const age = this.pop.ageOn(pid, Math.floor(this.sim.t / 24)); if (age >= 12) return null; return CHILD_H[Math.max(0, Math.min(11, age))]; }
+  /** D-244: the view's state of a person (the renderless trace, tools/dev/people_trace.ts): 0 not drawn, 1 at a spot, 2
+   *  walking; the spot (on a walk, where it goes) and its description; null when the person is not a candidate */
+  stateOf(pid: number): { mode: 0 | 1 | 2; spot: Spot | null; what: string } | null { const s = this.ps.get(pid); return s ? { mode: s.mode, spot: s.spot, what: s.what } : null; }
   /** the plan's description of a person now (dev overlay) */
   describe(pid: number): string { const s = this.ps.get(pid); return s ? `${s.what}${s.mode === 2 ? `, ${s.speed.toFixed(2)} m/s` : ''}` : 'not near'; }
 }

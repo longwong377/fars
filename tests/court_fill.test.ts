@@ -147,14 +147,14 @@ describe('the camps’ tents (D-199: camps.ts, C)', () => {
     const sleeps = K.tents.reduce((s, t) => s + TENT_KINDS[t.kind].sleeps, 0);
     OUT.tents = { total: K.tents.length, sleeps, camps: res }; save(); console.log(JSON.stringify(OUT.tents));
   }, 300_000);
-  it('the tents drawn: a mesh per camp, a collider per tent, ≤ 20 triangles a tent; the people asleep inside (not drawn), the rest before their door', () => {
+  it('the tents drawn: a mesh per camp, a collider per tent, ≤ 20 triangles a tent; the people asleep inside (on the tent’s floor, drawn inside it: D-244), the rest before their door', () => {
     const K = P.court!, t0 = performance.now(), C = new CourtCampTents(K.tents, () => 1600), ms = performance.now() - t0;
     expect(C.info.tents).toBe(K.tents.length); expect(C.info.meshes).toBe(CAMPS.length); expect(C.info.colliders).toBe(K.tents.length); expect(C.info.tris / C.info.tents).toBeLessThanOrEqual(20);
     OUT.tentGeometry = { tents: C.info.tents, triangles: C.info.tris, meshes: C.info.meshes, buildMs: +ms.toFixed(0), perTent: +(C.info.tris / C.info.tents).toFixed(1) }; save();
     const geo = new PopGeo({ pop: P, nav, town: buildTownPlan(), seed: 1 });
     let n = 0; for (const [camp, list] of K.retinue) for (const pid of list.filter((_, i) => i % 97 === 0)) { const t = K.tentOf(pid)!; expect(t.camp).toBe(camp);
       const a = geo.spot(pid, campPlace(camp), 'sleep', 5, 2), b = geo.spot(pid, campPlace(camp), 'talk', 5, 10); expect(a.ok && b.ok).toBe(true); expect(a.out).toBe(false); expect(b.out).toBe(true);
-      expect(Math.hypot(a.e - t.e, a.n - t.n)).toBeLessThan(0.01); const d = Math.hypot(b.e - t.e, b.n - t.n); expect(d).toBeGreaterThan(t.d / 2); expect(d).toBeLessThan(t.d / 2 + 4.5); n++; }
+      expect(Math.hypot(a.e - t.e, a.n - t.n)).toBeLessThanOrEqual(Math.min(t.w, t.d) * 0.3 * Math.SQRT2 + 1e-6); expect(a.inside).toBe(true); const d = Math.hypot(b.e - t.e, b.n - t.n); expect(d).toBeGreaterThan(t.d / 2); expect(d).toBeLessThan(t.d / 2 + 4.5); n++; }
     expect(n).toBeGreaterThan(100);
   }, 300_000);
 });

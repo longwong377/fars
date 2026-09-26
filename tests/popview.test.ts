@@ -7,7 +7,8 @@ import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import * as THREE from 'three/webgpu';
 import { NavGrid } from '../src/people/navgrid';
 import { PeopleSim, PLACES, type Env } from '../src/people/sim';
-import { segAt } from '../src/people/population';
+import { segAt, planIndoors } from '../src/people/population';
+import { sunTimes } from '../src/people/calendar';
 import { WeatherSystem } from '../src/weather/weatherState';
 import { buildTownPlan, type TownPlan } from '../src/world/settlement/plan';
 import { TownWalk, siteMoves, openCode } from '../src/world/settlement/walk';
@@ -89,13 +90,13 @@ describe('population view: the plans in the built world (D-143)', () => {
     note('m01', `places resolved: ${ok} of ${n} (${(100 * ok / n).toFixed(2)} %); unresolved by kind ${JSON.stringify([...bad])}; village load ${JSON.stringify(geo.villageLoad().sort((a, b) => b.perCompound - a.perCompound).slice(0, 4))}`);
     expect(ok / n).toBeGreaterThan(0.995);
   }, 300_000);
-  it('nobody drawn stands inside a wall or a roofed room; walked routes cross no wall', () => {
+  it('nobody drawn stands inside a wall; a roofed room holds only those placed indoors (D-244), and they stand in one; walked routes cross no wall', () => {
     let people = 0, walkers = 0, routes = 0, standing = 0, close = 0; const off: string[] = [];
     for (const [d, h, c] of [[25, 10, [0, 60]], [25, 12.2, [-422, -941]], [25, 17.5, [-800, 400]], [150, 7, [-1000, -1100]]] as [number, number, [number, number]][]) {
       sim.jumpTo(d * 24 + h); view.settle(d * 24 + h, c);
       for (const o of view.query(c, 2500)) { people++;
         const cc = cellAt(o.e, o.n);
-        if (cc) { const code = cc.s.cell[cc.k]; if (!(code >= 0 || openCode(code))) off.push(`p${o.pid} ${o.what}: in a wall cell`); else if (!o.moving && code >= 0 && cc.s.sub[cc.k] === ROOM) off.push(`p${o.pid} ${o.what}: drawn in a roofed room`); }
+        if (cc) { const code = cc.s.cell[cc.k]; if (!(code >= 0 || openCode(code))) off.push(`p${o.pid} ${o.what}: in a wall cell`); else if (!o.moving && code >= 0 && cc.s.sub[cc.k] === ROOM && !o.indoor) off.push(`p${o.pid} ${o.what}: drawn in a roofed room, not placed indoors`); else if (!o.moving && o.indoor && !(code >= 0 && cc.s.sub[cc.k] === ROOM)) off.push(`p${o.pid} ${o.what}: placed indoors, drawn outside a room`); }
         else if (o.e > -619 && o.e < 261 && o.n > -244 && o.n < 184 && !nav.walkable(o.e, o.n)) off.push(`p${o.pid} ${o.what}: off the walkable grid`); }
       for (const s of (view as any).list) { if (s.mode !== 2 || !s.route || routes > 2500) continue; routes++; walkers++; const w = wallCrossing(s.route); if (w) off.push(`route of p${s.pid} (${s.what}): ${w}`); }
       // people standing do not stand on one another (the population's; the detailed agents are the simulation's own)
@@ -113,7 +114,7 @@ describe('population view: the plans in the built world (D-143)', () => {
       const byPid = new Map(view.visible.filter(o => o.agent < 0).map(o => [o.pid, o]));
       for (const s of (view as any).list) { const o = byPid.get(s.pid); if (!o || !s.plan) continue; const seg = segAt(P.plan(s.pid, d), h);
         // at a place: at its spot, or (when others stood there first) at the clear place beside it that the view gave them
-        if (s.mode === 1 && seg.where !== 'road' && !o.moving) { stays++; const sp = geo.spot(s.pid, seg.place, seg.act, d, h), aside = Math.hypot(s.sepE - sp.e, s.sepN - sp.n);
+        if (s.mode === 1 && seg.where !== 'road' && !o.moving) { stays++; const sp = geo.spot(s.pid, seg.place, seg.act, d, h, planIndoors(seg, P.cal.ctx(d).wx, sunTimes(d), h) /* D-244: the plan's roof */), aside = Math.hypot(s.sepE - sp.e, s.sepN - sp.n);
           if (!s.what.includes('leaves')) { if (Math.hypot(s.sepE - o.e, s.sepN - o.n) > 0.01) bad.push(`p${s.pid} at ${seg.place}: drawn ${Math.hypot(s.sepE - o.e, s.sepN - o.n).toFixed(2)} m off its place`);
             if (aside > 5.1) bad.push(`p${s.pid} at ${seg.place}: ${aside.toFixed(2)} m from its spot`); } }
         if (s.mode === 2 && s.route && seg.where === 'road') { walks++; const r: Route = s.route; let best = Infinity; const q = { e: 0, n: 0, heading: 0 };
@@ -238,7 +239,7 @@ describe('crowd fed by the population view (D-143)', () => {
       const check = (key: number, x: number, y: number, z: number, what: string, hidden = false) => { if (!fr.containsPoint(_v.set(x, y + 1, z))) return; const dd = Math.hypot(x - cam.position.x, y + 0.9 - cam.position.y, z - cam.position.z); if (dd > 4990) return;
         simIn++; if (dd < 25 && !hidden) near25++; if (!crowd.drawnKeys!.has(key)) missing.push(what); };
       for (const o of view.query([e, n], 5000)) if (o.agent < 0) check(o.pid, o.e, o.y, -o.n, `p${o.pid} ${o.what}`, walledOff(o));
-      for (const a of sim.agents) if (!a.offmap) check(-1 - a.id, a.pos[0], a.y, -a.pos[1], `agent ${a.id}`);
+      for (const a of sim.agents) if (!a.offmap && !sim.indoorsUnbuilt(a)) check(-1 - a.id, a.pos[0], a.y, -a.pos[1], `agent ${a.id}`); // (D-244: not an agent the plan keeps indoors where no room is built, B63)
       // of the drawn in view, those a line of sight reaches (chest or head)
       const eye: [number, number, number] = [cam.position.x, -cam.position.z, cam.position.y]; let inF = 0, vis = 0; const vb = [0, 0, 0, 0, 0], kinds = [0, 0, 0, 0, 0];
       for (let i = 0; i < pts.length; i += 5) { const x = pts[i], y = pts[i + 1], z = pts[i + 2], hh = pts[i + 3]; if (!fr.containsPoint(_v.set(x, y + 0.72 * hh, z))) continue; inF++;

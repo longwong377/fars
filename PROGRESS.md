@@ -29,6 +29,17 @@
   seams worst 1.34 mm over 10,000 samples per seam: T-H1 built); a step-up bug that sent the player uphill at 11.7 m/s on every slope
   over 11°; everyone and every animal within 16 m solid (pools of 160 + 64); autosave (60 s, on hidden/pagehide/beforeunload) with a
   byte-identical save round trip including walks, chronicle and route cache. Evidence: REVIEWS/evidence/s8-h/.
+- **D-244 indoors drawn as indoors (session 8 workstream): measured in node only, NOT seen on screen; placeholders underneath.**
+  The view now draws everyone the plan keeps indoors inside their room (lying when asleep or ill) instead of in the court or
+  hidden: no render has shown it (rooms are placeholder slabs with no mats, lamps or hearths, D-234 in flight; village rooms
+  are solid boxes, so village sleepers are drawn where nobody can see them: B64). People the plan keeps indoors where no room is
+  built are not drawn (up to 1.6 % of those present: the garrison's quarters, the guards' mess after dark, the mill, the bands'
+  camps: B63). Night now draws the whole population (inside), so the crowd's night cost rises to the day's (not measured in a
+  browser). "At home" in dry daylight is still drawn in the court (the plan does not say which: Q-651). tests/indoor_truth.test.ts
+  was not run as a vitest on the final tree (its gate function ran on all four cases through `people_trace.ts --evidence`).
+  Measured (tools/dev/people_trace.ts, a quarter of the households, seeds 1 on/off court, 7, fresh 14561): T-D3 45,859 → 0
+  (seed 1, 8 whole-world snapshots), T-D3s 0 % → 100 %, T-D4 101 % → 0.3 % world, worst area 4.6 %; evidence
+  REVIEWS/evidence/s8-d244-indoor-truth/ (T-D3s, T-D4 built; T-D3 stays to-build: bot-hours are not traced, and tests/gates_ratchet.test.ts refuses the row's tool change against acf73a4, where T-D3 was "partial" on tools/dev/audit_c/rain_days.ts: the lead's call, the guard not touched). DECISIONS D-244.
 - **Photo #24 side by side (session 8, job d232check, shots/moment-calib-24-now-webgpu.png vs references #24): the render fails
   plainly.** The wall now draws joints (no longer flat or black), but it reads as grey concrete where the photo's stone is warm
   tan-brown; the polygonal foot of big blocks along the W wall (photo, 38 % of its length) is not visible; the plain is smooth brown
