@@ -28,6 +28,7 @@ import { toLocal, toGrid, ROOM, type Frame, type P2 } from './settlement/site';
 import type { Place } from '../audio/soundscape';
 import townData from '../data/town.json';
 import faunaData from '../data/fauna.json';
+import { beastRanges, beastsAt, keepAway, callsNow, BEAST_CALLS, type BeastRanges } from './beasts';
 
 const fr = (x: number) => x - Math.floor(x);
 /** a stable hash in [0, 1) of (seed, a, b) */
@@ -48,7 +49,7 @@ interface YardDog { yard: Yard; seed: number; where: 'town' | 'village' | 'stabl
 interface Strays { c: P2; spots: P2[]; n: number; seed: number }
 interface HenYard { yard: Yard; n: number; cock: boolean; seed: number; r?: number }
 export interface VillageIn { id: string; x: number; y: number; r: number; comps: { x: number; y: number; w: number; d: number; angle: number; rooms: { u0: number; v0: number; u1: number; v1: number }[]; gate: number }[] }
-export interface FaunaCtx { t: number; hour: number; /** the day (D-227: the foot's tether lines) */ day?: number; month: number; sun: { rise: number; set: number }; player: P2 | null; cam: { x: number; y: number; z: number }; dt: number; rain: number }
+export interface FaunaCtx { t: number; /** world-clock seconds (session 9: the wild animals are keyed by the world's time, not the page's) */ worldT?: number; hour: number; /** the day (D-227: the foot's tether lines) */ day?: number; month: number; sun: { rise: number; set: number }; player: P2 | null; cam: { x: number; y: number; z: number }; dt: number; rain: number }
 
 /** a coarse point grid (50 m cells) for the per-frame radius queries */
 class Grid<T> { private m = new Map<number, T[]>(); constructor(private cell = 50) {}
@@ -70,7 +71,7 @@ export class Fauna {
   private alarm = new Map<number, number>(); private nextCrow = 0; private q: number[] = []; private m4 = new THREE.Matrix4(); private qt = new THREE.Quaternion(); private up = new THREE.Vector3(0, 1, 0);
   private drawn: { e: number; n: number }[] = [];
   /** statistics of the last update (dev overlay, tests) */
-  readonly stats = { drawn: 0, bySpecies: {} as Record<string, number>, barks: 0, crows: 0 };
+  readonly stats = { drawn: 0, bySpecies: {} as Record<string, number>, barks: 0, crows: 0, calls: 0 };
 
   /** the animals' calls (barks, crows, clucks, grunts) draw on the world seed's own stream, never Math.random (MASTER_PLAN §6 order, step 1) */
   private snd!: Rng;
@@ -249,10 +250,31 @@ export class Fauna {
     // D-227: the tether lines at the foot of the Grand Stair (terraceFoot.ts), within FOOT_DRAW_R of it
     if (this.foot) { const vis = Math.hypot(STAIR_FOOT[0] - cam[0], STAIR_FOOT[1] - cam[1]) < FOOT_DRAW_R; this.foot.group.visible = vis;
       if (vis) this.foot.update(c.day ?? 0, c.hour, c.t, a => { Object.assign(o, a); push(); }); }
+    // the wild animals (session 9, beasts.ts): drawn out to 1.2 km (they are large; the onagers and cheetahs are far out on the
+    // steppe, the lions in their reeds); their calls carry kilometres
+    if (this.beasts) { const B = this.beasts, month = c.month;
+      const wt = c.worldT ?? c.t, all = beastsAt(B, this.seed, wt, c.hour, c.sun, month);
+      for (const b0 of all) { const b = keepAway(b0, c.player); if (Math.hypot(b.e - cam[0], b.n - cam[1]) > 1200) continue;
+        Object.assign(o, { sp: b.sp as Species, e: b.e, n: b.n, x: 0, z: 0, yaw: b.yaw, phase: (2 * Math.PI * c.t) / 1.2, walk: b.walk, graze: b.graze, lie: b.lie, coat: b.coat }); push(); }
+      const wolf = all.find(x => x.sp === 'wolf');
+      const at: Record<string, P2 | null> = { howl: wolf ? [wolf.e, wolf.n] : null,
+        roar: B.lionDen, whoop: B.hyenaMidden, saw: B.leopardPath.length ? B.leopardPath[Math.floor(B.leopardPath.length / 2)] : null };
+      if (Math.floor(wt) !== this.lastCallSecond) { this.lastCallSecond = Math.floor(wt);
+        for (const k of Object.keys(BEAST_CALLS) as (keyof typeof BEAST_CALLS)[]) { const p = at[k]; if (!p || Math.hypot(p[0] - cam[0], p[1] - cam[1]) > BEAST_CALLS[k].far) continue;
+          if (callsNow(this.seed, k, wt, c.hour, c.sun, month)) { sound(k, p[0], p[1], 0.8); st.calls = (st.calls ?? 0) + 1; } } } }
     A.end();
   }
+  private lastCallSecond = -1;
   /** D-227: the tether lines at the stair foot (terraceFoot.ts): drawn with this rig */
   foot: TerraceFoot | null = null;
+  /** the wild animals of the land beyond the town (session 9, beasts.ts): their ranges, built once the plain's land use is known */
+  beasts: BeastRanges | null = null;
+  setWild(natural: ((e: number, n: number) => boolean) | undefined, rivers: P2[][], people: P2[]) {
+    this.beasts = beastRanges({ ground: this.ground, natural, rivers, people });
+    // the hyenas' midden: the strays' midden farthest from the town's centre (the edge of the settlement)
+    let best: P2 | null = null, bd = -1; const tc = FAC.river ?? [-700, 200]; for (const g of this.strays) { const d = Math.hypot(g.c[0] - tc[0], g.c[1] - tc[1]); if (d > bd) { bd = d; best = g.c; } }
+    this.beasts.hyenaMidden = best;
+  }
   addTerraceFoot(f: TerraceFoot) { this.foot = f; this.group.add(f.group); }
   /** the listener's surroundings for the soundscape (audio/soundscape.ts Place): houses, water, trees, dung and middens,
    *  animals near (C: the distances at which each counts) */

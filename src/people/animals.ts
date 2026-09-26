@@ -27,12 +27,15 @@ import type { AnimalSpec } from './activities';
 import { RIDE } from './anim';
 
 export type Species = 'sheep' | 'goat' | 'ox' | 'donkey' | 'horse' | 'dog' | 'mule' | 'camel' | 'dromedary' | 'zebu' | 'deer' | 'stag' | 'gazelle' | 'gazelle_m' | 'boar' | 'hen' | 'cock'
-  | 'donkey_pack' | 'mule_pack' | 'camel_pack' | 'horse_saddle';
+  | 'donkey_pack' | 'mule_pack' | 'camel_pack' | 'horse_saddle'
+  | 'wolf' | 'lion' | 'lioness' | 'cheetah' | 'leopard' | 'hyena' | 'onager';
 export const SPECIES: Species[] = ['sheep', 'goat', 'ox', 'donkey', 'horse', 'dog', 'mule', 'camel', 'dromedary', 'zebu', 'deer', 'stag', 'gazelle', 'gazelle_m', 'boar', 'hen', 'cock',
-  'donkey_pack', 'mule_pack', 'camel_pack', 'horse_saddle'];
+  'donkey_pack', 'mule_pack', 'camel_pack', 'horse_saddle', 'wolf', 'lion', 'lioness', 'cheetah', 'leopard', 'hyena', 'onager'];
 type RGB = [number, number, number];
 interface Build { len: number; h: number; girth: number; neck: number; neckA: number; nb?: number; head: number; headR: number; leg: number;
-  tail: 'fat' | 'short' | 'long' | 'tuft' | 'hair' | 'curl' | 'hen' | 'cock'; ears: 'small' | 'long' | 'mid' | 'prick' | 'none';
+  tail: 'fat' | 'short' | 'long' | 'tuft' | 'hair' | 'curl' | 'hen' | 'cock' | 'brush' | 'cat'; ears: 'small' | 'long' | 'mid' | 'prick' | 'none';
+  /** the lion's mane: a ruff about the head and neck (session 9) */
+  ruff?: boolean;
   horns?: 'goat' | 'ox' | 'gazelle' | 'antler'; mane?: boolean; coat: RGB[]; stride: number; tier: string; note: string;
   /** the data row the species stands for: population.json `animals` id (the town's animals) or src/data/fauna.json id */
   row: string;
@@ -79,6 +82,22 @@ export const ANIMAL_BUILD: Record<Species, Build> = {
     tier: 'B (PF 2034: 1,044 poultry; fodder for poultry, IR-PET) / C form and breed', note: 'hen of the red-junglefowl type, brown, buff, dark or pale (C: the breed is not known)' },
   cock: { len: 0.46, h: 0.38, girth: 0.24, neck: 0.24, neckA: 1.2, nb: 0, head: 0.08, headR: 0.032, leg: 0.011, tail: 'cock', ears: 'none', comb: 'cock', biped: true, coat: [[0.62, 0.3, 0.12], [0.7, 0.42, 0.16], [0.5, 0.24, 0.1]], stride: 0.26, row: 'poultry',
     tier: 'B (PF 2034 poultry) / C form', note: 'cock of the red-junglefowl type, red-gold with a dark arched tail (C; “the Persian bird” of Aristophanes’ Birds is a recollection, NOT SEEN)' },
+  // session 9 (the wild animals of Fars in 467: world/fauna.ts; fauna.json rows with the evidence). Forms from the living
+  // species (C: size, proportion and coat); spots, rosettes and stripes are NOT modelled (plain coats: seen mostly far off)
+  wolf: { len: 1.15, h: 0.78, girth: 0.36, neck: 0.32, neckA: 0.7, nb: -0.05, head: 0.3, headR: 0.075, leg: 0.026, tail: 'brush', ears: 'prick', coat: [[0.55, 0.5, 0.42], [0.47, 0.42, 0.35], [0.62, 0.55, 0.44]], stride: 1.25, row: 'wolf',
+    tier: 'B species (grey wolf across Iran, the Zagros and Fars: range, RECOLLECTION NOT SEEN) / C form', note: 'grey wolf of the Iranian type, smaller and sandier than the northern wolves; coat pattern not modelled' },
+  lion: { len: 1.75, h: 1.05, girth: 0.56, neck: 0.4, neckA: 0.55, nb: -0.08, head: 0.4, headR: 0.12, leg: 0.045, tail: 'cat', ears: 'small', ruff: true, coat: [[0.7, 0.55, 0.36], [0.64, 0.5, 0.33]], stride: 1.4, row: 'lion',
+    tier: 'B species (the Asiatic lion in the Mesopotamian and Iranian lowlands and the Fars river valleys into the 20th c.: Dasht-e Arzhan by Shiraz, RECOLLECTION NOT SEEN; lions throughout Achaemenid art: the Persepolis door-jamb reliefs of the royal hero, A) / C form', note: 'Asiatic lion, male: the mane shorter than the African lion\'s (C), tawny' },
+  lioness: { len: 1.5, h: 0.92, girth: 0.46, neck: 0.36, neckA: 0.55, nb: -0.08, head: 0.34, headR: 0.1, leg: 0.038, tail: 'cat', ears: 'small', coat: [[0.74, 0.6, 0.4], [0.68, 0.54, 0.36]], stride: 1.3, row: 'lion',
+    tier: 'B species (as the lion) / C form', note: 'Asiatic lioness, tawny' },
+  cheetah: { len: 1.25, h: 0.8, girth: 0.3, neck: 0.34, neckA: 0.75, nb: -0.05, head: 0.22, headR: 0.07, leg: 0.022, tail: 'cat', ears: 'small', coat: [[0.8, 0.66, 0.44], [0.76, 0.62, 0.42]], stride: 1.5, row: 'cheetah',
+    tier: 'B species (the Asiatic cheetah on the open plains of Iran; the last wild ones survive in the central deserts: RECOLLECTION NOT SEEN) / C form', note: 'Asiatic cheetah: long-legged, small-headed; spots and the tear marks NOT modelled' },
+  leopard: { len: 1.3, h: 0.66, girth: 0.38, neck: 0.3, neckA: 0.6, nb: -0.05, head: 0.26, headR: 0.085, leg: 0.03, tail: 'cat', ears: 'small', coat: [[0.76, 0.6, 0.38], [0.7, 0.55, 0.34]], stride: 1.1, row: 'leopard',
+    tier: 'B species (the Persian leopard in the Zagros, rocky slopes: RECOLLECTION NOT SEEN) / C form', note: 'Persian leopard, pale and large; rosettes NOT modelled' },
+  hyena: { len: 1.05, h: 0.78, girth: 0.4, neck: 0.34, neckA: 0.65, nb: -0.08, head: 0.3, headR: 0.09, leg: 0.03, tail: 'brush', ears: 'prick', mane: true, coat: [[0.66, 0.6, 0.48], [0.58, 0.53, 0.42]], stride: 0.95, row: 'striped_hyena',
+    tier: 'B species (the striped hyena across Iran, a scavenger at the edges of settlements: RECOLLECTION NOT SEEN) / C form', note: 'striped hyena: a crest of long hair along the back (the mane); stripes and the sloping back NOT modelled' },
+  onager: { ...DONKEY, len: 1.35, h: 1.2, girth: 0.5, coat: [[0.74, 0.6, 0.44], [0.7, 0.56, 0.4], [0.78, 0.64, 0.48]], stride: 1.3, row: 'onager',
+    tier: 'B species (the Persian onager on the steppes of Iran; hunted by the Achaemenid and Assyrian kings: the Nineveh reliefs, recollection; RECOLLECTION NOT SEEN) / C form', note: 'Persian onager (wild ass): sandy with a pale belly (belly NOT modelled), a dark dorsal stripe NOT modelled' },
   donkey_pack: { ...DONKEY, gear: 'pack', note: 'donkey with a pack saddle, two wicker panniers and a sack across the top (loads and gear C; pack donkeys: POTTS2023, B)' },
   mule_pack: { ...MULE, gear: 'pack', note: 'mule with a pack saddle, panniers and a sack (C)' },
   camel_pack: { ...CAMEL, gear: 'pack_camel', note: 'Bactrian camel with two great sacks slung each side and a bundle between the humps (C)' },
@@ -176,11 +195,20 @@ export function animalGeometry(sp: Species): THREE.BufferGeometry {
   if (B.comb) { const ck = B.comb === 'cock' ? 1 : 0.55; parts.push({ g: new THREE.BoxGeometry(0.008, 0.04 * ck, 0.06 * ck).translate(F.top.x, F.top.y + B.headR * 0.9 + 0.012 * ck, F.top.z + 0.012), col: red, ht });
     parts.push({ g: new THREE.SphereGeometry(0.012 * ck + 0.004, 5, 3).scale(0.6, 1.2, 0.8).translate(F.muzzle.x, F.muzzle.y - 0.02, F.muzzle.z - 0.03), col: red, ht }); }
   if (B.mane) parts.push({ g: tube(F.base.clone().add(new V(0, B.girth * 0.22, -0.02)), F.top.clone().add(new V(0, B.headR * 0.9, -0.03)), 0.035, 0.025, 4).scale(0.55, 1, 1), col: sp.startsWith('donkey') ? [0.5, 0.5, 0.5] : sp === 'boar' ? [0.12, 0.1, 0.09] : [0.35, 0.3, 0.28], ht: [0.85, 0, F.base.y, F.base.z] });
+  // the lion's mane (session 9): a ruff about the head and neck, darker than the coat (C)
+  if (B.ruff) { const mc = F.base.clone().lerp(F.top, 0.55); parts.push({ g: new THREE.SphereGeometry(1, 9, 7).scale(B.headR * 2.1, B.headR * 2.3, B.head * 0.95).translate(mc.x, mc.y + B.headR * 0.2, mc.z - 0.04), col: [0.38, 0.25, 0.14], ht }); }
   // tail (weight 1 about its root)
   const tr = new V(0, F.bodyY + B.girth * 0.25, -B.len * 0.5), tht: [number, number, number, number] = [0, 1, tr.y, tr.z];
   if (B.tail === 'curl') { // the dog's tail carried up over the back in a loose curl
     const a = tr.clone(), b = a.clone().add(new V(0, 0.16, -0.08)), c = b.clone().add(new V(0.03, 0.08, 0.1));
     parts.push({ g: tube(a, b, 0.03, 0.026, 5), col: white, ht: tht }, { g: tube(b, c, 0.026, 0.015, 5), col: white, ht: tht }); }
+  else if (B.tail === 'brush') { // the wolf's and the hyena's bushy tail, hanging (session 9)
+    const a = tr.clone(), b = a.clone().add(new V(0, -0.2, -0.14)), c = b.clone().add(new V(0, -0.2, -0.05));
+    parts.push({ g: tube(a, b, 0.05, 0.065, 6), col: white, ht: tht }, { g: tube(b, c, 0.065, 0.03, 6), col: [0.3, 0.26, 0.22], ht: tht }); }
+  else if (B.tail === 'cat') { // the cats' long tail: down, then the tip curving up; the lion's with a dark tuft (session 9)
+    const L = B.len * 0.55, a = tr.clone(), b = a.clone().add(new V(0, -L * 0.55, -L * 0.3)), c = b.clone().add(new V(0, -L * 0.2, -L * 0.3)), d = c.clone().add(new V(0, L * 0.12, -L * 0.18));
+    for (const [p0, p1, r0, r1] of [[a, b, 0.03, 0.026], [b, c, 0.026, 0.022], [c, d, 0.022, 0.018]] as const) parts.push({ g: tube(p0, p1, r0 * B.girth / 0.4, r1 * B.girth / 0.4, 5), col: white, ht: tht });
+    if (B.ruff || sp === 'lioness') parts.push({ g: new THREE.SphereGeometry(0.045, 5, 4).scale(1, 1.6, 1).translate(d.x, d.y, d.z), col: [0.2, 0.14, 0.1], ht: tht }); }
   else if (B.tail === 'hen' || B.tail === 'cock') { // the fowl's tail: a raised fan of feathers; the cock's arched sickles dark
     const ck = B.tail === 'cock', a = new V(0, F.bodyY + B.girth * 0.2, -B.len * 0.42);
     parts.push({ g: new THREE.SphereGeometry(1, 6, 4).scale(0.02, ck ? 0.1 : 0.075, ck ? 0.07 : 0.055).rotateX(0.5).translate(a.x, a.y + 0.05, a.z - 0.03), col: ck ? [0.08, 0.1, 0.08] : white, ht: tht });

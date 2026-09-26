@@ -1068,5 +1068,15 @@
   "cite": "Encyclopaedia Iranica 'Bādgīr'; press summaries (France 24, 2023)",
   "url": "https://www.iranicaonline.org/articles/badgir-traditional-structure-for-passive-air-conditioning/",
   "access": "search extracts only (2026-09-26): 'the oldest archaeologically verified windcatcher in Yazd ... dates back to the 14th century' (CE); earlier dates are asserted without evidence: no windcatcher is built in 467 BCE"
+ },
+ "RANGE-R": {
+  "cite": "Historical ranges of the large mammals of Iran (grey wolf, Asiatic lion, Asiatic cheetah, Persian leopard, striped hyena, Persian onager, Syrian brown bear): the lead's recollection of the standard zoological accounts (e.g. the Mammals of Iran literature and the IUCN range statements)",
+  "url": "",
+  "access": "RECOLLECTION, NOT SEEN (scholarly and reference hosts blocked: BLOCKERS B6); every row using it is capped at B for presence and C for place"
+ },
+ "PERS-RELIEF": {
+  "cite": "The Persepolis door-jamb reliefs of the royal hero stabbing a lion (Tachara, Hundred-Column Hall): the site's own reliefs as built in this reconstruction (research/SITE_SPEC.md, relief programmes)",
+  "url": "",
+  "access": "the reliefs' programme as recorded in the build's research files"
  }
 }

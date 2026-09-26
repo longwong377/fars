@@ -97,6 +97,21 @@ function cicada(e: AudioEngine, out: AudioNode, t: number, r: Rng) {
 }
 /** a boar's grunts: low noisy pulses (C) */
 export function grunt(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) { const n = 2 + r.int(0, 4); for (let i = 0; i < n; i++) { voice(e, out, t + i * 0.32, 0.14, 130 + 30 * r.next(), 95, [[320, 1.5]], 0.05 * gain, 'sawtooth'); hiss(e, out, t + i * 0.32, 0.12, 400, 1, 0.02 * gain, 'brown'); } }
+/** session 9, the wild animals (world/beasts.ts; every call C, from descriptions of the living species' voices):
+ *  a wolf's howl, rising to a long held note and falling; a pack answers in overlapping voices */
+export function howl(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) {
+  const n = 1 + r.int(0, 3); for (let i = 0; i < n; i++) { const at = t + i * (0.8 + 1.5 * r.next()), f = 360 + 160 * r.next(), d = 2.2 + 1.8 * r.next();
+    voice(e, out, at, 0.5, f * 0.75, f, [[f * 2, 3]], 0.03 * gain, 'triangle'); voice(e, out, at + 0.5, d, f, f * (0.97 + 0.03 * r.next()), [[f * 2, 3]], 0.035 * gain, 'triangle', 5);
+    voice(e, out, at + 0.5 + d, 0.8, f, f * 0.6, [[f * 2, 3]], 0.025 * gain, 'triangle'); } }
+/** a lion's roar: two or three long low moans, then grunts slowing and fading */
+export function roar(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) {
+  let at = t; const m = 2 + r.int(0, 1);
+  for (let i = 0; i < m; i++) { const d = 1.1 + 0.5 * r.next(); voice(e, out, at, d, 110, 190, [[240, 1.5], [520, 2]], 0.09 * gain, 'sawtooth'); hiss(e, out, at, d, 300, 0.8, 0.03 * gain, 'brown'); at += d + 0.35; }
+  const g = 8 + r.int(0, 8); for (let i = 0; i < g; i++) { voice(e, out, at, 0.28, 150, 100, [[260, 1.5]], 0.06 * gain * (1 - i / (g + 2)), 'sawtooth'); hiss(e, out, at, 0.25, 280, 1, 0.02 * gain, 'brown'); at += 0.55 + i * 0.07; } }
+/** a striped hyena's whoop: a rising "whoo-oop", repeated a few times */
+export function whoop(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) { const n = 2 + r.int(0, 4); for (let i = 0; i < n; i++) voice(e, out, t + i * (1.4 + 0.6 * r.next()), 0.9, 300 + 60 * r.next(), 760 + 120 * r.next(), [[900, 2]], 0.04 * gain, 'triangle'); }
+/** a leopard's sawing call: rasping strokes on the in- and out-breath */
+export function sawCall(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) { const n = 8 + r.int(0, 6); for (let i = 0; i < n; i++) { const at = t + i * 0.42; voice(e, out, at, 0.2, 150, 120, [[400, 2], [900, 3]], 0.05 * gain, 'sawtooth'); hiss(e, out, at, 0.2, 700, 1.2, 0.03 * gain, 'pink'); } }
 export const BIRDS: Bird[] = [
   { id: 'see-see partridge', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [[5, 8.5], [17, 19.5]], rate: 0.12, tier: 'B species / C call',
     call: (e, o, t, r) => { for (let i = 0; i < 4 + r.int(0, 3); i++) chirp(e, o, t + i * 0.28, 1500, 1900, 0.12, 0.05); } },
@@ -141,7 +156,9 @@ export const BIRDS: Bird[] = [
  *  'footsteps' and 'fire' are the soundscape's continuous layers) */
 export const STRIKE_KINDS = ['chisel', 'quern', 'dice', 'hoe', 'sickle', 'loom', 'trowel', 'adze', 'mould', 'wash', 'broom', 'bow', 'bleat', 'water',
   // D-210: the animals' voices at the animal (crowd performances, world/fauna.ts)
-  'bray', 'bark', 'cluck', 'cockcrow', 'grunt'] as const;
+  'bray', 'bark', 'cluck', 'cockcrow', 'grunt',
+  // session 9: the wild animals' voices (world/beasts.ts), heard from far off
+  'howl', 'roar', 'whoop', 'saw'] as const;
 export const LAYER_SOUNDS = ['murmur', 'footsteps', 'fire'] as const;
 /** a lit fire's crackle bed level (C). D-245: 0.08 was −49 dBFS at 8 m (tools/dev/audio_render.ts), below the −40 dB a
  *  visible fire within 10 m must reach (MASTER_PLAN T-G3e) */
@@ -161,7 +178,7 @@ function tone(e: AudioEngine, out: AudioNode, t: number, dur: number, type: Osci
 /** the work sounds of the activity performances (D-142; all procedural, C). Returns false for other kinds */
 export function workStrike(e: AudioEngine, kind: string, pos: { x: number; y: number; z: number }, rng: Rng): boolean {
   const c = e.ctx; if (!c) return false; const t = c.currentTime, j = rng.next();
-  const at = (h: number, ref: number, max: number) => { const p = e.panner(pos.x, pos.y + h, pos.z, ref, max); e.route(p, 'effects', t + 1.5); return p; };
+  const at = (h: number, ref: number, max: number, dur = 1.5) => { const p = e.panner(pos.x, pos.y + h, pos.z, ref, max); e.route(p, 'effects', t + dur); return p; };
   switch (kind) {
     case 'hoe': { const p = at(0.1, 3, 120); burst(e, p, t, 0.12, 'brown', 'lowpass', 420, 200, 0.7, 0.07); tone(e, p, t, 0.08, 'sine', 95 + 20 * j, 60, 0.05); return true; } // blade into soil
     case 'sickle': { const p = at(0.4, 2, 50); burst(e, p, t, 0.16, 'white', 'bandpass', 3200, 1600, 1.2, 0.02); return true; } // cutting stalks
@@ -178,6 +195,10 @@ export function workStrike(e: AudioEngine, kind: string, pos: { x: number; y: nu
     case 'cluck': { const p = at(0.25, 1.5, 40); cluck(e, p, t, rng); return true; }
     case 'cockcrow': { const p = at(0.4, 5, 500); cockcrow(e, p, t, rng); return true; }
     case 'grunt': { const p = at(0.4, 3, 150); grunt(e, p, t, rng); return true; }
+    case 'howl': { const p = at(0.8, 60, 3500, 16); howl(e, p, t, rng); return true; }
+    case 'roar': { const p = at(0.8, 120, 6000, 24); roar(e, p, t, rng); return true; }
+    case 'whoop': { const p = at(0.8, 30, 1500, 12); whoop(e, p, t, rng); return true; }
+    case 'saw': { const p = at(0.8, 25, 900, 8); sawCall(e, p, t, rng); return true; }
     case 'bleat': { // a sheep's or goat's bleat: a buzzy tone with vibrato through a vocal formant (C)
       const p = at(0.6, 4, 250), o = c.createOscillator(), v = c.createOscillator(), vg = c.createGain(), f = c.createBiquadFilter(), g = c.createGain(), f0 = 330 + 190 * j, d = 0.45 + 0.35 * rng.next();
       o.type = 'sawtooth'; o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f0 * 0.9, t + d);

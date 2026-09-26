@@ -59,6 +59,7 @@ import { buildMapLayers, builtPlainOf, MapItem } from '../ui/mapLayers';
 import { DoorSystem } from '../arch/doors';
 import { WeatherVfx } from './weatherVfx';
 import { RainShafts } from './rainShafts';
+import { landUseAt } from './plain/fields';
 import { RAIN_CELL } from '../sky/clouds';
 import { Birds, Jackals } from './wildlife';
 import { azAltToWorld } from '../sky/ephemeris';
@@ -220,6 +221,10 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const faunaT0 = performance.now();
   const villagesIn: VillageIn[] = plain.data.villages.map(v => ({ id: v.id, x: v.x, y: v.y, r: v.r, comps: villageCompounds(v, terrain, seed) }));
   const fauna = new Fauna(seed, settlement?.plan ?? null, villagesIn, groundAt, { rivers: plain.data.rivers.rivers.map(r => ({ pts: Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number]), half: r.topWidth / 2 })), canals: plain.data.canals.map(c => c.pts as [number, number][]) });
+  { // the wild animals beyond the town (session 9, beasts.ts): uncultivated land from the plain's own land use; people at the
+    // town's places, the villages and the Terrace (the lions and the steppe animals keep kilometres from them)
+    const people: [number, number][] = [[0, 0], ...Object.values(FAUNA_FAC) as [number, number][], ...villagesIn.map(v => [v.x, v.y] as [number, number])];
+    fauna.setWild((e, n) => landUseAt(plain.data.zones, e, -n).use === 'natural', plain.data.rivers.rivers.map(r => Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number])), people); }
   wmark('fauna');
   if (sim.pop.court) { const cc = CAMPS.find(c => c.id === 'court'); if (cc) fauna.addCourtVehicles(cc.c as [number, number], cc.r); }
   fauna.addTerraceFoot(new TerraceFoot(seed, groundAt)); // D-227: the tether lines, heaps and loads at the foot of the Grand Stair (C)
@@ -457,7 +462,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       crowd.update(time, ctx.camera.position, playerAt, ctx.camera);
       { const day = Math.floor(sim.t / 24), sun = sunTimes(day); // D-210: the animals of the town, the villages, the paradise and the river
         fauna.group.visible = !nowView.active;
-        if (!nowView.active) fauna.update({ t: time, hour: ctx.clock.localHour, day, month: ctx.cond.day.climMonth, sun, player: [playerAt.x, -playerAt.z], cam: ctx.camera.position, dt, rain: ctx.cond.rain }); }
+        if (!nowView.active) fauna.update({ t: time, worldT: ctx.clock.t * 86400, hour: ctx.clock.localHour, day, month: ctx.cond.day.climMonth, sun, player: [playerAt.x, -playerAt.z], cam: ctx.camera.position, dt, rain: ctx.cond.rain }); }
       { // D-220: what the households burn now → the fires' state and the smoke layer (recomputed when the minute or the wind changes)
         const key = `${ctx.clock.dayIndex}|${Math.floor(ctx.clock.localHour * 60)}|${ctx.cond.windMs.toFixed(1)}|${Math.round(ctx.cond.windDirDeg)}|${Math.round(ctx.sky.sunAlt)}`;
         if (key !== smokeKey) { smokeKey = key; smoke.update(ctx.clock.dayIndex, ctx.clock.localHour, ctx.cond.windMs, ctx.cond.windDirDeg, ctx.sky.sunAlt); }
