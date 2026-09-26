@@ -62,6 +62,10 @@ function vn(x: number, y: number, seed = 0) {
  *  (grain drying on the roofs, nights on the roof) from mid-May to early July, the warm months (nights on the roof) to
  *  mid-September, else the cold */
 export function seasonOf(day: number): 'harvest' | 'warm' | 'cold' { const d = ((day % 360) + 360) % 360; return d >= 45 && d < 100 ? 'harvest' : d >= 100 && d < 170 ? 'warm' : 'cold'; }
+/** a street doorway's own measures (hash of the plot id; C): the lintel up to 15 cm under the plan's 2 m head (the leaf is
+ *  cut to fit), its depth and bearing, a doorstep outside (40 %), a lamp niche beside it (75 %) */
+export function doorVar(id: string) { const h = (k: number) => hashString(`${id}:door:${k}`) / 4294967296;
+  return { drop: 0.15 * h(1), lh: 0.1 + 0.07 * h(2), bear: 0.15 + 0.17 * h(3), step: h(4) < 0.4 ? 1 : 0, niche: h(5) < 0.75 ? 1 : 0 }; }
 /** the batches a build writes into */
 export interface HB { plaster: Batch; stone: Batch; timber: Batch; brick: Batch; items: Batch; props: Batch }
 export const plasterBatch = (far = false) => { const b = new Batch().addAttr('y0', 1, [-1000]).addAttr('ytop', 1, [1e4]).addAttr('ao', 1, [1]); if (far) b.addAttr('tile', 2, [1e9, 1e9]); return b; };
@@ -74,7 +78,7 @@ interface WallEl { w: Wall; tile: number; plot: number; room: number; street: bo
 interface Hole { s0: number; s1: number; y0: number; y1: number; through: boolean; depth: number; col?: RGB }
 interface Dec { s0: number; s1: number; y0: number; y1: number; kind: 'patch' | 'bare' | 'soot' | 'streak' | 'dung' | 'stain'; seed: number; k?: number }
 /** a street door as the door system needs it (grid e, n; world y) */
-export interface StreetDoor { id: string; plot: number; tile: number; hinge: P2; theta: number; closedYaw: number; openYaw: number; y: number; wood: number; kind: string; site: string }
+export interface StreetDoor { id: string; plot: number; tile: number; hinge: P2; theta: number; closedYaw: number; openYaw: number; y: number; h: number; wood: number; kind: string; site: string }
 
 export class SiteHouses {
   readonly walls: WallEl[] = []; readonly rooms: RoomEl[] = [];
@@ -127,7 +131,7 @@ export class SiteHouses {
       const hu = d.mid[0] + nu * t + tu * 0.5, hv = d.mid[1] + nv * t + tv * 0.5, g = s.grid(hu, hv);
       const yawIn = Math.atan2(nv, nu), yawAlong = Math.atan2(-tv, -tu); // closed: the leaf runs from the hinge back across the opening
       const worldYaw = (lu: number, lv: number) => { const [a, b] = this.dirW(lu, lv); return Math.atan2(-b, a); };
-      this.doors.push({ id: `${s.id}:${p.id}`, plot: p.idx, tile: this.plotTile[p.idx], hinge: g, theta: s.frame.theta, closedYaw: worldYaw(Math.cos(yawAlong), Math.sin(yawAlong)), openYaw: worldYaw(Math.cos(yawIn), Math.sin(yawIn)), y: this.gl(d.mid[0], d.mid[1]) + 0.035, wood: this.lives[p.idx]?.doorWood ?? 0.5, kind: p.kind, site: s.id }); }
+      this.doors.push({ id: `${s.id}:${p.id}`, plot: p.idx, tile: this.plotTile[p.idx], hinge: g, theta: s.frame.theta, closedYaw: worldYaw(Math.cos(yawAlong), Math.sin(yawAlong)), openYaw: worldYaw(Math.cos(yawIn), Math.sin(yawIn)), y: this.gl(d.mid[0], d.mid[1]) + 0.035, h: Math.max(1.6, base[p.idx] + DOOR_H - doorVar(p.id).drop - this.gl(d.mid[0], d.mid[1]) - 0.06), wood: this.lives[p.idx]?.doorWood ?? 0.5, kind: p.kind, site: s.id }); }
     for (const t of new Set([...this.walls.map(w => w.tile), ...this.rooms.map(r => r.tile)])) this.tileInfo(t);
     for (const f of this.fixtures) (this.fixByPlot.get(f.plot) ?? this.fixByPlot.set(f.plot, []).get(f.plot)!).push(f);
     for (const f of s.fittings) if (f.plot >= 0) (this.fitByPlot.get(f.plot) ?? this.fitByPlot.set(f.plot, []).get(f.plot)!).push(f);
@@ -271,11 +275,24 @@ export class SiteHouses {
     const add = L.addition >= 0 && we.room >= 0 && this.roomSide(this.rooms[this.roomOf.get(we.room)!]) === L.addition;
     // doors: the lintel and the wall over it; a threshold stone (street doors) or a rolled mat (rooms)
     if (w.door) {
-      const yl = Math.max(sp.doorBase, sp.gmax) + DOOR_H, g0 = this.gl(...P2l((sA + sB) / 2, 0)), mu = ax === 0 ? (sA + sB) / 2 : cc, mv = ax === 0 ? cc : (sA + sB) / 2, tb = lin(POLE);
+      // each doorway its own: the lintel's height (up to 15 cm under the plan's 2 m head), depth and bearing
+      const dv = we.street ? doorVar(s.plots[we.plot].id) : { drop: 0.1 * hi(seed, 51), lh: 0.09 + 0.06 * hi(seed, 52), bear: 0.12 + 0.16 * hi(seed, 53), step: 0, niche: 0 };
+      const yl = Math.max(sp.doorBase, sp.gmax) + DOOR_H - dv.drop, g0 = this.gl(...P2l((sA + sB) / 2, 0)), mu = ax === 0 ? (sA + sB) / 2 : cc, mv = ax === 0 ? cc : (sA + sB) / 2, tb = lin(POLE);
       const aged = sh(tb, 0.85 + 0.25 * L.doorWood);
-      this.lbox(B.timber, mu, mv, ax === 0 ? len / 2 + 0.22 : t / 2 + 0.012, ax === 0 ? t / 2 + 0.012 : len / 2 + 0.22, yl, yl + 0.13, sh(aged, 0.9), aged, this.owner(we.plot, P.door));
-      if (top - (yl + 0.13) > 0.03) { const c = this.tone(we.plot, 0, add); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 0.8);
-        this.lbox(B.plaster, mu, mv, ax === 0 ? len / 2 : t / 2, ax === 0 ? t / 2 : len / 2, yl + 0.13, top, sh(c, 0.95), c, this.owner(we.plot, P.wall)); B.plaster.set('ao', 1); }
+      this.lbox(B.timber, mu, mv, ax === 0 ? len / 2 + dv.bear : t / 2 + 0.012, ax === 0 ? t / 2 + 0.012 : len / 2 + dv.bear, yl, yl + dv.lh, sh(aged, 0.9), aged, this.owner(we.plot, P.door));
+      if (top - (yl + dv.lh) > 0.03) { const c = this.tone(we.plot, 0, add); B.plaster.set('y0', -1000).set('ytop', top).set('ao', 0.8);
+        this.lbox(B.plaster, mu, mv, ax === 0 ? len / 2 : t / 2, ax === 0 ? t / 2 : len / 2, yl + dv.lh, top, sh(c, 0.95), c, this.owner(we.plot, P.wall)); B.plaster.set('ao', 1); }
+      // the doorway's face on the lane: timber jamb boards for the better-off (35 %), a raised plaster surround (30 %), or none
+      if (we.street) { const hv = hashString(s.plots[we.plot].id + ':frame') / 4294967296, p = s.plots[we.plot], d = s.doorPoints(p)!; const og = Math.sign(ax === 0 ? d.out[1] - d.inside[1] : d.out[0] - d.inside[0]);
+        const fo = og * (t / 2 + 0.018), yb2 = g0 - 0.02;
+        if (hv < 0.35 * (0.5 + L.standing)) { B.timber.set('ao', 0.85); for (const e of [sA - 0.06, sB + 0.06]) { const [u, v] = P2l(e, fo); this.lbox(B.timber, u, v, ax === 0 ? 0.06 : 0.025, ax === 0 ? 0.025 : 0.06, yb2, yl, sh(aged, 0.85), aged, this.owner(we.plot, P.door)); } B.timber.set('ao', 1); }
+        else if (hv > 0.7) { const c = sh(this.tone(we.plot, 0, add), 1.06 + 0.04 * hi(seed, 71)); B.plaster.set('y0', -1000).set('ytop', 1e4).set('ao', 0.9); const w2 = 0.09 + 0.05 * hi(seed, 72);
+          for (const e of [sA - w2, sB + w2]) { const [u, v] = P2l(e, fo); this.lbox(B.plaster, u, v, ax === 0 ? w2 : 0.02, ax === 0 ? 0.02 : w2, yb2 + 0.15, yl + dv.lh + w2, sh(c, 0.97), c, this.owner(we.plot, P.door)); }
+          const [u, v] = P2l((sA + sB) / 2, fo); this.lbox(B.plaster, u, v, ax === 0 ? len / 2 + 2 * w2 : 0.02, ax === 0 ? 0.02 : len / 2 + 2 * w2, yl + dv.lh, yl + dv.lh + w2, c, c, this.owner(we.plot, P.door)); B.plaster.set('ao', 1); } }
+      // a doorstep of two flat stones outside some street doors (the lane side)
+      if (we.street && dv.step) { const p = s.plots[we.plot], d = s.doorPoints(p)!; const ou = Math.sign(d.out[0] - d.inside[0]), ov = Math.sign(d.out[1] - d.inside[1]); const st = lin(STONE);
+        for (const e of [-0.24, 0.24]) { const su = d.mid[0] + ou * (t / 2 + 0.22) + (ax === 0 ? e : 0), sv = d.mid[1] + ov * (t / 2 + 0.22) + (ax === 0 ? 0 : e), gy = this.gl(su, sv);
+          B.stone.set('ao', 0.9); this.lbox(B.stone, su, sv, ax === 0 ? 0.23 : 0.2, ax === 0 ? 0.2 : 0.23, gy - 0.06, gy + 0.08 + 0.03 * hi(seed, e > 0 ? 55 : 56), sh(st, 0.85), sh(st, 1.08), this.owner(we.plot, P.door), false, (hi(seed, e > 0 ? 57 : 58) - 0.5) * 0.25); B.stone.set('ao', 1); } }
       if (we.street) { const st = lin(STONE); B.stone.set('ao', 0.9);
         // a threshold slab, worn hollow in the middle by feet (two lower strips at the edges: its middle stands 1 cm lower)
         this.lbox(B.stone, mu, mv, ax === 0 ? len / 2 : t / 2 + 0.05, ax === 0 ? t / 2 + 0.05 : len / 2, g0 - 0.1, g0 + 0.035, sh(st, 0.85), sh(st, 1.12), this.owner(we.plot, P.door));
@@ -326,9 +343,11 @@ export class SiteHouses {
         // the footing's top ledge
         B.stone.set('ao', 0.9); { const n = Math.max(1, Math.ceil(len / 1.5)); for (let k = 0; k < n; k++) { const a = along0 + (len * k) / n, z = along0 + (len * (k + 1)) / n, ya = ysoc(a), yz = ysoc(z);
           const p = (x: number, o2: number, y: number) => this.wp(...P2l(x, sg * (t / 2 + o2)), y); B.stone.quad(p(a, 0, ya), p(z, 0, yz), p(z, 0.035, yz), p(a, 0.035, ya), [0, 1, 0], stcol, stcol, stcol, stcol, this.owner(we.plot, P.socle)); } } B.stone.set('ao', 1);
-        if (nicheHere && sd.cls === 'open') { const sc = nicheHere.len > 0 ? sB - 0.45 : sA + 0.45; if (sc - 0.14 > sA + 0.1 && sc + 0.14 < sB - 0.1) { faceHoles.push({ s0: sc - 0.13, s1: sc + 0.13, y0: floor + 1.25, y1: floor + 1.58, through: false, depth: 0.16 });
+        const nv = doorVar(s.plots[we.plot].id);
+        if (nicheHere && sd.cls === 'open' && nv.niche) { const nw = 0.1 + 0.06 * hi(seed, 61), nh = 0.13 + 0.07 * hi(seed, 62), ny = floor + 1.1 + 0.35 * hi(seed, 63), sc = nicheHere.len > 0 ? sB - 0.35 - 0.25 * hi(seed, 64) : sA + 0.35 + 0.25 * hi(seed, 64);
+          if (sc - nw - 0.01 > sA + 0.1 && sc + nw + 0.01 < sB - 0.1) { faceHoles.push({ s0: sc - nw, s1: sc + nw, y0: ny, y1: ny + 2 * nh, through: false, depth: 0.12 + 0.08 * hi(seed, 65) });
             // the lamp's soot over the niche; a timber peg or two driven into the wall by the door (a halter, a basket, a lamp hook)
-            decs.push([sg, { s0: sc - 0.16, s1: sc + 0.16, y0: floor + 1.58, y1: floor + 2.05, kind: 'soot', seed, k: 0.8 }]);
+            decs.push([sg, { s0: sc - nw - 0.03, s1: sc + nw + 0.03, y0: ny + 2 * nh, y1: ny + 2 * nh + 0.3 + 0.3 * hi(seed, 66), kind: 'soot', seed, k: 0.75 + 0.15 * hi(seed, 67) }]);
             const np = Math.floor(hi(seed, 41) * 3); for (let q = 0; q < np; q++) { const ps = nicheHere.len > 0 ? sB - 0.9 - 0.5 * q - 0.3 * hi(seed, q, 42) : sA + 0.9 + 0.5 * q + 0.3 * hi(seed, q, 42), py = floor + 1.35 + 0.35 * hi(seed, q, 43);
               if (ps < sA + 0.2 || ps > sB - 0.2) continue; B.timber.set('ao', 0.9); this.pole(B.timber, this.wp(...P2l(ps, sg * (t / 2 - 0.05)), py), this.wp(...P2l(ps, sg * (t / 2 + 0.17)), py + 0.03), 0.025, 5, sh(lin(POLE), 0.75 + 0.3 * hi(seed, q, 44)), this.owner(we.plot, P.fixture), 'end'); B.timber.set('ao', 1); } } }
         const bulge = (0.007 + 0.012 * (1 - L.standing) + 0.006 * (L.age / 50)) * (house ? 1 : 0.7);

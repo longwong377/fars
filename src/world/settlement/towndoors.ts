@@ -70,12 +70,12 @@ export class TownDoors {
       this.doors.forEach((d, i) => { const dx = d.hinge[0] - eye.x, dz = -d.hinge[1] - eye.z; if (dx * dx + dz * dz > DOOR_R * DOOR_R) return;
         const sched = doorOpenness(d.id, d.kind, day, sunAlt), m = this.manual.get(i); this.sched[i] = sched; if (m && Math.abs(m.sched - sched) > 1e-3) this.manual.delete(i);
         this.target[i] = this.manual.get(i)?.to ?? sched; if (this.open[i] < 0) this.open[i] = this.target[i]; this.shown[this.variant(d)].push(i); }); }
-    const M = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), pos = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
+    const M = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), pos = new THREE.Vector3(), scl = new THREE.Vector3(1, 1, 1);
     let shut = 0, drawn = 0;
     for (let v = 0; v < 3; v++) { const m = this.meshes[v], list = this.shown[v]; let n = 0;
       for (const i of list) { if (n >= MAXI) break; const d = this.doors[i];
         const t = this.target[i], o = this.open[i]; if (o !== t) this.open[i] = Math.abs(t - o) < dt / 1.5 ? t : o + Math.sign(t - o) * dt / 1.5; // 1.5 s to swing
-        q.setFromAxisAngle(up, this.yaw(d, this.open[i])); pos.set(d.hinge[0], d.y, -d.hinge[1]); M.compose(pos, q, one); m.setMatrixAt(n++, M);
+        q.setFromAxisAngle(up, this.yaw(d, this.open[i])); pos.set(d.hinge[0], d.y, -d.hinge[1]); scl.set(1, Math.min(1.02, d.h / (DOOR_H - 0.05)), 1); M.compose(pos, q, scl); // the leaf cut to its doorway's lintel m.setMatrixAt(n++, M);
         if (this.open[i] < 0.02) shut++;
         this.collider(i, d, this.open[i] < 0.05 && nearTile(d.tile)); }
       m.count = n; m.instanceMatrix.needsUpdate = true; drawn += n; }
