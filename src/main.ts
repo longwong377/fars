@@ -457,6 +457,8 @@ async function boot() {
     WEATHER.wetness.value = cond.wetness; WEATHER.frost.value = cond.frost ?? 0; WEATHER.snow.value = Math.max(cond.snowCover, 0.4 * (cond.hailCover ?? 0)); /* hailstones lying (session 9) */ WEATHER.snowLine.value = snowLineASL(cond.day.climMonth) - terrain.meta.court_asl; WEATHER.puddles.value = Math.max(0, cond.wetness - 0.4) / 0.6; // snowLine: the mountains' seasonal snow (session 9)
     if (wxHold) { if (wxHold.wetness !== undefined) { WEATHER.wetness.value = wxHold.wetness; WEATHER.puddles.value = Math.max(0, wxHold.wetness - 0.4) / 0.6; } if (wxHold.snow !== undefined) WEATHER.snow.value = wxHold.snow; if (wxHold.cell !== undefined) (RAIN_CELL.value as THREE.Vector4).w = wxHold.cell; } // debug holds (D-219: before/after measurements)
     pipeline.flash.value = world.flash?.() ?? 0;
+    // session 9 (G8): heat shimmer and mirage on hot, bright, dry afternoons (26-36 C, the sun over 15 deg, little cloud; C)
+    pipeline.heat.value = Math.min(1, Math.max(0, (cond.tempC - 26) / 10)) * Math.min(1, Math.max(0, (sky.state.sunAlt - 15) / 15)) * Math.max(0, 1 - cond.cloud * 1.5) * Math.max(0, 1 - cond.wetness * 2);
     if (opts.render === false || NORENDER) { if (NORENDER) lastFrameMs = performance.now() - t0; return; }
     // a frame rendered outside the renderer's animation loop (renderOnce, bench, bots) must advance the node frame itself:
     // passes update once per node frame, so otherwise the scene pass is skipped and only the final quad is drawn (the

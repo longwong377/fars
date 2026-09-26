@@ -6470,3 +6470,14 @@ moment-*-webgpu.png in the worktree, not committed).**
   nearPeople: `yaw` from the drawn root), which the breath uses. One InstancedMesh (at most 64 puffs), drawn only when cold.
 - **Not done:** the walker's breath does not quicken when running (the player's gait is not read); the animals' breath.
 - **Tests.** tests/breath.test.ts (3); audio_population passes (NearPerson gained `yaw`).
+
+## D-268 Heat shimmer and the inferior mirage (session 9; gap hunters G8; A physics / C thresholds) — OPT-IN, UNVERIFIED
+- **What** (render/pipeline.ts, in the composite before TRAA; main.ts sets `pipeline.heat`): on hot, bright, dry afternoons
+  (heat = (T − 26 C)/10 × the sun over 15-30 deg × (1 − 1.5 cloud) × (1 − 2 wetness), each clamped), where a line of sight runs
+  within ~1 deg of level to ground more than 300-1500 m away the scene is resampled with a slowly boiling offset of ~1.6 px; the
+  ground within 0.23 deg below the horizon beyond 1.5-4 km takes (×0.92, ×0.75 weight) the colour of the point mirrored above the
+  horizon, found by projecting the mirrored direction (getScreenPosition). Far pixels only: their AO, GI and SSR are ~0, so the
+  raw scene colour stands in for the composite there.
+- **Opt-in** (`?heat=1`, HEAT_ON) until a render verifies the node graph: the post graph is the one place a bad node breaks every
+  frame (the session-2 lesson: a runtime select() there crashed the page). Moment heat-mirage-jun is queued with the flag.
+- **Not done:** medium quality (no depth-derived world position there) gets none; no refraction of the sun's disc.

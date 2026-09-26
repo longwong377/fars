@@ -124,6 +124,8 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'halo-sundogs', day: 220, hour: 9, w: 'auto', v: [0, 0, 1.6, 135, 24], fov: 75 },
   // session 9 (G7): dust devils over the plain W of the Terrace on a hot June afternoon (day 54, 15:00, 37 C)
   { n: 'dust-devils-jun', day: 54, hour: 15, w: 'clear', v: [-36, 125, 1.6, 251, 1], fov: 60 },
+  // session 9 (G8): heat shimmer and the inferior mirage over the plain at a hot June noon, looking W along the level (opt-in ?heat=1)
+  { n: 'heat-mirage-jun', day: 54, hour: 13.5, w: 'clear', v: [-36, 125, 1.6, 251, -0.5], fov: 20 },
   { n: 'night-moon-fire', day: 11, hour: 2.75, w: 'clear', v: [-23.4, 122.5, 1.6, 253.5, 6] },
   { n: 'brazier-close', day: 0, hour: 21.5, w: 'clear', v: [-36.4, 132, 1.6, 161, -8], fov: IN },
   { n: 'apadana-hall-torch', day: 0, hour: 21, w: 'clear', v: [-8, 0, 4.6, 161, 6], fov: IN },
