@@ -189,7 +189,13 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   // (D-210: and the crows at the town's middens, the kites over the middens and the stockyard)
   const townMiddens = (settlement?.plan.middens ?? []).filter(m => m.kind === 'midden').map(m => m.c);
   const birds = new Birds(seed, nav, terrain, ([[0, 90], [-20, 124], [60, -10], [-20, -110], [150, 40], [200, -70], [100, -110], [20, -125]] as [number, number][]).map(p => nav.snap(p[0], p[1], 8) ?? p),
-    townMiddens.length ? { middens: townMiddens, kites: [FAUNA_FAC.stockyard, townMiddens[0], townMiddens[Math.floor(townMiddens.length / 2)], townMiddens[townMiddens.length - 1]] } : undefined);
+    townMiddens.length ? { middens: townMiddens, kites: [FAUNA_FAC.stockyard, townMiddens[0], townMiddens[Math.floor(townMiddens.length / 2)], townMiddens[townMiddens.length - 1]] } : undefined,
+    (() => { // session 9: the larks' fields (farmed ground within 3 km W of the Terrace) and the storks' wet ground (river and canal points within 5 km)
+      const fields: [number, number][] = [], waters: [number, number][] = [];
+      for (let e = -3000; e <= -300; e += 450) for (let n = -2200; n <= 2200; n += 450) if (landUseAt(plain.data.zones, e, -n).use !== 'natural') fields.push([e, n]);
+      for (const L of [...plain.data.rivers.rivers.map(r => Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number])), ...plain.data.canals.map(c => c.pts as [number, number][])])
+        for (let i = 0; i < L.length; i += 4) if (Math.hypot(L[i][0], L[i][1]) < 5000) waters.push(L[i]);
+      return { fields, waters }; })());
   root.add(birds.group);
   const jackals = new Jackals(seed, terrain); root.add(jackals.mesh); // on the plain edge from dusk to dawn
   for (const f of fire.fires) nav.blockDisc(f.pos.x, -f.pos.z, f.kind === 'torch' ? 0 : 0.8);

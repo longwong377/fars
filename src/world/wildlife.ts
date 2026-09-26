@@ -18,12 +18,18 @@ import type { NavGrid, P2 } from '../people/navgrid';
 import type { Terrain } from '../terrain/heightfield';
 
 export interface BirdSpecies { id: string; name: string; tier: string; months: number[]; hours: [number, number]; span: number; length: number; colour: [number, number, number]; flapHz: number; count: number }
-export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite', BirdSpecies> = {
+export const BIRDS: Record<'swallow' | 'raptor' | 'sparrow' | 'crow' | 'kite' | 'dove' | 'lark' | 'stork' | 'vulture' | 'crane', BirdSpecies> = {
   swallow: { id: 'swallow', name: 'barn swallow / common swift', tier: 'C (expected, not sourced; summer migrant)', months: [2, 3, 4, 5, 6, 7, 8], hours: [5.5, 19.5], span: 0.33, length: 0.18, colour: [0.07, 0.08, 0.12], flapHz: 7, count: 36 },
   raptor: { id: 'raptor', name: 'buzzard / golden eagle', tier: 'B (Zagros raptors, extract) / C on-site', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [8.5, 17.5], span: 1.9, length: 0.85, colour: [0.28, 0.21, 0.14], flapHz: 2.2, count: 2 },
   sparrow: { id: 'sparrow', name: 'house sparrow', tier: 'C (expected, not sourced)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6, 18.5], span: 0.24, length: 0.15, colour: [0.42, 0.33, 0.24], flapHz: 14, count: 40 },
   crow: { id: 'crow', name: 'hooded crow', tier: 'C (crows and ravens expected, not sourced: SOUNDSCAPE.md section 4; D-210)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [6.2, 18.3], span: 0.95, length: 0.46, colour: [0.2, 0.2, 0.21], flapHz: 3.5, count: 30 },
   kite: { id: 'kite', name: 'black kite', tier: 'C (summer migrant over towns and middens; expected, not sourced; D-210)', months: [2, 3, 4, 5, 6, 7, 8], hours: [8, 17.5], span: 1.5, length: 0.58, colour: [0.3, 0.22, 0.15], flapHz: 2.4, count: 4 },
+  // session 9 (both gap hunters: the commonest birds were missing): months 0 = January (the weather's climatological month)
+  dove: { id: 'dove', name: 'rock dove / collared dove', tier: 'C (expected on buildings and in courts; not sourced)', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [5.8, 18.8], span: 0.6, length: 0.32, colour: [0.52, 0.52, 0.55], flapHz: 6, count: 24 },
+  lark: { id: 'lark', name: 'crested lark / skylark in song flight', tier: 'C (larks over fields and steppe: SOUNDSCAPE.md section 4 "expected")', months: [1, 2, 3, 4, 5, 6], hours: [5.5, 11], span: 0.32, length: 0.17, colour: [0.5, 0.42, 0.32], flapHz: 12, count: 10 },
+  stork: { id: 'stork', name: 'white stork', tier: 'C (summer visitor of the Iranian plateau\'s wet fields; not sourced)', months: [2, 3, 4, 5, 6, 7], hours: [7, 18], span: 2.0, length: 1.0, colour: [0.86, 0.86, 0.84], flapHz: 2, count: 8 },
+  vulture: { id: 'vulture', name: 'griffon vulture', tier: 'B (griffon and Egyptian vultures of the Zagros; recollection) / C place', months: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], hours: [9.5, 16.5], span: 2.6, length: 1.05, colour: [0.55, 0.45, 0.33], flapHz: 1.5, count: 3 },
+  crane: { id: 'crane', name: 'common crane (winter flocks)', tier: 'B (winter cranes, geese and ducks at the Fars lakes: SOUNDSCAPE.md section 4, Bakhtegan) / C passage', months: [10, 11, 0, 1, 2], hours: [7.5, 16.5], span: 2.1, length: 1.1, colour: [0.55, 0.57, 0.6], flapHz: 1.6, count: 18 },
 };
 /** a crow's place (closed form): three quarters of each spell on the ground at its midden, walking and pecking between
  *  spots within 6 m, the rest flying 12-25 m up to the next midden of its round; flushed (within 8 m of someone) it circles
@@ -45,6 +51,26 @@ export function kiteAt(base: P2, ground: number, seed: number, t: number, out: B
   out.heading = Math.atan2(-R * w * Math.sin(w * t + p), R * w * Math.cos(w * t + p)); out.bank = -0.3 * Math.sign(w); out.flap = Math.sin(0.2 * t + p) > 0.85 ? 1 : 0; out.visible = true;
 }
 
+/** session 9: a lark's song flight: hanging 25-60 m over its field, drifting slowly, wings beating (C) */
+export function larkAt(base: P2, ground: number, seed: number, t: number, out: BirdPose) {
+  const r = new Rng(seed, 'lark'), p = r.range(0, 6.3), T = r.range(90, 180), u = ((t / T) + p) % 1, h = 25 + 35 * Math.sin(Math.PI * Math.min(1, u * 1.3));
+  out.pos.set(base[0] + 20 * Math.sin(0.02 * t + p), ground + h, -(base[1] + 20 * Math.cos(0.017 * t + p))); out.heading = 0.3 * t % 6.28; out.bank = 0; out.flap = 1; out.visible = true;
+}
+/** a white stork: walking in the wet fields by the water most of the time, soaring over it now and then (C) */
+export function storkAt(base: P2, ground: (e: number, n: number) => number, seed: number, t: number, out: BirdPose) {
+  const r = new Rng(seed, 'stork'), T = r.range(900, 1500), u = ((t + r.range(0, T)) / T) % 1, p = r.range(0, 6.3);
+  if (u < 0.8) { const e = base[0] + 25 * Math.sin(t / 97 + p), n = base[1] + 25 * Math.cos(t / 131 + p); out.pos.set(e, ground(e, n) + 0.05, -n); out.heading = t / 97 + p; out.bank = 0; out.flap = 0; out.visible = true; return; }
+  const R = 60, w = 0.12, h = 60 + 120 * Math.sin(Math.PI * (u - 0.8) / 0.2); out.pos.set(base[0] + R * Math.cos(w * t + p), ground(base[0], base[1]) + h, -(base[1] + R * Math.sin(w * t + p)));
+  out.heading = Math.atan2(-Math.sin(w * t + p), Math.cos(w * t + p)); out.bank = -0.3; out.flap = 0; out.visible = true;
+}
+/** a crane flock crossing the plain high in a V, one passage every ~40 minutes in winter daylight (C) */
+export function craneAt(i: number, seed: number, t: number, out: BirdPose) {
+  const P = 2400, k = Math.floor(t / P), r = new Rng(seed, `cranes:${k}`), a = r.range(0.4, 1.2), L = 20000, v = 14, s = (t - k * P) * v - L / 2;
+  if (s > L / 2) { out.visible = false; return; }
+  const dx = Math.sin(a), dn = Math.cos(a), side = i % 2 ? 1 : -1, rank = Math.ceil(i / 2), c0: P2 = [r.range(-4000, -1000), r.range(-3000, 3000)];
+  const e = c0[0] + dx * s - dx * rank * 6 + side * dn * rank * 5, n = c0[1] + dn * s - dn * rank * 6 - side * dx * rank * 5;
+  out.pos.set(e, 300 + r.range(0, 200), -n); out.heading = Math.atan2(dx, dn); out.bank = 0; out.flap = 1; out.visible = true;
+}
 /** a bird mesh: body (tapered box) + two wing quads; wing vertices carry `wing` = ±1 at the tips (0 on the body) */
 function birdGeometry(span: number, len: number): THREE.BufferGeometry {
   const w = span / 2, l = len / 2, b = len * 0.12;
@@ -88,13 +114,14 @@ export class Birds {
   private flush = new Map<number, { from: THREE.Vector3; to: P2; t0: number }>();
   private pose: BirdPose = { pos: new THREE.Vector3(), heading: 0, bank: 0, flap: 0, visible: false };
   private m4 = new THREE.Matrix4(); private q = new THREE.Quaternion(); private e = new THREE.Euler(0, 0, 0, 'YXZ');
-  private middens: P2[] = []; private kiteBases: P2[] = [];
+  private middens: P2[] = []; private kiteBases: P2[] = []; private fields: P2[] = []; private waters: P2[] = []; private doveSpots: P2[] = []; private doveFlush = new Map<number, { from: THREE.Vector3; to: P2; t0: number }>();
   /** `town` (D-210): the town's middens (the crows' rounds) and the places the kites circle over (middens, the stockyard) */
-  constructor(private seed: number, private nav: NavGrid, private terrain: Terrain, anchors: P2[], town?: { middens: P2[]; kites: P2[] }) {
+  constructor(private seed: number, private nav: NavGrid, private terrain: Terrain, anchors: P2[], town?: { middens: P2[]; kites: P2[] }, wild?: { fields: P2[]; waters: P2[] }) {
     this.group.name = 'wildlife-birds';
-    this.anchors = anchors; if (town) { this.middens = town.middens; this.kiteBases = town.kites; }
+    this.anchors = anchors; if (town) { this.middens = town.middens; this.kiteBases = town.kites; } if (wild) { this.fields = wild.fields; this.waters = wild.waters; }
     const rng = new Rng(seed, 'sparrow-spots');
     for (let i = 0; i < BIRDS.sparrow.count; i++) { const a = anchors[i % anchors.length]; const s = nav.snap(a[0] + rng.range(-10, 10), a[1] + rng.range(-10, 10), 6); if (s) this.sparrowSpots.push(s); }
+    for (let i = 0; i < BIRDS.dove.count; i++) { const a = anchors[(i * 3) % anchors.length]; const s = nav.snap(a[0] + rng.range(-14, 14), a[1] + rng.range(-14, 14), 6); if (s) this.doveSpots.push(s); }
     for (const sp of Object.values(BIRDS)) {
       const m = new THREE.MeshStandardNodeMaterial({ color: new THREE.Color().setRGB(...sp.colour, THREE.SRGBColorSpace), roughness: 0.8, side: THREE.DoubleSide });
       const wing = attribute('wing', 'float'), phase = attribute('phase', 'float'), flap = attribute('flapAmt', 'float');
@@ -123,6 +150,11 @@ export class Birds {
         else if (sp.id === 'crow') { if (!this.middens.length) continue; crowAt(this.middens, this.gh, this.seed, i, t, false, p);
           if (player && p.flap === 0 && Math.hypot(player[0] - p.pos.x, player[1] + p.pos.z) < 8) crowAt(this.middens, this.gh, this.seed, i, t, true, p); }
         else if (sp.id === 'kite') { if (!this.kiteBases.length) continue; const b = this.kiteBases[i % this.kiteBases.length]; kiteAt(b, this.terrain.heightAt(b[0], -b[1]), sd, t, p); }
+        else if (sp.id === 'dove') { if (!this.groundBirdAt(this.doveSpots, this.doveFlush, 5, i, t, player, p, 'dove')) continue; }
+        else if (sp.id === 'lark') { if (!this.fields.length) continue; const b = this.fields[i % this.fields.length]; larkAt(b, this.terrain.heightAt(b[0], -b[1]), sd, t, p); }
+        else if (sp.id === 'stork') { if (!this.waters.length) continue; const b = this.waters[(i * 7) % this.waters.length]; storkAt(b, this.gh, sd, t, p); }
+        else if (sp.id === 'vulture') { const base: P2 = [900 + i * 500, 300 - i * 700]; raptorAt(base, this.terrain.heightAt(base[0], -base[1]) + 200, sd, t, wind.x, wind.n, p); }
+        else if (sp.id === 'crane') { craneAt(i, this.seed, t, p); if (!p.visible) continue; }
         else { if (!this.sparrowAt(i, t, player, p)) continue; }
         this.e.set(0, p.heading, 0); this.q.setFromEuler(this.e); if (p.bank) this.q.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), p.bank));
         this.m4.compose(p.pos, this.q, ONE); mesh.setMatrixAt(n, this.m4); flapAttr.setX(n, p.flap); n++;
@@ -131,6 +163,17 @@ export class Birds {
     }
   }
   private gh = (e: number, n: number) => this.terrain.heightAt(e, -n);
+  /** session 9: a ground bird (the doves) pecking about its spot, flushing when someone comes within `flushR` (C) */
+  private groundBirdAt(spots: P2[], flush: Map<number, { from: THREE.Vector3; to: P2; t0: number }>, flushR: number, i: number, t: number, player: P2 | null, out: BirdPose, id: string): boolean {
+    const s = spots[i]; if (!s) return false; const r = new Rng(this.seed, `${id}:${i}:${Math.floor(t / 11)}`), at: P2 = [s[0] + r.range(-2, 2), s[1] + r.range(-2, 2)], f = flush.get(i);
+    if (f && t - f.t0 < 2) { const k = (t - f.t0) / 2, to = f.to, y = this.nav.heightAt(to[0], to[1]) || 0; out.pos.set(f.from.x + (to[0] - f.from.x) * k, f.from.y + (y - f.from.y) * k + Math.sin(Math.PI * k) * 6, f.from.z + (-to[1] - f.from.z) * k);
+      out.heading = Math.atan2(to[0] - f.from.x, to[1] + f.from.z); out.bank = 0; out.flap = 1; return true; }
+    if (f) { spots[i] = f.to; flush.delete(i); }
+    const y = this.nav.heightAt(at[0], at[1]); if (!Number.isFinite(y)) return false;
+    if (player && Math.hypot(player[0] - at[0], player[1] - at[1]) < flushR) { const ang = Math.atan2(at[1] - player[1], at[0] - player[0]) + r.range(-0.6, 0.6), d = r.range(15, 30);
+      const to = this.nav.snap(at[0] + Math.cos(ang) * d, at[1] + Math.sin(ang) * d, 6); if (to) flush.set(i, { from: new THREE.Vector3(at[0], y, -at[1]), to, t0: t }); }
+    out.pos.set(at[0], y + 0.02, -at[1]); out.heading = r.range(0, 6.28); out.bank = 0; out.flap = 0; return true;
+  }
   /** sparrows: hop between spots near their anchor; flush 8–15 m when someone is within 3 m, land after ~1.2 s */
   private sparrowAt(i: number, t: number, player: P2 | null, out: BirdPose): boolean {
     const s = this.sparrowSpots[i]; if (!s) return false;
