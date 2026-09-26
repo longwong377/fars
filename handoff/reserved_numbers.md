@@ -16,3 +16,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-250 | s9 | cached world (lead; speed plan D-248 step 1) | claude/amazing-fermi-40ds7j | in flight |
 | D-251 | s9 | tiered tests (lead; speed plan D-248 step 2) | claude/amazing-fermi-40ds7j | in flight |
 | D-252 | s9 | the court's arrival simulated; a new game starts before it (Q-680..Q-689, B70..B72) | agent worktree (court_arrival) | in flight |
+| D-253 | s9 | the renderless world (?norender) and its throughput (lead) | claude/amazing-fermi-40ds7j | in flight |

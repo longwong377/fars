@@ -45,6 +45,10 @@ if (P.get('court')) settings.courtCalendar = P.get('court') === 'seasonal' ? 'se
 else if (P.has('test')) settings.courtCalendar = 'evidence'; // camera rigs pin the court: their views predate the default; coverage samples the default world with &court=seasonal (UD-10, D-236)
 const SEED = chooseWorldSeed(P.get('seed'), P.has('test') || P.has('bench')); // a new world per new game (D-236); tests and the bench fixed
 const TEST = P.has('test'); // frozen world for camera rig / walkthrough tests
+/** the renderless world (MASTER_PLAN §4.2, D-253): the whole world runs (simulation, physics, the crowd's instance buffers, the
+ *  audio graph, the translation layer's state) but nothing is drawn, so no render pipeline is ever compiled: the page is ready
+ *  in the world's build time and never takes the render lane's cost. For bots, people traces, audio and soaks in the browser. */
+const NORENDER = P.has('norender');
 const Q = QUALITY[settings.quality];
 document.body.classList.toggle('cb', settings.colourBlindUI);
 
@@ -191,7 +195,7 @@ async function boot() {
     return (Number.isFinite(nh) ? phys.castRayDown(x, z, nh + 1.2) : castAbove != null ? phys.castRayDown(x, z, terrain.heightAt(x, z) + castAbove) : null) ?? phys.castRayDown(x, z, 400) ?? terrain.heightAt(x, z);
   };
   const api = {
-    ready: false, backend,
+    ready: false, backend, norender: NORENDER,
     setTime: (day: number, hour: number) => clock.set(day, hour),
     setWeather: (w: WeatherOverride) => { weather.override = w; },
     /** place the camera at grid (east, north) with eye height above ground (or absolute asl), true-north azimuth + pitch in degrees */
@@ -214,6 +218,9 @@ async function boot() {
     /** a frame without rendering: the camera placed (view), the world updated (picks after a view or setTime; D-187) */
     tick: async () => { await frame(0, { render: false }); },
     /** deterministic fixed-step simulation without rendering (walkthrough bots, soak); returns max frame sim time */
+    /** run n whole frames of dt seconds (the world, the people, the audio graph; drawn unless ?norender), the clock advancing
+     *  dt × timeScale world seconds a frame (the frozen test clock included): the renderless mode's bot loop (D-253) */
+    step: async (n: number, dt = 1 / 30, timeScale = 1) => { const t0 = performance.now(); for (let i = 0; i < n; i++) { clock.t += (dt * timeScale) / 86400; await frame(dt); } return { ms: performance.now() - t0, worldS: n * dt * timeScale }; },
     simulate: (seconds: number, dt = 1 / 30) => { const steps = Math.round(seconds / dt); for (let i = 0; i < steps; i++) simStep(dt); },
     /** advance world time (and everything simulated) by game seconds in fixed steps, regardless of clock.scale (tests) */
     advanceWorld: (seconds: number, dt = 1) => { const steps = Math.round(seconds / dt); for (let i = 0; i < steps; i++) { clock.t += dt / 86400; simStep(dt, false); } },
@@ -442,7 +449,7 @@ async function boot() {
     WEATHER.wetness.value = cond.wetness; WEATHER.snow.value = cond.snowCover; WEATHER.puddles.value = Math.max(0, cond.wetness - 0.4) / 0.6;
     if (wxHold) { if (wxHold.wetness !== undefined) { WEATHER.wetness.value = wxHold.wetness; WEATHER.puddles.value = Math.max(0, wxHold.wetness - 0.4) / 0.6; } if (wxHold.snow !== undefined) WEATHER.snow.value = wxHold.snow; if (wxHold.cell !== undefined) (RAIN_CELL.value as THREE.Vector4).w = wxHold.cell; } // debug holds (D-219: before/after measurements)
     pipeline.flash.value = world.flash?.() ?? 0;
-    if (opts.render === false) return;
+    if (opts.render === false || NORENDER) { if (NORENDER) lastFrameMs = performance.now() - t0; return; }
     // a frame rendered outside the renderer's animation loop (renderOnce, bench, bots) must advance the node frame itself:
     // passes update once per node frame, so otherwise the scene pass is skipped and only the final quad is drawn (the
     // session 2 bench and every renderOnce-based count measured that: 1 draw call, sub-millisecond "frames")
