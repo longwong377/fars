@@ -1009,7 +1009,7 @@
    "sample_min": 59,
    "sample": "audio renders per area",
    "tool": "tools/dev/audio_render.ts",
-   "status": "to-build",
+   "status": "partial",
    "anti_proxy": "a limiter is present",
    "ud": "UD-06",
    "since": "rev 2 (s8)"
@@ -1041,7 +1041,7 @@
    "sample_min": 59,
    "sample": "audio renders per area",
    "tool": "tools/dev/audio_render.ts",
-   "status": "to-build",
+   "status": "partial",
    "anti_proxy": "repeats hidden by pitch-shifting one sample: cross-correlation after pitch normalisation",
    "ud": "UD-08",
    "since": "rev 2 (s8)"
@@ -1057,7 +1057,7 @@
    "sample_min": 59,
    "sample": "audio renders",
    "tool": "tools/dev/audio_render.ts",
-   "status": "to-build",
+   "status": "partial",
    "anti_proxy": "two alternating footstep samples pass a consecutive-pair test: all steps within 10 s compared",
    "ud": "UD-08",
    "since": "rev 2 (s8)"
@@ -1073,7 +1073,7 @@
    "sample_min": 1,
    "sample": "every bed",
    "tool": "tools/dev/audio_render.ts",
-   "status": "to-build",
+   "status": "partial",
    "anti_proxy": "a 30 s loop of a 5 s loop repeated: repetition measured inside the bed too (T-G2)",
    "ud": "UD-08",
    "since": "rev 2 (s8)"
@@ -1089,7 +1089,7 @@
    "sample_min": 20,
    "sample": "bot-hours",
    "tool": "tools/dev/audio_render.ts",
-   "status": "to-build",
+   "status": "partial",
    "anti_proxy": "every speaker made audible by raising all voices: the mix is judged by the listening rubric (T-G4)",
    "ud": "UD-07",
    "since": "rev 2 (s8)"
@@ -1105,7 +1105,7 @@
    "sample_min": 20,
    "sample": "bot-hours",
    "tool": "tools/dev/audio_render.ts",
-   "status": "to-build",
+   "status": "partial",
    "anti_proxy": "a fire made audible by one global crackle: the source must be located at the fire (HRTF position)",
    "ud": "UD-06",
    "since": "rev 2 (s8)"

@@ -1,0 +1,63 @@
+{
+ "id": "T-G1",
+ "value": -6.09,
+ "n": 4,
+ "commit": "7b3e24325b91c6baf97292f0914af40a7f10888e",
+ "tool": "tools/dev/audio_render.ts",
+ "method": "node, recording mock of the Web Audio graph driven by the real audio code (tools/dev/audio_graph.ts); NOT the browser render (BLOCKERS B65)",
+ "seed": 1,
+ "day": 120,
+ "hour": 10,
+ "unit": "dBTP",
+ "what": "true peak of the modelled master bus on the dry mix of every buffer source per scene (oscillator voices, HRTF and reverb not in the mix)",
+ "perScene": [
+  {
+   "scene": "synthetic gathering",
+   "tp": -6.09,
+   "hot12dB": -6.02
+  },
+  {
+   "scene": "town (4 talkers within 15 m at e -1186, n -912)",
+   "tp": -6.35,
+   "hot12dB": -6.13
+  },
+  {
+   "scene": "terrace (2 talkers within 15 m at e 132, n 5)",
+   "tp": -16.72,
+   "hot12dB": -6.4
+  },
+  {
+   "scene": "village (6 talkers within 15 m at e -5392, n 4165)",
+   "tp": -6.25,
+   "hot12dB": -5.53
+  }
+ ],
+ "limiter": {
+  "feeds": 1,
+  "ceilingPresent": true,
+  "ceilingBoundDbfs": -6.021497167283313,
+  "compressorPresent": true,
+  "compressor": {
+   "threshold": -10,
+   "ratio": 20,
+   "knee": 0,
+   "attack": 0.002
+  },
+  "trimMatchesMakeup": true
+ },
+ "study": {
+  "worstTruePeakDbtp": {
+   "ceiling -6.0 dBFS": {
+    "1x": -0.44,
+    "lp16k": -3.09,
+    "4x": -2.9
+   },
+   "ceiling -2.0 dBFS": {
+    "1x": 2.84,
+    "lp16k": 0.71,
+    "4x": 0.81
+   }
+  },
+  "shipped": "ceiling -6.0 dBFS at 4x"
+ }
+}

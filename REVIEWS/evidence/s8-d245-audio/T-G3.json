@@ -1,0 +1,55 @@
+{
+ "id": "T-G3",
+ "value": 100,
+ "n": 4,
+ "commit": "7b3e24325b91c6baf97292f0914af40a7f10888e",
+ "tool": "tools/dev/audio_render.ts",
+ "method": "node, recording mock of the Web Audio graph driven by the real audio code (tools/dev/audio_graph.ts); NOT the browser render (BLOCKERS B65)",
+ "seed": 1,
+ "day": 120,
+ "hour": 10,
+ "unit": "%",
+ "what": "every 0.25 s, visible speakers within 15 m (voiced now; line of sight not modelled: everyone within 15 m) heard above -40 dBFS; the lowest share over the scenes (n = scenes, not bot-hours)",
+ "perScene": [
+  {
+   "scene": "synthetic gathering",
+   "samples": 1013,
+   "audible": 1013,
+   "sharePct": 100,
+   "quietestVoicedDb": -38.7,
+   "jawWithoutVoice": 0,
+   "talkersWithin15m": 30,
+   "voicedWithin15m": 30
+  },
+  {
+   "scene": "town (4 talkers within 15 m at e -1186, n -912)",
+   "samples": 243,
+   "audible": 243,
+   "sharePct": 100,
+   "quietestVoicedDb": -29.6,
+   "jawWithoutVoice": 0,
+   "talkersWithin15m": 4,
+   "voicedWithin15m": 4
+  },
+  {
+   "scene": "terrace (2 talkers within 15 m at e 132, n 5)",
+   "samples": 137,
+   "audible": 137,
+   "sharePct": 100,
+   "quietestVoicedDb": -33.3,
+   "jawWithoutVoice": 0,
+   "talkersWithin15m": 2,
+   "voicedWithin15m": 2
+  },
+  {
+   "scene": "village (6 talkers within 15 m at e -5392, n 4165)",
+   "samples": 384,
+   "audible": 384,
+   "sharePct": 100,
+   "quietestVoicedDb": -33,
+   "jawWithoutVoice": 0,
+   "talkersWithin15m": 6,
+   "voicedWithin15m": 6
+  }
+ ]
+}
