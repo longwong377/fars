@@ -6397,3 +6397,20 @@ moment-*-webgpu.png in the worktree, not committed).**
   generated year for seed 1. No separate cirrus layer is drawn (the veil is implied by the cover).
 - **Tests.** tests/frost.test.ts (2), tests/halo.test.ts (3); weather, weather_visible, surfaces_s6, sky, eclipse pass.
 - **Unverified on screen:** frost-dawn (day 269, 07:15) and halo-sundogs (day 220, 09:00, the day's own weather) queued.
+
+## D-262 More of the birds a walker sees (session 9; gap hunters G45, G46, G52, G55-G58; C unless stated)
+- **What** (wildlife.ts BIRDS; placement in world.ts): chukar and see-see partridge coveys of 8 on the W face of Kuh-e Rahmat above
+  the Terrace (15-50 % slope; B species, C place), pecking about, the whole covey flushing when someone comes within 18 m and
+  gliding 90 m away over 4.5 s to land (each bird its own place in the flight); hoopoes in the courts Mar-Sep (flush at 7 m);
+  bee-eater flocks hawking 10-25 m over the water and fields Apr-Sep; grey herons (all year) and little egrets (Mar-Oct) walking
+  the wet ground as the storks do; a jackdaw and chough flock of 18 circling together 25-90 m over the cliff behind the Terrace;
+  magpies on the fields; sandgrouse flocks crossing fast (18 m/s) and low (20-60 m) toward the water at dawn (06:12-08:48, a
+  passage every ~12 min); wheatears on the stony uncultivated ground Mar-Oct. The calls of the partridges, hoopoe and bee-eater
+  were already in the soundscape; now the birds are seen with them.
+- **Shared behaviours:** `terrainGroundBird` (a ground bird on the terrain: peck, flush, fly off, land; the one reactive state,
+  as the sparrows'), `flockAt` (a flock circling as one), `sandgrouseAt` (a timed passage). 9 more InstancedMeshes (no draw while
+  empty).
+- **Not done:** owls (G47), nightingales and bulbuls seen (G54), rollers, geese and ducks (G51 partial), perched birds (on walls,
+  posts, trees).
+- **Tests.** birds_s9 (4 new: a ground bird's flush and landing, the flock staying together at height, sandgrouse passages at
+  dawn only, the seasons), wildlife, small_life pass.

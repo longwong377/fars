@@ -198,7 +198,12 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       for (let e = -3000; e <= -300; e += 450) for (let n = -2200; n <= 2200; n += 450) if (landUseAt(plain.data.zones, e, -n).use !== 'natural') fields.push([e, n]);
       for (const L of [...plain.data.rivers.rivers.map(r => Array.from(r.x, (x, i) => [x, r.y[i]] as [number, number])), ...plain.data.canals.map(c => c.pts as [number, number][])])
         for (let i = 0; i < L.length; i += 4) if (Math.hypot(L[i][0], L[i][1]) < 5000) waters.push(L[i]);
-      return { fields, waters }; })());
+      // session 9: the partridges' slope (the W face of Kuh-e Rahmat above the Terrace, 15-50 % slope) and the wheatears'
+      // stony steppe (uncultivated ground within 3 km, off the town)
+      const slope: [number, number][] = [], steppe: [number, number][] = [], sl = (e: number, n: number) => Math.hypot(terrain.heightAt(e + 10, -n) - terrain.heightAt(e - 10, -n), terrain.heightAt(e, -n - 10) - terrain.heightAt(e, -n + 10)) / 20;
+      for (let e = 250; e <= 1600; e += 150) for (let n = -1600; n <= 1600; n += 150) { const g = sl(e, n); if (g > 0.15 && g < 0.5) slope.push([e, n]); }
+      for (let e = -3000; e <= 1500; e += 300) for (let n = -2500; n <= 2500; n += 300) if (Math.hypot(e, n) > 700 && sl(e, n) < 0.15 && landUseAt(plain.data.zones, e, -n).use === 'natural') steppe.push([e, n]);
+      return { fields, waters, slope, steppe }; })());
   root.add(birds.group);
   const jackals = new Jackals(seed, terrain); root.add(jackals.mesh); // on the plain edge from dusk to dawn
   // the small life around the viewer (session 9: flies at the middens, dragonflies at the water's edge, butterflies over the
