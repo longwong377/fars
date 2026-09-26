@@ -22,3 +22,4 @@ is "merged <commit>" or "abandoned: <why>"; none stays "in flight" across a sess
 | D-256 | s9 | work on the land (Q-710..Q-719, B80..B82) | agent worktree (land_work) | in flight |
 | D-257 | s9 | the fords; the Pasargadae road redrawn (lead; Q-720..Q-721) | claude/amazing-fermi-40ds7j | in flight |
 | D-258 | s9 | the small life and the bats; puddles only on level ground (lead; B83) | claude/amazing-fermi-40ds7j | in flight |
+| D-259 | s9 | pulses and garden plots (lead) | claude/amazing-fermi-40ds7j | in flight |

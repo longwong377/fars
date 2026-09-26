@@ -6351,3 +6351,19 @@ moment-*-webgpu.png in the worktree, not committed).**
   the camera 70 m off without a line-of-sight check); the lions' view shows B83 (the far ring's corridor above the ground).
 - **Unverified on screen:** two moments queued (small-spring-field, small-dusk-bats). Flies (8 mm) are below the render's pixel at
   any distance past ~1 m. No mosquitoes, no ants, no beetles, no scorpions (G61 partial).
+
+## D-259 Pulses and garden plots on the irrigated land (session 9; gap hunters G16, G74; A name / C)
+- **What.** Two crop rows join the irrigated mix (plain.json fields_irrigated_*.crop_mix; fields.ts IRR_STEPS; the shader
+  mirrors it): **pulses** 7 % (lentil, chickpea, bitter vetch, pea, broad bean: sown about 25 November with the cereals, low and
+  bushy, yellowing from late April, pulled about 20 May, little stubble; C) and **garden** plots 2 % (garlic, onions, leeks set
+  late October in rows with soil between and lifted about 25 May: the Old Persian month Θāigraciš, May-June, is
+  "garlic-collecting", A for the name, B for the etymology; then summer snake melons and gourds, watered, to September; C).
+  Barley 45 %, wheat 13 %, emmer/spelt 8 %, sesame 5 %, fallow 20 % (was barley 50, wheat 15, emmer 10, sesame 5, fallow 20).
+  Not cucumbers: the Akkadian qiššû usually glossed so is likely the snake melon.
+- **Row order.** CROP_ROWS is now barley, wheat, emmer_spelt, sesame, pulses, garden, fallow, orchard_floor, vineyard, steppe:
+  the irrigated plot's row is still the count of steps its hash passes (0-6, 6 = fallow), so the shader needs no remap; every
+  literal row index (fallow 4, orchard 5-6, steppe 7 in fields.ts, terrainPlain.ts, crops.ts) became a named ROW.* index, and
+  IRR_STEPS[3] ("where the fallow starts") became IRR_CROP. The near crop tufts draw pulses bushier and greyer, garlic and
+  onion leaves upright, narrow and blue-green (C).
+- **Tests.** plain, plain_d223 (IRR_CROP), plain_look, landscape, beasts, court_fill, small_life pass (81). The rain-fed land
+  keeps barley and fallow only (dry-farmed pulses: not done).

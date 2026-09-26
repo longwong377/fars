@@ -68,7 +68,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G13 | fish and fishing in the rivers and canals | A003, A161; F-001, P-019, P-064 | food quest / fauna | C | MISSING/PARTIAL |
 | G14 | wild nut gathering on the slopes (Aug-Sep) | A004; W-052 | food quest | C | MISSING/PARTIAL |
 | G15 | bees, bee-keeping and honey | A006, A151; P-020, P-065 | food quest / fauna | C | MISSING/PARTIAL |
-| G16 | garlic, onions and named garden vegetables (the month Θāigraciš, 'garlic-collecting') | A007, A204, A207; FL-010 | crops | A name / C | MISSING/PARTIAL |
+| G16 | garlic, onions and named garden vegetables (the month Θāigraciš, 'garlic-collecting') | A007, A204, A207; FL-010 | crops | A name / C | BUILT (D-259: garden plots of garlic, onions and leeks, 2 % of the irrigated plots, lifted in Θāigraciš); unrendered |
 | G17 | cattle herds: cows and calves (only work oxen exist) | A024; P-012, F-055 | husbandry | C | MISSING/PARTIAL |
 | G18 | domestic ducks and geese | A026; F-046 | husbandry | C | MISSING/PARTIAL |
 | G19 | cavalry, horse lines and pastures in the default world | A033, A556; B-080 | armed forces | B/C | MISSING/PARTIAL |
@@ -126,7 +126,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G71 | spring wildflowers (tulips, poppies, irises, crown imperial) | A220; W-039 | flora | B/C | BUILT (D-258: bloom tint far, flower heads near, by the calendar); unrendered |
 | G72 | tragacanth and thorn cushions, camelthorn, thistles | A221, A223; FL-008 | flora | B | MISSING/PARTIAL |
 | G73 | roses in the paradise | A226; FL-016 | flora | C | MISSING/PARTIAL |
-| G74 | pulses (lentil, chickpea, vetch, pea, broad bean) | A201; FL-011 | crops | C | MISSING/PARTIAL |
+| G74 | pulses (lentil, chickpea, vetch, pea, broad bean) | A201; FL-011 | crops | C | BUILT (D-259: 7 % of the irrigated plots; not on the rain-fed land); unrendered |
 | G75 | flax | A202; FL-013 | crops | C | MISSING/PARTIAL |
 | G76 | melons, cucumbers and gourds | A205; FL-012 | crops | C | MISSING/PARTIAL |
 | G77 | timber arriving for the roofs | A508; P-033 | commodities | B | MISSING/PARTIAL |

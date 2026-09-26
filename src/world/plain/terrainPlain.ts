@@ -19,8 +19,8 @@
 import * as THREE from 'three/webgpu';
 import { Fn, uniform, positionWorld, normalWorld, attribute, vec2, vec3, vec4, float, uint, int, ivec2, floor, fract, min, max, mix, step, smoothstep, length, fwidth, textureLoad, texture, abs, sin, cos, clamp, color, mx_noise_float, sqrt, dot } from 'three/tsl';
 import { surfaceMaterial, NOISE_FRAME, SEASON, BLOOM, type Layer } from '../../render/materials';
-import { DISTRICT, SALT, STRIP, ZONE, ZoneMap, IRR_STEPS, IRR_FALLOW_SPREAD, ROTATION, VINE_SHARE, pcg } from './fields';
-import { CROP_ROWS, YEAR, cropTable, cropState, PLOT_OFFSET_DAYS, foliage } from './seasonal';
+import { DISTRICT, SALT, STRIP, ZONE, ZoneMap, IRR_STEPS, IRR_CROP, IRR_FALLOW_SPREAD, ROTATION, VINE_SHARE, pcg } from './fields';
+import { CROP_ROWS, ROW, YEAR, cropTable, cropState, PLOT_OFFSET_DAYS, foliage } from './seasonal';
 import { GROUND, PATH_W, LUSH_MAX } from './townGround';
 import { CURV_SCALE, type Detail, type DetailMap } from '../../terrain/terrainDetail';
 
@@ -129,13 +129,13 @@ export class PlainGround {
       for (const [row, w] of weights) { let h = 0, g = 0, s = 0, t = 0; for (off = -PLOT_OFFSET_DAYS; off <= PLOT_OFFSET_DAYS; off += 4) { const c = cropState(CROP_ROWS[row], doy + off); h += c.height; g += c.green; s += c.straw; t += c.tilled; }
         const k = w / Math.ceil((2 * PLOT_OFFSET_DAYS + 1) / 4); v.x += Math.min(1, h / 1.5) * k; v.y += g * k; v.z += s * k; v.w += t * k; }
       return v; };
-    const irr = [IRR_STEPS[0], IRR_STEPS[1] - IRR_STEPS[0], IRR_STEPS[2] - IRR_STEPS[1], IRR_STEPS[3] - IRR_STEPS[2], 1 - IRR_STEPS[3]];
+    const irr = [...IRR_STEPS.map((t, i) => t - (i ? IRR_STEPS[i - 1] : 0)), 1 - IRR_CROP]; // rows 0..6 (6 = fallow)
     this.meanIrr.value.copy(mean(irr.map((w, i) => [i, w] as [number, number])));
-    this.meanIrrCrop.value.copy(mean(irr.slice(0, 4).map((w, i) => [i, w / IRR_STEPS[3]] as [number, number]))); this.meanIrrFallow.value.copy(mean([[4, 1]]));
-    this.meanRainCrop.value.copy(mean([[0, ROTATION.crop], [4, 1 - ROTATION.crop]]));
-    this.meanRainFallow.value.copy(mean([[0, ROTATION.fallow], [4, 1 - ROTATION.fallow]]));
+    this.meanIrrCrop.value.copy(mean(irr.slice(0, IRR_STEPS.length).map((w, i) => [i, w / IRR_CROP] as [number, number]))); this.meanIrrFallow.value.copy(mean([[ROW.fallow, 1]]));
+    this.meanRainCrop.value.copy(mean([[ROW.barley, ROTATION.crop], [ROW.fallow, 1 - ROTATION.crop]]));
+    this.meanRainFallow.value.copy(mean([[ROW.barley, ROTATION.fallow], [ROW.fallow, 1 - ROTATION.fallow]]));
     this.meanRain.value.copy(this.meanRainCrop.value).add(this.meanRainFallow.value).multiplyScalar(0.5);
-    this.meanOrch.value.copy(mean([[5, 1 - VINE_SHARE], [6, VINE_SHARE]]));
+    this.meanOrch.value.copy(mean([[ROW.orchard_floor, 1 - VINE_SHARE], [ROW.vineyard, VINE_SHARE]]));
     const f = foliage('oak', doy); this.oakLeaf.value.set(f.colour[0], f.colour[1], f.colour[2], f.leaf);
   }
 
@@ -245,10 +245,10 @@ export class PlainGround {
       const wI = wIrr.mul(float(1).sub(wOrch)), wR = wRain.mul(float(1).sub(wOrch));
       const hc = unitN(hash2N(ph, uint(7), SALT.crop)), ho = unitN(hash2N(ph, uint(9), SALT.offset));
       // the district's irrigated fallow share scales the crop thresholds (fields.ts irrigatedScale, D-223)
-      const irrSc = float(IRR_STEPS[3]).add(unitN(hash2N(dux, duz, SALT.irrFallow)).mul(2).sub(1).mul(IRR_FALLOW_SPREAD)).div(IRR_STEPS[3]);
-      const kIrr = step(irrSc.mul(IRR_STEPS[0]), hc).add(step(irrSc.mul(IRR_STEPS[1]), hc)).add(step(irrSc.mul(IRR_STEPS[2]), hc)).add(step(irrSc.mul(IRR_STEPS[3]), hc));
-      const kRain = step(mix(float(ROTATION.fallow), float(ROTATION.crop), cropYear), hc).mul(4), kOrch = float(5).add(step(1 - VINE_SHARE, hc));
-      const k = wI.mul(kIrr).add(wR.mul(kRain)).add(wOrch.mul(kOrch)).add(float(1).sub(wI).sub(wR).sub(wOrch).max(0).mul(7));
+      const irrSc = float(IRR_CROP).add(unitN(hash2N(dux, duz, SALT.irrFallow)).mul(2).sub(1).mul(IRR_FALLOW_SPREAD)).div(IRR_CROP);
+      const kIrr = IRR_STEPS.map(t => step(irrSc.mul(t), hc)).reduce((a: any, b: any) => a.add(b)); // 0..6 (6 = fallow): the rows' order
+      const kRain = step(mix(float(ROTATION.fallow), float(ROTATION.crop), cropYear), hc).mul(ROW.fallow), kOrch = float(ROW.orchard_floor).add(step(1 - VINE_SHARE, hc));
+      const k = wI.mul(kIrr).add(wR.mul(kRain)).add(wOrch.mul(kOrch)).add(float(1).sub(wI).sub(wR).sub(wOrch).max(0).mul(ROW.steppe));
       const off = floor(ho.mul(2 * PLOT_OFFSET_DAYS + 1)).sub(PLOT_OFFSET_DAYS);
       const col = day.add(off).add(YEAR).mod(YEAR);
       const st = textureLoad(cropTex, ivec2(int(col), int(k))); // height/1.5, green, straw, tilled
@@ -258,7 +258,7 @@ export class PlainGround {
       const bI = zb.x.mul(float(1).sub(zb.z)), bR = zb.y.mul(float(1).sub(zb.x)).mul(float(1).sub(zb.z)), bO = zb.z;
       const bSum = bI.add(bR).add(bO).max(1e-4);
       const meanRain = mix(meanRainF, meanRainC, cropYear);
-      const irrFar = mix(this.meanIrrFallow, this.meanIrrCrop, irrSc.mul(IRR_STEPS[3])); // the district's own mix (D-223)
+      const irrFar = mix(this.meanIrrFallow, this.meanIrrCrop, irrSc.mul(IRR_CROP)); // the district's own mix (D-223)
       const stFar = irrFar.mul(bI).add(meanRain.mul(bR)).add(meanOrch.mul(bO)).div(bSum);
       const S = mix(stFar, st, plotKeep), M = mix(bI.add(bR).add(bO).min(1).mul(allowed), mask, plotKeep);
       // --- colour of the plot from its state
@@ -267,8 +267,8 @@ export class PlainGround {
       const young = lin(0.30, 0.42, 0.15), mature = lin(0.22, 0.33, 0.13), ripe = lin(0.72, 0.60, 0.33), stubble = lin(0.66, 0.60, 0.46);
       const green = mix(young, mature, smoothstep(0.2, 0.8, hgt));
       const straw = mix(stubble, ripe, smoothstep(0.15, 0.4, hgt));
-      // vineyard rows (row 6): leaves in stripes 2.5 m apart along the strip; tilled furrows 0.6 m apart (near only)
-      const isVine = step(5.5, k).mul(step(k, 6.5)).mul(near);
+      // vineyard rows (ROW.vineyard): leaves in stripes 2.5 m apart along the strip; tilled furrows 0.6 m apart (near only)
+      const isVine = step(ROW.vineyard - 0.5, k).mul(step(k, ROW.vineyard + 0.5)).mul(near);
       const across = uv.x.mul(sw);
       const vineRow = smoothstep(0.55, 0.85, abs(fract(across.div(2.5)).sub(0.5)).mul(2).oneMinus().add(0.3));
       const gCov = mix(S.y, S.y.mul(vineRow).mul(1.6).min(1), isVine), sCov = S.z;
