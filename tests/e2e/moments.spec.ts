@@ -98,6 +98,10 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // session 9: the planets (src/sky/planets.ts): Mercury and Venus 0.5° apart in the evening twilight of day 29, 13° up at true
   // azimuth 291° over the plain (tools/dev/planets_467.ts), from the Terrace's W edge
   { n: 'planets-dusk', day: 29, hour: 19.5, w: 'clear', v: [-36, 125, 1.6, 291, 8], fov: 40 },
+  // session 9: the mountains' winter snow (weather/climate.ts snowLineASL; materials.ts finish): mid-January (day 280), Kuh-e Rahmat
+  // behind the Terrace from the plain, and the ranges to the N
+  { n: 'winter-snowline-e', day: 280, hour: 11, w: 'clear', v: [-600, 60, 1.6, 70, 6], fov: 40 },
+  { n: 'winter-snowline-n', day: 280, hour: 11, w: 'clear', v: [-600, 60, 1.6, 350, 3], fov: 40 },
   { n: 'night-moon-fire', day: 11, hour: 2.75, w: 'clear', v: [-23.4, 122.5, 1.6, 253.5, 6] },
   { n: 'brazier-close', day: 0, hour: 21.5, w: 'clear', v: [-36.4, 132, 1.6, 161, -8], fov: IN },
   { n: 'apadana-hall-torch', day: 0, hour: 21, w: 'clear', v: [-8, 0, 4.6, 161, 6], fov: IN },

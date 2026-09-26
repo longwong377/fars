@@ -23,7 +23,8 @@ import type { Atlas } from '../arch/carving';
 import { roofedNode } from './probes/roofs';
 import { RAIN_CELL } from '../sky/clouds';
 
-export const WEATHER = { wetness: uniform(0), snow: uniform(0), puddles: uniform(0) };
+/** snowLine: the seasonal snowline in metres above the court datum (weather/climate.ts snowLineASL − court_asl; session 9) */
+export const WEATHER = { wetness: uniform(0), snow: uniform(0), puddles: uniform(0), snowLine: uniform(9000) };
 /** seasonal ground cover (0..1): green = living herb layer, dry = standing straw/stubble (set per frame from the date; season.ts) */
 export const SEASON = { green: uniform(0.8), dry: uniform(0.1) };
 /** the masons' yard's dressing waste on the court fill (D-188; set by the construction view, src/world/construction.ts):
@@ -953,7 +954,9 @@ function finish(m: THREE.MeshStandardNodeMaterial, L: Layer, d: SurfaceDef) {
   const puddles = max(WEATHER.puddles, cellWet.sub(0.4).div(0.6).max(0));
   const puddle = up.mul(puddles).mul(open).mul(smoothstep(0.68, 0.74, mx_noise_float(p.mul(0.12)).mul(0.5).add(0.5)));
   // snow: zero when snow = 0 (noise only modulates coverage, never adds snow on its own)
-  const snowMask = clamp(up.mul(WEATHER.snow).mul(open).mul(float(1.6).sub(mx_noise_float(p.mul(0.8)).add(1).mul(0.3))), 0, 1);
+  // the mountains' seasonal snow above the snowline (session 9): a patchy band 250 m deep (drifts in the hollows first, C)
+  const elev = smoothstep(WEATHER.snowLine.sub(100), WEATHER.snowLine.add(150), p.y.add(mx_noise_float(p.mul(0.004)).mul(120)));
+  const snowMask = clamp(up.mul(max(WEATHER.snow, elev)).mul(open).mul(float(1.6).sub(mx_noise_float(p.mul(0.8)).add(1).mul(0.3))), 0, 1);
   m.colorNode = mix(alb, vec3(0.92, 0.93, 0.96), snowMask);
   m.roughnessNode = mix(mix(L.rough, L.rough.mul(0.45), wet), float(0.05), puddle).max(float(0.04)).mul(float(1).sub(snowMask.mul(0.1))).add(snowMask.mul(0.1));
   m.metalnessNode = float(d.metal ?? 0);

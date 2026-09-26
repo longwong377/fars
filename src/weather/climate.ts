@@ -28,3 +28,10 @@ export function interp(field: (m: number) => number, fm: number): number {
   const a = field(((m0 % 12) + 12) % 12), b = field((((m0 + 1) % 12) + 12) % 12);
   return a + (b - a) * t;
 }
+
+/** The seasonal snowline on the mountains (session 9; both gap hunters; brief §5.3 "snow on the mountain in winter"): the height
+ *  (m asl) above which open, not-too-steep ground holds snow, by climatological month (0 = mid-January). C: the Zagros of Fars hold
+ *  snow above ~2,300-2,500 m in mid-winter, the highest peaks (3,500-4,000 m) into late spring, none left from June to September
+ *  (modern pattern; the late first millennium BCE not known to differ: research/LANDSCAPE.md climate) */
+export const SNOW_LINE_ASL = [2350, 2350, 2650, 3150, 3700, 4600, 5000, 5000, 5000, 4200, 3000, 2550];
+export const snowLineASL = (fm: number) => interp(m => SNOW_LINE_ASL[m], fm);
