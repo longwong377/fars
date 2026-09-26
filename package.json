@@ -6,7 +6,7 @@
   "description": "PĀRSA — a living 1:1 reconstruction of Persepolis, 467 BCE",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "npm run lint:all && tsc --noEmit && vite build",
     "preview": "vite preview --port 4173",
     "terrain": "python3 tools/build_terrain.py",
     "sculpt": "tsx tools/build_sculpt.ts",

@@ -1,6 +1,12 @@
 # PROGRESS (problems first)
 
 ## Broken / placeholder / weak (read first)
+- **Photo #24 side by side (session 8, job d232check, shots/moment-calib-24-now-webgpu.png vs references #24): the render fails
+  plainly.** The wall now draws joints (no longer flat or black), but it reads as grey concrete where the photo's stone is warm
+  tan-brown; the polygonal foot of big blocks along the W wall (photo, 38 % of its length) is not visible; the plain is smooth brown
+  earth where the photo shows pale gravel with grass patches; Kuh-e Rahmat is a smooth dune without the photo's rock and scrub
+  texture (B57). A blind reviewer would pick the render at once (MASTER_PLAN T-A5). calib-24 (467) shows the same wall as a
+  regular bright tile grid and a stray dome-shaped mound on the ground in front (unexplained; to trace).
 - **D-232 (session 8 workstream): the Terrace retaining walls' new joint layout is NOT seen in a correct render** — render 1
   drew the wall one flat tone (TSL assigns dropped), render 2 black (NaN); both fixed in node (tests/masonry_d232.test.ts), not
   re-rendered: render calib-24, calib-24-now and a Terrace view before claiming it. Layout measured on photo #24 (course heights

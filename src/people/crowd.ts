@@ -19,6 +19,7 @@
 // Playing (D-200): the music director has a performer play or sing (setPlaying): the playing performance (playing.ts) is
 // given in place of the plan's for as long as it is kept alive, and a singer's jaw and breath follow the piece's notes.
 import * as THREE from 'three/webgpu';
+import { Rng } from '../core/rng';
 import { attribute, positionLocal, float, abs, min, max, mix, step } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { surfaceMaterial } from '../render/materials';
@@ -198,7 +199,10 @@ export class Crowd {
   private walledOff(vp: ViewPerson, camY: number) { return vp.wall > 0 && vp.plot !== this.camPlot && camY < vp.y + vp.wall - 0.3; }
   private camAt = new THREE.Vector3();
   /** `sim` null: a crowd of extras only (the human lab page, tests) */
+  /** the herds' calls (bleats, brays, barks, clucks) draw on the world seed's own stream, never Math.random (MASTER_PLAN §6 order, step 1) */
+  private snd: Rng;
   constructor(readonly sim: PeopleSim | null, readonly seed: number, readonly humans: HumanSystem) {
+    this.snd = new Rng(seed, 'crowd.calls');
     this.group.name = 'people';
     this.group.add(humans.gpu.group);
     this.rigS = new RigSolver(humans.A.meta.curlAxes);
@@ -827,12 +831,12 @@ export class Crowd {
       } else place(fr, an.x, an.y ?? 0, an.z, an.yaw, _m);
       this.animals.push(an, _m);
     }
-    if (A.kind === 'flock' && d < 60 && list.length && Math.random() < dt / BLEAT_S) { const an = list[Math.floor(Math.random() * list.length)]; const c = Math.cos(b[3]), s = Math.sin(b[3]);
+    if (A.kind === 'flock' && d < 60 && list.length && this.snd.next() < dt / BLEAT_S) { const an = list[Math.floor(this.snd.next() * list.length)]; const c = Math.cos(b[3]), s = Math.sin(b[3]);
       this.onHit?.('bleat', new THREE.Vector3(b[0] + c * an.x + s * an.z, b[1] + 0.5, b[2] - s * an.x + c * an.z)); }
     if (d < 150 && list.length && this.onHit) { const at = (an: { x: number; z: number }, h: number) => { const c = Math.cos(b[3]), s = Math.sin(b[3]); return new THREE.Vector3(b[0] + c * an.x + s * an.z, b[1] + h, b[2] - s * an.x + c * an.z); };
-      const br = list.find(an => BRAYERS.has(an.sp)); if (br && Math.random() < dt / BRAY_S) this.onHit('bray', at(br, 1.1));
-      const dog = d < 90 ? list.find(an => an.sp === 'dog') : undefined; if (dog && Math.random() < dt / (d < 20 ? 3.5 : BARK_S)) this.onHit('bark', at(dog, 0.5));
-      if (d < 40 && Math.random() < dt / 6) { const hen = list.find(an => an.sp === 'hen' || an.sp === 'cock'); if (hen) this.onHit('cluck', at(hen, 0.25)); } }
+      const br = list.find(an => BRAYERS.has(an.sp)); if (br && this.snd.next() < dt / BRAY_S) this.onHit('bray', at(br, 1.1));
+      const dog = d < 90 ? list.find(an => an.sp === 'dog') : undefined; if (dog && this.snd.next() < dt / (d < 20 ? 3.5 : BARK_S)) this.onHit('bark', at(dog, 0.5));
+      if (d < 40 && this.snd.next() < dt / 6) { const hen = list.find(an => an.sp === 'hen' || an.sp === 'cock'); if (hen) this.onHit('cluck', at(hen, 0.25)); } }
   }
   // ------------------------------------------------------------------------------------------------ hits (overlay, pick)
   private raycast(rc: THREE.Raycaster, out: THREE.Intersection[]) {

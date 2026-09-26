@@ -94,12 +94,17 @@ export class AudioEngine {
       l.forwardX.setTargetAtTime(fwd.x, t, 0.02); l.forwardY.setTargetAtTime(fwd.y, t, 0.02); l.forwardZ.setTargetAtTime(fwd.z, t, 0.02); l.upX.value = 0; l.upY.value = 1; l.upZ.value = 0; }
     else (l as any).setPosition(pos.x, pos.y, pos.z);
   }
+  private noiseN = 0;
+  /** a fresh noise buffer: each call starts its own sequence (audit D: one fixed seed made every footstep, strike and fire
+   *  crackle the same waveform, so repeats were audible; MASTER_PLAN T-G2, T-G2f) */
   noiseBuffer(seconds: number, colour: 'white' | 'pink' | 'brown' = 'white'): AudioBuffer {
     const c = this.ctx!, n = Math.floor(c.sampleRate * seconds), b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0);
-    let b0 = 0, b1 = 0, b2 = 0, last = 0, seed = 987654;
+    let b0 = 0, b1 = 0, b2 = 0, last = 0, seed = noiseSeed(++this.noiseN);
     for (let i = 0; i < n; i++) { const w = ((seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296) * 2 - 1;
       if (colour === 'white') d[i] = w; else if (colour === 'pink') { b0 = 0.99765 * b0 + w * 0.099; b1 = 0.963 * b1 + w * 0.2965; b2 = 0.57 * b2 + w * 1.0527; d[i] = (b0 + b1 + b2 + w * 0.1848) * 0.2; }
       else { last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5; } }
     return b;
   }
 }
+/** the n-th noise buffer's generator seed (a 32-bit mix of n; distinct for every n below 2³²) */
+export function noiseSeed(n: number): number { let h = Math.imul(n ^ 0x9e3779b9, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); return (h ^ (h >>> 16)) >>> 0; }

@@ -286,7 +286,7 @@ export class Soundscape {
       let n = this.fireNodes.get(f.id);
       if (f.lit && d < 40 && !n) { const s = c.createBufferSource(); s.buffer = e.noiseBuffer(3, 'pink'); s.loop = true; const lf = c.createBiquadFilter(); lf.type = 'lowpass'; lf.frequency.value = 900;
         const g = c.createGain(); g.gain.value = 0; const pan = e.panner(f.pos.x, f.pos.y, f.pos.z, 1.5, 60); s.connect(lf); lf.connect(g); g.connect(pan); e.route(pan, 'effects'); s.start(); n = { gain: g, pan }; this.fireNodes.set(f.id, n); }
-      if (n) { n.gain.gain.setTargetAtTime(f.lit && d < 40 ? 0.08 * (0.7 + 0.3 * Math.random()) : 0, t, 0.05); if (this.rng.next() < dt * 6 && f.lit && d < 25) { // crackle pops
+      if (n) { n.gain.gain.setTargetAtTime(f.lit && d < 40 ? 0.08 * (0.7 + 0.3 * this.rng.next()) : 0, t, 0.05); if (this.rng.next() < dt * 6 && f.lit && d < 25) { // crackle pops
           const s = c.createBufferSource(); s.buffer = e.noiseBuffer(0.02, 'white'); const g = c.createGain(); g.gain.setValueAtTime(0.06, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.03); s.connect(g); g.connect(n.pan); s.start(t); } }
     }
     // generic worksite chisels only when no simulated masons drive `strike` (kept for audio tests without people)

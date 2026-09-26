@@ -16,6 +16,7 @@
 // a dog at the visitor. Drawn with the working animals' rig (people/animals.ts Animals: one draw per species in view,
 // near shadow cascades only) out to DRAW_R of the camera.
 import * as THREE from 'three/webgpu';
+import { Rng } from '../core/rng';
 import { Animals, type AnimalInst, type Species } from '../people/animals';
 import { STAIR_FOOT, type TerraceFoot } from './terraceFoot';
 /** D-227: the stair foot's animals are drawn from this far (m; the plain views from the Terrace see them at 40-400 m) */
@@ -71,8 +72,11 @@ export class Fauna {
   /** statistics of the last update (dev overlay, tests) */
   readonly stats = { drawn: 0, bySpecies: {} as Record<string, number>, barks: 0, crows: 0 };
 
+  /** the animals' calls (barks, crows, clucks, grunts) draw on the world seed's own stream, never Math.random (MASTER_PLAN §6 order, step 1) */
+  private snd!: Rng;
   constructor(private seed: number, plan: TownPlan | null, villages: VillageIn[], private ground: (e: number, n: number) => number,
     water: { rivers: { pts: P2[]; half: number }[]; canals: P2[][] } = { rivers: [], canals: [] }) {
+    this.snd = new Rng(seed, 'fauna.calls');
     this.group.name = 'fauna'; this.group.add(this.animals.group);
     if (plan) this.fromTown(plan);
     villages.forEach((v, vi) => this.fromVillage(v, vi));
@@ -219,24 +223,24 @@ export class Fauna {
     for (const i of this.dogGrid.near(cam[0], cam[1], FAUNA.drawR.dog, this.q)) { this.yardDogAt(i, c, o);
       if (c.player) { const d = Math.hypot(o.e - c.player[0], o.n - c.player[1]), al = this.alarm.get(i);
         if (d < 14 && al === undefined) { this.alarm.set(i, c.t); this.yardDogAt(i, c, o); } else if (d > 20 && al !== undefined) this.alarm.delete(i);
-        const a2 = this.alarm.get(i); if (a2 !== undefined && Math.random() < c.dt / (c.t - a2 < 10 ? 1.4 : 6)) { sound('bark', o.e, o.n, 0.5); st.barks++; } }
-      if (night && Math.random() < c.dt / 400) { sound('bark', o.e, o.n, 0.5); st.barks++; } // a dog answering the night (C)
+        const a2 = this.alarm.get(i); if (a2 !== undefined && this.snd.next() < c.dt / (c.t - a2 < 10 ? 1.4 : 6)) { sound('bark', o.e, o.n, 0.5); st.barks++; } }
+      if (night && this.snd.next() < c.dt / 400) { sound('bark', o.e, o.n, 0.5); st.barks++; } // a dog answering the night (C)
       push(); }
     for (const gi of this.strayGrid.near(cam[0], cam[1], FAUNA.drawR.dog, [])) { const g = this.strays[gi]; for (let j = 0; j < g.n; j++) { this.strayAt(g, j, c, o); push(0.92); } }
     // hens and cocks by day (at night they roost indoors: not drawn); the cocks crow at first light (at most one every 5 s)
     if (day) { for (const hi of this.henGrid.near(cam[0], cam[1], FAUNA.drawR.hen, [])) { const y = this.henYards[hi]; for (let j = 0; j <= y.n - (y.cock ? 0 : 1); j++) { this.henAt(y, j, c, o, sc); push(sc.s); } }
       if (this.poultry && Math.hypot(this.poultry.c[0] - cam[0], this.poultry.c[1] - cam[1]) < FAUNA.drawR.hen + 20) { const y: HenYard = { yard: { spots: [], bed: this.poultry.c, door: this.poultry.c }, n: this.poultry.n, cock: false, seed: 555, r: 7.5 };
         for (let j = 0; j < y.n; j++) { this.henAt(y, j, c, o, sc); if (j % 19 === 0) o.sp = 'cock'; push(sc.s); } } }
-    if (dawn && c.t >= this.nextCrow) { const near = this.henGrid.near(cam[0], cam[1], 250, []).filter(i => this.henYards[i].cock); if (near.length && Math.random() < c.dt * Math.min(1, near.length * 0.02)) {
-      const y = this.henYards[near[Math.floor(Math.random() * near.length)]]; sound('cockcrow', y.yard.bed[0], y.yard.bed[1], 0.6); st.crows++; this.nextCrow = c.t + 5; } }
-    if (day && Math.random() < c.dt / 5) { const near = this.henGrid.near(cam[0], cam[1], 30, []); if (near.length) { const y = this.henYards[near[0]]; sound('cluck', y.yard.spots[0][0], y.yard.spots[0][1], 0.25); } }
+    if (dawn && c.t >= this.nextCrow) { const near = this.henGrid.near(cam[0], cam[1], 250, []).filter(i => this.henYards[i].cock); if (near.length && this.snd.next() < c.dt * Math.min(1, near.length * 0.02)) {
+      const y = this.henYards[near[Math.floor(this.snd.next() * near.length)]]; sound('cockcrow', y.yard.bed[0], y.yard.bed[1], 0.6); st.crows++; this.nextCrow = c.t + 5; } }
+    if (day && this.snd.next() < c.dt / 5) { const near = this.henGrid.near(cam[0], cam[1], 30, []); if (near.length) { const y = this.henYards[near[0]]; sound('cluck', y.yard.spots[0][0], y.yard.spots[0][1], 0.25); } }
     // the paradise's game
     if (this.paradise) { const pc = this.paradise.frame.c; if (Math.hypot(pc[0] - cam[0], pc[1] - cam[1]) < FAUNA.drawR.game + 200) {
       for (const [kind, [a, b]] of [['deer', FAUNA.deer], ['gazelle', FAUNA.gazelle]] as const) for (let j = 0; j < a + b; j++) { this.gameAt(kind, j, c, o); if (Math.hypot(o.e - cam[0], o.n - cam[1]) < FAUNA.drawR.game) push(); } } }
     // the boar at the river margin, dusk to dawn; now and then a grunt
     if (this.boarPath.length > 1 && (c.hour > c.sun.set - 0.3 || c.hour < c.sun.rise + 0.5)) { const b0 = this.boarPath[Math.floor(this.boarPath.length / 2)];
       if (Math.hypot(b0[0] - cam[0], b0[1] - cam[1]) < FAUNA.drawR.boar + 400) for (let j = 0; j < FAUNA.boar; j++) { this.boarAt(j, c, o, sc); if (Math.hypot(o.e - cam[0], o.n - cam[1]) > FAUNA.drawR.boar) continue; push(sc.s);
-        if (j === 0 && Math.hypot(o.e - cam[0], o.n - cam[1]) < 70 && Math.random() < c.dt / 20) sound('grunt', o.e, o.n, 0.4); } }
+        if (j === 0 && Math.hypot(o.e - cam[0], o.n - cam[1]) < 70 && this.snd.next() < c.dt / 20) sound('grunt', o.e, o.n, 0.4); } }
     // the court's vehicles and their animals (court setting)
     for (const v of this.vehicles) { if (Math.hypot(v.e - cam[0], v.n - cam[1]) > FAUNA.drawR.game) continue; const ch = v.heading, s = Math.sin(ch), co = Math.cos(ch);
       const team: [number, number, Species][] = v.kind === 'chariot' ? [[0.55, 2.43, 'horse'], [-0.55, 2.43, 'horse']] : [[1.8, 1.2, 'mule'], [2.6, -0.4, 'mule']];
