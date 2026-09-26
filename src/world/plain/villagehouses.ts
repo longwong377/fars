@@ -140,7 +140,7 @@ export class VillageHouses {
     // the near meshes (one per group of materials; each material a draw)
     const mat = (name: string) => Object.assign(surfaceMaterial(name, { vertexColors: true, ...(name === 'house_plaster' ? { arch: true } : {}) }), { aoNode: attribute('ao', 'float') });
     const M = [mat('house_plaster'), mat('house_socle'), mat('house_timber'), mat('house_brick')];
-    this.structMesh = new THREE.Mesh(new THREE.BufferGeometry(), M); this.structMesh.name = 'plain-villages-near'; this.thingsMesh = new THREE.Mesh(new THREE.BufferGeometry(), [M[0], M[2]]); this.thingsMesh.name = 'plain-villages-near-things';
+    this.structMesh = new THREE.Mesh(emptyGeometry(), M); this.structMesh.name = 'plain-villages-near'; this.thingsMesh = new THREE.Mesh(emptyGeometry(), [M[0], M[2]]); this.thingsMesh.name = 'plain-villages-near-things';
     for (const m of [this.structMesh, this.thingsMesh]) { m.castShadow = m === this.thingsMesh; m.receiveShadow = true; m.matrixAutoUpdate = false; m.frustumCulled = false; m.visible = false; m.userData = { ...tag(vu, 'village houses near (D-254)') }; this.group.add(m); }
     this.doors = new TownDoors(this.gates, phys, 1, 'plain-villages-doors'); this.doors.group.userData = { ...tag(vu, 'village gates: leaves of poplar planks (D-234 door system; D-254)') }; this.group.add(this.doors.group);
     this.info.buildMs = performance.now() - t0;
@@ -267,7 +267,7 @@ export class VillageHouses {
       if (!ni) return null;
       const A: Record<string, { size: number; arr: Float32Array; fill: number }> = { position: { size: 3, arr: new Float32Array(nv * 3), fill: 0 }, normal: { size: 3, arr: new Float32Array(nv * 3), fill: 0 }, color: { size: 3, arr: new Float32Array(nv * 3), fill: 0 },
         y0: { size: 1, arr: new Float32Array(nv), fill: -1000 }, ytop: { size: 1, arr: new Float32Array(nv), fill: 1e4 }, ao: { size: 1, arr: new Float32Array(nv), fill: 1 } };
-      const idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni), g = new THREE.BufferGeometry(), ranges: { f0: number; f1: number; owner: Int32Array; desc: Desc[] }[] = [];
+      const idx = nv > 65535 ? new Uint32Array(ni) : new Uint16Array(ni), g = emptyGeometry(), ranges: { f0: number; f1: number; owner: Int32Array; desc: Desc[] }[] = [];
       let vo = 0, io = 0;
       keys.forEach((k, gi) => { const i0 = io;
         for (const q of parts) { const x = q.n.geo[k]; if (!x) continue; const n = x.g.getAttribute('position').count;
@@ -278,7 +278,7 @@ export class VillageHouses {
       return { g, ranges }; };
     const Sg = build(STRUCT); yield; const Tg = build(THINGS); yield;
     for (const [m, x] of [[this.structMesh, Sg], [this.thingsMesh, Tg]] as const) {
-      m.geometry.dispose(); if (!x) { m.geometry = new THREE.BufferGeometry(); m.visible = false; continue; }
+      m.geometry.dispose(); if (!x) { m.geometry = emptyGeometry(); m.visible = false; continue; }
       m.geometry = x.g; m.visible = true; const ranges = x.ranges;
       m.userData = { ...m.userData, describe: (hit: any) => { const f = hit?.faceIndex ?? -1; let lo = 0, hi2 = ranges.length - 1; while (lo < hi2) { const mid = (lo + hi2 + 1) >> 1; if (ranges[mid].f0 <= f) lo = mid; else hi2 = mid - 1; } const r = ranges[lo]; return r && f >= r.f0 && f < r.f1 ? partDesc(r.desc, r.owner[f - r.f0], false) : null; } }; }
     const stt = VILLAGE_NEAR_STATE.image.data as Uint8Array; for (const t of this.shownSet) stt[(t + 1) * 4] = 0; this.shownSet = new Set(parts.map(q => q.t)); for (const t of this.shownSet) stt[(t + 1) * 4] = 255; VILLAGE_NEAR_STATE.needsUpdate = true;
@@ -313,6 +313,8 @@ export class VillageHouses {
   stats() { return { ...this.info, near: { ...this.nearInfo }, doors: { ...this.doors.stats } }; }
 }
 
+/** an empty geometry that still has a position attribute (the near meshes before anything is near) */
+const emptyGeometry = () => new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array(0), 3));
 /** a storage bin (a fitting of kind 'bin'): a lidded box of unbaked clay against the wall (its depth along `rot`, C) */
 export function binBox(f: Site['fittings'][0]) { const k = f.size; return { hu: 0.32 * k, hv: 0.5 * k, hy: 0.55 * k }; }
 function binGeom(s: Site, f: Site['fittings'][0], b: Batch, H: (e: number, n: number) => number, d: number) {

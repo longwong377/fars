@@ -264,6 +264,7 @@ describe('the plain as built (headless): budgets, tiers, chronology', () => {
     const s = sunHorizon(new WorldClock(day, hour).jdUT), d = azAltToWorld(s.azimuth, s.altitude);
     sun.position.set(cam.position.x + d[0] * 800, cam.position.y + d[1] * 800, cam.position.z + d[2] * 800); sun.target.position.copy(cam.position); sun.updateMatrixWorld();
     P.update(0, { clock: { dayIndex: day }, cond: { windMs: 2 }, camera: cam }); updateReliefs(cam.position, 50);
+    P.villageHouses.nearUpdate(cam.position.x, cam.position.z, 0, true); // (D-254: the village houses near the eye built at once, as a walker finds them)
     await settleReliefs(cam.position, 30_000); // the carved reliefs' LOD for this camera (as __parsa.renderOnce settles it)
     return cam;
   };
@@ -271,9 +272,21 @@ describe('the plain as built (headless): budgets, tiers, chronology', () => {
     const out: string[] = [];
     for (const fov of [40, 70]) for (const v of VIEWS) { // the rig's photographic lens and the player's field of view
       const cam = await frameAt(v, fov), f = frameTriangles(P.group, cam, sun);
+      out.push(`  village near level: ${JSON.stringify(P.villageHouses.nearInfo)}`); if (v[0] === 'village-p22' || v[0] === 'naqsh-200m') out.push(f.rows.filter(r => r.main + r.shadow > 20000).sort((a, b) => b.main + b.shadow - a.main - a.shadow).slice(0, 10).map(r => `  ${r.name}: ${(r.main / 1e3).toFixed(0)} k main, ${(r.shadow / 1e3).toFixed(0)} k shadow, ${r.calls} calls`).join('\n'));
       out.push(`${v[0]} fov ${fov}: ${f.calls} calls, ${(f.main / 1e6).toFixed(3)} M main + ${(f.shadow / 1e6).toFixed(3)} M shadow passes = ${(f.total / 1e6).toFixed(3)} M; near trees drawn ${P.stats().nearTreesDrawn} of ${P.stats().nearTrees}, shadow casters ${P.stats().shadowTreesDrawn} of ${P.stats().shadowTrees}`);
       expect(f.calls, `${v[0]} fov ${fov}`).toBeLessThanOrEqual(150); expect(f.total, `${v[0]} fov ${fov}`).toBeLessThan(2.0e6);
     }
+    console.log(out.join('\n'));
+  });
+  it('a frame inside a village (D-254: at the well of village P22 and of the largest village, the houses near the eye built in full) stays inside D-040\'s limit', async () => {
+    const out: string[] = [];
+    for (const id of ['village_p22', 'village_p01']) { const vi = P.data.villages.findIndex(v => v.id === id); P.villageHouses.ensure(vi); const w = P.villageHouses.st[vi].vs!.well!;
+      for (const [az, fov] of [[341, 40], [161, 70], [71, 70]]) { const v: typeof VIEWS[number] = [`${id}-well`, 0, 16, w[0], w[1] - 3, 1.6, az, 2];
+        const cam = await frameAt(v, fov), f = frameTriangles(P.group, cam, sun);
+        out.push(`${id} well az ${az} fov ${fov}: ${f.calls} calls, ${(f.main / 1e6).toFixed(3)} M main + ${(f.shadow / 1e6).toFixed(3)} M shadow = ${(f.total / 1e6).toFixed(3)} M; village near ${P.villageHouses.nearInfo.tiles} tiles ${(P.villageHouses.nearInfo.tris / 1e3).toFixed(0)} k tris`);
+        out.push(f.rows.filter(r => r.name.startsWith('plain-villages')).map(r => `  ${r.name}: ${(r.main / 1e3).toFixed(0)} k main, ${(r.shadow / 1e3).toFixed(0)} k shadow, ${r.calls} calls`).join('\n'));
+        expect(P.villageHouses.nearInfo.tiles, `${id} near`).toBeGreaterThan(3);
+        expect(f.calls, `${id} ${az} ${fov}`).toBeLessThanOrEqual(150); expect(f.total, `${id} ${az} ${fov}`).toBeLessThan(2.0e6); } }
     console.log(out.join('\n'));
   });
   it('the near trees\' view cull loses nothing visible: every tree left out of the main pass lies outside the view, every caster left out of the shadow passes casts its shadow outside it, and a turn or a step short of the next cull brings no uncovered tree into view (D-228)', async () => {
