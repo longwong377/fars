@@ -6461,3 +6461,12 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Not done:** the sound of hail on roofs and ground (the rain bed plays); no hail damage to crops. The test seed has no hail
   day, so no moment can show it (a debug weather override would).
 - **Tests.** tests/hail.test.ts (2); weather, weather_visible, frost pass.
+
+## D-267 Breath visible in the cold (session 9; gap hunters G5; A physics / C thresholds)
+- **What** (src/world/breath.ts; world.ts): below ~6 C (full by -2 C; damp air shows it more, half at 20 % RH), each exhaled breath
+  of the people within 12 m of the camera, and the walker's own in front of the eye, forms a small cloud that grows from 6 to 38 cm,
+  drifts 0.4 m forward and a little up and is gone in 1.3 s; each person on their own rhythm (3.2-4.5 s, 2.4-3.7 s walking) from
+  their key; soft camera-facing cards lit like D-220's dust, white. The crowd's near people now carry the way they face (crowd.ts
+  nearPeople: `yaw` from the drawn root), which the breath uses. One InstancedMesh (at most 64 puffs), drawn only when cold.
+- **Not done:** the walker's breath does not quicken when running (the player's gait is not read); the animals' breath.
+- **Tests.** tests/breath.test.ts (3); audio_population passes (NearPerson gained `yaw`).

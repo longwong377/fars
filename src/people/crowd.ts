@@ -367,12 +367,13 @@ export class Crowd {
     };
     for (const p of this.persons.values()) { if (p.extra || !p.shown) continue; const a = p.agent, vp = p.vpFrame === this.frame ? p.vp : null;
       const moving = a && !a.offmap ? a.walking : !!vp?.moving; push(p.key, a, p.pid, p.act, moving, p.base[0], p.base[1], p.base[2], a && !a.offmap ? a.task?.place ?? null : vp?.place || null);
+      if (out.length && out[out.length - 1].key === p.key) out[out.length - 1].yaw = p.base[3]; // session 9: which way they face (their breath)
       // session 9 (G33): the small children carried or put down beside them (D-215) are there to be heard (a baby's cry:
       // audio/voices.ts), with their own identity and age from the population
       if (vp?.babes) for (const b of vp.babes) push(`p${b.pid}`, null, b.pid, 'rest', false, p.base[0] + 0.25, p.base[1], p.base[2], null); }
     for (let i = 0; i < this.nImp; i++) { const e = this.impList[i], a = e.a, vp = e.vp; if (!vp && !a) continue;
       const act = vp ? vp.act : this.sim!.performance(a!).act, moving = vp ? vp.moving : a!.walking;
-      push(a ? `a${a.id}` : `p${vp!.pid}`, a, vp ? vp.pid : -1, act, moving, e.x, e.y, e.z, vp ? vp.place || null : a!.task?.place ?? null); }
+      push(a ? `a${a.id}` : `p${vp!.pid}`, a, vp ? vp.pid : -1, act, moving, e.x, e.y, e.z, vp ? vp.place || null : a!.task?.place ?? null); if (out.length) out[out.length - 1].yaw = e.yaw; }
     return out;
   }
   /** D-245: a person's voice plays from `from` to `to` (world time); the voices took them (see Person.claimedAt) */

@@ -50,6 +50,8 @@ export interface NearPerson {
   lang: string; langs?: readonly string[]; sex: 'm' | 'f'; age: number; seed: number;
   /** the place of the plan (people at one place within 3 m form a conversation), or null */
   group: string | null;
+  /** session 9: the way they face (world yaw, the rig's +Z forward: crowd.ts yawOf), when the crowd knows it (their breath) */
+  yaw?: number;
 }
 /** a published unit: a whole speech line or one attested lexicon entry; or, for a people without a corpus, a wordless voice */
 export interface Unit { id: string; ipa: string; intonation: Intonation; kind: 'line' | 'word' | 'wordless'; parts: string[]; tier: string; gloss: string; translit: string }

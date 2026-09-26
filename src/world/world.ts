@@ -65,6 +65,7 @@ import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
 import { GroundFlora } from './groundFlora';
 import { DustDevils } from './dustDevils';
+import { BreathFx, BREATH_R, breathVisibility } from './breath';
 import { bloomAt, doyOf } from './plain/seasonal';
 import { PointIndex } from './plain/data';
 import { azAltToWorld } from '../sky/ephemeris';
@@ -228,6 +229,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
   const smallLife = small.life, flora = small.flora; // flora (session 9, G72): the thorn cushions, camelthorn and thistles near the viewer
   root.add(smallLife.group, flora.group);
   const devils = new DustDevils(seed); root.add(devils.group); // dust devils on the summer plain (session 9, G7)
+  const breath = new BreathFx(); root.add(breath.group); const breathBuf: any[] = []; // breath in the cold (session 9, G5)
   const devilOpen = (e: number, n: number) => Math.hypot(e, n) > 1500 && landUseAt(plain.data.zones, e, -n).use !== 'orchard' && small.ctx(e, n) !== 'none' && small.ctx(e, n) !== 'water' && small.ctx(e, n) !== 'rock';
   for (const f of fire.fires) nav.blockDisc(f.pos.x, -f.pos.z, f.kind === 'torch' ? 0 : 0.8);
   for (const [e, n, r] of palace.navDiscs()) nav.blockDisc(e, n, r); // the furnishings' standing pieces (both states with the court setting on)
@@ -512,6 +514,9 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       { // D-220: dust from this frame's emitters (the crowd and its animals were drawn above), and the carts' wheels
         if (!nowView.active) for (const m of movers) if (m.kind === 'cart') dust.emit('cart', m.e, groundAt(m.e, m.n), -m.n, yawOf(m.heading * 180 / Math.PI), 0.9, m.key.length * 131 + Math.round(m.e));
         dust.group.visible = !nowView.active; dust.setSkyLight(ctx.skyLight); dust.update(time, ctx.camera, ctx.cond); }
+      { // breath in the cold (session 9, G5): the people within BREATH_R and the walker's own, only when it can be seen
+        const cold = !nowView.active && breathVisibility(ctx.cond.tempC, ctx.cond.rh) > 0.02; breath.group.visible = cold;
+        if (cold) { breath.setSkyLight(ctx.skyLight); breath.update(time, ctx.camera, crowd.nearPeople(ctx.camera.position, BREATH_R, breathBuf), ctx.player ? { moving: false } : null, { tempC: ctx.cond.tempC, rh: ctx.cond.rh }); } }
       plain.update(dt, ctx);
       building?.sync(); // cheap unless a column changed state
       palace.update(ctx.camera.position, courtOn(Math.floor(sim.t / 24))); // D-212: stored / laid out for the court; far groups not drawn

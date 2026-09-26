@@ -118,6 +118,8 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'winter-snowline-n', day: 280, hour: 11, w: 'clear', v: [-600, 60, 1.6, 350, 3], fov: 40 },
   // session 9 (G4): hoarfrost on a clear January dawn (day 269, -2.8 C at 07:15 for the test seed) on the ground W of the Terrace
   { n: 'frost-dawn', day: 269, hour: 7.25, w: 'clear', v: [-300, 60, 1.6, 251, -10], fov: 50 },
+  // session 9 (G5): breath in the cold at the same dawn, among the people of the Terrace's gate (the Gate of All Lands)
+  { n: 'breath-dawn', day: 269, hour: 7.5, w: 'clear', v: [-12, 118, 1.6, 71, -4], fov: 45 },
   // session 9 (G10): the 22 deg halo and sun dogs under the day's own thin cover (day 220, 09:00, sun 26 deg up at az 135)
   { n: 'halo-sundogs', day: 220, hour: 9, w: 'auto', v: [0, 0, 1.6, 135, 24], fov: 75 },
   // session 9 (G7): dust devils over the plain W of the Terrace on a hot June afternoon (day 54, 15:00, 37 C)
