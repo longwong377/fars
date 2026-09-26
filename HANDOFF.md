@@ -1,73 +1,77 @@
-# HANDOFF — end of session 7 (2026-09-25)
+# HANDOFF — end of session 8 (2026-09-26)
 
-Read `CLAUDE.md` first (the resume procedure; its §12 now carries the **gap rule, D-207**), then this file, then `PROGRESS.md`
-(problems first), `TASKS.md`, `DECISIONS.md` (session 7: D-194 … D-217) and `BLOCKERS.md`. Agent reports:
-`REVIEWS/agent_reports_session7.md`. **Branch:** `claude/amazing-fermi-40ds7j` (sessions 2–7). Never force-push.
+**Read first, in this order:** `USER_DIRECTIONS.md` (the user's own words, UD-01..UD-14, append-only), `MASTER_PLAN.md` (rev 2.1,
+governs everything), `gates/thresholds.json` (169 locked thresholds), then PROGRESS.md (problems first), this file, BLOCKERS.md.
+The user wants no interventions: decide, log in DECISIONS, proceed. Every report leads with what is broken.
 
-**Session start:** `git fetch origin claude/amazing-fermi-40ds7j && git status -sb`, `npm ci`, `pip install pillow numpy scipy`.
+## What session 8 changed (the big picture)
+- **The standard changed** (UD-06, D-233): not chosen camera views but **every inch the player can walk**, at every hour, season
+  and weather, in motion, with sound. The user then asked for a living sandbox (UD-07..UD-11, UD-14): everyone a name, home,
+  family, job and history; the court coming and going by default; never repetitive; surprises; every gap filled from the period.
+- **Four independent audits** (REVIEWS/audit_A..D) found the chosen-views miss was one of many: 6 % of the Terrace ever judged,
+  copy-paste everywhere (23 bodies, 209 names for 46,910 people), people drawn in the rain their plan sheltered, frozen distant
+  workers, a silent town, the player falling through Kuh-e Rahmat at the terrain LOD seam, no autosave, seed always 1.
+- **MASTER_PLAN rev 1 → 2 → 2.1**, critiqued twice by independent adversaries (REVIEWS/master_plan_critique*.md): the Walker Test
+  on axes A–K + R, an illusion-break log as the headline measure, 169 thresholds that only tighten, seeded sampling the agent can't
+  choose, an area registry over the whole walkable envelope, a generated board where NOT-MEASURED and STALE count as FAIL.
+- **Guards that run themselves** (rev 2.1): `npm run guards` = tests/gates_ratchet.test.ts + tests/scope_ledger.test.ts +
+  tests/defaults.test.ts; in the pre-commit hook (`.githooks`, installed by `npm ci`), at the start of `npm run build`, and in
+  GitHub Actions (`.github/workflows/guards.yml`). They fail closed. All 13 of the second critic's attacks re-run: all caught.
+- **Every threshold starts at to-build.** Status is earned only by an evidence file (`REVIEWS/evidence/**/<id>.json` written by
+  the row's tool). First earned: T-G1, T-G2 (failing), T-G2b, T-G2f, T-G3, T-G3e (partial, from D-245).
 
-## State at the end of session 7
-- **Everything is merged and pushed.** No agent branch or worktree carries unmerged work. The session's merges: gap fills under
-  the user's direction "fill the gaps to the best of your educated ability" (D-207: fill silent gaps with the most probable
-  reconstruction, tier C, reasoning in F3; keep out only what the evidence says was NOT there; no invented liturgical words):
-  translations and tablets (D-198), court (D-199), instruments and pipes (D-200), Now view (D-201), recalled and composed names
-  (D-202, D-213), relief panel (D-204), garments (D-206), gap audit (D-208, `REVIEWS/gap_audit.md`), religion: open-air fire
-  precinct, magi, sacrifices, funerals, wordless chant (D-209), animals (D-210), festivals/weddings/lanes/healer/hearings and
-  the scheduled receipts (D-211), palace furnishings and masons' marks (D-212), inscriptions/glazed brick/paint/drains (D-214),
-  people's look: babies in arms, toys, jewellery, shields, court women's dress, the lame and blind (D-215); rubric pass-2
-  fixes: light and materials (D-216), geometry and reliefs (D-217); lead fixes listed under PROGRESS "session 7".
-- **Checks at handoff:** `tsc` clean; `npm run lint:all` OK (chrono; lang 26/26; activity 65 activities 0 placeholders;
-  music 21 claims, all gigs sourced). **The full `npm test` was NOT run on the final merged tree** (each branch ran its own
-  suites; the last three merges — D-211, D-217, D-216 — were checked by tsc and lints only). Known on branches:
-  `people_days_r8` "a child alone by the water" failed on two agents' full runs (not investigated); CPU-timing tests
-  (performances 300 performers, popview costs, humans_runtime) fail under load and pass alone.
-- **Music claims renumbered at the merge:** the women's frame drum is M-22 (D-211), the magus's chant M-23 (D-209).
-- **Gates:** Phase 8 PASSED (session 6). Phase 5: soak passes 7/8 on the D-211 branch before its last fix (plansWellFormed 3
-  issues in 15.46 M person-days, fixed in 2bc77c6, **not re-soaked**); shadow review round 9 FAILED (#76's jar, fixed D-213),
-  **round 10 input `REVIEWS/shadow_days_input_seed1_pick181.txt` generated on the D-211 code but BEFORE the D-216/D-217
-  merges — regenerate it first.** §8.2 rubric pass 2 FAILED (`REVIEWS/rubric_s7_pass2.md`: light 2, materials 1, scale 3,
-  detail 2, people 2, weather 1, atmosphere 2); the R1–R12 bugs are mostly fixed but **not re-rendered as moments**.
-  Phases 3+4, 5, 6+7 independent reviews: not run.
+## Merged this session (on claude/amazing-fermi-40ds7j)
+- D-222 fire-light occlusion (B24 on the Terrace), D-226 relief self-shadows, D-228 village budget, D-229 Phase 5 fixes (court
+  soak 8/8, impostor work frames), D-232 masonry layout (renders: no longer flat or black, but fails photo #24 plainly), terrain
+  quality scale fixed, the moon moment.
+- Stop the bleeding (MASTER_PLAN §6 step 1): no Math.random in src; per-call audio noise; a new world seed per new game (settings
+  shows it, "New world"); villages and Tol-e Ajori flagged placeholder; lint:all in the build; the court by default (UD-10; rigs
+  with ?test pin court=evidence unless &court=seasonal); FOV 60 / bob 1.8 cm (D-238); TASKS ticks removed.
+- D-245 the town is not mute: limiter, voices from everyone within 60 m, non-looping beds, rivers audible. **Never heard in a
+  browser** (B65); T-G2 fails (2 repeats: the Old Persian lexicon is ~114 words, B66).
+- `tools/dev/cpu_slot.sh`: heavy node jobs run in 2 low-priority slots (load 11 on 4 cores starved renders for hours).
+
+## Agent branches at close (see handoff/reserved_numbers.md for fates)
+- (pending: town houses D-234, coverage harness D-235, walkability D-237, indoor truth D-244; reports requested at close)
 
 ## What is broken, unverified or placeholder (read first)
-1. **Nothing from the session-7 gap fills has been seen in a browser** (religion, animals, festivals, furnishings, inscriptions,
-   glazed brick, paint, drains, babies, toys, jewellery, court women). All tier C, node-tested only; the chant never heard.
-2. **Rain.** (a) FIXED, needs a render: the rain-columns moment hung its first frame for 58 min (a homemaker's `homeHours`
-   asked for 24.5 h on a day of unbroken rain; 9e2c5e7; the cause upstream — a camp woman's ration issue pushed past every
-   wet spell to 23:54 — is NOT fixed: cap the rain shift in `workBlock`). (b) OPEN: the rain-approach curtains are placed
-   right (solid-red debug `moment-rain-approach-shaftdbg3`) but have **zero visible effect** (sky inside/outside the mask
-   212/212). Next: run `handoff/render_jobs/300_shaftdbg4.job` (`?shaftdbg=4`: real tint at full strength, live uniforms
-   logged by the spec) and find the factor that zeroes the opacity (TR, optic, fade or uStrength).
-3. **Photorealism** (rubric pass 2): stone reads as concrete, reliefs are procedural (NEEDS #10), garments rigid, hills smooth,
-   no smoke/dust, snow does not lie; the fix list is `REVIEWS/rubric_s7_pass2.md` items 2–10. Carved relief depth now
-   4.5–6 cm with baked contour AO (D-217), no undercut.
-4. **Light:** fire light passes through parapets and façades (B24: shadowed fire lights exceed WebGPU's 16 sampled
-   textures); the Gate's orange at dusk is the braziers at their physical level (brazier 30 cd is C, Q-440); R7 at the
-   0.5 m probe grid and R10 unrendered; Naqsh-e Rustam cliff moiré open (D-217, one of three approaches tried).
-5. **Framing:** the slope-s-dusk view still stands at a tree (`treesNear` finds none there; `settlement.spec` logs the trees:
-   run `303_slope.job` and read the log line). The far-flame fix (2 px minimum, light conserved) is correct but from the
-   mountain the courtyard walls hide nearly every hearth, so the town still shows no fire points.
-6. Carried over: calibration scene (NEEDS #13); bench void since D-047 (jobs 19x); WebGL2 at high times out; walkthrough
-   e2e (18x) not re-run; photo mode not started; court + town retinue not simulated in the year soak.
+- Photo #24 side by side: the Terrace wall reads as grey concrete, no polygonal foot, smooth ground, featureless mountain (B57).
+- Nothing on the board is measured yet except the six audio rows; the instruments of §6 step 2 are TO-BUILD (renderless mode,
+  area registry, Tier 0, walker bots, Tier-1 sampler, generated board, anchor set, escapes log, event kinds).
+- The court's arrival is not simulated (present from day 0); D-239 (start before the arrival) and T-F8 wait on it.
+- The simulation still runs on the main thread (B53); long route searches stall 150–650 ms (B54).
+- Impostor work frames and the new voices have never been seen or heard in a browser.
+- Villages are box compounds; interiors unbuilt; faces are a few variants; one voice synthesiser.
+- The random-seed year soak (seed 362095439) was stopped for CPU at 25k/46k people: re-run it idle via cpu_slot.
+- D-246 (the perpetual 467) and D-247 (a fall off the Terrace) are decided, not implemented.
 
-## Next steps, in order
-1. Session start; `npx tsc --noEmit -p .`; **the full `npm test` once** (`--maxWorkers=2`, re-run timing failures alone);
-   investigate `people_days_r8` "child alone by the water" if it still fails.
-2. Soak on the merged tree (`npm run soak`, ~2.5 h); fix any gate; regenerate the round-10 input
-   (`npx tsx tools/shadow_days.ts 1 181 > REVIEWS/shadow_days_input_seed1_pick181.txt`) and run **shadow review round 10**
-   (two fresh reviewers, scores fixed before reading code).
-3. Start the render runner (below) with `handoff/render_jobs/30*.job` (verify the lead's fixes: rain shafts debug, rain
-   columns, rain approach, slope, Tol-e Ajori and Area B), then re-render every moment the D-216/D-217 fixes touched
-   (brazier-close, night-terrace, gate-dusk, pulvar, garden, scribe rooms, hadish-hall, apadana-hall-axis, reliefs-raking,
-   apadana-enter-*, hall100-site, court-assembly, crowd-court-forecourt-w, plain-naqsh-200m) and new renders of the gap
-   fills (precinct, burial ground, a wedding, the lanes at noon, babies, the palaces furnished). Then **rubric pass 3**.
-4. Rubric fix list items 2–10 as workstreams (stone surface, reliefs, weather visible, smoke/dust, garments, court staging,
-   mountains, scribe room).
-5. Independent Phase 3+4, 5, 6+7 reviews (`handoff/review_briefs.md`); bench ×4 and walkthrough e2e (jobs 18x, 19x).
-6. Phase 9: FINAL_REPORT.md (problems first). README budgets were re-measured this session (647 draw calls, 8.65 M
-   triangles, 36 MB at high).
-7. Remaining gap-audit items (`REVIEWS/gap_audit.md`): 19 (mill, stockyard, tannery, kitchen gardens built), 20 (smiths and
-   potters seen at work), 30 (Hadish apartments: parts change, needs probe/nav re-bake), 32–36, 39–41.
+## Next steps, in order (MASTER_PLAN §6)
+1. Session start: `git fetch --unshallow --tags` if shallow; `npm ci`; `npm run guards`; merge or record any agent branch left
+   in handoff/reserved_numbers.md.
+2. Finish step 1: autosave (D-237 if not merged), indoor truth (D-244 if not merged), the court's arrival simulated.
+3. Step 2, time-boxed: **the renderless mode first** (measure bot-hours per core-hour into gates/budget.json), then the area
+   registry, Tier 0, walker bots (five policies), the Tier-1 sampler, the generated board, anchors, escapes, event kinds.
+4. Listen: render audio for a town lane, the forecourt, a village, the Pulvar bank, rain by a fire, a close conversation.
+5. At close: sessions/s09.md, fates in reserved_numbers.md, tag `ratchet/s09` pushed.
+
+## Tools (session 8 additions)
+- `npm run guards`; `tools/dev/cpu_slot.sh <cmd>` (always, for soaks/bots/audio/bakes/long vitest); `tools/dev/audio_render.ts
+  --evidence <pass>` (D-245); `tools/dev/plan_dump.ts <pid> <day0> [day1] [seed] [--court]`; `tools/dev/sim_cost.ts`;
+  `tools/dev/load_probe.mjs`; `tools/dev/person_census.ts`; audit probes in tools/dev/audit_c and audit_d; `tools/build_fire_occ.ts`
+  after any architecture or fire change (tests/fire_occ.test.ts checks the parts hash).
+- Briefs from handoff/agent_template.md and handoff/review_template.md, saved to handoff/briefs/sNN/; reserve numbers in
+  handoff/reserved_numbers.md first.
+
+## Gotchas (session 8)
+- **Check the render queue, not just CPU:** `ps -eo pid,etime,args | grep "[q]ueue_e2e"` shows every job waiting on the one
+  flock lane. A job with an empty log is usually waiting, not stuck. Cancel low-value jobs before they block agents' renders.
+- Load above 6 on 4 cores: queue, don't start. Four parallel bot processes starved a render for ~2 h.
+- The pre-commit hook runs the guards in every worktree (shared git config); branches older than the guards skip it.
+- Templates' fixed clauses may only grow: append a new numbered clause, never renumber (the scope test caught this).
+- Tests rewrite bench-reports/*.txt under load: `git checkout bench-reports/` before every commit.
+- `vitest run $(ls tests/*x*)` with an empty glob runs the whole suite; `grep -c $(git diff --name-only --diff-filter=U)` hangs
+  when there are no conflicts (guard with `[ -n "$U" ]`).
+- The camera rig takes a TRUE azimuth; a near brazier sets the exposure.
 
 ## Tools (session 7 additions)
 - **`tests/e2e/dbg_hang.spec.ts`** (DBG=1): when a frame never returns, it pauses the page through the DevTools protocol and
