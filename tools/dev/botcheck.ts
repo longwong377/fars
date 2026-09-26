@@ -1,7 +1,10 @@
 // dev: run the §13.8 walkthrough bot offline (node, no browser): same Rapier colliders, player controller, walkable-grid
-// routing and walkTo steering as tests/e2e/lib/bot.ts + src/main.ts, minus rendering and people. Seconds instead of the
+// routing and walkTo steering as tests/e2e/lib/bot.ts + src/main.ts, minus rendering and (without --world) people. Seconds instead of the
 // minutes a SwiftShader run takes, so a route can be debugged before the e2e run. Usage:
-//   npx tsx tools/dev/botcheck.ts [area[,area…]|slice] [--trace]
+//   npx tsx tools/dev/botcheck.ts [area[,area…]|slice] [--trace] [--world]
+// --world (H workstream, D-237): the game's whole world instead of the Terrace colliders alone (tools/dev/lib/offline_world.ts:
+// doors, furnishings, waterworks, inscription stones, the town and the plain, the people and animals near the player, solid as
+// in the game). Every walkable area beyond these routes: tools/dev/walkers.ts.
 import { readFileSync } from 'node:fs';
 import { Ring, Terrain, TerrainMeta } from '../../src/terrain/heightfield';
 import { Physics } from '../../src/player/physics';
@@ -13,9 +16,11 @@ import { ROUTES, SLICE } from '../../tests/e2e/lib/routes';
 
 const meta: TerrainMeta = JSON.parse(readFileSync('public/generated/terrain.json', 'utf8'));
 const ring = (k: 'near' | 'mid' | 'far') => new Ring(meta.rings[k], new Uint16Array(readFileSync(`public/${meta.rings[k].file}`).buffer.slice(0)), meta.court_asl);
-const T = new Terrain(meta, ring('near'), ring('mid'), ring('far'));
-const P = await Physics.create(); P.updateTerrain(T, { x: 0, y: 0, z: 0 });
-buildMeshes(buildTerrace().parts, P); P.step(1 / 60);
+const useWorld = process.argv.includes('--world');
+const OW = useWorld ? await (await import('./lib/offline_world')).buildOfflineWorld({ day: 25, hour: 9.5 }) : null;
+const T = OW ? OW.T : new Terrain(meta, ring('near'), ring('mid'), ring('far'));
+const P = OW ? OW.P : await Physics.create();
+if (!OW) { P.updateTerrain(T, { x: 0, y: 0, z: 0 }); buildMeshes(buildTerrace().parts, P); P.step(1 / 60); }
 const nav = await NavGrid.load(async p => { const b = readFileSync('public/' + p); return b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength); });
 const trace = process.argv.includes('--trace');
 const areas = (process.argv[2] && !process.argv[2].startsWith('--') ? process.argv[2] : Object.keys(ROUTES).join(',')).split(',');
@@ -25,7 +30,9 @@ for (const area of areas) {
   const R = area === 'slice' ? SLICE : ROUTES[area]; let pos: [number, number] = R.start; // 'slice' = the Phase 3 route (not run by default)
   const x0 = pos[0], z0 = -pos[1]; P.updateTerrain(T, { x: x0, y: 0, z: z0 }); P.step(1e-4);
   const pl = new Player(P, x0, P.castRayDown(x0, z0, 400) ?? T.heightAt(x0, z0), z0); pl.maxFall = 0; pl.fallStartY = null;
-  const stepDt = (yawDeg: number, fwd: number, dt: number) => { P.updateTerrain(T, pl.position); pl.update(dt, { forward: fwd, right: 0, run: false, yaw: -((yawDeg - 341) * Math.PI) / 180, pitch: 0 }); P.step(Math.max(1 / 240, dt)); };
+  const stepDt = (yawDeg: number, fwd: number, dt: number) => { const yaw = -((yawDeg - 341) * Math.PI) / 180;
+    if (OW) { OW.step(pl, dt, { forward: fwd, yaw }); return; }
+    P.updateTerrain(T, pl.position); pl.update(dt, { forward: fwd, right: 0, run: false, yaw, pitch: 0 }); P.step(Math.max(1 / 240, dt)); pl.rescueIfUnderground((a, b) => T.heightAt(a, b)); };
   for (let i = 0; i < 30; i++) stepDt(0, 0, 1 / 30);
   pl.maxFall = 0;
   const walkTo = (east: number, north: number, maxSeconds = 240, tol = 0.5, dt = 1 / 30) => {

@@ -5840,3 +5840,42 @@ moment-*-webgpu.png in the worktree, not committed).**
   tests/defaults.test.ts (T-K10). Camera rigs (`?test`) keep the evidence-strict setting unless `&court=seasonal`, so their views stay
   comparable; coverage samples the default world. The arrival itself is not yet simulated: the court is present from day 0 to 116
   and only its departure is simulated (the Phase 5 report); D-239 and T-F8 need the arrival.
+
+## D-237 Walkability: one surface for drawing and walking, solidity near the player, walk bots everywhere, the visit saved without asking (session 8, H workstream; audit D M1, M2, M9, M12; UD-06, D-240)
+- **The terrain collider is the drawn terrain.** Physics builds one Rapier heightfield per drawn terrain chunk (`Terrain.chunks()`,
+  the list `TerrainMesh` draws: near 512 m, mid 2,048 m, far 20,480 m chunks, split in collider tiles of ≤ 128 cells), from the
+  same ring samples, streamed around the player (96 m, dropped beyond 160 m); `castRayDown` gives the chunk under the ray its
+  collider first. `Terrain.heightAt` is the drawn surface itself: the owning ring (near to ±2,048 m, mid to ±10,240 m) and its
+  cell triangles on the (r, c+1)–(r+1, c) diagonal that both the mesh and parry use (measured). Replaces one collider for the
+  whole ring, switched at 1,984 / 9,984 m while the drawing switched at 2,048 / 10,240 m and `heightAt` (bilinear) at 2,040 /
+  10,208 m. Near the player every drawn chunk is at LOD step 1 (the spacing rule forbids coarser within 140 m at any quality),
+  so the collider at full resolution is what is drawn. The rings already agree at their seams (≤ 0.02 m: build_terrain.py).
+- **Safety net, counted.** `Player.rescueIfUnderground` (after each physics step, main.ts simStep and every bot): feet more than
+  1 m below the drawn ground (no walkable floor lies more than 0.56 m under it: the 1.41 M nav cells) → the body is put back on
+  the ground there, logged (`[ground] rescued…`) and counted (`playerState().rescues`); tests and bots assert 0.
+- **Two controller bugs found on the way.** (1) The step-up fired whenever a grounded move made < 90 % progress, which on any
+  slope over ~11° is every frame (the move's downward push projected on the slope): each frame became a 0.39 m "step", the
+  player climbed at 11.7 m/s at 30 Hz. It now needs a contact steeper than the 42° climb limit (the contact's `normal1` is the
+  obstacle's outward normal, measured: the old direction code read `normal2` and never fired). (2) Rapier's controller can stop a
+  grounded body dead on open ground (8 of 2,100 far-ring crossings): a floor-only stop is retried level. And the step-up's
+  forward cast now stops at penetration and needs room at the target (it had carried the player 0.39 m into a capsule).
+- **Everyone and every animal within reach is solid** (src/world/solids.ts): pools of kinematic bodies follow the nearest
+  within 16 m (160 people; 64 animals in three size classes, horizontal capsules along the body, turned with it, lying ones
+  lowered); overflow counted in F3. Poultry are not solid (C: hens scatter from a walker; a 0.3 m solid would be stepped onto).
+  The performers' animals are pushed by the crowd only within its widened view frustum (a 3-7 m halo round the camera), so an
+  animal more than ~3 m behind the player is not solid until it is in the halo (Q-644). Cost with every pool full around the
+  player: +0.95 ms a physics step (node, box loaded).
+- **Persistence.** Autosave every 60 s of real time while the visit is on and at once on `visibilitychange` (hidden),
+  `pagehide` and `beforeunload`; the saved visit loads at start (title: "Continue the visit" / "Begin a new visit"). The save
+  lives in IndexedDB with a synchronous localStorage copy (a tab closed mid-write keeps it); the start reads the newer. It now
+  holds the chronicle (last 500 events), the walks in progress, the patrol rounds, the route cache and the watching hours:
+  save → load → save is byte-identical and the loaded world goes on identically (without them walkers re-planned and diverged
+  within minutes). A failed or oversized save (> 2 MB), an unreadable save and a save of an unknown version are announced
+  out-of-world (shell notice, `__parsa.notices`); the previous build's saves load (missing fields fall back to re-planning).
+- **Walk bots in the game's world, offline** (tools/dev/walkers.ts on tools/dev/lib/offline_world.ts): every collider the browser
+  builds, the doors, furnishings, waterworks, town, plain, camps, the detailed people, the population near the player and the
+  fauna, solid as in the game, in main.ts simStep order; 14 areas; routes by the walkable grid (round standing people), the town's
+  lane graph, or straight with side-steps; metrics per area in bench-reports/walkers-offline.txt and the evidence of T-H1r/T-H1s.
+  The bot waits up to 5 s for a person in its way, then side-steps. The browser walkthrough adds a town lane into a house court,
+  the fields and Kuh-e Rahmat across the old seam (tests/e2e/walkthrough.spec.ts), with the population drawn.
+- **Tier / evidence:** engineering; the measures are in the H workstream report and REVIEWS/evidence/s8-h. Q-640 … Q-644, B61, B62.
