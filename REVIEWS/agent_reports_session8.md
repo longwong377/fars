@@ -262,3 +262,33 @@ quarter or facility not C (checked by reverting one).
 **M5:** stale statements corrected against the code in PROGRESS.md, town.json _meta, PLAIN.md (lines 8, 84, 111), plain.json
 notes, SETTLEMENT.md (lines 13 and 63: both population figures sourced; the build 1,456 homes, room for 7,968, 7,776 people).
 D-228, Q-570, Q-571. Tests: 12 files, 132 tests; tsc; lint:all.
+
+## D-230 the site photographs as yardsticks (merged: worktree-agent-a85cc3b75ef5ca837, 674a9ad, d6d6309)
+**Broken / unverified first.** B40 still not met; block tone went DOWN (17 → 13 %): measured on the photos, the rubric's
+0.15–0.25 describes weathered stone (#24 W wall 0.43 in 48 px windows = 0.27 between blocks, 0.24 within, 0.24 joints, cracks
+and form); the least weathered stone in place (Apadana E stair, #29, buried until the 1930s) 0.13 between 4 relief blocks, 0.07
+between 5 merlons, pooled 0.10; set 13 % = 0.10 × 1.2 (phone HDR) ⊕ 0.05 (~50 years of soiling by 467). Renders: stair-climb-pm
+Terrace wall 0.066 region / 0.049 windows (D-218 0.072 / 0.053); calib-24 wall 0.081 (CPU mirror predicted 0.079). The lead
+decided the yardstick (D-231: near-fresh references). The near-fresh sample is small (±35 %, Q-591). Merlon slot depths C
+(±50 %, Q-590); the back-face slot assumed by symmetry. §8.1: the geometry calibrates, the light does not, and this photo
+cannot settle it (B55: a Lightroom JPEG with an orange-and-teal grade; thin cloud vs the render's cumulus; a modern gravel lot).
+The Now view's columns moved after the calibration render: not rendered (Q-592). tests/surfaces_d218's "×1.8" now runs on
+D-218's own 17 % surface, D-230's value checked ≥ ×1.5 beside it.
+**1. Stone:** tools/dev/stone_photo_d230.py (hand-picked boxes, overlays): #24 between 0.267 (IQR 0.224), within 0.238, windows
+0.431; #33 windows 0.425; #5 weathered skin 0.07, fresh stone under spalls 0.05 (1.045× brighter, warmer); #29 relief blocks
+0.127 / 0.116, merlons 0.072; ~75 % of the weathered walls' between-block variance is weathering. materials.ts HAIRLINE.blockSd
+0.13 (mean-preserving, no re-bake). Test stone_photo_d230.
+**2. Merlons:** #29 shows a double-rebated slot in each face, open at the foot, centred: outer recess 0.26 w × 0.41 h, inner
+slot 0.10 × 0.33 (two merlons; the step outline matches ours 1 : 0.74 : 0.50 : 0.27); depth 0.15 of the merlon per rebate (C).
+SITE_SPEC apadana.r_merlon_slot (B on the Apadana, C on the other stairs; REF-PHOTO-29, REF-DRAW-32). crenellationGeometry
+132 → 204 triangles per merlon (~+28 k). Rendered in stair-climb-pm and reliefs-raking. Test crenellation (rays, budget).
+**3. §8.1 calibration (REVIEWS/calib24.md):** sun azimuth 238.84°, altitude 19.32° (IRST assumed, Q-593); the simulated year's
+same sun on day 303 at 16.087 LMT; camera grid (−166.6, 108.9), 117.0° true, pitch 7.47°, roll 0.48°, vertical fov 34.4°
+(corner residuals rms 8.9 px; the Kuh-e Rahmat skyline fits the DEM to a median 8 px); views calib-24-now and calib-24.
+Ratios (photo / Now view / 467): sunlit/shaded wall 3.86 / 8.65 / 6.97 (clear-sky estimate ~8–10 sides with the render);
+sky/sunlit wall 3.06 / 0.73 / 0.56; ground/sunlit wall 2.12 / 0.21 / 0.19; mountain/sky 0.42 / 1.04 / 1.39; mountain R/G ÷
+stone R/G 0.72 / 1.01 / 1.07. The weathered wall red-brown and dark where the Now view's weathering is neutral and lighter
+(Q-594). Fixed: the Now view's W portico columns (the inner row matches to 0.05–0.52°). D-230, B55, Q-590..Q-594.
+**Lead's note:** the ground/wall (2.12 vs 0.2) and sky/wall (3.06 vs 0.6) gaps are ~10× and 5×, more than a grade explains;
+with sunlit/shade agreeing with a clear-sky estimate, the likely reading is a much darker weathered wall today plus the
+grade; kept as Q-594 for a second dated photo.
