@@ -50,6 +50,10 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
   lead's full passes go in grouped jobs (views sharing day/hour/weather share a page load). Details: HANDOFF.md Tools.
   Measured (session 8, tools/dev/load_probe.mjs): a persistent Chromium profile (GPU shader cache kept) does NOT speed loads
   or frames measurably; load time is contention (35 s idle vs 244 s busy) and a high frame costs ~2.5–4 min (8 per view).
+- **CPU is the second bottleneck (session 8: load 11 on 4 cores starved a render for 2 h).** Every heavy node job (soak, bots,
+  audio renders, bakes, long vitest runs) goes through `tools/dev/cpu_slot.sh` (2 slots, nice 15), one process per slot, never
+  parallel copies; SwiftShader keeps the rest. The lead checks `uptime` before launching work: load above 6 means queue, not start.
+  Agents' briefs say this; a render that has not advanced in 30 min means the box is oversubscribed, not that the render is slow.
 - **Timing tests under load are not failures** until re-run alone on an idle box (performances, popview, humans_runtime,
   cloudnoise, long people_days runs). Never commit bench-reports/*.txt rewritten by a loaded test run.
 - **Reviewers use every reference** in `references/` paired to the moments (table in handoff/review_briefs.md), and say which

@@ -15,6 +15,8 @@ verbatim from gates/thresholds.json}.
    approaches measured.
 6. Lead your final report with what is broken, placeholder or unverified on screen; list tests run with results; run
    `git checkout bench-reports/` before committing.
+7. Heavy CPU work (soaks, bots, audio renders, bakes, long test runs) goes through `tools/dev/cpu_slot.sh`, one process at a
+   time: the four cores are shared with the render lane.
 
 ## Slots
 - {task}; {areas}; {files in scope}; {what "done" means in thresholds}; {UD ids}; {reserved numbers}; {render budget}
