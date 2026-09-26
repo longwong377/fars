@@ -11,7 +11,7 @@ import { scheduleLit } from '../src/world/fire';
 import { townPlotsJson } from '../tools/build_town';
 
 let plan: TownPlan;
-beforeAll(() => { plan = buildTownPlan(); });
+beforeAll(() => { plan = buildTownPlan(); }, 60_000); // (D-249: the plan settles its doors and measures its reach, ~3-4 s alone)
 /** grid corners of every plot cell (sampled) */
 function plotCells(s: Site, idx: number, stride = 1): P2[] { const out: P2[] = []; const [i0, j0, i1, j1] = s.plots[idx].rect;
   for (let j = Math.max(0, j0 - 40); j < Math.min(s.H, j1 + 40); j += stride) for (let i = Math.max(0, i0 - 40); i < Math.min(s.W, i1 + 40); i += stride) if (s.cell[s.k(i, j)] === idx) out.push(s.cellGrid(s.k(i, j)));
