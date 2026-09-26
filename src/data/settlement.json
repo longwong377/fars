@@ -1283,6 +1283,90 @@
     "burial_ground_town"
    ],
    "note": "140 low earth mounds in loose rows over single graves (Herodotus 1.140: the body coated in wax and buried in the earth, B claim; the form of the graves C), some ringed with a few field stones (C)"
+  },
+  {
+   "id": "house_walls",
+   "kind": "house_walls",
+   "name": "house walls: mud brick on a fieldstone footing, mud plaster",
+   "tier": "C",
+   "src": "IR-BRICK;STEIN2016;HASANLU-SX;BABAJAN-SX;TALLTAKHT-SX;RECON",
+   "in_feature": [
+    "zone_lower_town_south",
+    "zone_persepolis_west",
+    "pw_area_a",
+    "pw_area_b_craft",
+    "zone_bagh_e_firuzi",
+    "zone_dasht_e_gohar",
+    "north_official_complex",
+    "waystation_kur_west"
+   ],
+   "note": "D-234: sun-dried brick (~33 cm, Iranica SX, B) two bricks and a render thick (0.7 m; 0.55 to the court, 0.4 between rooms; C); a footing of rough fieldstones 0.2-0.6 m above the lane (stone foundations under mud brick at Hasanlu, Baba Jan, Tall-i Takht: B analogues); straw-tempered mud plaster (Stein et al. 2016, B) with a renewed skirting coat, repairs, bare brick where it has fallen, soot above hearths (C); a niche by the street door, a drain hole to the lane (C)"
+  },
+  {
+   "id": "house_roofs",
+   "kind": "house_roofs",
+   "name": "flat roofs: poplar poles, brush and matting, packed earth; eaves, lips and spouts; things kept on the roof",
+   "tier": "C",
+   "src": "MESO-HOUSE-SX;HASANLU-SX;IR-VERNROOF-SX;ROLLER-SX;RECON",
+   "in_feature": [
+    "zone_lower_town_south",
+    "zone_persepolis_west",
+    "pw_area_a",
+    "pw_area_b_craft",
+    "zone_bagh_e_firuzi",
+    "zone_dasht_e_gohar",
+    "north_official_complex",
+    "waystation_kur_west"
+   ],
+   "note": "D-234: poles spanning the 3-4 m rooms (the plan's room depth), brush and matting, 12 cm of earth with a clay-and-straw coat laid to a 2 % fall; the eave oversails the court 0.24-0.38 m on the pole ends with a mud lip; timber spouts (all C by analogy: Babylonian roofs of mud over matting on rafters, Hasanlu reed impressions: B analogues; the region's vernacular: C); a parapet by the household's standing (0.2-0.6 m, C); a stone roller (Iron Age roof rollers, SX: C), fuel, sleeping mats (C)"
+  },
+  {
+   "id": "house_access",
+   "kind": "house_access",
+   "name": "ladders to the roofs",
+   "tier": "C",
+   "src": "MESO-HOUSE-SX;HASANLU-SX;RECON",
+   "in_feature": [
+    "zone_lower_town_south",
+    "zone_persepolis_west",
+    "pw_area_a",
+    "pw_area_b_craft",
+    "zone_bagh_e_firuzi",
+    "zone_dasht_e_gohar"
+   ],
+   "note": "D-234: a poplar ladder against a court facade in every house with a court (C: wooden stairways in Babylonian houses and brick stairs in the Hasanlu buildings are B analogues for larger buildings)"
+  },
+  {
+   "id": "house_porticoes",
+   "kind": "house_porticoes",
+   "name": "porticoes of timber posts before the main room of large houses",
+   "tier": "C",
+   "src": "HASANLU-SX;BABAJAN-SX;NUSHIJAN-SX;RECON",
+   "in_feature": [
+    "zone_lower_town_south",
+    "zone_persepolis_west",
+    "pw_area_a",
+    "pw_area_b_craft",
+    "zone_bagh_e_firuzi",
+    "zone_dasht_e_gohar"
+   ],
+   "note": "D-234: two timber posts on rough stone bases, a beam and a roof like the rooms' (paired wooden portico columns, uncarved stone bases: Hasanlu, B analogue; columned rooms on courts at Baba Jan and Nush-i Jan: B analogues); only in large houses (27 in the town, C)"
+  },
+  {
+   "id": "house_courts",
+   "kind": "house_courts",
+   "name": "what households keep in their courts",
+   "tier": "C",
+   "src": "HASANLU-SX;TOLAJORI2017;CDLI-PF;RECON",
+   "in_feature": [
+    "zone_lower_town_south",
+    "zone_persepolis_west",
+    "pw_area_a",
+    "pw_area_b_craft",
+    "zone_bagh_e_firuzi",
+    "zone_dasht_e_gohar"
+   ],
+   "note": "D-234 (the user's direction UD-08/UD-14, D-236): benches (Tol-e Ajori, Hasanlu: B analogues), the household's donkey, goats or sheep tied at a manger (PF animal rations, B; in the court C), fodder, brushwood and dung-cake fuel, baskets, a mortar, washing on a line, a fleece on the parapet, a cradle (C); each house by its own hash, none the same"
   }
  ]
 }

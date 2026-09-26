@@ -23,7 +23,33 @@ export class Batch {
   get tris() { return this.I.n / 3; }
   get verts() { return this.P.n / 3; }
   get owner() { return this.O.view(); }
-  private v(x: number, y: number, z: number, nx: number, ny: number, nz: number, c: RGB) { this.P.push3(x, y, z); this.N.push3(nx, ny, nz); this.Cc.push3(c[0], c[1], c[2]); return this.P.n / 3 - 1; }
+  /** extra per-vertex attributes (D-234, the houses): each vertex takes the channel's current value (`set`), or the value
+   *  its hook computes from the vertex's world position and normal */
+  private X: { name: string; size: number; cur: number[]; g: Grow<Float32Array>; fn?: (x: number, y: number, z: number, nx: number, ny: number, nz: number) => number | number[] }[] = [];
+  addAttr(name: string, size: number, init: number[] = new Array(size).fill(0)) { this.X.push({ name, size, cur: init.slice(), g: new Grow(new Float32Array(1024 * size)) }); return this; }
+  set(name: string, ...v: number[]) { const a = this.X.find(q => q.name === name); if (a) { a.cur = v; a.fn = undefined; } return this; }
+  hook(name: string, fn: ((x: number, y: number, z: number, nx: number, ny: number, nz: number) => number | number[]) | undefined) { const a = this.X.find(q => q.name === name); if (a) a.fn = fn; return this; }
+  private v(x: number, y: number, z: number, nx: number, ny: number, nz: number, c: RGB) {
+    this.P.push3(x, y, z); this.N.push3(nx, ny, nz); this.Cc.push3(c[0], c[1], c[2]);
+    for (const a of this.X) { const val = a.fn ? a.fn(x, y, z, nx, ny, nz) : a.cur; if (typeof val === 'number') a.g.push1(val); else for (let i = 0; i < a.size; i++) a.g.push1(val[i] ?? 0); }
+    return this.P.n / 3 - 1; }
+  /** a quad with its own normal and colour at each corner (smooth-shaded, e.g. a hand-plastered wall's gentle bulge);
+   *  winding fixed to face the mean normal */
+  quadN(a: number[], b: number[], c: number[], d: number[], na: number[], nb: number[], nc: number[], nd: number[], ca: RGB, cb: RGB, cc: RGB, cd: RGB, owner: number) {
+    const e1 = [b[0] - a[0], b[1] - a[1], b[2] - a[2]], e2 = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+    const cr = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]], n = [na[0] + nb[0] + nc[0] + nd[0], na[1] + nb[1] + nc[1] + nd[1], na[2] + nb[2] + nc[2] + nd[2]];
+    const flip = cr[0] * n[0] + cr[1] * n[1] + cr[2] * n[2] < 0;
+    const i0 = this.v(a[0], a[1], a[2], na[0], na[1], na[2], ca), i1 = this.v(b[0], b[1], b[2], nb[0], nb[1], nb[2], cb), i2 = this.v(c[0], c[1], c[2], nc[0], nc[1], nc[2], cc), i3 = this.v(d[0], d[1], d[2], nd[0], nd[1], nd[2], cd);
+    if (flip) { this.tri(i0, i2, i1, owner); this.tri(i0, i3, i2, owner); } else { this.tri(i0, i1, i2, owner); this.tri(i0, i2, i3, owner); }
+  }
+  /** a flat convex polygon (fan) facing n */
+  poly(pts: number[][], n: number[], c: RGB | RGB[], owner: number) {
+    if (pts.length < 3) return; const cs = (k: number) => (Array.isArray(c[0]) ? (c as RGB[])[k] : (c as RGB));
+    const e1 = [pts[1][0] - pts[0][0], pts[1][1] - pts[0][1], pts[1][2] - pts[0][2]], e2 = [pts[2][0] - pts[0][0], pts[2][1] - pts[0][1], pts[2][2] - pts[0][2]];
+    const cr = [e1[1] * e2[2] - e1[2] * e2[1], e1[2] * e2[0] - e1[0] * e2[2], e1[0] * e2[1] - e1[1] * e2[0]], flip = cr[0] * n[0] + cr[1] * n[1] + cr[2] * n[2] < 0;
+    const ids = pts.map((p, k) => this.v(p[0], p[1], p[2], n[0], n[1], n[2], cs(k)));
+    for (let k = 1; k + 1 < ids.length; k++) if (flip) this.tri(ids[0], ids[k + 1], ids[k], owner); else this.tri(ids[0], ids[k], ids[k + 1], owner);
+  }
   private tri(a: number, b: number, c: number, owner: number) { this.I.push3(a, b, c); this.O.push1(owner); }
   /** a planar quad a-b-c-d with outward normal n (winding fixed to face n) */
   quad(a: number[], b: number[], c: number[], d: number[], n: number[], ca: RGB, cb: RGB, cc: RGB, cd: RGB, owner: number) {
@@ -78,6 +104,7 @@ export class Batch {
   toGeometry(): THREE.BufferGeometry {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(this.P.view().slice(), 3)); g.setAttribute('normal', new THREE.BufferAttribute(this.N.view().slice(), 3)); g.setAttribute('color', new THREE.BufferAttribute(this.Cc.view().slice(), 3));
+    for (const a of this.X) g.setAttribute(a.name, new THREE.BufferAttribute(a.g.view().slice(), a.size));
     const idx = this.I.view(); g.setIndex(this.verts > 65535 ? new THREE.BufferAttribute(idx.slice(), 1) : new THREE.BufferAttribute(Uint16Array.from(idx), 1));
     g.computeBoundingSphere(); g.computeBoundingBox();
     return g;

@@ -3,6 +3,7 @@
 // the zones and the named features come from settlement.json (their tiers and sources are there); everything inside them
 // is reconstruction (C) and names its basis row in settlement.json `town_elements`. No three.js and no terrain here: the
 // builder (build.ts) places it on the ground with terrain.heightAt (D-035).
+import { planHouses } from './houseplan';
 import { Rng } from '../../core/rng';
 import settlementJson from '../../data/settlement.json';
 import { Site, SiteMeta, Plot, P2, Frame, toGrid, toLocal, OUT, LANE, FREE, RES, ROOM, COURT, YARD, Fitting } from './site';
@@ -308,6 +309,9 @@ export function buildTownPlan(): TownPlan {
   const eAt: [string, P2, number][] = [['estate_1', [-2050, 1720], 15 * deg], ['estate_2', [-2700, 1850], -5 * deg], ['estate_3', [-2950, 2250], 25 * deg], ['estate_4', [-1900, 2360], -35 * deg]];
   for (const [id, c, th] of eAt) sites.push(estateSite(id, c, th));
   sites.push(...orchards());
+  // D-234: each house's life (standing, age, repairs) and the things its household keeps in its court and on its roof; the
+  // parapet from the standing. Hashes of the plot ids only: the plan's streams, plots, doors and hearths are unchanged
+  for (const s of sites) planHouses(s);
   const props: Prop[] = [], trees: TreeSpot[] = [], water: WaterPiece[] = [], middens: Midden[] = [], groups = new Map<string, P2[]>();
   // site-local fittings that are really features of the ground (trees, water, middens) become plan entries
   for (const s of sites) for (const f of s.fittings) {

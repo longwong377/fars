@@ -112,7 +112,7 @@ async function boot() {
   input.onInteract = () => { // E: in visitor mode the halmi / the errand's business first; the door faced within reach (D-051), else the nearest person in front
     if (settings.nowView) return; // the Now view (D-201): no doors, no people of 467
     if (settings.playerMode === 'visitor') { const pp = player.position, v = (world as any).visitor?.interact({ x: pp.x, z: pp.z }, sky.state.sunAlt < 6, clock.t * 24); if (v) { console.info('[visitor]', v); return; } }
-    const d = world.doors?.use(camera); if (d) { console.info('[door]', JSON.stringify(d)); return; }
+    const d = world.doors?.use(camera) ?? world.settlement?.useDoor(camera); if (d) { console.info('[door]', JSON.stringify(d)); return; } // palace doors (D-051), then the town's street doors (D-234)
     const r = world.address?.(camera); if (r) console.info('[translation layer]', JSON.stringify(r)); };
   const tl = new TranslationLayer(() => settings);
   // the Now view (D-201; out-of-world, off by default): key N or Settings; the camera and the player stay where they are

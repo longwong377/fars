@@ -43,3 +43,5 @@ if any asset/tag/text in the world matches. Each asset carries `period`, `source
 | modern-plain | Marvdasht city, sugar factory, petrochemical complex, Shiraz–Isfahan highway and bridges, sugar-beet fields | modern (OVERTURE-2026) | Phase 7 research |
 | date-palms-plain | date palms growing on the Marvdasht plain | dates are imported from the lowlands; 44 frost days a year (C) | Phase 7 research |
 | qanat? | qanat shafts and galleries in the plain | not dated to the Achaemenid period (Q-052): **not placed**; unblock only with evidence | Phase 6 research |
+| windcatcher | windcatchers (badgir) on town houses | oldest verified example 14th c. CE (Iranica 'Badgir', search extract): not attested in 467 BCE (D-234) | Phase 6 houses research |
+| fired-brick-house | fired-brick walls or brick vaults in ordinary houses | fired and glazed brick is monumental (Tol-e Ajori, Susa); houses are sun-dried brick (D-234, C) | Phase 6 houses research |
