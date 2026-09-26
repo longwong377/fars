@@ -217,6 +217,10 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   // D-221: re-timed to an audience morning (day 32, the king enthroned 08:28-10:17 in the sim: parties waiting in their
   // places before the N stair, each led up in turn by an usher). Old: day 30 10:00 (no audience that day)
   { n: 'court-assembly', day: 32, hour: 9.5, w: 'clear', v: [-35, 85, 1.6, 71, -2], fov: IN, court: true },
+  // D-256: a column drum on the road to the Terrace (world/traffic.ts): day 13 (the haul dh13:0, seed 1) at 08:14, the driver
+  // ahead of two yoke of oxen dragging the rough drum on its sledge along the royal road 0.7 km W of the drum ground, three
+  // men beside it; from 31 m ahead and to its S side (grid 301°, true 282°), the Terrace behind the camera
+  { n: 'drum-road', day: 13, hour: 8.24, w: 'clear', v: [-495, 128, 1.6, 282, -2] },
 ];
 test('moments', async ({ page }, info) => {
   // under the 25-min watchdog (LIMIT 1500 s); views sharing a world state share a page load (≤ 3 loads per run). TIMEOUT (s) and FRAMES

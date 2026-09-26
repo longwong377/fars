@@ -199,7 +199,7 @@ describe('work objects and animals', () => {
       expect(maxLegDz, `${sp} walks`).toBeGreaterThan(0.1);
       expect(lowBody, `${sp} lies on its belly`).toBeGreaterThan(-0.06); expect(lowBody, `${sp} lies on its belly`).toBeLessThan(0.06);
       expect(legLow, `${sp}'s folded legs stay above the ground`).toBeGreaterThan(-0.12);
-      expect(ANIMAL_BUILD[sp].tier.length).toBeGreaterThan(3); expect(lieDrop(sp)).toBeGreaterThan(0); expect(animalFrame(sp).graze).toBeGreaterThan(0.3); expect(grazeReach(sp)).toBeGreaterThan(0.2);
+      expect(ANIMAL_BUILD[sp].tier.length).toBeGreaterThan(3); expect(lieDrop(sp)).toBeGreaterThan(0); expect(animalFrame(sp).graze).toBeGreaterThan(0.3); expect(grazeReach(sp), `${sp} reaches forward to graze`).toBeGreaterThan(Math.min(0.2, 0.25 * ANIMAL_BUILD[sp].len)); // (a hare of 0.5 m reaches 0.13 m: scaled to the body, session 9)
     }
   });
   it('animal placement is closed-form and bounded: a flock grazes about its herder, the plough team walks at the ploughman’s pace', () => {

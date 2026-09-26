@@ -187,5 +187,48 @@
   "evidence": "The wild sheep of the Zagros (research/SOUNDSCAPE.md §5, the Bamu list).",
   "place": "a flock of nine on the mountain's lower slopes in the morning and evening, lying up in the heat and at night (C)",
   "not_modelled": "the curled horns and bib"
+ },
+ "cattle": {
+  "tier": "C",
+  "src": "EVENTS-R;RECON;FAUNA-RECOLL",
+  "evidence": "The plain is ploughed and threshed with oxen (E-40, E-43: draught animals, C; Q-193: population.json lists no cattle). Oxen are bred from cows: an ox-ploughing country keeps cows and calves (D-256, D-207's most probable reconstruction). Cattle in the Fortification texts: RECOLLECTION, NOT SEEN (Q-193). The herders' meals of 'bread and curds' (lives.json) imply milk.",
+  "household_share_plain": 0.45,
+  "milk_months": [
+   12,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6
+  ],
+  "graze_months": [
+   12,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8
+  ],
+  "herd_size": 8,
+  "pen": "At night each household's cow and calf stand in its compound's court, the gate shut against the wolves (world/fauna.ts); the village cows go out together in the morning with a man of the village whose house's turn it is, or a boy of a house with a cow, to the river meadow and the fallow, and come home at dusk, each to its own gate (C).",
+  "count_note": "About 45 % of plain households keep a cow (C).",
+  "place": "the river meadows and the fallow round the villages by day; the compound courts by night (C)",
+  "not_modelled": "the regional breed and coat patterns; the horns are the ox's form"
+ },
+ "folds": {
+  "tier": "C",
+  "src": "EVENTS-R;RECON;FAUNA-RECOLL",
+  "evidence": "Folds of thorn brush and stone for the night against the wolves are the pastoral practice of the Zagros (RECOLLECTION, NOT SEEN); the state flocks are brought in to the stockyard at dusk (lives.json shepherd, E-12, C); session 9 put wolves on Kuh-e Rahmat's foot (beasts.ts).",
+  "stockyard_flock": 80,
+  "compound_stock_share": 0.55,
+  "compound_small_stock": [
+   2,
+   5
+  ],
+  "place": "the stockyard's fold (a ring of thorn brush 12 m across beside the stockyard, town.json) holds the state flock from dusk to dawn; about half the village compounds keep 2-5 sheep and goats in the court at night with the cow (C)"
  }
 }

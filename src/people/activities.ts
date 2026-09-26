@@ -25,7 +25,10 @@ export type ActivityId =
   // the king and his attendants (court setting only, D-199)
   | 'royal_walk' | 'enthroned' | 'bear_parasol' | 'attend_parasol' | 'bear_whisk' | 'attend_whisk'
   // the magi's fire, the households' sacrifices and the funerals (D-209)
-  | 'tend_fire' | 'chant' | 'sacrifice' | 'cut_offering' | 'bury' | 'mourn';
+  | 'tend_fire' | 'chant' | 'sacrifice' | 'cut_offering' | 'bury' | 'mourn'
+  // D-256: the work on the land the gap hunters found missing (WORLD_INVENTORY G12-G17, G30): milking, fishing, fowling and
+  // snaring, the quarry, the bees
+  | 'milk' | 'fish' | 'fowl' | 'quarry' | 'bees';
 
 /** props an activity can put in the hands (props.ts PROPS) */
 export type PropKind = 'spear' | 'sack' | 'jar' | 'jar_head' | 'tablet' | 'mallet' | 'basket' | 'bread'
@@ -41,7 +44,9 @@ export type PropKind = 'spear' | 'sack' | 'jar' | 'jar_head' | 'tablet' | 'malle
   // D-221: the scribes' writing things
   | 'stylus' | 'pen' | 'leather';
 /** sounds a performance makes (soundscape.ts strike kinds; 'murmur' and 'footsteps' are layers, 'fire' the fire's own) */
-export type SoundKind = 'chisel' | 'quern' | 'fire' | 'murmur' | 'footsteps' | 'dice' | 'water' | 'hoe' | 'sickle' | 'loom' | 'trowel' | 'adze' | 'mould' | 'wash' | 'broom' | 'bow' | 'bleat';
+export type SoundKind = 'chisel' | 'quern' | 'fire' | 'murmur' | 'footsteps' | 'dice' | 'water' | 'hoe' | 'sickle' | 'loom' | 'trowel' | 'adze' | 'mould' | 'wash' | 'broom' | 'bow' | 'bleat'
+  // D-256: a cow's low (the cattle's voice), the bees' buzz at the hives
+  | 'low' | 'buzz';
 /** a thing at the place (workObjects.ts), in the performer's frame (m: right −x / left +x, ahead +z; yaw rad). `follow`:
  *  moves with the performer's own path (the ard behind the team); `shared`: one for everyone doing it at the same place
  *  (the threshing floor, the drum on its sledge) or in the same group (the bier) */
@@ -49,7 +54,9 @@ export interface WorkSpec { kind: WorkKind; at: [number, number, number]; follow
 /** animals the work needs (animals.ts): a flock grazing about the herder, the yoked pair ahead of the ploughman, the
  *  animals treading the threshing floor, one standing to be groomed, a sheep lying to be shorn, stock tethered by the
  *  butcher, a sheep on a lead */
-export interface AnimalSpec { kind: 'flock' | 'team' | 'circle' | 'beside' | 'lying' | 'tethered' | 'lead' | 'string' | 'mount' | 'draught'; species: Species[]; n?: number;
+export interface AnimalSpec { kind: 'flock' | 'team' | 'circle' | 'beside' | 'lying' | 'tethered' | 'lead' | 'string' | 'mount' | 'draught'
+  /** D-256: penned in a fold (the fold's centre FOLD_AT ahead; `pace` 1 = night, most lying) */
+  | 'fold'; species: Species[]; n?: number;
   /** D-210: a flock's dogs; a string's, a mount's or a draught pair's walking pace (m/s; 0 standing), the lead rope between
    *  the animals of a string (m), the first animal's distance behind the driver (m) and its side offset (m) */
   dogs?: number; pace?: number; gap?: number; lead?: number; side?: number }
@@ -78,6 +85,10 @@ export interface Performance {
 export interface Performer { sex: 'm' | 'f'; age: number }
 
 const SHEEP: Species[] = ['sheep', 'sheep', 'goat'];
+/** D-256: a village herd of cows and calves (C: about one calf to three cows) */
+const CATTLE: Species[] = ['cow', 'cow', 'calf', 'cow', 'cow', 'calf', 'cow', 'cow'];
+/** D-256: the fold (animals.ts FOLD_AT) and the drum sledge behind two yoke pairs (animals.ts 'draught' n 4) */
+const FOLD: WorkSpec = { kind: 'fold', at: [0, 0, 7.5] }, DRUM_BEHIND: WorkSpec = { kind: 'drum_haul', at: [0, 0, -9.0] };
 export const ACTIVITIES: Record<ActivityId, Performance> = {
   walk: { anim: 'walk', moving: true, sound: 'footsteps', tier: 'C', note: 'walking',
     // D-210 (gap audit item 6): the animals that travel with the people who lead them (world/traffic.ts, the court's parties)
@@ -93,10 +104,17 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
       { when: /unladen camels/, animals: { kind: 'string', species: ['camel'], n: 4, pace: 1.0, gap: 1.2, lead: 1.4 }, note: 'a camel driver leading his string back unladen (C)' },
       { when: /courier riding/, anim: 'ride', sound: undefined, animals: { kind: 'mount', species: ['horse_saddle'], pace: 1.8 },
         note: 'a royal courier riding a relay horse at a walk into or out of the road station (the relay: HDT 8.98, a claim, B; horse rations POTTS2023, B; riding HDT 1.136, B); a saddle cloth, no stirrups (blocklist); walking the horse near the station and its pace C' },
+      // D-256 (G30; A505/A506, P-034): the column drums hauled from the quarry across the plain (world/traffic.ts)
+      { when: /dragging a column drum/, prop: 'goad', animals: { kind: 'draught', species: ['ox', 'ox', 'ox', 'ox'], n: 4, pace: 0.4 }, work: [DRUM_BEHIND],
+        note: 'a driver walking ahead of two yoke pairs of oxen dragging a rough-cut column drum on a wooden sledge from the quarry to the Terrace, at a slow walk (drums from the quarry: construction.ts E-61, the stone from Majdabad by petrography, B; how they travelled is not attested: sledge, oxen, route and pace C, D-256)' },
+      { when: /empty sledge/, prop: 'goad', animals: { kind: 'draught', species: ['ox', 'ox', 'ox', 'ox'], n: 4, pace: 0.8 }, work: [{ kind: 'sledge', at: [0, 0, -9.0] }],
+        note: 'driving the two yoke back to the quarry with the empty sledge (C: D-256)' },
+      { when: /beside the drum sledge/, note: 'one of the gang walking beside the drum sledge, with the levers and the rollers for the bad places of the road (C: D-256)' },
       { when: /ox cart/, animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0.9 }, work: [{ kind: 'cart', at: [0, 0, -4.7] }],
         note: 'a carter walking ahead of his yoked oxen and their cart of grain sacks on the road (carts silent at Persepolis, Assyrian reliefs B analogy; draught cattle Q-193; C)' }] },
   carry_sack: { anim: 'carry_shoulder', moving: true, prop: 'sack', sound: 'footsteps', tier: 'B', note: 'sack on the shoulder (porters on the tribute reliefs carry skins and bags: B)',
-    variants: [{ when: /loading the donkeys|unloading the donkeys|pitching the tents|loading the animals|unloading the party/, animals: { kind: 'beside', species: ['donkey_pack'] },
+    variants: [
+      { when: /the catch|the nuts|the acorns|the birds|the garlic|the honey/, note: 'carrying home what the day gathered, in a bag over the shoulder: the fish, the nuts or acorns, the snared birds, the wild garlic, the combs in a covered pot (C: D-256)' },{ when: /loading the donkeys|unloading the donkeys|pitching the tents|loading the animals|unloading the party/, animals: { kind: 'beside', species: ['donkey_pack'] },
       note: 'loading or unloading the pack donkeys by the tents, a loaded donkey standing by (E-49 “herders, dogs and donkeys”; C)' }] },
   carry_jar: { anim: 'carry_shoulder', moving: true, prop: 'jar', sound: 'footsteps', tier: 'B', note: 'jar on the shoulder (tribute reliefs: B)' },
   carry_jar_head: { anim: 'carry_head', moving: true, prop: 'jar_head', sound: 'footsteps', tier: 'C', note: 'water jar carried on the head (C)' },
@@ -114,7 +132,13 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     // the Treasury tablets' leather duplicates, Cameron's inference: B)
     variants: [{ when: /in Aramaic/, prop: 'leather', prop2: 'pen', note: 'writing Aramaic with a reed pen and ink on a sheet of leather on the left palm (Aramaic ink epigraphs on Persepolis tablets: B; leather documents in the chancery: B by analogy; posture C; the writing on the sheet is not drawn: D-221)' }] },
   eat: { anim: 'eat', sound: 'murmur', tier: 'C', note: 'sitting and eating bread (rations: B)' },
-  sleep: { anim: 'sleep', tier: 'C', note: 'lying asleep on a mat (C)' },
+  sleep: { anim: 'sleep', tier: 'C', note: 'lying asleep on a mat (C)',
+    variants: [
+      // D-256: the drum haul's night halt by the road (world/traffic.ts), the oxen unyoked and lying by it
+      { when: /by the drum sledge/, work: [{ kind: 'drum_haul', at: [-2.6, 0, 0.6] }], animals: { kind: 'fold', species: ['ox'], n: 4, pace: 1 },
+        note: 'asleep in a cloak on the ground by the drum sledge where the haul halted for the night, the oxen unyoked and lying by it (C: D-256)' },
+      { when: /by the empty sledge/, work: [{ kind: 'sledge', at: [-2.6, 0, 0.6] }], animals: { kind: 'fold', species: ['ox'], n: 4, pace: 1 },
+        note: 'asleep by the empty sledge on the way back to the quarry, the oxen lying by it (C: D-256)' }] },
   talk: { anim: 'talk', sound: 'murmur', tier: 'C', note: 'talking with gestures' },
   rest: { anim: 'sit', tier: 'C', note: 'sitting and resting' },
   gamble: { anim: 'dice', sound: 'dice', tier: 'C', note: 'throwing knucklebones (astragali are common finds of the period: B object, C scene)' },
@@ -144,6 +168,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   haul: { anim: 'haul', prop: 'rope', tier: 'C', work: [{ kind: 'drum_sledge', at: [0, 0, 6.2], shared: 'place' }],
     note: 'the labour gang hauling a column drum on a sledge with ropes, heaving in time (construction by ramp and sledge: C; the gangs are attested, PT-WAGE: B)',
     variants: [
+      // D-256: the drum's gang at the quarry and at the drum ground (the drum on its sledge is the driver's: world/traffic.ts)
+      { when: /roping the drum|levering the drum/, work: [], note: 'the haul\'s gang roping the rough drum down on its sledge at the quarry, or levering it off at the drum ground below the Terrace (C: D-256)' },
       { when: /earth/, anim: 'pass', prop: 'basket_both', work: [], note: 'building up the earth ramp: baskets of earth passed along a chain of men (C)' },
       { when: /brick/, anim: 'pass', prop: 'brick', work: [{ kind: 'brick_stack', at: [-0.9, 0, 0.3] }], note: 'carrying dried bricks to the wall: passed hand to hand along a chain (C)' }] },
   mould_brick: { anim: 'mould', prop: 'mould', sound: 'mould', tier: 'C', work: [{ kind: 'mud_heap', at: [-0.62, 0, 0.36] }, { kind: 'brick_field', at: [1.35, 0, 0.1] }, { kind: 'jar', at: [-0.7, 0, -0.35] }],
@@ -158,7 +184,12 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
   spin: { anim: 'spin', prop: 'distaff', prop2: 'spindle', tier: 'C',
     note: 'spinning wool with a drop spindle, standing: distaff in the left hand, the spindle turning on the yarn (spindle whorls are common finds: B object; scene C). Silent' },
   gather: { anim: 'gather', prop: 'basket_hip', tier: 'C', note: 'gathering dung and brushwood into a basket held on the hip (C)',
-    variants: [{ when: /shaping|cakes/, anim: 'pat', prop: undefined, work: [{ kind: 'dung_cakes', at: [0.5, 0, 0.35] }], note: 'shaping dung cakes for the fire and setting them out to dry (C)' }] },
+    variants: [
+      // D-256 (G14, GA1, G16): the wild harvests
+      { when: /nuts|pistachio|almond/, anim: 'pick', prop: undefined, work: [{ kind: 'basket_nuts', at: [-0.32, 0, 0.42] }], note: 'gathering wild pistachios and almonds off the scrub of the slopes into a basket, August and September (plain.json crops.pistachio_almond "nuts gathered Aug-Sep", the pollen B; the gathering C: D-256)' },
+      { when: /acorns/, note: 'gathering the acorns of the oaks of the slopes into a basket on the hip, in the autumn, for flour and for the animals (Zagros oak woodland, RECOLLECTION NOT SEEN; C: D-256)' },
+      { when: /garlic/, note: 'collecting wild garlic and onions on the steppe in the month named for it, Θāigraciš, "garlic-collecting" (the month name: A; the act C: D-256)' },
+      { when: /shaping|cakes/, anim: 'pat', prop: undefined, work: [{ kind: 'dung_cakes', at: [0.5, 0, 0.35] }], note: 'shaping dung cakes for the fire and setting them out to dry (C)' }] },
   brew: { anim: 'stir', prop: 'paddle', tier: 'C', work: [{ kind: 'vat', at: [0, 0, 0.72] }], note: 'brewing beer from tarmu (PF 40 “he made beer”: A for the work): stirring the mash in a vat with a paddle (C)' },
   tend_animals: { anim: 'groom', prop: 'wisp', tier: 'C', animals: { kind: 'beside', species: ['donkey'] }, work: [{ kind: 'fodder', at: [0.95, 0, 1.55] }],
     note: 'seeing to the household’s animals: rubbing down and feeding (donkeys and horses are attested with rations, POTTS2023: B; the work C)',
@@ -181,9 +212,21 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
       { when: /the pack animals/, animals: { kind: 'beside', species: ['donkey_pack'] }, note: 'seeing to the party’s pack donkeys, their loads still on or stacked by (a travelling party’s animals: E-21, E-49; C)' },
       { when: /horse/, animals: { kind: 'beside', species: ['horse'] }, note: 'tending the relay horses of the road station (horse rations, POTTS2023: B; C)' },
       { when: /ewes|lamb/, anim: 'fodder', prop: 'basket_hip', animals: { kind: 'flock', species: SHEEP, n: 5 }, work: [], note: 'with the ewes at lambing (E-48, C): fodder scattered from a basket' },
+      // D-256: the animals penned against the wolves (session 9's wolves: world/beasts.ts), the cattle and the flocks
+      { when: /folding it|in the fold|the fold\b/, anim: 'fodder', prop: 'basket_hip', animals: { kind: 'fold', species: SHEEP, n: 20 }, work: [FOLD],
+        note: 'the flock penned in a fold of thorn brush against the wolves and fed from a basket (folds of brush and stone for the night: pastoral practice across the Zagros, RECOLLECTION NOT SEEN; C: D-256)' },
+      { when: /drum sledge|drum ground/, anim: 'fodder', prop: 'basket_hip', animals: { kind: 'fold', species: ['ox'], n: 4 }, work: [{ kind: 'drum_haul', at: [-2.6, 0, 0.6] }],
+        note: 'unyoking the oxen by the drum sledge at the day\'s halt and giving them straw and water (C: D-256)' },
       { when: /out and giving them water/, anim: 'fodder', prop: 'basket_hip', animals: { kind: 'flock', species: ['sheep', 'goat', 'sheep'], n: 4 }, work: [], note: 'letting the household’s animals out and giving them fodder and water (C)' },
       { when: 0.35, animals: { kind: 'beside', species: ['ox'] }, note: 'seeing to the household’s ox (cattle are not in population.json: Q-193; C)' }] },
   herd: { anim: 'herd', prop: 'staff', tier: 'C', animals: { kind: 'flock', species: SHEEP, n: 12, dogs: 2 }, sound: 'bleat',
+    variants: [
+      // D-256 (G17; A024, P-012): the village cattle, out by turns with a man of the village or a boy of a house with a cow
+      { when: /cows|cattle|calves/, sound: undefined, animals: { kind: 'flock', species: CATTLE, n: 8, dogs: 1 },
+        note: 'herding the village cows and calves on the river meadow and the fallow, a dog with them (cattle breed the plough oxen of the plain, E-40; the herd, its size and its grounds C: D-256). Their lowing is theirs (crowd.ts: a low now and then, the strike low)' },
+      // D-256: the flock watched at night in its fold (the bands' watch by turns: E-49; the fold C)
+      { when: /in the night|by turns/, animals: { kind: 'fold', species: SHEEP, n: 24, pace: 1, dogs: 2 }, work: [FOLD],
+        note: 'watching the flock penned in its thorn fold through the night, by turns, with the dogs, against the wolves (the watch: E-49 herders and dogs, C; the fold C: D-256)' }],
     note: 'herding sheep and goats (state flocks attested, PF 58-60: A; the herder leaning on his staff, the flock grazing about him: C). The bleats are the flock’s. Two dogs with every flock (D-210: E-49’s participants “herders, dogs and donkeys”; the herders’ plans “with the dogs”; dogs spared by the magi, HDT 1.140, a claim; C), lying by the herdsman or at the flock’s edge and going round it; they bark at a stranger who comes close' },
   shear: { anim: 'shear', prop: 'knife', tier: 'C', animals: { kind: 'lying', species: ['sheep'] }, work: [{ kind: 'fleece', at: [0.55, 0, 0.3] }],
     note: 'shearing the state flock (E-47, season C): kneeling at a sheep laid on its side, the fleece cut with a knife (shears are not attested in the research files: Q-192; plucking, recalled for Babylonian temple flocks in E-47, is NOT SEEN)' },
@@ -257,6 +300,29 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
     note: 'at dusk the hearth fire is lit and the evening meal warmed: squatting at the hearth, stirring the pot, feeding sticks under it (§9.2; C). The fire itself is the settlement’s hearth',
     variants: [{ when: /meat of the offering/, work: [{ kind: 'hearth_pot', at: [0, 0, 0.58] }, { kind: 'brushwood', at: [-0.75, 0, 0.12] }, { kind: 'grass_bed', at: [0.95, 0, 0.45] }],
       note: 'boiling the meat of a sacrifice in a pot on a small fire of brushwood at the precinct, the soft grass laid ready beside (Herodotus 1.132 "after boiling the flesh, spreads the softest grass", read, a Greek claim: B; the fire is the pot\'s, not an altar fire: C, D-209)' }] },
+  // ============================================ D-256: the work on the land (WORLD_INVENTORY G12-G17, G30; every motion C)
+  milk: { anim: 'shear', tier: 'C', animals: { kind: 'beside', species: ['cow'] }, work: [{ kind: 'milk_pot', at: [0.12, 0, 0.42] }],
+    note: 'milking the household\'s cow into a pot, kneeling at her flank in the courtyard at first light and in the evening (milk, curds and butter of the villages: the "bread and curds" of the herders\' meals; the cow and the hours C: D-256)' },
+  fish: { anim: 'hold_lead', prop: 'lead', sound: 'water', tier: 'C', work: [{ kind: 'basket_fish', at: [0.55, 0, -0.25] }],
+    note: 'fishing from the bank with a hand line (the line into the water is not drawn beyond an arm\'s length), the catch in a basket beside him: the barbels and carp of the Kur basin (fish in the rivers: RECOLLECTION NOT SEEN; lines, the catch and the place C: D-256)',
+    variants: [
+      { when: /trap/, anim: 'pick', prop: undefined, work: [{ kind: 'fish_trap', at: [0, 0, 0.75] }, { kind: 'basket_fish', at: [0.55, 0, -0.25] }],
+        note: 'lifting and baiting a wicker fish trap set in the water at the bank (wicker traps: the river fishing of the region, RECOLLECTION NOT SEEN; C: D-256)' }] },
+  fowl: { anim: 'pick', tier: 'C', work: [{ kind: 'snare', at: [0, 0, 0.55] }, { kind: 'snare', at: [1.3, 0, 1.4] }],
+    note: 'setting horsehair nooses on a pegged line for partridge, quail and sandgrouse at the field edge and the reeds (snaring: the commoners\' fowling of the plateau, RECOLLECTION NOT SEEN; C: D-256)',
+    variants: [
+      { when: /\bbow\b/, anim: 'archery', prop: 'bow', prop2: 'arrow', sound: 'bow', work: [], ages: [14, 90], note: 'shooting at the waterfowl in the reeds with the bow (HDT 1.136, a Greek claim, for the bow: B; the fowling C: D-256)' },
+      { when: /\bbow\b/, anim: 'archery', prop: 'toy_bow', prop2: 'arrow', sound: 'bow', work: [], note: 'a boy shooting at the small birds of the reeds with his small bow (C: D-256)' }] },
+  quarry: { anim: 'chisel', prop: 'mallet', sound: 'chisel', tier: 'C', work: [{ kind: 'drum_rough', at: [0, 0, 0.95] }],
+    note: 'a quarryman roughing out a column drum at the quarry with mallet and point, the drum still over-size for the masons to finish at the Terrace (the drums finished on the Terrace: construction.ts, B; roughing at the quarry C: D-256)',
+    variants: [
+      { when: /cutting the channel/, anim: 'hoe', prop: 'adze', work: [{ kind: 'spoil', at: [-1.1, 0, 0.4] }],
+        note: 'cutting the channel round the next drum in the bench with a quarry pick (channels cut round the block and wedges driven under it: the ancient quarrying method, RECOLLECTION NOT SEEN; C: D-256)' },
+      { when: /loading/, anim: 'haul', prop: 'rope', sound: undefined, work: [],
+        note: 'levering and roping a rough drum onto the sledge for the haul to the Terrace, round the sledge the driver stands by (the drum and sledge are the haul\'s: world/traffic.ts; C: D-256)' }] },
+  bees: { anim: 'pick', tier: 'C', work: [{ kind: 'hives', at: [0, 0, 0.9] }],
+    note: 'seeing to the hives: clay-pipe hives stacked in a low wall in the garden, the ends opened and looked into; the buzz of the bees comes from the hives (crowd.ts, the strike buzz) (honey in the PF texts: RECOLLECTION NOT SEEN; the clay-pipe hive of Iran and the Near East, recollection; C: D-256)',
+    variants: [{ when: /honey|comb/, prop: 'knife', work: [{ kind: 'hives', at: [0, 0, 0.9] }, { kind: 'jar', at: [0.6, 0, 0.1] }], note: 'taking the honey: the combs cut from the back of the pipe hives with a knife into a jar, some left for the bees for the winter (C: D-256)' }] },
   // D-199 (court setting only): the king as the door-jamb and audience reliefs show him, and the two attendants behind him
   royal_walk: { anim: 'walk', moving: true, prop: 'sceptre', prop2: 'lotus', sound: 'footsteps', tier: 'B', note: 'the king walking, the long staff in his right hand and a lotus in his left (door-jamb reliefs of the Tachara and the Hadish, HADISH-JAMB: B); the gait and the pace C' },
   enthroned: { anim: 'enthroned', prop: 'sceptre', prop2: 'lotus', tier: 'B', work: [{ kind: 'throne', at: [0, 0, 0] }], note: 'the king enthroned at an audience, staff and lotus in his hands, his feet on the footstool (the Treasury audience relief, TREAS-AUD: B); where the throne stood in the Apadana and the hours C; the king does not move or speak (brief §1.1 restraint)' },

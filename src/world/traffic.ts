@@ -13,6 +13,14 @@
 //  - the royal couriers (E-20: their hour; HDT 8.98, a claim): a rider walking his horse in along the royal road to the state
 //    stable that stands in for the road station, and, for a letter not for Persepolis, a fresh rider leaving on the south
 //    road (no stirrups: blocklist).
+//  - D-256 (WORLD_INVENTORY G30; gap hunts A505, A506, P-034, P-063): the quarrymen at work at the Majdabad quarry (the Sivand
+//    quarry is not built: no rock within its 100 m, plain/quarries.ts) and the column drums the construction counts in
+//    (construction.ts, E-61 "a column drum arrived from the quarry") dragged across the plain on a sledge behind two yoke of
+//    oxen, with a gang of three beside it: out of the quarry, over the plain to the royal road and along it to the Terrace,
+//    round its W foot to the drum ground at the N foot, where the ground stands at the court's level (the last 250 m into the
+//    masons' yard, and how the drums went up, are the labour gang's and not modelled: Q-710). The haul moves only in the
+//    daylight (sunrise + 1 h to sunset − 1 h) at 0.4 m/s, halting for the night by the road; the team goes back to the quarry
+//    with the empty sledge. Every part of this is C (D-256).
 // Everything is closed form in the simulation's time (hours): where each driver and rider is, walking at the pace of his
 // animals (1.0 m/s loaded, C; a courier 1.8 m/s, walking the horse near the station, C). world.ts draws each one within
 // reach of the camera as a crowd extra performing the activity (activities.ts walk / tend_animals variants: the string, the
@@ -24,15 +32,22 @@ import settlement from '../data/settlement.json';
 import places from '../data/people_places.json';
 import type { ActivityId } from '../people/activities';
 import { h01 } from './fauna';
+import type { QuarrySite } from './plain/quarries';
 
 const FEAT = Object.fromEntries((settlement as any).features.map((f: any) => [f.id, f])) as Record<string, any>;
 const PLACE = Object.fromEntries(((places as any).places ?? (places as any)).map((p: any) => [p.id, p])) as Record<string, any>;
 /** the pace of a loaded string, of a courier walking his horse in, of an ox cart (m/s; C) */
 export const PACE = { string: 1.0, courier: 1.8, cart: 0.9 } as const;
+/** D-256: the drum haul (C): the loaded sledge's pace behind two yoke of oxen, the empty sledge's back, the daylight it moves in
+ *  (h after sunrise, before sunset), the hour at the drum ground before the construction counts the drum in at the yard, the
+ *  hold there while it is levered off, the gang beside it, the quarry's men and the share of hauls from Majdabad (all C) */
+export const DRUM = { pace: 0.4, back: 0.8, dawn: 1.0, dusk: 1.0, before: 1.0, hold: 1.2, gang: 3, quarrymen: 14 } as const;
+/** D-256: the drum ground at the Terrace's N foot, where the ground stands level with the court (grid m; C, Q-710) */
+export const DRUM_GROUND: P2 = [150, 272];
 /** a string's length along the road (m): five animals nose to tail and the driver (C) */
 const STRING_M = 13, CAMEL_M = 16, CART_M = 9;
 
-export interface Mover { key: string; kind: 'pack' | 'camel' | 'courier' | 'cart'; e: number; n: number; heading: number; act: ActivityId; why: string;
+export interface Mover { key: string; kind: 'pack' | 'camel' | 'courier' | 'cart' | 'drum' | 'quarry'; e: number; n: number; heading: number; act: ActivityId; why: string;
   look: { id: number; sex: 'm'; role: string; dress: 'worker' | 'median'; origin: string; seed: number } }
 interface Route { pts: P2[]; cum: number[]; len: number }
 const route = (pts: P2[]): Route => { const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, cum, len: cum[cum.length - 1] }; };
@@ -47,12 +62,105 @@ function foot(L: P2[], q: P2): { i: number; p: P2 } { let best = { i: 0, p: L[0]
   for (let i = 0; i < L.length - 1; i++) { const a = L[i], b = L[i + 1], dx = b[0] - a[0], dn = b[1] - a[1], l2 = dx * dx + dn * dn, t = Math.max(0, Math.min(1, ((q[0] - a[0]) * dx + (q[1] - a[1]) * dn) / l2)), p: P2 = [a[0] + dx * t, a[1] + dn * t], d = Math.hypot(p[0] - q[0], p[1] - q[1]);
     if (d < best.d) best = { i, p, d }; } return best; }
 
-export interface TrafficSource { caravan(d: number): { h: number; sacks: number } | null; cal: { ctx(d: number): { couriers: { t: number; treasury: boolean }[]; deliveries: { t: number; id: string; qty: number; place: string }[] } } }
+export interface TrafficSource { caravan(d: number): { h: number; sacks: number } | null; cal: { ctx(d: number): { couriers: { t: number; treasury: boolean }[]; deliveries: { t: number; id: string; qty: number; place: string }[];
+  /** D-256: the day's events (E-61's drum arrivals), its sun, weather and month (the quarry's working day) */
+  events?: { t: number; id: string; text: string }[]; sun?: { rise: number; set: number }; wx?: { wet: boolean; stormH: [number, number] | null }; month?: number; heatRest?: boolean } } }
+/** D-256: one drum's haul: the travel spans (absolute h) out and back, where it is along the routes */
+export interface DrumHaul { key: string; arrive: number; out: [number, number][]; back: [number, number][]; seed: number }
 export class Traffic {
   /** the routes (grid metres): the caravan in from the W to the stair foot and back to the stable; the south road in to the
    *  storehouse gate; the courier in to the stable and out on the south road */
   readonly routes: Record<'caravanIn' | 'caravanOut' | 'storeIn' | 'courierIn' | 'courierOut', Route>;
   private days = new Map<number, Mover[]>(); private plans = new Map<number, Plan[]>();
+  /** D-256: the quarry (built on the rock: plain/quarries.ts), the drum route from its camp to the drum ground, and the hauls */
+  quarry: QuarrySite | null = null; drumRoute: Route | null = null; private hauls = new Map<number, DrumHaul[]>();
+  /** D-256: the quarries as built (world.ts passes plain/quarries.ts quarrySites); the haul's route from the first (Majdabad):
+   *  out of the camp straight to the nearest point of the royal road, along it to its Terrace end, round the Terrace's W foot
+   *  (clear of the tether lines of the stair foot, D-227) and along the N foot to the drum ground (C) */
+  setQuarries(sites: QuarrySite[]) {
+    const q = sites.find(x => x.id === 'quarry_majdabad') ?? sites[0]; if (!q) return; this.quarry = q;
+    const W = FEAT.road_royal_west.polyline as P2[], camp = q.at(0, 24), f = foot(W, camp);
+    this.drumRoute = route([camp, f.p, ...W.slice(0, f.i + 1).reverse(), [-200, 40], [-200, 250], [-60, 300], DRUM_GROUND]);
+  }
+  /** D-256: the day's drums: every E-61 arrival of the day is a haul that left the quarry a day or more before and arrives at
+   *  the drum ground DRUM.before h before the construction counts it in at the yard; its travel spans are the daylight windows
+   *  walked back from there (closed form; the calendar's days are computed forward as needed) */
+  haulsArriving(d: number): DrumHaul[] {
+    let H = this.hauls.get(d); if (H) return H; H = [];
+    if (this.drumRoute && d >= 0) { const C = this.src.cal.ctx(d), R = this.drumRoute, need = R.len / DRUM.pace / 3600, needBack = R.len / DRUM.back / 3600;
+      (C.events ?? []).filter(e => e.id === 'E-61' && /drum arrived from the quarry/.test(e.text)).forEach((e, k) => {
+        const arrive = e.t - DRUM.before, out: [number, number][] = [], back: [number, number][] = [];
+        let left = need, t = arrive; for (let g = 0; g < 12 && left > 1e-6; g++) { const dd = Math.floor(t / 24), w = this.window(dd); const b = Math.min(t, w[1]), a = Math.max(w[0], b - left); if (b > a) { out.unshift([a, b]); left -= b - a; } t = dd * 24 - 1e-6; }
+        left = needBack; t = arrive + DRUM.hold; for (let g = 0; g < 12 && left > 1e-6; g++) { const dd = Math.floor(t / 24), w = this.window(dd); const a = Math.max(t, w[0]), b = Math.min(w[1], a + left); if (b > a) { back.push([a, b]); left -= b - a; } t = (dd + 1) * 24; }
+        H!.push({ key: `dh${d}:${k}`, arrive, out, back, seed: d * 227 + k }); }); }
+    this.hauls.set(d, H); if (this.hauls.size > 24) this.hauls.delete(this.hauls.keys().next().value!); return H;
+  }
+  /** the haul's daylight on day d (absolute h): sunrise + DRUM.dawn to sunset − DRUM.dusk */
+  private window(d: number): [number, number] { const s = this.src.cal.ctx(Math.max(0, d)).sun ?? { rise: 6, set: 18 }; return [d * 24 + s.rise + DRUM.dawn, d * 24 + s.set - DRUM.dusk]; }
+  /** metres along a set of spans at absolute time t (h), at a pace (m/s) */
+  private static done(spans: [number, number][], t: number, pace: number) { let h = 0; for (const [a, b] of spans) h += Math.max(0, Math.min(t, b) - a); return h * 3600 * pace; }
+  /** D-256: the drum hauls on the road at time t (h): the driver and his two yoke with the drum on its sledge, the gang beside
+   *  it; halted by the road at night (unyoking at dusk, asleep by the sledge); at the drum ground the drum levered off; the
+   *  team back to the quarry with the empty sledge */
+  private drumMovers(t: number, out: Mover[], near?: { e: number; n: number; r: number }) {
+    const R = this.drumRoute; if (!R) return; const d = Math.floor(t / 24);
+    for (let dd = d; dd <= d + 4; dd++) for (const H of this.haulsArriving(dd)) {
+      const t0 = H.out[0]?.[0] ?? H.arrive, tb = H.back.length ? H.back[H.back.length - 1][1] : H.arrive + DRUM.hold; if (t < t0 - 1.5 || t > tb) continue;
+      const lastOut = H.out.length ? H.out[H.out.length - 1][1] : H.arrive, moving = (sp: [number, number][]) => sp.some(([a, b]) => t >= a && t < b);
+      let s: number, dir = 1, act: ActivityId, why: string, gangAct: ActivityId, gangWhy: string;
+      if (t < t0) { s = 0; act = 'tend_animals'; why = 'yoking the oxen to the drum sledge at the quarry camp'; gangAct = 'haul'; gangWhy = 'the gang roping the drum down on the sledge for the haul'; }
+      else if (t <= lastOut + 1e-9) { s = Traffic.done(H.out, t, DRUM.pace); if (moving(H.out)) { act = 'walk'; why = 'driving two yoke of oxen dragging a column drum on its sledge from the quarry to the Terrace'; gangAct = 'walk'; gangWhy = 'walking beside the drum sledge with the levers and the rollers'; }
+        else { const D0 = Math.floor(t / 24), lt = t - D0 * 24, [w0, w1] = this.window(D0).map(x => x - D0 * 24); const eve = lt >= w1 && lt < w1 + 1.2, morn = lt >= w0 - 0.9 && lt < w0;
+          act = eve || morn ? 'tend_animals' : 'sleep'; why = eve ? 'unyoking the oxen by the drum sledge at the halt, giving them straw and water' : morn ? 'yoking the oxen to the drum sledge at first light' : 'asleep by the drum sledge where the haul halted for the night';
+          gangAct = eve || morn ? 'eat' : 'sleep'; gangWhy = eve ? 'the evening meal by the drum sledge at the halt' : morn ? 'bread before the road, by the drum sledge' : 'asleep by the drum sledge where the haul halted for the night'; } }
+      else if (t < H.arrive + DRUM.hold) { s = R.len; act = 'tend_animals'; why = 'holding the oxen at the drum ground while the drum is levered off the sledge'; gangAct = 'haul'; gangWhy = 'levering the drum off the sledge at the drum ground, for the gang of the Terrace to take in'; }
+      else { dir = -1; s = R.len - Traffic.done(H.back, t, DRUM.back);
+        if (moving(H.back)) { act = 'walk'; why = 'driving the oxen back to the quarry with the empty sledge'; gangAct = 'walk'; gangWhy = 'walking back to the quarry beside the empty sledge'; }
+        else { act = 'sleep'; why = 'asleep by the empty sledge where the team halted for the night'; gangAct = 'sleep'; gangWhy = 'asleep by the empty sledge where the team halted for the night'; } }
+      const a = along(R, s), hd = dir > 0 ? a.heading : a.heading + Math.PI;
+      if (near && Math.hypot(a.e - near.e, a.n - near.n) > near.r + 30) continue;
+      const look = (i: number) => ({ id: -52000 - ((H.seed * 7 + i) % 8000), sex: 'm' as const, role: i ? 'porter' : 'mason', dress: 'worker' as const, origin: 'Persian', seed: 70000 + ((H.seed * 13 + i) % 90000) });
+      out.push({ key: H.key, kind: 'drum', e: a.e, n: a.n, heading: hd, act, why, look: look(0) });
+      // the gang: beside the sledge (9 m behind the driver: activities.ts DRUM_BEHIND), a pace to either side (C)
+      const c = Math.cos(hd), sn = Math.sin(hd);
+      for (let i = 1; i <= DRUM.gang; i++) { const back = 7.5 + 1.6 * i, side = (i % 2 ? 1 : -1) * (2.2 + 0.4 * i);
+        out.push({ key: `${H.key}:${i}`, kind: 'drum', e: a.e - sn * back + c * side, n: a.n - c * back - sn * side, heading: hd, act: gangAct, why: gangWhy, look: look(i) }); }
+    }
+  }
+  /** D-256: the quarrymen at Majdabad at time t (h): on a working day (no rain, no storm on the working day) from sunrise +
+   *  0.5 h to sunset − 0.5 h, a third cutting the channels at the face, the rest roughing out drums among the blocks, three of
+   *  them loading a drum on the sledge in the hour before a haul leaves; the midday meal at the camp and, when the heat rests
+   *  the work (E-64), a rest in the shade; the evening meal at the camp by the fire; asleep at the camp in the open in the warm
+   *  months (May to September: C), in the cold months in the camp's huts, which are not built (B80: not drawn) */
+  private quarryMovers(t: number, out: Mover[], near?: { e: number; n: number; r: number }) {
+    const Q = this.quarry; if (!Q) return; if (near && Math.hypot(Q.x - near.e, Q.y - near.n) > near.r + 60) return;
+    const d = Math.floor(t / 24), h = t - d * 24, C = this.src.cal.ctx(d), sun = C.sun ?? { rise: 6, set: 18 }, wx = C.wx, month = C.month ?? 1;
+    const storm = !!wx?.stormH && wx.stormH[0] < sun.set && wx.stormH[1] > sun.rise, work = !wx?.wet && !storm;
+    const w0 = sun.rise + 0.5, w1 = sun.set - 0.5, warm = [2, 3, 4, 5, 6].includes(month);
+    // (a haul leaving today: its first span starts today, after the loading)
+    const leaving = [d + 1, d + 2, d + 3].flatMap(x => this.haulsArriving(x)).find(H => H.out.length && Math.floor(H.out[0][0] / 24) === d);
+    const camp = (i: number): P2 => Q.at(-6 + 3 * (i % 5), 22 + 2.2 * Math.floor(i / 5)), face = (i: number): P2 => Q.at(-11 + 4.5 * i, 2.9), block = (i: number): P2 => Q.at(-12 + 3.4 * (i % 8), 6 + 3.5 * Math.floor(i / 8));
+    for (let i = 0; i < DRUM.quarrymen; i++) {
+      const look = { id: -61000 - i, sex: 'm' as const, role: 'mason', dress: 'worker' as const, origin: 'Persian', seed: 81000 + i };
+      let at: P2, head = Q.rot + Math.PI, act: ActivityId, why: string;
+      const loading = leaving && i < 3 && h >= leaving.out[0][0] - d * 24 - 1.5 && h < leaving.out[0][0] - d * 24;
+      if (work && h >= w0 && h < w1 && !(h >= 12 && h < 12.6) && !(C.heatRest && h >= 12.6 && h < 15)) {
+        // (round the sledge the driver stands by at the camp: activities.ts sleep/tend_animals 'drum sledge' puts it 2.6 m to his side)
+        if (loading) { const R0 = this.drumRoute!, a0 = along(R0, 0), sd = [[1.1, 0.6, Math.PI / 2], [4.1, 0.6, -Math.PI / 2], [2.6, 2.6, Math.PI]][i]; const c = Math.cos(a0.heading), sn = Math.sin(a0.heading);
+          // (sd: metres to the driver's right, ahead, and the turn to face the sledge)
+          at = [a0.e + c * sd[0] + sn * sd[1], a0.n - sn * sd[0] + c * sd[1]]; act = 'quarry'; why = 'loading a rough drum onto the sledge for the haul to the Terrace'; head = a0.heading + sd[2]; }
+        else if (i < 5) { at = face(i); act = 'quarry'; why = 'cutting the channel round the next drum at the face'; head = Q.rot + Math.PI; }
+        else { at = block(i - 5); act = 'quarry'; why = 'roughing out a column drum among the blocks'; head = Q.rot + Math.PI * (i % 2); } }
+      else if (work && h >= 12 && h < 12.6) { at = camp(i); act = 'eat'; why = 'the midday meal of bread and onions at the quarry camp'; }
+      else if (work && C.heatRest && h >= 12.6 && h < 15) { at = camp(i); act = 'rest'; why = 'resting in the shade of the rock through the heat'; }
+      else if (h >= sun.set - 0.3 && h < sun.set + 0.6) { at = camp(i); act = 'eat'; why = 'the evening meal at the quarry camp by the fire'; }
+      else if (!work && h >= w0 && h < w1) { if (wx?.wet) continue; at = camp(i); act = 'rest'; why = 'at the quarry camp: no cutting today'; }
+      else if (warm) { at = camp(i); act = 'sleep'; why = 'asleep at the quarry camp in the open, in a cloak'; }
+      else continue; // (the cold months' nights: in the camp's huts, not built: B80)
+      // (the men face the face (uphill, −v) at their work; at the camp they sit round it)
+      out.push({ key: `qm:${i}`, kind: 'quarry', e: at[0], n: at[1], heading: act === 'quarry' ? head : Q.rot + 2 * Math.PI * (i / DRUM.quarrymen), act, why, look });
+    }
+  }
   constructor(private seed: number, private src: TrafficSource, plan: TownPlan | null) {
     const W = FEAT.road_royal_west.polyline as P2[], S = FEAT.road_south_tirazzish.polyline as P2[], stair = (PLACE.stair_foot?.at ?? [-52, 118.5]) as P2;
     const site = (id: string) => plan?.sites.find(s => s.id === id);
@@ -99,6 +207,7 @@ export class Traffic {
     out.length = 0; const d = Math.floor(t / 24);
     for (const dd of [d - 1, d]) for (const p of this.dayPlans(dd)) { const h = t - dd * 24, m = this.where(p, h); if (!m) continue;
       if (near && Math.hypot(m.e - near.e, m.n - near.n) > near.r) continue; out.push(m); }
+    this.drumMovers(t, out, near); this.quarryMovers(t, out, near); // (D-256)
     return out;
   }
   private where(p: Plan, h: number): Mover | null {

@@ -64,12 +64,12 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G9 | hail in the spring thunderstorms | A408; W-044 | weather | A | PARTIAL (D-266: seen falling and lying; not heard); unrendered (no hail day in the test seed) |
 | G10 | 22° halo and sun dogs | A409; N-004 | sky | A physics | BUILT (D-261: ring and parhelia on cirrus days); render queued |
 | G11 | hunting: the royal and noble hunt | A001, A593; S-013 | food quest | B claim | MISSING/PARTIAL |
-| G12 | snaring and fowling | A002; P-064 | food quest | C | MISSING/PARTIAL |
-| G13 | fish and fishing in the rivers and canals | A003, A161; F-001, P-019, P-064 | food quest / fauna | C | MISSING/PARTIAL |
-| G14 | wild nut gathering on the slopes (Aug-Sep) | A004; W-052 | food quest | C | MISSING/PARTIAL |
-| G15 | bees, bee-keeping and honey | A006, A151; P-020, P-065 | food quest / fauna | C | MISSING/PARTIAL |
-| G16 | garlic, onions and named garden vegetables (the month Θāigraciš, 'garlic-collecting') | A007, A204, A207; FL-010 | crops | A name / C | BUILT (D-259: garden plots of garlic, onions and leeks, 2 % of the irrigated plots, lifted in Θāigraciš); unrendered |
-| G17 | cattle herds: cows and calves (only work oxen exist) | A024; P-012, F-055 | husbandry | C | MISSING/PARTIAL |
+| G12 | snaring and fowling | A002; P-064 | food quest | C | BUILT (D-256: snare lines at the field edges, the bow at the waterfowl in the reeds, in the season's other work, autumn-winter); unrendered |
+| G13 | fish and fishing in the rivers and canals | A003, A161; F-001, P-019, P-064 | food quest / fauna | C | BUILT (D-256: hand lines and wicker traps from the river or canal bank nearest the village; the catch carried home); unrendered |
+| G14 | wild nut gathering on the slopes (Aug-Sep) | A004; W-052 | food quest | C | BUILT (D-256: wild pistachios and almonds gathered on the slopes in August-September); unrendered |
+| G15 | bees, bee-keeping and honey | A006, A151; P-020, P-065 | food quest / fauna | C | BUILT (D-256: clay-pipe hives in the gardens, looked to in spring, the honey taken in late summer; the bees' buzz); unrendered |
+| G16 | garlic, onions and named garden vegetables (the month Θāigraciš, 'garlic-collecting') | A007, A204, A207; FL-010 | crops | A name / C | BUILT (D-259: garden plots of garlic, onions and leeks, 2 % of the irrigated plots, lifted in Θāigraciš); PARTIAL (D-256: wild garlic offered in the third month but never reached: the harvest takes every household, B81) |
+| G17 | cattle herds: cows and calves (only work oxen exist) | A024; P-012, F-055 | husbandry | C | BUILT (D-256: cows and calves, the village herd by turns and the boys, milking at dawn and dusk, penned in the compounds at night); unrendered |
 | G18 | domestic ducks and geese | A026; F-046 | husbandry | C | MISSING/PARTIAL |
 | G19 | cavalry, horse lines and pastures in the default world | A033, A556; B-080 | armed forces | B/C | MISSING/PARTIAL |
 | G20 | sesame-oil pressing, oil jars, lamp oil | A045; P-010 | food processing | B/C | MISSING/PARTIAL |
@@ -82,7 +82,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G27 | goldsmiths forging and chasing | A096; P-039 | crafts | B | MISSING/PARTIAL |
 | G28 | tanning and leatherwork (hides stop at a counter) | A098; B-056, P-014 | crafts | B | MISSING/PARTIAL |
 | G29 | seal cutting | A099; P-047 | crafts | A/C | MISSING/PARTIAL |
-| G30 | quarrymen at Majdabad and Sivand; drums hauled across the plain | A505, A506; P-063, P-034, S-012 | crafts / transport | B/C | MISSING/PARTIAL |
+| G30 | quarrymen at Majdabad and Sivand; drums hauled across the plain | A505, A506; P-063, P-034, S-012 | crafts / transport | B/C | BUILT (D-256: 14 quarrymen at Majdabad; each E-61 drum hauled 28 km on a sledge behind two yoke over two days; Sivand not built, B80 the huts); unrendered |
 | G31 | signal fires and beacons | A522; W-037 | communication | C | MISSING/PARTIAL |
 | G32 | adult board games (twenty squares) at the guard posts and doorsteps | A529; S-016 | recreation | C | MISSING/PARTIAL |
 | G33 | human non-speech sounds: babies crying, laughter, children shouting, calling to animals | A533; SO-005, SO-006 | sound | C | PARTIAL (D-260: laughter in company, children calling at play, babies crying; no calls to animals); unverified by ear |
@@ -136,7 +136,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 
 | # | gap | found by (row ids) | category | tier of presence in 467 | status |
 |---|---|---|---|---|---|
-| GA1 | acorn, wild green and herb gathering | A005 | food quest | C | MISSING/PARTIAL |
+| GA1 | acorn, wild green and herb gathering | A005 | food quest | C | BUILT (D-256: acorns on the slopes in the autumn; wild greens and herbs not) |
 | GA2 | domestic cat (A: missing; B: uncertain) | A028 | husbandry | C | MISSING/PARTIAL |
 | GA3 | alfalfa ('Median grass') fodder fields | A031, A206 | crops | B claim | BUILT (D-271: 2 % of irrigated plots, cut monthly in summer); unrendered |
 | GA4 | animal branding and marking | A034 | husbandry | C | MISSING/PARTIAL |
@@ -252,7 +252,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | GB49 | workmen at the Xerxes façade at Naqsh-e Rustam | S-011 | construction | C | MISSING/PARTIAL |
 | GB50 | the Persian washing rule (Hdt 1.138) contradicted by garrison laundry in the river | S-017 | religion / consistency | B claim | MISSING/PARTIAL |
 | GB51 | horses whinnying and snorting | SO-001 | sound | C | MISSING/PARTIAL |
-| GB52 | cattle lowing | SO-002 | sound | C | MISSING/PARTIAL |
+| GB52 | cattle lowing | SO-002 | sound | C | BUILT (D-256: the herds' lowing, a new strike; the compounds' cows at night) |
 | GB53 | camels grumbling | SO-003 | sound | C | MISSING/PARTIAL |
 | GB54 | hooves, cart wheels and harness on the road | SO-004 | sound | C | MISSING/PARTIAL |
 | GB55 | door pivots and bolts heard | SO-009 | sound | C | MISSING/PARTIAL |

@@ -97,6 +97,17 @@ function cicada(e: AudioEngine, out: AudioNode, t: number, r: Rng) {
 }
 /** a boar's grunts: low noisy pulses (C) */
 export function grunt(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) { const n = 2 + r.int(0, 4); for (let i = 0; i < n; i++) { voice(e, out, t + i * 0.32, 0.14, 130 + 30 * r.next(), 95, [[320, 1.5]], 0.05 * gain, 'sawtooth'); hiss(e, out, t + i * 0.32, 0.12, 400, 1, 0.02 * gain, 'brown'); } }
+/** D-256: a cow's low: a long nasal moan falling at the end, through a low formant (C) */
+export function low(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) {
+  const f = 105 + 45 * r.next(), d = 1.1 + 0.9 * r.next();
+  voice(e, out, t, 0.25, f * 0.8, f, [[380, 2], [780, 3]], 0.05 * gain, 'sawtooth'); voice(e, out, t + 0.25, d, f, f * 0.72, [[380, 2], [780, 3]], 0.06 * gain, 'sawtooth', 4);
+  hiss(e, out, t, d + 0.25, 420, 1.2, 0.012 * gain, 'brown');
+}
+/** D-256: bees about the hives: a short swell of the wingbeat's buzz (~220-260 Hz) with its pitch wandering (C) */
+export function buzz(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) {
+  const f = 220 + 40 * r.next(), d = 0.6 + 0.8 * r.next();
+  voice(e, out, t, d, f, f * (0.95 + 0.1 * r.next()), [[f * 2, 4]], 0.02 * gain, 'sawtooth', 9); hiss(e, out, t, d, f * 2, 3, 0.01 * gain, 'pink');
+}
 /** session 9, the wild animals (world/beasts.ts; every call C, from descriptions of the living species' voices):
  *  a wolf's howl, rising to a long held note and falling; a pack answers in overlapping voices */
 export function howl(e: AudioEngine, out: AudioNode, t: number, r: Rng, gain = 1) {
@@ -158,7 +169,9 @@ export const STRIKE_KINDS = ['chisel', 'quern', 'dice', 'hoe', 'sickle', 'loom',
   // D-210: the animals' voices at the animal (crowd performances, world/fauna.ts)
   'bray', 'bark', 'cluck', 'cockcrow', 'grunt',
   // session 9: the wild animals' voices (world/beasts.ts), heard from far off
-  'howl', 'roar', 'whoop', 'saw'] as const;
+  'howl', 'roar', 'whoop', 'saw',
+  // D-256: the cattle's low and the bees' buzz at the hives (the work on the land)
+  'low', 'buzz'] as const;
 export const LAYER_SOUNDS = ['murmur', 'footsteps', 'fire'] as const;
 /** a lit fire's crackle bed level (C). D-245: 0.08 was −49 dBFS at 8 m (tools/dev/audio_render.ts), below the −40 dB a
  *  visible fire within 10 m must reach (MASTER_PLAN T-G3e) */
@@ -195,6 +208,8 @@ export function workStrike(e: AudioEngine, kind: string, pos: { x: number; y: nu
     case 'cluck': { const p = at(0.25, 1.5, 40); cluck(e, p, t, rng); return true; }
     case 'cockcrow': { const p = at(0.4, 5, 500); cockcrow(e, p, t, rng); return true; }
     case 'grunt': { const p = at(0.4, 3, 150); grunt(e, p, t, rng); return true; }
+    case 'low': { const p = at(1.0, 6, 700, 3); low(e, p, t, rng); return true; }
+    case 'buzz': { const p = at(0.5, 1.5, 25, 2); buzz(e, p, t, rng); return true; }
     case 'howl': { const p = at(0.8, 60, 3500, 16); howl(e, p, t, rng); return true; }
     case 'roar': { const p = at(0.8, 120, 6000, 24); roar(e, p, t, rng); return true; }
     case 'whoop': { const p = at(0.8, 30, 1500, 12); whoop(e, p, t, rng); return true; }
