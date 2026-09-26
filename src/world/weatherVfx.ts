@@ -77,11 +77,13 @@ export class WeatherVfx {
     this.uRain.value.setRGB(0.8 * amb[0], 0.8 * amb[1], 0.8 * amb[2]);
     this.uFlake.value.setRGB(0.85 * (amb[0] + 0.25 * sI * (sc?.r ?? 0)), 0.85 * (amb[1] + 0.25 * sI * (sc?.g ?? 0)), 0.85 * (amb[2] + 0.25 * sI * (sc?.b ?? 0)));
   }
-  update(dt: number, camera: THREE.Camera, cond: { rain: number; snowFall: number; windMs: number; windDirDeg: number; lightning: boolean }, flashCap: number): number {
+  update(dt: number, camera: THREE.Camera, cond: { rain: number; snowFall: number; windMs: number; windDirDeg: number; lightning: boolean; hail?: number }, flashCap: number): number {
     const cp = camera.position, m4 = new THREE.Matrix4(), pos = new THREE.Vector3(), scl = new THREE.Vector3();
     const pxAngle = (camera as THREE.PerspectiveCamera).isPerspectiveCamera ? (2 * Math.tan(THREE.MathUtils.degToRad((camera as THREE.PerspectiveCamera).fov) / 2)) / 540 : 0.0015; // (a 540-line frame: the test captures)
     const wr = ((cond.windDirDeg + 180 - 341) * Math.PI) / 180, wx = Math.sin(wr) * cond.windMs, wz = -Math.cos(wr) * cond.windMs;
-    const nr = Math.floor(this.maxDrops * Math.min(1, cond.rain)), ns = Math.floor(this.maxFlakes * Math.min(1, cond.snowFall));
+    const nr = Math.floor(this.maxDrops * Math.min(1, cond.rain)), nSnow = Math.floor(this.maxFlakes * Math.min(1, cond.snowFall));
+    // session 9 (G9): hailstones use the flakes (white ice under the sky light) falling at ~14 m/s, barely drifting (C)
+    const nHail = Math.floor(this.maxFlakes * 0.6 * Math.min(1, cond.hail ?? 0)), hailing = nHail > nSnow, ns = Math.max(nSnow, nHail), fall = hailing ? 14 : 1.0, sway = hailing ? 0 : 0.3, drift = hailing ? 0.3 : 0.8;
     const wrap = (v: number, c: number, r: number) => { const d = v - c; return c + (((d + r) % (2 * r)) + 2 * r) % (2 * r) - r; };
     // rain: 6.5 m/s fall (C, typical drop terminal velocity), tilted by wind
     const axis = new THREE.Vector3(-wx, 6.5, -wz).normalize(), ax = new THREE.Vector3(), rt = new THREE.Vector3(), fw = new THREE.Vector3(); // (up along the streak)
@@ -99,7 +101,7 @@ export class WeatherVfx {
     this.rain.count = nr; this.rain.instanceMatrix.needsUpdate = nr > 0; this.rainFade.needsUpdate = nr > 0;
     { const { R, H } = SNOW_VOL;
       for (let i = 0; i < ns; i++) {
-        const a = this.flakes; a[i * 3] += (wx * 0.8 + Math.sin(i + a[i * 3 + 1]) * 0.3) * dt; a[i * 3 + 1] -= 1.0 * dt; a[i * 3 + 2] += (wz * 0.8 + Math.cos(i * 1.3 + a[i * 3 + 1]) * 0.3) * dt;
+        const a = this.flakes; a[i * 3] += (wx * drift + Math.sin(i + a[i * 3 + 1]) * sway) * dt; a[i * 3 + 1] -= fall * dt; a[i * 3 + 2] += (wz * drift + Math.cos(i * 1.3 + a[i * 3 + 1]) * sway) * dt;
         const x = wrap(a[i * 3], cp.x, R), z = wrap(a[i * 3 + 2], cp.z, R), y = cp.y - 2 + (((a[i * 3 + 1] - cp.y + 2) % H) + H) % H;
         const d = Math.hypot(x - cp.x, y - cp.y, z - cp.z), mp = minPixel(FLAKE, d, pxAngle);
         m4.compose(pos.set(x, y, z), camera.quaternion, scl.set(mp.scale, mp.scale, 1)); this.snow.setMatrixAt(i, m4); this.snowFade.setX(i, mp.fade * mp.fade * nearFade(d));

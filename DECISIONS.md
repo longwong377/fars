@@ -6451,3 +6451,13 @@ moment-*-webgpu.png in the worktree, not committed).**
   fogged with the scene; at most 12 at once (one InstancedMesh). A June afternoon of the test seed shows 2-4 within the view
   W of the Terrace.
 - **Tests.** tests/dust_devils.test.ts (3). **Unverified on screen:** dust-devils-jun queued.
+
+## D-266 Hail in the spring thunderstorms (session 9; gap hunters G9; A presence / C the rest)
+- **What** (weatherState.ts Conditions.hail, .hailCover; weatherVfx.ts; main.ts): 35 % of the Feb-May thunderstorm days open with
+  hail: the first 15 minutes of the rain (ramping in and out over 3 minutes), hailstones drawn with the snowflakes' particles
+  (white ice under the sky light) falling at ~14 m/s with little drift, 60 % of the flake count; after it the stones lie on the
+  ground as a patchy partial snow cover (WEATHER.snow ≥ 0.4 × cover) melting over ~40 minutes. The fixed test weathers carry none.
+  Measured: 0, 2 and 1 hail days in the generated years of seeds 1, 7 and 971044 (C: a few a year on the Fars plateau).
+- **Not done:** the sound of hail on roofs and ground (the rain bed plays); no hail damage to crops. The test seed has no hail
+  day, so no moment can show it (a debug weather override would).
+- **Tests.** tests/hail.test.ts (2); weather, weather_visible, frost pass.

@@ -61,7 +61,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G6 | planets (Venus as morning and evening star, Jupiter, Saturn, Mars) | A404; W-004, W-035 | sky | A | BUILT (282daa6: the five planets at their places and magnitudes); rendered: Mercury and Venus 0.5 deg apart at dusk, positions verified |
 | G7 | dust devils on the summer plain | A406; W-019 | weather | B | BUILT (D-265); render queued |
 | G8 | heat shimmer and mirage | A407; W-018 | weather | A physics | MISSING/PARTIAL |
-| G9 | hail in the spring thunderstorms | A408; W-044 | weather | A | MISSING/PARTIAL |
+| G9 | hail in the spring thunderstorms | A408; W-044 | weather | A | PARTIAL (D-266: seen falling and lying; not heard); unrendered (no hail day in the test seed) |
 | G10 | 22° halo and sun dogs | A409; N-004 | sky | A physics | BUILT (D-261: ring and parhelia on cirrus days); render queued |
 | G11 | hunting: the royal and noble hunt | A001, A593; S-013 | food quest | B claim | MISSING/PARTIAL |
 | G12 | snaring and fowling | A002; P-064 | food quest | C | MISSING/PARTIAL |

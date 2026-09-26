@@ -10,6 +10,8 @@ export type WeatherOverride = 'auto' | 'clear' | 'overcast' | 'rain' | 'storm' |
  *  air (1.5 m) falls below 0.5 C (the ground is colder than the screen on a clear night) and is full by -2.5 C; a cloudy sky
  *  (less radiative cooling), wind (mixing) and dry air (less water to deposit) thin it; rain, falling snow or snow cover
  *  take its place. It goes as the morning air passes 0.5 C (C: the thresholds) */
+/** the share of spring thunderstorm days that open with hail (C: hail falls a few days a year on the Fars plateau, in spring) */
+export const HAIL_DAY_SHARE = 0.35;
 export function frostAmount(tempC: number, cloud: number, windMs: number, rh: number, falling: number, snowCover: number): number {
   if (falling > 0.05 || snowCover > 0.3) return 0;
   const cold = Math.min(1, Math.max(0, (0.5 - tempC) / 3));
@@ -20,6 +22,8 @@ export interface Conditions {
   haze: number; dust: number; mist: number; lightning: boolean; wetness: number; snowCover: number; day: DayWeather;
   /** session 9 (G4): hoarfrost on open ground, 0-1 (frostAmount) */
   frost: number;
+  /** session 9 (G9): hail falling now (0-1) and the hailstones lying on the ground (0-1, melting) */
+  hail: number; hailCover: number;
 }
 
 export class WeatherSystem {
@@ -78,8 +82,14 @@ export class WeatherSystem {
       case 'mist': mist = 1; rain = 0; break;
     }
     const haze = Math.min(1, 0.15 + 0.5 * dust + 0.6 * mist + 0.25 * rain + d.rh / 400);
+    // hail (session 9, G9): a spring thunderstorm (Feb-May) opens with hail on HAIL_DAY_SHARE of such days: the first 15 minutes
+    // of the rain, then the stones lie white on the ground and melt over ~40 minutes (C)
+    const hailDay = d.thunder && d.climMonth >= 1 && d.climMonth <= 4 && new Rng(this.seed, `hail:${i}`).next() < HAIL_DAY_SHARE && d.wet;
+    let hail = hailDay && raining && hour < rs + 0.25 ? Math.min(1, (hour - rs) / 0.05) * Math.min(1, (rs + 0.25 - hour) / 0.05) : 0;
+    let hailCover = !hailDay || hour < rs ? 0 : hour < rs + 0.25 ? (hour - rs) / 0.25 : Math.max(0, 1 - (hour - rs - 0.25) / 0.7);
+    if (this.override === 'clear' || this.override === 'overcast' || this.override === 'snow' || this.override === 'dust' || this.override === 'mist') { hail = 0; hailCover = 0; }
     const frost = frostAmount(tempC, cloud, windMs, d.rh, rain + snowFall, snowCover);
-    return { tempC, cloud, rain, snowFall, windMs, windDirDeg: d.windDirDeg, rh: d.rh, haze, dust, mist, lightning, wetness, snowCover, day: d, frost };
+    return { tempC, cloud, rain, snowFall, windMs, windDirDeg: d.windDirDeg, rh: d.rh, haze, dust, mist, lightning, wetness, snowCover, day: d, frost, hail, hailCover };
   }
   /** the rain cell that brings (or brought) today's rain episode to the Terrace, as a moving object: before the episode it
    *  stands upwind at (steering wind × time to onset), after it recedes downwind; the episode's own timing (above) is
