@@ -317,7 +317,10 @@ async function boot() {
 
   function simStep(dt: number, advanceClock = true) {
     if (advanceClock) clock.advance(dt);
-    if (freeCam) return;
+    // the camera rig (freeCam): no player, but the world still follows the clock. Before D-235 this returned first, so after
+    // the first __parsa.view() the people's simulation stayed at the page-load time: a setTime (or advanceWorld) moved the
+    // sun but not the people (the coverage pilot found every walker frozen over 2 s of world time)
+    if (freeCam) { world.simulate?.(dt, clock); return; }
     const ax = input.locked ? input.axes() : botInput;
     if (botInput.yawDeg !== undefined) { input.yaw = -((botInput.yawDeg - 341) * Math.PI) / 180; input.pitch = ((botInput.pitchDeg ?? 0) * Math.PI) / 180; }
     phys.updateTerrain(terrain, player.position);

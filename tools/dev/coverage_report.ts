@@ -10,7 +10,7 @@ import { execFileSync } from 'node:child_process';
 export const FAIL = { placeholder: 0.05, missing: 0.05, lowDetail: 0.25 } as const;
 export interface Rec { id: string; place?: string; area: string; sub: string; state: string; q: string; error?: string; revisit?: boolean; sunAlt?: number;
   shares?: { sky: number; placeholder: number; untiered: number; skyHole: number; badId: number }; missing?: number | null; flatness?: number | null; lowDetail?: number | null;
-  frame?: any; objects?: { key: string; share: number; ph: boolean; tier: string | null; tris: number; density: number }[]; groups?: Record<string, number>;
+  frame?: any; objects?: { key: string; share: number; ph: boolean; tier: string | null; tris: number; density: number }[]; phObjects?: { key: string; share: number }[]; groups?: Record<string, number>;
   drawCalls?: number; triangles?: number; materials?: number; geometries?: number; visibleMeshes?: number; repetition?: any; life?: any; ms?: number }
 
 /** a view's badness: placeholder + missing + half the low-detail share (errors rank first) */
@@ -42,7 +42,7 @@ export function aggregate(recs: Rec[]) {
     for (const r of recs) { if (r.error) continue; const seen = new Set<string>(); for (const o of pick(r)) { const k = normKey(o.key); let e = m.get(k); if (!e) m.set(k, e = { key: k, cost: 0, views: 0, max: 0, subs: new Set() });
       e.cost += o.share / N; e.max = Math.max(e.max, o.share); e.subs.add(r.sub); if (!seen.has(k)) { e.views++; seen.add(k); } } }
     return [...m.values()].sort((a, b) => b.cost - a.cost).map(e => ({ key: e.key, cost: e.cost, views: e.views, max: e.max, subs: [...e.subs].sort() })); };
-  const placeholderObjects = objCost(r => (r.objects ?? []).filter(o => o.ph));
+  const placeholderObjects = objCost(r => r.phObjects ?? (r.objects ?? []).filter(o => o.ph));
   const lowObjects = objCost(r => r.frame?.lowObjects ?? []);
   const repeated = objCost(r => (r.repetition?.top ?? []).map((t: any) => ({ key: t.key, share: t.n })));
   return { n: recs.length, errors: recs.filter(r => r.error).length, failRate: recs.filter(fails).length / Math.max(1, recs.length), areas, subs, states, worst, placeholderObjects, lowObjects, repeated };

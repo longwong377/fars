@@ -46,7 +46,7 @@ async function shoot(page: Page, v: any, day: number, hour: number, w: string, s
   for (let i = 0; i < FRAMES; i++) await page.evaluate(() => (window as any).__parsa.renderOnce());
   const png = await page.screenshot();
   const st = await page.evaluate(() => { const p = (window as any).__parsa, s = p.stats(); return { drawCalls: s.drawCalls, triangles: s.triangles, backend: s.backend, sky: p.sky() }; });
-  const fm = await page.evaluate((b64) => (window as any).__parsa.flagMask({ frame: b64 }), png.toString('base64'));
+  const fm = await page.evaluate((b64) => (window as any).__parsa.flagMask({ frame: b64, mask: true }), png.toString('base64'));
   const rep = await page.evaluate(() => (window as any).__parsa.coverageRepeat(30));
   const life = process.env.LIFE === '0' ? null : await page.evaluate(() => (window as any).__parsa.coverageLife(2)); // last: it advances the world 2 s
   const th = await thumb(page, png);
@@ -81,11 +81,11 @@ test('coverage', async ({ page }, info) => {
     const t1 = Date.now();
     try {
       const r = await shoot(page, v, v.day, v.hour, v.w, state);
-      writeFileSync(`shots/coverage/${v.id}-${Q}.jpg`, Buffer.from(r.th.jpg, 'base64'));
+      writeFileSync(`shots/coverage/${v.id}-${Q}.jpg`, Buffer.from(r.th.jpg, 'base64')); if (r.fm.maskPng) writeFileSync(`shots/coverage/${v.id}-${Q}-mask.png`, Buffer.from(r.fm.maskPng, 'base64'));
       const f = r.fm.frame ?? {};
       const rec = { id: v.id, place: v.place, area: v.area, sub: v.sub, state: v.state, revisit: !!v.revisit, q: Q, project: info.project.name, fov: fovArg ?? 'player', frames: FRAMES,
         cam: [v.e, v.n, v.eye, v.az, v.pitch], sunAlt: +r.st.sky.sunAlt.toFixed(1), drawCalls: r.st.drawCalls, triangles: r.st.triangles, backend: r.st.backend,
-        shares: r.fm.shares, missing: f.missing ?? null, flatness: f.flatness ?? null, lowDetail: f.lowDetail ?? null, frame: f, objects: r.fm.objects, groups: r.fm.groups,
+        shares: r.fm.shares, missing: f.missing ?? null, flatness: f.flatness ?? null, lowDetail: f.lowDetail ?? null, frame: f, objects: r.fm.objects, phObjects: r.fm.phObjects, groups: r.fm.groups,
         visibleMeshes: r.fm.visibleMeshes, materials: r.fm.materials, geometries: r.fm.geometries, hiddenTop: r.fm.hiddenTop, flagMs: r.fm.ms,
         repetition: r.rep, life: r.life ? { ...r.life, keys: undefined } : null, lumGrid: r.th.Y, ms: Date.now() - t1, at: new Date().toISOString() };
       saveJson(OUT, tag(v.id), rec);

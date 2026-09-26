@@ -39,7 +39,9 @@ const SKY_HOLE_DEG = -1;
 type Saved = [THREE.Object3D, any, boolean];
 export class CoveragePass {
   private entries: CovEntry[] = [];
-  private idU = uniform(0).onObjectUpdate(({ object }: any) => object.userData.__covId ?? 0);
+  /** each mesh's id (a WeakMap, not userData: meshes may share one userData object, e.g. every terrain chunk) */
+  private idOf = new WeakMap<THREE.Object3D, number>();
+  private idU = uniform(0).onObjectUpdate(({ object }: any) => this.idOf.get(object) ?? 0);
   private mats = new Map<string, THREE.NodeMaterial>();
   private rt: THREE.RenderTarget | null = null;
   private flip: boolean | null = null;
@@ -128,7 +130,7 @@ export class CoveragePass {
   private target() { if (!this.rt) { this.rt = new THREE.RenderTarget(FLAG_W, FLAG_H, { type: THREE.UnsignedByteType }); } return this.rt; }
 
   /** the ID render of the current view; with `frame` (PNG base64 of the beauty frame) the frame metrics too */
-  async flagMask(o: { frame?: string; top?: number } = {}) {
+  async flagMask(o: { frame?: string; top?: number; mask?: boolean } = {}) {
     const t0 = performance.now(), { renderer, scene, camera, root, terrain } = this.c;
     if (this.flip === null) await this.calibrate();
     this.entries = [{ id: 0, key: '(sky)', top: 'sky', label: 'sky', ph: false, tier: null, tris: 0, area: 0, density: 0, geo: '', mat: '', instances: 0 }];
@@ -151,7 +153,7 @@ export class CoveragePass {
       const base = { key: r.key, top: r.top, label: r.label, tier: r.tier, tris: g.tris, area: g.area * s2, density: g.area > 0 ? g.tris / (g.area * s2) : 0, geo: m.geometry.uuid, mat: mats[0]?.uuid ?? '', instances: inst };
       const id = this.entries.length; this.entries.push({ id, ...base, ph: ph === true });
       if (ph === 'mixed') this.entries.push({ id: id + 1, ...base, key: r.key + ' [PLACEHOLDER faces]', ph: true });
-      m.userData.__covId = id;
+      this.idOf.set(ob, id);
       saved.push([ob, m.material, ob.visible]);
       m.material = Array.isArray(m.material) ? mats.map((x: any) => this.matFor(x, ph === 'mixed')) : this.matFor(mats[0], ph === 'mixed');
     }
@@ -177,7 +179,9 @@ export class CoveragePass {
     if (o.frame) {
       const img = await createImageBitmap(await (await fetch('data:image/png;base64,' + o.frame)).blob());
       const cv = new OffscreenCanvas(FLAG_W, FLAG_H), g = cv.getContext('2d')!; g.drawImage(img, 0, 0, FLAG_W, FLAG_H);
-      res.frame = analyseFrame(g.getImageData(0, 0, FLAG_W, FLAG_H).data, ids, dist, this.entries, elev, FLAG_W, FLAG_H, this.c.sunAlt() < -4);
+      const masks: { miss?: Uint8Array; low?: Uint8Array } = {};
+      res.frame = analyseFrame(g.getImageData(0, 0, FLAG_W, FLAG_H).data, ids, dist, this.entries, elev, FLAG_W, FLAG_H, this.c.sunAlt() < -4, masks);
+      if (o.mask) res.maskPng = await maskImage(ids, this.entries, masks, FLAG_W, FLAG_H);
     }
     res.ms = Math.round(performance.now() - t0);
     return res;
@@ -260,10 +264,11 @@ export function idShares(ids: Uint16Array, E: CovEntry[], elev: Float32Array, W:
   return { shares: { sky: r4(sky / N), placeholder: r4(ph / N), untiered: r4(untiered / N), skyHole: r4(hole / N), badId: r4(bad / N) },
     visibleMeshes: objects.length, materials: new Set(objects.map(q => q.e.mat)).size, geometries: new Set(objects.map(q => q.e.geo)).size,
     objects: objects.filter(q => q.px / N >= 0.002).slice(0, top).map(q => ({ key: q.e.key, share: r4(q.px / N), ph: q.e.ph, tier: q.e.tier, tris: q.e.tris, density: +q.e.density.toPrecision(3), inst: q.e.instances })),
+    phObjects: objects.filter(q => q.e.ph && q.px / N >= 0.0002).slice(0, 20).map(q => ({ key: q.e.key, share: r4(q.px / N), tier: q.e.tier })),
     groups: Object.fromEntries(Object.entries(groups).map(([k, x]) => [k, r4(x)])) };
 }
 /** beauty-frame metrics on the ID grid: `d` RGBA of the frame drawn to W×H; `ids`, `dist` from the ID render */
-export function analyseFrame(d: Uint8ClampedArray | Uint8Array, ids: Uint16Array, dist: Float32Array, E: CovEntry[], elev: Float32Array, W: number, H: number, night: boolean) {
+export function analyseFrame(d: Uint8ClampedArray | Uint8Array, ids: Uint16Array, dist: Float32Array, E: CovEntry[], elev: Float32Array, W: number, H: number, night: boolean, masks?: { miss?: Uint8Array; low?: Uint8Array }) {
   const N = W * H;
   const Y = new Float32Array(N); for (let k = 0; k < N; k++) Y[k] = 0.2126 * d[4 * k] + 0.7152 * d[4 * k + 1] + 0.0722 * d[4 * k + 2];
   const geo = (k: number) => ids[k] > 0 && ids[k] < E.length;
@@ -288,7 +293,8 @@ export function analyseFrame(d: Uint8ClampedArray | Uint8Array, ids: Uint16Array
       for (const [nx, ny] of [[bx + 1, by], [bx - 1, by], [bx, by + 1], [bx, by - 1]]) { if (nx < 0 || ny < 0 || nx >= BW || ny >= BH) continue; const nb = ny * BW + nx; if (flat[nb] && !seen[nb]) { seen[nb] = 1; st.push(nb); comp.push(nb); } } }
     if (comp.length >= 4) for (const b of comp) each(b % BW, (b / BW) | 0, k => { if (geo(k)) { miss[k] = 1; flatPx++; } }); }
   let holePx = 0; for (let k = 0; k < N; k++) if (ids[k] === 0 && elev[k] < SKY_HOLE_DEG) { miss[k] = 1; holePx++; }
-  let missPx = 0; for (let k = 0; k < N; k++) missPx += miss[k];
+  let missPx = 0; for (let k = 0; k < N; k++) missPx += miss[k]; if (masks) masks.miss = miss;
+  const lowM = new Uint8Array(N); if (masks) masks.low = lowM;
   // per object: high-frequency shading over interior pixels (all 4 neighbours the same object)
   const lap = new Float64Array(E.length), lapN = new Float64Array(E.length), ySum = new Float64Array(E.length);
   for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) { const k = y * W + x, id = ids[k]; if (!id || id >= E.length) continue;
@@ -299,7 +305,7 @@ export function analyseFrame(d: Uint8ClampedArray | Uint8Array, ids: Uint16Array
   let lowPx = 0, nearN = 0; const nearTsr: number[] = [], lowBy = new Map<number, number>();
   for (let k = 0; k < N; k++) { const id = ids[k]; if (!id || id >= E.length) continue; const dd = Math.max(0.3, dist[k]), tsr = E[id].density * dd * dd;
     if (dd < 30) { if (nearN++ % 7 === 0) nearTsr.push(tsr); }
-    const h = hf(id); if (tsr < K_TRI && !(h >= K_HF)) { lowPx++; lowBy.set(id, (lowBy.get(id) ?? 0) + 1); } }
+    const h = hf(id); if (tsr < K_TRI && !(h >= K_HF)) { lowPx++; lowM[k] = 1; lowBy.set(id, (lowBy.get(id) ?? 0) + 1); } }
   nearTsr.sort((a, b) => a - b);
   // visible tiling: textured 64 px blocks (≥ 90 % geometry, Y variance ≥ 16) whose autocorrelation has a peak ≥ 0.6 at a
   // lag of 6-38 px after a dip (heuristic, C: colonnades, merlons and courses are periodic by design; see the lag)
@@ -323,4 +329,17 @@ export function analyseFrame(d: Uint8ClampedArray | Uint8Array, ids: Uint16Array
     lowDetail: r4(lowPx / N), lowObjects, nearTriPerSr: nearTsr.length ? { p10: Math.round(nearTsr[Math.floor(nearTsr.length * 0.1)]), p50: Math.round(nearTsr[Math.floor(nearTsr.length / 2)]) } : null,
     tiling: { textured, periodic: tileBlocks, maxR: +tileMax.toFixed(2), blocks: tiles.slice(0, 6) },
   };
+}
+
+/** a false-colour picture of the ID render (for the eye: screenshots find problems): sky dark blue, PLACEHOLDER red,
+ *  missing magenta, low detail yellow, everything else a grey per object; PNG base64 */
+export async function maskImage(ids: Uint16Array, E: CovEntry[], m: { miss?: Uint8Array; low?: Uint8Array }, W: number, H: number) {
+  const c = new OffscreenCanvas(W, H), g = c.getContext('2d')!, img = g.createImageData(W, H), d = img.data;
+  for (let k = 0; k < W * H; k++) { const id = ids[k]; let r: number, gg: number, b: number;
+    if (id === 0) { r = 25; gg = 35; b = 70; } else if (id >= E.length) { r = 0; gg = 255; b = 0; }
+    else { const v = 70 + ((id * 2654435761) >>> 24) % 120; r = gg = b = v; if (m.low?.[k]) { r = 230; gg = 200; b = 40; } if (E[id].ph) { r = 220; gg = 40; b = 40; } }
+    if (m.miss?.[k]) { r = 230; gg = 40; b = 230; }
+    d[4 * k] = r; d[4 * k + 1] = gg; d[4 * k + 2] = b; d[4 * k + 3] = 255; }
+  g.putImageData(img, 0, 0); const u8 = new Uint8Array(await (await c.convertToBlob({ type: 'image/png' })).arrayBuffer());
+  let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode(...u8.subarray(i, i + 0x8000)); return btoa(s);
 }
