@@ -173,7 +173,8 @@ describe('coverage report', () => {
     for (let y = 0; y < 16; y++) for (let x = 80; x < 96; x++) d.set([0, 0, 0, 255], 4 * (y * W + x)); // one black tile
     for (let y = 40; y < 48; y++) for (let x = 0; x < 10; x++) d.set([255, 255, 255, 255], 4 * (y * W + x)); // clipped
     const g = gateMetrics(d, W, H, ids, iw, ih);
-    expect(g.blackTiles).toBe(1); expect(g.clipped).toBeCloseTo(80 / (W * H), 4); expect(g.crush).toBeCloseTo(256 / (W * H), 4); expect(g.flatRegion).toBeGreaterThan(0.3); expect(g.flatRegion).toBeLessThan(0.55);
+    expect(g.blackTiles).toBe(1); expect(g.clipped).toBeCloseTo(80 / (W * H), 4); expect(g.clipped2).toBeCloseTo(80 / (W * H), 4);
+    expect(gateMetrics(d, W, H, ids, iw, ih, { flames: [{ x: 5, y: 44, r: 8 }] }).clipped2).toBe(0); // a flame's clipped pixels are excluded expect(g.crush).toBeCloseTo(256 / (W * H), 4); expect(g.flatRegion).toBeGreaterThan(0.3); expect(g.flatRegion).toBeLessThan(0.55);
     const th = thresholds('nope.json'); expect(th.rows['T-A2f'].value).toBe(3);
     const r = (id: string, flat: number, dep = 'h1'): Rec => ({ id, area: 'town', sub: 'town:lanes', state: 's', q: 'test', seed: 7, dep, commit: 'abcdef12', sunAlt: 30, cam: [1, 2, 1.6, 3, 4],
       shares: { sky: 0.3, placeholder: 0, untiered: 0, phOrUntiered: 0, skyHole: 0, badId: 0 }, gate: { flatRegion: flat, clipped: 0, crush: 0, blackTiles: 0, meanLuma: 90 } });

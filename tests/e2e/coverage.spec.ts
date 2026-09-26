@@ -79,7 +79,8 @@ test('coverage', async ({ page }, info) => {
   console.log(`coverage: ${work.length} views (of ${all.length}; ${Object.keys(done).length} done) + ${vwork.length} variety places × ${vwork[0]?.days.length ?? 0} days at Q=${Q}, ${FRAMES} frames, fov ${fovArg ?? 'player'}`);
   if (!work.length && !vwork.length) return;
   const first = work[0] ?? { day: vwork[0].days[0], hour: vwork[0].hour, w: vwork[0].w };
-  await page.goto(`/?test&quality=${Q}&day=${first.day}&hour=${first.hour}&weather=${first.w}`);
+  // the default world has the court (UD-10); camera rigs pin court=evidence unless asked: COURT=evidence to sample that setting
+  await page.goto(`/?test&quality=${Q}&day=${first.day}&hour=${first.hour}&weather=${first.w}&court=${process.env.COURT ?? "seasonal"}`);
   await page.waitForFunction(() => (window as any).__parsa?.ready === true || (window as any).__parsa?.error, null, { timeout: 900_000 });
   await page.evaluate(() => (window as any).__parsa?.renderer?.setAnimationLoop(null)); // frozen test world: no frames behind the screenshots
   const err = await page.evaluate(() => (window as any).__parsa.error); if (err) throw new Error(err);

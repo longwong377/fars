@@ -183,8 +183,13 @@ export class CoveragePass {
       { // the gate metrics at the frame's own resolution (MASTER_PLAN T-A2f, T-A3c, T-A3k, T-A3n, T-B2m/f)
         const fc = new OffscreenCanvas(img.width, img.height), fg = fc.getContext('2d')!; fg.drawImage(img, 0, 0);
         const cam = this.c.camera, sd = this.c.sunDir?.(), v = new THREE.Vector3();
-        const nearSun = sd ? (x: number, y: number) => { v.set(((x + 0.5) / img.width) * 2 - 1, 1 - ((y + 0.5) / img.height) * 2, 0.5).unproject(cam).sub(cam.position).normalize(); return v.dot(sd) > Math.cos(2 * Math.PI / 180); } : () => false;
-        res.gate = gateMetrics(fg.getImageData(0, 0, img.width, img.height).data, img.width, img.height, ids, FLAG_W, FLAG_H, nearSun);
+        const sunAngle = sd ? (x: number, y: number) => { v.set(((x + 0.5) / img.width) * 2 - 1, 1 - ((y + 0.5) / img.height) * 2, 0.5).unproject(cam).sub(cam.position).normalize(); return Math.acos(Math.min(1, v.dot(sd))) * 180 / Math.PI; } : () => 180;
+        // lit flames on screen (T-A3c2 excludes their clipped pixels): each fire's flame projected, radius from its size, at least 6 px
+        const flames: { x: number; y: number; r: number }[] = [];
+        for (const f of (this.c.world.fire?.fires ?? []) as any[]) { if (!f.lit || f.pos.distanceTo(cam.position) > 600) continue; const p = f.pos.clone(); p.y += 0.4; const q = p.clone().project(cam);
+          if (q.z < -1 || q.z > 1 || Math.abs(q.x) > 1.1 || Math.abs(q.y) > 1.1) continue; const d = p.distanceTo(cam.position), fpx = (1.2 / Math.max(0.5, d)) / Math.tan((cam.fov * Math.PI) / 360) * (img.height / 2);
+          flames.push({ x: (q.x + 1) / 2 * img.width, y: (1 - q.y) / 2 * img.height, r: Math.max(6, 1.5 * fpx) }); }
+        res.gate = gateMetrics(fg.getImageData(0, 0, img.width, img.height).data, img.width, img.height, ids, FLAG_W, FLAG_H, { sunAngle, flames });
         res.gate.fireLux = +(this.c.world.fire?.localIlluminance?.(cam.position) ?? 0).toPrecision(3);
       }
       const cv = new OffscreenCanvas(FLAG_W, FLAG_H), g = cv.getContext('2d')!; g.drawImage(img, 0, 0, FLAG_W, FLAG_H);
@@ -358,12 +363,26 @@ export async function maskImage(ids: Uint16Array, E: CovEntry[], m: { miss?: Uin
  *  T-A3c clipped share (any channel ≥ 254; the sun's disc, within 2° of the sun, excluded; flames are NOT excluded);
  *  T-A3k crush share (every channel ≤ 2; the report applies it by day); T-A3n black tiles (16 px tiles exactly 0,0,0);
  *  T-B2 the mean tone-mapped luma of the frame (0-255, Rec. 709 on the display values) */
-export function gateMetrics(d: Uint8ClampedArray | Uint8Array, W: number, H: number, ids: Uint16Array, iw: number, ih: number, nearSun: (x: number, y: number) => boolean = () => false) {
+export function gateMetrics(d: Uint8ClampedArray | Uint8Array, W: number, H: number, ids: Uint16Array, iw: number, ih: number,
+  o: { sunAngle?: (x: number, y: number) => number; flames?: { x: number; y: number; r: number }[] } = {}) {
   const N = W * H, sky = (x: number, y: number) => ids[Math.min(ih - 1, Math.floor((y * ih) / H)) * iw + Math.min(iw - 1, Math.floor((x * iw) / W))] === 0;
-  let lum = 0, clip = 0, crush = 0;
+  const sunA = o.sunAngle ?? (() => 180), flames = o.flames ?? [];
+  let lum = 0, clip = 0, crush = 0; const cl = new Uint8Array(N);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = 4 * (y * W + x), r = d[i], g = d[i + 1], b = d[i + 2];
     lum += 0.2126 * r + 0.7152 * g + 0.0722 * b; if (r <= 2 && g <= 2 && b <= 2) crush++;
-    if ((r >= 254 || g >= 254 || b >= 254) && !(sky(x, y) && nearSun(x, y))) clip++; }
+    if (r >= 254 || g >= 254 || b >= 254) { cl[y * W + x] = 1; if (!(sky(x, y) && sunA(x, y) < 2)) clip++; } }
+  // T-A3c2: clipped, excluding the sun's disc and 5° aureole, flames, and specular glints under 4 px (8-connected components
+  // whose bounding box is under 4 px both ways)
+  let clip2 = 0; const seenC = new Uint8Array(N);
+  for (let k0 = 0; k0 < N; k0++) { if (!cl[k0] || seenC[k0]) continue; const comp = [k0], st = [k0]; seenC[k0] = 1; let x0 = W, x1 = 0, y0 = H, y1 = 0;
+    while (st.length) { const k = st.pop()!, x = k % W, y = (k / W) | 0; x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const nx = x + dx, ny = y + dy; if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue; const nk = ny * W + nx; if (cl[nk] && !seenC[nk]) { seenC[nk] = 1; st.push(nk); comp.push(nk); } } }
+    if (x1 - x0 + 1 < 4 && y1 - y0 + 1 < 4) continue;
+    for (const k of comp) { const x = k % W, y = (k / W) | 0; if (sunA(x, y) < 5) continue; if (flames.some(f => (x - f.x) ** 2 + (y - f.y) ** 2 < f.r * f.r)) continue; clip2++; } }
+  // T-B2s: skyline contrast (mean luma of the 10 px of sky above the skyline minus the 10 px of ground below it)
+  let sS = 0, sN = 0, gS = 0, gN = 0; const Yat = (x: number, y: number) => { const i = 4 * (y * W + x); return 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]; };
+  for (let x = 0; x < W; x += 2) { let y = 0; while (y < H && sky(x, y)) y++; if (y < 10 || y >= H - 10) continue;
+    for (let k = 1; k <= 10; k++) { sS += Yat(x, y - k); sN++; if (!sky(x, y + k - 1)) { gS += Yat(x, y + k - 1); gN++; } } }
   let black = 0; for (let ty = 0; ty + 16 <= H; ty += 16) for (let tx = 0; tx + 16 <= W; tx += 16) { let all = true;
     for (let y = ty; y < ty + 16 && all; y++) for (let x = tx; x < tx + 16; x++) { const i = 4 * (y * W + x); if (d[i] || d[i + 1] || d[i + 2]) { all = false; break; } } if (all) black++; }
   const B = 12, BW = Math.floor(W / B), BH = Math.floor(H / B), flat = new Uint8Array(BW * BH), px = new Uint16Array(BW * BH);
@@ -375,5 +394,6 @@ export function gateMetrics(d: Uint8ClampedArray | Uint8Array, W: number, H: num
     while (st.length) { const b = st.pop()!, bx = b % BW, by = (b / BW) | 0;
       for (const [nx, ny] of [[bx + 1, by], [bx - 1, by], [bx, by + 1], [bx, by - 1]]) { if (nx < 0 || ny < 0 || nx >= BW || ny >= BH) continue; const nb = ny * BW + nx; if (flat[nb] && !seen[nb]) { seen[nb] = 1; st.push(nb); comp.push(nb); } } }
     const a = comp.reduce((t, b) => t + px[b], 0); if (a >= 0.02 * N) flatPx += a; }
-  return { W, H, flatRegion: r4(flatPx / N), clipped: r4(clip / N), crush: r4(crush / N), blackTiles: black, meanLuma: +(lum / N).toFixed(1), fireLux: 0 };
+  return { W, H, flatRegion: r4(flatPx / N), clipped: r4(clip / N), clipped2: r4(clip2 / N), crush: r4(crush / N), blackTiles: black, meanLuma: +(lum / N).toFixed(1),
+    skylineContrast: sN > 50 && gN > 50 ? +(sS / sN - gS / gN).toFixed(1) : null, flames: flames.length, fireLux: 0 };
 }

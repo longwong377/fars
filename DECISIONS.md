@@ -5597,7 +5597,9 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Consequence:** PROGRESS and the gates report coverage per area; "done" for photorealism means the coverage passes.
 
 ## D-235 The coverage harness: what it samples, what it measures, and how the backlog reads it (session 8, D-233)
-- **Sampler (`tools/dev/coverage_points.ts`, committed sample `tests/data/coverage_points.json`, seed 1):** 447 first visits
+- **Sampler (`tools/dev/coverage_points.ts`, committed sample `tests/data/coverage_points.json`):** seeded from the first 8 hex
+  digits of a commit hash (MASTER_PLAN §4.2; the committed sample's seed 1139897884 is commit 43f1761c; a test re-derives it
+  and checks the commit exists), never a chosen number. 447 first visits
   + 68 revisits = 515 views, and 5 variety places × 3 days. Areas and weights: Terrace 150 (strata by building × roofed/open,
   stairs, open Terrace; ∝ √walkable area, min 3: the Treasury, Harem, garrison, Gate, Tachara, Hadish, Tripylon, Hall of 100
   Columns and Apadana each have strata), town 120 (lanes 45, open ground in the quarters 10, courts and yards 30, rooms 12,
@@ -5607,10 +5609,16 @@ moment-*-webgpu.png in the worktree, not committed).**
   near ring at ±2,048 m, the mid ring at ±10,240 m, the fields at ±40,960 m, and the world's end at ±71,680 m), the approach
   25, Kuh-e Rahmat 20. Why these weights: the Terrace is densest in distinct rooms per m²; the town holds most lives and the
   largest placeholder; the plain is the largest area but changes slowly with position; the player can walk the whole far
-  ring (nothing stops a walker: audit B, M2), so the far world and its edges are sampled, thinly. Twelve world states
-  (day-heavy: 60 % clear day across April–August and January; dusk, dawn, night; overcast, rain, snow, dust) are dealt per area
-  ∝ their shares; 15 % of each area's places are revisited at a contrasting state (another season and another hour or
-  weather), so no place is judged at one moment only. Headings: 60 % down one of the three most open directions, 40 % random.
+  ring (nothing stops a walker: audit B, M2), so the far world and its edges are sampled, thinly. **Times
+  (`tools/dev/coverage_time.ts`, MASTER_PLAN axis B, D-242):** every view gets a month, one of 8 hour bands and one of 9
+  weather states; every month, band and state appears in every area (T-B1m/h/w), weather is drawn by the simulated climate's
+  frequency for that month and band with a floor of one view per state, and the world-level pairs (band × weather,
+  month × band, area × weather: T-B1p) are completed (100 % in the committed sample). Each view is realised as a real day
+  and hour of the simulated year (WeatherSystem(1), the test pages' seed) where that combination happens, with weather
+  'auto'; only when the climate never makes it (31 of 515: the default year has NO snow day at all, lightning only in April,
+  October and November) is the state forced through the override, in the months it belongs to. 15 % of each area's places
+  are revisited 3–9 months away in another hour band. Headings: 60 % down one of the three most open directions, 40 % random.
+  Areas are INTERIM (not the §4.3 registry, which is not built).
 - **The camera is the player's** (audit B, M4): the player's 70° field of view and no rig clearance (`__parsa.view(..., {
   rigClear: 0 })`); the look frame at quality Q (test for metrics passes, ultra where the queue allows), 960×540 (Q-639).
 - **ID/flag pass (`src/dev/coverage.ts`, `__parsa.flagMask()`):** a second render with override materials that write each
@@ -5627,3 +5635,13 @@ moment-*-webgpu.png in the worktree, not committed).**
   sub-area and state, worst first; placeholder and low-detail objects by the pixels they cost; provisional per-view fail
   thresholds placeholder > 5 %, missing > 5 %, low detail > 25 % (C, Q-633; to be set against rubric scores, never lowered
   to pass). The metrics find problems; they do not certify photorealism: the rubric reviewer still scores a stratified sample.
+- **MASTER_PLAN rev 2 gate metrics (per view, `gateMetrics` at the frame's own resolution):** T-A1 (placeholder or untiered
+  pixels), T-A1m (drawn meshes in view with tier and source), T-A2f (12 px blocks with Ystd/Y < 0.03, sky excluded, in
+  connected regions ≥ 2 % of the frame), T-A3c (clipped; the sun's disc excluded, flames NOT excluded), T-A3k (crush, by day),
+  T-A3n (16 px tiles exactly black), T-B2m/T-B2f (mean tone-mapped luma of moonless / ≥ 90 %-moon night views with the fire
+  illuminance at the eye < 0.05 lx); the board (in the report) gives per interim area and id PASS / FAIL / INSUFFICIENT /
+  STALE with the evidence commit and a dependency hash (`tools/dev/coverage_dep.ts`: src, public/generated, the spec); evidence
+  whose seed or camera is not the sample file's is refused; worst-first extras are reported apart.
+- **The camera rig's world now follows the clock** (`src/main.ts` simStep): before, `__parsa.view()` froze the people's
+  simulation at the page-load time, so any spec that stepped `setTime` within one page (plain.spec, crowd_scale.spec's later
+  scenes, this spec) showed the sun of the new time over the people of the old one. Render-affecting for such specs.

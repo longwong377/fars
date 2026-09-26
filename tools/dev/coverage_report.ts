@@ -14,10 +14,13 @@ import { depHash } from './coverage_dep';
 import { HOUR_BANDS, WEATHERS, pairCoverage } from './coverage_time';
 
 /** the threshold rows this report computes (MASTER_PLAN §4, gates/thresholds.json; the file wins when present) */
-export const GATE_IDS = ['T-A1', 'T-A1m', 'T-A2f', 'T-A3c', 'T-A3k', 'T-A3n', 'T-B2m', 'T-B2f', 'T-B1m', 'T-B1h', 'T-B1w', 'T-B1p', 'T-C1'] as const;
+export const GATE_IDS = ['T-A1', 'T-A1m', 'T-A2f', 'T-A3c', 'T-A3c2', 'T-A3k', 'T-A3n', 'T-B2m', 'T-B2f', 'T-B2s', 'T-B2l', 'T-B1m', 'T-B1h', 'T-B1w', 'T-B1p', 'T-C1'] as const;
+/** ids this report owns but cannot measure yet: they need reference photographs per stratum (T-A2r), never renders */
+export const NEEDS_REFERENCES = ['T-A2f2', 'T-A2s2', 'T-A2k'] as const;
 const FALLBACK: Record<string, { op: string; value: number; unit: string; sample_min: number }> = {
   'T-A1': { op: '<=', value: 0, unit: '% of pixels', sample_min: 59 }, 'T-A1m': { op: '>=', value: 100, unit: '%', sample_min: 1 }, 'T-A2f': { op: '<=', value: 3, unit: '% of frame', sample_min: 59 },
-  'T-A3c': { op: '<=', value: 0.5, unit: '% of frame', sample_min: 59 }, 'T-A3k': { op: '<=', value: 1, unit: '% of frame', sample_min: 59 },
+  'T-A3c': { op: '<=', value: 0.5, unit: '% of frame', sample_min: 59 }, 'T-A3c2': { op: '<=', value: 0.5, unit: '% of frame', sample_min: 59 },
+  'T-B2s': { op: '>=', value: 3, unit: '/255', sample_min: 8 }, 'T-B2l': { op: '>=', value: 8, unit: '/255', sample_min: 8 }, 'T-A3k': { op: '<=', value: 1, unit: '% of frame', sample_min: 59 },
   'T-A3n': { op: '<=', value: 0, unit: 'count', sample_min: 59 }, 'T-B2m': { op: '<=', value: 20, unit: '/255', sample_min: 8 }, 'T-B2f': { op: '<=', value: 45, unit: '/255', sample_min: 8 },
   'T-B1m': { op: '>=', value: 12, unit: 'count', sample_min: 1 }, 'T-B1h': { op: '>=', value: 8, unit: 'count', sample_min: 1 }, 'T-B1w': { op: '>=', value: 9, unit: 'count', sample_min: 1 },
   'T-B1p': { op: '>=', value: 100, unit: '%', sample_min: 1 }, 'T-C1': { op: '<=', value: 0, unit: 'count', sample_min: 16 } };
@@ -29,9 +32,10 @@ export function thresholds(file = 'gates/thresholds.json') {
 /** per-view values of the gate metrics (null where the view does not qualify: T-A3k by day only, T-B2 at night away from fire) */
 export function viewGate(r: Rec) {
   const g = r.gate, s = r.shares; if (!g || !s) return null;
-  const awayFromFire = (g.fireLux ?? 0) < 0.05;
-  return { 'T-A1': 100 * (s.phOrUntiered ?? (s.placeholder + s.untiered)), 'T-A1m': typeof r.tieredSourced === 'number' ? 100 * r.tieredSourced : null, 'T-A2f': 100 * g.flatRegion, 'T-A3c': 100 * g.clipped, 'T-A3k': (r.sunAlt ?? -90) > 0 ? 100 * g.crush : null, 'T-A3n': g.blackTiles,
-    'T-B2m': r.band === 'moonless-night' && awayFromFire ? g.meanLuma : null, 'T-B2f': r.band === 'moonlit-night' && (r.moonFrac ?? 0) >= 0.9 && awayFromFire ? g.meanLuma : null,
+  const awayFromFire = (g.fireLux ?? 0) < 0.05, fullMoon = r.band === 'moonlit-night' && (r.moonFrac ?? 0) >= 0.9 && awayFromFire;
+  return { 'T-A1': 100 * (s.phOrUntiered ?? (s.placeholder + s.untiered)), 'T-A1m': typeof r.tieredSourced === 'number' ? 100 * r.tieredSourced : null, 'T-A2f': 100 * g.flatRegion, 'T-A3c': 100 * g.clipped, 'T-A3c2': typeof g.clipped2 === 'number' ? 100 * g.clipped2 : null, 'T-A3k': (r.sunAlt ?? -90) > 0 ? 100 * g.crush : null, 'T-A3n': g.blackTiles,
+    'T-B2m': r.band === 'moonless-night' && awayFromFire ? g.meanLuma : null, 'T-B2f': fullMoon ? g.meanLuma : null, 'T-B2l': fullMoon ? g.meanLuma : null,
+    'T-B2s': r.band === 'moonless-night' && typeof g.skylineContrast === 'number' ? g.skylineContrast : null,
     'T-C1': r.rigClear ?? 0 } as Record<string, number | null>;
 }
 const pass = (op: string, v: number, t: number) => op === '<=' ? v <= t + 1e-9 : op === '>=' ? v >= t - 1e-9 : op === '<' ? v < t : v > t;
@@ -60,7 +64,7 @@ export function validate(recs: Rec[], sample: any) {
 export const FAIL = { placeholder: 0.05, missing: 0.05, lowDetail: 0.25 } as const;
 export interface Rec { id: string; place?: string; area: string; sub: string; state: string; q: string; error?: string; revisit?: boolean; sunAlt?: number;
   seed?: number; commit?: string; dep?: string; extra?: boolean; tieredSourced?: number; cam?: number[]; month?: number; band?: string; weather?: string; moonFrac?: number; forced?: boolean; rigClear?: number;
-  gate?: { flatRegion: number; clipped: number; crush: number; blackTiles: number; meanLuma: number; fireLux?: number } | null;
+  gate?: { flatRegion: number; clipped: number; clipped2?: number; crush: number; blackTiles: number; meanLuma: number; skylineContrast?: number | null; fireLux?: number } | null;
   shares?: { sky: number; placeholder: number; untiered: number; phOrUntiered?: number; skyHole: number; badId: number }; missing?: number | null; flatness?: number | null; lowDetail?: number | null;
   frame?: any; objects?: { key: string; share: number; ph: boolean; tier: string | null; tris: number; density: number }[]; phObjects?: { key: string; share: number }[]; groups?: Record<string, number>;
   drawCalls?: number; triangles?: number; materials?: number; geometries?: number; visibleMeshes?: number; repetition?: any; life?: any; ms?: number }
