@@ -277,6 +277,9 @@ export function plotCells(s: Site, idx: number): { open: number[]; rooms: number
   let t = PLOT_CELLS.get(s);
   if (!t) { t = s.plots.map(() => ({ open: [] as number[], rooms: [] as number[] }));
     for (let k = 0; k < s.cell.length; k++) { const c = s.cell[k]; if (c < 0) continue; if (s.sub[k] === ROOM) t[c].rooms.push(k); else if (s.sub[k] === COURT || s.sub[k] === YARD) t[c].open.push(k); }
+    // D-234: a court cell with a fixture in it (a ladder's foot, a bench, fodder, a manger: houseplan.ts) is not a spot to
+    // stand in, unless the court has no other cell
+    const bl = s.blocked; if (bl?.size) for (const x of t) { const o = x.open.filter(k => !bl.has(k)); if (o.length) x.open = o; }
     PLOT_CELLS.set(s, t); }
   return t[idx];
 }

@@ -355,6 +355,25 @@
    "terms": [
     "qanat"
    ]
+  },
+  {
+   "id": "windcatcher",
+   "what": "windcatchers (badgir) on town houses",
+   "reason": "the oldest archaeologically verified windcatcher is 14th c. CE (Iranica 'Badgir', WINDCATCHER-SX); nothing attests one in 467 BCE (D-234)",
+   "terms": [
+    "windcatcher",
+    "badgir",
+    "wind catcher"
+   ]
+  },
+  {
+   "id": "fired-brick-house",
+   "what": "fired-brick walls or vaults in ordinary town houses",
+   "reason": "fired and glazed brick is attested for monuments (Tol-e Ajori, Susa); houses are of sun-dried brick (D-234, C)",
+   "terms": [
+    "fired-brick house",
+    "brick vault"
+   ]
   }
  ]
 }

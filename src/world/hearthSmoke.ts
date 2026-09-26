@@ -212,7 +212,7 @@ export class SmokeModel {
     let pn = 0, pc = 0; pop.households.forEach(hh => { if (hh.zone === 'plain') { pn++; pc += hh.members.length; } }); if (pn) this.personsPerHh = pc / pn;
   }
   /** households linked to a fire, and town households per quarter (tests, F3) */
-  linkStats() { let linked = 0; for (const h of this.fireHh) if (h >= 0) linked++; return { fires: this.fires.length, linked, quarters: Object.fromEntries([...this.siteHh].map(([k, v]) => [k, v.length])), personsPerPlainHh: +this.personsPerHh.toFixed(2) }; }
+  linkStats() { let linked = 0; for (const h of this.fireHh) if (h >= 0) linked++; return { fires: this.fires.filter(f => f.kind !== 'lamp').length /* D-234: the houses' lamps are not the households' hearths */, linked, quarters: Object.fromEntries([...this.siteHh].map(([k, v]) => [k, v.length])), personsPerPlainHh: +this.personsPerHh.toFixed(2) }; }
   private spansFor(h: number, d: number) {
     const C = this.pop.cal.ctx(d), hd = this.pop.hday(h, d);
     return { hearth: hearthSpans(hd, C.sun.set, C.wx.tmin < COLD_EVENING_C), oven: ovenSpans(hd) };

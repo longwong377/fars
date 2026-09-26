@@ -1023,5 +1023,50 @@
   "cite": "references/stairs today.webp (INDEX.md §6 #33): the Grand Stair from its N landing, the recess wall's huge irregular blocks on the left, the Gate columns beyond (stock photograph, watermarked; third-party, reference only)",
   "url": "references/stairs today.webp",
   "access": "supplied by the user (session 8); the joint pattern judged by eye (D-232)"
+ },
+ "HASANLU-SX": {
+  "cite": "M. D. Danti, 'The Iron Age architecture at Hasanlu: an essay' (Expedition 31/2-3, 1989) and M. Roaf, 'The Iron Age architecture of Hasanlu: an interim review' (2012); M. D. Danti, 'The \"Artisan's House\" of Hasanlu Tepe, Iran', Iran 49 (2011)",
+  "url": "https://www.penn.museum/sites/expedition/the-iron-age-architecture-at-hasanlu-an-essay/",
+  "access": "search extracts only (2026-09-26; penn.museum, academia blocked, B6): 'mud brick set on foundations of roughly squared stones'; 'a roughly 1-m uncut stone foundation topped by rows of bricks'; 'wooden columns, doorjambs, rafters, and roofing'; 'wooden columns standing on irregular, uncarved stone slab bases'; 'paired wooden portico columns'; 'a low mud-brick bench against the back wall of the portico'; reed impressions in roof collapse; each major building 'a spiral stairway ... to a second story or to the roof' built round a brick column"
+ },
+ "BABAJAN-SX": {
+  "cite": "C. Goff, excavations at Baba Jan Tepe (Iran 1969-1985), via Encyclopaedia Iranica 'Bābā Jān Tepe' and Wikipedia",
+  "url": "https://www.iranicaonline.org/articles/baba-jan-tepe/",
+  "access": "search extracts only (2026-09-26): 'stone foundations, plaster-decorated mudbrick walls and wooden columns'; the Painted Chamber (10 x 12 m) 'opened southward onto an enclosed courtyard, had two columns, a niche and doorway with reveals, white walls decorated with red paint, and a painted-tile ceiling'; a roof of primary and secondary beams"
+ },
+ "NUSHIJAN-SX": {
+  "cite": "D. Stronach and M. Roaf, Nush-i Jan I: the major buildings of the Median settlement (2007); Cambridge History of Iran ch. 19; Livius 'Tepe Nush-e Jan'",
+  "url": "https://www.livius.org/articles/place/tepe-nush-e-jan/",
+  "access": "search extracts only (2026-09-26): mud-brick buildings from c. 750 BCE; a columned hall whose 'flat roof ... rested on three rows of four wooden columns'; the fort 'a single entrance, a guardroom, a ramp-staircase, and four narrow storage magazines'; buttressed, recessed mud-brick walls"
+ },
+ "TALLTAKHT-SX": {
+  "cite": "Pasargadae, Tall-i Takht (D. Stronach's excavation 1961-63; Iranica 'Pasargadae'; Livius; pasargadae.info)",
+  "url": "https://www.livius.org/articles/place/pasargadae/pasargadae-photos/pasargadae-tall-e-takht/",
+  "access": "search extracts only (2026-09-26): 'a large strong-walled mud-brick structure was erected on the terrace' (early Darius); mud-brick structures of the 5th-4th c. on the stone platform"
+ },
+ "MESO-HOUSE-SX": {
+  "cite": "The Mesopotamian private house of the first millennium BCE: Babylon Merkes (O. Reuther 1926 via H. D. Baker 2014; 'Bathrooms and toilets in Babylon-Merkes', Kaskal 2024); general summaries of Mesopotamian house construction",
+  "url": "https://edizionicafoscari.unive.it/en/edizioni4/riviste/kaskal/2024/1/bathrooms-and-toilets-in-babylon-merkes-speculatio/",
+  "access": "search extracts only (2026-09-26): 'the doors themselves were made of wood and swung on doorposts set in sockets of brick or stone'; 'roofs were of mud over layers of matting laid on a framework of wooden rafters, and wood was also used for stairways as well as door and window-frames'; well-built one-storey house walls 'often 1.0 m thick, i.e. 2 ammatu ... made up of three bricks'; bathrooms with sloping floors draining into ring-drains"
+ },
+ "IR-VERNROOF-SX": {
+  "cite": "Iranian vernacular flat roofs: Encyclopaedia Iranica 'Construction materials and techniques in Persian architecture' and 'Gilan xii. Rural housing'; argemishijan.com 'Roof styles in ancient Iranian houses'",
+  "url": "https://argemishijan.com/roof-styles-in-ancient-iranian-houses/?lang=en",
+  "access": "search extracts only (2026-09-26; an ethnographic analogy, C): 'wooden beams, usually made of poplar trees, in a parallel shape roughly 50 cm wide and maximum 4 meters long', cross pieces (partoo), 'straw made of woven stalks ... or ... a layer of foliage', 'paste-like mud ... (jabbeh) which adopts a certain slope so as to drain out water'; kahgel = mud with chopped straw"
+ },
+ "IR-BRICK": {
+  "cite": "Encyclopaedia Iranica, 'Brick' and 'Construction materials and techniques in Persian architecture' (Achaemenid brick sizes)",
+  "url": "https://www.iranicaonline.org/articles/brick-blocks-of-tempered-mud/",
+  "access": "search extracts only (2026-09-26): the standard Achaemenid brick ~33 cm (the extract truncated), Parthian bricks 'similar to those of the Achaemenid period, measuring 30-40 x 30-40 x 10-13 cm'; the Persepolis Treasury walls of sun-dried brick"
+ },
+ "ROLLER-SX": {
+  "cite": "Iron Age domestic architecture of the southern Levant (Armstrong Institute 'Let the homes speak'; Iron Age pillared house summaries): the flat earth roof tamped with a roller after the rains",
+  "url": "https://armstronginstitute.org/1072-let-the-homes-speak",
+  "access": "search extract only (2026-09-26): 'The flat roof, made of earth and chalk, could be tamped down with a roller ... after the rainy season' (Iron Age II, an analogy far from Fars: C)"
+ },
+ "WINDCATCHER-SX": {
+  "cite": "Encyclopaedia Iranica 'Bādgīr'; press summaries (France 24, 2023)",
+  "url": "https://www.iranicaonline.org/articles/badgir-traditional-structure-for-passive-air-conditioning/",
+  "access": "search extracts only (2026-09-26): 'the oldest archaeologically verified windcatcher in Yazd ... dates back to the 14th century' (CE); earlier dates are asserted without evidence: no windcatcher is built in 467 BCE"
  }
 }

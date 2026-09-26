@@ -5,6 +5,7 @@
 // Frames: grid (e = grid east, n = grid north, metres, D-002); a site's local (u, v) is its frame rotated by theta
 // (CCW from grid east) about its centre. World = (x = e, y = height, z = −n).
 import { Rng } from '../../core/rng';
+import type { HouseLife, Fixture } from './houseplan';
 
 export type P2 = [number, number];
 /** cell codes (≥ 0 = plot index) */
@@ -13,6 +14,9 @@ export const OUT = -1, LANE = -2, FREE = -3, SQUARE = -4, RES = -5;
 export const NONE = 0, ROOM = 1, COURT = 2, YARD = 3;
 export const ROOF_T = 0.35; // roof slab (reeds, poles and packed earth), C
 export const DOOR_H = 2.0;  // door opening height (C)
+/** D-234: the court facades end under the roof, whose eave oversails the court: the wall's top as seen from the court is the
+ *  roof's top plus the eave's mud lip (was the roof plus the parapet: the houses had parapets round their courts) */
+export const EAVE_LIP = 0.12;
 
 export interface Frame { c: P2; theta: number }
 export const toGrid = (f: Frame, u: number, v: number): P2 => { const c = Math.cos(f.theta), s = Math.sin(f.theta); return [f.c[0] + u * c - v * s, f.c[1] + u * s + v * c]; };
@@ -43,6 +47,9 @@ export class Site {
   /** edges where no wall stands at all (another structure closes them, e.g. the Tol-e Ajori gate body) */
   readonly noWall = new Set<number>();
   readonly plots: Plot[] = []; readonly fittings: Fitting[] = [];
+  /** D-234 (houseplan.ts planHouses): each plot's house life, the court and roof fixtures, and the court cells a fixture
+   *  stands in (the people do not stand there) */
+  lives?: HouseLife[]; fixtures?: Fixture[]; blocked?: Set<number>;
   readonly u0: number; readonly v0: number;
   private roomN = 0;
   constructor(readonly meta: SiteMeta, readonly frame: Frame, readonly W: number, readonly H: number) {
@@ -118,7 +125,7 @@ export class Site {
       if (s1 !== ROOM || this.room[k1] === this.room[k2]) return null;
       return { kind: 'partition', sides: [{ plot: c1, top: p.height - ROOF_T }], thick: 0.4 };
     }
-    if (s1 === ROOM || s2 === ROOM) return { kind: 'facade', sides: [{ plot: c1, top: p.height + p.parapet }], thick: 0.55 };
+    if (s1 === ROOM || s2 === ROOM) return { kind: 'facade', sides: [{ plot: c1, top: p.height + EAVE_LIP }], thick: 0.55 };
     if ((s1 === COURT && s2 === YARD) || (s1 === YARD && s2 === COURT)) return { kind: 'yard', sides: [{ plot: c1, top: p.yardWall }], thick: 0.45 };
     return null;
   }

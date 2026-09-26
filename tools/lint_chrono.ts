@@ -87,6 +87,13 @@ for (const [file, zone] of [['src/data/settlement.json', 'settlement'], ['src/da
   for (const w of plan.water) { okRow(w.row, `water ${w.kind}`); okFeat(w.feature, `water ${w.kind}`); n++; }
   for (const r of plan.roads) { okRow(r.row, `road ${r.id}`); okFeat(r.feature, `road ${r.id}`); n++; }
   for (const m of plan.middens) { okRow(m.row, 'midden'); okFeat(m.feature, 'midden'); n++; }
+  // D-234: every house fixture (houseplan.ts) names a row that covers its plot's feature; no fixture kind matches the blocklist;
+  // every source key of the house parts (houses.ts HOUSE_PARTS, shown in F3) resolves
+  for (const s of plan.sites) for (const f of s.fixtures ?? []) { const p = s.plots[f.plot]; okRow(f.row, `fixture ${f.kind} of ${p.id}`); n++;
+    const rf = rows.get(f.row); if (rf && !(rf.in_feature ?? []).includes(p.feature)) errors.push(`fixture ${f.kind} of ${p.id}: row ${f.row} does not cover feature ${p.feature}`);
+    for (const t of terms) if (t.re.test(f.kind.replace(/_/g, ' ')) || t.re.test(f.note)) errors.push(`fixture ${f.kind} of ${p.id}: matches blocklist '${t.id}'`); }
+  const { HOUSE_PARTS } = await import('../src/world/settlement/houses');
+  for (const [i, hp] of HOUSE_PARTS.entries()) { for (const k of hp.src.split(';')) if (k && !sources[k]) errors.push(`house part ${i}: unknown source key ${k}`); if (!['A', 'B', 'C'].includes(hp.tier)) errors.push(`house part ${i}: bad tier ${hp.tier}`); }
   // absent features keep their ground empty
   for (const f of (S.features as any[]).filter(f => f.present_467 === false && f.xy)) {
     for (const s of plan.sites) for (const p of s.plots) { const [i0, j0, i1, j1] = p.rect; const c = s.grid((s.cu(i0) + s.cu(i1 - 1)) / 2, (s.cv(j0) + s.cv(j1 - 1)) / 2);
