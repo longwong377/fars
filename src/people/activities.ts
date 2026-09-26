@@ -110,6 +110,9 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
       { when: /empty sledge/, prop: 'goad', animals: { kind: 'draught', species: ['ox', 'ox', 'ox', 'ox'], n: 4, pace: 0.8 }, work: [{ kind: 'sledge', at: [0, 0, -9.0] }],
         note: 'driving the two yoke back to the quarry with the empty sledge (C: D-256)' },
       { when: /beside the drum sledge/, note: 'one of the gang walking beside the drum sledge, with the levers and the rollers for the bad places of the road (C: D-256)' },
+      // session 9 (G77): the roof timbers for the building works, beams hauled in on ox carts along the royal road (C)
+      { when: /cart of roof timbers|emptied timber cart/, animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0.9 }, work: [{ kind: 'cart_timber', at: [0, 0, -4.7] }],
+        note: 'a carter walking ahead of his yoked oxen and a cart of roof beams for the building works (the Susa charter\'s timbers from far: A for Susa, B analogy here; carts, loads and rate C)' },
       { when: /ox cart/, animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0.9 }, work: [{ kind: 'cart', at: [0, 0, -4.7] }],
         note: 'a carter walking ahead of his yoked oxen and their cart of grain sacks on the road (carts silent at Persepolis, Assyrian reliefs B analogy; draught cattle Q-193; C)' }] },
   carry_sack: { anim: 'carry_shoulder', moving: true, prop: 'sack', sound: 'footsteps', tier: 'B', note: 'sack on the shoulder (porters on the tribute reliefs carry skins and bags: B)',
@@ -199,6 +202,8 @@ export const ACTIVITIES: Record<ActivityId, Performance> = {
         note: 'a driver holding his string of pack animals while the loads are taken off (C)' },
       { when: /holding the camels/, anim: 'hold_lead', prop: 'lead', work: [], animals: { kind: 'string', species: ['camel_pack'], n: 4, pace: 0, gap: 1.2, side: -1.1, lead: -1.5 },
         note: 'a camel driver holding his string while the loads are taken off (C)' },
+      { when: /holding the timber cart/, anim: 'idle', prop: 'goad', work: [{ kind: 'cart_timber', at: [0, 0, -4.7] }], animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0 },
+        note: 'a carter standing by his oxen while the beams are levered off at the drum ground (C)' },
       { when: /holding the ox cart/, anim: 'idle', prop: 'goad', work: [{ kind: 'cart', at: [0, 0, -4.7] }], animals: { kind: 'draught', species: ['ox', 'ox'], pace: 0 },
         note: 'a carter standing by his oxen while the grain is taken off the cart (C)' },
       // D-210 (gap audit item 17, court setting): a delegation's gift animal at the court's camp (the Apadana reliefs: B imagery; C)

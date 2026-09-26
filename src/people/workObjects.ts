@@ -17,6 +17,8 @@ export type WorkKind = 'drum_sledge' | 'brick_stack' | 'mud_heap' | 'brick_field
   | 'pigment_slab' | 'bier' | 'wash_stone' | 'drying_rack' | 'target' | 'hearth_pot' | 'ard' | 'throne'
   // D-210: the vehicles (gap audit items 16, 17) and the state poultry yard (item 11)
   | 'cart' | 'chariot' | 'wagon' | 'hurdles'
+  // session 9 (G77): an ox cart with roof beams
+  | 'cart_timber'
   // D-215: children's play (gap audit item 26)
   | 'knucklebones' | 'toy_wheeled'
   // D-209: the lan set out before the fire, and the boiled meat of a sacrifice laid on soft grass
@@ -75,6 +77,7 @@ export const WORK_NOTES: Record<WorkKind, { tier: 'A' | 'B' | 'C'; note: string 
   hearth_pot: { tier: 'C', note: 'three hearth stones, ash and embers, a cooking pot on them (C; the fire is the settlement’s own)' },
   ard: { tier: 'C', note: 'a wooden ard with a stilt, a sole with a share and a beam to the yoke (the scratch plough of the ancient Near East: type B; form C)' },
   cart: { tier: 'C', note: 'an ox cart: a plank bed on two solid wheels of three boards, a pole to the yoke on the oxen’s necks, loaded with sacks of grain (carts are silent at Persepolis; the Assyrian reliefs show such carts: B analogy; form, size and load C)' },
+  cart_timber: { tier: 'C', note: 'an ox cart carrying five roof beams of ~6 m, lashed on and overhanging behind (session 9: roof timber for the building works, the Susa charter\'s timbers from far: A for Susa, B analogy; load C)' },
   chariot: { tier: 'B', note: 'a two-wheeled chariot with spoked wheels, a box for the driver and a pole to the yoke of two horses (chariots on the Apadana reliefs and the royal chariot of HDT 7.40-41: B; form, size and the eight spokes C); court setting only' },
   wagon: { tier: 'C', note: 'a covered four-wheeled wagon (harmamaxa) for the royal women on the road (HDT 7.83, a claim; RECOLLECTION, NOT SEEN): a box on solid wheels under an arched cloth cover, a pole to the yoke (form and size C); court setting only' },
   hurdles: { tier: 'C', note: 'the state poultry yard: a ring of wattle hurdles and a low mud-brick coop (poultry and their fodder: PF 2034, IR-PET, B; where and how kept C)' },
@@ -192,6 +195,15 @@ export function workGeometry(kind: WorkKind): THREE.BufferGeometry {
       for (const x of [-0.55, 0.55]) for (const d of [-0.2, 0.2]) g.push(P(rod([x + d, 1.14, 3.48], [x + d * 0.9, 0.88, 3.45], 0.012, 0.012, 3), WOOD_D));
       for (let i = 0; i < 5; i++) { const x = (i % 2 ? 0.3 : -0.3) + 0.03 * jit(i), z = -0.75 + i * 0.36;
         g.push(P(new THREE.CapsuleGeometry(0.2, 0.42, 2, 7).rotateZ(Math.PI / 2).scale(1, 0.75, 1).translate(x, bedY + 0.16, z), [0.64, 0.58, 0.46], 1)); }
+      return merge(g); }
+    case 'cart_timber': { const g: THREE.BufferGeometry[] = [], R = 0.46, bedY = 0.62; // the cart as above, its load five beams
+      for (const x of [-0.82, 0.82]) { g.push(P(new THREE.CylinderGeometry(R, R, 0.09, 14).rotateZ(Math.PI / 2).translate(x, R, 0), WOOD_D));
+        g.push(P(new THREE.CylinderGeometry(0.1, 0.1, 0.16, 8).rotateZ(Math.PI / 2).translate(x, R, 0), WOOD)); }
+      g.push(P(rod([-0.9, R, 0], [0.9, R, 0], 0.045, 0.045, 6), WOOD)); g.push(P(box(1.44, 0.07, 2.1, 0, bedY - 0.07, -0.05), WOOD));
+      g.push(P(rod([0, bedY - 0.04, 0.95], [0, 1.1, 3.45], 0.05, 0.04, 6), WOOD)); g.push(P(rod([-0.78, 1.14, 3.48], [0.78, 1.14, 3.48], 0.045, 0.045, 6), WOOD));
+      for (let i = 0; i < 5; i++) { const x = -0.5 + i * 0.25 + 0.02 * jit(i), y = bedY + 0.14 + (i % 2) * 0.22, r = 0.12 + 0.02 * jit(i + 7); // (two layers)
+        g.push(P(rod([x, y, 0.9], [x, y - 0.05, -5.1], r, r * 0.9, 7), [0.5, 0.38, 0.26])); }
+      for (const z of [0.4, -0.8]) g.push(P(box(1.3, 0.03, 0.04, 0, bedY + 0.52, z), WOOD_D)); // the lashings
       return merge(g); }
     case 'chariot': { const g: THREE.BufferGeometry[] = [], R = 0.5, GILT: RGB = [0.62, 0.48, 0.28];
       for (const x of [-0.7, 0.7]) { g.push(P(new THREE.TorusGeometry(R - 0.03, 0.035, 5, 18).rotateY(Math.PI / 2).translate(x, R, 0), WOOD_D));

@@ -70,7 +70,7 @@ export interface DrumHaul { key: string; arrive: number; out: [number, number][]
 export class Traffic {
   /** the routes (grid metres): the caravan in from the W to the stair foot and back to the stable; the south road in to the
    *  storehouse gate; the courier in to the stable and out on the south road */
-  readonly routes: Record<'caravanIn' | 'caravanOut' | 'storeIn' | 'courierIn' | 'courierOut', Route>;
+  readonly routes: Record<'caravanIn' | 'caravanOut' | 'storeIn' | 'courierIn' | 'courierOut' | 'timberIn', Route>;
   private days = new Map<number, Mover[]>(); private plans = new Map<number, Plan[]>();
   /** D-256: the quarry (built on the rock: plain/quarries.ts), the drum route from its camp to the drum ground, and the hauls */
   quarry: QuarrySite | null = null; drumRoute: Route | null = null; private hauls = new Map<number, DrumHaul[]>();
@@ -178,6 +178,8 @@ export class Traffic {
       storeIn: route([sFar, S[1], ...sRev.filter(p => p !== S[1]), fS.p, storeGate]),
       courierIn: route([W[4], W[3], W[2], W[1], ...wRev.filter(p => p !== W[1]), fs.p, ...round, stableGate]),
       courierOut: route([stableGate, ...[...round].reverse(), fs.p, ...W.slice(0, fs.i + 1).reverse(), sOut, S[1], sFar]),
+      // session 9 (G77): the roof timbers come in along the royal road and round the Terrace's W foot to the drum ground (C)
+      timberIn: route([...wIn, [-200, 40], [-200, 250], [-60, 300], DRUM_GROUND]),
     };
   }
   /** the day's journeys (cached): who, on which route, arriving or leaving when (h), how far behind the head (m) */
@@ -197,6 +199,12 @@ export class Traffic {
           whyIn: cart ? 'driving an ox cart of grain to the storehouse (E-06)' : 'leading a string of pack donkeys with grain to the storehouse (E-06)',
           whyHold: cart ? 'holding the ox cart at the storehouse while the grain is measured in (E-06, E-15)' : 'holding the string at the storehouse while the grain is measured in (E-06, E-15)',
           whyOut: cart ? 'driving the emptied ox cart away' : 'leading the unloaded string away down the south road' }); } });
+    // session 9 (G77): roof timber for the building works: in the dry months (Apr-Oct) a train of 2-3 ox carts of beams on about one day
+    // in nine, arriving at the drum ground between 09:00 and 16:00, unloaded in ~1.5 h and driven back the way they came (C)
+    { const mo = C.month, dry = mo === undefined ? true : mo >= 1 && mo <= 7; // (the calendar's regnal month: 1 = April)
+      if (dry && R.timberIn && h01(this.seed, d, 77) < 1 / 9) { const n = 2 + (h01(this.seed, d, 78) < 0.5 ? 1 : 0), arrive = 9 + 7 * h01(this.seed, d, 79);
+        for (let i = 0; i < n; i++) P.push({ key: `tb${d}:${i}`, kind: 'cart', in: R.timberIn, arrive, gap: i * CART_M, hold: 1.5, out: null, seed: d * 211 + i,
+          whyIn: 'driving an ox cart of roof timbers to the drum ground for the building works', whyHold: 'holding the timber cart while the beams are levered off at the drum ground', whyOut: 'driving the emptied timber cart back to the royal road' }); } }
     C.couriers.forEach((x, k) => {
       P.push({ key: `cu${d}:${k}`, kind: 'courier', in: R.courierIn, arrive: x.t, gap: 0, hold: 0, out: null, seed: d * 191 + k, whyIn: 'a courier riding in to the road station on a relay horse (E-20)', whyHold: '', whyOut: '' });
       if (!x.treasury) P.push({ key: `co${d}:${k}`, kind: 'courier', in: null, arrive: x.t + 0.4, gap: 0, hold: 0, out: R.courierOut, seed: d * 197 + k, whyIn: '', whyHold: '', whyOut: 'a courier riding out on a fresh horse with the letter for the next station (E-20)' }); });

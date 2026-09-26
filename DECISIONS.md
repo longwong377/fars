@@ -6579,3 +6579,13 @@ moment-*-webgpu.png in the worktree, not committed).**
   lead's species) failed too. Fixes: the cheetah's neck 0.34 → 0.44 m, the wild goat's 0.38 → 0.48 m, the urial's 0.36 → 0.42 m
   (the rig cannot splay or crouch the forelegs to drink or graze, so the neck reaches instead; C, noted on the builds); the
   forward-reach check scaled to the body (≥ min(0.2 m, a quarter of its length): a 0.5 m hare reaches 0.13 m).
+
+## D-273 Roof timber arriving for the building works (session 9; gap hunters G77; A for Susa / B analogy / C here)
+- **What** (world/traffic.ts, people/activities.ts, people/workObjects.ts `cart_timber`): in the dry months (April-October,
+  the regnal months 1-7) on about one day in nine a train of 2-3 ox carts, each with five ~6 m beams lashed on and overhanging
+  behind, comes in along the royal road and round the Terrace's W foot to the drum ground at the N foot (D-256's delivery point
+  for the works), arriving between 09:00 and 16:00; the carters hold their oxen ~1.5 h while the beams are levered off, then
+  drive back the way they came. Timber brought from far for the palaces is the Susa foundation charter's (A for Susa); here
+  the loads, carts, rate and route are C. How the beams went up onto the Terrace is not modelled (as Q-710 for the drums).
+- **Tests.** land_work (the year's timber days: 10-45, April-October only; the carts held at the drum ground; the cart drawn with
+  its beams), performances pass; lint:activity 0 placeholders.

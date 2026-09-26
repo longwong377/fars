@@ -129,7 +129,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G74 | pulses (lentil, chickpea, vetch, pea, broad bean) | A201; FL-011 | crops | C | BUILT (D-259: 7 % of the irrigated plots; not on the rain-fed land); unrendered |
 | G75 | flax | A202; FL-013 | crops | C | BUILT (D-271: 1 % of irrigated plots; no blue flowers drawn); unrendered |
 | G76 | melons, cucumbers and gourds | A205; FL-012 | crops | C | MISSING/PARTIAL |
-| G77 | timber arriving for the roofs | A508; P-033 | commodities | B | MISSING/PARTIAL |
+| G77 | timber arriving for the roofs | A508; P-033 | commodities | B | BUILT (D-273: ox-cart trains of beams to the drum ground in the dry months); unrendered |
 | G78 | large predators and the onager (built this session: beasts.ts, cf3165e; unrendered) | A104, A106; W-029, F-008, F-019, F-020, F-028, F-033, F-034 | fauna | B | BUILT (s9, unrendered) |
 
 ## Gaps only hunter A found (60)

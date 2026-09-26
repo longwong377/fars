@@ -157,3 +157,16 @@ describe('the animals penned at night (world/fauna.ts)', () => {
     const fc = F.stockFold!.c; F.update({ ...ctx(1), cam: { x: fc[0], y: 0, z: -fc[1] } }); expect((F.stats.bySpecies.sheep ?? 0) + (F.stats.bySpecies.goat ?? 0)).toBeGreaterThanOrEqual(c.stockFold);
   }, 300_000);
 });
+
+describe('roof timber arriving (session 9, G77)', () => {
+  it('trains of ox carts of beams on about one day in nine of the dry months, held at the drum ground, each drawn with its beams', () => {
+    const days = new Set<number>(); let atGround = 0;
+    for (let d = 0; d < 354; d++) for (let h = 8; h < 20; h += 0.5) for (const m of traffic.at(d * 24 + h)) if (m.key.startsWith('tb')) { days.add(d); if (m.act === 'tend_animals' && Math.hypot(m.e - DRUM_GROUND[0], m.n - DRUM_GROUND[1]) < 40) atGround++; }
+    expect(days.size).toBeGreaterThan(10); expect(days.size).toBeLessThan(45);
+    expect(Math.max(...days)).toBeLessThan(216); // April-October only (the regnal months 1-7)
+    expect(atGround).toBeGreaterThan(0);
+    const P = performanceFor('walk', 'driving an ox cart of roof timbers to the drum ground for the building works') as any;
+    expect(P.work?.map((w: any) => w.kind)).toContain('cart_timber');
+  });
+});
+
