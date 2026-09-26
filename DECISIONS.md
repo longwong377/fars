@@ -5840,3 +5840,57 @@ moment-*-webgpu.png in the worktree, not committed).**
   tests/defaults.test.ts (T-K10). Camera rigs (`?test`) keep the evidence-strict setting unless `&court=seasonal`, so their views stay
   comparable; coverage samples the default world. The arrival itself is not yet simulated: the court is present from day 0 to 116
   and only its departure is simulated (the Phase 5 report); D-239 and T-F8 need the arrival.
+
+## D-244 Indoors drawn as indoors (session 8; MASTER_PLAN §6 order, step 1; UD-07, UD-08; T-D3, T-D3s, T-D4)
+- **What.** One rule, world-wide, from the plan to the screen. `population.ts planIndoors(seg, wx, sun, h)` is the plan's roof: the
+  plan's words (INDOOR_WHY: "indoors", "in the stall", "inside the tent"...), the act (asleep, ill, off the map), or a block at a
+  place that is not out of doors (`outdoors()`: a house, a workshop, a hall) at an hour when the plan's shelter rules rely on the
+  roof (after dark, a quarter-hour of rain or the storm's span, leisure in the dust). The population view (popview.ts) evaluates
+  it at the moment (a state holds only until it can change: `planIndoorsUntil/Since`, quarter-hour and dusk/dawn boundaries) and:
+  (1) draws everyone the plan keeps indoors INSIDE their room (town house rooms and village compound rooms from the site rasters,
+  the court camps' tents on their floors; popgeo `Spot.inside`), lying when asleep or ill, no longer hidden; (2) on the Terrace,
+  under a roofed building (roofs.ts: Apadana, Tachara, Hadish, Harem, Treasury, Tripylon, Gate, Palace H), a person at a place in
+  the open goes in under the nearest roof within 40 m (the Harem's courts to its halls, the court E of the Apadana to its
+  portico; not the garrison's people); (3) where no room is built, does not draw them at all (`noRoom`, B63), never out of doors;
+  (4) walks the step in at the END of the spell before (look-ahead) and the step out at the start of the spell after, so nobody
+  is drawn out of doors while the plan says indoors, not for the seconds of the step; people standing in a room spread only
+  within it, from under a Terrace roof only under it; (5) after a jump in time nobody is drawn "just arriving". A small child
+  asleep indoors with nobody named sleeps beside its mother (or a grown member of the house) drawn there (babes `cradle`).
+  Detailed agents: sim.visibleAgents leaves out an agent the plan keeps indoors where no roof is built (the guards asleep in the
+  garrison court). The court's porters and the retinue's store errands wait for the rain to pass indoors (court.ts `dryStart`,
+  as the population's ration issue). Those still out in the rain wear the cover their dress has (outfits `rainBits`: the kandys,
+  a woman's mantle over the head, a worker's cap; skinned bodies only).
+- **The trace.** `tools/dev/people_trace.ts`: what the crowd would draw (the view settled as the pool is fed; the drawn anim from
+  performanceFor), against each person's plan, per area, geometric ("out of doors" = an open raster cell / outside every roofed
+  footprint and tent), on the whole world or a sample of whole households; `--gate` runs a seed's moments (two moments of rain
+  ≥ 0.5 and their dry twins, 15 s after a rain begins, 15 s after dark, 23:00 of a clear night, 10:00 of a day with many sick);
+  `--evidence` writes REVIEWS/evidence/<pass>/T-D3|T-D3s|T-D4.json. tests/indoor_truth.test.ts runs it on seeds 1 (court on and
+  off), 7 and a fresh seed each run.
+- **How it could pass while the intent fails (said before measuring, measured against).** (a) Hiding people passes T-D3 and T-D4:
+  so the trace counts those drawn inside (drawnIn) and left undrawn (noRoom) and the test bounds them; T-D3s counts only sleepers
+  DRAWN lying at home. (b) The predicate could be too narrow: "at home" in dry daylight is not called indoors (Q-651); the trace
+  reports the plan's weaker reading (`notOutdoorsDrawnOpen`: on a dry day 40-75 % of the people out of doors). (c) The view's own
+  flags could grade themselves: "out of doors" is re-derived from the rasters and footprints. (d) Snapshots can miss a lag: the
+  onset and dusk moments sit 15 s after a boundary; T-D3's bot-hours are still not traced (evidence n = 0, partial). (e) Drawn
+  inside a solid placeholder box (villages) is "drawn" but unseen (B64). (f) The crowd's extras (traffic drivers and riders) are
+  not in the trace.
+- **Measured** (people_trace --gate, a quarter of the households; before = the tree at 22956d7, after = this change):
+  | seed (court) | T-D3 (sum over 8 snapshots) | T-D3s | T-D4 world / worst area |
+  |---|---|---|---|
+  | 1 (on), before | 45,859 (rain d2 8:00 14,640; rain d208 10,283; onset 10,192; dusk 10,238; night 345; sick day 75; dry 80 + 6) | 0 % (10,732 asleep at home, all hidden) | 101.3 % (14,990 of 14,853; 10,317 of 10,189) |
+  | 1 (on), after | 0 | 100 % (10,732) | 0.30 % / 3.53 % |
+  | 1 (off), before | 10,186 at the rain moment alone (an earlier version of the trace; night sleepers hidden) | ~0 % (hidden) | 100.4 % (10,198 of 10,156) |
+  | 1 (off), after | 0 | 100 % (10,735) | 0.30 % / 3.53 % |
+  | 7 (on), after | 0 | 100 % (10,682) | 0.41 % / 4.62 % |
+  | 14561 (on, the fresh seed of this run), after | 0 | 100 % (10,627) | 0.27 % / 2.66 % |
+  Before for seeds 7 and 14561: not measured (the old-code run was stopped when the session closed). The evidence
+  (REVIEWS/evidence/s8-d244-indoor-truth/, commit d56d758): T-D3 0 over 32 snapshots (n = 0 bot-hours; its status stays to-build: the
+  ratchet refuses the tool change against acf73a4's measured row on tools/dev/audit_c/rain_days.ts), T-D3s 100 %
+  over 10,259 households, T-D4 worst area 4.62 % over 441 rain days x areas. Left undrawn for want of a room (B63): at most
+  1.6 % of those present at a moment (the garrison, the guards' mess after dark, the mill, the bands' camps).
+- **Rejected.** Hiding the indoors (the first fix, measured: T-D3 0 but the anti-proxies of T-D3s and T-D4 fail: an emptied
+  world); drawing the unbuilt rooms' people in the open "to show them"; sending the garrison's people under the Treasury's roof;
+  the strict reading `!outdoors()` as "indoors" by day (would move ~half the dry day's people into rooms on words that do not say
+  so: Q-651); per-view fixes (camera-rig moments).
+- **Open.** B63 (rooms not built: the garrison, the guards' mess after dark, the mill, the bands' tents), B64 (placeholder
+  interiors; village rooms solid; no render of any of this), Q-650 (summer roof sleeping), Q-651, Q-652.

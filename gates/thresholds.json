@@ -622,7 +622,7 @@
    "sample_min": 20,
    "sample": "households",
    "tool": "tools/dev/people_trace.ts",
-   "status": "to-build",
+   "status": "built",
    "anti_proxy": "the sleeper hidden (not drawn) passes a count of people outdoors: asleep must be drawn asleep where they sleep",
    "ud": "UD-08",
    "since": "rev 2 (s8)"
@@ -638,7 +638,7 @@
    "sample_min": 8,
    "sample": "rain days x areas",
    "tool": "tools/dev/people_trace.ts",
-   "status": "to-build",
+   "status": "built",
    "anti_proxy": "emptying the scene in rain (hiding people) passes a share: the hidden must be drawn under cover, indoors or on their way",
    "ud": "UD-07",
    "since": "rev 2 (s8)"
