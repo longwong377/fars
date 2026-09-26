@@ -120,6 +120,8 @@ const SHOTS: { n: string; day: number; hour: number; w: string; v: [number, numb
   { n: 'frost-dawn', day: 269, hour: 7.25, w: 'clear', v: [-300, 60, 1.6, 251, -10], fov: 50 },
   // session 9 (G10): the 22 deg halo and sun dogs under the day's own thin cover (day 220, 09:00, sun 26 deg up at az 135)
   { n: 'halo-sundogs', day: 220, hour: 9, w: 'auto', v: [0, 0, 1.6, 135, 24], fov: 75 },
+  // session 9 (G7): dust devils over the plain W of the Terrace on a hot June afternoon (day 54, 15:00, 37 C)
+  { n: 'dust-devils-jun', day: 54, hour: 15, w: 'clear', v: [-36, 125, 1.6, 251, 1], fov: 60 },
   { n: 'night-moon-fire', day: 11, hour: 2.75, w: 'clear', v: [-23.4, 122.5, 1.6, 253.5, 6] },
   { n: 'brazier-close', day: 0, hour: 21.5, w: 'clear', v: [-36.4, 132, 1.6, 161, -8], fov: IN },
   { n: 'apadana-hall-torch', day: 0, hour: 21, w: 'clear', v: [-8, 0, 4.6, 161, 6], fov: IN },

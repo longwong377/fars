@@ -59,7 +59,7 @@ Already filled this session: the large predators and the onager (beasts.ts), lun
 | G4 | frost, hoarfrost and ice at dawn (44 frost days) | A402; W-006, W-011 | weather | A | BUILT (D-261: rime on the cold clear mornings, 58-66 a year); no ice on water; render queued |
 | G5 | breath visible in the cold | A403; W-007 | weather | A physics | MISSING/PARTIAL |
 | G6 | planets (Venus as morning and evening star, Jupiter, Saturn, Mars) | A404; W-004, W-035 | sky | A | BUILT (282daa6: the five planets at their places and magnitudes); rendered: Mercury and Venus 0.5 deg apart at dusk, positions verified |
-| G7 | dust devils on the summer plain | A406; W-019 | weather | B | MISSING/PARTIAL |
+| G7 | dust devils on the summer plain | A406; W-019 | weather | B | BUILT (D-265); render queued |
 | G8 | heat shimmer and mirage | A407; W-018 | weather | A physics | MISSING/PARTIAL |
 | G9 | hail in the spring thunderstorms | A408; W-044 | weather | A | MISSING/PARTIAL |
 | G10 | 22° halo and sun dogs | A409; N-004 | sky | A physics | BUILT (D-261: ring and parhelia on cirrus days); render queued |

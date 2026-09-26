@@ -6440,3 +6440,14 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **Not done:** the plants are not colliders (the walker passes through a cushion); no grasses tufts beyond the existing herb
   layer; walnut and juniper trees (G69, G70) need new tree-kit species (the impostor atlas grows with each).
 - **Tests.** tests/ground_flora.test.ts (4): context densities, radius, sizes and determinism, the rebuild rule, the seasons.
+
+## D-265 Dust devils on the summer plain (session 9; gap hunters G7; B presence / C the rest)
+- **What** (src/world/dustDevils.ts): on May-September afternoons (11:30-17:30) with the air over 28 C, little cloud, wind 1-7 m/s
+  and dry ground, whirling dust columns rise over the open plain (not the town within 1.5 km, orchards, water or the slopes):
+  the plain within 6 km of the viewer is cut into 1 km cells; each 90 s slot of a cell starts one with a chance of 5 % × the
+  afternoon's strength; it lives 2-6 minutes (rising over the first 15 %, dying away over the last 30 %), 30-150 m tall, 3-8 m
+  wide at the foot spreading to 10-25 m, twisting, leaning downwind, drifting at 60 % of the wind plus a wander. Closed-form in
+  (seed, world time). Drawn as stacked camera-facing dust cards lit as D-220's dust (sky, sun with a forward-scattering phase),
+  fogged with the scene; at most 12 at once (one InstancedMesh). A June afternoon of the test seed shows 2-4 within the view
+  W of the Terrace.
+- **Tests.** tests/dust_devils.test.ts (3). **Unverified on screen:** dust-devils-jun queued.

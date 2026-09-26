@@ -64,6 +64,7 @@ import { RAIN_CELL } from '../sky/clouds';
 import { Birds, Jackals } from './wildlife';
 import { SmallLife, type CellCtx } from './smallLife';
 import { GroundFlora } from './groundFlora';
+import { DustDevils } from './dustDevils';
 import { bloomAt, doyOf } from './plain/seasonal';
 import { PointIndex } from './plain/data';
 import { azAltToWorld } from '../sky/ephemeris';
@@ -222,10 +223,12 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       if (sl > 0.3) return 'rock';
       return landUseAt(plain.data.zones, e, -n).use === 'natural' ? 'steppe' : 'field';
     };
-    return { life: new SmallLife(seed, { ground, ctxAt }), flora: new GroundFlora(seed, { ground, ctxAt }) };
+    return { life: new SmallLife(seed, { ground, ctxAt }), flora: new GroundFlora(seed, { ground, ctxAt }), ctx: ctxAt };
   })();
   const smallLife = small.life, flora = small.flora; // flora (session 9, G72): the thorn cushions, camelthorn and thistles near the viewer
   root.add(smallLife.group, flora.group);
+  const devils = new DustDevils(seed); root.add(devils.group); // dust devils on the summer plain (session 9, G7)
+  const devilOpen = (e: number, n: number) => Math.hypot(e, n) > 1500 && landUseAt(plain.data.zones, e, -n).use !== 'orchard' && small.ctx(e, n) !== 'none' && small.ctx(e, n) !== 'water' && small.ctx(e, n) !== 'rock';
   for (const f of fire.fires) nav.blockDisc(f.pos.x, -f.pos.z, f.kind === 'torch' ? 0 : 0.8);
   for (const [e, n, r] of palace.navDiscs()) nav.blockDisc(e, n, r); // the furnishings' standing pieces (both states with the court setting on)
   for (const s of inscSolids) nav.blockDisc(s.c[0], s.c[1], Math.hypot(s.size[0], s.size[1]) / 2); // D-214: the Hadish antae
@@ -517,6 +520,7 @@ export async function buildWorld(scene: THREE.Scene, phys: Physics, terrain: Ter
       lastFlash = wvfx.update(dt, ctx.camera, ctx.cond, ctx.settings.lightningWarning ? 0.35 : 1.0);
       { const w = azAltToWorld((ctx.cond.windDirDeg + 180) % 360, 0), ms = ctx.cond.windMs; // wind blows toward dir + 180°
         birds.update(ctx.cond.day.climMonth, ctx.clock.localHour, time, [playerAt.x, -playerAt.z], { x: w[0] * ms, n: -w[2] * ms }, ctx.cond.rain);
+        devils.group.visible = !nowView.active; if (!nowView.active) { devils.setSkyLight(ctx.skyLight); devils.update(ctx.clock.t * 86400, ctx.camera, [ctx.camera.position.x, -ctx.camera.position.z], (e, n) => terrain.heightAt(e, -n), { month: ctx.cond.day.climMonth, hour: ctx.clock.localHour, tempC: ctx.cond.tempC, cloud: ctx.cond.cloud, windMs: ms, wetness: ctx.cond.wetness }, [w[0] * ms, -w[2] * ms], devilOpen); }
         jackals.update(ctx.clock.dayIndex, ctx.clock.localHour, time);
         if (!nowView.active) smallLife.update(ctx.cond.day.climMonth, ctx.clock.localHour, ctx.clock.t * 86400, [ctx.camera.position.x, -ctx.camera.position.z], ctx.cond.rain, ctx.cond.windMs, bloomAt(doyOf(ctx.clock.dayIndex))); smallLife.group.visible = !nowView.active; if (!nowView.active) flora.update(ctx.cond.day.climMonth, [ctx.camera.position.x, -ctx.camera.position.z]); flora.group.visible = !nowView.active; } // world seconds, like the beasts: continuous across saves
       shafts.update(dt, ctx.camera.position, weather?.rainCell(ctx.clock.dayIndex, ctx.clock.localHour) ?? null, ((scene.fog as THREE.FogExp2 | null)?.color ?? new THREE.Color(0.6, 0.63, 0.68)), (ctx as any).skyLight?.air,
