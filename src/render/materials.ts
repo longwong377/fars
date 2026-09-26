@@ -13,7 +13,8 @@
 // wear along the floors' axes; indirect specular from the sky environment (envmap.ts) on the smoother surfaces.
 import { receiveReliefShadow, RELIEF_SHADOW_FLAG } from './reliefShadow';
 import * as THREE from 'three/webgpu';
-import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture, positionGeometry, atan, sin, cos, instanceIndex, mx_worley_noise_float_2d } from 'three/tsl';
+import { uniform, positionWorld, normalWorld, normalView, positionView, mx_noise_float, mx_worley_noise_float, mx_worley_noise_vec2, vec2, vec3, float, mix, smoothstep, max, min, clamp, color, abs, fract, step, attribute, sign, fwidth, exp, floor, dot, cameraViewMatrix, vec4, texture, positionGeometry, atan, sin, cos, instanceIndex, mx_worley_noise_float_2d, textureLoad, ivec2, int, sqrt } from 'three/tsl';
+import { MASONRY, courseTexels } from './masonry';
 import PC from '../data/polychromy.json';
 import { linearToSrgb, munsellY, srgbToLinear } from '../core/colour';
 import { SkySpecularNode } from './envmap';
@@ -84,6 +85,10 @@ export interface Joints {
   /** D-218: the per-block tone as a 1σ (a triangular distribution: most blocks near the mean, a few much lighter or darker)
    *  instead of SurfaceDef.blockTone's uniform ± range */
   blockSd?: number;
+  /** D-232: the Terrace retaining walls' layout (masonry.ts, SITE_SPEC terrace.r_masonry) on vertical faces instead of the
+   *  varied coursing above: photographed course heights from a course table per wall section, blocks in runs with a long
+   *  tail, split blocks in tall courses, a polygonal foot on the W and S walls, the Grand Stair recess's leaning joints */
+  retaining?: boolean;
 }
 /** the stone inside each block (D-218, C), in block-local terms so every feature stops at the joints: bedding laminae (bands
  *  parallel to the bed on vertical faces, a cloudy mottle on bedding planes), 1σ `beds` of the albedo factor per block on
@@ -199,6 +204,9 @@ const LIMESTONE: [number, number, number] = atY(munsellY(7), [0.44, 0.43, 0.40])
  *  within. 1σ 13 % = the near-fresh 0.10 × 1.2 (phone HDR flattening) ⊕ 0.05 (~50 years of soiling by 467): C, basis B-grade
  *  photographs. The rest of the weathered walls' spread (patina, spalls, open joints, cracks) is 2,500 years' weathering */
 const HAIRLINE: Joints = { course: 1.05, block: 2.3, width: 0.0008, dark: 0.6, vary: { course: [0.8, 1.3], jitter: 1.0 }, lip: 0.006, lipDark: 0.05, warmCool: 0.05, tilt: 0.01, blockSd: 0.13 };
+/** D-232: the Terrace retaining walls (and the Grand Stair's recess walls): the same stone, joints and tone as HAIRLINE, the
+ *  layout measured on photographs #24 and #33 (masonry.ts) */
+const RETAINING: Joints = { ...HAIRLINE, retaining: true };
 /** D-218 (rubric s7 pass 2, fix 2: "every ashlar surface reads as poured concrete", sunlit Ystd/Y 0.04–0.08 measured against
  *  0.15–0.35 for real stone). The session-4 values above were changed: each arris is rounded over 3–9 mm (per block) and
  *  drawn as a filtered normal (the lip turned 40° toward the joint over its share of the pixel), so the joint reads as a
@@ -261,11 +269,11 @@ export const SURFACES: Record<string, SurfaceDef> = {
   // Susa are of this order (RECOLLECTION, NOT SEEN: C); colour and placement C (SITE_SPEC r_frieze)
   glazed: { albedo: [0.12, 0.33, 0.48], roughness: 0.25, porosity: 0.05, noiseScale: 3, noiseAmp: 0.06, foot: 0.5, joints: { course: 0.09, block: 0.33, width: 0.008, dark: 0.45 }, blockTone: 0.09, tier: 'C', note: 'glazed brick in courses (brick size C, recollection of the Susa bricks; colour and placement C)' },
   // open ground on the plain: loam with stones and a seasonal herb layer (C; fields and crops are Phase 7)
-  earth: { albedo: [0.47, 0.39, 0.29], roughness: 0.95, porosity: 0.9, noiseScale: 0.4, noiseAmp: 0.14, bump: { amp: 0.02, freq: 0.9 }, chips: { cover: 0.06, size: 0.35, albedo: [0.55, 0.53, 0.49] }, herbs: 1, micro: { amp: 0.0005, freq: 70, alb: 0.08 }, tier: 'C', note: 'plain surface: loam, stones and a seasonal herb layer (C); fields Phase 7' },
+  earth: { albedo: [0.606, 0.512, 0.398], roughness: 0.95, porosity: 0.9, noiseScale: 0.4, noiseAmp: 0.14, bump: { amp: 0.02, freq: 0.9 }, chips: { cover: 0.06, size: 0.35, albedo: [0.55, 0.53, 0.49] }, herbs: 1, micro: { amp: 0.0005, freq: 70, alb: 0.08 }, tier: 'C', note: 'plain surface: loam, stones and a seasonal herb layer (C); fields Phase 7; D-232: the dry calcareous loam 10YR 5.5/3 (Y 0.24; the dry colour of the plain soils, RECOLLECTION, and the photographs: C; was 10YR 4/2, a moist colour)' },
   // the open courts of the Terrace: no source found for their surface (OPEN_QUESTIONS Q-027). Compacted fill with
   // limestone dressing chips over the levelled platform (C)
   court_fill: { albedo: [0.50, 0.46, 0.39], roughness: 0.9, porosity: 0.7, noiseScale: 0.5, noiseAmp: 0.1, tone: { sd: 0.1, chroma: 0.015 }, macro: { sd: 0.08, chroma: 0.015 }, debris: true, traffic: true, pebbles: { cover: 0.07, size: 0.45, albedo: [0.66, 0.64, 0.59] }, bump: { amp: 0.004, freq: 2.5 }, chips: { cover: 0.12, size: 0.06, albedo: [0.64, 0.62, 0.57] }, micro: { amp: 0.0004, freq: 70, alb: 0.06 }, tier: 'C', note: 'Terrace open court: compacted fill with limestone chips (surface unknown, Q-027: C)' },
-  terrace: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: HAIRLINE, blockTone: 0.13, stone: STONE, tone: { sd: 0.075, chroma: 0.01 }, foot: 1, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, top: 'court_fill', micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'Terrace platform: dressed limestone retaining walls, dry-laid with hairline joints (Q-071); open court surface C (Q-027)' },
+  terrace: { albedo: LIMESTONE, roughness: 0.62, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: RETAINING, blockTone: 0.13, stone: STONE, tone: { sd: 0.075, chroma: 0.01 }, foot: 1, runoff: 0.08, bump: { amp: 0.0015, freq: 6 }, top: 'court_fill', micro: { amp: 0.00018, freq: 95, alb: 0.035 }, tier: 'C', note: 'Terrace platform: dressed limestone retaining walls, dry-laid with hairline joints (Q-071); D-232: the joint layout measured on photographs #24 and #33 (SITE_SPEC terrace.r_masonry: course heights 0.45-1.65 m, blocks 1.2-7 m, split blocks, a polygonal foot of large blocks and dressed bedrock on the W and S walls, the Grand Stair recess with jogged beds and leaning joints; C); open court surface C (Q-027)' },
   scaffold: { albedo: [0.45, 0.35, 0.24], roughness: 0.85, porosity: 0.5, noiseScale: 3, noiseAmp: 0.1, tier: 'C', note: 'timber scaffold poles' },
   rubble: { albedo: LIMESTONE, roughness: 0.9, porosity: 0.5, noiseScale: 2, noiseAmp: 0.2, bump: { amp: 0.01, freq: 3 }, micro: { amp: 0.0015, freq: 32, alb: 0.06 }, tier: 'C', note: 'stone chips: the Terrace limestone (albedo as `limestone`, D-188)' },
 };
@@ -358,6 +366,85 @@ function headCells(a: any, L: number, jitter: number, c: any) {
   const dHead = min(d0, d1).mul(L), sHead = sign(u.sub(mix(u1, u0, near0)));
   const blk = j0.sub(1).add(step(u0, u)).add(step(u1, u));
   return { dHead, sHead, blk };
+}
+/** D-232: the course tables of the retaining walls (masonry.ts courseTexels): per 2 cm bin of height and per table row, the
+ *  bed below, the bed above, the course index and its height. Read with textureLoad (no filtering) */
+const COURSES = (() => {
+  const T = courseTexels(), t = new THREE.DataTexture(T.data, T.w, T.h, THREE.RGBAFormat, THREE.FloatType);
+  t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter; t.generateMipmaps = false; t.needsUpdate = true;
+  return { tex: t, w: T.w, h: T.h };
+})();
+/** D-232: the retaining walls' joints on a vertical face (SITE_SPEC terrace.r_masonry; CPU mirrors in masonry.ts and
+ *  tests/masonry_d232.test.ts). `t` = metres along the face's horizontal axis, `p` the world position, (nx, nz) the face's
+ *  horizontal unit normal. Returns ashlarCells()'s fields (distances to the bed and head joints, their sides, the course and
+ *  block indices) plus, for the polygonal foot, whether the nearest "bed" is a cell edge (polyB), the direction away from
+ *  it in the face frame (eDir: along t, up) and whether the point lies in the foot */
+function retainingCells(t: any, p: any, nx: any, nz: any) {
+  const M = MASONRY, BL = M.block, L = BL.base, NB = BL.per, F = M.foot, SB = M.stair.box;
+  // the course table: the Grand Stair's recess walls (inside its box: grid e, n → world x, z = −n) take the last row; any
+  // other face one of M.sections by its plane (the offset along its normal, 1 m bins, and its heading, 5° bins)
+  const inStair = step(SB[0], p.x).mul(step(p.x, SB[1])).mul(step(-SB[3], p.z)).mul(step(p.z, -SB[2]));
+  const dPlane = p.x.mul(nx).add(p.z.mul(nz)), head = floor(atan(nz, nx).mul(36 / Math.PI).add(0.5));
+  const sec = floor(hash12(floor(dPlane.add(0.5)), head.add(17.3)).mul(M.sections)).min(M.sections - 1);
+  const row = mix(sec, float(M.sections), inStair);
+  const ix = clamp(floor(p.y.sub(M.y0).div(M.quantum)), 0, COURSES.w - 1);
+  const C = textureLoad(COURSES.tex, ivec2(int(ix), int(row)));
+  const below0 = C.x, above0 = C.y, c = C.z, hC = C.w.max(0.02);
+  const eta = p.y.sub(below0.add(above0).mul(0.5)).div(hC); // −0.5 at the bed below … 0.5 at the bed above
+  // head joints: runs of NB cells of L m from a hashed offset per course; the run's ends always, its inner joints with
+  // probability joint_p, jittered; in the Grand Stair's walls the inner joints lean (±oblique × the course height)
+  const off = hash12(c, 3.71).mul(NB * L), u = t.sub(off).div(L), k = floor(u.div(NB)), xl = u.sub(k.mul(NB));
+  let left: any = float(0), right: any = float(NB), leftIdx: any = float(0);
+  for (let i = 1; i < NB; i++) {
+    const g = k.mul(NB).add(i);
+    const pres = step(hash12(c.add(0.5), g), BL.joint_p);
+    const lean = hash12(g.add(0.75), c).sub(0.5).mul(2 * M.stair.oblique).mul(eta).mul(hC).div(L).mul(inStair);
+    const pos = float(i).add(hash12(g, c.add(0.25)).sub(0.5).mul(2 * BL.jitter)).add(lean);
+    const isL = pres.mul(step(pos, xl)), isR = pres.mul(step(xl, pos));
+    left = max(left, mix(float(-1), pos, isL)); right = min(right, mix(float(NB + 1), pos, isR)); leftIdx = max(leftIdx, float(i).mul(isL));
+  }
+  const dL = xl.sub(left), dR = right.sub(xl);
+  const dHead = min(dL, dR).mul(L), sHead = step(dL, dR).mul(2).sub(1); // +1: the nearer joint lies at smaller t
+  const blk = k.mul(NB).add(leftIdx);
+  // split blocks: a block of a tall course is cut in a thin and a thick piece (thin on top or at the foot, hashed), more
+  // often in the Grand Stair's walls (their jogged beds)
+  const hs = hash12(blk.add(0.31), c.add(5.7)), pSplit = mix(float(M.split.p), float(M.stair.split_p), inStair);
+  const isSplit = step(hs, pSplit).mul(step(M.split.min_h, hC).add(inStair).min(1));
+  const fT = hash12(blk.add(2.9), c.add(0.61));
+  const fr = mix(float(M.split.f[0]).add(fT.mul(M.split.f[1] - M.split.f[0])), float(M.stair.f[0]).add(fT.mul(M.stair.f[1] - M.stair.f[0])), inStair);
+  const zs = below0.add(hC.mul(mix(fr, float(1).sub(fr), step(0.5, hash12(blk.add(7.3), c.add(1.9))))));
+  const upper = step(zs, p.y).mul(isSplit);
+  const below = mix(below0, zs, upper), above = mix(above0, zs, isSplit.sub(upper));
+  const dBelow = p.y.sub(below), dAbove = above.sub(p.y);
+  const dBedC = min(dBelow, dAbove), sBedC = step(dBelow, dAbove).mul(2).sub(1);
+  const cU = c.add(upper.mul(0.5));
+  // the foot (W- and S-facing walls): a Voronoi of cells F.cell × F.row m (in cell units, rows jittered less), its cells
+  // foot stone where their seed lies under the foot's top (the plain + F.height where a 110 m plan noise is over theta)
+  const faceWS = max(step(0.5, nx.negate()), step(0.5, nz));
+  const mask = smoothstep(F.theta - F.w, F.theta + F.w, mx_noise_float(vec3(p.x.div(F.lambda).add(F.offset[0]), 0.5, p.z.div(F.lambda).add(F.offset[1]))));
+  const footTop = mask.mul(faceWS).mul(float(1).sub(inStair)).mul(F.height); // above the plain (F.ground)
+  const q = vec2(t.div(F.cell), p.y.sub(F.ground).div(F.row)), qc = floor(q);
+  const seedOf = (cx: any, cy: any) => vec2(cx.add(0.5).add(hash12(cx.add(0.13), cy.add(9.1)).sub(0.5).mul(2 * F.jitter[0])), cy.add(0.5).add(hash12(cy.add(4.7), cx.add(0.37)).sub(0.5).mul(2 * F.jitter[1])));
+  const best = float(1e9).toVar(), s1 = vec2(0).toVar(), c1 = vec2(0).toVar();
+  for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+    const cc = qc.add(vec2(i, j)), s = seedOf(cc.x, cc.y), dv = q.sub(s), d2 = dot(dv, dv), m = step(d2, best);
+    best.assign(min(best, d2)); s1.assign(mix(s1, s, m)); c1.assign(mix(c1, cc, m));
+  }
+  const inFoot = step(s1.y.mul(F.row), footTop); // the own cell is foot stone
+  const edge = float(1e3).toVar(), eDir = vec2(0, 1).toVar();
+  for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
+    const cc = qc.add(vec2(i, j)), s = seedOf(cc.x, cc.y);
+    const dd = s1.sub(s), ln = dd.length(), other = step(1e-4, ln); // the own seed is skipped
+    const ns = dd.div(ln.max(1e-4)), dS = dot(q.sub(s1.add(s).mul(0.5)), ns); // ≥ 0 inside the own cell (cell units)
+    const nm = vec2(ns.x.div(F.cell), ns.y.div(F.row)), dM = dS.div(nm.length().max(1e-6)); // metres to the edge line
+    const counts = max(inFoot, step(s.y.mul(F.row), footTop)).mul(other); // an edge of the foot's stones
+    const dE = mix(float(1e3), dM, counts), m = step(dE, edge);
+    edge.assign(min(edge, dE)); eDir.assign(mix(eDir, nm.normalize(), m));
+  }
+  // in the foot: the cell edges alone; above it, the courses and the foot's top edge, whichever is nearer
+  const polyB = max(inFoot, step(edge, dBedC)); // 1: the nearest "bed" is a cell edge
+  const dBed = mix(dBedC, edge, polyB), sBed = mix(sBedC, float(1), polyB);
+  return { dBed, sBed, dHead: mix(dHead, float(1e3), inFoot), sHead, c: mix(cU, c1.y.add(7000), inFoot), blk: mix(blk, c1.x, inFoot), polyB, eDir, inFoot, edge };
 }
 /** bandCover() with the half width as a node */
 function bandCoverN(d: any, px: any, hw: any) {
@@ -536,7 +623,9 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     // vertical faces: courses up the wall, blocks along the face's own horizontal axis (rotated walls keep their lengths)
     const hl = vec2(n.x, n.z).length().max(1e-3), tx = n.z.div(hl), tz = n.x.negate().div(hl);
     const t = p.x.mul(tx).add(p.z.mul(tz));
-    const W = ashlarCells(t, p.y, J);
+    // D-232: the retaining walls' layout (retainingCells) in place of the varied coursing on their vertical faces
+    const RW = J.retaining ? retainingCells(t, p, n.x.div(hl), n.z.div(hl)) : null;
+    const W = RW ? { dBed: RW.dBed, sBed: RW.sBed, c: RW.c, dHead: RW.dHead, sHead: RW.sHead, blk: RW.blk } : ashlarCells(t, p.y, J);
     // up-facing faces: slabs in rows along z, blocks along x; the height enters the hash so every tread of a non-step part
     // (a stepped parapet) is its own block row
     const S = ashlarCells(p.x, p.z, J);
@@ -557,11 +646,16 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const big = float(1e3);
     const dB = mix(mix(S.dBed, W.dBed, vs), mix(rowD, big, vs), isStep), sB = mix(mix(S.sBed, W.sBed, vs), mix(sign(rowAt), float(0), vs), isStep);
     const dH = mix(mix(S.dHead, W.dHead, vs), SH.dHead, isStep), sH = mix(mix(S.sHead, W.sHead, vs), SH.sHead, isStep);
-    const pxB = mix(mix(fwidth(p.z), fwidth(p.y), vs), mix(fwidth(along), fwidth(p.y), vs), isStep).max(1e-6);
+    const pxWB = RW ? mix(fwidth(p.y), fwidth(RW.edge), RW.polyB) : fwidth(p.y); // (a polygonal foot's edge: across the edge)
+    const pxB = mix(mix(fwidth(p.z), pxWB, vs), mix(fwidth(along), fwidth(p.y), vs), isStep).max(1e-6);
     const pxH = mix(mix(fwidth(p.x), fwidth(t), vs), fwidth(across), isStep).max(1e-6);
     // world tangents: T1 along the head-joint coordinate, T2 across the bed joints
     const T1 = mix(mix(vec3(1, 0, 0), vec3(tx, 0, tz), vs), vec3(sdz.negate(), 0, sdx), isStep);
     const T2 = mix(mix(vec3(0, 0, 1), vec3(0, 1, 0), vs), mix(vec3(sdx, 0, sdz), vec3(0, 1, 0), vs), isStep);
+    // the bed family's direction away from the joint: across the course, or (the retaining walls' polygonal foot) across the
+    // cell edge
+    const polyV = RW ? RW.polyB.mul(vs).mul(float(1).sub(isStep)) : null;
+    const T2b = RW ? mix(T2, vec3(tx, 0, tz).mul(RW.eDir.x).add(vec3(0, 1, 0).mul(RW.eDir.y)), polyV!) : T2;
     // per block: two indices → hashes (the steps of one row and block share them, riser and tread alike)
     const blkU = mix(mix(S.blk.add(riseRow.mul(7.1)), W.blk, vs), SH.blk, isStep), cU = mix(mix(S.c, W.c, vs), cStair, isStep);
     const ids = blockIds(blkU, cU);
@@ -570,17 +664,21 @@ function layer(d: SurfaceDef, base: any, arch = false): Layer {
     const slabs = arch ? step(0.75, min(abs(B.z), abs(B.w))) : float(0);
     const jmask = vs.add(float(1).sub(vs).mul(flat).mul(max(slabs, isStep)));
     const hw = J.width / 2, lw = float(J.lip ?? 0).mul(float(0.5).add(ids.b)).add(hw); // the arris rounded over 3–9 mm (lip 6 mm)
-    const slotB = bandCover(dB, pxB, hw), slotH = bandCover(dH, pxH, hw).mul(headMask);
-    const lipB = bandCoverN(dB, pxB, lw).sub(slotB).max(0), lipH = bandCoverN(dH, pxH, lw).mul(headMask).sub(slotH).max(0);
+    // D-232: the retaining walls' foot: wider joints and arrises rounded over ~1-3 cm (its large rough-dressed blocks, C)
+    const hwB = polyV ? mix(float(hw), float(MASONRY.foot.joint / 2), polyV) : float(hw);
+    const lwB = polyV ? mix(lw, float(MASONRY.foot.lip).mul(float(0.5).add(ids.b)).add(MASONRY.foot.joint / 2), polyV) : lw;
+    const slotB = bandCoverN(dB, pxB, hwB), slotH = bandCover(dH, pxH, hw).mul(headMask);
+    const lipB = bandCoverN(dB, pxB, lwB).sub(slotB).max(0), lipH = bandCoverN(dH, pxH, lw).mul(headMask).sub(slotH).max(0);
     const slot = max(slotB, slotH).mul(jmask), lip = max(lipB, lipH).mul(jmask);
     alb = alb.mul(float(1).sub(slot.mul(J.dark)).sub(lip.mul(J.lipDark ?? 0).mul(SURF_AB)));
     rough = mix(rough, float(1), slot);
     // the worn arris as a filtered normal (D-218): over its share of the pixel, the rounded lip turns ~40° toward the joint
     // (away from the block's face): the upper block's lower arris looks down, the lower block's upper arris up, so in sun a
     // bed joint is a dark and a light line a few mm apart, as a real rounded joint is. Replaces D-157's height lip
-    tilt = T1.mul(sH.mul(lipH)).add(T2.mul(sB.mul(lipB))).mul(-ARRIS_K).mul(jmask).mul(SURF_AB);
+    tilt = T1.mul(sH.mul(lipH)).add(T2b.mul(sB.mul(lipB))).mul(-ARRIS_K).mul(jmask).mul(SURF_AB);
     alb = alb.mul(blockToneFactor(J, d, ids));
-    if (J.tilt) tilt = tilt.add(T1.mul(ids.a.mul(2).sub(1)).add(T2.mul(ids.e.mul(2).sub(1))).mul(J.tilt).mul(vert.add(flat)).mul(SURF_AB));
+    const tiltA = RW ? mix(float(J.tilt ?? 0), float(MASONRY.foot.tilt), RW.inFoot.mul(vs)) : float(J.tilt ?? 0); // (D-232: the foot's rougher faces)
+    if (J.tilt) tilt = tilt.add(T1.mul(ids.a.mul(2).sub(1)).add(T2.mul(ids.e.mul(2).sub(1))).mul(tiltA).mul(vert.add(flat)).mul(SURF_AB));
     let polish: any = float(0);
     if (arch && d.stone?.polish) { // foot polish on the treads (D-218, C): the middle of the flight, most toward the nosing
       const across0 = B.y.mul(sdx).sub(B.x.mul(sdz)), lat = abs(across.sub(across0)).div(wHalf);

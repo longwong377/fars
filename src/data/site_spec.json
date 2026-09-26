@@ -800,6 +800,18 @@
    "src": "IR-PERS;TERRACE-DRAINS;RECON",
    "tier": "C",
    "note": "D-214 (gap audit item 31): cisterns fed by the rock-cut drains (TERRACE-DRAINS, search extracts: B), their heads not read. A well-head is drawn at each of the people's two water points on the Terrace (court.json court_cistern, people_places.json water: the points C), 1.2 m W of the spot where the water is drawn: a round stone kerb (r_out, r_in, h) on a square paving slab (`slab`). The large cistern cut at the E foot of the Kuh-e Rahmat behind the platform (search extract) is off the Terrace and its place is not read: not drawn. Q-428"
+  },
+  "r_masonry": {
+   "v": { "quantum": 0.02, "sections": 4, "y0": -40.0, "y1": 2.0,
+    "course_q": [0.45, 0.58, 0.72, 0.95, 1.02, 1.1, 1.22, 1.3, 1.39, 1.52, 1.65],
+    "block": { "base": 1.9, "per": 4, "joint_p": 0.6, "jitter": 0.25 },
+    "split": { "min_h": 1.4, "p": 0.25, "f": [0.28, 0.4] },
+    "stair": { "oblique": 0.21, "split_p": 0.5, "f": [0.25, 0.75], "box": [-47.0, -31.5, 79.5, 165.4] },
+    "foot": { "ground": -11.8, "height": 4.9, "lambda": 110, "offset": [2.22, 8.61], "theta": 0.1, "w": 0.05, "cell": 4.6, "row": 1.8, "jitter": [0.4, 0.14], "joint": 0.004, "lip": 0.02, "tilt": 0.026 } },
+   "u": "m (heights above the court datum; box: grid e0, e1, n0, n1)",
+   "src": "REF-PHOTO-24;REF-PHOTO-33;IR-PERS;RECON",
+   "tier": "C",
+   "note": "D-232: the joint layout of the Terrace retaining walls, measured on photograph #24 rectified onto the wall planes with the solved camera of D-230 (tools/dev/masonry_photo_d232.py; the joints read by eye on 4-5x crops with a 0.5 m grid, checked against an automatic bed profile). Courses laid level: 47 course heights, median 1.10 m (IQR 0.90-1.35, 0.45-1.65; 21 % thinner than 0.75 m, 15 % 1.5 m or more), drawn from their deciles (course_q), quantised to 2 cm; one course table per wall section (a face's plane picks one of 4) and one for the Grand Stair recess. Blocks: 57 lengths, median 2.2 m (IQR 2.0-3.5, 1.15-7.0; 26 % 3.5 m or more): drawn as runs of 4 cells of 1.9 m whose 3 inner joints are present with p 0.6, jittered +-0.25 cell (p25/median/p75 1.77/2.13/3.6, 27 % >= 3.5 m, max 7.6: CPU mirror, tests/masonry_d232.test.ts). A block of a course >= 1.4 m is split in a thin and a thick piece in 25 % (the photo's 0.46 + 1.1 m pieces of its 1.6 m course over ~22 % of its length, read the other way as blocks spanning two thin courses). The foot: large irregular blocks and dressed bedrock (IR-PERS: the Terrace partly cut from the rock, B) along 38 % of the 203 m of W wall read, 4.9 m high where present (median 4.84, IQR 4.74-5.29 above the plain at -11.8), 15 % of the wall area; its blocks 3.5-6.8 m long (median 5.8) by 1.4-2.2 m (median 1.8): a row-jittered Voronoi of 4.6 x 1.8 m cells, present on W- and S-facing walls where a 110 m plan noise exceeds theta (placed to agree with #24: present on the salient's W face for its first ~62 m, absent S of it), joints 4 mm with 2 cm rounded arrises, faces tilted up to +-1.5 deg (rougher than the dressed ashlar: C; the ruin's open joints are weathering). Grand Stair recess walls (#33, by eye: blocks of irregular height with jogged beds and leaning head joints, the IR-PERS 'huge irregular blocks', B): the same courses, split share 0.5 at 0.25-0.75 of the height, head joints leaning up to +-12 deg (C). Joint width of the dressed ashlar unchanged (Q-071). Not modelled: the foot's stepped-back plinth (geometry), Q-600"
   }
  },
  "grand_stair": {

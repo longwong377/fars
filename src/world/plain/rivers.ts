@@ -57,7 +57,7 @@ export function buildRivers(terrain: Terrain, rivers: RiverProfile[], canals: Ca
   const bankPos: number[] = [], bankCol: number[] = [], bankAttr: number[] = [], bankIdx: number[] = [];
   const wPos: number[] = [], wAttr: number[] = [], wAttr2: number[] = [], wIdx: number[] = [];
   const segments: RiverBuild['segments'] = [];
-  const soil = new THREE.Color().setRGB(0.43, 0.36, 0.27, THREE.SRGBColorSpace);
+  const soil = new THREE.Color().setRGB(0.606, 0.512, 0.398, THREE.SRGBColorSpace); // the plain's loam (terrainMesh groundColour, D-232)
   let nSections = 0; const profiles: CorridorSection[][] = [];
   rivers.forEach((r, ri) => {
     const secs = sections(r); nSections += secs.length; const prof: CorridorSection[] = []; profiles.push(prof);

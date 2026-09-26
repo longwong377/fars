@@ -18,8 +18,10 @@ const ERR_RAD = 0.0013, SPACING_RAD = 0.02;
 
 /** Ground colour: procedural and tier C. It will be replaced by calibrated materials in Phase 3 (flagged in the dev overlay). */
 function groundColour(h: number, slope: number, out: THREE.Color) {
-  // alluvial plain: pale buff-brown loam; slopes: grey limestone scree; very steep: darker rock
-  const soil = [0.43, 0.36, 0.27], rock = [0.52, 0.5, 0.47], dark = [0.36, 0.34, 0.31];
+  // alluvial plain: pale buff-brown loam; slopes: limestone scree; very steep: darker rock. D-232: the plain's dry calcareous
+  // loam Munsell 10YR 5.5/3 (Y 0.24; was 10YR 4/2, Y 0.12, a moist soil's colour), the rock warm grey-brown 10YR 5/2 and
+  // 10YR 3.5/2 (terrainPlain.ts HILL; was a neutral grey): the photographs' and the satellite image's buff mountain and plain
+  const soil = [0.606, 0.512, 0.398], rock = [0.530, 0.467, 0.393], dark = [0.381, 0.318, 0.249];
   const s = Math.min(1, Math.max(0, (slope - 0.15) / 0.35)), d = Math.min(1, Math.max(0, (slope - 0.9) / 0.6));
   const c = soil.map((v, i) => v * (1 - s) + rock[i] * s).map((v, i) => v * (1 - d) + dark[i] * d);
   out.setRGB(c[0], c[1], c[2], THREE.SRGBColorSpace);

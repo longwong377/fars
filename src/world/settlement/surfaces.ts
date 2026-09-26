@@ -20,8 +20,8 @@ export const SETTLEMENT_SURFACES: Record<string, SurfaceDef> = {
   stone_plain: { albedo: [0.5, 0.48, 0.44], roughness: 0.75, porosity: 0.35, noiseScale: 2, noiseAmp: 0.12, bump: { amp: 0.002, freq: 5 }, tier: 'C', note: 'local grey limestone (kerbs, well heads, column bases), C' },
   takht_stone: { albedo: [0.52, 0.5, 0.46], roughness: 0.7, porosity: 0.35, noiseScale: 1.3, noiseAmp: 0.12, joints: { course: 1.1, block: 2.6, width: 0.002, dark: 0.5 }, bump: { amp: 0.002, freq: 5 }, tier: 'C', note: 'Takht-e Rustam: local stone (LIVIUS-TR, B); block size C' },
   // earth roads: compacted, with fewer stones than the plain and no herb layer in the wheel tracks
-  road: { albedo: [0.52, 0.45, 0.35], roughness: 0.96, porosity: 0.85, noiseScale: 0.6, noiseAmp: 0.1, bump: { amp: 0.006, freq: 1.5 }, chips: { cover: 0.03, size: 0.12, albedo: [0.6, 0.57, 0.5] }, tier: 'C', note: 'earth road, 6-8 m (settlement.json, C course)' },
-  bank: { albedo: [0.45, 0.38, 0.28], roughness: 0.95, porosity: 0.9, noiseScale: 0.5, noiseAmp: 0.12, bump: { amp: 0.01, freq: 1.2 }, herbs: 0.8, tier: 'C', note: 'canal bank: dug earth (C)' },
+  road: { albedo: [0.66, 0.56, 0.45], roughness: 0.96, porosity: 0.85, noiseScale: 0.6, noiseAmp: 0.1, bump: { amp: 0.006, freq: 1.5 }, chips: { cover: 0.03, size: 0.12, albedo: [0.6, 0.57, 0.5] }, tier: 'C', note: 'earth road, 6-8 m (settlement.json, C course)' },
+  bank: { albedo: [0.554, 0.462, 0.352], roughness: 0.95, porosity: 0.9, noiseScale: 0.5, noiseAmp: 0.12, bump: { amp: 0.01, freq: 1.2 }, herbs: 0.8, tier: 'C', note: 'canal bank: dug earth (C)' },
 };
 let done = false;
 export function registerSettlementSurfaces() { if (done) return; done = true; Object.assign(SURFACES, SETTLEMENT_SURFACES); }
