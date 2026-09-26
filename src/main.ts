@@ -42,6 +42,7 @@ if (P.get('webgl')) settings.forceWebGL = P.get('webgl') === '1';
 if (P.has('tl')) settings.translation = true; // tests: translation layer on
 if (P.has('visitor')) settings.playerMode = 'visitor'; // tests: visitor mode (D-063)
 if (P.get('court')) settings.courtCalendar = P.get('court') === 'seasonal' ? 'seasonal' : 'evidence'; // tests: ?court=seasonal (C) for the court-resident scenes
+else if (P.has('test')) settings.courtCalendar = 'evidence'; // camera rigs pin the court: their views predate the default; coverage samples the default world with &court=seasonal (UD-10, D-236)
 const SEED = chooseWorldSeed(P.get('seed'), P.has('test') || P.has('bench')); // a new world per new game (D-236); tests and the bench fixed
 const TEST = P.has('test'); // frozen world for camera rig / walkthrough tests
 const Q = QUALITY[settings.quality];

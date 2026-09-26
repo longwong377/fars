@@ -5813,3 +5813,30 @@ moment-*-webgpu.png in the worktree, not committed).**
 - **What.** Stats JSON for every view; images for Tier-2 views, Tier-1 failures and canaries; 160×90 thumbnails for passing
   Tier-1 views; audio as short OGGs; ≤ 25 MB per session in `REVIEWS/evidence/<pass>/`, checked by a test. About 1,500 views per
   session at 60 KB would be ~2.7 GB of history over 30 sessions (the critique's B3.7).
+
+## D-246 The perpetual 467: the year is fixed, the people's lives go on (session 8, UD-09; MASTER_PLAN T-J3e)
+- **What.** The calendar keeps the regnal year (Xerxes' 19th, 467 BCE, brief §2) and repeats its months; each new cycle draws new
+  weather and events from its own stream (T-J4d), so no year replays. Ordinary people follow a stationary demography: they age,
+  marry, bear children, fall ill and die, and newcomers arrive, at rates that keep the population's structure steady. Attested named
+  people are held at their 467 age and role (tier noted in F3: "held at 467"). A catch-up after any absence is derived in closed form
+  from (seed, day) plus the saved state, so a return after ten years equals a continuous run and loads within T-H4.
+- **Why.** The first critique's "no 30-day cap" (T-J3c, 3,650 days) contradicted the brief's fixed year, the archive's dates
+  (T-E3, T-I5) and the load budget; the second critique proposed this reading (REVIEWS/master_plan_critique_rev2.md §3.1). It keeps
+  the user's "a world that never repeats" (UD-09) without leaving 467.
+- **Rejected.** Freezing the world past a cap (the world stops living); advancing the regnal year (leaves the brief's 467); ageing
+  attested people past their attested lives.
+- **Status.** Not implemented; the catch-up is capped at 30 days today (audit A M7).
+
+## D-247 A fall off the Terrace is survived, within restraint (session 8, brief §6 "you can fall off the Terrace edge"; T-H0p)
+- **What.** No death, no game-over screen, no text. A fall of more than 4 m: the view drops to the ground and stays low while the
+  player's breath is heard; standing takes about 8 s; walking is slowed to a limp for an in-game hour. People nearby react as people
+  would (they look, some come over, a few speak in their language). Falls up to 4 m only jar the view.
+- **Why.** Brief §1.1 forbids a HUD and a narrator; a death screen would break the time capsule harder than the fall. The prober bot
+  (T-H0p) checks that no fall leaves the player inside geometry or stuck.
+- **Status.** Not implemented (the controller records maxFall; nothing uses it).
+
+## D-236 addendum (session 8, rev 2.1): the court is now the default
+- `DEFAULT_SETTINGS.courtCalendar` is `'seasonal'` (src/core/settings.ts), labelled "reconstructed, C; default" in settings, pinned by
+  tests/defaults.test.ts (T-K10). Camera rigs (`?test`) keep the evidence-strict setting unless `&court=seasonal`, so their views stay
+  comparable; coverage samples the default world. The arrival itself is not yet simulated: the court is present from day 0 to 116
+  and only its departure is simulated (the Phase 5 report); D-239 and T-F8 need the arrival.

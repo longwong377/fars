@@ -1,0 +1,20 @@
+# The scope guards on every push, with full history (MASTER_PLAN §8): the ratchet compares gates/thresholds.json against every
+# committed version and every ratchet/* tag, and fails closed. Its result is visible on GitHub whatever a later commit does.
+name: scope guards
+on: [push, pull_request]
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    env:
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - run: git fetch --tags --force
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx vitest run tests/gates_ratchet.test.ts tests/scope_ledger.test.ts tests/defaults.test.ts tests/determinism.test.ts

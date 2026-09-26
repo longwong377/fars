@@ -99,7 +99,7 @@ export class Shell {
       sel('Time scale', String(s.timeScale), [['0', 'stopped'], ['1', 'real time'], ['10', '×10'], ['60', '×60'], ['600', '×600']], v => { s.timeScale = +v; }),
       sel('Weather', this.hooks.getWeather(), [['auto', 'from climate (seeded)'], ['clear', 'clear'], ['overcast', 'overcast'], ['rain', 'rain'], ['storm', 'thunderstorm'], ['snow', 'snow'], ['dust', 'dust storm'], ['mist', 'morning mist']], v => this.hooks.setWeather(v)),
       sel('Player mode', s.playerMode, [['observer', 'Observer'], ['visitor', 'Visitor (sealed travel authorisation)']], v => { s.playerMode = v as any; }),
-      sel('Court calendar', s.courtCalendar, [['evidence', 'Evidence-strict: king absent (default)'], ['seasonal', 'Seasonal pattern: court in residence in spring (C)']], v => { s.courtCalendar = v as any; }),
+      sel('Court calendar', s.courtCalendar, [['seasonal', 'The court comes and goes: in residence in spring (reconstructed, C; default)'], ['evidence', 'Evidence-strict: the king absent all year']], v => { s.courtCalendar = v as any; }),
       check('Translation layer (subtitles, inscriptions, map, chronicle)', s.translation, v => { s.translation = v; }),
       check('Now view: the ruin as it stands today (from memory of the site, tier C; key N)', s.nowView, v => { s.nowView = v; }),
       el('h2', {}, 'Display'),

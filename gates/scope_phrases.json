@@ -1,0 +1,117 @@
+{
+ "about": "MASTER_PLAN.md header, tests/scope_ledger.test.ts: normative sentences that must appear verbatim (whitespace-normalised) in their file. Append-only: an entry is never removed or changed (checked against git history). Add, never subtract.",
+ "phrases": [
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "nowhere the player walks, at any hour or season, for as long as they stay, breaks the illusion"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "Judged at the default FOV (60° vertical, D-238) **and** at the widest setting, at `ultra`"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "Measured from renderless traces of the **crowd's instance buffers** (what is drawn), not popview or plans"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "draws the sample from a seed equal to the first 8 hex digits of the commit hash (the agent does not choose it)"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "never from the nav grid"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "there are no invisible walls"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "so a PASS cannot be typed"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "STALE counts as FAIL"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "reads **NOT-MEASURED**, which counts as FAIL"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "this order wins over any list below"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "**Stop the bleeding (first, in parallel with 2).**"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "**The cheapest honest instrument (time-boxed to one session; what is not built by its close reads NOT-MEASURED on the board and stays first in the next session):**"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "**The reference transect,** brought to PASS"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "**World-wide multipliers before area-by-area work,**"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "**Then area by area, worst first by the board.**"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "`tests/gates_ratchet.test.ts` fails **closed**"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "Status is **derived from evidence**"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "**The guards run themselves.**"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "**the world does not perform**"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "**Done is not judged by the builder:**"
+  },
+  {
+   "file": "MASTER_PLAN.md",
+   "text": "Every threshold id on the generated board PASSES on the current tree"
+  },
+  {
+   "file": "CLAUDE.md",
+   "text": "No questions, no pauses; decide, log in `DECISIONS.md`, proceed. Gates bind — never lower one to pass it."
+  },
+  {
+   "file": "CLAUDE.md",
+   "text": "**Render queue is the bottleneck**"
+  },
+  {
+   "file": "CLAUDE.md",
+   "text": "**Timing tests under load are not failures** until re-run alone on an idle box"
+  },
+  {
+   "file": "CLAUDE.md",
+   "text": "**Reviewers use every reference** in `references/` paired to the moments"
+  },
+  {
+   "file": "CLAUDE.md",
+   "text": "**Before merging an agent branch:** records conflict (DECISIONS, OPEN_QUESTIONS, BLOCKERS, PROGRESS) are unions of appended rows"
+  },
+  {
+   "file": "CLAUDE.md",
+   "text": "**After a render-affecting merge**, re-render the moments it touches before claiming a fix; a node test is not a render."
+  },
+  {
+   "file": "CLAUDE.md",
+   "text": "The camera-rig moments are NOT the standard. **Nowhere the player can walk may break the illusion**"
+  }
+ ]
+}

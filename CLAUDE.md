@@ -61,7 +61,7 @@ Large binaries (DEM tifs) stay out of git; `npm run terrain` regenerates derived
 ## Every inch (the user's direction, session 8; D-233)
 The camera-rig moments are NOT the standard. **Nowhere the player can walk may break the illusion**: every walkable place
 of the Terrace, the town and the plain must reach the photoreal bar, one way or another. Measure it as coverage, not by
-chosen views: the coverage harness (`tests/e2e/coverage.spec.ts`, `tools/dev/coverage_points.ts`) renders viewpoints
+chosen views: the coverage harness (`tests/e2e/coverage.spec.ts`, `tools/dev/coverage_points.ts`; TO-BUILD, D-235 in flight) renders viewpoints
 sampled over every walkable area and reports, per view and per area, the share of pixels drawn by PLACEHOLDER-flagged
 objects, flat/blank surfaces, and the rubric reviewer's scores on a sample. The backlog is ordered by the areas that fail
 most; a phase or area is done only when its coverage passes. Placeholders (town houses, procedural reliefs, stand-in
@@ -69,3 +69,15 @@ people at distance) are the first targets. Since MASTER_PLAN rev 2: samples are 
 areas come from the physically walkable envelope (`data/areas.json`, not the nav grid), evidence goes STALE after a global
 change until canaries clear it, reviewers are briefed from `handoff/review_template.md` and calibrated on an anchor set,
 agents from `handoff/agent_template.md`, and every session ships a change a player would notice plus three verified surprises.
+
+## Guards (MASTER_PLAN rev 2.1; the second critique)
+- `npm run guards` (the ratchet, scope and defaults tests) runs before every commit (`.githooks/pre-commit`, installed by `npm ci`),
+  at the start of `npm run build`, and on GitHub (`.github/workflows/guards.yml`). They fail closed. Never bypass the hook, never
+  edit a guard to pass; a threshold wrong in principle goes through `gates/errata/`, a loosening only through the user's own words.
+- Session start: `git fetch --unshallow --tags` when the clone is shallow. Session close: every agent branch merged or abandoned
+  and its fate in `handoff/reserved_numbers.md`; `sessions/sNN.md` written; tag `ratchet/sNN` pushed.
+- Agent and reviewer briefs are generated from `handoff/agent_template.md` / `handoff/review_template.md` and saved to
+  `handoff/briefs/sNN/`. Reserve D/Q/B numbers in `handoff/reserved_numbers.md` before launching.
+- Status of a threshold is earned by evidence (`REVIEWS/evidence/**/<id>.json` written by its tool), never typed. A decided default
+  is pinned in `tests/defaults.test.ts`.
+

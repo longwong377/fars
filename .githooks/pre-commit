@@ -1,0 +1,6 @@
+#!/bin/sh
+# The scope guards run before every commit (MASTER_PLAN §8 "The guards run themselves"; installed by `npm ci` via "prepare").
+# ~1–2 s. They fail closed: a weakened threshold, a reworded user direction or a dropped scope phrase stops the commit.
+[ -f tests/gates_ratchet.test.ts ] && [ -f tests/scope_ledger.test.ts ] || exit 0 # a branch older than the guards
+npx vitest run tests/gates_ratchet.test.ts tests/scope_ledger.test.ts --reporter=dot >/tmp/parsa-guards.log 2>&1 || {
+  echo "pre-commit: the scope guards failed (MASTER_PLAN §4.1, §8). Output: /tmp/parsa-guards.log"; tail -30 /tmp/parsa-guards.log; exit 1; }
