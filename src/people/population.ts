@@ -129,6 +129,9 @@ export const GUARD_POSTS = ['post_stair_n', 'post_stair_s', 'post_gate_w1', 'pos
   'post_tachara_1', 'post_tachara_2', 'post_hadish_1', 'post_hadish_2', 'post_harem_1', 'post_harem_2'];
 export const HEARTHS = ['garrison_hearth_s', 'garrison_hearth_m', 'garrison_hearth_n'];
 const TERRACE_XY: [number, number] = [-52, 118.5];
+/** D-255: the Treasury group (k) whose men and boys are the tanners; one town craftsman in OIL_EVERY presses oil; a smith
+ *  carries his work to the royal stores on this share of days (C) */
+const TANNERS_GROUP = 7, OIL_EVERY = 25, SMITH_DELIVER = 0.15;
 const S = { plan: salt('plan'), sick: salt('sick'), sickd: salt('sickd'), death: salt('death'), birth: salt('birth'), marry: salt('marry'), bday: salt('bday'), disp: salt('disp'),
   dispo: salt('dispo'), assign: salt('assign'), shear: salt('shear'), carer: salt('carer'), gen: salt('gen'), mourn: salt('mourn'), dbl: salt('dbl'), fam: salt('fam'), draft: salt('draft'), name: salt('name'), nurse: salt('nurse'), kid: salt('kid'), band: salt('band'), sac: salt('sacrifice'), fun: salt('funeral') };
 const AGE: [number, number, number][] = L.age_structure.v;
@@ -370,9 +373,48 @@ export class Population {
     for (const s of opts.slice ?? []) { const pid = this.bySeat.get(s.agent); if (pid !== undefined) this.persons[pid].nm = s.name ?? null; }
     this.precomputeLife();
     this.housePlots();
+    this.crafts();
     if (opts.court) this.court = new CourtResidents(this); // D-182 hook
   }
   attach(cal: EventCalendar) { this.cal = cal; }
+  /** D-255 (WORLD_INVENTORY G26, G20): the town's craftsmen whose house is a metal workshop (town_plots.json craft 'metal')
+   *  are its smiths and work at its forge; one craftsman in OIL_EVERY of the others presses sesame oil at the oil press
+   *  (C). No person is added and nothing is drawn: the trades are given after the houses (housePlots) */
+  private crafts() {
+    let n = 0; for (const p of this.persons) { if (p.job !== 'craftsman') continue;
+      if (this.plotOf(p.hh)?.craft === 'metal') { p.sub = 'smith'; p.work = this.households[p.hh].home; continue; }
+      if (n++ % OIL_EVERY === 0) { p.sub = 'oil'; p.work = 'oil_press'; } }
+  }
+  /** D-255: whoever is at a forge's bellows rather than its anvil today: a boy, the second smith of a house, or by the day's
+   *  lot one of the Treasury's goldsmiths at the forge (popgeo.ts forgeSpot places them; the plan's words say which) */
+  forgeHelper(pid: number, d: number): boolean {
+    const p = this.persons[pid]; if (this.ageOn(pid, d) < 16) return true;
+    if (p.job === 'craftsman' && p.sub === 'smith') return this.households[p.hh].members.filter(x => this.persons[x].job === 'craftsman' && this.persons[x].sub === 'smith').sort((a, b) => a - b).indexOf(pid) > 0;
+    return this.treasuryForge(pid, d)?.helper ?? false;
+  }
+  private forgeCache = new Map<number, Map<number, { slot: number; helper: boolean }>>();
+  /** D-255: the Treasury goldsmiths at the forges of its metal workshops today (the day's lot, lives.json
+   *  job_tasks.goldsmith.v.forge, drawn apart from the rest of the plan so that the pairs are known before any plan): in
+   *  pid order, two to a forge, the first at the anvil and the second at the bellows; `slot` is the forge (popgeo.ts takes
+   *  the Treasury's metal workshops in turn). Null: not at a forge today */
+  treasuryForge(pid: number, d: number): { slot: number; helper: boolean } | null {
+    let m = this.forgeCache.get(d); if (!m) { if (this.forgeCache.size > 400) this.forgeCache.clear(); m = new Map(); this.forgeCache.set(d, m);
+      const ids = this.persons.filter(q => q.job === 'treasury' && q.sub === 'shiner' && q.sex === 'm' && q.work !== 'treasury_inside' && this.ageOn(q.id, d) >= 16 && this.goldsmithForgeLot(q.id, d)).map(q => q.id).sort((a, b) => a - b);
+      ids.forEach((x, i) => m!.set(x, { slot: i >> 1, helper: (i & 1) === 1 })); }
+    return m.get(pid) ?? null;
+  }
+  /** the goldsmith's lot for the forge on day d (C) */
+  goldsmithForgeLot(pid: number, d: number) { return u01(this.seed, S.assign, 9950 + pid, d) < L.job_tasks.goldsmith.v.forge; }
+  private tanCache = new Map<number, number[]>();
+  /** D-255 (CE-07): the two tanners who carry a slaughter's hides down from the Treasury store to the tannery the morning
+   *  after they came in (by the day's lot among the tanners at work, C) */
+  hideCarriers(d: number): number[] {
+    const c = this.tanCache.get(d); if (c) return c; if (this.tanCache.size > 400) this.tanCache.clear();
+    const HD = d > 0 ? this.hideDelivery(d - 1) : null; let out: number[] = [];
+    if (HD) out = this.persons.filter(q => q.job === 'treasury' && q.sub === 'tanner' && q.agent < 0 && this.ageOn(q.id, d) >= 16 && this.present(q.id, d) && !this.sick(q.id, d) && !this.mourning(q.id, d))
+      .map(q => [u01(this.seed, S.assign, 9800 + q.id, d), q.id]).sort((a, b) => a[0] - b[0]).slice(0, 2).map(x => x[1]);
+    this.tanCache.set(d, out); return out;
+  }
   /** the plot a household lives in (town households: always; others: none) */
   plotOf(h: number): TownPlot | null { const id = this.households[h]?.plot; return id ? PLOT_BY_ID.get(id) ?? null : null; }
   /** the most people a household holds on any day of the year (births, marriages, fosterage, deaths, arrivals) */
@@ -575,10 +617,13 @@ export class Population {
         let seat: SliceSeat | undefined; if (k < scribeSeats.length && m === 0) seat = scribeSeats[k];
         const staff = !!seat || (terraceStaff < 100 && m < 4); if (staff) terraceStaff++;
         const origin = seat?.origin ?? this.persons[this.households[hh].members[0]]?.origin ?? 'Babylonian';
-        const pid = this.person({ sex: 'm', age: this.ageIn(r, 18, 55), job: seat ? 'scribe' : 'treasury', sub: seat ? 'treasury' : staff ? (m % 2 ? 'weigher' : 'shiner') : craft, hh, origin, agent: seat?.agent ?? -1, work: seat ? 'treasury_desk' : staff ? 'treasury_inside' : ws });
+        // (D-255: two men of each shiners' group cut seals, and the men of the handlers' group 8 work the hides at the tannery; C)
+        const trade = craft === 'shiner' && m >= mix.men - 2 ? 'sealcutter' : craft === 'handler' && k === TANNERS_GROUP ? 'tanner' : craft;
+        const pid = this.person({ sex: 'm', age: this.ageIn(r, 18, 55), job: seat ? 'scribe' : 'treasury', sub: seat ? 'treasury' : staff ? (m % 2 ? 'weigher' : 'shiner') : trade, hh, origin, agent: seat?.agent ?? -1, work: seat ? 'treasury_desk' : staff ? 'treasury_inside' : trade === 'tanner' ? 'tannery' : ws });
         this.join(g, pid, 0.7); if (seat) { this.bySeat.set(seat.agent, pid); this.treasuryScribes.push(pid); } }
       for (let c = 0; c < mix.boys + mix.girls; c++) { const r = this.rng(-4800 - k * 100 - c);
-        const c0 = this.childFor(hhs, c < mix.boys ? 'm' : 'f', 4, 15, r, g); if (c0 !== null && this.persons[c0].age >= 12) { this.persons[c0].job = 'treasury'; this.persons[c0].sub = craft; this.persons[c0].work = ws; } }
+        const c0 = this.childFor(hhs, c < mix.boys ? 'm' : 'f', 4, 15, r, g); if (c0 !== null && this.persons[c0].age >= 12) { const tan = craft === 'handler' && k === TANNERS_GROUP && c < mix.boys;
+          this.persons[c0].job = 'treasury'; this.persons[c0].sub = tan ? 'tanner' : craft; this.persons[c0].work = tan ? 'tannery' : ws; } }
     }
     // D-221 (gap audit item 33): a Treasury scribe's son of 12-16 who works for the Treasury is his father's pupil: on the
     // days his father keeps the desk he goes up with him and copies beside him (the PF's "Persian boys copying texts",
@@ -3457,7 +3502,8 @@ class Planner {
     // home on the days he is not at it beside him (the signs on a clay tablet; the craft): a trade was learnt in the house
     // from the father (C; S6 of reviewer B, r5: "no hour with his father's craft" for a scribe's son of 13)
     const learnJob = !girl && age >= 10 && this.hh.zone === 'town' ? mem.map(x => P.persons[x]).find(x => x.id !== this.pid && x.sex === 'm' && !x.kin && this.ageOf(x.id) >= age + 16 && ['craftsman', 'scribe', 'storekeeper'].includes(x.job))?.job : undefined;
-    const learnAt: [ActivityId, string] | null = !learnJob || trade ? null : learnJob === 'craftsman' ? ['craft', 'working at his father’s craft in the house, learning it'] : ['write_tablet', learnJob === 'scribe' ? 'practising the signs on a clay tablet, as his father taught him' : 'practising the tallies and the signs on a clay tablet'];
+    const smithSon = learnJob === 'craftsman' && mem.some(x => x !== this.pid && P.persons[x].sub === 'smith' && P.persons[x].sex === 'm' && this.ageOf(x) >= age + 16);
+    const learnAt: [ActivityId, string] | null = !learnJob || trade ? null : smithSon ? ['smith', 'working the bellows at his father’s forge, learning the craft'] : learnJob === 'craftsman' ? ['craft', 'working at his father’s craft in the house, learning it'] : ['write_tablet', learnJob === 'scribe' ? 'practising the signs on a clay tablet, as his father taught him' : 'practising the tallies and the signs on a clay tablet'];
     // (minding the little ones is no chore of its own any more: it is the minder's spells, written from the little ones'
     // side, S2 r5; every piece of work ends by `until`, where her next spell with them begins)
     const doWork = (until: number): boolean => {
@@ -3666,7 +3712,7 @@ class Planner {
     // workBlock; D-211, exposed when the turns were set right)
     if (mine) { const a = Math.max(this.t, tIssue), wet = wetHours(C.wx, this.t, a + 1.8) > 0, pl = wet ? 'gate_hall' : 'stair_foot';
       if (wet) this.go('gate_hall', 'terrace', 'under the Gate’s roof out of the rain');
-      this.add(a, pl, 'write_tablet', wet ? 'recording the ration issue under the Gate’s roof, out of the rain' : 'recording and sealing the ration issue at the depot', 'terrace'); this.add(Math.max(this.t + 1.8, lastIssue + 0.9), pl, 'write_tablet', wet ? 'sealing the issue tablets under the Gate’s roof, out of the rain' : 'sealing the issue tablets', 'terrace'); } // (until the day's last group has had its issue: D-211, a later group's issue had had no scribe)
+      this.add(a, pl, 'write_tablet', wet ? 'recording the ration issue under the Gate’s roof, out of the rain' : 'recording and sealing the ration issue at the depot', 'terrace'); this.add(Math.max(this.t + 1.8, lastIssue + 0.9), pl, 'seal', wet ? 'sealing the issue tablets under the Gate’s roof, out of the rain' : 'sealing the issue tablets', 'terrace'); } // (until the day's last group has had its issue: D-211, a later group's issue had had no scribe)
     // the day's caravan received into the store (E-06; the PF receipts "PN received": the goods counted and the receipt
     // recorded where they are set down): the scribe who is not sealing the issue stands in the store from the caravan's hour
     // until its sacks are carried up (Population.caravan, caravanDone; the porters' carrying, sim.ts; D-211, the lead's
@@ -3720,8 +3766,8 @@ class Planner {
     jobs.sort((a, b) => a[0] - b[0]);
     this.morning(7.5 - P.walkH(this.home, desk, d, this.homeW, 'town') - 0.05); const q = this.rationRun(); this.go(desk, 'town', 'going to work');
     for (const [h, pl, w, why, dur] of jobs) { const walk = P.walkH(desk, pl, d, 'town', w); if (h + dur > 15.5 || h - walk < this.t - 0.5) continue;
-      if (pl === desk) { this.workBlock(desk, 'town', 'write_tablet', 'writing and sealing tablets', this.t, h, false); this.add(Math.max(this.t, h) + dur, desk, 'write_tablet', why, 'town'); continue; }
-      this.workBlock(desk, 'town', 'write_tablet', 'writing and sealing tablets', this.t, Math.max(this.t, h - walk), false); this.errand(pl, w, 'write_tablet', why, dur, desk, 'town'); }
+      if (pl === desk) { this.workBlock(desk, 'town', 'write_tablet', 'writing and sealing tablets', this.t, h, false); this.add(Math.max(this.t, h) + dur, desk, /^sealing/.test(why) ? 'seal' : 'write_tablet', why, 'town'); continue; }
+      this.workBlock(desk, 'town', 'write_tablet', 'writing and sealing tablets', this.t, Math.max(this.t, h - walk), false); this.errand(pl, w, /^sealing/.test(why) ? 'seal' : 'write_tablet', why, dur, desk, 'town'); } // (D-255: sealing is performed as sealing)
     this.workBlock(desk, 'town', 'write_tablet', 'writing and sealing tablets', Math.max(7.5, this.t), 15.5, false);
     this.go(this.home, this.homeW, q !== null ? 'carrying the ration home' : 'going home', q !== null ? 'carry_sack' : 'walk'); this.evening(this.t); return this.finish();
   }
@@ -3755,7 +3801,11 @@ class Planner {
         const k = this.choose((p.sub === 'shiner' ? TS.shiner : p.sub === 'weigher' ? TS.weigher : TS.storekeeper) as Record<string, number>);
         if (k === 'carry') return ['treasury_inside', 'carry_sack', 'carrying goods between the store and the halls'];
         if (k === 'shine') return ['treasury_inside', 'polish_metal', 'shining gold and silver in the Treasury'];
-        if (k === 'weigh') return ['treasury_store', 'inspect', 'weighing silver and goods on the balance'];
+        // (D-255: the goldsmith's own work inside, the silver weighed on the balance, the store's jars sealed; were performed
+        // as shining and as `inspect`, hands clasped: REVIEWS/escapes.md)
+        if (k === 'chase') return ['treasury_inside', 'goldsmith', 'chasing a silver bowl on the stake in the Treasury'];
+        if (k === 'weigh') return ['treasury_store', 'weigh', 'weighing silver and goods on the balance'];
+        if (k === 'seal') return ['treasury_store', 'seal', 'sealing the jars and sacks of the store with clay and the store’s seal'];
         if (k === 'record') return ['treasury_store', 'write_tablet', p.sub === 'weigher' ? 'recording the weights on a tablet' : 'recording what came into the store and what went out'];
         if (k === 'stack') return p.sub === 'storekeeper' ? ['treasury_store', 'inspect', 'seeing the goods the porters carry up stacked in their places'] : ['treasury_store', 'carry_sack', 'stacking the goods the porters carry up from the stair foot'];
         return ['treasury_store', 'inspect', 'going over the store: the seals on the jars and sacks'];
@@ -3763,7 +3813,8 @@ class Planner {
       const HD = this.P.hideDelivery(this.d), ins: [number, number, string, ActivityId, string][] = [];
       if (HD && HD.receivers.includes(this.pid)) { const c1 = HD.t0 + Math.min(HD.t1 - HD.t0, 0.2 + 0.015 * HD.n);
         ins.push([HD.t0, c1, 'treasury_store', 'inspect', `receiving the ${HD.n} hides of yesterday’s slaughter from the carriers and counting them (E-12, CE-07)`], [c1, c1 + 0.15, 'treasury_store', 'write_tablet', `recording the ${HD.n} hides received for the workshops (CE-07)`]); }
-      for (const x of this.P.payWeighers(this.d)) if (x.weigher === this.pid && !ins.some(y => y[0] < x.t + 2 && y[1] > x.t)) ins.push([x.t, x.t + 2, 'treasury_desk', 'inspect', `weighing out ${x.sh} shekels of silver on the balance for ${x.group}, in lieu of rations (E-05)`]);
+      for (const x of this.P.payWeighers(this.d)) if (x.weigher === this.pid && !ins.some(y => y[0] < x.t + 2 && y[1] > x.t)) { ins.push([x.t, x.t + 1.8, 'treasury_desk', 'weigh', `weighing out ${x.sh} shekels of silver on the balance for ${x.group}, in lieu of rations (E-05)`]);
+        ins.push([x.t + 1.8, x.t + 2, 'treasury_desk', 'seal', `sealing the tablet of the payment to ${x.group} (E-05)`]); }
       // and a spell of another of the trade's tasks in the middle of the morning (a builder's check of the pick-131 sample: a
       // storekeeper stacked goods 5.7 h without a pause on a heat day; C)
       const [pl, act, why] = task(), pm = task(), alt = task(), ua = u01(this.P.seed, S.assign, 9990 + this.pid, this.d);
@@ -3771,13 +3822,19 @@ class Planner {
       ins.sort((a, b) => a[0] - b[0]);
       return this.terraceWorker(pl, act, why, pm, ins, { roofed: true });
     }
-    const act: ActivityId = p.sub === 'shiner' ? 'polish_metal' : p.sub === 'wood' ? 'work_wood' : p.sub === 'textile' ? 'weave' : 'carry_sack';
-    const why = p.sub === 'handler' ? 'handling treasury supplies' : `treasury workshop: ${p.sub === 'shiner' ? 'shining gold and silver' : p.sub === 'wood' ? 'working wood' : 'textiles'}`;
+    if (p.sub === 'tanner') return this.tanner();
+    // D-255 (G27, G29): the goldsmiths' day by the day's lot, chasing, raising or at the forge as well as shining (the men;
+    // the women and the boys shine), and the seal cutters at their blocks (lives.json job_tasks.goldsmith; C)
+    const GV = L.job_tasks.goldsmith.v, gold = p.sub === 'shiner' && p.sex === 'm' && this.age >= 16 ? (this.P.goldsmithForgeLot(this.pid, this.d) ? 'forge' : this.choose({ shine: GV.shine, chase: GV.chase, raise: GV.raise })) : 'shine';
+    const act: ActivityId = p.sub === 'sealcutter' ? 'cut_seal' : p.sub === 'shiner' ? (gold === 'shine' ? 'polish_metal' : gold === 'forge' ? 'smith' : 'goldsmith') : p.sub === 'wood' ? 'work_wood' : p.sub === 'textile' ? 'weave' : 'carry_sack';
+    const why = p.sub === 'handler' ? 'handling treasury supplies' : p.sub === 'sealcutter' ? 'treasury workshop: cutting a cylinder seal with the bow drill'
+      : `treasury workshop: ${p.sub === 'shiner' ? (gold === 'chase' ? 'chasing a silver bowl on the stake' : gold === 'raise' ? 'raising a gold bowl over the stake' : gold === 'forge' ? (this.P.forgeHelper(this.pid, this.d) ? 'working the bellows at the workshop’s forge for the goldsmith' : 'forging gold at the workshop’s forge, heated and hammered out') : 'shining gold and silver') : p.sub === 'wood' ? 'working wood' : 'textiles'}`;
     // work taken home by trade (A S9 of shadow review r8: women of every trade spun "at home for the workshop" on ~24 % of
     // their days): the textile women spin for it, the shiners and the woodworkers finish their own work at home, the handlers
     // of supplies have no work to take home (C)
     const TW = { ...(L.job_tasks.treasury_workshop.v as Record<'craft' | 'carry_up' | 'fetch' | 'home' | 'mill', number>) }; if (p.sub === 'handler') TW.home = 0;
-    const homeAct: ActivityId = p.sub === 'textile' ? 'spin' : act, homeWhy = p.sub === 'textile' ? 'spinning at home for the workshop' : `${why} at home`;
+    // (no forge at home: the goldsmith who took the forge today finishes the work cold at home, shining it)
+    const homeAct: ActivityId = p.sub === 'textile' ? 'spin' : act === 'smith' ? 'polish_metal' : act, homeWhy = p.sub === 'textile' ? 'spinning at home for the workshop' : act === 'smith' ? 'treasury workshop: shining gold and silver at home' : `${why} at home`;
     const k = this.choose(TW);
     if (k === 'home') return this.homeWork(homeAct, homeWhy);
     this.morning(7 - this.P.walkH(this.home, p.work, this.d, this.homeW, 'town') - 0.05); const q = this.rationRun(); this.go(p.work, 'town', 'going to the workshop');
@@ -3852,6 +3909,8 @@ class Planner {
     this.go(this.home, this.homeW); this.evening(this.t); return this.finish();
   }
   private craftsman(): Seg[] {
+    if (this.p.sub === 'smith') return this.smithDay();
+    if (this.p.sub === 'oil') return this.oilDay();
     const k = this.choose(L.job_tasks.craftsman.v as Record<'kiln' | 'pigment' | 'clay' | 'deliver' | 'home', number>);
     if (k === 'home') return this.homeWork('craft', 'pigment work at home: grinding colours and mending tools');
     this.morning(7 - this.P.walkH(this.home, 'craft_zone', this.d, this.homeW, 'town') - 0.05); this.go('craft_zone', 'town', 'to the kilns');
@@ -3865,6 +3924,48 @@ class Planner {
       else if (k2 === 'home') { this.go(this.home, this.homeW, 'taking work home'); this.atHome(15.5, 'craft', 'pigment work at home: grinding colours'); this.evening(this.t); return this.finish(); } }
     const [pl, why] = bench(k2 === 'kiln' || k2 === 'pigment' ? k2 : k); this.workBlock(pl, 'town', 'craft', why, Math.max(7, this.t), pl === 'craft_zone' ? 17 : 16, false);
     this.go(this.home, this.homeW); this.evening(this.t); return this.finish();
+  }
+  /** D-255 (G26): a smith's day at the forge of his house's workshop: forging from the morning, the midday meal with the
+   *  household, the forge again in the afternoon; on some days the finished tools carried to the royal stores. A second
+   *  smith of the house works the bellows for the first (popgeo.ts forgeSpot; C) */
+  private smithDay(): Seg[] {
+    const helper = this.P.forgeHelper(this.pid, this.d);
+    const why = helper ? 'working the bellows at the forge of the workshop for the smith of the house' : 'forging at the forge of the workshop: the bar hammered on the anvil, heated again, quenched';
+    const deliver = !helper && u01(this.P.seed, S.assign, 9900 + this.pid, this.d) < SMITH_DELIVER && !this.C.wx.wet;
+    this.morning(7 - 0.3, true); if (this.t < 7) this.atHome(7, 'rest', 'at home');
+    this.workBlock(this.home, this.homeW, 'smith', why, Math.max(7, this.t), deliver ? 10 : 12, false);
+    if (deliver) this.errand('royal_store', 'town', 'carry_sack', 'carrying finished tools and fittings to the royal stores', 0.5, this.home, this.homeW);
+    if (this.t < this.hd.noon) this.workBlock(this.home, this.homeW, 'smith', why, this.t, this.hd.noon, false);
+    this.noonAtHome();
+    this.workBlock(this.home, this.homeW, 'smith', why, Math.max(this.t, this.hd.noon + 1.2), Math.max(this.t + 0.5, 16.5), false);
+    this.evening(this.t); return this.finish();
+  }
+  /** D-255 (G20): an oil presser's day at the press by the royal stores: the roasted sesame pounded in the mortar, the paste
+   *  worked in hot water over a fire and the oil skimmed off into jars; now and then the jars carried to the royal stores (C) */
+  private oilDay(): Seg[] {
+    if (!this.P.present(this.pid, this.d)) return this.finish();
+    const skim = u01(this.P.seed, S.assign, 9910 + this.pid, this.d) < 0.4, why0 = 'pounding roasted sesame in the stone mortar for its oil', why1 = 'skimming the oil off the sesame paste in hot water into the jars';
+    this.morning(7 - this.P.walkH(this.home, 'oil_press', this.d, this.homeW, 'town') - 0.05); const q = this.rationRun(); this.go('oil_press', 'town', 'going to the oil press');
+    this.workBlock('oil_press', 'town', 'press_oil', skim ? why1 : why0, Math.max(7, this.t), 12.7, true);
+    if (u01(this.P.seed, S.assign, 9920 + this.pid, this.d) < 0.3 && !this.C.wx.wet && this.t < 14) this.errand('royal_store', 'town', 'carry_jar', 'carrying jars of sesame oil to the royal stores', 0.3, 'oil_press', 'town');
+    this.workBlock('oil_press', 'town', 'press_oil', skim ? why0 : why1, Math.max(this.t, 7), 16, true);
+    this.go(this.home, this.homeW, q !== null ? 'carrying the ration home' : 'going home', q !== null ? 'carry_sack' : 'walk'); this.evening(this.t); return this.finish();
+  }
+  /** D-255 (G28): a tanner's day at the tannery by the canal (a Treasury worker: the hides of the slaughter come to its
+   *  workshops, CE-07): scraping hides on the beam and turning them in the vats; the morning after a slaughter's hides came
+   *  in, two of them carry the hides down from the Treasury store. Rain sends them home (open ground; C) */
+  private tanner(): Seg[] {
+    const W: Where = 'town', vat = u01(this.P.seed, S.assign, 9930 + this.pid, this.d) < 0.35;
+    const beam = 'scraping hides on the beam at the tannery, the flesh and the hair taken off', soak = 'turning the hides soaking in the tanning vat';
+    if (dayStorm(this.C)) return this.homeDay(`${stormWord(this.C.wx, this.sun.rise - 0.5, this.sun.set + 0.5)}: no work at the tannery`);
+    this.morning(7 - this.P.walkH(this.home, 'tannery', this.d, this.homeW, W) - 0.05); const q = this.rationRun(); this.go('tannery', W, 'going to the tannery');
+    const HD = this.P.hideCarriers(this.d).includes(this.pid) ? this.P.hideDelivery(this.d - 1) : null;
+    if (HD && this.t < 10 && wetHours(this.C.wx, this.t, this.t + 2.5) === 0) { this.workBlock('tannery', W, 'tan', vat ? soak : beam, Math.max(7, this.t), Math.max(this.t, 7.5), true);
+      this.go('treasury_store', 'terrace', 'going up to the Treasury store for the hides'); this.add(this.t + 0.25, 'treasury_store', 'inspect', `taking over the ${HD.n} hides of the slaughter from the storekeepers, counted (CE-07)`, 'terrace');
+      this.go('tannery', W, `carrying the ${HD.n} hides of the slaughter down to the tannery (CE-07)`, 'carry_sack'); }
+    this.workBlock('tannery', W, 'tan', vat ? soak : beam, Math.max(7, this.t), 12.7, true);
+    this.workBlock('tannery', W, 'tan', vat ? beam : soak, Math.max(this.t, 7), 16, true);
+    this.go(this.home, this.homeW, q !== null ? 'carrying the ration home' : 'going home', q !== null ? 'carry_sack' : 'walk'); this.evening(this.t); return this.finish();
   }
   private official(): Seg[] {
     const P = this.P, C = this.C, p = this.p, r = this.r;
@@ -4035,7 +4136,10 @@ class Planner {
     const yd = p.sex === 'm' && (p.id + d - 1) % 10 === 0 && d > 0 && this.P.present(this.pid, d - 1) ? this.P.rawPlan(this.pid, d - 1) : null;
     if (yd && yd[yd.length - 1].place === 'palaces') { this.add(this.sun.rise, 'palaces', 'rest', 'night duty at the palaces', 'terrace'); this.go(this.home, this.homeW); this.atHome(12, 'sleep', 'sleeping after night duty'); return this.homeRest(); }
     if ((p.id + d) % 5 === 0) { // the lamps, in turn: a day at home, then oil and lamps at dusk (C)
-      this.morning(this.rise() + 1.2, true); this.rationRun(); this.go(this.home, this.homeW); this.homeHours(Math.max(this.t, this.hd.noon), 'at home'); this.noonAtHome();
+      this.morning(this.rise() + 1.2, true); this.rationRun(); this.go(this.home, this.homeW);
+      // D-255 (G20): the lamps' oil fetched from the oil press in the morning (C)
+      if (!this.C.wx.wet) { this.go('oil_press', 'town', 'going to the oil press for the lamps’ oil'); this.add(this.t + 0.15, 'oil_press', 'talk', 'at the oil press: the lamps’ oil measured out for the palaces', 'town'); this.go(this.home, this.homeW, 'carrying a jar of sesame oil home for the palace lamps', 'carry_jar'); }
+      this.homeHours(Math.max(this.t, this.hd.noon), 'at home'); this.noonAtHome();
       // (the lamps are lit as the light goes, from about half an hour before sunset: planCheck (d) "at dusk", the soak's sweep on
       // D-197; was from 1.1 h before)
       this.atHome(Math.max(this.t, this.sun.set - 0.5 - this.P.walkH(this.home, 'palaces', this.d, this.homeW, 'terrace')), 'rest', 'at home'); this.go('palaces', 'terrace'); this.add(this.t + 0.6, 'palaces', 'carry_jar', 'carrying oil and lighting the lamps at dusk', 'terrace'); this.go(this.home, this.homeW); this.evening(this.t); return this.finish(); }

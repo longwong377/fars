@@ -58,6 +58,9 @@ export const FRAMES: Frame[] = [
   { id: 'weave@10.8', anim: 'weave', ph: 0, t: 10.8 }, { id: 'adze@16.5', anim: 'adze', ph: 0, t: 16.5 }, { id: 'bier_r@47.9', anim: 'bier_r', ph: 0, t: 47.9 },
   { id: 'bier_l@3.9', anim: 'bier_l', ph: 0, t: 3.9 }, { id: 'lay@37', anim: 'lay', ph: 0, t: 37 }, { id: 'irrigate@54.2', anim: 'irrigate', ph: 0, t: 54.2 },
   { id: 'mould@26', anim: 'mould', ph: 0, t: 26 },
+  // D-255: the crafts' cycles, each its medoid (tools/dev/imp_keys.ts smith chasing seal_jar scrape pound; the bow drill shares the chasing frame at 0.046 m)
+  { id: 'smith@28.5', anim: 'smith', ph: 0, t: 28.5 }, { id: 'chasing@54.2', anim: 'chasing', ph: 0, t: 54.2 }, { id: 'seal_jar@41.6', anim: 'seal_jar', ph: 0, t: 41.6 },
+  { id: 'scrape@31.3', anim: 'scrape', ph: 0, t: 31.3 }, { id: 'pound@41.8', anim: 'pound', ph: 0, t: 41.8 },
 ];
 export const ROWS = IMP_DRESSES.length * FRAMES.length;
 /** rows per column of blocks */
@@ -81,6 +84,9 @@ export const IMP_MAP: Partial<Record<AnimId, [string] | [string, string, string]
   cook: ['stoke@22.7'], harp_v: ['harp_h@30.9'], harp_h: ['harp_h@30.9'], lyre: ['harp_h@30.9'], frame_drum: ['harp_h@30.9'], double_pipe: ['harp_h@30.9'],
   reed_pipe: ['reed_pipe@16.5'], sing: ['draw_water@1'], ball: ['harp_h@30.9'], rattle: ['reed_pipe@16.5'], barsom: ['harp_h@30.9'], feed_fire: ['harp_h@30.9'],
   mourn: ['draw_water@1'],
+  // D-255
+  smith: ['smith@28.5'], bellows: ['pat@52.2'], chasing: ['chasing@54.2'], weigh: ['harp_h@30.9'], seal: ['reed_pipe@16.5'], seal_jar: ['seal_jar@41.6'],
+  drill: ['chasing@54.2'], scrape: ['scrape@31.3'], pound: ['pound@41.8'],
   hoe: ['hoe@44.5', 'hoe@5.8', '3e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f8003e000f'],
   winnow: ['winnow@36.4', 'winnow@16.4', '000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fffc00000fff'],
   plough: ['plough@6.4', 'plough@31', 'ff803fe00ff807fc01ff007fc01fe00ff803fe00ff807fc01ff007fc01ff000007fffff000003ff803fe00ff803fe01ff007fc01ff007f803fe00ff803fe01ff007fc01ff007fc0000ffff'],

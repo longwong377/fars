@@ -20,7 +20,10 @@ export const WORK_ANIMS = ['hoe', 'irrigate', 'reap', 'bind', 'winnow', 'drive',
   // children's play (D-215: gap audit item 26) and the lame and the blind on the move (item 37)
   'ball', 'chase', 'pull_toy', 'rattle', 'limp', 'feel',
   // the magi and the dead (D-209): the barsom held before the fire, the kept fire fed, standing in mourning
-  'barsom', 'feed_fire', 'mourn'] as const;
+  'barsom', 'feed_fire', 'mourn',
+  // D-255: the crafts and the records: the smith at his anvil and his bellows, the goldsmith chasing, silver weighed on a
+  // balance, a seal rolled on a tablet or a jar's sealing, the seal cutter's bow drill, the tanner's scraper, the oil pounder
+  'smith', 'bellows', 'chasing', 'weigh', 'seal', 'seal_jar', 'drill', 'scrape', 'pound'] as const;
 export type WorkAnim = typeof WORK_ANIMS[number];
 /** how each cycle meets the ground (humanRig: planted feet, or the body resting on the ground) and whether it moves the
  *  performer's root along a path of its own (the ploughman along the furrow, the thresher turning with his team) */
@@ -37,6 +40,8 @@ export const WORK_META: Record<WorkAnim, { ground: 'feet' | 'seat'; path?: boole
   reed_pipe: { ground: 'seat', aside: true }, sing: { ground: 'feet' },
   ball: { ground: 'feet' }, chase: { ground: 'feet', path: true, gait: true }, pull_toy: { ground: 'feet', path: true, gait: true }, rattle: { ground: 'seat' }, limp: { ground: 'feet', gait: true }, feel: { ground: 'feet', gait: true },
   barsom: { ground: 'feet' }, feed_fire: { ground: 'feet' }, mourn: { ground: 'feet' },
+  smith: { ground: 'feet' }, bellows: { ground: 'feet', aside: true }, chasing: { ground: 'seat', aside: true }, weigh: { ground: 'feet' }, seal: { ground: 'seat', aside: true },
+  seal_jar: { ground: 'feet' }, drill: { ground: 'seat', aside: true }, scrape: { ground: 'feet' }, pound: { ground: 'feet' },
 };
 /** D-215: the children's paths (C): running round after one another on a circle of 2.2 m at 2 m/s; walking round pulling
  *  a toy on a circle of 1.5 m at 0.5 m/s. Both start at the view's spot and come back to it */
@@ -705,6 +710,142 @@ function mourn(t: number, k: number): Pose {
   grip(p, T, 'r', [-0.03, 0.9, 0.14], [-0.8, -1, -0.2], 0.9); grip(p, T, 'l', [0.035, 0.91, 0.13], [0.8, -1, -0.2], -0.9);
   look(p, T, [0.2 * wob(t * 0.07, k), 0, 2.2], 0.25); p.grip = [0.4, 0.4]; return p;
 }
+// ================================================================================================= crafts and records (D-255)
+// Forms and tempi reconstructed (C); what is attested is in activities.ts's notes. Tool contact points are stated in the
+// performer's frame as the other cycles' are; the work objects they meet (the anvil, the bellows, the stake, the weighing
+// table, the jars, the drill block, the beam, the mortar) are placed by activities.ts at the positions assumed here.
+const mixV = (a: V3, b: V3, w: number): V3 => [a[0] + (b[0] - a[0]) * w, a[1] + (b[1] - a[1]) * w, a[2] + (b[2] - a[2]) * w];
+/** the smith at the forge (work objects: the anvil 0.55 m ahead, its face 0.62 m up; the bellows at the left front; the
+ *  quench jar at the right front; the forge's fire, a fitting of the workshop, to the left: popgeo.ts smithSpot). Hammer blows on
+ *  the piece held in the tongs, the piece turned now and then; then the turn to the fire, the piece laid in it and the
+ *  bellows worked with the right hand until it glows; every third heat ends in the quench jar first. P s a heat */
+export const SMITH = { P: 24, blow: 0.72 } as const;
+export function smithPhase(t: number, k: number) {
+  const P = SMITH.P, u = fr(t / P + k * 0.17) * P, quench = cyc(t, P, k, 5) < 0.34;
+  const toJar = quench ? ramp(u, 13, 14) * (1 - ramp(u, 15.5, 16.5)) : 0;
+  const toFire = (quench ? ramp(u, 15.5, 16.5) : ramp(u, 13, 14)) * (1 - ramp(u, 23, 24));
+  return { u, quench, toJar, toFire, forging: u >= 0.6 && u < 13 };
+}
+function smith(t: number, k: number): Pose {
+  const { u, quench, toJar, toFire, forging } = smithPhase(t, k), p = blank(), fg = 1 - Math.max(toJar, toFire);
+  const T = body(p, { hp: 0.3 + 0.06 * toJar, sp: 0.24, ch: 0.06, drop: -0.08, back: -0.04, hy: 0.5 * toFire - 0.4 * toJar, sy: 0.16 * toFire - 0.16 * toJar }, t, k);
+  stance(p, T, { w: 0.17, zl: 0.12, zr: -0.12, out: 0.25 });
+  // the hammer (right): raised, struck, lifted again; a lighter blow now and then between the heavy ones
+  const q = fr(u / SMITH.blow), light = cyc(u, SMITH.blow, k, 2) < 0.3 ? 0.5 : 1;
+  const hv = key(q, [[0, [-0.17, 0.96, 0.34]], [0.42, [-0.18, 0.94 + 0.16 * light, 0.32]], [0.62, [-0.07, 0.72, 0.48]], [0.7, [-0.07, 0.71, 0.48]], [0.86, [-0.13, 0.84, 0.4]]]);
+  const turnQ = win(fr(u / 4.3), 0.05, 0.16, 0.03); // the piece turned on the anvil
+  const Lanv: V3 = [0.2, 0.8 + 0.04 * turnQ, 0.2 - 0.03 * turnQ];
+  // at the fire: the tongs held into it on the left, the right hand on the bellows' handle, pressed and lifted
+  const bq = fr(u / 1.25), press = bq < 0.5 ? ramp(bq, 0.05, 0.4) : 1 - ramp(bq, 0.55, 0.95);
+  const Lfire: V3 = [0.32, 0.72, 0.3], Rbel: V3 = [0.18, 0.76 - 0.12 * press, 0.44];
+  // at the jar: the tongs lowered into it on the right, the hammer held at rest
+  const Ljar: V3 = [-0.12, 0.74, 0.4], Rrest: V3 = [-0.24, 0.86, 0.22];
+  const R = mixV(mixV(forging || u < 13 ? [hv[0], hv[1], hv[2]] : Rrest, Rbel, toFire), Rrest, toJar), L = mixV(mixV(Lanv, Lfire, toFire), Ljar, toJar);
+  grip(p, T, 'r', R, [-0.8, -0.9, -0.25], 0.5); grip(p, T, 'l', L, [0.8, -1, -0.3], -0.4);
+  look(p, T, toFire > 0.5 ? [0.75, 0.5, 0.3] : toJar > 0.5 ? [-0.4, 0.4, 0.6] : [0.02, 0.62, 0.55]);
+  p.grip = [1, toFire > 0.5 ? 0.7 : 1];
+  p.hit = forging && fg > 0.99 && q >= 0.62 && q < 0.7;
+  if (!p.hit && toFire > 0.95 && bq >= 0.4 && bq < 0.48) { p.hit = true; p.hitKind = 'bellows'; }
+  if (!p.hit && quench && u >= 14.3 && u < 14.42) { p.hit = true; p.hitKind = 'quench'; }
+  // prop hints: the hammer's head beyond the fist; the tongs' jaws on the anvil, in the fire or in the jar
+  p.tip = [[R[0] + 0.05, R[1] - 0.08 * fg, R[2] + 0.28], toFire > 0.5 ? [0.72, 0.55, 0.3] : toJar > 0.5 ? [-0.4, 0.38, 0.6] : [0.02, 0.63, 0.56]];
+  p.show = [toFire < 0.5 && toJar < 0.5, true];
+  return p;
+}
+/** a helper squatting at the forge working two bag bellows (their nozzles into the fire ahead), the hands pressing each
+ *  bag in turn and lifting its top to fill it (C: bag bellows of the Egyptian tomb paintings, trodden there; here pressed) */
+function bellows(t: number, k: number): Pose {
+  const p = blank(), P = 1.3, q = fr(t / P + k * 0.3), a = q < 0.5 ? S(PI * q / 0.5) : 0, b = q >= 0.5 ? S(PI * (q - 0.5) / 0.5) : 0;
+  const T = squatBody(p, t, k, 0.55, 0.38);
+  grip(p, T, 'r', [-0.15, 0.36 - 0.12 * a + 0.04 * b, 0.42], [-0.9, -0.5, -0.3], 0.3); grip(p, T, 'l', [0.15, 0.36 - 0.12 * b + 0.04 * a, 0.42], [0.9, -0.5, -0.3], -0.3);
+  look(p, T, [0.1 * wob(t * 0.2, k), 0.3, 1.2]); p.grip = [0.6, 0.6];
+  const m = fr(t / (P / 2) + k * 0.6); p.hit = m >= 0.42 && m < 0.5; return p;
+}
+/** a goldsmith seated at a stake set in a block (work object 'stake', its head 0.3 m up, 0.42 m ahead): a punch held on
+ *  the vessel in the left hand and tapped with a small hammer in the right, moved on along the line every few taps; now
+ *  and then the vessel turned. The same motion raises a sheet over the stake */
+function chasing(t: number, k: number): Pose {
+  const P = 0.34, q = fr(t / P + k * 0.21), p = blank(), mv = fr(t / 5.2 + k), shift = 0.03 * S(2 * PI * t / 5.2 + k), rest = win(mv, 0.86, 0.98, 0.02);
+  const T = sitBody(p, t, k, 0.55);
+  const hv = key(q, [[0, [-0.07, 0.42, 0.36]], [0.4, [-0.08, 0.47, 0.35]], [0.62, [-0.02, 0.37, 0.39]], [0.72, [-0.02, 0.37, 0.39]], [0.9, [-0.05, 0.4, 0.37]]]);
+  const R: V3 = [hv[0] + shift, hv[1] + 0.06 * rest, hv[2] - 0.04 * rest];
+  grip(p, T, 'r', R, [-0.9, -0.6, -0.3], 0.6);
+  grip(p, T, 'l', [0.05 + shift, 0.34 + 0.02 * rest, 0.4], [0.9, -0.6, -0.3], -0.8);
+  look(p, T, [0.02 + shift, 0.3, 0.42]); p.grip = [0.9, 1];
+  p.hit = rest < 0.1 && q >= 0.62 && q < 0.72;
+  p.tip = [[0.03 + shift, 0.29, 0.42], [R[0] + 0.04, R[1] - 0.03, R[2] + 0.12]]; return p;
+}
+/** weighing silver on a hand balance (work object 'weigh_table' 0.5 m ahead, its top 0.72 m up): the balance held up by
+ *  its cord in the left hand; a stone weight, or the silver, taken from the table and laid in the pan with the right; then
+ *  the beam watched until it settles. `ip` rocks the pans (props.ts 'balance') */
+export const WEIGH = { P: 7.5, table: 0.72 } as const;
+function weigh(t: number, k: number): Pose {
+  const P = WEIGH.P, q = fr(t / P + k * 0.23), p = blank(), j = cyc(t, P, k) - 0.5;
+  const T = body(p, { hp: 0.1 + 0.22 * win(q, 0.08, 0.36, 0.06), sp: 0.08, ch: 0.02, drop: -0.03, hy: -0.06 }, t, k);
+  stance(p, T, { w: 0.13, zl: 0.06, zr: -0.05, out: 0.2 });
+  const L: V3 = [0.1, 1.2 + 0.01 * S(t * 1.3), 0.32];
+  const R = key(q, [[0, [-0.2, 0.96, 0.24]], [0.14, [-0.12 + 0.08 * j, 0.8, 0.42]], [0.24, [-0.12 + 0.08 * j, 0.79, 0.42]], [0.38, [-0.05, 0.98, 0.34]], [0.46, [-0.05, 0.96, 0.34]], [0.56, [-0.2, 0.95, 0.24]]]);
+  grip(p, T, 'l', L, [0.8, -1, -0.3], -0.3); grip(p, T, 'r', [R[0], R[1], R[2]], [-0.8, -1, -0.3], 0.4);
+  look(p, T, q > 0.1 && q < 0.3 ? [-0.1, 0.72, 0.5] : [0.08, 1.05, 0.34]);
+  const since = q - 0.44; p.ip = since > 0 ? 0.025 * Math.exp(-since * P * 0.8) * C(since * P * 5) : 0;
+  p.grip = [1, q > 0.14 && q < 0.46 ? 0.9 : 0.4]; p.hit = q >= 0.44 && q < 0.46; return p;
+}
+/** sealing a clay tablet, seated: the tablet on the left palm, a cylinder seal rolled across its face under the right
+ *  hand's fingers, once or twice, then the tablet turned to seal its edge (the rolling of cylinder seals is attested by the
+ *  impressions on the tablets themselves, PFS: A; the posture C) */
+function seal(t: number, k: number): Pose {
+  const P = 5, q = fr(t / P + k * 0.37), p = blank(), roll = win(q, 0.15, 0.7, 0.05), x = roll * 0.05 * S(2 * PI * (q - 0.15) / 0.55 * 1.5), turn = win(q, 0.75, 0.95, 0.04);
+  const T = sitBody(p, t, k, 0.35);
+  grip(p, T, 'l', [0.08, 0.5 + 0.03 * turn, 0.3], [0.9, -0.6, -0.3], -1.3 + 0.5 * turn);
+  grip(p, T, 'r', [0.02 + x, 0.56 + 0.05 * (1 - roll), 0.31], [-0.9, -0.6, -0.3], 0.9);
+  look(p, T, [0.05, 0.5, 0.32]); p.grip = [0.4, 0.7]; return p;
+}
+/** sealing a jar or a sack at the store: stooped over it (work object 'sealed_jars', the mouth 0.62 m up, 0.45 m ahead),
+ *  the lump of clay pressed over the stopper and its cord with the left hand, the seal rolled over it with the right */
+function sealJar(t: number, k: number): Pose {
+  const P = 9, q = fr(t / P + k * 0.29), p = blank(), roll = win(q, 0.3, 0.75, 0.05), press = win(q, 0.05, 0.25, 0.04), x = roll * 0.05 * S(2 * PI * (q - 0.3) / 0.45 * 1.5);
+  const T = body(p, { hp: 0.48, sp: 0.32, ch: 0.08, drop: -0.12, back: -0.08 }, t, k);
+  stance(p, T, { w: 0.16, zl: 0.1, zr: -0.08, out: 0.25 });
+  grip(p, T, 'l', [0.1 - 0.06 * press, 0.66 - 0.02 * press, 0.42], [0.8, -0.8, -0.3], -0.6);
+  grip(p, T, 'r', [-0.05 + x, 0.68 + 0.08 * (1 - roll) * (1 - press), 0.44], [-0.8, -0.8, -0.3], 0.9);
+  look(p, T, [0, 0.62, 0.46]); p.grip = [0.5, 0.7]; return p;
+}
+/** the seal cutter's bow drill, seated at a low block (work object 'seal_bench', 0.38 m ahead): the drill upright, its cap
+ *  pressed down with the left hand, the bow drawn back and forth with the right; the stone blank looked at after a while */
+function drill(t: number, k: number): Pose {
+  const P = 14, u = fr(t / P + k * 0.19), p = blank(), look0 = win(u, 0.82, 0.97, 0.03), s = S(2 * PI * t / 0.62) * (1 - look0);
+  const T = sitBody(p, t, k, 0.5 + 0.15 * look0);
+  grip(p, T, 'l', [0.02, 0.42 - 0.04 * look0, 0.38 - 0.02 * look0], [0.9, -0.6, -0.3], -0.6);
+  grip(p, T, 'r', [-0.12 + 0.15 * s, 0.36, 0.34 + 0.02 * Math.abs(s)], [-0.9, -0.5, -0.3], 0.5);
+  look(p, T, [0.02, 0.3, 0.38]); p.grip = [0.7, 0.9];
+  const m = fr(t / 0.31); p.hit = look0 < 0.1 && m >= 0.45 && m < 0.55; p.tip = [[0.1, 0.37, 0.38], null]; return p;
+}
+/** a tanner at the beam (work object 'tan_beam': a hide over a sloping log, its working part 0.7 m up, 0.55 m ahead): the
+ *  two-handled scraper pushed down along it, fleshing or taking off the hair, then drawn back; now and then a step back
+ *  and the hide shifted on the beam */
+function scrape(t: number, k: number): Pose {
+  const P = 2.2, q = fr(t / P + k * 0.13), p = blank(), sh = cyc(t, 16, k), move = win(fr(t / 16 + k * 0.4), 0.88, 0.99, 0.02);
+  const push = q < 0.55 ? ramp(q, 0.05, 0.55) : 1 - ramp(q, 0.6, 0.98);
+  const T = body(p, { hp: 0.3 + 0.22 * push - 0.1 * move, sp: 0.22 + 0.12 * push, ch: 0.08, drop: -0.08 - 0.05 * push, back: -0.06 }, t, k);
+  stance(p, T, { w: 0.18, zl: 0.2, zr: -0.14, out: 0.25 });
+  const y = 0.9 - 0.2 * push + 0.05 * move, z = 0.38 + 0.2 * push, dx = 0.03 * (sh - 0.5);
+  grip(p, T, 'r', [-0.16 + dx, y, z], [-0.9, -0.8, -0.3], 0.3); grip(p, T, 'l', [0.16 + dx, y, z], [0.9, -0.8, -0.3], -0.3);
+  look(p, T, [dx, 0.66, 0.66]); p.grip = [1, 1];
+  p.hit = move < 0.1 && q >= 0.5 && q < 0.55; return p;
+}
+/** pounding sesame in a stone mortar (work object 'oil_press', the mortar's mouth 0.35 m up, 0.42 m ahead) with a long
+ *  wooden pestle held upright in both hands: lifted, let drop, lifted (C: the roasted seed crushed before the oil is got
+ *  out of the paste with hot water; the method is reconstructed, research/CRAFTS.md) */
+function pound(t: number, k: number): Pose {
+  const P = 1.6, q = fr(t / P + k * 0.27), p = blank(), lift = q < 0.55 ? ramp(q, 0.02, 0.55) : 1 - ramp(q, 0.62, 0.8);
+  const T = body(p, { hp: 0.12 + 0.08 * (1 - lift), sp: 0.1 + 0.06 * (1 - lift), ch: 0.03, drop: -0.05 - 0.03 * (1 - lift) }, t, k);
+  stance(p, T, { w: 0.17, zl: 0.08, zr: -0.06, out: 0.25 });
+  const y = 0.92 + 0.3 * lift;
+  grip(p, T, 'r', [-0.02, y, 0.36], [-0.9, -0.8, -0.2], 1.1); grip(p, T, 'l', [0.02, y + 0.16, 0.36], [0.9, -0.8, -0.2], -1.1);
+  look(p, T, [0, 0.35, 0.44]); p.grip = [1, 1];
+  p.hit = q >= 0.8 && q < 0.86; return p;
+}
+
 /** a work cycle's pose. `ph`: the gait phase for walking cycles (bearers); `k`: per-person seed */
 export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
   switch (id) {
@@ -760,6 +901,15 @@ export function workPose(id: WorkAnim, t: number, ph: number, k: number): Pose {
     case 'barsom': return barsomPose(t, k);
     case 'feed_fire': return feedFire(t, k);
     case 'mourn': return mourn(t, k);
+    case 'smith': return smith(t, k);
+    case 'bellows': return bellows(t, k);
+    case 'chasing': return chasing(t, k);
+    case 'weigh': return weigh(t, k);
+    case 'seal': return seal(t, k);
+    case 'seal_jar': return sealJar(t, k);
+    case 'drill': return drill(t, k);
+    case 'scrape': return scrape(t, k);
+    case 'pound': return pound(t, k);
   }
 }
 /** the root path of a path cycle at time t (called every frame by the crowd, also between pose refreshes) */

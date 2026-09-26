@@ -17,6 +17,9 @@ export type AnimId = 'idle' | 'walk' | 'carry_shoulder' | 'carry_head' | 'carry_
   | 'bake' | 'draw_water' | 'write' | 'eat' | 'sleep' | 'talk' | 'sit' | 'dice' | 'inspect' | 'play' | 'enthroned' | 'ride' | WorkAnim;
 export type E3 = [number, number, number];
 export interface Pose { rot: Partial<Record<BoneName, E3>>; hips: E3; /** strike/impact event this frame (for tool sounds) */ hit?: boolean;
+  /** D-255: the sound of this frame's strike when it is not the performance's own (the smith's bellows and the hiss of the
+   *  quench between his hammer blows); a soundscape strike kind */
+  hitKind?: string;
   /** the performer's root moved along a path of the cycle's own (m, m, rad in the performer's frame: the ploughman along
    *  the furrow, the thresher turning with his team, the archer side-on to the target) */
   root?: [number, number, number];

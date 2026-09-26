@@ -170,6 +170,9 @@ export const STRIKE_KINDS = ['chisel', 'quern', 'dice', 'hoe', 'sickle', 'loom',
   'bray', 'bark', 'cluck', 'cockcrow', 'grunt',
   // session 9: the wild animals' voices (world/beasts.ts), heard from far off
   'howl', 'roar', 'whoop', 'saw',
+  // D-255: the crafts: the smith's hammer on the anvil, his bellows and the quench, the goldsmith's chasing taps, a weight laid
+  // in the balance's pan, the seal cutter's bow drill, the tanner's scraper, the pestle in the oil mortar
+  'hammer', 'bellows', 'quench', 'chase', 'clink', 'drill', 'scrape', 'pound',
   // D-256: the cattle's low and the bees' buzz at the hives (the work on the land)
   'low', 'buzz'] as const;
 export const LAYER_SOUNDS = ['murmur', 'footsteps', 'fire'] as const;
@@ -203,6 +206,17 @@ export function workStrike(e: AudioEngine, kind: string, pos: { x: number; y: nu
     case 'broom': { const p = at(0.1, 2, 40); burst(e, p, t, 0.25, 'pink', 'bandpass', 2600, 1800, 0.7, 0.015); return true; }
     case 'bow': { const p = at(1.5, 3, 120); burst(e, p, t, 0.02, 'white', 'highpass', 2000, 2000, 0.7, 0.02); tone(e, p, t, 0.25, 'sine', 190 + 30 * j, 150, 0.04); return true; } // the string released
     case 'water': { const p = at(0.3, 2, 60); burst(e, p, t, 0.25, 'white', 'highpass', 1200, 2400, 0.7, 0.03); return true; }
+    // D-255 (all procedural, C): iron on iron rings high and decays; the bellows' breath; the hiss of hot iron in water; the
+    // goldsmith's light tap; bronze weight on a bronze pan; stone rasped by the drill; the scraper's drag on a wet hide; the
+    // pestle's thud in the stone mortar
+    case 'hammer': { const p = at(0.7, 4, 400); tone(e, p, t, 0.35, 'triangle', 1900 + 500 * j, 1700, 0.05); tone(e, p, t, 0.2, 'sine', 3100 + 400 * j, 2900, 0.02); burst(e, p, t, 0.04, 'white', 'bandpass', 2500, 2000, 1.2, 0.04); return true; }
+    case 'bellows': { const p = at(0.6, 2, 60); burst(e, p, t, 0.45, 'pink', 'lowpass', 700, 250, 0.7, 0.05); return true; }
+    case 'quench': { const p = at(0.5, 2, 80, 2); burst(e, p, t, 0.9, 'white', 'highpass', 3500, 5000, 0.7, 0.04); burst(e, p, t, 0.15, 'brown', 'lowpass', 600, 300, 0.7, 0.03); return true; }
+    case 'chase': { const p = at(0.3, 1.5, 60); tone(e, p, t, 0.04, 'triangle', 2800 + 600 * j, 2600, 0.02); return true; }
+    case 'clink': { const p = at(1.0, 1.5, 30); tone(e, p, t, 0.12, 'sine', 2300 + 300 * j, 2250, 0.015); tone(e, p, t, 0.08, 'sine', 3700 + 300 * j, 3600, 0.008); return true; }
+    case 'drill': { const p = at(0.3, 1.5, 30); burst(e, p, t, 0.14, 'white', 'bandpass', 1500 + 300 * j, 1300, 3, 0.012); return true; }
+    case 'scrape': { const p = at(0.7, 2, 50); burst(e, p, t, 0.35, 'pink', 'bandpass', 900 + 200 * j, 700, 1.2, 0.03); return true; }
+    case 'pound': { const p = at(0.3, 3, 120); tone(e, p, t, 0.12, 'sine', 95 + 20 * j, 60, 0.06); burst(e, p, t, 0.08, 'brown', 'lowpass', 500, 250, 0.8, 0.04); return true; }
     case 'bray': { const p = at(1.1, 6, 600); bray(e, p, t, rng); return true; }
     case 'bark': { const p = at(0.5, 5, 400); const n = 1 + (j < 0.5 ? 0 : j < 0.85 ? 1 : 2); for (let i = 0; i < n; i++) bark(e, p, t + i * (0.28 + 0.1 * rng.next()), rng); return true; }
     case 'cluck': { const p = at(0.25, 1.5, 40); cluck(e, p, t, rng); return true; }

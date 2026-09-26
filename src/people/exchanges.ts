@@ -89,7 +89,7 @@ export const SITUATIONS: Situation[] = [
   { id: 'ration_issue', tier: 'C', reach: 15, cooldownH: 1,
     note: 'the monthly issue at the depot (E-01: the group queues and receives its grain; the scribe records and seals it): the issuer names the ration and counts; the receiver asks for his share (in his own tongue if need be, the gesture carries it), the scribe says "received" (the PF receipt verb) and the receiver blesses (C)',
     cast: { a: role('scribe', 'official', 'foreman'), b: s => RECIPIENT.has(s.role) && speaks(s) },
-    when: (a, b) => still(a) && act(a, 'write_tablet', 'inspect', 'talk') && (a.task!.place === 'stair_foot' || /ration|issue/.test(a.task!.why ?? '')) && act(b, 'queue') && same(a, b),
+    when: (a, b) => still(a) && act(a, 'write_tablet', 'seal', 'inspect', 'talk') && (a.task!.place === 'stair_foot' || /ration|issue/.test(a.task!.why ?? '')) && act(b, 'queue') && same(a, b),
     turns: [{ who: 'a', intents: ['ration'] }, { who: 'a', intents: ['count'] }, { who: 'b', intents: ['ration'], p: 0.5, own: true },
       { who: 'a', intents: ['remark'], p: 0.5 }, { who: 'b', intents: ['pious'], p: 0.5 }] },
   { id: 'gate_check', tier: 'C', reach: 8, cooldownH: 3,

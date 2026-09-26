@@ -6277,6 +6277,36 @@ moment-*-webgpu.png in the worktree, not committed).**
   A 14-day soak (tools/soak.ts 14 60 1) keeps plansWellFormed true.
 - **Tier.** Engineering on C-tier plans. Door widths: excavated Achaemenid and Elamite house doors 0.7-1.0 m (C, recollection).
 
+## D-255 The crafts and the records: the smith, the goldsmiths, the balance, the seal, the seal cutter, the tannery, the oil press (session 9; UD-07, UD-08, UD-14; T-J7, T-F7a, T-D2s; WORLD_INVENTORY G20, G26-G29, GB4, GB13)
+- **What.** Seven activities with performances of their own (activities.ts; nine new pose cycles in workAnims.ts; nine tools in
+  a fifth carried-prop class; twelve work objects; eight strike kinds): `smith` (hammer and tongs at an anvil, the bar reheated
+  in the workshop's forge on his left while he works a bag bellows, every third heat quenched: the pose carries `hitKind`, so
+  one cycle sounds the blows, the bellows and the hiss; variant: a helper squatting at a pair of bag bellows), `goldsmith`
+  (chasing on a stake with punch and small hammer; raising), `weigh` (a hand balance hung from the left hand, the pans rocking as
+  a weight is laid in, the graded stone weights on a table), `seal` (a cylinder seal rolled on a tablet; variant: over the clay
+  on a jar's stopper and a sack's cord), `cut_seal` (the bow drill at a low block), `tan` (the two-handled scraper on the beam;
+  variant: the hides turned in a vat; the drying frames, lime and stained ground shared at the place), `press_oil` (sesame
+  pounded with a long pestle in a stone mortar; variant: the paste in hot water, the oil skimmed into jars).
+- **Who, where, when (population.ts; C).** The town's craftsmen whose house is a metal workshop are its smiths (7 men, 6
+  houses) at its forge fitting 7:00-16:30 (popgeo.ts forgeSpot: 0.85 m from the forge, the fire on the left; the second smith
+  of a house and a smith's son at the bellows); the Treasury's goldsmiths (the men of the shiners' groups) by the day's lot
+  shine, chase, raise or work its metal workshops' forges two to a forge (Population.treasuryForge), the shiners inside the
+  Treasury chase too; two men of each shiners' group cut seals (8); the men and boys of Treasury group 8 are the tanners (14),
+  at the tannery by the canal NE of the Terrace (town.json, Q-700), two of them carrying a slaughter's hides down from the
+  Treasury store the morning after (CE-07); one town craftsman in 25 presses oil at the press by the royal stores (12; Q-701);
+  the lamp keepers fetch the lamps' oil from it. The Treasury's weighers weigh on the balance; a silver payment's weighing
+  (E-05) ends with its tablet sealed; the storekeepers seal the store's jars and sacks; the scribes' "sealing the issue
+  tablets" and "sealing letters" are sealed, not written.
+- **The detector escape (REVIEWS/escapes.md E-001).** Silver "weighed" as `inspect` passed the activity lint, which asks only
+  that a performance exists. planCheck.ts `reasonOk` now fixes the act from the reason's words for these crafts and records, so
+  the soak's plansWellFormed and tests/crafts.test.ts catch a misfit.
+- **Tiers.** research/CRAFTS.md: the acts attested where the tablets, the seals and the PT occupations attest them (A/B); every
+  form, motion, tool, place and share C. The tannery and the press are not built places (open ground with the performers' work
+  objects, as the mill and the stockyard); the flies are not heard at the tannery (world/fauna.ts, outside this brief).
+- **A third prop draw.** The two everyday carried-prop unions are at their budgets (996/1000 and 698/700 triangles), so the crafts'
+  tools (394 triangles) are a fifth class, drawn only where a craft is worked, as the instruments and the carried children are:
+  tests/performances.test.ts's 300-performer crowd, which works every activity, now allows 3 prop draws (was 2); the unions'
+  triangle budgets are unchanged.
 ## D-257 The roads ford the rivers; the Pasargadae road redrawn off the river (session 9; gap hunters A061, B-022, W-014, A519; tier C)
 - **What was wrong.** Every road that met the Pulvar or the Kur ran into the water: no ford, bridge or boat (settlement.json only
   said "ford or bridge, C"). Measured before the fix: the four settlement.json roads as drawn (settlement/water.ts meander) meet a

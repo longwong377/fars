@@ -95,6 +95,16 @@ export const PROP_NOTES: Record<string, { tier: 'A' | 'B' | 'C'; note: string }>
   leather: { tier: 'C', note: 'a sheet of prepared leather being written in Aramaic, one end still rolled (Treasury tablets tied to leather documents with an Aramaic duplicate, Cameron’s inference: B; the Arshama letters on leather: B by analogy; size C). The writing on it is NOT drawn: no Aramaic Treasury document is reachable and nothing is invented (D-221)' },
   barsom: { tier: 'C', note: 'the barsom: a bundle of thin twigs held upright in the right hand by a magus at the fire and at offerings (a man in Median dress holding the barsom on the gold plaques of the Oxus Treasure, OXUS-PLAQUE: B; a bundle on Achaemenid seals, NOT SEEN); a bundle 0.46 m long, drawn as two splayed rods (the twigs are not resolved at a carried prop’s size): C (D-209)' },
   rattle: { tier: 'C', note: 'a hollow fired-clay rattle with pellets inside and a stub handle (clay rattles are known from Near Eastern and Iranian sites: RECOLLECTION, NOT SEEN; C)' },
+  // D-255: the crafts' and the records' tools (a class of their own: drawn only where someone works a craft)
+  hammer: { tier: 'C', note: 'a smith’s hammer, an iron head on a wooden haft, 0.34 m (iron-working in the Achaemenid heartland: iron tools and slag are common finds, B; the form NOT SEEN, C)' },
+  tongs: { tier: 'C', note: 'a smith’s iron tongs, 0.5 m, holding a bar at a red heat in the jaws (tongs are known from Near Eastern smithing depictions, RECOLLECTION, NOT SEEN; C)' },
+  hammer_s: { tier: 'C', note: 'a goldsmith’s small hammer for chasing and raising, 0.22 m (goldsmiths among the Treasury craftsmen: PT, via PEOPLE.md, B; the tool C)' },
+  punch: { tier: 'C', note: 'a bronze chasing punch, 0.1 m, held on the metal and struck (chased and repoussé gold and silver vessels of the period, e.g. the Achaemenid phialai: B; the tool C)' },
+  balance: { tier: 'C', note: 'a hand balance: a bronze beam 0.32 m on a cord, two pans on cords (equal-arm balances of the ancient Near East and Egypt: B by analogy; silver paid by weight at the Treasury, PT via PEOPLE.md: B; the form C). The pans rock as a weight is laid in' },
+  seal_cyl: { tier: 'B', note: 'a stone cylinder seal, 3 cm, rolled across the clay (cylinder seals and their rollings on the Fortification and Treasury tablets: PFS, A; the stone and size C)' },
+  drill_bow: { tier: 'C', note: 'the seal cutter’s bow for the drill, a bent stick with a thong wound round the drill’s shaft (bow drills for stone: B by analogy; C)' },
+  scraper: { tier: 'C', note: 'a tanner’s two-handled scraper for fleshing and dehairing a hide on the beam (C: the tool NOT SEEN)' },
+  pestle: { tier: 'C', note: 'a long wooden pestle, 1.3 m, for pounding the roasted sesame in a stone mortar (C: the method reconstructed, research/CRAFTS.md)' },
   babe: { tier: 'C', note: 'a baby of 3-12 months or a small child carried, in a little tunic, bare-legged (C; D-215: its size by age, its skin the carer’s tone)' },
   babe_wrapped: { tier: 'C', note: 'a baby under three months swaddled in a cloth, the face showing (swaddling by analogy with Greek and Egyptian practice: C, Q-431)' },
   babe_sling: { tier: 'C', note: 'a baby or small child in a cloth sling on the carer’s back or front, knotted over her shoulders (the plan’s “on her back”, “at her front”; the sling C)' },
@@ -241,6 +251,27 @@ export function propGeometry(kind: string): THREE.BufferGeometry | null {
     case 'babe_cradle': { const prof = [[0.16, 0.01], [0.2, 0.03], [0.225, 0.12], [0.24, 0.17]], inner = [...prof].reverse().map(([r, y]) => [r - 0.014, y + (y < 0.02 ? 0.01 : 0)]);
       const lathe = (pts: number[][]) => new THREE.LatheGeometry(pts.map(([a, b]) => new THREE.Vector2(a, b)), 8).scale(1, 1, 1.65);
       return merge([paint(lathe(prof), [0.62, 0.52, 0.32], 0, 0.9), paint(lathe(inner), [0.56, 0.47, 0.29], 0, 0.95), paint(box(0.3, 0.012, 0.52, 0, 0.012, 0), [0.8, 0.77, 0.7], 0, 1), babeG(true).rotateX(-Math.PI / 2).translate(0, 0.085, 0.24)]); }
+    // ------------------------------------------------ D-255: the crafts' and the records' tools (grip frame: +Z to the working end)
+    case 'hammer': return merge([paint(rod([0, 0, -0.06], [0, 0, 0.3], 0.013, 0.016, 5), WOOD, 0, 0.7), paint(box(0.036, 0.12, 0.042, 0, -0.015, 0.29), IRON, 0.7, 0.45)]);
+    case 'tongs': { const HOT: RGB = [1.0, 0.42, 0.12]; const g: THREE.BufferGeometry[] = [];
+      for (const s of [-1, 1]) g.push(paint(rod([0, 0.008 * s, -0.08], [0, 0.012 * s, 0.34], 0.007, 0.006, 4), IRON, 0.7, 0.5), paint(rod([0, 0.012 * s, 0.34], [0, 0.004 * s, 0.44], 0.006, 0.005, 3), IRON, 0.7, 0.5));
+      g.push(paint(box(0.018, 0.018, 0.16, 0, 0, 0.5), HOT, 0.2, 0.6)); return merge(g); } // (the bar at a red heat; the glow is its colour: C)
+    case 'hammer_s': return merge([paint(rod([0, 0, -0.04], [0, 0, 0.18], 0.008, 0.009, 4), WOOD, 0, 0.7), paint(box(0.02, 0.06, 0.022, 0, -0.01, 0.18), BRONZE, 0.8, 0.4)]);
+    case 'punch': return paint(rod([0, 0, -0.04], [0, 0, 0.07], 0.0055, 0.003, 4, true), BRONZE, 0.8, 0.4);
+    case 'balance': { // hung from the hand: the cord down to the beam (x across), the pans on their cords below it; the pans
+      // rock with the instance parameter (sv: the left pan up, the right pan down, m)
+      const CORD: RGB = [0.66, 0.58, 0.42], up = (_x: number, y: number): [number, number, number] => [0, y < -0.13 ? 1 : 0, 0], dn = (_x: number, y: number): [number, number, number] => [0, y < -0.13 ? -1 : 0, 0];
+      const g = [paint(rod([0, 0, 0], [0, -0.1, 0], 0.002, 0.002, 3), CORD, 0, 0.9), paint(rod([-0.16, -0.1, 0], [0.16, -0.1, 0], 0.004, 0.004, 4, true), BRONZE, 0.8, 0.4)];
+      for (const s of [-1, 1]) { const f = s > 0 ? up : dn;
+        for (const dz of [-0.03, 0.03]) g.push(paint(rod([0.16 * s, -0.1, 0], [0.16 * s + 0.03 * Math.sign(dz) * 0, -0.26, dz], 0.0015, 0.0015, 3), CORD, 0, 0.9, f));
+        g.push(paint(new THREE.LatheGeometry([[0, 0], [0.04, 0.004], [0.058, 0.02], [0.056, 0.022]].map(([x, y]) => new THREE.Vector2(x, y)), 9).translate(0.16 * s, -0.285, 0), BRONZE, 0.8, 0.4, f)); }
+      return merge(g); }
+    case 'seal_cyl': return paint(new THREE.CylinderGeometry(0.009, 0.009, 0.032, 7).rotateZ(Math.PI / 2), [0.28, 0.33, 0.52], 0.1, 0.35); // (lapis-coloured stone, C)
+    case 'drill_bow': { const g: THREE.BufferGeometry[] = []; const n = 5; for (let i = 0; i < n; i++) { const a0 = i / n, a1 = (i + 1) / n, y = (a: number) => 0.05 * Math.sin(Math.PI * a);
+        g.push(paint(rod([0, y(a0), a0 * 0.46 - 0.02], [0, y(a1), a1 * 0.46 - 0.02], 0.008, 0.008, 4), WOOD_D, 0, 0.7)); }
+      g.push(paint(rod([0, 0, -0.02], [0, 0, 0.44], 0.002, 0.002, 3), [0.5, 0.36, 0.22], 0, 0.9)); return merge(g); }
+    case 'scraper': return merge([paint(box(0.26, 0.05, 0.006, 0, -0.03, 0.03), IRON, 0.6, 0.5), paint(rod([-0.15, -0.05, 0.02], [-0.15, 0.06, 0], 0.014, 0.014, 5), WOOD, 0, 0.7), paint(rod([0.15, -0.05, 0.02], [0.15, 0.06, 0], 0.014, 0.014, 5), WOOD, 0, 0.7)]);
+    case 'pestle': return merge([paint(rod([0, 0, -0.62], [0, 0, 0.5], 0.03, 0.032, 6), WOOD, 0, 0.75), paint(rod([0, 0, 0.5], [0, 0, 0.66], 0.032, 0.045, 6, true), WOOD_D, 0, 0.8)]);
     default: return null;
   }
 }
@@ -269,7 +300,7 @@ export const PROP_KINDS = ['spear', 'sack', 'jar', 'tablet', 'mallet', 'basket']
 /** how a prop is held: legacy (the Phase 3 placements), one hand (axis toward the cycle's tip or along the fist),
  *  two hands (the axis threads rear → front grip), mid (between the palms), hang (below the hand, turning), hip, palm,
  *  at (placed by the cycle), bow, arrow */
-type Rule = 'legacy' | 'one' | 'two' | 'mid' | 'hang' | 'hip' | 'palm' | 'at' | 'bow' | 'arrow' | 'inst' | 'mouth' | 'toss';
+type Rule = 'legacy' | 'one' | 'two' | 'mid' | 'hang' | 'hip' | 'palm' | 'at' | 'bow' | 'arrow' | 'inst' | 'mouth' | 'toss' | 'dangle';
 export interface PropSpec { geom: string; rule: Rule; hand?: 'l' | 'r'; front?: 'l' | 'r'; roll?: 'up' | 'palm' | 'away' | 'down'; up?: number; grip?: [number, number] }
 /** every prop an activity can name (activities.ts); geometry is shared between kinds that are held differently */
 export const PROPS: Record<string, PropSpec> = {
@@ -298,6 +329,10 @@ export const PROPS: Record<string, PropSpec> = {
   barsom: { geom: 'barsom', rule: 'one', hand: 'r', roll: 'up', up: 1 },
   // D-221: the scribes' stylus and pen in the right hand, the leather on the left palm
   stylus: { geom: 'stylus', rule: 'one', hand: 'r', roll: 'up' }, pen: { geom: 'pen', rule: 'one', hand: 'r', roll: 'up' }, leather: { geom: 'leather', rule: 'palm', hand: 'l' },
+  // D-255: the crafts' and the records' tools (a balance hangs upright from the hand: rule 'dangle')
+  hammer: { geom: 'hammer', rule: 'one', hand: 'r', roll: 'up' }, tongs: { geom: 'tongs', rule: 'one', hand: 'l', roll: 'up' }, hammer_s: { geom: 'hammer_s', rule: 'one', hand: 'r', roll: 'up' },
+  punch: { geom: 'punch', rule: 'one', hand: 'l', roll: 'up' }, balance: { geom: 'balance', rule: 'dangle', hand: 'l' }, seal_cyl: { geom: 'seal_cyl', rule: 'one', hand: 'r', roll: 'up' },
+  drill_bow: { geom: 'drill_bow', rule: 'one', hand: 'r', roll: 'up' }, scraper: { geom: 'scraper', rule: 'mid' }, pestle: { geom: 'pestle', rule: 'two', front: 'r', roll: 'up' },
 };
 /** the two carried-prop meshes: small objects (with the Phase 3 set) and long tools. Every kind of a class is in one union */
 export const PROP_CLASSES: string[][] = [
@@ -320,6 +355,8 @@ export const PROP_CLASSES: string[][] = [
   // D-215: the carried children (a class of their own: one draw more only where a child is carried; the skin tinted per
   // instance by the carer's tone)
   ['babe', 'babe_wrapped', 'babe_sling', 'babe_wrapped_sling', 'babe_mat', 'babe_cradle'],
+  // D-255: the crafts' and the records' tools (a class of their own: one draw more only where a craft is worked in view)
+  ['hammer', 'tongs', 'hammer_s', 'punch', 'balance', 'seal_cyl', 'drill_bow', 'scraper', 'pestle'],
 ];
 /** the class of the carried children (crowd.ts tints its skin) */
 export const BABE_CLASS = 3;
@@ -434,6 +471,8 @@ export function placeProp(kind: string, R: RigView, po: Pose, s: number, time: n
     case 'toss': { // D-215: a ball between the palms, thrown up by the cycle's second parameter (m above the hands)
       const m = gripPoint(R, 'l').add(gripPoint(R, 'r')).multiplyScalar(0.5 * s); m.y += po.aux ?? 0; out.makeTranslation(m.x, m.y, m.z); return true; }
     case 'hang': { const g = gripPoint(R, P.hand ?? 'r').multiplyScalar(s); out.makeRotationY((time * 21) % (2 * Math.PI)).setPosition(g); if (param) param.v = po.aux ?? 0.4; return true; }
+    // D-255: hung upright from the hand, square to the body (the balance: its beam across, the pans rocked by the pose's ip)
+    case 'dangle': { const g = gripPoint(R, P.hand ?? 'l').multiplyScalar(s); out.makeTranslation(g.x, g.y, g.z); if (param) param.v = po.ip ?? 0; return true; }
     case 'hip': { const g = gripPoint(R, 'l').multiplyScalar(s).add(new V(0.03, -0.1, 0)); out.makeRotationZ(0.15).setPosition(g); return true; }
     case 'at': { const a = po.at; if (!a) return false; out.makeRotationY(a[3]).setPosition(a[0] * s, a[1] * s, a[2] * s); return true; }
     case 'inst': { const f = po.inst; if (!f) return false; // the cycle frames the instrument (reference-body units, scaled)

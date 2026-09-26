@@ -228,7 +228,7 @@ export class PopView {
     // (keyed by the day too: a spot depends on the day, the home and the age with it; a lane's spot memoised on day 150 was
     // used on day 25, 9 m away, when the person had turned twelve in between: D-191)
     // (D-221: and by whether the act faces what is waited on, court setting only: popgeo.terrace)
-    const key = ((P.day * 4194304 + P.place[i]) * 2 + (indoor ? 1 : 0)) * 2 + (this.pop.court && FACING_ACTS.test(act) ? 1 : 0); let sp = s.spots.get(key);
+    const key = (((P.day * 4194304 + P.place[i]) * 2 + (indoor ? 1 : 0)) * 2 + (this.pop.court && FACING_ACTS.test(act) ? 1 : 0)) * 2 + (act === 'smith' ? 1 : 0); let sp = s.spots.get(key); // (D-255: and whether at the forge, popgeo forgeSpot)
     if (!sp) { sp = this.geo.spot(s.pid, place, act, P.day, h, indoor);
       if (indoor && sp.ok && sp.out && !sp.roof) sp = { ...sp, out: false, inside: false, noRoom: true, what: `${sp.what}: indoors by the plan, no room built there (not drawn: D-244)` };
       if (s.spots.size >= 64) s.spots.clear(); s.spots.set(key, sp); }
